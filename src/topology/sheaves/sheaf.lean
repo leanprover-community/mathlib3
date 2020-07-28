@@ -117,10 +117,15 @@ is the equalizer of the two morphisms
 def sheaf_condition (F : presheaf C X) : Type (max u (v+1)) :=
 Π ⦃ι : Type v⦄ (U : ι → opens X), is_limit (sheaf_condition.fork F U)
 
-def sheaf_condition_trivial (F : presheaf (category_theory.discrete punit) X) :
+/--
+The presheaf valued in `punit` over any topological space is a sheaf.
+-/
+def sheaf_condition_punit (F : presheaf (category_theory.discrete punit) X) :
   sheaf_condition F :=
-λ ι U,
-{ lift := λ s, begin dsimp, end}
+λ ι U, punit_cone_is_limit
+
+instance sheaf_condition_inhabited (F : presheaf (category_theory.discrete punit) X) :
+  inhabited (sheaf_condition F) := ⟨sheaf_condition_punit F⟩
 
 variables (C X)
 

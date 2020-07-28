@@ -15,18 +15,18 @@ open category_theory
 namespace category_theory.limits
 
 
-variables {J : Type v} [small_category J] (F : J ⥤ discrete punit.{v+1})
+variables {J : Type v} [small_category J] {F : J ⥤ discrete punit.{v+1}}
 
 /--
-Any cone into `punit` is a limit cone.
+Any cone over a functor into `punit` is a limit cone.
 -/
-def punit_cone_is_limit (c : cone F) : is_limit c :=
+def punit_cone_is_limit {c : cone F} : is_limit c :=
 by tidy
 
 /--
-Any cone into `punit` is a limit cone.
+Any cocone over a functor into `punit` is a colimit cocone.
 -/
-def punit_cocone_is_colimit (c : cone F) : is_limit c :=
+def punit_cocone_is_colimit {c : cocone F} : is_colimit c :=
 by tidy
 
 instance : has_limits (discrete punit) :=

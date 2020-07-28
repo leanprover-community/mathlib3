@@ -252,7 +252,7 @@ theorem ι_comp_lift {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) 
 theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A)
   (g : tensor_algebra R M →ₐ[R] A) : g.to_linear_map.comp (ι R M) = f ↔ g = lift R M f :=
 begin
-  refine ⟨λ hyp, _, λ hyp, by simp [hyp]⟩,
+  refine ⟨λ hyp, _, λ hyp, by rw [hyp, ι_comp_lift]⟩,
   ext,
   rcases x,
   induction x,

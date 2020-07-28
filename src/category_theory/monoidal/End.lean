@@ -14,7 +14,7 @@ and show that when `C` itself is monoidal, it embeds via a monoidal functor into
 ## TODO
 
 Can we use this to show coherence results, e.g. a cheap proof that `λ_ (𝟙_ C) = ρ_ (𝟙_ C)`?
-I suspect this is harder that is usually made out.
+I suspect this is harder than is usually made out.
 -/
 
 universes v u

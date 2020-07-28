@@ -8,17 +8,37 @@ import category_theory.graded_object
 
 namespace category_theory
 
+section
 variables {C D E : Type*} [category C] [category D] [category E]
 
+@[simps]
 def functor.comp_left (F : C ⥤ D) :
   (D ⥤ E) ⥤ (C ⥤ E) :=
 { obj := λ G, F ⋙ G,
   map := λ G₁ G₂ f, whisker_left F f }
 
+@[simps]
 def functor.comp_right (G : D ⥤ E) :
   (C ⥤ D) ⥤ (C ⥤ E) :=
 { obj := λ F, F ⋙ G,
   map := λ F₁ F₂ f, whisker_right f G }
+
+end
+
+section
+universe variables u
+open opposite
+variables {C D : Type (u+1)} [large_category C] [large_category D]
+
+@[simps]
+def yoneda_hom_comp_yoneda (F : C ⥤ D) :
+  yoneda ⟶ ((F.op.comp_left.comp_right).obj (F ⋙ yoneda)) :=
+{ app := λ X,
+  { app := λ Y f, F.map f,
+    naturality' := by { intros Y Z f, ext1 g, exact F.map_comp _ _, } },
+  naturality' := by { intros X Y f, ext _ Z g, exact F.map_comp _ _, } }
+
+end
 
 end category_theory
 

@@ -3,7 +3,8 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Yury Kudryashov
 -/
-import algebra.category.Group
+import algebra.category.Group.basic
+import category_theory.reflect_isomorphisms
 import data.equiv.ring
 
 /-!
@@ -182,3 +183,21 @@ def ring_equiv_iso_CommRing_iso {X Y : Type u} [comm_ring X] [comm_ring Y] :
   (X ≃+* Y) ≅ (CommRing.of X ≅ CommRing.of Y) :=
 { hom := λ e, e.to_CommRing_iso,
   inv := λ i, i.CommRing_iso_to_ring_equiv, }
+
+instance Ring.forget_reflects_isos : reflects_isomorphisms (forget Ring.{u}) :=
+{ reflects := λ X Y f _,
+  begin
+    resetI,
+    let i := as_iso ((forget Ring).map f),
+    let e : X ≃+* Y := { ..f, ..i.to_equiv },
+    exact { ..e.to_Ring_iso} ,
+  end }
+
+instance CommRing.forget_reflects_isos : reflects_isomorphisms (forget CommRing.{u}) :=
+{ reflects := λ X Y f _,
+  begin
+    resetI,
+    let i := as_iso ((forget CommRing).map f),
+    let e : X ≃+* Y := { ..f, ..i.to_equiv },
+    exact { ..e.to_CommRing_iso} ,
+  end }

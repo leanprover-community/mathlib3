@@ -61,10 +61,10 @@ variables {γ : Sort*} {r : α → α → Prop} {s : β → β → Prop}
 /-- Descends a function `f : α → β → γ` to quotients of `α` and `β`. -/
 attribute [reducible, elab_as_eliminator]
 protected def lift₂
-   (f : α → β → γ)
-   (hr : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂)
-   (hs : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b)
-   (q₁ : quot r) (q₂ : quot s) : γ :=
+  (f : α → β → γ)
+  (hr : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂)
+  (hs : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b)
+  (q₁ : quot r) (q₂ : quot s) : γ :=
 quot.lift (λ a, quot.lift (f a) (hr a))
 (λ a₁ a₂ ha, funext (λ q, quot.induction_on q (λ b, hs a₁ a₂ b ha)))
 q₁ q₂

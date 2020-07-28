@@ -213,6 +213,9 @@ def filter_basis.of_sets (s : set (set α)) : filter_basis α :=
 lemma has_basis.mem_iff (hl : l.has_basis p s) : t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t :=
 hl.mem_iff' t
 
+lemma has_basis.ex_mem (h : l.has_basis p s) : ∃ i, p i :=
+let ⟨i, pi, h⟩ := h.mem_iff.mp univ_mem_sets in ⟨i, pi⟩
+
 protected lemma is_basis.has_basis (h : is_basis p s) : has_basis h.filter p s :=
 ⟨λ t, by simp only [h.mem_filter_iff, exists_prop]⟩
 
@@ -265,6 +268,28 @@ begin
     convert h t,
     ext s,
     tauto }
+end
+
+lemma has_basis.has_basis_self_subset {p : set α → Prop} (h : l.has_basis (λ s, s ∈ l ∧ p s) id)
+  {V : set α} (hV : V ∈ l) : l.has_basis (λ s, s ∈ l ∧ p s ∧ s ⊆ V) id :=
+begin
+  rw has_basis_self at *,
+  intros t,
+  rw h,
+  split,
+  { rcases (h V).mp hV with ⟨r₀, r₀_in, pr₀, hr₀⟩,
+    rintros ⟨r, r_in, pr, hr⟩,
+    rcases (h _).mp (inter_mem_sets r_in r₀_in) with ⟨r₁, r₁_in, pr₁, hr₁⟩,
+    refine ⟨r₁, r₁_in, ⟨pr₁, _⟩, _⟩,
+    calc r₁ ⊆ r ∩ r₀ : hr₁
+        ... ⊆ r₀ : inter_subset_right r r₀
+        ... ⊆ V : hr₀,
+    calc r₁ ⊆ r ∩ r₀ : hr₁
+        ... ⊆ r : inter_subset_left r r₀
+        ... ⊆ t : hr },
+  { rintros ⟨r, r_in, pr, hr⟩,
+    use r,
+    tauto },
 end
 
 theorem has_basis.ge_iff (hl' : l'.has_basis p' s')  : l ≤ l' ↔ ∀ i', p' i' → s' i' ∈ l :=

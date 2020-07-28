@@ -422,6 +422,18 @@ begin
   rwa [inter_diff_self, subset_empty_iff] at this,
 end
 
+lemma closure_eq_interior_union_frontier (s : set α) : closure s = interior s ∪ frontier s :=
+(union_diff_cancel  interior_subset_closure).symm
+
+lemma closure_eq_self_union_frontier (s : set α) : closure s = s ∪ frontier s :=
+begin
+  have : s ∪ closure (sᶜ) = univ,
+  { apply eq_univ_of_subset _ (union_compl_self s),
+    exact union_subset_union (subset.refl s) (subset_closure : sᶜ ⊆ closure sᶜ) },
+  rw [frontier_eq_closure_inter_closure, union_inter_distrib_left, this, inter_univ,
+      union_eq_self_of_subset_left subset_closure],
+end
+
 /-!
 ### Neighborhoods
 -/
@@ -704,6 +716,9 @@ end
 lemma is_closed_iff_cluster_pt {s : set α} : is_closed s ↔ ∀a, cluster_pt a (𝓟 s) → a ∈ s :=
 calc is_closed s ↔ closure s ⊆ s : closure_subset_iff_is_closed.symm
   ... ↔ (∀a, cluster_pt a (𝓟 s) → a ∈ s) : by simp only [subset_def, mem_closure_iff_cluster_pt]
+
+lemma is_closed_iff_nhds {s : set α} : is_closed s ↔ ∀ x, (∀ U ∈ 𝓝 x, (U ∩ s).nonempty) → x ∈ s :=
+by simp_rw [is_closed_iff_cluster_pt, cluster_pt, inf_principal_ne_bot_iff]
 
 lemma closure_inter_open {s t : set α} (h : is_open s) : s ∩ closure t ⊆ closure (s ∩ t) :=
 assume a ⟨hs, ht⟩,

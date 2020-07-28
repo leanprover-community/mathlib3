@@ -1688,6 +1688,15 @@ begin
   rw [image_preimage_eq_of_subset], exact hs₂, rw [range_coe], exact hs₁
 end
 
+lemma preimage_coe_nonempty {s t : set α} : ((coe : s → α) ⁻¹' t).nonempty ↔ (s ∩ t).nonempty :=
+begin
+  split,
+  { rintros ⟨x, hx⟩,
+    use [x, x.property, hx] },
+  { rintros ⟨x, xs, xt⟩,
+    exact ⟨⟨x, xs⟩, xt⟩ },
+end
+
 end subtype
 
 namespace set

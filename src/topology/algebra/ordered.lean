@@ -248,13 +248,13 @@ lemma is_open_Ioo : is_open (Ioo a b) :=
 is_open_inter is_open_Ioi is_open_Iio
 
 @[simp] lemma interior_Ioi : interior (Ioi a) = Ioi a :=
-interior_eq_of_open is_open_Ioi
+is_open_Ioi.interior_eq
 
 @[simp] lemma interior_Iio : interior (Iio a) = Iio a :=
-interior_eq_of_open is_open_Iio
+is_open_Iio.interior_eq
 
 @[simp] lemma interior_Ioo : interior (Ioo a b) = Ioo a b :=
-interior_eq_of_open is_open_Ioo
+is_open_Ioo.interior_eq
 
 /-- Intermediate value theorem for two functions: if `f` and `g` are two continuous functions
 on a preconnected space and `f a ≤ g a` and `g b ≤ f b`, then for some `x` we have `f x = g x`. -/

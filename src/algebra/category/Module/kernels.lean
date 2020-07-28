@@ -27,20 +27,15 @@ kernel_fork.of_ι (as_hom f.ker.subtype) $ by tidy
 
 /-- The kernel of a linear map is a kernel in the categorical sense. -/
 def kernel_is_limit : is_limit (kernel_cone f) :=
-{ lift := λ s, linear_map.cod_restrict f.ker (fork.ι s) (λ c, linear_map.mem_ker.2 $
-  by { rw [←@function.comp_apply _ _ _ f (fork.ι s) c, ←coe_comp, fork.condition,
-    has_zero_morphisms.comp_zero (fork.ι s) N], refl }),
-  fac' := λ s j, linear_map.ext $ λ x,
-  begin
-    rw [coe_comp, function.comp_app, ←linear_map.comp_apply],
-    cases j,
-    { erw @linear_map.subtype_comp_cod_restrict _ _ _ _ _ _ _ _ (fork.ι s) f.ker _ },
-    { rw [←fork.app_zero_left, ←fork.app_zero_left], refl }
-  end,
-  uniq' := λ s m h, linear_map.ext $ λ x, subtype.ext_iff_val.2 $
+fork.is_limit.mk _
+  (λ s, linear_map.cod_restrict f.ker (fork.ι s) (λ c, linear_map.mem_ker.2 $
+    by { rw [←@function.comp_apply _ _ _ f (fork.ι s) c, ←coe_comp, fork.condition,
+      has_zero_morphisms.comp_zero (fork.ι s) N], refl }))
+  (λ s, linear_map.subtype_comp_cod_restrict _ _ _)
+  (λ s m h, linear_map.ext $ λ x, subtype.ext_iff_val.2 $
     have h₁ : (m ≫ (kernel_cone f).π.app zero).to_fun = (s.π.app zero).to_fun,
-    by { congr, exact h zero },
-    by convert @congr_fun _ _ _ _ h₁ x }
+      by { congr, exact h zero },
+    by convert @congr_fun _ _ _ _ h₁ x )
 
 /-- The cokernel cocone induced by the projection onto the quotient. -/
 def cokernel_cocone : cokernel_cofork f :=

@@ -27,11 +27,12 @@ def normal_mono [mono f] : normal_mono f :=
   g := f.range.mkq,
   w := linear_map.range_mkq_comp _,
   is_limit :=
-  begin
-    refine is_kernel.iso_kernel _ _ (kernel_is_limit _) _ _,
-    { exact linear_equiv.to_Module_iso' (linear_map.equiv_range_mkq_ker_of_ker_eq_bot (ker_eq_bot_of_mono f)), },
-    ext, refl
-  end }
+    is_kernel.iso_kernel _ _ (kernel_is_limit _)
+      (linear_equiv.to_Module_iso'
+        (linear_equiv.trans (submodule.quot_equiv_of_eq_bot _ (ker_eq_bot_of_mono _)).symm
+          (linear_equiv.trans (linear_map.quot_ker_equiv_range f)
+            (linear_equiv.of_eq _ _ (submodule.ker_mkq _).symm)))) $
+      by { ext, refl } }
 
 /-- In the category of modules, every epimorphism is normal. -/
 def normal_epi [epi f] : normal_epi f :=
@@ -39,11 +40,12 @@ def normal_epi [epi f] : normal_epi f :=
   g := f.ker.subtype,
   w := linear_map.comp_ker_subtype _,
   is_colimit :=
-  begin
-    refine is_cokernel.cokernel_iso _ _ (cokernel_is_colimit _) _ _,
-    { exact linear_equiv.to_Module_iso' (linear_map.ker_subtype_range_quotient_equiv_of_range_eq_top (range_eq_top_of_epi f)) },
-    ext, refl
-  end }
+    is_cokernel.cokernel_iso _ _ (cokernel_is_colimit _)
+      (linear_equiv.to_Module_iso'
+        (linear_equiv.trans
+          (linear_equiv.trans (submodule.quot_equiv_of_eq _ _ (submodule.range_subtype _))
+            (linear_map.quot_ker_equiv_range f)) (linear_equiv.of_top _ (range_eq_top_of_epi _)))) $
+      by { ext, refl } }
 
 /-- The category of R-modules is abelian. -/
 instance : abelian (Module R) :=

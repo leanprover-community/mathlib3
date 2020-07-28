@@ -1089,7 +1089,7 @@ def ker (f : M →ₗ[R] M₂) : submodule R M := comap f ⊥
 
 @[simp] theorem map_coe_ker (f : M →ₗ[R] M₂) (x : ker f) : f x = 0 := mem_ker.1 x.2
 
-lemma comp_ker_subtype (f : M →ₗ[R] M₂) : f.comp (f.ker).subtype = 0 :=
+lemma comp_ker_subtype (f : M →ₗ[R] M₂) : f.comp f.ker.subtype = 0 :=
 linear_map.ext $ λ x, suffices f x = 0, by simp [this], mem_ker.1 x.2
 
 theorem ker_comp (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) : ker (g.comp f) = comap f (ker g) := rfl
@@ -2028,11 +2028,12 @@ linear_equiv.of_linear (p.liftq id $ hp.symm ▸ bot_le) p.mkq (liftq_mkq _ _ _)
 @[simp] lemma coe_quot_equiv_of_eq_bot_symm (hp : p = ⊥) :
   ((p.quot_equiv_of_eq_bot hp).symm : M →ₗ[R] p.quotient) = p.mkq := rfl
 
-/-- If `p = ⊤`, then `p ≃ₗ[R] M`. -/
-/- This could in theory be made computable. -/
-def equiv_of_eq_top (hp : p = ⊤) : p ≃ₗ[R] M :=
-linear_equiv.of_bijective p.subtype (submodule.ker_subtype p)
-  (linear_map.range_eq_top.2 $ λ x, ⟨⟨x, by { rw hp, trivial }⟩, rfl⟩)
+variables (q : submodule R M)
+
+/-- Quotienting by equal submodules gives linearly equivalent quotients. -/
+def quot_equiv_of_eq (h : p = q) : p.quotient ≃ₗ[R] q.quotient :=
+{ map_add' := by { rintros ⟨x⟩ ⟨y⟩, refl }, map_smul' := by { rintros x ⟨y⟩, refl },
+  ..@quotient.congr _ _ (quotient_rel p) (quotient_rel q) (equiv.refl _) $ λ a b, by { subst h, refl } }
 
 end submodule
 
@@ -2175,36 +2176,6 @@ lemma quotient_inf_equiv_sup_quotient_symm_apply_right (p p' : submodule R M) {x
 quotient_inf_equiv_sup_quotient_symm_apply_eq_zero_iff.2 hx
 
 end isomorphism_laws
-
-section
-variables [ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
-variables {f : M →ₗ[R] M₂}
-
-/-- If `f : M → M₂` is an injective linear map, then by the first isomorphism law `M` is just the
-    kernel of the quotient map onto the quotient by the range of `f`. -/
-def equiv_range_mkq_ker_of_ker_eq_bot (h : f.ker = ⊥) : M ≃ₗ[R] f.range.mkq.ker :=
-linear_equiv.trans (submodule.quot_equiv_of_eq_bot _ h).symm
-  (linear_equiv.trans (quot_ker_equiv_range f)
-    (linear_equiv.of_eq _ _ (submodule.ker_mkq _).symm))
-
-section
-variables (p q : submodule R M)
-
-/-- Quotienting by equal submodules gives linearly equivalent quotients. -/
-def quot_equiv_of_eq (h : p = q) : p.quotient ≃ₗ[R] q.quotient :=
-{ map_add' := by { rintros ⟨x⟩ ⟨y⟩, refl }, map_smul' := by { rintros x ⟨y⟩, refl },
-  ..@quotient.congr _ _ (quotient_rel p) (quotient_rel q) (equiv.refl _) $ λ a b, by { subst h, refl } }
-
-end
-
-/-- If `f : M → M₂` is a surjective linear map, then by the first isomorphism law `M₂` is just
-    the quotient by the image of the inclusion of the kernel of `f`. -/
-def ker_subtype_range_quotient_equiv_of_range_eq_top (h : f.range = ⊤) :
-  f.ker.subtype.range.quotient ≃ₗ[R] M₂ :=
-linear_equiv.trans (linear_equiv.trans (quot_equiv_of_eq _ _ (submodule.range_subtype _))
-  (quot_ker_equiv_range f)) (linear_equiv.of_top _ h)
-
-end
 
 section prod
 

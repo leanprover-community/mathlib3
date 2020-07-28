@@ -125,6 +125,9 @@ instance has_forget_to_Ring : has_forget₂ CommRing Ring := bundled_hom.forget�
 instance has_forget_to_CommSemiRing : has_forget₂ CommRing CommSemiRing :=
 has_forget₂.mk' (λ R : CommRing, CommSemiRing.of R) (λ R, rfl) (λ R₁ R₂ f, f) (by tidy)
 
+instance : full (forget₂ CommRing CommSemiRing) :=
+{ preimage := λ X Y f, f, }
+
 end CommRing
 
 -- This example verifies an improvement possible in Lean 3.8.
@@ -149,6 +152,16 @@ variables {X Y : Type u}
   inv := e.symm.to_ring_hom }
 
 end ring_equiv
+
+namespace Ring
+
+instance : reflects_isomorphisms (forget₂ Ring AddCommGroup) :=
+{ reflects := λ R S f i, by exactI
+  { ..ring_equiv.to_Ring_iso
+    { ..(as_iso ((forget₂ Ring AddCommGroup).map f)).AddCommGroup_iso_to_add_equiv,
+      ..f } } }
+
+end Ring
 
 namespace category_theory.iso
 

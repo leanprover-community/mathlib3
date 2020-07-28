@@ -28,6 +28,11 @@ def normal_mono [mono f] : normal_mono f :=
   w := linear_map.range_mkq_comp _,
   is_limit :=
     is_kernel.iso_kernel _ _ (kernel_is_limit _)
+      /- The following invalid Lean code might help you understand what's going on here:
+        M   ≃ₗ[R] f.ker.quotient  : (submodule.quot_equiv_of_eq_bot _ (ker_eq_bot_of_mono _)).symm
+        ... ≃ₗ[R] f.range         : linear_map.quot_ker_equiv_range f
+        ... ≃ₗ[R] r.range.mkq.ker : linear_equiv.of_eq _ _ (submodule.ker_mkq _).symm
+      -/
       (linear_equiv.to_Module_iso'
         (linear_equiv.trans (submodule.quot_equiv_of_eq_bot _ (ker_eq_bot_of_mono _)).symm
           (linear_equiv.trans (linear_map.quot_ker_equiv_range f)
@@ -42,6 +47,12 @@ def normal_epi [epi f] : normal_epi f :=
   is_colimit :=
     is_cokernel.cokernel_iso _ _ (cokernel_is_colimit _)
       (linear_equiv.to_Module_iso'
+      /- The following invalid Lean code might help you understand what's going on here:
+        f.ker.subtype.range.quotient
+            ≃ₗ[R] f.ker.quotient : submodule.quot_equiv_of_eq _ _ (submodule.range_subtype _)
+        ... ≃ₗ[R] f.range        : linear_map.quot_ker_equiv_range f
+        ... ≃ₗ[R] N              : linear_equiv.of_top _ (range_eq_top_of_epi _)
+      -/
         (linear_equiv.trans
           (linear_equiv.trans (submodule.quot_equiv_of_eq _ _ (submodule.range_subtype _))
             (linear_map.quot_ker_equiv_range f)) (linear_equiv.of_top _ (range_eq_top_of_epi _)))) $

@@ -152,22 +152,10 @@ lemma range_eq_top_of_epi [epi f] : f.range = ⊤ :=
 linear_map.range_eq_top_of_cancel $ λ u v, (@cancel_epi _ _ _ _ _ f _ (as_hom u) (as_hom v)).1
 
 lemma mono_of_ker_eq_bot (hf : f.ker = ⊥) : mono f :=
-⟨λ Z u v h, begin
-  ext,
-  apply (linear_map.ker_eq_bot.1 hf),
-  rw [←linear_map.comp_apply, ←linear_map.comp_apply],
-  congr,
-  exact h
-end⟩
+concrete_category.mono_of_injective _ $ linear_map.ker_eq_bot.1 hf
 
 lemma epi_of_range_eq_top (hf : f.range = ⊤) : epi f :=
-⟨λ Z u v h, begin
-  ext,
-  cases linear_map.range_eq_top.1 hf x with y hy,
-  rw [←hy, ←linear_map.comp_apply, ←linear_map.comp_apply],
-  congr,
-  exact h
-end⟩
+concrete_category.epi_of_surjective _ $ linear_map.range_eq_top.1 hf
 
 end epi_mono
 

@@ -212,6 +212,13 @@ begin
   exact i.2.2.is_measurable.principal_is_measurably_generated
 end
 
+/-- If `s` is a measurable set, then `nhds_within a s` is a measurably generated filter for
+each `a`. This cannot be an `instance` because it depends on a non-instance `hs : is_measurable s`.
+-/
+lemma is_measurable.nhds_within_is_measurably_generated {s : set α} (hs : is_measurable s) (a : α) :
+  (nhds_within a s).is_measurably_generated :=
+by haveI := hs.principal_is_measurably_generated; exact filter.inf_is_measurably_generated _ _
+
 @[priority 100] -- see Note [lower instance priority]
 instance opens_measurable_space.to_measurable_singleton_class [t1_space α] :
   measurable_singleton_class α :=

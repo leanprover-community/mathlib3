@@ -7,7 +7,7 @@ import data.set.disjointed
 import data.set.countable
 import data.indicator_function
 import data.equiv.encodable.lattice
-import order.filter.bases
+import order.filter.basic
 
 /-!
 # Measurable spaces and measurable functions
@@ -30,6 +30,9 @@ between the lattices of σ-algebras on `α` and `β`.
 A measurable equivalence between measurable spaces is an equivalence
 which respects the σ-algebras, that is, for which both directions of
 the equivalence are measurable functions.
+
+We say that a filter `f` is measurably generated if every set `s ∈ f` includes a measurable
+set `t ∈ f`. This property is useful, e.g., to extract a measurably witness of `filter.eventually`.
 
 ## Main statements
 

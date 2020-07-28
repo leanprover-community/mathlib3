@@ -141,6 +141,7 @@ def W_rec {α : typevec n} {C : Type*}
       g a (P.W_path_dest_left h) (λ i, ⟨f i, P.W_path_dest_right h i⟩) h' in
   P.Wp_rec g' a f'
 
+/-- Defining equation for the recursor of `W` -/
 theorem W_rec_eq {α : typevec n} {C : Type*}
     (g : Π a : P.A, ((P.drop).B a ⟹ α) → ((P.last).B a → P.W α) → ((P.last).B a → C) → C)
     (a : P.A) (f' : P.drop.B a ⟹ α) (f : P.last.B a → P.W α) :
@@ -151,6 +152,7 @@ begin
   congr; ext1 i; cases (f i); refl
 end
 
+/-- Induction principle for `W` -/
 theorem W_ind {α : typevec n} {C : P.W α → Prop}
     (ih : ∀ (a : P.A) (f' : P.drop.B a ⟹ α) (f : P.last.B a → P.W α),
       (∀ i, C (f i)) → C (P.W_mk a f' f)) :

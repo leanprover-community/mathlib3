@@ -127,12 +127,12 @@ section prod_lie_group
 /- Instance of product group -/
 @[to_additive lie_add_group]
 instance {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {H : Type*} [topological_space H]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]  {I : model_with_corners 𝕜 E H}
-{G : Type*} [topological_space G] [charted_space H G] [group G] [topological_group G]
-[h : lie_group I G] {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-{H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
-{G' : Type*} [topological_space G'] [charted_space H' G']
-[group G'] [topological_group G'] [h' : lie_group I' G'] : lie_group (I.prod I') (G×G') :=
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]  {I : model_with_corners 𝕜 E H}
+  {G : Type*} [topological_space G] [charted_space H G] [group G] [topological_group G]
+  [h : lie_group I G] {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+  {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
+  {G' : Type*} [topological_space G'] [charted_space H' G']
+  [group G'] [topological_group G'] [h' : lie_group I' G'] : lie_group (I.prod I') (G×G') :=
 { smooth_mul := ((smooth_fst.comp smooth_fst).smooth.mul (smooth_fst.comp smooth_snd)).prod_mk
     ((smooth_snd.comp smooth_fst).smooth.mul (smooth_snd.comp smooth_snd)),
   smooth_inv := smooth_fst.inv.prod_mk smooth_snd.inv, }

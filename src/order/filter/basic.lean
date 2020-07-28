@@ -1113,6 +1113,10 @@ def eventually_eq (l : filter α) (f g : α → β) : Prop := ∀ᶠ x in l, f x
 
 notation f ` =ᶠ[`:50 l:50 `] `:0 g:50 := eventually_eq l f g
 
+lemma eventually_eq.eventually {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) :
+  ∀ᶠ x in l, f x = g x :=
+h
+
 lemma eventually_eq.rw {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) (p : α → β → Prop)
   (hf : ∀ᶠ x in l, p x (f x)) :
   ∀ᶠ x in l, p x (g x) :=
@@ -1127,15 +1131,15 @@ lemma eventually_eq.mem_iff {s t : set α} {l : filter α} (h : s =ᶠ[l] t) :
 eventually_set_ext.1 h
 
 lemma eventually_eq.exists_mem {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) :
-  ∃ s ∈ l, ∀ x ∈ s, f x = g x :=
-filter.eventually.exists_mem h
+  ∃ s ∈ l, eq_on f g s :=
+h.exists_mem
 
 lemma eventually_eq_of_mem {l : filter α} {f g : α → β} {s : set α}
   (hs : s ∈ l) (h : eq_on f g s) : f =ᶠ[l] g :=
 eventually_of_mem hs h
 
 lemma eventually_eq_iff_exists_mem {l : filter α} {f g : α → β} :
-  (f =ᶠ[l] g) ↔ ∃ s ∈ l, ∀ x ∈ s, f x = g x :=
+  (f =ᶠ[l] g) ↔ ∃ s ∈ l, eq_on f g s :=
 eventually_iff_exists_mem
 
 @[refl] lemma eventually_eq.refl (l : filter α) (f : α → β) :
@@ -1184,6 +1188,10 @@ lemma eventually_eq.sub [add_group β] {f f' g g' : α → β} {l : filter α} (
   (h' : f' =ᶠ[l] g') :
   ((λ x, f x - f' x) =ᶠ[l] (λ x, g x - g' x)) :=
 h.add h'.neg
+
+@[simp] lemma eventually_eq_principal {s : set α} {f g : α → β} :
+  f =ᶠ[𝓟 s] g ↔ eq_on f g s :=
+iff.rfl
 
 lemma eventually_eq_inf_principal_iff {F : filter α} {s : set α} {f g : α → β} :
   (f =ᶠ[F ⊓ 𝓟 s] g) ↔ ∀ᶠ x in F, x ∈ s → f x = g x :=
@@ -2194,13 +2202,13 @@ begin
   exact ha.mono (λ a ha, hb.mono $ λ b hb, h ha hb)
 end
 
-lemma prod_infi_left {f : ι → filter α} {g : filter β} (i : ι) :
+lemma prod_infi_left [nonempty ι] {f : ι → filter α} {g : filter β}:
   (⨅i, f i) ×ᶠ g = (⨅i, (f i) ×ᶠ g) :=
-by rw [filter.prod, comap_infi, infi_inf i]; simp only [filter.prod, eq_self_iff_true]
+by rw [filter.prod, comap_infi, infi_inf]; simp only [filter.prod, eq_self_iff_true]
 
-lemma prod_infi_right {f : filter α} {g : ι → filter β} (i : ι) :
+lemma prod_infi_right [nonempty ι] {f : filter α} {g : ι → filter β} :
   f ×ᶠ (⨅i, g i) = (⨅i, f ×ᶠ (g i)) :=
-by rw [filter.prod, comap_infi, inf_infi i]; simp only [filter.prod, eq_self_iff_true]
+by rw [filter.prod, comap_infi, inf_infi]; simp only [filter.prod, eq_self_iff_true]
 
 @[mono] lemma prod_mono {f₁ f₂ : filter α} {g₁ g₂ : filter β} (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) :
   f₁ ×ᶠ g₁ ≤ f₂ ×ᶠ g₂ :=
@@ -2298,3 +2306,9 @@ by simp only [tendsto_def, mem_prod_iff, prod_sub_preimage_iff, exists_prop, iff
 end prod
 
 end filter
+
+open_locale filter
+
+lemma set.eq_on.eventually_eq {α β} {s : set α} {f g : α → β} (h : eq_on f g s) :
+  f =ᶠ[𝓟 s] g :=
+h

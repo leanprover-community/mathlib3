@@ -98,6 +98,9 @@ def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set
 
 @[simp] theorem coeff_restriction' {p : polynomial R} {n : ℕ} : (coeff (restriction p) n).1 = coeff p n := rfl
 
+@[simp] theorem map_restriction (p : polynomial R) : p.restriction.map (algebra_map _ _) = p :=
+ext $ λ n, by rw [coeff_map, algebra.subring_algebra_map_apply, coeff_restriction]
+
 @[simp] theorem degree_restriction {p : polynomial R} : (restriction p).degree = p.degree := rfl
 
 @[simp] theorem nat_degree_restriction {p : polynomial R} : (restriction p).nat_degree = p.nat_degree := rfl
@@ -114,7 +117,7 @@ variables {S : Type v} [ring S] {f : R →+* S} {x : S}
 
 theorem eval₂_restriction {p : polynomial R} :
   eval₂ f x p = eval₂ (f.comp (is_subring.subtype _)) x p.restriction :=
-rfl
+by { dsimp only [eval₂_eq_sum], refl, }
 
 section to_subring
 variables (p : polynomial R) (T : set R) [is_subring T]
@@ -408,8 +411,8 @@ protected theorem eq_zero_or_eq_zero_of_mul_eq_zero {R : Type u} [integral_domai
 begin
   obtain ⟨s, p, rfl⟩ := exists_finset_rename p,
   obtain ⟨t, q, rfl⟩ := exists_finset_rename q,
-  have : p.rename (subtype.map id (finset.subset_union_left s t) : {x // x ∈ s} → {x // x ∈ s ∪ t}) *
-    q.rename (subtype.map id (finset.subset_union_right s t)) = 0,
+  have : rename (subtype.map id (finset.subset_union_left s t) : {x // x ∈ s} → {x // x ∈ s ∪ t}) p *
+    rename (subtype.map id (finset.subset_union_right s t) : {x // x ∈ t} → {x // x ∈ s ∪ t}) q = 0,
   { apply rename_injective _ subtype.val_injective, simpa using h },
   letI := mv_polynomial.integral_domain_fintype R {x // x ∈ (s ∪ t)},
   rw mul_eq_zero at this,
@@ -423,8 +426,8 @@ instance {R : Type u} {σ : Type v} [integral_domain R] :
 { eq_zero_or_eq_zero_of_mul_eq_zero := mv_polynomial.eq_zero_or_eq_zero_of_mul_eq_zero,
   exists_pair_ne := ⟨0, 1, λ H,
   begin
-    have : eval₂ id (λ s, (0:R)) (0 : mv_polynomial σ R) =
-      eval₂ id (λ s, (0:R)) (1 : mv_polynomial σ R),
+    have : eval₂ (ring_hom.id _) (λ s, (0:R)) (0 : mv_polynomial σ R) =
+      eval₂ (ring_hom.id _) (λ s, (0:R)) (1 : mv_polynomial σ R),
     { congr, exact H },
     simpa,
   end⟩,

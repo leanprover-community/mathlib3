@@ -1,13 +1,25 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import algebra.category.Mon.basic
 import category_theory.monoidal.internal
 import category_theory.monoidal.types
+
+/-!
+# `Mon_ (Type u) ≌ Mon.{u}`
+
+The category of internal monoid objects in `Type`
+is equivalent to the category of "native" bundled monoids.
+
+Moreover, this equivalence is compatible with the forgetful functors to `Type`.
+-/
 
 universes v u
 
 open category_theory
 open category_theory.monoidal
-
-variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 
 namespace Mon_Type_equivalence_Mon
 
@@ -24,7 +36,7 @@ def functor : Mon_ (Type u) ⥤ Mon.{u} :=
   map := λ A B f,
   { to_fun := f.hom,
     map_one' := congr_fun f.one_hom punit.star,
-    map_mul' := λ x y, congr_fun f.mul_hom (x, y), }, }.
+    map_mul' := λ x y, congr_fun f.mul_hom (x, y), }, }
 
 /--
 Converting bundled monoid to a monoid object in `Type`.
@@ -36,7 +48,7 @@ def inverse : Mon.{u} ⥤ Mon_ (Type u) :=
     mul := λ p, p.1 * p.2,
     mul_assoc' := by { ext ⟨⟨x, y⟩, z⟩, simp [mul_assoc], }, },
   map := λ A B f,
-  { hom := f, }, }.
+  { hom := f, }, }
 
 end Mon_Type_equivalence_Mon
 
@@ -50,11 +62,11 @@ def Mon_Type_equivalence_Mon : Mon_ (Type u) ≌ Mon.{u} :=
 { functor := functor,
   inverse := inverse,
   unit_iso := nat_iso.of_components
-    (λ A, { hom := { hom := 𝟙 _, }, inv := { hom := 𝟙 _, }})
+    (λ A, { hom := { hom := 𝟙 _, }, inv := { hom := 𝟙 _, }, })
     (by tidy),
   counit_iso := nat_iso.of_components (λ A,
   { hom := { to_fun := id, map_one' := rfl, map_mul' := λ x y, rfl, },
-    inv := { to_fun := id, map_one' := rfl, map_mul' := λ x y, rfl, }}) (by tidy), }.
+    inv := { to_fun := id, map_one' := rfl, map_mul' := λ x y, rfl, }, }) (by tidy), }
 
 /--
 The equivalence `Mon_ (Type u) ≌ Mon.{u}`

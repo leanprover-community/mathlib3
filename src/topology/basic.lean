@@ -427,7 +427,7 @@ end
 -/
 
 /-- A set is called a neighborhood of `a` if it contains an open set around `a`. The set of all
-neighborhoods of `a` forms a filter, the neighorhood filter at `a`, which is here defined as the
+neighborhoods of `a` forms a filter, the neighborhood filter at `a`, is here defined as the
 infimum over the principal filters of all open sets containing `a`. -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s)
 

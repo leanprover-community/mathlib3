@@ -851,8 +851,11 @@ theorem nonempty_diff {s t : set α} : (s \ t).nonempty ↔ ¬ (s ⊆ t) :=
 ⟨λ ⟨x, xs, xt⟩, not_subset.2 ⟨x, xs, xt⟩,
   λ h, let ⟨x, xs, xt⟩ := not_subset.1 h in ⟨x, xs, xt⟩⟩
 
-theorem union_diff_cancel {s t : set α} (h : s ⊆ t) : s ∪ (t \ s) = t :=
+theorem union_diff_cancel' {s t u : set α} (h₁ : s ⊆ t) (h₂ : t ⊆ u) : t ∪ (u \ s) = u :=
 by finish [ext_iff, iff_def, subset_def]
+
+theorem union_diff_cancel {s t : set α} (h : s ⊆ t) : s ∪ (t \ s) = t :=
+union_diff_cancel' (subset.refl s) h
 
 theorem union_diff_cancel_left {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) \ s = t :=
 by finish [ext_iff, iff_def, subset_def]
@@ -1689,13 +1692,7 @@ begin
 end
 
 lemma preimage_coe_nonempty {s t : set α} : ((coe : s → α) ⁻¹' t).nonempty ↔ (s ∩ t).nonempty :=
-begin
-  split,
-  { rintros ⟨x, hx⟩,
-    use [x, x.property, hx] },
-  { rintros ⟨x, xs, xt⟩,
-    exact ⟨⟨x, xs⟩, xt⟩ },
-end
+by rw [inter_comm, ← image_preimage_coe, nonempty_image_iff]
 
 end subtype
 

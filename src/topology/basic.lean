@@ -423,16 +423,10 @@ begin
 end
 
 lemma closure_eq_interior_union_frontier (s : set α) : closure s = interior s ∪ frontier s :=
-(union_diff_cancel  interior_subset_closure).symm
+(union_diff_cancel interior_subset_closure).symm
 
 lemma closure_eq_self_union_frontier (s : set α) : closure s = s ∪ frontier s :=
-begin
-  have : s ∪ closure (sᶜ) = univ,
-  { apply eq_univ_of_subset _ (union_compl_self s),
-    exact union_subset_union (subset.refl s) (subset_closure : sᶜ ⊆ closure sᶜ) },
-  rw [frontier_eq_closure_inter_closure, union_inter_distrib_left, this, inter_univ,
-      union_eq_self_of_subset_left subset_closure],
-end
+(union_diff_cancel' interior_subset subset_closure).symm
 
 /-!
 ### Neighborhoods

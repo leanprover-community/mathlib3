@@ -381,7 +381,7 @@ we use a typeclass argument in lemmas instead. -/
 lemma ne_bot.ne {f : filter α} (hf : ne_bot f) : f ≠ ⊥ := hf
 
 @[simp] lemma not_ne_bot {α : Type*} {f : filter α} : ¬ f.ne_bot ↔ f = ⊥ :=
-by simp [ne_bot]
+not_not
 
 lemma ne_bot.mono {f g : filter α} (hf : ne_bot f) (hg : f ≤ g) : ne_bot g :=
 ne_bot_of_le_ne_bot hf hg

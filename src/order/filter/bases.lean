@@ -213,6 +213,9 @@ def filter_basis.of_sets (s : set (set α)) : filter_basis α :=
 lemma has_basis.mem_iff (hl : l.has_basis p s) : t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t :=
 hl.mem_iff' t
 
+lemma has_basis_iff : l.has_basis p s ↔ ∀ t, t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t :=
+⟨λ ⟨h⟩, h, λ h, ⟨h⟩⟩
+
 lemma has_basis.ex_mem (h : l.has_basis p s) : ∃ i, p i :=
 let ⟨i, pi, h⟩ := h.mem_iff.mp univ_mem_sets in ⟨i, pi⟩
 
@@ -256,41 +259,22 @@ lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 
 lemma has_basis_self {l : filter α} {P : set α → Prop} :
   has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t, (t ∈ l ↔ ∃ r ∈ l, P r ∧ r ⊆ t) :=
+by simp only [has_basis_iff, exists_prop, id, and_assoc]
+
+/-- If `{s i | p i}` is a basis of a filter `l` and `V ∈ l`, then `{s i | p i ∧ s i ⊆ V}`
+is a basis of `l`. -/
+lemma has_basis.restrict (h : l.has_basis p s) {V : set α} (hV : V ∈ l) :
+  l.has_basis (λ i, p i ∧ s i ⊆ V) s :=
 begin
-  split,
-  { rintros ⟨h⟩ t,
-    convert h t,
-    ext s,
-    tauto, },
-  { intro h,
-    constructor,
-    intro t,
-    convert h t,
-    ext s,
-    tauto }
+  refine ⟨λ t, ⟨λ ht, _, λ ⟨i, hpi, hti⟩, h.mem_iff.2 ⟨i, hpi.1, hti⟩⟩⟩,
+  rcases h.mem_iff.1 (inter_mem_sets hV ht) with ⟨i, hpi, hti⟩,
+  rw subset_inter_iff at hti,
+  exact ⟨i, ⟨hpi, hti.1⟩, hti.2⟩
 end
 
 lemma has_basis.has_basis_self_subset {p : set α → Prop} (h : l.has_basis (λ s, s ∈ l ∧ p s) id)
   {V : set α} (hV : V ∈ l) : l.has_basis (λ s, s ∈ l ∧ p s ∧ s ⊆ V) id :=
-begin
-  rw has_basis_self at *,
-  intros t,
-  rw h,
-  split,
-  { rcases (h V).mp hV with ⟨r₀, r₀_in, pr₀, hr₀⟩,
-    rintros ⟨r, r_in, pr, hr⟩,
-    rcases (h _).mp (inter_mem_sets r_in r₀_in) with ⟨r₁, r₁_in, pr₁, hr₁⟩,
-    refine ⟨r₁, r₁_in, ⟨pr₁, _⟩, _⟩,
-    calc r₁ ⊆ r ∩ r₀ : hr₁
-        ... ⊆ r₀ : inter_subset_right r r₀
-        ... ⊆ V : hr₀,
-    calc r₁ ⊆ r ∩ r₀ : hr₁
-        ... ⊆ r : inter_subset_left r r₀
-        ... ⊆ t : hr },
-  { rintros ⟨r, r_in, pr, hr⟩,
-    use r,
-    tauto },
-end
+by simpa only [and_assoc] using h.restrict hV
 
 theorem has_basis.ge_iff (hl' : l'.has_basis p' s')  : l ≤ l' ↔ ∀ i', p' i' → s' i' ∈ l :=
 ⟨λ h i' hi', h $ hl'.mem_of_mem hi',

@@ -69,13 +69,11 @@ quot.lift (λ x : F α, quot.mk _ (f <$$> x : F β)) $ λ a b h,
 def quot1.mvfunctor : mvfunctor (quot1 R) :=
 { map := quot1.map R Hfunc  }
 
-variables (Hrefl : ∀ ⦃α⦄ (a : F α), R a a)
-
 /-- `quot1` is a qpf -/
 noncomputable def rel_quot : @mvqpf _ (quot1 R) (mvqpf.quot1.mvfunctor R Hfunc) :=
 @quotient_qpf n F _ q _ (mvqpf.quot1.mvfunctor R Hfunc) (λ α x, quot.mk _ x) (λ α, quot.out)
   (λ α x, quot.out_eq _)
-  (λ α β f x, quot.sound (Hfunc _ _ _ (Hrefl _)))
+  (λ α β f x, rfl)
 
 end rel
 

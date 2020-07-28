@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import logic.nontrivial
-import algebra.group.commute
 import algebra.group.units_hom
 import algebra.group.inj_surj
 

@@ -6,22 +6,43 @@ Author: Nicolò Cavalleri.
 
 import geometry.manifold.times_cont_mdiff
 
-noncomputable theory
-
 /-!
 # Lie groups
 
-We define Lie groups.
+A Lie group is a group that is also a smooth manifold, in which the group operations of
+multiplication and inversion are smooth maps. Smoothness of the group multiplication means that
+means that multiplication is a smooth mapping of the product manifold `G` × `G` into `G`.
+
+Note that, since a manifold here is not second-countable and Hausdorff a Lie-group here is not
+guaranteed to be second-countable (even though it can be proved it is Hausdorrf). Note also that Lie
+groups here are not necessarily finite dimensional.
 
 ## Main definitions and statements
 
 * `lie_add_group I G` : a Lie additive group where `G` is a manifold on the model with corners `I`.
 * `lie_group I G`     : a Lie multiplicative group where `G` is a manifold on the model with
                         corners `I`.
+* `lie_add_group_morphism I I' G G'`  : morphism of addictive Lie groups
+* `lie_group_morphism I I' G G'`      : morphism of Lie groups
+* `lie_add_group_core I G`            : allows to define a Lie additive group without first proving
+                                        it is a topological additive group.
+* `lie_group_core I G`                : allows to define a Lie group without first proving
+                                        it is a topological group.
+
+* `reals_lie_group`                   : real numbers are a Lie group
+
 
 ## Implementation notes
 A priori, a Lie group here is a manifold with corner.
+
+The definition of Lie group cannot require `I : model_with_corners 𝕜 E E` with the same space as the
+model space and as the model vector space, as one might hope, beause in the product situation,
+the model space is `model_prod E E'` and the model vector space is `E × E'`, which are not the same,
+so the definition does not apply. Hence the definition should be more general, allowing
+`I : model_with_corners 𝕜 E H`.
 -/
+
+noncomputable theory
 
 section lie_group
 
@@ -75,14 +96,10 @@ smooth_mul.comp (hf.prod_mk hg)
 namespace lie_group
 
 /-- `L g` denotes left multiplication by `g` -/
-@[nolint unused_arguments, to_additive L_add "`L_add g` denotes left addition by `g`"]
-def L : G → G → G := λ g : G, λ x : G, g * x
-
-attribute [nolint unused_arguments] lie_add_group.L_add
+abbreviation L : G → G → G := left_mul g
 
 /-- `R g` denotes right multiplication by `g` -/
-@[nolint unused_arguments, to_additive R_add "`R_add g` denotes right addition by `g`"]
-def R : G → G → G := λ g : G, λ x : G, x * g
+abbreviation R : G → G → G := right_mul g
 
 attribute [nolint unused_arguments] lie_add_group.R_add
 
@@ -185,14 +202,14 @@ section lie_group_core
 
 /-- Sometimes one might want to define a Lie additive group `G` without having proved previously
 that `G` is a topological additive group. In such case it is possible to use `lie_add_group_core`
-that does not require such instance, and then get a Lie group by invoking `to_Lie_add_group`. -/
+that does not require such instance, and then get a Lie group by invoking `to_lie_add_group`. -/
 structure lie_add_group_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E]
   [normed_space 𝕜 E] (I : model_with_corners 𝕜 E E)
   (G : Type*) [add_group G] [topological_space G]
   [charted_space E G] [smooth_manifold_with_corners I G] : Prop :=
-  (smooth_add : smooth (I.prod I) I (λ p : G×G, p.1 + p.2))
-  (smooth_neg : smooth I I (λ a:G, -a))
+(smooth_add : smooth (I.prod I) I (λ p : G×G, p.1 + p.2))
+(smooth_neg : smooth I I (λ a:G, -a))
 
 /-- Sometimes one might want to define a Lie group `G` without having proved previously that `G` is
 a topological group. In such case it is possible to use `lie_group_core` that does not require such
@@ -203,8 +220,8 @@ structure lie_group_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   [normed_space 𝕜 E] (I : model_with_corners 𝕜 E E)
   (G : Type*) [group G] [topological_space G]
   [charted_space E G] [smooth_manifold_with_corners I G] : Prop :=
-  (smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2))
-  (smooth_inv : smooth I I (λ a:G, a⁻¹))
+(smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2))
+(smooth_inv : smooth I I (λ a:G, a⁻¹))
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E E}

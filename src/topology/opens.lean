@@ -44,9 +44,9 @@ instance : has_subset (opens α) :=
 instance : has_mem α (opens α) :=
 { mem := λ a U, a ∈ (U : set α) }
 
-@[simp] lemma subset_coe {U V : opens α} : (U ⊆ V) = ((U : set α) ⊆ (V : set α)) := rfl
+@[simp] lemma subset_coe {U V : opens α} : ((U : set α) ⊆ (V : set α)) = (U ⊆ V) := rfl
 
-@[simp] lemma mem_coe {x : α} {U : opens α} : (x ∈ U) = (x ∈ (U : set α)) := rfl
+@[simp] lemma mem_coe {x : α} {U : opens α} : (x ∈ (U : set α)) = (x ∈ U) := rfl
 
 @[ext] lemma ext {U V : opens α} (h : (U : set α) = V) : U = V := subtype.ext_iff.mpr h
 

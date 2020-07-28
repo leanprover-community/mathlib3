@@ -1238,9 +1238,9 @@ nonempty affine subspace is the sup of the direction of that subspace
 and of any one difference between that point and a point in the
 subspace. -/
 lemma direction_affine_span_insert {s : affine_subspace k V P} {p1 p2 : P} (hp1 : p1 ∈ s) :
-  (affine_span k V (insert p2 (s : set P))).direction = s.direction ⊔ submodule.span k {p2 -ᵥ p1} :=
+  (affine_span k V (insert p2 (s : set P))).direction = submodule.span k {p2 -ᵥ p1} ⊔ s.direction :=
 begin
-  rw [←set.union_singleton, ←coe_affine_span_singleton k V p2],
+  rw [sup_comm, ←set.union_singleton, ←coe_affine_span_singleton k V p2],
   change (s ⊔ affine_span k V {p2}).direction = _,
   rw [direction_sup hp1 (mem_affine_span k V (set.mem_singleton _)), direction_affine_span],
   simp
@@ -1258,15 +1258,15 @@ begin
       direction_affine_span_insert hp1, submodule.mem_sup],
   split,
   { rintros ⟨v1, hv1, v2, hv2, hp⟩,
-    rw submodule.mem_span_singleton at hv2,
-    rcases hv2 with ⟨r, rfl⟩,
-    use [r, v1 +ᵥ p1, vadd_mem_of_mem_direction hv1 hp1],
+    rw submodule.mem_span_singleton at hv1,
+    rcases hv1 with ⟨r, rfl⟩,
+    use [r, v2 +ᵥ p1, vadd_mem_of_mem_direction hv2 hp1],
     symmetry' at hp,
     rw [←sub_eq_zero_iff_eq, ←vsub_vadd_eq_vsub_sub, vsub_eq_zero_iff_eq] at hp,
-    rw [hp, add_comm, vadd_assoc] },
+    rw [hp, vadd_assoc] },
   { rintros ⟨r, p3, hp3, rfl⟩,
-    use [p3 -ᵥ p1, vsub_mem_direction hp3 hp1, r • (p2 -ᵥ p1),
-         submodule.mem_span_singleton.2 ⟨r, rfl⟩],
+    use [r • (p2 -ᵥ p1), submodule.mem_span_singleton.2 ⟨r, rfl⟩, p3 -ᵥ p1,
+         vsub_mem_direction hp3 hp1],
     rw [vadd_vsub_assoc, add_comm] }
 end
 

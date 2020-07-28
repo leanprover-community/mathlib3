@@ -577,7 +577,7 @@ lemma exists_compact_subset [locally_compact_space α] {x : α} {U : set α}
 begin
   rcases locally_compact_space.local_compact_nhds x U _ with ⟨K, h1K, h2K, h3K⟩,
   { refine ⟨K, h3K, _, h2K⟩, rwa [ mem_interior_iff_mem_nhds] },
-  rwa [← mem_interior_iff_mem_nhds, interior_eq_of_open hU]
+  rwa [← mem_interior_iff_mem_nhds, hU.interior_eq]
 end
 
 end compact

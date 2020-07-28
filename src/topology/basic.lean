@@ -216,11 +216,11 @@ sUnion_subset $ assume t ⟨h₁, h₂⟩, h₂
 lemma interior_maximal {s t : set α} (h₁ : t ⊆ s) (h₂ : is_open t) : t ⊆ interior s :=
 subset_sUnion_of_mem ⟨h₂, h₁⟩
 
-lemma interior_eq_of_open {s : set α} (h : is_open s) : interior s = s :=
+lemma is_open.interior_eq {s : set α} (h : is_open s) : interior s = s :=
 subset.antisymm interior_subset (interior_maximal (subset.refl s) h)
 
 lemma interior_eq_iff_open {s : set α} : interior s = s ↔ is_open s :=
-⟨assume h, h ▸ is_open_interior, interior_eq_of_open⟩
+⟨assume h, h ▸ is_open_interior, is_open.interior_eq⟩
 
 lemma subset_interior_iff_open {s : set α} : s ⊆ interior s ↔ is_open s :=
 by simp only [interior_eq_iff_open.symm, subset.antisymm_iff, interior_subset, true_and]
@@ -233,13 +233,13 @@ lemma interior_mono {s t : set α} (h : s ⊆ t) : interior s ⊆ interior t :=
 interior_maximal (subset.trans interior_subset h) is_open_interior
 
 @[simp] lemma interior_empty : interior (∅ : set α) = ∅ :=
-interior_eq_of_open is_open_empty
+is_open_empty.interior_eq
 
 @[simp] lemma interior_univ : interior (univ : set α) = univ :=
-interior_eq_of_open is_open_univ
+is_open_univ.interior_eq
 
 @[simp] lemma interior_interior {s : set α} : interior (interior s) = interior s :=
-interior_eq_of_open is_open_interior
+is_open_interior.interior_eq
 
 @[simp] lemma interior_inter {s t : set α} : interior (s ∩ t) = interior s ∩ interior t :=
 subset.antisymm
@@ -405,7 +405,7 @@ lemma is_closed.frontier_eq {s : set α} (hs : is_closed s) : frontier s = s \ i
 by rw [frontier, hs.closure_eq]
 
 lemma is_open.frontier_eq {s : set α} (hs : is_open s) : frontier s = closure s \ s :=
-by rw [frontier, interior_eq_of_open hs]
+by rw [frontier, hs.interior_eq]
 
 /-- The frontier of a set is closed. -/
 lemma is_closed_frontier {s : set α} : is_closed (frontier s) :=

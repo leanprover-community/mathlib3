@@ -261,6 +261,7 @@ end
 
 instance [Π {Z : C} (g h : image f ⟶ Z), has_limit (parallel_pair g h)] :
   epi (factor_thru_image f) :=
+by exactI -- TODO(gabriel): fix this bug
 ⟨λ Z g h w, image.ext f w⟩
 
 lemma epi_image_of_epi {X Y : C} (f : X ⟶ Y) [has_image f] [E : epi f] : epi (image.ι f) :=

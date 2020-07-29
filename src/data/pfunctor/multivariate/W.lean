@@ -10,6 +10,35 @@ import data.pfunctor.multivariate.basic
 
 W types are well-founded tree-like structures. They are defined
 as the least fixpoint of a polynomial functor.
+
+## Main definitions
+
+ * `W_mk`     - constructor
+ * `W_dest    - destructor
+ * `W_rec`    - recursor: basis for defining functions by structural recursion on `P.W α`
+ * `W_rec_eq` - defining equation for `W_rec`
+ * `W_ind`    - induction principle for `P.W α`
+
+## Implementation notes
+
+Three views of M-types:
+
+ * `Wp`: polynomial functor
+ * `W`: data type inductively defined by a triple: shape of the root, data in the root and children of the root
+ * `W`: least fixed point of a polynomial functor
+
+Specifically, we define the polynomial functor `Wp` as:
+
+ * A := a tree-like structure without information in the nodes
+ * B := given the tree-like structure `t`, `B t` is a valid path
+   (specified inductively by `W_path`) from the root of `t` to any given node.
+
+As a result `Wp.obj α` is made of a dataless tree and a function from
+its valid paths to values of `α`
+
+## Reference
+
+ * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
 
 universes u v
@@ -20,14 +49,14 @@ open_locale mvfunctor
 
 variables {n : ℕ} (P : mvpfunctor.{u} (n+1))
 
-/-- defines a typevec of labels to assign to each node of P.last.W -/
+/-- A path from the root of a tree to one of its node -/
 inductive W_path : P.last.W → fin2 n → Type u
 | root (a : P.A) (f : P.last.B a → P.last.W) (i : fin2 n) (c : P.drop.B a i) :
     W_path ⟨a, f⟩ i
 | child (a : P.A) (f : P.last.B a → P.last.W) (i : fin2 n) (j : P.last.B a) (c : W_path (f j) i) :
     W_path ⟨a, f⟩ i
 
-instance W.path.inhabited (x : P.last.W) {i} [I : inhabited (P.drop.B x.head i)] :
+instance W_path.inhabited (x : P.last.W) {i} [I : inhabited (P.drop.B x.head i)] :
   inhabited (W_path P x i) :=
 ⟨ match x, I with
   | ⟨a, f ⟩, I := W_path.root a f i (@default _ I)
@@ -75,7 +104,10 @@ theorem comp_W_path_cases_on {α β : typevec n} (h : α ⟹ β) {a : P.A} {f : 
   h ⊚ P.W_path_cases_on g' g = P.W_path_cases_on (h ⊚ g') (λ i, h ⊚ g i) :=
 by ext i x; cases x; reflexivity
 
-/-- Polynomial functor for the W-type of `P` -/
+/-- Polynomial functor for the W-type of `P`. `A` is a data-less well-founded
+tree whereas, for a given `a : A`, `B a` is a valid path in tree `a` so
+that `Wp.obj α` is made of a tree and a function from its valid paths to
+the values it contains  -/
 def Wp : mvpfunctor n :=
 { A := P.last.W, B := P.W_path }
 

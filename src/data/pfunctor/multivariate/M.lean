@@ -12,6 +12,35 @@ import data.pfunctor.multivariate.basic
 M types are potentially infinite tree-like structures. They are defined
 as the greatest fixpoint of a polynomial functor.
 
+## Main definitions
+
+ * `M.mk`     - constructor
+ * `M.dest`   - destructor
+ * `M.corec`  - corecursor: useful for formulating infinite, productive computations
+ * `M.bisim`  - bisimulation: proof technique to show the equality of infinite objects
+
+## Implementation notes
+
+Dual view of M-types:
+
+ * `Mp`: polynomial functor
+ * `M`: greatest fixed point of a polynomial functor
+
+Specifically, we define the polynomial functor `Mp` as:
+
+ * A := a possibly infinite tree-like structure without information in the nodes
+ * B := given the tree-like structure `t`, `B t` is a valid path
+   from the root of `t` to any given node.
+
+As a result `Mp.obj α` is made of a dataless tree and a function from
+its valid paths to values of `α`
+
+The difference with the polynomial functor of an initial algebra is
+that `A` is a possibly infinite tree.
+
+## Reference
+
+ * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
 
 universe u
@@ -23,11 +52,7 @@ open typevec
 
 variables {n : ℕ} (P : mvpfunctor.{u} (n+1))
 
-/-- A path through an M-type uniquely identifies a node where a value
-can be located. For an `n`-ary polynomial functor `P` and a value of
-the M-type `x : P.last.M`, `M.path P x` is a vector of types which,
-for each location of the vector, gives us the type of the paths
-that will locate corresponding values. -/
+/-- A path from the root of a tree to one of its node -/
 inductive M.path : P.last.M → fin2 n → Type u
 | root (x : P.last.M) (a : P.A) (f : P.last.B a → P.last.M) (h : pfunctor.M.dest x = ⟨a, f⟩)
        (i : fin2 n) (c : P.drop.B a i) :
@@ -43,7 +68,10 @@ instance M.path.inhabited (x : P.last.M) {i} [inhabited (P.drop.B x.head i)] :
     by intros; simp [pfunctor.M.dest_mk]; ext; rw pfunctor.M.children_mk; refl) _
     (default _) ⟩
 
-/-- Polynomial functor of the M-type of `P` -/
+/-- Polynomial functor of the M-type of `P`. `A` is a data-less
+possibly infinite tree whereas, for a given `a : A`, `B a` is a valid
+path in tree `a` so that `Wp.obj α` is made of a tree and a function
+from its valid paths to the values it contains -/
 def Mp : mvpfunctor n :=
 { A := P.last.M, B := M.path P }
 

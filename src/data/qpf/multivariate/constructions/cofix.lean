@@ -12,17 +12,30 @@ import data.qpf.multivariate.basic
 /-!
 # The final co-algebra of a multivariate qpf is again a qpf.
 
-Similarly to the initial algebra of a multivariate qpf,
-we define the corresponding polynomial functor by selecting:
- * A := a tree-like structure without information in the nodes
- * B := given the tree-like structure `t`, `B t` is a valid path
-   from the root of `t` to any given node.
+For a `(n+1)`-ary QPF `F (α₀,..,αₙ)`, we take the least fixed point of `F` with
+regards to its last argument `αₙ`. The result is a `n`-ary functor: `fix F (α₀,..,αₙ₋₁)`.
+Making `fix F` into a functor allows us to take the fixed point, compose with other functors
+and take a fixed point again.
 
-As a result `P.obj α` is made of a dataless tree and a function from
-its valid paths to values of `α`
+## Main definitions
 
-The difference with the polynomial functor of an initial algebra is
-that `A` is a possibly infinite tree
+ * `cofix.mk`     - constructor
+ * `cofix.dest    - destructor
+ * `cofix.corec`  - corecursor: useful for formulating infinite, productive computations
+ * `cofix.bisim`  - bisimulation: proof technique to show the equality of possibly infinite values
+                    of `cofix F α`
+
+## Implementation notes
+
+For `F` a QPF`, we define `cofix F α` in terms of the M-type of the polynomial functor `P` of `F`.
+We define the relation `Mcongr` and take its quotient as the definition of `cofix F α`.
+
+`Mcongr` is taken as the weakest bisimulation on M-type.  See
+[avigad-carneiro-hudon2019] for more details.
+
+## Reference
+
+ * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
 
 universe u

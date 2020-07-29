@@ -8,15 +8,44 @@ import data.qpf.multivariate.basic
 universes u v
 
 /-!
-The initial algebra of a multivariate qpf is again a qpf.
+# The initial algebra of a multivariate qpf is again a qpf.
 
-We define the corresponding polynomial functor by selecting:
- * A := a tree-like structure without information in the nodes
- * B := given the tree-like structure `t`, `B t` is a valid path
-   from the root of `t` to any given node.
+For a `(n+1)`-ary QPF `F (α₀,..,αₙ)`, we take the least fixed point of `F` with
+regards to its last argument `αₙ`. The result is a `n`-ary functor: `fix F (α₀,..,αₙ₋₁)`.
+Making `fix F` into a functor allows us to take the fixed point, compose with other functors
+and take a fixed point again.
 
-As a result `P.obj α` is made of a dataless tree and a function from
-its valid paths to values of `α`
+## Main definitions
+
+ * `fix.mk`     - constructor
+ * `fix.dest    - destructor
+ * `fix.rec`    - recursor: basis for defining functions by structural recursion on `fix F α`
+ * `fix.drec`   - dependent recursor: generalization of `fix.rec` where the result type of the function
+                  is allowed to dependent on the `fix F α` value
+ * `fix.rec_eq` - defining equation for `recursor`
+ * `fix.ind`    - induction principle for `fix F α`
+
+## Implementation notes
+
+For `F` a QPF`, we define `fix F α` in terms of the W-type of the polynomial functor `P` of `F`.
+We define the relation `Wequiv` and take its quotient as the definition of `fix F α`.
+
+```lean
+inductive Wequiv {α : typevec n} : q.P.W α → q.P.W α → Prop
+| ind (a : q.P.A) (f' : q.P.drop.B a ⟹ α) (f₀ f₁ : q.P.last.B a → q.P.W α) :
+    (∀ x, Wequiv (f₀ x) (f₁ x)) → Wequiv (q.P.W_mk a f' f₀) (q.P.W_mk a f' f₁)
+| abs (a₀ : q.P.A) (f'₀ : q.P.drop.B a₀ ⟹ α) (f₀ : q.P.last.B a₀ → q.P.W α)
+      (a₁ : q.P.A) (f'₁ : q.P.drop.B a₁ ⟹ α) (f₁ : q.P.last.B a₁ → q.P.W α) :
+      abs ⟨a₀, q.P.append_contents f'₀ f₀⟩ = abs ⟨a₁, q.P.append_contents f'₁ f₁⟩ →
+        Wequiv (q.P.W_mk a₀ f'₀ f₀) (q.P.W_mk a₁ f'₁ f₁)
+| trans (u v w : q.P.W α) : Wequiv u v → Wequiv v w → Wequiv u w
+```
+
+See [avigad-carneiro-hudon2019] for more details.
+
+## Reference
+
+ * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
 
 namespace mvqpf

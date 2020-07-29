@@ -30,6 +30,7 @@ universe variables u
 open category_theory
 
 namespace Top
+open function opposite
 
 local attribute [instance] pmf.topological_space
 
@@ -52,6 +53,23 @@ def singular_standard_simplex : NonemptyFinLinOrd.{u} ⥤ Top.{u} :=
 has as `n`-simplices all continuous maps from `singular_standard_simplex n` to `X`. -/
 def singular : Top ⥤ sType :=
 yoneda ⋙ singular_standard_simplex.op.comp_left
+
+lemma singular_map_injective (X Y : Top) :
+  injective (@category_theory.functor.map _ _ _ _ singular X Y) :=
+begin
+  intros f g h,
+  ext x,
+  let v : pmf punit := ⟨_, by simpa using has_sum_fintype (λ x : punit, (1:nnreal))⟩,
+  rw [nat_trans.ext_iff, funext_iff] at h,
+  specialize h (op $ NonemptyFinLinOrd.of punit),
+  dsimp [singular] at h,
+  rw [funext_iff] at h,
+  specialize h ⟨λ _, x, continuous_const⟩,
+  dsimp at h,
+  have H := congr_arg continuous_map.to_fun h,
+  rw [funext_iff] at H,
+  exact H v,
+end
 
 variables (R : Type u) [comm_ring R]
 

@@ -11,10 +11,10 @@ import geometry.manifold.times_cont_mdiff
 
 A Lie group is a group that is also a smooth manifold, in which the group operations of
 multiplication and inversion are smooth maps. Smoothness of the group multiplication means that
-means that multiplication is a smooth mapping of the product manifold `G` × `G` into `G`.
+multiplication is a smooth mapping of the product manifold `G` × `G` into `G`.
 
-Note that, since a manifold here is not second-countable and Hausdorff a Lie-group here is not
-guaranteed to be second-countable (even though it can be proved it is Hausdorrf). Note also that Lie
+Note that, since a manifold here is not second-countable and Hausdorff a Lie group here is not
+guaranteed to be second-countable (even though it can be proved it is Hausdorff). Note also that Lie
 groups here are not necessarily finite dimensional.
 
 ## Main definitions and statements
@@ -22,7 +22,7 @@ groups here are not necessarily finite dimensional.
 * `lie_add_group I G` : a Lie additive group where `G` is a manifold on the model with corners `I`.
 * `lie_group I G`     : a Lie multiplicative group where `G` is a manifold on the model with
                         corners `I`.
-* `lie_add_group_morphism I I' G G'`  : morphism of addictive Lie groups
+* `lie_add_group_morphism I I' G G'`  : morphism of addittive Lie groups
 * `lie_group_morphism I I' G G'`      : morphism of Lie groups
 * `lie_add_group_core I G`            : allows to define a Lie additive group without first proving
                                         it is a topological additive group.
@@ -93,24 +93,20 @@ lemma smooth.mul {f : M → G} {g : M → G} (hf : smooth I' I f) (hg : smooth I
   smooth I' I (f * g) :=
 smooth_mul.comp (hf.prod_mk hg)
 
-namespace lie_group
+localized "notation `L_add` := left_add" in lie_group
 
-/-- `L g` denotes left multiplication by `g` -/
-abbreviation L : G → G → G := left_mul g
+localized "notation `R_add` := right_add" in lie_group
 
-/-- `R g` denotes right multiplication by `g` -/
-abbreviation R : G → G → G := right_mul g
+localized "notation `L` := left_mul" in lie_group
 
-attribute [nolint unused_arguments] lie_add_group.R_add
-
-end lie_group
+localized "notation `R` := right_mul" in lie_group
 
 @[to_additive]
-lemma smooth_mul_left {a : G} : smooth I I (λ b : G, a * b) :=
+lemma smooth_left_mul {a : G} : smooth I I (left_mul a) :=
 smooth_mul.comp (smooth_const.prod_mk smooth_id)
 
 @[to_additive]
-lemma smooth_mul_right {a : G} : smooth I I (λ b : G, b * a) :=
+lemma smooth_right_mul {a : G} : smooth I I (right_mul a) :=
 smooth_mul.comp (smooth_id.prod_mk smooth_const)
 
 @[to_additive]

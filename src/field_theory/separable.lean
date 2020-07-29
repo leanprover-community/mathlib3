@@ -207,7 +207,7 @@ lemma separable_prod {ι : Sort*} [fintype ι] {f : ι → polynomial R}
   (h1 : pairwise (is_coprime on f)) (h2 : ∀ x, (f x).separable) : (∏ x, f x).separable :=
 separable_prod' (λ x hx y hy hxy, h1 x y hxy) (λ x hx, h2 x)
 
-lemma separable.of_prod_X_sub_C' [nontrivial R] {ι : Sort*} {f : ι → R} {s : finset ι}
+lemma separable.inj_of_prod_X_sub_C [nontrivial R] {ι : Sort*} {f : ι → R} {s : finset ι}
   (hfs : (∏ i in s, (X - C (f i))).separable)
   {x y : ι} (hx : x ∈ s) (hy : y ∈ s) (hfxy : f x = f y) : x = y :=
 begin
@@ -218,9 +218,9 @@ begin
   cases (hfs.of_mul_left.of_pow (by exact not_is_unit_X_sub_C) two_ne_zero).2
 end
 
-lemma separable.of_prod_X_sub_C [nontrivial R] {ι : Sort*} [fintype ι] {f : ι → R}
+lemma separable.injective_of_prod_X_sub_C [nontrivial R] {ι : Sort*} [fintype ι] {f : ι → R}
   (hfs : (∏ i, (X - C (f i))).separable) : function.injective f :=
-λ x y hfxy, hfs.of_prod_X_sub_C' (mem_univ _) (mem_univ _) hfxy
+λ x y hfxy, hfs.inj_of_prod_X_sub_C (mem_univ _) (mem_univ _) hfxy
 
 end comm_ring
 
@@ -354,7 +354,7 @@ end
 
 end char_p
 
-lemma separable_prod_X_sub_C' {ι : Sort*} {f : ι → F} {s : finset ι} :
+lemma separable_prod_X_sub_C_iff' {ι : Sort*} {f : ι → F} {s : finset ι} :
   (∏ i in s, (X - C (f i))).separable ↔ (∀ (x ∈ s) (y ∈ s), f x = f y → x = y) :=
 ⟨λ hfs x hx y hy hfxy, hfs.of_prod_X_sub_C' hx hy hfxy,
 λ H, by { rw ← prod_attach, exact separable_prod' (λ x hx y hy hxy,
@@ -362,7 +362,7 @@ lemma separable_prod_X_sub_C' {ι : Sort*} {f : ι → F} {s : finset ι} :
       (λ x y hxy, subtype.eq $ H x.1 x.2 y.1 y.2 hxy) _ _ hxy)
   (λ _ _, separable_X_sub_C) }⟩
 
-lemma separable_prod_X_sub_C {ι : Sort*} [fintype ι] {f : ι → F} :
+lemma separable_prod_X_sub_C_iff {ι : Sort*} [fintype ι] {f : ι → F} :
   (∏ i, (X - C (f i))).separable ↔ function.injective f :=
 separable_prod_X_sub_C'.trans $ by simp_rw [mem_univ, true_implies_iff]
 

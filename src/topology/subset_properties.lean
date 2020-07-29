@@ -1118,6 +1118,18 @@ lemma subtype.connected_space {s : set α} (h : is_connected s) :
   (subtype.preconnected_space h.is_preconnected).is_preconnected_univ,
   to_nonempty := h.nonempty.to_subtype }
 
+lemma is_preconnected_iff_preconnected_space {s : set α} :
+  is_preconnected s ↔ preconnected_space s :=
+⟨subtype.preconnected_space,
+ begin
+   introI,
+   simpa using is_preconnected_univ.image (coe : s → α) continuous_subtype_coe.continuous_on
+ end⟩
+
+lemma is_connected_iff_connected_space {s : set α} : is_connected s ↔ connected_space s :=
+⟨subtype.connected_space,
+ λ h, ⟨nonempty_subtype.mp h.2, is_preconnected_iff_preconnected_space.mpr h.1⟩⟩
+
 /-- A set `s` is preconnected if and only if
 for every cover by two open sets that are disjoint on `s`,
 it is contained in one of the two covering sets. -/

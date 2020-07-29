@@ -404,7 +404,7 @@ open tactic
 omit q
 
 /-- tactic for proof by bisimulation -/
-meta def bisim₂ (e : parse texpr) (ids : parse with_ident_list) : tactic unit :=
+meta def mv_bisim (e : parse texpr) (ids : parse with_ident_list) : tactic unit :=
 do e ← to_expr e,
    (expr.pi n bi d b) ← retrieve $ do {
      generalize e,
@@ -429,7 +429,7 @@ do e ← to_expr e,
    cases h ids₁,
    pure ()
 
-run_cmd add_interactive [``bisim₂]
+run_cmd add_interactive [``mv_bisim]
 
 end tactic
 
@@ -437,7 +437,7 @@ theorem corec_roll {α : typevec n} {X Y} {x₀ : X}
   (f : X → Y) (g : Y → F (α ::: X)) :
   cofix.corec (g ∘ f) x₀ = cofix.corec (mvfunctor.map (id ::: f) ∘ g) (f x₀) :=
 begin
-  bisim₂ x₀,
+  mv_bisim x₀,
   rw [Ha,Hb,cofix.dest_corec,cofix.dest_corec],
   rw [mvfunctor.map_map,← append_fun_comp_id],
   refine liftr_map_last _ _ _ _ _,
@@ -450,7 +450,7 @@ theorem cofix.dest_corec' {α : typevec n} {β : Type u}
 begin
   rw [cofix.corec',cofix.dest_corec], dsimp,
   congr, ext (i|i); rw corec_roll; dsimp [cofix.corec'],
-  { bisim₂ i,
+  { mv_bisim i,
     rw [Ha,Hb,cofix.dest_corec], dsimp [(∘)],
     repeat { rw [mvfunctor.map_map,← append_fun_comp_id] },
     apply liftr_map_last', dsimp [(∘),R], intros, exact ⟨_,rfl,rfl⟩ },

@@ -110,11 +110,11 @@ def alg_equiv_iso_Algebra_iso {X Y : Type u}
 instance (X : Type u) [ring X] [algebra R X] : has_coe (subalgebra R X) (Algebra R) :=
 ⟨ λ N, Algebra.of R N ⟩
 
-instance Algebra.forget_reflects_isos : reflects_isomorphisms (forget Algebra.{u}) :=
+instance Algebra.forget_reflects_isos : reflects_isomorphisms (forget (Algebra.{u} R)) :=
 { reflects := λ X Y f _,
   begin
     resetI,
-    let i := as_iso ((forget Algebra).map f),
-    let e : X ≃+* Y := { ..f, ..i.to_equiv },
+    let i := as_iso ((forget (Algebra.{u} R)).map f),
+    let e : X ≃ₐ[R] Y := { ..f, ..i.to_equiv },
     exact { ..e.to_Algebra_iso },
   end }

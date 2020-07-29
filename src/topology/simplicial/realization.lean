@@ -6,6 +6,7 @@ Authors: Johan Commelin
 import category_theory.comma
 import topology.simplicial.singular
 import topology.category.Top
+import category_theory.category.Cat
 
 /-! # Geometric realization of simplicial types -/
 
@@ -46,8 +47,8 @@ begin
     functor.map_comp, category.assoc],
 end
 
-lemma singular_standard_simplex_has_realization (n : NonemptyFinLinOrd) :
-  has_realization (standard_simplex.obj n) (singular_standard_simplex.obj n) :=
+lemma standard_simplex_has_realization (n : NonemptyFinLinOrd) :
+  (standard_simplex.obj n).has_realization (singular_standard_simplex.obj n) :=
 { hom := (yoneda_hom_comp_yoneda singular_standard_simplex).app n,
   w   :=
   begin
@@ -80,40 +81,100 @@ lemma singular_standard_simplex_has_realization (n : NonemptyFinLinOrd) :
 
 open simplex_category opposite
 
-def category_of_simplices (X : sType.{u}) : Type u :=
-Σ (n : simplex_category), (skeletal_functor.{u}.op ⋙ X).obj (op n)
+def category_of_simplices (S : sType.{u}) : Type u :=
+Σ (n : simplex_category), (skeletal_functor.{u}.op ⋙ S).obj (op n)
 
 -- The following definition has universe issues
 -- Σ (n : simplex_category), (skeletal_functor.{u}.op ⋙ X).obj (op n)
 
 namespace category_of_simplices
-variables (X : sType.{u})
+variables (S : sType.{u}) {S₁ S₂ : sType.{u}}
 
 -- slow, sigh
--- instance : small_category (category_of_simplices X) :=
--- { hom := λ s t, ulift { f : s.1 ⟶ t.1 // (skeletal_functor.{u}.op ⋙ X).map f.op t.2 = s.2 },
---   id := λ s, ⟨⟨𝟙 _, by tidy⟩⟩,
---   comp := λ _ _ _ f g, ⟨⟨f.down.1 ≫ g.down.1, by tidy⟩⟩ }
+instance : small_category (category_of_simplices S) :=
+{ hom := λ s t, ulift { f : s.1 ⟶ t.1 // (skeletal_functor.{u}.op ⋙ S).map f.op t.2 = s.2 },
+  id := λ s, ⟨⟨𝟙 _, by { cases s, dsimp at *, simp at *, }⟩⟩,
+  comp := λ s t u f g, ⟨⟨f.down.1 ≫ g.down.1,
+    begin
+      cases s, cases t, cases u, cases g, cases f, dsimp at *,
+      rcases f with ⟨f, rfl⟩, rcases g with ⟨g, rfl⟩, dsimp at *,
+      simp only [eq_self_iff_true, op_comp, functor_to_types.map_comp_apply, functor.map_comp],
+      simp only [types_comp_apply],
+    end ⟩⟩,
+  id_comp' := by { rintros ⟨m, s⟩ ⟨n, t⟩ ⟨f, hf⟩, simp only [category.id_comp], },
+  comp_id' := by { rintros ⟨m, s⟩ ⟨n, t⟩ ⟨f, hf⟩, simp only [category.comp_id], },
+  assoc' := by { intros, refl, } }
+.
+
+@[simps]
+def map (f : S₁ ⟶ S₂) : category_of_simplices S₁ ⥤ category_of_simplices S₂ :=
+{ obj := λ s, ⟨s.1, f.app _ s.2⟩,
+  map := λ s t i, ⟨⟨i.down.1,
+    begin
+      rcases s with ⟨m, s⟩,
+      rcases t with ⟨n, t⟩,
+      rcases i with ⟨⟨i, hi⟩⟩,
+      dsimp at *, subst hi,
+      have := f.naturality (skeletal_functor.{u}.map i).op,
+      exact congr_fun this.symm t,
+    end⟩⟩, }
+
+@[simps]
+def proj : (category_of_simplices S) ⥤ simplex_category :=
+{ obj := λ s, s.1,
+  map := λ s t f, f.1, }
 
 end category_of_simplices
 
-set_option pp.universes true
+@[simps]
+def Category_of_simplices : sType ⥤ Cat.{u} :=
+{ obj := λ S, ⟨category_of_simplices S, sType.category_of_simplices.category_theory.small_category _⟩,
+  map := λ S₁ S₂ f, category_of_simplices.map f,
+  map_id' :=
+  begin
+    intros S', apply category_theory.functor.ext,
+    { intros s t i, ext1, ext1, ext1, refl, },
+    { rintro ⟨n,s⟩, apply (functor.id_obj _).symm, }
+  end,
+  map_comp' :=
+  begin
+    intros S₁ S₂ S₃ i j, apply category_theory.functor.ext,
+    { intros X Y f, simp only [category.id_comp, eq_to_hom_refl, category.comp_id], refl, },
+    { intros X, refl }
+  end }
 
-#print category_of_simplices.category
+def realization_obj_functor (S : sType.{u}) :
+  (category_of_simplices S) ⥤ Top.{u} :=
+category_of_simplices.proj S ⋙ skeletal_functor ⋙ singular_standard_simplex
 
--- def realization_obj (X : sType.{u}) : Top.{u} :=
--- begin
---   refine colimit _,
--- end
+@[simps]
+def realization_obj_functor_comp_hom {S₁ S₂ : sType.{u}} (f : S₁ ⟶ S₂) :
+  realization_obj_functor S₁ ⟶ category_of_simplices.map f ⋙ realization_obj_functor S₂ :=
+{ app := λ s, 𝟙 _, }
+
+def realization_obj (S : sType.{u}) : Top.{u} :=
+colimit (realization_obj_functor S)
+
+def realization_map {S₁ S₂ : sType.{u}} (f : S₁ ⟶ S₂) :
+  realization_obj S₁ ⟶ realization_obj S₂ :=
+colim.map (realization_obj_functor_comp_hom f) ≫ colimit.pre _ _
 
 /-- The geometric realization of a simplicial type.
 This functor is left adjoint to `Top.singular`. -/
 @[simps]
 def realization : sType.{u} ⥤ Top.{u} :=
-{ obj := λ X, by extract_goal realization_obj,
-  map := _,
-  map_id' := _,
-  map_comp' := _ }
-
+{ obj := realization_obj,
+  map := λ S₁ S₂ f, realization_map f, }
+.
+-- def has_realization_realization (S : sType.{u}) :
+--   S.has_realization (realization.obj S) :=
+-- { hom :=
+--   { app := λ n s, show singular_standard_simplex.obj (n.unop) ⟶  _,
+--     begin
+--       have := (standard_simplex_has_realization n.unop).w (realization.obj S),
+--       have := this.2 _,
+--     end ,
+--     naturality' := _ },
+--   w := _ }
 
 end sType

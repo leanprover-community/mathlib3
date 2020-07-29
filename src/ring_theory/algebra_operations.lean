@@ -200,8 +200,7 @@ instance semimodule_set : semimodule (set_semiring A) (submodule R A) :=
   add_smul := λ s t P, show span R (s ⊔ t) * P = _, by { erw [span_union, right_distrib] },
   mul_smul := λ s t P, show _ = _ * (_ * _),
     by { rw [← mul_assoc, span_mul_span, ← image_mul_prod] },
-  -- HACK(gabriel): work around lean#419
-  one_smul := λ P, show span R {has_one.one} * P = _,
+  one_smul := λ P, show span R {(1 : A)} * P = _,
     by { conv_lhs {erw ← span_eq P}, erw [span_mul_span, one_mul, span_eq] },
   zero_smul := λ P, show span R ∅ * P = ⊥, by erw [span_empty, bot_mul],
   smul_zero := λ _, mul_bot _ }

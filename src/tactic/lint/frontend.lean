@@ -236,7 +236,7 @@ do verbosity ← parse_verbosity,
    when (verbosity = lint_verbosity.low ∧ ¬ failed.empty) $
     fail "Linting did not succeed",
    when (verbosity = lint_verbosity.medium ∧ failed.empty) $
-    trace "All linting checks passed!"
+    trace "/- All linting checks passed! -/"
 
 /-- The command `#lint` at the bottom of a file will warn you about some common mistakes
 in that file. Usage: `#lint`, `#lint linter_1 linter_2`, `#lint only linter_1 linter_2`.

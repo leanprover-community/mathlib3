@@ -6,7 +6,7 @@ Authors: Johan Commelin
 Nonnegative real numbers.
 -/
 import algebra.linear_ordered_comm_group_with_zero
-import data.finset.lattice
+import algebra.big_operators.ring
 import data.real.basic
 import data.indicator_function
 

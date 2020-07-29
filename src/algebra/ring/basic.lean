@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, Yury Kudryashov,
 Neil Strickland
 -/
-import algebra.group.hom
-import algebra.group.units
 import algebra.group_with_zero
 
 /-!
@@ -435,6 +433,8 @@ dvd.elim h (begin intros d h₁, rw [h₁, mul_assoc], apply dvd_mul_right end)
 theorem dvd_of_mul_left_dvd (h : a * b ∣ c) : b ∣ c :=
 dvd.elim h (λ d ceq, dvd.intro (a * d) (by simp [ceq]))
 
+@[simp] theorem two_dvd_bit0 : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
+
 lemma ring_hom.map_dvd (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
 λ ⟨z, hz⟩, ⟨f z, by rw [hz, f.map_mul]⟩
 
@@ -553,6 +553,8 @@ instance : has_neg (units α) := ⟨λu, ⟨-↑u, -↑u⁻¹, by simp, by simp�
     mapping this element to its additive inverse. -/
 @[simp, norm_cast] protected theorem coe_neg (u : units α) : (↑-u : α) = -u := rfl
 
+@[simp, norm_cast] protected theorem coe_neg_one : ((-1 : units α) : α) = -1 := rfl
+
 /-- Mapping an element of a ring's unit group to its inverse commutes with mapping this element
     to its additive inverse. -/
 @[simp] protected theorem neg_inv (u : units α) : (-u)⁻¹ = -u⁻¹ := rfl
@@ -668,6 +670,8 @@ theorem dvd_add_iff_left (h : a ∣ c) : a ∣ b ↔ a ∣ b + c :=
 theorem dvd_add_iff_right (h : a ∣ b) : a ∣ c ↔ a ∣ b + c :=
 by rw add_comm; exact dvd_add_iff_left h
 
+theorem two_dvd_bit1 : 2 ∣ bit1 a ↔ (2 : α) ∣ 1 := (dvd_add_iff_right two_dvd_bit0).symm
+
 /-- Representation of a difference of two squares in a commutative ring as a product. -/
 theorem mul_self_sub_mul_self (a b : α) : a * a - b * b = (a + b) * (a - b) :=
 by rw [add_mul, mul_sub, mul_sub, mul_comm a b, sub_add_sub_cancel]
@@ -713,8 +717,7 @@ begin
   rw [this, sub_add, ← sub_mul, sub_self]
 end
 
-lemma dvd_mul_sub_mul {α : Type*} [comm_ring α]
-  {k a b x y : α} (hab : k ∣ a - b) (hxy : k ∣ x - y) :
+lemma dvd_mul_sub_mul {k a b x y : α} (hab : k ∣ a - b) (hxy : k ∣ x - y) :
   k ∣ a * x - b * y :=
 begin
   convert dvd_add (dvd_mul_of_dvd_right hxy a) (dvd_mul_of_dvd_left hab y),
@@ -722,8 +725,7 @@ begin
   simp only [sub_eq_add_neg, add_assoc, neg_add_cancel_left],
 end
 
-lemma dvd_iff_dvd_of_dvd_sub {R : Type*} [comm_ring R] {a b c : R}
-  (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
+lemma dvd_iff_dvd_of_dvd_sub {a b c : α} (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
 begin
   split,
   { intro h',

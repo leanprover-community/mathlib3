@@ -59,7 +59,7 @@ apply_nolint gt_iff_lt ge_or_gt
 apply_nolint discrete_linear_ordered_field doc_blame
 apply_nolint linear_ordered_field doc_blame
 
--- algebra/ring.lean
+-- algebra/ring/basic.lean
 apply_nolint comm_ring doc_blame
 apply_nolint comm_semiring doc_blame
 apply_nolint integral_domain doc_blame
@@ -644,7 +644,6 @@ apply_nolint fintype.of_subsingleton doc_blame
 apply_nolint fintype.subtype doc_blame
 apply_nolint fintype_perm doc_blame
 apply_nolint infinite doc_blame
-apply_nolint infinite.nat_embedding doc_blame
 apply_nolint perms_of_finset doc_blame
 apply_nolint perms_of_list doc_blame
 apply_nolint quotient.fin_choice doc_blame
@@ -985,7 +984,6 @@ apply_nolint pequiv.trans doc_blame
 
 -- data/pfun.lean
 apply_nolint pfun.core doc_blame
-apply_nolint pfun.equiv_subtype doc_blame
 apply_nolint pfun.fix doc_blame
 apply_nolint pfun.fix_induction doc_blame
 apply_nolint pfun.graph' doc_blame
@@ -1206,8 +1204,8 @@ apply_nolint add_con.to_setoid doc_blame
 apply_nolint con.to_setoid doc_blame
 
 -- group_theory/coset.lean
-apply_nolint is_add_subgroup.group_equiv_quotient_times_subgroup doc_blame
-apply_nolint is_add_subgroup.left_coset_equiv_subgroup doc_blame
+apply_nolint is_add_subgroup.add_group_equiv_quotient_times_add_subgroup doc_blame
+apply_nolint is_add_subgroup.left_coset_equiv_add_subgroup doc_blame
 apply_nolint is_subgroup.group_equiv_quotient_times_subgroup doc_blame
 apply_nolint is_subgroup.left_coset_equiv_subgroup doc_blame
 apply_nolint left_add_coset doc_blame
@@ -1523,39 +1521,8 @@ apply_nolint lists.of' doc_blame
 apply_nolint lists.of_list doc_blame
 apply_nolint lists.to_list doc_blame
 
--- set_theory/ordinal.lean
-apply_nolint Well_order doc_blame
-apply_nolint cardinal.aleph'.order_iso doc_blame
-apply_nolint cardinal.aleph_idx.initial_seg doc_blame
-apply_nolint cardinal.aleph_idx.order_iso doc_blame
-apply_nolint cardinal.ord.order_embedding doc_blame
-apply_nolint initial_seg has_inhabited_instance
-apply_nolint initial_seg.le_add doc_blame
-apply_nolint initial_seg.le_lt doc_blame
-apply_nolint initial_seg.lt_or_eq doc_blame
-apply_nolint order_embedding.collapse_F doc_blame
-apply_nolint ordinal.CNF_rec doc_blame
+-- set_theory/ordinal_arithmetic.lean
 apply_nolint ordinal.CNF_sorted ge_or_gt
-apply_nolint ordinal.initial_seg_out doc_blame
-apply_nolint ordinal.lift.initial_seg doc_blame
-apply_nolint ordinal.lift.principal_seg doc_blame
-apply_nolint ordinal.limit_rec_on doc_blame
-apply_nolint ordinal.order_iso_out doc_blame
-apply_nolint ordinal.principal_seg_out doc_blame
-apply_nolint ordinal.typein.principal_seg doc_blame
-apply_nolint ordinal.typein_iso doc_blame
-apply_nolint principal_seg doc_blame has_inhabited_instance
-apply_nolint principal_seg.equiv_lt doc_blame
-apply_nolint principal_seg.lt_equiv doc_blame
-apply_nolint principal_seg.lt_le doc_blame
-apply_nolint principal_seg.trans doc_blame
-
--- set_theory/ordinal_notation.lean
-apply_nolint onote.oadd_lt_oadd_1 unused_arguments
-apply_nolint onote.oadd_lt_oadd_2 unused_arguments
-apply_nolint onote.oadd_lt_oadd_3 unused_arguments
-apply_nolint onote.power_aux doc_blame
-apply_nolint onote.to_string_aux1 doc_blame
 
 -- set_theory/pgame.lean
 apply_nolint pgame.left_moves has_inhabited_instance
@@ -2198,7 +2165,6 @@ apply_nolint TopCommRing has_inhabited_instance
 apply_nolint CpltSepUniformSpace.to_UniformSpace doc_blame
 
 -- topology/compact_open.lean
-apply_nolint continuous_map doc_blame
 apply_nolint continuous_map.coev doc_blame
 apply_nolint continuous_map.compact_open.gen doc_blame
 apply_nolint continuous_map.ev doc_blame

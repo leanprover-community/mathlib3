@@ -4,8 +4,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+
+import data.polynomial.basic
 import data.polynomial.div
-import tactic.omega
+import data.polynomial.algebra_map
 
 /-!
 # Theory of univariate polynomials
@@ -17,8 +19,7 @@ This file starts looking like the ring theory of $ R[X] $
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-open finsupp finset add_monoid_algebra
-open_locale big_operators
+open finset
 
 namespace polynomial
 universes u v w z
@@ -30,12 +31,12 @@ variables [comm_ring R] {p q : polynomial R}
 variables [comm_ring S]
 
 lemma nat_degree_pos_of_aeval_root [algebra R S] {p : polynomial R} (hp : p ≠ 0)
-  {z : S} (hz : aeval R S z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
+  {z : S} (hz : aeval z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
   0 < p.nat_degree :=
 nat_degree_pos_of_eval₂_root hp (algebra_map R S) hz inj
 
 lemma degree_pos_of_aeval_root [algebra R S] {p : polynomial R} (hp : p ≠ 0)
-  {z : S} (hz : aeval R S z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
+  {z : S} (hz : aeval z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
   0 < p.degree :=
 nat_degree_pos_iff_degree_pos.mp (nat_degree_pos_of_aeval_root hp hz inj)
 
@@ -310,8 +311,78 @@ lemma irreducible_of_degree_eq_one_of_monic (hp1 : degree p = 1)
   (hm : monic p) : irreducible p :=
 irreducible_of_prime (prime_of_degree_eq_one_of_monic hp1 hm)
 
+theorem eq_of_monic_of_associated (hp : p.monic) (hq : q.monic) (hpq : associated p q) : p = q :=
+begin
+  obtain ⟨u, hu⟩ := hpq,
+  unfold monic at hp hq,
+  rw eq_C_of_degree_le_zero (le_of_eq $ degree_coe_units _) at hu,
+  rw [← hu, leading_coeff_mul, hp, one_mul, leading_coeff_C] at hq,
+  rwa [hq, C_1, mul_one] at hu
+end
+
 end integral_domain
 
+section
+
+variables [semiring R] [integral_domain S] (φ : R →+* S)
+
+lemma is_unit_of_is_unit_leading_coeff_of_is_unit_map
+  (f : polynomial R) (hf : is_unit (leading_coeff f)) (H : is_unit (map φ f)) :
+  is_unit f :=
+begin
+  have dz := degree_eq_zero_of_is_unit H,
+  rw degree_map_eq_of_leading_coeff_ne_zero at dz,
+  { rw eq_C_of_degree_eq_zero dz,
+    apply is_unit.map',
+    convert hf,
+    rw (degree_eq_iff_nat_degree_eq _).1 dz,
+    rintro rfl,
+    simpa using H, },
+  { intro h,
+    have u : is_unit (φ f.leading_coeff) := is_unit.map' _ hf,
+    rw h at u,
+    simpa using u, }
+end
+
+end
+
+section
+variables [integral_domain R] [integral_domain S] (φ : R →+* S)
+/--
+A polynomial over an integral domain `R` is irreducible if it is monic and
+  irreducible after mapping into an integral domain `S`.
+
+A special case of this lemma is that a polynomial over `ℤ` is irreducible if
+  it is monic and irreducible over `ℤ/pℤ` for some prime `p`.
+-/
+lemma irreducible_of_irreducible_map (f : polynomial R)
+  (h_mon : monic f) (h_irr : irreducible (map φ f)) :
+  irreducible f :=
+begin
+  fsplit,
+  { intro h,
+    exact h_irr.1 (is_unit.map (monoid_hom.of (map φ)) h), },
+  { intros a b h,
+
+    have q := (leading_coeff_mul a b).symm,
+    rw ←h at q,
+    dsimp [monic] at h_mon,
+    rw h_mon at q,
+    have au : is_unit a.leading_coeff := is_unit_of_mul_eq_one _ _ q,
+    rw mul_comm at q,
+    have bu : is_unit b.leading_coeff := is_unit_of_mul_eq_one _ _ q,
+    clear q h_mon,
+
+    have h' := congr_arg (map φ) h,
+    simp only [map_mul] at h',
+    cases h_irr.2 _ _ h' with w w,
+    { left,
+      exact is_unit_of_is_unit_leading_coeff_of_is_unit_map _ _ au w, },
+    { right,
+      exact is_unit_of_is_unit_leading_coeff_of_is_unit_map _ _ bu w, }, }
+end
+
+end
 
 end polynomial
 

@@ -134,8 +134,17 @@ instance : order_closed_topology (order_dual α) :=
 lemma is_closed_Icc {a b : α} : is_closed (Icc a b) :=
 is_closed_inter is_closed_Ici is_closed_Iic
 
+@[simp] lemma closure_Icc (a b : α) : closure (Icc a b) = Icc a b :=
+is_closed_Icc.closure_eq
+
+@[simp] lemma closure_Iic (a : α) : closure (Iic a) = Iic a :=
+is_closed_Iic.closure_eq
+
+@[simp] lemma closure_Ici (a : α) : closure (Ici a) = Ici a :=
+is_closed_Ici.closure_eq
+
 lemma le_of_tendsto_of_tendsto {f g : β → α} {b : filter β} {a₁ a₂ : α} [ne_bot b]
-  (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) (h : ∀ᶠ x in b, f x ≤ g x) :
+  (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) (h : f ≤ᶠ[b] g) :
   a₁ ≤ a₂ :=
 have tendsto (λb, (f b, g b)) b (𝓝 (a₁, a₂)),
   by rw [nhds_prod_eq]; exact hf.prod_mk hg,
@@ -188,6 +197,24 @@ lemma is_closed.is_closed_le [topological_space β] {f g : β → α} {s : set �
   is_closed {x ∈ s | f x ≤ g x} :=
 (hf.prod hg).preimage_closed_of_closed hs order_closed_topology.is_closed_le'
 
+omit t
+
+lemma nhds_within_Ici_ne_bot {a b : α} (H₂ : a ≤ b) :
+  nhds_within b (Ici a) ≠ ⊥ :=
+nhds_within_ne_bot_of_mem H₂
+
+lemma nhds_within_Ici_self_ne_bot (a : α) :
+  nhds_within a (Ici a) ≠ ⊥ :=
+nhds_within_Ici_ne_bot (le_refl a)
+
+lemma nhds_within_Iic_ne_bot {a b : α} (H : a ≤ b) :
+  nhds_within a (Iic b) ≠ ⊥ :=
+nhds_within_ne_bot_of_mem H
+
+lemma nhds_within_Iic_self_ne_bot (a : α) :
+  nhds_within a (Iic a) ≠ ⊥ :=
+nhds_within_Iic_ne_bot (le_refl a)
+
 end preorder
 
 section partial_order
@@ -230,13 +257,13 @@ lemma is_open_Ioo : is_open (Ioo a b) :=
 is_open_inter is_open_Ioi is_open_Iio
 
 @[simp] lemma interior_Ioi : interior (Ioi a) = Ioi a :=
-interior_eq_of_open is_open_Ioi
+is_open_Ioi.interior_eq
 
 @[simp] lemma interior_Iio : interior (Iio a) = Iio a :=
-interior_eq_of_open is_open_Iio
+is_open_Iio.interior_eq
 
 @[simp] lemma interior_Ioo : interior (Ioo a b) = Ioo a b :=
-interior_eq_of_open is_open_Ioo
+is_open_Ioo.interior_eq
 
 /-- Intermediate value theorem for two functions: if `f` and `g` are two continuous functions
 on a preconnected space and `f a ≤ g a` and `g b ≤ f b`, then for some `x` we have `f x = g x`. -/
@@ -300,6 +327,158 @@ begin
   exact hs.Icc_subset ys zs ⟨le_of_lt hy, le_of_lt hz⟩
 end
 
+/-!
+### Neighborhoods to the left and to the right on an `order_closed_topology`
+
+Limits to the left and to the right of real functions are defined in terms of neighborhoods to
+the left and to the right, either open or closed, i.e., members of `nhds_within a (Ioi a)` and
+`nhds_within a (Ici a)` on the right, and similarly on the left. Here we simply prove that all
+right-neighborhoods of a point are equal, and we'll prove later other useful characterizations which
+require the stronger hypothesis `order_topology α` -/
+
+-- NB: If you extend the list, append to the end please to avoid breaking the API
+/-- The following statements are equivalent:
+
+0. `s` is a neighborhood of `a` within `(a, +∞)`
+1. `s` is a neighborhood of `a` within `(a, b]`
+2. `s` is a neighborhood of `a` within `(a, b)` -/
+lemma tfae_mem_nhds_within_Ioi' {a b : α} (hab : a < b) (s : set α) :
+  tfae [s ∈ nhds_within a (Ioi a),  -- 0 : `s` is a neighborhood of `a` within `(a, +∞)`
+    s ∈ nhds_within a (Ioc a b),    -- 1 : `s` is a neighborhood of `a` within `(a, b]`
+    s ∈ nhds_within a (Ioo a b)] := -- 2 : `s` is a neighborhood of `a` within `(a, b)`
+begin
+  tfae_have : 1 → 2, from λ h, nhds_within_mono _ Ioc_subset_Ioi_self h,
+  tfae_have : 2 → 3, from λ h, nhds_within_mono _ Ioo_subset_Ioc_self h,
+  tfae_have : 3 → 1,
+  { rw [mem_nhds_within, mem_nhds_within],
+    rintros ⟨ u, huopen, hau, hu ⟩,
+    use u ∩ Iio b,
+    use is_open_inter huopen is_open_Iio,
+    use ⟨ hau, hab ⟩,
+    exact λ x ⟨ ⟨ hxu, hxb ⟩, hxa ⟩, hu ⟨ hxu, ⟨ hxa, hxb ⟩ ⟩ },
+  tfae_finish
+end
+
+@[simp] lemma nhds_within_Ioc_eq_nhds_within_Ioi {a b : α} (h : a < b) :
+  nhds_within a (Ioc a b) = nhds_within a (Ioi a) :=
+filter.ext $ λ s, (tfae_mem_nhds_within_Ioi' h s).out 1 0
+
+@[simp] lemma nhds_within_Ioo_eq_nhds_within_Ioi {a b : α} (hu : a < b) :
+  nhds_within a (Ioo a b) = nhds_within a (Ioi a) :=
+filter.ext $ λ s, (tfae_mem_nhds_within_Ioi' hu s).out 2 0
+
+@[simp] lemma continuous_within_at_Ioc_iff_Ioi [topological_space β] {a b : α} {f : α → β} (h : a < b) :
+  continuous_within_at f (Ioc a b) a ↔ continuous_within_at f (Ioi a) a :=
+by simp only [continuous_within_at, nhds_within_Ioc_eq_nhds_within_Ioi h]
+
+@[simp] lemma continuous_within_at_Ioo_iff_Ioi [topological_space β] {a b : α} {f : α → β} (h : a < b) :
+  continuous_within_at f (Ioo a b) a ↔ continuous_within_at f (Ioi a) a :=
+by simp only [continuous_within_at, nhds_within_Ioo_eq_nhds_within_Ioi h]
+
+/-- The following statements are equivalent:
+
+0. `s` is a neighborhood of `b` within `(-∞, b)`
+1. `s` is a neighborhood of `b` within `[a, b)`
+2. `s` is a neighborhood of `b` within `(a, b)` -/
+lemma tfae_mem_nhds_within_Iio' {a b : α} (h : a < b) (s : set α) :
+  tfae [s ∈ nhds_within b (Iio b), -- 0 : `s` is a neighborhood of `b` within `(-∞, b)`
+    s ∈ nhds_within b (Ico a b),   -- 1 : `s` is a neighborhood of `b` within `[a, b)`
+    s ∈ nhds_within b (Ioo a b)] :=   -- 2 : `s` is a neighborhood of `b` within `(a, b)`
+begin
+  have := @tfae_mem_nhds_within_Ioi' (order_dual α) _ _ _ _ _ h s,
+  -- If we call `convert` here, it generates wrong equations, so we need to simplify first
+  simp only [exists_prop] at this ⊢,
+  rw [dual_Ioi, dual_Ioc, dual_Ioo] at this,
+  convert this
+end
+
+@[simp] lemma nhds_within_Ico_eq_nhds_within_Iio {a b : α} (h : a < b) :
+  nhds_within b (Ico a b) = nhds_within b (Iio b) :=
+filter.ext $ λ s, (tfae_mem_nhds_within_Iio' h s).out 1 0
+
+@[simp] lemma nhds_within_Ioo_eq_nhds_within_Iio {a b : α} (h : a < b) :
+  nhds_within b (Ioo a b) = nhds_within b (Iio b) :=
+filter.ext $ λ s, (tfae_mem_nhds_within_Iio' h s).out 2 0
+
+@[simp] lemma continuous_within_at_Ico_iff_Iio [topological_space β] {a b : α} {f : α → β} (h : a < b) :
+  continuous_within_at f (Ico a b) b ↔ continuous_within_at f (Iio b) b :=
+by simp only [continuous_within_at, nhds_within_Ico_eq_nhds_within_Iio h]
+
+@[simp] lemma continuous_within_at_Ioo_iff_Iio [topological_space β] {a b : α} {f : α → β} (h : a < b) :
+  continuous_within_at f (Ioo a b) b ↔ continuous_within_at f (Iio b) b :=
+by simp only [continuous_within_at, nhds_within_Ioo_eq_nhds_within_Iio h]
+
+/-- The following statements are equivalent:
+
+0. `s` is a neighborhood of `a` within `[a, +∞)`
+1. `s` is a neighborhood of `a` within `[a, b]`
+2. `s` is a neighborhood of `a` within `[a, b)` -/
+lemma tfae_mem_nhds_within_Ici' {a b : α} (hab : a < b) (s : set α) :
+  tfae [s ∈ nhds_within a (Ici a), -- 0 : `s` is a neighborhood of `a` within `[a, +∞)`
+    s ∈ nhds_within a (Icc a b),   -- 1 : `s` is a neighborhood of `a` within `[a, b]`
+    s ∈ nhds_within a (Ico a b)] :=   -- 2 : `s` is a neighborhood of `a` within `[a, b)`
+begin
+  tfae_have : 1 → 2, from λ h, nhds_within_mono _ Icc_subset_Ici_self h,
+  tfae_have : 2 → 3, from λ h, nhds_within_mono _ Ico_subset_Icc_self h,
+  tfae_have : 3 → 1,
+  { rw [mem_nhds_within, mem_nhds_within],
+    rintros ⟨ u, huopen, hau, hu ⟩,
+    use u ∩ Iio b,
+    use is_open_inter huopen is_open_Iio,
+    use ⟨ hau, hab ⟩,
+    exact λ x ⟨ ⟨ hxu, hxb ⟩, hxa ⟩, hu ⟨ hxu, ⟨ hxa, hxb ⟩ ⟩ },
+  tfae_finish
+end
+
+@[simp] lemma nhds_within_Icc_eq_nhds_within_Ici {a b : α} (h : a < b) :
+  nhds_within a (Icc a b) = nhds_within a (Ici a) :=
+filter.ext $ λ s, (tfae_mem_nhds_within_Ici' h s).out 1 0
+
+@[simp] lemma nhds_within_Ico_eq_nhds_within_Ici {a b : α} (hu : a < b) :
+  nhds_within a (Ico a b) = nhds_within a (Ici a) :=
+filter.ext $ λ s, (tfae_mem_nhds_within_Ici' hu s).out 2 0
+
+@[simp] lemma continuous_within_at_Icc_iff_Ici [topological_space β] {a b : α} {f : α → β} (h : a < b) :
+  continuous_within_at f (Icc a b) a ↔ continuous_within_at f (Ici a) a :=
+by simp only [continuous_within_at, nhds_within_Icc_eq_nhds_within_Ici h]
+
+@[simp] lemma continuous_within_at_Ico_iff_Ici [topological_space β] {a b : α} {f : α → β} (h : a < b) :
+  continuous_within_at f (Ico a b) a ↔ continuous_within_at f (Ici a) a :=
+by simp only [continuous_within_at, nhds_within_Ico_eq_nhds_within_Ici h]
+
+/-- The following statements are equivalent:
+
+0. `s` is a neighborhood of `b` within `(-∞, b]`
+1. `s` is a neighborhood of `b` within `[a, b]`
+2. `s` is a neighborhood of `b` within `(a, b]` -/
+lemma tfae_mem_nhds_within_Iic' {a b : α} (h : a < b) (s : set α) :
+  tfae [s ∈ nhds_within b (Iic b), -- 0 : `s` is a neighborhood of `b` within `(-∞, b]`
+    s ∈ nhds_within b (Icc a b),   -- 1 : `s` is a neighborhood of `b` within `[a, b]`
+    s ∈ nhds_within b (Ioc a b)] :=   -- 2 : `s` is a neighborhood of `b` within `(a, b]`
+begin
+  have := @tfae_mem_nhds_within_Ici' (order_dual α) _ _ _ _ _ h s,
+  -- If we call `convert` here, it generates wrong equations, so we need to simplify first
+  simp only [exists_prop] at this ⊢,
+  rw [dual_Ici, dual_Icc, dual_Ico] at this,
+  convert this
+end
+
+@[simp] lemma nhds_within_Icc_eq_nhds_within_Iic {a b : α} (h : a < b) :
+  nhds_within b (Icc a b) = nhds_within b (Iic b) :=
+filter.ext $ λ s, (tfae_mem_nhds_within_Iic' h s).out 1 0 (by norm_num) (by norm_num)
+
+@[simp] lemma nhds_within_Ioc_eq_nhds_within_Iic {a b : α} (h : a < b) :
+  nhds_within b (Ioc a b) = nhds_within b (Iic b) :=
+filter.ext $ λ s, (tfae_mem_nhds_within_Iic' h s).out 2 0 (by norm_num) (by norm_num)
+
+@[simp] lemma continuous_within_at_Icc_iff_Iic [topological_space β] {a b : α} {f : α → β} (h : a < b) :
+  continuous_within_at f (Icc a b) b ↔ continuous_within_at f (Iic b) b :=
+by simp only [continuous_within_at, nhds_within_Icc_eq_nhds_within_Iic h]
+
+@[simp] lemma continuous_within_at_Ioc_iff_Iic [topological_space β] {a b : α} {f : α → β} (h : a < b) :
+  continuous_within_at f (Ioc a b) b ↔ continuous_within_at f (Iic b) b :=
+by simp only [continuous_within_at, nhds_within_Ioc_eq_nhds_within_Iic h]
+
 end linear_order
 
 section decidable_linear_order
@@ -321,11 +500,11 @@ lemma frontier_lt_subset_eq : frontier {b | f b < g b} ⊆ {b | f b = g b} :=
 by rw ← frontier_compl;
    convert frontier_le_subset_eq hg hf; simp [ext_iff, eq_comm]
 
-lemma continuous.max : continuous (λb, max (f b) (g b)) :=
+@[continuity] lemma continuous.max : continuous (λb, max (f b) (g b)) :=
 have ∀b∈frontier {b | f b ≤ g b}, g b = f b, from assume b hb, (frontier_le_subset_eq hf hg hb).symm,
 continuous_if this hg hf
 
-lemma continuous.min : continuous (λb, min (f b) (g b)) :=
+@[continuity] lemma continuous.min : continuous (λb, min (f b) (g b)) :=
 have ∀b∈frontier {b | f b ≤ g b}, f b = g b, from assume b hb, frontier_le_subset_eq hf hg hb,
 continuous_if this hf hg
 
@@ -446,10 +625,8 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le' hg hh
 
 lemma nhds_order_unbounded {a : α} (hu : ∃u, a < u) (hl : ∃l, l < a) :
   𝓝 a = (⨅l (h₂ : l < a) u (h₂ : a < u), 𝓟 (Ioo l u)) :=
-let ⟨u, hu⟩ := hu, ⟨l, hl⟩ := hl in
 calc 𝓝 a = (⨅b<a, 𝓟 {c | b < c}) ⊓ (⨅b>a, 𝓟 {c | c < b}) : nhds_eq_order a
-  ... = (⨅b<a, 𝓟 {c | b < c} ⊓ (⨅b>a, 𝓟 {c | c < b})) :
-    binfi_inf hl
+  ... = (⨅b<a, 𝓟 {c | b < c} ⊓ (⨅b>a, 𝓟 {c | c < b})) : binfi_inf hl
   ... = (⨅l<a, (⨅u>a, 𝓟 {c | c < u} ⊓ 𝓟 {c | l < c})) :
     begin
       congr, funext x,
@@ -720,13 +897,11 @@ lemma not_tendsto_at_bot_of_tendsto_nhds [no_bot_order α]
 hf.not_tendsto (disjoint_nhds_at_bot x)
 
 /-!
-### Neighborhoods to the left and to the right
+### Neighborhoods to the left and to the right on an `order_topology`
 
-Limits to the left and to the right of real functions are defined in terms of neighborhoods to
-the left and to the right, either open or closed, i.e., members of `nhds_within a (Ioi a)` and
-`nhds_wihin a (Ici a)` on the right, and similarly on the left. Such neighborhoods can be
-characterized as the sets containing suitable intervals to the right or to the left of `a`.
-We give now these characterizations. -/
+We've seen some properties of left and right neighborhood of a point in an `order_closed_topology`.
+In an `order_topology`, such neighborhoods can be characterized as the sets containing suitable
+intervals to the right or to the left of `a`. We give now these characterizations. -/
 
 -- NB: If you extend the list, append to the end please to avoid breaking the API
 /-- The following statements are equivalent:
@@ -743,29 +918,22 @@ lemma tfae_mem_nhds_within_Ioi {a b : α} (hab : a < b) (s : set α) :
     ∃ u ∈ Ioc a b, Ioo a u ⊆ s,    -- 3 : `s` includes `(a, u)` for some `u ∈ (a, b]`
     ∃ u ∈ Ioi a, Ioo a u ⊆ s] :=   -- 4 : `s` includes `(a, u)` for some `u > a`
 begin
-  tfae_have : 1 → 2, from λ h, nhds_within_mono _ Ioc_subset_Ioi_self h,
-  tfae_have : 2 → 3, from λ h, nhds_within_mono _ Ioo_subset_Ioc_self h,
+  tfae_have : 1 ↔ 2, from (tfae_mem_nhds_within_Ioi' hab s).out 0 1,
+  tfae_have : 2 ↔ 3, from (tfae_mem_nhds_within_Ioi' hab s).out 1 2,
   tfae_have : 4 → 5, from λ ⟨u, umem, hu⟩, ⟨u, umem.1, hu⟩,
   tfae_have : 5 → 1,
   { rintros ⟨u, hau, hu⟩,
     exact mem_nhds_within.2 ⟨Iio u, is_open_Iio, hau, by rwa [inter_comm, Ioi_inter_Iio]⟩ },
-  tfae_have : 3 → 4,
+  tfae_have : 1 → 4,
   { assume h,
     rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
     rcases exists_Ico_subset_of_mem_nhds' va hab with ⟨u, au, hu⟩,
     refine ⟨u, au, λx hx, _⟩,
     refine hv ⟨hu ⟨le_of_lt hx.1, hx.2⟩, _⟩,
-    exact Ioo_subset_Ioo_right au.2 hx  },
+    exact hx.1 },
+  have := tfae_mem_nhds_within_Ioi' hab s,
   tfae_finish
 end
-
-@[simp] lemma nhds_within_Ioc_eq_nhds_within_Ioi {a b : α} (h : a < b) :
-  nhds_within a (Ioc a b) = nhds_within a (Ioi a) :=
-filter.ext $ λ s, (tfae_mem_nhds_within_Ioi h s).out 1 0
-
-@[simp] lemma nhds_within_Ioo_eq_nhds_within_Ioi {a b : α} (hu : a < b) :
-  nhds_within a (Ioo a b) = nhds_within a (Ioi a) :=
-filter.ext $ λ s, (tfae_mem_nhds_within_Ioi hu s).out 2 0
 
 lemma mem_nhds_within_Ioi_iff_exists_mem_Ioc_Ioo_subset {a u' : α} {s : set α} (hu' : a < u') :
   s ∈ nhds_within a (Ioi a) ↔ ∃u ∈ Ioc a u', Ioo a u ⊆ s :=
@@ -834,14 +1002,6 @@ begin
   convert this; ext l; rw [dual_Ioo]
 end
 
-@[simp] lemma nhds_within_Ico_eq_nhds_within_Iio {a b : α} (h : a < b) :
-  nhds_within b (Ico a b) = nhds_within b (Iio b) :=
-filter.ext $ λ s, (tfae_mem_nhds_within_Iio h s).out 1 0
-
-@[simp] lemma nhds_within_Ioo_eq_nhds_within_Iio {a b : α} (h : a < b) :
-  nhds_within b (Ioo a b) = nhds_within b (Iio b) :=
-filter.ext $ λ s, (tfae_mem_nhds_within_Iio h s).out 2 0
-
 lemma mem_nhds_within_Iio_iff_exists_mem_Ico_Ioo_subset {a l' : α} {s : set α} (hl' : l' < a) :
   s ∈ nhds_within a (Iio a) ↔ ∃l ∈ Ico l' a, Ioo l a ⊆ s :=
 (tfae_mem_nhds_within_Iio hl' s).out 0 3
@@ -883,29 +1043,144 @@ lemma Icc_mem_nhds_within_Iio {a b c : α} (h : b ∈ Ioc a c) :
   Icc a c ∈ nhds_within b (Iio b) :=
 mem_sets_of_superset (Ioo_mem_nhds_within_Iio h) Ioo_subset_Icc_self
 
-/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u)`
-with `a < u`, provided `a` is not a top element. -/
-lemma mem_nhds_within_Ici_iff_exists_Ico_subset' {a u' : α} {s : set α} (hu' : a < u') :
-  s ∈ nhds_within a (Ici a) ↔ ∃u, a < u ∧ Ico a u ⊆ s :=
+/-- The following statements are equivalent:
+
+0. `s` is a neighborhood of `a` within `[a, +∞)`
+1. `s` is a neighborhood of `a` within `[a, b]`
+2. `s` is a neighborhood of `a` within `[a, b)`
+3. `s` includes `[a, u)` for some `u ∈ (a, b]`
+4. `s` includes `[a, u)` for some `u > a` -/
+lemma tfae_mem_nhds_within_Ici {a b : α} (hab : a < b) (s : set α) :
+  tfae [s ∈ nhds_within a (Ici a), -- 0 : `s` is a neighborhood of `a` within `[a, +∞)`
+    s ∈ nhds_within a (Icc a b),   -- 1 : `s` is a neighborhood of `a` within `[a, b]`
+    s ∈ nhds_within a (Ico a b),   -- 2 : `s` is a neighborhood of `a` within `[a, b)`
+    ∃ u ∈ Ioc a b, Ico a u ⊆ s,    -- 3 : `s` includes `[a, u)` for some `u ∈ (a, b]`
+    ∃ u ∈ Ioi a, Ico a u ⊆ s] :=   -- 4 : `s` includes `[a, u)` for some `u > a`
 begin
-  split,
+  tfae_have : 1 ↔ 2, from (tfae_mem_nhds_within_Ici' hab s).out 0 1,
+  tfae_have : 2 ↔ 3, from (tfae_mem_nhds_within_Ici' hab s).out 1 2,
+  tfae_have : 4 → 5, from λ ⟨u, umem, hu⟩, ⟨u, umem.1, hu⟩,
+  tfae_have : 5 → 1,
+  { rintros ⟨u, hau, hu⟩,
+    exact mem_nhds_within.2 ⟨Iio u, is_open_Iio, hau, by rwa [inter_comm, Ici_inter_Iio]⟩ },
+  tfae_have : 1 → 4,
   { assume h,
     rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
-    rcases exists_Ico_subset_of_mem_nhds va ⟨u', hu'⟩ with ⟨u, au, hu⟩,
+    rcases exists_Ico_subset_of_mem_nhds' va hab with ⟨u, au, hu⟩,
     refine ⟨u, au, λx hx, _⟩,
-    refine hv ⟨_, hx.1⟩,
-    exact hu hx },
-  { rintros ⟨u, au, hu⟩,
-    rw mem_nhds_within_iff_exists_mem_nhds_inter,
-    refine ⟨Iio u, mem_nhds_sets is_open_Iio au, _⟩,
-    rwa [inter_comm, Ici_inter_Iio] }
+    refine hv ⟨hu ⟨hx.1, hx.2⟩, _⟩,
+    exact hx.1 },
+  tfae_finish
 end
+
+lemma mem_nhds_within_Ici_iff_exists_mem_Ioc_Ico_subset {a u' : α} {s : set α} (hu' : a < u') :
+  s ∈ nhds_within a (Ici a) ↔ ∃u ∈ Ioc a u', Ico a u ⊆ s :=
+(tfae_mem_nhds_within_Ici hu' s).out 0 3 (by norm_num) (by norm_num)
+
+/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u)`
+with `a < u < u'`, provided `a` is not a top element. -/
+lemma mem_nhds_within_Ici_iff_exists_Ico_subset' {a u' : α} {s : set α} (hu' : a < u') :
+  s ∈ nhds_within a (Ici a) ↔ ∃u ∈ Ioi a, Ico a u ⊆ s :=
+(tfae_mem_nhds_within_Ici hu' s).out 0 4 (by norm_num) (by norm_num)
 
 /-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u)`
 with `a < u`. -/
 lemma mem_nhds_within_Ici_iff_exists_Ico_subset [no_top_order α] {a : α} {s : set α} :
-  s ∈ nhds_within a (Ici a) ↔ ∃u, a < u ∧ Ico a u ⊆ s :=
+  s ∈ nhds_within a (Ici a) ↔ ∃u ∈ Ioi a, Ico a u ⊆ s :=
 let ⟨u', hu'⟩ := no_top a in mem_nhds_within_Ici_iff_exists_Ico_subset' hu'
+
+/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u]`
+with `a < u`. -/
+lemma mem_nhds_within_Ici_iff_exists_Icc_subset' [no_top_order α] [densely_ordered α]
+  {a : α} {s : set α} : s ∈ nhds_within a (Ici a) ↔ ∃u ∈ Ioi a, Icc a u ⊆ s :=
+begin
+  rw mem_nhds_within_Ici_iff_exists_Ico_subset,
+  split,
+  { rintros ⟨u, au, as⟩,
+    rcases dense au with ⟨v, hv⟩,
+    exact ⟨v, hv.1, λx hx, as ⟨hx.1, lt_of_le_of_lt hx.2 hv.2⟩⟩ },
+  { rintros ⟨u, au, as⟩,
+    exact ⟨u, au, subset.trans Ico_subset_Icc_self as⟩ }
+end
+
+lemma Ioo_mem_nhds_within_Ici {a b c : α} (H : b ∈ Ioo a c) :
+  Ioo a c ∈ nhds_within b (Ici b) :=
+(mem_nhds_within_Ici_iff_exists_Ico_subset' H.2).2 ⟨c, H.2, Ico_subset_Ioo_left H.1⟩
+
+lemma Ioc_mem_nhds_within_Ici {a b c : α} (H : b ∈ Ioo a c) :
+  Ioc a c ∈ nhds_within b (Ici b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Ici H) Ioo_subset_Ioc_self
+
+lemma Ico_mem_nhds_within_Ici {a b c : α} (H : b ∈ Ioo a c) :
+  Ico a c ∈ nhds_within b (Ici b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Ici H) Ioo_subset_Ico_self
+
+lemma Icc_mem_nhds_within_Ici {a b c : α} (H : b ∈ Ioo a c) :
+  Icc a c ∈ nhds_within b (Ici b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Ici H) Ioo_subset_Icc_self
+
+/-- The following statements are equivalent:
+
+0. `s` is a neighborhood of `b` within `(-∞, b]`
+1. `s` is a neighborhood of `b` within `[a, b]`
+2. `s` is a neighborhood of `b` within `(a, b]`
+3. `s` includes `(l, b]` for some `l ∈ [a, b)`
+4. `s` includes `(l, b]` for some `l < b` -/
+lemma tfae_mem_nhds_within_Iic {a b : α} (h : a < b) (s : set α) :
+  tfae [s ∈ nhds_within b (Iic b), -- 0 : `s` is a neighborhood of `b` within `(-∞, b]`
+    s ∈ nhds_within b (Icc a b),   -- 1 : `s` is a neighborhood of `b` within `[a, b]`
+    s ∈ nhds_within b (Ioc a b),   -- 2 : `s` is a neighborhood of `b` within `(a, b]`
+    ∃ l ∈ Ico a b, Ioc l b ⊆ s,    -- 3 : `s` includes `(l, b]` for some `l ∈ [a, b)`
+    ∃ l ∈ Iio b, Ioc l b ⊆ s] :=   -- 4 : `s` includes `(l, b]` for some `l < b`
+begin
+  have := @tfae_mem_nhds_within_Ici (order_dual α) _ _ _ _ _ h s,
+  -- If we call `convert` here, it generates wrong equations, so we need to simplify first
+  simp only [exists_prop] at this ⊢,
+  rw [dual_Icc, dual_Ioc, dual_Ioi] at this,
+  convert this; ext l; rw [dual_Ico]
+end
+
+lemma mem_nhds_within_Iic_iff_exists_mem_Ico_Ioc_subset {a l' : α} {s : set α} (hl' : l' < a) :
+  s ∈ nhds_within a (Iic a) ↔ ∃l ∈ Ico l' a, Ioc l a ⊆ s :=
+(tfae_mem_nhds_within_Iic hl' s).out 0 3 (by norm_num) (by norm_num)
+
+/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `(l, a]`
+with `l < a`, provided `a` is not a bottom element. -/
+lemma mem_nhds_within_Iic_iff_exists_Ioc_subset' {a l' : α} {s : set α} (hl' : l' < a) :
+  s ∈ nhds_within a (Iic a) ↔ ∃l ∈ Iio a, Ioc l a ⊆ s :=
+(tfae_mem_nhds_within_Iic hl' s).out 0 4 (by norm_num) (by norm_num)
+
+/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `(l, a]`
+with `l < a`. -/
+lemma mem_nhds_within_Iic_iff_exists_Ioc_subset [no_bot_order α] {a : α} {s : set α} :
+  s ∈ nhds_within a (Iic a) ↔ ∃l ∈ Iio a, Ioc l a ⊆ s :=
+let ⟨l', hl'⟩ := no_bot a in mem_nhds_within_Iic_iff_exists_Ioc_subset' hl'
+
+/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `[l, a]`
+with `l < a`. -/
+lemma mem_nhds_within_Iic_iff_exists_Icc_subset' [no_bot_order α] [densely_ordered α]
+  {a : α} {s : set α} : s ∈ nhds_within a (Iic a) ↔ ∃l ∈ Iio a, Icc l a ⊆ s :=
+begin
+  convert @mem_nhds_within_Ici_iff_exists_Icc_subset' (order_dual α) _ _ _ _ _ _ _,
+  simp_rw (show ∀ u : order_dual α, @Icc (order_dual α) _ a u = @Icc α _ u a, from λ u, dual_Icc),
+  refl,
+end
+
+lemma Ioo_mem_nhds_within_Iic {a b c : α} (h : b ∈ Ioo a c) :
+  Ioo a c ∈ nhds_within b (Iic b) :=
+(mem_nhds_within_Iic_iff_exists_Ioc_subset' h.1).2 ⟨a, h.1, Ioc_subset_Ioo_right h.2⟩
+
+lemma Ioc_mem_nhds_within_Iic {a b c : α} (h : b ∈ Ioo a c) :
+  Ioc a c ∈ nhds_within b (Iic b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Iic h) Ioo_subset_Ioc_self
+
+lemma Ico_mem_nhds_within_Iic {a b c : α} (h : b ∈ Ioo a c) :
+  Ico a c ∈ nhds_within b (Iic b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Iic h) Ioo_subset_Ico_self
+
+lemma Icc_mem_nhds_within_Iic {a b c : α} (h : b ∈ Ioo a c) :
+  Icc a c ∈ nhds_within b (Iic b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Iic h) Ioo_subset_Icc_self
 
 /-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u]`
 with `a < u`. -/
@@ -920,30 +1195,6 @@ begin
   { rintros ⟨u, au, as⟩,
     exact ⟨u, au, subset.trans Ico_subset_Icc_self as⟩ }
 end
-
-/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `(l, a]`
-with `l < a`, provided `a` is not a bottom element. -/
-lemma mem_nhds_within_Iic_iff_exists_Ioc_subset' {a l' : α} {s : set α} (hl' : l' < a) :
-  s ∈ nhds_within a (Iic a) ↔ ∃l, l < a ∧ Ioc l a ⊆ s :=
-begin
-  split,
-  { assume h,
-    rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
-    rcases exists_Ioc_subset_of_mem_nhds va ⟨l', hl'⟩ with ⟨l, la, hl⟩,
-    refine ⟨l, la, λx hx, _⟩,
-    refine hv ⟨_, hx.2⟩,
-    exact hl hx },
-  { rintros ⟨l, la, ha⟩,
-    rw mem_nhds_within_iff_exists_mem_nhds_inter,
-    refine ⟨Ioi l, mem_nhds_sets is_open_Ioi la, _⟩,
-    rwa [Ioi_inter_Iic] }
-end
-
-/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `(l, a]`
-with `l < a`. -/
-lemma mem_nhds_within_Iic_iff_exists_Ioc_subset [no_bot_order α] {a : α} {s : set α} :
-  s ∈ nhds_within a (Iic a) ↔ ∃l, l < a ∧ Ioc l a ⊆ s :=
-let ⟨l', hl'⟩ := no_bot a in mem_nhds_within_Iic_iff_exists_Ioc_subset' hl'
 
 /-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `[l, a]`
 with `l < a`. -/
@@ -1128,7 +1379,7 @@ begin
 end
 
 /-- The closure of the interval `(a, +∞)` is the closed interval `[a, +∞)`. -/
-lemma closure_Ioi (a : α) [no_top_order α] :
+@[simp] lemma closure_Ioi (a : α) [no_top_order α] :
   closure (Ioi a) = Ici a :=
 let ⟨b, hb⟩ := no_top a in closure_Ioi' hb
 
@@ -1146,12 +1397,12 @@ begin
 end
 
 /-- The closure of the interval `(-∞, a)` is the interval `(-∞, a]`. -/
-lemma closure_Iio (a : α) [no_bot_order α] :
+@[simp] lemma closure_Iio (a : α) [no_bot_order α] :
   closure (Iio a) = Iic a :=
 let ⟨b, hb⟩ := no_bot a in closure_Iio' hb
 
 /-- The closure of the open interval `(a, b)` is the closed interval `[a, b]`. -/
-lemma closure_Ioo {a b : α} (hab : a < b) :
+@[simp] lemma closure_Ioo {a b : α} (hab : a < b) :
   closure (Ioo a b) = Icc a b :=
 begin
   apply subset.antisymm,
@@ -1166,7 +1417,7 @@ begin
 end
 
 /-- The closure of the interval `(a, b]` is the closed interval `[a, b]`. -/
-lemma closure_Ioc {a b : α} (hab : a < b) :
+@[simp] lemma closure_Ioc {a b : α} (hab : a < b) :
   closure (Ioc a b) = Icc a b :=
 begin
   apply subset.antisymm,
@@ -1176,7 +1427,7 @@ begin
 end
 
 /-- The closure of the interval `[a, b)` is the closed interval `[a, b]`. -/
-lemma closure_Ico {a b : α} (hab : a < b) :
+@[simp] lemma closure_Ico {a b : α} (hab : a < b) :
   closure (Ico a b) = Icc a b :=
 begin
   apply subset.antisymm,
@@ -1200,6 +1451,31 @@ by rw [← Ici_inter_Iio, interior_inter, interior_Ici, interior_Iio, Ioi_inter_
 
 @[simp] lemma interior_Ioc [no_top_order α] {a b : α} : interior (Ioc a b) = Ioo a b :=
 by rw [← Ioi_inter_Iic, interior_inter, interior_Ioi, interior_Iic, Ioi_inter_Iio]
+
+@[simp] lemma frontier_Ici [no_bot_order α] {a : α} : frontier (Ici a) = {a} :=
+by simp [frontier]
+
+@[simp] lemma frontier_Iic [no_top_order α] {a : α} : frontier (Iic a) = {a} :=
+by simp [frontier]
+
+@[simp] lemma frontier_Ioi [no_top_order α] {a : α} : frontier (Ioi a) = {a} :=
+by simp [frontier]
+
+@[simp] lemma frontier_Iio [no_bot_order α] {a : α} : frontier (Iio a) = {a} :=
+by simp [frontier]
+
+@[simp] lemma frontier_Icc [no_bot_order α] [no_top_order α] {a b : α} (h : a < b) :
+  frontier (Icc a b) = {a, b} :=
+by simp [frontier, le_of_lt h, Icc_diff_Ioo_same]
+
+@[simp] lemma frontier_Ioo {a b : α} (h : a < b) : frontier (Ioo a b) = {a, b} :=
+by simp [frontier, h, le_of_lt h, Icc_diff_Ioo_same]
+
+@[simp] lemma frontier_Ico [no_bot_order α] {a b : α} (h : a < b) : frontier (Ico a b) = {a, b} :=
+by simp [frontier, h, le_of_lt h, Icc_diff_Ioo_same]
+
+@[simp] lemma frontier_Ioc [no_top_order α] {a b : α} (h : a < b) : frontier (Ioc a b) = {a, b} :=
+by simp [frontier, h, le_of_lt h, Icc_diff_Ioo_same]
 
 lemma nhds_within_Ioi_ne_bot' {a b c : α} (H₁ : a < c) (H₂ : a ≤ b) :
   ne_bot (nhds_within b (Ioi a)) :=
@@ -1697,18 +1973,18 @@ match forall_le_or_exists_lt_sup a with
 | or.inr ⟨b, hb⟩ := ⟨b, ge_mem_nhds hb⟩
 end
 
-lemma is_bounded_under_le_of_tendsto {f : filter β} {u : β → α} {a : α}
+lemma filter.tendsto.is_bounded_under_le {f : filter β} {u : β → α} {a : α}
   (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≤) u :=
-is_bounded_of_le h (is_bounded_le_nhds a)
+(is_bounded_le_nhds a).mono h
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma is_cobounded_ge_nhds (a : α) : (𝓝 a).is_cobounded (≥) :=
-is_cobounded_of_is_bounded (is_bounded_le_nhds a)
+(is_bounded_le_nhds a).is_cobounded_flip
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma is_cobounded_under_ge_of_tendsto {f : filter β} {u : β → α} {a : α}
+lemma filter.tendsto.is_cobounded_under_ge {f : filter β} {u : β → α} {a : α}
   [ne_bot f] (h : tendsto u f (𝓝 a)) : f.is_cobounded_under (≥) u :=
-is_cobounded_of_is_bounded (is_bounded_under_le_of_tendsto h)
+h.is_bounded_under_le.is_cobounded_flip
 
 end order_closed_topology
 
@@ -1717,22 +1993,19 @@ variables [semilattice_inf α] [topological_space α] [order_topology α]
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma is_bounded_ge_nhds (a : α) : (𝓝 a).is_bounded (≥) :=
-match forall_le_or_exists_lt_inf a with
-| or.inl h := ⟨a, eventually_of_forall h⟩
-| or.inr ⟨b, hb⟩ := ⟨b, le_mem_nhds hb⟩
-end
+@is_bounded_le_nhds (order_dual α) _ _ _ a
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma is_bounded_under_ge_of_tendsto {f : filter β} {u : β → α} {a : α}
+lemma filter.tendsto.is_bounded_under_ge {f : filter β} {u : β → α} {a : α}
   (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≥) u :=
-is_bounded_of_le h (is_bounded_ge_nhds a)
+(is_bounded_ge_nhds a).mono h
 
 lemma is_cobounded_le_nhds (a : α) : (𝓝 a).is_cobounded (≤) :=
-is_cobounded_of_is_bounded (is_bounded_ge_nhds a)
+(is_bounded_ge_nhds a).is_cobounded_flip
 
-lemma is_cobounded_under_le_of_tendsto {f : filter β} {u : β → α} {a : α}
+lemma filter.tendsto.is_cobounded_under_le {f : filter β} {u : β → α} {a : α}
   [ne_bot f] (h : tendsto u f (𝓝 a)) : f.is_cobounded_under (≤) u :=
-is_cobounded_of_is_bounded (is_bounded_under_ge_of_tendsto h)
+h.is_bounded_under_ge.is_cobounded_flip
 
 end order_closed_topology
 
@@ -1775,16 +2048,16 @@ theorem Liminf_nhds : ∀ (a : α), Liminf (𝓝 a) = a :=
 
 /-- If a filter is converging, its limsup coincides with its limit. -/
 theorem Liminf_eq_of_le_nhds {f : filter α} {a : α} [ne_bot f] (h : f ≤ 𝓝 a) : f.Liminf = a :=
-have hb_ge : is_bounded (≥) f, from is_bounded_of_le h (is_bounded_ge_nhds a),
-have hb_le : is_bounded (≤) f, from is_bounded_of_le h (is_bounded_le_nhds a),
+have hb_ge : is_bounded (≥) f, from (is_bounded_ge_nhds a).mono h,
+have hb_le : is_bounded (≤) f, from (is_bounded_le_nhds a).mono h,
 le_antisymm
   (calc f.Liminf ≤ f.Limsup : Liminf_le_Limsup hb_le hb_ge
     ... ≤ (𝓝 a).Limsup :
-      Limsup_le_Limsup_of_le h (is_cobounded_of_is_bounded hb_ge) (is_bounded_le_nhds a)
+      Limsup_le_Limsup_of_le h hb_ge.is_cobounded_flip (is_bounded_le_nhds a)
     ... = a : Limsup_nhds a)
   (calc a = (𝓝 a).Liminf : (Liminf_nhds a).symm
     ... ≤ f.Liminf :
-      Liminf_le_Liminf_of_le h (is_bounded_ge_nhds a) (is_cobounded_of_is_bounded hb_le))
+      Liminf_le_Liminf_of_le h (is_bounded_ge_nhds a) hb_le.is_cobounded_flip)
 
 /-- If a filter is converging, its liminf coincides with its limit. -/
 theorem Limsup_eq_of_le_nhds : ∀ {f : filter α} {a : α} [ne_bot f], f ≤ 𝓝 a → f.Limsup = a :=

@@ -838,7 +838,7 @@ trans (eval₂_map f.to_map g x).symm (by rw [hb, eval₂_smul, hx, smul_zero])
 
 lemma integer_normalization_aeval_eq_zero [algebra R R'] [algebra f.codomain R']
   [is_algebra_tower R f.codomain R'] (p : polynomial f.codomain)
-  {x : R'} (hx : aeval _ _ x p = 0) : aeval _ R' x (integer_normalization p) = 0 :=
+  {x : R'} (hx : aeval x p = 0) : aeval x (integer_normalization p) = 0 :=
 by rw [aeval_def, is_algebra_tower.algebra_map_eq R f.codomain R', algebra_map_eq,
     integer_normalization_eval₂_eq_zero _ _ hx]
 

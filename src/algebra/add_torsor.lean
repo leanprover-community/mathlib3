@@ -5,7 +5,7 @@ Authors: Joseph Myers, Yury Kudryashov.
 -/
 import algebra.group.prod
 import algebra.group.type_tags
-import algebra.pi_instances
+import algebra.group.pi
 import data.equiv.basic
 
 /-!
@@ -226,6 +226,18 @@ begin
   rw set.eq_empty_iff_forall_not_mem,
   rintros g ⟨p, hp, hg⟩,
   exact hp
+end
+
+/-- `vsub_set` of a single point. -/
+@[simp] lemma vsub_set_singleton (p : P) : vsub_set G ({p} : set P) = {0} :=
+begin
+  ext g,
+  rw set.mem_singleton_iff,
+  split,
+  { rintros ⟨p1, hp1, p2, hp2, rfl⟩,
+    rw set.mem_singleton_iff at hp1 hp2,
+    simp [hp1, hp2] },
+  { exact λ h, h.symm ▸ ⟨p, set.mem_singleton p, p, set.mem_singleton p, (vsub_self G p).symm⟩ }
 end
 
 /-- Each pairwise difference is in the `vsub_set`. -/

@@ -5,7 +5,9 @@ Authors: Robert Y. Lewis, Chris Hughes
 -/
 import algebra.associated
 import data.int.gcd
-import algebra.big_operators
+import algebra.big_operators.basic
+import data.nat.enat
+
 
 variables {α : Type*}
 

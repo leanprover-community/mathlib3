@@ -6,8 +6,6 @@ Authors: Kenny Lau
 Multiplication and division of submodules of an algebra.
 -/
 import ring_theory.algebra
-import ring_theory.ideals
-import algebra.pointwise
 
 universes u v
 

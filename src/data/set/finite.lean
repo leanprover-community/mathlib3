@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.fintype.basic
-import algebra.big_operators
+import algebra.big_operators.basic
 
 /-!
 # Finite sets
@@ -184,6 +184,20 @@ theorem infinite_univ_iff : (@univ α).infinite ↔ _root_.infinite α :=
 
 theorem infinite_univ [h : _root_.infinite α] : infinite (@univ α) :=
 infinite_univ_iff.2 h
+
+theorem infinite_coe_iff {s : set α} : _root_.infinite s ↔ infinite s :=
+⟨λ ⟨h₁⟩ h₂, h₁ h₂.some, λ h₁, ⟨λ h₂, h₁ ⟨h₂⟩⟩⟩
+
+theorem infinite.to_subtype {s : set α} (h : infinite s) : _root_.infinite s :=
+infinite_coe_iff.2 h
+
+/-- Embedding of `ℕ` into an infinite set. -/
+noncomputable def infinite.nat_embedding (s : set α) (h : infinite s) : ℕ ↪ s :=
+by { haveI := h.to_subtype, exact infinite.nat_embedding s }
+
+lemma infinite.exists_subset_card_eq {s : set α} (hs : infinite s) (n : ℕ) :
+  ∃ t : finset α, ↑t ⊆ s ∧ t.card = n :=
+⟨((finset.range n).map (hs.nat_embedding _)).map (embedding.subtype _), by simp⟩
 
 instance fintype_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] : fintype (s ∪ t : set α) :=
 fintype.of_finset (s.to_finset ∪ t.to_finset) $ by simp

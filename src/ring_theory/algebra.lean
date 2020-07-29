@@ -177,6 +177,15 @@ instance of_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A]
   smul_def' := λ r x, algebra.smul_def r x,
   .. (algebra_map R A).comp (⟨coe, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩ : S →+* R) }
 
+lemma subring_coe_algebra_map_hom {R : Type*} [comm_ring R] (S : set R) [is_subring S] :
+  (algebra_map S R : S →+* R) = is_subring.subtype S := rfl
+
+lemma subring_coe_algebra_map {R : Type*} [comm_ring R] (S : set R) [is_subring S] :
+  (algebra_map S R : S → R) = subtype.val := rfl
+
+lemma subring_algebra_map_apply {R : Type*} [comm_ring R] (S : set R) [is_subring S] (x : S) :
+  algebra_map S R x = x := rfl
+
 variables (R A)
 /-- The multiplication in an algebra is a bilinear map. -/
 def lmul : A →ₗ A →ₗ A :=
@@ -881,6 +890,9 @@ le_antisymm bot_le $ subalgebra.range_le _
 theorem mem_top {x : A} : x ∈ (⊤ : subalgebra R A) :=
 subsemiring.subset_closure $ or.inr trivial
 
+@[simp] theorem coe_top : ((⊤ : subalgebra R A) : submodule R A) = ⊤ :=
+submodule.ext $ λ x, iff_of_true mem_top trivial
+
 theorem eq_top_iff {S : subalgebra R A} :
   S = ⊤ ↔ ∀ x : A, x ∈ S :=
 ⟨λ h x, by rw h; exact mem_top, λ h, by ext x; exact ⟨λ _, mem_top, λ _, h x⟩⟩
@@ -1016,6 +1028,33 @@ by rw [span_int_eq_add_group_closure, s.closure_eq]
 end span_int
 
 end int
+
+/-!
+The R-algebra structure on `Π i : I, A i` when each `A i` is an R-algebra.
+
+We couldn't set this up back in `algebra.pi_instances` because this file imports it.
+-/
+namespace pi
+
+variable {I : Type u}     -- The indexing type
+variable {f : I → Type v} -- The family of types already equipped with instances
+variables (x y : Π i, f i) (i : I)
+variables (I f)
+instance algebra (α) {r : comm_semiring α}
+  [s : ∀ i, semiring (f i)] [∀ i, algebra α (f i)] :
+  algebra α (Π i : I, f i) :=
+{ commutes' := λ a f, begin ext, simp [algebra.commutes], end,
+  smul_def' := λ a f, begin ext, simp [algebra.smul_def''], end,
+  ..pi.ring_hom (λ i, algebra_map α (f i)) }
+
+@[simp] lemma algebra_map_apply (α) {r : comm_semiring α}
+  [s : ∀ i, semiring (f i)] [∀ i, algebra α (f i)] (a : α) (i : I) :
+  algebra_map α (Π i, f i) a i = algebra_map α (f i) a := rfl
+
+-- One could also build a `Π i, R i`-algebra structure on `Π i, A i`,
+-- when each `A i` is an `R i`-algebra, although I'm not sure that it's useful.
+
+end pi
 
 section restrict_scalars
 /- In this section, we describe restriction of scalars: if `S` is an algebra over `R`, then

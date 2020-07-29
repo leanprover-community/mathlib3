@@ -13,9 +13,6 @@ The main def is `binom_expansion`.
 
 noncomputable theory
 
-open finsupp finset add_monoid_algebra
-open_locale big_operators
-
 namespace polynomial
 universes u v w x y z
 variables {R : Type u} {S : Type v} {T : Type w} {ι : Type x} {k : Type y} {A : Type z}
@@ -66,12 +63,17 @@ private lemma poly_binom_aux3 (f : polynomial R) (x y : R) : f.eval (x + y) =
   f.sum (λ e a, (a *(poly_binom_aux1 x y e a).val)*y^2) :=
 by rw poly_binom_aux2; simp [left_distrib, finsupp.sum_add, mul_assoc]
 
+lemma derivative_eval (p : polynomial R) (x : R) :
+  p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
+by simp only [derivative, eval_sum, eval_pow, eval_C, eval_X, eval_nat_cast, eval_mul]
+
 def binom_expansion (f : polynomial R) (x y : R) :
   {k : R // f.eval (x + y) = f.eval x + (f.derivative.eval x) * y + k * y^2} :=
 begin
   existsi f.sum (λ e a, a *((poly_binom_aux1 x y e a).val)),
   rw poly_binom_aux3,
   congr,
+  { rw [←eval_eq_sum], },
   { rw derivative_eval, symmetry,
     apply finsupp.sum_mul },
   { symmetry, apply finsupp.sum_mul }

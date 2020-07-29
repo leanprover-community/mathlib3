@@ -7,6 +7,22 @@ import topology.sheaves.presheaf
 import topology.category.TopCommRing
 import topology.algebra.continuous_functions
 
+/-!
+# Presheaves of functions
+
+We construct some simple examples of presheaves of functions on a topological space.
+* `presheaf_to_Type X f`, where `f : X → Type`,
+  is the presheaf of dependently-typed (not-necessarily continuous) functions
+* `presheaf_to_Type X T`, where `T : Type`,
+  is the presheaf of (not-necessarily-continuous) functions to a fixed target type `T`
+* `presheaf_to_Top X T`, where `T : Top`,
+  is the presheaf of continuous functions into a topological space `T`
+* `presheaf_To_TopCommRing X R`, where `R : TopCommRing`
+  is the presheaf valued in `CommRing` of functions functions into a topological ring `R`
+* as an example of the previous construction,
+  `presheaf_ℂ X` is the presheaf of rings of continuous complex-valued functions on `X`.
+-/
+
 universes v u
 
 open category_theory
@@ -25,18 +41,9 @@ def presheaf_to_Top (T : Top.{v}) : X.presheaf (Type v) :=
 to a topological commutative ring, with pointwise multiplication. -/
 -- TODO upgrade the result to TopCommRing?
 def continuous_functions (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) : CommRing.{v} :=
-{ α := unop X ⟶ (forget₂ TopCommRing Top).obj R,
-  str := _root_.continuous_comm_ring }
+CommRing.of (unop X ⟶ (forget₂ TopCommRing Top).obj R)
 
 namespace continuous_functions
-@[simp] lemma one (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (x) :
-  (monoid.one : continuous_functions X R).val x = 1 := rfl
-@[simp] lemma zero (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (x) :
-  (comm_ring.zero : continuous_functions X R).val x = 0 := rfl
-@[simp] lemma add (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (f g : continuous_functions X R) (x) :
-  (comm_ring.add f g).val x = f.1 x + g.1 x := rfl
-@[simp] lemma mul (X : Top.{v}ᵒᵖ) (R : TopCommRing.{v}) (f g : continuous_functions X R) (x) :
-  (ring.mul f g).val x = f.1 x * g.1 x := rfl
 
 /-- Pulling back functions into a topological ring along a continuous map is a ring homomorphism. -/
 def pullback {X Y : Topᵒᵖ} (f : X ⟶ Y) (R : TopCommRing) :
@@ -47,11 +54,9 @@ def pullback {X Y : Topᵒᵖ} (f : X ⟶ Y) (R : TopCommRing) :
   map_add' := by tidy,
   map_mul' := by tidy }
 
-local attribute [ext] subtype.eq
-
 /-- A homomorphism of topological rings can be postcomposed with functions from a source space `X`;
 this is a ring homomorphism (with respect to the pointwise ring operations on functions). -/
-def map (X : Topᵒᵖ) {R S : TopCommRing} (φ : R ⟶ S) :
+def map (X : Top.{u}ᵒᵖ) {R S : TopCommRing.{u}} (φ : R ⟶ S) :
   continuous_functions X R ⟶ continuous_functions X S :=
 { to_fun := λ g, g ≫ ((forget₂ TopCommRing Top).map φ),
   map_one' := by ext; exact φ.1.map_one,

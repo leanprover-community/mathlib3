@@ -2,8 +2,12 @@
 Copyright (c) 2019 Kenny Lau, Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes
-
-Direct limit of modules, abelian groups, rings, and fields.
+-/
+import ring_theory.free_comm_ring
+import linear_algebra.direct_sum_module
+import data.finset.order
+/-!
+# Direct limit of modules, abelian groups, rings, and fields.
 
 See Atiyah-Macdonald PP.32-33, Matsumura PP.269-270
 
@@ -13,10 +17,8 @@ or incomparable abelian groups, or rings, or fields.
 It is constructed as a quotient of the free module (for the module case) or quotient of
 the free commutative ring (for the ring case) instead of a quotient of the disjoint union
 so as to make the operations (addition etc.) "computable".
--/
-import ring_theory.free_comm_ring
-import linear_algebra.direct_sum_module
 
+-/
 universes u v w u₁
 
 open submodule
@@ -306,7 +308,7 @@ ideal.quotient.eq.2 $ subset_span $ or.inl ⟨i, j, hij, x, rfl⟩
 @[simp] lemma of_neg (i x) : of G f i (-x) = -of G f i x := is_ring_hom.map_neg _
 @[simp] lemma of_sub (i x y) : of G f i (x - y) = of G f i x - of G f i y := is_ring_hom.map_sub _
 @[simp] lemma of_mul (i x y) : of G f i (x * y) = of G f i x * of G f i y := is_ring_hom.map_mul _
-@[simp] lemma of_pow (i x) (n : ℕ) : of G f i (x ^ n) = of G f i x ^ n := is_semiring_hom.map_pow _ _ _
+@[simp] lemma of_pow (i x) (n : ℕ) : of G f i (x ^ n) = of G f i x ^ n := is_monoid_hom.map_pow _ _ _
 
 /-- Every element of the direct limit corresponds to some element in
 some component of the directed system. -/

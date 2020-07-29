@@ -362,6 +362,10 @@ class no_top_order (α : Type u) [preorder α] : Prop :=
 lemma no_top [preorder α] [no_top_order α] : ∀a:α, ∃a', a < a' :=
 no_top_order.no_top
 
+instance nonempty_gt {α : Type u} [preorder α] [no_top_order α] (a : α) :
+  nonempty {x // a < x} :=
+nonempty_subtype.2 (no_top a)
+
 /-- order without a bottom element; somtimes called coinitial or dense -/
 class no_bot_order (α : Type u) [preorder α] : Prop :=
 (no_bot : ∀a:α, ∃a', a' < a)
@@ -376,6 +380,10 @@ instance order_dual.no_top_order (α : Type u) [preorder α] [no_bot_order α] :
 instance order_dual.no_bot_order (α : Type u) [preorder α] [no_top_order α] :
   no_bot_order (order_dual α) :=
 ⟨λ a, @no_top α _ _ a⟩
+
+instance nonempty_lt {α : Type u} [preorder α] [no_bot_order α] (a : α) :
+  nonempty {x // x < a} :=
+nonempty_subtype.2 (no_bot a)
 
 /-- An order is dense if there is an element between any pair of distinct elements. -/
 class densely_ordered (α : Type u) [preorder α] : Prop :=

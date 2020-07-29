@@ -102,20 +102,22 @@ by simp [monic, leading_coeff]
 lemma scale_roots_eval₂_eq_zero {p : polynomial S} (f : S →+* R)
   {r : R} {s : S} (hr : eval₂ f r p = 0) (hs : s ∈ non_zero_divisors S) :
   eval₂ f (f s * r) (scale_roots p s) = 0 :=
-calc (scale_roots p s).support.sum (λ i, f (coeff p i * s ^ (p.nat_degree - i)) * (f s * r) ^ i)
-    = p.support.sum (λ (i : ℕ), f (p.coeff i) * f s ^ (p.nat_degree - i + i) * r ^ i) :
+calc eval₂ f (f s * r) (scale_roots p s) =
+  (scale_roots p s).support.sum (λ i, f (coeff p i * s ^ (p.nat_degree - i)) * (f s * r) ^ i) : eval₂_eq_sum
+... = p.support.sum (λ (i : ℕ), f (p.coeff i) * f s ^ (p.nat_degree - i + i) * r ^ i) :
   finset.sum_congr (support_scale_roots_eq p hs)
     (λ i hi, by simp_rw [f.map_mul, f.map_pow, pow_add, mul_pow, mul_assoc])
 ... = p.support.sum (λ (i : ℕ), f s ^ p.nat_degree * (f (p.coeff i) * r ^ i)) :
   finset.sum_congr rfl
   (λ i hi, by { rw [mul_assoc, mul_left_comm, nat.sub_add_cancel],
                 exact le_nat_degree_of_ne_zero (mem_support_iff.mp hi) })
-... = f s ^ p.nat_degree * eval₂ f r p : finset.mul_sum.symm
+... = f s ^ p.nat_degree * p.support.sum (λ (i : ℕ), (f (p.coeff i) * r ^ i)) : finset.mul_sum.symm
+... = f s ^ p.nat_degree * eval₂ f r p : by { rw [eval₂_eq_sum], refl }
 ... = 0 : by rw [hr, _root_.mul_zero]
 
 lemma scale_roots_aeval_eq_zero [algebra S R] {p : polynomial S}
-  {r : R} {s : S} (hr : aeval S R r p = 0) (hs : s ∈ non_zero_divisors S) :
-  aeval S R (algebra_map S R s * r) (scale_roots p s) = 0 :=
+  {r : R} {s : S} (hr : aeval r p = 0) (hs : s ∈ non_zero_divisors S) :
+  aeval (algebra_map S R s * r) (scale_roots p s) = 0 :=
 scale_roots_eval₂_eq_zero (algebra_map S R) hr hs
 
 lemma scale_roots_eval₂_eq_zero_of_eval₂_div_eq_zero
@@ -130,13 +132,13 @@ end
 
 lemma scale_roots_aeval_eq_zero_of_aeval_div_eq_zero [algebra A K]
   (inj : function.injective (algebra_map A K)) {p : polynomial A} {r s : A}
-  (hr : aeval A K (algebra_map A K r / algebra_map A K s) p = 0) (hs : s ∈ non_zero_divisors A) :
-  aeval A K (algebra_map A K r) (scale_roots p s) = 0 :=
+  (hr : aeval (algebra_map A K r / algebra_map A K s) p = 0) (hs : s ∈ non_zero_divisors A) :
+  aeval (algebra_map A K r) (scale_roots p s) = 0 :=
 scale_roots_eval₂_eq_zero_of_eval₂_div_eq_zero inj hr hs
 
 lemma scale_roots_aeval_eq_zero_of_aeval_mk'_eq_zero {p : polynomial A} {r : A} {s : M}
-  (hr : aeval A f.codomain (f.mk' r s) p = 0) (hM : M ≤ non_zero_divisors A) :
-  aeval A f.codomain (f.to_map r) (scale_roots p s) = 0 :=
+  (hr : @aeval A f.codomain _ _ _ (f.mk' r s) p = 0) (hM : M ≤ non_zero_divisors A) :
+  @aeval A f.codomain _ _ _ (f.to_map r) (scale_roots p s) = 0 :=
 begin
   convert scale_roots_eval₂_eq_zero f.to_map hr (hM s.2),
   rw aeval_def,
@@ -146,7 +148,7 @@ end
 
 lemma num_is_root_scale_roots_of_aeval_eq_zero
   [unique_factorization_domain A] (g : fraction_map A K)
-  {p : polynomial A} {x : g.codomain} (hr : aeval A g.codomain x p = 0) :
+  {p : polynomial A} {x : g.codomain} (hr : aeval x p = 0) :
   is_root (scale_roots p (g.denom x)) (g.num x) :=
 begin
   apply is_root_of_eval₂_map_eq_zero g.injective,
@@ -167,7 +169,7 @@ open polynomial unique_factorization_domain
 /-- Rational root theorem part 1:
 if `r : f.codomain` is a root of a polynomial over the ufd `A`,
 then the numerator of `r` divides the constant coefficient -/
-theorem num_dvd_of_is_root {p : polynomial A} {r} (hr : aeval A f.codomain r p = 0) :
+theorem num_dvd_of_is_root {p : polynomial A} {r : f.codomain} (hr : aeval r p = 0) :
   f.num r ∣ p.coeff 0 :=
 begin
   suffices : f.num r ∣ (scale_roots p (f.denom r)).coeff 0,
@@ -192,7 +194,7 @@ end
 /-- Rational root theorem part 2:
 if `r : f.codomain` is a root of a polynomial over the ufd `A`,
 then the denominator of `r` divides the leading coefficient -/
-theorem denom_dvd_of_is_root {p : polynomial A} {r} (hr : aeval A f.codomain r p = 0) :
+theorem denom_dvd_of_is_root {p : polynomial A} {r : f.codomain} (hr : aeval r p = 0) :
   (f.denom r : A) ∣ p.leading_coeff :=
 begin
   suffices : (f.denom r : A) ∣ p.leading_coeff * f.num r ^ p.nat_degree,
@@ -217,8 +219,8 @@ end
 /-- Integral root theorem:
 if `r : f.codomain` is a root of a monic polynomial over the ufd `A`,
 then `r` is an integer -/
-theorem is_integer_of_is_root_of_monic {p : polynomial A} (hp : monic p) {r}
-  (hr : aeval A f.codomain r p = 0) : f.is_integer r :=
+theorem is_integer_of_is_root_of_monic {p : polynomial A} (hp : monic p) {r : f.codomain}
+  (hr : aeval r p = 0) : f.is_integer r :=
 f.is_integer_of_is_unit_denom (is_unit_of_dvd_one _ (hp ▸ denom_dvd_of_is_root hr))
 
 namespace unique_factorization_domain

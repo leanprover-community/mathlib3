@@ -63,13 +63,15 @@ matched because they preserve the properties of QPF. The latter example,
    * cofix
    * quot
    * comp
+   * sigma / pi
+   * prj
+   * const
 
 each proves that some operations on functors preserves the QPF structure
 
 ##reference
 
  * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
-
 -/
 
 open_locale mvfunctor

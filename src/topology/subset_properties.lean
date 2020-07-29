@@ -1120,18 +1120,11 @@ lemma subtype.connected_space {s : set α} (h : is_connected s) :
 
 lemma is_preconnected_iff_preconnected_space {s : set α} :
   is_preconnected s ↔ preconnected_space s :=
-begin
-  refine ⟨subtype.preconnected_space, _⟩,
-  rintros ⟨h⟩,
-  intros U V U_op V_op hsUV hsU hsV,
-  specialize h (coe ⁻¹' U) (coe ⁻¹' V) (continuous_subtype_coe U U_op)
-                                       (continuous_subtype_coe V V_op) _ _ _,
-  { rw ← subtype.preimage_coe_nonempty,
-    simpa using h },
-  { rwa [← preimage_union, ← image_subset_iff, subtype.coe_image_univ s] },
-  { simpa [subtype.preimage_coe_nonempty] using hsU },
-  { simpa [subtype.preimage_coe_nonempty] using hsV }
-end
+⟨subtype.preconnected_space,
+ begin
+   introI,
+   simpa using is_preconnected_univ.image (coe : s → α) continuous_subtype_coe.continuous_on
+ end⟩
 
 lemma is_connected_iff_connected_space {s : set α} : is_connected s ↔ connected_space s :=
 ⟨subtype.connected_space,

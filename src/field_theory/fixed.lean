@@ -155,4 +155,4 @@ instance fixed_points.separable : is_separable (fixed_points G F) F :=
 by { rw [← fixed_points.minpoly.minimal_polynomial,
         ← polynomial.separable_map (is_subring.subtype (fixed_points G F)),
         fixed_points.minpoly, polynomial.map_to_subring],
-  exact polynomial.separable_prod_X_sub_C.2 (injective_of_quotient_stabilizer G x) }⟩
+  exact polynomial.separable_prod_X_sub_C_iff.2 (injective_of_quotient_stabilizer G x) }⟩

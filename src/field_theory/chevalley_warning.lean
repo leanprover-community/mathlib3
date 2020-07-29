@@ -47,10 +47,10 @@ local notation `q` := fintype.card K
 
 lemma mv_polynomial.sum_mv_polynomial_eq_zero [decidable_eq σ] (f : mv_polynomial σ K)
   (h : f.total_degree < (q - 1) * fintype.card σ) :
-  (∑ x, f.eval x) = 0 :=
+  (∑ x, eval x f) = 0 :=
 begin
   haveI : decidable_eq K := classical.dec_eq K,
-  calc (∑ x, f.eval x)
+  calc (∑ x, eval x f)
         = ∑ x : σ → K, ∑ d in f.support, f.coeff d * ∏ i, x i ^ d i : by simp only [eval_eq']
     ... = ∑ d in f.support, ∑ x : σ → K, f.coeff d * ∏ i, x i ^ d i : sum_comm
     ... = 0 : sum_eq_zero _,
@@ -96,10 +96,10 @@ Then the number of common solutions of the `f i` is divisible by `p`. -/
 theorem char_dvd_card_solutions_family (p : ℕ) [char_p K p]
   {ι : Type*} {s : finset ι} {f : ι → mv_polynomial σ K}
   (h : (∑ i in s, (f i).total_degree) < fintype.card σ) :
-  p ∣ fintype.card {x : σ → K // ∀ i ∈ s, (f i).eval x = 0} :=
+  p ∣ fintype.card {x : σ → K // ∀ i ∈ s, eval x (f i) = 0} :=
 begin
   have hq : 0 < q - 1, { rw [← card_units, fintype.card_pos_iff], exact ⟨1⟩ },
-  let S : finset (σ → K) := { x ∈ univ | ∀ i ∈ s, (f i).eval x = 0 },
+  let S : finset (σ → K) := { x ∈ univ | ∀ i ∈ s, eval x (f i) = 0 },
   have hS : ∀ (x : σ → K), x ∈ S ↔ ∀ (i : ι), i ∈ s → eval x (f i) = 0,
   { intros x, simp only [S, true_and, sep_def, mem_filter, mem_univ], },
   /- The polynomial `F = ∏ i in s, (1 - (f i)^(q - 1))` has the nice property
@@ -108,28 +108,28 @@ begin
   Hence the sum of its values is equal to the cardinality of
   `{x : σ → K // ∀ i ∈ s, (f i).eval x = 0}` modulo `p`. -/
   let F : mv_polynomial σ K := ∏ i in s, (1 - (f i)^(q - 1)),
-  have hF : ∀ x, F.eval x = if x ∈ S then 1 else 0,
+  have hF : ∀ x, eval x F = if x ∈ S then 1 else 0,
   { intro x,
-    calc F.eval x = ∏ i in s, (1 - f i ^ (q - 1)).eval x : eval_prod s _ x
+    calc eval x F = ∏ i in s, eval x (1 - f i ^ (q - 1)) : eval_prod s _ x
               ... = if x ∈ S then 1 else 0 : _,
-    simp only [eval_sub, eval_pow, eval_one],
+    simp only [(eval x).map_sub, (eval x).map_pow, (eval x).map_one],
     split_ifs with hx hx,
     { apply finset.prod_eq_one,
       intros i hi,
       rw hS at hx,
       rw [hx i hi, zero_pow hq, sub_zero], },
-    { obtain ⟨i, hi, hx⟩ : ∃ (i : ι), i ∈ s ∧ (f i).eval x ≠ 0,
+    { obtain ⟨i, hi, hx⟩ : ∃ (i : ι), i ∈ s ∧ eval x (f i) ≠ 0,
       { simpa only [hS, classical.not_forall, classical.not_imp] using hx },
       apply finset.prod_eq_zero hi,
-      rw [pow_card_sub_one_eq_one ((f i).eval x) hx, sub_self], } },
+      rw [pow_card_sub_one_eq_one (eval x (f i)) hx, sub_self], } },
   -- In particular, we can now show:
-  have key : ∑ x, F.eval x = fintype.card {x : σ → K // ∀ i ∈ s, (f i).eval x = 0},
+  have key : ∑ x, eval x F = fintype.card {x : σ → K // ∀ i ∈ s, eval x (f i) = 0},
   rw [fintype.card_of_subtype S hS, card_eq_sum_ones, sum_nat_cast, nat.cast_one,
       ← fintype.sum_extend_by_zero S, sum_congr rfl (λ x hx, hF x)],
   -- With these preparations under our belt, we will approach the main goal.
-  show p ∣ fintype.card {x // ∀ (i : ι), i ∈ s → (f i).eval x = 0},
+  show p ∣ fintype.card {x // ∀ (i : ι), i ∈ s → eval x (f i) = 0},
   rw [← char_p.cast_eq_zero_iff K, ← key],
-  show ∑ x, F.eval x = 0,
+  show ∑ x, eval x F = 0,
   -- We are now ready to apply the main machine, proven before.
   apply F.sum_mv_polynomial_eq_zero,
   -- It remains to verify the crucial assumption of this machine
@@ -154,7 +154,7 @@ Then the number of solutions of `f` is divisible by `p`.
 See `char_dvd_card_solutions_family` for a version that takes a family of polynomials `f i`. -/
 theorem char_dvd_card_solutions (p : ℕ) [char_p K p]
   {f : mv_polynomial σ K} (h : f.total_degree < fintype.card σ) :
-  p ∣ fintype.card {x : σ → K // f.eval x = 0} :=
+  p ∣ fintype.card {x : σ → K // eval x f = 0} :=
 begin
   let F : unit → mv_polynomial σ K := λ _, f,
   have : ∑ i : unit, (F i).total_degree < fintype.card σ,

@@ -427,9 +427,7 @@ begin
   by_cases ne : nonempty β₁ ∧ nonempty β₂,
   { cases ne,
     resetI,
-    inhabit β₁,
-    inhabit β₂,
-    simp [at_top, prod_infi_left (default β₁), prod_infi_right (default β₂), infi_prod],
+    simp [at_top, prod_infi_left, prod_infi_right, infi_prod],
     exact infi_comm },
   { rw not_and_distrib at ne,
     cases ne;
@@ -629,7 +627,6 @@ begin
 end
 
 end is_countably_generated
-
 
 end filter
 

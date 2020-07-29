@@ -213,6 +213,12 @@ def filter_basis.of_sets (s : set (set α)) : filter_basis α :=
 lemma has_basis.mem_iff (hl : l.has_basis p s) : t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t :=
 hl.mem_iff' t
 
+lemma has_basis_iff : l.has_basis p s ↔ ∀ t, t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t :=
+⟨λ ⟨h⟩, h, λ h, ⟨h⟩⟩
+
+lemma has_basis.ex_mem (h : l.has_basis p s) : ∃ i, p i :=
+let ⟨i, pi, h⟩ := h.mem_iff.mp univ_mem_sets in ⟨i, pi⟩
+
 protected lemma is_basis.has_basis (h : is_basis p s) : has_basis h.filter p s :=
 ⟨λ t, by simp only [h.mem_filter_iff, exists_prop]⟩
 
@@ -253,19 +259,22 @@ lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 
 lemma has_basis_self {l : filter α} {P : set α → Prop} :
   has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t, (t ∈ l ↔ ∃ r ∈ l, P r ∧ r ⊆ t) :=
+by simp only [has_basis_iff, exists_prop, id, and_assoc]
+
+/-- If `{s i | p i}` is a basis of a filter `l` and `V ∈ l`, then `{s i | p i ∧ s i ⊆ V}`
+is a basis of `l`. -/
+lemma has_basis.restrict (h : l.has_basis p s) {V : set α} (hV : V ∈ l) :
+  l.has_basis (λ i, p i ∧ s i ⊆ V) s :=
 begin
-  split,
-  { rintros ⟨h⟩ t,
-    convert h t,
-    ext s,
-    tauto, },
-  { intro h,
-    constructor,
-    intro t,
-    convert h t,
-    ext s,
-    tauto }
+  refine ⟨λ t, ⟨λ ht, _, λ ⟨i, hpi, hti⟩, h.mem_iff.2 ⟨i, hpi.1, hti⟩⟩⟩,
+  rcases h.mem_iff.1 (inter_mem_sets hV ht) with ⟨i, hpi, hti⟩,
+  rw subset_inter_iff at hti,
+  exact ⟨i, ⟨hpi, hti.1⟩, hti.2⟩
 end
+
+lemma has_basis.has_basis_self_subset {p : set α → Prop} (h : l.has_basis (λ s, s ∈ l ∧ p s) id)
+  {V : set α} (hV : V ∈ l) : l.has_basis (λ s, s ∈ l ∧ p s ∧ s ⊆ V) id :=
+by simpa only [and_assoc] using h.restrict hV
 
 theorem has_basis.ge_iff (hl' : l'.has_basis p' s')  : l ≤ l' ↔ ∀ i', p' i' → s' i' ∈ l :=
 ⟨λ h i' hi', h $ hl'.mem_of_mem hi',
@@ -507,7 +516,7 @@ begin
 end
 
 lemma countable_binfi_eq_infi_seq' [complete_lattice α] {B : set ι} (Bcbl : countable B) (f : ι → α)
-{i₀ : ι} (h : f i₀ = ⊤) :
+  {i₀ : ι} (h : f i₀ = ⊤) :
   ∃ (x : ℕ → ι), (⨅ t ∈ B, f t) = ⨅ i, f (x i) :=
 begin
   cases B.eq_empty_or_nonempty with hB Bnonempty,
@@ -554,7 +563,7 @@ lemma has_countable_basis {l : filter α} (h : is_countably_generated l) :
  countable_set_of_finite_subset h.countable_generating_set⟩
 
 lemma exists_countable_infi_principal {f : filter α} (h : f.is_countably_generated) :
-∃ s : set (set α), countable s ∧ f = ⨅ t ∈ s, 𝓟 t :=
+  ∃ s : set (set α), countable s ∧ f = ⨅ t ∈ s, 𝓟 t :=
 begin
   let B := h.countable_filter_basis,
   use [B.sets, B.countable],
@@ -564,7 +573,7 @@ begin
 end
 
 lemma exists_seq {f : filter α} (cblb : f.is_countably_generated) :
-    ∃ x : ℕ → set α, f = ⨅ i, 𝓟 (x i) :=
+  ∃ x : ℕ → set α, f = ⨅ i, 𝓟 (x i) :=
 begin
   rcases cblb.exists_countable_infi_principal with ⟨B, Bcbl, rfl⟩,
   exact countable_binfi_principal_eq_seq_infi Bcbl,

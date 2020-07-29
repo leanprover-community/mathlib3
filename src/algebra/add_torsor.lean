@@ -228,6 +228,18 @@ begin
   exact hp
 end
 
+/-- `vsub_set` of a single point. -/
+@[simp] lemma vsub_set_singleton (p : P) : vsub_set G ({p} : set P) = {0} :=
+begin
+  ext g,
+  rw set.mem_singleton_iff,
+  split,
+  { rintros ⟨p1, hp1, p2, hp2, rfl⟩,
+    rw set.mem_singleton_iff at hp1 hp2,
+    simp [hp1, hp2] },
+  { exact λ h, h.symm ▸ ⟨p, set.mem_singleton p, p, set.mem_singleton p, (vsub_self G p).symm⟩ }
+end
+
 /-- Each pairwise difference is in the `vsub_set`. -/
 lemma vsub_mem_vsub_set {p1 p2 : P} {s : set P} (hp1 : p1 ∈ s) (hp2 : p2 ∈ s) :
   (p1 -ᵥ p2) ∈ vsub_set G s :=

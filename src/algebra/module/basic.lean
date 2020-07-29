@@ -289,11 +289,11 @@ theorem is_linear : is_linear_map R f := ⟨f.2, f.3⟩
 
 variables {f g}
 
-lemma coe_injective (H : ⇑f = g) : f = g :=
-by cases f; cases g; congr'; exact  H
+theorem coe_inj (h : (f : M → M₂) = g) : f = g :=
+by cases f; cases g; cases h; refl
 
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
-coe_injective $ funext H
+coe_inj $ funext H
 
 lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
 | _ _ rfl := rfl

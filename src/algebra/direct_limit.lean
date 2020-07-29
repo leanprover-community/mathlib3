@@ -308,7 +308,7 @@ ideal.quotient.eq.2 $ subset_span $ or.inl ⟨i, j, hij, x, rfl⟩
 @[simp] lemma of_neg (i x) : of G f i (-x) = -of G f i x := is_ring_hom.map_neg _
 @[simp] lemma of_sub (i x y) : of G f i (x - y) = of G f i x - of G f i y := is_ring_hom.map_sub _
 @[simp] lemma of_mul (i x y) : of G f i (x * y) = of G f i x * of G f i y := is_ring_hom.map_mul _
-@[simp] lemma of_pow (i x) (n : ℕ) : of G f i (x ^ n) = of G f i x ^ n := is_semiring_hom.map_pow _ _ _
+@[simp] lemma of_pow (i x) (n : ℕ) : of G f i (x ^ n) = of G f i x ^ n := is_monoid_hom.map_pow _ _ _
 
 /-- Every element of the direct limit corresponds to some element in
 some component of the directed system. -/

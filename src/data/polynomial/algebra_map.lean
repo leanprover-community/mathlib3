@@ -148,10 +148,10 @@ variables [comm_ring S] {f : R →+* S}
 
 lemma is_root_of_eval₂_map_eq_zero
   (hf : function.injective f) {r : R} : eval₂ f (f r) p = 0 → p.is_root r :=
-show eval₂ (f.comp (ring_hom.id R)) (f r) p = 0 → eval₂ (ring_hom.id R) r p = 0, begin
+begin
   intro h,
   apply hf,
-  rw [hom_eval₂, h, f.map_zero]
+  rw [←eval₂_hom, h, f.map_zero],
 end
 
 lemma is_root_of_aeval_algebra_map_eq_zero [algebra R S] {p : polynomial R}

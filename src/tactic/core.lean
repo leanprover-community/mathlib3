@@ -767,7 +767,10 @@ meta def build_list_expr_for_apply : list pexpr → tactic (list (tactic expr))
   a ← i_to_expr_for_apply h,
   (do l ← attribute.get_instances (expr.const_name a),
       m ← l.mmap (λ n, _root_.to_pexpr <$> mk_const n),
-      build_list_expr_for_apply (m ++ t))
+      -- We reverse the list of lemmas marked with an attribute,
+      -- on the assumption that lemmas proved earlier are more often applicable
+      -- than lemmas proved later. This is a performance optimization.
+      build_list_expr_for_apply (m.reverse ++ t))
   <|> return ((i_to_expr_for_apply h) :: tail)
 
 /--`apply_rules hs n`: apply the list of rules `hs` (given as pexpr) and `assumption` on the

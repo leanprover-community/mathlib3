@@ -740,7 +740,10 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   (E : Type*) [normed_group E] [normed_space 𝕜 E]
   (M : Type*) [topological_space M] [charted_space E M]
 
-instance : has_coe (smooth_space 𝕜 E M) (smooth_manifold_with_corners (model_with_corners_self 𝕜 E) M) :=
+instance prova {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  (E : Type*) [normed_group E] [normed_space 𝕜 E]
+  (M : Type*) [topological_space M] [charted_space E M] [smooth_space 𝕜 E M ] :
+  (smooth_manifold_with_corners (model_with_corners_self 𝕜 E) M) :=
 sorry
 
 instance model_prod.normed_group {E : Type*} [normed_group E] {E' : Type*} [normed_group E'] :
@@ -765,8 +768,8 @@ begin
   simp only at he he_symm he' he'_symm,
   split;
   simp only [local_equiv.prod_source, local_homeomorph.prod_to_local_equiv],
-  { exact times_cont_diff_on.map_prod he he', },
-  { exact times_cont_diff_on.map_prod he_symm he'_symm, }
+  { exact times_cont_diff_on.prod_map he he', },
+  { exact times_cont_diff_on.prod_map he_symm he'_symm, }
 end
 
 instance prod_smooth_spaces {𝕜 : Type*} [nondiscrete_normed_field 𝕜]

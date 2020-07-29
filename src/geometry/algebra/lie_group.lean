@@ -50,33 +50,30 @@ set_option default_priority 100
 
 /-- A Lie (additive) group is a group and a smooth manifold at the same time in which
 the addition and negation operations are smooth. -/
-class lie_add_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {H : Type*} [topological_space H]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
-  (G : Type*) [add_group G] [topological_space G] [topological_add_group G] [charted_space H G]
-  extends smooth_manifold_with_corners I G : Prop :=
-(smooth_add : smooth (I.prod I) I (λ p : G×G, p.1 + p.2))
-(smooth_neg : smooth I I (λ a:G, -a))
+class lie_add_group (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  (E : Type*) [normed_group E] [normed_space 𝕜 E]
+  (G : Type*) [add_group G] [topological_space G] [topological_add_group G] [charted_space E G]
+  extends smooth_space 𝕜 E G : Prop :=
+(smooth_add : smooth ((model_with_corners_self 𝕜 E).prod (model_with_corners_self 𝕜 E)) (model_with_corners_self 𝕜 E) (λ p : G×G, p.1 + p.2))
+(smooth_neg : smooth (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E) (λ a:G, -a))
 
 /-- A Lie group is a group and a smooth manifold at the same time in which
 the multiplication and inverse operations are smooth. -/
 @[to_additive]
-class lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {H : Type*} [topological_space H]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
-  (G : Type*) [group G] [topological_space G] [topological_group G] [charted_space H G]
-  extends smooth_manifold_with_corners I G : Prop :=
-(smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2))
-(smooth_inv : smooth I I (λ a:G, a⁻¹))
+class lie_group (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  (E : Type*) [normed_group E] [normed_space 𝕜 E]
+  (G : Type*) [group G] [topological_space G] [topological_group G] [charted_space E G]
+  extends smooth_space 𝕜 E G : Prop :=
+(smooth_mul : smooth ((model_with_corners_self 𝕜 E).prod (model_with_corners_self 𝕜 E)) (model_with_corners_self 𝕜 E) (λ p : G×G, p.1 * p.2))
+(smooth_inv : smooth (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E) (λ a:G, a⁻¹))
 
 section lie_group
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{H : Type*} [topological_space H]
-{E : Type*} [normed_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
-{F : Type*} [normed_group F] [normed_space 𝕜 F] {J : model_with_corners 𝕜 F F}
-{G : Type*} [topological_space G] [charted_space H G] [group G]
-[topological_group G] [lie_group I G]
+{E : Type*} [normed_group E] [normed_space 𝕜 E]
+{F : Type*} [normed_group F] [normed_space 𝕜 F]
+{G : Type*} [topological_space G] [charted_space E G] [group G]
+[topological_group G] [lie_group 𝕜 E G]
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M : Type*} [topological_space M] [charted_space H' M] [smooth_manifold_with_corners I' M]
@@ -85,12 +82,12 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {M' : Type*} [topological_space M'] [charted_space H'' M'] [smooth_manifold_with_corners I'' M']
 
 @[to_additive]
-lemma smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2) :=
+lemma smooth_mul : smooth ((model_with_corners_self 𝕜 E).prod (model_with_corners_self 𝕜 E)) (model_with_corners_self 𝕜 E) (λ p : G×G, p.1 * p.2) :=
 lie_group.smooth_mul
 
 @[to_additive]
-lemma smooth.mul {f : M → G} {g : M → G} (hf : smooth I' I f) (hg : smooth I' I g) :
-  smooth I' I (f * g) :=
+lemma smooth.mul {f : M → G} {g : M → G} (hf : smooth I' (model_with_corners_self 𝕜 E) f) (hg : smooth I' (model_with_corners_self 𝕜 E) g) :
+  smooth I' (model_with_corners_self 𝕜 E) (f * g) :=
 smooth_mul.comp (hf.prod_mk hg)
 
 namespace lie_group
@@ -106,53 +103,123 @@ attribute [nolint unused_arguments] lie_add_group.R_add
 end lie_group
 
 @[to_additive]
-lemma smooth_mul_left {a : G} : smooth I I (λ b : G, a * b) :=
+lemma smooth_mul_left {a : G} : smooth (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E) (λ b : G, a * b) :=
 smooth_mul.comp (smooth_const.prod_mk smooth_id)
 
 @[to_additive]
-lemma smooth_mul_right {a : G} : smooth I I (λ b : G, b * a) :=
+lemma smooth_mul_right {a : G} : smooth (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E) (λ b : G, b * a) :=
 smooth_mul.comp (smooth_id.prod_mk smooth_const)
 
 @[to_additive]
 lemma smooth_on.mul {f : M → G} {g : M → G} {s : set M}
-  (hf : smooth_on I' I f s) (hg : smooth_on I' I g s) :
-  smooth_on I' I (f * g) s :=
+  (hf : smooth_on I' (model_with_corners_self 𝕜 E) f s) (hg : smooth_on I' (model_with_corners_self 𝕜 E) g s) :
+  smooth_on I' (model_with_corners_self 𝕜 E) (f * g) s :=
 (smooth_mul.comp_smooth_on (hf.prod_mk hg) : _)
 
-lemma smooth_pow : ∀ n : ℕ, smooth I I (λ a : G, a ^ n)
+lemma smooth_pow : ∀ n : ℕ, smooth (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E) (λ a : G, a ^ n)
 | 0 := by { simp only [pow_zero], exact smooth_const }
-| (k+1) := show smooth I I (λ (a : G), a * a ^ k), from smooth_id.mul (smooth_pow _)
+| (k+1) := show smooth (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E) (λ (a : G), a * a ^ k), from smooth_id.mul (smooth_pow _)
 
 @[to_additive]
-lemma smooth_inv : smooth I I (λ x : G, x⁻¹) :=
+lemma smooth_inv : smooth (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E) (λ x : G, x⁻¹) :=
 lie_group.smooth_inv
 
 @[to_additive]
 lemma smooth.inv {f : M → G}
-  (hf : smooth I' I f) : smooth I' I (λx, (f x)⁻¹) :=
+  (hf : smooth I' (model_with_corners_self 𝕜 E) f) : smooth I' (model_with_corners_self 𝕜 E) (λx, (f x)⁻¹) :=
 smooth_inv.comp hf
 
 @[to_additive]
 lemma smooth_on.inv {f : M → G} {s : set M}
-  (hf : smooth_on I' I f s) : smooth_on I' I (λx, (f x)⁻¹) s :=
+  (hf : smooth_on I' (model_with_corners_self 𝕜 E) f s) : smooth_on I' (model_with_corners_self 𝕜 E) (λx, (f x)⁻¹) s :=
 smooth_inv.comp_smooth_on hf
 
 end lie_group
 
 section prod_lie_group
 
+instance asdfsdf {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+  {G : Type*} [topological_space G] [charted_space E G] [smooth_manifold_with_corners (model_with_corners_self 𝕜 E) G]
+  {G' : Type*} [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners (model_with_corners_self 𝕜 E') G'] :
+  smooth_manifold_with_corners (model_with_corners_self 𝕜 (model_prod E E')) (G × G') :=
+  {
+    compatible := begin
+      rintros f g ⟨f1, hf1, f2, hf2, hf⟩ ⟨g1, hg1, g2, hg2, hg⟩,
+        have h1 := has_groupoid.compatible (times_cont_diff_groupoid ⊤ (model_with_corners_self 𝕜 E)) hf1 hg1,
+        have h2 := has_groupoid.compatible (times_cont_diff_groupoid ⊤ (model_with_corners_self 𝕜 E')) hf2 hg2,
+      simp only [times_cont_diff_groupoid, set.preimage_id, function.comp.right_id, function.comp.left_id, model_with_corners_self_coe,
+ model_with_corners_self_coe_symm, set.range_id, set.inter_univ] at h1 h2 ⊢,
+      simp only [hf, hg, local_homeomorph.prod_symm, local_homeomorph.prod_trans] at h1 h2 ⊢,
+      rw [mem_groupoid_of_pregroupoid] at h1 h2 ⊢,
+      dsimp only [set.preimage_id, function.comp.right_id, function.comp.left_id, model_with_corners_self_coe,
+ model_with_corners_self_coe_symm, set.range_id, set.inter_univ] at h1 h2 ⊢,
+        simp only [local_equiv.trans_source, local_homeomorph.coe_coe_symm, local_homeomorph.coe_trans_symm,
+ local_homeomorph.trans_to_local_equiv, local_homeomorph.coe_trans, local_equiv.symm_source,
+ local_homeomorph.symm_to_local_equiv, local_equiv.trans_target, local_homeomorph.symm_symm, local_equiv.symm_target] at h1 h2,
+      cases h1 with h11 h12,
+      cases h2 with h21 h22,
+      exact ⟨h11.prod_map h21, h12.prod_map h22⟩,
+    end
+  }
+
+lemma prod_model_aux {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+  {G : Type*} [topological_space G] [charted_space E G] [smooth_manifold_with_corners (model_with_corners_self 𝕜 E) G]
+  {G' : Type*} [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners (model_with_corners_self 𝕜 E') G']
+  {f : G × G' → G × G'}
+  (h : smooth ((model_with_corners_self 𝕜 E).prod (model_with_corners_self 𝕜 E'))
+  ((model_with_corners_self 𝕜 E).prod (model_with_corners_self 𝕜 E')) f) :
+  smooth (model_with_corners_self 𝕜 (model_prod E E')) (model_with_corners_self 𝕜 (model_prod E E')) f :=
+  begin
+    rw smooth_iff at h ⊢,
+    cases h with h1 h2,
+    refine ⟨h1, λ x y, _⟩,
+    have h3 := h2 x y,
+    simp only [] with mfld_simps,
+    simp only [prod.mk.eta] with mfld_simps at h3,
+    exact h3,
+  end
+
+  lemma prod_model_aux2 {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+  {G : Type*} [topological_space G] [charted_space E G] [smooth_manifold_with_corners (model_with_corners_self 𝕜 E) G]
+  {G' : Type*} [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners (model_with_corners_self 𝕜 E') G']
+  {f : (G × G') × (G × G') → G × G'}
+  (h : smooth (((model_with_corners_self 𝕜 E).prod (model_with_corners_self 𝕜 E')).prod ((model_with_corners_self 𝕜 E).prod (model_with_corners_self 𝕜 E')))
+  ((model_with_corners_self 𝕜 E).prod (model_with_corners_self 𝕜 E')) f) :
+  smooth ((model_with_corners_self 𝕜 (model_prod E E')).prod (model_with_corners_self 𝕜 (model_prod E E'))) (model_with_corners_self 𝕜 (model_prod E E')) f :=
+  begin
+    rw smooth_iff at h ⊢,
+    cases h with h1 h2,
+    refine ⟨h1, λ x y, _⟩,
+    have h3 := h2 x y,
+    simp only [] with mfld_simps,
+    simp only [prod.mk.eta] with mfld_simps at h3,
+    exact h3,
+  end
+
 /- Instance of product group -/
 @[to_additive]
-instance {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {H : Type*} [topological_space H]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]  {I : model_with_corners 𝕜 E H}
-  {G : Type*} [topological_space G] [charted_space H G] [group G] [topological_group G]
-  [h : lie_group I G] {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-  {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
-  {G' : Type*} [topological_space G'] [charted_space H' G']
-  [group G'] [topological_group G'] [h' : lie_group I' G'] : lie_group (I.prod I') (G×G') :=
-{ smooth_mul := ((smooth_fst.comp smooth_fst).smooth.mul (smooth_fst.comp smooth_snd)).prod_mk
+instance {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+  {G : Type*} [topological_space G] [charted_space E G] [group G] [topological_group G]
+  [lie_group 𝕜 E G] {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+  {G' : Type*} [topological_space G'] [charted_space E' G']
+  [group G'] [topological_group G'] [lie_group 𝕜 E' G']
+  : lie_group 𝕜 (model_prod E E') (G×G') :=
+{ smooth_mul := begin
+    apply prod_model_aux2,
+    exact ((smooth_fst.comp smooth_fst).smooth.mul (smooth_fst.comp smooth_snd)).prod_mk
     ((smooth_snd.comp smooth_fst).smooth.mul (smooth_snd.comp smooth_snd)),
-  smooth_inv := smooth_fst.inv.prod_mk smooth_snd.inv, }
+  end,
+  smooth_inv := begin
+    apply prod_model_aux,
+    exact smooth_fst.inv.prod_mk smooth_snd.inv,
+  end, }
 
 end prod_lie_group
 

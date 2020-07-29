@@ -287,6 +287,17 @@ theorem has_basis.le_basis_iff (hl : l.has_basis p s) (hl' : l'.has_basis p' s')
   l ≤ l' ↔ ∀ i', p' i' → ∃ i (hi : p i), s i ⊆ s' i' :=
 by simp only [hl'.ge_iff, hl.mem_iff]
 
+lemma has_basis.ext (hl : l.has_basis p s) (hl' : l'.has_basis p' s')
+  (h : ∀ i, p i → ∃ i', p' i' ∧ s' i' ⊆ s i)
+  (h' : ∀ i', p' i' → ∃ i, p i ∧ s i ⊆ s' i') : l = l' :=
+begin
+  apply le_antisymm,
+  { rw hl.le_basis_iff hl',
+    simpa using h' },
+  { rw hl'.le_basis_iff hl,
+    simpa using h },
+end
+
 lemma has_basis.inf (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   (l ⊓ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∩ s' i.2) :=
 ⟨begin
@@ -297,6 +308,23 @@ lemma has_basis.inf (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
     use [(i, i'), ⟨hi, hi'⟩, subset.trans (inter_subset_inter ht ht') H] },
   { rintros ⟨⟨i, i'⟩, ⟨hi, hi'⟩, H⟩,
     use [s i, i, hi, subset.refl _, s' i', i', hi', subset.refl _, H] }
+end⟩
+
+lemma has_basis.sup (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
+  (l ⊔ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∪ s' i.2) :=
+⟨begin
+  rintros t,
+  rw [mem_sup_sets, hl.mem_iff, hl'.mem_iff],
+  split,
+  { rintros ⟨⟨i, pi, hi⟩, ⟨i', pi', hi'⟩⟩,
+    use [(i, i'), pi, pi'],
+    finish },
+  { rintros ⟨⟨i, i'⟩, ⟨⟨pi, pi'⟩, h⟩⟩,
+    split,
+    { use [i, pi],
+      finish },
+    { use [i', pi'],
+      finish } }
 end⟩
 
 lemma has_basis.inf_principal (hl : l.has_basis p s) (s' : set α) :
@@ -331,6 +359,12 @@ lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_o
   apply h.mono_comp _ _,
   exact λ _ _, principal_mono.2
 end⟩
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma filter.has_basis_binfi_principal'
+  (h : ∀ i, p i → ∀ j, p j → ∃ k (h : p k), s k ⊆ s i ∧ s k ⊆ s j) (ne : ∃ i, p i) :
+  (⨅ i (h : p i), 𝓟 (s i)).has_basis p s :=
+filter.has_basis_binfi_principal h ne
 
 lemma has_basis.map (f : α → β) (hl : l.has_basis p s) :
   (l.map f).has_basis p (λ i, f '' (s i)) :=

@@ -363,7 +363,7 @@ Useful library lemmas (in no particular order):
 - `is_unit.ne_zero`
 -/
 
-lemma is_unit_of_is_unit_leading_coeff_of_is_unit_map
+lemma is_unit_of_is_unit_leading_coeff_of_is_unit_map'
   (f : polynomial R) (hf : is_unit (leading_coeff f)) (H : is_unit (map φ f)) :
   is_unit f :=
 begin
@@ -495,7 +495,7 @@ begin
   suffices : ((1 - X) ^ 24 : polynomial ℤ).coeff 1 = -(24 : ℕ), by simpa,
   generalize : (24 : ℕ) = n,
   -- sorry
-  induction n with n ih, { simp, },
+  induction n with n ih, { apply coeff_one },
   rw [pow_succ, sub_mul, one_mul, mul_comm X, coeff_sub, coeff_mul_X],
   rw ih,
   suffices : ((1 - X) ^ n : polynomial ℤ).coeff 0 = 1,

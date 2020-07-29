@@ -183,23 +183,27 @@ or other operators in denominators. These all fail:
 
 example (q : ℚ) (h : q / (3 / 4) > 0) : false :=
 begin
-  cancel_denoms at h,
+  -- cancel_denoms at h,
+  admit
 end
 
 example (p q : ℚ) (h : q / 2 / 3 < q) : false :=
 begin
-  cancel_denoms at h,
+  -- cancel_denoms at h,
+  admit
 end
 
 example (p q : ℚ) (h : q / 2 < 3 / (4*q)) : false :=
 begin
-  cancel_denoms at h,
+  -- cancel_denoms at h,
+  admit
 end
 
 -- this one succeeds but doesn't do what it should
 example (p q : ℚ) (h : q / (2*3) < q) : false :=
 begin
-  cancel_denoms at h,
+  -- cancel_denoms at h,
+  admit
 end
 
 /-!

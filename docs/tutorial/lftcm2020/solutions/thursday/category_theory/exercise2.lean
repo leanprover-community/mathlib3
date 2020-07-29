@@ -67,10 +67,12 @@ What goes wrong without it? Why?
 
 local attribute [semireducible] polynomial.eval₂
 
-def Ring.polynomial' : Ring ⥤ Ring :=
+/- def Ring.polynomial' : Ring ⥤ Ring :=
 { obj := λ R, Ring.of (polynomial R),
   map := λ R S f, ring_hom.of (polynomial.map f),
-  map_comp' := λ R S T f g, begin refl end, }. -- fails, but takes >5s seconds to do so!
+  map_comp' := λ R S T f g, begin refl end, }.  -/
+
+  -- fails, but takes >5s seconds to do so!
 
 /-!
 What's going on?

@@ -1,5 +1,4 @@
 import algebra.module
-import algebra.pi_instances
 import analysis.normed_space.real_inner_product
 import data.matrix.notation
 import linear_algebra.basic

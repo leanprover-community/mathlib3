@@ -275,15 +275,15 @@ def pt : Top := Top.of unit
 
 -- Let's construct the mapping cylinder.
 def to_pt (X : Top) : X ⟶ pt :=
-{ val := λ _, unit.star, property := continuous_const }
+{ to_fun := λ _, unit.star, continuous_to_fun := continuous_const }
 
 def I₀ : pt ⟶ I :=
-{ val := λ _, ⟨(0 : ℝ), by norm_num [set.left_mem_Icc]⟩,
-  property := continuous_const }
+{ to_fun := λ _, ⟨(0 : ℝ), by norm_num [set.left_mem_Icc]⟩,
+  continuous_to_fun := continuous_const }
 
 def I₁ : pt ⟶ I :=
-{ val := λ _, ⟨(1 : ℝ), by norm_num [set.right_mem_Icc]⟩,
-  property := continuous_const }
+{ to_fun := λ _, ⟨(1 : ℝ), by norm_num [set.right_mem_Icc]⟩,
+  continuous_to_fun := continuous_const }
 
 -- We now construct a cylinder as a categorical limit.
 -- `limits.prod` is a shorthand for constructing a limit over the two point diagram:

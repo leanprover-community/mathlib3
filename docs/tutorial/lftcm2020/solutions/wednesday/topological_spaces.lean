@@ -272,7 +272,8 @@ set_option trace.type_context.is_def_eq_detail false
 set_option trace.type_context.is_def_eq false
 example (X : Type) [metric_space_basic X] : is_open {xy : X × X | dist xy.fst xy.snd < 100 } :=
 begin
-  rw is_open_prod_iff X X,
+  -- rw is_open_prod_iff X X,
+
   -- this fails, why? Because we have two subtly different topologies on the product
   -- they are equal but the proof that they are equal is nontrivial and the
   -- typeclass mechanism can't see that they automatically to apply. We need to change

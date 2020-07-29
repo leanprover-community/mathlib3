@@ -147,7 +147,7 @@ and a filter `G` on `Y` and returns a filter on `X`.
 #check @forall_sets_nonempty_iff_ne_bot
 
 example {α β : Type*} {f : filter β} {m : α → β} :
-  comap m f ≠ ⊥ ↔ ∀ t ∈ f, ∃ a, m a ∈ t :=
+  (comap m f).ne_bot ↔ ∀ t ∈ f, ∃ a, m a ∈ t :=
 begin
   -- sorry
   rw ← forall_sets_nonempty_iff_ne_bot,
@@ -245,7 +245,7 @@ example (f : X → Y) : continuous f ↔ ∀ x, tendsto f (𝓝 x) (𝓝 (f x)) 
 #check nonempty_inter_iff_exists_right
 
 example {A : set X} {x : X} :
-  x ∈ closure A ↔ comap (coe : A → X) (𝓝 x) ≠ ⊥ :=
+  x ∈ closure A ↔ (comap (coe : A → X) (𝓝 x)).ne_bot :=
 begin
   -- sorry
   simp_rw [mem_closure_iff_nhds, comap_ne_bot_iff, nonempty_inter_iff_exists_right],

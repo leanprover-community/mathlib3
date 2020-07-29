@@ -14,12 +14,12 @@ and then convert that use `.to_ring_hom`.
 
 However we get a mysterious error message:
 -/
-def CommRing_forget_representable : Σ (R : CommRing), (forget CommRing) ≅ coyoneda.obj (op R) :=
+/- def CommRing_forget_representable : Σ (R : CommRing), (forget CommRing) ≅ coyoneda.obj (op R) :=
 ⟨CommRing.of (polynomial ℤ),
  { hom :=
    { app := λ R r, (polynomial.aeval ℤ R r).to_ring_hom, },
    inv :=
-   { app := λ R f, by { dsimp at f, exact f X, }, }, }⟩
+   { app := λ R f, by { dsimp at f, exact f X, }, }, }⟩ -/
 
 /-!
 If you turn on `set_option pp.all true` above that definition, you'll get a more detailed message:

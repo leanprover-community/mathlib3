@@ -7,9 +7,6 @@ open set
 
 open_locale big_operators
 
-instance : has_zero (Icc (0 : ℝ) 1) := ⟨⟨(0 : ℝ), ⟨le_refl _, zero_le_one⟩⟩⟩
-instance : has_one (Icc (0 : ℝ) 1) := ⟨⟨(1 : ℝ), ⟨zero_le_one, le_refl _⟩⟩⟩
-
 @[simp] lemma homeomorph_mk_coe {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   (a : equiv α β) (b c) : ((homeomorph.mk a b c) : α → β) = a :=
 rfl
@@ -19,10 +16,6 @@ rfl
 rfl
 
 namespace metric
-
-lemma is_closed_sphere {α : Type*} [metric_space α] {x : α} {r : ℝ} :
-  is_closed (sphere x r) :=
-is_closed_eq (continuous_id.dist continuous_const) continuous_const
 
 end metric
 
@@ -203,61 +196,3 @@ lemma pi_Lp.times_cont_diff_iff_coord :
 by simp [← times_cont_diff_on_univ, pi_Lp.times_cont_diff_on_iff_coord]
 
 end pi_Lp_smooth
-
-lemma inducing.continuous_on_iff
-  {α : Type*} {β : Type*} {γ : Type*}
-  [topological_space α] [topological_space β] [topological_space γ]
-  {f : α → β} {g : β → γ} (hg : inducing g) {s : set α} :
-  continuous_on f s ↔ continuous_on (g ∘ f) s :=
-begin
-  simp only [continuous_on_iff_continuous_restrict, restrict_eq],
-  conv_rhs { rw [function.comp.assoc, ← (inducing.continuous_iff hg)] },
-end
-
-lemma embedding.continuous_on_iff
-  {α : Type*} {β : Type*} {γ : Type*}
-  [topological_space α] [topological_space β] [topological_space γ]
-  {f : α → β} {g : β → γ} (hg : embedding g) {s : set α} :
-  continuous_on f s ↔ continuous_on (g ∘ f) s :=
-inducing.continuous_on_iff hg.1
-
-section tangent_map
-
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
-{M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-{s : set M} {x : M}
-variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-{H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
-{M' : Type*} [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
-
-@[simp, mfld_simps] lemma tangent_map_id : tangent_map I I (id : M → M) = id :=
-by { ext1 p, simp [tangent_map] }
-
-lemma tangent_map_within_id {p : tangent_bundle I M}
-  (hs : unique_mdiff_within_at I s (tangent_bundle.proj I M p)) :
-  tangent_map_within I I (id : M → M) s p = p :=
-begin
-  simp only [tangent_map_within, id.def],
-  rw mfderiv_within_id,
-  { rcases p, refl },
-  { exact hs }
-end
-
-lemma mfderiv_within_congr {f f₁ : M → M'} (hs : unique_mdiff_within_at I s x)
-  (hL : ∀ x ∈ s, f₁ x = f x) (hx : f₁ x = f x) :
-  mfderiv_within I I' f₁ s x = (mfderiv_within I I' f s x : _) :=
-filter.eventually_eq.mfderiv_within_eq hs (filter.eventually_eq_of_mem (self_mem_nhds_within) hL) hx
-
-lemma tangent_map_within_congr {f g : M → M'} {s : set M}
-  (h : ∀ x ∈ s, f x = g x)
-  (p : tangent_bundle I M) (hp : p.1 ∈ s) (hs : unique_mdiff_within_at I s p.1) :
-  tangent_map_within I I' f s p = tangent_map_within I I' g s p :=
-begin
-  simp only [tangent_map_within, h p.fst hp, true_and, prod.mk.inj_iff, eq_self_iff_true],
-  congr' 1,
-  exact mfderiv_within_congr hs h (h _ hp)
-end
-
-end tangent_map

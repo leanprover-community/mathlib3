@@ -262,7 +262,7 @@ begin
   rcases mem_range.1 hp with ⟨a, rfl⟩,
   by_cases eq : f a = g a,
   { dsimp only [pair_apply], rw eq },
-  { have : μ ((pair f g) ⁻¹' {(f a, g a)}) = 0,
+  { have : μ ((pair f g) ⁻¹' {prod.mk (f a) (g a)}) = 0,
     { refine measure_mono_null (assume a' ha', _) h,
       simp only [set.mem_preimage, mem_singleton_iff, pair_apply, prod.mk.inj_iff] at ha',
       show f a' ≠ g a',

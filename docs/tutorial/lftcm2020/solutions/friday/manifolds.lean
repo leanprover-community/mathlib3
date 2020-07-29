@@ -1019,7 +1019,7 @@ begin
     { have : tangent_map_within 𝓡1 𝓡1 (g ∘ f) (Icc 0 1) (x, v)
              = tangent_map_within 𝓡1 𝓡1 id (Icc 0 1) (x, v) :=
         tangent_map_within_congr gof _ x.2 A,
-      rw [this, tangent_map_within_id A] },
+      rw [this, tangent_map_within_id _ A] },
     { apply times_cont_mdiff_g.times_cont_mdiff_on.mdifferentiable_on le_top _ (mem_univ _) },
     { apply times_cont_mdiff_on_f.mdifferentiable_on le_top _ x.2 },
     { simp only [preimage_univ, subset_univ], } }

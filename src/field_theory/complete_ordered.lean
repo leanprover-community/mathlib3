@@ -460,13 +460,13 @@ def induced_add_map (F K : Type*) [linear_ordered_field F] [archimedean F]
   map_zero' := by exact_mod_cast induced_map_rat F K 0,
   map_add' := induced_map_add F K}
 
-lemma induced_map_mul (F K : Type*) [linear_ordered_field F] [archimedean F]
-  [conditionally_complete_linear_ordered_field K] (x y : F) :
-  induced_map F K (x * y) = induced_map F K x * induced_map F K y :=
+def induced_add_mul_map (F K : Type*) [linear_ordered_field F] [archimedean F]
+  [conditionally_complete_linear_ordered_field K] :
+  F →+* K := ring_hom.mk_mul_self_of_two_ne_zero (induced_add_map F K)
 begin
   -- reduce to the case of x = y
-  refine map_mul_of_map_pow_two F K two_ne_zero (induced_add_map F K) _ x y,
-  clear x y,
+  -- refine map_mul_of_map_pow_two F K two_ne_zero (induced_add_map F K) _ x y,
+  -- clear x y,
   intro x,
   -- reduce to the case of 0 < x
   suffices : ∀ (x : F) (hpos : 0 < x),
@@ -541,7 +541,8 @@ begin
       push_neg at hypos,
       rw [rat.cast_zero],
       exact hypos, }, }
-end
+end two_ne_zero begin convert induced_map_rat F K 1; rw [rat.cast_one], refl, end
+
 
 @[simp]
 lemma induced_map_inv_self (F K : Type*) [conditionally_complete_linear_ordered_field F]
@@ -576,18 +577,18 @@ end
 def ordered_ring_equiv (F K : Type*)
   [conditionally_complete_linear_ordered_field F] [conditionally_complete_linear_ordered_field K] :
   ((≤) : F → F → Prop) ≃+*o ((≤) : K → K → Prop) :=
-{ to_fun := induced_map F K,
-  inv_fun := induced_map K F,
+{ inv_fun := induced_map K F,
   left_inv := induced_map_inv_self F K,
   right_inv := induced_map_inv_self K F,
-  map_mul' := induced_map_mul F K,
-  map_add' := induced_map_add F K,
   ord' := λ x y, begin
     refine ⟨induced_map_le _ _, _⟩,
     intro h,
     replace h := induced_map_le K F h,
-    rw [equiv.coe_fn_mk, induced_map_inv_self, induced_map_inv_self] at h,
+    dsimp  at h,
+    simp [ring_hom.mk_mul_self_of_two_ne_zero_to_fun] at h,
+    rw [ induced_map_inv_self, induced_map_inv_self] at h,
     exact h,
-  end }
+  end,
+  ..induced_add_mul_map F K }
 
 end conditionally_complete_linear_ordered_field

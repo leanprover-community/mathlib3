@@ -29,7 +29,7 @@ by rw [antidiagonal, finset.mem_def, multiset.nat.mem_antidiagonal]
 by simp [antidiagonal]
 
 /-- The antidiagonal of `0` is the list `[(0,0)]` -/
-@[simp] lemma antidiagonal_zero : antidiagonal 0 = {⟨0, 0⟩} :=
+@[simp] lemma antidiagonal_zero : antidiagonal 0 = {(0, 0)} :=
 rfl
 
 end nat

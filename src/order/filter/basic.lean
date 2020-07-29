@@ -380,6 +380,9 @@ we use a typeclass argument in lemmas instead. -/
 
 lemma ne_bot.ne {f : filter α} (hf : ne_bot f) : f ≠ ⊥ := hf
 
+@[simp] lemma not_ne_bot {α : Type*} {f : filter α} : ¬ f.ne_bot ↔ f = ⊥ :=
+not_not
+
 lemma ne_bot.mono {f g : filter α} (hf : ne_bot f) (hg : f ≤ g) : ne_bot g :=
 ne_bot_of_le_ne_bot hf hg
 
@@ -1506,6 +1509,17 @@ lemma map_comap {f : filter β} {m : α → β} (hf : range m ∈ f) : (f.comap 
 le_antisymm
   map_comap_le
   (assume t' ⟨t, ht, sub⟩, by filter_upwards [ht, hf]; rintros x hxt ⟨y, rfl⟩; exact sub hxt)
+
+lemma image_mem_sets {f : filter α} {c : β → α} (h : range c ∈ f) {W : set β}
+  (W_in : W ∈ comap c f) : c '' W ∈ f :=
+begin
+  rw ← map_comap h,
+  exact image_mem_map W_in
+end
+
+lemma image_coe_mem_sets {f : filter α} {U : set α} (h : U ∈ f) {W : set U}
+  (W_in : W ∈ comap (coe : U → α) f) : coe '' W ∈ f :=
+image_mem_sets (by simp [h]) W_in
 
 lemma comap_map {f : filter α} {m : α → β} (h : ∀ x y, m x = m y → x = y) :
   comap m (map m f) = f :=

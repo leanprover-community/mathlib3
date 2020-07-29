@@ -1004,6 +1004,9 @@ that contains this point. -/
 def connected_component (x : α) : set α :=
 ⋃₀ { s : set α | is_preconnected s ∧ x ∈ s }
 
+/-- The connected component of a point inside a set. -/
+def connected_component_in (F : set α) (x : F) : set α := coe '' (connected_component x)
+
 theorem mem_connected_component {x : α} : x ∈ connected_component x :=
 mem_sUnion_of_mem (mem_singleton x) ⟨is_connected_singleton.is_preconnected, mem_singleton x⟩
 
@@ -1043,6 +1046,26 @@ end prio
 
 attribute [instance, priority 50] connected_space.to_nonempty -- see Note [lower instance priority]
 
+lemma is_connected_range [topological_space β] [connected_space α] {f : α → β} (h : continuous f) :
+  is_connected (range f) :=
+begin
+  inhabit α,
+  rw ← image_univ,
+  exact ⟨⟨f (default α), mem_image_of_mem _ (mem_univ _)⟩,
+         is_preconnected.image is_preconnected_univ _ h.continuous_on⟩
+end
+
+lemma connected_space_iff_connected_component :
+  connected_space α ↔ ∃ x : α, connected_component x = univ :=
+begin
+  split,
+  { rintros ⟨h, ⟨x⟩⟩,
+    exactI ⟨x, eq_univ_of_univ_subset $ subset_connected_component is_preconnected_univ (mem_univ x)⟩ },
+  { rintros ⟨x, h⟩,
+    haveI : preconnected_space α := ⟨by {rw ← h, exact is_connected_connected_component.2 }⟩,
+    exact ⟨⟨x⟩⟩ }
+end
+
 @[priority 100] -- see Note [lower instance priority]
 instance preirreducible_space.preconnected_space (α : Type u) [topological_space α]
   [preirreducible_space α] : preconnected_space α :=
@@ -1066,6 +1089,10 @@ theorem is_clopen_iff [preconnected_space α] {s : set α} : is_clopen s ↔ s =
     (ne_empty_iff_nonempty.1 h1.1) (ne_empty_iff_nonempty.1 h1.2) in
   h3 h2,
 by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
+
+lemma eq_univ_of_nonempty_clopen [preconnected_space α] {s : set α}
+  (h : s.nonempty) (h' : is_clopen s) : s = univ :=
+by { rw is_clopen_iff at h', finish [h.ne_empty] }
 
 lemma subtype.preconnected_space {s : set α} (h : is_preconnected s) :
   preconnected_space s :=

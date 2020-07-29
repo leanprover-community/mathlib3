@@ -477,3 +477,54 @@ lemma is_max_on.max (hf : is_max_on f s a) (hg : is_max_on g s a) :
 hf.max hg
 
 end decidable_linear_order
+
+section eventually
+
+/-! ### Relation with `eventually` comparisons of two functions -/
+
+lemma filter.eventually_le.is_max_filter {α β : Type*} [preorder β] {f g : α → β} {a : α} {l : filter α}
+  (heq : g ≤ᶠ[l] f) (hfga : f a = g a) (h : is_max_filter f l a) :
+  is_max_filter g l a :=
+begin
+  simp [is_max_filter, hfga, eventually_le, eventually_iff_exists_mem] at *,
+  rcases h with ⟨ s, hsl, hs ⟩,
+  rcases heq with ⟨ t, htl, ht ⟩,
+  use s ∩ t,
+  use inter_mem_sets hsl htl,
+  exact λ y ⟨ hys, hyt ⟩, le_trans (ht y hyt) (hs y hys)
+end
+
+lemma is_max_filter.congr {α β : Type*} [preorder β] {f g : α → β} {a : α} {l : filter α}
+  (h : is_max_filter f l a) (heq : f =ᶠ[l] g) (hfga : f a = g a) :
+  is_max_filter g l a :=
+heq.symm.le.is_max_filter hfga h
+
+lemma filter.eventually_eq.is_max_filter_iff {α β : Type*} [preorder β] {f g : α → β} {a : α} {l : filter α} (heq : f =ᶠ[l] g) (hfga : f a = g a) :
+  is_max_filter f l a ↔ is_max_filter g l a :=
+⟨ λ h, h.congr heq hfga, λ h, h.congr heq.symm hfga.symm ⟩
+
+lemma filter.eventually_le.is_min_filter {α β : Type*} [preorder β] {f g : α → β} {a : α} {l : filter α}
+  (heq : f ≤ᶠ[l] g) (hfga : f a = g a) (h : is_min_filter f l a) :
+  is_min_filter g l a :=
+@filter.eventually_le.is_max_filter _ (order_dual β) _ _ _ _ _ heq hfga h
+
+lemma is_min_filter.congr {α β : Type*} [preorder β] {f g : α → β} {a : α} {l : filter α} (h : is_min_filter f l a) (heq : f =ᶠ[l] g) (hfga : f a = g a) :
+  is_min_filter g l a :=
+heq.le.is_min_filter hfga h
+
+lemma filter.eventually_eq.is_min_filter_iff {α β : Type*} [preorder β] {f g : α → β} {a : α} {l : filter α} (heq : f =ᶠ[l] g) (hfga : f a = g a) :
+  is_min_filter f l a ↔ is_min_filter g l a :=
+⟨ λ h, h.congr heq hfga, λ h, h.congr heq.symm hfga.symm ⟩
+
+lemma is_extr_filter.congr {α β : Type*} [preorder β] {f g : α → β} {a : α} {l : filter α} (h : is_extr_filter f l a) (heq : f =ᶠ[l] g) (hfga : f a = g a) :
+  is_extr_filter g l a :=
+begin
+  rw is_extr_filter at *,
+  rwa [← heq.is_max_filter_iff hfga, ← heq.is_min_filter_iff hfga],
+end
+
+lemma filter.eventually_eq.is_extr_filter_iff {α β : Type*} [preorder β] {f g : α → β} {a : α} {l : filter α} (heq : f =ᶠ[l] g) (hfga : f a = g a) :
+  is_extr_filter f l a ↔ is_extr_filter g l a :=
+⟨ λ h, h.congr heq hfga, λ h, h.congr heq.symm hfga.symm ⟩
+
+end eventually

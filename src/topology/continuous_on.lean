@@ -241,6 +241,10 @@ lemma tendsto_nhds_within_of_tendsto_nhds_of_eventually_within {β : Type*} {a :
   tendsto f l (nhds_within a s) :=
 tendsto_inf.2 ⟨h1, tendsto_principal.2 h2⟩
 
+lemma filter.eventually_eq.eq_of_nhds_within {s : set α} {f g : α → β} {a : α}
+  (h : f =ᶠ[nhds_within a s] g) (hmem : a ∈ s) : f a = g a :=
+h.self_of_nhds_within hmem
+
 /-
 nhds_within and subtypes
 -/

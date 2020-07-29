@@ -61,7 +61,8 @@ Verbosity for the linter output.
 * `medium`: only print failing checks, print confirmation on success.
 * `high`: print output of every check.
 -/
-@[derive decidable_eq] inductive lint_verbosity | low | medium | high
+@[derive [decidable_eq, inhabited]]
+inductive lint_verbosity | low | medium | high
 
 /-- `get_checks slow extra use_only` produces a list of linters.
 `extras` is a list of names that should resolve to declarations with type `linter`.

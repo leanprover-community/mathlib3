@@ -5,7 +5,6 @@ Author: Jeremy Avigad, Simon Hudon
 -/
 
 import data.qpf.multivariate.basic
-import data.qpf.multivariate.constructions.fix
 
 /-!
 # The quotient of QPF is itself a QPF
@@ -75,24 +74,5 @@ noncomputable def rel_quot : @mvqpf _ (quot1 R) (mvqpf.quot1.mvfunctor R Hfunc) 
   (λ α β f x, rfl)
 
 end rel
-
-end mvqpf
-
-namespace mvqpf
-
-variables {n : ℕ}
-variables {F : typevec.{u} n.succ → Type u} [mvfunctor F] [mvqpf F]
-
-variables (R : ∀ ⦃α⦄, fix F α → fix F α → Prop)
-
-namespace quot
-
-variables {α : typevec.{u} n}
-
-/-- Constructor for `quot1` -/
-noncomputable def mk (x : F (α ::: quot1 R α)) : quot1 R α :=
-quot.mk _ (fix.mk $ (typevec.id ::: quot.out) <$$> x)
-
-end quot
 
 end mvqpf

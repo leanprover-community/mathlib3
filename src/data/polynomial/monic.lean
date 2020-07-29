@@ -167,7 +167,7 @@ begin
   -- we've reduced to the case where the degrees dp and dq are nonzero
   set dp := p.nat_degree, set dq := q.nat_degree,
   rw coeff_mul,
-  have : {(dp, dq - 1), (dp - 1, dq)} ⊆ nat.antidiagonal (dp + dq - 1),
+  have : {prod.mk dp (dq - 1), (dp - 1, dq)} ⊆ nat.antidiagonal (dp + dq - 1),
   { rw insert_subset, split,
     work_on_goal 0 { rw [nat.mem_antidiagonal, nat.add_sub_assoc] },
     work_on_goal 1 { simp only [singleton_subset_iff, nat.mem_antidiagonal], apply nat.sub_add_eq_add_sub },

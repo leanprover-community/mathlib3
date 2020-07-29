@@ -7,6 +7,7 @@ Theory of topological monoids.
 -/
 import topology.continuous_on
 import group_theory.submonoid.basic
+import algebra.group.prod
 
 open classical set filter topological_space
 open_locale classical topological_space big_operators
@@ -77,10 +78,6 @@ lemma continuous_within_at.mul [topological_space β] {f : β → α} {g : β �
   (hf : continuous_within_at f s x) (hg : continuous_within_at g s x) :
   continuous_within_at (λx, f x * g x) s x :=
 hf.mul hg
-
--- **TODO** : where did this go? Here is not the place for it.
-@[to_additive] instance {G : Type*} {H : Type*} [has_mul G] [has_mul H] : has_mul (G × H) :=
-⟨λ a b, ⟨a.1*b.1, a.2*b.2⟩⟩
 
 @[to_additive]
 instance [topological_space β] [has_mul β] [has_continuous_mul β] : has_continuous_mul (α × β) :=

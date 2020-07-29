@@ -360,7 +360,7 @@ lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_o
   exact λ _ _, principal_mono.2
 end⟩
 
-lemma filter.has_basis_binfi_principal'
+lemma has_basis_binfi_principal'
   (h : ∀ i, p i → ∀ j, p j → ∃ k (h : p k), s k ⊆ s i ∧ s k ⊆ s j) (ne : ∃ i, p i) :
   (⨅ i (h : p i), 𝓟 (s i)).has_basis p s :=
 filter.has_basis_binfi_principal h ne

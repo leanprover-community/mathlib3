@@ -32,7 +32,7 @@ which respects the σ-algebras, that is, for which both directions of
 the equivalence are measurable functions.
 
 We say that a filter `f` is measurably generated if every set `s ∈ f` includes a measurable
-set `t ∈ f`. This property is useful, e.g., to extract a measurably witness of `filter.eventually`.
+set `t ∈ f`. This property is useful, e.g., to extract a measurable witness of `filter.eventually`.
 
 ## Main statements
 

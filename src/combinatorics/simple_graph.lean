@@ -183,9 +183,9 @@ section locally_finite
 variable [∀ (v : V), fintype (G.neighbor_set v)]
 
 /--
-A regular graph is a locally finite graph such that every vertex has the same degree.
+A locally finite simple graph is regular of degree `d` if every vertex has degree `d`.
 -/
-def regular_graph (d : ℕ) : Prop := ∀ (v : V), G.degree v = d
+def is_regular_of_degree (d : ℕ) : Prop := ∀ (v : V), G.degree v = d
 
 end locally_finite
 

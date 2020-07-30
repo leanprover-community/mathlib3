@@ -394,8 +394,6 @@ noncomputable def pi_quot_equiv : (I.pi ι).quotient ≃ₗ[I.quotient] (ι → 
     convert quotient.out_eq' _
   end }
 
-variables {ι} [fintype ι] {ι' : Type w}
-
 /-- If `f : R^n → R^m` is an `R`-linear map and `I ⊆ R` is an ideal, then the image of `I^n` is
     contained in `I^m`. -/
 lemma map_pi {ι} [fintype ι] {ι' : Type w} (x : ι → α) (hi : ∀ i, x i ∈ I)

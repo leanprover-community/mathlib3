@@ -81,7 +81,7 @@ instance : fin_category walking_parallel_pair := { }
 
 /-- Equalizers are finite limits, so if `C` has all finite limits, it also has all equalizers -/
 def has_equalizers_of_has_finite_limits [has_finite_limits C] : has_equalizers C :=
-{ has_limits_of_shape := infer_instance }
+{ has_limits_of_shape := by apply_instance }
 
 /-- Coequalizers are finite colimits, of if `C` has all finite colimits, it also has all
     coequalizers -/

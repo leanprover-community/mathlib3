@@ -23,6 +23,8 @@ construction
 
 -/
 
+noncomputable theory
+
 namespace category_theory
 open category_theory.limits
 

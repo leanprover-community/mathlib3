@@ -43,6 +43,8 @@ general limits can be used.
 * [F. Borceux, *Handbook of Categorical Algebra 1*][borceux-vol1]
 -/
 
+noncomputable theory
+
 open category_theory
 
 namespace category_theory.limits

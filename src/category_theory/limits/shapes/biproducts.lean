@@ -44,6 +44,8 @@ As `⊕` is already taken for the sum of types, we introduce the notation `X ⊞
 a binary biproduct. We introduce `⨁ f` for the indexed biproduct.
 -/
 
+noncomputable theory
+
 universes v u
 
 open category_theory
@@ -100,7 +102,7 @@ class has_biproduct (F : J → C) :=
 
 @[priority 100]
 instance has_product_of_has_biproduct [has_biproduct F] : has_limit (discrete.functor F) :=
-{ cone := has_biproduct.bicone.to_cone,
+has_limit.mk { cone := has_biproduct.bicone.to_cone,
   is_limit := has_biproduct.is_limit, }
 
 @[priority 100]

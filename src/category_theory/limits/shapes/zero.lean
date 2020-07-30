@@ -24,6 +24,8 @@ zero object provides zero morphisms, as the unique morphisms factoring through t
 * [F. Borceux, *Handbook of Categorical Algebra 2*][borceux-vol2]
 -/
 
+noncomputable theory
+
 universes v u
 
 open category_theory

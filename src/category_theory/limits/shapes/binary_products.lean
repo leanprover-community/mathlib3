@@ -22,6 +22,8 @@ We include lemmas for simplifying equations involving projections and coprojecti
 braiding and associating isomorphisms, and the product comparison morphism.
 -/
 
+noncomputable theory
+
 universes v u u₂
 
 open category_theory

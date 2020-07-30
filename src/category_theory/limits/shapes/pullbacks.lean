@@ -19,6 +19,8 @@ Typeclasses `has_pullbacks` and `has_pushouts` assert the existence of (co)limit
 walking (co)spans.
 -/
 
+noncomputable theory
+
 open category_theory
 
 namespace category_theory.limits

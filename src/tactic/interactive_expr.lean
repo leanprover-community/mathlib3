@@ -419,15 +419,3 @@ end widget_override
 
 attribute [vm_override widget_override.term_goal_widget] widget.term_goal_widget
 attribute [vm_override widget_override.tactic_state_widget] widget.tactic_state_widget
-
-
-meta def my_new_msg {α : Type} : widget.html α := "asdf"
-attribute [vm_override my_new_msg] widget_override.goals_accomplished_message
-
-example {P : Prop} : P → nat → P := begin
-(tactic.set_string_option `goals_acc_msg "asdf"),
-  intros,
-  assumption,
-end
-
-#check 0

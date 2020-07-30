@@ -310,7 +310,7 @@ begin
   rotate 2, { contrapose! h, cases h; cc },
   all_goals { subst x₁, split; intro h1,
     { subst h1; apply sym2.rel.swap },
-    { cases h1; cc }}
+    { cases h1; cc } }
 end
 
 /--

@@ -2200,15 +2200,15 @@ by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iio _ _ _ _ (a⁻¹)
 
 lemma nhds_cleft_sup_nhds_cright (a : α) [topological_space α] [linear_order α] :
   nhds_within a (Iic a) ⊔ nhds_within a (Ici a) = 𝓝 a :=
-by simp only [← nhds_within_union, nhds_within_univ, Iic_union_Ici]
+by rw [← nhds_within_union, Iic_union_Ici, nhds_within_univ]
 
 lemma nhds_oleft_sup_nhds_cright (a : α) [topological_space α] [linear_order α] :
   nhds_within a (Iio a) ⊔ nhds_within a (Ici a) = 𝓝 a :=
-by simp only [← nhds_within_union, nhds_within_univ, Iio_union_Ici]
+by rw [← nhds_within_union, Iio_union_Ici, nhds_within_univ]
 
 lemma nhds_cleft_sup_nhds_oright (a : α) [topological_space α] [linear_order α] :
   nhds_within a (Iic a) ⊔ nhds_within a (Ioi a) = 𝓝 a :=
-by simp only [← nhds_within_union, nhds_within_univ, Iic_union_Ioi]
+by rw [← nhds_within_union, Iic_union_Ioi, nhds_within_univ]
 
 lemma continuous_at_iff_continuous_cleft_cright [topological_space α] [linear_order α]
   [topological_space β] {a : α} {f : α → β} :
@@ -2346,4 +2346,4 @@ end
 lemma continuous_at_iff_continuous_left_right [topological_space α] [linear_order α]
   [topological_space β] {a : α} {f : α → β} :
   continuous_at f a ↔ continuous_within_at f (Iio a) a ∧ continuous_within_at f (Ioi a) a :=
-by simp only [continuous_within_at_Ioi_iff_Ici, continuous_within_at_Iio_iff_Iic, continuous_at_iff_continuous_cleft_cright]
+by rw [continuous_within_at_Ioi_iff_Ici, continuous_within_at_Iio_iff_Iic, continuous_at_iff_continuous_cleft_cright]

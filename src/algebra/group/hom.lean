@@ -256,12 +256,10 @@ theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
 
 /-- A group homomorphism is injective iff its kernel is trivial. -/
 @[to_additive]
-lemma injective_iff {G H} [group G] [group H] (f : G →* H) :
+lemma injective_iff {G H} [group G] [monoid H] (f : G →* H) :
   function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
-⟨λ h _, by rw ← f.map_one; exact @h _ _,
-  λ h x y hxy, by rw [← inv_inv (f x), inv_eq_iff_mul_eq_one, ← f.map_inv,
-      ← f.map_mul] at hxy;
-    simpa using inv_eq_of_mul_eq_one (h _ hxy)⟩
+⟨λ h x hfx, h $ hfx.trans f.map_one.symm,
+λ h x y hxy, mul_inv_eq_one.1 $ h _ $ by rw [f.map_mul, hxy, ← f.map_mul, mul_inv_self, f.map_one]⟩
 
 include mM
 /-- Makes a group homomomorphism from a proof that the map preserves multiplication. -/

@@ -184,19 +184,24 @@ end
 
 section
 
-variables {β : Type*} [division_ring α] [division_ring β] (f : α →+* β) {x y : α}
+variables {β : Type*} [division_ring α] [semiring β] [nontrivial β] (f : α →+* β) {x y : α}
 
 lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := (f : α →* β).map_ne_zero f.map_zero
 
 lemma map_eq_zero : f x = 0 ↔ x = 0 := (f : α →* β).map_eq_zero f.map_zero
 
-variables (x y)
+protected lemma injective : function.injective f :=
+f.injective_iff.2 $ λ x, f.map_eq_zero.1
+
+end
+
+section
+
+variables {β : Type*} [division_ring α] [division_ring β] (f : α →+* β) (x y : α)
 
 lemma map_inv : f x⁻¹ = (f x)⁻¹ := (f : α →* β).map_inv' f.map_zero x
 
 lemma map_div : f (x / y) = f x / f y := (f : α →* β).map_div f.map_zero x y
-
-protected lemma injective : function.injective f := f.injective_iff.2 $ λ x, f.map_eq_zero.1
 
 end
 

@@ -923,9 +923,11 @@ namespace monoid_hom
 
 section group_with_zero
 
-variables [group_with_zero G₀] [group_with_zero G₀'] (f : G₀ →* G₀') (h0 : f 0 = 0)
-  {a : G₀}
+variables [group_with_zero G₀]
 
+section monoid_with_zero
+
+variables [monoid_with_zero G₀'] [nontrivial G₀'] (f : G₀ →* G₀') (h0 : f 0 = 0) {a : G₀}
 include h0
 
 lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
@@ -934,7 +936,10 @@ lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
 lemma map_eq_zero : f a = 0 ↔ a = 0 :=
 by { classical, exact not_iff_not.1 (f.map_ne_zero h0) }
 
-variables (a) (b : G₀)
+end monoid_with_zero
+
+variables [group_with_zero G₀'] (f : G₀ →* G₀') (h0 : f 0 = 0) (a b : G₀)
+include h0
 
 /-- A monoid homomorphism between groups with zeros sending `0` to `0` sends `a⁻¹` to `(f a)⁻¹`. -/
 lemma map_inv' : f a⁻¹ = (f a)⁻¹ :=

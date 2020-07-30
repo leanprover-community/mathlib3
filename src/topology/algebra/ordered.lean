@@ -2311,20 +2311,18 @@ lemma continuous_extend_continuous_on_Ioo
 begin
   have ha : ∀ x ∈ frontier (Iic a), x = a,
   { rintros x ⟨ hx₁, hx₂ ⟩,
-    rw [closure_eq_iff_is_closed.mpr is_closed_Iic, mem_Iic, le_iff_lt_or_eq] at hx₁,
+    rw [closure_Iic, mem_Iic, le_iff_lt_or_eq] at hx₁,
     exact hx₁.cases_on
       (λ hx₁, (hx₂ $ mem_of_mem_of_subset hx₁ $
         (subset_interior_iff_subset_of_open is_open_Iio).mpr Iio_subset_Iic_self).elim)
-      id,
-    apply_instance },
+      id },
   have hb : ∀ x ∈ frontier (Ici b), x = b,
   { rintros x ⟨ hx₁, hx₂ ⟩,
-    rw [closure_eq_iff_is_closed.mpr is_closed_Ici, mem_Ici, le_iff_lt_or_eq] at hx₁,
+    rw [closure_Ici, mem_Ici, le_iff_lt_or_eq] at hx₁,
     exact hx₁.cases_on
       (λ hx₁, (hx₂ $ mem_of_mem_of_subset hx₁ $
         (subset_interior_iff_subset_of_open is_open_Ioi).mpr Ioi_subset_Ici_self).elim)
-      symm,
-    apply_instance },
+      symm },
   apply continuous_if',
   repeat
   { intros a' ha',
@@ -2378,8 +2376,7 @@ begin
     { intros x hx,
       cases hx with hxu hx,
       by_cases h : x = a,
-      rw h,
-      change f a ∈ s,
+      rw [h, mem_set_of_eq],
       exact mem_of_nhds hs,
       exact hu ⟨hxu, lt_of_le_of_ne hx (ne_comm.2 h)⟩ } },
   { intros h,

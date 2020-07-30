@@ -674,8 +674,8 @@ begin
     cases hx,
     { apply continuous_within_at.union,
       exact (hf x hx).congr
-      ( λ y hy, piecewise_eq_of_mem _ _ _ hy.2 )
-      ( piecewise_eq_of_mem _ _ _ hx.2 ),
+      (λ y hy, piecewise_eq_of_mem _ _ _ hy.2)
+      (piecewise_eq_of_mem _ _ _ hx.2),
       rw ← frontier_compl at hx',
       have : x ∉ closure Aᶜ,
         from λ h, hx' ⟨h, (λ (h' : x ∈ interior Aᶜ), interior_subset h' hx.2)⟩,
@@ -689,8 +689,8 @@ begin
       rw [continuous_within_at, nhds_within_inter, this, inf_bot_eq],
       exact tendsto_bot,
       exact (hg x hx).congr
-      ( λ y hy, piecewise_eq_of_not_mem _ _ _ hy.2)
-      ( piecewise_eq_of_not_mem _ _ _ hx.2 ) } }
+      (λ y hy, piecewise_eq_of_not_mem _ _ _ hy.2)
+      (piecewise_eq_of_not_mem _ _ _ hx.2) } }
 end
 
 lemma continuous_on_if {α β : Type*} [topological_space α] [topological_space β] {p : α → Prop}

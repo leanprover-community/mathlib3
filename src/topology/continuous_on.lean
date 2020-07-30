@@ -649,57 +649,83 @@ begin
   exact tendsto_bot,
 end
 
-lemma continuous_on_if {s : set α} {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
-  (hpf : ∀ a ∈ frontier p ∩ s, tendsto f (nhds_within a $ p ∩ s) (𝓝 $ ite (p a) (f a) (g a)))
-  (hpg : ∀ a ∈ frontier p ∩ s, tendsto g (nhds_within a $ pᶜ ∩ s) (𝓝 $ ite (p a) (f a) (g a)))
-  (hf : continuous_on f $ p ∩ s) (hg : continuous_on g $ pᶜ ∩ s) :
-  continuous_on (λ a, ite (p a) (f a) (g a)) s :=
+lemma continuous_on_if' {s : set α} {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
+  (hpf : ∀ a ∈ s ∩ frontier {a | p a}, tendsto f (nhds_within a $ s ∩ {a | p a}) (𝓝 $ if p a then f a else g a))
+  (hpg : ∀ a ∈ s ∩ frontier {a | p a}, tendsto g (nhds_within a $ s ∩ {a | ¬p a}) (𝓝 $ if p a then f a else g a))
+  (hf : continuous_on f $ s ∩ {a | p a}) (hg : continuous_on g $ s ∩ {a | ¬p a}) :
+  continuous_on (λ a, if p a then f a else g a) s :=
 begin
-  rw [← (inter_univ s), ← union_compl_self p, inter_comm],
+  set φ := (λ a, if p a then f a else g a),
+  set A := {a | p a},
+  set B := {a | ¬p a},
+  rw [← (inter_univ s), ← union_compl_self A],
   intros x hx,
-  by_cases hx' : x ∈ frontier p,
-  { have hx'' : x ∈ frontier p ∩ s, from ⟨ hx', hx.2 ⟩,
-    rw union_inter_distrib_right,
+  by_cases hx' : x ∈ frontier A,
+  { have hx'' : x ∈ s ∩ frontier A, from ⟨ hx.1, hx' ⟩,
+    rw inter_union_distrib_left,
     apply continuous_within_at.union,
     all_goals
     { apply tendsto_nhds_within_congr,
-      rintros y ⟨ hyp, hys ⟩,
-      exact (piecewise_eq_of_mem _ _ _ hyp).symm <|> exact (piecewise_eq_of_not_mem _ _ _ hyp).symm,
+      rintros y ⟨ hys, hyA ⟩,
+      exact (piecewise_eq_of_mem _ _ _ hyA).symm <|> exact (piecewise_eq_of_not_mem _ _ _ hyA).symm,
       apply_assumption,
       exact hx'' } },
-  { rw union_inter_distrib_right at ⊢ hx,
+  { rw inter_union_distrib_left at ⊢ hx,
     cases hx,
     { apply continuous_within_at.union,
       exact (hf x hx).congr
-      ( λ y hy, piecewise_eq_of_mem _ _ _ hy.1 )
-      ( piecewise_eq_of_mem _ _ _ hx.1 ),
+      ( λ y hy, piecewise_eq_of_mem _ _ _ hy.2 )
+      ( piecewise_eq_of_mem _ _ _ hx.2 ),
       rw ← frontier_compl at hx',
-      have : x ∉ closure pᶜ,
-        from λ h, hx' ⟨h, (λ (h' : x ∈ interior pᶜ), interior_subset h' hx.1)⟩,
+      have : x ∉ closure Aᶜ,
+        from λ h, hx' ⟨h, (λ (h' : x ∈ interior Aᶜ), interior_subset h' hx.2)⟩,
       rw [mem_closure_iff_nhds_within_ne_bot, ne_bot, classical.not_not] at this,
-      rw [continuous_within_at, nhds_within_inter, this, bot_inf_eq],
+      rw [continuous_within_at, nhds_within_inter, this, inf_bot_eq],
       exact tendsto_bot },
     { apply continuous_within_at.union,
-      have : x ∉ closure p,
-        from (λ h, hx' ⟨h, (λ (h' : x ∈ interior p), hx.1 (interior_subset h'))⟩),
+      have : x ∉ closure A,
+        from (λ h, hx' ⟨h, (λ (h' : x ∈ interior A), hx.2 (interior_subset h'))⟩),
       rw [mem_closure_iff_nhds_within_ne_bot, ne_bot, classical.not_not] at this,
-      rw [continuous_within_at, nhds_within_inter, this, bot_inf_eq],
+      rw [continuous_within_at, nhds_within_inter, this, inf_bot_eq],
       exact tendsto_bot,
       exact (hg x hx).congr
-      ( λ y hy, piecewise_eq_of_not_mem _ _ _ hy.1)
-      ( piecewise_eq_of_not_mem _ _ _ hx.1 ) } }
+      ( λ y hy, piecewise_eq_of_not_mem _ _ _ hy.2)
+      ( piecewise_eq_of_not_mem _ _ _ hx.2 ) } }
+end
+
+lemma continuous_on_if {α β : Type*} [topological_space α] [topological_space β] {p : α → Prop}
+  {h : ∀a, decidable (p a)} {s : set α} {f g : α → β}
+  (hp : ∀ a ∈ s ∩ frontier {a | p a}, f a = g a) (hf : continuous_on f $ s ∩ closure {a | p a})
+  (hg : continuous_on g $ s ∩ closure {a | ¬ p a}) :
+  continuous_on (λa, if p a then f a else g a) s :=
+begin
+  apply continuous_on_if',
+  { rintros a ha,
+    simp only [← hp a ha, if_t_t],
+    apply tendsto_nhds_within_mono_left,
+    exact inter_subset_inter_right s subset_closure,
+    exact (hf a ⟨ ha.1, ha.2.1 ⟩).tendsto },
+  { rintros a ha,
+    simp only [hp a ha, if_t_t],
+    apply tendsto_nhds_within_mono_left,
+    exact inter_subset_inter_right s subset_closure,
+    rcases ha with ⟨ has, ⟨ _, ha ⟩ ⟩,
+    rw [← mem_compl_iff, ← closure_compl] at ha,
+    apply (hg a ⟨ has, ha ⟩).tendsto, },
+  exact hf.mono (inter_subset_inter_right s subset_closure),
+  exact hg.mono (inter_subset_inter_right s subset_closure)
 end
 
 lemma continuous_if' {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
-  (hpf : ∀ a ∈ frontier p, tendsto f (nhds_within a p) (𝓝 $ ite (p a) (f a) (g a)))
-  (hpg : ∀ a ∈ frontier p, tendsto g (nhds_within a pᶜ) (𝓝 $ ite (p a) (f a) (g a)))
-  (hf : continuous_on f p) (hg : continuous_on g pᶜ) :
+  (hpf : ∀ a ∈ frontier {x | p x}, tendsto f (nhds_within a {x | p x}) (𝓝 $ ite (p a) (f a) (g a)))
+  (hpg : ∀ a ∈ frontier {x | p x}, tendsto g (nhds_within a {x | ¬p x}) (𝓝 $ ite (p a) (f a) (g a)))
+  (hf : continuous_on f {x | p x}) (hg : continuous_on g {x | ¬p x}) :
   continuous (λ a, ite (p a) (f a) (g a)) :=
 begin
   rw continuous_iff_continuous_on_univ,
-  apply continuous_on_if,
-  simp_rw inter_univ, exact hpf,
-  simp_rw inter_univ, exact hpg,
-  simp_rw inter_univ, exact hf,
-  simp_rw inter_univ, exact hg,
+  apply continuous_on_if',
+  simp_rw univ_inter, exact hpf,
+  simp_rw univ_inter, exact hpg,
+  simp_rw univ_inter, exact hf,
+  simp_rw univ_inter, exact hg,
 end

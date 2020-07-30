@@ -21,11 +21,8 @@ done
 dirs="src"
 
 # if there are errors extracting the olean cache, delete all oleans and continue
-{ curl "$archive_url$new_git_sha.tar.xz" | tar xJ src; } || {
-for olean_file in `find $dirs -name "*.olean"`
-do
-  rm $olean_file
-done;
+(curl "$archive_url$new_git_sha.tar.xz" | tar xJ src) || {
+find $dirs -name "*.olean" -delete || true
 }
 
 # Archives no longer contain .lean files, but they used to.

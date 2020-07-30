@@ -723,9 +723,5 @@ lemma continuous_if' {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p
   continuous (λ a, ite (p a) (f a) (g a)) :=
 begin
   rw continuous_iff_continuous_on_univ,
-  apply continuous_on_if',
-  simp_rw univ_inter, exact hpf,
-  simp_rw univ_inter, exact hpg,
-  simp_rw univ_inter, exact hf,
-  simp_rw univ_inter, exact hg,
+  apply continuous_on_if' ; simp ; assumption
 end

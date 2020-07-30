@@ -15,7 +15,18 @@ done
 # exit if there were no successful requests
 [ "$new_git_sha" != "" ] || exit 0
 
-curl "$archive_url$new_git_sha.tar.xz" | tar xJ src
+# A list of directories containing .olean files. We are being conservative to
+# avoid traversing irrelevant directories and affecting directories we do not
+# want changed (e.g. $root/.git).
+dirs="src"
+
+# if there are errors extracting the olean cache, delete all oleans and continue
+{ curl "$archive_url$new_git_sha.tar.xz" | tar xJ src; } || {
+for olean_file in `find $dirs -name "*.olean"`
+do
+  rm $olean_file
+done;
+}
 
 # Archives no longer contain .lean files, but they used to.
 # Extracting such an archive overwrites all .lean files, which is fine if we
@@ -26,11 +37,6 @@ curl "$archive_url$new_git_sha.tar.xz" | tar xJ src
 # files should be OK.
 git reset --hard HEAD
 git clean -f -d
-
-# A list of directories containing .olean files. We are being conservative to
-# avoid traversing irrelevant directories and affecting directories we do not
-# want changed (e.g. $root/.git).
-dirs="src"
 
 # Delete every <path>.olean without a matching <path>.lean.
 # n.b. this for loop will break if there are filenames with spaces

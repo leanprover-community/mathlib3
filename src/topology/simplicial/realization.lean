@@ -20,64 +20,66 @@ namespace sType
 open Top function opposite
 
 structure has_realization (S : sType.{u}) (Y : Top.{u}) :=
-(hom : S ⟶ singular.obj Y)
-(w   : ∀ X, bijective (λ f : Y ⟶ X, hom ≫ singular.map f))
+(hom   : S ⟶ singular.obj Y)
+(equiv : Π X, (Y ⟶ X) ≃ (S ⟶ singular.obj X))
+(equiv_apply : ∀ (X : Top.{u}) (f : Y ⟶ X), equiv _ f = hom ≫ singular.map f . obviously)
 
-def has_realization.map {S₁ S₂ : sType} {Y₁ Y₂ : Top}
+namespace has_realization
+variables {S : sType.{u}} {Y : Top.{u}} (h : S.has_realization Y)
+
+attribute [simp] equiv_apply
+
+def map {S₁ S₂ : sType} {Y₁ Y₂ : Top}
   (h₁ : S₁.has_realization Y₁) (h₂ : S₂.has_realization Y₂) (f : S₁ ⟶ S₂) : Y₁ ⟶ Y₂ :=
-classical.some $ (h₁.w Y₂).2 (f ≫ h₂.hom)
+(h₁.equiv _).symm (f ≫ h₂.hom)
 
 @[simp, reassoc]
-lemma has_realization.map_spec {S₁ S₂ : sType} {Y₁ Y₂ : Top}
+lemma map_spec {S₁ S₂ : sType} {Y₁ Y₂ : Top}
   (h₁ : S₁.has_realization Y₁) (h₂ : S₂.has_realization Y₂) (f : S₁ ⟶ S₂) :
   h₁.hom ≫ singular.map (h₁.map h₂ f) = f ≫ h₂.hom :=
-classical.some_spec $ (h₁.w Y₂).2 (f ≫ h₂.hom)
+begin
+  apply (h₁.equiv _).symm.injective,
+  rw [← equiv_apply, equiv.symm_apply_apply], refl
+end
 
-@[simp] lemma has_realization.map_id {S : sType} {Y : Top} (h : S.has_realization Y) :
+@[simp] lemma map_id {S : sType} {Y : Top} (h : S.has_realization Y) :
   h.map h (𝟙 S) = 𝟙 Y :=
-by { apply (h.w _).1, simp [h.map_spec h (𝟙 S)], }
+by { apply (h.equiv _).injective, simp [h.map_spec h (𝟙 S)], }
 
-lemma has_realization.map_comp {S₁ S₂ S₃ : sType} {Y₁ Y₂ Y₃ : Top}
+lemma map_comp {S₁ S₂ S₃ : sType} {Y₁ Y₂ Y₃ : Top}
   (h₁ : S₁.has_realization Y₁) (h₂ : S₂.has_realization Y₂) (h₃ : S₃.has_realization Y₃)
   (f : S₁ ⟶ S₂) (g : S₂ ⟶ S₃) :
   h₁.map h₃ (f ≫ g) = h₁.map h₂ f ≫ h₂.map h₃ g :=
 begin
-  apply (h₁.w _).1,
-  simp only [has_realization.map_spec, has_realization.map_spec_assoc,
-    functor.map_comp, category.assoc],
+  apply (h₁.equiv _).injective,
+  simp only [equiv_apply, functor.map_comp, category.assoc,
+    has_realization.map_spec, has_realization.map_spec_assoc],
 end
+
+end has_realization
 
 lemma standard_simplex_has_realization (n : NonemptyFinLinOrd) :
   (standard_simplex.obj n).has_realization (singular_standard_simplex.obj n) :=
 { hom := (yoneda_hom_comp_yoneda singular_standard_simplex).app n,
-  w   :=
-  begin
-    intro X,
-    split,
-    { intros f g h,
-      dsimp at h,
-      rw [nat_trans.ext_iff, funext_iff] at h,
-      specialize h (op n),
-      rw [funext_iff] at h,
-      specialize h (𝟙 n),
-      dsimp at h,
-      change singular_standard_simplex.map (𝟙 n) ≫ f = singular_standard_simplex.map (𝟙 n) ≫ g at h,
-      rwa [singular_standard_simplex.map_id, category.id_comp f, category.id_comp g] at h, },
-    { intros f,
-      let g : singular_standard_simplex.obj n ⟶ X := f.app (op n) (𝟙 n),
-      refine ⟨g, _⟩,
-      dsimp,
+  equiv := λ X,
+  { to_fun    := λ f, (yoneda_hom_comp_yoneda singular_standard_simplex).app n ≫ singular.map f,
+    inv_fun   := λ f, f.app (op n) (𝟙 n),
+    left_inv  := by tidy,
+    right_inv :=
+    begin
+      intro f,
       ext1, ext1 m, dsimp [singular],
       ext1 i, change unop m ⟶ n at i,
       ext1 x,
-      dsimp [g],
-      have := congr_fun (f.naturality i.op).symm (𝟙 n),
-      replace := congr_arg continuous_map.to_fun this,
-      replace := congr_fun this x,
-      dsimp [standard_simplex, singular, singular_standard_simplex] at this,
-      rw [category.comp_id] at this,
-      exact this, },
-  end }
+      sorry,
+      -- dsimp [g],
+      -- have := congr_fun (f.naturality i.op).symm (𝟙 n),
+      -- replace := congr_arg continuous_map.to_fun this,
+      -- replace := congr_fun this x,
+      -- dsimp [standard_simplex, singular, singular_standard_simplex] at this,
+      -- rw [category.comp_id] at this,
+      -- exact this,
+    end } }
 
 open simplex_category opposite
 

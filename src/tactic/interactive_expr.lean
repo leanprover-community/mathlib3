@@ -341,6 +341,13 @@ meta inductive tactic_view_action (γ : Type)
 | out (a:γ): tactic_view_action
 | filter (f: filter_type): tactic_view_action
 
+/--
+The "goals accomplished 🎉" HTML widget. This can be overridden using:
+```lean
+meta def my_new_msg {α : Type} : widget.html α := "my message"
+attribute [vm_override my_new_msg] widget_override.goals_accomplished_message
+```
+-/
 meta def goals_accomplished_message {α} : html α :=
 h "div" [cn "f5"] ["goals accomplished 🎉"]
 

@@ -21,7 +21,7 @@ open set filter
 open_locale classical
 
 /--
-Helper lemma for the more general case: is_min_on_of_is_local_min_on_of_convex_on
+Helper lemma for the more general case: `is_min_on.of_is_local_min_on_of_convex_on`.
 -/
 lemma is_min_on.of_is_local_min_on_of_convex_on_Icc {f : ℝ → ℝ} {a b : ℝ}
   (a_lt_b : a < b) (h_local_min : is_local_min_on f (Icc a b) a) (h_conv : convex_on (Icc a b) f) :

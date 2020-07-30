@@ -6,6 +6,7 @@ Authors: Kenny Lau
 
 import algebra.group_action_hom
 import field_theory.normal
+import field_theory.separable
 import field_theory.subfield
 import ring_theory.polynomial
 
@@ -16,8 +17,8 @@ This is the basis of the Fundamental Theorem of Galois Theory.
 Given a (finite) group `G` that acts on a field `F`, we define `fixed_points G F`,
 the subfield consisting of elements of `F` fixed_points by every element of `G`.
 
-This subfield is then normal (proved in this file) and separable (TODO), and in addition
-if `G` acts faithfully on `F` then `findim (fixed_points G F) F = fintype.card G` (TODO).
+This subfield is then normal and separable, and in addition (TODO) if `G` acts faithfully on `F`
+then `findim (fixed_points G F) F = fintype.card G`.
 
 ## Main Definitions
 
@@ -151,3 +152,10 @@ instance fixed_points.normal : normal (fixed_points G F) F :=
 by { rw [← fixed_points.minpoly.minimal_polynomial, fixed_points.minpoly,
     fixed_points.coe_algebra_map, polynomial.map_to_subring, prod_X_sub_smul],
   exact polynomial.splits_prod _ (λ _ _, polynomial.splits_X_sub_C _) }⟩
+
+instance fixed_points.separable : is_separable (fixed_points G F) F :=
+λ x, ⟨fixed_points.is_integral G F x,
+by { rw [← fixed_points.minpoly.minimal_polynomial,
+        ← polynomial.separable_map (is_subring.subtype (fixed_points G F)),
+        fixed_points.minpoly, polynomial.map_to_subring],
+  exact polynomial.separable_prod_X_sub_C_iff.2 (injective_of_quotient_stabilizer G x) }⟩

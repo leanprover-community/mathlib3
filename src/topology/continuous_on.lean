@@ -52,10 +52,10 @@ end
 
 theorem nhds_within_eq (a : α) (s : set α) :
   nhds_within a s = ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, 𝓟 (t ∩ s) :=
-have set.univ ∈ {s : set α | a ∈ s ∧ is_open s}, from ⟨set.mem_univ _, is_open_univ⟩,
 begin
-  rw [nhds_within, nhds, binfi_inf]; try { exact this },
-  simp only [inf_principal]
+  rw [nhds_within, nhds, binfi_inf],
+  simp only [inf_principal],
+  exact ⟨univ, mem_univ _, is_open_univ⟩
 end
 
 theorem nhds_within_univ (a : α) : nhds_within a set.univ = 𝓝 a :=
@@ -172,6 +172,12 @@ lemma nhds_within_prod_eq {α : Type*} [topological_space α] {β : Type*} [topo
   (a : α) (b : β) (s : set α) (t : set β) :
   nhds_within (a, b) (s.prod t) = (nhds_within a s).prod (nhds_within b t) :=
 by { unfold nhds_within, rw [nhds_prod_eq, ←filter.prod_inf_prod, filter.prod_principal_principal] }
+
+lemma nhds_within_prod {α : Type*} [topological_space α] {β : Type*} [topological_space β]
+  {s u : set α} {t v : set β} {a : α} {b : β}
+  (hu : u ∈ nhds_within a s) (hv : v ∈ nhds_within b t) :
+  (u.prod v) ∈ nhds_within (a, b) (s.prod t) :=
+by { rw nhds_within_prod_eq, exact prod_mem_prod hu hv, }
 
 theorem tendsto_if_nhds_within {f g : α → β} {p : α → Prop} [decidable_pred p]
     {a : α} {s : set α} {l : filter β}
@@ -725,3 +731,17 @@ begin
   rw continuous_iff_continuous_on_univ,
   apply continuous_on_if' ; simp ; assumption
 end
+
+lemma continuous_on_fst {s : set (α × β)} : continuous_on prod.fst s :=
+continuous_fst.continuous_on
+
+lemma continuous_within_at_fst {s : set (α × β)} {p : α × β} :
+  continuous_within_at prod.fst s p :=
+continuous_fst.continuous_within_at
+
+lemma continuous_on_snd {s : set (α × β)} : continuous_on prod.snd s :=
+continuous_snd.continuous_on
+
+lemma continuous_within_at_snd {s : set (α × β)} {p : α × β} :
+  continuous_within_at prod.snd s p :=
+continuous_snd.continuous_within_at

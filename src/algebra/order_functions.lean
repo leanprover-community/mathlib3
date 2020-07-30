@@ -97,7 +97,7 @@ theorem min_choice (a b : α) : min a b = a ∨ min a b = b :=
 by by_cases h : a ≤ b; simp [min, h]
 
 theorem max_choice (a b : α) : max a b = a ∨ max a b = b :=
-by by_cases h : a ≤ b; simp [max, h]
+by by_cases h : b ≤ a; simp [max, h]
 
 lemma le_of_max_le_left {a b c : α} (h : max a b ≤ c) : a ≤ c :=
 le_trans (le_max_left _ _) h
@@ -221,16 +221,16 @@ lemma abs_max_sub_max_le_abs (a b c : α) : abs (max a c - max b c) ≤ abs (a -
 begin
   simp only [max],
   split_ifs,
-  { rw [sub_self, abs_zero], exact abs_nonneg _ },
-  { calc abs (c - b) = - (c - b) : abs_of_neg (sub_neg_of_lt (lt_of_not_ge h_1))
+  { refl },
+  { calc abs (a - c) = a - c : abs_of_nonneg (sub_nonneg_of_le h)
+      ... ≤ a - b : by { rw sub_le_sub_iff_left, exact le_of_not_le h_1 }
+      ... ≤ abs (a - b) : le_abs_self _ },
+  { calc abs (c - b) = - (c - b) : abs_of_nonpos (sub_nonpos_of_le h_1)
       ... = b - c : neg_sub _ _
-      ... ≤ b - a : by { rw sub_le_sub_iff_left, exact h }
+      ... ≤ b - a : by { rw sub_le_sub_iff_left, exact le_of_not_le h }
       ... = - (a - b) : by rw neg_sub
       ... ≤ abs (a - b) : neg_le_abs_self _ },
-  { calc abs (a - c) = a - c : abs_of_pos (sub_pos_of_lt (lt_of_not_ge h))
-      ... ≤ a - b : by { rw sub_le_sub_iff_left, exact h_1 }
-      ... ≤ abs (a - b) : le_abs_self _ },
-  { refl }
+  { simp [abs_nonneg] }
 end
 
 lemma max_sub_min_eq_abs' (a b : α) : max a b - min a b = abs (a - b) :=

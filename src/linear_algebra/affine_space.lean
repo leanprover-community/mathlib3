@@ -1539,7 +1539,7 @@ begin
 end
 
 /-- Decomposition of an affine map in the special case when the point space and vector space
-are the same -/
+are the same. -/
 lemma decomp' (f : affine_map k V1 V1 V2 V2) : (f.linear : V1 → V2) = f - (λ z, f 0) :=
 by rw [decomp]; simp only [linear_map.map_zero, pi.add_apply, add_sub_cancel, zero_add]
 

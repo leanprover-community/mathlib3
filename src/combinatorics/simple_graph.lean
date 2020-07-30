@@ -203,7 +203,7 @@ section finite
 variables [fintype V]
 
 instance neighbor_set_fintype [decidable_rel G.adj] (v : V) : fintype (G.neighbor_set v) :=
-  @subtype.fintype _ _ (by {simp_rw mem_neighbor_set, apply_instance}) _
+  @subtype.fintype _ _ (by { simp_rw mem_neighbor_set, apply_instance }) _
 
 lemma neighbor_finset_eq_filter {v : V} [decidable_rel G.adj] :
   G.neighbor_finset v = finset.univ.filter (G.adj v) :=

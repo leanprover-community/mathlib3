@@ -10,7 +10,7 @@ import topology.continuous_map
 /-!
 # Smooth bundled map
 
-In this file we define the type `smooth_map` of continuous bundled maps.
+In this file we define the type `smooth_map` of smooth bundled maps.
 
 -/
 
@@ -36,6 +36,8 @@ structure smooth_map :=
 
 notation `C∞(` I `, ` M `; ` I' `, ` M' `)` := smooth_map I I' M M'
 
+notation `C∞(` I `, ` M `)` := smooth_map I (model_with_corners_self ℝ) M ℝ
+
 namespace smooth_map
 
 variables {I} {I'} {M} {M'}
@@ -49,7 +51,8 @@ variables {f g : C∞(I, M; I', M')}
 lemma coe_inj ⦃f g : C∞(I, M; I', M')⦄ (h : (f : M → M') = g) : f = g :=
 by cases f; cases g; cases h; refl
 
-@[ext] theorem ext (H : ∀ x, f x = g x) : f = g := sorry
+@[ext] theorem ext (h : ∀ x, f x = g x) : f = g :=
+by cases f; cases g; congr'; exact funext h
 
 /-- The identity as a smooth map. -/
 def id : C∞(I, M; I, M) := ⟨id, smooth_id⟩

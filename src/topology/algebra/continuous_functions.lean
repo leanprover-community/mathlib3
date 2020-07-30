@@ -189,8 +189,8 @@ topological semiring `R` inherit the structure of a semimodule.
 section subtype
 
 instance coninuous_has_scalar {α : Type*} [topological_space α]
-  (R : Type*) [semiring R] [topological_space R]
-  (M : Type*) [topological_space M] [add_comm_group M]
+  {R : Type*} [semiring R] [topological_space R]
+  {M : Type*} [topological_space M] [add_comm_group M]
   [semimodule R M] [topological_semimodule R M] :
   has_scalar R { f : α → M | continuous f } :=
 ⟨λ r f, ⟨r • f, continuous_const.smul f.property⟩⟩
@@ -212,23 +212,24 @@ end subtype
 section continuous_map
 
 instance continuous_map_has_scalar {α : Type*} [topological_space α]
-  (R : Type*) [semiring R] [topological_space R]
-  (M : Type*) [topological_space M] [add_comm_monoid M]
+  {R : Type*} [semiring R] [topological_space R]
+  {M : Type*} [topological_space M] [add_comm_monoid M]
   [semimodule R M] [topological_semimodule R M] :
   has_scalar R C(α, M) :=
 ⟨λ r f, ⟨r • f, continuous_const.smul f.continuous⟩⟩
 
 instance continuous_map_semimodule {α : Type*} [topological_space α]
 {R : Type*} [semiring R] [topological_space R]
-{M : Type*} [topological_space M] [add_comm_group M] [topological_add_group M]
+{M : Type*} [topological_space M] [add_comm_monoid M] [has_continuous_add M]
 [semimodule R M] [topological_semimodule R M] :
   semimodule R C(α, M) :=
-  semimodule.of_core $
 { smul     := (•),
-  smul_add := λ c f g, by ext x; exact smul_add c (f x) (g x),
+  smul_add := λ c f g, by {ext, exact smul_add c (f x) (g x),},
   add_smul := λ c₁ c₂ f, by ext x; exact add_smul c₁ c₂ (f x),
   mul_smul := λ c₁ c₂ f, by ext x; exact mul_smul c₁ c₂ (f x),
-  one_smul := λ f, by ext x; exact one_smul R (f x) }
+  one_smul := λ f, by ext x; exact one_smul R (f x),
+  zero_smul := λ f, by ext x; exact zero_smul _ _,
+  smul_zero := λ r, by ext x; exact smul_zero _, }
 
 end continuous_map
 
@@ -340,22 +341,23 @@ section continuous_map
 
 instance continuous_map_has_scalar' {α : Type*} [topological_space α]
   {R : Type*} [semiring R] [topological_space R]
-  {M : Type*} [topological_space M] [add_comm_group M]
+  {M : Type*} [topological_space M] [add_comm_monoid M]
   [semimodule R M] [topological_semimodule R M] :
   has_scalar C(α, R) C(α, M) :=
 ⟨λ f g, ⟨λ x, (f x) • (g x), (continuous.smul f.2 g.2)⟩⟩
 
 instance continuous_map_module' {α : Type*} [topological_space α]
   (R : Type*) [ring R] [topological_space R] [topological_ring R]
-  (M : Type*) [topological_space M] [add_comm_group M] [topological_add_group M]
-  [module R M] [topological_module R M]
-  : module C(α, R) C(α, M) :=
-  semimodule.of_core $
+  (M : Type*) [topological_space M] [add_comm_monoid M] [has_continuous_add M]
+  [semimodule R M] [topological_semimodule R M]
+  : semimodule C(α, R) C(α, M) :=
 { smul     := (•),
   smul_add := λ c f g, by ext x; exact smul_add (c x) (f x) (g x),
   add_smul := λ c₁ c₂ f, by ext x; exact add_smul (c₁ x) (c₂ x) (f x),
   mul_smul := λ c₁ c₂ f, by ext x; exact mul_smul (c₁ x) (c₂ x) (f x),
-  one_smul := λ f, by ext x; exact one_smul R (f x) }
+  one_smul := λ f, by ext x; exact one_smul R (f x),
+  zero_smul := λ f, by ext x; exact zero_smul _ _,
+  smul_zero := λ r, by ext x; exact smul_zero _, }
 
 end continuous_map
 

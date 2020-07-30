@@ -6,7 +6,7 @@ class has_smooth_add {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [has_add G] [topological_space G] [has_continuous_add G] [charted_space H G]
-  extends smooth_manifold_with_corners I G : Prop :=
+ [smooth_manifold_with_corners I G] : Prop :=
 (smooth_add : smooth (I.prod I) I (λ p : G×G, p.1 + p.2))
 
 /-- A Lie group is a group and a smooth manifold at the same time in which
@@ -16,7 +16,7 @@ class has_smooth_mul {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [has_mul G] [topological_space G] [has_continuous_mul G] [charted_space H G]
-  extends smooth_manifold_with_corners I G : Prop :=
+  [smooth_manifold_with_corners I G] : Prop :=
 (smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2))
 
 section has_smooth_mul
@@ -25,7 +25,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [topological_space H]
 {E : Type*} [normed_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E H}
 {G : Type*} [has_mul G] [topological_space G] [has_continuous_mul G] [charted_space H G]
-[has_smooth_mul I G]
+[smooth_manifold_with_corners I G] [has_smooth_mul I G]
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M : Type*} [topological_space M] [charted_space H' M] [smooth_manifold_with_corners I' M]
@@ -55,13 +55,15 @@ lemma smooth_on.mul {f : M → G} {g : M → G} {s : set M}
 
 /- Instance of product -/
 @[to_additive]
-instance {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {H : Type*} [topological_space H]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]  {I : model_with_corners 𝕜 E H}
-{G : Type*} [topological_space G] [charted_space H G] [has_mul G] [has_continuous_mul G]
-[has_smooth_mul I G] {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-{H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
-{G' : Type*} [topological_space G'] [charted_space H' G']
-[has_mul G'] [has_continuous_mul G'] [has_smooth_mul I' G'] : has_smooth_mul (I.prod I') (G×G') :=
+instance has_smooth_mul.prod {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {H : Type*} [topological_space H]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E]  {I : model_with_corners 𝕜 E H}
+  {G : Type*} [topological_space G] [charted_space H G] [has_mul G] [has_continuous_mul G]
+  [smooth_manifold_with_corners I G] [has_smooth_mul I G] {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+  {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
+  {G' : Type*} [topological_space G'] [charted_space H' G']
+  [has_mul G'] [has_continuous_mul G'] [smooth_manifold_with_corners I' G'] [has_smooth_mul I' G'] :
+  has_smooth_mul (I.prod I') (G×G') :=
 { smooth_mul := ((smooth_fst.comp smooth_fst).smooth.mul (smooth_fst.comp smooth_snd)).prod_mk
   ((smooth_snd.comp smooth_fst).smooth.mul (smooth_snd.comp smooth_snd)), }
 
@@ -144,7 +146,7 @@ protected lemma to_has_continuous_mul : has_continuous_mul G :=
 { continuous_mul := c.smooth_mul.continuous, }
 
 @[to_additive]
-protected lemma to_lie_group : @has_smooth_mul 𝕜 _ _ _ E _ _ I G _ _ c.to_has_continuous_mul _ :=
+protected lemma to_lie_group : @has_smooth_mul 𝕜 _ _ _ E _ _ I G _ _ c.to_has_continuous_mul _ _ :=
 { smooth_mul := c.smooth_mul, }
 
 end has_smooth_mul_core

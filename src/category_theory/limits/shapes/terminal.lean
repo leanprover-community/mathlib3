@@ -10,6 +10,8 @@ import category_theory.limits.limits
 # Initial and terminal objects in a category.
 -/
 
+noncomputable theory
+
 universes v u
 
 open category_theory
@@ -56,7 +58,7 @@ variables {C}
 and showing there is a unique morphism to it from any other object. -/
 def has_terminal_of_unique (X : C) [h : Π Y : C, unique (Y ⟶ X)] : has_terminal C :=
 { has_limits_of_shape :=
-  { has_limit := λ F,
+  { has_limit := λ F, has_limit.mk
     { cone     := { X := X, π := { app := pempty.rec _ } },
       is_limit := { lift := λ s, (h s.X).default } } } }
 /-- We can more explicitly show that a category has an initial object by specifying the object,

@@ -636,11 +636,11 @@ variables (J C)
 
 /-- `C` has limits of shape `J` if we have chosen a particular limit of
   every functor `F : J ⥤ C`. -/
-class has_limits_of_shape :=
+class has_limits_of_shape : Prop :=
 (has_limit : Π F : J ⥤ C, has_limit F)
 
 /-- `C` has all (small) limits if it has limits of every shape. -/
-class has_limits :=
+class has_limits : Prop :=
 (has_limits_of_shape : Π (J : Type v) [𝒥 : small_category J], has_limits_of_shape J C)
 
 variables {J C}

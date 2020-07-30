@@ -7,6 +7,8 @@ import category_theory.limits.preserves
 
 open category_theory category_theory.category
 
+noncomputable theory
+
 namespace category_theory.limits
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -77,7 +79,7 @@ def functor_category_is_colimit_cocone [has_colimits_of_shape J C] (F : J ⥤ K 
 
 instance functor_category_has_limits_of_shape
   [has_limits_of_shape J C] : has_limits_of_shape J (K ⥤ C) :=
-{ has_limit := λ F,
+{ has_limit := λ F, has_limit.mk
   { cone := functor_category_limit_cone F,
     is_limit := functor_category_is_limit_cone F } }
 
@@ -96,7 +98,7 @@ instance functor_category_has_colimits [has_colimits C] : has_colimits (K ⥤ C)
 instance evaluation_preserves_limits_of_shape [has_limits_of_shape J C] (k : K) :
   preserves_limits_of_shape J ((evaluation K C).obj k) :=
 { preserves_limit :=
-  λ F, preserves_limit_of_preserves_limit_cone (limit.is_limit _) $
+  λ F, preserves_limit_of_preserves_limit_cone (functor_category_is_limit_cone _) $
     is_limit.of_iso_limit (limit.is_limit _)
       (evaluate_functor_category_limit_cone F k).symm }
 

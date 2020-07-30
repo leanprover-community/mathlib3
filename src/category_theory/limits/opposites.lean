@@ -8,6 +8,8 @@ import category_theory.discrete_category
 
 universes v u
 
+noncomputable theory
+
 open category_theory
 open category_theory.functor
 open opposite
@@ -19,7 +21,7 @@ variables {J : Type v} [small_category J]
 variable (F : J ⥤ Cᵒᵖ)
 
 instance has_limit_of_has_colimit_left_op [has_colimit F.left_op] : has_limit F :=
-{ cone := cone_of_cocone_left_op (colimit.cocone F.left_op),
+has_limit.mk { cone := cone_of_cocone_left_op (colimit.cocone F.left_op),
   is_limit :=
   { lift := λ s, (colimit.desc F.left_op (cocone_left_op_of_cone s)).op,
     fac' := λ s j,

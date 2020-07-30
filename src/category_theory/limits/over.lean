@@ -6,6 +6,8 @@ Authors: Johan Commelin, Reid Barton, Bhavik Mehta
 import category_theory.over
 import category_theory.limits.preserves
 
+noncomputable theory
+
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 open category_theory category_theory.limits
@@ -131,7 +133,7 @@ instance : reflects_limits (forget : under X ⥤ C) :=
       end } } }
 
 instance has_limit {F : J ⥤ under X} [has_limit (F ⋙ forget)] : has_limit F :=
-{ cone := limit F,
+has_limit.mk { cone := limit F,
   is_limit := reflects_limit.reflects (forget_limit_is_limit F) }
 
 instance has_limits_of_shape [has_limits_of_shape J C] :
@@ -145,6 +147,7 @@ instance forget_preserves_limits [has_limits C] {X : C} :
   preserves_limits (forget : under X ⥤ C) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F, by exactI
-    preserves_limit_of_preserves_limit_cone (limit.is_limit F) (forget_limit_is_limit F) } }
+    preserves_limit_of_preserves_limit_cone
+      (reflects_limit.reflects (forget_limit_is_limit F)) (forget_limit_is_limit F) } }
 
 end category_theory.under

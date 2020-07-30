@@ -7,7 +7,7 @@ Authors: Frédéric Dupuis
 import analysis.calculus.local_extr
 
 /-!
-# Minimums and maximums of convex functions
+# Minima and maxima of convex functions
 
 We show that if a function `f : E → ℝ` is convex, then a local minimum is also
 a global minimum.

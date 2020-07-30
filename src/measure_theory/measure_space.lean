@@ -1188,28 +1188,29 @@ lemma eventually_eq_dirac' [measurable_singleton_class α] {a : α} (f : α → 
   f =ᵐ[measure.dirac a] const α (f a) :=
 by { rw [dirac_ae_eq], show f a = f a, refl }
 
-lemma measure_diff_of_ae_imp {s t : set α} (H : ∀ᵐ x ∂μ, x ∈ s → x ∈ t) :
+lemma measure_diff_of_ae_le {s t : set α} (H : s ≤ᵐ[μ] t) :
   μ (s \ t) = 0 :=
 flip measure_mono_null H $ λ x hx H, hx.2 (H hx.1)
 
 /-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
-lemma measure_le_of_ae_imp {s t : set α} (H : ∀ᵐ x ∂μ, x ∈ s → x ∈ t) :
+lemma measure_mono_ae {s t : set α} (H : s ≤ᵐ[μ] t) :
   μ s ≤ μ t :=
 calc μ s ≤ μ (s ∪ t)       : measure_mono $ subset_union_left s t
      ... = μ (t ∪ s \ t)   : by rw [union_diff_self, set.union_comm]
      ... ≤ μ t + μ (s \ t) : measure_union_le _ _
-     ... = μ t             : by rw [measure_diff_of_ae_imp H, add_zero]
+     ... = μ t             : by rw [measure_diff_of_ae_le H, add_zero]
+
+alias measure_mono_ae ← filter.eventually_le.measure_le
 
 /-- If two sets are equal modulo a set of measure zero, then `μ s = μ t`. -/
 lemma measure_congr {s t : set α} (H : s =ᵐ[μ] t) : μ s = μ t :=
-le_antisymm (measure_le_of_ae_imp $ H.mono $ λ x, eq.mp)
-  (measure_le_of_ae_imp $ H.mono $ λ x, eq.mpr)
+le_antisymm H.le.measure_le H.symm.le.measure_le
 
 lemma restrict_mono_ae {s t : set α} (h : s ≤ᵐ[μ] t) : μ.restrict s ≤ μ.restrict t :=
 begin
   intros u hu,
   simp only [measure.restrict_apply hu],
-  exact measure_le_of_ae_imp (h.mono $ λ x hx, and.imp id hx)
+  exact measure_mono_ae (h.mono $ λ x hx, and.imp id hx)
 end
 
 lemma restrict_congr {s t : set α} (H : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
@@ -1220,6 +1221,43 @@ class probability_measure (μ : measure α) : Prop := (meas_univ : μ univ = 1)
 class finite_measure (μ : measure α) : Prop := (meas_univ_lt_top : μ univ < ⊤)
 
 export finite_measure (meas_univ_lt_top) probability_measure (meas_univ)
+
+def measure.finite_at_filter (μ : measure α) (f : filter α) : Prop := ∃ s ∈ f, μ s < ⊤
+
+lemma finite_at_filter_of_finite (μ : measure α) [finite_measure μ] (f : filter α) :
+  μ.finite_at_filter f :=
+⟨univ, univ_mem_sets, meas_univ_lt_top⟩
+
+namespace measure
+
+namespace finite_at_filter
+
+variables {ν : measure α} {f g : filter α}
+
+protected lemma filter_mono (h : f ≤ g) : μ.finite_at_filter g → μ.finite_at_filter f :=
+λ ⟨s, hs, hμ⟩, ⟨s, h hs, hμ⟩
+
+@[simp] lemma inf_ae_iff : μ.finite_at_filter (f ⊓ μ.ae) ↔ μ.finite_at_filter f :=
+begin
+  refine ⟨_, λ h, h.filter_mono inf_le_left⟩,
+  rintros ⟨s, ⟨t, ht, u, hu, hs⟩, hμ⟩,
+  suffices : μ t ≤ μ s, from ⟨t, ht, this.trans_lt hμ⟩,
+  exact measure_mono_ae (mem_sets_of_superset hu (λ x hu ht, hs ⟨ht, hu⟩))
+end
+
+protected lemma measure_mono (h : μ ≤ ν) : ν.finite_at_filter f → μ.finite_at_filter f :=
+λ ⟨s, hs, hν⟩, ⟨s, hs, (measure.le_iff'.1 h s).trans_lt hν⟩
+
+@[mono] protected lemma mono (hf : f ≤ g) (hμ : μ ≤ ν) :
+  ν.finite_at_filter g → μ.finite_at_filter f :=
+λ h, (h.filter_mono hf).measure_mono hμ
+
+end finite_at_filter
+
+@[simp] lemma finite_at_principal {s : set α} : μ.finite_at_filter (𝓟 s) ↔ μ s < ⊤ :=
+⟨λ ⟨t, ht, hμ⟩, (measure_mono ht).trans_lt hμ, λ h, ⟨s, mem_principal_self s, h⟩⟩
+
+end measure
 
 end measure_theory
 

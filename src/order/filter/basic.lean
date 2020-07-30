@@ -1122,13 +1122,11 @@ lemma eventually_eq.rw {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) (p : 
   ∀ᶠ x in l, p x (g x) :=
 hf.congr $ h.mono $ λ x hx, hx ▸ iff.rfl
 
-lemma eventually_set_ext {s t : set α} {l : filter α} :
+lemma eventually_eq_set {s t : set α} {l : filter α} :
    s =ᶠ[l] t ↔ ∀ᶠ x in l, x ∈ s ↔ x ∈ t :=
 eventually_congr $ eventually_of_forall $ λ x, ⟨eq.to_iff, iff.to_eq⟩
 
-lemma eventually_eq.mem_iff {s t : set α} {l : filter α} (h : s =ᶠ[l] t) :
-  ∀ᶠ x in l, x ∈ s ↔ x ∈ t :=
-eventually_set_ext.1 h
+alias eventually_eq_set ↔ filter.eventually_eq.mem_iff filter.eventually.set_eq
 
 lemma eventually_eq.exists_mem {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) :
   ∃ s ∈ l, eq_on f g s :=
@@ -1142,17 +1140,9 @@ lemma eventually_eq_iff_exists_mem {l : filter α} {f g : α → β} :
   (f =ᶠ[l] g) ↔ ∃ s ∈ l, eq_on f g s :=
 eventually_iff_exists_mem
 
-lemma eventually_eq.mono' {l l' : filter α} {f g : α → β} (h₁ : f =ᶠ[l] g) (h₂ : l' ≤ l) :
+lemma eventually_eq.filter_mono {l l' : filter α} {f g : α → β} (h₁ : f =ᶠ[l] g) (h₂ : l' ≤ l) :
   f =ᶠ[l'] g :=
 h₂ h₁
-
-lemma eventually_eq.inf_of_left {l l' : filter α} {f g : α → β} (h : f =ᶠ[l] g) :
-  f =ᶠ[l ⊓ l'] g :=
-h.mono' inf_le_left
-
-lemma eventually_eq.inf_of_right {l l' : filter α} {f g : α → β} (h : f =ᶠ[l'] g) :
-  f =ᶠ[l ⊓ l'] g :=
-h.mono' inf_le_right
 
 @[refl] lemma eventually_eq.refl (l : filter α) (f : α → β) :
   f =ᶠ[l] f :=

@@ -34,11 +34,17 @@ section piecewise
 variables {μ : measure α} {s : set α} {f g : α → β}
 
 lemma piecewise_ae_eq_restrict (hs : is_measurable s) : piecewise s f g =ᵐ[μ.restrict s] f :=
-by { rw [ae_restrict_eq hs], exact (piecewise_eq_on s f g).eventually_eq.inf_of_right }
+begin
+  rw [ae_restrict_eq hs],
+  exact (piecewise_eq_on s f g).eventually_eq.filter_mono inf_le_right
+end
 
 lemma piecewise_ae_eq_restrict_compl (hs : is_measurable s) :
   piecewise s f g =ᵐ[μ.restrict sᶜ] g :=
-by { rw [ae_restrict_eq hs.compl], exact (piecewise_eq_on_compl s f g).eventually_eq.inf_of_right }
+begin
+  rw [ae_restrict_eq hs.compl],
+  exact (piecewise_eq_on_compl s f g).eventually_eq.filter_mono inf_le_right
+end
 
 end piecewise
 
@@ -149,9 +155,19 @@ lemma integrable_on_of_bounded {C} (hs : μ s < ⊤) (hf : ∀ᵐ x ∂(μ.restr
 by haveI : finite_measure (μ.restrict s) := ⟨by rwa [measure.restrict_apply_univ]⟩;
   exact integrable_of_bounded hf
 
-lemma locally_integrable_of_inf_ae {l : filter α} {s : set α}
+def integrable_at_filter (f : α → E) (l : filter α) (μ : measure α . volume_tac) :=
+∃ s ∈ l, integrable_on f s μ
+
+variables {l : filter α}
+
+protected lemma integrable_at_filter.eventually (h : integrable_at_filter f l μ) :
+  ∀ᶠ s in l.lift' powerset, integrable_on f s μ :=
+by { refine (eventually_lift'_powerset $ λ s t hst ht, _).2 h, exact ht.mono_set hst }
+
+/-- If a function is integrable -/
+lemma integrable_at_filter_of_inf_ae {l : filter α} {s : set α}
   (hsl : s ∈ l ⊓ μ.ae) (hf : integrable_on f s μ) :
-  ∃ s ∈ l, integrable_on f s μ :=
+  integrable_at_filter f l μ :=
 begin
   rcases hsl with ⟨t, ht, u, hu, hs⟩,
   refine ⟨t, ht, _⟩,
@@ -162,15 +178,15 @@ begin
   exact λ ⟨hv, ht⟩, ⟨hv, hs ⟨ht, hx⟩⟩
 end
 
-lemma locally_integrable_on_of_is_bounded_under' {l : filter α} [is_measurably_generated l]
+lemma integrable_at_filter_of_is_bounded_under' {l : filter α} [is_measurably_generated l]
   (hμ : ∃ s ∈ l ⊓ μ.ae, μ s < ⊤) (hf : (l ⊓ μ.ae).is_bounded_under (≤) (norm ∘ f)) :
-  ∃ s ∈ l, integrable_on f s μ :=
+  integrable_at_filter f l μ :=
 begin
   rcases hμ with ⟨s, hsl, hsμ⟩,
   rcases hf with ⟨C, hC⟩,
   simp only [eventually_map] at hC,
   rcases hC.exists_measurable_mem with ⟨t, htl, htm, hC⟩,
-  refine locally_integrable_of_inf_ae (inter_mem_sets htl hsl) _,
+  refine integrable_at_filter_of_inf_ae (inter_mem_sets htl hsl) _,
   refine integrable_on_of_bounded (lt_of_le_of_lt (measure_mono $ inter_subset_right _ _) hsμ) _,
   exact C,
   suffices : ∀ᵐ x ∂μ.restrict t, ∥f x∥ ≤ C,
@@ -181,23 +197,22 @@ end
 
 lemma locally_integrable_on_of_is_bounded_under [topological_space α] [opens_measurable_space α]
   [locally_finite_measure μ] {a : α} (hf : (𝓝 a ⊓ μ.ae).is_bounded_under (≤) (norm ∘ f)) :
-  ∃ s ∈ 𝓝 a, integrable_on f s μ :=
-locally_integrable_on_of_is_bounded_under' ((exists_mem_nhds_finite_meas a μ).imp $
-  λ s hs, ⟨(inf_le_left : 𝓝 a ⊓ _ ≤ _) hs.fst, hs.snd⟩) hf
+  integrable_at_filter f (𝓝 a) μ :=
+integrable_at_filter_of_is_bounded_under' (exists_mem_finite_meas_of_le_nhds μ inf_le_left) hf
 
 lemma locally_integrable_on_of_tendsto' [topological_space α] [opens_measurable_space α]
   [locally_finite_measure μ] {a : α} {b : E} (hf : tendsto f (𝓝 a ⊓ μ.ae) (𝓝 b)) :
-  ∃ s ∈ 𝓝 a, integrable_on f s μ :=
+  integrable_at_filter f (𝓝 a) μ :=
 locally_integrable_on_of_is_bounded_under hf.norm.is_bounded_under_le
 
 lemma locally_integrable_on_of_tendsto [topological_space α] [opens_measurable_space α]
   [locally_finite_measure μ] {a : α} {b : E} (hf : tendsto f (𝓝 a) (𝓝 b)) :
-  ∃ s ∈ 𝓝 a, integrable_on f s μ :=
+  integrable_at_filter f (𝓝 a) μ :=
 locally_integrable_on_of_tendsto' (tendsto_le_left inf_le_left hf)
 
 lemma locally_integrable_on_of_continuous_at [topological_space α] [opens_measurable_space α]
   [locally_finite_measure μ] {a : α} (hf : continuous_at f a) :
-  ∃ s ∈ 𝓝 a, integrable_on f s μ :=
+  integrable_at_filter f (𝓝 a) μ :=
 locally_integrable_on_of_tendsto hf
 
 variables [measurable_space E] [borel_space E] [complete_space E] [second_countable_topology E]
@@ -246,23 +261,27 @@ end measure_theory
 
 open measure_theory
 
+lemma is_compact.integrable_on_of_locally_integrable_on
+  [topological_space α] [opens_measurable_space α] [t2_space α]
+  [normed_group E] {μ : measure α} {s : set α} (hs : is_compact s)
+  {f : α → E} (hf : ∀ x ∈ s, integrable_at_filter f (nhds_within x s) μ) :
+  integrable_on f s μ :=
+is_compact.induction_on hs integrable_on_empty (λ s t hst ht, ht.mono_set hst)
+  (λ s t hs ht, hs.union ht) hf
+
 lemma is_compact.integrable_on_of_bounded_ae [topological_space α] [opens_measurable_space α]
   [t2_space α]
   [normed_group E] {μ : measure α} [locally_finite_measure μ] {s : set α} (hs : is_compact s)
-  {f : α → E} {C : ℝ} (hC : ∀ᵐ x ∂μ, x ∈ s → ∥f x∥ ≤ C) :
+  {f : α → E} (hf : (μ.ae ⊓ 𝓟 s).is_bounded_under (≤) (norm ∘ f)) :
   integrable_on f s μ :=
 begin
-  refine is_compact.induction_on hs integrable_on_empty (λ s t hst ht, ht.mono_set hst)
-    (λ s t h, h.union) _,
-  intros x hx,
+  refine hs.integrable_on_of_locally_integrable_on (λ x hx, _),
   haveI := hs.is_measurable.principal_is_measurably_generated,
   dunfold nhds_within,
-  apply locally_integrable_on_of_is_bounded_under',
-  { rcases exists_mem_nhds_finite_meas x μ with ⟨t, ht, htμ⟩,
-    exact ⟨t, mem_inf_sets_of_left (mem_inf_sets_of_left ht), htμ⟩ },
-  { rw [← eventually_inf_principal] at hC,
-    exact ⟨C, eventually_map.2 $
-      hC.filter_mono (le_inf inf_le_right (le_trans inf_le_left inf_le_right))⟩ }
+  apply integrable_at_filter_of_is_bounded_under',
+  { exact exists_mem_finite_meas_of_le_nhds μ (inf_le_left.trans inf_le_left) },
+  { convert hf.mono (@inf_le_right _ _ (𝓝 x) _) using 1,
+    ac_refl }
 end
 
 lemma continuous_on.integrable_on_compact [topological_space α] [opens_measurable_space α]
@@ -271,8 +290,8 @@ lemma continuous_on.integrable_on_compact [topological_space α] [opens_measurab
   {f : α → E} (hf : continuous_on f s) :
   integrable_on f s μ :=
 let ⟨C, hC⟩ := ((hs.image_of_continuous_on hf).image continuous_norm).bdd_above in
-hs.integrable_on_of_bounded_ae (eventually_of_forall $
-  λ x hx, hC $ mem_image_of_mem _ $ mem_image_of_mem _ hx)
+hs.integrable_on_of_bounded_ae ⟨C, eventually_map.2 $ eventually.filter_mono inf_le_right $
+  λ x hx, hC $ mem_image_of_mem _ $ mem_image_of_mem _ hx⟩
 
 lemma continuous.integrable_on_compact [topological_space α] [opens_measurable_space α]
   [t2_space α] [normed_group E] {μ : measure α} [locally_finite_measure μ]
@@ -285,7 +304,6 @@ lemma continuous.integrable_on_of_compact_closure [topological_space α] [opens_
   {f : α → E} (hf : continuous f) {s : set α} (hs : is_compact (closure s)) :
   integrable_on f s μ :=
 (hf.integrable_on_compact hs).mono_set subset_closure
-
 
 /-
 namespace integrable

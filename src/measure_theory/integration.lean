@@ -642,8 +642,8 @@ end
 /-- If two simple functions are equal a.e., then their `lintegral`s are equal. -/
 lemma lintegral_congr {f g : α →ₛ ennreal} (h : f =ᵐ[μ] g) :
   f.lintegral μ = g.lintegral μ :=
-lintegral_eq_of_measure_preimage $ λ y, measure_congr $ eventually_set_ext.2 $
-  h.mono $ λ x hx, by simp [hx]
+lintegral_eq_of_measure_preimage $ λ y, measure_congr $
+  eventually.set_eq $ h.mono $ λ x hx, by simp [hx]
 
 lemma lintegral_map {β} [measurable_space β] {μ' : measure β} (f : α →ₛ ennreal) (g : β →ₛ ennreal)
   (m : α → β) (eq : ∀a:α, f a = g (m a)) (h : ∀s:set β, is_measurable s → μ' s = μ (m ⁻¹' s)) :

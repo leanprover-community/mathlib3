@@ -183,6 +183,10 @@ le_principal_iff.mp $ show f.lift' h ≤ 𝓟 (h t),
 lemma mem_lift'_sets (hh : monotone h) {s : set β} : s ∈ (f.lift' h) ↔ (∃t∈f, h t ⊆ s) :=
 mem_lift_sets $ monotone_principal.comp hh
 
+lemma eventually_lift'_iff (hh : monotone h) {p : β → Prop} :
+  (∀ᶠ y in f.lift' h, p y) ↔ (∃ t ∈ f, ∀ y ∈ h t, p y) :=
+mem_lift'_sets hh
+
 lemma lift'_le {f : filter α} {g : set α → set β} {h : filter β} {s : set α}
   (hs : s ∈ f) (hg : 𝓟 (g s) ≤ h) : f.lift' g ≤ h :=
 lift_le hs hg
@@ -256,17 +260,7 @@ lift_lift_same_eq_lift
 
 lemma lift'_inf_principal_eq {h : set α → set β} {s : set β} :
   f.lift' h ⊓ 𝓟 s = f.lift' (λt, h t ∩ s) :=
-le_antisymm
-  (le_infi $ assume t, le_infi $ assume ht,
-    calc filter.lift' f h ⊓ 𝓟 s ≤ 𝓟 (h t) ⊓ 𝓟 s :
-        inf_le_inf_right _ (infi_le_of_le t $ infi_le _ ht)
-      ... = _ : by simp only [principal_eq_iff_eq, inf_principal, eq_self_iff_true, function.comp_app])
-  (le_inf
-    (le_infi $ assume t, le_infi $ assume ht,
-      infi_le_of_le t $ infi_le_of_le ht $
-      by simp only [le_principal_iff, inter_subset_left, mem_principal_sets, function.comp_app]; exact inter_subset_right _ _)
-    (infi_le_of_le univ $ infi_le_of_le univ_mem_sets $
-    by simp only [le_principal_iff, inter_subset_right, mem_principal_sets, function.comp_app]; exact inter_subset_left _ _))
+by simp only [filter.lift', filter.lift, infi_subtype', infi_inf, (∘), inf_principal]
 
 lemma lift'_ne_bot_iff (hh : monotone h) : (ne_bot (f.lift' h)) ↔ (∀s∈f, (h s).nonempty) :=
 calc (ne_bot (f.lift' h)) ↔ (∀s∈f, ne_bot (𝓟 (h s))) :
@@ -297,7 +291,16 @@ lift_infi $ by simp only [principal_eq_iff_eq, inf_principal, function.comp_app]
 
 theorem comap_eq_lift' {f : filter β} {m : α → β} :
   comap m f = f.lift' (preimage m) :=
-filter_eq $ set.ext $ by simp only [mem_lift'_sets, monotone_preimage, comap, exists_prop, forall_const, iff_self, mem_set_of_eq]
+filter.ext $ λ s, (mem_lift'_sets monotone_preimage).symm
+
+lemma eventually_lift'_powerset {f : filter α} {p : set α → Prop}
+  (hp : ∀ ⦃s t⦄, s ⊆ t → p t → p s) :
+  (∀ᶠ s in f.lift' powerset, p s) ↔ ∃ s ∈ f, p s :=
+(eventually_lift'_iff (λ _ _, powerset_mono.2)).trans $
+  exists_congr $ λ s, exists_congr $ λ hsf, ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
+
+instance lift'_powerset_ne_bot (f : filter α) : ne_bot (f.lift' powerset) :=
+(lift'_ne_bot_iff (λ _ _, powerset_mono.2)).2 $ λ _ _, powerset_nonempty
 
 end lift'
 
@@ -309,7 +312,7 @@ have ∀(s:set α) (t : set β),
     𝓟 (set.prod s t) = (𝓟 s).comap prod.fst ⊓ (𝓟 t).comap prod.snd,
   by simp only [principal_eq_iff_eq, comap_principal, inf_principal]; intros; refl,
 begin
-  simp only [filter.lift', function.comp, this, -comap_principal, lift_inf, lift_const, lift_inf],
+  simp only [filter.lift', function.comp, this, lift_inf, lift_const, lift_inf],
   rw [← comap_lift_eq monotone_principal, ← comap_lift_eq monotone_principal],
   simp only [filter.prod, lift_principal2, eq_self_iff_true]
 end

@@ -1008,6 +1008,12 @@ theorem subset_of_mem_powerset {x s : set α} (h : x ∈ powerset s) : x ⊆ s :
 
 theorem mem_powerset_iff (x s : set α) : x ∈ powerset s ↔ x ⊆ s := iff.rfl
 
+@[simp] theorem powerset_mono : powerset s ⊆ powerset t ↔ s ⊆ t :=
+⟨λ h, h (subset.refl s), λ h u hu, subset.trans hu h⟩
+
+@[simp] theorem powerset_nonempty : (powerset s).nonempty :=
+⟨∅, empty_subset s⟩
+
 /-! ### Inverse image -/
 
 /-- The preimage of `s : set β` by `f : α → β`, written `f ⁻¹' s`,

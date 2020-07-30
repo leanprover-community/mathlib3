@@ -130,7 +130,7 @@ lemma is_min_on.of_is_local_min_of_convex_univ {f : E → ℝ} {a : E}
 λ x, (is_min_on.of_is_local_min_on_of_convex_on (mem_univ a)
         (is_local_min.on h_local_min univ) h_conv) x (mem_univ x)
 
-/-- A local minimum of a convex function is a global minimum -/
+/-- A local minimum of a convex function is a global minimum. -/
 lemma is_min_on.of_is_local_min_of_convex_univ' {f : E → ℝ} {a : E}
   (h_local_min : is_local_min f a) (h_conv : convex_on univ f) : is_min_on f univ a :=
 λ x z, is_min_on.of_is_local_min_of_convex_univ h_local_min h_conv x

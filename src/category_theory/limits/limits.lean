@@ -6,6 +6,8 @@ Authors: Reid Barton, Mario Carneiro, Scott Morrison, Floris van Doorn
 import category_theory.adjunction.basic
 import category_theory.reflect_isomorphisms
 
+noncomputable theory
+
 open category_theory category_theory.category category_theory.functor opposite
 
 namespace category_theory.limits
@@ -617,9 +619,18 @@ end is_colimit
 section limit
 
 /-- `has_limit F` represents a particular chosen limit of the diagram `F`. -/
-class has_limit (F : J ⥤ C) :=
+structure limit_data (F : J ⥤ C) :=
 (cone : cone F)
 (is_limit : is_limit cone)
+
+class has_limit (F : J ⥤ C) : Prop :=
+mk' :: (exists_limit : nonempty (limit_data F))
+
+def has_limit.mk {F : J ⥤ C} (d : limit_data F) : has_limit F :=
+⟨nonempty.intro d⟩
+
+def get_limit_data (F : J ⥤ C) [has_limit F] : limit_data F :=
+classical.choice $ has_limit.exists_limit
 
 variables (J C)
 
@@ -647,7 +658,7 @@ has_limits.has_limits_of_shape J
 /- Interface to the `has_limit` class. -/
 
 /-- The chosen limit cone of a functor. -/
-def limit.cone (F : J ⥤ C) [has_limit F] : cone F := has_limit.cone
+def limit.cone (F : J ⥤ C) [has_limit F] : cone F := (get_limit_data F).cone
 
 /-- The chosen limit object of a functor. -/
 def limit (F : J ⥤ C) [has_limit F] := (limit.cone F).X
@@ -664,7 +675,7 @@ def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F.obj j :=
 
 /-- Evidence that the chosen cone is a limit cone. -/
 def limit.is_limit (F : J ⥤ C) [has_limit F] : is_limit (limit.cone F) :=
-has_limit.is_limit
+(get_limit_data F).is_limit
 
 /-- The morphism from the cone point of any other cone to the chosen limit object. -/
 def limit.lift (F : J ⥤ C) [has_limit F] (c : cone F) : c.X ⟶ limit F :=
@@ -722,7 +733,7 @@ If we've chosen a limit for a functor `F`,
 we can transport that choice across a natural isomorphism.
 -/
 def has_limit_of_iso {F G : J ⥤ C} [has_limit F] (α : F ≅ G) : has_limit G :=
-{ cone := (cones.postcompose α.hom).obj (limit.cone F),
+has_limit.mk { cone := (cones.postcompose α.hom).obj (limit.cone F),
   is_limit :=
   { lift := λ s, limit.lift F ((cones.postcompose α.inv).obj s),
     fac' := λ s j,
@@ -743,7 +754,7 @@ which has a limit, then `G` also has a limit. -/
 -- for an example usage.
 def has_limit.of_cones_iso {J K : Type v} [small_category J] [small_category K] (F : J ⥤ C) (G : K ⥤ C)
   (h : F.cones ≅ G.cones) [has_limit F] : has_limit G :=
-⟨_, is_limit.of_nat_iso ((is_limit.nat_iso (limit.is_limit F)) ≪≫ h)⟩
+has_limit.mk ⟨_, is_limit.of_nat_iso ((is_limit.nat_iso (limit.is_limit F)) ≪≫ h)⟩
 
 /--
 The chosen limits of `F : J ⥤ C` and `G : J ⥤ C` are isomorphic,
@@ -850,7 +861,7 @@ by ext; erw [assoc, limit.post_π, ←G.map_comp, limit.pre_π, assoc, limit.pre
 
 open category_theory.equivalence
 instance has_limit_equivalence_comp (e : K ≌ J) [has_limit F] : has_limit (e.functor ⋙ F) :=
-{ cone := cone.whisker e.functor (limit.cone F),
+has_limit.mk { cone := cone.whisker e.functor (limit.cone F),
   is_limit := is_limit.whisker_equivalence (limit.is_limit F) e, }
 
 local attribute [elab_simple] inv_fun_id_assoc -- not entirely sure why this is needed

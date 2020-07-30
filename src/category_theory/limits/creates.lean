@@ -147,7 +147,7 @@ reflects_colimit.reflects (is_colimit.of_iso_colimit t (lifted_colimit_maps_to_o
 /-- If `F` creates the limit of `K` and `K ⋙ F` has a limit, then `K` has a limit. -/
 def has_colimit_of_created (K : J ⥤ C) (F : C ⥤ D)
   [has_colimit (K ⋙ F)] [creates_colimit K F] : has_colimit K :=
-{ cocone := lift_colimit (colimit.is_colimit (K ⋙ F)),
+has_colimit.mk { cocone := lift_colimit (colimit.is_colimit (K ⋙ F)),
   is_colimit := lifted_colimit_is_colimit _ }
 
 /--

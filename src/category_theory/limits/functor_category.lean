@@ -85,7 +85,7 @@ instance functor_category_has_limits_of_shape
 
 instance functor_category_has_colimits_of_shape
   [has_colimits_of_shape J C] : has_colimits_of_shape J (K ⥤ C) :=
-{ has_colimit := λ F,
+{ has_colimit := λ F, has_colimit.mk
   { cocone := functor_category_colimit_cocone F,
     is_colimit := functor_category_is_colimit_cocone F } }
 
@@ -105,7 +105,7 @@ instance evaluation_preserves_limits_of_shape [has_limits_of_shape J C] (k : K) 
 instance evaluation_preserves_colimits_of_shape [has_colimits_of_shape J C] (k : K) :
   preserves_colimits_of_shape J ((evaluation K C).obj k) :=
 { preserves_colimit :=
-  λ F, preserves_colimit_of_preserves_colimit_cocone (colimit.is_colimit _) $
+  λ F, preserves_colimit_of_preserves_colimit_cocone (functor_category_is_colimit_cocone _) $
     is_colimit.of_iso_colimit (colimit.is_colimit _)
       (evaluate_functor_category_colimit_cocone F k).symm }
 

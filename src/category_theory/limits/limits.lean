@@ -969,9 +969,18 @@ end limit
 section colimit
 
 /-- `has_colimit F` represents a particular chosen colimit of the diagram `F`. -/
-class has_colimit (F : J ⥤ C) :=
+structure colimit_data (F : J ⥤ C) :=
 (cocone : cocone F)
 (is_colimit : is_colimit cocone)
+
+class has_colimit (F : J ⥤ C) : Prop :=
+mk' :: (exists_colimit : nonempty (colimit_data F))
+
+def has_colimit.mk {F : J ⥤ C} (d : colimit_data F) : has_colimit F :=
+⟨nonempty.intro d⟩
+
+def get_colimit_data (F : J ⥤ C) [has_colimit F] : colimit_data F :=
+classical.choice $ has_colimit.exists_colimit
 
 variables (J C)
 
@@ -999,7 +1008,7 @@ has_colimits.has_colimits_of_shape J
 /- Interface to the `has_colimit` class. -/
 
 /-- The chosen colimit cocone of a functor. -/
-def colimit.cocone (F : J ⥤ C) [has_colimit F] : cocone F := has_colimit.cocone
+def colimit.cocone (F : J ⥤ C) [has_colimit F] : cocone F := (get_colimit_data F).cocone
 
 /-- The chosen colimit object of a functor. -/
 def colimit (F : J ⥤ C) [has_colimit F] := (colimit.cocone F).X
@@ -1016,7 +1025,7 @@ def colimit.ι (F : J ⥤ C) [has_colimit F] (j : J) : F.obj j ⟶ colimit F :=
 
 /-- Evidence that the chosen cocone is a colimit cocone. -/
 def colimit.is_colimit (F : J ⥤ C) [has_colimit F] : is_colimit (colimit.cocone F) :=
-has_colimit.is_colimit
+(get_colimit_data F).is_colimit
 
 /-- The morphism from the chosen colimit object to the cone point of any other cocone. -/
 def colimit.desc (F : J ⥤ C) [has_colimit F] (c : cocone F) : colimit F ⟶ c.X :=
@@ -1088,7 +1097,7 @@ we can transport that choice across a natural isomorphism.
 -- This has the isomorphism pointing in the opposite direction than in `has_limit_of_iso`.
 -- This is intentional; it seems to help with elaboration.
 def has_colimit_of_iso {F G : J ⥤ C} [has_colimit F] (α : G ≅ F) : has_colimit G :=
-{ cocone := (cocones.precompose α.hom).obj (colimit.cocone F),
+has_colimit.mk { cocone := (cocones.precompose α.hom).obj (colimit.cocone F),
   is_colimit :=
   { desc := λ s, colimit.desc F ((cocones.precompose α.inv).obj s),
     fac' := λ s j,
@@ -1108,7 +1117,7 @@ def has_colimit_of_iso {F G : J ⥤ C} [has_colimit F] (α : G ≅ F) : has_coli
 which has a colimit, then `G` also has a colimit. -/
 def has_colimit.of_cocones_iso {J K : Type v} [small_category J] [small_category K] (F : J ⥤ C) (G : K ⥤ C)
   (h : F.cocones ≅ G.cocones) [has_colimit F] : has_colimit G :=
-⟨_, is_colimit.of_nat_iso ((is_colimit.nat_iso (colimit.is_colimit F)) ≪≫ h)⟩
+has_colimit.mk ⟨_, is_colimit.of_nat_iso ((is_colimit.nat_iso (colimit.is_colimit F)) ≪≫ h)⟩
 
 /--
 The chosen colimits of `F : J ⥤ C` and `G : J ⥤ C` are isomorphic,
@@ -1229,7 +1238,7 @@ end
 
 open category_theory.equivalence
 instance has_colimit_equivalence_comp (e : K ≌ J) [has_colimit F] : has_colimit (e.functor ⋙ F) :=
-{ cocone := cocone.whisker e.functor (colimit.cocone F),
+has_colimit.mk { cocone := cocone.whisker e.functor (colimit.cocone F),
   is_colimit := is_colimit.whisker_equivalence (colimit.is_colimit F) e, }
 
 /--

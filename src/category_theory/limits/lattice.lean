@@ -18,7 +18,7 @@ variables {α : Type u}
 instance has_finite_limits_of_semilattice_inf_top [semilattice_inf_top α] :
   has_finite_limits α :=
 { has_limits_of_shape := λ J 𝒥₁ 𝒥₂, by exactI
-  { has_limit := λ F,
+  { has_limit := λ F, has_limit.mk
     { cone :=
       { X := finset.univ.inf F.obj,
         π := { app := λ j, ⟨⟨finset.inf_le (fintype.complete _)⟩⟩ } },
@@ -28,7 +28,7 @@ instance has_finite_limits_of_semilattice_inf_top [semilattice_inf_top α] :
 instance has_finite_colimits_of_semilattice_sup_bot [semilattice_sup_bot α] :
   has_finite_colimits α :=
 { has_colimits_of_shape := λ J 𝒥₁ 𝒥₂, by exactI
-  { has_colimit := λ F,
+  { has_colimit := λ F, has_colimit.mk
     { cocone :=
       { X := finset.univ.sup F.obj,
         ι := { app := λ i, ⟨⟨finset.le_sup (fintype.complete _)⟩⟩ } },
@@ -39,7 +39,7 @@ instance has_finite_colimits_of_semilattice_sup_bot [semilattice_sup_bot α] :
 @[priority 100] -- see Note [lower instance priority]
 instance has_limits_of_complete_lattice [complete_lattice α] : has_limits α :=
 { has_limits_of_shape := λ J 𝒥, by exactI
-  { has_limit := λ F,
+  { has_limit := λ F, has_limit.mk
     { cone :=
       { X := Inf (set.range F.obj),
         π :=
@@ -51,7 +51,7 @@ instance has_limits_of_complete_lattice [complete_lattice α] : has_limits α :=
 @[priority 100] -- see Note [lower instance priority]
 instance has_colimits_of_complete_lattice [complete_lattice α] : has_colimits α :=
 { has_colimits_of_shape := λ J 𝒥, by exactI
-  { has_colimit := λ F,
+  { has_colimit := λ F, has_colimit.mk
     { cocone :=
       { X := Sup (set.range F.obj),
         ι :=

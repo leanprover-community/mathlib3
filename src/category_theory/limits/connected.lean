@@ -18,6 +18,8 @@ by `(X × -)` preserves any connected limit. That is, any limit of shape `J`
 where `J` is a connected category is preserved by the functor `(X × -)`.
 -/
 
+noncomputable theory
+
 universes v₁ v₂ u₁ u₂
 
 open category_theory category_theory.category category_theory.limits

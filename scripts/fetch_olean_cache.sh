@@ -6,7 +6,7 @@ archive_url="https://oleanstorage.azureedge.net/mathlib/"
 # GIT_HISTORY_DEPTH is set in .github/workflows/build.yml
 for new_git_sha in $(git log -$GIT_HISTORY_DEPTH --first-parent --pretty=format:%H)
 do
-  if curl -sfI "$archive_url$new_git_sha.tar.gz" ; then
+  if curl -sfI "$archive_url$new_git_sha.tar.xz" ; then
     echo "found ancestor Git sha: $new_git_sha"
     break
   fi

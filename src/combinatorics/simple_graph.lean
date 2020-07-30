@@ -5,10 +5,6 @@ Author: Aaron Anderson, Jalex Stark, Kyle Miller.
 -/
 import data.fintype.basic
 import data.sym2
-
-open finset
--- noncomputable theory
-
 /-!
 # Simple graphs
 

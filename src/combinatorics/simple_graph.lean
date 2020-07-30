@@ -209,7 +209,7 @@ begin
 end
 
 lemma complete_graph_is_regular [decidable_eq V] :
-  regular_graph (complete_graph V) (fintype.card V - 1) :=
+  (complete_graph V).is_regular_of_degree (fintype.card V - 1) :=
 by { intro v, simp }
 
 end finite

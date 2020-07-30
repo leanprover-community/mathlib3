@@ -74,7 +74,7 @@ begin
 end
 
 /--
-A local minimum of a convex function is a global minimum, restricted to a set s
+A local minimum of a convex function is a global minimum, restricted to a set `s`.
 -/
 lemma is_min_on.of_is_local_min_on_of_convex_on {f : E → ℝ} {a : E}
   (a_in_s : a ∈ s) (h_localmin: is_local_min_on f s a) (h_conv : convex_on s f) :

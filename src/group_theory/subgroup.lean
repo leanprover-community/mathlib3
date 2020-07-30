@@ -371,6 +371,8 @@ by simp only [infi, mem_Inf, set.forall_range_iff]
 lemma coe_infi {ι : Sort*} {S : ι → subgroup G} : (↑(⨅ i, S i) : set G) = ⋂ i, S i :=
 by simp only [infi, coe_Inf, set.bInter_range]
 
+attribute [norm_cast] coe_infi add_subgroup.coe_infi
+
 /-- Subgroups of a group form a complete lattice. -/
 @[to_additive "The `add_subgroup`s of an `add_group` form a complete lattice."]
 instance : complete_lattice (subgroup G) :=

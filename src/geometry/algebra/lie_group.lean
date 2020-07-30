@@ -33,7 +33,7 @@ groups here are not necessarily finite dimensional.
 
 
 ## Implementation notes
-A priori, a Lie group here is a manifold with corner.
+A priori, a Lie group here is a manifold with corners.
 
 The definition of Lie group cannot require `I : model_with_corners 𝕜 E E` with the same space as the
 model space and as the model vector space, as one might hope, beause in the product situation,
@@ -169,11 +169,11 @@ structure lie_add_group_morphism (I : model_with_corners 𝕜 E E) (I' : model_w
 /-- Morphism of Lie groups. -/
 @[to_additive]
 structure lie_group_morphism (I : model_with_corners 𝕜 E E) (I' : model_with_corners 𝕜 E' E')
-(G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G] [group G]
-[topological_group G] [lie_group I G]
-(G' : Type*) [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
-[group G'] [topological_group G'] [lie_group I' G'] extends monoid_hom G G' :=
-  (smooth_to_fun : smooth I I' to_fun)
+  (G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G] [group G]
+  [topological_group G] [lie_group I G]
+  (G' : Type*) [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
+  [group G'] [topological_group G'] [lie_group I' G'] extends monoid_hom G G' :=
+(smooth_to_fun : smooth I I' to_fun)
 
 variables {I : model_with_corners 𝕜 E E} {I' : model_with_corners 𝕜 E' E'}
 {G : Type*} [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]

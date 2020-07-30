@@ -73,6 +73,7 @@ instance I_has_one : has_one I := ⟨⟨1, by split ; norm_num⟩⟩
 
 @[simp, norm_cast] lemma coe_I_one : ((1 : I) : ℝ) = 1 := rfl
 
+/-- Unit interval central symmetry. -/
 def I_symm : I → I := λ t, ⟨1 - t.val, Icc_zero_one_symm.mp t.property⟩
 
 local notation `σ` := I_symm
@@ -87,6 +88,7 @@ subtype.ext $ by simp [I_symm]
 lemma continuous_I_symm : continuous σ :=
 by continuity!
 
+/-- Projection of `ℝ` onto its unit interval. -/
 def proj_I : ℝ → I :=
 λ t, if h : t ≤ 0 then ⟨0, left_mem_Icc.mpr zero_le_one⟩ else
      if h' : t ≤ 1 then ⟨t, ⟨le_of_lt $ not_le.mp h, h'⟩⟩ else ⟨1, right_mem_Icc.mpr zero_le_one⟩
@@ -123,6 +125,10 @@ begin
   split_ifs ; refl
 end
 
+variables {β : Type*}
+
+/-- Extension of a function defined on the unit interval to `ℝ`, by precomposing with
+the projection. -/
 def I_extend {β : Type*} (f : I → β) : ℝ → β :=
 f ∘ proj_I
 
@@ -130,16 +136,16 @@ f ∘ proj_I
 lemma continuous.I_extend {f : I → X} (hf : continuous f) : continuous (I_extend f) :=
 hf.comp continuous_proj_I
 
-lemma I_extend_extends (f : I → X) {t : ℝ} (ht : t ∈ I) : I_extend f t = f ⟨t, ht⟩ :=
+lemma I_extend_extends (f : I → β) {t : ℝ} (ht : t ∈ I) : I_extend f t = f ⟨t, ht⟩ :=
 by simp [I_extend, proj_I_I, ht]
 
-@[simp] lemma I_extend_zero (f : I → X) : I_extend f 0 = f 0 :=
+@[simp] lemma I_extend_zero (f : I → β) : I_extend f 0 = f 0 :=
 I_extend_extends _ _
 
-@[simp] lemma I_extend_one (f : I → X) : I_extend f 1 = f 1 :=
+@[simp] lemma I_extend_one (f : I → β) : I_extend f 1 = f 1 :=
 I_extend_extends _ _
 
-@[simp] lemma I_extend_range (f : I → X) : range (I_extend f) = range f :=
+@[simp] lemma I_extend_range (f : I → β) : range (I_extend f) = range f :=
 begin
   rw [I_extend, range_comp],
   convert image_univ,
@@ -157,6 +163,7 @@ lemma joined.refl (x : X) : joined x x :=
 lemma joined.symm {x y : X} : joined x y → joined y x
 | ⟨γ, γ_cont, γ_src, γ_tgt⟩ := ⟨γ ∘ σ, by continuity, by simpa using γ_tgt, by simpa using γ_src⟩
 
+/-- Continuous map from `ℝ` to `X` when `x` and `y` are joined. -/
 def joined.extend {x y : X} (h : joined x y) : ℝ → X := I_extend (classical.some h)
 
 lemma joined.continuous_extend {x y : X} (h : joined x y) : continuous h.extend :=
@@ -197,6 +204,7 @@ begin
   split ; [rw ← γ_src, rw ← γ_tgt] ; apply γ_in ; norm_num
 end
 
+/-- Continuous map from `ℝ` to `X` when `x` and `y` are joined in `F`. -/
 def joined_in.extend (h : joined_in F x y) : ℝ → X := I_extend (classical.some h)
 
 lemma joined_in.continuous_extend (h : joined_in F x y) : continuous h.extend :=
@@ -208,6 +216,7 @@ by rw [joined_in.extend, I_extend_zero, (classical.some_spec h).2.2.1]
 lemma joined_in.extend_one (h : joined_in F x y) : h.extend 1 = y :=
 by rw [joined_in.extend, I_extend_one, (classical.some_spec h).2.2.2]
 
+/-- Continuous map from `I` to `F` when `x` and `y` are joined in `F`. -/
 def joined_in.map (h : joined_in F x y) : I → F :=
 λ t, ⟨classical.some h t, (classical.some_spec h).2.1 t⟩
 
@@ -220,6 +229,7 @@ subtype.ext (classical.some_spec h).2.2.1
 lemma joined_in.map_one (h : joined_in F x y) : h.map 1 = ⟨y, h.mem.2⟩:=
 subtype.ext (classical.some_spec h).2.2.2
 
+/-- Continuous map from `ℝ` to `F` when `x` and `y` are joined in `F`. -/
 def joined_in.extend_map (h : joined_in F x y) : ℝ → F :=
 I_extend h.map
 
@@ -362,6 +372,8 @@ begin
   exact ⟨λ t, ⟨γ t, hWU $ γ_mem t⟩, continuous_subtype_mk _ γ_cont, γ_mem, rfl, rfl⟩,
 end
 
+/-- A topological space is path-connected if it is non-empy and every two points can be
+joined by a continuous path. -/
 class path_connected_space (X : Type*) [topological_space X] : Prop :=
 (nonempty : nonempty X)
 (joined : ∀ x y : X, joined x y)
@@ -371,6 +383,7 @@ attribute [instance, priority 50] path_connected_space.nonempty
 namespace path_connected_space
 variables [path_connected_space X]
 
+/-- Use path-connectedness to build a path between two points. -/
 def path (x y : X) : I → X :=
 classical.some (joined x y)
 
@@ -417,6 +430,7 @@ end
 lemma path_connected_space_iff_eq : path_connected_space X ↔ ∃ x : X, path_component x = univ :=
 by simp [path_connected_space_iff_univ, is_path_connected_iff_eq]
 
+@[priority 100] -- see Note [lower instance priority]
 instance path_connected_space.connected_space [path_connected_space X] : connected_space X :=
 begin
   rw connected_space_iff_connected_component,
@@ -426,6 +440,8 @@ begin
   exact (by simpa using hx : path_component x = univ) ▸ path_component_subset_component x
 end
 
+/-- A topological space is locally path connected, at every point, path connected
+neighborhoods form a neighborhood basis. -/
 class loc_path_connected_space (X : Type*) [topological_space X] : Prop :=
 (path_connected_basis : ∀ x : X, (𝓝 x).has_basis (λ s : set X, s ∈ 𝓝 x ∧ is_path_connected s) id)
 

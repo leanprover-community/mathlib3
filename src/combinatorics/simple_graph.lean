@@ -52,11 +52,6 @@ A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
 The relation describes which pairs of vertices are adjacent.
 There is exactly one edge for every pair of adjacent edges;
 see `simple_graph.E` for the corresponding type of edges.
-
-Note: The type of the relation is given as `V → set V` rather than
-`V → V → Prop` so that, given vertices `v` and `w`, then `w ∈ G.adj v`
-works as another way to write `G.adj v w`.  Otherwise Lean cannot find
-a `has_mem` instance.
 -/
 structure simple_graph (V : Type u) :=
 (adj : V → V → Prop)

@@ -827,7 +827,7 @@ end
 theorem frontier_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
   frontier (ball x r) = sphere x r :=
 begin
-  rw [frontier, closure_ball x hr, interior_eq_of_open is_open_ball],
+  rw [frontier, closure_ball x hr, is_open_ball.interior_eq],
   ext x, exact (@eq_iff_le_not_lt ℝ _ _ _).symm
 end
 

@@ -34,6 +34,10 @@ instance : has_coe (opens α) (set α) := { coe := subtype.val }
 
 lemma val_eq_coe (U : opens α) : U.1 = ↑U := rfl
 
+/-- the coercion `opens α → set α` applied to a pair is the same as taking the first component -/
+lemma coe_mk {α : Type*} [topological_space α] {U : set α} {hU : is_open U} :
+  ↑(⟨U, hU⟩ : opens α) = U := rfl
+
 instance : has_subset (opens α) :=
 { subset := λ U V, (U : set α) ⊆ V }
 
@@ -73,9 +77,7 @@ complete_lattice.copy
 begin
   funext,
   apply subtype.ext_iff_val.mpr,
-  symmetry,
-  apply interior_eq_of_open,
-  exact (is_open_inter U.2 V.2),
+  exact (is_open_inter U.2 V.2).interior_eq.symm,
 end
 /- Sup -/ (λ Us, ⟨⋃₀ (coe '' Us), is_open_sUnion $ λ U hU,
 by { rcases hU with ⟨⟨V, hV⟩, h, h'⟩, dsimp at h', subst h', exact hV}⟩)

@@ -1527,7 +1527,7 @@ lemma line_map_vadd_neg (p : P1) (v : V1) :
 by { rw [affine_comp_line_map], simp [line_map_apply] }
 
 /-- Decomposition of an affine map in the special case when the point space and vector space
-   1 are the same -/
+are the same. -/
 lemma decomp (f : affine_map k V1 V1 V2 V2) : (f : V1 → V2) = f.linear + (λ z, f 0) :=
 begin
   ext x,

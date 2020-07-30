@@ -44,7 +44,7 @@ TODO: Part of this would include defining, for example, subgraphs of a
 simple graph.
 
 -/
-
+open finset
 universe u
 
 /--

@@ -59,7 +59,7 @@ variables [has_zero_morphisms C]
 /-- A morphism `f` has a kernel if the functor `parallel_pair f 0` has a limit. -/
 abbreviation has_kernel {X Y : C} (f : X ⟶ Y) : Prop := has_limit (parallel_pair f 0)
 /-- A morphism `f` has a cokernel if the functor `parallel_pair f 0` has a colimit. -/
-abbreviation has_cokernel {X Y : C} (f : X ⟶ Y) : Type (max u v) := has_colimit (parallel_pair f 0)
+abbreviation has_cokernel {X Y : C} (f : X ⟶ Y) : Prop := has_colimit (parallel_pair f 0)
 
 variables {X Y : C} (f : X ⟶ Y)
 
@@ -623,6 +623,6 @@ instance has_kernels_of_has_equalizers [has_equalizers C] : has_kernels C :=
 
 @[priority 100]
 instance has_cokernels_of_has_coequalizers [has_coequalizers C] : has_cokernels C :=
-{ has_colimit := infer_instance }
+{ has_colimit := by apply_instance }
 
 end category_theory.limits

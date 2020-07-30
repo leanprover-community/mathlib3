@@ -170,7 +170,7 @@ variables {X Y : C} (f : X ⟶ Y) (g : X ⟶ Y)
 /-- A kernel of `f - g` is an equalizer of `f` and `g`. -/
 def has_limit_parallel_pair [has_kernel (f - g)] :
   has_limit (parallel_pair f g) :=
-{ cone := fork.of_ι (kernel.ι (f - g)) (sub_eq_zero.1 $
+has_limit.mk { cone := fork.of_ι (kernel.ι (f - g)) (sub_eq_zero.1 $
     by { rw ←comp_sub, exact kernel.condition _ }),
   is_limit := fork.is_limit.mk _
     (λ s, kernel.lift (f - g) (fork.ι s) $
@@ -194,7 +194,7 @@ variables {X Y : C} (f : X ⟶ Y) (g : X ⟶ Y)
 /-- A cokernel of `f - g` is a coequalizer of `f` and `g`. -/
 def has_colimit_parallel_pair [has_cokernel (f - g)] :
   has_colimit (parallel_pair f g) :=
-{ cocone := cofork.of_π (cokernel.π (f - g)) (sub_eq_zero.1 $
+has_colimit.mk { cocone := cofork.of_π (cokernel.π (f - g)) (sub_eq_zero.1 $
     by { rw ←sub_comp, exact cokernel.condition _ }),
   is_colimit := cofork.is_colimit.mk _
     (λ s, cokernel.desc (f - g) (cofork.π s) $

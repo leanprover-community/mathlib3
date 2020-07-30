@@ -84,31 +84,51 @@ namespace bicone
 def to_cone (B : bicone F) : cone (discrete.functor F) :=
 { X := B.X,
   π := { app := λ j, B.π j }, }
+
 /-- Extract the cocone from a bicone. -/
 @[simps]
 def to_cocone (B : bicone F) : cocone (discrete.functor F) :=
 { X := B.X,
   ι := { app := λ j, B.ι j }, }
+
 end bicone
+
+structure biproduct_data (F : J → C) :=
+(bicone : bicone F)
+(is_limit : is_limit bicone.to_cone)
+(is_colimit : is_colimit bicone.to_cocone)
 
 /--
 `has_biproduct F` represents a particular chosen bicone which is
 simultaneously a limit and a colimit of the diagram `F`.
 -/
-class has_biproduct (F : J → C) :=
-(bicone : bicone F)
-(is_limit : is_limit bicone.to_cone)
-(is_colimit : is_colimit bicone.to_cocone)
+class has_biproduct (F : J → C) : Prop :=
+mk' :: (exists_biproduct : nonempty (biproduct_data F))
+
+def has_biproduct.mk {F : J → C} (d : biproduct_data F) : has_biproduct F :=
+⟨nonempty.intro d⟩
+
+def get_biproduct_data (F : J → C) [has_biproduct F] : biproduct_data F :=
+classical.choice has_biproduct.exists_biproduct
+
+def biproduct.bicone (F : J → C) [has_biproduct F] : bicone F :=
+(get_biproduct_data F).bicone
+
+def biproduct.is_limit (F : J → C) [has_biproduct F] : is_limit (biproduct.bicone F).to_cone :=
+(get_biproduct_data F).is_limit
+
+def biproduct.is_colimit (F : J → C) [has_biproduct F] : is_colimit (biproduct.bicone F).to_cocone :=
+(get_biproduct_data F).is_colimit
 
 @[priority 100]
 instance has_product_of_has_biproduct [has_biproduct F] : has_limit (discrete.functor F) :=
-has_limit.mk { cone := has_biproduct.bicone.to_cone,
-  is_limit := has_biproduct.is_limit, }
+has_limit.mk { cone := (biproduct.bicone F).to_cone,
+  is_limit := biproduct.is_limit F, }
 
 @[priority 100]
 instance has_coproduct_of_has_biproduct [has_biproduct F] : has_colimit (discrete.functor F) :=
-{ cocone := has_biproduct.bicone.to_cocone,
-  is_colimit := has_biproduct.is_colimit, }
+has_colimit.mk { cocone := (biproduct.bicone F).to_cocone,
+  is_colimit := biproduct.is_colimit F, }
 
 variables (J C)
 
@@ -117,14 +137,14 @@ variables (J C)
 a particular limit and a particular colimit, with the same cone points,
 of every function `F : J → C`.
 -/
-class has_biproducts_of_shape :=
+class has_biproducts_of_shape : Prop :=
 (has_biproduct : Π F : J → C, has_biproduct F)
 
 attribute [instance, priority 100] has_biproducts_of_shape.has_biproduct
 
 /-- `has_finite_biproducts C` represents a choice of biproduct for every family of objects in `C`
 indexed by a finite type with decidable equality. -/
-class has_finite_biproducts :=
+class has_finite_biproducts : Prop :=
 (has_biproducts_of_shape : Π (J : Type v) [fintype J] [decidable_eq J],
   has_biproducts_of_shape J C)
 
@@ -148,7 +168,8 @@ a functor with a bilimit.
 -/
 def biproduct_iso (F : J → C) [has_biproduct F] :
   limits.pi_obj F ≅ limits.sigma_obj F :=
-eq_to_iso rfl
+(is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (biproduct.is_limit F)).trans $
+  is_colimit.cocone_point_unique_up_to_iso (biproduct.is_colimit F) (colimit.is_colimit _)
 
 end category_theory.limits
 
@@ -160,35 +181,30 @@ variables {C : Type u} [category.{v} C] [has_zero_morphisms C]
    abbreviation for `limit (discrete.functor f)`, so for most facts about `biproduct f`, you will
    just use general facts about limits and colimits.) -/
 abbreviation biproduct (f : J → C) [has_biproduct f] : C :=
-limit (discrete.functor f)
+(biproduct.bicone f).X
 
 notation `⨁ ` f:20 := biproduct f
 
-/-- The chosen bicone over a family of elements. -/
-abbreviation biproduct.bicone (f : J → C) [has_biproduct f] : bicone f :=
-has_biproduct.bicone
-
-/-- The cone coming from the chosen bicone is a limit cone. -/
-abbreviation biproduct.is_limit (f : J → C) [has_biproduct f] :
-  is_limit (biproduct.bicone f).to_cone :=
-has_biproduct.is_limit
-
-/-- The cocone coming from the chosen bicone is a colimit cocone. -/
-abbreviation biproduct.is_colimit (f : J → C) [has_biproduct f] :
-  is_colimit (biproduct.bicone f).to_cocone :=
-has_biproduct.is_colimit
-
 /-- The projection onto a summand of a biproduct. -/
 abbreviation biproduct.π (f : J → C) [has_biproduct f] (b : J) : ⨁ f ⟶ f b :=
-limit.π (discrete.functor f) b
+(biproduct.bicone f).π b
+
+@[simp]
+lemma biproduct.bicone_π (f : J → C) [has_biproduct f] (b : J) :
+  (biproduct.bicone f).π b = biproduct.π f b := rfl
+
 /-- The inclusion into a summand of a biproduct. -/
 abbreviation biproduct.ι (f : J → C) [has_biproduct f] (b : J) : f b ⟶ ⨁ f :=
-colimit.ι (discrete.functor f) b
+(biproduct.bicone f).ι b
+
+@[simp]
+lemma biproduct.bicone_ι (f : J → C) [has_biproduct f] (b : J) :
+  (biproduct.bicone f).ι b = biproduct.ι f b := rfl
 
 @[reassoc]
 lemma biproduct.ι_π (f : J → C) [has_biproduct f] (j j' : J) :
   biproduct.ι f j ≫ biproduct.π f j' = if h : j = j' then eq_to_hom (congr_arg f h) else 0 :=
-has_biproduct.bicone.ι_π j j'
+(biproduct.bicone f).ι_π j j'
 
 @[simp,reassoc]
 lemma biproduct.ι_π_self (f : J → C) [has_biproduct f] (j : J) :
@@ -203,39 +219,51 @@ by simp [biproduct.ι_π, h]
 /-- Given a collection of maps into the summands, we obtain a map into the biproduct. -/
 abbreviation biproduct.lift
   {f : J → C} [has_biproduct f] {P : C} (p : Π b, P ⟶ f b) : P ⟶ ⨁ f :=
-limit.lift _ (fan.mk p)
+(biproduct.is_limit f).lift (fan.mk p)
 /-- Given a collection of maps out of the summands, we obtain a map out of the biproduct. -/
 abbreviation biproduct.desc
   {f : J → C} [has_biproduct f] {P : C} (p : Π b, f b ⟶ P) : ⨁ f ⟶ P :=
-colimit.desc _ (cofan.mk p)
+(biproduct.is_colimit f).desc (cofan.mk p)
+
+@[simp, reassoc]
+lemma biproduct.lift_π {f : J → C} [has_biproduct f] {P : C} (p : Π b, P ⟶ f b) (j : J) :
+  biproduct.lift p ≫ biproduct.π f j = p j :=
+(biproduct.is_limit f).fac _ _
+
+@[simp, reassoc]
+lemma biproduct.ι_desc {f : J → C} [has_biproduct f] {P : C} (p : Π b, f b ⟶ P) (j : J) :
+  biproduct.ι f j ≫ biproduct.desc p = p j :=
+(biproduct.is_colimit f).fac _ _
 
 /-- Given a collection of maps between corresponding summands of a pair of biproducts
 indexed by the same type, we obtain a map between the biproducts. -/
 abbreviation biproduct.map [fintype J] {f g : J → C} [has_finite_biproducts C]
   (p : Π b, f b ⟶ g b) : ⨁ f ⟶ ⨁ g :=
-lim_map (discrete.nat_trans p)
+is_lim_map (biproduct.bicone f).to_cone (biproduct.is_limit g) (discrete.nat_trans p)
 
 /-- An alternative to `biproduct.map` constructed via colimits.
 This construction only exists in order to show it is equal to `biproduct.map`. -/
 abbreviation biproduct.map' [fintype J] {f g : J → C} [has_finite_biproducts C]
   (p : Π b, f b ⟶ g b) : ⨁ f ⟶ ⨁ g :=
-@colim_map _ _ _ _ (discrete.functor f) (discrete.functor g) _ _ (discrete.nat_trans p)
+is_colim_map (biproduct.is_colimit f) (biproduct.bicone g).to_cocone (discrete.nat_trans p)
 
 @[ext] lemma biproduct.hom_ext {f : J → C} [has_biproduct f]
   {Z : C} (g h : Z ⟶ ⨁ f)
   (w : ∀ j, g ≫ biproduct.π f j = h ≫ biproduct.π f j) : g = h :=
-limit.hom_ext w
+(biproduct.is_limit f).hom_ext w
 
 @[ext] lemma biproduct.hom_ext' {f : J → C} [has_biproduct f]
   {Z : C} (g h : ⨁ f ⟶ Z)
   (w : ∀ j, biproduct.ι f j ≫ g =  biproduct.ι f j ≫ h) : g = h :=
-colimit.hom_ext w
+(biproduct.is_colimit f).hom_ext w
 
 lemma biproduct.map_eq_map' [fintype J] {f g : J → C} [has_finite_biproducts C]
   (p : Π b, f b ⟶ g b) : biproduct.map p = biproduct.map' p :=
 begin
   ext j j',
-  simp only [discrete.nat_trans_app, limits.ι_colim_map, limits.lim_map_π, category.assoc],
+  simp only [discrete.nat_trans_app, limits.ι_is_colim_map, limits.is_lim_map_π, category.assoc,
+    ←bicone.to_cone_π_app, ←biproduct.bicone_π, ←bicone.to_cocone_ι_app, ←biproduct.bicone_ι],
+  simp only [biproduct.bicone_ι, biproduct.bicone_π, bicone.to_cocone_ι_app, bicone.to_cone_π_app],
   rw [biproduct.ι_π_assoc, biproduct.ι_π],
   split_ifs,
   { subst h, rw [eq_to_hom_refl, category.id_comp], erw category.comp_id, },
@@ -252,15 +280,19 @@ instance biproduct.π_epi (f : J → C) [has_biproduct f]
 { section_ := biproduct.lift $
     λ b', if h : b = b' then eq_to_hom (congr_arg f h) else biproduct.ι f b ≫ biproduct.π f b' }
 
--- Because `biproduct.map` is defined in terms of `lim` rather than `colim`,
--- we need to provide additional `simp` lemmas.
-@[simp]
-lemma biproduct.inl_map [fintype J] {f g : J → C} [has_finite_biproducts C]
+@[simp, reassoc]
+lemma biproduct.map_π [fintype J] {f g : J → C} [has_finite_biproducts C]
+  (p : Π j, f j ⟶ g j) (j : J) :
+  biproduct.map p ≫ biproduct.π g j = biproduct.π f j ≫ p j :=
+limits.is_lim_map_π _ _ _ _
+
+@[simp, reassoc]
+lemma biproduct.ι_map [fintype J] {f g : J → C} [has_finite_biproducts C]
   (p : Π j, f j ⟶ g j) (j : J) :
   biproduct.ι f j ≫ biproduct.map p = p j ≫ biproduct.ι g j :=
 begin
   rw biproduct.map_eq_map',
-  simp,
+  convert limits.ι_is_colim_map _ _ _ _; refl
 end
 
 variables {C}
@@ -379,10 +411,30 @@ end bicone
 `has_binary_biproduct P Q` represents a particular chosen bicone which is
 simultaneously a limit and a colimit of the diagram `pair P Q`.
 -/
-class has_binary_biproduct (P Q : C) :=
+structure binary_biproduct_data (P Q : C) :=
 (bicone : binary_bicone P Q)
 (is_limit : is_limit bicone.to_cone)
 (is_colimit : is_colimit bicone.to_cocone)
+
+class has_binary_biproduct (P Q : C) : Prop :=
+mk' :: (exists_binary_biproduct : nonempty (binary_biproduct_data P Q))
+
+def has_binary_biproduct.mk {P Q : C} (d : binary_biproduct_data P Q) : has_binary_biproduct P Q :=
+⟨nonempty.intro d⟩
+
+def get_binary_biproduct_data (P Q : C) [has_binary_biproduct P Q] : binary_biproduct_data P Q :=
+classical.choice has_binary_biproduct.exists_binary_biproduct
+
+def binary_biproduct.bicone (P Q : C) [has_binary_biproduct P Q] : binary_bicone P Q :=
+(get_binary_biproduct_data P Q).bicone
+
+def binary_biproduct.is_limit (P Q : C) [has_binary_biproduct P Q] :
+  is_limit (binary_biproduct.bicone P Q).to_cone :=
+(get_binary_biproduct_data P Q).is_limit
+
+def binary_biproduct.is_colimit (P Q : C) [has_binary_biproduct P Q] :
+  is_colimit (binary_biproduct.bicone P Q).to_cocone :=
+(get_binary_biproduct_data P Q).is_colimit
 
 section
 variable (C)
@@ -391,7 +443,7 @@ variable (C)
 `has_binary_biproducts C` represents a particular chosen bicone which is
 simultaneously a limit and a colimit of the diagram `pair P Q`, for every `P Q : C`.
 -/
-class has_binary_biproducts :=
+class has_binary_biproducts : Prop :=
 (has_binary_biproduct : Π (P Q : C), has_binary_biproduct P Q)
 
 attribute [instance, priority 100] has_binary_biproducts.has_binary_biproduct
@@ -404,7 +456,7 @@ an alternative construction with nicer definitional properties.
 -/
 def has_binary_biproducts_of_finite_biproducts [has_finite_biproducts C] :
   has_binary_biproducts C :=
-{ has_binary_biproduct := λ P Q,
+{ has_binary_biproduct := λ P Q, has_binary_biproduct.mk
   { bicone := (biproduct.bicone (pair P Q).obj).to_binary_bicone,
     is_limit := bicone.to_binary_bicone_is_limit (biproduct.is_limit _),
     is_colimit := bicone.to_binary_bicone_is_colimit (biproduct.is_colimit _) } }
@@ -415,13 +467,11 @@ variables {P Q : C}
 
 instance has_binary_biproduct.has_limit_pair [has_binary_biproduct P Q] :
   has_limit (pair P Q) :=
-{ cone := has_binary_biproduct.bicone.to_cone,
-  is_limit := has_binary_biproduct.is_limit, }
+has_limit.mk ⟨_, binary_biproduct.is_limit P Q⟩
 
 instance has_binary_biproduct.has_colimit_pair [has_binary_biproduct P Q] :
   has_colimit (pair P Q) :=
-{ cocone := has_binary_biproduct.bicone.to_cocone,
-  is_colimit := has_binary_biproduct.is_colimit, }
+has_colimit.mk ⟨_, binary_biproduct.is_colimit P Q⟩
 
 @[priority 100]
 instance has_limits_of_shape_walking_pair [has_binary_biproducts C] :
@@ -448,96 +498,130 @@ a pair for a binary biproduct.
 -/
 def biprod_iso (X Y : C) [has_binary_biproduct X Y]  :
   limits.prod X Y ≅ limits.coprod X Y :=
-eq_to_iso rfl
+(is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (binary_biproduct.is_limit X Y)).trans $
+  is_colimit.cocone_point_unique_up_to_iso (binary_biproduct.is_colimit X Y) (colimit.is_colimit _)
 
 /-- The chosen biproduct of a pair of objects. -/
-abbreviation biprod (X Y : C) [has_binary_biproduct X Y] := limit (pair X Y)
+abbreviation biprod (X Y : C) [has_binary_biproduct X Y] := (binary_biproduct.bicone X Y).X
 
 notation X ` ⊞ `:20 Y:20 := biprod X Y
 
 /-- The projection onto the first summand of a binary biproduct. -/
 abbreviation biprod.fst {X Y : C} [has_binary_biproduct X Y] : X ⊞ Y ⟶ X :=
-limit.π (pair X Y) walking_pair.left
+(binary_biproduct.bicone X Y).fst
 /-- The projection onto the second summand of a binary biproduct. -/
 abbreviation biprod.snd {X Y : C} [has_binary_biproduct X Y] : X ⊞ Y ⟶ Y :=
-limit.π (pair X Y) walking_pair.right
+(binary_biproduct.bicone X Y).snd
 /-- The inclusion into the first summand of a binary biproduct. -/
 abbreviation biprod.inl {X Y : C} [has_binary_biproduct X Y] : X ⟶ X ⊞ Y :=
-colimit.ι (pair X Y) walking_pair.left
+(binary_biproduct.bicone X Y).inl
 /-- The inclusion into the second summand of a binary biproduct. -/
 abbreviation biprod.inr {X Y : C} [has_binary_biproduct X Y] : Y ⟶ X ⊞ Y :=
-colimit.ι (pair X Y) walking_pair.right
+(binary_biproduct.bicone X Y).inr
+
+section
+variables {X Y : C} [has_binary_biproduct X Y]
+
+@[simp] lemma binary_biproduct.bicone_fst : (binary_biproduct.bicone X Y).fst = biprod.fst := rfl
+@[simp] lemma binary_biproduct.bicone_snd : (binary_biproduct.bicone X Y).snd = biprod.snd := rfl
+@[simp] lemma binary_biproduct.bicone_inl : (binary_biproduct.bicone X Y).inl = biprod.inl := rfl
+@[simp] lemma binary_biproduct.bicone_inr : (binary_biproduct.bicone X Y).inr = biprod.inr := rfl
+
+end
 
 @[simp,reassoc]
 lemma biprod.inl_fst {X Y : C} [has_binary_biproduct X Y] :
   (biprod.inl : X ⟶ X ⊞ Y) ≫ (biprod.fst : X ⊞ Y ⟶ X) = 𝟙 X :=
-has_binary_biproduct.bicone.inl_fst
+(binary_biproduct.bicone X Y).inl_fst
 @[simp,reassoc]
 lemma biprod.inl_snd {X Y : C} [has_binary_biproduct X Y] :
   (biprod.inl : X ⟶ X ⊞ Y) ≫ (biprod.snd : X ⊞ Y ⟶ Y) = 0 :=
-has_binary_biproduct.bicone.inl_snd
+(binary_biproduct.bicone X Y).inl_snd
 @[simp,reassoc]
 lemma biprod.inr_fst {X Y : C} [has_binary_biproduct X Y] :
   (biprod.inr : Y ⟶ X ⊞ Y) ≫ (biprod.fst : X ⊞ Y ⟶ X) = 0 :=
-has_binary_biproduct.bicone.inr_fst
+(binary_biproduct.bicone X Y).inr_fst
 @[simp,reassoc]
 lemma biprod.inr_snd {X Y : C} [has_binary_biproduct X Y] :
   (biprod.inr : Y ⟶ X ⊞ Y) ≫ (biprod.snd : X ⊞ Y ⟶ Y) = 𝟙 Y :=
-has_binary_biproduct.bicone.inr_snd
+(binary_biproduct.bicone X Y).inr_snd
 
 /-- Given a pair of maps into the summands of a binary biproduct,
 we obtain a map into the binary biproduct. -/
 abbreviation biprod.lift {W X Y : C} [has_binary_biproduct X Y] (f : W ⟶ X) (g : W ⟶ Y) :
   W ⟶ X ⊞ Y :=
-limit.lift _ (binary_fan.mk f g)
+(binary_biproduct.is_limit X Y).lift (binary_fan.mk f g)
 /-- Given a pair of maps out of the summands of a binary biproduct,
 we obtain a map out of the binary biproduct. -/
 abbreviation biprod.desc {W X Y : C} [has_binary_biproduct X Y] (f : X ⟶ W) (g : Y ⟶ W) :
   X ⊞ Y ⟶ W :=
-colimit.desc _ (binary_cofan.mk f g)
+(binary_biproduct.is_colimit X Y).desc (binary_cofan.mk f g)
+
+@[simp, reassoc]
+lemma biprod.lift_fst {W X Y : C} [has_binary_biproduct X Y] (f : W ⟶ X) (g : W ⟶ Y) :
+  biprod.lift f g ≫ biprod.fst = f :=
+(binary_biproduct.is_limit X Y).fac _ walking_pair.left
+
+@[simp, reassoc]
+lemma biprod.lift_snd {W X Y : C} [has_binary_biproduct X Y] (f : W ⟶ X) (g : W ⟶ Y) :
+  biprod.lift f g ≫ biprod.snd = g :=
+(binary_biproduct.is_limit X Y).fac _ walking_pair.right
+
+@[simp, reassoc]
+lemma biprod.inl_desc {W X Y : C} [has_binary_biproduct X Y] (f : X ⟶ W) (g : Y ⟶ W) :
+  biprod.inl ≫ biprod.desc f g = f :=
+(binary_biproduct.is_colimit X Y).fac _ walking_pair.left
+
+@[simp, reassoc]
+lemma biprod.inr_desc {W X Y : C} [has_binary_biproduct X Y] (f : X ⟶ W) (g : Y ⟶ W) :
+  biprod.inr ≫ biprod.desc f g = g :=
+(binary_biproduct.is_colimit X Y).fac _ walking_pair.right
 
 /-- Given a pair of maps between the summands of a pair of binary biproducts,
 we obtain a map between the binary biproducts. -/
 abbreviation biprod.map {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⊞ X ⟶ Y ⊞ Z :=
-lim_map (@map_pair _ _ (pair W X) (pair Y Z) f g)
-
-/-- Given a pair of isomorphisms between the summands of a pair of binary biproducts,
-we obtain an isomorphism between the binary biproducts. -/
-@[simps]
-def biprod.map_iso {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
-  (f : W ≅ Y) (g : X ≅ Z) : W ⊞ X ≅ Y ⊞ Z :=
-{ hom := biprod.map f.hom g.hom,
-  inv := biprod.map f.inv g.inv, }
+is_lim_map (binary_biproduct.bicone W X).to_cone (binary_biproduct.is_limit Y Z)
+  (@map_pair _ _ (pair W X) (pair Y Z) f g)
 
 /-- An alternative to `biprod.map` constructed via colimits.
 This construction only exists in order to show it is equal to `biprod.map`. -/
 abbreviation biprod.map' {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⊞ X ⟶ Y ⊞ Z :=
-colim_map (@map_pair _ _ (pair W X) (pair Y Z) f g)
+is_colim_map (binary_biproduct.is_colimit W X) (binary_biproduct.bicone Y Z).to_cocone
+  (@map_pair _ _ (pair W X) (pair Y Z) f g)
 
 @[ext] lemma biprod.hom_ext {X Y Z : C} [has_binary_biproduct X Y] (f g : Z ⟶ X ⊞ Y)
   (h₀ : f ≫ biprod.fst = g ≫ biprod.fst) (h₁ : f ≫ biprod.snd = g ≫ biprod.snd) : f = g :=
-binary_fan.is_limit.hom_ext has_binary_biproduct.is_limit h₀ h₁
+binary_fan.is_limit.hom_ext (binary_biproduct.is_limit X Y) h₀ h₁
+
 
 @[ext] lemma biprod.hom_ext' {X Y Z : C} [has_binary_biproduct X Y] (f g : X ⊞ Y ⟶ Z)
   (h₀ : biprod.inl ≫ f = biprod.inl ≫ g) (h₁ : biprod.inr ≫ f = biprod.inr ≫ g) : f = g :=
-binary_cofan.is_colimit.hom_ext has_binary_biproduct.is_colimit h₀ h₁
+binary_cofan.is_colimit.hom_ext (binary_biproduct.is_colimit X Y) h₀ h₁
 
 lemma biprod.map_eq_map' {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) : biprod.map f g = biprod.map' f g :=
 begin
   ext,
-  { simp only [map_pair_left, ι_colim_map, lim_map_π, biprod.inl_fst_assoc, category.assoc],
-    erw [biprod.inl_fst, category.comp_id], },
-  { simp only [map_pair_left, ι_colim_map, lim_map_π, has_zero_morphisms.zero_comp,
-      biprod.inl_snd_assoc, category.assoc],
-    erw [biprod.inl_snd], simp, },
-  { simp only [map_pair_right, biprod.inr_fst_assoc, ι_colim_map, lim_map_π,
-      has_zero_morphisms.zero_comp, category.assoc],
-    erw [biprod.inr_fst], simp, },
-  { simp only [map_pair_right, ι_colim_map, lim_map_π, biprod.inr_snd_assoc, category.assoc],
-    erw [biprod.inr_snd, category.comp_id], },
+  { simp only [map_pair_left, ι_is_colim_map, is_lim_map_π, biprod.inl_fst_assoc, category.assoc,
+    ←binary_bicone.to_cone_π_app_left, ←binary_biproduct.bicone_fst,
+    ←binary_bicone.to_cocone_ι_app_left, ←binary_biproduct.bicone_inl],
+    simp },
+  { simp only [map_pair_left, ι_is_colim_map, is_lim_map_π, has_zero_morphisms.zero_comp,
+      biprod.inl_snd_assoc, category.assoc,
+      ←binary_bicone.to_cone_π_app_right, ←binary_biproduct.bicone_snd,
+      ←binary_bicone.to_cocone_ι_app_left, ←binary_biproduct.bicone_inl],
+    simp },
+  { simp only [map_pair_right, biprod.inr_fst_assoc, ι_is_colim_map, is_lim_map_π,
+      has_zero_morphisms.zero_comp, category.assoc,
+      ←binary_bicone.to_cone_π_app_left, ←binary_biproduct.bicone_fst,
+      ←binary_bicone.to_cocone_ι_app_right, ←binary_biproduct.bicone_inr],
+    simp },
+  { simp only [map_pair_right, ι_is_colim_map, is_lim_map_π, biprod.inr_snd_assoc, category.assoc,
+      ←binary_bicone.to_cone_π_app_right, ←binary_biproduct.bicone_snd,
+      ←binary_bicone.to_cocone_ι_app_right, ←binary_biproduct.bicone_inr],
+    simp }
 end
 
 instance biprod.inl_mono {X Y : C} [has_binary_biproduct X Y] :
@@ -560,13 +644,13 @@ instance biprod.snd_epi {X Y : C} [has_binary_biproduct X Y] :
 lemma biprod.map_fst {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) :
   biprod.map f g ≫ biprod.fst = biprod.fst ≫ f :=
-by simp
+is_lim_map_π _ _ _ walking_pair.left
 
 @[simp,reassoc]
 lemma biprod.map_snd {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) :
   biprod.map f g ≫ biprod.snd = biprod.snd ≫ g :=
-by simp
+is_lim_map_π _ _ _ walking_pair.right
 
 -- Because `biprod.map` is defined in terms of `lim` rather than `colim`,
 -- we need to provide additional `simp` lemmas.
@@ -576,7 +660,7 @@ lemma biprod.inl_map {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biprod
   biprod.inl ≫ biprod.map f g = f ≫ biprod.inl :=
 begin
   rw biprod.map_eq_map',
-  simp,
+  exact ι_is_colim_map (binary_biproduct.is_colimit W X) _ _ walking_pair.left
 end
 
 @[simp,reassoc]
@@ -585,8 +669,16 @@ lemma biprod.inr_map {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biprod
   biprod.inr ≫ biprod.map f g = g ≫ biprod.inr :=
 begin
   rw biprod.map_eq_map',
-  simp,
+  exact ι_is_colim_map (binary_biproduct.is_colimit W X) _ _ walking_pair.right
 end
+
+/-- Given a pair of isomorphisms between the summands of a pair of binary biproducts,
+we obtain an isomorphism between the binary biproducts. -/
+@[simps]
+def biprod.map_iso {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
+  (f : W ≅ Y) (g : X ≅ Z) : W ⊞ X ≅ Y ⊞ Z :=
+{ hom := biprod.map f.hom g.hom,
+  inv := biprod.map f.inv g.inv }
 
 section
 variables [has_binary_biproducts C]
@@ -651,7 +743,7 @@ any bicone `b` for `f` satisfying `total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b
 (That is, such a bicone is a limit cone and a colimit cocone.)
 -/
 def has_biproduct_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b.X) :
-  has_biproduct f :=
+  has_biproduct f := has_biproduct.mk
 { bicone := b,
   is_limit :=
   { lift := λ s, ∑ j, s.π.app j ≫ b.ι j,
@@ -770,7 +862,7 @@ any binary bicone `b` satisfying `total : b.fst ≫ b.inl + b.snd ≫ b.inr = �
 -/
 def has_binary_biproduct_of_total {X Y : C} (b : binary_bicone X Y)
   (total : b.fst ≫ b.inl + b.snd ≫ b.inr = 𝟙 b.X) :
-  has_binary_biproduct X Y :=
+  has_binary_biproduct X Y := has_binary_biproduct.mk
 { bicone := b,
   is_limit :=
   { lift := λ s, binary_fan.fst s ≫ b.inl +

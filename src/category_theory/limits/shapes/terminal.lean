@@ -65,7 +65,7 @@ def has_terminal_of_unique (X : C) [h : Π Y : C, unique (Y ⟶ X)] : has_termin
 and showing there is a unique morphism from it to any other object. -/
 def has_initial_of_unique (X : C) [h : Π Y : C, unique (X ⟶ Y)] : has_initial C :=
 { has_colimits_of_shape :=
-  { has_colimit := λ F,
+  { has_colimit := λ F, has_colimit.mk
     { cocone     := { X := X, ι := { app := pempty.rec _ } },
       is_colimit := { desc := λ s, (h s.X).default } } } }
 

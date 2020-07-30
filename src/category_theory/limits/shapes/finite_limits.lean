@@ -86,7 +86,7 @@ def has_equalizers_of_has_finite_limits [has_finite_limits C] : has_equalizers C
 /-- Coequalizers are finite colimits, of if `C` has all finite colimits, it also has all
     coequalizers -/
 def has_coequalizers_of_has_finite_colimits [has_finite_colimits C] : has_coequalizers C :=
-{ has_colimits_of_shape := infer_instance }
+{ has_colimits_of_shape := by apply_instance }
 
 variables {J : Type v}
 

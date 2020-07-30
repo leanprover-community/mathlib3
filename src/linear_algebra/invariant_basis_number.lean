@@ -101,84 +101,14 @@ end
 
   We construct the isomorphism in two steps:
   1. We construct the ring `R^n/I^n`, show that it is an `R/I`-module and show that there is an
-     isomorphism of `R/I`-modules `R^n/I^n ≃ (R/I)^n`.
+     isomorphism of `R/I`-modules `R^n/I^n ≃ (R/I)^n`. This isomorphism is called
+    `ideal.pi_quot_equiv` and is located in the file `ring_theory/ideals.lean`.
   2. We construct an isomorphism of `R/I`-modules `R^n/I^n ≃ R^m/I^m` using the isomorphism
      `R^n ≃ R^m`.
 -/
 
 section
-variables {R : Type u} [comm_ring R] (I : ideal R) (ι : Type v)
-
-/-- `I^n` as an ideal of `R^n`. -/
-def ideal.pi : ideal (ι → R) :=
-{ carrier := { x | ∀ i, x i ∈ I },
-  zero_mem' := λ i, submodule.zero_mem _,
-  add_mem' := λ a b ha hb i, submodule.add_mem _ (ha i) (hb i),
-  smul_mem' := λ a b hb i, ideal.mul_mem_left _ (hb i) }
-
-lemma ideal.mem_pi (x : ι → R) : x ∈ I.pi ι ↔ ∀ i, x i ∈ I := iff.rfl
-
-/-- `R^n/I^n` is a `R/I`-module. -/
-instance ideal.module_pi : module (I.quotient) (I.pi ι).quotient :=
-begin
-  refine { smul := λ c m, quotient.lift_on₂' c m (λ r m, submodule.quotient.mk $ r • m) _, .. },
-  { intros c₁ m₁ c₂ m₂ hc hm,
-    change c₁ - c₂ ∈ I at hc,
-    change m₁ - m₂ ∈ (I.pi ι) at hm,
-    apply ideal.quotient.eq.2,
-    have : c₁ • (m₂ - m₁) ∈ I.pi ι,
-    { rw ideal.mem_pi,
-      intro i,
-      simp only [algebra.id.smul_eq_mul, pi.smul_apply, pi.sub_apply],
-      apply ideal.mul_mem_left,
-      rw ←ideal.neg_mem_iff,
-      simpa only [neg_sub] using hm i },
-    rw [←ideal.add_mem_iff_left (I.pi ι) this, sub_eq_add_neg, add_comm, ←add_assoc, ←smul_add,
-      sub_add_cancel, ←sub_eq_add_neg, ←sub_smul, ideal.mem_pi],
-    intro i,
-    simp only [algebra.id.smul_eq_mul, pi.smul_apply],
-    exact ideal.mul_mem_right _ hc },
-  all_goals { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ <|> rintro ⟨a⟩,
-    simp only [(•), submodule.quotient.quot_mk_eq_mk, ideal.quotient.mk_eq_mk],
-    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
-    congr, ext, simp [mul_assoc, mul_add, add_mul] }
-end
-
-/-- `R^n/I^n` is isomorphic to `(R/I)^n` as an `R/I`-module. -/
-def ideal.pi_quot_equiv : (I.pi ι).quotient ≃ₗ[I.quotient] (ι → I.quotient) :=
-{ to_fun := λ x, quotient.lift_on' x (λ f i, ideal.quotient.mk I (f i)) $
-    λ a b hab, funext (λ i, ideal.quotient.eq.2 (hab i)),
-  map_add' := by { rintros ⟨_⟩ ⟨_⟩, refl },
-  map_smul' := by { rintros ⟨_⟩ ⟨_⟩, refl },
-  inv_fun := λ x, ideal.quotient.mk (I.pi ι) $ λ i, quotient.out' (x i),
-  left_inv :=
-  begin
-    rintro ⟨x⟩,
-    exact ideal.quotient.eq.2 (λ i, ideal.quotient.eq.1 (quotient.out_eq' _))
-  end,
-  right_inv :=
-  begin
-    intro x,
-    ext i,
-    obtain ⟨r, hr⟩ := @quot.exists_rep _ _ (x i),
-    simp_rw ←hr,
-    convert quotient.out_eq' _
-  end }
-
-end
-
-section fintype
-variables {R : Type u} [comm_ring R] {ι : Type v} [fintype ι] {ι' : Type w}
-
-/-- If `f : R^n → R^m` is an `R`-linear map and `I ⊆ R` is an ideal, then the image of `I^n` is
-    contained in `I^m`. -/
-lemma linear_map.map_pi_ideal (I : ideal R) (x : ι → R) (hi : ∀ i, x i ∈ I)
-  (f : (ι → R) →ₗ[R] (ι' → R)) (i : ι') : f x i ∈ I :=
-begin
-  rw pi_eq_sum_univ x,
-  simp only [finset.sum_apply, smul_eq_mul, linear_map.map_sum, pi.smul_apply, linear_map.map_smul],
-  exact submodule.sum_mem _ (λ j hj, ideal.mul_mem_right _ (hi j))
-end
+variables {R : Type u} [comm_ring R] (I : ideal R) {ι : Type v} [fintype ι] {ι' : Type w}
 
 /-- An `R`-linear map `R^n → R^m` induces a function `R^n/I^n → R^m/I^m`. -/
 private def induced_map (I : ideal R) (e : (ι → R) →ₗ[R] (ι' → R)) :
@@ -187,7 +117,7 @@ private def induced_map (I : ideal R) (e : (ι → R) →ₗ[R] (ι' → R)) :
 begin
   refine λ a b hab, ideal.quotient.eq.2 (λ h, _),
   rw ←linear_map.map_sub,
-  exact linear_map.map_pi_ideal _ _ hab e h,
+  exact ideal.map_pi _ _ hab e h,
 end
 
 /-- An isomorphism of `R`-modules `R^n ≃ R^m` induces an isomorphism `R/I`-modules
@@ -201,7 +131,7 @@ begin
     congr, simp }
 end
 
-end fintype
+end
 
 section
 local attribute [instance] invariant_basis_number_field

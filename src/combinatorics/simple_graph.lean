@@ -104,7 +104,7 @@ lemma mem_of_adj_right {v w : V} (h : G.adj v w) :
   w ∈ G.edge_of_adj h := sym2.mk_has_mem_right v w
 
 lemma adj_iff_exists_edge {v w : V} (hne : v ≠ w) :
-G.adj v w ↔ ∃ (e : G.E), v ∈ e ∧ w ∈ e :=
+  G.adj v w ↔ ∃ (e : G.E), v ∈ e ∧ w ∈ e :=
 begin
   split, { intro, use ⟦(v,w)⟧, assumption, refine ⟨(G.mem_of_adj _), (G.mem_of_adj_right _)⟩ },
   rintro ⟨e, ⟨w', hve⟩, ⟨v', hew⟩⟩,

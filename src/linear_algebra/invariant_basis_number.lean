@@ -180,7 +180,7 @@ begin
   exact submodule.sum_mem _ (λ j hj, ideal.mul_mem_right _ (hi j))
 end
 
-/-- An `R`-linear map `R^n → R^m` induces a function `R^n/I^n → R^m/I^n`. -/
+/-- An `R`-linear map `R^n → R^m` induces a function `R^n/I^n → R^m/I^m`. -/
 private def induced_map (I : ideal R) (e : (ι → R) →ₗ[R] (ι' → R)) :
   (I.pi ι).quotient → (I.pi ι').quotient :=
 λ x, quotient.lift_on' x (λ y, ideal.quotient.mk _ (e y))
@@ -196,10 +196,6 @@ private def induced_equiv [fintype ι'] (I : ideal R) (e : (ι → R) ≃ₗ[R] 
   (I.pi ι).quotient ≃ₗ[I.quotient] (I.pi ι').quotient :=
 begin
   refine { to_fun := induced_map I e, inv_fun := induced_map I e.symm, .. },
-  { rintro ⟨x⟩ ⟨y⟩,
-    change ideal.quotient.mk (I.pi ι') (e (x + y)) =
-      ideal.quotient.mk _ (e x) + ideal.quotient.mk _ (e y),
-    simp only [ring_hom.map_add, linear_equiv.map_add] },
   all_goals { rintro ⟨a⟩ ⟨b⟩ <|> rintro ⟨a⟩,
     change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
     congr, simp }

@@ -2244,7 +2244,8 @@ begin
 end
 
 lemma continuous_on_Ioc_extend_continuous_on_Ioo
-  {α β : Type*} [topological_space α] [linear_order α] [order_topology α] [topological_space β] {a b : α} {l : β} {f : α → β}
+  {α β : Type*} [topological_space α] [linear_order α] [order_topology α] [topological_space β]
+  {a b : α} {l : β} {f : α → β}
   (hcf : continuous_on f (Ioo a b)) (hfb : tendsto f (nhds_within b (Iio b)) (nhds l)) :
   continuous_on (λ x, if x ∈ Ioo a b then f x else l) (Ioc a b) :=
 begin

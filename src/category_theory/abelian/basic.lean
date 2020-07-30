@@ -52,12 +52,12 @@ working with has natively.
 
 ## Implementation notes
 
-The typeclass `abelian` does not extend `non_preadditive_abelian`, 
-to avoid having to deal with comparing the two `has_zero_morphisms` instances 
-(one from `preadditive` in `abelian`, and the other a field of `non_preadditive_abelian`). 
-As a consequence, at the beginning of this file we trivially build 
-a `non_preadditive_abelian` instance from an `abelian` instance, 
-and use this to restate a number of theorems, 
+The typeclass `abelian` does not extend `non_preadditive_abelian`,
+to avoid having to deal with comparing the two `has_zero_morphisms` instances
+(one from `preadditive` in `abelian`, and the other a field of `non_preadditive_abelian`).
+As a consequence, at the beginning of this file we trivially build
+a `non_preadditive_abelian` instance from an `abelian` instance,
+and use this to restate a number of theorems,
 in each case just reusing the proof from `non_preadditive_abelian.lean`.
 
 We don't show this yet, but abelian categories are finitely complete and finitely cocomplete.
@@ -77,6 +77,8 @@ convention:
 * [P. Aluffi, *Algebra: Chaper 0*][aluffi2016]
 
 -/
+
+noncomputable theory
 
 open category_theory
 open category_theory.preadditive
@@ -322,8 +324,8 @@ fork.is_limit.mk _
   (λ s,
   begin
     ext; rw [fork.ι_of_ι, category.assoc],
-    { rw [prod.lift_fst, pullback.lift_fst] },
-    { rw [prod.lift_snd, pullback.lift_snd] }
+    { rw [biprod.lift_fst, pullback.lift_fst] },
+    { rw [biprod.lift_snd, pullback.lift_snd] }
   end)
   (λ s m h, by ext; simp [fork.ι_eq_app_zero, ←h walking_parallel_pair.zero])
 
@@ -382,14 +384,14 @@ begin
   change biprod.desc f (-g) ≫ d = u at hd,
   -- But then f ≫ d = 0:
   have : f ≫ d = 0, calc
-    f ≫ d = (biprod.inl ≫ biprod.desc f (-g)) ≫ d : by rw coprod.inl_desc
+    f ≫ d = (biprod.inl ≫ biprod.desc f (-g)) ≫ d : by rw biprod.inl_desc
     ... = biprod.inl ≫ u : by rw [category.assoc, hd]
-    ... = 0 : coprod.inl_desc _ _,
+    ... = 0 : biprod.inl_desc _ _,
   -- But f is an epimorphism, so d = 0...
   have : d = 0 := (cancel_epi f).1 (by simpa),
   -- ...or, in other words, e = 0.
   calc
-    e = biprod.inr ≫ u : by rw coprod.inr_desc
+    e = biprod.inr ≫ u : by rw biprod.inr_desc
     ... = biprod.inr ≫ biprod.desc f (-g) ≫ d : by rw ←hd
     ... = biprod.inr ≫ biprod.desc f (-g) ≫ 0 : by rw this
     ... = (biprod.inr ≫ biprod.desc f (-g)) ≫ 0 : by rw ←category.assoc
@@ -416,14 +418,14 @@ begin
   change biprod.desc f (-g) ≫ d = u at hd,
   -- But then (-g) ≫ d = 0:
   have : (-g) ≫ d = 0, calc
-    (-g) ≫ d = (biprod.inr ≫ biprod.desc f (-g)) ≫ d : by rw coprod.inr_desc
+    (-g) ≫ d = (biprod.inr ≫ biprod.desc f (-g)) ≫ d : by rw biprod.inr_desc
     ... = biprod.inr ≫ u : by rw [category.assoc, hd]
-    ... = 0 : coprod.inr_desc _ _,
+    ... = 0 : biprod.inr_desc _ _,
   -- But g is an epimorphism, thus so is -g, so d = 0...
   have : d = 0 := (cancel_epi (-g)).1 (by simpa),
   -- ...or, in other words, e = 0.
   calc
-    e = biprod.inl ≫ u : by rw coprod.inl_desc
+    e = biprod.inl ≫ u : by rw biprod.inl_desc
     ... = biprod.inl ≫ biprod.desc f (-g) ≫ d : by rw ←hd
     ... = biprod.inl ≫ biprod.desc f (-g) ≫ 0 : by rw this
     ... = (biprod.inl ≫ biprod.desc f (-g)) ≫ 0 : by rw ←category.assoc
@@ -448,12 +450,12 @@ begin
   change R ⟶ X at d,
   change d ≫ biprod.lift f (-g) = u at hd,
   have : d ≫ f = 0, calc
-    d ≫ f = d ≫ biprod.lift f (-g) ≫ biprod.fst : by rw prod.lift_fst
+    d ≫ f = d ≫ biprod.lift f (-g) ≫ biprod.fst : by rw biprod.lift_fst
     ... = u ≫ biprod.fst : by rw [←category.assoc, hd]
-    ... = 0 : prod.lift_fst _ _,
+    ... = 0 : biprod.lift_fst _ _,
   have : d = 0 := (cancel_mono f).1 (by simpa),
   calc
-    e = u ≫ biprod.snd : by rw prod.lift_snd
+    e = u ≫ biprod.snd : by rw biprod.lift_snd
     ... = (d ≫ biprod.lift f (-g)) ≫ biprod.snd : by rw ←hd
     ... = (0 ≫ biprod.lift f (-g)) ≫ biprod.snd : by rw this
     ... = 0 ≫ biprod.lift f (-g) ≫ biprod.snd : by rw category.assoc
@@ -471,12 +473,12 @@ begin
   change R ⟶ X at d,
   change d ≫ biprod.lift f (-g) = u at hd,
   have : d ≫ (-g) = 0, calc
-    d ≫ (-g) = d ≫ biprod.lift f (-g) ≫ biprod.snd : by rw prod.lift_snd
+    d ≫ (-g) = d ≫ biprod.lift f (-g) ≫ biprod.snd : by rw biprod.lift_snd
     ... = u ≫ biprod.snd : by rw [←category.assoc, hd]
-    ... = 0 : prod.lift_snd _ _,
+    ... = 0 : biprod.lift_snd _ _,
   have : d = 0 := (cancel_mono (-g)).1 (by simpa),
   calc
-    e = u ≫ biprod.fst : by rw prod.lift_fst
+    e = u ≫ biprod.fst : by rw biprod.lift_fst
     ... = (d ≫ biprod.lift f (-g)) ≫ biprod.fst : by rw ←hd
     ... = (0 ≫ biprod.lift f (-g)) ≫ biprod.fst : by rw this
     ... = 0 ≫ biprod.lift f (-g) ≫ biprod.fst : by rw category.assoc

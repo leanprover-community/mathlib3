@@ -25,7 +25,7 @@ def has_binary_products_of_terminal_and_pullbacks
   (C : Type u) [𝒞 : category.{v} C] [has_terminal C] [has_pullbacks C] :
   has_binary_products C :=
 { has_limits_of_shape :=
-  { has_limit := λ F,
+  { has_limit := λ F, has_limit.mk
     { cone :=
       { X := pullback (terminal.from (F.obj walking_pair.left))
                       (terminal.from (F.obj walking_pair.right)),

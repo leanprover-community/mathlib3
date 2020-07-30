@@ -97,7 +97,7 @@ def cones_equiv (B : C) {J : Type v} (F : discrete J ⥤ over B) :
 def has_over_limit_discrete_of_wide_pullback_limit {B : C} {J : Type v} (F : discrete J ⥤ over B)
   [has_limit (wide_pullback_diagram_of_diagram_over B F)] :
   has_limit F :=
-{ cone := _,
+has_limit.mk { cone := _,
   is_limit := is_limit.of_cone_equiv
     (cones_equiv B F).functor (limit.is_limit (wide_pullback_diagram_of_diagram_over B F)) }
 
@@ -131,7 +131,7 @@ way we want to define terminal objects.
 -/
 def over_has_terminal (B : C) : has_terminal (over B) :=
 { has_limits_of_shape :=
-  { has_limit := λ F,
+  { has_limit := λ F, has_limit.mk
     { cone :=
       { X := over.mk (𝟙 _),
         π := { app := λ p, pempty.elim p } },

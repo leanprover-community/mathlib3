@@ -26,6 +26,7 @@ def has_limit_cospan_of_has_limit_pair_of_has_limit_parallel_pair
   {C : Type u} [𝒞 : category.{v} C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_limit (pair X Y)]
   [has_limit (parallel_pair (prod.fst ≫ f) (prod.snd ≫ g))] : has_limit (cospan f g) :=
 let π₁ : X ⨯ Y ⟶ X := prod.fst, π₂ : X ⨯ Y ⟶ Y := prod.snd, e := equalizer.ι (π₁ ≫ f) (π₂ ≫ g) in
+has_limit.mk
 { cone := pullback_cone.mk (e ≫ π₁) (e ≫ π₂) $ by simp only [category.assoc, equalizer.condition],
   is_limit := pullback_cone.is_limit.mk _ _ _
     (λ s, equalizer.lift (prod.lift (s.π.app walking_cospan.left)
@@ -57,6 +58,7 @@ def has_colimit_span_of_has_colimit_pair_of_has_colimit_parallel_pair
   [has_colimit (parallel_pair (f ≫ coprod.inl) (g ≫ coprod.inr))] : has_colimit (span f g) :=
 let ι₁ : Y ⟶ Y ⨿ Z := coprod.inl, ι₂ : Z ⟶ Y ⨿ Z := coprod.inr,
   c := coequalizer.π (f ≫ ι₁) (g ≫ ι₂) in
+has_colimit.mk
 { cocone := pushout_cocone.mk (ι₁ ≫ c) (ι₂ ≫ c) $
     by rw [←category.assoc, ←category.assoc, coequalizer.condition],
   is_colimit := pushout_cocone.is_colimit.mk _ _ _

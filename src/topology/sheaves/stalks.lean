@@ -7,6 +7,8 @@ import topology.category.Top.open_nhds
 import topology.sheaves.presheaf
 import category_theory.limits.limits
 
+noncomputable theory
+
 universes v u v' u'
 
 open category_theory

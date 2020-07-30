@@ -48,6 +48,8 @@ this natural structure. However, we have not formalized this isomorphism.
 
 -/
 
+noncomputable theory
+
 open category_theory
 open category_theory.limits
 
@@ -129,7 +131,7 @@ let ⟨b', hb'⟩ := kernel_fork.is_limit.lift' i' (kernel.ι (prod.lift f g)) $
         = kernel.ι (prod.lift f g) ≫ (prod.lift f g) ≫ limits.prod.snd : by rw prod.lift_snd
     ... = (0 : kernel (prod.lift f g) ⟶ P ⨯ Q) ≫ limits.prod.snd : by rw kernel.condition_assoc
     ... = 0 : has_zero_morphisms.zero_comp _ _ in
-{ cone := pullback_cone.mk a' b' $ by { simp at ha' hb', rw [ha', hb'] },
+has_limit.mk { cone := pullback_cone.mk a' b' $ by { simp at ha' hb', rw [ha', hb'] },
   is_limit := pullback_cone.is_limit.mk _ _ _
     (λ s, kernel.lift (prod.lift f g) (pullback_cone.snd s ≫ b) $ prod.hom_ext
       (calc ((pullback_cone.snd s ≫ b) ≫ prod.lift f g) ≫ limits.prod.fst
@@ -170,6 +172,7 @@ let ⟨b', hb'⟩ := cokernel_cofork.is_colimit.desc' i' (cokernel.π (coprod.de
       = coprod.inr ≫ coprod.desc f g ≫ cokernel.π (coprod.desc f g) : by rw coprod.inr_desc_assoc
   ... = coprod.inr ≫ (0 : P ⨿ Q ⟶ cokernel (coprod.desc f g)) :  by rw cokernel.condition
   ... = 0 : has_zero_morphisms.comp_zero _ _ in
+has_colimit.mk
 { cocone := pushout_cocone.mk a' b' $ by { simp only [cofork.π_of_π] at ha' hb', rw [ha', hb'] },
   is_colimit := pushout_cocone.is_colimit.mk _ _ _
   (λ s, cokernel.desc (coprod.desc f g) (b ≫ pushout_cocone.inr s) $ coprod.hom_ext
@@ -217,7 +220,7 @@ have hvu : (pullback.fst : P f g ⟶ X) ≫ f = pullback.snd ≫ g, from
     ... = pullback.snd ≫ prod.lift (𝟙 X) g ≫ limits.prod.snd : by rw pullback.condition_assoc
     ... = pullback.snd ≫ g : by rw prod.lift_snd,
 have huu : (pullback.fst : P f g ⟶ X) ≫ f = pullback.fst ≫ g, by rw [hvu, ←huv],
-{ cone := fork.of_ι pullback.fst huu,
+has_limit.mk { cone := fork.of_ι pullback.fst huu,
   is_limit := fork.is_limit.mk _
   (λ s, pullback.lift (fork.ι s) (fork.ι s) $ prod.hom_ext
     (by simp only [prod.lift_fst, category.assoc])
@@ -255,7 +258,7 @@ have hvu : f ≫ (pushout.inl : Y ⟶ Q f g) = g ≫ pushout.inr, from
       by simp only [category.assoc, pushout.condition]
     ... = g ≫ pushout.inr : by rw coprod.inr_desc,
 have huu : f ≫ (pushout.inl : Y ⟶ Q f g) = g ≫ pushout.inl, by rw [hvu, huv],
-{ cocone := cofork.of_π pushout.inl huu,
+has_colimit.mk { cocone := cofork.of_π pushout.inl huu,
   is_colimit := cofork.is_colimit.mk _
   (λ s, pushout.desc (cofork.π s) (cofork.π s) $ coprod.hom_ext
     (by simp only [coprod.inl_desc_assoc])

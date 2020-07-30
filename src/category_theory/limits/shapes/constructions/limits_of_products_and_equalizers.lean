@@ -15,6 +15,8 @@ Similarly, if it has all finite products, and all equalizers, then it has all fi
 TODO: provide the dual result.
 -/
 
+noncomputable theory
+
 open category_theory
 open opposite
 

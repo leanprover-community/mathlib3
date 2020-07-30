@@ -577,6 +577,22 @@ lemma biprod.inr_desc {W X Y : C} [has_binary_biproduct X Y] (f : X ⟶ W) (g : 
   biprod.inr ≫ biprod.desc f g = g :=
 (binary_biproduct.is_colimit X Y).fac _ walking_pair.right
 
+instance biprod.mono_lift_of_mono_left {W X Y : C} [has_binary_biproduct X Y] (f : W ⟶ X)
+  (g : W ⟶ Y) [mono f] : mono (biprod.lift f g) :=
+mono_of_mono_fac $ biprod.lift_fst _ _
+
+instance biprod.mono_lift_of_mono_right {W X Y : C} [has_binary_biproduct X Y] (f : W ⟶ X)
+  (g : W ⟶ Y) [mono g] : mono (biprod.lift f g) :=
+mono_of_mono_fac $ biprod.lift_snd _ _
+
+instance biprod.epi_desc_of_epi_left {W X Y : C} [has_binary_biproduct X Y] (f : X ⟶ W) (g : Y ⟶ W)
+  [epi f] : epi (biprod.desc f g) :=
+epi_of_epi_fac $ biprod.inl_desc _ _
+
+instance biprod.epi_desc_of_epi_right {W X Y : C} [has_binary_biproduct X Y] (f : X ⟶ W) (g : Y ⟶ W)
+  [epi g] : epi (biprod.desc f g) :=
+epi_of_epi_fac $ biprod.inr_desc _ _
+
 /-- Given a pair of maps between the summands of a pair of binary biproducts,
 we obtain a map between the binary biproducts. -/
 abbreviation biprod.map {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]

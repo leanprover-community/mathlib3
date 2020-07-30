@@ -2198,17 +2198,22 @@ by simpa only [inv_inv] using @tendsto_inv_nhds_within_Ioi _ _ _ _ (a⁻¹)
   tendsto has_inv.inv (nhds_within (a⁻¹) (Iio (a⁻¹))) (nhds_within a (Ioi a)) :=
 by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iio _ _ _ _ (a⁻¹)
 
-lemma continuous_at_iff_continuous_left_right [topological_space α] [linear_order α]
+lemma nhds_cleft_sup_nhds_cright (a : α) [topological_space α] [linear_order α] :
+  nhds_within a (Iic a) ⊔ nhds_within a (Ici a) = 𝓝 a :=
+by simp only [← nhds_within_union, nhds_within_univ, Iic_union_Ici]
+
+lemma nhds_oleft_sup_nhds_cright (a : α) [topological_space α] [linear_order α] :
+  nhds_within a (Iio a) ⊔ nhds_within a (Ici a) = 𝓝 a :=
+by simp only [← nhds_within_union, nhds_within_univ, Iio_union_Ici]
+
+lemma nhds_cleft_sup_nhds_oright (a : α) [topological_space α] [linear_order α] :
+  nhds_within a (Iic a) ⊔ nhds_within a (Ioi a) = 𝓝 a :=
+by simp only [← nhds_within_union, nhds_within_univ, Iic_union_Ioi]
+
+lemma continuous_at_iff_continuous_cleft_cright [topological_space α] [linear_order α]
   [topological_space β] {a : α} {f : α → β} :
   continuous_at f a ↔ continuous_within_at f (Iic a) a ∧ continuous_within_at f (Ici a) a :=
-begin
-  split,
-  exact λ h, ⟨ h.continuous_within_at, h.continuous_within_at ⟩,
-  rintros ⟨ h₁, h₂ ⟩,
-  apply (continuous_within_at_univ _ _).mp,
-  convert ← h₁.union h₂,
-  simp only [h₁.union h₂, eq_univ_iff_forall, Ici, Iic, le_total, mem_union_eq, mem_set_of_eq, forall_true_iff]
-end
+by simp only [continuous_within_at, continuous_at, ← tendsto_sup, nhds_cleft_sup_nhds_cright]
 
 lemma continuous_on_Ico_extend_continuous_on_Ioo
   [topological_space α] [linear_order α] [order_topology α] [topological_space β] {a b : α} {l : β}
@@ -2217,7 +2222,7 @@ lemma continuous_on_Ico_extend_continuous_on_Ioo
 begin
   by_cases hab : a < b,
   { have : ∀ x ∈ Ico a b ∩ frontier (Ioo a b), x = a,
-    { rintros x ⟨ hx₁, ⟨ _, hx₂ ⟩ ⟩,
+    { rintros x ⟨hx₁, ⟨_, hx₂⟩⟩,
       rw interior_Ioo at hx₂,
       simp only [mem_Ioo, not_and, not_lt] at hx₂,
       by_cases h : a = x,
@@ -2256,14 +2261,14 @@ lemma continuous_extend_continuous_on_Ioo
   continuous (λ x, if x ≤ a then la else if b ≤ x then lb else f x) :=
 begin
   have ha : ∀ x ∈ frontier (Iic a), x = a,
-  { rintros x ⟨ hx₁, hx₂ ⟩,
+  { rintros x ⟨hx₁, hx₂⟩,
     rw [closure_Iic, mem_Iic, le_iff_lt_or_eq] at hx₁,
     exact hx₁.cases_on
       (λ hx₁, (hx₂ $ mem_of_mem_of_subset hx₁ $
         (subset_interior_iff_subset_of_open is_open_Iio).mpr Iio_subset_Iic_self).elim)
       id },
   have hb : ∀ x ∈ frontier (Ici b), x = b,
-  { rintros x ⟨ hx₁, hx₂ ⟩,
+  { rintros x ⟨hx₁, hx₂⟩,
     rw [closure_Ici, mem_Ici, le_iff_lt_or_eq] at hx₁,
     exact hx₁.cases_on
       (λ hx₁, (hx₂ $ mem_of_mem_of_subset hx₁ $
@@ -2280,7 +2285,7 @@ begin
       rw tendsto_congr',
       exact hfa,
       use [Iio b, mem_nhds_sets (is_open_Iio) hab, Ioi a, mem_principal_self _],
-      rintros x ⟨ hxb, hxa ⟩,
+      rintros x ⟨hxb, hxa⟩,
       simp only [mem_set_of_eq, not_le_of_lt hxb, if_false] } },
   { exact continuous_on_const },
   rw (show {x : α | ¬x ≤ a} = (Iic a)ᶜ, from rfl),
@@ -2337,3 +2342,8 @@ begin
   erw [dual_Ici, dual_Ioi] at this,
   exact this,
 end
+
+lemma continuous_at_iff_continuous_left_right [topological_space α] [linear_order α]
+  [topological_space β] {a : α} {f : α → β} :
+  continuous_at f a ↔ continuous_within_at f (Iio a) a ∧ continuous_within_at f (Ioi a) a :=
+by simp only [continuous_within_at_Ioi_iff_Ici, continuous_within_at_Iio_iff_Iic, continuous_at_iff_continuous_cleft_cright]

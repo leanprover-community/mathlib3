@@ -55,15 +55,7 @@ sum_single_index h
 lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
 by { convert coeff_monomial using 2, simp [eq_comm], }
 
-@[simp] lemma coeff_C_succ : coeff (C a) n.succ = 0 := coeff_C
-
 @[simp] lemma coeff_C_zero : coeff (C a) 0 = a := coeff_monomial
-
-@[simp] lemma C_ext {x y : R} : C x = C y ↔ x = y :=
-⟨λ h, (by rw [← @coeff_C_zero _ x _, ← @coeff_C_zero _ y _, h]), λ h, congr_arg C h⟩
-
-lemma C_injective : function.injective (C : R → polynomial R) :=
-λ x y h, C_ext.1 h
 
 theorem nonzero.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
 ⟨⟨0, 1, λ h01 : 0 = 1, h $

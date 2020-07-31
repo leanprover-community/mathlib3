@@ -127,19 +127,13 @@ variables {y : R} (f : localization_map (submonoid.closure {y} : submonoid R) S)
 lemma not_mem_of_disjoint_closure_singleton {S : set R} :
   disjoint ((submonoid.closure {y} : submonoid R) : set R) S → y ∉ S :=
 begin
-  intro h,
-  {
-    intro h',
-    rw disjoint_iff at h,
-    rw eq_bot_iff at h,
-    have : y ∈ ⊥, {
-      refine h ⟨_, h'⟩,
-      erw submonoid.mem_closure_singleton,
-      use 1,
-      rw pow_one,
-    },
-    simpa using this,
-  },
+  intros h h',
+  rw [disjoint_iff, eq_bot_iff] at h,
+  suffices : y ∈ (⊥ : set R), by simpa using this,
+  refine h ⟨_, h'⟩,
+  erw submonoid.mem_closure_singleton,
+  use 1,
+  rw pow_one,
 end
 
 lemma disjoint_closure_singleton_iff_not_mem {I : ideal R} (hI : I.radical = I) :

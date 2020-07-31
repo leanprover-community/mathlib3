@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 import tactic.tfae
 import order.liminf_limsup
 import data.set.intervals.image_preimage
+import data.set.intervals.ord_connected
 import topology.algebra.group
 
 /-!
@@ -1771,38 +1772,28 @@ begin
   exact λ w ⟨wt, wzy⟩, (this wzy).elim id (λ h, (wt h).elim)
 end
 
-lemma is_preconnected_iff_forall_Icc_subset {s : set α} :
-  is_preconnected s ↔ ∀ x y ∈ s, x ≤ y → Icc x y ⊆ s :=
-⟨λ h x y hx hy hxy, h.Icc_subset hx hy, λ h, is_preconnected_of_forall_pair $ λ x y hx hy,
-  ⟨Icc (min x y) (max x y), h (min x y) (max x y)
-    ((min_choice x y).elim (λ h', by rwa h') (λ h', by rwa h'))
-    ((max_choice x y).elim (λ h', by rwa h') (λ h', by rwa h')) min_le_max,
-    ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_preconnected_Icc⟩⟩
+lemma is_preconnected_interval : is_preconnected (interval a b) := is_preconnected_Icc
 
-lemma is_preconnected_Ici : is_preconnected (Ici a) :=
-is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ici_iff hxy).2 hx
+lemma is_preconnected_iff_ord_connected {s : set α} :
+  is_preconnected s ↔ ord_connected s :=
+⟨λ h x hx y hy, h.Icc_subset hx hy, λ h, is_preconnected_of_forall_pair $ λ x y hx hy,
+  ⟨interval x y, h.interval_subset hx hy, left_mem_interval, right_mem_interval,
+    is_preconnected_interval⟩⟩
 
-lemma is_preconnected_Iic : is_preconnected (Iic a) :=
-is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Iic_iff hxy).2 hy
+alias is_preconnected_iff_ord_connected ↔
+  is_preconnected.ord_connected set.ord_connected.is_preconnected
 
-lemma is_preconnected_Iio : is_preconnected (Iio a) :=
-is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Iio_iff hxy).2 hy
-
-lemma is_preconnected_Ioi : is_preconnected (Ioi a) :=
-is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioi_iff hxy).2 hx
-
-lemma is_preconnected_Ioo : is_preconnected (Ioo a b) :=
-is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioo_iff hxy).2 ⟨hx.1, hy.2⟩
-
-lemma is_preconnected_Ioc : is_preconnected (Ioc a b) :=
-is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioc_iff hxy).2 ⟨hx.1, hy.2⟩
-
-lemma is_preconnected_Ico : is_preconnected (Ico a b) :=
-is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ico_iff hxy).2 ⟨hx.1, hy.2⟩
+lemma is_preconnected_Ici : is_preconnected (Ici a) := ord_connected_Ici.is_preconnected
+lemma is_preconnected_Iic : is_preconnected (Iic a) := ord_connected_Iic.is_preconnected
+lemma is_preconnected_Iio : is_preconnected (Iio a) := ord_connected_Iio.is_preconnected
+lemma is_preconnected_Ioi : is_preconnected (Ioi a) := ord_connected_Ioi.is_preconnected
+lemma is_preconnected_Ioo : is_preconnected (Ioo a b) := ord_connected_Ioo.is_preconnected
+lemma is_preconnected_Ioc : is_preconnected (Ioc a b) := ord_connected_Ioc.is_preconnected
+lemma is_preconnected_Ico : is_preconnected (Ico a b) := ord_connected_Ico.is_preconnected
 
 @[priority 100]
 instance ordered_connected_space : preconnected_space α :=
-⟨is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, subset_univ _⟩
+⟨ord_connected_univ.is_preconnected⟩
 
 /-- In a dense conditionally complete linear order, the set of preconnected sets is exactly
 the set of the intervals `Icc`, `Ico`, `Ioc`, `Ioo`, `Ici`, `Ioi`, `Iic`, `Iio`, `(-∞, +∞)`,

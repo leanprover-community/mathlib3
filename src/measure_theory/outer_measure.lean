@@ -280,10 +280,12 @@ end basic
 section of_function
 set_option eqn_compiler.zeta true
 
+variables {α : Type*} (m : set α → ennreal) (m_empty : m ∅ = 0)
+include m_empty
+
 /-- Given any function `m` assigning measures to sets satisying `m ∅ = 0`, there is
   a unique maximal outer measure `μ` satisfying `μ s ≤ m s` for all `s : set α`. -/
-protected def of_function {α : Type*} (m : set α → ennreal) (m_empty : m ∅ = 0) :
-  outer_measure α :=
+protected def of_function : outer_measure α :=
 let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
 { measure_of := μ,
   empty      := le_antisymm
@@ -313,15 +315,19 @@ let μ := λs, ⨅{f : ℕ → set α} (h : s ⊆ ⋃i, f i), ∑'i, m (f i) in
       subset_Union _ $ equiv.nat_prod_nat_equiv_nat (i, j)),
   end }
 
-theorem of_function_le {α : Type*} (m : set α → ennreal) (m_empty s) :
-  outer_measure.of_function m m_empty s ≤ m s :=
+theorem of_function_le (s : set α) : outer_measure.of_function m m_empty s ≤ m s :=
 let f : ℕ → set α := λi, nat.rec_on i s (λn s, ∅) in
 infi_le_of_le f $ infi_le_of_le (subset_Union f 0) $ le_of_eq $
 calc (∑'i, m (f i)) = ∑ i in {0}, m (f i) :
     tsum_eq_sum $ by intro i; cases i; simp [m_empty]
   ... = m s : by simp; refl
 
-theorem le_of_function {α : Type*} {m m_empty} {μ : outer_measure α} :
+theorem of_function_eq (h : ∀ ⦃s t : set α⦄, s ⊆ t → m s ≤ m t) (s : set α) :
+  outer_measure.of_function m m_empty s = m s :=
+le_antisymm _ _
+
+variables {m m_empty}
+theorem le_of_function {μ : outer_measure α} :
   μ ≤ outer_measure.of_function m m_empty ↔ ∀ s, μ s ≤ m s :=
 ⟨λ H s, le_trans (H _) (of_function_le _ _ _),
  λ H s, le_infi $ λ f, le_infi $ λ hs,

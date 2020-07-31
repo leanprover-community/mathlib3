@@ -594,7 +594,7 @@ namespace ring_hom
   f (x - y) = (f x) - (f y) := (f : α →+ β).map_sub x y
 
 /-- A ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff {α β} [ring α] [ring β] (f : α →+* β) :
+theorem injective_iff {α β} [ring α] [semiring β] (f : α →+* β) :
   function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
 (f : α →+ β).injective_iff
 

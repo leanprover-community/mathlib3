@@ -2011,6 +2011,17 @@ lemma times_cont_diff.add {n : with_top ℕ} {f g : E → F}
   times_cont_diff 𝕜 n (λx, f x + g x) :=
 times_cont_diff_add.comp (hf.prod hg)
 
+lemma times_cont_diff_add {n : with_top ℕ} : times_cont_diff 𝕜 n (λp : F × F, p.1 + p.2) :=
+begin
+  apply is_bounded_linear_map.times_cont_diff,
+  exact is_bounded_linear_map.add is_bounded_linear_map.fst is_bounded_linear_map.snd,
+end
+
+/-- The sum of two `C^n`functions is `C^n`. -/
+lemma times_cont_diff.add {n : with_top ℕ} {f g : E → F}
+  (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) : times_cont_diff 𝕜 n (λx, f x + g x) :=
+times_cont_diff_add.comp (hf.prod hg)
+
 /-- The sum of two `C^n` functions on a domain is `C^n`. -/
 lemma times_cont_diff_on.add {n : with_top ℕ} {s : set E} {f g : E → F}
   (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g s) :
@@ -2034,6 +2045,17 @@ times_cont_diff_neg.times_cont_diff_within_at.comp x hf subset_preimage_univ
 lemma times_cont_diff_at.neg {n : with_top ℕ} {f : E → F}
   (hf : times_cont_diff_at 𝕜 n f x) : times_cont_diff_at 𝕜 n (λx, -f x) x :=
 by rw ← times_cont_diff_within_at_univ at *; exact hf.neg
+
+/-- The negative of a `C^n`function is `C^n`. -/
+lemma times_cont_diff.neg {n : with_top ℕ} {f : E → F} (hf : times_cont_diff 𝕜 n f) :
+  times_cont_diff 𝕜 n (λx, -f x) :=
+times_cont_diff_neg.comp hf
+
+lemma times_cont_diff_neg {n : with_top ℕ} : times_cont_diff 𝕜 n (λp : F, -p) :=
+begin
+  apply is_bounded_linear_map.times_cont_diff,
+  exact is_bounded_linear_map.neg is_bounded_linear_map.id
+end
 
 /-- The negative of a `C^n`function is `C^n`. -/
 lemma times_cont_diff.neg {n : with_top ℕ} {f : E → F} (hf : times_cont_diff 𝕜 n f) :

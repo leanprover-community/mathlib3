@@ -52,10 +52,10 @@ end
 
 theorem nhds_within_eq (a : α) (s : set α) :
   nhds_within a s = ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, 𝓟 (t ∩ s) :=
-have set.univ ∈ {s : set α | a ∈ s ∧ is_open s}, from ⟨set.mem_univ _, is_open_univ⟩,
 begin
-  rw [nhds_within, nhds, binfi_inf]; try { exact this },
-  simp only [inf_principal]
+  rw [nhds_within, nhds, binfi_inf],
+  simp only [inf_principal],
+  exact ⟨univ, mem_univ _, is_open_univ⟩
 end
 
 theorem nhds_within_univ (a : α) : nhds_within a set.univ = 𝓝 a :=
@@ -597,7 +597,7 @@ lemma continuous_on.preimage_interior_subset_interior_preimage {f : α → β} {
 calc s ∩ f ⁻¹' (interior t) ⊆ interior (s ∩ f ⁻¹' t) :
   interior_maximal (inter_subset_inter (subset.refl _) (preimage_mono interior_subset))
     (hf.preimage_open_of_open hs is_open_interior)
-... = s ∩ interior (f ⁻¹' t) : by rw [interior_inter, interior_eq_of_open hs]
+... = s ∩ interior (f ⁻¹' t) : by rw [interior_inter, hs.interior_eq]
 
 lemma continuous_on_of_locally_continuous_on {f : α → β} {s : set α}
   (h : ∀x∈s, ∃t, is_open t ∧ x ∈ t ∧ continuous_on f (s ∩ t)) : continuous_on f s :=

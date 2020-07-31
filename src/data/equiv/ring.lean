@@ -197,7 +197,7 @@ end ring_equiv
 
 namespace mul_equiv
 
-/-- Rives a `ring_equiv` from a `mul_equiv` preserving addition.-/
+/-- Gives a `ring_equiv` from a `mul_equiv` preserving addition.-/
 def to_ring_equiv {R : Type*} {S : Type*} [has_add R] [has_add S] [has_mul R] [has_mul S]
   (h : R ≃* S) (H : ∀ x y : R, h (x + y) = h x + h y) : R ≃+* S :=
 {..h.to_equiv, ..h, ..add_equiv.mk' h.to_equiv H }

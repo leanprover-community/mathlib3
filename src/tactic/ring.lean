@@ -40,14 +40,14 @@ sorting. -/
 meta def ring_m (α : Type) : Type :=
 reader_t cache tactic α
 
-/-- Ret the `ring` data from the monad. -/
+/-- Get the `ring` data from the monad. -/
 meta def get_cache : ring_m cache := reader_t.read
 
-/-- Ret an already encountered atom by its index. -/
+/-- Get an already encountered atom by its index. -/
 meta def get_atom (n : ℕ) : ring_m expr :=
 ⟨λ c, do es ← read_ref c.atoms, pure (es.read' n)⟩
 
-/-- Ret the index corresponding to an atomic expression, if it has already been encountered, or
+/-- Get the index corresponding to an atomic expression, if it has already been encountered, or
 put it in the list of atoms and return the new index, otherwise. -/
 meta def add_atom (e : expr) : ring_m ℕ :=
 ⟨λ c, do
@@ -123,7 +123,7 @@ meta inductive horner_expr : Type
 | const (e : expr) (coeff : ℚ) : horner_expr
 | xadd (e : expr) (a : horner_expr) (x : expr × ℕ) (n : expr × ℕ) (b : horner_expr) : horner_expr
 
-/-- Ret the expression corresponding to a `horner_expr`. This can be calculated recursively from
+/-- Get the expression corresponding to a `horner_expr`. This can be calculated recursively from
 the structure, but we cache the exprs in all subterms so that this function can be computed in
 constant time. -/
 meta def horner_expr.e : horner_expr → expr
@@ -617,7 +617,7 @@ into a normal form. When writing a normal form,
 `ring!` will use a more aggressive reducibility setting to identify atoms.
 
 Based on [Proving Equalities in a Commutative Ring Done Right
-in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Rrégoire
+in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire
 and Assia Mahboubi.
 -/
 meta def ring (red : parse (tk "!")?) (SOP : parse ring.mode) (loc : parse location) : tactic unit :=

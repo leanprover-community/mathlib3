@@ -1380,6 +1380,28 @@ by simp [times_cont_diff_on_univ.symm, differentiable_on_univ.symm, fderiv_withi
          - fderiv_within_univ, times_cont_diff_on_succ_iff_fderiv_within unique_diff_on_univ,
          -with_bot.coe_add, -add_comm]
 
+/-- A function is `C^(n + 1)` at a point iff locally, it has a derivative which is `C^n`. -/
+theorem times_cont_diff_at_succ_iff_has_fderiv_at {n : ℕ} :
+  times_cont_diff_at 𝕜 ((n + 1) : ℕ) f x
+  ↔ (∃ f' : E → (E →L[𝕜] F), (∃ u ∈ nhds x, (∀ x ∈ u, has_fderiv_at f (f' x) x))
+      ∧ (times_cont_diff_at 𝕜 n f' x)) :=
+begin
+  rw [← times_cont_diff_within_at_univ, times_cont_diff_within_at_succ_iff_has_fderiv_within_at],
+  simp only [nhds_within_univ, exists_prop, mem_univ, insert_eq_of_mem],
+  split,
+  { rintros ⟨u, H, f', h_fderiv, h_times_cont_diff⟩,
+    rcases mem_nhds_sets_iff.mp H with ⟨t, htu, ht, hxt⟩,
+    refine ⟨f', ⟨t, _⟩, h_times_cont_diff.times_cont_diff_at H⟩,
+    refine ⟨mem_nhds_sets_iff.mpr ⟨t, subset.rfl, ht, hxt⟩, _⟩,
+    intros y hyt,
+    refine (h_fderiv y (htu hyt)).has_fderiv_at _,
+    exact mem_nhds_sets_iff.mpr ⟨t, htu, ht, hyt⟩ },
+  { rintros ⟨f', ⟨u, H, h_fderiv⟩, h_times_cont_diff⟩,
+    refine ⟨u, H, f', _, h_times_cont_diff.times_cont_diff_within_at⟩,
+    intros x hxu,
+    exact (h_fderiv x hxu).has_fderiv_within_at }
+end
+
 /-- A function is `C^∞` on a domain with unique derivatives if and only if it is differentiable
 there, and its derivative is `C^∞`. -/
 theorem times_cont_diff_top_iff_fderiv :
@@ -1915,6 +1937,18 @@ lemma times_cont_diff_within_at.comp' {n : with_top ℕ} {s : set E} {t : set F}
   times_cont_diff_within_at 𝕜 n (g ∘ f) (s ∩ f⁻¹' t) x :=
 hg.comp x (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
 
+/-- The composition of `C^n` functions at points is `C^n`. -/
+lemma times_cont_diff_at.comp
+  {n : with_top ℕ} {g : F → G} {f : E → F} (x : E)
+  (hg : times_cont_diff_at 𝕜 n g (f x))
+  (hf : times_cont_diff_at 𝕜 n f x) :
+  times_cont_diff_at 𝕜 n (g ∘ f) x :=
+begin
+  rw ← times_cont_diff_within_at_univ at ⊢ hf hg,
+  apply hg.comp x hf,
+  simp
+end
+
 lemma times_cont_diff.comp_times_cont_diff_within_at
   {n : with_top ℕ} {g : F → G} {f : E → F} (h : times_cont_diff 𝕜 n g)
   (hf : times_cont_diff_within_at 𝕜 n f t x) :
@@ -1923,6 +1957,16 @@ begin
   have : times_cont_diff_within_at 𝕜 n g univ (f x) :=
     h.times_cont_diff_at.times_cont_diff_within_at,
   exact this.comp x hf (subset_univ _),
+end
+
+lemma times_cont_diff.comp_times_cont_diff_at
+  {n : with_top ℕ} {g : F → G} {f : E → F} (x : E)
+  (hg : times_cont_diff 𝕜 n g)
+  (hf : times_cont_diff_at 𝕜 n f x) :
+  times_cont_diff_at 𝕜 n (g ∘ f) x :=
+begin
+  rw ← times_cont_diff_within_at_univ at ⊢ hf,
+  exact hg.comp_times_cont_diff_within_at hf,
 end
 
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/
@@ -2105,6 +2149,91 @@ begin
   have ht : s.prod t ⊆ (prod.snd) ⁻¹' t := by { rintros x ⟨h_x_1, h_x_2⟩, exact h_x_2, },
   exact (hf.comp (times_cont_diff_on_fst) hs).prod (hg.comp (times_cont_diff_on_snd) ht),
 end
+
+/-! ### Inversion in a complete normed algebra
+
+This section is dedicated to proving that, in a complete normed algebra, the inversion operation is
+smooth.  The proof is by induction, bootstrapping using an identity involving the derivative of
+inversion as a bilinear map of inversion itself.  Constructing this bilinear map requires, in turn,
+several auxiliary lemmas. -/
+
+section algebra_inverse
+variables (𝕜)
+variables (R :Type*) [normed_ring R] [normed_algebra 𝕜 R] [complete_space R]
+open normed_ring continuous_linear_map ring
+
+/-- The function `R × R → (R →ₗ[𝕜] R)` which sends `(v, w)` to the operation of simultaneous
+left-multiplication by `v` and right-multiplication by `w`.  This is an auxiliary definition;
+in general one should use the more structured `left_right_mul`. -/
+private def left_right_mul_aux (vw: R × R) : R →ₗ[𝕜] R :=
+- ((continuous_linear_map.lmul_right 𝕜 R vw.2).comp (continuous_linear_map.lmul_left 𝕜 R vw.1))
+
+private lemma left_right_mul_aux_bound (vw : R × R) :
+  ∀ t, ∥left_right_mul_aux 𝕜 R ⟨vw.1, vw.2⟩ t∥ ≤ (∥vw.1∥ * ∥vw.2∥) * ∥t∥ :=
+begin
+  intros t, simp [left_right_mul_aux],
+  calc ∥(vw.1 * t) * vw.2∥ ≤ ∥vw.1 * t∥ * ∥vw.2∥ : norm_mul_le _ _
+  ... ≤ (∥vw.1∥ * ∥t∥) * ∥vw.2∥ : by nlinarith [norm_mul_le vw.1 t, norm_nonneg vw.2]
+  ... = (∥vw.1∥ * ∥vw.2∥) * ∥t∥ : by ring
+end
+
+/-- The function `R × R → (R →L[𝕜] R)` which sends `(v, w)` to the continuous linear map of
+simultaneous left-multiplication by `v` and right-multiplication by `w`. -/
+def left_right_mul (vw : R × R) : R →L[𝕜] R :=
+linear_map.mk_continuous
+  (left_right_mul_aux 𝕜 R vw)
+  (∥vw.1∥ * ∥vw.2∥)
+  (left_right_mul_aux_bound 𝕜 R vw)
+
+lemma left_right_mul_bound (vw : R × R) : ∥left_right_mul 𝕜 R vw∥ ≤ ∥vw.1∥ * ∥vw.2∥ :=
+linear_map.mk_continuous_norm_le
+  (left_right_mul_aux 𝕜 R vw)
+  ( by nlinarith [norm_nonneg vw.1, norm_nonneg vw.2])
+  (left_right_mul_aux_bound 𝕜 R vw)
+
+/-- The function `left_right_mul : R × R → (R →L[𝕜] R)` is a bounded bilinear map. -/
+lemma left_right_mul_is_bounded_bilinear : is_bounded_bilinear_map 𝕜 (left_right_mul 𝕜 R) :=
+{ add_left := λ v₁ v₂ w, by {ext t, simp [left_right_mul, left_right_mul_aux, add_comm, add_mul]},
+  smul_left := λ c v w, by {ext, simp [left_right_mul, left_right_mul_aux]},
+  add_right := λ v w₁ w₂, by {ext t, simp [left_right_mul, left_right_mul_aux, add_comm, mul_add]},
+  smul_right := λ c v w, by {ext, simp [left_right_mul, left_right_mul_aux]},
+  bound := begin
+    refine ⟨1, by linarith, _⟩,
+    intros v w,
+    rw one_mul,
+    apply left_right_mul_bound,
+  end }
+
+/-- In a normed algebra, the operation of inversion is `C^n`, for all `n`, at each invertible
+element. -/
+lemma times_cont_diff_inverse {n : with_top ℕ} (x : units R) :
+  times_cont_diff_at 𝕜 n inverse (x : R) :=
+begin
+  induction n using with_top.nat_induction with n IH Itop,
+  { intros m hm,
+    refine ⟨{y : R | is_unit y}, _, _⟩,
+    { simp [nhds_within_univ],
+      exact x.nhds },
+    { use (ftaylor_series_within 𝕜 inverse univ),
+      rw [le_antisymm hm bot_le, has_ftaylor_series_up_to_on_zero_iff],
+      split,
+      { rintros _ ⟨x', hx'⟩,
+        rw ← hx',
+        exact (@continuous_at_inverse 𝕜 _ R _ _ _ x').continuous_within_at },
+      { simp [ftaylor_series_within] } } },
+  { apply times_cont_diff_at_succ_iff_has_fderiv_at.mpr,
+    refine ⟨λ (x : R), left_right_mul 𝕜 R (inverse x, inverse x), _, _⟩,
+    { refine ⟨{y : R | is_unit y}, x.nhds, _⟩,
+      intros y hy,
+      cases mem_set_of_eq.mp hy with y' hy',
+      rw [← hy', inverse_unit],
+      exact @has_fderiv_at_inverse 𝕜 _ _ _ _ _ y' },
+    { exact (left_right_mul_is_bounded_bilinear 𝕜 R).times_cont_diff.comp_times_cont_diff_at
+        (x : R) (IH.prod IH) } },
+  { exact times_cont_diff_at_top.mpr Itop }
+end
+
+end algebra_inverse
 
 section real
 /-!

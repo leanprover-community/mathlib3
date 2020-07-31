@@ -254,7 +254,7 @@ eq_inv_of_mul_eq_one $ f.map_mul_eq_one $ inv_mul_self g
 theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
   f (g * h⁻¹) = (f g) * (f h)⁻¹ := by rw [f.map_mul, f.map_inv]
 
-/-- A group homomorphism is injective iff its kernel is trivial. -/
+/-- A homomorphism from a group to a monoid is injective iff its kernel is trivial. -/
 @[to_additive]
 lemma injective_iff {G H} [group G] [monoid H] (f : G →* H) :
   function.injective f ↔ (∀ a, f a = 1 → a = 1) :=

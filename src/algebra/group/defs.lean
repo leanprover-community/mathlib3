@@ -48,6 +48,20 @@ universe u
    to the additive one.
 -/
 
+section has_mul
+
+variables {G : Type u} [has_mul G]
+
+/-- `left_mul g` denotes left multiplication by `g` -/
+@[to_additive "`left_add g` denotes left addition by `g`"]
+def left_mul : G → G → G := λ g : G, λ x : G, g * x
+
+/-- `right_mul g` denotes right multiplication by `g` -/
+@[to_additive "`right_add g` denotes right addition by `g`"]
+def right_mul : G → G → G := λ g : G, λ x : G, x * g
+
+end has_mul
+
 /-- A semigroup is a type with an associative `(*)`. -/
 @[protect_proj, ancestor has_mul] class semigroup (G : Type u) extends has_mul G :=
 (mul_assoc : ∀ a b c : G, a * b * c = a * (b * c))

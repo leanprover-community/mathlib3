@@ -1017,6 +1017,36 @@ calc count (↑s : set α) = ∑' i : (↑s : set α), (1 : α → ennreal) i : 
                     ... = ∑ i in s, 1 : s.tsum_subtype 1
                     ... = s.card : by simp
 
+lemma count_apply_finite [measurable_singleton_class α] (s : set α) (hs : finite s) :
+  count s = hs.to_finset.card :=
+by rw [← count_apply_finset, finite.coe_to_finset]
+
+/-- `count` measure evaluates to infinity at infinite sets. -/
+lemma count_apply_infinite [measurable_singleton_class α] {s : set α} (hs : s.infinite) :
+  count s = ⊤ :=
+begin
+  by_contra H,
+  rcases ennreal.exists_nat_gt H with ⟨n, hn⟩,
+  rcases hs.exists_subset_card_eq n with ⟨t, ht, rfl⟩,
+  have := lt_of_le_of_lt (measure_mono ht) hn,
+  simpa [lt_irrefl] using this
+end
+
+@[simp] lemma count_apply_eq_top [measurable_singleton_class α] {s : set α} :
+  count s = ⊤ ↔ s.infinite :=
+begin
+  by_cases hs : s.finite,
+  { simp [set.infinite, hs, count_apply_finite] },
+  { change s.infinite at hs,
+    simp [hs, count_apply_infinite] }
+end
+
+@[simp] lemma count_apply_lt_top [measurable_singleton_class α] {s : set α} :
+  count s < ⊤ ↔ s.finite :=
+calc count s < ⊤ ↔ count s ≠ ⊤ : lt_top_iff_ne_top
+             ... ↔ ¬s.infinite : not_congr count_apply_eq_top
+             ... ↔ s.finite    : not_not
+
 /-- A measure is complete if every null set is also measurable.
   A null set is a subset of a measurable set with measure `0`.
   Since every measure is defined as a special case of an outer measure, we can more simply state
@@ -1043,13 +1073,16 @@ def cofinite (μ : measure α) : filter α :=
 
 lemma mem_cofinite {s : set α} : s ∈ μ.cofinite ↔ μ sᶜ < ⊤ := iff.rfl
 
+lemma compl_mem_cofinite {s : set α} : sᶜ ∈ μ.cofinite ↔ μ s < ⊤ :=
+by rw [mem_cofinite, compl_compl]
+
 lemma eventually_cofinite {p : α → Prop} : (∀ᶠ x in μ.cofinite, p x) ↔ μ {x | ¬p x} < ⊤ := iff.rfl
 
 end measure
 
 variables {α : Type*} {β : Type*} [measurable_space α] {μ : measure α}
 
-notation `∀ᵐ` binders `∂` μ `, ` r:(scoped P, filter.eventually P (measure.ae μ)) := r
+notation `∀ᵐ` binders ` ∂` μ `, ` r:(scoped P, filter.eventually P (measure.ae μ)) := r
 notation f ` =ᵐ[`:50 μ:50 `] `:0 g:50 := f =ᶠ[measure.ae μ] g
 notation f ` ≤ᵐ[`:50 μ:50 `] `:0 g:50 := f ≤ᶠ[measure.ae μ] g
 
@@ -1057,8 +1090,10 @@ lemma mem_ae_iff {s : set α} : s ∈ μ.ae ↔ μ sᶜ = 0 := iff.rfl
 
 lemma ae_iff {p : α → Prop} : (∀ᵐ a ∂ μ, p a) ↔ μ { a | ¬ p a } = 0 := iff.rfl
 
+lemma compl_mem_ae_iff {s : set α} : sᶜ ∈ μ.ae ↔ μ s = 0 := by simp only [mem_ae_iff, compl_compl]
+
 lemma measure_zero_iff_ae_nmem {s : set α} : μ s = 0 ↔ ∀ᵐ a ∂ μ, a ∉ s :=
-by simp only [ae_iff, not_not, set_of_mem_eq]
+compl_mem_ae_iff.symm
 
 lemma ae_eq_bot : μ.ae = ⊥ ↔ μ = 0 :=
 by rw [← empty_in_sets_eq_bot, mem_ae_iff, compl_empty, measure.measure_univ_eq_zero]
@@ -1073,6 +1108,10 @@ instance : countable_Inter_filter μ.ae :=
   haveI := hSc.to_encodable,
   exact measure_Union_null (subtype.forall.2 hS)
 end⟩
+
+instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
+⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_is_measurable_superset_of_measure_eq_zero hs in
+  ⟨tᶜ, compl_mem_ae_iff.2 htμ, htm.compl, compl_subset_comm.1 hst⟩⟩
 
 lemma ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
   (∀ᵐ a ∂ μ, ∀i, p a i) ↔ (∀i, ∀ᵐ a ∂ μ, p a i) :=
@@ -1342,3 +1381,19 @@ meta def volume_tac : tactic unit := `[exact measure_theory.measure_space.volume
 end measure_space
 
 end measure_theory
+
+namespace is_compact
+
+open measure_theory
+
+variables {α : Type*} [topological_space α] [measurable_space α] {μ : measure α} {s : set α}
+
+lemma finite_measure_of_nhds_within (hs : is_compact s) :
+  (∀ a ∈ s, ∃ t ∈ nhds_within a s, μ t < ⊤) → μ s < ⊤ :=
+by simpa only [← measure.compl_mem_cofinite] using hs.compl_mem_sets_of_nhds_within
+
+lemma measure_zero_of_nhds_within (hs : is_compact s) :
+  (∀ a ∈ s, ∃ t ∈ nhds_within a s, μ t = 0) → μ s = 0 :=
+by simpa only [← compl_mem_ae_iff] using hs.compl_mem_sets_of_nhds_within
+
+end is_compact

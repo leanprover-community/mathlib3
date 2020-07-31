@@ -7,6 +7,22 @@ import topology.sheaves.presheaf
 import topology.category.TopCommRing
 import topology.algebra.continuous_functions
 
+/-!
+# Presheaves of functions
+
+We construct some simple examples of presheaves of functions on a topological space.
+* `presheaf_to_Type X f`, where `f : X → Type`,
+  is the presheaf of dependently-typed (not-necessarily continuous) functions
+* `presheaf_to_Type X T`, where `T : Type`,
+  is the presheaf of (not-necessarily-continuous) functions to a fixed target type `T`
+* `presheaf_to_Top X T`, where `T : Top`,
+  is the presheaf of continuous functions into a topological space `T`
+* `presheaf_To_TopCommRing X R`, where `R : TopCommRing`
+  is the presheaf valued in `CommRing` of functions functions into a topological ring `R`
+* as an example of the previous construction,
+  `presheaf_ℂ X` is the presheaf of rings of continuous complex-valued functions on `X`.
+-/
+
 universes v u
 
 open category_theory
@@ -15,7 +31,7 @@ open opposite
 
 namespace Top
 
-variables (X Y : Top.{v})
+variables (X : Top.{v})
 
 /-- The presheaf of continuous functions on `X` with values in fixed target topological space `T`. -/
 def presheaf_to_Top (T : Top.{v}) : X.presheaf (Type v) :=

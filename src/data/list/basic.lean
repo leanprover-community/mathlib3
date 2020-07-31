@@ -31,6 +31,9 @@ instance : is_associative (list α) has_append.append :=
 
 theorem cons_ne_nil (a : α) (l : list α) : a::l ≠ [].
 
+theorem cons_ne_self (a : α) (l : list α) : a::l ≠ l :=
+mt (congr_arg length) (nat.succ_ne_self _)
+
 theorem head_eq_of_cons_eq {h₁ h₂ : α} {t₁ t₂ : list α} :
       (h₁::t₁) = (h₂::t₂) → h₁ = h₂ :=
 assume Peq, list.no_confusion Peq (assume Pheq Pteq, Pheq)

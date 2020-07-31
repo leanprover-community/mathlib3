@@ -81,16 +81,7 @@ open_locale classical
 /-- decomposing `x : ι → R` as a sum along the canonical basis -/
 lemma pi_eq_sum_univ {ι : Type u} [fintype ι] {R : Type v} [semiring R] (x : ι → R) :
   x = ∑ i, x i • (λj, if i = j then 1 else 0) :=
-begin
-  ext k,
-  rw finset.sum_apply,
-  have : ∑ i, x i * ite (k = i) 1 0 = x k,
-    by { have := finset.sum_mul_boole finset.univ x k, rwa if_pos (finset.mem_univ _) at this },
-  rw ← this,
-  apply finset.sum_congr rfl (λl hl, _),
-  simp only [smul_eq_mul, mul_ite, pi.smul_apply],
-  conv_lhs { rw eq_comm }
-end
+by { ext, simp }
 
 end
 
@@ -524,6 +515,9 @@ instance add_comm_monoid_submodule : add_comm_monoid (submodule R M) :=
 lemma eq_top_iff' {p : submodule R M} : p = ⊤ ↔ ∀ x, x ∈ p :=
 eq_top_iff.trans ⟨λ h x, @h x trivial, λ h x _, h x⟩
 
+lemma bot_ne_top [nontrivial M] : (⊥ : submodule R M) ≠ ⊤ :=
+λ h, let ⟨a, ha⟩ := exists_ne (0 : M) in ha $ (mem_bot R).1 $ (eq_top_iff.1 h) trivial
+
 @[simp] theorem inf_coe : (p ⊓ p' : set M) = p ∩ p' := rfl
 
 @[simp] theorem mem_inf {p p' : submodule R M} :
@@ -768,7 +762,7 @@ mem_sup.trans $ by simp only [submodule.exists, coe_mk]
 
 end
 
-lemma mem_span_singleton_self (x : M) : x ∈ span R ({x} : set M) := subset_span (mem_def.mpr rfl)
+lemma mem_span_singleton_self (x : M) : x ∈ span R ({x} : set M) := subset_span rfl
 
 lemma mem_span_singleton {y : M} : x ∈ span R ({y} : set M) ↔ ∃ a:R, a • y = x :=
 ⟨λ h, begin

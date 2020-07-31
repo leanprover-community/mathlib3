@@ -499,7 +499,7 @@ begin
     simp at hy,
     rcases hy.2.1 with rfl|hy',
     { exact hx },
-    { exact hv y hy' } }
+    { exact hv hy' } }
 end
 
 lemma times_cont_diff_within_at.congr_of_eventually_eq' {n : with_top ℕ}
@@ -508,7 +508,7 @@ lemma times_cont_diff_within_at.congr_of_eventually_eq' {n : with_top ℕ}
 begin
   apply h.congr_of_eventually_eq h₁,
   rcases h₁.exists_mem with ⟨t, ht, t_eq⟩,
-  exact t_eq _ (mem_of_mem_nhds_within hx ht)
+  exact t_eq (mem_of_mem_nhds_within hx ht)
 end
 
 lemma filter.eventually_eq.times_cont_diff_within_at_iff {n : with_top ℕ}
@@ -1489,6 +1489,20 @@ lemma times_cont_diff_on_fst {s : set (E×F)} {n : with_top ℕ} :
 times_cont_diff.times_cont_diff_on times_cont_diff_fst
 
 /--
+The first projection at a point in a product is `C^∞`.
+-/
+lemma times_cont_diff_at_fst {p : E × F} {n : with_top ℕ} :
+  times_cont_diff_at 𝕜 n (prod.fst : E × F → E) p :=
+times_cont_diff_fst.times_cont_diff_at
+
+/--
+The first projection within a domain at a point in a product is `C^∞`.
+-/
+lemma times_cont_diff_within_at_fst {s : set (E × F)} {p : E × F} {n : with_top ℕ} :
+  times_cont_diff_within_at 𝕜 n (prod.fst : E × F → E) s p :=
+times_cont_diff_fst.times_cont_diff_within_at
+
+/--
 The second projection in a product is `C^∞`.
 -/
 lemma times_cont_diff_snd {n : with_top ℕ} : times_cont_diff 𝕜 n (prod.snd : E × F → F) :=
@@ -1500,6 +1514,20 @@ The second projection on a domain in a product is `C^∞`.
 lemma times_cont_diff_on_snd {s : set (E×F)} {n : with_top ℕ} :
   times_cont_diff_on 𝕜 n (prod.snd : E × F → F) s :=
 times_cont_diff.times_cont_diff_on times_cont_diff_snd
+
+/--
+The second projection at a point in a product is `C^∞`.
+-/
+lemma times_cont_diff_at_snd {p : E × F} {n : with_top ℕ} :
+  times_cont_diff_at 𝕜 n (prod.snd : E × F → F) p :=
+times_cont_diff_snd.times_cont_diff_at
+
+/--
+The second projection within a domain at a point in a product is `C^∞`.
+-/
+lemma times_cont_diff_within_at_snd {s : set (E × F)} {p : E × F} {n : with_top ℕ} :
+  times_cont_diff_within_at 𝕜 n (prod.snd : E × F → F) s p :=
+times_cont_diff_snd.times_cont_diff_within_at
 
 /--
 The identity is `C^∞`.
@@ -1980,19 +2008,22 @@ begin
   exact hf.add hg
 end
 
+lemma times_cont_diff_add {n : with_top ℕ} : times_cont_diff 𝕜 n (λp : F × F, p.1 + p.2) :=
+begin
+  apply is_bounded_linear_map.times_cont_diff,
+  exact is_bounded_linear_map.add is_bounded_linear_map.fst is_bounded_linear_map.snd,
+end
+
+/-- The sum of two `C^n`functions is `C^n`. -/
+lemma times_cont_diff.add {n : with_top ℕ} {f g : E → F}
+  (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) : times_cont_diff 𝕜 n (λx, f x + g x) :=
+times_cont_diff_add.comp (hf.prod hg)
+
 /-- The sum of two `C^n` functions on a domain is `C^n`. -/
 lemma times_cont_diff_on.add {n : with_top ℕ} {s : set E} {f g : E → F}
   (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g s) :
   times_cont_diff_on 𝕜 n (λx, f x + g x) s :=
 λ x hx, (hf x hx).add (hg x hx)
-
-/-- The sum of two `C^n` functions is `C^n`. -/
-lemma times_cont_diff.add {n : with_top ℕ} {f g : E → F}
-  (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) : times_cont_diff 𝕜 n (λx, f x + g x) :=
-begin
-  rw ← times_cont_diff_on_univ at *,
-  exact hf.add hg
-end
 
 /-! ### Negative -/
 
@@ -2015,18 +2046,21 @@ begin
   exact hf.neg
 end
 
+lemma times_cont_diff_neg {n : with_top ℕ} : times_cont_diff 𝕜 n (λp : F, -p) :=
+begin
+  apply is_bounded_linear_map.times_cont_diff,
+  exact is_bounded_linear_map.neg is_bounded_linear_map.id
+end
+
+/-- The negative of a `C^n`function is `C^n`. -/
+lemma times_cont_diff.neg {n : with_top ℕ} {f : E → F} (hf : times_cont_diff 𝕜 n f) :
+  times_cont_diff 𝕜 n (λx, -f x) :=
+times_cont_diff_neg.comp hf
+
 /-- The negative of a `C^n` function on a domain is `C^n`. -/
 lemma times_cont_diff_on.neg {n : with_top ℕ} {s : set E} {f : E → F}
   (hf : times_cont_diff_on 𝕜 n f s) : times_cont_diff_on 𝕜 n (λx, -f x) s :=
 λ x hx, (hf x hx).neg
-
-/-- The negative of a `C^n` function is `C^n`. -/
-lemma times_cont_diff.neg {n : with_top ℕ} {f : E → F} (hf : times_cont_diff 𝕜 n f) :
-  times_cont_diff 𝕜 n (λx, -f x) :=
-begin
-  rw ← times_cont_diff_on_univ at *,
-  exact hf.neg
-end
 
 /-! ### Subtraction -/
 
@@ -2094,17 +2128,67 @@ end
 
 /-! ### Cartesian product of two functions-/
 
-/-- The product map of two `C^n` functions is `C^n`. -/
-lemma times_cont_diff_on.map_prod {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+section prod_map
+variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
+{F' : Type*} [normed_group F'] [normed_space 𝕜 F']
+{n : with_top ℕ}
+
+/-- The product map of two `C^n` functions within a set at a point is `C^n`
+within the product set at the product point. -/
+lemma times_cont_diff_within_at.prod_map'
+  {s : set E} {t : set E'} {f : E → F} {g : E' → F'} {p : E × E'}
+  (hf : times_cont_diff_within_at 𝕜 n f s p.1) (hg : times_cont_diff_within_at 𝕜 n g t p.2) :
+  times_cont_diff_within_at 𝕜 n (prod.map f g) (set.prod s t) p :=
+(hf.comp p times_cont_diff_within_at_fst (prod_subset_preimage_fst _ _)).prod
+  (hg.comp p times_cont_diff_within_at_snd (prod_subset_preimage_snd _ _))
+
+lemma times_cont_diff_within_at.prod_map
+  {s : set E} {t : set E'} {f : E → F} {g : E' → F'} {x : E} {y : E'}
+  (hf : times_cont_diff_within_at 𝕜 n f s x) (hg : times_cont_diff_within_at 𝕜 n g t y) :
+  times_cont_diff_within_at 𝕜 n (prod.map f g) (set.prod s t) (x, y) :=
+times_cont_diff_within_at.prod_map' hf hg
+
+/-- The product map of two `C^n` functions on a set is `C^n` on the product set. -/
+lemma times_cont_diff_on.prod_map {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
   {F' : Type*} [normed_group F'] [normed_space 𝕜 F']
   {s : set E} {t : set E'} {n : with_top ℕ} {f : E → F} {g : E' → F'}
   (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g t) :
   times_cont_diff_on 𝕜 n (prod.map f g) (set.prod s t) :=
+(hf.comp times_cont_diff_on_fst (prod_subset_preimage_fst _ _)).prod
+  (hg.comp (times_cont_diff_on_snd) (prod_subset_preimage_snd _ _))
+
+/-- The product map of two `C^n` functions within a set at a point is `C^n`
+within the product set at the product point. -/
+lemma times_cont_diff_at.prod_map {f : E → F} {g : E' → F'} {x : E} {y : E'}
+  (hf : times_cont_diff_at 𝕜 n f x) (hg : times_cont_diff_at 𝕜 n g y) :
+  times_cont_diff_at 𝕜 n (prod.map f g) (x, y) :=
 begin
-  have hs : s.prod t ⊆ (prod.fst) ⁻¹' s := by { rintros x ⟨h_x_1, h_x_2⟩, exact h_x_1, },
-  have ht : s.prod t ⊆ (prod.snd) ⁻¹' t := by { rintros x ⟨h_x_1, h_x_2⟩, exact h_x_2, },
-  exact (hf.comp (times_cont_diff_on_fst) hs).prod (hg.comp (times_cont_diff_on_snd) ht),
+  rw times_cont_diff_at at *,
+  convert hf.prod_map hg,
+  simp only [univ_prod_univ]
 end
+
+/-- The product map of two `C^n` functions within a set at a point is `C^n`
+within the product set at the product point. -/
+lemma times_cont_diff_at.prod_map' {f : E → F} {g : E' → F'} {p : E × E'}
+  (hf : times_cont_diff_at 𝕜 n f p.1) (hg : times_cont_diff_at 𝕜 n g p.2) :
+  times_cont_diff_at 𝕜 n (prod.map f g) p :=
+begin
+  rcases p,
+  exact times_cont_diff_at.prod_map hf hg
+end
+
+/-- The product map of two `C^n` functions is `C^n`. -/
+lemma times_cont_diff.prod_map
+  {f : E → F} {g : E' → F'}
+  (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) :
+  times_cont_diff 𝕜 n (prod.map f g) :=
+begin
+  rw times_cont_diff_iff_times_cont_diff_at at *,
+  exact λ ⟨x, y⟩, (hf x).prod_map (hg y)
+end
+
+end prod_map
 
 section real
 /-!

@@ -152,7 +152,7 @@ def has_limit_of_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit (K
 
 end preservation_limits
 
-/-- auxilliary construction for `cocones_iso` -/
+/-- auxiliary construction for `cocones_iso` -/
 @[simps]
 def cocones_iso_component_hom {J : Type v} [small_category J] {K : J ⥤ C}
   (Y : D) (t : ((cocones J D).obj (op (K ⋙ F))).obj Y) :
@@ -160,7 +160,7 @@ def cocones_iso_component_hom {J : Type v} [small_category J] {K : J ⥤ C}
 { app := λ j, (adj.hom_equiv (K.obj j) Y) (t.app j),
   naturality' := λ j j' f, by erw [← adj.hom_equiv_naturality_left, t.naturality]; dsimp; simp }
 
-/-- auxilliary construction for `cocones_iso` -/
+/-- auxiliary construction for `cocones_iso` -/
 @[simps]
 def cocones_iso_component_inv {J : Type v} [small_category J] {K : J ⥤ C}
   (Y : D) (t : (G ⋙ (cocones J C).obj (op K)).obj Y) :
@@ -180,7 +180,7 @@ nat_iso.of_components (λ Y,
   inv := cocones_iso_component_inv adj Y, })
 (by tidy)
 
-/-- auxilliary construction for `cones_iso` -/
+/-- auxiliary construction for `cones_iso` -/
 @[simps]
 def cones_iso_component_hom {J : Type v} [small_category J] {K : J ⥤ D}
   (X : Cᵒᵖ) (t : (functor.op F ⋙ (cones J D).obj K).obj X) :
@@ -192,7 +192,7 @@ def cones_iso_component_hom {J : Type v} [small_category J] {K : J ⥤ D}
       refl
     end }
 
-/-- auxilliary construction for `cones_iso` -/
+/-- auxiliary construction for `cones_iso` -/
 @[simps]
 def cones_iso_component_inv {J : Type v} [small_category J] {K : J ⥤ D}
   (X : Cᵒᵖ) (t : ((cones J C).obj (K ⋙ G)).obj X) :

@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
-import measure_theory.measurable_space
+import measure_theory.measure_space
 import topology.instances.ennreal
 import analysis.normed_space.basic
 
@@ -19,6 +19,7 @@ import analysis.normed_space.basic
   structures such that all open sets are measurable; equivalently, `borel α ≤ ‹measurable_space α›`.
 * `borel_space` instances on `empty`, `unit`, `bool`, `nat`, `int`, `rat`;
 * `measurable` and `borel_space` instances on `ℝ`, `ℝ≥0`, `ennreal`.
+* A measure is `regular` if it is finite on compact sets, inner regular and outer regular.
 
 ## Main statements
 
@@ -712,3 +713,34 @@ lemma measurable.ennnorm {f : β → α} (hf : measurable f) :
 hf.nnnorm.ennreal_coe
 
 end normed_group
+
+namespace measure_theory
+namespace measure
+
+variables [measurable_space α] [topological_space α]
+
+/-- A measure `μ` is regular if
+  - it is finite on all compact sets;
+  - it is outer regular: `μ(A) = inf { μ(U) | A ⊆ U open }` for `A` measurable;
+  - it is inner regular: `μ(U) = sup { μ(K) | K ⊆ U compact }` for `U` open. -/
+structure regular (μ : measure α) : Prop :=
+  (le_top_of_is_compact : ∀ {{K : set α}}, is_compact K → μ K < ⊤)
+  (outer_regular : ∀ {{A : set α}}, is_measurable A →
+    (⨅ (U : set α) (h : is_open U) (h2 : A ⊆ U), μ U) ≤ μ A)
+  (inner_regular : ∀ {{U : set α}}, is_open U →
+    μ U ≤ ⨆ (K : set α) (h : is_compact K) (h2 : K ⊆ U), μ K)
+
+namespace regular
+
+lemma outer_regular_eq {μ : measure α} (hμ : μ.regular) {{A : set α}}
+  (hA : is_measurable A) : (⨅ (U : set α) (h : is_open U) (h2 : A ⊆ U), μ U) = μ A :=
+le_antisymm (hμ.outer_regular hA) $ le_infi $ λ s, le_infi $ λ hs, le_infi $ λ h2s, μ.mono h2s
+
+lemma inner_regular_eq {μ : measure α} (hμ : μ.regular) {{U : set α}}
+  (hU : is_open U) : (⨆ (K : set α) (h : is_compact K) (h2 : K ⊆ U), μ K) = μ U :=
+le_antisymm (supr_le $ λ s, supr_le $ λ hs, supr_le $ λ h2s, μ.mono h2s) (hμ.inner_regular hU)
+
+end regular
+
+end measure
+end measure_theory

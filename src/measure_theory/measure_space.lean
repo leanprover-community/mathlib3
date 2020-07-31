@@ -22,9 +22,6 @@ In this file a measure is defined to be an outer measure that is countably addit
 measurable sets, with the additional assumption that the outer measure is the canonical
 extension of the restricted measure.
 
-In the first part of the file we define operations on arbitrary functions defined on measurable
-sets.
-
 Measures on `α` form a complete lattice, and are closed under scalar multiplication with `ennreal`.
 
 Given a measure, the null sets are the sets where `μ s = 0`, where `μ` denotes the corresponding
@@ -102,18 +99,18 @@ def of_measurable {α} [measurable_space α]
     m (⋃i, f i) (is_measurable.Union h) = (∑'i, m (f i) (h i))) :
   measure α :=
 { m_Union := λ f hf hd,
-  show induced_measure m m0 (Union f) =
-      ∑' i, induced_measure m m0 (f i), begin
-    rw [induced_measure_eq m0 mU, mU hf hd],
-    congr, funext n, rw induced_measure_eq m0 mU
+  show induced_outer_measure m m0 (Union f) =
+      ∑' i, induced_outer_measure m m0 (f i), begin
+    rw [induced_outer_measure_eq m0 mU, mU hf hd],
+    congr, funext n, rw induced_outer_measure_eq m0 mU
   end,
   trimmed :=
-  show (induced_measure m m0).trim = induced_measure m m0, begin
+  show (induced_outer_measure m m0).trim = induced_outer_measure m m0, begin
     unfold outer_measure.trim,
     congr, funext s hs,
-    exact induced_measure_eq m0 mU hs
+    exact induced_outer_measure_eq m0 mU hs
   end,
-  ..induced_measure m m0 }
+  ..induced_outer_measure m m0 }
 
 lemma of_measurable_apply {α} [measurable_space α]
   {m : Π (s : set α), is_measurable s → ennreal}
@@ -123,7 +120,7 @@ lemma of_measurable_apply {α} [measurable_space α]
     m (⋃i, f i) (is_measurable.Union h) = (∑'i, m (f i) (h i))}
   (s : set α) (hs : is_measurable s) :
   of_measurable m m0 mU s = m s hs :=
-induced_measure_eq m0 mU hs
+induced_outer_measure_eq m0 mU hs
 
 lemma to_outer_measure_injective {α} [measurable_space α] :
   injective (to_outer_measure : measure α → outer_measure α) :=
@@ -150,17 +147,17 @@ by rw μ.trimmed; refl
 lemma measure_eq_infi (s) : μ s = ⨅ t (st : s ⊆ t) (ht : is_measurable t), μ t :=
 by rw [measure_eq_trim, outer_measure.trim_eq_infi]; refl
 
-lemma measure_eq_induced_measure :
-  μ s = induced_measure (λ s _, μ s) μ.empty s :=
+lemma measure_eq_induced_outer_measure :
+  μ s = induced_outer_measure (λ s _, μ s) μ.empty s :=
 measure_eq_trim _
 
-lemma to_outer_measure_eq_induced_measure :
-  μ.to_outer_measure = induced_measure (λ s _, μ s) μ.empty :=
+lemma to_outer_measure_eq_induced_outer_measure :
+  μ.to_outer_measure = induced_outer_measure (λ s _, μ s) μ.empty :=
 μ.trimmed.symm
 
 lemma measure_eq_extend (hs : is_measurable s) :
   μ s = extend (λ t (ht : is_measurable t), μ t) s :=
-by { rw [measure_eq_induced_measure, induced_measure_eq_extend _ _ hs], exact μ.m_Union }
+by { rw [measure_eq_induced_outer_measure, induced_outer_measure_eq_extend _ _ hs], exact μ.m_Union }
 
 @[simp] lemma measure_empty : μ ∅ = 0 := μ.empty
 
@@ -383,8 +380,8 @@ lemma le_to_outer_measure_caratheodory {α} [ms : measurable_space α]
   (μ : measure α) : ms ≤ μ.to_outer_measure.caratheodory :=
 begin
   assume s hs,
-  rw to_outer_measure_eq_induced_measure,
-  refine outer_measure.caratheodory_is_measurable (λ t, le_infi $ λ ht, _),
+  rw to_outer_measure_eq_induced_outer_measure,
+  refine outer_measure.of_function_caratheodory (λ t, le_infi $ λ ht, _),
   rw [← measure_eq_extend (ht.inter hs),
     ← measure_eq_extend (ht.diff hs),
     ← measure_union _ (ht.inter hs) (ht.diff hs),
@@ -497,7 +494,7 @@ lemma Inf_caratheodory (s : set α) (hs : is_measurable s) :
   (Inf (measure.to_outer_measure '' m)).caratheodory.is_measurable s :=
 begin
   rw [outer_measure.Inf_eq_of_function_Inf_gen],
-  refine outer_measure.caratheodory_is_measurable (assume t, _),
+  refine outer_measure.of_function_caratheodory (assume t, _),
   cases t.eq_empty_or_nonempty with ht ht, by simp [ht],
   simp only [outer_measure.Inf_gen_nonempty1 _ _ ht, le_infi_iff, ball_image_iff,
     coe_to_outer_measure, measure_eq_infi t],

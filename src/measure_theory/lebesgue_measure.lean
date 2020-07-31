@@ -90,7 +90,7 @@ def lebesgue_outer : outer_measure ℝ :=
 outer_measure.of_function lebesgue_length lebesgue_length_empty
 
 lemma lebesgue_outer_le_length (s : set ℝ) : lebesgue_outer s ≤ lebesgue_length s :=
-outer_measure.of_function_le _ _ _
+outer_measure.of_function_le _
 
 lemma lebesgue_length_subadditive {a b : ℝ} {c d : ℕ → ℝ}
   (ss : Icc a b ⊆ ⋃i, Ioo (c i) (d i)) :
@@ -176,7 +176,7 @@ end
 
 lemma is_lebesgue_measurable_Iio {c : ℝ} :
   lebesgue_outer.caratheodory.is_measurable (Iio c) :=
-outer_measure.caratheodory_is_measurable $ λ t,
+outer_measure.of_function_caratheodory $ λ t,
 le_infi $ λ a, le_infi $ λ b, le_infi $ λ h, begin
   refine le_trans (add_le_add
     (lebesgue_length_mono $ inter_subset_inter_left _ h)

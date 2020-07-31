@@ -296,7 +296,7 @@ def continuous_map.C : R →+* C(α, A) :=
 
 variables [topological_space R] [topological_semimodule R A]
 
-instance : algebra R C(α, A) :=
+instance continuous_map_algebra : algebra R C(α, A) :=
 { to_ring_hom := continuous_map.C,
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
   smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,

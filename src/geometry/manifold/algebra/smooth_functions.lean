@@ -1,11 +1,13 @@
 /-
-Copyright (c) 2020 Nicolò Cavalleri. All rights reserved.
+Copyright © 2020 Nicolò Cavalleri. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
 import geometry.manifold.algebra.ring
 import geometry.manifold.smooth_map
+
+noncomputable theory
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -225,3 +227,7 @@ instance smooth_map_module'
   smul_zero := λ r, by ext x; exact smul_zero _, }
 
 end module_over_continuous_functions
+
+instance field_valued_smooth_maps_ring : ring C∞(I, N; 𝕜) := by apply_instance
+
+instance field_valued_smooth_maps_algebra : algebra 𝕜 C∞(I, N; 𝕜) := by apply_instance

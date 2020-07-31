@@ -54,7 +54,7 @@ def comp (f : C(β, γ)) (g : C(α, β)) : C(α, γ) :=
 
 protected lemma continuous (f : C(α, β)) : continuous f := f.continuous_to_fun
 
-/-- Constant map as a smooth map -/
+/-- Constant map as a continuous map -/
 def const (b : β) : C(α, β) := ⟨λ x, b, continuous_const⟩
 
 end continuous_map

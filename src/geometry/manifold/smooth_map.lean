@@ -36,7 +36,9 @@ structure smooth_map :=
 
 notation `C∞(` I `, ` M `; ` I' `, ` M' `)` := smooth_map I I' M M'
 
-notation `C∞(` I `, ` M `)` := smooth_map I (model_with_corners_self ℝ) M ℝ
+notation `C∞(` I `, ` M `; ` k `)` := smooth_map I (model_with_corners_self k k) M k
+
+notation `C∞(` I `, ` M `)` := smooth_map I (model_with_corners_self ℝ ℝ) M ℝ
 
 namespace smooth_map
 
@@ -57,7 +59,7 @@ by cases f; cases g; congr'; exact funext h
 /-- The identity as a smooth map. -/
 def id : C∞(I, M; I, M) := ⟨id, smooth_id⟩
 
-/-- The smooth of smooth maps, as a smooth map. -/
+/-- The composition of smooth maps, as a smooth map. -/
 def comp (f : C∞(I', M'; I'', M'')) (g : C∞(I, M; I', M')) : C∞(I, M; I'', M'') :=
 { to_fun := λ a, f (g a),
   smooth_to_fun := f.smooth_to_fun.comp g.smooth_to_fun, }
@@ -67,6 +69,7 @@ instance [inhabited M'] : inhabited C∞(I, M; I', M') :=
 
 protected lemma smooth (f : C∞(I, M; I', M')) : smooth I I' f := f.smooth_to_fun
 
+/-- Constant map as a smooth map -/
 def const (y : M') : C∞(I, M; I', M') := ⟨λ x, y, smooth_const⟩
 
 end smooth_map

@@ -1,7 +1,26 @@
+/-
+Copyright © 2020 Nicolò Cavalleri. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Nicolò Cavalleri
+-/
+
 import geometry.manifold.times_cont_mdiff
 
-/-- A Lie (additive) group is a group and a smooth manifold at the same time in which
-the addition and negation operations are smooth. -/
+/-!
+# Smooth monoid
+
+A smooth monoid is a monoid that is also a smooth manifold, in which the group operations of
+multiplication and inversion are smooth maps. Smoothness of the group multiplication means that
+multiplication is a smooth mapping of the product manifold `G` × `G` into `G`.
+
+In this file we define the basic structures to talk about smooth monoids: `has_smooth_mul` and its
+additive counterpart `has_smooth_add`. These structures are enogh general to also talk about smooth
+semigroups.
+-/
+
+/-- Basic hypothesis to talk about a smooth (Lie) additive monoid or a smooth additive
+semigroup. A smooth additive monoid over `α`, for example, is obtained by requiring both the
+instances `add_monoid α` and `has_smooth_add α`. -/
 class has_smooth_add {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
@@ -9,8 +28,9 @@ class has_smooth_add {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
  [smooth_manifold_with_corners I G] : Prop :=
 (smooth_add : smooth (I.prod I) I (λ p : G×G, p.1 + p.2))
 
-/-- A Lie group is a group and a smooth manifold at the same time in which
-the multiplication and inverse operations are smooth. -/
+/-- Basic hypothesis to talk about a smooth (Lie) monoid or a smooth semigroup.
+A smooth monoid over `α`, for example, is obtained by requiring both the instances `monoid α`
+and `has_smooth_mul α`. -/
 @[to_additive]
 class has_smooth_mul {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
@@ -75,7 +95,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 
-/-- Morphism of additive Lie groups. -/
+/-- Morphism of additive smooth monoids. -/
 structure smooth_add_monoid_morphism (I : model_with_corners 𝕜 E E) (I' : model_with_corners 𝕜 E' E')
 (G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
 [add_monoid G] [has_continuous_add G] [has_smooth_add I G]
@@ -83,7 +103,7 @@ structure smooth_add_monoid_morphism (I : model_with_corners 𝕜 E E) (I' : mod
 [add_monoid G'] [has_continuous_add G'] [has_smooth_add I' G'] extends add_monoid_hom G G' :=
   (smooth_to_fun : smooth I I' to_fun)
 
-/-- Morphism of Lie groups. -/
+/-- Morphism of smooth monoids. -/
 @[to_additive]
 structure smooth_monoid_morphism (I : model_with_corners 𝕜 E E) (I' : model_with_corners 𝕜 E' E')
 (G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
@@ -111,9 +131,10 @@ end smooth_monoid_morphism
 
 section has_smooth_mul_core
 
-/-- Sometimes one might want to define a Lie additive group `G` without having proved previously
-that `G` is a topological additive group. In such case it is possible to use `lie_add_group_core`
-that does not require such instance, and then get a Lie group by invoking `to_Lie_add_group`. -/
+/-- Sometimes one might want to define a smooth additive monoid `G` without having proved previously
+that `G` is a topological additive monoid. In such case it is possible to use `has_smooth_add_core`
+that does not require such instance, and then get a smooth additive monoid by invoking
+`to_has_smooth_add`. -/
 structure has_smooth_add_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
@@ -121,9 +142,9 @@ structure has_smooth_add_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   extends smooth_manifold_with_corners I G : Prop :=
   (smooth_add : smooth (I.prod I) I (λ p : G×G, p.1 + p.2))
 
-/-- Sometimes one might want to define a Lie group `G` without having proved previously that `G` is
-a topological group. In such case it is possible to use `lie_group_core` that does not require such
-instance, and then get a Lie group by invoking `to_lie_group` defined below. -/
+/-- Sometimes one might want to define a smooth monoid `G` without having proved previously that `G`
+is a topological monoid. In such case it is possible to use `has_smooth_mul_core` that does not
+require such instance, and then get a smooth monoid by invoking `to_has_smooth_mul`. -/
 @[to_additive]
 structure has_smooth_mul_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
@@ -146,7 +167,8 @@ protected lemma to_has_continuous_mul : has_continuous_mul G :=
 { continuous_mul := c.smooth_mul.continuous, }
 
 @[to_additive]
-protected lemma to_lie_group : @has_smooth_mul 𝕜 _ _ _ E _ _ I G _ _ c.to_has_continuous_mul _ _ :=
+protected lemma to_has_smooth_mul :
+  @has_smooth_mul 𝕜 _ _ _ E _ _ I G _ _ c.to_has_continuous_mul _ _ :=
 { smooth_mul := c.smooth_mul, }
 
 end has_smooth_mul_core

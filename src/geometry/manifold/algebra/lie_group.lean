@@ -54,8 +54,7 @@ class lie_add_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [add_group G] [topological_space G] [topological_add_group G] [charted_space H G]
-  [smooth_manifold_with_corners I G]
-  extends has_smooth_add I G : Prop :=
+  [smooth_manifold_with_corners I G] extends has_smooth_add I G : Prop :=
 (smooth_neg : smooth I I (λ a:G, -a))
 
 /-- A Lie group is a group and a smooth manifold at the same time in which
@@ -65,8 +64,7 @@ class lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [group G] [topological_space G] [topological_group G] [charted_space H G]
-  [smooth_manifold_with_corners I G]
-  extends has_smooth_mul I G : Prop :=
+  [smooth_manifold_with_corners I G] extends has_smooth_mul I G : Prop :=
 (smooth_inv : smooth I I (λ a:G, a⁻¹))
 
 section lie_group
@@ -141,17 +139,17 @@ structure lie_add_group_morphism (I : model_with_corners 𝕜 E E) (I' : model_w
   (G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
   [add_group G] [topological_add_group G] [lie_add_group I G]
   (G' : Type*) [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
-  [add_group G'] [topological_add_group G'] [lie_add_group I' G'] extends add_monoid_hom G G' :=
-(smooth_to_fun : smooth I I' to_fun)
+  [add_group G'] [topological_add_group G'] [lie_add_group I' G']
+  extends smooth_add_monoid_morphism I I' G G'
 
 /-- Morphism of Lie groups. -/
 @[to_additive]
 structure lie_group_morphism (I : model_with_corners 𝕜 E E) (I' : model_with_corners 𝕜 E' E')
-(G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G] [group G]
-[topological_group G] [lie_group I G]
-(G' : Type*) [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
-[group G'] [topological_group G'] [lie_group I' G'] extends monoid_hom G G' :=
-  (smooth_to_fun : smooth I I' to_fun)
+  (G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G] [group G]
+  [topological_group G] [lie_group I G]
+  (G' : Type*) [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
+  [group G'] [topological_group G'] [lie_group I' G']
+  extends smooth_monoid_morphism I I' G G'
 
 variables {I : model_with_corners 𝕜 E E} {I' : model_with_corners 𝕜 E' E'}
 {G : Type*} [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
@@ -160,7 +158,7 @@ variables {I : model_with_corners 𝕜 E E} {I' : model_with_corners 𝕜 E' E'}
 [group G'] [topological_group G'] [lie_group I' G']
 
 @[to_additive]
-instance : has_one (lie_group_morphism I I' G G') := ⟨⟨1, smooth_const⟩⟩
+instance : has_one (lie_group_morphism I I' G G') := ⟨⟨⟨1, smooth_const⟩⟩⟩
 
 @[to_additive]
 instance : inhabited (lie_group_morphism I I' G G') := ⟨1⟩
@@ -220,11 +218,11 @@ end lie_group_core
 
 end lie_group_core
 
-/-! ### Real numbers are a Lie group -/
+section normed_space_lie_group
 
-section real_numbers_lie_group
+/-! ### Normed spaces are Lie groups -/
 
-instance normed_group_lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+instance normed_space_lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E] :
 lie_add_group (model_with_corners_self 𝕜 E) E :=
 { smooth_add :=
@@ -248,6 +246,4 @@ instance field_lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜] :
   lie_add_group (model_with_corners_self 𝕜 𝕜) 𝕜 :=
 by apply_instance
 
-instance reals_lie_group : lie_add_group (model_with_corners_self ℝ ℝ) ℝ := by apply_instance
-
-end real_numbers_lie_group
+end normed_space_lie_group

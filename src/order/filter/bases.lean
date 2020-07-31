@@ -313,19 +313,14 @@ end⟩
 lemma has_basis.sup (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   (l ⊔ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∪ s' i.2) :=
 ⟨begin
-  rintros t,
-  rw [mem_sup_sets, hl.mem_iff, hl'.mem_iff],
-  split,
-  { rintros ⟨⟨i, pi, hi⟩, ⟨i', pi', hi'⟩⟩,
-    use [(i, i'), pi, pi'],
-    finish },
-  { rintros ⟨⟨i, i'⟩, ⟨⟨pi, pi'⟩, h⟩⟩,
-    split,
-    { use [i, pi],
-      finish },
-    { use [i', pi'],
-      finish } }
+  intros t,
+  simp only [mem_sup_sets, hl.mem_iff, hl'.mem_iff, prod.exists, union_subset_iff, exists_prop,
+    and_assoc, exists_and_distrib_left],
+  simp only [← and_assoc, exists_and_distrib_right, and_comm]
 end⟩
+
+lemma has_basis_principal {t : set α} : (𝓟 t).has_basis (λ i : unit, true) (λ i, t) :=
+⟨λ U, by simp⟩
 
 lemma has_basis.inf_principal (hl : l.has_basis p s) (s' : set α) :
   (l ⊓ 𝓟 s').has_basis p (λ i, s i ∩ s') :=

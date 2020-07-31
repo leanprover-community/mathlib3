@@ -6,8 +6,6 @@ Author: Joseph Myers.
 import algebra.add_torsor
 import data.indicator_function
 import linear_algebra.basis
-import analysis.normed_space.finite_dimension
-import topology.algebra.continuous_functions
 
 noncomputable theory
 open_locale big_operators
@@ -1607,43 +1605,6 @@ def homothety_affine (c : P1) :
 @[simp] lemma coe_homothety_affine (c : P1) :
   ⇑(homothety_affine V1 c : affine_map k k k _ _) = homothety V1 c :=
 rfl
-
-end affine_map
-
-namespace affine_map
-
-variables {E F : Type*} [add_comm_group E] [vector_space ℝ E] [topological_space E]
-  [add_comm_group F] [vector_space ℝ F] [topological_space F] [topological_add_group F]
-
-/-
-TODO: Deal with the case where the point spaces are different from the vector spaces.
--/
-
-/-- An affine map is continuous iff its underlying linear map is continuous. -/
-lemma continuous_iff {f : affine_map ℝ E E F F} :
-  continuous f ↔ continuous f.linear :=
-begin
-  split,
-  { intro hc,
-    let f' : C(E, F) := ⟨f, hc⟩,
-    let fconst : C(E, F) := ⟨(λ z, f 0), continuous_const⟩,
-    let fdiff := f' - fconst,
-    convert fdiff.2,
-    rw [decomp' f],
-    refl },
-  { intro hc,
-    let flin' : C(E, F) := ⟨f.linear, hc⟩,
-    let fconst : C(E, F) := ⟨(λ z, f 0), continuous_const⟩,
-    let f' := flin' + fconst,
-    convert f'.2,
-    rw [decomp f],
-    refl }
-end
-
-/-- The line map is continuous. -/
-lemma line_map_continuous {G : Type*} [normed_group G] [normed_space ℝ G] {p v : G} :
-  continuous (@line_map ℝ G G _ _ _ _ p v) :=
-continuous_iff.mpr (linear_map.to_continuous_linear_map₁ (line_map p v).linear).2
 
 end affine_map
 

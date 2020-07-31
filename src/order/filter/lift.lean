@@ -207,7 +207,7 @@ lemma has_basis.lift' {ι} {p : ι → Prop} {s} (hf : f.has_basis p s) (hh : mo
 begin
   refine ⟨λ t, (hf.mem_lift_iff _ (monotone_principal.comp hh)).trans _⟩,
   show ∀ i, (𝓟 (h (s i))).has_basis (λ j : unit, true) (λ (j : unit), h (s i)),
-    from λ i, has_basis_principal,
+    from λ i, has_basis_principal _,
   simp only [exists_const]
 end
 

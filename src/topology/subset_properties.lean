@@ -66,6 +66,8 @@ begin
   exact h₂ (h₁ hs)
 end
 
+/-- If `p : set α → Prop` is a cofilter (i.e., `{s | p sᶜ}` is a filter), and for each point `x`
+of a compact set `s` there exists its neighborhood `t` within `s` such that `p t`, then `p s`. -/
 @[elab_as_eliminator]
 lemma is_compact.induction_on {s : set α} (hs : is_compact s) {p : set α → Prop} (he : p ∅)
   (hmono : ∀ ⦃s t⦄, s ⊆ t → p t → p s) (hunion : ∀ ⦃s t⦄, p s → p t → p (s ∪ t))

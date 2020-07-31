@@ -1,57 +1,10 @@
+import data.set.intervals.ord_connected
 import order.filter.lift
 import order.filter.at_top_bot
 
 variables {α β : Type*}
 
 open_locale classical filter
-
-namespace set
-
-variables [preorder α]
-
-def ord_connected (s : set α) : Prop := ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), Icc x y ⊆ s
-
-lemma ord_connected.inter {s t : set α} (hs : ord_connected s) (ht : ord_connected t) :
-  ord_connected (s ∩ t) :=
-λ x hx y hy, subset_inter (hs hx.1 hy.1) (ht hx.2 hy.2)
-
-lemma ord_connected.dual {s : set α} (hs : ord_connected s) : @ord_connected (order_dual α) _ s :=
-λ x hx y hy z hz, hs hy hx ⟨hz.2, hz.1⟩
-
-lemma ord_connected_dual {s : set α} : @ord_connected (order_dual α) _ s ↔ ord_connected s :=
-⟨λ h, h.dual, λ h, h.dual⟩
-
-lemma ord_connected_sInter {S : set (set α)} (hS : ∀ s ∈ S, ord_connected s) :
-  ord_connected (⋂₀ S) :=
-λ x hx y hy, subset_sInter $ λ s hs, hS s hs (hx s hs) (hy s hs)
-
-lemma ord_connected_Inter {ι : Sort*} {s : ι → set α} (hs : ∀ i, ord_connected (s i)) :
-  ord_connected (⋂ i, s i) :=
-ord_connected_sInter $ forall_range_iff.2 hs
-
-lemma ord_connected_bInter {ι : Sort*} {p : ι → Prop} {s : Π (i : ι) (hi : p i), set α}
-  (hs : ∀ i hi, ord_connected (s i hi)) :
-  ord_connected (⋂ i hi, s i hi) :=
-ord_connected_Inter $ λ i, ord_connected_Inter $ hs i
-
-lemma ord_connected_Ici {a : α} : ord_connected (Ici a) := λ x hx y hy z hz, le_trans hx hz.1
-lemma ord_connected_Iic {a : α} : ord_connected (Iic a) := λ x hx y hy z hz, le_trans hz.2 hy
-lemma ord_connected_Ioi {a : α} : ord_connected (Ioi a) := λ x hx y hy z hz, lt_of_lt_of_le hx hz.1
-lemma ord_connected_Iio {a : α} : ord_connected (Iio a) := λ x hx y hy z hz, lt_of_le_of_lt hz.2 hy
-
-lemma ord_connected_Icc {a b : α} : ord_connected (Icc a b) :=
-ord_connected_Ici.inter ord_connected_Iic
-
-lemma ord_connected_Ico {a b : α} : ord_connected (Ico a b) :=
-ord_connected_Ici.inter ord_connected_Iio
-
-lemma ord_connected_Ioc {a b : α} : ord_connected (Ioc a b) :=
-ord_connected_Ioi.inter ord_connected_Iic
-
-lemma ord_connected_Ioo {a b : α} : ord_connected (Ioo a b) :=
-ord_connected_Ioi.inter ord_connected_Iio
-
-end set
 
 open set function
 
@@ -81,7 +34,7 @@ f.basis_sets.restrict $ λ s hs,
 lemma is_interval_generated_principal_iff {s : set α} :
   is_interval_generated (𝓟 s) ↔ ord_connected s :=
 begin
-  refine ⟨_, λ h, has_basis_principal.is_interval_generated (λ _ _, h)⟩,
+  refine ⟨_, λ h, (has_basis_principal _).is_interval_generated (λ _ _, h)⟩,
   introI h,
   rcases exists_ord_connected_mem (mem_principal_self s) with ⟨t, hst, ht, hts⟩,
   rwa [subset.antisymm hst hts]

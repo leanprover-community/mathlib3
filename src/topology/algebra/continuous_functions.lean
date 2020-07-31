@@ -312,7 +312,7 @@ section module_over_continuous_functions
 ### Structure as module over scalar functions
 
 If `M` is a module over `R`, then we show that the space of continuous functions from `α` to `M`
-is naturally a module over the algebra of continuous functions from `α` to `M`. -/
+is naturally a module over the ring of continuous functions from `α` to `M`. -/
 
 section subtype
 

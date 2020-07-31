@@ -13,13 +13,12 @@ instead of Lie mainly because Lie ring has currently another use in mathematics.
 
 import geometry.manifold.algebra.lie_group
 
-open classical set
-open_locale classical
+open_locale manifold
 
 section smooth_ring
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {H : Type*} [topological_space H]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
+{H : Type*} [topological_space H]
+{E : Type*} [normed_group E] [normed_space 𝕜 E]
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
@@ -93,16 +92,16 @@ scalar multiplication is smooth. In applications, `R` will be a smooth ring and 
 smooth additive group, but this is not needed for the definition -/
 class smooth_module (R : Type*) (M : Type*)
   [ring R] [topological_space R] [charted_space H R] [smooth_manifold_with_corners I R]
-  [topological_space M] [add_comm_group M] [module R M] [topological_semimodule R M]
+  [topological_space M] [add_comm_group M] [module R M] [topological_module R M]
   [charted_space H' M] [smooth_manifold_with_corners I' M]
   extends smooth_semimodule I I' R M : Prop
 
 /-- A smooth vector space is a smooth module over a field. -/
 abbreviation smooth_vector_space (R : Type*) (M : Type*)
-  [field R] [topological_space R] [charted_space H R] [smooth_manifold_with_corners I R]
-  [topological_space M] [add_comm_group M] [module R M] [topological_semimodule R M]
+  [normed_field R] [normed_space 𝕜 R]
+  [topological_space M] [add_comm_group M] [vector_space R M] [topological_vector_space R M]
   [charted_space H' M] [smooth_manifold_with_corners I' M] :=
-smooth_module I I' R M
+smooth_module Isf(𝕜, R) I' R M
 end prio
 
 end smooth_module
@@ -121,7 +120,7 @@ instance field_smooth_ring {𝕜 : Type*} [nondiscrete_normed_field 𝕜] :
 
 instance normed_group_smooth_module {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] :
-  smooth_vector_space (model_with_corners_self 𝕜 𝕜) (model_with_corners_self 𝕜 E) 𝕜 E :=
+  smooth_vector_space Isf(𝕜, E) 𝕜 E :=
 { smooth_smul :=
   begin
     rw smooth_iff,

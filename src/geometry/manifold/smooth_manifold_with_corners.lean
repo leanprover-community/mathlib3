@@ -151,6 +151,10 @@ def model_with_corners_self (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   continuous_to_fun  := continuous_id,
   continuous_inv_fun := continuous_id }
 
+localized "notation `Isf(` 𝕜 `, ` E `)` := model_with_corners_self 𝕜 E" in manifold
+
+localized "notation `Isf(` 𝕜 `)` := model_with_corners_self 𝕜 𝕜" in manifold
+
 section
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] {H : Type*} [topological_space H]

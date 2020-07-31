@@ -7,7 +7,15 @@ Authors: Nicolò Cavalleri
 import geometry.manifold.algebra.structures
 import geometry.manifold.smooth_map
 
+/-!
+# Algebraic structures over smooth functions
+
+In this file we define instances of algebraic sturctures over smooth functions.
+-/
+
 noncomputable theory
+
+open_locale manifold
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -27,9 +35,9 @@ instance has_mul {G : Type*} [has_mul G] [topological_space G] [has_continuous_m
 ⟨λ f g, ⟨f * g, smooth_mul.comp (f.smooth.prod_mk g.smooth)⟩⟩
 
 @[to_additive]
-instance {G : Type*} [monoid G] [topological_space G] [has_continuous_mul G]
-  [charted_space H' G] [smooth_manifold_with_corners I' G] [has_smooth_mul I' G]
-  : has_one C∞(I, N; I', G) :=
+instance {G : Type*} [monoid G] [topological_space G]
+  [charted_space H' G] [smooth_manifold_with_corners I' G] :
+  has_one C∞(I, N; I', G) :=
 ⟨const (1 : G)⟩
 
 end smooth_map
@@ -39,8 +47,7 @@ section group_structure
 /-!
 ### Group stucture
 
-In this section we show that continuous functions valued in a topological group inherit
-a structure of group.
+In this section we show that smooth functions valued in a Lie group inherit a structure of group.
 -/
 
 @[to_additive]
@@ -92,8 +99,8 @@ section ring_structure
 /-!
 ### Ring stucture
 
-In this section we show that continuous functions valued in a topological ring `R` inherit
-a structure of ring.
+In this section we show that smooth functions valued in a smooth ring `R` inherit a structure of
+ring.
 -/
 
 instance smooth_map_semiring {R : Type*} [semiring R] [topological_space R] [topological_semiring R]
@@ -126,35 +133,37 @@ section semimodule_structure
 /-!
 ### Semiodule stucture
 
-In this section we show that continuous functions valued in a topological semimodule `M` over a
-topological semiring `R` inherit a structure of semimodule.
+In this section we show that smooth functions valued in a smooth vector space `M` over a normed
+field `R` that is a normed space over `𝕜` inherit a structure of vector space.
+
+From now on, whenever a scalar multiplication is involved, we cannot consider `R` to be a generic
+semiring with a manifold structure, because of dangerous instances problems (the model with corners
+on which `R` is a manifold gets forgotten). Hence we do everything in the case of `R` being a field
+which is a normed space over `𝕜`, which is slightly more general that the case `𝕜 = R` as it takes
+into account the case `𝕜 = ℝ`, `R = ℂ`.
 -/
 
 instance smooth_map_has_scalar
-  {R : Type*} [semiring R] [topological_space R]
-  [charted_space H' R] [smooth_manifold_with_corners I' R]
-  {M : Type*} [topological_space M] [add_comm_monoid M]
-  [semimodule R M] [topological_semimodule R M]
-  [charted_space H'' M] [smooth_manifold_with_corners I'' M] [smooth_semimodule I' I'' R M] :
+  {R : Type*} [normed_field R] [normed_space 𝕜 R]
+  {M : Type*} [topological_space M] [add_comm_group M]
+  [vector_space R M] [topological_vector_space R M]
+  [charted_space H'' M] [smooth_manifold_with_corners I'' M] [smooth_vector_space I'' R M] :
   has_scalar R C∞(I, N; I'', M) :=
-⟨λ r f, ⟨r • f, (@smooth_const _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ I' _ _ _ _).smul f.smooth⟩⟩
-/- I don't know how to fix this -/
+⟨λ r f, ⟨r • f, (@smooth_const _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ Isf(𝕜, R) _ _ _ _).smul f.smooth⟩⟩
 
 instance smooth_map_semimodule
-  {R : Type*} [semiring R] [topological_space R]
-  [charted_space H' R] [smooth_manifold_with_corners I' R]
-  {M : Type*} [topological_space M] [add_comm_monoid M] [has_continuous_add M]
-  [semimodule R M] [topological_semimodule R M]
-  [charted_space H'' M] [smooth_manifold_with_corners I'' M] [has_smooth_add I'' M]
-  [smooth_semimodule I' I'' R M] :
-  semimodule R C∞(I, N; I'', M) :=
+  {R : Type*} [normed_field R] [normed_space 𝕜 R]
+  {M : Type*} [topological_space M] [add_comm_group M] [topological_add_group M]
+  [vector_space R M] [topological_vector_space R M]
+  [charted_space H'' M] [smooth_manifold_with_corners I'' M] [lie_add_group I'' M]
+  [smooth_vector_space I'' R M] :
+  vector_space R C∞(I, N; I'', M) :=
+semimodule.of_core $
 { smul     := (•),
   smul_add := λ c f g, by ext x; exact smul_add c (f x) (g x),
   add_smul := λ c₁ c₂ f, by ext x; exact add_smul c₁ c₂ (f x),
   mul_smul := λ c₁ c₂ f, by ext x; exact mul_smul c₁ c₂ (f x),
-  one_smul := λ f, by ext x; exact one_smul R (f x),
-  zero_smul := λ f, by ext x; exact zero_smul _ _,
-  smul_zero := λ r, by ext x; exact smul_zero _, }
+  one_smul := λ f, by ext x; exact one_smul R (f x), }
 
 end semimodule_structure
 
@@ -163,16 +172,20 @@ section algebra_structure
 /-!
 ### Algebra structure
 
-In this section we show that continuous functions valued in a topological algebra `A` over a ring
-`R` inherit a structure of algebra. Note that the hypothesis that `A` is a topologial algebra is
-obtained by requiring that `A` be both a `topological_semimodule` and a `topological_semiring`.
+In this section we show that smooth functions valued in a smooth algebra `A` over a normed field
+`R` that is a normed space over `𝕜` inherit a structure of algebra. Note that the hypothesis that
+`A` is a smooth algebra is obtained by requiring that `A` be both a `smooth_vector_space` and a
+`smooth_ring`.
+
+To see why `R` cannot be a generic semiring with a manifold structure see the note of "Semiodule
+stucture".
 -/
 
-variables {R : Type*} [comm_semiring R]
-{A : Type*} [topological_space A] [semiring A] [algebra R A] [topological_semiring A]
-[charted_space H'' A] [smooth_manifold_with_corners I'' A] [smooth_semiring I'' A]
+variables {R : Type*} [normed_field R]
+{A : Type*} [topological_space A] [ring A] [algebra R A] [topological_ring A]
+[charted_space H'' A] [smooth_manifold_with_corners I'' A] [smooth_ring I'' A]
 
-/-- Continuous constant functions as a `ring_hom`. -/
+/-- Smooth constant functions as a `ring_hom`. -/
 def smooth_map.C : R →+* C∞(I, N; I'', A) :=
 { to_fun    := λ c : R, ⟨λ x, ((algebra_map R A) c), smooth_const⟩,
   map_one'  := by ext x; exact (algebra_map R A).map_one,
@@ -180,12 +193,12 @@ def smooth_map.C : R →+* C∞(I, N; I'', A) :=
   map_zero' := by ext x; exact (algebra_map R A).map_zero,
   map_add'  := λ c₁ c₂, by ext x; exact (algebra_map R A).map_add _ _ }
 
-variables [topological_space R] [charted_space H' R] [smooth_manifold_with_corners I' R]
-[topological_semimodule R A] [smooth_semimodule I' I'' R A]
+variables [normed_space 𝕜 R]
+[topological_vector_space R A] [smooth_vector_space I'' R A]
 
 instance : algebra R C∞(I, N; I'', A) :=
-{ smul := λ r f, ⟨r • f, (@smooth_const _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ I' _ _ _ _).smul f.smooth⟩,
-/- I don't know how to fix this -/
+{ smul := λ r f,
+  ⟨r • f, (@smooth_const _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ Isf(𝕜, R) _ _ _ _).smul f.smooth⟩,
   to_ring_hom := smooth_map.C,
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
   smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,
@@ -198,8 +211,8 @@ section module_over_continuous_functions
 /-!
 ### Structure as module over scalar functions
 
-If `M` is a module over `R`, then we show that the space of continuous functions from `α` to `M`
-is naturally a module over the algebra of continuous functions from `α` to `M`. -/
+If `M` is a module over `R`, then we show that the space of smooth functions from `α` to `M`
+is naturally a module over the ring of smooth functions from `α` to `M`. -/
 
 instance smooth_map_has_scalar'
   {R : Type*} [semiring R] [topological_space R]

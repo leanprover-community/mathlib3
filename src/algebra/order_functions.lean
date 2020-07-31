@@ -107,34 +107,18 @@ le_trans (le_max_right _ _) h
 
 end
 
-lemma min_add {α : Type u} [decidable_linear_ordered_add_comm_group α] (a b c : α) :
-      min a b + c = min (a + c) (b + c) :=
-if hle : a ≤ b then
-  have a - c ≤ b - c, from sub_le_sub hle (le_refl _),
-  by simp * at *
-else
-  have b - c ≤ a - c, from sub_le_sub (le_of_lt (lt_of_not_ge hle)) (le_refl _),
-  by simp * at *
-
 lemma min_sub {α : Type u} [decidable_linear_ordered_add_comm_group α] (a b c : α) :
       min a b - c = min (a - c) (b - c) :=
-by simp [min_add, sub_eq_add_neg]
-
+by simp only [min_add_add_right, sub_eq_add_neg]
 
 /- Some lemmas about types that have an ordering and a binary operation, with no
   rules relating them. -/
-lemma fn_min_add_fn_max [decidable_linear_order α] [add_comm_semigroup β] (f : α → β) (n m : α) :
-  f (min n m) + f (max n m) = f n + f m :=
-by { cases le_total n m with h h; simp [h, add_comm] }
-
-lemma min_add_max [decidable_linear_order α] [add_comm_semigroup α] (n m : α) :
-  min n m + max n m = n + m :=
-fn_min_add_fn_max id n m
-
+@[to_additive]
 lemma fn_min_mul_fn_max [decidable_linear_order α] [comm_semigroup β] (f : α → β) (n m : α) :
   f (min n m) * f (max n m) = f n * f m :=
 by { cases le_total n m with h h; simp [h, mul_comm] }
 
+@[to_additive]
 lemma min_mul_max [decidable_linear_order α] [comm_semigroup α] (n m : α) :
   min n m * max n m = n * m :=
 fn_min_mul_fn_max id n m
@@ -219,18 +203,9 @@ end
 
 lemma abs_max_sub_max_le_abs (a b c : α) : abs (max a c - max b c) ≤ abs (a - b) :=
 begin
-  simp only [max],
-  split_ifs,
-  { refl },
-  { calc abs (a - c) = a - c : abs_of_nonneg (sub_nonneg_of_le h)
-      ... ≤ a - b : by { rw sub_le_sub_iff_left, exact le_of_not_le h_1 }
-      ... ≤ abs (a - b) : le_abs_self _ },
-  { calc abs (c - b) = - (c - b) : abs_of_nonpos (sub_nonpos_of_le h_1)
-      ... = b - c : neg_sub _ _
-      ... ≤ b - a : by { rw sub_le_sub_iff_left, exact le_of_not_le h }
-      ... = - (a - b) : by rw neg_sub
-      ... ≤ abs (a - b) : neg_le_abs_self _ },
-  { simp [abs_nonneg] }
+  simp_rw [abs_le, le_sub_iff_add_le, sub_le_iff_le_add, ← max_add_add_left],
+  split; apply max_le_max; simp only [← le_sub_iff_add_le, ← sub_le_iff_le_add, sub_self, neg_le,
+    neg_le_abs_self, neg_zero, abs_nonneg, le_abs_self]
 end
 
 lemma max_sub_min_eq_abs' (a b : α) : max a b - min a b = abs (a - b) :=

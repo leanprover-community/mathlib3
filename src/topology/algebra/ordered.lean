@@ -491,13 +491,12 @@ lemma frontier_lt_subset_eq : frontier {b | f b < g b} ⊆ {b | f b = g b} :=
 by rw ← frontier_compl;
    convert frontier_le_subset_eq hg hf; simp [ext_iff, eq_comm]
 
-@[continuity] lemma continuous.max : continuous (λb, max (f b) (g b)) :=
-have ∀b∈frontier {b | f b ≤ g b}, g b = f b, from assume b hb, (frontier_le_subset_eq hf hg hb).symm,
-continuous_if this hg hf
-
 @[continuity] lemma continuous.min : continuous (λb, min (f b) (g b)) :=
 have ∀b∈frontier {b | f b ≤ g b}, f b = g b, from assume b hb, frontier_le_subset_eq hf hg hb,
 continuous_if this hf hg
+
+@[continuity] lemma continuous.max : continuous (λb, max (f b) (g b)) :=
+@continuous.min (order_dual α) _ _ _ _ _ _ _ hf hg
 
 end
 

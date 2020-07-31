@@ -984,6 +984,9 @@ le_trans
   sum f s = ∑' i, f i s :=
 to_measure_apply _ _ hs
 
+lemma le_sum {ι : Type*} (μ : ι → measure α) (i : ι) : μ i ≤ sum μ :=
+λ s hs, by simp only [sum_apply μ hs, ennreal.le_tsum i]
+
 lemma restrict_Union {ι} [encodable ι] {s : ι → set α} (hd : pairwise (disjoint on s))
   (hm : ∀ i, is_measurable (s i)) :
   μ.restrict (⋃ i, s i) = sum (λ i, μ.restrict (s i)) :=
@@ -1143,6 +1146,14 @@ lemma ae_map_iff [measurable_space β] {f : α → β} (hf : measurable f)
   (∀ᵐ y ∂ (measure.map f μ), p y) ↔ ∀ᵐ x ∂ μ, p (f x) :=
 mem_ae_map_iff hf hp
 
+lemma ae_restrict_iff {s : set α} {p : α → Prop} (hp : is_measurable {x | p x}) :
+  (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
+begin
+  simp only [ae_iff, ← compl_set_of, measure.restrict_apply hp.compl],
+  congr',
+  ext x, simp [and_comm]
+end
+
 @[simp] lemma ae_restrict_eq {s : set α} (hs : is_measurable s):
   (μ.restrict s).ae = μ.ae ⊓ 𝓟 s :=
 begin
@@ -1228,14 +1239,25 @@ lemma finite_at_filter_of_finite (μ : measure α) [finite_measure μ] (f : filt
   μ.finite_at_filter f :=
 ⟨univ, univ_mem_sets, meas_univ_lt_top⟩
 
+class locally_finite_measure [topological_space α] (μ : measure α) : Prop :=
+(finite_at_nhds [] : ∀ x, μ.finite_at_filter (𝓝 x))
+
+alias locally_finite_measure.finite_at_nhds ← measure_theory.measure.finite_at_nhds
+
 namespace measure
 
 namespace finite_at_filter
 
 variables {ν : measure α} {f g : filter α}
 
-protected lemma filter_mono (h : f ≤ g) : μ.finite_at_filter g → μ.finite_at_filter f :=
+lemma filter_mono (h : f ≤ g) : μ.finite_at_filter g → μ.finite_at_filter f :=
 λ ⟨s, hs, hμ⟩, ⟨s, h hs, hμ⟩
+
+lemma inf_of_left (h : μ.finite_at_filter f) : μ.finite_at_filter (f ⊓ g) :=
+h.filter_mono inf_le_left
+
+lemma inf_of_right (h : μ.finite_at_filter g) : μ.finite_at_filter (f ⊓ g) :=
+h.filter_mono inf_le_right
 
 @[simp] lemma inf_ae_iff : μ.finite_at_filter (f ⊓ μ.ae) ↔ μ.finite_at_filter f :=
 begin
@@ -1245,6 +1267,11 @@ begin
   exact measure_mono_ae (mem_sets_of_superset hu (λ x hu ht, hs ⟨ht, hu⟩))
 end
 
+alias inf_ae_iff ↔ measure_theory.measure.finite_at_filter.of_inf_ae _
+
+lemma filter_mono_ae (h : f ⊓ μ.ae ≤ g) (hg : μ.finite_at_filter g) : μ.finite_at_filter f :=
+inf_ae_iff.1 (hg.filter_mono h)
+
 protected lemma measure_mono (h : μ ≤ ν) : ν.finite_at_filter f → μ.finite_at_filter f :=
 λ ⟨s, hs, hν⟩, ⟨s, hs, (measure.le_iff'.1 h s).trans_lt hν⟩
 
@@ -1252,7 +1279,19 @@ protected lemma measure_mono (h : μ ≤ ν) : ν.finite_at_filter f → μ.fini
   ν.finite_at_filter g → μ.finite_at_filter f :=
 λ h, (h.filter_mono hf).measure_mono hμ
 
+protected lemma eventually (h : μ.finite_at_filter f) : ∀ᶠ s in f.lift' powerset, μ s < ⊤ :=
+(eventually_lift'_powerset' $ λ s t hst ht, (measure_mono hst).trans_lt ht).2 h
+
+lemma filter_sup : μ.finite_at_filter f → μ.finite_at_filter g → μ.finite_at_filter (f ⊔ g) :=
+λ ⟨s, hsf, hsμ⟩ ⟨t, htg, htμ⟩,
+ ⟨s ∪ t, union_mem_sup hsf htg, (measure_union_le s t).trans_lt (ennreal.add_lt_top.2 ⟨hsμ, htμ⟩)⟩
+
 end finite_at_filter
+
+lemma finite_at_nhds_within [topological_space α] (μ : measure α) [locally_finite_measure μ]
+  (x : α) (s : set α) :
+  μ.finite_at_filter (nhds_within x s) :=
+(finite_at_nhds μ x).inf_of_left
 
 @[simp] lemma finite_at_principal {s : set α} : μ.finite_at_filter (𝓟 s) ↔ μ s < ⊤ :=
 ⟨λ ⟨t, ht, hμ⟩, (measure_mono ht).trans_lt hμ, λ h, ⟨s, mem_principal_self s, h⟩⟩
@@ -1439,18 +1478,29 @@ end measure_space
 
 end measure_theory
 
-namespace is_compact
-
 open measure_theory
+
+namespace is_compact
 
 variables {α : Type*} [topological_space α] [measurable_space α] {μ : measure α} {s : set α}
 
 lemma finite_measure_of_nhds_within (hs : is_compact s) :
-  (∀ a ∈ s, ∃ t ∈ nhds_within a s, μ t < ⊤) → μ s < ⊤ :=
-by simpa only [← measure.compl_mem_cofinite] using hs.compl_mem_sets_of_nhds_within
+  (∀ a ∈ s, μ.finite_at_filter (nhds_within a s)) → μ s < ⊤ :=
+by simpa only [← measure.compl_mem_cofinite, measure.finite_at_filter]
+  using hs.compl_mem_sets_of_nhds_within
+
+lemma finite_measure [locally_finite_measure μ] (hs : is_compact s) : μ s < ⊤ :=
+hs.finite_measure_of_nhds_within $ λ a ha, μ.finite_at_nhds_within _ _
 
 lemma measure_zero_of_nhds_within (hs : is_compact s) :
   (∀ a ∈ s, ∃ t ∈ nhds_within a s, μ t = 0) → μ s = 0 :=
 by simpa only [← compl_mem_ae_iff] using hs.compl_mem_sets_of_nhds_within
 
 end is_compact
+
+lemma metric.bounded.finite_measure {α : Type*} [metric_space α] [proper_space α]
+  [measurable_space α] {μ : measure α} [locally_finite_measure μ] {s : set α}
+  (hs : metric.bounded s) :
+  μ s < ⊤ :=
+(measure_mono subset_closure).trans_lt (metric.compact_iff_closed_bounded.2
+  ⟨is_closed_closure, metric.bounded_closure_of_bounded hs⟩).finite_measure

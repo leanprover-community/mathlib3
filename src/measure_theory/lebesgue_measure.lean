@@ -174,6 +174,16 @@ begin
     Ico_subset_Ioo_left $ (lt_add_iff_pos_right _).2 ε0) _)
 end
 
+@[simp] lemma lebesgue_outer_Ioc (a b : ℝ) :
+  lebesgue_outer (Ioc a b) = of_real (b - a) :=
+begin
+  apply le_antisymm,
+  { rw ← lebesgue_outer_Icc,
+    exact lebesgue_outer.mono' Ioc_subset_Icc_self },
+  { rw ← lebesgue_outer_Ioo,
+    exact lebesgue_outer.mono' Ioo_subset_Ioc_self }
+end
+
 lemma is_lebesgue_measurable_Iio {c : ℝ} :
   lebesgue_outer.caratheodory.is_measurable (Iio c) :=
 outer_measure.caratheodory_is_measurable $ λ t,
@@ -249,6 +259,7 @@ local attribute [simp] real.volume_val
 @[simp] lemma real.volume_Ico {a b : ℝ} : volume (Ico a b) = of_real (b - a) := by simp
 @[simp] lemma real.volume_Icc {a b : ℝ} : volume (Icc a b) = of_real (b - a) := by simp
 @[simp] lemma real.volume_Ioo {a b : ℝ} : volume (Ioo a b) = of_real (b - a) := by simp
+@[simp] lemma real.volume_Ioc {a b : ℝ} : volume (Ioc a b) = of_real (b - a) := by simp
 @[simp] lemma real.volume_singleton {a : ℝ} : volume ({a} : set ℝ) = 0 := by simp
 
 @[simp] lemma real.volume_interval {a b : ℝ} : volume [a, b] = of_real (abs (b - a)) :=
@@ -258,18 +269,10 @@ begin
   exact max_sub_min_eq_abs _ _
 end
 
-open metric
-
-lemma real.volume_lt_top_of_bounded {s : set ℝ} (h : bounded s) : volume s < ⊤ :=
-begin
-  rw [real.bounded_iff_bdd_below_bdd_above, bdd_below_bdd_above_iff_subset_interval] at h,
-  rcases h with ⟨a, b, h⟩,
-  calc volume s ≤ volume [a, b] : measure_mono h
-    ... < ⊤ : by { rw real.volume_interval, exact ennreal.coe_lt_top }
-end
-
-lemma real.volume_lt_top_of_compact {s : set ℝ} (h : is_compact s) : volume s < ⊤ :=
-real.volume_lt_top_of_bounded (bounded_of_compact h)
+instance real.locally_finite_volume : locally_finite_measure (volume : measure ℝ) :=
+⟨λ x, ⟨Ioo (x - 1) (x + 1),
+  mem_nhds_sets is_open_Ioo ⟨sub_lt_self _ zero_lt_one, lt_add_of_pos_right _ zero_lt_one⟩,
+  by simp only [real.volume_Ioo, ennreal.coe_lt_top]⟩⟩
 
 end volume
 /-

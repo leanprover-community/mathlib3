@@ -349,6 +349,15 @@ lemma has_basis_infi_principal {s : ι → set α} (h : directed (≥) s) [nonem
   exact λ _ _, principal_mono.2
 end⟩
 
+/-- If `s : ι → set α` is an indexed family of sets, then finite intersections of  -/
+lemma has_basis_infi_principal_finite (s : ι → set α) :
+  (⨅ i, 𝓟 (s i)).has_basis (λ t : set ι, finite t) (λ t, ⋂ i ∈ t, s i) :=
+begin
+  refine ⟨λ U, (mem_infi_finite _).trans _⟩,
+  simp only [infi_principal_finset, mem_Union, mem_principal_sets, exists_prop,
+    exists_finite_iff_finset, finset.bInter_coe]
+end
+
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_on (s ⁻¹'o (≥)) S)
   (ne : S.nonempty) :

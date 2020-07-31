@@ -1,11 +1,12 @@
 import measure_theory.set_integral
 import measure_theory.lebesgue_measure
+import analysis.calculus.deriv
 
 noncomputable theory
 open topological_space (second_countable_topology)
-open measure_theory set classical
+open measure_theory set classical filter
 
-open_locale classical
+open_locale classical topological_space filter
 
 variables {α β 𝕜 E F : Type*} [decidable_linear_order α] [measurable_space α] [normed_group E]
 
@@ -137,12 +138,57 @@ begin
   exact le_trans (norm_integral_le_integral_norm _) (le_abs_self _)
 end
 
-lemma norm_integral_le_of_le_const {a b C : ℝ} {f : ℝ → E}
-  (h : ∀ x ∈ Ico (min a b) (max a b), ∥f x∥ ≤ C) :
+lemma norm_integral_le_of_norm_le_const_ae {a b C : ℝ} {f : ℝ → E}
+  (h : ∀ᵐ x, x ∈ Ioc (min a b) (max a b) → ∥f x∥ ≤ C) :
   ∥∫ x in a..b, f x∥ ≤ C * abs (b - a) :=
 begin
-  refine le_trans norm_integral_le_integral_norm_Ioc _,
-  
+  rw [norm_integral_eq_norm_integral_Ioc],
+  have : volume (Ioc (min a b) (max a b)) = ennreal.of_real (abs (b - a)),
+  { rw [real.volume_Ioc, max_sub_min_eq_abs, ennreal.of_real] },
+  rw [← ennreal.to_real_of_real (abs_nonneg _), ← this],
+  refine norm_set_integral_le_of_norm_le_const_ae'' _ is_measurable_Ioc h,
+  simp only [this, ennreal.lt_top_iff_ne_top],
+  exact ennreal.of_real_ne_top
+end
+
+lemma norm_integral_le_of_norm_le_const {a b C : ℝ} {f : ℝ → E}
+  (h : ∀ x ∈ Ioc (min a b) (max a b), ∥f x∥ ≤ C) :
+  ∥∫ x in a..b, f x∥ ≤ C * abs (b - a) :=
+norm_integral_le_of_norm_le_const_ae $ eventually_of_forall h
+
+open asymptotics
+
+lemma integral_sub_linear_is_o_of_tendsto_ae' [locally_finite_measure μ] {f : α → E} {a : α} {c : E}
+  (hfm : measurable f) (ha : tendsto f (𝓝 a ⊓ μ.ae) (𝓝 c)) :
+  is_o (λ b, ∫ x in a..b, f x ∂μ - ((μ (Ioc a b)).to_real - (μ (Ioc b a)).to_real) • c)
+    (λ b, (μ (Ioc (min a b) (max a b))).to_real) (𝓝 a) :=
+begin
+  have A : is_o (λ b, ∫ x in Ioc a b, f x ∂μ - (μ $ Ioc a b).to_real • c)
+    (λ b, (μ $ Ioc a b).to_real) (𝓝 a),
+  { refine (ha.integral_sub_linear_is_o_ae hfm (μ.finite_at_nhds _)).comp_tendsto _,
+    sorry },
+  have B : is_o (λ b, ∫ x in Ioc b a, f x ∂μ - (μ $ Ioc b a).to_real • c)
+    (λ b, (μ $ Ioc b a).to_real) (𝓝 a),
+  { refine (ha.integral_sub_linear_is_o_ae hfm (μ.finite_at_nhds _)).comp_tendsto _,
+    sorry },
+  change is_o _ _ _,
+  convert (A.trans_le _).sub (B.trans_le _),
+  { ext b,
+    simp only [interval_integral, sub_smul],
+    abel },
+  { intro b,
+    cases le_total a b with hab hab; simp [hab] },
+  { intro b,
+    cases le_total a b with hab hab; simp [hab] }
+end
+
+lemma integral_has_deriv_at_of_tendsto_ae {f : ℝ → E} {a : ℝ} {c : E} (hfm : measurable f)
+  (ha : tendsto f (𝓝 a ⊓ volume.ae) (𝓝 c)) :
+  has_deriv_at (λ u, ∫ x in a..u, f x) c a :=
+begin
+  change is_o _ _ _,
+
 end
 
 end interval_integral
+

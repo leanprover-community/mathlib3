@@ -293,14 +293,37 @@ theorem comap_eq_lift' {f : filter β} {m : α → β} :
   comap m f = f.lift' (preimage m) :=
 filter.ext $ λ s, (mem_lift'_sets monotone_preimage).symm
 
-lemma eventually_lift'_powerset {f : filter α} {p : set α → Prop}
+lemma eventually_lift'_powerset {f : filter α} {p : set α → Prop} :
+  (∀ᶠ s in f.lift' powerset, p s) ↔ ∃ s ∈ f, ∀ t ⊆ s, p t :=
+eventually_lift'_iff (λ _ _, powerset_mono.2)
+
+lemma eventually_lift'_powerset' {f : filter α} {p : set α → Prop}
   (hp : ∀ ⦃s t⦄, s ⊆ t → p t → p s) :
   (∀ᶠ s in f.lift' powerset, p s) ↔ ∃ s ∈ f, p s :=
-(eventually_lift'_iff (λ _ _, powerset_mono.2)).trans $
-  exists_congr $ λ s, exists_congr $ λ hsf, ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
+eventually_lift'_powerset.trans $ exists_congr $ λ s, exists_congr $
+  λ hsf, ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
 
 instance lift'_powerset_ne_bot (f : filter α) : ne_bot (f.lift' powerset) :=
 (lift'_ne_bot_iff (λ _ _, powerset_mono.2)).2 $ λ _ _, powerset_nonempty
+
+lemma eventually_lift'_powerset_forall {f : filter α} {p : α → Prop} :
+  (∀ᶠ s in f.lift' powerset, ∀ x ∈ s, p x) ↔ ∀ᶠ x in f, p x :=
+iff.trans (eventually_lift'_powerset' $ λ s t hst ht x hx, ht x (hst hx))
+  exists_sets_subset_iff
+
+alias eventually_lift'_powerset_forall ↔
+  filter.eventually.of_lift'_powerset filter.eventually.lift'_powerset
+
+lemma eventually_lift'_powerset_eventually {f g : filter α} {p : α → Prop} :
+  (∀ᶠ s in f.lift' powerset, ∀ᶠ x in g ⊓ 𝓟 s, p x) ↔ ∀ᶠ x in f ⊓ g, p x :=
+calc (∀ᶠ s in f.lift' powerset, ∀ᶠ x in g ⊓ 𝓟 s, p x) ↔ ∃ s ∈ f, ∀ᶠ x in g ⊓ 𝓟 s, p x :
+  eventually_lift'_powerset' $ λ s t hst, eventually.filter_mono $
+    inf_le_inf_left _ $ principal_mono.2 hst
+... ↔ ∃ (s ∈ f) (t ∈ g), ∀ x, x ∈ t → x ∈ s → p x :
+  by simp only [eventually_inf_principal, ← eventually_iff_exists_mem]
+... ↔ ∀ᶠ x in f ⊓ g, p x :
+  by simp only [filter.eventually, mem_inf_sets, subset_def, mem_inter_iff,
+    ← and_imp, and_comm, mem_set_of_eq]
 
 end lift'
 

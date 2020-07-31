@@ -9,6 +9,10 @@ import ring_theory.adjoin_root
 import ring_theory.algebra_tower
 import ring_theory.polynomial
 import field_theory.minimal_polynomial
+import linear_algebra.finite_dimensional
+
+noncomputable theory
+open_locale classical big_operators
 
 universes u v w
 
@@ -16,8 +20,6 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 
 namespace polynomial
 
-noncomputable theory
-open_locale classical big_operators
 variables [field α] [field β] [field γ]
 open polynomial
 
@@ -307,6 +309,135 @@ begin
 end
 
 end splits
+
+end polynomial
+
+
+section embeddings
+
+variables (F : Type*) [field F]
+
+-- MOVE
+instance subsemiring.nontrivial {R : Type*} [semiring R] [nontrivial R] (S : subsemiring R) : nontrivial S :=
+nontrivial_of_ne 0 1 $ λ H, zero_ne_one (congr_arg subtype.val H : _)
+
+-- MOVE
+instance subalgebra.nontrivial {R S : Type*} [comm_semiring R] [semiring S] [nontrivial S] [algebra R S] (U : subalgebra R S) : nontrivial U :=
+subsemiring.nontrivial U
+
+-- MOVE
+/-- Promotes a bijective algebra homomorphism to an algebra equivalence. -/
+def alg_equiv.of_bijective {R A B : Type*} [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B] (f : A →ₐ[R] B) (hf : function.bijective f) : A ≃ₐ[R] B :=
+{ .. ring_equiv.of_bijective (f : A →+* B) hf, .. f }
+
+/-- The bottom subalgebra is isomorphic to the field. -/
+def alg_equiv.of_bot (R : Type*) [semiring R] [nontrivial R] [algebra F R] :
+  (⊥ : subalgebra F R) ≃ₐ[F] F :=
+alg_equiv.symm $ alg_equiv.of_bijective (algebra.of_id F _)
+⟨ring_hom.injective _, λ ⟨y, hy⟩, let ⟨x, hx⟩ := algebra.mem_bot.1 hy in ⟨x, subtype.eq hx⟩⟩
+
+-- MOVE (remove prefix)
+instance is_algebra_tower.of_ring_hom {R A B : Type*} [comm_semiring R] [comm_semiring A] [comm_semiring B] [algebra R A] [algebra R B] (f : A →ₐ[R] B) : @is_algebra_tower R A B _ _ _ _ (ring_hom.to_algebra f) _ :=
+by { letI := (f : A →+* B).to_algebra,
+exact is_algebra_tower.of_algebra_map_eq (λ x, (f.commutes x).symm) }
+
+-- MOVE
+/-- Produces a map from `subalgebra.under`. -/
+def subalgebra.of_under {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B] [algebra R A] [algebra R B] (S : subalgebra R A) (U : subalgebra S A) [algebra S B] [is_algebra_tower R S B] (f : U →ₐ[S] B) : S.under U →ₐ[R] B :=
+{ commutes' := λ r, (f.commutes (algebra_map R S r)).trans
+    (is_algebra_tower.algebra_map_apply R S B r).symm,
+  .. f }
+
+-- MOVE
+/-- Lift a ring homomorphism `i : R →+* S` to `adjoin_root f →+* S`. -/
+def adjoin_root.alg_hom {R A : Type*} [comm_ring R] [comm_ring A] [algebra R A]
+  (f : polynomial R) (x : A) (hfx : polynomial.aeval x f = 0) : adjoin_root f →ₐ[R] A :=
+{ commutes' := λ r, show adjoin_root.lift _ _ hfx r = _, from adjoin_root.lift_of,
+  .. adjoin_root.lift (algebra_map R A) x hfx }
+
+-- MOVE
+/-- Restrict the codomain of an algebra homomorphism. -/
+def alg_hom.cod_restrict {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B] [algebra R A] [algebra R B] (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) : A →ₐ[R] S :=
+{ commutes' := λ r, subtype.eq $ f.commutes r,
+  .. ring_hom.cod_srestrict (f : A →+* B) S hf }
+
+-- MOVE
+theorem alg_hom.injective_cod_restrict {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B] [algebra R A] [algebra R B] (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) :
+  function.injective (f.cod_restrict S hf) ↔ function.injective f :=
+⟨λ H x y hxy, H $ subtype.eq hxy, λ H x y hxy, H (congr_arg subtype.val hxy : _)⟩
+
+-- MOVE
+theorem alg_hom.injective_iff {R A B : Type*} [comm_semiring R] [comm_ring A] [semiring B] [algebra R A] [algebra R B] (f : A →ₐ[R] B) :
+  function.injective f ↔ (∀ x, f x = 0 → x = 0) :=
+ring_hom.injective_iff (f : A →+* B)
+
+/-- If `p` is the minimal polynomial of `a` over `F` then `F[a] ≃ₐ[F] F[x]/(p)` -/
+def alg_equiv.adjoin_singleton {R : Type*} [comm_ring R] [algebra F R]
+  (x : R) (hx : is_integral F x) :
+  algebra.adjoin F ({x} : set R) ≃ₐ[F] adjoin_root (minimal_polynomial hx) :=
+alg_equiv.symm $ alg_equiv.of_bijective
+  (alg_hom.cod_restrict
+    (adjoin_root.alg_hom _ x $ minimal_polynomial.aeval hx) _
+    (λ p, adjoin_root.induction_on _ p $ λ p,
+      (algebra.adjoin_singleton_eq_range F x).symm ▸ ⟨p, rfl⟩))
+  ⟨(alg_hom.injective_cod_restrict _ _ _).2 $ (alg_hom.injective_iff _).2 $ λ p,
+    adjoin_root.induction_on _ p $ λ p hp, ideal.quotient.eq_zero_iff_mem.2 $
+    ideal.mem_span_singleton.2 $ minimal_polynomial.dvd hx hp,
+  λ y, let ⟨p, hp⟩ := (subalgebra.ext_iff.1 (algebra.adjoin_singleton_eq_range F x) y).1 y.2 in
+  ⟨adjoin_root.mk _ p, subtype.eq hp⟩⟩
+
+-- MOVE
+def field_of_finite_dimensional (F K : Type*) [field F] [integral_domain K] [algebra F K] [finite_dimensional F K] : field K :=
+{ inv := λ x, if H : x = 0 then 0 else classical.some $
+    (show function.surjective (algebra.lmul_left F K x),
+      from linear_map.injective_iff_surjective.1 $ λ _ _, (mul_right_inj' H).1) 1,
+  mul_inv_cancel := λ x hx, show x * dite _ _ _ = _, by { rw dif_neg hx,
+    exact classical.some_spec ((show function.surjective (algebra.lmul_left F K x),
+      from linear_map.injective_iff_surjective.1 $ λ _ _, (mul_right_inj' hx).1) 1) },
+  inv_zero := dif_pos rfl,
+  .. ‹integral_domain K› }
+
+-- MOVE
+instance is_subring.integral_domain {R : Type*} [integral_domain R] (S : set R) [is_subring S] :
+  integral_domain S :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y hxy, or.elim (mul_eq_zero.1 (congr_arg subtype.val hxy))
+    (λ hx, or.inl $ subtype.eq hx) (λ hy, or.inr $ subtype.eq hy),
+  .. (by apply_instance : comm_ring S),
+  .. (by apply_instance : nontrivial S) }
+
+-- MOVE
+instance subalgebra.integral_domain {R A : Type*} [comm_ring R] [integral_domain A] [algebra R A] (S : subalgebra R A) :
+  integral_domain S :=
+@is_subring.integral_domain A _ S _
+
+open finset
+
+/-- If the minimal polynomial of each `ai` splits in `L` then `F(a1, ..., an)` embeds in `L`. -/
+theorem lift_of_splits {F K L : Type*} [field F] [field K] [nontrivial K] [field L]
+  [algebra F K] [algebra F L] (s : finset K) :
+  (∀ x ∈ s, ∃ H : is_integral F x, polynomial.splits (algebra_map F L) (minimal_polynomial H)) →
+  nonempty (algebra.adjoin F (↑s : set K) →ₐ[F] L) :=
+begin
+  refine finset.induction_on s (λ H, _) (λ a s has ih H, _),
+  { rw [coe_empty, algebra.adjoin_empty],
+    exact ⟨(algebra.of_id F L).comp (alg_equiv.of_bot F K)⟩ },
+  rw forall_mem_insert at H, rcases H with ⟨⟨H1, H2⟩, H3⟩, cases ih H3 with f, choose H3 H4 using H3,
+  rw [coe_insert, set.insert_eq, set.union_comm, algebra.adjoin_union],
+  letI := (f : algebra.adjoin F (↑s : set K) →+* L).to_algebra,
+  haveI : finite_dimensional F (algebra.adjoin F (↑s : set K)) :=
+    (submodule.fg_iff_finite_dimensional _).1 (fg_adjoin_of_finite (set.finite_mem_finset s) H3),
+  letI := field_of_finite_dimensional F (algebra.adjoin F (↑s : set K)),
+  -- refine ⟨subalgebra.of_under _ _ $ alg_hom.comp _ $ (alg_equiv.adjoin_singleton (algebra.adjoin F (↑s : set K)) a _ : algebra.adjoin (algebra.adjoin F (↑s : set K)) ({a} : set K) →ₐ[algebra.adjoin F (↑s : set K)] _)⟩,
+end
+
+end embeddings
+
+
+#exit
+namespace polynomial
+
+variables [field α] [field β] [field γ]
+open polynomial
 
 section splitting_field
 

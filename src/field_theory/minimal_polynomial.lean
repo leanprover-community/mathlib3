@@ -31,7 +31,7 @@ variables [comm_ring α] [comm_ring β] [algebra α β]
 /-- Let B be an A-algebra, and x an element of B that is integral over A.
 The minimal polynomial of x is a monic polynomial of smallest degree that has x as its root. -/
 noncomputable def minimal_polynomial {x : β} (hx : is_integral α x) : polynomial α :=
-well_founded.min polynomial.degree_lt_wf _ hx
+well_founded.min degree_lt_wf _ hx
 
 end min_poly_def
 
@@ -58,7 +58,10 @@ le_of_not_lt $ well_founded.not_lt_min degree_lt_wf _ hx ⟨pmonic, hp⟩
 end ring
 
 section field
-variables [field α] [field β] [algebra α β]
+variables [field α]
+
+section comm_ring
+variables [comm_ring β] [algebra α β]
 variables {x : β} (hx : is_integral α x)
 
 /--A minimal polynomial is nonzero.-/
@@ -104,6 +107,8 @@ begin
     simpa using hp }
 end
 
+variables [nontrivial β]
+
 /--The degree of a minimal polynomial is nonzero.-/
 lemma degree_ne_zero : degree (minimal_polynomial hx) ≠ 0 :=
 begin
@@ -124,6 +129,47 @@ assume H, degree_ne_zero hx $ degree_eq_zero_of_is_unit H
 lemma degree_pos : 0 < degree (minimal_polynomial hx) :=
 degree_pos_of_ne_zero_of_nonunit (ne_zero hx) (not_is_unit hx)
 
+theorem unique' {p : polynomial α} (hp1 : _root_.irreducible p) (hp2 : polynomial.aeval x p = 0)
+  (hp3 : p.monic) : p = minimal_polynomial hx :=
+let ⟨q, hq⟩ := dvd hx hp2 in
+eq_of_monic_of_associated hp3 (monic hx) $
+mul_one (minimal_polynomial hx) ▸ hq.symm ▸ associated_mul_mul (associated.refl _) $
+associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is_unit hx
+
+/--If L/K is a field extension, and x is an element of L in the image of K,
+then the minimal polynomial of x is X - C x.-/
+@[simp] protected lemma algebra_map (a : α) (ha : is_integral α (algebra_map α β a)) :
+  minimal_polynomial ha = X - C a :=
+eq.symm $ unique' ha (irreducible_X_sub_C a)
+  (by rw [alg_hom.map_sub, aeval_X, aeval_C, sub_self]) (monic_X_sub_C a)
+
+variable (β)
+/--If L/K is a field extension, and x is an element of L in the image of K,
+then the minimal polynomial of x is X - C x.-/
+lemma algebra_map' (a : α) :
+  minimal_polynomial (@is_integral_algebra_map α β _ _ _ a) =
+  X - C a :=
+minimal_polynomial.algebra_map _ _
+variable {β}
+
+/--The minimal polynomial of 0 is X.-/
+@[simp] lemma zero {h₀ : is_integral α (0:β)} :
+  minimal_polynomial h₀ = X :=
+by simpa only [add_zero, C_0, sub_eq_add_neg, neg_zero, ring_hom.map_zero]
+  using algebra_map' β (0:α)
+
+/--The minimal polynomial of 1 is X - 1.-/
+@[simp] lemma one {h₁ : is_integral α (1:β)} :
+  minimal_polynomial h₁ = X - 1 :=
+by simpa only [ring_hom.map_one, C_1, sub_eq_add_neg]
+  using algebra_map' β (1:α)
+
+end comm_ring
+
+section integral_domain
+variables [integral_domain β] [algebra α β]
+variables {x : β} (hx : is_integral α x)
+
 /--A minimal polynomial is prime.-/
 lemma prime : prime (minimal_polynomial hx) :=
 begin
@@ -138,79 +184,15 @@ end
 lemma irreducible : irreducible (minimal_polynomial hx) :=
 irreducible_of_prime (prime hx)
 
-theorem unique' {p : polynomial α} (hp1 : _root_.irreducible p) (hp2 : polynomial.aeval x p = 0)
-  (hp3 : p.monic) : p = minimal_polynomial hx :=
-let ⟨q, hq⟩ := dvd hx hp2 in
-polynomial.eq_of_monic_of_associated hp3 (monic hx) $
-mul_one (minimal_polynomial hx) ▸ hq.symm ▸ associated_mul_mul (associated.refl _) $
-associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is_unit hx
-
-/--If L/K is a field extension, and x is an element of L in the image of K,
-then the minimal polynomial of x is X - C x.-/
-@[simp] protected lemma algebra_map (a : α) (ha : is_integral α (algebra_map α β a)) :
-  minimal_polynomial ha = X - C a :=
-begin
-  refine (unique ha (monic_X_sub_C a) (by simp [aeval_def]) _).symm,
-  intros q hq H,
-  rw degree_X_sub_C,
-  suffices : 0 < degree q,
-  { -- This part is annoying and shouldn't be there.
-    have q_ne_zero : q ≠ 0,
-    { apply polynomial.ne_zero_of_degree_gt this },
-    rw degree_eq_nat_degree q_ne_zero at this ⊢,
-    rw [← with_bot.coe_zero, with_bot.coe_lt_coe] at this,
-    rwa [← with_bot.coe_one, with_bot.coe_le_coe], },
-  apply degree_pos_of_root (ne_zero_of_monic hq),
-  show is_root q a,
-  apply (algebra_map α β).injective,
-  rw [(algebra_map α β).map_zero, ← H],
-  exact q.hom_eval₂ (ring_hom.id _) (algebra_map α β) _,
-end
-
-variable (β)
-/--If L/K is a field extension, and x is an element of L in the image of K,
-then the minimal polynomial of x is X - C x.-/
-lemma algebra_map' (a : α) :
-  minimal_polynomial (@is_integral_algebra_map α β _ _ _ a) =
-  X - C a :=
-minimal_polynomial.algebra_map _ _
-variable {β}
-
-/--The minimal polynomial of 0 is X.-/
-@[simp] lemma zero {h₀ : is_integral α (0:β)} :
-  minimal_polynomial h₀ = X :=
-by simpa only [add_zero, polynomial.C_0, sub_eq_add_neg, neg_zero, ring_hom.map_zero]
-  using algebra_map' β (0:α)
-
-/--The minimal polynomial of 1 is X - 1.-/
-@[simp] lemma one {h₁ : is_integral α (1:β)} :
-  minimal_polynomial h₁ = X - 1 :=
-by simpa only [ring_hom.map_one, polynomial.C_1, sub_eq_add_neg]
-  using algebra_map' β (1:α)
-
 /--If L/K is a field extension and an element y of K is a root of the minimal polynomial
 of an element x ∈ L, then y maps to x under the field embedding.-/
 lemma root {x : β} (hx : is_integral α x) {y : α}
   (h : is_root (minimal_polynomial hx) y) : algebra_map α β y = x :=
-begin
-  have ndeg_one : nat_degree (minimal_polynomial hx) = 1,
-  { rw ← polynomial.degree_eq_iff_nat_degree_eq_of_pos (nat.zero_lt_one),
-    exact degree_eq_one_of_irreducible_of_root (irreducible hx) h },
-  have coeff_one : (minimal_polynomial hx).coeff 1 = 1,
-  { simpa only [ndeg_one, leading_coeff] using (monic hx).leading_coeff },
-  have hy : y = - coeff (minimal_polynomial hx) 0,
-  { rw (minimal_polynomial hx).as_sum at h,
-    apply eq_neg_of_add_eq_zero,
-    simpa only [ndeg_one, coeff_one, C_1, eval_C, eval_X, eval_add, mul_one, one_mul, pow_zero, pow_one,
-      is_root.def, finset.sum_range_succ, finset.sum_singleton, finset.range_one] using h, },
-  subst y,
-  rw [ring_hom.map_neg, neg_eq_iff_add_eq_zero],
-  have H := aeval hx,
-  rw (minimal_polynomial hx).as_sum at H,
-  simpa only [ndeg_one, coeff_one, aeval_def, C_1, eval₂_add, eval₂_C, eval₂_X,
-    mul_one, one_mul, pow_one, pow_zero, add_comm,
-    finset.sum_range_succ, finset.sum_singleton, finset.range_one] using H,
-end
+have key : minimal_polynomial hx = X - C y :=
+eq_of_monic_of_associated (monic hx) (monic_X_sub_C y) (associated_of_dvd_dvd
+  (dvd_symm_of_irreducible (irreducible_X_sub_C y) (irreducible hx) (dvd_iff_is_root.2 h))
+  (dvd_iff_is_root.2 h)),
+by { have := aeval hx, rwa [key, alg_hom.map_sub, aeval_X, aeval_C, sub_eq_zero, eq_comm] at this }
 
 /--The constant coefficient of the minimal polynomial of x is 0
 if and only if x = 0.-/
@@ -218,7 +200,7 @@ if and only if x = 0.-/
 begin
   split,
   { intro h,
-    have zero_root := polynomial.zero_is_root_of_coeff_zero_eq_zero h,
+    have zero_root := zero_is_root_of_coeff_zero_eq_zero h,
     rw ← root hx zero_root,
     exact ring_hom.map_zero _ },
   { rintro rfl, simp }
@@ -227,6 +209,8 @@ end
 /--The minimal polynomial of a nonzero element has nonzero constant coefficient.-/
 lemma coeff_zero_ne_zero (h : x ≠ 0) : coeff (minimal_polynomial hx) 0 ≠ 0 :=
 by { contrapose! h, simpa using h }
+
+end integral_domain
 
 end field
 

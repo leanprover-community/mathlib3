@@ -405,7 +405,7 @@ end
 lemma le_to_measure_apply {α} (m : outer_measure α) [ms : measurable_space α]
   (h : ms ≤ m.caratheodory) (s : set α) :
   m s ≤ m.to_measure h s :=
-m.trim_ge s
+m.le_trim s
 
 @[simp] lemma to_outer_measure_to_measure {α : Type*} [ms : measurable_space α] {μ : measure α} :
   μ.to_outer_measure.to_measure (le_to_outer_measure_caratheodory _) = μ :=
@@ -1137,7 +1137,7 @@ def completion {α : Type u} [measurable_space α] (μ : measure α) :
   end,
   trimmed := begin
     letI := null_measurable μ,
-    refine le_antisymm (λ s, _) (outer_measure.trim_ge _),
+    refine le_antisymm (λ s, _) (outer_measure.le_trim _),
     rw outer_measure.trim_eq_infi,
     dsimp,
     clear _inst,

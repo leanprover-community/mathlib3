@@ -193,7 +193,7 @@ end
 
 theorem lebesgue_outer_trim : lebesgue_outer.trim = lebesgue_outer :=
 begin
-  refine le_antisymm (λ s, _) (outer_measure.trim_ge _),
+  refine le_antisymm (λ s, _) (outer_measure.le_trim _),
   rw outer_measure.trim_eq_infi,
   refine le_infi (λ f, le_infi $ λ hf,
     ennreal.le_of_forall_epsilon_le $ λ ε ε0 h, _),

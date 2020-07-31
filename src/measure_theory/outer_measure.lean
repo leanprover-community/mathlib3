@@ -680,13 +680,13 @@ variables {α : Type*} [measurable_space α] (m : outer_measure α)
 def trim : outer_measure α :=
 induced_measure (λ s _, m s) m.empty
 
-theorem trim_ge : m ≤ m.trim :=
+theorem le_trim : m ≤ m.trim :=
 λ s, le_infi $ λ f, le_infi $ λ hs,
 le_trans (m.mono hs) $ le_trans (m.Union_nat f) $
 ennreal.tsum_le_tsum $ λ i, le_infi $ λ hf, le_refl _
 
 theorem trim_eq {s : set α} (hs : is_measurable s) : m.trim s = m s :=
-le_antisymm (le_trans (of_function_le _ _ _) (infi_le _ hs)) (trim_ge _ _)
+le_antisymm (le_trans (of_function_le _ _ _) (infi_le _ hs)) (le_trim _ _)
 
 theorem trim_congr {m₁ m₂ : outer_measure α}
   (H : ∀ {s : set α}, is_measurable s → m₁ s = m₂ s) :
@@ -720,7 +720,7 @@ theorem trim_eq_infi' (s : set α) : m.trim s = ⨅ t : {t // s ⊆ t ∧ is_mea
 by simp [infi_subtype, infi_and, trim_eq_infi]
 
 theorem trim_trim (m : outer_measure α) : m.trim.trim = m.trim :=
-le_antisymm (le_trim_iff.2 $ λ s hs, by simp [trim_eq _ hs, le_refl]) (trim_ge _)
+le_antisymm (le_trim_iff.2 $ λ s hs, by simp [trim_eq _ hs, le_refl]) (le_trim _)
 
 @[simp] theorem trim_zero : (0 : outer_measure α).trim = 0 :=
 ext $ λ s, le_antisymm

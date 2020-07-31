@@ -325,6 +325,10 @@ theorem is_O.trans_le (hfg : is_O f g' l) (hgk : ∀ x, ∥g' x∥ ≤ ∥k x∥
   is_O f k l :=
 hfg.trans (is_O_of_le l hgk)
 
+theorem is_o.trans_le (hfg : is_o f g l) (hgk : ∀ x, ∥g x∥ ≤ ∥k x∥) :
+  is_o f k l :=
+hfg.trans_is_O_with (is_O_with_of_le _ hgk) zero_lt_one
+
 section bot
 
 variables (c f g)

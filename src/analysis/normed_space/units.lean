@@ -235,7 +235,7 @@ begin
     ... = ∥↑x⁻¹ * t∥ ^ n : by rw norm_neg
     ... ≤ (∥(↑x⁻¹ : R)∥ * ∥t∥) ^ n : _
     ... =  ∥(↑x⁻¹ : R)∥ ^ n * ∥t∥ ^ n : mul_pow _ _ n,
-    exact pow_le_pow_of_le_left (norm_nonneg _) (norm_mul_le ↑x⁻¹  t) n },
+    exact pow_le_pow_of_le_left (norm_nonneg _) (norm_mul_le ↑x⁻¹ t) n },
   have h'' : 0 ≤ ∥(↑x⁻¹ : R)∥ ^ n * ∥t∥ ^ n,
   { refine mul_nonneg _ _;
     exact pow_nonneg (norm_nonneg _) n },

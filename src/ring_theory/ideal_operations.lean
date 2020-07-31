@@ -689,36 +689,17 @@ end
 
 theorem comap_is_maximal_of_surjective (H : is_maximal K) : is_maximal (comap f K) :=
 begin
-  split,
-  {
-    refine comap_ne_top _ H.left,
-  },
-  {
-    intros J hJ,
-    replace H := H.right (map f J) _,
-    {
-      replace H := congr_arg (comap f) H,
-      rw comap_top at H,
-      rw comap_map_of_surjective _ hf at H,
-      rw eq_top_iff at ⊢ H,
-      refine le_trans H (sup_le (le_of_eq rfl) _),
-      refine le_trans (comap_mono (bot_le)) (le_of_lt hJ),
-    },
-    {
-      refine lt_of_le_of_ne _ _,
-      {
-        refine le_map_of_comap_le_of_surjective _ hf (le_of_lt hJ),
-      },
-      {
-        intro h,
-        apply ne_of_lt hJ,
-        refine trans (congr_arg (comap f) h) _,
-        rw comap_map_of_surjective _ hf,
-        rw sup_eq_left,
-        refine le_trans (comap_mono bot_le) (le_of_lt hJ),
-      }
-    }
-  }
+  refine ⟨comap_ne_top _ H.left, λ J hJ, _⟩,
+  suffices : map f J = ⊤,
+  { replace this := congr_arg (comap f) this,
+    rw [comap_top, comap_map_of_surjective _ hf, eq_top_iff] at this,
+    rw eq_top_iff,
+    exact le_trans this (sup_le (le_of_eq rfl) (le_trans (comap_mono (bot_le)) (le_of_lt hJ))) },
+  refine H.right (map f J) (lt_of_le_of_ne _ _),
+  { exact le_map_of_comap_le_of_surjective _ hf (le_of_lt hJ) },
+  { refine λ h, ne_of_lt hJ (trans (congr_arg (comap f) h) _),
+    rw [comap_map_of_surjective _ hf, sup_eq_left],
+    exact le_trans (comap_mono bot_le) (le_of_lt hJ) }
 end
 
 end surjective

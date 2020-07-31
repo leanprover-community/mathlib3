@@ -288,19 +288,14 @@ f.to_localization_map.mk'_eq_iff_eq
 
 lemma mk'_mem_iff {x} {y : M} {I : ideal S} : f.to_map x ∈ I ↔ f.mk' x y ∈ I :=
 begin
-  split,
-  {
-    intro h,
-    rw ← mk'_spec f x y at h,
+  split;
+  intro h,
+  { rw ← mk'_spec f x y at h,
     obtain ⟨b, hb⟩ := is_unit_iff_exists_inv.1 (map_units f y),
     have := I.smul_mem b h,
-    rwa [smul_eq_mul, mul_comm, mul_assoc, hb, mul_one] at this,
-  },
-  {
-    intro h,
-    rw [← mk'_spec f x y, mul_comm],
-    exact I.smul_mem (f.to_map y) h,
-  }
+    rwa [smul_eq_mul, mul_comm, mul_assoc, hb, mul_one] at this },
+  { rw [← mk'_spec f x y, mul_comm],
+    exact I.smul_mem (f.to_map y) h }
 end
 
 protected lemma eq {a₁ b₁} {a₂ b₂ : M} :
@@ -747,18 +742,14 @@ def to_map_ideal (I : ideal R) : ideal S :=
 theorem map_to_map_eq_to_map_ideal {I : ideal R} : ideal.map f.to_map I = to_map_ideal f I :=
 begin
   refine le_antisymm _ _,
-  {
-    refine λ _ h, ideal.mem_Inf.1 h (λ x hx, _),
+  { refine λ _ h, ideal.mem_Inf.1 h (λ x hx, _),
     obtain ⟨y, hy⟩ := hx,
-    use ⟨⟨⟨y, hy.left⟩, 1⟩, by simp [hy.right]⟩,
-  },
-  {
-    intros x hx,
+    use ⟨⟨⟨y, hy.left⟩, 1⟩, by simp [hy.right]⟩ },
+  { intros x hx,
     have : x ∈ (to_map_ideal f I).carrier := hx,
     obtain ⟨⟨a, s⟩, h⟩ := this,
     rw [ideal.mem_iff_mul_unit_mem _ (map_units f s), mul_comm],
-    exact h.symm ▸ ideal.mem_map_of_mem a.2,
-  }
+    exact h.symm ▸ ideal.mem_map_of_mem a.2 }
 end
 
 theorem map_comap (J : ideal S) :
@@ -833,7 +824,6 @@ begin
       rwa [← ha, ← hb, ← mk'_mem_iff, ← mk'_mem_iff] } }
 end
 
--- TODO: Just inline this into the order_iso proof
 lemma is_prime_of_is_prime_disjoint (I : ideal R) :
   I.is_prime ∧ disjoint (M : set R) ↑I → (ideal.map f.to_map I).is_prime :=
 λ h, by rwa [is_prime_iff_is_prime_disjoint f, comap_map_of_is_prime_disjoint f I h.1 h.2]

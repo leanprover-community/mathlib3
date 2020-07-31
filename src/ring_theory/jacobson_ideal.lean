@@ -53,11 +53,7 @@ lemma le_jacobson {I : ideal R} : I ≤ jacobson I :=
 λ x hx, mem_Inf.mpr (λ J hJ, hJ.left hx)
 
 lemma radical_le_jacobson {I : ideal R} : radical I ≤ jacobson I :=
-begin
-  refine le_Inf (λ J hJ, _),
-  rw (radical_eq_Inf I),
-  exact Inf_le ⟨hJ.left, is_maximal.is_prime hJ.right⟩,
-end
+le_Inf (λ J hJ, (radical_eq_Inf I).symm ▸ Inf_le ⟨hJ.left, is_maximal.is_prime hJ.right⟩)
 
 lemma eq_radical_of_eq_jacobson {I : ideal R} : jacobson I = I → radical I = I :=
 λ h, le_antisymm (le_trans radical_le_jacobson (le_of_eq h)) le_radical
@@ -195,7 +191,7 @@ begin
     refine Inf_le ⟨comap_mono hJ.left, comap_is_maximal_of_surjective _ hf hJ.right⟩ }
 end
 
-/-- Checking if an ideal `I` is its own Jacobson radical can be done by passing the qutient by `I`.
+/-- Checking if an ideal `I` is its own Jacobson radical can be done by passing to the quotient.
 In particular, for `I` a prime ideal, passing to the quotient allows working in an integral domain-/
 lemma eq_jacobson_iff_quotient {I : ideal R} :
   I.jacobson = I ↔ jacobson (⊥ : ideal (I.quotient)) = ⊥ :=

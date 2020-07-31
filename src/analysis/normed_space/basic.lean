@@ -827,7 +827,7 @@ end
 theorem frontier_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
   frontier (ball x r) = sphere x r :=
 begin
-  rw [frontier, closure_ball x hr, interior_eq_of_open is_open_ball],
+  rw [frontier, closure_ball x hr, is_open_ball.interior_eq],
   ext x, exact (@eq_iff_le_not_lt ℝ _ _ _).symm
 end
 
@@ -1097,9 +1097,9 @@ begin
   have h' : summable (λ (i : ι), ∥f i∥),
   { let f' : ι → ℝ := λ i, ∥f i∥,
     have h'' : ∀ i, ∥f' i∥ ≤ g i,
-      intros i,
+    { intros i,
       convert h i,
-      simp,
+      simp },
     simpa [f'] using summable_of_norm_bounded g hg.summable h'' },
   have h1 : ∥(∑' (i:ι), f i)∥ ≤ ∑' (i:ι), ∥f i∥ := by simpa using norm_tsum_le_tsum_norm h',
   have h2 := tsum_le_tsum h h' hg.summable,

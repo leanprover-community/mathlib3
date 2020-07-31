@@ -68,6 +68,10 @@ by rw [vector_span_def, vsub_set_empty, submodule.span_empty]
 
 variables {P}
 
+/-- The `vector_span` of a single point is `⊥`. -/
+@[simp] lemma vector_span_singleton (p : P) : vector_span k V ({p} : set P) = ⊥ :=
+by simp [vector_span_def]
+
 /-- The `vsub_set` lies within the `vector_span`. -/
 lemma vsub_set_subset_vector_span (s : set P) : vsub_set V s ⊆ vector_span k V s :=
 submodule.subset_span
@@ -842,6 +846,16 @@ eq_top_iff.2 $ subset_span_points k V _
 
 variables {P}
 
+/-- The affine span of a single point, coerced to a set, contains just
+that point. -/
+@[simp] lemma coe_affine_span_singleton (p : P) : (affine_span k V ({p} : set P) : set P) = {p} :=
+begin
+  ext x,
+  rw [mem_coe, ←vsub_right_mem_direction_iff_mem (mem_affine_span k V (set.mem_singleton p)) _,
+      direction_affine_span],
+  simp
+end
+
 /-- The span of a union of sets is the sup of their spans. -/
 lemma span_union (s t : set P) : affine_span k V (s ∪ t) = affine_span k V s ⊔ affine_span k V t :=
 (affine_subspace.gi k V P).gc.l_sup
@@ -1216,6 +1230,84 @@ begin
 end
 
 end affine_space
+
+namespace affine_subspace
+
+variables {k : Type*} {V : Type*} {P : Type*} [ring k] [add_comm_group V] [module k V]
+          [affine_space k V P]
+
+open affine_space
+
+/-- The direction of the sup of two nonempty affine subspaces is the
+sup of the two directions and of any one difference between points in
+the two subspaces. -/
+lemma direction_sup {s1 s2 : affine_subspace k V P} {p1 p2 : P} (hp1 : p1 ∈ s1) (hp2 : p2 ∈ s2) :
+  (s1 ⊔ s2).direction = s1.direction ⊔ s2.direction ⊔ submodule.span k {p2 -ᵥ p1} :=
+begin
+  refine le_antisymm _ _,
+  { change (affine_span k V ((s1 : set P) ∪ s2)).direction ≤ _,
+    rw ←mem_coe at hp1,
+    rw [direction_affine_span, vector_span_eq_span_vsub_set_right k V (set.mem_union_left _ hp1),
+        submodule.span_le],
+    rintros v ⟨p3, hp3, rfl⟩,
+    cases hp3,
+    { rw [sup_assoc, sup_comm, submodule.mem_coe, submodule.mem_sup],
+      use [0, submodule.zero_mem _, p3 -ᵥ p1, vsub_mem_direction hp3 hp1],
+      rw zero_add },
+    { rw [sup_assoc, submodule.mem_coe, submodule.mem_sup],
+      use [0, submodule.zero_mem _, p3 -ᵥ p1],
+      rw [and_comm, zero_add],
+      use rfl,
+      rw [←vsub_add_vsub_cancel V p3 p2 p1, submodule.mem_sup],
+      use [p3 -ᵥ p2, vsub_mem_direction hp3 hp2, p2 -ᵥ p1,
+           submodule.mem_span_singleton_self _] } },
+  { refine sup_le (sup_direction_le _ _) _,
+    rw [direction_eq_vector_span, vector_span_def],
+    exact Inf_le_Inf (λ p hp, set.subset.trans
+      (set.singleton_subset_iff.2
+        (vsub_mem_vsub_set V (mem_span_points k V p2 _ (set.mem_union_right _ hp2))
+                             (mem_span_points k V p1 _ (set.mem_union_left _ hp1))))
+      hp) }
+end
+
+/-- The direction of the span of the result of adding a point to a
+nonempty affine subspace is the sup of the direction of that subspace
+and of any one difference between that point and a point in the
+subspace. -/
+lemma direction_affine_span_insert {s : affine_subspace k V P} {p1 p2 : P} (hp1 : p1 ∈ s) :
+  (affine_span k V (insert p2 (s : set P))).direction = submodule.span k {p2 -ᵥ p1} ⊔ s.direction :=
+begin
+  rw [sup_comm, ←set.union_singleton, ←coe_affine_span_singleton k V p2],
+  change (s ⊔ affine_span k V {p2}).direction = _,
+  rw [direction_sup hp1 (mem_affine_span k V (set.mem_singleton _)), direction_affine_span],
+  simp
+end
+
+/-- Given a point `p1` in an affine subspace `s`, and a point `p2`, a
+point `p` is in the span of `s` with `p2` added if and only if it is a
+multiple of `p2 -ᵥ p1` added to a point in `s`. -/
+lemma mem_affine_span_insert_iff {s : affine_subspace k V P} {p1 : P} (hp1 : p1 ∈ s) (p2 p : P) :
+  p ∈ affine_span k V (insert p2 (s : set P)) ↔
+    ∃ (r : k) (p0 : P) (hp0 : p0 ∈ s), p = r • (p2 -ᵥ p1 : V) +ᵥ p0 :=
+begin
+  rw ←mem_coe at hp1,
+  rw [←vsub_right_mem_direction_iff_mem (mem_affine_span k V (set.mem_insert_of_mem _ hp1)),
+      direction_affine_span_insert hp1, submodule.mem_sup],
+  split,
+  { rintros ⟨v1, hv1, v2, hv2, hp⟩,
+    rw submodule.mem_span_singleton at hv1,
+    rcases hv1 with ⟨r, rfl⟩,
+    use [r, v2 +ᵥ p1, vadd_mem_of_mem_direction hv2 hp1],
+    symmetry' at hp,
+    rw [←sub_eq_zero_iff_eq, ←vsub_vadd_eq_vsub_sub, vsub_eq_zero_iff_eq] at hp,
+    rw [hp, vadd_assoc] },
+  { rintros ⟨r, p3, hp3, rfl⟩,
+    use [r • (p2 -ᵥ p1), submodule.mem_span_singleton.2 ⟨r, rfl⟩, p3 -ᵥ p1,
+         vsub_mem_direction hp3 hp1],
+    rw [vadd_vsub_assoc, add_comm] }
+end
+
+end affine_subspace
 
 /-- An `affine_map k V1 P1 V2 P2` is a map from `P1` to `P2` that
 induces a corresponding linear map from `V1` to `V2`. -/

@@ -613,6 +613,21 @@ begin
   { rintro ⟨i, hx⟩, cases hf i ⟨x, hx⟩ with y hy, refine ⟨y, ⟨i, congr_arg subtype.val hy⟩⟩ }
 end
 
+lemma union_distrib_Inter_right {ι : Type*} (s : ι → set α) (t : set α) :
+  (⋂ i, s i) ∪ t = (⋂ i, s i ∪ t) :=
+begin
+  ext x,
+  rw [mem_union_eq, mem_Inter],
+  split ; finish
+end
+
+lemma union_distrib_Inter_left {ι : Type*} (s : ι → set α) (t : set α) :
+  t ∪ (⋂ i, s i) = (⋂ i, t ∪ s i) :=
+begin
+  rw [union_comm, union_distrib_Inter_right],
+  simp [union_comm]
+end
+
 section
 
 variables {p : Prop} {μ : p → set α}

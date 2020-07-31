@@ -2128,11 +2128,6 @@ lemma fderiv_inverse (x : units R) :
   fderiv 𝕜 (@inverse R _) x = - (lmul_right 𝕜 R ↑x⁻¹).comp (lmul_left 𝕜 R ↑x⁻¹) :=
 (has_fderiv_at_inverse x).fderiv
 
-include 𝕜
-lemma continuous_at_inverse (x : units R) :
-  continuous_at inverse (x : R) :=
-(@differentiable_at_inverse 𝕜 _ R _ _ _ x).continuous_at
-
 end algebra_inverse
 
 section continuous_linear_equiv

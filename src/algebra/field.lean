@@ -191,12 +191,13 @@ lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := (f : α →* β).map_ne_zero f.map_
 
 lemma map_eq_zero : f x = 0 ↔ x = 0 := (f : α →* β).map_eq_zero f.map_zero
 
-protected lemma injective : function.injective f :=
-f.injective_iff.2 $ λ x, f.map_eq_zero.1
+variables (x y)
 
 lemma map_inv : g x⁻¹ = (g x)⁻¹ := (g : α →* γ).map_inv' g.map_zero x
 
 lemma map_div : g (x / y) = g x / g y := (g : α →* γ).map_div g.map_zero x y
+
+protected lemma injective : function.injective f := f.injective_iff.2 $ λ x, f.map_eq_zero.1
 
 end
 

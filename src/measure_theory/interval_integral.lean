@@ -95,7 +95,11 @@ begin
   abel
 end
 
-variables [topological_space α] [opens_measurable_space α] [order_closed_topology α]
+variables [topological_space α] [opens_measurable_space α]
+
+section order_closed_topology
+
+variables [order_closed_topology α]
 
 lemma integral_cocycle (hfm : measurable f) (hab : interval_integrable f μ a b)
   (hbc : interval_integrable f μ b c) :
@@ -156,9 +160,13 @@ lemma norm_integral_le_of_norm_le_const {a b C : ℝ} {f : ℝ → E}
   ∥∫ x in a..b, f x∥ ≤ C * abs (b - a) :=
 norm_integral_le_of_norm_le_const_ae $ eventually_of_forall h
 
+end order_closed_topology
+
+variables [order_topology α]
+
 open asymptotics
 
-lemma integral_sub_linear_is_o_of_tendsto_ae' [locally_finite_measure μ] {f : α → E} {a : α} {c : E}
+lemma integral_sub_linear_is_o_of_tendsto_ae [locally_finite_measure μ] {f : α → E} {a : α} {c : E}
   (hfm : measurable f) (ha : tendsto f (𝓝 a ⊓ μ.ae) (𝓝 c)) :
   is_o (λ b, ∫ x in a..b, f x ∂μ - ((μ (Ioc a b)).to_real - (μ (Ioc b a)).to_real) • c)
     (λ b, (μ (Ioc (min a b) (max a b))).to_real) (𝓝 a) :=
@@ -166,11 +174,11 @@ begin
   have A : is_o (λ b, ∫ x in Ioc a b, f x ∂μ - (μ $ Ioc a b).to_real • c)
     (λ b, (μ $ Ioc a b).to_real) (𝓝 a),
   { refine (ha.integral_sub_linear_is_o_ae hfm (μ.finite_at_nhds _)).comp_tendsto _,
-    sorry },
+    exact tendsto_const_nhds.Ioc tendsto_id },
   have B : is_o (λ b, ∫ x in Ioc b a, f x ∂μ - (μ $ Ioc b a).to_real • c)
     (λ b, (μ $ Ioc b a).to_real) (𝓝 a),
   { refine (ha.integral_sub_linear_is_o_ae hfm (μ.finite_at_nhds _)).comp_tendsto _,
-    sorry },
+    exact tendsto_id.Ioc tendsto_const_nhds },
   change is_o _ _ _,
   convert (A.trans_le _).sub (B.trans_le _),
   { ext b,
@@ -182,13 +190,38 @@ begin
     cases le_total a b with hab hab; simp [hab] }
 end
 
-lemma integral_has_deriv_at_of_tendsto_ae {f : ℝ → E} {a : ℝ} {c : E} (hfm : measurable f)
+lemma integral_same_has_deriv_at_of_tendsto_ae {f : ℝ → E} {a : ℝ} {c : E} (hfm : measurable f)
   (ha : tendsto f (𝓝 a ⊓ volume.ae) (𝓝 c)) :
-  has_deriv_at (λ u, ∫ x in a..u, f x) c a :=
+  has_deriv_at (λ b, ∫ x in a..b, f x) c a :=
 begin
   change is_o _ _ _,
+  rw [← is_o_norm_right],
+  convert integral_sub_linear_is_o_of_tendsto_ae hfm ha,
+  { ext b,
+    dsimp,
+    simp only [integral_same, sub_zero, nnreal.of_real, ← sub_smul, ← neg_sub a, real.volume_Ioc,
+      ennreal.coe_to_real, nnreal.coe_mk],
+    congr' 2,
+    rw [← neg_sub (max _ _), max_zero_sub_eq_self] },
+  { ext b,
+    rw [real.volume_Ioc, ennreal.coe_to_real, nnreal.coe_of_real, max_sub_min_eq_abs,
+      real.norm_eq_abs],
+    exact sub_nonneg.2 min_le_max }
+end
 
+lemma integral_has_deriv_at_of_tendsto_ae {f : ℝ → E} {a b : ℝ} {c : E} (hfm : measurable f)
+  (hfi : interval_integrable f volume a b) (hb : tendsto f (𝓝 b ⊓ volume.ae) (𝓝 c)) :
+  has_deriv_at (λ u, ∫ x in a..u, f x) c b :=
+begin
+  refine ((integral_same_has_deriv_at_of_tendsto_ae hfm hb).const_add
+    (∫ x in a..b, f x)).congr_of_eventually_eq _,
+  suffices : ∀ᶠ u in 𝓝 b, interval_integrable f volume b u,
+  { refine this.mono (λ u hu, (integral_add_adjacent_intervals hfm hfi hu).symm) },
+  simp only [interval_integrable, eventually_and],
+  exact ⟨(tendsto_const_nhds.Ioc tendsto_id).eventually
+    (hb.integrable_at_filter_ae (volume.finite_at_nhds _).inf_of_left).eventually,
+    (tendsto_id.Ioc tendsto_const_nhds).eventually
+      (hb.integrable_at_filter_ae (volume.finite_at_nhds _).inf_of_left).eventually⟩,
 end
 
 end interval_integral
-

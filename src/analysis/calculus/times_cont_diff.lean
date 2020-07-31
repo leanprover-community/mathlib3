@@ -2291,7 +2291,7 @@ begin
       split,
       { rintros _ ⟨x', hx'⟩,
         rw ← hx',
-        exact (@continuous_at_inverse 𝕜 _ R _ _ _ x').continuous_within_at },
+        exact (inverse_continuous_at x').continuous_within_at },
       { simp [ftaylor_series_within] } } },
   { apply times_cont_diff_at_succ_iff_has_fderiv_at.mpr,
     refine ⟨λ (x : R), left_right_mul 𝕜 R (inverse x, inverse x), _, _⟩,

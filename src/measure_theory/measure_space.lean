@@ -456,17 +456,21 @@ lemma measure_Union {β} [encodable β] {f : β → set α}
   μ (⋃i, f i) = (∑'i, μ (f i)) :=
 begin
   rw [measure_eq_extend (is_measurable.Union h),
-  extend_Union is_measurable.empty _ is_measurable.Union _ hn h],
+    extend_Union is_measurable.empty _ is_measurable.Union _ hn h],
   { simp [measure_eq_extend, h] },
   { exact μ.empty },
-  {  }
+  { exact μ.m_Union }
 end
 
 lemma measure_union (hd : disjoint s₁ s₂) (h₁ : is_measurable s₁) (h₂ : is_measurable s₂) :
   μ (s₁ ∪ s₂) = μ s₁ + μ s₂ :=
-by rw [measure_eq_extend (h₁.union h₂),
-     extend_union (λ s _, μ s) _ μ.m_Union hd h₁ h₂];
-   simp [measure_eq_extend, h₁, h₂]
+begin
+  rw [measure_eq_extend (h₁.union h₂),
+     extend_union is_measurable.empty _ is_measurable.Union _ hd h₁ h₂],
+  { simp [measure_eq_extend, h₁, h₂] },
+  { exact μ.empty },
+  { exact μ.m_Union }
+end
 
 lemma measure_bUnion {s : set β} {f : β → set α} (hs : countable s)
   (hd : pairwise_on s (disjoint on f)) (h : ∀b∈s, is_measurable (f b)) :

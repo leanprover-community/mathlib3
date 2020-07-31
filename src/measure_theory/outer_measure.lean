@@ -322,9 +322,9 @@ calc (∑'i, m (f i)) = ∑ i in {0}, m (f i) :
     tsum_eq_sum $ by intro i; cases i; simp [m_empty]
   ... = m s : by simp; refl
 
-theorem of_function_eq (h : ∀ ⦃s t : set α⦄, s ⊆ t → m s ≤ m t) (s : set α) :
-  outer_measure.of_function m m_empty s = m s :=
-le_antisymm _ _
+-- theorem of_function_eq (h : ∀ ⦃s t : set α⦄, s ⊆ t → m s ≤ m t) (s : set α) :
+--   outer_measure.of_function m m_empty s = m s :=
+-- le_antisymm _ _
 
 variables {m m_empty}
 theorem le_of_function {μ : outer_measure α} :

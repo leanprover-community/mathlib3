@@ -740,6 +740,21 @@ lemma inner_regular_eq {μ : measure α} (hμ : μ.regular) {{U : set α}}
   (hU : is_open U) : (⨆ (K : set α) (h : is_compact K) (h2 : K ⊆ U), μ K) = μ U :=
 le_antisymm (supr_le $ λ s, supr_le $ λ hs, supr_le $ λ h2s, μ.mono h2s) (hμ.inner_regular hU)
 
+protected lemma smul {μ : measure α} (hμ : μ.regular) {x : ennreal} (hx : x < ⊤) :
+  (x • μ).regular :=
+begin
+  split,
+  { intros K hK, exact ennreal.mul_lt_top hx (hμ.le_top_of_is_compact hK) },
+  { intros A hA, rw [coe_smul],
+    refine le_trans _ (ennreal.mul_left_mono $ hμ.outer_regular hA),
+    simp only [infi_and'], simp only [infi_subtype'],
+    haveI : nonempty {s : set α // is_open s ∧ A ⊆ s} := ⟨⟨set.univ, is_open_univ, subset_univ _⟩⟩,
+    rw [ennreal.mul_infi], refl', exact ne_of_lt hx },
+  { intros U hU, rw [coe_smul], refine le_trans (ennreal.mul_left_mono $ hμ.inner_regular hU) _,
+    simp only [supr_and'], simp only [supr_subtype'],
+    haveI : nonempty {s : set α // is_compact s ∧ s ⊆ U} := ⟨⟨⊥, compact_empty, empty_subset _⟩⟩,
+    rw [ennreal.mul_supr], refl' }
+end
 end regular
 
 end measure

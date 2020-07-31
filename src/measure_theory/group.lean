@@ -15,7 +15,7 @@ We develop some properties of measures on (topological) groups
 -/
 noncomputable theory
 
-open has_inv set
+open has_inv set function
 
 namespace measure_theory
 
@@ -65,40 +65,15 @@ begin
   { intros K hK, rw [μ.conj_apply hK.is_measurable], apply h.le_top_of_is_compact,
     exact (homeomorph.inv G).compact_preimage.mpr hK },
   { intros A hA, rw [μ.conj_apply hA, ← h.outer_regular_eq],
-    refine le_of_eq _, apply infi_congr (preimage inv) (equiv.inv G).injective.preimage_surjective,
+    refine le_of_eq _, apply infi_congr inv (equiv.inv G).injective.preimage_surjective,
     intro U, apply infi_congr_Prop (homeomorph.inv G).is_open_preimage, intro hU,
-    apply infi_congr_Prop,
-    { apply preimage_subset_preimage_iff, rw [surjective.range_eq], apply subset_univ,
-      exact (equiv.inv G).surjective },
-    intro h2U, rw [μ.conj_apply hU.is_measurable, inv_preimage],
+    apply infi_congr_Prop inv_subset_inv, intro h2U, rw [μ.conj_apply hU.is_measurable],
     exact measurable_inv hA },
   { intros U hU, rw [μ.conj_apply hU.is_measurable, ← h.inner_regular_eq],
-    refine ge_of_eq _,
-    apply supr_congr (preimage inv) (equiv.inv G).injective.preimage_surjective,
+    refine ge_of_eq _, apply supr_congr inv (equiv.inv G).injective.preimage_surjective,
     intro K, apply supr_congr_Prop (homeomorph.inv G).compact_preimage, intro hK,
-    apply supr_congr_Prop,
-    { apply preimage_subset_preimage_iff, rw [surjective.range_eq], apply subset_univ,
-      exact (equiv.inv G).surjective },
-    intro h2U, rw [μ.conj_apply hK.is_measurable, inv_preimage],
+    apply supr_congr_Prop inv_subset_inv, intro h2U, rw [μ.conj_apply hK.is_measurable],
     exact continuous_inv U hU },
-end
-
-open outer_measure
-
-lemma regular.smul {μ : measure α} (hμ : μ.regular) {x : ennreal} (hx : x < ⊤) :
-  (x • μ).regular :=
-begin
-  split,
-  { intros K hK, exact ennreal.mul_lt_top hx (hμ.le_top_of_is_compact hK) },
-  { intros A hA, rw [coe_smul],
-    refine le_trans _ (ennreal.mul_left_mono $ hμ.outer_regular hA),
-    simp only [infi_and'], simp only [infi_subtype'],
-    haveI : nonempty {s : set α // is_open s ∧ A ⊆ s} := ⟨⟨set.univ, is_open_univ, subset_univ _⟩⟩,
-    rw [ennreal.mul_infi], refl', exact ne_of_lt hx },
-  { intros U hU, rw [coe_smul], refine le_trans (ennreal.mul_left_mono $ hμ.inner_regular hU) _,
-    simp only [supr_and'], simp only [supr_subtype'],
-    haveI : nonempty {s : set α // is_compact s ∧ s ⊆ U} := ⟨⟨⊥, compact_empty, empty_subset _⟩⟩,
-    rw [ennreal.mul_supr], refl' }
 end
 
 end measure

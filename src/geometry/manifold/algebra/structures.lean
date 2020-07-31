@@ -50,12 +50,12 @@ end smooth_ring
 section smooth_module
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {H : Type*} [topological_space H]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
-  {H' : Type*} [topological_space H']
-  {E' : Type*} [normed_group E'] [normed_space 𝕜 E'] (I' : model_with_corners 𝕜 E' H')
-  {H'' : Type*} [topological_space H'']
-  {E'' : Type*} [normed_group E''] [normed_space 𝕜 E''] (I'' : model_with_corners 𝕜 E'' H'')
+{H : Type*} [topological_space H]
+{E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
+{H' : Type*} [topological_space H']
+{E' : Type*} [normed_group E'] [normed_space 𝕜 E'] (I' : model_with_corners 𝕜 E' H')
+{H'' : Type*} [topological_space H'']
+{E'' : Type*} [normed_group E''] [normed_space 𝕜 E''] (I'' : model_with_corners 𝕜 E'' H'')
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
@@ -73,15 +73,14 @@ section
 
 variables {I I' I''} {R : Type*} {M : Type*}
 [semiring R] [topological_space R] [charted_space H R] [smooth_manifold_with_corners I R]
-  [topological_space M] [add_comm_monoid M] [semimodule R M] [charted_space H' M]
-  [smooth_manifold_with_corners I' M] [topological_semimodule R M] [smooth_semimodule I I' R M]
+[topological_space M] [add_comm_monoid M] [semimodule R M] [charted_space H' M]
+[smooth_manifold_with_corners I' M] [topological_semimodule R M] [smooth_semimodule I I' R M]
 
 lemma smooth_smul : smooth (I.prod I') I' (λ p : R × M, p.1 • p.2) :=
 smooth_semimodule.smooth_smul
 
 lemma smooth.smul {N : Type*} [topological_space N] [charted_space H'' N]
-[smooth_manifold_with_corners I'' N]
-{f : N → R} {g : N → M}
+  [smooth_manifold_with_corners I'' N] {f : N → R} {g : N → M}
   (hf : smooth I'' I f) (hg : smooth I'' I' g) : smooth I'' I' (λ p, f p • g p) :=
 smooth_smul.comp (hf.prod_mk hg)
 

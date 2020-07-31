@@ -61,8 +61,8 @@ instance smooth_map_monoid {G : Type*} [monoid G] [topological_space G] [has_con
 
 @[to_additive]
 instance smooth_map_comm_monoid {G : Type*} [comm_monoid G] [topological_space G]
-[has_continuous_mul G] [charted_space H' G]
-[smooth_manifold_with_corners I' G] [has_smooth_mul I' G] :
+  [has_continuous_mul G] [charted_space H' G]
+  [smooth_manifold_with_corners I' G] [has_smooth_mul I' G] :
   comm_monoid C∞(I, N; I', G) :=
 { one_mul := λ a, by ext; exact one_mul _,
   mul_one := λ a, by ext; exact mul_one _,
@@ -80,7 +80,7 @@ instance smooth_map_group {G : Type*} [group G] [topological_space G] [topologic
 
 @[to_additive]
 instance smooth_map_comm_group {G : Type*} [comm_group G] [topological_space G]
-[topological_group G] [charted_space H' G] [smooth_manifold_with_corners I' G] [lie_group I' G] :
+  [topological_group G] [charted_space H' G] [smooth_manifold_with_corners I' G] [lie_group I' G] :
   comm_group C∞(I, N; I', G) :=
 { ..smooth_map_group,
   ..smooth_map_comm_monoid }
@@ -138,7 +138,7 @@ instance smooth_map_has_scalar
   [charted_space H'' M] [smooth_manifold_with_corners I'' M] [smooth_semimodule I' I'' R M] :
   has_scalar R C∞(I, N; I'', M) :=
 ⟨λ r f, ⟨r • f, (@smooth_const _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ I' _ _ _ _).smul f.smooth⟩⟩
-/- Something weird is happening -/
+/- I don't know how to fix this -/
 
 instance smooth_map_semimodule
   {R : Type*} [semiring R] [topological_space R]
@@ -185,7 +185,7 @@ variables [topological_space R] [charted_space H' R] [smooth_manifold_with_corne
 
 instance : algebra R C∞(I, N; I'', A) :=
 { smul := λ r f, ⟨r • f, (@smooth_const _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ I' _ _ _ _).smul f.smooth⟩,
-/- Again, something weird is happening -/
+/- I don't know how to fix this -/
   to_ring_hom := smooth_map.C,
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
   smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,

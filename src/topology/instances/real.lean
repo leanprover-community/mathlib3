@@ -332,8 +332,7 @@ eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc
 
 end
 
-instance reals_semimodule {α : Type*} [topological_space α] :
-  topological_semimodule ℝ ℝ := ⟨continuous_mul⟩
+instance reals_semimodule : topological_semimodule ℝ ℝ := ⟨continuous_mul⟩
 
 instance real_maps_algebra {α : Type*} [topological_space α] :
   algebra ℝ C(α, ℝ) := continuous_map_algebra

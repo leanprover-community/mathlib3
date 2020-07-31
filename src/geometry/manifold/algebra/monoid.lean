@@ -97,20 +97,20 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 /-- Morphism of additive smooth monoids. -/
 structure smooth_add_monoid_morphism (I : model_with_corners 𝕜 E E) (I' : model_with_corners 𝕜 E' E')
-(G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
-[add_monoid G] [has_continuous_add G] [has_smooth_add I G]
-(G' : Type*) [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
-[add_monoid G'] [has_continuous_add G'] [has_smooth_add I' G'] extends add_monoid_hom G G' :=
-  (smooth_to_fun : smooth I I' to_fun)
+  (G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
+  [add_monoid G] [has_continuous_add G] [has_smooth_add I G]
+  (G' : Type*) [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
+  [add_monoid G'] [has_continuous_add G'] [has_smooth_add I' G'] extends add_monoid_hom G G' :=
+(smooth_to_fun : smooth I I' to_fun)
 
 /-- Morphism of smooth monoids. -/
 @[to_additive]
 structure smooth_monoid_morphism (I : model_with_corners 𝕜 E E) (I' : model_with_corners 𝕜 E' E')
-(G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
-[monoid G] [has_continuous_mul G] [has_smooth_mul I G]
-(G' : Type*) [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
-[monoid G'] [has_continuous_mul G'] [has_smooth_mul I' G'] extends monoid_hom G G' :=
-  (smooth_to_fun : smooth I I' to_fun)
+  (G : Type*) [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
+  [monoid G] [has_continuous_mul G] [has_smooth_mul I G]
+  (G' : Type*) [topological_space G'] [charted_space E' G'] [smooth_manifold_with_corners I' G']
+  [monoid G'] [has_continuous_mul G'] [has_smooth_mul I' G'] extends monoid_hom G G' :=
+(smooth_to_fun : smooth I I' to_fun)
 
 variables {I : model_with_corners 𝕜 E E} {I' : model_with_corners 𝕜 E' E'}
 {G : Type*} [topological_space G] [charted_space E G] [smooth_manifold_with_corners I G]
@@ -139,8 +139,8 @@ structure has_smooth_add_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [has_add G] [topological_space G] [charted_space H G]
-  extends smooth_manifold_with_corners I G : Prop :=
-  (smooth_add : smooth (I.prod I) I (λ p : G×G, p.1 + p.2))
+  [smooth_manifold_with_corners I G] : Prop :=
+(smooth_add : smooth (I.prod I) I (λ p : G×G, p.1 + p.2))
 
 /-- Sometimes one might want to define a smooth monoid `G` without having proved previously that `G`
 is a topological monoid. In such case it is possible to use `has_smooth_mul_core` that does not
@@ -150,8 +150,8 @@ structure has_smooth_mul_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {H : Type*} [topological_space H]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
   (G : Type*) [has_mul G] [topological_space G] [charted_space H G]
-  extends smooth_manifold_with_corners I G : Prop :=
-  (smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2))
+  [smooth_manifold_with_corners I G] : Prop :=
+(smooth_mul : smooth (I.prod I) I (λ p : G×G, p.1 * p.2))
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E] {I : model_with_corners 𝕜 E E}

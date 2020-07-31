@@ -29,6 +29,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 variables (I) (I') (M) (M')
 
+/-- Bundled smooth maps. -/
 @[protect_proj]
 structure smooth_map :=
 (to_fun             : M → M')

@@ -99,18 +99,18 @@ def of_measurable {α} [measurable_space α]
     m (⋃i, f i) (is_measurable.Union h) = (∑'i, m (f i) (h i))) :
   measure α :=
 { m_Union := λ f hf hd,
-  show induced_outer_measure m m0 (Union f) =
-      ∑' i, induced_outer_measure m m0 (f i), begin
+  show induced_outer_measure m _ m0 (Union f) =
+      ∑' i, induced_outer_measure m _ m0 (f i), begin
     rw [induced_outer_measure_eq m0 mU, mU hf hd],
     congr, funext n, rw induced_outer_measure_eq m0 mU
   end,
   trimmed :=
-  show (induced_outer_measure m m0).trim = induced_outer_measure m m0, begin
+  show (induced_outer_measure m _ m0).trim = induced_outer_measure m _ m0, begin
     unfold outer_measure.trim,
     congr, funext s hs,
     exact induced_outer_measure_eq m0 mU hs
   end,
-  ..induced_outer_measure m m0 }
+  ..induced_outer_measure m _ m0 }
 
 lemma of_measurable_apply {α} [measurable_space α]
   {m : Π (s : set α), is_measurable s → ennreal}
@@ -148,11 +148,11 @@ lemma measure_eq_infi (s) : μ s = ⨅ t (st : s ⊆ t) (ht : is_measurable t), 
 by rw [measure_eq_trim, outer_measure.trim_eq_infi]; refl
 
 lemma measure_eq_induced_outer_measure :
-  μ s = induced_outer_measure (λ s _, μ s) μ.empty s :=
+  μ s = induced_outer_measure (λ s _, μ s) is_measurable.empty μ.empty s :=
 measure_eq_trim _
 
 lemma to_outer_measure_eq_induced_outer_measure :
-  μ.to_outer_measure = induced_outer_measure (λ s _, μ s) μ.empty :=
+  μ.to_outer_measure = induced_outer_measure (λ s _, μ s) is_measurable.empty μ.empty :=
 μ.trimmed.symm
 
 lemma measure_eq_extend (hs : is_measurable s) :

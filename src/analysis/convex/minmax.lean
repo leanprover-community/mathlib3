@@ -16,7 +16,9 @@ a global minimum.
 
 universes u
 
-variables {E : Type u} [normed_group E] [normed_space ℝ E] {s : set E}
+variables {E : Type u} [add_comm_group E] [topological_space E]
+  [module ℝ E] [topological_add_group E] [topological_vector_space ℝ E]
+  {s : set E}
 
 open set filter
 open_locale classical

@@ -4,20 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import measure_theory.content
+import measure_theory.group
 /-!
 # Haar measure
 
 In this file we prove the existence of Haar measure for a locally compact Hausdorff topological
 group.
-* We define properties on measures: left and right invariant measures and regular measures
-* We define the conjugate `A ↦ μ (A⁻¹)` of a measure `μ`, and show that it is right invariant iff
-  `μ` is left invariant
-* We work with *contents*. A content is a function from a certain class of subsets
-  to `ennreal` (or `nnreal`) that is additive, subadditive and monotone. We show that:
-  * Given a content `λ` on compact sets, we get a countably subadditive map that vanishes at `∅`.
-    In Halmos (1950) this is called the *inner content* `λ*` of `λ`.
-  * Given an inner content, we define an outer measure.
-* We define the Haar measure on a locally compact Hausdorff group.
+
+## Main Definitions
+
+* `haar_measure`: the Haar measure on a locally compact Hausdorff group. It takes as argument a
+  compact set of the group, and is normalized so that the measure of the given set is 1.
 
 ## Implementation notes
 
@@ -45,147 +42,8 @@ variables {α : Type u} {β : Type*}
 variables [measurable_space α] [topological_space α]
 variables {G : Type w}
 
-section
-
-variables [measurable_space G] [group G]
-
-/-- A measure `μ` on a topological group is left invariant if
-  for all measurable sets `s` and all `g`, we have `μ (gs) = μ s`,
-  where `gs` denotes the translate of `s` by left multiplication with `g`. -/
-def is_left_invariant (μ : set G → ennreal) : Prop :=
-∀ (g : G) {A : set G} (h : is_measurable A), μ ((λ h, g * h) ⁻¹' A) = μ A
-
-/-- A measure `μ` on a topological group is right invariant if
-  for all measurable sets `s` and all `g`, we have `μ (sg) = μ s`,
-  where `sg` denotes the translate of `s` by right multiplication with `g`. -/
-def is_right_invariant (μ : set G → ennreal) : Prop :=
-∀ (g : G) {A : set G} (h : is_measurable A), μ ((λ h, h * g) ⁻¹' A) = μ A
-
-end
 
 namespace measure
-
-/-- A measure `μ` is regular if
-  - it is finite on all compact sets;
-  - it is outer regular: `μ(A) = inf { μ(U) | A ⊆ U open }` for `A` measurable;
-  - it is inner regular: `μ(U) = sup { μ(K) | K ⊆ U compact }` for `U` open. -/
-structure regular (μ : measure α) : Prop :=
-  (le_top_of_is_compact : ∀ {{K : set α}}, is_compact K → μ K < ⊤)
-  (outer_regular : ∀ {{A : set α}}, is_measurable A →
-    (⨅ (U : set α) (h : is_open U) (h2 : A ⊆ U), μ U) ≤ μ A)
-  (inner_regular : ∀ {{U : set α}}, is_open U →
-    μ U ≤ ⨆ (K : set α) (h : is_compact K) (h2 : K ⊆ U), μ K)
-
-namespace regular
-
-lemma outer_regular_eq {μ : measure α} (hμ : μ.regular) {{A : set α}}
-  (hA : is_measurable A) : (⨅ (U : set α) (h : is_open U) (h2 : A ⊆ U), μ U) = μ A :=
-le_antisymm (hμ.outer_regular hA) $ le_infi $ λ s, le_infi $ λ hs, le_infi $ λ h2s, μ.mono h2s
-
-lemma inner_regular_eq {μ : measure α} (hμ : μ.regular) {{U : set α}}
-  (hU : is_open U) : (⨆ (K : set α) (h : is_compact K) (h2 : K ⊆ U), μ K) = μ U :=
-le_antisymm (supr_le $ λ s, supr_le $ λ hs, supr_le $ λ h2s, μ.mono h2s) (hμ.inner_regular hU)
-
-end regular
-
-end measure
-
-
-namespace measure
-
-/-- The conjugate of a measure on a topological group.
-  Defined to be `A ↦ μ (A⁻¹)`, where `A⁻¹` is the pointwise inverse of `A`. -/
-protected def conj [measurable_space G] [group G] (μ : measure G) : measure G :=
-measure.map inv μ
-
-variables [measurable_space G] [group G] [topological_space G] [topological_group G] [borel_space G]
-
-lemma conj_apply (μ : measure G) {s : set G} (hs : is_measurable s) :
-  μ.conj s = μ s⁻¹ :=
-by { unfold measure.conj, rw [measure.map_apply measurable_inv hs, inv_preimage] }
-
-@[simp] lemma conj_conj (μ : measure G) : μ.conj.conj = μ :=
-begin
-  ext1 s hs, rw [μ.conj.conj_apply hs, μ.conj_apply, set.inv_inv], exact measurable_inv hs
-end
-
-variables {μ : measure G}
-
-lemma regular.conj [t2_space G] (h : μ.regular) : μ.conj.regular :=
-begin
-  split,
-  { intros K hK, rw [μ.conj_apply hK.is_measurable], apply h.le_top_of_is_compact,
-    exact (homeomorph.inv G).compact_preimage.mpr hK },
-  { intros A hA, rw [μ.conj_apply hA, ← h.outer_regular_eq],
-    refine le_of_eq _, apply infi_congr (preimage inv) (equiv.inv G).injective.preimage_surjective,
-    intro U, apply infi_congr_Prop (homeomorph.inv G).is_open_preimage, intro hU,
-    apply infi_congr_Prop,
-    { apply preimage_subset_preimage_iff, rw [surjective.range_eq], apply subset_univ,
-      exact (equiv.inv G).surjective },
-    intro h2U, rw [μ.conj_apply hU.is_measurable, inv_preimage],
-    exact measurable_inv hA },
-  { intros U hU, rw [μ.conj_apply hU.is_measurable, ← h.inner_regular_eq],
-    refine ge_of_eq _,
-    apply supr_congr (preimage inv) (equiv.inv G).injective.preimage_surjective,
-    intro K, apply supr_congr_Prop (homeomorph.inv G).compact_preimage, intro hK,
-    apply supr_congr_Prop,
-    { apply preimage_subset_preimage_iff, rw [surjective.range_eq], apply subset_univ,
-      exact (equiv.inv G).surjective },
-    intro h2U, rw [μ.conj_apply hK.is_measurable, inv_preimage],
-    exact continuous_inv U hU },
-end
-
-open outer_measure
-
-lemma regular.smul {μ : measure α} (hμ : μ.regular) {x : ennreal} (hx : x < ⊤) :
-  (x • μ).regular :=
-begin
-  split,
-  { intros K hK, exact ennreal.mul_lt_top hx (hμ.le_top_of_is_compact hK) },
-  { intros A hA, rw [coe_smul],
-    refine le_trans _ (ennreal.mul_left_mono $ hμ.outer_regular hA),
-    simp only [infi_and'], simp only [infi_subtype'],
-    haveI : nonempty {s : set α // is_open s ∧ A ⊆ s} := ⟨⟨set.univ, is_open_univ, subset_univ _⟩⟩,
-    rw [ennreal.mul_infi], refl', exact ne_of_lt hx },
-  { intros U hU, rw [coe_smul], refine le_trans (ennreal.mul_left_mono $ hμ.inner_regular hU) _,
-    simp only [supr_and'], simp only [supr_subtype'],
-    haveI : nonempty {s : set α // is_compact s ∧ s ⊆ U} := ⟨⟨⊥, compact_empty, empty_subset _⟩⟩,
-    rw [ennreal.mul_supr], refl' }
-end
-
-end measure
-
-section conj
-variables [measurable_space G] [group G] [topological_space G] [topological_group G] [borel_space G]
-  {μ : measure G}
-
-@[simp] lemma regular_conj_iff [t2_space G] : μ.conj.regular ↔ μ.regular :=
-by { refine ⟨λ h, _, measure.regular.conj⟩, rw ←μ.conj_conj, exact measure.regular.conj h }
-
-lemma is_right_invariant_conj' (h : is_left_invariant μ) :
-  is_right_invariant μ.conj :=
-begin
-  intros g A hA, rw [μ.conj_apply (measurable_mul_right g hA), μ.conj_apply hA],
-  convert h g⁻¹ (measurable_inv hA) using 2,
-  simp only [←preimage_comp, ← inv_preimage],
-  apply preimage_congr, intro h, simp only [mul_inv_rev, comp_app, inv_inv]
-end
-
-lemma is_left_invariant_conj' (h : is_right_invariant μ) : is_left_invariant μ.conj :=
-begin
-  intros g A hA, rw [μ.conj_apply (measurable_mul_left g hA), μ.conj_apply hA],
-  convert h g⁻¹ (measurable_inv hA) using 2,
-  simp only [←preimage_comp, ← inv_preimage],
-  apply preimage_congr, intro h, simp only [mul_inv_rev, comp_app, inv_inv]
-end
-
-@[simp] lemma is_right_invariant_conj : is_right_invariant μ.conj ↔ is_left_invariant μ :=
-by { refine ⟨λ h, _, is_right_invariant_conj'⟩, rw ←μ.conj_conj, exact is_left_invariant_conj' h }
-
-@[simp] lemma is_left_invariant_conj : is_left_invariant μ.conj ↔ is_right_invariant μ :=
-by { refine ⟨λ h, _, is_left_invariant_conj'⟩, rw ←μ.conj_conj, exact is_right_invariant_conj' h }
-
-end conj
 
 /- we put the construction of the Haar measure in a namespace to partially hide it -/
 namespace haar
@@ -400,7 +258,7 @@ begin
   have h2V₀ : (1 : G) ∈ V₀, { simp only [mem_Inter], rintro ⟨V, hV⟩ h2V, exact hV.2 },
   refine ⟨prehaar K₀.1 V₀, _⟩,
   split,
-  { apply prehaar_mem_haar_product K₀, use 1, rwa interior_eq_of_open h1V₀ },
+  { apply prehaar_mem_haar_product K₀, use 1, rwa h1V₀.interior_eq  },
   { simp only [mem_Inter], rintro ⟨V, hV⟩ h2V, apply subset_closure,
     apply mem_image_of_mem, rw [mem_set_of_eq],
     exact ⟨subset.trans (Inter_subset _ ⟨V, hV⟩) (Inter_subset _ h2V), h1V₀, h2V₀⟩ },
@@ -440,7 +298,7 @@ begin
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩, apply prehaar_self,
-    rw interior_eq_of_open h2U, exact ⟨1, h3U⟩ },
+    rw h2U.interior_eq, exact ⟨1, h3U⟩ },
   { apply continuous_iff_is_closed.mp this, exact is_closed_singleton }
 end
 
@@ -454,7 +312,7 @@ begin
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩, simp only [mem_preimage, mem_Ici, eval, sub_nonneg],
-    apply prehaar_mono _ h, rw interior_eq_of_open h2U, exact ⟨1, h3U⟩ },
+    apply prehaar_mono _ h, rw h2U.interior_eq, exact ⟨1, h3U⟩ },
   { apply continuous_iff_is_closed.mp this, exact is_closed_Ici },
 end
 
@@ -470,7 +328,7 @@ begin
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀ ⟨set.univ, is_open_univ, mem_univ _⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩, simp only [mem_preimage, mem_Ici, eval, sub_nonneg],
-    apply prehaar_sup_le, rw interior_eq_of_open h2U, exact ⟨1, h3U⟩ },
+    apply prehaar_sup_le, rw h2U.interior_eq, exact ⟨1, h3U⟩ },
   { apply continuous_iff_is_closed.mp this, exact is_closed_Ici },
 end
 
@@ -496,7 +354,7 @@ begin
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩,
     simp only [mem_preimage, eval, sub_eq_zero, mem_singleton_iff], rw [eq_comm],
     apply prehaar_sup_eq,
-    { rw interior_eq_of_open h2U, exact ⟨1, h3U⟩ },
+    { rw h2U.interior_eq, exact ⟨1, h3U⟩ },
     { refine disjoint_of_subset _ _ hU,
       { refine subset.trans (mul_subset_mul subset.rfl _) h3V₁,
         exact subset.trans (inv_subset.mpr h1U) (inter_subset_left _ _) },
@@ -516,7 +374,7 @@ begin
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩,
     simp only [mem_singleton_iff, mem_preimage, eval, sub_eq_zero],
-    apply is_left_invariant_prehaar, rw interior_eq_of_open h2U, exact ⟨1, h3U⟩ },
+    apply is_left_invariant_prehaar, rw h2U.interior_eq, exact ⟨1, h3U⟩ },
   { apply continuous_iff_is_closed.mp this, exact is_closed_singleton },
 end
 
@@ -530,8 +388,6 @@ def haar_outer_measure (K₀ : positive_compacts G) : outer_measure G :=
 outer_measure.of_content
   (λ K, show nnreal, from ⟨chaar K₀ K, chaar_nonneg K₀ K⟩)
   (by { norm_cast, rw [←nnreal.coe_eq, nnreal.coe_zero, subtype.coe_mk, chaar_empty] })
-  (λ K₁ K₂, by { norm_cast, simp only [←nnreal.coe_le_coe, nnreal.coe_add, subtype.coe_mk,
-    chaar_sup_le] })
 
 lemma haar_outer_measure_mono {K₀ : positive_compacts G}
   {{A B : set G}} (h2 : A ⊆ B) : haar_outer_measure K₀ A ≤ haar_outer_measure K₀ B :=

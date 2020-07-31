@@ -310,6 +310,9 @@ lemma has_basis.inf (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
     use [s i, i, hi, subset.refl _, s' i', i', hi', subset.refl _, H] }
 end⟩
 
+lemma has_basis_principal (t : set α) : (𝓟 t).has_basis (λ i : unit, true) (λ i, t) :=
+⟨λ U, by simp⟩
+
 lemma has_basis.sup (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   (l ⊔ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∪ s' i.2) :=
 ⟨begin

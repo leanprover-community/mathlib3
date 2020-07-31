@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
-import geometry.manifold.algebra.ring
+import geometry.manifold.algebra.structures
 import geometry.manifold.smooth_map
 
 noncomputable theory

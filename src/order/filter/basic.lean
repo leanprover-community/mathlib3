@@ -421,6 +421,10 @@ trivial
   s ∈ f ⊔ g ↔ s ∈ f ∧ s ∈ g :=
 iff.rfl
 
+lemma union_mem_sup {f g : filter α} {s t : set α} (hs : s ∈ f) (ht : t ∈ g) :
+  s ∪ t ∈ f ⊔ g :=
+⟨mem_sets_of_superset hs (subset_union_left s t), mem_sets_of_superset ht (subset_union_right s t)⟩
+
 @[simp] lemma mem_Sup_sets {x : set α} {s : set (filter α)} :
   x ∈ Sup s ↔ (∀f∈s, x ∈ (f:filter α)) :=
 iff.rfl

@@ -371,6 +371,10 @@ lemma function.surjective.supr_comp {α : Type*} [has_Sup α] {f : ι → ι₂}
   (⨆ x, g (f x)) = ⨆ y, g y :=
 by simp only [supr, hf.range_comp]
 
+lemma supr_congr {α : Type*} [has_Sup α] {f : ι → α} {g : ι₂ → α} (h : ι → ι₂)
+  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⨆ x, f x) = ⨆ y, g y :=
+by { convert h1.supr_comp g, exact (funext h2).symm }
+
 -- TODO: finish doesn't do well here.
 @[congr] theorem supr_congr_Prop {α : Type*} [has_Sup α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
@@ -458,6 +462,10 @@ lemma function.surjective.infi_comp {α : Type*} [has_Inf α] {f : ι → ι₂}
   (hf : function.surjective f) (g : ι₂ → α) :
   (⨅ x, g (f x)) = ⨅ y, g y :=
 @function.surjective.supr_comp _ _ (order_dual α) _ f hf g
+
+lemma infi_congr {α : Type*} [has_Inf α] {f : ι → α} {g : ι₂ → α} (h : ι → ι₂)
+  (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⨅ x, f x) = ⨅ y, g y :=
+by { convert h1.infi_comp g, exact (funext h2).symm }
 
 @[congr] theorem infi_congr_Prop {α : Type*} [has_Inf α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : infi f₁ = infi f₂ :=

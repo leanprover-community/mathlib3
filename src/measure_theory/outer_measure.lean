@@ -351,22 +351,22 @@ variables {s s₁ s₂ : set α}
 
 /-- A set `s` is Carathéodory-measurable for an outer measure `m` if for all sets `t` we have
   `m t = m (t ∩ s) + m (t \ s)`. -/
-def caratheodory_sets (s : set α) : Prop := ∀t, m t = m (t ∩ s) + m (t \ s)
+def is_caratheodory (s : set α) : Prop := ∀t, m t = m (t ∩ s) + m (t \ s)
 
-lemma caratheodory_sets_iff_le {s : set α} : caratheodory_sets s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
+lemma is_caratheodory_iff_le {s : set α} : is_caratheodory s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
 forall_congr $ λ t, le_antisymm_iff.trans $ and_iff_right $ le_inter_add_diff _
 
-@[simp] lemma caratheodory_sets_empty : caratheodory_sets ∅ :=
-by simp [caratheodory_sets, m.empty, diff_empty]
+@[simp] lemma is_caratheodory_empty : is_caratheodory ∅ :=
+by simp [is_caratheodory, m.empty, diff_empty]
 
-lemma caratheodory_sets_compl : caratheodory_sets s₁ → caratheodory_sets s₁ᶜ :=
-by simp [caratheodory_sets, diff_eq, add_comm]
+lemma is_caratheodory_compl : is_caratheodory s₁ → is_caratheodory s₁ᶜ :=
+by simp [is_caratheodory, diff_eq, add_comm]
 
-@[simp] lemma caratheodory_sets_compl_iff : caratheodory_sets sᶜ ↔ caratheodory_sets s :=
-⟨λ h, by simpa using caratheodory_sets_compl m h, caratheodory_sets_compl⟩
+@[simp] lemma is_caratheodory_compl_iff : is_caratheodory sᶜ ↔ is_caratheodory s :=
+⟨λ h, by simpa using is_caratheodory_compl m h, is_caratheodory_compl⟩
 
-lemma caratheodory_sets_union (h₁ : caratheodory_sets s₁) (h₂ : caratheodory_sets s₂) :
-  caratheodory_sets (s₁ ∪ s₂) :=
+lemma is_caratheodory_union (h₁ : is_caratheodory s₁) (h₂ : is_caratheodory s₂) :
+  is_caratheodory (s₁ ∪ s₂) :=
 λ t, begin
   rw [h₁ t, h₂ (t ∩ s₁), h₂ (t \ s₁), h₁ (t ∩ (s₁ ∪ s₂)),
     inter_diff_assoc _ _ s₁, set.inter_assoc _ _ s₁,
@@ -375,78 +375,78 @@ lemma caratheodory_sets_union (h₁ : caratheodory_sets s₁) (h₂ : caratheodo
   simp [diff_eq, add_assoc]
 end
 
-lemma measure_inter_union (h : s₁ ∩ s₂ ⊆ ∅) (h₁ : caratheodory_sets s₁) {t : set α} :
+lemma measure_inter_union (h : s₁ ∩ s₂ ⊆ ∅) (h₁ : is_caratheodory s₁) {t : set α} :
   m (t ∩ (s₁ ∪ s₂)) = m (t ∩ s₁) + m (t ∩ s₂) :=
 by rw [h₁, set.inter_assoc, set.union_inter_cancel_left,
   inter_diff_assoc, union_diff_cancel_left h]
 
-lemma caratheodory_sets_Union_lt {s : ℕ → set α} :
-  ∀{n:ℕ}, (∀i<n, caratheodory_sets (s i)) → caratheodory_sets (⋃i<n, s i)
+lemma is_caratheodory_Union_lt {s : ℕ → set α} :
+  ∀{n:ℕ}, (∀i<n, is_caratheodory (s i)) → is_caratheodory (⋃i<n, s i)
 | 0       h := by simp [nat.not_lt_zero]
-| (n + 1) h := by rw Union_lt_succ; exact caratheodory_sets_union m
+| (n + 1) h := by rw Union_lt_succ; exact is_caratheodory_union m
   (h n (le_refl (n + 1)))
-      (caratheodory_sets_Union_lt $ assume i hi, h i $ lt_of_lt_of_le hi $ nat.le_succ _)
+      (is_caratheodory_Union_lt $ assume i hi, h i $ lt_of_lt_of_le hi $ nat.le_succ _)
 
-lemma caratheodory_sets_inter (h₁ : caratheodory_sets s₁) (h₂ : caratheodory_sets s₂) :
-  caratheodory_sets (s₁ ∩ s₂) :=
-by { rw [← caratheodory_sets_compl_iff, compl_inter],
-  exact caratheodory_sets_union _ (caratheodory_sets_compl _ h₁) (caratheodory_sets_compl _ h₂) }
+lemma is_caratheodory_inter (h₁ : is_caratheodory s₁) (h₂ : is_caratheodory s₂) :
+  is_caratheodory (s₁ ∩ s₂) :=
+by { rw [← is_caratheodory_compl_iff, compl_inter],
+  exact is_caratheodory_union _ (is_caratheodory_compl _ h₁) (is_caratheodory_compl _ h₂) }
 
-lemma caratheodory_sets_sum {s : ℕ → set α} (h : ∀i, caratheodory_sets (s i))
+lemma is_caratheodory_sum {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
   (hd : pairwise (disjoint on s)) {t : set α} :
   ∀ {n}, ∑ i in finset.range n, m (t ∩ s i) = m (t ∩ ⋃i<n, s i)
 | 0            := by simp [nat.not_lt_zero, m.empty]
 | (nat.succ n) := begin
   simp [Union_lt_succ, range_succ],
-  rw [measure_inter_union m _ (h n), caratheodory_sets_sum],
+  rw [measure_inter_union m _ (h n), is_caratheodory_sum],
   intro a, simpa [range_succ] using λ h₁ i hi h₂, hd _ _ (ne_of_gt hi) ⟨h₁, h₂⟩
 end
 
-lemma caratheodory_sets_Union_nat {s : ℕ → set α} (h : ∀i, caratheodory_sets (s i))
-  (hd : pairwise (disjoint on s)) : caratheodory_sets (⋃i, s i) :=
-caratheodory_sets_iff_le.2 $ λ t, begin
+lemma is_caratheodory_Union_nat {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
+  (hd : pairwise (disjoint on s)) : is_caratheodory (⋃i, s i) :=
+is_caratheodory_iff_le.2 $ λ t, begin
   have hp : m (t ∩ ⋃i, s i) ≤ (⨆n, m (t ∩ ⋃i<n, s i)),
   { convert m.Union (λ i, t ∩ s i),
     { rw inter_Union },
-    { simp [ennreal.tsum_eq_supr_nat, caratheodory_sets_sum m h hd] } },
+    { simp [ennreal.tsum_eq_supr_nat, is_caratheodory_sum m h hd] } },
   refine le_trans (add_le_add_right hp _) _,
   rw ennreal.supr_add,
   refine supr_le (λ n, le_trans (add_le_add_left _ _)
-    (ge_of_eq (caratheodory_sets_Union_lt m (λ i _, h i) _))),
+    (ge_of_eq (is_caratheodory_Union_lt m (λ i _, h i) _))),
   refine m.mono (diff_subset_diff_right _),
   exact bUnion_subset (λ i _, subset_Union _ i),
 end
 
-lemma f_Union {s : ℕ → set α} (h : ∀i, caratheodory_sets (s i))
+lemma f_Union {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
   (hd : pairwise (disjoint on s)) : m (⋃i, s i) = ∑'i, m (s i) :=
 begin
   refine le_antisymm (m.Union_nat s) _,
   rw ennreal.tsum_eq_supr_nat,
   refine supr_le (λ n, _),
-  have := @caratheodory_sets_sum _ m _ h hd univ n,
+  have := @is_caratheodory_sum _ m _ h hd univ n,
   simp at this, simp [this],
   exact m.mono (bUnion_subset (λ i _, subset_Union _ i)),
 end
 
 /-- The Carathéodory-measurable sets for an outer measure `m` form a Dynkin system.  -/
 def caratheodory_dynkin : measurable_space.dynkin_system α :=
-{ has := caratheodory_sets,
-  has_empty := caratheodory_sets_empty,
-  has_compl := assume s, caratheodory_sets_compl,
-  has_Union_nat := assume f hf hn, caratheodory_sets_Union_nat hn hf }
+{ has := is_caratheodory,
+  has_empty := is_caratheodory_empty,
+  has_compl := assume s, is_caratheodory_compl,
+  has_Union_nat := assume f hf hn, is_caratheodory_Union_nat hn hf }
 
 /-- Given an outer measure `μ`, the Carathéodory-measurable space is
   defined such that `s` is measurable if `∀t, μ t = μ (t ∩ s) + μ (t \ s)`. -/
 protected def caratheodory : measurable_space α :=
-caratheodory_dynkin.to_measurable_space $ assume s₁ s₂, caratheodory_sets_inter
+caratheodory_dynkin.to_measurable_space $ assume s₁ s₂, is_caratheodory_inter
 
-lemma is_caratheodory {s : set α} :
+lemma is_caratheodory_iff {s : set α} :
   caratheodory.is_measurable s ↔ ∀t, m t = m (t ∩ s) + m (t \ s) :=
 iff.rfl
 
-lemma is_caratheodory_le {s : set α} :
+lemma is_caratheodory_iff_le {s : set α} :
   caratheodory.is_measurable s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
-caratheodory_sets_iff_le
+is_caratheodory_iff_le
 
 protected lemma Union_eq_of_caratheodory {s : ℕ → set α}
   (h : ∀i, caratheodory.is_measurable (s i)) (hd : pairwise (disjoint on s)) :
@@ -461,7 +461,7 @@ lemma of_function_caratheodory {m : set α → ennreal} {s : set α}
   {h₀ : m ∅ = 0} (hs : ∀t, m (t ∩ s) + m (t \ s) ≤ m t) :
   (outer_measure.of_function m h₀).caratheodory.is_measurable s :=
 begin
-  apply (is_caratheodory_le _).mpr,
+  apply (is_caratheodory_iff_le _).mpr,
   refine λ t, le_infi (λ f, le_infi $ λ hf, _),
   refine le_trans (add_le_add
     (infi_le_of_le (λi, f i ∩ s) $ infi_le _ _)
@@ -475,7 +475,7 @@ end
 top_unique $ λ s _ t, (add_zero _).symm
 
 theorem top_caratheodory : (⊤ : outer_measure α).caratheodory = ⊤ :=
-top_unique $ assume s hs, (is_caratheodory_le _).2 $ assume t,
+top_unique $ assume s hs, (is_caratheodory_iff_le _).2 $ assume t,
   t.eq_empty_or_nonempty.elim (λ ht, by simp [ht])
     (λ ht, by simp only [ht, top_apply, le_top])
 
@@ -540,7 +540,9 @@ end Inf_gen
 end outer_measure
 open outer_measure
 
-/-! We can extend a function defined on a subset of `set α` to an outer measure.
+/-! ### Induced Outer Measure
+
+  We can extend a function defined on a subset of `set α` to an outer measure.
   The underlying function is called `extend`, and the measure it induces is called
   `induced_outer_measure`.
 
@@ -680,7 +682,7 @@ lemma induced_outer_measure_caratheodory (s : set α) :
   induced_outer_measure m P0 m0 (t ∩ s) + induced_outer_measure m P0 m0 (t \ s) ≤
     induced_outer_measure m P0 m0 t :=
 begin
-  rw is_caratheodory_le,
+  rw is_caratheodory_iff_le,
   split,
   { intros h t ht, exact h t },
   { intros h u, conv_rhs { rw induced_outer_measure_eq_infi _ msU m_mono },

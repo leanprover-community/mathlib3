@@ -414,7 +414,7 @@ open measurable_space
 
 /-- A function `f` between measurable spaces is measurable if the preimage of every
   measurable set is measurable. -/
-def measurable [measurable_space α] [ measurable_space β] (f : α → β) : Prop :=
+def measurable [measurable_space α] [measurable_space β] (f : α → β) : Prop :=
 ∀ ⦃t : set β⦄, is_measurable t → is_measurable (f ⁻¹' t)
 
 lemma measurable_iff_le_map {m₁ : measurable_space α} {m₂ : measurable_space β} {f : α → β} :
@@ -796,14 +796,6 @@ def set.singleton [measurable_space α] (a:α) : measurable_equiv ({a} : set α)
   measurable_to_fun := measurable_const,
   measurable_inv_fun := measurable_const }
 
-lemma set.image_aux1 {f : α → β} (hf : function.injective f) (u s : set α) :
-  {x : f '' s | ((equiv.set.image f s hf).inv_fun x).val ∈ u} = subtype.val ⁻¹' (f '' u) :=
-begin
-  ext ⟨b, a, has, rfl⟩,
-  have : ∀(h : ∃a', a' ∈ s ∧ a' = a), classical.some h = a := λ h, (classical.some_spec h).2,
-  simp [equiv.set.image, equiv.set.image_of_inj_on, hf, this],
-end
-
 /-- A set is equivalent to its image under a function `f` as measurable spaces,
   if `f` is an injective measurable function that sends measurable sets to measurable sets. -/
 noncomputable def set.image [measurable_space α] [measurable_space β]
@@ -815,9 +807,7 @@ noncomputable def set.image [measurable_space α] [measurable_space β]
   measurable_to_fun  := (hfm.comp measurable_id.subtype_coe).subtype_mk,
   measurable_inv_fun :=
     begin
-      rintro t ⟨u, hu, rfl⟩,
-      show is_measurable {x : f '' s | ((equiv.set.image f s hf).inv_fun x).val ∈ u},
-      rw set.image_aux1 hf u s,
+      rintro t ⟨u, hu, rfl⟩, simp [preimage_preimage, equiv.set.image_symm_preimage hf],
       exact measurable_subtype_coe (hfi u hu)
     end }
 

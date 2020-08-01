@@ -5,6 +5,19 @@ Authors: Mario Carneiro
 -/
 import tactic.alias
 
+/-!
+# Lemmas about inequalities
+
+This file contains some lemmas about `≤`/`≥`/`<`/`>`, and `cmp`.
+
+* We simplify `a ≥ b` and `a > b` to `b ≤ a` and `b < a`, respectively. This way we can formulate
+  all lemmas using `≤`/`<` avoiding duplication.
+
+* In some cases we introduce dot syntax aliases so that, e.g., from
+  `(hab : a ≤ b) (hbc : b ≤ c) (hbc' : b < c)` one can prove `hab.trans hbc : a ≤ c` and
+  `hab.trans_lt hbc' : a < c`.
+-/
+
 universe u
 variables {α : Type u}
 
@@ -16,10 +29,14 @@ alias lt_trans ← has_lt.lt.trans
 @[simp] lemma ge_iff_le [preorder α] {a b : α} : a ≥ b ↔ b ≤ a := iff.rfl
 @[simp] lemma gt_iff_lt [preorder α] {a b : α} : a > b ↔ b < a := iff.rfl
 
+alias ge_iff_le ↔ has_ge.ge.le has_le.le.ge
+alias gt_iff_lt ↔ has_gt.gt.lt has_lt.lt.gt
+
 lemma not_le_of_lt [preorder α] {a b : α} (h : a < b) : ¬ b ≤ a :=
 (le_not_le_of_lt h).right
 
 alias not_le_of_lt ← has_lt.lt.not_le
+alias lt_asymm ← has_lt.lt.not_lt
 
 lemma not_lt_of_le [preorder α] {a b : α} (h : a ≤ b) : ¬ b < a
 | hab := not_le_of_gt hab h

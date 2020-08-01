@@ -334,6 +334,10 @@ begin
   { intros, simp [add_mul], }
 end
 
+lemma map_list_prod (L : list (polynomial R)) : L.prod.map f = (L.map $ map f).prod :=
+list.rec_on L (map_one f) $ λ hd tl ih,
+by rw [list.prod_cons, map_mul, ih, list.map_cons, list.prod_cons]
+
 instance map.is_semiring_hom : is_semiring_hom (map f) :=
 { map_zero := eval₂_zero _ _,
   map_one := eval₂_one _ _,
@@ -429,6 +433,20 @@ lemma root_mul_right_of_is_root {p : polynomial R} (q : polynomial R) :
 λ H, by rw [is_root, eval_mul, is_root.def.1 H, zero_mul]
 
 end eval
+
+section map
+
+variables [comm_semiring R] [comm_semiring S] (f : R →+* S)
+
+lemma map_multiset_prod (m : multiset (polynomial R)) : m.prod.map f = (m.map $ map f).prod :=
+multiset.induction_on m (map_one f) $ λ hd tl ih,
+by rw [multiset.prod_cons, map_mul, ih, multiset.map_cons, multiset.prod_cons]
+
+lemma map_prod {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
+  (∏ i in s, g i).map f = ∏ i in s, (g i).map f :=
+by { rw [finset.prod, map_multiset_prod, multiset.map_map], refl }
+
+end map
 
 end comm_semiring
 

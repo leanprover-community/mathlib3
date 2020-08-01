@@ -121,6 +121,7 @@ meta inductive action (γ : Type)
 | on_click : subexpr → action
 | on_tooltip_action : γ → action
 | on_close_tooltip : action
+| copy : string → action
 
 /--
 Renders a subexpression as a list of html elements.
@@ -133,8 +134,12 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
   click_attrs  : list (attr (action γ)) ←
     if some new_address = click_address then do
       content ← tc.to_html tooltip_component (e, new_address),
+      efmt : string ← format.to_string <$> tactic.pp e,
       pure [tooltip $ h "div" [] [
-          h "button" [cn "fr pointer ba br3", on_click (λ _, action.on_close_tooltip)] ["x"],
+          h "div" [cn "fr"] [
+            h "button" [cn "pointer ba br3 mr1", on_click (λ _, action.copy efmt), attr.val "title" "copy expression to clipboard"] ["📋"],
+            h "button" [cn "pointer ba br3", on_click (λ _, action.on_close_tooltip), attr.val "title" "close"] ["×"]
+          ],
           content
       ]]
     else pure [],
@@ -155,7 +160,15 @@ meta def mk {γ} (tooltip : tc subexpr γ) : tc expr γ :=
 let tooltip_comp :=
    component.with_should_update (λ (x y : tactic_state × expr × expr.address), x.2.2 ≠ y.2.2)
    $ component.map_action (action.on_tooltip_action) tooltip in
-tc.mk_simple
+component.filter_map_action
+  (λ _ (a : γ ⊕ string), sum.cases_on a some (λ _, none))
+$ component.with_effects (λ _ (a : γ ⊕ string),
+  match a with
+  | (sum.inl g) := []
+  | (sum.inr s) := [effect.copy_text s]
+  end
+)
+$ tc.mk_simple
   (action γ)
   (option subexpr × option subexpr)
   (λ e, pure $ (none, none))
@@ -164,8 +177,9 @@ tc.mk_simple
     | (action.on_mouse_enter ⟨e, ea⟩) := ((ca, some (e, ea)), none)
     | (action.on_mouse_leave_all)     := ((ca, none), none)
     | (action.on_click ⟨e, ea⟩)       := if some (e,ea) = ca then ((none, sa), none) else ((some (e, ea), sa), none)
-    | (action.on_tooltip_action g)    := ((none, sa), some g)
+    | (action.on_tooltip_action g)    := ((none, sa), some $ sum.inl g)
     | (action.on_close_tooltip)       := ((none, sa), none)
+    | (action.copy s)                 := ((ca,sa), some $ sum.inr s)
     end
   )
   (λ e ⟨ca, sa⟩, do
@@ -200,7 +214,7 @@ tc.stateless (λ ⟨e,ea⟩, do
     y_comp ← mk type_tooltip y,
     implicit_args ← implicit_arg_list type_tooltip e,
     pure [
-        h "div" [] [
+        h "div" [style [("minWidth", "8rem")]] [
           h "div" [] [y_comp],
           h "hr" [] [],
           implicit_args
@@ -327,6 +341,16 @@ meta inductive tactic_view_action (γ : Type)
 | out (a:γ): tactic_view_action
 | filter (f: filter_type): tactic_view_action
 
+/--
+The "goals accomplished 🎉" HTML widget. This can be overridden using:
+```lean
+meta def my_new_msg {α : Type} : widget.html α := "my message"
+attribute [vm_override my_new_msg] widget_override.goals_accomplished_message
+```
+-/
+meta def goals_accomplished_message {α} : html α :=
+h "div" [cn "f5"] ["goals accomplished 🎉"]
+
 /-- Component that displays all goals, together with the `$n goals` message. -/
 meta def tactic_view_component {γ} (local_c : tc local_collection γ) (target_c : tc expr γ) : tc unit γ :=
 tc.mk_simple
@@ -343,7 +367,7 @@ tc.mk_simple
     set_goals gs,
     let goal_message : html γ :=
       if gs.length = 0 then
-        h "div" [cn "f5"] ["goals accomplished 🎉"]
+        goals_accomplished_message
       else if gs.length = 1 then
         "1 goal"
       else

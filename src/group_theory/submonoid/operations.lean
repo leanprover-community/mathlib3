@@ -218,7 +218,7 @@ ext (λ x, ⟨λ ⟨_, h, rfl⟩, h, λ h, ⟨_, h, rfl⟩⟩)
 
 section galois_coinsertion
 
-variables {f : M →* N} (hf : function.injective f)
+variables {ι : Type*} {f : M →* N} (hf : function.injective f)
 
 include hf
 
@@ -226,7 +226,67 @@ def gci_map_comap : galois_coinsertion (map f) (comap f) :=
 (gc_map_comap f).to_galois_coinsertion
   (λ S x, by simp [mem_comap, mem_map, hf.eq_iff])
 
+lemma comap_map_eq_of_injective (S : submonoid M) : (S.map f).comap f = S :=
+(gci_map_comap hf).u_l_eq _
+
+lemma comap_surjective_of_injective : function.surjective (comap f) :=
+(gci_map_comap hf).u_surjective
+
+lemma map_injective_of_injective : function.injective (map f) :=
+(gci_map_comap hf).l_injective
+
+lemma comap_inf_map_of_injective (S T : submonoid M) : (S.map f ⊓ T.map f).comap f = S ⊓ T :=
+(gci_map_comap hf).u_inf_l _ _
+
+lemma comap_infi_map_of_injective (S : ι → submonoid M) : (⨅ i, (S i).map f).comap f = infi S :=
+(gci_map_comap hf).u_infi_l _
+
+lemma comap_sup_map_of_injective (S T : submonoid M) : (S.map f ⊔ T.map f).comap f = S ⊔ T :=
+(gci_map_comap hf).u_sup_l _ _
+
+lemma comap_supr_map_of_injective (S : ι → submonoid M) : (⨆ i, (S i).map f).comap f = supr S :=
+(gci_map_comap hf).u_supr_l _
+
+lemma map_strict_mono_of_injective : strict_mono (map f) :=
+(gci_map_comap hf).strict_mono_l
+
 end galois_coinsertion
+
+section galois_insertion
+
+variables {ι : Type*} {f : M →* N} (hf : function.surjective f)
+
+include hf
+
+def gi_map_comap : galois_insertion (map f) (comap f) :=
+(gc_map_comap f).to_galois_insertion
+  (λ S x h, let ⟨y, hy⟩ := hf x in mem_map.2 ⟨y, by simp [hy, h]⟩)
+
+lemma map_comap_eq_of_sujective (S : submonoid N) : (S.comap f).map f = S :=
+(gi_map_comap hf).l_u_eq _
+
+lemma map_surjective_of_surjective : function.surjective (map f) :=
+(gi_map_comap hf).l_surjective
+
+lemma comap_injective_of_surjective : function.injective (comap f) :=
+(gi_map_comap hf).u_injective
+
+lemma map_inf_comap_of_surjective (S T : submonoid N) : (S.comap f ⊓ T.comap f).map f = S ⊓ T :=
+(gi_map_comap hf).l_inf_u _ _
+
+lemma map_infi_comap_of_surjective (S : ι → submonoid N) : (⨅ i, (S i).comap f).map f = infi S :=
+(gi_map_comap hf).l_infi_u _
+
+lemma map_sup_comap_of_surjective (S T : submonoid N) : (S.comap f ⊔ T.comap f).map f = S ⊔ T :=
+(gi_map_comap hf).l_sup_u _ _
+
+lemma map_supr_comap_of_surjective (S : ι → submonoid N) : (⨆ i, (S i).comap f).map f = supr S :=
+(gi_map_comap hf).l_supr_u _
+
+lemma comap_strict_mono_of_injective : strict_mono (comap f) :=
+(gi_map_comap hf).strict_mono_u
+
+end galois_insertion
 
 /-- A submonoid of a monoid inherits a multiplication. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits an addition."]

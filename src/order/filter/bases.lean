@@ -261,20 +261,28 @@ lemma has_basis_self {l : filter α} {P : set α → Prop} :
   has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t, (t ∈ l ↔ ∃ r ∈ l, P r ∧ r ⊆ t) :=
 by simp only [has_basis_iff, exists_prop, id, and_assoc]
 
-/-- If `{s i | p i}` is a basis of a filter `l` and `V ∈ l`, then `{s i | p i ∧ s i ⊆ V}`
-is a basis of `l`. -/
-lemma has_basis.restrict (h : l.has_basis p s) {V : set α} (hV : V ∈ l) :
-  l.has_basis (λ i, p i ∧ s i ⊆ V) s :=
+/-- If `{s i | p i}` is a basis of a filter `l` and each `s i` includes `s j` such that
+`p j ∧ q j`, then `{s j | p j ∧ q j}` is a basis of `l`. -/
+lemma has_basis.restrict (h : l.has_basis p s) {q : ι → Prop}
+  (hq : ∀ i, p i → ∃ j, p j ∧ q j ∧ s j ⊆ s i) :
+  l.has_basis (λ i, p i ∧ q i) s :=
 begin
   refine ⟨λ t, ⟨λ ht, _, λ ⟨i, hpi, hti⟩, h.mem_iff.2 ⟨i, hpi.1, hti⟩⟩⟩,
-  rcases h.mem_iff.1 (inter_mem_sets hV ht) with ⟨i, hpi, hti⟩,
-  rw subset_inter_iff at hti,
-  exact ⟨i, ⟨hpi, hti.1⟩, hti.2⟩
+  rcases h.mem_iff.1 ht with ⟨i, hpi, hti⟩,
+  rcases hq i hpi with ⟨j, hpj, hqj, hji⟩,
+  exact ⟨j, ⟨hpj, hqj⟩, subset.trans hji hti⟩
 end
+
+/-- If `{s i | p i}` is a basis of a filter `l` and `V ∈ l`, then `{s i | p i ∧ s i ⊆ V}`
+is a basis of `l`. -/
+lemma has_basis.restrict_subset (h : l.has_basis p s) {V : set α} (hV : V ∈ l) :
+  l.has_basis (λ i, p i ∧ s i ⊆ V) s :=
+h.restrict $ λ i hi, (h.mem_iff.1 (inter_mem_sets hV (h.mem_of_mem hi))).imp $
+  λ j hj, ⟨hj.fst, subset_inter_iff.1 hj.snd⟩
 
 lemma has_basis.has_basis_self_subset {p : set α → Prop} (h : l.has_basis (λ s, s ∈ l ∧ p s) id)
   {V : set α} (hV : V ∈ l) : l.has_basis (λ s, s ∈ l ∧ p s ∧ s ⊆ V) id :=
-by simpa only [and_assoc] using h.restrict hV
+by simpa only [and_assoc] using h.restrict_subset hV
 
 theorem has_basis.ge_iff (hl' : l'.has_basis p' s')  : l ≤ l' ↔ ∀ i', p' i' → s' i' ∈ l :=
 ⟨λ h i' hi', h $ hl'.mem_of_mem hi',

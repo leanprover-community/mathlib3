@@ -295,9 +295,10 @@ end AddCommGroup.colimits
 
 namespace AddCommGroup
 
+-- **TODO** remove this
 -- TODO why is this not always an instance?
 -- I guess it's deprecated in any case, so not long for this world.
-local attribute [instance] normal_add_subgroup_of_add_comm_group
+-- local attribute [instance] normal_add_subgroup_of_add_comm_group
 
 open quotient_add_group
 
@@ -306,9 +307,9 @@ The categorical cokernel of a morphism in `AddCommGroup`
 agrees with the usual group-theoretical quotient.
 -/
 def cokernel_iso_quotient {G H : AddCommGroup} (f : G ⟶ H) :
-  cokernel f ≅ AddCommGroup.of (quotient (set.range f)) :=
-{ hom := cokernel.desc f (add_monoid_hom.of mk)
+  cokernel f ≅ AddCommGroup.of (quotient (add_monoid_hom.range f)) :=
+{ hom := cokernel.desc f (mk' _)
     (by { ext, apply quotient.sound, fsplit, exact -x, simp, }),
-  inv := add_monoid_hom.of (quotient_add_group.lift (set.range f) (cokernel.π f) (by tidy)), }
+  inv := add_monoid_hom.of (quotient_add_group.lift _ (cokernel.π f) (by tidy)), }
 
 end AddCommGroup

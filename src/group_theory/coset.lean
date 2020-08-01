@@ -156,8 +156,22 @@ def left_rel [group α] (s : subgroup α) : setoid α :=
 
 /-- `quotient s` is the quotient type representing the left cosets of `s`.
   If `s` is a normal subgroup, `quotient s` is a group -/
-@[to_additive]
 def quotient [group α] (s : subgroup α) : Type* := quotient (left_rel s)
+
+end quotient_group
+
+namespace quotient_add_group
+
+/-- `quotient s` is the quotient type representing the left cosets of `s`.
+  If `s` is a normal subgroup, `quotient s` is a group -/
+def quotient [add_group α] (s : add_subgroup α) : Type* := quotient (left_rel s)
+
+end quotient_add_group
+
+attribute [to_additive quotient_add_group.quotient] quotient_group.quotient
+
+namespace quotient_group
+
 
 variables [group α] {s : subgroup α}
 

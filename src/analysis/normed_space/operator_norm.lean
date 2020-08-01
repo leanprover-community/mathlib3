@@ -837,3 +837,37 @@ then its norm is bounded by the bound given to the constructor if it is nonnegat
 lemma linear_map.mk_continuous_norm_le (f : E →ₗ[𝕜] F) {C : ℝ} (hC : 0 ≤ C) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ∥f.mk_continuous C h∥ ≤ C :=
 continuous_linear_map.op_norm_le_bound _ hC h
+
+namespace continuous_linear_map
+variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
+
+lemma lmul_left_norm_le (v : 𝕜') : ∥lmul_left 𝕜 𝕜' v∥ ≤ ∥v∥ :=
+linear_map.mk_continuous_norm_le
+  (lmul_left 𝕜 𝕜' v)
+  (norm_nonneg v)
+  (norm_mul_le v)
+
+@[simp] lemma lmul_left_norm (v : 𝕜') : ∥lmul_left 𝕜 𝕜' v∥ = ∥v∥ :=
+begin
+  refine le_antisymm (lmul_left_norm_le 𝕜 𝕜' v) _,
+  simpa [@normed_algebra.norm_one 𝕜 _ 𝕜' _ _] using le_op_norm (lmul_left 𝕜 𝕜' v) (1:𝕜')
+end
+
+lemma lmul_right_norm_le (v : 𝕜') :
+  ∥lmul_right 𝕜 𝕜' v∥ ≤ ∥v∥ :=
+linear_map.mk_continuous_norm_le
+  (lmul_right 𝕜 𝕜' v)
+  (norm_nonneg v)
+  (λ w, by { rw mul_comm, exact norm_mul_le w v })
+
+@[simp] lemma lmul_right_norm (v : 𝕜') : ∥lmul_right 𝕜 𝕜' v∥ = ∥v∥ :=
+begin
+  refine le_antisymm (lmul_right_norm_le 𝕜 𝕜' v) _,
+  simpa [@normed_algebra.norm_one 𝕜 _ 𝕜' _ _] using le_op_norm (lmul_right 𝕜 𝕜' v) (1:𝕜')
+end
+
+lemma lmul_left_right_norm_le (vw : 𝕜' × 𝕜') :
+  ∥lmul_left_right 𝕜 𝕜' vw∥ ≤ ∥vw.1∥ * ∥vw.2∥ :=
+by simpa [mul_comm] using op_norm_comp_le (lmul_right 𝕜 𝕜' vw.2) (lmul_left 𝕜 𝕜' vw.1)
+
+end continuous_linear_map

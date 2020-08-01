@@ -395,7 +395,7 @@ lemma continuous_linear_map.lmul_left_right_bound (vw : 𝕜' × 𝕜') :
   ∥lmul_left_right 𝕜 𝕜' vw∥ ≤ ∥vw.1∥ * ∥vw.2∥ :=
 linear_map.mk_continuous_norm_le
   (lmul_left_right 𝕜 𝕜' vw)
-  ( by nlinarith [norm_nonneg vw.1, norm_nonneg vw.2])
+  (by nlinarith [norm_nonneg vw.1, norm_nonneg vw.2])
   (lmul_left_right_aux_bound 𝕜 𝕜' vw)
 
 /-- The function `lmul_left_right : 𝕜' × 𝕜' → (𝕜' →L[𝕜] 𝕜')` is a bounded bilinear map. -/

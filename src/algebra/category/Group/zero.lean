@@ -23,8 +23,8 @@ namespace Group
 @[to_additive AddGroup.has_zero_object]
 instance : has_zero_object Group :=
 { zero := 1,
-  unique_to := λ X, ⟨⟨1⟩, λ f, begin ext, cases x, erw monoid_hom.map_one, refl end⟩,
-  unique_from := λ X, ⟨⟨1⟩, λ f, begin ext, apply subsingleton.elim, end⟩, }
+  unique_to := λ X, ⟨⟨1⟩, λ f, by { ext, cases x, erw monoid_hom.map_one, refl, }⟩,
+  unique_from := λ X, ⟨⟨1⟩, λ f, by ext⟩, }
 
 end Group
 
@@ -33,7 +33,7 @@ namespace CommGroup
 @[to_additive AddCommGroup.has_zero_object]
 instance : has_zero_object CommGroup :=
 { zero := 1,
-  unique_to := λ X, ⟨⟨1⟩, λ f, begin ext, cases x, erw monoid_hom.map_one, refl end⟩,
-  unique_from := λ X, ⟨⟨1⟩, λ f, begin ext, apply subsingleton.elim, end⟩, }
+  unique_to := λ X, ⟨⟨1⟩, λ f, by { ext, cases x, erw monoid_hom.map_one, refl, }⟩,
+  unique_from := λ X, ⟨⟨1⟩, λ f, by ext⟩, }
 
 end CommGroup

@@ -1383,7 +1383,7 @@ by simp [times_cont_diff_on_univ.symm, differentiable_on_univ.symm, fderiv_withi
 /-- A function is `C^(n + 1)` at a point iff locally, it has a derivative which is `C^n`. -/
 theorem times_cont_diff_at_succ_iff_has_fderiv_at {n : ℕ} :
   times_cont_diff_at 𝕜 ((n + 1) : ℕ) f x
-  ↔ (∃ f' : E → (E →L[𝕜] F), (∃ u ∈ nhds x, (∀ x ∈ u, has_fderiv_at f (f' x) x))
+  ↔ (∃ f' : E → (E →L[𝕜] F), (∃ u ∈ 𝓝 x, (∀ x ∈ u, has_fderiv_at f (f' x) x))
       ∧ (times_cont_diff_at 𝕜 n f' x)) :=
 begin
   rw [← times_cont_diff_within_at_univ, times_cont_diff_within_at_succ_iff_has_fderiv_within_at],
@@ -1971,11 +1971,7 @@ lemma times_cont_diff_at.comp
   (hg : times_cont_diff_at 𝕜 n g (f x))
   (hf : times_cont_diff_at 𝕜 n f x) :
   times_cont_diff_at 𝕜 n (g ∘ f) x :=
-begin
-  rw ← times_cont_diff_within_at_univ at ⊢ hf hg,
-  apply hg.comp x hf,
-  simp
-end
+hg.comp x hf subset_preimage_univ
 
 lemma times_cont_diff.comp_times_cont_diff_within_at
   {n : with_top ℕ} {g : F → G} {f : E → F} (h : times_cont_diff 𝕜 n g)
@@ -1992,10 +1988,7 @@ lemma times_cont_diff.comp_times_cont_diff_at
   (hg : times_cont_diff 𝕜 n g)
   (hf : times_cont_diff_at 𝕜 n f x) :
   times_cont_diff_at 𝕜 n (g ∘ f) x :=
-begin
-  rw ← times_cont_diff_within_at_univ at ⊢ hf,
-  exact hg.comp_times_cont_diff_within_at hf,
-end
+hg.comp_times_cont_diff_within_at hf
 
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/
 lemma times_cont_diff_on_fderiv_within_apply {m n : with_top  ℕ} {s : set E}

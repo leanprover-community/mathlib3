@@ -394,7 +394,7 @@ variables [algebra R A] [algebra R B] [algebra R C] (φ : A →ₐ[R] B)
 
 end ring
 
-theorem alg_hom.injective_iff {R A B : Type*} [comm_semiring R] [ring A] [semiring B]
+theorem injective_iff {R A B : Type*} [comm_semiring R] [ring A] [semiring B]
   [algebra R A] [algebra R B] (f : A →ₐ[R] B) :
   function.injective f ↔ (∀ x, f x = 0 → x = 0) :=
 ring_hom.injective_iff (f : A →+* B)
@@ -762,7 +762,7 @@ instance to_algebra {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A
   [algebra R A] (S : subalgebra R A) : algebra S A :=
 algebra.of_subsemiring _
 
-instance subalgebra.nontrivial [nontrivial A] : nontrivial S :=
+instance nontrivial [nontrivial A] : nontrivial S :=
 subsemiring.nontrivial S
 
 -- todo: standardize on the names these morphisms
@@ -833,7 +833,7 @@ theorem map_le {S : subalgebra R A} {f : A →ₐ[R] B} {U : subalgebra R B} :
   map S f ≤ U ↔ S ≤ comap' U f :=
 set.image_subset_iff
 
-instance subalgebra.integral_domain {R A : Type*} [comm_ring R] [integral_domain A] [algebra R A]
+instance integral_domain {R A : Type*} [comm_ring R] [integral_domain A] [algebra R A]
   (S : subalgebra R A) : integral_domain S :=
 @subring.domain A _ S _
 

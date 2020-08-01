@@ -108,6 +108,7 @@ by simp [ennreal.to_real, to_nnreal_eq_zero_iff]
 @[simp] lemma coe_ne_top : (r : ennreal) ≠ ∞ := with_top.coe_ne_top
 @[simp] lemma top_ne_coe : ∞ ≠ (r : ennreal) := with_top.top_ne_coe
 @[simp] lemma of_real_ne_top {r : ℝ} : ennreal.of_real r ≠ ∞ := by simp [ennreal.of_real]
+@[simp] lemma of_real_lt_top {r : ℝ} : ennreal.of_real r < ∞ := lt_top_iff_ne_top.2 of_real_ne_top
 @[simp] lemma top_ne_of_real {r : ℝ} : ∞ ≠ ennreal.of_real r := by simp [ennreal.of_real]
 
 @[simp] lemma zero_ne_top : 0 ≠ ∞ := coe_ne_top

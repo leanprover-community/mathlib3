@@ -560,6 +560,21 @@ begin
   exact eventually_norm_pow_le x,
 end
 
+/-- Bound for the sum of a geometric series in a normed ring.  This formula does not assume that the
+normed ring satisfies the axiom `∥1∥ = 1`. -/
+lemma normed_ring.tsum_geometric_of_norm_lt_1
+  (x : R) (h : ∥x∥ < 1) : ∥(∑' (n:ℕ), x ^ n)∥ ≤ ∥(1:R)∥ - 1 + (1 - ∥x∥)⁻¹ :=
+begin
+  rw tsum_eq_zero_add (normed_ring.summable_geometric_of_norm_lt_1 x h),
+  simp only [pow_zero],
+  refine le_trans (norm_add_le _ _) _,
+  have : ∥(∑' (b : ℕ), (λ n, x ^ (n + 1)) b)∥ ≤ (1 - ∥x∥)⁻¹ - 1,
+  { refine tsum_of_norm_bounded _ (λ b, norm_pow_le _ (nat.succ_pos b)),
+    convert (has_sum_nat_add_iff' 1).mpr (has_sum_geometric_of_lt_1 (norm_nonneg x) h),
+    simp },
+  linarith
+end
+
 lemma geom_series_mul_neg (x : R) (h : ∥x∥ < 1) :
   (∑' (i:ℕ), x ^ i) * (1 - x) = 1 :=
 begin

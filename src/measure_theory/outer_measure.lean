@@ -353,7 +353,7 @@ variables {s s₁ s₂ : set α}
   `m t = m (t ∩ s) + m (t \ s)`. -/
 def is_caratheodory (s : set α) : Prop := ∀t, m t = m (t ∩ s) + m (t \ s)
 
-lemma is_caratheodory_iff_le {s : set α} : is_caratheodory s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
+lemma is_caratheodory_iff_le' {s : set α} : is_caratheodory s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
 forall_congr $ λ t, le_antisymm_iff.trans $ and_iff_right $ le_inter_add_diff _
 
 @[simp] lemma is_caratheodory_empty : is_caratheodory ∅ :=
@@ -404,7 +404,7 @@ end
 
 lemma is_caratheodory_Union_nat {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
   (hd : pairwise (disjoint on s)) : is_caratheodory (⋃i, s i) :=
-is_caratheodory_iff_le.2 $ λ t, begin
+is_caratheodory_iff_le'.2 $ λ t, begin
   have hp : m (t ∩ ⋃i, s i) ≤ (⨆n, m (t ∩ ⋃i<n, s i)),
   { convert m.Union (λ i, t ∩ s i),
     { rw inter_Union },
@@ -446,7 +446,7 @@ iff.rfl
 
 lemma is_caratheodory_iff_le {s : set α} :
   caratheodory.is_measurable s ↔ ∀t, m (t ∩ s) + m (t \ s) ≤ m t :=
-is_caratheodory_iff_le
+is_caratheodory_iff_le'
 
 protected lemma Union_eq_of_caratheodory {s : ℕ → set α}
   (h : ∀i, caratheodory.is_measurable (s i)) (hd : pairwise (disjoint on s)) :

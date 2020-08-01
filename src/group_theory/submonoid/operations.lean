@@ -283,7 +283,7 @@ lemma map_sup_comap_of_surjective (S T : submonoid N) : (S.comap f ⊔ T.comap f
 lemma map_supr_comap_of_surjective (S : ι → submonoid N) : (⨆ i, (S i).comap f).map f = supr S :=
 (gi_map_comap hf).l_supr_u _
 
-lemma comap_strict_mono_of_injective : strict_mono (comap f) :=
+lemma comap_strict_mono_of_surjective : strict_mono (comap f) :=
 (gi_map_comap hf).strict_mono_u
 
 end galois_insertion

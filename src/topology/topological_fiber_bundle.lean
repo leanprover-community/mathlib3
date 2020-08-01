@@ -391,7 +391,7 @@ end
 that all the local trivialization are continuous. -/
 instance to_topological_space : topological_space Z.total_space :=
 topological_space.generate_from $ ⋃ (i : ι) (s : set (B × F)) (s_open : is_open s),
-  singleton $ (Z.local_triv' i).source ∩ (Z.local_triv' i) ⁻¹' s
+  {(Z.local_triv' i).source ∩ (Z.local_triv' i) ⁻¹' s}
 
 lemma open_source' (i : ι) : is_open (Z.local_triv' i).source :=
 begin

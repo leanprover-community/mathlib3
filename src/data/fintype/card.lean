@@ -288,7 +288,7 @@ begin
   { have : i < length (of_fn f), by rwa [length_of_fn f],
     rw prod_take_succ _ _ this,
     have A : ((finset.univ : finset (fin n)).filter (λ j, j.val < i + 1))
-      = ((finset.univ : finset (fin n)).filter (λ j, j.val < i)) ∪ {show fin n, from ⟨i, h⟩},
+      = ((finset.univ : finset (fin n)).filter (λ j, j.val < i)) ∪ {(⟨i, h⟩ : fin n)},
         by { ext j, simp [nat.lt_succ_iff_lt_or_eq, fin.ext_iff, - add_comm] },
     have B : _root_.disjoint (finset.filter (λ (j : fin n), j.val < i) finset.univ)
       (singleton (⟨i, h⟩ : fin n)), by simp,

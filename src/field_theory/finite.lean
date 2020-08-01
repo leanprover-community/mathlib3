@@ -195,7 +195,7 @@ begin
   { ext x,
     simp only [true_and, embedding.coe_fn_mk, mem_sdiff, units.exists_iff_ne_zero,
                mem_univ, mem_map, exists_prop_of_true, mem_singleton] },
-  calc ∑ x : K, x ^ i = ∑ x in (univ \ {0} : finset K), x ^ i :
+  calc ∑ x : K, x ^ i = ∑ x in univ \ {(0 : K)}, x ^ i :
     by rw [← sum_sdiff ({0} : finset K).subset_univ, sum_singleton,
            zero_pow (nat.pos_of_ne_zero hi), add_zero]
     ... = ∑ x : units K, x ^ i : by { rw [← this, univ.sum_map φ], refl }

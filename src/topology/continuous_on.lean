@@ -52,10 +52,10 @@ end
 
 theorem nhds_within_eq (a : α) (s : set α) :
   nhds_within a s = ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, 𝓟 (t ∩ s) :=
-have set.univ ∈ {s : set α | a ∈ s ∧ is_open s}, from ⟨set.mem_univ _, is_open_univ⟩,
 begin
-  rw [nhds_within, nhds, binfi_inf]; try { exact this },
-  simp only [inf_principal]
+  rw [nhds_within, nhds, binfi_inf],
+  simp only [inf_principal],
+  exact ⟨univ, mem_univ _, is_open_univ⟩
 end
 
 theorem nhds_within_univ (a : α) : nhds_within a set.univ = 𝓝 a :=
@@ -173,6 +173,12 @@ lemma nhds_within_prod_eq {α : Type*} [topological_space α] {β : Type*} [topo
   nhds_within (a, b) (s.prod t) = (nhds_within a s).prod (nhds_within b t) :=
 by { unfold nhds_within, rw [nhds_prod_eq, ←filter.prod_inf_prod, filter.prod_principal_principal] }
 
+lemma nhds_within_prod {α : Type*} [topological_space α] {β : Type*} [topological_space β]
+  {s u : set α} {t v : set β} {a : α} {b : β}
+  (hu : u ∈ nhds_within a s) (hv : v ∈ nhds_within b t) :
+  (u.prod v) ∈ nhds_within (a, b) (s.prod t) :=
+by { rw nhds_within_prod_eq, exact prod_mem_prod hu hv, }
+
 theorem tendsto_if_nhds_within {f g : α → β} {p : α → Prop} [decidable_pred p]
     {a : α} {s : set α} {l : filter β}
     (h₀ : tendsto f (nhds_within a (s ∩ p)) l)
@@ -240,6 +246,10 @@ lemma tendsto_nhds_within_of_tendsto_nhds_of_eventually_within {β : Type*} {a :
   {s : set α} (f : β → α) (h1 : tendsto f l (nhds a)) (h2 : ∀ᶠ x in l, f x ∈ s) :
   tendsto f l (nhds_within a s) :=
 tendsto_inf.2 ⟨h1, tendsto_principal.2 h2⟩
+
+lemma filter.eventually_eq.eq_of_nhds_within {s : set α} {f g : α → β} {a : α}
+  (h : f =ᶠ[nhds_within a s] g) (hmem : a ∈ s) : f a = g a :=
+h.self_of_nhds_within hmem
 
 /-
 nhds_within and subtypes
@@ -591,7 +601,7 @@ lemma continuous_on.preimage_interior_subset_interior_preimage {f : α → β} {
 calc s ∩ f ⁻¹' (interior t) ⊆ interior (s ∩ f ⁻¹' t) :
   interior_maximal (inter_subset_inter (subset.refl _) (preimage_mono interior_subset))
     (hf.preimage_open_of_open hs is_open_interior)
-... = s ∩ interior (f ⁻¹' t) : by rw [interior_inter, interior_eq_of_open hs]
+... = s ∩ interior (f ⁻¹' t) : by rw [interior_inter, hs.interior_eq]
 
 lemma continuous_on_of_locally_continuous_on {f : α → β} {s : set α}
   (h : ∀x∈s, ∃t, is_open t ∧ x ∈ t ∧ continuous_on f (s ∩ t)) : continuous_on f s :=
@@ -639,3 +649,17 @@ end
 lemma embedding.continuous_on_iff {f : α → β} {g : β → γ} (hg : embedding g) {s : set α} :
   continuous_on f s ↔ continuous_on (g ∘ f) s :=
 inducing.continuous_on_iff hg.1
+
+lemma continuous_on_fst {s : set (α × β)} : continuous_on prod.fst s :=
+continuous_fst.continuous_on
+
+lemma continuous_within_at_fst {s : set (α × β)} {p : α × β} :
+  continuous_within_at prod.fst s p :=
+continuous_fst.continuous_within_at
+
+lemma continuous_on_snd {s : set (α × β)} : continuous_on prod.snd s :=
+continuous_snd.continuous_on
+
+lemma continuous_within_at_snd {s : set (α × β)} {p : α × β} :
+  continuous_within_at prod.snd s p :=
+continuous_snd.continuous_within_at

@@ -527,10 +527,10 @@ lemma sInter_eq_bInter {s : set (set α)} : (⋂₀ s) = (⋂ (i : set α) (h : 
 by rw [← sInter_image, image_id']
 
 lemma sUnion_eq_Union {s : set (set α)} : (⋃₀ s) = (⋃ (i : s), i) :=
-by simp only [←sUnion_range, subtype.range_coe, mem_def]
+by simp only [←sUnion_range, subtype.range_coe]
 
 lemma sInter_eq_Inter {s : set (set α)} : (⋂₀ s) = (⋂ (i : s), i) :=
-by simp only [←sInter_range, subtype.range_coe, mem_def]
+by simp only [←sInter_range, subtype.range_coe]
 
 lemma union_eq_Union {s₁ s₂ : set α} : s₁ ∪ s₂ = ⋃ b : bool, cond b s₁ s₂ :=
 set.ext $ λ x, by simp [bool.exists_bool, or_comm]
@@ -611,6 +611,21 @@ begin
   ext x, rw [mem_Union, mem_Union], split,
   { rintro ⟨y, ⟨i, rfl⟩⟩, exact ⟨i, (f i y).2⟩ },
   { rintro ⟨i, hx⟩, cases hf i ⟨x, hx⟩ with y hy, refine ⟨y, ⟨i, congr_arg subtype.val hy⟩⟩ }
+end
+
+lemma union_distrib_Inter_right {ι : Type*} (s : ι → set α) (t : set α) :
+  (⋂ i, s i) ∪ t = (⋂ i, s i ∪ t) :=
+begin
+  ext x,
+  rw [mem_union_eq, mem_Inter],
+  split ; finish
+end
+
+lemma union_distrib_Inter_left {ι : Type*} (s : ι → set α) (t : set α) :
+  t ∪ (⋂ i, s i) = (⋂ i, t ∪ s i) :=
+begin
+  rw [union_comm, union_distrib_Inter_right],
+  simp [union_comm]
 end
 
 section

@@ -55,10 +55,10 @@ jobs:
         if: always() && github.repository == 'leanprover-community/mathlib'
         run: |
           archive_name="$(git rev-parse HEAD).tar.gz"
-          tar czf "$archive_name" src
+          find src/ -name "*.olean" | tar czf "$archive_name" -T -
           azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false
           archive_name="$(git rev-parse HEAD).tar.xz"
-          tar cJf "$archive_name" src
+          find src/ -name "*.olean" | tar cJf "$archive_name" -T -
           azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false
 
       - name: setup precompiled zip file
@@ -73,18 +73,6 @@ jobs:
         with:
           name: ${{ steps.setup_precompiled.outputs.artifact_name }}
           path: workspace.tar
-
-      - name: configure git setup
-        if: github.repository == 'leanprover-community/mathlib' && github.ref == 'refs/heads/master'
-        run: |
-          git remote add origin-bot "https://leanprover-community-bot:${{ secrets.DEPLOY_GITHUB_TOKEN }}@github.com/leanprover-community/mathlib.git"
-          git config user.email "leanprover.community@gmail.com"
-          git config user.name "leanprover-community-bot"
-
-          # By default, github actions overrides the credentials used to access any
-          # github url so that it uses the github-actions[bot] user.  We want to access
-          # github using a different username.
-          git config --unset http.https://github.com/.extraheader
 
   lint:
     name: Lint mathlib

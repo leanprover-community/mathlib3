@@ -168,6 +168,11 @@ lift.sub _ _ _
 
 @[simp] lemma map_of (f : α → β) (y : α) : f <$> of y = of (f y) := rfl
 
+/-- The additive group homomorphism `free_abelian_group α →+ free_abelian_group β` induced from a
+  map `α → β` -/
+def map (f : α → β) : free_abelian_group α →+ free_abelian_group β :=
+add_monoid_hom.mk' (λ x, f <$> x) $ map_add _
+
 lemma lift_comp {α} {β} {γ} [add_comm_group γ]
   (f : α → β) (g : β → γ) (x : free_abelian_group α) :
   lift (g ∘ f) x = lift g (f <$> x) :=

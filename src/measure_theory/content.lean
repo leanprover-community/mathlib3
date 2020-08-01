@@ -10,8 +10,14 @@ import topology.compacts
 /-!
 # Contents
 
-In this file e work with *contents*. A content is a function from a certain class of subsets
-to `ennreal` (or `nnreal`) that is additive, subadditive and monotone. We show that:
+In this file we work with *contents*. A content `λ` is a function from a certain class of subsets
+(such as the the compact subsets) to `ennreal` (or `nnreal`) that is
+* additive: If `K₁` and `K₂` are disjoint sets in the domain of `λ`,
+  then `λ(K₁ ∪ K₂) = λ(K₁) + λ(K₂)`;
+* subadditive: If `K₁` and `K₂` are in the domain of `λ`, then `λ(K₁ ∪ K₂) ≤ λ(K₁) + λ(K₂)`;
+* monotone: If `K₁ ⊆ K₂` are in the domain of `λ`, then `λ(K₁) ≤ λ(K₂)`.
+
+We show that:
 * Given a content `λ` on compact sets, we get a countably subadditive map that vanishes at `∅`.
   In Halmos (1950) this is called the *inner content* `λ*` of `λ`.
 * Given an inner content, we define an outer measure.
@@ -28,6 +34,7 @@ other choices can be made, and it is not a priori clear what the best interface 
 ## References
 
 * Paul Halmos (1950), Measure Theory, §53
+* https://en.wikipedia.org/wiki/Content_(measure_theory)
 -/
 universe variables u v w
 noncomputable theory
@@ -52,19 +59,19 @@ lemma inner_content_le {μ : compacts G → ennreal}
   (h : ∀ (K₁ K₂ : compacts G), K₁.1 ⊆ K₂.1 → μ K₁ ≤ μ K₂)
   (U : opens G) (K : compacts G)
   (h2 : (U : set G) ⊆ K.1) : inner_content μ U ≤ μ K :=
-supr_le $ λ K', supr_le $ λ hK', h _ _ (subset.trans hK' h2)
+bsupr_le $ λ K' hK', h _ _ (subset.trans hK' h2)
 
 lemma inner_content_of_is_compact {μ : compacts G → ennreal}
   (h : ∀ (K₁ K₂ : compacts G), K₁.1 ⊆ K₂.1 → μ K₁ ≤ μ K₂) {K : set G} (h1K : is_compact K)
   (h2K : is_open K) : inner_content μ ⟨K, h2K⟩ = μ ⟨K, h1K⟩ :=
-le_antisymm (supr_le $ λ K', supr_le $ λ hK', h _ ⟨K, h1K⟩ hK')
+le_antisymm (bsupr_le $ λ K' hK', h _ ⟨K, h1K⟩ hK')
             (le_inner_content _ _ subset.rfl)
 
 lemma inner_content_empty {μ : compacts G → ennreal} (h : μ ⊥ = 0) :
   inner_content μ ∅ = 0 :=
 begin
   refine le_antisymm _ (zero_le _), rw ←h,
-  refine supr_le (λ K, supr_le (λ hK, _)),
+  refine bsupr_le (λ K hK, _),
   have : K = ⊥, { ext1, rw [subset_empty_iff.mp hK, compacts.bot_val] }, rw this, refl'
 end
 
@@ -96,7 +103,7 @@ begin
     { simp only [h1, le_zero_iff_eq, finset.sum_empty, finset.sup_empty] },
     { intros n s hn ih, rw [finset.sup_insert, finset.sum_insert hn],
       exact le_trans (h2 _ _) (add_le_add_left ih _) }},
-  refine supr_le (λ K, supr_le (λ hK, _)),
+  refine bsupr_le (λ K hK, _),
   rcases is_compact.elim_finite_subcover K.2 _ (λ i, (U i).prop) _ with ⟨t, ht⟩, swap,
   { convert hK, rw [opens.supr_def, subtype.coe_mk] },
   rcases K.2.finite_compact_cover t (coe ∘ U) (λ i _, (U _).prop) (by simp only [ht])

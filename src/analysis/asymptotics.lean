@@ -713,6 +713,10 @@ begin
     metric.nhds_basis_closed_ball.tendsto_right_iff, metric.mem_closed_ball, dist_zero_right]
 end
 
+lemma is_o_id_const {c : F'} (hc : c ≠ 0) :
+  is_o (λ (x : E'), x) (λ x, c) (𝓝 0) :=
+(is_o_const_iff hc).mpr (continuous_id.tendsto 0)
+
 theorem is_O_const_of_tendsto {y : E'} (h : tendsto f' l (𝓝 y)) {c : F'} (hc : c ≠ 0) :
   is_O f' (λ x, c) l :=
 begin

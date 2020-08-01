@@ -620,7 +620,7 @@ def lmul_right : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
 /-- Simultaneous left- and right-multiplication in a normed algebra, considered as a continuous
 linear map. -/
 def lmul_left_right (vw : 𝕜' × 𝕜') : 𝕜' →L[𝕜] 𝕜' :=
-((lmul_right 𝕜 𝕜' vw.2).comp (lmul_left 𝕜 𝕜' vw.1))
+(lmul_right 𝕜 𝕜' vw.2).comp (lmul_left 𝕜 𝕜' vw.1)
 
 @[simp] lemma lmul_left_apply (x y : 𝕜') : lmul_left 𝕜 𝕜' x y = x * y := rfl
 @[simp] lemma lmul_right_apply (x y : 𝕜') : lmul_right 𝕜 𝕜' x y = y * x := rfl

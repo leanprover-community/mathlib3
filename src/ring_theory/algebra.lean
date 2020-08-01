@@ -205,7 +205,7 @@ def lmul_right (r : A) : A →ₗ A :=
 
 /-- Simultaneous multiplication on the left and right is a linear map. -/
 def lmul_left_right (vw: A × A) : A →ₗ[R] A :=
-((lmul_right R A vw.2).comp (lmul_left R A vw.1))
+(lmul_right R A vw.2).comp (lmul_left R A vw.1)
 
 variables {R A}
 

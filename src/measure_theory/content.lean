@@ -185,6 +185,10 @@ begin
   { exact inner_content_mono }
 end
 
+lemma of_content_eq_infi (A : set G) :
+  of_content μ h1 A = ⨅ (U : set G) (hU : is_open U) (h : A ⊆ U), inner_content μ ⟨U, hU⟩ :=
+induced_outer_measure_eq_infi _ (inner_content_Union_nat h1 h2) inner_content_mono A
+
 lemma of_content_interior_compacts (h3 : ∀ (K₁ K₂ : compacts G), K₁.1 ⊆ K₂.1 → μ K₁ ≤ μ K₂)
   (K : compacts G) : of_content μ h1 (interior K.1) ≤ μ K :=
 le_trans (le_of_eq $ of_content_opens h2 (opens.interior K.1))
@@ -203,6 +207,16 @@ lemma of_content_exists_open {A : set G} (hA : of_content μ h1 A < ⊤) {ε : n
 begin
   rcases induced_outer_measure_exists_set _ _ inner_content_mono hA hε with ⟨U, hU, h2U, h3U⟩,
   exact ⟨⟨U, hU⟩, h2U, h3U⟩, swap, exact inner_content_Union_nat h1 h2
+end
+
+lemma of_content_caratheodory (A : set G) :
+  (of_content μ h1).caratheodory.is_measurable A ↔ ∀ (U : opens G),
+  of_content μ h1 (U ∩ A) + of_content μ h1 (U \ A) ≤ of_content μ h1 U :=
+begin
+  dsimp [opens], rw subtype.forall,
+  apply induced_outer_measure_caratheodory,
+  apply inner_content_Union_nat h1 h2,
+  apply inner_content_mono'
 end
 
 lemma of_content_pos_of_is_open [group G] [topological_group G]

@@ -262,7 +262,7 @@ def gi_map_comap : galois_insertion (map f) (comap f) :=
 (gc_map_comap f).to_galois_insertion
   (λ S x h, let ⟨y, hy⟩ := hf x in mem_map.2 ⟨y, by simp [hy, h]⟩)
 
-lemma map_comap_eq_of_sujective (S : submonoid N) : (S.comap f).map f = S :=
+lemma map_comap_eq_of_surjective (S : submonoid N) : (S.comap f).map f = S :=
 (gi_map_comap hf).l_u_eq _
 
 lemma map_surjective_of_surjective : function.surjective (map f) :=

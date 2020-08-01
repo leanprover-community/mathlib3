@@ -20,10 +20,8 @@ open_locale manifold
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
-{E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
-{H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
 {N : Type*} [topological_space N] [charted_space H N] [smooth_manifold_with_corners I N]
 
 namespace smooth_map
@@ -147,17 +145,17 @@ instance smooth_map_has_scalar
   {R : Type*} [normed_field R] [normed_space 𝕜 R]
   {M : Type*} [topological_space M] [add_comm_group M]
   [vector_space R M] [topological_vector_space R M]
-  [charted_space H'' M] [smooth_manifold_with_corners I'' M] [smooth_vector_space I'' R M] :
-  has_scalar R C∞(I, N; I'', M) :=
+  [charted_space H' M] [smooth_manifold_with_corners I' M] [smooth_vector_space I' R M] :
+  has_scalar R C∞(I, N; I', M) :=
 ⟨λ r f, ⟨r • f, (@smooth_const _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ Isf(𝕜, R) _ _ _ _).smul f.smooth⟩⟩
 
 instance smooth_map_semimodule
   {R : Type*} [normed_field R] [normed_space 𝕜 R]
   {M : Type*} [topological_space M] [add_comm_group M] [topological_add_group M]
   [vector_space R M] [topological_vector_space R M]
-  [charted_space H'' M] [smooth_manifold_with_corners I'' M] [lie_add_group I'' M]
-  [smooth_vector_space I'' R M] :
-  vector_space R C∞(I, N; I'', M) :=
+  [charted_space H' M] [smooth_manifold_with_corners I' M] [lie_add_group I' M]
+  [smooth_vector_space I' R M] :
+  vector_space R C∞(I, N; I', M) :=
 semimodule.of_core $
 { smul     := (•),
   smul_add := λ c f g, by ext x; exact smul_add c (f x) (g x),
@@ -183,10 +181,10 @@ stucture".
 
 variables {R : Type*} [normed_field R]
 {A : Type*} [topological_space A] [ring A] [algebra R A] [topological_ring A]
-[charted_space H'' A] [smooth_manifold_with_corners I'' A] [smooth_ring I'' A]
+[charted_space H' A] [smooth_manifold_with_corners I' A] [smooth_ring I' A]
 
 /-- Smooth constant functions as a `ring_hom`. -/
-def smooth_map.C : R →+* C∞(I, N; I'', A) :=
+def smooth_map.C : R →+* C∞(I, N; I', A) :=
 { to_fun    := λ c : R, ⟨λ x, ((algebra_map R A) c), smooth_const⟩,
   map_one'  := by ext x; exact (algebra_map R A).map_one,
   map_mul'  := λ c₁ c₂, by ext x; exact (algebra_map R A).map_mul _ _,
@@ -194,9 +192,9 @@ def smooth_map.C : R →+* C∞(I, N; I'', A) :=
   map_add'  := λ c₁ c₂, by ext x; exact (algebra_map R A).map_add _ _ }
 
 variables [normed_space 𝕜 R]
-[topological_vector_space R A] [smooth_vector_space I'' R A]
+[topological_vector_space R A] [smooth_vector_space I' R A]
 
-instance : algebra R C∞(I, N; I'', A) :=
+instance : algebra R C∞(I, N; I', A) :=
 { smul := λ r f,
   ⟨r • f, (@smooth_const _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ Isf(𝕜, R) _ _ _ _).smul f.smooth⟩,
   to_ring_hom := smooth_map.C,
@@ -219,8 +217,8 @@ instance smooth_map_has_scalar'
   [charted_space H' R] [smooth_manifold_with_corners I' R]
   {M : Type*} [topological_space M] [add_comm_monoid M]
   [semimodule R M] [topological_semimodule R M]
-  [charted_space H'' M] [smooth_manifold_with_corners I'' M] [smooth_semimodule I' I'' R M] :
-  has_scalar C∞(I, N; I', R) C∞(I, N; I'', M) :=
+  [charted_space H' M] [smooth_manifold_with_corners I' M] [smooth_semimodule I' I' R M] :
+  has_scalar C∞(I, N; I', R) C∞(I, N; I', M) :=
 ⟨λ f g, ⟨λ x, (f x) • (g x), (smooth.smul f.2 g.2)⟩⟩
 
 instance smooth_map_module'
@@ -228,9 +226,9 @@ instance smooth_map_module'
   [charted_space H' R] [smooth_manifold_with_corners I' R] [smooth_semiring I' R]
   {M : Type*} [topological_space M] [add_comm_monoid M] [has_continuous_add M]
   [semimodule R M] [topological_semimodule R M]
-  [charted_space H'' M] [smooth_manifold_with_corners I'' M]
-  [has_smooth_add I'' M] [smooth_semimodule I' I'' R M]
-  : semimodule C∞(I, N; I', R) C∞(I, N; I'', M) :=
+  [charted_space H' M] [smooth_manifold_with_corners I' M]
+  [has_smooth_add I' M] [smooth_semimodule I' I' R M]
+  : semimodule C∞(I, N; I', R) C∞(I, N; I', M) :=
 { smul     := (•),
   smul_add := λ c f g, by ext x; exact smul_add (c x) (f x) (g x),
   add_smul := λ c₁ c₂ f, by ext x; exact add_smul (c₁ x) (c₂ x) (f x),

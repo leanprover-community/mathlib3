@@ -154,6 +154,38 @@ lemma gc_map_comap (f : M →* N) : galois_connection (map f) (comap f) :=
 λ S T, map_le_iff_le_comap
 
 @[to_additive]
+lemma map_le_of_le_comap {T : submonoid N} {f : M →* N} : S ≤ T.comap f → S.map f ≤ T :=
+(gc_map_comap f).l_le
+
+@[to_additive]
+lemma le_comap_of_map_le {T : submonoid N} {f : M →* N} : S.map f ≤ T → S ≤ T.comap f :=
+(gc_map_comap f).le_u
+
+@[to_additive]
+lemma le_comap_map {f : M →* N} : S ≤ (S.map f).comap f :=
+(gc_map_comap f).le_u_l _
+
+@[to_additive]
+lemma map_comap_le {S : submonoid N} {f : M →* N} : (S.comap f).map f ≤ S :=
+(gc_map_comap f).l_u_le _
+
+@[to_additive]
+lemma monotone_map {f : M →* N} : monotone (map f) :=
+(gc_map_comap f).monotone_l
+
+@[to_additive]
+lemma monotone_comap {f : M →* N} : monotone (comap f) :=
+(gc_map_comap f).monotone_u
+
+@[simp, to_additive]
+lemma map_comap_map {f : M →* N} : ((S.map f).comap f).map f = S.map f :=
+congr_fun ((gc_map_comap f).l_u_l_eq_l) _
+
+@[simp, to_additive]
+lemma comap_map_comap {S : submonoid N} {f : M →* N} : ((S.comap f).map f).comap f = S.comap f :=
+congr_fun ((gc_map_comap f).u_l_u_eq_u) _
+
+@[to_additive]
 lemma map_sup (S T : submonoid M) (f : M →* N) : (S ⊔ T).map f = S.map f ⊔ T.map f :=
 (gc_map_comap f).l_sup
 
@@ -179,6 +211,27 @@ lemma comap_infi {ι : Sort*} (f : M →* N) (s : ι → submonoid N) :
 
 @[simp, to_additive] lemma map_id (S : submonoid M) : S.map (monoid_hom.id M) = S :=
 ext (λ x, ⟨λ ⟨_, h, rfl⟩, h, λ h, ⟨_, h, rfl⟩⟩)
+
+section galois_coinsertion
+
+variables {f : M →* N} (hf : function.injective f)
+
+include hf
+def gci_map_comap : galois_coinsertion (map f) (comap f) :=
+galois_coinsertion.monotone_intro
+  (gc_map_comap f).monotone_u
+  (gc_map_comap f).monotone_l
+  (gc_map_comap f).l_u_le
+  (λ S, le_antisymm
+    (begin
+      assume a ha,
+      rw [mem_comap, mem_map] at ha,
+      rcases ha with ⟨x, hxS, hx⟩,
+      rwa ← hf hx
+    end)
+    ((gc_map_comap f).le_u_l S))
+
+end galois_coinsertion
 
 /-- A submonoid of a monoid inherits a multiplication. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits an addition."]

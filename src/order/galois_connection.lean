@@ -200,6 +200,7 @@ end nat
 /-- A Galois insertion is a Galois connection where `l ∘ u = id`. It also contains a constructive
 choice function, to give better definitional equalities when lifting order structures. Dual
 to `galois_coinsertion` -/
+@[nolint has_inhabited]
 structure galois_insertion {α β : Type*} [preorder α] [preorder β] (l : α → β) (u : β → α) :=
 (choice : Πx:α, u (l x) ≤ x → β)
 (gc : galois_connection l u)
@@ -222,6 +223,15 @@ protected def order_iso.to_galois_insertion [preorder α] [preorder β] (oi : @o
   gc := oi.to_galois_connection,
   le_l_u := λ g, le_of_eq (oi.right_inv g).symm,
   choice_eq := λ b h, rfl }
+
+/-- Make a `galois_insertion l u` from a `galois_connection l u` such that `∀ b, b ≤ l (u b)` -/
+def galois_connection.to_galois_insertion {α β : Type*} [preorder α] [preorder β]
+  {l : α → β} {u : β → α} (gc : galois_connection l u) (h : ∀ b, b ≤ l (u b)) :
+  galois_insertion l u :=
+{ choice := λ x _, l x,
+  gc := gc,
+  le_l_u := h,
+  choice_eq := λ _ _, rfl }
 
 /-- Lift the bottom along a Galois connection -/
 def galois_connection.lift_order_bot {α β : Type*} [order_bot α] [partial_order β]
@@ -346,6 +356,7 @@ end galois_insertion
 /-- A Galois coinsertion is a Galois connection where `u ∘ l = id`. It also contains a constructive
 choice function, to give better definitional equalities when lifting order structures. Dual to
 `galois_insertion` -/
+@[nolint has_inhabited]
 structure galois_coinsertion {α β : Type*} [preorder α] [preorder β] (l : α → β) (u : β → α) :=
 (choice : Πx:β, x ≤ l (u x) → α)
 (gc : galois_connection l u)
@@ -385,6 +396,15 @@ def galois_coinsertion.monotone_intro {α β : Type*} [preorder α] [preorder β
   (hu : monotone u) (hl : monotone l) (hlu : ∀ b, l (u b) ≤ b) (hul : ∀ a, u (l a) = a) :
   galois_coinsertion l u :=
 galois_coinsertion.of_dual (galois_insertion.monotone_intro hl.order_dual hu.order_dual hlu hul)
+
+/-- Make a `galois_coinsertion l u` from a `galois_connection l u` such that `∀ b, b ≤ l (u b)` -/
+def galois_connection.to_galois_coinsertion {α β : Type*} [preorder α] [preorder β]
+  {l : α → β} {u : β → α} (gc : galois_connection l u) (h : ∀ a, u (l a) ≤ a) :
+  galois_coinsertion l u :=
+{ choice := λ x _, u x,
+  gc := gc,
+  u_l_le := h,
+  choice_eq := λ _ _, rfl }
 
 /-- Lift the bottom along a Galois connection -/
 def galois_connection.lift_order_top {α β : Type*} [partial_order α] [order_top β]

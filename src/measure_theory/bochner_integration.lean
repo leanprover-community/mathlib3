@@ -204,8 +204,8 @@ lemma integral_eq_sum_filter (f : α →ₛ F) (μ) :
   f.integral μ = ∑ x in f.range.filter (λ x, x ≠ 0), (ennreal.to_real (μ (f ⁻¹' {x}))) • x :=
 eq.symm $ sum_filter_of_ne $ λ x _, mt $ λ h0, h0.symm ▸ smul_zero _
 
-/-- Calculate the integral of `g ∘ f : α →ₛ F`, where `f` is an integrable function from `α` to `β`
-    and `g` is a function from `β` to `F`. We require `g 0 = 0` so that `g ∘ f` is integrable. -/
+/-- Calculate the integral of `g ∘ f : α →ₛ F`, where `f` is an integrable function from `α` to `E`
+    and `g` is a function from `E` to `F`. We require `g 0 = 0` so that `g ∘ f` is integrable. -/
 lemma map_integral (f : α →ₛ E) (g : E → F) (hf : integrable f μ) (hg : g 0 = 0) :
   (f.map g).integral μ = ∑ x in f.range, (ennreal.to_real (μ (f ⁻¹' {x}))) • (g x) :=
 begin
@@ -558,12 +558,10 @@ variables (α E)
 lemma zero_to_simple_func : (0 : α →₁ₛ[μ] E).to_simple_func =ᵐ[μ] 0 :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (0 : α →₁ₛ[μ] E), l1.zero_to_fun α E],
-  assume a,
   simp only [mem_set_of_eq],
-  assume h,
+  assume a h,
   rw h,
-  assume h,
-  exact h
+  exact id
 end
 variables {α E}
 
@@ -1152,8 +1150,7 @@ begin
         simp only [pi.zero_apply],
         assume a h,
         simp only [min_eq_right h, neg_zero, ennreal.of_real_zero] },
-      { refine measurable_of_real.comp
-          ((measurable.neg measurable_id).comp $ measurable.min hfm measurable_const) } },
+      { exact measurable_of_real.comp (measurable_id.neg.comp $ hfm.min measurable_const) } },
     have h_max : ∫⁻ a, ennreal.of_real (max (f a) 0) ∂μ = ∫⁻ a, ennreal.of_real (f a) ∂μ,
     { refine lintegral_congr_ae (hf.mono (λ a h, _)),
       rw [pi.zero_apply] at h,
@@ -1162,10 +1159,7 @@ begin
   { rw integral_non_integrable hfi,
     rw [integrable_iff_norm, lt_top_iff_ne_top, ne.def, not_not] at hfi,
     have : ∫⁻ (a : α), ennreal.of_real (f a) ∂μ = ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ,
-    { apply lintegral_congr_ae,
-      filter_upwards [hf],
-      simp only [mem_set_of_eq],
-      assume a h,
+    { refine lintegral_congr_ae (hf.mono $ assume a h, _),
       rw [real.norm_eq_abs, abs_of_nonneg h] },
     rw [this, hfi], refl }
 end
@@ -1295,6 +1289,34 @@ end
 
 @[simp] lemma integral_zero_meas (f : α → E) : ∫ x, f x ∂0 = 0 :=
 norm_le_zero_iff.1 $ le_trans (norm_integral_le_lintegral_norm f) $ by simp
+
+lemma integral_map_meas {β} [measurable_space β] {φ : α → β} (hφ : measurable φ)
+  {f : β → E} (hfm : measurable f) :
+  ∫ y, f y  ∂(measure.map φ μ) = ∫ x, f (φ x) ∂μ :=
+begin
+  by_cases hfi : integrable f (measure.map φ μ), swap,
+  { rw [integral_non_integrable hfi, integral_non_integrable],
+    rwa [← integrable_map_meas hφ hfm] },
+  rcases simple_func_sequence_tendsto' hfm hfi with ⟨F, hFi, hFt⟩,
+  simp only [← edist_nndist] at hFt,
+  have hF : tendsto (λ i, ∫ x, F i x ∂(measure.map φ μ)) at_top (𝓝 ∫ x, f x ∂(measure.map φ μ)) :=
+    tendsto_integral_of_l1 _ hfm hfi (eventually_of_forall $ λ i, (F i).measurable)
+      (eventually_of_forall hFi) hFt,
+  refine tendsto_nhds_unique hF _, clear hF,
+  simp only [lintegral_map ((F _).measurable.edist hfm) hφ] at hFt,
+  have hFi' := hFi,
+  simp only [integrable_map_meas, hφ, hfm, (F _).measurable] at hfi hFi',
+  refine (tendsto_integral_of_l1 _ (hfm.comp hφ) hfi
+    (eventually_of_forall $ λ i, (F i).measurable.comp hφ)
+    (eventually_of_forall $ hFi') hFt).congr (λ n, _),
+  rw [← simple_func.integral_eq_integral _ (hFi n), ← simple_func.coe_comp _ hφ,
+    ← simple_func.integral_eq_integral ((F n).comp φ hφ) (hFi' n)],
+  simp only [simple_func.integral, measure.map_apply, *, simple_func.is_measurable_preimage],
+  refine finset.sum_subset ((F n).range_comp_subset_range _) (λ y _ hy, _),
+  rw [simple_func.mem_range, ← set.preimage_singleton_eq_empty] at hy,
+  rw [hy],
+  simp
+end
 
 end properties
 

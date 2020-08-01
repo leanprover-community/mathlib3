@@ -160,6 +160,12 @@ end
 @[simp] lemma integrable_zero_meas (f : α → β) : integrable f 0 :=
 by simp only [integrable, lintegral_zero_meas, with_top.zero_lt_top]
 
+lemma integrable_map_meas {δ} [measurable_space δ] [measurable_space β]
+  [opens_measurable_space β] {f : α → δ} {g : δ → β}
+  (hf : measurable f) (hg : measurable g) :
+  integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
+by simp only [integrable, lintegral_map hg.ennnorm hf]
+
 lemma lintegral_nnnorm_eq_lintegral_edist (f : α → β) :
   ∫⁻ a, nnnorm (f a) ∂μ = ∫⁻ a, edist (f a) 0 ∂μ :=
 by simp only [edist_eq_coe_nnnorm]

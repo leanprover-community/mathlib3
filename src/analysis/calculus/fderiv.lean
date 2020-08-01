@@ -2095,22 +2095,22 @@ lemma fderiv_const_mul (hc : differentiable_at 𝕜 c x) (d : 𝕜) :
 end mul
 
 section algebra_inverse
-variables {R :Type*} [normed_ring R] [normed_algebra 𝕜 R] [complete_space R]
+variables {𝕜' :Type*} [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] [complete_space 𝕜']
 open normed_ring continuous_linear_map ring
 
-/-- At an invertible element `x` of a normed algebra `R`, the Fréchet derivative of the inversion
+/-- At an invertible element `x` of a normed algebra `𝕜'`, the Fréchet derivative of the inversion
 operation is the linear map `λ t, - x⁻¹ * t * x⁻¹`. -/
-lemma has_fderiv_at_inverse  (x : units R) :
-  has_fderiv_at inverse (- (lmul_right 𝕜 R ↑x⁻¹).comp (lmul_left 𝕜 R ↑x⁻¹)) x :=
+lemma has_fderiv_at_inverse  (x : units 𝕜') :
+  has_fderiv_at inverse (- (lmul_right 𝕜 𝕜' ↑x⁻¹).comp (lmul_left 𝕜 𝕜' ↑x⁻¹)) x :=
 begin
-  have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹)
-    (λ (t : R), t) (𝓝 0),
+  have h_is_o : is_o (λ (t : 𝕜'), inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹)
+    (λ (t : 𝕜'), t) (𝓝 0),
   { refine (inverse_add_norm_diff_second_order x).trans_is_o ((is_o_norm_norm).mp _),
     simp only [normed_field.norm_pow, norm_norm],
     have h12 : 1 < 2 := by norm_num,
     convert (asymptotics.is_o_pow_pow h12).comp_tendsto lim_norm_zero,
     ext, simp },
-  have h_lim : tendsto (λ (y:R), y - x) (𝓝 x) (𝓝 0),
+  have h_lim : tendsto (λ (y:𝕜'), y - x) (𝓝 x) (𝓝 0),
   { refine tendsto_zero_iff_norm_tendsto_zero.mpr _,
     exact tendsto_iff_norm_tendsto_zero.mp tendsto_id },
   simp only [has_fderiv_at, has_fderiv_at_filter],
@@ -2121,11 +2121,11 @@ begin
   abel
 end
 
-lemma differentiable_at_inverse (x : units R) : differentiable_at 𝕜 (@inverse R _) x :=
+lemma differentiable_at_inverse (x : units 𝕜') : differentiable_at 𝕜 (@inverse 𝕜' _) x :=
 (has_fderiv_at_inverse x).differentiable_at
 
-lemma fderiv_inverse (x : units R) :
-  fderiv 𝕜 (@inverse R _) x = - (lmul_right 𝕜 R ↑x⁻¹).comp (lmul_left 𝕜 R ↑x⁻¹) :=
+lemma fderiv_inverse (x : units 𝕜') :
+  fderiv 𝕜 (@inverse 𝕜' _) x = - (lmul_right 𝕜 𝕜' ↑x⁻¹).comp (lmul_left 𝕜 𝕜' ↑x⁻¹) :=
 (has_fderiv_at_inverse x).fderiv
 
 end algebra_inverse

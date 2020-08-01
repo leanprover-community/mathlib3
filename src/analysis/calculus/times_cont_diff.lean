@@ -2218,18 +2218,18 @@ end
 /-! ### Inversion in a complete normed algebra -/
 
 section algebra_inverse
-variables (𝕜) (R : Type*) [normed_ring R] [normed_algebra 𝕜 R]
+variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 open normed_ring continuous_linear_map ring
 
 /-- In a complete normed algebra, the operation of inversion is `C^n`, for all `n`, at each
 invertible element.  The proof is by induction, bootstrapping using an identity expressing the
 derivative of inversion as a bilinear map of inversion itself. -/
-lemma times_cont_diff_at_inverse [complete_space R] {n : with_top ℕ} (x : units R) :
-  times_cont_diff_at 𝕜 n inverse (x : R) :=
+lemma times_cont_diff_at_inverse [complete_space 𝕜'] {n : with_top ℕ} (x : units 𝕜') :
+  times_cont_diff_at 𝕜 n inverse (x : 𝕜') :=
 begin
   induction n using with_top.nat_induction with n IH Itop,
   { intros m hm,
-    refine ⟨{y : R | is_unit y}, _, _⟩,
+    refine ⟨{y : 𝕜' | is_unit y}, _, _⟩,
     { simp [nhds_within_univ],
       exact x.nhds },
     { use (ftaylor_series_within 𝕜 inverse univ),
@@ -2240,14 +2240,14 @@ begin
         exact (inverse_continuous_at x').continuous_within_at },
       { simp [ftaylor_series_within] } } },
   { apply times_cont_diff_at_succ_iff_has_fderiv_at.mpr,
-    refine ⟨λ (x : R), - lmul_left_right 𝕜 R (inverse x, inverse x), _, _⟩,
-    { refine ⟨{y : R | is_unit y}, x.nhds, _⟩,
+    refine ⟨λ (x : 𝕜'), - lmul_left_right 𝕜 𝕜' (inverse x, inverse x), _, _⟩,
+    { refine ⟨{y : 𝕜' | is_unit y}, x.nhds, _⟩,
       intros y hy,
       cases mem_set_of_eq.mp hy with y' hy',
       rw [← hy', inverse_unit],
       exact @has_fderiv_at_inverse 𝕜 _ _ _ _ _ y' },
-    { exact (lmul_left_right_is_bounded_bilinear 𝕜 R).times_cont_diff.neg.comp_times_cont_diff_at
-        (x : R) (IH.prod IH) } },
+    { exact (lmul_left_right_is_bounded_bilinear 𝕜 𝕜').times_cont_diff.neg.comp_times_cont_diff_at
+        (x : 𝕜') (IH.prod IH) } },
   { exact times_cont_diff_at_top.mpr Itop }
 end
 

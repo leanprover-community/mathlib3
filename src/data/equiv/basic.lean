@@ -1199,7 +1199,7 @@ equiv.set.image_of_inj_on f s (λ x y hx hy hxy, H hxy)
 @[simp] theorem image_apply {α β} (f : α → β) (s : set α) (H : injective f) (a h) :
   set.image f s H ⟨a, h⟩ = ⟨f a, mem_image_of_mem _ h⟩ := rfl
 
-lemma image_symm_preimage {α β} {f : α → β} (hf : function.injective f) (u s : set α) :
+lemma image_symm_preimage {α β} {f : α → β} (hf : injective f) (u s : set α) :
   (λ x, (set.image f s hf).symm x : f '' s → α) ⁻¹' u = coe ⁻¹' (f '' u) :=
 begin
   ext ⟨b, a, has, rfl⟩,

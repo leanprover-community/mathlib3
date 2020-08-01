@@ -122,6 +122,10 @@ lemma comap_comap (S : submonoid P) (g : N →* P) (f : M →* N) :
   (S.comap g).comap f = S.comap (g.comp f) :=
 rfl
 
+@[to_additive, simp]
+lemma comap_id (S : submonoid P) : S.comap (monoid_hom.id _) = S :=
+ext (by simp)
+
 /-- The image of a submonoid along a monoid homomorphism is a submonoid. -/
 @[to_additive "The image of an `add_submonoid` along an `add_monoid` homomorphism is
 an `add_submonoid`."]
@@ -217,19 +221,10 @@ section galois_coinsertion
 variables {f : M →* N} (hf : function.injective f)
 
 include hf
+
 def gci_map_comap : galois_coinsertion (map f) (comap f) :=
-galois_coinsertion.monotone_intro
-  (gc_map_comap f).monotone_u
-  (gc_map_comap f).monotone_l
-  (gc_map_comap f).l_u_le
-  (λ S, le_antisymm
-    (begin
-      assume a ha,
-      rw [mem_comap, mem_map] at ha,
-      rcases ha with ⟨x, hxS, hx⟩,
-      rwa ← hf hx
-    end)
-    ((gc_map_comap f).le_u_l S))
+(gc_map_comap f).to_galois_coinsertion
+  (λ S x, by simp [mem_comap, mem_map, hf.eq_iff])
 
 end galois_coinsertion
 

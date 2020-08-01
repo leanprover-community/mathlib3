@@ -29,9 +29,6 @@ alias lt_trans ← has_lt.lt.trans
 @[simp] lemma ge_iff_le [preorder α] {a b : α} : a ≥ b ↔ b ≤ a := iff.rfl
 @[simp] lemma gt_iff_lt [preorder α] {a b : α} : a > b ↔ b < a := iff.rfl
 
-alias ge_iff_le ↔ has_ge.ge.le has_le.le.ge
-alias gt_iff_lt ↔ has_gt.gt.lt has_lt.lt.gt
-
 lemma not_le_of_lt [preorder α] {a b : α} (h : a < b) : ¬ b ≤ a :=
 (le_not_le_of_lt h).right
 

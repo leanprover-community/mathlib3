@@ -387,6 +387,32 @@ end
 @[simp] lemma is_bounded_bilinear_map_deriv_coe (h : is_bounded_bilinear_map 𝕜 f) (p q : E × F) :
   h.deriv p q = f (p.1, q.2) + f (q.1, p.2) := rfl
 
+section multiplication_linear
+variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
+open continuous_linear_map
+
+lemma continuous_linear_map.lmul_left_right_bound (vw : 𝕜' × 𝕜') :
+  ∥lmul_left_right 𝕜 𝕜' vw∥ ≤ ∥vw.1∥ * ∥vw.2∥ :=
+linear_map.mk_continuous_norm_le
+  (lmul_left_right 𝕜 𝕜' vw)
+  ( by nlinarith [norm_nonneg vw.1, norm_nonneg vw.2])
+  (lmul_left_right_aux_bound 𝕜 𝕜' vw)
+
+/-- The function `lmul_left_right : 𝕜' × 𝕜' → (𝕜' →L[𝕜] 𝕜')` is a bounded bilinear map. -/
+lemma continuous_linear_map.lmul_left_right_is_bounded_bilinear :
+  is_bounded_bilinear_map 𝕜 (lmul_left_right 𝕜 𝕜') :=
+{ add_left := λ v₁ v₂ w, by {ext t, simp [add_comm, add_mul]},
+  smul_left := λ c v w, by {ext, simp },
+  add_right := λ v w₁ w₂, by {ext t, simp [add_comm, mul_add]},
+  smul_right := λ c v w, by {ext, simp },
+  bound := begin
+    refine ⟨1, by linarith, _⟩,
+    intros v w,
+    rw one_mul,
+    apply continuous_linear_map.lmul_left_right_bound,
+  end }
+
+end multiplication_linear
 
 /-- Given a bounded bilinear map `f`, the map associating to a point `p` the derivative of `f` at
 `p` is itself a bounded linear map. -/

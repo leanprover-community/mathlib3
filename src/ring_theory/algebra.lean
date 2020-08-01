@@ -203,11 +203,17 @@ lmul R A r
 def lmul_right (r : A) : A →ₗ A :=
 (lmul R A).flip r
 
+/-- Simultaneous multiplication on the left and right is a linear map. -/
+def lmul_left_right (vw: A × A) : A →ₗ[R] A :=
+((lmul_right R A vw.2).comp (lmul_left R A vw.1))
+
 variables {R A}
 
 @[simp] lemma lmul_apply (p q : A) : lmul R A p q = p * q := rfl
 @[simp] lemma lmul_left_apply (p q : A) : lmul_left R A p q = p * q := rfl
 @[simp] lemma lmul_right_apply (p q : A) : lmul_right R A p q = q * p := rfl
+@[simp] lemma lmul_left_right_apply (vw : A × A) (p : A) :
+  lmul_left_right R A vw p = vw.1 * p * vw.2 := rfl
 
 end semiring
 

@@ -604,25 +604,44 @@ begin
       ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
 end
 
+section multiplication_linear
+variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
+
 /-- Left-multiplication in a normed algebra, considered as a continuous linear map. -/
-def lmul_left (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
-  [h : normed_algebra 𝕜 𝕜'] : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
+def lmul_left : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
 λ x, (algebra.lmul_left 𝕜 𝕜' x).mk_continuous ∥x∥
 (λ y, by {rw algebra.lmul_left_apply, exact norm_mul_le x y})
 
-@[simp] lemma lmul_left_apply {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜]
-  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] (x y : 𝕜') :
-  lmul_left 𝕜 𝕜' x y = x * y := rfl
-
 /-- Right-multiplication in a normed algebra, considered as a continuous linear map. -/
-def lmul_right (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜]
-  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
+def lmul_right : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
 λ x, (algebra.lmul_right 𝕜 𝕜' x).mk_continuous ∥x∥
 (λ y, by {rw [algebra.lmul_right_apply, mul_comm], exact norm_mul_le y x})
 
-@[simp] lemma lmul_right_apply {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜]
-  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] (x y : 𝕜') :
-  lmul_right 𝕜 𝕜' x y = y * x := rfl
+lemma lmul_left_right_aux_bound (vw : 𝕜' × 𝕜') :
+  ∀ t, ∥algebra.lmul_left_right 𝕜 𝕜' ⟨vw.1, vw.2⟩ t∥ ≤ (∥vw.1∥ * ∥vw.2∥) * ∥t∥ :=
+begin
+  intros t,
+  simp only [algebra.lmul_left_right, algebra.lmul_right_apply, algebra.lmul_left_apply,
+    linear_map.comp_apply],
+  calc ∥(vw.1 * t) * vw.2∥ ≤ ∥vw.1 * t∥ * ∥vw.2∥ : norm_mul_le _ _
+  ... ≤ (∥vw.1∥ * ∥t∥) * ∥vw.2∥ : by nlinarith [norm_mul_le vw.1 t, norm_nonneg vw.2]
+  ... = (∥vw.1∥ * ∥vw.2∥) * ∥t∥ : by ring
+end
+
+/-- Simultaneous left- and right-multiplication in a normed algebra, considered as a continuous
+linear map. -/
+def lmul_left_right (vw : 𝕜' × 𝕜') : 𝕜' →L[𝕜] 𝕜' :=
+linear_map.mk_continuous
+  (algebra.lmul_left_right 𝕜 𝕜' vw)
+  (∥vw.1∥ * ∥vw.2∥)
+  (lmul_left_right_aux_bound 𝕜 𝕜' vw)
+
+@[simp] lemma lmul_left_apply (x y : 𝕜') : lmul_left 𝕜 𝕜' x y = x * y := rfl
+@[simp] lemma lmul_right_apply (x y : 𝕜') : lmul_right 𝕜 𝕜' x y = y * x := rfl
+@[simp] lemma lmul_left_right_apply (vw : 𝕜' × 𝕜') (x : 𝕜') :
+  lmul_left_right 𝕜 𝕜' vw x = vw.1 * x * vw.2 := rfl
+
+end multiplication_linear
 
 section restrict_scalars
 

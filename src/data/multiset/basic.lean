@@ -153,7 +153,7 @@ mem_cons.2 $ or.inr h
 @[simp] theorem mem_cons_self (a : α) (s : multiset α) : a ∈ a :: s :=
 mem_cons.2 (or.inl rfl)
 
-@[simp] theorem forall_mem_cons {p : α → Prop} {a : α} {s : multiset α} :
+theorem forall_mem_cons {p : α → Prop} {a : α} {s : multiset α} :
   (∀ x ∈ (a :: s), p x) ↔ p a ∧ ∀ x ∈ s, p x :=
 quotient.induction_on' s $ λ L, list.forall_mem_cons
 

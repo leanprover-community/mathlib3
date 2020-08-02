@@ -199,7 +199,7 @@ variables (R : Type v) [comm_ring R] [mul_semiring_action G R]
 open mul_action
 open_locale classical
 
-noncomputable instance (s : set G) [is_subgroup s] : fintype (quotient_group.quotient s) :=
+noncomputable instance (s : subgroup G) : fintype (quotient_group.quotient s) :=
 quotient.fintype _
 
 /-- the product of `(X - g • x)` over distinct `g • x`. -/

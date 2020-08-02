@@ -144,7 +144,7 @@ end
 namespace category_theory.iso
 
 /-- Build a `mul_equiv` from an isomorphism in the category `Mon`. -/
-@[to_additive AddMond_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
+@[to_additive AddMon_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
 `AddMon`."]
 def Mon_iso_to_mul_equiv {X Y : Mon} (i : X ≅ Y) : X ≃* Y :=
 { to_fun    := i.hom,

@@ -495,7 +495,7 @@ theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
 by { refine eq.trans _ (by rw [←quotient.out_eq o]), cases quotient.out o, refl }
 
 @[elab_as_eliminator] theorem induction_on {C : ordinal → Prop}
-  (o : ordinal) (H : ∀ α r [is_well_order α r], C (type r)) : C o :=
+  (o : ordinal) (H : ∀ α r [is_well_order α r], by exactI C (type r)) : C o :=
 quot.induction_on o $ λ ⟨α, r, wo⟩, @H α r wo
 
 /-! ### The order on ordinals -/

@@ -594,7 +594,7 @@ namespace ring_hom
   f (x - y) = (f x) - (f y) := (f : α →+ β).map_sub x y
 
 /-- A ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff {α β} [ring α] [ring β] (f : α →+* β) :
+theorem injective_iff {α β} [ring α] [semiring β] (f : α →+* β) :
   function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
 (f : α →+ β).injective_iff
 
@@ -880,6 +880,25 @@ end
 end comm_semiring
 
 end is_unit
+
+namespace ring
+variables [ring R]
+open_locale classical
+
+/-- Introduce a function `inverse` on a ring `R`, which sends `x` to `x⁻¹` if `x` is invertible and
+to `0` otherwise.  This definition is somewhat ad hoc, but one needs a fully (rather than partially)
+defined inverse function for some purposes, including for calculus. -/
+noncomputable def inverse : R → R :=
+λ x, if h : is_unit x then (((classical.some h)⁻¹ : units R) : R) else 0
+
+/-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
+lemma inverse_unit (a : units R) : inverse (a : R) = (a⁻¹ : units R) :=
+begin
+  simp [is_unit_unit, inverse],
+  exact units.inv_unique (classical.some_spec (is_unit_unit a)),
+end
+
+end ring
 
 /-- A predicate to express that a ring is an integral domain.
 

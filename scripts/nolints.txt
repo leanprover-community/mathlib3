@@ -644,7 +644,6 @@ apply_nolint fintype.of_subsingleton doc_blame
 apply_nolint fintype.subtype doc_blame
 apply_nolint fintype_perm doc_blame
 apply_nolint infinite doc_blame
-apply_nolint infinite.nat_embedding doc_blame
 apply_nolint perms_of_finset doc_blame
 apply_nolint perms_of_list doc_blame
 apply_nolint quotient.fin_choice doc_blame
@@ -985,7 +984,6 @@ apply_nolint pequiv.trans doc_blame
 
 -- data/pfun.lean
 apply_nolint pfun.core doc_blame
-apply_nolint pfun.equiv_subtype doc_blame
 apply_nolint pfun.fix doc_blame
 apply_nolint pfun.fix_induction doc_blame
 apply_nolint pfun.graph' doc_blame

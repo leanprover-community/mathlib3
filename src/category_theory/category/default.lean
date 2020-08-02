@@ -28,7 +28,7 @@ universes v u
 
 namespace category_theory
 
-
+/-- A 'notation typeclass' on the way to defining a category. -/
 class has_hom (obj : Type u) : Type (max u (v+1)) :=
 (hom : obj → obj → Type v)
 
@@ -36,6 +36,9 @@ infixr ` ⟶ `:10 := has_hom.hom -- type as \h
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
+
+/-- A preliminary structure on the way to defining a category,
+containing the data, but none of the axioms. -/
 class category_struct (obj : Type u)
 extends has_hom.{v} obj : Type (max u (v+1)) :=
 (id       : Π X : obj, hom X X)
@@ -117,8 +120,17 @@ lemma dite_comp {P : Prop} [decidable P]
   (if h : P then f h else f' h) ≫ g = (if h : P then f h ≫ g else f' h ≫ g) :=
 by { split_ifs; refl }
 
-class epi  (f : X ⟶ Y) : Prop :=
+/--
+A morphism `f` is an epimorphism if it can be "cancelled" when precomposed:
+`f ≫ g = f ≫ h` implies `g = h`.
+-/
+class epi (f : X ⟶ Y) : Prop :=
 (left_cancellation : Π {Z : C} (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h), g = h)
+
+/--
+A morphism `f` is an epimorphism if it can be "cancelled" when postcomposed:
+`g ≫ f = h ≫ f` implies `g = h`.
+-/
 class mono (f : X ⟶ Y) : Prop :=
 (right_cancellation : Π {Z : C} (g h : Z ⟶ X) (w : g ≫ f = h ≫ f), g = h)
 
@@ -230,6 +242,7 @@ def hom_of_le {U V : α} (h : U ≤ V) : U ⟶ V := ulift.up (plift.up h)
 /--
 Extract the underlying inequality from a morphism in a preorder category.
 -/
-def le_of_hom {U V : α} (h : U ⟶ V) : U ≤ V := h.down.down
+lemma le_of_hom {U V : α} (h : U ⟶ V) : U ≤ V := h.down.down
 
 end category_theory
+#lint

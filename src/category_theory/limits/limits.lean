@@ -482,7 +482,7 @@ if and only if the original cocone is.
 -/
 def precompose_hom_equiv {F G : J ⥤ C} (α : F ≅ G) (c : cocone G) :
   is_colimit ((cocones.precompose α.hom).obj c) ≃ is_colimit c :=
-of_cocone_equiv (cocones.precompose_equivalence α
+of_cocone_equiv (cocones.precompose_equivalence α)
 
 /--
 A cocone precomposed with the inverse of a natural isomorphism is a colimit cocone

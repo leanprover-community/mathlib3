@@ -1205,6 +1205,28 @@ lemma times_cont_diff_at.differentiable {n : with_top ℕ}
   (h : times_cont_diff_at 𝕜 n f x) (hn : 1 ≤ n) : differentiable_at 𝕜 f x :=
 by simpa [hn, differentiable_within_at_univ] using h.differentiable_within_at
 
+/-- A function is `C^(n + 1)` at a point iff locally, it has a derivative which is `C^n`. -/
+theorem times_cont_diff_at_succ_iff_has_fderiv_at {n : ℕ} :
+  times_cont_diff_at 𝕜 ((n + 1) : ℕ) f x
+  ↔ (∃ f' : E → (E →L[𝕜] F), (∃ u ∈ 𝓝 x, (∀ x ∈ u, has_fderiv_at f (f' x) x))
+      ∧ (times_cont_diff_at 𝕜 n f' x)) :=
+begin
+  rw [← times_cont_diff_within_at_univ, times_cont_diff_within_at_succ_iff_has_fderiv_within_at],
+  simp only [nhds_within_univ, exists_prop, mem_univ, insert_eq_of_mem],
+  split,
+  { rintros ⟨u, H, f', h_fderiv, h_times_cont_diff⟩,
+    rcases mem_nhds_sets_iff.mp H with ⟨t, htu, ht, hxt⟩,
+    refine ⟨f', ⟨t, _⟩, h_times_cont_diff.times_cont_diff_at H⟩,
+    refine ⟨mem_nhds_sets_iff.mpr ⟨t, subset.rfl, ht, hxt⟩, _⟩,
+    intros y hyt,
+    refine (h_fderiv y (htu hyt)).has_fderiv_at _,
+    exact mem_nhds_sets_iff.mpr ⟨t, htu, ht, hyt⟩ },
+  { rintros ⟨f', ⟨u, H, h_fderiv⟩, h_times_cont_diff⟩,
+    refine ⟨u, H, f', _, h_times_cont_diff.times_cont_diff_within_at⟩,
+    intros x hxu,
+    exact (h_fderiv x hxu).has_fderiv_within_at }
+end
+
 /-! ### Smooth functions -/
 
 variable (𝕜)
@@ -1943,6 +1965,14 @@ lemma times_cont_diff_within_at.comp' {n : with_top ℕ} {s : set E} {t : set F}
   times_cont_diff_within_at 𝕜 n (g ∘ f) (s ∩ f⁻¹' t) x :=
 hg.comp x (hf.mono (inter_subset_left _ _)) (inter_subset_right _ _)
 
+/-- The composition of `C^n` functions at points is `C^n`. -/
+lemma times_cont_diff_at.comp
+  {n : with_top ℕ} {g : F → G} {f : E → F} (x : E)
+  (hg : times_cont_diff_at 𝕜 n g (f x))
+  (hf : times_cont_diff_at 𝕜 n f x) :
+  times_cont_diff_at 𝕜 n (g ∘ f) x :=
+hg.comp x hf subset_preimage_univ
+
 lemma times_cont_diff.comp_times_cont_diff_within_at
   {n : with_top ℕ} {g : F → G} {f : E → F} (h : times_cont_diff 𝕜 n g)
   (hf : times_cont_diff_within_at 𝕜 n f t x) :
@@ -1952,6 +1982,13 @@ begin
     h.times_cont_diff_at.times_cont_diff_within_at,
   exact this.comp x hf (subset_univ _),
 end
+
+lemma times_cont_diff.comp_times_cont_diff_at
+  {n : with_top ℕ} {g : F → G} {f : E → F} (x : E)
+  (hg : times_cont_diff 𝕜 n g)
+  (hf : times_cont_diff_at 𝕜 n f x) :
+  times_cont_diff_at 𝕜 n (g ∘ f) x :=
+hg.comp_times_cont_diff_within_at hf
 
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/
 lemma times_cont_diff_on_fderiv_within_apply {m n : with_top  ℕ} {s : set E}
@@ -2177,6 +2214,44 @@ begin
   rcases p,
   exact times_cont_diff_at.prod_map hf hg
 end
+
+/-! ### Inversion in a complete normed algebra -/
+
+section algebra_inverse
+variables (𝕜) (R : Type*) [normed_ring R] [normed_algebra 𝕜 R]
+open normed_ring continuous_linear_map ring
+
+/-- In a complete normed algebra, the operation of inversion is `C^n`, for all `n`, at each
+invertible element.  The proof is by induction, bootstrapping using an identity expressing the
+derivative of inversion as a bilinear map of inversion itself. -/
+lemma times_cont_diff_at_inverse [complete_space R] {n : with_top ℕ} (x : units R) :
+  times_cont_diff_at 𝕜 n inverse (x : R) :=
+begin
+  induction n using with_top.nat_induction with n IH Itop,
+  { intros m hm,
+    refine ⟨{y : R | is_unit y}, _, _⟩,
+    { simp [nhds_within_univ],
+      exact x.nhds },
+    { use (ftaylor_series_within 𝕜 inverse univ),
+      rw [le_antisymm hm bot_le, has_ftaylor_series_up_to_on_zero_iff],
+      split,
+      { rintros _ ⟨x', hx'⟩,
+        rw ← hx',
+        exact (inverse_continuous_at x').continuous_within_at },
+      { simp [ftaylor_series_within] } } },
+  { apply times_cont_diff_at_succ_iff_has_fderiv_at.mpr,
+    refine ⟨λ (x : R), - lmul_left_right 𝕜 R (inverse x, inverse x), _, _⟩,
+    { refine ⟨{y : R | is_unit y}, x.nhds, _⟩,
+      intros y hy,
+      cases mem_set_of_eq.mp hy with y' hy',
+      rw [← hy', inverse_unit],
+      exact @has_fderiv_at_inverse 𝕜 _ _ _ _ _ y' },
+    { exact (lmul_left_right_is_bounded_bilinear 𝕜 R).times_cont_diff.neg.comp_times_cont_diff_at
+        (x : R) (IH.prod IH) } },
+  { exact times_cont_diff_at_top.mpr Itop }
+end
+
+end algebra_inverse
 
 /-- The product map of two `C^n` functions is `C^n`. -/
 lemma times_cont_diff.prod_map

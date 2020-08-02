@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl
 -/
-import algebra.category.Group
+import algebra.category.Group.basic
 import group_theory.free_abelian_group
 
 /-!

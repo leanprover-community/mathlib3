@@ -8,6 +8,7 @@ import order.liminf_limsup
 import data.set.intervals.image_preimage
 import data.set.intervals.ord_connected
 import topology.algebra.group
+import order.filter.interval
 
 /-!
 # Theory of topology on ordered spaces
@@ -613,6 +614,47 @@ from le_antisymm
 lemma tendsto_order {f : β → α} {a : α} {x : filter β} :
   tendsto f x (𝓝 a) ↔ (∀ a' < a, ∀ᶠ b in x, a' < f b) ∧ (∀ a' > a, ∀ᶠ b in x, f b < a') :=
 by simp [nhds_eq_order a, tendsto_inf, tendsto_infi, tendsto_principal]
+
+instance nhds_is_interval_generated (a : α) : is_interval_generated (𝓝 a) :=
+begin
+  simp only [nhds_eq_order, infi_subtype'],
+  refine ((has_basis_infi_principal_finite _).inf
+    (has_basis_infi_principal_finite _)).is_interval_generated _,
+  refine λ s hs, (ord_connected_bInter $ λ _ _, _).inter (ord_connected_bInter $ λ _ _, _),
+  exacts [ord_connected_Ioi, ord_connected_Iio]
+end
+
+instance nhds_within_Ici_is_interval_generated (a b : α) :
+  is_interval_generated (nhds_within a (Ici b)) :=
+ord_connected_Ici.is_interval_generated_inf_principal
+
+instance nhds_within_Ioi_is_interval_generated (a b : α) :
+  is_interval_generated (nhds_within a (Ioi b)) :=
+ord_connected_Ioi.is_interval_generated_inf_principal
+
+instance nhds_within_Iic_is_interval_generated (a b : α) :
+  is_interval_generated (nhds_within a (Iic b)) :=
+ord_connected_Iic.is_interval_generated_inf_principal
+
+instance nhds_within_Iio_is_interval_generated (a b : α) :
+  is_interval_generated (nhds_within a (Iio b)) :=
+ord_connected_Iio.is_interval_generated_inf_principal
+
+instance nhds_within_Icc_is_interval_generated (a b c : α) :
+  is_interval_generated (nhds_within a (Icc b c)) :=
+ord_connected_Icc.is_interval_generated_inf_principal
+
+instance nhds_within_Ico_is_interval_generated (a b c : α) :
+  is_interval_generated (nhds_within a (Ico b c)) :=
+ord_connected_Ico.is_interval_generated_inf_principal
+
+instance nhds_within_Ioc_is_interval_generated (a b c : α) :
+  is_interval_generated (nhds_within a (Ioc b c)) :=
+ord_connected_Ioc.is_interval_generated_inf_principal
+
+instance nhds_within_Ioo_is_interval_generated (a b c : α) :
+  is_interval_generated (nhds_within a (Ioo b c)) :=
+ord_connected_Ioo.is_interval_generated_inf_principal
 
 /-- Also known as squeeze or sandwich theorem. This version assumes that inequalities hold
 eventually for the filter. -/

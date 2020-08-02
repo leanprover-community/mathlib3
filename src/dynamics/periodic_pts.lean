@@ -1,10 +1,47 @@
+/-
+Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Yury G. Kudryashov
+-/
 import dynamics.fixed_points.basic
+import data.set.lattice
+import data.pnat.basic
+
+/-!
+# Periodic points
+
+A point `x : α` is a periodic point of `f : α → α` of period `n` if `f^[n] x = x`.
+
+## Main definitions
+
+* `is_periodic_pt f n x` : `x` is a periodic point of `f` of period `n`, i.e. `f^[n] x = x`.
+  We do not require `n > 0` in the definition.
+* `pts_of_period f n` : the set `{x | is_periodic_pt f n x}`. Note that `n` is not required to
+  be the minimal period of `x`.
+* `periodic_pts f` : the set of all periodic points of `f`.
+* `minimal_period f x` : the minimal period of a point `x` under an endomorphism `f` or zero
+  if `x` is not a periodic point of `f`.
+
+## Main statements
+
+We provide “dot syntax”-style operations on terms of the form `h : is_periodic_pt f n x` including
+arithmetic operations on `n` and `h.map (hg : semiconj_by g f f')`. We also prove that `f`
+is bijective on each set `pts_of_period f n` and on `periodic_pts f`. Finally, we prove that `x`
+is a periodic point of `f` of period `n` if and only if `minimal_period f x | n`.
+
+## References
+
+* https://en.wikipedia.org/wiki/Periodic_point
+
+-/
+
+open set
 
 namespace function
 
-variables {α : Type*} {β : Type*} {f fa : α → α} {fb : β → β} {x : α} {m n : ℕ}
+variables {α : Type*} {β : Type*} {f fa : α → α} {fb : β → β} {x y : α} {m n : ℕ}
 
-/-- A point `x` is a periodic point of `f : α → α` of period `n` if `f^n x = x`.
+/-- A point `x` is a periodic point of `f : α → α` of period `n` if `f^[n] x = x`.
 Note that we do not require `0 < n` in this definition. Many theorems about periodic points
 need this assumption. -/
 def is_periodic_pt (f : α → α) (n : ℕ) (x : α) := is_fixed_pt (f^[n]) x
@@ -113,33 +150,56 @@ def pts_of_period (f : α → α) (n : ℕ) : set α := {x : α | is_periodic_pt
 iff.rfl
 
 lemma semiconj.maps_to_pts_of_period {g : α → β} (h : semiconj g fa fb) (n : ℕ) :
-  set.maps_to g (pts_of_period fa n) (pts_of_period fb n) :=
+  maps_to g (pts_of_period fa n) (pts_of_period fb n) :=
 (h.iterate_right n).maps_to_fixed_pts
 
 lemma bij_on_pts_of_period (f : α → α) {n : ℕ} (hn : 0 < n) :
-  set.bij_on f (pts_of_period f n) (pts_of_period f n) :=
+  bij_on f (pts_of_period f n) (pts_of_period f n) :=
 ⟨(commute.refl f).maps_to_pts_of_period n,
-  λ x y hx hy hxy, hx.eq_of_apply_eq_same hy hn hxy,
+  λ x hx y hy hxy, hx.eq_of_apply_eq_same hy hn hxy,
   λ x hx, ⟨f^[n.pred] x, hx.apply_iterate _,
     by rw [← comp_app f, comp_iterate_pred_of_pos f hn, hx.eq]⟩⟩
 
+lemma directed_pts_of_period_pnat (f : α → α) : directed (⊆) (λ n : ℕ+, pts_of_period f n) :=
+λ m n, ⟨m * n, λ x hx, hx.mul_const n, λ x hx, hx.const_mul m⟩
+
 /-- The set of periodic points of a map `f : α → α`. -/
-def periodic_pts (f : α → α) : set α := {x : α | ∃ n (hn : 0 < n), is_periodic_pt f n x}
+@[nolint ge_or_gt]
+def periodic_pts (f : α → α) : set α := {x : α | ∃ n > 0, is_periodic_pt f n x}
 
 lemma mk_mem_periodic_pts (hn : 0 < n) (hx : is_periodic_pt f n x) :
   x ∈ periodic_pts f :=
 ⟨n, hn, hx⟩
 
-lemma mem_periodic_pts : x ∈ periodic_pts f ↔ ∃ n (hn : 0 < n), is_periodic_pt f n x := iff.rfl
+@[nolint ge_or_gt]
+lemma mem_periodic_pts : x ∈ periodic_pts f ↔ ∃ n > 0, is_periodic_pt f n x := iff.rfl
 
+variable (f)
+
+@[nolint ge_or_gt]
 lemma bUnion_pts_of_period : (⋃ n > 0, pts_of_period f n) = periodic_pts f :=
 set.ext $ λ x, by simp [mem_periodic_pts]
+
+@[nolint ge_or_gt]
+lemma Union_pnat_pts_of_period : (⋃ n : ℕ+, pts_of_period f n) = periodic_pts f :=
+supr_subtype.trans $ bUnion_pts_of_period f
+
+lemma bij_on_periodic_pts : bij_on f (periodic_pts f) (periodic_pts f) :=
+Union_pnat_pts_of_period f ▸
+  bij_on_Union_of_directed (directed_pts_of_period_pnat f) (λ i, bij_on_pts_of_period f i.pos)
+
+variable {f}
+
+lemma semiconj.maps_to_periodic_pts {g : α → β} (h : semiconj g fa fb) :
+  maps_to g (periodic_pts fa) (periodic_pts fb) :=
+λ x ⟨n, hn, hx⟩, ⟨n, hn, hx.map h⟩
 
 open_locale classical
 
 noncomputable theory
 
-/-- Minimal period of a point `x` under an endomorphism `f`. -/
+/-- Minimal period of a point `x` under an endomorphism `f`. If `x` is not a periodic point of `f`,
+then `minimal_period f x = 0`. -/
 def minimal_period (f : α → α) (x : α) :=
 if h : x ∈ periodic_pts f then nat.find h else 0
 
@@ -154,7 +214,7 @@ end
 
 lemma minimal_period_pos_of_mem_periodic_pts (hx : x ∈ periodic_pts f) :
   0 < minimal_period f x :=
-by simp only [minimal_period, dif_pos hx, (nat.find_spec hx).fst]
+by simp only [minimal_period, dif_pos hx, gt_iff_lt.1 (nat.find_spec hx).fst]
 
 lemma is_periodic_pt.minimal_period_pos (hn : 0 < n) (hx : is_periodic_pt f n x) :
   0 < minimal_period f x :=
@@ -176,12 +236,12 @@ end
 lemma is_periodic_pt.eq_zero_of_lt_minimal_period (hx : is_periodic_pt f n x)
   (hn : n < minimal_period f x) :
   n = 0 :=
-eq.symm $ (eq_or_lt_of_le $ zero_le n).resolve_right $ λ hn0,
+eq.symm $ (eq_or_lt_of_le $ n.zero_le).resolve_right $ λ hn0,
 not_lt.2 (hx.minimal_period_le hn0) hn
 
 lemma is_periodic_pt.minimal_period_dvd (hx : is_periodic_pt f n x) :
   minimal_period f x ∣ n :=
-(eq_or_lt_of_le $ zero_le n).elim (λ hn0, hn0 ▸ dvd_zero _) $ λ hn0,
+(eq_or_lt_of_le $ n.zero_le).elim (λ hn0, hn0 ▸ dvd_zero _) $ λ hn0,
 (nat.dvd_iff_mod_eq_zero _ _).2 $
 (hx.mod $ is_periodic_pt_minimal_period f x).eq_zero_of_lt_minimal_period $
 nat.mod_lt _ $ hx.minimal_period_pos hn0

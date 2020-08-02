@@ -294,10 +294,13 @@ lemma l_infi_of_ul [complete_lattice α] [complete_lattice β] (gi : galois_inse
 calc l (⨅ i, (f i)) =  l ⨅ (i : ι), (u (l (f i))) : by simp [hf]
                 ... = ⨅ i, l (f i) : gi.l_infi_u _
 
+lemma u_le_u_iff [preorder α] [preorder β] (gi : galois_insertion l u) {a b} :
+  u a ≤ u b ↔ a ≤ b :=
+⟨λ h, le_trans (gi.le_l_u _) (gi.gc.l_le h),
+    λ h, gi.gc.monotone_u h⟩
+
 lemma strict_mono_u [preorder α] [partial_order β] (gi : galois_insertion l u) : strict_mono u :=
-strict_mono_of_le_iff_le $ λ a b,
-  ⟨λ h, gi.gc.monotone_u h,
-    λ h, le_trans (gi.le_l_u _) (gi.gc.l_le h)⟩
+strict_mono_of_le_iff_le $ λ _ _, gi.u_le_u_iff.symm
 
 section lift
 
@@ -457,6 +460,10 @@ lemma u_supr_of_lu [complete_lattice α] [complete_lattice β] (gi : galois_coin
   {ι : Sort x} (f : ι → β) (hf : ∀ i, l (u (f i)) = f i) :
   u (⨆ i, (f i)) = ⨆ i, u (f i) :=
 gi.dual.l_infi_of_ul _ hf
+
+lemma l_le_l_iff [preorder α] [preorder β] (gi : galois_coinsertion l u) {a b} :
+  l a ≤ l b ↔ a ≤ b :=
+gi.dual.u_le_u_iff
 
 lemma strict_mono_l [partial_order α] [preorder β] (gi : galois_coinsertion l u) : strict_mono l :=
 λ a b h, gi.dual.strict_mono_u h

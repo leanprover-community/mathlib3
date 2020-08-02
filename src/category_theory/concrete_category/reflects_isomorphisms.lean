@@ -23,10 +23,10 @@ variables (D : Type (u+1)) [large_category D] [concrete_category D]
 
 /--
 A `forget₂ C D` forgetful functor between concrete categories `C` and `D`
-whose forgetful functors both reflect isomorphisms, itself reflects isomorphisms.
+where `forget C` reflects isomorphisms, itself reflects isomorphisms.
 -/
 @[priority 50] -- Even lower than the instance from `full` and `faithful`.
-instance [has_forget₂ C D] [reflects_isomorphisms (forget C)] [reflects_isomorphisms (forget D)] :
+instance [has_forget₂ C D] [reflects_isomorphisms (forget C)] :
   reflects_isomorphisms (forget₂ C D) :=
 { reflects := λ X Y f i,
   begin

@@ -40,13 +40,6 @@ lemma min_max_distrib_left : min a (max b c) = max (min a b) (min a c) := inf_su
 lemma min_max_distrib_right : min (max a b) c = max (min a c) (min b c) := inf_sup_right
 lemma min_le_max : min a b ≤ max a b := le_trans (min_le_left a b) (le_max_left a b)
 
-lemma dual_max : @max (order_dual α) _ a b = @min α _ a b :=
-(le_total a b).elim (λ h, by rw [min_eq_left, max_eq_left]; exact h)
-  (λ h, by rw [min_eq_right, max_eq_right]; exact h)
-
-lemma dual_min : @min (order_dual α) _ a b = @max α _ a b :=
-(@dual_max (order_dual α) _ a b).symm
-
 /-- An instance asserting that `max a a = a` -/
 instance max_idem : is_idempotent α max := by apply_instance -- short-circuit type class inference
 

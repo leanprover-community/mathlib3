@@ -13,12 +13,12 @@ and `A : set X`. This defines a new function `g : X → Y` which maps any
 `x₀ : X` to the limit of `f` as `x` tends to `x₀`, if such a limit exists.
 
 This is analoguous to the way `dense_inducing.extend` "extends" a function
-`f : X → Z` to a function `g : Y → Z` along a dense inducing `i : X → Y`
+`f : X → Z` to a function `g : Y → Z` along a dense inducing `i : X → Y`.
 
 The main theorem we prove about this definition is `continuous_on_extend_from`
 which states that, for `extend_from A f` to be continuous on a set `B ⊆ closure A`,
 it suffices that `f` converges within `A` at any point of `B`, provided that
-`f` is a function to a regular space
+`f` is a function to a regular space.
 
 -/
 
@@ -31,12 +31,12 @@ variables {X Y : Type*} [topological_space X] [topological_space Y]
 
 /-- Extend a function from a set `A`. The resulting function `g` is such that
 at any `x₀`, if `f` converges to some `y` as `x` tends to `x₀` within `A`,
-then `g x₀` is defined to be one of these `y`. Else, `g x₀` could be anything -/
+then `g x₀` is defined to be one of these `y`. Else, `g x₀` could be anything. -/
 def extend_from (A : set X) (f : X → Y) : X → Y :=
 λ x, @@lim _ ⟨f x⟩ (nhds_within x A) f
 
 /-- If `f` converges to some `y` as `x` tends to `x₀` within `A`,
-then `f` tends to `extend_from A f x` as `x` tends to `x₀` -/
+then `f` tends to `extend_from A f x` as `x` tends to `x₀`. -/
 lemma tendsto_extend_from {A : set X} {f : X → Y} {x : X}
   (h : ∃ y, tendsto f (nhds_within x A) (𝓝 y)) : tendsto f (nhds_within x A) (𝓝 $ extend_from A f x) :=
 lim_spec h
@@ -54,7 +54,7 @@ lemma extend_from_extends [t2_space Y] {f : X → Y} {A : set X} (hf : continuou
 
 /-- If `f` is a function to a regular space `Y` which is continuous on a set `A`,
 then `extend_from A f` is continuous on `B ⊆ closure A`, provided that `f` has a limit
-within `A` at any point in `B` -/
+within `A` at any point in `B`. -/
 lemma continuous_on_extend_from [regular_space Y] {f : X → Y} {A B : set X} (hB : B ⊆ closure A)
   (hf : ∀ x ∈ B,  ∃ y, tendsto f (nhds_within x A) (𝓝 y)) : continuous_on (extend_from A f) B :=
 begin
@@ -80,7 +80,7 @@ end
 
 /-- If a function `f` to a regular space `Y` is continuous on a dense set `A`,
 then `extend_from A f` is continuous, provided that `f` has a limit
-within `A` for any `x` -/
+within `A` for any `x`. -/
 lemma continuous_extend_from [regular_space Y] {f : X → Y} {A : set X} (hA : ∀ x, x ∈ closure A)
   (hf : ∀ x,  ∃ y, tendsto f (nhds_within x A) (𝓝 y)) : continuous (extend_from A f) :=
 begin

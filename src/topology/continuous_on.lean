@@ -656,8 +656,10 @@ begin
 end
 
 lemma continuous_on_if' {s : set α} {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
-  (hpf : ∀ a ∈ s ∩ frontier {a | p a}, tendsto f (nhds_within a $ s ∩ {a | p a}) (𝓝 $ if p a then f a else g a))
-  (hpg : ∀ a ∈ s ∩ frontier {a | p a}, tendsto g (nhds_within a $ s ∩ {a | ¬p a}) (𝓝 $ if p a then f a else g a))
+  (hpf : ∀ a ∈ s ∩ frontier {a | p a},
+    tendsto f (nhds_within a $ s ∩ {a | p a}) (𝓝 $ if p a then f a else g a))
+  (hpg : ∀ a ∈ s ∩ frontier {a | p a},
+    tendsto g (nhds_within a $ s ∩ {a | ¬p a}) (𝓝 $ if p a then f a else g a))
   (hf : continuous_on f $ s ∩ {a | p a}) (hg : continuous_on g $ s ∩ {a | ¬p a}) :
   continuous_on (λ a, if p a then f a else g a) s :=
 begin
@@ -673,15 +675,16 @@ begin
     all_goals
     { apply tendsto_nhds_within_congr,
       rintros y ⟨hys, hyA⟩,
-      exact (piecewise_eq_of_mem _ _ _ hyA).symm <|> exact (piecewise_eq_of_not_mem _ _ _ hyA).symm,
+      { exact (piecewise_eq_of_mem _ _ _ hyA).symm <|> 
+          exact (piecewise_eq_of_not_mem _ _ _ hyA).symm, },
       apply_assumption,
       exact hx'' } },
   { rw inter_union_distrib_left at ⊢ hx,
     cases hx,
     { apply continuous_within_at.union,
-      exact (hf x hx).congr
-      (λ y hy, piecewise_eq_of_mem _ _ _ hy.2)
-      (piecewise_eq_of_mem _ _ _ hx.2),
+      { exact (hf x hx).congr
+          (λ y hy, piecewise_eq_of_mem _ _ _ hy.2)
+          (piecewise_eq_of_mem _ _ _ hx.2), },
       rw ← frontier_compl at hx',
       have : x ∉ closure Aᶜ,
         from λ h, hx' ⟨h, (λ (h' : x ∈ interior Aᶜ), interior_subset h' hx.2)⟩,
@@ -689,11 +692,11 @@ begin
       rw [continuous_within_at, nhds_within_inter, this, inf_bot_eq],
       exact tendsto_bot },
     { apply continuous_within_at.union,
-      have : x ∉ closure A,
-        from (λ h, hx' ⟨h, (λ (h' : x ∈ interior A), hx.2 (interior_subset h'))⟩),
-      rw [mem_closure_iff_nhds_within_ne_bot, ne_bot, classical.not_not] at this,
-      rw [continuous_within_at, nhds_within_inter, this, inf_bot_eq],
-      exact tendsto_bot,
+      { have : x ∉ closure A,
+          from (λ h, hx' ⟨h, (λ (h' : x ∈ interior A), hx.2 (interior_subset h'))⟩),
+        rw [mem_closure_iff_nhds_within_ne_bot, ne_bot, classical.not_not] at this,
+        rw [continuous_within_at, nhds_within_inter, this, inf_bot_eq],
+        exact tendsto_bot, },
       exact (hg x hx).congr
       (λ y hy, piecewise_eq_of_not_mem _ _ _ hy.2)
       (piecewise_eq_of_not_mem _ _ _ hx.2) } }
@@ -709,27 +712,29 @@ begin
   { rintros a ha,
     simp only [← hp a ha, if_t_t],
     apply tendsto_nhds_within_mono_left,
-    exact inter_subset_inter_right s subset_closure,
+    { exact inter_subset_inter_right s subset_closure, },
     exact (hf a ⟨ha.1, ha.2.1⟩).tendsto },
   { rintros a ha,
     simp only [hp a ha, if_t_t],
     apply tendsto_nhds_within_mono_left,
-    exact inter_subset_inter_right s subset_closure,
+    { exact inter_subset_inter_right s subset_closure, },
     rcases ha with ⟨has, ⟨_, ha⟩⟩,
     rw [← mem_compl_iff, ← closure_compl] at ha,
     apply (hg a ⟨has, ha⟩).tendsto, },
-  exact hf.mono (inter_subset_inter_right s subset_closure),
+  { exact hf.mono (inter_subset_inter_right s subset_closure), },
   exact hg.mono (inter_subset_inter_right s subset_closure)
 end
 
 lemma continuous_if' {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
-  (hpf : ∀ a ∈ frontier {x | p x}, tendsto f (nhds_within a {x | p x}) (𝓝 $ ite (p a) (f a) (g a)))
-  (hpg : ∀ a ∈ frontier {x | p x}, tendsto g (nhds_within a {x | ¬p x}) (𝓝 $ ite (p a) (f a) (g a)))
+  (hpf : ∀ a ∈ frontier {x | p x},
+    tendsto f (nhds_within a {x | p x}) (𝓝 $ ite (p a) (f a) (g a)))
+  (hpg : ∀ a ∈ frontier {x | p x},
+    tendsto g (nhds_within a {x | ¬p x}) (𝓝 $ ite (p a) (f a) (g a)))
   (hf : continuous_on f {x | p x}) (hg : continuous_on g {x | ¬p x}) :
   continuous (λ a, ite (p a) (f a) (g a)) :=
 begin
   rw continuous_iff_continuous_on_univ,
-  apply continuous_on_if' ; simp ; assumption
+  apply continuous_on_if'; simp; assumption
 end
 
 lemma continuous_on_fst {s : set (α × β)} : continuous_on prod.fst s :=

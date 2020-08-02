@@ -2219,7 +2219,8 @@ by simp only [continuous_within_at, continuous_at, ← tendsto_sup, nhds_cleft_s
 lemma continuous_on_Icc_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
   [order_topology α] [topological_space β] [t2_space β] [regular_space β] {f : α → β} {a b : α}
   {la lb : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
-  (ha : tendsto f (nhds_within a $ Ioi a) (𝓝 la)) (hb : tendsto f (nhds_within b $ Iio b) (𝓝 lb)) :
+  (ha : tendsto f (nhds_within a $ Ioi a) (𝓝 la))
+  (hb : tendsto f (nhds_within b $ Iio b) (𝓝 lb)) :
   continuous_on (extend_from (Ioo a b) f) (Icc a b) ∧
   (extend_from (Ioo a b) f a = la) ∧
   (extend_from (Ioo a b) f b = lb) ∧
@@ -2227,7 +2228,7 @@ lemma continuous_on_Icc_extend_from_Ioo [topological_space α] [linear_order α]
 begin
   split,
   { apply continuous_on_extend_from,
-    rw closure_Ioo hab,
+    { rw closure_Ioo hab, },
     intros x x_in,
     have : a = x ∨ b = x ∨ x ∈ Ioo a b,
     { rw [mem_Icc, le_iff_lt_or_eq, le_iff_lt_or_eq] at x_in,
@@ -2241,13 +2242,12 @@ begin
       simpa [hab] },
     { use lb,
       simpa [hab] },
-    { use [f x, hf x h] },
-  },
+    { use [f x, hf x h] }, },
   repeat
   { split,
     apply extend_from_eq,
-    rw closure_Ioo hab,
-    simp only [le_of_lt hab, left_mem_Icc, right_mem_Icc],
+    { rw closure_Ioo hab,
+      simp only [le_of_lt hab, left_mem_Icc, right_mem_Icc], },
     simpa [hab] },
   { exact extend_from_extends hf }
 end
@@ -2262,7 +2262,7 @@ lemma continuous_on_Ico_extend_from_Ioo [topological_space α]
 begin
   split,
   { apply continuous_on_extend_from,
-    rw [closure_Ioo hab], exact Ico_subset_Icc_self,
+    { rw [closure_Ioo hab], exact Ico_subset_Icc_self, },
     intros x x_in,
     have : a = x ∨ x ∈ Ioo a b,
     { rw [mem_Ico, le_iff_lt_or_eq] at x_in,
@@ -2272,12 +2272,11 @@ begin
     rcases this with rfl | h,
     { use la,
       simpa [hab] },
-    { use [f x, hf x h] },
-  },
+    { use [f x, hf x h] }, },
   split,
   { apply extend_from_eq,
-    rw closure_Ioo hab,
-    simp only [le_of_lt hab, left_mem_Icc],
+    { rw closure_Ioo hab,
+      simp only [le_of_lt hab, left_mem_Icc], },
     simpa [hab] },
   { exact extend_from_extends hf }
 end
@@ -2308,8 +2307,8 @@ begin
     { intros x hx,
       cases hx with hxu hx,
       by_cases h : x = a,
-      rw [h, mem_set_of_eq],
-      exact mem_of_nhds hs,
+      { rw [h, mem_set_of_eq],
+        exact mem_of_nhds hs, },
       exact hu ⟨hxu, lt_of_le_of_ne hx (ne_comm.2 h)⟩ } },
   { intros h,
     exact h.mono Ioi_subset_Ici_self }
@@ -2327,4 +2326,5 @@ end
 lemma continuous_at_iff_continuous_left_right [topological_space α] [linear_order α]
   [topological_space β] {a : α} {f : α → β} :
   continuous_at f a ↔ continuous_within_at f (Iio a) a ∧ continuous_within_at f (Ioi a) a :=
-by rw [continuous_within_at_Ioi_iff_Ici, continuous_within_at_Iio_iff_Iic, continuous_at_iff_continuous_cleft_cright]
+by rw [continuous_within_at_Ioi_iff_Ici, continuous_within_at_Iio_iff_Iic,
+  continuous_at_iff_continuous_cleft_cright]

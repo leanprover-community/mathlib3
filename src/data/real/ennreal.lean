@@ -237,6 +237,7 @@ lemma zero_lt_coe_iff : 0 < (↑p : ennreal) ↔ 0 < p := coe_lt_coe
 @[simp, norm_cast] lemma coe_nat (n : nat) : ((n : nnreal) : ennreal) = n := with_top.coe_nat n
 @[simp] lemma nat_ne_top (n : nat) : (n : ennreal) ≠ ⊤ := with_top.nat_ne_top n
 @[simp] lemma top_ne_nat (n : nat) : (⊤ : ennreal) ≠ n := with_top.top_ne_nat n
+@[simp] lemma one_lt_top : 1 < ∞ := coe_lt_top
 
 lemma le_coe_iff : a ≤ ↑r ↔ (∃p:nnreal, a = p ∧ p ≤ r) := with_top.le_coe_iff r a
 lemma coe_le_iff : ↑r ≤ a ↔ (∀p:nnreal, a = p → r ≤ p) := with_top.coe_le_iff r a

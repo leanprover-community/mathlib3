@@ -99,4 +99,19 @@ variable (V)
 @[simp] lemma const_vadd_zero : const_vadd P (0:V) = isometric.refl P :=
 isometric.to_equiv_inj $ equiv.const_vadd_zero V P
 
+variables {V1 : Type*} {P1 : Type*} [normed_group V1] [metric_space P1] [normed_add_torsor V1 P1]
+variables {V2 : Type*} {P2 : Type*} [normed_group V2] [metric_space P2] [normed_add_torsor V2 P2]
+
+/-- The map `g` from `V1` to `V2` corresponding to a map `f` from `P1`
+to `P2`, at a base point `p`, is an isometry if `f` is one. -/
+lemma isometry_vadd_vsub_of_isometry {f : P1 → P2} (hf : isometry f) {p : P1} {g : V1 → V2}
+  (hg : ∀ v, g v = f (v +ᵥ p) -ᵥ f p) : isometry g :=
+begin
+  have hgc : g = (vadd_const V2 (f p)).symm ∘ f ∘ vadd_const V1 p,
+  { ext,
+    simp [hg] },
+  rw hgc,
+  exact (vadd_const V2 (f p)).symm.isometry.comp (hf.comp (vadd_const V1 p).isometry)
+end
+
 end isometric

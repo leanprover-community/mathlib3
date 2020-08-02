@@ -436,7 +436,7 @@ by rintros _ ⟨⟨L⟩, rfl⟩; exact list.rec_on L s.one_mem
     (by simp at ih ⊢; from s.mul_mem (H ⟨x, rfl⟩) ih))
 
 theorem closure_subset {G : Type*} [group G] {s : set G} {t : subgroup G}
-(h : s ⊆ t) : subgroup.closure s ≤ t :=
+  (h : s ⊆ t) : subgroup.closure s ≤ t :=
 begin
   simp only [h, subgroup.closure_le],
 end

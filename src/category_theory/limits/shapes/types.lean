@@ -53,41 +53,43 @@ The category of types has `X × Y`, the usual cartesian product,
 as the binary product of `X` and `Y`.
 -/
 def types_has_binary_products : has_binary_products (Type u) :=
-{ has_limits_of_shape :=
-  { has_limit := λ F,
-    { cone :=
-      { X := F.obj left × F.obj right,
-        π :=
-        { app := by { rintro ⟨_|_⟩, exact prod.fst, exact prod.snd, } }, },
-      is_limit :=
-      { lift := λ s x, (s.π.app left x, s.π.app right x),
-        uniq' := λ s m w,
-        begin
-          ext,
-          exact congr_fun (w left) x,
-          exact congr_fun (w right) x,
-        end }, } } }
+{ has_limit := λ F,
+  { cone :=
+    { X := F.obj left × F.obj right,
+      π :=
+      { app := by { rintro ⟨_|_⟩, exact prod.fst, exact prod.snd, } }, },
+    is_limit :=
+    { lift := λ s x, (s.π.app left x, s.π.app right x),
+      uniq' := λ s m w,
+      begin
+        ext,
+        exact congr_fun (w left) x,
+        exact congr_fun (w right) x,
+      end }, } }
 
 /--
 The category of types has `Π j, f j` as the product of a type family `f : J → Type`.
 -/
-def types_has_products : has_products (Type u) :=
-{ has_limits_of_shape := λ J,
-  { has_limit := λ F,
-    { cone :=
-      { X := Π j, F.obj j,
-        π :=
-        { app := λ j f, f j }, },
-      is_limit :=
-      { lift := λ s x j, s.π.app j x,
-        uniq' := λ s m w,
-        begin
-          ext x j,
-          have := congr_fun (w j) x,
-          exact this,
-        end }, } } }
+def types_has_products : has_products (Type u) := λ J,
+{ has_limit := λ F,
+  { cone :=
+    { X := Π j, F.obj j,
+      π :=
+      { app := λ j f, f j }, },
+    is_limit :=
+    { lift := λ s x j, s.π.app j x,
+      uniq' := λ s m w,
+      begin
+        ext x j,
+        have := congr_fun (w j) x,
+        exact this,
+      end }, } }
 
-local attribute [instance] types_has_terminal types_has_binary_products types_has_products
+local attribute [instance, priority 200] types_has_terminal
+local attribute [instance, priority 200] types_has_products
+-- We slightly increase the priority of `types_has_binary_products`
+-- so that is comes ahead of `types_has_products`.
+local attribute [instance, priority 300] types_has_binary_products
 
 @[simp] lemma terminal : (⊤_ (Type u)) = punit := rfl
 lemma terminal_from {P : Type u} (f : P ⟶ ⊤_ (Type u)) (p : P) : f p = punit.star :=
@@ -103,5 +105,14 @@ by ext
   limits.prod.lift f g = (λ x, (f x, g x)) := rfl
 @[simp] lemma prod_map {W X Y Z : Type u} {f : W ⟶ X} {g : Y ⟶ Z} :
   limits.prod.map f g = (λ p : W × Y, (f p.1, g p.2)) := rfl
+
+@[simp] lemma pi {J : Type u} (f : J → Type u) : pi_obj f = Π j, f j := rfl
+@[simp] lemma pi_π {J : Type u} {f : J → Type u} (j : J) (g : pi_obj f) :
+  (pi.π f j : pi_obj f → f j) g = g j := rfl
+
+@[simp] lemma pi_lift {J : Type u} {f : J → Type u} {W : Type u} {g : Π j, W ⟶ f j} :
+  pi.lift g = (λ w j, g j w) := rfl
+@[simp] lemma pi_map {J : Type u} {f g : J → Type u} {h : Π j, f j ⟶ g j} :
+  pi.map h = λ (k : Π j, f j) j, h j (k j) := rfl
 
 end category_theory.limits.types

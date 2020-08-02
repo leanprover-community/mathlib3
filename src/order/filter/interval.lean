@@ -1,6 +1,19 @@
+/-
+Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Yury G. Kudryashov
+-/
 import data.set.intervals.ord_connected
 import order.filter.lift
 import order.filter.at_top_bot
+
+/-!
+# Interval-generated filters
+
+We say that a filter `f` on a `preorder` is interval generated if each set `s ∈ f` includes
+an `ord_connected` subset `t ∈ f`. Equivalently, `f` has a basis `{s i | p i}` which consists
+of `ord_connected` sets.
+-/
 
 variables {α β : Type*}
 
@@ -12,11 +25,17 @@ namespace filter
 
 variables [preorder α]
 
+/--
+A filter `f` on a `preorder` is interval generated if each set `s ∈ f` includes an `ord_connected`
+subset `t ∈ f`.
+-/
 class is_interval_generated (f : filter α) : Prop :=
 (exists_ord_connected_mem : ∀ ⦃s⦄, s ∈ f → ∃ t ∈ f, ord_connected t ∧ t ⊆ s)
 
 export is_interval_generated (exists_ord_connected_mem)
 
+/-- If a filter `f` has a basis `{s i | p i}` such that all sets `s i` such that `p i` are
+`ord_connected`, then `f` is an interval generated filter. -/
 lemma has_basis.is_interval_generated {f : filter α} {ι} {p : ι → Prop} {s} (h : f.has_basis p s)
   (hs : ∀ i, p i → ord_connected (s i)) :
   is_interval_generated f :=
@@ -26,6 +45,8 @@ begin
   exact ⟨s i, h.mem_of_mem hi, hs i hi, hsi⟩,
 end
 
+/-- If `f` is an interval generated filter, then `ord_connected` sets `s ∈ f` form a basis
+of `f`. -/
 lemma has_ord_connected_basis (f : filter α) [is_interval_generated f] :
   f.has_basis (λ s : set α, s ∈ f ∧ ord_connected s) id :=
 f.basis_sets.restrict $ λ s hs,
@@ -59,6 +80,9 @@ instance is_interval_generated_at_bot : is_interval_generated (at_bot : filter �
 (has_basis_infi_principal_finite _).is_interval_generated $ λ t ht, ord_connected_bInter $
   λ i hi, ord_connected_Iic
 
+/-- If `Ixx` is a function `α → α → set α` such that `Ixx x y ⊆ Icc x y`
+(e.g., `Ixx` is one of `Ioo`, `Ico`, `Ioc`, `Icc`), then `Ixx a b → l.lift' powerset`
+as `(a, b) → l ×ᶠ l`. -/
 lemma tendsto_Ixx_same_filter {Ixx : α → α → set α} (hI : ∀ x y, Ixx x y ⊆ Icc x y)
   (l : filter α) [is_interval_generated l] :
   tendsto (uncurry Ixx) (l ×ᶠ l) (l.lift' powerset) :=
@@ -69,6 +93,9 @@ begin
   exact ⟨t, htl, λ x hx, subset.trans (hI _ _) (subset.trans (htc hx.1 hx.2) hts)⟩
 end
 
+/-- If `Ixx` is a function `α → α → set α` such that `Ixx x y ⊆ Icc x y`
+(e.g., `Ixx` is one of `Ioo`, `Ico`, `Ioc`, `Icc`), then `Ixx (f x) (f y) → l.lift' powerset`
+provided that `f → l` and `g → l`. -/
 lemma tendsto.Ixx {la : filter α} [is_interval_generated la]
   {Ixx : α → α → set α} (hI : ∀ x y, Ixx x y ⊆ Icc x y)
   {lb : filter β} {f g : β → α} (hf : tendsto f lb la) (hg : tendsto g lb la) :

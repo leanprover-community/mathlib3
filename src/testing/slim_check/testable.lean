@@ -47,7 +47,7 @@ inductive test_result (p : Prop)
 
 /-- `testable p` uses random examples to try to disprove `p` -/
 class testable (p : Prop) :=
-(run (minimize : bool) : gen (test_result p)) --
+(run [] (minimize : bool) : gen (test_result p)) --
 
 open list
 
@@ -185,7 +185,7 @@ def combine_testable (p : Prop)
 : testable p :=
 ⟨ λ min, have 0 < length (map (λ t, @testable.run _ t min) t),
     by { rw [length_map], apply h },
-  one_of (list.map (λ t, @testable.run _ t min) t) this ⟩
+  gen.one_of (list.map (λ t, @testable.run _ t min) t) this ⟩
 
 /-- Once a property fails to hold on an example, look for smaller counter-examples
 to show the user -/

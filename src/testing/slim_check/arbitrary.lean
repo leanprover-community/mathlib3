@@ -44,15 +44,6 @@ random testing
 -/
 universes u
 
-def lazy_list.init {α} : lazy_list α → lazy_list α
-| lazy_list.nil := lazy_list.nil
-| (lazy_list.cons x xs) :=
-  let xs' := xs () in
-  match xs' with
-  | lazy_list.nil := lazy_list.nil
-  | (lazy_list.cons _ _) := lazy_list.cons x (lazy_list.init xs')
-  end
-
 namespace slim_check
 
 variables (α : Type u)
@@ -61,7 +52,7 @@ variables (α : Type u)
 and given such an example `x : α`, gives us a way to shrink it
 and find simpler examples.  -/
 class arbitrary :=
-(arby : gen α)
+(arby [] : gen α)
 (shrink : α → lazy_list α)
 
 export arbitrary (arby shrink)
@@ -83,6 +74,8 @@ if h : n ≤ 0
 /-- implementation of `arbitrary nat` -/
 def nat.shrink (n : ℕ) : list ℕ :=
 nat.shrink' n []
+
+open gen
 
 instance arbitrary_nat : arbitrary ℕ :=
 { arby := sized $ λ sz, fin.val <$> choose_any (fin $ succ (sz^3)) <|>
@@ -191,11 +184,6 @@ then have n / 2 < n, from div_lt_self h (by norm_num),
      tree.node <$> arby <*> tree.arby (n / 2) <*> tree.arby (n / 2)
 else pure tree.nil
 
-/-- Interleave all the elements of a list but omit the last element of the
-resulting list. -/
-def interleave_all' {α} : list (lazy_list α) → lazy_list α :=
-lazy_list.init ∘ interleave_all
-
 /-- implementation of `arbitrary (tree α)` -/
 def tree.shrink_with (shrink_a : α → lazy_list α) : tree α → lazy_list (tree α)
 | tree.nil := lazy_list.nil
@@ -210,18 +198,49 @@ instance arbitrary_tree [arbitrary α] : arbitrary (tree α) :=
 
 setup_tactic_parser
 
--- meta def reflect_arbitrary_inst (arby_inst : expr)
---   (∀ (t ) ): tactic.{0} unit :=
--- tactic.eval_expr (sigma arbitrary) arby_inst
-
+/-- generate samples of a given type -/
 def print_samples (t : Type u) [arbitrary t] [has_to_string t] : io unit := do
 xs ← io.run_rand $ uliftable.down $
   do { xs ← (list.range 10).mmap $ (arby t).run ∘ ulift.up,
        pure ⟨xs.map to_string⟩ },
 xs.mmap' io.put_str_ln
 
+/--
+`#sample my_type`, where `my_type` has an instance of `arbitrary`, prints ten random
+values of type `my_type` of using an increasing size parameter.
+
+```lean
+#sample nat
+-- prints
+-- 0
+-- 0
+-- 2
+-- 24
+-- 64
+-- 76
+-- 5
+-- 132
+-- 8
+-- 449
+-- or some other sequence of numbers
+
+#sample list int
+-- prints
+-- []
+-- [1, 1]
+-- [-7, 9, -6]
+-- [36]
+-- [-500, 105, 260]
+-- [-290]
+-- [17, 156]
+-- [-2364, -7599, 661, -2411, -3576, 5517, -3823, -968]
+-- [-643]
+-- [11892, 16329, -15095, -15461]
+-- or whatever
+```
+-/
 @[user_command]
-meta def sample_cmd (_ : parse $ tk "sample") : lean.parser unit :=
+meta def sample_cmd (_ : parse $ tk "#sample") : lean.parser unit :=
 do e ← texpr,
    of_tactic $ do
      e ← tactic.i_to_expr e,

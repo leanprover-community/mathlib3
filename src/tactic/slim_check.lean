@@ -145,7 +145,60 @@ do p ← is_prop t,
 /-- in a goal of the shape `⊢ p` where `p` is testable, try to find
 counter-examples to falsify `p`. If one is found, an assignment to the
 local variables is printed and the tactic fails. Otherwise, the goal
-is `admit`-ed.  -/
+is `admit`-ed.
+
+```lean
+example (i j) : i < j → i < 10 := by slim_check
+  -- ./src/tactic/slim_check.lean:172:37: error:
+  -- ===================
+  -- Found problems!
+
+  -- i := 15
+  -- j := 23
+  -- -------------------
+  -- state:
+  -- i j : ℕ
+  -- ⊢ i < j → i < 10
+
+example (i j) : i < j → i < 10 ∧ ∀ j, j < i := by slim_check
+  -- ./src/tactic/slim_check.lean:176:42: error:
+  -- ===================
+  -- Found problems!
+
+  -- i := 17
+  -- j := 21
+  -- -------------------
+  -- state:
+  -- i : ℕ
+  -- ⊢ (∃ (j : ℕ), i < j) → i < 10
+
+example (i) : (∃ j, i < j) → i < 10 := by slim_check
+  -- ./src/tactic/slim_check.lean:174:50: error:
+  -- ===================
+  -- Found problems!
+
+  -- i := 0
+  -- j := 1
+  -- j := 1
+  -- -------------------
+  -- state:
+  -- i j : ℕ
+  -- ⊢ i < j → (i < 10 ∧ ∀ (j : ℕ), j < i)
+
+example (i) : (∃ j, i < j) → ∀ k, k > i → i < 10 := by slim_check
+  -- ./src/tactic/slim_check.lean:177:55: error:
+  -- ===================
+  -- Found problems!
+
+  -- i := 292
+  -- j := 1338
+  -- k := 1431
+  -- -------------------
+  -- state:
+  -- i : ℕ
+  -- ⊢ (∃ (j : ℕ), i < j) → ∀ (k : ℕ), k > i → i < 10
+```
+  -/
 meta def slim_check (cfg : slim_check_cfg := {}) : tactic unit :=
 do n ← revert_all,
    t ← target,
@@ -154,6 +207,30 @@ do n ← revert_all,
 
 setup_tactic_parser
 
+-- #exit
+/--
+This command use randomized examples to test a proposition and report
+any counterexample
+
+```lean
+conjecture : ∀ i, i < 10
+-- ./src/tactic/slim_check.lean:168:0: error:
+-- ===================
+-- Found problems!
+--
+-- i := 16
+-- -------------------
+
+conjecture : ∀ i j, i < j → i < 10
+-- ./src/tactic/slim_check.lean:170:0: error:
+-- ===================
+-- Found problems!
+
+-- i := 13
+-- j := 20
+-- -------------------
+```
+-/
 @[user_command]
 meta def conjecture_cmd (_ : parse $ tk "conjecture") : lean.parser unit :=
 do tk ":",
@@ -164,14 +241,3 @@ do tk ":",
 
 end interactive
 end tactic
-
-conjecture : ∀ i, i < 10
-
-conjecture : ∀ i j, i < j → i < 10
-
-example (i j) : i < j → i < 10 := by slim_check
-
-example (i j) : i < j → i < 10 ∧ ∀ j, j < i := by slim_check
-
-example (i) : (∃ j, i < j) → i < 10 := by slim_check
-example (i) : (∃ j, i < j) → ∀ k, k > i → i < 10 := by slim_check

@@ -8,7 +8,7 @@ import data.bitvec
 import order.basic
 
 instance (n : ℕ) : preorder (bitvec n) :=
-preorder.lift bitvec.to_nat (by apply_instance)
+preorder.lift bitvec.to_nat
 
 lemma bitvec.le_def {n : ℕ} (x y : bitvec n) :
   x ≤ y ↔ x.to_nat ≤ y.to_nat :=

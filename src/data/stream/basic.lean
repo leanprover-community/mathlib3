@@ -5,6 +5,7 @@ Authors: Gabriel Ebner, Simon Hudon
 -/
 import tactic.ext
 import data.stream
+import data.list.basic
 
 /-!
 # Additional instances and attributes for streams

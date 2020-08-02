@@ -51,28 +51,30 @@ variable (α : Type u)
 
 local infix ` .. `:41 := set.Icc
 
-open random (assumption_or_dec_trivial)
-
-section random
-
-variable [random α]
+open rand (assumption_or_dec_trivial)
 
 /-- execute a `gen` inside the `io` monad using `i` as the example
 size and creating a fresh random number generator -/
-def run_gen {α} (x : gen α) (i : ℕ) : io α :=
+def io.run_gen {α} (x : gen α) (i : ℕ) : io α :=
 io.run_rand (x.run ⟨i⟩)
+
+namespace gen
+
+section rand
+
+variable [random α]
 
 /-- lift `random.random` to the `gen` monad -/
 def choose_any : gen α :=
-⟨ λ _, random.random α _ ⟩
+⟨ λ _, rand.random α _ ⟩
 
 variables {α}
 
 /-- lift `random.random_r` to the `gen` monad -/
 def choose (x y : α) (p : x ≤ y . assumption_or_dec_trivial) : gen (x .. y) :=
-⟨ λ _, random_r _ x y p ⟩
+⟨ λ _, rand.random_r _ x y p ⟩
 
-end random
+end rand
 
 open nat (hiding choose)
 
@@ -85,8 +87,6 @@ return ⟨z.val,h'⟩
 
 open nat
 
-namespace gen
-
 instance : uliftable gen.{u} gen.{v} :=
 reader_t.uliftable' (equiv.ulift.trans equiv.ulift.symm)
 
@@ -95,15 +95,13 @@ instance : has_orelse gen.{u} :=
   b ← uliftable.up $ choose_any bool,
   if b.down then x else y ⟩
 
-end gen
-
 variable {α}
 
 /-- Get access to the size parameter of the `gen` monad. For
 reasons of universe polymorphism, it is specified in
 continuation passing style. -/
 def sized (cmd : ℕ → gen α) : gen α :=
-⟨ λ ⟨sz⟩, (cmd sz).run ⟨sz⟩ ⟩
+⟨ λ ⟨sz⟩, reader_t.run (cmd sz) ⟨sz⟩ ⟩
 
 /-- create `n` examples using `cmd` -/
 def vector_of : ∀ (n : ℕ) (cmd : gen α), gen (vector α n)
@@ -122,6 +120,8 @@ open ulift
 
 /-- given a list of example generators, choose one to create an example -/
 def one_of (xs : list (gen α)) (pos : 0 < xs.length) : gen α :=
-have _inst : random _ := random_fin_of_pos pos, do
+have _inst : _root_.random _ := random_fin_of_pos pos, do
 n ← uliftable.up $ @choose_any (fin xs.length) _inst,
 list.nth_le xs (down n).val (down n).is_lt
+
+end gen

@@ -80,19 +80,10 @@ class bounded_random (α : Type u) extends preorder α :=
 (random_r : Π g [random_gen g] (x y : α),
               auto_param (x ≤ y) `random.assumption_or_dec_trivial →
               rand_g g (x .. y))
-(random_series [] : Π (g : Type) [random_gen g], g → stream α :=
-by { intros, resetI,
-     exact corec prod.fst ((random g).run ∘ prod.snd) ( (random g).run ⟨ a ⟩ ) } )
-(random_series_r : Π (g : Type) [random_gen g] (x y : α)
-                        (h : x ≤ y),
-                        g →
-                        stream (x .. y) :=
-by { introsI,
-     exact corec prod.fst ((random_r g x y h).run ∘ prod.snd) ((random_r g x y h).run ⟨ a ⟩) } )
 
 /-- `random α` gives us machinery to generate values of type `α` -/
 class random (α : Type u) extends bounded_random α :=
-(random : Π (g : Type) [random_gen g], rand_g g α)
+(random [] : Π (g : Type) [random_gen g], rand_g g α)
 
 /-- is 2^31; multiplying by it shifts a number left by 31 bits,
 dividing by it shifts it right by 31 bits -/
@@ -109,71 +100,46 @@ end stream
 
 namespace rand
 
-variables {g : Type} [random_gen g]
-
-/-- create a new random number generator distinct from the one stored in the state -/
-def split : rand_g g g := ⟨ prod.map id up ∘ random_gen.split ∘ down ⟩
-
-/-- generate an infinite series of random values of type `α` -/
-def random_series : rand_g g (stream α) :=
-do gen ← liftable.up split,
-   pure $ corec_state (random α g) gen
-
-variables {α}
-
-/-- generate an infinite series of random values of type `α` between `x` and `y` -/
-def random_series_r (x y : α) (h : x ≤ y) : rand_g g (stream (x .. y)) :=
-do gen ← liftable.up split,
-   pure $ corec_state (random_r g x y h) gen
-
-end random
-
-
-namespace bounded_random
-open stream rand
-variables (α : Type u) [bounded_random α]
-variables {g : Type} [random_gen g]
-
-/-- Use a state monad to generate a stream through corecursion -/
-def corec_state {σ α} (cmd : state σ α) (s : σ) : stream α :=
-stream.corec prod.fst (cmd.run ∘ prod.snd) (cmd.run s)
-
-/-- create a new random number generator distinct from the one stored in the state -/
-def split : rand_g g g := ⟨ prod.map id up ∘ random_gen.split ∘ down ⟩
-
-/-- generate an infinite series of random values of type `α` -/
-def random_series : rand_g g (stream α) :=
-do gen ← uliftable.up split,
-   pure $ corec_state (random α g) gen
-
-variables {α}
-
-/-- generate an infinite series of random values of type `α` between `x` and `y` -/
-def random_series_r (x y : α) (h : auto_param (x ≤ y) `random.assumption_or_dec_trivial) : rand_g g (stream (x .. y)) :=
-do gen ← uliftable.up split,
-   pure $ corec_state (random_r g x y h) gen
-
-end bounded_random
-
-namespace random
-open stream rand
-variables (α : Type u) [_root_.random α]
-variables {g : Type} [random_gen g]
-
-/-- generate an infinite series of random values of type `α` -/
-def random_series : rand_g g (stream α) :=
-do gen ← uliftable.up split,
-   pure $ corec_state (random α g) gen
-
-export bounded_random (random_r random_series_r)
-
-open tactic
-
 /-- Handy tactic tactic checks that a range taken as an argument is non-empty -/
 meta def assumption_or_dec_trivial : tactic unit :=
-assumption <|> tactic.exact_dec_trivial
+tactic.assumption <|> tactic.exact_dec_trivial
+
+open stream
+
+variables (α : Type u)
+variables (g : Type) [random_gen g]
+
+/-- create a new random number generator distinct from the one stored in the state -/
+def split : rand_g g g := ⟨ prod.map id up ∘ random_gen.split ∘ down ⟩
+
+section random
+variables [random α]
+
+export random (random)
+
+/-- re-export `random.random` -/
+def random : rand_g g α :=
+random.random α g
+
+/-- generate an infinite series of random values of type `α` -/
+def random_series : rand_g g (stream α) :=
+do gen ← uliftable.up (split g),
+   pure $ stream.corec_state (random.random α g) gen
 
 end random
+
+variables {α}
+
+/-- re-export `bounded_random.random_r` -/
+def random_r [bounded_random α] (x y : α) (h : x ≤ y . assumption_or_dec_trivial) : rand_g g (x .. y) :=
+bounded_random.random_r g x y h
+
+/-- generate an infinite series of random values of type `α` between `x` and `y` -/
+def random_series_r [bounded_random α] (x y : α) (h : x ≤ y . assumption_or_dec_trivial) : rand_g g (stream (x .. y)) :=
+do gen ← uliftable.up (split g),
+   pure $ corec_state (bounded_random.random_r g x y h) gen
+
+end rand
 
 namespace io
 
@@ -192,18 +158,18 @@ def run_rand (cmd : _root_.rand α) : io α :=
 do g ← io.mk_generator,
    return $ (cmd.run ⟨g⟩).1
 
-open random (assumption_or_dec_trivial)
+open rand (assumption_or_dec_trivial)
 
 section random
 variable [random α]
 
 /-- randomly generate a value of type α -/
 def random : io α :=
-io.run_rand (random.random α _)
+io.run_rand (rand.random _ _)
 
 /-- randomly generate an infinite series of value of type α -/
 def random_series : io (stream α) :=
-io.run_rand (random.random_series _)
+io.run_rand (rand.random_series _ _)
 
 end random
 
@@ -211,12 +177,12 @@ section bounded_random
 variable [bounded_random α]
 
 /-- randomly generate a value of type α between `x` and `y` -/
-def random_r (x y : α) (p : x ≤ y . assumption_or_dec_trivial) : io (x .. y) :=
+def random_r (x y : α) (p : x ≤ y . rand.assumption_or_dec_trivial) : io (x .. y) :=
 io.run_rand (bounded_random.random_r _ x y p)
 
 /-- randomly generate an infinite series of value of type α between `x` and `y` -/
-def random_series_r (x y : α) (h : x ≤ y . assumption_or_dec_trivial) : io (stream $ x .. y) :=
-io.run_rand (bounded_random.random_series_r x y h)
+def random_series_r (x y : α) (h : x ≤ y . rand.assumption_or_dec_trivial) : io (stream $ x .. y) :=
+io.run_rand (rand.random_series_r _ x y h)
 
 end bounded_random
 
@@ -234,7 +200,7 @@ meta def run_rand {α : Type u} (cmd : rand α) : tactic α := do
 ⟨g⟩ ← tactic.up mk_generator,
 return (cmd.run ⟨g⟩).1
 
-open random (assumption_or_dec_trivial)
+open rand (assumption_or_dec_trivial)
 variables {α : Type u}
 
 section bounded_random
@@ -242,11 +208,11 @@ variable [bounded_random α]
 
 /-- use `random_r` in the `tactic` monad -/
 meta def random_r (x y : α) (p : x ≤ y . assumption_or_dec_trivial) : tactic (x .. y) :=
-run_rand (bounded_random.random_r _ x y p)
+run_rand (rand.random_r _ x y p)
 
 /-- use `random_series_r` in the `tactic` monad -/
 meta def random_series_r (x y : α) (h : x ≤ y . assumption_or_dec_trivial) : tactic (stream $ x .. y) :=
-run_rand (bounded_random.random_series_r x y h)
+run_rand (rand.random_series_r _ x y h)
 
 end bounded_random
 
@@ -256,11 +222,11 @@ variable [random α]
 
 /-- use `random` in the `tactic` monad -/
 meta def random : tactic α :=
-run_rand (_root_.random.random _ _)
+run_rand (rand.random _ _)
 
 /-- use `random_series` in the `tactic` monad -/
 meta def random_series : tactic (stream α) :=
-run_rand (random.random_series α)
+run_rand (rand.random_series α _)
 
 end random
 
@@ -308,7 +274,7 @@ variables {g : Type} [random_gen g]
 
 /-- generate a random bit vector of length `n` -/
 def bitvec.random (n : ℕ) : rand_g g (bitvec n) := do
-bs ← random.random_series bool,
+bs ← rand.random_series bool _,
 pure ⟨bs.take n, bs.length_take _⟩
 
 section coerce
@@ -329,7 +295,7 @@ begin
   apply @lt_of_lt_of_le _ _ _ (x' + (y' - x' + 1)),
   { apply add_lt_add_left, simp only [add_comm _ 1],
     apply nat.mod_lt,
-    apply zero_lt_succ },
+    simp [add_comm 1,zero_lt_succ], },
   { rw [← add_assoc,← nat.add_sub_assoc P',nat.add_sub_cancel_left,add_one],
     clear P' i',
     cases y with y Hy,
@@ -341,15 +307,15 @@ begin
     { rw [list.length,list.foldr,nat.pow] },
     { simp [foldr,length,one_add,pow_succ,flip,bitvec.add_lsb,add_comm _ 1],
       transitivity succ
-       (foldr (λ (b : bool) (a : ℕ), a + (a + cond b 1 0)) 0 xs +
-          (foldr (λ (b : bool) (a : ℕ), a + (a + cond b 1 0)) 0 xs + 1)),
-      { apply succ_le_succ, apply add_le_add_left, apply add_le_add_left,
+       (foldr (λ (b : bool) (a : ℕ), a + a + cond b 1 0) 0 xs +
+          foldr (λ (b : bool) (a : ℕ), a + a + cond b 1 0) 0 xs + 1),
+      { apply succ_le_succ, apply add_le_add_left,
         cases x, apply nat.zero_le, refl, },
       { simp! only,
-        rw [← nat.add_succ,nat.add_succ,← nat.succ_add,← nat.succ_eq_add_one,mul_comm,← two_mul],
+        rw [← nat.succ_eq_add_one,← nat.succ_add,← nat.add_succ],
+        rw [mul_comm _ 2,← two_mul],
         apply nat.mul_le_mul_left,
-        simp [flip,bitvec.add_lsb] at z_ih,
-        apply z_ih } }, },
+        simpa [flip,bitvec.add_lsb] using z_ih, } }, },
 end
 end coerce
 
@@ -368,7 +334,7 @@ have Hx : x ≤ bitvec.of_nat n r,
     unfold_locals r,
     simp only [bitvec.le_def,bitvec.to_nat_of_nat,add_comm _ x',add_comm _ 1],
     rw [mod_eq_of_lt],
-    { apply nat.le_add_left },
+    { apply nat.le_add_right },
     unfold_locals x' y' i',
     apply bitvec.interval_fits_in_word_size,
     apply P

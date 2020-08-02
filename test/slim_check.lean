@@ -3,7 +3,7 @@ import .nat
 import .prime
 import .fin
 
-import category.functor
+import control.functor
 
 import data.nat.prime
 import data.nat.modeq

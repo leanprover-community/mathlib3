@@ -1,80 +1,132 @@
-
+/-
+Copyright (c) 2020 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author(s): Simon Hudon
+-/
 import data.equiv.basic
 import tactic
+
+/-!
+# Liftable Class
+
+Some functors such as `option` and `list` are universe polymorphic. Unlike
+type polymorphism where `option α` is a function application and reasoning and
+generalizations that apply to functions can be used, `option.{u}` and `option.{v}`
+are not one function applied to two universe names but one polymorphic definition
+instantiated twice. This means that whatever we works `option.{u}` is hard
+to transport over to `option.{v}`. `liftable` is an attempt at improving the situation.
+
+`liftable option.{u} option.{v}` gives us a generic and composable way to use
+`option.{u}` in a context that requires `option.{v}`. It is often used in tendem with
+`ulift` but the two are purposefully decoupled.
+
+
+## Main definitions
+  * `liftable` class
+
+## Tags
+
+universe polymorphism functor
+
+## References
+
+  * https://hackage.haskell.org/package/QuickCheck
+
+-/
 
 universes u₀ u₁ v₀ v₁ v₂ w w₀ w₁
 
 /-- Given a universe polymorphic functor `M.{u}`, this class helps move from
 `M.{u}` to `M.{v}` and back -/
 class liftable (f : Type u₀ → Type u₁) (g : Type v₀ → Type v₁) :=
-(up {}   : Π {α β}, α ≃ β → f α → g β)
-(down {} : Π {α β}, α ≃ β → g β → f α)
-(up_down : ∀ {α β} (F : α ≃ β) (x : g β), up F (down F x) = x)
-(down_up : ∀ {α β} (F : α ≃ β) (x : f α), down F (up F x) = x)
-
-attribute [simp] liftable.up_down liftable.down_up
+(congr [] {α β} : α ≃ β → f α ≃ g β)
 
 namespace liftable
 
-/-- The most common practical use, this function takes `x : M.{u} α` and lifts it
+/-- The most common practical use `liftable` (together with `up`), this function takes `x : M.{u} α` and lifts it
 to M.{max u v} (ulift.{v} α) -/
 @[reducible]
-def up' {f : Type u₀ → Type u₁} {g : Type (max u₀ v₀) → Type v₁} [liftable f g]
+def up {f : Type u₀ → Type u₁} {g : Type (max u₀ v₀) → Type v₁} [liftable f g]
   {α} : f α → g (ulift α) :=
-liftable.up equiv.ulift.symm
+(liftable.congr f g equiv.ulift.symm).to_fun
 
-/-- The most common practical use, this function takes `x : M.{max u v} (ulift.{v} α)`
+/-- The most common practical use of `liftable` (together with `up`), this function takes `x : M.{max u v} (ulift.{v} α)`
 and lowers it to `M.{u} α` -/
 @[reducible]
-def down' {f : Type u₀ → Type u₁} {g : Type (max u₀ v₀) → Type v₁} [liftable f g]
+def down {f : Type u₀ → Type u₁} {g : Type (max u₀ v₀) → Type v₁} [liftable f g]
   {α} : g (ulift α) → f α :=
-liftable.down equiv.ulift.symm
+(liftable.congr f g equiv.ulift.symm).inv_fun
+
+/-- convenient shortcut to avoid manipulating `ulift` -/
+def adapt_up {F : Type u₀ → Type u₁} {G : Type (max u₀ v₀) → Type v₁}
+  [liftable F G] [monad G] {α β}
+  (x : F α) (f : α → G β) : G β :=
+up x >>= f ∘ ulift.down
+
+/-- convenient shortcut to avoid manipulating `ulift` -/
+def adapt_down {F : Type (max u₀ v₀) → Type u₁} {G : Type v₀ → Type v₁}
+  [L : liftable G F] [monad F] {α β}
+  (x : F α) (f : α → G β) : G β :=
+@down.{v₀ v₁ (max u₀ v₀)} G F L β $ x >>= @up.{v₀ v₁ (max u₀ v₀)} G F L β ∘ f
+
+@[simp]
+lemma up_down  {f : Type u₀ → Type u₁} {g : Type (max u₀ v₀) → Type v₁} [liftable f g]
+  {α} (x : g (ulift α)) : up (down x : f α) = x := (liftable.congr f g equiv.ulift.symm).right_inv _
+
+@[simp]
+lemma down_up  {f : Type u₀ → Type u₁} {g : Type (max u₀ v₀) → Type v₁} [liftable f g]
+  {α} (x : f α) : down (up x : g _) = x := (liftable.congr f g equiv.ulift.symm).left_inv _
 
 end liftable
 
 open ulift
 
-protected lemma prod.map_map {α α' α'' β β' β''}
-  (x : α × β) (f : α → α') (f' : α' → α'')
-              (g : β → β') (g' : β' → β'') :
-  prod.map f' g' (prod.map f g x) = prod.map (f' ∘ f) (g' ∘ g) x :=
-by cases x; refl
-
-protected lemma prod.id_map {α β}
-  (x : α × β) :
-  prod.map (λ x, x) (λ x, x) x = x :=
-by cases x; refl
-
 instance : liftable id id :=
-{ up := λ _ _ F, F
-, down := λ _ _ F, F.symm
-, up_down := by intros; simp
-, down_up := by intros; simp }
+{ congr := λ α β F, F }
+
+/-- reduce the equivalence between two state monads to the equivalence between
+their respective function spaces -/
+def state_t.equiv {m₁ : Type u₀ → Type v₀} {m₂ : Type u₁ → Type v₁}
+  {α₁ σ₁ : Type u₀} {α₂ σ₂ : Type u₁} (F : (σ₁ → m₁ (α₁ × σ₁)) ≃ (σ₂ → m₂ (α₂ × σ₂))) :
+  state_t σ₁ m₁ α₁ ≃ state_t σ₂ m₂ α₂ :=
+{ to_fun := λ ⟨f⟩, ⟨F f⟩,
+  inv_fun := λ ⟨f⟩, ⟨F.symm f⟩,
+  left_inv := λ ⟨f⟩, congr_arg state_t.mk $ F.left_inv _,
+  right_inv := λ ⟨f⟩, congr_arg state_t.mk $ F.right_inv _ }
 
 /-- for specific state types, this function helps to create a liftable instance -/
-def state_t.liftable' {s s' m m'}
+def state_t.liftable' {s : Type u₀} {s' : Type u₁}
+  {m : Type u₀ → Type v₀} {m' : Type u₁ → Type v₁}
   [liftable m m']
   (F : s ≃ s') :
   liftable (state_t s m) (state_t s' m') :=
-{ up   := λ _ _ G ⟨ f ⟩, ⟨ λ s, liftable.up (equiv.prod_congr G F) (f $ F.symm s) ⟩
-, down := λ _ _ G ⟨ g ⟩, ⟨ λ s, liftable.down (equiv.prod_congr G F) $ g (F s) ⟩
-, up_down := by { rintros α β G ⟨ f ⟩, simp! }
-, down_up := by { rintros α β G ⟨ g ⟩, simp! [map_map,function.comp] } }
+{ congr :=
+    λ α β G, state_t.equiv $ equiv.Pi_congr F $
+      λ _, liftable.congr _ _ $ equiv.prod_congr G F }
 
 instance {s m m'}
   [liftable m m'] :
   liftable (state_t s m) (state_t (ulift s) m') :=
 state_t.liftable' equiv.ulift.symm
 
+/-- reduce the equivalence between two reader monads to the equivalence between
+their respective function spaces -/
+def reader_t.equiv {m₁ : Type u₀ → Type v₀} {m₂ : Type u₁ → Type v₁}
+  {α₁ ρ₁ : Type u₀} {α₂ ρ₂ : Type u₁} (F : (ρ₁ → m₁ α₁) ≃ (ρ₂ → m₂ α₂)) :
+  reader_t ρ₁ m₁ α₁ ≃ reader_t ρ₂ m₂ α₂ :=
+{ to_fun := λ ⟨f⟩, ⟨F f⟩,
+  inv_fun := λ ⟨f⟩, ⟨F.symm f⟩,
+  left_inv := λ ⟨f⟩, congr_arg reader_t.mk $ F.left_inv _,
+  right_inv := λ ⟨f⟩, congr_arg reader_t.mk $ F.right_inv _ }
+
 /-- for specific reader monads, this function helps to create a liftable instance -/
 def reader_t.liftable' {s s' m m'}
   [liftable m m']
   (F : s ≃ s') :
   liftable (reader_t s m) (reader_t s' m') :=
-{ up   := λ _ _ G ⟨ f ⟩, ⟨ λ s, liftable.up G (f $ F.symm s) ⟩
-, down := λ _ _ G ⟨ g ⟩, ⟨ λ s, liftable.down G $ g $ F s ⟩
-, up_down := by { rintros α β G ⟨ f ⟩, simp! }
-, down_up := by { rintros α β G ⟨ g ⟩, simp! [map_map,function.comp] } }
+{ congr :=
+    λ α β G, reader_t.equiv $ equiv.Pi_congr F $
+      λ _, liftable.congr _ _ G }
 
 instance {s m m'} [liftable m m'] : liftable (reader_t s m) (reader_t (ulift s) m') :=
 reader_t.liftable' equiv.ulift.symm

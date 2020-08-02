@@ -1,5 +1,27 @@
-
+/-
+Copyright (c) 2020 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author(s): Simon Hudon
+-/
 import testing.slim_check.testable
+
+/-!
+# testing.slim_check.tactics
+
+Automation to check testable propositions
+
+## Main definition
+  * `slim_check` - tactic to find a counter example to the current goal
+
+## Tags
+
+random testing
+
+## References
+
+  * https://hackage.haskell.org/package/QuickCheck
+
+-/
 
 namespace tactic
 open slim_check

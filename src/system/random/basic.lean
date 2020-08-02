@@ -1,5 +1,11 @@
+/-
+Copyright (c) 2020 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author(s): Simon Hudon
+-/
+
 import algebra.group_power
-import category.liftable
+import control.liftable
 
 import data.bitvec
 import data.list.basic
@@ -12,6 +18,33 @@ import tactic.norm_num
 
 import system.io
 import system.random
+
+/-!
+# Rand Monad and Random Class
+
+This module provides tools for formulating computations guided by randomness and for
+defining objects that can be created randomly.
+
+## Main definitions
+  * `rand` monad for computations guided by randomness;
+  * `random` class for objects that can be generated randomly;
+    * `random` to generate one object;
+    * `random_r` to generate one object inside a range;
+    * `random_series` to generate an infinite series of objects;
+    * `random_series_r` to generate an infinite series of objects inside a range;
+  * `io.mk_generator` to create a new random number generator;
+  * `io.run_rand` to run a randomized computation inside the `io` monad;
+  * `tactic.run_rand` to run a randomized computation inside the `tactic` monad
+
+## Tags
+
+random monad io
+
+## References
+
+  * Similar library in Haskell: https://hackage.haskell.org/package/MonadRandom
+
+-/
 
 open list io applicative
 
@@ -44,11 +77,11 @@ open stream
 
 /-- `random α` gives us machinery to generate values of type `α` -/
 class random (α : Type u) extends has_le α :=
-(random : Π (g : Type) [random_gen g], rand_g g α)
+(random [] : Π (g : Type) [random_gen g], rand_g g α)
 (random_r : Π g [random_gen g] (x y : α),
               x ≤ y →
               rand_g g (x .. y))
-(random_series : Π (g : Type) [random_gen g], g → stream α :=
+(random_series [] : Π (g : Type) [random_gen g], g → stream α :=
 by { intros, resetI,
      exact corec prod.fst ((random g).run ∘ prod.snd) ( (random g).run ⟨ a ⟩ ) } )
 (random_series_r : Π (g : Type) [random_gen g] (x y : α)
@@ -261,9 +294,9 @@ begin
   let x' := x.to_nat,
   let y' := y.to_nat,
   apply @lt_of_lt_of_le _ _ _ (x' + (y' - x' + 1)),
-  { apply add_lt_add_left, simp,
+  { apply add_lt_add_left, simp [add_comm 1],
     apply nat.mod_lt,
-    rw one_add, apply zero_lt_succ },
+    apply zero_lt_succ },
   { rw [← add_assoc,← nat.add_sub_assoc P',nat.add_sub_cancel_left,add_one],
     clear P' i',
     cases y with y Hy,
@@ -274,16 +307,16 @@ begin
     induction z with x xs,
     { rw [list.length,list.foldr,nat.pow] },
     { simp [foldr,length,one_add,pow_succ,flip,bitvec.add_lsb],
-      transitivity succ (1 +
-       (foldr (λ (b : bool) (a : ℕ), a + (a + cond b 1 0)) 0 xs +
-          foldr (λ (b : bool) (a : ℕ), a + (a + cond b 1 0)) 0 xs)),
-      { apply succ_le_succ, apply add_le_add_right,
+      transitivity succ (
+       (foldr (λ (b : bool) (a : ℕ), a + a + cond b 1 0) 0 xs +
+          foldr (λ (b : bool) (a : ℕ), a + a + cond b 1 0) 0 xs) + 1),
+      { apply succ_le_succ, apply add_le_add_left,
         cases x, apply nat.zero_le, refl, },
       { simp!,
-        rw [← nat.add_succ,← nat.add_succ,one_add,← nat.succ_add,mul_comm,← two_mul],
-        apply nat.mul_le_mul_left,
-        simp [flip,bitvec.add_lsb] at z_ih,
-        apply z_ih } }, },
+        transitivity (foldr (λ (b : bool) (a : ℕ), a + a + cond b 1 0) 0 xs + 1) * 2,
+        { simp [mul_comm _ 2,two_mul], ring },
+        apply nat.mul_le_mul_right,
+        simpa [flip,bitvec.add_lsb] using z_ih } }, },
 end
 end coerce
 
@@ -302,7 +335,7 @@ have Hx : x ≤ bitvec.of_nat n r,
     unfold_locals r,
     simp [bitvec.le_def,bitvec.to_nat_of_nat],
     rw [mod_eq_of_lt],
-    { apply nat.le_add_right },
+    { apply nat.le_add_left },
     unfold_locals x' y' i',
     apply bitvec.interval_fits_in_word_size,
     apply P

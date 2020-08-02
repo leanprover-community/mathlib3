@@ -1,7 +1,33 @@
-
+/-
+Copyright (c) 2020 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author(s): Simon Hudon
+-/
 import data.lazy_list
 import data.lazy_list2
 import testing.slim_check.gen
+
+/-!
+# Arbitrary Class
+
+This class permits the creation of arbitrary values of a given type
+controlling the size of those values using the `gen` monad`. It also
+helps minimize examples by creating smaller versions of given values.
+
+This is a port of the Haskell QuickCheck library.
+
+## Main definitions
+  * `arbitrary` class
+
+## Tags
+
+random testing
+
+## References
+
+  * https://hackage.haskell.org/package/QuickCheck
+
+-/
 
 universes u
 

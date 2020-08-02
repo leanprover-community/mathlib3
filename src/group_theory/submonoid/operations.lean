@@ -222,6 +222,7 @@ variables {ι : Type*} {f : M →* N} (hf : function.injective f)
 
 include hf
 
+/-- `map f` and `comap f` form a `galois_coinsertion` when `f` is injective. -/
 def gci_map_comap : galois_coinsertion (map f) (comap f) :=
 (gc_map_comap f).to_galois_coinsertion
   (λ S x, by simp [mem_comap, mem_map, hf.eq_iff])
@@ -258,6 +259,7 @@ variables {ι : Type*} {f : M →* N} (hf : function.surjective f)
 
 include hf
 
+/-- `map f` and `comap f` form a `galois_insertion` when `f` is surjective. -/
 def gi_map_comap : galois_insertion (map f) (comap f) :=
 (gc_map_comap f).to_galois_insertion
   (λ S x h, let ⟨y, hy⟩ := hf x in mem_map.2 ⟨y, by simp [hy, h]⟩)

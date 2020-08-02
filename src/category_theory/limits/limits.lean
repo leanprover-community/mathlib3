@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Mario Carneiro, Scott Morrison, Floris van Doorn
 -/
 import category_theory.adjunction.basic
-import category_theory.reflect_isomorphisms
+import category_theory.limits.cones
+import category_theory.reflects_isomorphisms
 
 open category_theory category_theory.category category_theory.functor opposite
 
@@ -86,7 +87,7 @@ def of_point_iso {r t : cone F} (P : is_limit r) [i : is_iso (P.lift t)] : is_li
 of_iso_limit P
 begin
   haveI : is_iso (P.lift_cone_morphism t).hom := i,
-  haveI : is_iso (P.lift_cone_morphism t) := cone_iso_of_hom_iso _,
+  haveI : is_iso (P.lift_cone_morphism t) := cones.cone_iso_of_hom_iso _,
   symmetry,
   apply as_iso (P.lift_cone_morphism t),
 end
@@ -397,7 +398,7 @@ def of_point_iso {r t : cocone F} (P : is_colimit r) [i : is_iso (P.desc t)] : i
 of_iso_colimit P
 begin
   haveI : is_iso (P.desc_cocone_morphism t).hom := i,
-  haveI : is_iso (P.desc_cocone_morphism t) := cocone_iso_of_hom_iso _,
+  haveI : is_iso (P.desc_cocone_morphism t) := cocones.cocone_iso_of_hom_iso _,
   apply as_iso (P.desc_cocone_morphism t),
 end
 

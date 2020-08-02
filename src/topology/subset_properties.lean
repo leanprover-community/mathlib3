@@ -66,6 +66,21 @@ begin
   exact h₂ (h₁ hs)
 end
 
+/-- If `p : set α → Prop` is stable under restriction and union, and each point `x of a compact set `s` 
+  has a neighborhood `t` within `s` such that `p t`, then `p s` holds. -/
+@[elab_as_eliminator]
+lemma is_compact.induction_on {s : set α} (hs : is_compact s) {p : set α → Prop} (he : p ∅)
+  (hmono : ∀ ⦃s t⦄, s ⊆ t → p t → p s) (hunion : ∀ ⦃s t⦄, p s → p t → p (s ∪ t))
+  (hnhds : ∀ x ∈ s, ∃ t ∈ nhds_within x s, p t) :
+  p s :=
+let f : filter α :=
+  { sets := {t | p tᶜ},
+    univ_sets := by simpa,
+    sets_of_superset := λ t₁ t₂ ht₁ ht, hmono (compl_subset_compl.2 ht) ht₁,
+    inter_sets := λ t₁ t₂ ht₁ ht₂, by simp [compl_inter, hunion ht₁ ht₂] } in
+have sᶜ ∈ f, from hs.compl_mem_sets_of_nhds_within (by simpa using hnhds),
+by simpa
+
 /-- The intersection of a compact set and a closed set is a compact set. -/
 lemma is_compact.inter_right (hs : is_compact s) (ht : is_closed t) :
   is_compact (s ∩ t) :=
@@ -126,21 +141,11 @@ lemma compact_iff_ultrafilter_le_nhds :
 lemma is_compact.elim_finite_subcover {ι : Type v} (hs : is_compact s)
   (U : ι → set α) (hUo : ∀i, is_open (U i)) (hsU : s ⊆ ⋃ i, U i) :
   ∃ t : finset ι, s ⊆ ⋃ i ∈ t, U i :=
-begin
-  by_contra h, push_neg at h,
-  set f : filter α := ⨅ t : finset ι, 𝓟 (s \ ⋃ i ∈ t, U i),
-  haveI hf : ne_bot f := infi_ne_bot_of_directed'
-    (directed_of_sup $ λ t₁ t₂ ht, principal_mono.2 $ diff_subset_diff_right $
-      bUnion_subset_bUnion_left ht)
-    (λ t, principal_ne_bot_iff.2 $ nonempty_of_not_subset (h t)),
-  have : f ≤ 𝓟 s := infi_le_of_le ∅ (le_principal_iff.2 (diff_subset _ _)),
-  obtain ⟨a, ha, h⟩ : ∃ a ∈ s, cluster_pt a f := hs this,
-  obtain ⟨_, ⟨i, rfl⟩, ha⟩ := hsU ha,
-  suffices : a ∈ (U i)ᶜ, from this ha,
-  have hfi : f ≤ 𝓟 (U i)ᶜ := infi_le_of_le {i} (principal_mono.2 $ by simp [diff_subset_iff]),
-  have hic : is_closed (U i)ᶜ := is_closed_compl_iff.2 (hUo i),
-  exact hic.mem_of_nhds_within_ne_bot (h.mono hfi),
-end
+is_compact.induction_on hs ⟨∅, empty_subset _⟩ (λ s₁ s₂ hs ⟨t, hs₂⟩, ⟨t, subset.trans hs hs₂⟩)
+  (λ s₁ s₂ ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩,
+    ⟨t₁ ∪ t₂, by { rw [finset.bUnion_union], exact union_subset_union ht₁ ht₂ }⟩)
+  (λ x hx, let ⟨i, hi⟩ := mem_Union.1 (hsU hx) in
+    ⟨U i, mem_nhds_within.2 ⟨U i, hUo i, hi, inter_subset_left _ _⟩, {i}, by simp⟩)
 
 /-- For every family of closed sets whose intersection avoids a compact set,
 there exists a finite subfamily whose intersection avoids this compact set. -/
@@ -577,7 +582,7 @@ lemma exists_compact_subset [locally_compact_space α] {x : α} {U : set α}
 begin
   rcases locally_compact_space.local_compact_nhds x U _ with ⟨K, h1K, h2K, h3K⟩,
   { refine ⟨K, h3K, _, h2K⟩, rwa [ mem_interior_iff_mem_nhds] },
-  rwa [← mem_interior_iff_mem_nhds, interior_eq_of_open hU]
+  rwa [← mem_interior_iff_mem_nhds, hU.interior_eq]
 end
 
 end compact
@@ -1004,6 +1009,9 @@ that contains this point. -/
 def connected_component (x : α) : set α :=
 ⋃₀ { s : set α | is_preconnected s ∧ x ∈ s }
 
+/-- The connected component of a point inside a set. -/
+def connected_component_in (F : set α) (x : F) : set α := coe '' (connected_component x)
+
 theorem mem_connected_component {x : α} : x ∈ connected_component x :=
 mem_sUnion_of_mem (mem_singleton x) ⟨is_connected_singleton.is_preconnected, mem_singleton x⟩
 
@@ -1043,6 +1051,26 @@ end prio
 
 attribute [instance, priority 50] connected_space.to_nonempty -- see Note [lower instance priority]
 
+lemma is_connected_range [topological_space β] [connected_space α] {f : α → β} (h : continuous f) :
+  is_connected (range f) :=
+begin
+  inhabit α,
+  rw ← image_univ,
+  exact ⟨⟨f (default α), mem_image_of_mem _ (mem_univ _)⟩,
+         is_preconnected.image is_preconnected_univ _ h.continuous_on⟩
+end
+
+lemma connected_space_iff_connected_component :
+  connected_space α ↔ ∃ x : α, connected_component x = univ :=
+begin
+  split,
+  { rintros ⟨h, ⟨x⟩⟩,
+    exactI ⟨x, eq_univ_of_univ_subset $ subset_connected_component is_preconnected_univ (mem_univ x)⟩ },
+  { rintros ⟨x, h⟩,
+    haveI : preconnected_space α := ⟨by {rw ← h, exact is_connected_connected_component.2 }⟩,
+    exact ⟨⟨x⟩⟩ }
+end
+
 @[priority 100] -- see Note [lower instance priority]
 instance preirreducible_space.preconnected_space (α : Type u) [topological_space α]
   [preirreducible_space α] : preconnected_space α :=
@@ -1067,6 +1095,10 @@ theorem is_clopen_iff [preconnected_space α] {s : set α} : is_clopen s ↔ s =
   h3 h2,
 by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
 
+lemma eq_univ_of_nonempty_clopen [preconnected_space α] {s : set α}
+  (h : s.nonempty) (h' : is_clopen s) : s = univ :=
+by { rw is_clopen_iff at h', finish [h.ne_empty] }
+
 lemma subtype.preconnected_space {s : set α} (h : is_preconnected s) :
   preconnected_space s :=
 { is_preconnected_univ :=
@@ -1090,6 +1122,18 @@ lemma subtype.connected_space {s : set α} (h : is_connected s) :
 { is_preconnected_univ :=
   (subtype.preconnected_space h.is_preconnected).is_preconnected_univ,
   to_nonempty := h.nonempty.to_subtype }
+
+lemma is_preconnected_iff_preconnected_space {s : set α} :
+  is_preconnected s ↔ preconnected_space s :=
+⟨subtype.preconnected_space,
+ begin
+   introI,
+   simpa using is_preconnected_univ.image (coe : s → α) continuous_subtype_coe.continuous_on
+ end⟩
+
+lemma is_connected_iff_connected_space {s : set α} : is_connected s ↔ connected_space s :=
+⟨subtype.connected_space,
+ λ h, ⟨nonempty_subtype.mp h.2, is_preconnected_iff_preconnected_space.mpr h.1⟩⟩
 
 /-- A set `s` is preconnected if and only if
 for every cover by two open sets that are disjoint on `s`,

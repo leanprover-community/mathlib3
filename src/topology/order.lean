@@ -434,6 +434,11 @@ lemma continuous_induced_rng {g : γ → α} {t₂ : tspace β} {t₁ : tspace �
   (h : cont t₁ t₂ (f ∘ g)) : cont t₁ (induced f t₂) g :=
 assume s ⟨t, ht, s_eq⟩, s_eq ▸ h t ht
 
+lemma continuous_induced_rng' [topological_space α] [topological_space β] [topological_space γ]
+  {g : γ → α} (f : α → β) (H : ‹topological_space α› = ‹topological_space β›.induced f)
+  (h : continuous (f ∘ g)) : continuous g :=
+H.symm ▸ continuous_induced_rng h
+
 lemma continuous_coinduced_rng {t : tspace α} : cont t (coinduced f t) f :=
 assume s h, h
 

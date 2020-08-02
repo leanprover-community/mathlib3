@@ -231,7 +231,7 @@ decidable_linear_order.lift coe units.ext
 @[simp, to_additive, norm_cast]
 theorem max_coe [monoid α] [decidable_linear_order α] {a b : units α} :
   (↑(max a b) : α) = max a b :=
-by by_cases a ≤ b; simp [max, h]
+by by_cases b ≤ a; simp [max, h]
 
 @[simp, to_additive, norm_cast]
 theorem min_coe [monoid α] [decidable_linear_order α] {a b : units α} :

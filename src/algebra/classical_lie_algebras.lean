@@ -144,7 +144,8 @@ end symplectic
 
 namespace orthogonal
 
-/-- The Lie subalgebra of definite orthgonal matrices. -/
+/-- The definite orthogonal Lie subalgebra: skew-adjoint matrices with respect to the symmetric
+bilinear form defined by the identity matrix. -/
 def so : lie_subalgebra R (matrix n n R) :=
   skew_adjoint_matrices_lie_subalgebra (1 : matrix n n R)
 
@@ -152,7 +153,8 @@ def so : lie_subalgebra R (matrix n n R) :=
 def indefinite_diagonal : matrix (p ⊕ q) (p ⊕ q) R :=
   matrix.diagonal $ sum.elim (λ _, 1) (λ _, -1)
 
-/-- The Lie subalgebra of indefinite orthogonal matrices. -/
+/-- The indefinite orthogonal Lie subalgebra: skew-adjoint matrices with respect to the symmetric
+bilinear form defined by the indefinite diagonal matrix. -/
 def so' : lie_subalgebra R (matrix (p ⊕ q) (p ⊕ q) R) :=
   skew_adjoint_matrices_lie_subalgebra $ indefinite_diagonal p q R
 
@@ -195,8 +197,8 @@ begin
     by_cases h : x = y; simp [Pso, indefinite_diagonal, h, hi], },
 end
 
-/-- An equivalence of Lie algebras between the indefinite and definite orthgonal matrices, over a
-ring containing a square root of -1. -/
+/-- An equivalence between the indefinite and definite orthogonal Lie algebras, over a ring
+containing a square root of -1. -/
 noncomputable def so_indefinite_equiv {i : R} (hi : i*i = -1) : so' p q R ≃ₗ⁅R⁆ so (p ⊕ q) R :=
 begin
   apply (skew_adjoint_matrices_lie_subalgebra_equiv

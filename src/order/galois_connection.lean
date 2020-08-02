@@ -16,7 +16,7 @@ Galois connections are order theoretic adjoints, i.e. a pair of functions `u` an
   `l a ≤ b ↔ a ≤ u b`. They are closely connected to adjoint functors
   in category theory.
 * `galois_insertion`: A Galois insertion is a Galois connection where `l ∘ u = id`
-* `galois_coinsertion`: A Galois coinsertion is a Galois connection where `u ∘ l - id`
+* `galois_coinsertion`: A Galois coinsertion is a Galois connection where `u ∘ l = id`
 
 -/
 open function set
@@ -200,7 +200,7 @@ end nat
 /-- A Galois insertion is a Galois connection where `l ∘ u = id`. It also contains a constructive
 choice function, to give better definitional equalities when lifting order structures. Dual
 to `galois_coinsertion` -/
-@[nolint has_inhabited]
+@[nolint has_inhabited_instance]
 structure galois_insertion {α β : Type*} [preorder α] [preorder β] (l : α → β) (u : β → α) :=
 (choice : Πx:α, u (l x) ≤ x → β)
 (gc : galois_connection l u)
@@ -359,7 +359,7 @@ end galois_insertion
 /-- A Galois coinsertion is a Galois connection where `u ∘ l = id`. It also contains a constructive
 choice function, to give better definitional equalities when lifting order structures. Dual to
 `galois_insertion` -/
-@[nolint has_inhabited]
+@[nolint has_inhabited_instance]
 structure galois_coinsertion {α β : Type*} [preorder α] [preorder β] (l : α → β) (u : β → α) :=
 (choice : Πx:β, x ≤ l (u x) → α)
 (gc : galois_connection l u)

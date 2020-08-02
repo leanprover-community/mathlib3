@@ -1,4 +1,4 @@
-import dynamics.fixed_points
+import dynamics.fixed_points.basic
 
 namespace function
 
@@ -13,8 +13,10 @@ def is_periodic_pt (f : α → α) (n : ℕ) (x : α) := is_fixed_pt (f^[n]) x
 lemma is_fixed_pt.is_periodic_pt (hf : is_fixed_pt f x) (n : ℕ) : is_periodic_pt f n x :=
 hf.iterate n
 
+/-- For the identity map, all points are periodic. -/
 lemma is_preiodic_id (n : ℕ) (x : α) : is_periodic_pt id n x := (is_fixed_pt_id x).is_periodic_pt n
 
+/-- Any point is a periodic point of period `0`. -/
 lemma is_periodic_pt_zero (f : α → α) (x : α) : is_periodic_pt f 0 x := is_fixed_pt_id x
 
 namespace is_periodic_pt

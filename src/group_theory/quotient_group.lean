@@ -38,7 +38,8 @@ instance : group (quotient N) :=
   mul_left_inv := λ a, quotient.induction_on' a
     (λ a, congr_arg mk (mul_left_inv a)) }
 
-@[to_additive quotient_add_group.mk']
+/-- The group homomorphism from `G` to `G/N`. -/
+@[to_additive quotient_add_group.mk' "The additive group homomorphism from `G` to `G/N`."]
 def mk' : G →* quotient N := monoid_hom.mk' (quotient_group.mk) (λ _ _, rfl)
 
 @[simp, to_additive quotient_add_group.ker_mk]
@@ -51,11 +52,16 @@ begin
   rw [quotient_group.eq, one_inv, one_mul],
 end
 
+-- for commutative groups we don't need normality assumption
+omit nN
+
 @[to_additive quotient_add_group.add_comm_group]
-instance {G : Type*} [comm_group G] (N : subgroup G) [nN : N.normal] : comm_group (quotient N) :=
+instance {G : Type*} [comm_group G] (N : subgroup G) : comm_group (quotient N) :=
 { mul_comm := λ a b, quotient.induction_on₂' a b
     (λ a b, congr_arg mk (mul_comm a b)),
   ..@quotient_group.group _ _ N N.normal_of_comm }
+
+include nN
 
 @[simp, to_additive quotient_add_group.coe_zero]
 lemma coe_one : ((1 : G) : quotient N) = 1 := rfl
@@ -74,7 +80,10 @@ lemma coe_inv (a : G) : ((a⁻¹ : G) : quotient N) = a⁻¹ := rfl
 
 local notation ` Q ` := quotient N
 
-@[to_additive quotient_add_group.lift]
+/-- A group homomorphism `φ : G →* H` with `N ⊆ ker(φ)` descends (i.e. `lift`s) to a
+group homomorphism `G/N →* H`. -/
+@[to_additive quotient_add_group.lift "An `add_group` homomorphism `φ : G →+ H` with `N ⊆ ker(φ)`
+descends (i.e. `lift`s) to a group homomorphism `G/N →* H`."]
 def lift (φ : G →* H) (HN : ∀x∈N, φ x = 1) : Q →* H :=
 monoid_hom.mk'
   (λ q : Q, q.lift_on' φ $ assume a b (hab : a⁻¹ * b ∈ N),
@@ -92,7 +101,9 @@ lemma lift_mk {φ : G →* H} (HN : ∀x∈N, φ x = 1) (g : G) :
 lemma lift_mk' {φ : G →* H} (HN : ∀x∈N, φ x = 1) (g : G) :
   lift N φ HN (mk g : Q) = φ g := rfl
 
-@[to_additive quotient_add_group.map]
+/-- A group homomorphism `f : G →* H` induces a map `G/N →* H/M` if `N ⊆ f⁻¹(M)`. -/
+@[to_additive quotient_add_group.map "An `add_group` homomorphism `f : G →+ H` induces a map
+`G/N →+ H/M` if `N ⊆ f⁻¹(M)`."]
 def map (M : subgroup H) [M.normal] (f : G →* H) (h : N ≤ M.comap f) :
   quotient N →* quotient M :=
 begin
@@ -109,7 +120,8 @@ variables (φ : G →* H)
 open function monoid_hom
 
 /-- The induced map from the quotient by the kernel to the codomain. -/
-@[to_additive quotient_add_group.ker_lift]
+@[to_additive quotient_add_group.ker_lift "The induced map from the quotient by the kernel to the
+codomain."]
 def ker_lift : quotient (ker φ) →* H :=
 lift _ φ $ λ g, mem_ker.mp
 
@@ -132,7 +144,8 @@ show a⁻¹ * b ∈ ker φ, by rw [mem_ker,
 -- so there is a bit of annoying code duplication here
 
 /-- The induced map from the quotient by the kernel to the range. -/
-@[to_additive quotient_add_group.range_ker_lift]
+@[to_additive quotient_add_group.range_ker_lift "The induced map from the quotient by the kernel to
+the range."]
 def range_ker_lift : quotient (ker φ) →* φ.range :=
 lift _ (to_range φ) $ λ g hg, mem_ker.mp $ by rwa to_range_ker
 
@@ -151,11 +164,16 @@ begin
   refl,
 end
 
-@[to_additive quotient_add_group.quotient_ker_equiv_range]
+/-- The first isomorphism theorem (a definition): the canonical isomorphism between
+`G/(ker φ)` to `range φ`. -/
+@[to_additive quotient_add_group.quotient_ker_equiv_range "The first isomorphism theorem
+(a definition): the canonical isomorphism between `G/(ker φ)` to `range φ`."]
 noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃* range φ :=
 mul_equiv.of_bijective (range_ker_lift φ) ⟨range_ker_lift_injective φ, range_ker_lift_surjective φ⟩
 
-@[to_additive quotient_add_group.quotient_ker_equiv_of_surjective]
+/-- The canonical isomorphism `G/(ker φ) ≃* H` induced by a surjection `φ : G →* H`. -/
+@[to_additive quotient_add_group.quotient_ker_equiv_of_surjective "The canonical isomorphism
+`G/(ker φ) ≃+ H` induced by a surjection `φ : G →+ H`."]
 noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) :
   (quotient (ker φ)) ≃* H :=
 mul_equiv.of_bijective (ker_lift φ) ⟨ker_lift_injective φ, λ h, begin
@@ -165,3 +183,4 @@ mul_equiv.of_bijective (ker_lift φ) ⟨ker_lift_injective φ, λ h, begin
 end⟩
 
 end quotient_group
+#lint

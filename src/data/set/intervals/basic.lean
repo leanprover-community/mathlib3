@@ -722,11 +722,6 @@ ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}
 @[simp] lemma Ico_inter_Iio : Ico a b ∩ Iio c = Ico a (min b c) :=
 ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
 
-lemma Ioc_union_Ioc' (h₁ : c ≤ b) (h₂ : a ≤ d) : Ioc a b ∪ Ioc c d = Ioc (min a c) (max b d) :=
-ext $ λ x, by simp only [mem_union, mem_Ioc, min_lt_iff, le_max_iff, iff_def, or_imp_distrib,
-  and_imp, true_or, or_true, true_and, and_true, forall_true_iff, (h₁.lt_or_le x).symm,
-  h₂.lt_or_le] { contextual := tt }
-
 lemma Ioc_union_Ioc (h₁ : min a b ≤ max c d) (h₂ : min c d ≤ max a b) :
   Ioc a b ∪ Ioc c d = Ioc (min a c) (max b d) :=
 begin
@@ -744,7 +739,7 @@ lemma Ioc_union_Ioc_left : Ioc a c ∪ Ioc b c = Ioc (min a b) c :=
 by rw [Ioc_union_Ioc, max_self]; exact (min_le_right _ _).trans (le_max_right _ _)
 
 lemma Ioc_union_Ioc_symm : Ioc a b ∪ Ioc b a = Ioc (min a b) (max a b) :=
-by simpa only [max_comm] using Ioc_union_Ioc' (le_refl b) (le_refl a)
+by { rw max_comm, apply Ioc_union_Ioc; rw max_comm; exact min_le_max }
 
 lemma Ioc_union_Ioc_union_Ioc_cycle :
   Ioc a b ∪ Ioc b c ∪ Ioc c a = Ioc (min a (min b c)) (max a (max b c)) :=

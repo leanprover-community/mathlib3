@@ -238,11 +238,14 @@ omit dec
 let ⟨m, hm⟩ := @order_of_dvd_card_univ _ a _ _ _ in
 by simp [hm, pow_mul, pow_order_of_eq_one]
 
+lemma mem_powers_iff_mem_gpowers {a x : α} : x ∈ submonoid.powers a ↔ x ∈ gpowers a :=
+⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
+λ ⟨i, hi⟩, ⟨(i % order_of a).nat_abs,
+  by rwa [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
+    (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← gpow_eq_mod_order_of]⟩⟩
+
 lemma powers_eq_gpowers (a : α) : (submonoid.powers a : set α) = gpowers a :=
-set.ext (λ x, ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
-  λ ⟨i, hi⟩, ⟨(i % order_of a).nat_abs,
-    by rwa [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
-      (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← gpow_eq_mod_order_of]⟩⟩)
+set.ext $ λ x, mem_powers_iff_mem_gpowers
 
 end classical
 
@@ -365,8 +368,8 @@ lemma is_cyclic.card_pow_eq_one_le [group α] [fintype α] [decidable_eq α] [is
 let ⟨g, hg⟩ := is_cyclic.exists_generator α in
 calc (univ.filter (λ a : α, a ^ n = 1)).card
   ≤ ((gpowers (g ^ (fintype.card α / (gcd n (fintype.card α))))) : set α).to_finset.card :
-  card_le_of_subset (λ x hx, let ⟨m, hm⟩ := show x ∈ (submonoid.powers g : set α),
-    from (powers_eq_gpowers g).symm ▸ hg x in
+  card_le_of_subset (λ x hx, let ⟨m, hm⟩ := show x ∈ submonoid.powers g,
+    from mem_powers_iff_mem_gpowers.2 $ hg x in
     set.mem_to_finset.2 ⟨(m / (fintype.card α / (gcd n (fintype.card α))) : ℕ),
       have hgmn : g ^ (m * gcd n (fintype.card α)) = 1,
         by rw [pow_mul, hm, ← pow_gcd_card_eq_one_iff]; exact (mem_filter.1 hx).2,
@@ -391,7 +394,7 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card
 
 lemma is_cyclic.exists_monoid_generator (α : Type*) [group α] [fintype α] [is_cyclic α] :
   ∃ x : α, ∀ y : α, y ∈ submonoid.powers x :=
-by { simp only [submonoid.mem_coe.symm, powers_eq_gpowers], exact is_cyclic.exists_generator α }
+by { simp only [mem_powers_iff_mem_gpowers], exact is_cyclic.exists_generator α }
 
 section
 

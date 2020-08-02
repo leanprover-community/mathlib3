@@ -272,6 +272,9 @@ instance [monoid α] : semigroup (free_abelian_group α) :=
 lemma mul_def [monoid α] (x y : free_abelian_group α) :
   x * y = lift (λ x₂, lift (λ x₁, of (x₁ * x₂)) x) y := rfl
 
+lemma of_mul_of [monoid α] (x y : α) : of x * of y = of (x * y) := rfl
+lemma of_mul [monoid α] (x y : α) : of (x * y) = of x * of y := rfl
+
 instance [monoid α] : ring (free_abelian_group α) :=
 { one := free_abelian_group.of 1,
   mul_one := λ x, begin
@@ -300,6 +303,9 @@ instance [monoid α] : ring (free_abelian_group α) :=
   end,
   .. free_abelian_group.add_comm_group α,
   .. free_abelian_group.semigroup α }
+
+lemma one_def [monoid α] : (1 : free_abelian_group α) = of 1 := rfl
+lemma of_one [monoid α] : (of 1 : free_abelian_group α) = 1 := rfl
 
 instance [comm_monoid α] : comm_ring (free_abelian_group α) :=
 { mul_comm := λ x y, begin

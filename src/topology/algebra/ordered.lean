@@ -2230,14 +2230,7 @@ begin
   { apply continuous_on_extend_from,
     { rw closure_Ioo hab, },
     intros x x_in,
-    have : a = x ∨ b = x ∨ x ∈ Ioo a b,
-    { rw [mem_Icc, le_iff_lt_or_eq, le_iff_lt_or_eq] at x_in,
-      exact x_in.1.elim
-        (λ h, x_in.2.elim
-          (or.inr ∘ or.inr ∘ and.intro h)
-          (or.inr ∘ or.inl ∘ symm))
-        or.inl },
-    rcases this with rfl | rfl | h,
+    rcases mem_Ioo_or_eq_endpoints_of_mem_Icc x_in with rfl | rfl | h,
     { use la,
       simpa [hab] },
     { use lb,
@@ -2264,12 +2257,7 @@ begin
   { apply continuous_on_extend_from,
     { rw [closure_Ioo hab], exact Ico_subset_Icc_self, },
     intros x x_in,
-    have : a = x ∨ x ∈ Ioo a b,
-    { rw [mem_Ico, le_iff_lt_or_eq] at x_in,
-      exact x_in.1.elim
-        (or.inr ∘ (λ h, and.intro h x_in.2))
-        or.inl },
-    rcases this with rfl | h,
+    rcases mem_Ioo_or_eq_left_of_mem_Ico x_in with rfl | h,
     { use la,
       simpa [hab] },
     { use [f x, hf x h] }, },

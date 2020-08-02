@@ -102,15 +102,17 @@ by simp [monic, leading_coeff]
 lemma scale_roots_eval₂_eq_zero {p : polynomial S} (f : S →+* R)
   {r : R} {s : S} (hr : eval₂ f r p = 0) (hs : s ∈ non_zero_divisors S) :
   eval₂ f (f s * r) (scale_roots p s) = 0 :=
-calc (scale_roots p s).support.sum (λ i, f (coeff p i * s ^ (p.nat_degree - i)) * (f s * r) ^ i)
-    = p.support.sum (λ (i : ℕ), f (p.coeff i) * f s ^ (p.nat_degree - i + i) * r ^ i) :
+calc eval₂ f (f s * r) (scale_roots p s) =
+  (scale_roots p s).support.sum (λ i, f (coeff p i * s ^ (p.nat_degree - i)) * (f s * r) ^ i) : eval₂_eq_sum
+... = p.support.sum (λ (i : ℕ), f (p.coeff i) * f s ^ (p.nat_degree - i + i) * r ^ i) :
   finset.sum_congr (support_scale_roots_eq p hs)
     (λ i hi, by simp_rw [f.map_mul, f.map_pow, pow_add, mul_pow, mul_assoc])
 ... = p.support.sum (λ (i : ℕ), f s ^ p.nat_degree * (f (p.coeff i) * r ^ i)) :
   finset.sum_congr rfl
   (λ i hi, by { rw [mul_assoc, mul_left_comm, nat.sub_add_cancel],
                 exact le_nat_degree_of_ne_zero (mem_support_iff.mp hi) })
-... = f s ^ p.nat_degree * eval₂ f r p : finset.mul_sum.symm
+... = f s ^ p.nat_degree * p.support.sum (λ (i : ℕ), (f (p.coeff i) * r ^ i)) : finset.mul_sum.symm
+... = f s ^ p.nat_degree * eval₂ f r p : by { rw [eval₂_eq_sum], refl }
 ... = 0 : by rw [hr, _root_.mul_zero]
 
 lemma scale_roots_aeval_eq_zero [algebra S R] {p : polynomial S}

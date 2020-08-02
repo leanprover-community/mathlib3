@@ -34,7 +34,7 @@ import analysis.normed_space.basic
 noncomputable theory
 
 open classical set
-open_locale classical big_operators
+open_locale classical big_operators topological_space
 
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} {ι : Sort y} {s t u : set α}
@@ -205,6 +205,20 @@ h.is_closed.is_measurable
 lemma is_measurable_closure : is_measurable (closure s) :=
 is_closed_closure.is_measurable
 
+instance nhds_is_measurably_generated (a : α) : (𝓝 a).is_measurably_generated :=
+begin
+  rw [nhds, infi_subtype'],
+  refine @filter.infi_is_measurably_generated _ _ _ _ (λ i, _),
+  exact i.2.2.is_measurable.principal_is_measurably_generated
+end
+
+/-- If `s` is a measurable set, then `nhds_within a s` is a measurably generated filter for
+each `a`. This cannot be an `instance` because it depends on a non-instance `hs : is_measurable s`.
+-/
+lemma is_measurable.nhds_within_is_measurably_generated {s : set α} (hs : is_measurable s) (a : α) :
+  (nhds_within a s).is_measurably_generated :=
+by haveI := hs.principal_is_measurably_generated; exact filter.inf_is_measurably_generated _ _
+
 @[priority 100] -- see Note [lower instance priority]
 instance opens_measurable_space.to_measurable_singleton_class [t1_space α] :
   measurable_singleton_class α :=
@@ -216,6 +230,14 @@ variables [preorder α] [order_closed_topology α] {a b : α}
 lemma is_measurable_Ici : is_measurable (Ici a) := is_closed_Ici.is_measurable
 lemma is_measurable_Iic : is_measurable (Iic a) := is_closed_Iic.is_measurable
 lemma is_measurable_Icc : is_measurable (Icc a b) := is_closed_Icc.is_measurable
+
+instance at_top_is_measurably_generated : (filter.at_top : filter α).is_measurably_generated :=
+@filter.infi_is_measurably_generated _ _ _ _ $
+  λ a, (is_measurable_Ici : is_measurable (Ici a)).principal_is_measurably_generated
+
+instance at_bot_is_measurably_generated : (filter.at_bot : filter α).is_measurably_generated :=
+@filter.infi_is_measurably_generated _ _ _ _ $
+  λ a, (is_measurable_Iic : is_measurable (Iic a)).principal_is_measurably_generated
 
 end order_closed_topology
 
@@ -311,7 +333,7 @@ hf.prod_mk hg is_measurable_le'
 lemma measurable.max [decidable_linear_order α] [order_closed_topology α] [second_countable_topology α]
   {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λa, max (f a) (g a)) :=
-hg.piecewise (is_measurable_le hf hg) hf
+hf.piecewise (is_measurable_le hg hf) hg
 
 lemma measurable.min [decidable_linear_order α] [order_closed_topology α] [second_countable_topology α]
   {f g : δ → α} (hf : measurable f) (hg : measurable g) :
@@ -339,14 +361,24 @@ instance prod.borel_space [second_countable_topology α] [second_countable_topol
 ⟨le_antisymm prod_le_borel_prod opens_measurable_space.borel_le⟩
 
 @[to_additive]
-lemma measurable_mul [monoid α] [has_continuous_mul α] [second_countable_topology α] :
+lemma measurable_mul [has_mul α] [has_continuous_mul α] [second_countable_topology α] :
   measurable (λ p : α × α, p.1 * p.2) :=
 continuous_mul.measurable
 
 @[to_additive]
-lemma measurable.mul [monoid α] [has_continuous_mul α] [second_countable_topology α]
+lemma measurable.mul [has_mul α] [has_continuous_mul α] [second_countable_topology α]
   {f : δ → α} {g : δ → α} : measurable f → measurable g → measurable (λa, f a * g a) :=
 continuous_mul.measurable2
+
+@[to_additive]
+lemma measurable_mul_left [has_mul α] [has_continuous_mul α] (x : α) :
+  measurable (λ y : α, x * y) :=
+continuous.measurable $ continuous_const.mul continuous_id
+
+@[to_additive]
+lemma measurable_mul_right [has_mul α] [has_continuous_mul α] (x : α) :
+  measurable (λ y : α, y * x) :=
+continuous.measurable $ continuous_id.mul continuous_const
 
 @[to_additive]
 lemma finset.measurable_prod {ι : Type*} [comm_monoid α] [has_continuous_mul α]

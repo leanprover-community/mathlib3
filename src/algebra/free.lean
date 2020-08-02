@@ -35,7 +35,7 @@ inductive free_add_magma (α : Type u) : Type u
 | of : α → free_add_magma
 | add : free_add_magma → free_add_magma → free_add_magma
 
-attribute [to_additive free_add_magma] free_magma
+attribute [to_additive] free_magma
 
 namespace free_magma
 
@@ -370,7 +370,7 @@ end magma
 
 /-- Free semigroup over a given alphabet.
 (Note: In this definition, the free semigroup does not contain the empty word.) -/
-@[to_additive free_add_semigroup "Free additive semigroup over a given alphabet."]
+@[to_additive "Free additive semigroup over a given alphabet."]
 def free_semigroup (α : Type u) : Type u :=
 α × list α
 
@@ -565,7 +565,7 @@ instance [decidable_eq α] : decidable_eq (free_semigroup α) := prod.decidable_
 end free_semigroup
 
 /-- Isomorphism between `magma.free_semigroup (free_magma α)` and `free_semigroup α`. -/
-@[to_additive free_add_semigroup_free_add_magma "Isomorphism between
+@[to_additive "Isomorphism between
 `add_magma.free_add_semigroup (free_add_magma α)` and `free_add_semigroup α`."]
 def free_semigroup_free_magma (α : Type u) :
   magma.free_semigroup (free_magma α) ≃ free_semigroup α :=

@@ -1,4 +1,4 @@
-status = ["Build mathlib", "Lint mathlib", "Run tests and docs"]
+status = ["Build mathlib", "Lint mathlib", "Run tests"]
 use_squash_merge = true
 timeout_sec = 21600
 block_labels = ["not-ready-to-merge", "WIP", "changes-requested", "blocked-by-other-PR"]

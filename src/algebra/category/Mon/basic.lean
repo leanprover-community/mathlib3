@@ -49,7 +49,7 @@ instance : inhabited Mon :=
 -- which breaks to_additive.
 ⟨@of punit $ @group.to_monoid _ $ @comm_group.to_group _ punit.comm_group⟩
 
-@[to_additive add_monoid]
+@[to_additive]
 instance (M : Mon) : monoid M := M.str
 
 end Mon
@@ -81,7 +81,7 @@ instance : inhabited CommMon :=
 -- which breaks to_additive.
 ⟨@of punit $ @comm_group.to_comm_monoid _ punit.comm_group⟩
 
-@[to_additive add_comm_monoid]
+@[to_additive]
 instance (M : CommMon) : comm_monoid M := M.str
 
 @[to_additive has_forget_to_AddMon]
@@ -144,7 +144,7 @@ end
 namespace category_theory.iso
 
 /-- Build a `mul_equiv` from an isomorphism in the category `Mon`. -/
-@[to_additive AddMond_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
+@[to_additive AddMon_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
 `AddMon`."]
 def Mon_iso_to_mul_equiv {X Y : Mon} (i : X ≅ Y) : X ≃* Y :=
 { to_fun    := i.hom,
@@ -154,7 +154,7 @@ def Mon_iso_to_mul_equiv {X Y : Mon} (i : X ≅ Y) : X ≃* Y :=
   map_mul'  := by tidy }.
 
 /-- Build a `mul_equiv` from an isomorphism in the category `CommMon`. -/
-@[to_additive AddCommMon_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category
+@[to_additive "Build an `add_equiv` from an isomorphism in the category
 `AddCommMon`."]
 def CommMon_iso_to_mul_equiv {X Y : CommMon} (i : X ≅ Y) : X ≃* Y :=
 { to_fun    := i.hom,

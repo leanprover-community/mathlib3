@@ -25,9 +25,17 @@ protected def lift (f : filter α) (g : set α → filter β) :=
 
 variables {f f₁ f₂ : filter α} {g g₁ g₂ : set α → filter β}
 
-lemma has_basis.mem_lift_iff {ι} {p : ι → Prop} {s : ι → set α} {f : filter α} (hf : f.has_basis p s)
-  {β : ι → Type*} {pg : Π i, β i → Prop} {sg : Π i, β i → set γ} {g : set α → filter γ}
-  (hg : ∀ i, (g $ s i).has_basis (pg i) (sg i)) (gm : monotone g) {s : set γ} :
+/-- If `{s i | p i, i : ι}` is a basis of a filter `f`, `g` is a monotone function
+`set α → filter γ`, and for each `i`, `{sg x | pg x, x : β i}` is a basis of the filter `g (s i)`,
+then `{sg x | i : ι, x : β i, p i, pg i x}` is a basis of the filter `f.lift g`.
+
+This basis is parametrized by `i : ι` and `x : β i`, so formulating this fact using `has_basis` uses
+`Σ i, β i` as the index type, see `filter.has_basis.lift`. This lemma states the corresponding
+`mem_iff` statement without using a sigma type. -/
+lemma has_basis.mem_lift_iff {ι} {p : ι → Prop} {s : ι → set α} {f : filter α}
+  (hf : f.has_basis p s) {β : ι → Type*} {pg : Π i, β i → Prop} {sg : Π i, β i → set γ}
+  {g : set α → filter γ} (hg : ∀ i, (g $ s i).has_basis (pg i) (sg i)) (gm : monotone g)
+  {s : set γ} :
   s ∈ f.lift g ↔ ∃ (i : ι) (hi : p i) (x : β i) (hx : pg i x), sg i x ⊆ s :=
 begin
   refine (mem_binfi _ ⟨univ, univ_sets _⟩).trans _,
@@ -38,6 +46,13 @@ begin
     exact hf.exists_iff (λ t₁ t₂ ht H, gm ht H) }
 end
 
+/-- If `{s i | p i, i : ι}` is a basis of a filter `f`, `g` is a monotone function
+`set α → filter γ`, and for each `i`, `{sg x | pg x, x : β i}` is a basis of the filter `g (s i)`,
+then `{sg x | i : ι, x : β i, p i, pg i x}` is a basis of the filter `f.lift g`.
+
+This basis is parametrized by `i : ι` and `x : β i`, so formulating this fact using `has_basis` uses
+`Σ i, β i` as the index type. See also `filter.has_basis.mem_lift_iff` for the corresponding
+`mem_iff` statement formulated without using a sigma type. -/
 lemma has_basis.lift {ι} {p : ι → Prop} {s : ι → set α} {f : filter α} (hf : f.has_basis p s)
   {β : ι → Type*} {pg : Π i, β i → Prop} {sg : Π i, β i → set γ} {g : set α → filter γ}
   (hg : ∀ i, (g $ s i).has_basis (pg i) (sg i)) (gm : monotone g) :
@@ -75,7 +90,8 @@ lemma map_lift_eq {m : β → γ} (hg : monotone g) : map m (f.lift g) = f.lift 
 have monotone (map m ∘ g),
   from map_mono.comp hg,
 filter_eq $ set.ext $
-  by simp only [mem_lift_sets hg, mem_lift_sets this, exists_prop, forall_const, mem_map, iff_self, function.comp_app]
+  by simp only [mem_lift_sets hg, mem_lift_sets this, exists_prop, forall_const, mem_map, iff_self,
+    function.comp_app]
 
 lemma comap_lift_eq {m : γ → β} (hg : monotone g) : comap m (f.lift g) = f.lift (comap m ∘ g) :=
 have monotone (comap m ∘ g),

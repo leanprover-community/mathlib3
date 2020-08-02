@@ -621,7 +621,7 @@ begin
   { rw [h, findim_top, H] at this, exact findim_eq_zero.1 (add_right_injective _ this) }
 end
 
-theorem findim_le_findim [finite_dimensional K V] [finite_dimensional K V₂]
+theorem findim_le_findim_of_injective [finite_dimensional K V] [finite_dimensional K V₂]
   {f : V →ₗ[K] V₂} (hf : function.injective f) : findim K V ≤ findim K V₂ :=
 calc  findim K V
     = findim K f.range + findim K f.ker : (findim_range_add_findim_ker f).symm

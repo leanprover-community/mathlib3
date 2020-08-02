@@ -895,7 +895,11 @@ iff.rfl
 @[to_additive] lemma range_eq_map (f : G →* N) : f.range = (⊤ : subgroup G).map f :=
 by ext; simp
 
-@[to_additive] def to_range (f : G →* N) : G →* f.range :=
+/-- The canonical surjective group homomorphism `G →* f(G)` induced by a group
+homomorphism `G →* N`. -/
+@[to_additive "The canonical surjective `add_group` homomorphism `G →+ f(G)` induced by a group
+homomorphism `G →+ N`."]
+def to_range (f : G →* N) : G →* f.range :=
 monoid_hom.mk' (λ g, ⟨f g, ⟨g, rfl⟩⟩) $ λ a b, by {ext, exact f.map_mul' _ _}
 
 @[to_additive]

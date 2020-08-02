@@ -183,4 +183,3 @@ mul_equiv.of_bijective (ker_lift φ) ⟨ker_lift_injective φ, λ h, begin
 end⟩
 
 end quotient_group
-#lint

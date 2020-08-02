@@ -52,11 +52,9 @@ class braided_category (C : Type u) [category.{v} C] [monoidal_category.{v} C] :
   . obviously)
 
 restate_axiom braided_category.braiding_naturality'
-attribute [simp] braided_category.braiding_naturality
+attribute [simp,reassoc] braided_category.braiding_naturality
 restate_axiom braided_category.hexagon_forward'
-attribute [simp] braided_category.hexagon_forward
 restate_axiom braided_category.hexagon_reverse'
-attribute [simp] braided_category.hexagon_reverse
 
 open braided_category
 
@@ -76,7 +74,7 @@ class symmetric_category (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 end prio
 
 restate_axiom symmetric_category.symmetry'
-attribute [simp] symmetric_category.symmetry
+attribute [simp,reassoc] symmetric_category.symmetry
 
 variables (C : Type u₁) [category.{v₁} C] [monoidal_category C] [braided_category C]
 variables (D : Type u₂) [category.{v₂} D] [monoidal_category D] [braided_category D]
@@ -87,11 +85,13 @@ A braided functor between braided monoidal categories is a monoidal functor
 which preserves the braiding.
 -/
 structure braided_functor extends monoidal_functor C D :=
--- I have no reason to think this formulation is the best, in terms of `simp` normal forms.
--- Suggestions for moving the `μ`s around, or swapping left- and right-hand sides, very welcome.
 (braided' : ∀ X Y : C, map (β_ X Y).hom = inv (μ X Y) ≫ (β_ (obj X) (obj Y)).hom ≫ μ Y X . obviously)
 
 restate_axiom braided_functor.braided'
+-- It's not totally clear that `braided` deserves to be a `simp` lemma.
+-- The principle being applying here is that `μ` "doesn't weigh much"
+-- (similar to all the structural morphisms, e.g. associators and unitors)
+-- and the `simp` normal form is determined by preferring `obj` over `map`.
 attribute [simp] braided_functor.braided
 
 namespace braided_functor

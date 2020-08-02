@@ -119,7 +119,8 @@ iff.rfl
 
 variable (α)
 
-/-- The stabilizer of an element under an action, i.e. what sends the element to itself. -/
+/-- The stabilizer of an element under an action, i.e. what sends the element to itself. Note
+that this is a set: for the group stabilizer see `stabilizer`. -/
 def stabilizer_carrier (b : β) : set α :=
 {x : α | x • b = b}
 
@@ -201,6 +202,8 @@ end
 
 variable (α)
 
+/-- The stabilizer of an element under an action, i.e. what sends the element to itself.
+A subgroup.-/
 def stabilizer (b : β) : subgroup α :=
 { inv_mem' := λ a (ha : a • b = b), show a⁻¹ • b = b, by rw [inv_smul_eq_iff, ha]
   ..stabilizer.submonoid α b

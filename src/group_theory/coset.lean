@@ -9,10 +9,14 @@ open set function
 
 variable {α : Type*}
 
-@[to_additive left_add_coset]
+/-- The left coset `a*s` corresponding to an element `a : α` and a subset `s : set α` -/
+@[to_additive left_add_coset "The left coset `a+s` corresponding to an element `a : α`
+and a subset `s : set α`"]
 def left_coset [has_mul α] (a : α) (s : set α) : set α := (λ x, a * x) '' s
 
-@[to_additive right_add_coset]
+/-- The right coset `s*a` corresponding to an element `a : α` and a subset `s : set α` -/
+@[to_additive right_add_coset "The right coset `s+a` corresponding to an element `a : α`
+and a subset `s : set α`"]
 def right_coset [has_mul α] (s : set α) (a : α) : set α := (λ x, x * a) '' s
 
 localized "infix ` *l `:70 := left_coset" in coset
@@ -31,7 +35,8 @@ mem_image_of_mem (λ b : α, a * b) hxS
 lemma mem_right_coset {s : set α} {x : α} (a : α) (hxS : x ∈ s) : x * a ∈ s *r a :=
 mem_image_of_mem (λ b : α, b * a) hxS
 
-@[to_additive left_add_coset_equiv]
+/-- Equality of two left cosets `a*s` and `b*s` -/
+@[to_additive left_add_coset_equiv "Equality of two left cosets `a+s` and `b+s`"]
 def left_coset_equiv (s : set α) (a b : α) := a *l s = b *l s
 
 @[to_additive left_add_coset_equiv_rel]
@@ -143,7 +148,10 @@ run_cmd to_additive.map_namespace `quotient_group `quotient_add_group
 
 namespace quotient_group
 
-@[to_additive]
+/-- The equivalence relation corresponding to the partition of a group by left cosets
+of a subgroup.-/
+@[to_additive "The equivalence relation corresponding to the partition of a group by left cosets
+of a subgroup."]
 def left_rel [group α] (s : subgroup α) : setoid α :=
 ⟨λ x y, x⁻¹ * y ∈ s,
   assume x, by simp [s.one_mem],
@@ -175,7 +183,8 @@ namespace quotient_group
 
 variables [group α] {s : subgroup α}
 
-@[to_additive]
+/-- The canonical map from a group `α` to the quotient `α/s`. -/
+@[to_additive "The canonical map from an `add_group` `α` to the quotient `α/s`."]
 def mk (a : α) : quotient s :=
 quotient.mk' a
 
@@ -193,7 +202,7 @@ lemma induction_on' {C : quotient s → Prop} (x : quotient s)
 quotient.induction_on' x H
 
 @[to_additive]
-instance [group α] (s : subgroup α) : inhabited (quotient s) :=
+instance (s : subgroup α) : inhabited (quotient s) :=
 ⟨((1 : α) : quotient s)⟩
 
 @[to_additive quotient_add_group.eq]
@@ -201,7 +210,7 @@ protected lemma eq {a b : α} : (a : quotient s) = b ↔ a⁻¹ * b ∈ s :=
 quotient.eq'
 
 @[to_additive]
-lemma eq_class_eq_left_coset [group α] (s : subgroup α) (g : α) :
+lemma eq_class_eq_left_coset (s : subgroup α) (g : α) :
   {x : α | (x : quotient s) = g} = left_coset g s :=
 set.ext $ λ z, by { rw [mem_left_coset_iff, set.mem_set_of_eq, eq_comm, quotient_group.eq], simp }
 
@@ -211,14 +220,16 @@ namespace subgroup
 open quotient_group
 variables [group α] {s : subgroup α}
 
-@[to_additive]
+/-- The natural bijection between the cosets `g*s` and `s` -/
+@[to_additive "The natural bijection between the cosets `g+s` and `s`"]
 def left_coset_equiv_subgroup (g : α) : left_coset g s ≃ s :=
 ⟨λ x, ⟨g⁻¹ * x.1, (mem_left_coset_iff _).1 x.2⟩,
  λ x, ⟨g * x.1, x.1, x.2, rfl⟩,
  λ ⟨x, hx⟩, subtype.eq $ by simp,
  λ ⟨g, hg⟩, subtype.eq $ by simp⟩
 
-@[to_additive]
+/-- A (non-canonical) bijection between a group `α` and the product `(α/s) × s` -/
+@[to_additive "A (non-canonical) bijection between an add_group `α` and the product `(α/s) × s`"]
 noncomputable def group_equiv_quotient_times_subgroup :
   α ≃ quotient s × s :=
 calc α ≃ Σ L : quotient s, {x : α // (x : quotient s) = L} :
@@ -241,6 +252,11 @@ namespace quotient_group
 
 variables [group α]
 
+-- FIXME -- why is there no `to_additive`?
+
+/-- If `s` is a subgroup of the group `α`, and `t` is a subset of `α/s`, then
+there is a (typically non-canonical) bijection between the preimage of `t` in
+`α` and the product `s × t`. -/
 noncomputable def preimage_mk_equiv_subgroup_times_set
   (s : subgroup α) (t : set (quotient s)) : quotient_group.mk ⁻¹' t ≃ s × t :=
 have h : ∀ {x : quotient s} {a : α}, x ∈ t → a ∈ s →

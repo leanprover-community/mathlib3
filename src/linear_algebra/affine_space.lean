@@ -468,25 +468,36 @@ begin
     exact finset.eq_zero_of_sum_eq_zero hw h2b i hi }
 end
 
+variables {k V}
+
+/-- If a family is affinely independent, so is any subfamily given by
+composition of an embedding into index type with the original
+family. -/
+lemma affine_independent_embedding_of_affine_independent {ι2 : Type*} (f : ι2 ↪ ι) {p : ι → P}
+    (ha : affine_independent k V p) : affine_independent k V (p ∘ f) :=
+begin
+  intros fs w hw hs i0 hi0,
+  let fs' := fs.map f,
+  let w' := λ i, if h : ∃ i2, f i2 = i then w h.some else 0,
+  have hw' : ∀ i2 : ι2, w' (f i2) = w i2,
+  { intro i2,
+    have h : ∃ i : ι2, f i = f i2 := ⟨i2, rfl⟩,
+    have hs : h.some = i2 := f.injective h.some_spec,
+    simp_rw [w', dif_pos h, hs] },
+  have hw's : ∑ i in fs', w' i = 0,
+  { rw [←hw, finset.sum_map],
+    simp [hw'] },
+  have hs' : fs'.weighted_vsub V p w' = 0,
+  { rw [←hs, finset.weighted_vsub_apply, finset.weighted_vsub_apply, finset.sum_map],
+    simp [hw'] },
+  rw [←ha fs' w' hw's hs' (f i0) ((finset.mem_map' _).2 hi0), hw']
+end
+
 /-- If a family is affinely independent, so is any subfamily indexed
 by a subtype of the index type. -/
 lemma affine_independent_subtype_of_affine_independent {p : ι → P}
     (ha : affine_independent k V p) (s : set ι) : affine_independent k V (λ i : s, p i) :=
-begin
-  intros fs w hw hs i0 hi0,
-  let fs' := fs.map (function.embedding.subtype _),
-  let w' := λ i, if h : i ∈ s then w ⟨i, h⟩ else 0,
-  have hw' : ∑ i in fs', w' i = 0,
-  { rw ←hw,
-    simp [finset.sum_subtype_map_embedding],
-    refl },
-  have hs' : fs'.weighted_vsub V p w' = 0,
-  { rw ←hs,
-    simp [finset.weighted_vsub_apply, w', fs', finset.sum_subtype_map_embedding],
-    refl },
-  rw ←ha fs' w' hw' hs' i0 ((finset.mem_map' _).2 hi0),
-  simp [w']
-end
+affine_independent_embedding_of_affine_independent (function.embedding.subtype _) ha
 
 end affine_independent
 

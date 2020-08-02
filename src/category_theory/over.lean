@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 import category_theory.comma
 import category_theory.punit
-import category_theory.reflect_isomorphisms
+import category_theory.reflects_isomorphisms
 
 /-!
 # Over and under categories

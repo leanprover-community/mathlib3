@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Shing Tak Lam
 -/
 import data.int.modeq
 import tactic.interval_cases
@@ -133,6 +133,8 @@ begin
   { dsimp [of_digits], rw ih, },
 end
 
+@[simp] lemma of_digits_singleton {b n : ℕ} : of_digits b [n] = n := by simp [of_digits]
+
 @[simp] lemma of_digits_one_cons {α : Type*} [semiring α] (h : ℕ) (L : list ℕ) :
   of_digits (1 : α) (h :: L) = h + of_digits 1 L :=
 by simp [of_digits]
@@ -236,10 +238,67 @@ begin
   { simp [of_digits, list.sum_cons, ih], }
 end
 
-/-! ### Inequalities
+/-!
+### Properties
 
-This section contains various lemmas with inequalities relating to `digits` and `of_digits`.
- -/
+This section contains various lemmas of properties relating to `digits` and `of_digits`.
+-/
+
+lemma digits_eq_nil_iff_eq_zero {b n : ℕ} : digits b n = [] ↔ n = 0 :=
+begin
+  split,
+  { intro h,
+    have : of_digits b (digits b n) = of_digits b [], by rw h,
+    convert this,
+    rw of_digits_digits },
+  { rintro rfl,
+    simp }
+end
+
+lemma digits_ne_nil_iff_ne_zero {b n : ℕ} : digits b n ≠ [] ↔ n ≠ 0 :=
+not_congr digits_eq_nil_iff_eq_zero
+
+private lemma digits_last_aux {b n : ℕ} (h : 2 ≤ b) (w : 0 < n) :
+  digits b n = ((n % b) :: digits b (n / b)) :=
+begin
+  rcases b with _|_|b,
+  { finish },
+  { norm_num at h },
+  rcases n with _|n,
+  { norm_num at w },
+  simp,
+end
+
+lemma digits_last {b m : ℕ} (h : 2 ≤ b) (hm : 0 < m) (p q) :
+  (digits b m).last p = (digits b (m/b)).last q :=
+by { simp only [digits_last_aux h hm], rw list.last_cons }
+
+private lemma last_digit_ne_zero_aux (b : ℕ) {m : ℕ} (hm : m ≠ 0) (p) :
+  (digits b m).last p ≠ 0 :=
+begin
+  rcases b with _|_|b,
+  { cases m; finish },
+  { cases m, { finish },
+    simp_rw [digits_one, list.last_repeat_succ 1 m],
+    norm_num },
+  revert hm p,
+  apply nat.strong_induction_on m,
+  intros n IH hn p,
+  have hnpos : 0 < n := nat.pos_of_ne_zero hn,
+  by_cases hnb : n < b + 2,
+  { simp_rw [digits_of_lt b.succ.succ n hnpos hnb],
+    exact nat.pos_iff_ne_zero.mp hnpos },
+  { rw digits_last (show 2 ≤ b + 2, from dec_trivial) hnpos,
+    refine IH _ (nat.div_lt_self hnpos dec_trivial) _ _,
+    { rw ←nat.pos_iff_ne_zero,
+      exact nat.div_pos (le_of_not_lt hnb) dec_trivial },
+    { rw [digits_ne_nil_iff_ne_zero, ←nat.pos_iff_ne_zero],
+      exact nat.div_pos (le_of_not_lt hnb) dec_trivial } },
+end
+
+lemma last_digit_ne_zero (b : ℕ) {m : ℕ} (hm : m ≠ 0) :
+  (digits b m).last (digits_ne_nil_iff_ne_zero.mpr hm) ≠ 0 :=
+last_digit_ne_zero_aux b hm $ digits_ne_nil_iff_ne_zero.mpr hm
 
 /-- The digits in the base b+2 expansion of n are all less than b+2 -/
 lemma digits_lt_base' {b m : ℕ} : ∀ {d}, d ∈ digits (b+2) m → d < b+2 :=
@@ -330,33 +389,34 @@ end
 lemma le_digits_len_le (b n m : ℕ) (h : n ≤ m) : (digits b n).length ≤ (digits b m).length :=
 monotone_of_monotone_nat (digits_len_le_digits_len_succ b) h
 
--- future refactor to proof using lists (see lt_base_pow_length_digits)
--- See review in #3498. List proof depends on : m ≠ 0 → (digits b m) ≠ 0
-lemma base_pow_length_digits_le' (b m : ℕ) : m ≠ 0 → (b + 2) ^ ((digits (b + 2) m).length) ≤ (b + 2) * m :=
+lemma pow_length_le_mul_of_digits {b : ℕ} {l : list ℕ} (hl : l ≠ []) (hl2 : l.last hl ≠ 0):
+  (b + 2) ^ l.length ≤ (b + 2) * of_digits (b+2) l :=
 begin
-  apply nat.strong_induction_on m,
-  clear m,
-  intros n IH npos,
-  cases n,
-  { contradiction },
-  { unfold digits at IH ⊢,
-    rw [digits_aux_def (b+2) (by simp) n.succ nat.succ_pos', list.length_cons],
-    specialize IH ((n.succ) / (b+2)) (nat.div_lt_self' n b),
-    rw [nat.pow_add, nat.pow_one, nat.mul_comm],
-    cases nat.lt_or_ge n.succ (b+2),
-    { rw [nat.div_eq_of_lt h, digits_aux_zero, list.length, nat.pow_zero],
-      apply nat.mul_le_mul_left,
-      exact nat.succ_pos n },
-    { have geb : (n.succ / (b + 2)) ≥ 1 := nat.div_pos h (by linarith),
-      specialize IH (by linarith [geb]),
-      replace IH := nat.mul_le_mul_left (b + 2) IH,
-      have IH' : (b + 2) * ((b + 2) * (n.succ / (b + 2))) ≤ (b + 2) * n.succ,
-      { apply nat.mul_le_mul_left,
-        rw nat.mul_comm,
-        exact nat.div_mul_le_self n.succ (b + 2) },
-      exact le_trans IH IH' } }
+  rw [←list.init_append_last hl],
+  simp only [list.length_append, list.length, zero_add, list.length_init, of_digits_append,
+    list.length_init, of_digits_singleton, add_comm (l.length - 1), nat.pow_add, nat.pow_one],
+  apply nat.mul_le_mul_left,
+  refine le_trans _ (nat.le_add_left _ _),
+  have : 0 < l.last hl, { rwa [nat.pos_iff_ne_zero] },
+  convert nat.mul_le_mul_left _ this, rw [mul_one]
 end
 
+/--
+Any non-zero natural number `m` is greater than
+(b+2)^((number of digits in the base (b+2) representation of m) - 1)
+-/
+lemma base_pow_length_digits_le' (b m : ℕ) (hm : m ≠ 0) :
+  (b + 2) ^ ((digits (b + 2) m).length) ≤ (b + 2) * m :=
+begin
+  have : digits (b + 2) m ≠ [], from digits_ne_nil_iff_ne_zero.mpr hm,
+  convert pow_length_le_mul_of_digits this (last_digit_ne_zero _ hm),
+  rwa of_digits_digits,
+end
+
+/--
+Any non-zero natural number `m` is greater than
+b^((number of digits in the base b representation of m) - 1)
+-/
 lemma base_pow_length_digits_le (b m : ℕ) (hb : 2 ≤ b): m ≠ 0 → b ^ ((digits b m).length) ≤ b * m :=
 begin
   rcases b with _ | _ | b; try { linarith },

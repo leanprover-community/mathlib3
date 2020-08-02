@@ -5,7 +5,7 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.basic
 import category_theory.adjunction.basic
-import category_theory.reflect_isomorphisms
+import category_theory.reflects_isomorphisms
 
 /-!
 # Eilenberg-Moore (co)algebras for a (co)monad

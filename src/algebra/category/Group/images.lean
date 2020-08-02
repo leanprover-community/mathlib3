@@ -3,7 +3,9 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.Group
+import algebra.category.Group.basic
+import category_theory.limits.shapes.images
+import category_theory.limits.types
 
 /-!
 # The category of commutative additive groups has images.
@@ -105,5 +107,14 @@ noncomputable instance : has_image_maps AddCommGroup.{0} :=
 @[simp] lemma image_map {f g : arrow AddCommGroup.{0}} (st : f ⟶ g) (x : image f.hom):
   (image.map st x).val = st.right x.1 :=
 rfl
+
+/--
+The categorical image of a morphism in `AddCommGroup`
+agrees with the usual group-theoretical range.
+-/
+def image_iso_range {G H : AddCommGroup} (f : G ⟶ H) :
+  image f ≅ AddCommGroup.of (set.range f) :=
+iso.refl _
+
 
 end AddCommGroup

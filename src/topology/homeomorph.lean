@@ -12,8 +12,8 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 /-- α and β are homeomorph, also called topological isomoph -/
 structure homeomorph (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   extends α ≃ β :=
-(continuous_to_fun  : continuous to_fun)
-(continuous_inv_fun : continuous inv_fun)
+(continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
+(continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 
 infix ` ≃ₜ `:25 := homeomorph
 
@@ -21,6 +21,10 @@ namespace homeomorph
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
 instance : has_coe_to_fun (α ≃ₜ β) := ⟨λ_, α → β, λe, e.to_equiv⟩
+
+@[simp] lemma homeomorph_mk_coe (a : equiv α β) (b c) :
+  ((homeomorph.mk a b c) : α → β) = a :=
+rfl
 
 lemma coe_eq_to_equiv (h : α ≃ₜ β) (a : α) : h a = h.to_equiv a := rfl
 
@@ -40,6 +44,11 @@ protected def symm (h : α ≃ₜ β) : β ≃ₜ α :=
   continuous_inv_fun := h.continuous_to_fun,
   .. h.to_equiv.symm }
 
+@[simp] lemma homeomorph_mk_coe_symm (a : equiv α β) (b c) :
+  ((homeomorph.mk a b c).symm : β → α) = a.symm :=
+rfl
+
+@[continuity]
 protected lemma continuous (h : α ≃ₜ β) : continuous h := h.continuous_to_fun
 
 lemma symm_comp_self (h : α ≃ₜ β) : ⇑h.symm ∘ ⇑h = id :=

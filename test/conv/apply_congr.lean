@@ -5,7 +5,7 @@ Authors: Lucas Allen, Scott Morrison
 -/
 
 import algebra.big_operators.basic
-import data.finsupp
+import data.finsupp.basic
 import tactic.converter.apply_congr
 import tactic.interactive
 

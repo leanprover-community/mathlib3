@@ -1186,6 +1186,14 @@ rfl
 @[simp] theorem to_finset_cons {a : α} {l : list α} : to_finset (a :: l) = insert a (to_finset l) :=
 finset.eq_of_veq $ by by_cases h : a ∈ l; simp [finset.insert_val', multiset.erase_dup_cons, h]
 
+theorem to_finset_surjective : function.surjective (to_finset : list α → finset α) :=
+begin
+  refine λ s, ⟨quotient.out' s.val, finset.ext $ λ x, _⟩,
+  obtain ⟨l, hl⟩ := quot.exists_rep s.val,
+  rw [list.mem_to_finset, finset.mem_def, ←hl],
+  exact list.perm.mem_iff (quotient.mk_out l)
+end
+
 end list
 
 namespace finset
@@ -1429,14 +1437,31 @@ lemma subtype_map_of_mem {p : α → Prop} [decidable_pred p] (h : ∀ x ∈ s, 
 by rw [subtype_map, filter_true_of_mem h]
 
 /-- If a `finset` of a subtype is converted to the main type with
+`embedding.subtype`, all elements of the result have the property of
+the subtype. -/
+lemma property_of_mem_map_subtype {p : α → Prop} (s : finset {x // p x}) {a : α}
+    (h : a ∈ s.map (function.embedding.subtype _)) : p a :=
+begin
+  rcases mem_map.1 h with ⟨x, hx, rfl⟩,
+  exact x.2
+end
+
+/-- If a `finset` of a subtype is converted to the main type with
 `embedding.subtype`, the result does not contain any value that does
 not satisfy the property of the subtype. -/
 lemma not_mem_map_subtype_of_not_property {p : α → Prop} (s : finset {x // p x})
     {a : α} (h : ¬ p a) : a ∉ (s.map (function.embedding.subtype _)) :=
+mt s.property_of_mem_map_subtype h
+
+/-- If a `finset` of a subtype is converted to the main type with
+`embedding.subtype`, the result is a subset of the set giving the
+subtype. -/
+lemma map_subtype_subset {t : set α} (s : finset t) :
+    ↑(s.map (function.embedding.subtype _)) ⊆ t :=
 begin
-  rw mem_map,
-  push_neg,
-  exact λ x, λ hxs hx, h (hx ▸ x.property)
+  intros a ha,
+  rw mem_coe at ha,
+  convert property_of_mem_map_subtype s ha
 end
 
 lemma subset_image_iff {f : α → β}

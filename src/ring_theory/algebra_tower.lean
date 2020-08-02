@@ -64,7 +64,7 @@ by simp_rw [algebra.smul_def, ← mul_assoc, algebra_map_apply R S A,
     ← (algebra_map S A).map_mul, mul_comm s]
 
 @[ext] lemma algebra.ext {S : Type u} {A : Type v} [comm_semiring S] [semiring A]
-  (h1 h2 : algebra S A) (h : ∀ {r : S} {x : A}, (by clear h2; exact r • x) = r • x) : h1 = h2 :=
+  (h1 h2 : algebra S A) (h : ∀ {r : S} {x : A}, (by haveI := h1; exact r • x) = r • x) : h1 = h2 :=
 begin
   unfreezingI { cases h1 with f1 g1 h11 h12, cases h2 with f2 g2 h21 h22,
   cases f1, cases f2, congr', { ext r x, exact h },

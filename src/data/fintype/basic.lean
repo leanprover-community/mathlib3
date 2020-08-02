@@ -546,8 +546,11 @@ instance Prop.fintype : fintype Prop :=
 ⟨⟨true::false::0, by simp [true_ne_false]⟩,
  classical.cases (by simp) (by simp)⟩
 
+instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
+fintype.subtype (univ.filter p) (by simp)
+
 def set_fintype {α} [fintype α] (s : set α) [decidable_pred s] : fintype s :=
-fintype.subtype (univ.filter (∈ s)) (by simp)
+subtype.fintype (λ x, x ∈ s)
 
 namespace function.embedding
 
@@ -637,9 +640,6 @@ instance finset.fintype [fintype α] : fintype (finset α) :=
   fintype.card (finset α) = 2 ^ (fintype.card α) :=
 finset.card_powerset finset.univ
 
-instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
-set_fintype _
-
 @[simp] lemma set.to_finset_univ [fintype α] :
   (set.univ : set α).to_finset = finset.univ :=
 by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
@@ -655,7 +655,7 @@ by rw fintype.subtype_card; exact card_le_of_subset (subset_univ _)
 theorem fintype.card_subtype_lt [fintype α] {p : α → Prop} [decidable_pred p]
   {x : α} (hx : ¬ p x) : fintype.card {x // p x} < fintype.card α :=
 by rw [fintype.subtype_card]; exact finset.card_lt_card
-  ⟨subset_univ _, classical.not_forall.2 ⟨x, by simp [*, set.mem_def]⟩⟩
+  ⟨subset_univ _, classical.not_forall.2 ⟨x, by simp [hx]⟩⟩
 
 instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] :
   fintype (Σ' a, β a) :=
@@ -1003,8 +1003,13 @@ begin
   rw [h, nat_embedding_aux]
 end
 
+/-- Embedding of `ℕ` into an infinite type. -/
 noncomputable def nat_embedding (α : Type*) [infinite α] : ℕ ↪ α :=
 ⟨_, nat_embedding_aux_injective α⟩
+
+lemma exists_subset_card_eq (α : Type*) [infinite α] (n : ℕ) :
+  ∃ s : finset α, s.card = n :=
+⟨(range n).map (nat_embedding α), by rw [card_map, card_range]⟩
 
 end infinite
 

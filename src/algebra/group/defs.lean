@@ -48,13 +48,27 @@ universe u
    to the additive one.
 -/
 
+section has_mul
+
+variables {G : Type u} [has_mul G]
+
+/-- `left_mul g` denotes left multiplication by `g` -/
+@[to_additive "`left_add g` denotes left addition by `g`"]
+def left_mul : G → G → G := λ g : G, λ x : G, g * x
+
+/-- `right_mul g` denotes right multiplication by `g` -/
+@[to_additive "`right_add g` denotes right addition by `g`"]
+def right_mul : G → G → G := λ g : G, λ x : G, x * g
+
+end has_mul
+
 /-- A semigroup is a type with an associative `(*)`. -/
 @[protect_proj, ancestor has_mul] class semigroup (G : Type u) extends has_mul G :=
 (mul_assoc : ∀ a b c : G, a * b * c = a * (b * c))
 /-- An additive semigroup is a type with an associative `(+)`. -/
 @[protect_proj, ancestor has_add] class add_semigroup (G : Type u) extends has_add G :=
 (add_assoc : ∀ a b c : G, a + b + c = a + (b + c))
-attribute [to_additive add_semigroup] semigroup
+attribute [to_additive] semigroup
 
 section semigroup
 variables {G : Type u} [semigroup G]
@@ -80,7 +94,7 @@ class comm_semigroup (G : Type u) extends semigroup G :=
 @[protect_proj, ancestor add_semigroup]
 class add_comm_semigroup (G : Type u) extends add_semigroup G :=
 (add_comm : ∀ a b : G, a + b = b + a)
-attribute [to_additive add_comm_semigroup] comm_semigroup
+attribute [to_additive] comm_semigroup
 
 section comm_semigroup
 variables {G : Type u} [comm_semigroup G]
@@ -169,7 +183,7 @@ class monoid (M : Type u) extends semigroup M, has_one M :=
 @[ancestor add_semigroup has_zero]
 class add_monoid (M : Type u) extends add_semigroup M, has_zero M :=
 (zero_add : ∀ a : M, 0 + a = a) (add_zero : ∀ a : M, a + 0 = a)
-attribute [to_additive add_monoid] monoid
+attribute [to_additive] monoid
 
 section monoid
 variables {M : Type u} [monoid M]
@@ -184,11 +198,11 @@ monoid.mul_one
 
 attribute [ematch] add_zero zero_add -- TODO(Mario): Make to_additive transfer this
 
-@[to_additive add_monoid_to_is_left_id]
+@[to_additive]
 instance monoid_to_is_left_id : is_left_id M (*) 1 :=
 ⟨ monoid.one_mul ⟩
 
-@[to_additive add_monoid_to_is_right_id]
+@[to_additive]
 instance monoid_to_is_right_id : is_right_id M (*) 1 :=
 ⟨ monoid.mul_one ⟩
 
@@ -205,7 +219,7 @@ class comm_monoid (M : Type u) extends monoid M, comm_semigroup M
 /-- An additive commutative monoid is an additive monoid with commutative `(+)`. -/
 @[protect_proj, ancestor add_monoid add_comm_semigroup]
 class add_comm_monoid (M : Type u) extends add_monoid M, add_comm_semigroup M
-attribute [to_additive add_comm_monoid] comm_monoid
+attribute [to_additive] comm_monoid
 
 /-- A monoid in which multiplication is left-cancellative. -/
 @[protect_proj, ancestor left_cancel_semigroup monoid]
@@ -229,7 +243,7 @@ class group (α : Type u) extends monoid α, has_inv α :=
 @[protect_proj, ancestor add_monoid has_neg]
 class add_group (α : Type u) extends add_monoid α, has_neg α :=
 (add_left_neg : ∀ a : α, -a + a = 0)
-attribute [to_additive add_group] group
+attribute [to_additive] group
 
 section group
 variables {G : Type u} [group G] {a b c : G}
@@ -263,12 +277,12 @@ by rwa [inv_inv] at this
 lemma mul_inv_cancel_right (a b : G) : a * b * b⁻¹ = a :=
 by rw [mul_assoc, mul_right_inv, mul_one]
 
-@[to_additive to_left_cancel_add_semigroup]
+@[to_additive]
 instance group.to_left_cancel_semigroup : left_cancel_semigroup G :=
 { mul_left_cancel := λ a b c h, by rw [← inv_mul_cancel_left a b, h, inv_mul_cancel_left],
   ..‹group G› }
 
-@[to_additive to_right_cancel_add_semigroup]
+@[to_additive]
 instance group.to_right_cancel_semigroup : right_cancel_semigroup G :=
 { mul_right_cancel := λ a b c h, by rw [← mul_inv_cancel_right a b, h, mul_inv_cancel_right],
   ..‹group G› }
@@ -299,5 +313,5 @@ class comm_group (G : Type u) extends group G, comm_monoid G
 /-- An additive commutative group is an additive group with commutative `(+)`. -/
 @[protect_proj, ancestor add_group add_comm_monoid]
 class add_comm_group (G : Type u) extends add_group G, add_comm_monoid G
-attribute [to_additive add_comm_group] comm_group
+attribute [to_additive] comm_group
 attribute [instance, priority 300] add_comm_group.to_add_comm_monoid

@@ -163,7 +163,7 @@ Returns the number of subgoals which were closed using `solve_by_elim`.
 meta def apply_and_solve (close_goals : bool) (opt : opt := { }) (e : expr) : tactic ℕ :=
 do
   trace_if_enabled `suggest format!"Trying to apply lemma: {e}",
-  opt.apply e,
+  apply e opt.to_apply_cfg,
   trace_if_enabled `suggest format!"Applied lemma: {e}",
   ng ← num_goals,
   -- Phase 1
@@ -445,8 +445,8 @@ do asms ← mk_assumption_set ff hs attr_names,
    (tactic.library_search
      { backtrack_all_goals := tt,
        lemma_thunks := return asms,
-       apply := λ e, tactic.apply e { md := if semireducible.is_some then
-         tactic.transparency.semireducible else tactic.transparency.reducible },
+       md := if semireducible.is_some then
+         tactic.transparency.semireducible else tactic.transparency.reducible,
        ..opt } >>=
    if is_trace_enabled_for `silence_library_search then
      (λ _, skip)

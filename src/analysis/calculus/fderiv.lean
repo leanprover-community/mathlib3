@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.tangent_cone
+import analysis.normed_space.units
 
 /-!
 # The Fréchet derivative
@@ -729,12 +730,19 @@ differentiable_id.differentiable_on
 lemma fderiv_id : fderiv 𝕜 id x = id 𝕜 E :=
 has_fderiv_at.fderiv (has_fderiv_at_id x)
 
+lemma fderiv_id' : fderiv 𝕜 (λ (x : E), x) x = continuous_linear_map.id 𝕜 E :=
+fderiv_id
+
 lemma fderiv_within_id (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 id s x = id 𝕜 E :=
 begin
   rw differentiable_at.fderiv_within (differentiable_at_id) hxs,
   exact fderiv_id
 end
+
+lemma fderiv_within_id' (hxs : unique_diff_within_at 𝕜 s x) :
+  fderiv_within 𝕜 (λ (x : E), x) s x = continuous_linear_map.id 𝕜 E :=
+fderiv_within_id hxs
 
 end id
 
@@ -2085,6 +2093,42 @@ lemma fderiv_const_mul (hc : differentiable_at 𝕜 c x) (d : 𝕜) :
 (hc.has_fderiv_at.const_mul d).fderiv
 
 end mul
+
+section algebra_inverse
+variables {R :Type*} [normed_ring R] [normed_algebra 𝕜 R] [complete_space R]
+open normed_ring continuous_linear_map ring
+
+/-- At an invertible element `x` of a normed algebra `R`, the Fréchet derivative of the inversion
+operation is the linear map `λ t, - x⁻¹ * t * x⁻¹`. -/
+lemma has_fderiv_at_inverse  (x : units R) :
+  has_fderiv_at inverse (- (lmul_right 𝕜 R ↑x⁻¹).comp (lmul_left 𝕜 R ↑x⁻¹)) x :=
+begin
+  have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹)
+    (λ (t : R), t) (𝓝 0),
+  { refine (inverse_add_norm_diff_second_order x).trans_is_o ((is_o_norm_norm).mp _),
+    simp only [normed_field.norm_pow, norm_norm],
+    have h12 : 1 < 2 := by norm_num,
+    convert (asymptotics.is_o_pow_pow h12).comp_tendsto lim_norm_zero,
+    ext, simp },
+  have h_lim : tendsto (λ (y:R), y - x) (𝓝 x) (𝓝 0),
+  { refine tendsto_zero_iff_norm_tendsto_zero.mpr _,
+    exact tendsto_iff_norm_tendsto_zero.mp tendsto_id },
+  simp only [has_fderiv_at, has_fderiv_at_filter],
+  convert h_is_o.comp_tendsto h_lim,
+  ext y,
+  simp only [coe_comp', function.comp_app, lmul_right_apply, lmul_left_apply, neg_apply,
+    inverse_unit x, units.inv_mul, add_sub_cancel'_right, mul_sub, sub_mul, one_mul],
+  abel
+end
+
+lemma differentiable_at_inverse (x : units R) : differentiable_at 𝕜 (@inverse R _) x :=
+(has_fderiv_at_inverse x).differentiable_at
+
+lemma fderiv_inverse (x : units R) :
+  fderiv 𝕜 (@inverse R _) x = - (lmul_right 𝕜 R ↑x⁻¹).comp (lmul_left 𝕜 R ↑x⁻¹) :=
+(has_fderiv_at_inverse x).fderiv
+
+end algebra_inverse
 
 section continuous_linear_equiv
 /-! ### Differentiability of linear equivs, and invariance of differentiability -/

@@ -220,13 +220,9 @@ by { ext, exact mem_closure_singleton.symm }
 lemma multiples_subset {x : A} {P : add_submonoid A} (h : x ∈ P) : multiples x ≤ P :=
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := P.nsmul_mem h i end
 
--- **TODO**:
--- these attributes work in (this branch's version of) subgroup.lean -- see line 1000 or so.
--- Why don't they work here?
-
--- attribute [to_additive add_subgroup.multiples] submonoid.powers
--- attribute [to_additive add_subgroup.mem_multiples] submonoid.mem_powers
--- attribute [to_additive add_subgroup.multiples_eq_closure] submonoid.powers_eq_closure
--- attribute [to_additive add_subgroup.multiples_subset] submonoid.powers_subset
+attribute [to_additive add_submonoid.multiples] submonoid.powers
+attribute [to_additive add_submonoid.mem_multiples] submonoid.mem_powers
+attribute [to_additive add_submonoid.multiples_eq_closure] submonoid.powers_eq_closure
+attribute [to_additive add_submonoid.multiples_subset] submonoid.powers_subset
 
 end add_submonoid

@@ -137,10 +137,7 @@ A cone postcomposed with a natural isomorphism is a limit cone if and only if th
 -/
 def postcompose_hom_equiv {F G : J ⥤ C} (α : F ≅ G) (c : cone F) :
   is_limit ((cones.postcompose α.hom).obj c) ≃ is_limit c :=
-begin
-  change is_limit ((cones.postcompose_equivalence α).functor.obj c) ≃ _,
-  apply is_limit.of_cone_equiv,
-end
+of_cone_equiv (cones.postcompose_equivalence α)
 
 /--
 A cone postcomposed with the inverse of a natural isomorphism is a limit cone if and only if
@@ -485,10 +482,7 @@ if and only if the original cocone is.
 -/
 def precompose_hom_equiv {F G : J ⥤ C} (α : F ≅ G) (c : cocone G) :
   is_colimit ((cocones.precompose α.hom).obj c) ≃ is_colimit c :=
-begin
-  change is_colimit ((cocones.precompose_equivalence α).functor.obj c) ≃ _,
-  apply is_colimit.of_cocone_equiv,
-end
+of_cocone_equiv (cocones.precompose_equivalence α
 
 /--
 A cocone precomposed with the inverse of a natural isomorphism is a colimit cocone

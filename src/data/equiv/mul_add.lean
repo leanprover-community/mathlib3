@@ -420,4 +420,3 @@ def mul_equiv.to_additive [monoid G] [monoid H] (f : G ≃* H) : additive G ≃+
 ⟨f.to_monoid_hom.to_additive, f.symm.to_monoid_hom.to_additive, f.3, f.4, f.5⟩
 
 end type_tags
-#lint

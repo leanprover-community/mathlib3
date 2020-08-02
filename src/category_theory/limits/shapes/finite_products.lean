@@ -35,14 +35,6 @@ instance has_finite_products_of_has_finite_limits [has_finite_limits C] : has_fi
 instance has_finite_coproducts_of_has_finite_colimits [has_finite_colimits C] : has_finite_coproducts C :=
 { has_colimits_of_shape := λ J _ _, by { resetI, apply_instance } }
 
-@[priority 200] -- see Note [lower instance priority]
-instance [has_finite_products C] : has_binary_products.{v} C :=
-{ has_limits_of_shape := by apply_instance }
-
-@[priority 200] -- see Note [lower instance priority]
-instance [has_finite_coproducts C] : has_binary_coproducts.{v} C :=
-{ has_colimits_of_shape := by apply_instance }
-
 @[priority 100] -- see Note [lower instance priority]
 instance [has_finite_products C] : has_terminal C :=
 { has_limits_of_shape := by apply_instance }

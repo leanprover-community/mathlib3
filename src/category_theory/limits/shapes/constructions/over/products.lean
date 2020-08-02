@@ -109,12 +109,12 @@ def over_product_of_wide_pullback {J : Type v} [has_limits_of_shape (wide_pullba
 /-- Given a pullback in `C`, construct a binary product in `C/B`. -/
 def over_binary_product_of_pullback [has_pullbacks C] {B : C} :
   has_binary_products (over B) :=
-{ has_limits_of_shape := over_product_of_wide_pullback }
+over_product_of_wide_pullback
 
 /-- Given all wide pullbacks in `C`, construct products in `C/B`. -/
 def over_products_of_wide_pullbacks [has_wide_pullbacks C] {B : C} :
   has_products (over B) :=
-{ has_limits_of_shape := λ J, over_product_of_wide_pullback }
+λ J, over_product_of_wide_pullback
 
 /-- Given all finite wide pullbacks in `C`, construct finite products in `C/B`. -/
 def over_finite_products_of_finite_wide_pullbacks [has_finite_wide_pullbacks C] {B : C} :

@@ -198,6 +198,14 @@ end category_theory
 
 open category_theory
 
+/-!
+We now put a category instance on any preorder.
+
+Because we do not allow the morphisms of a category to live in `Prop`,
+unfortunately we need to use `plift` and `ulift` when defining the morphisms.
+
+As convenience functions, we provide `hom_of_le` and `le_of_hom` to wrap and unwrap inequalities.
+-/
 namespace preorder
 
 variables (α : Type u)
@@ -209,3 +217,19 @@ instance small_category [preorder α] : small_category α :=
   comp := λ X Y Z f g, ⟨ ⟨ le_trans _ _ _ f.down.down g.down.down ⟩ ⟩ }
 
 end preorder
+
+namespace category_theory
+
+variables {α : Type u} [preorder α]
+
+/--
+Express an inequality as a morphism in the corresponding preorder category.
+-/
+def hom_of_le {U V : α} (h : U ≤ V) : U ⟶ V := ulift.up (plift.up h)
+
+/--
+Extract the underlying inequality from a morphism in a preorder category.
+-/
+def le_of_hom {U V : α} (h : U ⟶ V) : U ≤ V := h.down.down
+
+end category_theory

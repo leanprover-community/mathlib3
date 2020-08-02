@@ -18,6 +18,11 @@ This is formalised as:
 The intended application is that as `Ring ≌ Mon_ Ab` (not yet constructed!),
 we have `presheaf Ring X ≌ presheaf (Mon_ Ab) X ≌ Mon_ (presheaf Ab X)`,
 and we can model a module over a presheaf of rings as a module object in `presheaf Ab X`.
+
+## Future work
+Presumably this statement is not specific to monoids,
+and could be generalised to any internal algebraic objects,
+if the appropriate framework was available.
 -/
 
 universes v₁ v₂ u₁ u₂
@@ -79,8 +84,8 @@ def inverse : (C ⥤ Mon_ D) ⥤ Mon_ (C ⥤ D) :=
   { hom :=
     { app := λ X, (α.app X).hom,
       naturality' := λ X Y f, congr_arg Mon_.hom.hom (α.naturality f), },
-    one_hom' := by { ext, dsimp, rw [(α.app x).one_hom], },
-    mul_hom' := by { ext, dsimp, rw [(α.app x).mul_hom], }, }, }
+    one_hom' := by { ext x, dsimp, rw [(α.app x).one_hom], },
+    mul_hom' := by { ext x, dsimp, rw [(α.app x).mul_hom], }, }, }
 
 /--
 The unit for the equivalence `Mon_ (C ⥤ D) ≌ C ⥤ Mon_ D`.

@@ -55,6 +55,44 @@ left_inv_eq_right_inv (trans (mul_comm _ _) hy) hz
 
 end comm_monoid
 
+section left_cancel_monoid
+
+variables {M : Type u} [left_cancel_monoid M]
+
+@[to_additive] lemma left_cancel_one {a : M} (h : a * a = a) : a = 1 :=
+begin
+  have h1 : a * a = a * 1 := by rw mul_one; exact h, /- is there a better way to do this? -/
+  exact mul_left_cancel h1,
+end
+
+@[to_additive] lemma one_left_cancel {a : M} (h : a = a * a) : a = 1 :=
+begin
+  have h1 : a * 1 = a * a := by rw mul_one; exact h, /- is there a better way to do this? -/
+  symmetry,
+  exact mul_left_cancel h1,
+end
+
+end left_cancel_monoid
+
+section right_cancel_monoid
+
+variables {M : Type u} [right_cancel_monoid M]
+
+@[to_additive] lemma right_cancel_one {a : M} (h : a * a = a) : a = 1 :=
+begin
+  have h1 : a * a = 1 * a := by rw one_mul; exact h, /- is there a better way to do this? -/
+  exact mul_right_cancel h1,
+end
+
+@[to_additive] lemma one_right_cancel {a : M} (h : a = a * a) : a = 1 :=
+begin
+  have h1 : 1 * a = a * a := by rw one_mul; exact h, /- is there a better way to do this? -/
+  symmetry,
+  exact mul_right_cancel h1,
+end
+
+end right_cancel_monoid
+
 section group
 variables {G : Type u} [group G] {a b c : G}
 

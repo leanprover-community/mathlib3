@@ -72,11 +72,11 @@ instance [inhabited X] : inhabited (action_category M X) :=
 variables {X} (x : X)
 /-- The stabilizer of a point is isomorphic to the endomorphism monoid at the
   corresponding point. In fact they are definitionally equivalent. -/
-def stabilizer_iso_End : stabilizer M x ≃* End (obj_equiv M X x) :=
+def stabilizer_iso_End : stabilizer.submonoid M x ≃* End (obj_equiv M X x) :=
 mul_equiv.refl _
 
 @[simp]
-lemma stabilizer_iso_End_apply (f : stabilizer M x) :
+lemma stabilizer_iso_End_apply (f : stabilizer.submonoid M x) :
   (stabilizer_iso_End M x).to_fun f = f := rfl
 
 @[simp]

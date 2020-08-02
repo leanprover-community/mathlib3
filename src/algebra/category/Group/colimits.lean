@@ -295,11 +295,6 @@ end AddCommGroup.colimits
 
 namespace AddCommGroup
 
--- **TODO** remove this
--- TODO why is this not always an instance?
--- I guess it's deprecated in any case, so not long for this world.
--- local attribute [instance] normal_add_subgroup_of_add_comm_group
-
 open quotient_add_group
 
 /--

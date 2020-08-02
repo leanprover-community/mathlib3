@@ -707,7 +707,8 @@ def normalizer : subgroup G :=
   inv_mem' := λ a (ha : ∀ n, n ∈ H ↔ a * n * a⁻¹ ∈ H) n,
     by { rw [ha (a⁻¹ * n * a⁻¹⁻¹)], simp [mul_assoc] } }
 
--- variant for sets. **TODO** should this replace `normalizer`?
+-- variant for sets.
+-- TODO should this replace `normalizer`?
 /-- The `set_normalizer` of `S` is the subgroup of `G` whose elements satisfy `g*S*g⁻¹=S` -/
 @[to_additive "The `set_normalizer` of `S` is the subgroup of `G` whose elements satisfy `g+S-g=S`."]
 def set_normalizer (S : set G) : subgroup G :=
@@ -1035,3 +1036,5 @@ def subgroup_congr (h : H = K) : H ≃* K :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ subgroup.ext'_iff.1 h }
 
 end mul_equiv
+
+-- TODO : ↥(⊤ : subgroup H) ≃* H ?

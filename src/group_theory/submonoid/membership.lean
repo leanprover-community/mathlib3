@@ -221,10 +221,12 @@ lemma multiples_subset {x : A} {P : add_submonoid A} (h : x ∈ P) : multiples x
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := P.nsmul_mem h i end
 
 -- **TODO**:
--- these attributes work in (this branch's version of) subgroup.lean -- see line 1000 or so
---attribute [to_additive add_subgroup.multiples] submonoid.powers
---attribute [to_additive add_subgroup.mem_multiples] submonoid.mem_powers
---attribute [to_additive add_subgroup.multiples_eq_closure] submonoid.powers_eq_closure
---attribute [to_additive add_subgroup.multiples_subset] submonoid.powers_subset
+-- these attributes work in (this branch's version of) subgroup.lean -- see line 1000 or so.
+-- Why don't they work here?
+
+-- attribute [to_additive add_subgroup.multiples] submonoid.powers
+-- attribute [to_additive add_subgroup.mem_multiples] submonoid.mem_powers
+-- attribute [to_additive add_subgroup.multiples_eq_closure] submonoid.powers_eq_closure
+-- attribute [to_additive add_subgroup.multiples_subset] submonoid.powers_subset
 
 end add_submonoid

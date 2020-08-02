@@ -10,9 +10,6 @@ import group_theory.group_action
 import data.equiv.ring
 import data.polynomial.monic
 
--- **TODO** this should fail, we have a deprecated import
--- #check is_subgroup
-
 universes u v
 open_locale big_operators
 

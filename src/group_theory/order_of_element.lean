@@ -13,8 +13,7 @@ open_locale big_operators
 
 variables {α : Type*} {s : set α} {a a₁ a₂ b c: α}
 
--- **TODO**: look at git logs to find out whether this TODO is DONE
--- TODO this lemma isn't used anywhere in this file, and should be moved elsewhere.
+-- TODO mem_range_iff_mem_finset_range_of_mod_eq should be moved elsewhere.
 namespace finset
 open finset
 

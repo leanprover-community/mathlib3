@@ -768,6 +768,23 @@ h.to_local_equiv_target
 
 end open_embedding
 
+-- We close and reopen the namespace to avoid
+-- picking up the unnecessary `[nonempty α]` typeclass argument
+namespace open_embedding
+
+lemma continuous_at_iff
+  {f : α → β} {g : β → γ} (hf : open_embedding f) {x : α} :
+  continuous_at (g ∘ f) x ↔ continuous_at g (f x) :=
+begin
+  haveI : nonempty α := ⟨x⟩,
+  convert ((hf.to_local_homeomorph.continuous_at_iff_continuous_at_comp_right) _).symm,
+  { apply (local_homeomorph.left_inv _ _).symm,
+    simp, },
+  { simp, },
+end
+
+end open_embedding
+
 namespace topological_space.opens
 
 open topological_space

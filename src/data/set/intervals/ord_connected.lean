@@ -10,7 +10,7 @@ import data.set.lattice
 # Order-connected sets
 
 We say that a set `s : set α` is `ord_connected` if for all `x y ∈ s` it includes the
-interval `[x, y]`. If `α` is a `denesly_ordered` `conditionally_complete_linear_order` with
+interval `[x, y]`. If `α` is a `densely_ordered` `conditionally_complete_linear_order` with
 the `order_topology`, then this condition is equivalent to `is_preconnected s`. If `α = ℝ`, then
 this condition is also equivalent to `convex s`.
 
@@ -24,7 +24,7 @@ variables {α : Type*} [preorder α] {s t : set α}
 
 /--
 We say that a set `s : set α` is `ord_connected` if for all `x y ∈ s` it includes the
-interval `[x, y]`. If `α` is a `denesly_ordered` `conditionally_complete_linear_order` with
+interval `[x, y]`. If `α` is a `densely_ordered` `conditionally_complete_linear_order` with
 the `order_topology`, then this condition is equivalent to `is_preconnected s`. If `α = ℝ`, then
 this condition is also equivalent to `convex s`.
 -/

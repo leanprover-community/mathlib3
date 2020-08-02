@@ -248,6 +248,9 @@ lemma comap_sup_map_of_injective (S T : submonoid M) : (S.map f ⊔ T.map f).com
 lemma comap_supr_map_of_injective (S : ι → submonoid M) : (⨆ i, (S i).map f).comap f = supr S :=
 (gci_map_comap hf).u_supr_l _
 
+lemma map_le_map_iff_of_injective {S T : submonoid M} : S.map f ≤ T.map f ↔ S ≤ T :=
+(gci_map_comap hf).l_le_l_iff
+
 lemma map_strict_mono_of_injective : strict_mono (map f) :=
 (gci_map_comap hf).strict_mono_l
 
@@ -284,6 +287,9 @@ lemma map_sup_comap_of_surjective (S T : submonoid N) : (S.comap f ⊔ T.comap f
 
 lemma map_supr_comap_of_surjective (S : ι → submonoid N) : (⨆ i, (S i).comap f).map f = supr S :=
 (gi_map_comap hf).l_supr_u _
+
+lemma comap_le_comap_iff_of_surjective {S T : submonoid N} : S.comap f ≤ T.comap f ↔ S ≤ T :=
+(gi_map_comap hf).u_le_u_iff
 
 lemma comap_strict_mono_of_surjective : strict_mono (comap f) :=
 (gi_map_comap hf).strict_mono_u

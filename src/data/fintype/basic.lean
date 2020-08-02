@@ -5,8 +5,12 @@ Author: Mario Carneiro
 
 Finite types.
 -/
-import data.finset
+import tactic.wlog
+import data.finset.powerset
+import data.finset.lattice
+import data.finset.pi
 import data.array.lemmas
+
 universes u v
 
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -36,11 +40,19 @@ by ext; simp
 
 theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
+instance : order_top (finset α) :=
+{ top := univ,
+  le_top := subset_univ,
+  .. finset.partial_order }
+
+instance [decidable_eq α] : bounded_distrib_lattice (finset α) :=
+{ .. finset.distrib_lattice, .. finset.semilattice_inf_bot, .. finset.order_top }
+
 theorem eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s :=
-by simp [ext]
+by simp [ext_iff]
 
 @[simp] lemma univ_inter [decidable_eq α] (s : finset α) :
-  univ ∩ s = s := ext' $ λ a, by simp
+  univ ∩ s = s := ext $ λ a, by simp
 
 @[simp] lemma inter_univ [decidable_eq α] (s : finset α) :
   s ∩ univ = s :=
@@ -141,21 +153,8 @@ quot.rec_on_subsingleton (@univ α _).1
 theorem exists_equiv_fin (α) [fintype α] : ∃ n, nonempty (α ≃ fin n) :=
 by haveI := classical.dec_eq α; exact ⟨card α, nonempty_of_trunc (equiv_fin α)⟩
 
-/-- Given a linearly ordered fintype `α` of cardinal `k`, the equiv `mono_equiv_of_fin α h`
-is the increasing bijection between `fin k` and `α`. Here, `h` is a proof that
-the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` to avoid
-casting issues in further uses of this function. -/
-noncomputable def mono_equiv_of_fin (α) [fintype α] [decidable_linear_order α] {k : ℕ}
-  (h : fintype.card α = k) : fin k ≃ α :=
-have A : bijective (mono_of_fin univ h) := begin
-  apply set.bijective_iff_bij_on_univ.2,
-  rw ← @coe_univ α _,
-  exact mono_of_fin_bij_on (univ : finset α) h
-end,
-equiv.of_bijective A
-
 instance (α : Type*) : subsingleton (fintype α) :=
-⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext, h₁, h₂]⟩
+⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext_iff, h₁, h₂]⟩
 
 protected def subtype {p : α → Prop} (s : finset α)
   (H : ∀ x : α, x ∈ s ↔ p x) : fintype {x // p x} :=
@@ -241,11 +240,18 @@ by simp [to_finset]
 @[simp] theorem mem_to_finset_val {s : set α} [fintype s] {a : α} : a ∈ s.to_finset.1 ↔ a ∈ s :=
 mem_to_finset
 
+-- We use an arbitrary `[fintype s]` instance here,
+-- not necessarily coming from a `[fintype α]`.
+@[simp]
+lemma to_finset_card {α : Type*} (s : set α) [fintype s] :
+  s.to_finset.card = fintype.card s :=
+multiset.card_map subtype.val finset.univ.val
+
 @[simp] theorem coe_to_finset (s : set α) [fintype s] : (↑s.to_finset : set α) = s :=
 set.ext $ λ _, mem_to_finset
 
 @[simp] theorem to_finset_inj {s t : set α} [fintype s] [fintype t] : s.to_finset = t.to_finset ↔ s = t :=
-⟨λ h, by rw [← s.coe_to_finset, h, t.coe_to_finset], λ h, by simp [h]; congr⟩ 
+⟨λ h, by rw [← s.coe_to_finset, h, t.coe_to_finset], λ h, by simp [h]; congr⟩
 
 end set
 
@@ -257,7 +263,7 @@ lemma finset.card_univ_diff [fintype α] [decidable_eq α] (s : finset α) :
 finset.card_sdiff (subset_univ s)
 
 instance (n : ℕ) : fintype (fin n) :=
-⟨⟨list.fin_range n, list.nodup_fin_range n⟩, list.mem_fin_range⟩
+⟨finset.fin_range n, finset.mem_fin_range⟩
 
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 list.length_fin_range n
@@ -284,21 +290,6 @@ begin
     rw fin.cast_succ_cast_lt },
   { left,
     exact fin.eq_last_of_not_lt h }
-end
-
-/-- Any increasing map between `fin k` and a finset of cardinality `k` has to coincide with
-the increasing bijection `mono_of_fin s h`. -/
-lemma finset.mono_of_fin_unique' [decidable_linear_order α] {s : finset α} {k : ℕ} (h : s.card = k)
-  {f : fin k → α} (fmap : set.maps_to f set.univ ↑s) (hmono : strict_mono f) :
-  f = s.mono_of_fin h :=
-begin
-  have finj : set.inj_on f set.univ := hmono.injective.inj_on _,
-  apply mono_of_fin_unique h (set.bij_on.mk fmap finj (λ y hy, _)) hmono,
-  simp only [set.image_univ, set.mem_range],
-  rcases surj_on_of_inj_on_of_card_le (λ i (hi : i ∈ finset.univ), f i)
-    (λ i hi, fmap (set.mem_univ i)) (λ i j hi hj hij, finj (set.mem_univ i) (set.mem_univ j) hij)
-    (by simp [h]) y hy with ⟨x, _, hx⟩,
-  exact ⟨x, hx.symm⟩
 end
 
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
@@ -420,6 +411,19 @@ lemma fintype.card_eq_zero_iff [fintype α] : fintype.card α = 0 ↔ (α → fa
   λ h, have e : α ≃ empty := ⟨λ a, (h a).elim, λ a, a.elim, λ a, (h a).elim, λ a, a.elim⟩,
     by simp [fintype.card_congr e]⟩
 
+/-- A `fintype` with cardinality zero is (constructively) equivalent to `pempty`. -/
+def fintype.card_eq_zero_equiv_equiv_pempty {α : Type v} [fintype α] :
+  fintype.card α = 0 ≃ (α ≃ pempty.{v+1}) :=
+{ to_fun := λ h,
+  { to_fun := λ a, false.elim (fintype.card_eq_zero_iff.1 h a),
+    inv_fun := λ a, pempty.elim a,
+    left_inv := λ a, false.elim (fintype.card_eq_zero_iff.1 h a),
+    right_inv := λ a, pempty.elim a, },
+  inv_fun := λ e,
+  by { simp only [←fintype.of_equiv_card e], convert fintype.card_pempty, },
+  left_inv := λ h, rfl,
+  right_inv := λ e, by { ext x, cases e x, } }
+
 lemma fintype.card_pos_iff [fintype α] : 0 < fintype.card α ↔ nonempty α :=
 ⟨λ h, classical.by_contradiction (λ h₁,
   have fintype.card α = 0 := fintype.card_eq_zero_iff.2 (λ a, h₁ ⟨a⟩),
@@ -439,19 +443,26 @@ match n, hn with
     (λ _ _ _, h _ _))⟩
 end
 
+lemma fintype.card_le_one_iff_subsingleton [fintype α] :
+  fintype.card α ≤ 1 ↔ subsingleton α :=
+iff.trans fintype.card_le_one_iff subsingleton_iff.symm
+
+lemma fintype.one_lt_card_iff_nontrivial [fintype α] :
+  1 < fintype.card α ↔ nontrivial α :=
+begin
+  classical,
+  rw ← not_iff_not,
+  push_neg,
+  rw [not_nontrivial_iff_subsingleton, fintype.card_le_one_iff_subsingleton]
+end
+
 lemma fintype.exists_ne_of_one_lt_card [fintype α] (h : 1 < fintype.card α) (a : α) :
   ∃ b : α, b ≠ a :=
-let ⟨b, hb⟩ := classical.not_forall.1 (mt fintype.card_le_one_iff.2 (not_le_of_gt h)) in
-let ⟨c, hc⟩ := classical.not_forall.1 hb in
-by haveI := classical.dec_eq α; exact
-if hba : b = a then ⟨c, by cc⟩ else ⟨b, hba⟩
+by { haveI : nontrivial α := fintype.one_lt_card_iff_nontrivial.1 h, exact exists_ne a }
 
 lemma fintype.exists_pair_of_one_lt_card [fintype α] (h : 1 < fintype.card α) :
-  ∃ (a b : α), b ≠ a :=
-begin
-  rcases fintype.card_pos_iff.1 (nat.lt_of_succ_lt h) with a,
-  exact ⟨a, fintype.exists_ne_of_one_lt_card h a⟩,
-end
+  ∃ (a b : α), a ≠ b :=
+by { haveI : nontrivial α := fintype.one_lt_card_iff_nontrivial.1 h, exact exists_pair_ne α }
 
 lemma fintype.injective_iff_surjective [fintype α] {f : α → α} : injective f ↔ surjective f :=
 by haveI := classical.prop_decidable; exact
@@ -499,6 +510,8 @@ finset.subtype.fintype s
 @[simp] lemma fintype.card_coe (s : finset α) :
   fintype.card (↑s : set α) = s.card := card_attach
 
+lemma finset.attach_eq_univ {s : finset α} : s.attach = finset.univ := rfl
+
 lemma finset.card_le_one_iff {s : finset α} :
   s.card ≤ 1 ↔ ∀ {x y}, x ∈ s → y ∈ s → x = y :=
 begin
@@ -512,6 +525,10 @@ begin
   { assume H x y,
     exact subtype.eq (H x.2 y.2) }
 end
+
+/-- A `finset` of a subsingleton type has cardinality at most one. -/
+lemma finset.card_le_one_of_subsingleton [subsingleton α] (s : finset α) : s.card ≤ 1 :=
+finset.card_le_one_iff.2 $ λ _ _ _ _, subsingleton.elim _ _
 
 lemma finset.one_lt_card_iff {s : finset α} :
   1 < s.card ↔ ∃ x y, (x ∈ s) ∧ (y ∈ s) ∧ x ≠ y :=
@@ -529,14 +546,17 @@ instance Prop.fintype : fintype Prop :=
 ⟨⟨true::false::0, by simp [true_ne_false]⟩,
  classical.cases (by simp) (by simp)⟩
 
+instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
+fintype.subtype (univ.filter p) (by simp)
+
 def set_fintype {α} [fintype α] (s : set α) [decidable_pred s] : fintype s :=
-fintype.subtype (univ.filter (∈ s)) (by simp)
+subtype.fintype (λ x, x ∈ s)
 
 namespace function.embedding
 
 /-- An embedding from a `fintype` to itself can be promoted to an equivalence. -/
 noncomputable def equiv_of_fintype_self_embedding {α : Type*} [fintype α] (e : α ↪ α) : α ≃ α :=
-equiv.of_bijective (fintype.injective_iff_bijective.1 e.2)
+equiv.of_bijective e (fintype.injective_iff_bijective.1 e.2)
 
 @[simp]
 lemma equiv_of_fintype_self_embedding_to_embedding {α : Type*} [fintype α] (e : α ↪ α) :
@@ -620,12 +640,13 @@ instance finset.fintype [fintype α] : fintype (finset α) :=
   fintype.card (finset α) = 2 ^ (fintype.card α) :=
 finset.card_powerset finset.univ
 
-instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
-set_fintype _
-
 @[simp] lemma set.to_finset_univ [fintype α] :
   (set.univ : set α).to_finset = finset.univ :=
 by { ext, simp only [set.mem_univ, mem_univ, set.mem_to_finset] }
+
+@[simp] lemma set.to_finset_empty [fintype α] :
+  (∅ : set α).to_finset = ∅ :=
+by { ext, simp only [set.mem_empty_eq, set.mem_to_finset, not_mem_empty] }
 
 theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
   fintype.card {x // p x} ≤ fintype.card α :=
@@ -634,7 +655,7 @@ by rw fintype.subtype_card; exact card_le_of_subset (subset_univ _)
 theorem fintype.card_subtype_lt [fintype α] {p : α → Prop} [decidable_pred p]
   {x : α} (hx : ¬ p x) : fintype.card {x // p x} < fintype.card α :=
 by rw [fintype.subtype_card]; exact finset.card_lt_card
-  ⟨subset_univ _, classical.not_forall.2 ⟨x, by simp [*, set.mem_def]⟩⟩
+  ⟨subset_univ _, classical.not_forall.2 ⟨x, by simp [hx]⟩⟩
 
 instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] :
   fintype (Σ' a, β a) :=
@@ -809,7 +830,7 @@ have hln' : (perms_of_list l).nodup, from nodup_perms_of_list hl',
 have hmeml : ∀ {f : perm α}, f ∈ perms_of_list l → f a = a,
   from λ f hf, not_not.1 (mt (mem_of_mem_perms_of_list hf) (nodup_cons.1 hl).1),
 by rw [perms_of_list, list.nodup_append, list.nodup_bind, pairwise_iff_nth_le]; exact
-⟨hln', ⟨λ _ _, nodup_map (λ _ _, (mul_right_inj _).1) hln',
+⟨hln', ⟨λ _ _, nodup_map (λ _ _, mul_left_cancel) hln',
   λ i j hj hij x hx₁ hx₂,
     let ⟨f, hf⟩ := list.mem_map.1 hx₁ in
     let ⟨g, hg⟩ := list.mem_map.1 hx₂ in
@@ -832,7 +853,7 @@ by rw [perms_of_list, list.nodup_append, list.nodup_bind, pairwise_iff_nth_le]; 
 def perms_of_finset (s : finset α) : finset (perm α) :=
 quotient.hrec_on s.1 (λ l hl, ⟨perms_of_list l, nodup_perms_of_list hl⟩)
   (λ a b hab, hfunext (congr_arg _ (quotient.sound hab))
-    (λ ha hb _, heq_of_eq $ finset.ext.2 $
+    (λ ha hb _, heq_of_eq $ finset.ext $
       by simp [mem_perms_of_list_iff, hab.mem_iff]))
   s.2
 
@@ -982,8 +1003,13 @@ begin
   rw [h, nat_embedding_aux]
 end
 
+/-- Embedding of `ℕ` into an infinite type. -/
 noncomputable def nat_embedding (α : Type*) [infinite α] : ℕ ↪ α :=
 ⟨_, nat_embedding_aux_injective α⟩
+
+lemma exists_subset_card_eq (α : Type*) [infinite α] (n : ℕ) :
+  ∃ s : finset α, s.card = n :=
+⟨(range n).map (nat_embedding α), by rw [card_map, card_range]⟩
 
 end infinite
 
@@ -1003,4 +1029,38 @@ instance nat.infinite : infinite ℕ :=
 ⟨λ ⟨s, hs⟩, finset.not_mem_range_self $ s.subset_range_sup_succ (hs _)⟩
 
 instance int.infinite : infinite ℤ :=
-infinite.of_injective int.of_nat (λ _ _, int.of_nat_inj)
+infinite.of_injective int.of_nat (λ _ _, int.of_nat.inj)
+
+section trunc
+
+/--
+For `s : multiset α`, we can lift the existential statement that `∃ x, x ∈ s` to a `trunc α`.
+-/
+def trunc_of_multiset_exists_mem {α} (s : multiset α) : (∃ x, x ∈ s) → trunc α :=
+quotient.rec_on_subsingleton s $ λ l h,
+  match l, h with
+    | [],       _ := false.elim (by tauto)
+    | (a :: _), _ := trunc.mk a
+  end
+
+/--
+A `nonempty` `fintype` constructively contains an element.
+-/
+def trunc_of_nonempty_fintype (α) [nonempty α] [fintype α] : trunc α :=
+trunc_of_multiset_exists_mem finset.univ.val (by simp)
+
+/--
+A `fintype` with positive cardinality constructively contains an element.
+-/
+def trunc_of_card_pos {α} [fintype α] (h : 0 < fintype.card α) : trunc α :=
+by { letI := (fintype.card_pos_iff.mp h), exact trunc_of_nonempty_fintype α }
+
+/--
+By iterating over the elements of a fintype, we can lift an existential statement `∃ a, P a`
+to `trunc (Σ' a, P a)`, containing data.
+-/
+def trunc_sigma_of_exists {α} [fintype α] {P : α → Prop} [decidable_pred P] (h : ∃ a, P a) :
+  trunc (Σ' a, P a) :=
+@trunc_of_nonempty_fintype (Σ' a, P a) (exists.elim h $ λ a ha, ⟨⟨a, ha⟩⟩) _
+
+end trunc

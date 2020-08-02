@@ -6,6 +6,7 @@ Authors: Robert Y. Lewis
 import data.padics.padic_integers
 import topology.metric_space.cau_seq_filter
 import analysis.specific_limits
+import data.polynomial.identities
 import topology.algebra.polynomial
 
 /-!
@@ -64,7 +65,7 @@ private lemma ncs_tendsto_lim :
 tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _) (comp_tendsto_lim _)
 
 private lemma norm_deriv_eq : ∥F.derivative.eval ncs.lim∥ = ∥F.derivative.eval a∥ :=
-tendsto_nhds_unique at_top_ne_bot ncs_tendsto_lim ncs_tendsto_const
+tendsto_nhds_unique ncs_tendsto_lim ncs_tendsto_const
 
 end
 
@@ -77,7 +78,7 @@ private lemma tendsto_zero_of_norm_tendsto_zero : tendsto (λ i, F.eval (ncs i))
 tendsto_iff_norm_tendsto_zero.2 (by simpa using hnorm)
 
 lemma limit_zero_of_norm_tendsto_zero : F.eval ncs.lim = 0 :=
-tendsto_nhds_unique at_top_ne_bot (comp_tendsto_lim _) tendsto_zero_of_norm_tendsto_zero
+tendsto_nhds_unique (comp_tendsto_lim _) tendsto_zero_of_norm_tendsto_zero
 
 end
 
@@ -159,15 +160,15 @@ private def calc_eval_z'  {z z' z1 : ℤ_[p]} (hz' : z' = z - z1) {n} (hz : ih n
 have hdzne' : (↑(F.derivative.eval z) : ℚ_[p]) ≠ 0, from
   have hdzne : F.derivative.eval z ≠ 0,
     from mt norm_eq_zero.2 (by rw hz.1; apply deriv_norm_ne_zero; assumption),
-  λ h, hdzne $ subtype.ext.2 h,
+  λ h, hdzne $ subtype.ext_iff_val.2 h,
 let ⟨q, hq⟩ := F.binom_expansion z (-z1) in
 have ∥(↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)) : ℚ_[p])∥ ≤ 1,
   by {rw padic_norm_e.mul, apply mul_le_one, apply padic_norm_z.le_one, apply norm_nonneg, apply h1},
 have F.derivative.eval z * (-z1) = -F.eval z, from calc
   F.derivative.eval z * (-z1)
     = (F.derivative.eval z) * -⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩ : by rw [hzeq]
-... = -((F.derivative.eval z) * ⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩) : by simp [subtype.coe_ext]
-... = -(⟨↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)), this⟩) : subtype.ext.2 $ by simp
+... = -((F.derivative.eval z) * ⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩) : by simp [subtype.ext_iff_val]
+... = -(⟨↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)), this⟩) : subtype.ext_iff_val.2 $ by simp
 ... = -(F.eval z) : by simp [mul_div_cancel' _ hdzne'],
 have heq : F.eval z' = q * z1^2, by simpa [this, hz'] using hq,
 ⟨q, heq⟩
@@ -355,17 +356,14 @@ squeeze_zero (λ _, norm_nonneg _) newton_seq_norm_le bound'_sq
 
 private lemma newton_seq_dist_tendsto :
   tendsto (λ n, ∥newton_cau_seq n - a∥) at_top (𝓝 (∥F.eval a∥ / ∥F.derivative.eval a∥)) :=
-tendsto.congr'
-  (suffices ∃ k, ∀ n ≥ k,  ∥F.eval a∥ / ∥F.derivative.eval a∥ = ∥newton_cau_seq n - a∥, by simpa,
-    ⟨1, λ _ hx, (newton_seq_dist_to_a _ hx).symm⟩)
-  (tendsto_const_nhds)
+tendsto_const_nhds.congr' $ eventually_at_top.2 ⟨1, λ _ hx, (newton_seq_dist_to_a _ hx).symm⟩
 
 private lemma newton_seq_dist_tendsto' :
   tendsto (λ n, ∥newton_cau_seq n - a∥) at_top (𝓝 ∥soln - a∥) :=
 (continuous_norm.tendsto _).comp (newton_cau_seq.tendsto_limit.sub tendsto_const_nhds)
 
 private lemma soln_dist_to_a : ∥soln - a∥ = ∥F.eval a∥ / ∥F.derivative.eval a∥ :=
-tendsto_nhds_unique at_top_ne_bot newton_seq_dist_tendsto' newton_seq_dist_tendsto
+tendsto_nhds_unique newton_seq_dist_tendsto' newton_seq_dist_tendsto
 
 private lemma soln_dist_to_a_lt_deriv : ∥soln - a∥ < ∥F.derivative.eval a∥ :=
 begin

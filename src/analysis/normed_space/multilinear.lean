@@ -10,7 +10,7 @@ import topology.algebra.multilinear
 # Operator norm on the space of continuous multilinear maps
 
 When `f` is a continuous multilinear map in finitely many variables, we define its norm `∥f∥` as the
-smallest number such that `∥f m∥ ≤ ∥f∥ * univ.prod (λi, ∥m i∥)` for all `m`.
+smallest number such that `∥f m∥ ≤ ∥f∥ * ∏ i, ∥m i∥` for all `m`.
 
 We show that it is indeed a norm, and prove its basic properties.
 
@@ -18,14 +18,14 @@ We show that it is indeed a norm, and prove its basic properties.
 
 Let `f` be a multilinear map in finitely many variables.
 * `exists_bound_of_continuous` asserts that, if `f` is continuous, then there exists `C > 0`
-  with `∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)` for all `m`.
+  with `∥f m∥ ≤ C * ∏ i, ∥m i∥` for all `m`.
 * `continuous_of_bound`, conversely, asserts that this bound implies continuity.
 * `mk_continuous` constructs the associated continuous multilinear map.
 
 Let `f` be a continuous multilinear map in finitely many variables.
-* `∥f∥` is its norm, i.e., the smallest number such that `∥f m∥ ≤ ∥f∥ * univ.prod (λi, ∥m i∥)` for
+* `∥f∥` is its norm, i.e., the smallest number such that `∥f m∥ ≤ ∥f∥ * ∏ i, ∥m i∥` for
   all `m`.
-* `le_op_norm f m` asserts the fundamental inequality `∥f m∥ ≤ ∥f∥ * univ.prod (λi, ∥m i∥)`.
+* `le_op_norm f m` asserts the fundamental inequality `∥f m∥ ≤ ∥f∥ * ∏ i, ∥m i∥`.
 * `norm_image_sub_le_of_bound f m₁ m₂` gives a control of the difference `f m₁ - f m₂` in terms of
   `∥f∥` and `∥m₁ - m₂∥`.
 
@@ -54,7 +54,7 @@ approach, it turns out that direct proofs are easier and more efficient.
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical big_operators
 open finset
 
 local attribute [instance, priority 1001]
@@ -70,7 +70,7 @@ variables {𝕜 : Type u} {ι : Type v} {n : ℕ}
 /-!
 ### Continuity properties of multilinear maps
 
-We relate continuity of multilinear maps to the inequality `∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)`, in
+We relate continuity of multilinear maps to the inequality `∥f m∥ ≤ C * ∏ i, ∥m i∥`, in
 both directions. Along the way, we prove useful bounds on the difference `∥f m₁ - f m₂∥`.
 -/
 namespace multilinear_map
@@ -78,10 +78,10 @@ namespace multilinear_map
 variable (f : multilinear_map 𝕜 E₁ E₂)
 
 /-- If a multilinear map in finitely many variables on normed spaces is continuous, then it
-satisfies the inequality `∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)`, for some `C` which can be chosen to be
+satisfies the inequality `∥f m∥ ≤ C * ∏ i, ∥m i∥`, for some `C` which can be chosen to be
 positive. -/
 theorem exists_bound_of_continuous (hf : continuous f) :
-  ∃ (C : ℝ), 0 < C ∧ (∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) :=
+  ∃ (C : ℝ), 0 < C ∧ (∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :=
 begin
   /- The proof only uses the continuity at `0`. Then, given a general point `m`, rescale each of
   its coordinates to bring them to a shell of fixed width around `0`, on which one knows that `f` is
@@ -102,7 +102,7 @@ begin
       ... ≤ dist (f a) (f 0) + dist (f 0) 0 : dist_triangle _ _ _
       ... ≤ 1 + ∥f 0∥ : by { rw dist_zero_right, exact add_le_add_right this _ } },
   obtain ⟨c, hc⟩ : ∃c : 𝕜, 1 < ∥c∥ := normed_field.exists_one_lt_norm 𝕜,
-  set C := (1 + ∥f 0∥) * univ.prod (λ(i : ι), δ⁻¹ * ∥c∥),
+  set C := (1 + ∥f 0∥) * ∏ i : ι, (δ⁻¹ * ∥c∥),
   have C_pos : 0 < C :=
     mul_pos (lt_of_lt_of_le zero_lt_one (by simp))
       (prod_pos (λi hi, mul_pos (inv_pos.2 δ_pos) (lt_of_le_of_lt zero_le_one hc))),
@@ -111,7 +111,7 @@ begin
   by a power of a scalar `c` with norm `∥c∥ > 1`.-/
   by_cases h : ∃i, m i = 0,
   { rcases h with ⟨i, hi⟩,
-    rw [f.map_coord_zero i hi, _root_.norm_zero],
+    rw [f.map_coord_zero i hi, norm_zero],
     exact mul_nonneg (le_of_lt C_pos) (prod_nonneg (λi hi, norm_nonneg _)) },
   { push_neg at h,
     have : ∀i, ∃d:𝕜, d ≠ 0 ∧ ∥d • m i∥ ≤ δ ∧ (δ/∥c∥ ≤ ∥d • m i∥) ∧ (∥d∥⁻¹ ≤ δ⁻¹ * ∥c∥ * ∥m i∥) :=
@@ -123,17 +123,17 @@ begin
     calc
       ∥f m∥ = ∥f (λi, (d i)⁻¹ • (d i • m i))∥ :
         by { unfold_coes, congr, ext i, rw [← mul_smul, inv_mul_cancel (hd i).1, one_smul] }
-      ... = ∥univ.prod (λi, (d i)⁻¹) • f (λi, d i • m i)∥ : by rw f.map_smul_univ
-      ... = univ.prod (λi, ∥d i∥⁻¹) * ∥f (λi, d i • m i)∥ :
+      ... = ∥(∏ i, (d i)⁻¹) • f (λi, d i • m i)∥ : by rw f.map_smul_univ
+      ... = (∏ i, ∥d i∥⁻¹) * ∥f (λi, d i • m i)∥ :
         by { rw [norm_smul, normed_field.norm_prod], congr, ext i, rw normed_field.norm_inv }
-      ... ≤ univ.prod (λi, ∥d i∥⁻¹) * (1 + ∥f 0∥) :
+      ... ≤ (∏ i, ∥d i∥⁻¹) * (1 + ∥f 0∥) :
         mul_le_mul_of_nonneg_left (H ((pi_norm_le_iff (le_of_lt δ_pos)).2 (λi, (hd i).2.1)))
           (prod_nonneg B)
-      ... ≤ univ.prod (λi, δ⁻¹ * ∥c∥ * ∥m i∥) * (1 + ∥f 0∥) :
+      ... ≤ (∏ i, δ⁻¹ * ∥c∥ * ∥m i∥) * (1 + ∥f 0∥) :
         mul_le_mul_of_nonneg_right (prod_le_prod B (λi hi, (hd i).2.2.2)) A
-      ... = univ.prod (λ(i : ι), δ⁻¹ * ∥c∥) * univ.prod (λi, ∥m i∥) * (1 + ∥f 0∥) :
+      ... = (∏ i : ι, δ⁻¹ * ∥c∥) * (∏ i, ∥m i∥) * (1 + ∥f 0∥) :
         by rw prod_mul_distrib
-      ... = C * univ.prod (λ (i : ι), ∥m i∥) :
+      ... = C * (∏ i, ∥m i∥) :
         by rw [mul_comm, ← mul_assoc] }
 end
 
@@ -143,16 +143,16 @@ using the multilinearity. Here, we give a precise but hard to use version. See
 `∥f m - f m'∥ ≤ C * ∥m 1 - m' 1∥ * max ∥m 2∥ ∥m' 2∥ * max ∥m 3∥ ∥m' 3∥ * ... * max ∥m n∥ ∥m' n∥ + ...`,
 where the other terms in the sum are the same products where `1` is replaced by any `i`. -/
 lemma norm_image_sub_le_of_bound' {C : ℝ} (hC : 0 ≤ C)
-  (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) (m₁ m₂ : Πi, E₁ i) :
+  (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (m₁ m₂ : Πi, E₁ i) :
   ∥f m₁ - f m₂∥ ≤
-  C * univ.sum (λi, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)) :=
+  C * ∑ i, ∏ j, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥ :=
 begin
   have A : ∀(s : finset ι), ∥f m₁ - f (s.piecewise m₂ m₁)∥
-    ≤ C * s.sum (λi, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)),
+    ≤ C * ∑ i in s, ∏ j, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥,
   { refine finset.induction (by simp) _,
     assume i s his Hrec,
     have I : ∥f (s.piecewise m₂ m₁) - f ((insert i s).piecewise m₂ m₁)∥
-      ≤ C * univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥),
+      ≤ C * ∏ j, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥,
     { have A : ((insert i s).piecewise m₂ m₁)
             = function.update (s.piecewise m₂ m₁) i (m₂ i) := s.piecewise_insert _ _ _,
       have B : s.piecewise m₂ m₁ = function.update (s.piecewise m₂ m₁) i (m₁ i),
@@ -170,10 +170,10 @@ begin
     calc ∥f m₁ - f ((insert i s).piecewise m₂ m₁)∥ ≤
       ∥f m₁ - f (s.piecewise m₂ m₁)∥ + ∥f (s.piecewise m₂ m₁) - f ((insert i s).piecewise m₂ m₁)∥ :
         by { rw [← dist_eq_norm, ← dist_eq_norm, ← dist_eq_norm], exact dist_triangle _ _ _ }
-      ... ≤ C * s.sum (λi, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥))
-            + C * univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥) :
+      ... ≤ (C * ∑ i in s, ∏ j, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)
+            + C * ∏ j, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥ :
         add_le_add Hrec I
-      ... = C * (insert i s).sum (λi, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)) :
+      ... = C * ∑ i in insert i s, ∏ j, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥ :
         by simp [his, add_comm, left_distrib] },
   convert A univ,
   simp
@@ -184,14 +184,14 @@ using the multilinearity. Here, we give a usable but not very precise version. S
 `norm_image_sub_le_of_bound'` for a more precise but less usable version. The bound is
 `∥f m - f m'∥ ≤ C * card ι * ∥m - m'∥ * (max ∥m∥ ∥m'∥) ^ (card ι - 1)`. -/
 lemma norm_image_sub_le_of_bound {C : ℝ} (hC : 0 ≤ C)
-  (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) (m₁ m₂ : Πi, E₁ i) :
+  (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (m₁ m₂ : Πi, E₁ i) :
   ∥f m₁ - f m₂∥ ≤ C * (fintype.card ι) * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) * ∥m₁ - m₂∥ :=
 begin
-  have A : ∀ (i : ι), univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)
+  have A : ∀ (i : ι), ∏ j, (if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)
     ≤ ∥m₁ - m₂∥ * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1),
   { assume i,
-    calc univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)
-    ≤ (univ : finset ι).prod (function.update (λ j, max ∥m₁∥ ∥m₂∥) i (∥m₁ - m₂∥)) :
+    calc ∏ j, (if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)
+    ≤ ∏ j : ι, function.update (λ j, max ∥m₁∥ ∥m₂∥) i (∥m₁ - m₂∥) j :
       begin
         apply prod_le_prod,
         { assume j hj, by_cases h : j = i; simp [h, norm_nonneg] },
@@ -204,22 +204,22 @@ begin
       by { rw prod_update_of_mem (finset.mem_univ _), simp [card_univ_diff] } },
   calc
   ∥f m₁ - f m₂∥
-  ≤ C * univ.sum (λi, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)) :
+  ≤ C * ∑ i, ∏ j, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥ :
     f.norm_image_sub_le_of_bound' hC H m₁ m₂
-  ... ≤ C * univ.sum (λ (i : ι), ∥m₁ - m₂∥ * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1)) :
+  ... ≤ C * ∑ i, ∥m₁ - m₂∥ * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) :
     mul_le_mul_of_nonneg_left (sum_le_sum (λi hi, A i)) hC
   ... = C * (fintype.card ι) * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) * ∥m₁ - m₂∥ :
     by { rw [sum_const, card_univ, nsmul_eq_mul], ring }
 end
 
-/-- If a multilinear map satisfies an inequality `∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)`, then it is
+/-- If a multilinear map satisfies an inequality `∥f m∥ ≤ C * ∏ i, ∥m i∥`, then it is
 continuous. -/
-theorem continuous_of_bound (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) :
+theorem continuous_of_bound (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :
   continuous f :=
 begin
   let D := max C 1,
   have D_pos : 0 ≤ D := le_trans zero_le_one (le_max_right _ _),
-  replace H : ∀ m, ∥f m∥ ≤ D * univ.prod (λi, ∥m i∥),
+  replace H : ∀ m, ∥f m∥ ≤ D * ∏ i, ∥m i∥,
   { assume m,
     apply le_trans (H m) (mul_le_mul_of_nonneg_right (le_max_left _ _) _),
     exact prod_nonneg (λ(i : ι) hi, norm_nonneg (m i)) },
@@ -241,7 +241,7 @@ end
 
 /-- Constructing a continuous multilinear map from a multilinear map satisfying a boundedness
 condition. -/
-def mk_continuous (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) :
+def mk_continuous (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :
   continuous_multilinear_map 𝕜 E₁ E₂ :=
 { cont := f.continuous_of_bound C H, ..f }
 
@@ -250,20 +250,19 @@ the other coordinates, then the resulting restricted function satisfies an inequ
 `∥f.restr v∥ ≤ C * ∥z∥^(n-k) * Π ∥v i∥` if the original function satisfies `∥f v∥ ≤ C * Π ∥v i∥`. -/
 lemma restr_norm_le {k n : ℕ} (f : (multilinear_map 𝕜 (λ i : fin n, G) E₂ : _))
   (s : finset (fin n)) (hk : s.card = k) (z : G) {C : ℝ}
-  (H : ∀ m, ∥f m∥ ≤ C * finset.univ.prod (λi, ∥m i∥)) (v : fin k → G) :
-  ∥f.restr s hk z v∥ ≤ C * ∥z∥ ^ (n - k) * finset.univ.prod (λi, ∥v i∥) :=
+  (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) (v : fin k → G) :
+  ∥f.restr s hk z v∥ ≤ C * ∥z∥ ^ (n - k) * ∏ i, ∥v i∥ :=
 calc ∥f.restr s hk z v∥
-≤ C * finset.univ.prod (λ (j : fin n),
-        ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥) : H _
-... = C * ((finset.univ \ s).prod (λ (j : fin n),
+≤ C * ∏ j, ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥ : H _
+... = C * ((∏ j in finset.univ \ s,
         ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥)
-      * s.prod (λ (j : fin n),
+      * (∏ j in s,
         ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥)) :
   by rw ← finset.prod_sdiff (finset.subset_univ _)
-... = C * (∥z∥ ^ (n - k) * finset.univ.prod (λi, ∥v i∥)) :
+... = C * (∥z∥ ^ (n - k) * ∏ i, ∥v i∥) :
   begin
     congr' 2,
-    { have : ∥z∥ ^ (n - k) = (finset.univ \ s).prod (λ (j : fin n), ∥z∥),
+    { have : ∥z∥ ^ (n - k) = ∏ j in finset.univ \ s, ∥z∥,
         by simp [finset.card_sdiff  (finset.subset_univ _), hk],
       rw this,
       exact finset.prod_congr rfl (λ i hi, by rw dif_neg (finset.mem_sdiff.1 hi).2) },
@@ -276,9 +275,9 @@ calc ∥f.restr s hk z v∥
         refine ⟨j.1, j.2, _⟩,
         unfold_coes,
         convert hj.symm,
-        rw subtype.ext } }
+        rw subtype.ext_iff_val } }
   end
-... = C * ∥z∥ ^ (n - k) * finset.univ.prod (λi, ∥v i∥) : by rw mul_assoc
+... = C * ∥z∥ ^ (n - k) * ∏ i, ∥v i∥ : by rw mul_assoc
 
 end multilinear_map
 
@@ -286,33 +285,32 @@ end multilinear_map
 ### Continuous multilinear maps
 
 We define the norm `∥f∥` of a continuous multilinear map `f` in finitely many variables as the
-smallest number such that `∥f m∥ ≤ ∥f∥ * univ.prod (λi, ∥m i∥)` for all `m`. We show that this
+smallest number such that `∥f m∥ ≤ ∥f∥ * ∏ i, ∥m i∥` for all `m`. We show that this
 defines a normed space structure on `continuous_multilinear_map 𝕜 E₁ E₂`.
 -/
 namespace continuous_multilinear_map
 
 variables (c : 𝕜) (f g : continuous_multilinear_map 𝕜 E₁ E₂) (m : Πi, E₁ i)
 
-theorem bound : ∃ (C : ℝ), 0 < C ∧ (∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) :=
+theorem bound : ∃ (C : ℝ), 0 < C ∧ (∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :=
 f.to_multilinear_map.exists_bound_of_continuous f.2
 
 open real
 
 /-- The operator norm of a continuous multilinear map is the inf of all its bounds. -/
-def op_norm := Inf {c | 0 ≤ (c : ℝ) ∧ ∀ m, ∥f m∥ ≤ c * finset.univ.prod (λi, ∥m i∥)}
+def op_norm := Inf {c | 0 ≤ (c : ℝ) ∧ ∀ m, ∥f m∥ ≤ c * ∏ i, ∥m i∥}
 instance has_op_norm : has_norm (continuous_multilinear_map 𝕜 E₁ E₂) := ⟨op_norm⟩
 
-lemma norm_def : ∥f∥ = Inf {c | 0 ≤ (c : ℝ) ∧ ∀ m, ∥f m∥ ≤ c * finset.univ.prod
-  (λi, ∥m i∥)} := rfl
+lemma norm_def : ∥f∥ = Inf {c | 0 ≤ (c : ℝ) ∧ ∀ m, ∥f m∥ ≤ c * ∏ i, ∥m i∥} := rfl
 
 -- So that invocations of `real.Inf_le` make sense: we show that the set of
 -- bounds is nonempty and bounded below.
 lemma bounds_nonempty {f : continuous_multilinear_map 𝕜 E₁ E₂} :
-  ∃ c, c ∈ {c | 0 ≤ c ∧ ∀ m, ∥f m∥ ≤ c * finset.univ.prod (λi, ∥m i∥)} :=
+  ∃ c, c ∈ {c | 0 ≤ c ∧ ∀ m, ∥f m∥ ≤ c * ∏ i, ∥m i∥} :=
 let ⟨M, hMp, hMb⟩ := f.bound in ⟨M, le_of_lt hMp, hMb⟩
 
 lemma bounds_bdd_below {f : continuous_multilinear_map 𝕜 E₁ E₂} :
-  bdd_below {c | 0 ≤ c ∧ ∀ m, ∥f m∥ ≤ c * finset.univ.prod (λi, ∥m i∥)} :=
+  bdd_below {c | 0 ≤ c ∧ ∀ m, ∥f m∥ ≤ c * ∏ i, ∥m i∥} :=
 ⟨0, λ _ ⟨hn, _⟩, hn⟩
 
 lemma op_norm_nonneg : 0 ≤ ∥f∥ :=
@@ -320,23 +318,23 @@ lb_le_Inf _ bounds_nonempty (λ _ ⟨hx, _⟩, hx)
 
 /-- The fundamental property of the operator norm of a continuous multilinear map:
 `∥f m∥` is bounded by `∥f∥` times the product of the `∥m i∥`. -/
-theorem le_op_norm : ∥f m∥ ≤ ∥f∥ * finset.univ.prod (λi, ∥m i∥) :=
+theorem le_op_norm : ∥f m∥ ≤ ∥f∥ * ∏ i, ∥m i∥ :=
 begin
-  have A : 0 ≤ finset.univ.prod (λi, ∥m i∥) := prod_nonneg (λj hj, norm_nonneg _),
-  by_cases h : finset.univ.prod (λi, ∥m i∥) = 0,
+  have A : 0 ≤ ∏ i, ∥m i∥ := prod_nonneg (λj hj, norm_nonneg _),
+  by_cases h : ∏ i, ∥m i∥ = 0,
   { rcases prod_eq_zero_iff.1 h with ⟨i, _, hi⟩,
     rw norm_eq_zero at hi,
     have : f m = 0 := f.map_coord_zero i hi,
     rw [this, norm_zero],
     exact mul_nonneg (op_norm_nonneg f) A },
-  { have hlt : 0 < finset.univ.prod (λi, ∥m i∥) := lt_of_le_of_ne A (ne.symm h),
+  { have hlt : 0 < ∏ i, ∥m i∥ := lt_of_le_of_ne A (ne.symm h),
     exact le_mul_of_div_le hlt ((le_Inf _ bounds_nonempty bounds_bdd_below).2
       (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (begin rw mul_comm, apply hc, end))) }
 end
 
-lemma ratio_le_op_norm : ∥f m∥ / finset.univ.prod (λi, ∥m i∥) ≤ ∥f∥ :=
+lemma ratio_le_op_norm : ∥f m∥ / ∏ i, ∥m i∥ ≤ ∥f∥ :=
 begin
-  have : 0 ≤ finset.univ.prod (λi, ∥m i∥) := prod_nonneg (λj hj, norm_nonneg _),
+  have : 0 ≤ ∏ i, ∥m i∥ := prod_nonneg (λj hj, norm_nonneg _),
   cases eq_or_lt_of_le this with h h,
   { simp [h.symm, op_norm_nonneg f] },
   { rw div_le_iff h,
@@ -346,14 +344,14 @@ end
 /-- The image of the unit ball under a continuous multilinear map is bounded. -/
 lemma unit_le_op_norm (h : ∥m∥ ≤ 1) : ∥f m∥ ≤ ∥f∥ :=
 calc
-  ∥f m∥ ≤ ∥f∥ * finset.univ.prod (λi, ∥m i∥) : f.le_op_norm m
-  ... ≤ ∥f∥ * finset.univ.prod (λ (i : ι), 1) :
+  ∥f m∥ ≤ ∥f∥ * ∏ i, ∥m i∥ : f.le_op_norm m
+  ... ≤ ∥f∥ * ∏ i : ι, 1 :
     mul_le_mul_of_nonneg_left (prod_le_prod (λi hi, norm_nonneg _) (λi hi, le_trans (norm_le_pi_norm _ _) h))
       (op_norm_nonneg f)
   ... = ∥f∥ : by simp
 
 /-- If one controls the norm of every `f x`, then one controls the norm of `f`. -/
-lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ m, ∥f m∥ ≤ M * finset.univ.prod (λi, ∥m i∥)) :
+lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ m, ∥f m∥ ≤ M * ∏ i, ∥m i∥) :
   ∥f∥ ≤ M :=
 Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
 
@@ -375,9 +373,6 @@ begin
     rw h,
     simp }
 end
-
-@[simp] lemma norm_zero : ∥(0 : continuous_multilinear_map 𝕜 E₁ E₂)∥ = 0 :=
-by rw op_norm_zero_iff
 
 lemma op_norm_smul_le : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
 (Inf_le _ bounds_bdd_below
@@ -403,7 +398,7 @@ For a less precise but more usable version, see `norm_image_sub_le_of_bound`. Th
 where the other terms in the sum are the same products where `1` is replaced by any `i`.-/
 lemma norm_image_sub_le_of_bound' (m₁ m₂ : Πi, E₁ i) :
   ∥f m₁ - f m₂∥ ≤
-  ∥f∥ * univ.sum (λi, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)) :=
+  ∥f∥ * ∑ i, ∏ j, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥ :=
 f.to_multilinear_map.norm_image_sub_le_of_bound' (norm_nonneg _) f.le_op_norm _ _
 
 /-- The difference `f m₁ - f m₂` is controlled in terms of `∥f∥` and `∥m₁ - m₂∥`, less precise
@@ -419,7 +414,7 @@ lemma continuous_eval :
 begin
   apply continuous_iff_continuous_at.2 (λp, _),
   apply continuous_at_of_locally_lipschitz zero_lt_one
-    ((∥p∥ + 1) * (fintype.card ι) * (∥p∥ + 1) ^ (fintype.card ι - 1) + univ.prod (λi, ∥p.2 i∥))
+    ((∥p∥ + 1) * (fintype.card ι) * (∥p∥ + 1) ^ (fintype.card ι - 1) + ∏ i, ∥p.2 i∥)
     (λq hq, _),
   have : 0 ≤ (max ∥q.2∥ ∥p.2∥), by simp,
   have : 0 ≤ ∥p∥ + 1, by simp [le_trans zero_le_one],
@@ -431,15 +426,15 @@ begin
     ≤ dist (q.1 q.2) (q.1 p.2) + dist (q.1 p.2) (p.1 p.2) : dist_triangle _ _ _
     ... = ∥q.1 q.2 - q.1 p.2∥ + ∥q.1 p.2 - p.1 p.2∥ : by rw [dist_eq_norm, dist_eq_norm]
     ... ≤ ∥q.1∥ * (fintype.card ι) * (max ∥q.2∥ ∥p.2∥) ^ (fintype.card ι - 1) * ∥q.2 - p.2∥
-          + ∥q.1 - p.1∥ * univ.prod (λi, ∥p.2 i∥) :
+          + ∥q.1 - p.1∥ * ∏ i, ∥p.2 i∥ :
       add_le_add (norm_image_sub_le_of_bound _ _ _) ((q.1 - p.1).le_op_norm p.2)
     ... ≤ (∥p∥ + 1) * (fintype.card ι) * (∥p∥ + 1) ^ (fintype.card ι - 1) * ∥q - p∥
-          + ∥q - p∥ * univ.prod (λi, ∥p.2 i∥) :
+          + ∥q - p∥ * ∏ i, ∥p.2 i∥ :
       by apply_rules [add_le_add, mul_le_mul, le_refl, le_trans (norm_fst_le q) A, nat.cast_nonneg,
         mul_nonneg, pow_le_pow_of_le_left, pow_nonneg, norm_snd_le (q - p), norm_nonneg,
-        norm_fst_le (q - p), norm_nonneg, prod_nonneg]
+        norm_fst_le (q - p), prod_nonneg]
     ... = ((∥p∥ + 1) * (fintype.card ι) * (∥p∥ + 1) ^ (fintype.card ι - 1)
-              + univ.prod (λi, ∥p.2 i∥)) * dist q p : by { rw dist_eq_norm, ring }
+              + (∏ i, ∥p.2 i∥)) * dist q p : by { rw dist_eq_norm, ring }
 end
 
 lemma continuous_eval_left (m : Π i, E₁ i) :
@@ -466,7 +461,7 @@ case from the multilinear case via a currying isomorphism. However, this would m
 and it is more satisfactory to have the simplest case as a standalone proof. -/
 instance [complete_space E₂] : complete_space (continuous_multilinear_map 𝕜 E₁ E₂) :=
 begin
-  have nonneg : ∀ (v : Π i, E₁ i), 0 ≤ finset.univ.prod (λ i, ∥v i∥) :=
+  have nonneg : ∀ (v : Π i, E₁ i), 0 ≤ ∏ i, ∥v i∥ :=
     λ v, finset.prod_nonneg (λ i hi, norm_nonneg _),
   -- We show that every Cauchy sequence converges.
   refine metric.complete_of_cauchy_seq_tendsto (λ f hf, _),
@@ -475,7 +470,7 @@ begin
   -- and establish that the evaluation at any point `v : Π i, E₁ i` is Cauchy.
   have cau : ∀ v, cauchy_seq (λ n, f n v),
   { assume v,
-    apply cauchy_seq_iff_le_tendsto_0.2 ⟨λ n, b n * finset.univ.prod (λ i, ∥v i∥), λ n, _, _, _⟩,
+    apply cauchy_seq_iff_le_tendsto_0.2 ⟨λ n, b n * ∏ i, ∥v i∥, λ n, _, _, _⟩,
     { exact mul_nonneg (b0 n) (nonneg v) },
     { assume n m N hn hm,
       rw dist_eq_norm,
@@ -489,22 +484,22 @@ begin
   -- Next, we show that this `F` is multilinear,
   let Fmult : multilinear_map 𝕜 E₁ E₂ :=
   { to_fun := F,
-    add := λ v i x y, begin
+    map_add' := λ v i x y, begin
       have A := hF (function.update v i (x + y)),
       have B := (hF (function.update v i x)).add (hF (function.update v i y)),
       simp at A B,
-      exact tendsto_nhds_unique filter.at_top_ne_bot A B
+      exact tendsto_nhds_unique A B
     end,
-    smul := λ v i c x, begin
+    map_smul' := λ v i c x, begin
       have A := hF (function.update v i (c • x)),
       have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ c _) (hF (function.update v i x)),
       simp at A B,
-      exact tendsto_nhds_unique filter.at_top_ne_bot A B
+      exact tendsto_nhds_unique A B
     end },
   -- and that `F` has norm at most `(b 0 + ∥f 0∥)`.
-  have Fnorm : ∀ v, ∥F v∥ ≤ (b 0 + ∥f 0∥) * finset.univ.prod (λ i, ∥v i∥),
+  have Fnorm : ∀ v, ∥F v∥ ≤ (b 0 + ∥f 0∥) * ∏ i, ∥v i∥,
   { assume v,
-    have A : ∀ n, ∥f n v∥ ≤ (b 0 + ∥f 0∥) * finset.univ.prod (λ i, ∥v i∥),
+    have A : ∀ n, ∥f n v∥ ≤ (b 0 + ∥f 0∥) * ∏ i, ∥v i∥,
     { assume n,
       apply le_trans ((f n).le_op_norm _) _,
       apply mul_le_mul_of_nonneg_right _ (nonneg v),
@@ -514,7 +509,7 @@ begin
         apply add_le_add_right,
         simpa [dist_eq_norm] using b_bound n 0 0 (zero_le _) (zero_le _)
       end },
-    exact le_of_tendsto at_top_ne_bot (hF v).norm (eventually_of_forall _ A) },
+    exact le_of_tendsto (hF v).norm (eventually_of_forall A) },
   -- Thus `F` is continuous, and we propose that as the limit point of our original Cauchy sequence.
   let Fcont := Fmult.mk_continuous _ Fnorm,
   use Fcont,
@@ -522,13 +517,13 @@ begin
   have : ∀ n, ∥f n - Fcont∥ ≤ b n,
   { assume n,
     apply op_norm_le_bound _ (b0 n) (λ v, _),
-    have A : ∀ᶠ m in at_top, ∥(f n - f m) v∥ ≤ b n * finset.prod univ (λ (i : ι), ∥v i∥),
+    have A : ∀ᶠ m in at_top, ∥(f n - f m) v∥ ≤ b n * ∏ i, ∥v i∥,
     { refine eventually_at_top.2 ⟨n, λ m hm, _⟩,
       apply le_trans ((f n - f m).le_op_norm _) _,
       exact mul_le_mul_of_nonneg_right (b_bound n m n (le_refl _) hm) (nonneg v) },
     have B : tendsto (λ m, ∥(f n - f m) v∥) at_top (𝓝 (∥(f n - Fcont) v∥)) :=
       tendsto.norm (tendsto_const_nhds.sub (hF v)),
-    exact le_of_tendsto at_top_ne_bot B A },
+    exact le_of_tendsto B A },
   erw tendsto_iff_norm_tendsto_zero,
   exact squeeze_zero (λ n, norm_nonneg _) this b_lim,
 end
@@ -539,7 +534,7 @@ end continuous_multilinear_map
 `mk_continuous`, then its norm is bounded by the bound given to the constructor if it is
 nonnegative. -/
 lemma multilinear_map.mk_continuous_norm_le (f : multilinear_map 𝕜 E₁ E₂) {C : ℝ} (hC : 0 ≤ C)
-  (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) : ∥f.mk_continuous C H∥ ≤ C :=
+  (H : ∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) : ∥f.mk_continuous C H∥ ≤ C :=
 continuous_multilinear_map.op_norm_le_bound _ hC (λm, H m)
 
 namespace continuous_multilinear_map
@@ -573,7 +568,7 @@ protected def mk_pi_field (z : E₂) : continuous_multilinear_map 𝕜 (λ(i : �
 variables {𝕜 ι}
 
 @[simp] lemma mk_pi_field_apply (z : E₂) (m : ι → 𝕜) :
-  (continuous_multilinear_map.mk_pi_field 𝕜 ι z : (ι → 𝕜) → E₂) m = finset.univ.prod m • z := rfl
+  (continuous_multilinear_map.mk_pi_field 𝕜 ι z : (ι → 𝕜) → E₂) m = (∏ i, m i) • z := rfl
 
 lemma mk_pi_ring_apply_one_eq_self (f : continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) E₂) :
   continuous_multilinear_map.mk_pi_field 𝕜 ι (f (λi, 1)) = f :=
@@ -594,8 +589,8 @@ ones. We register this bijection as a linear equivalence in
 protected def pi_field_equiv_aux : E₂ ≃ₗ[𝕜] (continuous_multilinear_map 𝕜 (λ(i : ι), 𝕜) E₂) :=
 { to_fun    := λ z, continuous_multilinear_map.mk_pi_field 𝕜 ι z,
   inv_fun   := λ f, f (λi, 1),
-  add       := λ z z', by { ext m, simp [smul_add] },
-  smul      := λ c z, by { ext m, simp [smul_smul, mul_comm] },
+  map_add'  := λ z z', by { ext m, simp [smul_add] },
+  map_smul' := λ c z, by { ext m, simp [smul_smul, mul_comm] },
   left_inv  := λ z, by simp,
   right_inv := λ f, f.mk_pi_ring_apply_one_eq_self }
 
@@ -641,37 +636,37 @@ open fin function
 
 lemma continuous_linear_map.norm_map_tail_le
   (f : E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂)) (m : Πi, E i) :
-  ∥f (m 0) (tail m)∥ ≤ ∥f∥ * univ.prod (λi, ∥m i∥) :=
+  ∥f (m 0) (tail m)∥ ≤ ∥f∥ * ∏ i, ∥m i∥ :=
 calc
-  ∥f (m 0) (tail m)∥ ≤ ∥f (m 0)∥ * univ.prod (λi, ∥(tail m) i∥) : (f (m 0)).le_op_norm _
-  ... ≤ (∥f∥ * ∥m 0∥) * univ.prod (λi, ∥(tail m) i∥) :
+  ∥f (m 0) (tail m)∥ ≤ ∥f (m 0)∥ * ∏ i, ∥(tail m) i∥ : (f (m 0)).le_op_norm _
+  ... ≤ (∥f∥ * ∥m 0∥) * ∏ i, ∥(tail m) i∥ :
     mul_le_mul_of_nonneg_right (f.le_op_norm _) (prod_nonneg (λi hi, norm_nonneg _))
-  ... = ∥f∥ * (∥m 0∥ * univ.prod (λi, ∥(tail m) i∥)) : by ring
-  ... = ∥f∥ * univ.prod (λi, ∥m i∥) : by { rw prod_univ_succ, refl }
+  ... = ∥f∥ * (∥m 0∥ * ∏ i, ∥(tail m) i∥) : by ring
+  ... = ∥f∥ * ∏ i, ∥m i∥ : by { rw prod_univ_succ, refl }
 
 lemma continuous_multilinear_map.norm_map_init_le
   (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) (m : Πi, E i) :
-  ∥f (init m) (m (last n))∥ ≤ ∥f∥ * univ.prod (λi, ∥m i∥) :=
+  ∥f (init m) (m (last n))∥ ≤ ∥f∥ * ∏ i, ∥m i∥ :=
 calc
   ∥f (init m) (m (last n))∥ ≤ ∥f (init m)∥ * ∥m (last n)∥ : (f (init m)).le_op_norm _
-  ... ≤ (∥f∥ * univ.prod (λi, ∥(init m) i∥)) * ∥m (last n)∥ :
+  ... ≤ (∥f∥ * (∏ i, ∥(init m) i∥)) * ∥m (last n)∥ :
     mul_le_mul_of_nonneg_right (f.le_op_norm _) (norm_nonneg _)
-  ... = ∥f∥ * (univ.prod (λi, ∥(init m) i∥) * ∥m (last n)∥) : mul_assoc _ _ _
-  ... = ∥f∥ * univ.prod (λi, ∥m i∥) : by { rw prod_univ_cast_succ, refl }
+  ... = ∥f∥ * ((∏ i, ∥(init m) i∥) * ∥m (last n)∥) : mul_assoc _ _ _
+  ... = ∥f∥ * ∏ i, ∥m i∥ : by { rw prod_univ_cast_succ, refl }
 
 lemma continuous_multilinear_map.norm_map_cons_le
   (f : continuous_multilinear_map 𝕜 E E₂) (x : E 0) (m : Π(i : fin n), E i.succ) :
-  ∥f (cons x m)∥ ≤ ∥f∥ * ∥x∥ * univ.prod (λi, ∥m i∥) :=
+  ∥f (cons x m)∥ ≤ ∥f∥ * ∥x∥ * ∏ i, ∥m i∥ :=
 calc
-  ∥f (cons x m)∥ ≤ ∥f∥ * univ.prod (λ(i : fin n.succ), ∥cons x m i∥) : f.le_op_norm _
-  ... = (∥f∥ * ∥x∥) * univ.prod (λi, ∥m i∥) : by { rw prod_univ_succ, simp [mul_assoc] }
+  ∥f (cons x m)∥ ≤ ∥f∥ * ∏ i, ∥cons x m i∥ : f.le_op_norm _
+  ... = (∥f∥ * ∥x∥) * ∏ i, ∥m i∥ : by { rw prod_univ_succ, simp [mul_assoc] }
 
 lemma continuous_multilinear_map.norm_map_snoc_le
   (f : continuous_multilinear_map 𝕜 E E₂) (m : Π(i : fin n), E i.cast_succ) (x : E (last n)) :
-  ∥f (snoc m x)∥ ≤ ∥f∥ * univ.prod (λi, ∥m i∥) * ∥x∥ :=
+  ∥f (snoc m x)∥ ≤ ∥f∥ * (∏ i, ∥m i∥) * ∥x∥ :=
 calc
-  ∥f (snoc m x)∥ ≤ ∥f∥ * univ.prod (λ(i : fin n.succ), ∥snoc m x i∥) : f.le_op_norm _
-  ... = ∥f∥ * univ.prod (λi, ∥m i∥) * ∥x∥ : by { rw prod_univ_cast_succ, simp [mul_assoc] }
+  ∥f (snoc m x)∥ ≤ ∥f∥ * ∏ i, ∥snoc m x i∥ : f.le_op_norm _
+  ... = ∥f∥ * (∏ i, ∥m i∥) * ∥x∥ : by { rw prod_univ_cast_succ, simp [mul_assoc] }
 
 /-! #### Left currying -/
 
@@ -696,10 +691,12 @@ def continuous_multilinear_map.curry_left
   (f : continuous_multilinear_map 𝕜 E E₂) :
   E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂) :=
 linear_map.mk_continuous
-{ -- define a linear map into `n` continuous multilinear maps from an `n+1` continuous multilinear map
-  to_fun := λx, (f.to_multilinear_map.curry_left x).mk_continuous (∥f∥ * ∥x∥) (f.norm_map_cons_le x),
-  add    := λx y, by { ext m, exact f.cons_add m x y },
-  smul   := λc x, by { ext m, exact f.cons_smul m c x } }
+{ -- define a linear map into `n` continuous multilinear maps from an `n+1` continuous multilinear
+  -- map
+  to_fun    := λx, (f.to_multilinear_map.curry_left x).mk_continuous
+    (∥f∥ * ∥x∥) (f.norm_map_cons_le x),
+  map_add'  := λx y, by { ext m, exact f.cons_add m x y },
+  map_smul' := λc x, by { ext m, exact f.cons_smul m c x } }
   -- then register its continuity thanks to its boundedness properties.
 (∥f∥) (λx, multilinear_map.mk_continuous_norm_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _)
 
@@ -757,8 +754,8 @@ def continuous_multilinear_curry_left_equiv_aux :
   (E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂)) ≃ₗ[𝕜]
   (continuous_multilinear_map 𝕜 E E₂) :=
 { to_fun    := continuous_linear_map.uncurry_left,
-  add       := λf₁ f₂, by { ext m, refl },
-  smul      := λc f, by { ext m, refl },
+  map_add'  := λf₁ f₂, by { ext m, refl },
+  map_smul' := λc f, by { ext m, refl },
   inv_fun   := continuous_multilinear_map.curry_left,
   left_inv  := continuous_linear_map.curry_uncurry_left,
   right_inv := continuous_multilinear_map.uncurry_curry_left }
@@ -807,9 +804,9 @@ def continuous_multilinear_map.uncurry_right
   (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) :
   continuous_multilinear_map 𝕜 E E₂ :=
 let f' : multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →ₗ[𝕜] E₂) :=
-{ to_fun := λ m, (f m).to_linear_map,
-  add    := λ m i x y, by { simp, refl },
-  smul   := λ m i c x, by { simp, refl } } in
+{ to_fun    := λ m, (f m).to_linear_map,
+  map_add'  := λ m i x y, by { simp, refl },
+  map_smul' := λ m i c x, by { simp, refl } } in
 (@multilinear_map.uncurry_right 𝕜 n E E₂ _ _ _ _ _ f').mk_continuous
   (∥f∥) (λm, f.norm_map_init_le m)
 
@@ -824,10 +821,10 @@ def continuous_multilinear_map.curry_right
   (f : continuous_multilinear_map 𝕜 E E₂) :
   continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂) :=
 let f' : multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂) :=
-{ to_fun := λm, (f.to_multilinear_map.curry_right m).mk_continuous
-    (∥f∥ * univ.prod (λ(i : fin n), ∥m i∥)) $ λx, f.norm_map_snoc_le m x,
-  add  := λ m i x y, by { simp, refl },
-  smul := λ m i c x, by { simp, refl } } in
+{ to_fun    := λm, (f.to_multilinear_map.curry_right m).mk_continuous
+    (∥f∥ * ∏ i, ∥m i∥) $ λx, f.norm_map_snoc_le m x,
+  map_add'  := λ m i x y, by { simp, refl },
+  map_smul' := λ m i c x, by { simp, refl } } in
 f'.mk_continuous (∥f∥) (λm, linear_map.mk_continuous_norm_le _
   (mul_nonneg (norm_nonneg _) (prod_nonneg (λj hj, norm_nonneg _))) _)
 
@@ -885,8 +882,8 @@ def continuous_multilinear_curry_right_equiv_aux :
   (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) ≃ₗ[𝕜]
   (continuous_multilinear_map 𝕜 E E₂) :=
 { to_fun    := continuous_multilinear_map.uncurry_right,
-  add       := λf₁ f₂, by { ext m, refl },
-  smul      := λc f, by { ext m, refl },
+  map_add'  := λf₁ f₂, by { ext m, refl },
+  map_smul' := λc f, by { ext m, refl },
   inv_fun   := continuous_multilinear_map.curry_right,
   left_inv  := continuous_multilinear_map.curry_uncurry_right,
   right_inv := continuous_multilinear_map.uncurry_curry_right }
@@ -949,10 +946,10 @@ variables (𝕜 G)
 variables taking the (unique) value `x` -/
 def continuous_multilinear_map.curry0 (x : E₂) :
   continuous_multilinear_map 𝕜 (λ (i : fin 0), G) E₂ :=
-{ to_fun := λm, x,
-  add    := λ m i, fin.elim0 i,
-  smul   := λ m i, fin.elim0 i,
-  cont   := continuous_const }
+{ to_fun    := λm, x,
+  map_add'  := λ m i, fin.elim0 i,
+  map_smul' := λ m i, fin.elim0 i,
+  cont      := continuous_const }
 
 variable {G}
 @[simp] lemma continuous_multilinear_map.curry0_apply (x : E₂) (m : (fin 0) → G) :
@@ -1013,8 +1010,8 @@ def continuous_multilinear_curry_fin0_aux :
   (continuous_multilinear_map 𝕜 (λ (i : fin 0), G) E₂) ≃ₗ[𝕜] E₂ :=
 { to_fun    := λf, continuous_multilinear_map.uncurry0 f,
   inv_fun   := λf, continuous_multilinear_map.curry0 𝕜 G f,
-  add       := λf g, rfl,
-  smul      := λc f, rfl,
+  map_add'  := λf g, rfl,
+  map_smul' := λc f, rfl,
   left_inv  := continuous_multilinear_map.uncurry0_curry0,
   right_inv := continuous_multilinear_map.curry0_uncurry0 𝕜 G }
 

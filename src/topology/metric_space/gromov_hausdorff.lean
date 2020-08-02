@@ -76,7 +76,7 @@ definition GH_space : Type := quotient (isometry_rel.setoid)
 definition to_GH_space (α : Type u) [metric_space α] [compact_space α] [nonempty α] : GH_space :=
   ⟦nonempty_compacts.Kuratowski_embedding α⟧
 
-instance : inhabited GH_space := ⟨quot.mk _ ⟨{0}, by simp⟩⟩
+instance : inhabited GH_space := ⟨quot.mk _ ⟨{0}, by simp [-singleton_zero]⟩⟩
 
 /-- A metric space representative of any abstract point in `GH_space` -/
 definition GH_space.rep (p : GH_space) : Type := (quot.out p).val
@@ -91,8 +91,8 @@ begin
     have f := (Kuratowski_embedding.isometry α).isometric_on_range.trans e,
     use λx, f x,
     split,
-    { apply isometry_subtype_val.comp f.isometry },
-    { rw [range_comp, f.range_coe, set.image_univ, set.range_coe_subtype] } },
+    { apply isometry_subtype_coe.comp f.isometry },
+    { rw [range_comp, f.range_coe, set.image_univ, subtype.range_coe] } },
   { rintros ⟨Ψ, ⟨isomΨ, rangeΨ⟩⟩,
     have f := ((Kuratowski_embedding.isometry α).isometric_on_range.symm.trans
                isomΨ.isometric_on_range).symm,
@@ -104,8 +104,8 @@ end
 
 lemma eq_to_GH_space {p : nonempty_compacts ℓ_infty_ℝ} : ⟦p⟧ = to_GH_space p.val :=
 begin
- refine eq_to_GH_space_iff.2 ⟨((λx, x) : p.val → ℓ_infty_ℝ), _, subtype.val_range⟩,
- apply isometry_subtype_val
+ refine eq_to_GH_space_iff.2 ⟨((λx, x) : p.val → ℓ_infty_ℝ), _, subtype.range_coe⟩,
+ apply isometry_subtype_coe
 end
 
 section
@@ -192,15 +192,15 @@ begin
   let Ψ' : β → subtype s := λy, ⟨Ψ y, mem_union_right _ (mem_range_self _)⟩,
   have IΦ' : isometry Φ' := λx y, ha x y,
   have IΨ' : isometry Ψ' := λx y, hb x y,
-  have : compact s, from (compact_range ha.continuous).union (compact_range hb.continuous),
+  have : is_compact s, from (compact_range ha.continuous).union (compact_range hb.continuous),
   letI : metric_space (subtype s) := by apply_instance,
-  haveI : compact_space (subtype s) := ⟨compact_iff_compact_univ.1 ‹compact s›⟩,
+  haveI : compact_space (subtype s) := ⟨compact_iff_compact_univ.1 ‹is_compact s›⟩,
   haveI : nonempty (subtype s) := ⟨Φ' xα⟩,
   have ΦΦ' : Φ = subtype.val ∘ Φ', by { funext, refl },
   have ΨΨ' : Ψ = subtype.val ∘ Ψ', by { funext, refl },
   have : Hausdorff_dist (range Φ) (range Ψ) = Hausdorff_dist (range Φ') (range Ψ'),
   { rw [ΦΦ', ΨΨ', range_comp, range_comp],
-    exact Hausdorff_dist_image (isometry_subtype_val) },
+    exact Hausdorff_dist_image (isometry_subtype_coe) },
   rw this,
   -- Embed `s` in `ℓ^∞(ℝ)` through its Kuratowski embedding
   let F := Kuratowski_embedding (subtype s),
@@ -362,7 +362,7 @@ begin
     exact (Hausdorff_dist_image (Kuratowski_embedding.isometry _)).symm },
 end
 
--- without the next two lines, `{ exact closed_of_compact (range Φ) hΦ }` in the next
+-- without the next two lines, `{ exact hΦ.is_closed }` in the next
 -- proof is very slow, as the `t2_space` instance is very hard to find
 local attribute [instance, priority 10] order_topology.t2_space
 local attribute [instance, priority 10] order_closed_topology.to_t2_space
@@ -394,11 +394,11 @@ instance GH_space_metric_space : metric_space GH_space :=
     rcases GH_dist_eq_Hausdorff_dist x.rep y.rep with ⟨Φ, Ψ, Φisom, Ψisom, DΦΨ⟩,
     rw [← dist_GH_dist, hxy] at DΦΨ,
     have : range Φ = range Ψ,
-    { have hΦ : compact (range Φ) := compact_range Φisom.continuous,
-      have hΨ : compact (range Ψ) := compact_range Ψisom.continuous,
+    { have hΦ : is_compact (range Φ) := compact_range Φisom.continuous,
+      have hΨ : is_compact (range Ψ) := compact_range Ψisom.continuous,
       apply (Hausdorff_dist_zero_iff_eq_of_closed _ _ _).1 (DΦΨ.symm),
-      { exact closed_of_compact (range Φ) hΦ },
-      { exact closed_of_compact (range Ψ) hΨ },
+      { exact hΦ.is_closed },
+      { exact hΨ.is_closed },
       { exact Hausdorff_edist_ne_top_of_nonempty_of_bounded (range_nonempty _)
           (range_nonempty _) hΦ.bounded hΨ.bounded } },
     have T : ((range Ψ) ≃ᵢ y.rep) = ((range Φ) ≃ᵢ y.rep), by rw this,
@@ -409,7 +409,7 @@ instance GH_space_metric_space : metric_space GH_space :=
   end,
   dist_triangle := λx y z, begin
     /- To show the triangular inequality between `X`, `Y` and `Z`, realize an optimal coupling
-    between `X` and `Y` in a space `γ1`, and an optimal coupling between `Y`and `Z` in a space `γ2`.
+    between `X` and `Y` in a space `γ1`, and an optimal coupling between `Y` and `Z` in a space `γ2`.
     Then, glue these metric spaces along `Y`. We get a new space `γ` in which `X` and `Y` are
     optimally coupled, as well as `Y` and `Z`. Apply the triangle inequality for the Hausdorff
     distance in `γ` to conclude. -/
@@ -480,11 +480,11 @@ variables {α : Type u} [metric_space α]
 theorem GH_dist_le_nonempty_compacts_dist (p q : nonempty_compacts α) :
   dist p.to_GH_space q.to_GH_space ≤ dist p q :=
 begin
-  have ha : isometry (subtype.val : p.val → α) := isometry_subtype_val,
-  have hb : isometry (subtype.val : q.val → α) := isometry_subtype_val,
+  have ha : isometry (coe : p.val → α) := isometry_subtype_coe,
+  have hb : isometry (coe : q.val → α) := isometry_subtype_coe,
   have A : dist p q = Hausdorff_dist p.val q.val := rfl,
-  have I : p.val = range (subtype.val : p.val → α), by simp,
-  have J : q.val = range (subtype.val : q.val → α), by simp,
+  have I : p.val = range (coe : p.val → α), by simp,
+  have J : q.val = range (coe : q.val → α), by simp,
   rw [I, J] at A,
   rw A,
   exact GH_dist_le_Hausdorff_dist ha hb

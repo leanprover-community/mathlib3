@@ -30,7 +30,7 @@ namespace monad
 
 /-- An Eilenberg-Moore algebra for a monad `T`.
     cf Definition 5.2.3 in [Riehl][riehl2017]. -/
-structure algebra (T : C ⥤ C) [monad.{v₁} T] : Type (max u₁ v₁) :=
+structure algebra (T : C ⥤ C) [monad T] : Type (max u₁ v₁) :=
 (A : C)
 (a : T.obj A ⟶ A)
 (unit' : (η_ T).app A ≫ a = 𝟙 A . obviously)
@@ -40,7 +40,7 @@ restate_axiom algebra.unit'
 restate_axiom algebra.assoc'
 
 namespace algebra
-variables {T : C ⥤ C} [monad.{v₁} T]
+variables {T : C ⥤ C} [monad T]
 
 /-- A morphism of Eilenberg–Moore algebras for the monad `T`. -/
 @[ext] structure hom (A B : algebra T) :=
@@ -72,7 +72,7 @@ end hom
 
 end algebra
 
-variables (T : C ⥤ C) [monad.{v₁} T]
+variables (T : C ⥤ C) [monad T]
 
 /-- The forgetful functor from the Eilenberg-Moore category, forgetting the algebraic structure. -/
 @[simps] def forget : algebra T ⥤ C :=
@@ -137,7 +137,7 @@ namespace comonad
 
 /-- An Eilenberg-Moore coalgebra for a comonad `T`. -/
 @[nolint has_inhabited_instance]
-structure coalgebra (G : C ⥤ C) [comonad.{v₁} G] : Type (max u₁ v₁) :=
+structure coalgebra (G : C ⥤ C) [comonad G] : Type (max u₁ v₁) :=
 (A : C)
 (a : A ⟶ G.obj A)
 (counit' : a ≫ (ε_ G).app A = 𝟙 A . obviously)
@@ -147,7 +147,7 @@ restate_axiom coalgebra.counit'
 restate_axiom coalgebra.coassoc'
 
 namespace coalgebra
-variables {G : C ⥤ C} [comonad.{v₁} G]
+variables {G : C ⥤ C} [comonad G]
 
 /-- A morphism of Eilenberg-Moore coalgebras for the comonad `G`. -/
 @[ext, nolint has_inhabited_instance] structure hom (A B : coalgebra G) :=
@@ -178,7 +178,7 @@ end hom
 
 end coalgebra
 
-variables (G : C ⥤ C) [comonad.{v₁} G]
+variables (G : C ⥤ C) [comonad G]
 
 /-- The forgetful functor from the Eilenberg-Moore category, forgetting the coalgebraic structure. -/
 @[simps] def forget : coalgebra G ⥤ C :=

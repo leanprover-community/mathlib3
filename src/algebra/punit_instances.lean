@@ -5,14 +5,14 @@ Authors: Kenny Lau
 
 Instances on punit.
 -/
-import algebra.module
+import algebra.module.basic
 
 universes u
 
 namespace punit
 variables (x y : punit.{u+1}) (s : set punit.{u+1})
 
-@[to_additive add_comm_group]
+@[to_additive]
 instance : comm_group punit :=
 by refine
 { mul := λ _ _, star,
@@ -40,8 +40,9 @@ by refine
   inf := λ _ _, star,
   Sup := λ _, star,
   Inf := λ _, star,
-  sub := λ _ _, star,
-  .. punit.comm_ring, .. };
+  compl := λ _, star,
+  sdiff := λ _ _, star,
+  .. };
 intros; trivial
 
 instance : canonically_ordered_add_monoid punit :=
@@ -82,29 +83,5 @@ lemma smul_eq : x • y = star := rfl
 @[simp] lemma Inf_eq : Inf s = star := rfl
 @[simp] protected lemma le : x ≤ y := trivial
 @[simp] lemma not_lt : ¬(x < y) := not_false
-
-instance {α : Type*} [has_mul α] (f : α → punit) : is_mul_hom f :=
-⟨λ _ _, subsingleton.elim _ _⟩
-
-instance {α : Type*} [has_add α] (f : α → punit) : is_add_hom f :=
-⟨λ _ _, subsingleton.elim _ _⟩
-
-instance {α : Type*} [monoid α] (f : α → punit) : is_monoid_hom f :=
-{ map_one := subsingleton.elim _ _ }
-
-instance {α : Type*} [add_monoid α] (f : α → punit) : is_add_monoid_hom f :=
-{ map_zero := subsingleton.elim _ _ }
-
-instance {α : Type*} [group α] (f : α → punit) : is_group_hom f :=
-{ }
-
-instance {α : Type*} [add_group α] (f : α → punit) : is_add_group_hom f :=
-{ }
-
-instance {α : Type*} [semiring α] (f : α → punit) : is_semiring_hom f :=
-{ .. punit.is_monoid_hom f, .. punit.is_add_monoid_hom f }
-
-instance {α : Type*} [ring α] (f : α → punit) : is_ring_hom f :=
-{ .. punit.is_semiring_hom f }
 
 end punit

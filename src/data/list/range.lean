@@ -198,7 +198,7 @@ option.some.inj $ by rw [← nth_le_nth _, nth_range (by simpa using H)]
 theorem of_fn_eq_pmap {α n} {f : fin n → α} :
   of_fn f = pmap (λ i hi, f ⟨i, hi⟩) (range n) (λ _, mem_range.1) :=
 by rw [pmap_eq_map_attach]; from ext_le (by simp)
-  (λ i hi1 hi2, by simp at hi1; simp [nth_le_of_fn f ⟨i, hi1⟩])
+  (λ i hi1 hi2, by { simp at hi1, simp [nth_le_of_fn f ⟨i, hi1⟩, -subtype.val_eq_coe] })
 
 theorem nodup_of_fn {α n} {f : fin n → α} (hf : function.injective f) :
   nodup (of_fn f) :=

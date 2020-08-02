@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov
+Authors: Yury Kudryashov, Sébastien Gouëzel
 -/
 import analysis.calculus.mean_value
 import data.nat.parity
@@ -21,6 +21,7 @@ In this file we prove that the following functions are convex:
 -/
 
 open real set
+open_locale big_operators
 
 /-- `exp` is convex on the whole real line -/
 lemma convex_on_exp : convex_on univ exp :=
@@ -53,15 +54,15 @@ lemma finset.prod_nonneg_of_card_nonpos_even
   {α β : Type*} [linear_ordered_comm_ring β]
   {f : α → β} [decidable_pred (λ x, f x ≤ 0)]
   {s : finset α} (h0 : (s.filter (λ x, f x ≤ 0)).card.even) :
-  0 ≤ s.prod f :=
-calc 0 ≤ s.prod (λ x, (if f x ≤ 0 then (-1:β) else 1) * f x) :
+  0 ≤ ∏ x in s, f x :=
+calc 0 ≤ (∏ x in s, ((if f x ≤ 0 then (-1:β) else 1) * f x)) :
   finset.prod_nonneg (λ x _, by
     { split_ifs with hx hx, by simp [hx], simp at hx ⊢, exact le_of_lt hx })
 ... = _ : by rw [finset.prod_mul_distrib, finset.prod_ite, finset.prod_const_one,
   mul_one, finset.prod_const, neg_one_pow_eq_pow_mod_two, nat.even_iff.1 h0, pow_zero, one_mul]
 
 lemma int_prod_range_nonneg (m : ℤ) (n : ℕ) (hn : n.even) :
-  0 ≤ (finset.range n).prod (λ k, m - k) :=
+  0 ≤ ∏ k in finset.range n, (m - k) :=
 begin
   cases (le_or_lt ↑n m) with hnm hmn,
   { exact finset.prod_nonneg (λ k hk, sub_nonneg.2 (le_trans

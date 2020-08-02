@@ -23,29 +23,29 @@ local attribute [elab_simple] congr_fun
 /-- (internal implementation) the fact that the proposed limit cone is the limit -/
 def limit_is_limit_ (F : J ⥤ Type u) : is_limit (limit_ F) :=
 { lift := λ s v, ⟨λ j, s.π.app j v, λ j j' f, congr_fun (cone.w s f) _⟩,
-  uniq' :=
-  begin
-    intros, ext x, apply subtype.eq, ext j,
-    exact congr_fun (w j) x
-  end }
+  uniq' := by { intros, ext x j, exact congr_fun (w j) x } }
 
-instance : has_limits.{u} (Type u) :=
+instance : has_limits (Type u) :=
 { has_limits_of_shape := λ J 𝒥,
   { has_limit := λ F, by exactI { cone := limit_ F, is_limit := limit_is_limit_ F } } }
 
-@[simp] lemma types_limit (F : J ⥤ Type u) :
+
+-- We don't make any of these `simp` lemmas:
+-- it's up to the user to decide to stop using the limits API,
+-- and rely on the particular implementation.
+lemma types_limit (F : J ⥤ Type u) :
   limits.limit F = {u : Π j, F.obj j // ∀ {j j'} f, F.map f (u j) = u j'} := rfl
-@[simp] lemma types_limit_π (F : J ⥤ Type u) (j : J) (g : limit F) :
+lemma types_limit_π (F : J ⥤ Type u) (j : J) (g : limit F) :
   limit.π F j g = g.val j := rfl
-@[simp] lemma types_limit_pre
+lemma types_limit_pre
   (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) (g : limit F) :
   limit.pre F E g = (⟨λ k, g.val (E.obj k), by obviously⟩ : limit (E ⋙ F)) := rfl
-@[simp] lemma types_limit_map {F G : J ⥤ Type u} (α : F ⟶ G) (g : limit F) :
+lemma types_limit_map {F G : J ⥤ Type u} (α : F ⟶ G) (g : limit F) :
   (lim.map α : limit F → limit G) g =
   (⟨λ j, (α.app j) (g.val j), λ j j' f,
-    by {rw ←functor_to_types.naturality, dsimp, rw ←(g.property f)}⟩ : limit G) := rfl
+    by {rw ←functor_to_types.naturality, dsimp, rw ←(g.prop f)}⟩ : limit G) := rfl
 
-@[simp] lemma types_limit_lift (F : J ⥤ Type u) (c : cone F) (x : c.X) :
+lemma types_limit_lift (F : J ⥤ Type u) (c : cone F) (x : c.X) :
   limit.lift F c x = (⟨λ j, c.π.app j x, λ j j' f, congr_fun (cone.w c f) x⟩ : limit F) :=
 rfl
 
@@ -63,25 +63,25 @@ def colimit_is_colimit_ (F : J ⥤ Type u) : is_colimit (colimit_ F) :=
 { desc := λ s, quot.lift (λ (p : Σ j, F.obj j), s.ι.app p.1 p.2)
     (assume ⟨j, x⟩ ⟨j', x'⟩ ⟨f, hf⟩, by rw hf; exact (congr_fun (cocone.w s f) x).symm) }
 
-instance : has_colimits.{u} (Type u) :=
+instance : has_colimits (Type u) :=
 { has_colimits_of_shape := λ J 𝒥,
   { has_colimit := λ F, by exactI { cocone := colimit_ F, is_colimit := colimit_is_colimit_ F } } }
 
-@[simp] lemma types_colimit (F : J ⥤ Type u) :
+lemma types_colimit (F : J ⥤ Type u) :
   limits.colimit F = @quot (Σ j, F.obj j) (λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2) := rfl
-@[simp] lemma types_colimit_ι (F : J ⥤ Type u) (j : J) :
+lemma types_colimit_ι (F : J ⥤ Type u) (j : J) :
   colimit.ι F j = λ x, quot.mk _ ⟨j, x⟩ := rfl
-@[simp] lemma types_colimit_pre
+lemma types_colimit_pre
   (F : J ⥤ Type u) {K : Type u} [𝒦 : small_category K] (E : K ⥤ J) :
   colimit.pre F E =
   quot.lift (λ p, quot.mk _ ⟨E.obj p.1, p.2⟩) (λ p p' ⟨f, h⟩, quot.sound ⟨E.map f, h⟩) := rfl
-@[simp] lemma types_colimit_map {F G : J ⥤ Type u} (α : F ⟶ G) :
+lemma types_colimit_map {F G : J ⥤ Type u} (α : F ⟶ G) :
   (colim.map α : colimit F → colimit G) =
   quot.lift
     (λ p, quot.mk _ ⟨p.1, (α.app p.1) p.2⟩)
     (λ p p' ⟨f, h⟩, quot.sound ⟨f, by rw h; exact functor_to_types.naturality _ _ α f _⟩) := rfl
 
-@[simp] lemma types_colimit_desc (F : J ⥤ Type u) (c : cocone F) :
+lemma types_colimit_desc (F : J ⥤ Type u) (c : cocone F) :
   colimit.desc F c =
   quot.lift
     (λ p, c.ι.app p.1 p.2)
@@ -130,7 +130,21 @@ noncomputable instance : has_image f :=
   { lift := image.lift,
     lift_fac' := image.lift_fac } }
 
-noncomputable instance : has_images.{u} (Type u) :=
+noncomputable instance : has_images (Type u) :=
 { has_image := infer_instance }
+
+noncomputable instance : has_image_maps (Type u) :=
+{ has_image_map := λ f g st,
+  { map := λ x, ⟨st.right x.1, ⟨st.left (classical.some x.2),
+      begin
+        have p := st.w,
+        replace p := congr_fun p (classical.some x.2),
+        simp only [functor.id_map, types_comp_apply, subtype.val_eq_coe] at p,
+        erw [p, classical.some_spec x.2],
+      end⟩⟩ } }
+
+@[simp] lemma image_map {f g : arrow (Type u)} (st : f ⟶ g) (x : image f.hom) :
+  (image.map st x).val = st.right x.1 :=
+rfl
 
 end category_theory.limits.types

@@ -3,7 +3,7 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.limits.preserves
+import category_theory.limits.cones
 
 open category_theory category_theory.limits
 
@@ -29,6 +29,13 @@ def is_iso_of_reflects_iso {A B : C} (f : A ⟶ B) (F : C ⥤ D)
   [is_iso (F.map f)] [reflects_isomorphisms F] :
   is_iso f :=
 reflects_isomorphisms.reflects F f
+
+@[priority 100]
+instance (F : C ⥤ D) [full F] [faithful F] : reflects_isomorphisms F :=
+{ reflects := λ X Y f i, by exactI
+  { inv := F.preimage (inv (F.map f)),
+    hom_inv_id' := F.map_injective (by simp),
+    inv_hom_id' := F.map_injective (by simp), } }
 
 end reflects_iso
 

@@ -5,7 +5,7 @@ Authors: Kenny Lau
 
 Free abelian groups as abelianization of free groups.
 -/
-import algebra.pi_instances
+import algebra.group.pi
 import group_theory.free_group
 import group_theory.abelianization
 
@@ -172,7 +172,7 @@ begin
   apply free_abelian_group.induction_on x,
   { simp only [lift.zero, map_zero], },
   { intro y, simp [lift.of, map_of, function.comp_app], },
-  { intros x w, simp only [w, neg_inj', lift.neg, map_neg], },
+  { intros x w, simp only [w, neg_inj, lift.neg, map_neg], },
   { intros x y w₁ w₂, simp only [w₁, w₂, lift.add, add_right_inj, map_add], },
 end
 
@@ -261,6 +261,9 @@ instance [monoid α] : semigroup (free_abelian_group α) :=
     { intros z1 z2 ih1 ih2, iterate 2 { rw lift.add }, rw [ih1, ih2],
       exact (lift.add _ _ _).symm }
   end }
+
+lemma mul_def [monoid α] (x y : free_abelian_group α) :
+  x * y = lift (λ x₂, lift (λ x₁, of (x₁ * x₂)) x) y := rfl
 
 instance [monoid α] : ring (free_abelian_group α) :=
 { one := free_abelian_group.of 1,

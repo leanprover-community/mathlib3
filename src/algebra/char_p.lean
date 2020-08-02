@@ -7,7 +7,7 @@ Author: Kenny Lau, Joey van Langen, Casper Putz
 import data.fintype.basic
 import data.nat.choose
 import data.int.modeq
-import algebra.module
+import algebra.module.basic
 import algebra.iterate_hom
 
 /-!
@@ -78,19 +78,27 @@ unfold ring_char; exact char_p.cast_eq_zero_iff α (ring_char α)
 theorem ring_char.eq (α : Type u) [semiring α] {p : ℕ} (C : char_p α p) : p = ring_char α :=
 (classical.some_spec (char_p.exists_unique α)).2 p C
 
+theorem add_pow_char_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] (x y : R) (h : commute x y):
+(x + y)^p = x^p + y^p :=
+begin
+  rw [commute.add_pow h, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
+  rw [nat.cast_one, mul_one, mul_one, add_right_inj],
+  convert finset.sum_eq_single 0 _ _, { simp },
+  swap, { intro h1, contrapose! h1, rw finset.mem_range, apply nat.prime.pos, assumption },
+  intros b h1 h2,
+  suffices : (p.choose b : R) = 0, { rw this, simp },
+  rw char_p.cast_eq_zero_iff R p,
+  apply nat.prime.dvd_choose_self, assumption', { omega },
+  rwa ← finset.mem_range
+end
+
 theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} (hp : nat.prime p)
   [char_p α p] (x y : α) : (x + y)^p = x^p + y^p :=
 begin
-  rw [add_pow, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
-  rw [nat.cast_one, mul_one, mul_one, add_right_inj],
-  transitivity,
-  { refine finset.sum_eq_single 0 _ _,
-    { intros b h1 h2,
-      have := nat.prime.dvd_choose_self (nat.pos_of_ne_zero h2) (finset.mem_range.1 h1) hp,
-      rw [← nat.div_mul_cancel this, nat.cast_mul, char_p.cast_eq_zero α p],
-      simp only [mul_zero] },
-    { intro H, exfalso, apply H, exact finset.mem_range.2 hp.pos } },
-  rw [pow_zero, nat.sub_zero, one_mul, nat.choose_zero_right, nat.cast_one, mul_one]
+  haveI : fact p.prime := hp,
+  apply add_pow_char_of_commute,
+  apply commute.all,
 end
 
 lemma eq_iff_modeq_int (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
@@ -212,7 +220,7 @@ assume (d : ℕ) (hdvd : ∃ e, p = d * e),
 let ⟨e, hmul⟩ := hdvd in
 have (p : α) = 0, from (cast_eq_zero_iff α p p).mpr (dvd_refl p),
 have (d : α) * e = 0, from (@cast_mul α _ d e) ▸ (hmul ▸ this),
-or.elim (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero (d : α) e this)
+or.elim (eq_zero_or_eq_zero_of_mul_eq_zero this)
   (assume hd : (d : α) = 0,
   have p ∣ d, from (cast_eq_zero_iff α p d).mp hd,
   show d = 1 ∨ d = p, from or.inr (dvd_antisymm ⟨e, hmul⟩ this))
@@ -258,10 +266,10 @@ calc r = 1 * r       : by rw one_mul
 
 end prio
 
-lemma false_of_nonzero_of_char_one [semiring R] [nonzero R] [char_p R 1] : false :=
+lemma false_of_nonzero_of_char_one [semiring R] [nontrivial R] [char_p R 1] : false :=
 zero_ne_one $ show (0:R) = 1, from subsingleton.elim 0 1
 
-lemma ring_char_ne_one [semiring R] [nonzero R] : ring_char R ≠ 1 :=
+lemma ring_char_ne_one [semiring R] [nontrivial R] : ring_char R ≠ 1 :=
 by { intros h, apply @zero_ne_one R, symmetry, rw [←nat.cast_one, ring_char.spec, h], }
 
 end char_one

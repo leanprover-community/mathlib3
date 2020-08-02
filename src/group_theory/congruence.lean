@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 import data.setoid.basic
-import algebra.pi_instances
+import algebra.group.pi
+import algebra.group.prod
+import data.equiv.mul_add
+import group_theory.submonoid.operations
 
 /-!
 # Congruence relations
@@ -102,6 +105,8 @@ instance : inhabited (con M) :=
 /-- A coercion from a congruence relation to its underlying binary relation. -/
 @[to_additive "A coercion from an additive congruence relation to its underlying binary relation."]
 instance : has_coe_to_fun (con M) := ⟨_, λ c, λ x y, c.r x y⟩
+
+@[simp, to_additive] lemma rel_eq_coe (c : con M) : c.r = c := rfl
 
 /-- Congruence relations are reflexive. -/
 @[to_additive "Additive congruence relations are reflexive."]
@@ -441,12 +446,10 @@ additive congruence relation containing the supremum of the set's image under th
 underlying binary relation."]
 lemma Sup_def {S : set (con M)} : Sup S = con_gen (Sup (r '' S)) :=
 begin
-  rw Sup_eq_con_gen,
+  rw [Sup_eq_con_gen, Sup_image],
   congr,
   ext x y,
-  erw [Sup_image, supr_apply, supr_apply, supr_Prop_eq],
-  simp only [Sup_image, supr_Prop_eq, supr_apply, supr_Prop_eq, exists_prop],
-  refl,
+  simp only [Sup_image, supr_apply, supr_Prop_eq, exists_prop, rel_eq_coe]
 end
 
 variables (M)
@@ -519,7 +522,7 @@ def correspondence : ((≤) : {d // c ≤ d} → {d // c ≤ d} → Prop) ≃o
     (by rw mul_ker_mk_eq; exact d.2) $ @exists_rep _ c.to_setoid,
   inv_fun := λ d, ⟨comap (coe : M → c.quotient) (λ x y, rfl) d, λ _ _ h,
     show d _ _, by rw c.eq.2 h; exact d.refl _ ⟩,
-  left_inv := λ d, subtype.ext.2 $ ext $ λ _ _,
+  left_inv := λ d, subtype.ext_iff_val.2 $ ext $ λ _ _,
     ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in
       d.1.trans (d.1.symm $ d.2 $ c.eq.1 hx) $ d.1.trans H $ d.2 $ c.eq.1 hy,
      λ h, ⟨_, _, rfl, rfl, h⟩⟩,
@@ -541,7 +544,7 @@ end
 variables {M} [monoid M] [monoid N] [monoid P] (c : con M)
 
 /-- The quotient of a monoid by a congruence relation is a monoid. -/
-@[to_additive add_monoid "The quotient of an `add_monoid` by an additive congruence relation is
+@[to_additive "The quotient of an `add_monoid` by an additive congruence relation is
 an `add_monoid`."]
 instance monoid : monoid c.quotient :=
 { one := ((1 : M) : c.quotient),
@@ -553,7 +556,7 @@ instance monoid : monoid c.quotient :=
 
 
 /-- The quotient of a `comm_monoid` by a congruence relation is a `comm_monoid`. -/
-@[to_additive add_comm_monoid "The quotient of an `add_comm_monoid` by an additive congruence
+@[to_additive "The quotient of an `add_comm_monoid` by an additive congruence
 relation is an `add_comm_monoid`."]
 instance comm_monoid {α : Type*} [comm_monoid α] (c : con α) :
   comm_monoid c.quotient :=
@@ -571,7 +574,7 @@ lemma coe_one : ((1 : M) : c.quotient) = 1 := rfl
 variables (M c)
 
 /-- The submonoid of `M × M` defined by a congruence relation on a monoid `M`. -/
-@[to_additive add_submonoid "The `add_submonoid` of `M × M` defined by an additive congruence
+@[to_additive "The `add_submonoid` of `M × M` defined by an additive congruence
 relation on an `add_monoid` `M`."]
 protected def submonoid : submonoid (M × M) :=
 { carrier := { x | c x.1 x.2 },
@@ -582,7 +585,7 @@ variables {M c}
 
 /-- The congruence relation on a monoid `M` from a submonoid of `M × M` for which membership
     is an equivalence relation. -/
-@[to_additive of_add_submonoid "The additive congruence relation on an `add_monoid` `M` from
+@[to_additive "The additive congruence relation on an `add_monoid` `M` from
 an `add_submonoid` of `M × M` for which membership is an equivalence relation."]
 def of_submonoid (N : submonoid (M × M)) (H : equivalence (λ x y, (x, y) ∈ N)) : con M :=
 { r := λ x y, (x, y) ∈ N,
@@ -591,7 +594,7 @@ def of_submonoid (N : submonoid (M × M)) (H : equivalence (λ x y, (x, y) ∈ N
 
 /-- Coercion from a congruence relation `c` on a monoid `M` to the submonoid of `M × M` whose
     elements are `(x, y)` such that `x` is related to `y` by `c`. -/
-@[to_additive to_add_submonoid "Coercion from a congruence relation `c` on an `add_monoid` `M`
+@[to_additive "Coercion from a congruence relation `c` on an `add_monoid` `M`
 to the `add_submonoid` of `M × M` whose elements are `(x, y)` such that `x`
 is related to `y` by `c`."]
 instance to_submonoid : has_coe (con M) (submonoid (M × M)) := ⟨λ c, c.submonoid M⟩
@@ -599,7 +602,7 @@ instance to_submonoid : has_coe (con M) (submonoid (M × M)) := ⟨λ c, c.submo
 @[to_additive] lemma mem_coe {c : con M} {x y} :
   (x, y) ∈ (↑c : submonoid (M × M)) ↔ (x, y) ∈ c := iff.rfl
 
-@[to_additive to_add_submonoid_inj]
+@[to_additive]
 theorem to_submonoid_inj (c d : con M) (H : (c : submonoid (M × M)) = d) : c = d :=
 ext $ λ x y, show (x, y) ∈ (c : submonoid (M × M)) ↔ (x, y) ∈ ↑d, by rw H
 
@@ -782,7 +785,7 @@ lift_range $ λ _ _, id
 /-- A monoid homomorphism `f` induces an injective homomorphism on the quotient by `f`'s kernel. -/
 @[to_additive "An `add_monoid` homomorphism `f` induces an injective homomorphism on the quotient
 by `f`'s kernel."]
-lemma injective_ker_lift (f : M →* P) : injective (ker_lift f) :=
+lemma ker_lift_injective (f : M →* P) : injective (ker_lift f) :=
 λ x y, quotient.induction_on₂' x y $ λ _ _, (ker f).eq.2
 
 /-- Given congruence relations `c, d` on a monoid such that `d` contains `c`, `d`'s quotient
@@ -809,11 +812,11 @@ variables (c)
 @[to_additive "The first isomorphism theorem for `add_monoid`s."]
 noncomputable def quotient_ker_equiv_range (f : M →* P) : (ker f).quotient ≃* f.mrange :=
 { map_mul' := monoid_hom.map_mul _,
-  ..@equiv.of_bijective _ _
+  ..equiv.of_bijective
       ((@mul_equiv.to_monoid_hom (ker_lift f).mrange _ _ _
         $ mul_equiv.submonoid_congr ker_lift_range_eq).comp (ker_lift f).mrange_restrict) $
       (equiv.bijective _).comp
-        ⟨λ x y h, injective_ker_lift f $ by rcases x; rcases y; injections,
+        ⟨λ x y h, ker_lift_injective f $ by rcases x; rcases y; injections,
          λ ⟨w, z, hzm, hz⟩, ⟨z, by rcases hz; rcases _x; refl⟩⟩ }
 
 /-- The first isomorphism theorem for monoids in the case of a surjective homomorphism. -/
@@ -822,8 +825,8 @@ homomorphism."]
 noncomputable def quotient_ker_equiv_of_surjective (f : M →* P) (hf : surjective f) :
   (ker f).quotient ≃* P :=
 { map_mul' := monoid_hom.map_mul _,
-  ..@equiv.of_bijective _ _ (ker_lift f)
-      ⟨injective_ker_lift f, lift_surjective_of_surjective (le_refl _) hf⟩ }
+  ..equiv.of_bijective (ker_lift f)
+      ⟨ker_lift_injective f, lift_surjective_of_surjective (le_refl _) hf⟩ }
 
 /-- The second isomorphism theorem for monoids. -/
 @[to_additive "The second isomorphism theorem for `add_monoid`s."]

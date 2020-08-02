@@ -64,7 +64,7 @@ def functor_category_is_limit_cone [has_limits_of_shape J C] (F : J ⥤ K ⥤ C)
       (((evaluation K C).obj k).map_cone s) (m.app k) (λ j, nat_trans.congr_app (w j) k)
   end }
 
-def functor_category_is_colimit_cocone [has_colimits_of_shape.{v} J C] (F : J ⥤ K ⥤ C) :
+def functor_category_is_colimit_cocone [has_colimits_of_shape J C] (F : J ⥤ K ⥤ C) :
   is_colimit (functor_category_colimit_cocone F) :=
 { desc := λ s,
   { app := λ k, colimit.desc (F.flip.obj k) (((evaluation K C).obj k).map_cocone s) },
@@ -87,10 +87,10 @@ instance functor_category_has_colimits_of_shape
   { cocone := functor_category_colimit_cocone F,
     is_colimit := functor_category_is_colimit_cocone F } }
 
-instance functor_category_has_limits [has_limits.{v} C] : has_limits.{v} (K ⥤ C) :=
+instance functor_category_has_limits [has_limits C] : has_limits (K ⥤ C) :=
 { has_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-instance functor_category_has_colimits [has_colimits.{v} C] : has_colimits.{v} (K ⥤ C) :=
+instance functor_category_has_colimits [has_colimits C] : has_colimits (K ⥤ C) :=
 { has_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
 instance evaluation_preserves_limits_of_shape [has_limits_of_shape J C] (k : K) :
@@ -107,11 +107,11 @@ instance evaluation_preserves_colimits_of_shape [has_colimits_of_shape J C] (k :
     is_colimit.of_iso_colimit (colimit.is_colimit _)
       (evaluate_functor_category_colimit_cocone F k).symm }
 
-instance evaluation_preserves_limits [has_limits.{v} C] (k : K) :
+instance evaluation_preserves_limits [has_limits C] (k : K) :
   preserves_limits ((evaluation K C).obj k) :=
 { preserves_limits_of_shape := λ J 𝒥, by resetI; apply_instance }
 
-instance evaluation_preserves_colimits [has_colimits.{v} C] (k : K) :
+instance evaluation_preserves_colimits [has_colimits C] (k : K) :
   preserves_colimits ((evaluation K C).obj k) :=
 { preserves_colimits_of_shape := λ J 𝒥, by resetI; apply_instance }
 

@@ -3,7 +3,7 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.reflect_isomorphisms
+import category_theory.limits.preserves
 
 open category_theory category_theory.limits
 
@@ -192,6 +192,39 @@ def creates_limit_of_reflects_iso {K : J ⥤ C} {F : C ⥤ D} [reflects_isomorph
       exact is_limit.of_iso_limit hd' (as_iso f).symm,
     end } }
 
+/--
+When `F` is fully faithful, and `has_limit (K ⋙ F)`, to show that `F` creates the limit for `K`
+it suffices to exhibit a lift of the chosen limit cone for `K ⋙ F`.
+-/
+-- Notice however that even if the isomorphism is `iso.refl _`,
+-- this construction will insert additional identity morphisms in the cone maps,
+-- so the constructed limits may not be ideal, definitionally.
+def creates_limit_of_fully_faithful_of_lift {K : J ⥤ C} {F : C ⥤ D}
+  [full F] [faithful F] [has_limit (K ⋙ F)]
+  (c : cone K) (i : F.map_cone c ≅ limit.cone (K ⋙ F)) : creates_limit K F :=
+creates_limit_of_reflects_iso (λ c' t,
+{ lifted_cone := c,
+  valid_lift := i.trans (is_limit.unique_up_to_iso (limit.is_limit _) t),
+  makes_limit := is_limit.of_faithful F (is_limit.of_iso_limit (limit.is_limit _) i.symm)
+    (λ s, F.preimage _) (λ s, F.image_preimage _) })
+
+/--
+When `F` is fully faithful, and `has_limit (K ⋙ F)`, to show that `F` creates the limit for `K`
+it suffices to show that the chosen limit point is in the essential image of `F`.
+-/
+-- Notice however that even if the isomorphism is `iso.refl _`,
+-- this construction will insert additional identity morphisms in the cone maps,
+-- so the constructed limits may not be ideal, definitionally.
+def creates_limit_of_fully_faithful_of_iso {K : J ⥤ C} {F : C ⥤ D}
+  [full F] [faithful F] [has_limit (K ⋙ F)]
+  (X : C) (i : F.obj X ≅ limit (K ⋙ F)) : creates_limit K F :=
+creates_limit_of_fully_faithful_of_lift
+({ X := X,
+  π :=
+  { app := λ j, F.preimage (i.hom ≫ limit.π (K ⋙ F) j),
+    naturality' := λ Y Z f, F.map_injective begin dsimp, simp, erw limit.w (K ⋙ F), end }} : cone K)
+(by { fapply cones.ext, exact i, tidy, })
+
 /-- `F` preserves the limit of `K` if it creates the limit and `K ⋙ F` has the limit. -/
 instance preserves_limit_of_creates_limit_and_has_limit (K : J ⥤ C) (F : C ⥤ D)
   [creates_limit K F] [has_limit (K ⋙ F)] :
@@ -207,7 +240,7 @@ preserves_limits_of_shape J F :=
 { preserves_limit := λ K, category_theory.preserves_limit_of_creates_limit_and_has_limit K F }
 
 /-- `F` preserves limits if it creates limits and `D` has limits. -/
-instance preserves_limits_of_creates_limits_and_has_limits (F : C ⥤ D) [creates_limits F] [has_limits.{v} D] :
+instance preserves_limits_of_creates_limits_and_has_limits (F : C ⥤ D) [creates_limits F] [has_limits D] :
   preserves_limits F :=
 { preserves_limits_of_shape := λ J 𝒥,
   by exactI category_theory.preserves_limit_of_shape_of_creates_limits_of_shape_and_has_limits_of_shape F }
@@ -249,7 +282,7 @@ preserves_colimits_of_shape J F :=
 { preserves_colimit := λ K, category_theory.preserves_colimit_of_creates_colimit_and_has_colimit K F }
 
 /-- `F` preserves limits if it creates limits and `D` has limits. -/
-instance preserves_colimits_of_creates_colimits_and_has_colimits (F : C ⥤ D) [creates_colimits F] [has_colimits.{v} D] :
+instance preserves_colimits_of_creates_colimits_and_has_colimits (F : C ⥤ D) [creates_colimits F] [has_colimits D] :
   preserves_colimits F :=
 { preserves_colimits_of_shape := λ J 𝒥,
   by exactI category_theory.preserves_colimit_of_shape_of_creates_colimits_of_shape_and_has_colimits_of_shape F }

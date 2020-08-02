@@ -16,9 +16,11 @@ universe u
 
 namespace AddCommGroup
 
+-- Note that because `injective_of_mono` is currently only proved in `Type 0`,
+-- we restrict to the lowest universe here for now.
 variables {G H : AddCommGroup.{0}} (f : G ⟶ H)
 
-local attribute [ext] subtype.eq'
+local attribute [ext] subtype.ext_val
 
 section -- implementation details of `has_image` for AddCommGroup; use the API, not these
 /-- the image of a morphism in AddCommGroup is just the bundling of `set.range f` -/
@@ -83,7 +85,34 @@ noncomputable instance : has_image f :=
   { lift := image.lift,
     lift_fac' := image.lift_fac } }
 
-noncomputable instance : has_images.{0} AddCommGroup.{0} :=
+noncomputable instance : has_images AddCommGroup.{0} :=
 { has_image := infer_instance }
+
+-- We'll later get this as a consequence of `[abelian AddCommGroup]`.
+-- Nevertheless this instance has the desired definitional behaviour,
+-- and is useful in the meantime for doing cohomology.
+
+-- When the `[abelian AddCommGroup]` instance is available
+-- this instance should be reviewed, and ideally removed if the `[abelian]` instance
+-- provides something definitionally equivalent.
+noncomputable instance : has_image_maps AddCommGroup.{0} :=
+{ has_image_map := λ f g st,
+  { map :=
+    { to_fun := image.map ((forget AddCommGroup).map_arrow.map st),
+      map_zero' := by { ext, simp, },
+      map_add' := λ x y, by { ext, simp, refl, } } } }
+
+@[simp] lemma image_map {f g : arrow AddCommGroup.{0}} (st : f ⟶ g) (x : image f.hom):
+  (image.map st x).val = st.right x.1 :=
+rfl
+
+/--
+The categorical image of a morphism in `AddCommGroup`
+agrees with the usual group-theoretical range.
+-/
+def image_iso_range {G H : AddCommGroup} (f : G ⟶ H) :
+  image f ≅ AddCommGroup.of (set.range f) :=
+iso.refl _
+
 
 end AddCommGroup

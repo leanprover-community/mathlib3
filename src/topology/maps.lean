@@ -42,7 +42,7 @@ open map, closed map, embedding, quotient map, identification map
 -/
 
 open set filter
-open_locale topological_space
+open_locale topological_space filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -369,7 +369,7 @@ begin
   intro s',
   change is_open _ ≤ is_open _,
   rw [←is_closed_compl_iff, ←is_closed_compl_iff],
-  generalize : -s' = s,
+  generalize : s'ᶜ = s,
   rw is_closed_induced_iff,
   refine λ hs, ⟨f '' s, h₃ s hs, _⟩,
   rw preimage_image_eq _ h₂

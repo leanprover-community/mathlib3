@@ -32,6 +32,7 @@ universes u
 noncomputable theory
 open module
 open monoid_algebra
+open_locale big_operators
 
 section
 
@@ -89,7 +90,7 @@ The sum of the conjugates of `π` by each element `g : G`, as a `k`-linear map.
 -/
 def sum_of_conjugates :
   (restrict_scalars k (monoid_algebra k G) W) →ₗ[k] (restrict_scalars k (monoid_algebra k G) V) :=
-(finset.univ : finset G).sum (λ g, conjugate π g)
+∑ g : G, conjugate π g
 
 /--
 In fact, the sum over `g : G` of the conjugate of `π` by `g` is a `k[G]`-linear map.

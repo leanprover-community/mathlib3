@@ -19,7 +19,7 @@ section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A topological semiring is a semiring where addition and multiplication are continuous. -/
 class topological_semiring [semiring α]
-  extends topological_add_monoid α, topological_monoid α : Prop
+  extends has_continuous_add α, has_continuous_mul α : Prop
 end prio
 
 variables [ring α]
@@ -27,7 +27,7 @@ variables [ring α]
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A topological ring is a ring where the ring operations are continuous. -/
-class topological_ring extends topological_add_monoid α, topological_monoid α : Prop :=
+class topological_ring extends has_continuous_add α, has_continuous_mul α : Prop :=
 (continuous_neg : continuous (λa:α, -a))
 end prio
 
@@ -38,6 +38,16 @@ instance topological_ring.to_topological_semiring : topological_semiring α := {
 @[priority 100] -- see Note [lower instance priority]
 instance topological_ring.to_topological_add_group : topological_add_group α := {..t}
 
+variables {α} [topological_ring α]
+
+/-- In a topological ring, the left-multiplication `add_monoid_hom` is continuous. -/
+lemma mul_left_continuous (x : α) : continuous (add_monoid_hom.mul_left x) :=
+continuous_const.mul continuous_id
+
+/-- In a topological ring, the right-multiplication `add_monoid_hom` is continuous. -/
+lemma mul_right_continuous (x : α) : continuous (add_monoid_hom.mul_right x) :=
+continuous_id.mul continuous_const
+
 end topological_ring
 
 section topological_comm_ring
@@ -45,10 +55,10 @@ variables {α : Type*} [topological_space α] [comm_ring α] [topological_ring �
 
 def ideal.closure (S : ideal α) : ideal α :=
 { carrier := closure S,
-  zero := subset_closure S.zero_mem,
-  add  := assume x y hx hy,
+  zero_mem' := subset_closure S.zero_mem,
+  add_mem'  := assume x y hx hy,
     mem_closure2 continuous_add hx hy $ assume a b, S.add_mem,
-  smul  := assume c x hx,
+  smul_mem'  := assume c x hx,
     have continuous (λx:α, c * x) := continuous_const.mul continuous_id,
     mem_closure this hx $ assume a, S.mul_mem_left }
 

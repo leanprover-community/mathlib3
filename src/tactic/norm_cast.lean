@@ -325,6 +325,7 @@ end
 meta def push_cast (hs : parse tactic.simp_arg_list) (l : parse location) : tactic unit :=
 tactic.interactive.simp none tt hs [`push_cast] l
 
+
 end tactic.interactive
 
 namespace norm_cast
@@ -526,6 +527,15 @@ do
   pr ← mk_eq_trans pr pr3,
   pr ← mk_eq_trans pr pr4,
   return (new_e, pr)
+
+/--
+A small variant of `push_cast` suited for non-interactive use.
+
+`derive_push_cast extra_lems e` returns an expression `e'` and a proof that `e = e'`.
+-/
+meta def derive_push_cast (extra_lems : list simp_arg_type) (e : expr) : tactic (expr × expr) :=
+do (s, _) ← mk_simp_set tt [`push_cast] extra_lems,
+   simplify (s.erase [`int.coe_nat_succ]) [] e {fail_if_unchanged := ff}
 
 end norm_cast
 

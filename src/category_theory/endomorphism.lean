@@ -5,7 +5,6 @@ Authors: Yury Kudryashov, Scott Morrison, Simon Hudon
 
 Definition and basic properties of endomorphisms and automorphisms of an object in a category.
 -/
-import category_theory.category
 import category_theory.groupoid
 import data.equiv.mul_add
 
@@ -15,14 +14,13 @@ namespace category_theory
 
 /-- Endomorphisms of an object in a category. Arguments order in multiplication agrees with
 `function.comp`, not with `category.comp`. -/
-def End {C : Type u} [𝒞_struct : category_struct.{v} C] (X : C) := X ⟶ X
+def End {C : Type u} [category_struct.{v} C] (X : C) := X ⟶ X
 
 namespace End
 
 section struct
 
-variables {C : Type u} [𝒞_struct : category_struct.{v} C] (X : C)
-include 𝒞_struct
+variables {C : Type u} [category_struct.{v} C] (X : C)
 
 instance has_one : has_one (End X) := ⟨𝟙 X⟩
 

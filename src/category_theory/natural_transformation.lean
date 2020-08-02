@@ -26,7 +26,8 @@ The field `app` provides the components of the natural transformation.
 
 Naturality is expressed by `α.naturality_lemma`.
 -/
-@[ext] structure nat_trans (F G : C ⥤ D) : Type (max u₁ v₂) :=
+@[ext]
+structure nat_trans (F G : C ⥤ D) : Type (max u₁ v₂) :=
 (app : Π X : C, (F.obj X) ⟶ (G.obj X))
 (naturality' : ∀ {{X Y : C}} (f : X ⟶ Y), (F.map f) ≫ (app Y) = (app X) ≫ (G.map f) . obviously)
 
@@ -42,6 +43,8 @@ protected def id (F : C ⥤ D) : nat_trans F F :=
 { app := λ X, 𝟙 (F.obj X) }
 
 @[simp] lemma id_app' (F : C ⥤ D) (X : C) : (nat_trans.id F).app X = 𝟙 (F.obj X) := rfl
+
+instance (F : C ⥤ D) : inhabited (nat_trans F F) := ⟨nat_trans.id F⟩
 
 open category
 open category_theory.functor

@@ -6,7 +6,7 @@ Author: Robert Y. Lewis
 Analytic facts about polynomials.
 -/
 import topology.algebra.ring
-import data.polynomial
+import data.polynomial.div
 import data.real.cau_seq
 
 open polynomial is_absolute_value
@@ -29,19 +29,20 @@ degree_pos_induction_on p h
         (by rw abv_neg abv; exact (hr z hz)))
         (le_trans (le_abs_self _) (abs_abv_sub_le_abv_sub _ _ _))⟩)
 
+@[continuity]
 lemma polynomial.continuous_eval {α} [comm_semiring α] [topological_space α]
   [topological_semiring α] (p : polynomial α) : continuous (λ x, p.eval x) :=
 begin
   apply p.induction,
   { convert continuous_const,
-    ext, show polynomial.eval x 0 = 0, from rfl },
+    ext, exact eval_zero, },
   { intros a b f haf hb hcts,
     simp only [polynomial.eval_add],
     refine continuous.add _ hcts,
     have : ∀ x, finsupp.sum (finsupp.single a b) (λ (e : ℕ) (a : α), a * x ^ e) = b * x ^a,
       from λ x, finsupp.sum_single_index (by simp),
     convert continuous.mul _ _,
-    { ext, apply this },
+    { ext, dsimp only [eval_eq_sum], apply this },
     { apply_instance },
     { apply continuous_const },
     { apply continuous_pow }}

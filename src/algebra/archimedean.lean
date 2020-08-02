@@ -10,6 +10,8 @@ import data.rat
 
 variables {α : Type*}
 
+/-- An ordered additive commutative monoid is called `archimedean` if for any two elements `x`, `y`
+such that `0 < y` there exists a natural number `n` such that `x ≤ n •ℕ y`. -/
 class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
 (arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n •ℕ y)
 
@@ -133,6 +135,8 @@ instance : archimedean ℤ :=
 by simpa only [nsmul_eq_mul, int.nat_cast_eq_coe_nat, zero_add, mul_one] using mul_le_mul_of_nonneg_left
     (int.add_one_le_iff.2 m0) (int.coe_zero_le n.to_nat)⟩⟩
 
+/-- A linear ordered archimedean ring is a floor ring. This is not an `instance` because in some
+cases we have a computable `floor` function. -/
 noncomputable def archimedean.floor_ring (α)
   [linear_ordered_ring α] [archimedean α] : floor_ring α :=
 { floor := λ x, classical.some (exists_floor x),

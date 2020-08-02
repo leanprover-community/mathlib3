@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.equiv.basic
+import data.sigma.basic
 
 /-!
 # Injective functions
@@ -45,13 +46,13 @@ lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
 @[simp] theorem coe_fn_mk {α β} (f : α → β) (i) :
   (@mk _ _ f i : α → β) = f := rfl
 
-theorem inj {α β} (f : α ↪ β) : injective f := f.inj'
+theorem injective {α β} (f : α ↪ β) : injective f := f.inj'
 
 @[refl] protected def refl (α : Sort*) : α ↪ α :=
 ⟨id, injective_id⟩
 
 @[trans] protected def trans {α β γ} (f : α ↪ β) (g : β ↪ γ) : α ↪ γ :=
-⟨g ∘ f, g.inj.comp f.inj⟩
+⟨g ∘ f, g.injective.comp f.injective⟩
 
 @[simp] theorem refl_apply {α} (x : α) : embedding.refl α x = x := rfl
 
@@ -80,7 +81,7 @@ protected noncomputable def of_surjective {α β} (f : β → α) (hf : surjecti
 /-- Convert a surjective `embedding` to an `equiv` -/
 protected noncomputable def equiv_of_surjective {α β} (f : α ↪ β) (hf : surjective f) :
   α ≃ β :=
-equiv.of_bijective ⟨f.inj, hf⟩
+equiv.of_bijective f ⟨f.injective, hf⟩
 
 protected def of_not_nonempty {α β} (hα : ¬ nonempty α) : α ↪ β :=
 ⟨λa, (hα ⟨a⟩).elim, assume a, (hα ⟨a⟩).elim⟩
@@ -93,8 +94,7 @@ def set_value {α β} (f : α ↪ β) (a : α) (b : β) [∀ a', decidable (a' =
   begin
     intros x y h,
     dsimp at h,
-    unfreezeI,
-    split_ifs at h; try { subst b }; try { simp only [f.inj.eq_iff] at * }; cc
+    split_ifs at h; try { substI b }; try { simp only [f.injective.eq_iff] at * }; cc
   end⟩
 
 theorem set_value_eq {α β} (f : α ↪ β) (a : α) (b : β) [∀ a', decidable (a' = a)]
@@ -103,11 +103,13 @@ by simp [set_value]
 
 /-- Embedding into `option` -/
 protected def some {α} : α ↪ option α :=
-⟨some, option.injective_some α⟩
+⟨some, option.some_injective α⟩
 
 /-- Embedding of a `subtype`. -/
 def subtype {α} (p : α → Prop) : subtype p ↪ α :=
-⟨subtype.val, λ _ _, subtype.eq'⟩
+⟨coe, λ _ _, subtype.ext_val⟩
+
+@[simp] lemma coe_subtype {α} (p : α → Prop) : ⇑(subtype p) = coe := rfl
 
 /-- Choosing an element `b : β` gives an embedding of `punit` into `β`. -/
 def punit {β : Sort*} (b : β) : punit ↪ β :=
@@ -123,49 +125,62 @@ def sectr {α : Sort*} (a : α) (β : Sort*): β ↪ α × β :=
 
 /-- Restrict the codomain of an embedding. -/
 def cod_restrict {α β} (p : set β) (f : α ↪ β) (H : ∀ a, f a ∈ p) : α ↪ p :=
-⟨λ a, ⟨f a, H a⟩, λ a b h, f.inj (@congr_arg _ _ _ _ subtype.val h)⟩
+⟨λ a, ⟨f a, H a⟩, λ a b h, f.injective (@congr_arg _ _ _ _ subtype.val h)⟩
 
 @[simp] theorem cod_restrict_apply {α β} (p) (f : α ↪ β) (H a) :
   cod_restrict p f H a = ⟨f a, H a⟩ := rfl
 
-def prod_congr {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α × γ ↪ β × δ :=
-⟨assume ⟨a, b⟩, (e₁ a, e₂ b),
-  assume ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ h,
-  have a₁ = a₂ ∧ b₁ = b₂, from (prod.mk.inj h).imp (assume h, e₁.inj h) (assume h, e₂.inj h),
-  this.left ▸ this.right ▸ rfl⟩
+/-- If `e₁` and `e₂` are embeddings, then so is `prod.map e₁ e₂ : (a, b) ↦ (e₁ a, e₂ b)`. -/
+def prod_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α × γ ↪ β × δ :=
+⟨prod.map e₁ e₂, e₁.injective.prod_map e₂.injective⟩
+
+@[simp] lemma coe_prod_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) :
+  ⇑(e₁.prod_map e₂) = prod.map e₁ e₂ :=
+rfl
 
 section sum
 open sum
 
-def sum_congr {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α ⊕ γ ↪ β ⊕ δ :=
-⟨assume s, match s with inl a := inl (e₁ a) | inr b := inr (e₂ b) end,
+/-- If `e₁` and `e₂` are embeddings, then so is `sum.map e₁ e₂`. -/
+def sum_map {α β γ δ : Type*} (e₁ : α ↪ β) (e₂ : γ ↪ δ) : α ⊕ γ ↪ β ⊕ δ :=
+⟨sum.map e₁ e₂,
     assume s₁ s₂ h, match s₁, s₂, h with
-    | inl a₁, inl a₂, h := congr_arg inl $ e₁.inj $ inl.inj h
-    | inr b₁, inr b₂, h := congr_arg inr $ e₂.inj $ inr.inj h
+    | inl a₁, inl a₂, h := congr_arg inl $ e₁.injective $ inl.inj h
+    | inr b₁, inr b₂, h := congr_arg inr $ e₂.injective $ inr.inj h
     end⟩
 
-@[simp] theorem sum_congr_apply_inl {α β γ δ}
-  (e₁ : α ↪ β) (e₂ : γ ↪ δ) (a) : sum_congr e₁ e₂ (inl a) = inl (e₁ a) := rfl
+@[simp] theorem coe_sum_map {α β γ δ} (e₁ : α ↪ β) (e₂ : γ ↪ δ) :
+  ⇑(sum_map e₁ e₂) = sum.map e₁ e₂ :=
+rfl
 
-@[simp] theorem sum_congr_apply_inr {α β γ δ}
-  (e₁ : α ↪ β) (e₂ : γ ↪ δ) (b) : sum_congr e₁ e₂ (inr b) = inr (e₂ b) := rfl
+/-- The embedding of `α` into the sum `α ⊕ β`. -/
+def inl {α β : Type*} : α ↪ α ⊕ β :=
+⟨sum.inl, λ a b, sum.inl.inj⟩
+
+/-- The embedding of `β` into the sum `α ⊕ β`. -/
+def inr {α β : Type*} : β ↪ α ⊕ β :=
+⟨sum.inr, λ a b, sum.inr.inj⟩
 
 end sum
 
 section sigma
-open sigma
 
-def sigma_congr_right {α : Type*} {β γ : α → Type*} (e : ∀ a, β a ↪ γ a) : sigma β ↪ sigma γ :=
-⟨λ ⟨a, b⟩, ⟨a, e a b⟩, λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ h, begin
-  injection h with h₁ h₂, subst a₂,
-  congr,
-  exact (e a₁).2 (eq_of_heq h₂)
-end⟩
+variables {α α' : Type*} {β : α → Type*} {β' : α' → Type*}
+
+/-- If `f : α ↪ α'` is an embedding and `g : Π a, β α ↪ β' (f α)` is a family
+of embeddings, then `sigma.map f g` is an embedding. -/
+def sigma_map (f : α ↪ α') (g : Π a, β a ↪ β' (f a)) :
+  (Σ a, β a) ↪ Σ a', β' a' :=
+⟨sigma.map f (λ a, g a), f.injective.sigma_map (λ a, (g a).injective)⟩
+
+@[simp] lemma coe_sigma_map (f : α ↪ α') (g : Π a, β a ↪ β' (f a)) :
+  ⇑(f.sigma_map g) = sigma.map f (λ a, g a) :=
+rfl
 
 end sigma
 
 def Pi_congr_right {α : Sort*} {β γ : α → Sort*} (e : ∀ a, β a ↪ γ a) : (Π a, β a) ↪ (Π a, γ a) :=
-⟨λf a, e a (f a), λ f₁ f₂ h, funext $ λ a, (e a).inj (congr_fun h a)⟩
+⟨λf a, e a (f a), λ f₁ f₂ h, funext $ λ a, (e a).injective (congr_fun h a)⟩
 
 def arrow_congr_left {α : Sort u} {β : Sort v} {γ : Sort w}
   (e : α ↪ β) : (γ → α) ↪ (γ → β) :=
@@ -178,7 +193,7 @@ let f' : (α → γ) → (β → γ) := λf b, if h : ∃c, e c = b then f (clas
 ⟨f', assume f₁ f₂ h, funext $ assume c,
   have ∃c', e c' = e c, from ⟨c, rfl⟩,
   have eq' : f' f₁ (e c) = f' f₂ (e c), from congr_fun h _,
-  have eq_b : classical.some this = c, from e.inj $ classical.some_spec this,
+  have eq_b : classical.some this = c, from e.injective $ classical.some_spec this,
   by simp [f', this, if_pos, eq_b] at eq'; assumption⟩
 
 protected def subtype_map {α β} {p : α → Prop} {q : β → Prop} (f : α ↪ β)
@@ -189,12 +204,24 @@ open set
 
 /-- `set.image` as an embedding `set α ↪ set β`. -/
 protected def image {α β} (f : α ↪ β) : set α ↪ set β :=
-⟨image f, injective_image f.2⟩
+⟨image f, f.2.image_injective⟩
 
 @[simp] lemma coe_image {α β} (f : α ↪ β) : ⇑f.image = image f := rfl
 
 end embedding
 end function
+
+namespace equiv
+
+@[simp]
+lemma refl_to_embedding {α : Type*} :
+  (equiv.refl α).to_embedding = function.embedding.refl α := rfl
+
+@[simp]
+lemma trans_to_embedding {α β γ : Type*} (e : α ≃ β) (f : β ≃ γ) :
+  (e.trans f).to_embedding = e.to_embedding.trans f.to_embedding := rfl
+
+end equiv
 
 namespace set
 

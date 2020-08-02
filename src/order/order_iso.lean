@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import logic.embedding
-import data.nat.basic
-import logic.function.iterate
+import order.rel_classes
 
 open function
 
@@ -44,7 +43,7 @@ namespace order_embedding
 
 instance : has_coe_to_fun (r ≼o s) := ⟨λ _, α → β, λ o, o.to_embedding⟩
 
-theorem inj (f : r ≼o s) : injective f := f.inj'
+theorem injective (f : r ≼o s) : injective f := f.inj'
 
 theorem ord (f : r ≼o s) : ∀ {a b}, r a b ↔ s (f a) (f b) := f.ord'
 
@@ -55,7 +54,7 @@ theorem ord (f : r ≼o s) : ∀ {a b}, r a b ↔ s (f a) (f b) := f.ord'
 
 /-- The map `coe_fn : (r ≼o s) → (r → s)` is injective. We can't use `function.injective`
 here but mimic its signature by using `⦃e₁ e₂⦄`. -/
-theorem coe_fn_injective : ∀ ⦃e₁ e₂ : r ≼o s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
+theorem coe_fn_inj : ∀ ⦃e₁ e₂ : r ≼o s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
 | ⟨⟨f₁, h₁⟩, o₁⟩ ⟨⟨f₂, h₂⟩, o₂⟩ h := by { congr, exact h }
 
 @[refl] protected def refl (r : α → α → Prop) : r ≼o r :=
@@ -135,7 +134,7 @@ protected theorem is_well_order : ∀ (f : r ≼o s) [is_well_order β s], is_we
   to show it is an order embedding. -/
 def of_monotone [is_trichotomous α r] [is_asymm β s] (f : α → β) (H : ∀ a b, r a b → s (f a) (f b)) : r ≼o s :=
 begin
-  haveI := @is_irrefl_of_is_asymm β s _,
+  haveI := @is_asymm.is_irrefl β s _,
   refine ⟨⟨f, λ a b e, _⟩, λ a b, ⟨H _ _, λ h, _⟩⟩,
   { refine ((@trichotomous _ r _ a b).resolve_left _).resolve_right _;
     exact λ h, @irrefl _ s _ _ (by simpa [e] using H _ _ h) },
@@ -149,38 +148,9 @@ end
 
 -- If le is preserved by an order embedding of preorders, then lt is too
 def lt_embedding_of_le_embedding [preorder α] [preorder β]
-  (f : (has_le.le : α → α → Prop) ≼o (has_le.le : β → β → Prop)) :
+  (f : ((≤) : α → α → Prop) ≼o ((≤) : β → β → Prop)) :
 (has_lt.lt : α → α → Prop) ≼o (has_lt.lt : β → β → Prop) :=
 { ord' := by intros; simp [lt_iff_le_not_le,f.ord], .. f }
-
-def nat_lt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f n) (f (n+1))) :
-  ((<) : ℕ → ℕ → Prop) ≼o r :=
-of_monotone f $ λ a b h, begin
-  induction b with b IH, {exact (nat.not_lt_zero _ h).elim},
-  cases nat.lt_succ_iff_lt_or_eq.1 h with h e,
-  { exact trans (IH h) (H _) },
-  { subst b, apply H }
-end
-
-def nat_gt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f (n+1)) (f n)) :
-  ((>) : ℕ → ℕ → Prop) ≼o r :=
-by haveI := is_strict_order.swap r; exact rsymm (nat_lt f H)
-
-theorem well_founded_iff_no_descending_seq [is_strict_order α r] :
-  well_founded r ↔ ¬ nonempty (((>) : ℕ → ℕ → Prop) ≼o r) :=
-⟨λ ⟨h⟩ ⟨⟨f, o⟩⟩,
-  suffices ∀ a, acc r a → ∀ n, a ≠ f n, from this (f 0) (h _) 0 rfl,
-  λ a ac, begin
-    induction ac with a _ IH, intros n h, subst a,
-    exact IH (f (n+1)) (o.1 (nat.lt_succ_self _)) _ rfl
-  end,
-λ N, ⟨λ a, classical.by_contradiction $ λ na,
-  let ⟨f, h⟩ := classical.axiom_of_choice $
-    show ∀ x : {a // ¬ acc r a}, ∃ y : {a // ¬ acc r a}, r y.1 x.1,
-    from λ ⟨x, h⟩, classical.by_contradiction $ λ hn, h $
-      ⟨_, λ y h, classical.by_contradiction $ λ na, hn ⟨⟨y, na⟩, h⟩⟩ in
-  N ⟨nat_gt (λ n, (f^[n] ⟨a, na⟩).1) $ λ n,
-    by { rw [function.iterate_succ'], apply h }⟩⟩⟩
 
 end order_embedding
 
@@ -285,7 +255,7 @@ protected def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'o s �
 
 /-- A surjective order embedding is an order isomorphism. -/
 noncomputable def of_surjective (f : r ≼o s) (H : surjective f) : r ≃o s :=
-⟨equiv.of_bijective ⟨f.inj, H⟩, by simp [f.ord']⟩
+⟨equiv.of_bijective f ⟨f.injective, H⟩, by simp [f.ord']⟩
 
 @[simp] theorem of_surjective_coe (f : r ≼o s) (H) : (of_surjective f H : α → β) = f :=
 rfl
@@ -367,3 +337,48 @@ def order_embedding.cod_restrict (p : set β) (f : r ≼o s) (H : ∀ a, f a ∈
 
 @[simp] theorem order_embedding.cod_restrict_apply (p) (f : r ≼o s) (H a) :
   order_embedding.cod_restrict p f H a = ⟨f a, H a⟩ := rfl
+
+section lattice_isos
+
+lemma order_iso.map_bot [order_bot α] [order_bot β]
+  (f : ((≤) : α → α → Prop) ≃o ((≤) : β → β → Prop)) :
+  f ⊥ = ⊥ :=
+by { rw [eq_bot_iff, ← f.apply_symm_apply ⊥, ← f.ord], apply bot_le, }
+
+lemma order_iso.map_top [order_top α] [order_top β]
+  (f : ((≤) : α → α → Prop) ≃o ((≤) : β → β → Prop)) :
+  f ⊤ = ⊤ :=
+by { rw [eq_top_iff, ← f.apply_symm_apply ⊤, ← f.ord], apply le_top, }
+
+variables {a₁ a₂ : α}
+
+lemma order_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β]
+  (f : ((≤) : α → α → Prop) ≼o ((≤) : β → β → Prop)) :
+  f (a₁ ⊓ a₂) ≤ f a₁ ⊓ f a₂ :=
+by simp [← f.ord]
+
+lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β]
+  (f : ((≤) : α → α → Prop) ≃o ((≤) : β → β → Prop)) :
+  f (a₁ ⊓ a₂) = f a₁ ⊓ f a₂ :=
+begin
+  apply le_antisymm, { apply f.to_order_embedding.map_inf_le },
+  rw [f.symm.ord, order_iso.symm_apply_apply],
+  convert f.symm.to_order_embedding.map_inf_le; simp,
+end
+
+lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]
+  (f : ((≤) : α → α → Prop) ≼o ((≤) : β → β → Prop)) :
+  f a₁ ⊔ f a₂ ≤ f (a₁ ⊔ a₂) :=
+by simp [← f.ord]
+
+
+lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β]
+  (f : ((≤) : α → α → Prop) ≃o ((≤) : β → β → Prop)) :
+  f (a₁ ⊔ a₂) = f a₁ ⊔ f a₂ :=
+begin
+  apply le_antisymm, swap, { apply f.to_order_embedding.le_map_sup },
+  rw [f.symm.ord, order_iso.symm_apply_apply],
+  convert f.symm.to_order_embedding.le_map_sup; simp,
+end
+
+end lattice_isos

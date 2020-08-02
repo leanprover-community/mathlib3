@@ -3,7 +3,8 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin
 -/
-import data.polynomial
+import group_theory.free_abelian_group
+import deprecated.ring
 
 universes u v
 
@@ -62,7 +63,8 @@ free_abelian_group.lift.sub _ _ _
 @[simp] lemma lift_mul (x y) : lift f (x * y) = lift f x * lift f y :=
 begin
   refine free_abelian_group.induction_on y (mul_zero _).symm _ _ _,
-  { intros L2, conv { to_lhs, dsimp only [(*), mul_zero_class.mul, semiring.mul, ring.mul, semigroup.mul] },
+  { intros L2,
+    conv_lhs { dsimp only [free_abelian_group.mul_def] },
     rw [free_abelian_group.lift.of, lift, free_abelian_group.lift.of],
     refine free_abelian_group.induction_on x (zero_mul _).symm _ _ _,
     { intros L1, iterate 3 { rw free_abelian_group.lift.of },
@@ -79,9 +81,9 @@ instance : is_ring_hom (lift f) :=
   map_add := lift_add f }
 
 @[simp] lemma lift_pow (x) (n : ℕ) : lift f (x ^ n) = lift f x ^ n :=
-is_semiring_hom.map_pow _ x n
+is_monoid_hom.map_pow _ x n
 
-@[simp] lemma lift_comp_of (f : free_ring α → β) [is_ring_hom f] : lift (f ∘ of) = f :=
+@[simp] lemma lift_comp_of (f : free_ring α →+* β) : lift (f ∘ of) = f :=
 funext $ λ x, free_ring.induction_on x
   (by rw [lift_neg, lift_one, is_ring_hom.map_neg f, is_ring_hom.map_one f])
   (lift_of _)

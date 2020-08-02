@@ -34,7 +34,7 @@ import analysis.normed_space.basic
 noncomputable theory
 
 open classical set
-open_locale classical
+open_locale classical big_operators topological_space
 
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} {ι : Sort y} {s t u : set α}
@@ -95,13 +95,13 @@ begin
     refine generate_from_le _, rintro _ ⟨a, rfl | rfl⟩; [skip, apply H],
     by_cases h : ∃ a', ∀ b, a < b ↔ a' ≤ b,
     { rcases h with ⟨a', ha'⟩,
-      rw (_ : Ioi a = -Iio a'), {exact (H _).compl _},
+      rw (_ : Ioi a = (Iio a')ᶜ), {exact (H _).compl _},
       simp [set.ext_iff, ha'] },
     { rcases is_open_Union_countable
         (λ a' : {a' : α // a < a'}, {b | a'.1 < b})
         (λ a', is_open_lt' _) with ⟨v, ⟨hv⟩, vu⟩,
       simp [set.ext_iff] at vu,
-      have : Ioi a = ⋃ x : v, -Iio x.1.1,
+      have : Ioi a = ⋃ x : v, (Iio x.1.1)ᶜ,
       { simp [set.ext_iff],
         refine λ x, ⟨λ ax, _, λ ⟨a', ⟨h, av⟩, ax⟩, lt_of_lt_of_le h ax⟩,
         rcases (vu x).2 _ with ⟨a', h₁, h₂⟩,
@@ -128,13 +128,13 @@ begin
     refine generate_from_le _, rintro _ ⟨a, rfl | rfl⟩, {apply H},
     by_cases h : ∃ a', ∀ b, b < a ↔ b ≤ a',
     { rcases h with ⟨a', ha'⟩,
-      rw (_ : Iio a = -Ioi a'), {exact (H _).compl _},
+      rw (_ : Iio a = (Ioi a')ᶜ), {exact (H _).compl _},
       simp [set.ext_iff, ha'] },
     { rcases is_open_Union_countable
         (λ a' : {a' : α // a' < a}, {b | b < a'.1})
         (λ a', is_open_gt' _) with ⟨v, ⟨hv⟩, vu⟩,
       simp [set.ext_iff] at vu,
-      have : Iio a = ⋃ x : v, -Ioi x.1.1,
+      have : Iio a = ⋃ x : v, (Ioi x.1.1)ᶜ,
       { simp [set.ext_iff],
         refine λ x, ⟨λ ax, _, λ ⟨a', ⟨h, av⟩, ax⟩, lt_of_le_of_lt ax h⟩,
         rcases (vu x).2 _ with ⟨a', h₁, h₂⟩,
@@ -156,7 +156,8 @@ comap_generate_from.symm
 lemma continuous.borel_measurable [topological_space α] [topological_space β]
   {f : α → β} (hf : continuous f) :
   @measurable α β (borel α) (borel β) f :=
-generate_from_le $ λ s hs, generate_measurable.basic (f ⁻¹' s) (hf s hs)
+measurable.of_le_map $ generate_from_le $
+  λ s hs, generate_measurable.basic (f ⁻¹' s) (hf s hs)
 
 /-- A space with `measurable_space` and `topological_space` structures such that
 all open sets are measurable. -/
@@ -198,14 +199,30 @@ lemma is_measurable_interior : is_measurable (interior s) := is_open_interior.is
 lemma is_closed.is_measurable (h : is_closed s) : is_measurable s :=
 is_measurable.compl_iff.1 $ h.is_measurable
 
-lemma is_measurable_singleton [t1_space α] {x : α} : is_measurable ({x} : set α) :=
-is_closed_singleton.is_measurable
-
-lemma is_measurable_eq [t1_space α] {a : α} : is_measurable {x | x = a} :=
-is_measurable_singleton
+lemma is_compact.is_measurable [t2_space α] (h : is_compact s) : is_measurable s :=
+h.is_closed.is_measurable
 
 lemma is_measurable_closure : is_measurable (closure s) :=
 is_closed_closure.is_measurable
+
+instance nhds_is_measurably_generated (a : α) : (𝓝 a).is_measurably_generated :=
+begin
+  rw [nhds, infi_subtype'],
+  refine @filter.infi_is_measurably_generated _ _ _ _ (λ i, _),
+  exact i.2.2.is_measurable.principal_is_measurably_generated
+end
+
+/-- If `s` is a measurable set, then `nhds_within a s` is a measurably generated filter for
+each `a`. This cannot be an `instance` because it depends on a non-instance `hs : is_measurable s`.
+-/
+lemma is_measurable.nhds_within_is_measurably_generated {s : set α} (hs : is_measurable s) (a : α) :
+  (nhds_within a s).is_measurably_generated :=
+by haveI := hs.principal_is_measurably_generated; exact filter.inf_is_measurably_generated _ _
+
+@[priority 100] -- see Note [lower instance priority]
+instance opens_measurable_space.to_measurable_singleton_class [t1_space α] :
+  measurable_singleton_class α :=
+⟨λ x, is_closed_singleton.is_measurable⟩
 
 section order_closed_topology
 variables [preorder α] [order_closed_topology α] {a b : α}
@@ -213,6 +230,14 @@ variables [preorder α] [order_closed_topology α] {a b : α}
 lemma is_measurable_Ici : is_measurable (Ici a) := is_closed_Ici.is_measurable
 lemma is_measurable_Iic : is_measurable (Iic a) := is_closed_Iic.is_measurable
 lemma is_measurable_Icc : is_measurable (Icc a b) := is_closed_Icc.is_measurable
+
+instance at_top_is_measurably_generated : (filter.at_top : filter α).is_measurably_generated :=
+@filter.infi_is_measurably_generated _ _ _ _ $
+  λ a, (is_measurable_Ici : is_measurable (Ici a)).principal_is_measurably_generated
+
+instance at_bot_is_measurably_generated : (filter.at_bot : filter α).is_measurably_generated :=
+@filter.infi_is_measurably_generated _ _ _ _ $
+  λ a, (is_measurable_Iic : is_measurable (Iic a)).principal_is_measurably_generated
 
 end order_closed_topology
 
@@ -266,7 +291,7 @@ def homeomorph.to_measurable_equiv {α : Type*} {β : Type*} [topological_space 
 lemma measurable_of_continuous_on_compl_singleton [t1_space α] {f : α → γ} (a : α)
   (hf : continuous_on f {x | x ≠ a}) :
   measurable f :=
-measurable_of_measurable_on_compl_singleton a is_measurable_singleton
+measurable_of_measurable_on_compl_singleton a
   (continuous_on_iff_continuous_restrict.1 hf).measurable
 
 lemma continuous.measurable2 [second_countable_topology α] [second_countable_topology β]
@@ -303,17 +328,17 @@ order_closed_topology.is_closed_le'.is_measurable
 lemma is_measurable_le [partial_order α] [order_closed_topology α] [second_countable_topology α]
   {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   is_measurable {a | f a ≤ g a} :=
-(hf.prod_mk hg).preimage is_measurable_le'
+hf.prod_mk hg is_measurable_le'
 
 lemma measurable.max [decidable_linear_order α] [order_closed_topology α] [second_countable_topology α]
   {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λa, max (f a) (g a)) :=
-measurable.if (is_measurable_le hf hg) hg hf
+hf.piecewise (is_measurable_le hg hf) hg
 
 lemma measurable.min [decidable_linear_order α] [order_closed_topology α] [second_countable_topology α]
   {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λa, min (f a) (g a)) :=
-measurable.if (is_measurable_le hf hg) hf hg
+hf.piecewise (is_measurable_le hf hg) hg
 
 end
 
@@ -336,19 +361,29 @@ instance prod.borel_space [second_countable_topology α] [second_countable_topol
 ⟨le_antisymm prod_le_borel_prod opens_measurable_space.borel_le⟩
 
 @[to_additive]
-lemma measurable_mul [monoid α] [topological_monoid α] [second_countable_topology α] :
+lemma measurable_mul [has_mul α] [has_continuous_mul α] [second_countable_topology α] :
   measurable (λ p : α × α, p.1 * p.2) :=
 continuous_mul.measurable
 
 @[to_additive]
-lemma measurable.mul [monoid α] [topological_monoid α] [second_countable_topology α]
+lemma measurable.mul [has_mul α] [has_continuous_mul α] [second_countable_topology α]
   {f : δ → α} {g : δ → α} : measurable f → measurable g → measurable (λa, f a * g a) :=
 continuous_mul.measurable2
 
 @[to_additive]
-lemma finset.measurable_prod {ι : Type*} [comm_monoid α] [topological_monoid α]
+lemma measurable_mul_left [has_mul α] [has_continuous_mul α] (x : α) :
+  measurable (λ y : α, x * y) :=
+continuous.measurable $ continuous_const.mul continuous_id
+
+@[to_additive]
+lemma measurable_mul_right [has_mul α] [has_continuous_mul α] (x : α) :
+  measurable (λ y : α, y * x) :=
+continuous.measurable $ continuous_id.mul continuous_const
+
+@[to_additive]
+lemma finset.measurable_prod {ι : Type*} [comm_monoid α] [has_continuous_mul α]
   [second_countable_topology α] {f : ι → δ → α} (s : finset ι) (hf : ∀i, measurable (f i)) :
-  measurable (λa, s.prod (λi, f i a)) :=
+  measurable (λa, ∏ i in s, f i a) :=
 finset.induction_on s
   (by simp only [finset.prod_empty, measurable_const])
   (assume i s his ih, by simpa [his] using (hf i).mul ih)
@@ -376,7 +411,7 @@ lemma measurable.of_inv [group α] [topological_group α] {f : δ → α}
   (hf : measurable (λ a, (f a)⁻¹)) : measurable f :=
 by simpa only [inv_inv] using hf.inv
 
-@[to_additive]
+@[simp, to_additive]
 lemma measurable_inv_iff [group α] [topological_group α] {f : δ → α} :
   measurable (λ a, (f a)⁻¹) ↔ measurable f :=
 ⟨measurable.of_inv, measurable.inv⟩
@@ -396,7 +431,7 @@ begin
   apply measurable_generate_from,
   rintro _ ⟨a, rfl⟩,
   simp only [set.preimage, mem_Ioi, lt_is_lub_iff (hg _), exists_range_iff, set_of_exists],
-  exact is_measurable.Union (λ i, hf i _ (is_open_lt' _).is_measurable)
+  exact is_measurable.Union (λ i, hf i (is_open_lt' _).is_measurable)
 end
 
 lemma measurable.is_glb [linear_order α] [order_topology α] [second_countable_topology α]
@@ -409,7 +444,7 @@ begin
   apply measurable_generate_from,
   rintro _ ⟨a, rfl⟩,
   simp only [set.preimage, mem_Iio, is_glb_lt_iff (hg _), exists_range_iff, set_of_exists],
-  exact is_measurable.Union (λ i, hf i _ (is_open_gt' _).is_measurable)
+  exact is_measurable.Union (λ i, hf i (is_open_gt' _).is_measurable)
 end
 
 lemma measurable_supr [complete_linear_order α] [order_topology α] [second_countable_topology α]
@@ -531,7 +566,7 @@ begin
     refine generate_from_le (λ t, _),
     simp only [mem_Union], rintro ⟨a, b, h, H⟩,
     rw [mem_singleton_iff.1 H],
-    rw (set.ext (λ x, _) : Ioo (a:ℝ) b = (⋃c>a, - Iio c) ∩ Iio b),
+    rw (set.ext (λ x, _) : Ioo (a:ℝ) b = (⋃c>a, (Iio c)ᶜ) ∩ Iio b),
     { have hg : ∀q:ℚ, g.is_measurable (Iio q) :=
         λ q, generate_measurable.basic _ (by simp; exact ⟨_, rfl⟩),
       refine @is_measurable.inter _ g _ _ _ (hg _),
@@ -581,7 +616,7 @@ measurable_id.ennreal_coe
 
 lemma measurable_of_measurable_nnreal [measurable_space α] {f : ennreal → α}
   (h : measurable (λp:nnreal, f p)) : measurable f :=
-measurable_of_measurable_on_compl_singleton ⊤ is_measurable_singleton
+measurable_of_measurable_on_compl_singleton ⊤
   (measurable_equiv.ennreal_equiv_nnreal.symm.measurable_coe_iff.1 h)
 
 /-- `ennreal` is `measurable_equiv` to `nnreal ⊕ unit`. -/
@@ -627,14 +662,12 @@ begin
   { simp only [ennreal.coe_mul.symm],
     exact ennreal.measurable_coe.comp measurable_mul },
   { simp [ennreal.top_mul],
-    exact measurable.if
+    exact measurable_const.piecewise
       (is_closed_eq continuous_id continuous_const).is_measurable
-      measurable_const
       measurable_const },
   { simp [ennreal.mul_top],
-    exact measurable.if
+    exact measurable_const.piecewise
       (is_closed_eq continuous_id continuous_const).is_measurable
-      measurable_const
       measurable_const }
 end
 

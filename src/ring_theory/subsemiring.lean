@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 
-import ring_theory.prod
+import algebra.ring.prod
 import group_theory.submonoid
 import data.equiv.ring
 
@@ -12,8 +12,11 @@ import data.equiv.ring
 # Bundled subsemirings
 
 We define bundled subsemirings and some standard constructions: `complete_lattice` structure,
-`subtype` and `inclusion` ring homomorphisms, subsemiring kernel and range of a `ring_hom` etc.
+`subtype` and `inclusion` ring homomorphisms, subsemiring `map`, `comap` and range (`srange`) of
+a `ring_hom` etc.
 -/
+
+open_locale big_operators
 
 universes u v w
 
@@ -21,7 +24,7 @@ variables {R : Type u} {S : Type v} {T : Type w} [semiring R] [semiring S] [semi
 
 set_option old_structure_cmd true
 
-/-- Subsemiring of a semiring `R` is a subset `s` that is both a multiplicative and an additive
+/-- A subsemiring of a semiring `R` is a subset `s` that is both a multiplicative and an additive
 submonoid. -/
 structure subsemiring (R : Type u) [semiring R] extends submonoid R, add_submonoid R
 
@@ -92,7 +95,7 @@ protected theorem ext'_iff {s t : subsemiring R}  : s = t ↔ (s : set R) = t :=
 ⟨λ h, h ▸ rfl, λ h, ext' h⟩
 
 /-- Two subsemirings are equal if they have the same elements. -/
-theorem ext {S T : subsemiring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := ext' $ set.ext h
+@[ext] theorem ext {S T : subsemiring R} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := ext' $ set.ext h
 
 /-- A subsemiring contains the semiring's 1. -/
 theorem one_mem : (1 : R) ∈ s := s.one_mem'
@@ -106,46 +109,47 @@ theorem mul_mem : ∀ {x y : R}, x ∈ s → y ∈ s → x * y ∈ s := s.mul_me
 /-- A subsemiring is closed under addition. -/
 theorem add_mem : ∀ {x y : R}, x ∈ s → y ∈ s → x + y ∈ s := s.add_mem'
 
-/-- Product of a list of elements in a subsemiring is in the subsemiring. -/
+/-- Product of a list of elements in a `subsemiring` is in the `subsemiring`. -/
 lemma list_prod_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.prod ∈ s :=
 s.to_submonoid.list_prod_mem
 
-/-- Sum of a list of elements in an `add_subsemiring` is in the `add_subsemiring`. -/
+/-- Sum of a list of elements in a `subsemiring` is in the `subsemiring`. -/
 lemma list_sum_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.sum ∈ s :=
 s.to_add_submonoid.list_sum_mem
 
-/-- Product of a multiset of elements in a subsemiring of a `comm_monoid` is in the subsemiring. -/
+/-- Product of a multiset of elements in a `subsemiring` of a `comm_semiring`
+    is in the `subsemiring`. -/
 lemma multiset_prod_mem {R} [comm_semiring R] (s : subsemiring R) (m : multiset R) :
   (∀a ∈ m, a ∈ s) → m.prod ∈ s :=
 s.to_submonoid.multiset_prod_mem m
 
-/-- Sum of a multiset of elements in an `add_subsemiring` of an `add_comm_monoid` is
+/-- Sum of a multiset of elements in a `subsemiring` of a `semiring` is
 in the `add_subsemiring`. -/
 lemma multiset_sum_mem {R} [semiring R] (s : subsemiring R) (m : multiset R) :
   (∀a ∈ m, a ∈ s) → m.sum ∈ s :=
 s.to_add_submonoid.multiset_sum_mem m
 
-/-- Product of elements of a subsemiring of a `comm_monoid` indexed by a `finset` is in the
+/-- Product of elements of a subsemiring of a `comm_semiring` indexed by a `finset` is in the
     subsemiring. -/
 lemma prod_mem {R : Type*} [comm_semiring R] (s : subsemiring R)
   {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
-  t.prod f ∈ s :=
+  ∏ i in t, f i ∈ s :=
 s.to_submonoid.prod_mem h
 
-/-- Sum of elements in an `add_subsemiring` of an `add_comm_monoid` indexed by a `finset`
+/-- Sum of elements in an `subsemiring` of an `semiring` indexed by a `finset`
 is in the `add_subsemiring`. -/
 lemma sum_mem {R : Type*} [semiring R] (s : subsemiring R)
   {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
-  t.sum f ∈ s :=
+  ∑ i in t, f i ∈ s :=
 s.to_add_submonoid.sum_mem h
 
 lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
 
-lemma smul_mem {x : R} (hx : x ∈ s) (n : ℕ) :
-  n •ℕ x ∈ s := s.to_add_submonoid.smul_mem hx n
+lemma nsmul_mem {x : R} (hx : x ∈ s) (n : ℕ) :
+  n •ℕ x ∈ s := s.to_add_submonoid.nsmul_mem hx n
 
 lemma coe_nat_mem (n : ℕ) : (n : R) ∈ s :=
-by simp only [← nsmul_one, smul_mem, one_mem]
+by simp only [← nsmul_one, nsmul_mem, one_mem]
 
 /-- A subsemiring of a semiring inherits a semiring structure -/
 instance to_semiring : semiring s :=
@@ -162,7 +166,7 @@ instance to_semiring : semiring s :=
 instance to_comm_semiring {R} [comm_semiring R] (s : subsemiring R) : comm_semiring s :=
 { mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..s.to_semiring}
 
-/-- The natural ring hom from a subsemiring of monoid `R` to `R`. -/
+/-- The natural ring hom from a subsemiring of semiring `R` to `R`. -/
 def subtype : s →+* R :=
 { to_fun := coe, .. s.to_submonoid.subtype, .. s.to_add_submonoid.subtype }
 
@@ -170,7 +174,7 @@ def subtype : s →+* R :=
 
 instance : partial_order (subsemiring R) :=
 { le := λ s t, ∀ ⦃x⦄, x ∈ s → x ∈ t,
-  .. partial_order.lift (coe : subsemiring R → set R) ext' _ }
+  .. partial_order.lift (coe : subsemiring R → set R) ext' }
 
 lemma le_def {s t : subsemiring R} : s ≤ t ↔ ∀ ⦃x : R⦄, x ∈ s → x ∈ t := iff.rfl
 
@@ -336,6 +340,41 @@ lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hadd : ∀ x y, p x → p y → p (x + y)) (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 (@closure_le _ _ _ ⟨p, H1, Hmul, H0, Hadd⟩).2 Hs h
 
+lemma mem_closure_iff {s : set R} {x} :
+  x ∈ closure s ↔ x ∈ add_submonoid.closure (submonoid.closure s : set R) :=
+⟨λ h, closure_induction h (λ x hx, add_submonoid.subset_closure $ submonoid.subset_closure hx)
+  (add_submonoid.zero_mem _)
+  (add_submonoid.subset_closure $ submonoid.one_mem $ submonoid.closure s)
+  (λ _ _, add_submonoid.add_mem _)
+  (λ x y ihx ihy, add_submonoid.closure_induction ihy
+    (λ q hq, add_submonoid.closure_induction ihx
+      (λ p hp, add_submonoid.subset_closure $ (submonoid.closure s).mul_mem hp hq)
+      ((zero_mul q).symm ▸ add_submonoid.zero_mem _)
+      (λ p₁ p₂ ihp₁ ihp₂, (add_mul p₁ p₂ q).symm ▸ add_submonoid.add_mem _ ihp₁ ihp₂))
+    ((mul_zero x).symm ▸ add_submonoid.zero_mem _)
+    (λ q₁ q₂ ihq₁ ihq₂, (mul_add x q₁ q₂).symm ▸ add_submonoid.add_mem _ ihq₁ ihq₂)),
+λ h, add_submonoid.closure_induction h
+  (λ x hx, submonoid.closure_induction hx subset_closure (one_mem _) (λ _ _, mul_mem _))
+  (zero_mem _)
+  (λ _ _, add_mem _)⟩
+
+lemma mem_closure_iff_exists_list {s : set R} {x} : x ∈ closure s ↔
+  ∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s) ∧ (L.map list.prod).sum = x :=
+⟨λ hx, add_submonoid.closure_induction (mem_closure_iff.1 hx)
+  (λ x hx, suffices ∃ t : list R, (∀ y ∈ t, y ∈ s) ∧ t.prod = x,
+    from let ⟨t, ht1, ht2⟩ := this in ⟨[t], list.forall_mem_singleton.2 ht1,
+      by rw [list.map_singleton, list.sum_singleton, ht2]⟩,
+    submonoid.closure_induction hx
+      (λ x hx, ⟨[x], list.forall_mem_singleton.2 hx, one_mul x⟩)
+      ⟨[], list.forall_mem_nil _, rfl⟩
+      (λ x y ⟨t, ht1, ht2⟩ ⟨u, hu1, hu2⟩, ⟨t ++ u, list.forall_mem_append.2 ⟨ht1, hu1⟩,
+        by rw [list.prod_append, ht2, hu2]⟩))
+  ⟨[], list.forall_mem_nil _, rfl⟩
+  (λ x y ⟨L, HL1, HL2⟩ ⟨M, HM1, HM2⟩, ⟨L ++ M, list.forall_mem_append.2 ⟨HL1, HM1⟩,
+    by rw [list.map_append, list.sum_append, HL2, HM2]⟩),
+λ ⟨L, HL1, HL2⟩, HL2 ▸ list_sum_mem _ (λ r hr, let ⟨t, ht1, ht2⟩ := list.mem_map.1 hr in
+  ht2 ▸ list_prod_mem _ (λ y hy, subset_closure $ HL1 t ht1 y hy))⟩
+
 variable (R)
 
 /-- `closure` forms a Galois insertion with the coercion to set. -/
@@ -444,8 +483,7 @@ lemma mem_Sup_of_directed_on {S : set (subsemiring R)} (Sne : S.nonempty)
   x ∈ Sup S ↔ ∃ s ∈ S, x ∈ s :=
 begin
   haveI : nonempty S := Sne.to_subtype,
-  rw [Sup_eq_supr, supr_subtype', mem_supr_of_directed, subtype.exists],
-  exact (directed_on_iff_directed _).1 hS
+  simp only [Sup_eq_supr', mem_supr_of_directed hS.directed_coe, set_coe.exists, subtype.coe_mk]
 end
 
 lemma coe_Sup_of_directed_on {S : set (subsemiring R)} (Sne : S.nonempty) (hS : directed_on (≤) S) :
@@ -529,7 +567,7 @@ def inclusion {S T : subsemiring R} (h : S ≤ T) : S →* T :=
 S.subtype.cod_srestrict _ (λ x, h x.2)
 
 @[simp] lemma srange_subtype (s : subsemiring R) : s.subtype.srange = s :=
-ext' $ (coe_srange _).trans $ set.range_coe_subtype s
+ext' $ (coe_srange _).trans subtype.range_coe
 
 @[simp]
 lemma range_fst : (fst R S).srange = ⊤ :=

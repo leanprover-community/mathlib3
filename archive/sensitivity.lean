@@ -206,7 +206,7 @@ begin
   induction n with n ih,
   { dsimp [ε] at h, exact h (λ _, tt) },
   { cases v with v₁ v₂,
-    ext ; change _ = (0 : V n) ; simp only [] ; apply ih ; intro p ;
+    ext ; change _ = (0 : V n) ; simp only ; apply ih ; intro p ;
     [ let q : Q (n+1) := λ i, if h : i = 0 then tt else p (i.pred h),
       let q : Q (n+1) := λ i, if h : i = 0 then ff else p (i.pred h)],
     all_goals {
@@ -361,7 +361,7 @@ begin
     apply dim_V },
   have dim_add : dim (W ⊔ img) + dim (W ⊓ img) = dim W + 2^m,
   { convert ← dim_sup_add_dim_inf_eq W img,
-    rw ← dim_eq_injective (g m) g_injective,
+    rw ← dim_eq_of_injective (g m) g_injective,
     apply dim_V },
   have dimW : dim W = card H,
   { have li : linear_independent ℝ (set.restrict e H) :=
@@ -409,10 +409,10 @@ begin
     ... = ∑ p in (coeffs y).support, |coeffs y p| * ite (q.adjacent p) 1 0  : by simp only [abs_mul, f_matrix]
     ... = ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y p|     : by simp [finset.sum_filter]
     ... ≤ ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y q|     : finset.sum_le_sum (λ p _, H_max p)
-    ... = (finset.card ((coeffs y).support.filter (Q.adjacent q)): ℝ) * |coeffs y q| : by rw [← smul_eq_mul, ← finset.sum_const']
+    ... = (finset.card ((coeffs y).support.filter (Q.adjacent q)): ℝ) * |coeffs y q| : by rw [finset.sum_const, nsmul_eq_mul]
     ... = (finset.card ((coeffs y).support ∩ (Q.adjacent q).to_finset): ℝ) * |coeffs y q| : by {congr, ext, simp, refl}
     ... ≤ (finset.card ((H ∩ Q.adjacent q).to_finset )) * |ε q y| :
      (mul_le_mul_right H_q_pos).mpr (by {
              norm_cast,
-             exact finset.card_le_of_subset (by rw set.to_finset_inter; apply finset.inter_subset_inter_right coeffs_support) })
+             exact finset.card_le_of_subset (by rw set.to_finset_inter; convert finset.inter_subset_inter_right coeffs_support) })
 end

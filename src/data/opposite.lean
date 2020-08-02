@@ -5,7 +5,6 @@ Authors: Scott Morrison, Reid Barton, Simon Hudon, Kenny Lau
 
 Opposites.
 -/
-import data.list.defs
 import data.equiv.basic
 
 universes v u -- declare the `v` first; see `category_theory.category` for an explanation
@@ -42,11 +41,13 @@ notation α `ᵒᵖ`:std.prec.max_plus := opposite α
 namespace opposite
 
 variables {α}
+@[pp_nodot]
 def op : α → αᵒᵖ := id
+@[pp_nodot]
 def unop : αᵒᵖ → α := id
 
-lemma op_inj : function.injective (op : α → αᵒᵖ) := λ _ _, id
-lemma unop_inj : function.injective (unop : αᵒᵖ → α) := λ _ _, id
+lemma op_injective : function.injective (op : α → αᵒᵖ) := λ _ _, id
+lemma unop_injective : function.injective (unop : αᵒᵖ → α) := λ _ _, id
 
 @[simp] lemma op_inj_iff (x y : α) : op x = op y ↔ x = y := iff.rfl
 @[simp] lemma unop_inj_iff (x y : αᵒᵖ) : unop x = unop y ↔ x = y := iff.rfl

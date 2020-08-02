@@ -1,10 +1,11 @@
 /-
 Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Myers.
+Authors: Joseph Myers, Yury Kudryashov.
 -/
-import algebra.group.hom
+import algebra.group.prod
 import algebra.group.type_tags
+import algebra.group.pi
 import data.equiv.basic
 
 /-!
@@ -219,9 +220,67 @@ by rw [←vsub_vadd_eq_vsub_sub, vsub_vadd]
 /-- The pairwise differences of a set of points. -/
 def vsub_set (s : set P) : set G := {g | ∃ x ∈ s, ∃ y ∈ s, g = x -ᵥ y}
 
+/-- `vsub_set` of an empty set. -/
+@[simp] lemma vsub_set_empty : vsub_set G (∅ : set P) = ∅ :=
+begin
+  rw set.eq_empty_iff_forall_not_mem,
+  rintros g ⟨p, hp, hg⟩,
+  exact hp
+end
+
+/-- `vsub_set` of a single point. -/
+@[simp] lemma vsub_set_singleton (p : P) : vsub_set G ({p} : set P) = {0} :=
+begin
+  ext g,
+  rw set.mem_singleton_iff,
+  split,
+  { rintros ⟨p1, hp1, p2, hp2, rfl⟩,
+    rw set.mem_singleton_iff at hp1 hp2,
+    simp [hp1, hp2] },
+  { exact λ h, h.symm ▸ ⟨p, set.mem_singleton p, p, set.mem_singleton p, (vsub_self G p).symm⟩ }
+end
+
+/-- Each pairwise difference is in the `vsub_set`. -/
+lemma vsub_mem_vsub_set {p1 p2 : P} {s : set P} (hp1 : p1 ∈ s) (hp2 : p2 ∈ s) :
+  (p1 -ᵥ p2) ∈ vsub_set G s :=
+⟨p1, hp1, p2, hp2, rfl⟩
+
+/-- `vsub_set` is contained in `vsub_set` of a larger set. -/
+lemma vsub_set_mono {s1 s2 : set P} (h : s1 ⊆ s2) : vsub_set G s1 ⊆ vsub_set G s2 :=
+begin
+  rintros v ⟨p1, hp1, p2, hp2, hv⟩,
+  exact ⟨p1, set.mem_of_mem_of_subset hp1 h, p2, set.mem_of_mem_of_subset hp2 h, hv⟩
+end
+
 @[simp] lemma vadd_vsub_vadd_cancel_right (v₁ v₂ : G) (p : P) :
   ((v₁ +ᵥ p) -ᵥ (v₂ +ᵥ p) : G) = v₁ - v₂ :=
 by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, vsub_self, add_zero]
+
+/-- If the same point subtracted from two points produces equal
+results, those points are equal. -/
+lemma vsub_left_cancel {p1 p2 p : P} (h : (p1 -ᵥ p : G) = p2 -ᵥ p) : p1 = p2 :=
+by rwa [←sub_eq_zero, vsub_sub_vsub_cancel_right, vsub_eq_zero_iff_eq] at h
+
+/-- The same point subtracted from two points produces equal results
+if and only if those points are equal. -/
+@[simp] lemma vsub_left_cancel_iff {p1 p2 p : P} : (p1 -ᵥ p : G) = p2 -ᵥ p ↔ p1 = p2 :=
+⟨vsub_left_cancel _, λ h, h ▸ rfl⟩
+
+/-- If subtracting two points from the same point produces equal
+results, those points are equal. -/
+lemma vsub_right_cancel {p1 p2 p : P} (h : (p -ᵥ p1 : G) = p -ᵥ p2) : p1 = p2 :=
+begin
+  have h2 : (p -ᵥ p2 : G) +ᵥ p1 = (p -ᵥ p1 : G) +ᵥ p1, { rw h },
+  conv_rhs at h2 {
+    rw [vsub_vadd, ←vsub_vadd G p p2],
+  },
+  rwa vadd_left_cancel_iff at h2
+end
+
+/-- Subtracting two points from the same point produces equal results
+if and only if those points are equal. -/
+@[simp] lemma vsub_right_cancel_iff {p1 p2 p : P} : (p -ᵥ p1 : G) = p -ᵥ p2 ↔ p1 = p2 :=
+⟨vsub_right_cancel _, λ h, h ▸ rfl⟩
 
 end general
 
@@ -241,6 +300,58 @@ by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_sub_cancel']
 end comm
 
 end add_torsor
+
+namespace prod
+
+variables {G : Type*} {P : Type*} {G' : Type*} {P' : Type*} [add_group G] [add_group G']
+  [add_torsor G P] [add_torsor G' P']
+
+instance : add_torsor (G × G') (P × P') :=
+{ vadd := λ v p, (v.1 +ᵥ p.1, v.2 +ᵥ p.2),
+  zero_vadd' := λ p, by simp,
+  vadd_assoc' := by simp [add_action.vadd_assoc],
+  vsub := λ p₁ p₂, (p₁.1 -ᵥ p₂.1, p₁.2 -ᵥ p₂.2),
+  nonempty := @prod.nonempty _ _ (add_torsor.nonempty G) (add_torsor.nonempty G'),
+  vsub_vadd' := λ p₁ p₂, show (p₁.1 -ᵥ p₂.1 +ᵥ p₂.1, _) = p₁, by simp,
+  vadd_vsub' := λ v p, show (v.1 +ᵥ p.1 -ᵥ p.1, v.2 +ᵥ p.2 -ᵥ p.2)  =v, by simp }
+
+@[simp] lemma fst_vadd (v : G × G') (p : P × P') : (v +ᵥ p).1 = v.1 +ᵥ p.1 := rfl
+@[simp] lemma snd_vadd (v : G × G') (p : P × P') : (v +ᵥ p).2 = v.2 +ᵥ p.2 := rfl
+@[simp] lemma mk_vadd_mk (v : G) (v' : G') (p : P) (p' : P') :
+  (v, v') +ᵥ (p, p') = (v +ᵥ p, v' +ᵥ p') := rfl
+
+@[simp] lemma fst_vsub (p₁ p₂ : P × P') : (p₁ -ᵥ p₂ : G × G').1 = p₁.1 -ᵥ p₂.1 := rfl
+@[simp] lemma snd_vsub (p₁ p₂ : P × P') : (p₁ -ᵥ p₂ : G × G').2 = p₁.2 -ᵥ p₂.2 := rfl
+@[simp] lemma mk_vsub_mk (p₁ p₂ : P) (p₁' p₂' : P') :
+  ((p₁, p₁') -ᵥ (p₂, p₂') : G × G') = (p₁ -ᵥ p₂, p₁' -ᵥ p₂') := rfl
+
+end prod
+
+namespace pi
+
+universes u v w
+variables {I : Type u} {fg : I → Type v} [∀ i, add_group (fg i)] {fp : I → Type w}
+
+open add_action add_torsor
+
+/-- A product of `add_torsor`s is an `add_torsor`. -/
+instance [T : ∀ i, add_torsor (fg i) (fp i)] : add_torsor (Π i, fg i) (Π i, fp i) :=
+{
+  vadd := λ g p, λ i, g i +ᵥ p i,
+  zero_vadd' := λ p, funext $ λ i, zero_vadd (fg i) (p i),
+  vadd_assoc' := λ g₁ g₂ p, funext $ λ i, vadd_assoc (fg i) (g₁ i) (g₂ i) (p i),
+  vsub := λ p₁ p₂, λ i, p₁ i -ᵥ p₂ i,
+  nonempty := ⟨λ i, classical.choice (T i).nonempty⟩,
+  vsub_vadd' := λ p₁ p₂, funext $ λ i, vsub_vadd (fg i) (p₁ i) (p₂ i),
+  vadd_vsub' := λ g p, funext $ λ i, vadd_vsub (fg i) (g i) (p i),
+}
+
+/-- Addition in a product of `add_torsor`s. -/
+@[simp] lemma vadd_apply [T : ∀ i, add_torsor (fg i) (fp i)] (x : Π i, fg i) (y : Π i, fp i)
+  {i : I} : (x +ᵥ y) i = x i +ᵥ y i
+:= rfl
+
+end pi
 
 namespace equiv
 

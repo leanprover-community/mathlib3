@@ -9,7 +9,7 @@ import ring_theory.ideal_operations
 import ring_theory.free_ring
 
 noncomputable theory
-local attribute [instance, priority 100] classical.prop_decidable
+open_locale classical
 
 universes u v
 
@@ -69,7 +69,7 @@ free_abelian_group.lift.sub _ _ _
 @[simp] lemma lift_mul (x y) : lift f (x * y) = lift f x * lift f y :=
 begin
   refine free_abelian_group.induction_on y (mul_zero _).symm _ _ _,
-  { intros s2, conv { to_lhs, dsimp only [(*), mul_zero_class.mul, semiring.mul, ring.mul, semigroup.mul, comm_ring.mul] },
+  { intros s2, conv_lhs { dsimp only [free_abelian_group.mul_def] },
     rw [free_abelian_group.lift.of, lift, free_abelian_group.lift.of],
     refine free_abelian_group.induction_on x (zero_mul _).symm _ _ _,
     { intros s1, iterate 3 { rw free_abelian_group.lift.of },
@@ -183,7 +183,7 @@ assume hps : is_supported (of p) s, begin
     { rintros x y ⟨q, hq⟩ ⟨r, hr⟩, refine ⟨q+r, _⟩, rw [lift_add, hq, hr], norm_cast } },
   specialize this (of p) hps, rw [lift_of] at this, split_ifs at this, { exact h },
   exfalso, apply ne.symm int.zero_ne_one,
-  rcases this with ⟨w, H⟩, rw polynomial.int_cast_eq_C at H,
+  rcases this with ⟨w, H⟩, rw ←polynomial.C_eq_int_cast at H,
   have : polynomial.X.coeff 1 = (polynomial.C ↑w).coeff 1, by rw H,
   rwa [polynomial.coeff_C, if_neg (one_ne_zero : 1 ≠ 0), polynomial.coeff_X, if_pos rfl] at this
 end
@@ -202,10 +202,10 @@ theorem exists_finite_support (x : free_comm_ring α) : ∃ s : set α, set.fini
 free_comm_ring.induction_on x
   ⟨∅, set.finite_empty, is_supported_neg is_supported_one⟩
   (λ p, ⟨{p}, set.finite_singleton p, is_supported_of.2 $ set.mem_singleton _⟩)
-  (λ x y ⟨s, hfs, hxs⟩ ⟨t, hft, hxt⟩, ⟨s ∪ t, set.finite_union hfs hft, is_supported_add
+  (λ x y ⟨s, hfs, hxs⟩ ⟨t, hft, hxt⟩, ⟨s ∪ t, hfs.union hft, is_supported_add
     (is_supported_upwards hxs $ set.subset_union_left s t)
     (is_supported_upwards hxt $ set.subset_union_right s t)⟩)
-  (λ x y ⟨s, hfs, hxs⟩ ⟨t, hft, hxt⟩, ⟨s ∪ t, set.finite_union hfs hft, is_supported_mul
+  (λ x y ⟨s, hfs, hxs⟩ ⟨t, hft, hxt⟩, ⟨s ∪ t, hfs.union hft, is_supported_mul
     (is_supported_upwards hxs $ set.subset_union_left s t)
     (is_supported_upwards hxt $ set.subset_union_right s t)⟩)
 
@@ -276,9 +276,17 @@ begin
   refl
 end
 
+variables
+
+-- FIXME This was in `deprecated.ring`, but only used here.
+-- It would be good to inline it into the next construction.
+/-- Interpret an equivalence `f : R ≃ S` as a ring equivalence `R ≃+* S`. -/
+def of' {R S : Type*} [ring R] [ring S] (e : R ≃ S) [is_ring_hom e] : R ≃+* S :=
+{ .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
+
 def subsingleton_equiv_free_comm_ring [subsingleton α] :
   free_ring α ≃+* free_comm_ring α :=
-@ring_equiv.of' (free_ring α) (free_comm_ring α) _ _
+@of' (free_ring α) (free_comm_ring α) _ _
   (functor.map_equiv free_abelian_group (multiset.subsingleton_equiv α)) $
   begin
     delta functor.map_equiv,
@@ -289,11 +297,11 @@ def subsingleton_equiv_free_comm_ring [subsingleton α] :
 
 instance [subsingleton α] : comm_ring (free_ring α) :=
 { mul_comm := λ x y,
-  by rw [← (subsingleton_equiv_free_comm_ring α).left_inv (y * x),
-        is_ring_hom.map_mul ((subsingleton_equiv_free_comm_ring α)).to_fun,
+  by { rw [← (subsingleton_equiv_free_comm_ring α).symm_apply_apply (y * x),
+        ((subsingleton_equiv_free_comm_ring α)).map_mul,
         mul_comm,
-        ← is_ring_hom.map_mul ((subsingleton_equiv_free_comm_ring α)).to_fun,
-        (subsingleton_equiv_free_comm_ring α).left_inv],
+        ← ((subsingleton_equiv_free_comm_ring α)).map_mul,
+        (subsingleton_equiv_free_comm_ring α).symm_apply_apply], },
   .. free_ring.ring α }
 
 end free_ring
@@ -301,7 +309,7 @@ end free_ring
 def free_comm_ring_equiv_mv_polynomial_int :
   free_comm_ring α ≃+* mv_polynomial α ℤ :=
 { to_fun  := free_comm_ring.lift $ λ a, mv_polynomial.X a,
-  inv_fun := mv_polynomial.eval₂ coe free_comm_ring.of,
+  inv_fun := mv_polynomial.eval₂ (int.cast_ring_hom (free_comm_ring α)) free_comm_ring.of,
   left_inv :=
   begin
     intro x,
@@ -314,7 +322,7 @@ def free_comm_ring_equiv_mv_polynomial_int :
         rw [free_abelian_group.lift.of],
         exact mv_polynomial.eval₂_one _ _ },
       { intros hd tl ih,
-        show mv_polynomial.eval₂ coe free_comm_ring.of
+        show mv_polynomial.eval₂ (int.cast_ring_hom (free_comm_ring α)) free_comm_ring.of
           (free_comm_ring.lift (λ a, mv_polynomial.X a)
           (free_comm_ring.of hd * free_abelian_group.of tl)) =
           free_comm_ring.of hd * free_abelian_group.of tl,
@@ -323,7 +331,7 @@ def free_comm_ring_equiv_mv_polynomial_int :
     { intros s ih,
       rw [free_comm_ring.lift_neg, ← neg_one_mul, mv_polynomial.eval₂_mul,
         ← mv_polynomial.C_1, ← mv_polynomial.C_neg, mv_polynomial.eval₂_C,
-        int.cast_neg, int.cast_one, neg_one_mul, ih] },
+        ring_hom.map_neg, ring_hom.map_one, neg_one_mul, ih] },
     { intros x₁ x₂ ih₁ ih₂, rw [free_comm_ring.lift_add, mv_polynomial.eval₂_add, ih₁, ih₂] }
   end,
   right_inv :=
@@ -331,12 +339,13 @@ def free_comm_ring_equiv_mv_polynomial_int :
     intro x,
     haveI : is_semiring_hom (coe : int → free_comm_ring α) :=
       (int.cast_ring_hom _).is_semiring_hom,
-    have : ∀ i : ℤ, free_comm_ring.lift (λ (a : α), mv_polynomial.X a) ↑i = mv_polynomial.C i,
+    have : ∀ i : ℤ, free_comm_ring.lift (λ (a : α), mv_polynomial.X a) (int.cast_ring_hom _ i) =
+      mv_polynomial.C i,
     { exact λ i, int.induction_on i
-      (by rw [int.cast_zero, free_comm_ring.lift_zero, mv_polynomial.C_0])
-      (λ i ih, by rw [int.cast_add, int.cast_one, free_comm_ring.lift_add,
+      (by rw [ring_hom.map_zero, free_comm_ring.lift_zero, mv_polynomial.C_0])
+      (λ i ih, by rw [ring_hom.map_add, ring_hom.map_one, free_comm_ring.lift_add,
         free_comm_ring.lift_one, ih, mv_polynomial.C_add, mv_polynomial.C_1])
-      (λ i ih, by rw [int.cast_sub, int.cast_one, free_comm_ring.lift_sub,
+      (λ i ih, by rw [ring_hom.map_sub, ring_hom.map_one, free_comm_ring.lift_sub,
         free_comm_ring.lift_one, ih, mv_polynomial.C_sub, mv_polynomial.C_1]) },
     apply mv_polynomial.induction_on x,
     { intro i, rw [mv_polynomial.eval₂_C, this] },

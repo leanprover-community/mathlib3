@@ -16,7 +16,7 @@ Galois connections are order theoretic adjoints, i.e. a pair of functions `u` an
   `l a ≤ b ↔ a ≤ u b`. They are closely connected to adjoint functors
   in category theory.
 * `galois_insertion`: A Galois insertion is a Galois connection where `l ∘ u = id`
-* `galois_coinsertion`: A Galois coinsertion is a Galois connection where `u ∘ l - id`
+* `galois_coinsertion`: A Galois coinsertion is a Galois connection where `u ∘ l = id`
 
 -/
 open function set

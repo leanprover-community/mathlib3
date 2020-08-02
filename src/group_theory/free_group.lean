@@ -312,6 +312,7 @@ namespace free_group
 
 variables {α} {L L₁ L₂ L₃ L₄ : list (α × bool)}
 
+/-- The canonical map from `list (α × bool)` to the free group on `α`. -/
 def mk (L) : free_group α := quot.mk red.step L
 
 @[simp] lemma quot_mk_eq_mk : quot.mk red.step L = mk L := rfl
@@ -368,6 +369,7 @@ section to_group
 
 variables {β : Type v} [group β] (f : α → β) {x y : free_group α}
 
+/-- Given `f : α → β` with `β` a group, the canonical map `list (α × bool) → β` -/
 def to_group.aux : list (α × bool) → β :=
 λ L, list.prod $ L.map $ λ x, cond x.2 (f x.1) (f x.1)⁻¹
 
@@ -377,10 +379,14 @@ by cases H with _ _ _ b; cases b; simp [to_group.aux]
 
 /-- If `β` is a group, then any function from `α` to `β`
 extends uniquely to a group homomorphism from
-the free group over `α` to `β` -/
+the free group over `α` to `β`. Note that this is the bare function; the
+group homomorphism is `to_group`. -/
 def to_group.to_fun : free_group α → β :=
 quot.lift (to_group.aux f) $ λ L₁ L₂ H, red.step.to_group H
 
+/-- If `β` is a group, then any function from `α` to `β`
+extends uniquely to a group homomorphism from
+the free group over `α` to `β` -/
 def to_group : free_group α →* β :=
 monoid_hom.mk' (to_group.to_fun f) $ begin
   rintros ⟨L₁⟩ ⟨L₂⟩; simp [to_group.to_fun, to_group.aux],
@@ -453,16 +459,21 @@ section map
 
 variables {β : Type v} (f : α → β) {x y : free_group α}
 
+/-- Given `f : α → β`, the canonical map `list (α × bool) → list (β × bool)`. -/
 def map.aux (L : list (α × bool)) : list (β × bool) :=
 L.map $ λ x, (f x.1, x.2)
 
 /-- Any function from `α` to `β` extends uniquely
 to a group homomorphism from the free group
-ver `α` to the free group over `β`. -/
+over `α` to the free group over `β`. Note that this is the bare function;
+for the group homomorphism use `map`. -/
 def map.to_fun (x : free_group α) : free_group β :=
 x.lift_on (λ L, mk $ map.aux f L) $
 λ L₁ L₂ H, quot.sound $ by cases H; simp [map.aux]
 
+/-- Any function from `α` to `β` extends uniquely
+to a group homomorphism from the free group
+ver `α` to the free group over `β`. -/
 def map : free_group α →* free_group β := monoid_hom.mk' (map.to_fun f)
 begin
   rintros ⟨L₁⟩ ⟨L₂⟩,
@@ -594,12 +605,14 @@ prod.inv
 
 end sum
 
+/-- The bijection between the free group on the empty type, and a type with one element. -/
 def free_group_empty_equiv_unit : free_group empty ≃ unit :=
 { to_fun    := λ _, (),
   inv_fun   := λ _, 1,
   left_inv  := by rintros ⟨_ | ⟨⟨⟨⟩, _⟩, _⟩⟩; refl,
   right_inv := λ ⟨⟩, rfl }
 
+/-- The bijection between the free group on a singleton, and the integers. -/
 def free_group_unit_equiv_int : free_group unit ≃ int :=
 { to_fun    := λ x,
    sum begin revert x, apply monoid_hom.to_fun,

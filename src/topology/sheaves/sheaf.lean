@@ -71,7 +71,7 @@ lemma w : res F U ≫ left_res F U = res F U ≫ right_res F U :=
 begin
   dsimp [res, left_res, right_res],
   ext,
-  simp,
+  simp only [limit.lift_π, limit.lift_π_assoc, fan.mk_π_app, category.assoc],
   rw [←F.map_comp],
   rw [←F.map_comp],
   congr,

@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov
 -/
 import algebra.order_functions
 import data.set.basic
-import tactic.wlog
 
 /-!
 # Intervals

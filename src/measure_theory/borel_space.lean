@@ -333,7 +333,7 @@ hf.prod_mk hg is_measurable_le'
 lemma measurable.max [decidable_linear_order α] [order_closed_topology α] [second_countable_topology α]
   {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λa, max (f a) (g a)) :=
-hg.piecewise (is_measurable_le hf hg) hf
+hf.piecewise (is_measurable_le hg hf) hg
 
 lemma measurable.min [decidable_linear_order α] [order_closed_topology α] [second_countable_topology α]
   {f g : δ → α} (hf : measurable f) (hg : measurable g) :

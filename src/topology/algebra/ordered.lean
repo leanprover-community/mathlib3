@@ -7,6 +7,7 @@ import tactic.tfae
 import order.liminf_limsup
 import data.set.intervals.image_preimage
 import topology.algebra.group
+import topology.extend_from_subset
 
 /-!
 # Theory of topology on ordered spaces
@@ -2215,105 +2216,84 @@ lemma continuous_at_iff_continuous_cleft_cright [topological_space α] [linear_o
   continuous_at f a ↔ continuous_within_at f (Iic a) a ∧ continuous_within_at f (Ici a) a :=
 by simp only [continuous_within_at, continuous_at, ← tendsto_sup, nhds_cleft_sup_nhds_cright]
 
-lemma continuous_on_Ico_extend_continuous_on_Ioo
-  [topological_space α] [linear_order α] [order_topology α] [topological_space β] {a b : α} {l : β}
-  {f : α → β} (hcf : continuous_on f (Ioo a b)) (hfa : tendsto f (nhds_within a (Ioi a)) (nhds l)) :
-  continuous_on (λ x, if x ∈ Ioo a b then f x else l) (Ico a b) :=
+lemma continuous_on_Icc_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
+  [order_topology α] [topological_space β] [t2_space β] [regular_space β] {f : α → β} {a b : α}
+  {la lb : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
+  (ha : tendsto f (nhds_within a $ Ioi a) (𝓝 la)) (hb : tendsto f (nhds_within b $ Iio b) (𝓝 lb)) :
+  continuous_on (extend_from (Ioo a b) f) (Icc a b) ∧
+  (extend_from (Ioo a b) f a = la) ∧
+  (extend_from (Ioo a b) f b = lb) ∧
+  ∀ x ∈ Ioo a b, extend_from (Ioo a b) f x = f x :=
 begin
-  by_cases hab : a < b,
-  { have : ∀ x ∈ Ico a b ∩ frontier (Ioo a b), x = a,
-    { rintros x ⟨hx₁, ⟨_, hx₂⟩⟩,
-      rw interior_Ioo at hx₂,
-      simp only [mem_Ioo, not_and, not_lt] at hx₂,
-      by_cases h : a = x,
-      { simp [h] },
-      { exfalso,
-        exact not_le_of_lt hx₁.2 (hx₂ $ lt_of_le_of_ne hx₁.1 h) } },
-    apply continuous_on_if',
-    repeat
-    { intros a' ha',
-      try {rw [set_of_mem_eq, inter_eq_self_of_subset_right Ioo_subset_Ico_self]},
-      rw this a' ha',
-      simp only [left_mem_Ioo, if_false],
-      exact tendsto_const_nhds <|> simp only [hfa, hab, nhds_within_Ioo_eq_nhds_within_Ioi] },
-    { rw [set_of_mem_eq, inter_eq_self_of_subset_right Ioo_subset_Ico_self],
-      exact hcf },
-    { exact continuous_on_const } },
-  { rw Ico_eq_empty (le_of_not_lt hab),
-    exact continuous_on_empty _ }
+  split,
+  { apply continuous_on_extend_from,
+    rw closure_Ioo hab,
+    intros x x_in,
+    have : a = x ∨ b = x ∨ x ∈ Ioo a b,
+    { rw [mem_Icc, le_iff_lt_or_eq, le_iff_lt_or_eq] at x_in,
+      exact x_in.1.elim
+        (λ h, x_in.2.elim
+          (or.inr ∘ or.inr ∘ and.intro h)
+          (or.inr ∘ or.inl ∘ symm))
+        or.inl },
+    rcases this with rfl | rfl | h,
+    { use la,
+      simpa [hab] },
+    { use lb,
+      simpa [hab] },
+    { use [f x, hf x h] },
+  },
+  repeat
+  { split,
+    apply extend_from_eq,
+    rw closure_Ioo hab,
+    simp only [le_of_lt hab, left_mem_Icc, right_mem_Icc],
+    simpa [hab] },
+  { exact extend_from_extends hf }
 end
 
-lemma continuous_on_Ioc_extend_continuous_on_Ioo
-  {α β : Type*} [topological_space α] [linear_order α] [order_topology α] [topological_space β]
-  {a b : α} {l : β} {f : α → β}
-  (hcf : continuous_on f (Ioo a b)) (hfb : tendsto f (nhds_within b (Iio b)) (nhds l)) :
-  continuous_on (λ x, if x ∈ Ioo a b then f x else l) (Ioc a b) :=
+lemma continuous_on_Ico_extend_from_Ioo [topological_space α]
+  [linear_order α] [densely_ordered α] [order_topology α] [topological_space β] [t2_space β]
+  [regular_space β] {f : α → β} {a b : α} {la : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
+  (ha : tendsto f (nhds_within a $ Ioi a) (𝓝 la)) :
+  continuous_on (extend_from (Ioo a b) f) (Ico a b) ∧
+  (extend_from (Ioo a b) f a = la) ∧
+  ∀ x ∈ Ioo a b, extend_from (Ioo a b) f x = f x :=
 begin
-  have := @continuous_on_Ico_extend_continuous_on_Ioo (order_dual α) _ _ _ _ _ _ _ _ f,
+  split,
+  { apply continuous_on_extend_from,
+    rw [closure_Ioo hab], exact Ico_subset_Icc_self,
+    intros x x_in,
+    have : a = x ∨ x ∈ Ioo a b,
+    { rw [mem_Ico, le_iff_lt_or_eq] at x_in,
+      exact x_in.1.elim
+        (or.inr ∘ (λ h, and.intro h x_in.2))
+        or.inl },
+    rcases this with rfl | h,
+    { use la,
+      simpa [hab] },
+    { use [f x, hf x h] },
+  },
+  split,
+  { apply extend_from_eq,
+    rw closure_Ioo hab,
+    simp only [le_of_lt hab, left_mem_Icc],
+    simpa [hab] },
+  { exact extend_from_extends hf }
+end
+
+lemma continuous_on_Ioc_extend_from_Ioo [topological_space α]
+  [linear_order α] [densely_ordered α] [order_topology α] [topological_space β] [t2_space β]
+  [regular_space β] {f : α → β} {a b : α} {lb : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
+  (hb : tendsto f (nhds_within b $ Iio b) (𝓝 lb)) :
+  continuous_on (extend_from (Ioo a b) f) (Ioc a b) ∧
+  (extend_from (Ioo a b) f b = lb) ∧
+  ∀ x ∈ Ioo a b, extend_from (Ioo a b) f x = f x :=
+begin
+  have := @continuous_on_Ico_extend_from_Ioo (order_dual α) _ _ _ _ _ _ _ _ f _ _ _ hab,
   erw [dual_Ico, dual_Ioi, dual_Ioo] at this,
-  exact this hcf hfb
+  exact this hf hb
 end
-
-lemma continuous_extend_continuous_on_Ioo
-  {α β : Type*} {a b : α} {la lb : β} [topological_space α] [linear_order α] [topological_space β]
-  [order_closed_topology α] {f : α → β} (hab : a < b)
-  (hcf : continuous_on f (Ioo a b)) (hfa : tendsto f (nhds_within a (Ioi a)) (nhds la))
-  (hfb : tendsto f (nhds_within b (Iio b)) (nhds lb)) :
-  continuous (λ x, if x ≤ a then la else if b ≤ x then lb else f x) :=
-begin
-  have ha : ∀ x ∈ frontier (Iic a), x = a,
-  { rintros x ⟨hx₁, hx₂⟩,
-    rw [closure_Iic, mem_Iic, le_iff_lt_or_eq] at hx₁,
-    exact hx₁.cases_on
-      (λ hx₁, (hx₂ $ mem_of_mem_of_subset hx₁ $
-        (subset_interior_iff_subset_of_open is_open_Iio).mpr Iio_subset_Iic_self).elim)
-      id },
-  have hb : ∀ x ∈ frontier (Ici b), x = b,
-  { rintros x ⟨hx₁, hx₂⟩,
-    rw [closure_Ici, mem_Ici, le_iff_lt_or_eq] at hx₁,
-    exact hx₁.cases_on
-      (λ hx₁, (hx₂ $ mem_of_mem_of_subset hx₁ $
-        (subset_interior_iff_subset_of_open is_open_Ioi).mpr Ioi_subset_Ici_self).elim)
-      symm },
-  apply continuous_if',
-  repeat
-  { intros a' ha',
-    try {rw (show {x : α | ¬x ≤ a} = (Iic a)ᶜ, from rfl)},
-    rw ha a' ha',
-    simp only [le_refl a, if_true],
-    exact tendsto_const_nhds <|>
-    { rw [compl_Iic],
-      rw tendsto_congr',
-      exact hfa,
-      use [Iio b, mem_nhds_sets (is_open_Iio) hab, Ioi a, mem_principal_self _],
-      rintros x ⟨hxb, hxa⟩,
-      simp only [mem_set_of_eq, not_le_of_lt hxb, if_false] } },
-  { exact continuous_on_const },
-  rw (show {x : α | ¬x ≤ a} = (Iic a)ᶜ, from rfl),
-  rw [compl_Iic],
-  apply continuous_on_if',
-  repeat
-  { intros b' hb',
-    try {rw (show {x : α | ¬b ≤ x} = (Ici b)ᶜ, from rfl)},
-    rw hb b' hb'.2,
-    simp only [le_refl b, if_true],
-    exact tendsto_const_nhds <|>
-    { rw [compl_Ici, nhds_within_inter],
-      apply tendsto_inf_right,
-      exact hfb } },
-  { exact continuous_on_const },
-  rw (show {a | ¬b ≤ a} = (Ici b)ᶜ, from rfl) at *,
-  rw compl_Ici,
-  exact hcf
-end
-
-lemma continuous_on_Icc_extend_continuous_on_Ioo
-  {α β : Type*} {a b : α} {la lb : β} [topological_space α] [linear_order α] [topological_space β]
-  [order_closed_topology α] {f : α → β} (hab : a < b)
-  (hcf : continuous_on f (Ioo a b)) (hfa : tendsto f (nhds_within a (Ioi a)) (nhds la))
-  (hfb : tendsto f (nhds_within b (Iio b)) (nhds lb)) :
-  continuous_on (λ x, if x ≤ a then la else if b ≤ x then lb else f x) (Icc a b) :=
-(continuous_extend_continuous_on_Ioo hab hcf hfa hfb).continuous_on
 
 lemma continuous_within_at_Ioi_iff_Ici
   {α β : Type*} [topological_space α] [linear_order α] [topological_space β] {a : α} {f : α → β} :

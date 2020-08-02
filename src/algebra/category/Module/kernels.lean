@@ -55,10 +55,10 @@ cofork.is_colimit.mk _
   end)
 end
 
-instance : has_kernels (Module R) :=
+def has_kernels_Module : has_kernels (Module R) :=
 ⟨λ X Y f, ⟨_, kernel_is_limit f⟩⟩
 
-instance : has_cokernels (Module R) :=
+def has_cokernels_Module : has_cokernels (Module R) :=
 ⟨λ X Y f, ⟨_, cokernel_is_colimit f⟩⟩
 
 end Module

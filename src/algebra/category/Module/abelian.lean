@@ -31,7 +31,7 @@ def normal_mono [mono f] : normal_mono f :=
       /- The following [invalid Lean code](https://github.com/leanprover-community/lean/issues/341)
         might help you understand what's going on here:
         ```
-        calc 
+        calc
         M   ≃ₗ[R] f.ker.quotient  : (submodule.quot_equiv_of_eq_bot _ (ker_eq_bot_of_mono _)).symm
         ... ≃ₗ[R] f.range         : linear_map.quot_ker_equiv_range f
         ... ≃ₗ[R] r.range.mkq.ker : linear_equiv.of_eq _ _ (submodule.ker_mkq _).symm
@@ -64,11 +64,13 @@ def normal_epi [epi f] : normal_epi f :=
             (linear_map.quot_ker_equiv_range f)) (linear_equiv.of_top _ (range_eq_top_of_epi _)))) $
       by { ext, refl } }
 
+local attribute [instance] has_equalizers_of_has_finite_limits
+
 /-- The category of R-modules is abelian. -/
 instance : abelian (Module R) :=
 { has_finite_products := by apply_instance,
   has_kernels := by apply_instance,
-  has_cokernels := by apply_instance,
+  has_cokernels := has_cokernels_Module,
   normal_mono := λ X Y f m, by exactI normal_mono f,
   normal_epi := λ X Y f e, by exactI normal_epi f }
 

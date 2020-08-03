@@ -228,7 +228,7 @@ def S := indefinite_diagonal l l R
 
 lemma S_as_blocks : S l R = matrix.from_blocks 1 0 0 (-1) :=
 begin
-  rw [←matrix.diagonal_one, matrix.neg_diagonal, matrix.from_blocks_diagonal],
+  rw [←matrix.diagonal_one, matrix.diagonal_neg, matrix.from_blocks_diagonal],
   refl,
 end
 
@@ -279,13 +279,17 @@ def type_B := skew_adjoint_matrices_lie_subalgebra (JB l R)
 almost-split-signature diagonal matrix. -/
 def PB := matrix.from_blocks (1 : matrix punit punit R) 0 0 (PD l R)
 
+lemma PB_inv [invertible (2 : R)] : (PB l R) * (matrix.from_blocks 1 0 0 (PD l R)⁻¹) = 1 :=
+begin
+  simp [PB, matrix.from_blocks_multiply, (PD l R).mul_nonsing_inv, is_unit_PD,
+        ←(PD l R).is_unit_iff_is_unit_det]
+end
+
 lemma is_unit_PB [invertible (2 : R)] : is_unit (PB l R) :=
 ⟨{ val     := PB l R,
    inv     := matrix.from_blocks 1 0 0 (PD l R)⁻¹,
-   val_inv := by simp [PB, matrix.from_blocks_multiply, (PD l R).mul_nonsing_inv, is_unit_PD,
-                       ←(PD l R).is_unit_iff_is_unit_det],
-   inv_val := by simp [PB, matrix.from_blocks_multiply, (PD l R).nonsing_inv_mul, is_unit_PD,
-                       ←(PD l R).is_unit_iff_is_unit_det], },
+   val_inv := PB_inv l R,
+   inv_val := by { apply matrix.nonsing_inv_left_right, exact PB_inv l R, }, },
 rfl⟩
 
 lemma JB_transform : (PB l R)ᵀ ⬝ (JB l R) ⬝ (PB l R) = (2 : R) • matrix.from_blocks 1 0 0 (S l R) :=

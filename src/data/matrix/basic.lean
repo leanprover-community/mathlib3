@@ -177,17 +177,6 @@ by simp [bit1_val, h]
 
 end numeral
 
-section add_group
-
-variables [add_group α]
-
-lemma neg_diagonal (d : n → α) : -diagonal d = diagonal (-d) :=
-begin
-  ext i j, by_cases h : i = j; simp [h],
-end
-
-end add_group
-
 end diagonal
 
 section dot_product
@@ -861,10 +850,30 @@ def to_blocks₂₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o m α :=
 λ i j, M (sum.inr i) (sum.inr j)
 
 lemma from_blocks_to_blocks (M : matrix (n ⊕ o) (l ⊕ m) α) :
-  M = from_blocks M.to_blocks₁₁ M.to_blocks₁₂ M.to_blocks₂₁ M.to_blocks₂₂ :=
+  from_blocks M.to_blocks₁₁ M.to_blocks₁₂ M.to_blocks₂₁ M.to_blocks₂₂ = M :=
 begin
   ext i j, rcases i; rcases j; refl,
 end
+
+@[simp] lemma to_blocks_from_blocks₁₁
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
+  (from_blocks A B C D).to_blocks₁₁ = A :=
+rfl
+
+@[simp] lemma to_blocks_from_blocks₁₂
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
+  (from_blocks A B C D).to_blocks₁₂ = B :=
+rfl
+
+@[simp] lemma to_blocks_from_blocks₂₁
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
+  (from_blocks A B C D).to_blocks₂₁ = C :=
+rfl
+
+@[simp] lemma to_blocks_from_blocks₂₂
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
+  (from_blocks A B C D).to_blocks₂₂ = D :=
+rfl
 
 lemma from_blocks_transpose
   (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :

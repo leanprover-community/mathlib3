@@ -80,13 +80,11 @@ end
 instance : fin_category walking_parallel_pair := { }
 
 /-- Equalizers are finite limits, so if `C` has all finite limits, it also has all equalizers -/
-def has_equalizers_of_has_finite_limits [has_finite_limits C] : has_equalizers C :=
-{ has_limits_of_shape := infer_instance }
+example [has_finite_limits C] : has_equalizers C := infer_instance
 
 /-- Coequalizers are finite colimits, of if `C` has all finite colimits, it also has all
     coequalizers -/
-def has_coequalizers_of_has_finite_colimits [has_finite_colimits C] : has_coequalizers C :=
-{ has_colimits_of_shape := infer_instance }
+example [has_finite_colimits C] : has_coequalizers C := infer_instance
 
 variables {J : Type v}
 
@@ -142,36 +140,42 @@ instance fin_category_wide_pullback [fintype J] [decidable_eq J] : fin_category 
 instance fin_category_wide_pushout [fintype J] [decidable_eq J] : fin_category (wide_pushout_shape J) :=
 { fintype_hom := wide_pushout_shape.fintype_hom }
 
-/-- `has_finite_wide_pullbacks` represents a choice of wide pullback for every finite collection of morphisms -/
-class has_finite_wide_pullbacks :=
-(has_limits_of_shape : Π (J : Type v) [decidable_eq J] [fintype J], has_limits_of_shape (wide_pullback_shape J) C)
+/--
+`has_finite_wide_pullbacks` represents a choice of wide pullback
+for every finite collection of morphisms
+-/
+abbreviation has_finite_wide_pullbacks : Type (max (v+1) u) :=
+Π (J : Type v) [decidable_eq J] [fintype J], has_limits_of_shape (wide_pullback_shape J) C
 
-attribute [instance] has_finite_wide_pullbacks.has_limits_of_shape
+/--
+`has_finite_wide_pushouts` represents a choice of wide pushout
+for every finite collection of morphisms
+-/
+abbreviation has_finite_wide_pushouts : Type (max (v+1) u) :=
+Π (J : Type v) [decidable_eq J] [fintype J], has_colimits_of_shape (wide_pushout_shape J) C
 
-/-- `has_finite_wide_pushouts` represents a choice of wide pushout for every finite collection of morphisms -/
-class has_finite_wide_pushouts :=
-(has_colimits_of_shape : Π (J : Type v) [decidable_eq J] [fintype J], has_colimits_of_shape (wide_pushout_shape J) C)
-
-attribute [instance] has_finite_wide_pushouts.has_colimits_of_shape
-
-/-- Finite wide pullbacks are finite limits, so if `C` has all finite limits, it also has finite wide pullbacks -/
+/--
+Finite wide pullbacks are finite limits, so if `C` has all finite limits,
+it also has finite wide pullbacks
+-/
 def has_finite_wide_pullbacks_of_has_finite_limits [has_finite_limits C] : has_finite_wide_pullbacks C :=
-{ has_limits_of_shape := λ J _ _, by exactI (has_finite_limits.has_limits_of_shape _) }
+λ J _ _, by exactI (has_finite_limits.has_limits_of_shape _)
 
-/-- Finite wide pushouts are finite colimits, so if `C` has all finite colimits, it also has finite wide pushouts -/
+/--
+Finite wide pushouts are finite colimits, so if `C` has all finite colimits,
+it also has finite wide pushouts
+-/
 def has_finite_wide_pushouts_of_has_finite_limits [has_finite_colimits C] : has_finite_wide_pushouts C :=
-{ has_colimits_of_shape := λ J _ _, by exactI (has_finite_colimits.has_colimits_of_shape _) }
+λ J _ _, by exactI (has_finite_colimits.has_colimits_of_shape _)
 
 instance fintype_walking_pair : fintype walking_pair :=
 { elems := {walking_pair.left, walking_pair.right},
   complete := λ x, by { cases x; simp } }
 
 /-- Pullbacks are finite limits, so if `C` has all finite limits, it also has all pullbacks -/
-def has_pullbacks_of_has_finite_limits [has_finite_wide_pullbacks C] : has_pullbacks C :=
-{ has_limits_of_shape := has_finite_wide_pullbacks.has_limits_of_shape walking_pair }
+example [has_finite_wide_pullbacks C] : has_pullbacks C := infer_instance
 
 /-- Pushouts are finite colimits, so if `C` has all finite colimits, it also has all pushouts -/
-def has_pushouts_of_has_finite_colimits [has_finite_wide_pushouts C] : has_pushouts C :=
-{ has_colimits_of_shape := has_finite_wide_pushouts.has_colimits_of_shape walking_pair }
+example [has_finite_wide_pushouts C] : has_pushouts C := infer_instance
 
 end category_theory.limits

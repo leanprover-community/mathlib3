@@ -19,19 +19,32 @@ variable {X : C}
 namespace category_theory.over
 
 /-- Make sure we can derive pullbacks in `over B`. -/
-example {B : C} [has_pullbacks C] : has_pullbacks (over B) :=
-{ has_limits_of_shape := infer_instance }
+example {B : C} [has_pullbacks C] : has_pullbacks (over B) := infer_instance
 
 /-- Make sure we can derive equalizers in `over B`. -/
-example {B : C} [has_equalizers C] : has_equalizers (over B) :=
-{ has_limits_of_shape := infer_instance }
+example {B : C} [has_equalizers C] : has_equalizers (over B) := infer_instance
 
 instance has_finite_limits {B : C} [has_finite_wide_pullbacks C] : has_finite_limits (over B) :=
 begin
   apply @finite_limits_from_equalizers_and_finite_products _ _ _ _,
-  { exact construct_products.over_finite_products_of_finite_wide_pullbacks },
+  { /-
+    FIXME why do we need to insert `_inst_3` by hand here? It should suffice to write just:
+    ```
+    exact construct_products.over_finite_products_of_finite_wide_pullbacks
+    ```
+    but that gives the unhelpful error message (with pp.all):
+    ```
+    failed to synthesize type class instance for
+    C : Type u,
+    _inst_2 : category_theory.category.{v u} C,
+    B : C,
+    _inst_3 : @category_theory.limits.has_finite_wide_pullbacks.{v u} C _inst_2
+    ⊢ @category_theory.limits.has_finite_wide_pullbacks.{v u} C _inst_2
+    ```
+    -/
+    exact @construct_products.over_finite_products_of_finite_wide_pullbacks _ _ _inst_3 _ },
   { apply @has_equalizers_of_pullbacks_and_binary_products _ _ _ _,
-    { haveI: has_pullbacks C := ⟨infer_instance⟩,
+    { haveI : has_pullbacks C := ⟨infer_instance⟩,
       exact construct_products.over_binary_product_of_pullback },
     { split,
       apply_instance} }
@@ -42,7 +55,7 @@ begin
   apply @limits_from_equalizers_and_products _ _ _ _,
   { exact construct_products.over_products_of_wide_pullbacks },
   { apply @has_equalizers_of_pullbacks_and_binary_products _ _ _ _,
-    { haveI: has_pullbacks C := ⟨infer_instance⟩,
+    { haveI : has_pullbacks C := ⟨infer_instance⟩,
       exact construct_products.over_binary_product_of_pullback },
     { split,
       apply_instance } }

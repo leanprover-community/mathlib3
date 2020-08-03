@@ -14,6 +14,8 @@ import data.polynomial.monic
 This file defines the typeclass of monoid acting on semirings `mul_semiring_action M R`,
 and the corresponding typeclass of invariant subrings.
 
+Note that `algebra` does not satisfy the axioms of `mul_semiring_action`.
+
 ## Implementation notes
 
 There is no separate typeclass for group acting on rings, group acting on fields, etc.

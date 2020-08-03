@@ -183,34 +183,59 @@ end monoid_hom
 
 section End
 
+namespace monoid
+
 variables (M) [monoid M]
-variables (A : Type*) [add_monoid A]
 
 /-- The monoid of endomorphisms. -/
-protected def monoid.End := M →* M
+protected def End := M →* M
 
-instance monoid.End.monoid : monoid (monoid.End M) :=
+namespace End
+
+instance : monoid (monoid.End M) :=
 { mul := monoid_hom.comp,
   one := monoid_hom.id M,
   mul_assoc := λ _ _ _, monoid_hom.comp_assoc _ _ _,
   mul_one := monoid_hom.comp_id,
   one_mul := monoid_hom.id_comp }
 
-instance monoid.End.inhabited : inhabited (monoid.End M) :=
-⟨1⟩
+instance : inhabited (monoid.End M) := ⟨1⟩
+
+instance : has_coe_to_fun (monoid.End M) := ⟨_, monoid_hom.to_fun⟩
+
+end End
+
+@[simp] lemma coe_one : ((1 : monoid.End M) : M → M) = id := rfl
+@[simp] lemma coe_mul (f g) : ((f * g : monoid.End M) : M → M) = f ∘ g := rfl
+
+end monoid
+
+namespace add_monoid
+
+variables (A : Type*) [add_monoid A]
 
 /-- The monoid of endomorphisms. -/
-protected def add_monoid.End := A →+ A
+protected def End := A →+ A
 
-instance add_monoid.End.monoid : monoid (add_monoid.End A) :=
+namespace End
+
+instance : monoid (add_monoid.End A) :=
 { mul := add_monoid_hom.comp,
   one := add_monoid_hom.id A,
   mul_assoc := λ _ _ _, add_monoid_hom.comp_assoc _ _ _,
   mul_one := add_monoid_hom.comp_id,
   one_mul := add_monoid_hom.id_comp }
 
-instance add_monoid.End.inhabited : inhabited (add_monoid.End A) :=
-⟨1⟩
+instance : inhabited (add_monoid.End A) := ⟨1⟩
+
+instance : has_coe_to_fun (add_monoid.End A) := ⟨_, add_monoid_hom.to_fun⟩
+
+end End
+
+@[simp] lemma coe_one : ((1 : add_monoid.End A) : A → A) = id := rfl
+@[simp] lemma coe_mul (f g) : ((f * g : add_monoid.End A) : A → A) = f ∘ g := rfl
+
+end add_monoid
 
 end End
 

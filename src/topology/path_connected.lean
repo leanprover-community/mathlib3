@@ -391,7 +391,7 @@ begin
   exact ⟨λ t, ⟨γ t, hWU $ γ_mem t⟩, continuous_subtype_mk _ γ_cont, γ_mem, rfl, rfl⟩,
 end
 
-/-- A topological space is path-connected if it is non-empy and every two points can be
+/-- A topological space is path-connected if it is non-empty and every two points can be
 joined by a continuous path. -/
 class path_connected_space (X : Type*) [topological_space X] : Prop :=
 (nonempty : nonempty X)

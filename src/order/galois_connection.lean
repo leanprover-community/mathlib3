@@ -37,7 +37,7 @@ because the intersection of subgroups is already a subgroup, so there is no need
 closure. For this reason a `choice` function is added as a field to the `galois_insertion`
 structure. It has type `Π S : set G, ↑(closure S) ≤ S → subgroup G`. When `↑(closure S) ≤ S`, then
 `S` is already a subgroup, so this function can be defined using `subgroup.mk` and not `closure`.
-This means the infimum of subgroups will be defined to be the intersection of sets, paried
+This means the infimum of subgroups will be defined to be the intersection of sets, paired
 with a proof that intersection of subgroups is a subgroup, rather than the closure of the
 intersection.
 

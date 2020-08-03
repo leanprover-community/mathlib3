@@ -388,6 +388,38 @@ begin
     (submodule.map_subtype.lt_order_embedding N)) h
 end
 
+-- TODO: move me!
+/-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
+submodules of `M`. -/
+def submodule.restrict_scalars.le_order_embedding
+  (R S M) [comm_ring R] [ring S] [add_comm_group M] [algebra R S] [module S M] :
+  ((≤) : submodule S M → submodule S M → Prop) ≼o ((≤) : submodule R (module.restrict_scalars R S M) → submodule _ M → Prop) :=
+{ to_fun := submodule.restrict_scalars R,
+  ord' := λ p q, iff.rfl,
+  inj' := λ p q eq, ext (λ x, show x ∈ (restrict_scalars R p).carrier ↔ x ∈ (restrict_scalars R q).carrier, by rw eq) }
+
+/-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
+submodules of `M`. -/
+def submodule.restrict_scalars.lt_order_embedding
+  (R S M) [comm_ring R] [ring S] [add_comm_group M] [algebra R S] [module S M] :
+  ((<) : submodule S M → submodule S M → Prop) ≼o ((<) : submodule R (module.restrict_scalars R S M) → submodule _ M → Prop) :=
+(submodule.restrict_scalars.le_order_embedding R S M).lt_embedding_of_le_embedding
+
+theorem is_noetherian_of_is_noetherian_restrict_scalars (R) {S M} [comm_ring R] [ring S]
+  [add_comm_group M] [algebra R S] [module S M]
+  (h : is_noetherian R (module.restrict_scalars R S M)) : is_noetherian S M :=
+begin
+  rw is_noetherian_iff_well_founded at h ⊢,
+  exact order_embedding.well_founded (order_embedding.rsymm
+    (submodule.restrict_scalars.lt_order_embedding R S M)) h
+end
+
+lemma is_noetherian_ring_of_is_noetherian_coe_submodule (R) {S} [comm_ring R] [ring S] [algebra R S]
+  (N : subalgebra R S) (h : is_noetherian R (N : submodule R S)) : is_noetherian_ring N :=
+is_noetherian_of_is_noetherian_restrict_scalars R (@@is_noetherian_of_linear_equiv _ _ _ _ _
+  ((algebra.restrict_scalars_equiv R N).symm)
+  h)
+
 theorem is_noetherian_of_quotient_of_noetherian (R) [ring R] (M) [add_comm_group M] [module R M]
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N.quotient :=
 begin
@@ -442,6 +474,7 @@ begin
   convert order_embedding.well_founded (order_embedding.rsymm
     (ideal.lt_order_embedding_of_surjective f hf)) H
 end
+
 
 instance is_noetherian_ring_range {R} [comm_ring R] {S} [comm_ring S] (f : R →+* S)
   [is_noetherian_ring R] : is_noetherian_ring (set.range f) :=

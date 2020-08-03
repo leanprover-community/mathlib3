@@ -723,6 +723,11 @@ def le_order_embedding :
   ord'   := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
     f.map_comap J₁ ▸ f.map_comap J₂ ▸ ideal.map_mono hJ⟩ }
 
+def lt_order_embedding :
+  ((<) : ideal S → ideal S → Prop) ≼o
+  ((<) : ideal R → ideal R → Prop) :=
+f.le_order_embedding.lt_embedding_of_le_embedding
+
 end ideals
 
 /-!
@@ -776,6 +781,12 @@ lemma map_smul (x : f.codomain) (z : R) :
   f.map hy k (z • x : f.codomain) = @has_scalar.smul P k.codomain _ (g z) (f.map hy k x) :=
 show f.map hy k (f.to_map z * x) = k.to_map (g z) * f.map hy k x,
 by rw [ring_hom.map_mul, map_eq]
+
+lemma is_noetherian_ring (h : is_noetherian_ring R) : is_noetherian_ring f.codomain :=
+begin
+  rw [is_noetherian_ring, is_noetherian_iff_well_founded] at h ⊢,
+  refine order_embedding.well_founded (order_embedding.rsymm f.lt_order_embedding) h
+end
 
 section integer_normalization
 

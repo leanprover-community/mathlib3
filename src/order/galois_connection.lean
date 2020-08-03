@@ -23,7 +23,8 @@ Galois connections are order theoretic adjoints, i.e. a pair of functions `u` an
 
 Galois insertions can be used to lift order structures from one type to another.
 For example if `α` is a complete lattice, and `l : α → β`, and `u : β → α` form
-a Galois insertion, then `β` is also a complete lattice.
+a Galois insertion, then `β` is also a complete lattice. `l` is the lower adjoint and
+`u` is the upper adjoint.
 
 An example of this is the Galois insertion is in group thery. If `G` is a topological space,
 then there is a Galois insertion between the set of subsets of `G`, `set G`, and the

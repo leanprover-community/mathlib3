@@ -260,8 +260,9 @@ alg_equiv.symm $ alg_equiv.of_bijective
 open finset
 
 -- Why is this so slow?
-/-- If the minimal polynomial of each `ai` splits in `L` then `F(a1, ..., an)` embeds in `L`. -/
-theorem lift_of_splits {F K L : Type*} [field F] [field K] [nontrivial K] [field L]
+/-- If `K` and `L` are field extensions of `F` and we have `s : finset K` such that
+the minimal polynomial of each `x ∈ s` splits in `L` then `algebra.adjoin F s` embeds in `L`. -/
+theorem lift_of_splits {F K L : Type*} [field F] [field K] [field L]
   [algebra F K] [algebra F L] (s : finset K) :
   (∀ x ∈ s, ∃ H : is_integral F x, polynomial.splits (algebra_map F L) (minimal_polynomial H)) →
   nonempty (algebra.adjoin F (↑s : set K) →ₐ[F] L) :=
@@ -549,10 +550,10 @@ begin
   haveI := finite_dimensional β f,
   have : finite_dimensional.findim α β = finite_dimensional.findim α (splitting_field f) :=
   le_antisymm
-    (linear_map.findim_le_findim
+    (linear_map.findim_le_findim_of_injective
       (show function.injective (lift β f $ splits (splitting_field f) f).to_linear_map,
       from ring_hom.injective (lift β f $ splits (splitting_field f) f : β →+* f.splitting_field)))
-    (linear_map.findim_le_findim
+    (linear_map.findim_le_findim_of_injective
       (show function.injective (lift (splitting_field f) f $ splits β f).to_linear_map,
       from ring_hom.injective (lift (splitting_field f) f $ splits β f : f.splitting_field →+* β))),
   change function.surjective (lift β f $ splits (splitting_field f) f).to_linear_map,

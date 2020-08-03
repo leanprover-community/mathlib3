@@ -588,12 +588,12 @@ begin
   rw [findim_bot, findim_eq_zero_of_dim_eq_zero h]
 end
 
-theorem dim_eq_zero {S : submodule K V} : dim K S = 0 ↔ S = ⊥ :=
+@[simp] theorem dim_eq_zero {S : submodule K V} : dim K S = 0 ↔ S = ⊥ :=
 ⟨λ h, (submodule.eq_bot_iff _).2 $ λ x hx, congr_arg subtype.val $
   ((submodule.eq_bot_iff _).1 $ eq.symm $ bot_eq_top_of_dim_eq_zero h) ⟨x, hx⟩ submodule.mem_top,
 λ h, by rw [h, dim_bot]⟩
 
-theorem findim_eq_zero {S : submodule K V} [finite_dimensional K S] : findim K S = 0 ↔ S = ⊥ :=
+@[simp] theorem findim_eq_zero {S : submodule K V} [finite_dimensional K S] : findim K S = 0 ↔ S = ⊥ :=
 by rw [← dim_eq_zero, ← findim_eq_dim, ← @nat.cast_zero cardinal, cardinal.nat_cast_inj]
 
 end zero_dim

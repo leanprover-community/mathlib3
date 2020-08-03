@@ -33,7 +33,10 @@ instance has_mul [has_mul α] : has_mul (ulift α) := ⟨λ f g, ⟨f.down * g.d
 instance semigroup [semigroup α] : semigroup (ulift α) :=
 by refine_struct { mul := (*), .. }; tactic.pi_instance_derive_field
 
-@[to_additive]
+/--
+The multiplicative equivalence between `ulift α` and `α`.
+-/
+@[to_additive "The additive equivalence between `ulift α` and `α`."]
 def mul_equiv [semigroup α] : ulift α ≃* α :=
 { to_fun := ulift.down,
   inv_fun := ulift.up,

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.group.ulift
+import data.equiv.ring
 
 /-!
 # Pi instances for ring
@@ -25,6 +26,17 @@ by refine_struct { add := (+), mul := (*), .. }; tactic.pi_instance_derive_field
 instance semiring [semiring α] : semiring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*), .. };
   tactic.pi_instance_derive_field
+
+/--
+The ring equivalence between `ulift α` and `α`.
+-/
+def ring_equiv [semiring α] : ulift α ≃+* α :=
+{ to_fun := ulift.down,
+  inv_fun := ulift.up,
+  map_mul' := λ x y, rfl,
+  map_add' := λ x y, rfl,
+  left_inv := by tidy,
+  right_inv := by tidy, }
 
 instance comm_semiring [comm_semiring α] : comm_semiring (ulift α) :=
 by refine_struct { zero := (0 : ulift α), one := 1, add := (+), mul := (*),  .. };

@@ -200,6 +200,8 @@ def path_setoid : setoid X :=
 /-- The quotient type of points of a topological space modulo being joined by a continuous path. -/
 def zeroth_homotopy := quotient (path_setoid X)
 
+instance : inhabited (zeroth_homotopy ℝ) := ⟨@quotient.mk ℝ (path_setoid ℝ) 0⟩
+
 variables {X}
 
 /-- The relation "being joined by a path in `F`". Not quite an equivalence relation since it's not

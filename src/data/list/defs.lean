@@ -214,6 +214,45 @@ foldr_with_index (λ i a l, if p a then (i , a) :: l else l) [] l
      indexes_of a [a, b, a, a] = [0, 2, 3] -/
 def indexes_of [decidable_eq α] (a : α) : list α → list nat := find_indexes (eq a)
 
+section mfold_with_index
+
+variables {m : Type v → Type w} [monad m]
+
+/-- Monadic variant of `foldl_with_index`. -/
+def mfoldl_with_index {α β} (f : ℕ → β → α → m β) (b : β) (as : list α) : m β :=
+as.foldl_with_index (λ i ma b, do a ← ma, f i a b) (pure b)
+
+/-- Monadic variant of `foldr_with_index`. -/
+def mfoldr_with_index {α β} (f : ℕ → α → β → m β) (b : β) (as : list α) : m β :=
+as.foldr_with_index (λ i a mb, do b ← mb, f i a b) (pure b)
+
+end mfold_with_index
+
+section mmap_with_index
+
+variables {m : Type v → Type w} [applicative m]
+
+/-- Auxiliary definition for `mmap_with_index`. -/
+def mmap_with_index_aux {α β} (f : ℕ → α → m β) : ℕ → list α → m (list β)
+| _ [] := pure []
+| i (a :: as) := list.cons <$> f i a <*> mmap_with_index_aux (i + 1) as
+
+/-- Applicative variant of `map_with_index`. -/
+def mmap_with_index {α β} (f : ℕ → α → m β) (as : list α) : m (list β) :=
+mmap_with_index_aux f 0 as
+
+/-- Auxiliary definition for `mmap_with_index'`. -/
+def mmap_with_index'_aux {α} (f : ℕ → α → m punit) : ℕ → list α → m punit
+| _ [] := pure ⟨⟩
+| i (a :: as) := f i a *> mmap_with_index'_aux (i + 1) as
+
+/-- A variant of `mmap_with_index` specialised to applicative actions which
+return `unit`. -/
+def mmap_with_index' {α} (f : ℕ → α → m punit) (as : list α) : m punit :=
+mmap_with_index'_aux f 0 as
+
+end mmap_with_index
+
 /-- `lookmap` is a combination of `lookup` and `filter_map`.
   `lookmap f l` will apply `f : α → option α` to each element of the list,
   replacing `a → b` at the first value `a` in the list such that `f a = some b`. -/

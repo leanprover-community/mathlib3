@@ -7,9 +7,8 @@ import linear_algebra.matrix
 import data.rel
 import combinatorics.simple_graph
 
-open_locale classical big_operators matrix
+open_locale big_operators matrix
 open finset matrix simple_graph
-noncomputable theory
 
 universes u v
 variables {α : Type u} [fintype α] [decidable_eq α]
@@ -17,7 +16,7 @@ variables (R : Type v) [semiring R]
 
 namespace simple_graph
 
-variables (G : simple_graph α) (R)
+variables (G : simple_graph α) (R) [decidable_rel G.adj]
 
 /-- The matrix $A$ such that $A i j = 1$ if $i$ and $j$ are adjacent, and otherwise $A i j = 0$-/
 def adjacency_matrix : matrix α α R

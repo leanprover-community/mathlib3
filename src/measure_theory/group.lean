@@ -23,7 +23,7 @@ variables {G : Type*}
 
 section
 
-variables [measurable_space G] [group G]
+variables [measurable_space G] [has_mul G]
 
 /-- A measure `μ` on a topological group is left invariant if
   for all measurable sets `s` and all `g`, we have `μ (gs) = μ s`,
@@ -41,12 +41,28 @@ end
 
 namespace measure
 
+variables [measurable_space G]
+
+lemma map_mul_left_eq_self [topological_space G] [has_mul G] [has_continuous_mul G] [borel_space G]
+  {μ : measure G} : (∀ g, measure.map ((*) g) μ = μ) ↔ is_left_invariant μ :=
+begin
+  apply forall_congr, intro g, rw [measure.ext_iff], apply forall_congr, intro A,
+  apply forall_congr, intro hA, rw [map_apply (measurable_mul_left g) hA]
+end
+
+lemma map_mul_right_eq_self [topological_space G] [has_mul G] [has_continuous_mul G] [borel_space G]
+  {μ : measure G} : (∀ g, measure.map (λ h, h * g) μ = μ) ↔ is_right_invariant μ :=
+begin
+  apply forall_congr, intro g, rw [measure.ext_iff], apply forall_congr, intro A,
+  apply forall_congr, intro hA, rw [map_apply (measurable_mul_right g) hA]
+end
+
 /-- The conjugate of a measure on a topological group.
   Defined to be `A ↦ μ (A⁻¹)`, where `A⁻¹` is the pointwise inverse of `A`. -/
-protected def conj [measurable_space G] [group G] (μ : measure G) : measure G :=
+protected def conj [group G] (μ : measure G) : measure G :=
 measure.map inv μ
 
-variables [measurable_space G] [group G] [topological_space G] [topological_group G] [borel_space G]
+variables [group G] [topological_space G] [topological_group G] [borel_space G]
 
 lemma conj_apply (μ : measure G) {s : set G} (hs : is_measurable s) :
   μ.conj s = μ s⁻¹ :=

@@ -39,7 +39,7 @@ For locally path connected spaces, we have
 ## Implementation notes
 
 By default, all paths have `I` as their source and `X` as their target, but there is an
-operation `I_extend` that will extend any continuous map `γ :I → X` into a continuous map
+operation `I_extend` that will extend any continuous map `γ : I → X` into a continuous map
 `I_extend γ : ℝ → X` that is constant before `0` and after `1`.
 
 This is used to define `joined.extend` that turns `h : joined x y` into a continuous map

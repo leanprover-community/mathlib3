@@ -271,6 +271,8 @@ def path_setoid : setoid X :=
 /-- The quotient type of points of a topological space modulo being joined by a continuous path. -/
 def zeroth_homotopy := quotient (path_setoid X)
 
+instance : inhabited (zeroth_homotopy ℝ) := ⟨@quotient.mk ℝ (path_setoid ℝ) 0⟩
+
 variables {X}
 
 /-- The relation "being joined by a path in `F`". Not quite an equivalence relation since it's not
@@ -434,7 +436,7 @@ begin
   exact ⟨(hx hyW).restr.map (continuous_inclusion hWU), by simp⟩
 end
 
-/-- A topological space is path-connected if it is non-empy and every two points can be
+/-- A topological space is path-connected if it is non-empty and every two points can be
 joined by a continuous path. -/
 class path_connected_space (X : Type*) [topological_space X] : Prop :=
 (nonempty : nonempty X)

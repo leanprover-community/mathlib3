@@ -827,18 +827,18 @@ begin
     exact hp.symm }
 end
 
+/-- The distance to a point's orthogonal projection is 0 iff it lies in the subspace. -/
+lemma dist_orthogonal_projection_eq_zero_iff {s : affine_subspace ℝ V P}
+  (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) {p : P} :
+  dist p (orthogonal_projection hn hc p) = 0 ↔ p ∈ s :=
+by rw [dist_comm, dist_eq_zero, orthogonal_projection_eq_self_iff]
+
 /-- The distance between a point and its orthogonal projection is
 nonzero if it does not lie in the subspace. -/
 lemma dist_orthogonal_projection_ne_zero_of_not_mem {s : affine_subspace ℝ V P}
     (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) {p : P} (hp : p ∉ s) :
   dist p (orthogonal_projection hn hc p) ≠ 0 :=
-begin
-  intro hz,
-  rw dist_eq_zero at hz,
-  symmetry' at hz,
-  rw orthogonal_projection_eq_self_iff hn hc _ at hz,
-  exact hp hz
-end
+mt (dist_orthogonal_projection_eq_zero_iff hn hc).mp hp
 
 /-- Subtracting `p` from its `orthogonal_projection` produces a result
 in the orthogonal direction. -/

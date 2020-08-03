@@ -6,7 +6,8 @@ Author: Johannes Hölzl
 import order.complete_lattice
 import order.order_iso
 /-!
-# Galois connections, Galois insertions and Galois coinsertions
+# Galois connections, insertions and coinsertions
+
 Galois connections are order theoretic adjoints, i.e. a pair of functions `u` and `l`,
   such that `∀a b, l a ≤ b ↔ a ≤ u b`.
 

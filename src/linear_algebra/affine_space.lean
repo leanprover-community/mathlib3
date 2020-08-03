@@ -388,15 +388,15 @@ with sum of weights 1 if and only if it can be expressed an
 `affine_combination` with sum of weights 1 for the corresponding
 indexed family whose index type is the subtype corresponding to that
 subset. -/
-lemma eq_affine_combination_subset_iff_eq_affine_combination_subtype (p0 : P) (s : set ι)
-    (p : ι → P) :
+lemma eq_affine_combination_subset_iff_eq_affine_combination_subtype {p0 : P} {s : set ι}
+    {p : ι → P} :
   (∃ (fs : finset ι) (hfs : ↑fs ⊆ s) (w : ι → k) (hw : ∑ i in fs, w i = 1),
     p0 = fs.affine_combination V w p) ↔
   ∃ (fs : finset s) (w : s → k) (hw : ∑ i in fs, w i = 1),
     p0 = fs.affine_combination V w (λ (i : s), p i) :=
 begin
   simp_rw [affine_combination_apply, eq_vadd_iff_vsub_eq],
-  exact eq_weighted_vsub_of_point_subset_iff_eq_weighted_vsub_of_point_subtype _ 1 _ _ _
+  exact eq_weighted_vsub_of_point_subset_iff_eq_weighted_vsub_of_point_subtype
 end
 
 end finset

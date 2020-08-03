@@ -628,6 +628,177 @@ begin
   simp [union_comm]
 end
 
+section function
+/-!
+### `maps_to`
+-/
+
+lemma maps_to_sUnion {S : set (set α)} {t : set β} {f : α → β} (H : ∀ s ∈ S, maps_to f s t) :
+  maps_to f (⋃₀ S) t :=
+λ x ⟨s, hs, hx⟩, H s hs hx
+
+lemma maps_to_Union {s : ι → set α} {t : set β} {f : α → β} (H : ∀ i, maps_to f (s i) t) :
+  maps_to f (⋃ i, s i) t :=
+maps_to_sUnion $ forall_range_iff.2 H
+
+lemma maps_to_bUnion {p : ι → Prop} {s : Π (i : ι) (hi : p i), set α} {t : set β} {f : α → β}
+  (H : ∀ i hi, maps_to f (s i hi) t) :
+  maps_to f (⋃ i hi, s i hi) t :=
+maps_to_Union $ λ i, maps_to_Union (H i)
+
+lemma maps_to_Union_Union {s : ι → set α} {t : ι → set β} {f : α → β}
+  (H : ∀ i, maps_to f (s i) (t i)) :
+  maps_to f (⋃ i, s i) (⋃ i, t i) :=
+maps_to_Union $ λ i, (H i).mono (subset.refl _) (subset_Union t i)
+
+lemma maps_to_bUnion_bUnion {p : ι → Prop} {s : Π i (hi : p i), set α} {t : Π i (hi : p i), set β}
+  {f : α → β} (H : ∀ i hi, maps_to f (s i hi) (t i hi)) :
+  maps_to f (⋃ i hi, s i hi) (⋃ i hi, t i hi) :=
+maps_to_Union_Union $ λ i, maps_to_Union_Union (H i)
+
+lemma maps_to_sInter {s : set α} {T : set (set β)} {f : α → β} (H : ∀ t ∈ T, maps_to f s t) :
+  maps_to f s (⋂₀ T) :=
+λ x hx t ht, H t ht hx
+
+lemma maps_to_Inter {s : set α} {t : ι → set β} {f : α → β} (H : ∀ i, maps_to f s (t i)) :
+  maps_to f s (⋂ i, t i) :=
+λ x hx, mem_Inter.2 $ λ i, H i hx
+
+lemma maps_to_bInter {p : ι → Prop} {s : set α} {t : Π i (hi : p i), set β} {f : α → β}
+  (H : ∀ i hi, maps_to f s (t i hi)) :
+  maps_to f s (⋂ i hi, t i hi) :=
+maps_to_Inter $ λ i, maps_to_Inter (H i)
+
+lemma maps_to_Inter_Inter {s : ι → set α} {t : ι → set β} {f : α → β}
+  (H : ∀ i, maps_to f (s i) (t i)) :
+  maps_to f (⋂ i, s i) (⋂ i, t i) :=
+maps_to_Inter $ λ i, (H i).mono (Inter_subset s i) (subset.refl _)
+
+lemma maps_to_bInter_bInter {p : ι → Prop} {s : Π i (hi : p i), set α}
+  {t : Π i (hi : p i), set β} {f : α → β} (H : ∀ i hi, maps_to f (s i hi) (t i hi)) :
+  maps_to f (⋂ i hi, s i hi) (⋂ i hi, t i hi) :=
+maps_to_Inter_Inter $ λ i, maps_to_Inter_Inter (H i)
+
+lemma image_Inter_subset (s : ι → set α) (f : α → β) :
+  f '' (⋂ i, s i) ⊆ ⋂ i, f '' (s i) :=
+(maps_to_Inter_Inter $ λ i, maps_to_image f (s i)).image_subset
+
+lemma image_bInter_subset {p : ι → Prop} (s : Π i (hi : p i), set α) (f : α → β) :
+  f '' (⋂ i hi, s i hi) ⊆ ⋂ i hi, f '' (s i hi) :=
+(maps_to_bInter_bInter $ λ i hi, maps_to_image f (s i hi)).image_subset
+
+lemma image_sInter_subset (S : set (set α)) (f : α → β) :
+  f '' (⋂₀ S) ⊆ ⋂ s ∈ S, f '' s :=
+by { rw sInter_eq_bInter, apply image_bInter_subset }
+
+/-!
+### `inj_on`
+-/
+
+lemma inj_on.image_Inter_eq [nonempty ι] {s : ι → set α} {f : α → β} (h : inj_on f (⋃ i, s i)) :
+  f '' (⋂ i, s i) = ⋂ i, f '' (s i) :=
+begin
+  inhabit ι,
+  refine subset.antisymm (image_Inter_subset s f) (λ y hy, _),
+  simp only [mem_Inter, mem_image_iff_bex] at hy,
+  choose x hx hy using hy,
+  refine ⟨x (default ι), mem_Inter.2 $ λ i, _, hy _⟩,
+  suffices : x (default ι) = x i,
+  { rw this, apply hx },
+  replace hx : ∀ i, x i ∈ ⋃ j, s j := λ i, (subset_Union _ _) (hx i),
+  apply h (hx _) (hx _),
+  simp only [hy]
+end
+
+lemma inj_on.image_bInter_eq {p : ι → Prop} {s : Π i (hi : p i), set α} (hp : ∃ i, p i) {f : α → β}
+  (h : inj_on f (⋃ i hi, s i hi)) :
+  f '' (⋂ i hi, s i hi) = ⋂ i hi, f '' (s i hi) :=
+begin
+  simp only [Inter, infi_subtype'],
+  haveI : nonempty {i // p i} := nonempty_subtype.2 hp,
+  apply inj_on.image_Inter_eq,
+  simpa only [Union, supr_subtype'] using h
+end
+
+lemma inj_on_Union_of_directed {s : ι → set α} (hs : directed (⊆) s)
+  {f : α → β} (hf : ∀ i, inj_on f (s i)) :
+  inj_on f (⋃ i, s i) :=
+begin
+  intros x hx y hy hxy,
+  rcases mem_Union.1 hx with ⟨i, hx⟩,
+  rcases mem_Union.1 hy with ⟨j, hy⟩,
+  rcases hs i j with ⟨k, hi, hj⟩,
+  exact hf k (hi hx) (hj hy) hxy
+end
+
+/-!
+### `surj_on`
+-/
+
+lemma surj_on_sUnion {s : set α} {T : set (set β)} {f : α → β} (H : ∀ t ∈ T, surj_on f s t) :
+  surj_on f s (⋃₀ T) :=
+λ x ⟨t, ht, hx⟩, H t ht hx
+
+lemma surj_on_Union {s : set α} {t : ι → set β} {f : α → β} (H : ∀ i, surj_on f s (t i)) :
+  surj_on f s (⋃ i, t i) :=
+surj_on_sUnion $ forall_range_iff.2 H
+
+lemma surj_on_Union_Union {s : ι → set α} {t : ι → set β} {f : α → β}
+  (H : ∀ i, surj_on f (s i) (t i)) :
+  surj_on f (⋃ i, s i) (⋃ i, t i) :=
+surj_on_Union $ λ i, (H i).mono (subset_Union _ _) (subset.refl _)
+
+lemma surj_on_bUnion {p : ι → Prop} {s : set α} {t : Π i (hi : p i), set β} {f : α → β}
+  (H : ∀ i hi, surj_on f s (t i hi)) :
+  surj_on f s (⋃ i hi, t i hi) :=
+surj_on_Union $ λ i, surj_on_Union (H i)
+
+lemma surj_on_bUnion_bUnion {p : ι → Prop} {s : Π i (hi : p i), set α} {t : Π i (hi : p i), set β}
+  {f : α → β} (H : ∀ i hi, surj_on f (s i hi) (t i hi)) :
+  surj_on f (⋃ i hi, s i hi) (⋃ i hi, t i hi) :=
+surj_on_Union_Union $ λ i, surj_on_Union_Union (H i)
+
+lemma surj_on_Inter [hi : nonempty ι] {s : ι → set α} {t : set β} {f : α → β}
+  (H : ∀ i, surj_on f (s i) t) (Hinj : inj_on f (⋃ i, s i)) :
+  surj_on f (⋂ i, s i) t :=
+begin
+  intros y hy,
+  rw [Hinj.image_Inter_eq, mem_Inter],
+  exact λ i, H i hy
+end
+
+lemma surj_on_Inter_Inter [hi : nonempty ι] {s : ι → set α} {t : ι → set β} {f : α → β}
+  (H : ∀ i, surj_on f (s i) (t i)) (Hinj : inj_on f (⋃ i, s i)) :
+  surj_on f (⋂ i, s i) (⋂ i, t i) :=
+surj_on_Inter (λ i, (H i).mono (subset.refl _) (Inter_subset _ _)) Hinj
+
+/-!
+### `bij_on`
+-/
+
+lemma bij_on_Union {s : ι → set α} {t : ι → set β} {f : α → β} (H : ∀ i, bij_on f (s i) (t i))
+  (Hinj : inj_on f (⋃ i, s i)) :
+  bij_on f (⋃ i, s i) (⋃ i, t i) :=
+⟨maps_to_Union_Union $ λ i, (H i).maps_to, Hinj, surj_on_Union_Union $ λ i, (H i).surj_on⟩
+
+lemma bij_on_Inter [hi :nonempty ι] {s : ι → set α} {t : ι → set β} {f : α → β}
+  (H : ∀ i, bij_on f (s i) (t i)) (Hinj : inj_on f (⋃ i, s i)) :
+  bij_on f (⋂ i, s i) (⋂ i, t i) :=
+⟨maps_to_Inter_Inter $ λ i, (H i).maps_to, hi.elim $ λ i, (H i).inj_on.mono (Inter_subset _ _),
+  surj_on_Inter_Inter (λ i, (H i).surj_on) Hinj⟩
+
+lemma bij_on_Union_of_directed {s : ι → set α} (hs : directed (⊆) s) {t : ι → set β} {f : α → β}
+  (H : ∀ i, bij_on f (s i) (t i)) :
+  bij_on f (⋃ i, s i) (⋃ i, t i) :=
+bij_on_Union H $ inj_on_Union_of_directed hs (λ i, (H i).inj_on)
+
+lemma bij_on_Inter_of_directed [nonempty ι] {s : ι → set α} (hs : directed (⊆) s) {t : ι → set β}
+  {f : α → β} (H : ∀ i, bij_on f (s i) (t i)) :
+  bij_on f (⋂ i, s i) (⋂ i, t i) :=
+bij_on_Inter H $ inj_on_Union_of_directed hs (λ i, (H i).inj_on)
+
+end function
+
 section
 
 variables {p : Prop} {μ : p → set α}

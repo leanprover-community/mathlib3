@@ -563,7 +563,7 @@ begin
     by_contradiction hrneg,
     rw hy at h,
     rw inner_div_norm_mul_norm_eq_neg_one_of_ne_zero_of_neg_mul hx
-      (lt_of_le_of_ne' (le_of_not_lt hrneg) hr) at h,
+      (lt_of_le_of_ne (le_of_not_lt hrneg) hr) at h,
     norm_num at h },
   { intro h,
     rcases h with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
@@ -588,7 +588,7 @@ begin
     by_contradiction hrpos,
     rw hy at h,
     rw inner_div_norm_mul_norm_eq_one_of_ne_zero_of_pos_mul hx
-      (lt_of_le_of_ne' (le_of_not_lt hrpos) hr.symm) at h,
+      (lt_of_le_of_ne (le_of_not_lt hrpos) hr.symm) at h,
     norm_num at h },
   { intro h,
     rcases h with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,

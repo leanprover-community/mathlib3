@@ -437,6 +437,23 @@ instance [inhabited P] : inhabited (simplex k V P 0) :=
 instance nonempty : nonempty (simplex k V P 0) :=
 ⟨mk_of_point k V $ (add_torsor.nonempty V).some⟩
 
+variables {k V}
+
+/-- Two simplices are equal if they have the same points. -/
+@[ext] lemma ext {n : ℕ} {s1 s2 : simplex k V P n} (h : ∀ i, s1.points i = s2.points i) :
+  s1 = s2 :=
+begin
+  cases s1,
+  cases s2,
+  congr,
+  ext i,
+  exact h i
+end
+
+/-- Two simplices are equal if and only if they have the same points. -/
+lemma ext_iff {n : ℕ} (s1 s2 : simplex k V P n): s1 = s2 ↔ ∀ i, s1.points i = s2.points i :=
+⟨λ h _, h ▸ rfl, ext⟩
+
 end simplex
 
 end affine_space

@@ -409,7 +409,7 @@ def galois_connection.to_galois_coinsertion {α β : Type*} [preorder α] [preor
   u_l_le := h,
   choice_eq := λ _ _, rfl }
 
-/-- Lift the bottom along a Galois connection -/
+/-- Lift the top along a Galois connection -/
 def galois_connection.lift_order_top {α β : Type*} [partial_order α] [order_top β]
   {l : α → β} {u : β → α} (gc : galois_connection l u) :
   order_top α :=

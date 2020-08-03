@@ -868,8 +868,7 @@ begin
     have : x - x' ∈ J, {
       apply h J hJ,
       rw [ring_hom.mem_ker, ring_hom.map_sub, hx, hx'.right],
-      exact sub_self y
-    },
+      exact sub_self y },
     have : x - x' + x' ∈ J := J.add_mem this hx'.left,
     ring at this,
     exact this }

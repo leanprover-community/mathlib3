@@ -172,6 +172,8 @@ by simp [joined.extend, (classical.some_spec h).2.1]
 lemma joined.extend_one {x y : X} (h : joined x y) : h.extend 1 = y :=
 by simp [joined.extend, (classical.some_spec h).2.2]
 
+local attribute [simp] Iic_def
+
 lemma joined.trans {x y z : X} (hxy : joined x y) (hyz : joined y z) :
   joined x z :=
 begin
@@ -187,6 +189,18 @@ begin
   { norm_num,
     simp [I_extend_one, g_tgt] },
 end
+
+variables (X)
+
+/-- The setoid corresponding the equivalence relation of being joined by a continuous path. -/
+def path_setoid : setoid X :=
+{ r := joined,
+  iseqv := mk_equivalence  _ joined.refl (λ x y, joined.symm) (λ x y z, joined.trans) }
+
+/-- The quotient type of points of a topological space modulo being joined by a continuous path. -/
+def zeroth_homotopy := quotient (path_setoid X)
+
+variables {X}
 
 /-- The relation "being joined by a path in `F`". Not quite an equivalence relation since it's not
 reflexive for points that do not belong to `F`. -/
@@ -382,6 +396,21 @@ class path_connected_space (X : Type*) [topological_space X] : Prop :=
 (joined : ∀ x y : X, joined x y)
 
 attribute [instance, priority 50] path_connected_space.nonempty
+
+lemma path_connected_space_iff_zeroth_homotopy :
+  path_connected_space X ↔ nonempty (zeroth_homotopy X) ∧ subsingleton (zeroth_homotopy X) :=
+begin
+  letI := path_setoid X,
+  split,
+  { introI h,
+    refine ⟨(nonempty_quotient_iff _).mpr h.1, ⟨_⟩⟩,
+    rintros ⟨x⟩ ⟨y⟩,
+    exact quotient.sound (path_connected_space.joined x y) },
+  { unfold zeroth_homotopy,
+    rintros ⟨h, h'⟩,
+    resetI,
+    exact ⟨(nonempty_quotient_iff _).mp h, λ x y, quotient.exact $ subsingleton.elim ⟦x⟧ ⟦y⟧⟩ },
+end
 
 namespace path_connected_space
 variables [path_connected_space X]

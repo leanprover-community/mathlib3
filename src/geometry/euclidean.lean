@@ -744,7 +744,11 @@ direction_mk' p s.direction.orthogonal ▸
   vsub_mem_direction (orthogonal_projection_fn_mem_orthogonal hn hc p) (self_mem_mk' _ _)
 
 /-- The orthogonal projection of a point onto a nonempty affine
-subspace, whose direction is complete. -/
+subspace, whose direction is complete. The corresponding linear map
+(mapping a vector to the difference between the projections of two
+points whose difference is that vector) is the `orthogonal_projection`
+for real inner product spaces, onto the direction of the affine
+subspace being projected onto. -/
 def orthogonal_projection {s : affine_subspace ℝ V P} (hn : (s : set P).nonempty)
     (hc : is_complete (s.direction : set V)) : affine_map ℝ V P V P :=
 { to_fun := orthogonal_projection_fn hn hc,

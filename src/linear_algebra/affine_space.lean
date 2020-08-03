@@ -342,8 +342,8 @@ with a given sum of weights if and only if it can be expressed as
 `weighted_vsub_of_point` with that sum of weights for the
 corresponding indexed family whose index type is the subtype
 corresponding to that subset. -/
-lemma eq_weighted_vsub_of_point_subset_iff_eq_weighted_vsub_of_point_subtype (v : V) (x : k)
-    (s : set ι) (p : ι → P) (b : P) :
+lemma eq_weighted_vsub_of_point_subset_iff_eq_weighted_vsub_of_point_subtype {v : V} {x : k}
+    {s : set ι} {p : ι → P} {b : P} :
   (∃ (fs : finset ι) (hfs : ↑fs ⊆ s) (w : ι → k) (hw : ∑ i in fs, w i = x),
     v = fs.weighted_vsub_of_point V p b w) ↔
   ∃ (fs : finset s) (w : s → k) (hw : ∑ i in fs, w i = x),

@@ -21,14 +21,14 @@ instance has_scalar [has_scalar R M] :
   has_scalar (ulift R) M :=
 ⟨λ s x, s.down • x⟩
 
-@[simp] lemma smul_apply [has_scalar R M] (s : ulift R) (x : M) : (s • x) = s.down • x := rfl
+@[simp] lemma smul_down [has_scalar R M] (s : ulift R) (x : M) : (s • x) = s.down • x := rfl
 
 instance has_scalar' [has_scalar R M] :
   has_scalar R (ulift M) :=
 ⟨λ s x, ⟨s • x.down⟩⟩
 
 @[simp]
-lemma smul_apply' [has_scalar R M] (s : R) (x : ulift M) :
+lemma smul_down' [has_scalar R M] (s : R) (x : ulift M) :
   (s • x).down = s • x.down :=
 rfl
 

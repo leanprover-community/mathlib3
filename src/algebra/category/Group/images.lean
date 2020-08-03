@@ -25,15 +25,17 @@ variables {G H : AddCommGroup.{0}} (f : G ⟶ H)
 local attribute [ext] subtype.ext_val
 
 section -- implementation details of `has_image` for AddCommGroup; use the API, not these
-/-- the image of a morphism in AddCommGroup is just the bundling of `set.range f` -/
-def image : AddCommGroup := AddCommGroup.of (set.range f)
+/-- the image of a morphism in AddCommGroup is just the bundling of `add_monoid_hom.range f` -/
+def image : AddCommGroup := AddCommGroup.of (add_monoid_hom.range f)
 
 /-- the inclusion of `image f` into the target -/
-def image.ι : image f ⟶ H := f.range_subtype_val
+def image.ι : image f ⟶ H := f.range.subtype
+
 instance : mono (image.ι f) := concrete_category.mono_of_injective (image.ι f) subtype.val_injective
 
 /-- the corestriction map to the image -/
-def factor_thru_image : G ⟶ image f := add_monoid_hom.range_factorization f
+def factor_thru_image : G ⟶ image f := f.to_range
+
 lemma image.fac : factor_thru_image f ≫ image.ι f = f :=
 by { ext, refl, }
 
@@ -113,7 +115,7 @@ The categorical image of a morphism in `AddCommGroup`
 agrees with the usual group-theoretical range.
 -/
 def image_iso_range {G H : AddCommGroup} (f : G ⟶ H) :
-  image f ≅ AddCommGroup.of (set.range f) :=
+  image f ≅ AddCommGroup.of f.range :=
 iso.refl _
 
 

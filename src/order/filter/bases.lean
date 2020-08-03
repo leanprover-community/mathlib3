@@ -213,6 +213,12 @@ def filter_basis.of_sets (s : set (set α)) : filter_basis α :=
 lemma has_basis.mem_iff (hl : l.has_basis p s) : t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t :=
 hl.mem_iff' t
 
+lemma has_basis_iff : l.has_basis p s ↔ ∀ t, t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t :=
+⟨λ ⟨h⟩, h, λ h, ⟨h⟩⟩
+
+lemma has_basis.ex_mem (h : l.has_basis p s) : ∃ i, p i :=
+let ⟨i, pi, h⟩ := h.mem_iff.mp univ_mem_sets in ⟨i, pi⟩
+
 protected lemma is_basis.has_basis (h : is_basis p s) : has_basis h.filter p s :=
 ⟨λ t, by simp only [h.mem_filter_iff, exists_prop]⟩
 
@@ -253,19 +259,30 @@ lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 
 lemma has_basis_self {l : filter α} {P : set α → Prop} :
   has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t, (t ∈ l ↔ ∃ r ∈ l, P r ∧ r ⊆ t) :=
+by simp only [has_basis_iff, exists_prop, id, and_assoc]
+
+/-- If `{s i | p i}` is a basis of a filter `l` and each `s i` includes `s j` such that
+`p j ∧ q j`, then `{s j | p j ∧ q j}` is a basis of `l`. -/
+lemma has_basis.restrict (h : l.has_basis p s) {q : ι → Prop}
+  (hq : ∀ i, p i → ∃ j, p j ∧ q j ∧ s j ⊆ s i) :
+  l.has_basis (λ i, p i ∧ q i) s :=
 begin
-  split,
-  { rintros ⟨h⟩ t,
-    convert h t,
-    ext s,
-    tauto, },
-  { intro h,
-    constructor,
-    intro t,
-    convert h t,
-    ext s,
-    tauto }
+  refine ⟨λ t, ⟨λ ht, _, λ ⟨i, hpi, hti⟩, h.mem_iff.2 ⟨i, hpi.1, hti⟩⟩⟩,
+  rcases h.mem_iff.1 ht with ⟨i, hpi, hti⟩,
+  rcases hq i hpi with ⟨j, hpj, hqj, hji⟩,
+  exact ⟨j, ⟨hpj, hqj⟩, subset.trans hji hti⟩
 end
+
+/-- If `{s i | p i}` is a basis of a filter `l` and `V ∈ l`, then `{s i | p i ∧ s i ⊆ V}`
+is a basis of `l`. -/
+lemma has_basis.restrict_subset (h : l.has_basis p s) {V : set α} (hV : V ∈ l) :
+  l.has_basis (λ i, p i ∧ s i ⊆ V) s :=
+h.restrict $ λ i hi, (h.mem_iff.1 (inter_mem_sets hV (h.mem_of_mem hi))).imp $
+  λ j hj, ⟨hj.fst, subset_inter_iff.1 hj.snd⟩
+
+lemma has_basis.has_basis_self_subset {p : set α → Prop} (h : l.has_basis (λ s, s ∈ l ∧ p s) id)
+  {V : set α} (hV : V ∈ l) : l.has_basis (λ s, s ∈ l ∧ p s ∧ s ⊆ V) id :=
+by simpa only [and_assoc] using h.restrict_subset hV
 
 theorem has_basis.ge_iff (hl' : l'.has_basis p' s')  : l ≤ l' ↔ ∀ i', p' i' → s' i' ∈ l :=
 ⟨λ h i' hi', h $ hl'.mem_of_mem hi',
@@ -278,6 +295,17 @@ theorem has_basis.le_basis_iff (hl : l.has_basis p s) (hl' : l'.has_basis p' s')
   l ≤ l' ↔ ∀ i', p' i' → ∃ i (hi : p i), s i ⊆ s' i' :=
 by simp only [hl'.ge_iff, hl.mem_iff]
 
+lemma has_basis.ext (hl : l.has_basis p s) (hl' : l'.has_basis p' s')
+  (h : ∀ i, p i → ∃ i', p' i' ∧ s' i' ⊆ s i)
+  (h' : ∀ i', p' i' → ∃ i, p i ∧ s i ⊆ s' i') : l = l' :=
+begin
+  apply le_antisymm,
+  { rw hl.le_basis_iff hl',
+    simpa using h' },
+  { rw hl'.le_basis_iff hl,
+    simpa using h },
+end
+
 lemma has_basis.inf (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   (l ⊓ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∩ s' i.2) :=
 ⟨begin
@@ -288,6 +316,26 @@ lemma has_basis.inf (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
     use [(i, i'), ⟨hi, hi'⟩, subset.trans (inter_subset_inter ht ht') H] },
   { rintros ⟨⟨i, i'⟩, ⟨hi, hi'⟩, H⟩,
     use [s i, i, hi, subset.refl _, s' i', i', hi', subset.refl _, H] }
+end⟩
+
+lemma has_basis_principal (t : set α) : (𝓟 t).has_basis (λ i : unit, true) (λ i, t) :=
+⟨λ U, by simp⟩
+
+lemma has_basis.sup (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
+  (l ⊔ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∪ s' i.2) :=
+⟨begin
+  rintros t,
+  rw [mem_sup_sets, hl.mem_iff, hl'.mem_iff],
+  split,
+  { rintros ⟨⟨i, pi, hi⟩, ⟨i', pi', hi'⟩⟩,
+    use [(i, i'), pi, pi'],
+    finish },
+  { rintros ⟨⟨i, i'⟩, ⟨⟨pi, pi'⟩, h⟩⟩,
+    split,
+    { use [i, pi],
+      finish },
+    { use [i', pi'],
+      finish } }
 end⟩
 
 lemma has_basis.inf_principal (hl : l.has_basis p s) (s' : set α) :
@@ -322,6 +370,11 @@ lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_o
   apply h.mono_comp _ _,
   exact λ _ _, principal_mono.2
 end⟩
+
+lemma has_basis_binfi_principal'
+  (h : ∀ i, p i → ∀ j, p j → ∃ k (h : p k), s k ⊆ s i ∧ s k ⊆ s j) (ne : ∃ i, p i) :
+  (⨅ i (h : p i), 𝓟 (s i)).has_basis p s :=
+filter.has_basis_binfi_principal h ne
 
 lemma has_basis.map (f : α → β) (hl : l.has_basis p s) :
   (l.map f).has_basis p (λ i, f '' (s i)) :=

@@ -851,8 +851,11 @@ theorem nonempty_diff {s t : set α} : (s \ t).nonempty ↔ ¬ (s ⊆ t) :=
 ⟨λ ⟨x, xs, xt⟩, not_subset.2 ⟨x, xs, xt⟩,
   λ h, let ⟨x, xs, xt⟩ := not_subset.1 h in ⟨x, xs, xt⟩⟩
 
-theorem union_diff_cancel {s t : set α} (h : s ⊆ t) : s ∪ (t \ s) = t :=
+theorem union_diff_cancel' {s t u : set α} (h₁ : s ⊆ t) (h₂ : t ⊆ u) : t ∪ (u \ s) = u :=
 by finish [ext_iff, iff_def, subset_def]
+
+theorem union_diff_cancel {s t : set α} (h : s ⊆ t) : s ∪ (t \ s) = t :=
+union_diff_cancel' (subset.refl s) h
 
 theorem union_diff_cancel_left {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) \ s = t :=
 by finish [ext_iff, iff_def, subset_def]
@@ -1007,6 +1010,12 @@ theorem mem_powerset {x s : set α} (h : x ⊆ s) : x ∈ powerset s := h
 theorem subset_of_mem_powerset {x s : set α} (h : x ∈ powerset s) : x ⊆ s := h
 
 theorem mem_powerset_iff (x s : set α) : x ∈ powerset s ↔ x ⊆ s := iff.rfl
+
+@[simp] theorem powerset_mono : powerset s ⊆ powerset t ↔ s ⊆ t :=
+⟨λ h, h (subset.refl s), λ h u hu, subset.trans hu h⟩
+
+@[simp] theorem powerset_nonempty : (powerset s).nonempty :=
+⟨∅, empty_subset s⟩
 
 /-! ### Inverse image -/
 
@@ -1687,6 +1696,9 @@ begin
   rintro ⟨s, hs₁, hs₂⟩, refine ⟨coe ⁻¹' s, _⟩,
   rw [image_preimage_eq_of_subset], exact hs₂, rw [range_coe], exact hs₁
 end
+
+lemma preimage_coe_nonempty {s t : set α} : ((coe : s → α) ⁻¹' t).nonempty ↔ (s ∩ t).nonempty :=
+by rw [inter_comm, ← image_preimage_coe, nonempty_image_iff]
 
 end subtype
 

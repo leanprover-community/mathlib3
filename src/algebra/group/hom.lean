@@ -179,7 +179,70 @@ omit mP
 @[simp, to_additive] lemma comp_id (f : M →* N) : f.comp (id M) = f := ext $ λ x, rfl
 @[simp, to_additive] lemma id_comp (f : M →* N) : (id N).comp f = f := ext $ λ x, rfl
 
-variables [mM] [mN]
+end monoid_hom
+
+section End
+
+namespace monoid
+
+variables (M) [monoid M]
+
+/-- The monoid of endomorphisms. -/
+protected def End := M →* M
+
+namespace End
+
+instance : monoid (monoid.End M) :=
+{ mul := monoid_hom.comp,
+  one := monoid_hom.id M,
+  mul_assoc := λ _ _ _, monoid_hom.comp_assoc _ _ _,
+  mul_one := monoid_hom.comp_id,
+  one_mul := monoid_hom.id_comp }
+
+instance : inhabited (monoid.End M) := ⟨1⟩
+
+instance : has_coe_to_fun (monoid.End M) := ⟨_, monoid_hom.to_fun⟩
+
+end End
+
+@[simp] lemma coe_one : ((1 : monoid.End M) : M → M) = id := rfl
+@[simp] lemma coe_mul (f g) : ((f * g : monoid.End M) : M → M) = f ∘ g := rfl
+
+end monoid
+
+namespace add_monoid
+
+variables (A : Type*) [add_monoid A]
+
+/-- The monoid of endomorphisms. -/
+protected def End := A →+ A
+
+namespace End
+
+instance : monoid (add_monoid.End A) :=
+{ mul := add_monoid_hom.comp,
+  one := add_monoid_hom.id A,
+  mul_assoc := λ _ _ _, add_monoid_hom.comp_assoc _ _ _,
+  mul_one := add_monoid_hom.comp_id,
+  one_mul := add_monoid_hom.id_comp }
+
+instance : inhabited (add_monoid.End A) := ⟨1⟩
+
+instance : has_coe_to_fun (add_monoid.End A) := ⟨_, add_monoid_hom.to_fun⟩
+
+end End
+
+@[simp] lemma coe_one : ((1 : add_monoid.End A) : A → A) = id := rfl
+@[simp] lemma coe_mul (f g) : ((f * g : add_monoid.End A) : A → A) = f ∘ g := rfl
+
+end add_monoid
+
+end End
+
+namespace monoid_hom
+variables [mM : monoid M] [mN : monoid N] [mP : monoid P]
+variables [group G] [comm_group H]
+include mM mN
 
 /-- `1` is the monoid homomorphism sending all elements to `1`. -/
 @[to_additive]
@@ -254,14 +317,16 @@ eq_inv_of_mul_eq_one $ f.map_mul_eq_one $ inv_mul_self g
 theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
   f (g * h⁻¹) = (f g) * (f h)⁻¹ := by rw [f.map_mul, f.map_inv]
 
-/-- A group homomorphism is injective iff its kernel is trivial. -/
+/-- A homomorphism from a group to a monoid is injective iff its kernel is trivial. -/
 @[to_additive]
-lemma injective_iff {G H} [group G] [group H] (f : G →* H) :
+lemma injective_iff {G H} [group G] [monoid H] (f : G →* H) :
   function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
-⟨λ h _, by rw ← f.map_one; exact @h _ _,
-  λ h x y hxy, by rw [← inv_inv (f x), inv_eq_iff_mul_eq_one, ← f.map_inv,
-      ← f.map_mul] at hxy;
-    simpa using inv_eq_of_mul_eq_one (h _ hxy)⟩
+begin
+  refine ⟨λ h a, (h.eq_iff' f.map_one).1, λ H x y hxy, _⟩,
+  rw [← mul_inv_eq_one],
+  apply H,
+  rw [map_mul, hxy, ← map_mul, mul_inv_self, map_one]
+end
 
 include mM
 /-- Makes a group homomomorphism from a proof that the map preserves multiplication. -/

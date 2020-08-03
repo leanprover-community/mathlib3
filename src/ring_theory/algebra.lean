@@ -203,11 +203,17 @@ lmul R A r
 def lmul_right (r : A) : A →ₗ A :=
 (lmul R A).flip r
 
+/-- Simultaneous multiplication on the left and right is a linear map. -/
+def lmul_left_right (vw: A × A) : A →ₗ[R] A :=
+(lmul_right R A vw.2).comp (lmul_left R A vw.1)
+
 variables {R A}
 
 @[simp] lemma lmul_apply (p q : A) : lmul R A p q = p * q := rfl
 @[simp] lemma lmul_left_apply (p q : A) : lmul_left R A p q = p * q := rfl
 @[simp] lemma lmul_right_apply (p q : A) : lmul_right R A p q = q * p := rfl
+@[simp] lemma lmul_left_right_apply (vw : A × A) (p : A) :
+  lmul_left_right R A vw p = vw.1 * p * vw.2 := rfl
 
 end semiring
 
@@ -1028,6 +1034,33 @@ by rw [span_int_eq_add_group_closure, s.closure_eq]
 end span_int
 
 end int
+
+/-!
+The R-algebra structure on `Π i : I, A i` when each `A i` is an R-algebra.
+
+We couldn't set this up back in `algebra.pi_instances` because this file imports it.
+-/
+namespace pi
+
+variable {I : Type u}     -- The indexing type
+variable {f : I → Type v} -- The family of types already equipped with instances
+variables (x y : Π i, f i) (i : I)
+variables (I f)
+instance algebra (α) {r : comm_semiring α}
+  [s : ∀ i, semiring (f i)] [∀ i, algebra α (f i)] :
+  algebra α (Π i : I, f i) :=
+{ commutes' := λ a f, begin ext, simp [algebra.commutes], end,
+  smul_def' := λ a f, begin ext, simp [algebra.smul_def''], end,
+  ..pi.ring_hom (λ i, algebra_map α (f i)) }
+
+@[simp] lemma algebra_map_apply (α) {r : comm_semiring α}
+  [s : ∀ i, semiring (f i)] [∀ i, algebra α (f i)] (a : α) (i : I) :
+  algebra_map α (Π i, f i) a i = algebra_map α (f i) a := rfl
+
+-- One could also build a `Π i, R i`-algebra structure on `Π i, A i`,
+-- when each `A i` is an `R i`-algebra, although I'm not sure that it's useful.
+
+end pi
 
 section restrict_scalars
 /- In this section, we describe restriction of scalars: if `S` is an algebra over `R`, then

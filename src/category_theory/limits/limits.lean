@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Mario Carneiro, Scott Morrison, Floris van Doorn
 -/
 import category_theory.adjunction.basic
-import category_theory.reflect_isomorphisms
+import category_theory.limits.cones
+import category_theory.reflects_isomorphisms
 
 open category_theory category_theory.category category_theory.functor opposite
 
@@ -92,7 +93,7 @@ def of_point_iso {r t : cone F} (P : is_limit r) [i : is_iso (P.lift t)] : is_li
 of_iso_limit P
 begin
   haveI : is_iso (P.lift_cone_morphism t).hom := i,
-  haveI : is_iso (P.lift_cone_morphism t) := cone_iso_of_hom_iso _,
+  haveI : is_iso (P.lift_cone_morphism t) := cones.cone_iso_of_hom_iso _,
   symmetry,
   apply as_iso (P.lift_cone_morphism t),
 end
@@ -137,10 +138,7 @@ A cone postcomposed with a natural isomorphism is a limit cone if and only if th
 -/
 def postcompose_hom_equiv {F G : J ⥤ C} (α : F ≅ G) (c : cone F) :
   is_limit ((cones.postcompose α.hom).obj c) ≃ is_limit c :=
-begin
-  change is_limit ((cones.postcompose_equivalence α).functor.obj c) ≃ _,
-  apply is_limit.of_cone_equiv,
-end
+of_cone_equiv (cones.postcompose_equivalence α)
 
 /--
 A cone postcomposed with the inverse of a natural isomorphism is a limit cone if and only if
@@ -148,10 +146,7 @@ the original cone is.
 -/
 def postcompose_inv_equiv {F G : J ⥤ C} (α : F ≅ G) (c : cone G) :
   is_limit ((cones.postcompose α.inv).obj c) ≃ is_limit c :=
-begin
-  change is_limit ((cones.postcompose_equivalence α.symm).functor.obj c) ≃ _,
-  apply is_limit.of_cone_equiv,
-end
+postcompose_hom_equiv α.symm c
 
 /--
 The cone points of two limit cones for naturally isomorphic functors
@@ -442,7 +437,7 @@ def of_point_iso {r t : cocone F} (P : is_colimit r) [i : is_iso (P.desc t)] : i
 of_iso_colimit P
 begin
   haveI : is_iso (P.desc_cocone_morphism t).hom := i,
-  haveI : is_iso (P.desc_cocone_morphism t) := cocone_iso_of_hom_iso _,
+  haveI : is_iso (P.desc_cocone_morphism t) := cocones.cocone_iso_of_hom_iso _,
   apply as_iso (P.desc_cocone_morphism t),
 end
 
@@ -488,21 +483,15 @@ if and only if the original cocone is.
 -/
 def precompose_hom_equiv {F G : J ⥤ C} (α : F ≅ G) (c : cocone G) :
   is_colimit ((cocones.precompose α.hom).obj c) ≃ is_colimit c :=
-begin
-  change is_colimit ((cocones.precompose_equivalence α).functor.obj c) ≃ _,
-  apply is_colimit.of_cocone_equiv,
-end
+of_cocone_equiv (cocones.precompose_equivalence α)
 
 /--
-A cone precomposed with the inverse of a natural isomorphism is a colimit cocone
+A cocone precomposed with the inverse of a natural isomorphism is a colimit cocone
 if and only if the original cocone is.
 -/
 def precompose_inv_equiv {F G : J ⥤ C} (α : F ≅ G) (c : cocone F) :
   is_colimit ((cocones.precompose α.inv).obj c) ≃ is_colimit c :=
-begin
-  change is_colimit ((cocones.precompose_equivalence α.symm).functor.obj c) ≃ _,
-  apply is_colimit.of_cocone_equiv,
-end
+precompose_hom_equiv α.symm c
 
 /--
 The cocone points of two colimit cocones for naturally isomorphic functors

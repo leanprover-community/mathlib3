@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Yury Kudryashov
 -/
 import algebra.category.Group.basic
-import category_theory.reflect_isomorphisms
 import data.equiv.ring
 
 /-!
@@ -125,6 +124,9 @@ instance has_forget_to_Ring : has_forget₂ CommRing Ring := bundled_hom.forget�
 instance has_forget_to_CommSemiRing : has_forget₂ CommRing CommSemiRing :=
 has_forget₂.mk' (λ R : CommRing, CommSemiRing.of R) (λ R, rfl) (λ R₁ R₂ f, f) (by tidy)
 
+instance : full (forget₂ CommRing CommSemiRing) :=
+{ preimage := λ X Y f, f, }
+
 end CommRing
 
 -- This example verifies an improvement possible in Lean 3.8.
@@ -190,7 +192,7 @@ instance Ring.forget_reflects_isos : reflects_isomorphisms (forget Ring.{u}) :=
     resetI,
     let i := as_iso ((forget Ring).map f),
     let e : X ≃+* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_Ring_iso} ,
+    exact { ..e.to_Ring_iso },
   end }
 
 instance CommRing.forget_reflects_isos : reflects_isomorphisms (forget CommRing.{u}) :=
@@ -199,5 +201,7 @@ instance CommRing.forget_reflects_isos : reflects_isomorphisms (forget CommRing.
     resetI,
     let i := as_iso ((forget CommRing).map f),
     let e : X ≃+* Y := { ..f, ..i.to_equiv },
-    exact { ..e.to_CommRing_iso} ,
+    exact { ..e.to_CommRing_iso },
   end }
+
+example : reflects_isomorphisms (forget₂ Ring AddCommGroup) := by apply_instance

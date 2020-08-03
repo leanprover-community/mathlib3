@@ -117,7 +117,7 @@ meta def combine_lower_bounds : option expr → option expr → tactic (option e
 | (some prf) none := return $ some prf
 | none (some prf) := return $ some prf
 | (some prf₁) (some prf₂) :=
-  do option.some <$> to_expr ``(max_le %%prf₁ %%prf₂)
+  do option.some <$> to_expr ``(max_le %%prf₂ %%prf₁)
 
 /-- Inspect a given expression, using it to update a set of upper and lower bounds on `n`. -/
 meta def update_bounds (n : expr) (bounds : option expr × option expr) (e : expr) :

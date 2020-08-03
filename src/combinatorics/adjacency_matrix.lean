@@ -19,14 +19,10 @@ namespace simple_graph
 
 variables (G : simple_graph α) (R)
 
+/-- The matrix $A$ such that $A i j = 1$ if $i$ and $j$ are adjacent, and otherwise $A i j = 0$-/
 def adjacency_matrix : matrix α α R := λ i j, ite (G.adj i j) 1 0
 
 variable {R}
-
--- bad name
-@[simp] lemma adjacency_matrix_val_idem (i j : α) :
- (G.adjacency_matrix R i j) * (G.adjacency_matrix R i j) = G.adjacency_matrix R i j :=
-by { by_cases G.adj i j; simp [adjacency_matrix, h], }
 
 theorem transpose_adjacency_matrix : (G.adjacency_matrix R).transpose = (G.adjacency_matrix R) :=
 by { ext, simp [adjacency_matrix, edge_symm], }

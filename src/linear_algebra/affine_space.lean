@@ -372,12 +372,12 @@ a `finset` lying within that subset and with sum of weights 0 if and
 only if it can be expressed as `weighted_vsub` with sum of weights 0
 for the corresponding indexed family whose index type is the subtype
 corresponding to that subset. -/
-lemma eq_weighted_vsub_subset_iff_eq_weighted_vsub_subtype (v : V) (s : set ι) (p : ι → P) :
+lemma eq_weighted_vsub_subset_iff_eq_weighted_vsub_subtype {v : V} {s : set ι} {p : ι → P} :
   (∃ (fs : finset ι) (hfs : ↑fs ⊆ s) (w : ι → k) (hw : ∑ i in fs, w i = 0),
     v = fs.weighted_vsub V p w) ↔
   ∃ (fs : finset s) (w : s → k) (hw : ∑ i in fs, w i = 0),
     v = fs.weighted_vsub V (λ (i : s), p i) w :=
-eq_weighted_vsub_of_point_subset_iff_eq_weighted_vsub_of_point_subtype _ 0 _ _ _
+eq_weighted_vsub_of_point_subset_iff_eq_weighted_vsub_of_point_subtype
 
 variables (V)
 

@@ -9,19 +9,34 @@ import .tensor_algebra
 /-!
 # Exterior Algebras
 
-TODO
+We construct the exterior algebra of a semimodule `M` over a commutative semiring `R`.
 
 ## Notation
 
-TODO
+The exterior algebra of the `R`-semimodule `M` is denoted as `exterior_algebra R M`.
+It is endowed with the structure of an `R`-algebra.
+
+Given a linear morphism `f : M → A` from a semimodule `M` to another `R`-algebra `A`, such that
+`cond : ∀ m : M, f m * f m = 0`, there is a (unique) lift of `f` to an `R`-algebra morphism,
+which is denoted `exterior_algebra.lift R M f cond`.
+
+The canonical linear map `M → exterior_algebra R M` is denoted `exterior_algebra.ι R M`.
 
 ## Theorems
 
-TODO
+The main theorems proved ensure that `exterior_algebra R M` satisfies the universal property
+of the exterior algebra.
+1. `ι_comp_lift` is  fact that the composition of `ι R M` with `lift R M f cond` agrees with `f`.
+2. `lift_unique` ensures the uniqueness of `lift R M f cond` with respect to 1.
 
 ## Implementation details
 
-TODO
+The exterior algebra of `M` is constructed as a quotient of the tensor algebra, as follows.
+1. We define a relation `exterior_algebra.rel R M` on `tensor_algebra R M`.
+  This is the smallest relation which identifies squares of elements of `M` with `0`,
+  and which is compatible with addition and multiplication.
+2. The exterior algebra is the quotient of the tensor algebra by this relation.
+
 -/
 
 variables (R : Type*) [comm_semiring R]
@@ -30,6 +45,9 @@ variables (M : Type*) [add_comm_group M] [semimodule R M]
 namespace exterior_algebra
 open tensor_algebra
 
+/--
+An inductively defined relation on `tensor_algebra R M` used to define the exterior algebra.
+-/
 inductive rel : tensor_algebra R M → tensor_algebra R M → Prop
 | of (m : M) : rel ((ι R M m) * (ι R M m)) 0
 | add_compat_left {a b c} : rel a b → rel (a + c) (b + c)
@@ -39,9 +57,13 @@ inductive rel : tensor_algebra R M → tensor_algebra R M → Prop
 
 end exterior_algebra
 
+/--
+The exterior algebra of an `R`-semimodule `M`.
+-/
 def exterior_algebra := quot (exterior_algebra.rel R M)
 
 namespace exterior_algebra
+
 
 instance : semiring (exterior_algebra R M) :=
 { add := quot.map₂ (+) (λ _ _ _, rel.add_compat_right) (λ _ _ _, rel.add_compat_left),
@@ -59,6 +81,8 @@ instance : semiring (exterior_algebra R M) :=
   mul_zero := by {rintros ⟨⟩, change quot.mk _ _ = _, rw mul_zero },
   left_distrib := by {rintros ⟨⟩ ⟨⟩ ⟨⟩, change quot.mk _ _ = _, rw left_distrib, refl },
   right_distrib := by {rintros ⟨⟩ ⟨⟩ ⟨⟩, change quot.mk _ _ = _, rw right_distrib, refl } }
+
+instance : inhabited (exterior_algebra R M) := ⟨0⟩
 
 instance : has_scalar R (exterior_algebra R M) :=
 { smul := λ r m, quot.lift_on m (λ x, quot.mk _ $ r • x) $
@@ -83,6 +107,9 @@ instance : algebra R (exterior_algebra R M) :=
     refl,
   end }
 
+/--
+The canonical linear map `M →ₗ[R] exterior_algebra R M`.
+-/
 def ι : M →ₗ[R] exterior_algebra R M :=
 { to_fun := λ m, quot.mk _ (tensor_algebra.ι _ _ m),
   map_add' := begin
@@ -96,14 +123,17 @@ def ι : M →ₗ[R] exterior_algebra R M :=
     refl,
   end }
 
+/--
+The canonical quotient map `tensor_algebra R M → exterior_algebra R M`.
+-/
 protected def quot : tensor_algebra R M →ₐ[R] exterior_algebra R M :=
-{ to_fun := λ m, quot.mk _ m,
-  map_one' := rfl,
-  map_mul' := by tauto,
-  map_zero' := rfl,
-  map_add' := by tauto,
-  commutes' := by tauto }
+  by refine_struct { to_fun := λ m, quot.mk _ m }; tauto
 
+/--
+Given a linear map `f : M →ₗ[R] A` into an `R`-algebra `A`, which satisfies the condition:
+`cond : ∀ m : M, f m * f m = 0`, this is the canonical lift of `f` to a morphism of `R`-algebras
+from `exterior_algebra R M` to `A`.
+-/
 def lift {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = 0) :
   exterior_algebra R M →ₐ[R] A :=
 { to_fun := λ a, quot.lift_on a (tensor_algebra.lift R M f) $ λ x y h,

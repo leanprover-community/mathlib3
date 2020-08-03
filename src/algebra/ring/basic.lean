@@ -274,12 +274,12 @@ f.codomain_trivial_iff_range_trivial.trans
     λ h x, set.mem_singleton_iff.mp (h ▸ set.mem_range_self x)⟩
 
 /-- `f : R →+* S` doesn't map `1` to `0` if `S` is nontrivial -/
-lemma map_one_ne_zero_of_nontrivial [nontrivial β] : f 1 ≠ 0 :=
+lemma map_one_ne_zero [nontrivial β] : f 1 ≠ 0 :=
 mt f.codomain_trivial_iff_map_one_eq_zero.mpr zero_ne_one
 
 /-- If there is a homomorphism `f : R →+* S` and `S` is nontrivial, then `R` is nontrivial. -/
 lemma domain_nontrivial [nontrivial β] : nontrivial α :=
-⟨⟨1, 0, mt (λ h, show f 1 = 0, by rw [h, map_zero]) f.map_one_ne_zero_of_nontrivial⟩⟩
+⟨⟨1, 0, mt (λ h, show f 1 = 0, by rw [h, map_zero]) f.map_one_ne_zero⟩⟩
 
 end
 

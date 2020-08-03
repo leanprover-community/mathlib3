@@ -129,7 +129,7 @@ begin
   obtain ⟨p, p_monic, hpx⟩ := integral,
   refine comap_lt_comap_of_root_mem_sdiff hIJ mem _ _,
   swap,
-  { apply map_monic_ne_zero_of_nontrivial p_monic,
+  { apply map_monic_ne_zero p_monic,
     apply quotient.nontrivial,
     apply mt comap_eq_top_iff.mp,
     apply hI.1 },

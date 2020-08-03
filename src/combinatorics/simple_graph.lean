@@ -78,63 +78,32 @@ by { rintro rfl, exact G.loopless a hab }
 
 /--
 The edges of G consist of the unordered pairs of vertices related by
-`G.adj`.  It is given as a subtype of the symmetric square.
+`G.adj`.
 -/
-def E : Type u := {x : sym2 V // x ∈ sym2.from_rel G.sym}
+def E : set (sym2 V) := sym2.from_rel G.sym
 
-/-- Allows us to refer to a vertex being a member of an edge. -/
-instance has_mem : has_mem V G.E := { mem := λ v e, v ∈ e.val }
-
-/-- Construct an edge from its endpoints. -/
-def edge_of_adj {v w : V} (h : G.adj v w) : G.E := ⟨⟦(v,w)⟧, h⟩
-
-lemma mem_of_adj {v w : V} (h : G.adj v w) :
-  v ∈ G.edge_of_adj h := sym2.mk_has_mem v w
-
-lemma mem_of_adj_right {v w : V} (h : G.adj v w) :
-  w ∈ G.edge_of_adj h := sym2.mk_has_mem_right v w
+@[simp]
+lemma edge_iff_adj {v w : V} : ⟦(v, w)⟧ ∈ G.E ↔ G.adj v w :=
+by refl
 
 lemma adj_iff_exists_edge {v w : V} (hne : v ≠ w) :
-  G.adj v w ↔ ∃ (e : G.E), v ∈ e ∧ w ∈ e :=
+  G.adj v w ↔ ∃ (e ∈ G.E), v ∈ e ∧ w ∈ e :=
 begin
-  split, { intro, use ⟦(v,w)⟧, assumption, refine ⟨(G.mem_of_adj _), (G.mem_of_adj_right _)⟩ },
-  rintro ⟨e, ⟨w', hve⟩, ⟨v', hew⟩⟩,
-  have : e.val = ⟦(v,w)⟧, { rw [hve, sym2.eq_iff] at hew ⊢, cc },
-  have key := e.property, rwa this at key,
+  split, { intro, use ⟦(v,w)⟧, simpa },
+  { rintro ⟨e, he, hv⟩,
+    rw sym2.elems_iff_eq hne at hv,
+    subst e,
+    rwa edge_iff_adj at he, }
 end
 
-variables {G}
-
-/-- Given an edge and one vertex incident on it, construct the other one. -/
-noncomputable def E.other (e : G.E) {v : V} (h : v ∈ e) : V :=
-by { have : v ∈ e.val, apply h, exact this.other }
-
-lemma E.other_mem (e : G.E) {v : V} (h : v ∈ e) : e.other h ∈ e :=
+lemma edge_other_ne {e : sym2 V} (he : e ∈ G.E) {v : V} (h : v ∈ e) : h.other ≠ v :=
 begin
-  change sym2.mem.other h ∈ e.val, have := sym2.mem_other_spec h,
-  convert sym2.mk_has_mem_right _ _; tauto,
+  erw [← sym2.mem_other_spec h, sym2.eq_swap] at he,
+  exact G.ne_of_edge he,
 end
-
-lemma E.other_ne (e : G.E) {v : V} (h : v ∈ e) : e.other h ≠ v :=
-begin
-  have key := e.property,
-  erw [← sym2.mem_other_spec h, sym2.eq_swap] at key,
-  exact G.ne_of_edge key,
-end
-
-attribute [irreducible] E.other
-variables (G)
-
-instance E.inhabited [inhabited {p : V × V | G.adj p.1 p.2}] : inhabited G.E :=
-⟨begin
-  rcases inhabited.default {p : V × V | G.adj p.1 p.2} with ⟨⟨x, y⟩, h⟩,
-  use ⟦(x, y)⟧, rwa sym2.from_rel_prop,
-end⟩
 
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
-  fintype G.E := subtype.fintype _
-
-attribute [irreducible] E
+  fintype G.E := by { dunfold E, exact subtype.fintype _ }
 
 @[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
@@ -180,7 +149,13 @@ end finite_at
 
 section locally_finite
 
-variable [∀ (v : V), fintype (G.neighbor_set v)]
+/--
+A graph is locally finite if every vertex has a finite neighbor set.
+-/
+@[reducible]
+def locally_finite := Π (v : V), fintype (G.neighbor_set v)
+
+variable [locally_finite G]
 
 /--
 A locally finite simple graph is regular of degree `d` if every vertex has degree `d`.

@@ -57,7 +57,7 @@ begin
   cases nat.prime.eq_two_or_odd ‹p.prime› with hp2 hp_odd,
   { substI p, refine iff_of_true ⟨1, _⟩ _; apply subsingleton.elim  },
   obtain ⟨g, hg⟩ := is_cyclic.exists_generator (units (zmod p)),
-  obtain ⟨n, hn⟩ : x ∈ powers g, { rw powers_eq_gpowers, apply hg },
+  obtain ⟨n, hn⟩ : x ∈ submonoid.powers g, { rw mem_powers_iff_mem_gpowers, apply hg },
   split,
   { rintro ⟨y, rfl⟩, rw [← pow_mul, two_mul_odd_div_two hp_odd, fermat_little_units], },
   { subst x, assume h,

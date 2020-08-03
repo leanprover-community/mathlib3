@@ -714,13 +714,41 @@ end both
 end lattice
 
 section decidable_linear_order
-variables {α : Type u} [decidable_linear_order α] {a a₁ a₂ b b₁ b₂ : α}
+variables {α : Type u} [decidable_linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
 
-@[simp] lemma Ico_diff_Iio {a b c : α} : Ico a b \ Iio c = Ico (max a c) b :=
-set.ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}
+@[simp] lemma Ico_diff_Iio : Ico a b \ Iio c = Ico (max a c) b :=
+ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}
 
-@[simp] lemma Ico_inter_Iio {a b c : α} : Ico a b ∩ Iio c = Ico a (min b c) :=
-set.ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
+@[simp] lemma Ico_inter_Iio : Ico a b ∩ Iio c = Ico a (min b c) :=
+ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
+
+lemma Ioc_union_Ioc (h₁ : min a b ≤ max c d) (h₂ : min c d ≤ max a b) :
+  Ioc a b ∪ Ioc c d = Ioc (min a c) (max b d) :=
+begin
+  cases le_total a b with hab hab; cases le_total c d with hcd hcd; simp [hab, hcd] at h₁ h₂,
+  { ext x,
+    simp [iff_def, and_imp, or_imp_distrib, (h₂.lt_or_le x).symm, h₁.lt_or_le]
+      { contextual := tt } },
+  all_goals { simp [*] }
+end
+
+@[simp] lemma Ioc_union_Ioc_right : Ioc a b ∪ Ioc a c = Ioc a (max b c) :=
+by rw [Ioc_union_Ioc, min_self]; exact (min_le_left _ _).trans (le_max_left _ _)
+
+@[simp] lemma Ioc_union_Ioc_left : Ioc a c ∪ Ioc b c = Ioc (min a b) c :=
+by rw [Ioc_union_Ioc, max_self]; exact (min_le_right _ _).trans (le_max_right _ _)
+
+@[simp] lemma Ioc_union_Ioc_symm : Ioc a b ∪ Ioc b a = Ioc (min a b) (max a b) :=
+by { rw max_comm, apply Ioc_union_Ioc; rw max_comm; exact min_le_max }
+
+@[simp] lemma Ioc_union_Ioc_union_Ioc_cycle :
+  Ioc a b ∪ Ioc b c ∪ Ioc c a = Ioc (min a (min b c)) (max a (max b c)) :=
+begin
+  rw [Ioc_union_Ioc, Ioc_union_Ioc],
+  ac_refl,
+  all_goals { solve_by_elim [min_le_left_of_le, min_le_right_of_le, le_max_left_of_le,
+    le_max_right_of_le, le_refl] { max_depth := 5 }}
+end
 
 end decidable_linear_order
 

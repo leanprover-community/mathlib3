@@ -311,6 +311,9 @@ lemma mrange_top_of_surjective {N} [monoid N] (f : M →* N) (hf : function.surj
 mrange_top_iff_surjective.2 hf
 
 @[to_additive]
+lemma mrange_eq_map (f : M →* N) : f.mrange = map f ⊤ := rfl
+
+@[to_additive]
 lemma mclosure_preimage_le (f : M →* N) (s : set N) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
 closure_le.2 $ λ x hx, mem_coe.2 $ mem_comap.2 $ subset_closure hx

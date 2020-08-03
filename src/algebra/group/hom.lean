@@ -187,7 +187,7 @@ variables (M) [monoid M]
 variables (A : Type*) [add_monoid A]
 
 /-- The monoid of endomorphisms. -/
-def monoid.End := M →* M
+protected def monoid.End := M →* M
 
 instance monoid.End.monoid : monoid (monoid.End M) :=
 { mul := monoid_hom.comp,
@@ -200,7 +200,7 @@ instance monoid.End.inhabited : inhabited (monoid.End M) :=
 ⟨1⟩
 
 /-- The monoid of endomorphisms. -/
-def add_monoid.End := A →+ A
+protected def add_monoid.End := A →+ A
 
 instance add_monoid.End.monoid : monoid (add_monoid.End A) :=
 { mul := add_monoid_hom.comp,

@@ -74,7 +74,32 @@ variables {C : Type u} [category.{v} C] [has_products C]
 def sheaf_condition (F : presheaf C X) : Type (max u (v+1)) :=
 Π ⦃ι : Type v⦄ (U : ι → opens X), is_limit (F.map_cone (cone U))
 
+-- TODO another restatement in terms of preserving limits?
+
+def cone_equiv (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → opens X) :
+  limits.cone (diagram U ⋙ F) ≌ limits.cone (presheaf.sheaf_condition.diagram F U) := sorry
+
+def is_limit_map_cone_of_is_limit_sheaf_condition_fork
+  (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → opens X) :
+  is_limit (presheaf.sheaf_condition.fork F U) →
+  is_limit (functor.map_cone F (cone U)) :=
+begin
+  sorry,
+end
+
+def is_limit_sheaf_condition_fork_of_is_limit_map_cone
+  (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → opens X)  :
+  is_limit (functor.map_cone F (cone U)) →
+  is_limit (presheaf.sheaf_condition.fork F U) :=
+begin
+  sorry,
+end
+
 def sheaf_condition_equiv (F : presheaf C X) :
-  F.sheaf_condition ≃ overlap.sheaf_condition F := sorry
+  F.sheaf_condition ≃ overlap.sheaf_condition F :=
+equiv.Pi_congr_right (λ i, equiv.Pi_congr_right (λ U,
+  equiv_of_subsingleton_of_subsingleton
+    (is_limit_map_cone_of_is_limit_sheaf_condition_fork F U)
+    (is_limit_sheaf_condition_fork_of_is_limit_map_cone F U)))
 
 end overlap

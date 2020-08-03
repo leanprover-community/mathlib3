@@ -184,6 +184,20 @@ lemma map_preimage_singleton (f : α →ₛ β) (g : β → γ) (c : γ) :
   (f.map g) ⁻¹' {c} = f ⁻¹' ↑(f.range.filter (λ b, g b = c)) :=
 map_preimage _ _ _
 
+/-- Composition of a `simple_fun` and a measurable function is a `simple_func`. -/
+def comp [measurable_space β] (f : β →ₛ γ) (g : α → β) (hgm : measurable g) : α →ₛ γ :=
+{ to_fun := f ∘ g,
+  finite_range' := f.finite_range.subset $ set.range_comp_subset_range _ _,
+  is_measurable_fiber' := λ z, hgm (f.is_measurable_fiber z) }
+
+@[simp] lemma coe_comp [measurable_space β] (f : β →ₛ γ) {g : α → β} (hgm : measurable g) :
+  ⇑(f.comp g hgm) = f ∘ g :=
+rfl
+
+lemma range_comp_subset_range [measurable_space β] (f : β →ₛ γ) {g : α → β} (hgm : measurable g) :
+  (f.comp g hgm).range ⊆ f.range :=
+finset.coe_subset.1 $ by simp only [coe_range, coe_comp, set.range_comp_subset_range]
+
 /-- If `f` is a simple function taking values in `β → γ` and `g` is another simple function
 with the same domain and codomain `β`, then `f.seq g = f a (g a)`. -/
 def seq (f : α →ₛ (β → γ)) (g : α →ₛ β) : α →ₛ γ := f.bind (λf, g.map f)
@@ -1361,6 +1375,8 @@ lemma lintegral_dirac (a : α) {f : α → ennreal} (hf : measurable f) :
   ∫⁻ a, f a ∂(dirac a) = f a :=
 by simp [lintegral_congr_ae (eventually_eq_dirac hf)]
 
+/-- Given a measure `μ : measure α` and a function `f : α → ennreal`, `μ.with_density f` is the
+measure such that for a measurable set `s` we have `μ.with_density f s = ∫⁻ a in s, f a ∂μ`. -/
 def measure.with_density (μ : measure α) (f : α → ennreal) : measure α :=
 measure.of_measurable (λs hs, ∫⁻ a in s, f a ∂μ) (by simp) (λ s hs hd, lintegral_Union hs hd _)
 

@@ -27,7 +27,7 @@ instance has_mul [has_mul α] : has_mul (ulift α) := ⟨λ f g, ⟨f.down * g.d
 @[simp, to_additive] lemma mul_down [has_mul α] : (x * y).down = x.down * y.down := rfl
 
 @[to_additive] instance has_inv [has_inv α] : has_inv (ulift α) := ⟨λ f, ⟨f.down⁻¹⟩⟩
-@[simp, to_additive] lemma inv_apply [has_inv α] : x⁻¹.down = (x.down)⁻¹ := rfl
+@[simp, to_additive] lemma inv_down [has_inv α] : x⁻¹.down = (x.down)⁻¹ := rfl
 
 @[to_additive]
 instance semigroup [semigroup α] : semigroup (ulift α) :=

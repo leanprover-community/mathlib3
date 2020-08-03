@@ -1274,13 +1274,13 @@ begin
     tendsto_integral_of_l1 _ hfm hfi (eventually_of_forall $ λ i, (F i).measurable)
       (eventually_of_forall hFi) hFt,
   have hμ : tendsto (λ i, ∫ x, F i x ∂μ) at_top (𝓝 ∫ x, f x ∂μ),
-  { refine tendsto_integral_of_l1 _ hfm hfi.left_of_add_meas
-      (eventually_of_forall $ λ i, (F i).measurable) (eventually_of_forall hFiμ) _,
+  { refine tendsto_integral_of_l1 _ hfm hμ (eventually_of_forall $ λ i, (F i).measurable)
+      (eventually_of_forall hFiμ) _,
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hFt (λ _, zero_le _) _,
     exact λ i, lintegral_mono' (measure.le_add_right $ le_refl μ) (le_refl _) },
   have hν : tendsto (λ i, ∫ x, F i x ∂ν) at_top (𝓝 ∫ x, f x ∂ν),
-  { refine tendsto_integral_of_l1 _ hfm hfi.right_of_add_meas
-      (eventually_of_forall $ λ i, (F i).measurable) (eventually_of_forall hFiν) _,
+  { refine tendsto_integral_of_l1 _ hfm hν (eventually_of_forall $ λ i, (F i).measurable)
+      (eventually_of_forall hFiν) _,
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hFt (λ _, zero_le _) _,
     exact λ i, lintegral_mono' (measure.le_add_left $ le_refl ν) (le_refl _) },
   apply tendsto_nhds_unique hμν,

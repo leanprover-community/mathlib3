@@ -390,6 +390,13 @@ lemma monotone_comap : monotone (measurable_space.comap g) := assume a b h, coma
 lemma comap_map_le : (m.map f).comap f ≤ m := (gc_comap_map f).l_u_le _
 lemma le_map_comap : m ≤ (m.comap g).map g := (gc_comap_map g).le_u_l _
 
+lemma comap_eq_map (e : α ≃ β) [m : measurable_space α] : m.comap e.symm = m.map e :=
+begin
+  ext, have := (equiv.set.congr e).apply_eq_iff_eq_symm_apply, simp [equiv.set.congr] at this,
+  simp_rw [measurable_space.map, measurable_space.comap, ← equiv.image_eq_preimage, this],
+  simp_rw [exists_eq_right, equiv.image_eq_preimage, e.symm_symm]
+end
+
 end functors
 
 lemma generate_from_le_generate_from {s t : set (set α)} (h : s ⊆ t) :

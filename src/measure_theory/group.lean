@@ -16,17 +16,10 @@ We develop some properties of measures on (topological) groups
 noncomputable theory
 
 open has_inv set function measure_theory.measure measurable_space
-variables {G H : Type*}
+variables {α β : Type*} {G H : Type*}
 
 namespace opposite
 instance [m : measurable_space G] : measurable_space Gᵒᵖ := m.map op
-
-lemma comap_eq_map {α β} (e : α ≃ β) [m : measurable_space α] : m.comap e.symm = m.map e :=
-begin
-  ext, have := (equiv.set.congr e).apply_eq_iff_eq_symm_apply, simp [equiv.set.congr] at this,
-  simp_rw [measurable_space.map, measurable_space.comap, ← equiv.image_eq_preimage, this],
-  simp_rw [exists_eq_right, equiv.image_eq_preimage, e.symm_symm]
-end
 
 lemma opposite_eq_comap [m : measurable_space G] : opposite.measurable_space = m.comap unop :=
 (comap_eq_map equiv_to_opposite).symm
@@ -34,27 +27,11 @@ lemma opposite_eq_comap [m : measurable_space G] : opposite.measurable_space = m
 lemma measurable_op [measurable_space G] : measurable (op : G → Gᵒᵖ) := λ _ h, h
 lemma measurable_unop [measurable_space G] : measurable (unop : Gᵒᵖ → G) := λ _ h, h
 
-instance [m : topological_space G] : topological_space Gᵒᵖ :=
-m.coinduced op
-
-lemma induced_eq_coinduced {α β} (e : α ≃ β) [m : topological_space α] :
-  m.induced e.symm = m.coinduced e :=
-begin
-  ext, have := (equiv.set.congr e).apply_eq_iff_eq_symm_apply, simp [equiv.set.congr] at this,
-  simp_rw [topological_space.induced, topological_space.coinduced, ← equiv.image_eq_preimage, this],
-  simp_rw [exists_eq_right, equiv.image_eq_preimage, e.symm_symm]
-end
-
-lemma opposite_eq_induced [m : topological_space G] : opposite.topological_space = m.induced unop :=
-(induced_eq_coinduced equiv_to_opposite).symm
-
-lemma continuous_op [topological_space G] : continuous (op : G → Gᵒᵖ) := λ _ h, h
-lemma continuous_unop [topological_space G] : continuous (unop : Gᵒᵖ → G) := λ _ h, h
-
-instance [measurable_space G] [topological_space G] [has_mul G] [has_continuous_mul G] :
-  has_continuous_mul Gᵒᵖ :=
-{ continuous_mul := by { convert ((continuous_op.comp continuous_mul).comp continuous_swap).comp
-  (continuous_unop.prod_map continuous_unop), apply_instance } }
+/-- The map `G ≃ Gᵒᵖ` is a measurable equivalence -/
+def measurable_equiv_to_opposite [measurable_space G] : measurable_equiv G Gᵒᵖ :=
+{ measurable_to_fun := measurable_op,
+  measurable_inv_fun := measurable_unop,
+  ..equiv_to_opposite }
 
 lemma borel_comap [m : topological_space H] (f : G → H) : @borel G (m.induced f) =
   (@borel H m).comap f :=
@@ -67,9 +44,18 @@ instance [measurable_space G] [topological_space G] [borel_space G] : borel_spac
 end opposite
 open opposite
 
+lemma measurable_equiv.is_measurable_iff [measurable_space α] [measurable_space β]
+  (f : measurable_equiv α β) {s : set β} : is_measurable (f ⁻¹' s) ↔ is_measurable s :=
+begin
+  split,
+  { intro h, convert f.symm.measurable h, rw [preimage_preimage], convert preimage_id'.symm, ext x,
+    exact f.right_inv x },
+  exact λ h, f.measurable h
+end
+
 namespace measure_theory
 
-section
+section mul
 
 variables [measurable_space G] [has_mul G]
 
@@ -85,40 +71,62 @@ def is_left_invariant (μ : set G → ennreal) : Prop :=
 def is_right_invariant (μ : set G → ennreal) : Prop :=
 ∀ (g : G) {A : set G} (h : is_measurable A), μ ((λ h, h * g) ⁻¹' A) = μ A
 
-lemma is_left_invariant_opposite' [topological_space G] [has_continuous_mul G] [borel_space G] {μ : measure G}
-  (h : is_left_invariant μ) : is_right_invariant (map opposite.op μ) :=
-begin
-  intros g A hA,
-  rw [map_apply measurable_op hA, map_apply measurable_op (measurable_mul_right g hA),
-    preimage_preimage], sorry
-end
-
-end
+end mul
 
 namespace measure
 
-variables [measurable_space G]
+section mul
+variables [measurable_space G] [has_mul G] [topological_space G] [has_continuous_mul G]
+  [borel_space G]
 
-lemma map_mul_left_eq_self [topological_space G] [has_mul G] [has_continuous_mul G] [borel_space G]
-  {μ : measure G} : (∀ g, measure.map ((*) g) μ = μ) ↔ is_left_invariant μ :=
+lemma map_mul_left_eq_self {μ : measure G} :
+  (∀ g, measure.map ((*) g) μ = μ) ↔ is_left_invariant μ :=
 begin
   apply forall_congr, intro g, rw [measure.ext_iff], apply forall_congr, intro A,
   apply forall_congr, intro hA, rw [map_apply (measurable_mul_left g) hA]
 end
 
-lemma map_mul_right_eq_self [topological_space G] [has_mul G] [has_continuous_mul G] [borel_space G]
-  {μ : measure G} : (∀ g, measure.map (λ h, h * g) μ = μ) ↔ is_right_invariant μ :=
+lemma map_mul_right_eq_self {μ : measure G} :
+  (∀ g, measure.map (λ h, h * g) μ = μ) ↔ is_right_invariant μ :=
 begin
   apply forall_congr, intro g, rw [measure.ext_iff], apply forall_congr, intro A,
   apply forall_congr, intro hA, rw [map_apply (measurable_mul_right g) hA]
 end
 
+@[simp] lemma is_right_invariant_map_op {μ : measure G} :
+  is_right_invariant (map op μ) ↔ is_left_invariant μ :=
+begin
+  symmetry, apply (equiv_to_opposite).forall_congr, intro g,
+  apply (equiv.set.congr equiv_to_opposite).forall_congr, intro A,
+  dsimp [equiv.set.congr], simp only [equiv.image_eq_preimage],
+  symmetry, refine imp_congr_ctx measurable_equiv_to_opposite.is_measurable_iff _, intro hA,
+  dsimp [equiv_to_opposite], rw [map_apply measurable_op (measurable_unop hA)],
+  rw [map_apply measurable_op (measurable_mul_right (op g) (measurable_unop hA))],
+  simp only [preimage_preimage, unop_op, preimage_id', unop_mul]
+end
+
+@[simp] lemma is_left_invariant_map_op {μ : measure G} :
+  is_left_invariant (map op μ) ↔ is_right_invariant μ :=
+begin
+  symmetry, apply (equiv_to_opposite).forall_congr, intro g,
+  apply (equiv.set.congr equiv_to_opposite).forall_congr, intro A,
+  dsimp [equiv.set.congr], simp only [equiv.image_eq_preimage],
+  symmetry, refine imp_congr_ctx measurable_equiv_to_opposite.is_measurable_iff _, intro hA,
+  dsimp [equiv_to_opposite], rw [map_apply measurable_op (measurable_unop hA)],
+  rw [map_apply measurable_op (measurable_mul_left (op g) (measurable_unop hA))],
+  simp only [preimage_preimage, unop_op, preimage_id', unop_mul]
+end
+
+end mul
+
+variables [measurable_space G] [group G]
+
 /-- The conjugate of a measure on a topological group.
   Defined to be `A ↦ μ (A⁻¹)`, where `A⁻¹` is the pointwise inverse of `A`. -/
-protected def conj [group G] (μ : measure G) : measure G :=
+protected def conj (μ : measure G) : measure G :=
 measure.map inv μ
 
-variables [group G] [topological_space G] [topological_group G] [borel_space G]
+variables [topological_space G] [topological_group G] [borel_space G]
 
 lemma conj_apply (μ : measure G) {s : set G} (hs : is_measurable s) :
   μ.conj s = μ s⁻¹ :=
@@ -153,7 +161,12 @@ begin
 end
 
 lemma is_left_invariant_conj' (h : is_right_invariant μ) : is_left_invariant μ.conj :=
-@is_right_invariant_conj' Gᵒᵖ _ _ _ _ _ _ h
+begin
+  rw [← measure.is_right_invariant_map_op, measure.conj, measure.map_map],
+  show is_right_invariant (map (inv ∘ op) μ),
+  rw [← measure.map_map], apply is_right_invariant_conj', rwa measure.is_left_invariant_map_op,
+  all_goals { exact measurable_op <|> exact measurable_inv }
+end
 
 @[simp] lemma is_right_invariant_conj : is_right_invariant μ.conj ↔ is_left_invariant μ :=
 by { refine ⟨λ h, _, is_right_invariant_conj'⟩, rw ←μ.conj_conj, exact is_left_invariant_conj' h }

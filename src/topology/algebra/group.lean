@@ -126,6 +126,17 @@ protected def homeomorph.inv (α : Type*) [topological_space α] [group α] [top
   continuous_inv_fun := continuous_inv,
   .. equiv.inv α }
 
+/-- The map `α ≃ αᵒᵖ` is a homeomorphism -/
+def homeomorphm_to_opposite [topological_space α] : α ≃ₜ αᵒᵖ :=
+{ continuous_to_fun := continuous_op,
+  continuous_inv_fun := continuous_unop,
+  ..equiv_to_opposite }
+
+instance [group α] [topological_space α] [topological_group α] : topological_group αᵒᵖ :=
+{ continuous_inv :=
+  by { convert (continuous_op.comp continuous_inv).comp continuous_unop, apply_instance },
+  ..opposite.has_continuous_mul }
+
 @[to_additive exists_nhds_half]
 lemma exists_nhds_split [topological_group α] {s : set α} (hs : s ∈ 𝓝 (1 : α)) :
   ∃ V ∈ 𝓝 (1 : α), ∀ v w ∈ V, v * w ∈ s :=

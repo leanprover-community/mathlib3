@@ -9,10 +9,18 @@ import topology.continuous_on
 import group_theory.submonoid.basic
 import algebra.group.prod
 
-open classical set filter topological_space
+open classical set filter topological_space opposite
 open_locale classical topological_space big_operators
 
 variables {α : Type*} {β : Type*} {γ : Type*}
+
+instance [m : topological_space α] : topological_space αᵒᵖ := m.coinduced op
+
+lemma opposite_eq_induced [m : topological_space α] : opposite.topological_space = m.induced unop :=
+(induced_eq_coinduced equiv_to_opposite).symm
+
+lemma continuous_op [topological_space α] : continuous (op : α → αᵒᵖ) := λ _ h, h
+lemma continuous_unop [topological_space α] : continuous (unop : αᵒᵖ → α) := λ _ h, h
 
 /-- Basic hypothesis to talk about a topological additive monoid or a topological additive
 semigroup. A topological additive monoid over `α`, for example, is obtained by requiring both the
@@ -83,6 +91,11 @@ hf.mul hg
 instance [topological_space β] [has_mul β] [has_continuous_mul β] : has_continuous_mul (α × β) :=
 ⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
  ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
+
+-- @[to_additive]
+instance [topological_space α] [has_mul α] [has_continuous_mul α] : has_continuous_mul αᵒᵖ :=
+{ continuous_mul := by { convert ((continuous_op.comp continuous_mul).comp continuous_swap).comp
+  (continuous_unop.prod_map continuous_unop), apply_instance } }
 
 end has_continuous_mul
 

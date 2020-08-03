@@ -7,6 +7,7 @@ import measure_theory.measure_space
 import measure_theory.borel_space
 import topology.opens
 import topology.compacts
+
 /-!
 # Contents
 
@@ -36,6 +37,7 @@ other choices can be made, and it is not a priori clear what the best interface 
 * Paul Halmos (1950), Measure Theory, §53
 * https://en.wikipedia.org/wiki/Content_(measure_theory)
 -/
+
 universe variables u v w
 noncomputable theory
 
@@ -93,6 +95,7 @@ begin
   rw [← ennreal.sub_le_iff_le_add], exact le_of_lt h2U
 end
 
+/-- The inner content of a surpremum of opens is at most the sum of the individual inner contents. -/
 lemma inner_content_Sup_nat [t2_space G] {μ : compacts G → ennreal}
   (h1 : μ ⊥ = 0)
   (h2 : ∀ (K₁ K₂ : compacts G), μ (K₁ ⊔ K₂) ≤ μ K₁ + μ K₂) (U : ℕ → opens G) :
@@ -116,7 +119,9 @@ begin
   refine le_trans _ (le_supr _ (h2K' i)), refl'
 end
 
-/-- This is "unbundled", because that it required for the API of `induced_outer_measure`. -/
+/-- The inner content of a union of sets is at most the sum of the individual inner contents.
+  This is the "unbundled" version of `inner_content_Sup_nat`.
+  It required for the API of `induced_outer_measure`. -/
 lemma inner_content_Union_nat [t2_space G] {μ : compacts G → ennreal}
   (h1 : μ ⊥ = 0)
   (h2 : ∀ (K₁ K₂ : compacts G), μ (K₁ ⊔ K₂) ≤ μ K₁ + μ K₂)

@@ -44,12 +44,12 @@ by simp [neighbor_finset_eq_filter, dot_product, sum_filter, sum_apply]
 @[simp]
 lemma adjacency_matrix_mul_apply (M : matrix α α R) (v w : α) :
   (G.adjacency_matrix R ⬝ M) v w = ∑ u in G.neighbor_finset v, M u w :=
-by { simp [mul_val, neighbor_finset_eq_filter, sum_filter], }
+by simp [mul_val, neighbor_finset_eq_filter, sum_filter]
 
 @[simp]
 lemma mul_adjacency_matrix_apply (M : matrix α α R) (v w : α) :
   (M ⬝ G.adjacency_matrix R) v w = ∑ u in G.neighbor_finset w, M v u :=
-by { simp [mul_val, neighbor_finset_eq_filter, sum_filter, edge_symm], }
+by simp [mul_val, neighbor_finset_eq_filter, sum_filter, edge_symm]
 
 variable (R)
 theorem adj_mat_traceless : matrix.trace α R R (G.adjacency_matrix R) = 0 := by simp

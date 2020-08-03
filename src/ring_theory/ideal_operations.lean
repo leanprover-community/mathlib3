@@ -572,7 +572,7 @@ le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
   from (f.map_pow r n).symm ▸ hfrnk⟩)
 (λ r ⟨n, hfrnk⟩, ⟨n, f.map_pow r n ▸ hfrnk⟩)
 
-theorem comap.is_prime [H : is_prime K] : is_prime (comap f K) :=
+theorem comap_is_prime [H : is_prime K] : is_prime (comap f K) :=
 ⟨comap_ne_top f H.left,
   λ x y h, H.right (show f x * f y ∈ K, by rwa [mem_comap, ring_hom.map_mul] at h)⟩
 

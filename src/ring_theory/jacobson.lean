@@ -170,10 +170,9 @@ begin
       rw comap_map_of_is_prime_disjoint f I (is_maximal.is_prime hI.right),
       rwa disjoint_closure_singleton_iff_not_mem (is_maximal.is_prime hI.right).radical},
     { exfalso,
-      have hI_p : (map f.to_map I).is_prime, {
-        refine is_prime_of_is_prime_disjoint f I ⟨is_maximal.is_prime hI.right, _⟩,
-        rwa disjoint_closure_singleton_iff_not_mem (is_maximal.is_prime hI.right).radical,
-      },
+      have hI_p : (map f.to_map I).is_prime,
+      { refine is_prime_of_is_prime_disjoint f I ⟨is_maximal.is_prime hI.right, _⟩,
+        rwa disjoint_closure_singleton_iff_not_mem (is_maximal.is_prime hI.right).radical, },
       refine hI_p.left (h.right _ (lt_of_le_of_ne this hJ)) } },
   { intro h,
     split,

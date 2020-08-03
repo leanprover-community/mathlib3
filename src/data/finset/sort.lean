@@ -149,10 +149,10 @@ begin
 end
 
 /-- `mono_of_fin {a} h` sends any argument to `a`. -/
-@[simp] lemma mono_of_fin_singleton (a : α) (i : fin 1) :
-  mono_of_fin {a} (card_singleton a) i = a :=
+@[simp] lemma mono_of_fin_singleton (a : α) (i : fin 1) {h} :
+  mono_of_fin {a} h i = a :=
 by rw [subsingleton.elim i ⟨0, zero_lt_one⟩,
-       mono_of_fin_zero (card_singleton a) (singleton_nonempty a) zero_lt_one, min'_singleton]
+       mono_of_fin_zero h (singleton_nonempty a) zero_lt_one, min'_singleton]
 
 /-- Any increasing bijection between `fin k` and a finset of cardinality `k` has to coincide with
 the increasing bijection `mono_of_fin s h`. For a statement assuming only that `f` maps `univ` to

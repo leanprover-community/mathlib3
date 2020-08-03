@@ -280,7 +280,7 @@ theorem min'_le (x) (H2 : x ∈ s) : s.min' H ≤ x := min_le_of_mem H2 $ option
 theorem le_min' (x) (H2 : ∀ y ∈ s, x ≤ y) : x ≤ s.min' H := H2 _ $ min'_mem _ _
 
 /-- `{a}.min'` is `a`. -/
-@[simp] lemma min'_singleton (a : α) : ({a} : finset α).min' (singleton_nonempty a) = a :=
+@[simp] lemma min'_singleton (a : α) {h} : ({a} : finset α).min' h = a :=
 by simp [min']
 
 theorem max'_mem : s.max' H ∈ s := mem_of_max $ by simp [max']
@@ -290,7 +290,7 @@ theorem le_max' (x) (H2 : x ∈ s) : x ≤ s.max' H := le_max_of_mem H2 $ option
 theorem max'_le (x) (H2 : ∀ y ∈ s, y ≤ x) : s.max' H ≤ x := H2 _ $ max'_mem _ _
 
 /-- `{a}.max'` is `a`. -/
-@[simp] lemma max'_singleton (a : α) : ({a} : finset α).max' (singleton_nonempty a) = a :=
+@[simp] lemma max'_singleton (a : α) {h} : ({a} : finset α).max' h = a :=
 by simp [max']
 
 theorem min'_lt_max' {i j} (H1 : i ∈ s) (H2 : j ∈ s) (H3 : i ≠ j) : s.min' H < s.max' H :=

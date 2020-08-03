@@ -80,14 +80,12 @@ end
 instance : fin_category walking_parallel_pair := { }
 
 /-- Equalizers are finite limits, so if `C` has all finite limits, it also has all equalizers -/
-@[priority 100]
-instance has_equalizers_of_has_finite_limits [has_finite_limits C] : has_equalizers C :=
+def has_equalizers_of_has_finite_limits [has_finite_limits C] : has_equalizers C :=
 { has_limits_of_shape := infer_instance }
 
 /-- Coequalizers are finite colimits, of if `C` has all finite colimits, it also has all
     coequalizers -/
-@[priority 100]
-instance has_coequalizers_of_has_finite_colimits [has_finite_colimits C] : has_coequalizers C :=
+def has_coequalizers_of_has_finite_colimits [has_finite_colimits C] : has_coequalizers C :=
 { has_colimits_of_shape := infer_instance }
 
 variables {J : Type v}

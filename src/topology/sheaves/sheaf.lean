@@ -28,6 +28,7 @@ universes v u
 open category_theory
 open category_theory.limits
 open topological_space
+open Top
 open opposite
 open topological_space.opens
 
@@ -35,6 +36,8 @@ namespace Top
 
 variables {C : Type u} [category.{v} C] [has_products C]
 variables {X : Top.{v}} (F : presheaf C X) {ι : Type v} (U : ι → opens X)
+
+namespace presheaf
 
 namespace sheaf_condition
 
@@ -128,6 +131,8 @@ def sheaf_condition_punit (F : presheaf (category_theory.discrete punit) X) :
 instance sheaf_condition_inhabited (F : presheaf (category_theory.discrete punit) X) :
   inhabited (sheaf_condition F) := ⟨sheaf_condition_punit F⟩
 
+end presheaf
+
 variables (C X)
 
 /--
@@ -136,7 +141,7 @@ satisfying the sheaf condition.
 -/
 structure sheaf :=
 (presheaf : presheaf C X)
-(sheaf_condition : sheaf_condition presheaf)
+(sheaf_condition : presheaf.sheaf_condition)
 
 instance : category (sheaf C X) :=
 begin

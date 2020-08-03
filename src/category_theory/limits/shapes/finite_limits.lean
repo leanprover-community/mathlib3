@@ -144,15 +144,29 @@ instance fin_category_wide_pushout [fintype J] [decidable_eq J] : fin_category (
 `has_finite_wide_pullbacks` represents a choice of wide pullback
 for every finite collection of morphisms
 -/
-abbreviation has_finite_wide_pullbacks : Type (max (v+1) u) :=
+-- We can't use the same design as for `has_wide_pullbacks`,
+-- because of https://github.com/leanprover-community/lean/issues/429
+def has_finite_wide_pullbacks : Type (max (v+1) u) :=
 Π (J : Type v) [decidable_eq J] [fintype J], has_limits_of_shape (wide_pullback_shape J) C
+
+attribute [class] has_finite_wide_pullbacks
+
+instance (J : Type v) [decidable_eq J] [fintype J] [has_finite_wide_pullbacks C] :
+  has_limits_of_shape (wide_pullback_shape J) C :=
+‹has_finite_wide_pullbacks C› J
 
 /--
 `has_finite_wide_pushouts` represents a choice of wide pushout
 for every finite collection of morphisms
 -/
-abbreviation has_finite_wide_pushouts : Type (max (v+1) u) :=
+def has_finite_wide_pushouts : Type (max (v+1) u) :=
 Π (J : Type v) [decidable_eq J] [fintype J], has_colimits_of_shape (wide_pushout_shape J) C
+
+attribute [class] has_finite_wide_pushouts
+
+instance (J : Type v) [decidable_eq J] [fintype J] [has_finite_wide_pushouts C] :
+  has_colimits_of_shape (wide_pushout_shape J) C :=
+‹has_finite_wide_pushouts C› J
 
 /--
 Finite wide pullbacks are finite limits, so if `C` has all finite limits,

@@ -1370,18 +1370,16 @@ open affine_space
 variables {k : Type*} {V : Type*} {P : Type*} [ring k] [add_comm_group V] [module k V]
 variables [affine_space k V P] {ι : Type*}
 
-/-- If a family is affinely independent, the spans of points indexed
-by disjoint subsets of the index type are disjoint, if the underlying
+/-- If a family is affinely independent, and the spans of points
+indexed by two subsets of the index type have a point in common, those
+subsets of the index type have an element in common, if the underlying
 ring is nontrivial. -/
-lemma affine_span_disjoint_of_disjoint_of_affine_independent [nontrivial k] {p : ι → P}
-    (ha : affine_independent k V p) {s1 s2 : set ι} (hd : s1 ∩ s2 = ∅) :
-  (affine_span k V (p '' s1) : set P) ∩ affine_span k V (p '' s2) = ∅ :=
+lemma exists_mem_inter_of_exists_mem_inter_affine_span_of_affine_independent [nontrivial k]
+    {p : ι → P} (ha : affine_independent k V p) {s1 s2 : set ι} {p0 : P}
+    (hp0s1 : p0 ∈ affine_span k V (p '' s1)) (hp0s2 : p0 ∈ affine_span k V (p '' s2)):
+  ∃ (i : ι), i ∈ s1 ∩ s2 :=
 begin
-  by_contradiction hne,
-  change (affine_span k V (p '' s1) : set P) ∩ affine_span k V (p '' s2) ≠ ∅ at hne,
-  rw set.ne_empty_iff_nonempty at hne,
-  rcases hne with ⟨p0, hp0s1, hp0s2⟩,
-  rw [set.image_eq_range, affine_subspace.mem_coe] at hp0s1 hp0s2,
+  rw set.image_eq_range at hp0s1 hp0s2,
   rw [mem_affine_span_iff_eq_affine_combination,
       ←finset.eq_affine_combination_subset_iff_eq_affine_combination_subtype] at hp0s1 hp0s2,
   rcases hp0s1 with ⟨fs1, hfs1, w1, hw1, hp0s1⟩,
@@ -1405,14 +1403,42 @@ begin
   replace ha := ha i (finset.mem_union_left _ hifs1),
   change set.indicator ↑fs1 w1 i - set.indicator ↑fs2 w2 i = 0 at ha,
   rw ←finset.mem_coe at hifs1,
-  rw set.indicator_of_mem hifs1 _ at ha,
-  rw ←set.disjoint_iff_inter_eq_empty at hd,
-  have hifs2 : i ∉ (↑fs2 : set ι) :=
-    λ h, set.not_disjoint_iff.2
-           ⟨i, hifs1, h⟩
-           (set.disjoint_of_subset_right hfs2 (set.disjoint_of_subset_left hfs1 hd)),
-  rw [set.indicator_of_not_mem hifs2 _, sub_zero] at ha,
-  exact hin0 ha
+  rw [set.indicator_of_mem hifs1 _, sub_eq_zero] at ha,
+  rw ha at hin0,
+  use [i, hfs1 hifs1, hfs2 (set.mem_of_indicator_ne_zero hin0)]
+end
+
+
+/-- If a family is affinely independent, the spans of points indexed
+by disjoint subsets of the index type are disjoint, if the underlying
+ring is nontrivial. -/
+lemma affine_span_disjoint_of_disjoint_of_affine_independent [nontrivial k] {p : ι → P}
+    (ha : affine_independent k V p) {s1 s2 : set ι} (hd : s1 ∩ s2 = ∅) :
+  (affine_span k V (p '' s1) : set P) ∩ affine_span k V (p '' s2) = ∅ :=
+begin
+  by_contradiction hne,
+  change (affine_span k V (p '' s1) : set P) ∩ affine_span k V (p '' s2) ≠ ∅ at hne,
+  rw set.ne_empty_iff_nonempty at hne,
+  rcases hne with ⟨p0, hp0s1, hp0s2⟩,
+  cases exists_mem_inter_of_exists_mem_inter_affine_span_of_affine_independent
+    ha hp0s1 hp0s2 with i hi,
+  exact set.not_mem_empty i (hd ▸ hi)
+end
+
+/-- If a family is affinely independent, a point in the family is in
+the span of some of the points given by a subset of the index type if
+and only that point's index is in the subset, if the underlying ring
+is nontrivial. -/
+@[simp] lemma mem_affine_span_iff_mem_of_affine_independent [nontrivial k] {p : ι → P}
+    (ha : affine_independent k V p) (i : ι) (s : set ι) :
+  p i ∈ affine_span k V (p '' s) ↔ i ∈ s :=
+begin
+  split,
+  { intro hs,
+    have h := exists_mem_inter_of_exists_mem_inter_affine_span_of_affine_independent
+      ha hs (mem_affine_span k V (set.mem_image_of_mem _ (set.mem_singleton _))),
+    rwa [←set.nonempty_def, set.inter_singleton_nonempty] at h },
+  { exact λ h, mem_affine_span k V (set.mem_image_of_mem p h) }
 end
 
 /-- If a family is affinely independent, a point in the family is not
@@ -1421,13 +1447,7 @@ nontrivial. -/
 lemma not_mem_affine_span_diff_of_affine_independent [nontrivial k] {p : ι → P}
     (ha : affine_independent k V p) (i : ι) (s : set ι) :
   p i ∉ affine_span k V (p '' (s \ {i})) :=
-begin
-  rw [←affine_subspace.mem_coe, ←set.singleton_inter_eq_empty,
-      ←affine_subspace.coe_affine_span_singleton k V (p i), ←set.image_singleton,
-      affine_span_disjoint_of_disjoint_of_affine_independent ha],
-  rw [set.singleton_inter_eq_empty, set.mem_diff_singleton],
-  simp
-end
+by simp [ha]
 
 end affine_independent
 

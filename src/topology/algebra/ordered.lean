@@ -2217,7 +2217,7 @@ lemma continuous_at_iff_continuous_cleft_cright [topological_space α] [linear_o
 by simp only [continuous_within_at, continuous_at, ← tendsto_sup, nhds_cleft_sup_nhds_cright]
 
 lemma continuous_on_Icc_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
-  [order_topology α] [topological_space β] [t2_space β] [regular_space β] {f : α → β} {a b : α}
+  [order_topology α] [topological_space β] [regular_space β] {f : α → β} {a b : α}
   {la lb : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
   (ha : tendsto f (nhds_within a $ Ioi a) (𝓝 la))
   (hb : tendsto f (nhds_within b $ Iio b) (𝓝 lb)) :
@@ -2246,7 +2246,7 @@ begin
 end
 
 lemma continuous_on_Ico_extend_from_Ioo [topological_space α]
-  [linear_order α] [densely_ordered α] [order_topology α] [topological_space β] [t2_space β]
+  [linear_order α] [densely_ordered α] [order_topology α] [topological_space β]
   [regular_space β] {f : α → β} {a b : α} {la : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
   (ha : tendsto f (nhds_within a $ Ioi a) (𝓝 la)) :
   continuous_on (extend_from (Ioo a b) f) (Ico a b) ∧
@@ -2270,14 +2270,14 @@ begin
 end
 
 lemma continuous_on_Ioc_extend_from_Ioo [topological_space α]
-  [linear_order α] [densely_ordered α] [order_topology α] [topological_space β] [t2_space β]
+  [linear_order α] [densely_ordered α] [order_topology α] [topological_space β]
   [regular_space β] {f : α → β} {a b : α} {lb : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
   (hb : tendsto f (nhds_within b $ Iio b) (𝓝 lb)) :
   continuous_on (extend_from (Ioo a b) f) (Ioc a b) ∧
   (extend_from (Ioo a b) f b = lb) ∧
   ∀ x ∈ Ioo a b, extend_from (Ioo a b) f x = f x :=
 begin
-  have := @continuous_on_Ico_extend_from_Ioo (order_dual α) _ _ _ _ _ _ _ _ f _ _ _ hab,
+  have := @continuous_on_Ico_extend_from_Ioo (order_dual α) _ _ _ _ _ _ _ f _ _ _ hab,
   erw [dual_Ico, dual_Ioi, dual_Ioo] at this,
   exact this hf hb
 end

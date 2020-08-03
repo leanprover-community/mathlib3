@@ -1419,8 +1419,8 @@ end
 in the affine span of the other points, if the underlying ring is
 nontrivial. -/
 lemma not_mem_affine_span_diff_of_affine_independent [nontrivial k] {p : ι → P}
-    (ha : affine_independent k V p) (i : ι) :
-  p i ∉ affine_span k V (p '' (set.univ \ {i})) :=
+    (ha : affine_independent k V p) (i : ι) (s : set ι) :
+  p i ∉ affine_span k V (p '' (s \ {i})) :=
 begin
   rw [←affine_subspace.mem_coe, ←set.singleton_inter_eq_empty,
       ←affine_subspace.coe_affine_span_singleton k V (p i), ←set.image_singleton,

@@ -996,6 +996,7 @@ lemma orthogonal_projection_mem {K : submodule ℝ α} (h : is_complete (K : set
 orthogonal_projection_fn_mem h v
 
 /-- The characterization of the orthogonal projection.  -/
+@[simp]
 lemma orthogonal_projection_inner_eq_zero {K : submodule ℝ α} (h : is_complete (K : set α))
   (v : α) : ∀ w ∈ K, inner (v - orthogonal_projection h v) w = 0 :=
 orthogonal_projection_fn_inner_eq_zero h v

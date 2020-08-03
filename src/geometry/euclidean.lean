@@ -773,6 +773,10 @@ def orthogonal_projection {s : affine_subspace ℝ V P} (hn : (s : set P).nonemp
     exact hm.symm
   end }
 
+@[simp] lemma orthogonal_projection_fn_eq {s : affine_subspace ℝ V P} (hn : (s : set P).nonempty)
+  (hc : is_complete (s.direction : set V)) (p : P) :
+  orthogonal_projection_fn hn hc p = orthogonal_projection hn hc p := rfl
+  
 /-- The intersection of the subspace and the orthogonal subspace
 through the given point is the `orthogonal_projection` of that point
 onto the subspace. -/

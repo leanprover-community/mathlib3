@@ -161,10 +161,9 @@ begin
     erw [← H, mem_Inf] at this,
     push_neg at this,
     rcases this with ⟨I, hI, hI'⟩,
-    suffices : comap f.to_map J = I, {
-      rw this,
-      exact hI.right
-    },
+    suffices : comap f.to_map J = I,
+    { rw this,
+      exact hI.right },
     have : J ≤ map f.to_map I := (map_comap f J) ▸ (map_mono hI.left),
     cases (classical.em (J = map f.to_map I)) with hJ hJ,
     { rw hJ,

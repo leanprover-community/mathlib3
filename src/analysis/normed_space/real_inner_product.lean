@@ -987,12 +987,16 @@ def orthogonal_projection {K : submodule ℝ α} (h : is_complete (K : set α)) 
     rw eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero h hm ho
   end }
 
+@[simp]
+lemma orthogonal_projection_fn_eq {K : submodule ℝ α} (h : is_complete (K : set α)) (v : α) :
+  orthogonal_projection_fn h v = orthogonal_projection h v := rfl
 /-- The orthogonal projection is in the given subspace. -/
 lemma orthogonal_projection_mem {K : submodule ℝ α} (h : is_complete (K : set α)) (v : α) :
   orthogonal_projection h v ∈ K :=
 orthogonal_projection_fn_mem h v
 
 /-- The characterization of the orthogonal projection.  -/
+@[simp]
 lemma orthogonal_projection_inner_eq_zero {K : submodule ℝ α} (h : is_complete (K : set α))
   (v : α) : ∀ w ∈ K, inner (v - orthogonal_projection h v) w = 0 :=
 orthogonal_projection_fn_inner_eq_zero h v

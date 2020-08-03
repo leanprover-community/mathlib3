@@ -178,4 +178,7 @@ begin
   finish,
 end
 
+@[simp]
+theorem ι_square_zero (m : M) : (ι R M m) * (ι R M m) = 0 := by apply quot.sound (rel.of _)
+
 end exterior_algebra

@@ -2215,6 +2215,18 @@ begin
   exact times_cont_diff_at.prod_map hf hg
 end
 
+/-- The product map of two `C^n` functions is `C^n`. -/
+lemma times_cont_diff.prod_map
+  {f : E → F} {g : E' → F'}
+  (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) :
+  times_cont_diff 𝕜 n (prod.map f g) :=
+begin
+  rw times_cont_diff_iff_times_cont_diff_at at *,
+  exact λ ⟨x, y⟩, (hf x).prod_map (hg y)
+end
+
+end prod_map
+
 /-! ### Inversion in a complete normed algebra -/
 
 section algebra_inverse
@@ -2252,18 +2264,6 @@ begin
 end
 
 end algebra_inverse
-
-/-- The product map of two `C^n` functions is `C^n`. -/
-lemma times_cont_diff.prod_map
-  {f : E → F} {g : E' → F'}
-  (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) :
-  times_cont_diff 𝕜 n (prod.map f g) :=
-begin
-  rw times_cont_diff_iff_times_cont_diff_at at *,
-  exact λ ⟨x, y⟩, (hf x).prod_map (hg y)
-end
-
-end prod_map
 
 section real
 /-!

@@ -3,9 +3,28 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import tactic.alias
+
+/-!
+# Lemmas about inequalities
+
+This file contains some lemmas about `≤`/`≥`/`<`/`>`, and `cmp`.
+
+* We simplify `a ≥ b` and `a > b` to `b ≤ a` and `b < a`, respectively. This way we can formulate
+  all lemmas using `≤`/`<` avoiding duplication.
+
+* In some cases we introduce dot syntax aliases so that, e.g., from
+  `(hab : a ≤ b) (hbc : b ≤ c) (hbc' : b < c)` one can prove `hab.trans hbc : a ≤ c` and
+  `hab.trans_lt hbc' : a < c`.
+-/
 
 universe u
 variables {α : Type u}
+
+alias le_trans ← has_le.le.trans
+alias lt_of_le_of_lt ← has_le.le.trans_lt
+alias lt_of_lt_of_le ← has_lt.lt.trans_le
+alias lt_trans ← has_lt.lt.trans
 
 @[simp] lemma ge_iff_le [preorder α] {a b : α} : a ≥ b ↔ b ≤ a := iff.rfl
 @[simp] lemma gt_iff_lt [preorder α] {a b : α} : a > b ↔ b < a := iff.rfl
@@ -13,14 +32,16 @@ variables {α : Type u}
 lemma not_le_of_lt [preorder α] {a b : α} (h : a < b) : ¬ b ≤ a :=
 (le_not_le_of_lt h).right
 
+alias not_le_of_lt ← has_lt.lt.not_le
+alias lt_asymm ← has_lt.lt.not_lt
+
 lemma not_lt_of_le [preorder α] {a b : α} (h : a ≤ b) : ¬ b < a
 | hab := not_le_of_gt hab h
 
+alias not_lt_of_le ← has_le.not_lt
+
 lemma le_iff_eq_or_lt [partial_order α] {a b : α} : a ≤ b ↔ a = b ∨ a < b :=
 le_iff_lt_or_eq.trans or.comm
-
-lemma lt_of_le_of_ne' [partial_order α] {a b : α} (h₁ : a ≤ b) (h₂ : a ≠ b) : a < b :=
-lt_of_le_not_le h₁ $ mt (le_antisymm h₁) h₂
 
 lemma lt_iff_le_and_ne [partial_order α] {a b : α} : a < b ↔ a ≤ b ∧ a ≠ b :=
 ⟨λ h, ⟨le_of_lt h, ne_of_lt h⟩, λ ⟨h1, h2⟩, lt_of_le_of_ne h1 h2⟩
@@ -31,6 +52,9 @@ lemma eq_iff_le_not_lt [partial_order α] {a b : α} : a = b ↔ a ≤ b ∧ ¬ 
 
 lemma eq_or_lt_of_le [partial_order α] {a b : α} (h : a ≤ b) : a = b ∨ a < b :=
 (lt_or_eq_of_le h).symm
+
+alias eq_or_lt_of_le ← has_le.le.eq_or_lt
+alias lt_or_eq_of_le ← has_le.le.lt_or_eq
 
 lemma lt_of_not_ge' [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
 lt_of_le_not_le ((le_total _ _).resolve_right h) h
@@ -46,6 +70,12 @@ lemma le_of_not_lt [linear_order α] {a b : α} : ¬ a < b → b ≤ a := not_lt
 
 lemma lt_or_le [linear_order α] : ∀ a b : α, a < b ∨ b ≤ a := lt_or_ge
 lemma le_or_lt [linear_order α] : ∀ a b : α, a ≤ b ∨ b < a := le_or_gt
+
+lemma has_le.le.lt_or_le [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a < c ∨ c ≤ b :=
+(lt_or_le a c).imp id (λ hc, hc.trans h)
+
+lemma has_le.le.le_or_lt [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a ≤ c ∨ c < b :=
+(le_or_lt a c).imp id (λ hc, hc.trans_le h)
 
 lemma not_lt_iff_eq_or_lt [linear_order α] {a b : α} : ¬ a < b ↔ a = b ∨ b < a :=
 not_lt.trans $ le_iff_eq_or_lt.trans $ or_congr eq_comm iff.rfl

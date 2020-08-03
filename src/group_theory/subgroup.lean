@@ -153,6 +153,7 @@ lemma mem_coe {K : subgroup G} {g : G} : g ∈ (K : set G) ↔ g ∈ K := iff.rf
 @[simp, norm_cast, to_additive]
 lemma coe_coe (K : subgroup G) : ↥(K : set G) = K := rfl
 
+-- note that `to_additive` transfers the `simp` attribute over but not the `norm_cast` attribute
 attribute [norm_cast] add_subgroup.mem_coe
 attribute [norm_cast] add_subgroup.coe_coe
 
@@ -328,7 +329,7 @@ instance : has_bot (subgroup G) :=
 @[to_additive]
 instance : inhabited (subgroup G) := ⟨⊥⟩
 
-@[simp, to_additive] lemma mem_bot {x : G} : x ∈ (⊥ : subgroup G) ↔ x = 1 := set.mem_singleton_iff
+@[simp, to_additive] lemma mem_bot {x : G} : x ∈ (⊥ : subgroup G) ↔ x = 1 := iff.rfl
 
 @[simp, to_additive] lemma mem_top (x : G) : x ∈ (⊤ : subgroup G) := set.mem_univ x
 
@@ -706,6 +707,18 @@ def normalizer : subgroup G :=
   inv_mem' := λ a (ha : ∀ n, n ∈ H ↔ a * n * a⁻¹ ∈ H) n,
     by { rw [ha (a⁻¹ * n * a⁻¹⁻¹)], simp [mul_assoc] } }
 
+-- variant for sets.
+-- TODO should this replace `normalizer`?
+/-- The `set_normalizer` of `S` is the subgroup of `G` whose elements satisfy `g*S*g⁻¹=S` -/
+@[to_additive "The `set_normalizer` of `S` is the subgroup of `G` whose elements satisfy `g+S-g=S`."]
+def set_normalizer (S : set G) : subgroup G :=
+{ carrier := {g : G | ∀ n, n ∈ S ↔ g * n * g⁻¹ ∈ S},
+  one_mem' := by simp,
+  mul_mem' := λ a b (ha : ∀ n, n ∈ S ↔ a * n * a⁻¹ ∈ S) (hb : ∀ n, n ∈ S ↔ b * n * b⁻¹ ∈ S) n,
+    by { rw [hb, ha], simp [mul_assoc] },
+  inv_mem' := λ a (ha : ∀ n, n ∈ S ↔ a * n * a⁻¹ ∈ S) n,
+    by { rw [ha (a⁻¹ * n * a⁻¹⁻¹)], simp [mul_assoc] } }
+
 variable {H}
 @[to_additive] lemma mem_normalizer_iff {g : G} :
   g ∈ normalizer H ↔ ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H := iff.rfl
@@ -882,6 +895,13 @@ iff.rfl
 @[to_additive] lemma range_eq_map (f : G →* N) : f.range = (⊤ : subgroup G).map f :=
 by ext; simp
 
+/-- The canonical surjective group homomorphism `G →* f(G)` induced by a group
+homomorphism `G →* N`. -/
+@[to_additive "The canonical surjective `add_group` homomorphism `G →+ f(G)` induced by a group
+homomorphism `G →+ N`."]
+def to_range (f : G →* N) : G →* f.range :=
+monoid_hom.mk' (λ g, ⟨f g, ⟨g, rfl⟩⟩) $ λ a b, by {ext, exact f.map_mul' _ _}
+
 @[to_additive]
 lemma map_range (g : N →* P) (f : G →* N) : f.range.map g = (g.comp f).range :=
 by rw [range_eq_map, range_eq_map]; exact (⊤ : subgroup G).map_map g f
@@ -904,10 +924,18 @@ such that `f x = 0`"]
 def ker (f : G →* N) := (⊥ : subgroup N).comap f
 
 @[to_additive]
-lemma mem_ker {f : G →* N} {x : G} : x ∈ f.ker ↔ f x = 1 := subgroup.mem_bot
+lemma mem_ker {f : G →* N} {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 
 @[to_additive]
 lemma comap_ker (g : N →* P) (f : G →* N) : g.ker.comap f = (g.comp f).ker := rfl
+
+@[to_additive] lemma to_range_ker (f : G →* N) : ker (to_range f) = ker f :=
+begin
+  ext,
+  change (⟨f x, _⟩ : range f) = ⟨1, _⟩ ↔ f x = 1,
+  simp only [],
+end
+
 
 /-- The subgroup of elements `x : G` such that `f x = g x` -/
 @[to_additive "The additive subgroup of elements `x : G` such that `f x = g x`"]
@@ -974,6 +1002,9 @@ subgroup.copy (gpowers_hom G g).range (set.range ((^) g : ℤ → G)) rfl
 lemma gpowers_eq_closure (g : G) : gpowers g = closure {g} :=
 by { ext, exact mem_closure_singleton.symm }
 
+lemma gpowers_subset {a : G} {K : subgroup G} (h : a ∈ K) : gpowers a ≤ K :=
+λ x hx, match x, hx with _, ⟨i, rfl⟩ := K.gpow_mem h i end
+
 end subgroup
 
 namespace add_subgroup
@@ -987,9 +1018,13 @@ add_subgroup.copy (gmultiples_hom A a).range (set.range ((•ℤ a) : ℤ → A)
 lemma gmultiples_eq_closure (a : A) : gmultiples a = closure {a} :=
 by { ext, exact mem_closure_singleton.symm }
 
+lemma gmultiples_subset {a : A} {B : add_subgroup A} (h : a ∈ B) : gmultiples a ≤ B :=
+@subgroup.gpowers_subset (multiplicative A) _ _ (B.to_subgroup) h
+
 attribute [to_additive add_subgroup.gmultiples] subgroup.gpowers
 attribute [to_additive add_subgroup.mem_gmultiples] subgroup.mem_gpowers
 attribute [to_additive add_subgroup.gmultiples_eq_closure] subgroup.gpowers_eq_closure
+attribute [to_additive add_subgroup.gmultiples_subset] subgroup.gpowers_subset
 
 end add_subgroup
 
@@ -1005,3 +1040,5 @@ def subgroup_congr (h : H = K) : H ≃* K :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ subgroup.ext'_iff.1 h }
 
 end mul_equiv
+
+-- TODO : ↥(⊤ : subgroup H) ≃* H ?

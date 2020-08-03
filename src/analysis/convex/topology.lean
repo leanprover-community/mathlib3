@@ -28,6 +28,11 @@ variables {ι : Type*} {E : Type*}
 
 open set
 
+lemma real.convex_iff_is_preconnected {s : set ℝ} : convex s ↔ is_preconnected s :=
+real.convex_iff_ord_connected.trans is_preconnected_iff_ord_connected.symm
+
+alias real.convex_iff_is_preconnected ↔ convex.is_preconnected is_preconnected.convex
+
 /-! ### Standard simplex -/
 
 section std_simplex

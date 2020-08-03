@@ -2,13 +2,28 @@
 Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-Group action on rings.
 -/
 
 import group_theory.group_action
 import data.equiv.ring
 import data.polynomial.monic
+
+/-!
+# Group action on rings
+
+This file defines the typeclass of monoid acting on semirings `mul_semiring_action M R`,
+and the corresponding typeclass of invariant subrings.
+
+## Implementation notes
+
+There is no separate typeclass for group acting on rings, group acting on fields, etc.
+They are all grouped under `mul_semiring_action`.
+
+## Tags
+
+group action, invariant subring
+
+-/
 
 universes u v
 open_locale big_operators
@@ -48,32 +63,6 @@ def distrib_mul_action.to_add_monoid_hom [distrib_mul_action M A] (x : M) : A �
 def distrib_mul_action.to_add_equiv [distrib_mul_action G A] (x : G) : A ≃+ A :=
 { .. distrib_mul_action.to_add_monoid_hom G A x,
   .. mul_action.to_perm G A x }
-
-/-- The monoid of endomorphisms. -/
-def monoid.End := M →* M
-
-instance monoid.End.monoid : monoid (monoid.End M) :=
-{ mul := monoid_hom.comp,
-  one := monoid_hom.id M,
-  mul_assoc := λ _ _ _, monoid_hom.comp_assoc _ _ _,
-  mul_one := monoid_hom.comp_id,
-  one_mul := monoid_hom.id_comp }
-
-instance monoid.End.inhabited : inhabited (monoid.End M) :=
-⟨1⟩
-
-/-- The monoid of endomorphisms. -/
-def add_monoid.End := A →+ A
-
-instance add_monoid.End.monoid : monoid (add_monoid.End A) :=
-{ mul := add_monoid_hom.comp,
-  one := add_monoid_hom.id A,
-  mul_assoc := λ _ _ _, add_monoid_hom.comp_assoc _ _ _,
-  mul_one := add_monoid_hom.comp_id,
-  one_mul := add_monoid_hom.id_comp }
-
-instance add_monoid.End.inhabited : inhabited (add_monoid.End A) :=
-⟨1⟩
 
 /-- Each element of the group defines an additive monoid homomorphism. -/
 def distrib_mul_action.hom_add_monoid_hom [distrib_mul_action M A] : M →* add_monoid.End A :=

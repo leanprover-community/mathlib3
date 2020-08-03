@@ -179,7 +179,45 @@ omit mP
 @[simp, to_additive] lemma comp_id (f : M →* N) : f.comp (id M) = f := ext $ λ x, rfl
 @[simp, to_additive] lemma id_comp (f : M →* N) : (id N).comp f = f := ext $ λ x, rfl
 
-variables [mM] [mN]
+end monoid_hom
+
+section End
+
+variables (M) [monoid M]
+variables (A : Type*) [add_monoid A]
+
+/-- The monoid of endomorphisms. -/
+def monoid.End := M →* M
+
+instance monoid.End.monoid : monoid (monoid.End M) :=
+{ mul := monoid_hom.comp,
+  one := monoid_hom.id M,
+  mul_assoc := λ _ _ _, monoid_hom.comp_assoc _ _ _,
+  mul_one := monoid_hom.comp_id,
+  one_mul := monoid_hom.id_comp }
+
+instance monoid.End.inhabited : inhabited (monoid.End M) :=
+⟨1⟩
+
+/-- The monoid of endomorphisms. -/
+def add_monoid.End := A →+ A
+
+instance add_monoid.End.monoid : monoid (add_monoid.End A) :=
+{ mul := add_monoid_hom.comp,
+  one := add_monoid_hom.id A,
+  mul_assoc := λ _ _ _, add_monoid_hom.comp_assoc _ _ _,
+  mul_one := add_monoid_hom.comp_id,
+  one_mul := add_monoid_hom.id_comp }
+
+instance add_monoid.End.inhabited : inhabited (add_monoid.End A) :=
+⟨1⟩
+
+end End
+
+namespace monoid_hom
+variables [mM : monoid M] [mN : monoid N] [mP : monoid P]
+variables [group G] [comm_group H]
+include mM mN
 
 /-- `1` is the monoid homomorphism sending all elements to `1`. -/
 @[to_additive]

@@ -72,7 +72,8 @@ lemma jacobson_eq_bot {I : ideal R} : jacobson I = ⊥ → I = ⊥ :=
 lemma jacobson_eq_self_of_is_maximal  {I : ideal R} [H : is_maximal I] : I.jacobson = I :=
 le_antisymm (Inf_le ⟨le_of_eq rfl, H⟩) le_jacobson
 
-lemma jacobson.is_maximal {I : ideal R} [H : is_maximal I] : is_maximal (jacobson I) :=
+@[priority 100]
+instance jacobson.is_maximal {I : ideal R} [H : is_maximal I] : is_maximal (jacobson I) :=
 ⟨λ htop, H.left (jacobson_eq_top_iff.1 htop),
   λ J hJ, H.right _ (lt_of_le_of_lt le_jacobson hJ)⟩
 

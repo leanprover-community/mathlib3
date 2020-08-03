@@ -236,7 +236,7 @@ the relevant lemmas might not fire.
 
 There's no bound on how many times you potentially could have to switch back and forth,
 if the `simp` introduced new objects we again need to `dsimp`.
-In practice this doesn't seem to happen, because `simp` tends to shorten chains of compositions
+In practice this does occur, but only rarely, because `simp` tends to shorten chains of compositions
 (i.e. not introduce new objects at all).
 -/
 library_note "dsimp, simp"

@@ -351,17 +351,12 @@ lemma eq_weighted_vsub_of_point_subset_iff_eq_weighted_vsub_of_point_subtype {v 
 begin
   simp_rw weighted_vsub_of_point_apply,
   split,
-  { rintros ⟨fs, hfs, w, hw, hv⟩,
-    use [fs.subtype s, λ i, w i],
-    change ∀ i ∈ fs, i ∈ s at hfs,
-    change ∑ i in fs.subtype (λ x, x ∈ s), _ = _ ∧
-      _ = ∑ i in fs.subtype (λ x, x ∈ s), (λ j, w j • (p j -ᵥ b : V)) i,
-    rw [sum_subtype_of_mem _ hfs, sum_subtype_of_mem _ hfs],
-    use [hw, hv] },
-  { rintros ⟨fs, w, hw, hv⟩,
-    use [fs.map (function.embedding.subtype _), map_subtype_subset _,
-         λ i, if h : i ∈ s then w ⟨i, h⟩ else 0],
-    simp [sum_subtype_map_embedding, hw, hv] }
+  { rintros ⟨fs, hfs, w, rfl, rfl⟩,
+    use [fs.subtype s, λ i, w i, sum_subtype_of_mem _ hfs, (sum_subtype_of_mem _ hfs).symm] },
+  { rintros ⟨fs, w, rfl, rfl⟩,
+    refine ⟨fs.map (function.embedding.subtype _), map_subtype_subset _,
+         λ i, if h : i ∈ s then w ⟨i, h⟩ else 0, _, _⟩;
+      simp }
 end
 
 variables (k)

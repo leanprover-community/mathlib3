@@ -201,7 +201,7 @@ begin
         exact e.continuous_on_symm.preimage_interior_subset_interior_preimage e.open_target
       end
     ... = e.source ∩ e ⁻¹' (interior (e.target ∩ e.symm ⁻¹' (e ⁻¹' s))) :
-      by rw [interior_inter, interior_eq_of_open e.open_target]
+      by rw [interior_inter, e.open_target.interior_eq]
     ... = e.source ∩ e ⁻¹' (interior (e.target ∩ s)) :
       begin
         have := e.to_local_equiv.target_inter_inv_preimage_preimage,
@@ -209,7 +209,7 @@ begin
         rw this
       end
     ... = e.source ∩ e ⁻¹' e.target ∩ e ⁻¹' (interior s) :
-      by rw [interior_inter, preimage_inter, interior_eq_of_open e.open_target, inter_assoc]
+      by rw [interior_inter, preimage_inter, e.open_target.interior_eq, inter_assoc]
     ... = e.source ∩ e ⁻¹' (interior s) : by mfld_set_tac }
 end
 
@@ -269,11 +269,11 @@ lemma restr_target (s : set α) :
   (e.restr s).target = e.target ∩ e.symm ⁻¹' (interior s) := rfl
 
 lemma restr_source' (s : set α) (hs : is_open s) : (e.restr s).source = e.source ∩ s :=
-by rw [e.restr_source, interior_eq_of_open hs]
+by rw [e.restr_source, hs.interior_eq]
 
 lemma restr_to_local_equiv' (s : set α) (hs : is_open s):
   (e.restr s).to_local_equiv = e.to_local_equiv.restr s :=
-by rw [e.restr_to_local_equiv, interior_eq_of_open hs]
+by rw [e.restr_to_local_equiv, hs.interior_eq]
 
 lemma restr_eq_of_source_subset {e : local_homeomorph α β} {s : set α} (h : e.source ⊆ s) :
   e.restr s = e :=
@@ -282,7 +282,7 @@ begin
   rw restr_to_local_equiv,
   apply local_equiv.restr_eq_of_source_subset,
   have := interior_mono h,
-  rwa interior_eq_of_open (e.open_source) at this
+  rwa e.open_source.interior_eq at this
 end
 
 @[simp, mfld_simps] lemma restr_univ {e : local_homeomorph α β} : e.restr univ = e :=
@@ -291,7 +291,7 @@ restr_eq_of_source_subset (subset_univ _)
 lemma restr_source_inter (s : set α) : e.restr (e.source ∩ s) = e.restr s :=
 begin
   refine local_homeomorph.ext _ _ (λx, rfl) (λx, rfl) _,
-  simp [interior_eq_of_open e.open_source],
+  simp [e.open_source.interior_eq],
   rw [← inter_assoc, inter_self]
 end
 
@@ -400,7 +400,7 @@ eq_of_local_equiv_eq $ local_equiv.refl_trans e.to_local_equiv
 lemma trans_of_set {s : set β} (hs : is_open s) :
   e.trans (of_set s hs) = e.restr (e ⁻¹' s) :=
 local_homeomorph.ext _ _ (λx, rfl) (λx, rfl) $
-  by simp [local_equiv.trans_source, (e.preimage_interior _).symm, interior_eq_of_open hs]
+  by simp [local_equiv.trans_source, (e.preimage_interior _).symm, hs.interior_eq]
 
 lemma trans_of_set' {s : set β} (hs : is_open s) :
   e.trans (of_set s hs) = e.restr (e.source ∩ e ⁻¹' s) :=
@@ -409,7 +409,7 @@ by rw [trans_of_set, restr_source_inter]
 lemma of_set_trans {s : set α} (hs : is_open s) :
   (of_set s hs).trans e = e.restr s :=
 local_homeomorph.ext _ _ (λx, rfl) (λx, rfl) $
-  by simp [local_equiv.trans_source, interior_eq_of_open hs, inter_comm]
+  by simp [local_equiv.trans_source, hs.interior_eq, inter_comm]
 
 lemma of_set_trans' {s : set α} (hs : is_open s) :
   (of_set s hs).trans e = e.restr (e.source ∩ s) :=
@@ -420,7 +420,7 @@ by rw [of_set_trans, restr_source_inter]
   (of_set s hs).trans (of_set s' hs') = of_set (s ∩ s') (is_open_inter hs hs')  :=
 begin
   rw (of_set s hs).trans_of_set hs',
-  ext; simp [interior_eq_of_open hs']
+  ext; simp [hs'.interior_eq]
 end
 
 lemma restr_trans (s : set α) :

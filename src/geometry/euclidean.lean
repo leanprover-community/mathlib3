@@ -816,7 +816,7 @@ vsub_mem_direction hp1 (orthogonal_projection_mem hn hc p2)
 /-- A point equals its orthogonal projection if and only if it lies in
 the subspace. -/
 lemma orthogonal_projection_eq_self_iff {s : affine_subspace ℝ V P}
-    (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) (p : P) :
+    (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) {p : P} :
   orthogonal_projection hn hc p = p ↔ p ∈ s :=
 begin
   split,

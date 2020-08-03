@@ -7,7 +7,7 @@ import linear_algebra.matrix
 import data.rel
 import combinatorics.simple_graph
 
-open_locale classical big_operators
+open_locale classical big_operators matrix
 open finset matrix simple_graph
 noncomputable theory
 
@@ -20,11 +20,12 @@ namespace simple_graph
 variables (G : simple_graph α) (R)
 
 /-- The matrix $A$ such that $A i j = 1$ if $i$ and $j$ are adjacent, and otherwise $A i j = 0$-/
-def adjacency_matrix : matrix α α R := λ i j, ite (G.adj i j) 1 0
+def adjacency_matrix : matrix α α R
+| i j := ite (G.adj i j) 1 0
 
 variable {R}
 
-theorem transpose_adjacency_matrix : (G.adjacency_matrix R).transpose = (G.adjacency_matrix R) :=
+theorem transpose_adjacency_matrix : (G.adjacency_matrix R)ᵀ = (G.adjacency_matrix R) :=
 by { ext, simp [adjacency_matrix, edge_symm], }
 
 @[simp]
@@ -42,20 +43,20 @@ by simp [neighbor_finset_eq_filter, dot_product, sum_filter, sum_apply]
 
 @[simp]
 lemma adjacency_matrix_mul_apply (M : matrix α α R) (v w : α) :
-  (G.adjacency_matrix R * M) v w = ∑ u in G.neighbor_finset v, M u w :=
-by { rw [mul_eq_mul, mul_val], simp [neighbor_finset_eq_filter, sum_filter], }
+  (G.adjacency_matrix R ⬝ M) v w = ∑ u in G.neighbor_finset v, M u w :=
+by { simp [mul_val, neighbor_finset_eq_filter, sum_filter], }
 
 @[simp]
 lemma mul_adjacency_matrix_apply (M : matrix α α R) (v w : α) :
-  (M * G.adjacency_matrix R) v w = ∑ u in G.neighbor_finset w, M v u :=
-by { rw [mul_eq_mul, mul_val], simp [neighbor_finset_eq_filter, sum_filter, edge_symm], }
+  (M ⬝ G.adjacency_matrix R) v w = ∑ u in G.neighbor_finset w, M v u :=
+by { simp [mul_val, neighbor_finset_eq_filter, sum_filter, edge_symm], }
 
 variable (R)
 theorem adj_mat_traceless : matrix.trace α R R (G.adjacency_matrix R) = 0 := by simp
 variable {R}
 
 theorem adj_mat_sq_apply_eq (i : α) :
-  ((G.adjacency_matrix R) * (G.adjacency_matrix R)) i i = degree G i :=
+  ((G.adjacency_matrix R) ⬝ (G.adjacency_matrix R)) i i = degree G i :=
 by simp [degree]
 
 variable {G}

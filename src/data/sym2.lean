@@ -304,7 +304,7 @@ equiv_sym α
 
 end sym_equiv
 
-section finite
+section fintype
 
 /--
 An algorithm for computing `sym2.rel`.
@@ -331,6 +331,6 @@ Given `[decidable_eq α]` and `[fintype α]`, the following instance gives `fint
 instance (α : Type*) [decidable_eq α] : decidable_rel (sym2.rel α) :=
 λ x y, decidable_of_bool (rel_bool x y) (rel_bool_spec x y)
 
-end finite
+end fintype
 
 end sym2

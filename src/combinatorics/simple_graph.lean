@@ -47,7 +47,7 @@ universe u
 A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
 The relation describes which pairs of vertices are adjacent.
 There is exactly one edge for every pair of adjacent edges;
-see `simple_graph.E` for the corresponding type of edges.
+see `simple_graph.edge_set` for the corresponding edge set.
 -/
 structure simple_graph (V : Type u) :=
 (adj : V → V → Prop)
@@ -80,14 +80,14 @@ by { rintro rfl, exact G.loopless a hab }
 The edges of G consist of the unordered pairs of vertices related by
 `G.adj`.
 -/
-def E : set (sym2 V) := sym2.from_rel G.sym
+def edge_set : set (sym2 V) := sym2.from_rel G.sym
 
 @[simp]
-lemma edge_iff_adj {v w : V} : ⟦(v, w)⟧ ∈ G.E ↔ G.adj v w :=
+lemma edge_iff_adj {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w :=
 by refl
 
 lemma adj_iff_exists_edge {v w : V} (hne : v ≠ w) :
-  G.adj v w ↔ ∃ (e ∈ G.E), v ∈ e ∧ w ∈ e :=
+  G.adj v w ↔ ∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e :=
 begin
   split, { intro, use ⟦(v,w)⟧, simpa },
   { rintro ⟨e, he, hv⟩,
@@ -96,14 +96,24 @@ begin
     rwa edge_iff_adj at he, }
 end
 
-lemma edge_other_ne {e : sym2 V} (he : e ∈ G.E) {v : V} (h : v ∈ e) : h.other ≠ v :=
+lemma edge_other_ne {e : sym2 V} (he : e ∈ G.edge_set) {v : V} (h : v ∈ e) : h.other ≠ v :=
 begin
   erw [← sym2.mem_other_spec h, sym2.eq_swap] at he,
   exact G.ne_of_edge he,
 end
 
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
-  fintype G.E := by { dunfold E, exact subtype.fintype _ }
+  fintype G.edge_set := by { dunfold edge_set, exact subtype.fintype _ }
+
+/--
+The `edge_set` of the graph as a `finset`.
+-/
+def edge_finset [decidable_eq V] [fintype V] [decidable_rel G.adj] : finset (sym2 V) :=
+set.to_finset G.edge_set
+
+@[simp] lemma mem_edge_finset [decidable_eq V] [fintype V] [decidable_rel G.adj] (e : sym2 V) :
+  e ∈ G.edge_finset ↔ e ∈ G.edge_set :=
+by { dunfold edge_finset, simp }
 
 @[simp] lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 

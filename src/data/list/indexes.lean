@@ -15,6 +15,7 @@ variables {α : Type u} {β : Type v}
 
 section foldr_with_index
 
+/-- Specification of `foldr_with_index_aux`. -/
 def foldr_with_index_aux_spec (f : ℕ → α → β → β) (start : ℕ) (b : β)
   (as : list α) : β :=
 foldr (uncurry f) b $ zip (range' start as.length) as
@@ -67,6 +68,7 @@ by simp only
 
 section foldl_with_index
 
+/-- Specification of `foldl_with_index_aux`. -/
 def foldl_with_index_aux_spec (f : ℕ → α → β → α) (start : ℕ) (a : α)
   (bs : list β) : α :=
 foldl (λ a (p : ℕ × β), f p.fst a p.snd) a $ zip (range' start bs.length) bs
@@ -112,6 +114,7 @@ section mmap_with_index
 
 variables {m : Type u → Type v} [monad m]
 
+/-- Specification of `mmap_with_index_aux`. -/
 def mmap_with_index_aux_spec {α β} (f : ℕ → α → m β) (start : ℕ) (as : list α)
   : m (list β) :=
 mmap (uncurry f) $ zip (range' start as.length) as

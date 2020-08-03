@@ -69,7 +69,7 @@ eq_top_iff.2 le_jacobson
 lemma jacobson_eq_bot {I : ideal R} : jacobson I = ⊥ → I = ⊥ :=
 λ h, eq_bot_iff.mpr (h ▸ le_jacobson)
 
-lemma is_maximal.jacobson {I : ideal R} [H : is_maximal I] : I.jacobson = I :=
+lemma jacobson_eq_self_of_is_maximal  {I : ideal R} [H : is_maximal I] : I.jacobson = I :=
 le_antisymm (Inf_le ⟨le_of_eq rfl, H⟩) le_jacobson
 
 lemma jacobson.is_maximal {I : ideal R} [H : is_maximal I] : is_maximal (jacobson I) :=
@@ -127,7 +127,7 @@ begin
 end
 
 theorem map_jacobson_of_surjective {f : R →+* S} (hf : function.surjective f) {I : ideal R} :
-  (ring_hom.ker f ≤ I) → map f (I.jacobson) = (map f I).jacobson :=
+  ring_hom.ker f ≤ I → map f (I.jacobson) = (map f I).jacobson :=
 begin
   intro h,
   rw [ideal.jacobson, ideal.jacobson],
@@ -166,20 +166,18 @@ begin
     { replace htop := congr_arg (comap f) htop,
       rw comap_map_of_surjective _ hf at htop,
       rw comap_top at htop,
-      have : ⊤ ≤ J, {
-        rw [← htop, sup_le_iff],
-        exact ⟨le_of_eq rfl, le_trans (comap_mono bot_le) hJ.left⟩,
-      },
+      have : ⊤ ≤ J,
+      { rw [← htop, sup_le_iff],
+        exact ⟨le_of_eq rfl, le_trans (comap_mono bot_le) hJ.left⟩ },
       exact this submodule.mem_top },
     { replace hx := @hx (map f J)
         ⟨le_trans (le_of_eq (map_comap_of_surjective _ hf K).symm) (map_mono hJ.left), hmax⟩,
       rw mem_map_iff_of_surjective _ hf at hx,
       cases hx with x' hx',
-      have : x - x' ∈ J, {
-        apply hJ.left,
+      have : x - x' ∈ J,
+      { apply hJ.left,
         rw [mem_comap, ring_hom.map_sub, hx'.right, sub_self],
-        exact K.zero_mem,
-      },
+        exact K.zero_mem },
       have := J.add_mem this hx'.left,
       simpa using this },
   },
@@ -191,9 +189,9 @@ begin
     refine Inf_le ⟨comap_mono hJ.left, comap_is_maximal_of_surjective _ hf hJ.right⟩ }
 end
 
-/-- Checking if an ideal `I` is its own Jacobson radical can be done by passing to the quotient.
-In particular, for `I` a prime ideal, passing to the quotient allows working in an integral domain-/
-lemma eq_jacobson_iff_quotient {I : ideal R} :
+/-- An ideal `I` of `R` is equal to its jacobson radical if and only if
+the jacobson radical of the quotient ring `R/I` is the zero ideal -/
+theorem jacobson_eq_iff_jacobson_bot_eq {I : ideal R} :
   I.jacobson = I ↔ jacobson (⊥ : ideal (I.quotient)) = ⊥ :=
 begin
   have hf : function.surjective (quotient.mk I) := submodule.quotient.mk_surjective I,
@@ -208,7 +206,9 @@ begin
     simpa using h }
 end
 
-lemma radical_eq_jacobson_iff_quotient {I : ideal R} :
+/-- The standard radical and jacobson radical of an ideal `I` of `R` are equal if and only if
+the nilradical and jacobson radical of the quotient ring `R/I` coincide -/
+theorem radical_eq_jacobson_iff_radical_bot_eq_jacobson_bot {I : ideal R} :
   I.radical = I.jacobson ↔ radical (⊥ : ideal (I.quotient)) = jacobson ⊥ :=
 begin
   have hf : function.surjective (quotient.mk I) := submodule.quotient.mk_surjective I,

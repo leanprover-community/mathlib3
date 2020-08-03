@@ -798,6 +798,10 @@ def le_order_embedding :
   ord'   := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
     f.map_comap J₁ ▸ f.map_comap J₂ ▸ ideal.map_mono hJ⟩ }
 
+/-- If `R` is a ring, then prime ideals in the localization at `M`
+correspond to prime ideals in the original ring `R` that are disjoint from `M`.
+This gives the particular case for an ideal and its comap,
+see `le_order_iso_of_prime` for the more general order isomorphism -/
 lemma is_prime_iff_is_prime_disjoint (J : ideal S) :
   J.is_prime ↔ (ideal.comap f.to_map J).is_prime ∧ disjoint (M : set R) ↑(ideal.comap f.to_map J) :=
 begin
@@ -824,6 +828,10 @@ begin
       rwa [← ha, ← hb, ← mk'_mem_iff, ← mk'_mem_iff] } }
 end
 
+/-- If `R` is a ring, then prime ideals in the localization at `M`
+correspond to prime ideals in the original ring `R` that are disjoint from `M`.
+This gives the particular case for an ideal and its map,
+see `le_order_iso_of_prime` for the more general order isomorphism, and the reverse implication -/
 lemma is_prime_of_is_prime_disjoint (I : ideal R) :
   I.is_prime ∧ disjoint (M : set R) ↑I → (ideal.map f.to_map I).is_prime :=
 λ h, by rwa [is_prime_iff_is_prime_disjoint f, comap_map_of_is_prime_disjoint f I h.1 h.2]

@@ -48,8 +48,7 @@ by tidy
 /-- (Impl) Show that the raised cone is a limit. -/
 def raised_cone_is_limit [connected J] {B : C} {F : J ⥤ over B} {c : cone (F ⋙ forget)} (t : is_limit c) :
   is_limit (raise_cone c) :=
-{ lift := λ s, over.hom_mk (t.lift (forget.map_cone s))
-               (by { dsimp, simp }),
+{ lift := λ s, over.hom_mk (t.lift (forget.map_cone s)) (by { dsimp, simp }),
   uniq' := λ s m K, by { ext1, apply t.hom_ext, intro j, simp [← K j] } }
 
 end creates_connected

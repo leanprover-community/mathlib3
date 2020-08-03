@@ -160,9 +160,9 @@ def fork.of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : fork f g :=
     naturality' := λ X Y f,
     begin
       cases X; cases Y; cases f; dsimp; simp,
-      { dsimp, simp, }, -- TODO If someone could decipher why these aren't done on the previous line, that would be great
+      { dsimp, simp, }, -- See note [dsimp, simp].
       { exact w },
-      { dsimp, simp, }, -- TODO idem
+      { dsimp, simp, },
     end } }
 
 /-- A cofork on `f g : X ⟶ Y` is determined by the morphism `π : Y ⟶ P` satisfying
@@ -174,9 +174,9 @@ def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :
     naturality' := λ X Y f,
     begin
       cases X; cases Y; cases f; dsimp; simp,
-      { dsimp, simp, }, -- TODO idem
+      { dsimp, simp, },
       { exact w.symm },
-      { dsimp, simp, }, -- TODO idem
+      { dsimp, simp, },
     end } }
 
 @[simp] lemma fork.of_ι_app_zero {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :

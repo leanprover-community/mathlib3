@@ -110,15 +110,12 @@ begin
   use [t, proj_I_I t_in],
 end
 
-lemma Iic_def (x : ℝ) : {t | t ≤ x} = Iic x := rfl
-
-local attribute [simp] Iic_def
-
 lemma continuous_proj_I : continuous proj_I :=
 begin
   refine continuous_induced_rng' (coe : I → ℝ) rfl _,
   have : continuous (λ t : ℝ, if t ≤ 0 then 0 else if t ≤ 1 then t else 1),
-  by refine continuous_if _ continuous_const (continuous_if _ continuous_id continuous_const) ; simp [zero_le_one],
+  { refine continuous_if _ continuous_const (continuous_if _ continuous_id continuous_const) ;
+    simp [Iic_def, zero_le_one] },
   convert this,
   ext,
   dsimp [proj_I],
@@ -203,6 +200,12 @@ begin
   rcases h with ⟨γ, γ_cont, γ_in, γ_src, γ_tgt⟩,
   split ; [rw ← γ_src, rw ← γ_tgt] ; apply γ_in ; norm_num
 end
+
+lemma joined_in.mem_left (h : joined_in F x y) : x ∈ F :=
+h.mem.1
+
+lemma joined_in.mem_right (h : joined_in F x y) : y ∈ F :=
+h.mem.2
 
 /-- Continuous map from `ℝ` to `X` when `x` and `y` are joined in `F`. -/
 def joined_in.extend (h : joined_in F x y) : ℝ → X := I_extend (classical.some h)

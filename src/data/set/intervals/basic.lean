@@ -58,6 +58,22 @@ def Ici (a : α) := {x | a ≤ x}
 /-- Left-open right-infinite interval -/
 def Ioi (a : α) := {x | a < x}
 
+lemma Ioo_def (a b : α) : {x | a < x ∧ x < b} = Ioo a b := rfl
+
+lemma Ico_def (a b : α) : {x | a ≤ x ∧ x < b} = Ico a b := rfl
+
+lemma Iio_def (a : α) : {x | x < a} = Iio a := rfl
+
+lemma Icc_def (a b : α) : {x | a ≤ x ∧ x ≤ b} = Icc a b := rfl
+
+lemma Iic_def (b : α) : {x | x ≤ b} = Iic b := rfl
+
+lemma Ioc_def (a b : α) : {x | a < x ∧ x ≤ b} = Ioc a b := rfl
+
+lemma Ici_def (a : α) : {x | a ≤ x} = Ici a := rfl
+
+lemma Ioi_def (a : α) : {x | a < x} = Ioi a := rfl
+
 @[simp] lemma mem_Ioo : x ∈ Ioo a b ↔ a < x ∧ x < b := iff.rfl
 @[simp] lemma mem_Ico : x ∈ Ico a b ↔ a ≤ x ∧ x < b := iff.rfl
 @[simp] lemma mem_Iio : x ∈ Iio b ↔ x < b := iff.rfl

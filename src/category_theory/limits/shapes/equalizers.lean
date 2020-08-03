@@ -95,7 +95,7 @@ variables {X Y : C}
 
 /-- `parallel_pair f g` is the diagram in `C` consisting of the two morphisms `f` and `g` with
     common domain and codomain. -/
-def parallel_pair (f g : X ⟶ Y) : walking_parallel_pair ⥤ C :=
+def parallel_pair (f g : X ⟶ Y) : walking_parallel_pair.{v} ⥤ C :=
 { obj := λ x, match x with
   | zero := X
   | one := Y

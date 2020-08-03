@@ -222,7 +222,7 @@ creates_limit_of_fully_faithful_of_lift
 ({ X := X,
   π :=
   { app := λ j, F.preimage (i.hom ≫ limit.π (K ⋙ F) j),
-    naturality' := λ Y Z f, F.map_injective begin dsimp, simp, erw limit.w (K ⋙ F), end }} : cone K)
+    naturality' := λ Y Z f, F.map_injective (by { dsimp, simp, erw limit.w (K ⋙ F), }) }} : cone K)
 (by { fapply cones.ext, exact i, tidy, })
 
 /-- `F` preserves the limit of `K` if it creates the limit and `K ⋙ F` has the limit. -/

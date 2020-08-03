@@ -199,13 +199,11 @@ begin
   convert integral_sub_linear_is_o_of_tendsto_ae hfm ha,
   { ext b,
     dsimp,
-    simp only [integral_same, sub_zero, nnreal.of_real, ← sub_smul, ← neg_sub a, real.volume_Ioc,
-      ennreal.coe_to_real, nnreal.coe_mk],
+    simp only [integral_same, sub_zero, real.volume_Ioc, ennreal.to_real_of_real'],
     congr' 2,
-    rw [← neg_sub (max _ _), max_zero_sub_eq_self] },
+    rw [← neg_sub b, max_zero_sub_eq_self] },
   { ext b,
-    rw [real.volume_Ioc, ennreal.coe_to_real, nnreal.coe_of_real, max_sub_min_eq_abs,
-      real.norm_eq_abs],
+    rw [real.volume_Ioc, ennreal.to_real_of_real, max_sub_min_eq_abs, real.norm_eq_abs],
     exact sub_nonneg.2 min_le_max }
 end
 

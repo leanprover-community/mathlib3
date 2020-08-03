@@ -55,8 +55,10 @@ protected def of_real (r : real) : ennreal := coe (nnreal.of_real r)
 @[simp] lemma of_real_to_real {a : ennreal} (h : a ≠ ∞) : ennreal.of_real (a.to_real) = a :=
 by simp [ennreal.to_real, ennreal.of_real, h]
 
-@[simp] lemma to_real_of_real {r : real} (h : 0 ≤ r) : ennreal.to_real (ennreal.of_real r) = r :=
+@[simp] lemma to_real_of_real {r : ℝ} (h : 0 ≤ r) : ennreal.to_real (ennreal.of_real r) = r :=
 by simp [ennreal.to_real, ennreal.of_real, nnreal.coe_of_real _ h]
+
+lemma to_real_of_real' {r : ℝ} : ennreal.to_real (ennreal.of_real r) = max r 0 := rfl
 
 lemma coe_to_nnreal_le_self : ∀{a:ennreal}, ↑(a.to_nnreal) ≤ a
 | (some r) := by rw [some_eq_coe, to_nnreal_coe]; exact le_refl _

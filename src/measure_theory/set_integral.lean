@@ -300,16 +300,14 @@ lemma filter.tendsto.integral_sub_linear_is_o_ae
 begin
   simp only [is_o_iff],
   intros ε ε₀,
-  have : ∀ᶠ s in l.lift' powerset, ∀ᶠ x in μ.ae ⊓ 𝓟 s, f x ∈ closed_ball b ε :=
+  have : ∀ᶠ s in l.lift' powerset, ∀ᶠ x in μ.ae, x ∈ s → f x ∈ closed_ball b ε :=
     eventually_lift'_powerset_eventually.2 (h.eventually $ closed_ball_mem_nhds _ ε₀),
   refine hμ.eventually.mp ((h.integrable_at_filter_ae hμ.inf_of_left).eventually.mp (this.mono _)),
   simp only [mem_closed_ball, dist_eq_norm],
   intros s h_norm h_integrable hμs,
   rw [← set_integral_const, ← integral_sub hfm h_integrable measurable_const
     (integrable_on_const.2 $ or.inr hμs), real.norm_eq_abs, abs_of_nonneg ennreal.to_real_nonneg],
-  apply norm_set_integral_le_of_norm_le_const_ae' hμs,
-  { rwa [← eventually_inf_principal] },
-  { exact hfm.sub measurable_const }
+  exact norm_set_integral_le_of_norm_le_const_ae' hμs h_norm (hfm.sub measurable_const)
 end
 
 lemma is_compact.integrable_on_of_nhds_within

@@ -110,6 +110,7 @@ begin
   use [t, proj_I_I t_in],
 end
 
+@[continuity]
 lemma continuous_proj_I : continuous proj_I :=
 begin
   refine continuous_induced_rng' (coe : I → ℝ) rfl _,
@@ -151,44 +152,114 @@ end
 
 instance : connected_space I := subtype.connected_space ⟨⟨0, by split ; norm_num⟩, is_preconnected_Icc⟩
 
-/-- The relation "being joined by a path". This is an equivalence relation. -/
-def joined (x y : X) : Prop := ∃ γ : I → X, continuous γ ∧ γ 0 = x ∧ γ 1 = y
+/-- Continuous path connecting two points `x` and `y` in a topological space -/
+structure path (x y : X) :=
+(to_fun : I → X)
+(continuous' : continuous to_fun)
+(left' : to_fun 0 = x)
+(right' : to_fun 1 = y)
 
-lemma joined.refl (x : X) : joined x x :=
-⟨λ t, x, by continuity, rfl, rfl⟩
+instance : has_coe_to_fun (path x y) := ⟨_, path.to_fun⟩
 
-lemma joined.symm {x y : X} : joined x y → joined y x
-| ⟨γ, γ_cont, γ_src, γ_tgt⟩ := ⟨γ ∘ σ, by continuity, by simpa using γ_tgt, by simpa using γ_src⟩
+namespace path
 
-/-- Continuous map from `ℝ` to `X` when `x` and `y` are joined. -/
-def joined.extend {x y : X} (h : joined x y) : ℝ → X := I_extend (classical.some h)
+variable (γ : path x y)
 
-lemma joined.continuous_extend {x y : X} (h : joined x y) : continuous h.extend :=
-(classical.some_spec h).1.I_extend
+@[continuity]
+protected lemma continuous : continuous γ :=
+γ.continuous'
 
-lemma joined.extend_zero {x y : X} (h : joined x y) : h.extend 0 = x :=
-by simp [joined.extend, (classical.some_spec h).2.1]
+@[simp] protected lemma left : γ 0 = x :=
+γ.left'
 
-lemma joined.extend_one {x y : X} (h : joined x y) : h.extend 1 = y :=
-by simp [joined.extend, (classical.some_spec h).2.2]
+@[simp] protected lemma right : γ 1 = y :=
+γ.right'
+
+/-- The constant path from a point to itself -/
+def refl (x : X) : path x x :=
+{ to_fun := λ t, x,
+  continuous' := continuous_const,
+  left' := rfl,
+  right' := rfl }
+
+/-- The reverse of a path from `x` to `y`, as a path from `y` to `x` -/
+def symm (γ : path x y) : path y x :=
+{ to_fun      := γ ∘ σ,
+  continuous' := by continuity,
+  left'       := by simpa [-path.right] using γ.right,
+  right'      := by simpa [-path.left] using γ.left }
+
+/-- A continuous map extending a path to `ℝ`, constant before `0` and after `1`. -/
+def extend : ℝ → X := I_extend γ
+
+lemma continuous_extend : continuous γ.extend :=
+γ.continuous.I_extend
+
+@[simp] lemma extend_zero : γ.extend 0 = x :=
+by simp [extend]
+
+@[simp] lemma extend_one : γ.extend 1 = y :=
+by simp [extend]
 
 local attribute [simp] Iic_def
 
+/-- Concatenation of two paths from `x` to `y` and from `y` to `z`, putting the first
+path on `[0, 1/2]` and the second one on `[1/2, 1]`. -/
+def trans (γ : path x y) (γ' : path y z) : path x z :=
+{ to_fun := (λ t : ℝ, if t ≤ 1/2 then γ.extend (2*t) else γ'.extend (2*t-1)) ∘ coe,
+  continuous' :=
+  begin
+    apply (continuous_if _ _ _).comp continuous_subtype_coe,
+    { norm_num },
+    { continuity },
+    { continuity }
+  end,
+  left' := by norm_num,
+  right' := by norm_num }
+
+/-- Image of a path from `x` to `y` by a continuous map -/
+def map (γ : path x y) {Y : Type*} [topological_space Y]
+  {f : X → Y} (h : continuous f) : path (f x) (f y) :=
+{ to_fun := f ∘ γ,
+  continuous' := by continuity,
+  left' := by simp,
+  right' := by simp }
+
+@[simp] lemma map_coe (γ : path x y) {Y : Type*} [topological_space Y]
+  {f : X → Y} (h : continuous f) :
+  (γ.map h : I → Y) = f ∘ γ :=
+by { ext t, refl }
+
+/-- Casting a path from `x` to `y` to a path from `x'` to `y'` when `x' = x` and `y' = y` -/
+def cast (γ : path x y) {x' y'} (hx : x' = x) (hy : y' = y) : path x' y' :=
+{ to_fun := γ,
+  continuous' := γ.continuous,
+  left' := by simp [hx],
+  right' := by simp [hy] }
+
+@[simp] lemma cast_coe (γ : path x y) {x' y'} (hx : x' = x) (hy : y' = y) :
+  (γ.cast hx hy : I → X) = γ :=
+rfl
+
+end path
+
+/-- The relation "being joined by a path". This is an equivalence relation. -/
+def joined (x y : X) : Prop :=
+nonempty (path x y)
+
+lemma joined.refl (x : X) : joined x x :=
+⟨path.refl x⟩
+
+/-- When two points are joined, choose some path from `x` to `y`. -/
+def joined.some_path (h : joined x y) : path x y :=
+nonempty.some h
+
+lemma joined.symm {x y : X} (h : joined x y) : joined y x :=
+⟨h.some_path.symm⟩
+
 lemma joined.trans {x y z : X} (hxy : joined x y) (hyz : joined y z) :
   joined x z :=
-begin
-  rcases hxy with ⟨f, f_cont, f_src, f_tgt⟩,
-  rcases hyz with ⟨g, g_cont, g_src, g_tgt⟩,
-  refine ⟨(λ t : ℝ, if t ≤ 1/2 then I_extend f (2*t) else I_extend g (2*t-1)) ∘ coe, _, _, _⟩,
-  { apply (continuous_if _ _ _).comp continuous_subtype_coe,
-    { norm_num,
-      rw [f_tgt, g_src] },
-    { exact f_cont.I_extend.comp (continuous_const.mul continuous_id') },
-    { exact g_cont.I_extend.comp ((continuous_const.mul continuous_id').sub continuous_const) }},
-  { simp [zero_le_one, I_extend_zero, f_src] },
-  { norm_num,
-    simp [I_extend_one, g_tgt] },
-end
+⟨hxy.some_path.trans hyz.some_path⟩
 
 variables (X)
 
@@ -205,14 +276,15 @@ variables {X}
 /-- The relation "being joined by a path in `F`". Not quite an equivalence relation since it's not
 reflexive for points that do not belong to `F`. -/
 def joined_in (F : set X) (x y : X) : Prop :=
-∃ γ : I → X, continuous γ ∧ (∀ t, γ t ∈ F) ∧ γ 0 = x ∧ γ 1 = y
+∃ γ : path x y, ∀ t, γ t ∈ F
 
 variables {F : set X}
 
 lemma joined_in.mem (h : joined_in F x y) : x ∈ F ∧ y ∈ F :=
 begin
-  rcases h with ⟨γ, γ_cont, γ_in, γ_src, γ_tgt⟩,
-  split ; [rw ← γ_src, rw ← γ_tgt] ; apply γ_in ; norm_num
+  rcases h with ⟨γ, γ_in⟩,
+  have : γ 0 ∈ F ∧ γ 1 ∈ F, by { split; apply γ_in },
+  simpa using this
 end
 
 lemma joined_in.mem_left (h : joined_in F x y) : x ∈ F :=
@@ -221,61 +293,35 @@ h.mem.1
 lemma joined_in.mem_right (h : joined_in F x y) : y ∈ F :=
 h.mem.2
 
-/-- Continuous map from `ℝ` to `X` when `x` and `y` are joined in `F`. -/
-def joined_in.extend (h : joined_in F x y) : ℝ → X := I_extend (classical.some h)
+/-- When `x` and `y` are joined in `F`, choose a path from `x` to `y` inside `F` -/
+def joined_in.some_path (h : joined_in F x y) : path x y :=
+classical.some h
 
-lemma joined_in.continuous_extend (h : joined_in F x y) : continuous h.extend :=
-(classical.some_spec h).1.I_extend
+lemma joined_in.some_path_mem (h : joined_in F x y) (t : I) : h.some_path t ∈ F :=
+classical.some_spec h t
 
-lemma joined_in.extend_zero (h : joined_in F x y) : h.extend 0 = x :=
-by rw [joined_in.extend, I_extend_zero, (classical.some_spec h).2.2.1]
+/-- Path from `x` to `y` in the subtype `F` when `x` and `y` are joined in the set `F`. -/
+def joined_in.restr (h : joined_in F x y) : path (⟨x, h.mem_left⟩ : F) (⟨y, h.mem_right⟩ : F) :=
+{ to_fun := λ t, ⟨h.some_path t, h.some_path_mem t⟩,
+  continuous' := by continuity,
+  left' := by simp,
+  right' := by simp }
 
-lemma joined_in.extend_one (h : joined_in F x y) : h.extend 1 = y :=
-by rw [joined_in.extend, I_extend_one, (classical.some_spec h).2.2.2]
+lemma joined_in.joined (h : joined_in F x y) : joined x y :=
+⟨h.some_path⟩
 
-/-- Continuous map from `I` to `F` when `x` and `y` are joined in `F`. -/
-def joined_in.map (h : joined_in F x y) : I → F :=
-λ t, ⟨classical.some h t, (classical.some_spec h).2.1 t⟩
-
-lemma joined_in.continuous_map (h : joined_in F x y) : continuous h.map :=
-continuous_subtype_mk _ (classical.some_spec h).1
-
-lemma joined_in.map_zero (h : joined_in F x y) : h.map 0 = ⟨x, h.mem.1⟩:=
-subtype.ext (classical.some_spec h).2.2.1
-
-lemma joined_in.map_one (h : joined_in F x y) : h.map 1 = ⟨y, h.mem.2⟩:=
-subtype.ext (classical.some_spec h).2.2.2
-
-/-- Continuous map from `ℝ` to `F` when `x` and `y` are joined in `F`. -/
-def joined_in.extend_map (h : joined_in F x y) : ℝ → F :=
-I_extend h.map
-
-lemma joined_in.extend_map_continuous (h : joined_in F x y) : continuous h.extend_map :=
-h.continuous_map.I_extend
-
-lemma joined_in.extend_map_zero (h : joined_in F x y) : h.extend_map 0 = ⟨x, h.mem.1⟩ :=
-by rw [joined_in.extend_map, I_extend_zero, h.map_zero]
-
-lemma joined_in.extend_map_one (h : joined_in F x y) : h.extend_map 1 = ⟨y, h.mem.2⟩ :=
-by rw [joined_in.extend_map, I_extend_one, h.map_one]
-
-lemma joined_in.joined : joined_in F x y → joined x y
-| ⟨γ, γ_cont, γ_in, γ_src, γ_tgt⟩ := ⟨γ, γ_cont, γ_src, γ_tgt⟩
-
-lemma joined_in_iff_joined (hx : x ∈ F) (hy : y ∈ F) :
-  joined_in F x y ↔ joined (⟨x, hx⟩ : F) (⟨y, hy⟩ : F) :=
-⟨λ h,⟨h.map, h.continuous_map, h.map_zero, h.map_one⟩,
- λ ⟨γ, γ_cont, γ_src, γ_tgt⟩,
-   ⟨coe ∘ γ, continuous_subtype_coe.comp γ_cont, by simp, by simp [γ_src], by simp [γ_tgt]⟩⟩
+lemma joined_in_iff_joined (x_in : x ∈ F) (y_in : y ∈ F) :
+  joined_in F x y ↔ joined (⟨x, x_in⟩ : F) (⟨y, y_in⟩ : F) :=
+⟨λ h, ⟨h.restr⟩, λ h, ⟨h.some_path.map continuous_subtype_coe, by simp⟩⟩
 
 @[simp] lemma joined_in_univ : joined_in univ x y ↔ joined x y :=
-by simp [joined_in, joined]
+by simp [joined_in, joined, exists_true_iff_nonempty]
 
 lemma joined_in.mono {U V : set X} (h : joined_in U x y) (hUV : U ⊆ V) : joined_in V x y :=
-let ⟨f, f_cont, f_in, f_src, f_tgt⟩ := h in ⟨f, f_cont, λ t, hUV (f_in t), f_src, f_tgt⟩
+⟨h.some_path, λ t, hUV (h.some_path_mem t)⟩
 
 lemma joined_in.refl (h : x ∈ F) : joined_in F x x :=
-⟨λ t, x, continuous_const, λ t, h, rfl, rfl⟩
+⟨path.refl x, λ t, h⟩
 
 lemma joined_in.symm (h : joined_in F x y) : joined_in F y x :=
 begin
@@ -307,7 +353,7 @@ joined.symm h
 lemma path_component_symm : x ∈ path_component y ↔ y ∈ path_component x :=
 ⟨λ h, mem_path_component_of_mem h, λ h, mem_path_component_of_mem h⟩
 
-lemma path_component_congr (h : x ∈ path_component y) : path_component x = path_component y:=
+lemma path_component_congr (h : x ∈ path_component y) : path_component x = path_component y :=
 begin
   ext z,
   split,
@@ -320,13 +366,13 @@ begin
 end
 
 lemma path_component_subset_component (x : X) : path_component x ⊆ connected_component x :=
-λ y ⟨f, f_cont, f_src, f_tgt⟩, subset_connected_component (is_connected_range f_cont).2 ⟨0, f_src⟩ ⟨1, f_tgt⟩
+λ y h, subset_connected_component (is_connected_range h.some_path.continuous).2 ⟨0, by simp⟩ ⟨1, by simp⟩
 
 /-- The path component of `x` in `F` is the set of points that can be joined to `x` in `F`. -/
 def path_component_in (x : X) (F : set X) := {y | joined_in F x y}
 
 @[simp] lemma path_component_in_univ (x : X) : path_component_in x univ = path_component x :=
-by simp [path_component_in, path_component, joined_in, joined]
+by simp [path_component_in, path_component, joined_in, joined, exists_true_iff_nonempty]
 
 lemma joined.mem_path_component (hyz : joined y z) (hxy : y ∈ path_component x) : z ∈ path_component x :=
 hxy.trans hyz
@@ -356,8 +402,7 @@ begin
   rcases hF with ⟨x, x_in, hx⟩,
   use [f x, mem_image_of_mem f x_in],
   rintros _ ⟨y, y_in, rfl⟩,
-  rcases hx y_in with ⟨γ, γ_cont, γ_in, rfl, rfl⟩,
-  use [f ∘ γ, hf.comp γ_cont, λ t, ⟨γ t, γ_in t, rfl⟩, rfl, rfl]
+  exact ⟨(hx y_in).some_path.map hf, λ t, ⟨_, (hx y_in).some_path_mem t, rfl⟩⟩,
 end
 
 lemma is_path_connected.mem_path_component (h : is_path_connected F) (x_in : x ∈ F) (y_in : y ∈ F) :
@@ -378,15 +423,15 @@ begin
   { exact (hV.joined_in x y xV yV).mono (subset_union_right U V) },
 end
 
+/-- If a set `W` is path-connected, then it is also path-connected when seen as a set in a smaller
+ambient type `U` (when `U` contains `W`). -/
 lemma is_path_connected.preimage_coe {U W : set X} (hW : is_path_connected W) (hWU : W ⊆ U) :
   is_path_connected ((coe : U → X) ⁻¹' W) :=
 begin
   rcases hW with ⟨x, x_in, hx⟩,
   use [⟨x, hWU x_in⟩, by simp [x_in]],
   rintros ⟨y, hyU⟩ hyW,
-  change y ∈ W at hyW,
-  rcases hx hyW with ⟨γ, γ_cont, γ_mem, rfl, rfl⟩,
-  exact ⟨λ t, ⟨γ t, hWU $ γ_mem t⟩, continuous_subtype_mk _ γ_cont, γ_mem, rfl, rfl⟩,
+  exact ⟨(hx hyW).restr.map (continuous_inclusion hWU), by simp⟩
 end
 
 /-- A topological space is path-connected if it is non-empy and every two points can be
@@ -416,17 +461,8 @@ namespace path_connected_space
 variables [path_connected_space X]
 
 /-- Use path-connectedness to build a path between two points. -/
-def path (x y : X) : I → X :=
-classical.some (joined x y)
-
-lemma continuous_path (x y : X) : continuous (path x y) :=
-(classical.some_spec (joined x y)).1
-
-lemma path_zero (x y : X) : path x y 0 = x :=
-(classical.some_spec (joined x y)).2.1
-
-lemma path_one (x y : X) : path x y 1 = y :=
-(classical.some_spec (joined x y)).2.2
+def some_path (x y : X) : path x y :=
+nonempty.some (joined x y)
 
 end path_connected_space
 
@@ -441,9 +477,8 @@ begin
     rwa joined_in_iff_joined y_in z_in at H },
   { rintros ⟨⟨x, x_in⟩, H⟩,
     refine ⟨⟨x, x_in⟩, λ y z y_in z_in, _⟩,
-    rcases H ⟨y, y_in⟩ ⟨z, z_in⟩ with ⟨f, f_cont, f_src, f_tgt⟩,
-    use [coe ∘ f, by continuity!],
-    simp [*] }
+    rw joined_in_iff_joined y_in z_in,
+    apply H }
 end
 
 lemma path_connected_space_iff_univ : path_connected_space X ↔ is_path_connected (univ : set X) :=
@@ -452,7 +487,7 @@ begin
   { introI h,
     inhabit X,
     refine ⟨default X, mem_univ _, _⟩,
-    simpa [joined_in] using  path_connected_space.joined (default X) },
+    simpa using path_connected_space.joined (default X) },
   { intro h,
     have h' := h.joined_in,
     cases h with x h,
@@ -548,3 +583,5 @@ begin
   haveI := loc_path_connected_of_is_open U_op,
   exact path_connected_space_iff_connected_space
 end
+
+#lint

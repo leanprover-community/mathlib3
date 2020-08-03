@@ -311,7 +311,7 @@ lemma map_monic_eq_zero_iff (hp : p.monic) : p.map f = 0 ↔ ∀ x, f x = 0 :=
   λ h, ext (λ n, trans (coeff_map f n) (h _)) ⟩
 
 lemma map_monic_ne_zero_of_nontrivial (hp : p.monic) [nontrivial S] : p.map f ≠ 0 :=
-mt f.map_one_ne_zero_of_nontrivial zero_ne_one
+λ h, f.map_one_ne_zero_of_nontrivial ((map_monic_eq_zero_iff hp).mp h _)
 
 variables (f)
 

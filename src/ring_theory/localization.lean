@@ -286,16 +286,16 @@ lemma mk'_eq_iff_eq {x₁ x₂} {y₁ y₂ : M} :
   f.mk' x₁ y₁ = f.mk' x₂ y₂ ↔ f.to_map (x₁ * y₂) = f.to_map (x₂ * y₁) :=
 f.to_localization_map.mk'_eq_iff_eq
 
-lemma mk'_mem_iff {x} {y : M} {I : ideal S} : f.to_map x ∈ I ↔ f.mk' x y ∈ I :=
+lemma mk'_mem_iff {x} {y : M} {I : ideal S} : f.mk' x y ∈ I ↔ f.to_map x ∈ I :=
 begin
   split;
   intro h,
+  { rw [← mk'_spec f x y, mul_comm],
+    exact I.smul_mem (f.to_map y) h },
   { rw ← mk'_spec f x y at h,
     obtain ⟨b, hb⟩ := is_unit_iff_exists_inv.1 (map_units f y),
     have := I.smul_mem b h,
-    rwa [smul_eq_mul, mul_comm, mul_assoc, hb, mul_one] at this },
-  { rw [← mk'_spec f x y, mul_comm],
-    exact I.smul_mem (f.to_map y) h }
+    rwa [smul_eq_mul, mul_comm, mul_assoc, hb, mul_one] at this }
 end
 
 protected lemma eq {a₁ b₁} {a₂ b₂ : M} :
@@ -822,10 +822,10 @@ begin
       obtain ⟨a, s, ha⟩ := mk'_surjective f x,
       obtain ⟨b, t, hb⟩ := mk'_surjective f y,
       have : f.mk' (a * b) (s * t) ∈ J := by rwa [mk'_mul, ha, hb],
-      rw [← mk'_mem_iff, ← ideal.mem_comap] at this,
+      rw [mk'_mem_iff, ← ideal.mem_comap] at this,
       replace this := h.left.right this,
       rw [ideal.mem_comap, ideal.mem_comap] at this,
-      rwa [← ha, ← hb, ← mk'_mem_iff, ← mk'_mem_iff] } }
+      rwa [← ha, ← hb, mk'_mem_iff, mk'_mem_iff] } }
 end
 
 /-- If `R` is a ring, then prime ideals in the localization at `M`

@@ -112,7 +112,7 @@ begin
 end
 
 lemma eq_jacobson_iff_not_mem {I : ideal R} :
-  I.jacobson = I ↔ ∀ x ∉ I, ∃ M : ideal R, (M ∈ {J : ideal R | I ≤ J ∧ J.is_maximal}) ∧ x ∉ M :=
+  I.jacobson = I ↔ ∀ x ∉ I, ∃ M : ideal R, (I ≤ M ∧ M.is_maximal) ∧ x ∉ M :=
 begin
   split,
   { intros h x hx,

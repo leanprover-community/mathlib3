@@ -176,14 +176,14 @@ protected lemma continuous : continuous γ :=
 γ.right'
 
 /-- The constant path from a point to itself -/
-def refl (x : X) : path x x :=
+@[refl] def refl (x : X) : path x x :=
 { to_fun := λ t, x,
   continuous' := continuous_const,
   left' := rfl,
   right' := rfl }
 
 /-- The reverse of a path from `x` to `y`, as a path from `y` to `x` -/
-def symm (γ : path x y) : path y x :=
+@[symm] def symm (γ : path x y) : path y x :=
 { to_fun      := γ ∘ σ,
   continuous' := by continuity,
   left'       := by simpa [-path.right] using γ.right,
@@ -205,7 +205,7 @@ local attribute [simp] Iic_def
 
 /-- Concatenation of two paths from `x` to `y` and from `y` to `z`, putting the first
 path on `[0, 1/2]` and the second one on `[1/2, 1]`. -/
-def trans (γ : path x y) (γ' : path y z) : path x z :=
+@[trans] def trans (γ : path x y) (γ' : path y z) : path x z :=
 { to_fun := (λ t : ℝ, if t ≤ 1/2 then γ.extend (2*t) else γ'.extend (2*t-1)) ∘ coe,
   continuous' :=
   begin
@@ -247,17 +247,17 @@ end path
 def joined (x y : X) : Prop :=
 nonempty (path x y)
 
-lemma joined.refl (x : X) : joined x x :=
+@[refl] lemma joined.refl (x : X) : joined x x :=
 ⟨path.refl x⟩
 
 /-- When two points are joined, choose some path from `x` to `y`. -/
 def joined.some_path (h : joined x y) : path x y :=
 nonempty.some h
 
-lemma joined.symm {x y : X} (h : joined x y) : joined y x :=
+@[symm] lemma joined.symm {x y : X} (h : joined x y) : joined y x :=
 ⟨h.some_path.symm⟩
 
-lemma joined.trans {x y z : X} (hxy : joined x y) (hyz : joined y z) :
+@[trans] lemma joined.trans {x y z : X} (hxy : joined x y) (hyz : joined y z) :
   joined x z :=
 ⟨hxy.some_path.trans hyz.some_path⟩
 
@@ -325,7 +325,7 @@ lemma joined_in.mono {U V : set X} (h : joined_in U x y) (hUV : U ⊆ V) : joine
 lemma joined_in.refl (h : x ∈ F) : joined_in F x x :=
 ⟨path.refl x, λ t, h⟩
 
-lemma joined_in.symm (h : joined_in F x y) : joined_in F y x :=
+@[symm] lemma joined_in.symm (h : joined_in F x y) : joined_in F y x :=
 begin
   cases h.mem with hx hy,
   simp [joined_in_iff_joined, *] at *,

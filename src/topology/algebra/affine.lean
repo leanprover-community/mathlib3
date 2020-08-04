@@ -31,19 +31,11 @@ lemma continuous_iff {f : affine_map R E E F F} :
 begin
   split,
   { intro hc,
-    let f' : C(E, F) := ⟨f, hc⟩,
-    let fconst : C(E, F) := ⟨(λ z, f 0), continuous_const⟩,
-    let fdiff := f' - fconst,
-    convert fdiff.2,
-    rw [decomp' f],
-    refl },
+    rw decomp' f,
+    exact hc.sub continuous_const },
   { intro hc,
-    let flin' : C(E, F) := ⟨f.linear, hc⟩,
-    let fconst : C(E, F) := ⟨(λ z, f 0), continuous_const⟩,
-    let f' := flin' + fconst,
-    convert f'.2,
-    rw [decomp f],
-    refl }
+    rw decomp f,
+    exact hc.add continuous_const }
 end
 
 /-- The line map is continuous. -/

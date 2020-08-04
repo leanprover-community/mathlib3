@@ -11,16 +11,14 @@ import measure_theory.group
 In this file we prove the existence of Haar measure for a locally compact Hausdorff topological
 group.
 
-## Main Definitions
+## Main Declarations
 
-* `haar_measure`: the Haar measure on a locally compact Hausdorff group. It takes as argument a
-  compact set of the group, and is normalized so that the measure of the given set is 1.
-
-## Implementation notes
-
-* We don't explicitly define the type of contents, because there are some design choices to be made.
-  For example, in this file we only work on contents on compact sets, and inner contents on open
-  sets, but other choices could be made.
+* `haar_measure`: the Haar measure on a locally compact Hausdorff group. This is a left invariant
+  regular measure. It takes as argument a compact set of the group (with non-empty interior),
+  and is normalized so that the measure of the given set is 1.
+* `haar_measure_self`: the Haar measure is normalized.
+* `is_left_invariant_haar_measure`: the Haar measure is left invariant
+* `regular_haar_measure`: the Haar measure is a regular measure.
 
 ## References
 * Paul Halmos (1950), Measure Theory, §53
@@ -32,8 +30,6 @@ group.
 universe variables u v w
 noncomputable theory
 
--- open set measurable_space encodable measure_theory.outer_measure topological_space function
-
 open set has_inv function topological_space measurable_space
 open_locale nnreal
 
@@ -43,16 +39,17 @@ variables {α : Type u} {β : Type*}
 variables [measurable_space α] [topological_space α]
 variables {G : Type w}
 
-
 namespace measure
 
-/- we put the construction of the Haar measure in a namespace to partially hide it -/
+/- We put the internal functions in the construction of the Haar measure in a namespace,
+  so that the chosen names don't clash with other declarations. -/
 namespace haar
 
 variables [group G]
 
-/-- The index or Haar covering number(?) or ratio of `K` w.r.t. `V`, denoted `(K : V)`:
-  it is the smallest number of translates of `V` that is necessary to cover `K` -/
+/-- The index or Haar covering number or ratio of `K` w.r.t. `V`, denoted `(K : V)`:
+  it is the smallest number of (left) translates of `V` that is necessary to cover `K`.
+  It is defined to be 0 if no finite number of translates cover `K`. -/
 def index (K V : set G) : ℕ :=
 Inf $ finset.card '' {t : finset G | K ⊆ ⋃ g ∈ t, (λ h, g * h) ⁻¹' V }
 
@@ -72,15 +69,15 @@ def prehaar (K₀ U : set G) (K : compacts G) : ℝ := (index K.1 U : ℝ) / ind
 lemma prehaar_empty (K₀ : positive_compacts G) {U : set G} : prehaar K₀.1 U ⊥ = 0 :=
 by { simp only [prehaar, compacts.bot_val, index_empty, nat.cast_zero, euclidean_domain.zero_div] }
 
-/-- `haar_product K₀` is a product of intervals `[0, (K : K₀)]`. For all `U`, we can show that
-  `prehaar K₀ U ∈ haar_product K₀`. -/
+/-- `haar_product K₀` is a product of intervals `[0, (K : K₀)]`.
+  For all `U`, we can show that `prehaar K₀ U ∈ haar_product K₀`. -/
 def haar_product (K₀ : set G) : set (compacts G → ℝ) :=
 set.pi set.univ (λ K, Icc 0 $ index K.1 K₀)
 
 /-- The closure of the collection of elements of the form `prehaar K₀ U`,
-  for `U` open neighbourhoods of `1`, contained in `V`. We show that the intersection of all these
-  sets is nonempty, and the Haar measure on compact sets is defined to be an element in the closure
-  of this intersection.  -/
+  for `U` open neighbourhoods of `1`, contained in `V`.
+  We show that the intersection of all these sets is nonempty, and the Haar measure
+  on compact sets is defined to be an element in the closure of this intersection. -/
 def cl_prehaar (K₀ : set G) (V : open_nhds_of (1 : G)) : set (compacts G → ℝ) :=
 closure $ prehaar K₀ '' { U : set G | U ⊆ V.1 ∧ is_open U ∧ (1 : G) ∈ U }
 
@@ -186,8 +183,8 @@ begin
     refine ⟨_, hg₂, _⟩, simp only [mul_assoc, hg₁, inv_mul_cancel_left] }
 end
 
-lemma is_left_invariant_index {K : set G} (hK : is_compact K) {V : set G} (hV : (interior V).nonempty)
-  (g : G) : index ((λ h, g * h) '' K) V = index K V :=
+lemma is_left_invariant_index {K : set G} (hK : is_compact K) {V : set G}
+  (hV : (interior V).nonempty) (g : G) : index ((λ h, g * h) '' K) V = index K V :=
 begin
   refine le_antisymm (mul_left_index_le hK hV g) _,
   convert mul_left_index_le (hK.image $ continuous_mul_left g) hV g⁻¹,
@@ -398,10 +395,11 @@ open haar
 
 variables [topological_space G] [t2_space G] [group G] [topological_group G]
 
-/-- the Haar outer measure on `G` -/
+/-- The Haar outer measure on `G`. It is not normalized, and is mainly used to construct
+  `haar_measure`, which is a normalized measure. -/
 def haar_outer_measure (K₀ : positive_compacts G) : outer_measure G :=
-outer_measure.of_content (echaar K₀)
-  (by { dsimp [echaar], norm_cast, rw [←nnreal.coe_eq, nnreal.coe_zero, subtype.coe_mk, chaar_empty] })
+outer_measure.of_content (echaar K₀) $
+  by { rw echaar, norm_cast, rw [←nnreal.coe_eq, nnreal.coe_zero, subtype.coe_mk, chaar_empty] }
 
 lemma haar_outer_measure_eq_infi (K₀ : positive_compacts G) (A : set G) :
   haar_outer_measure K₀ A = ⨅ (U : set G) (hU : is_open U) (h : A ⊆ U),
@@ -500,7 +498,8 @@ end
 
 /-- the Haar measure on `G`, scaled so that `haar_measure K₀ K₀ = 1`. -/
 def haar_measure (K₀ : positive_compacts G) : measure G :=
-(haar_outer_measure K₀ K₀.1)⁻¹ • (haar_outer_measure K₀).to_measure (haar_caratheodory_measurable K₀)
+(haar_outer_measure K₀ K₀.1)⁻¹ •
+  (haar_outer_measure K₀).to_measure (haar_caratheodory_measurable K₀)
 
 lemma haar_measure_apply {K₀ : positive_compacts G} {s : set G} (hs : is_measurable s) :
   haar_measure K₀ s = haar_outer_measure K₀ s / haar_outer_measure K₀ K₀.1 :=

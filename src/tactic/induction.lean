@@ -111,8 +111,8 @@ def all_some : list (option α) → option (list α)
 | (some x :: xs) := (λ xs, x :: xs) <$> all_some xs
 | (none :: xs) := none
 
-def mbfind' {m : Type u → Type v} [monad m] {α : Type u} (p : α → m (ulift bool))
-  : list α → m (option α)
+def mbfind' {m : Type u → Type v} [monad m] {α : Type u} (p : α → m (ulift bool)) :
+  list α → m (option α)
 | [] := pure none
 | (x :: xs) := do
   ⟨px⟩ ← p x,
@@ -124,8 +124,8 @@ xs.mbfind' (functor.map ulift.up ∘ p)
 
 -- I'd like to define this in terms of mbfind, but that gives us less universe
 -- polymorphism.
-def mbany {m : Type → Type v} [monad m] {α : Type u} (p : α → m bool)
-  : list α → m bool
+def mbany {m : Type → Type v} [monad m] {α : Type u} (p : α → m bool) :
+  list α → m bool
 | [] := pure ff
 | (x :: xs) := do
   px ← p x,
@@ -154,8 +154,8 @@ def map₂_left' {α β γ} (f : α → option β → γ) : list α → list β 
   let ⟨cs, rest⟩ := map₂_left' as bs in
   (f a (some b) :: cs, rest)
 
-def map₂_right' {α β γ} (f : option α → β → γ) (as : list α) (bs : list β)
-  : (list γ × list α) :=
+def map₂_right' {α β γ} (f : option α → β → γ) (as : list α) (bs : list β) :
+  (list γ × list α) :=
 map₂_left' (flip f) bs as
 
 def zip_left' {α β} : list α → list β → list (α × option β) × list β :=
@@ -169,8 +169,8 @@ def map₂_left {α β γ} (f : α → option β → γ) : list α → list β �
 | (a :: as) [] := f a none :: map₂_left as []
 | (a :: as) (b :: bs) := f a (some b) :: map₂_left as bs
 
-def map₂_right {α β γ} (f : option α → β → γ) (as : list α) (bs : list β)
-  : list γ :=
+def map₂_right {α β γ} (f : option α → β → γ) (as : list α) (bs : list β) :
+  list γ :=
 map₂_left (flip f) bs as
 
 def zip_left {α β} : list α → list β → list (α × option β) :=
@@ -212,13 +212,12 @@ variables {α β : Type}
 
 section
 
-variables [has_lt α] [has_lt β] [decidable_rel ((<) : α → α → Prop)]
+variables [has_lt α] [decidable_rel ((<) : α → α → Prop)]
 
-meta def find (m : rb_multimap α β) (a : α)
-  : option (rb_set β) :=
+meta def find (m : rb_multimap α β) (a : α) : option (rb_set β) :=
 rb_map.find m a
 
-variables [decidable_rel ((<) : β → β → Prop)]
+variables [has_lt β] [decidable_rel ((<) : β → β → Prop)]
 
 meta def insert (m : rb_multimap α β) (a : α) (b : β) : rb_multimap α β :=
 let bs := m.find a in
@@ -250,7 +249,7 @@ namespace rb_set
 variables {α : Type} [has_lt α] [decidable_rel ((<) : α → α → Prop)]
 
 meta def merge (xs ys : rb_set α) : rb_set α :=
-rb_set.fold ys xs (λ a xs, xs.insert a)
+ys.fold xs (λ a xs, xs.insert a)
 
 meta def merge_many (xs : list (rb_set α)) : rb_set α :=
 xs.foldl merge mk_rb_set
@@ -263,7 +262,7 @@ end native
 namespace name_set
 
 meta def merge (xs ys : name_set) : name_set :=
-name_set.fold ys xs (λ a xs, xs.insert a)
+ys.fold xs (λ a xs, xs.insert a)
 
 meta def merge_many (xs : list name_set) : name_set :=
 xs.foldl merge mk_name_set
@@ -293,8 +292,8 @@ contexts. For example, for the input `∀ (x : α) (y : β x) (z : γ x y), δ`,
 `decompose_pi` returns `β #0` as the type of `y` and `γ #1 #0` as the type of
 `z` -- the two `#0`s do not denote the same thing.
 -/
-meta def decompose_pi
-  : expr → list (name × binder_info × expr × bool) × ℕ × expr
+meta def decompose_pi : expr →
+  list (name × binder_info × expr × bool) × ℕ × expr
 | (pi name binfo T rest) :=
   let (args, n_args, ret) := decompose_pi rest in
   -- NOTE: the following makes this function quadratic in the size of the input
@@ -322,8 +321,9 @@ contexts. For example, for the input `∀ (x : α) (y : β x) (z : γ x y), δ`,
 `decompose_pi_normalizing` returns `β #0` as the type of `y` and `γ #1 #0`
 as the type of `z` -- the two `#0`s do not denote the same thing.
 -/
-meta def decompose_pi_normalizing
-  : expr → tactic (list (name × binder_info × expr × bool) × expr) := λ e, do
+meta def decompose_pi_normalizing : expr →
+  tactic (list (name × binder_info × expr × bool) × expr) :=
+λ e, do
   e ← tactic.whnf e,
   match e with
   | (pi n binfo T rest) := do
@@ -335,8 +335,8 @@ meta def decompose_pi_normalizing
   | _ := pure ([] , e)
   end
 
-meta def recompose_pi (binders : list (name × binder_info × expr)) (ret : expr)
-  : expr :=
+meta def recompose_pi (binders : list (name × binder_info × expr)) (ret : expr) :
+  expr :=
 binders.foldr (λ ⟨name, info, t⟩ acc, pi name info t acc) ret
 
 /-- Auxiliary function for `decompose_app`. -/
@@ -372,8 +372,8 @@ result is `(f, [x, ..., z])`. If `e` is not of this form, the result is
 `e` is normalised lazily. This means that the returned expressions are not
 necessarily in normal form.
 -/
-meta def decompose_app_normalizing (e : expr) (md := semireducible)
-  : tactic (expr × list expr) := do
+meta def decompose_app_normalizing (e : expr) (md := semireducible) :
+  tactic (expr × list expr) := do
   (f , args) ← decompose_app_normalizing_aux md e,
   pure (f , args.reverse)
 
@@ -459,7 +459,8 @@ declare_trace eliminate_hyp
 meta def trace_eliminate_hyp {α} [has_to_format α] (msg : thunk α) : tactic unit :=
 when_tracing `eliminate_hyp $ trace $ to_fmt "eliminate_hyp: " ++ to_fmt (msg ())
 
-meta def trace_state_eliminate_hyp {α} [has_to_format α] (msg : thunk α) : tactic unit := do
+meta def trace_state_eliminate_hyp {α} [has_to_format α] (msg : thunk α) :
+  tactic unit := do
   state ← read,
   trace_eliminate_hyp $ format.join
     [to_fmt (msg ()), "\n-----\n", to_fmt state, "\n-----"]
@@ -537,8 +538,9 @@ For an input expression `e = ∀ (x₁ : T₁) ... (xₙ : Tₙ), U`,
 -- TODO could be more efficient: open_binder uses instantiate_var once per
 -- binder, so the expression is traversed a lot. We could use instantiate_vars
 -- instead.
-meta def open_pis_normalizing
-  : expr → tactic (list (expr × bool) × expr) := λ e, do
+meta def open_pis_normalizing : expr →
+  tactic (list (expr × bool) × expr) :=
+λ e, do
   e ← whnf e,
   match e with
   | (pi _ _ _ rest) := do
@@ -551,7 +553,8 @@ meta def open_pis_normalizing
   | _ := pure ⟨[], e⟩
   end
 
-meta def get_app_fn_const_normalizing : expr → tactic name := λ e, do
+meta def get_app_fn_const_normalizing : expr → tactic name :=
+λ e, do
   e ← whnf e,
   match e with
   | (const n _) := pure n
@@ -573,11 +576,11 @@ meta def get_inductive_name (type : expr) : tactic name := do
 -- may want to consider these types sufficiently similar to inherit the name.
 -- Same (but even more obvious) with `vec α n` and `vec α (n + 1)`.
 meta def fuzzy_type_match (t s : expr) : tactic bool :=
-  (is_def_eq t s *> pure tt) <|> pure ff
-  -- (is_def_eq t s *> pure tt) <|> do
-  --   (some t_const) ← try_core $ get_app_fn_const_normalizing t | pure ff,
-  --   (some s_const) ← try_core $ get_app_fn_const_normalizing s | pure ff,
-  --   pure $ t_const = s_const
+(is_def_eq t s *> pure tt) <|> pure ff
+-- (is_def_eq t s *> pure tt) <|> do
+--   (some t_const) ← try_core $ get_app_fn_const_normalizing t | pure ff,
+--   (some s_const) ← try_core $ get_app_fn_const_normalizing s | pure ff,
+--   pure $ t_const = s_const
 
 /-
 TODO doc
@@ -590,8 +593,9 @@ Output: A map associating each of the arg local constants `cᵢ` with the set of
 indexes `j` such that `cᵢ` appears in `xⱼ` and `xⱼ`'s type fuzzily matches that
 of `cᵢ`.
 -/
-meta def decompose_constructor_type_return (num_params : ℕ) (args : expr_set)
-  : expr → tactic (rb_multimap expr ℕ) := λ ret_type, do
+meta def decompose_constructor_type_return (num_params : ℕ) (args : expr_set) :
+  expr → tactic (rb_multimap expr ℕ) :=
+λ ret_type, do
   ⟨_, ret_args⟩ ← decompose_app_normalizing ret_type,
   ret_args.mfoldl_with_index
     (λ i occ_map ret_arg, do
@@ -621,8 +625,8 @@ meta def decompose_constructor_type (num_params : ℕ) (e : expr)
 (possibly applied to some arguments). If `arg_type` is the type of an argument
 of one of `type_name`'s constructors and this function returns true, then the
 constructor argument is a recursive occurrence. -/
-meta def is_recursive_constructor_argument (type_name : name) (arg_type : expr)
-  : bool :=
+meta def is_recursive_constructor_argument (type_name : name) (arg_type : expr) :
+  bool :=
 let base := arg_type.get_app_fn in
 match base with
 | (expr.const base _) := base = type_name
@@ -660,8 +664,7 @@ meta structure inductive_info :=
 /-- Gathers information about a constructor from the environment. Fails if `c`
 does not refer to a constructor. -/
 meta def get_constructor_info (env : environment) (iname : name)
-  (num_params : ℕ) (c : name)
-  : tactic constructor_info := do
+  (num_params : ℕ) (c : name) : tactic constructor_info := do
   when (¬ env.is_constructor c) $ exceptional.fail format!
     "Expected {c} to be a constructor.",
   decl ← env.get c,
@@ -682,8 +685,8 @@ meta def get_constructor_info (env : environment) (iname : name)
 
 /-- Gathers information about an inductive type from the environment. Fails if
 `T` does not refer to an inductive type. -/
-meta def get_inductive_info (env : environment) (T : name)
-  : tactic inductive_info := do
+meta def get_inductive_info (env : environment) (T : name) :
+  tactic inductive_info := do
   when (¬ env.is_inductive T) $ exceptional.fail format!
     "Expected {T} to be an inductive type.",
   decl ← env.get T,
@@ -726,10 +729,11 @@ meta structure constructor_argument_naming_info :=
 @[reducible] meta def constructor_argument_naming_rule : Type :=
 constructor_argument_naming_info → tactic (list name)
 
-meta def constructor_argument_naming_rule_rec : constructor_argument_naming_rule := λ i,
-if i.ainfo.is_recursive then pure [i.einfo.ename] else failed
+meta def constructor_argument_naming_rule_rec : constructor_argument_naming_rule :=
+λ i, if i.ainfo.is_recursive then pure [i.einfo.ename] else failed
 
-meta def constructor_argument_naming_rule_index : constructor_argument_naming_rule := λ i,
+meta def constructor_argument_naming_rule_index : constructor_argument_naming_rule :=
+λ i,
 let index_occs := i.ainfo.index_occurrences in
 let eliminee_args := i.einfo.args in
 let local_index_instantiations :=
@@ -744,17 +748,19 @@ match local_index_instantiations with
     else failed
 end
 
-meta def constructor_argument_naming_rule_named : constructor_argument_naming_rule := λ i,
+meta def constructor_argument_naming_rule_named : constructor_argument_naming_rule :=
+λ i,
 let arg_name := i.ainfo.aname in
 let arg_dep := i.ainfo.dependent in
 if ! arg_dep && arg_name.is_likely_generated_name
   then failed
   else pure [arg_name]
 
-meta def constructor_argument_naming_rule_type : constructor_argument_naming_rule := λ i,
-typical_variable_names i.ainfo.type
+meta def constructor_argument_naming_rule_type : constructor_argument_naming_rule :=
+λ i, typical_variable_names i.ainfo.type
 
-meta def constructor_argument_naming_rule_prop : constructor_argument_naming_rule := λ i, do
+meta def constructor_argument_naming_rule_prop : constructor_argument_naming_rule :=
+λ i, do
   (sort level.zero) ← infer_type i.ainfo.type,
   pure [`h]
 
@@ -762,12 +768,11 @@ meta def default_constructor_argument_name : name := `x
 
 meta def apply_constructor_argument_naming_rules
   (info : constructor_argument_naming_info)
-  (rules : list constructor_argument_naming_rule)
-  : tactic (list name) :=
-  first (rules.map ($ info)) <|> pure [default_constructor_argument_name]
+  (rules : list constructor_argument_naming_rule) : tactic (list name) :=
+first (rules.map ($ info)) <|> pure [default_constructor_argument_name]
 
-meta def constructor_argument_names (info : constructor_argument_naming_info)
-  : tactic (list name) :=
+meta def constructor_argument_names (info : constructor_argument_naming_info) :
+  tactic (list name) :=
 apply_constructor_argument_naming_rules info
   [ constructor_argument_naming_rule_rec
   , constructor_argument_naming_rule_index
@@ -780,8 +785,9 @@ meta def ih_name (arg_name : name) : name :=
 mk_simple_name ("ih_" ++ arg_name.to_string)
 
 -- TODO the implementation is a bit of an 'orrible hack
-meta def get_unused_name'_aux (n : name) (reserved : name_set)
-  : option nat → tactic name := λ suffix, do
+meta def get_unused_name'_aux (n : name) (reserved : name_set) :
+  option nat → tactic name :=
+λ suffix, do
   n ← get_unused_name n suffix,
   if ¬ reserved.contains n
     then pure n
@@ -809,8 +815,8 @@ meta def intro_fresh (ns : list name) (reserved : name_set) : tactic expr := do
   intro n
 
 /- Precond: each of the name lists is nonempty. -/
-meta def intro_lst_fresh (ns : list (name ⊕ list name)) (reserved : name_set)
-  : tactic (list expr) := do
+meta def intro_lst_fresh (ns : list (name ⊕ list name)) (reserved : name_set) :
+  tactic (list expr) := do
   let fixed := name_set.of_list $ ns.filter_map sum.get_left,
   let reserved := reserved.merge fixed,
   ns.mmap $ λ spec,
@@ -821,8 +827,8 @@ meta def intro_lst_fresh (ns : list (name ⊕ list name)) (reserved : name_set)
 
 -- TODO integrate into tactic.rename?
 -- Precond: each of the name lists in `renames` must be nonempty.
-meta def rename_fresh (renames : name_map (list name)) (reserved : name_set)
-  : tactic (name_map name) := do
+meta def rename_fresh (renames : name_map (list name)) (reserved : name_set) :
+  tactic (name_map name) := do
   ctx ← revertible_local_context,
   let ctx_suffix := ctx.drop_while (λ h, (renames.find h.local_pp_name).is_none),
   let new_names :=
@@ -935,8 +941,7 @@ Given the eliminee and a generalization_mode, this function returns the
 unique names of the hypotheses that should be generalized. See
 `generalization_mode` for what these are.
 -/
-meta def to_generalize (eliminee : expr)
-  : generalization_mode → tactic name_set
+meta def to_generalize (eliminee : expr) : generalization_mode → tactic name_set
 | (generalize_only ns) := do
   eliminee_rev_deps ← kdependencies eliminee,
   -- TODO replace kdependencies with a variant that takes local defs into account
@@ -974,8 +979,7 @@ end generalization_mode
 Generalize hypotheses for the given eliminee and generalization mode. See
 `generalization_mode` and `to_generalize`.
 -/
-meta def generalize_hyps (eliminee : expr) (gm : generalization_mode)
-  : tactic ℕ := do
+meta def generalize_hyps (eliminee : expr) (gm : generalization_mode) : tactic ℕ := do
   to_revert ← gm.to_generalize eliminee,
   ⟨n, _⟩ ← revert_lst'' to_revert,
   pure n
@@ -989,8 +993,8 @@ meta def intron_fresh : ℕ → tactic (list expr)
   pure $ h :: hs
 
 meta def constructor_intros (generate_induction_hyps : bool)
-  (iinfo : inductive_info) (cinfo : constructor_info)
-  : tactic (list (name × constructor_argument_info) × list (name × name)) := do
+  (iinfo : inductive_info) (cinfo : constructor_info) :
+  tactic (list (name × constructor_argument_info) × list (name × name)) := do
   let args := cinfo.non_param_args,
   arg_hyps ← intron_fresh cinfo.num_non_param_args,
   let arg_hyp_names :=
@@ -1010,8 +1014,8 @@ meta def constructor_intros (generate_induction_hyps : bool)
 meta def constructor_renames (generate_induction_hyps : bool)
   (einfo : eliminee_info) (iinfo : inductive_info) (cinfo : constructor_info)
   (with_names : list name) (args : list (name × constructor_argument_info))
-  (ihs : list (name × name))
-  : tactic (list expr × list expr) := do
+  (ihs : list (name × name)) :
+  tactic (list expr × list expr) := do
   -- Rename constructor arguments
   let iname := iinfo.iname,
   let ⟨args, with_names⟩ := args.zip_left' with_names,
@@ -1070,8 +1074,9 @@ meta def structure_info (struct : name) : tactic (name × list name × ℕ) := d
   let num_params := env.inductive_num_params struct,
   pure (constructor, fields, num_params)
 
-meta def decompose_structure_value_aux
-  : expr → expr → tactic (list (expr × expr) × name_set) := λ e f, do
+meta def decompose_structure_value_aux : expr → expr →
+  tactic (list (expr × expr) × name_set) :=
+λ e f, do
   t ← infer_type e,
   ⟨struct, levels, params, constructor, fields, num_params⟩ ← do {
     ⟨const struct levels, params⟩ ← decompose_app_normalizing t,
@@ -1115,12 +1120,12 @@ the above examples.
 
 If `e` is not an application of a structure constructor, this tactic fails.
 -/
-meta def decompose_structure_value (e : expr)
-  : tactic (list (expr × expr) × name_set) :=
+meta def decompose_structure_value (e : expr) :
+  tactic (list (expr × expr) × name_set) :=
 decompose_structure_value_aux e e
 
-meta def replace_structure_index_args (eliminee : expr) (index_args : list expr)
-  : tactic name_set := do
+meta def replace_structure_index_args (eliminee : expr) (index_args : list expr) :
+  tactic name_set := do
   structure_args ←
     index_args.mmap_filter (try_core ∘ decompose_structure_value),
   let fields := name_set.merge_many $ structure_args.map prod.snd,
@@ -1142,8 +1147,7 @@ meta def replace_structure_index_args (eliminee : expr) (index_args : list expr)
 
 meta def generalize_complex_index_args_aux (eliminee : expr)
   (eliminee_head : expr) (eliminee_param_args eliminee_index_args : list expr)
-  (generate_ihs : bool)
-  : tactic (expr × list expr × ℕ × name_set) :=
+  (generate_ihs : bool) : tactic (expr × list expr × ℕ × name_set) :=
 focus1 $ do
   -- If any of the index arguments are values of a structure, e.g. `(x, y)`,
   -- replace `x` by `(x, y).fst` and `y` by `(x, y).snd` everywhere in the goal.
@@ -1221,8 +1225,7 @@ focus1 $ do
   pure (eliminee, index_vars, relevant_ctx_size, fields)
 
 meta def generalize_complex_index_args (eliminee : expr) (num_params : ℕ)
-  (generate_ihs : bool)
-  : tactic (expr × ℕ × list name × name_set × ℕ) := do
+  (generate_ihs : bool) : tactic (expr × ℕ × list name × name_set × ℕ) := do
   eliminee_type ← infer_type eliminee,
   ⟨eliminee_head, eliminee_args⟩ ← decompose_app_normalizing eliminee_type,
   let ⟨eliminee_param_args, eliminee_index_args⟩ :=
@@ -1247,8 +1250,8 @@ meta inductive simplification_result
 
 open simplification_result
 
-meta def simplify_heterogeneous_index_equation (equ lhs_type rhs_type lhs rhs : expr)
-  : tactic simplification_result :=
+meta def simplify_heterogeneous_index_equation (equ lhs_type rhs_type lhs rhs : expr) :
+  tactic simplification_result :=
 do {
   is_def_eq lhs_type rhs_type,
   p ← to_expr ``(@eq_of_heq %%lhs_type %%lhs %%rhs %%equ),
@@ -1291,7 +1294,7 @@ meta def get_sizeof (type : expr) : tactic pexpr := do
   pure sizeof
 
 lemma plus_gt (n m : ℕ) : m ≠ 0 → n + m > n :=
-by { induction m, contradiction, simp }
+by { induction m, { contradiction }, { simp } }
 
 -- Linarith could prove this, but I want to avoid that dependency.
 lemma n_plus_m_plus_one_ne_n (n m : ℕ) : n + (m + 1) ≠ n :=
@@ -1305,8 +1308,8 @@ meta def match_n_plus_m (md) : ℕ → expr → tactic (ℕ × expr) :=
   | _ := pure (n, e)
   end
 
-meta def contradict_n_eq_n_plus_m (md : transparency) (equ lhs rhs : expr)
-  : tactic expr := do
+meta def contradict_n_eq_n_plus_m (md : transparency) (equ lhs rhs : expr) :
+  tactic expr := do
   ⟨lhs_n, lhs_e⟩ ← match_n_plus_m md 0 lhs,
   ⟨rhs_n, rhs_e⟩ ← match_n_plus_m md 0 rhs,
   is_def_eq lhs_e rhs_e md <|> fail "TODO",
@@ -1347,7 +1350,8 @@ do {
 } <|>
 pure not_simplified
 
-meta def decompose_and : expr → tactic (list expr) := λ h, do
+meta def decompose_and : expr → tactic (list expr) :=
+λ h, do
   H ← infer_type h,
   match H with
   | `(%%P ∧ %%Q) := focus1 $ do
@@ -1387,8 +1391,8 @@ do {
 } <|>
 pure not_simplified
 
-meta def sequence_simplifiers (s t : tactic simplification_result)
-  : tactic simplification_result := do
+meta def sequence_simplifiers (s t : tactic simplification_result) :
+  tactic simplification_result := do
   r ← s,
   match r with
   | simplified _ := pure r
@@ -1432,8 +1436,8 @@ namespace interactive
 
 open lean.parser
 
-meta def simplify_index_equations (eqs : interactive.parse (many ident))
-  : tactic unit :=
+meta def simplify_index_equations (eqs : interactive.parse (many ident)) :
+  tactic unit :=
 tactic.simplify_index_equations eqs *> skip
 
 end interactive
@@ -1475,8 +1479,8 @@ meta def ih_apps_aux : expr → list expr → ℕ → expr → tactic (expr × l
 | _   _     _       e := fail!
   "internal error in ih_apps_aux:\nexpected a pi type, but got\n{e}"
 
-meta def ih_apps (num_equations : ℕ) (ih : expr) (ih_type : expr)
-  : tactic (expr × list expr) :=
+meta def ih_apps (num_equations : ℕ) (ih : expr) (ih_type : expr) :
+  tactic (expr × list expr) :=
 ih_apps_aux ih [] num_equations ih_type
 
 meta def assign_unassigned_mvar (mv : expr) (pp_name : name)
@@ -1487,13 +1491,13 @@ meta def assign_unassigned_mvar (mv : expr) (pp_name : name)
   unify mv c,
   pure c
 
-meta def assign_unassigned_mvars (mvars : list (expr × name × binder_info))
-  : tactic (list expr) :=
+meta def assign_unassigned_mvars (mvars : list (expr × name × binder_info)) :
+  tactic (list expr) :=
 mvars.mmap_filter $ λ ⟨mv, pp_name, binfo⟩,
   assign_unassigned_mvar mv pp_name binfo
 
-meta def simplify_ih (num_generalized : ℕ) (num_index_vars : ℕ) (ih : expr)
-  : tactic expr := do
+meta def simplify_ih (num_generalized : ℕ) (num_index_vars : ℕ) (ih : expr) :
+  tactic expr := do
   ih_type ← infer_type ih,
   ⟨generalized_arg_mvars, ih_type⟩ ← mopen_n_pis num_generalized ih_type,
   let apps := ih.app_of_list (generalized_arg_mvars.map prod.fst),
@@ -1546,22 +1550,22 @@ do gs ← get_goals,
           (case_tag.from_tag_hyps (n :: in_tag) (new_hyps.map expr.local_uniq_name)).render
    end
 
-meta def unfold_only (to_unfold : list name) (e : expr) (fail_if_unchanged := tt)
-  : tactic expr :=
+meta def unfold_only (to_unfold : list name) (e : expr) (fail_if_unchanged := tt) :
+  tactic expr :=
 simp_lemmas.dsimplify simp_lemmas.mk to_unfold e
   { eta := ff, zeta := ff, beta := ff, iota := ff
   , fail_if_unchanged := fail_if_unchanged }
 
-meta def unfold_only_target (to_unfold : list name) (fail_if_unchanged := tt)
-  : tactic unit := do
+meta def unfold_only_target (to_unfold : list name) (fail_if_unchanged := tt) :
+  tactic unit := do
   tgt ← target,
   tgt ← unfold_only to_unfold tgt fail_if_unchanged,
   unsafe_change tgt
 
 -- Note: frozen local instances.
 -- Note: changes all unique names.
-meta def unfold_only_everywhere (to_unfold : list name) (fail_if_unchanged := tt)
-  : tactic unit := do
+meta def unfold_only_everywhere (to_unfold : list name) (fail_if_unchanged := tt) :
+  tactic unit := do
   n ← revert_all,
   unfold_only_target to_unfold fail_if_unchanged,
   intron n
@@ -1752,8 +1756,7 @@ focus1 $ do
 
 meta def eliminate_expr (generate_induction_hyps : bool) (eliminee : expr)
   (eq_name : option name := none) (gm := generalization_mode.generalize_all_except [])
-  (with_names : list name := [])
-  : tactic unit := do
+  (with_names : list name := []) : tactic unit := do
   num_reverted ← revert_kdeps eliminee,
   -- TODO use revert_deps instead?
   hyp ← match eq_name with
@@ -1792,15 +1795,13 @@ precedence `fixing`:0
 
 meta def induction' (eliminee : parse cases_arg_p)
   (gm : parse generalisation_mode_parser)
-  (with_names : parse (optional with_ident_list))
-  : tactic unit := do
+  (with_names : parse (optional with_ident_list)) : tactic unit := do
   let ⟨eq_name, e⟩ := eliminee,
   e ← to_expr e,
   eliminate_expr tt e eq_name gm (with_names.get_or_else [])
 
 meta def cases' (eliminee : parse cases_arg_p)
-  (with_names : parse (optional with_ident_list))
-  : tactic unit := do
+  (with_names : parse (optional with_ident_list)) : tactic unit := do
   let ⟨eq_name, e⟩ := eliminee,
   e ← to_expr e,
   eliminate_expr ff e eq_name (generalization_mode.generalize_only [])

@@ -1427,8 +1427,8 @@ end
 
 /-- If a family is affinely independent, a point in the family is in
 the span of some of the points given by a subset of the index type if
-and only that point's index is in the subset, if the underlying ring
-is nontrivial. -/
+and only if that point's index is in the subset, if the underlying
+ring is nontrivial. -/
 @[simp] lemma mem_affine_span_iff_mem_of_affine_independent [nontrivial k] {p : ι → P}
     (ha : affine_independent k V p) (i : ι) (s : set ι) :
   p i ∈ affine_span k V (p '' s) ↔ i ∈ s :=

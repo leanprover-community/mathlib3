@@ -1288,9 +1288,6 @@ apply_nolint unique doc_blame
 -- measure_theory/category/Meas.lean
 apply_nolint Meas doc_blame
 
--- measure_theory/integration.lean
-apply_nolint measure_theory.measure.with_density doc_blame
-
 -- measure_theory/measurable_space.lean
 apply_nolint measurable_equiv has_inhabited_instance
 
@@ -1365,9 +1362,6 @@ apply_nolint fixed_points.next doc_blame
 apply_nolint fixed_points.next_fixed doc_blame
 apply_nolint fixed_points.prev doc_blame
 apply_nolint fixed_points.prev_fixed doc_blame
-
--- order/galois_connection.lean
-apply_nolint galois_insertion has_inhabited_instance
 
 -- order/lexicographic.lean
 apply_nolint lex doc_blame

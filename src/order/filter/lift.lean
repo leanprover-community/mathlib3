@@ -25,13 +25,14 @@ protected def lift (f : filter α) (g : set α → filter β) :=
 
 variables {f f₁ f₂ : filter α} {g g₁ g₂ : set α → filter β}
 
-/-- If `{s i | p i, i : ι}` is a basis of a filter `f`, `g` is a monotone function
-`set α → filter γ`, and for each `i`, `{sg x | pg x, x : β i}` is a basis of the filter `g (s i)`,
-then `{sg x | i : ι, x : β i, p i, pg i x}` is a basis of the filter `f.lift g`.
+/-- If `(p : ι → Prop, s : ι → set α)` is a basis of a filter `f`, `g` is a monotone function
+`set α → filter γ`, and for each `i`, `(pg : β i → Prop, sg : β i → set α)` is a basis
+of the filter `g (s i)`, then `(λ (i : ι) (x : β i), p i ∧ pg i x, λ (i : ι) (x : β i), sg i x)`
+is a basis of the filter `f.lift g`.
 
-This basis is parametrized by `i : ι` and `x : β i`, so formulating this fact using `has_basis` uses
-`Σ i, β i` as the index type, see `filter.has_basis.lift`. This lemma states the corresponding
-`mem_iff` statement without using a sigma type. -/
+This basis is parametrized by `i : ι` and `x : β i`, so in order to formulate this fact using
+`has_basis` one has to use `Σ i, β i` as the index type, see `filter.has_basis.lift`.
+This lemma states the corresponding `mem_iff` statement without using a sigma type. -/
 lemma has_basis.mem_lift_iff {ι} {p : ι → Prop} {s : ι → set α} {f : filter α}
   (hf : f.has_basis p s) {β : ι → Type*} {pg : Π i, β i → Prop} {sg : Π i, β i → set γ}
   {g : set α → filter γ} (hg : ∀ i, (g $ s i).has_basis (pg i) (sg i)) (gm : monotone g)
@@ -46,13 +47,14 @@ begin
     exact hf.exists_iff (λ t₁ t₂ ht H, gm ht H) }
 end
 
-/-- If `{s i | p i, i : ι}` is a basis of a filter `f`, `g` is a monotone function
-`set α → filter γ`, and for each `i`, `{sg x | pg x, x : β i}` is a basis of the filter `g (s i)`,
-then `{sg x | i : ι, x : β i, p i, pg i x}` is a basis of the filter `f.lift g`.
+/-- If `(p : ι → Prop, s : ι → set α)` is a basis of a filter `f`, `g` is a monotone function
+`set α → filter γ`, and for each `i`, `(pg : β i → Prop, sg : β i → set α)` is a basis
+of the filter `g (s i)`, then `(λ (i : ι) (x : β i), p i ∧ pg i x, λ (i : ι) (x : β i), sg i x)`
+is a basis of the filter `f.lift g`.
 
-This basis is parametrized by `i : ι` and `x : β i`, so formulating this fact using `has_basis` uses
-`Σ i, β i` as the index type. See also `filter.has_basis.mem_lift_iff` for the corresponding
-`mem_iff` statement formulated without using a sigma type. -/
+This basis is parametrized by `i : ι` and `x : β i`, so in order to formulate this fact using
+`has_basis` one has to use `Σ i, β i` as the index type. See also `filter.has_basis.mem_lift_iff`
+for the corresponding `mem_iff` statement formulated without using a sigma type. -/
 lemma has_basis.lift {ι} {p : ι → Prop} {s : ι → set α} {f : filter α} (hf : f.has_basis p s)
   {β : ι → Type*} {pg : Π i, β i → Prop} {sg : Π i, β i → set γ} {g : set α → filter γ}
   (hg : ∀ i, (g $ s i).has_basis (pg i) (sg i)) (gm : monotone g) :

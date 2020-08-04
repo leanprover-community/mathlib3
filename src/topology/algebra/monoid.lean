@@ -8,6 +8,7 @@ Theory of topological monoids.
 import topology.continuous_on
 import group_theory.submonoid.basic
 import algebra.group.prod
+import topology.homeomorph
 
 open classical set filter topological_space opposite
 open_locale classical topological_space big_operators
@@ -21,6 +22,12 @@ lemma opposite_eq_induced [m : topological_space α] : opposite.topological_spac
 
 lemma continuous_op [topological_space α] : continuous (op : α → αᵒᵖ) := λ _ h, h
 lemma continuous_unop [topological_space α] : continuous (unop : αᵒᵖ → α) := λ _ h, h
+
+/-- The map `α ≃ αᵒᵖ` is a homeomorphism. -/
+def homeomorphm_to_opposite [topological_space α] : α ≃ₜ αᵒᵖ :=
+{ continuous_to_fun := continuous_op,
+  continuous_inv_fun := continuous_unop,
+  ..equiv_to_opposite }
 
 /-- Basic hypothesis to talk about a topological additive monoid or a topological additive
 semigroup. A topological additive monoid over `α`, for example, is obtained by requiring both the
@@ -92,10 +99,9 @@ instance [topological_space β] [has_mul β] [has_continuous_mul β] : has_conti
 ⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
  ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
 
--- @[to_additive]
 instance [topological_space α] [has_mul α] [has_continuous_mul α] : has_continuous_mul αᵒᵖ :=
-{ continuous_mul := by { convert ((continuous_op.comp continuous_mul).comp continuous_swap).comp
-  (continuous_unop.prod_map continuous_unop), apply_instance } }
+{ continuous_mul := ((continuous_op.comp continuous_mul).comp continuous_swap).comp
+  (continuous_unop.prod_map continuous_unop) }
 
 end has_continuous_mul
 

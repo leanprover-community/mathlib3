@@ -7,11 +7,11 @@ import measure_theory.borel_space
 /-!
 # Measures on Groups
 
-We develop some properties of measures on (topological) groups
+We develop some properties of measures on (topological) groups.
 
-* We define properties on measures: left and right invariant measures
+* We define properties on measures: left and right invariant measures.
 * We define the conjugate `A ↦ μ (A⁻¹)` of a measure `μ`, and show that it is right invariant iff
-  `μ` is left invariant
+  `μ` is left invariant.
 -/
 noncomputable theory
 

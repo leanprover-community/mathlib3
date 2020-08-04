@@ -24,6 +24,12 @@ extension of the restricted measure.
 
 Measures on `α` form a complete lattice, and are closed under scalar multiplication with `ennreal`.
 
+We introduce the following typeclasses for measures:
+
+* `probability_measure μ`: `μ univ = 1`;
+* `finite_measure μ`: `μ univ < ⊤`;
+* `locally_finite_measure μ` : `∀ x, ∃ s ∈ 𝓝 x, μ s < ⊤`.
+
 Given a measure, the null sets are the sets where `μ s = 0`, where `μ` denotes the corresponding
 outer measure (so `s` might not be measurable). We can then define the completion of `μ` as the
 measure on the least `σ`-algebra that also contains all null sets, by defining the measure to be `0`
@@ -130,6 +136,10 @@ lemma to_outer_measure_injective {α} [measurable_space α] :
   (h : ∀s, is_measurable s → μ₁ s = μ₂ s) :
   μ₁ = μ₂ :=
 to_outer_measure_injective $ by rw [← trimmed, outer_measure.trim_congr h, trimmed]
+
+lemma ext_iff {α} [measurable_space α] {μ₁ μ₂ : measure α} :
+  μ₁ = μ₂ ↔ ∀s, is_measurable s → μ₁ s = μ₂ s :=
+⟨by { rintro rfl s hs, refl }, measure.ext⟩
 
 end measure
 
@@ -368,6 +378,7 @@ begin
 end
 
 end
+
 /-- Obtain a measure by giving an outer measure where all sets in the σ-algebra are
   Carathéodory measurable. -/
 def outer_measure.to_measure {α} (m : outer_measure α)
@@ -779,6 +790,9 @@ le_trans
   sum f s = ∑' i, f i s :=
 to_measure_apply _ _ hs
 
+lemma le_sum {ι : Type*} (μ : ι → measure α) (i : ι) : μ i ≤ sum μ :=
+λ s hs, by simp only [sum_apply μ hs, ennreal.le_tsum i]
+
 lemma restrict_Union {ι} [encodable ι] {s : ι → set α} (hd : pairwise (disjoint on s))
   (hm : ∀ i, is_measurable (s i)) :
   μ.restrict (⋃ i, s i) = sum (λ i, μ.restrict (s i)) :=
@@ -849,7 +863,7 @@ calc count s < ⊤ ↔ count s ≠ ⊤ : lt_top_iff_ne_top
 @[class] def is_complete {α} {_:measurable_space α} (μ : measure α) : Prop :=
 ∀ s, μ s = 0 → is_measurable s
 
-/-- The "almost everywhere" filter of co-null sets. -/
+/-- The “almost everywhere” filter of co-null sets. -/
 def ae (μ : measure α) : filter α :=
 { sets := {s | μ sᶜ = 0},
   univ_sets := by simp,
@@ -896,6 +910,9 @@ by rw [← empty_in_sets_eq_bot, mem_ae_iff, compl_empty, measure.measure_univ_e
 lemma ae_of_all {p : α → Prop} (μ : measure α) : (∀a, p a) → ∀ᵐ a ∂ μ, p a :=
 eventually_of_forall
 
+@[mono] lemma ae_mono {μ ν : measure α} (h : μ ≤ ν) : μ.ae ≤ ν.ae :=
+λ s hs, bot_unique $ trans_rel_left (≤) (measure.le_iff'.1 h _) hs
+
 instance : countable_Inter_filter μ.ae :=
 ⟨begin
   intros S hSc hS,
@@ -934,6 +951,14 @@ lemma ae_map_iff [measurable_space β] {f : α → β} (hf : measurable f)
   {p : β → Prop} (hp : is_measurable {x | p x}) :
   (∀ᵐ y ∂ (measure.map f μ), p y) ↔ ∀ᵐ x ∂ μ, p (f x) :=
 mem_ae_map_iff hf hp
+
+lemma ae_restrict_iff {s : set α} {p : α → Prop} (hp : is_measurable {x | p x}) :
+  (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
+begin
+  simp only [ae_iff, ← compl_set_of, measure.restrict_apply hp.compl],
+  congr',
+  ext x, simp [and_comm]
+end
 
 @[simp] lemma ae_restrict_eq {s : set α} (hs : is_measurable s):
   (μ.restrict s).ae = μ.ae ⊓ 𝓟 s :=
@@ -980,22 +1005,123 @@ lemma eventually_eq_dirac' [measurable_singleton_class α] {a : α} (f : α → 
   f =ᵐ[measure.dirac a] const α (f a) :=
 by { rw [dirac_ae_eq], show f a = f a, refl }
 
-lemma measure_diff_of_ae_imp {s t : set α} (H : ∀ᵐ x ∂μ, x ∈ s → x ∈ t) :
+lemma measure_diff_of_ae_le {s t : set α} (H : s ≤ᵐ[μ] t) :
   μ (s \ t) = 0 :=
 flip measure_mono_null H $ λ x hx H, hx.2 (H hx.1)
 
 /-- If `s ⊆ t` modulo a set of measure `0`, then `μ s ≤ μ t`. -/
-lemma measure_le_of_ae_imp {s t : set α} (H : ∀ᵐ x ∂μ, x ∈ s → x ∈ t) :
+lemma measure_mono_ae {s t : set α} (H : s ≤ᵐ[μ] t) :
   μ s ≤ μ t :=
 calc μ s ≤ μ (s ∪ t)       : measure_mono $ subset_union_left s t
      ... = μ (t ∪ s \ t)   : by rw [union_diff_self, set.union_comm]
      ... ≤ μ t + μ (s \ t) : measure_union_le _ _
-     ... = μ t             : by rw [measure_diff_of_ae_imp H, add_zero]
+     ... = μ t             : by rw [measure_diff_of_ae_le H, add_zero]
+
+alias measure_mono_ae ← filter.eventually_le.measure_le
 
 /-- If two sets are equal modulo a set of measure zero, then `μ s = μ t`. -/
-lemma measure_congr {s t : set α} (H : ∀ᵐ x ∂μ, x ∈ s ↔ x ∈ t) : μ s = μ t :=
-le_antisymm (measure_le_of_ae_imp $ H.mono $ λ x, iff.mp)
-  (measure_le_of_ae_imp $ H.mono $ λ x, iff.mpr)
+lemma measure_congr {s t : set α} (H : s =ᵐ[μ] t) : μ s = μ t :=
+le_antisymm H.le.measure_le H.symm.le.measure_le
+
+lemma restrict_mono_ae {s t : set α} (h : s ≤ᵐ[μ] t) : μ.restrict s ≤ μ.restrict t :=
+begin
+  intros u hu,
+  simp only [measure.restrict_apply hu],
+  exact measure_mono_ae (h.mono $ λ x hx, and.imp id hx)
+end
+
+lemma restrict_congr {s t : set α} (H : s =ᵐ[μ] t) : μ.restrict s = μ.restrict t :=
+le_antisymm (restrict_mono_ae H.le) (restrict_mono_ae H.symm.le)
+
+/-- A measure `μ` is called a probability measure if `μ univ = 1`. -/
+class probability_measure (μ : measure α) : Prop := (meas_univ : μ univ = 1)
+
+/-- A measure `μ` is called finite if `μ univ < ⊤`. -/
+class finite_measure (μ : measure α) : Prop := (meas_univ_lt_top : μ univ < ⊤)
+
+export finite_measure (meas_univ_lt_top) probability_measure (meas_univ)
+
+@[priority 100]
+instance probability_measure.to_finite_measure (μ : measure α) [probability_measure μ] :
+  finite_measure μ :=
+⟨by simp only [meas_univ, ennreal.one_lt_top]⟩
+
+/-- A measure is called finite at filter `f` if it is finite at some set `s ∈ f`.
+Equivalently, it is eventually finite at `s` in `f.lift' powerset`. -/
+def measure.finite_at_filter (μ : measure α) (f : filter α) : Prop := ∃ s ∈ f, μ s < ⊤
+
+lemma finite_at_filter_of_finite (μ : measure α) [finite_measure μ] (f : filter α) :
+  μ.finite_at_filter f :=
+⟨univ, univ_mem_sets, meas_univ_lt_top⟩
+
+/-- A measure is called locally finite if it is finite in some neighborhood of each point. -/
+class locally_finite_measure [topological_space α] (μ : measure α) : Prop :=
+(finite_at_nhds : ∀ x, μ.finite_at_filter (𝓝 x))
+
+@[priority 100]
+instance finite_measure.to_locally_finite_measure [topological_space α] (μ : measure α)
+  [finite_measure μ] :
+  locally_finite_measure μ :=
+⟨λ x, finite_at_filter_of_finite _ _⟩
+
+lemma measure.finite_at_nhds [topological_space α] (μ : measure α)
+  [locally_finite_measure μ] (x : α) :
+  μ.finite_at_filter (𝓝 x) :=
+locally_finite_measure.finite_at_nhds x
+
+namespace measure
+
+namespace finite_at_filter
+
+variables {ν : measure α} {f g : filter α}
+
+lemma filter_mono (h : f ≤ g) : μ.finite_at_filter g → μ.finite_at_filter f :=
+λ ⟨s, hs, hμ⟩, ⟨s, h hs, hμ⟩
+
+lemma inf_of_left (h : μ.finite_at_filter f) : μ.finite_at_filter (f ⊓ g) :=
+h.filter_mono inf_le_left
+
+lemma inf_of_right (h : μ.finite_at_filter g) : μ.finite_at_filter (f ⊓ g) :=
+h.filter_mono inf_le_right
+
+@[simp] lemma inf_ae_iff : μ.finite_at_filter (f ⊓ μ.ae) ↔ μ.finite_at_filter f :=
+begin
+  refine ⟨_, λ h, h.filter_mono inf_le_left⟩,
+  rintros ⟨s, ⟨t, ht, u, hu, hs⟩, hμ⟩,
+  suffices : μ t ≤ μ s, from ⟨t, ht, this.trans_lt hμ⟩,
+  exact measure_mono_ae (mem_sets_of_superset hu (λ x hu ht, hs ⟨ht, hu⟩))
+end
+
+alias inf_ae_iff ↔ measure_theory.measure.finite_at_filter.of_inf_ae _
+
+lemma filter_mono_ae (h : f ⊓ μ.ae ≤ g) (hg : μ.finite_at_filter g) : μ.finite_at_filter f :=
+inf_ae_iff.1 (hg.filter_mono h)
+
+protected lemma measure_mono (h : μ ≤ ν) : ν.finite_at_filter f → μ.finite_at_filter f :=
+λ ⟨s, hs, hν⟩, ⟨s, hs, (measure.le_iff'.1 h s).trans_lt hν⟩
+
+@[mono] protected lemma mono (hf : f ≤ g) (hμ : μ ≤ ν) :
+  ν.finite_at_filter g → μ.finite_at_filter f :=
+λ h, (h.filter_mono hf).measure_mono hμ
+
+protected lemma eventually (h : μ.finite_at_filter f) : ∀ᶠ s in f.lift' powerset, μ s < ⊤ :=
+(eventually_lift'_powerset' $ λ s t hst ht, (measure_mono hst).trans_lt ht).2 h
+
+lemma filter_sup : μ.finite_at_filter f → μ.finite_at_filter g → μ.finite_at_filter (f ⊔ g) :=
+λ ⟨s, hsf, hsμ⟩ ⟨t, htg, htμ⟩,
+ ⟨s ∪ t, union_mem_sup hsf htg, (measure_union_le s t).trans_lt (ennreal.add_lt_top.2 ⟨hsμ, htμ⟩)⟩
+
+end finite_at_filter
+
+lemma finite_at_nhds_within [topological_space α] (μ : measure α) [locally_finite_measure μ]
+  (x : α) (s : set α) :
+  μ.finite_at_filter (nhds_within x s) :=
+(finite_at_nhds μ x).inf_of_left
+
+@[simp] lemma finite_at_principal {s : set α} : μ.finite_at_filter (𝓟 s) ↔ μ s < ⊤ :=
+⟨λ ⟨t, ht, hμ⟩, (measure_mono ht).trans_lt hμ, λ h, ⟨s, mem_principal_self s, h⟩⟩
+
+end measure
 
 end measure_theory
 
@@ -1177,18 +1303,29 @@ end measure_space
 
 end measure_theory
 
-namespace is_compact
-
 open measure_theory
+
+namespace is_compact
 
 variables {α : Type*} [topological_space α] [measurable_space α] {μ : measure α} {s : set α}
 
 lemma finite_measure_of_nhds_within (hs : is_compact s) :
-  (∀ a ∈ s, ∃ t ∈ nhds_within a s, μ t < ⊤) → μ s < ⊤ :=
-by simpa only [← measure.compl_mem_cofinite] using hs.compl_mem_sets_of_nhds_within
+  (∀ a ∈ s, μ.finite_at_filter (nhds_within a s)) → μ s < ⊤ :=
+by simpa only [← measure.compl_mem_cofinite, measure.finite_at_filter]
+  using hs.compl_mem_sets_of_nhds_within
+
+lemma finite_measure [locally_finite_measure μ] (hs : is_compact s) : μ s < ⊤ :=
+hs.finite_measure_of_nhds_within $ λ a ha, μ.finite_at_nhds_within _ _
 
 lemma measure_zero_of_nhds_within (hs : is_compact s) :
   (∀ a ∈ s, ∃ t ∈ nhds_within a s, μ t = 0) → μ s = 0 :=
 by simpa only [← compl_mem_ae_iff] using hs.compl_mem_sets_of_nhds_within
 
 end is_compact
+
+lemma metric.bounded.finite_measure {α : Type*} [metric_space α] [proper_space α]
+  [measurable_space α] {μ : measure α} [locally_finite_measure μ] {s : set α}
+  (hs : metric.bounded s) :
+  μ s < ⊤ :=
+(measure_mono subset_closure).trans_lt (metric.compact_iff_closed_bounded.2
+  ⟨is_closed_closure, metric.bounded_closure_of_bounded hs⟩).finite_measure

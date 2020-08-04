@@ -122,17 +122,17 @@ comap_ne_bot_of_algebraic_mem x_ne_zero x_mem (hx.is_algebraic R)
 lemma mem_of_one_mem (h : (1 : S) ∈ I) (x) : x ∈ I :=
 (I.eq_top_iff_one.mpr h).symm ▸ mem_top
 
-lemma comap_lt_comap_of_integral_mem_sdiff [I.is_prime] (hIJ : I ≤ J)
+lemma comap_lt_comap_of_integral_mem_sdiff [hI : I.is_prime] (hIJ : I ≤ J)
   {x : S} (mem : x ∈ (J : set S) \ I) (integral : is_integral R x) :
   I.comap (algebra_map R S) < J.comap (algebra_map _ _) :=
 begin
   obtain ⟨p, p_monic, hpx⟩ := integral,
   refine comap_lt_comap_of_root_mem_sdiff hIJ mem _ _,
   swap,
-  { intro h,
-    refine mem.2 (mem_of_one_mem _ _),
-    rw [←(algebra_map R S).map_one, ←mem_comap, ←quotient.eq_zero_iff_mem],
-    apply (map_monic_eq_zero_iff p_monic).mp h 1 },
+  { apply map_monic_ne_zero p_monic,
+    apply quotient.nontrivial,
+    apply mt comap_eq_top_iff.mp,
+    apply hI.1 },
   convert I.zero_mem
 end
 

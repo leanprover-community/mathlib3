@@ -64,6 +64,11 @@ theorem finite_mem_finset (s : finset α) : finite {a | a ∈ s} :=
 theorem finite.of_fintype [fintype α] (s : set α) : finite s :=
 by classical; exact ⟨set_fintype s⟩
 
+theorem exists_finite_iff_finset {p : set α → Prop} :
+  (∃ s, finite s ∧ p s) ↔ ∃ s : finset α, p ↑s :=
+⟨λ ⟨s, hs, hps⟩, ⟨hs.to_finset, hs.coe_to_finset.symm ▸ hps⟩,
+  λ ⟨s, hs⟩, ⟨↑s, finite_mem_finset s, hs⟩⟩
+
 /-- Membership of a subset of a finite type is decidable.
 
 Using this as an instance leads to potential loops with `subtype.fintype` under certain decidability

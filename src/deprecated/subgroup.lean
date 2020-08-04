@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mitchell Rowett, Scott Morrison, Johan Commelin, Mario
 -/
 import group_theory.subgroup
 import deprecated.submonoid
+
 open set function
 
 variables {G : Type*} {H : Type*} {A : Type*} {a a₁ a₂ b c: G}
@@ -696,3 +697,8 @@ instance subgroup.is_subgroup [group G] (K : subgroup G) : is_subgroup (K : set 
 { one_mem := K.one_mem',
   mul_mem := K.mul_mem',
   inv_mem := K.inv_mem' }
+
+@[to_additive]
+instance subgroup.of_normal [group G] (s : set G) [h : is_subgroup s] [n : normal_subgroup s] :
+  subgroup.normal (subgroup.of s) :=
+{ conj_mem := n.normal, }

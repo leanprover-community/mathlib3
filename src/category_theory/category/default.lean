@@ -209,3 +209,34 @@ instance small_category [preorder α] : small_category α :=
   comp := λ X Y Z f g, ⟨ ⟨ le_trans _ _ _ f.down.down g.down.down ⟩ ⟩ }
 
 end preorder
+
+/--
+Many proofs in the category theory library use the `dsimp, simp` pattern,
+which typically isn't necessary elsewhere.
+
+One would usually hope that the same effect could be achieved simply with `simp`.
+
+The essential issue is that composition of morphisms involves dependent types.
+When you have a chain of morphisms being composed, say `f : X ⟶ Y` and `g : Y ⟶ Z`,
+then `simp` can operate succesfully on the morphisms
+(e.g. if `f` is the identity it can strip that off).
+
+However if we have an equality of objects, say `Y = Y'`,
+then `simp` can't operate because it would break the typing of the composition operations.
+We rarely have interesting equalities of objects
+(because that would be "evil" --- anything interesting should be expressed as an isomorphism
+and tracked explicitly),
+except of course that we have plenty of definitional equalities of objects.
+
+`dsimp` can apply these safely, even inside a composition.
+
+After `dsimp` has cleared up the object level, `simp` can resume work on the morphism level ---
+but without the `dsimp` step, because `simp` looks at expressions syntactically,
+the relevant lemmas might not fire.
+
+There's no bound on how many times you potentially could have to switch back and forth,
+if the `simp` introduced new objects we again need to `dsimp`.
+In practice this does occur, but only rarely, because `simp` tends to shorten chains of compositions
+(i.e. not introduce new objects at all).
+-/
+library_note "dsimp, simp"

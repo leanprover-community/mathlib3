@@ -22,7 +22,7 @@ namespace Module
 variables {R : Type u} [ring R] {M N : Module R} (f : M ⟶ N)
 
 /-- In the category of modules, every monomorphism is normal. -/
-def normal_mono [mono f] : normal_mono f :=
+def normal_mono (hf : mono f) : normal_mono f :=
 { Z := of R f.range.quotient,
   g := f.range.mkq,
   w := linear_map.range_mkq_comp _,
@@ -44,7 +44,7 @@ def normal_mono [mono f] : normal_mono f :=
       by { ext, refl } }
 
 /-- In the category of modules, every epimorphism is normal. -/
-def normal_epi [epi f] : normal_epi f :=
+def normal_epi (hf : epi f) : normal_epi f :=
 { W := of R f.ker,
   g := f.ker.subtype,
   w := linear_map.comp_ker_subtype _,
@@ -69,7 +69,7 @@ instance : abelian (Module R) :=
 { has_finite_products := by apply_instance,
   has_kernels := by apply_instance,
   has_cokernels := has_cokernels_Module,
-  normal_mono := λ X Y f m, by exactI normal_mono f,
-  normal_epi := λ X Y f e, by exactI normal_epi f }
+  normal_mono := λ X Y, normal_mono,
+  normal_epi := λ X Y, normal_epi }
 
 end Module

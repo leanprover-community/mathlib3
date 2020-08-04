@@ -13,8 +13,8 @@ import tactic
 This file defines derivation.
 
 IMPORTANT: this file is just a stub to go on with some PRs in the geometry section. It only
-only implements the definition of derivations in commutative algebra. This will soon change: as soon
-as bimodules will be there in mathlib I will changee this file to take into account the
+implements the definition of derivations in commutative algebra. This will soon change: as soon
+as bimodules will be there in mathlib I will change this file to take into account the
 non-commutative case. Any development on the theory of derivations is discouraged until the
 definitive definition of derivation will be implemented.
 -/
@@ -106,9 +106,8 @@ coe_injective $ funext H
 
 @[simp] lemma map_add : D (a + b) = D a + D b := is_add_hom.map_add D a b
 @[simp] lemma map_zero : D 0 = 0 := is_add_monoid_hom.map_zero D
-@[simp] lemma map_mul : D (a * b) = a • D b + b • D a := D.leibniz' _ _
+@[simp] lemma leibniz : D (a * b) = a • D b + b • D a := D.leibniz' _ _
 @[simp] lemma map_smul : D (r • a) = r • D a := linear_map.map_smul D r a
-@[simp] lemma leibniz : D (a * b) = b • D a + a • D b := (D.leibniz' a b).trans $ add_comm _ _
 
 @[simp] lemma map_one_eq_zero : D 1 = 0 :=
 begin
@@ -120,11 +119,16 @@ end
 @[simp] lemma map_algebra_map : D (algebra_map R A r) = 0 :=
 by rw [←mul_one r, ring_hom.map_mul, map_one, ←smul_def, map_smul, map_one_eq_zero, smul_zero]
 
+instance : has_zero (derivation R A M) :=
+⟨(0 : A →ₗ[R] M), λ a b, by simp only [add_zero, linear_map.zero_apply,
+                                      linear_map.to_fun_eq_coe, smul_zero]⟩
+
+instance : inhabited (derivation R A M) := ⟨0⟩
+
 instance : add_comm_monoid (derivation R A M) :=
 { add := λ D1 D2, ⟨D1 + D2, λ a b, begin
   simp only [leibniz, linear_map.add_apply, linear_map.to_fun_eq_coe, coe_linear_map, smul_add],
   cc, end⟩,
-  zero := ⟨(0 : A →ₗ[R] M), λ a b, by simp only [add_zero, linear_map.zero_apply, linear_map.to_fun_eq_coe, smul_zero]⟩,
   add_assoc := λ D E F, ext $ λ a, add_assoc _ _ _,
   zero_add := λ D, ext $ λ a, zero_add _,
   add_zero := λ D, ext $ λ a, add_zero _,

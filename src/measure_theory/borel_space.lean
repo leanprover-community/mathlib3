@@ -118,37 +118,10 @@ begin
 end
 
 lemma borel_eq_generate_Ioi (α)
-  [topological_space α] [second_countable_topology α]
+  [topological_space α] [h : second_countable_topology α]
   [linear_order α] [order_topology α] :
   borel α = generate_from (range Ioi) :=
-begin
-  refine le_antisymm _ (generate_from_le _),
-  { rw borel_eq_generate_from_of_subbasis (@order_topology.topology_eq_generate_intervals α _ _ _),
-    have H : ∀ a:α, is_measurable (measurable_space.generate_from (range (λ a, {x | a < x})))
-      {x | a < x} := λ a, generate_measurable.basic _ ⟨_, rfl⟩,
-    refine generate_from_le _, rintro _ ⟨a, rfl | rfl⟩, {apply H},
-    by_cases h : ∃ a', ∀ b, b < a ↔ b ≤ a',
-    { rcases h with ⟨a', ha'⟩,
-      rw (_ : Iio a = (Ioi a')ᶜ), {exact (H _).compl _},
-      simp [set.ext_iff, ha'] },
-    { rcases is_open_Union_countable
-        (λ a' : {a' : α // a' < a}, {b | b < a'.1})
-        (λ a', is_open_gt' _) with ⟨v, ⟨hv⟩, vu⟩,
-      simp [set.ext_iff] at vu,
-      have : Iio a = ⋃ x : v, (Ioi x.1.1)ᶜ,
-      { simp [set.ext_iff],
-        refine λ x, ⟨λ ax, _, λ ⟨a', ⟨h, av⟩, ax⟩, lt_of_le_of_lt ax h⟩,
-        rcases (vu x).2 _ with ⟨a', h₁, h₂⟩,
-        { exact ⟨a', h₁, le_of_lt h₂⟩ },
-        refine not_imp_comm.1 (λ h, _) h,
-        exact ⟨x, λ b, ⟨λ ab, le_of_not_lt (λ h', h ⟨b, ab, h'⟩),
-          λ h, lt_of_le_of_lt h ax⟩⟩ },
-      rw this, resetI,
-      apply is_measurable.Union,
-      exact λ _, (H _).compl _ } },
-  { simp, rintro _ a rfl,
-    exact generate_measurable.basic _ (is_open_lt' _) }
-end
+@borel_eq_generate_Iio (order_dual α) _ h _ _
 
 lemma borel_comap {f : α → β} {t : topological_space β} :
   @borel α (t.induced f) = (@borel β t).comap f :=

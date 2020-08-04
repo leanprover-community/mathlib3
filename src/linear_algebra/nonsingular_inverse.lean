@@ -381,19 +381,31 @@ begin
     exact is_unit_unit (A.nonsing_inv_unit h), },
 end
 
+lemma is_unit_det_of_left_inverse (B : matrix n n α) (h : B ⬝ A = 1) : is_unit A.det :=
+⟨{ val     := A.det,
+    inv     := B.det,
+    val_inv := by rw [mul_comm, ← det_mul, h, det_one],
+    inv_val := by rw [← det_mul, h, det_one],
+}, rfl⟩
+
+lemma is_unit_det_of_right_inverse (B : matrix n n α) (h : A ⬝ B = 1) : is_unit A.det :=
+⟨{ val     := A.det,
+    inv     := B.det,
+    val_inv := by rw [← det_mul, h, det_one],
+    inv_val := by rw [mul_comm, ← det_mul, h, det_one],
+}, rfl⟩
+
 lemma nonsing_inv_left_right (B : matrix n n α) (h : A ⬝ B = 1) : B ⬝ A = 1 :=
 begin
-  have h' : is_unit B.det :=
-  ⟨{ val     := B.det,
-     inv     := A.det,
-     val_inv := by rw [mul_comm, ← det_mul, h, det_one],
-     inv_val := by rw [← det_mul, h, det_one],
-  }, rfl⟩,
+  have h' : is_unit B.det := B.is_unit_det_of_left_inverse A h,
   calc B ⬝ A = (B ⬝ A) ⬝ (B ⬝ B⁻¹) : by simp only [h', matrix.mul_one, mul_nonsing_inv]
         ... = B ⬝ ((A ⬝ B) ⬝ B⁻¹) : by simp only [matrix.mul_assoc]
         ... = B ⬝ B⁻¹ : by simp only [h, matrix.one_mul]
         ... = 1 : mul_nonsing_inv B h',
 end
+
+lemma nonsing_inv_right_left (B : matrix n n α) (h : B ⬝ A = 1) : A ⬝ B = 1 :=
+B.nonsing_inv_left_right A h
 
 end inv
 end matrix

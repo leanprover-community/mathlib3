@@ -370,9 +370,9 @@ lemma mem_Ioo_or_eq_endpoints_of_mem_Icc {x : α} (hmem : x ∈ Icc a b) :
 begin
   rw [mem_Icc, le_iff_lt_or_eq, le_iff_lt_or_eq] at hmem,
   rcases hmem with ⟨hxa | hxa, hxb | hxb⟩,
-  exact or.inr (or.inr ⟨hxa, hxb⟩),
-  exact or.inr (or.inl hxb),
-  iterate 2 {exact or.inl hxa.symm}
+  { exact or.inr (or.inr ⟨hxa, hxb⟩) },
+  { exact or.inr (or.inl hxb) },
+  all_goals { exact or.inl hxa.symm }
 end
 
 lemma mem_Ioo_or_eq_left_of_mem_Ico {x : α} (hmem : x ∈ Ico a b) :
@@ -380,8 +380,8 @@ lemma mem_Ioo_or_eq_left_of_mem_Ico {x : α} (hmem : x ∈ Ico a b) :
 begin
   rw [mem_Ico, le_iff_lt_or_eq] at hmem,
   rcases hmem with ⟨hxa | hxa, hxb⟩,
-  exact or.inr ⟨hxa, hxb⟩,
-  exact or.inl hxa.symm,
+  { exact or.inr ⟨hxa, hxb⟩ },
+  { exact or.inl hxa.symm }
 end
 
 lemma mem_Ioo_or_eq_right_of_mem_Ioc {x : α} (hmem : x ∈ Ioc a b) :

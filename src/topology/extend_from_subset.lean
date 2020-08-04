@@ -56,7 +56,7 @@ lemma extend_from_extends [t2_space Y] {f : X → Y} {A : set X} (hf : continuou
 then `extend_from A f` is continuous on `B ⊆ closure A`, provided that `f` has a limit
 within `A` at any point in `B`. -/
 lemma continuous_on_extend_from [regular_space Y] {f : X → Y} {A B : set X} (hB : B ⊆ closure A)
-  (hf : ∀ x ∈ B,  ∃ y, tendsto f (nhds_within x A) (𝓝 y)) : continuous_on (extend_from A f) B :=
+  (hf : ∀ x ∈ B, ∃ y, tendsto f (nhds_within x A) (𝓝 y)) : continuous_on (extend_from A f) B :=
 begin
   set φ := extend_from A f,
   intros x x_in,
@@ -64,7 +64,7 @@ begin
     by simpa [continuous_within_at, (closed_nhds_basis _).tendsto_right_iff],
   intros V' V'_in V'_closed,
   obtain ⟨V, V_in, V_op, hV⟩ : ∃ V ∈ 𝓝 x, is_open V ∧ V ∩ A ⊆ f ⁻¹' V',
-  { have := tendsto_extend_from (hf x  x_in),
+  { have := tendsto_extend_from (hf x x_in),
     rcases (nhds_within_basis_open x A).tendsto_left_iff.mp this V' V'_in with ⟨V, ⟨hxV, V_op⟩, hV⟩,
     use [V, mem_nhds_sets V_op hxV, V_op, hV] },
   suffices : ∀ y ∈ V ∩ B, φ y ∈ V',
@@ -81,9 +81,9 @@ end
 /-- If a function `f` to a regular space `Y` is continuous on a dense set `A`,
 then `extend_from A f` is continuous, provided that `f` has a limit
 within `A` for any `x`. -/
-lemma continuous_extend_from [regular_space Y] {f : X → Y} {A : set X} (hA : ∀ x, x ∈ closure A)
-  (hf : ∀ x,  ∃ y, tendsto f (nhds_within x A) (𝓝 y)) : continuous (extend_from A f) :=
+lemma continuous_extend_from [regular_space Y] {f : X → Y} {A : set X} (hA : univ ⊆ closure A)
+  (hf : ∀ x, ∃ y, tendsto f (nhds_within x A) (𝓝 y)) : continuous (extend_from A f) :=
 begin
   rw continuous_iff_continuous_on_univ,
-  exact continuous_on_extend_from (λ x _, hA x) (by simpa using hf)
+  exact continuous_on_extend_from (λ x _, hA $ mem_univ x) (by simpa using hf)
 end

@@ -679,7 +679,7 @@ begin
     all_goals
     { apply tendsto_nhds_within_congr,
       rintros y ⟨hys, hyA⟩,
-      { exact (piecewise_eq_of_mem _ _ _ hyA).symm <|> 
+      { exact (piecewise_eq_of_mem _ _ _ hyA).symm <|>
           exact (piecewise_eq_of_not_mem _ _ _ hyA).symm, },
       apply_assumption,
       exact hx'' } },
@@ -689,21 +689,19 @@ begin
       { exact (hf x hx).congr
           (λ y hy, piecewise_eq_of_mem _ _ _ hy.2)
           (piecewise_eq_of_mem _ _ _ hx.2), },
-      rw ← frontier_compl at hx',
-      have : x ∉ closure Aᶜ,
-        from λ h, hx' ⟨h, (λ (h' : x ∈ interior Aᶜ), interior_subset h' hx.2)⟩,
-      rw [mem_closure_iff_nhds_within_ne_bot, ne_bot, classical.not_not] at this,
-      rw [continuous_within_at, nhds_within_inter, this, inf_bot_eq],
-      exact tendsto_bot },
+      { rw ← frontier_compl at hx',
+        have : x ∉ closure Aᶜ,
+          from λ h, hx' ⟨h, (λ (h' : x ∈ interior Aᶜ), interior_subset h' hx.2)⟩,
+        exact continuous_within_at_of_not_mem_closure
+          (λ h, this (closure_inter_subset_inter_closure _ _ h).2) } },
     { apply continuous_within_at.union,
       { have : x ∉ closure A,
           from (λ h, hx' ⟨h, (λ (h' : x ∈ interior A), hx.2 (interior_subset h'))⟩),
-        rw [mem_closure_iff_nhds_within_ne_bot, ne_bot, classical.not_not] at this,
-        rw [continuous_within_at, nhds_within_inter, this, inf_bot_eq],
-        exact tendsto_bot, },
-      exact (hg x hx).congr
-      (λ y hy, piecewise_eq_of_not_mem _ _ _ hy.2)
-      (piecewise_eq_of_not_mem _ _ _ hx.2) } }
+        exact continuous_within_at_of_not_mem_closure
+        (λ h, this (closure_inter_subset_inter_closure _ _ h).2) },
+      { exact (hg x hx).congr
+        (λ y hy, piecewise_eq_of_not_mem _ _ _ hy.2)
+        (piecewise_eq_of_not_mem _ _ _ hx.2) } } }
 end
 
 lemma continuous_on_if {α β : Type*} [topological_space α] [topological_space β] {p : α → Prop}

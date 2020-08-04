@@ -463,6 +463,49 @@ begin
     exact finset.eq_zero_of_sum_eq_zero hw h2b i hi }
 end
 
+/-- A family is affinely independent if and only if any affine
+combinations (with sum of weights 1) that evaluate to the same point
+have equal `set.indicator`. -/
+lemma affine_independent_iff_indicator_eq_of_affine_combination_eq (p : ι → P) :
+  affine_independent k V p ↔ ∀ (s1 s2 : finset ι) (w1 w2 : ι → k), ∑ i in s1, w1 i = 1 →
+    ∑ i in s2, w2 i = 1 → s1.affine_combination V w1 p = s2.affine_combination V w2 p →
+      set.indicator ↑s1 w1 = set.indicator ↑s2 w2 :=
+begin
+  split,
+  { intros ha s1 s2 w1 w2 hw1 hw2 heq,
+    ext i,
+    by_cases hi : i ∈ (s1 ∪ s2),
+    { rw ←sub_eq_zero,
+      rw set.sum_indicator_subset _ (finset.subset_union_left s1 s2) at hw1,
+      rw set.sum_indicator_subset _ (finset.subset_union_right s1 s2) at hw2,
+      have hws : ∑ i in s1 ∪ s2, (set.indicator ↑s1 w1 - set.indicator ↑s2 w2) i = 0,
+      { simp [hw1, hw2] },
+      rw [finset.affine_combination_indicator_subset _ _ _ (finset.subset_union_left s1 s2),
+          finset.affine_combination_indicator_subset _ _ _ (finset.subset_union_right s1 s2),
+          ←vsub_eq_zero_iff_eq V, finset.affine_combination_vsub] at heq,
+      exact ha (s1 ∪ s2) (set.indicator ↑s1 w1 - set.indicator ↑s2 w2) hws heq i hi },
+    { rw [←finset.mem_coe, finset.coe_union] at hi,
+      simp [mt (set.mem_union_left ↑s2) hi, mt (set.mem_union_right ↑s1) hi] } },
+  { intros ha s w hw hs i0 hi0,
+    let w1 : ι → k := function.update (function.const ι 0) i0 1,
+    have hw1 : ∑ i in s, w1 i = 1,
+    { rw [finset.sum_update_of_mem hi0, finset.sum_const_zero, add_zero] },
+    have hw1s : s.affine_combination V w1 p = p i0 :=
+      s.affine_combination_of_eq_one_of_eq_zero V w1 p hi0 (function.update_same _ _ _)
+                                                (λ _ _ hne, function.update_noteq hne _ _),
+    let w2 := w + w1,
+    have hw2 : ∑ i in s, w2 i = 1,
+    { simp [w2, finset.sum_add_distrib, hw, hw1] },
+    have hw2s : s.affine_combination V w2 p = p i0,
+    { simp [w2, ←finset.weighted_vsub_vadd_affine_combination, hs, hw1s] },
+    replace ha := ha s s w2 w1 hw2 hw1 (hw1s.symm ▸ hw2s),
+    have hws : w2 i0 - w1 i0 = 0,
+    { rw ←finset.mem_coe at hi0,
+      rw [←set.indicator_of_mem hi0 w2, ←set.indicator_of_mem hi0 w1, ha, sub_self] },
+    simp [w2] at hws,
+    exact hws }
+end
+
 variables {k V}
 
 /-- If a family is affinely independent, so is any subfamily given by
@@ -1384,30 +1427,13 @@ begin
       ←finset.eq_affine_combination_subset_iff_eq_affine_combination_subtype] at hp0s1 hp0s2,
   rcases hp0s1 with ⟨fs1, hfs1, w1, hw1, hp0s1⟩,
   rcases hp0s2 with ⟨fs2, hfs2, w2, hw2, hp0s2⟩,
-  rw finset.affine_combination_indicator_subset _ _ _ (finset.subset_union_left fs1 fs2)
-    at hp0s1,
-  rw finset.affine_combination_indicator_subset _ _ _ (finset.subset_union_right fs1 fs2)
-    at hp0s2,
-  let w3 := set.indicator ↑fs1 w1 - set.indicator ↑fs2 w2,
-  have h0 : (fs1 ∪ fs2).weighted_vsub V p w3 = 0,
-  { simp [←finset.affine_combination_vsub, ←hp0s1, ←hp0s2] },
-  have hw3 : ∑ i in fs1 ∪ fs2, w3 i = 0,
-  { change ∑ i in fs1 ∪ fs2, (set.indicator ↑fs1 w1 i - set.indicator ↑fs2 w2 i) = 0,
-    rw [finset.sum_sub_distrib,
-        ←set.sum_indicator_subset _ (finset.subset_union_left fs1 fs2),
-        ←set.sum_indicator_subset _ (finset.subset_union_right fs1 fs2), hw1, hw2, sub_self] },
-  replace ha := ha (fs1 ∪ fs2) w3 hw3 h0,
+  rw affine_independent_iff_indicator_eq_of_affine_combination_eq at ha,
+  replace ha := ha fs1 fs2 w1 w2 hw1 hw2 (hp0s1 ▸ hp0s2),
   have hnz : ∑ i in fs1, w1 i ≠ 0 := hw1.symm ▸ one_ne_zero,
-  rcases finset.exists_ne_zero_of_sum_ne_zero hnz with ⟨i, hifs1, hin0⟩,
-  change w1 i ≠ 0 at hin0,
-  replace ha := ha i (finset.mem_union_left _ hifs1),
-  change set.indicator ↑fs1 w1 i - set.indicator ↑fs2 w2 i = 0 at ha,
-  rw ←finset.mem_coe at hifs1,
-  rw [set.indicator_of_mem hifs1 _, sub_eq_zero] at ha,
-  rw ha at hin0,
-  use [i, hfs1 hifs1, hfs2 (set.mem_of_indicator_ne_zero hin0)]
+  rcases finset.exists_ne_zero_of_sum_ne_zero hnz with ⟨i, hifs1, hinz⟩,
+  simp_rw [←set.indicator_of_mem (finset.mem_coe.2 hifs1) w1, ha] at hinz,
+  use [i, hfs1 hifs1, hfs2 (set.mem_of_indicator_ne_zero hinz)]
 end
-
 
 /-- If a family is affinely independent, the spans of points indexed
 by disjoint subsets of the index type are disjoint, if the underlying

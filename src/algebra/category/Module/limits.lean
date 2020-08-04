@@ -16,7 +16,7 @@ the underlying types are just the limits in the category of types.
 open category_theory
 open category_theory.limits
 
-universes u v w
+universes u v
 
 namespace Module
 
@@ -31,7 +31,6 @@ instance module_obj (F : J ⥤ Module.{v} R) (j) :
   module R ((F ⋙ forget (Module R)).obj j) :=
 by { change module R (F.obj j), apply_instance }
 
-set_option pp.universes true
 /--
 The flat sections of a functor into `Module R` form a submodule of all sections.
 -/

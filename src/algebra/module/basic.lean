@@ -376,7 +376,7 @@ def mk' (f : M → M₂) (H : is_linear_map R f) : M →ₗ M₂ := ⟨f, H.1, H
 @[simp] theorem mk'_apply {f : M → M₂} (H : is_linear_map R f) (x : M) :
   mk' f H x = f x := rfl
 
-lemma is_linear_map_smul {R M : Type*} [comm_semiring R]  [add_comm_monoid M] [semimodule R M] (c : R) :
+lemma is_linear_map_smul {R M : Type*} [comm_semiring R] [add_comm_monoid M] [semimodule R M] (c : R) :
   is_linear_map R (λ (z : M), c • z) :=
 begin
   refine is_linear_map.mk (smul_add c) _,

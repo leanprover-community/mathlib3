@@ -337,6 +337,11 @@ instance group.to_right_cancel_semigroup : right_cancel_semigroup G :=
 { mul_right_cancel := λ a b c h, by rw [← mul_inv_cancel_right a b, h, mul_inv_cancel_right],
   ..‹group G› }
 
+@[to_additive]
+instance group.to_cancel_monoid : cancel_monoid G :=
+{ ..‹group G›, .. group.to_left_cancel_semigroup,
+  ..group.to_right_cancel_semigroup }
+
 end group
 
 section add_group
@@ -352,9 +357,6 @@ instance add_group_has_sub : has_sub G :=
 lemma sub_eq_add_neg (a b : G) : a - b = a + -b :=
 rfl
 
-instance add_group.to_add_left_cancel_monoid : add_left_cancel_monoid G :=
-{ ..‹add_group G›, .. add_group.to_left_cancel_add_semigroup }
-
 end add_group
 
 /-- A commutative group is a group with commutative `(*)`. -/
@@ -365,3 +367,14 @@ class comm_group (G : Type u) extends group G, comm_monoid G
 class add_comm_group (G : Type u) extends add_group G, add_comm_monoid G
 attribute [to_additive] comm_group
 attribute [instance, priority 300] add_comm_group.to_add_comm_monoid
+
+section comm_group
+
+variables {G : Type u} [comm_group G]
+
+@[to_additive]
+instance comm_group.to_cancel_comm_monoid : cancel_comm_monoid G :=
+{ ..‹comm_group G›, .. group.to_left_cancel_semigroup,
+  ..group.to_right_cancel_semigroup }
+
+end comm_group

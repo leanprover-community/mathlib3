@@ -98,7 +98,7 @@ def has_over_limit_discrete_of_wide_pullback_limit {B : C} {J : Type v} (F : dis
   [has_limit (wide_pullback_diagram_of_diagram_over B F)] :
   has_limit F :=
 { cone := _,
-  is_limit := is_limit.of_cone_equiv
+  is_limit := is_limit.of_right_adjoint
     (cones_equiv B F).functor (limit.is_limit (wide_pullback_diagram_of_diagram_over B F)) }
 
 /-- Given a wide pullback in `C`, construct a product in `C/B`. -/

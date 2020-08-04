@@ -1529,7 +1529,7 @@ are the same. -/
 lemma decomp (f : affine_map k V1 V1 V2 V2) : (f : V1 → V2) = f.linear + (λ z, f 0) :=
 begin
   ext x,
-    calc
+  calc
     f x = f.linear x +ᵥ f 0                      : by simp [← f.map_vadd]
     ... = (f.linear.to_fun + λ (z : V1), f 0) x  : by simp
 end
@@ -1537,7 +1537,7 @@ end
 /-- Decomposition of an affine map in the special case when the point space and vector space
 are the same. -/
 lemma decomp' (f : affine_map k V1 V1 V2 V2) : (f.linear : V1 → V2) = f - (λ z, f 0) :=
-by rw [decomp]; simp only [linear_map.map_zero, pi.add_apply, add_sub_cancel, zero_add]
+by rw decomp ; simp only [linear_map.map_zero, pi.add_apply, add_sub_cancel, zero_add]
 
 end affine_map
 

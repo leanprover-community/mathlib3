@@ -31,12 +31,17 @@ namespace Module
 instance : has_coe_to_sort (Module.{v} R) :=
 { S := Type v, coe := Module.carrier }
 
-instance : category (Module R) :=
+instance : category (Module.{v} R) :=
 { hom   := λ M N, M →ₗ[R] N,
   id    := λ M, 1,
   comp  := λ A B C f g, g.comp f }
 
-instance : concrete_category (Module R) :=
+def test : category (Module.{v} R) :=
+{ hom   := λ M N, M →ₗ[R] N,
+  id    := λ M, 1,
+  comp  := λ A B C f g, g.comp f }
+
+instance : concrete_category.{v} (Module.{v} R) :=
 { forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
   forget_faithful := { } }
 
@@ -63,7 +68,7 @@ def of_self_iso (M : Module R) : Module.of R M ≅ M :=
 instance : subsingleton (of R punit) :=
 by { rw of_apply R punit, apply_instance }
 
-instance : has_zero_object (Module R) :=
+instance : has_zero_object (Module.{v} R) :=
 { zero := of R punit,
   unique_to := λ X,
   { default := (0 : punit →ₗ[R] X),
@@ -74,7 +79,7 @@ instance : has_zero_object (Module R) :=
   { default := (0 : X →ₗ[R] punit),
     uniq := λ _, linear_map.ext $ λ x, subsingleton.elim _ _ } }
 
-variables {R} {M N U : Module R}
+variables {R} {M N U : Module.{v} R}
 
 @[simp] lemma id_apply (m : M) : (𝟙 M : M → M) m = m := rfl
 
@@ -84,7 +89,7 @@ variables {R} {M N U : Module R}
 end Module
 
 variables {R}
-variables {X₁ X₂ : Type u}
+variables {X₁ X₂ : Type v}
 
 /-- Reinterpreting a linear map in the category of `R`-modules. -/
 def Module.as_hom [add_comm_group X₁] [module R X₁] [add_comm_group X₂] [module R X₂] :
@@ -106,7 +111,7 @@ Build an isomorphism in the category `Module R` from a `linear_equiv` between `m
 This version is better than `linear_equiv_to_Module_iso` when applicable, because Lean can't see `Module.of R M` is defeq to `M` when `M : Module R`.
   -/
 @[simps]
-def linear_equiv.to_Module_iso' {M N : Module R} (i : M ≃ₗ[R] N) : M ≅ N :=
+def linear_equiv.to_Module_iso' {M N : Module.{v} R} (i : M ≃ₗ[R] N) : M ≅ N :=
 { hom := i,
   inv := i.symm,
   hom_inv_id' := linear_map.ext $ λ x, by simp,
@@ -137,7 +142,7 @@ namespace Module
 
 section preadditive
 
-instance : preadditive (Module R) :=
+instance : preadditive (Module.{v} R) :=
 { add_comp' := λ P Q R f f' g,
     show (f + f') ≫ g = f ≫ g + f' ≫ g, by { ext, simp },
   comp_add' := λ P Q R f g g',
@@ -146,7 +151,7 @@ instance : preadditive (Module R) :=
 end preadditive
 
 section epi_mono
-variables {M N : Module R} (f : M ⟶ N)
+variables {M N : Module.{v} R} (f : M ⟶ N)
 
 lemma ker_eq_bot_of_mono [mono f] : f.ker = ⊥ :=
 linear_map.ker_eq_bot_of_cancel $ λ u v, (@cancel_mono _ _ _ _ _ f _ (as_hom u) (as_hom v)).1

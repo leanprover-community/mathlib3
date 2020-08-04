@@ -51,7 +51,7 @@ def sections_subgroup (F : J ⥤ Group) :
 
 @[to_additive AddGroup.limit_add_group]
 instance limit_group (F : J ⥤ Group) :
-  group (limit (F ⋙ forget Group)) :=
+  group (limit (F ⋙ forget Group.{u})) :=
 begin
   change group (sections_subgroup F),
   apply_instance,
@@ -64,7 +64,7 @@ All we need to do is notice that the limit point has a `group` instance availabl
 and then reuse the existing limit.
 -/
 @[to_additive AddGroup.creates_limit]
-instance (F : J ⥤ Group) : creates_limit F (forget₂ Group Mon) :=
+instance (F : J ⥤ Group) : creates_limit F (forget₂ Group Mon.{u}) :=
 creates_limit_of_reflects_iso (λ c' t,
 { lifted_cone :=
   { X := Group.of (limit (F ⋙ forget Group)),
@@ -72,7 +72,7 @@ creates_limit_of_reflects_iso (λ c' t,
     { app := Mon.limit_π_monoid_hom (F ⋙ forget₂ Group Mon),
       naturality' := (Mon.has_limits.limit (F ⋙ forget₂ _ _)).π.naturality, } },
   valid_lift := is_limit.unique_up_to_iso (limit.is_limit _) t,
-  makes_limit := is_limit.of_faithful (forget₂ Group Mon) (limit.is_limit _)
+  makes_limit := is_limit.of_faithful (forget₂ Group Mon.{u}) (limit.is_limit _)
     (λ s, _) (λ s, rfl) })
 
 /-- The category of groups has all limits. -/
@@ -114,9 +114,9 @@ by { change comm_group (F.obj j), apply_instance }
 
 @[to_additive AddCommGroup.limit_add_comm_monoid]
 instance limit_comm_group (F : J ⥤ CommGroup) :
-  comm_group (limit (F ⋙ forget CommGroup)) :=
+  comm_group (limit (F ⋙ forget CommGroup.{u})) :=
 @subgroup.to_comm_group (Π j, F.obj j) _
-  (Group.sections_subgroup (F ⋙ forget₂ CommGroup Group))
+  (Group.sections_subgroup (F ⋙ forget₂ CommGroup Group.{u}))
 
 /--
 We show that the forgetful functor `CommGroup ⥤ Group` creates limits.
@@ -125,15 +125,15 @@ All we need to do is notice that the limit point has a `comm_group` instance ava
 and then reuse the existing limit.
 -/
 @[to_additive AddCommGroup.creates_limit]
-instance (F : J ⥤ CommGroup) : creates_limit F (forget₂ CommGroup Group) :=
+instance (F : J ⥤ CommGroup) : creates_limit F (forget₂ CommGroup Group.{u}) :=
 creates_limit_of_reflects_iso (λ c' t,
 { lifted_cone :=
   { X := CommGroup.of (limit (F ⋙ forget CommGroup)),
     π :=
-    { app := Mon.limit_π_monoid_hom (F ⋙ forget₂ CommGroup Group ⋙ forget₂ Group Mon),
+    { app := Mon.limit_π_monoid_hom (F ⋙ forget₂ CommGroup Group.{u} ⋙ forget₂ Group Mon),
       naturality' := (Mon.has_limits.limit _).π.naturality, } },
   valid_lift := is_limit.unique_up_to_iso (limit.is_limit _) t,
-  makes_limit := is_limit.of_faithful (forget₂ _ Group ⋙ forget₂ _ Mon) (limit.is_limit _)
+  makes_limit := is_limit.of_faithful (forget₂ _ Group.{u} ⋙ forget₂ _ Mon.{u}) (limit.is_limit _)
     (λ s, _) (λ s, rfl) })
 
 /-- The category of commutative groups has all limits. -/

@@ -13,13 +13,13 @@ open category_theory
 open category_theory.limits
 open category_theory.limits.walking_parallel_pair
 
-universe u
+universes u v
 
 namespace Module
 variables {R : Type u} [ring R]
 
 section
-variables {M N : Module R} (f : M ⟶ N)
+variables {M N : Module.{v} R} (f : M ⟶ N)
 
 /-- The kernel cone induced by the concrete kernel. -/
 def kernel_cone : kernel_fork f :=

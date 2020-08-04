@@ -49,14 +49,14 @@ def sections_submonoid (F : J ⥤ Mon) :
 
 @[to_additive AddMon.limit_add_monoid]
 instance limit_monoid (F : J ⥤ Mon) :
-  monoid (limit (F ⋙ forget Mon)) :=
+  monoid (limit (F ⋙ forget Mon.{u})) :=
 (sections_submonoid F).to_monoid
 
 /-- `limit.π (F ⋙ forget Mon) j` as a `monoid_hom`. -/
 @[to_additive AddMon.limit_π_add_monoid_hom
   "`limit.π (F ⋙ forget AddMon) j` as an `add_monoid_hom`."]
 def limit_π_monoid_hom (F : J ⥤ Mon) (j) :
-  limit (F ⋙ forget Mon) →* (F ⋙ forget Mon).obj j :=
+  limit (F ⋙ forget Mon.{u}) →* (F ⋙ forget Mon).obj j :=
 { to_fun := limit.π (F ⋙ forget Mon) j,
   map_one' := by { simp only [types.types_limit_π], refl },
   map_mul' := λ x y, by { simp only [types.types_limit_π], refl } }
@@ -126,9 +126,9 @@ by { change comm_monoid (F.obj j), apply_instance }
 
 @[to_additive AddCommMon.limit_add_comm_monoid]
 instance limit_comm_monoid (F : J ⥤ CommMon) :
-  comm_monoid (limit (F ⋙ forget CommMon)) :=
+  comm_monoid (limit (F ⋙ forget CommMon.{u})) :=
 @submonoid.to_comm_monoid (Π j, F.obj j) _
-  (Mon.sections_submonoid (F ⋙ forget₂ CommMon Mon))
+  (Mon.sections_submonoid (F ⋙ forget₂ CommMon Mon.{u}))
 
 /--
 We show that the forgetful functor `CommMon ⥤ Mon` creates limits.
@@ -137,7 +137,7 @@ All we need to do is notice that the limit point has a `comm_monoid` instance av
 and then reuse the existing limit.
 -/
 @[to_additive AddCommMon.creates_limit]
-instance (F : J ⥤ CommMon) : creates_limit F (forget₂ CommMon Mon) :=
+instance (F : J ⥤ CommMon) : creates_limit F (forget₂ CommMon Mon.{u}) :=
 creates_limit_of_reflects_iso (λ c' t,
 { lifted_cone :=
   { X := CommMon.of (limit (F ⋙ forget CommMon)),
@@ -145,7 +145,7 @@ creates_limit_of_reflects_iso (λ c' t,
     { app := Mon.limit_π_monoid_hom (F ⋙ forget₂ CommMon Mon),
       naturality' := (Mon.has_limits.limit (F ⋙ forget₂ _ _)).π.naturality, } },
   valid_lift := is_limit.unique_up_to_iso (limit.is_limit _) t,
-  makes_limit := is_limit.of_faithful (forget₂ CommMon Mon) (limit.is_limit _)
+  makes_limit := is_limit.of_faithful (forget₂ CommMon Mon.{u}) (limit.is_limit _)
     (λ s, _) (λ s, rfl) })
 
 /-- The category of commutative monoids has all limits. -/

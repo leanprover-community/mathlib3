@@ -16,10 +16,10 @@ open category_theory.limits
 
 noncomputable theory
 
-universe u
+universes v u
 
 namespace Module
-variables {R : Type u} [ring R] {M N : Module R} (f : M ⟶ N)
+variables {R : Type u} [ring R] {M N : Module.{v} R} (f : M ⟶ N)
 
 /-- In the category of modules, every monomorphism is normal. -/
 def normal_mono (hf : mono f) : normal_mono f :=
@@ -67,7 +67,7 @@ def normal_epi (hf : epi f) : normal_epi f :=
 local attribute [instance] has_equalizers_of_has_finite_limits
 
 /-- The category of R-modules is abelian. -/
-instance : abelian (Module R) :=
+instance : abelian (Module.{v} R) :=
 { has_finite_products := by apply_instance,
   has_kernels := by apply_instance,
   has_cokernels := has_cokernels_Module,

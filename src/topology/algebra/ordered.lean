@@ -2199,22 +2199,22 @@ by simpa only [inv_inv] using @tendsto_inv_nhds_within_Ioi _ _ _ _ (a⁻¹)
   tendsto has_inv.inv (nhds_within (a⁻¹) (Iio (a⁻¹))) (nhds_within a (Ioi a)) :=
 by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iio _ _ _ _ (a⁻¹)
 
-lemma nhds_cleft_sup_nhds_cright (a : α) [topological_space α] [linear_order α] :
+lemma nhds_left_sup_nhds_right (a : α) [topological_space α] [linear_order α] :
   nhds_within a (Iic a) ⊔ nhds_within a (Ici a) = 𝓝 a :=
 by rw [← nhds_within_union, Iic_union_Ici, nhds_within_univ]
 
-lemma nhds_oleft_sup_nhds_cright (a : α) [topological_space α] [linear_order α] :
+lemma nhds_left'_sup_nhds_right (a : α) [topological_space α] [linear_order α] :
   nhds_within a (Iio a) ⊔ nhds_within a (Ici a) = 𝓝 a :=
 by rw [← nhds_within_union, Iio_union_Ici, nhds_within_univ]
 
-lemma nhds_cleft_sup_nhds_oright (a : α) [topological_space α] [linear_order α] :
+lemma nhds_left_sup_nhds_right' (a : α) [topological_space α] [linear_order α] :
   nhds_within a (Iic a) ⊔ nhds_within a (Ioi a) = 𝓝 a :=
 by rw [← nhds_within_union, Iic_union_Ioi, nhds_within_univ]
 
-lemma continuous_at_iff_continuous_cleft_cright [topological_space α] [linear_order α]
+lemma continuous_at_iff_continuous_left_right [topological_space α] [linear_order α]
   [topological_space β] {a : α} {f : α → β} :
   continuous_at f a ↔ continuous_within_at f (Iic a) a ∧ continuous_within_at f (Ici a) a :=
-by simp only [continuous_within_at, continuous_at, ← tendsto_sup, nhds_cleft_sup_nhds_cright]
+by simp only [continuous_within_at, continuous_at, ← tendsto_sup, nhds_left_sup_nhds_right]
 
 lemma continuous_on_Icc_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
   [order_topology α] [topological_space β] [regular_space β] {f : α → β} {a b : α}
@@ -2311,8 +2311,8 @@ begin
   exact this,
 end
 
-lemma continuous_at_iff_continuous_left_right [topological_space α] [linear_order α]
+lemma continuous_at_iff_continuous_left'_right' [topological_space α] [linear_order α]
   [topological_space β] {a : α} {f : α → β} :
   continuous_at f a ↔ continuous_within_at f (Iio a) a ∧ continuous_within_at f (Ioi a) a :=
 by rw [continuous_within_at_Ioi_iff_Ici, continuous_within_at_Iio_iff_Iic,
-  continuous_at_iff_continuous_cleft_cright]
+  continuous_at_iff_continuous_left_right]

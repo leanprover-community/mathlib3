@@ -864,12 +864,9 @@ lemma orthogonal_projection_vadd_eq_self {s : affine_subspace ℝ V P}
 begin
   have h := vsub_orthogonal_projection_mem_direction_orthogonal hn hc (v +ᵥ p),
   rw [vadd_vsub_assoc, submodule.add_mem_iff_right _ hv] at h,
-  exact (eq_of_vsub_eq_zero V
-          (submodule.disjoint_def.1
-            s.direction.orthogonal_disjoint
-            _
-            (vsub_mem_direction hp (orthogonal_projection_mem hn hc (v +ᵥ p)))
-            h)).symm
+  refine (eq_of_vsub_eq_zero V _).symm,
+  refine submodule.disjoint_def.1 s.direction.orthogonal_disjoint _ _ h,
+  exact vsub_mem_direction hp (orthogonal_projection_mem hn hc (v +ᵥ p))
 end
 
 /-- Adding a vector to a point in the given subspace, then taking the

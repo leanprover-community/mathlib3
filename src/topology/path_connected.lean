@@ -43,7 +43,7 @@ subtype `↥F`.
 
 For locally path connected spaces, we have
 * `path_connected_space_iff_connected_space : path_connected_space X ↔ connected_space X`
-* `is_connected_iff_is_path_connected (U_op : is_open U) : is_path_connected  U ↔ is_connected U`
+* `is_connected_iff_is_path_connected (U_op : is_open U) : is_path_connected U ↔ is_connected U`
 
 ## Implementation notes
 
@@ -277,7 +277,7 @@ variables (X)
 /-- The setoid corresponding the equivalence relation of being joined by a continuous path. -/
 def path_setoid : setoid X :=
 { r := joined,
-  iseqv := mk_equivalence  _ joined.refl (λ x y, joined.symm) (λ x y z, joined.trans) }
+  iseqv := mk_equivalence _ joined.refl (λ x y, joined.symm) (λ x y z, joined.trans) }
 
 /-- The quotient type of points of a topological space modulo being joined by a continuous path. -/
 def zeroth_homotopy := quotient (path_setoid X)
@@ -302,10 +302,10 @@ begin
   simpa using this
 end
 
-lemma joined_in.mem_source (h : joined_in F x y) : x ∈ F :=
+lemma joined_in.source_mem (h : joined_in F x y) : x ∈ F :=
 h.mem.1
 
-lemma joined_in.mem_target (h : joined_in F x y) : y ∈ F :=
+lemma joined_in.target_mem (h : joined_in F x y) : y ∈ F :=
 h.mem.2
 
 /-- When `x` and `y` are joined in `F`, choose a path from `x` to `y` inside `F` -/
@@ -317,11 +317,11 @@ classical.some_spec h t
 
 /-- If `x` and `y` are joined in the set `F`, then they are joined in the subtype `F`. -/
 lemma joined_in.joined_subtype (h : joined_in F x y) :
-  joined (⟨x, h.mem_source⟩ : F) (⟨y, h.mem_target⟩ : F) :=
+  joined (⟨x, h.source_mem⟩ : F) (⟨y, h.target_mem⟩ : F) :=
 ⟨{ to_fun := λ t, ⟨h.some_path t, h.some_path_mem t⟩,
-  continuous' := by continuity,
-  source' := by simp,
-  target' := by simp }⟩
+   continuous' := by continuity,
+   source' := by simp,
+   target' := by simp }⟩
 
 lemma joined_in.joined (h : joined_in F x y) : joined x y :=
 ⟨h.some_path⟩
@@ -400,7 +400,7 @@ hxy.trans hyz
 /-- A set `F` is path connected if it contains a point that can be joined to all other in `F`. -/
 def is_path_connected (F : set X) : Prop := ∃ x ∈ F, ∀ {y}, y ∈ F → joined_in F x y
 
-lemma is_path_connected_iff_eq : is_path_connected F ↔  ∃ x ∈ F, path_component_in x F = F :=
+lemma is_path_connected_iff_eq : is_path_connected F ↔ ∃ x ∈ F, path_component_in x F = F :=
 begin
   split ; rintros ⟨x, x_in, h⟩ ; use [x, x_in],
   { ext y,
@@ -429,7 +429,7 @@ lemma is_path_connected.mem_path_component (h : is_path_connected F) (x_in : x �
   y ∈ path_component x :=
 (h.joined_in x y x_in y_in).joined
 
-lemma  is_path_connected.subset_path_component (h : is_path_connected F) (x_in : x ∈ F) :
+lemma is_path_connected.subset_path_component (h : is_path_connected F) (x_in : x ∈ F) :
   F ⊆ path_component x :=
 λ y y_in, h.mem_path_component x_in y_in
 
@@ -545,7 +545,7 @@ begin
   constructor,
   intro x,
   apply (h x).to_has_basis,
-  { intros  i pi,
+  { intros i pi,
     exact ⟨s x i, ⟨(h x).mem_of_mem pi, h' x i pi⟩, by refl⟩ },
   { rintros U ⟨U_in, hU⟩,
     rcases (h x).mem_iff.mp U_in with ⟨i, pi, hi⟩,
@@ -602,7 +602,7 @@ end⟩
 
 lemma is_open.is_connected_iff_is_path_connected
   [loc_path_connected_space X] {U : set X} (U_op : is_open U) :
-  is_path_connected  U ↔ is_connected U :=
+  is_path_connected U ↔ is_connected U :=
 begin
   rw [is_connected_iff_connected_space, is_path_connected_iff_path_connected_space],
   haveI := loc_path_connected_of_is_open U_op,

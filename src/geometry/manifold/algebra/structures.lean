@@ -96,12 +96,13 @@ class smooth_module (R : Type*) (M : Type*)
   [charted_space H' M] [smooth_manifold_with_corners I' M]
   extends smooth_semimodule I I' R M : Prop
 
+variable (𝕜)
+
 /-- A smooth vector space is a smooth module over a field. -/
-abbreviation smooth_vector_space (R : Type*) (M : Type*)
-  [normed_field R] [normed_space 𝕜 R]
-  [topological_space M] [add_comm_group M] [vector_space R M] [topological_vector_space R M]
-  [charted_space H' M] [smooth_manifold_with_corners I' M] :=
-smooth_module Isf(𝕜, R) I' R M
+abbreviation smooth_vector_space (R : Type*) (V : Type*)
+  [normed_field R] [normed_space 𝕜 R] [normed_group V] [normed_space 𝕜 V] [vector_space R V]
+  [topological_module R V] :=
+smooth_module Isf(𝕜, R) Isf(𝕜, V) R V
 end prio
 
 end smooth_module
@@ -120,7 +121,7 @@ instance field_smooth_ring {𝕜 : Type*} [nondiscrete_normed_field 𝕜] :
 
 instance normed_group_smooth_module {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] :
-  smooth_vector_space Isf(𝕜, E) 𝕜 E :=
+  smooth_vector_space 𝕜 𝕜 E :=
 { smooth_smul :=
   begin
     rw smooth_iff,

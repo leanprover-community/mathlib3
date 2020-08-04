@@ -143,19 +143,16 @@ into account the case `𝕜 = ℝ`, `R = ℂ`.
 
 instance smooth_map_has_scalar
   {R : Type*} [normed_field R] [normed_space 𝕜 R]
-  {M : Type*} [topological_space M] [add_comm_group M]
-  [vector_space R M] [topological_vector_space R M]
-  [charted_space H' M] [smooth_manifold_with_corners I' M] [smooth_vector_space I' R M] :
-  has_scalar R C∞(I, N; I', M) :=
+  {M : Type*} [normed_group M] [normed_space 𝕜 M] [vector_space R M] [topological_vector_space R M]
+  [smooth_vector_space 𝕜 R M]:
+  has_scalar R C∞(I, N; Isf(𝕜, M), M) :=
 ⟨λ r f, ⟨r • f, (@smooth_const _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ Isf(𝕜, R) _ _ _ _).smul f.smooth⟩⟩
 
 instance smooth_map_semimodule
   {R : Type*} [normed_field R] [normed_space 𝕜 R]
-  {M : Type*} [topological_space M] [add_comm_group M] [topological_add_group M]
-  [vector_space R M] [topological_vector_space R M]
-  [charted_space H' M] [smooth_manifold_with_corners I' M] [lie_add_group I' M]
-  [smooth_vector_space I' R M] :
-  vector_space R C∞(I, N; I', M) :=
+  {M : Type*} [normed_group M] [normed_space 𝕜 M] [vector_space R M] [topological_vector_space R M]
+  [smooth_vector_space 𝕜 R M] :
+  vector_space R C∞(I, N; Isf(𝕜, M), M) :=
 semimodule.of_core $
 { smul     := (•),
   smul_add := λ c f g, by ext x; exact smul_add c (f x) (g x),
@@ -180,11 +177,11 @@ stucture".
 -/
 
 variables {R : Type*} [normed_field R]
-{A : Type*} [topological_space A] [ring A] [algebra R A] [topological_ring A]
-[charted_space H' A] [smooth_manifold_with_corners I' A] [smooth_ring I' A]
+{A : Type*} [normed_ring A] [algebra R A] [normed_space 𝕜 A] [topological_ring A]
+[smooth_ring Isf(𝕜, A) A]
 
 /-- Smooth constant functions as a `ring_hom`. -/
-def smooth_map.C : R →+* C∞(I, N; I', A) :=
+def smooth_map.C : R →+* C∞(I, N; Isf(𝕜, A), A) :=
 { to_fun    := λ c : R, ⟨λ x, ((algebra_map R A) c), smooth_const⟩,
   map_one'  := by ext x; exact (algebra_map R A).map_one,
   map_mul'  := λ c₁ c₂, by ext x; exact (algebra_map R A).map_mul _ _,
@@ -192,9 +189,9 @@ def smooth_map.C : R →+* C∞(I, N; I', A) :=
   map_add'  := λ c₁ c₂, by ext x; exact (algebra_map R A).map_add _ _ }
 
 variables [normed_space 𝕜 R]
-[topological_vector_space R A] [smooth_vector_space I' R A]
+[topological_vector_space R A] [smooth_vector_space 𝕜 R A]
 
-instance : algebra R C∞(I, N; I', A) :=
+instance : algebra R C∞(I, N; Isf(𝕜, A), A) :=
 { smul := λ r f,
   ⟨r • f, (@smooth_const _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ Isf(𝕜, R) _ _ _ _).smul f.smooth⟩,
   to_ring_hom := smooth_map.C,

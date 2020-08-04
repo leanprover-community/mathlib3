@@ -2135,33 +2135,33 @@ lemma times_cont_diff_on.mul {n : with_top ℕ} {s : set E} {f g : E → 𝕜}
   times_cont_diff_on 𝕜 n (λ x, f x * g x) s :=
 λ x hx, (hf x hx).mul (hg x hx)
 
-/-! ### Scalar product -/
+/-! ### Scalar multiplication -/
 
-/- The scalar product is smooth. -/
+/- The scalar multiplication is smooth. -/
 lemma times_cont_diff_smul {n : with_top ℕ} :
   times_cont_diff 𝕜 n (λ p : 𝕜 × F, p.1 • p.2) :=
 is_bounded_bilinear_map_smul.times_cont_diff
 
-/-- The scalar product of two `C^n` functions within a set at a point is `C^n` within this set
-at this point. -/
+/-- The scalar multiplication of two `C^n` functions within a set at a point is `C^n` within this
+set at this point. -/
 lemma times_cont_diff_within_at.smul {n : with_top ℕ} {s : set E} {f : E → 𝕜} {g : E → F}
   (hf : times_cont_diff_within_at 𝕜 n f s x) (hg : times_cont_diff_within_at 𝕜 n g s x) :
   times_cont_diff_within_at 𝕜 n (λ x, f x • g x) s x :=
 times_cont_diff_smul.times_cont_diff_within_at.comp x (hf.prod hg) subset_preimage_univ
 
-/-- The scalar product of two `C^n` functions at a point is `C^n` at this point. -/
+/-- The scalar multiplication of two `C^n` functions at a point is `C^n` at this point. -/
 lemma times_cont_diff_at.smul {n : with_top ℕ} {f : E → 𝕜} {g : E → F}
   (hf : times_cont_diff_at 𝕜 n f x) (hg : times_cont_diff_at 𝕜 n g x) :
   times_cont_diff_at 𝕜 n (λ x, f x • g x) x :=
 by rw [← times_cont_diff_within_at_univ] at *; exact hf.smul hg
 
-/-- The scalar product of two `C^n`functions is `C^n`. -/
+/-- The scalar multiplication of two `C^n` functions is `C^n`. -/
 lemma times_cont_diff.smul {n : with_top ℕ} {f : E → 𝕜} {g : E → F}
   (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) :
   times_cont_diff 𝕜 n (λ x, f x • g x) :=
 times_cont_diff_smul.comp (hf.prod hg)
 
-/-- The scalar product of two `C^n` functions on a domain is `C^n`. -/
+/-- The scalar multiplication of two `C^n` functions on a domain is `C^n`. -/
 lemma times_cont_diff_on.smul {n : with_top ℕ} {s : set E} {f : E → 𝕜} {g : E → F}
   (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g s) :
   times_cont_diff_on 𝕜 n (λ x, f x • g x) s :=

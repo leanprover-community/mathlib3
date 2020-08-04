@@ -909,12 +909,16 @@ lemma dist_square_smul_orthogonal_vadd_smul_orthogonal_vadd {s : affine_subspace
     (hv : v ∈ s.direction.orthogonal) :
   dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) * dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) =
     dist p1 p2 * dist p1 p2 + (r1 - r2) * (r1 - r2) * (∥v∥ * ∥v∥) :=
-by rw [dist_eq_norm V (r1 • v +ᵥ p1), dist_eq_norm V p1, vsub_vadd_eq_vsub_sub, vadd_vsub_assoc,
-       add_comm, add_sub_assoc, ←sub_smul,
-       norm_add_square_eq_norm_square_add_norm_square
-         (submodule.inner_right_of_mem_orthogonal (vsub_mem_direction hp1 hp2)
-                                                  (submodule.smul_mem _ _ hv)),
-       norm_smul, real.norm_eq_abs, ←mul_assoc, mul_comm _ (abs (r1 - r2)), ←mul_assoc,
-       abs_mul_abs_self, ←mul_assoc]
+calc dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) * dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2)
+    = ∥(p1 -ᵥ p2) + (r1 - r2) • v∥ * ∥(p1 -ᵥ p2) + (r1 - r2) • v∥
+  : by { rw [dist_eq_norm V (r1 • v +ᵥ p1), vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, sub_smul], abel }
+... = ∥p1 -ᵥ p2∥ * ∥p1 -ᵥ p2∥ + ∥(r1 - r2) • v∥ * ∥(r1 - r2) • v∥
+  : norm_add_square_eq_norm_square_add_norm_square
+      (submodule.inner_right_of_mem_orthogonal (vsub_mem_direction hp1 hp2)
+        (submodule.smul_mem _ _ hv))
+... = ∥(p1 -ᵥ p2 : V)∥ * ∥(p1 -ᵥ p2 : V)∥ + abs (r1 - r2) * abs (r1 - r2) * ∥v∥ * ∥v∥
+  : by { rw [norm_smul, real.norm_eq_abs], ring }
+... = dist p1 p2 * dist p1 p2 + (r1 - r2) * (r1 - r2) * (∥v∥ * ∥v∥)
+  : by { rw [dist_eq_norm V p1, abs_mul_abs_self], ring }
 
 end euclidean_geometry

@@ -67,35 +67,26 @@ begin
   by_contradiction H_cont,
   push_neg at H_cont,
   rcases H_cont with ⟨x, ⟨x_in_s, fx_lt_fa⟩⟩,
-
   let g : affine_map ℝ ℝ ℝ E E := affine_map.line_map a (x - a),
-
   have hg0 : g 0 = a := affine_map.line_map_apply_zero a (x - a),
   have hg1 : g 1 = x := by simp [affine_map.line_map_apply, one_smul],
-
   have fg_local_min_on : is_local_min_on (f ∘ g) (g ⁻¹' s) 0,
   { rw ←hg0 at h_localmin,
     refine is_local_min_on.comp_continuous_on h_localmin subset.rfl
       (continuous.continuous_on (affine_map.line_map_continuous)) _,
     simp [mem_preimage, hg0, a_in_s] },
-
   have fg_min_on : ∀ x ∈ (Icc 0 1 : set ℝ), (f ∘ g) 0 ≤ (f ∘ g) x,
   { have Icc_in_s' : Icc 0 1 ⊆ (g ⁻¹' s),
     { have h0 : (0 : ℝ) ∈ (g ⁻¹' s) := by simp [mem_preimage, a_in_s],
       have h1 : (1 : ℝ) ∈ (g ⁻¹' s) := by simp [mem_preimage, hg1, x_in_s],
-
       rw ←segment_eq_Icc (show (0 : ℝ) ≤ 1, by linarith),
       exact (convex.affine_preimage g h_conv.1).segment_subset
         (by simp [mem_preimage, hg0, a_in_s]) (by simp [mem_preimage, hg1, x_in_s]) },
-
     have fg_local_min_on' : is_local_min_on (f ∘ g) (Icc 0 1) 0 :=
       is_local_min_on.on_subset fg_local_min_on Icc_in_s',
-
     refine is_min_on.of_is_local_min_on_of_convex_on_Icc (by linarith) fg_local_min_on' _,
     exact (convex_on.comp_affine_map g h_conv).subset Icc_in_s' (convex_Icc 0 1) },
-
   have gx_lt_ga : (f ∘ g) 1 < (f ∘ g) 0 := by simp [hg1, fx_lt_fa, hg0],
-
   linarith [fg_min_on 1 (mem_Icc.mpr ⟨zero_le_one, le_refl 1⟩)],
 end
 

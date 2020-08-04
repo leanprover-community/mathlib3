@@ -187,9 +187,9 @@ lemma map₂_left_eq_map₂_left' {α β γ} (f : α → option β → γ)
 | (a :: as) (b :: bs) := by { simp! only [*], cases (map₂_left' f as bs), simp! }
 
 def fill_nones {α} : list (option α) → list α → list α
-| [] as' := []
+| [] _ := []
 | ((some a) :: as) as' := a :: fill_nones as as'
-| (none :: as) [] := fill_nones as []
+| (none :: as) [] := as.reduce_option
 | (none :: as) (a :: as') := a :: fill_nones as as'
 
 end list
@@ -239,7 +239,7 @@ end
 meta def to_list (m : rb_multimap α β) : list (α × rb_set β) :=
 rb_map.to_list m
 
-meta def to_multilist (m : rb_multimap α β) : list (α × list β) :=
+meta def to_list' (m : rb_multimap α β) : list (α × list β) :=
 (rb_map.to_list m).map (λ ⟨a, bs⟩, ⟨a, bs.to_list⟩)
 
 end rb_multimap
@@ -258,8 +258,6 @@ xs.foldl merge mk_rb_set
 end rb_set
 
 end native
-
-open native
 
 
 namespace name_set

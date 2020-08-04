@@ -181,4 +181,26 @@ end
 @[simp]
 theorem ι_square_zero (m : M) : (ι R M m) * (ι R M m) = 0 := by apply quot.sound (rel.of _)
 
+lemma ι_add_mul (x y z : M) : ι R M (x + y) * ι R M z = ι R M x * ι R M z + ι R M y * ι R M z :=
+by rw [linear_map.map_add, right_distrib]
+
+lemma ι_mul_add (x y z : M) : ι R M x * ι R M (y + z) = ι R M x * ι R M y + ι R M x * ι R M z :=
+by rw [linear_map.map_add, left_distrib]
+
+@[simp]
+lemma ι_add_swap (x y : M) : ι R M x * ι R M y + ι R M y * ι R M x = 0 :=
+calc ι R M x * ι R M y + ι R M y * ι R M x
+  = ι R M x * ι R M y + ι R M y * ι R M y + ι R M y * ι R M x :
+    by rw [ι_square_zero, add_zero]
+  ...= ι R M x * ι R M y + ι R M y * ι R M y + ι R M y * ι R M x + ι R M x * ι R M x :
+    by rw [ι_square_zero x, add_zero]
+  ...= ι R M (x + y) * ι R M y + ι R M y * ι R M x + ι R M x * ι R M x :
+    by rw ι_add_mul
+  ...= ι R M (x + y) * ι R M y + ι R M (x + y) * ι R M x :
+    by rw [ι_add_mul x y x, ι_square_zero, zero_add, add_zero]
+  ...= ι R M (x + y) * ι R M (x + y) :
+    by rw [ι_mul_add (x + y) x y, add_comm]
+  ...= 0 :
+    by rw ι_square_zero
+
 end exterior_algebra

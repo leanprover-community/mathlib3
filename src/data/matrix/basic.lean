@@ -920,8 +920,7 @@ begin
   ext i j, rcases i; rcases j; simp [diagonal],
 end
 
-@[simp] lemma from_blocks_one :
-  from_blocks (1 : matrix l l α) 0 0 (1 : matrix m m α) = 1 :=
+@[simp] lemma from_blocks_one : from_blocks (1 : matrix l l α) 0 0 (1 : matrix m m α) = 1 :=
 begin
   ext i j, rcases i; rcases j; simp [one_val],
 end

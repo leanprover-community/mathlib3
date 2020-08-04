@@ -10,6 +10,11 @@ import algebra.ring.ulift
 # `ulift` instances for module and multiplicative actions
 
 This file defines instances for module, mul_action and related structures on `ulift` types.
+
+(Recall `ulift α` is just a "copy" of a type `α` in a higher universe.)
+
+We also provide `ulift.semimodule_equiv : ulift M ≃ₗ[R] M`.
+
 -/
 
 namespace ulift

@@ -10,6 +10,10 @@ import data.equiv.ring
 # `ulift` instances for ring
 
 This file defines instances for ring, semiring and related structures on `ulift` types.
+
+(Recall `ulift α` is just a "copy" of a type `α` in a higher universe.)
+
+We also provide `ulift.ring_equiv : ulift R ≃+* R`.
 -/
 
 universes u v

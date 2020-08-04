@@ -400,7 +400,15 @@ def pushout_cocone.of_cocone
 { X := t.X,
   ι := (diagram_iso_span F).inv ≫ t.ι }
 
+/--
+`has_pullback f g` represents a particular choice of limiting cone
+for the pair of morphisms `f : X ⟶ Z` and `g : Y ⟶ Z`.
+-/
 abbreviation has_pullback {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) := has_limit (cospan f g)
+/--
+`has_pushout f g` represents a particular choice of colimiting cocone
+for the pair of morphisms `f : X ⟶ Y` and `g : X ⟶ Z`.
+-/
 abbreviation has_pushout {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) := has_colimit (span f g)
 
 /-- `pullback f g` computes the pullback of a pair of morphisms with the same target. -/

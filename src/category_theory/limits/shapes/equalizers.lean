@@ -372,6 +372,10 @@ def fork.mk_hom {s t : fork f g} (k : s.X ⟶ t.X) (w : k ≫ t.ι = s.ι) : s �
 variables (f g)
 
 section
+/--
+`has_equalizer f g` represents a particular choice of limiting cone
+for the parallel pair of morphisms `f` and `g`.
+-/
 abbreviation has_equalizer := has_limit (parallel_pair f g)
 
 variables [has_equalizer f g]
@@ -502,6 +506,10 @@ def cofork.mk_hom {s t : cofork f g} (k : s.X ⟶ t.X) (w : s.π ≫ k = t.π) :
   end }
 
 section
+/--
+`has_coequalizer f g` represents a particular choice of colimiting cocone
+for the parallel pair of morphisms `f` and `g`.
+-/
 abbreviation has_coequalizer := has_colimit (parallel_pair f g)
 
 variables [has_coequalizer f g]

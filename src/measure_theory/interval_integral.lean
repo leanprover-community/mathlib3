@@ -87,46 +87,6 @@ by simp only [interval_integral, neg_sub]
 lemma integral_of_ge (h : b ≤ a) : ∫ x in a..b, f x ∂μ = -∫ x in Ioc b a, f x ∂μ :=
 by simp only [integral_symm b, integral_of_le h]
 
-lemma integral_add (hfm : measurable f) (hfi : interval_integrable f μ a b)
-  (hgm : measurable g) (hgi : interval_integrable g μ a b) :
-  ∫ x in a..b, f x + g x ∂μ = ∫ x in a..b, f x ∂μ + ∫ x in a..b, g x ∂μ :=
-begin
-  simp only [interval_integral, integral_add hfm hfi.1 hgm hgi.1,
-    integral_add hfm hfi.2 hgm hgi.2],
-  abel
-end
-
-@[simp] lemma integral_neg : ∫ x in a..b, -f x ∂μ = -∫ x in a..b, f x ∂μ :=
-begin
-  simp only [interval_integral, integral_neg],
-  abel
-end
-
-variables [topological_space α] [opens_measurable_space α]
-
-section order_closed_topology
-
-variables [order_closed_topology α]
-
-lemma integral_cocycle (hfm : measurable f) (hab : interval_integrable f μ a b)
-  (hbc : interval_integrable f μ b c) :
-  ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ + ∫ x in c..a, f x ∂μ = 0 :=
-begin
-  have hac := hab.trans hbc,
-  simp only [interval_integral, ← add_sub_comm, sub_eq_zero],
-  iterate 4 { rw ← integral_union },
-  { suffices : Ioc a b ∪ Ioc b c ∪ Ioc c a = Ioc b a ∪ Ioc c b ∪ Ioc a c, by rw this,
-    rw [Ioc_union_Ioc_union_Ioc_cycle, union_right_comm, Ioc_union_Ioc_union_Ioc_cycle,
-      min_left_comm, max_left_comm] },
-  all_goals { simp [*, is_measurable.union, is_measurable_Ioc, Ioc_disjoint_Ioc_same,
-    Ioc_disjoint_Ioc_same.symm, hab.1, hab.2, hbc.1, hbc.2, hac.1, hac.2] }
-end
-
-lemma integral_add_adjacent_intervals (hfm : measurable f) (hab : interval_integrable f μ a b)
-  (hbc : interval_integrable f μ b c) :
-  ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ = ∫ x in a..c, f x ∂μ :=
-by rw [← add_neg_eq_zero, ← integral_symm, integral_cocycle hfm hab hbc]
-
 lemma integral_cases (f : α → E) (a b) :
   ∫ x in a..b, f x ∂μ ∈ ({∫ x in Ioc (min a b) (max a b), f x ∂μ,
     -∫ x in Ioc (min a b) (max a b), f x ∂μ} : set E) :=
@@ -166,6 +126,46 @@ lemma norm_integral_le_of_norm_le_const {a b C : ℝ} {f : ℝ → E}
   (h : ∀ x ∈ Ioc (min a b) (max a b), ∥f x∥ ≤ C) :
   ∥∫ x in a..b, f x∥ ≤ C * abs (b - a) :=
 norm_integral_le_of_norm_le_const_ae $ eventually_of_forall h
+
+lemma integral_add (hfm : measurable f) (hfi : interval_integrable f μ a b)
+  (hgm : measurable g) (hgi : interval_integrable g μ a b) :
+  ∫ x in a..b, f x + g x ∂μ = ∫ x in a..b, f x ∂μ + ∫ x in a..b, g x ∂μ :=
+begin
+  simp only [interval_integral, integral_add hfm hfi.1 hgm hgi.1,
+    integral_add hfm hfi.2 hgm hgi.2],
+  abel
+end
+
+@[simp] lemma integral_neg : ∫ x in a..b, -f x ∂μ = -∫ x in a..b, f x ∂μ :=
+begin
+  simp only [interval_integral, integral_neg],
+  abel
+end
+
+variables [topological_space α] [opens_measurable_space α]
+
+section order_closed_topology
+
+variables [order_closed_topology α]
+
+lemma integral_cocycle (hfm : measurable f) (hab : interval_integrable f μ a b)
+  (hbc : interval_integrable f μ b c) :
+  ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ + ∫ x in c..a, f x ∂μ = 0 :=
+begin
+  have hac := hab.trans hbc,
+  simp only [interval_integral, ← add_sub_comm, sub_eq_zero],
+  iterate 4 { rw ← integral_union },
+  { suffices : Ioc a b ∪ Ioc b c ∪ Ioc c a = Ioc b a ∪ Ioc c b ∪ Ioc a c, by rw this,
+    rw [Ioc_union_Ioc_union_Ioc_cycle, union_right_comm, Ioc_union_Ioc_union_Ioc_cycle,
+      min_left_comm, max_left_comm] },
+  all_goals { simp [*, is_measurable.union, is_measurable_Ioc, Ioc_disjoint_Ioc_same,
+    Ioc_disjoint_Ioc_same.symm, hab.1, hab.2, hbc.1, hbc.2, hac.1, hac.2] }
+end
+
+lemma integral_add_adjacent_intervals (hfm : measurable f) (hab : interval_integrable f μ a b)
+  (hbc : interval_integrable f μ b c) :
+  ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ = ∫ x in a..c, f x ∂μ :=
+by rw [← add_neg_eq_zero, ← integral_symm, integral_cocycle hfm hab hbc]
 
 end order_closed_topology
 

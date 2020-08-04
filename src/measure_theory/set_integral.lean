@@ -313,8 +313,7 @@ begin
 end
 
 lemma is_compact.integrable_on_of_nhds_within
-  [topological_space α] [opens_measurable_space α] [t2_space α]
-  [normed_group E] {μ : measure α} {s : set α} (hs : is_compact s)
+  [topological_space α] [normed_group E] {μ : measure α} {s : set α} (hs : is_compact s)
   {f : α → E} (hf : ∀ x ∈ s, integrable_at_filter f (nhds_within x s) μ) :
   integrable_on f s μ :=
 is_compact.induction_on hs integrable_on_empty (λ s t hst ht, ht.mono_set hst)
@@ -371,25 +370,6 @@ integral_congr_ae hf hg $ _
 lemma integral_on_congr_of_set (hsm : measurable_on s f) (htm : measurable_on t f)
   (h : ∀ᵐ a, a ∈ s ↔ a ∈ t) : (∫ a in s, f a) = (∫ a in t, f a) :=
 integral_congr_ae hsm htm $ indicator_congr_of_set h
-
-variables (s t)
-
-lemma integral_on_smul (r : ℝ) (f : α → β) : (∫ a in s, r • (f a)) = r • (∫ a in s, f a) :=
-by rw [← integral_smul, indicator_smul]
-
-lemma integral_on_mul_left (r : ℝ) (f : α → ℝ) : (∫ a in s, r * (f a)) = r * (∫ a in s, f a) :=
-integral_on_smul s r f
-
-lemma integral_on_mul_right (r : ℝ) (f : α → ℝ) : (∫ a in s, (f a) * r) = (∫ a in s, f a) * r :=
-by { simp only [mul_comm], exact integral_on_mul_left s r f }
-
-lemma integral_on_div (r : ℝ) (f : α → ℝ) : (∫ a in s, (f a) / r) = (∫ a in s, f a) / r :=
-by { simp only [div_eq_mul_inv], apply integral_on_mul_right }
-
-lemma integral_on_neg (f : α → β) : (∫ a in s, -f a) = - (∫ a in s, f a) :=
-by { simp only [indicator_neg], exact integral_neg _ }
-
-variables {s t}
 
 lemma integral_on_add {s : set α} (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm : measurable_on s g)
   (hgi : integrable_on s g) : (∫ a in s, f a + g a) = (∫ a in s, f a) + (∫ a in s, g a) :=

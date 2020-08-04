@@ -521,40 +521,30 @@ apply zero_mem _,
 },
 end
 
-lemma mem_closure_iff_exists_list {s : set R} {x} : x ∈ closure s ↔
-  ∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s) ∧ (L.map list.prod).sum = x :=
+theorem exists_list_of_mem_closure {s : set R} {x : R} (hx : x ∈ closure s) :
+  (∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s ∨ y = (-1:R)) ∧ (L.map list.prod).sum = x) :=
 begin
-split,
+apply add_subgroup.closure_induction (mem_closure_iff.1 hx),
 {
-  rintros hx,
-  apply add_subgroup.closure_induction (mem_closure_iff.1 hx),
+  rintros x hx,
+  apply submonoid.closure_induction hx,
   {
     rintros x hx,
-    suffices f : ∃ t : list R, (∀ y ∈ t, y ∈ s) ∧ t.prod = x,
-    {
-      from let ⟨t, ht1, ht2⟩ := f in ⟨[t], list.forall_mem_singleton.2 ht1,
-      by rw [list.map_singleton, list.sum_singleton, ht2]⟩,
-    },
-    apply submonoid.closure_induction hx,
-    {
-      rintros x hx,
-      use ([x] : list R),
-      simp only [mul_one, and_true, forall_eq, eq_self_iff_true, list.mem_singleton, list.prod_cons, list.prod_nil, hx],
-    },
-    {
-      use ([] : list R),
-      simp only [list.not_mem_nil, forall_const, forall_prop_of_false, eq_self_iff_true, not_false_iff, and_self, list.prod_nil],
-    },
-    {
-      rintros x y ⟨t, ht1, ht2⟩ ⟨u, hu1, hu2⟩,
-      use t ++ u,
-      rw [list.prod_append, ht2, hu2],
-      simp only [list.mem_append, and_true, eq_self_iff_true],
-      rintros y h,
-      cases h,
-      apply ht1 y h,
-      apply hu1 y h,
-    },
+    use ([[x]]),
+    simp only [list.sum_cons, add_zero, list.sum_nil, mul_one, and_true, forall_eq, eq_self_iff_true, list.mem_singleton,
+ list.prod_cons, list.prod_nil, list.map],
+    left,
+    exact hx,
+  },
+  {
+    use ([[]]),
+    simp only [list.not_mem_nil, list.sum_cons, add_zero, list.sum_nil, forall_const, forall_prop_of_false, forall_eq,
+ eq_self_iff_true, not_false_iff, list.mem_singleton, and_self, list.prod_nil, list.map],
+  },
+  {
+    rintros x y ⟨t, ht1, ht2⟩ ⟨u, hu1, hu2⟩,
+    use t ++ u,
+    sorry,
   },
   {
     use ([]),
@@ -573,26 +563,27 @@ split,
   },
   {
     rintros z ⟨L, HL1, HL2⟩,
+/-    let M := (λ (b : list R), (-1) * b.prod),-/
+    let M := list.map (λ (b :list R), (list.cons (-1) b)) L,
+    use (M),
+    rw <-neg_one_mul, rw <-HL2,
+    rw <-list.sum_map_mul_left,
+    split, rintros t ht,
+    simp only [list.mem_map] at ht, cases ht with a ht, cases ht with ht1 ht2, rw <-ht2, simp only [list.mem_cons_iff], sorry,
+-- rw list.bex_cons at ht,
+    have f : list.map list.prod M = list.map (λ (b :list R), (-1) * b.prod) L,
     sorry,
+    rw f,
   },
 },
 rintros ⟨L, HL1, HL2⟩,
 apply subset_closure,
 sorry,
-  /-
-λ ⟨L, HL1, HL2⟩, HL2 ▸ list_sum_mem _ (λ r hr, let ⟨t, ht1, ht2⟩ := list.mem_map.1 hr in
-  ht2 ▸ list_prod_mem _ (λ y hy, subset_closure $ HL1 t ht1 y hy))⟩
--/
 end
-
 
 #exit
 
-
-
 variable (R)
-
-
 
 /-- `closure` forms a Galois insertion with the coercion to set. -/
 
@@ -647,61 +638,30 @@ lemma closure_sUnion (s : set (set R)) : closure (⋃₀ s) = ⨆ t ∈ s, closu
 --till 403
 
 
-
-namespace ring
-
-
-
-def closure (s : set R) := add_group.closure (monoid.closure s)
-
-
-
 variable {s : set R}
 
 local attribute [reducible] closure
 
-
-
 theorem exists_list_of_mem_closure {a : R} (h : a ∈ closure s) :
-
   (∃ L : list (list R), (∀ l ∈ L, ∀ x ∈ l, x ∈ s ∨ x = (-1:R)) ∧ (L.map list.prod).sum = a) :=
-
 add_group.in_closure.rec_on h
-
   (λ x hx, match x, monoid.exists_list_of_mem_closure hx with
-
     | _, ⟨L, h1, rfl⟩ := ⟨[L], list.forall_mem_singleton.2 (λ r hr, or.inl (h1 r hr)), zero_add _⟩
-
     end)
-
   ⟨[], list.forall_mem_nil _, rfl⟩
-
   (λ b _ ih, match b, ih with
-
     | _, ⟨L1, h1, rfl⟩ := ⟨L1.map (list.cons (-1)),
-
       λ L2 h2, match L2, list.mem_map.1 h2 with
-
         | _, ⟨L3, h3, rfl⟩ := list.forall_mem_cons.2 ⟨or.inr rfl, h1 L3 h3⟩
-
         end,
-
       by simp only [list.map_map, (∘), list.prod_cons, neg_one_mul];
-
       exact list.rec_on L1 neg_zero.symm (λ hd tl ih,
-
         by rw [list.map_cons, list.sum_cons, ih, list.map_cons, list.sum_cons, neg_add])⟩
-
     end)
-
   (λ r1 r2 hr1 hr2 ih1 ih2, match r1, r2, ih1, ih2 with
-
     | _, _, ⟨L1, h1, rfl⟩, ⟨L2, h2, rfl⟩ := ⟨L1 ++ L2, list.forall_mem_append.2 ⟨h1, h2⟩,
-
       by rw [list.map_append, list.sum_append]⟩
-
     end)
-
 
 
 @[elab_as_eliminator]

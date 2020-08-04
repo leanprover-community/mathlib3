@@ -244,6 +244,23 @@ by erw [(filter_basis.of_sets s).generate, ← (has_basis_generate s).filter_eq]
 lemma of_sets_filter_eq_generate (s : set (set α)) : (filter_basis.of_sets s).filter = generate s :=
 by rw [← (filter_basis.of_sets s).generate, generate_eq_generate_inter s] ; refl
 
+lemma has_basis.to_has_basis (hl : l.has_basis p s) (h : ∀ i, p i → ∃ i', p' i' ∧ s' i' ⊆ s i)
+  (h' : ∀ i', p' i' → ∃ i, p i ∧ s i ⊆ s' i') : l.has_basis p' s' :=
+begin
+  constructor,
+  intro t,
+  rw hl.mem_iff,
+  split,
+  { rintros ⟨i, pi, hi⟩,
+    rcases h i pi with ⟨i', pi', hi'⟩,
+    use [i', pi'],
+    tauto },
+  { rintros ⟨i', pi', hi'⟩,
+    rcases h' i' pi' with ⟨i, pi, hi⟩,
+    use [i, pi],
+    tauto },
+end
+
 lemma has_basis.eventually_iff (hl : l.has_basis p s) {q : α → Prop} :
   (∀ᶠ x in l, q x) ↔ ∃ i, p i ∧ ∀ ⦃x⦄, x ∈ s i → q x :=
 by simpa using hl.mem_iff

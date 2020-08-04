@@ -10,6 +10,10 @@ open_locale classical topological_space filter
 
 variables {α β 𝕜 E F : Type*} [decidable_linear_order α] [measurable_space α] [normed_group E]
 
+/-- A function `f` is called *interval integrable* with respect to a measure `μ` on an unordered
+interval `[a..b]` if it is integrable on both intervals `(a, b]` and `(b, a]`. One of these
+intervals is always empty, so this property is equivalent to `f` being integrable on
+`(min a b, max a b]`. -/
 def interval_integrable (f : α → E) (μ : measure α) (a b : α) :=
 integrable_on f (Ioc a b) μ ∧ integrable_on f (Ioc b a) μ
 
@@ -58,6 +62,9 @@ end interval_integrable
 variables [second_countable_topology E] [complete_space E] [normed_space ℝ E]
   [measurable_space E] [borel_space E]
 
+/-- The interval integral `∫ x in a..b, f x ∂μ` is defined
+as `∫ x in Ioc a b, f x ∂μ - ∫ x in Ioc b a, f x ∂μ`. If `a ≤ b`, then it equals
+`∫ x in Ioc a b, f x ∂μ`, otherwise it equals `-∫ x in Ioc b a, f x ∂μ`. -/
 def interval_integral (f : α → E) (a b : α) (μ : measure α) :=
 ∫ x in Ioc a b, f x ∂μ - ∫ x in Ioc b a, f x ∂μ
 

@@ -1,6 +1,48 @@
+/-
+Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Yury G. Kudryashov
+-/
 import measure_theory.set_integral
 import measure_theory.lebesgue_measure
 import analysis.calculus.deriv
+
+/-!
+# Integral over an interval
+
+In this file we define `∫ x in a..b, f x ∂μ` to be `∫ x in Ioc a b, f x ∂μ` if `a ≤ b`
+and `-∫ x in Ioc b a, f x ∂μ` if `b ≤ a`. We prove a few simple properties and the first part of the
+[fundamental theorem of calculus](https://en.wikipedia.org/wiki/Fundamental_theorem_of_calculus),
+see `integral_has_deriv_at_of_tendsto_ae`.
+
+## Implementation notes
+
+### Avoiding `if`, `min`, and `max`
+
+In order to avoid `if`s in the definition, we define `interval_integrable f μ a b` as
+`integrable_on f (Ioc a b) μ ∧ integrable_on f (Ioc b a) μ`. For any `a`, `b` one of these
+intervals is empty and the other coincides with `Ioc (min a b) (max a b)`.
+
+Similarly, we define `∫ x in a..b, f x ∂μ` to be `∫ x in Ioc a b, f x ∂μ - ∫ x in Ioc b a, f x ∂μ`.
+Again, for any `a`, `b` one of these integrals is zero, and the other gives the expected result.
+
+This way some properties can be translated from integrals over sets without dealing with
+the cases `a ≤ b` and `b ≤ a` separately.
+
+### Choice of the interval
+
+We use integral over `Ioc (min a b) (max a b)` instead of one of the other three possible
+intervals with the same endpoints for two reasons:
+
+* this way `∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ = ∫ x in a..c, f x ∂μ` holds whenever
+  `f` is integrable on each interval; in particular, it works even if the measure `μ` has an atom
+  at `b`; this rules out `Ioo` and `Icc` intervals;
+* with this definition for a probability measure `μ`, the integral `∫ x in a..b, f x ∂μ` equals
+  the difference $F_μ(b)-F_μ(a)$, where $F_μ(a)=μ(-∞, a]$ is the
+  [cumulative distribution function](https://en.wikipedia.org/wiki/Cumulative_distribution_function)
+  of `μ`.
+
+-/
 
 noncomputable theory
 open topological_space (second_countable_topology)
@@ -11,7 +53,7 @@ open_locale classical topological_space filter
 variables {α β 𝕜 E F : Type*} [decidable_linear_order α] [measurable_space α] [normed_group E]
 
 /-- A function `f` is called *interval integrable* with respect to a measure `μ` on an unordered
-interval `[a..b]` if it is integrable on both intervals `(a, b]` and `(b, a]`. One of these
+interval `a..b` if it is integrable on both intervals `(a, b]` and `(b, a]`. One of these
 intervals is always empty, so this property is equivalent to `f` being integrable on
 `(min a b, max a b]`. -/
 def interval_integrable (f : α → E) (μ : measure α) (a b : α) :=

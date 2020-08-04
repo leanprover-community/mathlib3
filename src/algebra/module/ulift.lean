@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.module.basic
+import linear_algebra.basic
 import algebra.ring.ulift
 
 /-!
@@ -66,5 +66,16 @@ instance semimodule' [semiring R] [add_comm_monoid M] [semimodule R M] :
   semimodule R (ulift M) :=
 { add_smul := by { intros, ext1, apply add_smul },
   zero_smul := by { intros, ext1, apply zero_smul } }
+
+/--
+The `R`-linear equivalence between `ulift M` and `M`.
+-/
+def semimodule_equiv [semiring R] [add_comm_monoid M] [semimodule R M] : ulift M ≃ₗ[R] M :=
+{ to_fun := ulift.down,
+  inv_fun := ulift.up,
+  map_smul' := λ r x, rfl,
+  map_add' := λ x y, rfl,
+  left_inv := by tidy,
+  right_inv := by tidy, }
 
 end ulift

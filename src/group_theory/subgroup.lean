@@ -363,6 +363,16 @@ attribute [norm_cast] coe_Inf add_subgroup.coe_Inf
 @[simp, to_additive]
 lemma mem_Inf {S : set (subgroup G)} {x : G} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
 
+@[to_additive]
+lemma mem_infi {ι : Sort*} {S : ι → subgroup G} {x : G} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
+by simp only [infi, mem_Inf, set.forall_range_iff]
+
+@[simp, to_additive]
+lemma coe_infi {ι : Sort*} {S : ι → subgroup G} : (↑(⨅ i, S i) : set G) = ⋂ i, S i :=
+by simp only [infi, coe_Inf, set.bInter_range]
+
+attribute [norm_cast] coe_Inf coe_infi
+
 /-- Subgroups of a group form a complete lattice. -/
 @[to_additive "The `add_subgroup`s of an `add_group` form a complete lattice."]
 instance : complete_lattice (subgroup G) :=

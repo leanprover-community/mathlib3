@@ -306,8 +306,44 @@ instance : has_inter (subring R) := ⟨λ U V, U ⊓ V⟩
 @[simp] lemma mem_inf {p p' : subring R} {x : R} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x ∈ p' := iff.rfl
 
 instance : has_Inf (subring R) :=
-⟨λ s, subring.mk' (⋂ t ∈ s, ↑t) (⨅ t ∈ s, subring.to_submonoid t) (by simp)
-  (⨅ t ∈ s, subring.to_add_subgroup t) ( begin simp only [<-add_subgroup.has_Inf, <-add_subgroup.coe_to_submonoid, add_submonoid.coe_infi], rw <-add_submonoid.coe_infi, end)⟩
+⟨λ s, {carrier := (⋂ t ∈ s, ↑t),
+one_mem' := begin
+            rw set.mem_bInter_iff,
+            intros S hS,
+            rw mem_coe,
+            exact S.one_mem,
+            end,
+mul_mem' := begin
+            rintros a b ha hb,
+            rw set.mem_bInter_iff at *,
+            rintros,
+            apply mul_mem,
+            exact ha x H,
+            exact hb x H,
+            end,
+zero_mem' := begin
+             rw set.mem_bInter_iff,
+            intros S hS,
+            rw mem_coe,
+            exact S.zero_mem,
+            end,
+add_mem' := begin
+            rintros a b ha hb,
+            rw set.mem_bInter_iff at *,
+            rintros,
+            apply add_mem,
+            exact ha x H,
+            exact hb x H,
+            end,
+neg_mem' := begin
+            rintros a ha,
+            rw set.mem_bInter_iff at *,
+            rintros,
+            apply neg_mem,
+            exact ha x H,
+            end
+} ⟩
+
 
 @[simp, norm_cast] lemma coe_Inf (S : set (subring R)) :
   ((Inf S : subring R) : set R) = ⋂ s ∈ S, ↑s := rfl
@@ -316,11 +352,21 @@ lemma mem_Inf {S : set (subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈
 
 @[simp] lemma Inf_to_submonoid (s : set (subring R)) :
   (Inf s).to_submonoid = ⨅ t ∈ s, subring.to_submonoid t :=
-mk'_to_submonoid _ _
+begin
+apply mk'_to_submonoid _ _,
+simp only [coe_to_submonoid, submonoid.coe_infi],
+use (Inf s).to_add_subgroup,
+simp only [coe_to_add_subgroup, coe_Inf],
+end
 
-@[simp] lemma Inf_to_add_submonoid (s : set (subring R)) :
+@[simp] lemma Inf_to_add_subgroup (s : set (subring R)) :
   (Inf s).to_add_subgroup = ⨅ t ∈ s, subring.to_add_subgroup t :=
-mk'_to_add_subgroup _ _
+begin
+apply mk'_to_add_subgroup _ _,
+use (Inf s).to_submonoid,
+simp only [coe_to_submonoid, submonoid.coe_infi, Inf_to_submonoid],
+simp only [coe_to_add_subgroup, add_subgroup.coe_infi],
+end
 
 /-- Subrings of a ring form a complete lattice. -/
 instance : complete_lattice (subring R) :=

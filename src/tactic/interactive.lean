@@ -1257,12 +1257,16 @@ add_tactic_doc
   tags       := ["context management"] }
 
 
-meta def apply_symm (n : name) : tactic expr :=
+/-- take the name `n` of a lemma whose head is an equality and reverse
+the operands of `=` and return the resulting proof. -/
+private meta def apply_symm (n : name) : tactic expr :=
 do e ← mk_const n,
    (vs,t) ← infer_type e >>= mk_local_pis,
    e' ← mk_eq_symm $ e.mk_app vs,
    lambdas vs e'
 
+/-- `fold n₁ ... nₙ at l₁ ... lₘ` finds occurrences of the value of definitions
+`n₁` to `nₙ` and replace then with the definition itself. -/
 meta def fold (ns : parse ident*) (ls : parse location) : tactic unit :=
 do hs ← ns.mmap $ get_eqn_lemmas_for tt,
    hs ← hs.join.mmap apply_symm,

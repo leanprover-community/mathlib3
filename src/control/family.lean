@@ -1,11 +1,38 @@
+/-
+Copyright (c) 2019 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Simon Hudon
+-/
+import category_theory.category
+import category_theory.types
+import logic.relation
 
-import category_theory.category category_theory.types logic.relation
+/-
+Indexed type families and their categorical structure.
+
+Features:
+
+`fam I`      : family of types and its instance of `category`
+
+Also, support functions for operating with n-tuples of types, such as:
+
+`append1 α β`    : append type J-indexed `β` family to I-indexed `α` family to obtain a `(I⊕J)`-indexed family
+`drop α`         : drops the last element of an `(I⊕J)`-indexed family
+`last α`         : returns the last element of an `(I⊕J)`-indexed family
+`append_fun f g` : appends two families of functions `f` and `g`
+`drop_fun f`     : drops the last function family from an `(I⊕J)`-indexed family
+`last_fun f`     : returns the last function family of a `(I⊕J)`-indexed family
+
+Since e.g. `append1 α.drop α.last` is propositionally equal to `α` but not definitionally equal
+to it, we need support functions and lemmas to mediate between constructions.
+-/
 
 universes u v w
 
 open category_theory
 
-/-- Type family indexed by `I` as a category -/
+/-- Type family indexed by `I`; we call `fam (I ⊕ J)` the product
+of `fam I` and `fam J` (despite being formulated using a sum type) -/
 @[reducible]
 def fam (I : Type u) := I → Type u
 
@@ -16,12 +43,15 @@ namespace fam
 
 variables  {I : Type u}
 
+/-- retain the left side of a product family -/
 def drop {α : Type u} : fam (I ⊕ α) → fam I :=
 λ x i, x (sum.inl i)
 
+/-- retain the right side of a product family -/
 def last {α : Type u} : fam (I ⊕ α) → fam α :=
 λ x i, x (sum.inr i)
 
+/-- combine two families with different indices their product -/
 def append1 {α : Type u} (f : fam I) (g : fam α) : fam (I ⊕ α)
 | (sum.inl i) := f i
 | (sum.inr i) := g i
@@ -47,15 +77,17 @@ namespace fam
 
 variables {I J : Type u}
 
--- @[ext]
 lemma ext (X Y : fam I) (f g : X ⟶ Y) (h : ∀ i (x : X i), f x = g x) : f = g :=
 funext $ λ i, funext $ h _
 
+/-- obtain an arrow over the product of two families by combining an arrow over its left side and
+an arrow over its right side  -/
 def split_fun {α β : fam (I⊕J)} :
   Π (f : drop α ⟶ drop β) (g : last α ⟶ last β), α ⟶ β
 | f g (sum.inl i) x := f x
 | f g (sum.inr i) x := g x
 
+/-- combine two arrows over different categories of families into an arrow on their product -/
 def append_fun {α β : fam I} {α' β' : fam J} (f : α ⟶ β) (g : α' ⟶ β') : (α.append1 α' ⟶ β.append1 β') :=
 split_fun f g
 
@@ -81,9 +113,11 @@ lemma split_fun_comp_right {α : fam (I⊕J)} {β γ : fam J} {γ' : fam I}
   (split_fun f f' : α ⟶ γ'.append1 β) ≫ split_fun (𝟙 _) g' :=
 by rw [← split_fun_comp,category.comp_id]
 
+/-- take the left side of an arrow on a product of two families -/
 def drop_fun {α β : fam (I⊕J)} : Π (f : α ⟶ β), drop α ⟶ drop β
 | f i x := f x
 
+/-- take the right side of an arrow on a product of two families -/
 def last_fun {α β : fam (I⊕J)} : Π (f : α ⟶ β), last α ⟶ last β
 | f i x := f x
 
@@ -102,11 +136,14 @@ theorem append_fun_id_id {α : fam I} {β : fam J} :
   append_fun (𝟙 α) (𝟙 β) = 𝟙 _ :=
 by apply eq_of_drop_last_eq; intros; try { ext }; refl
 
+/-- `unit i` is an object in `fam I` such that has only one
+member and that its index is `i` -/
 inductive unit (i : I) : I → Type u
 | rfl {} : unit i
 
-def unit.star (i : I) : unit i i := unit.rfl
+instance {i : I} : inhabited (unit i i) := ⟨ unit.rfl ⟩
 
+/-- given a value of a type family, give an arrow to that object -/
 def value (i) (X : fam I) : X i → (unit i ⟶ X)
 | x j unit.rfl := x
 
@@ -124,12 +161,15 @@ section subtype
 
 variables {F : fam I ⥤ fam J}
 
-@[pp_nodot]
+/-- predicate over the values in type family `α` -/
+@[pp_nodot, derive inhabited]
 def Pred (α : fam I) : Sort* := ∀ i, α i → Prop
 
+/-- introduction rule for `Pred α` -/
 def Pred.mk {α : fam I} (p : Π i, (unit i ⟶ α) → Prop) : Pred α :=
 λ i x, p i $ value i _ x
 
+/-- elimination rule for `Pred α` -/
 def Pred.apply {α : fam I} (p : Pred α) : ∀ ⦃i⦄, (unit i ⟶ α) → Prop :=
 λ i f, p i $ f unit.rfl
 
@@ -146,6 +186,7 @@ lemma Pred.mk_to_fun {α : fam I} (p : Π i, (unit i ⟶ α) → Prop) {i} (x : 
 lemma Pred.mk_apply {α : fam I} (p : Pred α) :
   Pred.mk (Pred.apply p) = p := by ext; refl
 
+/-- contravariant map function for `Pred` -/
 def Pred.map {α β : fam I} (f : α ⟶ β) (p : Pred β) : Pred α :=
 λ i x, p i (f x)
 
@@ -153,13 +194,16 @@ lemma Pred.map_mk {α β : fam I} (f : α ⟶ β) (p : Π ⦃i⦄, (unit i ⟶ �
   Pred.map f (Pred.mk p) = Pred.mk (λ i g, p (g ≫ f)) :=
 by ext; simp [Pred.mk,Pred.map]; congr'; ext _ ⟨ ⟩; refl
 
+/-- subtypes as an object of a type family category -/
 @[reducible]
 def subtype {α : fam I} (p : Pred α) : fam I :=
 λ i, subtype (p i)
 
+/-- elimination rule for `subtype` object -/
 def subtype.val {α : fam I} {p : Pred α} : fam.subtype p ⟶ α :=
 λ i, subtype.val
 
+/-- map function on the predicate of `subtype` -/
 def subtype.map {α β : fam I} (p : Pred α) (q : Pred β)
   (f : α ⟶ β) (h : ∀ i x, p i x → q i (f x)) :
   fam.subtype p ⟶ fam.subtype q :=
@@ -173,17 +217,21 @@ lemma subtype.map_val {α β : fam I} {p : Pred α} {q : Pred β} (a : α ⟶ β
   subtype.map p q a h ≫ subtype.val = subtype.val ≫ a :=
 by ext _ ⟨ ⟩ : 2; refl
 
+/-- binary product in the category `fam I` -/
 def prod (α β : fam I) : fam I
 | i := α i × β i
 
 infix ` ⊗ `:35 := prod
 
+/-- left projection of binary product in the category `fam I` -/
 def prod.fst : Π {α β : fam I}, α ⊗ β ⟶ α
 | α β i x := _root_.prod.fst x
 
+/-- right projection of binary product in the category `fam I` -/
 def prod.snd : Π {α β : fam I}, α ⊗ β ⟶ β
 | α β i x := _root_.prod.snd x
 
+/-- map function of the binary product in the category `fam I` -/
 def prod.map {α β α' β' : fam I} : (α ⟶ β) → (α' ⟶ β') → (α ⊗ α' ⟶ β ⊗ β')
 | f g i x := (f x.1,g x.2)
 
@@ -225,6 +273,7 @@ lemma prod.map_mk {α β α' β' : fam I}
   prod.map f g (x,y) = (f x,g y) :=
 rfl
 
+/-- diagonal arrow of the binary product in the category `fam I` -/
 def diag : Π {α : fam I}, α ⟶ α ⊗ α
 | α i x := (x,x)
 
@@ -246,20 +295,24 @@ lemma diag_map_fst_snd_comp {α β γ γ' : fam I} (g : α ⟶ γ) (g' : β ⟶ 
   diag ≫ (prod.fst ≫ g ⊗ prod.snd ≫ g') = (g ⊗ g') :=
 by ext _ ⟨ ⟩; refl
 
+/-- binary coproduct in the category `fam I` -/
 def sum (α β : fam I) : fam I
 | i := α i ⊕ β i
 
 infix ` ⊕' `:35 := sum
 
+/-- map function of the binary coproduct in the category `fam I` -/
 def sum.map {α β α' β' : fam I} : (α ⟶ β) → (α' ⟶ β') → (α ⊕' α' ⟶ β ⊕' β')
 | f g i (sum.inl x) := sum.inl $ f x
 | f g i (sum.inr x) := sum.inr $ g x
 
 infix ` ⊕' `:35 := sum.map
 
+/-- left introduction arrow of the binary coproduct in the category `fam I` -/
 def sum.inl : Π {α β : fam I}, α ⟶ α ⊕' β
 | α β i x := _root_.sum.inl x
 
+/-- right introduction arrow of the binary coproduct in the category `fam I` -/
 def sum.inr : Π {α β : fam I}, β ⟶ α ⊕' β
 | α β i x := _root_.sum.inr x
 
@@ -288,6 +341,7 @@ lemma sum.map_comp {α β γ α' β' γ' : fam I}
   sum.map f f' ≫ sum.map g g' = sum.map (f ≫ g) (f' ≫ g') :=
 by apply sum.ext; simp
 
+/-- co-diagonal arrow of the binary coproduct in the category `fam I` -/
 def codiag : Π {α : fam I}, α ⊕' α ⟶ α
 | α i (_root_.sum.inl x) := x
 | α i (_root_.sum.inr x) := x
@@ -297,11 +351,13 @@ end subtype
 @[simp]
 lemma comp_app {α β γ : fam I} (f : α ⟶ β) (g : β ⟶ γ) {i} (x : α i) : (f ≫ g) x = g (f x) := rfl
 
+/-- Propositional equality between values as a `Pred` -/
 protected def eq (α : fam I) : Pred (α ⊗ α) :=
 λ i x, x.1 = x.2
 
-def sat {X α : fam J} (f : X ⟶ α) (r : fam.Pred α) : Prop :=
-∃ f' : X ⟶ subtype r, f = f' ≫ fam.subtype.val
+/-- Application of predicate `p` to the target of arrow `f` -/
+def sat {X α : fam J} (f : X ⟶ α) (p : fam.Pred α) : Prop :=
+∃ f' : X ⟶ subtype p, f = f' ≫ fam.subtype.val
 
 infix ` ⊨ `:50 := sat
 
@@ -347,14 +403,6 @@ lemma comp_sat {α β X : fam J} (x : X ⟶ α) (g : α ⟶ β)
   g ⊨ r → x ≫ g ⊨ r
 | ⟨f,h⟩ := ⟨x ≫ f,by rw [h,category.assoc]⟩
 
--- lemma sat_map₀ {α β X : fam J} (x : X ⟶ α) (f : β ⟶ α) (g : α ⟶ β)
---   (r : Pred β) (hh : f ≫ g = 𝟙 _) :
---   x ≫ g ⊨ r → x ⊨ r.map g
--- | ⟨h,h'⟩ := ⟨λ i y, ⟨f (h y).1,
---   by { replace hh := congr_arrow hh, simp at hh,
---        simp [Pred.map,hh], apply (h y).2 }⟩,
---   by { ext, simp [h'], refl } ⟩
-
 lemma sat_map' {α β X : fam J} (x : X ⟶ β) (f : β ⟶ α) (g : α ⟶ β)
   (r : Pred β) (hh : f ≫ g = 𝟙 _) :
   x ≫ f ⊨ r.map g → x ⊨ r
@@ -363,6 +411,7 @@ lemma sat_map' {α β X : fam J} (x : X ⟶ β) (f : β ⟶ α) (g : α ⟶ β)
                  replace hh := congr_arrow hh, simp at hh,
                  simp [subtype.val,h'.symm,hh], refl }⟩
 
+/-- quotient type as an object of category `fam I` -/
 def quot {α : fam I} (r : Pred (α ⊗ α)) : fam I :=
 λ i, quot (λ x y, r i (x,y))
 
@@ -370,6 +419,7 @@ namespace quot
 
 variables {α β γ : fam I}  (r : Pred (α ⊗ α))
 
+/-- elimination rule for `fam.quot` -/
 def lift (f : α ⟶ β)
   (h : ∀ {i} (a : unit i ⟶ α⊗α), a ⊨ r → a ≫ prod.fst ≫ f = a ≫ prod.snd ≫ f) :
   (quot r ⟶ β) :=
@@ -377,36 +427,22 @@ def lift (f : α ⟶ β)
   let d := value i (fam.subtype r) (subtype.mk (a,b) h') in
   value.get _ _ (h (value i _ (a,b)) ⟨d,by ext _ ⟨ ⟨ rfl ⟩ ⟩; refl⟩) ) x
 
--- def lift' ⦃i⦄ (f : α ⟶ β)
---   (h : ∀ (a : unit i ⟶ α⊗α), a ⊨ r → a ≫ prod.fst ≫ f = a ≫ prod.snd ≫ f) :
---   Π (x : unit i ⟶ quot r), unit i ⟶ β
--- | x _ unit.rfl := _root_.quot.lift (@f i) (λ a b h',
--- let h := h (value i _ (a,b)) ⟨value i (subtype r) ⟨(a,b),h'⟩,value.ext _ _ rfl⟩ in
--- value.get _ _ h) (x unit.rfl)
-
--- def of_unit (h : ∀ {i}, (unit i ⟶ α) → (unit i ⟶ β)) : α ⟶ β :=
--- λ i x, h (value i _ x) unit.rfl
-
--- λ j xx,
--- _root_.quot.lift (@f i) (λ a b h',
--- let h := h (value i _ _) in
--- _
--- ) (x xx)
-
+/-- introduction rule for `fam.quot` -/
 def mk : α ⟶ quot r :=
 λ (i : I) (x : α i), quot.mk _ x
 
+/-- noncomputable elimination rule for `fam.quot` -/
 noncomputable def out : quot r ⟶ α :=
 λ i x, quot.out x
 
 variables {r}
 
 @[simp, reassoc]
-lemma mk_lift_ (g : α ⟶ β) (h) :
+lemma mk_lift (g : α ⟶ β) (h) :
   quot.mk r ≫ lift r g h = g :=
 by ext; refl
 
-@[reassoc, simp] -- keep that order: in _ ≫ g, g is a variable
+@[reassoc]
 lemma lift_comp (f : α ⟶ β) (g : β ⟶ γ) (h) :
   lift r f h ≫ g = lift r (f ≫ g) (by intros; reassoc h; rw h _ a_1) :=
 by { ext, dsimp [lift,(≫)], induction x_1 using quot.ind, refl }
@@ -480,9 +516,11 @@ diag ≫ (prod.fst ≫ prod.fst ⊗ diag ≫ (prod.fst ≫ prod.snd ⊗ prod.snd
 /-- Projection from a product of three components to the
 two left-most components -/
 def lpair : α ⊗ β ⊗ γ ⟶ α ⊗ β := fam.prod.fst
+
 /-- Projection from a product of three components to the
 two right-most components -/
 def rpair : α ⊗ β ⊗ γ ⟶ β ⊗ γ := fam.prod.snd ⊗ 𝟙 _
+
 /-- Projection from a product of three components to the
 left-most and right-most components -/
 def sides : α ⊗ β ⊗ γ ⟶ α ⊗ γ := fam.prod.fst ⊗ 𝟙 _
@@ -539,3 +577,68 @@ end
 end quot
 
 end fam
+
+universes u' v'
+
+namespace category_theory
+
+namespace functor
+open category_theory
+
+section map_comp
+
+variables {C : Type u} {D : Type u'} [category.{v} C] [category.{v'} D] (F : C ⥤ D)
+
+@[reassoc]
+lemma map_comp_map {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : F.map f ≫ F.map g = F.map (f ≫ g) :=
+(category_theory.functor.map_comp _ _ _).symm
+
+end map_comp
+
+namespace fam
+
+variables {I J : Type u} {F G : fam I ⥤ fam J}
+
+/-- given an arrow `x` to `F.obj α`, does `p` hold for every `α` related to `x`. -/
+def liftp {α : fam I} (p : fam.Pred α) {X : fam J} (x : X ⟶ F.obj α) : Prop :=
+∃ u : X ⟶ F.obj (fam.subtype p), u ≫ F.map fam.subtype.val = x
+
+/-- `liftr r x y` relates `x` and `y` iff `x` and `y` have the same shape and that
+we can pair values `a` from `x` and `b` from `y` so that `r a b` holds -/
+def liftr {α β : fam I} (r : fam.Pred (α ⊗ β)) {X : fam J} (x : X ⟶ F.obj α) (y : X ⟶ F.obj β) : Prop :=
+∃ u : X ⟶ F.obj (fam.subtype r),
+  u ≫ F.map (fam.subtype.val ≫ fam.prod.fst) = x ∧
+  u ≫ F.map (fam.subtype.val ≫ fam.prod.snd) = y
+
+/-- `supp x` is the set of values of type `α` that `x` contains -/
+def supp {α : fam I} {X : fam J} (x : X ⟶ F.obj α) (ι : I) : set (α ι) :=
+{ y : α ι | ∀ ⦃p⦄, liftp p x → p _ y }
+
+theorem of_mem_supp {α : fam I} {X : fam J} {x : X ⟶ F.obj α} {p : fam.Pred α} (h : liftp p x) :
+  ∀ i (y ∈ supp x i), p _ y :=
+λ i y hy, hy h
+
+lemma liftp_comp {α : fam I} {X : fam J} {p : Π i, α i → Prop}
+  (x : X ⟶ F.obj α) (h : F ⟶ G) :
+  liftp p x → liftp p (x ≫ h.app _)
+| ⟨u,h'⟩ := ⟨u ≫ nat_trans.app h _, by rw ← h'; simp,⟩
+
+lemma liftp_comp' {α : fam I} {X : fam J} {p : Π i, α i → Prop}
+  (x : X ⟶ F.obj α) (T : F ⟶ G) (T' : G ⟶ F)
+  (h_inv : ∀ {α}, T.app α ≫ T'.app α = 𝟙 _) :
+  liftp p x ↔ liftp p (x ≫ T.app _) :=
+⟨ liftp_comp x T,
+ λ ⟨u,h'⟩, ⟨u ≫ T'.app _,by rw [category.assoc,← nat_trans.naturality,← category.assoc,h',category.assoc,h_inv,category.comp_id]⟩ ⟩
+
+lemma liftr_comp {α : fam I} {X : fam J} (p : fam.Pred (α ⊗ α)) (x y : X ⟶ F.obj α)
+   (T : F ⟶ G) :
+  liftr p x y → liftr p (x ≫ T.app _) (y ≫ T.app _)
+| ⟨u,h,h'⟩ := ⟨u ≫ T.app _,
+  by { reassoc! h h',
+       rw ← h'; simp only [category.assoc, (nat_trans.naturality _ _).symm,*,eq_self_iff_true, and_self] }⟩
+
+end fam
+
+end functor
+
+end category_theory

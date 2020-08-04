@@ -228,7 +228,7 @@ def S := indefinite_diagonal l l R
 
 lemma S_as_blocks : S l R = matrix.from_blocks 1 0 0 (-1) :=
 begin
-  rw [←matrix.diagonal_one, matrix.diagonal_neg, matrix.from_blocks_diagonal],
+  rw [← matrix.diagonal_one, matrix.diagonal_neg, matrix.from_blocks_diagonal],
   refl,
 end
 
@@ -243,7 +243,7 @@ end
 lemma PD_inv [invertible (2 : R)] : (PD l R) * (⅟(2 : R) • (PD l R)ᵀ) = 1 :=
 begin
   have h : ⅟(2 : R) • (1 : matrix l l R) + ⅟(2 : R) • 1 = 1 := by
-    rw [←smul_add, ←(two_smul R _), smul_smul, inv_of_mul_self, one_smul],
+    rw [← smul_add, ← (two_smul R _), smul_smul, inv_of_mul_self, one_smul],
   erw [matrix.from_blocks_transpose, matrix.from_blocks_smul, matrix.mul_eq_mul,
     matrix.from_blocks_multiply],
   simp [h],
@@ -263,7 +263,7 @@ begin
   apply (skew_adjoint_matrices_lie_subalgebra_equiv (JD l R) (PD l R) (is_unit_PD l R)).trans,
   apply lie_algebra.equiv.of_eq,
   ext A,
-  rw [JD_transform, ←unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe,
+  rw [JD_transform, ← unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe,
       mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],
   refl,
 end
@@ -282,7 +282,7 @@ def PB := matrix.from_blocks (1 : matrix punit punit R) 0 0 (PD l R)
 lemma PB_inv [invertible (2 : R)] : (PB l R) * (matrix.from_blocks 1 0 0 (PD l R)⁻¹) = 1 :=
 begin
   simp [PB, matrix.from_blocks_multiply, (PD l R).mul_nonsing_inv, is_unit_PD,
-        ←(PD l R).is_unit_iff_is_unit_det]
+        ← (PD l R).is_unit_iff_is_unit_det]
 end
 
 lemma is_unit_PB [invertible (2 : R)] : is_unit (PB l R) :=
@@ -318,7 +318,7 @@ begin
     (matrix.reindex_alg_equiv (equiv.sum_assoc punit l l)) (matrix.reindex_transpose _ _)).trans,
   apply lie_algebra.equiv.of_eq,
   ext A,
-  rw [JB_transform, ←unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe, lie_subalgebra.mem_coe,
+  rw [JB_transform, ← unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe, lie_subalgebra.mem_coe,
       mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],
   simpa [indefinite_diagonal_assoc],
 end

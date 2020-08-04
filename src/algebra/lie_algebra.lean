@@ -502,7 +502,7 @@ def lie_subalgebra.map (f : L →ₗ⁅R⁆ L₂) (L' : lie_subalgebra R L) : li
 
 @[simp] lemma lie_subalgebra.mem_map_submodule (e : L ≃ₗ⁅R⁆ L₂) (L' : lie_subalgebra R L) (x : L₂) :
   x ∈ L'.map (e : L →ₗ⁅R⁆ L₂) ↔ x ∈ (L' : submodule R L).map (e : L →ₗ[R] L₂) :=
-by refl
+iff.rfl
 
 end lie_subalgebra
 
@@ -932,7 +932,7 @@ def skew_adjoint_matrices_lie_subalgebra : lie_subalgebra R (matrix n n R) :=
 
 @[simp] lemma mem_skew_adjoint_matrices_lie_subalgebra (A : matrix n n R) :
   A ∈ skew_adjoint_matrices_lie_subalgebra J ↔ A ∈ skew_adjoint_matrices_submodule J :=
-by refl
+iff.rfl
 
 /-- An invertible matrix `P` gives a Lie algebra equivalence between those endomorphisms that are
 skew-adjoint with respect to a square matrix `J` and those with respect to `PᵀJP`. -/
@@ -962,8 +962,8 @@ lie_algebra.equiv.of_subalgebras _ _ e.to_lie_equiv
 begin
   ext A,
   suffices : J.is_skew_adjoint (e.symm A) ↔ (e J).is_skew_adjoint A, by simpa [this],
-  simp [matrix.is_skew_adjoint, matrix.is_adjoint_pair, ←matrix.mul_eq_mul,
-    ←h, ←function.injective.eq_iff e.injective],
+  simp [matrix.is_skew_adjoint, matrix.is_adjoint_pair, ← matrix.mul_eq_mul,
+    ← h, ← function.injective.eq_iff e.injective],
 end
 
 @[simp] lemma skew_adjoint_matrices_lie_subalgebra_equiv_transpose_apply

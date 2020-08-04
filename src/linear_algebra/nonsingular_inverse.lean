@@ -386,8 +386,8 @@ begin
   have h' : is_unit B.det :=
   ⟨{ val     := B.det,
      inv     := A.det,
-     val_inv := by rw [mul_comm, ←det_mul, h, det_one],
-     inv_val := by rw [←det_mul, h, det_one],
+     val_inv := by rw [mul_comm, ← det_mul, h, det_one],
+     inv_val := by rw [← det_mul, h, det_one],
   }, rfl⟩,
   calc B ⬝ A = (B ⬝ A) ⬝ (B ⬝ B⁻¹) : by simp only [h', matrix.mul_one, mul_nonsing_inv]
         ... = B ⬝ ((A ⬝ B) ⬝ B⁻¹) : by simp only [matrix.mul_assoc]

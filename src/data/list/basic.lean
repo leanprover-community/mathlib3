@@ -1370,7 +1370,7 @@ end
 
 theorem map_filter_eq_foldr (f : α → β) (p : α → Prop) [decidable_pred p] (as : list α) :
   map f (filter p as) = foldr (λ a bs, if p a then f a :: bs else bs) [] as :=
-by induction as; [ refl, simp! [*, apply_ite (map f)] ]
+by { induction as, { refl }, { simp! [*, apply_ite (map f)] } }
 
 /-! ### map₂ -/
 
@@ -1785,10 +1785,10 @@ theorem mfoldl_eq_foldl (f : β → α → m β) (b l) :
 begin
   suffices h : ∀ (mb : m β),
     (mb >>= λ b, mfoldl f b l) = foldl (λ mb a, mb >>= λ b, f b a) mb l,
-  by simp[←h (pure b)],
+  by simp [←h (pure b)],
   induction l; intro,
-  case nil { simp },
-  case cons { simp only [mfoldl, foldl, ←l_ih] with monad_norm }
+  { simp },
+  { simp only [mfoldl, foldl, ←l_ih] with monad_norm }
 end
 
 @[simp] theorem mfoldl_append {f : β → α → m β} : ∀ {b l₁ l₂},

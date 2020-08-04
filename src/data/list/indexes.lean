@@ -27,8 +27,11 @@ rfl
 
 theorem foldr_with_index_aux_correct (f : ℕ → α → β → β) (start b as) :
   foldr_with_index_aux f start b as = foldr_with_index_aux_spec f start b as :=
-by induction as generalizing start;
-    [refl, simp only [foldr_with_index_aux, foldr_with_index_aux_spec_cons, *]]
+begin
+  induction as generalizing start,
+  { refl },
+  { simp only [foldr_with_index_aux, foldr_with_index_aux_spec_cons, *] }
+end
 
 theorem foldr_with_index_correct' (f : ℕ → α → β → β) (b : β) (as : list α) :
   foldr_with_index f b as = foldr (uncurry f) b (zip (range as.length) as) :=
@@ -81,8 +84,11 @@ rfl
 
 theorem foldl_with_index_aux_correct (f : ℕ → α → β → α) (start a bs) :
   foldl_with_index_aux f start a bs = foldl_with_index_aux_spec f start a bs :=
-by induction bs generalizing start a;
-    [refl, simp [foldl_with_index_aux, foldl_with_index_aux_spec_cons, *]]
+begin
+  induction bs generalizing start a,
+  { refl },
+  { simp [foldl_with_index_aux, foldl_with_index_aux_spec_cons, *] }
+end
 
 theorem foldl_with_index_correct (f : ℕ → α → β → α) (a : α) (bs : list β) :
   foldl_with_index f a bs =
@@ -135,10 +141,11 @@ variables [is_lawful_monad m]
 
 theorem mmap_with_index_aux_correct {α β} (f : ℕ → α → m β) (start : ℕ) (as : list α) :
   mmap_with_index_aux f start as = mmap_with_index_aux_spec f start as :=
-by induction as generalizing start;
-    [ refl
-    , simp [mmap_with_index_aux, mmap_with_index_aux_spec_cons, *]
-        with monad_norm ]
+begin
+  induction as generalizing start,
+  { refl },
+  { simp [mmap_with_index_aux, mmap_with_index_aux_spec_cons, *] with monad_norm }
+end
 
 theorem mmap_with_index_correct {α β} (f : ℕ → α → m β) (as : list α) :
   mmap_with_index f as = mmap (uncurry f) (indexed as) :=

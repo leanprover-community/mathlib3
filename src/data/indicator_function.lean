@@ -142,12 +142,14 @@ lemma indicator_union_of_not_mem_inter (h : a ∉ s ∩ t) (f : α → β) :
 by { simp only [indicator], split_ifs, repeat {simp * at * {contextual := tt}} }
 
 lemma indicator_union_of_disjoint (h : disjoint s t) (f : α → β) :
-  indicator (s ∪ t) f = indicator s f + indicator t f :=
-funext $ λa, indicator_union_of_not_mem_inter (λ ha, h ha) _
+  indicator (s ∪ t) f = λa, indicator s f a + indicator t f a :=
+funext $ λa, indicator_union_of_not_mem_inter
+  (by { convert not_mem_empty a, have := disjoint.eq_bot h, assumption })
+  _
 
 lemma indicator_add (s : set α) (f g : α → β) :
-  indicator s (f + g) = indicator s f + indicator s g :=
-by { funext, simp only [indicator, pi.add_apply], split_ifs, { refl }, rw add_zero }
+  indicator s (λa, f a + g a) = λa, indicator s f a + indicator s g a :=
+by { funext, simp only [indicator], split_ifs, { refl }, rw add_zero }
 
 @[simp] lemma indicator_compl_add_self_apply (s : set α) (f : α → β) (a : α) :
   indicator sᶜ f a + indicator s f a = f a :=
@@ -186,20 +188,15 @@ instance is_add_group_hom.indicator (s : set α) : is_add_group_hom (λf:α → 
 { .. is_add_monoid_hom.indicator β s }
 variables {β}
 
-lemma indicator_neg (s : set α) (f : α → β) : indicator s (- f) = - indicator s f :=
-is_add_group_hom.map_neg _ _
+lemma indicator_neg (s : set α) (f : α → β) : indicator s (λa, - f a) = λa, - indicator s f a :=
+show indicator s (- f) = - indicator s f, from is_add_group_hom.map_neg _ _
 
 lemma indicator_sub (s : set α) (f g : α → β) :
-  indicator s (f - g) = indicator s f - indicator s g :=
-is_add_group_hom.map_sub _ _ _
+  indicator s (λa, f a - g a) = λa, indicator s f a - indicator s g a :=
+show indicator s (f - g) = indicator s f - indicator s g, from is_add_group_hom.map_sub _ _ _
 
 lemma indicator_compl (s : set α) (f : α → β) : indicator sᶜ f = f - indicator s f :=
 eq_sub_of_add_eq $ s.indicator_compl_add_self f
-
-lemma indicator_diff_of_subset (h : s ⊆ t) (f : α → β) :
-  indicator (t \ s) f = indicator t f - indicator s f :=
-eq_sub_of_add_eq $ (indicator_union_of_disjoint disjoint_diff.symm _).symm.trans $
-  by rw [union_comm, union_diff_cancel h]
 
 lemma indicator_finset_sum {β} [add_comm_monoid β] {ι : Type*} (I : finset ι) (s : set α) (f : ι → α → β) :
   indicator s (∑ i in I, f i) = ∑ i in I, indicator s (f i) :=
@@ -227,17 +224,6 @@ begin
   have := hI a (finset.mem_insert_self _ _) a' (finset.mem_insert_of_mem ha') _,
   { assume h, have h := mem_inter hx h, rw this at h, exact not_mem_empty _ h },
   { assume h, rw h at haI, contradiction }
-end
-
-lemma indicator_Ici_sub_Ici [decidable_linear_order α] {γ} {g : β → γ} (hg : ∀ x, g (-x) = g x)
-  (f : α → β) (a b x : α) :
-  g (indicator (Ici a) f x - indicator (Ici b) f x) = g (indicator (Ico (min a b) (max a b)) f x) :=
-begin
-  rw [← Ici_diff_Ici, indicator_diff_of_subset (Ici_subset_Ici.2 min_le_max)],
-  cases le_total a b with hab hab;
-    simp only [min_eq_left, min_eq_right, max_eq_left, max_eq_right, hab],
-  { refl },
-  { rw [← hg, neg_sub, pi.sub_apply] }
 end
 
 end add_group

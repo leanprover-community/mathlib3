@@ -154,6 +154,8 @@ lemma integrable_on_of_bounded {C} (hs : μ s < ⊤) (hf : ∀ᵐ x ∂(μ.restr
 by haveI : finite_measure (μ.restrict s) := ⟨by rwa [measure.restrict_apply_univ]⟩;
   exact integrable_of_bounded hf
 
+/-- We say that a function `f` is *integrable at filter* `l` if it is integrable on some
+set `s ∈ l`. Equivalently, it is eventually integrable on `s` in `l.lift' powerset`. -/
 def integrable_at_filter (f : α → E) (l : filter α) (μ : measure α . volume_tac) :=
 ∃ s ∈ l, integrable_on f s μ
 

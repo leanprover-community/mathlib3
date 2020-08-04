@@ -1305,8 +1305,8 @@ end insert_nth
 
 @[simp] lemma map_nil (f : α → β) : map f [] = [] := rfl
 
-theorem map_eq_foldr (f : α → β) (l : list α)
-  : map f l = foldr (λ a bs, f a :: bs) [] l :=
+theorem map_eq_foldr (f : α → β) (l : list α) :
+  map f l = foldr (λ a bs, f a :: bs) [] l :=
 by induction l; simp *
 
 lemma map_congr {f g : α → β} : ∀ {l : list α}, (∀ x ∈ l, f x = g x) → map f l = map g l
@@ -1368,8 +1368,8 @@ begin
     cases x, simpa using hxy, simp at hxy, simp [y_ih hxy.2, h hxy.1] }
 end
 
-theorem map_filter_eq_foldr (f : α → β) (p : α → Prop) [decidable_pred p] (as : list α)
-  : map f (filter p as) = foldr (λ a bs, if p a then f a :: bs else bs) [] as :=
+theorem map_filter_eq_foldr (f : α → β) (p : α → Prop) [decidable_pred p] (as : list α) :
+  map f (filter p as) = foldr (λ a bs, if p a then f a :: bs else bs) [] as :=
 by induction as; [ refl, simp! [*, apply_ite (map f)] ]
 
 /-! ### map₂ -/
@@ -2541,8 +2541,8 @@ filter_map_eq_map f ▸ s.filter_map _
 section filter
 variables {p : α → Prop} [decidable_pred p]
 
-theorem filter_eq_foldr (p : α → Prop) [decidable_pred p] (l : list α)
-  : filter p l = foldr (λ a out, if p a then a :: out else out) [] l :=
+theorem filter_eq_foldr (p : α → Prop) [decidable_pred p] (l : list α) :
+  filter p l = foldr (λ a out, if p a then a :: out else out) [] l :=
 by induction l; simp [*, filter]
 
 lemma filter_congr {p q : α → Prop} [decidable_pred p] [decidable_pred q]

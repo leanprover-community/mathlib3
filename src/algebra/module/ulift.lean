@@ -1,15 +1,15 @@
 /-
-Copyright (c) 2018 Simon Hudon. All rights reserved.
+Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Simon Hudon, Patrick Massot
+Authors: Scott Morrison
 -/
 import algebra.module.basic
 import algebra.ring.ulift
 
 /-!
-# Pi instances for module and multiplicative actions
+# `ulift` instances for module and multiplicative actions
 
-This file defines instances for module, mul_action and related structures on Pi Types
+This file defines instances for module, mul_action and related structures on `ulift` types.
 -/
 
 namespace ulift

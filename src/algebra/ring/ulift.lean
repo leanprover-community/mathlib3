@@ -7,9 +7,9 @@ import algebra.group.ulift
 import data.equiv.ring
 
 /-!
-# Pi instances for ring
+# `ulift` instances for ring
 
-This file defines instances for ring, semiring and related structures on Pi Types
+This file defines instances for ring, semiring and related structures on `ulift` types.
 -/
 
 universes u v

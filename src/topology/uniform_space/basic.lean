@@ -768,7 +768,7 @@ end⟩
 lemma closure_eq_inter_uniformity {t : set (α×α)} :
   closure t = (⋂ d ∈ 𝓤 α, d ○ (t ○ d)) :=
 set.ext $ assume ⟨a, b⟩,
-calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ 𝓟 t ≠ ⊥) : mem_closure_iff_cluster_pt
+calc (a, b) ∈ closure t ↔ (𝓝[t] (a, b) ≠ ⊥) : mem_closure_iff_cluster_pt
   ... ↔ (((@prod.swap α α) <$> 𝓤 α).lift'
       (λ (s : set (α × α)), set.prod {x : α | (x, a) ∈ s} {y : α | (b, y) ∈ s}) ⊓ 𝓟 t ≠ ⊥) :
     by rw [←uniformity_eq_symm, nhds_eq_uniformity_prod]
@@ -1412,19 +1412,19 @@ theorem continuous_at_iff'_left [topological_space β] {f : β → α} {b : β} 
 by rw [continuous_at, tendsto_nhds_left]
 
 theorem continuous_within_at_iff'_right [topological_space β] {f : β → α} {b : β} {s : set β} :
-  continuous_within_at f s b ↔ tendsto (λ x, (f b, f x)) (nhds_within b s) (𝓤 α) :=
+  continuous_within_at f s b ↔ tendsto (λ x, (f b, f x)) (𝓝[s] b) (𝓤 α) :=
 by rw [continuous_within_at, tendsto_nhds_right]
 
 theorem continuous_within_at_iff'_left [topological_space β] {f : β → α} {b : β} {s : set β} :
-  continuous_within_at f s b ↔ tendsto (λ x, (f x, f b)) (nhds_within b s) (𝓤 α) :=
+  continuous_within_at f s b ↔ tendsto (λ x, (f x, f b)) (𝓝[s] b) (𝓤 α) :=
 by rw [continuous_within_at, tendsto_nhds_left]
 
 theorem continuous_on_iff'_right [topological_space β] {f : β → α} {s : set β} :
-  continuous_on f s ↔ ∀ b ∈ s, tendsto (λ x, (f b, f x)) (nhds_within b s) (𝓤 α) :=
+  continuous_on f s ↔ ∀ b ∈ s, tendsto (λ x, (f b, f x)) (𝓝[s] b) (𝓤 α) :=
 by simp [continuous_on, continuous_within_at_iff'_right]
 
 theorem continuous_on_iff'_left [topological_space β] {f : β → α} {s : set β} :
-  continuous_on f s ↔ ∀ b ∈ s, tendsto (λ x, (f x, f b)) (nhds_within b s) (𝓤 α) :=
+  continuous_on f s ↔ ∀ b ∈ s, tendsto (λ x, (f x, f b)) (𝓝[s] b) (𝓤 α) :=
 by simp [continuous_on, continuous_within_at_iff'_left]
 
 theorem continuous_iff'_right [topological_space β] {f : β → α} :

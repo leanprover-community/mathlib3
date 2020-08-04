@@ -200,12 +200,12 @@ Lim_eq (le_refl _)
 Lim_nhds a
 
 @[simp] lemma Lim_nhds_within {a : α} {s : set α} (h : a ∈ closure s) :
-  @Lim _ _ ⟨a⟩ (nhds_within a s) = a :=
-by haveI : ne_bot (nhds_within a s) := mem_closure_iff_cluster_pt.1 h;
+  @Lim _ _ ⟨a⟩ (𝓝[s] a) = a :=
+by haveI : ne_bot (𝓝[s] a) := mem_closure_iff_cluster_pt.1 h;
 exact Lim_eq inf_le_left
 
 @[simp] lemma lim_nhds_within_id {a : α} {s : set α} (h : a ∈ closure s) :
-  @lim _ _ _ ⟨a⟩ (nhds_within a s) id = a :=
+  @lim _ _ _ ⟨a⟩ (𝓝[s] a) id = a :=
 Lim_nhds_within h
 
 end lim
@@ -375,13 +375,13 @@ set_option default_priority 100 -- see Note [default priority]
   omits T₂), is one in which for every closed `C` and `x ∉ C`, there exist
   disjoint open sets containing `x` and `C` respectively. -/
 class regular_space (α : Type u) [topological_space α] extends t1_space α : Prop :=
-(regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝 a ⊓ 𝓟 t = ⊥)
+(regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝[t] a = ⊥)
 end prio
 
 lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a) :
   ∃t∈(𝓝 a), t ⊆ s ∧ is_closed t :=
 let ⟨s', h₁, h₂, h₃⟩ := mem_nhds_sets_iff.mp h in
-have ∃t, is_open t ∧ s'ᶜ ⊆ t ∧ 𝓝 a ⊓ 𝓟 t = ⊥,
+have ∃t, is_open t ∧ s'ᶜ ⊆ t ∧ 𝓝[t] a = ⊥,
   from regular_space.regular (is_closed_compl_iff.mpr h₂) (not_not_intro h₃),
 let ⟨t, ht₁, ht₂, ht₃⟩ := this in
 ⟨tᶜ,

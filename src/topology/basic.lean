@@ -24,6 +24,12 @@ For topological spaces `α` and `β`, a function `f : α → β` and a point `a 
 `continuous f`. There is also a version of continuity `pcontinuous` for
 partially defined functions.
 
+## Notation
+
+* `𝓝 x`: the filter of neighborhoods of a point `x`;
+* `𝓟 s`: the principal filter of a set `s`;
+* `𝓝[s] x`: the filter `𝓝 x ⊓ 𝓟 s` of neighborhoods of a point `x` within a set `s`.
+
 ## Implementation notes
 
 Topology in mathlib heavily uses filters (even more than in Bourbaki). See explanations in
@@ -439,6 +445,13 @@ def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}
 
 localized "notation `𝓝` := nhds" in topological_space
 
+/-
+The "neighborhood within" filter. Elements of `𝓝[s] a` are sets containing the
+intersection of `s` and a neighborhood of `a`.
+-/
+
+localized "notation `𝓝[` s `] ` x:100 := nhds x ⊓ filter.principal s" in topological_space
+
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := rfl
 
 /-- The open sets containing `a` are a basis for the neighborhood filter. See `nhds_basis_opens'`
@@ -717,11 +730,11 @@ by simp_rw [is_closed_iff_cluster_pt, cluster_pt, inf_principal_ne_bot_iff]
 lemma closure_inter_open {s t : set α} (h : is_open s) : s ∩ closure t ⊆ closure (s ∩ t) :=
 assume a ⟨hs, ht⟩,
 have s ∈ 𝓝 a, from mem_nhds_sets h hs,
-have 𝓝 a ⊓ 𝓟 s = 𝓝 a, by rwa [inf_eq_left, le_principal_iff],
+have 𝓝[s] a = 𝓝 a, by rwa [inf_eq_left, le_principal_iff],
 have cluster_pt a (𝓟 (s ∩ t)),
-  from calc 𝓝 a ⊓ 𝓟 (s ∩ t) = 𝓝 a ⊓ (𝓟 s ⊓ 𝓟 t) : by rw inf_principal
-    ... = 𝓝 a ⊓ 𝓟 t : by rw [←inf_assoc, this]
-    ... ≠ ⊥ : by rw [closure_eq_cluster_pts] at ht; assumption,
+  from calc 𝓝[s ∩ t] a = 𝓝 a ⊓ (𝓟 s ⊓ 𝓟 t) : by rw inf_principal
+    ... = 𝓝[t] a : by rw [←inf_assoc, this]
+    ... ≠ ⊥ : by rwa [closure_eq_cluster_pts] at ht,
 by rwa [closure_eq_cluster_pts]
 
 lemma dense_inter_of_open_left {s t : set α} (hs : closure s = univ) (ht : closure t = univ)
@@ -1025,9 +1038,9 @@ lemma image_closure_subset_closure_image {f : α → β} {s : set α} (h : conti
   f '' closure s ⊆ closure (f '' s) :=
 have ∀ (a : α), cluster_pt a (𝓟 s) → cluster_pt (f a) (𝓟 (f '' s)),
   from assume a ha,
-  have h₁ : ¬ map f (𝓝 a ⊓ 𝓟 s) = ⊥,
-    by rwa[map_eq_bot_iff],
-  have h₂ : map f (𝓝 a ⊓ 𝓟 s) ≤ 𝓝 (f a) ⊓ 𝓟 (f '' s),
+  have h₁ : ¬ map f (𝓝[s] a) = ⊥,
+    by rwa [map_eq_bot_iff],
+  have h₂ : map f (𝓝[s] a) ≤ 𝓝[f '' s] (f a),
     from le_inf
       (le_trans (map_mono inf_le_left) $ by rw [continuous_iff_continuous_at] at h; exact h a)
       (le_trans (map_mono inf_le_right) $ by simp [subset_preimage_image] ),

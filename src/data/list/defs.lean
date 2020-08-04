@@ -190,16 +190,6 @@ also receives each element's index. -/
 def foldr_with_index (f : ℕ → α → β → β) (b : β) (l : list α) : β :=
 foldr_with_index_aux f 0 b l
 
-/-- `indexes l` is the list of indexes of `l`, i.e. `[0 .. l.length - 1]`. -/
-def indexes (l : list α) : list ℕ :=
-l.foldr_with_index (λ i _ is, i :: is) []
-
-/-- `indexed l` is `l` but every element is annotated with its index.
-
-     indexed l = zip (indexes l) l -/
-def indexed (l : list α) : list (ℕ × α) :=
-l.foldr_with_index (λ i a out, (i, a) :: out) []
-
 /-- `find_indexes p l` is the list of indexes of elements of `l` that satisfy `p`. -/
 def find_indexes (p : α → Prop) [decidable_pred p] (l : list α) : list nat :=
 foldr_with_index (λ i a is, if p a then i :: is else is) [] l

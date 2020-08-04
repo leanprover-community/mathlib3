@@ -660,17 +660,15 @@ begin
     refine infi_le_of_le _ (infi_le_of_le h2f $ infi_le _ hf) }
 end
 
-lemma is_left_invariant_induced_outer_measure (f : α → α)
-  (Pm : ∀ (g : α) {s : set α} (hs : P s), P (f ⁻¹' s))
-  (mm : ∀ (g : α) (s : set α) (hs : P s), m (f ⁻¹' s) (Pm g hs) = m s hs) {g : α}
+lemma induced_outer_measure_preimage (f : α ≃ α) (Pm : ∀ (s : set α), P (f ⁻¹' s) ↔ P s)
+  (mm : ∀ (s : set α) (hs : P s), m (f ⁻¹' s) ((Pm _).mpr hs) = m s hs)
   {A : set α} : induced_outer_measure m P0 m0 (f ⁻¹' A) = induced_outer_measure m P0 m0 A :=
 begin
-  rw [induced_outer_measure_eq_infi _ msU m_mono, induced_outer_measure_eq_infi _ msU m_mono],
-  symmetry, refine infi_congr _ ((opens.equiv (homeomorph.mul_left g)).symm.surjective) _,
-  intro U, refine infi_congr_Prop _ _,
-  { apply preimage_subset_preimage_iff,
-    rw function.surjective.range_eq, apply subset_univ, exact (equiv.mul_left g).surjective },
-  intro hU, exact h g U
+  simp only [induced_outer_measure_eq_infi _ msU m_mono], symmetry,
+  refine infi_congr (preimage f) f.injective.preimage_surjective _, intro s,
+  refine infi_congr_Prop (Pm s) _, intro hs,
+  refine infi_congr_Prop f.surjective.preimage_subset_preimage_iff _,
+  intro h2s, exact mm s hs
 end
 
 lemma induced_outer_measure_exists_set {s : set α}

@@ -486,7 +486,7 @@ begin
   rw [ennreal.supr_add],
   refine supr_le _, rintro ⟨L, hL⟩, simp only [subset_inter_iff] at hL,
   have : ↑U' \ U ⊆ U' \ L.1 := diff_subset_diff_right hL.2,
-  refine le_trans (add_le_add_left ((haar_outer_measure K₀).mono this) _) _,
+  refine le_trans (add_le_add_left ((haar_outer_measure K₀).mono' this) _) _,
   rw haar_outer_measure_of_is_open (↑U' \ L.1) (is_open_diff U'.2 L.2.is_closed),
   simp only [inner_content, supr_subtype'], rw [opens.coe_mk],
   haveI : nonempty {M : compacts G // M.1 ⊆ ↑U' \ L.1} := ⟨⟨⊥, empty_subset _⟩⟩,
@@ -513,8 +513,7 @@ begin
   intros g A hA,
   rw [haar_measure_apply hA, haar_measure_apply], swap, exact measurable_mul_left g hA,
   congr' 1,
-  refine outer_measure.is_left_invariant_of_inner_content _,
-  refine is_left_invariant_inner_content _,
+  refine outer_measure.is_left_invariant_of_content echaar_sup_le _ g A,
   intros g K, simpa only [ennreal.coe_eq_coe, ←nnreal.coe_eq] using is_left_invariant_chaar
 end
 
@@ -543,17 +542,16 @@ begin
   split,
   { intros K hK, rw [to_measure_apply _ _ hK.is_measurable],
     apply haar_outer_measure_lt_top_of_is_compact hK },
-  { intros A hA, rw [to_measure_apply _ _ hA],
-    refine le_infi _, intro U, refine le_infi _, intro hU,
-    refine infi_le_of_le U _, refine infi_le_of_le U.2 _, refine infi_le_of_le hU _,
-    rw [to_measure_apply _ _ U.prop.is_measurable, haar_outer_measure_of_is_open (U : set G) U.prop],
-    convert le_refl _ },
+  { intros A hA, rw [to_measure_apply _ _ hA, haar_outer_measure_eq_infi],
+    refine binfi_le_binfi _, intros U hU, refine infi_le_infi _, intro h2U,
+    rw [to_measure_apply _ _ hU.is_measurable, haar_outer_measure_of_is_open U hU], refl' },
   { intros U hU, rw [to_measure_apply _ _ hU.is_measurable, haar_outer_measure_of_is_open U hU],
-    dsimp only [inner_content],
-    refine bsupr_le (λ K hK, _),
+    dsimp only [inner_content], refine bsupr_le (λ K hK, _),
     refine le_supr_of_le K.1 _, refine le_supr_of_le K.2 _, refine le_supr_of_le hK _,
     rw [to_measure_apply _ _ K.2.is_measurable], apply chaar_le_haar_outer_measure },
   { rw ennreal.inv_lt_top, apply haar_outer_measure_self_pos }
 end
+
+end measure
 
 end measure_theory

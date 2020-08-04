@@ -129,15 +129,20 @@ lemma inner_content_Union_nat [t2_space G] {μ : compacts G → ennreal}
   inner_content μ ⟨⋃ (i : ℕ), U i, is_open_Union hU⟩ ≤ ∑' (i : ℕ), inner_content μ ⟨U i, hU i⟩ :=
 by { have := inner_content_Sup_nat h1 h2 (λ i, ⟨U i, hU i⟩), rwa [opens.supr_def] at this }
 
+lemma inner_content_comap {μ : compacts G → ennreal} (f : G ≃ₜ G)
+  (h : ∀ ⦃K : compacts G⦄, μ (K.map f f.continuous) = μ K) (U : opens G) :
+  inner_content μ (U.comap f.continuous) = inner_content μ U :=
+begin
+  refine supr_congr _ ((compacts.equiv f).surjective) _,
+  intro K, refine supr_congr_Prop image_subset_iff _,
+  intro hK, simp only [equiv.coe_fn_mk, subtype.mk_eq_mk, ennreal.coe_eq_coe, compacts.equiv],
+  apply h,
+end
+
 lemma is_left_invariant_inner_content [group G] [topological_group G] {μ : compacts G → ennreal}
   (h : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K) (g : G)
   (U : opens G) : inner_content μ (U.comap $ continuous_mul_left g) = inner_content μ U :=
-begin
-  refine supr_congr _ ((compacts.equiv (homeomorph.mul_left g)).surjective) _,
-  intro K, refine supr_congr_Prop image_subset_iff _,
-  intro hK, simp only [equiv.coe_fn_mk, subtype.mk_eq_mk, ennreal.coe_eq_coe, compacts.equiv],
-  apply h
-end
+by convert inner_content_comap (homeomorph.mul_left g) (λ K, h g) U
 
 lemma inner_content_pos [t2_space G] [group G] [topological_group G] {μ : compacts G → ennreal}
   (h1 : μ ⊥ = 0)
@@ -208,6 +213,19 @@ begin
   rcases induced_outer_measure_exists_set _ _ inner_content_mono hA hε with ⟨U, hU, h2U, h3U⟩,
   exact ⟨⟨U, hU⟩, h2U, h3U⟩, swap, exact inner_content_Union_nat h1 h2
 end
+
+lemma of_content_preimage (f : G ≃ₜ G) (h : ∀ ⦃K : compacts G⦄, μ (K.map f f.continuous) = μ K)
+  (A : set G) : of_content μ h1 (f ⁻¹' A) = of_content μ h1 A :=
+begin
+  refine induced_outer_measure_preimage _ (inner_content_Union_nat h1 h2) inner_content_mono _
+    (λ s, f.is_open_preimage) _,
+  intros s hs, convert inner_content_comap f h ⟨s, hs⟩
+end
+
+lemma is_left_invariant_of_content [group G] [topological_group G]
+  (h : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K) (g : G)
+  (A : set G) : of_content μ h1 ((λ h, g * h) ⁻¹' A) = of_content μ h1 A :=
+by convert of_content_preimage h2 (homeomorph.mul_left g) (λ K, h g) A
 
 lemma of_content_caratheodory (A : set G) :
   (of_content μ h1).caratheodory.is_measurable A ↔ ∀ (U : opens G),

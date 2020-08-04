@@ -431,40 +431,161 @@ lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
 -- set_option pp.all true
 lemma mem_closure_iff {s : set R} {x} :
   x ∈ closure s ↔ x ∈ add_subgroup.closure (submonoid.closure s : set R) :=
-⟨λ h, closure_induction h (λ x hx, add_subgroup.subset_closure $ submonoid.subset_closure hx)
-  (add_subgroup.zero_mem _)
-  (add_subgroup.subset_closure $ submonoid.one_mem $ submonoid.closure s)
-  (λ _ _, add_subgroup.add_mem _)
-  (λ _, add_subgroup.neg_mem _)
-  (λ x y ihx ihy, add_subgroup.closure_induction ihy
-    (λ q hq, add_subgroup.closure_induction ihx
-      (λ p hp, add_subgroup.subset_closure $ (submonoid.closure s).mul_mem hp hq)
-      ((zero_mul q).symm ▸ add_subgroup.zero_mem _)
-      (λ p₁ p₂ ihp₁ ihp₂, (add_mul p₁ p₂ q).symm ▸ add_subgroup.add_mem _ ihp₁ ihp₂))
-    ((mul_zero x).symm ▸ add_subgroup.zero_mem _)
-    (λ q₁ q₂ ihq₁ ihq₂, (mul_add x q₁ q₂).symm ▸ add_subgroup.add_mem _ ihq₁ ihq₂)),
-λ h, add_subgroup.closure_induction h
-  (λ x hx, submonoid.closure_induction hx subset_closure (one_mem _) (λ _ _, mul_mem _))
-  (zero_mem _)
-  (λ _ _, add_mem _)
-  (λ _, neg_mem _)⟩
+begin
+split,
+rintros h,
+apply closure_induction h,
+{rintros x hx,
+apply add_subgroup.subset_closure,
+apply submonoid.subset_closure hx,},
+apply add_subgroup.zero_mem _,
+{
+apply add_subgroup.subset_closure,
+apply submonoid.one_mem (submonoid.closure s),
+},
+{
+rintros x y hx hy,
+apply add_subgroup.add_mem _ _ _,
+repeat{assumption},
+},
+{
+rintros x hx,
+apply add_subgroup.neg_mem _ _,
+exact hx,
+},
+{
+rintros x y hx hy,
+apply add_subgroup.closure_induction hy,
+{
+  rintros q hq,
+  apply add_subgroup.closure_induction hx,
+  {
+    rintros p hp,
+    apply add_subgroup.subset_closure,
+    apply (submonoid.closure s).mul_mem hp hq,
+  },
+  {
+    rw zero_mul q,
+    apply add_subgroup.zero_mem _,
+  },
+  {
+    rintros p₁ p₂ ihp₁ ihp₂,
+    rw add_mul p₁ p₂ q,
+    apply add_subgroup.add_mem _ ihp₁ ihp₂,
+  },
+  rintros x hx,
+  have f : -x * q = -(x*q) := by simp,
+  rw f,
+  apply add_subgroup.neg_mem _ hx,
+},
+{
+  rw mul_zero x,
+  apply add_subgroup.zero_mem _,
+},
+{
+  rintros q₁ q₂ ihq₁ ihq₂,
+  rw mul_add x q₁ q₂,
+  apply add_subgroup.add_mem _ ihq₁ ihq₂,
+},
+rintros z hz,
+have f : x * -z = -(x*z) := by simp,
+rw f,
+apply add_subgroup.neg_mem _ hz,
+},
+rintros h,
+apply add_subgroup.closure_induction h,
+{
+rintros x hx,
+apply submonoid.closure_induction hx,
+  {
+    rintros x hx,
+    apply subset_closure hx,
+  },
+  apply one_mem _,
+  {
+    rintros x y hx hy,
+    apply mul_mem _ _ _,
+    repeat{assumption},
+  },
+},
+apply zero_mem _,
+{
+  rintros x y hx hy,
+  apply add_mem _ _ _,
+  repeat{assumption},
+},
+{
+  rintros x hx,
+  apply neg_mem _ _,
+  assumption,
+},
+end
 
 lemma mem_closure_iff_exists_list {s : set R} {x} : x ∈ closure s ↔
   ∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s) ∧ (L.map list.prod).sum = x :=
-⟨λ hx, add_subgroup.closure_induction (mem_closure_iff.1 hx)
-  (λ x hx, suffices ∃ t : list R, (∀ y ∈ t, y ∈ s) ∧ t.prod = x,
-    from let ⟨t, ht1, ht2⟩ := this in ⟨[t], list.forall_mem_singleton.2 ht1,
+begin
+split,
+{
+  rintros hx,
+  apply add_subgroup.closure_induction (mem_closure_iff.1 hx),
+  {
+    rintros x hx,
+    suffices f : ∃ t : list R, (∀ y ∈ t, y ∈ s) ∧ t.prod = x,
+    {
+      from let ⟨t, ht1, ht2⟩ := f in ⟨[t], list.forall_mem_singleton.2 ht1,
       by rw [list.map_singleton, list.sum_singleton, ht2]⟩,
-    submonoid.closure_induction hx
-      (λ x hx, ⟨[x], list.forall_mem_singleton.2 hx, one_mul x⟩)
-      ⟨[], list.forall_mem_nil _, rfl⟩
-      (λ x y ⟨t, ht1, ht2⟩ ⟨u, hu1, hu2⟩, ⟨t ++ u, list.forall_mem_append.2 ⟨ht1, hu1⟩,
-        by rw [list.prod_append, ht2, hu2]⟩))
-  ⟨[], list.forall_mem_nil _, rfl⟩
-  (λ x y ⟨L, HL1, HL2⟩ ⟨M, HM1, HM2⟩, ⟨L ++ M, list.forall_mem_append.2 ⟨HL1, HM1⟩,
-    by rw [list.map_append, list.sum_append, HL2, HM2]⟩),
+    },
+    apply submonoid.closure_induction hx,
+    {
+      rintros x hx,
+      use ([x] : list R),
+      simp only [mul_one, and_true, forall_eq, eq_self_iff_true, list.mem_singleton, list.prod_cons, list.prod_nil, hx],
+    },
+    {
+      use ([] : list R),
+      simp only [list.not_mem_nil, forall_const, forall_prop_of_false, eq_self_iff_true, not_false_iff, and_self, list.prod_nil],
+    },
+    {
+      rintros x y ⟨t, ht1, ht2⟩ ⟨u, hu1, hu2⟩,
+      use t ++ u,
+      rw [list.prod_append, ht2, hu2],
+      simp only [list.mem_append, and_true, eq_self_iff_true],
+      rintros y h,
+      cases h,
+      apply ht1 y h,
+      apply hu1 y h,
+    },
+  },
+  {
+    use ([]),
+    simp only [list.not_mem_nil, list.sum_nil, forall_const, forall_prop_of_false, eq_self_iff_true, not_false_iff, and_self,
+ list.map],
+  },
+  {
+    rintros x y ⟨L, HL1, HL2⟩ ⟨M, HM1, HM2⟩,
+    use L ++ M,
+    rw [list.map_append, list.sum_append, HL2, HM2],
+    simp,
+    rintros t ht,
+    cases ht,
+    apply HL1 t ht,
+    apply HM1 t ht,
+  },
+  {
+    rintros z ⟨L, HL1, HL2⟩,
+    sorry,
+  },
+},
+rintros ⟨L, HL1, HL2⟩,
+apply subset_closure,
+sorry,
+  /-
 λ ⟨L, HL1, HL2⟩, HL2 ▸ list_sum_mem _ (λ r hr, let ⟨t, ht1, ht2⟩ := list.mem_map.1 hr in
   ht2 ▸ list_prod_mem _ (λ y hy, subset_closure $ HL1 t ht1 y hy))⟩
+-/
+end
+
+
 #exit
 
 

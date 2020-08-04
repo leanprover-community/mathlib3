@@ -209,9 +209,10 @@ foldr_with_index (λ i a is, if p a then i :: is else is) [] l
 def indexes_values (p : α → Prop) [decidable_pred p] (l : list α) : list (ℕ × α) :=
 foldr_with_index (λ i a l, if p a then (i , a) :: l else l) [] l
 
-/-- `indexes_of a l` is the list of all indexes of `a` in `l`.
-
-     indexes_of a [a, b, a, a] = [0, 2, 3] -/
+/-- `indexes_of a l` is the list of all indexes of `a` in `l`. For example:
+```
+indexes_of a [a, b, a, a] = [0, 2, 3]
+``` -/
 def indexes_of [decidable_eq α] (a : α) : list α → list nat := find_indexes (eq a)
 
 section mfold_with_index

@@ -57,9 +57,7 @@ lemma continuous_on.inv [topological_group α] [topological_space β] {f : β �
 continuous_inv.comp_continuous_on hf
 
 @[to_additive]
-lemma tendsto_inv {α : Type*} [group α]
-  [topological_space α] [topological_group α] (a : α) :
-  tendsto (λ x, x⁻¹) (nhds a) (nhds (a⁻¹)) :=
+lemma tendsto_inv [topological_group α] (a : α) : tendsto (λ x, x⁻¹) (nhds a) (nhds (a⁻¹)) :=
 continuous_inv.tendsto a
 
 /-- If a function converges to a value in a multiplicative topological group, then its inverse
@@ -105,8 +103,7 @@ lemma is_closed_map_mul_left [topological_group α] (a : α) : is_closed_map (λ
 
 /-- Right multiplication in a topological group is a homeomorphism. -/
 @[to_additive]
-protected def homeomorph.mul_right
-  {α : Type*} [topological_space α] [group α] [topological_group α] (a : α) :
+protected def homeomorph.mul_right [topological_group α] (a : α) :
   α ≃ₜ α :=
 { continuous_to_fun  := continuous_id.mul continuous_const,
   continuous_inv_fun := continuous_id.mul continuous_const,
@@ -122,13 +119,12 @@ lemma is_closed_map_mul_right [topological_group α] (a : α) : is_closed_map (�
 
 /--  The inverse function in a topological group is a homeomorphism. -/
 @[to_additive]
-protected def homeomorph.inv (α : Type*) [topological_space α] [group α] [topological_group α] :
-  α ≃ₜ α :=
+protected def homeomorph.inv [topological_group α] : α ≃ₜ α :=
 { continuous_to_fun  := continuous_inv,
   continuous_inv_fun := continuous_inv,
   .. equiv.inv α }
 
-instance [group α] [topological_space α] [topological_group α] : topological_group αᵒᵖ :=
+instance [topological_group α] : topological_group αᵒᵖ :=
 { continuous_inv :=
   by { convert (continuous_op.comp continuous_inv).comp continuous_unop, apply_instance },
   ..opposite.has_continuous_mul }

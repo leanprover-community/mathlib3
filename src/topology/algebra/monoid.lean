@@ -77,9 +77,9 @@ lemma tendsto_mul {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (𝓝 (a, b))
 continuous_iff_continuous_at.mp has_continuous_mul.continuous_mul (a, b)
 
 @[to_additive]
-lemma filter.tendsto.mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
-  (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
-  tendsto (λx, f x * g x) x (𝓝 (a * b)) :=
+lemma filter.tendsto.mul {f : β → α} {g : β → α} {F : filter β} {a b : α}
+  (hf : tendsto f F (𝓝 a)) (hg : tendsto g F (𝓝 b)) :
+  tendsto (λx, f x * g x) F (𝓝 (a * b)) :=
 tendsto_mul.comp (hf.prod_mk_nhds hg)
 
 @[to_additive]
@@ -99,7 +99,7 @@ instance [topological_space β] [has_mul β] [has_continuous_mul β] : has_conti
 ⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
  ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
 
-instance [topological_space α] [has_mul α] [has_continuous_mul α] : has_continuous_mul αᵒᵖ :=
+instance : has_continuous_mul αᵒᵖ :=
 { continuous_mul := ((continuous_op.comp continuous_mul).comp continuous_swap).comp
   (continuous_unop.prod_map continuous_unop) }
 
@@ -110,9 +110,9 @@ section has_continuous_mul
 variables [topological_space α] [monoid α] [has_continuous_mul α]
 
 @[to_additive]
-lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
-  ∀l:list γ, (∀c∈l, tendsto (f c) x (𝓝 (a c))) →
-    tendsto (λb, (l.map (λc, f c b)).prod) x (𝓝 ((l.map a).prod))
+lemma tendsto_list_prod {f : γ → β → α} {F : filter β} {g : γ → α} :
+  ∀l:list γ, (∀c∈l, tendsto (f c) F (𝓝 (g c))) →
+    tendsto (λb, (l.map (λc, f c b)).prod) F (𝓝 ((l.map g).prod))
 | []       _ := by simp [tendsto_const_nhds]
 | (f :: l) h :=
   begin
@@ -153,14 +153,14 @@ mem_nhds_sets_iff.2 ⟨β, (by refl), oβ, β.one_mem⟩
 variable [has_continuous_mul α]
 
 @[to_additive]
-lemma tendsto_multiset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :
-  (∀c∈s, tendsto (f c) x (𝓝 (a c))) →
-    tendsto (λb, (s.map (λc, f c b)).prod) x (𝓝 ((s.map a).prod)) :=
+lemma tendsto_multiset_prod {f : γ → β → α} {F : filter β} {a : γ → α} (s : multiset γ) :
+  (∀c∈s, tendsto (f c) F (𝓝 (a c))) →
+    tendsto (λb, (s.map (λc, f c b)).prod) F (𝓝 ((s.map a).prod)) :=
 by { rcases s with ⟨l⟩, simp, exact tendsto_list_prod l }
 
 @[to_additive]
-lemma tendsto_finset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : finset γ) :
-  (∀c∈s, tendsto (f c) x (𝓝 (a c))) → tendsto (λb, ∏ c in s, f c b) x (𝓝 (∏ c in s, a c)) :=
+lemma tendsto_finset_prod {f : γ → β → α} {F : filter β} {a : γ → α} (s : finset γ) :
+  (∀c∈s, tendsto (f c) F (𝓝 (a c))) → tendsto (λb, ∏ c in s, f c b) F (𝓝 (∏ c in s, a c)) :=
 tendsto_multiset_prod _
 
 @[to_additive, continuity]

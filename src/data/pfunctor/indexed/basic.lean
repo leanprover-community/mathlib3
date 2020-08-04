@@ -1,95 +1,34 @@
-
 /-
-Copyright (c) 2018 Simon Hudon. All rights reserved.
+Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
 -/
-import tactic.interactive tactic.mk_constructive
+import tactic.interactive
+import tactic.mk_constructive
+import tactic.mk_opaque
 import control.family
 import control.functor.indexed
-import tactic.mk_opaque
 
 /-!
+# Polynomial functors between indexed type families
 
-Polynomial functors between indexed type families
-
+Indexed polynomial functors are used for defining M-types and W-types.
+They map a type family `α : fam J` to the type family
+`λ j, Σ a : A j, B j a ⟶ α`, with `A : fam J` and `B : Π j, A j → fam I`.
+They interact well with Lean's inductive definitions because they
+guarantee that occurrences of `α` are positive.
 -/
+
 universes v v' u u'
 
-/- TODO (Simon): move this. -/
-
-namespace category_theory
-
-namespace functor
-open category_theory
-
-section map_comp
-
-variables {C : Type u} {D : Type u'} [category.{v} C] [category.{v'} D] (F : C ⥤ D)
-
-@[reassoc]
-lemma map_comp_map {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : F.map f ≫ F.map g = F.map (f ≫ g) :=
-(category_theory.functor.map_comp _ _ _).symm
-
-end map_comp
-
-namespace fam
-
-variables {I J : Type u} {F G : fam I ⥤ fam J}
-
-def liftp {α : fam I} (p : fam.Pred α) {X : fam J} (x : X ⟶ F.obj α) : Prop :=
-∃ u : X ⟶ F.obj (fam.subtype p), u ≫ F.map fam.subtype.val = x
-
-def liftr {α β : fam I} (r : fam.Pred (α ⊗ β)) {X : fam J} (x : X ⟶ F.obj α) (y : X ⟶ F.obj β) : Prop :=
-∃ u : X ⟶ F.obj (fam.subtype r),
-  u ≫ F.map (fam.subtype.val ≫ fam.prod.fst) = x ∧
-  u ≫ F.map (fam.subtype.val ≫ fam.prod.snd) = y
-
-def supp {α : fam I} {X : fam J} (x : X ⟶ F.obj α) (ι : I) : set (α ι) :=
-{ y : α ι | ∀ ⦃p⦄, liftp p x → p _ y }
-
-theorem of_mem_supp {α : fam I} {X : fam J} {x : X ⟶ F.obj α} {p : fam.Pred α} (h : liftp p x) :
-  ∀ i (y ∈ supp x i), p _ y :=
-λ i y hy, hy h
-
-lemma liftp_comp {α : fam I} {X : fam J} {p : Π i, α i → Prop}
-  (x : X ⟶ F.obj α) (h : F ⟶ G) :
-  liftp p x → liftp p (x ≫ h.app _)
-| ⟨u,h'⟩ := ⟨u ≫ nat_trans.app h _, by rw ← h'; simp,⟩
-
-lemma liftp_comp' {α : fam I} {X : fam J} {p : Π i, α i → Prop}
-  (x : X ⟶ F.obj α) (T : F ⟶ G) (T' : G ⟶ F)
-  (h_inv : ∀ {α}, T.app α ≫ T'.app α = 𝟙 _) :
-  liftp p x ↔ liftp p (x ≫ T.app _) :=
-⟨ liftp_comp x T,
- λ ⟨u,h'⟩, ⟨u ≫ T'.app _,by rw [category.assoc,← nat_trans.naturality,← category.assoc,h',category.assoc,h_inv,category.comp_id]⟩ ⟩
-
-lemma liftr_comp {α : fam I} {X : fam J} (p : fam.Pred (α ⊗ α)) (x y : X ⟶ F.obj α)
-   (T : F ⟶ G) :
-  liftr p x y → liftr p (x ≫ T.app _) (y ≫ T.app _)
-| ⟨u,h,h'⟩ := ⟨u ≫ T.app _,
-  by { reassoc! h h',
-       rw ← h'; simp only [category.assoc, (nat_trans.naturality _ _).symm,*,eq_self_iff_true, and_self] }⟩
-
-end fam
-
-end functor
-
-end category_theory
-
-
-/-
-A polynomial functor `P` is given by a type `A` and a family `B` of types over `A`. `P` maps
-any type `α` to a new type `P.apply α`.
-
-An element of `P.apply α` is a pair `⟨a, f⟩`, where `a` is an element of a type `A` and
-`f : B a → α`. Think of `a` as the shape of the object and `f` as an index to the relevant
-elements of `α`.
--/
-
+/-- Polynomial functors between indexed type families -/
 structure ipfunctor (I J : Type u) :=
 (A : fam J) (B : Π i, A i → fam I)
 
+instance {I J} : inhabited (ipfunctor I J) := ⟨ ⟨ default _, default _ ⟩ ⟩
+
+/-- specialized version of `ipfunctor` used for defining simple constructions -/
+@[derive inhabited]
 def ipfunctor₀ (I : Type u) := ipfunctor I I
 
 namespace ipfunctor
@@ -99,12 +38,15 @@ variables {I J : Type u} {α β : Type u}
 section pfunc
 variables (P : ipfunctor I J)
 
--- TODO: generalize to psigma?
+/-- polynomial functor `P` as a functor -/
 def apply : fam I ⥤ fam J :=
 { obj := λ X i, Σ a : P.A i, P.B i a ⟶ X,
   map := λ X Y f i ⟨a,g⟩, ⟨a, g ≫ f⟩ }
 
-def obj := P.apply.obj
+/-- Applying `P` to an object of `fam I` -/
+def obj : fam I → fam J := P.apply.obj
+
+/-- map function for polynomial functor `P` -/
 def map {X Y : fam I} (f : X ⟶ Y) : P.obj X ⟶ P.obj Y := P.apply.map f
 
 lemma map_id {X : fam I} : P.map (𝟙 X) = 𝟙 _ :=
@@ -129,43 +71,45 @@ theorem map_eq {α β : fam I} (f : α ⟶ β) {i : J} (a : P.A i) (g : P.B i a 
   value i (P.obj _) ⟨a, g⟩ ≫ P.map f = value i (P.obj _) ⟨a, g ≫ f⟩ :=
 by ext _ ⟨ ⟩ : 2; simp [map_eq']
 
+/-- `Idx` identifies a location inside the application of an ipfunctor.
+For `P : ipfunctor`, `x : P.obj α` and `i : P.Idx`, `i` can designate
+one part of `x` or is invalid, if `i.1 ≠ x.1` -/
 def Idx (i : J) := Σ (x : P.A i) j, P.B i x j
 
-section
-variables {P}
-def Idx.idx {i : J} (x : Idx P i) : I := x.2.1
-end
+instance Idx.inhabited {i} [inhabited (P.A i)] [inhabited I] [inhabited $ P.B i (default (P.A i)) (default I)] :
+  inhabited (Idx P i) := ⟨ ⟨default _,default _,default _⟩ ⟩
 
-def obj.iget {i} [decidable_eq $ P.A i] {α : fam I} (x : P.obj α i) (j : P.Idx i) [inhabited $ α j.2.1] : α j.2.1 :=
+/-- Type index of the `A` component referenced by index `x` -/
+def Idx.idx {P : ipfunctor I J} {i : J} (x : Idx P i) : I := x.2.1
+
+/-- Lookup the part of `x` designed by index `j` or return an arbitrary value -/
+def obj.iget {i} [decidable_eq $ P.A i] {α : fam I} (x : P.obj α i) (j : P.Idx i) [inhabited $ α j.idx] : α j.idx :=
 if h : j.1 = x.1
-  then x.2 (cast (by rw ← h) $ j.2.2)
+  then x.2 (cast (by rw [Idx.idx,← h]) $ j.2.2)
   else default _
 
 end pfunc
 
 end ipfunctor
 
-/-
+/-!
 Composition of polynomial functors.
 -/
 
 namespace ipfunctor
 
-/-
-def comp : ipfunctor.{u} → ipfunctor.{u} → ipfunctor.{u}
-| ⟨A₂, B₂⟩ ⟨A₁, B₁⟩ := ⟨Σ a₂ : A₂, B₂ a₂ → A₁, λ ⟨a₂, a₁⟩, Σ u : B₂ a₂, B₁ (a₁ u)⟩
--/
-
 variables {I J K : Type u} (P₂ : ipfunctor.{u} J K) (P₁ : ipfunctor.{u} I J)
 
+/-- Composition of polynomial functors. -/
 def comp : ipfunctor.{u} I K :=
 ⟨ λ i, Σ a₂ : P₂.1 i, P₂.2 _ a₂ ⟶ P₁.1,
--- ⟨ Σ a₂ : P₂.1 _, P₂.2 _ a₂ → P₁.1, ²
   λ k a₂a₁ i, Σ j (u : P₂.2 _ a₂a₁.1 j), P₁.2 _ (a₂a₁.2 u) i ⟩
 
+/-- Contructor for polynomial functor composition -/
 def comp.mk : Π (α : fam I), P₂.obj (P₁.obj α) ⟶ (comp P₂ P₁).obj α :=
 λ α k x, ⟨ ⟨x.1,x.2 ≫ λ j, sigma.fst⟩, λ i a₂a₁, (x.2 _).2 a₂a₁.2.2 ⟩
 
+/-- Destructor for polynomial functor composition -/
 def comp.get : Π (α : fam I), (comp P₂ P₁).obj α ⟶ P₂.obj (P₁.obj α) :=
 λ α k x, ⟨ x.1.1, λ j a₂, ⟨x.1.2 a₂, λ i a₁, x.2 ⟨j, a₂, a₁⟩⟩ ⟩
 
@@ -206,6 +150,7 @@ open fam set category_theory.functor
 @[simp]
 lemma then_def {X Y Z : fam I} (f : X ⟶ Y) (g : Y ⟶ Z) {i} (x : X i) : (f ≫ g) x = g (f x) := rfl
 
+/-- Eliminator for polynomial functor -/
 @[elab_as_eliminator]
 def obj_cases
    {α : fam I} {j} {C : (unit j ⟶ P.obj α) → Sort*}
@@ -319,40 +264,31 @@ end
 
 end ipfunctor
 
-/-
-Facts about the general quotient needed to construct final coalgebras.
+/-!
+Decomposing an ipfunctor on product of type families.
 
-TODO (Simon): move these somewhere.
--/
-
-namespace quot.indexed
-
-def factor {I} {α : fam I} (r s: fam.Pred (α ⊗ α))
-  (h : ∀ i (a : fam.unit i ⟶ α ⊗ α), a ⊨ r → a ⊨ s) :
-  fam.quot r ⟶ fam.quot s :=
--- _
-fam.quot.lift _ (fam.quot.mk _)
-(λ X a h', fam.quot.sound _ (h _ _ h') )
-
-def factor_mk_eq {I} {α : fam I} (r s: fam.Pred (α ⊗ α))
-  (h : ∀ i (a : fam.unit i ⟶ α ⊗ α), a ⊨ r → a ⊨ s) :
-  fam.quot.mk _ ≫ factor r s h = fam.quot.mk _ := rfl
-
-end quot.indexed
-
-/-
-Decomposing an n+1-ary ipfunctor.
+The terminolgy, `drop` and `last` is purposefully asymmetric to
+hint at the fact that type families and intended to be built
+out of an iteration of products. For instance, `fam (((pempty ⊕ I) ⊕ J) ⊕ K)` is
+intended to encode a vector of type families `[fam I, fam J, fam K]` and gives easy
+access to the last object.
 -/
 
 namespace ipfunctor
 variables {I J : Type u} (P : ipfunctor.{u} (J⊕I) I)
 
+/-- Take a functor from the left component of the source type family of `P`
+to the target type family of `P` -/
 def drop : ipfunctor J I :=
 { A := P.A, B := λ i a, (P.B i a).drop }
 
+/-- Take a functor from the right component of the source type family of `P`
+to the target type family of `P` -/
 def last : ipfunctor₀ I :=
 { A := P.A, B := λ i a, (P.B i a).last }
 
+/-- Helper definition for reasoning about the construction by parts of
+a polynomial functor -/
 @[reducible] def append_contents {α : fam J} {β : fam I}
     {i} {a : P.A i} (f' : P.drop.B i a ⟶ α) (f : P.last.B i a ⟶ β) :
   P.B i a ⟶ α.append1 β :=
@@ -365,5 +301,20 @@ variables {j : I} {a a' : P.A j} {α α' : fam J} {β β' : fam I}
 lemma append_contents_comp :
   append_contents _ (f₀ ≫ f₁) (g₀ ≫ g₁) = append_contents _ f₀ g₀ ≫ fam.split_fun f₁ g₁ :=
 by rw [append_contents,append_contents,← fam.split_fun_comp]
+
+end ipfunctor
+
+namespace ipfunctor
+variables {I J : Type u} (P : ipfunctor.{u} I J)
+
+/-- Shorthand for creating an arrow from a value. The type is more
+specific than necessary but helps with elaboration -/
+def pf.mk {α} (i) (x : P.obj α i) : fam.unit i ⟶ P.obj α :=
+fam.value _ _ x
+
+@[reassoc]
+lemma pf.mk_map_eq {α β} (i) (a : P.A i) (f : P.B i a ⟶ α) (g : α ⟶ β) :
+  pf.mk P i ⟨a,f⟩ ≫ P.map g = pf.mk P i ⟨a,f ≫ g⟩ :=
+ipfunctor.map_eq _ _ _ _
 
 end ipfunctor

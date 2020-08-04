@@ -4,7 +4,10 @@ namespace tactic
 
 setup_tactic_parser
 
-meta def interactive.mk_opaque1 (n : parse ident) : tactic unit :=
+/-- `mk_opaque x y z`, with `x`, `y`, `z` local definitions, transforms them into
+normal local constants -/
+meta def interactive.mk_opaque (ns : parse ident*) : tactic unit :=
+ns.mmap' $ λ n,
 do h ← get_local n,
    n ← revert h,
    (expr.elet v t d b) ← target | fail "not a let expression",
@@ -14,8 +17,5 @@ do h ← get_local n,
    gs ← get_goals,
    set_goals $ g :: gs,
    intron n
-
-meta def interactive.mk_opaque (ns : parse ident*) : tactic unit :=
-ns.mmap' interactive.mk_opaque1
 
 end tactic

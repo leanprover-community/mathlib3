@@ -1,34 +1,12 @@
 /-
-Copyright (c) 2018 Jeremy Avigad. All rights reserved.
+Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad, Mario Carneiro
-
-Tuples of types, and their categorical structure.
-
-Features:
-
-`typevec n`   : n-tuples of types
-`α ⟹ β`      : n-tuples of maps
-`f ⊚ g`       : composition
-`mvfunctor n` : the type class of multivariate functors
-`f <$$> x`    : notation for map
-
-Also, support functions for operating with n-tuples of types, such as:
-
-`append1 α β`    : append type `β` to n-tuple `α` to obtain an (n+1)-tuple
-`drop α`         : drops the last element of an (n+1)-tuple
-`last α`         : returns the last element of an (n+1)-tuple
-`append_fun f g` : appends a function g to an n-tuple of functions
-`drop_fun f`     : drops the last function from an n+1-tuple
-`last_fun f`     : returns the last function of a tuple.
-
-Since e.g. `append1 α.drop α.last` is propositionally equal to `α` but not definitionally equal
-to it, we need support functions and lemmas to mediate between constructions.
+Author: Simon Hudon
 -/
 import control.family
 
-/-
-n-tuples of types, as a category
+/-!
+# Operations on functors between indexed type families
 -/
 
 universes u v w
@@ -62,7 +40,7 @@ theorem append_fun_comp_split_fun
   fam.split_fun f₀ g₀ ≫ fam.append_fun f₁ g₁ = fam.split_fun (f₀ ≫ f₁) (g₀ ≫ g₁) :=
 (fam.split_fun_comp _ _ _ _).symm
 
-/- for lifting predicates and relations -/
+/-! for lifting predicates and relations -/
 
 /-- `pred_last α p x` predicates `p` of the last element of `x : α.append1 β`. -/
 def pred_last (α : fam I) {β : fam J} (p : Pred β) : Pred (α.append1 β)
@@ -76,3 +54,18 @@ def rel_last (α : fam I) {β γ : fam J} (r : Pred $ β ⊗ γ) :
 | (sum.inr i) := r _
 
 end category_theory.functor.fam
+
+namespace quot.indexed
+
+/-- map on the relation of `quot` -/
+def factor {I} {α : fam I} (r s: fam.Pred (α ⊗ α))
+  (h : ∀ i (a : fam.unit i ⟶ α ⊗ α), a ⊨ r → a ⊨ s) :
+  fam.quot r ⟶ fam.quot s :=
+fam.quot.lift _ (fam.quot.mk _)
+(λ X a h', fam.quot.sound _ (h _ _ h') )
+
+lemma factor_mk_eq {I} {α : fam I} (r s: fam.Pred (α ⊗ α))
+  (h : ∀ i (a : fam.unit i ⟶ α ⊗ α), a ⊨ r → a ⊨ s) :
+  fam.quot.mk _ ≫ factor r s h = fam.quot.mk _ := rfl
+
+end quot.indexed

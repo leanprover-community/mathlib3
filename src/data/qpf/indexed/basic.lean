@@ -146,26 +146,14 @@ by rw [h,← category.assoc,abs_repr,category.id_comp]
 open ipfunctor (map_eq')
 
 open iqpf (abs_map)
-open set
+open set fam ipfunctor
 open category_theory.functor (fam.supp)
-open fam
 
-section
-variables (F)
-def pf.mk {α} (i) (x : (P F).obj α i) : unit i ⟶ (P F).obj α :=
-value _ _ x
-
-@[reassoc]
-lemma pf.mk_map_eq {α β} (i) (a : (P F).A i) (f : (P F).B i a ⟶ α) (g : α ⟶ β) :
-  pf.mk F i ⟨a,f⟩ ≫ (P F).map g = pf.mk F i ⟨a,f ≫ g⟩ :=
-ipfunctor.map_eq _ _ _ _
-
-end
-
+/-- eliminator for an arbitrary `iqpf` -/
 @[elab_as_eliminator]
 def abs_cases
    {α : fam I} {j} {C : (unit j ⟶ F.obj α) → Sort*}
-   (h : ∀ a f, C $ pf.mk F j ⟨a,f⟩ ≫ abs F α)
+   (h : ∀ a f, C $ pf.mk (P F) j ⟨a,f⟩ ≫ abs F α)
    (x : unit j ⟶ F.obj α) : C x :=
 begin
   rcases h' : repr F α (x unit.rfl) with ⟨a,f⟩,
@@ -176,10 +164,16 @@ begin
   simpa [this] using h
 end
 
-section
+section tactic
+
 setup_tactic_parser
+
 open tactic
 omit q
+
+/-- This tactic takes a value `x : X ⟶ F.obj α` and deconstructs it using `abs_cases`.
+This replaces `induction x using abs_cases` which rejects such applications.
+-/
 @[interactive]
 meta def tac.abs_cases (x : parse ident) (ids : parse with_ident_list) : tactic unit :=
 do
@@ -190,10 +184,10 @@ do
    intron $ n-1,
    skip
 
-end
+end tactic
 
 theorem liftp_iff {α : fam I} (p : Π i, α i → Prop) {j} (x : unit j ⟶ F.obj α) :
-  liftp p x ↔ ∃ a f, x = pf.mk F j ⟨a,f⟩ ≫ abs F α ∧ ∀ i a, p i (f a) :=
+  liftp p x ↔ ∃ a f, x = pf.mk (P F) j ⟨a,f⟩ ≫ abs F α ∧ ∀ i a, p i (f a) :=
 begin
   split,
   { rintros ⟨y, hy⟩,
@@ -217,8 +211,8 @@ end
 theorem liftr_iff {α β : fam I} {j} (r : fam.Pred (α ⊗ β))
   (x : unit j ⟶ F.obj α) (y : unit j ⟶ F.obj β) :
   liftr r x y ↔ ∃ a f₀ f₁,
-    x = pf.mk F j ⟨a, f₀⟩ ≫ abs F _ ∧
-    y = pf.mk F j ⟨a, f₁⟩ ≫ abs F _ ∧
+    x = pf.mk (P F) j ⟨a, f₀⟩ ≫ abs F _ ∧
+    y = pf.mk (P F) j ⟨a, f₁⟩ ≫ abs F _ ∧
     ∀ i a, r i (f₀ a, f₁ a) :=
 begin
   split,
@@ -317,7 +311,7 @@ theorem mem_supp {α : fam I}
   {j} (x : unit j ⟶ F.obj α) (i) (u : α i) :
   u ∈ fam.supp x i ↔
   ∀ a (f : (P F).B j a ⟶ α),
-  pf.mk F j ⟨a, f⟩ ≫ abs F α = x → u ∈ (@f i '' univ) :=
+  pf.mk (P F) j ⟨a, f⟩ ≫ abs F α = x → u ∈ (@f i '' univ) :=
 begin
   rw [fam.supp], dsimp, split,
   { intros h a f haf,
@@ -333,14 +327,14 @@ begin
 end
 
 theorem supp_eq {α : fam I} {j} (x : unit j ⟶ F.obj α) (i) :
-  fam.supp x i = { u | ∀ a (f : (P F).B j a ⟶ α), pf.mk F j ⟨a, f⟩ ≫ abs F α = x → u ∈ @f i '' univ } :=
+  fam.supp x i = { u | ∀ a (f : (P F).B j a ⟶ α), pf.mk (P F) j ⟨a, f⟩ ≫ abs F α = x → u ∈ @f i '' univ } :=
 by ext; apply mem_supp
 
 theorem has_good_supp_iff {α : fam I} {j} (x : unit j ⟶ F.obj α) :
   (∀ p, liftp p x ↔ ∀ i (u ∈ fam.supp x i), p i u) ↔
-    ∃ a (f : (P F).B j a ⟶ α), pf.mk F j ⟨a, f⟩ ≫ abs F α = x ∧
+    ∃ a (f : (P F).B j a ⟶ α), pf.mk (P F) j ⟨a, f⟩ ≫ abs F α = x ∧
     ∀ i a' (f' : (P F).B j a' ⟶ α),
-    pf.mk F j ⟨a', f'⟩ ≫ abs F α = x → @f i '' univ ⊆ @f' i '' univ :=
+    pf.mk (P F) j ⟨a', f'⟩ ≫ abs F α = x → @f i '' univ ⊆ @f' i '' univ :=
 begin
   split,
   { intros h,
@@ -376,7 +370,7 @@ variable (q)
 representing a single value all have the same range. -/
 def is_uniform : Prop := ∀ ⦃α : fam I⦄ {j} (a a' : q.P.A j)
     (f : q.P.B j a ⟶ α) (f' : q.P.B j a' ⟶ α),
-  pf.mk F j ⟨a, f⟩ ≫ abs F α = pf.mk F j ⟨a', f'⟩ ≫ abs F α → ∀ i, @f i '' univ = @f' i '' univ
+  pf.mk (P F) j ⟨a, f⟩ ≫ abs F α = pf.mk (P F) j ⟨a', f'⟩ ≫ abs F α → ∀ i, @f i '' univ = @f' i '' univ
 
 /-- does `abs` preserve `liftp`? -/
 def liftp_preservation : Prop :=
@@ -389,7 +383,7 @@ def supp_preservation : Prop :=
 variable [q]
 
 theorem supp_eq_of_is_uniform (h : q.is_uniform) {α : fam I} {j} (a : q.P.A j) (f : q.P.B j a ⟶ α) :
-  ∀ i, fam.supp (pf.mk F j ⟨a, f⟩ ≫ abs F α) i = @f i '' univ :=
+  ∀ i, fam.supp (pf.mk (P F) j ⟨a, f⟩ ≫ abs F α) i = @f i '' univ :=
 begin
   intro, ext u, rw [mem_supp], split,
   { intro h', apply h' _ _ rfl },

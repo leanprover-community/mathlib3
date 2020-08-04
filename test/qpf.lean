@@ -187,6 +187,11 @@ begin
 end
 end ex
 
+/-!
+Example of constructions using `iqpf`
+
+1. Length-indexed vectors
+-/
 
 namespace ex
 local attribute [ext] fam.ext
@@ -237,6 +242,12 @@ instance {α} : iqpf (vec_shape' α) :=
   abs_repr := by { intros, ext, cases x; refl },
   abs_map := by { intros, ext, cases x; cases i; [refl, rcases x_fst with _|⟨_,_,⟨⟨ ⟩⟩⟩]; refl }, }
 
+end ex
+
+/-!
+
+2. rose-tree as mutual inductive types
+-/
 
 namespace ex_mutual
 
@@ -250,6 +261,30 @@ def pair.map {X X' Y Y'} (f : X → Y) (g : X' → Y') : pair X X' ⟶ pair Y Y'
   | tt := f
   | ff := g
   end
+
+/-!
+Encoding
+
+```lean
+mutual inductive child, tree (α : Type)
+with child : Type
+| nil : child
+| cons : tree → child → child
+with tree : Type
+| node : α → child → tree
+```
+
+as
+
+```lean
+inductive tree_child (α : Type) : bool → Type
+| nil : tree_child ff
+| cons : tree_child tt → tree_child ff → tree_child ff
+| node : α → tree_child ff → tree_child tt
+```
+
+in turns encoded as functors `fam (empty ⊕ bool) ⥤ fam bool`
+-/
 
 inductive child_shape (f : empty ⊕ bool → Type) : Type
 | nil : child_shape
@@ -318,5 +353,3 @@ instance {α} : iqpf (mut_shape' α) :=
   abs_map := by intros; ext (_|_) (_|_); dsimp [(≫)]; try { refl }; intro x; cases x; refl, }
 
 end ex_mutual
-
-end ex

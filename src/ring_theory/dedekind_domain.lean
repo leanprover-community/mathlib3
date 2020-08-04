@@ -60,28 +60,39 @@ variables {L : Type*} [field K] [field L] {f : fraction_map R K}
 
 open finsupp polynomial
 
+lemma smul_mul (a₁ a₂ : α) (b : β) : b • (a₁ * a₂) = b * a₁ * a₂ :=
+by sorry,
+-- mul_action.mul_smul _ _ _
+
 lemma maximal_ideal_invertible_of_dedekind (h : is_dedekind_domain f) {M : ideal R}
 (hM : ideal.is_maximal M) : is_unit (M : fractional_ideal f) :=
 begin
 let M1 := {x : K | ∀ y ∈ M, f.is_integer (x * f.to_map y)},
--- have hM1 : is_fractional f (M1), --sorry,
-have M1 : fractional_ideal f, --sorry,
+have M1 : fractional_ideal f,
 {use M1,
   {intros y h,simp,use 0,simp,},
   {intros a b ha hb,intros y h,rw add_mul a b (f.to_map y),
   apply localization_map.is_integer_add,apply ha,exact h,apply hb,exact h,},
   {intros c x h y h,
-  --have p : f.is_integer(x*f.to_map y),sorry,
-  apply localization_map.is_integer_smul},
-  sorry,
-  sorry,},
--- rcases M1 with ⟨I, aI, haI, hI⟩,
--- have N := fractional_ideal.mk_fractional(M),
-have hprod : ↑M*M1=1, --sorry,
-  apply le_antisymm,
-    apply fractional_ideal.mul_le.mpr,
-      intros x hx y hy,
-      rw [mul_comm], sorry, sorry,
+  apply smul_mul c},
+  exact dec_trivial,
+},
+have hprod : ↑M*M1=1,
+  {apply le_antisymm,
+    {apply fractional_ideal.mul_le.mpr,
+      intros y hy x hx,
+      have Hx : (∀ a ∈  ↑M) localization_map.is_integer f (a * x),
+      -- sorry,
+      -- cases M1,
+      -- exact mul_mem_mul M1_val hx,
+      -- cases M1 with R,
+      -- simp * at *,
+      -- cases M1_property with a,
+      --rw [mul_comm],
+      -- exact (fractional_ideal.mem_div_iff_of_nonzero hI).mp hy x hx,--sorry},
+    },
+    {--intros y hy x hx,
+     sorry,},
       -- sto copiando la prova dal teorema right_inverse_eq di fractional_ideal.lean
       -- exact (mem_div_iff_of_nonzero hI).mp hy x hx,},
     --   {rw [←h],
@@ -89,7 +100,8 @@ have hprod : ↑M*M1=1, --sorry,
     --   apply (le_div_iff_of_nonzero hI).mpr _,
     --   intros y hy x hx,
     --   rw [mul_comm],
-    --   exact mul_mem_mul hx hy},
+    --   exact mul_mem_mul hx hy
+  },
 apply is_unit_of_mul_eq_one ↑M M1 hprod,
 end
 

@@ -970,7 +970,7 @@ end
   {m : Type w} [fintype m] [decidable_eq m]
   (e : matrix n n R ≃ₐ[R] matrix m m R) (h : ∀ A, (e A)ᵀ = e (Aᵀ))
   (A : skew_adjoint_matrices_lie_subalgebra J) :
-  ↑(skew_adjoint_matrices_lie_subalgebra_equiv_transpose J e h A) = e A :=
+  (skew_adjoint_matrices_lie_subalgebra_equiv_transpose J e h A : matrix m m R) = e A :=
 rfl
 
 lemma mem_skew_adjoint_matrices_lie_subalgebra_unit_smul (u : units R) (J A : matrix n n R) :

@@ -208,11 +208,16 @@ begin
 end
 
 lemma so_indefinite_equiv_apply {i : R} (hi : i*i = -1) (A : so' p q R) :
-  ↑(so_indefinite_equiv p q R hi A) = (Pso p q R i)⁻¹ ⬝ ↑A ⬝ (Pso p q R i) :=
+  (so_indefinite_equiv p q R hi A : matrix (p ⊕ q) (p ⊕ q) R) = (Pso p q R i)⁻¹ ⬝ (A : matrix (p ⊕ q) (p ⊕ q) R) ⬝ (Pso p q R i) :=
 by erw [lie_algebra.equiv.trans_apply, lie_algebra.equiv.of_eq_apply,
         skew_adjoint_matrices_lie_subalgebra_equiv_apply]
 
-/-- A matrix defining a canonical even-rank symmetric bilinear form. -/
+/-- A matrix defining a canonical even-rank symmetric bilinear form.
+
+It looks like this as a `2l x 2l` matrix of `l x l` blocks:
+   [ 0 1 ]
+   [ 1 0 ]
+-/
 def JD : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 0 1 1 0
 
 /-- The classical Lie algebra of type D as a Lie subalgebra of matrices associated to the matrix
@@ -220,7 +225,12 @@ def JD : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 0 1 1 0
 def type_D := skew_adjoint_matrices_lie_subalgebra (JD l R)
 
 /-- A matrix transforming the bilinear form defined by the matrix `JD` into a split-signature
-diagonal matrix. -/
+diagonal matrix.
+
+It looks like this as a `2l x 2l` matrix of `l x l` blocks:
+   [ 1 -1 ]
+   [ 1  1 ]
+-/
 def PD : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 1 (-1) 1 1
 
 /-- The split-signature diagonal matrix. -/
@@ -268,7 +278,17 @@ begin
   refl,
 end
 
-/-- A matrix defining a canonical odd-rank symmetric bilinear form. -/
+/-- A matrix defining a canonical odd-rank symmetric bilinear form.
+
+It looks like this as a `(2l+1) x (2l+1)` matrix of blocks:
+   [ 2 0 0 ]
+   [ 0 0 1 ]
+   [ 0 1 0 ]
+where sizes of the blocks are:
+   [`1 x 1` `1 x l` `1 x l`]
+   [`l x 1` `l x l` `l x l`]
+   [`l x 1` `l x l` `l x l`]
+-/
 def JB := matrix.from_blocks ((2 : R) • 1 : matrix punit punit R) 0 0 (JD l R)
 
 /-- The classical Lie algebra of type B as a Lie subalgebra of matrices associated to the matrix
@@ -276,7 +296,17 @@ def JB := matrix.from_blocks ((2 : R) • 1 : matrix punit punit R) 0 0 (JD l R)
 def type_B := skew_adjoint_matrices_lie_subalgebra (JB l R)
 
 /-- A matrix transforming the bilinear form defined by the matrix `JB` into an
-almost-split-signature diagonal matrix. -/
+almost-split-signature diagonal matrix.
+
+It looks like this as a `(2l+1) x (2l+1)` matrix of blocks:
+   [ 1 0  0 ]
+   [ 0 1 -1 ]
+   [ 0 1  1 ]
+where sizes of the blocks are:
+   [`1 x 1` `1 x l` `1 x l`]
+   [`l x 1` `l x l` `l x l`]
+   [`l x 1` `l x l` `l x l`]
+-/
 def PB := matrix.from_blocks (1 : matrix punit punit R) 0 0 (PD l R)
 
 lemma PB_inv [invertible (2 : R)] : (PB l R) * (matrix.from_blocks 1 0 0 (PD l R)⁻¹) = 1 :=

@@ -39,14 +39,14 @@ def sections_subsemiring (F : J ⥤ SemiRing) :
   ..(Mon.sections_submonoid (F ⋙ forget₂ SemiRing Mon)) }
 
 instance limit_semiring (F : J ⥤ SemiRing) :
-  semiring (limit (F ⋙ forget SemiRing)) :=
+  semiring (limit (F ⋙ forget SemiRing.{u})) :=
 (sections_subsemiring F).to_semiring
 
 /-- `limit.π (F ⋙ forget SemiRing) j` as a `ring_hom`. -/
-def limit_π_ring_hom (F : J ⥤ SemiRing) (j) :
+def limit_π_ring_hom (F : J ⥤ SemiRing.{u}) (j) :
   limit (F ⋙ forget SemiRing) →+* (F ⋙ forget SemiRing).obj j :=
 { to_fun := limit.π (F ⋙ forget SemiRing) j,
-  ..AddMon.limit_π_add_monoid_hom (F ⋙ forget₂ SemiRing AddCommMon ⋙ forget₂ AddCommMon AddMon) j,
+  ..AddMon.limit_π_add_monoid_hom (F ⋙ forget₂ SemiRing AddCommMon.{u} ⋙ forget₂ AddCommMon AddMon) j,
   ..Mon.limit_π_monoid_hom (F ⋙ forget₂ SemiRing Mon) j, }
 
 namespace has_limits
@@ -140,9 +140,9 @@ instance comm_semiring_obj (F : J ⥤ CommSemiRing) (j) :
 by { change comm_semiring (F.obj j), apply_instance }
 
 instance limit_comm_semiring (F : J ⥤ CommSemiRing) :
-  comm_semiring (limit (F ⋙ forget CommSemiRing)) :=
+  comm_semiring (limit (F ⋙ forget CommSemiRing.{u})) :=
 @subsemiring.to_comm_semiring (Π j, F.obj j) _
-  (SemiRing.sections_subsemiring (F ⋙ forget₂ CommSemiRing SemiRing))
+  (SemiRing.sections_subsemiring (F ⋙ forget₂ CommSemiRing SemiRing.{u}))
 
 /--
 We show that the forgetful functor `CommSemiRing ⥤ SemiRing` creates limits.
@@ -150,7 +150,7 @@ We show that the forgetful functor `CommSemiRing ⥤ SemiRing` creates limits.
 All we need to do is notice that the limit point has a `comm_semiring` instance available,
 and then reuse the existing limit.
 -/
-instance (F : J ⥤ CommSemiRing) : creates_limit F (forget₂ CommSemiRing SemiRing) :=
+instance (F : J ⥤ CommSemiRing) : creates_limit F (forget₂ CommSemiRing SemiRing.{u}) :=
 creates_limit_of_reflects_iso (λ c' t,
 { lifted_cone :=
   { X := CommSemiRing.of (limit (F ⋙ forget _)),
@@ -158,13 +158,13 @@ creates_limit_of_reflects_iso (λ c' t,
     { app := SemiRing.limit_π_ring_hom (F ⋙ forget₂ CommSemiRing SemiRing),
       naturality' := (SemiRing.has_limits.limit (F ⋙ forget₂ _ _)).π.naturality, } },
   valid_lift := is_limit.unique_up_to_iso (limit.is_limit _) t,
-  makes_limit := is_limit.of_faithful (forget₂ CommSemiRing SemiRing) (limit.is_limit _)
+  makes_limit := is_limit.of_faithful (forget₂ CommSemiRing SemiRing.{u}) (limit.is_limit _)
     (λ s, _) (λ s, rfl) })
 
 /-- The category of rings has all limits. -/
-instance has_limits : has_limits CommSemiRing :=
+instance has_limits : has_limits CommSemiRing.{u} :=
 { has_limits_of_shape := λ J 𝒥, by exactI
-  { has_limit := λ F, has_limit_of_created F (forget₂ CommSemiRing SemiRing) } }
+  { has_limit := λ F, has_limit_of_created F (forget₂ CommSemiRing SemiRing.{u}) } }
 
 /--
 The forgetful functor from rings to semirings preserves all limits.
@@ -209,7 +209,7 @@ instance sections_subring (F : J ⥤ Ring) :
   is_subring (F ⋙ forget Ring).sections := {}
 
 instance limit_ring (F : J ⥤ Ring) :
-  ring (limit (F ⋙ forget Ring)) :=
+  ring (limit (F ⋙ forget Ring.{u})) :=
 @subtype.ring ((Π (j : J), (F ⋙ forget _).obj j)) (by apply_instance) _
   (by convert (Ring.sections_subring F))
 
@@ -219,7 +219,7 @@ We show that the forgetful functor `CommRing ⥤ Ring` creates limits.
 All we need to do is notice that the limit point has a `ring` instance available,
 and then reuse the existing limit.
 -/
-instance (F : J ⥤ Ring) : creates_limit F (forget₂ Ring SemiRing) :=
+instance (F : J ⥤ Ring) : creates_limit F (forget₂ Ring SemiRing.{u}) :=
 creates_limit_of_reflects_iso (λ c' t,
 { lifted_cone :=
   { X := Ring.of (limit (F ⋙ forget _)),
@@ -227,7 +227,7 @@ creates_limit_of_reflects_iso (λ c' t,
     { app := SemiRing.limit_π_ring_hom (F ⋙ forget₂ Ring SemiRing),
       naturality' := (SemiRing.has_limits.limit (F ⋙ forget₂ _ _)).π.naturality, } },
   valid_lift := is_limit.unique_up_to_iso (limit.is_limit _) t,
-  makes_limit := is_limit.of_faithful (forget₂ Ring SemiRing) (limit.is_limit _)
+  makes_limit := is_limit.of_faithful (forget₂ Ring SemiRing.{u}) (limit.is_limit _)
     (λ s, _) (λ s, rfl) })
 
 /-- The category of rings has all limits. -/
@@ -280,9 +280,9 @@ instance comm_ring_obj (F : J ⥤ CommRing) (j) :
 by { change comm_ring (F.obj j), apply_instance }
 
 instance limit_comm_ring (F : J ⥤ CommRing) :
-  comm_ring (limit (F ⋙ forget CommRing)) :=
+  comm_ring (limit (F ⋙ forget CommRing.{u})) :=
 @subtype.comm_ring ((Π (j : J), (F ⋙ forget _).obj j)) (by apply_instance) _
-  (by convert (Ring.sections_subring (F ⋙ forget₂ CommRing Ring)))
+  (by convert (Ring.sections_subring (F ⋙ forget₂ CommRing Ring.{u})))
 
 /--
 We show that the forgetful functor `CommRing ⥤ Ring` creates limits.
@@ -290,7 +290,7 @@ We show that the forgetful functor `CommRing ⥤ Ring` creates limits.
 All we need to do is notice that the limit point has a `comm_ring` instance available,
 and then reuse the existing limit.
 -/
-instance (F : J ⥤ CommRing) : creates_limit F (forget₂ CommRing Ring) :=
+instance (F : J ⥤ CommRing) : creates_limit F (forget₂ CommRing Ring.{u}) :=
 /-
 A terse solution here would be
 ```
@@ -302,16 +302,16 @@ creates_limit_of_reflects_iso (λ c' t,
 { lifted_cone :=
   { X := CommRing.of (limit (F ⋙ forget _)),
     π :=
-    { app := SemiRing.limit_π_ring_hom (F ⋙ forget₂ CommRing Ring ⋙ forget₂ Ring SemiRing),
+    { app := SemiRing.limit_π_ring_hom (F ⋙ forget₂ CommRing Ring.{u} ⋙ forget₂ Ring SemiRing),
       naturality' := (SemiRing.has_limits.limit (F ⋙ forget₂ _ _ ⋙ forget₂ _ _)).π.naturality, } },
   valid_lift := is_limit.unique_up_to_iso (limit.is_limit _) t,
-  makes_limit := is_limit.of_faithful (forget₂ CommRing Ring) (limit.is_limit _)
+  makes_limit := is_limit.of_faithful (forget₂ CommRing Ring.{u}) (limit.is_limit _)
     (λ s, _) (λ s, rfl) })
 
 /-- The category of commutative rings has all limits. -/
-instance has_limits : has_limits CommRing :=
+instance has_limits : has_limits CommRing.{u} :=
 { has_limits_of_shape := λ J 𝒥, by exactI
-  { has_limit := λ F, has_limit_of_created F (forget₂ CommRing Ring) } }
+  { has_limit := λ F, has_limit_of_created F (forget₂ CommRing Ring.{u}) } }
 
 /--
 The forgetful functor from commutative rings to rings preserves all limits.

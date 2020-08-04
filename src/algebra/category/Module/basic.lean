@@ -36,11 +36,6 @@ instance : category (Module.{v} R) :=
   id    := λ M, 1,
   comp  := λ A B C f g, g.comp f }
 
-def test : category (Module.{v} R) :=
-{ hom   := λ M N, M →ₗ[R] N,
-  id    := λ M, 1,
-  comp  := λ A B C f g, g.comp f }
-
 instance : concrete_category.{v} (Module.{v} R) :=
 { forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
   forget_faithful := { } }

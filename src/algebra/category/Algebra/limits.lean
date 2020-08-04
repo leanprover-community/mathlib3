@@ -17,12 +17,12 @@ the underlying types are just the limits in the category of types.
 open category_theory
 open category_theory.limits
 
-universe u
+universes v u
 
 namespace Algebra
 
 variables {R : Type u} [comm_ring R]
-variables {J : Type u} [small_category J]
+variables {J : Type v} [small_category J]
 
 instance semiring_obj (F : J ⥤ Algebra R) (j) :
   semiring ((F ⋙ forget (Algebra R)).obj j) :=
@@ -42,14 +42,14 @@ def sections_subalgebra (F : J ⥤ Algebra R) :
 
 
 instance limit_semiring (F : J ⥤ Algebra R) :
-  ring (limit (F ⋙ forget (Algebra R))) :=
+  ring (limit (F ⋙ forget (Algebra.{v} R))) :=
 begin
   change ring (sections_subalgebra F),
   apply_instance,
 end
 
 instance limit_algebra (F : J ⥤ Algebra R) :
-  algebra R (limit (F ⋙ forget (Algebra R))) :=
+  algebra R (limit (F ⋙ forget (Algebra.{v} R))) :=
 begin
   change algebra R (sections_subalgebra F),
   apply_instance,
@@ -57,9 +57,9 @@ end
 
 /-- `limit.π (F ⋙ forget (Algebra R)) j` as a `alg_hom`. -/
 def limit_π_alg_hom (F : J ⥤ Algebra R) (j) :
-  limit (F ⋙ forget (Algebra R)) →ₐ[R] (F ⋙ forget (Algebra R)).obj j :=
+  limit (F ⋙ forget (Algebra.{v} R)) →ₐ[R] (F ⋙ forget (Algebra.{v} R)).obj j :=
 { commutes' := λ r, rfl,
-  ..SemiRing.limit_π_ring_hom (F ⋙ forget₂ (Algebra R) Ring ⋙ forget₂ Ring SemiRing) j }
+  ..SemiRing.limit_π_ring_hom (F ⋙ forget₂ (Algebra R) Ring.{v} ⋙ forget₂ Ring SemiRing.{v}) j }
 
 namespace has_limits
 -- The next two definitions are used in the construction of `has_limits (Algebra R)`.
@@ -107,7 +107,7 @@ instance has_limits : has_limits (Algebra R) :=
 /--
 The forgetful functor from R-algebras to rings preserves all limits.
 -/
-instance forget₂_Ring_preserves_limits : preserves_limits (forget₂ (Algebra R) Ring) :=
+instance forget₂_Ring_preserves_limits : preserves_limits (forget₂ (Algebra R) Ring.{v}) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F,
     by exactI preserves_limit_of_preserves_limit_cone
@@ -116,7 +116,7 @@ instance forget₂_Ring_preserves_limits : preserves_limits (forget₂ (Algebra 
 /--
 The forgetful functor from R-algebras to R-modules preserves all limits.
 -/
-instance forget₂_Module_preserves_limits : preserves_limits (forget₂ (Algebra R) (Module R)) :=
+instance forget₂_Module_preserves_limits : preserves_limits (forget₂ (Algebra R) (Module.{v} R)) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F,
     by exactI preserves_limit_of_preserves_limit_cone

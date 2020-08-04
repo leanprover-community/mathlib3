@@ -10,13 +10,13 @@ import ring_theory.algebra
 open category_theory
 open category_theory.limits
 
-universe u
+universes v u
 
 variables (R : Type u) [comm_ring R]
 
 /-- The category of R-modules and their morphisms. -/
 structure Algebra :=
-(carrier : Type u)
+(carrier : Type v)
 [is_ring : ring carrier]
 [is_algebra : algebra R carrier]
 
@@ -25,18 +25,18 @@ attribute [instance] Algebra.is_ring Algebra.is_algebra
 namespace Algebra
 
 instance : has_coe_to_sort (Algebra R) :=
-{ S := Type u, coe := Algebra.carrier }
+{ S := Type v, coe := Algebra.carrier }
 
-instance : category (Algebra R) :=
+instance : category (Algebra.{v} R) :=
 { hom   := λ A B, A →ₐ[R] B,
   id    := λ A, alg_hom.id R A,
   comp  := λ A B C f g, g.comp f }
 
-instance : concrete_category (Algebra R) :=
+instance : concrete_category (Algebra.{v} R) :=
 { forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
   forget_faithful := { } }
 
-instance has_forget_to_Ring : has_forget₂ (Algebra R) Ring :=
+instance has_forget_to_Ring : has_forget₂ (Algebra R) Ring.{v} :=
 { forget₂ :=
   { obj := λ A, Ring.of A,
     map := λ A₁ A₂ f, alg_hom.to_ring_hom f, } }
@@ -47,13 +47,13 @@ instance has_forget_to_Module : has_forget₂ (Algebra R) (Module R) :=
     map := λ M₁ M₂ f, alg_hom.to_linear_map f, } }
 
 /-- The object in the category of R-algebras associated to a type equipped with the appropriate typeclasses. -/
-def of (X : Type u) [ring X] [algebra R X] : Algebra R := ⟨X⟩
+def of (X : Type v) [ring X] [algebra R X] : Algebra R := ⟨X⟩
 
 instance : inhabited (Algebra R) := ⟨of R R⟩
 
 @[simp]
-lemma of_apply (X : Type u) [ring X] [algebra R X] :
-  (of R X : Type u) = X := rfl
+lemma of_apply (X : Type v) [ring X] [algebra R X] :
+  (of R X : Type v) = X := rfl
 
 variables {R}
 
@@ -62,7 +62,7 @@ variables {R}
 def of_self_iso (M : Algebra R) : Algebra.of R M ≅ M :=
 { hom := 𝟙 M, inv := 𝟙 M }
 
-variables {R} {M N U : Module R}
+variables {R} {M N U : Module.{v} R}
 
 @[simp] lemma id_apply (m : M) : (𝟙 M : M → M) m = m := rfl
 

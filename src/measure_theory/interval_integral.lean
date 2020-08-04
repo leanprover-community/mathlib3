@@ -37,7 +37,7 @@ intervals with the same endpoints for two reasons:
 * this way `∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ = ∫ x in a..c, f x ∂μ` holds whenever
   `f` is integrable on each interval; in particular, it works even if the measure `μ` has an atom
   at `b`; this rules out `Ioo` and `Icc` intervals;
-* with this definition for a probability measure `μ`, the integral `∫ x in a..b, f x ∂μ` equals
+* with this definition for a probability measure `μ`, the integral `∫ x in a..b, 1 ∂μ` equals
   the difference $F_μ(b)-F_μ(a)$, where $F_μ(a)=μ(-∞, a]$ is the
   [cumulative distribution function](https://en.wikipedia.org/wiki/Cumulative_distribution_function)
   of `μ`.

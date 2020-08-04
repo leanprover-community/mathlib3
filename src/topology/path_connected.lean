@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Patrick Massot. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Patrick Massot
+-/
 import topology.instances.real
 
 /-!
@@ -7,15 +12,19 @@ import topology.instances.real
 
 In the file the unit interval `[0, 1]` in `ℝ` is denoted by `I`, and `X` is a topological space.
 
-* `joined (x y : X)` means there is a continuous `γ : I → X`, such that `γ 0 = x` and `γ 1 = y`.
+* `path (x y : X)` is the type of paths from `x` to `y`, i.e., continuous maps from `I` to `X`
+  mapping `0` to `x` and `1` to `y`.
+* `path.map` is the image of a path under a continuous map.
+* `joined (x y : X)` means there is a path between `x` and `y`.
+* `joined.some_path (h : joined x y)` selects some path between two points `x` and `y`.
 * `path_component (x : X)` is the set of points joined to `x`.
 * `path_connected_space X` is a predicate class asserting that `X` is non-empty and every two
   points of `X` are joined.
 
 Then there are corresponding relative notions for `F : set X`.
 
-* `joined_in F (x y : X)` means there is a continuous `γ : I → X` with values in `F`,
-  such that `γ 0 = x` and `γ 1 = y`.
+* `joined_in F (x y : X)` means there is a path `γ` joining `x` to `y` with values in `F`.
+* `joined_in.some_path (h : joined_in F x y)` selects a path from `x` to `y` inside `F`.
 * `path_component_in F (x : X)` is the set of points joined to `x` in `F`.
 * `is_path_connected F` asserts that `F` is non-empty and every two
   points of `F` are joined in `F`.
@@ -26,7 +35,7 @@ Then there are corresponding relative notions for `F : set X`.
 
 * `joined` and `joined_in F` are transitive relations.
 
-One can link the absolute and relative version in two direction, using `(univ : set X)` or the
+One can link the absolute and relative version in two directions, using `(univ : set X)` or the
 subtype `↥F`.
 
 * `path_connected_space_iff_univ : path_connected_space X ↔ is_path_connected (univ : set X)`
@@ -42,13 +51,9 @@ By default, all paths have `I` as their source and `X` as their target, but ther
 operation `I_extend` that will extend any continuous map `γ : I → X` into a continuous map
 `I_extend γ : ℝ → X` that is constant before `0` and after `1`.
 
-This is used to define `joined.extend` that turns `h : joined x y` into a continuous map
-`h.extend : ℝ → X` whose restriction to `I` joins `x` and `y`.
-
-Similarly, one can turn `h : joined_in F x y` into a continuous map
-`h.extend : ℝ → X`, and `h.map : I → F` taking values in the subtype `F`,
-and also `h.extend_map : ℝ → F`.
-
+This is used to define `path.extend` that turns `γ : path x y` into a continuous map
+`γ.extend : ℝ → X` whose restriction to `I` is the original `γ`, and is equal to `x`
+on `(-∞, 0]` and to `y` on `[1, +∞)`.
 -/
 
 noncomputable theory
@@ -56,6 +61,8 @@ open_locale classical topological_space filter
 open filter set function
 
 variables {X : Type*} [topological_space X] {x y z : X} {ι : Type*}
+
+/-! ### The unit interval -/
 
 local notation `I` := Icc (0 : ℝ) 1
 
@@ -148,12 +155,18 @@ surjective_proj_I.range_comp f
 instance : connected_space I :=
 subtype.connected_space ⟨nonempty_Icc.mpr zero_le_one, is_preconnected_Icc⟩
 
+instance : compact_space I :=
+compact_iff_compact_space.1 compact_Icc
+
+/-! ### Paths -/
+
 /-- Continuous path connecting two points `x` and `y` in a topological space -/
+@[nolint has_inhabited_instance]
 structure path (x y : X) :=
 (to_fun : I → X)
 (continuous' : continuous to_fun)
-(left' : to_fun 0 = x)
-(right' : to_fun 1 = y)
+(source' : to_fun 0 = x)
+(target' : to_fun 1 = y)
 
 instance : has_coe_to_fun (path x y) := ⟨_, path.to_fun⟩
 
@@ -165,25 +178,25 @@ variable (γ : path x y)
 protected lemma continuous : continuous γ :=
 γ.continuous'
 
-@[simp] protected lemma left : γ 0 = x :=
-γ.left'
+@[simp] protected lemma source : γ 0 = x :=
+γ.source'
 
-@[simp] protected lemma right : γ 1 = y :=
-γ.right'
+@[simp] protected lemma target : γ 1 = y :=
+γ.target'
 
 /-- The constant path from a point to itself -/
 @[refl] def refl (x : X) : path x x :=
 { to_fun := λ t, x,
   continuous' := continuous_const,
-  left' := rfl,
-  right' := rfl }
+  source' := rfl,
+  target' := rfl }
 
 /-- The reverse of a path from `x` to `y`, as a path from `y` to `x` -/
 @[symm] def symm (γ : path x y) : path y x :=
 { to_fun      := γ ∘ σ,
   continuous' := by continuity,
-  left'       := by simpa [-path.right] using γ.right,
-  right'      := by simpa [-path.left] using γ.left }
+  source'       := by simpa [-path.target] using γ.target,
+  target'      := by simpa [-path.source] using γ.source }
 
 /-- A continuous map extending a path to `ℝ`, constant before `0` and after `1`. -/
 def extend : ℝ → X := I_extend γ
@@ -210,16 +223,16 @@ path on `[0, 1/2]` and the second one on `[1/2, 1]`. -/
     { continuity },
     { continuity }
   end,
-  left' := by norm_num,
-  right' := by norm_num }
+  source' := by norm_num,
+  target' := by norm_num }
 
 /-- Image of a path from `x` to `y` by a continuous map -/
 def map (γ : path x y) {Y : Type*} [topological_space Y]
   {f : X → Y} (h : continuous f) : path (f x) (f y) :=
 { to_fun := f ∘ γ,
   continuous' := by continuity,
-  left' := by simp,
-  right' := by simp }
+  source' := by simp,
+  target' := by simp }
 
 @[simp] lemma map_coe (γ : path x y) {Y : Type*} [topological_space Y]
   {f : X → Y} (h : continuous f) :
@@ -230,14 +243,16 @@ by { ext t, refl }
 def cast (γ : path x y) {x' y'} (hx : x' = x) (hy : y' = y) : path x' y' :=
 { to_fun := γ,
   continuous' := γ.continuous,
-  left' := by simp [hx],
-  right' := by simp [hy] }
+  source' := by simp [hx],
+  target' := by simp [hy] }
 
 @[simp] lemma cast_coe (γ : path x y) {x' y'} (hx : x' = x) (hy : y' = y) :
   (γ.cast hx hy : I → X) = γ :=
 rfl
 
 end path
+
+/-! ### Being joined by a path -/
 
 /-- The relation "being joined by a path". This is an equivalence relation. -/
 def joined (x y : X) : Prop :=
@@ -271,6 +286,8 @@ instance : inhabited (zeroth_homotopy ℝ) := ⟨@quotient.mk ℝ (path_setoid �
 
 variables {X}
 
+/-! ### Being joined by a path inside a set -/
+
 /-- The relation "being joined by a path in `F`". Not quite an equivalence relation since it's not
 reflexive for points that do not belong to `F`. -/
 def joined_in (F : set X) (x y : X) : Prop :=
@@ -285,10 +302,10 @@ begin
   simpa using this
 end
 
-lemma joined_in.mem_left (h : joined_in F x y) : x ∈ F :=
+lemma joined_in.mem_source (h : joined_in F x y) : x ∈ F :=
 h.mem.1
 
-lemma joined_in.mem_right (h : joined_in F x y) : y ∈ F :=
+lemma joined_in.mem_target (h : joined_in F x y) : y ∈ F :=
 h.mem.2
 
 /-- When `x` and `y` are joined in `F`, choose a path from `x` to `y` inside `F` -/
@@ -298,19 +315,20 @@ classical.some h
 lemma joined_in.some_path_mem (h : joined_in F x y) (t : I) : h.some_path t ∈ F :=
 classical.some_spec h t
 
-/-- Path from `x` to `y` in the subtype `F` when `x` and `y` are joined in the set `F`. -/
-def joined_in.restr (h : joined_in F x y) : path (⟨x, h.mem_left⟩ : F) (⟨y, h.mem_right⟩ : F) :=
-{ to_fun := λ t, ⟨h.some_path t, h.some_path_mem t⟩,
+/-- If `x` and `y` are joined in the set `F`, then they are joined in the subtype `F`. -/
+lemma joined_in.joined_subtype (h : joined_in F x y) :
+  joined (⟨x, h.mem_source⟩ : F) (⟨y, h.mem_target⟩ : F) :=
+⟨{ to_fun := λ t, ⟨h.some_path t, h.some_path_mem t⟩,
   continuous' := by continuity,
-  left' := by simp,
-  right' := by simp }
+  source' := by simp,
+  target' := by simp }⟩
 
 lemma joined_in.joined (h : joined_in F x y) : joined x y :=
 ⟨h.some_path⟩
 
 lemma joined_in_iff_joined (x_in : x ∈ F) (y_in : y ∈ F) :
   joined_in F x y ↔ joined (⟨x, x_in⟩ : F) (⟨y, y_in⟩ : F) :=
-⟨λ h, ⟨h.restr⟩, λ h, ⟨h.some_path.map continuous_subtype_coe, by simp⟩⟩
+⟨λ h, h.joined_subtype, λ h, ⟨h.some_path.map continuous_subtype_coe, by simp⟩⟩
 
 @[simp] lemma joined_in_univ : joined_in univ x y ↔ joined x y :=
 by simp [joined_in, joined, exists_true_iff_nonempty]
@@ -335,6 +353,8 @@ begin
   simp [joined_in_iff_joined, *] at *,
   exact hxy.trans hyz
 end
+
+/-! ### Path component -/
 
 /-- The path component of `x` is the set of points that can be joined to `x`. -/
 def path_component (x : X) := {y | joined x y}
@@ -374,6 +394,8 @@ by simp [path_component_in, path_component, joined_in, joined, exists_true_iff_n
 
 lemma joined.mem_path_component (hyz : joined y z) (hxy : y ∈ path_component x) : z ∈ path_component x :=
 hxy.trans hyz
+
+/-! ### Path connected sets -/
 
 /-- A set `F` is path connected if it contains a point that can be joined to all other in `F`. -/
 def is_path_connected (F : set X) : Prop := ∃ x ∈ F, ∀ {y}, y ∈ F → joined_in F x y
@@ -429,8 +451,10 @@ begin
   rcases hW with ⟨x, x_in, hx⟩,
   use [⟨x, hWU x_in⟩, by simp [x_in]],
   rintros ⟨y, hyU⟩ hyW,
-  exact ⟨(hx hyW).restr.map (continuous_inclusion hWU), by simp⟩
+  exact ⟨(hx hyW).joined_subtype.some_path.map (continuous_inclusion hWU), by simp⟩
 end
+
+/-! ### Path connected spaces -/
 
 /-- A topological space is path-connected if it is non-empty and every two points can be
 joined by a continuous path. -/
@@ -505,6 +529,8 @@ begin
   exact (by simpa using hx : path_component x = univ) ▸ path_component_subset_component x
 end
 
+/-! ### Locally path connected spaces -/
+
 /-- A topological space is locally path connected, at every point, path connected
 neighborhoods form a neighborhood basis. -/
 class loc_path_connected_space (X : Type*) [topological_space X] : Prop :=
@@ -574,12 +600,11 @@ lemma loc_path_connected_of_is_open [loc_path_connected_space X] {U : set X} (h 
     tauto },
 end⟩
 
-lemma is_open.is_connected_iff_is_path_connected [loc_path_connected_space X] {U : set X} (U_op : is_open U) :
- is_path_connected  U ↔ is_connected U :=
+lemma is_open.is_connected_iff_is_path_connected
+  [loc_path_connected_space X] {U : set X} (U_op : is_open U) :
+  is_path_connected  U ↔ is_connected U :=
 begin
   rw [is_connected_iff_connected_space, is_path_connected_iff_path_connected_space],
   haveI := loc_path_connected_of_is_open U_op,
   exact path_connected_space_iff_connected_space
 end
-
-#lint

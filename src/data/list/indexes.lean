@@ -1,7 +1,5 @@
 import data.list.basic
 import data.list.defs
-import data.list.range
-import data.list.zip
 import logic.basic
 
 universes u v

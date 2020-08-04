@@ -13,13 +13,13 @@ open category_theory
 open category_theory.limits
 open category_theory.limits.walking_parallel_pair
 
-universe u
+universes v u
 
 variables (R : Type u) [ring R]
 
 /-- The category of R-modules and their morphisms. -/
 structure Module :=
-(carrier : Type u)
+(carrier : Type v)
 [is_add_comm_group : add_comm_group carrier]
 [is_module : module R carrier]
 
@@ -28,8 +28,8 @@ attribute [instance] Module.is_add_comm_group Module.is_module
 namespace Module
 
 -- TODO revisit this after #1438 merges, to check coercions and instances are handled consistently
-instance : has_coe_to_sort (Module R) :=
-{ S := Type u, coe := Module.carrier }
+instance : has_coe_to_sort (Module.{v} R) :=
+{ S := Type v, coe := Module.carrier }
 
 instance : category (Module R) :=
 { hom   := λ M N, M →ₗ[R] N,
@@ -46,12 +46,12 @@ instance has_forget_to_AddCommGroup : has_forget₂ (Module R) AddCommGroup :=
     map := λ M₁ M₂ f, linear_map.to_add_monoid_hom f } }
 
 /-- The object in the category of R-modules associated to an R-module -/
-def of (X : Type u) [add_comm_group X] [module R X] : Module R := ⟨X⟩
+def of (X : Type v) [add_comm_group X] [module R X] : Module R := ⟨X⟩
 
 instance : inhabited (Module R) := ⟨of R punit⟩
 
 @[simp]
-lemma of_apply (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
+lemma of_apply (X : Type v) [add_comm_group X] [module R X] : (of R X : Type v) = X := rfl
 
 variables {R}
 

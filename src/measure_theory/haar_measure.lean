@@ -17,7 +17,7 @@ group.
   regular measure. It takes as argument a compact set of the group (with non-empty interior),
   and is normalized so that the measure of the given set is 1.
 * `haar_measure_self`: the Haar measure is normalized.
-* `is_left_invariant_haar_measure`: the Haar measure is left invariant
+* `is_left_invariant_haar_measure`: the Haar measure is left invariant.
 * `regular_haar_measure`: the Haar measure is a regular measure.
 
 ## References
@@ -32,10 +32,9 @@ noncomputable theory
 open set has_inv function topological_space measurable_space
 open_locale nnreal
 
+variables {G : Type*} [group G]
+
 namespace measure_theory
-
-variables {G : Type*}
-
 namespace measure
 
 /-! We put the internal functions in the construction of the Haar measure in a namespace,
@@ -43,8 +42,6 @@ namespace measure
   We first define a couple of the functions before proving the properties (that require that `G`
   is a topological group). -/
 namespace haar
-
-variables [group G]
 
 /-- The index or Haar covering number or ratio of `K` w.r.t. `V`, denoted `(K : V)`:
   it is the smallest number of (left) translates of `V` that is necessary to cover `K`.
@@ -396,7 +393,7 @@ by { norm_cast, simp only [←nnreal.coe_le_coe, subtype.coe_mk, chaar_mono, h] 
 end haar
 open haar
 
-variables [topological_space G] [t2_space G] [group G] [topological_group G]
+variables [topological_space G] [t2_space G] [topological_group G]
 
 /-- The Haar outer measure on `G`. It is not normalized, and is mainly used to construct
   `haar_measure`, which is a normalized measure. -/
@@ -551,5 +548,4 @@ begin
 end
 
 end measure
-
 end measure_theory

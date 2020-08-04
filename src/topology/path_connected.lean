@@ -53,7 +53,7 @@ and also `h.extend_map : ℝ → F`.
 
 noncomputable theory
 open_locale classical topological_space filter
-open filter set
+open filter set function
 
 variables {X : Type*} [topological_space X] {x y z : X} {ι : Type*}
 
@@ -103,12 +103,11 @@ begin
   { exfalso, linarith }
 end
 
+lemma surjective_proj_I : surjective proj_I :=
+λ ⟨t, t_in⟩, ⟨t, proj_I_I t_in⟩
+
 lemma range_proj_I : range proj_I = univ :=
-begin
-  rw eq_univ_iff_forall,
-  rintro ⟨t, t_in⟩,
-  use [t, proj_I_I t_in],
-end
+surjective_proj_I.range_eq
 
 @[continuity]
 lemma continuous_proj_I : continuous proj_I :=
@@ -144,13 +143,10 @@ I_extend_extends _ _
 I_extend_extends _ _
 
 @[simp] lemma I_extend_range (f : I → β) : range (I_extend f) = range f :=
-begin
-  rw [I_extend, range_comp],
-  convert image_univ,
-  exact range_proj_I
-end
+surjective_proj_I.range_comp f
 
-instance : connected_space I := subtype.connected_space ⟨⟨0, by split ; norm_num⟩, is_preconnected_Icc⟩
+instance : connected_space I :=
+subtype.connected_space ⟨nonempty_Icc.mpr zero_le_one, is_preconnected_Icc⟩
 
 /-- Continuous path connecting two points `x` and `y` in a topological space -/
 structure path (x y : X) :=

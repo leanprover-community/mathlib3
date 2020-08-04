@@ -136,8 +136,7 @@ theorem nhds_within_eq_of_open {a : α} {s : set α} (h₀ : a ∈ s) (h₁ : is
   𝓝[s] a = 𝓝 a :=
 inf_eq_left.2 $ le_principal_iff.2 $ mem_nhds_sets h₁ h₀
 
-@[simp] theorem nhds_within_empty (a : α) : 𝓝[∅] a = ⊥ :=
-by rw [principal_empty, inf_bot_eq]
+theorem nhds_within_empty (a : α) : 𝓝[∅] a = ⊥ := by simp
 
 theorem nhds_within_union (a : α) (s t : set α) :
   𝓝[s ∪ t] a = 𝓝[s] a ⊔ 𝓝[t] a :=

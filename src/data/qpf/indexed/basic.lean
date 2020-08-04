@@ -35,7 +35,7 @@ We can continue and define the quotient on permutation of lists and create
 the multiset type:
 
 ```lean
-def multiset (a : Type) := qpf.quot list.perm list a -- not the actual notion
+def multiset (a : Type) := qpf.quot list.perm list a -- not the actual notation
 ```
 
 And `multiset` is also a QPF. We can then create a novel data type (for Lean):

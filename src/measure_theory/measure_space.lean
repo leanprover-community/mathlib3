@@ -378,6 +378,7 @@ begin
 end
 
 end
+
 /-- Obtain a measure by giving an outer measure where all sets in the σ-algebra are
   Carathéodory measurable. -/
 def outer_measure.to_measure {α} (m : outer_measure α)

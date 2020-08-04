@@ -437,6 +437,23 @@ instance [inhabited P] : inhabited (simplex k V P 0) :=
 instance nonempty : nonempty (simplex k V P 0) :=
 ⟨mk_of_point k V $ (add_torsor.nonempty V).some⟩
 
+variables {k V}
+
+/-- Two simplices are equal if they have the same points. -/
+@[ext] lemma ext {n : ℕ} {s1 s2 : simplex k V P n} (h : ∀ i, s1.points i = s2.points i) :
+  s1 = s2 :=
+begin
+  cases s1,
+  cases s2,
+  congr,
+  ext i,
+  exact h i
+end
+
+/-- Two simplices are equal if and only if they have the same points. -/
+lemma ext_iff {n : ℕ} (s1 s2 : simplex k V P n): s1 = s2 ↔ ∀ i, s1.points i = s2.points i :=
+⟨λ h _, h ▸ rfl, ext⟩
+
 end simplex
 
 end affine_space
@@ -1089,7 +1106,7 @@ variables {k}
 /-- A `weighted_vsub` with sum of weights 0 is in the `vector_span` of
 an indexed family. -/
 lemma weighted_vsub_mem_vector_span {s : finset ι} {w : ι → k}
-    (h : ∑ i in s, w i = 0) (p : ι → P) : 
+    (h : ∑ i in s, w i = 0) (p : ι → P) :
     s.weighted_vsub V p w ∈ vector_span k V (set.range p) :=
 begin
   by_cases hn : nonempty ι,
@@ -1523,6 +1540,21 @@ ext $ f.affine_apply_line_map p v
 lemma line_map_vadd_neg (p : P1) (v : V1) :
   line_map (v +ᵥ p) (-v) = (line_map p v).comp (line_map (1:k) (-1:k)) :=
 by { rw [affine_comp_line_map], simp [line_map_apply] }
+
+/-- Decomposition of an affine map in the special case when the point space and vector space
+are the same. -/
+lemma decomp (f : affine_map k V1 V1 V2 V2) : (f : V1 → V2) = f.linear + (λ z, f 0) :=
+begin
+  ext x,
+  calc
+    f x = f.linear x +ᵥ f 0                      : by simp [← f.map_vadd]
+    ... = (f.linear.to_fun + λ (z : V1), f 0) x  : by simp
+end
+
+/-- Decomposition of an affine map in the special case when the point space and vector space
+are the same. -/
+lemma decomp' (f : affine_map k V1 V1 V2 V2) : (f.linear : V1 → V2) = f - (λ z, f 0) :=
+by rw decomp ; simp only [linear_map.map_zero, pi.add_apply, add_sub_cancel, zero_add]
 
 end affine_map
 

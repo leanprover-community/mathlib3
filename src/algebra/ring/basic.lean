@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, 
 Neil Strickland
 -/
 import algebra.group_with_zero
+import data.set.basic
 
 /-!
 # Properties and homomorphisms of semirings and rings
@@ -256,6 +257,29 @@ theorem coe_monoid_hom_injective : function.injective (coe : (α →+* β) → (
 
 /-- Ring homomorphisms preserve multiplication. -/
 @[simp] lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := f.map_mul' a b
+
+/-- `f : R →+* S` has a trivial codomain iff `f 1 = 0`. -/
+lemma codomain_trivial_iff_map_one_eq_zero : (0 : β) = 1 ↔ f 1 = 0 :=
+by rw [map_one, eq_comm]
+
+/-- `f : R →+* S` has a trivial codomain iff it has a trivial range. -/
+lemma codomain_trivial_iff_range_trivial : (0 : β) = 1 ↔ (∀ x, f x = 0) :=
+f.codomain_trivial_iff_map_one_eq_zero.trans
+  ⟨λ h x, by rw [←mul_one x, map_mul, h, mul_zero], λ h, h 1⟩
+
+/-- `f : R →+* S` has a trivial codomain iff its range is `{0}`. -/
+lemma codomain_trivial_iff_range_eq_singleton_zero : (0 : β) = 1 ↔ set.range f = {0} :=
+f.codomain_trivial_iff_range_trivial.trans
+  ⟨ λ h, set.ext (λ y, ⟨λ ⟨x, hx⟩, by simp [←hx, h x], λ hy, ⟨0, by simpa using hy.symm⟩⟩),
+    λ h x, set.mem_singleton_iff.mp (h ▸ set.mem_range_self x)⟩
+
+/-- `f : R →+* S` doesn't map `1` to `0` if `S` is nontrivial -/
+lemma map_one_ne_zero [nontrivial β] : f 1 ≠ 0 :=
+mt f.codomain_trivial_iff_map_one_eq_zero.mpr zero_ne_one
+
+/-- If there is a homomorphism `f : R →+* S` and `S` is nontrivial, then `R` is nontrivial. -/
+lemma domain_nontrivial [nontrivial β] : nontrivial α :=
+⟨⟨1, 0, mt (λ h, show f 1 = 0, by rw [h, map_zero]) f.map_one_ne_zero⟩⟩
 
 end
 
@@ -880,6 +904,25 @@ end
 end comm_semiring
 
 end is_unit
+
+namespace ring
+variables [ring R]
+open_locale classical
+
+/-- Introduce a function `inverse` on a ring `R`, which sends `x` to `x⁻¹` if `x` is invertible and
+to `0` otherwise.  This definition is somewhat ad hoc, but one needs a fully (rather than partially)
+defined inverse function for some purposes, including for calculus. -/
+noncomputable def inverse : R → R :=
+λ x, if h : is_unit x then (((classical.some h)⁻¹ : units R) : R) else 0
+
+/-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
+lemma inverse_unit (a : units R) : inverse (a : R) = (a⁻¹ : units R) :=
+begin
+  simp [is_unit_unit, inverse],
+  exact units.inv_unique (classical.some_spec (is_unit_unit a)),
+end
+
+end ring
 
 /-- A predicate to express that a ring is an integral domain.
 

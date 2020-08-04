@@ -261,20 +261,28 @@ lemma has_basis_self {l : filter α} {P : set α → Prop} :
   has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t, (t ∈ l ↔ ∃ r ∈ l, P r ∧ r ⊆ t) :=
 by simp only [has_basis_iff, exists_prop, id, and_assoc]
 
-/-- If `{s i | p i}` is a basis of a filter `l` and `V ∈ l`, then `{s i | p i ∧ s i ⊆ V}`
-is a basis of `l`. -/
-lemma has_basis.restrict (h : l.has_basis p s) {V : set α} (hV : V ∈ l) :
-  l.has_basis (λ i, p i ∧ s i ⊆ V) s :=
+/-- If `{s i | p i}` is a basis of a filter `l` and each `s i` includes `s j` such that
+`p j ∧ q j`, then `{s j | p j ∧ q j}` is a basis of `l`. -/
+lemma has_basis.restrict (h : l.has_basis p s) {q : ι → Prop}
+  (hq : ∀ i, p i → ∃ j, p j ∧ q j ∧ s j ⊆ s i) :
+  l.has_basis (λ i, p i ∧ q i) s :=
 begin
   refine ⟨λ t, ⟨λ ht, _, λ ⟨i, hpi, hti⟩, h.mem_iff.2 ⟨i, hpi.1, hti⟩⟩⟩,
-  rcases h.mem_iff.1 (inter_mem_sets hV ht) with ⟨i, hpi, hti⟩,
-  rw subset_inter_iff at hti,
-  exact ⟨i, ⟨hpi, hti.1⟩, hti.2⟩
+  rcases h.mem_iff.1 ht with ⟨i, hpi, hti⟩,
+  rcases hq i hpi with ⟨j, hpj, hqj, hji⟩,
+  exact ⟨j, ⟨hpj, hqj⟩, subset.trans hji hti⟩
 end
+
+/-- If `{s i | p i}` is a basis of a filter `l` and `V ∈ l`, then `{s i | p i ∧ s i ⊆ V}`
+is a basis of `l`. -/
+lemma has_basis.restrict_subset (h : l.has_basis p s) {V : set α} (hV : V ∈ l) :
+  l.has_basis (λ i, p i ∧ s i ⊆ V) s :=
+h.restrict $ λ i hi, (h.mem_iff.1 (inter_mem_sets hV (h.mem_of_mem hi))).imp $
+  λ j hj, ⟨hj.fst, subset_inter_iff.1 hj.snd⟩
 
 lemma has_basis.has_basis_self_subset {p : set α → Prop} (h : l.has_basis (λ s, s ∈ l ∧ p s) id)
   {V : set α} (hV : V ∈ l) : l.has_basis (λ s, s ∈ l ∧ p s ∧ s ⊆ V) id :=
-by simpa only [and_assoc] using h.restrict hV
+by simpa only [and_assoc] using h.restrict_subset hV
 
 theorem has_basis.ge_iff (hl' : l'.has_basis p' s')  : l ≤ l' ↔ ∀ i', p' i' → s' i' ∈ l :=
 ⟨λ h i' hi', h $ hl'.mem_of_mem hi',
@@ -310,21 +318,16 @@ lemma has_basis.inf (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
     use [s i, i, hi, subset.refl _, s' i', i', hi', subset.refl _, H] }
 end⟩
 
+lemma has_basis_principal (t : set α) : (𝓟 t).has_basis (λ i : unit, true) (λ i, t) :=
+⟨λ U, by simp⟩
+
 lemma has_basis.sup (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   (l ⊔ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∪ s' i.2) :=
 ⟨begin
-  rintros t,
-  rw [mem_sup_sets, hl.mem_iff, hl'.mem_iff],
-  split,
-  { rintros ⟨⟨i, pi, hi⟩, ⟨i', pi', hi'⟩⟩,
-    use [(i, i'), pi, pi'],
-    finish },
-  { rintros ⟨⟨i, i'⟩, ⟨⟨pi, pi'⟩, h⟩⟩,
-    split,
-    { use [i, pi],
-      finish },
-    { use [i', pi'],
-      finish } }
+  intros t,
+  simp only [mem_sup_sets, hl.mem_iff, hl'.mem_iff, prod.exists, union_subset_iff, exists_prop,
+    and_assoc, exists_and_distrib_left],
+  simp only [← and_assoc, exists_and_distrib_right, and_comm]
 end⟩
 
 lemma has_basis.inf_principal (hl : l.has_basis p s) (s' : set α) :
@@ -348,6 +351,16 @@ lemma has_basis_infi_principal {s : ι → set α} (h : directed (≥) s) [nonem
     by simp only [exists_prop, true_and, mem_principal_sets],
   exact λ _ _, principal_mono.2
 end⟩
+
+/-- If `s : ι → set α` is an indexed family of sets, then finite intersections of `s i` form a basis
+of `⨅ i, 𝓟 (s i)`.  -/
+lemma has_basis_infi_principal_finite (s : ι → set α) :
+  (⨅ i, 𝓟 (s i)).has_basis (λ t : set ι, finite t) (λ t, ⋂ i ∈ t, s i) :=
+begin
+  refine ⟨λ U, (mem_infi_finite _).trans _⟩,
+  simp only [infi_principal_finset, mem_Union, mem_principal_sets, exists_prop,
+    exists_finite_iff_finset, finset.bInter_coe]
+end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_on (s ⁻¹'o (≥)) S)

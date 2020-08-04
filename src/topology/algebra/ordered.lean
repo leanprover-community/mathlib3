@@ -6,8 +6,10 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 import tactic.tfae
 import order.liminf_limsup
 import data.set.intervals.image_preimage
+import data.set.intervals.ord_connected
 import topology.algebra.group
 import topology.extend_from_subset
+import order.filter.interval
 
 /-!
 # Theory of topology on ordered spaces
@@ -514,13 +516,12 @@ lemma frontier_lt_subset_eq : frontier {b | f b < g b} ⊆ {b | f b = g b} :=
 by rw ← frontier_compl;
    convert frontier_le_subset_eq hg hf; simp [ext_iff, eq_comm]
 
-@[continuity] lemma continuous.max : continuous (λb, max (f b) (g b)) :=
-have ∀b∈frontier {b | f b ≤ g b}, g b = f b, from assume b hb, (frontier_le_subset_eq hf hg hb).symm,
-continuous_if this hg hf
-
 @[continuity] lemma continuous.min : continuous (λb, min (f b) (g b)) :=
 have ∀b∈frontier {b | f b ≤ g b}, f b = g b, from assume b hb, frontier_le_subset_eq hf hg hb,
 continuous_if this hf hg
+
+@[continuity] lemma continuous.max : continuous (λb, max (f b) (g b)) :=
+@continuous.min (order_dual α) _ _ _ _ _ _ _ hf hg
 
 end
 
@@ -614,6 +615,47 @@ from le_antisymm
 lemma tendsto_order {f : β → α} {a : α} {x : filter β} :
   tendsto f x (𝓝 a) ↔ (∀ a' < a, ∀ᶠ b in x, a' < f b) ∧ (∀ a' > a, ∀ᶠ b in x, f b < a') :=
 by simp [nhds_eq_order a, tendsto_inf, tendsto_infi, tendsto_principal]
+
+instance nhds_is_interval_generated (a : α) : is_interval_generated (𝓝 a) :=
+begin
+  simp only [nhds_eq_order, infi_subtype'],
+  refine ((has_basis_infi_principal_finite _).inf
+    (has_basis_infi_principal_finite _)).is_interval_generated _,
+  refine λ s hs, (ord_connected_bInter $ λ _ _, _).inter (ord_connected_bInter $ λ _ _, _),
+  exacts [ord_connected_Ioi, ord_connected_Iio]
+end
+
+instance nhds_within_Ici_is_interval_generated (a b : α) :
+  is_interval_generated (nhds_within a (Ici b)) :=
+ord_connected_Ici.is_interval_generated_inf_principal
+
+instance nhds_within_Ioi_is_interval_generated (a b : α) :
+  is_interval_generated (nhds_within a (Ioi b)) :=
+ord_connected_Ioi.is_interval_generated_inf_principal
+
+instance nhds_within_Iic_is_interval_generated (a b : α) :
+  is_interval_generated (nhds_within a (Iic b)) :=
+ord_connected_Iic.is_interval_generated_inf_principal
+
+instance nhds_within_Iio_is_interval_generated (a b : α) :
+  is_interval_generated (nhds_within a (Iio b)) :=
+ord_connected_Iio.is_interval_generated_inf_principal
+
+instance nhds_within_Icc_is_interval_generated (a b c : α) :
+  is_interval_generated (nhds_within a (Icc b c)) :=
+ord_connected_Icc.is_interval_generated_inf_principal
+
+instance nhds_within_Ico_is_interval_generated (a b c : α) :
+  is_interval_generated (nhds_within a (Ico b c)) :=
+ord_connected_Ico.is_interval_generated_inf_principal
+
+instance nhds_within_Ioc_is_interval_generated (a b c : α) :
+  is_interval_generated (nhds_within a (Ioc b c)) :=
+ord_connected_Ioc.is_interval_generated_inf_principal
+
+instance nhds_within_Ioo_is_interval_generated (a b c : α) :
+  is_interval_generated (nhds_within a (Ioo b c)) :=
+ord_connected_Ioo.is_interval_generated_inf_principal
 
 /-- Also known as squeeze or sandwich theorem. This version assumes that inequalities hold
 eventually for the filter. -/
@@ -1772,38 +1814,28 @@ begin
   exact λ w ⟨wt, wzy⟩, (this wzy).elim id (λ h, (wt h).elim)
 end
 
-lemma is_preconnected_iff_forall_Icc_subset {s : set α} :
-  is_preconnected s ↔ ∀ x y ∈ s, x ≤ y → Icc x y ⊆ s :=
-⟨λ h x y hx hy hxy, h.Icc_subset hx hy, λ h, is_preconnected_of_forall_pair $ λ x y hx hy,
-  ⟨Icc (min x y) (max x y), h (min x y) (max x y)
-    ((min_choice x y).elim (λ h', by rwa h') (λ h', by rwa h'))
-    ((max_choice x y).elim (λ h', by rwa h') (λ h', by rwa h')) min_le_max,
-    ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_preconnected_Icc⟩⟩
+lemma is_preconnected_interval : is_preconnected (interval a b) := is_preconnected_Icc
 
-lemma is_preconnected_Ici : is_preconnected (Ici a) :=
-is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ici_iff hxy).2 hx
+lemma is_preconnected_iff_ord_connected {s : set α} :
+  is_preconnected s ↔ ord_connected s :=
+⟨λ h x hx y hy, h.Icc_subset hx hy, λ h, is_preconnected_of_forall_pair $ λ x y hx hy,
+  ⟨interval x y, h.interval_subset hx hy, left_mem_interval, right_mem_interval,
+    is_preconnected_interval⟩⟩
 
-lemma is_preconnected_Iic : is_preconnected (Iic a) :=
-is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Iic_iff hxy).2 hy
+alias is_preconnected_iff_ord_connected ↔
+  is_preconnected.ord_connected set.ord_connected.is_preconnected
 
-lemma is_preconnected_Iio : is_preconnected (Iio a) :=
-is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Iio_iff hxy).2 hy
-
-lemma is_preconnected_Ioi : is_preconnected (Ioi a) :=
-is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioi_iff hxy).2 hx
-
-lemma is_preconnected_Ioo : is_preconnected (Ioo a b) :=
-is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioo_iff hxy).2 ⟨hx.1, hy.2⟩
-
-lemma is_preconnected_Ioc : is_preconnected (Ioc a b) :=
-is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioc_iff hxy).2 ⟨hx.1, hy.2⟩
-
-lemma is_preconnected_Ico : is_preconnected (Ico a b) :=
-is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ico_iff hxy).2 ⟨hx.1, hy.2⟩
+lemma is_preconnected_Ici : is_preconnected (Ici a) := ord_connected_Ici.is_preconnected
+lemma is_preconnected_Iic : is_preconnected (Iic a) := ord_connected_Iic.is_preconnected
+lemma is_preconnected_Iio : is_preconnected (Iio a) := ord_connected_Iio.is_preconnected
+lemma is_preconnected_Ioi : is_preconnected (Ioi a) := ord_connected_Ioi.is_preconnected
+lemma is_preconnected_Ioo : is_preconnected (Ioo a b) := ord_connected_Ioo.is_preconnected
+lemma is_preconnected_Ioc : is_preconnected (Ioc a b) := ord_connected_Ioc.is_preconnected
+lemma is_preconnected_Ico : is_preconnected (Ico a b) := ord_connected_Ico.is_preconnected
 
 @[priority 100]
 instance ordered_connected_space : preconnected_space α :=
-⟨is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, subset_univ _⟩
+⟨ord_connected_univ.is_preconnected⟩
 
 /-- In a dense conditionally complete linear order, the set of preconnected sets is exactly
 the set of the intervals `Icc`, `Ico`, `Ioc`, `Ioo`, `Ici`, `Ioi`, `Iic`, `Iio`, `(-∞, +∞)`,

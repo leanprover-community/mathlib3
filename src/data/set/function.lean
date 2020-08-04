@@ -143,6 +143,22 @@ theorem maps_to.mono (hs : s₂ ⊆ s₁) (ht : t₁ ⊆ t₂) (hf : maps_to f s
   maps_to f s₂ t₂ :=
 λ x hx, ht (hf $ hs hx)
 
+theorem maps_to.union_union (h₁ : maps_to f s₁ t₁) (h₂ : maps_to f s₂ t₂) :
+  maps_to f (s₁ ∪ s₂) (t₁ ∪ t₂) :=
+λ x hx, hx.elim (λ hx, or.inl $ h₁ hx) (λ hx, or.inr $ h₂ hx)
+
+theorem maps_to.union (h₁ : maps_to f s₁ t) (h₂ : maps_to f s₂ t) :
+  maps_to f (s₁ ∪ s₂) t :=
+union_self t ▸ h₁.union_union h₂
+
+theorem maps_to.inter (h₁ : maps_to f s t₁) (h₂ : maps_to f s t₂) :
+  maps_to f s (t₁ ∩ t₂) :=
+λ x hx, ⟨h₁ hx, h₂ hx⟩
+
+theorem maps_to.inter_inter (h₁ : maps_to f s₁ t₁) (h₂ : maps_to f s₂ t₂) :
+  maps_to f (s₁ ∩ s₂) (t₁ ∩ t₂) :=
+λ x hx, ⟨h₁ hx.1, h₂ hx.2⟩
+
 theorem maps_to_univ (f : α → β) (s : set α) : maps_to f s univ := λ x h, trivial
 
 theorem maps_to_image (f : α → β) (s : set α) : maps_to f s (f '' s) := by rw maps_to'
@@ -215,6 +231,29 @@ theorem eq_on.surj_on_iff (h : eq_on f₁ f₂ s) : surj_on f₁ s t ↔ surj_on
 theorem surj_on.mono (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) (hf : surj_on f s₁ t₂) : surj_on f s₂ t₁ :=
 subset.trans ht $ subset.trans hf $ image_subset _ hs
 
+theorem surj_on.union (h₁ : surj_on f s t₁) (h₂ : surj_on f s t₂) : surj_on f s (t₁ ∪ t₂) :=
+λ x hx, hx.elim (λ hx, h₁ hx) (λ hx, h₂ hx)
+
+theorem surj_on.union_union (h₁ : surj_on f s₁ t₁) (h₂ : surj_on f s₂ t₂) :
+  surj_on f (s₁ ∪ s₂) (t₁ ∪ t₂) :=
+(h₁.mono (subset_union_left _ _) (subset.refl _)).union
+  (h₂.mono (subset_union_right _ _) (subset.refl _))
+
+theorem surj_on.inter_inter (h₁ : surj_on f s₁ t₁) (h₂ : surj_on f s₂ t₂) (h : inj_on f (s₁ ∪ s₂)) :
+  surj_on f (s₁ ∩ s₂) (t₁ ∩ t₂) :=
+begin
+  intros y hy,
+  rcases h₁ hy.1 with ⟨x₁, hx₁, rfl⟩,
+  rcases h₂ hy.2 with ⟨x₂, hx₂, heq⟩,
+  have : x₁ = x₂, from h (or.inl hx₁) (or.inr hx₂) heq.symm,
+  subst x₂,
+  exact mem_image_of_mem f ⟨hx₁, hx₂⟩
+end
+
+theorem surj_on.inter (h₁ : surj_on f s₁ t) (h₂ : surj_on f s₂ t) (h : inj_on f (s₁ ∪ s₂)) :
+  surj_on f (s₁ ∩ s₂) t :=
+inter_self t ▸ h₁.inter_inter h₂ h
+
 theorem surj_on.comp (hg : surj_on g t p) (hf : surj_on f s t) : surj_on (g ∘ f) s p :=
 subset.trans hg $ subset.trans (image_subset g hf) $ (image_comp g f s) ▸ subset.refl _
 
@@ -247,6 +286,15 @@ lemma bij_on.mk (h₁ : maps_to f s t) (h₂ : inj_on f s) (h₃ : surj_on f s t
 
 lemma bij_on_empty (f : α → β) : bij_on f ∅ ∅ :=
 ⟨maps_to_empty f ∅, inj_on_empty f, surj_on_empty f ∅⟩
+
+lemma bij_on.inter (h₁ : bij_on f s₁ t₁) (h₂ : bij_on f s₂ t₂) (h : inj_on f (s₁ ∪ s₂)) :
+  bij_on f (s₁ ∩ s₂) (t₁ ∩ t₂) :=
+⟨h₁.maps_to.inter_inter h₂.maps_to, h₁.inj_on.mono $ inter_subset_left _ _,
+  h₁.surj_on.inter_inter h₂.surj_on h⟩
+
+lemma bij_on.union (h₁ : bij_on f s₁ t₁) (h₂ : bij_on f s₂ t₂) (h : inj_on f (s₁ ∪ s₂)) :
+  bij_on f (s₁ ∪ s₂) (t₁ ∪ t₂) :=
+⟨h₁.maps_to.union_union h₂.maps_to, h, h₁.surj_on.union_union h₂.surj_on⟩
 
 theorem bij_on.subset_range (h : bij_on f s t) : t ⊆ range f :=
 h.surj_on.subset_range

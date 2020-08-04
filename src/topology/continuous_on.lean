@@ -523,6 +523,14 @@ lemma continuous.comp_continuous_on {g : β → γ} {f : α → β} {s : set α}
   continuous_on (g ∘ f) s :=
 hg.continuous_on.comp hf subset_preimage_univ
 
+lemma continuous_on.comp_continuous {g : β → γ} {f : α → β} {s : set β}
+  (hg : continuous_on g s) (hf : continuous f) (hfg : range f ⊆ s) : continuous (g ∘ f) :=
+begin
+  rw continuous_iff_continuous_on_univ at *,
+  apply hg.comp hf,
+  rwa [← image_subset_iff, image_univ]
+end
+
 lemma continuous_within_at.preimage_mem_nhds_within {f : α → β} {x : α} {s : set α} {t : set β}
   (h : continuous_within_at f s x) (ht : t ∈ 𝓝 (f x)) : f ⁻¹' t ∈ nhds_within x s :=
 h ht

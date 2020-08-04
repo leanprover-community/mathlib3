@@ -44,7 +44,7 @@ lemma line_map_continuous [topological_space R] [topological_semimodule R F] {p 
 begin
   refine continuous_iff.mpr _,
   change continuous ((λ z : R × F, z.1 • z.2) ∘ (λ z : R, (⟨z, v⟩ : R × F))),
-  exact continuous.comp continuous_smul (by continuity),
+  exact continuous_smul.comp (by continuity),
 end
 
 end affine_map

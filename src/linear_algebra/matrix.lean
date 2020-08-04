@@ -213,15 +213,16 @@ theorem linear_equiv_matrix_range {ι κ M₁ M₂ : Type*}
     linear_equiv_matrix hv₁ hv₂ f k i :=
 if H : (0 : R) = 1 then eq_of_zero_eq_one H _ _ else
 begin
+  haveI : nontrivial R := ⟨⟨0, 1, H⟩⟩,
   simp_rw [linear_equiv_matrix, linear_equiv.trans_apply, linear_equiv_matrix'_apply,
-    ← equiv.of_injective_apply _ (hv₁.injective H), ← equiv.of_injective_apply _ (hv₂.injective H),
+    ← equiv.of_injective_apply _ hv₁.injective, ← equiv.of_injective_apply _ hv₂.injective,
     to_matrix_of_equiv, ← linear_equiv.trans_apply, linear_equiv.arrow_congr_trans], congr' 3;
   refine function.left_inverse.injective linear_equiv.symm_symm _; ext x;
   simp_rw [linear_equiv.symm_trans_apply, equiv_fun_basis_symm_apply, fun_congr_left_symm,
     fun_congr_left_apply, fun_left_apply],
-  convert (finset.sum_equiv (equiv.of_injective _ (hv₁.injective H)) _).symm,
+  convert (finset.sum_equiv (equiv.of_injective _ hv₁.injective) _).symm,
   simp_rw [equiv.symm_apply_apply, equiv.of_injective_apply, subtype.coe_mk],
-  convert (finset.sum_equiv (equiv.of_injective _ (hv₂.injective H)) _).symm,
+  convert (finset.sum_equiv (equiv.of_injective _ hv₂.injective) _).symm,
   simp_rw [equiv.symm_apply_apply, equiv.of_injective_apply, subtype.coe_mk]
 end
 
@@ -531,8 +532,9 @@ theorem trace_aux_range (R : Type u) [comm_ring R] {M : Type v} [add_comm_group 
   trace_aux R hb.range = trace_aux R hb :=
 linear_map.ext $ λ f, if H : 0 = 1 then eq_of_zero_eq_one H _ _ else
 begin
+  haveI : nontrivial R := ⟨⟨0, 1, H⟩⟩,
   change ∑ i : set.range b, _ = ∑ i : ι, _, simp_rw [matrix.diag_apply], symmetry,
-  convert finset.sum_equiv (equiv.of_injective _ $ hb.injective H) _, ext i,
+  convert finset.sum_equiv (equiv.of_injective _ hb.injective) _, ext i,
   exact (linear_equiv_matrix_range hb hb f i i).symm
 end
 

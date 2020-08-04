@@ -81,8 +81,8 @@ instance is_interval_generated_at_bot : is_interval_generated (at_bot : filter �
   λ i hi, ord_connected_Iic
 
 /-- If `Ixx` is a function `α → α → set α` such that `Ixx x y ⊆ Icc x y`
-(e.g., `Ixx` is one of `Ioo`, `Ico`, `Ioc`, `Icc`), then `Ixx a b → l.lift' powerset`
-as `(a, b) → l ×ᶠ l`. -/
+(e.g., `Ixx` is one of `Ioo`, `Ico`, `Ioc`, `Icc`), then `Ixx a b` tends to `l.lift' powerset`
+as `(a, b)` tends to `l ×ᶠ l`. -/
 lemma tendsto_Ixx_same_filter {Ixx : α → α → set α} (hI : ∀ x y, Ixx x y ⊆ Icc x y)
   (l : filter α) [is_interval_generated l] :
   tendsto (uncurry Ixx) (l ×ᶠ l) (l.lift' powerset) :=
@@ -94,8 +94,8 @@ begin
 end
 
 /-- If `Ixx` is a function `α → α → set α` such that `Ixx x y ⊆ Icc x y`
-(e.g., `Ixx` is one of `Ioo`, `Ico`, `Ioc`, `Icc`), then `Ixx (f x) (f y) → l.lift' powerset`
-provided that `f → l` and `g → l`. -/
+(e.g., `Ixx` is one of `Ioo`, `Ico`, `Ioc`, `Icc`), then `Ixx (f t) (g t)` tends
+to `l.lift' powerset` provided that both `f t` and `g t` tend to `l`. -/
 lemma tendsto.Ixx {la : filter α} [is_interval_generated la]
   {Ixx : α → α → set α} (hI : ∀ x y, Ixx x y ⊆ Icc x y)
   {lb : filter β} {f g : β → α} (hf : tendsto f lb la) (hg : tendsto g lb la) :

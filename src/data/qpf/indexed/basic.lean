@@ -100,6 +100,8 @@ each proves that some operations on functors preserves the QPF structure
 
 -/
 
+open_locale fam
+
 /-- Indexed Quotient of Polynomial Functor -/
 class iqpf {I J : Type u} (F : fam I ⥤ fam J) :=
 (P         : ipfunctor.{u} I J)

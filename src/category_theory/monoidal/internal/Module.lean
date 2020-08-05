@@ -83,6 +83,9 @@ def functor : Mon_ (Module R) ⥤ Algebra R :=
     commutes' := λ r, lcongr_fun f.one_hom r,
     ..(f.hom.to_add_monoid_hom) }, }.
 
+/--
+Converting a bundled algebra to a monoid object in `Module R`.
+-/
 @[simps]
 def inverse_obj (A : Algebra.{u} R) : Mon_ (Module.{u} R) :=
 { X := Module.of R A,

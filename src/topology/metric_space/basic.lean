@@ -250,6 +250,9 @@ def ball (x : α) (ε : ℝ) : set α := {y | dist y x < ε}
 
 theorem mem_ball' : y ∈ ball x ε ↔ dist x y < ε := by rw dist_comm; refl
 
+@[simp] lemma nonempty_ball (h : 0 < ε) : (ball x ε).nonempty :=
+⟨x, by simp [h]⟩
+
 lemma ball_eq_ball (ε : ℝ) (x : α) :
   uniform_space.ball x {p | dist p.2 p.1 < ε} = metric.ball x ε := rfl
 
@@ -264,6 +267,9 @@ def closed_ball (x : α) (ε : ℝ) := {y | dist y x ≤ ε}
 def sphere (x : α) (ε : ℝ) := {y | dist y x = ε}
 
 @[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ dist y x ≤ ε := iff.rfl
+
+lemma nonempty_closed_ball (h : 0 ≤ ε) : (closed_ball x ε).nonempty :=
+⟨x, by simp [h]⟩
 
 theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=
 assume y (hy : _ < _), le_of_lt hy

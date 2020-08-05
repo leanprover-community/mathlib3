@@ -1613,7 +1613,8 @@ add_tactic_doc
 attribute [higher_order map_comp_pure] map_pure
 
 
-/-- Put a definition in the `tactic.interactive` namespace to make it usable
+/--
+Copies a definition into the `tactic.interactive` namespace to make it usable
 in proof scripts
 -/
 @[user_attribute]

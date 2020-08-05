@@ -1615,7 +1615,20 @@ attribute [higher_order map_comp_pure] map_pure
 
 /--
 Copies a definition into the `tactic.interactive` namespace to make it usable
-in proof scripts
+in proof scripts. It allows one to write
+
+```lean
+@[interactive]
+meta def my_tactic := ...
+```
+
+instead of
+
+```lean
+meta def my_tactic := ...
+
+run_cmd add_interactive [``my_tactic]
+```
 -/
 @[user_attribute]
 meta def interactive_attr : user_attribute :=

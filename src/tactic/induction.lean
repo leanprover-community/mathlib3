@@ -111,33 +111,6 @@ def all_some : list (option α) → option (list α)
 | (some x :: xs) := (λ xs, x :: xs) <$> all_some xs
 | (none :: xs) := none
 
-def mbfind' {m : Type u → Type v} [monad m] {α : Type u} (p : α → m (ulift bool)) :
-  list α → m (option α)
-| [] := pure none
-| (x :: xs) := do
-  ⟨px⟩ ← p x,
-  if px then pure (some x) else mbfind' xs
-
-def mbfind {m : Type → Type v} [monad m] {α : Type} (p : α → m bool)
-  (xs : list α) : m (option α) :=
-xs.mbfind' (functor.map ulift.up ∘ p)
-
--- I'd like to define this in terms of mbfind, but that gives us less universe
--- polymorphism.
-def mbany {m : Type → Type v} [monad m] {α : Type u} (p : α → m bool) :
-  list α → m bool
-| [] := pure ff
-| (x :: xs) := do
-  px ← p x,
-  if px then pure tt else mbany xs
-
-def mball {m} [monad m] {α} (p : α → m bool) (xs : list α) : m bool :=
-bnot <$> xs.mbany (functor.map bnot ∘ p)
-
-def mbor {m} [monad m] (xs : list (m bool)) : m bool := xs.mbany id
-
-def mband {m} [monad m] (xs : list (m bool)) : m bool := xs.mball id
-
 def take_lst {α} : list α → list ℕ → list (list α) × list α
 | xs [] := ([], xs)
 | xs (n :: ns) :=
@@ -810,19 +783,19 @@ meta def get_unused_name' (ns : list name) (reserved : name_set) : tactic name :
   get_unused_name'_aux fallback reserved none
 
 /- Precond: ns is nonempty. -/
-meta def intro_fresh (ns : list name) (reserved : name_set) : tactic expr := do
+meta def intro_fresh_reserved (ns : list name) (reserved : name_set) : tactic expr := do
   n ← get_unused_name' ns reserved,
   intro n
 
 /- Precond: each of the name lists is nonempty. -/
-meta def intro_lst_fresh (ns : list (name ⊕ list name)) (reserved : name_set) :
+meta def intro_lst_fresh_reserved (ns : list (name ⊕ list name)) (reserved : name_set) :
   tactic (list expr) := do
   let fixed := name_set.of_list $ ns.filter_map sum.get_left,
   let reserved := reserved.merge fixed,
   ns.mmap $ λ spec,
     match spec with
     | sum.inl n := intro n
-    | sum.inr ns := intro_fresh ns reserved
+    | sum.inr ns := intro_fresh_reserved ns reserved
     end
 
 -- TODO integrate into tactic.rename?
@@ -838,7 +811,7 @@ meta def rename_fresh (renames : name_map (list name)) (reserved : name_set) :
       | some new_names := sum.inr new_names
       end,
   revert_lst ctx_suffix,
-  new_hyps ← intro_lst_fresh new_names reserved,
+  new_hyps ← intro_lst_fresh_reserved new_names reserved,
   pure $ rb_map.of_list $
     list.map₂ (λ (old new : expr), (old.local_pp_name, new.local_pp_name))
       ctx_suffix new_hyps
@@ -1136,7 +1109,7 @@ meta def replace_structure_index_args (eliminee : expr) (index_args : list expr)
   relevant_ctx ← ctx.mfilter $ λ h, do {
     ff ← pure $ eliminee_deps.contains h.local_uniq_name | pure ff,
     H ← infer_type h,
-    (structure_args.map prod.fst).mbany $ λ a, kdepends_on H a
+    (structure_args.map prod.fst).many $ λ a, kdepends_on H a
   },
   n ← revert_lst relevant_ctx,
   tgt ← target,
@@ -1169,7 +1142,7 @@ focus1 $ do
     let dep_of_eliminee := eliminee_deps.contains h.local_uniq_name,
     dep_on_eliminee ← local_depends_on_local h eliminee,
     H ← infer_type h,
-    dep_of_index ← js.mbany $ λ j, kdepends_on H j,
+    dep_of_index ← js.many $ λ j, kdepends_on H j,
     -- TODO local defs
     pure $ (dep_on_eliminee ∧ h ≠ eliminee) ∨ (dep_of_index ∧ ¬ dep_of_eliminee)
   },

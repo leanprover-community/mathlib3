@@ -309,8 +309,8 @@ pair.map (tree_shape.map f) (child_shape.map f)
 def mut_shape' (α : Type) : fam (empty ⊕ bool) ⥤ fam bool :=
 { obj := mut_shape α,
   map := mut_shape.map α,
-  map_id' := by intros; ext ⟨ ⟩ ⟨ ⟩ : 2; [refl, refl, skip]; rintro ⟨ ⟩; refl,
-  map_comp' := by intros; ext ⟨ ⟩ ⟨ ⟩ : 2; [refl, refl, skip]; rintro ⟨ ⟩; refl }
+  map_id' := by intros; ext ⟨ ⟩ ⟨ ⟩ : 2; [refl, refl, skip]; ext ⟨ ⟩; refl,
+  map_comp' := by intros; ext ⟨ ⟩ ⟨ ⟩ : 2; [refl, refl, skip]; ext ⟨ ⟩; refl }
 
 inductive mut_children' (α : Type) : Π (i : bool), pair α bool i → (empty ⊕ bool) → Type u
 | list_obj : mut_children' ff ff (sum.inr tt)
@@ -349,7 +349,7 @@ instance {α} : iqpf (mut_shape' α) :=
 { P := mut_P α,
   abs := mut_P.abs,
   repr := mut_P.repr,
-  abs_repr := by intros; ext (_|_) (_|_); dsimp [(≫)]; try { refl }; intro x; cases x; refl,
-  abs_map := by intros; ext (_|_) (_|_); dsimp [(≫)]; try { refl }; intro x; cases x; refl, }
+  abs_repr := by intros; ext (_|_) (_|_); dsimp [(≫)]; try { refl }; ext ⟨ ⟩; refl,
+  abs_map := by intros; ext (_|_) (_|_); dsimp [(≫)]; try { refl }; ext ⟨ ⟩; refl, }
 
 end ex_mutual

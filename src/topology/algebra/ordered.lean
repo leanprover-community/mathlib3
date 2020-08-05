@@ -2269,7 +2269,7 @@ end
 lemma eq_lim_at_left_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
   [order_topology α] [topological_space β] [t2_space β] {f : α → β} {a b : α}
   {la : β} (hab : a < b) (ha : tendsto f (nhds_within a $ Ioi a) (𝓝 la)) :
-  (extend_from (Ioo a b) f a = la) :=
+  extend_from (Ioo a b) f a = la :=
 begin
   apply extend_from_eq,
   { rw closure_Ioo hab,
@@ -2280,7 +2280,7 @@ end
 lemma eq_lim_at_right_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
   [order_topology α] [topological_space β] [t2_space β] {f : α → β} {a b : α}
   {lb : β} (hab : a < b) (hb : tendsto f (nhds_within b $ Iio b) (𝓝 lb)) :
-  (extend_from (Ioo a b) f b = lb) :=
+  extend_from (Ioo a b) f b = lb :=
 begin
   apply extend_from_eq,
   { rw closure_Ioo hab,

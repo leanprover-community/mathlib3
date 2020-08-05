@@ -667,7 +667,6 @@ lemma continuous_on_if' {s : set α} {p : α → Prop} {f g : α → β} {h : �
   (hf : continuous_on f $ s ∩ {a | p a}) (hg : continuous_on g $ s ∩ {a | ¬p a}) :
   continuous_on (λ a, if p a then f a else g a) s :=
 begin
-  set φ := (λ a, if p a then f a else g a),
   set A := {a | p a},
   set B := {a | ¬p a},
   rw [← (inter_univ s), ← union_compl_self A],
@@ -698,10 +697,10 @@ begin
       { have : x ∉ closure A,
           from (λ h, hx' ⟨h, (λ (h' : x ∈ interior A), hx.2 (interior_subset h'))⟩),
         exact continuous_within_at_of_not_mem_closure
-        (λ h, this (closure_inter_subset_inter_closure _ _ h).2) },
+          (λ h, this (closure_inter_subset_inter_closure _ _ h).2) },
       { exact (hg x hx).congr
-        (λ y hy, piecewise_eq_of_not_mem _ _ _ hy.2)
-        (piecewise_eq_of_not_mem _ _ _ hx.2) } } }
+          (λ y hy, piecewise_eq_of_not_mem _ _ _ hy.2)
+          (piecewise_eq_of_not_mem _ _ _ hx.2) } } }
 end
 
 lemma continuous_on_if {α β : Type*} [topological_space α] [topological_space β] {p : α → Prop}
@@ -713,18 +712,16 @@ begin
   apply continuous_on_if',
   { rintros a ha,
     simp only [← hp a ha, if_t_t],
-    apply tendsto_nhds_within_mono_left,
-    { exact inter_subset_inter_right s subset_closure, },
+    apply tendsto_nhds_within_mono_left (inter_subset_inter_right s subset_closure),
     exact (hf a ⟨ha.1, ha.2.1⟩).tendsto },
   { rintros a ha,
     simp only [hp a ha, if_t_t],
-    apply tendsto_nhds_within_mono_left,
-    { exact inter_subset_inter_right s subset_closure, },
+    apply tendsto_nhds_within_mono_left (inter_subset_inter_right s subset_closure),
     rcases ha with ⟨has, ⟨_, ha⟩⟩,
     rw [← mem_compl_iff, ← closure_compl] at ha,
     apply (hg a ⟨has, ha⟩).tendsto, },
-  { exact hf.mono (inter_subset_inter_right s subset_closure), },
-  exact hg.mono (inter_subset_inter_right s subset_closure)
+  { exact hf.mono (inter_subset_inter_right s subset_closure) },
+  { exact hg.mono (inter_subset_inter_right s subset_closure) }
 end
 
 lemma continuous_if' {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}

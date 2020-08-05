@@ -52,9 +52,8 @@ lemma extend_from_extends [t2_space Y] {f : X → Y} {A : set X} (hf : continuou
   ∀ x ∈ A, extend_from A f x = f x :=
 λ x x_in, extend_from_eq (subset_closure x_in) (hf x x_in)
 
-/-- If `f` is a function to a regular space `Y` which is continuous on a set `A`,
-then `extend_from A f` is continuous on `B ⊆ closure A`, provided that `f` has a limit
-within `A` at any point in `B`. -/
+/-- If `f` is a function to a regular space `Y` which has a limit within `A` at any
+point of a set `B ⊆ closure A`, then `extend_from A f` is continuous on `B`. -/
 lemma continuous_on_extend_from [regular_space Y] {f : X → Y} {A B : set X} (hB : B ⊆ closure A)
   (hf : ∀ x ∈ B, ∃ y, tendsto f (nhds_within x A) (𝓝 y)) : continuous_on (extend_from A f) B :=
 begin
@@ -78,9 +77,8 @@ begin
   exact mem_of_closed_of_tendsto limy V'_closed (mem_sets_of_superset this hV)
 end
 
-/-- If a function `f` to a regular space `Y` is continuous on a dense set `A`,
-then `extend_from A f` is continuous, provided that `f` has a limit
-within `A` for any `x`. -/
+/-- If a function `f` to a regular space `Y` has a limit within a
+dense set `A` for any `x`, then `extend_from A f` is continuous. -/
 lemma continuous_extend_from [regular_space Y] {f : X → Y} {A : set X} (hA : univ ⊆ closure A)
   (hf : ∀ x, ∃ y, tendsto f (nhds_within x A) (𝓝 y)) : continuous (extend_from A f) :=
 begin

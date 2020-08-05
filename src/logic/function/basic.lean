@@ -357,6 +357,22 @@ rfl
 
 end bicomp
 
+section uncurry
+
+variables {α β γ δ : Type*}
+
+/-- Records a way to turn an element of `α` into a function from `β` to `γ`. -/
+class has_uncurry (α : Type*) (β : out_param Type*) (γ : out_param Type*) := (uncurry : α → (β → γ))
+
+notation `↿`:max x:max := has_uncurry.uncurry x
+
+instance has_uncurry_base : has_uncurry (α → β) α β := ⟨id⟩
+
+instance has_uncurry_induction [has_uncurry β γ δ] : has_uncurry (α → β) (α × γ) δ :=
+⟨λ f p, ↿(f p.1) p.2⟩
+
+end uncurry
+
 /-- A function is involutive, if `f ∘ f = id`. -/
 def involutive {α} (f : α → α) : Prop := ∀ x, f (f x) = x
 

@@ -203,19 +203,11 @@ end
 
 @[priority 100]
 instance normed_space.path_connected : path_connected_space E :=
-begin
-  rw path_connected_space_iff_univ,
-  refine is_path_connected_iff.mpr ⟨⟨0, trivial⟩, _⟩,
-  intros x y x_in y_in,
-  exact (convex_univ.is_path_connected ⟨0, trivial⟩).joined_in x y x_in y_in
-end
+path_connected_space_iff_univ.mpr $ convex_univ.is_path_connected ⟨(0 : E), trivial⟩
 
 @[priority 100]
 instance normed_space.loc_path_connected : loc_path_connected_space E :=
-begin
-  refine loc_path_connected_of_bases (λ x, metric.nhds_basis_ball) _,
-  intros x r r_pos,
-  exact (convex_ball x r).is_path_connected (by simp [r_pos])
-end
+loc_path_connected_of_bases (λ x, metric.nhds_basis_ball)
+  (λ x r r_pos, (convex_ball x r).is_path_connected $ by simp [r_pos])
 
 end normed_space

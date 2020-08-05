@@ -210,6 +210,7 @@ by simp [extend]
 @[simp] lemma extend_one : γ.extend 1 = y :=
 by simp [extend]
 
+/-- The path obtained from a map defined on `ℝ` by restriction to the unit interval. -/
 def of_line {f : ℝ → X} (hf : continuous_on f I) (h₀ : f 0 = x) (h₁ : f 1 = y) : path x y :=
 { to_fun := f ∘ coe,
   continuous' := hf.comp_continuous continuous_subtype_coe (by rw subtype.range_coe),

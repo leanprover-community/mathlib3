@@ -84,7 +84,7 @@ begin
   let B := Eb R j i hij.symm,
   intros c,
   have c' : A.val ⬝ B.val = B.val ⬝ A.val := by { rw [←sub_eq_zero, ←sl_bracket, c.abelian], refl, },
-  have : (1 : R) = 0 := by simpa [matrix.mul_val, hij] using (congr_fun (congr_fun c' i) i),
+  have : (1 : R) = 0 := by simpa [matrix.mul_apply, hij] using (congr_fun (congr_fun c' i) i),
   exact one_ne_zero this,
 end
 

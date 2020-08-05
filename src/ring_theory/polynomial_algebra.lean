@@ -329,7 +329,7 @@ lemma mat_poly_equiv_smul_one (p : polynomial R) :
   mat_poly_equiv (p • 1) = p.map (algebra_map R (matrix n n R)) :=
 begin
   ext m i j,
-  simp only [coeff_map, one_val, algebra_map_matrix_val, mul_boole,
-    smul_val, mat_poly_equiv_coeff_apply],
+  simp only [coeff_map, one_apply, algebra_map_matrix_apply, mul_boole,
+    smul_apply, mat_poly_equiv_coeff_apply],
   split_ifs; simp,
 end

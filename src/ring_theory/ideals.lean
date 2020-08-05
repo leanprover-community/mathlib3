@@ -6,6 +6,20 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 import algebra.associated
 import linear_algebra.basic
 import order.zorn
+/-!
+
+# Ideals over a ring
+
+This file defines `ideal R`, an ideal over a commutative ring.
+
+## Implementation notes
+
+`ideal R` is implemented using `submodule R R`, where `•` is interpreted as `*`.
+
+## TODO
+
+Support one-sided ideals, and ideals over non-commutative rings
+-/
 
 universes u v w
 variables {α : Type u} {β : Type v} {a b : α}
@@ -13,8 +27,28 @@ open set function
 
 open_locale classical big_operators
 
+/-- Ideal in a commutative ring is an additive subgroup `s` such that
+`a * b ∈ s` whenever `b ∈ s`. -/
+@[reducible] def ideal (R : Type u) [comm_ring R] := submodule R R
+
 namespace ideal
 variables [comm_ring α] (I : ideal α)
+
+protected lemma zero_mem : (0 : α) ∈ I := I.zero_mem
+
+protected lemma add_mem : a ∈ I → b ∈ I → a + b ∈ I := I.add_mem
+
+lemma neg_mem_iff : -a ∈ I ↔ a ∈ I := I.neg_mem_iff
+
+lemma add_mem_iff_left : b ∈ I → (a + b ∈ I ↔ a ∈ I) := I.add_mem_iff_left
+
+lemma add_mem_iff_right : a ∈ I → (a + b ∈ I ↔ b ∈ I) := I.add_mem_iff_right
+
+protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := I.sub_mem
+
+lemma mul_mem_left : b ∈ I → a * b ∈ I := I.smul_mem _
+
+lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_left h
 
 @[ext] lemma ext {I J : ideal α} (h : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
 submodule.ext h

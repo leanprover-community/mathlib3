@@ -10,6 +10,7 @@ import topology.constructions
 
 This file defines relative versions
 
+* `nhds_within`           of `nhds`
 * `continuous_on`         of `continuous`
 * `continuous_within_at`  of `continuous_at`
 
@@ -21,7 +22,7 @@ equipped with the subspace topology.
 
 * `𝓝 x`: the filter of neighborhoods of a point `x`;
 * `𝓟 s`: the principal filter of a set `s`;
-* `𝓝[s] x`: the filter `𝓝 x ⊓ 𝓟 s` of neighborhoods of a point `x` within a set `s`.
+* `𝓝[s] x`: the filter `nhds_within x s` of neighborhoods of a point `x` within a set `s`.
 
 -/
 
@@ -30,6 +31,12 @@ open_locale topological_space filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 variables [topological_space α]
+
+/-- The "neighborhood within" filter. Elements of `𝓝[s] a` are sets containing the
+intersection of `s` and a neighborhood of `a`. -/
+def nhds_within (a : α) (s : set α) : filter α := 𝓝 a ⊓ 𝓟 s
+
+localized "notation `𝓝[` s `] ` x:100 := nhds_within x s" in topological_space
 
 @[simp] lemma nhds_bind_nhds_within {a : α} {s : set α} :
   (𝓝 a).bind (λ x, 𝓝[s] x) = 𝓝[s] a :=
@@ -56,7 +63,7 @@ theorem nhds_within_eq (a : α) (s : set α) :
 ((nhds_basis_opens a).inf_principal s).eq_binfi
 
 theorem nhds_within_univ (a : α) : 𝓝[set.univ] a = 𝓝 a :=
-by rw [principal_univ, inf_top_eq]
+by rw [nhds_within, principal_univ, inf_top_eq]
 
 lemma nhds_within_has_basis {p : β → Prop} {s : β → set α} {a : α} (h : (𝓝 a).has_basis p s)
   (t : set α) :
@@ -136,19 +143,20 @@ theorem nhds_within_eq_of_open {a : α} {s : set α} (h₀ : a ∈ s) (h₁ : is
   𝓝[s] a = 𝓝 a :=
 inf_eq_left.2 $ le_principal_iff.2 $ mem_nhds_sets h₁ h₀
 
-theorem nhds_within_empty (a : α) : 𝓝[∅] a = ⊥ := by simp
+@[simp] theorem nhds_within_empty (a : α) : 𝓝[∅] a = ⊥ :=
+by rw [nhds_within, principal_empty, inf_bot_eq]
 
 theorem nhds_within_union (a : α) (s t : set α) :
   𝓝[s ∪ t] a = 𝓝[s] a ⊔ 𝓝[t] a :=
-by rw [←inf_sup_left, sup_principal]
+by { delta nhds_within, rw [←inf_sup_left, sup_principal] }
 
 theorem nhds_within_inter (a : α) (s t : set α) :
   𝓝[s ∩ t] a = 𝓝[s] a ⊓ 𝓝[t] a :=
-by rw [inf_left_comm, inf_assoc, inf_principal, ←inf_assoc, inf_idem]
+by { delta nhds_within, rw [inf_left_comm, inf_assoc, inf_principal, ←inf_assoc, inf_idem] }
 
 theorem nhds_within_inter' (a : α) (s t : set α) :
   𝓝[s ∩ t] a = (𝓝[s] a) ⊓ 𝓟 t :=
-by rw [←inf_principal, inf_assoc]
+by { delta nhds_within, rw [←inf_principal, inf_assoc] }
 
 lemma mem_nhds_within_insert {a : α} {s t : set α} (h : t ∈ 𝓝[s] a) :
   insert a t ∈ 𝓝[insert a s] a :=
@@ -165,7 +173,7 @@ end
 lemma nhds_within_prod_eq {α : Type*} [topological_space α] {β : Type*} [topological_space β]
   (a : α) (b : β) (s : set α) (t : set β) :
   𝓝[s.prod t] (a, b) = (𝓝[s] a).prod (𝓝[t] b) :=
-by rw [nhds_prod_eq, ←filter.prod_inf_prod, filter.prod_principal_principal]
+by { delta nhds_within, rw [nhds_prod_eq, ←filter.prod_inf_prod, filter.prod_principal_principal] }
 
 lemma nhds_within_prod {α : Type*} [topological_space α] {β : Type*} [topological_space β]
   {s u : set α} {t v : set β} {a : α} {b : β}
@@ -249,14 +257,13 @@ h.self_of_nhds_within hmem
 nhds_within and subtypes
 -/
 
-theorem mem_nhds_within_subtype (s : set α) (a : {x // x ∈ s}) (t u : set {x // x ∈ s}) :
-  t ∈ 𝓝[u] a ↔
-    t ∈ comap (coe : s → α) (𝓝[coe '' u] a) :=
-by rw [nhds_subtype, principal_subtype, ←comap_inf]
+theorem mem_nhds_within_subtype {s : set α} {a : {x // x ∈ s}} {t u : set {x // x ∈ s}} :
+  t ∈ 𝓝[u] a ↔ t ∈ comap (coe : s → α) (𝓝[coe '' u] a) :=
+by rw [nhds_within, nhds_subtype, principal_subtype, ←comap_inf, ←nhds_within]
 
 theorem nhds_within_subtype (s : set α) (a : {x // x ∈ s}) (t : set {x // x ∈ s}) :
   𝓝[t] a = comap (coe : s → α) (𝓝[coe '' t] a) :=
-filter_eq $ by ext u; rw mem_nhds_within_subtype
+filter.ext $ λ u, mem_nhds_within_subtype
 
 theorem nhds_within_eq_map_subtype_coe {s : set α} {a : α} (h : a ∈ s) :
   𝓝[s] a = map (coe : s → α) (𝓝 ⟨a, h⟩) :=

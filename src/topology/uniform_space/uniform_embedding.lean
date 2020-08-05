@@ -141,7 +141,7 @@ have ∀b' (s' : set (β × β)), (b, b') ∈ t → s' ∈ 𝓤 β →
   have e a₂ ∈ {b'':β | (b', b'') ∈ s'} ∩ e '' {a' | (a, a') ∈ s},
     from ⟨ha₂s', mem_image_of_mem _ $ ht₁ (a, a₂) this⟩,
   ⟨_, this⟩,
-have ∀b', (b, b') ∈ t → ne_bot (𝓝[e '' {a' | (a, a') ∈ s}] b'),
+have ∀b', (b, b') ∈ t → ne_bot (𝓝 b' ⊓ 𝓟 (e '' {a' | (a, a') ∈ s})),
 begin
   intros b' hb',
   rw [nhds_eq_uniformity, lift'_inf_principal_eq, lift'_ne_bot_iff],

@@ -215,7 +215,7 @@ theorem has_fderiv_within_at.lim (h : has_fderiv_within_at f f' s x) {α : Type*
 begin
   have tendsto_arg : tendsto (λ n, x + d n) l (𝓝[s] x),
   { conv in (𝓝[s] x) { rw ← add_zero x },
-    rw [tendsto_inf],
+    rw [nhds_within, tendsto_inf],
     split,
     { apply tendsto_const_nhds.add (tangent_cone_at.lim_zero l clim cdlim) },
     { rwa tendsto_principal } },

@@ -852,7 +852,7 @@ instance order_topology.regular_space : regular_space α :=
                 assume x (hx : l < x), show ¬ x < a, from not_lt.2 $ h₁ _ hx⟩
           end)
         (assume : ¬ ∃l, l < a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
-          by rw [principal_empty, inf_bot_eq]⟩),
+          nhds_within_empty _⟩),
     let ⟨t₁, ht₁o, ht₁s, ht₁a⟩ := this in
     have ∃t:set α, is_open t ∧ (∀u∈ s, u>a → u ∈ t) ∧ 𝓝[t] a = ⊥,
       from by_cases
@@ -869,13 +869,13 @@ instance order_topology.regular_space : regular_space α :=
                 assume x (hx : u > x), show ¬ x > a, from not_lt.2 $ h₂ _ hx⟩
           end)
         (assume : ¬ ∃u, u > a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
-          by rw [principal_empty, inf_bot_eq]⟩),
+          nhds_within_empty _⟩),
     let ⟨t₂, ht₂o, ht₂s, ht₂a⟩ := this in
     ⟨t₁ ∪ t₂, is_open_union ht₁o ht₂o,
       assume x hx,
       have x ≠ a, from assume eq, ha $ eq ▸ hx,
       (ne_iff_lt_or_gt.mp this).imp (ht₁s _ hx) (ht₂s _ hx),
-      by rw [←sup_principal, inf_sup_left, ht₁a, ht₂a, bot_sup_eq]⟩,
+      by rw [nhds_within_union, ht₁a, ht₂a, bot_sup_eq]⟩,
   ..order_topology.t2_space }
 
 /-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`,

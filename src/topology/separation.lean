@@ -400,7 +400,7 @@ instance subtype.regular_space [regular_space α] {p : α → Prop} : regular_sp
    rcases is_closed_induced_iff.1 hs with ⟨s, hs', rfl⟩,
    rcases regular_space.regular hs' ha with ⟨t, ht, hst, hat⟩,
    refine ⟨coe ⁻¹' t, is_open_induced ht, preimage_mono hst, _⟩,
-   rw [nhds_induced, ← comap_principal, ← comap_inf, hat, comap_bot]
+   rw [nhds_within, nhds_induced, ← comap_principal, ← comap_inf, ← nhds_within, hat, comap_bot]
  end⟩
 
 variable (α)

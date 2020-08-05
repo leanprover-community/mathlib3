@@ -315,7 +315,7 @@ lemma closure_prod_eq {s : set α} {t : set β} :
   closure (set.prod s t) = set.prod (closure s) (closure t) :=
 set.ext $ assume ⟨a, b⟩,
 have filter.prod (𝓝 a) (𝓝 b) ⊓ 𝓟 (set.prod s t) =
-  filter.prod (𝓝[s] a) (𝓝[t] b),
+  filter.prod (𝓝 a ⊓ 𝓟 s) (𝓝 b ⊓ 𝓟 t),
   by rw [←prod_inf_prod, prod_principal_principal],
 by simp [closure_eq_cluster_pts, cluster_pt, nhds_prod_eq, this]; exact prod_ne_bot
 

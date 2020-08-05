@@ -246,7 +246,7 @@ lemma has_deriv_within_at_iff_tendsto_slope {x : 𝕜} {s : set 𝕜} :
   has_deriv_within_at f f' s x ↔
     tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (𝓝[s \ {x}] x) (𝓝 f') :=
 begin
-  simp only [has_deriv_within_at, diff_eq, inf_assoc.symm, inf_principal.symm],
+  simp only [has_deriv_within_at, nhds_within, diff_eq, inf_assoc.symm, inf_principal.symm],
   exact has_deriv_at_filter_iff_tendsto_slope
 end
 
@@ -941,9 +941,8 @@ theorem has_deriv_within_at.scomp {t : set 𝕜}
   has_deriv_within_at (g ∘ h) (h' • g') s x :=
 begin
   apply has_deriv_at_filter.scomp _ (has_deriv_at_filter.mono hg _) hh,
-  calc map h (𝓝[s] x)
-      ≤ 𝓝[h '' s] (h x) : hh.continuous_within_at.tendsto_nhds_within_image
-  ... ≤ 𝓝[t] (h x)        : nhds_within_mono _ (image_subset_iff.mpr hst)
+  calc map h (𝓝[s] x) ≤ 𝓝[h '' s] (h x) : hh.continuous_within_at.tendsto_nhds_within_image
+                  ... ≤ 𝓝[t] (h x)      : nhds_within_mono _ (image_subset_iff.mpr hst)
 end
 
 /-- The chain rule. -/

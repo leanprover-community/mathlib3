@@ -425,6 +425,7 @@ begin
   use [f a, mem_image_of_mem f has],
   have : tendsto f (𝓝 a ⊓ (comap f l ⊓ 𝓟 s)) (𝓝 (f a) ⊓ l),
   { convert (hf a has).inf (@tendsto_comap _ _ f l) using 1,
+    rw nhds_within,
     ac_refl },
   exact @@tendsto.ne_bot _ this ha,
 end
@@ -453,7 +454,7 @@ begin
       by simpa only [map_ne_bot_iff],
     calc map πY (comap πY (𝓝 y) ⊓ 𝓟 C) =
        𝓝 y ⊓ map πY (𝓟 C) : filter.push_pull' _ _ _
-      ... = 𝓝[πY '' C] y : by rw map_principal
+      ... = 𝓝 y ⊓ 𝓟 (πY '' C) : by rw map_principal
       ... ≠ ⊥ : y_closure },
   resetI,
   obtain ⟨x, hx⟩ : ∃ x, cluster_pt x (map πX (comap πY (𝓝 y) ⊓ 𝓟 C)),
@@ -461,7 +462,7 @@ begin
   refine ⟨⟨x, y⟩, _, by simp [πY]⟩,
   apply hC,
   rw [cluster_pt, ← filter.map_ne_bot_iff πX],
-  calc map πX (𝓝[C] (x, y))
+  calc map πX (𝓝 (x, y) ⊓ 𝓟 C)
       = map πX (comap πX (𝓝 x) ⊓ comap πY (𝓝 y) ⊓ 𝓟 C) : by rw [nhds_prod_eq, filter.prod]
   ... = map πX (comap πY (𝓝 y) ⊓ 𝓟 C ⊓ comap πX (𝓝 x)) : by ac_refl
   ... = map πX (comap πY (𝓝 y) ⊓ 𝓟 C) ⊓ 𝓝 x            : by rw filter.push_pull
@@ -535,7 +536,6 @@ lemma compact_pi_infinite {s : Πi:ι, set (π i)} :
 begin
   simp only [compact_iff_ultrafilter_le_nhds, nhds_pi, exists_prop, mem_set_of_eq, le_infi_iff, le_principal_iff],
   intros h f hf hfs,
-  -- set p : Πi:ι, filter (π i) := λi, map (λx:Πi:ι, π i, x i) f,
   have : ∀i:ι, ∃a, a∈s i ∧ tendsto (λx:Πi:ι, π i, x i) f (𝓝 a),
   { refine λ i, h i _ (ultrafilter_map hf) (mem_map.2 _),
     exact mem_sets_of_superset hfs (λ x hx, hx i) },

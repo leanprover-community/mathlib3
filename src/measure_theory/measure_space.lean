@@ -137,6 +137,10 @@ lemma to_outer_measure_injective {α} [measurable_space α] :
   μ₁ = μ₂ :=
 to_outer_measure_injective $ by rw [← trimmed, outer_measure.trim_congr h, trimmed]
 
+lemma ext_iff {α} [measurable_space α] {μ₁ μ₂ : measure α} :
+  μ₁ = μ₂ ↔ ∀s, is_measurable s → μ₁ s = μ₂ s :=
+⟨by { rintro rfl s hs, refl }, measure.ext⟩
+
 end measure
 
 section
@@ -374,6 +378,7 @@ begin
 end
 
 end
+
 /-- Obtain a measure by giving an outer measure where all sets in the σ-algebra are
   Carathéodory measurable. -/
 def outer_measure.to_measure {α} (m : outer_measure α)

@@ -606,10 +606,7 @@ rfl
 `mk_of_point`. -/
 @[simp] lemma face_eq_mk_of_point {n : ℕ} (s : simplex k V P n) (i : fin (n + 1)) :
   s.face (finset.card_singleton i) = mk_of_point k V (s.points i) :=
-begin
-  ext i0,
-  simp [face_points]
-end
+by { ext, simp [face_points] }
 
 end simplex
 

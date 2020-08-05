@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import algebra.category.Module.monoidal
 import algebra.category.Algebra.basic
 import category_theory.monoidal.internal
@@ -133,8 +138,7 @@ def inverse : Algebra.{u} R ⥤ Mon_ (Module.{u} R) :=
 end Mon_Module_equivalence_Algebra
 
 open Mon_Module_equivalence_Algebra
--- set_option pp.notation false
--- set_option pp.implicit true
+
 /--
 The category of internal monoid objects in `Module R`
 is equivalent to the category of "native" bundled `R`-algebras.
@@ -146,24 +150,45 @@ def Mon_Module_equivalence_Algebra : Mon_ (Module R) ≌ Algebra R :=
     (λ A,
     { hom := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, } },
       inv := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, } } })
-    (sorry),
+    (by tidy),
   counit_iso := nat_iso.of_components (λ A,
   { hom :=
     { to_fun := id,
       map_zero' := rfl,
-      map_one' := begin dsimp [(1), has_one.one, monoid.one, Mon_Module_equivalence_Algebra.ring], simp, end,
       map_add' := λ x y, rfl,
-      map_mul' := λ x y, begin dsimp, refl, end,
-      commutes' := sorry, },
-    inv := sorry}) (sorry), }.
+      map_one' := (algebra_map R A).map_one,
+      map_mul' := λ x y,
+      begin
+        dsimp, simp only [mul_linear_map, tensor_product.lift.tmul, algebra.lmul_apply],
+      end,
+      commutes' := λ r, rfl, },
+    inv :=
+    { to_fun := id,
+      map_zero' := rfl,
+      map_add' := λ x y, rfl,
+      map_one' := begin exact (algebra_map R A).map_one.symm, end,
+      map_mul' := λ x y,
+      begin
+        dsimp [(*), semigroup.mul, monoid.mul, monoid_with_zero.mul, semiring.mul, ring.mul],
+        simp only [mul_linear_map, tensor_product.lift.tmul, algebra.lmul_apply],
+        refl,
+      end,
+      commutes' := λ r, rfl } }) (by tidy), }.
 
 /--
-The equivalence `Mon_ (Type u) ≌ Mon.{u}`
-is naturally compatible with the forgetful functors to `Type u`.
+The equivalence `Mon_ (Module R) ≌ Algebra R`
+is naturally compatible with the forgetful functors to `Module R`.
 -/
 def Mon_Module_equivalence_Algebra_forget :
   Mon_Module_equivalence_Algebra.functor ⋙ forget₂ (Algebra R) (Module R) ≅ Mon_.forget :=
-sorry
--- nat_iso.of_components (λ A, iso.refl _) (by tidy)
+nat_iso.of_components (λ A,
+{ hom :=
+  { to_fun := id,
+    map_add' := λ x y, rfl,
+    map_smul' := λ c x, rfl },
+  inv :=
+  { to_fun := id,
+    map_add' := λ x y, rfl,
+    map_smul' := λ c x, rfl }, }) (by tidy)
 
 end Module

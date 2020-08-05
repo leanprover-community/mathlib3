@@ -49,6 +49,11 @@ instance has_forget_to_Module : has_forget₂ (Algebra R) (Module R) :=
 /-- The object in the category of R-algebras associated to a type equipped with the appropriate typeclasses. -/
 def of (X : Type u) [ring X] [algebra R X] : Algebra R := ⟨X⟩
 
+@[simp] lemma of_is_ring (X : Type u) {r : ring X} {a : algebra R X} :
+  (of R X).is_ring = r := rfl
+@[simp] lemma of_is_algebra (X : Type u) {r : ring X} {a : algebra R X} :
+  (of R X).is_algebra = a := rfl
+
 instance : inhabited (Algebra R) := ⟨of R R⟩
 
 @[simp]

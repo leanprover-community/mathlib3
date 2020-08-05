@@ -81,7 +81,7 @@ variable [comm_monoid_with_zero α]
 theorem eq_zero_of_zero_dvd (h : 0 ∣ a) : a = 0 :=
 dvd.elim h (assume c, assume H' : a = 0 * c, eq.trans H' (zero_mul c))
 
-/-- Given an element a of a commutative semiring, there exists another element whose product
+/-- Given an element a of a commutative monoid with zero, there exists another element whose product
     with zero equals a iff a equals zero. -/
 @[simp] lemma zero_dvd_iff : 0 ∣ a ↔ a = 0 :=
 ⟨eq_zero_of_zero_dvd, λ h, by rw h⟩

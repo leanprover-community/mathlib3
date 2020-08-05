@@ -118,44 +118,60 @@ do {
 } <|>
 pure not_simplified
 
-meta def decompose_and : expr → tactic (list expr) :=
-λ h, do
+-- TODO copied from core (init/meta/injection_tactic.lean)
+meta def injection_with (h : expr) (ns : list name)
+  (base := `h) (offset := some 1) : tactic (list expr × list name) :=
+do
   H ← infer_type h,
-  match H with
-  | `(%%P ∧ %%Q) := focus1 $ do
-    p ← to_expr ``(and.left %%h),
-    assertv_core h.local_pp_name P p,
-    q ← to_expr ``(and.right %%h),
-    assertv_core h.local_pp_name Q q,
-    when h.is_local_constant $ clear h,
-    p_hyp ← intro1,
-    next_p ← decompose_and p_hyp,
-    q_hyp ← intro1,
-    next_q ← decompose_and q_hyp,
-    pure $ next_p ++ next_q
-  | _ := pure [h]
-  end
+  (lhs, rhs, constructor_left, constructor_right, inj_name) ← do {
+    (lhs, rhs) ← match_eq H,
+    lhs ← whnf_ginductive lhs,
+    rhs ← whnf_ginductive rhs,
+    env ← get_env,
+    (const constructor_left _) ← pure $ get_app_fn lhs,
+    (const constructor_right _) ← pure $ get_app_fn rhs,
+    inj_name ← resolve_constant $ constructor_left ++ "inj_arrow",
+    pure (lhs, rhs, constructor_left, constructor_right, inj_name)
+  } <|> fail
+    "injection tactic failed, argument must be an equality proof where lhs and rhs are of the form (c ...), where c is a constructor",
+  if constructor_left = constructor_right then do
+    -- C.inj_arrow, for a given constructor C of datatype D, has type
+    --
+    --     ∀ (A₁ ... Aₙ) (x₁ ... xₘ) (y₁ ... yₘ), C x₁ ... xₘ = C y₁ ... yₘ
+    --       → ∀ ⦃P : Sort u⦄, (x₁ = y₁ → ... → yₖ = yₖ → P) → P
+    --
+    -- where the Aᵢ are parameters of D and the xᵢ/yᵢ are arguments of C.
+    -- Note that if xᵢ/yᵢ are propositions, no equation is generated, so the
+    -- number of equations is not necessarily the constructor arity.
 
--- TODO replace this whole thing with a call to the new `injection`.
+    -- First, we find out how many equations we need to intro later.
+    inj ← mk_const inj_name,
+    inj_type ← infer_type inj,
+    inj_arity ← get_pi_arity inj_type,
+    let num_equations :=
+      (inj_type.nth_binding_body (inj_arity - 1)).binding_domain.pi_arity,
+
+    -- Now we generate the actual proof of the target.
+    tgt ← target,
+    proof ← mk_mapp inj_name (list.repeat none (inj_arity - 3) ++ [some h, some tgt]),
+    eapply proof,
+    intron_with num_equations ns base offset
+  else do
+    tgt ← target,
+    let inductive_name := constructor_left.get_prefix,
+    pr ← mk_app (inductive_name <.> "no_confusion") [tgt, lhs, rhs, h],
+    exact pr,
+    return ([], ns)
+
 meta def unify_constructor_headed (equ type lhs rhs lhs_whnf rhs_whnf : expr)
   (u : level) : tactic simplification_result :=
 do {
-  (const f _) ← pure $ get_app_fn lhs_whnf,
-  (const g _) ← pure $ get_app_fn rhs_whnf,
-  if f ≠ g
-    then do
-      solve1 $ cases equ,
-      pure goal_solved
-    else do
-      inj ← mk_const (f ++ "inj"),
-      pr ← to_expr ``(%%inj %%equ),
-      pr_type ← infer_type pr,
-      assertv_core equ.local_pp_name pr_type pr,
-      clear equ,
-      equs ← intro1,
-      next_hyps ← decompose_and equs,
-      -- TODO better names for the new hyps produced by injection
-      pure $ simplified $ next_hyps.map expr.local_pp_name
+  (next, _) ← injection_with equ [] `_ none,
+  try $ clear equ,
+  pure $
+    if next.empty
+      then goal_solved
+      else simplified $ next.map expr.local_pp_name
 } <|>
 pure not_simplified
 
@@ -171,11 +187,10 @@ meta def sequence_simplifiers (s t : tactic simplification_result) :
 meta def unify_homogeneous (equ type lhs rhs lhs_whnf rhs_whnf : expr)
   (u : level) : tactic simplification_result := do
   list.foldl sequence_simplifiers (pure not_simplified)
-    [ unify_defeq equ type lhs rhs lhs_whnf rhs_whnf u
-    , unify_var equ type lhs rhs lhs_whnf rhs_whnf u
-    , unify_constructor_headed equ type lhs rhs lhs_whnf rhs_whnf u
-    , unify_cyclic equ type lhs rhs lhs_whnf rhs_whnf u
-    ]
+    [ unify_defeq equ type lhs rhs lhs_whnf rhs_whnf u,
+      unify_var equ type lhs rhs lhs_whnf rhs_whnf u,
+      unify_constructor_headed equ type lhs rhs lhs_whnf rhs_whnf u,
+      unify_cyclic equ type lhs rhs lhs_whnf rhs_whnf u ]
 
 end unify_equations
 

@@ -90,8 +90,8 @@ def map_pair : F ⟶ G :=
 def map_pair_iso (f : F.obj left ≅ G.obj left) (g : F.obj right ≅ G.obj right) : F ≅ G :=
 { hom := map_pair f.hom g.hom,
   inv := map_pair f.inv g.inv,
-  hom_inv_id' := begin ext ⟨⟩; { dsimp, simp, } end,
-  inv_hom_id' := begin ext ⟨⟩; { dsimp, simp, } end }
+  hom_inv_id' := by { ext ⟨⟩; simp, },
+  inv_hom_id' := by { ext ⟨⟩; simp, } }
 end
 
 section

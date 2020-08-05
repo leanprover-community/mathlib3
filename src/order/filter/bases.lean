@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury Kudryashov, Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
-import order.filter.at_top_bot
+import order.filter.basic
 import data.set.countable
 
 /-!
@@ -77,6 +77,8 @@ structure filter_basis (α : Type*) :=
 (nonempty               : sets.nonempty)
 (inter_sets {x y}       : x ∈ sets → y ∈ sets → ∃ z ∈ sets, z ⊆ x ∩ y)
 
+instance filter_basis.nonempty_sets (B : filter_basis α) : nonempty B.sets := B.nonempty.to_subtype
+
 /-- If `B` is a filter basis on `α`, and `U` a subset of `α` then we can write `U ∈ B` as on paper. -/
 @[reducible]
 instance {α : Type*}: has_mem (set α) (filter_basis α) := ⟨λ U B, U ∈ B.sets⟩
@@ -136,15 +138,13 @@ lemma mem_filter_of_mem (B : filter_basis α) {U : set α} : U ∈ B → U ∈ B
 
 lemma eq_infi_principal (B : filter_basis α) : B.filter = ⨅ s : B.sets, 𝓟 s :=
 begin
-  ext U,
-  rw [mem_filter_iff, mem_infi],
-  { simp },
+  have : directed (≥) (λ (s : B.sets), 𝓟 (s : set α)),
   { rintros ⟨U, U_in⟩ ⟨V, V_in⟩,
     rcases B.inter_sets U_in V_in with ⟨W, W_in, W_sub⟩,
     use [W, W_in],
     finish },
-  cases B.nonempty with U U_in,
-  exact ⟨⟨U, U_in⟩⟩,
+  ext U,
+  simp [mem_filter_iff, mem_infi this]
 end
 
 protected lemma generate (B : filter_basis α) : generate B.sets = B.filter :=
@@ -190,7 +190,8 @@ section same_type
 variables {l l' : filter α} {p : ι → Prop} {s : ι → set α} {t : set α} {i : ι}
   {p' : ι' → Prop} {s' : ι' → set α} {i' : ι'}
 
-lemma has_basis_generate (s : set (set α)) : (generate s).has_basis (λ t, finite t ∧ t ⊆ s) (λ t, ⋂₀ t) :=
+lemma has_basis_generate (s : set (set α)) :
+  (generate s).has_basis (λ t, finite t ∧ t ⊆ s) (λ t, ⋂₀ t) :=
 ⟨begin
   intro U,
   rw mem_generate_iff,
@@ -211,6 +212,12 @@ def filter_basis.of_sets (s : set (set α)) : filter_basis α :=
 /-- Definition of `has_basis` unfolded with implicit set argument. -/
 lemma has_basis.mem_iff (hl : l.has_basis p s) : t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t :=
 hl.mem_iff' t
+
+lemma has_basis_iff : l.has_basis p s ↔ ∀ t, t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t :=
+⟨λ ⟨h⟩, h, λ h, ⟨h⟩⟩
+
+lemma has_basis.ex_mem (h : l.has_basis p s) : ∃ i, p i :=
+let ⟨i, pi, h⟩ := h.mem_iff.mp univ_mem_sets in ⟨i, pi⟩
 
 protected lemma is_basis.has_basis (h : is_basis p s) : has_basis h.filter p s :=
 ⟨λ t, by simp only [h.mem_filter_iff, exists_prop]⟩
@@ -237,44 +244,62 @@ by erw [(filter_basis.of_sets s).generate, ← (has_basis_generate s).filter_eq]
 lemma of_sets_filter_eq_generate (s : set (set α)) : (filter_basis.of_sets s).filter = generate s :=
 by rw [← (filter_basis.of_sets s).generate, generate_eq_generate_inter s] ; refl
 
+lemma has_basis.to_has_basis (hl : l.has_basis p s) (h : ∀ i, p i → ∃ i', p' i' ∧ s' i' ⊆ s i)
+  (h' : ∀ i', p' i' → ∃ i, p i ∧ s i ⊆ s' i') : l.has_basis p' s' :=
+begin
+  constructor,
+  intro t,
+  rw hl.mem_iff,
+  split,
+  { rintros ⟨i, pi, hi⟩,
+    rcases h i pi with ⟨i', pi', hi'⟩,
+    use [i', pi'],
+    tauto },
+  { rintros ⟨i', pi', hi'⟩,
+    rcases h' i' pi' with ⟨i, pi, hi⟩,
+    use [i, pi],
+    tauto },
+end
+
 lemma has_basis.eventually_iff (hl : l.has_basis p s) {q : α → Prop} :
   (∀ᶠ x in l, q x) ↔ ∃ i, p i ∧ ∀ ⦃x⦄, x ∈ s i → q x :=
 by simpa using hl.mem_iff
 
 lemma has_basis.forall_nonempty_iff_ne_bot (hl : l.has_basis p s) :
-  (∀ {i}, p i → (s i).nonempty) ↔ l ≠ ⊥ :=
+  (∀ {i}, p i → (s i).nonempty) ↔ ne_bot l :=
 ⟨λ H, forall_sets_nonempty_iff_ne_bot.1 $
   λ s hs, let ⟨i, hi, his⟩ := hl.mem_iff.1 hs in (H hi).mono his,
-  λ H i hi, nonempty_of_mem_sets H (hl.mem_of_mem hi)⟩
+  λ H i hi, H.nonempty_of_mem (hl.mem_of_mem hi)⟩
 
 lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=
 ⟨λ t, exists_sets_subset_iff.symm⟩
 
 lemma has_basis_self {l : filter α} {P : set α → Prop} :
   has_basis l (λ s, s ∈ l ∧ P s) id ↔ ∀ t, (t ∈ l ↔ ∃ r ∈ l, P r ∧ r ⊆ t) :=
+by simp only [has_basis_iff, exists_prop, id, and_assoc]
+
+/-- If `{s i | p i}` is a basis of a filter `l` and each `s i` includes `s j` such that
+`p j ∧ q j`, then `{s j | p j ∧ q j}` is a basis of `l`. -/
+lemma has_basis.restrict (h : l.has_basis p s) {q : ι → Prop}
+  (hq : ∀ i, p i → ∃ j, p j ∧ q j ∧ s j ⊆ s i) :
+  l.has_basis (λ i, p i ∧ q i) s :=
 begin
-  split,
-  { rintros ⟨h⟩ t,
-    convert h t,
-    ext s,
-    tauto, },
-  { intro h,
-    constructor,
-    intro t,
-    convert h t,
-    ext s,
-    tauto }
+  refine ⟨λ t, ⟨λ ht, _, λ ⟨i, hpi, hti⟩, h.mem_iff.2 ⟨i, hpi.1, hti⟩⟩⟩,
+  rcases h.mem_iff.1 ht with ⟨i, hpi, hti⟩,
+  rcases hq i hpi with ⟨j, hpj, hqj, hji⟩,
+  exact ⟨j, ⟨hpj, hqj⟩, subset.trans hji hti⟩
 end
 
-lemma at_top_basis [nonempty α] [semilattice_sup α] :
-  (@at_top α _).has_basis (λ _, true) Ici :=
-⟨λ t, by simpa only [exists_prop, true_and] using @mem_at_top_sets α _ _ t⟩
+/-- If `{s i | p i}` is a basis of a filter `l` and `V ∈ l`, then `{s i | p i ∧ s i ⊆ V}`
+is a basis of `l`. -/
+lemma has_basis.restrict_subset (h : l.has_basis p s) {V : set α} (hV : V ∈ l) :
+  l.has_basis (λ i, p i ∧ s i ⊆ V) s :=
+h.restrict $ λ i hi, (h.mem_iff.1 (inter_mem_sets hV (h.mem_of_mem hi))).imp $
+  λ j hj, ⟨hj.fst, subset_inter_iff.1 hj.snd⟩
 
-lemma at_top_basis' [semilattice_sup α] (a : α) :
-  (@at_top α _).has_basis (λ x, a ≤ x) Ici :=
-⟨λ t, (@at_top_basis α ⟨a⟩ _).mem_iff.trans
-  ⟨λ ⟨x, _, hx⟩, ⟨x ⊔ a, le_sup_right, λ y hy, hx (le_trans le_sup_left hy)⟩,
-    λ ⟨x, _, hx⟩, ⟨x, trivial, hx⟩⟩⟩
+lemma has_basis.has_basis_self_subset {p : set α → Prop} (h : l.has_basis (λ s, s ∈ l ∧ p s) id)
+  {V : set α} (hV : V ∈ l) : l.has_basis (λ s, s ∈ l ∧ p s ∧ s ⊆ V) id :=
+by simpa only [and_assoc] using h.restrict_subset hV
 
 theorem has_basis.ge_iff (hl' : l'.has_basis p' s')  : l ≤ l' ↔ ∀ i', p' i' → s' i' ∈ l :=
 ⟨λ h i' hi', h $ hl'.mem_of_mem hi',
@@ -287,6 +312,17 @@ theorem has_basis.le_basis_iff (hl : l.has_basis p s) (hl' : l'.has_basis p' s')
   l ≤ l' ↔ ∀ i', p' i' → ∃ i (hi : p i), s i ⊆ s' i' :=
 by simp only [hl'.ge_iff, hl.mem_iff]
 
+lemma has_basis.ext (hl : l.has_basis p s) (hl' : l'.has_basis p' s')
+  (h : ∀ i, p i → ∃ i', p' i' ∧ s' i' ⊆ s i)
+  (h' : ∀ i', p' i' → ∃ i, p i ∧ s i ⊆ s' i') : l = l' :=
+begin
+  apply le_antisymm,
+  { rw hl.le_basis_iff hl',
+    simpa using h' },
+  { rw hl'.le_basis_iff hl,
+    simpa using h },
+end
+
 lemma has_basis.inf (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   (l ⊓ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∩ s' i.2) :=
 ⟨begin
@@ -297,6 +333,18 @@ lemma has_basis.inf (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
     use [(i, i'), ⟨hi, hi'⟩, subset.trans (inter_subset_inter ht ht') H] },
   { rintros ⟨⟨i, i'⟩, ⟨hi, hi'⟩, H⟩,
     use [s i, i, hi, subset.refl _, s' i', i', hi', subset.refl _, H] }
+end⟩
+
+lemma has_basis_principal (t : set α) : (𝓟 t).has_basis (λ i : unit, true) (λ i, t) :=
+⟨λ U, by simp⟩
+
+lemma has_basis.sup (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
+  (l ⊔ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∪ s' i.2) :=
+⟨begin
+  intros t,
+  simp only [mem_sup_sets, hl.mem_iff, hl'.mem_iff, prod.exists, union_subset_iff, exists_prop,
+    and_assoc, exists_and_distrib_left],
+  simp only [← and_assoc, exists_and_distrib_right, and_comm]
 end⟩
 
 lemma has_basis.inf_principal (hl : l.has_basis p s) (s' : set α) :
@@ -313,13 +361,23 @@ lemma has_basis.eq_infi (h : l.has_basis (λ _, true) s) :
 by simpa only [infi_true] using h.eq_binfi
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma has_basis_infi_principal {s : ι → set α} (h : directed (≥) s) (ne : nonempty ι) :
+lemma has_basis_infi_principal {s : ι → set α} (h : directed (≥) s) [nonempty ι] :
   (⨅ i, 𝓟 (s i)).has_basis (λ _, true) s :=
 ⟨begin
-  refine λ t, (mem_infi (h.mono_comp _ _) ne t).trans $
+  refine λ t, (mem_infi (h.mono_comp _ _) t).trans $
     by simp only [exists_prop, true_and, mem_principal_sets],
   exact λ _ _, principal_mono.2
 end⟩
+
+/-- If `s : ι → set α` is an indexed family of sets, then finite intersections of `s i` form a basis
+of `⨅ i, 𝓟 (s i)`.  -/
+lemma has_basis_infi_principal_finite (s : ι → set α) :
+  (⨅ i, 𝓟 (s i)).has_basis (λ t : set ι, finite t) (λ t, ⋂ i ∈ t, s i) :=
+begin
+  refine ⟨λ U, (mem_infi_finite _).trans _⟩,
+  simp only [infi_principal_finset, mem_Union, mem_principal_sets, exists_prop,
+    exists_finite_iff_finset, finset.bInter_coe]
+end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_on (s ⁻¹'o (≥)) S)
@@ -331,6 +389,11 @@ lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_o
   apply h.mono_comp _ _,
   exact λ _ _, principal_mono.2
 end⟩
+
+lemma has_basis_binfi_principal'
+  (h : ∀ i, p i → ∀ j, p j → ∃ k (h : p k), s k ⊆ s i ∧ s k ⊆ s j) (ne : ∃ i, p i) :
+  (⨅ i (h : p i), 𝓟 (s i)).has_basis p s :=
+filter.has_basis_binfi_principal h ne
 
 lemma has_basis.map (f : α → β) (hl : l.has_basis p s) :
   (l.map f).has_basis p (λ i, f '' (s i)) :=
@@ -465,16 +528,6 @@ lemma has_basis.prod' {la : filter α} {lb : filter β} {ι : Type*} {p : ι →
     exact ⟨sa i, hla.mem_of_mem hi, sb i, hlb.mem_of_mem hi, h⟩ },
 end⟩
 
-lemma has_antimono_basis.tendsto [semilattice_sup ι] [nonempty ι] {l : filter α}
-  {p : ι → Prop} {s : ι → set α} (hl : l.has_antimono_basis p s) {φ : ι → α}
-  (h : ∀ i : ι, φ i ∈ s i) : tendsto φ at_top l  :=
-begin
-  rw hl.to_has_basis.tendsto_right_iff,
-  intros i hi,
-  rw eventually_at_top,
-  exact ⟨i, λ j hij, hl.decreasing hi (hl.mono hij hi) hij (h j)⟩,
-end
-
 end two_types
 
 /-- `is_countably_generated f` means `f = generate s` for some countable `s`. -/
@@ -513,19 +566,20 @@ begin
   { apply infi_le_of_le i _, rw principal_mono, intro a, simp, intro h, apply h, refl },
 end
 
-lemma countable_binfi_eq_infi_seq [complete_lattice α] {B : set ι} (Bcbl : countable B) (Bne : B.nonempty) (f : ι → α)
- : ∃ (x : ℕ → ι), (⨅ t ∈ B, f t) = ⨅ i, f (x i) :=
+lemma countable_binfi_eq_infi_seq [complete_lattice α] {B : set ι} (Bcbl : countable B)
+  (Bne : B.nonempty) (f : ι → α) :
+  ∃ (x : ℕ → ι), (⨅ t ∈ B, f t) = ⨅ i, f (x i) :=
 begin
   rw countable_iff_exists_surjective_to_subtype Bne at Bcbl,
   rcases Bcbl with ⟨g, gsurj⟩,
   rw infi_subtype',
   use (λ n, g n), apply le_antisymm; rw le_infi_iff,
   { intro i, apply infi_le_of_le (g i) _, apply le_refl _ },
-  { intros a, rcases gsurj a with i, apply infi_le_of_le i _, subst h, apply le_refl _ }
+  { intros a, rcases gsurj a with ⟨i, rfl⟩, apply infi_le }
 end
 
 lemma countable_binfi_eq_infi_seq' [complete_lattice α] {B : set ι} (Bcbl : countable B) (f : ι → α)
-{i₀ : ι} (h : f i₀ = ⊤) :
+  {i₀ : ι} (h : f i₀ = ⊤) :
   ∃ (x : ℕ → ι), (⨅ t ∈ B, f t) = ⨅ i, f (x i) :=
 begin
   cases B.eq_empty_or_nonempty with hB Bnonempty,
@@ -572,7 +626,7 @@ lemma has_countable_basis {l : filter α} (h : is_countably_generated l) :
  countable_set_of_finite_subset h.countable_generating_set⟩
 
 lemma exists_countable_infi_principal {f : filter α} (h : f.is_countably_generated) :
-∃ s : set (set α), countable s ∧ f = ⨅ t ∈ s, 𝓟 t :=
+  ∃ s : set (set α), countable s ∧ f = ⨅ t ∈ s, 𝓟 t :=
 begin
   let B := h.countable_filter_basis,
   use [B.sets, B.countable],
@@ -582,14 +636,14 @@ begin
 end
 
 lemma exists_seq {f : filter α} (cblb : f.is_countably_generated) :
-    ∃ x : ℕ → set α, f = ⨅ i, 𝓟 (x i) :=
+  ∃ x : ℕ → set α, f = ⨅ i, 𝓟 (x i) :=
 begin
   rcases cblb.exists_countable_infi_principal with ⟨B, Bcbl, rfl⟩,
   exact countable_binfi_principal_eq_seq_infi Bcbl,
 end
 
 lemma exists_antimono_seq {f : filter α} (cblb : f.is_countably_generated) :
-  ∃ x : ℕ → set α, (∀ i j, i ≤ j → x j ⊆ x i) ∧ f = ⨅ i, 𝓟 (x i) :=
+  ∃ x : ℕ → set α, (∀ ⦃i j⦄, i ≤ j → x j ⊆ x i) ∧ f = ⨅ i, 𝓟 (x i) :=
 begin
   rcases cblb.exists_seq with ⟨x', hx'⟩,
   let x := λ n, ⋂ m ≤ n, x' m,
@@ -605,18 +659,23 @@ lemma has_antimono_basis {f : filter α} (h : f.is_countably_generated) :
  ∃ x : ℕ → set α, f.has_antimono_basis (λ _, true) x :=
 begin
   rcases h.exists_antimono_seq with ⟨x, x_dec, rfl⟩,
-  refine ⟨x, has_basis_infi_principal _ ⟨0⟩, _, monotone_const⟩,
-  exacts [directed_of_sup x_dec, λ i j _ _, x_dec i j]
+  refine ⟨x, has_basis_infi_principal _, _, monotone_const⟩,
+  exacts [directed_of_sup x_dec, λ i j _ _ h, x_dec h]
 end
 
 end is_countably_generated
+
+lemma has_countable_basis.is_countably_generated {f : filter α} {p : ι → Prop} {s : ι → set α}
+  (h : f.has_countable_basis p s) :
+  f.is_countably_generated :=
+⟨{t | ∃ i, p i ∧ s i = t}, h.countable.image s, h.to_has_basis.eq_generate⟩
 
 lemma is_countably_generated_seq (x : ℕ → set α) : is_countably_generated (⨅ i, 𝓟 $ x i) :=
 begin
   rcases antimono_seq_of_seq x with ⟨y, am, h⟩,
   rw h,
   use [range y, countable_range _],
-  rw (has_basis_infi_principal _ _).eq_generate,
+  rw (has_basis_infi_principal _).eq_generate,
   { simp [range] },
   { exact directed_of_sup am },
   { use 0 },
@@ -660,77 +719,6 @@ begin
           ... = (⨅ i, 𝓟 $ f ⁻¹' x i)     : by simp_rw comap_principal,
 end
 
-/-- An abstract version of continuity of sequentially continuous functions on metric spaces:
-if a filter `k` is countably generated then `tendsto f k l` iff for every sequence `u`
-converging to `k`, `f ∘ u` tends to `l`. -/
-lemma tendsto_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
-  (hcb : k.is_countably_generated) :
-  tendsto f k l ↔ (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) :=
-suffices (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l,
-  from ⟨by intros; apply tendsto.comp; assumption, by assumption⟩,
-begin
-  rcases hcb.exists_antimono_seq with ⟨g, gmon, gbasis⟩,
-  have gbasis : ∀ A, A ∈ k ↔ ∃ i, g i ⊆ A,
-  { intro A,
-    subst gbasis,
-    rw mem_infi,
-    { simp only [set.mem_Union, iff_self, filter.mem_principal_sets] },
-    { exact directed_of_sup (λ i j h, principal_mono.mpr $ gmon _ _ h) },
-    { apply_instance } },
-  classical, contrapose,
-  simp only [not_forall, not_imp, not_exists, subset_def, @tendsto_def _ _ f, gbasis],
-  rintro ⟨B, hBl, hfBk⟩,
-  choose x h using hfBk,
-  use x, split,
-  { simp only [tendsto_at_top', gbasis],
-    rintros A ⟨i, hgiA⟩,
-    use i,
-    refine (λ j hj, hgiA $ gmon _ _ hj _),
-    simp only [h] },
-  { simp only [tendsto_at_top', (∘), not_forall, not_exists],
-    use [B, hBl],
-    intro i, use [i, (le_refl _)],
-    apply (h i).right },
-end
-
-lemma tendsto_of_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
-  (hcb : k.is_countably_generated) :
-  (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l :=
-hcb.tendsto_iff_seq_tendsto.2
-
-lemma subseq_tendsto {f : filter α} (hf : is_countably_generated f)
-  {u : ℕ → α}
-  (hx : f ⊓ map u at_top ≠ ⊥) :
-  ∃ (θ : ℕ → ℕ), (strict_mono θ) ∧ (tendsto (u ∘ θ) at_top f) :=
-begin
-  rcases hf.has_antimono_basis with ⟨B, h⟩,
-  have : ∀ N, ∃ n ≥ N, u n ∈ B N,
-    from λ N, filter.inf_map_at_top_ne_bot_iff.mp hx _ (h.to_has_basis.mem_of_mem trivial) N,
-  choose φ hφ using this,
-  cases forall_and_distrib.mp hφ with φ_ge φ_in,
-  have lim_uφ : tendsto (u ∘ φ) at_top f,
-    from h.tendsto φ_in,
-  have lim_φ : tendsto φ at_top at_top,
-    from (tendsto_at_top_mono φ_ge tendsto_id),
-  obtain ⟨ψ, hψ, hψφ⟩ : ∃ ψ : ℕ → ℕ, strict_mono ψ ∧ strict_mono (φ ∘ ψ),
-    from strict_mono_subseq_of_tendsto_at_top lim_φ,
-  exact ⟨φ ∘ ψ, hψφ, lim_uφ.comp $ strict_mono_tendsto_at_top hψ⟩,
-end
-
 end is_countably_generated
 
--- TODO : prove this for a encodable type
-lemma is_countably_generated_at_top_finset_nat : (at_top : filter $ finset ℕ).is_countably_generated :=
-begin
-  apply is_countably_generated_of_seq,
-  use λ N, Ici (finset.range N),
-  apply eq_infi_of_mem_sets_iff_exists_mem,
-  assume s,
-  rw mem_at_top_sets,
-  refine ⟨_, λ ⟨N, hN⟩, ⟨finset.range N, hN⟩⟩,
-  rintros ⟨t, ht⟩,
-  rcases mem_at_top_sets.1 (tendsto_finset_range (mem_at_top t)) with ⟨N, hN⟩,
-  simp only [preimage, mem_set_of_eq] at hN,
-  exact ⟨N, mem_principal_sets.2 $ λ t' ht', ht t' $ le_trans (hN _ $ le_refl N) ht'⟩
-end
 end filter

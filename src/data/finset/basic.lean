@@ -201,6 +201,10 @@ classical.by_cases or.inl (λ h, or.inr (nonempty_of_ne_empty h))
 
 @[simp] lemma coe_empty : ↑(∅ : finset α) = (∅ : set α) := rfl
 
+/-- A `finset` for an empty type is empty. -/
+lemma eq_empty_of_not_nonempty (h : ¬ nonempty α) (s : finset α) : s = ∅ :=
+finset.eq_empty_of_forall_not_mem $ λ x, false.elim $ not_nonempty_iff_imp_false.1 h x
+
 /-! ### singleton -/
 /--
 `{a} : finset a` is the set `{a}` containing `a` and nothing else.
@@ -1182,6 +1186,14 @@ rfl
 @[simp] theorem to_finset_cons {a : α} {l : list α} : to_finset (a :: l) = insert a (to_finset l) :=
 finset.eq_of_veq $ by by_cases h : a ∈ l; simp [finset.insert_val', multiset.erase_dup_cons, h]
 
+theorem to_finset_surjective : function.surjective (to_finset : list α → finset α) :=
+begin
+  refine λ s, ⟨quotient.out' s.val, finset.ext $ λ x, _⟩,
+  obtain ⟨l, hl⟩ := quot.exists_rep s.val,
+  rw [list.mem_to_finset, finset.mem_def, ←hl],
+  exact list.perm.mem_iff (quotient.mk_out l)
+end
+
 end list
 
 namespace finset
@@ -1319,6 +1331,11 @@ theorem image_subset_image {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.im
 by simp only [subset_def, image_val, subset_erase_dup', erase_dup_subset',
   multiset.map_subset_map h]
 
+theorem image_subset_iff {s : finset α} {t : finset β} {f : α → β} :
+  s.image f ⊆ t ↔ ∀ x ∈ s, f x ∈ t :=
+calc s.image f ⊆ t ↔ f '' ↑s ⊆ ↑t : by norm_cast
+               ... ↔ _ : set.image_subset_iff
+
 theorem image_mono (f : α → β) : monotone (finset.image f) := λ _ _, image_subset_image
 
 theorem coe_image_subset_range : ↑(s.image f) ⊆ set.range f :=
@@ -1420,14 +1437,31 @@ lemma subtype_map_of_mem {p : α → Prop} [decidable_pred p] (h : ∀ x ∈ s, 
 by rw [subtype_map, filter_true_of_mem h]
 
 /-- If a `finset` of a subtype is converted to the main type with
+`embedding.subtype`, all elements of the result have the property of
+the subtype. -/
+lemma property_of_mem_map_subtype {p : α → Prop} (s : finset {x // p x}) {a : α}
+    (h : a ∈ s.map (function.embedding.subtype _)) : p a :=
+begin
+  rcases mem_map.1 h with ⟨x, hx, rfl⟩,
+  exact x.2
+end
+
+/-- If a `finset` of a subtype is converted to the main type with
 `embedding.subtype`, the result does not contain any value that does
 not satisfy the property of the subtype. -/
 lemma not_mem_map_subtype_of_not_property {p : α → Prop} (s : finset {x // p x})
     {a : α} (h : ¬ p a) : a ∉ (s.map (function.embedding.subtype _)) :=
+mt s.property_of_mem_map_subtype h
+
+/-- If a `finset` of a subtype is converted to the main type with
+`embedding.subtype`, the result is a subset of the set giving the
+subtype. -/
+lemma map_subtype_subset {t : set α} (s : finset t) :
+    ↑(s.map (function.embedding.subtype _)) ⊆ t :=
 begin
-  rw mem_map,
-  push_neg,
-  exact λ x, λ hxs hx, h (hx ▸ x.property)
+  intros a ha,
+  rw mem_coe at ha,
+  convert property_of_mem_map_subtype s ha
 end
 
 lemma subset_image_iff {f : α → β}
@@ -1487,6 +1521,13 @@ by by_cases a ∈ s; [{rw [insert_eq_of_mem h], apply nat.le_add_right},
 rw [card_insert_of_not_mem h]]
 
 @[simp] theorem card_singleton (a : α) : card ({a} : finset α) = 1 := card_singleton _
+
+lemma card_singleton_inter [decidable_eq α] {x : α} {s : finset α} : ({x} ∩ s).card ≤ 1 :=
+begin
+  cases (finset.decidable_mem x s),
+  { simp [finset.singleton_inter_of_not_mem h] },
+  { simp [finset.singleton_inter_of_mem h] },
+end
 
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} :
   a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
@@ -1760,6 +1801,10 @@ protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨
 @[simp] theorem product_val : (s.product t).1 = s.1.product t.1 := rfl
 
 @[simp] theorem mem_product {p : α × β} : p ∈ s.product t ↔ p.1 ∈ s ∧ p.2 ∈ t := mem_product
+
+theorem subset_product [decidable_eq α] [decidable_eq β] {s : finset (α × β)} :
+  s ⊆ (s.image prod.fst).product (s.image prod.snd) :=
+λ p hp, mem_product.2 ⟨mem_image_of_mem _ hp, mem_image_of_mem _ hp⟩
 
 theorem product_eq_bind [decidable_eq α] [decidable_eq β] (s : finset α) (t : finset β) :
  s.product t = s.bind (λa, t.image $ λb, (a, b)) :=

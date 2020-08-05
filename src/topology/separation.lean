@@ -100,12 +100,12 @@ instance t2_space.t1_space [t2_space α] : t1_space α :=
 let ⟨u, v, hu, hv, hyu, hxv, huv⟩ := t2_separation (mt mem_singleton_of_eq hxy) in
 ⟨u, λ z hz1 hz2, (ext_iff.1 huv x).1 ⟨mem_singleton_iff.1 hz2 ▸ hz1, hxv⟩, hu, hyu⟩⟩
 
-lemma eq_of_nhds_ne_bot [ht : t2_space α] {x y : α} (h : 𝓝 x ⊓ 𝓝 y ≠ ⊥) : x = y :=
+lemma eq_of_nhds_ne_bot [ht : t2_space α] {x y : α} (h : ne_bot (𝓝 x ⊓ 𝓝 y)) : x = y :=
 classical.by_contradiction $ assume : x ≠ y,
 let ⟨u, v, hu, hv, hx, hy, huv⟩ := t2_space.t2 x y this in
 absurd huv $ (inf_ne_bot_iff.1 h (mem_nhds_sets hu hx) (mem_nhds_sets hv hy)).ne_empty
 
-lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, 𝓝 x ⊓ 𝓝 y ≠ ⊥ → x = y :=
+lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, ne_bot (𝓝 x ⊓ 𝓝 y) → x = y :=
 ⟨assume h, by exactI λ x y, eq_of_nhds_ne_bot,
  assume h, ⟨assume x y xy,
    have 𝓝 x ⊓ 𝓝 y = ⊥ := classical.by_contradiction (mt h xy),
@@ -117,9 +117,9 @@ lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, 𝓝 x ⊓ 𝓝 y ≠ ⊥ �
 lemma t2_iff_ultrafilter :
   t2_space α ↔ ∀ f {x y : α}, is_ultrafilter f → f ≤ 𝓝 x → f ≤ 𝓝 y → x = y :=
 t2_iff_nhds.trans
-  ⟨assume h f x y u fx fy, h $ ne_bot_of_le_ne_bot u.1 (le_inf fx fy),
+  ⟨assume h f x y u fx fy, h $ u.1.mono (le_inf fx fy),
    assume h x y xy,
-     let ⟨f, hf, uf⟩ := exists_ultrafilter xy in
+     let ⟨f, hf, uf⟩ := @@exists_ultrafilter _ xy in
      h f uf (le_trans hf inf_le_left) (le_trans hf inf_le_right)⟩
 
 lemma is_closed_diagonal [t2_space α] : is_closed (diagonal α) :=
@@ -163,8 +163,12 @@ end
 ⟨assume h, eq_of_nhds_ne_bot $ by rw [inf_of_le_left h]; exact nhds_ne_bot, assume h, h ▸ le_refl _⟩
 
 lemma tendsto_nhds_unique [t2_space α] {f : β → α} {l : filter β} {a b : α}
-  (hl : l ≠ ⊥) (ha : tendsto f l (𝓝 a)) (hb : tendsto f l (𝓝 b)) : a = b :=
-eq_of_nhds_ne_bot $ ne_bot_of_le_ne_bot (map_ne_bot hl) $ le_inf ha hb
+  [ne_bot l] (ha : tendsto f l (𝓝 a)) (hb : tendsto f l (𝓝 b)) : a = b :=
+eq_of_nhds_ne_bot $ ne_bot_of_le $ le_inf ha hb
+
+lemma tendsto_nhds_unique' [t2_space α] {f : β → α} {l : filter β} {a b : α}
+  (hl : ne_bot l) (ha : tendsto f l (𝓝 a)) (hb : tendsto f l (𝓝 b)) : a = b :=
+eq_of_nhds_ne_bot $ ne_bot_of_le $ le_inf ha hb
 
 section lim
 variables [t2_space α] {f : filter α}
@@ -176,28 +180,29 @@ In this section we use explicit `nonempty α` instances for `Lim` and `lim`. Thi
 are useful without a `nonempty α` instance.
 -/
 
-lemma Lim_eq {a : α} (hf : f ≠ ⊥) (h : f ≤ 𝓝 a) :
+lemma Lim_eq {a : α} [ne_bot f] (h : f ≤ 𝓝 a) :
   @Lim _ _ ⟨a⟩ f = a :=
-tendsto_nhds_unique hf (Lim_spec ⟨a, h⟩) h
+tendsto_nhds_unique (Lim_spec ⟨a, h⟩) h
 
 lemma filter.tendsto.lim_eq {a : α} {f : filter β} {g : β → α} (h : tendsto g f (𝓝 a))
-  (hf : f ≠ ⊥) :
+  [ne_bot f] :
   @lim _ _ _ ⟨a⟩ f g = a :=
-Lim_eq (map_ne_bot hf) h
+Lim_eq h
 
 lemma continuous.lim_eq [topological_space β] {f : β → α} (h : continuous f) (a : β) :
   @lim _ _ _ ⟨f a⟩ (𝓝 a) f = f a :=
-(h.tendsto a).lim_eq nhds_ne_bot
+(h.tendsto a).lim_eq
 
 @[simp] lemma Lim_nhds (a : α) : @Lim _ _ ⟨a⟩ (𝓝 a) = a :=
-Lim_eq nhds_ne_bot (le_refl _)
+Lim_eq (le_refl _)
 
 @[simp] lemma lim_nhds_id (a : α) : @lim _ _ _ ⟨a⟩ (𝓝 a) id = a :=
 Lim_nhds a
 
 @[simp] lemma Lim_nhds_within {a : α} {s : set α} (h : a ∈ closure s) :
   @Lim _ _ ⟨a⟩ (nhds_within a s) = a :=
-Lim_eq begin rw [closure_eq_cluster_pts] at h, exact h end inf_le_left
+by haveI : ne_bot (nhds_within a s) := mem_closure_iff_cluster_pt.1 h;
+exact Lim_eq inf_le_left
 
 @[simp] lemma lim_nhds_within_id {a : α} {s : set α} (h : a ∈ closure s) :
   @lim _ _ _ ⟨a⟩ (nhds_within a s) id = a :=
@@ -253,28 +258,28 @@ by rw [eq_empty_iff_forall_not_mem, subset_compl_comm,
        diagonal_eq_range_diagonal_map, range_subset_iff]; simp
 
 lemma compact_compact_separated [t2_space α] {s t : set α}
-  (hs : compact s) (ht : compact t) (hst : s ∩ t = ∅) :
+  (hs : is_compact s) (ht : is_compact t) (hst : s ∩ t = ∅) :
   ∃u v : set α, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ u ∩ v = ∅ :=
 by simp only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
    exact generalized_tube_lemma hs ht is_closed_diagonal hst
 
-lemma compact.is_closed [t2_space α] {s : set α} (hs : compact s) : is_closed s :=
+lemma is_compact.is_closed [t2_space α] {s : set α} (hs : is_compact s) : is_closed s :=
 is_open_compl_iff.mpr $ is_open_iff_forall_mem_open.mpr $ assume x hx,
   let ⟨u, v, uo, vo, su, xv, uv⟩ :=
-    compact_compact_separated hs (compact_singleton : compact {x})
+    compact_compact_separated hs (compact_singleton : is_compact {x})
       (by rwa [inter_comm, ←subset_compl_iff_disjoint, singleton_subset_iff]) in
   have v ⊆ sᶜ, from
     subset_compl_comm.mp (subset.trans su (subset_compl_iff_disjoint.mpr uv)),
 ⟨v, this, vo, by simpa using xv⟩
 
-lemma compact.inter [t2_space α] {s t : set α} (hs : compact s) (ht : compact t) :
-  compact (s ∩ t) :=
+lemma is_compact.inter [t2_space α] {s t : set α} (hs : is_compact s) (ht : is_compact t) :
+  is_compact (s ∩ t) :=
 hs.inter_right $ ht.is_closed
 
 /-- If a compact set is covered by two open sets, then we can cover it by two compact subsets. -/
-lemma compact.binary_compact_cover [t2_space α] {K U V : set α} (hK : compact K)
+lemma is_compact.binary_compact_cover [t2_space α] {K U V : set α} (hK : is_compact K)
   (hU : is_open U) (hV : is_open V) (h2K : K ⊆ U ∪ V) :
-  ∃ K₁ K₂ : set α, compact K₁ ∧ compact K₂ ∧ K₁ ⊆ U ∧ K₂ ⊆ V ∧ K = K₁ ∪ K₂ :=
+  ∃ K₁ K₂ : set α, is_compact K₁ ∧ is_compact K₂ ∧ K₁ ⊆ U ∧ K₂ ⊆ V ∧ K = K₁ ∪ K₂ :=
 begin
   rcases compact_compact_separated (compact_diff hK hU) (compact_diff hK hV)
     (by rwa [diff_inter_diff, diff_eq_empty]) with ⟨O₁, O₂, h1O₁, h1O₂, h2O₁, h2O₂, hO⟩,
@@ -285,36 +290,32 @@ end
 section
 open finset function
 /-- For every finite open cover `Uᵢ` of a compact set, there exists a compact cover `Kᵢ ⊆ Uᵢ`. -/
-lemma compact.finite_compact_cover [t2_space α] {s : set α} (hs : compact s) {ι} (t : finset ι)
+lemma is_compact.finite_compact_cover [t2_space α] {s : set α} (hs : is_compact s) {ι} (t : finset ι)
   (U : ι → set α) (hU : ∀ i ∈ t, is_open (U i)) (hsC : s ⊆ ⋃ i ∈ t, U i) :
-  ∃ K : ι → set α, (∀ i ∈ t, compact (K i) ∧ K i ⊆ U i) ∧ s = ⋃ i ∈ t, K i :=
+  ∃ K : ι → set α, (∀ i, is_compact (K i)) ∧ (∀i, K i ⊆ U i) ∧ s = ⋃ i ∈ t, K i :=
 begin
   classical,
   induction t using finset.induction with x t hx ih generalizing U hU s hs hsC,
-  { refine ⟨λ _, ∅, λ i _, ⟨compact_empty, empty_subset _⟩, _⟩, simpa only [subset_empty_iff,
+  { refine ⟨λ _, ∅, λ i, compact_empty, λ i, empty_subset _, _⟩, simpa only [subset_empty_iff,
       finset.not_mem_empty, Union_neg, Union_empty, not_false_iff] using hsC },
   simp only [finset.bUnion_insert] at hsC,
   simp only [finset.mem_insert] at hU,
   have hU' : ∀ i ∈ t, is_open (U i) := λ i hi, hU i (or.inr hi),
   rcases hs.binary_compact_cover (hU x (or.inl rfl)) (is_open_bUnion hU') hsC
     with ⟨K₁, K₂, h1K₁, h1K₂, h2K₁, h2K₂, hK⟩,
-  rcases ih U hU' h1K₂ h2K₂ with ⟨K, h1K, h2K⟩,
-  refine ⟨update K x K₁, _, _⟩,
-  { intros i hi, simp only [finset.mem_insert] at hi, rcases hi with rfl|hi,
-    simpa only [update_same, h1K₁, true_and] using h2K₁,
-    rw [update_noteq], exact h1K i hi, rintro rfl, exact hx hi },
-  { ext y, simp only [exists_prop, mem_Union, mem_union_eq, finset.bUnion_insert, update_same, hK],
-    split,
-    { rintro (hy|hy), exact or.inl hy,
-      simp only [h2K, mem_Union, subtype.exists] at hy, rcases hy with ⟨i, h1i, h2i⟩,
-      refine or.inr ⟨i, h1i, _⟩, rw [update_noteq], exact h2i, rintro rfl, exact hx h1i },
-    { rintro (hy|⟨i, h1i, h2i⟩), exact or.inl hy,
-      rw [h2K], simp only [exists_prop, mem_Union], rw [update_noteq] at h2i,
-      exact or.inr ⟨i, h1i, h2i⟩, rintro rfl, exact hx h1i }}
+  rcases ih U hU' h1K₂ h2K₂ with ⟨K, h1K, h2K, h3K⟩,
+  refine ⟨update K x K₁, _, _, _⟩,
+  { intros i, by_cases hi : i = x,
+    { simp only [update_same, hi, h1K₁] },
+    { rw [← ne.def] at hi, simp only [update_noteq hi, h1K] }},
+  { intros i, by_cases hi : i = x,
+    { simp only [update_same, hi, h2K₁] },
+    { rw [← ne.def] at hi, simp only [update_noteq hi, h2K] }},
+  { simp only [bUnion_insert_update _ hx, hK, h3K] }
 end
 end
 
-lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s ∈ 𝓝 x ∧ compact s) :
+lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s ∈ 𝓝 x ∧ is_compact s) :
   locally_compact_space α :=
 ⟨assume x n hn,
   let ⟨u, un, uo, xu⟩ := mem_nhds_sets_iff.mp hn in
@@ -340,7 +341,7 @@ locally_compact_of_compact_nhds (assume x, ⟨univ, mem_nhds_sets is_open_univ t
 
 /-- In a locally compact T₂ space, every point has an open neighborhood with compact closure -/
 lemma exists_open_with_compact_closure [locally_compact_space α] [t2_space α] (x : α) :
-  ∃ (U : set α), is_open U ∧ x ∈ U ∧ compact (closure U) :=
+  ∃ (U : set α), is_open U ∧ x ∈ U ∧ is_compact (closure U) :=
 begin
   rcases locally_compact_space.local_compact_nhds x set.univ filter.univ_mem_sets with
     ⟨K, h1K, _, h2K⟩,
@@ -352,7 +353,7 @@ end
 /-- In a locally compact T₂ space, every compact set is contained in the interior of a compact
   set. -/
 lemma exists_compact_superset [locally_compact_space α] [t2_space α] {K : set α}
-  (hK : compact K) : ∃ (K' : set α), compact K' ∧ K ⊆ interior K' :=
+  (hK : is_compact K) : ∃ (K' : set α), is_compact K' ∧ K ⊆ interior K' :=
 begin
   choose U hU using λ x : K, exists_open_with_compact_closure (x : α),
   rcases hK.elim_finite_subcover U (λ x, (hU x).1) (λ x hx, ⟨_, ⟨⟨x, hx⟩, rfl⟩, (hU ⟨x, hx⟩).2.1⟩) with

@@ -9,6 +9,7 @@ Main result: Hilbert basis theorem, that if a ring is noetherian then so is its 
 -/
 import algebra.char_p
 import data.mv_polynomial
+import data.polynomial.ring_division
 import ring_theory.noetherian
 
 noncomputable theory
@@ -18,7 +19,7 @@ universes u v w
 
 namespace polynomial
 
-instance {R : Type u} [comm_semiring R] (p : ℕ) [h : char_p R p] : char_p (polynomial R) p :=
+instance {R : Type u} [semiring R] (p : ℕ) [h : char_p R p] : char_p (polynomial R) p :=
 let ⟨h⟩ := h in ⟨λ n, by rw [← C.map_nat_cast, ← C_0, C_inj, h]⟩
 
 variables (R : Type u) [comm_ring R]
@@ -97,6 +98,9 @@ def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set
 
 @[simp] theorem coeff_restriction' {p : polynomial R} {n : ℕ} : (coeff (restriction p) n).1 = coeff p n := rfl
 
+@[simp] theorem map_restriction (p : polynomial R) : p.restriction.map (algebra_map _ _) = p :=
+ext $ λ n, by rw [coeff_map, algebra.subring_algebra_map_apply, coeff_restriction]
+
 @[simp] theorem degree_restriction {p : polynomial R} : (restriction p).degree = p.degree := rfl
 
 @[simp] theorem nat_degree_restriction {p : polynomial R} : (restriction p).nat_degree = p.nat_degree := rfl
@@ -109,11 +113,11 @@ def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set
 @[simp] theorem restriction_one : restriction (1 : polynomial R) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
 
-variables {S : Type v} [comm_ring S] {f : R →+* S} {x : S}
+variables {S : Type v} [ring S] {f : R →+* S} {x : S}
 
 theorem eval₂_restriction {p : polynomial R} :
   eval₂ f x p = eval₂ (f.comp (is_subring.subtype _)) x p.restriction :=
-rfl
+by { dsimp only [eval₂_eq_sum], refl, }
 
 section to_subring
 variables (p : polynomial R) (T : set R) [is_subring T]
@@ -148,6 +152,9 @@ omit hp
   (set.subset.trans (finset.coe_subset.2 finsupp.frange_single)
     (finset.singleton_subset_set_iff.2 is_submonoid.one_mem)) = 1 :=
 ext $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
+
+@[simp] theorem map_to_subring : (p.to_subring T hp).map (is_subring.subtype T) = p :=
+ext $ λ n, coeff_map _ _
 
 end to_subring
 
@@ -299,7 +306,7 @@ from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx)
     { intro H, rw [← polynomial.leading_coeff_eq_zero] at H,
       rw [hlqp, polynomial.leading_coeff_eq_zero] at H, exact hp0 H },
     have h1 : p.degree = (q * polynomial.X ^ (k - q.nat_degree)).degree,
-    { rw [polynomial.degree_mul_eq', polynomial.degree_X_pow],
+    { rw [polynomial.degree_mul', polynomial.degree_X_pow],
       rw [polynomial.degree_eq_nat_degree hp0, polynomial.degree_eq_nat_degree hq0],
       rw [← with_bot.coe_add, nat.add_sub_cancel', hn],
       { refine le_trans (polynomial.nat_degree_le_of_degree_le hdq) (le_of_lt h) },
@@ -404,8 +411,8 @@ protected theorem eq_zero_or_eq_zero_of_mul_eq_zero {R : Type u} [integral_domai
 begin
   obtain ⟨s, p, rfl⟩ := exists_finset_rename p,
   obtain ⟨t, q, rfl⟩ := exists_finset_rename q,
-  have : p.rename (subtype.map id (finset.subset_union_left s t) : {x // x ∈ s} → {x // x ∈ s ∪ t}) *
-    q.rename (subtype.map id (finset.subset_union_right s t)) = 0,
+  have : rename (subtype.map id (finset.subset_union_left s t) : {x // x ∈ s} → {x // x ∈ s ∪ t}) p *
+    rename (subtype.map id (finset.subset_union_right s t) : {x // x ∈ t} → {x // x ∈ s ∪ t}) q = 0,
   { apply rename_injective _ subtype.val_injective, simpa using h },
   letI := mv_polynomial.integral_domain_fintype R {x // x ∈ (s ∪ t)},
   rw mul_eq_zero at this,
@@ -419,8 +426,8 @@ instance {R : Type u} {σ : Type v} [integral_domain R] :
 { eq_zero_or_eq_zero_of_mul_eq_zero := mv_polynomial.eq_zero_or_eq_zero_of_mul_eq_zero,
   exists_pair_ne := ⟨0, 1, λ H,
   begin
-    have : eval₂ id (λ s, (0:R)) (0 : mv_polynomial σ R) =
-      eval₂ id (λ s, (0:R)) (1 : mv_polynomial σ R),
+    have : eval₂ (ring_hom.id _) (λ s, (0:R)) (0 : mv_polynomial σ R) =
+      eval₂ (ring_hom.id _) (λ s, (0:R)) (1 : mv_polynomial σ R),
     { congr, exact H },
     simpa,
   end⟩,

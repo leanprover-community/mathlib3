@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.equiv.basic
-import data.sigma
+import data.sigma.basic
 
 /-!
 # Injective functions
@@ -107,7 +107,9 @@ protected def some {α} : α ↪ option α :=
 
 /-- Embedding of a `subtype`. -/
 def subtype {α} (p : α → Prop) : subtype p ↪ α :=
-⟨subtype.val, λ _ _, subtype.ext_val⟩
+⟨coe, λ _ _, subtype.ext_val⟩
+
+@[simp] lemma coe_subtype {α} (p : α → Prop) : ⇑(subtype p) = coe := rfl
 
 /-- Choosing an element `b : β` gives an embedding of `punit` into `β`. -/
 def punit {β : Sort*} (b : β) : punit ↪ β :=

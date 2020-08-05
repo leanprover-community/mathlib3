@@ -100,7 +100,7 @@ begin
   change f x ≤ B x at hxB,
   cases lt_or_eq_of_le hxB with hxB hxB,
   { -- If `f x < B x`, then all we need is continuity of both sides
-    apply nonempty_of_mem_sets (nhds_within_Ioi_self_ne_bot x),
+    apply @nonempty_of_mem_sets _ (nhds_within x (Ioi x)),
     refine inter_mem_sets _ (Ioc_mem_nhds_within_Ioi ⟨le_refl x, hy⟩),
     have : ∀ᶠ x in nhds_within x (Icc a b), f x < B x,
       from A x (Ico_subset_Icc_self xab)
@@ -367,7 +367,7 @@ begin
     simpa using (has_deriv_at_const x C).mul ((has_deriv_at_id x).sub (has_deriv_at_const x a)) },
   convert image_norm_le_of_norm_deriv_right_le_deriv_boundary hg hg' _ hB bound,
   { simp only [g, B] },
-  { simp only [g, B], rw [sub_self, _root_.norm_zero, sub_self, mul_zero] }
+  { simp only [g, B], rw [sub_self, norm_zero, sub_self, mul_zero] }
 end
 
 /-- A function on `[a, b]` with the norm of the derivative within `[a, b]`
@@ -509,7 +509,7 @@ theorem convex.is_const_of_fderiv_within_eq_zero {s : set E} (hs : convex s)
   {x y : E} (hx : x ∈ s) (hy : y ∈ s) :
   f x = f y :=
 have bound : ∀ x ∈ s, ∥fderiv_within ℝ f s x∥ ≤ 0,
-  from λ x hx, by simp only [hf' x hx, _root_.norm_zero],
+  from λ x hx, by simp only [hf' x hx, norm_zero],
 by simpa only [(dist_eq_norm _ _).symm, zero_mul, dist_le_zero, eq_comm]
   using hs.norm_image_sub_le_of_norm_fderiv_within_le hf bound hx hy
 
@@ -612,7 +612,7 @@ theorem convex.mul_sub_lt_image_sub_of_lt_deriv {D : set ℝ} (hD : convex D) {f
   ∀ x y ∈ D, x < y → C * (y - x) < f y - f x :=
 begin
   assume x y hx hy hxy,
-  have hxyD : Icc x y ⊆ D, from convex_real_iff.1 hD hx hy,
+  have hxyD : Icc x y ⊆ D, from hD.ord_connected hx hy,
   have hxyD' : Ioo x y ⊆ interior D,
     from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hxyD⟩,
   obtain ⟨a, a_mem, ha⟩ : ∃ a ∈ Ioo x y, deriv f a = (f y - f x) / (y - x),
@@ -640,7 +640,7 @@ theorem convex.mul_sub_le_image_sub_of_le_deriv {D : set ℝ} (hD : convex D) {f
 begin
   assume x y hx hy hxy,
   cases eq_or_lt_of_le hxy with hxy' hxy', by rw [hxy', sub_self, sub_self, mul_zero],
-  have hxyD : Icc x y ⊆ D, from convex_real_iff.1 hD hx hy,
+  have hxyD : Icc x y ⊆ D, from hD.ord_connected hx hy,
   have hxyD' : Ioo x y ⊆ interior D,
     from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hxyD⟩,
   obtain ⟨a, a_mem, ha⟩ : ∃ a ∈ Ioo x y, deriv f a = (f y - f x) / (y - x),
@@ -669,7 +669,7 @@ begin
   assume x y hx hy hxy,
   have hf'_gt : ∀ x ∈ interior D, -C < deriv (λ y, -f y) x,
   { assume x hx,
-    rw [deriv_neg, neg_lt_neg_iff],
+    rw [deriv.neg, neg_lt_neg_iff],
     exact lt_hf' x hx },
   simpa [-neg_lt_neg_iff]
     using neg_lt_neg (hD.mul_sub_lt_image_sub_of_lt_deriv hf.neg hf'.neg hf'_gt x y hx hy hxy)
@@ -695,7 +695,7 @@ begin
   assume x y hx hy hxy,
   have hf'_ge : ∀ x ∈ interior D, -C ≤ deriv (λ y, -f y) x,
   { assume x hx,
-    rw [deriv_neg, neg_le_neg_iff],
+    rw [deriv.neg, neg_le_neg_iff],
     exact le_hf' x hx },
   simpa [-neg_le_neg_iff]
     using neg_le_neg (hD.mul_sub_le_image_sub_of_le_deriv hf.neg hf'.neg hf'_ge x y hx hy hxy)
@@ -785,7 +785,7 @@ convex_on_real_of_slope_mono_adjacent hD
 begin
   intros x y z hx hz hxy hyz,
   -- First we prove some trivial inclusions
-  have hxzD : Icc x z ⊆ D, from convex_real_iff.1 hD hx hz,
+  have hxzD : Icc x z ⊆ D, from hD.ord_connected hx hz,
   have hxyD : Icc x y ⊆ D, from subset.trans (Icc_subset_Icc_right $ le_of_lt hyz) hxzD,
   have hxyD' : Ioo x y ⊆ interior D,
     from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hxyD⟩,

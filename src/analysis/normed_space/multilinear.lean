@@ -111,7 +111,7 @@ begin
   by a power of a scalar `c` with norm `∥c∥ > 1`.-/
   by_cases h : ∃i, m i = 0,
   { rcases h with ⟨i, hi⟩,
-    rw [f.map_coord_zero i hi, _root_.norm_zero],
+    rw [f.map_coord_zero i hi, norm_zero],
     exact mul_nonneg (le_of_lt C_pos) (prod_nonneg (λi hi, norm_nonneg _)) },
   { push_neg at h,
     have : ∀i, ∃d:𝕜, d ≠ 0 ∧ ∥d • m i∥ ≤ δ ∧ (δ/∥c∥ ≤ ∥d • m i∥) ∧ (∥d∥⁻¹ ≤ δ⁻¹ * ∥c∥ * ∥m i∥) :=
@@ -374,9 +374,6 @@ begin
     simp }
 end
 
-@[simp] lemma norm_zero : ∥(0 : continuous_multilinear_map 𝕜 E₁ E₂)∥ = 0 :=
-by rw op_norm_zero_iff
-
 lemma op_norm_smul_le : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
 (Inf_le _ bounds_bdd_below
   ⟨mul_nonneg (norm_nonneg _) (op_norm_nonneg _), λ _,
@@ -435,7 +432,7 @@ begin
           + ∥q - p∥ * ∏ i, ∥p.2 i∥ :
       by apply_rules [add_le_add, mul_le_mul, le_refl, le_trans (norm_fst_le q) A, nat.cast_nonneg,
         mul_nonneg, pow_le_pow_of_le_left, pow_nonneg, norm_snd_le (q - p), norm_nonneg,
-        norm_fst_le (q - p), norm_nonneg, prod_nonneg]
+        norm_fst_le (q - p), prod_nonneg]
     ... = ((∥p∥ + 1) * (fintype.card ι) * (∥p∥ + 1) ^ (fintype.card ι - 1)
               + (∏ i, ∥p.2 i∥)) * dist q p : by { rw dist_eq_norm, ring }
 end
@@ -491,13 +488,13 @@ begin
       have A := hF (function.update v i (x + y)),
       have B := (hF (function.update v i x)).add (hF (function.update v i y)),
       simp at A B,
-      exact tendsto_nhds_unique filter.at_top_ne_bot A B
+      exact tendsto_nhds_unique A B
     end,
     map_smul' := λ v i c x, begin
       have A := hF (function.update v i (c • x)),
       have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ c _) (hF (function.update v i x)),
       simp at A B,
-      exact tendsto_nhds_unique filter.at_top_ne_bot A B
+      exact tendsto_nhds_unique A B
     end },
   -- and that `F` has norm at most `(b 0 + ∥f 0∥)`.
   have Fnorm : ∀ v, ∥F v∥ ≤ (b 0 + ∥f 0∥) * ∏ i, ∥v i∥,
@@ -512,7 +509,7 @@ begin
         apply add_le_add_right,
         simpa [dist_eq_norm] using b_bound n 0 0 (zero_le _) (zero_le _)
       end },
-    exact le_of_tendsto at_top_ne_bot (hF v).norm (eventually_of_forall A) },
+    exact le_of_tendsto (hF v).norm (eventually_of_forall A) },
   -- Thus `F` is continuous, and we propose that as the limit point of our original Cauchy sequence.
   let Fcont := Fmult.mk_continuous _ Fnorm,
   use Fcont,
@@ -526,7 +523,7 @@ begin
       exact mul_le_mul_of_nonneg_right (b_bound n m n (le_refl _) hm) (nonneg v) },
     have B : tendsto (λ m, ∥(f n - f m) v∥) at_top (𝓝 (∥(f n - Fcont) v∥)) :=
       tendsto.norm (tendsto_const_nhds.sub (hF v)),
-    exact le_of_tendsto at_top_ne_bot B A },
+    exact le_of_tendsto B A },
   erw tendsto_iff_norm_tendsto_zero,
   exact squeeze_zero (λ n, norm_nonneg _) this b_lim,
 end

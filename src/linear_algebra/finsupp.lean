@@ -181,13 +181,9 @@ begin
   rintro l ⟨⟩,
   apply finsupp.induction l, {exact zero_mem _},
   refine λ x a l hl a0, add_mem _ _,
-  haveI := classical.dec_pred (λ x, ∃ i, x ∈ s i),
   by_cases (∃ i, x ∈ s i); simp [h],
   { cases h with i hi,
-    exact le_supr (λ i, supported M R (s i)) i (single_mem_supported R _ hi) },
-  { rw filter_single_of_neg,
-    { simp },
-    { exact h } }
+    exact le_supr (λ i, supported M R (s i)) i (single_mem_supported R _ hi) }
 end
 
 theorem supported_union (s t : set α) :
@@ -482,58 +478,3 @@ begin
   have hi : i ∈ s, { rw finset.mem_image, exact ⟨⟨x, hx⟩, finset.mem_univ _, rfl⟩ },
   exact hN i hi (hg _),
 end
-
-section finsupp_lequiv_direct_sum
-
-variables (R M) (ι : Type*) [decidable_eq ι]
-
-/-- The finitely supported functions ι →₀ M are in linear equivalence with the direct sum of
-copies of M indexed by ι. -/
-def finsupp_lequiv_direct_sum : (ι →₀ M) ≃ₗ[R] direct_sum ι (λ i, M) :=
-linear_equiv.of_linear
-  (finsupp.lsum $ direct_sum.lof R ι (λ _, M))
-  (direct_sum.to_module _ _ _ finsupp.lsingle)
-  (linear_map.ext $ direct_sum.to_module.ext _ $ λ i,
-    linear_map.ext $ λ x, by simp [finsupp.sum_single_index])
-  (linear_map.ext $ λ f, finsupp.ext $ λ i, by simp [finsupp.lsum_apply])
-
-@[simp] theorem finsupp_lequiv_direct_sum_single (i : ι) (m : M) :
-  finsupp_lequiv_direct_sum R M ι (finsupp.single i m) = direct_sum.lof R ι _ i m :=
-finsupp.sum_single_index $ direct_sum.of_zero i
-
-@[simp] theorem finsupp_lequiv_direct_sum_symm_lof (i : ι) (m : M) :
-  (finsupp_lequiv_direct_sum R M ι).symm (direct_sum.lof R ι _ i m) = finsupp.single i m :=
-direct_sum.to_module_lof _ _ _
-
-end finsupp_lequiv_direct_sum
-
-section tensor_product
-
-open_locale tensor_product
-
-/-- The tensor product of ι →₀ M and κ →₀ N is linearly equivalent to (ι × κ) →₀ (M ⊗ N). -/
-def finsupp_tensor_finsupp (R M N ι κ : Sort*) [comm_ring R]
-  [add_comm_group M] [module R M] [add_comm_group N] [module R N] :
-  (ι →₀ M) ⊗[R] (κ →₀ N) ≃ₗ[R] (ι × κ) →₀ (M ⊗[R] N) :=
-linear_equiv.trans
-  (tensor_product.congr (finsupp_lequiv_direct_sum R M ι) (finsupp_lequiv_direct_sum R N κ)) $
-linear_equiv.trans
-  (tensor_product.direct_sum R ι κ (λ _, M) (λ _, N))
-  (finsupp_lequiv_direct_sum R (M ⊗[R] N) (ι × κ)).symm
-
-@[simp] theorem finsupp_tensor_finsupp_single (R M N ι κ : Sort*) [comm_ring R]
-  [add_comm_group M] [module R M] [add_comm_group N] [module R N]
-  (i : ι) (m : M) (k : κ) (n : N) :
-  finsupp_tensor_finsupp R M N ι κ (finsupp.single i m ⊗ₜ finsupp.single k n) =
-  finsupp.single (i, k) (m ⊗ₜ n) :=
-by simp [finsupp_tensor_finsupp]
-
-@[simp] theorem finsupp_tensor_finsupp_symm_single (R M N ι κ : Sort*) [comm_ring R]
-  [add_comm_group M] [module R M] [add_comm_group N] [module R N]
-  (i : ι × κ) (m : M) (n : N) :
-  (finsupp_tensor_finsupp R M N ι κ).symm (finsupp.single i (m ⊗ₜ n)) =
-  (finsupp.single i.1 m ⊗ₜ finsupp.single i.2 n) :=
-prod.cases_on i $ λ i k, (linear_equiv.symm_apply_eq _).2
-  (finsupp_tensor_finsupp_single _ _ _ _ _ _ _ _ _).symm
-
-end tensor_product

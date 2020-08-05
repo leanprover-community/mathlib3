@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import order.conditionally_complete_lattice
-import algebra.big_operators
+import algebra.big_operators.basic
+import algebra.group.prod
 
 /-!
 # Support of a function
@@ -30,6 +31,14 @@ classical.not_not
 lemma mem_support [has_zero A] {f : α → A} {x : α} :
   x ∈ support f ↔ f x ≠ 0 :=
 iff.rfl
+
+lemma support_subset_iff [has_zero A] {f : α → A} {s : set α} :
+  support f ⊆ s ↔ ∀ x, f x ≠ 0 → x ∈ s :=
+iff.rfl
+
+lemma support_subset_iff' [has_zero A] {f : α → A} {s : set α} :
+  support f ⊆ s ↔ ∀ x ∉ s, f x = 0 :=
+forall_congr $ λ x, by classical; exact not_imp_comm
 
 lemma support_binop_subset [has_zero A] (op : A → A → A) (op0 : op 0 0 = 0) (f g : α → A) :
   support (λ x, op (f x) (g x)) ⊆ support f ∪ support g :=
@@ -112,22 +121,23 @@ lemma support_prod [comm_monoid_with_zero A] [no_zero_divisors A] [nontrivial A]
 set.ext $ λ x, by
   simp only [support, ne.def, finset.prod_eq_zero_iff, mem_set_of_eq, set.mem_Inter, not_exists]
 
-lemma support_comp [has_zero A] [has_zero B] (g : A → B) (hg : g 0 = 0) (f : α → A) :
+lemma support_comp_subset [has_zero A] [has_zero B] {g : A → B} (hg : g 0 = 0) (f : α → A) :
   support (g ∘ f) ⊆ support f :=
 λ x, mt $ λ h, by simp [(∘), *]
 
-lemma support_comp' [has_zero A] [has_zero B] (g : A → B) (hg : g 0 = 0) (f : α → A) :
-  support (λ x, g (f x)) ⊆ support f :=
-support_comp g hg f
+lemma support_subset_comp [has_zero A] [has_zero B] {g : A → B} (hg : ∀ {x}, g x = 0 → x = 0)
+  (f : α → A) :
+  support f ⊆ support (g ∘ f) :=
+λ x, mt hg
 
 lemma support_comp_eq [has_zero A] [has_zero B] (g : A → B) (hg : ∀ {x}, g x = 0 ↔ x = 0)
   (f : α → A) :
   support (g ∘ f) = support f :=
 set.ext $ λ x, not_congr hg
 
-lemma support_comp_eq' [has_zero A] [has_zero B] (g : A → B) (hg : ∀ {x}, g x = 0 ↔ x = 0)
-  (f : α → A) :
-  support (λ x, g (f x)) = support f :=
-support_comp_eq g @hg f
+lemma support_prod_mk [has_zero A] [has_zero B] (f : α → A) (g : α → B) :
+  support (λ x, (f x, g x)) = support f ∪ support g :=
+set.ext $ λ x, by simp only [support, classical.not_and_distrib, mem_union_eq, mem_set_of_eq,
+  prod.mk_eq_zero, ne.def]
 
 end function

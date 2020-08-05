@@ -187,7 +187,7 @@ begin
   refine is_linear_map.with_bound ⟨λ f₁ f₂, by { ext m, refl }, λ c f, by { ext m, refl }⟩
     (∥g∥ ^ (fintype.card ι)) (λ f, _),
   apply continuous_multilinear_map.op_norm_le_bound _ _ (λ m, _),
-  { apply_rules [mul_nonneg, pow_nonneg, norm_nonneg, norm_nonneg] },
+  { apply_rules [mul_nonneg, pow_nonneg, norm_nonneg] },
   calc ∥f (g ∘ m)∥ ≤
     ∥f∥ * ∏ i, ∥g (m i)∥ : f.le_op_norm _
     ... ≤ ∥f∥ * ∏ i, (∥g∥ * ∥m i∥) : begin
@@ -341,7 +341,7 @@ lemma is_bounded_bilinear_map_comp_multilinear {ι : Type*} {E : ι → Type*}
   smul_right := λ c g f, by { ext m, simp },
   bound      := ⟨1, zero_lt_one, λ g f, begin
     apply continuous_multilinear_map.op_norm_le_bound _ _ (λm, _),
-    { apply_rules [mul_nonneg, zero_le_one, norm_nonneg, norm_nonneg] },
+    { apply_rules [mul_nonneg, zero_le_one, norm_nonneg] },
     calc ∥g (f m)∥ ≤ ∥g∥ * ∥f m∥ : g.le_op_norm _
     ... ≤ ∥g∥ * (∥f∥ * ∏ i, ∥m i∥) :
       mul_le_mul_of_nonneg_left (f.le_op_norm _) (norm_nonneg _)
@@ -387,6 +387,24 @@ end
 @[simp] lemma is_bounded_bilinear_map_deriv_coe (h : is_bounded_bilinear_map 𝕜 f) (p q : E × F) :
   h.deriv p q = f (p.1, q.2) + f (q.1, p.2) := rfl
 
+variables (𝕜)
+
+/-- The function `lmul_left_right : 𝕜' × 𝕜' → (𝕜' →L[𝕜] 𝕜')` is a bounded bilinear map. -/
+lemma continuous_linear_map.lmul_left_right_is_bounded_bilinear
+  (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] :
+  is_bounded_bilinear_map 𝕜 (continuous_linear_map.lmul_left_right 𝕜 𝕜') :=
+{ add_left := λ v₁ v₂ w, by {ext t, simp [add_comm, add_mul]},
+  smul_left := λ c v w, by {ext, simp },
+  add_right := λ v w₁ w₂, by {ext t, simp [add_comm, mul_add]},
+  smul_right := λ c v w, by {ext, simp },
+  bound := begin
+    refine ⟨1, by linarith, _⟩,
+    intros v w,
+    rw one_mul,
+    apply continuous_linear_map.lmul_left_right_norm_le,
+  end }
+
+variables {𝕜}
 
 /-- Given a bounded bilinear map `f`, the map associating to a point `p` the derivative of `f` at
 `p` is itself a bounded linear map. -/
@@ -404,8 +422,7 @@ begin
     calc ∥f (p.1, q.2) + f (q.1, p.2)∥
       ≤ C * ∥p.1∥ * ∥q.2∥ + C * ∥q.1∥ * ∥p.2∥ : norm_add_le_of_le (hC _ _) (hC _ _)
     ... ≤ C * ∥p∥ * ∥q∥ + C * ∥q∥ * ∥p∥ : by apply_rules [add_le_add, mul_le_mul, norm_nonneg,
-      le_of_lt Cpos, le_refl, le_max_left, le_max_right, mul_nonneg, norm_nonneg, norm_nonneg,
-      norm_nonneg]
+      le_of_lt Cpos, le_refl, le_max_left, le_max_right, mul_nonneg]
     ... = (C + C) * ∥p∥ * ∥q∥ : by ring },
 end
 

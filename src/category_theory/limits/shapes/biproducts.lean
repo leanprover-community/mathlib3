@@ -3,11 +3,9 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.epi_mono
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.binary_products
 import category_theory.preadditive
-import algebra.big_operators
 
 /-!
 # Biproducts and binary biproducts
@@ -665,6 +663,7 @@ def has_biproduct_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π
     fac' := λ s j,
     begin
       simp only [sum_comp, category.assoc, bicone.to_cone_π_app, b.ι_π, comp_dite],
+      -- See note [dsimp, simp].
       dsimp, simp,
     end },
   is_colimit :=

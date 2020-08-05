@@ -120,17 +120,26 @@ def comap_equiv {β γ : Type w} (e : β ≃ γ) :
 { functor := comap C (e.symm : γ → β),
   inverse := comap C (e : β → γ),
   counit_iso := (comap_comp C _ _).trans (comap_eq C (by { ext, simp } )),
-  unit_iso := (comap_eq C (by { ext, simp} )).trans (comap_comp _ _ _).symm,
-  functor_unit_iso_comp' := λ X, begin ext b, dsimp, simp, end, }
+  unit_iso := (comap_eq C (by { ext, simp } )).trans (comap_comp _ _ _).symm,
+  functor_unit_iso_comp' := λ X, by { ext b, dsimp, simp, }, }  -- See note [dsimp, simp].
 
 end
 
-instance has_shift {β : Type} [add_comm_group β] (s : β) : has_shift (graded_object_with_shift s C) :=
+instance has_shift {β : Type*} [add_comm_group β] (s : β) : has_shift (graded_object_with_shift s C) :=
 { shift := comap_equiv C
   { to_fun := λ b, b-s,
     inv_fun := λ b, b+s,
     left_inv := λ x, (by simp),
     right_inv := λ x, (by simp), } }
+
+@[simp] lemma shift_functor_obj_apply {β : Type*} [add_comm_group β] (s : β) (X : β → C) (t : β) :
+  (shift (graded_object_with_shift s C)).functor.obj X t = X (t + s) :=
+rfl
+
+@[simp] lemma shift_functor_map_apply {β : Type*} [add_comm_group β] (s : β)
+  {X Y : graded_object_with_shift s C} (f : X ⟶ Y) (t : β) :
+  (shift (graded_object_with_shift s C)).functor.map f t = f (t + s) :=
+rfl
 
 instance has_zero_morphisms [has_zero_morphisms C] (β : Type w) :
   has_zero_morphisms.{(max w v)} (graded_object β C) :=

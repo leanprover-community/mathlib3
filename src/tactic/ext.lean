@@ -5,6 +5,8 @@ Authors: Simon Hudon
 -/
 import tactic.rcases
 import data.sum
+import logic.function.basic
+
 universes u₁ u₂
 
 open interactive interactive.types
@@ -340,7 +342,7 @@ add_tactic_doc
   tags                     := ["rewrite", "logic"] }
 
 -- We mark some existing extensionality lemmas.
-attribute [ext] array.ext propext
+attribute [ext] array.ext propext function.hfunext
 attribute [ext [(→),thunk]] _root_.funext
 
 -- We create some extensionality lemmas for existing structures.
@@ -357,6 +359,9 @@ end plift
 -- Conservatively, we'll only add extensionality lemmas for `has_*` structures
 -- as they become useful.
 attribute [ext] has_zero
+
+@[ext] lemma unit.ext {x y : unit} : x = y := by { cases x, cases y, refl, }
+@[ext] lemma punit.ext {x y : punit} : x = y := by { cases x, cases y, refl, }
 
 namespace tactic
 

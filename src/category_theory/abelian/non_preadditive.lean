@@ -130,7 +130,7 @@ let ⟨b', hb'⟩ := kernel_fork.is_limit.lift' i' (kernel.ι (prod.lift f g)) $
     ... = (0 : kernel (prod.lift f g) ⟶ P ⨯ Q) ≫ limits.prod.snd : by rw kernel.condition_assoc
     ... = 0 : has_zero_morphisms.zero_comp _ _ in
 { cone := pullback_cone.mk a' b' $ by { simp at ha' hb', rw [ha', hb'] },
-  is_limit := pullback_cone.is_limit.mk _
+  is_limit := pullback_cone.is_limit.mk _ _ _
     (λ s, kernel.lift (prod.lift f g) (pullback_cone.snd s ≫ b) $ prod.hom_ext
       (calc ((pullback_cone.snd s ≫ b) ≫ prod.lift f g) ≫ limits.prod.fst
             = pullback_cone.snd s ≫ b ≫ f : by simp only [prod.lift_fst, category.assoc]
@@ -147,9 +147,9 @@ let ⟨b', hb'⟩ := kernel_fork.is_limit.lift' i' (kernel.ι (prod.lift f g)) $
       by { rw kernel_fork.ι_of_ι at ha', simp [ha', pullback_cone.condition s] })
     (λ s, (cancel_mono b).1 $
       by { rw kernel_fork.ι_of_ι at hb', simp [hb'] })
-    (λ s m h, (cancel_mono (kernel.ι (prod.lift f g))).1 $ calc m ≫ kernel.ι (prod.lift f g)
+    (λ s m h₁ h₂, (cancel_mono (kernel.ι (prod.lift f g))).1 $ calc m ≫ kernel.ι (prod.lift f g)
           = m ≫ a' ≫ a : by { congr, exact ha'.symm }
-      ... = pullback_cone.fst s ≫ a : by erw [←category.assoc, h walking_cospan.left]
+      ... = pullback_cone.fst s ≫ a : by rw [←category.assoc, h₁]
       ... = pullback_cone.snd s ≫ b : pullback_cone.condition s
       ... = kernel.lift (prod.lift f g) (pullback_cone.snd s ≫ b) _ ≫ kernel.ι (prod.lift f g) :
         by rw kernel.lift_ι) }
@@ -171,7 +171,7 @@ let ⟨b', hb'⟩ := cokernel_cofork.is_colimit.desc' i' (cokernel.π (coprod.de
   ... = coprod.inr ≫ (0 : P ⨿ Q ⟶ cokernel (coprod.desc f g)) :  by rw cokernel.condition
   ... = 0 : has_zero_morphisms.comp_zero _ _ in
 { cocone := pushout_cocone.mk a' b' $ by { simp only [cofork.π_of_π] at ha' hb', rw [ha', hb'] },
-  is_colimit := pushout_cocone.is_colimit.mk _
+  is_colimit := pushout_cocone.is_colimit.mk _ _ _
   (λ s, cokernel.desc (coprod.desc f g) (b ≫ pushout_cocone.inr s) $ coprod.hom_ext
     (calc coprod.inl ≫ coprod.desc f g ≫ b ≫ pushout_cocone.inr s
           = f ≫ b ≫ pushout_cocone.inr s : by rw coprod.inl_desc_assoc
@@ -185,9 +185,9 @@ let ⟨b', hb'⟩ := cokernel_cofork.is_colimit.desc' i' (cokernel.π (coprod.de
   (λ s, (cancel_epi a).1 $
     by { rw cokernel_cofork.π_of_π at ha', simp [reassoc_of ha', pushout_cocone.condition s] })
   (λ s, (cancel_epi b).1 $ by { rw cokernel_cofork.π_of_π at hb', simp [reassoc_of hb'] })
-  (λ s m h, (cancel_epi (cokernel.π (coprod.desc f g))).1 $ calc cokernel.π (coprod.desc f g) ≫ m
+  (λ s m h₁ h₂, (cancel_epi (cokernel.π (coprod.desc f g))).1 $ calc cokernel.π (coprod.desc f g) ≫ m
         = (a ≫ a') ≫ m : by { congr, exact ha'.symm }
-    ... = a ≫ pushout_cocone.inl s : by erw [category.assoc, h walking_span.left]
+    ... = a ≫ pushout_cocone.inl s : by rw [category.assoc, h₁]
     ... = b ≫ pushout_cocone.inr s : pushout_cocone.condition s
     ... = cokernel.π (coprod.desc f g) ≫ cokernel.desc (coprod.desc f g) (b ≫ pushout_cocone.inr s) _ :
       by rw cokernel.π_desc) }

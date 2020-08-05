@@ -5,7 +5,7 @@ Authors: Joseph Myers, Yury Kudryashov.
 -/
 import algebra.group.prod
 import algebra.group.type_tags
-import algebra.pi_instances
+import algebra.group.pi
 import data.equiv.basic
 
 /-!
@@ -228,6 +228,18 @@ begin
   exact hp
 end
 
+/-- `vsub_set` of a single point. -/
+@[simp] lemma vsub_set_singleton (p : P) : vsub_set G ({p} : set P) = {0} :=
+begin
+  ext g,
+  rw set.mem_singleton_iff,
+  split,
+  { rintros ⟨p1, hp1, p2, hp2, rfl⟩,
+    rw set.mem_singleton_iff at hp1 hp2,
+    simp [hp1, hp2] },
+  { exact λ h, h.symm ▸ ⟨p, set.mem_singleton p, p, set.mem_singleton p, (vsub_self G p).symm⟩ }
+end
+
 /-- Each pairwise difference is in the `vsub_set`. -/
 lemma vsub_mem_vsub_set {p1 p2 : P} {s : set P} (hp1 : p1 ∈ s) (hp2 : p2 ∈ s) :
   (p1 -ᵥ p2) ∈ vsub_set G s :=
@@ -243,6 +255,32 @@ end
 @[simp] lemma vadd_vsub_vadd_cancel_right (v₁ v₂ : G) (p : P) :
   ((v₁ +ᵥ p) -ᵥ (v₂ +ᵥ p) : G) = v₁ - v₂ :=
 by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, vsub_self, add_zero]
+
+/-- If the same point subtracted from two points produces equal
+results, those points are equal. -/
+lemma vsub_left_cancel {p1 p2 p : P} (h : (p1 -ᵥ p : G) = p2 -ᵥ p) : p1 = p2 :=
+by rwa [←sub_eq_zero, vsub_sub_vsub_cancel_right, vsub_eq_zero_iff_eq] at h
+
+/-- The same point subtracted from two points produces equal results
+if and only if those points are equal. -/
+@[simp] lemma vsub_left_cancel_iff {p1 p2 p : P} : (p1 -ᵥ p : G) = p2 -ᵥ p ↔ p1 = p2 :=
+⟨vsub_left_cancel _, λ h, h ▸ rfl⟩
+
+/-- If subtracting two points from the same point produces equal
+results, those points are equal. -/
+lemma vsub_right_cancel {p1 p2 p : P} (h : (p -ᵥ p1 : G) = p -ᵥ p2) : p1 = p2 :=
+begin
+  have h2 : (p -ᵥ p2 : G) +ᵥ p1 = (p -ᵥ p1 : G) +ᵥ p1, { rw h },
+  conv_rhs at h2 {
+    rw [vsub_vadd, ←vsub_vadd G p p2],
+  },
+  rwa vadd_left_cancel_iff at h2
+end
+
+/-- Subtracting two points from the same point produces equal results
+if and only if those points are equal. -/
+@[simp] lemma vsub_right_cancel_iff {p1 p2 p : P} : (p -ᵥ p1 : G) = p -ᵥ p2 ↔ p1 = p2 :=
+⟨vsub_right_cancel _, λ h, h ▸ rfl⟩
 
 end general
 

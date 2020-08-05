@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro, Johannes Hölzl, Sander Dahmen
 -/
 import linear_algebra.basis
-import set_theory.ordinal
+import set_theory.cardinal_ordinal
 
 /-!
 # Dimension of modules and vector spaces
@@ -53,7 +53,7 @@ theorem is_basis.le_span {v : ι → V} {J : set V} (hv : is_basis K v)
    (hJ : span K J = ⊤) : cardinal.mk (range v) ≤ cardinal.mk J :=
 begin
   cases le_or_lt cardinal.omega (cardinal.mk J) with oJ oJ,
-  { have := cardinal.mk_range_eq_of_injective (linear_independent.injective zero_ne_one hv.1),
+  { have := cardinal.mk_range_eq_of_injective (linear_independent.injective hv.1),
     let S : J → set ι := λ j, ↑(is_basis.repr hv j).support,
     let S' : J → set V := λ j, v '' S j,
     have hs : range v ⊆ ⋃ j, S' j,
@@ -94,14 +94,14 @@ begin
   apply le_antisymm,
   { convert cardinal.lift_le.{u' (max w w')}.2 (hv.le_span hv'.2),
     { rw cardinal.lift_max.{w u' w'},
-      apply (cardinal.mk_range_eq_of_injective (hv.injective zero_ne_one)).symm, },
+      apply (cardinal.mk_range_eq_of_injective hv.injective).symm, },
     { rw cardinal.lift_max.{w' u' w},
-      apply (cardinal.mk_range_eq_of_injective (hv'.injective zero_ne_one)).symm, }, },
+      apply (cardinal.mk_range_eq_of_injective hv'.injective).symm, }, },
   { convert cardinal.lift_le.{u' (max w w')}.2 (hv'.le_span hv.2),
     { rw cardinal.lift_max.{w' u' w},
-      apply (cardinal.mk_range_eq_of_injective (hv'.injective zero_ne_one)).symm, },
+      apply (cardinal.mk_range_eq_of_injective hv'.injective).symm, },
     { rw cardinal.lift_max.{w u' w'},
-      apply (cardinal.mk_range_eq_of_injective (hv.injective zero_ne_one)).symm, }, }
+      apply (cardinal.mk_range_eq_of_injective hv.injective).symm, }, }
 end
 
 theorem is_basis.mk_range_eq_dim {v : ι → V} (h : is_basis K v) :
@@ -111,13 +111,13 @@ begin
   rcases this with ⟨v', e⟩,
   rw e,
   apply cardinal.lift_inj.1,
-  rw cardinal.mk_range_eq_of_injective (h.injective zero_ne_one),
+  rw cardinal.mk_range_eq_of_injective h.injective,
   convert @mk_eq_mk_of_basis _ _ _ _ _ _ _ _ _ h v'.property
 end
 
 theorem is_basis.mk_eq_dim {v : ι → V} (h : is_basis K v) :
   cardinal.lift.{w u'} (cardinal.mk ι) = cardinal.lift.{u' w} (dim K V) :=
-by rw [←h.mk_range_eq_dim, cardinal.mk_range_eq_of_injective (h.injective zero_ne_one)]
+by rw [←h.mk_range_eq_dim, cardinal.mk_range_eq_of_injective h.injective]
 
 variables [add_comm_group V₂] [vector_space K V₂]
 
@@ -143,7 +143,7 @@ by rw [←cardinal.lift_inj, ← (@is_basis_singleton_one punit K _ _).mk_eq_dim
 lemma dim_span {v : ι → V} (hv : linear_independent K v) :
   dim K ↥(span K (range v)) = cardinal.mk (range v) :=
 by rw [←cardinal.lift_inj, ← (is_basis_span hv).mk_eq_dim,
-    cardinal.mk_range_eq_of_injective (@linear_independent.injective ι K V v _ _ _ zero_ne_one hv)]
+    cardinal.mk_range_eq_of_injective (@linear_independent.injective ι K V v _ _ _ _ hv)]
 
 lemma dim_span_set {s : set V} (hs : linear_independent K (λ x, x : s → V)) :
   dim K ↥(span K s) = cardinal.mk s :=

@@ -6,8 +6,9 @@ Authors: Kenny Lau, Chris Hughes, Tim Baanen
 import data.matrix.pequiv
 import data.fintype.card
 import group_theory.perm.sign
+import ring_theory.algebra
 
-universes u v
+universes u v w z
 open equiv equiv.perm finset function
 
 namespace matrix
@@ -144,6 +145,21 @@ calc det (c • A) = det (matrix.mul (diagonal (λ _, c)) A) : by rw [smul_eq_di
              ... = det (diagonal (λ _, c)) * det A        : det_mul _ _
              ... = c ^ fintype.card n * det A             : by simp [card_univ]
 
+section hom_map
+
+variables {S : Type w} [comm_ring S]
+
+lemma ring_hom.map_det {M : matrix n n R} {f : R →+* S} :
+  f M.det = matrix.det (f.map_matrix M) :=
+by simp [matrix.det, f.map_sum, f.map_prod]
+
+lemma alg_hom.map_det [algebra R S] {T : Type z} [comm_ring T] [algebra R T]
+  {M : matrix n n S} {f : S →ₐ[R] T} :
+  f M.det = matrix.det ((f : S →+* T).map_matrix M) :=
+by rw [← alg_hom.coe_to_ring_hom, ring_hom.map_det]
+
+end hom_map
+
 section det_zero
 /-!
 ### `det_zero` section
@@ -202,7 +218,7 @@ begin
   rw [neg_mul_eq_neg_mul],
   congr,
   { rw [sign_mul, sign_swap i_ne_j], norm_num },
-  ext j, rw [mul_apply, swap_invariant]
+  ext j, rw [perm.mul_apply, swap_invariant]
 end
 
 end det_zero

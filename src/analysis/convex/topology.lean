@@ -28,6 +28,11 @@ variables {ι : Type*} {E : Type*}
 
 open set
 
+lemma real.convex_iff_is_preconnected {s : set ℝ} : convex s ↔ is_preconnected s :=
+real.convex_iff_ord_connected.trans is_preconnected_iff_ord_connected.symm
+
+alias real.convex_iff_is_preconnected ↔ convex.is_preconnected is_preconnected.convex
+
 /-! ### Standard simplex -/
 
 section std_simplex
@@ -59,7 +64,7 @@ lemma is_closed_std_simplex : is_closed (std_simplex ι) :=
   (is_closed_eq (continuous_finset_sum _ $ λ x _, continuous_apply x) continuous_const)
 
 /-- `std_simplex ι` is compact. -/
-lemma compact_std_simplex : compact (std_simplex ι) :=
+lemma compact_std_simplex : is_compact (std_simplex ι) :=
 metric.compact_iff_closed_bounded.2 ⟨is_closed_std_simplex ι, bounded_std_simplex ι⟩
 
 end std_simplex
@@ -99,7 +104,7 @@ show f x y ∈ closure s, from
 
 /-- Convex hull of a finite set is compact. -/
 lemma set.finite.compact_convex_hull {s : set E} (hs : finite s) :
-  compact (convex_hull s) :=
+  is_compact (convex_hull s) :=
 begin
   rw [hs.convex_hull_eq_image],
   apply (compact_std_simplex _).image,

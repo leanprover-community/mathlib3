@@ -49,51 +49,6 @@ variables {n : Type u} [fintype n] [decidable_eq n] {α : Type v}
 open_locale matrix big_operators
 open equiv equiv.perm finset
 
-
-section update
-
-/-- Update, i.e. replace the `i`th column of matrix `A` with the values in `b`. -/
-def update_column (A : matrix n n α) (i : n) (b : n → α) : matrix n n α :=
-function.update A i b
-
-/-- Update, i.e. replace the `i`th row of matrix `A` with the values in `b`. -/
-def update_row (A : matrix n n α) (j : n) (b : n → α) : matrix n n α :=
-λ i, function.update (A i) j (b i)
-
-variables {A : matrix n n α} {i j : n} {b : n → α}
-
-@[simp] lemma update_column_self : update_column A i b i = b := function.update_same i b A
-
-@[simp] lemma update_row_self : update_row A j b i j = b i := function.update_same j (b i) (A i)
-
-@[simp] lemma update_column_ne {i' : n} (i_ne : i' ≠ i) : update_column A i b i' = A i' :=
-function.update_noteq i_ne b A
-
-@[simp] lemma update_row_ne {j' : n} (j_ne : j' ≠ j) : update_row A j b i j' = A i j' :=
-function.update_noteq j_ne (b i) (A i)
-
-lemma update_column_apply {i' : n} : update_column A i b i' j = if i' = i then b j else A i' j :=
-begin
-  by_cases i' = i,
-  { rw [h, update_column_self, if_pos rfl] },
-  { rw [update_column_ne h, if_neg h] }
-end
-
-lemma update_row_apply {j' : n} : update_row A j b i j' = if j' = j then b i else A i j' :=
-begin
-  by_cases j' = j,
-  { rw [h, update_row_self, if_pos rfl] },
-  { rw [update_row_ne h, if_neg h] }
-end
-
-lemma update_column_transpose : update_column Aᵀ i b = (update_row A i b)ᵀ :=
-begin
-  ext i' j,
-  rw [transpose_apply, update_column_apply, update_row_apply],
-  refl
-end
-end update
-
 section cramer
 /-!
   ### `cramer` section
@@ -112,14 +67,14 @@ variables [comm_ring α] (A : matrix n n α) (b : n → α)
   and vector `b` to the vector `x` such that `A ⬝ x = b`.
   Otherwise, the outcome of `cramer_map` is well-defined but not necessarily useful.
 -/
-def cramer_map (i : n) : α := (A.update_column i b).det
+def cramer_map (i : n) : α := (A.update_row i b).det
 
 lemma cramer_map_is_linear (i : n) : is_linear_map α (λ b, cramer_map A b i) :=
 begin
   have : Π {f : n → n} {i : n} (x : n → α),
-    (∏ i' : n, (update_column A i x)ᵀ (f i') i')
+    (∏ i' : n, (update_row A i x)ᵀ (f i') i')
     = (∏ i' : n, if i' = i then x (f i') else A i' (f i')),
-  { intros, congr, ext i', rw [transpose_apply, update_column_apply] },
+  { intros, congr, ext i', rw [transpose_apply, update_row_apply] },
   split,
   { intros x y,
     repeat { rw [cramer_map, ←det_transpose, det] },
@@ -158,7 +113,7 @@ end
 def cramer (α : Type v) [comm_ring α] (A : matrix n n α) : (n → α) →ₗ[α] (n → α) :=
 is_linear_map.mk' (cramer_map A) (cramer_is_linear A)
 
-lemma cramer_apply (i : n) : cramer α A b i = (A.update_column i b).det := rfl
+lemma cramer_apply (i : n) : cramer α A b i = (A.update_row i b).det := rfl
 
 /-- Applying Cramer's rule to a column of the matrix gives a scaled basis vector. -/
 lemma cramer_column_self (i : n) :
@@ -170,11 +125,11 @@ begin
   { -- i = j: this entry should be `A.det`
     rw [if_pos h, ←h],
     congr, ext i',
-    by_cases h : i' = i, { rw [h, update_column_self] }, { rw [update_column_ne h]} },
+    by_cases h : i' = i, { rw [h, update_row_self] }, { rw [update_row_ne h] } },
   { -- i ≠ j: this entry should be 0
     rw [if_neg h],
     apply det_zero_of_column_eq h,
-    rw [update_column_self, update_column_ne],
+    rw [update_row_self, update_row_ne],
     apply h }
 end
 
@@ -187,9 +142,9 @@ lemma sum_cramer {β} (s : finset β) (f : β → n → α) :
 lemma sum_cramer_apply {β} (s : finset β) (f : n → β → α) (i : n) :
 ∑ x in s, cramer α A (λ j, f j x) i = cramer α A (λ (j : n), ∑ x in s, f j x) i :=
 calc ∑ x in s, cramer α A (λ j, f j x) i
-    = (∑ x in s, cramer α A (λ j, f j x)) i : (pi.finset_sum_apply i s _).symm
+    = (∑ x in s, cramer α A (λ j, f j x)) i : (finset.sum_apply i s _).symm
 ... = cramer α A (λ (j : n), ∑ x in s, f j x) i :
-  by { rw [sum_cramer, cramer_apply], congr, ext j, apply pi.finset_sum_apply }
+  by { rw [sum_cramer, cramer_apply], congr, ext j, apply finset.sum_apply }
 
 end cramer
 
@@ -217,12 +172,12 @@ lemma adjugate_def (A : matrix n n α) :
   adjugate A = λ i, cramer α A (λ j, if i = j then 1 else 0) := rfl
 
 lemma adjugate_apply (A : matrix n n α) (i j : n) :
-  adjugate A i j = (A.update_column j (λ j, if i = j then 1 else 0)).det := rfl
+  adjugate A i j = (A.update_row j (λ j, if i = j then 1 else 0)).det := rfl
 
 lemma adjugate_transpose (A : matrix n n α) : (adjugate A)ᵀ = adjugate (Aᵀ) :=
 begin
   ext i j,
-  rw [transpose_apply, adjugate_apply, adjugate_apply, update_column_transpose, det_transpose],
+  rw [transpose_apply, adjugate_apply, adjugate_apply, update_row_transpose, det_transpose],
   apply finset.sum_congr rfl,
   intros σ _,
   congr' 1,
@@ -231,16 +186,16 @@ begin
   { -- Everything except `(i , j)` (= `(σ j , j)`) is given by A, and the rest is a single `1`.
     congr; ext j',
     have := (@equiv.injective _ _ σ j j' : σ j = σ j' → j = j'),
-    rw [update_column_apply, update_row_apply],
+    rw [update_row_apply, update_column_apply],
     finish },
   { -- Otherwise, we need to show that there is a `0` somewhere in the product.
-    have : (∏ j' : n, update_row A j (λ (i' : n), ite (i = i') 1 0) (σ j') j') = 0,
+    have : (∏ j' : n, update_column A j (λ (i' : n), ite (i = i') 1 0) (σ j') j') = 0,
     { apply prod_eq_zero (mem_univ j),
-      rw [update_row_self],
+      rw [update_column_self],
       exact if_neg h },
     rw this,
     apply prod_eq_zero (mem_univ (σ⁻¹ i)),
-    erw [apply_symm_apply σ i, update_column_self],
+    erw [apply_symm_apply σ i, update_row_self],
     apply if_neg,
     intro h',
     exact h ((symm_apply_eq σ).mp h'.symm) }
@@ -305,7 +260,7 @@ begin
   obtain ⟨j', hj'⟩ : ∃ j', j' ≠ j := fintype.exists_ne_of_one_lt_card h j,
   apply det_eq_zero_of_column_eq_zero j',
   intro j'',
-  simp [update_column_ne hj']
+  simp [update_row_ne hj']
 end
 
 lemma det_adjugate_eq_one {A : matrix n n α} (h : A.det = 1) : (adjugate A).det = 1 :=

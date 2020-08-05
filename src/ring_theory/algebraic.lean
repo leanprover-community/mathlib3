@@ -6,6 +6,8 @@ Authors: Johan Commelin
 
 import linear_algebra.finite_dimensional
 import ring_theory.integral_closure
+import data.polynomial.field_division
+import data.polynomial.integral_normalization
 
 /-!
 # Algebraic elements and algebraic extensions
@@ -26,7 +28,7 @@ variables (R : Type u) {A : Type v} [comm_ring R] [comm_ring A] [algebra R A]
 
 /-- An element of an R-algebra is algebraic over R if it is the root of a nonzero polynomial. -/
 def is_algebraic (x : A) : Prop :=
-∃ p : polynomial R, p ≠ 0 ∧ aeval R A x p = 0
+∃ p : polynomial R, p ≠ 0 ∧ aeval x p = 0
 
 variables {R}
 
@@ -51,7 +53,7 @@ begin
   apply and_congr iff.rfl,
   have h : function.injective (S.val) := subtype.val_injective,
   conv_rhs { rw [← h.eq_iff, alg_hom.map_zero], },
-  rw [← aeval_alg_hom_apply, S.val_apply, subtype.val_eq_coe],
+  rw [← aeval_alg_hom_apply, S.val_apply]
 end
 
 /-- An algebra is algebraic if and only if it is algebraic as a subalgebra. -/

@@ -40,7 +40,7 @@ filter.ext_iff.1 nhds_bind_nhds_within {x | p x}
 
 lemma eventually_nhds_within_iff {a : α} {s : set α} {p : α → Prop} :
   (∀ᶠ x in nhds_within a s, p x) ↔ ∀ᶠ x in 𝓝 a, x ∈ s → p x :=
-mem_inf_principal _ _ _
+eventually_inf_principal
 
 @[simp] lemma eventually_nhds_within_nhds_within {a : α} {s : set α} {p : α → Prop} :
   (∀ᶠ y in nhds_within a s, ∀ᶠ x in nhds_within y s, p x) ↔ ∀ᶠ x in nhds_within a s, p x :=
@@ -52,10 +52,10 @@ end
 
 theorem nhds_within_eq (a : α) (s : set α) :
   nhds_within a s = ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, 𝓟 (t ∩ s) :=
-have set.univ ∈ {s : set α | a ∈ s ∧ is_open s}, from ⟨set.mem_univ _, is_open_univ⟩,
 begin
-  rw [nhds_within, nhds, binfi_inf]; try { exact this },
-  simp only [inf_principal]
+  rw [nhds_within, nhds, binfi_inf],
+  simp only [inf_principal],
+  exact ⟨univ, mem_univ _, is_open_univ⟩
 end
 
 theorem nhds_within_univ (a : α) : nhds_within a set.univ = 𝓝 a :=
@@ -173,6 +173,12 @@ lemma nhds_within_prod_eq {α : Type*} [topological_space α] {β : Type*} [topo
   nhds_within (a, b) (s.prod t) = (nhds_within a s).prod (nhds_within b t) :=
 by { unfold nhds_within, rw [nhds_prod_eq, ←filter.prod_inf_prod, filter.prod_principal_principal] }
 
+lemma nhds_within_prod {α : Type*} [topological_space α] {β : Type*} [topological_space β]
+  {s u : set α} {t v : set β} {a : α} {b : β}
+  (hu : u ∈ nhds_within a s) (hv : v ∈ nhds_within b t) :
+  (u.prod v) ∈ nhds_within (a, b) (s.prod t) :=
+by { rw nhds_within_prod_eq, exact prod_mem_prod hu hv, }
+
 theorem tendsto_if_nhds_within {f g : α → β} {p : α → Prop} [decidable_pred p]
     {a : α} {s : set α} {l : filter β}
     (h₀ : tendsto f (nhds_within a (s ∩ p)) l)
@@ -205,16 +211,45 @@ theorem principal_subtype {α : Type*} (s : set α) (t : set {x // x ∈ s}) :
 by rw [comap_principal, set.preimage_image_eq _ subtype.coe_injective]
 
 lemma mem_closure_iff_nhds_within_ne_bot {s : set α} {x : α} :
-  x ∈ closure s ↔ nhds_within x s ≠ ⊥ :=
-mem_closure_iff_nhds.trans (nhds_within_has_basis (𝓝 x).basis_sets s).forall_nonempty_iff_ne_bot
+  x ∈ closure s ↔ ne_bot (nhds_within x s) :=
+mem_closure_iff_cluster_pt
 
 lemma nhds_within_ne_bot_of_mem {s : set α} {x : α} (hx : x ∈ s) :
-  nhds_within x s ≠ ⊥ :=
+  ne_bot (nhds_within x s) :=
 mem_closure_iff_nhds_within_ne_bot.1 $ subset_closure hx
 
 lemma is_closed.mem_of_nhds_within_ne_bot {s : set α} (hs : is_closed s)
-  {x : α} (hx : nhds_within x s ≠ ⊥) : x ∈ s :=
+  {x : α} (hx : ne_bot $ nhds_within x s) : x ∈ s :=
 by simpa only [hs.closure_eq] using mem_closure_iff_nhds_within_ne_bot.2 hx
+
+lemma eventually_eq_nhds_within_iff {f g : α → β} {s : set α} {a : α} :
+  (f =ᶠ[nhds_within a s] g) ↔ ∀ᶠ x in 𝓝 a, x ∈ s → f x = g x :=
+mem_inf_principal
+
+lemma eventually_eq_nhds_within_of_eq_on {f g : α → β} {s : set α} {a : α} (h : eq_on f g s) :
+  f =ᶠ[nhds_within a s] g :=
+mem_inf_sets_of_right h
+
+lemma set.eq_on.eventually_eq_nhds_within {f g : α → β} {s : set α} {a : α} (h : eq_on f g s) :
+  f =ᶠ[nhds_within a s] g :=
+eventually_eq_nhds_within_of_eq_on h
+
+lemma tendsto_nhds_within_congr {f g : α → β} {s : set α} {a : α} {l : filter β}
+  (hfg : ∀ x ∈ s, f x = g x) (hf : tendsto f (nhds_within a s) l) : tendsto g (nhds_within a s) l :=
+(tendsto_congr' $ eventually_eq_nhds_within_of_eq_on hfg).1 hf
+
+lemma eventually_nhds_with_of_forall {s : set α} {a : α} {p : α → Prop} (h : ∀ x ∈ s, p x) :
+  ∀ᶠ x in nhds_within a s, p x :=
+mem_inf_sets_of_right h
+
+lemma tendsto_nhds_within_of_tendsto_nhds_of_eventually_within {β : Type*} {a : α} {l : filter β}
+  {s : set α} (f : β → α) (h1 : tendsto f l (nhds a)) (h2 : ∀ᶠ x in l, f x ∈ s) :
+  tendsto f l (nhds_within a s) :=
+tendsto_inf.2 ⟨h1, tendsto_principal.2 h2⟩
+
+lemma filter.eventually_eq.eq_of_nhds_within {s : set α} {f g : α → β} {a : α}
+  (h : f =ᶠ[nhds_within a s] g) (hmem : a ∈ s) : f a = g a :=
+h.self_of_nhds_within hmem
 
 /-
 nhds_within and subtypes
@@ -365,8 +400,9 @@ by simp only [continuous_within_at, nhds_within_union, tendsto, map_sup, sup_le_
 
 lemma continuous_within_at.mem_closure_image  {f : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (hx : x ∈ closure s) : f x ∈ closure (f '' s) :=
-mem_closure_of_tendsto (mem_closure_iff_nhds_within_ne_bot.1 hx) h $
-mem_sets_of_superset self_mem_nhds_within (subset_preimage_image f s)
+by haveI := (mem_closure_iff_nhds_within_ne_bot.1 hx);
+exact (mem_closure_of_tendsto h $
+  mem_sets_of_superset self_mem_nhds_within (subset_preimage_image f s))
 
 lemma continuous_within_at.mem_closure {f : α → β} {s : set α} {x : α} {A : set β}
   (h : continuous_within_at f s x) (hx : x ∈ closure s) (hA : s ⊆ f⁻¹' A) : f x ∈ closure A :=
@@ -516,6 +552,11 @@ lemma continuous_within_at.congr {f f₁ : α → β} {s : set α} {x : α}
   continuous_within_at f₁ s x :=
 h.congr_of_eventually_eq (mem_sets_of_superset self_mem_nhds_within h₁) hx
 
+lemma continuous_within_at.congr_mono {f g : α → β} {s s₁ : set α} {x : α}
+  (h : continuous_within_at f s x) (h' : eq_on g f s₁) (h₁ : s₁ ⊆ s) (hx : g x = f x):
+  continuous_within_at g s₁ x :=
+(h.mono h₁).congr h' hx
+
 lemma continuous_on_const {s : set α} {c : β} : continuous_on (λx, c) s :=
 continuous_const.continuous_on
 
@@ -560,7 +601,7 @@ lemma continuous_on.preimage_interior_subset_interior_preimage {f : α → β} {
 calc s ∩ f ⁻¹' (interior t) ⊆ interior (s ∩ f ⁻¹' t) :
   interior_maximal (inter_subset_inter (subset.refl _) (preimage_mono interior_subset))
     (hf.preimage_open_of_open hs is_open_interior)
-... = s ∩ interior (f ⁻¹' t) : by rw [interior_inter, interior_eq_of_open hs]
+... = s ∩ interior (f ⁻¹' t) : by rw [interior_inter, hs.interior_eq]
 
 lemma continuous_on_of_locally_continuous_on {f : α → β} {s : set α}
   (h : ∀x∈s, ∃t, is_open t ∧ x ∈ t ∧ continuous_on f (s ∩ t)) : continuous_on f s :=
@@ -597,3 +638,28 @@ hf.prod_mk_nhds hg
 lemma continuous_on.prod {f : α → β} {g : α → γ} {s : set α}
   (hf : continuous_on f s) (hg : continuous_on g s) : continuous_on (λx, (f x, g x)) s :=
 λx hx, continuous_within_at.prod (hf x hx) (hg x hx)
+
+lemma inducing.continuous_on_iff {f : α → β} {g : β → γ} (hg : inducing g) {s : set α} :
+  continuous_on f s ↔ continuous_on (g ∘ f) s :=
+begin
+  simp only [continuous_on_iff_continuous_restrict, restrict_eq],
+  conv_rhs { rw [function.comp.assoc, ← (inducing.continuous_iff hg)] },
+end
+
+lemma embedding.continuous_on_iff {f : α → β} {g : β → γ} (hg : embedding g) {s : set α} :
+  continuous_on f s ↔ continuous_on (g ∘ f) s :=
+inducing.continuous_on_iff hg.1
+
+lemma continuous_on_fst {s : set (α × β)} : continuous_on prod.fst s :=
+continuous_fst.continuous_on
+
+lemma continuous_within_at_fst {s : set (α × β)} {p : α × β} :
+  continuous_within_at prod.fst s p :=
+continuous_fst.continuous_within_at
+
+lemma continuous_on_snd {s : set (α × β)} : continuous_on prod.snd s :=
+continuous_snd.continuous_on
+
+lemma continuous_within_at_snd {s : set (α × β)} {p : α × β} :
+  continuous_within_at prod.snd s p :=
+continuous_snd.continuous_within_at

@@ -3,7 +3,7 @@ Copyright (c) 2014 Robert Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
-import algebra.ring
+import algebra.ring.basic
 import algebra.group_with_zero
 open set
 
@@ -174,17 +174,18 @@ namespace ring_hom
 
 section
 
-variables {R K : Type*} [semiring R] [field K] (f : R →+* K)
+variables {R K : Type*} [semiring R] [division_ring K] (f : R →+* K)
 
 @[simp] lemma map_units_inv (u : units R) :
   f ↑u⁻¹ = (f ↑u)⁻¹ :=
-monoid_hom.map_units_inv f.to_monoid_hom u
+(f : R →* K).map_units_inv u
 
 end
 
 section
 
-variables {β : Type*} [division_ring α] [division_ring β] (f : α →+* β) {x y : α}
+variables {β γ : Type*} [division_ring α] [semiring β] [nontrivial β] [division_ring γ]
+  (f : α →+* β) (g : α →+* γ) {x y : α}
 
 lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := (f : α →* β).map_ne_zero f.map_zero
 
@@ -192,9 +193,9 @@ lemma map_eq_zero : f x = 0 ↔ x = 0 := (f : α →* β).map_eq_zero f.map_zero
 
 variables (x y)
 
-lemma map_inv : f x⁻¹ = (f x)⁻¹ := (f : α →* β).map_inv' f.map_zero x
+lemma map_inv : g x⁻¹ = (g x)⁻¹ := (g : α →* γ).map_inv' g.map_zero x
 
-lemma map_div : f (x / y) = f x / f y := (f : α →* β).map_div f.map_zero x y
+lemma map_div : g (x / y) = g x / g y := (g : α →* γ).map_div g.map_zero x y
 
 protected lemma injective : function.injective f := f.injective_iff.2 $ λ x, f.map_eq_zero.1
 

@@ -123,7 +123,7 @@ begin
   have hc' : tendsto (λ n, ∥c n∥) at_top at_top,
     from tendsto_at_top_mono (λ n, le_abs_self _) hc,
   refine le_of_tendsto (hf.lim at_top hd hc' hcd) _,
-  replace hd : tendsto (λ n, a + d n) at_top (nhds_within (a + 0) s),
+  replace hd : tendsto (λ n, a + d n) at_top (𝓝[s] (a + 0)),
   from tendsto_inf.2 ⟨tendsto_const_nhds.add (tangent_cone_at.lim_zero _ hc' hcd),
     by rwa tendsto_principal⟩,
   rw [add_zero] at hd,

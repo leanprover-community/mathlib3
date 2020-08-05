@@ -485,6 +485,10 @@ rfl
   (reindex_alg_equiv e).symm M = λ i j, M (e i) (e j) :=
 rfl
 
+lemma reindex_transpose (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
+  (reindex eₘ eₙ M)ᵀ = (reindex eₙ eₘ Mᵀ) :=
+rfl
+
 end reindexing
 
 end matrix

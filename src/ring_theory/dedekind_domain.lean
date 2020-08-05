@@ -60,33 +60,49 @@ variables {L : Type*} [field K] [field L] {f : fraction_map R K}
 
 open finsupp polynomial
 
-lemma smul_mul (a₁ a₂ : α) (b : β) : b • (a₁ * a₂) = b * a₁ * a₂ :=
-by sorry,
--- mul_action.mul_smul _ _ _
+-- lemma smul_mul (a₁ a₂ : α) (b : β) : b • (a₁ * a₂) = b * a₁ * a₂ :=
+-- by sorry,
+
+lemma smul_mul (a₁ a₂ : f.codomain) (b : R) : b • (a₁ * a₂) = f.to_map b * a₁ * a₂ :=
+begin
+sorry,
+end
+
 
 lemma maximal_ideal_invertible_of_dedekind (h : is_dedekind_domain f) {M : ideal R}
-(hM : ideal.is_maximal M) : is_unit (M : fractional_ideal f) :=
+  (hM : ideal.is_maximal M) : is_unit (M : fractional_ideal f) :=
+-- ⟨⟨M, M⁻¹, _, _⟩, rfl⟩
 begin
 let M1 := {x : K | ∀ y ∈ M, f.is_integer (x * f.to_map y)},
-have M1 : fractional_ideal f,
+let M1 : fractional_ideal f,
 {use M1,
   {intros y h,simp,use 0,simp,},
   {intros a b ha hb,intros y h,rw add_mul a b (f.to_map y),
   apply localization_map.is_integer_add,apply ha,exact h,apply hb,exact h,},
-  {intros c x h y h,
-  apply smul_mul c},
-  exact dec_trivial,
+  -- {intros c x h y h,
+  -- apply smul_mul c},
+   { intros c x h1 y h,
+    rw algebra.smul_mul_assoc,
+    apply localization_map.is_integer_smul,
+    exact h1 y h,},sorry,
 },
 have hprod : ↑M*M1=1,
   {apply le_antisymm,
     {apply fractional_ideal.mul_le.mpr,
       intros y hy x hx,
-      have hxy : localization_map.is_integer f (y*x), sorry,
+      have hxy : localization_map.is_integer f (x*y),
+        {
+        rw fractional_ideal.mem_coe at hy,
+        rcases hy with ⟨s,hs⟩,simp * at *,
+        rcases hs with ⟨h_s_inM,h_sy⟩,
+        subst h_sy,
+        exact hx s h_s_inM,
+        },
       apply fractional_ideal.mem_one_iff.mpr,
       cases hxy, use hxy_w,
-      exact hxy_h,
+      finish,
     },
-    {sorry,},
+    {have incl : ↑ M ≤ ↑ M*M1,sorry, sorry},
       -- sto copiando la prova dal teorema right_inverse_eq di fractional_ideal.lean
       -- exact (mem_div_iff_of_nonzero hI).mp hy x hx,},
     --   {rw [←h],
@@ -105,7 +121,7 @@ lemma fractional_ideal_invertible_of_dedekind (h : is_dedekind_domain f) (I : fr
 begin
   sorry
 end
-
+-/
 /- If L is a finite extension of K, the integral closure of R in L is a Dedekind domain. -/
 def closure_in_field_extension [algebra f.codomain L] [algebra R L] [is_algebra_tower R f.codomain L]
   [finite_dimensional f.codomain L] (h : is_dedekind_domain f) :

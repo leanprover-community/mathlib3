@@ -2288,12 +2288,6 @@ begin
   { simpa [hab] }
 end
 
-lemma eq_on_extend_from_Ioo [topological_space α] [preorder α]
-  [topological_space β] [t2_space β] {f : α → β} {a b : α}
-  (hf : continuous_on f (Ioo a b)) :
-  ∀ x ∈ Ioo a b, extend_from (Ioo a b) f x = f x :=
-extend_from_extends hf
-
 lemma continuous_on_Ico_extend_from_Ioo [topological_space α]
   [linear_order α] [densely_ordered α] [order_topology α] [topological_space β]
   [regular_space β] {f : α → β} {a b : α} {la : β} (hab : a < b) (hf : continuous_on f (Ioo a b))

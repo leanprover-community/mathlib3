@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
 -/
 import tactic.interactive
-import tactic.mk_constructive
 import tactic.mk_opaque
 import control.family
 import control.functor.indexed
+import data.sigma
 
 /-!
 # Polynomial functors between indexed type families
@@ -215,11 +215,11 @@ begin
     simp [hy.symm, (≫), h, map_eq'],
     simp [(∘),fam.subtype.val], },
   introv hv, dsimp [liftp],
-  mk_constructive hv,
-  let F₀ := λ j k, (hv j k).1,
-  let F₁ : Π j k, P.B j (F₀ j k) ⟶ α := λ j k, (hv j k).2.1,
-  have F₂ : ∀ j k, x k = ⟨F₀ j k,F₁ j k⟩ := λ j k, (hv j k).2.2.1,
-  have F₃ : ∀ j k i a, p i (F₁ j k a) := λ j k, (hv j k).2.2.2,
+  choose a f hv using hv,
+  let F₀ := λ j k, a j k,
+  let F₁ : Π j k, P.B j (F₀ j k) ⟶ α := λ j k, f j k,
+  have F₂ : ∀ j k, x k = ⟨F₀ j k,F₁ j k⟩ := λ j k, (hv j k).1,
+  have F₃ : ∀ j k i a, p i (F₁ j k a) := λ j k, (hv j k).2,
   refine ⟨λ j x, ⟨F₀ j x,λ i y, ⟨F₁ j x y,F₃ j x i y⟩⟩,_⟩,
   ext : 2, dsimp, rw F₂, refl
 end
@@ -235,14 +235,14 @@ begin
     split, { rw [←yeq, comp_app, h], refl },
     intros i a, convert (f a).property, simp [fam.prod.fst,fam.prod.snd,fam.subtype.val] },
   rintros hv, dsimp [liftr],
-  mk_constructive hv,
-  let F₀ := λ j k, (hv j k).1,
-  let F₁ : Π j k, P.B j (F₀ j k) ⟶ α := λ j k, (hv j k).2.1,
-  let F₂ : Π j k, P.B j (F₀ j k) ⟶ β := λ j k, (hv j k).2.2.1,
+  choose a f₀ f₁ hv using hv,
+  let F₀ := λ j k, a j k,
+  let F₁ : Π j k, P.B j (F₀ j k) ⟶ α := λ j k, f₀ j k,
+  let F₂ : Π j k, P.B j (F₀ j k) ⟶ β := λ j k, f₁ j k,
   fold ipfunctor.map,
-  have F₃ : ∀ j k, x k = ⟨F₀ j k,F₁ j k⟩ := λ j k, (hv j k).2.2.2.1,
-  have F₄ : ∀ j k, y k = ⟨F₀ j k,F₂ j k⟩ := λ j k, (hv j k).2.2.2.2.1,
-  have F₅ : ∀ j k i a, r i (F₁ j k a, F₂ j k a) := λ j k, (hv j k).2.2.2.2.2,
+  have F₃ : ∀ j k, x k = ⟨F₀ j k,F₁ j k⟩ := λ j k, (hv j k).1,
+  have F₄ : ∀ j k, y k = ⟨F₀ j k,F₂ j k⟩ := λ j k, (hv j k).2.1,
+  have F₅ : ∀ j k i a, r i (F₁ j k a, F₂ j k a) := λ j k, (hv j k).2.2,
   refine ⟨λ j x, ⟨F₀ j x,λ i y, _⟩,_⟩,
   { refine ⟨(F₁ j x y,F₂ j x y),F₅ _ _ _ _⟩ },
   split; ext : 2; [rw F₃,rw F₄]; refl,

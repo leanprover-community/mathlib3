@@ -108,7 +108,23 @@ lemma coe_Sup_of_directed_on {S : set (submonoid M)} (Sne : S.nonempty) (hS : di
   (↑(Sup S) : set M) = ⋃ s ∈ S, ↑s :=
 set.ext $ λ x, by simp [mem_Sup_of_directed_on Sne hS]
 
-variables {N : Type*} [monoid N] {P : Type*} [monoid P]
+@[to_additive]
+lemma mem_sup_left {S T : submonoid M} : ∀ {x : M}, x ∈ S → x ∈ S ⊔ T :=
+show S ≤ S ⊔ T, from le_sup_left
+
+@[to_additive]
+lemma mem_sup_right {S T : submonoid M} : ∀ {x : M}, x ∈ S → x ∈ S ⊔ T :=
+show S ≤ S ⊔ T, from le_sup_left
+
+@[to_additive]
+lemma mem_supr_of_mem {ι : Type*} {S : ι → submonoid M} {i : ι} :
+  ∀ {x : M}, x ∈ S i → x ∈ supr S :=
+show S i ≤ supr S, from le_supr _ _
+
+@[to_additive]
+lemma mem_Sup_of_mem {S : set (submonoid M)} {s : submonoid M}
+  (hs : s ∈ S) : ∀ {x : M}, x ∈ s → x ∈ Sup S :=
+show s ≤ Sup S, from le_Sup hs
 
 end submonoid
 

@@ -117,14 +117,14 @@ lemma is_closed_map_smul_of_unit (a : units R) : is_closed_map (λ (x : M), (a :
 `⊤` is the only submodule of `M` with a nonempty interior.
 This is the case, e.g., if `R` is a nondiscrete normed field. -/
 lemma submodule.eq_top_of_nonempty_interior' [has_continuous_add M]
-  [ne_bot (nhds_within (0:R) {x | is_unit x})]
+  [ne_bot (𝓝[{x : R | is_unit x}] 0)]
   (s : submodule R M) (hs : (interior (s:set M)).nonempty) :
   s = ⊤ :=
 begin
   rcases hs with ⟨y, hy⟩,
   refine (submodule.eq_top_iff'.2 $ λ x, _),
   rw [mem_interior_iff_mem_nhds] at hy,
-  have : tendsto (λ c:R, y + c • x) (nhds_within 0 {x | is_unit x}) (𝓝 (y + (0:R) • x)),
+  have : tendsto (λ c:R, y + c • x) (𝓝[{x : R | is_unit x}] 0) (𝓝 (y + (0:R) • x)),
     from tendsto_const_nhds.add ((tendsto_nhds_within_of_tendsto_nhds tendsto_id).smul
       tendsto_const_nhds),
   rw [zero_smul, add_zero] at this,

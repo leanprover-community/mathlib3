@@ -83,7 +83,7 @@ noncomputable theory
 universe u
 
 open topological_space set
-open_locale manifold
+open_locale manifold topological_space
 
 /-- Core structure used to create a smooth bundle above `M` (a manifold over the model with
 corner `I`) with fiber the normed vector space `F` over `𝕜`, which is trivial in the chart domains
@@ -337,13 +337,13 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
     identity. One just needs to write this carefully, paying attention to the sets where the
     functions are defined. -/
     have A : I.symm ⁻¹' (i.1.symm.trans i.1).source ∩ range I ∈
-      nhds_within (I x) (range I),
+      𝓝[range I] (I x),
     { rw inter_comm,
       apply inter_mem_nhds_within,
       apply I.continuous_symm.continuous_at.preimage_mem_nhds
         (mem_nhds_sets (local_homeomorph.open_source _) _),
       simp only [hx, i.1.map_target] with mfld_simps },
-    have B : ∀ᶠ y in nhds_within (I x) (range I),
+    have B : ∀ᶠ y in 𝓝[range I] (I x),
       (I ∘ i.1 ∘ i.1.symm ∘ I.symm) y = (id : E → E) y,
     { apply filter.mem_sets_of_superset A,
       assume y hy,

@@ -24,6 +24,11 @@ For topological spaces `α` and `β`, a function `f : α → β` and a point `a 
 `continuous f`. There is also a version of continuity `pcontinuous` for
 partially defined functions.
 
+## Notation
+
+* `𝓝 x`: the filter of neighborhoods of a point `x`;
+* `𝓟 s`: the principal filter of a set `s`;
+
 ## Implementation notes
 
 Topology in mathlib heavily uses filters (even more than in Bourbaki). See explanations in

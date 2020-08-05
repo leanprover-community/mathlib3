@@ -294,7 +294,7 @@ lemma mat_poly_equiv_coeff_apply_aux_2
 begin
   apply polynomial.induction_on' p,
   { intros p q hp hq, ext,
-    simp [hp, hq, coeff_add, add_val, std_basis_matrix_add], },
+    simp [hp, hq, coeff_add, add_apply, std_basis_matrix_add], },
   { intros k x,
     simp only [mat_poly_equiv_coeff_apply_aux_1, coeff_monomial],
     split_ifs; { funext, simp, }, }

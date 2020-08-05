@@ -320,8 +320,8 @@ lemma diagonal_comp_std_basis (w : n → R) (i : n) :
   (diagonal w).to_lin.comp (std_basis R (λ_:n, R) i) = (w i) • std_basis R (λ_:n, R) i :=
 begin
   ext a j,
-  simp only [linear_map.comp_apply, smul_apply, to_lin_apply, mul_vec_diagonal, smul_apply,
-    pi.smul_apply, smul_eq_mul],
+  simp_rw [linear_map.comp_apply, to_lin_apply, mul_vec_diagonal, linear_map.smul_apply,
+    pi.smul_apply, algebra.id.smul_eq_mul],
   by_cases i = j,
   { subst h },
   { rw [std_basis_ne R (λ_:n, R) _ _ (ne.symm h), _root_.mul_zero, _root_.mul_zero] }

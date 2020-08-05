@@ -1,10 +1,10 @@
 import algebra.group_with_zero
 
-variables {α : Type*} {a b c : α}
+variables {α : Type*}
 
 section comm_monoid
 
-variable [comm_monoid α]
+variables [comm_monoid α] {a b c : α}
 
 instance comm_monoid_has_dvd : has_dvd α :=
 has_dvd.mk (λ a b, ∃ c, b = a * c)
@@ -76,7 +76,7 @@ end comm_monoid
 
 section comm_monoid_with_zero
 
-variable [comm_monoid_with_zero α]
+variables [comm_monoid_with_zero α] {a : α}
 
 theorem eq_zero_of_zero_dvd (h : 0 ∣ a) : a = 0 :=
 dvd.elim h (assume c, assume H' : a = 0 * c, eq.trans H' (zero_mul c))

@@ -675,27 +675,28 @@ ext $ λ x, by simp [mem_prod, monoid_hom.coe_snd]
 lemma top_prod_top : (⊤ : subring R).prod (⊤ : subring S) = ⊤ :=
 (top_prod _).trans $ comap_top _
 
-/-- Product of subsemirings is isomorphic to their product as monoids. -/
-def prod_equiv (s : subsemiring R) (t : subsemiring S) : s.prod t ≃+* s × t :=
+/-- Product of subrings is isomorphic to their product as monoids. -/
+def prod_equiv (s : subring R) (t : subring S) : s.prod t ≃+* s × t :=
 { map_mul' := λ x y, rfl, map_add' := λ x y, rfl, .. equiv.set.prod ↑s ↑t }
 
-lemma mem_supr_of_directed {ι} [hι : nonempty ι] {S : ι → subsemiring R} (hS : directed (≤) S)
+/-
+lemma mem_supr_of_directed {ι} [hι : nonempty ι] {S : ι → subring R} (hS : directed (≤) S)
   {x : R} :
   x ∈ (⨆ i, S i) ↔ ∃ i, x ∈ S i :=
 begin
   refine ⟨_, λ ⟨i, hi⟩, (le_def.1 $ le_supr S i) hi⟩,
-  let U : subsemiring R := subsemiring.mk' (⋃ i, (S i : set R))
+  let U : subring R := subring.mk' (⋃ i, (S i : set R))
     (⨆ i, (S i).to_submonoid) (submonoid.coe_supr_of_directed $ hS.mono_comp _ (λ _ _, id))
-    (⨆ i, (S i).to_add_submonoid) (add_submonoid.coe_supr_of_directed $ hS.mono_comp _ (λ _ _, id)),
+    (⨆ i, (S i).to_add_subgroup) (add_subgroup.coe_supr_of_directed $ hS.mono_comp _ (λ _ _, id)),
   suffices : (⨆ i, S i) ≤ U, by simpa using @this x,
   exact supr_le (λ i x hx, set.mem_Union.2 ⟨i, hx⟩),
 end
 
-lemma coe_supr_of_directed {ι} [hι : nonempty ι] {S : ι → subsemiring R} (hS : directed (≤) S) :
-  ((⨆ i, S i : subsemiring R) : set R) = ⋃ i, ↑(S i) :=
+lemma coe_supr_of_directed {ι} [hι : nonempty ι] {S : ι → subring R} (hS : directed (≤) S) :
+  ((⨆ i, S i : subring R) : set R) = ⋃ i, ↑(S i) :=
 set.ext $ λ x, by simp [mem_supr_of_directed hS]
 
-lemma mem_Sup_of_directed_on {S : set (subsemiring R)} (Sne : S.nonempty)
+lemma mem_Sup_of_directed_on {S : set (subring R)} (Sne : S.nonempty)
   (hS : directed_on (≤) S) {x : R} :
   x ∈ Sup S ↔ ∃ s ∈ S, x ∈ s :=
 begin
@@ -703,87 +704,89 @@ begin
   simp only [Sup_eq_supr', mem_supr_of_directed hS.directed_coe, set_coe.exists, subtype.coe_mk]
 end
 
-lemma coe_Sup_of_directed_on {S : set (subsemiring R)} (Sne : S.nonempty) (hS : directed_on (≤) S) :
+lemma coe_Sup_of_directed_on {S : set (subring R)} (Sne : S.nonempty) (hS : directed_on (≤) S) :
   (↑(Sup S) : set R) = ⋃ s ∈ S, ↑s :=
-set.ext $ λ x, by simp [mem_Sup_of_directed_on Sne hS]
+set.ext $ λ x, by simp [mem_Sup_of_directed_on Sne hS] -/
 
-end subsemiring
+end subring
 
 namespace ring_hom
 
-variables [semiring T] {s : subsemiring R}
+variables [ring T] {s : subring R}
 
-open subsemiring
+open subring
 
-/-- Restriction of a ring homomorphism to a subsemiring of the domain. -/
-def srestrict (f : R →+* S) (s : subsemiring R) : s →+* S := f.comp s.subtype
+/-- Restriction of a ring homomorphism to a subring of the domain. -/
+def set_restrict (f : R →+* S) (s : subring R) : s →+* S := f.comp s.subtype
 
-@[simp] lemma srestrict_apply (f : R →+* S) (x : s) : f.srestrict s x = f x := rfl
+@[simp] lemma set_restrict_apply (f : R →+* S) (x : s) : f.set_restrict s x = f x := rfl
 
-/-- Restriction of a ring homomorphism to a subsemiring of the codomain. -/
-def cod_srestrict (f : R →+* S) (s : subsemiring S) (h : ∀ x, f x ∈ s) : R →+* s :=
+/-
+/-- Restriction of a ring homomorphism to a subring of the codomain. -/
+def cod_set_restrict (f : R →+* S) (s : subring S) (h : ∀ x, f x ∈ s) : R →+* s :=
 { to_fun := λ n, ⟨f n, h n⟩,
   .. (f : R →* S).cod_mrestrict s.to_submonoid h,
-  .. (f : R →+ S).cod_mrestrict s.to_add_submonoid h }
+  .. (f : R →+ S).cod_mrestrict s.to_add_subgroup h }
 
 /-- Restriction of a ring homomorphism to its range iterpreted as a subsemiring. -/
-def srange_restrict (f : R →+* S) : R →+* f.srange :=
-f.cod_srestrict f.srange $ λ x, ⟨x, subsemiring.mem_top x, rfl⟩
+def set_range_restrict (f : R →+* S) : R →+* f.set_range :=
+f.cod_set_restrict f.set_range $ λ x, ⟨x, subring.mem_top x, rfl⟩
 
-@[simp] lemma coe_srange_restrict (f : R →+* S) (x : R) :
-  (f.srange_restrict x : S) = f x :=
-rfl
+@[simp] lemma coe_set_range_restrict (f : R →+* S) (x : R) :
+  (f.set_range_restrict x : S) = f x :=
+rfl -/
 
-lemma srange_top_iff_surjective {f : R →+* S} :
-  f.srange = (⊤ : subsemiring S) ↔ function.surjective f :=
-subsemiring.ext'_iff.trans $ iff.trans (by rw [coe_srange, coe_top]) set.range_iff_surjective
+lemma set_range_top_iff_surjective {f : R →+* S} :
+  f.set_range = (⊤ : subring S) ↔ function.surjective f :=
+subring.ext'_iff.trans $ iff.trans (by rw [coe_set_range, coe_top]) set.range_iff_surjective
 
 /-- The range of a surjective ring homomorphism is the whole of the codomain. -/
-lemma srange_top_of_surjective (f : R →+* S) (hf : function.surjective f) :
-  f.srange = (⊤ : subsemiring S) :=
-srange_top_iff_surjective.2 hf
+lemma set_range_top_of_surjective (f : R →+* S) (hf : function.surjective f) :
+  f.set_range = (⊤ : subring S) :=
+set_range_top_iff_surjective.2 hf
 
-/-- The subsemiring of elements `x : R` such that `f x = g x` -/
-def eq_slocus (f g : R →+* S) : subsemiring R :=
-{ carrier := {x | f x = g x}, .. (f : R →* S).eq_mlocus g, .. (f : R →+ S).eq_mlocus g }
+/-- The subring of elements `x : R` such that `f x = g x` -/
+def eq_set_locus (f g : R →+* S) : subring R :=
+{ carrier := {x | f x = g x}, .. (f : R →* S).eq_mlocus g, .. (f : R →+ S).eq_locus g }
 
-/-- If two ring homomorphisms are equal on a set, then they are equal on its subsemiring closure. -/
-lemma eq_on_sclosure {f g : R →+* S} {s : set R} (h : set.eq_on f g s) :
+/-- If two ring homomorphisms are equal on a set, then they are equal on its subring closure. -/
+lemma eq_on_set_closure {f g : R →+* S} {s : set R} (h : set.eq_on f g s) :
   set.eq_on f g (closure s) :=
-show closure s ≤ f.eq_slocus g, from closure_le.2 h
+show closure s ≤ f.eq_set_locus g, from closure_le.2 h
 
-lemma eq_of_eq_on_stop {f g : R →+* S} (h : set.eq_on f g (⊤ : subsemiring R)) :
+lemma eq_of_eq_on_set_top {f g : R →+* S} (h : set.eq_on f g (⊤ : subring R)) :
   f = g :=
 ext $ λ x, h trivial
 
-lemma eq_of_eq_on_sdense {s : set R} (hs : closure s = ⊤) {f g : R →+* S} (h : s.eq_on f g) :
+lemma eq_of_eq_on_set_dense {s : set R} (hs : closure s = ⊤) {f g : R →+* S} (h : s.eq_on f g) :
   f = g :=
-eq_of_eq_on_stop $ hs ▸ eq_on_sclosure h
+eq_of_eq_on_set_top $ hs ▸ eq_on_set_closure h
 
-lemma sclosure_preimage_le (f : R →+* S) (s : set S) :
+lemma set_closure_preimage_le (f : R →+* S) (s : set S) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
 closure_le.2 $ λ x hx, mem_coe.2 $ mem_comap.2 $ subset_closure hx
 
-/-- The image under a ring homomorphism of the subsemiring generated by a set equals
-the subsemiring generated by the image of the set. -/
-lemma map_sclosure (f : R →+* S) (s : set R) :
+/-- The image under a ring homomorphism of the subring generated by a set equals
+the subring generated by the image of the set. -/
+lemma map_set_closure (f : R →+* S) (s : set R) :
   (closure s).map f = closure (f '' s) :=
 le_antisymm
   (map_le_iff_le_comap.2 $ le_trans (closure_mono $ set.subset_preimage_image _ _)
-    (sclosure_preimage_le _ _))
+    (set_closure_preimage_le _ _))
   (closure_le.2 $ set.image_subset _ subset_closure)
 
 end ring_hom
 
-namespace subsemiring
+namespace subring
 
 open ring_hom
 
-/-- The ring homomorphism associated to an inclusion of subsemirings. -/
-def inclusion {S T : subsemiring R} (h : S ≤ T) : S →* T :=
-S.subtype.cod_srestrict _ (λ x, h x.2)
+/-
+/-- The ring homomorphism associated to an inclusion of subrings. -/
+def inclusion {S T : subring R} (h : S ≤ T) : S →* T :=
+S.subtype.cod_set_restrict _ (λ x, h x.2) -/
 
-@[simp] lemma srange_subtype (s : subsemiring R) : s.subtype.srange = s :=
+@[simp] lemma set_range_subtype (s : subring R) : s.subtype.set_range = s :=
 ext' $ (coe_srange _).trans subtype.range_coe
 
 @[simp]
@@ -795,27 +798,29 @@ lemma range_snd : (snd R S).srange = ⊤ :=
 (snd R S).srange_top_of_surjective $ prod.snd_surjective
 
 @[simp]
-lemma prod_bot_sup_bot_prod (s : subsemiring R) (t : subsemiring S) :
+lemma prod_bot_sup_bot_prod (s : subring R) (t : subring S) :
   (s.prod ⊥) ⊔ (prod ⊥ t) = s.prod t :=
 le_antisymm (sup_le (prod_mono_right s bot_le) (prod_mono_left t bot_le)) $
 assume p hp, prod.fst_mul_snd p ▸ mul_mem _
   ((le_sup_left : s.prod ⊥ ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨hp.1, mem_coe.2 $ one_mem ⊥⟩)
   ((le_sup_right : prod ⊥ t ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨mem_coe.2 $ one_mem ⊥, hp.2⟩)
 
-end subsemiring
+end subring
 
 namespace ring_equiv
 
 variables {s t : subsemiring R}
 
-/-- Makes the identity isomorphism from a proof two subsemirings of a multiplicative
+/-- Makes the identity isomorphism from a proof two subrings of a multiplicative
     monoid are equal. -/
-def subsemiring_congr (h : s = t) : s ≃+* t :=
+def subring_congr (h : s = t) : s ≃+* t :=
 { map_mul' :=  λ _ _, rfl, map_add' := λ _ _, rfl, ..equiv.set_congr $ subsemiring.ext'_iff.1 h }
 
 end ring_equiv
 
-variable {s : set R}
+namespace subring
+
+variables {s : set R}
 local attribute [reducible] closure
 
 @[elab_as_eliminator]

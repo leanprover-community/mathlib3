@@ -7,35 +7,22 @@ import algebra.category.Module.monoidal
 import algebra.category.Algebra.basic
 import category_theory.monoidal.internal
 
+
+/-!
+# `Mon_ (Module R) ≌ Algebra R`
+
+The category of internal monoid objects in `Module R`
+is equivalent to the category of "native" bundled `R`-algebras.
+
+Moreover, this equivalence is compatible with the forgetful functors to `Module R`.
+-/
+
 universes v u
 
 open category_theory
-
-lemma lcongr_fun {R : Type*} [semiring R] {M N : Type*} [add_comm_monoid M] [add_comm_monoid N] [semimodule R M] [semimodule R N]
-  {f g : M →ₗ[R] N} (h : f = g) (m : M) : f m = g m :=
-congr_fun (congr_arg linear_map.to_fun h) m
-
-def algebra_linear_map (R : Type*) [comm_semiring R] (A : Type*) [semiring A] [algebra R A] :
-  R →ₗ[R] A :=
-{ map_smul' := λ x y, begin dsimp, simp [algebra.smul_def], end,
-  ..algebra_map R A }
-
-@[simp]
-lemma algebra_linear_map_apply (R : Type*) [comm_semiring R] (A : Type*) [semiring A] [algebra R A] (r : R) :
-  algebra_linear_map R A r = algebra_map R A r := rfl
+open linear_map
 
 open_locale tensor_product
-
-def mul_linear_map (R : Type*) [comm_semiring R] (A : Type*) [semiring A] [algebra R A] :
-  A ⊗[R] A →ₗ[R] A :=
-tensor_product.lift (algebra.lmul R A)
-
-@[simp] lemma mul_linear_map_apply (R : Type*) [comm_semiring R] (A : Type*) [semiring A] [algebra R A] {x y} :
-  mul_linear_map R A (x ⊗ₜ y) = x * y :=
-begin
-  dsimp [mul_linear_map],
-  simp,
-end
 
 namespace Module
 
@@ -99,20 +86,20 @@ def functor : Mon_ (Module R) ⥤ Algebra R :=
 @[simps]
 def inverse_obj (A : Algebra.{u} R) : Mon_ (Module.{u} R) :=
 { X := Module.of R A,
-  one := algebra_linear_map R A,
-  mul := mul_linear_map.{u u u} R A,
+  one := algebra.linear_map R A,
+  mul := algebra.lmul' R A,
   one_mul' :=
   begin
     ext x,
     dsimp,
-    rw [mul_linear_map_apply, monoidal_category.left_unitor_hom_apply, algebra.smul_def],
+    rw [algebra.lmul'_apply, monoidal_category.left_unitor_hom_apply, algebra.smul_def],
     refl,
   end,
   mul_one' :=
   begin
     ext x,
     dsimp,
-    rw [mul_linear_map_apply, monoidal_category.right_unitor_hom_apply,
+    rw [algebra.lmul'_apply, monoidal_category.right_unitor_hom_apply,
       ←algebra.commutes, algebra.smul_def],
     refl,
   end,
@@ -157,22 +144,14 @@ def Mon_Module_equivalence_Algebra : Mon_ (Module R) ≌ Algebra R :=
       map_zero' := rfl,
       map_add' := λ x y, rfl,
       map_one' := (algebra_map R A).map_one,
-      map_mul' := λ x y,
-      begin
-        dsimp, simp only [mul_linear_map, tensor_product.lift.tmul, algebra.lmul_apply],
-      end,
+      map_mul' := λ x y, algebra.lmul'_apply,
       commutes' := λ r, rfl, },
     inv :=
     { to_fun := id,
       map_zero' := rfl,
       map_add' := λ x y, rfl,
-      map_one' := begin exact (algebra_map R A).map_one.symm, end,
-      map_mul' := λ x y,
-      begin
-        dsimp [(*), semigroup.mul, monoid.mul, monoid_with_zero.mul, semiring.mul, ring.mul],
-        simp only [mul_linear_map, tensor_product.lift.tmul, algebra.lmul_apply],
-        refl,
-      end,
+      map_one' := (algebra_map R A).map_one.symm,
+      map_mul' := λ x y, algebra.lmul'_apply.symm,
       commutes' := λ r, rfl } }) (by tidy), }.
 
 /--

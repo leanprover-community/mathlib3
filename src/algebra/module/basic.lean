@@ -301,6 +301,10 @@ lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl } , ext⟩
 
+/-- If two linear maps are equal, they are equal at each point. -/
+lemma lcongr_fun (h : f = g) (m : M) : f m = g m :=
+congr_fun (congr_arg linear_map.to_fun h) m
+
 variables (f g)
 
 @[simp] lemma map_add (x y : M) : f (x + y) = f x + f y := f.map_add' x y

@@ -909,7 +909,8 @@ lemma from_blocks_multiply {p q : Type u} [fintype p] [fintype q]
               (C ⬝ A' + D ⬝ C') (C ⬝ B' + D ⬝ D') :=
 begin
   ext i j, rcases i; rcases j;
-  simp only [from_blocks, mul_val, fintype.sum_sum_type, sum.elim_inl, sum.elim_inr, pi.add_apply],
+  simp only [from_blocks, mul_apply, fintype.sum_sum_type, sum.elim_inl, sum.elim_inr,
+    pi.add_apply],
 end
 
 variables [decidable_eq l] [decidable_eq m]
@@ -921,7 +922,7 @@ begin
 end
 
 @[simp] lemma from_blocks_one : from_blocks (1 : matrix l l α) 0 0 (1 : matrix m m α) = 1 :=
-by { ext i j, rcases i; rcases j; simp [one_val] }
+by { ext i j, rcases i; rcases j; simp [one_apply] }
 
 end block_matrices
 

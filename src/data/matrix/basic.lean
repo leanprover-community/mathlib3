@@ -6,6 +6,7 @@ Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 import algebra.big_operators.pi
 import algebra.module.pi
 import algebra.big_operators.ring
+import data.fintype.card
 
 /-!
 # Matrices
@@ -798,6 +799,131 @@ begin
 end
 
 end update
+
+section block_matrices
+
+/-- We can form a single large matrix by flattening smaller 'block' matrices of compatible
+dimensions. -/
+def from_blocks (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
+  matrix (n ⊕ o) (l ⊕ m) α :=
+sum.elim (λ i, sum.elim (A i) (B i))
+         (λ i, sum.elim (C i) (D i))
+
+@[simp] lemma from_blocks_apply₁₁
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (i : n) (j : l) :
+  from_blocks A B C D (sum.inl i) (sum.inl j) = A i j :=
+rfl
+
+@[simp] lemma from_blocks_apply₁₂
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (i : n) (j : m) :
+  from_blocks A B C D (sum.inl i) (sum.inr j) = B i j :=
+rfl
+
+@[simp] lemma from_blocks_apply₂₁
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (i : o) (j : l) :
+  from_blocks A B C D (sum.inr i) (sum.inl j) = C i j :=
+rfl
+
+@[simp] lemma from_blocks_apply₂₂
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) (i : o) (j : m) :
+  from_blocks A B C D (sum.inr i) (sum.inr j) = D i j :=
+rfl
+
+/-- Given a matrix whose row and column indexes are sum types, we can extract the correspnding
+"top left" submatrix. -/
+def to_blocks₁₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n l α :=
+λ i j, M (sum.inl i) (sum.inl j)
+
+/-- Given a matrix whose row and column indexes are sum types, we can extract the correspnding
+"top right" submatrix. -/
+def to_blocks₁₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix n m α :=
+λ i j, M (sum.inl i) (sum.inr j)
+
+/-- Given a matrix whose row and column indexes are sum types, we can extract the correspnding
+"bottom left" submatrix. -/
+def to_blocks₂₁ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o l α :=
+λ i j, M (sum.inr i) (sum.inl j)
+
+/-- Given a matrix whose row and column indexes are sum types, we can extract the correspnding
+"bottom right" submatrix. -/
+def to_blocks₂₂ (M : matrix (n ⊕ o) (l ⊕ m) α) : matrix o m α :=
+λ i j, M (sum.inr i) (sum.inr j)
+
+lemma from_blocks_to_blocks (M : matrix (n ⊕ o) (l ⊕ m) α) :
+  from_blocks M.to_blocks₁₁ M.to_blocks₁₂ M.to_blocks₂₁ M.to_blocks₂₂ = M :=
+begin
+  ext i j, rcases i; rcases j; refl,
+end
+
+@[simp] lemma to_blocks_from_blocks₁₁
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
+  (from_blocks A B C D).to_blocks₁₁ = A :=
+rfl
+
+@[simp] lemma to_blocks_from_blocks₁₂
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
+  (from_blocks A B C D).to_blocks₁₂ = B :=
+rfl
+
+@[simp] lemma to_blocks_from_blocks₂₁
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
+  (from_blocks A B C D).to_blocks₂₁ = C :=
+rfl
+
+@[simp] lemma to_blocks_from_blocks₂₂
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
+  (from_blocks A B C D).to_blocks₂₂ = D :=
+rfl
+
+lemma from_blocks_transpose
+  (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
+  (from_blocks A B C D)ᵀ = from_blocks Aᵀ Cᵀ Bᵀ Dᵀ :=
+begin
+  ext i j, rcases i; rcases j; simp [from_blocks],
+end
+
+variables [semiring α]
+
+lemma from_blocks_smul
+  (x : α) (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
+  x • (from_blocks A B C D) = from_blocks (x • A) (x • B) (x • C) (x • D) :=
+begin
+  ext i j, rcases i; rcases j; simp [from_blocks],
+end
+
+lemma from_blocks_add
+  (A  : matrix n l α) (B  : matrix n m α) (C  : matrix o l α) (D  : matrix o m α)
+  (A' : matrix n l α) (B' : matrix n m α) (C' : matrix o l α) (D' : matrix o m α) :
+  (from_blocks A B C D) + (from_blocks A' B' C' D') =
+  from_blocks (A + A') (B + B')
+              (C + C') (D + D') :=
+begin
+  ext i j, rcases i; rcases j; refl,
+end
+
+lemma from_blocks_multiply {p q : Type u} [fintype p] [fintype q]
+  (A  : matrix n l α) (B  : matrix n m α) (C  : matrix o l α) (D  : matrix o m α)
+  (A' : matrix l p α) (B' : matrix l q α) (C' : matrix m p α) (D' : matrix m q α) :
+  (from_blocks A B C D) ⬝ (from_blocks A' B' C' D') =
+  from_blocks (A ⬝ A' + B ⬝ C') (A ⬝ B' + B ⬝ D')
+              (C ⬝ A' + D ⬝ C') (C ⬝ B' + D ⬝ D') :=
+begin
+  ext i j, rcases i; rcases j;
+  simp only [from_blocks, mul_val, fintype.sum_sum_type, sum.elim_inl, sum.elim_inr, pi.add_apply],
+end
+
+variables [decidable_eq l] [decidable_eq m]
+
+@[simp] lemma from_blocks_diagonal (d₁ : l → α) (d₂ : m → α) :
+  from_blocks (diagonal d₁) 0 0 (diagonal d₂) = diagonal (sum.elim d₁ d₂) :=
+begin
+  ext i j, rcases i; rcases j; simp [diagonal],
+end
+
+@[simp] lemma from_blocks_one : from_blocks (1 : matrix l l α) 0 0 (1 : matrix m m α) = 1 :=
+by { ext i j, rcases i; rcases j; simp [one_val] }
+
+end block_matrices
 
 end matrix
 

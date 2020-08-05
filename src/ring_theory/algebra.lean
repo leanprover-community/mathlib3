@@ -547,6 +547,17 @@ def of_alg_hom (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ : f.com
   right_inv := alg_hom.ext_iff.1 h₁,
   ..f }
 
+/-- Forgetting the multiplicative structures, an equivalence of algebras is a linear equivalence. -/
+def to_linear_equiv (e : A₁ ≃ₐ[R] A₂) : A₁ ≃ₗ[R] A₂ :=
+{ to_fun    := e.to_fun,
+  map_add'  := λ x y, by simp,
+  map_smul' := λ r x, by simp [algebra.smul_def''],
+  inv_fun   := e.symm.to_fun,
+  left_inv  := e.left_inv,
+  right_inv := e.right_inv, }
+
+@[simp] lemma to_linear_equiv_apply (e : A₁ ≃ₐ[R] A₂) (x : A₁) : e.to_linear_equiv x = e x := rfl
+
 end alg_equiv
 
 namespace algebra

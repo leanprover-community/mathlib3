@@ -8,6 +8,7 @@ import order.liminf_limsup
 import data.set.intervals.image_preimage
 import data.set.intervals.ord_connected
 import topology.algebra.group
+import topology.extend_from_subset
 import order.filter.interval
 
 /-!
@@ -2210,22 +2211,140 @@ lemma tendsto_of_monotone {ι α : Type*} [preorder ι] [topological_space α]
 if H : bdd_above (range f) then or.inr ⟨_, tendsto_at_top_csupr h_mono H⟩
 else or.inl $ tendsto_at_top_at_top_of_monotone' h_mono H
 
-@[to_additive] lemma tendsto_inv_nhds_within_Ioi {α : Type*} [ordered_comm_group α]
+@[to_additive] lemma tendsto_inv_nhds_within_Ioi [ordered_comm_group α]
   [topological_space α] [topological_group α] {a : α} :
   tendsto has_inv.inv (𝓝[Ioi a] a) (𝓝[Iio (a⁻¹)] (a⁻¹)) :=
 (continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
 
-@[to_additive] lemma tendsto_inv_nhds_within_Iio {α : Type*} [ordered_comm_group α]
+@[to_additive] lemma tendsto_inv_nhds_within_Iio [ordered_comm_group α]
   [topological_space α] [topological_group α] {a : α} :
   tendsto has_inv.inv (𝓝[Iio a] a) (𝓝[Ioi (a⁻¹)] (a⁻¹)) :=
 (continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
 
-@[to_additive] lemma tendsto_inv_nhds_within_Ioi_inv {α : Type*} [ordered_comm_group α]
+@[to_additive] lemma tendsto_inv_nhds_within_Ioi_inv [ordered_comm_group α]
   [topological_space α] [topological_group α] {a : α} :
   tendsto has_inv.inv (𝓝[Ioi (a⁻¹)] (a⁻¹)) (𝓝[Iio a] a) :=
 by simpa only [inv_inv] using @tendsto_inv_nhds_within_Ioi _ _ _ _ (a⁻¹)
 
-@[to_additive] lemma tendsto_inv_nhds_within_Iio_inv {α : Type*} [ordered_comm_group α]
+@[to_additive] lemma tendsto_inv_nhds_within_Iio_inv [ordered_comm_group α]
   [topological_space α] [topological_group α] {a : α} :
   tendsto has_inv.inv (𝓝[Iio (a⁻¹)] (a⁻¹)) (𝓝[Ioi a] a) :=
 by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iio _ _ _ _ (a⁻¹)
+
+lemma nhds_left_sup_nhds_right (a : α) [topological_space α] [linear_order α] :
+  nhds_within a (Iic a) ⊔ nhds_within a (Ici a) = 𝓝 a :=
+by rw [← nhds_within_union, Iic_union_Ici, nhds_within_univ]
+
+lemma nhds_left'_sup_nhds_right (a : α) [topological_space α] [linear_order α] :
+  nhds_within a (Iio a) ⊔ nhds_within a (Ici a) = 𝓝 a :=
+by rw [← nhds_within_union, Iio_union_Ici, nhds_within_univ]
+
+lemma nhds_left_sup_nhds_right' (a : α) [topological_space α] [linear_order α] :
+  nhds_within a (Iic a) ⊔ nhds_within a (Ioi a) = 𝓝 a :=
+by rw [← nhds_within_union, Iic_union_Ioi, nhds_within_univ]
+
+lemma continuous_at_iff_continuous_left_right [topological_space α] [linear_order α]
+  [topological_space β] {a : α} {f : α → β} :
+  continuous_at f a ↔ continuous_within_at f (Iic a) a ∧ continuous_within_at f (Ici a) a :=
+by simp only [continuous_within_at, continuous_at, ← tendsto_sup, nhds_left_sup_nhds_right]
+
+lemma continuous_on_Icc_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
+  [order_topology α] [topological_space β] [regular_space β] {f : α → β} {a b : α}
+  {la lb : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
+  (ha : tendsto f (nhds_within a $ Ioi a) (𝓝 la))
+  (hb : tendsto f (nhds_within b $ Iio b) (𝓝 lb)) :
+  continuous_on (extend_from (Ioo a b) f) (Icc a b) :=
+begin
+  apply continuous_on_extend_from,
+  { rw closure_Ioo hab, },
+  { intros x x_in,
+    rcases mem_Ioo_or_eq_endpoints_of_mem_Icc x_in with rfl | rfl | h,
+    { use la,
+      simpa [hab] },
+    { use lb,
+      simpa [hab] },
+    { use [f x, hf x h] } }
+end
+
+lemma eq_lim_at_left_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
+  [order_topology α] [topological_space β] [t2_space β] {f : α → β} {a b : α}
+  {la : β} (hab : a < b) (ha : tendsto f (nhds_within a $ Ioi a) (𝓝 la)) :
+  extend_from (Ioo a b) f a = la :=
+begin
+  apply extend_from_eq,
+  { rw closure_Ioo hab,
+    simp only [le_of_lt hab, left_mem_Icc, right_mem_Icc] },
+  { simpa [hab] }
+end
+
+lemma eq_lim_at_right_extend_from_Ioo [topological_space α] [linear_order α] [densely_ordered α]
+  [order_topology α] [topological_space β] [t2_space β] {f : α → β} {a b : α}
+  {lb : β} (hab : a < b) (hb : tendsto f (nhds_within b $ Iio b) (𝓝 lb)) :
+  extend_from (Ioo a b) f b = lb :=
+begin
+  apply extend_from_eq,
+  { rw closure_Ioo hab,
+    simp only [le_of_lt hab, left_mem_Icc, right_mem_Icc] },
+  { simpa [hab] }
+end
+
+lemma continuous_on_Ico_extend_from_Ioo [topological_space α]
+  [linear_order α] [densely_ordered α] [order_topology α] [topological_space β]
+  [regular_space β] {f : α → β} {a b : α} {la : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
+  (ha : tendsto f (nhds_within a $ Ioi a) (𝓝 la)) :
+  continuous_on (extend_from (Ioo a b) f) (Ico a b) :=
+begin
+  apply continuous_on_extend_from,
+  { rw [closure_Ioo hab], exact Ico_subset_Icc_self, },
+  { intros x x_in,
+    rcases mem_Ioo_or_eq_left_of_mem_Ico x_in with rfl | h,
+    { use la,
+      simpa [hab] },
+    { use [f x, hf x h] } }
+end
+
+lemma continuous_on_Ioc_extend_from_Ioo [topological_space α]
+  [linear_order α] [densely_ordered α] [order_topology α] [topological_space β]
+  [regular_space β] {f : α → β} {a b : α} {lb : β} (hab : a < b) (hf : continuous_on f (Ioo a b))
+  (hb : tendsto f (nhds_within b $ Iio b) (𝓝 lb)) :
+  continuous_on (extend_from (Ioo a b) f) (Ioc a b) :=
+begin
+  have := @continuous_on_Ico_extend_from_Ioo (order_dual α) _ _ _ _ _ _ _ f _ _ _ hab,
+  erw [dual_Ico, dual_Ioi, dual_Ioo] at this,
+  exact this hf hb
+end
+
+lemma continuous_within_at_Ioi_iff_Ici
+  {α β : Type*} [topological_space α] [linear_order α] [topological_space β] {a : α} {f : α → β} :
+  continuous_within_at f (Ioi a) a ↔ continuous_within_at f (Ici a) a :=
+begin
+  split,
+  { intros h s hs,
+    specialize h hs,
+    rw [mem_map, mem_nhds_within_iff_exists_mem_nhds_inter] at *,
+    rcases h with ⟨u, huna, hu⟩,
+    use [u, huna],
+    { intros x hx,
+      cases hx with hxu hx,
+      by_cases h : x = a,
+      { rw [h, mem_set_of_eq],
+        exact mem_of_nhds hs, },
+      exact hu ⟨hxu, lt_of_le_of_ne hx (ne_comm.2 h)⟩ } },
+  { intros h,
+    exact h.mono Ioi_subset_Ici_self }
+end
+
+lemma continuous_within_at_Iio_iff_Iic
+  {α β : Type*} [topological_space α] [linear_order α] [topological_space β] {a : α} {f : α → β} :
+  continuous_within_at f (Iio a) a ↔ continuous_within_at f (Iic a) a :=
+begin
+  have := @continuous_within_at_Ioi_iff_Ici (order_dual α) _ _ _ _ _ f,
+  erw [dual_Ici, dual_Ioi] at this,
+  exact this,
+end
+
+lemma continuous_at_iff_continuous_left'_right' [topological_space α] [linear_order α]
+  [topological_space β] {a : α} {f : α → β} :
+  continuous_at f a ↔ continuous_within_at f (Iio a) a ∧ continuous_within_at f (Ioi a) a :=
+by rw [continuous_within_at_Ioi_iff_Ici, continuous_within_at_Iio_iff_Iic,
+  continuous_at_iff_continuous_left_right]

@@ -21,6 +21,8 @@ guarantee that occurrences of `α` are positive.
 
 universes v v' u u'
 
+open_locale fam
+
 /-- Polynomial functors between indexed type families -/
 structure ipfunctor (I J : Type u) :=
 (A : fam J) (B : Π i, A i → fam I)

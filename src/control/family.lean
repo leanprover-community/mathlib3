@@ -7,7 +7,7 @@ import category_theory.category
 import category_theory.types
 import logic.relation
 
-/-
+/-!
 Indexed type families and their categorical structure.
 
 Features:
@@ -221,7 +221,7 @@ by ext _ ⟨ ⟩ : 2; refl
 def prod (α β : fam I) : fam I
 | i := α i × β i
 
-infix ` ⊗ `:35 := prod
+localized "infix ` ⊗ `:35 := fam.prod" in fam
 
 /-- left projection of binary product in the category `fam I` -/
 def prod.fst : Π {α β : fam I}, α ⊗ β ⟶ α
@@ -235,7 +235,7 @@ def prod.snd : Π {α β : fam I}, α ⊗ β ⟶ β
 def prod.map {α β α' β' : fam I} : (α ⟶ β) → (α' ⟶ β') → (α ⊗ α' ⟶ β ⊗ β')
 | f g i x := (f x.1,g x.2)
 
-infix ` ⊗ `:35 := prod.map
+localized "infix ` ⊗' `:35 := fam.prod.map" in fam
 
 @[simp, reassoc]
 lemma prod.map_fst {α β α' β' : fam I} (f : α ⟶ β) (g : α' ⟶ β') :
@@ -278,35 +278,35 @@ def diag : Π {α : fam I}, α ⟶ α ⊗ α
 | α i x := (x,x)
 
 @[reassoc]
-lemma diag_map {α β : fam I} (f : α ⟶ β) : diag ≫ (f ⊗ f) = f ≫ diag :=
+lemma diag_map {α β : fam I} (f : α ⟶ β) : diag ≫ (f ⊗' f) = f ≫ diag :=
 by ext; refl
 
 @[reassoc]
-lemma diag_map_fst_snd {α β : fam I} : diag ≫ (prod.fst ⊗ prod.snd) = 𝟙 (α ⊗ β) :=
+lemma diag_map_fst_snd {α β : fam I} : diag ≫ (prod.fst ⊗' prod.snd) = 𝟙 (α ⊗ β) :=
 by ext _ ⟨ ⟩; refl
 
 @[reassoc]
 lemma diag_map_comp {α β γ γ' : fam I} (f : α ⟶ β) (g : β ⟶ γ) (g' : β ⟶ γ') :
-  diag ≫ (f ≫ g ⊗ f ≫ g') = f ≫ diag ≫ (g ⊗ g') :=
+  diag ≫ (f ≫ g ⊗' f ≫ g') = f ≫ diag ≫ (g ⊗' g') :=
 by ext; refl
 
 @[reassoc]
 lemma diag_map_fst_snd_comp {α β γ γ' : fam I} (g : α ⟶ γ) (g' : β ⟶ γ') :
-  diag ≫ (prod.fst ≫ g ⊗ prod.snd ≫ g') = (g ⊗ g') :=
+  diag ≫ (prod.fst ≫ g ⊗' prod.snd ≫ g') = (g ⊗' g') :=
 by ext _ ⟨ ⟩; refl
 
 /-- binary coproduct in the category `fam I` -/
 def sum (α β : fam I) : fam I
 | i := α i ⊕ β i
 
-infix ` ⊕' `:35 := sum
+localized "infix ` ⊕' `:35 := fam.sum" in fam
 
 /-- map function of the binary coproduct in the category `fam I` -/
 def sum.map {α β α' β' : fam I} : (α ⟶ β) → (α' ⟶ β') → (α ⊕' α' ⟶ β ⊕' β')
 | f g i (sum.inl x) := sum.inl $ f x
 | f g i (sum.inr x) := sum.inr $ g x
 
-infix ` ⊕' `:35 := sum.map
+localized "infix ` ⊕'' `:35 := fam.sum.map" in fam
 
 /-- left introduction arrow of the binary coproduct in the category `fam I` -/
 def sum.inl : Π {α β : fam I}, α ⟶ α ⊕' β
@@ -348,6 +348,8 @@ def codiag : Π {α : fam I}, α ⊕' α ⟶ α
 
 end subtype
 
+open_locale fam
+
 @[simp]
 lemma comp_app {α β γ : fam I} (f : α ⟶ β) (g : β ⟶ γ) {i} (x : α i) : (f ≫ g) x = g (f x) := rfl
 
@@ -355,7 +357,8 @@ lemma comp_app {α β γ : fam I} (f : α ⟶ β) (g : β ⟶ γ) {i} (x : α i)
 protected def eq (α : fam I) : Pred (α ⊗ α) :=
 λ i x, x.1 = x.2
 
-/-- Application of predicate `p` to the target of arrow `f` -/
+/-- Application of predicate `p` to the target of arrow `f`. `f ⊨ p` is a proposition that
+states that predicate `p` holds on the target object of `f`. -/
 def sat {X α : fam J} (f : X ⟶ α) (p : fam.Pred α) : Prop :=
 ∃ f' : X ⟶ subtype p, f = f' ≫ fam.subtype.val
 
@@ -499,7 +502,7 @@ by ext; refl
 
 /-- swap the components of a product -/
 def prod.swap : α ⊗ β ⟶ β ⊗ α :=
-diag ≫ (prod.snd ⊗ prod.fst)
+diag ≫ (prod.snd ⊗' prod.fst)
 
 @[simp, reassoc]
 lemma prod.swap_fst : prod.swap ≫ fam.prod.fst = (fam.prod.snd : α ⊗ β ⟶ β) :=
@@ -511,7 +514,7 @@ by simp [prod.swap]
 
 /-- reassociate the components of two nested products -/
 def prod.assoc : α ⊗ β ⊗ γ ⟶ α ⊗ (β ⊗ γ) :=
-diag ≫ (prod.fst ≫ prod.fst ⊗ diag ≫ (prod.fst ≫ prod.snd ⊗ prod.snd))
+diag ≫ (prod.fst ≫ prod.fst ⊗' diag ≫ (prod.fst ≫ prod.snd ⊗' prod.snd))
 
 /-- Projection from a product of three components to the
 two left-most components -/
@@ -519,11 +522,11 @@ def lpair : α ⊗ β ⊗ γ ⟶ α ⊗ β := fam.prod.fst
 
 /-- Projection from a product of three components to the
 two right-most components -/
-def rpair : α ⊗ β ⊗ γ ⟶ β ⊗ γ := fam.prod.snd ⊗ 𝟙 _
+def rpair : α ⊗ β ⊗ γ ⟶ β ⊗ γ := fam.prod.snd ⊗' 𝟙 _
 
 /-- Projection from a product of three components to the
 left-most and right-most components -/
-def sides : α ⊗ β ⊗ γ ⟶ α ⊗ γ := fam.prod.fst ⊗ 𝟙 _
+def sides : α ⊗ β ⊗ γ ⟶ α ⊗ γ := fam.prod.fst ⊗' 𝟙 _
 
 /--
 Definition of equivalence relations for predicates on products
@@ -550,7 +553,7 @@ begin
 end
 
 lemma exact {r : Pred (β ⊗ β)} {f g : α ⟶ β} (h : f ≫ mk r = g ≫ mk r) (h' : equiv r) :
-  diag ≫ (f ⊗ g) ⊨ r :=
+  diag ≫ (f ⊗' g) ⊨ r :=
 begin
   apply sat_intro, intros i x,
   replace h' : ∀ i, equivalence $ curry (r i) := equiv.to_equivalence h',
@@ -595,7 +598,16 @@ lemma map_comp_map {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : F.map f ≫ F.map g
 
 end map_comp
 
+/-!
+In the following, we treat arrows `f : X ⟶ F.obj α` as collections of objects of type
+`α i`, for any `i`. The notion of containment is made formal by the definition of support set:
+`supp f i : set (α i)`. Intuitively, `f` contains `a : α i` if, forall `i : I`, `x : X i`,
+the `f x` evaluates to an object from which `a` can be retrieved.
+-/
+
 namespace fam
+
+open_locale fam
 
 variables {I J : Type u} {F G : fam I ⥤ fam J}
 

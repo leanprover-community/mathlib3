@@ -11,6 +11,8 @@ import control.family
 
 universes u v w
 
+open_locale fam
+
 namespace category_theory.functor.fam
 
 variables {I J : Type u} {α β γ : fam I} {F : fam I ⥤ fam J}
@@ -57,7 +59,7 @@ end category_theory.functor.fam
 
 namespace quot.indexed
 
-/-- map on the relation of `quot` -/
+/-- map on `quot` that weakens its relation -/
 def factor {I} {α : fam I} (r s: fam.Pred (α ⊗ α))
   (h : ∀ i (a : fam.unit i ⟶ α ⊗ α), a ⊨ r → a ⊨ s) :
   fam.quot r ⟶ fam.quot s :=

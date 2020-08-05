@@ -10,7 +10,6 @@ import meta.rb_map
 import data.bool
 import tactic.lean_core_docs
 import tactic.interactive_expr
-import tactic.fix_by_cases
 
 universe variable u
 
@@ -1612,9 +1611,22 @@ add_tactic_doc
 
 attribute [higher_order map_comp_pure] map_pure
 
+/--
+Copies a definition into the `tactic.interactive` namespace to make it usable
+in proof scripts. It allows one to write
 
-/-- Put a definition in the `tactic.interactive` namespace to make it usable
-in proof scripts
+```lean
+@[interactive]
+meta def my_tactic := ...
+```
+
+instead of
+
+```lean
+meta def my_tactic := ...
+
+run_cmd add_interactive [``my_tactic]
+```
 -/
 @[user_attribute]
 meta def interactive_attr : user_attribute :=
@@ -1629,6 +1641,7 @@ add_tactic_doc
   category                 := doc_category.attr,
   decl_names               := [``tactic.interactive_attr],
   tags                     := ["environment"] }
+
 
 /-- Attribute `needed` is used to mark declarations that are featured
 in the current file.  Then, the `#unneeded` command can be used to

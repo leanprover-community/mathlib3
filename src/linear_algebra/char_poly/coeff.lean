@@ -140,7 +140,7 @@ begin
   { unfold finsupp.sum, rw sum_apply, rw sum_apply, dsimp, refl, },
   { simp_rw ← (scalar n).map_pow, simp_rw ← (matrix.scalar.commute _ _).eq,
     simp only [coe_scalar, matrix.one_mul, ring_hom.id_apply,
-      smul_val, mul_eq_mul, algebra.smul_mul_assoc],
+      smul_apply, mul_eq_mul, algebra.smul_mul_assoc],
     have h : ∀ x : ℕ, (λ (e : ℕ) (a : R), r ^ e * a) x 0 = 0 := by simp,
     symmetry, rw ← finsupp.sum_map_range_index h, swap, refl,
     refine congr (congr rfl _) (by {ext, rw mul_comm}), ext, rw finsupp.map_range_apply,

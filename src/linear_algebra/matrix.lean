@@ -123,7 +123,7 @@ def to_matrix [decidable_eq n] : ((n → R) →ₗ[R] (m → R)) → matrix m n 
 
 @[simp] lemma to_matrix_id [decidable_eq n] :
   (@linear_map.id _ (n → R) _ _ _).to_matrix = 1 :=
-by { ext, simp [to_matrix, to_matrixₗ, matrix.one_val, eq_comm] }
+by { ext, simp [to_matrix, to_matrixₗ, matrix.one_apply, eq_comm] }
 
 theorem to_matrix_of_equiv {p q : Type*} [fintype p] [fintype q] [decidable_eq n] [decidable_eq q]
   (e₁ : m ≃ p) (e₂ : n ≃ q) (f : (q → R) →ₗ[R] (p → R)) (i j) :
@@ -213,15 +213,16 @@ theorem linear_equiv_matrix_range {ι κ M₁ M₂ : Type*}
     linear_equiv_matrix hv₁ hv₂ f k i :=
 if H : (0 : R) = 1 then eq_of_zero_eq_one H _ _ else
 begin
+  haveI : nontrivial R := ⟨⟨0, 1, H⟩⟩,
   simp_rw [linear_equiv_matrix, linear_equiv.trans_apply, linear_equiv_matrix'_apply,
-    ← equiv.of_injective_apply _ (hv₁.injective H), ← equiv.of_injective_apply _ (hv₂.injective H),
+    ← equiv.of_injective_apply _ hv₁.injective, ← equiv.of_injective_apply _ hv₂.injective,
     to_matrix_of_equiv, ← linear_equiv.trans_apply, linear_equiv.arrow_congr_trans], congr' 3;
   refine function.left_inverse.injective linear_equiv.symm_symm _; ext x;
   simp_rw [linear_equiv.symm_trans_apply, equiv_fun_basis_symm_apply, fun_congr_left_symm,
     fun_congr_left_apply, fun_left_apply],
-  convert (finset.sum_equiv (equiv.of_injective _ (hv₁.injective H)) _).symm,
+  convert (finset.sum_equiv (equiv.of_injective _ hv₁.injective) _).symm,
   simp_rw [equiv.symm_apply_apply, equiv.of_injective_apply, subtype.coe_mk],
-  convert (finset.sum_equiv (equiv.of_injective _ (hv₂.injective H)) _).symm,
+  convert (finset.sum_equiv (equiv.of_injective _ hv₂.injective) _).symm,
   simp_rw [equiv.symm_apply_apply, equiv.of_injective_apply, subtype.coe_mk]
 end
 
@@ -272,7 +273,7 @@ variables {n} {R} {M}
 @[simp] lemma diag_apply (A : matrix n n M) (i : n) : diag n R M A i = A i i := rfl
 
 @[simp] lemma diag_one [decidable_eq n] :
-  diag n R R 1 = λ i, 1 := by { dunfold diag, ext, simp [one_val_eq] }
+  diag n R R 1 = λ i, 1 := by { dunfold diag, ext, simp [one_apply_eq] }
 
 @[simp] lemma diag_transpose (A : matrix n n M) : diag n R M Aᵀ = diag n R M A := rfl
 
@@ -319,8 +320,8 @@ lemma diagonal_comp_std_basis (w : n → R) (i : n) :
   (diagonal w).to_lin.comp (std_basis R (λ_:n, R) i) = (w i) • std_basis R (λ_:n, R) i :=
 begin
   ext a j,
-  simp only [linear_map.comp_apply, smul_apply, to_lin_apply, mul_vec_diagonal, smul_apply,
-    pi.smul_apply, smul_eq_mul],
+  simp_rw [linear_map.comp_apply, to_lin_apply, mul_vec_diagonal, linear_map.smul_apply,
+    pi.smul_apply, algebra.id.smul_eq_mul],
   by_cases i = j,
   { subst h },
   { rw [std_basis_ne R (λ_:n, R) _ _ (ne.symm h), _root_.mul_zero, _root_.mul_zero] }
@@ -484,6 +485,10 @@ rfl
   (reindex_alg_equiv e).symm M = λ i j, M (e i) (e j) :=
 rfl
 
+lemma reindex_transpose (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
+  (reindex eₘ eₙ M)ᵀ = (reindex eₙ eₘ Mᵀ) :=
+rfl
+
 end reindexing
 
 end matrix
@@ -531,8 +536,9 @@ theorem trace_aux_range (R : Type u) [comm_ring R] {M : Type v} [add_comm_group 
   trace_aux R hb.range = trace_aux R hb :=
 linear_map.ext $ λ f, if H : 0 = 1 then eq_of_zero_eq_one H _ _ else
 begin
+  haveI : nontrivial R := ⟨⟨0, 1, H⟩⟩,
   change ∑ i : set.range b, _ = ∑ i : ι, _, simp_rw [matrix.diag_apply], symmetry,
-  convert finset.sum_equiv (equiv.of_injective _ $ hb.injective H) _, ext i,
+  convert finset.sum_equiv (equiv.of_injective _ hb.injective) _, ext i,
   exact (linear_equiv_matrix_range hb hb f i i).symm
 end
 

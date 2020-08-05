@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 import category_theory.comma
 import category_theory.punit
-import category_theory.reflect_isomorphisms
+import category_theory.reflects_isomorphisms
 
 /-!
 # Over and under categories
@@ -112,7 +112,7 @@ def iterated_slice_equiv : over f ≌ over f.left :=
     nat_iso.of_components
     (λ g, ⟨hom_mk (hom_mk (𝟙 g.left.left)) (by apply_auto_param),
            hom_mk (hom_mk (𝟙 g.left.left)) (by apply_auto_param),
-           by { ext, dsimp, simp }, by { ext, dsimp, simp }⟩)
+           by { ext, dsimp, simp }, by { ext, dsimp, simp }⟩) -- See note [dsimp, simp].
     (λ X Y g, by { ext, dsimp, simp }),
   counit_iso :=
     nat_iso.of_components

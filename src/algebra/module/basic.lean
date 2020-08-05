@@ -34,10 +34,6 @@ In this file we define
 
 * `vector_space` and `module` are abbreviations for `semimodule R M`.
 
-## TODO
-
-* `submodule R M` was written before bundled `submonoid`s, so it does not extend it.
-
 ## Tags
 
 semimodule, module, vector space, submodule, subspace, linear map
@@ -574,33 +570,6 @@ instance : add_comm_group p :=
 end add_comm_group
 
 end submodule
-
--- TODO: Do we want one-sided ideals?
-
-/-- Ideal in a commutative ring is an additive subgroup `s` such that
-`a * b ∈ s` whenever `b ∈ s`. We define `ideal R` as `submodule R R`. -/
-@[reducible] def ideal (R : Type u) [comm_ring R] := submodule R R
-
-namespace ideal
-variables [comm_ring R] (I : ideal R) {a b : R}
-
-protected lemma zero_mem : (0 : R) ∈ I := I.zero_mem
-
-protected lemma add_mem : a ∈ I → b ∈ I → a + b ∈ I := I.add_mem
-
-lemma neg_mem_iff : -a ∈ I ↔ a ∈ I := I.neg_mem_iff
-
-lemma add_mem_iff_left : b ∈ I → (a + b ∈ I ↔ a ∈ I) := I.add_mem_iff_left
-
-lemma add_mem_iff_right : a ∈ I → (a + b ∈ I ↔ b ∈ I) := I.add_mem_iff_right
-
-protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := I.sub_mem
-
-lemma mul_mem_left : b ∈ I → a * b ∈ I := I.smul_mem _
-
-lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_left h
-
-end ideal
 
 /--
 Vector spaces are defined as an `abbreviation` for semimodules,

@@ -203,11 +203,17 @@ lmul R A r
 def lmul_right (r : A) : A →ₗ A :=
 (lmul R A).flip r
 
+/-- Simultaneous multiplication on the left and right is a linear map. -/
+def lmul_left_right (vw: A × A) : A →ₗ[R] A :=
+(lmul_right R A vw.2).comp (lmul_left R A vw.1)
+
 variables {R A}
 
 @[simp] lemma lmul_apply (p q : A) : lmul R A p q = p * q := rfl
 @[simp] lemma lmul_left_apply (p q : A) : lmul_left R A p q = p * q := rfl
 @[simp] lemma lmul_right_apply (p q : A) : lmul_right R A p q = q * p := rfl
+@[simp] lemma lmul_left_right_apply (vw : A × A) (p : A) :
+  lmul_left_right R A vw p = vw.1 * p * vw.2 := rfl
 
 end semiring
 
@@ -540,6 +546,17 @@ def of_alg_hom (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ : f.com
   left_inv  := alg_hom.ext_iff.1 h₂,
   right_inv := alg_hom.ext_iff.1 h₁,
   ..f }
+
+/-- Forgetting the multiplicative structures, an equivalence of algebras is a linear equivalence. -/
+def to_linear_equiv (e : A₁ ≃ₐ[R] A₂) : A₁ ≃ₗ[R] A₂ :=
+{ to_fun    := e.to_fun,
+  map_add'  := λ x y, by simp,
+  map_smul' := λ r x, by simp [algebra.smul_def''],
+  inv_fun   := e.symm.to_fun,
+  left_inv  := e.left_inv,
+  right_inv := e.right_inv, }
+
+@[simp] lemma to_linear_equiv_apply (e : A₁ ≃ₐ[R] A₂) (x : A₁) : e.to_linear_equiv x = e x := rfl
 
 end alg_equiv
 

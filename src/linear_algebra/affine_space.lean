@@ -598,8 +598,7 @@ def face {n : ℕ} (s : simplex k V P n) {fs : finset (fin (n + 1))} {m : ℕ} (
 
 /-- The points of a face of a simplex are given by `mono_of_fin`. -/
 lemma face_points {n : ℕ} (s : simplex k V P n) {fs : finset (fin (n + 1))} {m : ℕ}
-    (h : fs.card = m + 1) (i : fin (m + 1)) :
-  (s.face h).points i = s.points (fs.mono_of_fin h i) :=
+  (h : fs.card = m + 1) (i : fin (m + 1)) : (s.face h).points i = s.points (fs.mono_of_fin h i) :=
 rfl
 
 /-- A single-point face equals the 0-simplex constructed with

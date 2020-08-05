@@ -270,9 +270,31 @@ lemma is_bounded_bilinear_map.is_bounded_linear_map_right (h : is_bounded_biline
                       le_of_lt C_pos]
   end }
 
+variables {𝕂 : Type*} [normed_field 𝕂] [normed_algebra 𝕜 𝕂]
+variables {H : Type*} [normed_group H] [normed_space 𝕂 H]
+
+open normed_space
+
 lemma is_bounded_bilinear_map_smul :
-  is_bounded_bilinear_map 𝕜 (λ (p : 𝕜 × E), p.1 • p.2) :=
+  @is_bounded_bilinear_map 𝕜 _ 𝕂 _ _ H _ (restrict_scalars 𝕜 𝕂) H _ (restrict_scalars 𝕜 𝕂) (λ (p : 𝕂 × H), p.1 • p.2) :=
 { add_left   := add_smul,
+/-
+tactic failed, there are unsolved goals
+state:
+𝕜 : Type u_1,
+_inst_1 : nondiscrete_normed_field 𝕜,
+𝕂 : Type u_5,
+_inst_8 : normed_field 𝕂,
+_inst_9 : normed_algebra 𝕜 𝕂,
+H : Type u_6,
+_inst_10 : normed_group H,
+_inst_11 : normed_space 𝕂 H,
+c : 𝕜,
+x : 𝕂,
+y : H
+⊢ (c • x) • y = c • x • y
+-/
+
   smul_left  := λc x y, by simp [smul_smul],
   add_right  := smul_add,
   smul_right := λc x y, by simp [smul_smul, mul_comm],

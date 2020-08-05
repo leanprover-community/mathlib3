@@ -21,11 +21,14 @@ definitive definition of derivation will be implemented.
 
 open algebra ring_hom
 
+/-- Natural way to define a scalar multiplication over a ring `R` for a module `M` over an
+algebra `A` over `R`. -/
 def transitive_scalar (R : Type*) (A : Type*) (M : Type*)
   [comm_semiring R] [semiring A] [algebra R A]
   [add_comm_monoid M] [semimodule A M] : has_scalar R M :=
 { smul := λ r m, ((algebra_map R A) r) • m, }
 
+/-- With the operation defined above the module `M` is also naturally a module over `R`. -/
 def transitive_module (R : Type*) (A : Type*) (M : Type*)
   [comm_semiring R] [semiring A] [algebra R A] [add_comm_monoid M] [semimodule A M] :
   semimodule R M :=
@@ -39,6 +42,8 @@ def transitive_module (R : Type*) (A : Type*) (M : Type*)
     algebra_map R A r • x + algebra_map R A s • x, by rw [map_add, add_smul],
   .. transitive_scalar R A M }
 
+/-- This class register an instance that the scalar multiplication over `M` is indeed defined as
+above in `transitive_scalar`. -/
 @[protect_proj]
 class compatible_semimodule (R : Type*) (A : Type*) [comm_semiring R] [semiring A] [algebra R A]
 (M : Type*) [add_comm_monoid M] [semimodule A M] [semimodule R M] :=
@@ -72,6 +77,7 @@ instance : has_coe (M →ₗ[A] N) (M →ₗ[R] N) :=
 
 end compatible_semimodule
 
+/-- Derivations in commutative algebra. To be changed.-/
 @[protect_proj]
 structure derivation (R : Type*) (A : Type*) [comm_semiring R] [comm_semiring A]
   [algebra R A] (M : Type*) [add_cancel_comm_monoid M] [semimodule A M] [semimodule R M]
@@ -120,8 +126,8 @@ end
 by rw [←mul_one r, ring_hom.map_mul, map_one, ←smul_def, map_smul, map_one_eq_zero, smul_zero]
 
 instance : has_zero (derivation R A M) :=
-⟨(0 : A →ₗ[R] M), λ a b, by simp only [add_zero, linear_map.zero_apply,
-                                      linear_map.to_fun_eq_coe, smul_zero]⟩
+⟨⟨(0 : A →ₗ[R] M), λ a b, by simp only [add_zero, linear_map.zero_apply,
+                                      linear_map.to_fun_eq_coe, smul_zero]⟩⟩
 
 instance : inhabited (derivation R A M) := ⟨0⟩
 
@@ -132,7 +138,8 @@ instance : add_comm_monoid (derivation R A M) :=
   add_assoc := λ D E F, ext $ λ a, add_assoc _ _ _,
   zero_add := λ D, ext $ λ a, zero_add _,
   add_zero := λ D, ext $ λ a, add_zero _,
-  add_comm := λ D E, ext $ λ a, add_comm _ _, }
+  add_comm := λ D E, ext $ λ a, add_comm _ _,
+  ..derivation.has_zero }
 
 @[priority 100]
 instance derivation.Rsemimodule : semimodule R (derivation R A M) :=
@@ -157,6 +164,7 @@ instance : semimodule A (derivation R A M) :=
   add_smul := λ a1 a2 D, ext $ λ b, add_smul _ _ _,
   zero_smul := λ D, ext $ λ b, zero_smul A _ }
 
+/-- The composition of a derivation adn a linear map is a derivation. -/
 def comp {N : Type*} [add_cancel_comm_monoid N] [semimodule A N] [semimodule R N]
   [compatible_semimodule R A N]
   (D : derivation R A M) (f : M →ₗ[A] N) : derivation R A N :=
@@ -180,6 +188,7 @@ variables {R : Type*} [comm_ring R]
 
 open ring_commutator
 
+/-- The commutator of derivations is again a derivation. -/
 def commutator (D1 D2 : derivation R A A) : derivation R A A :=
 ⟨commutator D1 D2, λ a b, by simp only [commutator, map_add, id.smul_eq_mul, linear_map.mul_app,
 leibniz, linear_map.to_fun_eq_coe, coe_linear_map, linear_map.sub_apply]; ring⟩

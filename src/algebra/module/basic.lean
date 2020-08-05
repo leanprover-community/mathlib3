@@ -34,10 +34,6 @@ In this file we define
 
 * `vector_space` and `module` are abbreviations for `semimodule R M`.
 
-## TODO
-
-* `submodule R M` was written before bundled `submonoid`s, so it does not extend it.
-
 ## Tags
 
 semimodule, module, vector space, submodule, subspace, linear map

@@ -10,7 +10,7 @@ import order.zorn
 
 # Ideals over a ring
 
-This file defines `ideal R`, an ideal over a commutative ring.
+This file defines `ideal R`, the type of ideals over a commutative ring `R`.
 
 ## Implementation notes
 

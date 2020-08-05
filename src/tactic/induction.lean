@@ -4,428 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jannis Limperg
 -/
 
-import data.nat.basic
-import tactic.core
 import tactic.type_based_naming
-
-/--
-After elaboration, Lean does not have non-dependent function types with
-unnamed arguments. This means that for the declaration
-
-```lean
-inductive test : Type :=
-| intro : unit → test
-```
-
-the type of `test.intro` becomes
-
-```lean
-test.intro : ∀ (a : unit), test
-```lean
-
-after elaboration, where `a` is an auto-generated name.
-
-This means that we can't know for sure whether a constructor argument was named
-by the user. Hence the following hack: If an argument is non-dependent *and* its
-name is `a` or `a_n` for some `n ∈ ℕ`, then we assume that this name was
-auto-generated rather than chosen by the user.
--/
-library_note "unnamed constructor arguments"
-
-
-universes u v w
-
-
-namespace list
-
-open native
-
-variables {α : Type u} {β : Type v}
-
-/-- Auxiliary definition for `foldl_with_index`. -/
-def foldl_with_index_aux (f : ℕ → α → β → α) : ℕ → α → list β → α
-| _ a [] := a
-| i a (b :: l) := foldl_with_index_aux (i + 1) (f i a b) l
-
-/--
-Fold a list from left to right as with `foldl`, but the combining function
-also receives each element's index.
--/
-def foldl_with_index (f : ℕ → α → β → α) (a : α) (l : list β) : α :=
-foldl_with_index_aux f 0 a l
-
-/-- Auxiliary definition for `foldr_with_index`. -/
-def foldr_with_index_aux (f : ℕ → α → β → β) : ℕ → β → list α → β
-| _ b [] := b
-| i b (a :: l) := f i a (foldr_with_index_aux (i + 1) b l)
-
-/--
-Fold a list from right to left as with `foldr`, but the combining function
-also receives each element's index.
--/
-def foldr_with_index (f : ℕ → α → β → β) (b : β) (l : list α) : β :=
-foldr_with_index_aux f 0 b l
-
-section mfold_with_index
-
-variables {m : Type v → Type w} [monad m]
-
-/-- Monadic variant of `foldl_with_index`. -/
-def mfoldl_with_index (f : ℕ → β → α → m β) (b : β) (as : list α) : m β :=
-as.foldl_with_index (λ i ma b, do a ← ma, f i a b) (pure b)
-
-/-- Monadic variant of `foldr_with_index`. -/
-def mfoldr_with_index (f : ℕ → α → β → m β) (b : β) (as : list α) : m β :=
-as.foldr_with_index (λ i a mb, do b ← mb, f i a b) (pure b)
-
-end mfold_with_index
-
-section mmap_with_index
-
-variables {m : Type v → Type w} [applicative m]
-
-def mmap_with_index_aux (f : ℕ → α → m β) : ℕ → list α → m (list β)
-| _ [] := pure []
-| i (a :: as) := list.cons <$> f i a <*> mmap_with_index_aux (i + 1) as
-
-def mmap_with_index (f : ℕ → α → m β) (as : list α) : m (list β) :=
-mmap_with_index_aux f 0 as
-
-def mmap_with_index'_aux (f : ℕ → α → m punit) : ℕ → list α → m punit
-| _ [] := pure ⟨⟩
-| i (a :: as) := f i a *> mmap_with_index'_aux (i + 1) as
-
-def mmap_with_index' (f : ℕ → α → m punit) (as : list α) : m punit :=
-mmap_with_index'_aux f 0 as
-
-end mmap_with_index
-
-def to_rbmap : list α → rbmap ℕ α :=
-foldl_with_index (λ i mapp a, mapp.insert i a) (mk_rbmap ℕ α)
-
-meta def to_rb_map {α : Type} : list α → rb_map ℕ α :=
-foldl_with_index (λ i mapp a, mapp.insert i a) mk_rb_map
-
-def all_some : list (option α) → option (list α)
-| [] := some []
-| (some x :: xs) := (λ xs, x :: xs) <$> all_some xs
-| (none :: xs) := none
-
-def take_lst {α} : list α → list ℕ → list (list α) × list α
-| xs [] := ([], xs)
-| xs (n :: ns) :=
-  let ⟨xs₁, xs₂⟩ := xs.split_at n in
-  let ⟨xss, rest⟩ := take_lst xs₂ ns in
-  (xs₁ :: xss, rest)
-
-def map₂_left' {α β γ} (f : α → option β → γ) : list α → list β → (list γ × list β)
-| [] bs := ([], bs)
-| (a :: as) [] :=
-  let ⟨cs, rest⟩ := map₂_left' as [] in
-  (f a none :: cs, rest)
-| (a :: as) (b :: bs) :=
-  let ⟨cs, rest⟩ := map₂_left' as bs in
-  (f a (some b) :: cs, rest)
-
-def map₂_right' {α β γ} (f : option α → β → γ) (as : list α) (bs : list β) :
-  (list γ × list α) :=
-map₂_left' (flip f) bs as
-
-def zip_left' {α β} : list α → list β → list (α × option β) × list β :=
-map₂_left' (λ a b, (a, b))
-
-def zip_right' {α β} : list α → list β → list (option α × β) × list α :=
-map₂_right' (λ a b, (a, b))
-
-def map₂_left {α β γ} (f : α → option β → γ) : list α → list β → list γ
-| [] _ := []
-| (a :: as) [] := f a none :: map₂_left as []
-| (a :: as) (b :: bs) := f a (some b) :: map₂_left as bs
-
-def map₂_right {α β γ} (f : option α → β → γ) (as : list α) (bs : list β) :
-  list γ :=
-map₂_left (flip f) bs as
-
-def zip_left {α β} : list α → list β → list (α × option β) :=
-map₂_left prod.mk
-
-def zip_right {α β} : list α → list β → list (option α × β) :=
-map₂_right prod.mk
-
-lemma map₂_left_eq_map₂_left' {α β γ} (f : α → option β → γ)
-  : ∀ (as : list α) (bs : list β),
-    map₂_left f as bs = (map₂_left' f as bs).fst
-| [] bs := by simp!
-| (a :: as) [] := by { simp! only [*], cases (map₂_left' f as nil), simp!  }
-| (a :: as) (b :: bs) := by { simp! only [*], cases (map₂_left' f as bs), simp! }
-
-def fill_nones {α} : list (option α) → list α → list α
-| [] _ := []
-| ((some a) :: as) as' := a :: fill_nones as as'
-| (none :: as) [] := as.reduce_option
-| (none :: as) (a :: as') := a :: fill_nones as as'
-
-end list
-
-
-namespace native
-
-@[reducible] meta def rb_multimap (α β : Type) : Type :=
-rb_map α (rb_set β)
-
-meta def mk_rb_multimap (α β : Type) [ltα : has_lt α] [ltβ : has_lt β]
-  [decidable_rel ((<) : α → α → Prop)]
-  : rb_multimap α β :=
-mk_rb_map
-
-
-namespace rb_multimap
-
-variables {α β : Type}
-
-section
-
-variables [has_lt α] [decidable_rel ((<) : α → α → Prop)]
-
-meta def find (m : rb_multimap α β) (a : α) : option (rb_set β) :=
-rb_map.find m a
-
-variables [has_lt β] [decidable_rel ((<) : β → β → Prop)]
-
-meta def insert (m : rb_multimap α β) (a : α) (b : β) : rb_multimap α β :=
-let bs := m.find a in
-rb_map.insert m a
-  (match bs with
-   | none := rb_map.set_of_list [b]
-   | (some bs) := bs.insert b
-   end)
-
-meta def contains (m : rb_multimap α β) (a : α) (b : β) : bool :=
-match m.find a with
-| none := false
-| (some bs) := bs.contains b
-end
-
-end
-
-meta def to_list (m : rb_multimap α β) : list (α × rb_set β) :=
-rb_map.to_list m
-
-meta def to_list' (m : rb_multimap α β) : list (α × list β) :=
-(rb_map.to_list m).map (λ ⟨a, bs⟩, ⟨a, bs.to_list⟩)
-
-end rb_multimap
-
-
-namespace rb_set
-
-variables {α : Type} [has_lt α] [decidable_rel ((<) : α → α → Prop)]
-
-meta def merge (xs ys : rb_set α) : rb_set α :=
-ys.fold xs (λ a xs, xs.insert a)
-
-meta def merge_many (xs : list (rb_set α)) : rb_set α :=
-xs.foldl merge mk_rb_set
-
-end rb_set
-
-end native
-
-
-namespace name_set
-
-meta def merge (xs ys : name_set) : name_set :=
-ys.fold xs (λ a xs, xs.insert a)
-
-meta def merge_many (xs : list name_set) : name_set :=
-xs.foldl merge mk_name_set
-
-end name_set
-
-
-namespace expr
-
-meta def local_names_option : expr → option (name × name)
-| (local_const n₁ n₂ _ _) := some (n₁, n₂)
-| _ := none
-
-/-- Given a closed type of the form `∀ (x : T) ... (z : U), V`, this function
-returns a tuple `(args, n, V)` where
-
-- `args` is a list containing information about the arguments `x ... z`:
-  argument name, binder info, argument type and whether the argument is
-  dependent (i.e. whether the rest of the input `expr` depends on it).
-- `n` is the length of `args`.
-- `V` is the return type.
-
-Given any other expression `e`, this function returns an empty list and `e`.
-
-Note that the type of each argument and the return type all live in a different
-contexts. For example, for the input `∀ (x : α) (y : β x) (z : γ x y), δ`,
-`decompose_pi` returns `β #0` as the type of `y` and `γ #1 #0` as the type of
-`z` -- the two `#0`s do not denote the same thing.
--/
-meta def decompose_pi : expr →
-  list (name × binder_info × expr × bool) × ℕ × expr
-| (pi name binfo T rest) :=
-  let (args, n_args, ret) := decompose_pi rest in
-  -- NOTE: the following makes this function quadratic in the size of the input
-  -- expression.
-  let dep := rest.has_var_idx 0 in
-  ((name, binfo, T, dep) :: args, n_args + 1, ret)
-| e := ([], 0, e)
-
-/-- Given a closed type of the form `∀ (x : T) ... (z : U), V`, this function
-returns a tuple `(args, n, V)` where
-
-- `args` is a list containing information about the arguments `x ... z`:
-  argument name, binder info, argument type and whether the argument is
-  dependent (i.e. whether the rest of the input `expr` depends on it).
-- `n` is the length of `args`.
-- `V` is the return type.
-
-Given any other expression `e`, this function returns an empty list and `e`.
-
-The input expression is normalised lazily. This means that the returned
-expressions are not necessarily in normal form.
-
-Note that the type of each argument and the return type all live in a different
-contexts. For example, for the input `∀ (x : α) (y : β x) (z : γ x y), δ`,
-`decompose_pi_normalizing` returns `β #0` as the type of `y` and `γ #1 #0`
-as the type of `z` -- the two `#0`s do not denote the same thing.
--/
-meta def decompose_pi_normalizing : expr →
-  tactic (list (name × binder_info × expr × bool) × expr) :=
-λ e, do
-  e ← tactic.whnf e,
-  match e with
-  | (pi n binfo T rest) := do
-      (args, ret) ← decompose_pi_normalizing rest,
-      -- NOTE: the following makes this function quadratic in the size of the input
-      -- expression.
-      let dep := rest.has_var_idx 0,
-      pure ((n , binfo, T, dep) :: args, ret)
-  | _ := pure ([] , e)
-  end
-
-meta def recompose_pi (binders : list (name × binder_info × expr)) (ret : expr) :
-  expr :=
-binders.foldr (λ ⟨name, info, t⟩ acc, pi name info t acc) ret
-
-/-- Auxiliary function for `decompose_app`. -/
-meta def decompose_app_aux : expr → expr × list expr
-| (app t u) :=
-  let (f, args) := decompose_app_aux t in
-  (f, u :: args)
-| e := (e, [])
-
-/-- Decomposes a function application. If `e` is of the form `f x ... z`, the
-result is `(f, [x, ..., z])`. If `e` is not of this form, the result is
-`(e, [])`.
--/
-meta def decompose_app (e : expr) : expr × list expr :=
-let (f , args) := decompose_app_aux e in
-(f , args.reverse)
-
-/-- Auxiliary function for `decompose_app_normalizing`. -/
-meta def decompose_app_normalizing_aux (md : tactic.transparency)
-  : expr → tactic (expr × list expr) := λ e, do
-  e ← tactic.whnf e md,
-  match e with
-  | (app t u) := do
-      (f , args) ← decompose_app_normalizing_aux t,
-      pure (f, u :: args)
-  | _ := pure (e, [])
-  end
-
-/-- Decomposes a function application. If `e` is of the form `f x ... z`, the
-result is `(f, [x, ..., z])`. If `e` is not of this form, the result is
-`(e, [])`.
-
-`e` is normalised lazily. This means that the returned expressions are not
-necessarily in normal form.
--/
-meta def decompose_app_normalizing (e : expr) (md := semireducible) :
-  tactic (expr × list expr) := do
-  (f , args) ← decompose_app_normalizing_aux md e,
-  pure (f , args.reverse)
-
-meta def locals (e : expr) : expr_set :=
-e.fold mk_expr_set $ λ e _ occs,
-  if e.is_local_constant
-    then occs.insert e
-    else occs
-
-meta def local_unique_names (e : expr) : name_set :=
-e.fold mk_name_set $ λ e _ occs,
-  match e with
-  | (local_const u _ _ _) := occs.insert u
-  | _ := occs
-  end
-
-meta def match_eq : expr → option (level × expr × expr × expr)
-| (app (app (app (const `eq [u]) type) lhs) rhs) := some (u, type, lhs, rhs)
-| _ := none
-
-meta def match_heq : expr → option (level × expr × expr × expr × expr)
-| (app (app (app (app (const `heq [u]) lhs_type) lhs) rhs_type) rhs) :=
-  some (u, lhs_type, lhs, rhs_type, rhs)
-| _ := none
-
-end expr
-
-
-namespace sum
-
-@[simp] def get_left {α β} : α ⊕ β → option α
-| (inl a) := some a
-| _ := none
-
-@[simp] def get_right {α β} : α ⊕ β → option β
-| (inr b) := some b
-| _ := none
-
-@[simp] def is_left {α β} : α ⊕ β → bool
-| (inl _) := tt
-| (inr _) := ff
-
-@[simp] def is_right {α β} : α ⊕ β → bool
-| (inl _) := ff
-| (inr _) := tt
-
-end sum
-
-
-namespace name
-
-open parser
-
-meta def basename : name → name
-| anonymous := anonymous
-| (mk_string s _) := mk_string s anonymous
-| (mk_numeral n _) := mk_numeral n anonymous
-
-/-- See [note unnamed constructor arguments]. -/
-meta def likely_generated_name_p : parser unit := do
-  ch 'a',
-  optional (ch '_' *> nat),
-  pure ()
-
-/-- See [note unnamed constructor arguments]. -/
-meta def is_likely_generated_name (n : name) : bool :=
-match n with
-| anonymous := ff
-| mk_numeral _ _ := ff
-| mk_string s anonymous := (likely_generated_name_p.run_string s).is_right
-| mk_string _ _ := ff
-end
-
-end name
-
-
-namespace tactic
+import tactic.induction.util
+import tactic.induction.unify_equations
 
 open expr native tactic.interactive
+
+namespace tactic
+namespace eliminate
 
 declare_trace eliminate_hyp
 
@@ -438,108 +24,33 @@ meta def trace_state_eliminate_hyp {α} [has_to_format α] (msg : thunk α) :
   trace_eliminate_hyp $ format.join
     [to_fmt (msg ()), "\n-----\n", to_fmt state, "\n-----"]
 
-meta def mopen_binder_aux (type e : expr) : tactic (expr × expr) := do
-  mv ← mk_meta_var type,
-  pure $ (mv, e.instantiate_var mv)
+@[derive has_reflect]
+meta structure constructor_argument_info :=
+(aname : name)
+(type : expr)
+(dependent : bool)
+(index_occurrences : list ℕ)
+(is_recursive : bool)
 
-meta def mopen_pi : expr → tactic (expr × name × binder_info × expr)
-| (pi pp_name binfo type e) := do
-  ⟨mv, e⟩ ← mopen_binder_aux type e,
-  pure (mv, pp_name, binfo, e)
-| e := fail! "mopen_pi: expected an expression starting with a pi, but got\n{e}"
+@[derive has_reflect]
+meta structure constructor_info :=
+(cname : name)
+(non_param_args : list constructor_argument_info)
+(num_non_param_args : ℕ)
+(rec_args : list constructor_argument_info)
+(num_rec_args : ℕ)
 
-meta def mopen_n_pis : ℕ → expr → tactic (list (expr × name × binder_info) × expr)
-| 0 e := pure ([], e)
-| (n + 1) e := do
-  ⟨mv, pp_name, binfo, e⟩ ← mopen_pi e,
-  ⟨args, u⟩ ← mopen_n_pis n e,
-  pure $ ((mv, pp_name, binfo) :: args, u)
+meta def constructor_info.num_nameable_arguments (c : constructor_info) : ℕ :=
+c.num_non_param_args + c.num_rec_args
 
-meta def open_binder_aux (pp_name : name) (bi : binder_info) (t e : expr)
-  : tactic (expr × expr) := do
-  c ← mk_local' pp_name bi t,
-  pure $ (c, e.instantiate_var c)
-
-/--
-Given an `e` with `e = ∀ (x : T), U`, `open_pi e` returns
-
-- `c`, a new local constant with type `T` (and the same pretty name and binder
-  info as the binder for `x`).
-- `U[x/c]`.
-
-Note that `c` is not introduced into the context, so `U[x/c]` will not
-type-check.
-
-Fails if `e` does not start with a pi.
--/
-meta def open_pi : expr → tactic (expr × expr)
-| (pi n bi t e) := open_binder_aux n bi t e
-| e := fail! "open_pi: expected an expression starting with a pi, but got\n{e}"
-
--- TODO could be more efficient: open_binder uses instantiate_var once per
--- binder, so the expression is traversed a lot. We could use instantiate_vars
--- instead.
-meta def open_n_pis : ℕ → expr → tactic (list expr × expr)
-| 0       e := pure ([], e)
-| (n + 1) e := do
-  ⟨cnst, e⟩ ← open_pi e,
-  ⟨args, u⟩ ← open_n_pis n e,
-  pure $ (cnst :: args, u)
-
-meta def get_n_pis_aux : ℕ → expr → list expr → tactic (list expr)
-| 0 e acc := pure acc
-| (n + 1) (pi pp_name binfo type e) acc := do
-  let type := type.instantiate_vars acc,
-  c ← mk_local' pp_name binfo type,
-  get_n_pis_aux n e (acc ++ [c])
-| _ e _ := fail! "expected an expression starting with a pi, but got\n{e}"
-
-meta def get_n_pis (n : ℕ) (e : expr) : tactic (list expr) :=
-get_n_pis_aux n e []
-
-/--
-For an input expression `e = ∀ (x₁ : T₁) ... (xₙ : Tₙ), U`,
-`open_pis_normalizing e` returns the following:
-
-- For each `xᵢ`: the name `xᵢ`; a fresh local constant `cᵢ` which
-  replaces `xᵢ` in the other returned expressions; and whether `xᵢ` is a
-  dependent argument (i.e. whether it occurs in the remainder of `e`).
-  The type `Tᵢ` is the type of `cᵢ`.
-- The return type `U`.
--/
--- TODO doc
--- TODO could be more efficient: open_binder uses instantiate_var once per
--- binder, so the expression is traversed a lot. We could use instantiate_vars
--- instead.
-meta def open_pis_normalizing : expr →
-  tactic (list (expr × bool) × expr) :=
-λ e, do
-  e ← whnf e,
-  match e with
-  | (pi _ _ _ rest) := do
-    -- TODO the next line makes this function quadratic in the size of the
-    -- expression.
-    let dep := rest.has_var_idx 0,
-    ⟨cnst, e⟩ ← open_pi e,
-    ⟨args, u⟩ ← open_pis_normalizing e,
-    pure $ ⟨(cnst, dep) :: args, u⟩
-  | _ := pure ⟨[], e⟩
-  end
-
-meta def get_app_fn_const_normalizing : expr → tactic name :=
-λ e, do
-  e ← whnf e,
-  match e with
-  | (const n _) := pure n
-  | (app f _) := get_app_fn_const_normalizing f
-  | _ := fail! "expected a constant (possibly applied to some arguments), but got:\n{e}"
-  end
-
-meta def get_inductive_name (type : expr) : tactic name := do
-  n ← get_app_fn_const_normalizing type,
-  env ← get_env,
-  guard (env.is_inductive n) <|> fail! "Expected {n} to be an inductive type.",
-  pure n
+@[derive has_reflect]
+meta structure inductive_info :=
+(iname : name)
+(constructors : list constructor_info)
+(num_constructors : ℕ)
+(type : expr)
+(num_params : ℕ)
+(num_indices : ℕ)
 
 /--
 `fuzzy_type_match t s` is true iff `t` and `s` are definitionally equal.
@@ -549,7 +60,7 @@ meta def get_inductive_name (type : expr) : tactic name := do
 -- may want to consider these types sufficiently similar to inherit the name.
 -- Same (but even more obvious) with `vec α n` and `vec α (n + 1)`.
 meta def fuzzy_type_match (t s : expr) : tactic bool :=
-(is_def_eq t s *> pure tt) <|> pure ff
+succeeds $ is_def_eq t s
 -- (is_def_eq t s *> pure tt) <|> do
 --   (some t_const) ← try_core $ get_app_fn_const_normalizing t | pure ff,
 --   (some s_const) ← try_core $ get_app_fn_const_normalizing s | pure ff,
@@ -605,34 +116,6 @@ match base with
 | (expr.const base _) := base = type_name
 | _ := ff
 end
-
-@[derive has_reflect]
-meta structure constructor_argument_info :=
-(aname : name)
-(type : expr)
-(dependent : bool)
-(index_occurrences : list ℕ)
-(is_recursive : bool)
-
-@[derive has_reflect]
-meta structure constructor_info :=
-(cname : name)
-(non_param_args : list constructor_argument_info)
-(num_non_param_args : ℕ)
-(rec_args : list constructor_argument_info)
-(num_rec_args : ℕ)
-
-meta def constructor_info.num_nameable_arguments (c : constructor_info) : ℕ :=
-c.num_non_param_args + c.num_rec_args
-
-@[derive has_reflect]
-meta structure inductive_info :=
-(iname : name)
-(constructors : list constructor_info)
-(num_constructors : ℕ)
-(type : expr)
-(num_params : ℕ)
-(num_indices : ℕ)
 
 /-- Gathers information about a constructor from the environment. Fails if `c`
 does not refer to a constructor. -/
@@ -815,74 +298,6 @@ meta def rename_fresh (renames : name_map (list name)) (reserved : name_set) :
   pure $ rb_map.of_list $
     list.map₂ (λ (old new : expr), (old.local_pp_name, new.local_pp_name))
       ctx_suffix new_hyps
-
-meta def type_depends_on_locals (h : expr) (ns : name_set) : tactic bool := do
-  h_type ← infer_type h,
-  pure $ h_type.has_local_in ns
-
-meta def local_def_depends_on_locals (h : expr) (ns : name_set) : tactic bool := do
-  (some h_val) ← try_core $ local_def_value h | pure ff,
-  pure $ h_val.has_local_in ns
-
-/--
-Test whether `h` depends on any of the hypotheses in the set of unique names
-`ns`. This is the case if `h` is in `ns`, or if any of the `ns` appear in `h`'s
-type or body.
--/
-meta def local_depends_on_locals (h : expr) (ns : name_set) : tactic bool :=
-list.mbor
-  [ pure $ ns.contains h.local_uniq_name
-  , type_depends_on_locals h ns
-  , local_def_depends_on_locals h ns
-  ]
-
-meta def local_depends_on_local (h i : expr) : tactic bool :=
-local_depends_on_locals h (mk_name_set.insert i.local_uniq_name)
-
-/--
-The set of unique names of hypotheses which `h` depends on (including `h`
-itself). `h` must be a local constant.
--/
-meta def dependencies_of_local (h : expr) : tactic name_set := do
-  let deps := mk_name_set.insert h.local_uniq_name,
-  t ← infer_type h,
-  let deps := deps.merge t.local_unique_names,
-  (some val) ← try_core $ local_def_value h | pure deps,
-  let deps := deps.merge val.local_unique_names,
-  pure deps
-
-/--
-The dependency closure of the local constants whose unique names appear in `hs`.
-This is the set of local constants which depend on any of the `hs` (including
-the `hs` themselves).
--/
-meta def dependency_closure' (hs : name_set) : tactic (list expr) := do
-  ctx ← local_context,
-  ctx.mfilter $ λ h, local_depends_on_locals h hs
-
-/--
-The dependency closure of the local constants in `hs`. See `dependency_closure'`.
--/
-meta def dependency_closure (hs : list expr) : tactic (list expr) :=
-dependency_closure' $ name_set.of_list $ hs.map expr.local_uniq_name
-
-/--
-Revert the local constants whose unique names appear in `hs`, as well as any
-hypotheses that depend on them. Returns the number of hypotheses that were
-reverted and a list containing these hypotheses and their types.
--/
-meta def revert_lst'' (hs : name_set) : tactic (ℕ × list (expr × expr)) := do
-  to_revert ← dependency_closure' hs,
-  to_revert_types ← to_revert.mmap infer_type,
-  num_reverted ← revert_lst to_revert,
-  pure (num_reverted, to_revert.zip to_revert_types)
-
-/--
-Revert the local constants in `hs`, as well as any hypotheses that depend on
-them. See `revert_lst''`.
--/
-meta def revert_lst' (hs : list expr) : tactic (ℕ × list (expr × expr)) :=
-revert_lst'' $ name_set.of_list $ hs.map expr.local_uniq_name
 
 /--
 A value of `generalization_mode` describes the behaviour of the
@@ -1211,210 +626,6 @@ meta def generalize_complex_index_args (eliminee : expr) (num_params : ℕ)
 
   pure (eliminee, index_vars.length, index_vars, fields, num_generalized)
 
-meta def replace' (h : expr) (x : expr) (t : option expr := none) : tactic expr := do
-  h' ← note h.local_pp_name t x,
-  clear h,
-  pure h'
-
-meta inductive simplification_result
-| simplified (next_equations : list name)
-| not_simplified
-| goal_solved
-
-open simplification_result
-
-meta def simplify_heterogeneous_index_equation (equ lhs_type rhs_type lhs rhs : expr) :
-  tactic simplification_result :=
-do {
-  is_def_eq lhs_type rhs_type,
-  p ← to_expr ``(@eq_of_heq %%lhs_type %%lhs %%rhs %%equ),
-  t ← to_expr ``(@eq %%lhs_type %%lhs %%rhs),
-  equ ← replace' equ p (some t),
-  pure $ simplified [equ.local_pp_name]
-} <|>
-pure not_simplified
-
-meta def simplify_defeq_equation (equ type lhs rhs lhs_whnf rhs_whnf : expr)
-  (u : level) : tactic simplification_result :=
-do {
-  is_def_eq lhs_whnf rhs_whnf,
-  clear equ,
-  pure $ simplified []
-} <|>
-pure not_simplified
-
-meta def simplify_var_equation (equ type lhs rhs lhs_whnf rhs_whnf : expr)
-  (u : level) : tactic simplification_result :=
-do {
-  let lhs_is_local := lhs_whnf.is_local_constant,
-  let rhs_is_local := rhs_whnf.is_local_constant,
-  guard $ lhs_is_local ∨ rhs_is_local,
-  let t :=
-    if lhs_is_local
-      then (const `eq [u]) type lhs_whnf rhs
-      else (const `eq [u]) type lhs rhs_whnf,
-  change_core t (some equ),
-  equ ← get_local equ.local_pp_name,
-  subst_core equ,
-  pure $ simplified []
-} <|>
-pure not_simplified
-
-meta def get_sizeof (type : expr) : tactic pexpr := do
-  n ← get_inductive_name type,
-  let sizeof_name := n ++ `sizeof,
-  sizeof ← resolve_name $ sizeof_name,
-  pure sizeof
-
-lemma plus_gt (n m : ℕ) : m ≠ 0 → n + m > n :=
-by { induction m, { contradiction }, { simp } }
-
--- Linarith could prove this, but I want to avoid that dependency.
-lemma n_plus_m_plus_one_ne_n (n m : ℕ) : n + (m + 1) ≠ n :=
-by simp [ne_of_gt, plus_gt]
-
-meta def match_n_plus_m (md) : ℕ → expr → tactic (ℕ × expr) :=
-λ n e, do
-  e ← whnf e md,
-  match e with
-  | `(nat.succ %%e) := match_n_plus_m (n + 1) e
-  | _ := pure (n, e)
-  end
-
-meta def contradict_n_eq_n_plus_m (md : transparency) (equ lhs rhs : expr) :
-  tactic expr := do
-  ⟨lhs_n, lhs_e⟩ ← match_n_plus_m md 0 lhs,
-  ⟨rhs_n, rhs_e⟩ ← match_n_plus_m md 0 rhs,
-  is_def_eq lhs_e rhs_e md <|> fail "TODO",
-  let common := lhs_e,
-  guard (lhs_n ≠ rhs_n) <|> fail "TODO",
-  -- Ensure that lhs_n is bigger than rhs_n. Swap lhs and rhs if that's not
-  -- already the case.
-  ⟨equ, lhs_n, rhs_n⟩ ←
-    if lhs_n > rhs_n
-      then pure (equ, lhs_n, rhs_n)
-      else do {
-        equ ← to_expr ``(eq.symm %%equ),
-        pure (equ, rhs_n, lhs_n)
-      },
-  let diff := lhs_n - rhs_n,
-  let rhs_n_expr := reflect rhs_n,
-  n ← to_expr ``(%%common + %%rhs_n_expr),
-  let m := reflect (diff - 1),
-  pure `(n_plus_m_plus_one_ne_n %%n %%m %%equ)
-
-meta def simplify_cyclic_equation (equ type lhs rhs lhs_whnf rhs_whnf : expr)
-  (u : level) : tactic simplification_result :=
-do {
-  -- Establish `sizeof lhs = sizeof rhs`.
-  sizeof ← get_sizeof type,
-  hyp_lhs ← to_expr ``(%%sizeof %%lhs_whnf),
-  hyp_rhs ← to_expr ``(%%sizeof %%rhs_whnf),
-  hyp_type ← to_expr ``(@eq ℕ %%hyp_lhs %%hyp_rhs),
-  hyp_proof ← to_expr ``(@congr_arg %%type ℕ %%lhs_whnf %%rhs_whnf %%sizeof %%equ),
-  hyp_name ← mk_fresh_name,
-  hyp ← note hyp_name hyp_type hyp_proof,
-
-  -- Derive a contradiction (if indeed `sizeof lhs ≠ sizeof rhs`).
-  falso ← contradict_n_eq_n_plus_m semireducible hyp hyp_lhs hyp_rhs,
-  exfalso,
-  exact falso,
-  pure goal_solved
-} <|>
-pure not_simplified
-
-meta def decompose_and : expr → tactic (list expr) :=
-λ h, do
-  H ← infer_type h,
-  match H with
-  | `(%%P ∧ %%Q) := focus1 $ do
-    p ← to_expr ``(and.left %%h),
-    assertv_core h.local_pp_name P p,
-    q ← to_expr ``(and.right %%h),
-    assertv_core h.local_pp_name Q q,
-    when h.is_local_constant $ clear h,
-    p_hyp ← intro1,
-    next_p ← decompose_and p_hyp,
-    q_hyp ← intro1,
-    next_q ← decompose_and q_hyp,
-    pure $ next_p ++ next_q
-  | _ := pure [h]
-  end
-
--- TODO replace this whole thing with a call to the new `injection`.
-meta def simplify_constructor_equation (equ type lhs rhs lhs_whnf rhs_whnf : expr)
-  (u : level) : tactic simplification_result :=
-do {
-  (const f _) ← pure $ get_app_fn lhs_whnf,
-  (const g _) ← pure $ get_app_fn rhs_whnf,
-  if f ≠ g
-    then do
-      solve1 $ cases equ,
-      pure goal_solved
-    else do
-      inj ← mk_const (f ++ "inj"),
-      pr ← to_expr ``(%%inj %%equ),
-      pr_type ← infer_type pr,
-      assertv_core equ.local_pp_name pr_type pr,
-      clear equ,
-      equs ← intro1,
-      next_hyps ← decompose_and equs,
-      -- TODO better names for the new hyps produced by injection
-      pure $ simplified $ next_hyps.map expr.local_pp_name
-} <|>
-pure not_simplified
-
-meta def sequence_simplifiers (s t : tactic simplification_result) :
-  tactic simplification_result := do
-  r ← s,
-  match r with
-  | simplified _ := pure r
-  | goal_solved := pure r
-  | not_simplified := t
-  end
-
-meta def simplify_homogeneous_index_equation (equ type lhs rhs lhs_whnf rhs_whnf : expr)
-  (u : level) : tactic simplification_result := do
-  list.foldl sequence_simplifiers (pure not_simplified)
-    [ simplify_defeq_equation equ type lhs rhs lhs_whnf rhs_whnf u
-    , simplify_var_equation equ type lhs rhs lhs_whnf rhs_whnf u
-    , simplify_constructor_equation equ type lhs rhs lhs_whnf rhs_whnf u
-    , simplify_cyclic_equation equ type lhs rhs lhs_whnf rhs_whnf u
-    ]
-
-meta def simplify_index_equation (equ : name) : tactic simplification_result := do
-  eque ← get_local equ,
-  t ← infer_type eque,
-  match t with
-  | (app (app (app (const `eq [u]) type) lhs) rhs) := do
-    lhs_whnf ← whnf_ginductive lhs,
-    rhs_whnf ← whnf_ginductive rhs,
-    simplify_homogeneous_index_equation eque type lhs rhs lhs_whnf rhs_whnf u
-  | `(@heq %%lhs_type %%lhs %%rhs_type %%rhs) := do
-    simplify_heterogeneous_index_equation eque lhs_type rhs_type lhs rhs
-  | _ := fail! "Expected {equ} to be an equation, but its type is\n{t}."
-  end
-
-meta def simplify_index_equations : list name → tactic bool
-| [] := pure ff
-| (h :: hs) := do
-  res ← simplify_index_equation h,
-  match res with
-  | simplified hs' := simplify_index_equations $ hs' ++ hs
-  | not_simplified := simplify_index_equations hs
-  | goal_solved := pure tt
-  end
-
-namespace interactive
-
-open lean.parser
-
-meta def simplify_index_equations (eqs : interactive.parse (many ident)) :
-  tactic unit :=
-tactic.simplify_index_equations eqs *> skip
-
-end interactive
-
 -- TODO spaghetti much
 meta def ih_apps_aux : expr → list expr → ℕ → expr → tactic (expr × list expr)
 | res cnsts 0       _ := pure (res, cnsts.reverse)
@@ -1490,7 +701,7 @@ meta def simplify_ih (num_generalized : ℕ) (num_index_vars : ℕ) (ih : expr) 
 Returns the unique names of all hypotheses (local constants) in the context.
 -/
 -- TODO copied from init.meta.interactive
-private meta def hyp_unique_names : tactic name_set :=
+meta def hyp_unique_names : tactic name_set :=
 do ctx ← local_context,
    pure $ ctx.foldl (λ r h, r.insert h.local_uniq_name) mk_name_set
 
@@ -1499,7 +710,7 @@ Returns all hypotheses (local constants) from the context except those whose
 unique names are in `hyp_uids`.
 -/
 -- TODO copied from init.meta.interactive
-private meta def hyps_except (hyp_uids : name_set) : tactic (list expr) :=
+meta def hyps_except (hyp_uids : name_set) : tactic (list expr) :=
 do ctx ← local_context,
    pure $ ctx.filter (λ (h : expr), ¬ hyp_uids.contains h.local_uniq_name)
 
@@ -1510,7 +721,7 @@ do ctx ← local_context,
   associated with that goal and the hypotheses that were introduced.
 -/
 -- TODO copied from init.meta.interactive
-private meta def set_cases_tags (in_tag : tag) (rs : list (name × list expr)) : tactic unit :=
+meta def set_cases_tags (in_tag : tag) (rs : list (name × list expr)) : tactic unit :=
 do gs ← get_goals,
    match gs with
     -- if only one goal was produced, we should not make the tag longer
@@ -1543,10 +754,15 @@ meta def unfold_only_everywhere (to_unfold : list name) (fail_if_unchanged := tt
   unfold_only_target to_unfold fail_if_unchanged,
   intron n
 
+-- TODO we should probably take the dependency closure of hyp_unique_names.
 meta def revert_all_except (hyp_unique_names : name_set) : tactic ℕ := do
   ctx ← revertible_local_context,
   let ctx := ctx.filter (λ h, ¬ hyp_unique_names.contains h.local_uniq_name),
   revert_lst ctx
+
+end eliminate
+
+open eliminate
 
 meta def eliminate_hyp (generate_ihs : bool) (eliminee : expr)
   (gm := generalization_mode.generalize_all_except [])
@@ -1679,7 +895,7 @@ focus1 $ do
 
       -- Simplify the index equations. Stop after this step if the goal has been
       -- solved by the simplification.
-      ff ← simplify_index_equations index_equations
+      ff ← unify_equations index_equations
         | do {
             trace_eliminate_hyp "Case solved while simplifying index equations.",
             pure none
@@ -1752,7 +968,7 @@ end tactic
 
 namespace tactic.interactive
 
-open tactic interactive interactive.types lean.parser
+open tactic tactic.eliminate interactive interactive.types lean.parser
 
 meta def generalisation_mode_parser : lean.parser generalization_mode :=
   (tk "fixing" *>

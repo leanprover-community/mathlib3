@@ -7,6 +7,7 @@ Authors: Simon Hudon, Scott Morrison
 import tactic.interactive
 import tactic.finish
 import tactic.ext
+import tactic.mk_opaque
 import tactic.lift
 import tactic.apply
 import tactic.reassoc_axiom
@@ -537,6 +538,22 @@ begin
   intros,
   clear_value k f,
   exact unit.star
+end
+
+/-- test `mk_opaque` -/
+example : ∀ x y : ℤ, let z := x + y in x = z - y → true :=
+begin
+  introv h,
+  guard_hyp x := ℤ,
+  guard_hyp y := ℤ,
+  guard_hyp z := ℤ,
+  guard_hyp h := x = z - y,
+  do { to_expr ```(z) >>= is_local_def },
+  mk_opaque z,
+  guard_hyp z := ℤ,
+  success_if_fail { do { to_expr ```(z) >>= is_local_def } },
+  guard_hyp h := x = z - y,
+  trivial
 end
 
 end local_definitions

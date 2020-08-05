@@ -22,7 +22,7 @@ Support one-sided ideals, and ideals over non-commutative rings
 -/
 
 universes u v w
-variables {α : Type u} {β : Type v} {a b : α}
+variables {α : Type u} {β : Type v}
 open set function
 
 open_locale classical big_operators
@@ -32,7 +32,7 @@ open_locale classical big_operators
 @[reducible] def ideal (R : Type u) [comm_ring R] := submodule R R
 
 namespace ideal
-variables [comm_ring α] (I : ideal α)
+variables [comm_ring α] (I : ideal α) {a b : α}
 
 protected lemma zero_mem : (0 : α) ∈ I := I.zero_mem
 
@@ -49,6 +49,13 @@ protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := I.sub_mem
 lemma mul_mem_left : b ∈ I → a * b ∈ I := I.smul_mem _
 
 lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_left h
+end ideal
+
+variables {a b : α}
+
+-- A separate namespace definition is needed because the variables were historically in a different order
+namespace ideal
+variables [comm_ring α] (I : ideal α)
 
 @[ext] lemma ext {I J : ideal α} (h : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
 submodule.ext h

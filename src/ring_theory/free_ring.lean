@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin
 -/
 import group_theory.free_abelian_group
+import deprecated.ring
 
 universes u v
 
@@ -80,14 +81,19 @@ instance : is_ring_hom (lift f) :=
   map_add := lift_add f }
 
 @[simp] lemma lift_pow (x) (n : ℕ) : lift f (x ^ n) = lift f x ^ n :=
-is_semiring_hom.map_pow _ x n
+is_monoid_hom.map_pow _ x n
 
-@[simp] lemma lift_comp_of (f : free_ring α → β) [is_ring_hom f] : lift (f ∘ of) = f :=
+@[simp] lemma lift_comp_of (f : free_ring α →+* β) : lift (f ∘ of) = f :=
 funext $ λ x, free_ring.induction_on x
   (by rw [lift_neg, lift_one, is_ring_hom.map_neg f, is_ring_hom.map_one f])
   (lift_of _)
   (λ x y ihx ihy, by rw [lift_add, is_ring_hom.map_add f, ihx, ihy])
   (λ x y ihx ihy, by rw [lift_mul, is_ring_hom.map_mul f, ihx, ihy])
+
+/-- Lift of a map `f : α → β` to `free_ring α` as a ring homomorphism.
+We don't use it as the canonical form because Lean fails to coerce it to a function. -/
+def lift_hom : free_ring α →+* β :=
+⟨lift f, lift_one f, lift_mul f, lift_zero f, lift_add f⟩
 
 end lift
 
@@ -104,5 +110,9 @@ lift $ of ∘ f
 @[simp] lemma map_sub (x y) : map f (x - y) = map f x - map f y := lift_sub _ _ _
 @[simp] lemma map_mul (x y) : map f (x * y) = map f x * map f y := lift_mul _ _ _
 @[simp] lemma map_pow (x) (n : ℕ) : map f (x ^ n) = (map f x) ^ n := lift_pow _ _ _
+
+/-- A map `f : α → β` produces a ring homomorphism `free_ring α → free_ring β`. -/
+def map_hom : free_ring α →+* free_ring β :=
+lift_hom $ of ∘ f
 
 end free_ring

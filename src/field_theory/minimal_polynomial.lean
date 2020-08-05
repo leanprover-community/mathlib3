@@ -164,7 +164,8 @@ begin
   show is_root q a,
   apply (algebra_map α β).injective,
   rw [(algebra_map α β).map_zero, ← H],
-  exact q.hom_eval₂ (ring_hom.id _) (algebra_map α β) _,
+  convert q.hom_eval₂ (ring_hom.id _) (algebra_map α β) _,
+  rw [aeval_def, ring_hom.comp_id],
 end
 
 variable (β)

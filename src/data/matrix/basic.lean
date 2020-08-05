@@ -466,6 +466,9 @@ begin
   simp,
 end
 
+lemma scalar.commute [decidable_eq n] (r : α) (M : matrix n n α) : commute (scalar n r) M :=
+by simp [commute, semiconj_by]
+
 end comm_semiring
 
 section semiring
@@ -533,7 +536,7 @@ def std_basis_matrix (i : m) (j : n) (a : α) : matrix m n α :=
 
 @[simp] lemma smul_std_basis_matrix (i : m) (j : n) (a b : α) :
 b • std_basis_matrix i j a = std_basis_matrix i j (b • a) :=
-by { unfold std_basis_matrix, ext, dsimp, simp }
+by { unfold std_basis_matrix, ext, simp }
 
 @[simp] lemma std_basis_matrix_zero (i : m) (j : n) :
 std_basis_matrix i j (0 : α) = 0 :=

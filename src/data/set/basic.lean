@@ -851,8 +851,11 @@ theorem nonempty_diff {s t : set α} : (s \ t).nonempty ↔ ¬ (s ⊆ t) :=
 ⟨λ ⟨x, xs, xt⟩, not_subset.2 ⟨x, xs, xt⟩,
   λ h, let ⟨x, xs, xt⟩ := not_subset.1 h in ⟨x, xs, xt⟩⟩
 
-theorem union_diff_cancel {s t : set α} (h : s ⊆ t) : s ∪ (t \ s) = t :=
+theorem union_diff_cancel' {s t u : set α} (h₁ : s ⊆ t) (h₂ : t ⊆ u) : t ∪ (u \ s) = u :=
 by finish [ext_iff, iff_def, subset_def]
+
+theorem union_diff_cancel {s t : set α} (h : s ⊆ t) : s ∪ (t \ s) = t :=
+union_diff_cancel' (subset.refl s) h
 
 theorem union_diff_cancel_left {s t : set α} (h : s ∩ t ⊆ ∅) : (s ∪ t) \ s = t :=
 by finish [ext_iff, iff_def, subset_def]
@@ -1008,6 +1011,12 @@ theorem subset_of_mem_powerset {x s : set α} (h : x ∈ powerset s) : x ⊆ s :
 
 theorem mem_powerset_iff (x s : set α) : x ∈ powerset s ↔ x ⊆ s := iff.rfl
 
+@[simp] theorem powerset_mono : powerset s ⊆ powerset t ↔ s ⊆ t :=
+⟨λ h, h (subset.refl s), λ h u hu, subset.trans hu h⟩
+
+@[simp] theorem powerset_nonempty : (powerset s).nonempty :=
+⟨∅, empty_subset s⟩
+
 /-! ### Inverse image -/
 
 /-- The preimage of `s : set β` by `f : α → β`, written `f ⁻¹' s`,
@@ -1022,6 +1031,9 @@ variables {f : α → β} {g : β → γ}
 @[simp] theorem preimage_empty : f ⁻¹' ∅ = ∅ := rfl
 
 @[simp] theorem mem_preimage {s : set β} {a : α} : (a ∈ f ⁻¹' s) ↔ (f a ∈ s) := iff.rfl
+
+lemma preimage_congr {f g : α → β} {s : set β} (h : ∀ (x : α), f x = g x) : f ⁻¹' s = g ⁻¹' s :=
+by { congr, ext, apply_assumption }
 
 theorem preimage_mono {s t : set β} (h : s ⊆ t) : f ⁻¹' s ⊆ f ⁻¹' t :=
 assume x hx, h hx
@@ -1549,6 +1561,19 @@ end
 @[simp] lemma preimage_range (f : α → β) : f ⁻¹' (range f) = univ :=
 eq_univ_of_forall mem_range_self
 
+/-- The range of a function from a `unique` type contains just the
+function applied to its single value. -/
+lemma range_unique [h : unique ι] : range f = {f $ default ι} :=
+begin
+  ext x,
+  rw mem_range,
+  split,
+  { rintros ⟨i, hi⟩,
+    rw h.uniq i at hi,
+    exact hi ▸ mem_singleton _ },
+  { exact λ h, ⟨default ι, h.symm⟩ }
+end
+
 end range
 
 /-- The set `s` is pairwise `r` if `r x y` for all *distinct* `x y ∈ s`. -/
@@ -1583,6 +1608,10 @@ by { intros s t h, rw [←preimage_image_eq s hf, ←preimage_image_eq t hf, h] 
 
 lemma surjective.range_eq {f : ι → α} (hf : surjective f) : range f = univ :=
 range_iff_surjective.2 hf
+
+lemma surjective.preimage_subset_preimage_iff {s t : set β} (hf : surjective f) :
+  f ⁻¹' s ⊆ f ⁻¹' t ↔ s ⊆ t :=
+by { apply preimage_subset_preimage_iff, rw [hf.range_eq], apply subset_univ }
 
 lemma surjective.range_comp {ι' : Sort*} {f : ι → ι'} (hf : surjective f) (g : ι' → α) :
   range (g ∘ f) = range g :=
@@ -1625,11 +1654,14 @@ range_coe
   range (coe : subtype p → α) = {x | p x} :=
 range_coe
 
+@[simp] lemma coe_preimage_self (s : set α) : (coe : s → α) ⁻¹' s = univ :=
+by rw [← preimage_range (coe : s → α), range_coe]
+
 lemma range_val_subtype {p : α → Prop} :
   range (subtype.val : subtype p → α) = {x | p x} :=
 range_coe
 
-theorem coe_image_subset (s : set α) (t : set s) : t.image coe ⊆ s :=
+theorem coe_image_subset (s : set α) (t : set s) : coe '' t ⊆ s :=
 λ x ⟨y, yt, yvaleq⟩, by rw ←yvaleq; exact y.property
 
 theorem coe_image_univ (s : set α) : (coe : s → α) '' set.univ = s :=
@@ -1664,6 +1696,9 @@ begin
   rintro ⟨s, hs₁, hs₂⟩, refine ⟨coe ⁻¹' s, _⟩,
   rw [image_preimage_eq_of_subset], exact hs₂, rw [range_coe], exact hs₁
 end
+
+lemma preimage_coe_nonempty {s t : set α} : ((coe : s → α) ⁻¹' t).nonempty ↔ (s ∩ t).nonempty :=
+by rw [inter_comm, ← image_preimage_coe, nonempty_image_iff]
 
 end subtype
 

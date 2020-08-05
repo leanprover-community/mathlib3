@@ -193,16 +193,16 @@ eq_of_nhds_eq_nhds $ λ x, by
 end topological_group
 
 section quotient_topological_group
-variables [topological_space α] [group α] [topological_group α] (N : set α) [normal_subgroup N]
+variables [topological_space α] [group α] [topological_group α] (N : subgroup α) (n : N.normal)
 
 @[to_additive]
-instance {α : Type u} [group α] [topological_space α] (N : set α) [normal_subgroup N] :
+instance {α : Type u} [group α] [topological_space α] (N : subgroup α) :
   topological_space (quotient_group.quotient N) :=
 by dunfold quotient_group.quotient; apply_instance
 
 open quotient_group
 @[to_additive]
-lemma quotient_group_saturate {α : Type u} [group α] (N : set α) [normal_subgroup N] (s : set α) :
+lemma quotient_group_saturate {α : Type u} [group α] (N : subgroup α) (s : set α) :
   (coe : α → quotient N) ⁻¹' ((coe : α → quotient N) '' s) = (⋃ x : N, (λ y, y*x.1) '' s) :=
 begin
   ext x,
@@ -210,7 +210,7 @@ begin
   split,
   { exact assume ⟨a, a_in, h⟩, ⟨⟨_, h⟩, a, a_in, mul_inv_cancel_left _ _⟩ },
   { exact assume ⟨⟨i, hi⟩, a, ha, eq⟩,
-      ⟨a, ha, by simp only [eq.symm, (mul_assoc _ _ _).symm, inv_mul_cancel_left, hi]⟩ }
+      ⟨a, ha, by { simp only [eq.symm, (mul_assoc _ _ _).symm, inv_mul_cancel_left], exact hi }⟩ }
 end
 
 @[to_additive]
@@ -225,7 +225,7 @@ begin
 end
 
 @[to_additive]
-instance topological_group_quotient : topological_group (quotient N) :=
+instance topological_group_quotient (n : N.normal) : topological_group (quotient N) :=
 { continuous_mul := begin
     have cont : continuous ((coe : α → quotient N) ∘ (λ (p : α × α), p.fst * p.snd)) :=
       continuous_quot_mk.comp continuous_mul,

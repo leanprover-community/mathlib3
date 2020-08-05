@@ -279,11 +279,19 @@ theorem min'_le (x) (H2 : x ∈ s) : s.min' H ≤ x := min_le_of_mem H2 $ option
 
 theorem le_min' (x) (H2 : ∀ y ∈ s, x ≤ y) : x ≤ s.min' H := H2 _ $ min'_mem _ _
 
+/-- `{a}.min'` is `a`. -/
+@[simp] lemma min'_singleton (a : α) {h} : ({a} : finset α).min' h = a :=
+by simp [min']
+
 theorem max'_mem : s.max' H ∈ s := mem_of_max $ by simp [max']
 
 theorem le_max' (x) (H2 : x ∈ s) : x ≤ s.max' H := le_max_of_mem H2 $ option.get_mem _
 
 theorem max'_le (x) (H2 : ∀ y ∈ s, y ≤ x) : s.max' H ≤ x := H2 _ $ max'_mem _ _
+
+/-- `{a}.max'` is `a`. -/
+@[simp] lemma max'_singleton (a : α) {h} : ({a} : finset α).max' h = a :=
+by simp [max']
 
 theorem min'_lt_max' {i j} (H1 : i ∈ s) (H2 : j ∈ s) (H3 : i ≠ j) : s.min' H < s.max' H :=
 begin
@@ -426,6 +434,8 @@ end set
 
 namespace finset
 
+open function
+
 /-! ### Interaction with big lattice/set operations -/
 
 section lattice
@@ -472,6 +482,17 @@ lemma infi_finset_image {f : γ → α} {g : α → β} {s : finset γ} :
   (⨅ x ∈ s.image f, g x) = (⨅ y ∈ s, g (f y)) :=
 by rw [← infi_coe, coe_image, infi_image, infi_coe]
 
+lemma supr_insert_update {x : α} {t : finset α} (f : α → β) {s : β} (hx : x ∉ t) :
+  (⨆ (i ∈ insert x t), function.update f x s i) = (s ⊔ ⨆ (i ∈ t), f i) :=
+begin
+  simp only [finset.supr_insert, update_same],
+  congr' 2, ext i, congr' 1, ext hi, apply update_noteq, rintro rfl, exact hx hi
+end
+
+lemma infi_insert_update {x : α} {t : finset α} (f : α → β) {s : β} (hx : x ∉ t) :
+  (⨅ (i ∈ insert x t), update f x s i) = (s ⊓ ⨅ (i ∈ t), f i) :=
+@supr_insert_update α (order_dual β) _ _ _ _ f _ hx
+
 end lattice
 
 @[simp] theorem bUnion_coe (s : finset α) (t : α → set β) :
@@ -517,5 +538,13 @@ supr_finset_image
 @[simp] lemma bInter_finset_image {f : γ → α} {g : α → set β} {s : finset γ} :
   (⋂ x ∈ s.image f, g x) = (⋂ y ∈ s, g (f y)) :=
 infi_finset_image
+
+lemma bUnion_insert_update {x : α} {t : finset α} (f : α → set β) {s : set β} (hx : x ∉ t) :
+  (⋃ (i ∈ insert x t), @update _ _ _ f x s i) = (s ∪ ⋃ (i ∈ t), f i) :=
+supr_insert_update f hx
+
+lemma bInter_insert_update {x : α} {t : finset α} (f : α → set β) {s : set β} (hx : x ∉ t) :
+  (⋂ (i ∈ insert x t), @update _ _ _ f x s i) = (s ∩ ⋂ (i ∈ t), f i) :=
+infi_insert_update f hx
 
 end finset

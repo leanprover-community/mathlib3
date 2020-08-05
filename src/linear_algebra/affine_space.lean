@@ -588,6 +588,29 @@ end
 lemma ext_iff {n : ℕ} (s1 s2 : simplex k V P n): s1 = s2 ↔ ∀ i, s1.points i = s2.points i :=
 ⟨λ h _, h ▸ rfl, ext⟩
 
+/-- A face of a simplex is a simplex with the given subset of
+points. -/
+def face {n : ℕ} (s : simplex k V P n) {fs : finset (fin (n + 1))} {m : ℕ} (h : fs.card = m + 1) :
+  simplex k V P m :=
+⟨s.points ∘ fs.mono_of_fin h,
+ affine_independent_embedding_of_affine_independent
+   ⟨fs.mono_of_fin h, fs.mono_of_fin_injective h⟩ s.independent⟩
+
+/-- The points of a face of a simplex are given by `mono_of_fin`. -/
+lemma face_points {n : ℕ} (s : simplex k V P n) {fs : finset (fin (n + 1))} {m : ℕ}
+    (h : fs.card = m + 1) (i : fin (m + 1)) :
+  (s.face h).points i = s.points (fs.mono_of_fin h i) :=
+rfl
+
+/-- A single-point face equals the 0-simplex constructed with
+`mk_of_point`. -/
+@[simp] lemma face_eq_mk_of_point {n : ℕ} (s : simplex k V P n) (i : fin (n + 1)) :
+  s.face (finset.card_singleton i) = mk_of_point k V (s.points i) :=
+begin
+  ext i0,
+  simp [face_points]
+end
+
 end simplex
 
 end affine_space

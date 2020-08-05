@@ -502,8 +502,7 @@ begin
     have hws : w2 i0 - w1 i0 = 0,
     { rw ←finset.mem_coe at hi0,
       rw [←set.indicator_of_mem hi0 w2, ←set.indicator_of_mem hi0 w1, ha, sub_self] },
-    simp [w2] at hws,
-    exact hws }
+    simpa [w2] using hws }
 end
 
 variables {k V}

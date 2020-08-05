@@ -11,7 +11,7 @@ open_locale big_operators matrix
 open finset matrix simple_graph
 
 universes u v
-variables {α : Type u} [fintype α] [decidable_eq α]
+variables {α : Type u} [fintype α]
 variables (R : Type v) [semiring R]
 
 namespace simple_graph

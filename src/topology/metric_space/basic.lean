@@ -592,25 +592,98 @@ nhds_within_has_basis nhds_basis_ball s
 theorem mem_nhds_within_iff {t : set α} : s ∈ 𝓝[t] x ↔ ∃ε>0, ball x ε ∩ t ⊆ s :=
 nhds_within_basis_ball.mem_iff
 
+section epsilonify
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma eventually_nhds {a : α} {p : α → Prop} :
+  (∀ᶠ x in (𝓝 a), p x) ↔ ∃ δ > 0, ∀{x:α}, dist x a < δ → p x :=
+by simp only [nhds_basis_ball.eventually_iff, exists_prop, mem_ball]
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma eventually_nhds_within {a : α} {s : set α} {p : α → Prop} :
+  (∀ᶠ x in (𝓝[s] a), p x) ↔ ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → p x :=
+by simp only [nhds_within_basis_ball.eventually_iff, imp.swap, and_imp, exists_prop, mem_ball, mem_inter_eq]
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
+  tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∀ᶠ x in f, dist (u x) a < ε :=
+nhds_basis_ball.tendsto_right_iff
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma tendsto_nhds_within {f : filter β} {u : β → α} {a : α} :
+  tendsto u f (𝓝[s] a) ↔
+    ∀ ε > 0, (∀ᶠ x in f, dist (u x) a < ε ∧ u x ∈ s) :=
+by simp only [nhds_within_basis_ball.tendsto_right_iff, mem_ball, mem_inter_eq]
+
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem tendsto_nhds_within_nhds_within [metric_space β] {t : set β} {f : α → β} {a b} :
   tendsto f (𝓝[s] a) (𝓝[t] b) ↔
-    ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → f x ∈ t ∧ dist (f x) b < ε :=
-(nhds_within_basis_ball.tendsto_iff nhds_within_basis_ball).trans $
-  by simp only [inter_comm, mem_inter_iff, and_imp, mem_ball]
+    ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → dist (f x) b < ε ∧ f x ∈ t :=
+by simp [tendsto_nhds_within, eventually_nhds_within]
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem tendsto_nhds_within_nhds [metric_space β] {f : α → β} {a b} :
   tendsto f (𝓝[s] a) (𝓝 b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → dist (f x) b < ε :=
-by { rw [← nhds_within_univ b, tendsto_nhds_within_nhds_within],
-  simp only [mem_univ, true_and] }
+by simp [tendsto_nhds, eventually_nhds_within]
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem tendsto_nhds_nhds_within [metric_space β] {t : set β} {f : α → β} {a b} :
+  tendsto f (𝓝 a) (𝓝[t] b) ↔
+    ∀ ε > 0, ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) b < ε ∧ f x ∈ t :=
+nhds_basis_ball.tendsto_iff nhds_within_basis_ball
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem tendsto_nhds_nhds [metric_space β] {f : α → β} {a b} :
   tendsto f (𝓝 a) (𝓝 b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) b < ε :=
 nhds_basis_ball.tendsto_iff nhds_basis_ball
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem tendsto_at_top_nhds [nonempty β] [semilattice_sup β] {u : β → α} {a : α} :
+  tendsto u at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) a < ε :=
+by simp [tendsto_nhds, eventually_at_top]
+
+/-TODO
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem tendsto_at_bot_nhds [nonempty β] [semilattice_inf β] {u : β → α} {a : α} :
+  tendsto u at_bot (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) a < ε :=
+by simp [tendsto_nhds, eventually_at_bot]
+-/
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem tendsto_nhds_at_top [nonempty β] [semilattice_sup β] {u : α → β} {a : α} :
+  tendsto u (𝓝 a) at_top ↔ ∀M, ∃δ>0, ∀{x:α}, dist x a < δ → M ≤ u x:=
+by simp [tendsto_at_top, eventually_nhds]
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem tendsto_nhds_at_bot [nonempty β] [semilattice_inf β] {u : α → β} {a : α} :
+  tendsto u (𝓝 a) at_bot ↔ ∀M, ∃δ>0, ∀{x:α}, dist x a < δ → u x ≤ M:=
+by simp [tendsto_at_bot, eventually_nhds]
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem tendsto_at_top_nhds_within [nonempty β] [semilattice_sup β] {u : β → α} {a : α} :
+  tendsto u at_top (𝓝[s] a) ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) a < ε ∧ u n ∈ s :=
+by simp [tendsto_nhds_within, eventually_at_top]
+
+/-TODO
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem tendsto_at_bot_nhds_within [nonempty β] [semilattice_inf β] {u : β → α} {a : α} :
+  tendsto u at_bot (𝓝[s] a) ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) a < ε ∧ u n ∈ s :=
+by simp [tendsto_nhds, eventually_at_bot]
+-/
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem tendsto_nhds_within_at_top [nonempty β] [semilattice_sup β] {u : α → β} {a : α} :
+  tendsto u (𝓝[s] a) at_top ↔ ∀M, ∃δ>0, ∀{x:α}, x ∈ s → dist x a < δ → M ≤ u x:=
+by simp [tendsto_at_top, eventually_nhds_within]
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem tendsto_nhds_within_at_bot [nonempty β] [semilattice_inf β] {u : α → β} {a : α} :
+  tendsto u (𝓝[s] a) at_bot ↔ ∀M, ∃δ>0, ∀{x:α}, x ∈ s → dist x a < δ → u x ≤ M:=
+by simp [tendsto_at_bot, eventually_nhds_within]
+
+end epsilonify
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem continuous_at_iff [metric_space β] {f : α → β} {a : α} :
@@ -637,11 +710,6 @@ theorem continuous_iff [metric_space β] {f : α → β} :
 continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds_nhds
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
-  tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∀ᶠ x in f, dist (u x) a < ε :=
-nhds_basis_ball.tendsto_right_iff
-
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem continuous_at_iff' [topological_space β] {f : β → α} {b : β} :
   continuous_at f b ↔
   ∀ ε > 0, ∀ᶠ x in 𝓝 b, dist (f x) (f b) < ε :=
@@ -663,12 +731,6 @@ by simp [continuous_on, continuous_within_at_iff']
 theorem continuous_iff' [topological_space β] {f : β → α} :
   continuous f ↔ ∀a (ε > 0), ∀ᶠ x in 𝓝 a, dist (f x) (f a) < ε :=
 continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds
-
-@[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : α} :
-  tendsto u at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) a < ε :=
-(at_top_basis.tendsto_iff nhds_basis_ball).trans $
-  by { simp only [exists_prop, true_and], refl }
 
 end metric
 
@@ -908,7 +970,7 @@ lemma cauchy_seq_of_le_tendsto_0 {s : β → α} (b : β → ℝ)
   (h : ∀ n m N : β, N ≤ n → N ≤ m → dist (s n) (s m) ≤ b N) (h₀ : tendsto b at_top (nhds 0)) :
   cauchy_seq s :=
 metric.cauchy_seq_iff.2 $ λ ε ε0,
-  (metric.tendsto_at_top.1 h₀ ε ε0).imp $ λ N hN m n hm hn,
+  (metric.tendsto_at_top_nhds.1 h₀ ε ε0).imp $ λ N hN m n hm hn,
   calc dist (s m) (s n) ≤ b N : h m n N hm hn
                     ... ≤ abs (b N) : le_abs_self _
                     ... = dist (b N) 0 : by rw real.dist_0_eq_abs; refl
@@ -957,7 +1019,7 @@ lemma cauchy_seq_iff_le_tendsto_0 {s : ℕ → α} : cauchy_seq s ↔ ∃ b : �
   have S0m : ∀ n, (0:ℝ) ∈ S n := λ n, ⟨⟨n, n⟩, ⟨le_refl _, le_refl _⟩, dist_self _⟩,
   have S0 := λ n, real.le_Sup _ (hS n) (S0m n),
   -- Prove that it tends to `0`, by using the Cauchy property of `s`
-  refine ⟨λ N, Sup (S N), S0, ub, metric.tendsto_at_top.2 (λ ε ε0, _)⟩,
+  refine ⟨λ N, Sup (S N), S0, ub, metric.tendsto_at_top_nhds.2 (λ ε ε0, _)⟩,
   refine (metric.cauchy_seq_iff.1 hs (ε/2) (half_pos ε0)).imp (λ N hN n hn, _),
   rw [real.dist_0_eq_abs, abs_of_nonneg (S0 n)],
   refine lt_of_le_of_lt (real.Sup_le_ub _ ⟨_, S0m _⟩ _) (half_lt_self ε0),

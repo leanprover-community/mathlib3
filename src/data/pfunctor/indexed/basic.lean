@@ -147,9 +147,6 @@ variables {I J : Type u} {P : ipfunctor.{u} I J}
 open category_theory.functor.fam
 open fam set category_theory.functor
 
-@[simp]
-lemma then_def {X Y Z : fam I} (f : X ⟶ Y) (g : Y ⟶ Z) {i} (x : X i) : (f ≫ g) x = g (f x) := rfl
-
 /-- Eliminator for polynomial functor -/
 @[elab_as_eliminator]
 def obj_cases
@@ -234,8 +231,8 @@ begin
   { rintros ⟨u, xeq, yeq⟩ j z, cases h : u z with a f,
     -- use a, have := λ i (b : P.B j a i), (f b).val,
     use [a, λ i b, (f b).val.fst, λ i b, (f b).val.snd],
-    split, { rw [←xeq, then_def, h], refl },
-    split, { rw [←yeq, then_def, h], refl },
+    split, { rw [←xeq, comp_app, h], refl },
+    split, { rw [←yeq, comp_app, h], refl },
     intros i a, convert (f a).property, simp [fam.prod.fst,fam.prod.snd,fam.subtype.val] },
   rintros hv, dsimp [liftr],
   mk_constructive hv,

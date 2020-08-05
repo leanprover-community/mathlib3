@@ -222,7 +222,7 @@ end
 
 The outer Lebesgue measure is the completion of this measure. (TODO: proof this)
 -/
-instance : measure_space ℝ :=
+instance real.measure_space : measure_space ℝ :=
 ⟨{to_outer_measure := lebesgue_outer,
   m_Union :=
     have borel ℝ ≤ lebesgue_outer.caratheodory,

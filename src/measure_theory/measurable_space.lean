@@ -580,36 +580,59 @@ section prod
 instance [m₁ : measurable_space α] [m₂ : measurable_space β] : measurable_space (α × β) :=
 m₁.comap prod.fst ⊔ m₂.comap prod.snd
 
-lemma measurable_fst [measurable_space α] [measurable_space β] :
-  measurable (prod.fst : α × β → α) :=
+variables [measurable_space α] [measurable_space β] [measurable_space γ]
+
+lemma measurable_fst : measurable (prod.fst : α × β → α) :=
 measurable.of_comap_le le_sup_left
 
-lemma measurable.fst [measurable_space α] [measurable_space β] [measurable_space γ]
-  {f : α → β × γ} (hf : measurable f) : measurable (λa:α, (f a).1) :=
+lemma measurable.fst {f : α → β × γ} (hf : measurable f) : measurable (λa:α, (f a).1) :=
 measurable_fst.comp hf
 
-lemma measurable_snd [measurable_space α] [measurable_space β] :
-  measurable (prod.snd : α × β → β) :=
+lemma measurable_snd : measurable (prod.snd : α × β → β) :=
 measurable.of_comap_le le_sup_right
 
-lemma measurable.snd [measurable_space α] [measurable_space β] [measurable_space γ]
-  {f : α → β × γ} (hf : measurable f) : measurable (λa:α, (f a).2) :=
+lemma measurable.snd {f : α → β × γ} (hf : measurable f) : measurable (λa:α, (f a).2) :=
 measurable_snd.comp hf
 
-lemma measurable.prod [measurable_space α] [measurable_space β] [measurable_space γ]
-  {f : α → β × γ} (hf₁ : measurable (λa, (f a).1)) (hf₂ : measurable (λa, (f a).2)) :
-  measurable f :=
+lemma measurable.prod {f : α → β × γ}
+  (hf₁ : measurable (λa, (f a).1)) (hf₂ : measurable (λa, (f a).2)) : measurable f :=
 measurable.of_le_map $ sup_le
   (by { rw [measurable_space.comap_le_iff_le_map, measurable_space.map_comp], exact hf₁ })
   (by { rw [measurable_space.comap_le_iff_le_map, measurable_space.map_comp], exact hf₂ })
 
-lemma measurable.prod_mk [measurable_space α] [measurable_space β] [measurable_space γ]
-  {f : α → β} {g : α → γ} (hf : measurable f) (hg : measurable g) : measurable (λa:α, (f a, g a)) :=
+lemma measurable.prod_mk {f : α → β} {g : α → γ} (hf : measurable f) (hg : measurable g) :
+  measurable (λa:α, (f a, g a)) :=
 measurable.prod hf hg
 
-lemma is_measurable.prod [measurable_space α] [measurable_space β] {s : set α} {t : set β}
-  (hs : is_measurable s) (ht : is_measurable t) : is_measurable (set.prod s t) :=
+lemma is_measurable.prod {s : set α} {t : set β} (hs : is_measurable s) (ht : is_measurable t) :
+  is_measurable (s.prod t) :=
 is_measurable.inter (measurable_fst hs) (measurable_snd ht)
+
+lemma is_measurable.prod_mk_preimage_left {s : set (α × β)} (hs : is_measurable s) (y : β) :
+  is_measurable ((λ x, (x, y)) ⁻¹' s) :=
+measurable_id.prod_mk measurable_const hs
+
+lemma is_measurable.prod_mk_preimage_right {s : set (α × β)} (hs : is_measurable s) (x : α) :
+  is_measurable (prod.mk x ⁻¹' s) :=
+measurable_const.prod_mk measurable_id hs
+
+lemma is_measurable_prod_of_nonempty {s : set α} {t : set β} (h : (s.prod t).nonempty) :
+  is_measurable (s.prod t) ↔ is_measurable s ∧ is_measurable t :=
+begin
+  rcases h with ⟨⟨x, y⟩, hx, hy⟩,
+  refine ⟨λ hst, _, λ h, h.1.prod h.2⟩,
+  have := is_measurable.prod_mk_preimage_left hst y,
+  have := is_measurable.prod_mk_preimage_right hst x,
+  simp * at *
+end
+
+lemma is_measurable_prod {s : set α} {t : set β} :
+  is_measurable (s.prod t) ↔ (is_measurable s ∧ is_measurable t) ∨ s = ∅ ∨ t = ∅ :=
+begin
+  cases (s.prod t).eq_empty_or_nonempty with h h,
+  { simp [h, prod_eq_empty_iff.mp h] },
+  { simp [←not_nonempty_iff_eq_empty, prod_nonempty_iff.mp h, is_measurable_prod_of_nonempty h] }
+end
 
 end prod
 

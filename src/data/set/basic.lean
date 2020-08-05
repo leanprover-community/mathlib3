@@ -1722,7 +1722,12 @@ theorem mem_prod_eq {p : α × β} : p ∈ set.prod s t = (p.1 ∈ s ∧ p.2 ∈
 
 @[simp] theorem mem_prod {p : α × β} : p ∈ set.prod s t ↔ p.1 ∈ s ∧ p.2 ∈ t := iff.rfl
 
-lemma mk_mem_prod {a : α} {b : β} (a_in : a ∈ s) (b_in : b ∈ t) : (a, b) ∈ set.prod s t := ⟨a_in, b_in⟩
+lemma mk_mem_prod {a : α} {b : β} (a_in : a ∈ s) (b_in : b ∈ t) : (a, b) ∈ set.prod s t :=
+⟨a_in, b_in⟩
+
+theorem prod_mono {s₁ s₂ : set α} {t₁ t₂ : set β} (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) :
+  set.prod s₁ t₁ ⊆ set.prod s₂ t₂ :=
+assume x ⟨h₁, h₂⟩, ⟨hs h₁, ht h₂⟩
 
 lemma prod_subset_iff {P : set (α × β)} :
   (set.prod s t ⊆ P) ↔ ∀ (x ∈ s) (y ∈ t), (x, y) ∈ P :=
@@ -1735,21 +1740,6 @@ ext $ by simp [set.prod]
 @[simp] theorem empty_prod : set.prod ∅ t = (∅ : set (α × β)) :=
 ext $ by simp [set.prod]
 
-theorem insert_prod {a : α} {s : set α} {t : set β} :
-  set.prod (insert a s) t = (prod.mk a '' t) ∪ set.prod s t :=
-ext begin simp [set.prod, image, iff_def, or_imp_distrib] {contextual := tt}; cc end
-
-theorem prod_insert {b : β} {s : set α} {t : set β} :
-  set.prod s (insert b t) = ((λa, (a, b)) '' s) ∪ set.prod s t :=
-ext begin simp [set.prod, image, iff_def, or_imp_distrib] {contextual := tt}; cc end
-
-theorem prod_preimage_eq {f : γ → α} {g : δ → β} :
-  set.prod (preimage f s) (preimage g t) = preimage (λp, (f p.1, g p.2)) (set.prod s t) := rfl
-
-theorem prod_mono {s₁ s₂ : set α} {t₁ t₂ : set β} (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) :
-  set.prod s₁ t₁ ⊆ set.prod s₂ t₂ :=
-assume x ⟨h₁, h₂⟩, ⟨hs h₁, ht h₂⟩
-
 theorem prod_inter_prod : set.prod s₁ t₁ ∩ set.prod s₂ t₂ = set.prod (s₁ ∩ s₂) (t₁ ∩ t₂) :=
 subset.antisymm
   (assume ⟨a, b⟩ ⟨⟨ha₁, hb₁⟩, ⟨ha₂, hb₂⟩⟩, ⟨⟨ha₁, ha₂⟩, ⟨hb₁, hb₂⟩⟩)
@@ -1757,17 +1747,35 @@ subset.antisymm
     (prod_mono (inter_subset_left _ _) (inter_subset_left _ _))
     (prod_mono (inter_subset_right _ _) (inter_subset_right _ _)))
 
+theorem insert_prod {a : α} {s : set α} {t : set β} :
+  set.prod (insert a s) t = (prod.mk a '' t) ∪ set.prod s t :=
+begin ext ⟨x, y⟩, simp [set.prod, image, iff_def, or_imp_distrib, imp.swap] {contextual := tt} end
+
+theorem prod_insert {b : β} {s : set α} {t : set β} :
+  set.prod s (insert b t) = ((λa, (a, b)) '' s) ∪ set.prod s t :=
+begin ext ⟨x, y⟩, simp [set.prod, image, iff_def, or_imp_distrib, imp.swap] {contextual := tt} end
+
+theorem prod_preimage_eq {f : γ → α} {g : δ → β} :
+  set.prod (preimage f s) (preimage g t) = preimage (λp, (f p.1, g p.2)) (set.prod s t) := rfl
+
+@[simp] lemma mk_preimage_prod_left {y : β} (h : y ∈ t) : (λ x, (x, y)) ⁻¹' s.prod t = s :=
+by { ext x, simp [h] }
+
+@[simp] lemma mk_preimage_prod_right {x : α} (h : x ∈ s) : prod.mk x ⁻¹' s.prod t = t :=
+by { ext y, simp [h] }
+
 theorem image_swap_prod : (λp:β×α, (p.2, p.1)) '' set.prod t s = set.prod s t :=
-ext $ assume ⟨a, b⟩, by simp [mem_image_eq, set.prod, and_comm]; exact
-⟨ assume ⟨b', a', ⟨h_a, h_b⟩, h⟩, by subst a'; subst b'; assumption,
-  assume h, ⟨b, a, ⟨rfl, rfl⟩, h⟩⟩
+ext $ λ ⟨a, b⟩, by simp [mem_image_eq, set.prod, and_comm]; exact
+⟨ λ ⟨b', a', ⟨h_a, h_b⟩, h⟩, by subst a'; subst b'; assumption,
+  λ h, ⟨b, a, ⟨rfl, rfl⟩, h⟩⟩
 
 theorem image_swap_eq_preimage_swap : image (@prod.swap α β) = preimage prod.swap :=
 image_eq_preimage_of_inverse prod.swap_left_inverse prod.swap_right_inverse
 
 theorem prod_image_image_eq {m₁ : α → γ} {m₂ : β → δ} :
   set.prod (image m₁ s) (image m₂ t) = image (λp:α×β, (m₁ p.1, m₂ p.2)) (set.prod s t) :=
-ext $ by simp [-exists_and_distrib_right, exists_and_distrib_right.symm, and.left_comm, and.assoc, and.comm]
+ext $ by simp [-exists_and_distrib_right, exists_and_distrib_right.symm, and.left_comm,
+  and.assoc, and.comm]
 
 theorem prod_range_range_eq {α β γ δ} {m₁ : α → γ} {m₂ : β → δ} :
   set.prod (range m₁) (range m₂) = range (λp:α×β, (m₁ p.1, m₂ p.2)) :=
@@ -1805,7 +1813,7 @@ by simp only [not_nonempty_iff_eq_empty.symm, prod_nonempty_iff, classical.not_a
   (a, b) ∈ set.prod s t = (a ∈ s ∧ b ∈ t) := rfl
 
 @[simp] theorem univ_prod_univ : set.prod (@univ α) (@univ β) = univ :=
-ext $ assume ⟨a, b⟩, by simp
+ext $ λ ⟨a, b⟩, by simp
 
 lemma prod_sub_preimage_iff {W : set γ} {f : α × β → γ} :
   set.prod s t ⊆ f ⁻¹' W ↔ ∀ a b, a ∈ s → b ∈ t → f (a, b) ∈ W :=

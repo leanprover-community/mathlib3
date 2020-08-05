@@ -318,20 +318,8 @@ begin
  rw [mod_add_div m k, dvd_iff'.mp h, nat.mul_succ, add_comm],
 end
 
-theorem dvd_iff'' {k n : ℕ+} : k ∣ n ↔ ∃ m, k * m = n := exists_congr (λ a, ⟨eq.symm,eq.symm⟩)
-
-theorem dvd_intro {k n : ℕ+} (m : ℕ+) (h : k * m = n) : k ∣ n :=
- dvd_iff''.mpr ⟨m, h⟩
-
-@[simp]
-theorem dvd_refl (m : ℕ+) : m ∣ m := by refl -- is this necessary?
-
 theorem dvd_antisymm {m n : ℕ+} : m ∣ n → n ∣ m → m = n :=
 λ hmn hnm, le_antisymm (le_of_dvd hmn) (le_of_dvd hnm)
-
-protected theorem dvd_trans {k m n : ℕ+} : k ∣ m → m ∣ n → k ∣ n := dvd_trans -- is this necessary?
-
-theorem one_dvd (n : ℕ+) : 1 ∣ n := one_dvd _ -- is this necessary?
 
 theorem dvd_one_iff (n : ℕ+) : n ∣ 1 ↔ n = 1 :=
  ⟨λ h, dvd_antisymm h (one_dvd n), λ h, h.symm ▸ (dvd_refl 1)⟩

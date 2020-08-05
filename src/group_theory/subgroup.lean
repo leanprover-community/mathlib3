@@ -496,6 +496,11 @@ begin
 end
 
 @[to_additive]
+lemma coe_supr_of_directed {ι} [nonempty ι] {S : ι → subgroup G} (hS : directed (≤) S) :
+  ((⨆ i, S i : subgroup G) : set G) = ⋃ i, ↑(S i) :=
+set.ext $ λ x, by simp [mem_supr_of_directed hS]
+
+@[to_additive]
 lemma mem_Sup_of_directed_on {K : set (subgroup G)} (Kne : K.nonempty)
   (hK : directed_on (≤) K) {x : G} :
   x ∈ Sup K ↔ ∃ s ∈ K, x ∈ s :=
@@ -896,6 +901,13 @@ subgroup.ext'_iff.trans $ iff.trans (by rw [coe_range, coe_top]) set.range_iff_s
 lemma range_top_of_surjective {N} [group N] (f : G →* N) (hf : function.surjective f) :
   f.range = (⊤ : subgroup N) :=
 range_top_iff_surjective.2 hf
+
+/-- Restriction of a group hom to a subgroup of the codomain. -/
+@[to_additive "Restriction of an `add_group` hom to an `add_subgroup` of the codomain."]
+def cod_grestrict (f : G →* N) (S : subgroup N) (h : ∀ x, f x ∈ S) : G →* S :=
+{ to_fun := λ n, ⟨f n, h n⟩,
+  map_one' := subtype.eq f.map_one,
+  map_mul' := λ x y, subtype.eq (f.map_mul x y) }
 
 /-- The multiplicative kernel of a monoid homomorphism is the subgroup of elements `x : G` such that
 `f x = 1` -/

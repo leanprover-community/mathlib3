@@ -675,11 +675,14 @@ begin
   { have hx'' : x ∈ s ∩ frontier A, from ⟨hx.1, hx'⟩,
     rw inter_union_distrib_left,
     apply continuous_within_at.union,
-    all_goals
     { apply tendsto_nhds_within_congr,
       rintros y ⟨hys, hyA⟩,
-      { exact (piecewise_eq_of_mem _ _ _ hyA).symm <|>
-          exact (piecewise_eq_of_not_mem _ _ _ hyA).symm, },
+      exact (piecewise_eq_of_mem _ _ _ hyA).symm,
+      apply_assumption,
+      exact hx'' },
+    { apply tendsto_nhds_within_congr,
+      rintros y ⟨hys, hyA⟩,
+      exact (piecewise_eq_of_not_mem _ _ _ hyA).symm,
       apply_assumption,
       exact hx'' } },
   { rw inter_union_distrib_left at ⊢ hx,

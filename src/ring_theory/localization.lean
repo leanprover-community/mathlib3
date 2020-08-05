@@ -715,8 +715,11 @@ variables (f : localization_map M S)
 
 section ideals
 
-/-- Explicit definition of the ideal given by `ideal.map f.to_map I` -/
-def to_map_ideal (I : ideal R) : ideal S :=
+/-- Explicit characterization of the ideal given by `ideal.map f.to_map I`.
+In practice, this ideal differs only in that the carrier set is defined explicitly.
+This definition is only meant to be used in proving `mem_map_to_map_iff`,
+and any proof that needs to refer to the explicit carrier set should use that theorem. -/
+private def to_map_ideal (I : ideal R) : ideal S :=
 {carrier := { z : S | ∃ x : I × M, z * (f.to_map x.2) = f.to_map x.1},
   zero_mem' := ⟨⟨0, 1⟩, by simp⟩,
   add_mem' := by {
@@ -739,15 +742,15 @@ def to_map_ideal (I : ideal R) : ideal S :=
     ring, }
   }
 
-theorem map_to_map_eq_to_map_ideal {I : ideal R} : ideal.map f.to_map I = to_map_ideal f I :=
+theorem mem_map_to_map_iff {I : ideal R} {z} :
+  z ∈ ideal.map f.to_map I ↔ ∃ x : I × M, z * (f.to_map x.2) = f.to_map x.1 :=
 begin
-  refine le_antisymm _ _,
-  { refine λ _ h, ideal.mem_Inf.1 h (λ x hx, _),
-    obtain ⟨y, hy⟩ := hx,
+  split,
+  { show _ → z ∈ to_map_ideal f I,
+    refine λ h, ideal.mem_Inf.1 h (λ z hz, _),
+    obtain ⟨y, hy⟩ := hz,
     use ⟨⟨⟨y, hy.left⟩, 1⟩, by simp [hy.right]⟩ },
-  { intros x hx,
-    have : x ∈ (to_map_ideal f I).carrier := hx,
-    obtain ⟨⟨a, s⟩, h⟩ := this,
+  { rintros ⟨⟨a, s⟩, h⟩,
     rw [ideal.mem_iff_mul_unit_mem _ (map_units f s), mul_comm],
     exact h.symm ▸ ideal.mem_map_of_mem a.2 }
 end
@@ -767,21 +770,19 @@ theorem comap_map_of_is_prime_disjoint (I : ideal R) (hI : I.is_prime) (hM : dis
 begin
   refine le_antisymm _ ideal.le_comap_map,
   intros a ha,
-  rw ideal.mem_comap at ha,
-  rw map_to_map_eq_to_map_ideal at ha,
+  rw [ideal.mem_comap, mem_map_to_map_iff] at ha,
   obtain ⟨⟨b, s⟩, h⟩ := ha,
   have : f.to_map (a * ↑s - b) = 0 := by simpa [sub_eq_zero] using h,
   rw ← f.to_map.map_zero at this,
   rw eq_iff_exists f at this,
   obtain ⟨c, hc⟩ := this,
-  have : a * s ∈ I, {
-    rw zero_mul at hc,
+  have : a * s ∈ I,
+  { rw zero_mul at hc,
     let this : (a * ↑s - ↑b) * ↑c ∈ I := hc.symm ▸ I.zero_mem,
     cases hI.right this with h1 h2,
     { simpa using I.add_mem h1 b.2 },
     { exfalso,
-      refine hM ⟨c.2, h2⟩ }
-  },
+      refine hM ⟨c.2, h2⟩ } },
   cases hI.right this with h1 h2,
   { exact h1 },
   { exfalso,

@@ -75,10 +75,11 @@ begin
     exact λ J hJ, hx ⟨le_trans hP.left hJ.left, hJ.right⟩ }
 end
 
-/-- A ring `R` is Jacobson if and only if for every radical ideal `I`,
- `I` can be written as the infimum of some collection of maximal ideals. -/
+/-- A ring `R` is Jacobson if and only if for every prime ideal `I`,
+ `I` can be written as the infimum of some collection of maximal ideals.
+ Allowing ⊤ in the set `M` of maximal ideals is equivalent, but makes some proofs cleaner. -/
 lemma is_jacobson_iff_Inf_maximal : is_jacobson R ↔
-  ∀ {I : ideal R}, I.is_prime → ∃ M ⊆ {J : ideal R | J.is_maximal ∨ J = ⊤}, I = Inf M :=
+  ∀ {I : ideal R}, I.is_prime → ∃ M : set (ideal R), (∀ J ∈ M, is_maximal J ∨ J = ⊤) ∧ I = Inf M :=
 ⟨λ H I h, eq_jacobson_iff_Inf_maximal.1 (H _ (is_prime.radical h)),
   λ H , is_jacobson_iff_prime_eq.2 (λ P hP, eq_jacobson_iff_Inf_maximal.2 (H hP))⟩
 

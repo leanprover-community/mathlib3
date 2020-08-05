@@ -97,8 +97,10 @@ theorem mem_jacobson_iff {I : ideal R} {x : R} :
         neg_mul_eq_neg_mul_symm, neg_mul_eq_mul_neg, mul_comm x y]; exact M.mul_mem_right hy)
     (him hz)⟩
 
+/-- An ideal equals its jacobson radical iff it is the intersection of a set of maximal ideal.
+Allowing the set to include ⊤ is equivalent, and is included only to simplify some proofs. -/
 theorem eq_jacobson_iff_Inf_maximal {I : ideal R} :
-  I.jacobson = I ↔ ∃ M ⊆ {J : ideal R | J.is_maximal ∨ J = ⊤}, I = Inf M :=
+  I.jacobson = I ↔ ∃ M : set (ideal R), (∀ J ∈ M, is_maximal J ∨ J = ⊤) ∧ I = Inf M :=
 begin
   use λ hI, ⟨{J : ideal R | I ≤ J ∧ J.is_maximal}, ⟨λ _ hJ, or.inl hJ.right, hI.symm⟩⟩,
   rintros ⟨M, hM, hInf⟩,
@@ -107,11 +109,13 @@ begin
   rw hInf,
   erw mem_Inf at ⊢ hx,
   intros I hI,
-  cases hM hI with is_max is_top,
+  cases hM I hI with is_max is_top,
   { refine hx ⟨le_Inf_iff.1 (le_of_eq hInf) I hI, is_max⟩ },
   { rw is_top, exact submodule.mem_top }
 end
 
+/-- An ideal `I` equals its jacobson radical if and only if every element outside `I`
+also lies outside of a maximal ideal containing `I`. -/
 lemma eq_jacobson_iff_not_mem {I : ideal R} :
   I.jacobson = I ↔ ∀ x ∉ I, ∃ M : ideal R, (I ≤ M ∧ M.is_maximal) ∧ x ∉ M :=
 begin

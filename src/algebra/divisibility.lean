@@ -6,6 +6,7 @@ section comm_monoid
 
 variables [comm_monoid α] {a b c : α}
 
+@[priority 100]
 instance comm_monoid_has_dvd : has_dvd α :=
 has_dvd.mk (λ a b, ∃ c, b = a * c)
 

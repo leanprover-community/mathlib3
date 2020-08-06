@@ -578,8 +578,8 @@ omit hfc hgc
 /-- Cauchy's Mean Value Theorem, extended `has_deriv_at` version. -/
 lemma exists_ratio_has_deriv_at_eq_ratio_slope' {lfa lga lfb lgb : ℝ}
   (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hgg' : ∀ x ∈ Ioo a b, has_deriv_at g (g' x) x)
-  (hfa : tendsto f (nhds_within a $ Ioi a) (nhds lfa)) (hga : tendsto g (nhds_within a $ Ioi a) (nhds lga))
-  (hfb : tendsto f (nhds_within b $ Iio b) (nhds lfb)) (hgb : tendsto g (nhds_within b $ Iio b) (nhds lgb)) :
+  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 lfa)) (hga : tendsto g (𝓝[Ioi a] a) (𝓝 lga))
+  (hfb : tendsto f (𝓝[Iio b] b) (𝓝 lfb)) (hgb : tendsto g (𝓝[Iio b] b) (𝓝 lgb)) :
   ∃ c ∈ Ioo a b, (lgb - lga) * (f' c) = (lfb - lfa) * (g' c) :=
 begin
   let h := λ x, (lgb - lga) * f x - (lfb - lfa) * g x,
@@ -606,7 +606,7 @@ begin
   { intros x hx,
     simp only [h', h],
     exact ((hff' x hx).const_mul _ ).sub (((hgg' x hx)).const_mul _) },
-  rcases exists_has_deriv_at_eq_zero' h h' hab hha hhb hhh' with ⟨c, cmem, hc⟩,
+  rcases exists_has_deriv_at_eq_zero' hab hha hhb hhh' with ⟨c, cmem, hc⟩,
   exact ⟨ c, cmem, sub_eq_zero.1 hc ⟩
 end
 
@@ -637,9 +637,10 @@ exists_ratio_has_deriv_at_eq_ratio_slope f (deriv f) hab hfc
 omit hfc
 
 /-- Cauchy's Mean Value Theorem, extended `deriv` version. -/
-lemma exists_ratio_deriv_eq_ratio_slope' {lfa lga lfb lgb : ℝ} (hdf : differentiable_on ℝ f $ Ioo a b)
-  (hdg : differentiable_on ℝ g $ Ioo a b) (hfa : tendsto f (nhds_within a $ Ioi a) (nhds lfa)) (hga : tendsto g (nhds_within a $ Ioi a) (nhds lga))
-  (hfb : tendsto f (nhds_within b $ Iio b) (nhds lfb)) (hgb : tendsto g (nhds_within b $ Iio b) (nhds lgb)) :
+lemma exists_ratio_deriv_eq_ratio_slope' {lfa lga lfb lgb : ℝ}
+  (hdf : differentiable_on ℝ f $ Ioo a b) (hdg : differentiable_on ℝ g $ Ioo a b)
+  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 lfa)) (hga : tendsto g (𝓝[Ioi a] a) (𝓝 lga))
+  (hfb : tendsto f (𝓝[Iio b] b) (𝓝 lfb)) (hgb : tendsto g (𝓝[Iio b] b) (𝓝 lgb)) :
   ∃ c ∈ Ioo a b, (lgb - lga) * (deriv f c) = (lfb - lfa) * (deriv g c) :=
 exists_ratio_has_deriv_at_eq_ratio_slope' _ _ hab _ _
   (λ x hx, ((hdf x hx).differentiable_at $ Ioo_mem_nhds hx.1 hx.2).has_deriv_at)

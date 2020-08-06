@@ -29,7 +29,7 @@ attribute [instance] fin_category.decidable_eq_obj fin_category.fintype_obj
                      fin_category.decidable_eq_hom fin_category.fintype_hom
 
 -- We need a `decidable_eq` instance here to construct `fintype` on the morphism spaces.
-instance fin_category_discrete_of_decidable_fintype (J : Type v) [fintype J] [decidable_eq J] :
+instance fin_category_discrete_of_decidable_fintype (J : Type v) [decidable_eq J] [fintype J] :
   fin_category (discrete J) :=
 { }
 
@@ -41,22 +41,25 @@ namespace category_theory.limits
 
 variables (C : Type u) [category.{v} C]
 
-class has_finite_limits :=
-(has_limits_of_shape : Π (J : Type v) [small_category J] [fin_category J], has_limits_of_shape J C)
-class has_finite_colimits :=
-(has_colimits_of_shape : Π (J : Type v) [small_category J] [fin_category J], has_colimits_of_shape J C)
+def has_finite_limits : Type (max (v+1) u) :=
+Π (J : Type v) [𝒥 : small_category J] [@fin_category J 𝒥], @has_limits_of_shape J 𝒥 C _
 
-attribute [instance, priority 100] -- see Note [lower instance priority]
-  has_finite_limits.has_limits_of_shape
-  has_finite_colimits.has_colimits_of_shape
+attribute [class] has_finite_limits
 
-@[priority 100] -- see Note [lower instance priority]
-instance [has_limits C] : has_finite_limits C :=
-{ has_limits_of_shape := λ J _ _, by { resetI, apply_instance } }
-@[priority 100] -- see Note [lower instance priority]
-instance [has_colimits C] : has_finite_colimits C :=
-{ has_colimits_of_shape := λ J _ _, by { resetI, apply_instance } }
+instance has_limits_of_shape_of_has_finite_limits
+  (J : Type v) [small_category J] [fin_category J] [has_finite_limits C] :
+  has_limits_of_shape J C :=
+‹has_finite_limits C› J
 
+def has_finite_colimits : Type (max (v+1) u) :=
+Π (J : Type v) [𝒥 : small_category J] [@fin_category J 𝒥], @has_colimits_of_shape J 𝒥 C _
+
+attribute [class] has_finite_colimits
+
+instance has_colimits_of_shape_of_has_finite_colimits
+  (J : Type v) [small_category J] [fin_category J] [has_finite_colimits C] :
+  has_colimits_of_shape J C :=
+‹has_finite_colimits C› J
 
 section
 
@@ -134,10 +137,10 @@ instance fintype_hom [decidable_eq J] (j j' : wide_pushout_shape J) :
 
 end wide_pushout_shape
 
-instance fin_category_wide_pullback [fintype J] [decidable_eq J] : fin_category (wide_pullback_shape J) :=
+instance fin_category_wide_pullback [decidable_eq J] [fintype J] : fin_category (wide_pullback_shape J) :=
 { fintype_hom := wide_pullback_shape.fintype_hom }
 
-instance fin_category_wide_pushout [fintype J] [decidable_eq J] : fin_category (wide_pushout_shape J) :=
+instance fin_category_wide_pushout [decidable_eq J] [fintype J] : fin_category (wide_pushout_shape J) :=
 { fintype_hom := wide_pushout_shape.fintype_hom }
 
 /--
@@ -151,7 +154,8 @@ def has_finite_wide_pullbacks : Type (max (v+1) u) :=
 
 attribute [class] has_finite_wide_pullbacks
 
-instance (J : Type v) [decidable_eq J] [fintype J] [has_finite_wide_pullbacks C] :
+instance has_limits_of_shape_wide_pullback_shape
+  (J : Type v) [decidable_eq J] [fintype J] [has_finite_wide_pullbacks C] :
   has_limits_of_shape (wide_pullback_shape J) C :=
 ‹has_finite_wide_pullbacks C› J
 
@@ -164,7 +168,8 @@ def has_finite_wide_pushouts : Type (max (v+1) u) :=
 
 attribute [class] has_finite_wide_pushouts
 
-instance (J : Type v) [decidable_eq J] [fintype J] [has_finite_wide_pushouts C] :
+instance has_colimits_of_shape_wide_pushout_shape
+  (J : Type v) [decidable_eq J] [fintype J] [has_finite_wide_pushouts C] :
   has_colimits_of_shape (wide_pushout_shape J) C :=
 ‹has_finite_wide_pushouts C› J
 
@@ -173,14 +178,14 @@ Finite wide pullbacks are finite limits, so if `C` has all finite limits,
 it also has finite wide pullbacks
 -/
 def has_finite_wide_pullbacks_of_has_finite_limits [has_finite_limits C] : has_finite_wide_pullbacks C :=
-λ J _ _, by exactI (has_finite_limits.has_limits_of_shape _)
+λ J _ _, by exactI limits.has_limits_of_shape_of_has_finite_limits _ _
 
 /--
 Finite wide pushouts are finite colimits, so if `C` has all finite colimits,
 it also has finite wide pushouts
 -/
 def has_finite_wide_pushouts_of_has_finite_limits [has_finite_colimits C] : has_finite_wide_pushouts C :=
-λ J _ _, by exactI (has_finite_colimits.has_colimits_of_shape _)
+λ J _ _, by exactI limits.has_colimits_of_shape_of_has_finite_colimits _ _
 
 instance fintype_walking_pair : fintype walking_pair :=
 { elems := {walking_pair.left, walking_pair.right},

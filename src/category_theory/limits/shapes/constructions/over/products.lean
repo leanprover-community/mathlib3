@@ -119,7 +119,7 @@ def over_products_of_wide_pullbacks [has_wide_pullbacks C] {B : C} :
 /-- Given all finite wide pullbacks in `C`, construct finite products in `C/B`. -/
 def over_finite_products_of_finite_wide_pullbacks [has_finite_wide_pullbacks C] {B : C} :
   has_finite_products (over B) :=
-{ has_limits_of_shape := λ J 𝒥₁ 𝒥₂, by exactI over_product_of_wide_pullback }
+λ J 𝒥₁ 𝒥₂, by exactI over_product_of_wide_pullback
 
 end construct_products
 
@@ -130,21 +130,20 @@ way we want to define terminal objects.
 `over_product_of_wide_pullback` above.)
 -/
 def over_has_terminal (B : C) : has_terminal (over B) :=
-{ has_limits_of_shape :=
-  { has_limit := λ F,
-    { cone :=
-      { X := over.mk (𝟙 _),
-        π := { app := λ p, pempty.elim p } },
-      is_limit :=
-        { lift := λ s, over.hom_mk _,
-          fac' := λ _ j, j.elim,
-          uniq' := λ s m _,
-            begin
-              ext,
-              rw over.hom_mk_left,
-              have := m.w,
-              dsimp at this,
-              rwa [category.comp_id, category.comp_id] at this
-            end } } } }
+{ has_limit := λ F,
+  { cone :=
+    { X := over.mk (𝟙 _),
+      π := { app := λ p, pempty.elim p } },
+    is_limit :=
+      { lift := λ s, over.hom_mk _,
+        fac' := λ _ j, j.elim,
+        uniq' := λ s m _,
+          begin
+            ext,
+            rw over.hom_mk_left,
+            have := m.w,
+            dsimp at this,
+            rwa [category.comp_id, category.comp_id] at this
+          end } } }
 
 end category_theory.over

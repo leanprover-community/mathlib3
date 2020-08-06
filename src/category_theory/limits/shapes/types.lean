@@ -37,12 +37,11 @@ namespace category_theory.limits.types
 
 /-- The category of types has `punit` as a terminal object. -/
 def types_has_terminal : has_terminal (Type u) :=
-{ has_limits_of_shape :=
-  { has_limit := λ F,
-    { cone :=
-      { X := punit,
-        π := by tidy, },
-      is_limit := by tidy, } } }
+{ has_limit := λ F,
+  { cone :=
+    { X := punit,
+      π := by tidy, },
+    is_limit := by tidy, } }
 
 open category_theory.limits.walking_pair
 
@@ -85,10 +84,10 @@ def types_has_products : has_products (Type u) := λ J,
         exact this,
       end }, } }
 
-local attribute [instance, priority 200] types_has_terminal
 local attribute [instance, priority 200] types_has_products
--- We slightly increase the priority of `types_has_binary_products`
--- so that is comes ahead of `types_has_products`.
+-- We slightly increase the priority of `types_has_terminal` and `types_has_binary_products`
+-- so that they come ahead of `types_has_products`.
+local attribute [instance, priority 300] types_has_terminal
 local attribute [instance, priority 300] types_has_binary_products
 
 @[simp] lemma terminal : (⊤_ (Type u)) = punit := rfl

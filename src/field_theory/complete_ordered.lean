@@ -37,7 +37,7 @@ open set
 
 /-- The natural equiv between the rationals and the rationals as a set inside any characteristic 0
     division ring -/
-def prime_subfield_equiv (F : Type*) [division_ring F] [char_zero F] : ℚ ≃ range (coe : ℚ → F) :=
+def rat_equiv_of_char_zero (F : Type*) [division_ring F] [char_zero F] : ℚ ≃ range (coe : ℚ → F) :=
 equiv.set.range coe rat.cast_injective
 
 /-- The natural equiv between the rationals as a set inside any pair of characteristic 0
@@ -45,20 +45,20 @@ equiv.set.range coe rat.cast_injective
 def range_rat_equiv (F K : Type*)
   [division_ring F] [char_zero F] [division_ring K] [char_zero K] :
   range (coe : ℚ → F) ≃ range (coe : ℚ → K) :=
-(prime_subfield_equiv F).symm.trans (prime_subfield_equiv K)
+(rat_equiv_of_char_zero F).symm.trans (rat_equiv_of_char_zero K)
 
 @[simp]
 lemma range_rat_equiv_apply {F K : Type*} {q : ℚ}
   [division_ring F] [char_zero F] [division_ring K] [char_zero K] :
-  equiv_along_prime_subfield F K ⟨q, mem_range_self q⟩ = ⟨q, mem_range_self q⟩ :=
-by simp only [equiv_along_prime_subfield, prime_subfield_equiv, equiv.set.range_apply,
+  range_rat_equiv F K ⟨q, mem_range_self q⟩ = ⟨q, mem_range_self q⟩ :=
+by simp only [range_rat_equiv, rat_equiv_of_char_zero, equiv.set.range_apply,
   function.comp_app, subtype.mk_eq_mk, equiv.coe_trans, rat.cast_inj, equiv.symm_apply_eq]
 
 /-- The function sending subsets of the rationals embedded inside of one characteristic zero
     division ring to the corresponding subset of a second such ring. -/
 def cut_map (F K : Type*) [division_ring F] [char_zero F] [division_ring K] [char_zero K] :
   set (set.range (coe : ℚ → F)) → set (set.range (coe : ℚ → K)) :=
-λ c, (equiv_along_prime_subfield F K) '' c
+λ c, (range_rat_equiv F K) '' c
 
 local attribute [instance] pointwise_one pointwise_mul pointwise_add
 
@@ -212,7 +212,7 @@ begin
     subtype.coe_mk, subtype.val_eq_coe],
   use [q, mem_range_self q],
   rw [cut_map, mem_def],
-  use [q, q, ⟨hq, equiv_along_prime_subfield_apply_coe⟩],
+  use [q, q, ⟨hq, range_rat_equiv_apply⟩],
 end
 
 lemma cut_image_bdd_above (F K : Type*) [linear_ordered_field F] [archimedean F]
@@ -223,7 +223,7 @@ begin
   simp only [cut_image, mem_image, exists_and_distrib_right, exists_eq_right, subtype.exists,
     subtype.coe_mk, subtype.val_eq_coe],
   rintros t ⟨⟨q2, rfl⟩, ⟨⟨f, ⟨q3, rfl⟩⟩, ⟨ht1, ht2⟩⟩⟩,
-  erw equiv_along_prime_subfield_apply_coe at ht2,
+  erw range_rat_equiv_apply at ht2,
   simp only [subtype.mk_eq_mk, rat.cast_inj, rat.cast_le] at ht2 ⊢,
   rw ← ht2,
   suffices : (q3 : F) ≤ q,
@@ -236,11 +236,11 @@ lemma cut_image_subset (F K : Type*) [linear_ordered_field F] [linear_ordered_fi
   {x y : F} (h : x ≤ y) : cut_image F K x ⊆ cut_image F K y :=
 begin
   rintros t ⟨⟨y, ⟨q, rfl⟩⟩, ⟨⟨q2, ⟨q3, rfl⟩⟩, ht2, ht3⟩, rfl⟩,
-  erw equiv_along_prime_subfield_apply_coe at ht3,
+  erw range_rat_equiv_apply at ht3,
   rw ← ht3,
   use ⟨q3, mem_range_self q3⟩,
   use ⟨q3, mem_range_self q3⟩,
-  exact ⟨lt_of_lt_of_le ht2 h, equiv_along_prime_subfield_apply_coe⟩,
+  exact ⟨lt_of_lt_of_le ht2 h, range_rat_equiv_apply⟩,
 end
 
 lemma mem_cut_image_iff {F K : Type*} [linear_ordered_field F]
@@ -252,12 +252,12 @@ begin
     subtype.val_eq_coe],
   split,
   { rintros ⟨⟨q, _⟩, ⟨_, ⟨q2, rfl⟩⟩, hd, hh⟩,
-    erw equiv_along_prime_subfield_apply_coe at hh,
+    erw range_rat_equiv_apply at hh,
     simp only [subtype.mk_eq_mk, rat.cast_inj] at hh,
     exact ⟨q2, hh, hd⟩, },
   { rintro ⟨q, h, hx⟩,
     use [q, h, q, mem_range_self q],
-    simp only [equiv_along_prime_subfield_apply_coe, subtype.mk_eq_mk],
+    simp only [range_rat_equiv_apply, subtype.mk_eq_mk],
     exact ⟨hx, h⟩, },
 end
 

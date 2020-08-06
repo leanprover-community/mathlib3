@@ -683,6 +683,52 @@ theorem tendsto_nhds_within_at_bot [nonempty β] [semilattice_inf β] {u : α �
   tendsto u (𝓝[s] a) at_bot ↔ ∀M, ∃δ>0, ∀{x:α}, x ∈ s → dist x a < δ → u x ≤ M:=
 by simp [tendsto_at_bot, eventually_nhds_within]
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem tendsto_principal_nhds {u : β → α} {a : α} {t : set β} :
+  tendsto u (𝓟 t) (𝓝 a) ↔ ∀ε>0, ∀{x:β}, x ∈ t → dist (u x) a < ε:=
+by simp [tendsto_nhds, eventually_principal]
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem tendsto_nhds_principal {u : α → β} {a : α} {t : set β} :
+  tendsto u (𝓝 a) (𝓟 t) ↔ ∃δ>0, ∀{x}, dist x a < δ → u x ∈ t :=
+by simp [tendsto_principal, eventually_nhds]
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem tendsto_principal_nhds_within {u : β → α} {a : α} {t : set β} :
+  tendsto u (𝓟 t) (𝓝[s] a) ↔ ∀ε>0, ∀{x:β}, x ∈ t → dist (u x) a < ε ∧ u x ∈ s :=
+by simp [tendsto_nhds_within, eventually_principal]
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem tendsto_nhds_within_principal {u : α → β} {a : α} {t : set β} :
+  tendsto u (𝓝[s] a) (𝓟 t) ↔ ∃δ>0, ∀{x}, x ∈ s → dist x a < δ → u x ∈ t :=
+by simp [tendsto_principal, eventually_nhds_within]
+
+-- DOESN'T NEED METRIC SPACE
+theorem tendsto_principal_nhds_iff_eq {u : β → α} {a : α} {t : set β} :
+  tendsto u (𝓟 t) (𝓝 a) ↔ ∀{x}, x ∈ t → u x = a :=
+begin
+  rw tendsto_principal_nhds,
+  split,
+  { exact λ hdist _ hx, eq_of_forall_dist_le (λ ε hε, le_of_lt $ hdist ε hε hx) },
+  { intros heq ε hε x hx,
+    rw dist_eq_zero.mpr (heq hx),
+    exact hε }
+end
+
+theorem tendsto_principal_nhds_within_iff_eq_and_mem {u : β → α} {a : α} {t : set β} :
+  tendsto u (𝓟 t) (𝓝[s] a) ↔ (∀{x}, x ∈ t → u x = a ∧ u x ∈ s) :=
+begin
+  rw tendsto_principal_nhds_within,
+  split,
+  { exact λ h _ hx, ⟨eq_of_forall_dist_le (λ ε hε, le_of_lt (h ε hε hx).1),
+      (h 1 zero_lt_one hx).2⟩ },
+  { intros heq ε hε x hx,
+    rw dist_eq_zero.mpr (heq hx).1,
+    exact ⟨hε, (heq hx).2⟩ }
+end
+
+-- Add lemma about a ∈ s
+
 end epsilonify
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]

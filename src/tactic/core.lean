@@ -1622,7 +1622,7 @@ meta def needed_attr : user_attribute :=
   descr := "tag essential declarations to help identify unused definitions" }
 
 /-- `unneeded n m` removes from the map of unneeded declarations those
-referenced by declaration named `n` which is considerred to be a
+referenced by declaration named `n` which is considered to be a
 needed declaration -/
 private meta def unneeded : name → name_map declaration → tactic (name_map declaration)
 | n m :=

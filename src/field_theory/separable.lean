@@ -7,6 +7,7 @@ Authors: Kenny Lau.
 import algebra.polynomial.big_operators
 import field_theory.minimal_polynomial
 import field_theory.splitting_field
+import ring_theory.algebraic
 
 /-!
 
@@ -475,7 +476,19 @@ begin
   intro hf2, rw [hf2, C_0] at hf1, exact absurd hf1 hf0
 end
 
+section field_extension
+
+variables (F K : Type*) [field F] [field K] [algebra F K]
+
 /-- Typeclass for separable field extension: `K` is a separable field extension of `F` iff
-the minimal polynomial of every `x : K` is separable. -/
-@[class] def is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
+the minimal polynomial of every `x : K` exists and is separable. -/
+@[class] def is_separable : Prop :=
 ∀ x : K, ∃ H : is_integral F x, (minimal_polynomial H).separable
+
+/-- An algebraic field extension of characteristic zero is separable. -/
+instance is_separable_of_char_zero [char_zero F] [alg : algebra.is_algebraic F K] :
+  is_separable F K :=
+λ x, have int : is_integral F x := (is_algebraic_iff_is_integral _).mp (alg x),
+⟨int, irreducible.separable (minimal_polynomial.irreducible int) (minimal_polynomial.ne_zero int)⟩
+
+end field_extension

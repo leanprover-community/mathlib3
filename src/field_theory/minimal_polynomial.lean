@@ -77,6 +77,13 @@ calc degree (minimal_polynomial hx) ≤ degree (p * C (leading_coeff p)⁻¹) :
     min _ (monic_mul_leading_coeff_inv pnz) (by simp [hp])
   ... = degree p : degree_mul_leading_coeff_inv p pnz
 
+/-- If an element x is a root of a polynomial p with degree less than the minimal polynomial,
+then the polynomial is zero.-/
+lemma eq_zero_of_degree_lt
+{p : polynomial α} (hd : degree p < degree (minimal_polynomial hx)) (hp : polynomial.aeval x p = 0) :
+  p = 0 :=
+by { contrapose! hd with hnz, exact degree_le_of_ne_zero hx hnz hp }
+
 /--The minimal polynomial of an element x is uniquely characterized by its defining property:
 if there is another monic polynomial of minimal degree that has x as a root,
 then this polynomial is equal to the minimal polynomial of x.-/

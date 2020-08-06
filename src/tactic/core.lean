@@ -1611,6 +1611,38 @@ add_tactic_doc
 
 attribute [higher_order map_comp_pure] map_pure
 
+
+/--
+Copies a definition into the `tactic.interactive` namespace to make it usable
+in proof scripts. It allows one to write
+
+```lean
+@[interactive]
+meta def my_tactic := ...
+```
+
+instead of
+
+```lean
+meta def my_tactic := ...
+
+run_cmd add_interactive [``my_tactic]
+```
+-/
+@[user_attribute]
+meta def interactive_attr : user_attribute :=
+{ name := `interactive,
+  descr :=
+"Put a definition in the `tactic.interactive` namespace to make it usable
+in proof scripts.",
+  after_set := some $ λ tac _ _, add_interactive [tac] }
+
+add_tactic_doc
+{ name                     := "interactive",
+  category                 := doc_category.attr,
+  decl_names               := [``tactic.interactive_attr],
+  tags                     := ["environment"] }
+
 /--
 Use `refine` to partially discharge the goal,
 or call `fconstructor` and try again.

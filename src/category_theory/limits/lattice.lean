@@ -46,7 +46,7 @@ instance has_limits_of_complete_lattice [complete_lattice α] : has_limits α :=
         { app := λ j, ⟨⟨complete_lattice.Inf_le _ _ (set.mem_range_self _)⟩⟩ } },
       is_limit :=
       { lift := λ s, ⟨⟨complete_lattice.le_Inf _ _
-        begin rintros _ ⟨j, rfl⟩, exact (s.π.app j).down.down, end⟩⟩ } } } }
+        begin rintros _ ⟨j, rfl⟩, exact le_of_hom (s.π.app j), end⟩⟩ } } } }
 
 @[priority 100] -- see Note [lower instance priority]
 instance has_colimits_of_complete_lattice [complete_lattice α] : has_colimits α :=
@@ -58,6 +58,6 @@ instance has_colimits_of_complete_lattice [complete_lattice α] : has_colimits �
         { app := λ j, ⟨⟨complete_lattice.le_Sup _ _ (set.mem_range_self _)⟩⟩ } },
       is_colimit :=
       { desc := λ s, ⟨⟨complete_lattice.Sup_le _ _
-        begin rintros _ ⟨j, rfl⟩, exact (s.ι.app j).down.down, end⟩⟩ } } } }
+        begin rintros _ ⟨j, rfl⟩, exact le_of_hom (s.ι.app j), end⟩⟩ } } } }
 
 end category_theory.limits

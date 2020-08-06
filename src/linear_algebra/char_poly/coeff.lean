@@ -35,7 +35,7 @@ open polynomial matrix
 open_locale big_operators
 
 variables {R : Type u} [comm_ring R]
-variables {n G : Type v} [fintype n] [decidable_eq n]
+variables {n G : Type v} [decidable_eq n] [fintype n]
 variables {α β : Type v} [decidable_eq α]
 
 

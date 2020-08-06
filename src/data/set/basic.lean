@@ -1747,15 +1747,14 @@ by { ext, simp }
 @[simp] theorem univ_prod_univ : (@univ α).prod (@univ β) = univ :=
 by { ext ⟨x, y⟩, simp }
 
-@[simp] theorem singleton_prod_singleton {a : α} {b : β} :
-  set.prod {a} {b} = ({(a, b)} : set (α × β)) :=
-by { ext ⟨x, y⟩, simp }
-
 @[simp] theorem singleton_prod {a : α} : set.prod {a} t = prod.mk a '' t :=
 by { ext ⟨x, y⟩, simp [and.left_comm, eq_comm] }
 
 @[simp] theorem prod_singleton {b : β} : s.prod {b} = (λ a, (a, b)) '' s :=
 by { ext ⟨x, y⟩, simp [and.left_comm, eq_comm] }
+
+theorem singleton_prod_singleton {a : α} {b : β} : set.prod {a} {b} = ({(a, b)} : set (α × β)) :=
+by simp
 
 @[simp] theorem union_prod : (s₁ ∪ s₂).prod t = s₁.prod t ∪ s₂.prod t :=
 by { ext ⟨x, y⟩, simp [or_and_distrib_right] }

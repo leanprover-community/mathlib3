@@ -54,7 +54,7 @@ equiv.set.range coe rat.cast_injective
 
 /-- The natural equiv between the rationals as a set inside any pair of characteristic 0
     division rings -/
-def equiv_along_prime_subfield (F K : Type*)
+def range_rat_equiv (F K : Type*)
   [division_ring F] [char_zero F] [division_ring K] [char_zero K] :
   range (coe : ℚ → F) ≃ range (coe : ℚ → K) :=
 (prime_subfield_equiv F).symm.trans (prime_subfield_equiv K)

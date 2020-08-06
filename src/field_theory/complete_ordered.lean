@@ -60,7 +60,7 @@ def range_rat_equiv (F K : Type*)
 (prime_subfield_equiv F).symm.trans (prime_subfield_equiv K)
 
 @[simp]
-lemma equiv_along_prime_subfield_apply_coe {F K : Type*} {q : ℚ}
+lemma range_rat_equiv_apply {F K : Type*} {q : ℚ}
   [division_ring F] [char_zero F] [division_ring K] [char_zero K] :
   equiv_along_prime_subfield F K ⟨q, mem_range_self q⟩ = ⟨q, mem_range_self q⟩ :=
 by simp only [equiv_along_prime_subfield, prime_subfield_equiv, equiv.set.range_apply,

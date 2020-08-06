@@ -19,7 +19,7 @@ This file shows that the reals are unique, or, more formally, given a type satis
 axioms of the reals (field, conditionally complete, linearly ordered) that there is an equivalence
 preserving these properties to the reals. This is `ordered_ring_equiv`.
 
-We introduce definitions of Conditionally complete linear ordered fields, show all such are
+We introduce definitions of conditionally complete linear ordered fields, show all such are
 archimedean, and define equivalences between these fields. We also construct the natural map from a
 `linear_ordered_field` to such a field.
 

@@ -421,6 +421,10 @@ trivial
   s ∈ f ⊔ g ↔ s ∈ f ∧ s ∈ g :=
 iff.rfl
 
+lemma union_mem_sup {f g : filter α} {s t : set α} (hs : s ∈ f) (ht : t ∈ g) :
+  s ∪ t ∈ f ⊔ g :=
+⟨mem_sets_of_superset hs (subset_union_left s t), mem_sets_of_superset ht (subset_union_right s t)⟩
+
 @[simp] lemma mem_Sup_sets {x : set α} {s : set (filter α)} :
   x ∈ Sup s ↔ (∀f∈s, x ∈ (f:filter α)) :=
 iff.rfl
@@ -1136,13 +1140,11 @@ lemma eventually_eq.rw {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) (p : 
   ∀ᶠ x in l, p x (g x) :=
 hf.congr $ h.mono $ λ x hx, hx ▸ iff.rfl
 
-lemma eventually_set_ext {s t : set α} {l : filter α} :
+lemma eventually_eq_set {s t : set α} {l : filter α} :
    s =ᶠ[l] t ↔ ∀ᶠ x in l, x ∈ s ↔ x ∈ t :=
 eventually_congr $ eventually_of_forall $ λ x, ⟨eq.to_iff, iff.to_eq⟩
 
-lemma eventually_eq.mem_iff {s t : set α} {l : filter α} (h : s =ᶠ[l] t) :
-  ∀ᶠ x in l, x ∈ s ↔ x ∈ t :=
-eventually_set_ext.1 h
+alias eventually_eq_set ↔ filter.eventually_eq.mem_iff filter.eventually.set_eq
 
 lemma eventually_eq.exists_mem {l : filter α} {f g : α → β} (h : f =ᶠ[l] g) :
   ∃ s ∈ l, eq_on f g s :=
@@ -1155,6 +1157,10 @@ eventually_of_mem hs h
 lemma eventually_eq_iff_exists_mem {l : filter α} {f g : α → β} :
   (f =ᶠ[l] g) ↔ ∃ s ∈ l, eq_on f g s :=
 eventually_iff_exists_mem
+
+lemma eventually_eq.filter_mono {l l' : filter α} {f g : α → β} (h₁ : f =ᶠ[l] g) (h₂ : l' ≤ l) :
+  f =ᶠ[l'] g :=
+h₂ h₁
 
 @[refl] lemma eventually_eq.refl (l : filter α) (f : α → β) :
   f =ᶠ[l] f :=
@@ -1996,6 +2002,8 @@ lemma eventually_eq_of_left_inv_of_right_inv {f : α → β} {g₁ g₂ : β →
 lemma tendsto_iff_comap {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ l₁ ≤ l₂.comap f :=
 map_le_iff_le_comap
+
+alias tendsto_iff_comap ↔ filter.tendsto.le_comap _
 
 lemma tendsto_congr' {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β} (hl : f₁ =ᶠ[l₁] f₂) :
   tendsto f₁ l₁ l₂ ↔ tendsto f₂ l₁ l₂ :=

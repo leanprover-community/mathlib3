@@ -184,7 +184,7 @@ cardinality of the basis. -/
 lemma dim_eq_card_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K b) :
   dim K V = fintype.card ι :=
 by rw [←h.mk_range_eq_dim, cardinal.fintype_card,
-       set.card_range_of_injective (h.injective zero_ne_one)]
+       set.card_range_of_injective h.injective]
 
 
 /-- If a vector space has a finite basis, then its dimension is equal to the cardinality of the

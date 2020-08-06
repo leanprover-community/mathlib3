@@ -663,6 +663,7 @@ def has_biproduct_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π
     fac' := λ s j,
     begin
       simp only [sum_comp, category.assoc, bicone.to_cone_π_app, b.ι_π, comp_dite],
+      -- See note [dsimp, simp].
       dsimp, simp,
     end },
   is_colimit :=

@@ -954,7 +954,7 @@ end cos_div_pow_two
 
 /-- The type of angles -/
 def angle : Type :=
-quotient_add_group.quotient (gmultiples (2 * π))
+quotient_add_group.quotient (add_subgroup.gmultiples (2 * π))
 
 namespace angle
 
@@ -965,9 +965,6 @@ instance : inhabited angle := ⟨0⟩
 
 instance angle.has_coe : has_coe ℝ angle :=
 ⟨quotient.mk'⟩
-
-instance angle.is_add_group_hom : @is_add_group_hom ℝ angle _ _ (coe : ℝ → angle) :=
-@quotient_add_group.is_add_group_hom _ _ _ (normal_add_subgroup_of_add_comm_group _)
 
 @[simp] lemma coe_zero : ↑(0 : ℝ) = (0 : angle) := rfl
 @[simp] lemma coe_add (x y : ℝ) : ↑(x + y : ℝ) = (↑x + ↑y : angle) := rfl
@@ -981,10 +978,11 @@ by simpa using add_monoid_hom.map_nsmul ⟨coe, coe_zero, coe_add⟩ _ _
 by simpa using add_monoid_hom.map_gsmul ⟨coe, coe_zero, coe_add⟩ _ _
 
 @[simp] lemma coe_two_pi : ↑(2 * π : ℝ) = (0 : angle) :=
-quotient.sound' ⟨-1, by dsimp only; rw [neg_one_gsmul, add_zero]⟩
+quotient.sound' ⟨-1, show (-1 : ℤ) •ℤ (2 * π) = _, by rw [neg_one_gsmul, add_zero]⟩
 
 lemma angle_eq_iff_two_pi_dvd_sub {ψ θ : ℝ} : (θ : angle) = ψ ↔ ∃ k : ℤ, θ - ψ = 2 * π * k :=
-by simp only [quotient_add_group.eq, gmultiples, set.mem_range, gsmul_eq_mul', (sub_eq_neg_add _ _).symm, eq_comm]
+by simp only [quotient_add_group.eq, add_subgroup.gmultiples_eq_closure,
+  add_subgroup.mem_closure_singleton, gsmul_eq_mul', (sub_eq_neg_add _ _).symm, eq_comm]
 
 theorem cos_eq_iff_eq_or_eq_neg {θ ψ : ℝ} : cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
 begin
@@ -1033,7 +1031,7 @@ begin
   cases cos_eq_iff_eq_or_eq_neg.mp Hcos with hc hc, { exact hc },
   cases sin_eq_iff_eq_or_add_eq_pi.mp Hsin with hs hs, { exact hs },
   rw [eq_neg_iff_add_eq_zero, hs] at hc,
-  cases quotient.exact' hc with n hn, dsimp only at hn,
+  cases quotient.exact' hc with n hn, change n •ℤ _ = _ at hn,
   rw [← neg_one_mul, add_zero, ← sub_eq_zero_iff_eq, gsmul_eq_mul, ← mul_assoc, ← sub_mul,
       mul_eq_zero, eq_false_intro (ne_of_gt pi_pos), or_false, sub_neg_eq_add,
       ← int.cast_zero, ← int.cast_one, ← int.cast_bit0, ← int.cast_mul, ← int.cast_add, int.cast_inj] at hn,

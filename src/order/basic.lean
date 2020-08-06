@@ -203,15 +203,17 @@ begin
     apply h _ _ k }
 end
 
-variables [partial_order α] [partial_order β] {f : α → β}
-
-lemma strict_mono_of_monotone_of_injective (h₁ : monotone f) (h₂ : injective f) :
-  strict_mono f :=
+lemma strict_mono_of_monotone_of_injective [partial_order α] [partial_order β] {f : α → β}
+  (h₁ : monotone f) (h₂ : injective f) : strict_mono f :=
 λ a b h,
 begin
   rw lt_iff_le_and_ne at ⊢ h,
   exact ⟨h₁ h.1, λ e, h.2 (h₂ e)⟩
 end
+
+lemma strict_mono_of_le_iff_le [preorder α] [preorder β] {f : α → β}
+  (h : ∀ x y, x ≤ y ↔ f x ≤ f y) : strict_mono f :=
+λ a b, by simp [lt_iff_le_not_le, h] {contextual := tt}
 
 end
 

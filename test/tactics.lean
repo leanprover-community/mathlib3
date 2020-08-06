@@ -528,6 +528,7 @@ begin
   success_if_fail_with_msg {clear_value k}
     "Cannot clear the body of k. The resulting goal is not type correct.",
   clear_value k f,
+  get_local `k, -- test that `k` is not renamed.
   exact unit.star
 end
 

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Zhouhang Zhou
+Authors: Zhouhang Zhou, Yury Kudryashov
 -/
 import measure_theory.bochner_integration
 import analysis.normed_space.indicator_function
@@ -9,17 +9,43 @@ import analysis.normed_space.indicator_function
 /-!
 # Set integral
 
-This file is temporarily commented out because of an ongoing refactor.
+In this file we prove some properties of `∫ x in s, f x ∂μ`. Recall that this is notation
+is defined as `∫ x, f x ∂(μ.restrict s)`. In `integral_indicator` we prove that for a measurable
+function `f` and a measurable set `s` this definition coincides with another natural definition:
+`∫ x, indicator s f x ∂μ = ∫ x in s, f x ∂μ`, where `indicator s f x` is equal to `f x` for `x ∈ s`
+and is zero otherwise.
 
-Integrate a function over a subset of a measure space.
+Since `∫ x in s, f x ∂μ` is a notation, one can rewrite or apply any theorem about `∫ x, f x ∂μ`
+directly. In this file we prove some theorems about dependence of `∫ x in s, f x ∂μ` on `s`, e.g.
+`integral_union`, `integral_empty`, `integral_univ`.
 
-## Main definitions
+We also define `integrable_on f s μ := integrable f (μ.restrict s)` and prove theorems like
+`integrable_on_union : integrable_on f (s ∪ t) μ ↔ integrable_on f s μ ∧ integrable_on f t μ`.
 
-`measurable_on`, `integrable_on`, `integral_on`
+Next we definte a predicate `integrable_at_filter (f : α → E) (l : filter α) (μ : measure α)`
+saying that `f` is integrable at some set `s ∈ l` and prove that a function is integrable
+at `l` with respect to `μ` provided that `f` is bounded above at `l ⊓ μ.ae` and `μ` is finite
+at `l`.
+
+Finally, we prove a versionof the
+[Fundamental theorem of calculus](https://en.wikipedia.org/wiki/Fundamental_theorem_of_calculus)
+for set integral, see `filter.tendsto.integral_sub_linear_is_o_ae` and its corollaries.
+Namely, consider a measurably generated filter `l`, a measure `μ` finite at this filter, and
+a function `f` that has a finite limit `c` at `l ⊓ μ.ae`. Then `∫ x in s, f x ∂μ = μ s • c + o(μ s)`
+as `s` tends to `l.lift' powerset`, i.e. for any `ε>0` there exists `t ∈ l` such that
+`∥∫ x in s, f x ∂μ - μ s • c∥ ≤ ε * μ s` whenever `s ⊆ t`. We also formulate a version of this
+theorem for a locally finite measure `μ` and a function `f` continuous at a point `a`.
 
 ## Notation
 
 `∫ a in s, f a` is `measure_theory.integral (s.indicator f)`
+
+## TODO
+
+The file ends with over a hundred lines of commented out code. This is the old contents of this file
+using the `indicator` approach to the definition of `∫ x in s, f x ∂μ`. This code should be
+migrated to the new definition.
+
 -/
 
 noncomputable theory
@@ -144,10 +170,14 @@ by { delta integrable_on, rw measure.restrict_add, exact hμ.integrable.add_meas
   h.mono_meas (measure.le_add_left (le_refl _))⟩,
   λ h, h.1.add_meas h.2⟩
 
+lemma integrable_indicator_iff (hs : is_measurable s) :
+  integrable (indicator s f) μ ↔ integrable_on f s μ :=
+by simp only [integrable_on, integrable, nnnorm_indicator_eq_indicator_nnnorm,
+  ennreal.coe_indicator, lintegral_indicator _ hs]
+
 lemma integrable_on.indicator (h : integrable_on f s μ) (hs : is_measurable s) :
   integrable (indicator s f) μ :=
-by simpa only [integrable_on, integrable, nnnorm_indicator_eq_indicator_nnnorm,
-  ennreal.coe_indicator, lintegral_indicator _ hs] using h
+(integrable_indicator_iff hs).2 h
 
 lemma integrable_on_of_bounded {C} (hs : μ s < ⊤) (hf : ∀ᵐ x ∂(μ.restrict s), ∥f x∥ ≤ C) :
   integrable_on f s μ :=
@@ -191,6 +221,8 @@ end
 
 alias integrable_at_filter.inf_ae_iff ↔ measure_theory.integrable_at_filter.of_inf_ae _
 
+/-- If `μ` is a measure finite at filter `l` and `f` is a function such that its norm is bounded
+above at `l`, then `f` is integrable at `l`. -/
 lemma measure.finite_at_filter.integrable_at_filter {l : filter α} [is_measurably_generated l]
   (hμ : μ.finite_at_filter l) (hf : l.is_bounded_under (≤) (norm ∘ f)) :
   integrable_at_filter f l μ :=
@@ -242,16 +274,20 @@ lemma integral_add_compl (hs : is_measurable s) (hfm : measurable f) (hfi : inte
 by rw [← integral_union (disjoint_compl s) hs hs.compl hfm hfi.integrable_on hfi.integrable_on,
   union_compl_self, integral_univ]
 
-lemma integral_indicator (hfm : measurable f) (hfi : integrable_on f s μ)
-  (hs : is_measurable s) :
+/-- For a measurable function `f` and a measurable set `s`, the integral of `indicator s f`
+over the whole space is equal to `∫ x in s, f x ∂μ` defined as `∫ x, f x ∂(μ.restrict s)`. -/
+lemma integral_indicator (hfm : measurable f) (hs : is_measurable s) :
   ∫ x, indicator s f x ∂μ = ∫ x in s, f x ∂μ :=
 have hfms : measurable (indicator s f) := hfm.indicator hs,
+if hfi : integrable_on f s μ then
 calc ∫ x, indicator s f x ∂μ = ∫ x in s, indicator s f x ∂μ + ∫ x in sᶜ, indicator s f x ∂μ :
   (integral_add_compl hs hfms (hfi.indicator hs)).symm
 ... = ∫ x in s, f x ∂μ + ∫ x in sᶜ, 0 ∂μ :
   congr_arg2 (+) (integral_congr_ae hfms hfm (indicator_ae_eq_restrict hs))
     (integral_congr_ae hfms measurable_const (indicator_ae_eq_restrict_compl hs))
 ... = ∫ x in s, f x ∂μ : by simp
+else
+by { rwa [integral_non_integrable, integral_non_integrable], rwa integrable_indicator_iff hs }
 
 lemma set_integral_const (c : E) : ∫ x in s, c ∂μ = (μ s).to_real • c :=
 by rw [integral_const, measure.restrict_apply_univ]
@@ -291,6 +327,10 @@ end measure_theory
 
 open measure_theory asymptotics metric
 
+/-- Fundamental theorem of calculus for set integrals: if `μ` is a measure that is finite
+at a filter `l` and `f` is a measurable function that has a finite limit `b` at `l ⊓ μ.ae`,
+then `∫ x in s, f x ∂μ = μ s • b + o(μ s)` as `s` tends to `l.lift' powerset`. Since `μ s` is
+an `ennreal` number, we use `(μ s).to_real` in the actual statement. -/
 lemma filter.tendsto.integral_sub_linear_is_o_ae
   [normed_group E] [normed_space ℝ E] [second_countable_topology E] [complete_space E]
   [measurable_space E] [borel_space E]
@@ -312,13 +352,17 @@ begin
   exact norm_set_integral_le_of_norm_le_const_ae' hμs h_norm (hfm.sub measurable_const)
 end
 
+/-- If a function is integrable at `𝓝[s] x` for each point `x` of a compact set `s`, then it is
+integrable on `s`. -/
 lemma is_compact.integrable_on_of_nhds_within
   [topological_space α] [normed_group E] {μ : measure α} {s : set α} (hs : is_compact s)
-  {f : α → E} (hf : ∀ x ∈ s, integrable_at_filter f (nhds_within x s) μ) :
+  {f : α → E} (hf : ∀ x ∈ s, integrable_at_filter f (𝓝[s] x) μ) :
   integrable_on f s μ :=
 is_compact.induction_on hs integrable_on_empty (λ s t hst ht, ht.mono_set hst)
   (λ s t hs ht, hs.union ht) hf
 
+/-- A function `f` continuous on a compact set `s` is integrable on this set with respect to any
+locally finite measure. -/
 lemma continuous_on.integrable_on_compact
   [topological_space α] [opens_measurable_space α] [t2_space α]
   [normed_group E] {μ : measure α} [locally_finite_measure μ] {s : set α} (hs : is_compact s)
@@ -328,6 +372,8 @@ hs.integrable_on_of_nhds_within $ λ x hx,
   by haveI := hs.is_measurable.nhds_within_is_measurably_generated;
     exact (hf x hx).integrable_at_filter (μ.finite_at_nhds_within _ _)
 
+/-- A continuous function `f` is integrable on any compact set with respect to any locally finite
+measure. -/
 lemma continuous.integrable_on_compact
   [topological_space α] [opens_measurable_space α] [t2_space α]
   [normed_group E] {μ : measure α} [locally_finite_measure μ] {s : set α} (hs : is_compact s)
@@ -335,6 +381,10 @@ lemma continuous.integrable_on_compact
   integrable_on f s μ :=
 hf.continuous_on.integrable_on_compact hs
 
+/-- Fundamental theorem of calculus for set integrals, `nhds` version: if `μ` is a locally finite
+measure that and `f` is a measurable function that is continuous at a point `a`,
+then `∫ x in s, f x ∂μ = μ s • f a + o(μ s)` as `s` tends to `(𝓝 a).lift' powerset`.
+Since `μ s` is an `ennreal` number, we use `(μ s).to_real` in the actual statement. -/
 lemma continuous_at.integral_sub_linear_is_o_ae
   [topological_space α] [opens_measurable_space α]
   [normed_group E] [normed_space ℝ E] [second_countable_topology E] [complete_space E]

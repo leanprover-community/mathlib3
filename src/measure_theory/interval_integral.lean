@@ -190,8 +190,8 @@ section order_closed_topology
 
 variables [order_closed_topology α]
 
-lemma integral_cocycle (hfm : measurable f) (hab : interval_integrable f μ a b)
-  (hbc : interval_integrable f μ b c) :
+lemma integral_add_adjacent_intervals_cancel (hfm : measurable f)
+  (hab : interval_integrable f μ a b) (hbc : interval_integrable f μ b c) :
   ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ + ∫ x in c..a, f x ∂μ = 0 :=
 begin
   have hac := hab.trans hbc,
@@ -207,7 +207,7 @@ end
 lemma integral_add_adjacent_intervals (hfm : measurable f) (hab : interval_integrable f μ a b)
   (hbc : interval_integrable f μ b c) :
   ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ = ∫ x in a..c, f x ∂μ :=
-by rw [← add_neg_eq_zero, ← integral_symm, integral_cocycle hfm hab hbc]
+by rw [← add_neg_eq_zero, ← integral_symm, integral_add_adjacent_intervals_cancel hfm hab hbc]
 
 end order_closed_topology
 

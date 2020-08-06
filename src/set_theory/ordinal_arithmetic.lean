@@ -784,7 +784,7 @@ end
 theorem dvd_add_iff : ∀ {a b c : ordinal}, a ∣ b → (a ∣ b + c ↔ a ∣ c)
 | a _ c ⟨b, rfl⟩ :=
  ⟨λ ⟨d, e⟩, ⟨d - b, by rw [mul_sub, ← e, add_sub_cancel]⟩,
-  λ ⟨d, e⟩, by rw [e, ← mul_add]; apply dvd_mul⟩
+  λ ⟨d, e⟩, by rw [e, ← mul_add]; apply dvd_mul_right⟩
 
 theorem dvd_add {a b c : ordinal} (h₁ : a ∣ b) : a ∣ c → a ∣ b + c :=
 (dvd_add_iff h₁).2
@@ -1079,7 +1079,7 @@ end
 
 theorem power_dvd_power (a) {b c : ordinal}
   (h : b ≤ c) : a ^ b ∣ a ^ c :=
-by rw [← add_sub_cancel_of_le h, power_add]; apply dvd_mul
+by rw [← add_sub_cancel_of_le h, power_add]; apply dvd_mul_right
 
 theorem power_dvd_power_iff {a b c : ordinal}
   (a1 : 1 < a) : a ^ b ∣ a ^ c ↔ b ≤ c :=

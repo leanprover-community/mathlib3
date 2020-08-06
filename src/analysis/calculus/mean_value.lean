@@ -573,7 +573,46 @@ begin
   exact ⟨c, cmem, sub_eq_zero.1 hc⟩
 end
 
-omit hgc hgg'
+omit hfc hgc
+
+/-- Cauchy's Mean Value Theorem, extended `has_deriv_at` version. -/
+lemma exists_ratio_has_deriv_at_eq_ratio_slope' {lfa lga lfb lgb : ℝ}
+  (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hgg' : ∀ x ∈ Ioo a b, has_deriv_at g (g' x) x)
+  (hfa : tendsto f (nhds_within a $ Ioi a) (nhds lfa)) (hga : tendsto g (nhds_within a $ Ioi a) (nhds lga))
+  (hfb : tendsto f (nhds_within b $ Iio b) (nhds lfb)) (hgb : tendsto g (nhds_within b $ Iio b) (nhds lgb)) :
+  ∃ c ∈ Ioo a b, (lgb - lga) * (f' c) = (lfb - lfa) * (g' c) :=
+begin
+  let h := λ x, (lgb - lga) * f x - (lfb - lfa) * g x,
+  have hha : tendsto h (nhds_within a $ Ioi a) (nhds $ lgb * lfa - lfb * lga),
+  { rw (show h = λ x, lfa * g x - lga * f x + lgb * f x - lfb * g x, by { ext, simp only [h], ring }),
+    rw (show (nhds $ lgb * lfa - lfb * lga) = (nhds $ 0 + lgb * lfa - lfb * lga), by ring),
+    apply tendsto.sub,
+    apply tendsto.add,
+    rw (show 0 = lfa * lga - lga * lfa, by ring),
+    apply tendsto.sub,
+    any_goals { exact tendsto.mul tendsto_const_nhds hfa },
+    any_goals { exact tendsto.mul tendsto_const_nhds hga } },
+  have hhb : tendsto h (nhds_within b $ Iio b) (nhds $ lgb * lfa - lfb * lga),
+  { rw (show h = λ x, lgb * f x - lfb * g x + lfa * g x - lga * f x, by{ ext, simp only [h], ring }),
+    rw (show (nhds $ lgb * lfa - lfb * lga) = (nhds $ 0 + lfa * lgb - lga * lfb), by {rw nhds_eq_nhds_iff, ring, }),
+    apply tendsto.sub,
+    apply tendsto.add,
+    rw (show 0 = lgb * lfb - lfb * lgb, by ring),
+    apply tendsto.sub,
+    any_goals { exact tendsto.mul tendsto_const_nhds hfb },
+    any_goals { exact tendsto.mul tendsto_const_nhds hgb } },
+  let h' := λ x, (lgb - lga) * f' x - (lfb - lfa) * g' x,
+  have hhh' : ∀ x ∈ Ioo a b, has_deriv_at h (h' x) x,
+  { intros x hx,
+    simp only [h', h],
+    exact ((hff' x hx).const_mul _ ).sub (((hgg' x hx)).const_mul _) },
+  rcases exists_has_deriv_at_eq_zero' h h' hab hha hhb hhh' with ⟨c, cmem, hc⟩,
+  exact ⟨ c, cmem, sub_eq_zero.1 hc ⟩
+end
+
+include hfc
+
+omit hgg'
 
 /-- Lagrange's Mean Value Theorem, `has_deriv_at` version -/
 lemma exists_has_deriv_at_eq_slope : ∃ c ∈ Ioo a b, f' c = (f b - f a) / (b - a) :=
@@ -594,6 +633,18 @@ lemma exists_ratio_deriv_eq_ratio_slope :
 exists_ratio_has_deriv_at_eq_ratio_slope f (deriv f) hab hfc
   (λ x hx, ((hfd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
   g (deriv g) hgc (λ x hx, ((hgd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
+
+omit hfc
+
+/-- Cauchy's Mean Value Theorem, extended `deriv` version. -/
+lemma exists_ratio_deriv_eq_ratio_slope' {lfa lga lfb lgb : ℝ} (hdf : differentiable_on ℝ f $ Ioo a b)
+  (hdg : differentiable_on ℝ g $ Ioo a b) (hfa : tendsto f (nhds_within a $ Ioi a) (nhds lfa)) (hga : tendsto g (nhds_within a $ Ioi a) (nhds lga))
+  (hfb : tendsto f (nhds_within b $ Iio b) (nhds lfb)) (hgb : tendsto g (nhds_within b $ Iio b) (nhds lgb)) :
+  ∃ c ∈ Ioo a b, (lgb - lga) * (deriv f c) = (lfb - lfa) * (deriv g c) :=
+exists_ratio_has_deriv_at_eq_ratio_slope' _ _ hab _ _
+  (λ x hx, ((hdf x hx).differentiable_at $ Ioo_mem_nhds hx.1 hx.2).has_deriv_at)
+  (λ x hx, ((hdg x hx).differentiable_at $ Ioo_mem_nhds hx.1 hx.2).has_deriv_at)
+  hfa hga hfb hgb
 
 /-- Lagrange's Mean Value Theorem, `deriv` version. -/
 lemma exists_deriv_eq_slope : ∃ c ∈ Ioo a b, deriv f c = (f b - f a) / (b - a) :=

@@ -1292,7 +1292,7 @@ norm_le_zero_iff.1 $ le_trans (norm_integral_le_lintegral_norm f) $ by simp
 
 lemma integral_map_meas {β} [measurable_space β] {φ : α → β} (hφ : measurable φ)
   {f : β → E} (hfm : measurable f) :
-  ∫ y, f y  ∂(measure.map φ μ) = ∫ x, f (φ x) ∂μ :=
+  ∫ y, f y ∂(measure.map φ μ) = ∫ x, f (φ x) ∂μ :=
 begin
   by_cases hfi : integrable f (measure.map φ μ), swap,
   { rw [integral_non_integrable hfi, integral_non_integrable],

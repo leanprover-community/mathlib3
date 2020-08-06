@@ -60,8 +60,8 @@ variables {L : Type*} [field K] [field L] {f : fraction_map R K}
 
 open finsupp polynomial
 
--- lemma smul_mul (a₁ a₂ : α) (b : β) : b • (a₁ * a₂) = b * a₁ * a₂ :=
--- by sorry,
+lemma smul_mul_fae (a₁ a₂ : α) (b : β) : b • (a₁ * a₂) = b * a₁ * a₂ :=
+by sorry,
 
 lemma smul_mul (a₁ a₂ : f.codomain) (b : R) : b • (a₁ * a₂) = f.to_map b * a₁ * a₂ :=
 begin
@@ -79,14 +79,22 @@ let M1 : fractional_ideal f,
   {intros y h,simp,use 0,simp,},
   {intros a b ha hb,intros y h,rw add_mul a b (f.to_map y),
   apply localization_map.is_integer_add,apply ha,exact h,apply hb,exact h,},
-  -- {intros c x h y h,
-  -- apply smul_mul c},
-   { intros c x h1 y h,
-    rw algebra.smul_mul_assoc,
-    apply localization_map.is_integer_smul,
-    exact h1 y h,},sorry,
+      {intros c x h y h,
+      apply smul_mul_fae c},
+      exact dec_trivial,
+  --    {intros c x h1 y h,
+  --    rw algebra.smul_mul_assoc,
+  --    apply localization_map.is_integer_smul,
+  --    exact h1 y h,},
+  --      sorry,
+  --with the old version of smul_mul (called now smul_mul_fae), and my code above, no sorry was needed
 },
 have hprod : ↑M*M1=1,
+    -- {have incl : ↑ M < ↑ M*M1, sorry,
+    --  have h_Mneq1 : ∀ I : ideal R, M < I →  I = ⊤,
+    --     sorry,--exact and.elim_left hM M,
+    --     -- specialize h_Mneq1 M*M1,--Lean is complaining because M*M1 is not an ideal in R
+    --      sorry,
   {apply le_antisymm,
     {apply fractional_ideal.mul_le.mpr,
       intros y hy x hx,
@@ -102,16 +110,10 @@ have hprod : ↑M*M1=1,
       cases hxy, use hxy_w,
       finish,
     },
-    {have incl : ↑ M ≤ ↑ M*M1,sorry, sorry},
-      -- sto copiando la prova dal teorema right_inverse_eq di fractional_ideal.lean
-      -- exact (mem_div_iff_of_nonzero hI).mp hy x hx,},
-    --   {rw [←h],
-    --   apply mul_left_mono I,
-    --   apply (le_div_iff_of_nonzero hI).mpr _,
-    --   intros y hy x hx,
-    --   rw [mul_comm],
-    --   exact mul_mem_mul hx hy
-  },
+    {have incl : ↑ M < ↑ M*M1,
+        sorry,
+         sorry,},
+       },
 apply is_unit_of_mul_eq_one ↑M M1 hprod,
 end
 

@@ -10,9 +10,14 @@ import tactic
 /-!
 # Derivations
 
-This file defines derivation.
+This file defines derivation. A derivation from the `R`-agebra `A` to the `A`-module `M` is an `R`
+linear map that satisfy the Leibniz rule.
 
-IMPORTANT: this file is just a stub to go on with some PRs in the geometry section. It only
+## Notation
+
+The notation `⁅D1, D2⁆` is used for the commutator of two derivations.
+
+TODO: this file is just a stub to go on with some PRs in the geometry section. It only
 implements the definition of derivations in commutative algebra. This will soon change: as soon
 as bimodules will be there in mathlib I will change this file to take into account the
 non-commutative case. Any development on the theory of derivations is discouraged until the
@@ -56,9 +61,10 @@ instance algebra.to_compatible_semimodule  {R : Type*} {A : Type*} [comm_semirin
 section compatible_semimodule
 
 variables {R : Type*} [comm_semiring R]
-(A : Type*) [comm_semiring A] [algebra R A]
-{M : Type*} [add_comm_monoid M] [semimodule A M] [semimodule R M] [compatible_semimodule R A M]
-{N : Type*} [add_comm_monoid N] [semimodule A N] [semimodule R N] [compatible_semimodule R A N]
+variables (A : Type*) [comm_semiring A] [algebra R A]
+variables {M : Type*} [add_comm_monoid M] [semimodule A M] [semimodule R M]
+  [compatible_semimodule R A M]
+variables {N : Type*} [add_comm_monoid N] [semimodule A N] [semimodule R N] [compatible_semimodule R A N]
 
 @[simp] lemma compatible_smul (r : R) (m : M) : r • m = ((algebra_map R A) r) • m :=
 compatible_semimodule.compatible_smul r m
@@ -77,7 +83,9 @@ instance : has_coe (M →ₗ[A] N) (M →ₗ[R] N) :=
 
 end compatible_semimodule
 
-/-- Derivations in commutative algebra. To be changed.-/
+/-- `D : derivation R A M` is an `R`-linear map from `A` to `M` that satisfies the `leibniz`
+equality.
+TODO: update this when bimodules are defined. -/
 @[protect_proj]
 structure derivation (R : Type*) (A : Type*) [comm_semiring R] [comm_semiring A]
   [algebra R A] (M : Type*) [add_cancel_comm_monoid M] [semimodule A M] [semimodule R M]
@@ -105,20 +113,20 @@ lemma coe_linear_map (f : derivation R A M) :
   ⇑(f : A →ₗ[R] M) = f := rfl
 
 lemma coe_injective (H : ⇑D1 = D2) : D1 = D2 :=
-by cases D1; cases D2; congr'; exact linear_map.coe_inj H
+by { cases D1, cases D2, congr', exact linear_map.coe_inj H }
 
 @[ext] theorem ext (H : ∀ a, D1 a = D2 a) : D1 = D2 :=
 coe_injective $ funext H
 
 @[simp] lemma map_add : D (a + b) = D a + D b := is_add_hom.map_add D a b
 @[simp] lemma map_zero : D 0 = 0 := is_add_monoid_hom.map_zero D
-@[simp] lemma leibniz : D (a * b) = a • D b + b • D a := D.leibniz' _ _
 @[simp] lemma map_smul : D (r • a) = r • D a := linear_map.map_smul D r a
+@[simp] lemma leibniz : D (a * b) = a • D b + b • D a := D.leibniz' _ _
 
 @[simp] lemma map_one_eq_zero : D 1 = 0 :=
 begin
   have h : D 1 = D (1 * 1) := by rw mul_one,
-  rw [leibniz D 1 1, one_smul] at h, /- better way to do this? -/
+  rw [leibniz D 1 1, one_smul] at h,
   exact zero_left_cancel h,
 end
 
@@ -144,7 +152,7 @@ instance : add_comm_monoid (derivation R A M) :=
 @[priority 100]
 instance derivation.Rsemimodule : semimodule R (derivation R A M) :=
 { smul := λ r D, ⟨r • D, λ a b, by simp only [linear_map.smul_apply, leibniz,
-linear_map.to_fun_eq_coe, compatible_smul_comm, coe_linear_map, smul_add, add_comm],⟩,
+  linear_map.to_fun_eq_coe, compatible_smul_comm, coe_linear_map, smul_add, add_comm],⟩,
   mul_smul := λ a1 a2 D, ext $ λ b, mul_smul _ _ _,
   one_smul := λ D, ext $ λ b, one_smul _ _,
   smul_add := λ a D1 D2, ext $ λ b, smul_add _ _ _,
@@ -156,7 +164,7 @@ instance : semimodule A (derivation R A M) :=
 { smul := λ a D, ⟨⟨λ b, a • D b,
     λ a1 a2, by rw [D.map_add, smul_add],
     λ a1 a2, by rw [D.map_smul, compatible_smul_comm]⟩,
-    λ b c, by {dsimp, simp only [smul_add, leibniz, smul_comm, add_comm],}⟩,
+    λ b c, by { dsimp, simp only [smul_add, leibniz, smul_comm, add_comm] }⟩,
   mul_smul := λ a1 a2 D, ext $ λ b, mul_smul _ _ _,
   one_smul := λ D, ext $ λ b, one_smul A _,
   smul_add := λ a D1 D2, ext $ λ b, smul_add _ _ _,
@@ -164,7 +172,7 @@ instance : semimodule A (derivation R A M) :=
   add_smul := λ a1 a2 D, ext $ λ b, add_smul _ _ _,
   zero_smul := λ D, ext $ λ b, zero_smul A _ }
 
-/-- The composition of a derivation adn a linear map is a derivation. -/
+/-- The composition of a derivation and a linear map is a derivation. -/
 def comp {N : Type*} [add_cancel_comm_monoid N] [semimodule A N] [semimodule R N]
   [compatible_semimodule R A N]
   (D : derivation R A M) (f : M →ₗ[A] N) : derivation R A N :=
@@ -178,10 +186,9 @@ end
 section
 
 variables {R : Type*} [comm_ring R]
-{A : Type*} [comm_ring A] [algebra R A]
-{M : Type*} [add_comm_group M] [module A M] [module R M]
-[compatible_semimodule R A M]
-(D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
+variables {A : Type*} [comm_ring A] [algebra R A]
+variables {M : Type*} [add_comm_group M] [module A M] [module R M] [compatible_semimodule R A M]
+variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
 @[simp] lemma map_neg : D (-a) = -D a := linear_map.map_neg D a
 @[simp] lemma map_sub : D (a - b) = D a - D b := linear_map.map_sub D a b

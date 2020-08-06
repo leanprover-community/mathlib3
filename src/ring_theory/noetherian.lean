@@ -223,6 +223,10 @@ theorem is_noetherian_of_linear_equiv (f : M ≃ₗ[R] P)
   [is_noetherian R M] : is_noetherian R P :=
 is_noetherian_of_surjective _ f.to_linear_map f.range
 
+lemma is_noetherian_of_is_noetherian_top
+  (h : is_noetherian R (⊤ : submodule R M)) : is_noetherian R M :=
+is_noetherian_of_linear_equiv (linear_equiv.of_top _ rfl)
+
 instance is_noetherian_prod [is_noetherian R M]
   [is_noetherian R P] : is_noetherian R (M × P) :=
 ⟨λ s, submodule.fg_of_fg_map_of_fg_inf_ker (linear_map.snd R M P) (noetherian _) $

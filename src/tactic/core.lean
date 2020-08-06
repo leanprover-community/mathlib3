@@ -498,17 +498,30 @@ meta def revert_deps (e : expr) : tactic ℕ := do
 meta def is_local_def (e : expr) : tactic unit :=
 retrieve $ do revert e, expr.elet _ _ _ _ ← target, skip
 
+meta def partition_local_deps_aux (vs : list expr) : list expr → list expr → list (list expr)
+| [] acc := [acc]
+| (l :: ls) acc :=
+  if l ∈ vs then acc :: partition_local_deps_aux ls [l]
+  else partition_local_deps_aux ls (l :: acc)
+
+meta def partition_local_deps (vs : list expr) (ls : list expr) : list (list expr) :=
+(partition_local_deps_aux vs ls []).tail.reverse
+
 /-- `clear_value e` clears the body of the local definition `e`, changing it into a regular
 hypothesis. A hypothesis `e : α := t` is changed to `e : α`.
 This tactic is called `clearbody` in Coq. -/
-meta def clear_value (e : expr) : tactic unit := do
-  n ← revert_after e,
-  is_local_def e <|>
-    pp e >>= λ s, fail format!"Cannot clear the body of {s}. It is not a local definition.",
-  let nm := e.local_pp_name,
-  (generalize' e nm >> clear e) <|>
-    fail format!"Cannot clear the body of {nm}. The resulting goal is not type correct.",
-  intron n
+meta def clear_value (vs : list expr) : tactic unit := do
+  ls ← local_context,
+  let ls := partition_local_deps vs ls,
+  ls.mmap' $ λ vs, do
+  { revert_lst vs.reverse,
+    (expr.elet v t d b) ← target | fail "not a let expression",
+    let e := expr.pi v binder_info.default t b,
+    g ← mk_meta_var e,
+    tactic.exact $ g d,
+    gs ← get_goals,
+    set_goals $ g :: gs },
+  ls.reverse.mmap' $ λ vs, intro_lst $ vs.reverse.map expr.local_pp_name
 
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
 `simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting

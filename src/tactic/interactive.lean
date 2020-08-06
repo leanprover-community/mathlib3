@@ -1214,7 +1214,7 @@ add_tactic_doc
 /-- `clear_value n₁ n₂ ...` clears the bodies of the local definitions `n₁, n₂ ...`, changing them
 into regular hypotheses. A hypothesis `n : α := t` is changed to `n : α`. -/
 meta def clear_value (ns : parse ident*) : tactic unit :=
-propagate_tags $ ns.reverse.mmap' $ λ n, get_local n >>= tactic.clear_value
+propagate_tags $ ns.reverse.mmap get_local >>= tactic.clear_value
 
 add_tactic_doc
 { name       := "clear_value",

@@ -583,31 +583,22 @@ lemma exists_ratio_has_deriv_at_eq_ratio_slope' {lfa lga lfb lgb : ℝ}
   ∃ c ∈ Ioo a b, (lgb - lga) * (f' c) = (lfb - lfa) * (g' c) :=
 begin
   let h := λ x, (lgb - lga) * f x - (lfb - lfa) * g x,
-  have hha : tendsto h (nhds_within a $ Ioi a) (nhds $ lgb * lfa - lfb * lga),
-  { rw (show h = λ x, lfa * g x - lga * f x + lgb * f x - lfb * g x, by { ext, simp only [h], ring }),
-    rw (show (nhds $ lgb * lfa - lfb * lga) = (nhds $ 0 + lgb * lfa - lfb * lga), by ring),
-    apply tendsto.sub,
-    apply tendsto.add,
-    rw (show 0 = lfa * lga - lga * lfa, by ring),
-    apply tendsto.sub,
-    any_goals { exact tendsto.mul tendsto_const_nhds hfa },
-    any_goals { exact tendsto.mul tendsto_const_nhds hga } },
-  have hhb : tendsto h (nhds_within b $ Iio b) (nhds $ lgb * lfa - lfb * lga),
-  { rw (show h = λ x, lgb * f x - lfb * g x + lfa * g x - lga * f x, by{ ext, simp only [h], ring }),
-    rw (show (nhds $ lgb * lfa - lfb * lga) = (nhds $ 0 + lfa * lgb - lga * lfb), by {rw nhds_eq_nhds_iff, ring, }),
-    apply tendsto.sub,
-    apply tendsto.add,
-    rw (show 0 = lgb * lfb - lfb * lgb, by ring),
-    apply tendsto.sub,
-    any_goals { exact tendsto.mul tendsto_const_nhds hfb },
-    any_goals { exact tendsto.mul tendsto_const_nhds hgb } },
+  have hha : tendsto h (𝓝[Ioi a] a) (𝓝 $ lgb * lfa - lfb * lga),
+  { have : tendsto h (𝓝[Ioi a] a)(𝓝 $ (lgb - lga) * lfa - (lfb - lfa) * lga) :=
+      (tendsto_const_nhds.mul hfa).sub (tendsto_const_nhds.mul hga),
+    convert this using 2,
+    ring },
+  have hhb : tendsto h (𝓝[Iio b] b) (𝓝 $ lgb * lfa - lfb * lga),
+  { have : tendsto h (𝓝[Iio b] b)(𝓝 $ (lgb - lga) * lfb - (lfb - lfa) * lgb) :=
+      (tendsto_const_nhds.mul hfb).sub (tendsto_const_nhds.mul hgb),
+    convert this using 2,
+    ring },
   let h' := λ x, (lgb - lga) * f' x - (lfb - lfa) * g' x,
   have hhh' : ∀ x ∈ Ioo a b, has_deriv_at h (h' x) x,
   { intros x hx,
-    simp only [h', h],
     exact ((hff' x hx).const_mul _ ).sub (((hgg' x hx)).const_mul _) },
   rcases exists_has_deriv_at_eq_zero' hab hha hhb hhh' with ⟨c, cmem, hc⟩,
-  exact ⟨ c, cmem, sub_eq_zero.1 hc ⟩
+  exact ⟨c, cmem, sub_eq_zero.1 hc⟩
 end
 
 include hfc

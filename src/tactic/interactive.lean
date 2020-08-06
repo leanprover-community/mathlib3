@@ -1045,7 +1045,8 @@ do ls ← local_context,
    partition_vars' (name_set.of_list $ ls.map expr.local_uniq_name) ls [] []
 
 /--
-Format the current goal as a stand-alone example. Useful for testing tactic or creating [minimal working examples](https://leanprover-community.github.io/mwe.html).
+Format the current goal as a stand-alone example. Useful for testing tactics
+or creating [minimal working examples](https://leanprover-community.github.io/mwe.html).
 
 * `extract_goal`: formats the statement as an `example` declaration
 * `extract_goal my_decl`: formats the statement as a `lemma` or `def` declaration

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.ordered_group
+-- TODO remove this
+import tactic.rcases
 
 set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
@@ -971,7 +973,12 @@ lemma mul_def {a b : with_top α} :
   a * b = if a = 0 ∨ b = 0 then 0 else a.bind (λa, b.bind $ λb, ↑(a * b)) := rfl
 
 @[simp] lemma mul_top {a : with_top α} (h : a ≠ 0) : a * ⊤ = ⊤ :=
-by cases a; simp [mul_def, h]; refl
+begin
+  rcases a with _ | a,
+  { refl },
+  { rw mul_def, simp [h] },
+end
+--by cases a; simp [mul_def, h]; refl
 
 @[simp] lemma top_mul {a : with_top α} (h : a ≠ 0) : ⊤ * a = ⊤ :=
 by cases a; simp [mul_def, h]; refl

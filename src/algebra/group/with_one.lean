@@ -256,6 +256,24 @@ begin
   { rw [mul_inv_eq_iff_eq_mul, mul_right_comm, mul_comm c, ← H, mul_inv_cancel_right] }
 end
 
+theorem mul_comm {α : Type u}
+  [comm_group α] :
+  ∀ (a b : with_zero α), a * b = b * a :=
+begin
+  rintro (_ | a) (_ | b),
+  { refl },
+  { refl },
+  { refl },
+  { apply option.some_inj.2,
+    apply mul_comm
+  }
+end
+
+/-- if `G` is a `comm_group` then `with_zero G` is a `comm_group_with_zero`. -/
+instance : comm_group_with_zero (with_zero α) :=
+{ mul_comm := mul_comm,
+  ..with_zero.group_with_zero }
+
 end comm_group
 
 section semiring

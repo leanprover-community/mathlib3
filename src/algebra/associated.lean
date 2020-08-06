@@ -32,7 +32,7 @@ by rw [mul_comm, mul_dvd_of_is_unit_left h]
 @[simp] lemma unit_mul_dvd_iff [comm_monoid α] {a b : α} {u : units α} : (u : α) * a ∣ b ↔ a ∣ b :=
 mul_dvd_of_is_unit_left (is_unit_unit _)
 
-lemma mul_unit_dvd_iff [comm_semiring α] {a b : α} {u : units α} : a * u ∣ b ↔ a ∣ b :=
+lemma mul_unit_dvd_iff [comm_monoid_with_zero α] {a b : α} {u : units α} : a * u ∣ b ↔ a ∣ b :=
 units.coe_mul_dvd _ _ _
 
 theorem is_unit_of_dvd_unit {α} [comm_monoid α] {x y : α}

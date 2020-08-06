@@ -516,17 +516,22 @@ by simp [prod.swap]
 def prod.assoc : α ⊗ β ⊗ γ ⟶ α ⊗ (β ⊗ γ) :=
 diag ≫ (prod.fst ≫ prod.fst ⊗' diag ≫ (prod.fst ≫ prod.snd ⊗' prod.snd))
 
+/-!
+The following three definitions, `to_ab`, `to_bc` and `to_ac`,
+are used to select two objects from a triple. They are used to
+formulate transitivity using categorical notation.  -/
+
 /-- Projection from a product of three components to the
 two left-most components -/
-def lpair : α ⊗ β ⊗ γ ⟶ α ⊗ β := fam.prod.fst
+def to_ab : α ⊗ β ⊗ γ ⟶ α ⊗ β := fam.prod.fst
 
 /-- Projection from a product of three components to the
 two right-most components -/
-def rpair : α ⊗ β ⊗ γ ⟶ β ⊗ γ := fam.prod.snd ⊗' 𝟙 _
+def to_bc : α ⊗ β ⊗ γ ⟶ β ⊗ γ := fam.prod.snd ⊗' 𝟙 _
 
 /-- Projection from a product of three components to the
 left-most and right-most components -/
-def sides : α ⊗ β ⊗ γ ⟶ α ⊗ γ := fam.prod.fst ⊗' 𝟙 _
+def to_ac : α ⊗ β ⊗ γ ⟶ α ⊗ γ := fam.prod.fst ⊗' 𝟙 _
 
 /--
 Definition of equivalence relations for predicates on products
@@ -534,7 +539,12 @@ Definition of equivalence relations for predicates on products
 structure equiv (r : Pred (α ⊗ α)) : Prop :=
 (refl : diag ⊨ r)
 (symm : ∀ {i} (f : unit i ⟶ α ⊗ α), f ⊨ r → f ≫ prod.swap ⊨ r)
-(trans : ∀ {i} (f : unit i ⟶ α ⊗ α ⊗ α), f ≫ lpair ⊨ r → f ≫ rpair ⊨ r → f ≫ sides ⊨ r)
+  /- `trans` encodes transitivity: forall all triple of variables `(a,b,c)`,
+     (which we call `abc : unit i ⟶ α ⊗ α ⊗ α`),
+     if `r (a,b)` (encoded `abc ≫ to_ab ⊨ r`) and
+     if `r (b,c)` (encoded `abc ≫ to_bc ⊨ r`)
+     then `r (a,c)` (encoded `abc ≫ to_ac ⊨ r`)  -/
+(trans : ∀ {i} (abc : unit i ⟶ α ⊗ α ⊗ α), abc ≫ to_ab ⊨ r → abc ≫ to_bc ⊨ r → abc ≫ to_ac ⊨ r)
 
 lemma equiv.to_equivalence {r : Pred (α ⊗ α)} (h : equiv r) :
   ∀ i, equivalence $ curry (r i) :=

@@ -50,6 +50,7 @@ An inductively defined relation on `tensor_algebra R M` used to define the exter
 -/
 inductive rel : tensor_algebra R M → tensor_algebra R M → Prop
 | of (m : M) : rel ((ι R M m) * (ι R M m)) 0
+| eq_compat {a} : rel a a
 | add_compat_left {a b c} : rel a b → rel (a + c) (b + c)
 | add_compat_right {a b c} : rel a b → rel (c + a) (c + b)
 | mul_compat_left {a b c} : rel a b → rel (a * c) (b * c)
@@ -142,6 +143,7 @@ def lift {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) (cond : ∀ 
     { simp only [alg_hom.map_mul,tensor_algebra.ι_comp_lift',cond,alg_hom.map_zero] },
     repeat { simp only [alg_hom.map_add, h_ih] },
     repeat { simp only [alg_hom.map_mul, h_ih] },
+    refl
   end,
   map_one' := by {change algebra_map _ _ _ = _, simp},
   map_mul' := begin
@@ -202,5 +204,38 @@ calc ι R M x * ι R M y + ι R M y * ι R M x
     by rw [ι_mul_add (x + y) x y, add_comm]
   ...= 0 :
     by rw ι_square_zero
+
+variables (R M)
+variable {q : ℕ}
+
+/--
+The canonical multilinear map from `fin q → M` into `exterior_algebra R M`.
+-/
+def wedge : multilinear_map R (λ i : fin q, M) (exterior_algebra R M) :=
+{ to_fun := λ ν : fin q → M , quot.mk _ (tensor_algebra.mk R M ν),
+  map_add' :=
+    begin
+      intros ν i x y,
+      apply quot.sound,
+      rw multilinear_map.map_add,
+      exact rel.eq_compat
+    end,
+  map_smul' :=
+    begin
+      intros ν i r x,
+      apply quot.sound,
+      rw multilinear_map.map_smul,
+      exact rel.eq_compat
+    end }
+
+variables {R M}
+
+lemma wedge_split (ν : fin q.succ → M) :
+wedge R M ν = ι R M (ν 0) * wedge R M (λ i : fin q, ν i.succ) :=
+begin
+  apply quot.sound,
+  rw tensor_algebra.mk_split,
+  exact rel.eq_compat
+end
 
 end exterior_algebra

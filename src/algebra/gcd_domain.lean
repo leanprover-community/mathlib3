@@ -23,7 +23,7 @@ set_option default_priority 100 -- see Note [default priority]
 /-- Normalization monoid (with zero):
   multiplying with `norm_unit` gives a normal form for associated elements. -/
 @[protect_proj] class normalization_monoid_with_zero (α : Type*)
-  extends comm_monoid_with_zero α :=
+  extends comm_monoid_with_zero α, nontrivial α :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : no_zero_divisors α)
 (norm_unit : α → units α)
 (norm_unit_zero      : norm_unit 0 = 1)
@@ -72,11 +72,7 @@ lemma normalize_eq_one {x : α} : normalize x = 1 ↔ is_unit x :=
 
 theorem norm_unit_mul_norm_unit (a : α) : norm_unit (a * norm_unit a) = 1 :=
 classical.by_cases (assume : a = 0, by simp only [this, norm_unit_zero, zero_mul]) $
-  assume h, by {
-    rw norm_unit_mul h (units.coe_ne_zero _),
-    rw norm_unit_coe_units,
-    rw mul_inv_eq_one,
-  }
+  assume h, by rw [norm_unit_mul h (units.coe_ne_zero _), norm_unit_coe_units, mul_inv_eq_one]
 
 theorem normalize_idem (x : α) : normalize (normalize x) = normalize x :=
 by rw [normalize, normalize, norm_unit_mul_norm_unit, units.coe_one, mul_one]

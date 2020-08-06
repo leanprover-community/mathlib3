@@ -53,13 +53,13 @@ lemma dvd_and_not_dvd_iff [integral_domain α] {x y : α} :
   λ ⟨hx0, d, hdu, hdx⟩, ⟨⟨d, hdx⟩, λ ⟨e, he⟩, hdu (is_unit_of_dvd_one _
     ⟨e, mul_left_cancel' hx0 $ by conv {to_lhs, rw [he, hdx]};simp [mul_assoc]⟩)⟩⟩
 
-lemma pow_dvd_pow_iff [cancel_monoid_with_zero α] {x : α} {n m : ℕ} (h0 : x ≠ 0) (h1 : ¬ is_unit x) :
+lemma pow_dvd_pow_iff [integral_domain α] {x : α} {n m : ℕ} (h0 : x ≠ 0) (h1 : ¬ is_unit x) :
   x ^ n ∣ x ^ m ↔ n ≤ m :=
 begin
   split,
   { intro h, rw [← not_lt], intro hmn, apply h1,
     have : x ^ m * x ∣ x ^ m * 1,
-    { rw [← succ_pow, mul_one], exact dvd_trans (pow_dvd_pow _ (nat.succ_le_of_lt hmn)) h },
+    { rw [← pow_succ', mul_one], exact dvd_trans (pow_dvd_pow _ (nat.succ_le_of_lt hmn)) h },
     rwa [mul_dvd_mul_iff_left, ← is_unit_iff_dvd_one] at this, apply pow_ne_zero m h0 },
   { apply pow_dvd_pow }
 end

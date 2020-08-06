@@ -218,6 +218,21 @@ show _ * _ * _ = _, by simp [mul_assoc, hb]
 lemma div_eq_iff_mul_eq {a b c : with_zero α} (hb : b ≠ 0) : a / b = c ↔ c * b = a :=
 by split; intro h; simp [h.symm, hb]
 
+lemma mul_inv_cancel : ∀ (a : with_zero α), a ≠ 0 → a * a⁻¹ = 1 :=
+begin
+  rintro (_ | a) h,
+    {exact absurd rfl h },
+    { refine option.some_inj.2 (_root_.mul_right_inv _) }
+end
+
+/-- if `G` is a group then `with_zero G` is a group with zero. -/
+instance : group_with_zero (with_zero α) :=
+{ inv_zero := with_zero.inv_zero,
+  mul_inv_cancel := with_zero.mul_inv_cancel,
+  ..with_zero.monoid_with_zero,
+  ..with_zero.has_inv,
+  ..with_zero.nontrivial
+}
 end group
 
 section comm_group

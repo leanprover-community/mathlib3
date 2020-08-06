@@ -541,19 +541,20 @@ end
 
 /- Test whether generalize' always uses the exact name stated by the user, even if that name already
   exists. (note: the two occurrences of `n` in guard_target are different -/
-example (n : ℕ) : n = 5 → unit :=
+example (n : Type) (k : ℕ) : k = 5 → unit :=
 begin
   generalize' : 5 = n,
-  guard_target (n = n → unit)
+  guard_target (k = n → unit),
   intro, constructor
 end
 
 /- Test that `generalize'` works correctly with argument `h`, when the expression occurs in the
   target -/
-example (n : ℕ) : n = 5 → unit :=
+example (n : Type) (k : ℕ) : k = 5 → unit :=
 begin
   generalize' h : 5 = n,
-  guard_target (n = n)
+  guard_target (k = n → unit),
+  intro, constructor
 end
 
 end local_definitions

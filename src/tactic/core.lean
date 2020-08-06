@@ -498,30 +498,35 @@ meta def revert_deps (e : expr) : tactic ℕ := do
 meta def is_local_def (e : expr) : tactic unit :=
 retrieve $ do revert e, expr.elet _ _ _ _ ← target, skip
 
-meta def partition_local_deps_aux (vs : list expr) : list expr → list expr → list (list expr)
-| [] acc := [acc]
+private meta def partition_local_deps_aux (vs : list expr) : list expr → list expr → list (list expr)
+| [] acc := [acc.reverse]
 | (l :: ls) acc :=
-  if l ∈ vs then acc :: partition_local_deps_aux ls [l]
+  if l ∈ vs then acc.reverse :: partition_local_deps_aux ls [l]
   else partition_local_deps_aux ls (l :: acc)
 
-meta def partition_local_deps (vs : list expr) (ls : list expr) : list (list expr) :=
-(partition_local_deps_aux vs ls []).tail.reverse
+/-- `partition_local_deps vs`, with `vs` a list of local constants,
+reorders `vs` in the order they appear in the local context together
+with the variables that follow them. If local context is `[a,b,c,d,e,f]`,
+and that we call `partition_local_deps [d,b]`, we get `[[b,c],[d,e,f]]`.
+The head of each list is one of the variables given as a parameter. -/
+meta def partition_local_deps (vs : list expr) : tactic (list (list expr)) :=
+do ls ← local_context,
+   pure (partition_local_deps_aux vs ls []).tail.reverse
 
 /-- `clear_value e` clears the body of the local definition `e`, changing it into a regular
 hypothesis. A hypothesis `e : α := t` is changed to `e : α`.
 This tactic is called `clearbody` in Coq. -/
 meta def clear_value (vs : list expr) : tactic unit := do
-  ls ← local_context,
-  let ls := partition_local_deps vs ls,
+  ls ← partition_local_deps vs,
   ls.mmap' $ λ vs, do
-  { revert_lst vs.reverse,
-    (expr.elet v t d b) ← target | fail "not a let expression",
+  { revert_lst vs,
+    (expr.elet v t d b) ← target | fail format!"Cannot clear the body of {vs.head}. It is not a local definition.",,
     let e := expr.pi v binder_info.default t b,
-    g ← mk_meta_var e,
+    g ← mk_meta_var e <|> fail format!"Cannot clear the body of {vs.head}. The resulting goal is not type correct.",
     tactic.exact $ g d,
     gs ← get_goals,
     set_goals $ g :: gs },
-  ls.reverse.mmap' $ λ vs, intro_lst $ vs.reverse.map expr.local_pp_name
+  ls.reverse.mmap' $ λ vs, intro_lst $ vs.map expr.local_pp_name
 
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
 `simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting

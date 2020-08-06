@@ -931,7 +931,7 @@ begin
   { simp [*, pow_succ, add_comm, nat.mul_succ] }
 end
 
-@[simp] lemma nat.of_add_mul (a b : ℕ) : of_add (a * b) = of_add a ^ b := 
+@[simp] lemma nat.of_add_mul (a b : ℕ) : of_add (a * b) = of_add a ^ b :=
 (nat.to_add_pow _ _).symm
 
 @[simp] lemma int.to_add_pow (a : multiplicative ℤ) (b : ℕ) : to_add (a ^ b) = to_add a * b :=
@@ -942,7 +942,7 @@ int.induction_on b (by simp)
   (by simp [gpow_add, mul_add] {contextual := tt})
   (by simp [gpow_add, mul_add, sub_eq_add_neg] {contextual := tt})
 
-@[simp] lemma int.of_add_mul (a b : ℤ) : of_add (a * b) = of_add a ^ b := 
+@[simp] lemma int.of_add_mul (a b : ℤ) : of_add (a * b) = of_add a ^ b :=
 (int.to_add_gpow _ _).symm
 
 end multiplicative

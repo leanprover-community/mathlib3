@@ -819,7 +819,13 @@ e.is_constructor d.to_name ∨
 (e.is_inductive d.to_name.get_prefix ∧
   d.to_name.last ∈ ["below", "binduction_on", "brec_on", "cases_on", "dcases_on", "drec_on", "drec",
   "rec", "rec_on", "no_confusion", "no_confusion_type", "sizeof", "ibelow", "has_sizeof_inst"]) ∨
-d.to_name.has_prefix (λ nm, e.is_ginductive' nm)
+d.to_name.has_prefix (λ nm, e.is_ginductive' nm) ∨
+d.to_name.get_prefix.last = "equations" ∨
+d.to_name.last = "_sunfold" ∨
+string.is_prefix_of "_match_" d.to_name.last ∨
+string.is_prefix_of "_proof_" d.to_name.last ∨
+string.is_prefix_of "_main" d.to_name.last ∨
+name.is_suffix_of `_main._meta_aux d.to_name
 
 /--
 Returns true iff `d` is an automatically-generated or internal declaration.

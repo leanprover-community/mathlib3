@@ -236,15 +236,9 @@ section embeddings
 
 variables (F : Type*) [field F]
 
-/-- The bottom subalgebra is isomorphic to the field. -/
-def alg_equiv.of_bot (R : Type*) [semiring R] [nontrivial R] [algebra F R] :
-  (⊥ : subalgebra F R) ≃ₐ[F] F :=
-alg_equiv.symm $ alg_equiv.of_bijective (algebra.of_id F _)
-⟨ring_hom.injective _, λ ⟨y, hy⟩, let ⟨x, hx⟩ := algebra.mem_bot.1 hy in ⟨x, subtype.eq hx⟩⟩
-
 /-- If `p` is the minimal polynomial of `a` over `F` then `F[a] ≃ₐ[F] F[x]/(p)` -/
-def alg_equiv.adjoin_singleton {R : Type*} [comm_ring R] [algebra F R]
-  (x : R) (hx : is_integral F x) :
+def alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial
+  {R : Type*} [comm_ring R] [algebra F R] (x : R) (hx : is_integral F x) :
   algebra.adjoin F ({x} : set R) ≃ₐ[F] adjoin_root (minimal_polynomial hx) :=
 alg_equiv.symm $ alg_equiv.of_bijective
   (alg_hom.cod_restrict
@@ -269,7 +263,7 @@ theorem lift_of_splits {F K L : Type*} [field F] [field K] [field L]
 begin
   refine finset.induction_on s (λ H, _) (λ a s has ih H, _),
   { rw [coe_empty, algebra.adjoin_empty],
-    exact ⟨(algebra.of_id F L).comp (alg_equiv.of_bot F K)⟩ },
+    exact ⟨(algebra.of_id F L).comp (algebra.bot_equiv F K)⟩ },
   rw forall_mem_insert at H, rcases H with ⟨⟨H1, H2⟩, H3⟩, cases ih H3 with f, choose H3 H4 using H3,
   rw [coe_insert, set.insert_eq, set.union_comm, algebra.adjoin_union],
   letI := (f : algebra.adjoin F (↑s : set K) →+* L).to_algebra,
@@ -287,7 +281,7 @@ begin
     { rw [← is_algebra_tower.aeval_apply, minimal_polynomial.aeval H1] } },
   obtain ⟨y, hy⟩ := polynomial.exists_root_of_splits _ H6 (minimal_polynomial.degree_ne_zero H5),
   exact ⟨subalgebra.of_under _ _ $ (adjoin_root.alg_hom (minimal_polynomial H5) y hy).comp $
-    alg_equiv.adjoin_singleton _ _ H5⟩
+    alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial _ _ H5⟩
 end
 
 end embeddings
@@ -492,7 +486,8 @@ variables {α}
 instance map (f : polynomial α) [is_splitting_field α γ f] :
   is_splitting_field β γ (f.map $ algebra_map α β) :=
 ⟨by { rw [splits_map_iff, ← is_algebra_tower.algebra_map_eq], exact splits γ f },
-subalgebra.res_inj α $ by { rw [map_map, ← is_algebra_tower.algebra_map_eq, subalgebra.res_top, eq_top_iff, ← adjoin_roots γ f, algebra.adjoin_le_iff],
+ subalgebra.res_inj α $ by { rw [map_map, ← is_algebra_tower.algebra_map_eq, subalgebra.res_top,
+    eq_top_iff, ← adjoin_roots γ f, algebra.adjoin_le_iff],
   exact λ x hx, @algebra.subset_adjoin β _ _ _ _ _ _ hx }⟩
 
 variables {α} (β)
@@ -524,7 +519,7 @@ end algebra_tower
 def lift [algebra α γ] (f : polynomial α) [is_splitting_field α β f]
   (hf : polynomial.splits (algebra_map α γ) f) : β →ₐ[α] γ :=
 if hf0 : f = 0 then (algebra.of_id α γ).comp $
-  (alg_equiv.of_bot α β : (⊥ : subalgebra α β) →ₐ[α] α).comp $
+  (algebra.bot_equiv α β : (⊥ : subalgebra α β) →ₐ[α] α).comp $
   by { rw ← (splits_iff β f).1 (show f.splits (ring_hom.id α), from hf0.symm ▸ splits_zero _),
   exact algebra.to_top } else
 alg_hom.comp (by { rw ← adjoin_roots β f, exact classical.choice (lift_of_splits _ $ λ y hy,

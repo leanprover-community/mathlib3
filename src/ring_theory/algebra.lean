@@ -946,6 +946,18 @@ theorem bijective_algbera_map_iff {R A : Type*} [field R] [semiring A] [nontrivi
 ⟨λ h, surjective_algbera_map_iff.1 h.2,
 λ h, ⟨(algebra_map R A).injective, surjective_algbera_map_iff.2 h⟩⟩
 
+/-- The bottom subalgebra is isomorphic to the base ring. -/
+def bot_equiv_of_injective (h : function.injective (algebra_map R A)) :
+  (⊥ : subalgebra R A) ≃ₐ[R] R :=
+alg_equiv.symm $ alg_equiv.of_bijective (algebra.of_id R _)
+⟨λ x y hxy, h (congr_arg subtype.val hxy : _),
+ λ ⟨y, hy⟩, let ⟨x, hx⟩ := algebra.mem_bot.1 hy in ⟨x, subtype.eq hx⟩⟩
+
+/-- The bottom subalgebra is isomorphic to the field. -/
+def bot_equiv (F R : Type*) [field F] [semiring R] [nontrivial R] [algebra F R] :
+  (⊥ : subalgebra F R) ≃ₐ[F] F :=
+bot_equiv_of_injective (ring_hom.injective _)
+
 end algebra
 
 section nat

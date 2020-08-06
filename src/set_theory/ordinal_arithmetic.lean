@@ -781,20 +781,6 @@ begin
   rcases h with h|⟨rfl, h⟩, exact add_is_limit a h, simpa only [add_zero]
 end
 
-/-- Divisibility is defined by right multiplication:
-  `a ∣ b` if there exists `c` such that `b = a * c`. -/
-instance : has_dvd ordinal := ⟨λ a b, ∃ c, b = a * c⟩
-
-theorem dvd_def {a b : ordinal} : a ∣ b ↔ ∃ c, b = a * c := iff.rfl
-
-theorem dvd_mul (a b : ordinal) : a ∣ a * b := ⟨_, rfl⟩
-
-theorem dvd_trans : ∀ {a b c : ordinal}, a ∣ b → b ∣ c → a ∣ c
-| a _ _ ⟨b, rfl⟩ ⟨c, rfl⟩ := ⟨b * c, mul_assoc _ _ _⟩
-
-theorem dvd_mul_of_dvd {a b : ordinal} (c) (h : a ∣ b) : a ∣ b * c :=
-dvd_trans h (dvd_mul _ _)
-
 theorem dvd_add_iff : ∀ {a b c : ordinal}, a ∣ b → (a ∣ b + c ↔ a ∣ c)
 | a _ c ⟨b, rfl⟩ :=
  ⟨λ ⟨d, e⟩, ⟨d - b, by rw [mul_sub, ← e, add_sub_cancel]⟩,

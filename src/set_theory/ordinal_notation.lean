@@ -275,7 +275,7 @@ begin
   have := mt repr_inj.1 (λ h, by injection h : oadd e n a ≠ 0),
   have L := le_of_not_lt (λ l, not_le_of_lt (h.below_of_lt l).repr_lt (le_of_dvd this d)),
   simp at d,
-  exact ⟨L, (dvd_add_iff $ dvd_mul_of_dvd _ $ power_dvd_power _ L).1 d⟩
+  exact ⟨L, (dvd_add_iff $ dvd_mul_of_dvd_left _ $ power_dvd_power _ L).1 d⟩
 end
 
 theorem NF.of_dvd_omega {e n a} (h : NF (oadd e n a)) :
@@ -611,7 +611,7 @@ begin
   cases e : split' o with a n,
   rw split_eq_scale_split' e at h,
   injection h, subst o',
-  cases NF_repr_split' e, resetI, simp [dvd_mul]
+  cases NF_repr_split' e, resetI, simp -- [dvd_mul]
 end
 
 theorem split_add_lt {o e n a m} [NF o] (h : split o = (oadd e n a, m)) : repr a + m < ω ^ repr e :=
@@ -728,7 +728,7 @@ begin
   ... = (ω0 ^ k * α' + R) * α' + (ω0 ^ k * α' + R) * m : _
   ... = (α' + m) ^ succ k.succ : by rw [← ordinal.mul_add, ← nat_cast_succ, power_succ, IH.2],
   congr' 1,
-  { have αd : ω ∣ α' := dvd_add (dvd_mul_of_dvd _
+  { have αd : ω ∣ α' := dvd_add (dvd_mul_of_dvd_left _
       (by simpa using power_dvd_power ω (one_le_iff_ne_zero.2 e0))) d,
     rw [ordinal.mul_add (ω0 ^ k), add_assoc, ← mul_assoc, ← power_succ,
         add_mul_limit _ (is_limit_iff_omega_dvd.2 ⟨ne_of_gt α0, αd⟩), mul_assoc,

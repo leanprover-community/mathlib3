@@ -747,11 +747,6 @@ by rw [← sub_eq_zero, mul_self_sub_mul_self, mul_eq_zero, or_comm, sub_eq_zero
 lemma mul_self_eq_one_iff {a : α} : a * a = 1 ↔ a = 1 ∨ a = -1 :=
 by rw [← mul_self_eq_mul_self_iff, one_mul]
 
-/-- Given two elements b, c of an integral domain and a nonzero element a, a*b divides a*c iff
-  b divides c. -/
-theorem mul_dvd_mul_iff_left (ha : a ≠ 0) : a * b ∣ a * c ↔ b ∣ c :=
-exists_congr $ λ d, by rw [mul_assoc, mul_right_inj' ha]
-
 /-- Given two elements a, b of an integral domain and a nonzero element c, a*c divides b*c iff
   a divides b. -/
 theorem mul_dvd_mul_iff_right (hc : c ≠ 0) : a * c ∣ b * c ↔ a ∣ b :=

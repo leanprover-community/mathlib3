@@ -1,4 +1,30 @@
+/-
+Copyright (c) 2014 Jeremy Avigad. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, Yury Kudryashov,
+Neil Strickland, Aaron Anderson
+-/
+
 import algebra.group_with_zero
+
+/-!
+# Divisibility
+
+This file defines the basics of the divisibility relation in the context of `(comm_)` `monoid`s
+`(_with_zero)`.
+
+## Main definitions
+
+`monoid.has_dvd`
+
+## Implementation notes
+
+The divisibility relation is defined for all monoids, and as such, depends on the order of
+  multiplication if the monoid is not commutative. There are two possible conventions for
+  divisibility in the noncommutative context, and this relation follows the convention for ordinals,
+  so `a | b` is defined as `∃ c, b = a * c`.
+
+-/
 
 variables {α : Type*}
 
@@ -101,6 +127,12 @@ dvd.elim h (assume c, assume H' : a = 0 * c, eq.trans H' (zero_mul c))
 
 end monoid_with_zero
 
+/-- Given two elements b, c of an integral domain and a nonzero element a, a*b divides a*c iff
+  b divides c. -/
+theorem mul_dvd_mul_iff_left [cancel_monoid_with_zero α] {a b c : α}
+  (ha : a ≠ 0) : a * b ∣ a * c ↔ b ∣ c :=
+exists_congr $ λ d, by rw [mul_assoc, mul_right_inj' ha]
+
 /-!
 ### Units in various monoids
 -/
@@ -110,25 +142,25 @@ namespace units
 section monoid
 variables [monoid α] (a b : α) (u : units α)
 
-/-- Elements of the unit group of a commutative semiring represented as elements of the semiring
-    divide any element of the semiring. -/
+/-- Elements of the unit group of a monoid represented as elements of the monoid
+    divide any element of the monoid. -/
 @[simp] lemma coe_dvd : ↑u ∣ a := ⟨↑u⁻¹ * a, by simp⟩
 
-/-- In a commutative semiring, an element a divides an element b iff a divides all
-    associates of b. -/
+/-- In a monoid, an element `a` divides an element `b` iff `a` divides all
+    associates of `b`. -/
 @[simp] lemma dvd_coe_mul : a ∣ b * u ↔ a ∣ b :=
 iff.intro
   (assume ⟨c, eq⟩, ⟨c * ↑u⁻¹, by rw [← mul_assoc, ← eq, units.mul_inv_cancel_right]⟩)
   (assume ⟨c, eq⟩, eq.symm ▸ dvd_mul_of_dvd_left (dvd_mul_right _ _) _)
 
-/-- An element of a commutative semiring divides a unit iff the element divides one. -/
+/-- An element of a monoid divides a unit iff the element divides one. -/
 @[simp] lemma dvd_coe : a ∣ ↑u ↔ a ∣ 1 :=
 suffices a ∣ 1 * ↑u ↔ a ∣ 1, by simpa,
 dvd_coe_mul _ _ _
 
 end monoid
 
-/-- In a commutative semiring, an element a divides an element b iff all associates of a divide b.-/
+/-- In a monoid, an element a divides an element b iff all associates of a divide b.-/
 @[simp] lemma coe_mul_dvd [comm_monoid α] (a b : α) (u : units α) : a * u ∣ b ↔ a ∣ b :=
 iff.intro
   (assume ⟨c, eq⟩, ⟨c * ↑u, eq.symm ▸ by ac_refl⟩)
@@ -138,7 +170,7 @@ end units
 
 namespace is_unit
 
-lemma mul_right_dvd_of_dvd [monoid_with_zero α]
+lemma mul_right_dvd_of_dvd [monoid α]
   {a b c : α} (hb : is_unit b) (h : a ∣ c) : a * b ∣ c :=
 begin
   rcases hb with ⟨b, rfl⟩,
@@ -147,7 +179,7 @@ begin
   rw [mul_assoc, units.mul_inv_cancel_left]
 end
 
-lemma mul_left_dvd_of_dvd [comm_monoid_with_zero α]
+lemma mul_left_dvd_of_dvd [comm_monoid α]
   {a b c : α} (hb : is_unit b) (h : a ∣ c) : b * a ∣ c :=
 begin
   rcases hb with ⟨b, rfl⟩,

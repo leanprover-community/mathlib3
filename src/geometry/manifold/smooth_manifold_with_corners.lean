@@ -624,7 +624,7 @@ begin
 end
 
 lemma ext_chart_at_target_mem_nhds_within :
-  (ext_chart_at I x).target ∈ nhds_within ((ext_chart_at I x) x) (range I) :=
+  (ext_chart_at I x).target ∈ 𝓝[range I] ((ext_chart_at I x) x) :=
 begin
   rw [ext_chart_at, local_equiv.trans_target],
   simp only [function.comp_app, local_equiv.coe_trans, model_with_corners.target],
@@ -639,8 +639,8 @@ lemma ext_chart_at_coe_symm (p : E) :
   (ext_chart_at I x).symm p = ((chart_at H x).symm : H → M) (I.symm p) := rfl
 
 lemma nhds_within_ext_chart_target_eq :
-  nhds_within ((ext_chart_at I x) x) (ext_chart_at I x).target =
-  nhds_within ((ext_chart_at I x) x) (range I) :=
+  𝓝[(ext_chart_at I x).target] ((ext_chart_at I x) x) =
+  𝓝[range I] ((ext_chart_at I x) x) :=
 begin
   apply le_antisymm,
   { apply nhds_within_mono,
@@ -668,9 +668,9 @@ ext_chart_continuous_at_symm' I x (mem_ext_chart_source I x)
 /-- Technical lemma ensuring that the preimage under an extended chart of a neighborhood of a point
 in the source is a neighborhood of the preimage, within a set. -/
 lemma ext_chart_preimage_mem_nhds_within' {x' : M} (h : x' ∈ (ext_chart_at I x).source)
-  (ht : t ∈ nhds_within x' s) :
-  (ext_chart_at I x).symm ⁻¹' t ∈ nhds_within ((ext_chart_at I x) x')
-    ((ext_chart_at I x).symm ⁻¹' s ∩ range I) :=
+  (ht : t ∈ 𝓝[s] x') :
+  (ext_chart_at I x).symm ⁻¹' t ∈
+    𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x') :=
 begin
   apply (ext_chart_continuous_at_symm' I x h).continuous_within_at.tendsto_nhds_within_image,
   rw (ext_chart_at I x).left_inv h,
@@ -682,9 +682,9 @@ end
 
 /-- Technical lemma ensuring that the preimage under an extended chart of a neighborhood of the
 base point is a neighborhood of the preimage, within a set. -/
-lemma ext_chart_preimage_mem_nhds_within (ht : t ∈ nhds_within x s) :
-  (ext_chart_at I x).symm ⁻¹' t ∈ nhds_within ((ext_chart_at I x) x)
-    ((ext_chart_at I x).symm ⁻¹' s ∩ range I) :=
+lemma ext_chart_preimage_mem_nhds_within (ht : t ∈ 𝓝[s] x) :
+  (ext_chart_at I x).symm ⁻¹' t ∈
+    𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x) :=
 ext_chart_preimage_mem_nhds_within' I x (mem_ext_chart_source I x) ht
 
 /-- Technical lemma ensuring that the preimage under an extended chart of a neighborhood of a point

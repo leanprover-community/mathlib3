@@ -83,7 +83,7 @@ lemma image_le_of_liminf_slope_right_lt_deriv_boundary' {f f' : ℝ → ℝ} {a 
   (hf : continuous_on f (Icc a b))
   -- `hf'` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ f' x`
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (f z - f x) < r)
+    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r)
   {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : continuous_on B (Icc a b))
   (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
   (bound : ∀ x ∈ Ico a b, f x = B x → f' x < B' x) :
@@ -100,17 +100,17 @@ begin
   change f x ≤ B x at hxB,
   cases lt_or_eq_of_le hxB with hxB hxB,
   { -- If `f x < B x`, then all we need is continuity of both sides
-    apply @nonempty_of_mem_sets _ (nhds_within x (Ioi x)),
+    apply @nonempty_of_mem_sets _ (𝓝[Ioi x] x),
     refine inter_mem_sets _ (Ioc_mem_nhds_within_Ioi ⟨le_refl x, hy⟩),
-    have : ∀ᶠ x in nhds_within x (Icc a b), f x < B x,
+    have : ∀ᶠ x in 𝓝[Icc a b] x, f x < B x,
       from A x (Ico_subset_Icc_self xab)
         (mem_nhds_sets (is_open_lt continuous_fst continuous_snd) hxB),
-    have : ∀ᶠ x in nhds_within x (Ioi x), f x < B x,
+    have : ∀ᶠ x in 𝓝[Ioi x] x, f x < B x,
       from nhds_within_le_of_mem (Icc_mem_nhds_within_Ioi xab) this,
     refine mem_sets_of_superset this (set_of_subset_set_of.2 $ λ y, le_of_lt) },
   { rcases dense (bound x xab hxB) with ⟨r, hfr, hrB⟩,
     specialize hf' x xab r hfr,
-    have HB : ∀ᶠ z in nhds_within x (Ioi x), r < (z - x)⁻¹ * (B z - B x),
+    have HB : ∀ᶠ z in 𝓝[Ioi x] x, r < (z - x)⁻¹ * (B z - B x),
       from (has_deriv_within_at_iff_tendsto_slope' $ lt_irrefl x).1 (hB' x xab)
         (mem_nhds_sets is_open_Ioi hrB),
     obtain ⟨z, ⟨hfz, hzB⟩, hz⟩ :
@@ -137,7 +137,7 @@ lemma image_le_of_liminf_slope_right_lt_deriv_boundary {f f' : ℝ → ℝ} {a b
   (hf : continuous_on f (Icc a b))
   -- `hf'` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ f' x`
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (f z - f x) < r)
+    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r)
   {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : ∀ x, has_deriv_at B (B' x) x)
   (bound : ∀ x ∈ Ico a b, f x = B x → f' x < B' x) :
   ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
@@ -160,7 +160,7 @@ lemma image_le_of_liminf_slope_right_le_deriv_boundary {f : ℝ → ℝ} {a b : 
   (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
   -- `bound` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ B' x`
   (bound : ∀ x ∈ Ico a b, ∀ r, B' x < r →
-    ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (f z - f x) < r) :
+    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r) :
   ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
 begin
   have Hr : ∀ x ∈ Icc a b, ∀ r ∈ Ioi (0:ℝ), f x ≤ B x + r * (x - a),
@@ -258,7 +258,7 @@ lemma image_norm_le_of_liminf_right_slope_norm_lt_deriv_boundary {E : Type*} [no
   {f : ℝ → E} {f' : ℝ → ℝ} (hf : continuous_on f (Icc a b))
   -- `hf'` actually says `liminf ∥z - x∥⁻¹ * (∥f z∥ - ∥f x∥) ≤ f' x`
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r)
+    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r)
   {B B' : ℝ → ℝ} (ha : ∥f a∥ ≤ B a) (hB : continuous_on B (Icc a b))
   (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
   (bound : ∀ x ∈ Ico a b, ∥f x∥ = B x → f' x < B' x) :
@@ -612,7 +612,7 @@ theorem convex.mul_sub_lt_image_sub_of_lt_deriv {D : set ℝ} (hD : convex D) {f
   ∀ x y ∈ D, x < y → C * (y - x) < f y - f x :=
 begin
   assume x y hx hy hxy,
-  have hxyD : Icc x y ⊆ D, from convex_real_iff.1 hD hx hy,
+  have hxyD : Icc x y ⊆ D, from hD.ord_connected hx hy,
   have hxyD' : Ioo x y ⊆ interior D,
     from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hxyD⟩,
   obtain ⟨a, a_mem, ha⟩ : ∃ a ∈ Ioo x y, deriv f a = (f y - f x) / (y - x),
@@ -640,7 +640,7 @@ theorem convex.mul_sub_le_image_sub_of_le_deriv {D : set ℝ} (hD : convex D) {f
 begin
   assume x y hx hy hxy,
   cases eq_or_lt_of_le hxy with hxy' hxy', by rw [hxy', sub_self, sub_self, mul_zero],
-  have hxyD : Icc x y ⊆ D, from convex_real_iff.1 hD hx hy,
+  have hxyD : Icc x y ⊆ D, from hD.ord_connected hx hy,
   have hxyD' : Ioo x y ⊆ interior D,
     from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hxyD⟩,
   obtain ⟨a, a_mem, ha⟩ : ∃ a ∈ Ioo x y, deriv f a = (f y - f x) / (y - x),
@@ -785,7 +785,7 @@ convex_on_real_of_slope_mono_adjacent hD
 begin
   intros x y z hx hz hxy hyz,
   -- First we prove some trivial inclusions
-  have hxzD : Icc x z ⊆ D, from convex_real_iff.1 hD hx hz,
+  have hxzD : Icc x z ⊆ D, from hD.ord_connected hx hz,
   have hxyD : Icc x y ⊆ D, from subset.trans (Icc_subset_Icc_right $ le_of_lt hyz) hxzD,
   have hxyD' : Ioo x y ⊆ interior D,
     from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hxyD⟩,

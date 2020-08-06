@@ -378,9 +378,6 @@ local attribute [instance] fact_zero_lt_one
 instance : charted_space (euclidean_half_space 1) (Icc (0 : ℝ) 1) := by apply_instance
 instance : smooth_manifold_with_corners (𝓡∂ 1) (Icc (0 : ℝ) 1) := by apply_instance
 
-instance : has_zero (Icc (0 : ℝ) 1) := ⟨⟨(0 : ℝ), ⟨le_refl _, zero_le_one⟩⟩⟩
-instance : has_one (Icc (0 : ℝ) 1) := ⟨⟨(1 : ℝ), ⟨zero_le_one, le_refl _⟩⟩⟩
-
 end
 
 /-! ## Structures over real numbers and real functions -/

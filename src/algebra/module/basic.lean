@@ -34,10 +34,6 @@ In this file we define
 
 * `vector_space` and `module` are abbreviations for `semimodule R M`.
 
-## TODO
-
-* `submodule R M` was written before bundled `submonoid`s, so it does not extend it.
-
 ## Tags
 
 semimodule, module, vector space, submodule, subspace, linear map
@@ -552,15 +548,13 @@ def to_add_subgroup : add_subgroup M :=
 
 @[simp] lemma coe_to_add_subgroup : (p.to_add_subgroup : set M) = p := rfl
 
-lemma sub_mem (hx : x ∈ p) (hy : y ∈ p) : x - y ∈ p := p.add_mem hx (p.neg_mem hy)
+lemma sub_mem : x ∈ p → y ∈ p → x - y ∈ p := p.to_add_subgroup.sub_mem
 
 @[simp] lemma neg_mem_iff : -x ∈ p ↔ x ∈ p := p.to_add_subgroup.neg_mem_iff
 
-lemma add_mem_iff_left (h₁ : y ∈ p) : x + y ∈ p ↔ x ∈ p :=
-⟨λ h₂, by simpa using sub_mem _ h₂ h₁, λ h₂, add_mem _ h₂ h₁⟩
+lemma add_mem_iff_left : y ∈ p → (x + y ∈ p ↔ x ∈ p) := p.to_add_subgroup.add_mem_cancel_right
 
-lemma add_mem_iff_right (h₁ : x ∈ p) : x + y ∈ p ↔ y ∈ p :=
-⟨λ h₂, by simpa using sub_mem _ h₂ h₁, add_mem _ h₁⟩
+lemma add_mem_iff_right : x ∈ p → (x + y ∈ p ↔ y ∈ p) := p.to_add_subgroup.add_mem_cancel_left
 
 instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
 
@@ -574,33 +568,6 @@ instance : add_comm_group p :=
 end add_comm_group
 
 end submodule
-
--- TODO: Do we want one-sided ideals?
-
-/-- Ideal in a commutative ring is an additive subgroup `s` such that
-`a * b ∈ s` whenever `b ∈ s`. We define `ideal R` as `submodule R R`. -/
-@[reducible] def ideal (R : Type u) [comm_ring R] := submodule R R
-
-namespace ideal
-variables [comm_ring R] (I : ideal R) {a b : R}
-
-protected lemma zero_mem : (0 : R) ∈ I := I.zero_mem
-
-protected lemma add_mem : a ∈ I → b ∈ I → a + b ∈ I := I.add_mem
-
-lemma neg_mem_iff : -a ∈ I ↔ a ∈ I := I.neg_mem_iff
-
-lemma add_mem_iff_left : b ∈ I → (a + b ∈ I ↔ a ∈ I) := I.add_mem_iff_left
-
-lemma add_mem_iff_right : a ∈ I → (a + b ∈ I ↔ b ∈ I) := I.add_mem_iff_right
-
-protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := I.sub_mem
-
-lemma mul_mem_left : b ∈ I → a * b ∈ I := I.smul_mem _
-
-lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_left h
-
-end ideal
 
 /--
 Vector spaces are defined as an `abbreviation` for semimodules,

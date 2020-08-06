@@ -437,7 +437,7 @@ by rw [nsmul_eq_mul', nsmul_eq_mul', mul_assoc]
 theorem mul_nsmul_assoc [semiring R] (a b : R) (n : ℕ) : n •ℕ (a * b) = n •ℕ a * b :=
 by rw [nsmul_eq_mul, nsmul_eq_mul, mul_assoc]
 
-lemma zero_pow [semiring R] : ∀ {n : ℕ}, 0 < n → (0 : R) ^ n = 0
+lemma zero_pow [monoid_with_zero R] : ∀ {n : ℕ}, 0 < n → (0 : R) ^ n = 0
 | (n+1) _ := zero_mul _
 
 @[simp, norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
@@ -524,7 +524,7 @@ by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [pow_two]
 theorem sq_sub_sq [comm_ring R] (a b : R) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
 by rw [pow_two, pow_two, mul_self_sub_mul_self]
 
-theorem pow_eq_zero [domain R] {x : R} {n : ℕ} (H : x^n = 0) : x = 0 :=
+theorem pow_eq_zero [monoid_with_zero R] [no_zero_divisors R] {x : R} {n : ℕ} (H : x^n = 0) : x = 0 :=
 begin
   induction n with n ih,
   { rw pow_zero at H,
@@ -532,7 +532,8 @@ begin
   exact or.cases_on (mul_eq_zero.1 H) id ih
 end
 
-@[field_simps] theorem pow_ne_zero [domain R] {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
+@[field_simps] theorem pow_ne_zero [monoid_with_zero R] [no_zero_divisors R]
+  {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
 
 theorem nsmul_nonneg [ordered_add_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n •ℕ a

@@ -14,28 +14,28 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 lemma is_unit_pow [monoid α] {a : α} (n : ℕ) : is_unit a → is_unit (a ^ n) :=
 λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
 
-theorem is_unit_iff_dvd_one [comm_semiring α] {x : α} : is_unit x ↔ x ∣ 1 :=
+theorem is_unit_iff_dvd_one [comm_monoid α] {x : α} : is_unit x ↔ x ∣ 1 :=
 ⟨by rintro ⟨u, rfl⟩; exact ⟨_, u.mul_inv.symm⟩,
  λ ⟨y, h⟩, ⟨⟨x, y, h.symm, by rw [h, mul_comm]⟩, rfl⟩⟩
 
-theorem is_unit_iff_forall_dvd [comm_semiring α] {x : α} :
+theorem is_unit_iff_forall_dvd [comm_monoid α] {x : α} :
   is_unit x ↔ ∀ y, x ∣ y :=
 is_unit_iff_dvd_one.trans ⟨λ h y, dvd.trans h (one_dvd _), λ h, h _⟩
 
-theorem mul_dvd_of_is_unit_left [comm_semiring α] {x y z : α} (h : is_unit x) : x * y ∣ z ↔ y ∣ z :=
+theorem mul_dvd_of_is_unit_left [comm_monoid α] {x y z : α} (h : is_unit x) : x * y ∣ z ↔ y ∣ z :=
 ⟨dvd_trans (dvd_mul_left _ _),
  dvd_trans $ by simpa using mul_dvd_mul_right (is_unit_iff_dvd_one.1 h) y⟩
 
-theorem mul_dvd_of_is_unit_right [comm_semiring α] {x y z : α} (h : is_unit y) : x * y ∣ z ↔ x ∣ z :=
+theorem mul_dvd_of_is_unit_right [comm_monoid α] {x y z : α} (h : is_unit y) : x * y ∣ z ↔ x ∣ z :=
 by rw [mul_comm, mul_dvd_of_is_unit_left h]
 
-@[simp] lemma unit_mul_dvd_iff [comm_semiring α] {a b : α} {u : units α} : (u : α) * a ∣ b ↔ a ∣ b :=
+@[simp] lemma unit_mul_dvd_iff [comm_monoid α] {a b : α} {u : units α} : (u : α) * a ∣ b ↔ a ∣ b :=
 mul_dvd_of_is_unit_left (is_unit_unit _)
 
 lemma mul_unit_dvd_iff [comm_semiring α] {a b : α} {u : units α} : a * u ∣ b ↔ a ∣ b :=
 units.coe_mul_dvd _ _ _
 
-theorem is_unit_of_dvd_unit {α} [comm_semiring α] {x y : α}
+theorem is_unit_of_dvd_unit {α} [comm_monoid α] {x y : α}
   (xy : x ∣ y) (hu : is_unit y) : is_unit x :=
 is_unit_iff_dvd_one.2 $ dvd_trans xy $ is_unit_iff_dvd_one.1 hu
 
@@ -43,7 +43,7 @@ theorem is_unit_int {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
 ⟨begin rintro ⟨u, rfl⟩, exact (int.units_eq_one_or u).elim (by simp) (by simp) end,
   λ h, is_unit_iff_dvd_one.2 ⟨n, by rw [← int.nat_abs_mul_self, h]; refl⟩⟩
 
-lemma is_unit_of_dvd_one [comm_semiring α] : ∀a ∣ 1, is_unit (a:α)
+lemma is_unit_of_dvd_one [comm_monoid α] : ∀a ∣ 1, is_unit (a:α)
 | a ⟨b, eq⟩ := ⟨units.mk_of_mul_eq_one a b eq.symm, rfl⟩
 
 lemma dvd_and_not_dvd_iff [integral_domain α] {x y : α} :
@@ -64,23 +64,27 @@ begin
   { apply pow_dvd_pow }
 end
 
+section prime
+variables [comm_monoid_with_zero α]
+
 /-- prime element of a semiring -/
-def prime [comm_semiring α] (p : α) : Prop :=
+def prime (p : α) : Prop :=
 p ≠ 0 ∧ ¬ is_unit p ∧ (∀a b, p ∣ a * b → p ∣ a ∨ p ∣ b)
 
 namespace prime
+variables {p : α} (hp : prime p)
 
-lemma ne_zero [comm_semiring α] {p : α} (hp : prime p) : p ≠ 0 :=
+lemma ne_zero (hp : prime p) : p ≠ 0 :=
 hp.1
 
-lemma not_unit [comm_semiring α] {p : α} (hp : prime p) : ¬ is_unit p :=
+lemma not_unit (hp : prime p) : ¬ is_unit p :=
 hp.2.1
 
-lemma div_or_div [comm_semiring α] {p : α} (hp : prime p) {a b : α} (h : p ∣ a * b) :
+lemma div_or_div (hp : prime p) {a b : α} (h : p ∣ a * b) :
   p ∣ a ∨ p ∣ b :=
 hp.2.2 a b h
 
-lemma dvd_of_dvd_pow [comm_semiring α] {p : α} (hp : prime p) {a : α} {n : ℕ} (h : p ∣ a^n) :
+lemma dvd_of_dvd_pow (hp : prime p) {a : α} {n : ℕ} (h : p ∣ a^n) :
   p ∣ a :=
 begin
   induction n with n ih,
@@ -96,13 +100,13 @@ end
 
 end prime
 
-@[simp] lemma not_prime_zero [comm_semiring α] : ¬ prime (0 : α) :=
+@[simp] lemma not_prime_zero : ¬ prime (0 : α) :=
 λ h, h.ne_zero rfl
 
-@[simp] lemma not_prime_one [comm_semiring α] : ¬ prime (1 : α) :=
+@[simp] lemma not_prime_one : ¬ prime (1 : α) :=
 λ h, h.not_unit is_unit_one
 
-lemma exists_mem_multiset_dvd_of_prime [comm_semiring α] {s : multiset α} {p : α} (hp : prime p) :
+lemma exists_mem_multiset_dvd_of_prime {s : multiset α} {p : α} (hp : prime p) :
   p ∣ s.prod → ∃a∈s, p ∣ a :=
 multiset.induction_on s (assume h, (hp.not_unit $ is_unit_of_dvd_one _ h).elim) $
 assume a s ih h,
@@ -111,6 +115,8 @@ assume a s ih h,
   | or.inl h := ⟨a, multiset.mem_cons_self a s, h⟩
   | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
   end
+
+end prime
 
 /-- `irreducible p` states that `p` is non-unit and only factors into units.
 
@@ -134,18 +140,18 @@ end irreducible
 @[simp] theorem not_irreducible_one [monoid α] : ¬ irreducible (1 : α) :=
 by simp [irreducible]
 
-@[simp] theorem not_irreducible_zero [semiring α] : ¬ irreducible (0 : α)
+@[simp] theorem not_irreducible_zero [monoid_with_zero α] : ¬ irreducible (0 : α)
 | ⟨hn0, h⟩ := have is_unit (0:α) ∨ is_unit (0:α), from h 0 0 ((mul_zero 0).symm),
   this.elim hn0 hn0
 
-theorem irreducible.ne_zero [semiring α] : ∀ {p:α}, irreducible p → p ≠ 0
+theorem irreducible.ne_zero [monoid_with_zero α] : ∀ {p:α}, irreducible p → p ≠ 0
 | _ hp rfl := not_irreducible_zero hp
 
-theorem of_irreducible_mul {α} [monoid α] {x y : α} :
+theorem of_irreducible_mul {α} [monoid_with_zero α] {x y : α} :
   irreducible (x * y) → is_unit x ∨ is_unit y
 | ⟨_, h⟩ := h _ _ rfl
 
-theorem irreducible_or_factor {α} [monoid α] (x : α) (h : ¬ is_unit x) :
+theorem irreducible_or_factor {α} [monoid_with_zero α] (x : α) (h : ¬ is_unit x) :
   irreducible x ∨ ∃ a b, ¬ is_unit a ∧ ¬ is_unit b ∧ a * b = x :=
 begin
   haveI := classical.dec,
@@ -179,7 +185,7 @@ have hpd : p ∣ x * y, from ⟨z, by rwa [mul_right_inj' hp0] at h⟩,
   (λ ⟨d, hd⟩, or.inr ⟨d, by simp [*, pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
 
 /-- If `p` and `q` are irreducible, then `p ∣ q` implies `q ∣ p`. -/
-lemma dvd_symm_of_irreducible [comm_semiring α] {p q : α}
+lemma dvd_symm_of_irreducible [comm_monoid_with_zero α] {p q : α}
   (hp : irreducible p) (hq : irreducible q) : p ∣ q → q ∣ p :=
 begin
   tactic.unfreeze_local_instances,
@@ -189,7 +195,7 @@ begin
     (dvd_refl p)
 end
 
-lemma dvd_symm_iff_of_irreducible [comm_semiring α] {p q : α}
+lemma dvd_symm_iff_of_irreducible [comm_monoid_with_zero α] {p q : α}
   (hp : irreducible p) (hq : irreducible q) : p ∣ q ↔ q ∣ p :=
 ⟨dvd_symm_of_irreducible hp hq, dvd_symm_of_irreducible hq hp⟩
 

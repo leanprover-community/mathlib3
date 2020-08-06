@@ -285,6 +285,11 @@ left_ne_zero_of_mul_eq_one u.mul_inv
 @[simp] lemma mul_right_eq_zero (u : units M₀) {a : M₀} : ↑u * a = 0 ↔ a = 0 :=
 ⟨λ h, by simpa using mul_eq_zero_of_right ↑u⁻¹ h, mul_eq_zero_of_right u⟩
 
+/-- An element of the unit group of a nonzero monoid with zero represented as an element
+    of the monoid is nonzero. -/
+lemma coe_ne_zero [nontrivial M₀] (u : units M₀) : (u : M₀) ≠ 0 :=
+λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3
+
 end units
 
 namespace is_unit

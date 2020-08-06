@@ -618,7 +618,7 @@ theorem dvd_add_iff_left (h : a ∣ c) : a ∣ b ↔ a ∣ b + c :=
 theorem dvd_add_iff_right (h : a ∣ b) : a ∣ c ↔ a ∣ b + c :=
 by rw add_comm; exact dvd_add_iff_left h
 
-theorem two_dvd_bit1 : 2 ∣ bit1 a ↔ (2 : α) ∣ 1 := (dvd_add_iff_right two_dvd_bit0).symm
+theorem two_dvd_bit1 : 2 ∣ bit1 a ↔ (2 : α) ∣ 1 := (dvd_add_iff_right (@two_dvd_bit0 _ _ a)).symm
 
 /-- Representation of a difference of two squares in a commutative ring as a product. -/
 theorem mul_self_sub_mul_self (a b : α) : a * a - b * b = (a + b) * (a - b) :=
@@ -692,11 +692,6 @@ lemma succ_ne_self [ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
 lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by { convert h, simp })))
 
-/-- An element of the unit group of a nonzero semiring represented as an element
-    of the semiring is nonzero. -/
-lemma units.coe_ne_zero [semiring α] [nontrivial α] (u : units α) : (u : α) ≠ 0 :=
-λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3
-
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
@@ -768,66 +763,6 @@ lemma units.inv_eq_self_iff (u : units α) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
 by { rw inv_eq_iff_mul_eq_one, simp only [units.ext_iff], push_cast, exact mul_self_eq_one_iff }
 
 end integral_domain
-
-/-!
-### Units in various rings
--/
-
-namespace units
-
-section comm_semiring
-variables [comm_semiring α] (a b : α) (u : units α)
-
-/-- Elements of the unit group of a commutative semiring represented as elements of the semiring
-    divide any element of the semiring. -/
-@[simp] lemma coe_dvd : ↑u ∣ a := ⟨↑u⁻¹ * a, by simp⟩
-
-/-- In a commutative semiring, an element a divides an element b iff a divides all
-    associates of b. -/
-@[simp] lemma dvd_coe_mul : a ∣ b * u ↔ a ∣ b :=
-iff.intro
-  (assume ⟨c, eq⟩, ⟨c * ↑u⁻¹, by rw [← mul_assoc, ← eq, units.mul_inv_cancel_right]⟩)
-  (assume ⟨c, eq⟩, eq.symm ▸ dvd_mul_of_dvd_left (dvd_mul_right _ _) _)
-
-/-- An element of a commutative semiring divides a unit iff the element divides one. -/
-@[simp] lemma dvd_coe : a ∣ ↑u ↔ a ∣ 1 :=
-suffices a ∣ 1 * ↑u ↔ a ∣ 1, by simpa,
-dvd_coe_mul _ _ _
-
-/-- In a commutative semiring, an element a divides an element b iff all associates of a divide b.-/
-@[simp] lemma coe_mul_dvd : a * u ∣ b ↔ a ∣ b :=
-iff.intro
-  (assume ⟨c, eq⟩, ⟨c * ↑u, eq.symm ▸ by ac_refl⟩)
-  (assume h, suffices a * ↑u ∣ b * 1, by simpa, mul_dvd_mul h (coe_dvd _ _))
-
-end comm_semiring
-
-end units
-
-namespace is_unit
-
-section comm_semiring
-variables [comm_semiring R]
-
-lemma mul_right_dvd_of_dvd {a b c : R} (hb : is_unit b) (h : a ∣ c) : a * b ∣ c :=
-begin
-  rcases hb with ⟨b, rfl⟩,
-  rcases h with ⟨c', rfl⟩,
-  use (b⁻¹ : units R) * c',
-  rw [mul_assoc, units.mul_inv_cancel_left]
-end
-
-lemma mul_left_dvd_of_dvd {a b c : R} (hb : is_unit b) (h : a ∣ c) : b * a ∣ c :=
-begin
-  rcases hb with ⟨b, rfl⟩,
-  rcases h with ⟨c', rfl⟩,
-  use (b⁻¹ : units R) * c',
-  rw [mul_comm (b : R) a, mul_assoc, units.mul_inv_cancel_left]
-end
-
-end comm_semiring
-
-end is_unit
 
 namespace ring
 variables [ring R]

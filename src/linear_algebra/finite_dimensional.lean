@@ -588,4 +588,60 @@ begin
   rw [findim_bot, findim_eq_zero_of_dim_eq_zero h]
 end
 
+@[simp] theorem dim_eq_zero {S : submodule K V} : dim K S = 0 ↔ S = ⊥ :=
+⟨λ h, (submodule.eq_bot_iff _).2 $ λ x hx, congr_arg subtype.val $
+  ((submodule.eq_bot_iff _).1 $ eq.symm $ bot_eq_top_of_dim_eq_zero h) ⟨x, hx⟩ submodule.mem_top,
+λ h, by rw [h, dim_bot]⟩
+
+@[simp] theorem findim_eq_zero {S : submodule K V} [finite_dimensional K S] : findim K S = 0 ↔ S = ⊥ :=
+by rw [← dim_eq_zero, ← findim_eq_dim, ← @nat.cast_zero cardinal, cardinal.nat_cast_inj]
+
 end zero_dim
+
+section top
+
+open vector_space finite_dimensional
+
+theorem findim_top [finite_dimensional K V] : findim K (⊤ : submodule K V) = findim K V :=
+linear_equiv.findim_eq $ linear_equiv.of_top ⊤ rfl
+
+end top
+
+namespace linear_map
+
+open vector_space finite_dimensional
+
+theorem injective_iff_surjective_of_findim_eq_findim [finite_dimensional K V]
+  [finite_dimensional K V₂] (H : findim K V = findim K V₂) {f : V →ₗ[K] V₂} :
+  function.injective f ↔ function.surjective f :=
+begin
+  have := findim_range_add_findim_ker f,
+  rw [← ker_eq_bot, ← range_eq_top], refine ⟨λ h, _, λ h, _⟩,
+  { rw [h, findim_bot, add_zero, H] at this, exact eq_top_of_findim_eq this },
+  { rw [h, findim_top, H] at this, exact findim_eq_zero.1 (add_right_injective _ this) }
+end
+
+theorem findim_le_findim_of_injective [finite_dimensional K V] [finite_dimensional K V₂]
+  {f : V →ₗ[K] V₂} (hf : function.injective f) : findim K V ≤ findim K V₂ :=
+calc  findim K V
+    = findim K f.range + findim K f.ker : (findim_range_add_findim_ker f).symm
+... = findim K f.range : by rw [ker_eq_bot.2 hf, findim_bot, add_zero]
+... ≤ findim K V₂ : submodule.findim_le _
+
+end linear_map
+
+section
+
+/-- An integral domain that is module-finite as an algebra over a field is a field. -/
+noncomputable def field_of_finite_dimensional (F K : Type*) [field F] [integral_domain K]
+  [algebra F K] [finite_dimensional F K] : field K :=
+{ inv := λ x, if H : x = 0 then 0 else classical.some $
+    (show function.surjective (algebra.lmul_left F K x), from
+      linear_map.injective_iff_surjective.1 $ λ _ _, (mul_right_inj' H).1) 1,
+  mul_inv_cancel := λ x hx, show x * dite _ _ _ = _, by { rw dif_neg hx,
+    exact classical.some_spec ((show function.surjective (algebra.lmul_left F K x), from
+      linear_map.injective_iff_surjective.1 $ λ _ _, (mul_right_inj' hx).1) 1) },
+  inv_zero := dif_pos rfl,
+  .. ‹integral_domain K› }
+
+end

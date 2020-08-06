@@ -1398,7 +1398,7 @@ apply_nolint free_ring.lift doc_blame
 apply_nolint free_ring.map doc_blame
 apply_nolint free_ring.of doc_blame
 
--- ring_theory/ideal_operations.lean
+-- ring_theory/ideal/operations.lean
 apply_nolint ideal.le_order_embedding_of_surjective doc_blame
 apply_nolint ideal.lt_order_embedding_of_surjective doc_blame
 apply_nolint ideal.map doc_blame

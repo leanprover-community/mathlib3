@@ -9,7 +9,7 @@ import analysis.normed_space.indicator_function
 /-!
 # Set integral
 
-In this file we prove some properties of `∫ x in s, f x ∂μ`. Recall that this is notation
+In this file we prove some properties of `∫ x in s, f x ∂μ`. Recall that this notation
 is defined as `∫ x, f x ∂(μ.restrict s)`. In `integral_indicator` we prove that for a measurable
 function `f` and a measurable set `s` this definition coincides with another natural definition:
 `∫ x, indicator s f x ∂μ = ∫ x in s, f x ∂μ`, where `indicator s f x` is equal to `f x` for `x ∈ s`
@@ -22,12 +22,12 @@ directly. In this file we prove some theorems about dependence of `∫ x in s, f
 We also define `integrable_on f s μ := integrable f (μ.restrict s)` and prove theorems like
 `integrable_on_union : integrable_on f (s ∪ t) μ ↔ integrable_on f s μ ∧ integrable_on f t μ`.
 
-Next we definte a predicate `integrable_at_filter (f : α → E) (l : filter α) (μ : measure α)`
+Next we define a predicate `integrable_at_filter (f : α → E) (l : filter α) (μ : measure α)`
 saying that `f` is integrable at some set `s ∈ l` and prove that a function is integrable
 at `l` with respect to `μ` provided that `f` is bounded above at `l ⊓ μ.ae` and `μ` is finite
 at `l`.
 
-Finally, we prove a versionof the
+Finally, we prove a version of the
 [Fundamental theorem of calculus](https://en.wikipedia.org/wiki/Fundamental_theorem_of_calculus)
 for set integral, see `filter.tendsto.integral_sub_linear_is_o_ae` and its corollaries.
 Namely, consider a measurably generated filter `l`, a measure `μ` finite at this filter, and

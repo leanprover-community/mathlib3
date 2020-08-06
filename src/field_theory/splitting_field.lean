@@ -501,7 +501,7 @@ theorem splits_iff (f : polynomial α) [is_splitting_field α β f] :
 ⟨λ h, eq_bot_iff.2 $ adjoin_roots β f ▸ (roots_map (algebra_map α β) h).symm ▸
   algebra.adjoin_le_iff.2 (λ y hy, let ⟨x, hxs, hxy⟩ := finset.mem_image.1 hy in hxy ▸
   subalgebra.algebra_map_mem _ _),
-λ h, @ring_equiv.to_ring_hom_refl α _ ▸
+ λ h, @ring_equiv.to_ring_hom_refl α _ ▸
   ring_equiv.trans_symm (ring_equiv.of_bijective _ $ algebra.bijective_algbera_map_iff.2 h) ▸
   by { rw ring_equiv.to_ring_hom_trans, exact splits_comp_of_splits _ _ (splits β f) }⟩
 
@@ -511,7 +511,7 @@ theorem mul (f g : polynomial α) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_fi
 ⟨(is_algebra_tower.algebra_map_eq α β γ).symm ▸ splits_mul _
   (splits_comp_of_splits _ _ (splits β f))
   ((splits_map_iff _ _).1 (splits γ $ g.map $ algebra_map α β)),
-by rw [map_mul, roots_mul (mul_ne_zero (map_ne_zero hf : f.map (algebra_map α γ) ≠ 0)
+ by rw [map_mul, roots_mul (mul_ne_zero (map_ne_zero hf : f.map (algebra_map α γ) ≠ 0)
         (map_ne_zero hg)), finset.coe_union, algebra.adjoin_union,
       is_algebra_tower.algebra_map_eq α β γ, ← map_map,
       roots_map (algebra_map β γ) ((splits_id_iff_splits $ algebra_map α β).2 $ splits β f),
@@ -536,10 +536,11 @@ alg_hom.comp (by { rw ← adjoin_roots β f, exact classical.choice (lift_of_spl
 
 theorem finite_dimensional (f : polynomial α) [is_splitting_field α β f] : finite_dimensional α β :=
 finite_dimensional.iff_fg.2 $ @algebra.coe_top α β _ _ _ ▸ adjoin_roots β f ▸
-fg_adjoin_of_finite (set.finite_mem_finset _) (λ y hy, if hf : f = 0
-then by { rw [hf, map_zero, roots_zero] at hy, cases hy }
-else (is_algebraic_iff_is_integral _).1 ⟨f, hf, (eval₂_eq_eval_map _).trans $
-  (mem_roots $ by exact map_ne_zero hf).1 hy⟩)
+  fg_adjoin_of_finite (set.finite_mem_finset _) (λ y hy,
+  if hf : f = 0
+  then by { rw [hf, map_zero, roots_zero] at hy, cases hy }
+  else (is_algebraic_iff_is_integral _).1 ⟨f, hf, (eval₂_eq_eval_map _).trans $
+    (mem_roots $ by exact map_ne_zero hf).1 hy⟩)
 
 /-- Any splitting field is isomorphic to `splitting_field f`. -/
 def alg_equiv (f : polynomial α) [is_splitting_field α β f] : β ≃ₐ[α] splitting_field f :=
@@ -551,11 +552,11 @@ begin
   have : finite_dimensional.findim α β = finite_dimensional.findim α (splitting_field f) :=
   le_antisymm
     (linear_map.findim_le_findim_of_injective
-      (show function.injective (lift β f $ splits (splitting_field f) f).to_linear_map,
-      from ring_hom.injective (lift β f $ splits (splitting_field f) f : β →+* f.splitting_field)))
+      (show function.injective (lift β f $ splits (splitting_field f) f).to_linear_map, from
+        ring_hom.injective (lift β f $ splits (splitting_field f) f : β →+* f.splitting_field)))
     (linear_map.findim_le_findim_of_injective
-      (show function.injective (lift (splitting_field f) f $ splits β f).to_linear_map,
-      from ring_hom.injective (lift (splitting_field f) f $ splits β f : f.splitting_field →+* β))),
+      (show function.injective (lift (splitting_field f) f $ splits β f).to_linear_map, from
+        ring_hom.injective (lift (splitting_field f) f $ splits β f : f.splitting_field →+* β))),
   change function.surjective (lift β f $ splits (splitting_field f) f).to_linear_map,
   refine (linear_map.injective_iff_surjective_of_findim_eq_findim this).1 _,
   exact ring_hom.injective (lift β f $ splits (splitting_field f) f : β →+* f.splitting_field)

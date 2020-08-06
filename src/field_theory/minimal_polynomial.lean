@@ -177,7 +177,7 @@ begin
   rintros p q ⟨d, h⟩,
   have :    polynomial.aeval x (p*q) = 0 := by simp [h, aeval hx],
   replace : polynomial.aeval x p = 0 ∨ polynomial.aeval x q = 0 := by simpa,
-  cases this; [left, right]; apply dvd; assumption
+  exact or.imp (dvd hx) (dvd hx) this
 end
 
 /--A minimal polynomial is irreducible.-/

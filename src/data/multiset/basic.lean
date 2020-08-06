@@ -788,8 +788,8 @@ multiset.induction_on s (by simp) (assume a s ih, by simp [ih, add_mul])
 
 theorem prod_ne_zero {R : Type*} [integral_domain R] {m : multiset R} :
   (∀ x ∈ m, (x : _) ≠ 0) → m.prod ≠ 0 :=
-multiset.induction_on m (λ _, one_ne_zero) $ λ hd tl ih H, by { rw forall_mem_cons at H,
-rw prod_cons, exact mul_ne_zero H.1 (ih H.2) }
+multiset.induction_on m (λ _, one_ne_zero) $ λ hd tl ih H,
+  by { rw forall_mem_cons at H, rw prod_cons, exact mul_ne_zero H.1 (ih H.2) }
 
 @[to_additive]
 lemma prod_hom [comm_monoid α] [comm_monoid β] (s : multiset α) (f : α → β) [is_monoid_hom f] :

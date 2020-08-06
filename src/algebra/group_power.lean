@@ -920,6 +920,33 @@ theorem self_cast_int_mul_cast_int_mul : commute ((m : R) * a) (n * a) :=
 
 end commute
 
+section multiplicative
+
+open multiplicative
+
+@[simp] lemma nat.to_add_pow (a : multiplicative ℕ) (b : ℕ) : to_add (a ^ b) = to_add a * b :=
+begin
+  induction b with b ih,
+  { erw [pow_zero, to_add_one, mul_zero] },
+  { simp [*, pow_succ, add_comm, nat.mul_succ] }
+end
+
+@[simp] lemma nat.of_add_mul (a b : ℕ) : of_add (a * b) = of_add a ^ b := 
+(nat.to_add_pow _ _).symm
+
+@[simp] lemma int.to_add_pow (a : multiplicative ℤ) (b : ℕ) : to_add (a ^ b) = to_add a * b :=
+by induction b; simp [*, mul_add, pow_succ, add_comm]
+
+@[simp] lemma int.to_add_gpow (a : multiplicative ℤ) (b : ℤ) : to_add (a ^ b) = to_add a * b :=
+int.induction_on b (by simp)
+  (by simp [gpow_add, mul_add] {contextual := tt})
+  (by simp [gpow_add, mul_add, sub_eq_add_neg] {contextual := tt})
+
+@[simp] lemma int.of_add_mul (a b : ℤ) : of_add (a * b) = of_add a ^ b := 
+(int.to_add_gpow _ _).symm
+
+end multiplicative
+
 namespace units
 
 variables [monoid M]

@@ -90,7 +90,7 @@ tendsto_at_top_mul_right' (inv_pos.2 hr) hf
 
 /-- The function `x ↦ x⁻¹` tends to `+∞` on the right of `0`. -/
 lemma tendsto_inv_zero_at_top [discrete_linear_ordered_field α] [topological_space α]
-  [order_topology α] : tendsto (λx:α, x⁻¹) (nhds_within (0 : α) (set.Ioi 0)) at_top :=
+  [order_topology α] : tendsto (λx:α, x⁻¹) (𝓝[set.Ioi (0:α)] 0) at_top :=
 begin
   apply (tendsto_at_top _ _).2 (λb, _),
   refine mem_nhds_within_Ioi_iff_exists_Ioo_subset.2 ⟨(max b 1)⁻¹, by simp [zero_lt_one], λx hx, _⟩,
@@ -103,7 +103,7 @@ end
 
 /-- The function `r ↦ r⁻¹` tends to `0` on the right as `r → +∞`. -/
 lemma tendsto_inv_at_top_zero' [discrete_linear_ordered_field α] [topological_space α]
-  [order_topology α] : tendsto (λr:α, r⁻¹) at_top (nhds_within (0 : α) (set.Ioi 0)) :=
+  [order_topology α] : tendsto (λr:α, r⁻¹) at_top (𝓝[set.Ioi (0:α)] 0) :=
 begin
   assume s hs,
   rw mem_nhds_within_Ioi_iff_exists_Ioc_subset at hs,
@@ -167,11 +167,11 @@ begin
 end
 
 lemma lim_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
-  tendsto (norm : 𝕜 → ℝ) (nhds_within 0 {x | x ≠ 0}) (nhds_within 0 (set.Ioi 0)) :=
+  tendsto (norm : 𝕜 → ℝ) (𝓝[{x | x ≠ 0}] 0) (𝓝[set.Ioi 0] 0) :=
 lim_norm_zero.inf $ tendsto_principal_principal.2 $ λ x hx, norm_pos_iff.2 hx
 
 lemma normed_field.tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] :
-  tendsto (λ x:𝕜, ∥x⁻¹∥) (nhds_within 0 {x | x ≠ 0}) at_top :=
+  tendsto (λ x:𝕜, ∥x⁻¹∥) (𝓝[{x | x ≠ 0}] 0) at_top :=
 (tendsto_inv_zero_at_top.comp lim_norm_zero').congr $ λ x, (normed_field.norm_inv x).symm
 
 lemma tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :

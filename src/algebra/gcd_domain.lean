@@ -10,7 +10,6 @@ TODO: abstract the domains to semi domains (i.e. domains on semirings) to includ
 import algebra.associated
 import data.nat.basic
 import data.int.gcd
-import algebra.group_with_zero
 
 variables {α : Type*}
 
@@ -20,23 +19,20 @@ set_option old_structure_cmd true
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
-/-- Normalization monoid (with zero):
-  multiplying with `norm_unit` gives a normal form for associated elements. -/
-@[protect_proj] class normalization_monoid_with_zero (α : Type*)
-  extends comm_monoid_with_zero α, nontrivial α :=
-(eq_zero_or_eq_zero_of_mul_eq_zero : no_zero_divisors α)
+/-- Normalization domain: multiplying with `norm_unit` gives a normal form for associated elements. -/
+@[protect_proj] class normalization_domain (α : Type*) extends integral_domain α :=
 (norm_unit : α → units α)
 (norm_unit_zero      : norm_unit 0 = 1)
 (norm_unit_mul       : ∀{a b}, a ≠ 0 → b ≠ 0 → norm_unit (a * b) = norm_unit a * norm_unit b)
 (norm_unit_coe_units : ∀(u : units α), norm_unit u = u⁻¹)
 end prio
 
-export normalization_monoid_with_zero (norm_unit norm_unit_zero norm_unit_mul norm_unit_coe_units)
+export normalization_domain (norm_unit norm_unit_zero norm_unit_mul norm_unit_coe_units)
 
 attribute [simp] norm_unit_coe_units norm_unit_zero norm_unit_mul
 
-section normalization_monoid_with_zero
-variable [normalization_monoid_with_zero α]
+section normalization_domain
+variable [normalization_domain α]
 
 def normalize (x : α) : α :=
 x * norm_unit x
@@ -104,10 +100,10 @@ dvd_mul_unit_iff
 @[simp] lemma normalize_dvd_iff {a b : α} : normalize a ∣ b ↔ a ∣ b :=
 mul_unit_dvd_iff
 
-end normalization_monoid_with_zero
+end normalization_domain
 
 namespace associates
-variable [normalization_monoid_with_zero α]
+variable [normalization_domain α]
 
 local attribute [instance] associated.setoid
 
@@ -145,7 +141,7 @@ set_option default_priority 100 -- see Note [default priority]
 the associated elements where `gcd` is the infimum, `lcm` is the supremum, `1` is bottom, and
 `0` is top. The type class focuses on `gcd` and we derive the correpsonding `lcm` facts from `gcd`.
 -/
-@[protect_proj] class gcd_domain (α : Type*) extends normalization_monoid_with_zero α :=
+@[protect_proj] class gcd_domain (α : Type*) extends normalization_domain α :=
 (gcd : α → α → α)
 (lcm : α → α → α)
 (gcd_dvd_left   : ∀a b, gcd a b ∣ a)
@@ -384,9 +380,9 @@ end gcd_domain
 
 namespace int
 
-section normalization_monoid_with_zero
+section normalization_domain
 
-instance : normalization_monoid_with_zero ℤ :=
+instance : normalization_domain ℤ :=
 { norm_unit      := λa:ℤ, if 0 ≤ a then 1 else -1,
   norm_unit_zero := if_pos (le_refl _),
   norm_unit_mul  := assume a b hna hnb,
@@ -418,7 +414,7 @@ begin
   { simp [of_nat_nat_abs_of_nonpos (le_of_not_ge h), normalize_of_neg (lt_of_not_ge h)] }
 end
 
-end normalization_monoid_with_zero
+end normalization_domain
 
 /-- ℤ specific version of least common multiple. -/
 def lcm (i j : ℤ) : ℕ := nat.lcm (nat_abs i) (nat_abs j)
@@ -449,7 +445,7 @@ instance : gcd_domain ℤ :=
   gcd_mul_lcm    := by intros; rw [← int.coe_nat_mul, gcd_mul_lcm, coe_nat_abs_eq_normalize],
   lcm_zero_left  := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_left _,
   lcm_zero_right := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_right _,
-  .. int.normalization_monoid_with_zero }
+  .. int.normalization_domain }
 
 lemma coe_gcd (i j : ℤ) : ↑(int.gcd i j) = gcd_domain.gcd i j := rfl
 lemma coe_lcm (i j : ℤ) : ↑(int.lcm i j) = gcd_domain.lcm i j := rfl

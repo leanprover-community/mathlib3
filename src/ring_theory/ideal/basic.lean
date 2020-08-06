@@ -29,36 +29,119 @@ open_locale classical big_operators
 
 /-- Ideal in a commutative ring is an additive subgroup `s` such that
 `a * b ∈ s` whenever `b ∈ s`. -/
-@[reducible] def ideal (R : Type u) [comm_ring R] := submodule R R
+structure ideal (α : Type u) [ring α] extends add_subgroup α :=
+(mul_mem_left : ∀ {a b}, b ∈ carrier → a * b ∈ carrier)
+(mul_mem_right : ∀ {a b}, a ∈ carrier → a * b ∈ carrier)
 
 namespace ideal
-variables [comm_ring α] (I : ideal α) {a b : α}
+variables [comm_ring α] (I : ideal α) (J : ideal α)
 
-protected lemma zero_mem : (0 : α) ∈ I := I.zero_mem
+-- these are all copied from submodule
+instance : has_coe (ideal α) (set α) := ⟨λ s, s.carrier⟩
+instance : has_mem α (ideal α) := ⟨λ x p, x ∈ (p : set α)⟩
+instance : has_coe_to_sort (ideal α) := ⟨_, λ p, {x : α // x ∈ p}⟩
 
-protected lemma add_mem : a ∈ I → b ∈ I → a + b ∈ I := I.add_mem
+@[simp, norm_cast] theorem coe_sort_coe : ↥(I : set α) = I := rfl
 
-lemma neg_mem_iff : -a ∈ I ↔ a ∈ I := I.neg_mem_iff
+variables {I J}
 
-lemma add_mem_iff_left : b ∈ I → (a + b ∈ I ↔ a ∈ I) := I.add_mem_iff_left
+protected theorem «exists» {p : I → Prop} : (∃ x, p x) ↔ (∃ x ∈ I, p ⟨x, ‹_›⟩) := set_coe.exists
 
-lemma add_mem_iff_right : a ∈ I → (a + b ∈ I ↔ b ∈ I) := I.add_mem_iff_right
+protected theorem «forall» {p : I → Prop} : (∀ x, p x) ↔ (∀ x ∈ I, p ⟨x, ‹_›⟩) := set_coe.forall
 
-protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := I.sub_mem
+theorem coe_injective : injective (coe : ideal α → set α) :=
+λ p q h, by { cases p, cases q, congr', rw add_subgroup.ext'_iff, unfold_coes at ⊢ h, dsimp only at h, exact h }
 
-lemma mul_mem_left : b ∈ I → a * b ∈ I := I.smul_mem _
+@[simp, norm_cast] theorem coe_set_eq : (I : set α) = J ↔ I = J := coe_injective.eq_iff
 
-lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_left h
+@[simp]
+lemma coe_to_subgroup : (I.to_subgroup : set G) = I := rfl
+
+theorem ext'_iff : I = J ↔ (I : set α) = J := coe_set_eq.symm
+
+@[ext] theorem ext (h : ∀ x, x ∈ I ↔ x ∈ J) : I = J := coe_injective $ set.ext h
+
+variables (I J)
+
+-- def to_semimodule : semi_module α α := {! !}
+
+protected lemma zero_mem : (0 : α) ∈ I := I.zero_mem'
+
+protected lemma add_mem : a ∈ I → b ∈ I → a + b ∈ I := by apply I.add_mem'
+
+lemma neg_mem_iff : -a ∈ I ↔ a ∈ I := I.to_add_subgroup.neg_mem_iff
+
+lemma add_mem_iff_left : b ∈ I → (a + b ∈ I ↔ a ∈ I) := I.to_add_subgroup.add_mem_iff_left
+
+lemma add_mem_iff_right : a ∈ I → (a + b ∈ I ↔ b ∈ I) := I.to_add_subgroup.add_mem_iff_right
+
+protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := I.to_add_subgroup.sub_mem
+
 end ideal
-
-variables {a b : α}
 
 -- A separate namespace definition is needed because the variables were historically in a different order
 namespace ideal
 variables [comm_ring α] (I : ideal α)
 
-@[ext] lemma ext {I J : ideal α} (h : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
-submodule.ext h
+instance : has_le (ideal α) := {
+  le := λ a b, a.to_add_subgroup ≤ b.to_add_subgroup }
+
+instance : partial_order (ideal α) :=
+{ le := (≤),
+  .. partial_order.lift (coe : ideal α → set α) coe_injective }
+
+instance : has_top (ideal α) := ⟨{
+  mul_mem_left := λ _ _ _, set.mem_univ _,
+  mul_mem_right := λ _ _ _, set.mem_univ _,
+  ..(⊤ : add_subgroup α)}⟩
+
+instance : has_bot (ideal α) := ⟨{
+  mul_mem_left := λ _ _ h, by {
+    unfold has_bot.bot at *,
+    simp only [set.mem_singleton_iff] at *,
+    rw [h, mul_zero]
+  },
+  mul_mem_right := λ _ _ h, by {
+    unfold has_bot.bot at *,
+    simp only [set.mem_singleton_iff] at *,
+    rw [h, zero_mul]
+  },
+  ..(⊥ : add_subgroup α)
+}⟩
+
+instance : has_inf (ideal α) :=
+⟨λ H₁ H₂, {
+  mul_mem_right := λ a b ⟨ha, ha'⟩, ⟨H₁.mul_mem_right ha, H₂.mul_mem_right ha'⟩,
+  mul_mem_left := λ a b ⟨hb, hb'⟩, ⟨H₁.mul_mem_left hb, H₂.mul_mem_left hb'⟩,
+  .. H₁.to_add_subgroup ⊓ H₂.to_add_subgroup}⟩
+
+@[simp, norm_cast]
+lemma coe_inf (p p' : ideal α) : ((p ⊓ p' : ideal α) : set α) = p ∩ p' := rfl
+
+@[simp]
+lemma mem_inf {p p' : ideal α} {x : α} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x ∈ p' := iff.rfl
+
+instance : has_Inf (ideal α) :=
+⟨λ s,
+  { --inv_mem' := λ x hx, set.mem_bInter $ λ i h, i.inv_mem (by apply set.mem_bInter_iff.1 hx i h),
+    mul_mem_right := λ a b ha, set.mem_bInter $ λ i h, by {
+      sorry
+    },
+    mul_mem_left := λ a b hb, by {
+      dsimp only,
+      rw add_subgroup.mem_Inf,
+    },
+    .. (⨅ S ∈ s, ideal.to_add_subgroup S).copy (⋂ S ∈ s, ↑S) (by {
+      simp,
+    }) }⟩
+
+@[simp, to_additive]
+lemma coe_Inf (H : set (ideal α)) : ((Inf H : ideal α) : set α) = ⋂ s ∈ H, ↑s := rfl
+
+-- inv_mem' := λ _ ⟨hx, hx'⟩, ⟨H₁.inv_mem hx, H₂.inv_mem hx'⟩,
+  --  .. H₁.to_submonoid ⊓ H₂.to_submonoid
+instance : complete_lattice (ideal α) := sorry
+
 
 theorem eq_top_of_unit_mem
   (x y : α) (hx : x ∈ I) (h : y * x = 1) : I = ⊤ :=

@@ -19,7 +19,7 @@ This file shows that the reals are unique, or, more formally, given a type satis
 axioms of the reals (field, conditionally complete, linearly ordered) that there is an equivalence
 preserving these properties to the reals. This is `ordered_ring_equiv`.
 
-We introduce definitions of Conditionally complete linear ordered fields, show all such are
+We introduce definitions of conditionally complete linear ordered fields, show all such are
 archimedean, and define equivalences between these fields. We also construct the natural map from a
 `linear_ordered_field` to such a field.
 
@@ -42,13 +42,13 @@ equiv.set.range coe rat.cast_injective
 
 /-- The natural equiv between the rationals as a set inside any pair of characteristic 0
     division rings -/
-def equiv_along_prime_subfield (F K : Type*)
+def range_rat_equiv (F K : Type*)
   [division_ring F] [char_zero F] [division_ring K] [char_zero K] :
   range (coe : ℚ → F) ≃ range (coe : ℚ → K) :=
 (prime_subfield_equiv F).symm.trans (prime_subfield_equiv K)
 
 @[simp]
-lemma equiv_along_prime_subfield_apply_coe {F K : Type*} {q : ℚ}
+lemma range_rat_equiv_apply {F K : Type*} {q : ℚ}
   [division_ring F] [char_zero F] [division_ring K] [char_zero K] :
   equiv_along_prime_subfield F K ⟨q, mem_range_self q⟩ = ⟨q, mem_range_self q⟩ :=
 by simp only [equiv_along_prime_subfield, prime_subfield_equiv, equiv.set.range_apply,
@@ -63,11 +63,10 @@ def cut_map (F K : Type*) [division_ring F] [char_zero F] [division_ring K] [cha
 local attribute [instance] pointwise_one pointwise_mul pointwise_add
 
 /- No longer used -/
-lemma bdd_above_add {F : Type*} [ordered_add_comm_monoid F] {A B : set F}
-  (hbA : bdd_above A) (hbB : bdd_above B) : bdd_above (A + B) :=
+lemma bdd_above_add {F : Type*} [ordered_add_comm_monoid F] {A B : set F} :
+  bdd_above A → bdd_above B → bdd_above (A + B) :=
 begin
-  rcases hbA with ⟨bA, hbA⟩,
-  rcases hbB with ⟨bB, hbB⟩,
+  rintros ⟨bA, hbA⟩ ⟨bB, hbB⟩,
   use bA + bB,
   rintros x ⟨xa, hxa, xb, hxb, rfl⟩,
   exact add_le_add (hbA hxa) (hbB hxb),
@@ -557,7 +556,7 @@ begin
     rw induced_map at h,
     obtain ⟨y, hym, hyq⟩ := exists_lt_of_lt_cSup (cut_image_nonempty F K x) h,
     rw mem_cut_image_iff at hym,
-    rcases hym with ⟨q2, rfl, h⟩,
+    obtain ⟨q2, rfl, h⟩ := hym,
     apply le_of_lt,
     transitivity (q2 : F),
     assumption_mod_cast,

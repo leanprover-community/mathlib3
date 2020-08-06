@@ -263,6 +263,64 @@ instance [linear_order α] : linear_order (with_zero α) := with_bot.linear_orde
 instance [decidable_linear_order α] :
  decidable_linear_order (with_zero α) := with_bot.decidable_linear_order
 
+/-
+class ordered_comm_monoid (α : Type*) extends comm_monoid α, partial_order α :=
+(mul_le_mul_left       : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
+(lt_of_mul_lt_mul_left : ∀ a b c : α, a * b < a * c → b < c)
+-/
+
+--universe u
+
+@[simp, norm_cast] lemma with_zero.coe_mul {α : Type u} [has_mul α]
+  {a b : α} : ((a * b : α) : with_zero α) = (a : with_zero α) * b := rfl
+
+lemma mul_le_mul_left {α : Type u}
+  [ordered_comm_monoid α] :
+  ∀ (a b : with_zero α),
+    a ≤ b → ∀ (c : with_zero α), c * a ≤ c * b :=
+begin
+  rintro (_ | a) (_ | b) h (_ | c),
+  { apply with_zero.zero_le },
+  { apply with_zero.zero_le },
+  { apply with_zero.zero_le },
+  { apply with_zero.zero_le },
+  { apply with_zero.zero_le },
+  { exact false.elim (not_lt_of_le h (with_zero.zero_lt_coe a))},
+  { apply with_zero.zero_le },
+  { change (c : with_zero α) * a ≤ c * b,
+    change (a : with_zero α) ≤ b at h,
+    rw with_zero.coe_le_coe at h,
+    norm_cast,
+    exact mul_le_mul_left' h c
+  }
+end
+
+lemma lt_of_mul_lt_mul_left  {α : Type u}
+  [ordered_comm_monoid α] :
+  ∀ (a b c : with_zero α), a * b < a * c → b < c :=
+begin
+  rintro (_ | a) (_ | b) (_ | c) h,
+  { exact false.elim (lt_irrefl none h)},
+  { exact false.elim (lt_irrefl none h)},
+  { exact false.elim (lt_irrefl none h)},
+  { exact false.elim (lt_irrefl none h)},
+  { exact false.elim (lt_irrefl none h)},
+  { exact with_zero.zero_lt_coe c},
+  { exact false.elim (not_le_of_lt h (with_zero.zero_le _))},
+  { change (a : with_zero α) * b < a * c at h,
+    change (b : with_zero α) < c,
+    norm_cast at ⊢ h,
+    apply lt_of_mul_lt_mul_left' h
+  }
+end
+
+instance [ordered_comm_monoid α] : ordered_comm_monoid (with_zero α) :=
+{ mul_le_mul_left := with_zero.mul_le_mul_left,
+  lt_of_mul_lt_mul_left := with_zero.lt_of_mul_lt_mul_left,
+  ..with_zero.comm_monoid_with_zero,
+  ..with_zero.partial_order
+}
+
 /--
 If `0` is the least element in `α`, then `with_zero α` is an `ordered_add_comm_monoid`.
 -/

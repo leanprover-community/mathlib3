@@ -225,11 +225,40 @@ begin
     subst h, },
 end
 
+variables {R₂ : Type*} [comm_ring R₂] [module R₂ M] [module R₂ N]
+
+/-- Composition with linear maps is linear in all arguments. -/
+def comp_lin : (M →ₗ[R₂] N) →ₗ[R₂] (M →ₗ[R₂] N) →ₗ[R₂] bilin_form R₂ N →ₗ[R₂] bilin_form R₂ M :=
+{ to_fun := λ l,
+  { to_fun := λ r,
+    { to_fun := λ B, B.comp l r,
+      map_add' := λ B B', by { ext, simp only [comp_apply, linear_map.add_apply, add_apply] },
+      map_smul' := λ c B, by { ext, simp only [comp_apply, linear_map.smul_apply, smul_apply, smul_eq_mul] } },
+    map_add' := λ r r', by { ext, simp only [linear_map.coe_mk, comp_apply, add_apply, add_right, linear_map.add_apply] },
+    map_smul' := λ c r, by { ext, simp only [linear_map.coe_mk, comp_apply, smul_apply, smul_right, linear_map.smul_apply, smul_eq_mul] } },
+  map_add' := λ r l', by { ext, simp only [linear_map.coe_mk, add_apply, comp_apply, add_left, linear_map.add_apply] },
+  map_smul' := λ c l, by { ext, simp only [linear_map.coe_mk, smul_apply, comp_apply, smul_left, linear_map.smul_apply, smul_eq_mul] } }
+
+@[simp] lemma comp_lin_apply (B : bilin_form R₂ N) (l r : M →ₗ[R₂] N) :
+  comp_lin l r B = B.comp l r := rfl
+
+/-- Build an equivalence of bilinear forms over `M` and `N` from an equivalence of `M` and `N`. -/
+def congr (e : M ≃ₗ[R₂] N) : bilin_form R₂ M ≃ₗ[R₂] bilin_form R₂ N :=
+linear_equiv.of_linear
+  (comp_lin e.symm.to_linear_map e.symm.to_linear_map)
+  (comp_lin e.to_linear_map e.to_linear_map)
+  (by { ext B x y, simp })
+  (by { ext B x y, simp })
+
+@[simp] lemma congr_apply (e : M ≃ₗ[R₂] N) (B : bilin_form R₂ M) :
+  congr e B = B.comp e.symm.to_linear_map e.symm.to_linear_map :=
+by simp [congr]
+
 end comp
 
 section lin_mul_lin
 
-variables {R₂ : Type*} [comm_ring R₂] [module R₂ M] {N : Type w} [add_comm_group N] [module R₂ N]
+variables {R₂ : Type*} [comm_ring R₂] [module R₂ M] {N : Type*} [add_comm_group N] [module R₂ N]
 
 /-- `lin_mul_lin f g` is the bilinear form mapping `x` and `y` to `f x * g y` -/
 def lin_mul_lin (f g : M →ₗ[R₂] R₂) : bilin_form R₂ M :=

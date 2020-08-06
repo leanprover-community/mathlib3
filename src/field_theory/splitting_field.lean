@@ -253,7 +253,9 @@ alg_equiv.symm $ alg_equiv.of_bijective
 
 open finset
 
--- Why is this so slow?
+-- Speed up the following proof.
+local attribute [irreducible] minimal_polynomial
+-- TODO: Why is this so slow?
 /-- If `K` and `L` are field extensions of `F` and we have `s : finset K` such that
 the minimal polynomial of each `x ∈ s` splits in `L` then `algebra.adjoin F s` embeds in `L`. -/
 theorem lift_of_splits {F K L : Type*} [field F] [field K] [field L]

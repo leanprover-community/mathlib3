@@ -6,7 +6,7 @@ Authors: Kevin Buzzard, Johan Commelin, Patrick Massot
 
 import algebra.linear_ordered_comm_group_with_zero
 import algebra.group_power
-import ring_theory.ideal_operations
+import ring_theory.ideal.operations
 import ring_theory.subring
 import algebra.punit_instances
 

@@ -230,7 +230,7 @@ instance module.endomorphism_algebra (R : Type u) (M : Type v)
   smul_def' := by { intros, ext, simp } }
 
 instance matrix_algebra (n : Type u) (R : Type v)
-  [fintype n] [decidable_eq n] [comm_semiring R] : algebra R (matrix n n R) :=
+  [decidable_eq n] [fintype n] [comm_semiring R] : algebra R (matrix n n R) :=
 { commutes' := by { intros, simp [matrix.scalar], },
   smul_def' := by { intros, simp [matrix.scalar], },
   ..(matrix.scalar n) }

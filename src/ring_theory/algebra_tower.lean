@@ -191,7 +191,7 @@ open is_algebra_tower
 variables (R) {S A} [comm_semiring R] [comm_semiring S] [semiring A]
 variables [algebra R S] [algebra S A] [algebra R A] [is_algebra_tower R S A]
 
-/-- If A/S/R is a tower of algebras then any S-subalgebra of A gives an R-subalgebra of A. -/
+/-- If A/S/R is a tower of algebras then the `res`triction of a S-subalgebra of A is an R-subalgebra of A. -/
 def res (U : subalgebra S A) : subalgebra R A :=
 { carrier := U,
   algebra_map_mem' := λ x, by { rw algebra_map_apply R S A, exact U.algebra_map_mem _ } }

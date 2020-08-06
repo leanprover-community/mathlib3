@@ -281,6 +281,9 @@ end
 variables (R) (M)
 variable {q : ℕ}
 
+/--
+Auxiliary map used to build `tensor_algebra.mk`. Should not be used.
+-/
 def mk_aux (ν : fin q → M) : tensor_algebra R M :=
 list.prod $ list.map (λ i, ι R M (ν i)) (list.fin_range q)
 
@@ -293,7 +296,7 @@ by induction l; [refl, simp only [*, pmap, map]]; split; refl
 
 
 
-def mk_split_aux (ν : fin q.succ → M) :
+lemma mk_split_aux (ν : fin q.succ → M) :
 mk_aux R M ν = ι R M (ν 0) * mk_aux R M (λ i : fin q, ν i.succ) :=
 begin
   have key : list.fin_range q.succ =
@@ -426,7 +429,7 @@ def mk : multilinear_map R (λ i : fin q, M) (tensor_algebra R M) :=
     rw key, simp,
   end }
 
-def mk_split (ν : fin q.succ → M) :mk R M ν = ι R M (ν 0) * mk R M (λ i : fin q, ν i.succ) :=
+lemma mk_split (ν : fin q.succ → M) :mk R M ν = ι R M (ν 0) * mk R M (λ i : fin q, ν i.succ) :=
 mk_split_aux R M ν
 
 

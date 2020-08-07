@@ -17,11 +17,11 @@ Features:
 Also, support functions for operating with n-tuples of types, such as:
 
 `append1 α β`    : append type J-indexed `β` family to I-indexed `α` family to obtain a `(I⊕J)`-indexed family
-`drop α`         : drops the last element of an `(I⊕J)`-indexed family
-`last α`         : returns the last element of an `(I⊕J)`-indexed family
+`drop α`         : drop the right component of a `(I⊕J)`-indexed family
+`last α`         : take the right component of a `(I⊕J)`-indexed family
 `append_fun f g` : appends two families of functions `f` and `g`
-`drop_fun f`     : drops the last function family from an `(I⊕J)`-indexed family
-`last_fun f`     : returns the last function family of a `(I⊕J)`-indexed family
+`drop_fun f`     : drops the right function family from a `(I⊕J)`-indexed family
+`last_fun f`     : returns the right function family of a `(I⊕J)`-indexed family
 
 Since e.g. `append1 α.drop α.last` is propositionally equal to `α` but not definitionally equal
 to it, we need support functions and lemmas to mediate between constructions.
@@ -41,18 +41,18 @@ instance {I} : has_one (fam I) :=
 
 namespace fam
 
-variables  {I : Type u}
+variables {I J : Type u}
 
 /-- retain the left side of a product family -/
-def drop {α : Type u} : fam (I ⊕ α) → fam I :=
+def drop : fam (I ⊕ J) → fam I :=
 λ x i, x (sum.inl i)
 
 /-- retain the right side of a product family -/
-def last {α : Type u} : fam (I ⊕ α) → fam α :=
+def last : fam (I ⊕ J) → fam J :=
 λ x i, x (sum.inr i)
 
 /-- combine two families with different indices their product -/
-def append1 {α : Type u} (f : fam I) (g : fam α) : fam (I ⊕ α)
+def append1 (f : fam I) (g : fam J) : fam (I ⊕ J)
 | (sum.inl i) := f i
 | (sum.inr i) := g i
 

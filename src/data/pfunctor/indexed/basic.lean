@@ -17,6 +17,17 @@ They map a type family `α : fam J` to the type family
 `λ j, Σ a : A j, B j a ⟶ α`, with `A : fam J` and `B : Π j, A j → fam I`.
 They interact well with Lean's inductive definitions because they
 guarantee that occurrences of `α` are positive.
+
+## Main definitions
+
+ * `ipfunctor` an indexed polynomial functor
+ * `ipfunctor₀` for a specialized case of `ipfunctor`
+ * `ipfunctor.apply` the functor structure instance of `ipfunctor`
+ * `ipfunctor.Idx` to index the contents of of a `ipfunctor` application
+ * `ipfunctor.comp` for functor composition
+ * `ipfunctor.drop` and `ipfunctor.last` to decompose a functor
+ * `ipfunctor.pf.mk` to turn a value of `ipfunctor.apply` into an arrow
+
 -/
 
 universes v v' u u'
@@ -25,7 +36,7 @@ open_locale fam
 
 /-- Polynomial functors between indexed type families -/
 structure ipfunctor (I J : Type u) :=
-(A : fam J) (B : Π i, A i → fam I)
+(A : fam J) (B : Π j, A j → fam I)
 
 instance {I J} : inhabited (ipfunctor I J) := ⟨ ⟨ default _, default _ ⟩ ⟩
 
@@ -62,32 +73,32 @@ category_theory.functor.map_comp _ _ _
 lemma map_comp_map {X Y Z : fam I} (f : X ⟶ Y) (g : Y ⟶ Z) : P.map f ≫ P.map g = P.map (f ≫ g) :=
 (category_theory.functor.map_comp _ _ _).symm
 
-theorem map_eq' {α β : fam I} (f : α ⟶ β) {i : J} (a : P.A i) (g : P.B i a ⟶ α) :
+theorem map_eq' {α β : fam I} (f : α ⟶ β) {j : J} (a : P.A j) (g : P.B j a ⟶ α) :
   P.map f ⟨a, g⟩ = ⟨a, g ≫ f⟩ :=
 rfl
 
 open fam set category_theory.functor
 
 @[simp, reassoc]
-theorem map_eq {α β : fam I} (f : α ⟶ β) {i : J} (a : P.A i) (g : P.B i a ⟶ α) :
-  value i (P.obj _) ⟨a, g⟩ ≫ P.map f = value i (P.obj _) ⟨a, g ≫ f⟩ :=
+theorem map_eq {α β : fam I} (f : α ⟶ β) {j : J} (a : P.A j) (g : P.B j a ⟶ α) :
+  value j (P.obj _) ⟨a, g⟩ ≫ P.map f = value j (P.obj _) ⟨a, g ≫ f⟩ :=
 by ext _ ⟨ ⟩ : 2; simp [map_eq']
 
 /-- `Idx` identifies a location inside the application of an ipfunctor.
 For `P : ipfunctor`, `x : P.obj α` and `i : P.Idx`, `i` can designate
 one part of `x` or is invalid, if `i.1 ≠ x.1` -/
-def Idx (i : J) := Σ (x : P.A i) j, P.B i x j
+def Idx (j : J) := Σ (x : P.A j) i, P.B j x i
 
 instance Idx.inhabited {i} [inhabited (P.A i)] [inhabited I] [inhabited $ P.B i (default (P.A i)) (default I)] :
   inhabited (Idx P i) := ⟨ ⟨default _,default _,default _⟩ ⟩
 
 /-- Type index of the `A` component referenced by index `x` -/
-def Idx.idx {P : ipfunctor I J} {i : J} (x : Idx P i) : I := x.2.1
+def Idx.idx {P : ipfunctor I J} {j : J} (x : Idx P j) : I := x.2.1
 
 /-- Lookup the part of `x` designed by index `j` or return an arbitrary value -/
-def obj.iget {i} [decidable_eq $ P.A i] {α : fam I} (x : P.obj α i) (j : P.Idx i) [inhabited $ α j.idx] : α j.idx :=
-if h : j.1 = x.1
-  then x.2 (cast (by rw [Idx.idx,← h]) $ j.2.2)
+def obj.iget {i} [decidable_eq $ P.A i] {α : fam I} (x : P.obj α i) (k : P.Idx i) [inhabited $ α k.idx] : α k.idx :=
+if h : k.1 = x.1
+  then x.2 (cast (by rw [Idx.idx,← h]) $ k.2.2)
   else default _
 
 end pfunc
@@ -266,7 +277,7 @@ end ipfunctor
 /-!
 Decomposing an ipfunctor on product of type families.
 
-The terminolgy, `drop` and `last` is purposefully asymmetric to
+The terminology, `drop` and `last` is purposefully asymmetric to
 hint at the fact that type families and intended to be built
 out of an iteration of products. For instance, `fam (((pempty ⊕ I) ⊕ J) ⊕ K)` is
 intended to encode a vector of type families `[fam I, fam J, fam K]` and gives easy

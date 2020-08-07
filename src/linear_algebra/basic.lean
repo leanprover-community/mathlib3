@@ -534,8 +534,6 @@ by rw [infi, Inf_coe]; ext a; simp; exact
   x ∈ (⨅ i, p i) ↔ ∀ i, x ∈ p i :=
 by rw [← mem_coe, infi_coe, mem_Inter]; refl
 
-
-
 theorem disjoint_def {p p' : submodule R M} :
   disjoint p p' ↔ ∀ x ∈ p, x ∈ p' → x = (0:M) :=
 show (∀ x, x ∈ p ∧ x ∈ p' → x ∈ ({0} : set M)) ↔ _, by simp

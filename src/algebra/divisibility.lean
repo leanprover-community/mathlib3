@@ -127,7 +127,7 @@ dvd.elim h (assume c, assume H' : a = 0 * c, eq.trans H' (zero_mul c))
 
 end monoid_with_zero
 
-/-- Given two elements b, c of an integral domain and a nonzero element a, a*b divides a*c iff
+/-- Given two elements b, c of an integral domain and a nonzero element a, `a*b` divides `a*c` iff
   b divides c. -/
 theorem mul_dvd_mul_iff_left [cancel_monoid_with_zero α] {a b c : α}
   (ha : a ≠ 0) : a * b ∣ a * c ↔ b ∣ c :=

@@ -608,21 +608,13 @@ lemma is_measurable.prod {s : set α} {t : set β} (hs : is_measurable s) (ht : 
   is_measurable (s.prod t) :=
 is_measurable.inter (measurable_fst hs) (measurable_snd ht)
 
-lemma is_measurable.prod_mk_preimage_left {s : set (α × β)} (hs : is_measurable s) (y : β) :
-  is_measurable ((λ x, (x, y)) ⁻¹' s) :=
-measurable_id.prod_mk measurable_const hs
-
-lemma is_measurable.prod_mk_preimage_right {s : set (α × β)} (hs : is_measurable s) (x : α) :
-  is_measurable (prod.mk x ⁻¹' s) :=
-measurable_const.prod_mk measurable_id hs
-
 lemma is_measurable_prod_of_nonempty {s : set α} {t : set β} (h : (s.prod t).nonempty) :
   is_measurable (s.prod t) ↔ is_measurable s ∧ is_measurable t :=
 begin
   rcases h with ⟨⟨x, y⟩, hx, hy⟩,
   refine ⟨λ hst, _, λ h, h.1.prod h.2⟩,
-  have := is_measurable.prod_mk_preimage_left hst y,
-  have := is_measurable.prod_mk_preimage_right hst x,
+  have : is_measurable ((λ x, (x, y)) ⁻¹' s.prod t) := measurable_id.prod_mk measurable_const hst,
+  have : is_measurable (prod.mk x ⁻¹' s.prod t) := measurable_const.prod_mk measurable_id hst,
   simp * at *
 end
 

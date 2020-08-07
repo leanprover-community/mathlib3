@@ -356,7 +356,7 @@ show S ≤ S ⊔ T, from le_sup_left
 lemma mem_sup_right {S T : ideal R} : ∀ {x : R}, x ∈ S → x ∈ S ⊔ T :=
 show S ≤ S ⊔ T, from le_sup_left
 
-lemma mem_supr_of_mem {ι : Type*} {S : ι → ideal R} {i : ι} :
+lemma mem_supr_of_mem {ι : Type*} {S : ι → ideal R} (i : ι) :
   ∀ {x : R}, x ∈ S i → x ∈ supr S :=
 show S i ≤ supr S, from le_supr _ _
 

@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.ordered_group
--- TODO remove this
-import tactic.rcases
 
 set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true

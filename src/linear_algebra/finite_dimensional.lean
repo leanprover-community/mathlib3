@@ -222,18 +222,17 @@ lemma findim_eq_card_finset_basis {b : finset V}
   findim K V = finset.card b :=
 by { rw [findim_eq_card_basis h, fintype.subtype_card], intros x, refl }
 
--- Note here we've restricted the universe levels of `ι` and `V` to be the same, for convenience.
 lemma cardinal_mk_le_findim_of_linear_independent
-  [finite_dimensional K V] {ι : Type v} {b : ι → V} (h : linear_independent K b) :
+  [finite_dimensional K V] {ι : Type w} {b : ι → V} (h : linear_independent K b) :
   cardinal.mk ι ≤ findim K V :=
 begin
-  convert cardinal_le_dim_of_linear_independent h,
-  rw ←findim_eq_dim K V
+  rw ← lift_le.{_ (max v w)},
+  simpa [← findim_eq_dim K V] using
+    cardinal_lift_le_dim_of_linear_independent.{_ _ _ (max v w)} h
 end
 
--- Note here we've restricted the universe levels of `ι` and `V` to be the same, for convenience.
 lemma fintype_card_le_findim_of_linear_independent
-  [finite_dimensional K V] {ι : Type v} [fintype ι] {b : ι → V} (h : linear_independent K b) :
+  [finite_dimensional K V] {ι : Type*} [fintype ι] {b : ι → V} (h : linear_independent K b) :
   fintype.card ι ≤ findim K V :=
 by simpa [fintype_card] using cardinal_mk_le_findim_of_linear_independent h
 

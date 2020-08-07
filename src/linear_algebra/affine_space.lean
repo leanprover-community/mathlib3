@@ -21,15 +21,17 @@ points, and the affine span of a set of points.
 ## Main definitions
 
 * `affine_space k V P` is an abbreviation for `add_torsor V P` in the
-  case of `module k V`.  Definitions and results not depending on the
-  `module` structure appear in `algebra.add_torsor` instead of here;
-  that includes the instance of an `add_group` as an `add_torsor` over
-  itself, which thus gives a `module` as an `affine_space` over
-  itself.  Definitions of affine spaces vary as to whether a space
-  with no points is permitted; here, we require a nonempty type of
-  points (via the definition of torsors requiring a nonempty type).
-  Affine spaces are defined over any module, with stronger type class
-  requirements on `k` being used for individual lemmas where needed.
+  case of `module k V`.  `P` is the type of points in the space and
+  `V` the `k`-module of displacement vectors.  Definitions and results
+  not depending on the `module` structure appear in
+  `algebra.add_torsor` instead of here; that includes the instance of
+  an `add_group` as an `add_torsor` over itself, which thus gives a
+  `module` as an `affine_space` over itself.  Definitions of affine
+  spaces vary as to whether a space with no points is permitted; here,
+  we require a nonempty type of points (via the definition of torsors
+  requiring a nonempty type).  Affine spaces are defined over any
+  module, with stronger type class requirements on `k` being used for
+  individual lemmas where needed.
 * `affine_subspace k V P` is the type of affine subspaces.  Unlike
   affine spaces, affine subspaces are allowed to be empty, and lemmas
   that do not apply to empty affine subspaces have `nonempty`
@@ -80,6 +82,24 @@ points, and the affine span of a set of points.
 The variables `k` and `V` are explicit rather than implicit arguments
 to lemmas because otherwise the elaborator sometimes has problems
 inferring appropriate types and type class instances.
+
+This file only provides purely algebraic definitions and results.
+Those depending on analysis or topology are defined elsewhere; see
+`analysis.normed_space.add_torsor` and `topology.algebra.affine`.
+
+Some key definitions are not yet present:
+
+* Coercions from an `affine_subspace` to the subtype of its points,
+  and a corresponding `affine_space` instance on that subtype in the
+  case of a nonempty subspace.
+* `affine_equiv` (see issue #2909).
+* Affine frames.  An affine frame might perhaps be represented as an
+  `affine_equiv` to a `finsupp` (in the general case) or function type
+  (in the finite-dimensional case) that gives the coordinates, with
+  appropriate proofs of existence when `k` is a field.
+* Although results on affine combinations implicitly provide
+  barycentric frames and coordinates, there is no explicit
+  representation of the map from a point to its coordinates.
 
 ## References
 

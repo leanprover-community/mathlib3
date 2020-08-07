@@ -164,11 +164,10 @@ dvd_coe_mul _ _ _
 end monoid
 
 /-- In a monoid, an element a divides an element b iff all associates of a divide b.-/
-@[simp] lemma coe_mul_dvd [comm_monoid α] (a b : α) (u : units α) : a * u ∣ b ↔ a ∣ b :=
+@[simp] lemma coe_mul_dvd [monoid α] (a b : α) (u : units α) : a * u ∣ b ↔ a ∣ b :=
 iff.intro
-  (assume ⟨c, eq⟩, ⟨c * ↑u, eq.symm ▸ by ac_refl⟩)
-  (assume h, suffices a * ↑u ∣ b * 1, by simpa, mul_dvd_mul h (coe_dvd _ _))
-
+  (λ ⟨c, eq⟩, ⟨↑u * c, eq.trans (mul_assoc _ _ _)⟩)
+  (λ h, dvd_trans (dvd.intro ↑u⁻¹ (by rw [mul_assoc, u.mul_inv, mul_one])) h)
 end units
 
 namespace is_unit

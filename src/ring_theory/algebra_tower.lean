@@ -28,17 +28,16 @@ universes u v w u₁
 variables (R : Type u) (S : Type v) (A : Type w) (B : Type u₁)
 
 /-- Typeclass for a tower of three algebras. -/
-class is_algebra_tower [comm_semiring R] [comm_semiring S] [semiring A]
-  [algebra R S] [algebra S A] [algebra R A] : Prop :=
-(smul_assoc : ∀ (x : R) (y : S) (z : A), (x • y) • z = x • (y • z))
+abbreviation is_algebra_tower [comm_semiring R] [comm_semiring S] [semiring A]
+  [algebra R S] [algebra S A] [algebra R A] := is_scalar_tower R S A
 
 namespace is_algebra_tower
 
 section semiring
 variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
 variables [algebra R S] [algebra S A] [algebra R A] [algebra S B] [algebra R B]
-
 variables {R S A}
+
 theorem of_algebra_map_eq (h : ∀ x, algebra_map R A x = algebra_map S A (algebra_map R S x)) :
   is_algebra_tower R S A :=
 ⟨λ x y z, by simp_rw [algebra.smul_def, ring_hom.map_mul, mul_assoc, h]⟩
@@ -95,9 +94,6 @@ def restrict_base (f : A →ₐ[S] B) : A →ₐ[R] B :=
   .. (f : A →+* B) }
 
 @[simp] lemma restrict_base_apply (f : A →ₐ[S] B) (x : A) : restrict_base R f x = f x := rfl
-
-instance left : is_algebra_tower S S A :=
-of_algebra_map_eq $ λ x, rfl
 
 instance right : is_algebra_tower R S S :=
 of_algebra_map_eq $ λ x, rfl
@@ -272,7 +268,7 @@ theorem smul_mem_span_smul_of_mem {s : set S} {t : set A} {k : S} (hks : k ∈ s
 span_induction hks (λ c hc, subset_span $ set.mem_smul.2 ⟨c, x, hc, hx, rfl⟩)
   (by { rw zero_smul, exact zero_mem _ })
   (λ c₁ c₂ ih₁ ih₂, by { rw add_smul, exact add_mem _ ih₁ ih₂ })
-  (λ b c hc, by { rw is_algebra_tower.smul_assoc, exact smul_mem _ _ hc })
+  (λ b c hc, by { rw is_scalar_tower.smul_assoc, exact smul_mem _ _ hc })
 
 theorem smul_mem_span_smul {s : set S} (hs : span R s = ⊤) {t : set A} {k : S}
   {x : A} (hx : x ∈ span R t) :
@@ -324,7 +320,7 @@ begin
     { rw ← hsg, exact (finset.sum_subset finset.subset_product $ λ p _ hp,
         show g p • b p.1 • c p.2 = 0, by rw [hg p hp, zero_smul]).symm },
     rw [finset.sum_product, finset.sum_comm] at h1,
-    simp_rw [← is_algebra_tower.smul_assoc, ← finset.sum_smul] at h1,
+    simp_rw [← is_scalar_tower.smul_assoc, ← finset.sum_smul] at h1,
     exact hb _ _ (hc _ _ h1 k (finset.mem_image_of_mem _ hik)) i (finset.mem_image_of_mem _ hik) },
   exact hg _ hik
 end

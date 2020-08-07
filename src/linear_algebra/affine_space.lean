@@ -87,7 +87,7 @@ This file only provides purely algebraic definitions and results.
 Those depending on analysis or topology are defined elsewhere; see
 `analysis.normed_space.add_torsor` and `topology.algebra.affine`.
 
-Some key definitions are not yet present:
+TODO: Some key definitions are not yet present.
 
 * Coercions from an `affine_subspace` to the subtype of its points,
   and a corresponding `affine_space` instance on that subtype in the

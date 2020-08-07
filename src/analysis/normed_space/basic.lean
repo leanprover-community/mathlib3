@@ -456,7 +456,7 @@ begin
 end
 
 lemma units.norm_pos {α : Type*} [normed_ring α] [nontrivial α] (x : units α) : 0 < ∥(x:α)∥ :=
-norm_pos_iff.mpr (units.coe_ne_zero x)
+norm_pos_iff.mpr (units.ne_zero x)
 
 /-- In a normed ring, the left-multiplication `add_monoid_hom` is bounded. -/
 lemma mul_left_bound {α : Type*} [normed_ring α] (x : α) :

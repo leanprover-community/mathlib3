@@ -151,43 +151,36 @@ variables [monoid α] (a b : α) (u : units α)
 
 /-- In a monoid, an element `a` divides an element `b` iff `a` divides all
     associates of `b`. -/
-@[simp] lemma dvd_coe_mul : a ∣ b * u ↔ a ∣ b :=
+@[simp] lemma dvd_mul_coe : a ∣ b * u ↔ a ∣ b :=
 iff.intro
   (assume ⟨c, eq⟩, ⟨c * ↑u⁻¹, by rw [← mul_assoc, ← eq, units.mul_inv_cancel_right]⟩)
   (assume ⟨c, eq⟩, eq.symm ▸ dvd_mul_of_dvd_left (dvd_mul_right _ _) _)
 
-/-- An element of a monoid divides a unit iff the element divides one. -/
-@[simp] lemma dvd_coe : a ∣ ↑u ↔ a ∣ 1 :=
-suffices a ∣ 1 * ↑u ↔ a ∣ 1, by simpa,
-dvd_coe_mul _ _ _
-
-end monoid
-
 /-- In a monoid, an element a divides an element b iff all associates of a divide b.-/
-@[simp] lemma coe_mul_dvd [monoid α] (a b : α) (u : units α) : a * u ∣ b ↔ a ∣ b :=
+@[simp] lemma mul_coe_dvd [monoid α] (a b : α) (u : units α) : a * u ∣ b ↔ a ∣ b :=
 iff.intro
   (λ ⟨c, eq⟩, ⟨↑u * c, eq.trans (mul_assoc _ _ _)⟩)
   (λ h, dvd_trans (dvd.intro ↑u⁻¹ (by rw [mul_assoc, u.mul_inv, mul_one])) h)
+
+end monoid
+
+variables [comm_monoid α] (a b : α) (u : units α)
+@[simp] lemma dvd_coe_mul : a ∣ u * b ↔ a ∣ b := by { rw mul_comm, apply dvd_mul_coe }
+
+/-- In a monoid, an element a divides an element b iff all associates of a divide b.-/
+@[simp] lemma coe_mul_dvd [comm_monoid α] (a b : α) (u : units α) : ↑u * a ∣ b ↔ a ∣ b :=
+by { rw mul_comm, apply mul_coe_dvd }
+
 end units
 
 namespace is_unit
 
 lemma mul_right_dvd_of_dvd [monoid α]
   {a b c : α} (hb : is_unit b) (h : a ∣ c) : a * b ∣ c :=
-begin
-  rcases hb with ⟨b, rfl⟩,
-  rcases h with ⟨c', rfl⟩,
-  use (b⁻¹ : units α) * c',
-  rw [mul_assoc, units.mul_inv_cancel_left]
-end
+by { rcases hb with ⟨a, rfl⟩, rw units.mul_coe_dvd, apply h, }
 
 lemma mul_left_dvd_of_dvd [comm_monoid α]
   {a b c : α} (hb : is_unit b) (h : a ∣ c) : b * a ∣ c :=
-begin
-  rcases hb with ⟨b, rfl⟩,
-  rcases h with ⟨c', rfl⟩,
-  use (b⁻¹ : units α) * c',
-  rw [mul_comm (b : α) a, mul_assoc, units.mul_inv_cancel_left]
-end
+by { rw mul_comm, apply mul_right_dvd_of_dvd hb h }
 
 end is_unit

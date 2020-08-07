@@ -121,8 +121,8 @@ variables [monoid_with_zero α] {a : α}
 theorem eq_zero_of_zero_dvd (h : 0 ∣ a) : a = 0 :=
 dvd.elim h (assume c, assume H' : a = 0 * c, eq.trans H' (zero_mul c))
 
-/-- Given an element a of a commutative monoid with zero, there exists another element whose product
-    with zero equals a iff a equals zero. -/
+/-- Given an element a`` of a commutative monoid with zero, there exists another element whose
+    product with zero equals `a` iff `a` equals zero. -/
 @[simp] lemma zero_dvd_iff : 0 ∣ a ↔ a = 0 :=
 ⟨eq_zero_of_zero_dvd, λ h, by rw h⟩
 
@@ -130,8 +130,8 @@ dvd.elim h (assume c, assume H' : a = 0 * c, eq.trans H' (zero_mul c))
 
 end monoid_with_zero
 
-/-- Given two elements b, c of an integral domain and a nonzero element a, `a*b` divides `a*c` iff
-  b divides c. -/
+/-- Given two elements `b`, `c` of an integral domain and a nonzero element `a`,
+ `a*b` divides `a*c` iff `b` divides `c`. -/
 theorem mul_dvd_mul_iff_left [cancel_monoid_with_zero α] {a b c : α}
   (ha : a ≠ 0) : a * b ∣ a * c ↔ b ∣ c :=
 exists_congr $ λ d, by rw [mul_assoc, mul_right_inj' ha]
@@ -156,7 +156,7 @@ iff.intro
   (assume ⟨c, eq⟩, ⟨c * ↑u⁻¹, by rw [← mul_assoc, ← eq, units.mul_inv_cancel_right]⟩)
   (assume ⟨c, eq⟩, eq.symm ▸ dvd_mul_of_dvd_left (dvd_mul_right _ _) _)
 
-/-- In a monoid, an element a divides an element b iff all associates of a divide b.-/
+/-- In a monoid, an element a divides an element b iff all associates of `a` divide `b`.-/
 @[simp] lemma mul_coe_dvd [monoid α] (a b : α) (u : units α) : a * u ∣ b ↔ a ∣ b :=
 iff.intro
   (λ ⟨c, eq⟩, ⟨↑u * c, eq.trans (mul_assoc _ _ _)⟩)
@@ -165,9 +165,13 @@ iff.intro
 end monoid
 
 variables [comm_monoid α] (a b : α) (u : units α)
+
+/-- In a commutative monoid, an element `a` divides an element `b` iff `a` divides all left
+    associates of `b`. -/
 @[simp] lemma dvd_coe_mul : a ∣ u * b ↔ a ∣ b := by { rw mul_comm, apply dvd_mul_coe }
 
-/-- In a monoid, an element a divides an element b iff all associates of a divide b.-/
+/-- In a commutative monoid, an element `a` divides an element `b` iff all
+  left associates of `a` divide `b`.-/
 @[simp] lemma coe_mul_dvd [comm_monoid α] (a b : α) (u : units α) : ↑u * a ∣ b ↔ a ∣ b :=
 by { rw mul_comm, apply mul_coe_dvd }
 

@@ -15,19 +15,91 @@ open_locale classical
 # Affine spaces
 
 This file defines affine spaces (over modules) and subspaces, affine
-maps, affine combinations of points, and the affine span of a set of
-points.
+maps, affine combinations of points, affinely independent families of
+points, and the affine span of a set of points.
+
+## Main definitions
+
+* `affine_space k V P` is an abbreviation for `add_torsor V P` in the
+  case of `module k V`.  `P` is the type of points in the space and
+  `V` the `k`-module of displacement vectors.  Definitions and results
+  not depending on the `module` structure appear in
+  `algebra.add_torsor` instead of here; that includes the instance of
+  an `add_group` as an `add_torsor` over itself, which thus gives a
+  `module` as an `affine_space` over itself.  Definitions of affine
+  spaces vary as to whether a space with no points is permitted; here,
+  we require a nonempty type of points (via the definition of torsors
+  requiring a nonempty type).  Affine spaces are defined over any
+  module, with stronger type class requirements on `k` being used for
+  individual lemmas where needed.
+* `affine_subspace k V P` is the type of affine subspaces.  Unlike
+  affine spaces, affine subspaces are allowed to be empty, and lemmas
+  that do not apply to empty affine subspaces have `nonempty`
+  hypotheses.  There is a `complete_lattice` structure on affine
+  subspaces.
+* `affine_subspace.direction` gives the `submodule` spanned by the
+  pairwise differences of points in an `affine_subspace`.  There are
+  various lemmas relating to the set of points in the `direction`, and
+  relating the lattice structure on affine subspaces to that on their
+  directions.
+* `affine_span` gives the affine subspace spanned by a set of points,
+  with `vector_span` giving its direction.  `affine_span` is defined
+  in terms of `span_points`, which gives an explicit description of
+  the points contained in the affine span; `span_points` itself should
+  generally only be used when that description is required, with
+  `affine_span` being the main definition for other purposes.  Two
+  other descriptions of the affine span are proved equivalent: it is
+  the `Inf` of affine subspaces containing the points, and (if
+  `[nontrivial k]`) it contains exactly those points that are affine
+  combinations of points in the given set.
+* `weighted_vsub_of_point`, `weighted_vsub` and `affine_combination`
+  are various kinds of weighted combinations of points.
+  `weighted_vsub_of_point` is a general weighted combination of
+  subtractions with an explicit base point, yielding a vector.
+  `weighted_vsub` uses an arbitrary choice of base point and is intended
+  to be used when the sum of weights is 0, in which case the result is
+  independent of the choice of base point.  `affine_combination` adds
+  the weighted combination to the base point, yielding a point rather
+  than a vector, and is intended to be used when the sum of weights is
+  1, in which case the result is independent of the choice of base
+  point.  These definitions are for sums over a `finset`; versions for
+  a `fintype` may be obtained using `finset.univ`, while versions for
+  a `finsupp` may be obtained using `finsupp.support`.
+* `affine_independent` defines affinely independent families of points
+  as those where no nontrivial weighted subtraction is 0.  This is
+  proved equivalent to two other formulations: linear independence of
+  the results of subtracting a base point in the family from the other
+  points in the family, or any equal affine combinations having the
+  same weights.  A bundled type `simplex` is provided for finite
+  affinely independent families of points, with an abbreviation
+  `triangle` for the case of three points.
+* `affine_map` is the type of affine maps between two affine spaces
+  with the same ring `k`.  Various basic examples of affine maps are
+  defined, including `const`, `id`, `line_map` and `homothety`.
 
 ## Implementation notes
 
-This file is very minimal and many things are surely omitted. Most
-results can be deduced from corresponding results for modules or
-vector spaces.  The variables `k` and `V` are explicit rather than
-implicit arguments to lemmas because otherwise the elaborator
-sometimes has problems inferring appropriate types and type class
-instances.  Definitions of affine spaces vary as to whether a space
-with no points is permitted; here, we require a nonempty type of
-points (via the definition of torsors requiring a nonempty type).
+The variables `k` and `V` are explicit rather than implicit arguments
+to lemmas because otherwise the elaborator sometimes has problems
+inferring appropriate types and type class instances.
+
+This file only provides purely algebraic definitions and results.
+Those depending on analysis or topology are defined elsewhere; see
+`analysis.normed_space.add_torsor` and `topology.algebra.affine`.
+
+TODO: Some key definitions are not yet present.
+
+* Coercions from an `affine_subspace` to the subtype of its points,
+  and a corresponding `affine_space` instance on that subtype in the
+  case of a nonempty subspace.
+* `affine_equiv` (see issue #2909).
+* Affine frames.  An affine frame might perhaps be represented as an
+  `affine_equiv` to a `finsupp` (in the general case) or function type
+  (in the finite-dimensional case) that gives the coordinates, with
+  appropriate proofs of existence when `k` is a field.
+* Although results on affine combinations implicitly provide
+  barycentric frames and coordinates, there is no explicit
+  representation of the map from a point to its coordinates.
 
 ## References
 

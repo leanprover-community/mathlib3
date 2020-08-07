@@ -243,7 +243,7 @@ include hnsol
 private lemma T_pos : T > 0 :=
 begin
   rw T_def,
-  exact div_pos_of_pos_of_pos (norm_pos_iff.2 hnsol) (deriv_sq_norm_pos hnorm)
+  exact div_pos (norm_pos_iff.2 hnsol) (deriv_sq_norm_pos hnorm)
 end
 
 private lemma newton_seq_succ_dist_weak (n : ℕ) :

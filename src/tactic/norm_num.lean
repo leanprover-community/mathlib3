@@ -255,7 +255,7 @@ end
 meta def prove_pos (c : instance_cache) : expr → tactic (instance_cache × expr)
 | `(%%e₁ / %%e₂) := do
   (c, p₁) ← prove_pos_nat c e₁, (c, p₂) ← prove_pos_nat c e₂,
-  c.mk_app ``div_pos_of_pos_of_pos [e₁, e₂, p₁, p₂]
+  c.mk_app ``div_pos [e₁, e₂, p₁, p₂]
 | e := prove_pos_nat c e
 
 /-- `match_neg (- e) = some e`, otherwise `none` -/

@@ -245,6 +245,10 @@ begin
   exact fintype_card_le_findim_of_linear_independent h,
 end
 
+/-- A finite dimensional space has positive `findim` iff it has a nonzero element. -/
+lemma findim_pos_iff_exists_ne_zero [finite_dimensional K V] : 0 < findim K V ↔ ∃ x : V, x ≠ 0 :=
+iff.trans (by { rw ← findim_eq_dim, norm_cast }) (@dim_pos_iff_exists_ne_zero K V _ _ _)
+
 /-- A finite dimensional space has positive `findim` iff it is nontrivial. -/
 lemma findim_pos_iff [finite_dimensional K V] : 0 < findim K V ↔ nontrivial V :=
 iff.trans (by { rw ← findim_eq_dim, norm_cast }) (@dim_pos_iff_nontrivial K V _ _ _)

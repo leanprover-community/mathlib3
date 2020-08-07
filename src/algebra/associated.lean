@@ -393,11 +393,9 @@ instance : comm_monoid (associates α) :=
     assume a b, show ⟦a * b⟧ = ⟦b * a⟧, by rw [mul_comm] }
 
 instance : preorder (associates α) :=
-{ le := λa b, ∃c, a * c = b,
-  le_refl := assume a, ⟨1, by simp⟩,
-  le_trans := assume a b c ⟨f₁, h₁⟩ ⟨f₂, h₂⟩, ⟨f₁ * f₂, h₂ ▸ h₁ ▸ (mul_assoc _ _ _).symm⟩}
-
-instance : has_dvd (associates α) := ⟨(≤)⟩
+{ le := has_dvd.dvd,
+  le_refl := dvd_refl,
+  le_trans := λ a b c, dvd_trans}
 
 @[simp] lemma mk_one : associates.mk (1 : α) = 1 := rfl
 
@@ -446,10 +444,10 @@ section order
 theorem mul_mono {a b c d : associates α} (h₁ : a ≤ b) (h₂ : c ≤ d) :
   a * c ≤ b * d :=
 let ⟨x, hx⟩ := h₁, ⟨y, hy⟩ := h₂ in
-⟨x * y, by simp [hx.symm, hy.symm, mul_comm, mul_assoc, mul_left_comm]⟩
+⟨x * y, by simp [hx, hy, mul_comm, mul_assoc, mul_left_comm]⟩
 
 theorem one_le {a : associates α} : 1 ≤ a :=
-⟨a, one_mul a⟩
+dvd.intro _ (one_mul a)
 
 theorem prod_le_prod {p q : multiset (associates α)} (h : p ≤ q) : p.prod ≤ q.prod :=
 begin
@@ -500,9 +498,9 @@ variables [comm_semiring α]
 theorem dvd_of_mk_le_mk {a b : α} : associates.mk a ≤ associates.mk b → a ∣ b
 | ⟨c', hc'⟩ := (quotient.induction_on c' $ assume c hc,
     let ⟨d, hd⟩ := (quotient.exact hc).symm in
-    ⟨(↑d⁻¹) * c,
-      calc b = (a * c) * ↑d⁻¹ : by rw [← hd, mul_assoc, units.mul_inv, mul_one]
-        ... = a * (↑d⁻¹ * c) : by ac_refl⟩) hc'
+    ⟨(↑d) * c,
+      calc b = (a * c) * ↑d : hd.symm
+        ... = a * (↑d * c) : by ac_refl⟩) hc'
 
 theorem mk_le_mk_of_dvd {a b : α} : a ∣ b → associates.mk a ≤ associates.mk b :=
 assume ⟨c, hc⟩, ⟨associates.mk c, by simp [hc]; refl⟩
@@ -525,7 +523,7 @@ hp.2.2 a b h
 lemma exists_mem_multiset_le_of_prime {s : multiset (associates α)} {p : associates α}
   (hp : prime p) :
   p ≤ s.prod → ∃a∈s, p ≤ a :=
-multiset.induction_on s (assume ⟨d, eq⟩, (hp.ne_one (mul_eq_one_iff.1 eq).1).elim) $
+multiset.induction_on s (assume ⟨d, eq⟩, (hp.ne_one (mul_eq_one_iff.1 eq.symm).1).elim) $
 assume a s ih h,
   have p ≤ a * s.prod, by simpa using h,
   match hp.le_or_le this with
@@ -556,13 +554,8 @@ section integral_domain
 variable [integral_domain α]
 
 instance : partial_order (associates α) :=
-{ le_antisymm := assume a' b',
-    quotient.induction_on₂ a' b' $ assume a b ⟨f₁', h₁⟩ ⟨f₂', h₂⟩,
-    (quotient.induction_on₂ f₁' f₂' $ assume f₁ f₂ h₁ h₂,
-      let ⟨c₁, h₁⟩ := quotient.exact h₁, ⟨c₂, h₂⟩ := quotient.exact h₂ in
-      quotient.sound $ associated_of_dvd_dvd
-        (h₁ ▸ dvd_mul_of_dvd_left (dvd_mul_right _ _) _)
-        (h₂ ▸ dvd_mul_of_dvd_left (dvd_mul_right _ _) _)) h₁ h₂
+{ le_antisymm := λ a' b', quotient.induction_on₂ a' b' (λ a b hab hba,
+  quot.sound $ associated_of_dvd_dvd (dvd_of_mk_le_mk hab) (dvd_of_mk_le_mk hba))
   .. associates.preorder }
 
 instance : order_bot (associates α) :=
@@ -572,7 +565,7 @@ instance : order_bot (associates α) :=
 
 instance : order_top (associates α) :=
 { top := 0,
-  le_top := assume a, ⟨0, mul_zero a⟩,
+  le_top := assume a, ⟨0, (mul_zero a).symm⟩,
   .. associates.partial_order }
 
 instance : no_zero_divisors (associates α) :=

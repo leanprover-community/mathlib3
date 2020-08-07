@@ -105,22 +105,22 @@ end mfold_with_index
 
 section mmap_with_index
 
-variables {m : Type u → Type v} [monad m]
+variables {m : Type u → Type v} [applicative m]
 
 /-- Specification of `mmap_with_index_aux`. -/
 def mmap_with_index_aux_spec {α β} (f : ℕ → α → m β) (start : ℕ) (as : list α) :
   m (list β) :=
-mmap (uncurry f) $ enum_from start as
+list.traverse (uncurry f) $ enum_from start as
+-- Note: `traverse` the class method would require a less universe-polymorphic
+-- `m : Type u → Type u`.
 
 theorem mmap_with_index_aux_spec_cons {α β} (f : ℕ → α → m β) (start : ℕ)
   (a : α) (as : list α) :
   mmap_with_index_aux_spec f start (a :: as) =
-    do b ← f start a,
-      bs ← mmap_with_index_aux_spec f (start + 1) as,
-      pure $ b :: bs :=
+    list.cons <$> f start a <*> mmap_with_index_aux_spec f (start + 1) as :=
 rfl
 
-variables [is_lawful_monad m]
+variables [is_lawful_applicative m]
 
 theorem mmap_with_index_aux_eq_mmap_with_index_aux_spec {α β} (f : ℕ → α → m β)
   (start : ℕ) (as : list α) :
@@ -128,11 +128,11 @@ theorem mmap_with_index_aux_eq_mmap_with_index_aux_spec {α β} (f : ℕ → α 
 begin
   induction as generalizing start,
   { refl },
-  { simp [mmap_with_index_aux, mmap_with_index_aux_spec_cons, *] with monad_norm }
+  { simp [mmap_with_index_aux, mmap_with_index_aux_spec_cons, *] }
 end
 
 theorem mmap_with_index_eq_mmap_enum {α β} (f : ℕ → α → m β) (as : list α) :
-  mmap_with_index f as = mmap (uncurry f) (enum as) :=
+  mmap_with_index f as = list.traverse (uncurry f) (enum as) :=
 by simp only
     [mmap_with_index, mmap_with_index_aux_spec,
      mmap_with_index_aux_eq_mmap_with_index_aux_spec, enum ]

@@ -24,6 +24,9 @@ The divisibility relation is defined for all monoids, and as such, depends on th
   divisibility in the noncommutative context, and this relation follows the convention for ordinals,
   so `a | b` is defined as `∃ c, b = a * c`.
 
+## Tags
+
+divisibility, divides
 -/
 
 variables {α : Type*}

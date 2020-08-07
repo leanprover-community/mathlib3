@@ -54,7 +54,7 @@ points, and the affine span of a set of points.
   are various kinds of weighted combinations of points.
   `weighted_vsub_of_point` is a general weighted combination of
   subtractions with an explicit base point, yielding a vector.
-  `weighted_vsub` uses a default choice of base point and is intended
+  `weighted_vsub` uses an arbitrary choice of base point and is intended
   to be used when the sum of weights is 0, in which case the result is
   independent of the choice of base point.  `affine_combination` adds
   the weighted combination to the base point, yielding a point rather

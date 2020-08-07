@@ -119,8 +119,8 @@ theorem is_basis.mk_eq_dim {v : ι → V} (h : is_basis K v) :
   cardinal.lift.{w u'} (cardinal.mk ι) = cardinal.lift.{u' w} (dim K V) :=
 by rw [←h.mk_range_eq_dim, cardinal.mk_range_eq_of_injective h.injective]
 
-theorem {v} is_basis.mk_eq_dim' {v : ι → V} (h : is_basis K v) :
-  cardinal.lift.{w (max u' v)} (cardinal.mk ι) = cardinal.lift.{u' (max w v)} (dim K V) :=
+theorem {m} is_basis.mk_eq_dim' {v : ι → V} (h : is_basis K v) :
+  cardinal.lift.{w (max u' m)} (cardinal.mk ι) = cardinal.lift.{u' (max w m)} (dim K V) :=
 by simpa using h.mk_eq_dim
 
 variables [add_comm_group V₂] [vector_space K V₂]

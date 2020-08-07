@@ -10,13 +10,14 @@ import topology.algebra.affine
 /-!
 # Minima and maxima of convex functions
 
-We show that if a function `f` is convex, then a local minimum is also
+We show that if a function `f : E → ℝ` is convex, then a local minimum is also
 a global minimum.
 -/
 
-variables {E β : Type*} [add_comm_group E] [topological_space E]
+universes u
+
+variables {E : Type u} [add_comm_group E] [topological_space E]
   [module ℝ E] [topological_add_group E] [topological_vector_space ℝ E]
-  [ordered_add_comm_monoid β] [ordered_semimodule ℝ β]
   {s : set E}
 
 open set filter
@@ -25,7 +26,7 @@ open_locale classical
 /--
 Helper lemma for the more general case: `is_min_on.of_is_local_min_on_of_convex_on`.
 -/
-lemma is_min_on.of_is_local_min_on_of_convex_on_Icc {f : ℝ → β} {a b : ℝ}
+lemma is_min_on.of_is_local_min_on_of_convex_on_Icc {f : ℝ → ℝ} {a b : ℝ}
   (a_lt_b : a < b) (h_local_min : is_local_min_on f (Icc a b) a) (h_conv : convex_on (Icc a b) f) :
   ∀ x ∈ Icc a b, f a ≤ f x :=
 begin
@@ -38,17 +39,16 @@ begin
         at U_in_nhds_within,
     rcases U_in_nhds_within with ⟨ε, ε_in_Ioi, Ioc_in_U⟩,
     exact ⟨ε, mem_Ioi.mp ε_in_Ioi, λ y y_in_Ioc, fy_ge_fa y $ Ioc_in_U y_in_Ioc⟩ },
-  --have a_lt_x : a < x := lt_of_le_of_ne h_ax (λ H, by subst H ; linarith),
-  have a_lt_x : a < x := lt_of_le_of_ne h_ax (by finish),
+  have a_lt_x : a < x := lt_of_le_of_ne h_ax (λ H, by subst H ; linarith),
   have lt_on_nhd : ∀ y ∈ Ioc a x, f y < f a,
   { intros y y_in_Ioc,
     rcases (convex.mem_Ioc a_lt_x).mp y_in_Ioc with ⟨ya, yx, ya_pos, yx_pos, yax, y_combo⟩,
     calc
       f y = f (ya * a + yx * x)       : by rw [y_combo]
-      ... ≤ ya • f a + yx • f x
+      ... ≤ ya * f a + yx * f x
                 : h_conv.2 (left_mem_Icc.mpr (le_of_lt a_lt_b)) ⟨h_ax, h_xb⟩ (ya_pos)
                     (le_of_lt yx_pos) yax
-      ... < ya • f a + yx • f a       : by linarith [(mul_lt_mul_left yx_pos).mpr fx_lt_fa]
+      ... < ya * f a + yx * f a       : by linarith [(mul_lt_mul_left yx_pos).mpr fx_lt_fa]
       ... = f a                       : by rw [←add_mul, yax, one_mul] },
   by_cases h_xz : x ≤ z,
   { linarith [ge_on_nhd x (show x ∈ Icc a z, by exact ⟨h_ax, h_xz⟩)] },

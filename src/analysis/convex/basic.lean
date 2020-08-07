@@ -574,7 +574,7 @@ begin
   intros x y hx hy a b ha hb hab,
   calc
     c • f (a • x + b • y) ≤ c • (a • f x + b • f y)
-      : ordered_semimodule.smul_le_smul_of_nonneg_left (hf.2 hx hy ha hb hab) hc
+      : smul_le_smul_of_nonneg (hf.2 hx hy ha hb hab) hc
     ... = a • (c • f x) + b • (c • f y) : by simp only [smul_add, smul_comm]
 end
 
@@ -601,10 +601,8 @@ begin
   calc
     f (za • x + zb • y) ≤ za • (f x) + zb • (f y)   : hf.2 hx.1 hy.1 hza hzb hzazb
                     ... ≤ za • r + zb • r
-                      : begin
-                        refine add_le_add (ordered_semimodule.smul_le_smul_of_nonneg_left hx.2 hza) _,
-                        exact ordered_semimodule.smul_le_smul_of_nonneg_left hy.2 hzb,
-                        end
+                      : add_le_add (smul_le_smul_of_nonneg hx.2 hza)
+                                    (smul_le_smul_of_nonneg hy.2 hzb)
                     ... ≤ r                         : by simp [←add_smul, hzazb]
 end
 
@@ -622,11 +620,11 @@ begin
       f (xa • a + xb • b) ≤ xa • (f a) + xb • (f b)       : hf.2 as.1 bs.1 hxa hxb hxaxb
                       ... < xa • r + xb • (f b)
                         : (add_lt_add_iff_right (xb • (f b))).mpr
-                          (ordered_semimodule.smul_lt_smul_of_nonneg_left as.2
+                          (smul_lt_smul_of_nonneg as.2
                             (lt_of_le_of_ne hxa (ne.symm H)))
                       ... ≤ xa • r + xb • r
                         : (add_le_add_iff_left (xa • r)).mpr
-                          (ordered_semimodule.smul_le_smul_of_nonneg_left (le_of_lt bs.2) hxb)
+                          (smul_le_smul_of_nonneg (le_of_lt bs.2) hxb)
                       ... = r
                         : by simp only [←add_smul, hxaxb, one_smul] }
 end
@@ -638,8 +636,8 @@ begin
   rintros ⟨x, r⟩ ⟨y, t⟩ ⟨hx, hr⟩ ⟨hy, ht⟩ a b ha hb hab,
   refine ⟨hf.1 hx hy ha hb hab, _⟩,
   calc f (a • x + b • y) ≤ a • f x + b • f y : hf.2 hx hy ha hb hab
-  ... ≤ a • r + b • t : add_le_add (ordered_semimodule.smul_le_smul_of_nonneg_left hr ha)
-    (ordered_semimodule.smul_le_smul_of_nonneg_left ht hb)
+  ... ≤ a • r + b • t : add_le_add (smul_le_smul_of_nonneg hr ha)
+                            (smul_le_smul_of_nonneg ht hb)
 end
 
 lemma convex_on_iff_convex_epigraph {γ : Type*} [ordered_add_comm_group γ] [ordered_semimodule ℝ γ]

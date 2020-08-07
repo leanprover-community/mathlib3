@@ -29,7 +29,7 @@ convex_on_univ_of_deriv2_nonneg differentiable_exp (by simp)
   (assume x, (iter_deriv_exp 2).symm ▸ le_of_lt (exp_pos x))
 
 /-- `x^n`, `n : ℕ` is convex on the whole real line whenever `n` is even -/
-lemma convex_on_pow_of_even {n : ℕ} (hn : n.even) : convex_on set.univ (λ x, x^n) :=
+lemma convex_on_pow_of_even {n : ℕ} (hn : n.even) : convex_on set.univ (λ x : ℝ, x^n) :=
 begin
   apply convex_on_univ_of_deriv2_nonneg differentiable_pow,
   { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
@@ -41,7 +41,7 @@ begin
 end
 
 /-- `x^n`, `n : ℕ` is convex on `[0, +∞)` for all `n` -/
-lemma convex_on_pow (n : ℕ) : convex_on (Ici 0) (λ x, x^n) :=
+lemma convex_on_pow (n : ℕ) : convex_on (Ici 0) (λ x : ℝ, x^n) :=
 begin
   apply convex_on_of_deriv2_nonneg (convex_Ici _) (continuous_pow n).continuous_on;
     simp only [interior_Ici, differentiable_on_pow, deriv_pow',
@@ -82,7 +82,7 @@ begin
 end
 
 /-- `x^m`, `m : ℤ` is convex on `(0, +∞)` for all `m` -/
-lemma convex_on_fpow (m : ℤ) : convex_on (Ioi 0) (λ x, x^m) :=
+lemma convex_on_fpow (m : ℤ) : convex_on (Ioi 0) (λ x : ℝ, x^m) :=
 begin
   apply convex_on_of_deriv2_nonneg (convex_Ioi 0); try { rw [interior_Ioi] },
   { exact (differentiable_on_fpow $ lt_irrefl _).continuous_on },
@@ -97,7 +97,7 @@ begin
     exact int_prod_range_nonneg _ _ (nat.even_bit0 1) }
 end
 
-lemma convex_on_rpow {p : ℝ} (hp : 1 ≤ p) : convex_on (Ici 0) (λ x, x^p) :=
+lemma convex_on_rpow {p : ℝ} (hp : 1 ≤ p) : convex_on (Ici 0) (λ x : ℝ, x^p) :=
 begin
   have A : deriv (λ (x : ℝ), x ^ p) = λ x, p * x^(p-1), by { ext x, simp [hp] },
   apply convex_on_of_deriv2_nonneg (convex_Ici 0),

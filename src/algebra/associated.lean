@@ -253,7 +253,6 @@ lemma dvd_dvd_of_associated [monoid α] {a b : α} (h : a ~ᵤ b) : a ∣ b ∧ 
 theorem associated_of_dvd_dvd [cancel_monoid_with_zero α]
   {a b : α} (hab : a ∣ b) (hba : b ∣ a) : a ~ᵤ b :=
 begin
-  --haveI := classical.dec_eq α,
   rcases hab with ⟨c, rfl⟩,
   rcases hba with ⟨d, a_eq⟩,
   by_cases ha0 : a = 0,

@@ -35,8 +35,8 @@ end
 theorem foldr_with_index_eq_foldr_enum (f : ℕ → α → β → β) (b : β) (as : list α) :
   foldr_with_index f b as = foldr (uncurry f) b (enum as) :=
 by simp only
-    [ foldr_with_index, foldr_with_index_aux_spec,
-      foldr_with_index_aux_eq_foldr_with_index_aux_spec, enum ]
+    [foldr_with_index, foldr_with_index_aux_spec,
+     foldr_with_index_aux_eq_foldr_with_index_aux_spec, enum]
 
 end foldr_with_index
 
@@ -50,8 +50,8 @@ theorem find_indexes_eq_map_indexes_values (p : α → Prop) [decidable_pred p]
   (as : list α) :
   find_indexes p as = map prod.fst (indexes_values p as) :=
 by simp only
-    [ indexes_values_eq_filter_enum, map_filter_eq_foldr, find_indexes,
-      foldr_with_index_eq_foldr_enum, uncurry ]
+    [indexes_values_eq_filter_enum, map_filter_eq_foldr, find_indexes,
+     foldr_with_index_eq_foldr_enum, uncurry]
 
 
 section foldl_with_index
@@ -79,8 +79,8 @@ theorem foldl_with_index_eq_foldl_enum (f : ℕ → α → β → α) (a : α) (
   foldl_with_index f a bs =
   foldl (λ a (p : ℕ × β), f p.fst a p.snd) a (enum bs) :=
 by simp only
-    [ foldl_with_index, foldl_with_index_aux_spec,
-      foldl_with_index_aux_eq_foldl_with_index_aux_spec, enum ]
+    [foldl_with_index, foldl_with_index_aux_spec,
+     foldl_with_index_aux_eq_foldl_with_index_aux_spec, enum]
 
 end foldl_with_index
 
@@ -97,7 +97,7 @@ by simp only
 theorem mfoldl_with_index_eq_mfoldl_enum [is_lawful_monad m] {α β}
   (f : ℕ → β → α → m β) (b : β) (as : list α) :
   mfoldl_with_index f b as =
-  mfoldl (λ b (p : ℕ × α), f p.fst b p.snd) b (enum as) :=
+    mfoldl (λ b (p : ℕ × α), f p.fst b p.snd) b (enum as) :=
 by rw [mfoldl_with_index, mfoldl_eq_foldl, foldl_with_index_eq_foldl_enum]
 
 end mfold_with_index
@@ -115,11 +115,9 @@ mmap (uncurry f) $ enum_from start as
 theorem mmap_with_index_aux_spec_cons {α β} (f : ℕ → α → m β) (start : ℕ)
   (a : α) (as : list α) :
   mmap_with_index_aux_spec f start (a :: as) =
-  do {
-    b ← f start a,
-    bs ← mmap_with_index_aux_spec f (start + 1) as,
-    pure $ b :: bs
-  } :=
+    do b ← f start a,
+      bs ← mmap_with_index_aux_spec f (start + 1) as,
+      pure $ b :: bs :=
 rfl
 
 variables [is_lawful_monad m]
@@ -136,8 +134,8 @@ end
 theorem mmap_with_index_eq_mmap_enum {α β} (f : ℕ → α → m β) (as : list α) :
   mmap_with_index f as = mmap (uncurry f) (enum as) :=
 by simp only
-    [ mmap_with_index, mmap_with_index_aux_spec,
-      mmap_with_index_aux_eq_mmap_with_index_aux_spec, enum ]
+    [mmap_with_index, mmap_with_index_aux_spec,
+     mmap_with_index_aux_eq_mmap_with_index_aux_spec, enum ]
 
 end mmap_with_index
 

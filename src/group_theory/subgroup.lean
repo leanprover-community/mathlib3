@@ -1002,6 +1002,8 @@ subgroup.copy (gpowers_hom G g).range (set.range ((^) g : ℤ → G)) rfl
 lemma gpowers_eq_closure (g : G) : gpowers g = closure {g} :=
 by { ext, exact mem_closure_singleton.symm }
 
+@[simp] lemma range_gpowers_hom (g : G) : (gpowers_hom G g).range = gpowers g := rfl
+
 lemma gpowers_subset {a : G} {K : subgroup G} (h : a ∈ K) : gpowers a ≤ K :=
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := K.gpow_mem h i end
 
@@ -1018,12 +1020,15 @@ add_subgroup.copy (gmultiples_hom A a).range (set.range ((•ℤ a) : ℤ → A)
 lemma gmultiples_eq_closure (a : A) : gmultiples a = closure {a} :=
 by { ext, exact mem_closure_singleton.symm }
 
+@[simp] lemma range_gmultiples_hom (a : A) : (gmultiples_hom A a).range = gmultiples a := rfl
+
 lemma gmultiples_subset {a : A} {B : add_subgroup A} (h : a ∈ B) : gmultiples a ≤ B :=
 @subgroup.gpowers_subset (multiplicative A) _ _ (B.to_subgroup) h
 
 attribute [to_additive add_subgroup.gmultiples] subgroup.gpowers
 attribute [to_additive add_subgroup.mem_gmultiples] subgroup.mem_gpowers
 attribute [to_additive add_subgroup.gmultiples_eq_closure] subgroup.gpowers_eq_closure
+attribute [to_additive add_subgroup.range_gmultiples_hom] subgroup.range_gpowers_hom
 attribute [to_additive add_subgroup.gmultiples_subset] subgroup.gpowers_subset
 
 end add_subgroup

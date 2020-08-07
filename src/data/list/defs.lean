@@ -166,9 +166,56 @@ def find (p : α → Prop) [decidable_pred p] : list α → option α
 | []     := none
 | (a::l) := if p a then some a else find l
 
-/-- `mfind tac l` returns the first element of `l` on which `tac` succeeds, and fails otherwise. -/
-def mfind {α} {m : Type → Type u} [monad m] [alternative m] (tac : α → m unit) : list α → m α :=
+/-- `mfind tac l` returns the first element of `l` on which `tac` succeeds, and
+fails otherwise. -/
+def mfind {α} {m : Type u → Type v} [monad m] [alternative m] (tac : α → m punit) : list α → m α :=
 list.mfirst $ λ a, tac a $> a
+
+/-- `mbfind' p l` returns the first element `a` of `l` for which `p a` returns
+true. `mbfind'` short-circuits, so `p` is not necessarily run on every `a` in
+`l`. This is a monadic version of `list.find`. -/
+def mbfind' {m : Type u → Type v} [monad m] {α : Type u} (p : α → m (ulift bool)) :
+  list α → m (option α)
+| [] := pure none
+| (x :: xs) := do
+  ⟨px⟩ ← p x,
+  if px then pure (some x) else mbfind' xs
+
+section
+
+variables {m : Type → Type v} [monad m]
+
+/-- A variant of `mbfind'` with more restrictive universe levels. -/
+def mbfind {α} (p : α → m bool) (xs : list α) : m (option α) :=
+xs.mbfind' (functor.map ulift.up ∘ p)
+
+/-- `many p as` returns true iff `p` returns true for any element of `l`.
+`many` short-circuits, so if `p` returns true for any element of `l`, later
+elements are not checked. This is a monadic version of `list.any`. -/
+-- Implementing this via `mbfind` would give us less universe polymorphism.
+def many {α : Type u} (p : α → m bool) : list α → m bool
+| [] := pure false
+| (x :: xs) := do px ← p x, if px then pure tt else many xs
+
+/-- `mall p as` returns true iff `p` returns true for all elements of `l`.
+`mall` short-circuits, so if `p` returns false for any element of `l`, later
+elements are not checked. This is a monadic version of `list.all`. -/
+def mall {α : Type u} (p : α → m bool) (as : list α) : m bool :=
+bnot <$> many (λ a, bnot <$> p a) as
+
+/-- `mbor xs` runs the actions in `xs`, returning true if any of them returns
+true. `mbor` short-circuits, so if an action returns true, later actions are
+not run. This is a monadic version of `list.bor`. -/
+def mbor : list (m bool) → m bool :=
+many id
+
+/-- `mband xs` runs the actions in `xs`, returning true if all of them return
+true. `mband` short-circuits, so if an action returns false, later actions are
+not run. This is a monadic version of `list.band`. -/
+def mband : list (m bool) → m bool :=
+mall id
+
+end
 
 /-- Auxiliary definition for `foldl_with_index`. -/
 def foldl_with_index_aux (f : ℕ → α → β → α) : ℕ → α → list β → α
@@ -189,6 +236,10 @@ def foldr_with_index_aux (f : ℕ → α → β → β) : ℕ → β → list α
 also receives each element's index. -/
 def foldr_with_index (f : ℕ → α → β → β) (b : β) (l : list α) : β :=
 foldr_with_index_aux f 0 b l
+
+def find_indexes_aux (p : α → Prop) [decidable_pred p] : list α → nat → list nat
+| []     n := []
+| (a::l) n := let t := find_indexes_aux l (succ n) in if p a then n :: t else t
 
 /-- `find_indexes p l` is the list of indexes of elements of `l` that satisfy `p`. -/
 def find_indexes (p : α → Prop) [decidable_pred p] (l : list α) : list nat :=

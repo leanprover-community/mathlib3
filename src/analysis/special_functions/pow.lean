@@ -1159,8 +1159,7 @@ end
 lemma one_lt_rpow {x : ennreal} {z : ℝ} (hx : 1 < x) (hz : 0 < z) : 1 < x^z :=
 begin
   cases x,
-  { simp [top_rpow_of_pos hz],
-    exact coe_lt_top },
+  { simp [top_rpow_of_pos hz] },
   { simp at hx,
     simp [coe_rpow_of_nonneg _ (le_of_lt hz), nnreal.one_lt_rpow hx hz] }
 end

@@ -1831,6 +1831,11 @@ calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simp [list
 theorem prod_join {l : list (list α)} : l.join.prod = (l.map list.prod).prod :=
 by induction l; [refl, simp only [*, list.join, map, prod_append, prod_cons]]
 
+theorem prod_ne_zero {R : Type*} [domain R] {L : list R} :
+  (∀ x ∈ L, (x : _) ≠ 0) → L.prod ≠ 0 :=
+list.rec_on L (λ _, one_ne_zero) $ λ hd tl ih H,
+  by { rw forall_mem_cons at H, rw prod_cons, exact mul_ne_zero H.1 (ih H.2) }
+
 @[to_additive]
 theorem prod_eq_foldr : l.prod = foldr (*) 1 l :=
 list.rec_on l rfl $ λ a l ihl, by rw [prod_cons, foldr_cons, ihl]

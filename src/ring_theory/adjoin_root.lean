@@ -124,6 +124,16 @@ by rw [← mk_C x, lift_mk, eval₂_C]
 @[simp] lemma lift_comp_of : (lift i a h).comp (of f) = i :=
 ring_hom.ext $ λ _, @lift_of _ _ _ _ _ _ _ h _
 
+/-- Produce an algebra homomorphism `adjoin_root f →ₐ[R] S` sending `root f` to
+a root of `f` in `S`. -/
+def alg_hom [algebra R S] (f : polynomial R) (x : S) (hfx : aeval x f = 0) : adjoin_root f →ₐ[R] S :=
+{ commutes' := λ r, show lift _ _ hfx r = _, from lift_of,
+  .. lift (algebra_map R S) x hfx }
+
+@[simp] lemma coe_alg_hom [algebra R S] (f : polynomial R) (x : S) (hfx : aeval x f = 0) :
+  (alg_hom f x hfx : adjoin_root f →+* S) = lift (algebra_map R S) x hfx :=
+rfl
+
 end comm_ring
 
 variables [field K] {f : polynomial K} [irreducible f]

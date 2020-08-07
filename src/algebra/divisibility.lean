@@ -15,7 +15,7 @@ This file defines the basics of the divisibility relation in the context of `(co
 
 ## Main definitions
 
-`monoid.has_dvd`
+ * `monoid.has_dvd`
 
 ## Implementation notes
 

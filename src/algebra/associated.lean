@@ -263,7 +263,7 @@ begin
   have hcd : (c * d) = 1, from mul_left_cancel' ha0 this,
   have : a * c * (d * c) = a * c * 1 := by rw [← mul_assoc, ← a_eq, mul_one],
   have hdc : d * c = 1, from mul_left_cancel' hac0 this,
-  exact ⟨⟨c,d,hcd,hdc⟩, rfl⟩
+  exact ⟨⟨c, d, hcd, hdc⟩, rfl⟩
 end
 
 theorem dvd_dvd_iff_associated [cancel_monoid_with_zero α] {a b : α} : a ∣ b ∧ b ∣ a ↔ a ~ᵤ b :=

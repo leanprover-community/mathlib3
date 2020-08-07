@@ -120,12 +120,6 @@ apply_nolint category_theory.Kleisli.comp_def unused_arguments
 apply_nolint category_theory.Kleisli.id_def unused_arguments
 apply_nolint category_theory.Kleisli.mk doc_blame has_inhabited_instance
 
--- category_theory/category/default.lean
-apply_nolint category_theory.category_struct doc_blame
-apply_nolint category_theory.epi doc_blame
-apply_nolint category_theory.has_hom doc_blame
-apply_nolint category_theory.mono doc_blame
-
 -- category_theory/endomorphism.lean
 apply_nolint category_theory.Aut doc_blame has_inhabited_instance
 apply_nolint category_theory.End has_inhabited_instance
@@ -1404,7 +1398,7 @@ apply_nolint free_ring.lift doc_blame
 apply_nolint free_ring.map doc_blame
 apply_nolint free_ring.of doc_blame
 
--- ring_theory/ideal_operations.lean
+-- ring_theory/ideal/operations.lean
 apply_nolint ideal.le_order_embedding_of_surjective doc_blame
 apply_nolint ideal.lt_order_embedding_of_surjective doc_blame
 apply_nolint ideal.map doc_blame
@@ -2081,10 +2075,7 @@ apply_nolint topological_space.open_nhds.inclusion_map_iso doc_blame
 apply_nolint topological_space.open_nhds.map doc_blame
 
 -- topology/category/Top/opens.lean
-apply_nolint topological_space.opens.map_comp doc_blame
-apply_nolint topological_space.opens.map_id doc_blame
 apply_nolint topological_space.opens.map_iso doc_blame
-apply_nolint topological_space.opens.to_Top doc_blame
 
 -- topology/category/TopCommRing.lean
 apply_nolint TopCommRing has_inhabited_instance

@@ -123,9 +123,9 @@ def to_matrix [decidable_eq n] : ((n → R) →ₗ[R] (m → R)) → matrix m n 
 
 @[simp] lemma to_matrix_id [decidable_eq n] :
   (@linear_map.id _ (n → R) _ _ _).to_matrix = 1 :=
-by { ext, simp [to_matrix, to_matrixₗ, matrix.one_val, eq_comm] }
+by { ext, simp [to_matrix, to_matrixₗ, matrix.one_apply, eq_comm] }
 
-theorem to_matrix_of_equiv {p q : Type*} [fintype p] [fintype q] [decidable_eq n] [decidable_eq q]
+theorem to_matrix_of_equiv {p q : Type*} [decidable_eq n] [decidable_eq q] [fintype p] [fintype q]
   (e₁ : m ≃ p) (e₂ : n ≃ q) (f : (q → R) →ₗ[R] (p → R)) (i j) :
   to_matrix f (e₁ i) (e₂ j) = to_matrix (linear_equiv.arrow_congr
       (linear_map.fun_congr_left R R e₂)
@@ -197,7 +197,7 @@ between linear maps M₁ →ₗ M₂ and matrices over R indexed by the bases. -
 def linear_equiv_matrix {ι κ M₁ M₂ : Type*}
   [add_comm_group M₁] [module R M₁]
   [add_comm_group M₂] [module R M₂]
-  [fintype ι] [decidable_eq ι] [fintype κ]
+  [decidable_eq ι] [fintype ι] [fintype κ]
   {v₁ : ι → M₁} {v₂ : κ → M₂} (hv₁ : is_basis R v₁) (hv₂ : is_basis R v₂) :
   (M₁ →ₗ[R] M₂) ≃ₗ[R] matrix κ ι R :=
 linear_equiv.trans (linear_equiv.arrow_congr (equiv_fun_basis hv₁) (equiv_fun_basis hv₂)) linear_equiv_matrix'
@@ -241,7 +241,7 @@ lemma linear_equiv_matrix_comp {R ι κ μ M₁ M₂ M₃ : Type*} [comm_ring R]
   [add_comm_group M₁] [module R M₁]
   [add_comm_group M₂] [module R M₂]
   [add_comm_group M₃] [module R M₃]
-  [fintype ι] [decidable_eq ι] [fintype κ] [decidable_eq κ] [fintype μ]
+  [decidable_eq ι] [fintype ι] [decidable_eq κ] [fintype κ] [fintype μ]
   {v₁ : ι → M₁} {v₂ : κ → M₂} {v₃ : μ → M₃}
   (hv₁ : is_basis R v₁) (hv₂ : is_basis R v₂) (hv₃ : is_basis R v₃)
   (f : M₂ →ₗ[R] M₃) (g : M₁ →ₗ[R] M₂) :
@@ -251,7 +251,7 @@ by simp_rw [linear_equiv_matrix, linear_equiv.trans_apply, linear_equiv_matrix'_
     linear_equiv.arrow_congr_comp _ (equiv_fun_basis hv₂), comp_to_matrix_mul]
 
 lemma linear_equiv_matrix_mul {R M ι : Type*} [comm_ring R]
-  [add_comm_group M] [module R M] [fintype ι] [decidable_eq ι]
+  [add_comm_group M] [module R M] [decidable_eq ι] [fintype ι]
   {b : ι → M} (hb : is_basis R b) (f g : M →ₗ[R] M) :
   linear_equiv_matrix hb hb (f * g) = linear_equiv_matrix hb hb f * linear_equiv_matrix hb hb g :=
 linear_equiv_matrix_comp hb hb hb f g
@@ -273,7 +273,7 @@ variables {n} {R} {M}
 @[simp] lemma diag_apply (A : matrix n n M) (i : n) : diag n R M A i = A i i := rfl
 
 @[simp] lemma diag_one [decidable_eq n] :
-  diag n R R 1 = λ i, 1 := by { dunfold diag, ext, simp [one_val_eq] }
+  diag n R R 1 = λ i, 1 := by { dunfold diag, ext, simp [one_apply_eq] }
 
 @[simp] lemma diag_transpose (A : matrix n n M) : diag n R M Aᵀ = diag n R M A := rfl
 
@@ -320,8 +320,8 @@ lemma diagonal_comp_std_basis (w : n → R) (i : n) :
   (diagonal w).to_lin.comp (std_basis R (λ_:n, R) i) = (w i) • std_basis R (λ_:n, R) i :=
 begin
   ext a j,
-  simp only [linear_map.comp_apply, smul_apply, to_lin_apply, mul_vec_diagonal, smul_apply,
-    pi.smul_apply, smul_eq_mul],
+  simp_rw [linear_map.comp_apply, to_lin_apply, mul_vec_diagonal, linear_map.smul_apply,
+    pi.smul_apply, algebra.id.smul_eq_mul],
   by_cases i = j,
   { subst h },
   { rw [std_basis_ne R (λ_:n, R) _ _ (ne.symm h), _root_.mul_zero, _root_.mul_zero] }
@@ -485,6 +485,10 @@ rfl
   (reindex_alg_equiv e).symm M = λ i j, M (e i) (e j) :=
 rfl
 
+lemma reindex_transpose (eₘ : m ≃ m') (eₙ : n ≃ n') (M : matrix m n R) :
+  (reindex eₘ eₙ M)ᵀ = (reindex eₙ eₘ Mᵀ) :=
+rfl
+
 end reindexing
 
 end matrix
@@ -495,18 +499,18 @@ open_locale matrix
 
 /-- The trace of an endomorphism given a basis. -/
 def trace_aux (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b) :
+  {ι : Type w} [decidable_eq ι] [fintype ι] {b : ι → M} (hb : is_basis R b) :
   (M →ₗ[R] M) →ₗ[R] R :=
 (matrix.trace ι R R).comp $ linear_equiv_matrix hb hb
 
 @[simp] lemma trace_aux_def (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
+  {ι : Type w} [decidable_eq ι] [fintype ι] {b : ι → M} (hb : is_basis R b) (f : M →ₗ[R] M) :
   trace_aux R hb f = matrix.trace ι R R (linear_equiv_matrix hb hb f) :=
 rfl
 
 theorem trace_aux_eq' (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {ι : Type w} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b)
-  {κ : Type w} [fintype κ] [decidable_eq κ] {c : κ → M} (hc : is_basis R c) :
+  {ι : Type w} [decidable_eq ι] [fintype ι] {b : ι → M} (hb : is_basis R b)
+  {κ : Type w} [decidable_eq κ] [fintype κ] {c : κ → M} (hc : is_basis R c) :
   trace_aux R hb = trace_aux R hc :=
 linear_map.ext $ λ f,
 calc  matrix.trace ι R R (linear_equiv_matrix hb hb f)
@@ -540,8 +544,8 @@ end
 
 /-- where `ι` and `κ` can reside in different universes -/
 theorem trace_aux_eq (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
-  {ι : Type*} [fintype ι] [decidable_eq ι] {b : ι → M} (hb : is_basis R b)
-  {κ : Type*} [fintype κ] [decidable_eq κ] {c : κ → M} (hc : is_basis R c) :
+  {ι : Type*} [decidable_eq ι] [fintype ι] {b : ι → M} (hb : is_basis R b)
+  {κ : Type*} [decidable_eq κ] [fintype κ] {c : κ → M} (hc : is_basis R c) :
   trace_aux R hb = trace_aux R hc :=
 calc  trace_aux R hb
     = trace_aux R hb.range : by { rw trace_aux_range R hb, congr }

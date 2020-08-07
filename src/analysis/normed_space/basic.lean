@@ -611,7 +611,7 @@ by rwa norm_fpow⟩
 
 @[instance]
 lemma punctured_nhds_ne_bot {α : Type*} [nondiscrete_normed_field α] (x : α) :
-  ne_bot (nhds_within x {x}ᶜ) :=
+  ne_bot (𝓝[{x}ᶜ] x) :=
 begin
   rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
   rintros ε ε0,
@@ -622,7 +622,7 @@ end
 
 @[instance]
 lemma nhds_within_is_unit_ne_bot {α : Type*} [nondiscrete_normed_field α] :
-  ne_bot (nhds_within (0:α) {x : α | is_unit x}) :=
+  ne_bot (𝓝[{x : α | is_unit x}] 0) :=
 by simpa only [is_unit_iff_ne_zero] using punctured_nhds_ne_bot (0:α)
 
 lemma tendsto_inv [normed_field α] {r : α} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=

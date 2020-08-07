@@ -54,9 +54,6 @@ option.cases_on
 instance [has_mul α] : has_mul (with_one α) :=
 { mul := option.lift_or_get (*) }
 
-@[simp, to_additive]
-lemma mul_coe [has_mul α] (a b : α) : (a : with_one α) * b = (a * b : α) := rfl
-
 @[to_additive]
 instance [semigroup α] : monoid (with_one α) :=
 { mul_assoc := (option.lift_or_get_assoc _).1,
@@ -127,8 +124,8 @@ instance [has_mul α] : mul_zero_class (with_zero α) :=
   mul_zero  := λ a, by cases a; refl,
   ..with_zero.has_zero }
 
-@[simp] lemma mul_coe [has_mul α] (a b : α) :
-  (a : with_zero α) * b = (a * b : α) := rfl
+@[simp, norm_cast] lemma coe_mul {α : Type u} [has_mul α]
+  {a b : α} : ((a * b : α) : with_zero α) = (a : with_zero α) * b := rfl
 
 instance [semigroup α] : semigroup (with_zero α) :=
 { mul_assoc := λ a b c, match a, b, c with
@@ -168,8 +165,9 @@ do a ← x, return a⁻¹
 
 instance [has_inv α] : has_inv (with_zero α) := ⟨with_zero.inv⟩
 
-@[simp] lemma inv_coe [has_inv α] (a : α) :
-  (a : with_zero α)⁻¹ = (a⁻¹ : α) := rfl
+@[simp, norm_cast] lemma coe_inv [has_inv α] (a : α) :
+  ((a⁻¹ : α) : with_zero α) = a⁻¹ := rfl
+
 @[simp] lemma inv_zero [has_inv α] :
   (0 : with_zero α)⁻¹ = 0 := rfl
 
@@ -195,19 +193,20 @@ lemma one_div (x : with_zero α) : 1 / x = x⁻¹ := one_mul _
 | 0       := rfl
 | (a : α) := show _ * _ = _, by simp
 
+#check with_zero.coe_mul
 @[simp] lemma mul_right_inv : ∀  (x : with_zero α) (h : x ≠ 0), x * x⁻¹ = 1
 | 0       h := false.elim $ h rfl
-| (a : α) h := by simp [coe_one]
+| (a : α) h := by simp only [←with_zero.coe_inv, ←with_zero.coe_mul, coe_one, _root_.mul_right_inv]
 
 @[simp] lemma mul_left_inv : ∀  (x : with_zero α) (h : x ≠ 0), x⁻¹ * x = 1
 | 0       h := false.elim $ h rfl
-| (a : α) h := by simp [coe_one]
+| (a : α) h := by simp only [←with_zero.coe_inv, ←with_zero.coe_mul, _root_.mul_left_inv, coe_one]
 
 @[simp] lemma mul_inv_rev : ∀ (x y : with_zero α), (x * y)⁻¹ = y⁻¹ * x⁻¹
 | 0       0       := rfl
 | 0       (b : α) := rfl
 | (a : α) 0       := rfl
-| (a : α) (b : α) := by simp
+| (a : α) (b : α) := by {norm_cast, exact _root_.mul_inv_rev _ _}
 
 @[simp] lemma mul_div_cancel {a b : with_zero α} (hb : b ≠ 0) : a * b / b = a :=
 show _ * _ * _ = _, by simp [mul_assoc, hb]

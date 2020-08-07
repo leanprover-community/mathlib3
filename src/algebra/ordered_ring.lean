@@ -972,16 +972,17 @@ instance : mul_zero_class (with_top α) :=
 lemma mul_def {a b : with_top α} :
   a * b = if a = 0 ∨ b = 0 then 0 else a.bind (λa, b.bind $ λb, ↑(a * b)) := rfl
 
+#check @with_zero.coe_mul
+
 @[simp] lemma mul_top {a : with_top α} (h : a ≠ 0) : a * ⊤ = ⊤ :=
 begin
   rcases a with _ | a,
   { refl },
-  { rw mul_def, simp [h] },
+  { rw mul_def,simp [with_zero.coe_mul, h], refl },
 end
---by cases a; simp [mul_def, h]; refl
 
 @[simp] lemma top_mul {a : with_top α} (h : a ≠ 0) : ⊤ * a = ⊤ :=
-by cases a; simp [mul_def, h]; refl
+by cases a; simp [mul_def, h, -with_zero.coe_mul]; refl
 
 @[simp] lemma top_mul_top : (⊤ * ⊤ : with_top α) = ⊤ :=
 top_mul top_ne_zero
@@ -1010,7 +1011,7 @@ begin
     by_cases hb : b = 0; simp [hb] },
   { suffices : (a : with_top α) * ⊤ = ⊤ ↔ a ≠ 0, by simpa,
     by_cases ha : a = 0; simp [ha] },
-  { simp [← coe_mul] }
+  { norm_cast, simp, rintro ⟨⟩ }
 end
 
 end mul_zero_class
@@ -1020,8 +1021,11 @@ section no_zero_divisors
 variables [mul_zero_class α] [no_zero_divisors α]
 
 instance : no_zero_divisors (with_top α) :=
-⟨λ a b, by cases a; cases b; dsimp [mul_def]; split_ifs;
-  simp [*, none_eq_top, some_eq_coe, mul_eq_zero] at *⟩
+⟨λ a b, by {cases a; cases b; dsimp [mul_def]; split_ifs;
+  try {cc},
+  simp_rw some_eq_coe,
+  norm_cast,
+  exact eq_zero_or_eq_zero_of_mul_eq_zero }⟩
 
 end no_zero_divisors
 
@@ -1056,7 +1060,8 @@ begin
   cases c,
   { by_cases ha : a = 0; by_cases hb : b = 0;
       simp [*, none_eq_top, some_eq_coe] },
-  simp [some_eq_coe, coe_mul.symm, mul_assoc]
+  simp_rw some_eq_coe,
+  exact_mod_cast mul_assoc a b c,
 end
 
 private lemma one_mul' : ∀a : with_top α, 1 * a = a

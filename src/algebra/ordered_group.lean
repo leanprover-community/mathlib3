@@ -270,10 +270,6 @@ class ordered_comm_monoid (α : Type*) extends comm_monoid α, partial_order α 
 -/
 
 --universe u
-
-@[simp, norm_cast] lemma with_zero.coe_mul {α : Type u} [has_mul α]
-  {a b : α} : ((a * b : α) : with_zero α) = (a : with_zero α) * b := rfl
-
 lemma mul_le_mul_left {α : Type u}
   [ordered_comm_monoid α] :
   ∀ (a b : with_zero α),

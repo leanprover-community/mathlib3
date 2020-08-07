@@ -64,7 +64,7 @@ by simp_rw [algebra.smul_def, ← mul_assoc, algebra_map_apply R S A,
     ← (algebra_map S A).map_mul, mul_comm s]
 
 @[ext] lemma algebra.ext {S : Type u} {A : Type v} [comm_semiring S] [semiring A]
-  (h1 h2 : algebra S A) (h : ∀ {r : S} {x : A}, (by clear h2; exact r • x) = r • x) : h1 = h2 :=
+  (h1 h2 : algebra S A) (h : ∀ {r : S} {x : A}, (by haveI := h1; exact r • x) = r • x) : h1 = h2 :=
 begin
   unfreezingI { cases h1 with f1 g1 h11 h12, cases h2 with f2 g2 h21 h22,
   cases f1, cases f2, congr', { ext r x, exact h },
@@ -116,6 +116,12 @@ instance subring {S A : Type*} [comm_ring S] [ring A] [algebra S A]
   (U : set S) [is_subring U] : is_algebra_tower U S A :=
 of_algebra_map_eq $ λ x, rfl
 
+@[nolint instance_priority]
+instance of_ring_hom {R A B : Type*} [comm_semiring R] [comm_semiring A] [comm_semiring B]
+  [algebra R A] [algebra R B] (f : A →ₐ[R] B) :
+  @is_algebra_tower R A B _ _ _ _ (ring_hom.to_algebra f) _ :=
+by { letI := (f : A →+* B).to_algebra, exact of_algebra_map_eq (λ x, (f.commutes x).symm) }
+
 end semiring
 
 section comm_semiring
@@ -138,13 +144,6 @@ section ring
 variables [comm_ring R] [comm_ring S] [ring A] [algebra R S] [algebra S A] [algebra R A]
 variables [is_algebra_tower R S A]
 
-/-- If A/S/R is a tower of algebras then any S-subalgebra of A gives an R-subalgebra of A. -/
-def subalgebra_comap (U : subalgebra S A) : subalgebra R A :=
-{ carrier := U,
-  algebra_map_mem' := λ x, by { rw algebra_map_apply R S A, exact U.algebra_map_mem _ } }
-
-theorem subalgebra_comap_top : subalgebra_comap R S A ⊤ = ⊤ :=
-algebra.eq_top_iff.2 $ λ _, show _ ∈ (⊤ : subalgebra S A), from algebra.mem_top
 
 end ring
 
@@ -152,15 +151,6 @@ section comm_ring
 variables [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] [algebra R A]
 variables [is_algebra_tower R S A]
 
-theorem range_under_adjoin (t : set A) :
-  (to_alg_hom R S A).range.under (algebra.adjoin _ t) =
-    subalgebra_comap R S A (algebra.adjoin S t) :=
-subalgebra.ext $ λ z,
-show z ∈ subsemiring.closure (set.range (algebra_map (to_alg_hom R S A).range A) ∪ t : set A) ↔
-  z ∈ subsemiring.closure (set.range (algebra_map S A) ∪ t : set A),
-from suffices set.range (algebra_map (to_alg_hom R S A).range A) = set.range (algebra_map S A),
-  by rw this,
-by { ext z, exact ⟨λ ⟨⟨x, y, h1⟩, h2⟩, ⟨y, h2 ▸ h1⟩, λ ⟨y, hy⟩, ⟨⟨z, y, hy⟩, rfl⟩⟩ }
 
 instance int : is_algebra_tower ℤ S A :=
 of_algebra_map_eq $ λ x, ((algebra_map S A).map_int_cast x).symm
@@ -193,6 +183,53 @@ le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin h
   (subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
 
 end algebra
+
+namespace subalgebra
+
+open is_algebra_tower
+
+variables (R) {S A} [comm_semiring R] [comm_semiring S] [semiring A]
+variables [algebra R S] [algebra S A] [algebra R A] [is_algebra_tower R S A]
+
+/-- If A/S/R is a tower of algebras then the `res`triction of a S-subalgebra of A is an R-subalgebra of A. -/
+def res (U : subalgebra S A) : subalgebra R A :=
+{ carrier := U,
+  algebra_map_mem' := λ x, by { rw algebra_map_apply R S A, exact U.algebra_map_mem _ } }
+
+@[simp] lemma res_top : res R (⊤ : subalgebra S A) = ⊤ :=
+algebra.eq_top_iff.2 $ λ _, show _ ∈ (⊤ : subalgebra S A), from algebra.mem_top
+
+@[simp] lemma mem_res {U : subalgebra S A} {x : A} : x ∈ res R U ↔ x ∈ U := iff.rfl
+
+lemma res_inj {U V : subalgebra S A} (H : res R U = res R V) : U = V :=
+ext $ λ x, by rw [← mem_res R, H, mem_res]
+
+/-- Produces a map from `subalgebra.under`. -/
+def of_under {R A B : Type*} [comm_semiring R] [comm_semiring A] [semiring B]
+  [algebra R A] [algebra R B] (S : subalgebra R A) (U : subalgebra S A)
+  [algebra S B] [is_algebra_tower R S B] (f : U →ₐ[S] B) : S.under U →ₐ[R] B :=
+{ commutes' := λ r, (f.commutes (algebra_map R S r)).trans (algebra_map_apply R S B r).symm,
+  .. f }
+
+end subalgebra
+
+namespace is_algebra_tower
+
+open subalgebra
+
+variables [comm_semiring R] [comm_semiring S] [comm_semiring A]
+variables [algebra R S] [algebra S A] [algebra R A] [is_algebra_tower R S A]
+
+theorem range_under_adjoin (t : set A) :
+  (to_alg_hom R S A).range.under (algebra.adjoin _ t) = res R (algebra.adjoin S t) :=
+subalgebra.ext $ λ z,
+show z ∈ subsemiring.closure (set.range (algebra_map (to_alg_hom R S A).range A) ∪ t : set A) ↔
+  z ∈ subsemiring.closure (set.range (algebra_map S A) ∪ t : set A),
+from suffices set.range (algebra_map (to_alg_hom R S A).range A) = set.range (algebra_map S A),
+  by rw this,
+by { ext z, exact ⟨λ ⟨⟨x, y, h1⟩, h2⟩, ⟨y, h2 ▸ h1⟩, λ ⟨y, hy⟩, ⟨⟨z, y, hy⟩, rfl⟩⟩ }
+
+end is_algebra_tower
 
 namespace submodule
 

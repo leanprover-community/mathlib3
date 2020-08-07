@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 import algebra.big_operators.pi
 import algebra.module.pi
 import algebra.module.prod
+import algebra.module.submodule
 import algebra.group.prod
 import ring_theory.subring
 import data.finsupp.basic
@@ -1083,6 +1084,9 @@ def ker (f : M →ₗ[R] M₂) : submodule R M := comap f ⊥
 
 @[simp] theorem map_coe_ker (f : M →ₗ[R] M₂) (x : ker f) : f x = 0 := mem_ker.1 x.2
 
+lemma comp_ker_subtype (f : M →ₗ[R] M₂) : f.comp f.ker.subtype = 0 :=
+linear_map.ext $ λ x, suffices f x = 0, by simp [this], mem_ker.1 x.2
+
 theorem ker_comp (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) : ker (g.comp f) = comap f (ker g) := rfl
 
 theorem ker_le_ker_comp (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) : ker f ≤ ker (g.comp f) :=
@@ -1533,6 +1537,32 @@ def comap_mkq.lt_order_embedding :
 end ring
 
 end submodule
+
+namespace linear_map
+variables [ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
+
+lemma range_mkq_comp (f : M →ₗ[R] M₂) : f.range.mkq.comp f = 0 :=
+linear_map.ext $ λ x, by { simp, use x }
+
+/-- A monomorphism is injective. -/
+lemma ker_eq_bot_of_cancel {f : M →ₗ[R] M₂}
+  (h : ∀ (u v : f.ker →ₗ[R] M), f.comp u = f.comp v → u = v) : f.ker = ⊥ :=
+begin
+  have h₁ : f.comp (0 : f.ker →ₗ[R] M) = 0 := comp_zero _,
+  rw [←submodule.range_subtype f.ker, ←h 0 f.ker.subtype (eq.trans h₁ (comp_ker_subtype f).symm)],
+  exact range_zero
+end
+
+/-- An epimorphism is surjective. -/
+lemma range_eq_top_of_cancel {f : M →ₗ[R] M₂}
+  (h : ∀ (u v : M₂ →ₗ[R] f.range.quotient), u.comp f = v.comp f → u = v) : f.range = ⊤ :=
+begin
+  have h₁ : (0 : M₂ →ₗ[R] f.range.quotient).comp f = 0 := zero_comp _,
+  rw [←submodule.ker_mkq f.range, ←h 0 f.range.mkq (eq.trans h₁ (range_mkq_comp _).symm)],
+  exact ker_zero
+end
+
+end linear_map
 
 @[simp] lemma linear_map.range_range_restrict [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
   [semimodule R M] [semimodule R M₂] (f : M →ₗ[R] M₂) :
@@ -1992,6 +2022,13 @@ linear_equiv.of_linear (p.liftq id $ hp.symm ▸ bot_le) p.mkq (liftq_mkq _ _ _)
 
 @[simp] lemma coe_quot_equiv_of_eq_bot_symm (hp : p = ⊥) :
   ((p.quot_equiv_of_eq_bot hp).symm : M →ₗ[R] p.quotient) = p.mkq := rfl
+
+variables (q : submodule R M)
+
+/-- Quotienting by equal submodules gives linearly equivalent quotients. -/
+def quot_equiv_of_eq (h : p = q) : p.quotient ≃ₗ[R] q.quotient :=
+{ map_add' := by { rintros ⟨x⟩ ⟨y⟩, refl }, map_smul' := by { rintros x ⟨y⟩, refl },
+  ..@quotient.congr _ _ (quotient_rel p) (quotient_rel q) (equiv.refl _) $ λ a b, by { subst h, refl } }
 
 end submodule
 

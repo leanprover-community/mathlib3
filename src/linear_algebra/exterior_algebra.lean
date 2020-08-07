@@ -238,4 +238,104 @@ begin
   exact rel.eq_compat
 end
 
+/--
+Auxiliary lemma used to prove `wedge_self_adj`.
+-/
+lemma wedge_self_adj_aux (ν : fin q.succ → M) {j : fin q.succ} (hj : j.val = 1) (hv : ν 0 = ν j):
+ι R M (ν 0) * wedge R M (λ i : fin q, ν i.succ) = 0 :=
+begin
+  induction q with q hq,
+  --Base case (we get a contradiction)
+  exfalso,
+  exact not_lt_of_le (le_of_eq (eq_comm.mp hj)) j.2,
+  --Inductive step
+  rw wedge_split,
+  have hj1 : j = 1 :=
+  begin
+    ext, exact hj,
+  end,
+  have fact : ν (0 : fin q.succ).succ = ν 1 := by congr,
+  rw fact, rw hj1 at hv, rw hv, rw ←mul_assoc, rw ι_square_zero, rw zero_mul,
+end
+
+
+lemma wedge_self_adj (ν : fin q → M) (i j : fin q) (hij : i.val + 1 = j.val) (hv : ν i = ν j) :
+wedge R M ν = 0 :=
+begin
+  induction q with q hq,
+  --Base case (there is nothing to show)
+  cases i, exfalso, exact nat.not_lt_zero i_val i_is_lt,
+  --Inductive step
+  rw wedge_split,
+  cases classical.em (i = 0) with hem hem,
+  --case i = 0
+  rw hem at hv,
+  rw hem at hij, norm_num at hij, rw eq_comm at hij,
+  exact wedge_self_adj_aux ν hij hv,
+  --case i ≠ 0
+  have hj : j ≠ 0 :=
+  begin
+    intro cj, rw cj at hij, simp at hij, assumption,
+  end,
+  have hij1 : (i.pred hem).val.succ = (j.pred hj).val :=
+    by rw [←fin.succ_val, fin.succ_pred, fin.pred_val, ←hij, nat.pred_succ],
+  have hv1 : (ν ∘ fin.succ) (i.pred hem) = (ν ∘ fin.succ) (j.pred hj) := by simp [hv],
+  rw hq (ν ∘ fin.succ) (i.pred hem) (j.pred hj) hij1 hv1,
+  rw mul_zero,
+end
+
+
+
+lemma wedge_add_swap_adj (ν : fin q → M) {i j : fin q} (hij : i.val + 1 = j.val) :
+wedge R M ν + wedge R M (ν ∘ equiv.swap i j) = 0 :=
+begin
+  have hij1 : i ≠ j :=
+  begin
+    intro h,
+    rw h at hij, exact nat.succ_ne_self j.val hij,
+  end,
+  have key : wedge R M (function.update (function.update ν i (ν i + ν j)) j (ν i + ν j)) = 0 :=
+    by rw wedge_self_adj (function.update (function.update ν i (ν i + ν j)) j (ν i + ν j)) i j hij
+    begin
+      rw [function.update_same, function.update_noteq hij1,  function.update_same],
+    end,
+  rw multilinear_map.map_add at key,
+  rw function.update_comm hij1 (ν i + ν j) (ν i) ν at key,
+  rw multilinear_map.map_add at key,
+  rw wedge_self_adj (function.update (function.update ν j (ν i)) i (ν i)) i j hij
+    begin
+      rw function.update_same,
+      rw function.update_comm (ne_comm.mp hij1) (ν i) (ν i) ν,
+      rw function.update_same,
+    end at key,
+  rw zero_add at key,
+  rw function.update_comm hij1 (ν i + ν j) (ν j) ν at key,
+  rw multilinear_map.map_add at key,
+  rw wedge_self_adj (function.update (function.update ν j (ν j)) i (ν j)) i j hij
+  begin
+    rw function.update_same,
+    rw function.update_comm (ne_comm.mp hij1) (ν j) (ν j) ν,
+    rw function.update_same,
+  end at key,
+  rw add_zero at key,
+  rw add_comm at key,
+  convert key,
+  simp,
+  ext x,
+    cases classical.em (x = i) with hx hx,
+    --case x = i
+    rw hx,
+    simp only [equiv.swap_apply_left, function.comp_app],
+    rw function.update_same,
+    --case x ≠ i
+    cases classical.em (x = j) with hx1 hx1,
+    rw hx1,
+    simp only [equiv.swap_apply_left, function.comp_app],
+    rw function.update_noteq (ne_comm.mp hij1),
+    simp,
+    --case x ≠ i, x ≠ j,
+    simp only [hx, hx1, function.comp_app, function.update_noteq, ne.def, not_false_iff],
+    rw equiv.swap_apply_of_ne_of_ne hx hx1,
+end
+
 end exterior_algebra

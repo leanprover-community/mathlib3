@@ -1327,6 +1327,8 @@ by induction l; [refl, simp only [*, concat_eq_append, cons_append, map, map_app
 theorem map_id' {f : α → α} (h : ∀ x, f x = x) (l : list α) : map f l = l :=
 by induction l; [refl, simp only [*, map]]; split; refl
 
+@[simp] theorem map_id'' (l : list α) : l.map (λ x, x) = l := map_id l
+
 @[simp] theorem foldl_map (g : β → γ) (f : α → γ → α) (a : α) (l : list β) :
   foldl f a (map g l) = foldl (λx y, f x (g y)) a l :=
 by revert a; induction l; intros; [refl, simp only [*, map, foldl]]

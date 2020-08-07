@@ -353,8 +353,8 @@ variables {R : Type u} [comm_ring R]
 lemma mem_sup_left {S T : ideal R} : ∀ {x : R}, x ∈ S → x ∈ S ⊔ T :=
 show S ≤ S ⊔ T, from le_sup_left
 
-lemma mem_sup_right {S T : ideal R} : ∀ {x : R}, x ∈ S → x ∈ S ⊔ T :=
-show S ≤ S ⊔ T, from le_sup_left
+lemma mem_sup_right {S T : ideal R} : ∀ {x : R}, x ∈ T → x ∈ S ⊔ T :=
+show T ≤ S ⊔ T, from le_sup_right
 
 lemma mem_supr_of_mem {ι : Type*} {S : ι → ideal R} (i : ι) :
   ∀ {x : R}, x ∈ S i → x ∈ supr S :=

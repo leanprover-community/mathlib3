@@ -109,11 +109,6 @@ add_tactic_doc
 `by_cases p` splits the main goal into two cases, assuming `h : p` in the first branch, and
 `h : ¬ p` in the second branch. You can specify the name of the new hypothesis using the syntax
 `by_cases h : p`.
-
-This tactic requires that `p` is decidable. To ensure that all propositions are decidable via
-classical reasoning, use `open_locale classical`
-(or `local attribute [instance, priority 10] classical.prop_decidable` if you are not using
-mathlib).
 -/
 add_tactic_doc
 { name       := "by_cases",

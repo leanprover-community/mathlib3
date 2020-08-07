@@ -972,8 +972,6 @@ instance : mul_zero_class (with_top α) :=
 lemma mul_def {a b : with_top α} :
   a * b = if a = 0 ∨ b = 0 then 0 else a.bind (λa, b.bind $ λb, ↑(a * b)) := rfl
 
-#check @with_zero.coe_mul
-
 @[simp] lemma mul_top {a : with_top α} (h : a ≠ 0) : a * ⊤ = ⊤ :=
 begin
   rcases a with _ | a,

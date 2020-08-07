@@ -120,8 +120,6 @@ theorem mmap_with_index_aux_spec_cons {α β} (f : ℕ → α → m β) (start :
     list.cons <$> f start a <*> mmap_with_index_aux_spec f (start + 1) as :=
 rfl
 
-variables [is_lawful_applicative m]
-
 theorem mmap_with_index_aux_eq_mmap_with_index_aux_spec {α β} (f : ℕ → α → m β)
   (start : ℕ) (as : list α) :
   mmap_with_index_aux f start as = mmap_with_index_aux_spec f start as :=

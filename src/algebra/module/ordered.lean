@@ -13,7 +13,7 @@ set_option default_priority 100 -- see Note [default priority]
 An ordered semimodule is an ordered additive commutative monoid
 with a partial order in which the scalar multiplication is compatible with the order.
 -/
-@[protect_proj, ancestor ordered_add_comm_group semimodule]
+@[protect_proj, ancestor ordered_add_comm_monoid semimodule]
 class ordered_semimodule (R β : Type*)
   [ordered_semiring R] [ordered_add_comm_monoid β] extends semimodule R β :=
 (smul_lt_smul_of_pos : ∀ a b : β, a < b → ∀ c : R, 0 < c → c • a < c • b)

@@ -263,13 +263,6 @@ instance [linear_order α] : linear_order (with_zero α) := with_bot.linear_orde
 instance [decidable_linear_order α] :
  decidable_linear_order (with_zero α) := with_bot.decidable_linear_order
 
-/-
-class ordered_comm_monoid (α : Type*) extends comm_monoid α, partial_order α :=
-(mul_le_mul_left       : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
-(lt_of_mul_lt_mul_left : ∀ a b c : α, a * b < a * c → b < c)
--/
-
---universe u
 lemma mul_le_mul_left {α : Type u}
   [ordered_comm_monoid α] :
   ∀ (a b : with_zero α),
@@ -287,8 +280,7 @@ begin
     change (a : with_zero α) ≤ b at h,
     rw with_zero.coe_le_coe at h,
     norm_cast,
-    exact mul_le_mul_left' h c
-  }
+    exact mul_le_mul_left' h c }
 end
 
 lemma lt_of_mul_lt_mul_left  {α : Type u}
@@ -306,8 +298,7 @@ begin
   { change (a : with_zero α) * b < a * c at h,
     change (b : with_zero α) < c,
     norm_cast at ⊢ h,
-    apply lt_of_mul_lt_mul_left' h
-  }
+    apply lt_of_mul_lt_mul_left' h }
 end
 
 instance [ordered_comm_monoid α] : ordered_comm_monoid (with_zero α) :=

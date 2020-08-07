@@ -33,7 +33,7 @@ by rw [mul_comm, mul_dvd_of_is_unit_left h]
 mul_dvd_of_is_unit_left (is_unit_unit _)
 
 lemma mul_unit_dvd_iff [comm_monoid α] {a b : α} {u : units α} : a * u ∣ b ↔ a ∣ b :=
-units.mul_coe_dvd _ _ _
+units.mul_right_dvd _ _ _
 
 theorem is_unit_of_dvd_unit {α} [comm_monoid α] {x y : α}
   (xy : x ∣ y) (hu : is_unit y) : is_unit x :=
@@ -190,9 +190,7 @@ lemma dvd_symm_of_irreducible [monoid α] {p q : α}
 begin
   tactic.unfreeze_local_instances,
   rintros ⟨q', rfl⟩,
-  exact is_unit.mul_right_dvd_of_dvd
-    (or.resolve_left (of_irreducible_mul hq) hp.not_unit)
-    (dvd_refl p)
+  rw is_unit.mul_right_dvd (or.resolve_left (of_irreducible_mul hq) hp.not_unit),
 end
 
 lemma dvd_symm_iff_of_irreducible [monoid α] {p q : α}
@@ -288,7 +286,7 @@ lemma dvd_iff_dvd_of_rel_left [comm_monoid_with_zero α] {a b c : α} (h : a ~�
 let ⟨u, hu⟩ := h in hu ▸ mul_unit_dvd_iff.symm
 
 lemma dvd_mul_unit_iff [comm_semiring α] {a b : α} {u : units α} : a ∣ b * u ↔ a ∣ b :=
-units.dvd_mul_coe _ _ _
+units.dvd_mul_right _ _ _
 
 lemma dvd_iff_dvd_of_rel_right [comm_semiring α] {a b c : α} (h : b ~ᵤ c) : a ∣ b ↔ a ∣ c :=
 let ⟨u, hu⟩ := h in hu ▸ dvd_mul_unit_iff.symm

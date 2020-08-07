@@ -151,40 +151,68 @@ variables [monoid α] (a b : α) (u : units α)
 
 /-- In a monoid, an element `a` divides an element `b` iff `a` divides all
     associates of `b`. -/
-@[simp] lemma dvd_mul_coe : a ∣ b * u ↔ a ∣ b :=
+@[simp] lemma dvd_mul_right : a ∣ b * u ↔ a ∣ b :=
 iff.intro
   (assume ⟨c, eq⟩, ⟨c * ↑u⁻¹, by rw [← mul_assoc, ← eq, units.mul_inv_cancel_right]⟩)
   (assume ⟨c, eq⟩, eq.symm ▸ dvd_mul_of_dvd_left (dvd_mul_right _ _) _)
 
 /-- In a monoid, an element a divides an element b iff all associates of `a` divide `b`.-/
-@[simp] lemma mul_coe_dvd [monoid α] (a b : α) (u : units α) : a * u ∣ b ↔ a ∣ b :=
+@[simp] lemma mul_right_dvd : a * u ∣ b ↔ a ∣ b :=
 iff.intro
   (λ ⟨c, eq⟩, ⟨↑u * c, eq.trans (mul_assoc _ _ _)⟩)
   (λ h, dvd_trans (dvd.intro ↑u⁻¹ (by rw [mul_assoc, u.mul_inv, mul_one])) h)
 
 end monoid
 
+section comm_monoid
 variables [comm_monoid α] (a b : α) (u : units α)
 
 /-- In a commutative monoid, an element `a` divides an element `b` iff `a` divides all left
     associates of `b`. -/
-@[simp] lemma dvd_coe_mul : a ∣ u * b ↔ a ∣ b := by { rw mul_comm, apply dvd_mul_coe }
+@[simp] lemma dvd_mul_left : a ∣ u * b ↔ a ∣ b := by { rw mul_comm, apply dvd_mul_right }
 
 /-- In a commutative monoid, an element `a` divides an element `b` iff all
   left associates of `a` divide `b`.-/
-@[simp] lemma coe_mul_dvd [comm_monoid α] (a b : α) (u : units α) : ↑u * a ∣ b ↔ a ∣ b :=
-by { rw mul_comm, apply mul_coe_dvd }
+@[simp] lemma mul_left_dvd : ↑u * a ∣ b ↔ a ∣ b :=
+by { rw mul_comm, apply mul_right_dvd }
+
+end comm_monoid
 
 end units
 
 namespace is_unit
 
-lemma mul_right_dvd_of_dvd [monoid α]
-  {a b c : α} (hb : is_unit b) (h : a ∣ c) : a * b ∣ c :=
-by { rcases hb with ⟨a, rfl⟩, rw units.mul_coe_dvd, apply h, }
+section monoid
 
-lemma mul_left_dvd_of_dvd [comm_monoid α]
-  {a b c : α} (hb : is_unit b) (h : a ∣ c) : b * a ∣ c :=
-by { rw mul_comm, apply mul_right_dvd_of_dvd hb h }
+variables [monoid α] {a b u : α} (hu : is_unit u)
+include hu
+
+/-- Units of a monoid divide any element of the monoid. -/
+@[simp] lemma dvd : u ∣ a := by { rcases hu with ⟨u, rfl⟩, apply units.coe_dvd, }
+
+@[simp] lemma dvd_mul_right : a ∣ b * u ↔ a ∣ b :=
+by { rcases hu with ⟨u, rfl⟩, apply units.dvd_mul_right, }
+
+/-- In a monoid, an element a divides an element b iff all associates of `a` divide `b`.-/
+@[simp] lemma mul_right_dvd : a * u ∣ b ↔ a ∣ b :=
+by { rcases hu with ⟨u, rfl⟩, apply units.mul_right_dvd, }
+
+end monoid
+
+section comm_monoid
+variables [comm_monoid α] (a b u : α) (hu : is_unit u)
+include hu
+
+/-- In a commutative monoid, an element `a` divides an element `b` iff `a` divides all left
+    associates of `b`. -/
+@[simp] lemma dvd_mul_left : a ∣ u * b ↔ a ∣ b :=
+by { rcases hu with ⟨u, rfl⟩, apply units.dvd_mul_left, }
+
+/-- In a commutative monoid, an element `a` divides an element `b` iff all
+  left associates of `a` divide `b`.-/
+@[simp] lemma mul_left_dvd : u * a ∣ b ↔ a ∣ b :=
+by { rcases hu with ⟨u, rfl⟩, apply units.mul_left_dvd, }
+
+end comm_monoid
 
 end is_unit

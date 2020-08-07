@@ -153,15 +153,15 @@ lemma dim_span_set {s : set V} (hs : linear_independent K (λ x, x : s → V)) :
   dim K ↥(span K s) = cardinal.mk s :=
 by { rw [← @set_of_mem_eq _ s, ← subtype.range_coe_subtype], exact dim_span hs }
 
-lemma {v} cardinal_lift_le_dim_of_linear_independent
+lemma {m} cardinal_lift_le_dim_of_linear_independent
   {ι : Type w} {v : ι → V} (hv : linear_independent K v) :
-  cardinal.lift.{w (max u' v)} (cardinal.mk ι) ≤ cardinal.lift.{u' (max w v)} (dim K V) :=
+  cardinal.lift.{w (max u' m)} (cardinal.mk ι) ≤ cardinal.lift.{u' (max w m)} (dim K V) :=
 begin
   obtain ⟨ι', v', is⟩ := exists_sum_is_basis hv,
   rw [← cardinal.lift_umax, ← cardinal.lift_umax.{u'}],
   simpa using le_trans
-    (cardinal.lift_mk_le.{w _ (max u' v)}.2 ⟨@function.embedding.inl ι ι'⟩)
-    (le_of_eq $ is_basis.mk_eq_dim'.{_ _ _ (max w v)} is),
+    (cardinal.lift_mk_le.{w _ (max u' m)}.2 ⟨@function.embedding.inl ι ι'⟩)
+    (le_of_eq $ is_basis.mk_eq_dim'.{_ _ _ (max w m)} is),
 end
 
 lemma cardinal_le_dim_of_linear_independent

@@ -127,6 +127,12 @@ instance [has_mul α] : mul_zero_class (with_zero α) :=
 @[simp, norm_cast] lemma coe_mul {α : Type u} [has_mul α]
   {a b : α} : ((a * b : α) : with_zero α) = (a : with_zero α) * b := rfl
 
+@[simp] lemma zero_mul {α : Type u} [has_mul α]
+  (a : with_zero α) : 0 * a = 0 := rfl
+
+@[simp] lemma mul_zero {α : Type u} [has_mul α]
+  (a : with_zero α) : a * 0 = 0 := by cases a; refl
+
 instance [semigroup α] : semigroup (with_zero α) :=
 { mul_assoc := λ a b c, match a, b, c with
     | none,   _,      _      := rfl
@@ -193,7 +199,6 @@ lemma one_div (x : with_zero α) : 1 / x = x⁻¹ := one_mul _
 | 0       := rfl
 | (a : α) := show _ * _ = _, by simp
 
-#check with_zero.coe_mul
 @[simp] lemma mul_right_inv : ∀  (x : with_zero α) (h : x ≠ 0), x * x⁻¹ = 1
 | 0       h := false.elim $ h rfl
 | (a : α) h := by simp only [←with_zero.coe_inv, ←with_zero.coe_mul, coe_one, _root_.mul_right_inv]

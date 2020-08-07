@@ -2432,38 +2432,33 @@ variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 {E : Type*} [normed_group E] [normed_space 𝕜' E]
 {F : Type*} [normed_group F] [normed_space 𝕜' F]
-{f : E → F} {f' : E →L[𝕜'] F} {s : set E} {x : E}
+{f : module.restrict_scalars 𝕜 𝕜' E → module.restrict_scalars 𝕜 𝕜' F}
+{f' : module.restrict_scalars 𝕜 𝕜' E →L[𝕜'] module.restrict_scalars 𝕜 𝕜' F} {s : set E} {x : E}
 
 lemma has_strict_fderiv_at.restrict_scalars (h : has_strict_fderiv_at f f' x) :
-  let f₀ : module.restrict_scalars 𝕜 𝕜' E → module.restrict_scalars 𝕜 𝕜' F := f in
-  has_strict_fderiv_at f₀ (f'.restrict_scalars 𝕜) x := h
+  has_strict_fderiv_at f (f'.restrict_scalars 𝕜) x := h
 
 lemma has_fderiv_at.restrict_scalars (h : has_fderiv_at f f' x) :
   let f₀ : module.restrict_scalars 𝕜 𝕜' E → module.restrict_scalars 𝕜 𝕜' F := f in
   has_fderiv_at f₀ (f'.restrict_scalars 𝕜) x := h
 
 lemma has_fderiv_within_at.restrict_scalars (h : has_fderiv_within_at f f' s x) :
-  let f₀ : module.restrict_scalars 𝕜 𝕜' E → module.restrict_scalars 𝕜 𝕜' F := f in
-  has_fderiv_within_at f₀ (f'.restrict_scalars 𝕜) s x := h
+  has_fderiv_within_at f (f'.restrict_scalars 𝕜) s x := h
 
-lemma differentiable_at.restrict_scalars (h : differentiable_at 𝕜' f x) :
-  let f₀ : module.restrict_scalars 𝕜 𝕜' E → module.restrict_scalars 𝕜 𝕜' F := f in
-  differentiable_at 𝕜 f₀ x :=
+lemma differentiable_at.restrict_scalars (h : differentiable_at 𝕜' (f : E → F) x) :
+  differentiable_at 𝕜 f x :=
 (h.has_fderiv_at.restrict_scalars 𝕜).differentiable_at
 
 lemma differentiable_within_at.restrict_scalars (h : differentiable_within_at 𝕜' f s x) :
-  let f₀ : module.restrict_scalars 𝕜 𝕜' E → module.restrict_scalars 𝕜 𝕜' F := f in
-  differentiable_within_at 𝕜 f₀ s x :=
+  differentiable_within_at 𝕜 f s x :=
 (h.has_fderiv_within_at.restrict_scalars 𝕜).differentiable_within_at
 
 lemma differentiable_on.restrict_scalars (h : differentiable_on 𝕜' f s) :
-  let f₀ : module.restrict_scalars 𝕜 𝕜' E → module.restrict_scalars 𝕜 𝕜' F := f in
-  differentiable_on 𝕜 f₀ s :=
+  differentiable_on 𝕜 f s :=
 λx hx, (h x hx).restrict_scalars 𝕜
 
 lemma differentiable.restrict_scalars (h : differentiable 𝕜' f) :
-  let f₀ : module.restrict_scalars 𝕜 𝕜' E → module.restrict_scalars 𝕜 𝕜' F := f in
-  differentiable 𝕜 f₀ :=
+  differentiable 𝕜 f :=
 λx, (h x).restrict_scalars 𝕜
 
 end restrict_scalars

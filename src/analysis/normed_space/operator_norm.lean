@@ -636,16 +636,19 @@ variables {𝕜' : Type*} [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 {E' : Type*} [normed_group E'] [normed_space 𝕜' E']
 {F' : Type*} [normed_group F'] [normed_space 𝕜' F']
 
-local attribute [instance, priority 500] normed_space.restrict_scalars
+-- local attribute [instance, priority 500] normed_space.restrict_scalars'
 
 /-- `𝕜`-linear continuous function induced by a `𝕜'`-linear continuous function when `𝕜'` is a
 normed algebra over `𝕜`. -/
-def restrict_scalars (f : E' →L[𝕜'] F') : E' →L[𝕜] F' :=
+def restrict_scalars (f : E' →L[𝕜'] F') :
+  (module.restrict_scalars 𝕜 𝕜' E') →L[𝕜] (module.restrict_scalars 𝕜 𝕜' F') :=
 { cont := f.cont,
   ..linear_map.restrict_scalars 𝕜 (f.to_linear_map) }
 
 @[simp, norm_cast] lemma restrict_scalars_coe_eq_coe (f : E' →L[𝕜'] F') :
-  (f.restrict_scalars 𝕜 : E' →ₗ[𝕜] F') = (f : E' →ₗ[𝕜'] F').restrict_scalars 𝕜 := rfl
+  (f.restrict_scalars 𝕜 :
+    (module.restrict_scalars 𝕜 𝕜' E') →ₗ[𝕜] (module.restrict_scalars 𝕜 𝕜' F')) =
+  (f : E' →ₗ[𝕜'] F').restrict_scalars 𝕜 := rfl
 
 @[simp, norm_cast squash] lemma restrict_scalars_coe_eq_coe' (f : E' →L[𝕜'] F') :
   (f.restrict_scalars 𝕜 : E' → F') = f := rfl

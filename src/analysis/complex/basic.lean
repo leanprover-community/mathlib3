@@ -75,9 +75,9 @@ finite_dimensional.proper ℂ E
 attribute [instance, priority 900] complex.finite_dimensional.proper
 
 /-- A complex normed vector space is also a real normed vector space. -/
+@[priority 900]
 instance normed_space.restrict_scalars_real (E : Type*) [normed_group E] [normed_space ℂ E] :
-  normed_space ℝ E := normed_space.restrict_scalars ℝ ℂ
-attribute [instance, priority 900] complex.normed_space.restrict_scalars_real
+  normed_space ℝ E := normed_space.restrict_scalars' ℝ ℂ E
 
 /-- Linear map version of the real part function, from `ℂ` to `ℝ`. -/
 def linear_map.re : ℂ →ₗ[ℝ] ℝ :=

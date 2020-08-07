@@ -984,18 +984,24 @@ end normed_algebra
 section restrict_scalars
 
 variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-{E : Type*} [normed_group E] [normed_space 𝕜' E]
+(E : Type*) [normed_group E] [normed_space 𝕜' E]
 
 /-- `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
 normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred. -/
 -- We could add a type synonym equipped with this as an instance,
 -- as we've done for `module.restrict_scalars`.
-def normed_space.restrict_scalars : normed_space 𝕜 E :=
+def normed_space.restrict_scalars' : normed_space 𝕜 E :=
 { norm_smul_le := λc x, le_of_eq $ begin
     change ∥(algebra_map 𝕜 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
     simp [norm_smul]
   end,
   ..module.restrict_scalars' 𝕜 𝕜' E }
+
+instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : normed_group E] :
+  normed_group (module.restrict_scalars 𝕜 𝕜' E) := I
+
+instance : normed_space 𝕜 (module.restrict_scalars 𝕜 𝕜' E) :=
+(normed_space.restrict_scalars' 𝕜 𝕜' E : normed_space 𝕜 E)
 
 end restrict_scalars
 

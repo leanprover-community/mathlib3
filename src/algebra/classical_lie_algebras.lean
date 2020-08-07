@@ -149,9 +149,9 @@ bilinear form defined by the identity matrix. -/
 def so : lie_subalgebra R (matrix n n R) :=
   skew_adjoint_matrices_lie_subalgebra (1 : matrix n n R)
 
-lemma mem_so (A : matrix l l R) : A ∈ so l R ↔ Aᵀ = -A :=
+@[simp] lemma mem_so (A : matrix n n R) : A ∈ so n R ↔ Aᵀ = -A :=
 begin
-  erw mem_skew_adjoint_matrices_submodule 1 A,
+  erw mem_skew_adjoint_matrices_submodule,
   simp only [matrix.is_skew_adjoint, matrix.is_adjoint_pair, matrix.mul_one, matrix.one_mul],
 end
 

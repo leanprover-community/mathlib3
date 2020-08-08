@@ -66,7 +66,7 @@ end
 
 alias dvd_trans ← dvd.trans
 
-@[simp] theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (by simp)
+theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (by simp)
 
 @[simp] theorem dvd_mul_right (a b : α) : a ∣ a * b := dvd.intro b rfl
 

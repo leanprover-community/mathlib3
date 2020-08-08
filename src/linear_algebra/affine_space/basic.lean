@@ -42,9 +42,9 @@ results relating to finite-dimensional subspaces of affine spaces, see
   subspaces.
 * `affine_subspace.direction` gives the `submodule` spanned by the
   pairwise differences of points in an `affine_subspace`.  There are
-  various lemmas relating to the set of points in the `direction`, and
-  relating the lattice structure on affine subspaces to that on their
-  directions.
+  various lemmas relating to the set of vectors in the `direction`,
+  and relating the lattice structure on affine subspaces to that on
+  their directions.
 * `affine_span` gives the affine subspace spanned by a set of points,
   with `vector_span` giving its direction.  `affine_span` is defined
   in terms of `span_points`, which gives an explicit description of

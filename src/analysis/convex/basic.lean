@@ -475,11 +475,6 @@ def convex_on (s : set E) (f : E → β) : Prop :=
   ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
     f (a • x + b • y) ≤ a • f x + b • f y
 
-def concave_on (s : set E) (f : E → β) : Prop :=
-  convex s ∧
-  ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
-    a • f x + b • f y ≤ a • f x + b • f y
-
 lemma convex_on_id {s : set ℝ} (hs : convex s) : convex_on s id := ⟨hs, by { intros, refl }⟩
 
 lemma convex_on_const (c : β) (hs : convex s) : convex_on s (λ x:E, c) :=
@@ -625,7 +620,7 @@ begin
       f (xa • a + xb • b) ≤ xa • (f a) + xb • (f b)       : hf.2 as.1 bs.1 hxa hxb hxaxb
                       ... < xa • r + xb • (f b)
                         : (add_lt_add_iff_right (xb • (f b))).mpr
-                          (smul_lt_smul_of_nonneg as.2
+                          (smul_lt_smul_of_pos as.2
                             (lt_of_le_of_ne hxa (ne.symm H)))
                       ... ≤ xa • r + xb • r
                         : (add_le_add_iff_left (xa • r)).mpr

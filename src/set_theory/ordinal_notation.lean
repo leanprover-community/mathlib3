@@ -611,7 +611,7 @@ begin
   cases e : split' o with a n,
   rw split_eq_scale_split' e at h,
   injection h, subst o',
-  cases NF_repr_split' e, resetI, simp -- [dvd_mul]
+  cases NF_repr_split' e, resetI, simp
 end
 
 theorem split_add_lt {o e n a m} [NF o] (h : split o = (oadd e n a, m)) : repr a + m < ω ^ repr e :=

@@ -270,10 +270,10 @@ theorem prod_le_prod_iff_le {p q : multiset (associates α)}
   p.prod ≤ q.prod ↔ p ≤ q :=
 iff.intro
   begin
-    rintros ⟨⟨c⟩, eq⟩,
+    rintros ⟨⟨c⟩, eqc⟩,
     have : c ≠ 0, from (mt mk_eq_zero.2 $
       assume (hc : quot.mk setoid.r c = 0),
-      have (0 : associates α) ∈ q, from prod_eq_zero_iff.1 $ eq.symm ▸ hc.symm ▸ mul_zero _,
+      have (0 : associates α) ∈ q, from prod_eq_zero_iff.1 $ eqc.symm ▸ hc.symm ▸ mul_zero _,
       not_irreducible_zero ((irreducible_mk_iff 0).1 $ hq _ this)),
     have : associates.mk (factors c).prod = quot.mk setoid.r c,
       from mk_eq_mk_iff_associated.2 (factors_prod this),

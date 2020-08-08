@@ -7,13 +7,35 @@ Authors: Frédéric Dupuis
 import algebra.module.basic
 import algebra.ordered_group
 
+/-!
+# Ordered semimodules
+
+In this file we define
+
+* `ordered_semimodule R M` : an ordered additive commutative monoid `M` is an `ordered_semimodule`
+  over an `ordered_semiring` `R` if the scalar product respects the order relation on the
+  monoid and on the ring.
+
+## Implementation notes
+
+* We choose to define `ordered_semimodule` so that it extends `semimodule` only, as is done
+  for semimodules itself.
+* To get ordered modules and ordered vector spaces, it suffices to the replace the
+  `order_add_comm_monoid` and the `ordered_semiring` as desired.
+
+## Tags
+
+ordered semimodule, ordered module, ordered vector space
+-/
+
+
 set_option default_priority 100 -- see Note [default priority]
 
 /--
 An ordered semimodule is an ordered additive commutative monoid
 with a partial order in which the scalar multiplication is compatible with the order.
 -/
-@[protect_proj, ancestor ordered_add_comm_monoid semimodule]
+@[protect_proj, ancestor semimodule]
 class ordered_semimodule (R β : Type*)
   [ordered_semiring R] [ordered_add_comm_monoid β] extends semimodule R β :=
 (smul_lt_smul_of_pos : ∀ a b : β, a < b → ∀ c : R, 0 < c → c • a < c • b)
@@ -26,7 +48,7 @@ instance linear_ordered_ring.to_ordered_semimodule [linear_ordered_ring R] :
 { smul_lt_smul_of_pos      := λ _ _ hab _ hc, ordered_semiring.mul_lt_mul_of_pos_left _ _ _ hab hc,
   lt_of_smul_lt_smul_of_nonneg  := λ _ _ _ hc h, lt_of_mul_lt_mul_left hc h }
 
-variables {β : Type*} [linear_ordered_ring R] [ordered_add_comm_monoid β] [ordered_semimodule R β]
+variables {β : Type*} [ordered_semiring R] [ordered_add_comm_monoid β] [ordered_semimodule R β]
   {a b : β} {c : R}
 
 lemma smul_lt_smul_of_nonneg (h₁ : a < b) (h₂ : 0 < c) : c • a < c • b :=

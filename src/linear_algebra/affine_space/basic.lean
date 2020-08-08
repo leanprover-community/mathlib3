@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Myers.
 -/
 import algebra.add_torsor
-import data.indicator_function
 import linear_algebra.tensor_product
 
 noncomputable theory

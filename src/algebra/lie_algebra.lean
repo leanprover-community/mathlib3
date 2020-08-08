@@ -67,6 +67,8 @@ def commutator (x y : A) := x*y - y*x
 
 local notation `⁅`x`,` y`⁆` := commutator x y
 
+lemma commutator_def (x y : A) : ⁅x, y⁆ = x*y -y*x := rfl
+
 @[simp] lemma add_left (x y z : A) :
   ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆ :=
 by simp [commutator, right_distrib, left_distrib, sub_eq_add_neg, add_comm, add_left_comm]
@@ -146,14 +148,13 @@ end
 /--
 An associative ring gives rise to a Lie ring by taking the bracket to be the ring commutator.
 -/
-def lie_ring.of_associative_ring (A : Type v) [ring A] : lie_ring A :=
+@[priority 100]
+instance lie_ring.of_associative_ring (A : Type v) [ring A] : lie_ring A :=
 { bracket  := ring_commutator.commutator,
   add_lie  := ring_commutator.add_left,
   lie_add  := ring_commutator.add_right,
   lie_self := ring_commutator.alternate,
   jacobi   := ring_commutator.jacobi }
-
-local attribute [instance] lie_ring.of_associative_ring
 
 lemma lie_ring.of_associative_ring_bracket (A : Type v) [ring A] (x y : A) :
   ⁅x, y⁆ = x*y - y*x := rfl
@@ -344,17 +345,15 @@ variables {R : Type u} {L : Type v} [comm_ring R] [lie_ring L] [lie_algebra R L]
 /--
 An associative algebra gives rise to a Lie algebra by taking the bracket to be the ring commutator.
 -/
-def of_associative_algebra (A : Type v) [ring A] [algebra R A] :
-  @lie_algebra R A _ (lie_ring.of_associative_ring _) :=
+@[priority 100]
+instance lie_algebra.of_associative_algebra {A : Type v} [ring A] [algebra R A] :
+  lie_algebra R A :=
 { lie_smul := λ t x y,
     by rw [lie_ring.of_associative_ring_bracket, lie_ring.of_associative_ring_bracket,
            algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_sub], }
 
 instance (M : Type v) [add_comm_group M] [module R M] : lie_ring (module.End R M) :=
 lie_ring.of_associative_ring _
-
-local attribute [instance] lie_ring.of_associative_ring
-local attribute [instance] lie_algebra.of_associative_algebra
 
 /-- The map `of_associative_algebra` associating a Lie algebra to an associative algebra is
 functorial. -/
@@ -377,8 +376,7 @@ An important class of Lie algebras are those arising from the associative algebr
 module endomorphisms.
 -/
 instance of_endomorphism_algebra (M : Type v) [add_comm_group M] [module R M] :
-  lie_algebra R (module.End R M) :=
-of_associative_algebra (module.End R M)
+  lie_algebra R (module.End R M) := by apply_instance
 
 lemma endo_algebra_bracket (M : Type v) [add_comm_group M] [module R M] (f g : module.End R M) :
   ⁅f, g⁆ = f.comp g - g.comp f := rfl
@@ -457,9 +455,6 @@ by { cases L₁', cases L₂', simp only [], ext x, exact h x, }
 
 lemma lie_subalgebra.ext_iff (L₁' L₂' : lie_subalgebra R L) : L₁' = L₂' ↔ ∀ x, x ∈ L₁' ↔ x ∈ L₂' :=
 ⟨λ h x, by rw h, lie_subalgebra.ext R L L₁' L₂'⟩
-
-local attribute [instance] lie_ring.of_associative_ring
-local attribute [instance] lie_algebra.of_associative_algebra
 
 /-- A subalgebra of an associative algebra is a Lie subalgebra of the associated Lie algebra. -/
 def lie_subalgebra_of_subalgebra (A : Type v) [ring A] [algebra R A]
@@ -799,8 +794,7 @@ local attribute [instance] matrix.lie_ring
 
 /-- An important class of Lie algebras are those arising from the associative algebra structure on
 square matrices over a commutative ring. -/
-def matrix.lie_algebra : lie_algebra R (matrix n n R) :=
-lie_algebra.of_associative_algebra (matrix n n R)
+def matrix.lie_algebra : lie_algebra R (matrix n n R) := by apply_instance
 
 local attribute [instance] matrix.lie_algebra
 

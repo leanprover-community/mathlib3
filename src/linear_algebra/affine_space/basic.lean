@@ -5,7 +5,8 @@ Author: Joseph Myers.
 -/
 import algebra.add_torsor
 import data.indicator_function
-import linear_algebra.finite_dimensional
+import linear_algebra.basic
+import linear_algebra.finsupp
 
 noncomputable theory
 open_locale big_operators
@@ -17,7 +18,9 @@ open_locale classical
 This file defines affine spaces (over modules) and subspaces, affine
 maps, affine combinations of points, and the affine span of a set of
 points.  For affinely independent families of points, see
-`linear_algebra.affine_space.independent`.
+`linear_algebra.affine_space.independent`.  For some additional
+results relating to finite-dimensional subspaces of affine spaces, see
+`linear_algebra.affine_space.finite_dimensional`.
 
 ## Main definitions
 
@@ -765,31 +768,6 @@ lemma mem_affine_span {p : P} {s : set P} (hp : p ∈ s) : p ∈ affine_span k V
 mem_span_points k V p s hp
 
 end affine_span
-
-namespace affine_space
-
-variables (k : Type*) (V : Type*) {P : Type*} [field k] [add_comm_group V] [module k V]
-          [affine_space k V P]
-variables {ι : Type*}
-
-/-- The `vector_span` of a finite set is finite-dimensional. -/
-lemma finite_dimensional_vector_span_of_finite {s : set P} (h : set.finite s) :
-  finite_dimensional k (vector_span k V s) :=
-finite_dimensional.span_of_finite k $ vsub_set_finite_of_finite V h
-
-/-- The direction of the affine span of a finite set is
-finite-dimensional. -/
-lemma finite_dimensional_direction_affine_span_of_finite {s : set P} (h : set.finite s) :
-  finite_dimensional k (affine_span k V s).direction :=
-(direction_affine_span k V s).symm ▸ finite_dimensional_vector_span_of_finite k V h
-
-/-- The direction of the affine span of a family indexed by a
-`fintype` is finite-dimensional. -/
-instance finite_dimensional_direction_affine_span_of_fintype [fintype ι] (p : ι → P) :
-  finite_dimensional k (affine_span k V (set.range p)).direction :=
-finite_dimensional_direction_affine_span_of_finite k V (set.finite_range _)
-
-end affine_space
 
 namespace affine_subspace
 

@@ -1079,7 +1079,7 @@ end
 
 theorem power_dvd_power (a) {b c : ordinal}
   (h : b ≤ c) : a ^ b ∣ a ^ c :=
-by rw [← add_sub_cancel_of_le h, power_add]; apply dvd_mul_right
+by { rw [← add_sub_cancel_of_le h, power_add], apply dvd_mul_right }
 
 theorem power_dvd_power_iff {a b c : ordinal}
   (a1 : 1 < a) : a ^ b ∣ a ^ c ↔ b ≤ c :=

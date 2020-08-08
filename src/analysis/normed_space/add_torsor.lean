@@ -27,34 +27,36 @@ structure and require the distance to be the same as results from the
 norm (which in fact implies the distance yields a metric space, but
 bundling just the distance and using an instance for the metric space
 results in type class problems). -/
-class normed_add_torsor (V : Type u) (P : Type v) [normed_group V] [metric_space P]
+class normed_add_torsor (V : out_param $ Type u) (P : Type v)
+  [out_param $ normed_group V] [metric_space P]
   extends add_torsor V P :=
 (dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
 end prio
 
+variables (V : Type u) {P : Type v} [normed_group V] [metric_space P] [normed_add_torsor V P]
+include V
+
 /-- The distance equals the norm of subtracting two points. This lemma
 is needed to make V an explicit rather than implicit argument. -/
-lemma add_torsor.dist_eq_norm (V : Type u) {P : Type v} [normed_group V] [metric_space P]
-    [normed_add_torsor V P] (x y : P) :
-  dist x y = ∥(x -ᵥ y : V)∥ :=
+lemma dist_eq_norm_vsub (x y : P) :
+  dist x y = ∥(x -ᵥ y)∥ :=
 normed_add_torsor.dist_eq_norm' x y
 
-lemma dist_vadd_cancel_left {V : Type u} {P : Type v} [normed_group V] [metric_space P]
-    [normed_add_torsor V P] (v : V) (x y : P) :
-  dist (v +ᵥ x) (v +ᵥ y) = dist x y :=
-by rw [add_torsor.dist_eq_norm V, add_torsor.dist_eq_norm V, add_torsor.vadd_vsub_vadd_cancel_left]
+variable {V}
 
-lemma dist_vadd_cancel_right {V : Type u} {P : Type v} [normed_group V] [metric_space P]
-    [normed_add_torsor V P] (v₁ v₂ : V) (x : P) :
+@[simp] lemma dist_vadd_cancel_left (v : V) (x y : P) :
+  dist (v +ᵥ x) (v +ᵥ y) = dist x y :=
+by rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, vadd_vsub_vadd_cancel_left]
+
+@[simp] lemma dist_vadd_cancel_right (v₁ v₂ : V) (x : P) :
   dist (v₁ +ᵥ x) (v₂ +ᵥ x) = dist v₁ v₂ :=
-by rw [add_torsor.dist_eq_norm V, dist_eq_norm, add_torsor.vadd_vsub_vadd_cancel_right]
+by rw [dist_eq_norm_vsub V, dist_eq_norm, vadd_vsub_vadd_cancel_right]
 
 /-- A `normed_group` is a `normed_add_torsor` over itself. -/
+@[nolint instance_priority] -- false positive
 instance normed_group.normed_add_torsor (V : Type u) [normed_group V] :
   normed_add_torsor V V :=
 { dist_eq_norm' := dist_eq_norm }
-
-open add_torsor
 
 /-- The distance defines a metric space structure on the torsor. This
 is not an instance because it depends on `V` to define a `metric_space
@@ -64,7 +66,7 @@ def metric_space_of_normed_group_of_add_torsor (V : Type u) (P : Type v) [normed
 { dist := λ x y, ∥(x -ᵥ y : V)∥,
   dist_self := λ x, by simp,
   eq_of_dist_eq_zero := λ x y h, by simpa using h,
-  dist_comm := λ x y, by simp only [←neg_vsub_eq_vsub_rev V y x, norm_neg],
+  dist_comm := λ x y, by simp only [←neg_vsub_eq_vsub_rev y x, norm_neg],
   dist_triangle := begin
     intros x y z,
     change ∥x -ᵥ z∥ ≤ ∥x -ᵥ y∥ + ∥y -ᵥ z∥,
@@ -74,19 +76,17 @@ def metric_space_of_normed_group_of_add_torsor (V : Type u) (P : Type v) [normed
 
 namespace isometric
 
-variables (V : Type u) {P : Type v} [normed_group V] [metric_space P] [normed_add_torsor V P]
-
 /-- The map `v ↦ v +ᵥ p` as an isometric equivalence between `V` and `P`. -/
 def vadd_const (p : P) : V ≃ᵢ P :=
 ⟨equiv.vadd_const V p, isometry_emetric_iff_metric.2 $ λ x₁ x₂, dist_vadd_cancel_right x₁ x₂ p⟩
 
-@[simp] lemma coe_vadd_const (p : P) : ⇑(vadd_const V p) = λ v, v +ᵥ p := rfl
+@[simp] lemma coe_vadd_const (p : P) : ⇑(vadd_const p) = λ v, v +ᵥ p := rfl
 
-@[simp] lemma coe_vadd_const_symm (p : P) : ⇑(vadd_const V p).symm = λ p', p' -ᵥ p := rfl
+@[simp] lemma coe_vadd_const_symm (p : P) : ⇑(vadd_const p).symm = λ p', p' -ᵥ p := rfl
 
-@[simp] lemma vadd_const_to_equiv (p : P) : (vadd_const V p).to_equiv = equiv.vadd_const V p := rfl
+@[simp] lemma vadd_const_to_equiv (p : P) : (vadd_const p).to_equiv = equiv.vadd_const V p := rfl
 
-variables {V} (P)
+variables (P)
 
 /-- The map `p ↦ v +ᵥ p` as an isometric automorphism of `P`. -/
 def const_vadd (v : V) : P ≃ᵢ P :=
@@ -99,19 +99,16 @@ variable (V)
 @[simp] lemma const_vadd_zero : const_vadd P (0:V) = isometric.refl P :=
 isometric.to_equiv_inj $ equiv.const_vadd_zero V P
 
-variables {V1 : Type*} {P1 : Type*} [normed_group V1] [metric_space P1] [normed_add_torsor V1 P1]
-variables {V2 : Type*} {P2 : Type*} [normed_group V2] [metric_space P2] [normed_add_torsor V2 P2]
+end isometric
+
+variables {V' : Type*} {P' : Type*} [normed_group V'] [metric_space P'] [normed_add_torsor V' P']
 
 /-- The map `g` from `V1` to `V2` corresponding to a map `f` from `P1`
 to `P2`, at a base point `p`, is an isometry if `f` is one. -/
-lemma isometry_vadd_vsub_of_isometry {f : P1 → P2} (hf : isometry f) {p : P1} {g : V1 → V2}
+lemma isometry.vadd_vsub {f : P → P'} (hf : isometry f) {p : P} {g : V → V'}
   (hg : ∀ v, g v = f (v +ᵥ p) -ᵥ f p) : isometry g :=
 begin
-  have hgc : g = (vadd_const V2 (f p)).symm ∘ f ∘ vadd_const V1 p,
-  { ext,
-    simp [hg] },
-  rw hgc,
-  exact (vadd_const V2 (f p)).symm.isometry.comp (hf.comp (vadd_const V1 p).isometry)
+  convert (isometric.vadd_const (f p)).symm.isometry.comp
+    (hf.comp (isometric.vadd_const p).isometry),
+  exact funext hg
 end
-
-end isometric

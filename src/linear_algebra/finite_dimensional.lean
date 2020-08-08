@@ -670,7 +670,7 @@ namespace submodule
 lemma findim_mono [finite_dimensional K V] :
   monotone (λ (s : submodule K V), findim K s) :=
 λ s t hst,
-calc findim K s = findim K (s.comap t.subtype)
+calc findim K s = findim K (comap t.subtype s)
   : linear_equiv.findim_eq (comap_subtype_equiv_of_le hst).symm
 ... ≤ findim K t : submodule.findim_le _
 

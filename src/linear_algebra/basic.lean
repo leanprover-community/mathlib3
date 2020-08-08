@@ -2018,7 +2018,7 @@ variables [semiring R] [add_comm_monoid M] [semimodule R M]
 /-- If `s ≤ t`, then we can view `s` as a submodule of `t` by taking the comap
 of `t.subtype`. -/
 def comap_subtype_equiv_of_le {p q : submodule R M} (hpq : p ≤ q) :
-p.comap q.subtype ≃ₗ[R] p :=
+comap q.subtype p ≃ₗ[R] p :=
 { to_fun := λ x, ⟨x, x.2⟩,
   inv_fun := λ x, ⟨⟨x, hpq x.2⟩, x.2⟩,
   left_inv := λ x, by simp only [coe_mk, submodule.eta, coe_coe],

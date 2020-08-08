@@ -412,7 +412,7 @@ lemma blur' (Φ : mv_polynomial idx ℤ) (n : ℕ)
   aeval (λ b, rename_hom (λ i, (b, i)) (aeval (λ i, ((X i ^ p : mv_polynomial ℕ ℤ))) (W_ ℤ n))) Φ =
   aeval (λ i, aeval (λ bi, (X bi)^p) (witt_structure_int p Φ i)) (W_ ℤ n) :=
 begin
-  have aux := λ x, aeval_X (witt_structure_int p Φ) x,
+  have aux := λ x, @aeval_X _ ℤ _ (witt_structure_int p Φ) _ _ _ x,
   have aux₂ : ∀ n : ℕ, (algebra_map ℚ (mv_polynomial (idx × ℕ) ℚ)) (p ^ n) =
     map_hom (int.cast_ring_hom ℚ) (aeval (witt_structure_int p Φ) (C (p ^ n : ℤ))),
   { intro n, rw [map_aeval, eval₂_hom_C, ring_hom.eq_int_cast, mv_polynomial.algebra_map_eq_C],
@@ -425,10 +425,9 @@ begin
       rw [alg_hom.map_mul, alg_hom.map_pow, aeval_C, aeval_X],
       rw [← IH x (finset.mem_range.mp H)],
       rw [← aux, aux₂],
-      rw [← ring_hom.map_pow, ← alg_hom.map_pow, ← ring_hom.map_mul], },
-          -- ← alg_hom.map_mul (aeval (witt_structure_int p Φ)) (C (↑p ^ x : ℤ))], },
-    rw [← ring_hom.map_sum] },
-    --  ← alg_hom.map_sum], },
+      rw [← ring_hom.map_pow, ← alg_hom.map_pow, ← ring_hom.map_mul,
+          ← alg_hom.map_mul (aeval (witt_structure_int p Φ)) (C (↑p ^ x : ℤ))], },
+    rw [← ring_hom.map_sum, ← alg_hom.map_sum], },
   replace key := congr_arg (aeval (λ bi, (X bi ^ p : mv_polynomial (idx × ℕ) ℚ))) key,
 
   apply mv_polynomial.coe_int_rat_map_injective,

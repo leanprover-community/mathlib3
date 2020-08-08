@@ -143,7 +143,7 @@ exists_congr $ λ d, by rw [mul_assoc, mul_right_inj' ha]
 namespace units
 
 section monoid
-variables [monoid α] (a b : α) (u : units α)
+variables [monoid α] {a b : α} {u : units α}
 
 /-- Elements of the unit group of a monoid represented as elements of the monoid
     divide any element of the monoid. -/
@@ -165,7 +165,7 @@ iff.intro
 end monoid
 
 section comm_monoid
-variables [comm_monoid α] (a b : α) (u : units α)
+variables [comm_monoid α] {a b : α} {u : units α}
 
 /-- In a commutative monoid, an element `a` divides an element `b` iff `a` divides all left
     associates of `b`. -/

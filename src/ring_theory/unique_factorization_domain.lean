@@ -481,7 +481,7 @@ begin
     exact is_unit_iff_forall_dvd.mp
       (no_factors_of_no_prime_factors ha @no_factors (dvd_refl a) (dvd_zero a)) _ },
   { rintros _ ⟨x, rfl⟩ _ a_dvd_bx,
-    apply dvd_mul_unit_iff.mp a_dvd_bx },
+    apply units.dvd_mul_right.mp a_dvd_bx },
   { intros c p hc hp ih no_factors a_dvd_bpc,
     apply ih (λ q dvd_a dvd_c hq, no_factors dvd_a (dvd_mul_of_dvd_right dvd_c _) hq),
     rw mul_left_comm at a_dvd_bpc,

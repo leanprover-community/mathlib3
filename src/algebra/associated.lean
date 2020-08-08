@@ -23,19 +23,6 @@ theorem is_unit_iff_forall_dvd [comm_monoid α] {x : α} :
   is_unit x ↔ ∀ y, x ∣ y :=
 is_unit_iff_dvd_one.trans ⟨λ h y, dvd.trans h (one_dvd _), λ h, h _⟩
 
-theorem mul_dvd_of_is_unit_left [comm_monoid α] {x y z : α} (h : is_unit x) : x * y ∣ z ↔ y ∣ z :=
-⟨dvd_trans (dvd_mul_left _ _),
- dvd_trans $ by simpa using mul_dvd_mul_right (is_unit_iff_dvd_one.1 h) y⟩
-
-theorem mul_dvd_of_is_unit_right [comm_monoid α] {x y z : α} (h : is_unit y) : x * y ∣ z ↔ x ∣ z :=
-by rw [mul_comm, mul_dvd_of_is_unit_left h]
-
-@[simp] lemma unit_mul_dvd_iff [comm_monoid α] {a b : α} {u : units α} : (u : α) * a ∣ b ↔ a ∣ b :=
-mul_dvd_of_is_unit_left (is_unit_unit _)
-
-lemma mul_unit_dvd_iff [comm_monoid α] {a b : α} {u : units α} : a * u ∣ b ↔ a ∣ b :=
-units.mul_right_dvd _ _ _
-
 theorem is_unit_of_dvd_unit {α} [comm_monoid α] {x y : α}
   (xy : x ∣ y) (hu : is_unit y) : is_unit x :=
 is_unit_iff_dvd_one.2 $ dvd_trans xy $ is_unit_iff_dvd_one.1 hu
@@ -68,7 +55,7 @@ end
 section prime
 variables [comm_monoid_with_zero α]
 
-/-- prime element of a semiring -/
+/-- prime element of a `comm_monoid_with_zero` -/
 def prime (p : α) : Prop :=
 p ≠ 0 ∧ ¬ is_unit p ∧ (∀a b, p ∣ a * b → p ∣ a ∨ p ∣ b)
 
@@ -284,13 +271,10 @@ multiset.induction_on s (by simp [mt is_unit_iff_dvd_one.2 hp.not_unit])
   end)
 
 lemma dvd_iff_dvd_of_rel_left [comm_monoid_with_zero α] {a b c : α} (h : a ~ᵤ b) : a ∣ c ↔ b ∣ c :=
-let ⟨u, hu⟩ := h in hu ▸ mul_unit_dvd_iff.symm
-
-lemma dvd_mul_unit_iff [comm_semiring α] {a b : α} {u : units α} : a ∣ b * u ↔ a ∣ b :=
-units.dvd_mul_right _ _ _
+let ⟨u, hu⟩ := h in hu ▸ units.mul_right_dvd.symm
 
 lemma dvd_iff_dvd_of_rel_right [comm_semiring α] {a b c : α} (h : b ~ᵤ c) : a ∣ b ↔ a ∣ c :=
-let ⟨u, hu⟩ := h in hu ▸ dvd_mul_unit_iff.symm
+let ⟨u, hu⟩ := h in hu ▸ units.dvd_mul_right.symm
 
 lemma eq_zero_iff_of_associated [comm_semiring α] {a b : α} (h : a ~ᵤ b) : a = 0 ↔ b = 0 :=
 ⟨λ ha, let ⟨u, hu⟩ := h in by simp [hu.symm, ha],
@@ -303,7 +287,7 @@ lemma prime_of_associated [comm_semiring α] {p q : α} (h : p ~ᵤ q) (hp : pri
 ⟨(ne_zero_iff_of_associated h).1 hp.ne_zero,
   let ⟨u, hu⟩ := h in
     ⟨λ ⟨v, hv⟩, hp.not_unit ⟨v * u⁻¹, by simp [hv, hu.symm]⟩,
-      hu ▸ by { simp [mul_unit_dvd_iff], intros a b, exact hp.div_or_div }⟩⟩
+      hu ▸ by { simp [units.mul_right_dvd], intros a b, exact hp.div_or_div }⟩⟩
 
 lemma prime_iff_of_associated [comm_semiring α] {p q : α}
   (h : p ~ᵤ q) : prime p ↔ prime q :=

@@ -86,7 +86,7 @@ begin
 end
 
 lemma normalize_eq_normalize_iff {x y : α} : normalize x = normalize y ↔ x ∣ y ∧ y ∣ x :=
-⟨λ h, ⟨dvd_mul_unit_iff.1 ⟨_, h.symm⟩, dvd_mul_unit_iff.1 ⟨_, h⟩⟩,
+⟨λ h, ⟨units.dvd_mul_right.1 ⟨_, h.symm⟩, units.dvd_mul_right.1 ⟨_, h⟩⟩,
 λ ⟨hxy, hyx⟩, normalize_eq_normalize hxy hyx⟩
 
 theorem dvd_antisymm_of_normalize_eq {a b : α}
@@ -95,10 +95,10 @@ theorem dvd_antisymm_of_normalize_eq {a b : α}
 ha ▸ hb ▸ normalize_eq_normalize hab hba
 
 @[simp] lemma dvd_normalize_iff {a b : α} : a ∣ normalize b ↔ a ∣ b :=
-dvd_mul_unit_iff
+units.dvd_mul_right
 
 @[simp] lemma normalize_dvd_iff {a b : α} : normalize a ∣ b ↔ a ∣ b :=
-mul_unit_dvd_iff
+units.mul_right_dvd
 
 end normalization_domain
 
@@ -109,7 +109,7 @@ local attribute [instance] associated.setoid
 
 protected def out : associates α → α :=
 quotient.lift (normalize : α → α) $ λ a b ⟨u, hu⟩, hu ▸
-normalize_eq_normalize ⟨_, rfl⟩ (mul_unit_dvd_iff.2 $ dvd_refl a)
+normalize_eq_normalize ⟨_, rfl⟩ (units.mul_right_dvd.2 $ dvd_refl a)
 
 lemma out_mk (a : α) : (associates.mk a).out = normalize a := rfl
 
@@ -319,7 +319,7 @@ theorem lcm_dvd_lcm {a b c d : α} (hab : a ∣ b) (hcd : c ∣ d) : lcm a c ∣
 lcm_dvd (dvd.trans hab (dvd_lcm_left _ _)) (dvd.trans hcd (dvd_lcm_right _ _))
 
 @[simp] theorem lcm_units_coe_left (u : units α) (a : α) : lcm ↑u a = normalize a :=
-lcm_eq_normalize (lcm_dvd (units.coe_dvd _ _) (dvd_refl _)) (dvd_lcm_right _ _)
+lcm_eq_normalize (lcm_dvd units.coe_dvd (dvd_refl _)) (dvd_lcm_right _ _)
 
 @[simp] theorem lcm_units_coe_right (a : α) (u : units α) : lcm a ↑u = normalize a :=
 (lcm_comm a u).trans $ lcm_units_coe_left _ _

@@ -147,7 +147,7 @@ lemma is_maximal_of_irreducible {p : R} (hp : irreducible p) :
   erw ideal.span_singleton_eq_top,
   unfreezingI { rcases ideal.span_singleton_le_span_singleton.1 (le_of_lt hI) with ⟨b, rfl⟩ },
   refine (of_irreducible_mul hp).resolve_right (mt (λ hb, _) (not_le_of_lt hI)),
-  erw [ideal.span_singleton_le_span_singleton, is_unit.mul_dvd_right hb]
+  erw [ideal.span_singleton_le_span_singleton, is_unit.mul_right_dvd hb]
 end⟩
 
 lemma irreducible_iff_prime {p : R} : irreducible p ↔ prime p :=

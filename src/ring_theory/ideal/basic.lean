@@ -132,7 +132,7 @@ lemma span_singleton_mul_right_unit {a : α} (h2 : is_unit a) (x : α) :
 begin
   apply le_antisymm,
   { rw span_singleton_le_span_singleton, use a},
-  { rw span_singleton_le_span_singleton, rw is_unit.mul_dvd_right h2}
+  { rw span_singleton_le_span_singleton, rw is_unit.mul_right_dvd h2}
 end
 
 lemma span_singleton_mul_left_unit {a : α} (h2 : is_unit a) (x : α) :

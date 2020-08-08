@@ -92,8 +92,6 @@ itself. -/
 @[simp] lemma vsub_eq_sub {G : Type*} [add_group G] (g1 g2 : G) : g1 -ᵥ g2 = g1 - g2 :=
 rfl
 
-namespace add_action
-
 section general
 
 variables (G : Type*) {P : Type*} [add_monoid G] [A : add_action G P]
@@ -101,12 +99,12 @@ include A
 
 /-- Adding the zero group element to a point gives the same point. -/
 @[simp] lemma zero_vadd (p : P) : (0 : G) +ᵥ p = p :=
-zero_vadd' p
+add_action.zero_vadd' p
 
 /-- Adding two group elements to a point produces the same result as
 adding their sum. -/
 lemma vadd_assoc (g1 g2 : G) (p : P) : g1 +ᵥ (g2 +ᵥ p) = (g1 + g2) +ᵥ p :=
-vadd_assoc' g1 g2 p
+add_action.vadd_assoc' g1 g2 p
 
 end general
 
@@ -141,12 +139,6 @@ end
 
 end group
 
-end add_action
-
-namespace add_torsor
-
-open add_action
-
 section general
 
 variables {G : Type*} {P : Type*} [add_group G] [T : add_torsor G P]
@@ -155,12 +147,12 @@ include T
 /-- Adding the result of subtracting from another point produces that
 point. -/
 @[simp] lemma vsub_vadd (p1 p2 : P) : p1 -ᵥ p2 +ᵥ p2 = p1 :=
-vsub_vadd' p1 p2
+add_torsor.vsub_vadd' p1 p2
 
 /-- Adding a group element then subtracting the original point
 produces that group element. -/
 @[simp] lemma vadd_vsub (g : G) (p : P) : g +ᵥ p -ᵥ p = g :=
-vadd_vsub' g p
+add_torsor.vadd_vsub' g p
 
 /-- If the same point added to two group elements produces equal
 results, those group elements are equal. -/
@@ -222,7 +214,7 @@ by rw [←vsub_vadd_eq_vsub_sub, vsub_vadd]
 and an equality of a subtraction of two points with a group
 element. -/
 lemma eq_vadd_iff_vsub_eq (p1 : P) (g : G) (p2 : P) : p1 = g +ᵥ p2 ↔ p1 -ᵥ p2 = g :=
-⟨λ h, h.symm ▸ vadd_vsub _ _ _, λ h, h ▸ (vsub_vadd _ _ _).symm⟩
+⟨λ h, h.symm ▸ vadd_vsub _ _, λ h, h ▸ (vsub_vadd _ _).symm⟩
 
 /-- The pairwise differences of a set of points. -/
 def vsub_set (s : set P) : set G := {g | ∃ x ∈ s, ∃ y ∈ s, g = x -ᵥ y}
@@ -236,7 +228,7 @@ begin
 end
 
 /-- `vsub_set` of a single point. -/
-@[simp] lemma vsub_set_singleton (p : P) : vsub_set G ({p} : set P) = {0} :=
+@[simp] lemma vsub_set_singleton (p : P) : vsub_set ({p} : set P) = {(0:G)} :=
 begin
   ext g,
   rw set.mem_singleton_iff,
@@ -244,13 +236,13 @@ begin
   { rintros ⟨p1, hp1, p2, hp2, rfl⟩,
     rw set.mem_singleton_iff at hp1 hp2,
     simp [hp1, hp2] },
-  { exact λ h, h.symm ▸ ⟨p, set.mem_singleton p, p, set.mem_singleton p, (vsub_self G p).symm⟩ }
+  { exact λ h, h.symm ▸ ⟨p, set.mem_singleton p, p, set.mem_singleton p, (vsub_self p).symm⟩ }
 end
 
 /-- `vsub_set` of a finite set is finite. -/
-lemma vsub_set_finite_of_finite {s : set P} (h : set.finite s) : set.finite (vsub_set G s) :=
+lemma vsub_set_finite_of_finite {s : set P} (h : set.finite s) : set.finite (vsub_set s) :=
 begin
-  have hi : vsub_set G s = set.image2 vsub s s,
+  have hi : vsub_set s = set.image2 (-ᵥ) s s,
   { ext,
     exact ⟨λ ⟨p1, hp1, p2, hp2, hg⟩, ⟨p1, p2, hp1, hp2, hg.symm⟩,
            λ ⟨p1, p2, hp1, hp2, hg⟩, ⟨p1, hp1, p2, hp2, hg.symm⟩⟩ },
@@ -314,8 +306,6 @@ by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_sub_cancel']
 
 end comm
 
-end add_torsor
-
 namespace prod
 
 variables {G : Type*} {P : Type*} {G' : Type*} {P' : Type*} [add_group G] [add_group G']
@@ -324,7 +314,7 @@ variables {G : Type*} {P : Type*} {G' : Type*} {P' : Type*} [add_group G] [add_g
 instance : add_torsor (G × G') (P × P') :=
 { vadd := λ v p, (v.1 +ᵥ p.1, v.2 +ᵥ p.2),
   zero_vadd' := λ p, by simp,
-  vadd_assoc' := by simp [add_action.vadd_assoc],
+  vadd_assoc' := by simp [vadd_assoc],
   vsub := λ p₁ p₂, (p₁.1 -ᵥ p₂.1, p₁.2 -ᵥ p₂.2),
   nonempty := prod.nonempty,
   vsub_vadd' := λ p₁ p₂, show (p₁.1 -ᵥ p₂.1 +ᵥ p₂.1, _) = p₁, by simp,

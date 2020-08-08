@@ -1360,10 +1360,10 @@ maximal submodule of `p` is just `p `. -/
 by simp
 
 @[simp] lemma comap_subtype_eq_top {p p' : submodule R M} :
-  p'.comap p.subtype = ⊤ ↔ p ≤ p' :=
+  comap p.subtype p' = ⊤ ↔ p ≤ p' :=
 eq_top_iff.trans $ map_le_iff_le_comap.symm.trans $ by rw [map_subtype_top]
 
-@[simp] lemma comap_subtype_self : p.comap p.subtype = ⊤ :=
+@[simp] lemma comap_subtype_self : comap p.subtype p = ⊤ :=
 comap_subtype_eq_top.2 (le_refl _)
 
 @[simp] theorem ker_of_le (p p' : submodule R M) (h : p ≤ p') : (of_le h).ker = ⊥ :=

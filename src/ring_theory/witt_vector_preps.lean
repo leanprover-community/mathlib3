@@ -41,11 +41,12 @@ lemma eval₂_assoc'
   {T : Type*} [comm_semiring T]
   {σ : Type*}
   {τ : Type*}
-  (f : S → T) [is_semiring_hom f]
+  (f : S →+* T)
   (φ : σ → T) (q : τ → mv_polynomial σ S)
   (p : mv_polynomial τ S) :
   eval₂ f (λ t, eval₂ f φ (q t)) p = eval₂ f φ (eval₂ C q p) :=
-by { rw eval₂_comp_left (eval₂ f φ), congr, funext, simp }
+show eval₂ f (λ t, eval₂_hom f φ (q t)) p = eval₂_hom f φ (eval₂ C q p),
+by { rw eval₂_comp_left (eval₂_hom f φ), congr, ext, simp, }
 
 noncomputable def rename_hom {σ : Type*} {τ : Type*} {R : Type*} [comm_semiring R] (f : σ → τ) :
   mv_polynomial σ R →+* mv_polynomial τ R :=
@@ -88,10 +89,11 @@ eval₂_rename f h g p -- Achtung die Reihenfolge!
 
 end
 
-lemma eval₂_hom_congr {σ : Type*} {R : Type*} {S : Type*} [comm_semiring R] [comm_semiring S]
-  {f₁ f₂ : R →+* S} {g₁ g₂ : σ → S} {p₁ p₂ : mv_polynomial σ R} :
-  f₁ = f₂ → g₁ = g₂ → p₁ = p₂ →  eval₂_hom f₁ g₁ p₁ = eval₂_hom f₂ g₂ p₂ :=
-by rintros rfl rfl rfl; refl
+-- already in mathlib
+-- lemma eval₂_hom_congr {σ : Type*} {R : Type*} {S : Type*} [comm_semiring R] [comm_semiring S]
+--   {f₁ f₂ : R →+* S} {g₁ g₂ : σ → S} {p₁ p₂ : mv_polynomial σ R} :
+--   f₁ = f₂ → g₁ = g₂ → p₁ = p₂ →  eval₂_hom f₁ g₁ p₁ = eval₂_hom f₂ g₂ p₂ :=
+-- by rintros rfl rfl rfl; refl
 
 lemma map_eval₂'
   {R : Type*} [comm_semiring R]
@@ -152,7 +154,7 @@ by { apply mv_polynomial.induction_on p; { simp { contextual := tt } } }
 
 @[simp] lemma eval₂_map (f : R →+* A) (g : σ → B) (φ : A →+* B) (p : mv_polynomial σ R) :
   eval₂ φ g (map f p) = eval₂ (φ.comp f) g p :=
-by { rw [← eval_map, ← eval_map, map_map], refl }
+by { rw [← eval_map, ← eval_map, map_map], }
 
 @[simp] lemma eval₂_hom_map_hom (f : R →+* A) (g : σ → B) (φ : A →+* B) (p : mv_polynomial σ R) :
   eval₂_hom φ g (map_hom f p) = eval₂_hom (φ.comp f) g p :=

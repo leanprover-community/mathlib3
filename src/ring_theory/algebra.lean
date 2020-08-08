@@ -1154,6 +1154,10 @@ instance (R : Type*) (S : Type*) (E : Type*) [I : inhabited E] :
 instance (R : Type*) (S : Type*) (E : Type*) [I : add_comm_group E] :
   add_comm_group (module.restrict_scalars R S E) := I
 
+instance module.restrict_scalars.module_orig (R : Type*) (S : Type*) [ring S]
+  (E : Type*) [add_comm_group E] [I : module S E] : module S (module.restrict_scalars R S E) :=
+I
+
 instance : module R (module.restrict_scalars R S E) :=
 (module.restrict_scalars' R S E : module R E)
 
@@ -1247,12 +1251,36 @@ end restrict_scalars
 When `V` and `W` are `S`-modules, for some `R`-algebra `S`,
 the collection of `S`-linear maps from `V` to `W` forms an `R`-module.
 (But not generally an `S`-module, because `S` may be non-commutative.)
+And the collection of `R`-linear maps from `V` to `W` forms an `S`-module.
 -/
 section module_of_linear_maps
 
 variables (R : Type*) [comm_ring R] (S : Type*) [ring S] [algebra R S]
   (V : Type*) [add_comm_group V] [module S V]
   (W : Type*) [add_comm_group W] [module S W]
+
+/-- The set of `R`-linear maps admits an `S`-action by left multiplication -/
+instance linear_map.has_scalar_restrict_scalars :
+  has_scalar S ((module.restrict_scalars R S V) →ₗ[R] (module.restrict_scalars R S W)) :=
+{ smul := λ r f,
+  { to_fun := λ v, r • f v,
+    map_add' := by simp [smul_add],
+    map_smul' := λ c x,
+    begin
+      rw linear_map.map_smul,
+      simp [module.restrict_scalars_smul_def, smul_smul, algebra.commutes],
+    end }}
+
+/-- The set of `R`-linear maps is an `S`-module-/
+instance linear_map.module_restrict_scalars :
+  module S ((module.restrict_scalars R S V) →ₗ[R] (module.restrict_scalars R S W)) :=
+{ one_smul := λ f, by { ext v, simp [(•)] },
+  mul_smul := λ r r' f, by { ext v, simp [(•), smul_smul] },
+  smul_add := λ r f g, by { ext v, simp [(•), smul_add] },
+  smul_zero := λ r, by { ext v, simp [(•)] },
+  add_smul := λ r r' f, by { ext v, simp [(•), add_smul] },
+  zero_smul := λ f, by { ext v, simp [(•)] },
+  .. linear_map.has_scalar_restrict_scalars R S V W }
 
 /--
 For `r : R`, and `f : V →ₗ[S] W` (where `S` is an `R`-algebra) we define

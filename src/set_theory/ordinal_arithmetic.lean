@@ -784,7 +784,7 @@ end
 theorem dvd_add_iff : ∀ {a b c : ordinal}, a ∣ b → (a ∣ b + c ↔ a ∣ c)
 | a _ c ⟨b, rfl⟩ :=
  ⟨λ ⟨d, e⟩, ⟨d - b, by rw [mul_sub, ← e, add_sub_cancel]⟩,
-  λ ⟨d, e⟩, by rw [e, ← mul_add]; apply dvd_mul_right⟩
+  λ ⟨d, e⟩, by { rw [e, ← mul_add], apply dvd_mul_right }⟩
 
 theorem dvd_add {a b c : ordinal} (h₁ : a ∣ b) : a ∣ c → a ∣ b + c :=
 (dvd_add_iff h₁).2

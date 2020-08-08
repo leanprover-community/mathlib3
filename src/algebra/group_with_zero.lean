@@ -287,7 +287,6 @@ left_ne_zero_of_mul_eq_one u.mul_inv
 @[simp] lemma mul_right_eq_zero (u : units M₀) {a : M₀} : ↑u * a = 0 ↔ a = 0 :=
 ⟨λ h, by simpa using mul_eq_zero_of_right ↑u⁻¹ h, mul_eq_zero_of_right u⟩
 
-
 end units
 
 namespace is_unit

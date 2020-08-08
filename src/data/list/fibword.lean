@@ -46,7 +46,7 @@ begin
   cases x; contradiction
 end
 
-lemma head_fibword_morph {l : list bool} : head (fibword_morph l) = ff :=
+lemma head_fibword_morph (l : list bool) : head (fibword_morph l) = ff :=
 begin
   cases l with x l, { refl },
   cases x; refl

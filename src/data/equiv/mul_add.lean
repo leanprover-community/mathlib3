@@ -40,10 +40,16 @@ set_option old_structure_cmd true
 structure add_equiv (A B : Type*) [has_add A] [has_add B] extends A ≃ B :=
 (map_add' : ∀ x y : A, to_fun (x + y) = to_fun x + to_fun y)
 
+/-- The `equiv` underlying an `add_equiv`. -/
+add_decl_doc add_equiv.to_equiv
+
 /-- `mul_equiv α β` is the type of an equiv `α ≃ β` which preserves multiplication. -/
 @[to_additive]
 structure mul_equiv (M N : Type*) [has_mul M] [has_mul N] extends M ≃ N :=
 (map_mul' : ∀ x y : M, to_fun (x * y) = to_fun x * to_fun y)
+
+/-- The `equiv` underlying a `mul_equiv`. -/
+add_decl_doc mul_equiv.to_equiv
 
 infix ` ≃* `:25 := mul_equiv
 infix ` ≃+ `:25 := add_equiv
@@ -67,18 +73,20 @@ lemma map_mul (f : M ≃* N) : ∀ x y, f (x * y) = f x * f y := f.map_mul'
 instance (h : M ≃* N) : is_mul_hom h := ⟨h.map_mul⟩
 
 /-- Makes a multiplicative isomorphism from a bijection which preserves multiplication. -/
-@[to_additive]
+@[to_additive "Makes an additive isomorphism from a bijection which preserves addition."]
 def mk' (f : M ≃ N) (h : ∀ x y, f (x * y) = f x * f y) : M ≃* N :=
 ⟨f.1, f.2, f.3, f.4, h⟩
 
 /-- The identity map is a multiplicative isomorphism. -/
-@[refl, to_additive]
+@[refl, to_additive "The identity map is an additive isomorphism."]
 def refl (M : Type*) [has_mul M] : M ≃* M :=
 { map_mul' := λ _ _, rfl,
 ..equiv.refl _}
 
+instance : inhabited (M ≃* M) := ⟨refl M⟩
+
 /-- The inverse of an isomorphism is an isomorphism. -/
-@[symm, to_additive]
+@[symm, to_additive "The inverse of an isomorphism is an isomorphism."]
 def symm (h : M ≃* N) : N ≃* M :=
 { map_mul' := λ n₁ n₂, h.left_inv.injective begin
     show h.to_equiv (h.to_equiv.symm (n₁ * n₂)) =
@@ -98,7 +106,7 @@ theorem coe_mk (f : M → N) (g h₁ h₂ h₃) : ⇑(mul_equiv.mk f g h₁ h₂
 theorem coe_symm_mk (f : M → N) (g h₁ h₂ h₃) : ⇑(mul_equiv.mk f g h₁ h₂ h₃).symm = g := rfl
 
 /-- Transitivity of multiplication-preserving isomorphisms -/
-@[trans, to_additive]
+@[trans, to_additive "Transitivity of addition-preserving isomorphisms"]
 def trans (h1 : M ≃* N) (h2 : N ≃* P) : (M ≃* P) :=
 { map_mul' := λ x y, show h2 (h1 (x * y)) = h2 (h1 x) * h2 (h1 y),
     by rw [h1.map_mul, h2.map_mul],
@@ -135,11 +143,19 @@ lemma map_ne_one_iff {M N} [monoid M] [monoid N] (h : M ≃* N) {x : M} :
   h x ≠ 1 ↔ x ≠ 1 :=
 ⟨mt h.map_eq_one_iff.2, mt h.map_eq_one_iff.1⟩
 
+/-- A bijective `monoid` homomorphism is an isomorphism -/
+@[to_additive "A bijective `add_monoid` homomorphism is an isomorphism"]
+noncomputable def of_bijective {M N} [monoid M] [monoid N] (f : M →* N)
+  (hf : function.bijective f) : M ≃* N :=
+{ map_mul' := f.map_mul',
+  ..equiv.of_bijective f hf }
+
 /--
 Extract the forward direction of a multiplicative equivalence
-as a multiplication preserving function.
+as a multiplication-preserving function.
 -/
-@[to_additive to_add_monoid_hom]
+@[to_additive "Extract the forward direction of an additive equivalence
+as an addition-preserving function."]
 def to_monoid_hom {M N} [monoid M] [monoid N] (h : M ≃* N) : (M →* N) :=
 { map_one' := h.map_one, .. h }
 
@@ -155,13 +171,13 @@ h.to_monoid_hom.map_inv x
 
 /-- A multiplicative bijection between two monoids is a monoid hom
   (deprecated -- use to_monoid_hom). -/
-@[to_additive is_add_monoid_hom]
+@[to_additive]
 instance is_monoid_hom {M N} [monoid M] [monoid N] (h : M ≃* N) : is_monoid_hom h :=
 ⟨h.map_one⟩
 
 /-- A multiplicative bijection between two groups is a group hom
   (deprecated -- use to_monoid_hom). -/
-@[to_additive is_add_group_hom]
+@[to_additive]
 instance is_group_hom {G H} [group G] [group H] (h : G ≃* H) :
   is_group_hom h := { map_mul := h.map_mul }
 
@@ -186,6 +202,7 @@ lemma add_equiv.map_sub [add_group A] [add_group B] (h : A ≃+ B) (x y : A) :
   h (x - y) = h x - h y :=
 h.to_add_monoid_hom.map_sub x y
 
+instance add_equiv.inhabited {M : Type*} [has_add M] : inhabited (M ≃+ M) := ⟨add_equiv.refl M⟩
 
 /-- The group of multiplicative automorphisms. -/
 @[to_additive "The group of additive automorphisms."]
@@ -313,7 +330,8 @@ namespace equiv
 section group
 variables [group G]
 
-@[to_additive]
+/-- Left multiplication in a `group` is a permutation of the underlying type. -/
+@[to_additive "Left addition in an `add_group` is a permutation of the underlying type."]
 protected def mul_left (a : G) : perm G :=
 { to_fun    := λx, a * x,
   inv_fun   := λx, a⁻¹ * x,
@@ -327,7 +345,8 @@ lemma coe_mul_left (a : G) : ⇑(equiv.mul_left a) = (*) a := rfl
 lemma mul_left_symm (a : G) : (equiv.mul_left a).symm = equiv.mul_left a⁻¹ :=
 ext $ λ x, rfl
 
-@[to_additive]
+/-- Right multiplication in a `group` is a permutation of the underlying type. -/
+@[to_additive "Right addition in an `add_group` is a permutation of the underlying type."]
 protected def mul_right (a : G) : perm G :=
 { to_fun    := λx, x * a,
   inv_fun   := λx, x * a⁻¹,
@@ -343,7 +362,8 @@ ext $ λ x, rfl
 
 variable (G)
 
-@[to_additive]
+/-- Inversion on a `group` is a permutation of the underlying type. -/
+@[to_additive "Negation on an `add_group` is a permutation of the underlying type."]
 protected def inv : perm G :=
 { to_fun    := λa, a⁻¹,
   inv_fun   := λa, a⁻¹,

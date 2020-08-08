@@ -563,7 +563,7 @@ begin
 end
 
 @[simp] lemma snoc_last : snoc p x (last n) = x :=
-by { simp [snoc], refl }
+by { simp [snoc] }
 
 /-- Updating a tuple and adding an element at the end commute. -/
 @[simp] lemma snoc_update : snoc (update p i y) x = update (snoc p x) i.cast_succ y :=
@@ -668,8 +668,7 @@ begin
   ext j,
   by_cases h : j.val < n,
   { have : j ≠ last n := ne_of_lt h,
-    simp [h, this, snoc, cast_succ_cast_lt],
-    refl },
+    simp [h, this, snoc, cast_succ_cast_lt] },
   { rw eq_last_of_not_lt h,
     simp }
 end

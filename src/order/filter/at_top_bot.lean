@@ -46,9 +46,9 @@ mem_infi_sets a $ subset.refl _
 lemma Iio_mem_at_bot [preorder α] [no_bot_order α] (x : α) : Iio x ∈ (at_bot : filter α) :=
 let ⟨z, hz⟩ := no_bot x in mem_sets_of_superset (mem_at_bot z) $ λ y h, lt_of_le_of_lt h hz
 
-lemma at_top_basis [hα : nonempty α] [semilattice_sup α] :
+lemma at_top_basis [nonempty α] [semilattice_sup α] :
   (@at_top α _).has_basis (λ _, true) Ici :=
-has_basis_infi_principal (directed_of_sup $ λ a b, Ici_subset_Ici.2) hα
+has_basis_infi_principal (directed_of_sup $ λ a b, Ici_subset_Ici.2)
 
 lemma at_top_basis' [semilattice_sup α] (a : α) :
   (@at_top α _).has_basis (λ x, a ≤ x) Ici :=
@@ -76,6 +76,10 @@ lemma at_top_countable_basis [nonempty α] [semilattice_sup α] [encodable α] :
   has_countable_basis (at_top : filter α) (λ _, true) Ici :=
 { countable := countable_encodable _,
   .. at_top_basis }
+
+lemma is_countably_generated_at_top [nonempty α] [semilattice_sup α] [encodable α] :
+  (at_top : filter $ α).is_countably_generated :=
+at_top_countable_basis.is_countably_generated
 
 lemma order_top.at_top_eq (α) [order_top α] : (at_top : filter α) = pure ⊤ :=
 le_antisymm (le_pure_iff.2 $ (eventually_ge_at_top ⊤).mono $ λ b, top_unique)
@@ -398,22 +402,27 @@ alias tendsto_at_top_at_top_iff_of_monotone ← monotone.tendsto_at_top_at_top_i
 lemma tendsto_finset_range : tendsto finset.range at_top at_top :=
 finset.range_mono.tendsto_at_top_at_top finset.exists_nat_subset_range
 
+lemma at_top_finset_eq_infi : (at_top : filter $ finset α) = ⨅ x : α, 𝓟 (Ici {x}) :=
+begin
+  refine le_antisymm (le_infi (λ i, le_principal_iff.2 $ mem_at_top {i})) _,
+  refine le_infi (λ s, le_principal_iff.2 $ mem_infi_iff.2 _),
+  refine ⟨↑s, s.finite_to_set, _, λ i, mem_principal_self _, _⟩,
+  simp only [subset_def, mem_Inter, set_coe.forall, mem_Ici, finset.le_iff_subset,
+    finset.mem_singleton, finset.subset_iff, forall_eq], dsimp,
+  exact λ t, id
+end
+
 /-- If `f` is a monotone sequence of `finset`s and each `x` belongs to one of `f n`, then
 `tendsto f at_top at_top`. -/
-lemma monotone.tendsto_at_top_finset [semilattice_sup β]
+lemma monotone.tendsto_at_top_finset [preorder β]
   {f : β → finset α} (h : monotone f) (h' : ∀ x : α, ∃ n, x ∈ f n) :
   tendsto f at_top at_top :=
 begin
-  by_cases ne : nonempty β,
-  { resetI,
-    apply h.tendsto_at_top_at_top,
-    choose N hN using h',
-    assume b,
-    rcases (b.image N).bdd_above with ⟨n, hn⟩,
-    refine ⟨n, λ i ib, _⟩,
-    have : N i ∈ b.image N := finset.mem_image_of_mem _ ib,
-    exact h (hn $ finset.mem_coe.2 this) (hN i) },
-  { exact tendsto_of_not_nonempty ne }
+  simp only [at_top_finset_eq_infi, tendsto_infi, tendsto_principal],
+  intro a,
+  rcases h' a with ⟨b, hb⟩,
+  exact eventually.mono (mem_at_top b)
+    (λ b' hb', le_trans (finset.singleton_subset_iff.2 hb) (h hb')),
 end
 
 lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : function.left_inverse j i) :
@@ -427,9 +436,7 @@ begin
   by_cases ne : nonempty β₁ ∧ nonempty β₂,
   { cases ne,
     resetI,
-    inhabit β₁,
-    inhabit β₂,
-    simp [at_top, prod_infi_left (default β₁), prod_infi_right (default β₂), infi_prod],
+    simp [at_top, prod_infi_left, prod_infi_right, infi_prod],
     exact infi_comm },
   { rw not_and_distrib at ne,
     cases ne;
@@ -563,12 +570,8 @@ from (le_infi $ assume b, let ⟨v, hv⟩ := h_eq b in infi_le_of_le v $
 lemma has_antimono_basis.tendsto [semilattice_sup ι] [nonempty ι] {l : filter α}
   {p : ι → Prop} {s : ι → set α} (hl : l.has_antimono_basis p s) {φ : ι → α}
   (h : ∀ i : ι, φ i ∈ s i) : tendsto φ at_top l  :=
-begin
-  rw hl.to_has_basis.tendsto_right_iff,
-  intros i hi,
-  rw eventually_at_top,
-  exact ⟨i, λ j hij, hl.decreasing hi (hl.mono hij hi) hij (h j)⟩,
-end
+(at_top_basis.tendsto_iff hl.to_has_basis).2 $ assume i hi,
+  ⟨i, trivial, λ j hij, hl.decreasing hi (hl.mono hij hi) hij (h j)⟩
 
 namespace is_countably_generated
 
@@ -582,23 +585,15 @@ suffices (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l)
   from ⟨by intros; apply tendsto.comp; assumption, by assumption⟩,
 begin
   rcases hcb.exists_antimono_seq with ⟨g, gmon, gbasis⟩,
-  have gbasis : ∀ A, A ∈ k ↔ ∃ i, g i ⊆ A,
-  { intro A,
-    subst gbasis,
-    rw mem_infi,
-    { simp only [set.mem_Union, iff_self, filter.mem_principal_sets] },
-    { exact directed_of_sup (λ i j h, principal_mono.mpr $ gmon _ _ h) },
-    { apply_instance } },
-  classical, contrapose,
-  simp only [not_forall, not_imp, not_exists, subset_def, @tendsto_def _ _ f, gbasis],
+  have gbasis : k.has_basis (λ _, true) (λ i, (g i)),
+  { subst gbasis,
+    exact has_basis_infi_principal (directed_of_sup gmon) },
+  contrapose,
+  simp only [not_forall, gbasis.tendsto_left_iff, exists_const, not_exists, not_imp],
   rintro ⟨B, hBl, hfBk⟩,
   choose x h using hfBk,
   use x, split,
-  { simp only [tendsto_at_top', gbasis],
-    rintros A ⟨i, hgiA⟩,
-    use i,
-    refine (λ j hj, hgiA $ gmon _ _ hj _),
-    simp only [h] },
+  { exact (at_top_basis.tendsto_iff gbasis).2 (λ i _, ⟨i, trivial, λ j hj, gmon hj (h j).1⟩) },
   { simp only [tendsto_at_top', (∘), not_forall, not_exists],
     use [B, hBl],
     intro i, use [i, (le_refl _)],
@@ -630,7 +625,6 @@ begin
 end
 
 end is_countably_generated
-
 
 end filter
 

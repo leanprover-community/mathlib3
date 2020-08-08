@@ -129,6 +129,9 @@ using_well_founded {dec_tac := tactic.assumption}
 noncomputable def roots (p : polynomial R) : finset R :=
 if h : p = 0 then ∅ else classical.some (exists_finset_roots h)
 
+@[simp] lemma roots_zero : (0 : polynomial R).roots = ∅ :=
+dif_pos rfl
+
 lemma card_roots (hp0 : p ≠ 0) : ((roots p).card : with_bot ℕ) ≤ degree p :=
 begin
   unfold roots,
@@ -165,6 +168,32 @@ finset.ext $ λ r, by rw [mem_union, mem_roots hpq, mem_roots (mul_ne_zero_iff.1
 
 @[simp] lemma roots_X_sub_C (r : R) : roots (X - C r) = {r} :=
 finset.ext $ λ s, by rw [mem_roots (X_sub_C_ne_zero r), root_X_sub_C, mem_singleton, eq_comm]
+
+@[simp] lemma roots_C (x : R) : (C x).roots = ∅ :=
+if H : x = 0 then by rw [H, C_0, roots_zero] else finset.ext $ λ r,
+have h : C x ≠ 0, from λ h, H $ C_inj.1 $ h.symm ▸ C_0.symm,
+by rw [mem_roots h, is_root.def, eval_C, eq_false_intro H, eq_false_intro (finset.not_mem_empty r)]
+
+@[simp] lemma roots_one : (1 : polynomial R).roots = ∅ :=
+roots_C 1
+
+lemma roots_list_prod (L : list (polynomial R)) :
+  (∀ p ∈ L, (p : _) ≠ 0) → L.prod.roots = L.to_finset.bind roots :=
+list.rec_on L (λ _, roots_one) $ λ hd tl ih H,
+begin
+  rw list.forall_mem_cons at H,
+  rw [list.prod_cons, roots_mul (mul_ne_zero H.1 $ list.prod_ne_zero H.2),
+      list.to_finset_cons, finset.bind_insert, ih H.2]
+end
+
+lemma roots_multiset_prod (m : multiset (polynomial R)) :
+  (∀ p ∈ m, (p : _) ≠ 0) → m.prod.roots = m.to_finset.bind roots :=
+multiset.induction_on m (λ _, roots_one) $ λ hd tl ih H,
+begin
+  rw multiset.forall_mem_cons at H,
+  rw [multiset.prod_cons, roots_mul (mul_ne_zero H.1 $ multiset.prod_ne_zero H.2),
+      multiset.to_finset_cons, finset.bind_insert, ih H.2]
+end
 
 lemma card_roots_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : R) :
   (roots ((X : polynomial R) ^ n - C a)).card ≤ n :=
@@ -311,8 +340,78 @@ lemma irreducible_of_degree_eq_one_of_monic (hp1 : degree p = 1)
   (hm : monic p) : irreducible p :=
 irreducible_of_prime (prime_of_degree_eq_one_of_monic hp1 hm)
 
+theorem eq_of_monic_of_associated (hp : p.monic) (hq : q.monic) (hpq : associated p q) : p = q :=
+begin
+  obtain ⟨u, hu⟩ := hpq,
+  unfold monic at hp hq,
+  rw eq_C_of_degree_le_zero (le_of_eq $ degree_coe_units _) at hu,
+  rw [← hu, leading_coeff_mul, hp, one_mul, leading_coeff_C] at hq,
+  rwa [hq, C_1, mul_one] at hu
+end
+
 end integral_domain
 
+section
+
+variables [semiring R] [integral_domain S] (φ : R →+* S)
+
+lemma is_unit_of_is_unit_leading_coeff_of_is_unit_map
+  (f : polynomial R) (hf : is_unit (leading_coeff f)) (H : is_unit (map φ f)) :
+  is_unit f :=
+begin
+  have dz := degree_eq_zero_of_is_unit H,
+  rw degree_map_eq_of_leading_coeff_ne_zero at dz,
+  { rw eq_C_of_degree_eq_zero dz,
+    apply is_unit.map',
+    convert hf,
+    rw (degree_eq_iff_nat_degree_eq _).1 dz,
+    rintro rfl,
+    simpa using H, },
+  { intro h,
+    have u : is_unit (φ f.leading_coeff) := is_unit.map' _ hf,
+    rw h at u,
+    simpa using u, }
+end
+
+end
+
+section
+variables [integral_domain R] [integral_domain S] (φ : R →+* S)
+/--
+A polynomial over an integral domain `R` is irreducible if it is monic and
+  irreducible after mapping into an integral domain `S`.
+
+A special case of this lemma is that a polynomial over `ℤ` is irreducible if
+  it is monic and irreducible over `ℤ/pℤ` for some prime `p`.
+-/
+lemma irreducible_of_irreducible_map (f : polynomial R)
+  (h_mon : monic f) (h_irr : irreducible (map φ f)) :
+  irreducible f :=
+begin
+  fsplit,
+  { intro h,
+    exact h_irr.1 (is_unit.map (monoid_hom.of (map φ)) h), },
+  { intros a b h,
+
+    have q := (leading_coeff_mul a b).symm,
+    rw ←h at q,
+    dsimp [monic] at h_mon,
+    rw h_mon at q,
+    have au : is_unit a.leading_coeff := is_unit_of_mul_eq_one _ _ q,
+    rw mul_comm at q,
+    have bu : is_unit b.leading_coeff := is_unit_of_mul_eq_one _ _ q,
+    clear q h_mon,
+
+    have h' := congr_arg (map φ) h,
+    simp only [map_mul] at h',
+    cases h_irr.2 _ _ h' with w w,
+    { left,
+      exact is_unit_of_is_unit_leading_coeff_of_is_unit_map _ _ au w, },
+    { right,
+      exact is_unit_of_is_unit_leading_coeff_of_is_unit_map _ _ bu w, }, }
+end
+
+end
 
 end polynomial
 

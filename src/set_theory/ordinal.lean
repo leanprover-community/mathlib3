@@ -495,7 +495,7 @@ theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
 by { refine eq.trans _ (by rw [←quotient.out_eq o]), cases quotient.out o, refl }
 
 @[elab_as_eliminator] theorem induction_on {C : ordinal → Prop}
-  (o : ordinal) (H : ∀ α r [is_well_order α r], C (type r)) : C o :=
+  (o : ordinal) (H : ∀ α r [is_well_order α r], by exactI C (type r)) : C o :=
 quot.induction_on o $ λ ⟨α, r, wo⟩, @H α r wo
 
 /-! ### The order on ordinals -/
@@ -760,14 +760,14 @@ quotient.sound ⟨⟨punit_equiv_punit, λ _ _, iff.rfl⟩⟩
   see `lift.initial_seg`. -/
 def lift (o : ordinal.{u}) : ordinal.{max u v} :=
 quotient.lift_on o (λ ⟨α, r, wo⟩,
-  @type _ _ (@order_embedding.is_well_order _ _ (@equiv.ulift.{u v} α ⁻¹'o r) r
-    (order_iso.preimage equiv.ulift.{u v} r) wo)) $
+  @type _ _ (@order_embedding.is_well_order _ _ (@equiv.ulift.{v} α ⁻¹'o r) r
+    (order_iso.preimage equiv.ulift.{v} r) wo)) $
 λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨f⟩,
 quot.sound ⟨(order_iso.preimage equiv.ulift r).trans $
   f.trans (order_iso.preimage equiv.ulift s).symm⟩
 
 theorem lift_type {α} (r : α → α → Prop) [is_well_order α r] :
-  ∃ wo', lift (type r) = @type _ (@equiv.ulift.{u v} α ⁻¹'o r) wo' :=
+  ∃ wo', lift (type r) = @type _ (@equiv.ulift.{v} α ⁻¹'o r) wo' :=
 ⟨_, rfl⟩
 
 theorem lift_umax : lift.{u (max u v)} = lift.{u v} :=
@@ -803,10 +803,10 @@ quotient.eq.trans
 
 theorem lift_type_lt {α : Type u} {β : Type v} {r s} [is_well_order α r] [is_well_order β s] :
   lift.{u (max v w)} (type r) < lift.{v (max u w)} (type s) ↔ nonempty (r ≺i s) :=
-by haveI := @order_embedding.is_well_order _ _ (@equiv.ulift.{u (max v w)} α ⁻¹'o r)
-     r (order_iso.preimage equiv.ulift.{u (max v w)} r) _;
-   haveI := @order_embedding.is_well_order _ _ (@equiv.ulift.{v (max u w)} β ⁻¹'o s)
-     s (order_iso.preimage equiv.ulift.{v (max u w)} s) _; exact
+by haveI := @order_embedding.is_well_order _ _ (@equiv.ulift.{(max v w)} α ⁻¹'o r)
+     r (order_iso.preimage equiv.ulift.{(max v w)} r) _;
+   haveI := @order_embedding.is_well_order _ _ (@equiv.ulift.{(max u w)} β ⁻¹'o s)
+     s (order_iso.preimage equiv.ulift.{(max u w)} s) _; exact
 ⟨λ ⟨f⟩, ⟨(f.equiv_lt (order_iso.preimage equiv.ulift r).symm).lt_le
     (initial_seg.of_iso (order_iso.preimage equiv.ulift s))⟩,
  λ ⟨f⟩, ⟨(f.equiv_lt (order_iso.preimage equiv.ulift r)).lt_le

@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 import data.equiv.mul_add
 import algebra.field
 import algebra.opposites
-import deprecated.ring
 
 /-!
 # (Semi)ring equivs
@@ -116,7 +115,7 @@ lemma to_opposite_symm_apply (r : Rᵒᵖ) : (to_opposite R).symm r = unop r := 
 
 end comm_semiring
 
-section
+section semiring
 
 variables [semiring R] [semiring S] (f : R ≃+* S) (x y : R)
 
@@ -140,7 +139,11 @@ variable {x}
 lemma map_ne_one_iff : f x ≠ 1 ↔ x ≠ 1 := (f : R ≃* S).map_ne_one_iff
 lemma map_ne_zero_iff : f x ≠ 0 ↔ x ≠ 0 := (f : R ≃+ S).map_ne_zero_iff
 
-end
+/-- Produce a ring isomorphism from a bijective ring homomorphism. -/
+noncomputable def of_bijective (f : R →+* S) (hf : function.bijective f) : R ≃+* S :=
+{ .. equiv.of_bijective f hf, .. f }
+
+end semiring
 
 section
 
@@ -156,7 +159,7 @@ end
 
 section semiring_hom
 
-variables [semiring R] [semiring S]
+variables [semiring R] [semiring S] [semiring S']
 
 /-- Reinterpret a ring equivalence as a ring homomorphism. -/
 def to_ring_hom (e : R ≃+* S) : R →+* S :=
@@ -173,12 +176,6 @@ abbreviation to_monoid_hom (e : R ≃+* S) : R →* S := e.to_ring_hom.to_monoid
 /-- Reinterpret a ring equivalence as an `add_monoid` homomorphism. -/
 abbreviation to_add_monoid_hom (e : R ≃+* S) : R →+ S := e.to_ring_hom.to_add_monoid_hom
 
-/-- Interpret an equivalence `f : R ≃ S` as a ring equivalence `R ≃+* S`. -/
-def of (e : R ≃ S) [is_semiring_hom e] : R ≃+* S :=
-{ .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
-
-instance (e : R ≃+* S) : is_semiring_hom e := e.to_ring_hom.is_semiring_hom
-
 @[simp]
 lemma to_ring_hom_refl : (ring_equiv.refl R).to_ring_hom = ring_hom.id R := rfl
 
@@ -189,14 +186,18 @@ lemma to_monoid_hom_refl : (ring_equiv.refl R).to_monoid_hom = monoid_hom.id R :
 lemma to_add_monoid_hom_refl : (ring_equiv.refl R).to_add_monoid_hom = add_monoid_hom.id R := rfl
 
 @[simp]
-lemma to_ring_hom_apply_symm_to_ring_hom_apply {R S} [semiring R] [semiring S] (e : R ≃+* S) :
+lemma to_ring_hom_apply_symm_to_ring_hom_apply (e : R ≃+* S) :
   ∀ (y : S), e.to_ring_hom (e.symm.to_ring_hom y) = y :=
 e.to_equiv.apply_symm_apply
 
 @[simp]
-lemma symm_to_ring_hom_apply_to_ring_hom_apply {R S} [semiring R] [semiring S] (e : R ≃+* S) :
+lemma symm_to_ring_hom_apply_to_ring_hom_apply (e : R ≃+* S) :
   ∀ (x : R), e.symm.to_ring_hom (e.to_ring_hom x) = x :=
 equiv.symm_apply_apply (e.to_equiv)
+
+@[simp]
+lemma to_ring_hom_trans (e₁ : R ≃+* S) (e₂ : S ≃+* S') :
+  (e₁.trans e₂).to_ring_hom = e₂.to_ring_hom.comp e₁.to_ring_hom := rfl
 
 end semiring_hom
 
@@ -213,28 +214,20 @@ end mul_equiv
 
 namespace ring_equiv
 
-section ring_hom
-
-variables [ring R] [ring S]
-
-/-- Interpret an equivalence `f : R ≃ S` as a ring equivalence `R ≃+* S`. -/
-def of' (e : R ≃ S) [is_ring_hom e] : R ≃+* S :=
-{ .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
-
-instance (e : R ≃+* S) : is_ring_hom e := e.to_ring_hom.is_ring_hom
-
-end ring_hom
+variables [has_add R] [has_add S] [has_mul R] [has_mul S]
 
 /-- Two ring isomorphisms agree if they are defined by the
     same underlying function. -/
-@[ext] lemma ext {R S : Type*} [has_mul R] [has_add R] [has_mul S] [has_add S]
-  {f g : R ≃+* S} (h : ∀ x, f x = g x) : f = g :=
+@[ext] lemma ext {f g : R ≃+* S} (h : ∀ x, f x = g x) : f = g :=
 begin
   have h₁ : f.to_equiv = g.to_equiv := equiv.ext h,
   cases f, cases g, congr,
   { exact (funext h) },
   { exact congr_arg equiv.inv_fun h₁ }
 end
+
+@[simp] theorem trans_symm (e : R ≃+* S) : e.trans e.symm = ring_equiv.refl R := ext e.3
+@[simp] theorem symm_trans (e : R ≃+* S) : e.symm.trans e = ring_equiv.refl S := ext e.4
 
 /-- If two rings are isomorphic, and the second is an integral domain, then so is the first. -/
 protected lemma is_integral_domain {A : Type*} (B : Type*) [ring A] [ring B]

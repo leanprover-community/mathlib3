@@ -159,8 +159,7 @@ begin
   ext s, rw mem_infi,
   { simp [completion.mem_uniformity_dist, subset_def] },
   { rintro ⟨r, hr⟩ ⟨p, hp⟩, use ⟨min r p, lt_min hr hp⟩,
-    simp [lt_min_iff, (≥)] {contextual := tt} },
-  { exact ⟨⟨1, zero_lt_one⟩⟩ }
+    simp [lt_min_iff, (≥)] {contextual := tt} }
 end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]

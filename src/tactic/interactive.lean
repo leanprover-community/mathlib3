@@ -543,6 +543,11 @@ add_tactic_doc
 `apply_rules hs n` applies the list of lemmas `hs` and `assumption` on the
 first goal and the resulting subgoals, iteratively, at most `n` times.
 `n` is optional, equal to 50 by default.
+You can pass an `apply_cfg` option argument as `apply_rules hs n opt`.
+(A typical usage would be with `apply_rules hs n { md := reducible })`,
+which asks `apply_rules` to not unfold `semireducible` definitions (i.e. most)
+when checking if a lemma matches the goal.)
+
 `hs` can contain user attributes: in this case all theorems with this
 attribute are added to the list of rules.
 
@@ -565,8 +570,9 @@ by apply_rules [mono_rules]
 by apply_rules mono_rules
 ```
 -/
-meta def apply_rules (hs : parse pexpr_list_or_texpr) (n : nat := 50) : tactic unit :=
-tactic.apply_rules hs n
+meta def apply_rules (hs : parse pexpr_list_or_texpr) (n : nat := 50) (opt : apply_cfg := {}) :
+  tactic unit :=
+tactic.apply_rules hs n opt
 
 add_tactic_doc
 { name       := "apply_rules",
@@ -1039,7 +1045,8 @@ do ls ← local_context,
    partition_vars' (name_set.of_list $ ls.map expr.local_uniq_name) ls [] []
 
 /--
-Format the current goal as a stand-alone example. Useful for testing tactic.
+Format the current goal as a stand-alone example. Useful for testing tactics
+or creating [minimal working examples](https://leanprover-community.github.io/mwe.html).
 
 * `extract_goal`: formats the statement as an `example` declaration
 * `extract_goal my_decl`: formats the statement as a `lemma` or `def` declaration
@@ -1147,7 +1154,7 @@ add_tactic_doc
 { name       := "extract_goal",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.extract_goal],
-  tags       := ["goal management", "proof extraction"] }
+  tags       := ["goal management", "proof extraction", "debugging"] }
 
 /--
 `inhabit α` tries to derive a `nonempty α` instance and then upgrades this

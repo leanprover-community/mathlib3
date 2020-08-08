@@ -22,7 +22,7 @@ variables {α : Type*}
 lemma is_complete.is_closed  [uniform_space α] [separated_space α] {s : set α} (h : is_complete s) :
   is_closed s :=
 is_closed_iff_cluster_pt.2 $ λ a ha, begin
-  let f := 𝓝 a ⊓ 𝓟 s,
+  let f := 𝓝[s] a,
   have : cauchy f := cauchy_nhds.mono' ha inf_le_left,
   rcases h f this (inf_le_right) with ⟨y, ys, fy⟩,
   rwa (tendsto_nhds_unique' ha inf_le_left fy : a = y)

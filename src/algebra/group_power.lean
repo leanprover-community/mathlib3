@@ -7,7 +7,7 @@ import algebra.opposites
 import data.list.basic
 import data.int.cast
 import data.equiv.basic
-import deprecated.ring
+import deprecated.group
 
 /-!
 # Power operations on monoids and groups
@@ -458,10 +458,6 @@ variables [semiring R] [semiring S]
 f.to_monoid_hom.map_pow a
 
 end ring_hom
-
-lemma is_semiring_hom.map_pow [semiring R] [semiring S] (f : R → S) [is_semiring_hom f] (a) :
-  ∀ n : ℕ, f (a ^ n) = (f a) ^ n :=
-is_monoid_hom.map_pow f a
 
 theorem neg_one_pow_eq_or [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n = -1
 | 0     := or.inl rfl
@@ -923,6 +919,33 @@ theorem self_cast_int_mul_cast_int_mul : commute ((m : R) * a) (n * a) :=
 (commute.refl a).cast_int_mul_cast_int_mul m n
 
 end commute
+
+section multiplicative
+
+open multiplicative
+
+@[simp] lemma nat.to_add_pow (a : multiplicative ℕ) (b : ℕ) : to_add (a ^ b) = to_add a * b :=
+begin
+  induction b with b ih,
+  { erw [pow_zero, to_add_one, mul_zero] },
+  { simp [*, pow_succ, add_comm, nat.mul_succ] }
+end
+
+@[simp] lemma nat.of_add_mul (a b : ℕ) : of_add (a * b) = of_add a ^ b :=
+(nat.to_add_pow _ _).symm
+
+@[simp] lemma int.to_add_pow (a : multiplicative ℤ) (b : ℕ) : to_add (a ^ b) = to_add a * b :=
+by induction b; simp [*, mul_add, pow_succ, add_comm]
+
+@[simp] lemma int.to_add_gpow (a : multiplicative ℤ) (b : ℤ) : to_add (a ^ b) = to_add a * b :=
+int.induction_on b (by simp)
+  (by simp [gpow_add, mul_add] {contextual := tt})
+  (by simp [gpow_add, mul_add, sub_eq_add_neg] {contextual := tt})
+
+@[simp] lemma int.of_add_mul (a b : ℤ) : of_add (a * b) = of_add a ^ b :=
+(int.to_add_gpow _ _).symm
+
+end multiplicative
 
 namespace units
 

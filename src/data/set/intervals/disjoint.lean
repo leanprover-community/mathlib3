@@ -27,6 +27,15 @@ lemma Ico_disjoint_Ico : disjoint (Ico a₁ a₂) (Ico b₁ b₂) ↔ min a₂ b
 by simp only [set.disjoint_iff, subset_empty_iff, Ico_inter_Ico, Ico_eq_empty_iff,
   inf_eq_min, sup_eq_max]
 
+lemma Ico_disjoint_Ico_same {a b c : α} : disjoint (Ico a b) (Ico b c) :=
+λ x hx, not_le.2 hx.1.2 hx.2.1
+
+lemma Ioc_disjoint_Ioc : disjoint (Ioc a₁ a₂) (Ioc b₁ b₂) ↔ min a₂ b₂ ≤ max a₁ b₁ :=
+by simpa only [dual_Ico] using @Ico_disjoint_Ico (order_dual α) _ a₂ a₁ b₂ b₁
+
+lemma Ioc_disjoint_Ioc_same {a b c : α} : disjoint (Ioc a b) (Ioc b c) :=
+λ x hx, not_le.2 hx.2.1 hx.1.2
+
 /-- If two half-open intervals are disjoint and the endpoint of one lies in the other,
   then it must be equal to the endpoint of the other. -/
 lemma eq_of_Ico_disjoint {x₁ x₂ y₁ y₂ : α}

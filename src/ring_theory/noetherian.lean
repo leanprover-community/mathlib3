@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro and Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Buzzard
 -/
-import ring_theory.ideal_operations
+import ring_theory.ideal.operations
 import linear_algebra.basis
 import order.order_iso_nat
 
@@ -119,7 +119,7 @@ let ⟨t, ht⟩ := fg_def.1 hs in fg_def.2 ⟨f '' t, ht.1.image _, by rw [span_
 theorem fg_prod {sb : submodule R M} {sc : submodule R P}
   (hsb : sb.fg) (hsc : sc.fg) : (sb.prod sc).fg :=
 let ⟨tb, htb⟩ := fg_def.1 hsb, ⟨tc, htc⟩ := fg_def.1 hsc in
-fg_def.2 ⟨prod.inl '' tb ∪ prod.inr '' tc,
+fg_def.2 ⟨linear_map.inl R M P '' tb ∪ linear_map.inr R M P '' tc,
   (htb.1.image _).union (htc.1.image _),
   by rw [linear_map.span_inl_union_inr, htb.2, htc.2]⟩
 
@@ -351,7 +351,7 @@ begin
   have : ∀ a b : ℕ, a ≤ b ↔
     span R ((coe ∘ f) '' {m | m ≤ a}) ≤ span R ((coe ∘ f) '' {m | m ≤ b}),
   { assume a b,
-    rw [span_le_span_iff zero_ne_one hs (this a) (this b),
+    rw [span_le_span_iff hs (this a) (this b),
       set.image_subset_image_iff (subtype.coe_injective.comp f.injective),
       set.subset_def],
     exact ⟨λ hab x (hxa : x ≤ a), le_trans hxa hab, λ hx, hx a (le_refl a)⟩ },

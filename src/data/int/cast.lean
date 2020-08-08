@@ -151,7 +151,7 @@ by by_cases a ≤ b; simp [h, min]
 
 @[simp, norm_cast] theorem cast_max [decidable_linear_ordered_comm_ring α] {a b : ℤ} :
   (↑(max a b) : α) = max a b :=
-by by_cases a ≤ b; simp [h, max]
+by by_cases b ≤ a; simp [h, max]
 
 @[simp, norm_cast] theorem cast_abs [decidable_linear_ordered_comm_ring α] {q : ℤ} :
   ((abs q : ℤ) : α) = abs q :=
@@ -183,6 +183,20 @@ theorem eq_int_cast (f : ℤ →+ A) (h1 : f 1 = 1) : ∀ n : ℤ, f n = n :=
 ext_iff.1 (f.eq_int_cast_hom h1)
 
 end add_monoid_hom
+
+namespace monoid_hom
+variables {M : Type*} [monoid M]
+open multiplicative
+
+theorem ext_int {f g : multiplicative ℤ →* M}
+  (h1 : f (of_add 1) = g (of_add 1)) : f = g :=
+begin
+  ext,
+  exact add_monoid_hom.ext_iff.1
+    (@add_monoid_hom.ext_int _ _ f.to_additive g.to_additive h1) _,
+end
+
+end monoid_hom
 
 namespace ring_hom
 

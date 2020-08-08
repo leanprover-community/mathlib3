@@ -368,5 +368,14 @@ begin
   constructor
 end
 
-/- Register an instance of `0 < 1` to be able to use freely the manifold structure on `Icc 0 1`. -/
-instance : fact ((0 : ℝ) < 1) := zero_lt_one
+/-! Register the manifold structure on `Icc 0 1`, and also its zero and one. -/
+section
+
+lemma fact_zero_lt_one : fact ((0 : ℝ) < 1) := zero_lt_one
+
+local attribute [instance] fact_zero_lt_one
+
+instance : charted_space (euclidean_half_space 1) (Icc (0 : ℝ) 1) := by apply_instance
+instance : smooth_manifold_with_corners (𝓡∂ 1) (Icc (0 : ℝ) 1) := by apply_instance
+
+end

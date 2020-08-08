@@ -5,6 +5,7 @@ Authors: Alexander Bentkamp, Yury Kudriashov
 -/
 import analysis.convex.basic
 import analysis.normed_space.finite_dimension
+import topology.path_connected
 
 /-!
 # Topological and metric properties of convex sets
@@ -185,5 +186,28 @@ by simp only [metric.diam, convex_hull_ediam]
 @[simp] lemma bounded_convex_hull {s : set E} :
   metric.bounded (convex_hull s) ↔ metric.bounded s :=
 by simp only [metric.bounded_iff_ediam_ne_top, convex_hull_ediam]
+
+lemma convex.is_path_connected {s : set E} (hconv : convex s) (hne : s.nonempty) :
+  is_path_connected s :=
+begin
+  refine is_path_connected_iff.mpr ⟨hne, _⟩,
+  intros x y x_in y_in,
+  let f := λ θ : ℝ, x + θ • (y - x),
+  have hf : continuous f, by continuity,
+  have h₀ : f 0 = x, by simp [f],
+  have h₁ : f 1 = y, by { dsimp [f], rw one_smul, abel },
+  have H := hconv.segment_subset x_in y_in,
+  rw segment_eq_image' at H,
+  exact joined_in.of_line hf.continuous_on h₀ h₁ H
+end
+
+@[priority 100]
+instance normed_space.path_connected : path_connected_space E :=
+path_connected_space_iff_univ.mpr $ convex_univ.is_path_connected ⟨(0 : E), trivial⟩
+
+@[priority 100]
+instance normed_space.loc_path_connected : loc_path_connected_space E :=
+loc_path_connected_of_bases (λ x, metric.nhds_basis_ball)
+  (λ x r r_pos, (convex_ball x r).is_path_connected $ by simp [r_pos])
 
 end normed_space

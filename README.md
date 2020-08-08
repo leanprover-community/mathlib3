@@ -48,6 +48,7 @@ welcomed.
 ## Maintainers:
 
 * Jeremy Avigad (@avigad): analysis
+* Anne Baanen (@Vierkantor): algebra, number theory, tactics
 * Reid Barton (@rwbarton): category theory, topology
 * Mario Carneiro (@digama0): all
 * Bryan Gin-ge Chen (@bryangingechen): documentation, infrastructure

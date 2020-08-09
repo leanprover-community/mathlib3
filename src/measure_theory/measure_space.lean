@@ -1034,17 +1034,23 @@ lemma restrict_congr {s t : set α} (H : s =ᵐ[μ] t) : μ.restrict s = μ.rest
 le_antisymm (restrict_mono_ae H.le) (restrict_mono_ae H.symm.le)
 
 /-- A measure `μ` is called a probability measure if `μ univ = 1`. -/
-class probability_measure (μ : measure α) : Prop := (meas_univ : μ univ = 1)
+class probability_measure (μ : measure α) : Prop := (measure_univ : μ univ = 1)
 
 /-- A measure `μ` is called finite if `μ univ < ⊤`. -/
-class finite_measure (μ : measure α) : Prop := (meas_univ_lt_top : μ univ < ⊤)
+class finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ < ⊤)
 
-export finite_measure (meas_univ_lt_top) probability_measure (meas_univ)
+export probability_measure (measure_univ)
+
+lemma measure_lt_top (μ : measure α) [finite_measure μ] (s : set α) : μ s < ⊤ :=
+(measure_mono (subset_univ s)).trans_lt finite_measure.measure_univ_lt_top
+
+lemma measure_ne_top (μ : measure α) [finite_measure μ] (s : set α) : μ s ≠ ⊤ :=
+ne_of_lt (measure_lt_top μ s)
 
 @[priority 100]
 instance probability_measure.to_finite_measure (μ : measure α) [probability_measure μ] :
   finite_measure μ :=
-⟨by simp only [meas_univ, ennreal.one_lt_top]⟩
+⟨by simp only [measure_univ, ennreal.one_lt_top]⟩
 
 /-- A measure is called finite at filter `f` if it is finite at some set `s ∈ f`.
 Equivalently, it is eventually finite at `s` in `f.lift' powerset`. -/
@@ -1052,7 +1058,7 @@ def measure.finite_at_filter (μ : measure α) (f : filter α) : Prop := ∃ s �
 
 lemma finite_at_filter_of_finite (μ : measure α) [finite_measure μ] (f : filter α) :
   μ.finite_at_filter f :=
-⟨univ, univ_mem_sets, meas_univ_lt_top⟩
+⟨univ, univ_mem_sets, measure_lt_top μ univ⟩
 
 /-- A measure is called locally finite if it is finite in some neighborhood of each point. -/
 class locally_finite_measure [topological_space α] (μ : measure α) : Prop :=

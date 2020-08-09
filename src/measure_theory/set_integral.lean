@@ -241,10 +241,10 @@ begin
 end
 
 lemma measure.finite_at_filter.integrable_at_filter_of_tendsto_ae
-  {l : filter α} [is_measurably_generated l] (hμ : μ.finite_at_filter (l ⊓ μ.ae)) {b}
+  {l : filter α} [is_measurably_generated l] (hμ : μ.finite_at_filter l) {b}
   (hf : tendsto f (l ⊓ μ.ae) (𝓝 b)) :
   integrable_at_filter f l μ :=
-(hμ.integrable_at_filter hf.norm.is_bounded_under_le).of_inf_ae
+(hμ.inf_of_left.integrable_at_filter hf.norm.is_bounded_under_le).of_inf_ae
 
 alias measure.finite_at_filter.integrable_at_filter_of_tendsto_ae ←
   filter.tendsto.integrable_at_filter_ae
@@ -344,7 +344,7 @@ begin
   intros ε ε₀,
   have : ∀ᶠ s in l.lift' powerset, ∀ᶠ x in μ.ae, x ∈ s → f x ∈ closed_ball b ε :=
     eventually_lift'_powerset_eventually.2 (h.eventually $ closed_ball_mem_nhds _ ε₀),
-  refine hμ.eventually.mp ((h.integrable_at_filter_ae hμ.inf_of_left).eventually.mp (this.mono _)),
+  refine hμ.eventually.mp ((h.integrable_at_filter_ae hμ).eventually.mp (this.mono _)),
   simp only [mem_closed_ball, dist_eq_norm],
   intros s h_norm h_integrable hμs,
   rw [← set_integral_const, ← integral_sub hfm h_integrable measurable_const

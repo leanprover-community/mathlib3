@@ -585,9 +585,4 @@ them. See `revert_lst''`.
 meta def revert_lst' (hs : list expr) : tactic (ℕ × list (expr × expr)) :=
 revert_lst'' $ name_set.of_list $ hs.map expr.local_uniq_name
 
-meta def replace' (h : expr) (x : expr) (t : option expr := none) : tactic expr := do
-  h' ← note h.local_pp_name t x,
-  clear h,
-  pure h'
-
 end tactic

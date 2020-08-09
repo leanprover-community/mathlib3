@@ -72,8 +72,9 @@ do {
   is_def_eq lhs_type rhs_type,
   p ← to_expr ``(@eq_of_heq %%lhs_type %%lhs %%rhs %%equ),
   t ← to_expr ``(@eq %%lhs_type %%lhs %%rhs),
-  equ ← replace' equ p (some t),
-  pure $ simplified [equ.local_pp_name]
+  equ' ← note equ.local_pp_name t p,
+  clear equ,
+  pure $ simplified [equ'.local_pp_name]
 } <|>
 pure not_simplified
 

@@ -96,8 +96,8 @@ meta def decompose_constructor_type_return (num_params : ℕ) (args : expr_set) 
 /--
 TODO doc
 -/
-meta def decompose_constructor_type (num_params : ℕ) (e : expr)
-  : tactic (list (name × expr × bool × rb_set ℕ)) := do
+meta def decompose_constructor_type (num_params : ℕ) (e : expr) :
+  tactic (list (name × expr × bool × rb_set ℕ)) := do
   ⟨args, ret⟩ ← open_pis_normalizing e,
   let arg_constants := rb_map.set_of_list (args.map prod.fst),
   index_occs ← decompose_constructor_type_return num_params arg_constants ret,
@@ -695,7 +695,9 @@ meta def simplify_ih (num_generalized : ℕ) (num_index_vars : ℕ) (ih : expr) 
   -- Sanity check to catch any errors in constructing new_ih.
   type_check new_ih <|> fail!
     "internal error in simplify_ih: constructed term does not type check:\n{new_ih}",
-  replace' ih new_ih
+  ih' ← note ih.local_pp_name none new_ih,
+  clear ih,
+  pure ih'
 
 /--
 Returns the unique names of all hypotheses (local constants) in the context.

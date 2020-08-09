@@ -23,6 +23,15 @@ In this file we define
 * To get ordered modules and ordered vector spaces, it suffices to the replace the
   `order_add_comm_monoid` and the `ordered_semiring` as desired.
 
+## TODO
+
+* Connect this with convex cones: show that a convex cone defines an order on the vector space
+  and vice-versa.
+
+## References
+
+* https://en.wikipedia.org/wiki/Ordered_vector_space
+
 ## Tags
 
 ordered semimodule, ordered module, ordered vector space

@@ -2174,13 +2174,9 @@ lemma times_cont_diff_on.mul {n : with_top ℕ} {s : set E} {f g : E → 𝕜}
 
 /-! ### Scalar multiplication -/
 
-variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜']
-{G' : Type*} [normed_group G']
-variables {𝕂' : Type*} [normed_field 𝕂'] [normed_algebra 𝕜' 𝕂'] [normed_space 𝕂' G']
-
 /- The scalar multiplication is smooth. -/
 lemma times_cont_diff_smul {n : with_top ℕ} :
-  @times_cont_diff 𝕜' _ (𝕂' × G') _ (@prod.normed_space 𝕜' _ 𝕂' G' _ (normed_space.restrict_scalars 𝕜' 𝕂') _ (normed_space.restrict_scalars 𝕜' 𝕂')) G' _ (normed_space.restrict_scalars 𝕜' 𝕂') n (λ p : 𝕂' × G', p.1 • p.2) :=
+  times_cont_diff 𝕜 n (λ p : 𝕜 × F, p.1 • p.2) :=
 is_bounded_bilinear_map_smul.times_cont_diff
 
 /-- The scalar multiplication of two `C^n` functions within a set at a point is `C^n` within this

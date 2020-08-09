@@ -105,23 +105,6 @@ abbreviation smooth_vector_space (R : Type*) (V : Type*)
 smooth_module Isf(𝕜, R) Isf(𝕜, V) R V
 end prio
 
-lemma smooth_smul (R : Type*) (V : Type*) [normed_field R] [normed_space 𝕜 R] [normed_group V]
-  [normed_space 𝕜 V] [vector_space R V] [topological_module R V] :
-smooth (Isf(𝕜, R).prod Isf(𝕜, V)) Isf(𝕜, V) (λ p : R × V, p.1 • p.2) :=
-begin
-  rw smooth_iff,
-  refine ⟨sorry, λ x v, _⟩,
-  simp only [prod.mk.eta, function.comp] with mfld_simps,
-  rw times_cont_diff_on_univ,
-  exact @times_cont_diff_smul 𝕜 _ R _ _ ⊤,
-end
-
-
-lemma smooth.smul (R : Type*) (V : Type*) [normed_field R] [normed_space 𝕜 R] [normed_group V]
-[normed_space 𝕜 V] [vector_space R V] [topological_module R V] {f : N → R} {g : N → M}
-  (hf : smooth I'' I f) (hg : smooth I'' I' g) : smooth I'' I' (λ p, f p • g p) :=
-smooth_smul.comp (hf.prod_mk hg)
-
 end smooth_module
 
 instance field_smooth_ring {𝕜 : Type*} [nondiscrete_normed_field 𝕜] :

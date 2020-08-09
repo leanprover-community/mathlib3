@@ -13,6 +13,22 @@ universes u v w x
 variables {α : Type u} {α' : Type w} {β : Type v} {β' : Type x}
 open sum
 
+@[simp] def sum.get_left {α β} : α ⊕ β → option α
+| (inl a) := some a
+| (inr _) := none
+
+@[simp] def sum.get_right {α β} : α ⊕ β → option β
+| (inr b) := some b
+| (inl _) := none
+
+@[simp] def sum.is_left {α β} : α ⊕ β → bool
+| (inl _) := tt
+| (inr _) := ff
+
+@[simp] def sum.is_right {α β} : α ⊕ β → bool
+| (inl _) := ff
+| (inr _) := tt
+
 attribute [derive decidable_eq] sum
 
 @[simp] theorem sum.forall {p : α ⊕ β → Prop} : (∀ x, p x) ↔ (∀ a, p (inl a)) ∧ (∀ b, p (inr b)) :=

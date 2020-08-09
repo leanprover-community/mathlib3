@@ -45,9 +45,8 @@ namespace palindrome
 lemma to_reverse_eq {l : list α} (p : palindrome l) : reverse l = l :=
 palindrome.rec_on p rfl (λ _, rfl) (λ x l p h, by simp [h])
 
-lemma of_reverse_eq {l : list α} (h : reverse l = l) : palindrome l :=
+lemma of_reverse_eq {l : list α} : reverse l = l → palindrome l :=
 begin
-  suffices : reverse l = l → palindrome l, from this h,
   refine bidirectional_rec_on l (λ _, palindrome.nil) (λ a _, palindrome.singleton a) _,
   intros x l y hp hr,
   rw [reverse_cons, reverse_append] at hr,

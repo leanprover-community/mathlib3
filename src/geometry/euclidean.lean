@@ -488,7 +488,7 @@ namespace euclidean_geometry
 This section develops some geometrical definitions and results on
 Euclidean affine spaces.
 -/
-open add_torsor inner_product_geometry
+open inner_product_geometry
 
 variables {V : Type*} {P : Type*} [inner_product_space V] [metric_space P]
     [normed_add_torsor V P]

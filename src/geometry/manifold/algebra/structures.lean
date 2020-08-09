@@ -46,67 +46,6 @@ instance smooth_ring.to_smooth_semiring {I : model_with_corners 𝕜 E H}
 
 end smooth_ring
 
-section smooth_module
-
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{H : Type*} [topological_space H]
-{E : Type*} [normed_group E] [normed_space 𝕜 E] (I : model_with_corners 𝕜 E H)
-{H' : Type*} [topological_space H']
-{E' : Type*} [normed_group E'] [normed_space 𝕜 E'] (I' : model_with_corners 𝕜 E' H')
-{H'' : Type*} [topological_space H'']
-{E'' : Type*} [normed_group E''] [normed_space 𝕜 E''] (I'' : model_with_corners 𝕜 E'' H'')
-
-section prio
-set_option default_priority 100 -- see Note [default priority]
-/-- A smooth semimodule, over a semiring which is also a smooth manifold, is a
-semimodule in which scalar multiplication is smooth. In applications, R will be a smooth
-semiring and M a smooth additive semigroup, but this is not needed for the definition -/
-class smooth_semimodule (R : Type*) (M : Type*)
-  [semiring R] [topological_space R] [charted_space H R] [smooth_manifold_with_corners I R]
-  [topological_space M] [add_comm_monoid M] [semimodule R M] [topological_semimodule R M]
-  [charted_space H' M] [smooth_manifold_with_corners I' M] : Prop :=
-(smooth_smul : smooth (I.prod I') I' (λp : R × M, p.1 • p.2))
-end prio
-
-section
-
-variables {I I' I''} {R : Type*} {M : Type*}
-[semiring R] [topological_space R] [charted_space H R] [smooth_manifold_with_corners I R]
-[topological_space M] [add_comm_monoid M] [semimodule R M] [charted_space H' M]
-[smooth_manifold_with_corners I' M] [topological_semimodule R M] [smooth_semimodule I I' R M]
-
-lemma smooth_smul : smooth (I.prod I') I' (λ p : R × M, p.1 • p.2) :=
-smooth_semimodule.smooth_smul
-
-lemma smooth.smul {N : Type*} [topological_space N] [charted_space H'' N]
-  [smooth_manifold_with_corners I'' N] {f : N → R} {g : N → M}
-  (hf : smooth I'' I f) (hg : smooth I'' I' g) : smooth I'' I' (λ p, f p • g p) :=
-smooth_smul.comp (hf.prod_mk hg)
-
-end
-
-section prio
-set_option default_priority 100 -- see Note [default priority]
-/-- A smooth module, over a ring which is also a smooth manifold, is a module in which
-scalar multiplication is smooth. In applications, `R` will be a smooth ring and `M` a
-smooth additive group, but this is not needed for the definition -/
-class smooth_module (R : Type*) (M : Type*)
-  [ring R] [topological_space R] [charted_space H R] [smooth_manifold_with_corners I R]
-  [topological_space M] [add_comm_group M] [module R M] [topological_module R M]
-  [charted_space H' M] [smooth_manifold_with_corners I' M]
-  extends smooth_semimodule I I' R M : Prop
-
-variable (𝕜)
-
-/-- A smooth vector space is a smooth module over a field. -/
-abbreviation smooth_vector_space (R : Type*) (V : Type*)
-  [normed_field R] [normed_space 𝕜 R] [normed_group V] [normed_space 𝕜 V] [vector_space R V]
-  [topological_module R V] :=
-smooth_module Isf(𝕜, R) Isf(𝕜, V) R V
-end prio
-
-end smooth_module
-
 instance field_smooth_ring {𝕜 : Type*} [nondiscrete_normed_field 𝕜] :
   smooth_ring (model_with_corners_self 𝕜 𝕜) 𝕜 :=
 { smooth_mul :=
@@ -119,15 +58,13 @@ instance field_smooth_ring {𝕜 : Type*} [nondiscrete_normed_field 𝕜] :
   end,
   ..field_lie_group }
 
-instance normed_group_smooth_module {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] :
-  smooth_vector_space 𝕜 𝕜 E :=
-{ smooth_smul :=
+lemma {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] normed_space_smooth_smul :
+  smooth (Isf(𝕜).prod Isf(𝕜, E)) Isf(𝕜, E) (λp : 𝕜 × E, p.1 • p.2) :=
   begin
     rw smooth_iff,
     refine ⟨continuous_smul, λ x y, _⟩,
     simp only [prod.mk.eta] with mfld_simps,
     rw times_cont_diff_on_univ,
     exact times_cont_diff_smul,
-  end,
-  ..normed_space_lie_group }
+  end

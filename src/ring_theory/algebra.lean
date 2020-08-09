@@ -1292,15 +1292,15 @@ instance linear_map.module_extend_scalars :
 variables {R S V W}
 
 /-- When `f` is a linear map taking values in `S`, then `λb, f b • x` is a linear map. -/
-def smul_right_algebra (f : V →ₗ[R] S) (x : module.restrict_scalars R S W) :
+def smul_algebra_right (f : V →ₗ[R] S) (x : module.restrict_scalars R S W) :
   V →ₗ[R] (module.restrict_scalars R S W) :=
 { to_fun := λb, f b • x,
   map_add' := by simp [add_smul],
   map_smul' := λ b y, by { simp [algebra.smul_def, ← smul_smul], refl } }
 
-@[simp] theorem smul_right_algebra_apply
+@[simp] theorem smul_algebra_right_apply
   (f : V →ₗ[R] S) (x : module.restrict_scalars R S W) (c : V) :
-  smul_right_algebra f x c = f c • x := rfl
+  smul_algebra_right f x c = f c • x := rfl
 
 end extend_scalars
 

@@ -691,14 +691,14 @@ instance normed_space_extend_scalars : normed_space 𝕜' (E →L[𝕜] (module.
 
 /-- When `f` is a continuous linear map taking values in `S`, then `λb, f b • x` is a
 continuous linear map. -/
-def smul_right_algebra (f : E →L[𝕜] 𝕜') (x : module.restrict_scalars 𝕜 𝕜' F') :
+def smul_algebra_right (f : E →L[𝕜] 𝕜') (x : module.restrict_scalars 𝕜 𝕜' F') :
   E →L[𝕜] (module.restrict_scalars 𝕜 𝕜' F') :=
 { cont := by continuity!,
-  .. smul_right_algebra f.to_linear_map x }
+  .. smul_algebra_right f.to_linear_map x }
 
-@[simp] theorem smul_right_algebra_apply
+@[simp] theorem smul_algebra_right_apply
   (f : E →L[𝕜] 𝕜') (x : module.restrict_scalars 𝕜 𝕜' F') (c : E) :
-  smul_right_algebra f x c = f c • x := rfl
+  smul_algebra_right f x c = f c • x := rfl
 
 end extend_scalars
 

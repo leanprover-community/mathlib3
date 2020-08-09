@@ -288,14 +288,6 @@ def mk_aux (ν : fin q → M) : tensor_algebra R M :=
 list.prod $ list.map (λ i, ι R M (ν i)) (list.fin_range q)
 
 
-open list
---This needs to go somewhere else.
-theorem pmap_map {α β γ} {p : β → Prop} (g : ∀ b, p b → γ) (f : α → β)
-  (l H) : pmap g (map f l) H = pmap (λ a h, g (f a) h) l (λ a h, H _ (mem_map_of_mem _ h)) :=
-by induction l; [refl, simp only [*, pmap, map]]; split; refl
-
-
-
 lemma mk_split_aux (ν : fin q.succ → M) :
 mk_aux R M ν = ι R M (ν 0) * mk_aux R M (λ i : fin q, ν i.succ) :=
 begin
@@ -307,7 +299,7 @@ begin
     simp_rw [list.range_succ_eq_map],
     rw [list.pmap],
     congr' 1,
-    rw pmap_map,
+    rw list.pmap_map,
     apply list.pmap_congr,
     intros, refl,
     end,
@@ -378,10 +370,8 @@ def mk : multilinear_map R (λ i : fin q, M) (tensor_algebra R M) :=
   begin
     intros ν i r x,
     induction q with q hq,
-
     --Base case
     cases i, exfalso, exact nat.not_lt_zero i_val i_is_lt,
-
     --Inductive step
     rw [mk_split_aux, mk_split_aux],
     cases classical.em (i = 0),
@@ -402,7 +392,6 @@ def mk : multilinear_map R (λ i : fin q, M) (tensor_algebra R M) :=
     r • mk_aux R M (λ (i_1 : fin q), function.update ν i x i_1.succ) :=
       begin
         convert hq (λ i : fin q, ν i.succ) (i.pred h),
-
         repeat{
         ext j,
         cases classical.em (i = j.succ) with hem hem,
@@ -415,12 +404,11 @@ def mk : multilinear_map R (λ i : fin q, M) (tensor_algebra R M) :=
           end,
         rw hem1,
         rw function.update_same,
-
         --case i ≠ j.succ
         rw function.update_noteq (ne_comm.mp hem),
         have hem1 : j ≠ i.pred h :=
           begin
-            intro hj,
+          intro hj,
           rw [←fin.succ_inj, fin.succ_pred, eq_comm] at hj,
           exact hem hj,
           end,

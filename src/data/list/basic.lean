@@ -2298,6 +2298,10 @@ theorem map_pmap {p : α → Prop} (g : β → γ) (f : Π a, p a → β)
   (l H) : map g (pmap f l H) = pmap (λ a h, g (f a h)) l H :=
 by induction l; [refl, simp only [*, pmap, map]]; split; refl
 
+theorem pmap_map {α β γ} {p : β → Prop} (g : ∀ b, p b → γ) (f : α → β)
+  (l H) : pmap g (map f l) H = pmap (λ a h, g (f a) h) l (λ a h, H _ (mem_map_of_mem _ h)) :=
+by induction l; [refl, simp only [*, pmap, map]]; split; refl
+
 theorem pmap_eq_map_attach {p : α → Prop} (f : Π a, p a → β)
   (l H) : pmap f l H = l.attach.map (λ x, f x.1 (H _ x.2)) :=
 by rw [attach, map_pmap]; exact pmap_congr l (λ a h₁ h₂, rfl)

@@ -376,5 +376,13 @@ meta def unify_equations (eqs : interactive.parse (many ident)) :
   tactic unit :=
 tactic.unify_equations eqs *> skip
 
+-- TODO move to tests
+example (P : ∀ n, fin n → Prop) (n m : ℕ) (f : fin n) (g : fin m)
+  (h₁ : n + 1 = m + 1) (h₂ : f == g) (h₃ : P n f) : P m g :=
+begin
+  unify_equations h₁ h₂,
+  exact h₃
+end
+
 end interactive
 end tactic

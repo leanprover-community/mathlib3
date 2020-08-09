@@ -151,7 +151,7 @@ instance : add_comm_monoid (derivation R A M) :=
   add_comm := λ D E, ext $ λ a, add_comm _ _,
   ..derivation.has_zero }
 
-lemma add_apply : (D1 + D2) a = D1 a + D2 a := rfl
+@[simp] lemma add_apply : (D1 + D2) a = D1 a + D2 a := rfl
 
 @[priority 100]
 instance derivation.Rsemimodule : semimodule R (derivation R A M) :=

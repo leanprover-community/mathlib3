@@ -286,9 +286,7 @@ lemma is_bounded_bilinear_map_smul :
 lemma is_bounded_bilinear_map_mul :
   is_bounded_bilinear_map 𝕜 (λ (p : 𝕂 × 𝕂), p.1 * p.2) := /- Problem! -/
 begin
-  have h := @is_bounded_bilinear_map_smul 𝕜 _ 𝕂 _ _ 𝕂 _ _,
-  simp only [algebra.id.smul_eq_mul] at h,
-  exact h,
+  sorry
 end
 
 lemma is_bounded_bilinear_map_comp :

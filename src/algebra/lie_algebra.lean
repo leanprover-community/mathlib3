@@ -764,9 +764,6 @@ variables {R : Type u} {A₁ : Type v} {A₂ : Type w}
 variables [comm_ring R] [ring A₁] [ring A₂] [algebra R A₁] [algebra R A₂]
 variables (e : A₁ ≃ₐ[R] A₂)
 
-local attribute [instance] lie_ring.of_associative_ring
-local attribute [instance] lie_algebra.of_associative_algebra
-
 /-- An equivalence of associative algebras is an equivalence of associated Lie algebras. -/
 def to_lie_equiv : A₁ ≃ₗ⁅R⁆ A₂ :=
 { to_fun  := e.to_fun,

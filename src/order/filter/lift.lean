@@ -378,7 +378,7 @@ end lift'
 section prod
 variables {f : filter α}
 
-lemma prod_def {f : filter α} {g : filter β} : f.prod g = (f.lift $ λs, g.lift' $ set.prod s) :=
+lemma prod_def {f : filter α} {g : filter β} : f ×ᶠ g = (f.lift $ λs, g.lift' $ set.prod s) :=
 have ∀(s:set α) (t : set β),
     𝓟 (set.prod s t) = (𝓟 s).comap prod.fst ⊓ (𝓟 t).comap prod.snd,
   by simp only [principal_eq_iff_eq, comap_principal, inf_principal]; intros; refl,
@@ -388,18 +388,18 @@ begin
   simp only [filter.prod, lift_principal2, eq_self_iff_true]
 end
 
-lemma prod_same_eq : filter.prod f f = f.lift' (λt, set.prod t t) :=
+lemma prod_same_eq : f ×ᶠ f = f.lift' (λt, set.prod t t) :=
 by rw [prod_def];
 from lift_lift'_same_eq_lift'
   (assume s, set.monotone_prod monotone_const monotone_id)
   (assume t, set.monotone_prod monotone_id monotone_const)
 
 lemma mem_prod_same_iff {s : set (α×α)} :
-  s ∈ filter.prod f f ↔ (∃t∈f, set.prod t t ⊆ s) :=
+  s ∈ f ×ᶠ f ↔ (∃t∈f, set.prod t t ⊆ s) :=
 by rw [prod_same_eq, mem_lift'_sets]; exact set.monotone_prod monotone_id monotone_id
 
 lemma tendsto_prod_self_iff {f : α × α → β} {x : filter α} {y : filter β} :
-  filter.tendsto f (filter.prod x x) y ↔
+  filter.tendsto f (x ×ᶠ x) y ↔
   ∀ W ∈ y, ∃ U ∈ x, ∀ (x x' : α), x ∈ U → x' ∈ U → f (x, x') ∈ W :=
 by simp only [tendsto_def, mem_prod_same_iff, prod_sub_preimage_iff, exists_prop, iff_self]
 
@@ -408,7 +408,7 @@ variables {α₁ : Type*} {α₂ : Type*} {β₁ : Type*} {β₂ : Type*}
 lemma prod_lift_lift
   {f₁ : filter α₁} {f₂ : filter α₂} {g₁ : set α₁ → filter β₁} {g₂ : set α₂ → filter β₂}
   (hg₁ : monotone g₁) (hg₂ : monotone g₂) :
-  filter.prod (f₁.lift g₁) (f₂.lift g₂) = f₁.lift (λs, f₂.lift (λt, filter.prod (g₁ s) (g₂ t))) :=
+  (f₁.lift g₁) ×ᶠ (f₂.lift g₂) = f₁.lift (λs, f₂.lift (λt, g₁ s ×ᶠ g₂ t)) :=
 begin
   simp only [prod_def],
   rw [lift_assoc],
@@ -423,7 +423,7 @@ end
 lemma prod_lift'_lift'
   {f₁ : filter α₁} {f₂ : filter α₂} {g₁ : set α₁ → set β₁} {g₂ : set α₂ → set β₂}
   (hg₁ : monotone g₁) (hg₂ : monotone g₂) :
-  filter.prod (f₁.lift' g₁) (f₂.lift' g₂) = f₁.lift (λs, f₂.lift' (λt, set.prod (g₁ s) (g₂ t))) :=
+  f₁.lift' g₁ ×ᶠ f₂.lift' g₂ = f₁.lift (λs, f₂.lift' (λt, (g₁ s).prod (g₂ t))) :=
 begin
   rw [prod_def, lift_lift'_assoc],
   apply congr_arg, funext x,

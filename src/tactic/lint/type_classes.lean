@@ -133,7 +133,7 @@ attribute [nolint has_inhabited_instance] pempty
 /-- Checks whether an instance can never be applied. -/
 private meta def impossible_instance (d : declaration) : tactic (option string) := do
   tt ← is_instance d.to_name | return none,
-  (binders, _) ← get_pi_binders_dep d.type,
+  (binders, _) ← get_pi_binders_nondep d.type,
   let bad_arguments := binders.filter $ λ nb, nb.2.info ≠ binder_info.inst_implicit,
   _ :: _ ← return bad_arguments | return none,
   (λ s, some $ "Impossible to infer " ++ s) <$> print_arguments bad_arguments
@@ -260,7 +260,7 @@ Make the following declarations instances of the class `has_coe_t` instead of `h
 elsewhere in the type. In this case, that argument can be replaced with `nonempty _`. -/
 private meta def inhabited_nonempty (d : declaration) : tactic (option string) :=
 do tt ← is_prop d.type | return none,
-   (binders, _) ← get_pi_binders_dep d.type,
+   (binders, _) ← get_pi_binders_nondep d.type,
    let inhd_binders := binders.filter $ λ pr, pr.2.type.is_app_of `inhabited,
    if inhd_binders.length = 0 then return none
    else (λ s, some $ "The following `inhabited` instances should be `nonempty`. " ++ s) <$>
@@ -279,7 +279,7 @@ Theorems in the `decidable` namespace are exempt from the check. -/
 private meta def decidable_classical (d : declaration) : tactic (option string) :=
 do tt ← is_prop d.type | return none,
    ff ← pure $ (`decidable).is_prefix_of d.to_name | return none,
-   (binders, _) ← get_pi_binders_dep d.type,
+   (binders, _) ← get_pi_binders_nondep d.type,
    let deceq_binders := binders.filter $ λ pr, pr.2.type.is_app_of `decidable_eq
      ∨ pr.2.type.is_app_of `decidable_pred ∨ pr.2.type.is_app_of `decidable_rel
      ∨ pr.2.type.is_app_of `decidable,

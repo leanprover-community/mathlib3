@@ -265,7 +265,7 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
   (cfg : simps_cfg) (todo : list string), tactic unit
 | e nm suffix type lhs rhs args univs must_be_str cfg todo := do
   -- we don't want to unfold non-reducible definitions (like `set`) to apply more arguments
-  (type_args, tgt) ← mk_local_pis_whnf type cfg.type_md,
+  (type_args, tgt) ← whnf type cfg.type_md >>= mk_local_pis,
   tgt ← whnf tgt,
   let new_args := args ++ type_args,
   let lhs_ap := lhs.mk_app type_args,

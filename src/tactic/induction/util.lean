@@ -473,17 +473,6 @@ meta def open_n_pis : ℕ → expr → tactic (list expr × expr)
   ⟨args, u⟩ ← open_n_pis n e,
   pure $ (cnst :: args, u)
 
-meta def get_n_pis_aux : ℕ → expr → list expr → tactic (list expr)
-| 0 e acc := pure acc
-| (n + 1) (pi pp_name binfo type e) acc := do
-  let type := type.instantiate_vars acc,
-  c ← mk_local' pp_name binfo type,
-  get_n_pis_aux n e (acc ++ [c])
-| _ e _ := fail! "expected an expression starting with a pi, but got\n{e}"
-
-meta def get_n_pis (n : ℕ) (e : expr) : tactic (list expr) :=
-get_n_pis_aux n e []
-
 /--
 For an input expression `e = ∀ (x₁ : T₁) ... (xₙ : Tₙ), U`,
 `open_pis_normalizing e` returns the following:

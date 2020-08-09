@@ -110,10 +110,7 @@ add_tactic_doc
 `h : ¬ p` in the second branch. You can specify the name of the new hypothesis using the syntax
 `by_cases h : p`.
 
-This tactic requires that `p` is decidable. To ensure that all propositions are decidable via
-classical reasoning, use `open_locale classical`
-(or `local attribute [instance, priority 10] classical.prop_decidable` if you are not using
-mathlib).
+If `p` is not already decidable, `by_cases` will use the instance `classical.prop_decidable p`.
 -/
 add_tactic_doc
 { name       := "by_cases",

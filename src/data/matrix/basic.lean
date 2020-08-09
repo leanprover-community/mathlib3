@@ -425,7 +425,7 @@ end
 The ring homomorphism `α →+* matrix n n α`
 sending `a` to the diagonal matrix with `a` on the diagonal.
 -/
-def scalar (n : Type u) [fintype n] [decidable_eq n] : α →+* matrix n n α :=
+def scalar (n : Type u) [decidable_eq n] [fintype n] : α →+* matrix n n α :=
 { to_fun := λ a, a • 1,
   map_zero' := by simp,
   map_add' := by { intros, ext, simp [add_mul], },

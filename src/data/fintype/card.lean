@@ -30,7 +30,7 @@ finset.card_eq_sum_ones _
 section
 open finset
 
-variables {ι : Type*} [fintype ι] [decidable_eq ι]
+variables {ι : Type*} [decidable_eq ι] [fintype ι]
 
 @[to_additive]
 lemma prod_extend_by_one [comm_monoid α] (s : finset ι) (f : ι → α) :
@@ -120,12 +120,12 @@ multiset.card_pi _ _
   (fintype.pi_finset t).card = ∏ a, card (t a) :=
 by simp [fintype.pi_finset, card_map]
 
-@[simp] lemma fintype.card_pi {β : α → Type*} [fintype α] [decidable_eq α]
+@[simp] lemma fintype.card_pi {β : α → Type*} [decidable_eq α] [fintype α]
   [f : Π a, fintype (β a)] : fintype.card (Π a, β a) = ∏ a, fintype.card (β a) :=
 fintype.card_pi_finset _
 
 -- FIXME ouch, this should be in the main file.
-@[simp] lemma fintype.card_fun [fintype α] [decidable_eq α] [fintype β] :
+@[simp] lemma fintype.card_fun [decidable_eq α] [fintype α] [fintype β] :
   fintype.card (α → β) = fintype.card β ^ fintype.card α :=
 by rw [fintype.card_pi, finset.prod_const, nat.pow_eq_pow]; refl
 
@@ -229,7 +229,7 @@ begin
   simp [finset.ext_iff]
 end
 
-@[to_additive] lemma finset.prod_fiberwise [fintype β] [decidable_eq β] [comm_monoid γ]
+@[to_additive] lemma finset.prod_fiberwise [decidable_eq β] [fintype β] [comm_monoid γ]
   (s : finset α) (f : α → β) (g : α → γ) :
   ∏ b : β, ∏ a in s.filter (λ a, f a = b), g a = ∏ a in s, g a :=
 begin
@@ -247,7 +247,7 @@ begin
 end
 
 @[to_additive]
-lemma fintype.prod_fiberwise [fintype α] [fintype β] [decidable_eq β] [comm_monoid γ]
+lemma fintype.prod_fiberwise [fintype α] [decidable_eq β] [fintype β] [comm_monoid γ]
   (f : α → β) (g : α → γ) :
   (∏ b : β, ∏ a : {a // f a = b}, g (a : α)) = ∏ a, g a :=
 begin

@@ -6,8 +6,9 @@ Authors: Alexander Bentkamp, Yury Kudriashov
 import data.set.intervals.ord_connected
 import data.set.intervals.image_preimage
 import data.complex.module
-import linear_algebra.affine_space
+import linear_algebra.affine_space.basic
 import algebra.module.ordered
+
 
 /-!
 # Convex sets and functions on real vector spaces

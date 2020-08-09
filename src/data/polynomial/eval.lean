@@ -343,6 +343,9 @@ instance map.is_semiring_hom : is_semiring_hom (map f) :=
   map_add := λ _ _, eval₂_add _ _,
   map_mul := λ _ _, map_mul f, }
 
+lemma map_list_prod (L : list (polynomial R)) : L.prod.map f = (L.map $ map f).prod :=
+eq.symm $ list.prod_hom _ _
+
 @[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := is_monoid_hom.map_pow (map f) _ _
 
 lemma mem_map_range {p : polynomial S} :
@@ -432,6 +435,19 @@ lemma root_mul_right_of_is_root {p : polynomial R} (q : polynomial R) :
 λ H, by rw [is_root, eval_mul, is_root.def.1 H, zero_mul]
 
 end eval
+
+section map
+
+variables [comm_semiring R] [comm_semiring S] (f : R →+* S)
+
+lemma map_multiset_prod (m : multiset (polynomial R)) : m.prod.map f = (m.map $ map f).prod :=
+eq.symm $ multiset.prod_hom _ _
+
+lemma map_prod {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
+  (∏ i in s, g i).map f = ∏ i in s, (g i).map f :=
+eq.symm $ prod_hom _ _
+
+end map
 
 end comm_semiring
 

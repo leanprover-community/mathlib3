@@ -997,23 +997,6 @@ def normed_space.restrict_scalars : normed_space 𝕜 E :=
   end,
   ..module.restrict_scalars' 𝕜 𝕜' E }
 
-namespace normed_space
-
-namespace restrict_scalars
-
-@[simp] lemma smul_assoc (c : 𝕜) (c' : 𝕜') (x : E) :
-  (c • c') • x = @has_scalar.smul _ _ (restrict_scalars 𝕜 𝕜').to_has_scalar c (c' • x) :=
-by rw algebra.smul_def; apply mul_smul
-
-@[simp] lemma smul_comm (c : 𝕜) (c' : 𝕜') (x : E) :
-  c' • @has_scalar.smul _ _ (restrict_scalars 𝕜 𝕜').to_has_scalar c x =
-  @has_scalar.smul _ _ (restrict_scalars 𝕜 𝕜').to_has_scalar c (c' • x) :=
-by rw [←smul_assoc, algebra.smul_def, mul_comm, mul_smul, module.restrict_scalars_smul_def]
-
-end restrict_scalars
-
-end normed_space
-
 end restrict_scalars
 
 section summable

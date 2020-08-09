@@ -321,12 +321,8 @@ theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
 @[to_additive]
 lemma injective_iff {G H} [group G] [monoid H] (f : G →* H) :
   function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
-begin
-  refine ⟨λ h a, (h.eq_iff' f.map_one).1, λ H x y hxy, _⟩,
-  rw [← mul_inv_eq_one],
-  apply H,
-  rw [map_mul, hxy, ← map_mul, mul_inv_self, map_one]
-end
+⟨λ h x hfx, h $ hfx.trans f.map_one.symm,
+ λ h x y hxy, mul_inv_eq_one.1 $ h _ $ by rw [f.map_mul, hxy, ← f.map_mul, mul_inv_self, f.map_one]⟩
 
 include mM
 /-- Makes a group homomomorphism from a proof that the map preserves multiplication. -/

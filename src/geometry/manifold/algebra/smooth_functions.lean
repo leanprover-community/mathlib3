@@ -142,23 +142,19 @@ into account the case `𝕜 = ℝ`, `R = ℂ`.
 -/
 
 instance smooth_map_has_scalar
-  {R : Type*} [normed_field R] [normed_space 𝕜 R]
-  {M : Type*} [normed_group M] [normed_space 𝕜 M] [vector_space R M] [topological_vector_space R M]
-  [smooth_vector_space 𝕜 R M]:
-  has_scalar R C∞(I, N; Isf(𝕜, M), M) :=
-⟨λ r f, ⟨r • f, (@smooth_const _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ Isf(𝕜, R) _ _ _ _).smul f.smooth⟩⟩
+  {V : Type*} [normed_group V] [normed_space 𝕜 V] :
+  has_scalar 𝕜 C∞(I, N; Isf(𝕜, V), V) :=
+⟨λ r f, ⟨r • f, smooth_const.smul f.smooth⟩⟩
 
 instance smooth_map_semimodule
-  {R : Type*} [normed_field R] [normed_space 𝕜 R]
-  {M : Type*} [normed_group M] [normed_space 𝕜 M] [vector_space R M] [topological_vector_space R M]
-  [smooth_vector_space 𝕜 R M] :
-  vector_space R C∞(I, N; Isf(𝕜, M), M) :=
+  {V : Type*} [normed_group V] [normed_space 𝕜 V] :
+  vector_space 𝕜 C∞(I, N; Isf(𝕜, V), V) :=
 semimodule.of_core $
 { smul     := (•),
   smul_add := λ c f g, by ext x; exact smul_add c (f x) (g x),
   add_smul := λ c₁ c₂ f, by ext x; exact add_smul c₁ c₂ (f x),
   mul_smul := λ c₁ c₂ f, by ext x; exact mul_smul c₁ c₂ (f x),
-  one_smul := λ f, by ext x; exact one_smul R (f x), }
+  one_smul := λ f, by ext x; exact one_smul 𝕜 (f x), }
 
 end semimodule_structure
 
@@ -176,24 +172,20 @@ To see why `R` cannot be a generic semiring with a manifold structure see the no
 stucture".
 -/
 
-variables {R : Type*} [normed_field R]
-{A : Type*} [normed_ring A] [algebra R A] [normed_space 𝕜 A] [topological_ring A]
+variables {A : Type*} [normed_ring A] [normed_algebra 𝕜 A] [topological_ring A]
 [smooth_ring Isf(𝕜, A) A]
 
 /-- Smooth constant functions as a `ring_hom`. -/
-def smooth_map.C : R →+* C∞(I, N; Isf(𝕜, A), A) :=
-{ to_fun    := λ c : R, ⟨λ x, ((algebra_map R A) c), smooth_const⟩,
-  map_one'  := by ext x; exact (algebra_map R A).map_one,
-  map_mul'  := λ c₁ c₂, by ext x; exact (algebra_map R A).map_mul _ _,
-  map_zero' := by ext x; exact (algebra_map R A).map_zero,
-  map_add'  := λ c₁ c₂, by ext x; exact (algebra_map R A).map_add _ _ }
+def smooth_map.C : 𝕜 →+* C∞(I, N; Isf(𝕜, A), A) :=
+{ to_fun    := λ c : 𝕜, ⟨λ x, ((algebra_map 𝕜 A) c), smooth_const⟩,
+  map_one'  := by ext x; exact (algebra_map 𝕜 A).map_one,
+  map_mul'  := λ c₁ c₂, by ext x; exact (algebra_map 𝕜 A).map_mul _ _,
+  map_zero' := by ext x; exact (algebra_map 𝕜 A).map_zero,
+  map_add'  := λ c₁ c₂, by ext x; exact (algebra_map 𝕜 A).map_add _ _ }
 
-variables [normed_space 𝕜 R]
-[topological_vector_space R A] [smooth_vector_space 𝕜 R A]
-
-instance : algebra R C∞(I, N; Isf(𝕜, A), A) :=
+instance : algebra 𝕜 C∞(I, N; Isf(𝕜, A), A) :=
 { smul := λ r f,
-  ⟨r • f, (@smooth_const _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ Isf(𝕜, R) _ _ _ _).smul f.smooth⟩,
+  ⟨r • f, smooth_const.smul f.smooth⟩,
   to_ring_hom := smooth_map.C,
   commutes' := λ c f, by ext x; exact algebra.commutes' _ _,
   smul_def' := λ c f, by ext x; exact algebra.smul_def' _ _,
@@ -210,27 +202,18 @@ If `M` is a module over `R`, then we show that the space of smooth functions fro
 is naturally a module over the ring of smooth functions from `α` to `M`. -/
 
 instance smooth_map_has_scalar'
-  {R : Type*} [semiring R] [topological_space R]
-  [charted_space H' R] [smooth_manifold_with_corners I' R]
-  {M : Type*} [topological_space M] [add_comm_monoid M]
-  [semimodule R M] [topological_semimodule R M]
-  [charted_space H' M] [smooth_manifold_with_corners I' M] [smooth_semimodule I' I' R M] :
-  has_scalar C∞(I, N; I', R) C∞(I, N; I', M) :=
+  {V : Type*} [normed_group V] [normed_space 𝕜 V] :
+  has_scalar C∞(I, N; Isf(𝕜), 𝕜) C∞(I, N; Isf(𝕜, V), V) :=
 ⟨λ f g, ⟨λ x, (f x) • (g x), (smooth.smul f.2 g.2)⟩⟩
 
 instance smooth_map_module'
-  {R : Type*} [semiring R] [topological_space R] [topological_semiring R]
-  [charted_space H' R] [smooth_manifold_with_corners I' R] [smooth_semiring I' R]
-  {M : Type*} [topological_space M] [add_comm_monoid M] [has_continuous_add M]
-  [semimodule R M] [topological_semimodule R M]
-  [charted_space H' M] [smooth_manifold_with_corners I' M]
-  [has_smooth_add I' M] [smooth_semimodule I' I' R M]
-  : semimodule C∞(I, N; I', R) C∞(I, N; I', M) :=
+  {V : Type*} [normed_group V] [normed_space 𝕜 V]
+  : semimodule C∞(I, N; Isf(𝕜), 𝕜) C∞(I, N; Isf(𝕜, V), V) :=
 { smul     := (•),
   smul_add := λ c f g, by ext x; exact smul_add (c x) (f x) (g x),
   add_smul := λ c₁ c₂ f, by ext x; exact add_smul (c₁ x) (c₂ x) (f x),
   mul_smul := λ c₁ c₂ f, by ext x; exact mul_smul (c₁ x) (c₂ x) (f x),
-  one_smul := λ f, by ext x; exact one_smul R (f x),
+  one_smul := λ f, by ext x; exact one_smul 𝕜 (f x),
   zero_smul := λ f, by ext x; exact zero_smul _ _,
   smul_zero := λ r, by ext x; exact smul_zero _, }
 

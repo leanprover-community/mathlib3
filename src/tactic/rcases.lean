@@ -83,6 +83,27 @@ meta def rcases_patt.alts' : listΣ rcases_patt → rcases_patt
 | [p] := p
 | ps := rcases_patt.alts ps
 
+meta def rcases_patt.tuple₁_core : listΠ rcases_patt → listΠ rcases_patt
+| [] := []
+| [rcases_patt.tuple []] := [rcases_patt.tuple []]
+| [rcases_patt.tuple ps] := ps
+| (p :: ps) := p :: rcases_patt.tuple₁_core ps
+
+meta def rcases_patt.tuple₁ : listΠ rcases_patt → rcases_patt
+| [] := default _
+| [rcases_patt.one n] := rcases_patt.one n
+| ps := rcases_patt.tuple (rcases_patt.tuple₁_core ps)
+
+meta def rcases_patt.alts₁_core : listΣ (listΠ rcases_patt) → listΣ rcases_patt
+| [] := []
+| [[rcases_patt.alts ps]] := ps
+| (p :: ps) := rcases_patt.tuple₁ p :: rcases_patt.alts₁_core ps
+
+meta def rcases_patt.alts₁ : listΣ (listΠ rcases_patt) → rcases_patt
+| [[]] := rcases_patt.tuple []
+| [[rcases_patt.alts ps]] := rcases_patt.tuple [rcases_patt.alts ps]
+| ps := rcases_patt.alts' (rcases_patt.alts₁_core ps)
+
 meta instance rcases_patt.has_reflect : has_reflect rcases_patt
 | (rcases_patt.one n) := `(_)
 | (rcases_patt.typed l e) :=
@@ -278,22 +299,23 @@ with rcases_hint_core : ℕ → expr → tactic (rcases_patt × goals)
   (t, e) ← get_local_and_type e,
   t ← whnf t,
   env ← get_env,
-  some l ← try_core (guard (depth ≠ 0) >> cases_core e) |
-    prod.mk (rcases_patt.one e.local_pp_name) <$> get_goals,
   let I := t.get_app_fn.const_name,
-  if I = ``eq then
-    prod.mk (rcases_patt.one `rfl) <$> get_goals
-  else do
+  (do guard (I = ``eq),
+    subst e,
+    prod.mk (rcases_patt.one `rfl) <$> get_goals) <|>
+  (do
     let c := env.constructors_of I,
+    some l ← try_core (guard (depth ≠ 0) >> cases_core e) |
+      prod.mk (rcases_patt.one e.local_pp_name) <$> get_goals,
     gs ← get_goals,
     (ps, gs') ← rcases_hint.process_constructors (depth - 1) c (gs.zip l),
-    pure (rcases_patt.alts ps, gs')
+    pure (rcases_patt.alts₁ ps, gs'))
 
 with rcases_hint.process_constructors : ℕ → listΣ name →
   list (expr × name × listΠ expr × list (name × expr)) →
-  tactic (listΣ rcases_patt × goals)
+  tactic (listΣ (listΠ rcases_patt) × goals)
 | depth [] _  := pure ([], [])
-| depth cs [] := pure (cs.map (λ _, default _), [])
+| depth cs [] := pure (cs.map (λ _, []), [])
 | depth (c::cs) ((g, c', hs, _) :: l) :=
   if c ≠ c' then do
     (ps, gs) ← rcases_hint.process_constructors depth cs l,
@@ -301,7 +323,7 @@ with rcases_hint.process_constructors : ℕ → listΣ name →
   else do
     (p, gs) ← set_goals [g] >> rcases_hint.continue depth hs,
     (ps, gs') ← rcases_hint.process_constructors depth cs l,
-    pure (rcases_patt.tuple' p :: ps, gs ++ gs')
+    pure (p :: ps, gs ++ gs')
 
 with rcases_hint.continue : ℕ → listΠ expr → tactic (listΠ rcases_patt × goals)
 | depth [] := prod.mk [] <$> get_goals

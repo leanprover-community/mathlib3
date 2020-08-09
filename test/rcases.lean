@@ -113,3 +113,11 @@ begin
   guard_hyp h' := h = ⟨x,h₀,h₁⟩,
   apply le_trans h₀ h₁,
 end
+
+protected def set.foo {α β} (s : set α) (t : set β) : set (α × β) := ∅
+
+example {α} (V : set α) (w : true → ∃ p, p ∈ (V.foo V) ∩ (V.foo V)) : true :=
+begin
+  obtain ⟨a, h⟩ : ∃ p, p ∈ (V.foo V) ∩ (V.foo V) := w trivial,
+  trivial,
+end

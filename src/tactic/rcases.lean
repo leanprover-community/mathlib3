@@ -175,9 +175,10 @@ with rcases_core : rcases_patt → expr → tactic goals
 | (rcases_patt.one _) _ := get_goals
 | (rcases_patt.typed p ty) e := do
   (t, e) ← get_local_and_type e,
-  ty2 ← infer_type e,
   ty ← i_to_expr_no_subgoals ``(%%ty : Sort*),
   unify t ty,
+  t ← instantiate_mvars t,
+  ty ← instantiate_mvars ty,
   monad.unlessb (t =ₐ ty) (change_core ty (some e)),
   rcases_core p e
 | (rcases_patt.alts [p]) e := rcases_core p e

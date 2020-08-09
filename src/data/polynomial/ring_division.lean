@@ -129,6 +129,9 @@ using_well_founded {dec_tac := tactic.assumption}
 noncomputable def roots (p : polynomial R) : finset R :=
 if h : p = 0 then ∅ else classical.some (exists_finset_roots h)
 
+@[simp] lemma roots_zero : (0 : polynomial R).roots = ∅ :=
+dif_pos rfl
+
 lemma card_roots (hp0 : p ≠ 0) : ((roots p).card : with_bot ℕ) ≤ degree p :=
 begin
   unfold roots,
@@ -165,6 +168,32 @@ finset.ext $ λ r, by rw [mem_union, mem_roots hpq, mem_roots (mul_ne_zero_iff.1
 
 @[simp] lemma roots_X_sub_C (r : R) : roots (X - C r) = {r} :=
 finset.ext $ λ s, by rw [mem_roots (X_sub_C_ne_zero r), root_X_sub_C, mem_singleton, eq_comm]
+
+@[simp] lemma roots_C (x : R) : (C x).roots = ∅ :=
+if H : x = 0 then by rw [H, C_0, roots_zero] else finset.ext $ λ r,
+have h : C x ≠ 0, from λ h, H $ C_inj.1 $ h.symm ▸ C_0.symm,
+by rw [mem_roots h, is_root.def, eval_C, eq_false_intro H, eq_false_intro (finset.not_mem_empty r)]
+
+@[simp] lemma roots_one : (1 : polynomial R).roots = ∅ :=
+roots_C 1
+
+lemma roots_list_prod (L : list (polynomial R)) :
+  (∀ p ∈ L, (p : _) ≠ 0) → L.prod.roots = L.to_finset.bind roots :=
+list.rec_on L (λ _, roots_one) $ λ hd tl ih H,
+begin
+  rw list.forall_mem_cons at H,
+  rw [list.prod_cons, roots_mul (mul_ne_zero H.1 $ list.prod_ne_zero H.2),
+      list.to_finset_cons, finset.bind_insert, ih H.2]
+end
+
+lemma roots_multiset_prod (m : multiset (polynomial R)) :
+  (∀ p ∈ m, (p : _) ≠ 0) → m.prod.roots = m.to_finset.bind roots :=
+multiset.induction_on m (λ _, roots_one) $ λ hd tl ih H,
+begin
+  rw multiset.forall_mem_cons at H,
+  rw [multiset.prod_cons, roots_mul (mul_ne_zero H.1 $ multiset.prod_ne_zero H.2),
+      multiset.to_finset_cons, finset.bind_insert, ih H.2]
+end
 
 lemma card_roots_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : R) :
   (roots ((X : polynomial R) ^ n - C a)).card ≤ n :=

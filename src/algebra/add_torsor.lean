@@ -68,11 +68,12 @@ class add_torsor (G : out_param Type*) (P : Type*) [out_param $ add_group G]
 (vsub_vadd' : ∀ (p1 p2 : P), (p1 -ᵥ p2 : G) +ᵥ p2 = p1)
 (vadd_vsub' : ∀ (g : G) (p : P), g +ᵥ p -ᵥ p = g)
 
-attribute [instance, priority 100] add_torsor.nonempty
+attribute [instance, priority 100, nolint dangerous_instance] add_torsor.nonempty
 
 end prio
 
 /-- An `add_group G` is a torsor for itself. -/
+@[nolint instance_priority]
 instance add_group_is_add_torsor (G : Type*) [add_group G] :
   add_torsor G G :=
 { vadd := has_add.add,

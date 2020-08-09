@@ -59,7 +59,7 @@ instance field_smooth_ring {𝕜 : Type*} [nondiscrete_normed_field 𝕜] :
   ..field_lie_group }
 
 lemma {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] normed_space_smooth_smul :
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] smooth.smul :
   smooth (Isf(𝕜).prod Isf(𝕜, E)) Isf(𝕜, E) (λp : 𝕜 × E, p.1 • p.2) :=
   begin
     rw smooth_iff,

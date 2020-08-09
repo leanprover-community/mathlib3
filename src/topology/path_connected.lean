@@ -210,6 +210,17 @@ by simp [extend]
 @[simp] lemma extend_one : γ.extend 1 = y :=
 by simp [extend]
 
+/-- The path obtained from a map defined on `ℝ` by restriction to the unit interval. -/
+def of_line {f : ℝ → X} (hf : continuous_on f I) (h₀ : f 0 = x) (h₁ : f 1 = y) : path x y :=
+{ to_fun := f ∘ coe,
+  continuous' := hf.comp_continuous continuous_subtype_coe (by rw subtype.range_coe),
+  source' := h₀,
+  target' := h₁ }
+
+lemma of_line_mem {f : ℝ → X} (hf : continuous_on f I) (h₀ : f 0 = x) (h₁ : f 1 = y) :
+  ∀ t, of_line hf h₀ h₁ t ∈ f '' I :=
+λ ⟨t, t_in⟩, ⟨t, t_in, rfl⟩
+
 local attribute [simp] Iic_def
 
 /-- Concatenation of two paths from `x` to `y` and from `y` to `z`, putting the first
@@ -322,6 +333,10 @@ lemma joined_in.joined_subtype (h : joined_in F x y) :
    continuous' := by continuity,
    source' := by simp,
    target' := by simp }⟩
+
+lemma joined_in.of_line {f : ℝ → X} (hf : continuous_on f I) (h₀ : f 0 = x) (h₁ : f 1 = y)
+  (hF : f '' I ⊆ F) : joined_in F x y :=
+⟨path.of_line hf h₀ h₁, λ t, hF $ path.of_line_mem hf h₀ h₁ t⟩
 
 lemma joined_in.joined (h : joined_in F x y) : joined x y :=
 ⟨h.some_path⟩

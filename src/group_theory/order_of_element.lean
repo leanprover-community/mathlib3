@@ -304,13 +304,13 @@ def is_cyclic.comm_group [hg : group α] [is_cyclic α] : comm_group α :=
     hm ▸ hn ▸ gpow_mul_comm _ _ _,
   ..hg }
 
-lemma is_cyclic_of_order_of_eq_card [group α] [fintype α] [decidable_eq α]
+lemma is_cyclic_of_order_of_eq_card [group α] [decidable_eq α] [fintype α]
   (x : α) (hx : order_of x = fintype.card α) : is_cyclic α :=
 ⟨⟨x, set.eq_univ_iff_forall.1 $ set.eq_of_subset_of_card_le
   (set.subset_univ _)
   (by {rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers], refl})⟩⟩
 
-lemma order_of_eq_card_of_forall_mem_gpowers [group α] [fintype α] [decidable_eq α]
+lemma order_of_eq_card_of_forall_mem_gpowers [group α] [decidable_eq α] [fintype α]
   {g : α} (hx : ∀ x, x ∈ gpowers g) : order_of g = fintype.card α :=
 by {rw [← fintype.card_congr (equiv.set.univ α), order_eq_card_gpowers],
   simp [hx], apply fintype.card_of_finset', simp, intro x, exact hx x}
@@ -362,7 +362,7 @@ else
   by clear _let_match; substI this; apply_instance
 
 open finset nat
-lemma is_cyclic.card_pow_eq_one_le [group α] [fintype α] [decidable_eq α] [is_cyclic α] {n : ℕ}
+lemma is_cyclic.card_pow_eq_one_le [group α] [decidable_eq α] [fintype α] [is_cyclic α] {n : ℕ}
   (hn0 : 0 < n) : (univ.filter (λ a : α, a ^ n = 1)).card ≤ n :=
 let ⟨g, hg⟩ := is_cyclic.exists_generator α in
 calc (univ.filter (λ a : α, a ^ n = 1)).card
@@ -397,7 +397,7 @@ by { simp only [mem_powers_iff_mem_gpowers], exact is_cyclic.exists_generator α
 
 section
 
-variables [group α] [fintype α] [decidable_eq α]
+variables [group α] [decidable_eq α] [fintype α]
 
 lemma is_cyclic.image_range_order_of (ha : ∀ x : α, x ∈ gpowers a) :
   finset.image (λ i, a ^ i) (range (order_of a)) = univ :=
@@ -415,7 +415,7 @@ end
 
 section totient
 
-variables [group α] [fintype α] [decidable_eq α] (hn : ∀ n : ℕ, 0 < n → (univ.filter (λ a : α, a ^ n = 1)).card ≤ n)
+variables [group α] [decidable_eq α] [fintype α] (hn : ∀ n : ℕ, 0 < n → (univ.filter (λ a : α, a ^ n = 1)).card ≤ n)
 include hn
 
 lemma card_pow_eq_one_eq_order_of_aux (a : α) :
@@ -515,7 +515,7 @@ is_cyclic_of_order_of_eq_card x (finset.mem_filter.1 hx).2
 
 end totient
 
-lemma is_cyclic.card_order_of_eq_totient [group α] [is_cyclic α] [fintype α] [decidable_eq α]
+lemma is_cyclic.card_order_of_eq_totient [group α] [is_cyclic α] [decidable_eq α] [fintype α]
   {d : ℕ} (hd : d ∣ fintype.card α) : (univ.filter (λ a : α, order_of a = d)).card = totient d :=
 card_order_of_eq_totient_aux₂ (λ n, is_cyclic.card_pow_eq_one_le) hd
 

@@ -190,31 +190,7 @@ meta def to_list' (m : rb_multimap α β) : list (α × list β) :=
 
 end rb_multimap
 
-
-namespace rb_set
-
-variables {α : Type} [has_lt α] [decidable_rel ((<) : α → α → Prop)]
-
-meta def merge (xs ys : rb_set α) : rb_set α :=
-ys.fold xs (λ a xs, xs.insert a)
-
-meta def merge_many (xs : list (rb_set α)) : rb_set α :=
-xs.foldl merge mk_rb_set
-
-end rb_set
-
 end native
-
-
-namespace name_set
-
-meta def merge (xs ys : name_set) : name_set :=
-ys.fold xs (λ a xs, xs.insert a)
-
-meta def merge_many (xs : list name_set) : name_set :=
-xs.foldl merge mk_name_set
-
-end name_set
 
 
 namespace expr
@@ -547,9 +523,9 @@ itself). `h` must be a local constant.
 meta def dependencies_of_local (h : expr) : tactic name_set := do
   let deps := mk_name_set.insert h.local_uniq_name,
   t ← infer_type h,
-  let deps := deps.merge t.local_unique_names,
+  let deps := deps.union t.local_unique_names,
   (some val) ← try_core $ local_def_value h | pure deps,
-  let deps := deps.merge val.local_unique_names,
+  let deps := deps.union val.local_unique_names,
   pure deps
 
 /--

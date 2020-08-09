@@ -274,7 +274,7 @@ meta def intro_fresh_reserved (ns : list name) (reserved : name_set) : tactic ex
 meta def intro_lst_fresh_reserved (ns : list (name ⊕ list name)) (reserved : name_set) :
   tactic (list expr) := do
   let fixed := name_set.of_list $ ns.filter_map sum.get_left,
-  let reserved := reserved.merge fixed,
+  let reserved := reserved.union fixed,
   ns.mmap $ λ spec,
     match spec with
     | sum.inl n := intro n
@@ -343,8 +343,8 @@ meta def to_generalize (eliminee : expr) : generalization_mode → tactic name_s
   let tgt_dependencies := tgt.local_unique_names,
   eliminee_type ← infer_type eliminee,
   eliminee_dependencies ← dependencies_of_local eliminee,
-  fixed_dependencies ←
-    name_set.merge_many <$> (eliminee :: fixed).mmap dependencies_of_local,
+  fixed_dependencies ← (eliminee :: fixed).mmap dependencies_of_local,
+  let fixed_dependencies := fixed_dependencies.foldl name_set.union mk_name_set,
   ctx ← revertible_local_context,
   to_revert ← ctx.mmap_filter $ λ h, do {
     -- TODO what about local defs?
@@ -489,7 +489,7 @@ meta def decompose_structure_value_aux : expr → expr →
     end
   },
   let es_fs := (rec.map prod.fst).join,
-  let fields := name_set.merge_many $ rec.map prod.snd,
+  let fields := (rec.map prod.snd).foldl name_set.union mk_name_set,
   pure (es_fs, fields)
 
 /--
@@ -516,7 +516,7 @@ meta def replace_structure_index_args (eliminee : expr) (index_args : list expr)
   tactic name_set := do
   structure_args ←
     index_args.mmap_filter (try_core ∘ decompose_structure_value),
-  let fields := name_set.merge_many $ structure_args.map prod.snd,
+  let fields := (structure_args.map prod.snd).foldl name_set.union mk_name_set,
   let structure_args := (structure_args.map prod.fst).join,
 
   ctx ← revertible_local_context,

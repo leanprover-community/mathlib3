@@ -201,7 +201,8 @@ with rcases_core : rcases_patt → expr → tactic goals
   unify t ty,
   t ← instantiate_mvars t,
   ty ← instantiate_mvars ty,
-  monad.unlessb (t =ₐ ty) (change_core ty (some e)),
+  e ← if t =ₐ ty then pure e else
+    change_core ty (some e) >> get_local e.local_pp_name,
   rcases_core p e
 | (rcases_patt.alts [p]) e := rcases_core p e
 | pat e := do

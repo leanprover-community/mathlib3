@@ -121,3 +121,15 @@ begin
   obtain ⟨a, h⟩ : ∃ p, p ∈ (V.foo V) ∩ (V.foo V) := w trivial,
   trivial,
 end
+
+example (n : ℕ) : true :=
+begin
+  obtain one_lt_n | n_le_one : 1 < n + 1 ∨ n + 1 ≤ 1 := nat.lt_or_ge 1 (n + 1),
+  trivial, trivial,
+end
+
+example (n : ℕ) : true :=
+begin
+  obtain one_lt_n | (n_le_one : n + 1 ≤ 1) := nat.lt_or_ge 1 (n + 1),
+  trivial, trivial,
+end

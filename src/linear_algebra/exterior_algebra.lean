@@ -5,6 +5,7 @@ Author: Adam Topaz.
 -/
 
 import .tensor_algebra
+import group_theory.perm.sign
 
 /-!
 # Exterior Algebras
@@ -14,7 +15,8 @@ We construct the exterior algebra of a semimodule `M` over a commutative semirin
 ## Notation
 
 The exterior algebra of the `R`-semimodule `M` is denoted as `exterior_algebra R M`.
-It is endowed with the structure of an `R`-algebra.
+It is endowed with the structure of an `R`-algebra. Some results only hold at the level of
+generality of an `S`-module `M` and the space `exterior_algebra S N`.
 
 Given a linear morphism `f : M → A` from a semimodule `M` to another `R`-algebra `A`, such that
 `cond : ∀ m : M, f m * f m = 0`, there is a (unique) lift of `f` to an `R`-algebra morphism,
@@ -22,12 +24,16 @@ which is denoted `exterior_algebra.lift R M f cond`.
 
 The canonical linear map `M → exterior_algebra R M` is denoted `exterior_algebra.ι R M`.
 
+The canonical multilinear map `(fin q → M) → exterior_algebra R M` is denoted `wedge R M`.
+
 ## Theorems
 
 The main theorems proved ensure that `exterior_algebra R M` satisfies the universal property
 of the exterior algebra.
 1. `ι_comp_lift` is  fact that the composition of `ι R M` with `lift R M f cond` agrees with `f`.
 2. `lift_unique` ensures the uniqueness of `lift R M f cond` with respect to 1.
+3. `wedge_perm` says that for any permutation `σ` of `fin q` and any `ν : fin q → N`, we have that
+`wedge S N ν = (equiv.perm.sign σ) • wedge S n (ν ∘ σ)`.
 
 ## Implementation details
 
@@ -41,6 +47,9 @@ The exterior algebra of `M` is constructed as a quotient of the tensor algebra, 
 
 variables (R : Type*) [comm_semiring R]
 variables (M : Type*) [add_comm_group M] [semimodule R M]
+variables {S : Type*} [field S]
+variables {N : Type*} [add_comm_group N] [module S N]
+variable {q : ℕ}
 
 namespace exterior_algebra
 open tensor_algebra
@@ -107,6 +116,29 @@ instance : algebra R (exterior_algebra R M) :=
     rw algebra.smul_def,
     refl,
   end }
+
+instance : add_comm_group (exterior_algebra S N) :=
+{ add := semiring.add,
+  add_assoc := semiring.add_assoc,
+  zero := semiring.zero,
+  zero_add := semiring.zero_add,
+  add_zero := semiring.add_zero,
+  neg := λ v, (-1 : S) • v,
+  add_left_neg := quot.ind
+  begin
+    intro a,
+    apply quot.sound,
+    rw [←one_smul S a, smul_smul, ←add_smul],
+    norm_num,
+    exact rel.eq_compat,
+  end,
+  add_comm := semiring.add_comm }
+
+
+instance : mul_action (units ℤ) (exterior_algebra S N) :=
+{ smul := λ u : units ℤ, λ v, (u.val) • v,
+  one_smul := mul_action.one_smul,
+  mul_smul := λ x y b, mul_action.mul_smul x y b }
 
 /--
 The canonical linear map `M →ₗ[R] exterior_algebra R M`.
@@ -206,7 +238,6 @@ calc ι R M x * ι R M y + ι R M y * ι R M x
     by rw ι_square_zero
 
 variables (R M)
-variable {q : ℕ}
 
 /--
 The canonical multilinear map from `fin q → M` into `exterior_algebra R M`.
@@ -336,6 +367,41 @@ begin
     --case x ≠ i, x ≠ j,
     simp only [hx, hx1, function.comp_app, function.update_noteq, ne.def, not_false_iff],
     rw equiv.swap_apply_of_ne_of_ne hx hx1,
+end
+
+
+
+lemma wedge_swap_adj (ν : fin q → N) {i j : fin q} (hij : i.val + 1 = j.val) :
+wedge S N (ν ∘ equiv.swap i j) = - wedge S N ν  :=
+begin
+  apply eq_neg_of_add_eq_zero,
+  rw add_comm,
+  exact wedge_add_swap_adj ν hij,
+end
+
+
+lemma wedge_perm (ν : fin q → N) (σ : equiv.perm (fin q)) :
+wedge S N ν = (equiv.perm.sign σ) • wedge S N (ν ∘ σ) :=
+begin
+  apply equiv.perm.swap_adj_induction_on' σ,
+  --Base case
+  rw [equiv.perm.sign_one, one_smul], congr,
+  --Inductive step
+  intros f x y hxy hI,
+  have hxy1 : x ≠ y :=
+  begin
+    intro h, rw h at hxy, exact (nat.succ_ne_self y.val) hxy,
+  end,
+  have assoc : ν ∘ (f * equiv.swap x y : equiv.perm (fin q)) = (ν ∘ f ∘ equiv.swap x y) := rfl,
+  rw [assoc, wedge_swap_adj (ν ∘ f) hxy, ←neg_one_smul ℤ (wedge S N (ν ∘ f))],
+  have h1 : (-1 : ℤ) = equiv.perm.sign (equiv.swap x y) := by simp [hxy1],
+  rw h1,
+  have hack : ∀ z : exterior_algebra S N,
+  (equiv.perm.sign (f * equiv.swap x y) : units ℤ) • z =
+  (equiv.perm.sign (f * equiv.swap x y) : ℤ) • z := λ z, rfl,
+  rw hack,
+  rw [smul_smul, ←units.coe_mul, ←equiv.perm.sign_mul, mul_assoc, equiv.swap_mul_self, mul_one],
+  assumption,
 end
 
 end exterior_algebra

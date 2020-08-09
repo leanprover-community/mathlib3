@@ -37,6 +37,7 @@ local notation `listΠ` := list_Pi
 An `rcases` pattern can be one of the following, in a nested combination:
 
 * A name like `foo`
+* The special keyword `rfl` (for pattern matching on equality using `subst`)
 * A type ascription like `pat : ty` (parentheses are optional)
 * A tuple constructor like `⟨p1, p2, p3⟩`
 * An alternation / variant pattern `p1 | p2 | p3`

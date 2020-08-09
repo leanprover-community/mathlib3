@@ -2444,7 +2444,7 @@ lemma has_fderiv_at.restrict_scalars (h : has_fderiv_at f f' x) :
 lemma has_fderiv_within_at.restrict_scalars (h : has_fderiv_within_at f f' s x) :
   has_fderiv_within_at f (f'.restrict_scalars 𝕜) s x := h
 
-lemma differentiable_at.restrict_scalars (h : differentiable_at 𝕜' (f : E → F) x) :
+lemma differentiable_at.restrict_scalars (h : differentiable_at 𝕜' f x) :
   differentiable_at 𝕜 f x :=
 (h.has_fderiv_at.restrict_scalars 𝕜).differentiable_at
 

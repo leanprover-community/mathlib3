@@ -66,17 +66,6 @@ mul_nonpos_of_nonpos_of_nonneg ha (inv_nonneg.2 hb)
 lemma div_nonpos_of_nonneg_of_nonpos (ha : 0 ≤ a) (hb : b ≤ 0) : a / b ≤ 0 :=
 mul_nonpos_of_nonneg_of_nonpos ha (inv_nonpos.2 hb)
 
-lemma le_mul_of_ge_one_right (hb : 0 ≤ b) (h : 1 ≤ a) : b ≤ b * a :=
-suffices b * 1 ≤ b * a, by rwa mul_one at this,
-mul_le_mul_of_nonneg_left h hb
-
-lemma le_mul_of_ge_one_left (hb : 0 ≤ b) (h : 1 ≤ a) : b ≤ a * b :=
-by rw mul_comm; exact le_mul_of_ge_one_right hb h
-
-lemma lt_mul_of_gt_one_right (hb : 0 < b) (h : 1 < a) : b < b * a :=
-suffices b * 1 < b * a, by rwa mul_one at this,
-mul_lt_mul_of_pos_left h hb
-
 lemma one_le_div_of_le (a : α) {b : α} (hb : 0 < b) (h : b ≤ a) : 1 ≤ a / b :=
 have hb'   : b ≠ 0,     from ne_of_gt hb,
 have hbinv : 0 < 1 / b, from one_div_pos.2 hb,
@@ -88,7 +77,7 @@ calc
 lemma le_of_one_le_div (a : α) {b : α} (hb : 0 < b) (h : 1 ≤ a / b) : b ≤ a :=
 have hb'   : b ≠ 0,     from (ne_of_lt hb).symm,
 calc
-   b   ≤ b * (a / b) : le_mul_of_ge_one_right (le_of_lt hb) h
+   b   ≤ b * (a / b) : le_mul_of_one_le_right (le_of_lt hb) h
    ... = a           : by rw [mul_div_cancel' _ hb']
 
 lemma one_lt_div_of_lt (a : α) {b : α} (hb : 0 < b) (h : b < a) : 1 < a / b :=
@@ -101,7 +90,7 @@ have hbinv : 0 < 1 / b, from  one_div_pos.2 hb, calc
 lemma lt_of_one_lt_div (a : α) {b : α} (hb : 0 < b) (h : 1 < a / b) : b < a :=
 have hb' : b ≠ 0, from (ne_of_lt hb).symm,
 calc
-   b   < b * (a / b) : lt_mul_of_gt_one_right hb h
+   b   < b * (a / b) : lt_mul_of_one_lt_right hb h
    ... = a           : by rw [mul_div_cancel' _ hb']
 
 -- the following lemmas amount to four iffs, for <, ≤, ≥, >.
@@ -133,16 +122,16 @@ calc
     ... ≥ b * (1 / c)     : mul_le_mul_of_nonpos_right h (le_of_lt (one_div_neg.2 hc))
     ... = b / c           : eq.symm $ div_eq_mul_one_div b c
 
-lemma mul_lt_of_div_lt_of_neg (hc : c < 0) (h : b / c < a) : a * c < b :=
+lemma mul_lt_of_neg_of_div_lt (hc : c < 0) (h : b / c < a) : a * c < b :=
 div_mul_cancel b (ne_of_lt hc) ▸ mul_lt_mul_of_neg_right h hc
 
-lemma div_lt_of_mul_lt_of_pos (hc : 0 < c) (h : b < a * c) : b / c < a :=
+lemma div_lt_of_pos_of_lt_mul (hc : 0 < c) (h : b < a * c) : b / c < a :=
 calc
    a   = a * c * (1 / c) : mul_mul_div a (ne_of_gt hc)
    ... > b * (1 / c)     : mul_lt_mul_of_pos_right h (one_div_pos.2 hc)
    ... = b / c           : eq.symm $ div_eq_mul_one_div b c
 
-lemma div_lt_of_mul_gt_of_neg (hc : c < 0) (h : a * c < b) : b / c < a :=
+lemma div_lt_of_neg_of_mul_lt (hc : c < 0) (h : a * c < b) : b / c < a :=
 calc
    a   = a * c * (1 / c) : mul_mul_div a (ne_of_lt hc)
    ... > b * (1 / c)     : mul_lt_mul_of_neg_right h (one_div_neg.2 hc)
@@ -225,7 +214,7 @@ eq.symm
   (iff.mpr (eq_div_iff_mul_eq (ne_of_gt (add_pos (@zero_lt_one α _) zero_lt_one)))
            (begin unfold bit0, rw [left_distrib, mul_one] end))
 
-lemma mul_le_mul_of_mul_div_le {a b c d : α} (h : a * (b / c) ≤ d) (hc : c > 0) : b * a ≤ d * c :=
+lemma mul_le_mul_of_mul_div_le {a b c d : α} (h : a * (b / c) ≤ d) (hc : 0 < c) : b * a ≤ d * c :=
 begin
   rw [← mul_div_assoc] at h, rw [mul_comm b],
   apply le_mul_of_div_le hc h
@@ -273,7 +262,7 @@ lemma one_div_lt_one_div_of_lt {a b : α} (ha : 0 < a) (h : a < b) : 1 / b < 1 /
 begin
   apply lt_div_of_mul_lt ha,
   rw [mul_comm, ← div_eq_mul_one_div],
-  apply div_lt_of_mul_lt_of_pos (lt_trans ha h),
+  apply div_lt_of_pos_of_lt_mul (lt_trans ha h),
   rwa [one_mul]
 end
 
@@ -284,9 +273,9 @@ lemma one_div_le_one_div_of_le {a b : α} (ha : 0 < a) (h : a ≤ b) : 1 / b ≤
 
 lemma one_div_lt_one_div_of_lt_of_neg {a b : α} (hb : b < 0) (h : a < b) : 1 / b < 1 / a :=
 begin
-  apply div_lt_of_mul_gt_of_neg hb,
+  apply div_lt_of_neg_of_mul_lt hb,
   rw [mul_comm, ← div_eq_mul_one_div],
-  apply div_lt_of_mul_gt_of_neg (lt_trans h hb),
+  apply div_lt_of_neg_of_mul_lt (lt_trans h hb),
   rwa [one_mul]
 end
 
@@ -391,7 +380,7 @@ lemma div_lt_iff' (hc : 0 < c) : b / c < a ↔ b < c * a :=
 by rw [mul_comm, div_lt_iff hc]
 
 lemma div_lt_iff_of_neg (hc : c < 0) : b / c < a ↔ a * c < b :=
-⟨mul_lt_of_div_lt_of_neg hc, div_lt_of_mul_gt_of_neg hc⟩
+⟨mul_lt_of_neg_of_div_lt hc, div_lt_of_neg_of_mul_lt hc⟩
 
 lemma inv_le_inv (ha : 0 < a) (hb : 0 < b) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 by rw [inv_eq_one_div, div_le_iff ha,
@@ -498,7 +487,7 @@ instance linear_ordered_field.to_no_bot_order : no_bot_order α :=
     add_lt_of_le_of_neg (le_refl _) (neg_lt_of_neg_lt $ by simp [zero_lt_one]) ⟩ }
 
 lemma inv_lt_one (ha : 1 < a) : a⁻¹ < 1 :=
-by rw [inv_eq_one_div]; exact div_lt_of_mul_lt_of_pos (lt_trans zero_lt_one ha) (by simp *)
+by rw [inv_eq_one_div]; exact div_lt_of_pos_of_lt_mul (lt_trans zero_lt_one ha) (by simp *)
 
 lemma one_lt_inv (h₁ : 0 < a) (h₂ : a < 1) : 1 < a⁻¹ :=
 by rw [inv_eq_one_div, lt_div_iff h₁]; simp [h₂]

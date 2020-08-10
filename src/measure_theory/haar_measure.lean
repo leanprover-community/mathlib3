@@ -11,6 +11,19 @@ import measure_theory.group
 In this file we prove the existence of Haar measure for a locally compact Hausdorff topological
 group.
 
+For the construction, we follow the write-up by Jonathan Gleason,
+*Existence and Uniqueness of Haar Measure*.
+This is essentially the same argument as in
+https://en.wikipedia.org/wiki/Haar_measure#A_construction_using_compact_subsets.
+
+We construct the Haar measure first on compact sets. For this we define `(K : U)` as the (smallest)
+number of left-translates of `U` are needed to cover `K`. Then we define the Haar measure on compact
+sets as `lim_U (K : U) / (K₀ : U)`, where `U` ranges over open neighborhoods of `1`, and `K₀` is a
+fixed compact set with nonempty interior.
+
+The Haar measure on compact sets forms a content, which we can extend to an outer measure, and
+obtain a measure from that.
+
 ## Main Declarations
 
 * `haar_measure`: the Haar measure on a locally compact Hausdorff group. This is a left invariant
@@ -26,6 +39,7 @@ group.
   - Note: step 9, page 8 contains a mistake: the last defined `μ` does not extend the `μ` on compact
     sets, see Halmos (1950) p. 233, bottom of the page. This makes some other steps (like step 11)
     invalid.
+* https://en.wikipedia.org/wiki/Haar_measure
 -/
 noncomputable theory
 
@@ -66,6 +80,10 @@ def prehaar (K₀ U : set G) (K : compacts G) : ℝ := (index K.1 U : ℝ) / ind
 
 lemma prehaar_empty (K₀ : positive_compacts G) {U : set G} : prehaar K₀.1 U ⊥ = 0 :=
 by { simp only [prehaar, compacts.bot_val, index_empty, nat.cast_zero, zero_div] }
+
+lemma prehaar_nonneg (K₀ : positive_compacts G) {U : set G} (K : compacts G) :
+  0 ≤ prehaar K₀.1 U K :=
+by apply div_nonneg'; norm_cast; apply zero_le
 
 /-- `haar_product K₀` is the product of intervals `[0, (K : K₀)]`, for all compact sets `K`.
   For all `U`, we can show that `prehaar K₀ U ∈ haar_product K₀`. -/
@@ -199,10 +217,6 @@ end
 ### Lemmas about `prehaar`
 -/
 
-lemma prehaar_nonneg (K₀ : positive_compacts G) {U : set G} (K : compacts G)
-  (hU : (interior U).nonempty) : 0 ≤ prehaar K₀.1 U K :=
-by apply div_nonneg'; norm_cast; apply zero_le
-
 lemma prehaar_le_index (K₀ : positive_compacts G) {U : set G} (K : compacts G)
   (hU : (interior U).nonempty) : prehaar K₀.1 U K ≤ index K.1 K₀.1 :=
 begin
@@ -248,7 +262,7 @@ by simp only [prehaar, compacts.map_val, is_left_invariant_index K.2 hU]
 
 lemma prehaar_mem_haar_product (K₀ : positive_compacts G) {U : set G}
   (hU : (interior U).nonempty) : prehaar K₀.1 U ∈ haar_product K₀.1 :=
-by { rintro ⟨K, hK⟩ h2K, rw [mem_Icc], exact ⟨prehaar_nonneg K₀ _ hU, prehaar_le_index K₀ _ hU⟩ }
+by { rintro ⟨K, hK⟩ h2K, rw [mem_Icc], exact ⟨prehaar_nonneg K₀ _, prehaar_le_index K₀ _ hU⟩ }
 
 lemma nonempty_Inter_cl_prehaar (K₀ : positive_compacts G) :
   (haar_product K₀.1 ∩ ⋂ (V : open_nhds_of (1 : G)), cl_prehaar K₀.1 V).nonempty :=

@@ -18,7 +18,7 @@ We begin working with a functor `F : J ⥤ K ⥤ C`. We'll write `G : J × K ⥤
 
 In the first part, given a coherent family `D` of limit cones over the functors `F.obj j`,
 and a cone `c` over `G`, we construct a cone over the cone points of `D`.
-We then show that if `c` is a limit cone`, the constructed cone is also a limit cone.
+We then show that if `c` is a limit cone, the constructed cone is also a limit cone.
 
 In the second part, we state the Fubini theorem in the setting where we have chosen limits
 provided by suitable `has_limit` classes.

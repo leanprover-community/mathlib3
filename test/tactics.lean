@@ -528,6 +528,7 @@ begin
   success_if_fail_with_msg {clear_value k}
     "Cannot clear the body of k. The resulting goal is not type correct.",
   clear_value k f,
+  get_local `k, -- test that `k` is not renamed.
   exact unit.star
 end
 
@@ -537,6 +538,24 @@ begin
   intros,
   clear_value k f,
   exact unit.star
+end
+
+/- Test whether generalize' always uses the exact name stated by the user, even if that name already
+  exists. -/
+example (n : Type) (k : ℕ) : k = 5 → unit :=
+begin
+  generalize' : 5 = n,
+  guard_target (k = n → unit),
+  intro, constructor
+end
+
+/- Test that `generalize'` works correctly with argument `h`, when the expression occurs in the
+  target -/
+example (n : Type) (k : ℕ) : k = 5 → unit :=
+begin
+  generalize' h : 5 = n,
+  guard_target (k = n → unit),
+  intro, constructor
 end
 
 end local_definitions

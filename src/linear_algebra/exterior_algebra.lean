@@ -118,11 +118,6 @@ instance : algebra R (exterior_algebra R M) :=
 
 instance : ring (exterior_algebra S N) := algebra.ring_of_comm_ring_algebra S
 
-instance : mul_action (units ℤ) (exterior_algebra S N) :=
-{ smul := λ u : units ℤ, λ v, (u.val) • v,
-  one_smul := mul_action.one_smul,
-  mul_smul := λ x y b, mul_action.mul_smul x y b }
-
 /--
 The canonical quotient map `tensor_algebra R M → exterior_algebra R M`.
 -/

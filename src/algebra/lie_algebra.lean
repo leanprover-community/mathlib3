@@ -315,13 +315,14 @@ end equiv
 
 namespace direct_sum
 open dfinsupp
+open_locale direct_sum
 
 variables {R : Type u} [comm_ring R]
 variables {ι : Type v} [decidable_eq ι] {L : ι → Type w}
 variables [Π i, lie_ring (L i)] [Π i, lie_algebra R (L i)]
 
 /-- The direct sum of Lie rings carries a natural Lie ring structure. -/
-instance : lie_ring (direct_sum ι L) := {
+instance : lie_ring (⨁ i, L i) := {
   bracket  := zip_with (λ i, λ x y, ⁅x, y⁆) (λ i, lie_zero 0),
   add_lie  := λ x y z, by { ext, simp only [zip_with_apply, add_apply, add_lie], },
   lie_add  := λ x y z, by { ext, simp only [zip_with_apply, add_apply, lie_add], },
@@ -329,11 +330,11 @@ instance : lie_ring (direct_sum ι L) := {
   jacobi   := λ x y z, by { ext, simp only [zip_with_apply, add_apply, lie_ring.jacobi, zero_apply], },
   ..(infer_instance : add_comm_group _) }
 
-@[simp] lemma bracket_apply {x y : direct_sum ι L} {i : ι} :
+@[simp] lemma bracket_apply {x y : (⨁ i, L i)} {i : ι} :
   ⁅x, y⁆ i = ⁅x i, y i⁆ := zip_with_apply
 
 /-- The direct sum of Lie algebras carries a natural Lie algebra structure. -/
-instance : lie_algebra R (direct_sum ι L) :=
+instance : lie_algebra R (⨁ i, L i) :=
 { lie_smul := λ c x y, by { ext, simp only [zip_with_apply, smul_apply, bracket_apply, lie_smul], },
   ..(infer_instance : module R _) }
 

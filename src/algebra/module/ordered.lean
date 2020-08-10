@@ -60,8 +60,7 @@ instance linear_ordered_ring.to_ordered_semimodule [linear_ordered_ring R] :
 variables {β : Type*} [ordered_semiring R] [ordered_add_comm_monoid β] [ordered_semimodule R β]
   {a b : β} {c : R}
 
-lemma smul_lt_smul_of_pos (h₁ : a < b) (h₂ : 0 < c) : c • a < c • b :=
-  ordered_semimodule.smul_lt_smul_of_pos a b h₁ c h₂
+lemma smul_lt_smul_of_pos : a < b → 0 < c → c • a < c • b := ordered_semimodule.smul_lt_smul_of_pos
 
 lemma smul_le_smul_of_nonneg (h₁ : a ≤ b) (h₂ : 0 ≤ c) : c • a ≤ c • b :=
 begin

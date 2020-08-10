@@ -53,7 +53,7 @@ theorem is_basis.le_span {v : ι → V} {J : set V} (hv : is_basis K v)
    (hJ : span K J = ⊤) : cardinal.mk (range v) ≤ cardinal.mk J :=
 begin
   cases le_or_lt cardinal.omega (cardinal.mk J) with oJ oJ,
-  { have := cardinal.mk_range_eq_of_injective (linear_independent.injective zero_ne_one hv.1),
+  { have := cardinal.mk_range_eq_of_injective (linear_independent.injective hv.1),
     let S : J → set ι := λ j, ↑(is_basis.repr hv j).support,
     let S' : J → set V := λ j, v '' S j,
     have hs : range v ⊆ ⋃ j, S' j,
@@ -94,14 +94,14 @@ begin
   apply le_antisymm,
   { convert cardinal.lift_le.{u' (max w w')}.2 (hv.le_span hv'.2),
     { rw cardinal.lift_max.{w u' w'},
-      apply (cardinal.mk_range_eq_of_injective (hv.injective zero_ne_one)).symm, },
+      apply (cardinal.mk_range_eq_of_injective hv.injective).symm, },
     { rw cardinal.lift_max.{w' u' w},
-      apply (cardinal.mk_range_eq_of_injective (hv'.injective zero_ne_one)).symm, }, },
+      apply (cardinal.mk_range_eq_of_injective hv'.injective).symm, }, },
   { convert cardinal.lift_le.{u' (max w w')}.2 (hv'.le_span hv.2),
     { rw cardinal.lift_max.{w' u' w},
-      apply (cardinal.mk_range_eq_of_injective (hv'.injective zero_ne_one)).symm, },
+      apply (cardinal.mk_range_eq_of_injective hv'.injective).symm, },
     { rw cardinal.lift_max.{w u' w'},
-      apply (cardinal.mk_range_eq_of_injective (hv.injective zero_ne_one)).symm, }, }
+      apply (cardinal.mk_range_eq_of_injective hv.injective).symm, }, }
 end
 
 theorem is_basis.mk_range_eq_dim {v : ι → V} (h : is_basis K v) :
@@ -111,13 +111,17 @@ begin
   rcases this with ⟨v', e⟩,
   rw e,
   apply cardinal.lift_inj.1,
-  rw cardinal.mk_range_eq_of_injective (h.injective zero_ne_one),
+  rw cardinal.mk_range_eq_of_injective h.injective,
   convert @mk_eq_mk_of_basis _ _ _ _ _ _ _ _ _ h v'.property
 end
 
 theorem is_basis.mk_eq_dim {v : ι → V} (h : is_basis K v) :
   cardinal.lift.{w u'} (cardinal.mk ι) = cardinal.lift.{u' w} (dim K V) :=
-by rw [←h.mk_range_eq_dim, cardinal.mk_range_eq_of_injective (h.injective zero_ne_one)]
+by rw [←h.mk_range_eq_dim, cardinal.mk_range_eq_of_injective h.injective]
+
+theorem {m} is_basis.mk_eq_dim' {v : ι → V} (h : is_basis K v) :
+  cardinal.lift.{w (max u' m)} (cardinal.mk ι) = cardinal.lift.{u' (max w m)} (dim K V) :=
+by simpa using h.mk_eq_dim
 
 variables [add_comm_group V₂] [vector_space K V₂]
 
@@ -143,21 +147,27 @@ by rw [←cardinal.lift_inj, ← (@is_basis_singleton_one punit K _ _).mk_eq_dim
 lemma dim_span {v : ι → V} (hv : linear_independent K v) :
   dim K ↥(span K (range v)) = cardinal.mk (range v) :=
 by rw [←cardinal.lift_inj, ← (is_basis_span hv).mk_eq_dim,
-    cardinal.mk_range_eq_of_injective (@linear_independent.injective ι K V v _ _ _ zero_ne_one hv)]
+    cardinal.mk_range_eq_of_injective (@linear_independent.injective ι K V v _ _ _ _ hv)]
 
 lemma dim_span_set {s : set V} (hs : linear_independent K (λ x, x : s → V)) :
   dim K ↥(span K s) = cardinal.mk s :=
 by { rw [← @set_of_mem_eq _ s, ← subtype.range_coe_subtype], exact dim_span hs }
 
+lemma {m} cardinal_lift_le_dim_of_linear_independent
+  {ι : Type w} {v : ι → V} (hv : linear_independent K v) :
+  cardinal.lift.{w (max u' m)} (cardinal.mk ι) ≤ cardinal.lift.{u' (max w m)} (dim K V) :=
+begin
+  obtain ⟨ι', v', is⟩ := exists_sum_is_basis hv,
+  rw [← cardinal.lift_umax, ← cardinal.lift_umax.{u'}],
+  simpa using le_trans
+    (cardinal.lift_mk_le.{w _ (max u' m)}.2 ⟨@function.embedding.inl ι ι'⟩)
+    (le_of_eq $ is_basis.mk_eq_dim'.{_ _ _ (max w m)} is),
+end
+
 lemma cardinal_le_dim_of_linear_independent
   {ι : Type u'} {v : ι → V} (hv : linear_independent K v) :
   (cardinal.mk ι) ≤ (dim.{u u'} K V) :=
-begin
-  obtain ⟨ι', v', is⟩ := exists_sum_is_basis hv,
-  simpa using le_trans
-    (cardinal.lift_mk_le.{u' u' u'}.2 ⟨@function.embedding.inl ι ι'⟩)
-    (le_of_eq is.mk_eq_dim),
-end
+by simpa using cardinal_lift_le_dim_of_linear_independent hv
 
 lemma cardinal_le_dim_of_linear_independent'
   {s : set V} (hs : linear_independent K (λ x, x : s → V)) :

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, Yury Kudryashov,
 Neil Strickland
 -/
-import algebra.group_with_zero
+import algebra.divisibility
+import data.set.basic
 
 /-!
 # Properties and homomorphisms of semirings and rings
@@ -257,6 +258,29 @@ theorem coe_monoid_hom_injective : function.injective (coe : (α →+* β) → (
 /-- Ring homomorphisms preserve multiplication. -/
 @[simp] lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := f.map_mul' a b
 
+/-- `f : R →+* S` has a trivial codomain iff `f 1 = 0`. -/
+lemma codomain_trivial_iff_map_one_eq_zero : (0 : β) = 1 ↔ f 1 = 0 :=
+by rw [map_one, eq_comm]
+
+/-- `f : R →+* S` has a trivial codomain iff it has a trivial range. -/
+lemma codomain_trivial_iff_range_trivial : (0 : β) = 1 ↔ (∀ x, f x = 0) :=
+f.codomain_trivial_iff_map_one_eq_zero.trans
+  ⟨λ h x, by rw [←mul_one x, map_mul, h, mul_zero], λ h, h 1⟩
+
+/-- `f : R →+* S` has a trivial codomain iff its range is `{0}`. -/
+lemma codomain_trivial_iff_range_eq_singleton_zero : (0 : β) = 1 ↔ set.range f = {0} :=
+f.codomain_trivial_iff_range_trivial.trans
+  ⟨ λ h, set.ext (λ y, ⟨λ ⟨x, hx⟩, by simp [←hx, h x], λ hy, ⟨0, by simpa using hy.symm⟩⟩),
+    λ h x, set.mem_singleton_iff.mp (h ▸ set.mem_range_self x)⟩
+
+/-- `f : R →+* S` doesn't map `1` to `0` if `S` is nontrivial -/
+lemma map_one_ne_zero [nontrivial β] : f 1 ≠ 0 :=
+mt f.codomain_trivial_iff_map_one_eq_zero.mpr zero_ne_one
+
+/-- If there is a homomorphism `f : R →+* S` and `S` is nontrivial, then `R` is nontrivial. -/
+lemma domain_nontrivial [nontrivial β] : nontrivial α :=
+⟨⟨1, 0, mt (λ h, show f 1 = 0, by rw [h, map_zero]) f.map_one_ne_zero⟩⟩
+
 end
 
 /-- The identity ring homomorphism from a semiring to itself. -/
@@ -354,84 +378,8 @@ lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
 calc (a + b)*(a + b) = a*a + (1+1)*a*b + b*b : by simp [add_mul, mul_add, mul_comm, add_assoc]
               ...     = a*a + 2*a*b + b*b    : by rw one_add_one_eq_two
 
-instance comm_semiring_has_dvd : has_dvd α :=
-has_dvd.mk (λ a b, ∃ c, b = a * c)
-
--- TODO: this used to not have c explicit, but that seems to be important
---       for use with tactics, similar to exist.intro
-theorem dvd.intro (c : α) (h : a * c = b) : a ∣ b :=
-exists.intro c h^.symm
-
-alias dvd.intro ← dvd_of_mul_right_eq
-
-theorem dvd.intro_left (c : α) (h : c * a = b) : a ∣ b :=
-dvd.intro _ (begin rewrite mul_comm at h, apply h end)
-
-alias dvd.intro_left ← dvd_of_mul_left_eq
-
-theorem exists_eq_mul_right_of_dvd (h : a ∣ b) : ∃ c, b = a * c := h
-
-theorem dvd.elim {P : Prop} {a b : α} (H₁ : a ∣ b) (H₂ : ∀ c, b = a * c → P) : P :=
-exists.elim H₁ H₂
-
-theorem exists_eq_mul_left_of_dvd (h : a ∣ b) : ∃ c, b = c * a :=
-dvd.elim h (assume c, assume H1 : b = a * c, exists.intro c (eq.trans H1 (mul_comm a c)))
-
-theorem dvd.elim_left {P : Prop} (h₁ : a ∣ b) (h₂ : ∀ c, b = c * a → P) : P :=
-exists.elim (exists_eq_mul_left_of_dvd h₁) (assume c, assume h₃ : b = c * a, h₂ c h₃)
-
-@[refl, simp] theorem dvd_refl (a : α) : a ∣ a :=
-dvd.intro 1 (by simp)
-
-local attribute [simp] mul_assoc mul_comm mul_left_comm
-
-@[trans] theorem dvd_trans (h₁ : a ∣ b) (h₂ : b ∣ c) : a ∣ c :=
-match h₁, h₂ with
-| ⟨d, (h₃ : b = a * d)⟩, ⟨e, (h₄ : c = b * e)⟩ :=
-  ⟨d * e, show c = a * (d * e), by simp [h₃, h₄]⟩
-end
-
-alias dvd_trans ← dvd.trans
-
-theorem eq_zero_of_zero_dvd (h : 0 ∣ a) : a = 0 :=
-dvd.elim h (assume c, assume H' : a = 0 * c, eq.trans H' (zero_mul c))
-
-/-- Given an element a of a commutative semiring, there exists another element whose product
-    with zero equals a iff a equals zero. -/
-@[simp] lemma zero_dvd_iff : 0 ∣ a ↔ a = 0 :=
-⟨eq_zero_of_zero_dvd, λ h, by rw h⟩
-
-@[simp] theorem dvd_zero (a : α) : a ∣ 0 := dvd.intro 0 (by simp)
-
-@[simp] theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (by simp)
-
-@[simp] theorem dvd_mul_right (a b : α) : a ∣ a * b := dvd.intro b rfl
-
-@[simp] theorem dvd_mul_left (a b : α) : a ∣ b * a := dvd.intro b (by simp)
-
-theorem dvd_mul_of_dvd_left (h : a ∣ b) (c : α) : a ∣ b * c :=
-dvd.elim h (λ d h', begin rw [h', mul_assoc], apply dvd_mul_right end)
-
-theorem dvd_mul_of_dvd_right (h : a ∣ b) (c : α) : a ∣ c * b :=
-begin rw mul_comm, exact dvd_mul_of_dvd_left h _ end
-
-theorem mul_dvd_mul : ∀ {a b c d : α}, a ∣ b → c ∣ d → a * c ∣ b * d
-| a ._ c ._ ⟨e, rfl⟩ ⟨f, rfl⟩ := ⟨e * f, by simp⟩
-
-theorem mul_dvd_mul_left (a : α) {b c : α} (h : b ∣ c) : a * b ∣ a * c :=
-mul_dvd_mul (dvd_refl a) h
-
-theorem mul_dvd_mul_right (h : a ∣ b) (c : α) : a * c ∣ b * c :=
-mul_dvd_mul h (dvd_refl c)
-
 theorem dvd_add (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
 dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
-
-theorem dvd_of_mul_right_dvd (h : a * b ∣ c) : a ∣ c :=
-dvd.elim h (begin intros d h₁, rw [h₁, mul_assoc], apply dvd_mul_right end)
-
-theorem dvd_of_mul_left_dvd (h : a * b ∣ c) : b ∣ c :=
-dvd.elim h (λ d ceq, dvd.intro (a * d) (by simp [ceq]))
 
 @[simp] theorem two_dvd_bit0 : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
 
@@ -594,7 +542,7 @@ namespace ring_hom
   f (x - y) = (f x) - (f y) := (f : α →+ β).map_sub x y
 
 /-- A ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff {α β} [ring α] [ring β] (f : α →+* β) :
+theorem injective_iff {α β} [ring α] [semiring β] (f : α →+* β) :
   function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
 (f : α →+ β).injective_iff
 
@@ -880,6 +828,25 @@ end
 end comm_semiring
 
 end is_unit
+
+namespace ring
+variables [ring R]
+open_locale classical
+
+/-- Introduce a function `inverse` on a ring `R`, which sends `x` to `x⁻¹` if `x` is invertible and
+to `0` otherwise.  This definition is somewhat ad hoc, but one needs a fully (rather than partially)
+defined inverse function for some purposes, including for calculus. -/
+noncomputable def inverse : R → R :=
+λ x, if h : is_unit x then (((classical.some h)⁻¹ : units R) : R) else 0
+
+/-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
+lemma inverse_unit (a : units R) : inverse (a : R) = (a⁻¹ : units R) :=
+begin
+  simp [is_unit_unit, inverse],
+  exact units.inv_unique (classical.some_spec (is_unit_unit a)),
+end
+
+end ring
 
 /-- A predicate to express that a ring is an integral domain.
 

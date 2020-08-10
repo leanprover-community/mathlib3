@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Chris Hughes
 -/
 import ring_theory.coprime
-import ring_theory.ideals
+import ring_theory.ideal.basic
 noncomputable theory
 open_locale classical
 open euclidean_domain set ideal

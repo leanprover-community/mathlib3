@@ -6,7 +6,7 @@ Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston
 
 import data.equiv.ring
 import tactic.ring_exp
-import ring_theory.ideal_operations
+import ring_theory.ideal.operations
 import group_theory.monoid_localization
 import ring_theory.algebraic
 import ring_theory.integral_closure

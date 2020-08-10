@@ -144,7 +144,7 @@ def equiv_fin_of_forall_mem_list {α} [decidable_eq α]
   `n = card α`. Since it is not unique, and depends on which permutation
   of the universe list is used, the bijection is wrapped in `trunc` to
   preserve computability.  -/
-def equiv_fin (α) [fintype α] [decidable_eq α] : trunc (α ≃ fin (card α)) :=
+def equiv_fin (α) [decidable_eq α] [fintype α] : trunc (α ≃ fin (card α)) :=
 by unfold card finset.card; exact
 quot.rec_on_subsingleton (@univ α _).1
   (λ l (h : ∀ x:α, x ∈ l) (nd : l.nodup), trunc.mk (equiv_fin_of_forall_mem_list h nd))
@@ -190,7 +190,7 @@ def of_bijective [fintype α] (f : α → β) (H : function.bijective f) : finty
 λ b, let ⟨a, e⟩ := H.2 b in e ▸ mem_map_of_mem _ (mem_univ _)⟩
 
 /-- If `f : α → β` is a surjection and `α` is a fintype, then `β` is also a fintype. -/
-def of_surjective [fintype α] [decidable_eq β] (f : α → β) (H : function.surjective f) : fintype β :=
+def of_surjective [decidable_eq β] [fintype α] (f : α → β) (H : function.surjective f) : fintype β :=
 ⟨univ.image f, λ b, let ⟨a, e⟩ := H b in e ▸ mem_image_of_mem _ (mem_univ _)⟩
 
 noncomputable def of_injective [fintype β] (f : α → β) (H : function.injective f) : fintype α :=
@@ -258,7 +258,7 @@ end set
 lemma finset.card_univ [fintype α] : (finset.univ : finset α).card = fintype.card α :=
 rfl
 
-lemma finset.card_univ_diff [fintype α] [decidable_eq α] (s : finset α) :
+lemma finset.card_univ_diff [decidable_eq α] [fintype α] (s : finset α) :
   (finset.univ \ s).card = fintype.card α - s.card :=
 finset.card_sdiff (subset_univ s)
 
@@ -572,7 +572,7 @@ by rw [← e.equiv_of_fintype_self_embedding_to_embedding, univ_map_equiv_to_emb
 
 namespace fintype
 
-variables [fintype α] [decidable_eq α] {δ : α → Type*}
+variables [decidable_eq α] [fintype α] {δ : α → Type*}
 
 /-- Given for all `a : α` a finset `t a` of `δ a`, then one can define the
 finset `fintype.pi_finset t` of all functions taking values in `t a` for all `a`. This is the
@@ -732,7 +732,7 @@ theorem quotient.fin_choice_aux_eq {ι : Type*} [decidable_eq ι]
   subst j, refl
 end
 
-def quotient.fin_choice {ι : Type*} [fintype ι] [decidable_eq ι]
+def quotient.fin_choice {ι : Type*} [decidable_eq ι] [fintype ι]
   {α : ι → Type*} [S : ∀ i, setoid (α i)]
   (f : ∀ i, quotient (S i)) : @quotient (Π i, α i) (by apply_instance) :=
 quotient.lift_on (@quotient.rec_on _ _ (λ l : multiset ι,
@@ -750,7 +750,7 @@ quotient.lift_on (@quotient.rec_on _ _ (λ l : multiset ι,
   (λ f, ⟦λ i, f i (finset.mem_univ _)⟧)
   (λ a b h, quotient.sound $ λ i, h _ _)
 
-theorem quotient.fin_choice_eq {ι : Type*} [fintype ι] [decidable_eq ι]
+theorem quotient.fin_choice_eq {ι : Type*} [decidable_eq ι] [fintype ι]
   {α : ι → Type*} [∀ i, setoid (α i)]
   (f : ∀ i, α i) : quotient.fin_choice (λ i, ⟦f i⟧) = ⟦f⟧ :=
 begin
@@ -901,7 +901,7 @@ section choose
 open fintype
 open equiv
 
-variables [fintype α] [decidable_eq α] (p : α → Prop) [decidable_pred p]
+variables [decidable_eq α] [fintype α] (p : α → Prop) [decidable_pred p]
 
 def choose_x (hp : ∃! a : α, p a) : {a // p a} :=
 ⟨finset.choose p univ (by simp; exact hp), finset.choose_property _ _ _⟩
@@ -916,8 +916,8 @@ end choose
 section bijection_inverse
 open function
 
-variables [fintype α] [decidable_eq α]
-variables [fintype β] [decidable_eq β]
+variables [decidable_eq α] [fintype α]
+variables [decidable_eq β] [fintype β]
 variables {f : α → β}
 
 /-- `
@@ -1003,8 +1003,13 @@ begin
   rw [h, nat_embedding_aux]
 end
 
+/-- Embedding of `ℕ` into an infinite type. -/
 noncomputable def nat_embedding (α : Type*) [infinite α] : ℕ ↪ α :=
 ⟨_, nat_embedding_aux_injective α⟩
+
+lemma exists_subset_card_eq (α : Type*) [infinite α] (n : ℕ) :
+  ∃ s : finset α, s.card = n :=
+⟨(range n).map (nat_embedding α), by rw [card_map, card_range]⟩
 
 end infinite
 

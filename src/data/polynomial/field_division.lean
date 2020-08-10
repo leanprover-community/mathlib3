@@ -169,11 +169,13 @@ p.degree_map_eq_of_injective f.injective
   nat_degree (p.map f) = nat_degree p :=
 nat_degree_eq_of_degree_eq (degree_map _ f)
 
-
 @[simp] lemma leading_coeff_map [field k] (f : R →+* k) :
   leading_coeff (p.map f) = f (leading_coeff p) :=
 by simp [leading_coeff, coeff_map f]
 
+theorem is_unit_map [field k] (f : R →+* k) :
+  is_unit (p.map f) ↔ is_unit p :=
+by simp_rw [is_unit_iff_degree_eq_zero, degree_map]
 
 lemma map_div [field k] (f : R →+* k) :
   (p / q).map f = p.map f / q.map f :=
@@ -188,9 +190,25 @@ if hq0 : q = 0 then by simp [hq0]
 else by rw [mod_def, mod_def, leading_coeff_map f, ← f.map_inv, ← map_C f,
   ← map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
 
+section
+open euclidean_domain
+local attribute [-instance] finsupp.finsupp.decidable_eq
+theorem gcd_map [field k] (f : R →+* k) :
+  gcd (p.map f) (q.map f) = (gcd p q).map f :=
+gcd.induction p q (λ x, by simp_rw [map_zero, euclidean_domain.gcd_zero_left]) $ λ x y hx ih,
+by rw [gcd_val, ← map_mod, ih, ← gcd_val]
+end
+
+theorem is_coprime_map [field k] (f : R →+* k) :
+  is_coprime (p.map f) (q.map f) ↔ is_coprime p q :=
+by rw [← gcd_is_unit_iff, ← gcd_is_unit_iff, gcd_map, is_unit_map]
+
 @[simp] lemma map_eq_zero [field k] (f : R →+* k) :
   p.map f = 0 ↔ p = 0 :=
 by simp [polynomial.ext_iff, f.map_eq_zero, coeff_map]
+
+lemma map_ne_zero [field k] {f : R →+* k} (hp : p ≠ 0) : p.map f ≠ 0 :=
+mt (map_eq_zero f).1 hp
 
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),

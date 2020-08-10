@@ -79,7 +79,7 @@ mul_lt_mul_of_pos_left h hb
 
 lemma one_le_div_of_le (a : α) {b : α} (hb : 0 < b) (h : b ≤ a) : 1 ≤ a / b :=
 have hb'   : b ≠ 0,     from ne_of_gt hb,
-have hbinv : 0 < 1 / b, from  one_div_pos.2 hb,
+have hbinv : 0 < 1 / b, from one_div_pos.2 hb,
 calc
    1  = b * (1 / b)  : eq.symm (mul_one_div_cancel hb')
    ... ≤ a * (1 / b) : mul_le_mul_of_nonneg_right h (le_of_lt hbinv)

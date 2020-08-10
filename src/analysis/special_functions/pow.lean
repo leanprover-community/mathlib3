@@ -365,10 +365,10 @@ by { rw ← one_rpow z, exact rpow_lt_rpow hx1 hx2 hz }
 lemma rpow_le_one {x z : ℝ} (hx1 : 0 ≤ x) (hx2 : x ≤ 1) (hz : 0 ≤ z) : x^z ≤ 1 :=
 by { rw ← one_rpow z, exact rpow_le_rpow hx1 hx2 hz }
 
-lemma rpow_lt_one' {x z : ℝ} (hx : 1 < x) (hz : z < 0) : x^z < 1 :=
+lemma rpow_lt_one_of_one_lt_of_neg {x z : ℝ} (hx : 1 < x) (hz : z < 0) : x^z < 1 :=
 by { convert rpow_lt_rpow_of_exponent_lt hx hz, exact (rpow_zero x).symm }
 
-lemma rpow_le_one' {x z : ℝ} (hx : 1 ≤ x) (hz : z ≤ 0) : x^z ≤ 1 :=
+lemma rpow_le_one_of_one_le_of_nonpos {x z : ℝ} (hx : 1 ≤ x) (hz : z ≤ 0) : x^z ≤ 1 :=
 by { convert rpow_le_rpow_of_exponent_le hx hz, exact (rpow_zero x).symm }
 
 lemma one_lt_rpow {x z : ℝ} (hx : 1 < x) (hz : 0 < z) : 1 < x^z :=
@@ -377,10 +377,12 @@ by { rw ← one_rpow z, exact rpow_lt_rpow zero_le_one hx hz }
 lemma one_le_rpow {x z : ℝ} (hx : 1 ≤ x) (hz : 0 ≤ z) : 1 ≤ x^z :=
 by { rw ← one_rpow z, exact rpow_le_rpow zero_le_one hx hz }
 
-lemma one_lt_rpow' {x z : ℝ} (hx1 : 0 < x) (hx2 : x < 1) (hz : z < 0) : 1 < x^z :=
+lemma one_lt_rpow_of_pos_of_lt_one_of_neg {x z : ℝ} (hx1 : 0 < x) (hx2 : x < 1) (hz : z < 0) :
+  1 < x^z :=
 by { convert rpow_lt_rpow_of_exponent_gt hx1 hx2 hz, exact (rpow_zero x).symm }
 
-lemma one_le_rpow' {x z : ℝ} (hx1 : 0 < x) (hx2 : x ≤ 1) (hz : z ≤ 0) : 1 ≤ x^z :=
+lemma one_le_rpow_of_pos_of_le_one_of_nonpos {x z : ℝ} (hx1 : 0 < x) (hx2 : x ≤ 1) (hz : z ≤ 0) :
+  1 ≤ x^z :=
 by { convert rpow_le_rpow_of_exponent_ge hx1 hx2 hz, exact (rpow_zero x).symm }
 
 lemma pow_nat_rpow_nat_inv {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) :
@@ -827,11 +829,11 @@ real.rpow_lt_one hx hx1 hz
 lemma rpow_le_one {x : ℝ≥0} {z : ℝ} (hx2 : x ≤ 1) (hz : 0 ≤ z) : x^z ≤ 1 :=
 real.rpow_le_one x.2 hx2 hz
 
-lemma rpow_lt_one' {x : ℝ≥0} {z : ℝ} (hx : 1 < x) (hz : z < 0) : x^z < 1 :=
-real.rpow_lt_one' hx hz
+lemma rpow_lt_one_of_one_lt_of_neg {x : ℝ≥0} {z : ℝ} (hx : 1 < x) (hz : z < 0) : x^z < 1 :=
+real.rpow_lt_one_of_one_lt_of_neg hx hz
 
-lemma rpow_le_one' {x : ℝ≥0} {z : ℝ} (hx : 1 ≤ x) (hz : z ≤ 0) : x^z ≤ 1 :=
-real.rpow_le_one' hx hz
+lemma rpow_le_one_of_one_le_of_nonpos {x : ℝ≥0} {z : ℝ} (hx : 1 ≤ x) (hz : z ≤ 0) : x^z ≤ 1 :=
+real.rpow_le_one_of_one_le_of_nonpos hx hz
 
 lemma one_lt_rpow {x : ℝ≥0} {z : ℝ} (hx : 1 < x) (hz : 0 < z) : 1 < x^z :=
 real.one_lt_rpow hx hz
@@ -839,11 +841,13 @@ real.one_lt_rpow hx hz
 lemma one_le_rpow {x : ℝ≥0} {z : ℝ} (h : 1 ≤ x) (h₁ : 0 ≤ z) : 1 ≤ x^z :=
 real.one_le_rpow h h₁
 
-lemma one_lt_rpow' {x : ℝ≥0} {z : ℝ} (hx1 : 0 < x) (hx2 : x < 1) (hz : z < 0) : 1 < x^z :=
-real.one_lt_rpow' hx1 hx2 hz
+lemma one_lt_rpow_of_pos_of_lt_one_of_neg {x : ℝ≥0} {z : ℝ} (hx1 : 0 < x) (hx2 : x < 1)
+  (hz : z < 0) : 1 < x^z :=
+real.one_lt_rpow_of_pos_of_lt_one_of_neg hx1 hx2 hz
 
-lemma one_le_rpow' {x : ℝ≥0} {z : ℝ} (hx1 : 0 < x) (hx2 : x ≤ 1) (hz : z ≤ 0) : 1 ≤ x^z :=
-real.one_le_rpow' hx1 hx2 hz
+lemma one_le_rpow_of_pos_of_le_one_of_nonpos {x : ℝ≥0} {z : ℝ} (hx1 : 0 < x) (hx2 : x ≤ 1)
+  (hz : z ≤ 0) : 1 ≤ x^z :=
+real.one_le_rpow_of_pos_of_le_one_of_nonpos hx1 hx2 hz
 
 lemma pow_nat_rpow_nat_inv (x : ℝ≥0) {n : ℕ} (hn : 0 < n) :
   (x ^ n) ^ (n⁻¹ : ℝ) = x :=

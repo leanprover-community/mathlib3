@@ -2466,7 +2466,7 @@ end restrict_scalars
 ### Multiplying by a complex function respects real differentiability
 
 Consider two functions `c : E → ℂ` and `f : E → F` where `F` is a complex vector space. If both
-`c` and `f` are differentiable over `ℝ`, then so is there product. This paragraph proves this
+`c` and `f` are differentiable over `ℝ`, then so is their product. This paragraph proves this
 statement, in the general version where `ℝ` is replaced by a field `𝕜`, and `ℂ` is replaced
 by a normed algebra `𝕜'` over `𝕜`.
  -/

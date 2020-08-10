@@ -173,6 +173,10 @@ nat_degree_eq_of_degree_eq (degree_map _ f)
   leading_coeff (p.map f) = f (leading_coeff p) :=
 by simp [leading_coeff, coeff_map f]
 
+theorem monic_map_iff [field k] {f : R →+* k} {p : polynomial R} :
+  (p.map f).monic ↔ p.monic :=
+by rw [monic, leading_coeff_map, ← f.map_one, function.injective.eq_iff f.injective, monic]
+
 theorem is_unit_map [field k] (f : R →+* k) :
   is_unit (p.map f) ↔ is_unit p :=
 by simp_rw [is_unit_iff_degree_eq_zero, degree_map]
@@ -283,6 +287,14 @@ prime_of_associated normalize_associated this
 
 lemma irreducible_of_degree_eq_one (hp1 : degree p = 1) : irreducible p :=
 irreducible_of_prime (prime_of_degree_eq_one hp1)
+
+theorem not_irreducible_C (x : R) : ¬irreducible (C x) :=
+if H : x = 0 then by { rw [H, C_0], exact not_irreducible_zero }
+else λ hx, irreducible.not_unit hx $ is_unit_C.2 $ is_unit_iff_ne_zero.2 H
+
+theorem degree_pos_of_irreducible (hp : irreducible p) : 0 < p.degree :=
+lt_of_not_ge $ λ hp0, have _ := eq_C_of_degree_le_zero hp0,
+not_irreducible_C (p.coeff 0) $ this ▸ hp
 
 theorem pairwise_coprime_X_sub {α : Type u} [field α] {I : Type v}
   {s : I → α} (H : function.injective s) :

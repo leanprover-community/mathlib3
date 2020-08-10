@@ -51,23 +51,23 @@ We now construct as morphisms various inclusions of open sets.
 The inclusion `U ⊓ V ⟶ U` as a morphism in the category of open sets.
 -/
 def inf_le_left (U V : opens X) : U ⊓ V ⟶ U :=
-ulift.up (plift.up inf_le_left)
+hom_of_le inf_le_left
 
 /--
 The inclusion `U ⊓ V ⟶ V` as a morphism in the category of open sets.
 -/
 def inf_le_right (U V : opens X) : U ⊓ V ⟶ V :=
-ulift.up (plift.up inf_le_right)
+hom_of_le inf_le_right
 
 /--
 The inclusion `U i ⟶ supr U` as a morphism in the category of open sets.
 -/
 def le_supr {ι : Type*} (U : ι → opens X) (i : ι) : U i ⟶ supr U :=
-ulift.up (plift.up (le_supr U i))
+hom_of_le (le_supr U i)
 
 instance opens_hom_has_coe_to_fun {U V : opens X} : has_coe_to_fun (U ⟶ V) :=
 { F := λ f, U → V,
-  coe := λ f x, ⟨x, f.down.down x.2⟩ }
+  coe := λ f x, ⟨x, (le_of_hom f) x.2⟩ }
 
 /--
 The functor from open sets in `X` to `Top`,
@@ -75,19 +75,19 @@ realising each open set as a topological space itself.
 -/
 def to_Top (X : Top.{u}) : opens X ⥤ Top :=
 { obj := λ U, ⟨U.val, infer_instance⟩,
-  map := λ U V i, ⟨λ x, ⟨x.1, i.down.down x.2⟩,
+  map := λ U V i, ⟨λ x, ⟨x.1, (le_of_hom i) x.2⟩,
     (embedding.continuous_iff embedding_subtype_coe).2 continuous_induced_dom⟩ }
 
 @[simp]
 lemma to_Top_map (X : Top.{u}) {U V : opens X} {f : U ⟶ V} {x} {h} :
-  ((to_Top X).map f) ⟨x, h⟩ = ⟨x, f.down.down h⟩ :=
+  ((to_Top X).map f) ⟨x, h⟩ = ⟨x, (le_of_hom f) h⟩ :=
 rfl
 
 /-- `opens.map f` gives the functor from open sets in Y to open set in X,
     given by taking preimages under f. -/
 def map (f : X ⟶ Y) : opens Y ⥤ opens X :=
 { obj := λ U, ⟨ f ⁻¹' U.val, f.continuous _ U.property ⟩,
-  map := λ U V i, ⟨ ⟨ λ a b, i.down.down b ⟩ ⟩ }.
+  map := λ U V i, ⟨ ⟨ λ a b, (le_of_hom i) b ⟩ ⟩ }.
 
 @[simp] lemma map_obj (f : X ⟶ Y) (U) (p) : (map f).obj ⟨U, p⟩ = ⟨f ⁻¹' U, f.continuous _ p⟩ :=
 rfl

@@ -230,7 +230,7 @@ instance module.endomorphism_algebra (R : Type u) (M : Type v)
   smul_def' := by { intros, ext, simp } }
 
 instance matrix_algebra (n : Type u) (R : Type v)
-  [fintype n] [decidable_eq n] [comm_semiring R] : algebra R (matrix n n R) :=
+  [decidable_eq n] [fintype n] [comm_semiring R] : algebra R (matrix n n R) :=
 { commutes' := by { intros, simp [matrix.scalar], },
   smul_def' := by { intros, simp [matrix.scalar], },
   ..(matrix.scalar n) }
@@ -400,6 +400,11 @@ variables [algebra R A] [algebra R B] [algebra R C] (φ : A →ₐ[R] B)
 
 end ring
 
+theorem injective_iff {R A B : Type*} [comm_semiring R] [ring A] [semiring B]
+  [algebra R A] [algebra R B] (f : A →ₐ[R] B) :
+  function.injective f ↔ (∀ x, f x = 0 → x = 0) :=
+ring_hom.injective_iff (f : A →+* B)
+
 end alg_hom
 
 set_option old_structure_cmd true
@@ -546,6 +551,21 @@ def of_alg_hom (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ : f.com
   left_inv  := alg_hom.ext_iff.1 h₂,
   right_inv := alg_hom.ext_iff.1 h₁,
   ..f }
+
+/-- Promotes a bijective algebra homomorphism to an algebra equivalence. -/
+def of_bijective (f : A₁ →ₐ[R] A₂) (hf : function.bijective f) : A₁ ≃ₐ[R] A₂ :=
+{ .. ring_equiv.of_bijective (f : A₁ →+* A₂) hf, .. f }
+
+/-- Forgetting the multiplicative structures, an equivalence of algebras is a linear equivalence. -/
+def to_linear_equiv (e : A₁ ≃ₐ[R] A₂) : A₁ ≃ₗ[R] A₂ :=
+{ to_fun    := e.to_fun,
+  map_add'  := λ x y, by simp,
+  map_smul' := λ r x, by simp [algebra.smul_def''],
+  inv_fun   := e.symm.to_fun,
+  left_inv  := e.left_inv,
+  right_inv := e.right_inv, }
+
+@[simp] lemma to_linear_equiv_apply (e : A₁ ≃ₐ[R] A₂) (x : A₁) : e.to_linear_equiv x = e x := rfl
 
 end alg_equiv
 
@@ -759,6 +779,9 @@ instance to_algebra {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A
   [algebra R A] (S : subalgebra R A) : algebra S A :=
 algebra.of_subsemiring _
 
+instance nontrivial [nontrivial A] : nontrivial S :=
+subsemiring.nontrivial S
+
 -- todo: standardize on the names these morphisms
 -- compare with submodule.subtype
 
@@ -827,6 +850,10 @@ theorem map_le {S : subalgebra R A} {f : A →ₐ[R] B} {U : subalgebra R B} :
   map S f ≤ U ↔ S ≤ comap' U f :=
 set.image_subset_iff
 
+instance integral_domain {R A : Type*} [comm_ring R] [integral_domain A] [algebra R A]
+  (S : subalgebra R A) : integral_domain S :=
+@subring.domain A _ S _
+
 end subalgebra
 
 namespace alg_hom
@@ -844,6 +871,15 @@ protected def range (φ : A →ₐ[R] B) : subalgebra R B :=
     zero_mem' := ⟨0, φ.map_zero⟩,
     add_mem' := λ _ _ ⟨x, hx⟩ ⟨y, hy⟩, ⟨x + y, by rw [φ.map_add, hx, hy]⟩ },
   algebra_map_mem' := λ r, ⟨algebra_map R A r, φ.commutes r⟩ }
+
+/-- Restrict the codomain of an algebra homomorphism. -/
+def cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) : A →ₐ[R] S :=
+{ commutes' := λ r, subtype.eq $ f.commutes r,
+  .. ring_hom.cod_srestrict (f : A →+* B) S hf }
+
+theorem injective_cod_restrict (f : A →ₐ[R] B) (S : subalgebra R B) (hf : ∀ x, f x ∈ S) :
+  function.injective (f.cod_restrict S hf) ↔ function.injective f :=
+⟨λ H x y hxy, H $ subtype.eq hxy, λ H x y hxy, H (congr_arg subtype.val hxy : _)⟩
 
 end alg_hom
 
@@ -916,6 +952,28 @@ eq_top_iff.2 $ λ x, mem_top
 /-- `alg_hom` to `⊤ : subalgebra R A`. -/
 def to_top : A →ₐ[R] (⊤ : subalgebra R A) :=
 by refine_struct { to_fun := λ x, (⟨x, mem_top⟩ : (⊤ : subalgebra R A)) }; intros; refl
+
+theorem surjective_algbera_map_iff :
+  function.surjective (algebra_map R A) ↔ (⊤ : subalgebra R A) = ⊥ :=
+⟨λ h, eq_bot_iff.2 $ λ y _, let ⟨x, hx⟩ := h y in hx ▸ subalgebra.algebra_map_mem _ _,
+λ h y, algebra.mem_bot.1 $ eq_bot_iff.1 h (algebra.mem_top : y ∈ _)⟩
+
+theorem bijective_algbera_map_iff {R A : Type*} [field R] [semiring A] [nontrivial A] [algebra R A] :
+  function.bijective (algebra_map R A) ↔ (⊤ : subalgebra R A) = ⊥ :=
+⟨λ h, surjective_algbera_map_iff.1 h.2,
+λ h, ⟨(algebra_map R A).injective, surjective_algbera_map_iff.2 h⟩⟩
+
+/-- The bottom subalgebra is isomorphic to the base ring. -/
+def bot_equiv_of_injective (h : function.injective (algebra_map R A)) :
+  (⊥ : subalgebra R A) ≃ₐ[R] R :=
+alg_equiv.symm $ alg_equiv.of_bijective (algebra.of_id R _)
+⟨λ x y hxy, h (congr_arg subtype.val hxy : _),
+ λ ⟨y, hy⟩, let ⟨x, hx⟩ := algebra.mem_bot.1 hy in ⟨x, subtype.eq hx⟩⟩
+
+/-- The bottom subalgebra is isomorphic to the field. -/
+def bot_equiv (F R : Type*) [field F] [semiring R] [nontrivial R] [algebra F R] :
+  (⊥ : subalgebra F R) ≃ₐ[F] F :=
+bot_equiv_of_injective (ring_hom.injective _)
 
 end algebra
 

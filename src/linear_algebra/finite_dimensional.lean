@@ -222,18 +222,17 @@ lemma findim_eq_card_finset_basis {b : finset V}
   findim K V = finset.card b :=
 by { rw [findim_eq_card_basis h, fintype.subtype_card], intros x, refl }
 
--- Note here we've restricted the universe levels of `ι` and `V` to be the same, for convenience.
 lemma cardinal_mk_le_findim_of_linear_independent
-  [finite_dimensional K V] {ι : Type v} {b : ι → V} (h : linear_independent K b) :
+  [finite_dimensional K V] {ι : Type w} {b : ι → V} (h : linear_independent K b) :
   cardinal.mk ι ≤ findim K V :=
 begin
-  convert cardinal_le_dim_of_linear_independent h,
-  rw ←findim_eq_dim K V
+  rw ← lift_le.{_ (max v w)},
+  simpa [← findim_eq_dim K V] using
+    cardinal_lift_le_dim_of_linear_independent.{_ _ _ (max v w)} h
 end
 
--- Note here we've restricted the universe levels of `ι` and `V` to be the same, for convenience.
 lemma fintype_card_le_findim_of_linear_independent
-  [finite_dimensional K V] {ι : Type v} [fintype ι] {b : ι → V} (h : linear_independent K b) :
+  [finite_dimensional K V] {ι : Type*} [fintype ι] {b : ι → V} (h : linear_independent K b) :
   fintype.card ι ≤ findim K V :=
 by simpa [fintype_card] using cardinal_mk_le_findim_of_linear_independent h
 
@@ -244,6 +243,18 @@ begin
   rw ←fintype.card_coe,
   exact fintype_card_le_findim_of_linear_independent h,
 end
+
+/-- A finite dimensional space has positive `findim` iff it has a nonzero element. -/
+lemma findim_pos_iff_exists_ne_zero [finite_dimensional K V] : 0 < findim K V ↔ ∃ x : V, x ≠ 0 :=
+iff.trans (by { rw ← findim_eq_dim, norm_cast }) (@dim_pos_iff_exists_ne_zero K V _ _ _)
+
+/-- A finite dimensional space has positive `findim` iff it is nontrivial. -/
+lemma findim_pos_iff [finite_dimensional K V] : 0 < findim K V ↔ nontrivial V :=
+iff.trans (by { rw ← findim_eq_dim, norm_cast }) (@dim_pos_iff_nontrivial K V _ _ _)
+
+/-- A nontrivial finite dimensional space has positive `findim`. -/
+lemma findim_pos [finite_dimensional K V] [h : nontrivial V] : 0 < findim K V :=
+findim_pos_iff.mpr h
 
 section
 open_locale big_operators
@@ -449,6 +460,14 @@ end
 lemma findim_le [finite_dimensional K V] (s : submodule K V) : findim K s ≤ findim K V :=
 by { rw ← s.findim_quotient_add_findim, exact nat.le_add_left _ _ }
 
+/-- The dimension of a strict submodule is strictly bounded by the dimension of the ambient space. -/
+lemma findim_lt [finite_dimensional K V] {s : submodule K V} (h : s < ⊤) :
+  findim K s < findim K V :=
+begin
+  rw [← s.findim_quotient_add_findim, add_comm],
+  exact nat.lt_add_of_zero_lt_left _ _ (findim_pos_iff.mpr (quotient.nontrivial_of_lt_top _ h))
+end
+
 /-- The dimension of a quotient is bounded by the dimension of the ambient space. -/
 lemma findim_quotient_le [finite_dimensional K V] (s : submodule K V) :
   findim K s.quotient ≤ findim K V :=
@@ -588,4 +607,238 @@ begin
   rw [findim_bot, findim_eq_zero_of_dim_eq_zero h]
 end
 
+@[simp] theorem dim_eq_zero {S : submodule K V} : dim K S = 0 ↔ S = ⊥ :=
+⟨λ h, (submodule.eq_bot_iff _).2 $ λ x hx, congr_arg subtype.val $
+  ((submodule.eq_bot_iff _).1 $ eq.symm $ bot_eq_top_of_dim_eq_zero h) ⟨x, hx⟩ submodule.mem_top,
+λ h, by rw [h, dim_bot]⟩
+
+@[simp] theorem findim_eq_zero {S : submodule K V} [finite_dimensional K S] : findim K S = 0 ↔ S = ⊥ :=
+by rw [← dim_eq_zero, ← findim_eq_dim, ← @nat.cast_zero cardinal, cardinal.nat_cast_inj]
+
 end zero_dim
+
+open vector_space finite_dimensional
+
+section top
+
+@[simp]
+theorem findim_top [finite_dimensional K V] : findim K (⊤ : submodule K V) = findim K V :=
+linear_equiv.findim_eq $ linear_equiv.of_top ⊤ rfl
+
+end top
+
+namespace linear_map
+
+theorem injective_iff_surjective_of_findim_eq_findim [finite_dimensional K V]
+  [finite_dimensional K V₂] (H : findim K V = findim K V₂) {f : V →ₗ[K] V₂} :
+  function.injective f ↔ function.surjective f :=
+begin
+  have := findim_range_add_findim_ker f,
+  rw [← ker_eq_bot, ← range_eq_top], refine ⟨λ h, _, λ h, _⟩,
+  { rw [h, findim_bot, add_zero, H] at this, exact eq_top_of_findim_eq this },
+  { rw [h, findim_top, H] at this, exact findim_eq_zero.1 (add_right_injective _ this) }
+end
+
+theorem findim_le_findim_of_injective [finite_dimensional K V] [finite_dimensional K V₂]
+  {f : V →ₗ[K] V₂} (hf : function.injective f) : findim K V ≤ findim K V₂ :=
+calc  findim K V
+    = findim K f.range + findim K f.ker : (findim_range_add_findim_ker f).symm
+... = findim K f.range : by rw [ker_eq_bot.2 hf, findim_bot, add_zero]
+... ≤ findim K V₂ : submodule.findim_le _
+
+end linear_map
+
+section
+
+/-- An integral domain that is module-finite as an algebra over a field is a field. -/
+noncomputable def field_of_finite_dimensional (F K : Type*) [field F] [integral_domain K]
+  [algebra F K] [finite_dimensional F K] : field K :=
+{ inv := λ x, if H : x = 0 then 0 else classical.some $
+    (show function.surjective (algebra.lmul_left F K x), from
+      linear_map.injective_iff_surjective.1 $ λ _ _, (mul_right_inj' H).1) 1,
+  mul_inv_cancel := λ x hx, show x * dite _ _ _ = _, by { rw dif_neg hx,
+    exact classical.some_spec ((show function.surjective (algebra.lmul_left F K x), from
+      linear_map.injective_iff_surjective.1 $ λ _ _, (mul_right_inj' hx).1) 1) },
+  inv_zero := dif_pos rfl,
+  .. ‹integral_domain K› }
+
+end
+
+namespace submodule
+
+lemma findim_mono [finite_dimensional K V] :
+  monotone (λ (s : submodule K V), findim K s) :=
+λ s t hst,
+calc findim K s = findim K (comap t.subtype s)
+  : linear_equiv.findim_eq (comap_subtype_equiv_of_le hst).symm
+... ≤ findim K t : submodule.findim_le _
+
+lemma lt_of_le_of_findim_lt_findim {s t : submodule K V}
+  (le : s ≤ t) (lt : findim K s < findim K t) : s < t :=
+lt_of_le_of_ne le (λ h, ne_of_lt lt (by rw h))
+
+lemma lt_top_of_findim_lt_findim {s : submodule K V}
+  (lt : findim K s < findim K V) : s < ⊤ :=
+begin
+  by_cases fin : (finite_dimensional K V),
+  { haveI := fin,
+    rw ← @findim_top K V at lt,
+    exact lt_of_le_of_findim_lt_findim le_top lt },
+  { exfalso,
+    have : findim K V = 0 := dif_neg (mt finite_dimensional_iff_dim_lt_omega.mpr fin),
+    rw this at lt,
+    exact nat.not_lt_zero _ lt }
+end
+
+end submodule
+
+section span
+
+open submodule
+
+lemma findim_span_le_card (s : set V) [fin : fintype s] :
+  findim K (span K s) ≤ s.to_finset.card :=
+begin
+  haveI := span_of_finite K ⟨fin⟩,
+  have : dim K (span K s) ≤ (mk s : cardinal) := dim_span_le s,
+  rw [←findim_eq_dim, cardinal.fintype_card, ←set.to_finset_card] at this,
+  exact_mod_cast this
+end
+
+lemma findim_span_eq_card {ι : Type*} [fintype ι] {b : ι → V}
+  (hb : linear_independent K b) :
+  findim K (span K (set.range b)) = fintype.card ι :=
+begin
+  haveI : finite_dimensional K (span K (set.range b)) := span_of_finite K (set.finite_range b),
+  have : dim K (span K (set.range b)) = (mk (set.range b) : cardinal) := dim_span hb,
+  rwa [←findim_eq_dim, ←lift_inj, mk_range_eq_of_injective hb.injective,
+    cardinal.fintype_card, lift_nat_cast, lift_nat_cast, nat_cast_inj] at this,
+end
+
+lemma findim_span_set_eq_card (s : set V) [fin : fintype s]
+  (hs : linear_independent K (coe : s → V)) :
+  findim K (span K s) = s.to_finset.card :=
+begin
+  haveI := span_of_finite K ⟨fin⟩,
+  have : dim K (span K s) = (mk s : cardinal) := dim_span_set hs,
+  rw [←findim_eq_dim, cardinal.fintype_card, ←set.to_finset_card] at this,
+  exact_mod_cast this
+end
+
+lemma span_lt_of_subset_of_card_lt_findim {s : set V} [fintype s] {t : submodule K V}
+  (subset : s ⊆ t) (card_lt : s.to_finset.card < findim K t) : span K s < t :=
+lt_of_le_of_findim_lt_findim (span_le.mpr subset) (lt_of_le_of_lt (findim_span_le_card _) card_lt)
+
+lemma span_lt_top_of_card_lt_findim {s : set V} [fintype s]
+  (card_lt : s.to_finset.card < findim K V) : span K s < ⊤ :=
+lt_top_of_findim_lt_findim (lt_of_le_of_lt (findim_span_le_card _) card_lt)
+
+end span
+
+section is_basis
+
+lemma linear_independent_of_span_eq_top_of_card_eq_findim {ι : Type*} [fintype ι] {b : ι → V}
+  (span_eq : span K (set.range b) = ⊤) (card_eq : fintype.card ι = findim K V) :
+  linear_independent K b :=
+linear_independent_iff'.mpr $ λ s g dependent i i_mem_s,
+begin
+  by_contra gx_ne_zero,
+  -- We'll derive a contradiction by showing `b '' (univ \ {i})` of cardinality `n - 1`
+  -- spans a vector space of dimension `n`.
+  refine ne_of_lt (span_lt_top_of_card_lt_findim
+    (show (b '' (set.univ \ {i})).to_finset.card < findim K V, from _)) _,
+  { calc (b '' (set.univ \ {i})).to_finset.card = ((set.univ \ {i}).to_finset.image b).card
+      : by rw [set.to_finset_card, fintype.card_of_finset]
+    ... ≤ (set.univ \ {i}).to_finset.card : finset.card_image_le
+    ... = (finset.univ.erase i).card : congr_arg finset.card (finset.ext (by simp [and_comm]))
+    ... < finset.univ.card : finset.card_erase_lt_of_mem (finset.mem_univ i)
+    ... = findim K V : card_eq },
+
+  -- We already have that `b '' univ` spans the whole space,
+  -- so we only need to show that the span of `b '' (univ \ {i})` contains each `b j`.
+  refine trans (le_antisymm (span_mono (set.image_subset_range _ _)) (span_le.mpr _)) span_eq,
+  rintros _ ⟨j, rfl, rfl⟩,
+  -- The case that `j ≠ i` is easy because `b j ∈ b '' (univ \ {i})`.
+  by_cases j_eq : j = i,
+  swap,
+  { refine subset_span ⟨j, (set.mem_diff _).mpr ⟨set.mem_univ _, _⟩, rfl⟩,
+    exact mt set.mem_singleton_iff.mp j_eq },
+
+  -- To show `b i ∈ span (b '' (univ \ {i}))`, we use that it's a weighted sum
+  -- of the other `b j`s.
+  rw [j_eq, mem_coe, show b i = -((g i)⁻¹ • (s.erase i).sum (λ j, g j • b j)), from _],
+  { refine submodule.neg_mem _ (smul_mem _ _ (sum_mem _ (λ k hk, _))),
+    obtain ⟨k_ne_i, k_mem⟩ := finset.mem_erase.mp hk,
+    refine smul_mem _ _ (subset_span ⟨k, _, rfl⟩),
+    simpa using k_mem },
+
+  -- To show `b i` is a weighted sum of the other `b j`s, we'll rewrite this sum
+  -- to have the form of the assumption `dependent`.
+  apply eq_neg_of_add_eq_zero,
+  calc b i + (g i)⁻¹ • (s.erase i).sum (λ j, g j • b j)
+      = (g i)⁻¹ • (g i • b i + (s.erase i).sum (λ j, g j • b j))
+    : by rw [smul_add, ←mul_smul, inv_mul_cancel gx_ne_zero, one_smul]
+  ... = (g i)⁻¹ • 0 : congr_arg _ _
+  ... = 0           : smul_zero _,
+  -- And then it's just a bit of manipulation with finite sums.
+  rwa [← finset.insert_erase i_mem_s, finset.sum_insert (finset.not_mem_erase _ _)] at dependent
+end
+
+lemma is_basis_of_span_eq_top_of_card_eq_findim {ι : Type*} [fintype ι] {b : ι → V}
+  (span_eq : span K (set.range b) = ⊤) (card_eq : fintype.card ι = findim K V) :
+  is_basis K b :=
+⟨linear_independent_of_span_eq_top_of_card_eq_findim span_eq card_eq, span_eq⟩
+
+lemma finset_is_basis_of_span_eq_top_of_card_eq_findim {s : finset V}
+  (span_eq : span K (↑s : set V) = ⊤) (card_eq : s.card = findim K V) :
+  is_basis K (coe : (↑s : set V) → V) :=
+is_basis_of_span_eq_top_of_card_eq_findim
+  ((@subtype.range_coe_subtype _ (λ x, x ∈ s)).symm ▸ span_eq)
+  (trans (fintype.card_coe _) card_eq)
+
+lemma set_is_basis_of_span_eq_top_of_card_eq_findim {s : set V} [fintype s]
+  (span_eq : span K s = ⊤) (card_eq : s.to_finset.card = findim K V) :
+  is_basis K (λ (x : s), (x : V)) :=
+is_basis_of_span_eq_top_of_card_eq_findim
+  ((@subtype.range_coe_subtype _ s).symm ▸ span_eq)
+  (trans s.to_finset_card.symm card_eq)
+
+lemma span_eq_top_of_linear_independent_of_card_eq_findim
+  {ι : Type*} [hι : nonempty ι] [fintype ι] {b : ι → V}
+  (lin_ind : linear_independent K b) (card_eq : fintype.card ι = findim K V) :
+  span K (set.range b) = ⊤ :=
+begin
+  by_cases fin : (finite_dimensional K V),
+  { haveI := fin,
+    by_contra ne_top,
+    have lt_top : span K (set.range b) < ⊤ := lt_of_le_of_ne le_top ne_top,
+    exact ne_of_lt (submodule.findim_lt lt_top) (trans (findim_span_eq_card lin_ind) card_eq) },
+  { exfalso,
+    apply ne_of_lt (fintype.card_pos_iff.mpr hι),
+    symmetry,
+    calc fintype.card ι = findim K V : card_eq
+                    ... = 0 : dif_neg (mt finite_dimensional_iff_dim_lt_omega.mpr fin) }
+end
+
+lemma is_basis_of_linear_independent_of_card_eq_findim
+  {ι : Type*} [nonempty ι] [fintype ι] {b : ι → V}
+  (lin_ind : linear_independent K b) (card_eq : fintype.card ι = findim K V) :
+  is_basis K b :=
+⟨lin_ind, span_eq_top_of_linear_independent_of_card_eq_findim lin_ind card_eq⟩
+
+lemma finset_is_basis_of_linear_independent_of_card_eq_findim
+  {s : finset V} (hs : s.nonempty)
+  (lin_ind : linear_independent K (coe : (↑s : set V) → V)) (card_eq : s.card = findim K V) :
+  is_basis K (coe : (↑s : set V) → V) :=
+@is_basis_of_linear_independent_of_card_eq_findim _ _ _ _ _ _
+  ⟨(⟨hs.some, hs.some_spec⟩ : (↑s : set V))⟩ _ _
+  lin_ind
+  (trans (fintype.card_coe _) card_eq)
+
+lemma set_is_basis_of_linear_independent_of_card_eq_findim
+  {s : set V} [nonempty s] [fintype s]
+  (lin_ind : linear_independent K (coe : s → V)) (card_eq : s.to_finset.card = findim K V) :
+  is_basis K (coe : s → V) :=
+is_basis_of_linear_independent_of_card_eq_findim lin_ind (trans s.to_finset_card.symm card_eq)
+
+end is_basis

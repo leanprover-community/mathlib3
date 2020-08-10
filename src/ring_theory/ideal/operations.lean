@@ -8,7 +8,7 @@ More operations on modules and ideals.
 import data.nat.choose
 import data.equiv.ring
 import ring_theory.algebra_operations
-import ring_theory.ideals
+import ring_theory.ideal.basic
 
 universes u v w x
 

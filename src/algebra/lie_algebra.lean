@@ -315,13 +315,14 @@ end equiv
 
 namespace direct_sum
 open dfinsupp
+open_locale direct_sum
 
 variables {R : Type u} [comm_ring R]
 variables {ι : Type v} [decidable_eq ι] {L : ι → Type w}
 variables [Π i, lie_ring (L i)] [Π i, lie_algebra R (L i)]
 
 /-- The direct sum of Lie rings carries a natural Lie ring structure. -/
-instance : lie_ring (direct_sum ι L) := {
+instance : lie_ring (⨁ i, L i) := {
   bracket  := zip_with (λ i, λ x y, ⁅x, y⁆) (λ i, lie_zero 0),
   add_lie  := λ x y z, by { ext, simp only [zip_with_apply, add_apply, add_lie], },
   lie_add  := λ x y z, by { ext, simp only [zip_with_apply, add_apply, lie_add], },
@@ -329,11 +330,11 @@ instance : lie_ring (direct_sum ι L) := {
   jacobi   := λ x y z, by { ext, simp only [zip_with_apply, add_apply, lie_ring.jacobi, zero_apply], },
   ..(infer_instance : add_comm_group _) }
 
-@[simp] lemma bracket_apply {x y : direct_sum ι L} {i : ι} :
+@[simp] lemma bracket_apply {x y : (⨁ i, L i)} {i : ι} :
   ⁅x, y⁆ i = ⁅x i, y i⁆ := zip_with_apply
 
 /-- The direct sum of Lie algebras carries a natural Lie algebra structure. -/
-instance : lie_algebra R (direct_sum ι L) :=
+instance : lie_algebra R (⨁ i, L i) :=
 { lie_smul := λ c x y, by { ext, simp only [zip_with_apply, smul_apply, bracket_apply, lie_smul], },
   ..(infer_instance : module R _) }
 
@@ -788,7 +789,7 @@ section matrices
 open_locale matrix
 
 variables {R : Type u} [comm_ring R]
-variables {n : Type w} [fintype n] [decidable_eq n]
+variables {n : Type w} [decidable_eq n] [fintype n]
 
 /-- An important class of Lie rings are those arising from the associative algebra structure on
 square matrices over a commutative ring. -/
@@ -837,18 +838,18 @@ by simp [linear_equiv.symm_conj_apply, matrix.lie_conj, matrix.comp_to_matrix_mu
 
 /-- For square matrices, the natural map that reindexes a matrix's rows and columns with equivalent
 types is an equivalence of Lie algebras. -/
-def matrix.reindex_lie_equiv {m : Type w₁} [fintype m] [decidable_eq m]
+def matrix.reindex_lie_equiv {m : Type w₁} [decidable_eq m] [fintype m]
   (e : n ≃ m) : matrix n n R ≃ₗ⁅R⁆ matrix m m R :=
 { map_lie := λ M N, by simp only [lie_ring.of_associative_ring_bracket, matrix.reindex_mul,
     matrix.mul_eq_mul, linear_equiv.map_sub, linear_equiv.to_fun_apply],
 ..(matrix.reindex_linear_equiv e e) }
 
-@[simp] lemma matrix.reindex_lie_equiv_apply {m : Type w₁} [fintype m] [decidable_eq m]
+@[simp] lemma matrix.reindex_lie_equiv_apply {m : Type w₁} [decidable_eq m] [fintype m]
   (e : n ≃ m) (M : matrix n n R) :
   matrix.reindex_lie_equiv e M = λ i j, M (e.symm i) (e.symm j) :=
 rfl
 
-@[simp] lemma matrix.reindex_lie_equiv_symm_apply {m : Type w₁} [fintype m] [decidable_eq m]
+@[simp] lemma matrix.reindex_lie_equiv_symm_apply {m : Type w₁} [decidable_eq m] [fintype m]
   (e : n ≃ m) (M : matrix m m R) :
   (matrix.reindex_lie_equiv e).symm M = λ i j, M (e i) (e j) :=
 rfl
@@ -905,7 +906,7 @@ end skew_adjoint_endomorphisms
 section skew_adjoint_matrices
 open_locale matrix
 
-variables {R : Type u} {n : Type w} [comm_ring R] [fintype n] [decidable_eq n]
+variables {R : Type u} {n : Type w} [comm_ring R] [decidable_eq n] [fintype n]
 variables (J : matrix n n R)
 
 local attribute [instance] matrix.lie_ring
@@ -955,7 +956,7 @@ by simp [skew_adjoint_matrices_lie_subalgebra_equiv]
 
 /-- An equivalence of matrix algebras commuting with the transpose endomorphisms restricts to an
 equivalence of Lie algebras of skew-adjoint matrices. -/
-def skew_adjoint_matrices_lie_subalgebra_equiv_transpose {m : Type w} [fintype m] [decidable_eq m]
+def skew_adjoint_matrices_lie_subalgebra_equiv_transpose {m : Type w} [decidable_eq m] [fintype m]
   (e : matrix n n R ≃ₐ[R] matrix m m R) (h : ∀ A, (e A)ᵀ = e (Aᵀ)) :
   skew_adjoint_matrices_lie_subalgebra J ≃ₗ⁅R⁆ skew_adjoint_matrices_lie_subalgebra (e J) :=
 lie_algebra.equiv.of_subalgebras _ _ e.to_lie_equiv
@@ -967,7 +968,7 @@ begin
 end
 
 @[simp] lemma skew_adjoint_matrices_lie_subalgebra_equiv_transpose_apply
-  {m : Type w} [fintype m] [decidable_eq m]
+  {m : Type w} [decidable_eq m] [fintype m]
   (e : matrix n n R ≃ₐ[R] matrix m m R) (h : ∀ A, (e A)ᵀ = e (Aᵀ))
   (A : skew_adjoint_matrices_lie_subalgebra J) :
   (skew_adjoint_matrices_lie_subalgebra_equiv_transpose J e h A : matrix m m R) = e A :=

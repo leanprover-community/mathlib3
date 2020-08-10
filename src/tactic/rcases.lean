@@ -238,9 +238,8 @@ meta def rcases.process_constructor :
 | 1     ps  := ([`_], [rcases_patt.tuple ps])
 
 | (n+1) ps  :=
-  let (ns, ps) := rcases.process_constructor n ps.tail,
-      p := ps.head in
-  (p.name.get_or_else `_ :: ns, p :: ps)
+  let hd := ps.head, (ns, tl) := rcases.process_constructor n ps.tail in
+  (hd.name.get_or_else `_ :: ns, hd :: tl)
 
 /-- Takes a list of constructor names, and an (alternation) list of patterns, and matches each
 pattern against its constructor. It returns the list of names that will be passed to `cases`,

@@ -17,12 +17,15 @@ This is essentially the same argument as in
 https://en.wikipedia.org/wiki/Haar_measure#A_construction_using_compact_subsets.
 
 We construct the Haar measure first on compact sets. For this we define `(K : U)` as the (smallest)
-number of left-translates of `U` are needed to cover `K`. Then we define the Haar measure on compact
-sets as `lim_U (K : U) / (K₀ : U)`, where `U` ranges over open neighborhoods of `1`, and `K₀` is a
-fixed compact set with nonempty interior.
+number of left-translates of `U` are needed to cover `K` (`index` in the formalization).
+Then we define the Haar measure on compact sets as `lim_U (K : U) / (K₀ : U)`,
+where `U` ranges over open neighborhoods of `1`, and `K₀` is a fixed compact set with nonempty
+interior. This is `chaar` in the formalization, and we prove that the limit exists by Tychonoff's
+theorem.
 
-The Haar measure on compact sets forms a content, which we can extend to an outer measure, and
-obtain a measure from that.
+The Haar measure on compact sets forms a content, which we can extend to an outer measure
+(`haar_outer_measure`), and obtain the Haar measure from that (`haar_measure`).
+We normalize the Haar measure so that the measure of `K₀` is `1`.
 
 ## Main Declarations
 

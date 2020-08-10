@@ -159,7 +159,8 @@ def diagram_of_cones.mk_of_has_limits : diagram_of_cones F :=
   map := λ j j' f, { hom := lim.map (F.map f), }, }
 
 -- Satisfying the inhabited linter.
-instance : inhabited (diagram_of_cones F) := ⟨diagram_of_cones.mk_of_has_limits F⟩
+instance diagram_of_cones_inhabited : inhabited (diagram_of_cones F) :=
+⟨diagram_of_cones.mk_of_has_limits F⟩
 
 @[simp]
 lemma diagram_of_cones.mk_of_has_limits_cone_points :

@@ -141,26 +141,16 @@ instance : mul_action (units ℤ) (exterior_algebra S N) :=
   mul_smul := λ x y b, mul_action.mul_smul x y b }
 
 /--
-The canonical linear map `M →ₗ[R] exterior_algebra R M`.
--/
-def ι : M →ₗ[R] exterior_algebra R M :=
-{ to_fun := λ m, quot.mk _ (tensor_algebra.ι _ _ m),
-  map_add' := begin
-    intros m n,
-    rw linear_map.map_add,
-    refl,
-  end,
-  map_smul' := begin
-    intros r m,
-    rw linear_map.map_smul,
-    refl,
-  end }
-
-/--
 The canonical quotient map `tensor_algebra R M → exterior_algebra R M`.
 -/
 protected def quot : tensor_algebra R M →ₐ[R] exterior_algebra R M :=
   by refine_struct { to_fun := λ m, quot.mk _ m }; tauto
+
+/--
+The canonical linear map `M →ₗ[R] exterior_algebra R M`.
+-/
+def ι : M →ₗ[R] exterior_algebra R M :=
+  (exterior_algebra.quot R M).to_linear_map.comp (tensor_algebra.ι R M)
 
 /--
 Given a linear map `f : M →ₗ[R] A` into an `R`-algebra `A`, which satisfies the condition:
@@ -214,6 +204,28 @@ end
 
 @[simp]
 theorem ι_square_zero (m : M) : (ι R M m) * (ι R M m) = 0 := by apply quot.sound (rel.of _)
+
+@[simp]
+theorem comp_ι_square_zero {A: Type*} [semiring A] [algebra R A] (g : exterior_algebra R M →ₐ[R] A)
+  (m : M) : (g.to_linear_map.comp (ι R M)) m * (g.to_linear_map.comp (ι R M)) m = 0 :=
+begin
+  change g _ * g _ = 0,
+  rw [←alg_hom.map_mul, ι_square_zero, alg_hom.map_zero],
+end
+
+@[simp]
+theorem lift_comp_ι {A : Type*} [semiring A] [algebra R A] (g : exterior_algebra R M →ₐ[R] A) :
+  lift R M (g.to_linear_map.comp (ι R M)) (comp_ι_square_zero _) = g :=
+  by {symmetry, rw ←lift_unique}
+
+theorem hom_ext {A : Type*} [semiring A] [algebra R A] {f g : exterior_algebra R M →ₐ[R] A} :
+  f.to_linear_map.comp (ι R M) = g.to_linear_map.comp (ι R M) → f = g :=
+begin
+  intro hyp,
+  let h := g.to_linear_map.comp (ι R M),
+  have : g = lift R M h (comp_ι_square_zero _), by rw ←lift_unique,
+  rw [this, ←lift_unique, hyp],
+end
 
 lemma ι_add_mul (x y z : M) : ι R M (x + y) * ι R M z = ι R M x * ι R M z + ι R M y * ι R M z :=
 by rw [linear_map.map_add, right_distrib]

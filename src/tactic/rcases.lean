@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 import data.dlist
 import tactic.core
-import tactic.lint
 
 /-!
 

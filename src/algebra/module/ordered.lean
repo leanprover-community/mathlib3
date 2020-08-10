@@ -54,8 +54,8 @@ variable {R : Type*}
 
 instance linear_ordered_ring.to_ordered_semimodule [linear_ordered_ring R] :
   ordered_semimodule R R :=
-{ smul_lt_smul_of_pos      := λ _ _ hab _ hc, ordered_semiring.mul_lt_mul_of_pos_left _ _ _ hab hc,
-  lt_of_smul_lt_smul_of_nonneg  := λ _ _ _ hc h, lt_of_mul_lt_mul_left hc h }
+{ smul_lt_smul_of_pos      := ordered_semiring.mul_lt_mul_of_pos_left,
+  lt_of_smul_lt_smul_of_nonneg  := lt_of_mul_lt_mul_left }
 
 variables {β : Type*} [ordered_semiring R] [ordered_add_comm_monoid β] [ordered_semimodule R β]
   {a b : β} {c : R}

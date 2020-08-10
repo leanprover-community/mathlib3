@@ -444,7 +444,7 @@ with name `n` of the same type as `e` and replaces all occurrences of `e` by `n`
 goal, in which case it just calls `assert`.
 In contrast to `generalize` it already introduces the generalized variable. -/
 meta def generalize' (e : expr) (n : name) : tactic expr :=
-(generalize e n >> intro1) <|> note n none e
+(generalize e n >> intro n) <|> note n none e
 
 /--
 `intron_no_renames n` calls `intro` `n` times, using the pretty-printing name

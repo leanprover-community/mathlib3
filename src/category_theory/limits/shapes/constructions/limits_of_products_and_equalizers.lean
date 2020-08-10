@@ -122,7 +122,7 @@ def limits_from_equalizers_and_products
 -- This is not an instance, as it is not always how one wants to construct finite limits!
 def finite_limits_from_equalizers_and_finite_products
   [has_finite_products C] [has_equalizers C] : has_finite_limits C :=
-{ has_limits_of_shape := λ J _ _, by exactI
-  { has_limit := λ F, has_limit.of_cones_iso (diagram F) F (cones_iso F) } }
+λ J _ _, by exactI
+  { has_limit := λ F, has_limit.of_cones_iso (diagram F) F (cones_iso F) }
 
 end category_theory.limits

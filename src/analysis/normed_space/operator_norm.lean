@@ -597,7 +597,7 @@ begin
     { rw h, simp [norm_nonneg] },
     { have : 0 < ∥f∥ := lt_of_le_of_ne (norm_nonneg _) (ne.symm h),
       rw ← le_div_iff this,
-      apply op_norm_le_bound _ (div_nonneg (norm_nonneg _) this) (λx, _),
+      apply op_norm_le_bound _ (div_nonneg (norm_nonneg _) (norm_nonneg f)) (λx, _),
       rw [div_mul_eq_mul_div, le_div_iff this],
       calc ∥c x∥ * ∥f∥ = ∥c x • f∥ : (norm_smul _ _).symm
       ... = ∥((smul_right c f) : E → F) x∥ : rfl

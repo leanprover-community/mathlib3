@@ -1329,7 +1329,7 @@ else
   if hx₂ : 0 ≤ x.im
   then by rw [arg, if_neg hx₁, if_pos hx₂];
     exact le_sub_iff_add_le.1 (by rw sub_self;
-      exact real.arcsin_nonpos (by rw [neg_im, neg_div, neg_nonpos]; exact div_nonneg hx₂ (abs_pos.2 hx)))
+      exact real.arcsin_nonpos (by rw [neg_im, neg_div, neg_nonpos]; exact div_nonneg hx₂ (abs_nonneg _)))
   else by rw [arg, if_neg hx₁, if_neg hx₂];
       exact sub_le_iff_le_add.2 (le_trans (real.arcsin_le_pi_div_two _)
         (by linarith [real.pi_pos]))

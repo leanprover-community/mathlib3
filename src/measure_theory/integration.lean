@@ -808,6 +808,9 @@ lintegral_mono
 @[simp] lemma lintegral_const (c : ennreal) : ∫⁻ a, c ∂μ = c * μ univ :=
 by rw [← simple_func.const_lintegral, ← simple_func.lintegral_eq_lintegral, simple_func.coe_const]
 
+lemma measure_eq_lintegral (s) : μ s = ∫⁻ a in s, 1 ∂μ :=
+by rw [lintegral_const, one_mul, measure.restrict_apply_univ]
+
 /-- `∫⁻ a in s, f a ∂μ` is defined as the supremum of integrals of simple functions
 `φ : α →ₛ ennreal` such that `φ ≤ f`. This lemma says that it suffices to take
 functions `φ : α →ₛ ℝ≥0`. -/
@@ -902,7 +905,7 @@ begin
     ... ≤ ∑ r in (rs.map c).range, (⨆n, r * μ ((rs.map c) ⁻¹' {r} ∩ {a | r ≤ f n a})) :
       le_of_eq (finset.sum_congr rfl $ assume x hx,
         begin
-          rw [measure_Union_eq_supr_nat _ (mono x), ennreal.mul_supr],
+          rw [measure_Union_eq_supr _ (directed_of_sup $ mono x), ennreal.mul_supr],
           { assume i,
             refine ((rs.map c).is_measurable_preimage _).inter _,
             exact hf i is_measurable_Ici }
@@ -977,11 +980,11 @@ calc (∫⁻ a, f a + g a ∂μ) =
 
 lemma lintegral_zero : (∫⁻ a:α, 0 ∂μ) = 0 := by simp
 
-lemma lintegral_smul_meas (c : ennreal) (f : α → ennreal) :
+lemma lintegral_smul_measure (c : ennreal) (f : α → ennreal) :
   ∫⁻ a, f a ∂ (c • μ) = c * ∫⁻ a, f a ∂μ :=
 by simp only [lintegral, supr_subtype', simple_func.lintegral_smul, ennreal.mul_supr, smul_eq_mul]
 
-lemma lintegral_sum_meas {ι} (f : α → ennreal) (μ : ι → measure α) :
+lemma lintegral_sum_measure {ι} (f : α → ennreal) (μ : ι → measure α) :
   ∫⁻ a, f a ∂(measure.sum μ) = ∑' i, ∫⁻ a, f a ∂(μ i) :=
 begin
   simp only [lintegral, supr_subtype', simple_func.lintegral_sum, ennreal.tsum_eq_supr_sum],
@@ -996,11 +999,11 @@ begin
       (finset.sum_le_sum $ λ j hj, simple_func.lintegral_mono le_sup_right (le_refl _))⟩
 end
 
-lemma lintegral_add_meas (f : α → ennreal) (μ ν : measure α) :
+lemma lintegral_add_measure (f : α → ennreal) (μ ν : measure α) :
   ∫⁻ a, f a ∂ (μ + ν) = ∫⁻ a, f a ∂μ + ∫⁻ a, f a ∂ν :=
-by simpa [tsum_fintype] using lintegral_sum_meas f (λ b, cond b μ ν)
+by simpa [tsum_fintype] using lintegral_sum_measure f (λ b, cond b μ ν)
 
-@[simp] lemma lintegral_zero_meas (f : α → ennreal) : ∫⁻ a, f a ∂0 = 0 :=
+@[simp] lemma lintegral_zero_measure (f : α → ennreal) : ∫⁻ a, f a ∂0 = 0 :=
 bot_unique $ by simp [lintegral]
 
 lemma lintegral_finset_sum (s : finset β) {f : β → α → ennreal} (hf : ∀b, measurable (f b)) :
@@ -1078,6 +1081,10 @@ le_antisymm (lintegral_mono_ae $ h.le) (lintegral_mono_ae $ h.symm.le)
 lemma lintegral_congr {f g : α → ennreal} (h : ∀ a, f a = g a) :
   (∫⁻ a, f a ∂μ) = (∫⁻ a, g a ∂μ) :=
 by simp only [h]
+
+lemma set_lintegral_congr {f : α → ennreal} {s t : set α} (h : s =ᵐ[μ] t) :
+  ∫⁻ x in s, f x ∂μ = ∫⁻ x in t, f x ∂μ :=
+by rw [restrict_congr_set h]
 
 -- TODO: Need a better way of rewriting inside of a integral
 lemma lintegral_rw₁ {f f' : α → β} (h : f =ᵐ[μ] f') (g : β → ennreal) :
@@ -1308,12 +1315,9 @@ theorem lintegral_supr_directed [encodable β] {f : β → α → ennreal}
   (hf : ∀b, measurable (f b)) (h_directed : directed (≤) f) :
   ∫⁻ a, ⨆b, f b a ∂μ = ⨆b, ∫⁻ a, f b a ∂μ :=
 begin
-  by_cases hβ : ¬ nonempty β,
-  { have : ∀f : β → ennreal, (⨆(b : β), f b) = 0 :=
-      assume f, supr_eq_bot.2 (assume b, (hβ ⟨b⟩).elim),
-    simp [this] },
-  cases of_not_not hβ with b,
-  haveI iβ : inhabited β := ⟨b⟩, clear hβ b,
+  by_cases hβ : nonempty β, swap,
+  { simp [supr_of_empty hβ] },
+  resetI, inhabit β,
   have : ∀a, (⨆ b, f b a) = (⨆ n, f (h_directed.sequence f n) a),
   { assume a,
     refine le_antisymm (supr_le $ assume b, _) (supr_le $ assume n, le_supr (λn, f n a) _),
@@ -1352,12 +1356,12 @@ open measure
 lemma lintegral_Union [encodable β] {s : β → set α} (hm : ∀ i, is_measurable (s i))
   (hd : pairwise (disjoint on s)) (f : α → ennreal) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ = ∑' i, ∫⁻ a in s i, f a ∂μ :=
-by simp only [measure.restrict_Union hd hm, lintegral_sum_meas]
+by simp only [measure.restrict_Union hd hm, lintegral_sum_measure]
 
 lemma lintegral_Union_le [encodable β] (s : β → set α) (f : α → ennreal) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ ≤ ∑' i, ∫⁻ a in s i, f a ∂μ :=
 begin
-  rw [← lintegral_sum_meas],
+  rw [← lintegral_sum_measure],
   exact lintegral_mono' restrict_Union_le (le_refl _)
 end
 
@@ -1371,6 +1375,11 @@ begin
     { assume a, exact congr_fun (simple_func.eapprox_comp hf hg) a },
     { assume s hs, exact map_apply hg hs } },
 end
+
+lemma set_lintegral_map [measurable_space β] {f : β → ennreal} {g : α → β}
+  {s : set β} (hs : is_measurable s) (hf : measurable f) (hg : measurable g) :
+  ∫⁻ y in s, f y ∂(map g μ) = ∫⁻ x in g ⁻¹' s, f (g x) ∂μ :=
+by rw [restrict_map hg hs, lintegral_map hf hg]
 
 lemma lintegral_dirac (a : α) {f : α → ennreal} (hf : measurable f) :
   ∫⁻ a, f a ∂(dirac a) = f a :=

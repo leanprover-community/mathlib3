@@ -1209,6 +1209,26 @@ lemma eventually_eq.sub [add_group β] {f f' g g' : α → β} {l : filter α} (
   ((λ x, f x - f' x) =ᶠ[l] (λ x, g x - g' x)) :=
 h.add h'.neg
 
+lemma eventually_eq.inter {s t s' t' : set α} {l : filter α} (h : s =ᶠ[l] t) (h' : s' =ᶠ[l] t') :
+  (s ∩ s' : set α) =ᶠ[l] (t ∩ t' : set α) :=
+h.comp₂ (∧) h'
+
+lemma eventually_eq.union {s t s' t' : set α} {l : filter α} (h : s =ᶠ[l] t) (h' : s' =ᶠ[l] t') :
+  (s ∪ s' : set α) =ᶠ[l] (t ∪ t' : set α) :=
+h.comp₂ (∨) h'
+
+lemma eventually_eq.compl {s t : set α} {l : filter α} (h : s =ᶠ[l] t) :
+  (sᶜ : set α) =ᶠ[l] (tᶜ : set α) :=
+h.fun_comp not
+
+lemma eventually_eq.diff {s t s' t' : set α} {l : filter α} (h : s =ᶠ[l] t) (h' : s' =ᶠ[l] t') :
+  (s \ s' : set α) =ᶠ[l] (t \ t' : set α) :=
+h.inter h'.compl
+
+lemma eventually_eq_empty {s : set α} {l : filter α} :
+  s =ᶠ[l] (∅ : set α) ↔ ∀ᶠ x in l, x ∉ s :=
+eventually_eq_set.trans $ by simp
+
 @[simp] lemma eventually_eq_principal {s : set α} {f g : α → β} :
   f =ᶠ[𝓟 s] g ↔ eq_on f g s :=
 iff.rfl
@@ -1222,7 +1242,7 @@ section has_le
 variables [has_le β] {l : filter α}
 
 /-- A function `f` is eventually less than or equal to a function `g` at a filter `l`. -/
-def eventually_le (l : filter α) (f g : α → β) : Prop := ∀ᶠ x in l, f x ≤ g x
+def eventually_le (l : filter α) (f g : α → β) : Prop := ∀ᶠ x in l, f  x ≤ g x
 
 notation f ` ≤ᶠ[`:50 l:50 `] `:0 g:50 := eventually_le l f g
 
@@ -1261,6 +1281,10 @@ lemma eventually_le.antisymm [partial_order β] {l : filter α} {f g : α → β
   (h₁ : f ≤ᶠ[l] g) (h₂ : g ≤ᶠ[l] f) :
   f =ᶠ[l] g :=
 h₂.mp $ h₁.mono $ λ x, le_antisymm
+
+lemma eventually_le_antisymm_iff [partial_order β] {l : filter α} {f g : α → β} :
+  f =ᶠ[l] g ↔ f ≤ᶠ[l] g ∧ g ≤ᶠ[l] f :=
+by simp only [eventually_eq, eventually_le, le_antisymm_iff, eventually_and]
 
 lemma join_le {f : filter (filter α)} {l : filter α} (h : ∀ᶠ m in f, m ≤ l) : join f ≤ l :=
 λ s hs, h.mono $ λ m hm, hm hs

@@ -127,40 +127,40 @@ lemma integrable_of_bounded [finite_measure μ] {f : α → β} {C : ℝ} (hC : 
   integrable f μ :=
 (integrable_const C).mono' hC
 
-lemma integrable.mono_meas {f : α → β} (h : integrable f ν) (hμ : μ ≤ ν) :
+lemma integrable.mono_measure {f : α → β} (h : integrable f ν) (hμ : μ ≤ ν) :
   integrable f μ :=
 lt_of_le_of_lt (lintegral_mono' hμ (le_refl _)) h
 
-lemma integrable.add_meas {f : α → β} (hμ : integrable f μ) (hν : integrable f ν) :
+lemma integrable.add_measure {f : α → β} (hμ : integrable f μ) (hν : integrable f ν) :
   integrable f (μ + ν) :=
 begin
-  simp only [integrable, lintegral_add_meas] at *,
+  simp only [integrable, lintegral_add_measure] at *,
   exact add_lt_top.2 ⟨hμ, hν⟩
 end
 
-lemma integrable.left_of_add_meas {f : α → β} (h : integrable f (μ + ν)) :
+lemma integrable.left_of_add_measure {f : α → β} (h : integrable f (μ + ν)) :
   integrable f μ :=
-h.mono_meas $ measure.le_add_right $ le_refl _
+h.mono_measure $ measure.le_add_right $ le_refl _
 
-lemma integrable.right_of_add_meas {f : α → β} (h : integrable f (μ + ν)) :
+lemma integrable.right_of_add_measure {f : α → β} (h : integrable f (μ + ν)) :
   integrable f ν :=
-h.mono_meas $ measure.le_add_left $ le_refl _
+h.mono_measure $ measure.le_add_left $ le_refl _
 
 @[simp] lemma integrable_add_meas {f : α → β} :
   integrable f (μ + ν) ↔ integrable f μ ∧ integrable f ν :=
-⟨λ h, ⟨h.left_of_add_meas, h.right_of_add_meas⟩, λ h, h.1.add_meas h.2⟩
+⟨λ h, ⟨h.left_of_add_measure, h.right_of_add_measure⟩, λ h, h.1.add_measure h.2⟩
 
-lemma integrable.smul_meas {f : α → β} (h : integrable f μ) {c : ennreal} (hc : c < ⊤) :
+lemma integrable.smul_measure {f : α → β} (h : integrable f μ) {c : ennreal} (hc : c < ⊤) :
   integrable f (c • μ) :=
 begin
-  simp only [integrable, lintegral_smul_meas] at *,
+  simp only [integrable, lintegral_smul_measure] at *,
   exact mul_lt_top hc h
 end
 
-@[simp] lemma integrable_zero_meas (f : α → β) : integrable f 0 :=
-by simp only [integrable, lintegral_zero_meas, with_top.zero_lt_top]
+@[simp] lemma integrable_zero_measure (f : α → β) : integrable f 0 :=
+by simp only [integrable, lintegral_zero_measure, with_top.zero_lt_top]
 
-lemma integrable_map_meas {δ} [measurable_space δ] [measurable_space β]
+lemma integrable_map_measure {δ} [measurable_space δ] [measurable_space β]
   [opens_measurable_space β] {f : α → δ} {g : δ → β}
   (hf : measurable f) (hg : measurable g) :
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=

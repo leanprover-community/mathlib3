@@ -500,6 +500,10 @@ by rw [mul_comm, div_lt_iff hc]
 lemma div_lt_iff_of_neg (hc : c < 0) : b / c < a ↔ a * c < b :=
 ⟨mul_lt_of_gt_div_of_neg hc, div_lt_of_mul_gt_of_neg hc⟩
 
+lemma lt_div_iff_of_neg (hc : c < 0) : a < b / c ↔ b < a * c :=
+by rw [← neg_neg c, div_neg, lt_neg, div_lt_iff (neg_pos.2 hc), ← neg_mul_eq_neg_mul,
+  ← neg_mul_eq_mul_neg _ (-c)]
+
 lemma inv_le_inv (ha : 0 < a) (hb : 0 < b) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 by rw [inv_eq_one_div, div_le_iff ha,
        ← div_eq_inv_mul, one_le_div_iff_le hb]

@@ -184,6 +184,35 @@ begin
   abel
 end
 
+lemma integral_smul_measure {c : ennreal} (hfm : measurable f) (hc : c < ⊤) :
+  ∫ x in a..b, f x ∂(c • μ) = c.to_real • ∫ x in a..b, f x ∂μ :=
+by simp only [interval_integral, measure.restrict_smul, integral_smul_measure hfm hc, smul_sub]
+
+lemma integral_comp_add_right (a b c : ℝ) (f : ℝ → E) (hfm : measurable f) :
+  ∫ x in a..b, f (x + c) = ∫ x in a+c..b+c, f x :=
+calc ∫ x in a..b, f (x + c) = ∫ x in a+c..b+c, f x ∂(measure.map (λ x, x + c) volume) :
+  by simp only [interval_integral, set_integral_map is_measurable_Ioc hfm (measurable_add_right _),
+    preimage_add_const_Ioc, add_sub_cancel]
+... = ∫ x in a+c..b+c, f x : by rw [real.map_volume_add_right]
+
+lemma integral_comp_mul_right {c : ℝ} (hc : 0 < c) (a b : ℝ) (f : ℝ → E) (hfm : measurable f) :
+  ∫ x in a..b, f (x * c) = c⁻¹ • ∫ x in a*c..b*c, f x :=
+begin
+  conv_rhs { rw [← real.smul_map_volume_mul_right (ne_of_gt hc)] },
+  rw [integral_smul_measure hfm ennreal.of_real_lt_top],
+  simp only [interval_integral, set_integral_map is_measurable_Ioc hfm (measurable_mul_right _),
+    hc, preimage_mul_const_Ioc, mul_div_cancel _ (ne_of_gt hc), abs_of_pos,
+    ennreal.to_real_of_real (le_of_lt hc), inv_smul_smul' (ne_of_gt hc)]
+end
+
+lemma integral_comp_neg (a b : ℝ) (f : ℝ → E) (hfm : measurable f) :
+  ∫ x in a..b, f (-x) = ∫ x in -b..-a, f x :=
+begin
+  conv_rhs { rw ← real.map_volume_neg },
+  simp only [interval_integral, set_integral_map is_measurable_Ioc hfm measurable_neg, neg_preimage,
+    preimage_neg_Ioc, neg_neg, restrict_congr_set Ico_ae_eq_Ioc]
+end
+
 variables [topological_space α] [opens_measurable_space α]
 
 section order_closed_topology

@@ -113,22 +113,22 @@ integrable_const_iff.trans $ by rw [measure.restrict_apply_univ]
 
 lemma integrable_on.mono (h : integrable_on f t ν) (hs : s ⊆ t) (hμ : μ ≤ ν) :
   integrable_on f s μ :=
-h.mono_meas $ measure.restrict_mono hs hμ
+h.mono_measure $ measure.restrict_mono hs hμ
 
 lemma integrable_on.mono_set (h : integrable_on f t μ) (hst : s ⊆ t) :
   integrable_on f s μ :=
 h.mono hst (le_refl _)
 
-lemma integrable_on.mono_meas (h : integrable_on f s ν) (hμ : μ ≤ ν) :
+lemma integrable_on.mono_measure (h : integrable_on f s ν) (hμ : μ ≤ ν) :
   integrable_on f s μ :=
 h.mono (subset.refl _) hμ
 
 lemma integrable_on.mono_set_ae (h : integrable_on f t μ) (hst : s ≤ᵐ[μ] t) :
   integrable_on f s μ :=
-h.integrable.mono_meas $ restrict_mono_ae hst
+h.integrable.mono_measure $ restrict_mono_ae hst
 
 lemma integrable.integrable_on (h : integrable f μ) : integrable_on f s μ :=
-h.mono_meas $ measure.restrict_le_self
+h.mono_measure $ measure.restrict_le_self
 
 lemma integrable.integrable_on' (h : integrable f (μ.restrict s)) : integrable_on f s μ :=
 h
@@ -141,7 +141,7 @@ h.mono_set $ subset_union_right _ _
 
 lemma integrable_on.union (hs : integrable_on f s μ) (ht : integrable_on f t μ) :
   integrable_on f (s ∪ t) μ :=
-(hs.add_meas ht).mono_meas $ measure.restrict_union_le _ _
+(hs.add_measure ht).mono_measure $ measure.restrict_union_le _ _
 
 @[simp] lemma integrable_on_union :
   integrable_on f (s ∪ t) μ ↔ integrable_on f s μ ∧ integrable_on f t μ :=
@@ -162,12 +162,12 @@ integrable_on_finite_union s.finite_to_set
 
 lemma integrable_on.add_meas (hμ : integrable_on f s μ) (hν : integrable_on f s ν) :
   integrable_on f s (μ + ν) :=
-by { delta integrable_on, rw measure.restrict_add, exact hμ.integrable.add_meas hν }
+by { delta integrable_on, rw measure.restrict_add, exact hμ.integrable.add_measure hν }
 
 @[simp] lemma integrable_on_add_meas :
   integrable_on f s (μ + ν) ↔ integrable_on f s μ ∧ integrable_on f s ν :=
-⟨λ h, ⟨h.mono_meas (measure.le_add_right (le_refl _)),
-  h.mono_meas (measure.le_add_left (le_refl _))⟩,
+⟨λ h, ⟨h.mono_measure (measure.le_add_right (le_refl _)),
+  h.mono_measure (measure.le_add_left (le_refl _))⟩,
   λ h, h.1.add_meas h.2⟩
 
 lemma integrable_indicator_iff (hs : is_measurable s) :
@@ -213,7 +213,7 @@ begin
   refine ⟨_, λ h, h.filter_mono inf_le_left⟩,
   rintros ⟨s, ⟨t, ht, u, hu, hs⟩, hf⟩,
   refine ⟨t, ht, _⟩,
-  refine hf.integrable.mono_meas (λ v hv, _),
+  refine hf.integrable.mono_measure (λ v hv, _),
   simp only [measure.restrict_apply hv],
   refine measure_mono_ae (mem_sets_of_superset hu $ λ x hx, _),
   exact λ ⟨hv, ht⟩, ⟨hv, hs ⟨ht, hx⟩⟩
@@ -263,9 +263,9 @@ variables [measurable_space E] [borel_space E] [complete_space E] [second_counta
 lemma integral_union (hst : disjoint s t) (hs : is_measurable s) (ht : is_measurable t)
   (hfm : measurable f) (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
   ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
-by simp only [integrable_on, measure.restrict_union hst hs ht, integral_add_meas hfm hfs hft]
+by simp only [integrable_on, measure.restrict_union hst hs ht, integral_add_measure hfm hfs hft]
 
-lemma integral_empty : ∫ x in ∅, f x ∂μ = 0 := by rw [measure.restrict_empty, integral_zero_meas]
+lemma integral_empty : ∫ x in ∅, f x ∂μ = 0 := by rw [measure.restrict_empty, integral_zero_measure]
 
 lemma integral_univ : ∫ x in univ, f x ∂μ = ∫ x, f x ∂μ := by rw [measure.restrict_univ]
 
@@ -291,6 +291,11 @@ by { rwa [integral_non_integrable, integral_non_integrable], rwa integrable_indi
 
 lemma set_integral_const (c : E) : ∫ x in s, c ∂μ = (μ s).to_real • c :=
 by rw [integral_const, measure.restrict_apply_univ]
+
+lemma set_integral_map {β} [measurable_space β] {g : α → β} {f : β → E} {s : set β}
+  (hs : is_measurable s) (hf : measurable f) (hg : measurable g) :
+  ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
+by rw [measure.restrict_map hg hs, integral_map_measure hg hf]
 
 lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ⊤)
   (hC : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ C) :

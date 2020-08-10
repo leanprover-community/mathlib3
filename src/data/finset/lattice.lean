@@ -456,6 +456,14 @@ by simp
 theorem infi_singleton (a : α) (s : α → β) : (⨅ x ∈ ({a} : finset α), s x) = s a :=
 by simp
 
+lemma supr_option_to_finset (o : option α) (f : α → β) :
+  (⨆ x ∈ o.to_finset, f x) = ⨆ x ∈ o, f x :=
+by { congr, ext, rw [option.mem_to_finset] }
+
+lemma infi_option_to_finset (o : option α) (f : α → β) :
+  (⨅ x ∈ o.to_finset, f x) = ⨅ x ∈ o, f x :=
+@supr_option_to_finset _ (order_dual β) _ _ _
+
 variables [decidable_eq α]
 
 theorem supr_union {f : α → β} {s t : finset α} :
@@ -493,6 +501,16 @@ lemma infi_insert_update {x : α} {t : finset α} (f : α → β) {s : β} (hx :
   (⨅ (i ∈ insert x t), update f x s i) = (s ⊓ ⨅ (i ∈ t), f i) :=
 @supr_insert_update α (order_dual β) _ _ _ _ f _ hx
 
+lemma supr_bind (s : finset γ) (t : γ → finset α) (f : α → β) :
+  (⨆ y ∈ s.bind t, f y) = ⨆ (x ∈ s) (y ∈ t x), f y :=
+calc (⨆ y ∈ s.bind t, f y) = ⨆ y (hy : ∃ x ∈ s, y ∈ t x), f y :
+  congr_arg _ $ funext $ λ y, by rw [mem_bind]
+... = _ : by simp only [supr_exists, @supr_comm _ α]
+
+lemma infi_bind (s : finset γ) (t : γ → finset α) (f : α → β) :
+  (⨅ y ∈ s.bind t, f y) = ⨅ (x ∈ s) (y ∈ t x), f y :=
+@supr_bind _ (order_dual β) _ _ _ _ _ _
+
 end lattice
 
 @[simp] theorem bUnion_coe (s : finset α) (t : α → set β) :
@@ -512,6 +530,14 @@ infi_singleton a s
 @[simp] lemma bUnion_preimage_singleton (f : α → β) (s : finset β) :
   (⋃ y ∈ s, f ⁻¹' {y}) = f ⁻¹' ↑s :=
 set.bUnion_preimage_singleton f ↑s
+
+lemma bUnion_option_to_finset (o : option α) (f : α → set β) :
+  (⋃ x ∈ o.to_finset, f x) = ⋃ x ∈ o, f x :=
+supr_option_to_finset o f
+
+lemma bInter_option_to_finset (o : option α) (f : α → set β) :
+  (⋂ x ∈ o.to_finset, f x) = ⋂ x ∈ o, f x :=
+infi_option_to_finset o f
 
 variables [decidable_eq α]
 
@@ -546,5 +572,13 @@ supr_insert_update f hx
 lemma bInter_insert_update {x : α} {t : finset α} (f : α → set β) {s : set β} (hx : x ∉ t) :
   (⋂ (i ∈ insert x t), @update _ _ _ f x s i) = (s ∩ ⋂ (i ∈ t), f i) :=
 infi_insert_update f hx
+
+lemma bUnion_bind (s : finset γ) (t : γ → finset α) (f : α → set β) :
+  (⋃ y ∈ s.bind t, f y) = ⋃ (x ∈ s) (y ∈ t x), f y :=
+supr_bind s t f
+
+lemma bInter_bind (s : finset γ) (t : γ → finset α) (f : α → set β) :
+  (⋂ y ∈ s.bind t, f y) = ⋂ (x ∈ s) (y ∈ t x), f y :=
+infi_bind s t f
 
 end finset

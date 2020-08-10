@@ -282,6 +282,21 @@ lemma indicator_le {β} [canonically_ordered_add_monoid β] {s : set α}
   indicator s f ≤ g :=
 indicator_le' hfg $ λ _ _, zero_le _
 
+lemma indicator_Union_apply {ι β} [complete_lattice β] [has_zero β] (h0 : (⊥:β) = 0)
+  (s : ι → set α) (f : α → β) (x : α) :
+  indicator (⋃ i, s i) f x = ⨆ i, indicator (s i) f x :=
+begin
+  by_cases hx : x ∈ ⋃ i, s i,
+  { rw [indicator_of_mem hx],
+    rw [mem_Union] at hx,
+    refine le_antisymm _ (supr_le $ λ i, indicator_le_self' (λ x hx, h0 ▸ bot_le) x),
+    rcases hx with ⟨i, hi⟩,
+    exact le_supr_of_le i (ge_of_eq $ indicator_of_mem hi _) },
+  { rw [indicator_of_not_mem hx],
+    simp only [mem_Union, not_exists] at hx,
+    simp [hx, ← h0] }
+end
+
 end order
 
 end set

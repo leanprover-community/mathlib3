@@ -217,6 +217,22 @@ variables {R A}
 
 end semiring
 
+section ring
+variables (R)
+/-!
+An algebra over a commutative ring is a ring.
+-/
+def ring_of_comm_ring_algebra [comm_ring R] [semiring A] [algebra R A] : ring A :=
+{ neg := λ a, (-1 : R) • a,
+  add_left_neg := begin
+    intros a,
+    have : ((-1 : R) + 1) • a = (-1 : R) • a + a, by simp only [add_smul, one_smul],
+    rw ←this,
+    simp,
+  end,
+  ..show semiring A, by apply_instance }
+end ring
+
 end algebra
 
 instance module.endomorphism_algebra (R : Type u) (M : Type v)

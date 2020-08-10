@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Adam Topaz.
+Authors: Zhangir Azerbayev, Adam Topaz.
 -/
 
 import .tensor_algebra
@@ -47,7 +47,7 @@ The exterior algebra of `M` is constructed as a quotient of the tensor algebra, 
 
 variables (R : Type*) [comm_semiring R]
 variables (M : Type*) [add_comm_group M] [semimodule R M]
-variables {S : Type*} [field S]
+variables {S : Type*} [comm_ring S]
 variables {N : Type*} [add_comm_group N] [module S N]
 variable {q : ℕ}
 
@@ -59,7 +59,6 @@ An inductively defined relation on `tensor_algebra R M` used to define the exter
 -/
 inductive rel : tensor_algebra R M → tensor_algebra R M → Prop
 | of (m : M) : rel ((ι R M m) * (ι R M m)) 0
-| eq_compat {a} : rel a a
 | add_compat_left {a b c} : rel a b → rel (a + c) (b + c)
 | add_compat_right {a b c} : rel a b → rel (c + a) (c + b)
 | mul_compat_left {a b c} : rel a b → rel (a * c) (b * c)
@@ -117,23 +116,7 @@ instance : algebra R (exterior_algebra R M) :=
     refl,
   end }
 
-instance : add_comm_group (exterior_algebra S N) :=
-{ add := semiring.add,
-  add_assoc := semiring.add_assoc,
-  zero := semiring.zero,
-  zero_add := semiring.zero_add,
-  add_zero := semiring.add_zero,
-  neg := λ v, (-1 : S) • v,
-  add_left_neg := quot.ind
-  begin
-    intro a,
-    apply quot.sound,
-    rw [←one_smul S a, smul_smul, ←add_smul],
-    norm_num,
-    exact rel.eq_compat,
-  end,
-  add_comm := semiring.add_comm }
-
+instance : ring (exterior_algebra S N) := algebra.ring_of_comm_ring_algebra S
 
 instance : mul_action (units ℤ) (exterior_algebra S N) :=
 { smul := λ u : units ℤ, λ v, (u.val) • v,
@@ -165,7 +148,6 @@ def lift {A : Type*} [semiring A] [algebra R A] (f : M →ₗ[R] A) (cond : ∀ 
     { simp only [alg_hom.map_mul,tensor_algebra.ι_comp_lift',cond,alg_hom.map_zero] },
     repeat { simp only [alg_hom.map_add, h_ih] },
     repeat { simp only [alg_hom.map_mul, h_ih] },
-    refl
   end,
   map_one' := by {change algebra_map _ _ _ = _, simp},
   map_mul' := begin
@@ -255,30 +237,18 @@ variables (R M)
 The canonical multilinear map from `fin q → M` into `exterior_algebra R M`.
 -/
 def wedge : multilinear_map R (λ i : fin q, M) (exterior_algebra R M) :=
-{ to_fun := λ ν : fin q → M , quot.mk _ (tensor_algebra.mk R M ν),
-  map_add' :=
-    begin
-      intros ν i x y,
-      apply quot.sound,
-      rw multilinear_map.map_add,
-      exact rel.eq_compat
-    end,
-  map_smul' :=
-    begin
-      intros ν i r x,
-      apply quot.sound,
-      rw multilinear_map.map_smul,
-      exact rel.eq_compat
-    end }
+{ to_fun := λ ν : fin q → M , exterior_algebra.quot R M (tensor_algebra.mk R M ν),
+  map_add' := λ _ _ _ _, by simp,
+  map_smul' := λ _ _ _ _, by simp }
 
 variables {R M}
 
 lemma wedge_split (ν : fin q.succ → M) :
 wedge R M ν = ι R M (ν 0) * wedge R M (λ i : fin q, ν i.succ) :=
 begin
-  apply quot.sound,
+  change exterior_algebra.quot R M _ = _,
   rw tensor_algebra.mk_split,
-  exact rel.eq_compat
+  refl,
 end
 
 /--
@@ -293,12 +263,10 @@ begin
   exact not_lt_of_le (le_of_eq (eq_comm.mp hj)) j.2,
   --Inductive step
   rw wedge_split,
-  have hj1 : j = 1 :=
-  begin
-    ext, exact hj,
-  end,
-  have fact : ν (0 : fin q.succ).succ = ν 1 := by congr,
-  rw fact, rw hj1 at hv, rw hv, rw ←mul_assoc, rw ι_square_zero, rw zero_mul,
+  have hj1 : j = 1, by {ext, exact hj},
+  have fact : ν (0 : fin q.succ).succ = ν 1, by congr,
+  rw hj1 at hv,
+  rw [fact, hv, ←mul_assoc, ι_square_zero, zero_mul],
 end
 
 

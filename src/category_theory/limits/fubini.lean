@@ -24,7 +24,7 @@ In the second part, we state the Fubini theorem in the setting where we have cho
 provided by suitable `has_limit` classes.
 
 We construct `fubini F : limit (uncurry.obj F) ≅ limit (F ⋙ lim)`,
-and simp lemmas characterising it.
+and give simp lemmas characterising it.
 For convenience, we also provide `fubini' G : limit G ≅ limit ((curry.obj G) ⋙ lim)`,
 in terms of the uncurried functor.
 -/

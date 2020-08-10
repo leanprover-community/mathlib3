@@ -48,7 +48,9 @@ Explicltly, the construction involves three steps:
 -/
 
 variables (R : Type*) [comm_semiring R]
-variables (M : Type*) [add_comm_group M] [semimodule R M]
+variables (M : Type*) [add_comm_monoid M] [semimodule R M]
+variables {S : Type*} [comm_ring S]
+variables {N : Type*} [add_comm_group N] [module S N]
 
 namespace tensor_algebra
 
@@ -177,6 +179,8 @@ instance : algebra R (tensor_algebra R M) :=
   map_add' := λ _ _, quot.sound rel.add_scalar,
   commutes' := λ _, by { rintros ⟨⟩, exact quot.sound rel.central_scalar },
   smul_def' := λ _ _, rfl }
+
+instance : ring (tensor_algebra S N) := algebra.ring_of_comm_ring_algebra S
 
 /--
 The canonical linear map `M →ₗ[R] tensor_algebra R M`.

@@ -46,7 +46,7 @@ The exterior algebra of `M` is constructed as a quotient of the tensor algebra, 
 -/
 
 variables (R : Type*) [comm_semiring R]
-variables (M : Type*) [add_comm_group M] [semimodule R M]
+variables (M : Type*) [add_comm_monoid M] [semimodule R M]
 variables {S : Type*} [comm_ring S]
 variables {N : Type*} [add_comm_group N] [module S N]
 variable {q : ℕ}

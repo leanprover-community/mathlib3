@@ -5,12 +5,61 @@ Authors: Mario Carneiro
 -/
 import data.dlist
 import tactic.core
+import tactic.lint
+
+/-!
+
+# Recursive cases (`rcases`) tactic and related tactics
+
+`rcases` is a tactic that will perform `cases` recursively, according to a pattern. It is used to
+destructure hypotheses or expressions composed of inductive types like `h1 : a ∧ b ∧ c ∨ d` or
+`h2 : ∃ x y, trans_rel R x y`. Usual usage might be `rcases h1 with ⟨ha, hb, hc⟩ | hd` or
+`rcases h2 with ⟨x, y, _ | ⟨z, hxz, hzy⟩⟩` for these examples.
+
+Each element of an `rcases` pattern is matched against a particular local hypothesis (most of which
+are generated during the execution of `rcases` and represent individual elements destructured from
+the input expression). An `rcases` pattern has the following grammar:
+
+* A name like `x`, which names the active hypothesis as `x`.
+* A blank `_`, which does nothing (letting the automatic naming system used by `cases` name the
+  hypothesis).
+* The keyword `rfl`, which expects the hypothesis to be `h : a = b`, and calls `subst` on the
+  hypothesis (which has the effect of replacing `b` with `a` everywhere or vice versa).
+* A type ascription `p : ty`, which sets the type of the hypothesis to `ty` and then matches it
+  against `p`. (Of course, `ty` must unify with the actual type of `h` for this to work.)
+* A tuple pattern `⟨p1, p2, p3⟩`, which matches a constructor with many arguments, or a series
+  of nested conjunctions or existentials. For example if the active hypothesis is `a ∧ b ∧ c`,
+  then the conjunction will be destructured, and `p1` will be matched against `a`, `p2` against `b`
+  and so on.
+* An alteration pattern `p1 | p2 | p3`, which matches an inductive type with multiple constructors,
+  or a nested disjunction like `a ∨ b ∨ c`.
+
+The patterns are fairly liberal about the exact shape of the constructors, and will insert
+additional alternation branches and tuple arguments if there are not enough arguments provided, and
+reuse the tail for further matches if there are too many arguments provided to alternation and
+tuple patterns.
+
+This file also contains the `obtain` and `rintro` tactics, which use the same syntax of `rcases`
+patterns but with a slightly different use case:
+
+* `rintro` (or `rintros`) is used like `rintro x ⟨y, z⟩` and is the same as `intros` followed by
+  `rcases` on the newly introduced arguments.
+* `obtain` is the same as `rcases` but with a syntax styled after `have` rather than `cases`.
+  `obtain ⟨hx, hy⟩ | hz := foo` is equivalent to `rcases foo with ⟨hx, hy⟩ | hz`. Unlike `rcases`,
+  `obtain` also allows one to omit `:= foo`, although a type must be provided in this case,
+  as in `obtain ⟨hx, hy⟩ | hz : a ∧ b ∨ c`, in which case it produces a subgoal for proving
+  `a ∧ b ∨ c` in addition to the subgoals `hx : a, hy : b |- goal` and `hz : c |- goal`.
+
+## Tags
+
+rcases, rintro, obtain, destructuring, cases, pattern matching, match
+-/
 
 open lean lean.parser
 
 namespace tactic
 
-/-
+/-!
 These synonyms for `list` are used to clarify the meanings of the many
 usages of lists in this module.
 
@@ -26,11 +75,17 @@ by the compiler.
 The `def`/`local notation` combination makes Lean retain these
 annotations in reported types.
 -/
+
+/-- A list, with a disjunctive meaning (like a list of inductive constructors, or subgoals) -/
 @[reducible] def list_Sigma := list
+
+/-- A list, with a conjunctive meaning (like a list of constructor arguments, or hypotheses) -/
 @[reducible] def list_Pi := list
+
 local notation `listΣ` := list_Sigma
 local notation `listΠ` := list_Pi
 
+/-- A list of metavariables representing subgoals. -/
 @[reducible] meta def goals := list expr
 
 /--
@@ -58,134 +113,182 @@ meta inductive rcases_patt : Type
 | tuple : listΠ rcases_patt → rcases_patt
 | alts : listΣ rcases_patt → rcases_patt
 
-meta instance rcases_patt.inhabited : inhabited rcases_patt :=
-⟨rcases_patt.one `_⟩
+namespace rcases_patt
+meta instance inhabited : inhabited rcases_patt :=
+⟨one `_⟩
 
-meta def rcases_patt.name : rcases_patt → option name
-| (rcases_patt.one n) := some n
-| (rcases_patt.typed p _) := p.name
-| (rcases_patt.alts [p]) := p.name
+/-- Get the name from a pattern, if provided -/
+meta def name : rcases_patt → option name
+| (one `_) := none
+| (one `rfl) := none
+| (one n) := some n
+| (typed p _) := p.name
+| (alts [p]) := p.name
 | _ := none
 
-meta def rcases_patt.as_tuple : rcases_patt → listΠ rcases_patt
-| (rcases_patt.tuple ps) := ps
+/-- Interpret an rcases pattern as a tuple, where `p` becomes `⟨p⟩`
+if `p` is not already a tuple. -/
+meta def as_tuple : rcases_patt → listΠ rcases_patt
+| (tuple ps) := ps
 | p := [p]
 
-meta def rcases_patt.as_alts : rcases_patt → listΣ rcases_patt
-| (rcases_patt.alts ps) := ps
+/-- Interpret an rcases pattern as an alternation, where non-alternations are treated as one
+alternative. -/
+meta def as_alts : rcases_patt → listΣ rcases_patt
+| (alts ps) := ps
 | p := [p]
 
-meta def rcases_patt.tuple' : listΠ rcases_patt → rcases_patt
+/-- Convert a list of patterns to a tuple pattern, but mapping `[p]` to `p` instead of `⟨p⟩`. -/
+meta def tuple' : listΠ rcases_patt → rcases_patt
 | [p] := p
-| ps := rcases_patt.tuple ps
+| ps := tuple ps
 
-meta def rcases_patt.alts' : listΣ rcases_patt → rcases_patt
+/-- Convert a list of patterns to an alternation pattern, but mapping `[p]` to `p` instead of
+a unary alternation `|p`. -/
+meta def alts' : listΣ rcases_patt → rcases_patt
 | [p] := p
-| ps := rcases_patt.alts ps
+| ps := alts ps
 
-meta def rcases_patt.tuple₁_core : listΠ rcases_patt → listΠ rcases_patt
+/-- This function is used for producing rcases patterns based on a case tree. Suppose that we have
+a list of patterns `ps` that will match correctly against the branches of the case tree for one
+constructor. This function will merge tuples at the end of the list, so that `[a, b, ⟨c, d⟩]`
+becomes `⟨a, b, c, d⟩` instead of `⟨a, b, ⟨c, d⟩⟩`.
+
+We must be careful to turn `[a, ⟨⟩]` into `⟨a, ⟨⟩⟩` instead of `⟨a⟩` (which will not perform the
+nested match). -/
+meta def tuple₁_core : listΠ rcases_patt → listΠ rcases_patt
 | [] := []
-| [rcases_patt.tuple []] := [rcases_patt.tuple []]
-| [rcases_patt.tuple ps] := ps
-| (p :: ps) := p :: rcases_patt.tuple₁_core ps
+| [tuple []] := [tuple []]
+| [tuple ps] := ps
+| (p :: ps) := p :: tuple₁_core ps
 
-meta def rcases_patt.tuple₁ : listΠ rcases_patt → rcases_patt
+/-- This function is used for producing rcases patterns based on a case tree. This is like
+`tuple₁_core` but it produces a pattern instead of a tuple pattern list, converting `[n]` to `n`
+instead of `⟨n⟩` and `[]` to `_`, and otherwise just converting `[a, b, c]` to `⟨a, b, c⟩`. -/
+meta def tuple₁ : listΠ rcases_patt → rcases_patt
 | [] := default _
-| [rcases_patt.one n] := rcases_patt.one n
-| ps := rcases_patt.tuple (rcases_patt.tuple₁_core ps)
+| [one n] := one n
+| ps := tuple (tuple₁_core ps)
 
-meta def rcases_patt.alts₁_core : listΣ (listΠ rcases_patt) → listΣ rcases_patt
+/-- This function is used for producing rcases patterns based on a case tree. Here we are given
+the list of patterns to apply to each argument of each constructor after the main case, and must
+produce a list of alternatives with the same effect. This function calls `tuple₁` to make the
+individual alternatives, and handles merging `[a, b, c | d]` to `a | b | c | d` instead of
+`a | b | (c | d)`. -/
+meta def alts₁_core : listΣ (listΠ rcases_patt) → listΣ rcases_patt
 | [] := []
-| [[rcases_patt.alts ps]] := ps
-| (p :: ps) := rcases_patt.tuple₁ p :: rcases_patt.alts₁_core ps
+| [[alts ps]] := ps
+| (p :: ps) := tuple₁ p :: alts₁_core ps
 
-meta def rcases_patt.alts₁ : listΣ (listΠ rcases_patt) → rcases_patt
-| [[]] := rcases_patt.tuple []
-| [[rcases_patt.alts ps]] := rcases_patt.tuple [rcases_patt.alts ps]
-| ps := rcases_patt.alts' (rcases_patt.alts₁_core ps)
+/-- This function is used for producing rcases patterns based on a case tree. This is like
+`alts₁_core`, but it produces a cases pattern directly instead of a list of alternatives. We
+specially translate the empty alternation to `⟨⟩`, and translate `|(a | b)` to `⟨a | b⟩` (because we
+don't have any syntax for unary alternation). Otherwise we can use the regular merging of
+alternations at the last argument so that `a | b | (c | d)` becomes `a | b | c | d`. -/
+meta def alts₁ : listΣ (listΠ rcases_patt) → rcases_patt
+| [[]] := tuple []
+| [[alts ps]] := tuple [alts ps]
+| ps := alts' (alts₁_core ps)
 
-meta instance rcases_patt.has_reflect : has_reflect rcases_patt
-| (rcases_patt.one n) := `(_)
-| (rcases_patt.typed l e) :=
-  (`(rcases_patt.typed).subst (rcases_patt.has_reflect l)).subst (reflect e)
-| (rcases_patt.tuple l) := `(λ l, rcases_patt.tuple l).subst $
-  by haveI := rcases_patt.has_reflect; exact list.reflect l
-| (rcases_patt.alts l) := `(λ l, rcases_patt.alts l).subst $
-  by haveI := rcases_patt.has_reflect; exact list.reflect l
+meta instance has_reflect : has_reflect rcases_patt
+| (one n) := `(_)
+| (typed l e) :=
+  (`(typed).subst (has_reflect l)).subst (reflect e)
+| (tuple l) := `(λ l, tuple l).subst $
+  by haveI := has_reflect; exact list.reflect l
+| (alts l) := `(λ l, alts l).subst $
+  by haveI := has_reflect; exact list.reflect l
 
-meta def rcases_patt.format : bool → rcases_patt → tactic format
-| _ (rcases_patt.one n) := pure $ to_fmt n
-| _ (rcases_patt.tuple []) := pure "⟨⟩"
-| _ (rcases_patt.tuple ls) := do
-  fs ← ls.mmap $ rcases_patt.format ff,
-  pure $ "⟨" ++ format.group (format.nest 1 $
-    format.join $ list.intersperse ("," ++ format.line) fs) ++ "⟩"
-| br (rcases_patt.alts ls) := do
-  fs ← ls.mmap $ rcases_patt.format tt,
-  let fmt := format.join $ list.intersperse (↑" |" ++ format.space) fs,
-  pure $ if br then format.bracket "(" ")" fmt else fmt
-| br (rcases_patt.typed p e) := do
-  fp ← rcases_patt.format ff p,
+/-- Formats an `rcases` pattern. -/
+protected meta def format : bool → rcases_patt → tactic _root_.format
+| _ (one n) := pure $ to_fmt n
+| _ (tuple []) := pure "⟨⟩"
+| _ (tuple ls) := do
+  fs ← ls.mmap $ format ff,
+  pure $ "⟨" ++ _root_.format.group (_root_.format.nest 1 $
+    _root_.format.join $ list.intersperse ("," ++ _root_.format.line) fs) ++ "⟩"
+| br (alts ls) := do
+  fs ← ls.mmap $ format tt,
+  let fmt := _root_.format.join $ list.intersperse (↑" |" ++ _root_.format.space) fs,
+  pure $ if br then _root_.format.bracket "(" ")" fmt else fmt
+| br (typed p e) := do
+  fp ← format ff p,
   fe ← pp e,
   let fmt := fp ++ " : " ++ fe,
-  pure $ if br then format.bracket "(" ")" fmt else fmt
+  pure $ if br then _root_.format.bracket "(" ")" fmt else fmt
 
-meta instance rcases_patt.has_to_tactic_format : has_to_tactic_format rcases_patt :=
-⟨λ e, rcases_patt.format ff e⟩
+meta instance has_to_tactic_format : has_to_tactic_format rcases_patt := ⟨rcases_patt.format ff⟩
 
-/--
-Takes the number of fields of a single constructor and patterns to
-match its fields against (not necessarily the same number). The
-returned lists each contain one element per field of the
-constructor. The `name` is the name which will be used in the
-top-level `cases` tactic, and the `rcases_patt` is the pattern which
-the field will be matched against by subsequent `cases` tactics.
--/
+end rcases_patt
 
+/-- Takes the number of fields of a single constructor and patterns to match its fields against
+(not necessarily the same number). The returned lists each contain one element per field of the
+constructor. The `name` is the name which will be used in the top-level `cases` tactic, and the
+`rcases_patt` is the pattern which the field will be matched against by subsequent `cases`
+tactics. -/
 meta def rcases.process_constructor :
   nat → listΠ rcases_patt → listΠ name × listΠ rcases_patt
-| 0     ids  := ([], [])
-| 1     []   := ([`_], [default _])
-| 1     [id] := ([id.name.get_or_else `_], [id])
+| 0     ps  := ([], [])
+| 1     []  := ([`_], [default _])
+| 1     [p] := ([p.name.get_or_else `_], [p])
 
 -- The interesting case: we matched the last field against multiple
 -- patterns, so split off the remaining patterns into a subsequent
 -- match. This handles matching `α × β × γ` against `⟨a, b, c⟩`.
-| 1     ids  := ([`_], [rcases_patt.tuple ids])
+| 1     ps  := ([`_], [rcases_patt.tuple ps])
 
-| (n+1) ids  :=
-  let (ns, ps) := rcases.process_constructor n ids.tail,
-      p := ids.head in
+| (n+1) ps  :=
+  let (ns, ps) := rcases.process_constructor n ps.tail,
+      p := ps.head in
   (p.name.get_or_else `_ :: ns, p :: ps)
 
+/-- Takes a list of constructor names, and an (alternation) list of patterns, and matches each
+pattern against its constructor. It returns the list of names that will be passed to `cases`,
+and the list of `(constructor name, patterns)` for each constructor, where `patterns` is the
+(conjunctive) list of patterns to apply to each constructor argument. -/
 meta def rcases.process_constructors (params : nat) :
   listΣ name → listΣ rcases_patt →
   tactic (dlist name × listΣ (name × listΠ rcases_patt))
-| []      ids := pure (dlist.empty, [])
-| (c::cs) ids := do
+| []      ps := pure (dlist.empty, [])
+| (c::cs) ps := do
   n ← mk_const c >>= get_arity,
-  let (h, t) := (match cs, ids.tail with
+  let (h, t) := (match cs, ps.tail with
   -- We matched the last constructor against multiple patterns,
   -- so split off the remaining constructors. This handles matching
   -- `α ⊕ β ⊕ γ` against `a|b|c`.
-  | [], _::_ := ([rcases_patt.alts ids], [])
-  | _, _ := (ids.head.as_tuple, ids.tail)
+  | [], _::_ := ([rcases_patt.alts ps], [])
+  | _, _ := (ps.head.as_tuple, ps.tail)
   end : _),
   let (ns, ps) := rcases.process_constructor (n - params) h,
   (l, r) ← rcases.process_constructors cs t,
   pure (dlist.of_list ns ++ l, (c, ps) :: r)
 
+/-- Like `zip`, but only elements satisfying a matching predicate `p` will go in the list,
+and elements of the first list that fail to match the second list will be skipped. -/
 private def align {α β} (p : α → β → Prop) [∀ a b, decidable (p a b)] :
   list α → list β → list (α × β)
 | (a::as) (b::bs) :=
   if p a b then (a, b) :: align as bs else align as (b::bs)
 | _ _ := []
 
+/-- Given a local constant `e`, get its type. *But* if `e` does not exist, go find a hypothesis
+with the same pretty name as `e` and get it instead. This is needed because we can sometimes lose
+track of the unique names of hypotheses when they are revert/intro'd by `change` and `cases`. (A
+better solution would be for these tactics to return a map of renamed hypotheses so that we don't
+lose track of them.) -/
 private meta def get_local_and_type (e : expr) : tactic (expr × expr) :=
 (do t ← infer_type e, pure (t, e)) <|> (do
     e ← get_local e.local_pp_name,
     t ← infer_type e, pure (t, e))
 
+/--
+* `rcases_core p e` will match a pattern `p` against a local hypothesis `e`.
+  It returns the list of subgoals that were produced.
+* `rcases.continue pes` will match a (conjunctive) list of `(p, e)` pairs which refer to
+  patterns and local hypotheses to match against, and applies all of them. Note that this can
+  involve matching later arguments multiple times given earlier arguments, for example
+  `⟨a | b, ⟨c, d⟩⟩` performs the `⟨c, d⟩` match twice, once on the `a` branch and once on `b`.
+-/
 meta mutual def rcases_core, rcases.continue
 with rcases_core : rcases_patt → expr → tactic goals
 | (rcases_patt.one `rfl) e := do
@@ -238,14 +341,14 @@ with rcases_core : rcases_patt → expr → tactic goals
 
 with rcases.continue : listΠ (rcases_patt × expr) → tactic goals
 | [] := get_goals
-| ((pat, e) :: l) := do
+| ((pat, e) :: pes) := do
   gs ← rcases_core pat e,
-  list.join <$> gs.mmap (λ g, set_goals [g] >> rcases.continue l)
+  list.join <$> gs.mmap (λ g, set_goals [g] >> rcases.continue pes)
 
 /-- `rcases h e pat` performs case distinction on `e` using `pat` to
 name the arising new variables and assumptions. If `h` is `some` name,
 a new assumption `h : e = pat` will relate the expression `e` with the
-current pattern. -/
+current pattern. See the module comment for the syntax of `pat`. -/
 meta def rcases (h : option name) (p : pexpr) (pat : rcases_patt) : tactic unit := do
   let p := match pat with
   | rcases_patt.typed _ ty := ``(%%p : %%ty)
@@ -271,17 +374,26 @@ meta def rcases (h : option name) (p : pexpr) (pat : rcases_patt) : tactic unit 
     h ← tactic.intro1,
     focus1 (rcases_core pat h >>= set_goals)
 
+/-- `rintro pat₁ pat₂ ... patₙ` introduces `n` arguments, then pattern matches on the `patᵢ` using
+the same syntax as `rcases`. -/
 meta def rintro (ids : listΠ rcases_patt) : tactic unit :=
 do l ← ids.mmap (λ id, do
     e ← intro $ id.name.get_or_else `_,
     pure (id, e)),
   focus1 (rcases.continue l >>= set_goals)
 
+/-- Like `zip_with`, but if the lists don't match in length, the excess elements will be put at the
+end of the result. -/
 def merge_list {α} (m : α → α → α) : list α → list α → list α
 | [] l₂ := l₂
 | l₁ [] := l₁
 | (a :: l₁) (b :: l₂) := m a b :: merge_list l₁ l₂
 
+/-- Merge two `rcases` patterns. This is used to underapproximate a case tree by an `rcases`
+pattern. The two patterns come from cases in two branches, that due to the syntax of `rcases`
+patterns are forced to overlap. The rule here is that we take only the case splits that are in
+common between both branches. For example if one branch does `⟨a, b⟩` and the other does `c`,
+then we return `c` because we don't know that a case on `c` would be safe to do. -/
 meta def rcases_patt.merge : rcases_patt → rcases_patt → rcases_patt
 | (rcases_patt.alts p₁) p₂ := rcases_patt.alts (merge_list rcases_patt.merge p₁ p₂.as_alts)
 | p₁ (rcases_patt.alts p₂) := rcases_patt.alts (merge_list rcases_patt.merge p₁.as_alts p₂)
@@ -294,6 +406,21 @@ meta def rcases_patt.merge : rcases_patt → rcases_patt → rcases_patt
 | p (rcases_patt.one `_) := p
 | (rcases_patt.one n) _ := rcases_patt.one n
 
+/--
+* `rcases_hint_core depth e` does the same as `rcases p e`, except the pattern `p` is an output
+  instead of an input, controlled only by the case depth argument `depth`. We use `cases` to depth
+  `depth` and then reconstruct an `rcases` pattern `p` that would, if passed to `rcases`, perform
+  the same thing as the case tree we just constructed (or at least, the nearest expressible
+  approximation to this.)
+* `rcases_hint.process_constructors depth cs l` takes a list of constructor names `cs` and a
+  matching list `l` of elements `(g, c', hs, _)` where  `c'` is a constructor name (used for
+  alignment with `cs`), `g` is the subgoal, and `hs` is the list of local hypotheses created by
+  `cases` in that subgoal. It matches on all of them, and then produces a `ΣΠ`-list of `rcases`
+  patterns describing the result, and the list of generated subgoals.
+* `rcases_hint.continue depth es` does the same as `rcases.continue (ps.zip es)`, except the
+  patterns `ps` are an output instead of an input, created by matching on everything to depth
+  `depth` and recording the successful cases. It returns `ps`, and the list of generated subgoals.
+-/
 meta mutual def rcases_hint_core, rcases_hint.process_constructors, rcases_hint.continue
 with rcases_hint_core : ℕ → expr → tactic (rcases_patt × goals)
 | depth e := do
@@ -328,13 +455,18 @@ with rcases_hint.process_constructors : ℕ → listΣ name →
 
 with rcases_hint.continue : ℕ → listΠ expr → tactic (listΠ rcases_patt × goals)
 | depth [] := prod.mk [] <$> get_goals
-| depth (e :: l) := do
+| depth (e :: es) := do
   (p, gs) ← rcases_hint_core depth e,
   (ps, gs') ← gs.mfoldl (λ (r : listΠ rcases_patt × goals) g,
-    do (ps, gs') ← set_goals [g] >> rcases_hint.continue depth l,
+    do (ps, gs') ← set_goals [g] >> rcases_hint.continue depth es,
       pure (merge_list rcases_patt.merge r.1 ps, r.2 ++ gs')) ([], []),
   pure (p :: ps, gs')
 
+/--
+* `rcases? e` is like `rcases e with ...`, except it generates `...` by matching on everything it
+can, and it outputs an `rcases` invocation that should have the same effect.
+* `rcases? e : n` can be used to control the depth of case splits (especially important for
+recursive types like `nat`, which can be cased as many times as you like). -/
 meta def rcases_hint (p : pexpr) (depth : nat) : tactic rcases_patt :=
 do e ← i_to_expr p,
   if e.is_local_constant then
@@ -350,6 +482,11 @@ do e ← i_to_expr p,
     h ← tactic.intro1,
     focus1 $ do (p, gs) ← rcases_hint_core depth h, set_goals gs, pure p
 
+/--
+* `rintro?` is like `rintro ...`, except it generates `...` by introducing and matching on
+everything it can, and it outputs an `rintro` invocation that should have the same effect.
+* `rintro? : n` can be used to control the depth of case splits (especially important for
+recursive types like `nat`, which can be cased as many times as you like). -/
 meta def rintro_hint (depth : nat) : tactic (listΠ rcases_patt) :=
 do l ← intros,
   focus1 $ do
@@ -359,12 +496,27 @@ do l ← intros,
 
 setup_tactic_parser
 
-local notation `listΣ` := list_Sigma
-local notation `listΠ` := list_Pi
+/--
+* `rcases_patt_parse tt` will parse a high precedence `rcases` pattern, `patt_hi`.
+  This means only tuples and identifiers are allowed; alternations and type ascriptions
+  require `(...)` instead, which switches to `patt`.
+* `rcases_patt_parse ff` will parse a low precedence `rcases` pattern, `patt`. This consists of a
+  `patt_med` (which deals with alternations), optionally followed by a `: ty` type ascription. The
+  expression `ty` is at `texpr` precedence because it can appear at the end of a tactic, for
+  example in `rcases e with x : ty <|> skip`.
+* `rcases_patt_parse_list` will parse an alternation list, `patt_med`, one or more `patt`
+  patterns separated by `|`. It does not parse a `:` at the end, so that `a | b : ty` parses as
+  `(a | b) : ty` where `a | b` is the `patt_med` part.
 
+```lean
+patt ::= patt_med (":" expr)?
+patt_med ::= (patt_hi "|")* patt_hi
+patt_hi ::= id | "rfl" | "_" | "⟨" (patt ",")* patt "⟩" | "(" patt ")"
+```
+-/
 meta mutual def rcases_patt_parse, rcases_patt_parse_list
 with rcases_patt_parse : bool → parser rcases_patt
-| tt := with_desc "patt" $
+| tt := with_desc "patt_hi" $
   (brackets "(" ")" (rcases_patt_parse ff)) <|>
   (rcases_patt.tuple <$> brackets "⟨" "⟩" (sep_by (tk ",") (rcases_patt_parse ff))) <|>
   (rcases_patt.one <$> ident_)
@@ -373,19 +525,22 @@ with rcases_patt_parse : bool → parser rcases_patt
   (tk ":" *> pat.typed <$> texpr) <|> pure pat
 
 with rcases_patt_parse_list : parser (listΣ rcases_patt)
-| x := (with_desc "patt_list" $ do
+| x := (with_desc "patt_med" $ do
   pat ← rcases_patt_parse tt,
   (tk "|" *> list.cons pat <$> rcases_patt_parse_list) <|>
   pure [pat]) x
 
+/-- Parse the optional depth argument `(: n)?` of `rcases?` and `rintro?`, with default depth 5. -/
 meta def rcases_parse_depth : parser nat :=
 do o ← (tk ":" *> small_nat)?, pure $ o.get_or_else 5
 
 precedence `?`:max
 
-/-- syntax for a `rcases` pattern: `('?' expr (: n)?) | ((h :)? expr (with patt_list)?)`  -/
+/-- Syntax for a `rcases` pattern:
+* `rcases? expr (: n)?`
+* `rcases (h :)? expr (with patt_list (: expr)?)?`. -/
 meta def rcases_parse : parser (pexpr × ((option name × rcases_patt) ⊕ nat)) :=
-with_desc "('?' expr (: n)?) | ((h :)? expr (with patt_list)?)" $ do
+with_desc "('?' expr (: n)?) | ((h :)? expr (with patt)?)" $ do
   hint ← (tk "?")?,
   p ← texpr,
   match hint with
@@ -398,14 +553,11 @@ with_desc "('?' expr (: n)?) | ((h :)? expr (with patt_list)?)" $ do
   | some _ := do depth ← rcases_parse_depth, pure (p, sum.inr depth)
   end
 
+/-- Syntax for a `rintro` pattern: `('?' (: n)?) | patt*`. -/
 meta def rintro_parse : parser (listΠ rcases_patt ⊕ nat) :=
-with_desc "('?' (: n)?) | patt_list" $
+with_desc "('?' (: n)?) | patt*" $
 (tk "?" >> sum.inr <$> rcases_parse_depth) <|>
 sum.inl <$> (rcases_patt_parse tt)*
-
-meta def ext_patt := listΠ rcases_patt
-
-meta def ext_parse : parser ext_patt := (rcases_patt_parse tt)*
 
 namespace interactive
 open interactive interactive.types expr
@@ -416,8 +568,9 @@ The `rcases` tactic is the same as `cases`, but with more flexibility in the
 uses the following recursive grammar:
 
 ```lean
-patt ::= (patt_list "|")* patt_list
-patt_list ::= id | "rfl" | "_" | "⟨" (patt ",")* patt "⟩"
+patt ::= patt_med (":" expr)?
+patt_med ::= (patt_hi "|")* patt_hi
+patt_hi ::= id | "rfl" | "_" | "⟨" (patt ",")* patt "⟩" | "(" patt ")"
 ```
 
 A pattern like `⟨a, b, c⟩ | ⟨d, e⟩` will do a split over the inductive datatype,
@@ -433,6 +586,10 @@ parameter as necessary.
 If `rcases` results in an expression of the form `x = a`, then using `rfl`
 in the pattern will have the same effect as writing `h` and then
 following the `rcases` with a `subst h`.
+
+Type ascriptions like `⟨x : ℕ, h : x < 1⟩` can be inserted into the pattern,
+and they will `change` the target hypothesis to the stated type if it is defeq
+to the actual type of the hypothesis.
 
 `rcases` also has special support for quotient types: quotient induction into Prop works like
 matching on the constructor `quot.mk`.
@@ -495,8 +652,9 @@ add_tactic_doc
 
 setup_tactic_parser
 
+/-- Parses `patt? (: expr)?`. (This is almost the same as `-/
 meta def obtain_parse : parser (option rcases_patt × option pexpr) :=
-with_desc "patt_list? (: expr)?" $
+with_desc "patt? (: expr)?" $
   (do pat ← rcases_patt_parse ff,
     pure $ match pat with
     | rcases_patt.typed pat tp := (some pat, some tp)

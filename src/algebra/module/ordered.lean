@@ -47,7 +47,7 @@ with a partial order in which the scalar multiplication is compatible with the o
 @[protect_proj, ancestor semimodule]
 class ordered_semimodule (R β : Type*)
   [ordered_semiring R] [ordered_add_comm_monoid β] extends semimodule R β :=
-(smul_lt_smul_of_pos : ∀ a b : β, a < b → ∀ c : R, 0 < c → c • a < c • b)
+(smul_lt_smul_of_pos : ∀ {a b : β}, ∀ {c : R}, a < b → 0 < c → c • a < c • b)
 (lt_of_smul_lt_smul_of_nonneg : ∀ a b : β, ∀ c : R, c • a < c • b → 0 ≤ c → a < b)
 
 variable {R : Type*}

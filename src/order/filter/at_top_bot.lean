@@ -50,6 +50,10 @@ lemma at_top_basis [nonempty α] [semilattice_sup α] :
   (@at_top α _).has_basis (λ _, true) Ici :=
 has_basis_infi_principal (directed_of_sup $ λ a b, Ici_subset_Ici.2)
 
+lemma at_bot_basis {α : Type*} [nonempty α] [semilattice_inf α] :
+  (@at_bot α _).has_basis (λ _, true) Iic :=
+has_basis_infi_principal (directed_of_inf $ λ a b, Iic_subset_Iic.2)
+
 lemma at_top_basis' [semilattice_sup α] (a : α) :
   (@at_top α _).has_basis (λ x, a ≤ x) Ici :=
 ⟨λ t, (@at_top_basis α ⟨a⟩ _).mem_iff.trans
@@ -64,6 +68,11 @@ at_top_basis.forall_nonempty_iff_ne_bot.1 $ λ a _, nonempty_Ici
 lemma mem_at_top_sets [nonempty α] [semilattice_sup α] {s : set α} :
   s ∈ (at_top : filter α) ↔ ∃a:α, ∀b≥a, b ∈ s :=
 at_top_basis.mem_iff.trans $ exists_congr $ λ _, exists_const _
+
+@[simp]
+lemma mem_at_bot_sets {α : Type*} [nonempty α] [semilattice_inf α] {s : set α} :
+  s ∈ (at_bot : filter α) ↔ ∃a:α, ∀b≤a, b ∈ s :=
+at_bot_basis.mem_iff.trans $ exists_congr $ λ _, exists_const _
 
 @[simp, nolint ge_or_gt]
 lemma eventually_at_top [semilattice_sup α] [nonempty α] {p : α → Prop} :

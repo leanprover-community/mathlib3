@@ -253,6 +253,11 @@ lemma filter.eventually_eq.eq_of_nhds_within {s : set α} {f g : α → β} {a :
   (h : f =ᶠ[𝓝[s] a] g) (hmem : a ∈ s) : f a = g a :=
 h.self_of_nhds_within hmem
 
+lemma eventually_nhds_within_of_eventually_nhds {α : Type*} [topological_space α]
+  {s : set α} {a : α} {p : α → Prop} (h : ∀ᶠ x in 𝓝 a, p x) :
+  ∀ᶠ x in 𝓝[s] a, p x :=
+mem_nhds_within_of_mem_nhds h
+
 /-
 nhds_within and subtypes
 -/

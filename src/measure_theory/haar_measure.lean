@@ -30,7 +30,7 @@ group.
 noncomputable theory
 
 open set has_inv function topological_space measurable_space
-open_locale nnreal
+open_locale nnreal classical
 
 variables {G : Type*} [group G]
 
@@ -65,15 +65,20 @@ variables [topological_space G]
 def prehaar (K₀ U : set G) (K : compacts G) : ℝ := (index K.1 U : ℝ) / index K₀ U
 
 lemma prehaar_empty (K₀ : positive_compacts G) {U : set G} : prehaar K₀.1 U ⊥ = 0 :=
-by { simp only [prehaar, compacts.bot_val, index_empty, nat.cast_zero, euclidean_domain.zero_div] }
+by { simp only [prehaar, compacts.bot_val, index_empty, nat.cast_zero, zero_div] }
 
-/-- `haar_product K₀` is a product of intervals `[0, (K : K₀)]`, for all compact sets `K`.
+/-- `haar_product K₀` is the product of intervals `[0, (K : K₀)]`, for all compact sets `K`.
   For all `U`, we can show that `prehaar K₀ U ∈ haar_product K₀`. -/
 def haar_product (K₀ : set G) : set (compacts G → ℝ) :=
-set.pi set.univ (λ K, Icc 0 $ index K.1 K₀)
+pi univ (λ K, Icc 0 $ index K.1 K₀)
+
+@[simp] lemma mem_prehaar_empty {K₀ : set G} {f : compacts G → ℝ} :
+  f ∈ haar_product K₀ ↔ ∀ K : compacts G, f K ∈ Icc (0 : ℝ) (index K.1 K₀) :=
+by simp only [haar_product, pi, forall_prop_of_true, mem_univ, mem_set_of_eq]
 
 /-- The closure of the collection of elements of the form `prehaar K₀ U`,
-  for `U` open neighbourhoods of `1`, contained in `V`.
+  for `U` open neighbourhoods of `1`, contained in `V`. The closure is taken in the space
+  `compacts G → ℝ`, with the topology of pointwise convergence.
   We show that the intersection of all these sets is nonempty, and the Haar measure
   on compact sets is defined to be an element in the closure of this intersection. -/
 def cl_prehaar (K₀ : set G) (V : open_nhds_of (1 : G)) : set (compacts G → ℝ) :=
@@ -81,7 +86,9 @@ closure $ prehaar K₀ '' { U : set G | U ⊆ V.1 ∧ is_open U ∧ (1 : G) ∈ 
 
 variables [topological_group G]
 
-/-! lemmas about `index` -/
+/-!
+### Lemmas about `index`
+-/
 
 /-- If `K` is compact and `V` has nonempty interior, then the index `(K : V)` is well-defined,
   there is a finite set `t` satisfying the desired properties. -/
@@ -96,7 +103,6 @@ by { have := nat.Inf_mem (index_defined hK hV), rwa [mem_image] at this }
 lemma le_index_mul (K₀ : positive_compacts G) (K : compacts G) {V : set G}
   (hV : (interior V).nonempty) : index K.1 V ≤ index K.1 K₀.1 * index K₀.1 V :=
 begin
-  classical,
   rcases index_elim K.2 K₀.2.2 with ⟨s, h1s, h2s⟩,
   rcases index_elim K₀.2.1 hV with ⟨t, h1t, h2t⟩,
   rw [← h2s, ← h2t, mul_comm],
@@ -128,7 +134,6 @@ end
 lemma index_union_le (K₁ K₂ : compacts G) {V : set G} (hV : (interior V).nonempty) :
   index (K₁.1 ∪ K₂.1) V ≤ index K₁.1 V + index K₂.1 V :=
 begin
-  classical,
   rcases index_elim K₁.2 hV with ⟨s, h1s, h2s⟩,
   rcases index_elim K₂.2 hV with ⟨t, h1t, h2t⟩,
   rw [← h2s, ← h2t],
@@ -143,7 +148,6 @@ lemma index_union_eq (K₁ K₂ : compacts G) {V : set G} (hV : (interior V).non
   (h : disjoint (K₁.1 * V⁻¹) (K₂.1 * V⁻¹)) :
   index (K₁.1 ∪ K₂.1) V = index K₁.1 V + index K₂.1 V :=
 begin
-  classical,
   apply le_antisymm (index_union_le K₁ K₂ hV),
   rcases index_elim (K₁.2.union K₂.2) hV with ⟨s, h1s, h2s⟩, rw [← h2s],
   have : ∀(K : set G) , K ⊆ (⋃ g ∈ s, (λ h, g * h) ⁻¹' V) →
@@ -191,11 +195,13 @@ begin
   rw [image_image], symmetry, convert image_id' _, ext h, apply inv_mul_cancel_left
 end
 
-/-! lemmas about `prehaar` -/
+/-!
+### Lemmas about `prehaar`
+-/
 
 lemma prehaar_nonneg (K₀ : positive_compacts G) {U : set G} (K : compacts G)
   (hU : (interior U).nonempty) : 0 ≤ prehaar K₀.1 U K :=
-by { apply div_nonneg; norm_cast, apply zero_le, exact index_pos K₀ hU }
+by apply div_nonneg'; norm_cast; apply zero_le
 
 lemma prehaar_le_index (K₀ : positive_compacts G) {U : set G} (K : compacts G)
   (hU : (interior U).nonempty) : prehaar K₀.1 U K ≤ index K.1 K₀.1 :=
@@ -236,20 +242,19 @@ lemma is_left_invariant_prehaar {K₀ : positive_compacts G} {U : set G} (hU : (
   {K : compacts G} {g : G} : prehaar K₀.1 U (K.map _ $ continuous_mul_left g) = prehaar K₀.1 U K :=
 by simp only [prehaar, compacts.map_val, is_left_invariant_index K.2 hU]
 
-/-! Lemmas about `haar_product` -/
+/-!
+### Lemmas about `haar_product`
+-/
 
 lemma prehaar_mem_haar_product (K₀ : positive_compacts G) {U : set G}
   (hU : (interior U).nonempty) : prehaar K₀.1 U ∈ haar_product K₀.1 :=
-by { rintro ⟨K, hK⟩ h2K, rw [mem_Icc],
-     exact ⟨prehaar_nonneg K₀ _ hU, prehaar_le_index K₀ _ hU⟩ }
+by { rintro ⟨K, hK⟩ h2K, rw [mem_Icc], exact ⟨prehaar_nonneg K₀ _ hU, prehaar_le_index K₀ _ hU⟩ }
 
 lemma nonempty_Inter_cl_prehaar (K₀ : positive_compacts G) :
   (haar_product K₀.1 ∩ ⋂ (V : open_nhds_of (1 : G)), cl_prehaar K₀.1 V).nonempty :=
 begin
   have : is_compact (haar_product K₀.1), { apply compact_univ_pi, intro K, apply compact_Icc },
-  rw [← ne_empty_iff_nonempty],
-  have := is_compact.elim_finite_subfamily_closed this (cl_prehaar K₀.1) (λ s, is_closed_closure),
-  apply mt this, rintro ⟨t, h1t⟩, rw [← not_nonempty_iff_eq_empty] at h1t, apply h1t,
+  refine this.inter_Inter_nonempty (cl_prehaar K₀.1) (λ s, is_closed_closure) (λ t, _),
   let V₀ := ⋂ (V ∈ t), (V : open_nhds_of 1).1,
   have h1V₀ : is_open V₀,
   { apply is_open_bInter, apply finite_mem_finset, rintro ⟨V, hV⟩ h2V, exact hV.1 },
@@ -262,7 +267,11 @@ begin
     exact ⟨subset.trans (Inter_subset _ ⟨V, hV⟩) (Inter_subset _ h2V), h1V₀, h2V₀⟩ },
 end
 
-/-- the Haar measure on compact sets, defined to be an arbitrary element in the closure of
+/-!
+### The Haar measure on compact sets
+-/
+
+/-- the Haar measure on compact sets, defined to be an arbitrary element in the intersection of
   all the sets `cl_prehaar K₀ V` in `haar_product K₀`. -/
 def chaar (K₀ : positive_compacts G) (K : compacts G) : ℝ :=
 classical.some (nonempty_Inter_cl_prehaar K₀) K
@@ -393,6 +402,10 @@ by { norm_cast, simp only [←nnreal.coe_le_coe, subtype.coe_mk, chaar_mono, h] 
 end haar
 open haar
 
+/-!
+### The Haar outer measure
+-/
+
 variables [topological_space G] [t2_space G] [topological_group G]
 
 /-- The Haar outer measure on `G`. It is not normalized, and is mainly used to construct
@@ -495,6 +508,10 @@ begin
   refine le_trans (ge_of_eq _) (le_inner_content _ _ this), norm_cast,
   simp only [←nnreal.coe_eq, nnreal.coe_add, subtype.coe_mk], exact chaar_sup_eq hM.2.symm
 end
+
+/-!
+### The Haar measure
+-/
 
 /-- the Haar measure on `G`, scaled so that `haar_measure K₀ K₀ = 1`. -/
 def haar_measure (K₀ : positive_compacts G) : measure G :=

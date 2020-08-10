@@ -66,7 +66,7 @@ begin
   exact h₂ (h₁ hs)
 end
 
-/-- If `p : set α → Prop` is stable under restriction and union, and each point `x of a compact set `s` 
+/-- If `p : set α → Prop` is stable under restriction and union, and each point `x of a compact set `s`
   has a neighborhood `t` within `s` such that `p t`, then `p s` holds. -/
 @[elab_as_eliminator]
 lemma is_compact.induction_on {s : set α} (hs : is_compact s) {p : set α → Prop} (he : p ∅)
@@ -158,6 +158,16 @@ let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, (Z i)ᶜ) hZc
     in
 ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
     exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using ht⟩
+
+/-- To show that a compact set intersects the intersection of a family of closed sets,
+  it is sufficient to show that it intersects every finite subfamily. -/
+lemma is_compact.inter_Inter_nonempty {s : set α} {ι : Type v} (hs : is_compact s)
+  (Z : ι → set α) (hZc : ∀i, is_closed (Z i)) (hsZ : ∀ t : finset ι, (s ∩ ⋂ i ∈ t, Z i).nonempty) :
+  (s ∩ ⋂ i, Z i).nonempty :=
+begin
+  simp only [← ne_empty_iff_nonempty] at hsZ ⊢,
+  apply mt (hs.elim_finite_subfamily_closed Z hZc), push_neg, exact hsZ
+end
 
 /-- Cantor's intersection theorem:
 the intersection of a directed family of nonempty compact closed sets is nonempty. -/

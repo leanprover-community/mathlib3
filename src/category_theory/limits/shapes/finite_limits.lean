@@ -46,6 +46,7 @@ def has_finite_limits : Type (max (v+1) u) :=
 
 attribute [class] has_finite_limits
 
+@[priority 100]
 instance has_limits_of_shape_of_has_finite_limits
   (J : Type v) [small_category J] [fin_category J] [has_finite_limits C] :
   has_limits_of_shape J C :=
@@ -56,6 +57,7 @@ def has_finite_colimits : Type (max (v+1) u) :=
 
 attribute [class] has_finite_colimits
 
+@[priority 100]
 instance has_colimits_of_shape_of_has_finite_colimits
   (J : Type v) [small_category J] [fin_category J] [has_finite_colimits C] :
   has_colimits_of_shape J C :=

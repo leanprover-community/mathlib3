@@ -75,8 +75,9 @@ attribute [reassoc] monoidal_category.left_unitor_naturality
 restate_axiom monoidal_category.right_unitor_naturality'
 attribute [reassoc] monoidal_category.right_unitor_naturality
 restate_axiom monoidal_category.pentagon'
+attribute [reassoc] monoidal_category.pentagon
 restate_axiom monoidal_category.triangle'
-attribute [simp] monoidal_category.triangle
+attribute [simp, reassoc] monoidal_category.triangle
 
 open monoidal_category
 
@@ -127,6 +128,15 @@ variables {U V W X Y Z : C}
 -- left_unitor_inv_naturality
 -- right_unitor_inv_naturality
 
+lemma pentagon_inv (W X Y Z : C) :
+  ((𝟙 W) ⊗ (α_ X Y Z).inv) ≫ (α_ W (X ⊗ Y) Z).inv ≫ ((α_ W X Y).inv ⊗ (𝟙 Z))
+    = (α_ W X (Y ⊗ Z)).inv ≫ (α_ (W ⊗ X) Y Z).inv :=
+begin
+  apply category_theory.eq_of_inv_eq_inv,
+  dsimp,
+  rw [category.assoc, monoidal_category.pentagon]
+end
+
 @[simp] lemma comp_tensor_id (f : W ⟶ X) (g : X ⟶ Y) :
   (f ≫ g) ⊗ (𝟙 Z) = (f ⊗ (𝟙 Z)) ≫ (g ⊗ (𝟙 Z)) :=
 by { rw ←tensor_comp, simp }
@@ -135,13 +145,63 @@ by { rw ←tensor_comp, simp }
   (𝟙 Z) ⊗ (f ≫ g) = (𝟙 Z ⊗ f) ≫ (𝟙 Z ⊗ g) :=
 by { rw ←tensor_comp, simp }
 
+@[simp,reassoc] lemma hom_inv_tensor_id (f : X ≅ Y) :
+  (f.hom ⊗ 𝟙 Z) ≫ (f.inv ⊗ 𝟙 Z) = 𝟙 X ⊗ 𝟙 Z :=
+by rw [←comp_tensor_id, iso.hom_inv_id]
+
+@[simp,reassoc] lemma inv_hom_tensor_id (f : X ≅ Y) :
+  (f.inv ⊗ 𝟙 Z) ≫ (f.hom ⊗ 𝟙 Z) = 𝟙 Y ⊗ 𝟙 Z :=
+by rw [←comp_tensor_id, iso.inv_hom_id]
+
+@[simp,reassoc] lemma id_tensor_hom_inv (f : X ≅ Y) :
+  (𝟙 Z ⊗ f.hom) ≫ (𝟙 Z ⊗ f.inv) = 𝟙 Z ⊗ 𝟙 X :=
+by rw [←id_tensor_comp, iso.hom_inv_id]
+
+@[simp,reassoc] lemma id_tensor_inv_hom (f : X ≅ Y) :
+  (𝟙 Z ⊗ f.inv) ≫ (𝟙 Z ⊗ f.hom) = 𝟙 Z ⊗ 𝟙 Y :=
+by rw [←id_tensor_comp, iso.inv_hom_id]
+
+@[simp,reassoc] lemma id_tensor_hom_inv_tensor_id (f : X ≅ Y) :
+  (𝟙 W ⊗ f.hom ⊗ 𝟙 Z) ≫ (𝟙 W ⊗ f.inv ⊗ 𝟙 Z) = 𝟙 W ⊗ 𝟙 X ⊗ 𝟙 Z :=
+by rw [←id_tensor_comp, ←comp_tensor_id, iso.hom_inv_id]
+
+@[simp,reassoc] lemma id_tensor_inv_hom_tensor_id (f : X ≅ Y) :
+  (𝟙 W ⊗ f.inv ⊗ 𝟙 Z) ≫ (𝟙 W ⊗ f.hom ⊗ 𝟙 Z) = 𝟙 W ⊗ 𝟙 Y ⊗ 𝟙 Z :=
+by rw [←id_tensor_comp, ←comp_tensor_id, iso.inv_hom_id]
+
+
 @[simp] lemma id_tensor_comp_tensor_id (f : W ⟶ X) (g : Y ⟶ Z) :
   ((𝟙 Y) ⊗ f) ≫ (g ⊗ (𝟙 X)) = g ⊗ f :=
 by { rw [←tensor_comp], simp }
 
 @[simp] lemma tensor_id_comp_id_tensor (f : W ⟶ X) (g : Y ⟶ Z) :
-  (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) = g ⊗ f :=
+  (f ⊗ (𝟙 Y)) ≫ ((𝟙 X) ⊗ g) = f ⊗ g :=
 by { rw [←tensor_comp], simp }
+
+/--
+We set up a version of the pentagon identity as a `simp` lemma.
+We consider the left-hand-side here the "complicated" form as it involves
+moving a bracketed expression.
+-/
+@[simp] lemma pentagon_middle (W X Y Z : C) :
+  (α_ W (X ⊗ Y) Z).hom =
+    ((α_ W X Y).inv ⊗ (𝟙 Z)) ≫ (α_ (W ⊗ X) Y Z).hom ≫
+    (α_ W X (Y ⊗ Z)).hom ≫ ((𝟙 W) ⊗ (α_ X Y Z).inv) :=
+begin
+  rw [←pentagon_assoc],
+  slice_rhs 1 2 { rw [←comp_tensor_id], simp, },
+  slice_rhs 3 4 { rw [←id_tensor_comp], simp, },
+  simp,
+end
+
+@[simp] lemma pentagon_inv_middle (W X Y Z : C) :
+  (α_ W (X ⊗ Y) Z).inv =
+    ((𝟙 W) ⊗ (α_ X Y Z).hom) ≫ (α_ W X (Y ⊗ Z)).inv ≫
+    (α_ (W ⊗ X) Y Z).inv ≫ ((α_ W X Y).hom ⊗ (𝟙 Z)) :=
+begin
+  apply category_theory.eq_of_inv_eq_inv,
+  simp,
+end
 
 lemma left_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
   f ≫ (λ_ X').inv = (λ_ X).inv ≫ (𝟙 _ ⊗ f) :=
@@ -312,15 +372,6 @@ begin
   rw [associator_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
 end
 
-lemma pentagon_inv (W X Y Z : C) :
-  ((𝟙 W) ⊗ (α_ X Y Z).inv) ≫ (α_ W (X ⊗ Y) Z).inv ≫ ((α_ W X Y).inv ⊗ (𝟙 Z))
-    = (α_ W X (Y ⊗ Z)).inv ≫ (α_ (W ⊗ X) Y Z).inv :=
-begin
-  apply category_theory.eq_of_inv_eq_inv,
-  dsimp,
-  rw [category.assoc, monoidal_category.pentagon]
-end
-
 lemma triangle_assoc_comp_left (X Y : C) :
   (α_ X (𝟙_ C) Y).hom ≫ ((𝟙 X) ⊗ (λ_ Y).hom) = (ρ_ X).hom ⊗ 𝟙 Y :=
 monoidal_category.triangle X Y
@@ -457,7 +508,7 @@ def tensoring_right : C ⥤ (C ⥤ C) :=
   map := λ X Y f,
   { app := λ Z, (𝟙 Z) ⊗ f } }
 
-instance : faithful (tensoring_right C) :=
+instance faithful_tensor_right : faithful (tensoring_right C) :=
 { map_injective' := λ X Y f g h,
   begin
     injections with h,

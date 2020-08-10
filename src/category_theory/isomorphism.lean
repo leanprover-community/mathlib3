@@ -205,6 +205,12 @@ is_iso.of_iso $ (as_iso f) ≪≫ (as_iso h)
 @[simp] lemma iso.inv_inv (f : X ≅ Y) : inv (f.inv) = f.hom := rfl
 @[simp] lemma iso.inv_hom (f : X ≅ Y) : inv (f.hom) = f.inv := rfl
 
+lemma is_iso_comp_eq {f : X ⟶ Y} [is_iso f] {g : Y ⟶ Z} {k : X ⟶ Z} : f ≫ g = k ↔ g = inv f ≫ k :=
+(iso.eq_inv_comp (as_iso f)).symm
+
+lemma comp_is_iso_eq {f : X ⟶ Y} {g : Y ⟶ Z} [is_iso g] {k : X ⟶ Z} : f ≫ g = k ↔ f = k ≫ inv g :=
+(iso.eq_comp_inv (as_iso g)).symm
+
 @[priority 100] -- see Note [lower instance priority]
 instance epi_of_iso (f : X ⟶ Y) [is_iso f] : epi f  :=
 { left_cancellation := λ Z g h w,

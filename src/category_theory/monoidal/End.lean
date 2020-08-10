@@ -53,7 +53,12 @@ def tensoring_right_monoidal : monoidal_functor C (C ⥤ C) :=
   { app := λ Z, (α_ Z X Y).hom,
     naturality' := λ Z Z' f, by { dsimp, rw associator_naturality, simp, } },
   μ_natural' := λ X Y X' Y' f g, by { ext Z, dsimp, simp [associator_naturality], },
-  associativity' := λ X Y Z, by { ext W, dsimp, simp [pentagon], },
+  associativity' := λ X Y Z,
+  begin
+    ext W,
+    dsimp,
+    simp only [pentagon, tensor_id, category.id_comp, category.assoc],
+  end,
   left_unitality' := λ X, by { ext Y, dsimp, rw [category.id_comp, triangle, ←tensor_comp], simp, },
   right_unitality' := λ X, by { ext Y, dsimp, simp, },
   ε_is_iso := by apply_instance,
@@ -64,5 +69,8 @@ def tensoring_right_monoidal : monoidal_functor C (C ⥤ C) :=
     { app := λ Z, (α_ Z X Y).inv,
       naturality' := λ Z Z' f, by { dsimp, rw ←associator_inv_naturality, simp, } }, },
   ..tensoring_right C }.
+
+instance : faithful (tensoring_right_monoidal C).to_lax_monoidal_functor.to_functor :=
+monoidal_category.faithful_tensor_right C
 
 end category_theory

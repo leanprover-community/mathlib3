@@ -8,7 +8,7 @@ import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.terminal
 
 /-!
-# The natural monoidal structure on any category with finite (co)products.
+# The natural symmetric monoidal structure on any category with finite (co)products.
 
 A category with a monoidal structure provided in this way is sometimes called a (co)cartesian category,
 although this is also sometimes used to mean a finitely complete category.

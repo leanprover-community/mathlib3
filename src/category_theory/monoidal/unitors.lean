@@ -103,7 +103,7 @@ lemma cells_9 :
 begin
   slice_rhs 1 2 { rw ←(monoidal_category.pentagon (𝟙_ C) (𝟙_ C) (𝟙_ C) (𝟙_ C)) },
   slice_rhs 3 4 { rw [←id_tensor_comp, iso.hom_inv_id], },
-  simp,
+  simp only [iso.hom_inv_id, tensor_id, id_comp, comp_id],
 end
 
 lemma cells_10_13 :
@@ -116,7 +116,7 @@ begin
  slice_lhs 1 2 { rw [←tensor_id, associator_naturality], },
  slice_lhs 2 3 { rw [←id_tensor_comp], simp, },
  slice_lhs 1 2 { rw ←associator_naturality, },
- simp,
+ simp only [iso.hom_inv_id, assoc, comp_id],
 end
 
 lemma cells_9_13 :

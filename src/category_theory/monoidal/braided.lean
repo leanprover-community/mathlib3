@@ -43,18 +43,21 @@ class braided_category (C : Type u) [category.{v} C] [monoidal_category.{v} C] :
   (f ⊗ g) ≫ (braiding Y Y').hom = (braiding X X').hom ≫ (g ⊗ f) . obviously)
 -- hexagon identities:
 (hexagon_forward'     : Π X Y Z : C,
-    (α_ X Y Z).hom ≫ (braiding X (Y ⊗ Z)).hom ≫ (α_ Y Z X).hom
-  = ((braiding X Y).hom ⊗ (𝟙 Z)) ≫ (α_ Y X Z).hom ≫ ((𝟙 Y) ⊗ (braiding X Z).hom)
+    (braiding X (Y ⊗ Z)).hom =
+      (α_ X Y Z).inv ≫ ((braiding X Y).hom ⊗ (𝟙 Z)) ≫ (α_ Y X Z).hom ≫
+        ((𝟙 Y) ⊗ (braiding X Z).hom) ≫ (α_ Y Z X).inv
   . obviously)
 (hexagon_reverse'     : Π X Y Z : C,
-    (α_ X Y Z).inv ≫ (braiding (X ⊗ Y) Z).hom ≫ (α_ Z X Y).inv
-  = ((𝟙 X) ⊗ (braiding Y Z).hom) ≫ (α_ X Z Y).inv ≫ ((braiding X Z).hom ⊗ (𝟙 Y))
+    (braiding (X ⊗ Y) Z).hom =
+      (α_ X Y Z).hom ≫ ((𝟙 X) ⊗ (braiding Y Z).hom) ≫ (α_ X Z Y).inv ≫
+        ((braiding X Z).hom ⊗ (𝟙 Y)) ≫ (α_ Z X Y).hom
   . obviously)
 
 restate_axiom braided_category.braiding_naturality'
 attribute [simp,reassoc] braided_category.braiding_naturality
 restate_axiom braided_category.hexagon_forward'
 restate_axiom braided_category.hexagon_reverse'
+attribute [simp] braided_category.hexagon_forward braided_category.hexagon_reverse
 
 open braided_category
 

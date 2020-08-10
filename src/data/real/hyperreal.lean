@@ -511,7 +511,7 @@ is_st_iff_abs_sub_lt_delta.mpr $ λ d hd,
         field_simp [this, @two_ne_zero ℝ* _, add_mul, mul_add, mul_assoc, mul_comm, mul_left_comm] }
   ... < (d / 2 * 1 + d / 2 : ℝ*) :
         add_lt_add_right (mul_lt_mul_of_pos_left
-        ((div_lt_one_iff_lt $ lt_of_le_of_lt (abs_nonneg x) ht).mpr ht) $
+        ((div_lt_one $ lt_of_le_of_lt (abs_nonneg x) ht).mpr ht) $
         half_pos $ coe_pos.2 hd) _
   ... = (d : ℝ*) : by rw [mul_one, add_halves]
 

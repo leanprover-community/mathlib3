@@ -541,7 +541,7 @@ begin
 end
 
 /- Test whether generalize' always uses the exact name stated by the user, even if that name already
-  exists. (note: the two occurrences of `n` in guard_target are different -/
+  exists. -/
 example (n : Type) (k : ℕ) : k = 5 → unit :=
 begin
   generalize' : 5 = n,

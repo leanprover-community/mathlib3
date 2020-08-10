@@ -137,8 +137,8 @@ begin
   refine @is_cau_of_mono_bounded _ _ _ _ ((1 : α) / (1 - abv x)) 0 _ _,
   { assume n hn,
     rw abs_of_nonneg,
-    refine div_le_div_of_le_of_pos (sub_le_self _ (abv_pow abv x n ▸ abv_nonneg _ _))
-      (sub_pos.2 hx1),
+    refine div_le_div_of_pos_of_le (sub_pos.2 hx1)
+      (sub_le_self _ (abv_pow abv x n ▸ abv_nonneg _ _)),
     refine div_nonneg (sub_nonneg.2 _) (sub_nonneg.2 $ le_of_lt hx1),
     clear hn,
     induction n with n ih,
@@ -146,7 +146,7 @@ begin
     { rw [pow_succ, ← one_mul (1 : α)],
       refine mul_le_mul (le_of_lt hx1) ih (abv_pow abv x n ▸ abv_nonneg _ _) (by norm_num) } },
   { assume n hn,
-    refine div_le_div_of_le_of_pos (sub_le_sub_left _ _) (sub_pos.2 hx1),
+    refine div_le_div_of_pos_of_le (sub_pos.2 hx1) (sub_le_sub_left _ _),
     rw [← one_mul (_ ^ n), pow_succ],
     exact mul_le_mul_of_nonneg_right (le_of_lt hx1) (pow_nonneg (abv_nonneg _ _) _) }
 end

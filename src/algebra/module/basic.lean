@@ -66,16 +66,6 @@ end prio
 section add_comm_monoid
 variables [semiring R] [add_comm_monoid M] [semimodule R M] (r s : R) (x y : M)
 
-instance units_action : mul_action (units R) M :=
-{ smul := λ r m, (r : R) • m,
-  one_smul := by simp,
-  mul_smul := begin
-    intros u v m,
-    change (u.1 * v.1) • _ = _,
-    rw mul_smul,
-    refl,
-  end }
-
 theorem add_smul : (r + s) • x = r • x + s • x := semimodule.add_smul r s x
 variables (R)
 @[simp] theorem zero_smul : (0 : R) • x = 0 := semimodule.zero_smul x

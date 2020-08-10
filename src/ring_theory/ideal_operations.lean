@@ -157,6 +157,14 @@ le_antisymm (smul_le.2 $ λ r hrS n hnT, span_induction hrS
 span_le.2 $ set.bUnion_subset $ λ r hrS, set.bUnion_subset $ λ n hnT, set.singleton_subset_iff.2 $
 smul_mem_smul (subset_span hrS) (subset_span hnT)
 
+variables {M' : Type w} [add_comm_group M'] [module R M']
+
+theorem map_smul'' (f : M →ₗ[R] M') : (I • N).map f = I • N.map f :=
+le_antisymm (map_le_iff_le_comap.2 $ smul_le.2 $ λ r hr n hn, show f (r • n) ∈ I • N.map f,
+    from (f.map_smul r n).symm ▸ smul_mem_smul hr (mem_map_of_mem hn)) $
+smul_le.2 $ λ r hr n hn, let ⟨p, hp, hfp⟩ := mem_map.1 hn in
+hfp ▸ f.map_smul r p ▸ mem_map_of_mem (smul_mem_smul hr hp)
+
 end submodule
 
 namespace ideal
@@ -415,6 +423,11 @@ instance : comm_semiring (ideal R) := submodule.comm_semiring
 @[simp] lemma one_eq_top : (1 : ideal R) = ⊤ :=
 by erw [submodule.one_eq_map_top, submodule.map_id]
 
+variables (R)
+theorem top_pow (n : ℕ) : (⊤ ^ n : ideal R) = ⊤ :=
+nat.rec_on n one_eq_top $ λ n ih, by rw [pow_succ, ih, top_mul]
+variables {R}
+
 variables (I)
 theorem radical_pow (n : ℕ) (H : n > 0) : radical (I^n) = radical I :=
 nat.rec_on n (not.elim dec_trivial) (λ n ih H,
@@ -516,6 +529,10 @@ lemma map_comap_le : (K.comap f).map f ≤ K :=
 
 @[simp] lemma comap_top : (⊤ : ideal S).comap f = ⊤ :=
 (gc_map_comap f).u_top
+
+@[simp] lemma comap_eq_top_iff {I : ideal S} : I.comap f = ⊤ ↔ I = ⊤ :=
+⟨ λ h, I.eq_top_iff_one.mpr (f.map_one ▸ mem_comap.mp ((I.comap f).eq_top_iff_one.mp h)),
+  λ h, by rw [h, comap_top] ⟩
 
 @[simp] lemma map_bot : (⊥ : ideal R).map f = ⊥ :=
 (gc_map_comap f).l_bot
@@ -664,6 +681,17 @@ begin
 end
 
 end surjective
+
+lemma mem_quotient_iff_mem (hIJ : I ≤ J) {x : R} :
+  quotient.mk I x ∈ J.map (quotient.mk I) ↔ x ∈ J :=
+begin
+  refine iff.trans (mem_map_iff_of_surjective _ quotient.mk_surjective) _,
+  split,
+  { rintros ⟨x, x_mem, x_eq⟩,
+    simpa using J.add_mem (hIJ (quotient.eq.mp x_eq.symm)) x_mem },
+  { intro x_mem,
+    exact ⟨x, x_mem, rfl⟩ }
+end
 
 section injective
 variables (hf : function.injective f)

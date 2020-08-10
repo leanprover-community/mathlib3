@@ -166,7 +166,7 @@ structure continuous_linear_map
   (M₂ : Type*) [topological_space M₂] [add_comm_monoid M₂]
   [semimodule R M] [semimodule R M₂]
   extends linear_map R M M₂ :=
-(cont : continuous to_fun)
+(cont : continuous to_fun . tactic.interactive.continuity')
 
 notation M ` →L[`:25 R `] ` M₂ := continuous_linear_map R M M₂
 
@@ -180,8 +180,8 @@ structure continuous_linear_equiv
   (M₂ : Type*) [topological_space M₂] [add_comm_monoid M₂]
   [semimodule R M] [semimodule R M₂]
   extends linear_equiv R M M₂ :=
-(continuous_to_fun  : continuous to_fun)
-(continuous_inv_fun : continuous inv_fun)
+(continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
+(continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 
 notation M ` ≃L[`:50 R `] ` M₂ := continuous_linear_equiv R M M₂
 
@@ -208,16 +208,17 @@ instance to_fun : has_coe_to_fun $ M →L[R] M₂ := ⟨λ _, M → M₂, λ f, 
 @[simp] lemma coe_mk (f : M →ₗ[R] M₂) (h) : (mk f h : M →ₗ[R] M₂) = f := rfl
 @[simp] lemma coe_mk' (f : M →ₗ[R] M₂) (h) : (mk f h : M → M₂) = f := rfl
 
+@[continuity]
 protected lemma continuous (f : M →L[R] M₂) : continuous f := f.2
 
 theorem coe_injective : function.injective (coe : (M →L[R] M₂) → (M →ₗ[R] M₂)) :=
 by { intros f g H, cases f, cases g, congr' 1, exact H }
 
-theorem coe_injective' ⦃f g : M →L[R] M₂⦄ (H : (f : M → M₂) = g) : f = g :=
-coe_injective $ linear_map.coe_injective H
+theorem coe_inj ⦃f g : M →L[R] M₂⦄ (H : (f : M → M₂) = g) : f = g :=
+coe_injective $ linear_map.coe_inj H
 
 @[ext] theorem ext {f g : M →L[R] M₂} (h : ∀ x, f x = g x) : f = g :=
-coe_injective' $ funext h
+coe_inj $ funext h
 
 theorem ext_iff {f g : M →L[R] M₂} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, by rw h, by ext⟩
@@ -711,6 +712,10 @@ def to_homeomorph (e : M ≃L[R] M₂) : M ≃ₜ M₂ := { ..e }
 @[simp] lemma map_eq_zero_iff (e : M ≃L[R] M₂) {x : M} : e x = 0 ↔ x = 0 :=
 e.to_linear_equiv.map_eq_zero_iff
 
+attribute [continuity]
+  continuous_linear_equiv.continuous_to_fun continuous_linear_equiv.continuous_inv_fun
+
+@[continuity]
 protected lemma continuous (e : M ≃L[R] M₂) : continuous (e : M → M₂) :=
 e.continuous_to_fun
 
@@ -759,7 +764,6 @@ end
 { continuous_to_fun := e.continuous_inv_fun,
   continuous_inv_fun := e.continuous_to_fun,
   .. e.to_linear_equiv.symm }
-
 @[simp] lemma symm_to_linear_equiv (e : M ≃L[R] M₂) :
   e.symm.to_linear_equiv = e.to_linear_equiv.symm :=
 by { ext, refl }
@@ -769,7 +773,6 @@ by { ext, refl }
 { continuous_to_fun := e₂.continuous_to_fun.comp e₁.continuous_to_fun,
   continuous_inv_fun := e₁.continuous_inv_fun.comp e₂.continuous_inv_fun,
   .. e₁.to_linear_equiv.trans e₂.to_linear_equiv }
-
 @[simp] lemma trans_to_linear_equiv (e₁ : M ≃L[R] M₂) (e₂ : M₂ ≃L[R] M₃) :
   (e₁.trans e₂).to_linear_equiv = e₁.to_linear_equiv.trans e₂.to_linear_equiv :=
 by { ext, refl }
@@ -779,7 +782,6 @@ def prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) : (M × M₃) ≃L[R] (M�
 { continuous_to_fun := e.continuous_to_fun.prod_map e'.continuous_to_fun,
   continuous_inv_fun := e.continuous_inv_fun.prod_map e'.continuous_inv_fun,
   .. e.to_linear_equiv.prod e'.to_linear_equiv }
-
 @[simp, norm_cast] lemma prod_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (x) :
   e.prod e' x = (e x.1, e' x.2) := rfl
 
@@ -874,7 +876,6 @@ def skew_prod (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄)
     (e'.continuous_inv_fun.comp $ continuous_snd.sub $ f.continuous.comp $
       e.continuous_inv_fun.comp continuous_fst),
 .. e.to_linear_equiv.skew_prod e'.to_linear_equiv ↑f  }
-
 @[simp] lemma skew_prod_apply (e : M ≃L[R] M₂) (e' : M₃ ≃L[R] M₄) (f : M →L[R] M₄) (x) :
   e.skew_prod e' f x = (e x.1, e' x.2 + f x.1) := rfl
 

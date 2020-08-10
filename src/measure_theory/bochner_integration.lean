@@ -1022,7 +1022,7 @@ begin
   by_cases hf : measurable f ∧ integrable f μ,
   { rw [integral_eq f hf.1 hf.2, ← l1.norm_of_fun_eq_lintegral_norm f hf.1 hf.2],
     exact l1.norm_integral_le _ },
-  { rw [integral_undef hf, _root_.norm_zero],
+  { rw [integral_undef hf, norm_zero],
     exact to_real_nonneg }
 end
 
@@ -1197,7 +1197,7 @@ classical.by_cases
     ... = ∫ a, ∥f a∥ ∂μ : (integral_eq_lintegral_of_nonneg_ae le_ae $ measurable.norm h).symm )
 ( λh : ¬measurable f,
   begin
-    rw [integral_non_measurable h, _root_.norm_zero],
+    rw [integral_non_measurable h, norm_zero],
     exact integral_nonneg_of_ae le_ae
   end )
 
@@ -1266,6 +1266,9 @@ begin
   apply tendsto_nhds_unique hμν,
   simpa only [← simple_func.integral_eq_integral, *, simple_func.integral_add_meas] using hμ.add hν
 end
+
+@[simp] lemma integral_zero_meas (f : α → E) : ∫ x, f x ∂0 = 0 :=
+norm_le_zero_iff.1 $ le_trans (norm_integral_le_lintegral_norm f) $ by simp
 
 end properties
 

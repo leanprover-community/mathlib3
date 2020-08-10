@@ -360,6 +360,9 @@ end plift
 -- as they become useful.
 attribute [ext] has_zero
 
+@[ext] lemma unit.ext {x y : unit} : x = y := by { cases x, cases y, refl, }
+@[ext] lemma punit.ext {x y : punit} : x = y := by { cases x, cases y, refl, }
+
 namespace tactic
 
 meta def try_intros : ext_patt → tactic ext_patt

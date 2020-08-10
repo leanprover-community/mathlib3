@@ -149,7 +149,7 @@ le_antisymm
   (le_infi $ assume s, le_infi $ assume hs, by simp only [hs, le_principal_iff])
 
 lemma lift_infi {f : ι → filter α} {g : set α → filter β}
-  (hι : nonempty ι) (hg : ∀{s t}, g s ⊓ g t = g (s ∩ t)) : (infi f).lift g = (⨅i, (f i).lift g) :=
+  [hι : nonempty ι] (hg : ∀{s t}, g s ⊓ g t = g (s ∩ t)) : (infi f).lift g = (⨅i, (f i).lift g) :=
 le_antisymm
   (le_infi $ assume i, lift_mono (infi_le _ _) (le_refl _))
   (assume s,
@@ -182,6 +182,10 @@ le_principal_iff.mp $ show f.lift' h ≤ 𝓟 (h t),
 
 lemma mem_lift'_sets (hh : monotone h) {s : set β} : s ∈ (f.lift' h) ↔ (∃t∈f, h t ⊆ s) :=
 mem_lift_sets $ monotone_principal.comp hh
+
+lemma eventually_lift'_iff (hh : monotone h) {p : β → Prop} :
+  (∀ᶠ y in f.lift' h, p y) ↔ (∃ t ∈ f, ∀ y ∈ h t, p y) :=
+mem_lift'_sets hh
 
 lemma lift'_le {f : filter α} {g : set α → set β} {h : filter β} {s : set α}
   (hs : s ∈ f) (hg : 𝓟 (g s) ≤ h) : f.lift' g ≤ h :=
@@ -281,23 +285,54 @@ lemma le_lift' {f : filter α} {h : set α → set β} {g : filter β}
 le_infi $ assume s, le_infi $ assume hs, by simp only [h_le, le_principal_iff, function.comp_app]; exact h_le s hs
 
 lemma lift_infi' {f : ι → filter α} {g : set α → filter β}
-  (hι : nonempty ι) (hf : directed (≥) f) (hg : monotone g) : (infi f).lift g = (⨅i, (f i).lift g) :=
+  [nonempty ι] (hf : directed (≥) f) (hg : monotone g) : (infi f).lift g = (⨅i, (f i).lift g) :=
 le_antisymm
   (le_infi $ assume i, lift_mono (infi_le _ _) (le_refl _))
   (assume s,
   begin
     rw mem_lift_sets hg,
-    simp only [exists_imp_distrib, mem_infi hf hι],
+    simp only [exists_imp_distrib, mem_infi hf],
     exact assume t i ht hs, mem_infi_sets i $ mem_lift ht hs
   end)
 
 lemma lift'_infi {f : ι → filter α} {g : set α → set β}
-  (hι : nonempty ι) (hg : ∀{s t}, g s ∩ g t = g (s ∩ t)) : (infi f).lift' g = (⨅i, (f i).lift' g) :=
-lift_infi hι $ by simp only [principal_eq_iff_eq, inf_principal, function.comp_app]; apply assume s t, hg
+  [nonempty ι] (hg : ∀{s t}, g s ∩ g t = g (s ∩ t)) : (infi f).lift' g = (⨅i, (f i).lift' g) :=
+lift_infi $ by simp only [principal_eq_iff_eq, inf_principal, function.comp_app]; apply assume s t, hg
 
 theorem comap_eq_lift' {f : filter β} {m : α → β} :
   comap m f = f.lift' (preimage m) :=
-filter_eq $ set.ext $ by simp only [mem_lift'_sets, monotone_preimage, comap, exists_prop, forall_const, iff_self, mem_set_of_eq]
+filter.ext $ λ s, (mem_lift'_sets monotone_preimage).symm
+
+lemma eventually_lift'_powerset {f : filter α} {p : set α → Prop} :
+  (∀ᶠ s in f.lift' powerset, p s) ↔ ∃ s ∈ f, ∀ t ⊆ s, p t :=
+eventually_lift'_iff (λ _ _, powerset_mono.2)
+
+lemma eventually_lift'_powerset' {f : filter α} {p : set α → Prop}
+  (hp : ∀ ⦃s t⦄, s ⊆ t → p t → p s) :
+  (∀ᶠ s in f.lift' powerset, p s) ↔ ∃ s ∈ f, p s :=
+eventually_lift'_powerset.trans $ exists_congr $ λ s, exists_congr $
+  λ hsf, ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
+
+instance lift'_powerset_ne_bot (f : filter α) : ne_bot (f.lift' powerset) :=
+(lift'_ne_bot_iff (λ _ _, powerset_mono.2)).2 $ λ _ _, powerset_nonempty
+
+@[simp] lemma eventually_lift'_powerset_forall {f : filter α} {p : α → Prop} :
+  (∀ᶠ s in f.lift' powerset, ∀ x ∈ s, p x) ↔ ∀ᶠ x in f, p x :=
+iff.trans (eventually_lift'_powerset' $ λ s t hst ht x hx, ht x (hst hx))
+  exists_sets_subset_iff
+
+alias eventually_lift'_powerset_forall ↔
+  filter.eventually.of_lift'_powerset filter.eventually.lift'_powerset
+
+@[simp] lemma eventually_lift'_powerset_eventually {f g : filter α} {p : α → Prop} :
+  (∀ᶠ s in f.lift' powerset, ∀ᶠ x in g, x ∈ s → p x) ↔ ∀ᶠ x in f ⊓ g, p x :=
+calc _ ↔ ∃ s ∈ f, ∀ᶠ x in g, x ∈ s → p x :
+  eventually_lift'_powerset' $ λ s t hst ht, ht.mono $ λ x hx hs, hx (hst hs)
+... ↔ ∃ (s ∈ f) (t ∈ g), ∀ x, x ∈ t → x ∈ s → p x :
+  by simp only [eventually_iff_exists_mem]
+... ↔ ∀ᶠ x in f ⊓ g, p x :
+  by simp only [filter.eventually, mem_inf_sets, subset_def, mem_inter_iff,
+    ← and_imp, and_comm, mem_set_of_eq]
 
 end lift'
 
@@ -309,7 +344,7 @@ have ∀(s:set α) (t : set β),
     𝓟 (set.prod s t) = (𝓟 s).comap prod.fst ⊓ (𝓟 t).comap prod.snd,
   by simp only [principal_eq_iff_eq, comap_principal, inf_principal]; intros; refl,
 begin
-  simp only [filter.lift', function.comp, this, -comap_principal, lift_inf, lift_const, lift_inf],
+  simp only [filter.lift', function.comp, this, lift_inf, lift_const, lift_inf],
   rw [← comap_lift_eq monotone_principal, ← comap_lift_eq monotone_principal],
   simp only [filter.prod, lift_principal2, eq_self_iff_true]
 end

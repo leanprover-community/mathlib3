@@ -86,6 +86,10 @@ end Module
 variables {R}
 variables {X₁ X₂ : Type u}
 
+/-- Reinterpreting a linear map in the category of `R`-modules. -/
+def Module.as_hom [add_comm_group X₁] [module R X₁] [add_comm_group X₂] [module R X₂] :
+  (X₁ →ₗ[R] X₂) → (Module.of R X₁ ⟶ Module.of R X₂) := id
+
 /-- Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s. -/
 @[simps]
 def linear_equiv.to_Module_iso
@@ -95,6 +99,18 @@ def linear_equiv.to_Module_iso
   inv := (e.symm : X₂ →ₗ[R] X₁),
   hom_inv_id' := begin ext, exact e.left_inv x, end,
   inv_hom_id' := begin ext, exact e.right_inv x, end, }
+
+/--
+Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s.
+
+This version is better than `linear_equiv_to_Module_iso` when applicable, because Lean can't see `Module.of R M` is defeq to `M` when `M : Module R`.
+  -/
+@[simps]
+def linear_equiv.to_Module_iso' {M N : Module R} (i : M ≃ₗ[R] N) : M ≅ N :=
+{ hom := i,
+  inv := i.symm,
+  hom_inv_id' := linear_map.ext $ λ x, by simp,
+  inv_hom_id' := linear_map.ext $ λ x, by simp }
 
 namespace category_theory.iso
 
@@ -129,41 +145,22 @@ instance : preadditive (Module R) :=
 
 end preadditive
 
-section kernel
-variables {R} {M N : Module R} (f : M ⟶ N)
+section epi_mono
+variables {M N : Module R} (f : M ⟶ N)
 
-/-- The cone on the equalizer diagram of f and 0 induced by the kernel of f -/
-def kernel_cone : cone (parallel_pair f 0) :=
-{ X := of R f.ker,
-  π :=
-  { app := λ j,
-    match j with
-    | zero := f.ker.subtype
-    | one := 0
-    end,
-    naturality' := λ j j' g, by { cases j; cases j'; cases g; tidy } } }
+lemma ker_eq_bot_of_mono [mono f] : f.ker = ⊥ :=
+linear_map.ker_eq_bot_of_cancel $ λ u v, (@cancel_mono _ _ _ _ _ f _ (as_hom u) (as_hom v)).1
 
-/-- The kernel of a linear map is a kernel in the categorical sense -/
-def kernel_is_limit : is_limit (kernel_cone f) :=
-{ lift := λ s, linear_map.cod_restrict f.ker (fork.ι s) (λ c, linear_map.mem_ker.2 $
-  by { erw [←@function.comp_apply _ _ _ f (fork.ι s) c, ←coe_comp, fork.condition,
-    has_zero_morphisms.comp_zero (fork.ι s) N], refl }),
-  fac' := λ s j, linear_map.ext $ λ x,
-  begin
-    rw [coe_comp, function.comp_app, ←linear_map.comp_apply],
-    cases j,
-    { erw @linear_map.subtype_comp_cod_restrict _ _ _ _ _ _ _ _ (fork.ι s) f.ker _ },
-    { rw [←fork.app_zero_left, ←fork.app_zero_left], refl }
-  end,
-  uniq' := λ s m h, linear_map.ext $ λ x, subtype.ext_iff_val.2 $
-    have h₁ : (m ≫ (kernel_cone f).π.app zero).to_fun = (s.π.app zero).to_fun,
-    by { congr, exact h zero },
-    by convert @congr_fun _ _ _ _ h₁ x }
+lemma range_eq_top_of_epi [epi f] : f.range = ⊤ :=
+linear_map.range_eq_top_of_cancel $ λ u v, (@cancel_epi _ _ _ _ _ f _ (as_hom u) (as_hom v)).1
 
-end kernel
+lemma mono_of_ker_eq_bot (hf : f.ker = ⊥) : mono f :=
+concrete_category.mono_of_injective _ $ linear_map.ker_eq_bot.1 hf
 
-instance : has_kernels (Module R) :=
-⟨λ _ _ f, ⟨kernel_cone f, kernel_is_limit f⟩⟩
+lemma epi_of_range_eq_top (hf : f.range = ⊤) : epi f :=
+concrete_category.epi_of_surjective _ $ linear_map.range_eq_top.1 hf
+
+end epi_mono
 
 end Module
 

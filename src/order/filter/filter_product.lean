@@ -5,7 +5,6 @@ Authors: Abhimanyu Pallavi Sudhir
 -/
 import order.filter.ultrafilter
 import order.filter.germ
-import algebra.pi_instances
 
 /-!
 # Ultraproducts
@@ -134,9 +133,9 @@ lemma max_def [K : decidable_linear_order β] (U : is_ultrafilter φ) (x y : β*
 quotient.induction_on₂' x y $ λ a b, by unfold max;
 begin
   split_ifs,
-  exact quotient.sound'(by filter_upwards [h] λ i hi, (max_eq_right hi).symm),
+  exact quotient.sound'(by filter_upwards [h] λ i hi, (max_eq_left hi).symm),
   exact quotient.sound'(by filter_upwards [@le_of_not_le _ (germ.linear_order U) _ _ h]
-    λ i hi, (max_eq_left hi).symm),
+    λ i hi, (max_eq_right hi).symm),
 end
 
 lemma min_def [K : decidable_linear_order β] (U : is_ultrafilter φ) (x y : β*) :

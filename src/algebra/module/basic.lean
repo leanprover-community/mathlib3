@@ -144,14 +144,6 @@ by letI := H.to_has_scalar; exact
   smul_zero := λ r, (add_monoid_hom.mk' ((•) r) (H.smul_add r)).map_zero,
   ..H }
 
-variable [semimodule R M]
-
-@[simp] theorem smul_neg (r : R) (x : M) : r • (-x) = -(r • x) :=
-eq_neg_of_add_eq_zero (by simp [← smul_add])
-
-theorem smul_sub (r : R) (x y : M) : r • (x - y) = r • x - r • y :=
-by simp [smul_add, sub_eq_add_neg]; rw smul_neg
-
 end add_comm_group
 
 /--
@@ -297,11 +289,11 @@ theorem is_linear : is_linear_map R f := ⟨f.2, f.3⟩
 
 variables {f g}
 
-lemma coe_injective (H : ⇑f = g) : f = g :=
-by cases f; cases g; congr'; exact  H
+theorem coe_inj (h : (f : M → M₂) = g) : f = g :=
+by cases f; cases g; cases h; refl
 
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
-coe_injective $ funext H
+coe_inj $ funext H
 
 lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
 | _ _ rfl := rfl

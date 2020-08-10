@@ -7,7 +7,7 @@ import algebra.associated
 import linear_algebra.basic
 import order.zorn
 
-universes u v
+universes u v w
 variables {α : Type u} {β : Type v} {a b : α}
 open set function
 
@@ -257,6 +257,9 @@ not_congr zero_eq_one_iff
 protected theorem nontrivial {I : ideal α} (hI : I ≠ ⊤) : nontrivial I.quotient :=
 ⟨⟨0, 1, zero_ne_one_iff.2 hI⟩⟩
 
+lemma mk_surjective : function.surjective (mk I) :=
+λ y, quotient.induction_on' y (λ x, exists.intro x rfl)
+
 instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,
     quotient.induction_on₂' a b $ λ a b hab,
@@ -333,6 +336,75 @@ classical.or_iff_not_imp_right.mp I.eq_bot_or_top h.1
 lemma bot_is_maximal {K : Type u} [field K] : is_maximal (⊥ : ideal K) :=
 ⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simp),
 λ I hI, or_iff_not_imp_left.mp (eq_bot_or_top I) (ne_of_gt hI)⟩
+
+section pi
+variables (ι : Type v)
+
+/-- `I^n` as an ideal of `R^n`. -/
+def pi : ideal (ι → α) :=
+{ carrier := { x | ∀ i, x i ∈ I },
+  zero_mem' := λ i, submodule.zero_mem _,
+  add_mem' := λ a b ha hb i, submodule.add_mem _ (ha i) (hb i),
+  smul_mem' := λ a b hb i, ideal.mul_mem_left _ (hb i) }
+
+lemma mem_pi (x : ι → α) : x ∈ I.pi ι ↔ ∀ i, x i ∈ I := iff.rfl
+
+/-- `R^n/I^n` is a `R/I`-module. -/
+instance module_pi : module (I.quotient) (I.pi ι).quotient :=
+begin
+  refine { smul := λ c m, quotient.lift_on₂' c m (λ r m, submodule.quotient.mk $ r • m) _, .. },
+  { intros c₁ m₁ c₂ m₂ hc hm,
+    change c₁ - c₂ ∈ I at hc,
+    change m₁ - m₂ ∈ (I.pi ι) at hm,
+    apply ideal.quotient.eq.2,
+    have : c₁ • (m₂ - m₁) ∈ I.pi ι,
+    { rw ideal.mem_pi,
+      intro i,
+      simp only [smul_eq_mul, pi.smul_apply, pi.sub_apply],
+      apply ideal.mul_mem_left,
+      rw ←ideal.neg_mem_iff,
+      simpa only [neg_sub] using hm i },
+    rw [←ideal.add_mem_iff_left (I.pi ι) this, sub_eq_add_neg, add_comm, ←add_assoc, ←smul_add,
+      sub_add_cancel, ←sub_eq_add_neg, ←sub_smul, ideal.mem_pi],
+    exact λ i, ideal.mul_mem_right _ hc },
+  all_goals { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ <|> rintro ⟨a⟩,
+    simp only [(•), submodule.quotient.quot_mk_eq_mk, ideal.quotient.mk_eq_mk],
+    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    congr, ext, simp [mul_assoc, mul_add, add_mul] }
+end
+
+/-- `R^n/I^n` is isomorphic to `(R/I)^n` as an `R/I`-module. -/
+noncomputable def pi_quot_equiv : (I.pi ι).quotient ≃ₗ[I.quotient] (ι → I.quotient) :=
+{ to_fun := λ x, quotient.lift_on' x (λ f i, ideal.quotient.mk I (f i)) $
+    λ a b hab, funext (λ i, ideal.quotient.eq.2 (hab i)),
+  map_add' := by { rintros ⟨_⟩ ⟨_⟩, refl },
+  map_smul' := by { rintros ⟨_⟩ ⟨_⟩, refl },
+  inv_fun := λ x, ideal.quotient.mk (I.pi ι) $ λ i, quotient.out' (x i),
+  left_inv :=
+  begin
+    rintro ⟨x⟩,
+    exact ideal.quotient.eq.2 (λ i, ideal.quotient.eq.1 (quotient.out_eq' _))
+  end,
+  right_inv :=
+  begin
+    intro x,
+    ext i,
+    obtain ⟨r, hr⟩ := @quot.exists_rep _ _ (x i),
+    simp_rw ←hr,
+    convert quotient.out_eq' _
+  end }
+
+/-- If `f : R^n → R^m` is an `R`-linear map and `I ⊆ R` is an ideal, then the image of `I^n` is
+    contained in `I^m`. -/
+lemma map_pi {ι} [fintype ι] {ι' : Type w} (x : ι → α) (hi : ∀ i, x i ∈ I)
+  (f : (ι → α) →ₗ[α] (ι' → α)) (i : ι') : f x i ∈ I :=
+begin
+  rw pi_eq_sum_univ x,
+  simp only [finset.sum_apply, smul_eq_mul, linear_map.map_sum, pi.smul_apply, linear_map.map_smul],
+  exact submodule.sum_mem _ (λ j hj, ideal.mul_mem_right _ (hi j))
+end
+
+end pi
 
 end ideal
 

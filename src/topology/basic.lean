@@ -216,11 +216,11 @@ sUnion_subset $ assume t ⟨h₁, h₂⟩, h₂
 lemma interior_maximal {s t : set α} (h₁ : t ⊆ s) (h₂ : is_open t) : t ⊆ interior s :=
 subset_sUnion_of_mem ⟨h₂, h₁⟩
 
-lemma interior_eq_of_open {s : set α} (h : is_open s) : interior s = s :=
+lemma is_open.interior_eq {s : set α} (h : is_open s) : interior s = s :=
 subset.antisymm interior_subset (interior_maximal (subset.refl s) h)
 
 lemma interior_eq_iff_open {s : set α} : interior s = s ↔ is_open s :=
-⟨assume h, h ▸ is_open_interior, interior_eq_of_open⟩
+⟨assume h, h ▸ is_open_interior, is_open.interior_eq⟩
 
 lemma subset_interior_iff_open {s : set α} : s ⊆ interior s ↔ is_open s :=
 by simp only [interior_eq_iff_open.symm, subset.antisymm_iff, interior_subset, true_and]
@@ -233,13 +233,13 @@ lemma interior_mono {s t : set α} (h : s ⊆ t) : interior s ⊆ interior t :=
 interior_maximal (subset.trans interior_subset h) is_open_interior
 
 @[simp] lemma interior_empty : interior (∅ : set α) = ∅ :=
-interior_eq_of_open is_open_empty
+is_open_empty.interior_eq
 
 @[simp] lemma interior_univ : interior (univ : set α) = univ :=
-interior_eq_of_open is_open_univ
+is_open_univ.interior_eq
 
 @[simp] lemma interior_interior {s : set α} : interior (interior s) = interior s :=
-interior_eq_of_open is_open_interior
+is_open_interior.interior_eq
 
 @[simp] lemma interior_inter {s t : set α} : interior (s ∩ t) = interior s ∩ interior t :=
 subset.antisymm
@@ -405,7 +405,7 @@ lemma is_closed.frontier_eq {s : set α} (hs : is_closed s) : frontier s = s \ i
 by rw [frontier, hs.closure_eq]
 
 lemma is_open.frontier_eq {s : set α} (hs : is_open s) : frontier s = closure s \ s :=
-by rw [frontier, interior_eq_of_open hs]
+by rw [frontier, hs.interior_eq]
 
 /-- The frontier of a set is closed. -/
 lemma is_closed_frontier {s : set α} : is_closed (frontier s) :=
@@ -422,26 +422,39 @@ begin
   rwa [inter_diff_self, subset_empty_iff] at this,
 end
 
+lemma closure_eq_interior_union_frontier (s : set α) : closure s = interior s ∪ frontier s :=
+(union_diff_cancel interior_subset_closure).symm
+
+lemma closure_eq_self_union_frontier (s : set α) : closure s = s ∪ frontier s :=
+(union_diff_cancel' interior_subset subset_closure).symm
+
 /-!
 ### Neighborhoods
 -/
 
-/-- neighbourhood filter -/
+/-- A set is called a neighborhood of `a` if it contains an open set around `a`. The set of all
+neighborhoods of `a` forms a filter, the neighborhood filter at `a`, is here defined as the
+infimum over the principal filters of all open sets containing `a`. -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s)
 
 localized "notation `𝓝` := nhds" in topological_space
 
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := rfl
 
+/-- The open sets containing `a` are a basis for the neighborhood filter. See `nhds_basis_opens'`
+for a variant using open neighborhoods instead. -/
 lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ is_open s) (λ x, x) :=
 has_basis_binfi_principal
   (λ s ⟨has, hs⟩ t ⟨hat, ht⟩, ⟨s ∩ t, ⟨⟨has, hat⟩, is_open_inter hs ht⟩,
     ⟨inter_subset_left _ _, inter_subset_right _ _⟩⟩)
   ⟨univ, ⟨mem_univ a, is_open_univ⟩⟩
 
+/-- A filter lies below the neighborhood filter at `a` iff it contains every open set around `a`. -/
 lemma le_nhds_iff {f a} : f ≤ 𝓝 a ↔ ∀ s : set α, a ∈ s → is_open s → s ∈ f :=
 by simp [nhds_def]
 
+/-- To show a filter is above the neighborhood filter at `a`, it suffices to show that it is above
+the principal filter of some open set `s` containing `a`. -/
 lemma nhds_le_of_le {f a} {s : set α} (h : a ∈ s) (o : is_open s) (sf : 𝓟 s ≤ f) : 𝓝 a ≤ f :=
 by rw nhds_def; exact infi_le_of_le s (infi_le_of_le ⟨h, o⟩ sf)
 
@@ -450,6 +463,8 @@ lemma mem_nhds_sets_iff {a : α} {s : set α} :
 (nhds_basis_opens a).mem_iff.trans
   ⟨λ ⟨t, ⟨hat, ht⟩, hts⟩, ⟨t, hts, ht, hat⟩, λ ⟨t, hts, ht, hat⟩, ⟨t, ⟨hat, ht⟩, hts⟩⟩
 
+/-- A predicate is true in a neighborhood of `a` iff it is true for all the points in an open set
+containing `a`. -/
 lemma eventually_nhds_iff {a : α} {p : α → Prop} :
   (∀ᶠ x in 𝓝 a, p x) ↔ ∃ (t : set α), (∀ x ∈ t, p x) ∧ is_open t ∧ a ∈ t :=
 mem_nhds_sets_iff.trans $ by simp only [subset_def, exists_prop, mem_set_of_eq]
@@ -463,6 +478,7 @@ attribute [irreducible] nhds
 lemma mem_of_nhds {a : α} {s : set α} : s ∈ 𝓝 a → a ∈ s :=
 λ H, let ⟨t, ht, _, hs⟩ := mem_nhds_sets_iff.1 H in ht hs
 
+/-- If a predicate is true in a neighborhood of `a`, then it is true for `a`. -/
 lemma filter.eventually.self_of_nhds {p : α → Prop} {a : α}
   (h : ∀ᶠ y in 𝓝 a, p y) : p a :=
 mem_of_nhds h
@@ -471,6 +487,8 @@ lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
   s ∈ 𝓝 a :=
 mem_nhds_sets_iff.2 ⟨s, subset.refl _, hs, ha⟩
 
+/-- The open neighborhoods of `a` are a basis for the neighborhood filter. See `nhds_basis_opens`
+for a variant using open sets around `a` instead. -/
 lemma nhds_basis_opens' (a : α) : (𝓝 a).has_basis (λ s : set α, s ∈ 𝓝 a ∧ is_open s) (λ x, x) :=
 begin
   convert nhds_basis_opens a,
@@ -500,7 +518,7 @@ eventually_nhds_iff.2 ⟨t, λ x hx, eventually_nhds_iff.2 ⟨t, htp, hto, hx⟩
 eventually_eventually_nhds
 
 lemma filter.eventually_eq.eq_of_nhds {f g : α → β} {a : α} (h : f =ᶠ[𝓝 a] g) : f a = g a :=
-let ⟨u, hu, H⟩ := h.exists_mem in H _ (mem_of_nhds hu)
+h.self_of_nhds
 
 @[simp] lemma eventually_eventually_le_nhds [has_le β] {f g : α → β} {a : α} :
   (∀ᶠ y in 𝓝 a, f ≤ᶠ[𝓝 y] g) ↔ f ≤ᶠ[𝓝 a] g :=
@@ -692,6 +710,9 @@ end
 lemma is_closed_iff_cluster_pt {s : set α} : is_closed s ↔ ∀a, cluster_pt a (𝓟 s) → a ∈ s :=
 calc is_closed s ↔ closure s ⊆ s : closure_subset_iff_is_closed.symm
   ... ↔ (∀a, cluster_pt a (𝓟 s) → a ∈ s) : by simp only [subset_def, mem_closure_iff_cluster_pt]
+
+lemma is_closed_iff_nhds {s : set α} : is_closed s ↔ ∀ x, (∀ U ∈ 𝓝 x, (U ∩ s).nonempty) → x ∈ s :=
+by simp_rw [is_closed_iff_cluster_pt, cluster_pt, inf_principal_ne_bot_iff]
 
 lemma closure_inter_open {s t : set α} (h : is_open s) : s ∩ closure t ⊆ closure (s ∩ t) :=
 assume a ⟨hs, ht⟩,

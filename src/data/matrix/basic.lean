@@ -3,7 +3,8 @@ Copyright (c) 2018 Ellen Arlt. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 -/
-import algebra.pi_instances
+import algebra.big_operators.pi
+import algebra.module.pi
 import algebra.big_operators.ring
 
 /-!
@@ -464,6 +465,9 @@ begin
   simp only [←smul_val],
   simp,
 end
+
+lemma scalar.commute [decidable_eq n] (r : α) (M : matrix n n α) : commute (scalar n r) M :=
+by simp [commute, semiconj_by]
 
 end comm_semiring
 

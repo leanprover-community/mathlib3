@@ -153,7 +153,7 @@ begin
   split,
   { intro h, apply h },
   { intros h y,
-    rw ← powers_eq_gpowers at hx,
+    simp_rw ← mem_powers_iff_mem_gpowers at hx,
     rcases hx y with ⟨j, rfl⟩,
     rw [← pow_mul, mul_comm, pow_mul, h, one_pow], }
 end

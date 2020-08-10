@@ -433,6 +433,8 @@ dvd.elim h (begin intros d h₁, rw [h₁, mul_assoc], apply dvd_mul_right end)
 theorem dvd_of_mul_left_dvd (h : a * b ∣ c) : b ∣ c :=
 dvd.elim h (λ d ceq, dvd.intro (a * d) (by simp [ceq]))
 
+@[simp] theorem two_dvd_bit0 : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
+
 lemma ring_hom.map_dvd (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
 λ ⟨z, hz⟩, ⟨f z, by rw [hz, f.map_mul]⟩
 
@@ -592,7 +594,7 @@ namespace ring_hom
   f (x - y) = (f x) - (f y) := (f : α →+ β).map_sub x y
 
 /-- A ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff {α β} [ring α] [ring β] (f : α →+* β) :
+theorem injective_iff {α β} [ring α] [semiring β] (f : α →+* β) :
   function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
 (f : α →+ β).injective_iff
 
@@ -668,6 +670,8 @@ theorem dvd_add_iff_left (h : a ∣ c) : a ∣ b ↔ a ∣ b + c :=
 theorem dvd_add_iff_right (h : a ∣ b) : a ∣ c ↔ a ∣ b + c :=
 by rw add_comm; exact dvd_add_iff_left h
 
+theorem two_dvd_bit1 : 2 ∣ bit1 a ↔ (2 : α) ∣ 1 := (dvd_add_iff_right two_dvd_bit0).symm
+
 /-- Representation of a difference of two squares in a commutative ring as a product. -/
 theorem mul_self_sub_mul_self (a b : α) : a * a - b * b = (a + b) * (a - b) :=
 by rw [add_mul, mul_sub, mul_sub, mul_comm a b, sub_add_sub_cancel]
@@ -713,8 +717,7 @@ begin
   rw [this, sub_add, ← sub_mul, sub_self]
 end
 
-lemma dvd_mul_sub_mul {α : Type*} [comm_ring α]
-  {k a b x y : α} (hab : k ∣ a - b) (hxy : k ∣ x - y) :
+lemma dvd_mul_sub_mul {k a b x y : α} (hab : k ∣ a - b) (hxy : k ∣ x - y) :
   k ∣ a * x - b * y :=
 begin
   convert dvd_add (dvd_mul_of_dvd_right hxy a) (dvd_mul_of_dvd_left hab y),
@@ -722,8 +725,7 @@ begin
   simp only [sub_eq_add_neg, add_assoc, neg_add_cancel_left],
 end
 
-lemma dvd_iff_dvd_of_dvd_sub {R : Type*} [comm_ring R] {a b c : R}
-  (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
+lemma dvd_iff_dvd_of_dvd_sub {a b c : α} (h : a ∣ (b - c)) : (a ∣ b ↔ a ∣ c) :=
 begin
   split,
   { intro h',
@@ -878,6 +880,25 @@ end
 end comm_semiring
 
 end is_unit
+
+namespace ring
+variables [ring R]
+open_locale classical
+
+/-- Introduce a function `inverse` on a ring `R`, which sends `x` to `x⁻¹` if `x` is invertible and
+to `0` otherwise.  This definition is somewhat ad hoc, but one needs a fully (rather than partially)
+defined inverse function for some purposes, including for calculus. -/
+noncomputable def inverse : R → R :=
+λ x, if h : is_unit x then (((classical.some h)⁻¹ : units R) : R) else 0
+
+/-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
+lemma inverse_unit (a : units R) : inverse (a : R) = (a⁻¹ : units R) :=
+begin
+  simp [is_unit_unit, inverse],
+  exact units.inv_unique (classical.some_spec (is_unit_unit a)),
+end
+
+end ring
 
 /-- A predicate to express that a ring is an integral domain.
 

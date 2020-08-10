@@ -5,6 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.induction
 import data.polynomial.degree.basic
+import deprecated.ring
 
 /-!
 # Theory of univariate polynomials
@@ -33,6 +34,8 @@ variables (f : R →+* S) (x : S)
   to the target and a value `x` for the variable in the target -/
 def eval₂ (p : polynomial R) : S :=
 p.sum (λ e a, f a * x ^ e)
+
+lemma eval₂_eq_sum {f : R →+* S} {x : S} : p.eval₂ f x = p.sum (λ e a, f a * x ^ e) := rfl
 
 @[simp] lemma eval₂_zero : (0 : polynomial R).eval₂ f x = 0 :=
 finsupp.sum_zero_index
@@ -114,7 +117,8 @@ variables (f : R →+* S) (x : S)
 @[simp] lemma eval₂_mul : (p * q).eval₂ f x = p.eval₂ f x * q.eval₂ f x :=
 begin
   dunfold eval₂,
-  rw [mul_def, finsupp.sum_mul _ p], simp only [finsupp.mul_sum _ q], rw [sum_sum_index],
+  rw [add_monoid_algebra.mul_def, finsupp.sum_mul _ p], simp only [finsupp.mul_sum _ q],
+  rw [sum_sum_index],
   { apply sum_congr rfl, assume i hi, dsimp only, rw [sum_sum_index],
     { apply sum_congr rfl, assume j hj, dsimp only,
       rw [sum_single_index, f.map_mul, pow_add],
@@ -144,6 +148,9 @@ variables {x : R}
 
 /-- `eval x p` is the evaluation of the polynomial `p` at `x` -/
 def eval : R → polynomial R → R := eval₂ (ring_hom.id _)
+
+lemma eval_eq_sum : p.eval x = sum p (λ e a, a * x ^ e) :=
+rfl
 
 @[simp] lemma eval_C : (C a).eval x = a := eval₂_C _ _
 
@@ -198,6 +205,9 @@ section comp
 
 /-- The composition of polynomials as a polynomial. -/
 def comp (p q : polynomial R) : polynomial R := p.eval₂ C q
+
+lemma comp_eq_sum_left : p.comp q = p.sum (λ e a, C a * q ^ e) :=
+rfl
 
 @[simp] lemma comp_X : p.comp X = p :=
 begin
@@ -291,6 +301,17 @@ end
 lemma map_injective (hf : function.injective f): function.injective (map f) :=
 λ p q h, ext $ λ m, hf $ by rw [← coeff_map f, ← coeff_map f, h]
 
+
+variables {f}
+
+lemma map_monic_eq_zero_iff (hp : p.monic) : p.map f = 0 ↔ ∀ x, f x = 0 :=
+⟨ λ hfp x, calc f x = f x * f p.leading_coeff : by simp [hp]
+                ... = f x * (p.map f).coeff p.nat_degree : by { congr, apply (coeff_map _ _).symm }
+                ... = 0 : by simp [hfp],
+  λ h, ext (λ n, trans (coeff_map f n) (h _)) ⟩
+
+variables (f)
+
 open is_semiring_hom
 
 -- If the rings were commutative, we could prove this just using `eval₂_mul`.
@@ -300,7 +321,8 @@ open is_semiring_hom
 begin
   dunfold map,
   dunfold eval₂,
-  rw [mul_def, finsupp.sum_mul _ p], simp only [finsupp.mul_sum _ q], rw [sum_sum_index],
+  rw [add_monoid_algebra.mul_def, finsupp.sum_mul _ p], simp only [finsupp.mul_sum _ q],
+  rw [sum_sum_index],
   { apply sum_congr rfl, assume i hi, dsimp only, rw [sum_sum_index],
     { apply sum_congr rfl, assume j hj, dsimp only,
       rw [sum_single_index, (C.comp f).map_mul, pow_add],
@@ -318,7 +340,7 @@ instance map.is_semiring_hom : is_semiring_hom (map f) :=
   map_add := λ _ _, eval₂_add _ _,
   map_mul := λ _ _, map_mul f, }
 
-@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := is_semiring_hom.map_pow (map f) _ _
+@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := is_monoid_hom.map_pow (map f) _ _
 
 lemma mem_map_range {p : polynomial S} :
   p ∈ set.range (map f) ↔ ∀ n, p.coeff n ∈ (set.range f) :=
@@ -350,6 +372,13 @@ eval₂_map f (ring_hom.id _) x
 
 end map
 
+/-!
+After having set up the basic theory of `eval₂`, `eval`, `comp`, and `map`,
+we make `eval₂` irreducible.
+
+Perhaps we can make the others irreducible too?
+-/
+attribute [irreducible] polynomial.eval₂
 
 section hom_eval₂
 -- TODO: Here we need commutativity in both `S` and `T`?

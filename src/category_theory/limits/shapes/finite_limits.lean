@@ -41,7 +41,7 @@ namespace category_theory.limits
 
 variables (C : Type u) [category.{v} C]
 
-def has_finite_limits : Type (max (v+1) u) :=
+def has_finite_limits : Prop :=
 Π (J : Type v) [𝒥 : small_category J] [@fin_category J 𝒥], @has_limits_of_shape J 𝒥 C _
 
 attribute [class] has_finite_limits
@@ -52,7 +52,7 @@ instance has_limits_of_shape_of_has_finite_limits
   has_limits_of_shape J C :=
 ‹has_finite_limits C› J
 
-def has_finite_colimits : Type (max (v+1) u) :=
+def has_finite_colimits : Prop :=
 Π (J : Type v) [𝒥 : small_category J] [@fin_category J 𝒥], @has_colimits_of_shape J 𝒥 C _
 
 attribute [class] has_finite_colimits
@@ -85,11 +85,11 @@ end
 instance : fin_category walking_parallel_pair := { }
 
 /-- Equalizers are finite limits, so if `C` has all finite limits, it also has all equalizers -/
-example [has_finite_limits C] : has_equalizers C := infer_instance
+example [has_finite_limits C] : has_equalizers C := by apply_instance
 
 /-- Coequalizers are finite colimits, of if `C` has all finite colimits, it also has all
     coequalizers -/
-example [has_finite_colimits C] : has_coequalizers C := infer_instance
+example [has_finite_colimits C] : has_coequalizers C := by apply_instance
 
 variables {J : Type v}
 
@@ -151,7 +151,7 @@ for every finite collection of morphisms
 -/
 -- We can't use the same design as for `has_wide_pullbacks`,
 -- because of https://github.com/leanprover-community/lean/issues/429
-def has_finite_wide_pullbacks : Type (max (v+1) u) :=
+def has_finite_wide_pullbacks : Prop :=
 Π (J : Type v) [decidable_eq J] [fintype J], has_limits_of_shape (wide_pullback_shape J) C
 
 attribute [class] has_finite_wide_pullbacks
@@ -165,7 +165,7 @@ instance has_limits_of_shape_wide_pullback_shape
 `has_finite_wide_pushouts` represents a choice of wide pushout
 for every finite collection of morphisms
 -/
-def has_finite_wide_pushouts : Type (max (v+1) u) :=
+def has_finite_wide_pushouts : Prop :=
 Π (J : Type v) [decidable_eq J] [fintype J], has_colimits_of_shape (wide_pushout_shape J) C
 
 attribute [class] has_finite_wide_pushouts
@@ -194,9 +194,9 @@ instance fintype_walking_pair : fintype walking_pair :=
   complete := λ x, by { cases x; simp } }
 
 /-- Pullbacks are finite limits, so if `C` has all finite limits, it also has all pullbacks -/
-example [has_finite_wide_pullbacks C] : has_pullbacks C := infer_instance
+example [has_finite_wide_pullbacks C] : has_pullbacks C := by apply_instance
 
 /-- Pushouts are finite colimits, so if `C` has all finite colimits, it also has all pushouts -/
-example [has_finite_wide_pushouts C] : has_pushouts C := infer_instance
+example [has_finite_wide_pushouts C] : has_pushouts C := by apply_instance
 
 end category_theory.limits

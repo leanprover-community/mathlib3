@@ -20,7 +20,7 @@ with shape `discrete J`, where we have `[decidable_eq J]` and `[fintype J]`.
 -/
 -- We can't simply make this an abbreviation, as we do with other `has_Xs` limits typeclasses,
 -- because of https://github.com/leanprover-community/lean/issues/429
-def has_finite_products : Type (max (v+1) u) :=
+def has_finite_products : Prop :=
 Π (J : Type v) [decidable_eq J] [fintype J], has_limits_of_shape (discrete J) C
 
 attribute [class] has_finite_products
@@ -40,7 +40,7 @@ by { dsimp [has_finite_products], apply_instance }
 A category has finite coproducts if there is a chosen colimit for every diagram
 with shape `discrete J`, where we have `[decidable_eq J]` and `[fintype J]`.
 -/
-def has_finite_coproducts : Type (max (v+1) u) :=
+def has_finite_coproducts : Prop :=
 Π (J : Type v) [decidable_eq J] [fintype J], has_colimits_of_shape (discrete J) C
 
 attribute [class] has_finite_coproducts

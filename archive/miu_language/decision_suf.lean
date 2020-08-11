@@ -268,7 +268,7 @@ relate to `count U`.
 -/
 
 
-lemma in_of_countU_eq_succ {xs : miustr} {k : ℕ} (h : count U xs = succ k) : U ∈ xs :=
+lemma mem_of_countU_eq_succ {xs : miustr} {k : ℕ} (h : count U xs = succ k) : U ∈ xs :=
 begin
   induction xs with z zs hzs, {
     exfalso, rw count at h, contradiction,
@@ -288,7 +288,7 @@ begin
   rcases hm with ⟨xs, hm, _⟩,
   simp only [hm,cons_inj,cons_append], -- it suffices to prove `xs = as ++ U :: bs`
   apply mem_split,
-  apply in_of_countU_eq_succ,
+  apply mem_of_countU_eq_succ,
     simp only [hm,count,countp,if_false] at h, rw ←h, refl,
 end
 

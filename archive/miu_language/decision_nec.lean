@@ -34,24 +34,19 @@ open nat
 open list
 
 /--
-Given `st en : miustr`, the relation `nice_imod3 st en` holds if `st` and `en` either
-have equal `count I`, modulo 3, or `count I en` is twice `count I st`, modulo 3.`
+Given `st en : miustr`, the relation `count_equiv_or_equiv_two_mul_mod3 st en` holds if `st` and
+`en` either have equal `count I`, modulo 3, or `count I en` is twice `count I st`, modulo 3.
  -/
-def nice_imod3 (st en : miustr) : Prop :=
+def count_equiv_or_equiv_two_mul_mod3 (st en : miustr) : Prop :=
   let a := (count I st) in
   let b := (count I en) in
   b ≡ a [MOD 3] ∨ b ≡ 2*a [MOD 3]
 
-example : nice_imod3 "II" "MIUI" :=
-begin
-  left, refl, -- count I "MIUI" ≡ count I "II" [MOD 3]
-end
+example : count_equiv_or_equiv_two_mul_mod3 "II" "MIUI" :=
+  or.inl rfl
 
-example : nice_imod3 "IUIM" "MI" :=
-begin
-  right, refl, --count I "MI" ≡ 2*(count I "IUIUM") [MOD 3]
-end
-
+example : count_equiv_or_equiv_two_mul_mod3 "IUIM" "MI" :=
+  or.inr rfl
 
 /-!
 We show the `count I`, mod 3, stays the same or is multiplied by 2 under the rules of inference.
@@ -63,42 +58,40 @@ open nat
 Now we show that the `count I` of a derivable string is 1 or 2 modulo 3.
 -/
 
+
+
 /-!
 We start with a general result about natural numbers.
 -/
 
-lemma inheritmod3 {a b : ℕ} (h1 : a % 3 = 1 ∨ a % 3 = 2)
+lemma inherit_mod3 {a b : ℕ} (h1 : a % 3 = 1 ∨ a % 3 = 2)
   (h2 : b % 3 = a % 3 ∨  b % 3 = (2 * a % 3)) :
     b % 3 = 1 ∨ b % 3 = 2 :=
 begin
   cases h2, {
-    rw h2,
-    exact h1,
+    rw h2, exact h1,
   }, {
     cases h1, {
-      right,
-      simp [h2,mul_mod,h1],
-      refl,
+      right, simpa [h2,mul_mod,h1],
     }, {
-      left,
-      simp [h2,mul_mod,h1],
-      refl,
+      left, simpa [h2,mul_mod,h1],
     }
   }
 end
 
 
 /--
-`inctder` shows any derivable string must have an `count I` that is 1 or 2 modulo 3.
+`count_equiv_one_or_two_mod3_of_derivable` shows any derivable string must have an `count I` that
+is 1 or 2 modulo 3.
 -/
-theorem icntder (en : miustr): derivable en →
+theorem count_equiv_one_or_two_mod3_of_derivable (en : miustr): derivable en →
   (count I en) % 3 = 1 ∨ (count I en) % 3 = 2:=
 begin
   intro h,
   induction h,
     left,
     apply mod_def,
-    any_goals {apply inheritmod3 h_ih},
+    any_goals {apply inherit_mod3 h_ih},
       left, simp only [count_append], refl,
       right, simp [count,count_append], ring,
       left, simp [count_append,count I,refl], ring,
@@ -108,10 +101,10 @@ end
 /--
 Using the above theorem, we solve the MU puzzle, showing that `"MU"` is not derivable.
 -/
-theorem notmu : ¬(derivable "MU") :=
+theorem not_derivable_mu : ¬(derivable "MU") :=
 begin
   intro h,
-  cases (icntder _ h);
+  cases (count_equiv_one_or_two_mod3_of_derivable _ h);
     contradiction,
 end
 
@@ -136,10 +129,10 @@ Example usage
 
 lemma goodmi : goodm [M,I] :=
 begin
-  split,
+  constructor,
     swap,
   exact [I],
-  simp,
+  split, refl, rw mem_singleton, trivial,
 end
 
 /-!
@@ -147,33 +140,35 @@ We'll show, for each `i` from 1 to 4, that if `en` follows by rule `i` from `st`
 `goodm st` holds, then so does `goodm en`.
 -/
 
-
 open list
 
-lemma goodmrule1 (xs : miustr) (h₁ : derivable (xs ++ [I])) (h₂ : goodm (xs ++ [I]))
+lemma goodm_of_rule1 (xs : miustr) (h₁ : derivable (xs ++ [I])) (h₂ : goodm (xs ++ [I]))
   : goodm (xs ++ [I,U]) :=
 begin
   rcases h₂ with ⟨ys, k₁, k₂⟩,
   use ys ++ [U],
-  split,
-    rw [←(cons_append _ _ _), ←k₁], simp,
+  split, {
+    rw [←(cons_append _ _ _), ←k₁],
+    simp only [append_assoc,singleton_append],
+  },
   simp [k₂],
 end
 
 
-lemma goodmrule2 (xs : miustr) (h₁ : derivable (M :: xs))
+lemma goodm_of_rule2 (xs : miustr) (h₁ : derivable (M :: xs))
   (h₂ : goodm (M :: xs)) : goodm (M :: xs ++ xs) :=
 begin
   rcases h₂ with ⟨ys, k₁, k₂⟩,
   use (ys ++ ys),
-  split,
+  split, {
     rw (cons_inj _).mp k₁,
     refl,
+  },
   simp [k₂],
 end
 
 
-lemma goodmrule3  (as bs : miustr) (h₁ : derivable (as ++ [I,I,I] ++ bs))
+lemma goodm_of_rule3  (as bs : miustr) (h₁ : derivable (as ++ [I,I,I] ++ bs))
   (h₂ : goodm (as ++ [I,I,I] ++ bs)) : goodm (as ++ U :: bs) :=
 begin
   rcases h₂ with ⟨ys, p₁, p₂⟩,
@@ -205,7 +200,7 @@ end
  The proof of the next lemma is very similar to the previous proof!
 -/
 
-lemma goodmrule4  (as bs : miustr) (h₁ : derivable (as ++ [U,U] ++ bs))
+lemma goodm_of_rule4  (as bs : miustr) (h₁ : derivable (as ++ [U,U] ++ bs))
   (h₂ : goodm (as ++ [U,U] ++ bs)) : goodm (as ++ bs) :=
 begin
   rcases h₂ with ⟨ys, p₁, p₂⟩,
@@ -239,16 +234,16 @@ Any derivable string must begin with `M` and contain no `M` in its tail.
 -/
 
 
-theorem goodmder (en : miustr): derivable en →
+theorem goodm_of_derivable (en : miustr): derivable en →
   goodm en:=
 begin
   intro h,
   induction h,
     exact goodmi,
-  apply goodmrule1; assumption,
-  apply goodmrule2; assumption,
-  apply goodmrule3; assumption,
-  apply goodmrule4; assumption,
+  apply goodm_of_rule1; assumption,
+  apply goodm_of_rule2; assumption,
+  apply goodm_of_rule3; assumption,
+  apply goodm_of_rule4; assumption,
 end
 
 /-!
@@ -270,8 +265,8 @@ theorem decstr_of_der (en : miustr) : derivable en → decstr en :=
 begin
   intro h,
   split,
-    exact goodmder en h,
-    exact icntder en h
+    exact goodm_of_derivable en h,
+    exact count_equiv_one_or_two_mod3_of_derivable en h
 end
 
 end miu

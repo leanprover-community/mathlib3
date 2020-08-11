@@ -80,4 +80,18 @@ variable {F}
 theorem comp_assoc (η₁ : H >~> I) (η₂ : G >~> H) (η₃ : F >~> G) :
   (η₁.comp η₂).comp η₃ = η₁.comp (η₂.comp η₃) := by {ext, finish}
 
+def initial [is_lawful_monad F] : id >~> F :=
+{ app := λ _, pure,
+  naturality := λ _ _ f x, by {change pure (f x) = f <$> pure x, simp},
+  app_pure := λ _ _, rfl,
+  app_bind := λ α β ma f, begin
+    simp only [pure_bind, function.comp_app],
+    apply congr_arg,
+    refl,
+  end, }
+
+@[simp]
+theorem initial_unique [is_lawful_monad F] (f : id >~> F) : f = initial :=
+  by {ext α x, apply f.app_pure}
+
 end monad_morph

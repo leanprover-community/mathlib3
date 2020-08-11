@@ -82,7 +82,7 @@ def cone_of_cone_uncurry
       { app := λ k, c.π.app (j, k),
         naturality' := λ k k' f,
         begin
-          dsimp, simp,
+          dsimp, simp only [category.id_comp],
           have := @nat_trans.naturality _ _ _ _ _ _ c.π (j, k) (j, k') (𝟙 j, f),
           dsimp at this,
           simp only [category.id_comp, category_theory.functor.map_id, nat_trans.id_app] at this,
@@ -91,7 +91,9 @@ def cone_of_cone_uncurry
     naturality' := λ j j' f, (Q j').hom_ext
     begin
       dsimp,
-      intro k, simp,
+      intro k,
+      simp only [limits.cone_morphism.w, limits.cones.postcompose_obj_π, limits.is_limit.fac_assoc,
+        limits.is_limit.fac, nat_trans.comp_app, category.id_comp, category.assoc],
       have := @nat_trans.naturality _ _ _ _ _ _ c.π (j, k) (j', k) (f, 𝟙 k),
       dsimp at this,
       simp only [category.id_comp, category.comp_id,
@@ -112,7 +114,7 @@ def cone_of_cone_uncurry_is_limit
     { app := λ p, s.π.app p.1 ≫ (D.obj p.1).π.app p.2,
       naturality' := λ p p' f,
       begin
-        dsimp, simp,
+        dsimp, simp only [category.id_comp, category.assoc],
         rcases p with ⟨j, k⟩,
         rcases p' with ⟨j', k'⟩,
         rcases f with ⟨fj, fk⟩,

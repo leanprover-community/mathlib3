@@ -447,6 +447,46 @@ lemma map_prod {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
   (∏ i in s, g i).map f = ∏ i in s, (g i).map f :=
 eq.symm $ prod_hom _ _
 
+lemma map_sum {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
+  (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
+eq.symm $ sum_hom _ _
+
+lemma map_support_is_subset (p : polynomial R) : (map f p).support ⊆ p.support :=
+begin
+  intros x,
+  simp only [mem_support_iff, classical.not_not] at *,
+  contrapose!,
+  change p.coeff x = 0 → (map f p).coeff x = 0,
+  rw coeff_map,
+  intro hx,
+  rw hx,
+  exact ring_hom.map_zero f,
+end
+
+lemma map_comp (p q : polynomial R) : map f (p.comp q) = (map f p).comp (map f q) :=
+begin
+  rw polynomial.comp_eq_sum_left,
+  rw polynomial.comp_eq_sum_left,
+  dsimp only [finsupp.sum],
+  rw map_sum,
+  apply eq.symm,
+  apply sum_subset_zero_on_sdiff,
+  { exact map_support_is_subset f p, },
+  { intros x _ hx,
+    rw [map_mul, map_C, map_pow],
+    simp only [mem_support_iff, classical.not_not] at hx,
+    change (map f p).coeff x = 0 at hx,
+    rw coeff_map at hx,
+    change f.to_fun (p.coeff x) = 0 at hx,
+    change C (f.to_fun (p.coeff x)) * map f q ^ x = 0,
+    rw [hx, C_0, zero_mul], },
+  { intros x hx,
+    rw [map_mul, map_C, map_pow],
+    change C ((map f p).coeff x) * map f q ^ x =  C (f.to_fun (p.coeff x)) * map f q ^ x,
+    rw coeff_map,
+    refl, },
+end
+
 end map
 
 end comm_semiring

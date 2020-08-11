@@ -381,9 +381,14 @@ section comm_cancel_monoid_with_zero
 
 variables [cancel_monoid_with_zero M₀] {a b c : M₀}
 
+section prio
+set_option default_priority 10 -- see Note [default priority]
+
 instance comm_cancel_monoid_with_zero.no_zero_divisors : no_zero_divisors M₀ :=
 ⟨λ a b ab0, by { by_cases a = 0, {left, exact h}, right,
   apply cancel_monoid_with_zero.mul_left_cancel_of_ne_zero h, rw [ab0, mul_zero], }⟩
+
+end prio
 
 end comm_cancel_monoid_with_zero
 

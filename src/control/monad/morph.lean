@@ -89,7 +89,6 @@ def initial [is_lawful_monad F] : id >~> F :=
   app_pure := λ _ _, rfl,
   app_bind := λ α β ma f, by {simp only [pure_bind, function.comp_app], refl} }
 
-@[simp]
 theorem initial_unique [is_lawful_monad F] (f : id >~> F) : f = initial :=
   by {ext α x, apply f.app_pure}
 

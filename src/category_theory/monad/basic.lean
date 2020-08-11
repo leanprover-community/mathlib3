@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.functor_category
+import category_theory.concrete_category.bundled
 
 namespace category_theory
 open category
@@ -66,10 +67,46 @@ instance : comonad (𝟭 C) :=
 end monad
 
 section
-variables (M : C ⥤ C) [monad M] (N : C ⥤ C) [monad N]
+variables {M : C ⥤ C} [monad M]
+variables {N : C ⥤ C} [monad N]
+variables {L : C ⥤ C} [monad L]
+variables {K : C ⥤ C} [monad K]
+/--
+A morphism of monads is a natural transformation which is compatible with `η` and `μ`.
+-/
+@[nolint has_inhabited_instance]
+variables (M N)
 structure monad_hom extends nat_trans M N :=
 (app_η {X} : (η_ M).app X ≫ app X = (η_ N).app X . obviously)
 (app_μ {X} : (μ_ M).app X ≫ app X = (M.map (app X) ≫ app (N.obj X)) ≫ (μ_ N).app X . obviously)
+variables {M N}
+
+namespace monad
+variable (M)
+def ident : monad_hom M M :=
+{ app := λ X, 𝟙 _,
+  app_η := by simp,
+  app_μ := λ X, by {simp only [auto_param_eq, functor.map_id, comp_id], tidy} }
+variable {M}
+end monad
+
+namespace monad_hom
+@[ext]
+theorem ext (f g : monad_hom M N) : f.to_nat_trans = g.to_nat_trans → f = g :=
+  by {cases f, cases g, simp}
+
+def gg (f : monad_hom M N) (g : monad_hom N L) : monad_hom M L :=
+{ app := λ X, (f.app X) ≫ (g.app X),
+  app_η := λ X, by {rw ←assoc, simp [app_η]},
+  app_μ := λ X, by {rw ←assoc, simp [app_μ]} }
+
+@[simp] lemma ident_gg (f : monad_hom M N) : (monad.ident M).gg f = f := by {ext X, apply id_comp}
+@[simp] lemma gg_ident (f : monad_hom M N) : f.gg (monad.ident N) = f := by {ext X, apply comp_id}
+
+lemma gg_assoc (f : monad_hom M N) (g : monad_hom N L) (h : monad_hom L K) :
+  (f.gg g).gg h = f.gg (g.gg h) := by {ext X, apply assoc}
+
+end monad_hom
 end
 
 end category_theory

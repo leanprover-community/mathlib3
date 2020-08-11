@@ -48,23 +48,50 @@ private meta def update_unsed_decls_list : name → name_map declaration → tac
 
 /-- In the current file, list all the declaration that are not marked as `@[needed]` and
 that are not referenced by such declarations -/
-meta def all_unused : tactic (name_map declaration) :=
-do ds ← local_decls,
+meta def all_unused (fs : list (option string)) : tactic (name_map declaration) :=
+do ds ← get_decls_from fs,
    ls ← ds.keys.mfilter (succeeds ∘ user_attribute.get_param_untyped main_declaration_attr),
    ds ← ls.mfoldl (flip update_unsed_decls_list) ds,
    ds.mfilter $ λ n d, do
      e ← get_env,
      return $ !d.is_auto_or_internal e
 
+meta def parse_file_name (fn : pexpr) : tactic (option string) :=
+do fn ← to_expr fn,
+   do { fn ← eval_expr string fn, return (some fn) } <|>
+   do { fn ← eval_expr name fn,
+        guard (fn = `current_file),
+        pure none } <|>
+   fail "expecting: \"src/dir/file-name\" or `current_file"
+
 setup_tactic_parser
 
-/-- The command `#list_unused_decls` lists the declarations that do not support the main features of
-the present file. The main features of a file are taken as the declaration tagged with @[needed]. -/
+/-- The command `#list_unused_decls` lists the declarations that do
+not support the main features of the present file. The main features
+of a file are taken as the declaration tagged with
+@[main_declaration].
+
+A list of files can be given to `#list_unused_decls` as follows:
+
+```lean
+#list_unused_decls [`current_file,"src/tactic/core.lean","src/tactic/interactive.lean"]
+```
+
+They are given in a list that contains file names written as Lean
+strings or the Lean name ``\`current_file``, if the current file is to
+be considered. With a list of files, the declarations from all those
+files will be taken and their interdependencies will be analyzed to
+see which ones, directly or indirectly, support a declaration marked
+as `@[main_declaration]`. The files listed must be imported by the
+current file.
+ -/
 @[user_command]
 meta def unused_decls_cmd (_ : parse $ tk "#list_unused_decls") : lean.parser unit :=
-show tactic unit, from
-do ds ← all_unused,
-   ds.to_list.mmap' $ λ ⟨n,_⟩, trace!"#print {n}"
+do fs ← opt_pexpr_list,
+   show tactic unit, from
+   do fs ← fs.mmap parse_file_name,
+      ds ← all_unused fs,
+      ds.to_list.mmap' $ λ ⟨n,_⟩, trace!"#print {n}"
 
 add_tactic_doc
 { name                     := "#list_unused_decls",

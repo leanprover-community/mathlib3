@@ -10,6 +10,7 @@ import meta.rb_map
 import data.bool
 import tactic.lean_core_docs
 import tactic.interactive_expr
+import system.io
 
 universe variable u
 
@@ -253,6 +254,21 @@ do e ← tactic.get_env,
    let xs := e.fold native.mk_rb_map
      (λ d s, if environment.in_current_file' e d.to_name
              then s.insert d.to_name d else s),
+   pure xs
+
+/-- `get_decls_from` returns a dictionary mapping names to their corresponding declarations.
+Covers all declarations the files listed in `fs`, with the current file listed as `none` -/
+meta def get_decls_from (fs : list (option string)) : tactic (name_map declaration) :=
+do root ← unsafe_run_io $ io.env.get_cwd,
+   let fs := fs.map (option.map $ λ path, root ++ "/" ++ path),
+   err ← unsafe_run_io $ (fs.filter_map id).mfilter $ (<$>) bnot ∘ io.fs.file_exists,
+   guard (err = []) <|> fail format!"File not found: {err}",
+   e ← tactic.get_env,
+   let xs := e.fold native.mk_rb_map
+     (λ d s,
+       let source := e.decl_olean d.to_name in
+       if source ∈ fs ∧ (source = none → e.in_current_file' d.to_name)
+       then s.insert d.to_name d else s),
    pure xs
 
 /-- If `{nm}_{n}` doesn't exist in the environment, returns that, otherwise tries `{nm}_{n+1}` -/

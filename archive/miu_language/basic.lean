@@ -83,8 +83,19 @@ instance : has_repr miu_atom :=
 /--
 For simplicity, an `miustr` is just a list of `miu_atom`.
 -/
-@[derive [has_mem, has_append]]
 def miustr := list miu_atom 
+
+/--
+We want to use list membership ...
+-/
+instance : has_mem miu_atom miustr :=
+  ⟨list.mem⟩
+
+/--
+... and list append.
+-/
+instance : has_append miustr :=
+⟨list.append⟩
 
 /--
 For display purposes, an `miustr` can be represented as a `string`.

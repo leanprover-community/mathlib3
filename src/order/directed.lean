@@ -64,6 +64,6 @@ there is an element `k` such that `i ≤ k` and `j ≤ k`. -/
 class directed_order (α : Type u) extends preorder α :=
 (directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)
 
-instance linear_order.to_directed_order (α) [decidable_linear_order α] : directed_order α :=
-⟨λ i j, ⟨max i j, le_max_left i j, le_max_right i j⟩⟩
+instance linear_order.to_directed_order (α) [linear_order α] : directed_order α :=
+⟨λ i j, or.cases_on (le_total i j) (λ hij, ⟨j, hij, le_refl j⟩) (λ hji, ⟨i, le_refl i, hji⟩)⟩
 end prio

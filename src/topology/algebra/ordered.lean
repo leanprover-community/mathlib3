@@ -98,10 +98,10 @@ open classical set filter topological_space
 open function (curry uncurry)
 open_locale topological_space classical filter
 
-localized "notation `𝓝ₗ` x:100 := nhds_within x (Iic x)" in topological_space
-localized "notation `𝓝ᵣ` x:100 := nhds_within x (Ici x)" in topological_space
-localized "notation `𝓝ₗ*` x:100 := nhds_within x (Iio x)" in topological_space
-localized "notation `𝓝ᵣ*` x:100 := nhds_within x (Ioi x)" in topological_space
+localized "notation `𝓝ₗ` x:100 := nhds_within x (Iic x)" in order_closed_topology
+localized "notation `𝓝ᵣ` x:100 := nhds_within x (Ici x)" in order_closed_topology
+localized "notation `𝓝ₗ*` x:100 := nhds_within x (Iio x)" in order_closed_topology
+localized "notation `𝓝ᵣ*` x:100 := nhds_within x (Ioi x)" in order_closed_topology
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

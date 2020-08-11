@@ -5,17 +5,35 @@ Authors: Anatole Dedecker
 -/
 import analysis.calculus.mean_value
 
-open filter set
-open_locale filter topological_space
-
 /-!
 # L'Hôpital's rule for 0/0 indeterminate forms
+
+In this file, we prove several forms of "L'Hopital's rule" for computing 0/0
+indeterminate forms. The proof of `has_deriv_at.lhopital_zero_right_on_Ioo`
+is based on the one given in the corresponding
+[Wikibooks](https://en.wikibooks.org/wiki/Calculus/L%27H%C3%B4pital%27s_Rule)
+chapter, and all other statements are derived from this one by composing by
+carefully chosen functions.
+
+Note that the filter `f'/g'` tends to isn't required to be one of `𝓝 a`,
+`at_top` or `at_bot`. In fact, we give a slightly stronger statement by
+allowing `l` to be any filter on `ℝ`.
+
+Each statement is available in a `has_deriv_at` form and a `deriv` form, which
+is denoted by each statement being in either the `has_deriv_at` or the `deriv`
+namespace.
 -/
+
+open filter set
+open_locale filter topological_space
 
 variables {a b : ℝ} (hab : a < b) {l : filter ℝ} {f f' g g' : ℝ → ℝ}
 
 /-!
 ## Interval-based versions
+
+We start by proving statements where all conditions (derivability, `g' ≠ 0`) have
+to be satisfied on an explicitely-provided interval.
 -/
 
 namespace has_deriv_at
@@ -283,10 +301,14 @@ end deriv
 
 /-!
 ## Generic versions
+
+The following statements no longer any explicit interval, as they only require
+conditions holding eventually.
 -/
 
 namespace has_deriv_at
 
+/-- L'Hôpital's rule for approaching a real from the right, `has_deriv_at` version -/
 theorem lhopital_zero_nhds_right
   (hff' : ∀ᶠ x in 𝓝[Ioi a] a, has_deriv_at f (f' x) x)
   (hgg' : ∀ᶠ x in 𝓝[Ioi a] a, has_deriv_at g (g' x) x)
@@ -309,6 +331,7 @@ begin
   exact (hu hx).1.1 <|> exact (hu hx).1.2 <|> exact (hu hx).2
 end
 
+/-- L'Hôpital's rule for approaching a real from the left, `has_deriv_at` version -/
 theorem lhopital_zero_nhds_left
   (hff' : ∀ᶠ x in 𝓝[Iio a] a, has_deriv_at f (f' x) x)
   (hgg' : ∀ᶠ x in 𝓝[Iio a] a, has_deriv_at g (g' x) x)
@@ -331,6 +354,8 @@ begin
   exact (hl hx).1.1 <|> exact (hl hx).1.2 <|> exact (hl hx).2
 end
 
+/-- L'Hôpital's rule for approaching a real, `has_deriv_at` version. This
+  does not require anything about the situation at `a` -/
 theorem lhopital_zero_nhds'
   (hff' : ∀ᶠ x in 𝓝[univ \ {a}] a, has_deriv_at f (f' x) x)
   (hgg' : ∀ᶠ x in 𝓝[univ \ {a}] a, has_deriv_at g (g' x) x)
@@ -346,6 +371,7 @@ begin
           lhopital_zero_nhds_right hff'.2 hgg'.2 hg'.2 hfa.2 hga.2 hdiv.2⟩
 end
 
+/-- L'Hôpital's rule for approaching a real, `has_deriv_at` version -/
 theorem lhopital_zero_nhds
   (hff' : ∀ᶠ x in 𝓝 a, has_deriv_at f (f' x) x)
   (hgg' : ∀ᶠ x in 𝓝 a, has_deriv_at g (g' x) x)
@@ -359,6 +385,7 @@ begin
   assumption
 end
 
+/-- L'Hôpital's rule for approaching +∞, `has_deriv_at` version -/
 theorem lhopital_zero_at_top
   (hff' : ∀ᶠ x in at_top, has_deriv_at f (f' x) x)
   (hgg' : ∀ᶠ x in at_top, has_deriv_at g (g' x) x)
@@ -382,6 +409,7 @@ begin
   exact (hl' hx).1.1 <|> exact (hl' hx).1.2
 end
 
+/-- L'Hôpital's rule for approaching -∞, `has_deriv_at` version -/
 theorem lhopital_zero_at_bot
   (hff' : ∀ᶠ x in at_bot, has_deriv_at f (f' x) x)
   (hgg' : ∀ᶠ x in at_bot, has_deriv_at g (g' x) x)
@@ -409,6 +437,7 @@ end has_deriv_at
 
 namespace deriv
 
+/-- L'Hôpital's rule for approaching a real from the right, `deriv` version -/
 theorem lhopital_zero_nhds_right
   (hdf : ∀ᶠ x in 𝓝[Ioi a] a, differentiable_at ℝ f x)
   (hg' : ∀ᶠ x in 𝓝[Ioi a] a, deriv g x ≠ 0)
@@ -426,6 +455,7 @@ begin
   exact has_deriv_at.lhopital_zero_nhds_right hdf' hdg' hg' hfa hga hdiv
 end
 
+/-- L'Hôpital's rule for approaching a real from the left, `deriv` version -/
 theorem lhopital_zero_nhds_left
   (hdf : ∀ᶠ x in 𝓝[Iio a] a, differentiable_at ℝ f x)
   (hg' : ∀ᶠ x in 𝓝[Iio a] a, deriv g x ≠ 0)
@@ -443,6 +473,8 @@ begin
   exact has_deriv_at.lhopital_zero_nhds_left hdf' hdg' hg' hfa hga hdiv
 end
 
+/-- L'Hôpital's rule for approaching a real, `deriv` version. This
+  does not require anything about the situation at `a` -/
 theorem lhopital_zero_nhds'
   (hdf : ∀ᶠ x in 𝓝[univ \ {a}] a, differentiable_at ℝ f x)
   (hg' : ∀ᶠ x in 𝓝[univ \ {a}] a, deriv g x ≠ 0)
@@ -457,6 +489,7 @@ begin
           lhopital_zero_nhds_right hdf.2 hg'.2 hfa.2 hga.2 hdiv.2⟩,
 end
 
+/-- L'Hôpital's rule for approaching a real, `deriv` version -/
 theorem lhopital_zero_nhds
   (hdf : ∀ᶠ x in 𝓝 a, differentiable_at ℝ f x)
   (hg' : ∀ᶠ x in 𝓝 a, deriv g x ≠ 0)
@@ -469,6 +502,7 @@ begin
   assumption
 end
 
+/-- L'Hôpital's rule for approaching +∞, `deriv` version -/
 theorem lhopital_zero_at_top
   (hdf : ∀ᶠ (x : ℝ) in at_top, differentiable_at ℝ f x)
   (hg' : ∀ᶠ (x : ℝ) in at_top, deriv g x ≠ 0)
@@ -486,6 +520,7 @@ begin
   exact has_deriv_at.lhopital_zero_at_top hdf' hdg' hg' hftop hgtop hdiv
 end
 
+/-- L'Hôpital's rule for approaching -∞, `deriv` version -/
 theorem lhopital_zero_at_bot
   (hdf : ∀ᶠ (x : ℝ) in at_bot, differentiable_at ℝ f x)
   (hg' : ∀ᶠ (x : ℝ) in at_bot, deriv g x ≠ 0)
@@ -502,7 +537,5 @@ begin
     from hdg.mp (eventually_of_forall $ λ _, differentiable_at.has_deriv_at),
   exact has_deriv_at.lhopital_zero_at_bot hdf' hdg' hg' hfbot hgbot hdiv
 end
-
-#check tendsto_nhds_within_of_tendsto_nhds
 
 end deriv

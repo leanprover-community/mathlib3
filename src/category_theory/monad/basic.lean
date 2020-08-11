@@ -83,6 +83,9 @@ variables {M N}
 
 namespace monad
 variable (M)
+/--
+The identity morphism on a monad `M`.
+-/
 def ident : monad_hom M M :=
 { app := λ X, 𝟙 _,
   app_η := by simp,
@@ -95,6 +98,9 @@ namespace monad_hom
 theorem ext (f g : monad_hom M N) : f.to_nat_trans = g.to_nat_trans → f = g :=
   by {cases f, cases g, simp}
 
+/--
+The composition of morphisms of monads.
+-/
 def gg (f : monad_hom M N) (g : monad_hom N L) : monad_hom M L :=
 { app := λ X, (f.app X) ≫ (g.app X),
   app_η := λ X, by {rw ←assoc, simp [app_η]},

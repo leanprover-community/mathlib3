@@ -27,10 +27,10 @@ To simplify notation, we write a sequence `[I,U,U,M]`, for example, as `IUUM`.
 
 The four rules of inference are:
 
-1. x`I` → x`IU`,
-2. `M`x → `M`xx,
-3. x`III`y → x`U`y,
-4. x`UU`y → xy,
+1. xI → xIU,
+2. Mx → Mxx,
+3. xIIIy → xUy,
+4. xUUy → xy,
 
 where the notation α → β is to be interpreted as 'if α is derivable, then β is derivable'.
 
@@ -57,7 +57,7 @@ inductive miu_atom : Type
 | I : miu_atom
 | U : miu_atom
 
-open miu_atom 
+open miu_atom
 
 /--
 We show that the type `miu_atom` is inhabited, giving `M` (for no particular reason) as the default
@@ -69,7 +69,7 @@ inhabited.mk M
 /--
 A simple function from `miu_atom` to `string`.
 -/
-def miu_atom.repr : miu_atom → string 
+def miu_atom.repr : miu_atom → string
 | M := "M"
 | I := "I"
 | U := "U"
@@ -83,7 +83,7 @@ instance : has_repr miu_atom :=
 /--
 For simplicity, an `miustr` is just a list of `miu_atom`.
 -/
-def miustr := list miu_atom 
+def miustr := list miu_atom
 
 /--
 We want to use list membership ...
@@ -105,12 +105,12 @@ def miustr.mrepr : miustr → string
 | (c::cs) := c.repr ++ (miustr.mrepr cs)
 
 instance miurepr : has_repr miustr :=
-⟨λ u, u.mrepr⟩ 
+⟨λ u, u.mrepr⟩
 
 /--
 In the other direction, we set up a coercion from `string` to `miustr`.
 -/
-def lchar_to_miustr : (list char) → miustr 
+def lchar_to_miustr : (list char) → miustr
 | [] := []
 | (c::cs) :=
   let ms := lchar_to_miustr cs in
@@ -136,8 +136,8 @@ Rule 2:  Mx → Mxx
 Rule 3:  xIIIy → xUy
 Rule 4:  xUUy → xy
 
-For pedagogical purposes, we give definitons for the rules independently of the notion of
-derivability. We do not need these defintions to prove our main results. 
+For pedagogical purposes, we give definitions for the rules independently of the notion of
+derivability. We do not need these definitions to prove our main results.
 -/
 
 

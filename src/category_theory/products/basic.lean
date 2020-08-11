@@ -46,9 +46,6 @@ end
 namespace prod
 
 /-- `sectl C Z` is the functor `C ⥤ C × D` given by `X ↦ (X, Z)`. -/
--- Here and below we specify explicitly the projections to generate `@[simp]` lemmas for,
--- as the default behaviour of `@[simps]` will generate projections all the way down to components
--- of pairs.
 @[simps] def sectl
   (C : Type u₁) [category.{v₁} C] {D : Type u₂} [category.{v₂} D] (Z : D) : C ⥤ C × D :=
 { obj := λ X, (X, Z),

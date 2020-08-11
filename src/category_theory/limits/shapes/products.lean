@@ -83,11 +83,4 @@ abbreviation has_products := Π (J : Type v), has_limits_of_shape (discrete J) C
 /-- An abbreviation for `Π J, has_colimits_of_shape (discrete J) C` -/
 abbreviation has_coproducts := Π (J : Type v), has_colimits_of_shape (discrete J) C
 
-@[priority 100] -- see Note [lower instance priority]
-instance has_products_of_has_limits [has_limits C] : has_products C :=
-{ has_limits_of_shape := λ J, by apply_instance }
-@[priority 100] -- see Note [lower instance priority]
-instance has_coproducts_of_has_colimits [has_colimits C] : has_coproducts C :=
-{ has_colimits_of_shape := λ J, by apply_instance }
-
 end category_theory.limits

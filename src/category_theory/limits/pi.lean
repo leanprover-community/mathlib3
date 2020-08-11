@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import category_theory.pi.basic
 import category_theory.limits.limits
-import category_theory.limits.shapes.types
 
 /-!
 # Limits in the category of indexed families of objects.
@@ -28,18 +27,28 @@ variables {I : Type v₁} {C : I → Type u₁} [∀ i, category.{v₁} (C i)]
 variables {J : Type v₁} [small_category J]
 variables {F : J ⥤ Π i, C i}
 
+/--
+A cone over `F : J ⥤ Π i, C i` has as its components cones over each of the `F ⋙ pi.eval C i`.
+-/
 def cone_comp_eval (c : cone F) (i : I) : cone (F ⋙ pi.eval C i) :=
 { X := c.X i,
   π :=
   { app := λ j, c.π.app j i,
     naturality' := λ j j' f, congr_fun (c.π.naturality f) i, } }
 
+/--
+Given a family of cones over the `F ⋙ pi.eval C i`, we can assemble these together as a `cone F`.
+-/
 def cone_of_cone_comp_eval (c : Π i, cone (F ⋙ pi.eval C i)) : cone F :=
 { X := λ i, (c i).X,
   π :=
   { app := λ j i, (c i).π.app j,
     naturality' := λ j j' f, by { ext i, exact (c i).π.naturality f, } } }
 
+/--
+Given a family of limit cones over the `F ⋙ pi.eval C i`,
+assembling them together as a `cone F` produces a limit cone.
+-/
 def cone_of_cone_eval_is_limit {c : Π i, cone (F ⋙ pi.eval C i)} (P : Π i, is_limit (c i)) :
   is_limit (cone_of_cone_comp_eval c) :=
 { lift := λ s i, (P i).lift (cone_comp_eval s i),
@@ -56,12 +65,26 @@ def cone_of_cone_eval_is_limit {c : Π i, cone (F ⋙ pi.eval C i)} (P : Π i, i
 
 variables [∀ i, has_limit (F ⋙ pi.eval C i)]
 
+/--
+If we have a functor `F : J ⥤ Π i, C i` into a category of indexed families,
+and we have chosen limits for each of the `F ⋙ pi.eval C i`,
+there is a canonical choice of chosen limit for `F`.
+-/
 def has_limit_of_has_limit_comp_eval : has_limit F :=
 { cone := cone_of_cone_comp_eval (λ i, limit.cone _),
   is_limit := cone_of_cone_eval_is_limit (λ i, limit.is_limit _), }
 
-local attribute [instance] has_limit_of_has_limit_comp_eval
+/-!
+As an example, we can use this to construct particular shapes of limits
+in a category of indexed families.
 
-example : has_binary_products (I → Type v₁) := sorry
+With the addition of
+`import category_theory.limits.shapes.types`
+we can use:
+```
+local attribute [instance] has_limit_of_has_limit_comp_eval
+example : has_binary_products (I → Type v₁) := ⟨by apply_instance⟩
+```
+-/
 
 end category_theory.pi

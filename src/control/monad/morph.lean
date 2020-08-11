@@ -84,11 +84,7 @@ def initial [is_lawful_monad F] : id >~> F :=
 { app := λ _, pure,
   naturality := λ _ _ f x, by {change pure (f x) = f <$> pure x, simp},
   app_pure := λ _ _, rfl,
-  app_bind := λ α β ma f, begin
-    simp only [pure_bind, function.comp_app],
-    apply congr_arg,
-    refl,
-  end, }
+  app_bind := λ α β ma f, by {simp only [pure_bind, function.comp_app], refl} }
 
 @[simp]
 theorem initial_unique [is_lawful_monad F] (f : id >~> F) : f = initial :=

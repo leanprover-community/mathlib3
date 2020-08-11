@@ -108,7 +108,7 @@ instance miurepr : has_repr miustr :=
 ⟨λ u, u.mrepr⟩ 
 
 /--
-In the other direction, we set up coercion from `string` to `miustr`.
+In the other direction, we set up a coercion from `string` to `miustr`.
 -/
 def lchar_to_miustr : (list char) → miustr 
 | [] := []

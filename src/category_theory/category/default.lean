@@ -128,7 +128,7 @@ class epi (f : X ⟶ Y) : Prop :=
 (left_cancellation : Π {Z : C} (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h), g = h)
 
 /--
-A morphism `f` is an epimorphism if it can be "cancelled" when postcomposed:
+A morphism `f` is a monomorphism if it can be "cancelled" when postcomposed:
 `g ≫ f = h ≫ f` implies `g = h`.
 -/
 class mono (f : X ⟶ Y) : Prop :=

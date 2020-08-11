@@ -248,30 +248,6 @@ Any derivable string must begin with `M` and contain no `M` in its tail.
 -/
 
 
-/-
-z : miustr,
-k : ℕ,
-hk : derivable (z ++ repeat U (k * 2)) → derivable z,
-h : derivable (z ++ (repeat U (k * 2) ++ [U, U]))
-⊢ derivable (z ++ repeat U (k * 2))
--/
-
-/-
-z : miustr,
-k : ℕ,
-hk : derivable (z ++ repeat U (k * 2)) → derivable z,
-h : derivable (z ++ (repeat U (k * 2) ++ [U, U]))
-⊢ derivable (z ++ repeat U (k * 2))
--/
-
-/-
-z : miustr,
-k : ℕ,
-hk : derivable (z ++ repeat U (k * 2)) → derivable z,
-h : derivable (z ++ (repeat U (k * 2) ++ [U, U]))
-⊢ derivable (z ++ repeat U (k * 2))
--/
-
 theorem goodmder (en : miustr): derivable en →
   goodm en:=
 begin

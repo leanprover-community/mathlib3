@@ -125,75 +125,6 @@ instance string_coe_miustr : has_coe string miustr :=
 ⟨λ st, lchar_to_miustr st.data ⟩
 
 
-
-/-!
-### The rules of inference
-
-There are four rules of inference for MIU.
-
-Rule 1:  xI → xIU
-Rule 2:  Mx → Mxx
-Rule 3:  xIIIy → xUy
-Rule 4:  xUUy → xy
-
-For pedagogical purposes, we give definitions for the rules independently of the notion of
-derivability. We do not need these definitions to prove our main results.
--/
-
-
-private def rule1 (st : miustr) (en : miustr) : Prop :=
-  (∃ xs : miustr, st = xs ++ [I]) ∧ en = st ++ [U]
-
-private def rule2 (st : miustr) (en : miustr) : Prop :=
-  ∃ xs : miustr, (st = M::xs) ∧ (en = M::(xs ++ xs))
-
-private def rule3 (st : miustr) (en : miustr) : Prop :=
-  ∃ (as bs : miustr),  st = as ++ [I,I,I] ++ bs  ∧
-  en = as ++ [U] ++ bs
-
-private def rule4 (st : miustr) (en : miustr) : Prop :=
-  ∃ (as bs : miustr),   st = as ++ [U,U] ++ bs  ∧
-  en = as ++ bs
-
-
-/-!
-### Rule usage examples
--/
-
-private lemma MIUfromMI : rule1 "MI" "MIU" :=
-begin
-  split, { -- split into showing `"MI"` ends in `"I"` and that `"MIU" = "MI" ++ "U"`
-    use "M", -- We take `xs` for `"M"` in  `∃ xs : "MI" = xs ++ "I"`
-    refl, -- Now `"MI"` is 'definitionally' equal to `"M" ++ "I"`.
-  }, {
-  refl, -- Likewise, `"MIU"` is definintionally equal to `"MI" ++ "U"`
-  }
-end
-
-example : rule2 "MIIU" "MIIUIIU" :=
-begin
-  use "IIU", -- we'll show `"MIIU" = M::xs` and `"MIIUIIU" = M::(xs++xs)` with `xs = "IIU"`
-  split; -- split the conjuction into two subgoals
-    refl, -- each of which are trivially true.
-end
-
-example : rule3  "UIUMIIIMMM" "UIUMUMMM" :=
-begin
-  use "UIUM", -- With `as = "UIUM"` and `bs = "MMM"`, the first string is
-  use "MMM", -- `as ++ "III" ++ bs` and the second is `as ++ "U" ++ bs`
-  split; -- We prove the conjunction as in the previous proof.
-    refl,
-end
-
-example : rule4 "MIMIMUUIIM" "MIMIMIIM" :=
-begin
- use "MIMIM", -- With `as = "MIMIM"` and `bs = "IIM"`, the first string
- use "IIM", -- is `as ++ "UU" + bs` and the second is `as ++ bs`
- split;
-  refl,
-end
-
-
 /-!
 ### Derivability
 There is exactly one axiom of MIU, namely that `"MI"` is derivable. From this, and the rules of
@@ -204,7 +135,7 @@ the `miutr` st is derivable in MIU. We represent `derivable` as an inductive fam
 /--
 The inductive type derivable has five constructors. The default constructor corresponds to the
 axiom that `"MI"` is derivable. Each of the constructors `r1`, `r2`, `r3`, `r4` corresponds to the
-rules `rule1`, `rule2`, `rule3`, `rule4`, respectively.
+one of the rules of inference described above.
 -/
 inductive derivable : miustr → Prop
 | mk : derivable "MI"
@@ -212,6 +143,35 @@ inductive derivable : miustr → Prop
 | r2 {x} : derivable (M :: x) → derivable (M :: x ++ x)
 | r3 {x y} : derivable (x ++ [I, I, I] ++ y) → derivable (x ++ U :: y)
 | r4 {x y} : derivable (x ++ [U, U] ++ y) → derivable (x ++ y)
+
+
+/-!
+### Rule usage examples
+-/
+
+example (h : derivable "UMI") : derivable "UMIU" :=
+begin
+  change ("UMIU" : miustr) with [U,M] ++ [I,U],
+  exact derivable.r1 h, -- Rule 1
+end
+
+example (h : derivable "MIIU") : derivable "MIIUIIU" :=
+begin
+  change ("MIIUIIU" : miustr) with M :: [I,I,U] ++ [I,I,U],
+  exact derivable.r2 h, -- Rule 2
+end
+
+example (h : derivable "UIUMIIIMMM") : derivable "UIUMUMMM" :=
+begin
+  change ("UIUMUMMM" : miustr) with [U,I,U,M] ++ U :: [M,M,M],
+  exact derivable.r3 h, -- Rule 3
+end
+
+example (h : derivable "MIMIMUUIIM") : derivable "MIMIMIIM" :=
+begin
+  change ("MIMIMIIM" : miustr) with [M,I,M,I,M] ++ [I,I,M],
+  exact derivable.r4 h,
+end
 
 
 /-!

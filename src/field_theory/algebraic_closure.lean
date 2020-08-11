@@ -76,8 +76,8 @@ open mv_polynomial
 { f : polynomial k // monic f ∧ irreducible f }
 
 /-- Sends a monic irreducible polynomial `f` to `f(x_f)` where `x_f` is a formal indeterminate. -/
-def eval_X_self (p : monic_irreducible k) : mv_polynomial (monic_irreducible k) k :=
-polynomial.eval₂ mv_polynomial.C (X p) p
+def eval_X_self (f : monic_irreducible k) : mv_polynomial (monic_irreducible k) k :=
+polynomial.eval₂ mv_polynomial.C (X f) f
 
 /-- The span of `f(x_f)` across monic irreducible polynomials `f` where `x_f` is an indeterminate. -/
 def span_eval : ideal (mv_polynomial (monic_irreducible k) k) :=
@@ -120,7 +120,7 @@ instance max_ideal.is_maximal : (max_ideal k).is_maximal :=
 theorem le_max_ideal : span_eval k ≤ max_ideal k :=
 (classical.some_spec $ ideal.exists_le_maximal _ $ span_eval_ne_top k).2
 
-/-- The first step: adjoin a root of all monic polynomials -/
+/-- The first step of constructing `algebraic_closure`: adjoin a root of all monic polynomials -/
 def adjoin_monic : Type u :=
 (max_ideal k).quotient
 
@@ -153,11 +153,11 @@ theorem adjoin_monic.exists_root {f : polynomial k} (hfm : f.monic) (hfi : irred
  by { rw [to_adjoin_monic, ← hom_eval₂, ideal.quotient.eq_zero_iff_mem],
   exact le_max_ideal k (ideal.subset_span $ ⟨_, rfl⟩) }⟩
 
-/-- The auxiliary function to the `n`th step. -/
+/-- The `n`th step of constructing `algebraic_closure`, together with its `field` instance. -/
 def step_aux (n : ℕ) : Σ α : Type u, field α :=
 nat.rec_on n ⟨k, infer_instance⟩ $ λ n ih, ⟨@adjoin_monic ih.1 ih.2, @adjoin_monic.field ih.1 ih.2⟩
 
-/-- The `n`th step. -/
+/-- The `n`th step of constructing `algebraic_closure`. -/
 def step (n : ℕ) : Type u :=
 (step_aux k n).1
 
@@ -223,7 +223,7 @@ instance to_step_of_le.directed_system :
 
 end algebraic_closure
 
-/-- Algebraic closure. -/
+/-- The canonical algebraic closure of a field, the direct limit of adding roots to the field for each polynomial over the field. -/
 def algebraic_closure : Type u :=
 ring.direct_limit (algebraic_closure.step k) (λ i j h, algebraic_closure.to_step_of_le k i j h)
 
@@ -234,7 +234,7 @@ field.direct_limit.field _ _
 
 instance : inhabited (algebraic_closure k) := ⟨37⟩
 
-/-- The canonical inclusion from the `n`th step. -/
+/-- The canonical ring embedding from the `n`th step to the algebraic closure. -/
 def of_step (n : ℕ) : step k n →+* algebraic_closure k :=
 ring_hom.of $ ring.direct_limit.of _ _ _
 
@@ -268,7 +268,7 @@ is_alg_closed.of_exists_root _ $ λ f, exists_root k
 instance : algebra k (algebraic_closure k) :=
 (of_step k 0).to_algebra
 
-/-- Canonical inclusion from the `n`th step to the algebraic closure. -/
+/-- Canonical algebra embedding from the `n`th step to the algebraic closure. -/
 def of_step_hom (n) : step k n →ₐ[k] algebraic_closure k :=
 { commutes' := λ x, ring.direct_limit.of_f n.zero_le x,
   .. of_step k n }

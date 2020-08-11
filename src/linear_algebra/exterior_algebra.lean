@@ -306,8 +306,7 @@ begin
       rw [function.update_same, function.update_noteq hij1,  function.update_same],
     end,
   rw multilinear_map.map_add at key,
-  rw function.update_comm hij1 (ν i + ν j) (ν i) ν at key,
-  rw multilinear_map.map_add at key,
+  rw [function.update_comm hij1 (ν i + ν j) (ν i) ν, multilinear_map.map_add] at key,
   rw wedge_self_adj (function.update (function.update ν j (ν i)) i (ν i)) i j hij
     begin
       rw function.update_same,
@@ -315,16 +314,14 @@ begin
       rw function.update_same,
     end at key,
   rw zero_add at key,
-  rw function.update_comm hij1 (ν i + ν j) (ν j) ν at key,
-  rw multilinear_map.map_add at key,
+  rw [function.update_comm hij1 (ν i + ν j) (ν j) ν, multilinear_map.map_add] at key,
   rw wedge_self_adj (function.update (function.update ν j (ν j)) i (ν j)) i j hij
   begin
     rw function.update_same,
     rw function.update_comm (ne_comm.mp hij1) (ν j) (ν j) ν,
     rw function.update_same,
   end at key,
-  rw add_zero at key,
-  rw add_comm at key,
+  rw [add_zero, add_comm] at key,
   convert key,
   simp,
   ext x,

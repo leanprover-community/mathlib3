@@ -288,7 +288,7 @@ end
 ### The Haar measure on compact sets
 -/
 
-/-- the Haar measure on compact sets, defined to be an arbitrary element in the intersection of
+/-- The Haar measure on compact sets, defined to be an arbitrary element in the intersection of
   all the sets `cl_prehaar K₀ V` in `haar_product K₀`. -/
 def chaar (K₀ : positive_compacts G) (K : compacts G) : ℝ :=
 classical.some (nonempty_Inter_cl_prehaar K₀) K

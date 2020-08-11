@@ -97,6 +97,15 @@ lemma le_inter_add_diff {m : outer_measure α} {t : set α} (s : set α) :
   m t ≤ m (t ∩ s) + m (t \ s) :=
 by { convert m.union _ _, rw inter_union_diff t s }
 
+lemma diff_null (m : outer_measure α) (s : set α) {t : set α} (ht : m t = 0) :
+  m (s \ t) = m s :=
+begin
+  refine le_antisymm (m.mono $ diff_subset _ _) _,
+  calc m s ≤ m (s ∩ t) + m (s \ t) : le_inter_add_diff _
+       ... ≤ m t + m (s \ t)       : add_le_add_right (m.mono $ inter_subset_right _ _) _
+       ... = m (s \ t)             : by rw [ht, zero_add]
+end
+
 lemma union_null (m : outer_measure α) {s₁ s₂ : set α}
   (h₁ : m s₁ = 0) (h₂ : m s₂ = 0) : m (s₁ ∪ s₂) = 0 :=
 by simpa [h₁, h₂] using m.union s₁ s₂

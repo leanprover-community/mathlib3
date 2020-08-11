@@ -6,7 +6,7 @@ Author: Yury Kudryashov
 import analysis.normed_space.point_reflection
 import topology.instances.real_vector_space
 import analysis.normed_space.add_torsor
-import linear_algebra.affine_space
+import linear_algebra.affine_space.basic
 
 /-!
 # Mazur-Ulam Theorem

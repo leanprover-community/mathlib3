@@ -6,7 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 Theory of topological rings.
 -/
 import topology.algebra.group
-import ring_theory.ideals
+import ring_theory.ideal.basic
 
 open classical set filter topological_space
 open_locale classical

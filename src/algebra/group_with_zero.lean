@@ -641,6 +641,9 @@ variables {a b c : G₀}
 @[simp] lemma inv_eq_zero {a : G₀} : a⁻¹ = 0 ↔ a = 0 :=
 by rw [inv_eq_iff, inv_zero, eq_comm]
 
+@[simp] lemma zero_eq_inv {a : G₀} : 0 = a⁻¹ ↔ 0 = a :=
+eq_comm.trans $ inv_eq_zero.trans eq_comm
+
 lemma one_div_mul_one_div_rev (a b : G₀) : (1 / a) * (1 / b) =  1 / (b * a) :=
 by simp only [div_eq_mul_inv, one_mul, mul_inv_rev']
 

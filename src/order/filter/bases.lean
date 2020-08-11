@@ -244,6 +244,23 @@ by erw [(filter_basis.of_sets s).generate, ← (has_basis_generate s).filter_eq]
 lemma of_sets_filter_eq_generate (s : set (set α)) : (filter_basis.of_sets s).filter = generate s :=
 by rw [← (filter_basis.of_sets s).generate, generate_eq_generate_inter s] ; refl
 
+lemma has_basis.to_has_basis (hl : l.has_basis p s) (h : ∀ i, p i → ∃ i', p' i' ∧ s' i' ⊆ s i)
+  (h' : ∀ i', p' i' → ∃ i, p i ∧ s i ⊆ s' i') : l.has_basis p' s' :=
+begin
+  constructor,
+  intro t,
+  rw hl.mem_iff,
+  split,
+  { rintros ⟨i, pi, hi⟩,
+    rcases h i pi with ⟨i', pi', hi'⟩,
+    use [i', pi'],
+    tauto },
+  { rintros ⟨i', pi', hi'⟩,
+    rcases h' i' pi' with ⟨i, pi, hi⟩,
+    use [i, pi],
+    tauto },
+end
+
 lemma has_basis.eventually_iff (hl : l.has_basis p s) {q : α → Prop} :
   (∀ᶠ x in l, q x) ↔ ∃ i, p i ∧ ∀ ⦃x⦄, x ∈ s i → q x :=
 by simpa using hl.mem_iff
@@ -324,18 +341,10 @@ lemma has_basis_principal (t : set α) : (𝓟 t).has_basis (λ i : unit, true) 
 lemma has_basis.sup (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   (l ⊔ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∪ s' i.2) :=
 ⟨begin
-  rintros t,
-  rw [mem_sup_sets, hl.mem_iff, hl'.mem_iff],
-  split,
-  { rintros ⟨⟨i, pi, hi⟩, ⟨i', pi', hi'⟩⟩,
-    use [(i, i'), pi, pi'],
-    finish },
-  { rintros ⟨⟨i, i'⟩, ⟨⟨pi, pi'⟩, h⟩⟩,
-    split,
-    { use [i, pi],
-      finish },
-    { use [i', pi'],
-      finish } }
+  intros t,
+  simp only [mem_sup_sets, hl.mem_iff, hl'.mem_iff, prod.exists, union_subset_iff, exists_prop,
+    and_assoc, exists_and_distrib_left],
+  simp only [← and_assoc, exists_and_distrib_right, and_comm]
 end⟩
 
 lemma has_basis.inf_principal (hl : l.has_basis p s) (s' : set α) :
@@ -359,6 +368,16 @@ lemma has_basis_infi_principal {s : ι → set α} (h : directed (≥) s) [nonem
     by simp only [exists_prop, true_and, mem_principal_sets],
   exact λ _ _, principal_mono.2
 end⟩
+
+/-- If `s : ι → set α` is an indexed family of sets, then finite intersections of `s i` form a basis
+of `⨅ i, 𝓟 (s i)`.  -/
+lemma has_basis_infi_principal_finite (s : ι → set α) :
+  (⨅ i, 𝓟 (s i)).has_basis (λ t : set ι, finite t) (λ t, ⋂ i ∈ t, s i) :=
+begin
+  refine ⟨λ U, (mem_infi_finite _).trans _⟩,
+  simp only [infi_principal_finset, mem_Union, mem_principal_sets, exists_prop,
+    exists_finite_iff_finset, finset.bInter_coe]
+end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_on (s ⁻¹'o (≥)) S)

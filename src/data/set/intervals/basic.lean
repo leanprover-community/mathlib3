@@ -58,6 +58,22 @@ def Ici (a : α) := {x | a ≤ x}
 /-- Left-open right-infinite interval -/
 def Ioi (a : α) := {x | a < x}
 
+lemma Ioo_def (a b : α) : {x | a < x ∧ x < b} = Ioo a b := rfl
+
+lemma Ico_def (a b : α) : {x | a ≤ x ∧ x < b} = Ico a b := rfl
+
+lemma Iio_def (a : α) : {x | x < a} = Iio a := rfl
+
+lemma Icc_def (a b : α) : {x | a ≤ x ∧ x ≤ b} = Icc a b := rfl
+
+lemma Iic_def (b : α) : {x | x ≤ b} = Iic b := rfl
+
+lemma Ioc_def (a b : α) : {x | a < x ∧ x ≤ b} = Ioc a b := rfl
+
+lemma Ici_def (a : α) : {x | a ≤ x} = Ici a := rfl
+
+lemma Ioi_def (a : α) : {x | a < x} = Ioi a := rfl
+
 @[simp] lemma mem_Ioo : x ∈ Ioo a b ↔ a < x ∧ x < b := iff.rfl
 @[simp] lemma mem_Ico : x ∈ Ico a b ↔ a ≤ x ∧ x < b := iff.rfl
 @[simp] lemma mem_Iio : x ∈ Iio b ↔ x < b := iff.rfl
@@ -363,6 +379,33 @@ begin
   { refine (or.inr $ or.inr $ or.inr $ subset.antisymm _ ho),
     rw [← Ico_diff_left, ← Icc_diff_right],
     apply_rules [subset_diff_singleton] }
+end
+
+lemma mem_Ioo_or_eq_endpoints_of_mem_Icc {x : α} (hmem : x ∈ Icc a b) :
+  x = a ∨ x = b ∨ x ∈ Ioo a b :=
+begin
+  rw [mem_Icc, le_iff_lt_or_eq, le_iff_lt_or_eq] at hmem,
+  rcases hmem with ⟨hxa | hxa, hxb | hxb⟩,
+  { exact or.inr (or.inr ⟨hxa, hxb⟩) },
+  { exact or.inr (or.inl hxb) },
+  all_goals { exact or.inl hxa.symm }
+end
+
+lemma mem_Ioo_or_eq_left_of_mem_Ico {x : α} (hmem : x ∈ Ico a b) :
+  x = a ∨ x ∈ Ioo a b :=
+begin
+  rw [mem_Ico, le_iff_lt_or_eq] at hmem,
+  rcases hmem with ⟨hxa | hxa, hxb⟩,
+  { exact or.inr ⟨hxa, hxb⟩ },
+  { exact or.inl hxa.symm }
+end
+
+lemma mem_Ioo_or_eq_right_of_mem_Ioc {x : α} (hmem : x ∈ Ioc a b) :
+  x = b ∨ x ∈ Ioo a b :=
+begin
+  have := @mem_Ioo_or_eq_left_of_mem_Ico (order_dual α) _ b a x,
+  rw [dual_Ioo, dual_Ico] at this,
+  exact this hmem
 end
 
 end partial_order

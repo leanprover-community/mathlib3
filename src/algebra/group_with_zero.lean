@@ -212,6 +212,12 @@ element, and `0` is left and right absorbing. -/
 @[protect_proj]
 class comm_monoid_with_zero (M₀ : Type*) extends comm_monoid M₀, monoid_with_zero M₀.
 
+/-- A type `M` is a `comm_cancel_monoid_with_zero` if it is a commutative monoid with zero element,
+ `0` is left and right absorbing,
+  and left/right multiplication by a non-zero element is injective. -/
+@[protect_proj] class comm_cancel_monoid_with_zero (M₀ : Type*) extends
+  comm_monoid_with_zero M₀, cancel_monoid_with_zero M₀.
+
 /-- A type `G₀` is a “group with zero” if it is a monoid with zero element (distinct from `1`)
 such that every nonzero element is invertible.
 The type is required to come with an “inverse” function, and the inverse of `0` must be `0`.
@@ -370,6 +376,16 @@ theorem eq_zero_of_mul_eq_self_left (h₁ : b ≠ 1) (h₂ : b * a = a) : a = 0 
 classical.by_contradiction $ λ ha, h₁ $ mul_right_cancel' ha $ h₂.symm ▸ (one_mul a).symm
 
 end cancel_monoid_with_zero
+
+section comm_cancel_monoid_with_zero
+
+variables [cancel_monoid_with_zero M₀] {a b c : M₀}
+
+instance comm_cancel_monoid_with_zero.no_zero_divisors : no_zero_divisors M₀ :=
+⟨λ a b ab0, by { by_cases a = 0, {left, exact h}, right,
+  apply cancel_monoid_with_zero.mul_left_cancel_of_ne_zero h, rw [ab0, mul_zero], }⟩
+
+end comm_cancel_monoid_with_zero
 
 section group_with_zero
 variables [group_with_zero G₀]
@@ -713,6 +729,14 @@ end group_with_zero
 
 section comm_group_with_zero -- comm
 variables [comm_group_with_zero G₀] {a b c : G₀}
+
+section prio
+set_option default_priority 10 -- see Note [default priority]
+
+instance comm_group_with_zero.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero G₀ :=
+{ .. group_with_zero.cancel_monoid_with_zero, ..comm_group_with_zero.to_comm_monoid_with_zero G₀ }
+
+end prio
 
 /-- Pullback a `comm_group_with_zero` class along an injective function. -/
 protected def function.injective.comm_group_with_zero [has_zero G₀'] [has_mul G₀'] [has_one G₀']

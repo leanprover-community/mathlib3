@@ -193,7 +193,6 @@ begin
   exact derivable.r2 MIU_der, -- `"MIUIU"` can be derived as `"MIU"` can.
 end
 
--- We give a forward derivation for the next proof
 example : derivable "MUI" :=
 begin
   have h₂ : derivable "MII",

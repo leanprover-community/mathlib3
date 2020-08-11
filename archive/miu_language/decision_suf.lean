@@ -136,7 +136,9 @@ begin
 end
 
 
-/- A simple arithmetic result-/
+/--
+A simple arithmetic result.
+-/
 lemma add_mod2 (a : ℕ) : ∃ t, a + a % 2 = t*2 :=
 begin
   simp only [mul_comm _ 2], -- write `t*2` as `2*t`

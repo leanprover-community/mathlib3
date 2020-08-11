@@ -71,13 +71,19 @@ begin
 end
 
 
-/-  We show the icount, mod 3, stays the same or is multiplied by 2 under the rules of inference -/
+/-!
+We show the `icount`, mod 3, stays the same or is multiplied by 2 under the rules of inference.
+-/
 
 open nat
 
-/- Now we show that the icount of a derivable string is 1 or 2 modulo 3-/
+/-!
+Now we show that the `icount` of a derivable string is 1 or 2 modulo 3.
+-/
 
--- We start with a general result about natural numbers.
+/-!
+We start with a general result about natural numbers.
+-/
 
 lemma inheritmod3 {a b : ℕ} (h1 : a % 3 = 1 ∨ a % 3 = 2)
   (h2 : b % 3 = a % 3 ∨  b % 3 = (2 * a % 3)) :
@@ -128,7 +134,7 @@ begin
 end
 
 
-/-
+/-!
 ### Condition on `M`
 
 That solves the MU puzzle, but we'll proceed by demonstrating the other necessary condition for a
@@ -142,7 +148,9 @@ string to be derivable, namely that the string must start with an M and contain 
 def goodm (xs : miustr) : Prop :=
   ∃ ys : miustr, xs = (M::ys) ∧ ¬(M ∈ ys)
 
-/- Example usage -/
+/-!
+Example usage
+-/
 
 lemma goodmi : goodm [M,I] :=
 begin
@@ -152,7 +160,7 @@ begin
   simp,
 end
 
-/-
+/-!
 We'll show, for each `i` from 1 to 4, that if `en` follows by rule `i` from `st` and if
 `goodm st` holds, then so does `goodm en`.
 -/
@@ -211,8 +219,9 @@ begin
   },
 end
 
-
--- The proof of the next lemma is very similar to the previous proof!
+/-!
+ The proof of the next lemma is very similar to the previous proof!
+-/
 
 lemma goodmrule4  (as bs : miustr) (h₁ : derivable (as ++ [U,U] ++ bs))
   (h₂ : goodm (as ++ [U,U] ++ bs)) : goodm (as ++ bs) :=
@@ -243,7 +252,7 @@ begin
 end
 
 
-/--
+/-!
 Any derivable string must begin with `M` and contain no `M` in its tail.
 -/
 
@@ -260,7 +269,7 @@ begin
   apply goodmrule4; assumption,
 end
 
-/-
+/-!
 We put togther our two conditions to give one condition `decstr`. Once we've proved sufficiency of
 this condition, we'll have proved that checking the condition is a decision procedure.
 -/

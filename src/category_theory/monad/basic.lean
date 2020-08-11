@@ -56,4 +56,20 @@ attribute [simp] comonad.left_counit comonad.right_counit
 notation `ε_` := comonad.ε
 notation `δ_` := comonad.δ
 
+namespace monad
+instance : monad (𝟭 C) :=
+{ η := 𝟙 _,
+  μ := 𝟙 _ }
+instance : comonad (𝟭 C) :=
+{ ε := 𝟙 _,
+  δ := 𝟙 _ }
+end monad
+
+section
+variables (M : C ⥤ C) [monad M] (N : C ⥤ C) [monad N]
+structure monad_hom extends nat_trans M N :=
+(app_η {X} : (η_ M).app X ≫ app X = (η_ N).app X . obviously)
+(app_μ {X} : (μ_ M).app X ≫ app X = (M.map (app X) ≫ app (N.obj X)) ≫ (μ_ N).app X . obviously)
+end
+
 end category_theory

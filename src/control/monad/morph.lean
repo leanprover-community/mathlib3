@@ -80,6 +80,9 @@ variable {F}
 theorem comp_assoc (η₁ : H >~> I) (η₂ : G >~> H) (η₃ : F >~> G) :
   (η₁.comp η₂).comp η₃ = η₁.comp (η₂.comp η₃) := by {ext, finish}
 
+/--
+The initial morphism from the identity monad to any other monad `F`.
+-/
 def initial [is_lawful_monad F] : id >~> F :=
 { app := λ _, pure,
   naturality := λ _ _ f x, by {change pure (f x) = f <$> pure x, simp},

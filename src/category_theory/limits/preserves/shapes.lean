@@ -8,6 +8,8 @@ import category_theory.limits.shapes.products
 
 universes v u₁ u₂
 
+noncomputable theory
+
 open category_theory
 open category_theory.limits
 

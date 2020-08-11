@@ -40,6 +40,7 @@ variables {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
 /--
 The morphism from `image f` to `kernel g` when `f ≫ g = 0`.
 -/
+noncomputable
 def image_to_kernel_map (w : f ≫ g = 0) :
   image f ⟶ kernel g :=
 kernel.lift g (image.ι f) $ (cancel_epi (factor_thru_image f)).1 $ by simp [w]

@@ -31,6 +31,8 @@ for closed monoidal categories, and these could be generalised.
 -/
 universes v u u₂
 
+noncomputable theory
+
 namespace category_theory
 
 open category_theory category_theory.category category_theory.limits

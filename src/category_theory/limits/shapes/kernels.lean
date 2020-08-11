@@ -640,11 +640,11 @@ variables (C : Type u) [category.{v} C]
 variables [has_zero_morphisms C]
 
 /-- `has_kernels` represents a choice of kernel for every morphism -/
-class has_kernels :=
+class has_kernels : Prop :=
 (has_limit : Π {X Y : C} (f : X ⟶ Y), has_kernel f)
 
 /-- `has_cokernels` represents a choice of cokernel for every morphism -/
-class has_cokernels :=
+class has_cokernels : Prop :=
 (has_colimit : Π {X Y : C} (f : X ⟶ Y), has_cokernel f)
 
 attribute [instance, priority 100] has_kernels.has_limit has_cokernels.has_colimit

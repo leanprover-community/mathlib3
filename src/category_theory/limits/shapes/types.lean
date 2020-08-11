@@ -37,7 +37,7 @@ namespace category_theory.limits.types
 
 /-- The category of types has `punit` as a terminal object. -/
 def types_has_terminal : has_terminal (Type u) :=
-{ has_limit := λ F,
+{ has_limit := λ F, has_limit.mk
   { cone :=
     { X := punit,
       π := by tidy, },
@@ -52,7 +52,7 @@ The category of types has `X × Y`, the usual cartesian product,
 as the binary product of `X` and `Y`.
 -/
 def types_has_binary_products : has_binary_products (Type u) :=
-{ has_limit := λ F,
+{ has_limit := λ F, has_limit.mk
   { cone :=
     { X := F.obj left × F.obj right,
       π :=
@@ -70,7 +70,7 @@ def types_has_binary_products : has_binary_products (Type u) :=
 The category of types has `Π j, f j` as the product of a type family `f : J → Type`.
 -/
 def types_has_products : has_products (Type u) := λ J,
-{ has_limit := λ F,
+{ has_limit := λ F, has_limit.mk
   { cone :=
     { X := Π j, F.obj j,
       π :=
@@ -90,28 +90,30 @@ local attribute [instance, priority 200] types_has_products
 local attribute [instance, priority 300] types_has_terminal
 local attribute [instance, priority 300] types_has_binary_products
 
-@[simp] lemma terminal : (⊤_ (Type u)) = punit := rfl
-lemma terminal_from {P : Type u} (f : P ⟶ ⊤_ (Type u)) (p : P) : f p = punit.star :=
-by ext
+-- FIXME Can we ditch these?
 
-@[simp] lemma prod (X Y : Type u) : limits.prod X Y = prod X Y := rfl
-@[simp] lemma prod_fst {X Y : Type u} (p : limits.prod X Y) :
-  (@limits.prod.fst.{u} _ _ X Y _ : limits.prod X Y → X) p = p.1 := rfl
-@[simp] lemma prod_snd {X Y : Type u} (p : limits.prod X Y) :
-  (@limits.prod.snd.{u} _ _ X Y _ : limits.prod X Y → Y) p = p.2 := rfl
+-- @[simp] lemma terminal : (⊤_ (Type u)) = punit := rfl
+-- lemma terminal_from {P : Type u} (f : P ⟶ ⊤_ (Type u)) (p : P) : f p = punit.star :=
+-- by ext
 
-@[simp] lemma prod_lift {X Y Z : Type u} {f : X ⟶ Y} {g : X ⟶ Z} :
-  limits.prod.lift f g = (λ x, (f x, g x)) := rfl
-@[simp] lemma prod_map {W X Y Z : Type u} {f : W ⟶ X} {g : Y ⟶ Z} :
-  limits.prod.map f g = (λ p : W × Y, (f p.1, g p.2)) := rfl
+-- @[simp] lemma prod (X Y : Type u) : limits.prod X Y = prod X Y := rfl
+-- @[simp] lemma prod_fst {X Y : Type u} (p : limits.prod X Y) :
+--   (@limits.prod.fst.{u} _ _ X Y _ : limits.prod X Y → X) p = p.1 := rfl
+-- @[simp] lemma prod_snd {X Y : Type u} (p : limits.prod X Y) :
+--   (@limits.prod.snd.{u} _ _ X Y _ : limits.prod X Y → Y) p = p.2 := rfl
 
-@[simp] lemma pi {J : Type u} (f : J → Type u) : pi_obj f = Π j, f j := rfl
-@[simp] lemma pi_π {J : Type u} {f : J → Type u} (j : J) (g : pi_obj f) :
-  (pi.π f j : pi_obj f → f j) g = g j := rfl
+-- @[simp] lemma prod_lift {X Y Z : Type u} {f : X ⟶ Y} {g : X ⟶ Z} :
+--   limits.prod.lift f g = (λ x, (f x, g x)) := rfl
+-- @[simp] lemma prod_map {W X Y Z : Type u} {f : W ⟶ X} {g : Y ⟶ Z} :
+--   limits.prod.map f g = (λ p : W × Y, (f p.1, g p.2)) := rfl
 
-@[simp] lemma pi_lift {J : Type u} {f : J → Type u} {W : Type u} {g : Π j, W ⟶ f j} :
-  pi.lift g = (λ w j, g j w) := rfl
-@[simp] lemma pi_map {J : Type u} {f g : J → Type u} {h : Π j, f j ⟶ g j} :
-  pi.map h = λ (k : Π j, f j) j, h j (k j) := rfl
+-- @[simp] lemma pi {J : Type u} (f : J → Type u) : pi_obj f = Π j, f j := rfl
+-- @[simp] lemma pi_π {J : Type u} {f : J → Type u} (j : J) (g : pi_obj f) :
+--   (pi.π f j : pi_obj f → f j) g = g j := rfl
+
+-- @[simp] lemma pi_lift {J : Type u} {f : J → Type u} {W : Type u} {g : Π j, W ⟶ f j} :
+--   pi.lift g = (λ w j, g j w) := rfl
+-- @[simp] lemma pi_map {J : Type u} {f g : J → Type u} {h : Π j, f j ⟶ g j} :
+--   pi.map h = λ (k : Π j, f j) j, h j (k j) := rfl
 
 end category_theory.limits.types

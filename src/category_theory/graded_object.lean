@@ -173,7 +173,7 @@ variables [has_coproducts C]
 /--
 The total object of a graded object is the coproduct of the graded components.
 -/
-def total : graded_object β C ⥤ C :=
+noncomputable def total : graded_object β C ⥤ C :=
 { obj := λ X, ∐ (λ i : ulift.{v} β, X i.down),
   map := λ X Y f, limits.sigma.map (λ i, f i.down) }.
 
@@ -197,6 +197,8 @@ instance : faithful (total β C) :=
 end graded_object
 
 namespace graded_object
+
+noncomputable theory
 
 variables (β : Type)
 variables (C : Type (u+1)) [large_category C] [concrete_category C]

@@ -27,6 +27,8 @@ we pick those up instead.
 
 universes v u
 
+noncomputable theory
+
 namespace category_theory
 
 variables (C : Type u) [category.{v} C] {X Y : C}

@@ -79,6 +79,7 @@ variables [abelian C]
 
 /-- In an abelian category, an object satisfying the dual of the definition of a simple object is
     simple. -/
+noncomputable
 def simple_of_cosimple (X : C) (h : ∀ {Z : C} (f : X ⟶ Z) [epi f], is_iso f ≃ (f ≠ 0)) :
   simple X :=
 ⟨λ Y f I,

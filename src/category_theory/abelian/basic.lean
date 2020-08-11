@@ -495,7 +495,7 @@ variables (C : Type u) [category.{v} C] [non_preadditive_abelian C]
 
 /-- Every non_preadditive_abelian category can be promoted to an abelian category. -/
 def abelian : abelian C :=
-{ has_finite_products := infer_instance,
+{ has_finite_products := by apply_instance,
 /- We need the `convert`s here because the instances we have are slightly different from the
    instances we need: `has_kernels` depends on an instance of `has_zero_morphisms`. In the
    case of `non_preadditive_abelian`, this instance is an explicit argument. However, in the case
@@ -504,8 +504,8 @@ def abelian : abelian C :=
    instance of "has kernels with non_preadditive_abelian.preadditive.has_zero_morphisms". Luckily,
    we have a `subsingleton` instance for `has_zero_morphisms`, so `convert` can immediately close
    the goal it creates for the two instances of `has_zero_morphisms`, and the proof is complete. -/
-  has_kernels := by convert (infer_instance : limits.has_kernels C),
-  has_cokernels := by convert (infer_instance : limits.has_cokernels C),
+  has_kernels := by convert (by apply_instance : limits.has_kernels C),
+  has_cokernels := by convert (by apply_instance : limits.has_cokernels C),
   normal_mono := by { introsI, convert normal_mono f },
   normal_epi := by { introsI, convert normal_epi f },
   ..non_preadditive_abelian.preadditive }

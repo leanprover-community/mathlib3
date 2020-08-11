@@ -64,6 +64,7 @@ preserves_colimit.preserves h
 
 instance has_colimit_comp_equivalence (E : C ⥤ D) [is_equivalence E] [has_colimit K] :
   has_colimit (K ⋙ E) :=
+has_colimit.mk
 { cocone := E.map_cocone (colimit.cocone K),
   is_colimit := preserves_colimit.preserves (colimit.is_colimit K) }
 
@@ -141,6 +142,7 @@ preserves_limit.preserves h
 
 instance has_limit_comp_equivalence (E : D ⥤ C) [is_equivalence E] [has_limit K] :
   has_limit (K ⋙ E) :=
+has_limit.mk
 { cone := E.map_cone (limit.cone K),
   is_limit := preserves_limit.preserves (limit.is_limit K) }
 

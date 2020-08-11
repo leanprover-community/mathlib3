@@ -99,7 +99,7 @@ theorem to_splitting_field_eval_X_self {s : finset (monic_irreducible k)} {f} (h
 by { rw [to_splitting_field, eval_X_self, ← alg_hom.coe_to_ring_hom, hom_eval₂,
          alg_hom.coe_to_ring_hom, mv_polynomial.aeval_X, dif_pos hf,
          ← algebra_map_eq, alg_hom.comp_algebra_map],
-  exact map_root_of_splits _ _ }
+  exact map_root_of_splits _ _ _ }
 
 theorem span_eval_ne_top : span_eval k ≠ ⊤ :=
 begin
@@ -281,4 +281,3 @@ instance : is_alg_closure k (algebraic_closure k) :=
 ⟨algebraic_closure.is_alg_closed k, is_algebraic k⟩
 
 end algebraic_closure
-#lint

@@ -454,7 +454,7 @@ eq.symm $ sum_hom _ _
 lemma map_support_is_subset (p : polynomial R) : (map f p).support ⊆ p.support :=
 begin
   intros x,
-  simp only [mem_support_iff, classical.not_not] at *,
+  simp only [mem_support_iff],
   contrapose!,
   change p.coeff x = 0 → (map f p).coeff x = 0,
   rw coeff_map,

@@ -550,17 +550,13 @@ begin
 end
 
 @[to_additive]
-lemma prod_subset_one_on_sdiff (h : s₁ ⊆ s₂) (hg : ∀ x ∈ s₂, x ∉ s₁ → g x = 1)
+lemma prod_subset_one_on_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) (hg : ∀ x ∈ (s₂ \ s₁), g x = 1)
   (hfg : ∀ x ∈ s₁, f x = g x) : ∏ i in s₁, f i = ∏ i in s₂, g i :=
 begin
-  haveI := classical.dec_eq α,
   rw ← prod_sdiff h,
   have : ∏ x in s₂ \ s₁, g x = 1,
   { apply prod_eq_one,
-    intros x hx,
-    simp only [mem_sdiff] at *,
-    cases hx,
-    solve_by_elim, },
+    exact hg, },
   rw [this, one_mul],
   apply prod_congr,
   { refl, },

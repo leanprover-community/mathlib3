@@ -200,7 +200,7 @@ apply_nolint category_theory.over.forget_colimit_is_colimit doc_blame
 apply_nolint category_theory.under.forget_limit_is_limit doc_blame
 apply_nolint category_theory.under.limit doc_blame
 
--- category_theory/limits/preserves.lean
+-- category_theory/limits/preserves/basic.lean
 apply_nolint category_theory.limits.preserves_colimit doc_blame
 apply_nolint category_theory.limits.preserves_colimits doc_blame
 apply_nolint category_theory.limits.preserves_colimits_of_shape doc_blame
@@ -218,17 +218,11 @@ apply_nolint category_theory.limits.reflects_limits_of_shape doc_blame
 apply_nolint category_theory.limits.has_finite_colimits doc_blame
 apply_nolint category_theory.limits.has_finite_limits doc_blame
 
--- category_theory/limits/shapes/finite_products.lean
-apply_nolint category_theory.limits.has_finite_coproducts doc_blame
-apply_nolint category_theory.limits.has_finite_products doc_blame
-
 -- category_theory/limits/shapes/products.lean
 apply_nolint category_theory.limits.cofan doc_blame
 apply_nolint category_theory.limits.cofan.mk doc_blame
 apply_nolint category_theory.limits.fan doc_blame
 apply_nolint category_theory.limits.fan.mk doc_blame
-apply_nolint category_theory.limits.has_coproducts doc_blame
-apply_nolint category_theory.limits.has_products doc_blame
 apply_nolint category_theory.limits.pi.lift doc_blame
 apply_nolint category_theory.limits.pi.map doc_blame
 apply_nolint category_theory.limits.pi.π doc_blame

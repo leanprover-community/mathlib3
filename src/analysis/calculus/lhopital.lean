@@ -17,7 +17,7 @@ carefully chosen functions.
 
 Note that the filter `f'/g'` tends to isn't required to be one of `𝓝 a`,
 `at_top` or `at_bot`. In fact, we give a slightly stronger statement by
-allowing `l` to be any filter on `ℝ`.
+allowing it to be any filter on `ℝ`.
 
 Each statement is available in a `has_deriv_at` form and a `deriv` form, which
 is denoted by each statement being in either the `has_deriv_at` or the `deriv`

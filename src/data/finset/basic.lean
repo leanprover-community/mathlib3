@@ -49,6 +49,8 @@ erase_dup_eq_self.2 s.2
 instance has_decidable_eq [decidable_eq α] : decidable_eq (finset α)
 | s₁ s₂ := decidable_of_iff _ val_inj
 
+instance has_sizeof [has_sizeof α] : has_sizeof (finset α) := ⟨λ s, sizeof s.val⟩
+
 /- membership -/
 
 instance : has_mem α (finset α) := ⟨λ a s, a ∈ s.1⟩
@@ -776,6 +778,9 @@ end decidable_eq
 /-- `attach s` takes the elements of `s` and forms a new set of elements of the
   subtype `{x // x ∈ s}`. -/
 def attach (s : finset α) : finset {x // x ∈ s} := ⟨attach s.1, nodup_attach.2 s.2⟩
+
+theorem sizeof_lt_sizeof_of_mem [has_sizeof α] {x : α} {s : finset α} (hx : x ∈ s) :
+  sizeof x < sizeof s := multiset.sizeof_lt_sizeof_of_mem hx
 
 @[simp] theorem attach_val (s : finset α) : s.attach.1 = s.1.attach := rfl
 

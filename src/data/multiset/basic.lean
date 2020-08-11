@@ -37,6 +37,17 @@ instance has_decidable_eq [decidable_eq α] : decidable_eq (multiset α)
 | s₁ s₂ := quotient.rec_on_subsingleton₂ s₁ s₂ $ λ l₁ l₂,
   decidable_of_iff' _ quotient.eq
 
+private def sizeof_core [has_sizeof α] (s : multiset α) : ℕ :=
+begin
+  induction s with l x y ih, { exact l.sizeof },
+  simp only [eq_rec_constant],
+  induction ih with hd l₁ l₂ h₁₂ h_sz₁₂ a b l l₁ l₂ l₃ h₁₂ h₂₃ h_sz₁₂ h_sz₂₃,
+  { refl }, { simp [list.sizeof, h_sz₁₂] },
+  { dsimp [list.sizeof], apply add_left_comm }, { simp [h_sz₁₂, h_sz₂₃] }
+end
+
+instance has_sizeof [has_sizeof α] : has_sizeof (multiset α) := ⟨sizeof_core⟩
+
 /- empty multiset -/
 
 /-- `0 : multiset α` is the empty set -/
@@ -1024,6 +1035,10 @@ def attach (s : multiset α) : multiset {x // x ∈ s} := pmap subtype.mk s (λ 
 
 @[simp] theorem coe_attach (l : list α) :
  @eq (multiset {x // x ∈ l}) (@attach α l) l.attach := rfl
+
+theorem sizeof_lt_sizeof_of_mem [has_sizeof α] {x : α} {s : multiset α} (hx : x ∈ s) :
+  sizeof x < sizeof s := by
+{ induction s with l a b, exact list.sizeof_lt_sizeof_of_mem hx, refl }
 
 theorem pmap_eq_map (p : α → Prop) (f : α → β) (s : multiset α) :
   ∀ H, @pmap _ _ p (λ a _, f a) s H = map f s :=

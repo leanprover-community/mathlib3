@@ -2314,6 +2314,12 @@ decidable_of_iff _ any_iff_exists_prop
   with the same elements but in the type `{x // x ∈ l}`. -/
 def attach (l : list α) : list {x // x ∈ l} := pmap subtype.mk l (λ a, id)
 
+theorem sizeof_lt_sizeof_of_mem [has_sizeof α] {x : α} {l : list α} (hx : x ∈ l) :
+  sizeof x < sizeof l :=
+by { induction l with h t ih, { cases hx }, cases hx,
+  { rw hx, exact lt_add_of_lt_of_nonneg (lt_one_add _) (nat.zero_le _) },
+  exact lt_add_of_pos_of_le (zero_lt_one_add _) (le_of_lt (ih hx)) }
+
 theorem pmap_eq_map (p : α → Prop) (f : α → β) (l : list α) (H) :
   @pmap _ _ p (λ a _, f a) l H = map f l :=
 by induction l; [refl, simp only [*, pmap, map]]; split; refl

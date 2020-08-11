@@ -3,10 +3,10 @@ Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov
 -/
-import data.set.intervals.unordered_interval
+import data.set.intervals.ord_connected
 import data.set.intervals.image_preimage
 import data.complex.module
-import linear_algebra.affine_space
+import linear_algebra.affine_space.basic
 
 /-!
 # Convex sets and functions on real vector spaces
@@ -289,40 +289,23 @@ by simpa only [add_comm] using hs.translate_preimage_right a
 lemma convex.affinity (hs : convex s) (z : E) (c : ℝ) : convex ((λx, z + c • x) '' s) :=
 hs.affine_image $ affine_map.const ℝ E E E z +ᵥ c • affine_map.id ℝ E E
 
-lemma convex_real_iff {s : set ℝ} :
-  convex s ↔ ∀ {x y}, x ∈ s → y ∈ s → Icc x y ⊆ s :=
+lemma real.convex_iff_ord_connected {s : set ℝ} : convex s ↔ ord_connected s :=
 begin
-  simp only [convex_iff_segment_subset, segment_eq_Icc'],
-  split; intros h x y hx hy,
-  { cases le_or_lt x y with hxy hxy,
-    { simpa [hxy] using h hx hy },
-    { simp [hxy] } },
-  { apply h; cases le_total x y; simp [*] }
+  simp only [convex_iff_segment_subset, segment_eq_interval, ord_connected_iff_interval_subset],
+  exact forall_congr (λ x, forall_swap)
 end
 
-lemma convex_Iio (r : ℝ) : convex (Iio r) :=
-convex_real_iff.2 $ λ x y hx hy z hz, lt_of_le_of_lt hz.2 hy
+alias real.convex_iff_ord_connected ↔ convex.ord_connected set.ord_connected.convex
 
-lemma convex_Ioi (r : ℝ) : convex (Ioi r) :=
-convex_real_iff.2 $ λ x y hx hy z hz, lt_of_lt_of_le hx hz.1
-
-lemma convex_Iic (r : ℝ) : convex (Iic r) :=
-convex_real_iff.2 $ λ x y hx hy z hz, le_trans hz.2 hy
-
-lemma convex_Ici (r : ℝ) : convex (Ici r) :=
-convex_real_iff.2 $ λ x y hx hy z hz, le_trans hx hz.1
-
-lemma convex_Ioo (r : ℝ) (s : ℝ) : convex (Ioo r s) :=
-(convex_Ioi _).inter (convex_Iio _)
-
-lemma convex_Ico (r : ℝ) (s : ℝ) : convex (Ico r s) :=
-(convex_Ici _).inter (convex_Iio _)
-
-lemma convex_Ioc (r : ℝ) (s : ℝ) : convex (Ioc r s) :=
-(convex_Ioi _).inter (convex_Iic _)
-
-lemma convex_Icc (r : ℝ) (s : ℝ) : convex (Icc r s) :=
-(convex_Ici _).inter (convex_Iic _)
+lemma convex_Iio (r : ℝ) : convex (Iio r) := ord_connected_Iio.convex
+lemma convex_Ioi (r : ℝ) : convex (Ioi r) := ord_connected_Ioi.convex
+lemma convex_Iic (r : ℝ) : convex (Iic r) := ord_connected_Iic.convex
+lemma convex_Ici (r : ℝ) : convex (Ici r) := ord_connected_Ici.convex
+lemma convex_Ioo (r s : ℝ) : convex (Ioo r s) := ord_connected_Ioo.convex
+lemma convex_Ico (r s : ℝ) : convex (Ico r s) := ord_connected_Ico.convex
+lemma convex_Ioc (r : ℝ) (s : ℝ) : convex (Ioc r s) := ord_connected_Ioc.convex
+lemma convex_Icc (r : ℝ) (s : ℝ) : convex (Icc r s) := ord_connected_Icc.convex
+lemma convex_interval (r : ℝ) (s : ℝ) : convex (interval r s) := ord_connected_interval.convex
 
 lemma convex_segment (a b : E) : convex [a, b] :=
 begin
@@ -388,7 +371,7 @@ lemma convex.combo_self (a : α) {x y : α} (h : x + y = 1) : a = x * a + y * a 
       ... = (x + y) * a     : by rw [h]
       ... = x * a + y * a   : by rw [add_mul]
 
-/-
+/--
 If x is in an Ioo, it can be expressed as a convex combination of the endpoints.
 -/
 lemma convex.mem_Ioo {a b x : α} (h : a < b) :
@@ -502,7 +485,7 @@ lemma convex_on_iff_div:
 and_congr iff.rfl
 ⟨begin
   intros h x y hx hy a b ha hb hab,
-  apply h hx hy (div_nonneg ha hab) (div_nonneg hb hab),
+  apply h hx hy (div_nonneg ha $ le_of_lt hab) (div_nonneg hb $ le_of_lt hab),
   rw [←add_div],
   exact div_self (ne_of_gt hab)
 end,

@@ -80,11 +80,9 @@ colim.map (discrete.nat_trans p)
 
 variables (C)
 
-class has_products :=
-(has_limits_of_shape : Π (J : Type v), has_limits_of_shape (discrete J) C)
-class has_coproducts :=
-(has_colimits_of_shape : Π (J : Type v), has_colimits_of_shape (discrete J) C)
-
-attribute [instance] has_products.has_limits_of_shape has_coproducts.has_colimits_of_shape
+/-- An abbreviation for `Π J, has_limits_of_shape (discrete J) C` -/
+abbreviation has_products := Π (J : Type v), has_limits_of_shape (discrete J) C
+/-- An abbreviation for `Π J, has_colimits_of_shape (discrete J) C` -/
+abbreviation has_coproducts := Π (J : Type v), has_colimits_of_shape (discrete J) C
 
 end category_theory.limits

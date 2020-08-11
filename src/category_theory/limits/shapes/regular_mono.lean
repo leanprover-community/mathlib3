@@ -3,6 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
+import category_theory.limits.preserves.basic
 import category_theory.limits.shapes.kernels
 import category_theory.limits.shapes.strong_epi
 import category_theory.limits.shapes.pullbacks
@@ -28,7 +29,7 @@ noncomputable theory
 namespace category_theory
 open category_theory.limits
 
-universes v₁ u₁
+universes v₁ u₁ u₂
 
 variables {C : Type u₁} [category.{v₁} C]
 
@@ -125,6 +126,26 @@ class normal_mono (f : X ⟶ Y) :=
 (g : Y ⟶ Z)
 (w : f ≫ g = 0)
 (is_limit : is_limit (kernel_fork.of_ι f w))
+
+section
+local attribute [instance] fully_faithful_reflects_limits
+local attribute [instance] equivalence.ess_surj_of_equivalence
+
+/-- If `F` is an equivalence and `F.map f` is a normal mono, then `f` is a normal mono. -/
+def equivalence_reflects_normal_mono {D : Type u₂} [category.{v₁} D] [has_zero_morphisms D]
+  (F : C ⥤ D) [is_equivalence F] {X Y : C} {f : X ⟶ Y} (hf : normal_mono (F.map f)) :
+  normal_mono f :=
+{ Z := F.obj_preimage hf.Z,
+  g := full.preimage (hf.g ≫ (F.fun_obj_preimage_iso hf.Z).inv),
+  w := faithful.map_injective F $ by simp [reassoc_of hf.w],
+  is_limit := reflects_limit.reflects $
+    is_limit.of_cone_equiv (cones.postcompose_equivalence (comp_nat_iso F)) $
+      is_limit.of_iso_limit
+        (by exact is_limit.of_iso_limit
+          (is_kernel.of_comp_iso _ _ (F.fun_obj_preimage_iso hf.Z) (by simp) hf.is_limit)
+          (of_ι_congr (category.comp_id _).symm)) (iso_of_ι _).symm }
+
+end
 
 /-- Every normal monomorphism is a regular monomorphism. -/
 @[priority 100]
@@ -278,6 +299,27 @@ class normal_epi (f : X ⟶ Y) :=
 (g : W ⟶ X)
 (w : g ≫ f = 0)
 (is_colimit : is_colimit (cokernel_cofork.of_π f w))
+
+section
+local attribute [instance] fully_faithful_reflects_colimits
+local attribute [instance] equivalence.ess_surj_of_equivalence
+
+/-- If `F` is an equivalence and `F.map f` is a normal epi, then `f` is a normal epi. -/
+def equivalence_reflects_normal_epi {D : Type u₂} [category.{v₁} D] [has_zero_morphisms D]
+  (F : C ⥤ D) [is_equivalence F] {X Y : C} {f : X ⟶ Y} (hf : normal_epi (F.map f)) :
+  normal_epi f :=
+{ W := F.obj_preimage hf.W,
+  g := full.preimage ((F.fun_obj_preimage_iso hf.W).hom ≫ hf.g),
+  w := faithful.map_injective F $ by simp [hf.w],
+  is_colimit := reflects_colimit.reflects $
+    is_colimit.of_cocone_equiv (cocones.precompose_equivalence (comp_nat_iso F).symm) $
+      is_colimit.of_iso_colimit
+        (by exact is_colimit.of_iso_colimit
+          (is_cokernel.of_iso_comp _ _ (F.fun_obj_preimage_iso hf.W).symm (by simp) hf.is_colimit)
+            (of_π_congr (category.id_comp _).symm))
+        (iso_of_π _).symm }
+
+end
 
 /-- Every normal epimorphism is a regular epimorphism. -/
 @[priority 100]

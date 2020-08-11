@@ -274,7 +274,7 @@ lemma unique_mdiff_within_at.mono (h : unique_mdiff_within_at I s x) (st : s ⊆
   unique_mdiff_within_at I t x :=
 unique_diff_within_at.mono h $ inter_subset_inter (preimage_mono st) (subset.refl _)
 
-lemma unique_mdiff_within_at.inter' (hs : unique_mdiff_within_at I s x) (ht : t ∈ nhds_within x s) :
+lemma unique_mdiff_within_at.inter' (hs : unique_mdiff_within_at I s x) (ht : t ∈ 𝓝[s] x) :
   unique_mdiff_within_at I (s ∩ t) x :=
 begin
   rw [unique_mdiff_within_at, ext_chart_preimage_inter_eq],
@@ -376,7 +376,7 @@ begin
   exact (unique_mdiff_within_at_univ I).eq h₀ h₁
 end
 
-lemma has_mfderiv_within_at_inter' (h : t ∈ nhds_within x s) :
+lemma has_mfderiv_within_at_inter' (h : t ∈ 𝓝[s] x) :
   has_mfderiv_within_at I I' f (s ∩ t) x f' ↔ has_mfderiv_within_at I I' f s x f' :=
 begin
   rw [has_mfderiv_within_at, has_mfderiv_within_at, ext_chart_preimage_inter_eq,
@@ -403,7 +403,7 @@ begin
 end
 
 lemma has_mfderiv_within_at.nhds_within (h : has_mfderiv_within_at I I' f s x f')
-  (ht : s ∈ nhds_within x t) : has_mfderiv_within_at I I' f t x f' :=
+  (ht : s ∈ 𝓝[t] x) : has_mfderiv_within_at I I' f t x f' :=
 (has_mfderiv_within_at_inter' ht).1 (h.mono (inter_subset_right _ _))
 
 lemma has_mfderiv_within_at.has_mfderiv_at (h : has_mfderiv_within_at I I' f s x f') (hs : s ∈ 𝓝 x) :
@@ -479,7 +479,7 @@ begin
   exact ext_chart_preimage_mem_nhds I x ht
 end
 
-lemma mdifferentiable_within_at_inter' (ht : t ∈ nhds_within x s) :
+lemma mdifferentiable_within_at_inter' (ht : t ∈ 𝓝[s] x) :
   mdifferentiable_within_at I I' f (s ∩ t) x ↔ mdifferentiable_within_at I I' f s x :=
 begin
   rw [mdifferentiable_within_at, mdifferentiable_within_at, ext_chart_preimage_inter_eq,
@@ -592,12 +592,12 @@ omit Is I's
 /-! ### Congruence lemmas for derivatives on manifolds -/
 
 lemma has_mfderiv_within_at.congr_of_eventually_eq (h : has_mfderiv_within_at I I' f s x f')
-  (h₁ : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) : has_mfderiv_within_at I I' f₁ s x f' :=
+  (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) : has_mfderiv_within_at I I' f₁ s x f' :=
 begin
   refine ⟨continuous_within_at.congr_of_eventually_eq h.1 h₁ hx, _⟩,
   apply has_fderiv_within_at.congr_of_eventually_eq h.2,
   { have : (ext_chart_at I x).symm ⁻¹' {y | f₁ y = f y} ∈
-      nhds_within ((ext_chart_at I x) x) ((ext_chart_at I x).symm ⁻¹' s ∩ range I) :=
+      𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x)  :=
       ext_chart_preimage_mem_nhds_within I x h₁,
     apply filter.mem_sets_of_superset this (λy, _),
     simp only [hx] with mfld_simps {contextual := tt} },
@@ -620,13 +620,13 @@ end
 include Is I's
 
 lemma mdifferentiable_within_at.congr_of_eventually_eq
-  (h : mdifferentiable_within_at I I' f s x) (h₁ : f₁ =ᶠ[nhds_within x s] f)
+  (h : mdifferentiable_within_at I I' f s x) (h₁ : f₁ =ᶠ[𝓝[s] x] f)
   (hx : f₁ x = f x) : mdifferentiable_within_at I I' f₁ s x :=
 (h.has_mfderiv_within_at.congr_of_eventually_eq h₁ hx).mdifferentiable_within_at
 
 variables (I I')
 lemma filter.eventually_eq.mdifferentiable_within_at_iff
-  (h₁ : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) :
+  (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) :
   mdifferentiable_within_at I I' f s x ↔ mdifferentiable_within_at I I' f₁ s x :=
 begin
   split,
@@ -662,7 +662,7 @@ lemma mdifferentiable_within_at.mfderiv_within_congr_mono (h : mdifferentiable_w
 (has_mfderiv_within_at.congr_mono h.has_mfderiv_within_at hs hx h₁).mfderiv_within hxt
 
 lemma filter.eventually_eq.mfderiv_within_eq (hs : unique_mdiff_within_at I s x)
-  (hL : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) :
+  (hL : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) :
   mfderiv_within I I' f₁ s x = (mfderiv_within I I' f s x : _) :=
 begin
   by_cases h : mdifferentiable_within_at I I' f s x,
@@ -702,7 +702,7 @@ omit Is I's
 lemma written_in_ext_chart_comp (h : continuous_within_at f s x) :
   {y | written_in_ext_chart_at I I'' x (g ∘ f) y
        = ((written_in_ext_chart_at I' I'' (f x) g) ∘ (written_in_ext_chart_at I I' x f)) y}
-  ∈ nhds_within ((ext_chart_at I x) x) ((ext_chart_at I x).symm ⁻¹' s ∩ range I) :=
+  ∈ 𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x)  :=
 begin
   apply @filter.mem_sets_of_superset _ _
     ((f ∘ (ext_chart_at I x).symm)⁻¹' (ext_chart_at I' (f x)).source) _
@@ -725,7 +725,7 @@ begin
     ((ext_chart_at I x).symm ⁻¹' s ∩ range (I))
     ((ext_chart_at I x) x),
   { have : (ext_chart_at I x).symm ⁻¹' (f ⁻¹' (ext_chart_at I' (f x)).source)
-    ∈ nhds_within ((ext_chart_at I x) x) ((ext_chart_at I x).symm ⁻¹' s ∩ range I) :=
+    ∈ 𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x)  :=
       (ext_chart_preimage_mem_nhds_within I x
         (hf.1.preimage_mem_nhds_within (ext_chart_at_source_mem_nhds _ _))),
     unfold has_mfderiv_within_at at *,
@@ -845,7 +845,7 @@ lemma has_mfderiv_at_id (x : M) :
   has_mfderiv_at I I (@_root_.id M) x (continuous_linear_map.id 𝕜 (tangent_space I x)) :=
 begin
   refine ⟨continuous_id.continuous_at, _⟩,
-  have : ∀ᶠ y in nhds_within ((ext_chart_at I x) x) (range (I)),
+  have : ∀ᶠ y in 𝓝[range I] ((ext_chart_at I x) x),
     ((ext_chart_at I x) ∘ (ext_chart_at I x).symm) y = id y,
   { apply filter.mem_sets_of_superset (ext_chart_at_target_mem_nhds_within I x),
     mfld_set_tac },

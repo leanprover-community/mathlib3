@@ -92,8 +92,8 @@ def map_pair : F ⟶ G :=
 def map_pair_iso (f : F.obj left ≅ G.obj left) (g : F.obj right ≅ G.obj right) : F ≅ G :=
 { hom := map_pair f.hom g.hom,
   inv := map_pair f.inv g.inv,
-  hom_inv_id' := begin ext ⟨⟩; { dsimp, simp, } end,
-  inv_hom_id' := begin ext ⟨⟩; { dsimp, simp, } end }
+  hom_inv_id' := by { ext ⟨⟩; simp, },
+  inv_hom_id' := by { ext ⟨⟩; simp, } }
 end
 
 section
@@ -404,24 +404,20 @@ end coprod_lemmas
 variables (C)
 
 /-- `has_binary_products` represents a choice of product for every pair of objects. -/
-class has_binary_products :=
-(has_limits_of_shape : has_limits_of_shape (discrete walking_pair) C)
+abbreviation has_binary_products := has_limits_of_shape (discrete walking_pair) C
 
 /-- `has_binary_coproducts` represents a choice of coproduct for every pair of objects. -/
-class has_binary_coproducts :=
-(has_colimits_of_shape : has_colimits_of_shape (discrete walking_pair) C)
-
-attribute [instance] has_binary_products.has_limits_of_shape has_binary_coproducts.has_colimits_of_shape
+abbreviation has_binary_coproducts := has_colimits_of_shape (discrete walking_pair) C
 
 /-- If `C` has all limits of diagrams `pair X Y`, then it has all binary products -/
 def has_binary_products_of_has_limit_pair [Π {X Y : C}, has_limit (pair X Y)] :
   has_binary_products C :=
-{ has_limits_of_shape := { has_limit := λ F, has_limit_of_iso (diagram_iso_pair F).symm } }
+{ has_limit := λ F, has_limit_of_iso (diagram_iso_pair F).symm }
 
 /-- If `C` has all colimits of diagrams `pair X Y`, then it has all binary coproducts -/
 def has_binary_coproducts_of_has_colimit_pair [Π {X Y : C}, has_colimit (pair X Y)] :
   has_binary_coproducts C :=
-{ has_colimits_of_shape := { has_colimit := λ F, has_colimit_of_iso (diagram_iso_pair F) } }
+{ has_colimit := λ F, has_colimit_of_iso (diagram_iso_pair F) }
 
 section prod_functor
 variables {C} [has_binary_products C]

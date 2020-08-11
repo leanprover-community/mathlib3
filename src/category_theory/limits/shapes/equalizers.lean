@@ -97,7 +97,7 @@ variables {X Y : C}
 
 /-- `parallel_pair f g` is the diagram in `C` consisting of the two morphisms `f` and `g` with
     common domain and codomain. -/
-def parallel_pair (f g : X ⟶ Y) : walking_parallel_pair ⥤ C :=
+def parallel_pair (f g : X ⟶ Y) : walking_parallel_pair.{v} ⥤ C :=
 { obj := λ x, match x with
   | zero := X
   | one := Y
@@ -162,9 +162,9 @@ def fork.of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : fork f g :=
     naturality' := λ X Y f,
     begin
       cases X; cases Y; cases f; dsimp; simp,
-      { dsimp, simp, }, -- TODO If someone could decipher why these aren't done on the previous line, that would be great
+      { dsimp, simp, }, -- See note [dsimp, simp].
       { exact w },
-      { dsimp, simp, }, -- TODO idem
+      { dsimp, simp, },
     end } }
 
 /-- A cofork on `f g : X ⟶ Y` is determined by the morphism `π : Y ⟶ P` satisfying
@@ -176,9 +176,9 @@ def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :
     naturality' := λ X Y f,
     begin
       cases X; cases Y; cases f; dsimp; simp,
-      { dsimp, simp, }, -- TODO idem
+      { dsimp, simp, },
       { exact w.symm },
-      { dsimp, simp, }, -- TODO idem
+      { dsimp, simp, },
     end } }
 
 @[simp] lemma fork.of_ι_app_zero {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
@@ -359,25 +359,48 @@ def cofork.of_cocone
 @[simp] lemma cofork.of_cocone_ι {F : walking_parallel_pair ⥤ C} (t : cocone F) (j) :
   (cofork.of_cocone t).ι.app j = eq_to_hom (by tidy) ≫ t.ι.app j := rfl
 
+/--
+Helper function for constructing morphisms between equalizer forks.
+-/
+def fork.mk_hom {s t : fork f g} (k : s.X ⟶ t.X) (w : k ≫ t.ι = s.ι) : s ⟶ t :=
+{ hom := k,
+  w' :=
+  begin
+    rintro ⟨_|_⟩,
+    exact w,
+    simpa using w =≫ f,
+  end }
+
 variables (f g)
 
 section
-variables [has_limit (parallel_pair f g)]
+/--
+`has_equalizer f g` represents a particular choice of limiting cone
+for the parallel pair of morphisms `f` and `g`.
+-/
+abbreviation has_equalizer := has_limit (parallel_pair f g)
+
+variables [has_equalizer f g]
 
 /-- If we have chosen an equalizer of `f` and `g`, we can access the corresponding object by
     saying `equalizer f g`. -/
-abbreviation equalizer := limit (parallel_pair f g)
+abbreviation equalizer : C := limit (parallel_pair f g)
 
 /-- If we have chosen an equalizer of `f` and `g`, we can access the inclusion
     `equalizer f g ⟶ X` by saying `equalizer.ι f g`. -/
 abbreviation equalizer.ι : equalizer f g ⟶ X :=
 limit.π (parallel_pair f g) zero
 
-@[simp] lemma equalizer.ι.fork :
-  fork.ι (limit.cone (parallel_pair f g)) = equalizer.ι f g := rfl
+/--
+The chosen equalizer cone for a parallel pair `f` and `g`.
+-/
+abbreviation equalizer.fork : fork f g := limit.cone (parallel_pair f g)
 
-@[simp] lemma equalizer.ι.eq_app_zero :
-  (limit.cone (parallel_pair f g)).π.app zero = equalizer.ι f g := rfl
+@[simp] lemma equalizer.fork_ι :
+  (equalizer.fork f g).ι = equalizer.ι f g := rfl
+
+@[simp] lemma equalizer.fork_π_app_zero :
+  (equalizer.fork f g).π.app zero = equalizer.ι f g := rfl
 
 @[reassoc] lemma equalizer.condition : equalizer.ι f g ≫ f = equalizer.ι f g ≫ g :=
 fork.condition $ limit.cone $ parallel_pair f g
@@ -441,7 +464,7 @@ def is_iso_limit_cone_parallel_pair_of_eq (h₀ : f = g) {c : cone (parallel_pai
 is_iso.of_iso $ is_limit.cone_point_unique_up_to_iso h $ is_limit_id_fork h₀
 
 /-- The equalizer of `(f, g)`, where `f = g`, is an isomorphism. -/
-def equalizer.ι_of_eq [has_limit (parallel_pair f g)] (h : f = g) : is_iso (equalizer.ι f g) :=
+def equalizer.ι_of_eq [has_equalizer f g] (h : f = g) : is_iso (equalizer.ι f g) :=
 is_iso_limit_cone_parallel_pair_of_eq h $ limit.is_limit _
 
 /-- Every equalizer of `(f, f)` is an isomorphism. -/
@@ -457,38 +480,61 @@ is_iso_limit_cone_parallel_pair_of_eq ((cancel_epi _).1 (fork.condition c)) h
 end
 
 /-- The equalizer inclusion for `(f, f)` is an isomorphism. -/
-instance equalizer.ι_of_self [has_limit (parallel_pair f f)] : is_iso (equalizer.ι f f) :=
+instance equalizer.ι_of_self [has_equalizer f f] : is_iso (equalizer.ι f f) :=
 equalizer.ι_of_eq rfl
 
 /-- The equalizer of a morphism with itself is isomorphic to the source. -/
-def equalizer.iso_source_of_self [has_limit (parallel_pair f f)] : equalizer f f ≅ X :=
+def equalizer.iso_source_of_self [has_equalizer f f] : equalizer f f ≅ X :=
 as_iso (equalizer.ι f f)
 
-@[simp] lemma equalizer.iso_source_of_self_hom [has_limit (parallel_pair f f)] :
+@[simp] lemma equalizer.iso_source_of_self_hom [has_equalizer f f] :
   (equalizer.iso_source_of_self f).hom = equalizer.ι f f :=
 rfl
 
-@[simp] lemma equalizer.iso_source_of_self_inv [has_limit (parallel_pair f f)] :
+@[simp] lemma equalizer.iso_source_of_self_inv [has_equalizer f f] :
   (equalizer.iso_source_of_self f).inv = equalizer.lift (𝟙 X) (by simp) :=
 rfl
 
+/--
+Helper function for constructing morphisms between coequalizer coforks.
+-/
+def cofork.mk_hom {s t : cofork f g} (k : s.X ⟶ t.X) (w : s.π ≫ k = t.π) : s ⟶ t :=
+{ hom := k,
+  w' :=
+  begin
+    rintro ⟨_|_⟩,
+    simpa using f ≫= w,
+    exact w,
+  end }
+
 section
-variables [has_colimit (parallel_pair f g)]
+/--
+`has_coequalizer f g` represents a particular choice of colimiting cocone
+for the parallel pair of morphisms `f` and `g`.
+-/
+abbreviation has_coequalizer := has_colimit (parallel_pair f g)
+
+variables [has_coequalizer f g]
 
 /-- If we have chosen a coequalizer of `f` and `g`, we can access the corresponding object by
     saying `coequalizer f g`. -/
-abbreviation coequalizer := colimit (parallel_pair f g)
+abbreviation coequalizer : C := colimit (parallel_pair f g)
 
 /-- If we have chosen a coequalizer of `f` and `g`, we can access the corresponding projection by
     saying `coequalizer.π f g`. -/
 abbreviation coequalizer.π : Y ⟶ coequalizer f g :=
 colimit.ι (parallel_pair f g) one
 
-@[simp] lemma coequalizer.π.cofork :
-  cofork.π (colimit.cocone (parallel_pair f g)) = coequalizer.π f g := rfl
+/--
+The chosen coequalizer cocone for a parallel pair `f` and `g`.
+-/
+abbreviation coequalizer.cofork : cofork f g := colimit.cocone (parallel_pair f g)
 
-@[simp] lemma coequalizer.π.eq_app_one :
-  (colimit.cocone (parallel_pair f g)).ι.app one = coequalizer.π f g := rfl
+@[simp] lemma coequalizer.cofork_π :
+  (coequalizer.cofork f g).π = coequalizer.π f g := rfl
+
+@[simp] lemma coequalizer.cofork_ι_app_one :
+  (coequalizer.cofork f g).ι.app one = coequalizer.π f g := rfl
 
 @[reassoc] lemma coequalizer.condition : f ≫ coequalizer.π f g = g ≫ coequalizer.π f g :=
 cofork.condition $ colimit.cocone $ parallel_pair f g
@@ -553,7 +599,7 @@ def is_iso_colimit_cocone_parallel_pair_of_eq (h₀ : f = g) {c : cocone (parall
 is_iso.of_iso $ is_colimit.cocone_point_unique_up_to_iso (is_colimit_id_cofork h₀) h
 
 /-- The coequalizer of `(f, g)`, where `f = g`, is an isomorphism. -/
-def coequalizer.π_of_eq [has_colimit (parallel_pair f g)] (h : f = g) :
+def coequalizer.π_of_eq [has_coequalizer f g] (h : f = g) :
   is_iso (coequalizer.π f g) :=
 is_iso_colimit_cocone_parallel_pair_of_eq h $ colimit.is_colimit _
 
@@ -570,42 +616,39 @@ is_iso_colimit_cocone_parallel_pair_of_eq ((cancel_mono _).1 (cofork.condition c
 end
 
 /-- The coequalizer projection for `(f, f)` is an isomorphism. -/
-instance coequalizer.π_of_self [has_colimit (parallel_pair f f)] : is_iso (coequalizer.π f f) :=
+instance coequalizer.π_of_self [has_coequalizer f f] : is_iso (coequalizer.π f f) :=
 coequalizer.π_of_eq rfl
 
 /-- The coequalizer of a morphism with itself is isomorphic to the target. -/
-def coequalizer.iso_target_of_self [has_colimit (parallel_pair f f)] : coequalizer f f ≅ Y :=
+def coequalizer.iso_target_of_self [has_coequalizer f f] : coequalizer f f ≅ Y :=
 (as_iso (coequalizer.π f f)).symm
 
-@[simp] lemma coequalizer.iso_target_of_self_hom [has_colimit (parallel_pair f f)] :
+@[simp] lemma coequalizer.iso_target_of_self_hom [has_coequalizer f f] :
   (coequalizer.iso_target_of_self f).hom = coequalizer.desc (𝟙 Y) (by simp) :=
 rfl
 
-@[simp] lemma coequalizer.iso_target_of_self_inv [has_colimit (parallel_pair f f)] :
+@[simp] lemma coequalizer.iso_target_of_self_inv [has_coequalizer f f] :
   (coequalizer.iso_target_of_self f).inv = coequalizer.π f f :=
 rfl
 
 variables (C)
 
 /-- `has_equalizers` represents a choice of equalizer for every pair of morphisms -/
-class has_equalizers :=
-(has_limits_of_shape : has_limits_of_shape walking_parallel_pair C)
+abbreviation has_equalizers := has_limits_of_shape walking_parallel_pair C
 
 /-- `has_coequalizers` represents a choice of coequalizer for every pair of morphisms -/
-class has_coequalizers :=
-(has_colimits_of_shape : has_colimits_of_shape walking_parallel_pair C)
-
-attribute [instance] has_equalizers.has_limits_of_shape has_coequalizers.has_colimits_of_shape
+abbreviation has_coequalizers := has_colimits_of_shape walking_parallel_pair C
 
 /-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
 def has_equalizers_of_has_limit_parallel_pair
   [Π {X Y : C} {f g : X ⟶ Y}, has_limit (parallel_pair f g)] : has_equalizers C :=
-{ has_limits_of_shape := { has_limit := λ F, has_limit_of_iso (diagram_iso_parallel_pair F).symm } }
+{ has_limit := λ F, has_limit_of_iso (diagram_iso_parallel_pair F).symm }
 
 /-- If `C` has all colimits of diagrams `parallel_pair f g`, then it has all coequalizers -/
 def has_coequalizers_of_has_colimit_parallel_pair
   [Π {X Y : C} {f g : X ⟶ Y}, has_colimit (parallel_pair f g)] : has_coequalizers C :=
-{ has_colimits_of_shape := { has_colimit := λ F, has_colimit_of_iso (diagram_iso_parallel_pair F) } }
+{ has_colimit := λ F, has_colimit_of_iso (diagram_iso_parallel_pair F) }
+
 
 section
 -- In this section we show that a split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.

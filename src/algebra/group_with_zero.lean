@@ -641,6 +641,9 @@ variables {a b c : G₀}
 @[simp] lemma inv_eq_zero {a : G₀} : a⁻¹ = 0 ↔ a = 0 :=
 by rw [inv_eq_iff, inv_zero, eq_comm]
 
+@[simp] lemma zero_eq_inv {a : G₀} : 0 = a⁻¹ ↔ 0 = a :=
+eq_comm.trans $ inv_eq_zero.trans eq_comm
+
 lemma one_div_mul_one_div_rev (a b : G₀) : (1 / a) * (1 / b) =  1 / (b * a) :=
 by simp only [div_eq_mul_inv, one_mul, mul_inv_rev']
 
@@ -920,10 +923,11 @@ end commute
 
 namespace monoid_hom
 
-section group_with_zero
+variables [group_with_zero G₀] [group_with_zero G₀'] [monoid_with_zero M₀] [nontrivial M₀]
 
-variables [group_with_zero G₀] [group_with_zero G₀'] (f : G₀ →* G₀') (h0 : f 0 = 0)
-  {a : G₀}
+section monoid_with_zero
+
+variables (f : G₀ →* M₀) (h0 : f 0 = 0) {a : G₀}
 
 include h0
 
@@ -933,7 +937,13 @@ lemma map_ne_zero : f a ≠ 0 ↔ a ≠ 0 :=
 lemma map_eq_zero : f a = 0 ↔ a = 0 :=
 by { classical, exact not_iff_not.1 (f.map_ne_zero h0) }
 
-variables (a) (b : G₀)
+end monoid_with_zero
+
+section group_with_zero
+
+variables (f : G₀ →* G₀') (h0 : f 0 = 0) (a b : G₀)
+
+include h0
 
 /-- A monoid homomorphism between groups with zeros sending `0` to `0` sends `a⁻¹` to `(f a)⁻¹`. -/
 lemma map_inv' : f a⁻¹ = (f a)⁻¹ :=
@@ -945,16 +955,12 @@ end
 
 lemma map_div : f (a / b) = f a / f b := (f.map_mul _ _).trans $ congr_arg _ $ f.map_inv' h0 b
 
-end group_with_zero
+omit h0
 
-section comm_group_with_zero
-
-@[simp] lemma map_units_inv {M G₀ : Type*} [monoid M] [comm_group_with_zero G₀]
+@[simp] lemma map_units_inv {M G₀ : Type*} [monoid M] [group_with_zero G₀]
   (f : M →* G₀) (u : units M) : f ↑u⁻¹ = (f u)⁻¹ :=
-have f (u * ↑u⁻¹) = 1 := by rw [←units.coe_mul, mul_inv_self, units.coe_one, f.map_one],
-inv_unique (trans (f.map_mul _ _).symm this)
-  (mul_inv_cancel (λ hu, zero_ne_one (trans (by rw [f.map_mul, hu, zero_mul]) this)))
+by rw [← units.coe_map, ← units.coe_map, ← units.coe_inv', map_inv]
 
-end comm_group_with_zero
+end group_with_zero
 
 end monoid_hom

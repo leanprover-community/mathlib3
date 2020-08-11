@@ -46,7 +46,7 @@ general limits can be used.
 
 noncomputable theory
 
-universes v u
+universes v u u'
 
 open category_theory
 open category_theory.limits.walking_parallel_pair
@@ -82,6 +82,29 @@ fork.of_ι ι $ by rw [w, has_zero_morphisms.comp_zero]
 
 @[simp] lemma kernel_fork.ι_of_ι {X Y P : C} (f : X ⟶ Y) (ι : P ⟶ X) (w : ι ≫ f = 0) :
   fork.ι (kernel_fork.of_ι ι w) = ι := rfl
+
+section
+local attribute [tidy] tactic.case_bash
+
+/-- Every kernel fork `s` is isomorphic (actually, equal) to `fork.of_ι (fork.ι s) _`. -/
+def iso_of_ι (s : fork f 0) : s ≅ fork.of_ι (fork.ι s) (fork.condition s) :=
+cones.ext (iso.refl _) $ by tidy
+
+/-- If `ι = ι'`, then `fork.of_ι ι _` and `fork.of_ι ι' _` are isomorphic. -/
+def of_ι_congr {P : C} {ι ι' : P ⟶ X} {w : ι ≫ f = 0} (h : ι = ι') :
+  kernel_fork.of_ι ι w ≅ kernel_fork.of_ι ι' (by rw [←h, w]) :=
+cones.ext (iso.refl _) $ by tidy
+
+/-- If `F` is an equivalence, then applying `F` to a diagram indexing a (co)kernel of `f` yields
+    the diagram indexing the (co)kernel of `F.map f`. -/
+def comp_nat_iso {D : Type u'} [category.{v} D] [has_zero_morphisms D] (F : C ⥤ D)
+  [is_equivalence F] : parallel_pair f 0 ⋙ F ≅ parallel_pair (F.map f) 0 :=
+nat_iso.of_components (λ j, match j with
+  | zero := iso.refl _
+  | one := iso.refl _
+  end) $ by tidy
+
+end
 
 /-- If `s` is a limit kernel fork and `k : W ⟶ X` satisfies ``k ≫ f = 0`, then there is some
     `l : W ⟶ s.X` such that `l ≫ fork.ι s = k`. -/
@@ -325,6 +348,15 @@ cofork.of_π π $ by rw [w, has_zero_morphisms.zero_comp]
 
 @[simp] lemma cokernel_cofork.π_of_π {X Y P : C} (f : X ⟶ Y) (π : Y ⟶ P) (w : f ≫ π = 0) :
   cofork.π (cokernel_cofork.of_π π w) = π := rfl
+
+/-- Every cokernel cofork `s` is isomorphic (actually, equal) to `cofork.of_π (cofork.π s) _`. -/
+def iso_of_π (s : cofork f 0) : s ≅ cofork.of_π (cofork.π s) (cofork.condition s) :=
+cocones.ext (iso.refl _) $ λ j, by cases j; tidy
+
+/-- If `π = π'`, then `cokernel_cofork.of_π π _` and `cokernel_cofork.of_π π' _` are isomorphic. -/
+def of_π_congr {P : C} {π π' : Y ⟶ P} {w : f ≫ π = 0} (h : π = π') :
+  cokernel_cofork.of_π π w ≅ cokernel_cofork.of_π π' (by rw [←h, w]) :=
+cocones.ext (iso.refl _) $ λ j, by cases j; tidy
 
 /-- If `s` is a colimit cokernel cofork, then every `k : Y ⟶ W` satisfying `f ≫ k = 0` induces
     `l : s.X ⟶ W` such that `cofork.π s ≫ l = k`. -/

@@ -228,7 +228,7 @@ begin
   repeat { simp only [hy] with mfld_simps },
 end
 
-lemma lift_prop_within_at_inter' (ht : t ∈ nhds_within x s) :
+lemma lift_prop_within_at_inter' (ht : t ∈ 𝓝[s] x) :
   lift_prop_within_at P g (s ∩ t) x ↔ lift_prop_within_at P g s x :=
 begin
   by_cases hcont : ¬ (continuous_within_at g s x),
@@ -328,7 +328,7 @@ lemma lift_prop_within_at_congr_iff (h₁ : ∀ y ∈ s, g' y = g y) (hx : g' x 
  λ h, hG.lift_prop_within_at_congr h h₁ hx⟩
 
 lemma lift_prop_within_at_congr_of_eventually_eq
-  (h : lift_prop_within_at P g s x) (h₁ : g' =ᶠ[nhds_within x s] g) (hx : g' x = g x) :
+  (h : lift_prop_within_at P g s x) (h₁ : g' =ᶠ[𝓝[s] x] g) (hx : g' x = g x) :
   lift_prop_within_at P g' s x :=
 begin
   rcases h₁.exists_mem with ⟨t, t_nhd, ht⟩,
@@ -337,7 +337,7 @@ begin
 end
 
 lemma lift_prop_within_at_congr_iff_of_eventually_eq
-  (h₁ : g' =ᶠ[nhds_within x s] g) (hx : g' x = g x) :
+  (h₁ : g' =ᶠ[𝓝[s] x] g) (hx : g' x = g x) :
   lift_prop_within_at P g' s x ↔ lift_prop_within_at P g s x :=
 ⟨λ h, hG.lift_prop_within_at_congr_of_eventually_eq h h₁.symm hx.symm,
  λ h, hG.lift_prop_within_at_congr_of_eventually_eq h h₁ hx⟩

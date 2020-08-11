@@ -86,7 +86,7 @@ by { simp only [prehaar, compacts.bot_val, index_empty, nat.cast_zero, zero_div]
 
 lemma prehaar_nonneg (K₀ : positive_compacts G) {U : set G} (K : compacts G) :
   0 ≤ prehaar K₀.1 U K :=
-by apply div_nonneg'; norm_cast; apply zero_le
+by apply div_nonneg; norm_cast; apply zero_le
 
 /-- `haar_product K₀` is the product of intervals `[0, (K : K₀)]`, for all compact sets `K`.
   For all `U`, we can show that `prehaar K₀ U ∈ haar_product K₀`. -/

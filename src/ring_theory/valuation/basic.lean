@@ -321,6 +321,8 @@ begin
        ... ≤ v (a + s)      : aux (a + s) (-s) (by rwa ←ideal.neg_mem_iff at h)
 end
 
+-- This causes a loop between `decidable_linear_order` and `linear_order`.
+-- see https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.233733.20algebraic.20closure
 local attribute [-instance] classical.DLO
 
 /-- If `hJ : J ⊆ supp v` then `on_quot_val hJ` is the induced function on R/J as a function.

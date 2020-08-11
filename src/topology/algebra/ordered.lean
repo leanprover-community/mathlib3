@@ -9,6 +9,7 @@ import data.set.intervals.image_preimage
 import data.set.intervals.ord_connected
 import topology.algebra.group
 import topology.extend_from_subset
+import topology.nhds_punctured
 import order.filter.interval
 
 /-!
@@ -96,6 +97,11 @@ for specific types.
 open classical set filter topological_space
 open function (curry uncurry)
 open_locale topological_space classical filter
+
+localized "notation `𝓝ₗ` x:100 := nhds_within x (Iic x)" in topological_space
+localized "notation `𝓝ᵣ` x:100 := nhds_within x (Ici x)" in topological_space
+localized "notation `𝓝ₗ*` x:100 := nhds_within x (Iio x)" in topological_space
+localized "notation `𝓝ᵣ*` x:100 := nhds_within x (Ioi x)" in topological_space
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -335,9 +341,22 @@ end
 
 Limits to the left and to the right of real functions are defined in terms of neighborhoods to
 the left and to the right, either open or closed, i.e., members of `𝓝[Ioi a] a` and
-`𝓝[Ici a] a` on the right, and similarly on the left. Here we simply prove that all
-right-neighborhoods of a point are equal, and we'll prove later other useful characterizations which
-require the stronger hypothesis `order_topology α` -/
+`𝓝[Ici a] a` on the right, and similarly on the left.
+
+We also have special notations for such filters : `𝓝ₗ a` and `𝓝ᵣ a` respectively denote
+neighborhoods of `a` to the left and to the right, **including the point**.
+Similarly to `𝓝 a` and `𝓝* a`, we add a `*` to denote point exclusion, giving rise to
+`𝓝ₗ* a` and `𝓝ᵣ* a`.
+
+To talk about these four concepts e.g for naming, please use one the following :
+
+* `𝓝ₗ a` : nhds_left, nhds_left_included
+* `𝓝ᵣ a` : nhds_right, nhds_right_included
+* `𝓝ₗ* a` : nhds_left', nhds_left_excluded
+* `𝓝ᵣ* a` : nhds_right', nhds_right_excluded
+
+Here we simply prove that all right-neighborhoods of a point are equal, and we'll prove
+later other useful characterizations which require the stronger hypothesis `order_topology α` -/
 
 /-!
 #### Right neighborhoods, point excluded
@@ -1020,6 +1039,10 @@ begin
     exact ⟨u, au, subset.trans Ioo_subset_Ioc_self as⟩ }
 end
 
+lemma nhds_right'_basis_Ioo [linear_order α] [no_top_order α] [order_topology α]
+  (x : α) : (𝓝ᵣ* x).has_basis (λ y, x < y) (λ y, Ioo x y) :=
+has_basis_iff.mpr (λ t, mem_nhds_within_Ioi_iff_exists_Ioo_subset)
+
 /-- The following statements are equivalent:
 
 0. `s` is a neighborhood of `b` within `(-∞, b)`
@@ -1065,6 +1088,10 @@ begin
   convert @mem_nhds_within_Ioi_iff_exists_Ioc_subset (order_dual α) _ _ _ _ _ _ _,
   simp only [dual_Ioc], refl
 end
+
+lemma nhds_left'_basis_Ioo [linear_order α] [no_bot_order α] [order_topology α]
+  (x : α) : (𝓝ₗ* x).has_basis (λ y, y < x) (λ y, Ioo y x) :=
+has_basis_iff.mpr (λ t, mem_nhds_within_Iio_iff_exists_Ioo_subset)
 
 /-- The following statements are equivalent:
 
@@ -1126,6 +1153,10 @@ begin
     exact ⟨u, au, subset.trans Ico_subset_Icc_self as⟩ }
 end
 
+lemma nhds_right_basis_Ico [linear_order α] [no_top_order α] [order_topology α]
+  (x : α) : (𝓝ᵣ x).has_basis (λ y, x < y) (λ y, Ico x y) :=
+has_basis_iff.mpr (λ t, mem_nhds_within_Ici_iff_exists_Ico_subset)
+
 /-- The following statements are equivalent:
 
 0. `s` is a neighborhood of `b` within `(-∞, b]`
@@ -1172,6 +1203,10 @@ begin
   simp_rw (show ∀ u : order_dual α, @Icc (order_dual α) _ a u = @Icc α _ u a, from λ u, dual_Icc),
   refl,
 end
+
+lemma nhds_left_basis_Ioc [linear_order α] [no_bot_order α] [order_topology α]
+  (x : α) : (𝓝ₗ x).has_basis (λ y, y < x) (λ y, Ioc y x) :=
+has_basis_iff.mpr (λ t, mem_nhds_within_Iic_iff_exists_Ioc_subset)
 
 /-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u]`
 with `a < u`. -/
@@ -2232,16 +2267,20 @@ by simpa only [inv_inv] using @tendsto_inv_nhds_within_Ioi _ _ _ _ (a⁻¹)
 by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iio _ _ _ _ (a⁻¹)
 
 lemma nhds_left_sup_nhds_right (a : α) [topological_space α] [linear_order α] :
-  nhds_within a (Iic a) ⊔ nhds_within a (Ici a) = 𝓝 a :=
+  𝓝ₗ a ⊔ 𝓝ᵣ a = 𝓝 a :=
 by rw [← nhds_within_union, Iic_union_Ici, nhds_within_univ]
 
 lemma nhds_left'_sup_nhds_right (a : α) [topological_space α] [linear_order α] :
-  nhds_within a (Iio a) ⊔ nhds_within a (Ici a) = 𝓝 a :=
+  𝓝ₗ* a ⊔ 𝓝ᵣ a = 𝓝 a :=
 by rw [← nhds_within_union, Iio_union_Ici, nhds_within_univ]
 
 lemma nhds_left_sup_nhds_right' (a : α) [topological_space α] [linear_order α] :
-  nhds_within a (Iic a) ⊔ nhds_within a (Ioi a) = 𝓝 a :=
+  𝓝ₗ a ⊔ 𝓝ᵣ* a = 𝓝 a :=
 by rw [← nhds_within_union, Iic_union_Ioi, nhds_within_univ]
+
+lemma nhds_left'_sup_nhds_right' (a : α) [topological_space α] [linear_order α] :
+  𝓝ₗ* a ⊔ 𝓝ᵣ* a = 𝓝* a :=
+by rw [← nhds_within_union, Iio_union_Ioi]
 
 lemma continuous_at_iff_continuous_left_right [topological_space α] [linear_order α]
   [topological_space β] {a : α} {f : α → β} :

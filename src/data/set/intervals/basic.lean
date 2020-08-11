@@ -519,6 +519,9 @@ by rw [← diff_eq_empty, Iio_diff_Iic, Ioo_eq_empty_iff]
 
 @[simp] lemma Iic_union_Ioi : Iic a ∪ Ioi a = univ := eq_univ_of_forall (λ x, le_or_lt x a)
 
+@[simp] lemma Iio_union_Ioi : Iio a ∪ Ioi a = univ \ {a} :=
+set.ext (λ x, by simp [mem_diff_singleton, and_iff_right (mem_univ _), ne_iff_lt_or_gt.symm])
+
 /-! #### A finite and an infinite interval -/
 
 lemma Ioi_subset_Ioo_union_Ici : Ioi a ⊆ Ioo a b ∪ Ici b :=

@@ -714,6 +714,9 @@ begin
         sub_add_eq_sub_sub_swap, sub_self, zero_sub, neg_mul_eq_neg_mul, int.cast_neg] }
 end
 
+theorem cos_ne_zero_iff {θ : ℝ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k + 1) * pi / 2 :=
+by rw [← not_exists, not_iff_not, cos_eq_zero_iff]
+
 lemma cos_eq_one_iff_of_lt_of_lt {x : ℝ} (hx₁ : -(2 * π) < x) (hx₂ : x < 2 * π) : cos x = 1 ↔ x = 0 :=
 ⟨λ h, let ⟨n, hn⟩ := (cos_eq_one_iff x).1 h in
     begin

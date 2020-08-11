@@ -248,7 +248,7 @@ instance : normalization_domain (polynomial R) :=
     have hu : degree ↑u⁻¹ = 0, from degree_eq_zero_of_is_unit ⟨u⁻¹, rfl⟩,
     begin
       apply units.ext,
-      rw [dif_neg (units.coe_ne_zero u)],
+      rw [dif_neg (units.ne_zero u)],
       conv_rhs {rw eq_C_of_degree_eq_zero hu},
       refine C_inj.2 _,
       rw [← nat_degree_eq_of_degree_eq_some hu, leading_coeff,

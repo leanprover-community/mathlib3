@@ -59,6 +59,7 @@ One could add some natural isomorphisms here, for:
 * `comap (h ∘ h') ≅ comap h ⋙ comap h'`
 -/
 
+/-- The natural isomorphism between pulling back then evaluating, and just evaluating. -/
 @[simps {rhs_md := semireducible}]
 def comap_eval_iso_eval (h : J → I) (j : J) : comap C h ⋙ eval (C ∘ h) j ≅ eval C (h j) :=
 nat_iso.of_components (λ f, iso.refl _) (by tidy)

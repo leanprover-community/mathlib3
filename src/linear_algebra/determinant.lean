@@ -14,7 +14,7 @@ open equiv equiv.perm finset function
 namespace matrix
 open_locale matrix big_operators
 
-variables {n : Type u} [fintype n] [decidable_eq n] {R : Type v} [comm_ring R]
+variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
 
 local notation `ε` σ:max := ((sign σ : ℤ ) : R)
 
@@ -72,7 +72,7 @@ end
 
 @[simp] lemma det_mul (M N : matrix n n R) : det (M ⬝ N) = det M * det N :=
 calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) (p i) * N (p i) i) :
-  by simp only [det, mul_val, prod_univ_sum, mul_sum,
+  by simp only [det, mul_apply, prod_univ_sum, mul_sum,
     fintype.pi_finset_univ]; rw [finset.sum_comm]
 ... = ∑ p in (@univ (n → n) _).filter bijective, ∑ σ : perm n,
     ε σ * ∏ i, (M (σ i) (p i) * N (p i) i) :
@@ -174,7 +174,7 @@ begin
   ext σ,
   convert mul_zero ↑(sign σ),
   apply prod_eq_zero (mem_univ i),
-  rw [transpose_val],
+  rw [transpose_apply],
   apply h
 end
 
@@ -218,7 +218,7 @@ begin
   rw [neg_mul_eq_neg_mul],
   congr,
   { rw [sign_mul, sign_swap i_ne_j], norm_num },
-  ext j, rw [mul_apply, swap_invariant]
+  ext j, rw [perm.mul_apply, swap_invariant]
 end
 
 end det_zero

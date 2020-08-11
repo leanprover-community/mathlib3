@@ -31,7 +31,7 @@ uniform_space.of_core {
   refl       := le_infi $ assume ε, le_infi $
     by simp [set.subset_def, id_rel, dist_self, (>)] {contextual := tt},
   comp       := le_infi $ assume ε, le_infi $ assume h, lift'_le
-    (mem_infi_sets (ε / 2) $ mem_infi_sets (div_pos_of_pos_of_pos h two_pos) (subset.refl _)) $
+    (mem_infi_sets (ε / 2) $ mem_infi_sets (div_pos h two_pos) (subset.refl _)) $
     have ∀ (a b c : α), dist a c < ε / 2 → dist c b < ε / 2 → dist a b < ε,
       from assume a b c hac hcb,
       calc dist a b ≤ dist a c + dist c b : dist_triangle _ _ _
@@ -250,6 +250,9 @@ def ball (x : α) (ε : ℝ) : set α := {y | dist y x < ε}
 
 theorem mem_ball' : y ∈ ball x ε ↔ dist x y < ε := by rw dist_comm; refl
 
+@[simp] lemma nonempty_ball (h : 0 < ε) : (ball x ε).nonempty :=
+⟨x, by simp [h]⟩
+
 lemma ball_eq_ball (ε : ℝ) (x : α) :
   uniform_space.ball x {p | dist p.2 p.1 < ε} = metric.ball x ε := rfl
 
@@ -264,6 +267,9 @@ def closed_ball (x : α) (ε : ℝ) := {y | dist y x ≤ ε}
 def sphere (x : α) (ε : ℝ) := {y | dist y x = ε}
 
 @[simp] theorem mem_closed_ball : y ∈ closed_ball x ε ↔ dist y x ≤ ε := iff.rfl
+
+lemma nonempty_closed_ball (h : 0 ≤ ε) : (closed_ball x ε).nonempty :=
+⟨x, by simp [h]⟩
 
 theorem ball_subset_closed_ball : ball x ε ⊆ closed_ball x ε :=
 assume y (hy : _ < _), le_of_lt hy
@@ -507,7 +513,7 @@ end
 lemma tendsto_locally_uniformly_on_iff {ι : Type*} [topological_space β]
   {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
   tendsto_locally_uniformly_on F f p s ↔
-  ∀ ε > 0, ∀ x ∈ s, ∃ t ∈ nhds_within x s, ∀ᶠ n in p, ∀ y ∈ t, dist (f y) (F n y) < ε :=
+  ∀ ε > 0, ∀ x ∈ s, ∃ t ∈ 𝓝[s] x, ∀ᶠ n in p, ∀ y ∈ t, dist (f y) (F n y) < ε :=
 begin
   refine ⟨λ H ε hε, H _ (dist_mem_uniformity hε), λ H u hu x hx, _⟩,
   rcases mem_uniformity_dist.1 hu with ⟨ε, εpos, hε⟩,
@@ -532,7 +538,8 @@ lemma tendsto_locally_uniformly_iff {ι : Type*} [topological_space β]
   {F : ι → β → α} {f : β → α} {p : filter ι} :
   tendsto_locally_uniformly F f p ↔
   ∀ ε > 0, ∀ (x : β), ∃ t ∈ 𝓝 x, ∀ᶠ n in p, ∀ y ∈ t, dist (f y) (F n y) < ε :=
-by simp [← nhds_within_univ, ← tendsto_locally_uniformly_on_univ, tendsto_locally_uniformly_on_iff]
+by simp only [← tendsto_locally_uniformly_on_univ, tendsto_locally_uniformly_on_iff,
+  nhds_within_univ, mem_univ, forall_const, exists_prop]
 
 /-- Expressing uniform convergence using `dist`. -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
@@ -578,25 +585,25 @@ theorem closed_ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : closed_ball x 
 mem_sets_of_superset (ball_mem_nhds x ε0) ball_subset_closed_ball
 
 theorem nhds_within_basis_ball {s : set α} :
-  (nhds_within x s).has_basis (λ ε:ℝ, 0 < ε) (λ ε, ball x ε ∩ s) :=
+  (𝓝[s] x).has_basis (λ ε:ℝ, 0 < ε) (λ ε, ball x ε ∩ s) :=
 nhds_within_has_basis nhds_basis_ball s
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem mem_nhds_within_iff {t : set α} : s ∈ nhds_within x t ↔ ∃ε>0, ball x ε ∩ t ⊆ s :=
+theorem mem_nhds_within_iff {t : set α} : s ∈ 𝓝[t] x ↔ ∃ε>0, ball x ε ∩ t ⊆ s :=
 nhds_within_basis_ball.mem_iff
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem tendsto_nhds_within_nhds_within [metric_space β] {t : set β} {f : α → β} {a b} :
-  tendsto f (nhds_within a s) (nhds_within b t) ↔
+  tendsto f (𝓝[s] a) (𝓝[t] b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → f x ∈ t ∧ dist (f x) b < ε :=
 (nhds_within_basis_ball.tendsto_iff nhds_within_basis_ball).trans $
   by simp only [inter_comm, mem_inter_iff, and_imp, mem_ball]
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem tendsto_nhds_within_nhds [metric_space β] {f : α → β} {a b} :
-  tendsto f (nhds_within a s) (𝓝 b) ↔
+  tendsto f (𝓝[s] a) (𝓝 b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → dist (f x) b < ε :=
-by { rw [← nhds_within_univ, tendsto_nhds_within_nhds_within],
+by { rw [← nhds_within_univ b, tendsto_nhds_within_nhds_within],
   simp only [mem_univ, true_and] }
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
@@ -643,13 +650,13 @@ by rw [continuous_at, tendsto_nhds]
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem continuous_within_at_iff' [topological_space β] {f : β → α} {b : β} {s : set β} :
   continuous_within_at f s b ↔
-  ∀ ε > 0, ∀ᶠ x in nhds_within b s, dist (f x) (f b) < ε :=
+  ∀ ε > 0, ∀ᶠ x in 𝓝[s] b, dist (f x) (f b) < ε :=
 by rw [continuous_within_at, tendsto_nhds]
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem continuous_on_iff' [topological_space β] {f : β → α} {s : set β} :
   continuous_on f s ↔
-  ∀ (b ∈ s) (ε > 0), ∀ᶠ x in nhds_within b s, dist (f x) (f b) < ε  :=
+  ∀ (b ∈ s) (ε > 0), ∀ᶠ x in 𝓝[s] b, dist (f x) (f b) < ε  :=
 by simp [continuous_on, continuous_within_at_iff']
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]

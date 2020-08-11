@@ -454,7 +454,7 @@ begin
               not_or_distrib] using H',
   have := ennreal.coe_le_coe.2 (@nnreal.Lp_add_le _ s (λ i, ennreal.to_nnreal (f i))
               (λ i, ennreal.to_nnreal (g i)) _  hp),
-  push_cast [← ennreal.coe_rpow_of_nonneg, le_of_lt (pos), le_of_lt (one_div_pos_of_pos pos)] at this,
+  push_cast [← ennreal.coe_rpow_of_nonneg, le_of_lt (pos), le_of_lt (one_div_pos.2 pos)] at this,
   convert this using 2;
   [skip, congr' 1, congr' 1];
   { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi] }

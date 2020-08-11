@@ -23,62 +23,44 @@ open miu_atom
 /-!
 ### Numerical condition on the `I` count
 
-Let `icount st` denote the number of `I`s in `st : miustr`. We'll show that the `icount` of a
-derivable string must be 1 or 2 moduloe 3. To do this, it suffices to show that if the `miustr`
-`en` is derived from `st`, then `icount en` moudulo 3 is either equal to or is twice `icount st`
-modulo 3.
+Suppose `st : miustr`. Then `count I st` is the number of `I`s in `st. We'll show, if
+`derivable st`, then `count I st` must be 1 or 2 modulo 3. To do this, it suffices to show that if
+the `en : miustr` is derived from `st`, then `count I en` moudulo 3 is either equal to or is twice
+`count I st`, modulo 3.
 -/
 
-/--
-`icount` is the number of `I`s in an `miustr`
--/
-def icount : miustr → ℕ
-| [] := 0
-| (I::cs) := 1 + icount cs
-| (_::cs) := icount cs
-
-/--
-`icount` is additive with respect to `append`
--/
-lemma icountappend (a b : miustr) :
-  icount (a ++ b) = icount a + icount b :=
-begin
-  induction a with x hx hxs, -- treat a as x :: xs in the inductive step
-    simp [icount], -- trivial base case
-    cases x; -- the same proof applies whether x = 'M', 'I', or 'U'
-      simp [icount, hxs, add_assoc],
-end
 
 open nat
+open list
 
 /--
 Given `st en : miustr`, the relation `nice_imod3 st en` holds if `st` and `en` either
-have equal `icount`, modulo 3, or `icount en` is twice `icount st`, modulo 3.`
+have equal `count I`, modulo 3, or `count I en` is twice `count I st`, modulo 3.`
  -/
 def nice_imod3 (st en : miustr) : Prop :=
-  let a := (icount st) in
-  let b := (icount en) in
+  let a := (count I st) in
+  let b := (count I en) in
   b ≡ a [MOD 3] ∨ b ≡ 2*a [MOD 3]
 
 example : nice_imod3 "II" "MIUI" :=
 begin
-  left, refl, -- icount "MIUI" ≡ icount "II" [MOD 3]
+  left, refl, -- count I "MIUI" ≡ count I "II" [MOD 3]
 end
 
 example : nice_imod3 "IUIM" "MI" :=
 begin
-  right, refl, --icount "MI" ≡ 2*(icount "IUIUM") [MOD 3]
+  right, refl, --count I "MI" ≡ 2*(count I "IUIUM") [MOD 3]
 end
 
 
 /-!
-We show the `icount`, mod 3, stays the same or is multiplied by 2 under the rules of inference.
+We show the `count I`, mod 3, stays the same or is multiplied by 2 under the rules of inference.
 -/
 
 open nat
 
 /-!
-Now we show that the `icount` of a derivable string is 1 or 2 modulo 3.
+Now we show that the `count I` of a derivable string is 1 or 2 modulo 3.
 -/
 
 /-!
@@ -107,20 +89,20 @@ end
 
 
 /--
-`inctder` shows any derivable string must have an `icount` that is 1 or 2 modulo 3.
+`inctder` shows any derivable string must have an `count I` that is 1 or 2 modulo 3.
 -/
 theorem icntder (en : miustr): derivable en →
-  (icount en) % 3 = 1 ∨ (icount en) % 3 = 2:=
+  (count I en) % 3 = 1 ∨ (count I en) % 3 = 2:=
 begin
   intro h,
   induction h,
     left,
     apply mod_def,
     any_goals {apply inheritmod3 h_ih},
-      left, simp only [icountappend], refl,
-      right, simp only [icount,icountappend],ring,
-      left, simp [icountappend,icount,refl], ring,
-      left, simp [icountappend,icount,refl],
+      left, simp only [count_append], refl,
+      right, simp [count,count_append], ring,
+      left, simp [count_append,count I,refl], ring,
+      left, simp [count_append,count I,refl],
 end
 
 /--
@@ -275,11 +257,11 @@ this condition, we'll have proved that checking the condition is a decision proc
 -/
 
 /--
-`decstr en` is the condition that `icount en` is 1 or 2 modulo 3, that `en` starts with `M`, and
+`decstr en` is the condition that `count I en` is 1 or 2 modulo 3, that `en` starts with `M`, and
 that `en` contains no `M` in its tail.
 -/
 def decstr (en : miustr) :=
-  goodm en ∧ ((icount en) % 3 = 1 ∨ (icount en) % 3 = 2)
+  goodm en ∧ ((count I en) % 3 = 1 ∨ (count I en) % 3 = 2)
 
 /--
 Suppose `en : miustr`. If `en` is `derivable`, then the condition `decstr en` holds.

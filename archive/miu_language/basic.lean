@@ -52,6 +52,7 @@ namespace miu
 Each MIU string consists of either an `M`, `I`, or `U`. Such an elementary unit is called an
 `miu_atom`. We represent `miu_atom` as an enumerated type.
 -/
+@[derive decidable_eq]
 inductive miu_atom : Type
 | M : miu_atom
 | I : miu_atom
@@ -83,19 +84,14 @@ instance : has_repr miu_atom :=
 /--
 For simplicity, an `miustr` is just a list of `miu_atom`.
 -/
+@[derive has_append]
 def miustr := list miu_atom
 
 /--
-We want to use list membership ...
+We want to use list membership.
 -/
 instance : has_mem miu_atom miustr :=
-  ⟨list.mem⟩
-
-/--
-... and list append.
--/
-instance : has_append miustr :=
-⟨list.append⟩
+⟨list.mem⟩
 
 /--
 For display purposes, an `miustr` can be represented as a `string`.

@@ -498,7 +498,7 @@ meta def revert_deps (e : expr) : tactic ℕ := do
 meta def is_local_def (e : expr) : tactic unit :=
 retrieve $ do revert e, expr.elet _ _ _ _ ← target, skip
 
-private meta def partition_local_deps_aux (vs : list expr) : list expr → list expr → list (list expr)
+private def partition_local_deps_aux {α} [decidable_eq α] (vs : list α) : list α → list α → list (list α)
 | [] acc := [acc.reverse]
 | (l :: ls) acc :=
   if l ∈ vs then acc.reverse :: partition_local_deps_aux ls [l]

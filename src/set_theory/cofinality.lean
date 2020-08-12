@@ -99,7 +99,7 @@ begin
 end
 
 theorem ord_cof_eq (r : α → α → Prop) [is_well_order α r] :
-  ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ type (subrel r S) = (cof (type r)).map_rel_iff :=
+  ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ type (subrel r S) = (cof (type r)).ord :=
 let ⟨S, hS, e⟩ := cof_eq r, ⟨s, _, e'⟩ := cardinal.ord_eq S,
     T : set α := {a | ∃ aS : a ∈ S, ∀ b : S, s b ⟨_, aS⟩ → r b a} in
 begin
@@ -152,7 +152,7 @@ induction_on o $ λ α r _, begin
   rw ← this, exact cof_type_le set.univ (λ a, ⟨a, ⟨⟩, irrefl a⟩)
 end
 
-theorem cof_ord_le (c : cardinal) : cof c.map_rel_iff≤ c :=
+theorem cof_ord_le (c : cardinal) : cof c.ord ≤ c :=
 by simpa using cof_le_card c.ord
 
 @[simp] theorem cof_zero : cof 0 = 0 :=
@@ -228,7 +228,7 @@ induction_on a $ λ α r _, induction_on b $ λ β s _ b0, begin
         by injection h with h; congr; injection h } }
 end
 
-@[simp] theorem cof_cof (o : ordinal) : cof (cof o).map_rel_iff= cof o :=
+@[simp] theorem cof_cof (o : ordinal) : cof (cof o).ord= cof o :=
 le_antisymm (le_trans (cof_le_card _) (by simp)) $
 induction_on o $ λ α r _, by exactI
 let ⟨S, hS, e₁⟩ := ord_cof_eq r,
@@ -459,7 +459,7 @@ end⟩
 
 theorem sup_lt_ord_of_is_regular {ι} (f : ι → ordinal)
   {c} (hc : is_regular c) (H1 : cardinal.mk ι < c)
-  (H2 : ∀ i, f i < c.ord) : ordinal.sup.{u u} f < c.map_rel_iff :=
+  (H2 : ∀ i, f i < c.ord) : ordinal.sup.{u u} f < c.ord :=
 by { apply sup_lt_ord _ _ H2, rw [hc.2], exact H1 }
 
 theorem sup_lt_of_is_regular {ι} (f : ι → cardinal)
@@ -496,7 +496,7 @@ is_inaccessible.mk
     apply lift_lt_univ'
   end)
 
-theorem lt_power_cof {c : cardinal.{u}} : omega ≤ c → c < c ^ cof c.map_rel_iff :=
+theorem lt_power_cof {c : cardinal.{u}} : omega ≤ c → c < c ^ cof c.ord :=
 quotient.induction_on c $ λ α h, begin
   rcases ord_eq α with ⟨r, wo, re⟩, resetI,
   have := ord_is_limit h,
@@ -513,7 +513,7 @@ quotient.induction_on c $ λ α h, begin
 end
 
 theorem lt_cof_power {a b : cardinal} (ha : omega ≤ a) (b1 : 1 < b) :
-  a < cof (b ^ a).map_rel_iff :=
+  a < cof (b ^ a).ord :=
 begin
   have b0 : b ≠ 0 := ne_of_gt (lt_trans zero_lt_one b1),
   apply lt_imp_lt_of_le_imp_le (power_le_power_left $ power_ne_zero a b0),

@@ -7,17 +7,68 @@ Authors : Ashvni Narayanan
 import group_theory.subgroup
 import ring_theory.subsemiring
 
+/-!
+# Subrings
+
+Let `R` be a ring. This file defines the "bundled" subring type `subring R`, a type
+whose terms correspond to subrings of `R`. This is the preferred way to talk
+about subrings in mathlib. Unbundled subrings (`s : set R` and `is_subring s`)
+are not in this file, and they will ultimately be deprecated.
+
+We prove that subrings are a complete lattice, that you can `map` (pushforward) and
+`comap` (pull back) them along ring homomorphisms.
+
+We define the `closure` construction from `set R` to `subgroup R`, sending a subset of `R`
+to the subring it generates, and prove that it is a Galois insertion.
+
+## Main definitions
+
+Notation used here:
+
+`(R : Type u) [ring R] (S : Type u) [ring S] (f g : R →+* S)`
+`(A : subring R) (B : subring S) (s : set R)`
+
+* `subring R` : the type of subrings of a ring `R`.
+
+* `instance : complete_lattice (subring R)` : the complete lattice structure on the subrings.
+
+* `subring.closure` :  subring closure of a set, i.e., the smallest subring that includes the set.
+
+* `subring.gi` : `closure : set M → subring M` and coercion `coe : subring M → set M`
+  form a `galois_insertion`.
+
+* `closure s` : the minimal subring that includes the set `s`
+
+* `comap f B : subring A` : the preimage of a subring `B` along the ring homomorphism `f`
+
+* `map f A : subring B` : the image of a subring `A` along the ring homomorphism `f`.
+
+* `prod A B : subring (R × S)` : the product of subring
+
+* `f.range : subring B` : the range of the ring homomorphism `f`.
+
+* `eq_locus f g : subring R` : given ring homomorphisms `f`, `g`,
+     the subring of `R` where `f x = g x`
+
+## Implementation notes
+
+Lattice inclusion (e.g. `≤` and `⊓`) is used rather than set notation (`⊆` and `∩`), although
+`∈` is defined as membership of a subring's underlying set.
+
+## Tags
+subring, subrings
+-/
+
 open_locale big_operators
-universes u v
+universes u v w
 
 open group
-variables {R : Type*} {S : Type*} {T : Type u} [ring R] [ring S] [ring T]
+variables {R : Type u} {S : Type v} {T : Type w} [ring R] [ring S] [ring T]
 
 set_option old_structure_cmd true
 
-/-- Subring of a ring `R` is a subset `s` that is a multiplicative submonoid and an additive
-subgroup. Note in particular that it shares the same 0 and 1 as R -/
-
+/-- `subring R` is the type of subrings of `R`. A subring of `R` is a subset `s` that is a multiplicative
+submonoid and an additive subgroup. Note in particular that it shares the same 0 and 1 as R -/
 structure subring (R : Type u) [ring R] extends submonoid R, add_subgroup R
 
 /-- Reinterpret a `subring` as a `submonoid`. -/
@@ -27,6 +78,7 @@ add_decl_doc subring.to_submonoid
 add_decl_doc subring.to_add_subgroup
 
 namespace subring
+
 instance : has_coe (subring R) (set R) := ⟨subring.carrier⟩
 
 instance : has_coe_to_sort (subring R) := ⟨Type*, λ S, S.carrier⟩
@@ -64,6 +116,8 @@ submonoid.ext' hm.symm
   (subring.mk' s sm hm sa ha).to_add_subgroup = sa :=
 add_subgroup.ext' ha.symm
 
+end subring
+
 protected lemma subring.exists {s : subring R} {p : s → Prop} :
   (∃ x : s, p x) ↔ ∃ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=
 set_coe.exists
@@ -71,6 +125,8 @@ set_coe.exists
 protected lemma subring.forall {s : subring R} {p : s → Prop} :
   (∀ x : s, p x) ↔ ∀ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=
 set_coe.forall
+
+namespace subring
 
 variables (s : subring R)
 
@@ -104,7 +160,7 @@ theorem neg_mem : ∀ {x : R}, x ∈ s → -x ∈ s := s.neg_mem'
 lemma list_prod_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.prod ∈ s :=
 s.to_submonoid.list_prod_mem
 
-/-- Sum of a list of elements in a `subring` is in the `subring`. -/
+/-- Sum of a list of elements in a subring is in the subring. -/
 lemma list_sum_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.sum ∈ s :=
 s.to_add_subgroup.list_sum_mem
 
@@ -147,7 +203,10 @@ instance to_ring : ring s :=
   left_distrib := λ x y z, subtype.eq $ left_distrib x y z,
   .. s.to_submonoid.to_monoid, .. s.to_add_subgroup.to_add_comm_group }
 
+@[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : R) = ↑x + ↑y := rfl
+@[simp, norm_cast] lemma coe_neg (x : s) : (↑(-x) : R) = -↑x := rfl
 @[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : R) = ↑x * ↑y := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : s) : R) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : s) : R) = 1 := rfl
 
 /-- A subring of a `comm_ring` is a `comm_ring`. -/
@@ -161,6 +220,8 @@ def subtype (s : subring R) : s →+* R :=
 }
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
+
+/-! # Partial order -/
 
 instance : partial_order (subring R) :=
 { le := λ s t, ∀ ⦃x⦄, x ∈ s → x ∈ t,
@@ -183,9 +244,8 @@ lemma coe_coe (s : subring R) : ↥(s : set R) = s := rfl
 @[simp] lemma mem_to_add_subgroup {s : subring R} {x : R} :
   x ∈ s.to_add_subgroup ↔ x ∈ s := iff.rfl
 @[simp] lemma coe_to_add_subgroup (s : subring R) : (s.to_add_subgroup : set R) = s := rfl
-@[simp] lemma mem_to_add_submonoid {s : subring R} {x : R} :
-  x ∈ s.to_add_subgroup.to_add_submonoid ↔ x ∈ s := iff.rfl
-@[simp] lemma coe_to_add_submonoid (s : subring R) : (s.to_add_subgroup.to_add_submonoid : set R) = s := rfl
+
+/-! # top -/
 
 /-- The subring `R` of the ring `R`. -/
 instance : has_top (subring R) :=
@@ -195,6 +255,9 @@ instance : has_top (subring R) :=
 
 @[simp] lemma coe_top : ((⊤ : subring R) : set R) = set.univ := rfl
 
+/-! # comap -/
+
+/-- The preimage of a subring along a ring homomorphism is a subring. -/
 def comap {R : Type u} {S : Type v} [ring R] [ring S]
   (f : R →+* S) (s : subring S) : subring R :=
 { carrier := f ⁻¹' s.carrier,
@@ -211,6 +274,9 @@ lemma comap_comap (s : subring T) (g : S →+* T) (f : R →+* S) :
   (s.comap g).comap f = s.comap (g.comp f) :=
 rfl
 
+/-! # map -/
+
+/-- The image of a subring along a ring homomorphism is a subring. -/
 def map {R : Type u} {S : Type v} [ring R] [ring S]
   (f : R →+* S) (s : subring R) : subring S :=
   { carrier := f '' s.carrier,
@@ -240,15 +306,18 @@ namespace ring_hom
 
 variables (g : S →+* T) (f : R →+* S)
 
-def set_range {R : Type u} {S : Type v} [ring R] [ring S]
+/-! # range -/
+
+/-- The range of a ring homomorphism, as a subring of the target. -/
+def range {R : Type u} {S : Type v} [ring R] [ring S]
   (f : R →+* S) : subring S := (⊤ : subring R).map f
 
-@[simp] lemma coe_set_range : (f.set_range : set S) = set.range f := set.image_univ
+@[simp] lemma coe_range : (f.range : set S) = set.range f := set.image_univ
 
-@[simp] lemma mem_set_range {f : R →+* S} {y : S} : y ∈ f.set_range ↔ ∃ x, f x = y :=
-by simp [set_range]
+@[simp] lemma mem_range {f : R →+* S} {y : S} : y ∈ f.range ↔ ∃ x, f x = y :=
+by simp [range]
 
-lemma map_set_range : f.set_range.map g = (g.comp f).set_range :=
+lemma map_range : f.range.map g = (g.comp f).range :=
 (⊤ : subring R).map_map g f
 
 /-- Restrict the codomain of a ring homomorphism to a subring that includes the range. -/
@@ -266,25 +335,32 @@ namespace subring
 
 variables {cR : Type u} [comm_ring cR]
 
+/-- A subring of a commutative ring is a commutative ring. -/
 def subset_comm_ring (S : subring cR) : comm_ring S :=
 {mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..subring.to_ring S}
 
---check if meaning has been changed, isnt it already a type?
-/- instance subtype_comm_ring [S : subring cR] : comm_ring (ring_hom.set_range (subtype S)) := S.subset_comm_ring -/
-
-instance subring.domain {D : Type*} [integral_domain D] [S : subring D] : integral_domain S :=
+/-- A subring of an integral domain is an integral domain. -/
+instance subring.domain {D : Type*} [integral_domain D] (S : subring D) : integral_domain S :=
 { exists_pair_ne := ⟨0, 1, mt subtype.ext_iff_val.1 zero_ne_one⟩,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ ⟨x, hx⟩ ⟨y, hy⟩,
     by { simp only [subtype.ext_iff_val, subtype.coe_mk], exact eq_zero_or_eq_zero_of_mul_eq_zero },
   .. S.subset_comm_ring, }
 
-instance : has_bot (subring R) := ⟨(int.cast_ring_hom R).set_range⟩
+/-! # bot -/
+
+instance : has_bot (subring R) := ⟨(int.cast_ring_hom R).range⟩
 
 instance : inhabited (subring R) := ⟨⊥⟩
 
-lemma coe_bot : ((⊥ : subring R) : set R) = set.range (coe : ℤ → R) := ring_hom.coe_set_range(int.cast_ring_hom R)
+lemma coe_bot : ((⊥ : subring R) : set R) = set.range (coe : ℤ → R) := ring_hom.coe_range (int.cast_ring_hom R)
 
-lemma mem_bot {x : R} : x ∈ (⊥ : subring R) ↔ ∃ (n : ℤ), ↑n = x :=  ring_hom.mem_set_range
+lemma mem_bot {x : R} : x ∈ (⊥ : subring R) ↔ ∃ (n : ℤ), ↑n = x :=  ring_hom.mem_range
+
+/-! # inf -/
+
+example : has_inf (submonoid R) := by apply_instance
+example (a b : submonoid R) : submonoid R := a ⊓ b -- how to intersect two submonoids
+
 
 /-- The inf of two subrings is their intersection. -/
 instance : has_inf (subring R) :=
@@ -293,50 +369,52 @@ instance : has_inf (subring R) :=
     .. s.to_submonoid ⊓ t.to_submonoid,
     .. s.to_add_subgroup ⊓ t.to_add_subgroup }⟩
 
-instance : has_inter (subring R) := ⟨λ U V, U ⊓ V⟩
-
 @[simp] lemma coe_inf (p p' : subring R) : ((p ⊓ p' : subring R) : set R) = p ∩ p' := rfl
 
 @[simp] lemma mem_inf {p p' : subring R} {x : R} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x ∈ p' := iff.rfl
 
 instance : has_Inf (subring R) :=
-⟨λ s, {carrier := (⋂ t ∈ s, ↑t),
-one_mem' := begin
-            rw set.mem_bInter_iff,
-            intros S hS,
-            rw mem_coe,
-            exact S.one_mem,
-            end,
-mul_mem' := begin
-            rintros a b ha hb,
-            rw set.mem_bInter_iff at *,
-            rintros,
-            apply mul_mem,
-            exact ha x H,
-            exact hb x H,
-            end,
-zero_mem' := begin
-             rw set.mem_bInter_iff,
-            intros S hS,
-            rw mem_coe,
-            exact S.zero_mem,
-            end,
-add_mem' := begin
-            rintros a b ha hb,
-            rw set.mem_bInter_iff at *,
-            rintros,
-            apply add_mem,
-            exact ha x H,
-            exact hb x H,
-            end,
-neg_mem' := begin
-            rintros a ha,
-            rw set.mem_bInter_iff at *,
-            rintros,
-            apply neg_mem,
-            exact ha x H,
-            end
-} ⟩
+⟨λ s, subring.mk' (⋂ t ∈ s, ↑t) (⨅ t ∈ s, subring.to_submonoid t) (by simp)
+  (⨅ t ∈ s, subring.to_add_subgroup t) (by simp)⟩
+
+-- instance : has_Inf (subring R) :=
+-- ⟨λ s, {carrier := (⋂ t ∈ s, ↑t),
+-- one_mem' := begin
+--             rw set.mem_bInter_iff,
+--             intros S hS,
+--             rw mem_coe,
+--             exact S.one_mem,
+--             end,
+-- mul_mem' := begin
+--             rintros a b ha hb,
+--             rw set.mem_bInter_iff at *,
+--             rintros,
+--             apply mul_mem,
+--             exact ha x H,
+--             exact hb x H,
+--             end,
+-- zero_mem' := begin
+--              rw set.mem_bInter_iff,
+--             intros S hS,
+--             rw mem_coe,
+--             exact S.zero_mem,
+--             end,
+-- add_mem' := begin
+--             rintros a b ha hb,
+--             rw set.mem_bInter_iff at *,
+--             rintros,
+--             apply add_mem,
+--             exact ha x H,
+--             exact hb x H,
+--             end,
+-- neg_mem' := begin
+--             rintros a ha,
+--             rw set.mem_bInter_iff at *,
+--             rintros,
+--             apply neg_mem,
+--             exact ha x H,
+--             end
+-- } ⟩
 
 
 @[simp, norm_cast] lemma coe_Inf (S : set (subring R)) :
@@ -345,22 +423,10 @@ neg_mem' := begin
 lemma mem_Inf {S : set (subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
 
 @[simp] lemma Inf_to_submonoid (s : set (subring R)) :
-  (Inf s).to_submonoid = ⨅ t ∈ s, subring.to_submonoid t :=
-begin
-apply mk'_to_submonoid _ _,
-simp only [coe_to_submonoid, submonoid.coe_infi],
-use (Inf s).to_add_subgroup,
-simp only [coe_to_add_subgroup, coe_Inf],
-end
+  (Inf s).to_submonoid = ⨅ t ∈ s, subring.to_submonoid t := mk'_to_submonoid _ _
 
 @[simp] lemma Inf_to_add_subgroup (s : set (subring R)) :
-  (Inf s).to_add_subgroup = ⨅ t ∈ s, subring.to_add_subgroup t :=
-begin
-apply mk'_to_add_subgroup _ _,
-use (Inf s).to_submonoid,
-simp only [coe_to_submonoid, submonoid.coe_infi, Inf_to_submonoid],
-simp only [coe_to_add_subgroup, add_subgroup.coe_infi],
-end
+  (Inf s).to_add_subgroup = ⨅ t ∈ s, subring.to_add_subgroup t := mk'_to_add_subgroup _ _
 
 /-- Subrings of a ring form a complete lattice. -/
 instance : complete_lattice (subring R) :=
@@ -375,18 +441,7 @@ instance : complete_lattice (subring R) :=
   .. complete_lattice_of_Inf (subring R)
     (λ s, is_glb.of_image (λ s t, show (s : set R) ≤ t ↔ s ≤ t, from coe_subset_coe) is_glb_binfi)}
 
-def subring.inter [S₁ : subring R] [S₂ : subring R] :
-  subring R := (S₁ ∩ S₂)
-
---invalid?
-/- instance subring.Inter {ι : Sort*} (S : ι → subring R) : subring R := set.Inter S
-
-lemma subring_Union_of_directed {ι : Type*} [hι : nonempty ι] (s : ι → subring R)
-  (directed : ∀ i j, ∃ k, s i ≤ s k ∧ s j ≤ s k) :
-  subring R :=
-{ carrier := (⋃i, s i),
-  ..add_subgroup.Union_of_directed s directed,
-  ..submonoid.Union_of_directed s directed } -/
+/-! # subring closure of a subset -/
 
 /-- The `subring` generated by a set. -/
 def closure (s : set R) : subring R := Inf {S | s ⊆ S}
@@ -397,7 +452,7 @@ mem_Inf
 /-- The subring generated by a set includes the set. -/
 @[simp] lemma subset_closure {s : set R} : s ⊆ closure s := λ x hx, mem_closure.2 $ λ S hS, hS hx
 
-/-- A subring `S` includes `closure s` if and only if it includes `s`. -/
+/-- A subring `t` includes `closure s` if and only if it includes `s`. -/
 @[simp]
 lemma closure_le {s : set R} {t : subring R} : closure s ≤ t ↔ s ⊆ t :=
 ⟨set.subset.trans subset_closure, λ h, Inf_le h⟩
@@ -412,107 +467,145 @@ lemma closure_eq_of_le {s : set R} {t : subring R} (h₁ : s ⊆ t) (h₂ : t �
 le_antisymm (closure_le.2 h₁) h₂
 
 /-- An induction principle for closure membership. If `p` holds for `0`, `1`, and all elements
-of `s`, and is preserved under addition and multiplication, then `p` holds for all elements
+of `s`, and is preserved under addition, negation, and multiplication, then `p` holds for all elements
 of the closure of `s`. -/
--- @[elab_as_eliminator]
+@[elab_as_eliminator]
 lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hs : ∀ x ∈ s, p x) (H0 : p 0) (H1 : p 1)
-  (Hadd : ∀ x y, p x → p y → p (x + y)) (Hneg : ∀ (x : R), p x → p (-x)) (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
+  (Hadd : ∀ x y, p x → p y → p (x + y))
+  (Hneg : ∀ (x : R), p x → p (-x))
+  (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 (@closure_le _ _ _ ⟨p, H1, Hmul, H0, Hadd, Hneg⟩).2 Hs h
+
+
+-- **TODO** : golf this next proof
+
+/- Techniques for golfing.
+
+It might be easier to play with your tactic mode proof before you start porting
+to term mode. Here are some tips.
+
+1) `apply` is a clever tactic. If you have f : P -> Q -> R and your goal is ⊢ R
+then `apply f` will give you two goals, `⊢ P` and `⊢ Q`. `refine` is a more
+principled version of the same tactic but it makes you put the underscores in;
+in this case `apply f` is the same as `refine f _ _`. Note however that if your
+goal is `⊢ Q → R` then `apply f` will still work fine, it will leave you with
+the goal `⊢ P`, and here it's the same as `refine f _`. Try changing your
+tactic mode `apply`s into refines.
+
+2) If you have an `exact` then you're closing a goal. If the line before it is a `refine`
+then you might be able to change one of the `_`s (probably the first one) into exactly the
+term which you used `exact` with. If you can turn some tactic code block which used to have
+applys and refines and exacts into `exact a (b (c d)) (e f)` then you can drop this
+directly into the underscore which it represents in term mode. In particular
+
+begin
+  exact foo
+end
+
+in tactic mode is the same as `foo` in term mode.
+
+
+3) Term mode `rewrite` is this funny triangle `▸`. It's a nightmare to use. rewrite
+is clever like apply, and the stupid triangle is not at all clever. I see Yury mananged
+to get triangles working in term mode -- good luck with that. If at any point your
+next move is a rewrite then I would recommend just dropping temporarily into tactic mode.
+Remember that
+
+begin
+  foo
+end
+
+is the same as `(by foo)`
+
+and
+
+begin
+  foo
+  bar
+end
+
+is the same as `(by {foo, bar})`
+
+-/
 
 lemma mem_closure_iff {s : set R} {x} :
   x ∈ closure s ↔ x ∈ add_subgroup.closure (submonoid.closure s : set R) :=
+-- ⟨λ h, closure_induction h
+--   (λ x hx, add_subgroup.subset_closure (submonoid.subset_closure hx))
+--   (add_subgroup.zero_mem _)
+--   (add_subgroup.subset_closure (submonoid.one_mem (submonoid.closure s)))
+--   (λ x y hx hy, add_subgroup.add_mem _ hx hy)
+--   _
+--   _, _⟩
+-- #exit
+
 begin
-split,
-rintros h,
-apply closure_induction h,
-{
-  rintros x hx,
-  apply add_subgroup.subset_closure,
-  apply submonoid.subset_closure hx,},
-  apply add_subgroup.zero_mem _,
-  {
-    apply add_subgroup.subset_closure,
-    apply submonoid.one_mem (submonoid.closure s),
-  },
-  {
-    rintros x y hx hy,
-    apply add_subgroup.add_mem _ _ _,
-    repeat{assumption},
-  },
-  {
-    rintros x hx,
-    apply add_subgroup.neg_mem _ _,
-    exact hx,
-  },
-  {
-    rintros x y hx hy,
-    apply add_subgroup.closure_induction hy,
-    {
-      rintros q hq,
-      apply add_subgroup.closure_induction hx,
+  split,
+  { rintros h,
+    apply closure_induction h,
+    { rintros x hx,
+      exact add_subgroup.subset_closure (submonoid.subset_closure hx) },
+    { exact add_subgroup.zero_mem _ },
+    { exact add_subgroup.subset_closure (submonoid.one_mem (submonoid.closure s)) },
+    { rintros x y hx hy,
+      apply add_subgroup.add_mem _ _ _,
+      repeat{ assumption } },
+    -- up to here
+    { rintros x hx,
+      apply add_subgroup.neg_mem _ _,
+      exact hx },
+    { rintros x y hx hy,
+      apply add_subgroup.closure_induction hy,
+      { rintros q hq,
+        apply add_subgroup.closure_induction hx,
+        { rintros p hp,
+          apply add_subgroup.subset_closure,
+          apply (submonoid.closure s).mul_mem hp hq },
+        { rw zero_mul q,
+          apply add_subgroup.zero_mem _ },
+        { rintros p₁ p₂ ihp₁ ihp₂,
+          rw add_mul p₁ p₂ q,
+          apply add_subgroup.add_mem _ ihp₁ ihp₂ },
+        { rintros x hx,
+          have f : -x * q = -(x*q) := by simp,
+          rw f,
+          apply add_subgroup.neg_mem _ hx } },
+      { rw mul_zero x,
+        apply add_subgroup.zero_mem _ },
+      { rintros q₁ q₂ ihq₁ ihq₂,
+        rw mul_add x q₁ q₂,
+        apply add_subgroup.add_mem _ ihq₁ ihq₂ },
+      { rintros z hz,
+        have f : x * -z = -(x*z) := by simp,
+        rw f,
+        apply add_subgroup.neg_mem _ hz } } },
+  { rintros h,
+    apply add_subgroup.closure_induction h,
+    { rintros x hx,
+      apply submonoid.closure_induction hx,
       {
-        rintros p hp,
-        apply add_subgroup.subset_closure,
-        apply (submonoid.closure s).mul_mem hp hq,
+        rintros x hx,
+        apply subset_closure hx,
       },
-      {
-        rw zero_mul q,
-        apply add_subgroup.zero_mem _,
-      },
-      {
-        rintros p₁ p₂ ihp₁ ihp₂,
-        rw add_mul p₁ p₂ q,
-        apply add_subgroup.add_mem _ ihp₁ ihp₂,
-      },
-      rintros x hx,
-      have f : -x * q = -(x*q) := by simp,
-      rw f,
-      apply add_subgroup.neg_mem _ hx,
-    },
-    {
-      rw mul_zero x,
-      apply add_subgroup.zero_mem _,
-    },
-    {
-      rintros q₁ q₂ ihq₁ ihq₂,
-      rw mul_add x q₁ q₂,
-      apply add_subgroup.add_mem _ ihq₁ ihq₂,
-    },
-    rintros z hz,
-    have f : x * -z = -(x*z) := by simp,
-    rw f,
-    apply add_subgroup.neg_mem _ hz,
-  },
-  rintros h,
-  apply add_subgroup.closure_induction h,
-  {
-    rintros x hx,
-    apply submonoid.closure_induction hx,
-    {
-      rintros x hx,
-      apply subset_closure hx,
-    },
-    apply one_mem _,
+      { apply one_mem _ },
+      { rintros x y hx hy,
+        apply mul_mem _ _ _,
+        repeat { assumption } } },
+    { apply zero_mem _ },
     {
       rintros x y hx hy,
-      apply mul_mem _ _ _,
+      apply add_mem _ _ _,
       repeat{assumption},
     },
-  },
-  apply zero_mem _,
-  {
-    rintros x y hx hy,
-    apply add_mem _ _ _,
-    repeat{assumption},
-  },
-  {
-    rintros x hx,
-    apply neg_mem _ _,
-    assumption,
-  },
-end
+    {
+      rintros x hx,
+      apply neg_mem _ _,
+      assumption,
+    } }
+  end
 
+-- **TODO** -- is this theorem going to be useful in practice?
 theorem exists_list_of_mem_closure {s : set R} {x : R} (hx : x ∈ closure s) :
   (∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s ∨ y = (-1:R)) ∧ (L.map list.prod).sum = x) :=
 begin
@@ -663,10 +756,13 @@ ext $ λ x, by simp [mem_prod, monoid_hom.coe_snd]
 lemma top_prod_top : (⊤ : subring R).prod (⊤ : subring S) = ⊤ :=
 (top_prod _).trans $ comap_top _
 
-/-- Product of subrings is isomorphic to their product as monoids. -/
+/-- Product of subrings is isomorphic to their product as rings. -/
 def prod_equiv (s : subring R) (t : subring S) : s.prod t ≃+* s × t :=
 { map_mul' := λ x y, rfl, map_add' := λ x y, rfl, .. equiv.set.prod ↑s ↑t }
 
+/-- The underlying set of a non-empty directed Sup of subrings is just a union of the subrings.
+  Note that this fails without the directedness assumption (the union of two subrings is
+  typically not a subring) -/
 lemma mem_supr_of_directed {ι} [hι : nonempty ι] {S : ι → subring R} (hS : directed (≤) S)
   {x : R} :
   x ∈ (⨆ i, S i) ↔ ∃ i, x ∈ S i :=
@@ -704,41 +800,34 @@ variables [ring T] {s : subring R}
 open subring
 
 /-- Restriction of a ring homomorphism to a subring of the domain. -/
-def set_restrict (f : R →+* S) (s : subring R) : s →+* S := f.comp s.subtype
+def restrict (f : R →+* S) (s : subring R) : s →+* S := f.comp s.subtype
 
-@[simp] lemma set_restrict_apply (f : R →+* S) (x : s) : f.set_restrict s x = f x := rfl
-
-/-- Restriction of a ring homomorphism to a subring of the codomain. -/
-def cod_set_restrict (f : R →+* S) (s : subring S) (h : ∀ x, f x ∈ s) : R →+* s :=
-{ to_fun := λ n, ⟨f n, h n⟩,
-  .. (f : R →* S).cod_mrestrict s.to_submonoid h,
-  .. (f : R →+ S).cod_grestrict s.to_add_subgroup h }
+@[simp] lemma restrict_apply (f : R →+* S) (x : s) : f.restrict s x = f x := rfl
 
 /-- Restriction of a ring homomorphism to its range iterpreted as a subsemiring. -/
-def set_range_restrict (f : R →+* S) : R →+* f.set_range :=
-f.cod_set_restrict f.set_range $ λ x, ⟨x, subring.mem_top x, rfl⟩
+def range_restrict (f : R →+* S) : R →+* f.range :=
+f.cod_restrict f.range $ λ x, ⟨x, subring.mem_top x, rfl⟩
 
-@[simp] lemma coe_set_range_restrict (f : R →+* S) (x : R) :
-  (f.set_range_restrict x : S) = f x :=
-rfl
+@[simp] lemma coe_range_restrict (f : R →+* S) (x : R) : (f.range_restrict x : S) = f x := rfl
 
-lemma set_range_top_iff_surjective {f : R →+* S} :
-  f.set_range = (⊤ : subring S) ↔ function.surjective f :=
-subring.ext'_iff.trans $ iff.trans (by rw [coe_set_range, coe_top]) set.range_iff_surjective
+lemma range_top_iff_surjective {f : R →+* S} :
+  f.range = (⊤ : subring S) ↔ function.surjective f :=
+subring.ext'_iff.trans $ iff.trans (by rw [coe_range, coe_top]) set.range_iff_surjective
 
 /-- The range of a surjective ring homomorphism is the whole of the codomain. -/
-lemma set_range_top_of_surjective (f : R →+* S) (hf : function.surjective f) :
-  f.set_range = (⊤ : subring S) :=
-set_range_top_iff_surjective.2 hf
+lemma range_top_of_surjective (f : R →+* S) (hf : function.surjective f) :
+  f.range = (⊤ : subring S) :=
+range_top_iff_surjective.2 hf
 
-/-- The subring of elements `x : R` such that `f x = g x` -/
-def eq_set_locus (f g : R →+* S) : subring R :=
+/-- The subring of elements `x : R` such that `f x = g x`, i.e.,
+  the equalizer of f and g as a subring of R -/
+def eq_locus (f g : R →+* S) : subring R :=
 { carrier := {x | f x = g x}, .. (f : R →* S).eq_mlocus g, .. (f : R →+ S).eq_locus g }
 
 /-- If two ring homomorphisms are equal on a set, then they are equal on its subring closure. -/
 lemma eq_on_set_closure {f g : R →+* S} {s : set R} (h : set.eq_on f g s) :
   set.eq_on f g (closure s) :=
-show closure s ≤ f.eq_set_locus g, from closure_le.2 h
+show closure s ≤ f.eq_locus g, from closure_le.2 h
 
 lemma eq_of_eq_on_set_top {f g : R →+* S} (h : set.eq_on f g (⊤ : subring R)) :
   f = g :=
@@ -748,17 +837,17 @@ lemma eq_of_eq_on_set_dense {s : set R} (hs : closure s = ⊤) {f g : R →+* S}
   f = g :=
 eq_of_eq_on_set_top $ hs ▸ eq_on_set_closure h
 
-lemma set_closure_preimage_le (f : R →+* S) (s : set S) :
+lemma closure_preimage_le (f : R →+* S) (s : set S) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
 closure_le.2 $ λ x hx, mem_coe.2 $ mem_comap.2 $ subset_closure hx
 
 /-- The image under a ring homomorphism of the subring generated by a set equals
 the subring generated by the image of the set. -/
-lemma map_set_closure (f : R →+* S) (s : set R) :
+lemma map_closure (f : R →+* S) (s : set R) :
   (closure s).map f = closure (f '' s) :=
 le_antisymm
   (map_le_iff_le_comap.2 $ le_trans (closure_mono $ set.subset_preimage_image _ _)
-    (set_closure_preimage_le _ _))
+    (closure_preimage_le _ _))
   (closure_le.2 $ set.image_subset _ subset_closure)
 
 end ring_hom
@@ -769,9 +858,9 @@ open ring_hom
 
 /-- The ring homomorphism associated to an inclusion of subrings. -/
 def inclusion {S T : subring R} (h : S ≤ T) : S →* T :=
-S.subtype.cod_set_restrict _ (λ x, h x.2)
+S.subtype.cod_restrict _ (λ x, h x.2)
 
-@[simp] lemma set_range_subtype (s : subring R) : s.subtype.set_range = s :=
+@[simp] lemma range_subtype (s : subring R) : s.subtype.range = s :=
 ext' $ (coe_srange _).trans subtype.range_coe
 
 @[simp]
@@ -809,7 +898,6 @@ variables {s : set R}
 local attribute [reducible] closure
 
 @[elab_as_eliminator]
--- is this the same as induction? little different, have -1 instead of negation
 protected theorem in_closure.rec_on {C : R → Prop} {x : R} (hx : x ∈ closure s)
   (h1 : C 1) (hneg1 : C (-1)) (hs : ∀ z ∈ s, ∀ n, C n → C (z * n))
   (ha : ∀ {x y}, C x → C y → C (x + y)) : C x :=
@@ -844,39 +932,8 @@ begin
   { exact ⟨L, HL', or.inl $ by rw [list.prod_cons, hhd, HP, neg_one_mul, neg_neg]⟩ }
 end
 
---invalid, closure is defined to be a subring
--- instance : subring R := (closure s)
-/- { one_mem := add_group.mem_closure is_submonoid.one_mem,
-  mul_mem := λ a b ha hb, add_group.in_closure.rec_on hb
-    (λ b hb, add_group.in_closure.rec_on ha
-      (λ a ha, add_group.subset_closure (is_submonoid.mul_mem ha hb))
-      ((zero_mul b).symm ▸ is_add_submonoid.zero_mem)
-      (λ a ha hab, (neg_mul_eq_neg_mul a b) ▸ is_add_subgroup.neg_mem hab)
-      (λ a c ha hc hab hcb, (add_mul a c b).symm ▸ is_add_submonoid.add_mem hab hcb))
-    ((mul_zero a).symm ▸ is_add_submonoid.zero_mem)
-    (λ b hb hab, (neg_mul_eq_mul_neg a b) ▸ is_add_subgroup.neg_mem hab)
-    (λ b c hb hc hab hac, (mul_add a b c).symm ▸ is_add_submonoid.add_mem hab hac),
-  .. add_group.closure.is_add_subgroup _ } -/
-
-theorem mem_closure' {a : R} : a ∈ s → a ∈ closure s :=
-begin
-rintros ha,
-rw mem_closure_iff,
-apply add_subgroup.subset_closure,
-apply submonoid.subset_closure ha,
-end
-
-lemma sclosure_preimage_le (f : R →+* S) (s : set S) :
+lemma closure_preimage_le (f : R →+* S) (s : set S) :
   closure (f ⁻¹' s) ≤ (closure s).comap f :=
 closure_le.2 $ λ x hx, mem_coe.2 $ mem_comap.2 $ subset_closure hx
-
-/-- The image under a ring homomorphism of the subring generated by a set equals
-the subring generated by the image of the set. -/
-lemma image_closure {S : Type*} [ring S] (f : R →+* S) (s : set R) :
-  (closure s).map f = closure (f '' s) :=
-  le_antisymm
-  (map_le_iff_le_comap.2 $ le_trans (closure_mono $ set.subset_preimage_image _ _)
-    (sclosure_preimage_le _ _))
-  (closure_le.2 $ set.image_subset _ subset_closure)
 
 end subring

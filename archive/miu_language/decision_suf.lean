@@ -243,23 +243,31 @@ end
 -/
 lemma base_case_suf (en : miustr) (h : decstr en) (hu : count U en = 0) : derivable en :=
 begin
-  cases h with hm hi, /- `hm : goodm en, hi` : congruence condition in `count I` -/
-  rcases hm with ⟨ys, hys, hnm⟩, /- `hys : en = M :: ys`, `hnm :  M ∉ ys` -/
+  rcases h with ⟨⟨mhead, nmtail⟩, hi ⟩,
+  have : en ≠ nil, {
+    intro k,
+    simp [k,count] at hi, contradiction,
+  },
+  rcases (exists_cons_of_ne_nil this) with ⟨y,ys,rfl⟩,
+  rw head at mhead,
+  rw mhead at *,
   suffices  : ∃ c, ys = repeat I c ∧ (c % 3 = 1 ∨ c % 3 = 2), {
     rcases this with ⟨c, hysr, hc⟩,
-    rw [hys, hysr],
+    rw [hysr],
     exact der_rep_I_of_mod3  c hc,
   },
-  simp only [count U,hys] at hu, -- gives `count U = 0`
+  simp [count] at hu,
   use (count I ys),
   split, {
     apply eq_of_countI_eq_length,
-    exact countI_eq_length_of_countU_zero_and_neg_mem hu hnm, -- show `count I ys = length ys`
+    apply countI_eq_length_of_countU_zero_and_neg_mem,
+    exact hu, rw tail at nmtail, exact nmtail,
   },
-  rw hys at hi, -- replace `en` with `M::ys` in `hi`
-  simp only [count] at hi,
+  rw count at hi,
   exact hi,
 end
+
+
 
 
 /-!
@@ -282,14 +290,11 @@ end
 
 
 
-lemma split_at_first_U {k : ℕ} {ys : miustr} (hm : goodm ys) (h : count U ys = succ k) :
-∃ (as bs : miustr), (ys = M:: as ++ U :: bs) :=
+lemma split_at_first_U {k : ℕ} {zs : miustr} (h : count U zs = succ k) :
+∃ (as bs : miustr), (zs = as ++ U :: bs) :=
 begin
-  rcases hm with ⟨xs, hm, _⟩,
-  simp only [hm,cons_inj,cons_append], -- it suffices to prove `xs = as ++ U :: bs`
   apply mem_split,
-  apply mem_of_countU_eq_succ,
-    simp only [hm,count,countp,if_false] at h, rw ←h, refl,
+  exact mem_of_countU_eq_succ h,
 end
 
 
@@ -300,36 +305,38 @@ lemma ind_hyp_suf (k : ℕ) (ys : miustr) (hu : count U ys = succ k) (hdec : dec
 ∃ (as bs : miustr), (ys = M::as ++ U:: bs) ∧ (count U (M::as ++ [I,I,I] ++ bs) = k) ∧
   decstr (M::as ++ [I,I,I] ++ bs) :=
 begin
-  rcases hdec with ⟨hm,hic⟩,
-  rcases split_at_first_U hm hu with ⟨as,bs,hab⟩,
-  use as, use bs,
-  split,
-    { exact hab, },
-    split, { -- show `count U (M::as ++ [I,I,I] ++ bs) = k`
-      rw hab at hu,
-      rw [count_append,count_append] at *, simp [count U] at *,
-      apply succ.inj, rw [←hu],
+  rcases hdec with ⟨⟨mhead,nmtail⟩, hic⟩,
+  have : ys ≠ nil, {
+    intro k,
+    simp [k,count] at hic, contradiction,
+  },
+  rcases (exists_cons_of_ne_nil this) with ⟨z,zs,rfl⟩,
+  rw head at mhead,
+  rw mhead at *,
+  simp [count] at hu,
+  rcases (split_at_first_U hu) with ⟨as,bs,hab⟩,
+  use [as,bs],
+  split, {
+    simp only [cons_inj,hab,cons_append],
+  },
+  split, {
+    rw hab at hu,
+    simp [count] at *,
+    apply succ.inj,
+    rw [←hu,succ_eq_add_one], ring,
+  },
+  split, {
+    split, {
+      refl,
     },
-    rcases hm with ⟨zs,hzs,hmnze⟩,
-    simp only [cons_inj,cons_append,hzs] at hab, -- `zs = as ++ U :: bs`
-    simp only [hab,mem_append,mem_cons_iff,false_or] at hmnze,
-    push_neg at hmnze, -- we have `M ∉ as ∧ M ∉ bs`.
-    -- split `decstr (M::as ++ [I,I,I] ++ bs)`
-    split, { -- first split `goodm (M::as ++ [I,I,I] ++ bs)`
-      constructor, simp [cons_inj],
-      split,
-        refl, -- now we prove `M ∉ as ++ [I,I,I] ++ bs`
-      apply not_mem_append, exact hmnze.left,
-      simp only [mem_cons_iff,false_or], exact hmnze.right,
-    }, { -- now demonstrate the `count I` is correct.
-      rw hab at hzs, rw hzs at hic,
-      suffices : count I (M::as ++ [I,I,I] ++ bs) = count I (M::as ++ [U]++bs) + 3, {
-        rw this, simp only [hic,cons_append,nil_append,add_mod_right,append_assoc],
-      },
-      rw hzs at hu,
-      repeat {rw count_append at *}, simp [count] at *,
-      norm_num, rw [add_assoc,add_assoc], congr' 1, rw add_comm,
-    }
+    contrapose! nmtail,
+    simp [tail] at *,
+    rw hab,
+    simp [mem_append.mpr], exact nmtail,
+  },
+  rw hab at hic,
+  simp [count] at *,
+  simp [add_assoc],norm_num, simp[←add_assoc,hic],
 end
 
 /--

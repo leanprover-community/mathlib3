@@ -61,11 +61,11 @@ inductive miu_atom : Type
 open miu_atom
 
 /--
-We show that the type `miu_atom` is inhabited, giving `U` (for no particular reason) as the default
+We show that the type `miu_atom` is inhabited, giving `M` (for no particular reason) as the default
 element.
 -/
 instance miu_atom_inhabited : inhabited miu_atom :=
-inhabited.mk U
+inhabited.mk M
 
 /--
 A simple function from `miu_atom` to `string`.

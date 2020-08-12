@@ -244,11 +244,9 @@ begin
 end
 
 
-/-!
-Any derivable string must begin with `M` and contain no `M` in its tail.
+/--
+Any derivable string must begin with `M` and have no `M` in its tail.
 -/
-
-
 theorem goodm_of_derivable (en : miustr): derivable en →
   goodm en:=
 begin

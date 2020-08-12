@@ -529,6 +529,7 @@ begin
   success_if_fail_with_msg {clear_value k}
     "Cannot clear the body of k. The resulting goal is not type correct.",
   clear_value k f,
+  get_local `k, -- test that `k` is not renamed.
   exact unit.star
 end
 
@@ -540,7 +541,7 @@ begin
   exact unit.star
 end
 
-/-- test `mk_opaque` -/
+/-- test `clear_body` -/
 example : ∀ x y : ℤ, let z := x + y in x = z - y → true :=
 begin
   introv h,
@@ -549,11 +550,29 @@ begin
   guard_hyp z := ℤ,
   guard_hyp h := x = z - y,
   do { to_expr ```(z) >>= is_local_def },
-  mk_opaque z,
+  clear_body z,
   guard_hyp z := ℤ,
   success_if_fail { do { to_expr ```(z) >>= is_local_def } },
   guard_hyp h := x = z - y,
   trivial
+end
+
+/- Test whether generalize' always uses the exact name stated by the user, even if that name already
+  exists. -/
+example (n : Type) (k : ℕ) : k = 5 → unit :=
+begin
+  generalize' : 5 = n,
+  guard_target (k = n → unit),
+  intro, constructor
+end
+
+/- Test that `generalize'` works correctly with argument `h`, when the expression occurs in the
+  target -/
+example (n : Type) (k : ℕ) : k = 5 → unit :=
+begin
+  generalize' h : 5 = n,
+  guard_target (k = n → unit),
+  intro, constructor
 end
 
 end local_definitions

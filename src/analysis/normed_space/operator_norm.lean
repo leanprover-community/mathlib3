@@ -597,32 +597,37 @@ begin
     { rw h, simp [norm_nonneg] },
     { have : 0 < ∥f∥ := lt_of_le_of_ne (norm_nonneg _) (ne.symm h),
       rw ← le_div_iff this,
-      apply op_norm_le_bound _ (div_nonneg (norm_nonneg _) this) (λx, _),
+      apply op_norm_le_bound _ (div_nonneg (norm_nonneg _) (norm_nonneg f)) (λx, _),
       rw [div_mul_eq_mul_div, le_div_iff this],
       calc ∥c x∥ * ∥f∥ = ∥c x • f∥ : (norm_smul _ _).symm
       ... = ∥((smul_right c f) : E → F) x∥ : rfl
       ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
 end
 
+section multiplication_linear
+variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
+
 /-- Left-multiplication in a normed algebra, considered as a continuous linear map. -/
-def lmul_left (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
-  [h : normed_algebra 𝕜 𝕜'] : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
+def lmul_left : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
 λ x, (algebra.lmul_left 𝕜 𝕜' x).mk_continuous ∥x∥
 (λ y, by {rw algebra.lmul_left_apply, exact norm_mul_le x y})
 
-@[simp] lemma lmul_left_apply {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜]
-  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] (x y : 𝕜') :
-  lmul_left 𝕜 𝕜' x y = x * y := rfl
-
 /-- Right-multiplication in a normed algebra, considered as a continuous linear map. -/
-def lmul_right (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜]
-  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
+def lmul_right : 𝕜' → (𝕜' →L[𝕜] 𝕜') :=
 λ x, (algebra.lmul_right 𝕜 𝕜' x).mk_continuous ∥x∥
 (λ y, by {rw [algebra.lmul_right_apply, mul_comm], exact norm_mul_le y x})
 
-@[simp] lemma lmul_right_apply {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜]
-  [normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] (x y : 𝕜') :
-  lmul_right 𝕜 𝕜' x y = y * x := rfl
+/-- Simultaneous left- and right-multiplication in a normed algebra, considered as a continuous
+linear map. -/
+def lmul_left_right (vw : 𝕜' × 𝕜') : 𝕜' →L[𝕜] 𝕜' :=
+(lmul_right 𝕜 𝕜' vw.2).comp (lmul_left 𝕜 𝕜' vw.1)
+
+@[simp] lemma lmul_left_apply (x y : 𝕜') : lmul_left 𝕜 𝕜' x y = x * y := rfl
+@[simp] lemma lmul_right_apply (x y : 𝕜') : lmul_right 𝕜 𝕜' x y = y * x := rfl
+@[simp] lemma lmul_left_right_apply (vw : 𝕜' × 𝕜') (x : 𝕜') :
+  lmul_left_right 𝕜 𝕜' vw x = vw.1 * x * vw.2 := rfl
+
+end multiplication_linear
 
 section restrict_scalars
 
@@ -832,3 +837,26 @@ then its norm is bounded by the bound given to the constructor if it is nonnegat
 lemma linear_map.mk_continuous_norm_le (f : E →ₗ[𝕜] F) {C : ℝ} (hC : 0 ≤ C) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ∥f.mk_continuous C h∥ ≤ C :=
 continuous_linear_map.op_norm_le_bound _ hC h
+
+namespace continuous_linear_map
+variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
+
+@[simp] lemma lmul_left_norm (v : 𝕜') : ∥lmul_left 𝕜 𝕜' v∥ = ∥v∥ :=
+begin
+  refine le_antisymm _ _,
+  { exact linear_map.mk_continuous_norm_le _ (norm_nonneg v) _ },
+  { simpa [@normed_algebra.norm_one 𝕜 _ 𝕜' _ _] using le_op_norm (lmul_left 𝕜 𝕜' v) (1:𝕜') }
+end
+
+@[simp] lemma lmul_right_norm (v : 𝕜') : ∥lmul_right 𝕜 𝕜' v∥ = ∥v∥ :=
+begin
+  refine le_antisymm _ _,
+  { exact linear_map.mk_continuous_norm_le _ (norm_nonneg v) _ },
+  { simpa [@normed_algebra.norm_one 𝕜 _ 𝕜' _ _] using le_op_norm (lmul_right 𝕜 𝕜' v) (1:𝕜') }
+end
+
+lemma lmul_left_right_norm_le (vw : 𝕜' × 𝕜') :
+  ∥lmul_left_right 𝕜 𝕜' vw∥ ≤ ∥vw.1∥ * ∥vw.2∥ :=
+by simpa [mul_comm] using op_norm_comp_le (lmul_right 𝕜 𝕜' vw.2) (lmul_left 𝕜 𝕜' vw.1)
+
+end continuous_linear_map

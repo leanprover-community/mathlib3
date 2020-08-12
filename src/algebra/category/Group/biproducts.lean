@@ -27,7 +27,7 @@ instance has_binary_product (G H : AddCommGroup.{u}) : has_binary_product G H :=
     π := { app := λ j, walking_pair.cases_on j (add_monoid_hom.fst G H) (add_monoid_hom.snd G H) }},
   is_limit :=
   { lift := λ s, add_monoid_hom.prod (s.π.app walking_pair.left) (s.π.app walking_pair.right),
-    fac' := begin rintros s (⟨⟩|⟨⟩); { ext x, dsimp, simp, }, end,
+    fac' := begin rintros s (⟨⟩|⟨⟩); { ext x, simp, }, end,
     uniq' := λ s m w,
     begin
       ext; [rw ← w walking_pair.left, rw ← w walking_pair.right]; refl,
@@ -65,7 +65,7 @@ instance has_limit_discrete : has_limit F :=
     π := discrete.nat_trans (λ j, add_monoid_hom.apply (λ j, F.obj j) j), },
   is_limit :=
   { lift := lift F,
-    fac' := λ s j, by { ext, dsimp, simp, },
+    fac' := λ s j, by { ext, simp, },
     uniq' := λ s m w,
     begin
       ext x j,

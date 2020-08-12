@@ -1674,7 +1674,7 @@ lemma decreasing_induction_succ_left {P : ℕ → Sort*} (h : ∀n, P (n+1) → 
 by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_trans,
          decreasing_induction_succ'] }
 
-/-- `log hb n`, is the logarithm of natural number
+/-- `log b n`, is the logarithm of natural number
 `n` in base `b`. If `n` is not a power of `b`, it returns the
 largest `k:ℕ` such that `b^k ≤ n`. -/
 def log (b : ℕ) : ℕ → ℕ
@@ -1686,7 +1686,7 @@ def log (b : ℕ) : ℕ → ℕ
     log (n / b) + 1
   else 0
 
-lemma exp_le_iff_le_log (x y : ℕ) {b} (hb : 1 < b) (hy : 1 ≤ y) :
+lemma pow_le_iff_le_log (x y : ℕ) {b} (hb : 1 < b) (hy : 1 ≤ y) :
   b^x ≤ y ↔ x ≤ log b y :=
 begin
   induction y using nat.strong_induction_on with y ih
@@ -1709,21 +1709,21 @@ begin
       rw [h',nat.pow_zero], exact hy} },
 end
 
-lemma log_exp (b x : ℕ) (hb : 1 < b) : log b (b ^ x) = x :=
+lemma log_pow (b x : ℕ) (hb : 1 < b) : log b (b ^ x) = x :=
 eq_of_forall_le_iff $ λ z,
-by { rwa [← exp_le_iff_le_log _ _ hb,pow_le_iff_le_right],
+by { rwa [← pow_le_iff_le_log _ _ hb,pow_le_iff_le_right],
      rw ← nat.pow_zero b, apply pow_le_pow_of_le_right,
      apply lt_of_le_of_lt (zero_le _) hb, apply zero_le }
 
-lemma exp_succ_log_gt_self (b x : ℕ) (hb : b > 1) (hy : 1 ≤ x) :
+lemma pow_succ_log_gt_self (b x : ℕ) (hb : 1 < b) (hy : 1 ≤ x) :
   x < b ^ succ (log b x) :=
 begin
   apply lt_of_not_ge,
-  rw [(≥),exp_le_iff_le_log _ _ hb hy],
+  rw [(≥),pow_le_iff_le_log _ _ hb hy],
   apply not_le_of_lt, apply lt_succ_self,
 end
 
-lemma exp_log_le_self (b x : ℕ) (hb : b > 1) (hx : 1 ≤ x) : b ^ log b x ≤ x :=
-by rw [exp_le_iff_le_log _ _ hb hx]
+lemma pow_log_le_self (b x : ℕ) (hb : b > 1) (hx : 1 ≤ x) : b ^ log b x ≤ x :=
+by rw [pow_le_iff_le_log _ _ hb hx]
 
 end nat

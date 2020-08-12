@@ -87,9 +87,10 @@ class random (α : Type u) [preorder α] extends bounded_random α :=
 
 attribute [instance, priority 100] random.to_bounded_random
 
-/-- is 2^31; multiplying by it shifts a number left by 31 bits,
-dividing by it shifts it right by 31 bits -/
-def shift_31l : ℕ :=
+/-- shift_31_left = 2^31; multiplying by it shifts the binary
+representation of a number left by 31 bits, dividing by it shifts it
+right by 31 bits -/
+def shift_31_left : ℕ :=
 by apply_normed 2^31
 
 namespace stream
@@ -150,7 +151,7 @@ c.to_nat + 256 * w
 
 /-- create and a seed a random number generator -/
 def mk_generator : io std_gen := do
-seed ← io.rand 0 shift_31l,
+seed ← io.rand 0 shift_31_left,
 return $ mk_std_gen seed
 
 variables {α : Type}
@@ -238,7 +239,7 @@ namespace bool
 
 /-- Make `i` into an element of the interval `x .. y` if feasible
 and return an arbitrary element of `x .. y` otherwise -/
-def coerce (x y : bool) (p : x ≤ y) (i : bool) : x .. y := do
+def fit_in_Icc (x y : bool) (p : x ≤ y) (i : bool) : x .. y := do
   if hx : x ≤ i ∧ i ≤ y
   then ⟨ i, hx ⟩
   else ⟨ x , le_refl x , p ⟩
@@ -254,7 +255,7 @@ end bool
 
 instance : random bool :=
 { random   := λ g, @bool.get_random _,
-  random_r := λ g _inst x y p, bool.coerce _ _ p <$> (@bool.get_random g _inst) }
+  random_r := λ g _inst x y p, bool.fit_in_Icc _ _ p <$> (@bool.get_random g _inst) }
 
 open nat (succ one_add mod_eq_of_lt zero_lt_succ add_one succ_le_succ)
 
@@ -278,7 +279,7 @@ def bitvec.random (n : ℕ) : rand_g g (bitvec n) := do
 bs ← rand.random_series bool _,
 pure ⟨bs.take n, bs.length_take _⟩
 
-section coerce
+section fit_in_Icc
 
 parameters {i' n : ℕ}
 parameters {x y : bitvec n}
@@ -318,12 +319,12 @@ begin
         apply nat.mul_le_mul_left,
         simpa [flip,bitvec.add_lsb] using z_ih, } }, },
 end
-end coerce
+end fit_in_Icc
 
 open nat
 
 /-- Use `i` to generate an element of the interval `x .. y` -/
-protected def bitvec.coerce {n : ℕ} (x y : bitvec n) (P : x ≤ y)
+protected def bitvec.fit_in_Icc {n : ℕ} (x y : bitvec n) (P : x ≤ y)
   (i : bitvec n) :
   (x .. y) :=
 let x' := x.to_nat,
@@ -360,7 +361,7 @@ have Hy : bitvec.of_nat n r ≤ y,
 
 instance random_bitvec (n : ℕ) : random (bitvec n) :=
 { random := λ _ inst, @bitvec.random _ inst n,
-  random_r := λ _ inst x y p, bitvec.coerce _ _ p <$> @bitvec.random _ inst n }
+  random_r := λ _ inst x y p, bitvec.fit_in_Icc _ _ p <$> @bitvec.random _ inst n }
 
 open nat
 
@@ -380,14 +381,14 @@ protected def random_aux : ℕ → ℕ → rand_g g (fin n)
 | 0 k := return $ fin.of_nat' k
 | (succ n) k :=
 do x ← rand_g.next,
-   random_aux n $ x + (k * shift_31l)
+   random_aux n $ x + (k * shift_31_left)
 
 /-- generate a `fin` randomly -/
 protected def random : rand_g g (fin n) :=
 let m := word_size n / 31 + 1 in
 random_aux m 0
 
-section coerce
+section fit_in_Icc
 
 parameters {i' r k : ℕ}
 parameters {y : fin k}
@@ -405,11 +406,11 @@ begin
   { rw [← add_assoc,← nat.add_sub_assoc P',nat.add_sub_cancel_left,add_one],
     apply y.is_lt }
 end
-end coerce
 
+end fit_in_Icc
 
 /-- Use `i` to generate an element of the interval `x .. y` -/
-protected def coerce {n : ℕ} (x y : fin n) (P : x ≤ y)
+protected def fit_in_Icc {n : ℕ} (x y : fin n) (P : x ≤ y)
   (i : fin n) : (x .. y) :=
 let x' := x.val,
     i' := i.val,
@@ -447,7 +448,7 @@ have Hy : fin.of_nat' r ≤ y,
 
 /-- generate an element of the interval `x .. y` -/
 protected def random_r (x y : fin n) (p : x ≤ y) : rand_g g (x .. y) :=
-fin.coerce _ _ p <$> fin.random
+fin.fit_in_Icc _ _ p <$> fin.random
 
 end fin
 end fin

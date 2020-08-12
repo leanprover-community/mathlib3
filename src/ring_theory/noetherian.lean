@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Kevin Buzzard
 -/
 import ring_theory.ideal.operations
 import linear_algebra.basis
-import order.rel_iso_nat
+import order.order_iso_nat
 
 /-!
 # Noetherian rings and modules

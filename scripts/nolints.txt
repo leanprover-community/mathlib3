@@ -1364,7 +1364,7 @@ apply_nolint rel_iso.prod_lex_congr doc_blame
 apply_nolint rel_iso.sum_lex_congr doc_blame
 apply_nolint subrel.rel_embedding doc_blame
 
--- order/rel_iso_nat.lean
+-- order/order_iso_nat.lean
 apply_nolint rel_embedding.nat_gt doc_blame ge_or_gt
 apply_nolint rel_embedding.nat_lt doc_blame
 apply_nolint rel_embedding.well_founded_iff_no_descending_seq ge_or_gt

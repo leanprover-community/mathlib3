@@ -21,112 +21,143 @@ open_locale classical filter
 
 open set function
 
-namespace filter
-
 variables [preorder α]
 
-/--
-A filter `f` on a `preorder` is interval generated if each set `s ∈ f` includes an `ord_connected`
-subset `t ∈ f`.
--/
-class is_interval_generated (f : filter α) : Prop :=
-(exists_ord_connected_mem : ∀ ⦃s⦄, s ∈ f → ∃ t ∈ f, ord_connected t ∧ t ⊆ s)
+namespace filter
 
-export is_interval_generated (exists_ord_connected_mem)
+class tendsto_Ixx_class (Ixx : α → α → set α) (l₁ : filter α) (l₂ : out_param $ filter α) : Prop :=
+(tendsto_Ixx : tendsto (λ p : α × α, Ixx p.1 p.2) (l₁ ×ᶠ l₁) (l₂.lift' powerset))
 
-/-- If a filter `f` has a basis `{s i | p i}` such that all sets `s i` such that `p i` are
-`ord_connected`, then `f` is an interval generated filter. -/
-lemma has_basis.is_interval_generated {f : filter α} {ι} {p : ι → Prop} {s} (h : f.has_basis p s)
-  (hs : ∀ i, p i → ord_connected (s i)) :
-  is_interval_generated f :=
+lemma tendsto.Icc {l₁ l₂ : filter α} [tendsto_Ixx_class Icc l₁ l₂]
+  {lb : filter β} {u₁ u₂ : β → α} (h₁ : tendsto u₁ lb l₁) (h₂ : tendsto u₂ lb l₁) :
+  tendsto (λ x, Icc (u₁ x) (u₂ x)) lb (l₂.lift' powerset) :=
+tendsto_Ixx_class.tendsto_Ixx.comp $ h₁.prod_mk h₂
+
+lemma tendsto.Ioc {l₁ l₂ : filter α} [tendsto_Ixx_class Ioc l₁ l₂]
+  {lb : filter β} {u₁ u₂ : β → α} (h₁ : tendsto u₁ lb l₁) (h₂ : tendsto u₂ lb l₁) :
+  tendsto (λ x, Ioc (u₁ x) (u₂ x)) lb (l₂.lift' powerset) :=
+tendsto_Ixx_class.tendsto_Ixx.comp $ h₁.prod_mk h₂
+
+lemma tendsto.Ico {l₁ l₂ : filter α} [tendsto_Ixx_class Ico l₁ l₂]
+  {lb : filter β} {u₁ u₂ : β → α} (h₁ : tendsto u₁ lb l₁) (h₂ : tendsto u₂ lb l₁) :
+  tendsto (λ x, Ico (u₁ x) (u₂ x)) lb (l₂.lift' powerset) :=
+tendsto_Ixx_class.tendsto_Ixx.comp $ h₁.prod_mk h₂
+
+lemma tendsto.Ioo {l₁ l₂ : filter α} [tendsto_Ixx_class Ioo l₁ l₂]
+  {lb : filter β} {u₁ u₂ : β → α} (h₁ : tendsto u₁ lb l₁) (h₂ : tendsto u₂ lb l₁) :
+  tendsto (λ x, Ioo (u₁ x) (u₂ x)) lb (l₂.lift' powerset) :=
+tendsto_Ixx_class.tendsto_Ixx.comp $ h₁.prod_mk h₂
+
+lemma tendsto_Ixx_class_principal {s t : set α} {Ixx : α → α → set α} :
+  tendsto_Ixx_class Ixx (𝓟 s) (𝓟 t) ↔ ∀ (x ∈ s) (y ∈ s), Ixx x y ⊆ t :=
 begin
-  refine ⟨λ t ht, _⟩,
-  rcases h.mem_iff.1 ht with ⟨i, hi, hsi⟩,
-  exact ⟨s i, h.mem_of_mem hi, hs i hi, hsi⟩,
+  refine iff.trans ⟨λ h, h.1, λ h, ⟨h⟩⟩ _,
+  simp [lift'_principal monotone_powerset, -mem_prod, -prod.forall, forall_prod_set]
 end
 
-/-- If `f` is an interval generated filter, then `ord_connected` sets `s ∈ f` form a basis
-of `f`. -/
-lemma has_ord_connected_basis (f : filter α) [is_interval_generated f] :
-  f.has_basis (λ s : set α, s ∈ f ∧ ord_connected s) id :=
-f.basis_sets.restrict $ λ s hs,
-  by simpa only [exists_prop, and_assoc] using exists_ord_connected_mem hs
+lemma tendsto_Ixx_class_inf {l₁ l₁' l₂ l₂' : filter α} {Ixx}
+  [h : tendsto_Ixx_class Ixx l₁ l₂] [h' : tendsto_Ixx_class Ixx l₁' l₂'] :
+  tendsto_Ixx_class Ixx (l₁ ⊓ l₁') (l₂ ⊓ l₂') :=
+⟨by simpa only [prod_inf_prod, inf_lift'_powerset] using h.1.inf h'.1⟩
 
-lemma is_interval_generated_principal_iff {s : set α} :
-  is_interval_generated (𝓟 s) ↔ ord_connected s :=
-begin
-  refine ⟨_, λ h, (has_basis_principal _).is_interval_generated (λ _ _, h)⟩,
-  introI h,
-  rcases exists_ord_connected_mem (mem_principal_self s) with ⟨t, hst, ht, hts⟩,
-  rwa [subset.antisymm hst hts]
-end
+lemma tendsto_Ixx_class_of_subset {l₁ l₂ : filter α} {Ixx Ixx' : α → α → set α}
+  (h : ∀ a b, Ixx a b ⊆ Ixx' a b) [h' : tendsto_Ixx_class Ixx' l₁ l₂] :
+  tendsto_Ixx_class Ixx l₁ l₂ :=
+⟨tendsto_lift'_powerset_mono h'.1 $ eventually_of_forall $ prod.forall.2 h⟩
 
-alias is_interval_generated_principal_iff ↔ _ set.ord_connected.is_interval_generated_principal
+lemma has_basis.tendsto_Ixx_class {ι : Type*} {p : ι → Prop} {s} {l : filter α}
+  (hl : l.has_basis p s) {Ixx : α → α → set α}
+  (H : ∀ i, p i → ∀ (x ∈ s i) (y ∈ s i), Ixx x y ⊆ s i) :
+  tendsto_Ixx_class Ixx l l :=
+⟨(hl.prod_self.tendsto_iff (hl.lift' monotone_powerset)).2 $ λ i hi,
+  ⟨i, hi, λ x hx, H i hi _ hx.1 _ hx.2⟩⟩
 
-instance is_interval_generated_inf {f g : filter α} [is_interval_generated f]
-  [is_interval_generated g] :
-  is_interval_generated (f ⊓ g) :=
-begin
-  apply ((has_ord_connected_basis f).inf (has_ord_connected_basis g)).is_interval_generated,
-  rintros ⟨s, t⟩ ⟨⟨hsf, hsc⟩, htg, htc⟩,
-  exact hsc.inter htc
-end
-
-instance is_interval_generated_at_top : is_interval_generated (at_top : filter α) :=
-(has_basis_infi_principal_finite _).is_interval_generated $ λ t ht, ord_connected_bInter $
+instance tendsto_Icc_at_top_at_top : tendsto_Ixx_class Icc (at_top : filter α) at_top :=
+(has_basis_infi_principal_finite _).tendsto_Ixx_class $ λ s hs, ord_connected_bInter $
   λ i hi, ord_connected_Ici
 
-instance is_interval_generated_at_bot : is_interval_generated (at_bot : filter α) :=
-(has_basis_infi_principal_finite _).is_interval_generated $ λ t ht, ord_connected_bInter $
+instance tendsto_Ico_at_top_at_top : tendsto_Ixx_class Ico (at_top : filter α) at_top :=
+tendsto_Ixx_class_of_subset (λ _ _, Ico_subset_Icc_self)
+
+instance tendsto_Ioc_at_top_at_top : tendsto_Ixx_class Ioc (at_top : filter α) at_top :=
+tendsto_Ixx_class_of_subset (λ _ _, Ioc_subset_Icc_self)
+
+instance tendsto_Ioo_at_top_at_top : tendsto_Ixx_class Ioo (at_top : filter α) at_top :=
+tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Icc_self)
+
+instance tendsto_Icc_at_bot_at_bot : tendsto_Ixx_class Icc (at_bot : filter α) at_bot :=
+(has_basis_infi_principal_finite _).tendsto_Ixx_class $ λ s hs, ord_connected_bInter $
   λ i hi, ord_connected_Iic
 
-/-- If `Ixx` is a function `α → α → set α` such that `Ixx x y ⊆ Icc x y`
-(e.g., `Ixx` is one of `Ioo`, `Ico`, `Ioc`, `Icc`), then `Ixx a b` tends to `l.lift' powerset`
-as `(a, b)` tends to `l ×ᶠ l`. -/
-lemma tendsto_Ixx_same_filter {Ixx : α → α → set α} (hI : ∀ x y, Ixx x y ⊆ Icc x y)
-  (l : filter α) [is_interval_generated l] :
-  tendsto (uncurry Ixx) (l ×ᶠ l) (l.lift' powerset) :=
-begin
-  rw [l.basis_sets.prod_self.tendsto_iff (l.basis_sets.lift' (λ _ _, powerset_mono.2))],
-  intros s hs,
-  rcases exists_ord_connected_mem hs with ⟨t, htl, htc, hts⟩,
-  exact ⟨t, htl, λ x hx, subset.trans (hI _ _) (subset.trans (htc hx.1 hx.2) hts)⟩
-end
+instance tendsto_Ico_at_bot_at_bot : tendsto_Ixx_class Ico (at_bot : filter α) at_bot :=
+tendsto_Ixx_class_of_subset (λ _ _, Ico_subset_Icc_self)
 
-/-- If `Ixx` is a function `α → α → set α` such that `Ixx x y ⊆ Icc x y`
-(e.g., `Ixx` is one of `Ioo`, `Ico`, `Ioc`, `Icc`), then `Ixx (f t) (g t)` tends
-to `l.lift' powerset` provided that both `f t` and `g t` tend to `l`. -/
-lemma tendsto.Ixx {la : filter α} [is_interval_generated la]
-  {Ixx : α → α → set α} (hI : ∀ x y, Ixx x y ⊆ Icc x y)
-  {lb : filter β} {f g : β → α} (hf : tendsto f lb la) (hg : tendsto g lb la) :
-  tendsto (λ x, Ixx (f x) (g x)) lb (la.lift' powerset) :=
-(tendsto_Ixx_same_filter hI _).comp (hf.prod_mk hg)
+instance tendsto_Ioc_at_bot_at_bot : tendsto_Ixx_class Ioc (at_bot : filter α) at_bot :=
+tendsto_Ixx_class_of_subset (λ _ _, Ioc_subset_Icc_self)
 
-lemma tendsto.Icc {lb : filter β} {la : filter α} [is_interval_generated la]
-  {f g : β → α} (hf : tendsto f lb la) (hg : tendsto g lb la) :
-  tendsto (λ x, Icc (f x) (g x)) lb (la.lift' powerset) :=
-hf.Ixx (λ _ _, subset.refl _) hg
+instance tendsto_Ioo_at_bot_at_bot : tendsto_Ixx_class Ioo (at_bot : filter α) at_bot :=
+tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Icc_self)
 
-lemma tendsto.Ico {lb : filter β} {la : filter α} [is_interval_generated la]
-  {f g : β → α} (hf : tendsto f lb la) (hg : tendsto g lb la) :
-  tendsto (λ x, Ico (f x) (g x)) lb (la.lift' powerset) :=
-hf.Ixx (λ _ _, Ico_subset_Icc_self) hg
+instance tendsto_Icc_Ici_Ici {a : α} : tendsto_Ixx_class Icc (𝓟 (Ici a)) (𝓟 (Ici a)) :=
+tendsto_Ixx_class_principal.2 ord_connected_Ici
 
-lemma tendsto.Ioc {lb : filter β} {la : filter α} [is_interval_generated la]
-  {f g : β → α} (hf : tendsto f lb la) (hg : tendsto g lb la) :
-  tendsto (λ x, Ioc (f x) (g x)) lb (la.lift' powerset) :=
-hf.Ixx (λ _ _, Ioc_subset_Icc_self) hg
+instance tendsto_Icc_Iic_Iic {a : α} : tendsto_Ixx_class Icc (𝓟 (Iic a)) (𝓟 (Iic a)) :=
+tendsto_Ixx_class_principal.2 ord_connected_Iic
 
-lemma tendsto.Ioo {lb : filter β} {la : filter α} [is_interval_generated la]
-  {f g : β → α} (hf : tendsto f lb la) (hg : tendsto g lb la) :
-  tendsto (λ x, Ioo (f x) (g x)) lb (la.lift' powerset) :=
-hf.Ixx (λ _ _, Ioo_subset_Icc_self) hg
+instance tendsto_Icc_Ioi_Ioi {a : α} : tendsto_Ixx_class Icc (𝓟 (Ioi a)) (𝓟 (Ioi a)) :=
+tendsto_Ixx_class_principal.2 ord_connected_Ioi
+
+instance tendsto_Icc_Iio_Iio {a : α} : tendsto_Ixx_class Icc (𝓟 (Iio a)) (𝓟 (Iio a)) :=
+tendsto_Ixx_class_principal.2 ord_connected_Iio
+
+instance tendsto_Ico_Ici_Ici {a : α} : tendsto_Ixx_class Ico (𝓟 (Ici a)) (𝓟 (Ici a)) :=
+tendsto_Ixx_class_of_subset (λ _ _, Ico_subset_Icc_self)
+
+instance tendsto_Ico_Ioi_Ioi {a : α} : tendsto_Ixx_class Ico (𝓟 (Ioi a)) (𝓟 (Ioi a)) :=
+tendsto_Ixx_class_of_subset (λ _ _, Ico_subset_Icc_self)
+
+instance tendsto_Ico_Iic_Iio {a : α} : tendsto_Ixx_class Ico (𝓟 (Iic a)) (𝓟 (Iio a)) :=
+tendsto_Ixx_class_principal.2 $ λ a ha b hb x hx, lt_of_lt_of_le hx.2 hb
+
+instance tendsto_Ico_Iio_Iio {a : α} : tendsto_Ixx_class Ico (𝓟 (Iio a)) (𝓟 (Iio a)) :=
+tendsto_Ixx_class_of_subset (λ _ _, Ico_subset_Icc_self)
+
+instance tendsto_Ioc_Ici_Ioi {a : α} : tendsto_Ixx_class Ioc (𝓟 (Ici a)) (𝓟 (Ioi a)) :=
+tendsto_Ixx_class_principal.2 $ λ x hx y hy t ht, lt_of_le_of_lt hx ht.1
+
+instance tendsto_Ioc_Iic_Iic {a : α} : tendsto_Ixx_class Ioc (𝓟 (Iic a)) (𝓟 (Iic a)) :=
+tendsto_Ixx_class_of_subset (λ _ _, Ioc_subset_Icc_self)
+
+instance tendsto_Ioc_Iio_Iio {a : α} : tendsto_Ixx_class Ioc (𝓟 (Iio a)) (𝓟 (Iio a)) :=
+tendsto_Ixx_class_of_subset (λ _ _, Ioc_subset_Icc_self)
+
+instance tendsto_Ioc_Ioi_Ioi {a : α} : tendsto_Ixx_class Ioc (𝓟 (Ioi a)) (𝓟 (Ioi a)) :=
+tendsto_Ixx_class_of_subset (λ _ _, Ioc_subset_Icc_self)
+
+instance tendsto_Ioo_Ici_Ioi {a : α} : tendsto_Ixx_class Ioo (𝓟 (Ici a)) (𝓟 (Ioi a)) :=
+tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Ioc_self)
+
+instance tendsto_Ioo_Iic_Iio {a : α} : tendsto_Ixx_class Ioo (𝓟 (Iic a)) (𝓟 (Iio a)) :=
+tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Ico_self)
+
+instance tendsto_Ioo_Ioi_Ioi {a : α} : tendsto_Ixx_class Ioo (𝓟 (Ioi a)) (𝓟 (Ioi a)) :=
+tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Ioc_self)
+
+instance tendsto_Ioo_Iio_Iio {a : α} : tendsto_Ixx_class Ioo (𝓟 (Iio a)) (𝓟 (Iio a)) :=
+tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Ioc_self)
+
+variable [partial_order β]
+
+instance tendsto_Icc_pure_pure {a : β} : tendsto_Ixx_class Icc (pure a) (pure a : filter β) :=
+by { rw ← principal_singleton, exact tendsto_Ixx_class_principal.2 ord_connected_singleton }
+
+instance tendsto_Ico_pure_bot {a : β} : tendsto_Ixx_class Ico (pure a) ⊥ :=
+⟨by simp [lift'_bot monotone_powerset]⟩
+
+instance tendsto_Ioc_pure_bot {a : β} : tendsto_Ixx_class Ioc (pure a) ⊥ :=
+⟨by simp [lift'_bot monotone_powerset]⟩
+
+instance tendsto_Ioo_pure_bot {a : β} : tendsto_Ixx_class Ioo (pure a) ⊥ :=
+tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Ioc_self)
 
 end filter
-
-open set filter
-
-lemma set.ord_connected.is_interval_generated_inf_principal [preorder α]
-  {f : filter α} [is_interval_generated f] {s : set α} (hs : ord_connected s) :
-  is_interval_generated (f ⊓ 𝓟 s) :=
-by haveI := hs.is_interval_generated_principal; apply_instance

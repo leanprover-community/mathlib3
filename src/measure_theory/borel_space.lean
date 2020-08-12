@@ -232,6 +232,10 @@ lemma is_measurable_Ioo : is_measurable (Ioo a b) := is_open_Ioo.is_measurable
 lemma is_measurable_Ioc : is_measurable (Ioc a b) := is_measurable_Ioi.inter is_measurable_Iic
 lemma is_measurable_Ico : is_measurable (Ico a b) := is_measurable_Ici.inter is_measurable_Iio
 
+instance nhds_within_Ioi_is_measurably_generated :
+  (𝓝[Ioi b] a).is_measurably_generated :=
+is_measurable_Ioi.nhds_within_is_measurably_generated _
+
 end order_closed_topology
 
 lemma is_measurable_interval [decidable_linear_order α] [order_closed_topology α] {a b : α} :

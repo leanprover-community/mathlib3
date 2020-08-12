@@ -272,6 +272,13 @@ lemma lift'_principal {s : set α} (hh : monotone h) :
   (𝓟 s).lift' h = 𝓟 (h s) :=
 lift_principal $ monotone_principal.comp hh
 
+lemma lift'_pure {a : α} (hh : monotone h) :
+  (pure a : filter α).lift' h = 𝓟 (h {a}) :=
+by rw [← principal_singleton, lift'_principal hh]
+
+lemma lift'_bot (hh : monotone h) : (⊥ : filter α).lift' h = 𝓟 (h ∅) :=
+by rw [← principal_empty, lift'_principal hh]
+
 lemma principal_le_lift' {t : set β} (hh : ∀s∈f, t ⊆ h s) :
   𝓟 t ≤ f.lift' h :=
 le_infi $ assume s, le_infi $ assume hs, principal_mono.mpr (hh s hs)
@@ -336,15 +343,25 @@ le_antisymm
 
 lemma lift'_infi {f : ι → filter α} {g : set α → set β}
   [nonempty ι] (hg : ∀{s t}, g s ∩ g t = g (s ∩ t)) : (infi f).lift' g = (⨅i, (f i).lift' g) :=
-lift_infi $ by simp only [principal_eq_iff_eq, inf_principal, function.comp_app]; apply assume s t, hg
+lift_infi $ λ s t, by simp only [principal_eq_iff_eq, inf_principal, (∘), hg]
+
+lemma inf_lift' (f g : filter α) {s : set α → set β} (hs : ∀ {t₁ t₂}, s t₁ ∩ s t₂ = s (t₁ ∩ t₂)) :
+  (f ⊓ g).lift' s = f.lift' s ⊓ g.lift' s :=
+have (⨅ b : bool, cond b f g).lift' s = ⨅ b : bool, (cond b f g).lift' s :=
+  lift'_infi @hs,
+by simpa only [infi_bool_eq]
 
 theorem comap_eq_lift' {f : filter β} {m : α → β} :
   comap m f = f.lift' (preimage m) :=
 filter.ext $ λ s, (mem_lift'_sets monotone_preimage).symm
 
+lemma inf_lift'_powerset (f g : filter α) :
+  (f ⊓ g).lift' powerset = f.lift' powerset ⊓ g.lift' powerset :=
+inf_lift' f g $ λ _ _, (powerset_inter _ _).symm
+
 lemma eventually_lift'_powerset {f : filter α} {p : set α → Prop} :
   (∀ᶠ s in f.lift' powerset, p s) ↔ ∃ s ∈ f, ∀ t ⊆ s, p t :=
-eventually_lift'_iff (λ _ _, powerset_mono.2)
+eventually_lift'_iff monotone_powerset
 
 lemma eventually_lift'_powerset' {f : filter α} {p : set α → Prop}
   (hp : ∀ ⦃s t⦄, s ⊆ t → p t → p s) :
@@ -353,7 +370,15 @@ eventually_lift'_powerset.trans $ exists_congr $ λ s, exists_congr $
   λ hsf, ⟨λ H, H s (subset.refl s), λ hs t ht, hp ht hs⟩
 
 instance lift'_powerset_ne_bot (f : filter α) : ne_bot (f.lift' powerset) :=
-(lift'_ne_bot_iff (λ _ _, powerset_mono.2)).2 $ λ _ _, powerset_nonempty
+(lift'_ne_bot_iff monotone_powerset).2 $ λ _ _, powerset_nonempty
+
+lemma tendsto_lift'_powerset_mono {la : filter α} {lb : filter β} {s t : α → set β}
+  (ht : tendsto t la (lb.lift' powerset)) (hst : ∀ᶠ x in la, s x ⊆ t x) :
+  tendsto s la (lb.lift' powerset) :=
+begin
+  simp only [filter.lift', filter.lift, (∘), tendsto_infi, tendsto_principal] at ht ⊢,
+  exact λ u hu, (ht u hu).mp (hst.mono $ λ a hst ht, subset.trans hst ht)
+end
 
 @[simp] lemma eventually_lift'_powerset_forall {f : filter α} {p : α → Prop} :
   (∀ᶠ s in f.lift' powerset, ∀ x ∈ s, p x) ↔ ∀ᶠ x in f, p x :=

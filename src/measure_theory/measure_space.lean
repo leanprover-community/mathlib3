@@ -1060,6 +1060,9 @@ lemma finite_at_filter_of_finite (μ : measure α) [finite_measure μ] (f : filt
   μ.finite_at_filter f :=
 ⟨univ, univ_mem_sets, measure_lt_top μ univ⟩
 
+lemma measure.finite_at_bot (μ : measure α) : μ.finite_at_filter ⊥ :=
+⟨∅, mem_bot_sets, by simp only [measure_empty, with_top.zero_lt_top]⟩
+
 /-- A measure is called locally finite if it is finite in some neighborhood of each point. -/
 class locally_finite_measure [topological_space α] (μ : measure α) : Prop :=
 (finite_at_nhds : ∀ x, μ.finite_at_filter (𝓝 x))

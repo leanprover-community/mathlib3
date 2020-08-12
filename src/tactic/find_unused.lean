@@ -6,16 +6,20 @@ Authors: Simon Hudon
 import tactic.core
 
 /-!
-This is a development file. When writing a new theory one often tries
+# find_unused
+
+`find_unused` is a command used for theory development. 
+When writing a new theory one often tries
 multiple variations of the same definitions: `foo`, `foo'`, `foo₂`,
 `foo₃`, etc. Once the main definition or theorem has been written,
 it's time to clean up and the file can contain a lot of dead code.
 Mark the main declarations with `@[main_declaration]` and
-`#list_unused_decls` will show the redundancy.
+`#list_unused_decls` will show the declarations in the file
+that are not needed to define the main declarations.
 
 Some of the so-called "unused" declarations may turn out to be useful
 after all. The oversight can be corrected by marking those as
-`@[main_declaration]`, `#list_unused_decls` will revise the list of
+`@[main_declaration]`. `#list_unused_decls` will revise the list of
 unused declarations. By default, the list of unused declarations will
 not include any dependency of the main declarations.
 
@@ -25,10 +29,10 @@ code to mathlib as it is merely a tool for cleaning up a module.
 
 namespace tactic
 
-/-- Attribute `needed` is used to mark declarations that are featured
-in the current file.  Then, the `#unneeded` command can be used to
-list the declaration present in the file that do not support the main
-features of the file. -/
+/-- Attribute `main_declaration` is used to mark declarations that are featured
+in the current file.  Then, the `#find_unused` command can be used to
+list the declarations present in the file that are not used
+in the definition of the main declarations. -/
 @[user_attribute]
 meta def main_declaration_attr : user_attribute :=
 { name := `main_declaration,
@@ -69,7 +73,7 @@ setup_tactic_parser
 /-- The command `#list_unused_decls` lists the declarations that do
 not support the main features of the present file. The main features
 of a file are taken as the declaration tagged with
-@[main_declaration].
+`@[main_declaration]`.
 
 A list of files can be given to `#list_unused_decls` as follows:
 

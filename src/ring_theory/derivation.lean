@@ -60,9 +60,7 @@ variables {M : Type*} [add_comm_monoid M] [semimodule A M] [semimodule R M]
 variables {N : Type*} [add_comm_monoid N] [semimodule A N] [semimodule R N] [is_scalar_tower R A N]
 
 @[simp] lemma algebra_compatible_smul (r : R) (m : M) : r • m = ((algebra_map R A) r) • m :=
-begin
-  sorry
-end
+by rw [←(one_smul A m), ←smul_assoc, algebra.smul_def, mul_one, one_smul]
 
 variable {A}
 

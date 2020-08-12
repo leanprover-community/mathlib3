@@ -12,4 +12,4 @@ preorder.lift bitvec.to_nat
 
 lemma bitvec.le_def {n : ℕ} (x y : bitvec n) :
   x ≤ y ↔ x.to_nat ≤ y.to_nat :=
-by refl
+iff.rfl

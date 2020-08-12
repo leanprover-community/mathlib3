@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author(s): Simon Hudon
 -/
 import tactic.basic
+import data.equiv.basic
 
 /-!
 # Monad
@@ -44,3 +45,26 @@ universes u v
 @[monad_norm]
 lemma map_eq_bind_pure_comp (m : Type u → Type v) [monad m] [is_lawful_monad m] {α β : Type u} (f : α → β) (x : m α) :
   f <$> x = x >>= pure ∘ f := by rw bind_pure_comp_eq_map
+
+universes u₀ u₁ v₀ v₁
+
+/-- reduce the equivalence between two state monads to the equivalence between
+their respective function spaces -/
+def state_t.equiv {m₁ : Type u₀ → Type v₀} {m₂ : Type u₁ → Type v₁}
+  {α₁ σ₁ : Type u₀} {α₂ σ₂ : Type u₁} (F : (σ₁ → m₁ (α₁ × σ₁)) ≃ (σ₂ → m₂ (α₂ × σ₂))) :
+  state_t σ₁ m₁ α₁ ≃ state_t σ₂ m₂ α₂ :=
+{ to_fun := λ ⟨f⟩, ⟨F f⟩,
+  inv_fun := λ ⟨f⟩, ⟨F.symm f⟩,
+  left_inv := λ ⟨f⟩, congr_arg state_t.mk $ F.left_inv _,
+  right_inv := λ ⟨f⟩, congr_arg state_t.mk $ F.right_inv _ }
+
+
+/-- reduce the equivalence between two reader monads to the equivalence between
+their respective function spaces -/
+def reader_t.equiv {m₁ : Type u₀ → Type v₀} {m₂ : Type u₁ → Type v₁}
+  {α₁ ρ₁ : Type u₀} {α₂ ρ₂ : Type u₁} (F : (ρ₁ → m₁ α₁) ≃ (ρ₂ → m₂ α₂)) :
+  reader_t ρ₁ m₁ α₁ ≃ reader_t ρ₂ m₂ α₂ :=
+{ to_fun := λ ⟨f⟩, ⟨F f⟩,
+  inv_fun := λ ⟨f⟩, ⟨F.symm f⟩,
+  left_inv := λ ⟨f⟩, congr_arg reader_t.mk $ F.left_inv _,
+  right_inv := λ ⟨f⟩, congr_arg reader_t.mk $ F.right_inv _ }

@@ -331,17 +331,17 @@ let x' := x.to_nat,
     r := i' % (y' - x' + 1) + x' in
 have Hx : x ≤ bitvec.of_nat n r,
   begin
-    unfold_locals r,
+    dsimp [r],
     simp only [bitvec.le_def,bitvec.to_nat_of_nat,add_comm _ x',add_comm _ 1],
     rw [mod_eq_of_lt],
     { apply nat.le_add_right },
-    unfold_locals x' y' i',
+    dsimp [x', y', i'],
     apply bitvec.interval_fits_in_word_size,
     apply P
   end,
 have Hy : bitvec.of_nat n r ≤ y,
   begin
-    unfold_locals r,
+    dsimp [r],
     rw [bitvec.le_def,bitvec.to_nat_of_nat,mod_eq_of_lt],
     transitivity (y' - x') + x',
     { apply add_le_add_right,
@@ -419,17 +419,17 @@ have P' : x.val ≤ y.val,
 by haveI : fact (0 < n) :=  lt_of_le_of_lt (nat.zero_le x.val) x.is_lt; exact
 have Hx : x ≤ fin.of_nat' r,
   begin
-    unfold_locals r,
+    dsimp [r],
     simp only [fin.le_def,fin.val_of_nat_eq_mod',add_comm _ x',add_comm _ 1],
     rw [mod_eq_of_lt],
     { apply nat.le_add_right },
     apply fin.interval_fits_in_word_size,
-    unfold_locals x',
+    dsimp [x'],
     rw ← fin.le_def, apply P
   end,
 have Hy : fin.of_nat' r ≤ y,
   begin
-    unfold_locals r,
+    dsimp [r],
     rw [fin.le_def,fin.val_of_nat_eq_mod',mod_eq_of_lt],
     transitivity (y.val - x') + x',
     { apply add_le_add_right,

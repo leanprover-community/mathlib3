@@ -70,8 +70,8 @@ namespace mvfunctor
 export is_lawful_mvfunctor (comp_map)
 open is_lawful_mvfunctor
 
-variables {α β γ : typevec.{u} n}
 variables {F : typevec.{u} n → Type v} [mvfunctor F]
+variables {α β γ : typevec.{u} n}
 
 variables (p : α ⟹ repeat n Prop) (r : α ⊗ α ⟹ repeat n Prop)
 

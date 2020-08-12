@@ -1037,7 +1037,7 @@ instance : affine_space (affine_map k P1 V2) (affine_map k P1 P2) :=
 { vadd := λ f g, ⟨λ p, f p +ᵥ g p, f.linear + g.linear, λ p v,
     by simp [vadd_assoc, add_right_comm]⟩,
   zero_vadd' := λ f, ext $ λ p, zero_vadd _ (f p),
-  vadd_assoc' := λ f₁ f₂ f₃, ext $ λ p, vadd_assoc V2 (f₁ p) (f₂ p) (f₃ p),
+  vadd_assoc' := λ f₁ f₂ f₃, ext $ λ p, vadd_assoc (f₁ p) (f₂ p) (f₃ p),
   vsub := λ f g, ⟨λ p, f p -ᵥ g p, f.linear - g.linear, λ p v,
     by simp [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_sub, sub_add_eq_add_sub]⟩,
   vsub_vadd' := λ f g, ext $ λ p, vsub_vadd (f p) (g p),

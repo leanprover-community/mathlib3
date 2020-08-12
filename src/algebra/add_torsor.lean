@@ -102,6 +102,8 @@ include A
 @[simp] lemma zero_vadd (p : P) : (0 : G) +ᵥ p = p :=
 add_action.zero_vadd' p
 
+variables {G}
+
 /-- Adding two group elements to a point produces the same result as
 adding their sum. -/
 lemma vadd_assoc (g1 g2 : G) (p : P) : g1 +ᵥ (g2 +ᵥ p) = (g1 + g2) +ᵥ p :=
@@ -345,7 +347,7 @@ instance [T : ∀ i, add_torsor (fg i) (fp i)] : add_torsor (Π i, fg i) (Π i, 
 {
   vadd := λ g p, λ i, g i +ᵥ p i,
   zero_vadd' := λ p, funext $ λ i, zero_vadd (fg i) (p i),
-  vadd_assoc' := λ g₁ g₂ p, funext $ λ i, vadd_assoc (fg i) (g₁ i) (g₂ i) (p i),
+  vadd_assoc' := λ g₁ g₂ p, funext $ λ i, vadd_assoc (g₁ i) (g₂ i) (p i),
   vsub := λ p₁ p₂, λ i, p₁ i -ᵥ p₂ i,
   nonempty := ⟨λ i, classical.choice (T i).nonempty⟩,
   vsub_vadd' := λ p₁ p₂, funext $ λ i, vsub_vadd (p₁ i) (p₂ i),
@@ -394,7 +396,7 @@ variable {G}
 
 @[simp] lemma const_vadd_add (v₁ v₂ : G) :
   const_vadd P (v₁ + v₂) = const_vadd P v₁ * const_vadd P v₂ :=
-ext $ λ p, (vadd_assoc G v₁ v₂ p).symm
+ext $ λ p, (vadd_assoc v₁ v₂ p).symm
 
 /-- `equiv.const_vadd` as a homomorphism from `multiplicative G` to `equiv.perm P` -/
 def const_vadd_hom : multiplicative G →* equiv.perm P :=

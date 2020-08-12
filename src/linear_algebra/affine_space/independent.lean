@@ -245,13 +245,13 @@ variables (k : Type*) {V : Type*} (P : Type*) [ring k] [add_comm_group V] [modul
 variables [affine_space V P]
 include V
 
-/-- A `simplex k V P n` is a collection of `n + 1` affinely
+/-- A `simplex k P n` is a collection of `n + 1` affinely
 independent points. -/
 structure simplex (n : ℕ) :=
 (points : fin (n + 1) → P)
 (independent : affine_independent k points)
 
-/-- A `triangle k V P` is a collection of three affinely independent points. -/
+/-- A `triangle k P` is a collection of three affinely independent points. -/
 abbreviation triangle := simplex k P 2
 
 namespace simplex

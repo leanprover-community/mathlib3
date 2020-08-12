@@ -23,7 +23,7 @@ results relating to finite-dimensional subspaces of affine spaces, see
 
 ## Main definitions
 
-* `affine_space k V P` is an abbreviation for `add_torsor V P` in the
+* `affine_space V P` is an abbreviation for `add_torsor V P` in the
   case of `module k V`.  `P` is the type of points in the space and
   `V` the `k`-module of displacement vectors.  Definitions and results
   not depending on the `module` structure appear in
@@ -35,7 +35,7 @@ results relating to finite-dimensional subspaces of affine spaces, see
   requiring a nonempty type).  Affine spaces are defined over any
   module, with stronger type class requirements on `k` being used for
   individual lemmas where needed.
-* `affine_subspace k V P` is the type of affine subspaces.  Unlike
+* `affine_subspace k P` is the type of affine subspaces.  Unlike
   affine spaces, affine subspaces are allowed to be empty, and lemmas
   that do not apply to empty affine subspaces have `nonempty`
   hypotheses.  There is a `complete_lattice` structure on affine
@@ -185,7 +185,7 @@ end
 
 end
 
-/-- An `affine_subspace k V P` is a subset of an `affine_space k V P`
+/-- An `affine_subspace k P` is a subset of an `affine_space V P`
 that, if not empty, has an affine space structure induced by a
 corresponding subspace of the `module k V`. -/
 structure affine_subspace (k : Type*) {V : Type*} (P : Type*) [ring k] [add_comm_group V]
@@ -398,24 +398,24 @@ def mk' (p : P) (direction : submodule k V) : affine_subspace k P :=
     simp [hp1, hp2, hp3, vadd_assoc]
   end }
 
-/-- An affine space constructed from a point and a direction contains
+/-- An affine subspace constructed from a point and a direction contains
 that point. -/
 lemma self_mem_mk' (p : P) (direction : submodule k V) :
   p ∈ mk' p direction :=
 ⟨0, ⟨direction.zero_mem, (zero_vadd _ _).symm⟩⟩
 
-/-- An affine space constructed from a point and a direction contains
+/-- An affine subspace constructed from a point and a direction contains
 the result of adding a vector in that direction to that point. -/
 lemma vadd_mem_mk' {v : V} (p : P) {direction : submodule k V} (hv : v ∈ direction) :
   v +ᵥ p ∈ mk' p direction :=
 ⟨v, hv, rfl⟩
 
-/-- An affine space constructed from a point and a direction is
+/-- An affine subspace constructed from a point and a direction is
 nonempty. -/
 lemma mk'_nonempty (p : P) (direction : submodule k V) : (mk' p direction : set P).nonempty :=
 ⟨p, self_mem_mk' p direction⟩
 
-/-- The direction of an affine space constructed from a point and a
+/-- The direction of an affine subspace constructed from a point and a
 direction. -/
 @[simp] lemma direction_mk' (p : P) (direction : submodule k V) :
   (mk' p direction).direction = direction :=
@@ -925,7 +925,7 @@ end
 
 end affine_subspace
 
-/-- An `affine_map k V1 P1 V2 P2` is a map from `P1` to `P2` that
+/-- An `affine_map k P1 P2` is a map from `P1` to `P2` that
 induces a corresponding linear map from `V1` to `V2`. -/
 structure affine_map (k : Type*) {V1 : Type*} (P1 : Type*) {V2 : Type*} (P2 : Type*)
     [ring k]
@@ -1188,7 +1188,7 @@ instance : module k (affine_map k P1 V2) :=
 
 @[simp] lemma coe_smul (c : k) (f : affine_map k P1 V2) : ⇑(c • f) = c • f := rfl
 
-/-- `homothety V c r` is the homothety about `c` with scale factor `r`. -/
+/-- `homothety c r` is the homothety about `c` with scale factor `r`. -/
 def homothety (c : P1) (r : k) : affine_map k P1 P1 :=
 r • (id k P1 -ᵥ const k P1 c) +ᵥ const k P1 c
 

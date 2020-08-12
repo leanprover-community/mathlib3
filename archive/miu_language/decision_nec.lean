@@ -100,6 +100,8 @@ end
 
 /--
 Using the above theorem, we solve the MU puzzle, showing that `"MU"` is not derivable.
+Once we have proved that `derivable` is an instance of `decidable_pred`, this will follow
+immediately from `dec_trivial`.
 -/
 theorem not_derivable_mu : ¬(derivable "MU") :=
 begin

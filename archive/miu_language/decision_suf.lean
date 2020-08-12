@@ -206,8 +206,7 @@ If the `count I` of `ys : miustr` equals its length, then `ys` consists entirely
 lemma eq_of_countI_eq_length  {ys : miustr} (h : count I ys = length ys) :
   ys = repeat I (count I ys) :=
 begin
-  have h₂ : repeat I (count I ys) <+ ys,
-    exact le_count_iff_repeat_sublist.mp (le_refl _),
+  have h₂ : repeat I (count I ys) <+ ys := le_count_iff_repeat_sublist.mp (le_refl _),
   have h₃ : length (repeat I (count I ys)) = length ys,
     rwa length_repeat,
   exact (eq_of_sublist_of_length_eq h₂ h₃).symm,
@@ -220,22 +219,18 @@ If an `miustr` has a zero `count U` and contains no `M`, then its `count I` is i
 lemma countI_eq_length_of_countU_zero_and_neg_mem {ys : miustr} (hu : count U ys = 0)
   (hm : M ∉ ys) : count I ys = length ys :=
 begin
-  induction ys with x xs hxs, {
-    refl,
-  }, {
-    cases x, { -- case `x = M` gives a contradiction.
-      exfalso, exact hm (mem_cons_self M xs),
-    }, { -- case `x = I`.
-      rw [count_cons, if_pos (rfl),length,succ_eq_add_one,succ_inj'],
-      apply hxs, {
-        simpa only [count],
-      },
-      simp only [mem_cons_iff,false_or] at hm,
-      exact hm,
-    }, -- case `x = U` gives a (different) contradiction.
-    exfalso, simp only [count,countp_cons_of_pos] at hu,
-    exact succ_ne_zero _ hu,
-  }
+  induction ys with x xs hxs,
+    { refl, },
+  cases x, { -- case `x = M` gives a contradiction.
+    exfalso, exact hm (mem_cons_self M xs),
+  }, { -- case `x = I`.
+    rw [count_cons, if_pos (rfl),length,succ_eq_add_one,succ_inj'],
+    apply hxs,
+      { simpa only [count], },
+    simp only [mem_cons_iff,false_or] at hm, exact hm,
+  }, -- case `x = U` gives a (different) contradiction.
+  exfalso, simp only [count,countp_cons_of_pos] at hu,
+  exact succ_ne_zero _ hu,
 end
 
 /--
@@ -244,26 +239,23 @@ end
 lemma base_case_suf (en : miustr) (h : decstr en) (hu : count U en = 0) : derivable en :=
 begin
   rcases h with ⟨⟨mhead, nmtail⟩, hi ⟩,
-  have : en ≠ nil, {
-    intro k,
-    simp [k,count] at hi, contradiction,
-  },
+  have : en ≠ nil,
+    { intro k, simp [k,count] at hi, contradiction, },
   rcases (exists_cons_of_ne_nil this) with ⟨y,ys,rfl⟩,
   rw head at mhead,
   rw mhead at *,
   suffices  : ∃ c, ys = repeat I c ∧ (c % 3 = 1 ∨ c % 3 = 2), {
     rcases this with ⟨c, hysr, hc⟩,
-    rw [hysr],
-    exact der_rep_I_of_mod3  c hc,
+    rw hysr,
+    exact der_rep_I_of_mod3 c hc,
   },
-  simp [count] at hu,
+  simp only [count] at *,
   use (count I ys),
   split, {
     apply eq_of_countI_eq_length,
     apply countI_eq_length_of_countU_zero_and_neg_mem,
-    exact hu, rw tail at nmtail, exact nmtail,
+    exact hu, exact nmtail,
   },
-  rw count at hi,
   exact hi,
 end
 
@@ -290,7 +282,7 @@ end
 
 
 
-lemma split_at_first_U {k : ℕ} {zs : miustr} (h : count U zs = succ k) :
+lemma eq_append_cons_U_of_countU_pos {k : ℕ} {zs : miustr} (h : count U zs = succ k) :
 ∃ (as bs : miustr), (zs = as ++ U :: bs) :=
 begin
   apply mem_split,
@@ -306,37 +298,30 @@ lemma ind_hyp_suf (k : ℕ) (ys : miustr) (hu : count U ys = succ k) (hdec : dec
   decstr (M::as ++ [I,I,I] ++ bs) :=
 begin
   rcases hdec with ⟨⟨mhead,nmtail⟩, hic⟩,
-  have : ys ≠ nil, {
-    intro k,
-    simp [k,count] at hic, contradiction,
-  },
+  have : ys ≠ nil,
+    { intro k, simp [k,count] at hic, contradiction, },
   rcases (exists_cons_of_ne_nil this) with ⟨z,zs,rfl⟩,
   rw head at mhead,
   rw mhead at *,
-  simp [count] at hu,
-  rcases (split_at_first_U hu) with ⟨as,bs,hab⟩,
+  simp [count] at *,
+  rcases (eq_append_cons_U_of_countU_pos hu) with ⟨as,bs,hab⟩,
   use [as,bs],
-  split, {
-    simp only [cons_inj,hab,cons_append],
-  },
+  split,
+    { rw [cons_inj,hab], },
   split, {
     rw hab at hu,
-    simp [count] at *,
-    apply succ.inj,
-    rw [←hu,succ_eq_add_one], ring,
+    rw [countp_append, countp, if_pos (rfl),add_succ] at hu,
+    exact succ.inj hu,
   },
   split, {
-    split, {
-      refl,
-    },
+    split,
+      { refl, },
     contrapose! nmtail,
-    simp [tail] at *,
-    rw hab,
-    simp [mem_append.mpr], exact nmtail,
+    simp only [tail,hab,mem_append,mem_cons_iff,false_or] at *, exact nmtail,
   },
   rw hab at hic,
   simp [count] at *,
-  simp [add_assoc],norm_num, simp[←add_assoc,hic],
+  rw add_assoc, norm_num, rw ←add_assoc, exact hic,
 end
 
 /--

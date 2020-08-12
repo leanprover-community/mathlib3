@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, Yury Kudryashov,
 Neil Strickland
 -/
-import algebra.group_with_zero
+import algebra.divisibility
 import data.set.basic
 
 /-!
@@ -378,84 +378,8 @@ lemma add_mul_self_eq (a b : α) : (a + b) * (a + b) = a*a + 2*a*b + b*b :=
 calc (a + b)*(a + b) = a*a + (1+1)*a*b + b*b : by simp [add_mul, mul_add, mul_comm, add_assoc]
               ...     = a*a + 2*a*b + b*b    : by rw one_add_one_eq_two
 
-instance comm_semiring_has_dvd : has_dvd α :=
-has_dvd.mk (λ a b, ∃ c, b = a * c)
-
--- TODO: this used to not have c explicit, but that seems to be important
---       for use with tactics, similar to exist.intro
-theorem dvd.intro (c : α) (h : a * c = b) : a ∣ b :=
-exists.intro c h^.symm
-
-alias dvd.intro ← dvd_of_mul_right_eq
-
-theorem dvd.intro_left (c : α) (h : c * a = b) : a ∣ b :=
-dvd.intro _ (begin rewrite mul_comm at h, apply h end)
-
-alias dvd.intro_left ← dvd_of_mul_left_eq
-
-theorem exists_eq_mul_right_of_dvd (h : a ∣ b) : ∃ c, b = a * c := h
-
-theorem dvd.elim {P : Prop} {a b : α} (H₁ : a ∣ b) (H₂ : ∀ c, b = a * c → P) : P :=
-exists.elim H₁ H₂
-
-theorem exists_eq_mul_left_of_dvd (h : a ∣ b) : ∃ c, b = c * a :=
-dvd.elim h (assume c, assume H1 : b = a * c, exists.intro c (eq.trans H1 (mul_comm a c)))
-
-theorem dvd.elim_left {P : Prop} (h₁ : a ∣ b) (h₂ : ∀ c, b = c * a → P) : P :=
-exists.elim (exists_eq_mul_left_of_dvd h₁) (assume c, assume h₃ : b = c * a, h₂ c h₃)
-
-@[refl, simp] theorem dvd_refl (a : α) : a ∣ a :=
-dvd.intro 1 (by simp)
-
-local attribute [simp] mul_assoc mul_comm mul_left_comm
-
-@[trans] theorem dvd_trans (h₁ : a ∣ b) (h₂ : b ∣ c) : a ∣ c :=
-match h₁, h₂ with
-| ⟨d, (h₃ : b = a * d)⟩, ⟨e, (h₄ : c = b * e)⟩ :=
-  ⟨d * e, show c = a * (d * e), by simp [h₃, h₄]⟩
-end
-
-alias dvd_trans ← dvd.trans
-
-theorem eq_zero_of_zero_dvd (h : 0 ∣ a) : a = 0 :=
-dvd.elim h (assume c, assume H' : a = 0 * c, eq.trans H' (zero_mul c))
-
-/-- Given an element a of a commutative semiring, there exists another element whose product
-    with zero equals a iff a equals zero. -/
-@[simp] lemma zero_dvd_iff : 0 ∣ a ↔ a = 0 :=
-⟨eq_zero_of_zero_dvd, λ h, by rw h⟩
-
-@[simp] theorem dvd_zero (a : α) : a ∣ 0 := dvd.intro 0 (by simp)
-
-@[simp] theorem one_dvd (a : α) : 1 ∣ a := dvd.intro a (by simp)
-
-@[simp] theorem dvd_mul_right (a b : α) : a ∣ a * b := dvd.intro b rfl
-
-@[simp] theorem dvd_mul_left (a b : α) : a ∣ b * a := dvd.intro b (by simp)
-
-theorem dvd_mul_of_dvd_left (h : a ∣ b) (c : α) : a ∣ b * c :=
-dvd.elim h (λ d h', begin rw [h', mul_assoc], apply dvd_mul_right end)
-
-theorem dvd_mul_of_dvd_right (h : a ∣ b) (c : α) : a ∣ c * b :=
-begin rw mul_comm, exact dvd_mul_of_dvd_left h _ end
-
-theorem mul_dvd_mul : ∀ {a b c d : α}, a ∣ b → c ∣ d → a * c ∣ b * d
-| a ._ c ._ ⟨e, rfl⟩ ⟨f, rfl⟩ := ⟨e * f, by simp⟩
-
-theorem mul_dvd_mul_left (a : α) {b c : α} (h : b ∣ c) : a * b ∣ a * c :=
-mul_dvd_mul (dvd_refl a) h
-
-theorem mul_dvd_mul_right (h : a ∣ b) (c : α) : a * c ∣ b * c :=
-mul_dvd_mul h (dvd_refl c)
-
 theorem dvd_add (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
 dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
-
-theorem dvd_of_mul_right_dvd (h : a * b ∣ c) : a ∣ c :=
-dvd.elim h (begin intros d h₁, rw [h₁, mul_assoc], apply dvd_mul_right end)
-
-theorem dvd_of_mul_left_dvd (h : a * b ∣ c) : b ∣ c :=
-dvd.elim h (λ d ceq, dvd.intro (a * d) (by simp [ceq]))
 
 @[simp] theorem two_dvd_bit0 : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
 
@@ -694,7 +618,7 @@ theorem dvd_add_iff_left (h : a ∣ c) : a ∣ b ↔ a ∣ b + c :=
 theorem dvd_add_iff_right (h : a ∣ b) : a ∣ c ↔ a ∣ b + c :=
 by rw add_comm; exact dvd_add_iff_left h
 
-theorem two_dvd_bit1 : 2 ∣ bit1 a ↔ (2 : α) ∣ 1 := (dvd_add_iff_right two_dvd_bit0).symm
+theorem two_dvd_bit1 : 2 ∣ bit1 a ↔ (2 : α) ∣ 1 := (dvd_add_iff_right (@two_dvd_bit0 _ _ a)).symm
 
 /-- Representation of a difference of two squares in a commutative ring as a product. -/
 theorem mul_self_sub_mul_self (a b : α) : a * a - b * b = (a + b) * (a - b) :=
@@ -768,11 +692,6 @@ lemma succ_ne_self [ring α] [nontrivial α] (a : α) : a + 1 ≠ a :=
 lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 λ h, one_ne_zero (neg_injective ((add_right_inj a).mp (by { convert h, simp })))
 
-/-- An element of the unit group of a nonzero semiring represented as an element
-    of the semiring is nonzero. -/
-lemma units.coe_ne_zero [semiring α] [nontrivial α] (u : units α) : (u : α) ≠ 0 :=
-λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3
-
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
@@ -828,11 +747,6 @@ by rw [← sub_eq_zero, mul_self_sub_mul_self, mul_eq_zero, or_comm, sub_eq_zero
 lemma mul_self_eq_one_iff {a : α} : a * a = 1 ↔ a = 1 ∨ a = -1 :=
 by rw [← mul_self_eq_mul_self_iff, one_mul]
 
-/-- Given two elements b, c of an integral domain and a nonzero element a, a*b divides a*c iff
-  b divides c. -/
-theorem mul_dvd_mul_iff_left (ha : a ≠ 0) : a * b ∣ a * c ↔ b ∣ c :=
-exists_congr $ λ d, by rw [mul_assoc, mul_right_inj' ha]
-
 /-- Given two elements a, b of an integral domain and a nonzero element c, a*c divides b*c iff
   a divides b. -/
 theorem mul_dvd_mul_iff_right (hc : c ≠ 0) : a * c ∣ b * c ↔ a ∣ b :=
@@ -844,66 +758,6 @@ lemma units.inv_eq_self_iff (u : units α) : u⁻¹ = u ↔ u = 1 ∨ u = -1 :=
 by { rw inv_eq_iff_mul_eq_one, simp only [units.ext_iff], push_cast, exact mul_self_eq_one_iff }
 
 end integral_domain
-
-/-!
-### Units in various rings
--/
-
-namespace units
-
-section comm_semiring
-variables [comm_semiring α] (a b : α) (u : units α)
-
-/-- Elements of the unit group of a commutative semiring represented as elements of the semiring
-    divide any element of the semiring. -/
-@[simp] lemma coe_dvd : ↑u ∣ a := ⟨↑u⁻¹ * a, by simp⟩
-
-/-- In a commutative semiring, an element a divides an element b iff a divides all
-    associates of b. -/
-@[simp] lemma dvd_coe_mul : a ∣ b * u ↔ a ∣ b :=
-iff.intro
-  (assume ⟨c, eq⟩, ⟨c * ↑u⁻¹, by rw [← mul_assoc, ← eq, units.mul_inv_cancel_right]⟩)
-  (assume ⟨c, eq⟩, eq.symm ▸ dvd_mul_of_dvd_left (dvd_mul_right _ _) _)
-
-/-- An element of a commutative semiring divides a unit iff the element divides one. -/
-@[simp] lemma dvd_coe : a ∣ ↑u ↔ a ∣ 1 :=
-suffices a ∣ 1 * ↑u ↔ a ∣ 1, by simpa,
-dvd_coe_mul _ _ _
-
-/-- In a commutative semiring, an element a divides an element b iff all associates of a divide b.-/
-@[simp] lemma coe_mul_dvd : a * u ∣ b ↔ a ∣ b :=
-iff.intro
-  (assume ⟨c, eq⟩, ⟨c * ↑u, eq.symm ▸ by ac_refl⟩)
-  (assume h, suffices a * ↑u ∣ b * 1, by simpa, mul_dvd_mul h (coe_dvd _ _))
-
-end comm_semiring
-
-end units
-
-namespace is_unit
-
-section comm_semiring
-variables [comm_semiring R]
-
-lemma mul_right_dvd_of_dvd {a b c : R} (hb : is_unit b) (h : a ∣ c) : a * b ∣ c :=
-begin
-  rcases hb with ⟨b, rfl⟩,
-  rcases h with ⟨c', rfl⟩,
-  use (b⁻¹ : units R) * c',
-  rw [mul_assoc, units.mul_inv_cancel_left]
-end
-
-lemma mul_left_dvd_of_dvd {a b c : R} (hb : is_unit b) (h : a ∣ c) : b * a ∣ c :=
-begin
-  rcases hb with ⟨b, rfl⟩,
-  rcases h with ⟨c', rfl⟩,
-  use (b⁻¹ : units R) * c',
-  rw [mul_comm (b : R) a, mul_assoc, units.mul_inv_cancel_left]
-end
-
-end comm_semiring
-
-end is_unit
 
 namespace ring
 variables [ring R]

@@ -142,6 +142,8 @@ end
 section gcd
 variable [decidable_eq α]
 
+/-- The greatest common denominator of two elements of a Euclidean domain.
+  It is defined using the Euclidean algorithm. -/
 def gcd : α → α → α
 | a := λ b, if a0 : a = 0 then b else
   have h:_ := mod_lt b a0,
@@ -189,6 +191,16 @@ gcd_eq_left.2 (one_dvd _)
 @[simp] theorem gcd_self (a : α) : gcd a a = a :=
 gcd_eq_left.2 (dvd_refl _)
 
+/--
+An implementation of the extended GCD algorithm.
+At each step we are computing a triple `(r, s, t)`, where `r` is the next value of the GCD
+algorithm, to compute the greatest common divisor of the input (say `x` and `y`), and `s` and `t`
+are the coefficients in front of `x` and `y` to obtain `r` (i.e. `r = s * x + t * y`).
+The function `xgcd_aux` takes in two triples, and from these recursively computes the next triple:
+```
+xgcd_aux (r, s, t) (r', s', t') = xgcd_aux (r' % r, s' - (r' / r) * s, t' - (r' / r) * t) (r, s, t)
+```
+-/
 def xgcd_aux : α → α → α → α → α → α → α × α × α
 | r := λ s t r' s' t',
 if hr : r = 0 then (r', s', t')
@@ -255,6 +267,7 @@ end gcd
 section lcm
 variables [decidable_eq α]
 
+/-- The least common multiple of two elements of a Euclidean domain. -/
 def lcm (x y : α) : α :=
 x * y / gcd x y
 

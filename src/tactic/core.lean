@@ -497,6 +497,11 @@ meta def revert_deps (e : expr) : tactic ℕ := do
 meta def is_local_def (e : expr) : tactic unit :=
 retrieve $ do revert e, expr.elet _ _ _ _ ← target, skip
 
+/-- like `split_on_p p xs`, `partition_local_deps_aux vs xs acc` searches for matches in `xs` 
+(using membership to `vs` instead of a predicate) and breaks `xs` when matches are found.
+whereas `split_on_p p xs` removes the matches, `partition_local_deps_aux vs xs acc` includes
+them in the following partition. Also, `partition_local_deps_aux vs xs acc` discards the partition
+running up to the first match. -/
 private def partition_local_deps_aux {α} [decidable_eq α] (vs : list α) : list α → list α → list (list α)
 | [] acc := [acc.reverse]
 | (l :: ls) acc :=

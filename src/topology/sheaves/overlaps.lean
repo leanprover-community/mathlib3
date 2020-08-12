@@ -209,7 +209,7 @@ def is_limit_map_cone_of_is_limit_sheaf_condition_fork
   (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → opens X)
   (P : is_limit (presheaf.sheaf_condition.fork F U)) :
   is_limit (functor.map_cone F (cone U)) :=
-is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U).symm).inv_fun P)
+is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U).symm).symm P)
 { hom :=
   { hom := 𝟙 _,
     w' :=
@@ -237,11 +237,29 @@ def is_limit_sheaf_condition_fork_of_is_limit_map_cone
   (F : presheaf C X) ⦃ι : Type v⦄ (U : ι → opens X)
   (Q : is_limit (functor.map_cone F (cone U))) :
   is_limit (presheaf.sheaf_condition.fork F U) :=
-begin
-  sorry,
-end
-
-
+is_limit.of_iso_limit ((is_limit.of_cone_equiv (cone_equiv F U)).symm Q)
+{ hom :=
+  { hom := 𝟙 _,
+    w' :=
+    begin
+      rintro ⟨⟩,
+      { dsimp, simp, refl, },
+      { dsimp, ext ⟨i, j⟩,
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        rw ←F.map_comp,
+        refl, }
+    end },
+  inv :=
+  { hom := 𝟙 _,
+    w' :=
+    begin
+      rintro ⟨⟩,
+      { dsimp, simp, refl, },
+      { dsimp, ext ⟨i, j⟩,
+        simp only [limit.lift_π, limit.lift_π_assoc, category.id_comp, fan.mk_π_app, category.assoc],
+        rw ←F.map_comp,
+        refl, }
+    end }, }
 
 def sheaf_condition_equiv (F : presheaf C X) :
   F.sheaf_condition ≃ overlap.sheaf_condition F :=

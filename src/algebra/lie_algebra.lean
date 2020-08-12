@@ -63,11 +63,11 @@ variables {A : Type v} [ring A]
 The ring commutator captures the extent to which a ring is commutative. It is identically zero
 exactly when the ring is commutative.
 -/
-def commutator (x y : A) := x*y - y*x
 
-local notation `⁅`x`,` y`⁆` := commutator x y
+instance : has_bracket A :=
+{ bracket := λ x y, x*y - y*x }
 
-lemma commutator_def (x y : A) : ⁅x, y⁆ = x*y -y*x := rfl
+lemma commutator (x y : A) : ⁅x, y⁆ = x*y -y*x := rfl
 
 @[simp] lemma add_left (x y z : A) :
   ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆ :=
@@ -83,7 +83,7 @@ by simp [commutator]
 
 lemma jacobi (x y z : A) :
   ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0 :=
-by { unfold commutator, noncomm_ring, }
+by { repeat {rw commutator}, noncomm_ring, }
 
 end ring_commutator
 
@@ -150,8 +150,7 @@ An associative ring gives rise to a Lie ring by taking the bracket to be the rin
 -/
 @[priority 100]
 instance lie_ring.of_associative_ring (A : Type v) [ring A] : lie_ring A :=
-{ bracket  := ring_commutator.commutator,
-  add_lie  := ring_commutator.add_left,
+{ add_lie  := ring_commutator.add_left,
   lie_add  := ring_commutator.add_right,
   lie_self := ring_commutator.alternate,
   jacobi   := ring_commutator.jacobi }

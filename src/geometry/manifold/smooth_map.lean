@@ -65,6 +65,9 @@ def comp (f : C∞(I', M'; I'', M'')) (g : C∞(I, M; I', M')) : C∞(I, M; I'',
 { to_fun := λ a, f (g a),
   smooth_to_fun := f.smooth_to_fun.comp g.smooth_to_fun, }
 
+@[simp] lemma comp_apply (f : C∞(I', M'; I'', M'')) (g : C∞(I, M; I', M')) (x : M) :
+  f.comp g x = f (g x) := rfl
+
 instance [inhabited M'] : inhabited C∞(I, M; I', M') :=
 ⟨⟨λ _, default _, smooth_const⟩⟩
 

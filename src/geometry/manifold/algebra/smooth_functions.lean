@@ -32,6 +32,11 @@ instance has_mul {G : Type*} [has_mul G] [topological_space G] [has_continuous_m
   has_mul C∞(I, N; I', G) :=
 ⟨λ f g, ⟨f * g, smooth_mul.comp (f.smooth.prod_mk g.smooth)⟩⟩
 
+@[simp, to_additive] lemma mul_apply {G : Type*} [has_mul G] [topological_space G]
+  [has_continuous_mul G] [charted_space H' G] [smooth_manifold_with_corners I' G]
+  [has_smooth_mul I' G] (f g : C∞(I, N; I', G)) (x : N) :
+  (f * g) x = f x * g x := rfl
+
 @[to_additive]
 instance {G : Type*} [monoid G] [topological_space G]
   [charted_space H' G] [smooth_manifold_with_corners I' G] :
@@ -82,6 +87,10 @@ instance smooth_map_group {G : Type*} [group G] [topological_space G] [topologic
 { inv := λ f, ⟨λ x, (f x)⁻¹, smooth_inv.comp f.smooth⟩,
   mul_left_inv := λ a, by ext; exact mul_left_inv _,
   ..smooth_map_monoid }
+
+@[simp] lemma smooth_map.sub_apply {G : Type*} [add_group G] [topological_space G] [topological_add_group G]
+  [charted_space H' G] [smooth_manifold_with_corners I' G] [lie_add_group I' G] (f g : C∞(I, N; I', G))
+  (x : N) : (f - g) x = f x - g x := rfl
 
 @[to_additive]
 instance smooth_map_comm_group {G : Type*} [comm_group G] [topological_space G]

@@ -1,5 +1,6 @@
 import geometry.manifold.algebra.smooth_functions
 import ring_theory.derivation
+/-import geometry.manifold.temporary_to_be_removed-/
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -25,17 +26,49 @@ def compatible_semimodule_tangent_space (x : M) :
   @derivation 𝕜 C∞(I, M; 𝕜) _ _ _ 𝕜 _ (module_point_derivation I M x) _
   (compatible_semimodule_tangent_space I M x)
 
+def tangent_bundle_derivation := Σ x : M, point_derivation I M x
+
+/-instance : add_semigroup (tangent_bundle_derivation I M) :=
+{ add := λ v w, sigma.mk v.1 (v.2 + w.2),
+  add_assoc := sorry, }-/
+
 structure vector_field_derivation (I : model_with_corners 𝕜 E H)
   (M : Type*) [topological_space M] [charted_space H M] [Is : smooth_manifold_with_corners I M]
   extends derivation 𝕜 (@smooth_map 𝕜 _ E _ _ 𝕜 _ _ H _ 𝕜 _ I Isf(𝕜) M _ _ Is 𝕜 _ _ _) (@smooth_map 𝕜 _ E _ _ 𝕜 _ _ H _ 𝕜 _ I Isf(𝕜) M _ _ Is 𝕜 _ _ _)
 
-/- Something weird id happening. Does not find the instance of smooth manifolds with corners.
+variables {I M}
+
+def tangent_space_inclusion {x : M} (v : point_derivation I M x) : tangent_bundle_derivation I M :=
+sigma.mk x v
+
+/- Something weird is happening. Does not find the instance of smooth manifolds with corners.
 Moreover if I define it as a reducible def .eval does not work... It also takes very long time to
 typecheck -/
 
 section
 
+namespace point_derivation
 
+variables {I} {M} {x y : M} {v w : point_derivation I M x} (f g : C∞(I, M; 𝕜)) (r : 𝕜)
+
+lemma coe_injective (h : ⇑v = w) : v = w :=
+@derivation.coe_injective 𝕜 _ C∞(I, M; 𝕜) _ _ 𝕜 _ (module_point_derivation I M x) _
+(compatible_semimodule_tangent_space I M x) v w h
+
+@[ext] theorem ext (h : ∀ f, v f = w f) : v = w :=
+coe_injective $ funext h
+
+variables {u : point_derivation I M y}
+
+theorem hext (h1 : x = y) (h2 : ∀ f, v f = u f) : v == u :=
+begin
+  cases h1,
+  rw heq_iff_eq at *,
+  ext,
+  exact h2 f,
+end
+
+end point_derivation
 
 end
 
@@ -57,9 +90,10 @@ instance has_coe_to_linear_map :
 
 @[simp] lemma to_fun_eq_coe : X.to_fun = ⇑X := rfl
 
+
 @[simp, norm_cast]
-lemma coe_linear_map (f : vector_field_derivation I M) :
-  ⇑(f : C∞(I, M; 𝕜) →ₗ[𝕜] C∞(I, M; 𝕜)) = f := rfl
+lemma coe_linear_map (X : vector_field_derivation I M) :
+  ⇑(X : C∞(I, M; 𝕜) →ₗ[𝕜] C∞(I, M; 𝕜)) = X := rfl
 
 lemma coe_injective (h : ⇑X = Y) : X = Y :=
 by { cases X, cases Y, congr', exact derivation.coe_injective h }
@@ -96,17 +130,20 @@ instance : add_comm_group (vector_field_derivation I M) :=
 instance : has_bracket (vector_field_derivation I M) :=
 { bracket := λ X Y, ⟨⁅X, Y⁆⟩ }
 
-@[simp] lemma commutator_apply : ⁅X, Y⁆ f = ⁅X f, Y f⁆ :=
-begin
-  sorry
-end
+@[simp] lemma commutator_to_derivation_coe : ⁅X, Y⁆.to_derivation = ⁅X, Y⁆ := rfl
+
+@[simp] lemma commutator_coe_derivation :
+  ⇑⁅X, Y⁆ = (⁅X, Y⁆ : derivation 𝕜 C∞(I, M; 𝕜) C∞(I, M; 𝕜)) := rfl
+
+@[simp] lemma commutator_apply : ⁅X, Y⁆ f = X (Y f) - Y (X f) :=
+by rw [commutator_coe_derivation, derivation.commutator_apply]; refl
 
 instance : lie_ring (vector_field_derivation I M) :=
-{ add_lie := λ X Y Z, by { ext1 f, simp only [commutator_apply, add_apply, add_lie] },
-  lie_add := λ X Y Z, by { ext1 f, simp only [commutator_apply, add_apply, lie_add] },
-  lie_self := λ d, by { ext1 f, simp only [commutator_apply, lie_self, zero_apply] },
-  jacobi := λ X Y Z, by { ext1 f, simp only [commutator_apply, add_apply],
-    exact ring_commutator.jacobi (X f) (Y f) (Z f),}, }
+{ add_lie := λ X Y Z, by { ext1 f, simp only [commutator_apply, add_apply, map_add], ring, },
+  lie_add := λ X Y Z, by { ext1 f, simp only [commutator_apply, add_apply, map_add], ring },
+  lie_self := λ d, by { ext1 f, simp only [commutator_apply, zero_apply, sub_self] },
+  jacobi := λ X Y Z, by { ext1 f, simp only [commutator_apply, add_apply, map_sub,
+    zero_apply], ring }, }
 
 def eval (X : vector_field_derivation I M) (x : M) : point_derivation I M x :=
 { to_fun := λ f, (X f) x,
@@ -118,32 +155,33 @@ def eval (X : vector_field_derivation I M) (x : M) : point_derivation I M x :=
 
 @[simp] lemma eval_add (x : M) :
   (X + Y).eval x = X.eval x + Y.eval x :=
-begin
-  ext f,
-  simp only [derivation.add_apply, add_apply, eval_apply],
-  unfold_coes,
-end
+by ext f; simp only [derivation.add_apply, add_apply, eval_apply, smooth_map.add_apply]
 
-@[simp] lemma eval_commutator (X Y : vector_field_derivation I M) (x : M) :
-  ⁅X, Y⁆.eval x = ⁅X.eval x, Y.eval x⁆ :=
-begin
-  sorry
-end
+/- to be moved -/
+@[simp] lemma ring_commutator.apply {α : Type*} {R : Type*} [ring R] (f g : α → R) (a : α) :
+  ⁅f, g⁆ a = ⁅f a, g a⁆ :=
+by simp only [ring_commutator.commutator, pi.mul_apply, pi.sub_apply]
 
-/- instance : has_coe_to_fun (vector_field_derivation I M) := ⟨_, λ X, eval X⟩-/
+/- instance : has_coe_to_fun (vector_field_derivation I M) := ⟨_, λ X, eval X⟩ polymorphysm of coercions to functions is not possible? -/
+
+end vector_field_derivation
 
 variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M' : Type*} [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
 
-def fdifferential (f : C∞(I, M; I', M')) (x : M) (v : point_derivation I M x): (point_derivation I' M' (f x)) :=
+def fdifferential (f : C∞(I, M; I', M')) (x : M) (v : point_derivation I M x) : (point_derivation I' M' (f x)) :=
 { to_fun := λ g, v (g.comp f),
   map_add' := λ g h, by { sorry, },
   map_smul' := λ k g, by { sorry, },
   leibniz' := λ f g, by {dsimp only [], sorry}, }
 
-localized "notation `fd` := vector_field_derivation.fdifferential" in manifold
+@[simp] lemma apply_fdifferential (f : C∞(I, M; I', M')) (x : M) (v : point_derivation I M x) (g : C∞(I', M'; 𝕜)) :
+  fdifferential f x v g = v (g.comp f) := rfl
 
-end vector_field_derivation
+localized "notation `fd` := fdifferential" in manifold
 
 end
+
+
+#check pi.sub_apply

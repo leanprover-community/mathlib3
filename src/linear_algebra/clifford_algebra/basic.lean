@@ -61,19 +61,55 @@ def clifford_algebra := quot (clifford_algebra.rel R M Q)
 
 namespace clifford_algebra
 
-/-
-TODO: instances
--/
+instance : semiring (clifford_algebra R M Q) :=
+{
+  add := quot.map₂ (+) (λ _ _ _, rel.add_compat_right) (λ _ _ _, rel.add_compat_left),
+  add_assoc := by {rintros ⟨⟩ ⟨⟩ ⟨⟩, change quot.mk _ _ = _, rw add_assoc, refl},
+  zero := quot.mk _ 0,
+  zero_add := by {rintros ⟨⟩, change quot.mk _ _ = _, rw zero_add },
+  add_zero := by {rintros ⟨⟩, change quot.mk _ _ = _, rw add_zero },
+  add_comm := by {rintros ⟨⟩ ⟨⟩, change quot.mk _ _ = _, rw add_comm, refl },
+  mul := quot.map₂ (*) (λ _ _ _, rel.mul_compat_right) (λ _ _ _, rel.mul_compat_left),
+  mul_assoc := by {rintros ⟨⟩ ⟨⟩ ⟨⟩, change quot.mk _ _ = _, rw mul_assoc, refl },
+  one := quot.mk _ 1,
+  one_mul := by {rintros ⟨⟩, change quot.mk _ _ = _, rw one_mul },
+  mul_one := by {rintros ⟨⟩, change quot.mk _ _ = _, rw mul_one },
+  zero_mul := by {rintros ⟨⟩, change quot.mk _ _ = _, rw zero_mul },
+  mul_zero := by {rintros ⟨⟩, change quot.mk _ _ = _, rw mul_zero },
+  left_distrib := by {rintros ⟨⟩ ⟨⟩ ⟨⟩, change quot.mk _ _ = _, rw left_distrib, refl },
+  right_distrib := by {rintros ⟨⟩ ⟨⟩ ⟨⟩, change quot.mk _ _ = _, rw right_distrib, refl }
+}
 
--- instance : semiring (clifford_algebra R M Q) := _
+instance : inhabited (clifford_algebra R M Q) := ⟨0⟩
 
--- instance : inhabited (clifford_algebra R M Q) := ⟨0⟩
+instance : has_scalar R (clifford_algebra R M Q) :=
+{
+  smul := λ r m, quot.lift_on m (λ x, quot.mk _ $ r • x) $
+    λ a b h, by {simp_rw algebra.smul_def, exact quot.sound (rel.mul_compat_right h)}
+}
 
--- instance : has_scalar R (clifford_algebra R M Q) := _
+instance : algebra R (clifford_algebra R M Q) :=
+{
+  to_fun := λ r, (quot.mk _ $ algebra_map _ _ r),
+  map_one' := rfl,
+  map_mul' := λ _ _, by {rw ring_hom.map_mul, refl },
+  map_zero' := rfl,
+  map_add' := λ _ _, by {rw ring_hom.map_add, refl },
+  commutes' := begin
+    rintros r ⟨⟩,
+    change quot.mk _ _ = _,
+    rw algebra.commutes r x,
+    refl,
+  end,
+  smul_def' := begin
+    rintros r ⟨⟩,
+    change quot.mk _ _ = _,
+    rw algebra.smul_def,
+    refl,
+  end
+}
 
--- instance : algebra R (clifford_algebra R M) := _
-
--- instance : ring (clifford_algebra K V) := algebra.ring_of_comm_ring_algebra K
+instance : ring (clifford_algebra K V Qv) := algebra.ring_of_comm_ring_algebra K
 
 /-
 TODO: The canonical quotient map `tensor_algebra R M → clifford_algebra R M Q`.

@@ -114,7 +114,7 @@ by { ext, simp only [supr, opens.Sup_s, sUnion_image, bUnion_range], refl }
 @[simp] lemma supr_s {ι} (s : ι → opens α) : ((⨆ i, s i : opens α) : set α) = ⋃ i, s i :=
 by simp [supr_def]
 
-theorem mem_Union {ι} {x : α} {s : ι → opens α} : x ∈ supr s ↔ ∃ i, x ∈ s i :=
+theorem mem_supr {ι} {x : α} {s : ι → opens α} : x ∈ supr s ↔ ∃ i, x ∈ s i :=
 by { rw [←mem_coe], simp, }
 
 lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :

@@ -6,9 +6,9 @@ Authors: Simon Hudon
 import tactic.core
 
 /-!
-# find_unused
+# list_unused_decls
 
-`find_unused` is a command used for theory development. 
+`#list_unused_decls` is a command used for theory development.
 When writing a new theory one often tries
 multiple variations of the same definitions: `foo`, `foo'`, `foo₂`,
 `foo₃`, etc. Once the main definition or theorem has been written,
@@ -30,9 +30,9 @@ code to mathlib as it is merely a tool for cleaning up a module.
 namespace tactic
 
 /-- Attribute `main_declaration` is used to mark declarations that are featured
-in the current file.  Then, the `#find_unused` command can be used to
-list the declarations present in the file that are not used
-in the definition of the main declarations. -/
+in the current file.  Then, the `#list_unused_decls` command can be used to
+list the declaration present in the file that are not used by the main
+declarations of the file. -/
 @[user_attribute]
 meta def main_declaration_attr : user_attribute :=
 { name := `main_declaration,
@@ -60,6 +60,9 @@ do ds ← get_decls_from fs,
      e ← get_env,
      return $ !d.is_auto_or_internal e
 
+/-- expecting a string literal (e.g. `"src/tactic/find_unused.lean"`) or
+the name literal `` `current_file``
+-/
 meta def parse_file_name (fn : pexpr) : tactic (option string) :=
 do fn ← to_expr fn,
    do { fn ← eval_expr string fn, return (some fn) } <|>
@@ -70,8 +73,8 @@ do fn ← to_expr fn,
 
 setup_tactic_parser
 
-/-- The command `#list_unused_decls` lists the declarations that do
-not support the main features of the present file. The main features
+/-- The command `#list_unused_decls` lists the declarations that that
+are not used the main features of the present file. The main features
 of a file are taken as the declaration tagged with
 `@[main_declaration]`.
 
@@ -85,10 +88,11 @@ They are given in a list that contains file names written as Lean
 strings or the Lean name ``\`current_file``, if the current file is to
 be considered. With a list of files, the declarations from all those
 files will be taken and their interdependencies will be analyzed to
-see which ones, directly or indirectly, support a declaration marked
-as `@[main_declaration]`. The files listed must be imported by the
-current file.
- -/
+see which declarations are unused by declarations marked as
+`@[main_declaration]`. The files listed must be imported by the
+current file. The path of the file names is expected to be relative to
+the root of the project (i.e. the location of `leanpkg.toml` when it
+is present). -/
 @[user_command]
 meta def unused_decls_cmd (_ : parse $ tk "#list_unused_decls") : lean.parser unit :=
 do fs ← opt_pexpr_list,

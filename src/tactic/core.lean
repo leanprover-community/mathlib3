@@ -256,8 +256,13 @@ do e ← tactic.get_env,
              then s.insert d.to_name d else s),
    pure xs
 
-/-- `get_decls_from` returns a dictionary mapping names to their corresponding declarations.
-Covers all declarations the files listed in `fs`, with the current file listed as `none` -/
+/-- `get_decls_from` returns a dictionary mapping names to their
+corresponding declarations.  Covers all declarations the files listed
+in `fs`, with the current file listed as `none`.
+
+The path of the file names is expected to be relative to
+the root of the project (i.e. the location of `leanpkg.toml` when it
+is present); e.g. `"src/tactic/core.lean"` -/
 meta def get_decls_from (fs : list (option string)) : tactic (name_map declaration) :=
 do root ← unsafe_run_io $ io.env.get_cwd,
    let fs := fs.map (option.map $ λ path, root ++ "/" ++ path),

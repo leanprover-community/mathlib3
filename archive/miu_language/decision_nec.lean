@@ -275,7 +275,7 @@ def decstr (en : miustr) :=
 /--
 Suppose `en : miustr`. If `en` is `derivable`, then the condition `decstr en` holds.
 -/
-theorem decstr_of_der (en : miustr) : derivable en → decstr en :=
+theorem decstr_of_der {en : miustr} : derivable en → decstr en :=
 begin
   intro h,
   split,

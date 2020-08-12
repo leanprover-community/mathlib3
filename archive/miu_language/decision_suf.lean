@@ -340,9 +340,9 @@ begin
 end
 
 /--
-`der_of_decstr` is our main result. It shows `derivable en` follows from  `decstr en`.
+`der_of_decstr` states that `derivable en` follows from `decstr en`.
 -/
-theorem der_of_decstr  (en : miustr) (h : decstr en) : derivable en :=
+theorem der_of_decstr {en : miustr} (h : decstr en) : derivable en :=
 begin
 /- The next three lines have the effect of introducing `count U en` as a variable that can be used
  for induction -/
@@ -350,17 +350,33 @@ begin
   cases hu with n hu,
   revert en, /- Crucially, we need the induction hypothesis to quantify over `en` -/
   induction n with k hk, {
-    apply base_case_suf; assumption
+    apply base_case_suf; assumption,
   }, {
   intros ys hdec hus,
   rcases ind_hyp_suf k ys hus hdec with ⟨as,bs,hyab,habuc,hdecab⟩,
   have h₂ : derivable (M::as ++ [I,I,I] ++ bs) :=
-    hk (M::as ++ [I,I,I] ++ bs) hdecab habuc,
+    hk hdecab habuc,
   rw hyab,
   exact derivable.r3 h₂,
 }
 end
 
+/--
+Finally, we have the main result, namely that `derivable` is a decidable predicate.
+-/
+instance : decidable_pred derivable :=
+  λ en, decidable_of_iff _ ⟨der_of_decstr, decstr_of_der⟩
+
+
+/-!
+By decidability, we can automatically determine whether any given `miustr` is `derivable`.
+-/
+
+example : ¬(derivable "MU") :=
+  dec_trivial
+
+example : derivable "MUIUIUUIUI" :=
+  dec_trivial
 
 
 

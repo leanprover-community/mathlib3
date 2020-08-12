@@ -6,6 +6,7 @@ Author(s): Simon Hudon
 
 import algebra.group_power
 import control.uliftable
+import control.monad.basic
 
 import data.bitvec.basic
 import data.list.basic
@@ -115,6 +116,8 @@ variables (g : Type) [random_gen g]
 /-- create a new random number generator distinct from the one stored in the state -/
 def split : rand_g g g := ⟨ prod.map id up ∘ random_gen.split ∘ down ⟩
 
+variables {g}
+
 section random
 variables [preorder α] [random α]
 
@@ -168,11 +171,11 @@ variables [preorder α] [random α]
 
 /-- randomly generate a value of type α -/
 def random : io α :=
-io.run_rand (rand.random _ _)
+io.run_rand (rand.random α)
 
 /-- randomly generate an infinite series of value of type α -/
 def random_series : io (stream α) :=
-io.run_rand (rand.random_series _ _)
+io.run_rand (rand.random_series α)
 
 end random
 
@@ -185,7 +188,7 @@ io.run_rand (bounded_random.random_r _ x y p)
 
 /-- randomly generate an infinite series of value of type α between `x` and `y` -/
 def random_series_r (x y : α) (h : x ≤ y . rand.assumption_or_dec_trivial) : io (stream $ x .. y) :=
-io.run_rand (rand.random_series_r _ x y h)
+io.run_rand (rand.random_series_r x y h)
 
 end bounded_random
 
@@ -211,11 +214,11 @@ variables [preorder α] [bounded_random α]
 
 /-- use `random_r` in the `tactic` monad -/
 meta def random_r (x y : α) (p : x ≤ y . assumption_or_dec_trivial) : tactic (x .. y) :=
-run_rand (rand.random_r _ x y p)
+run_rand (rand.random_r x y p)
 
 /-- use `random_series_r` in the `tactic` monad -/
 meta def random_series_r (x y : α) (h : x ≤ y . assumption_or_dec_trivial) : tactic (stream $ x .. y) :=
-run_rand (rand.random_series_r _ x y h)
+run_rand (rand.random_series_r x y h)
 
 end bounded_random
 
@@ -225,11 +228,11 @@ variables [preorder α] [random α]
 
 /-- use `random` in the `tactic` monad -/
 meta def random : tactic α :=
-run_rand (rand.random _ _)
+run_rand (rand.random α)
 
 /-- use `random_series` in the `tactic` monad -/
 meta def random_series : tactic (stream α) :=
-run_rand (rand.random_series α _)
+run_rand (rand.random_series α)
 
 end random
 
@@ -276,7 +279,7 @@ variables {g : Type} [random_gen g]
 
 /-- generate a random bit vector of length `n` -/
 def bitvec.random (n : ℕ) : rand_g g (bitvec n) := do
-bs ← rand.random_series bool _,
+bs ← rand.random_series bool,
 pure ⟨bs.take n, bs.length_take _⟩
 
 section fit_in_Icc

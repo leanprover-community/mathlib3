@@ -9,10 +9,10 @@ instance fin.has_pow' {n} [fact (0 < n)] : has_pow (fin n) ℕ :=
 
 /-- fermat's primality test -/
 def primality_test (p : ℕ) (h : fact (0 < p)) : rand bool :=
-if h : p-1 ≥ 2 then do
-  n ← rand.random_r _ 2 (p-1), -- `random_r` requires a proof of `2 ≤ p-1` but it is dischared using `assumption`
+if h : 2 ≤ p-1 then do
+  n ← rand.random_r 2 (p-1), -- `random_r` requires a proof of `2 ≤ p-1` but it is dischared using `assumption`
   return $ (fin.of_nat' n : fin p)^(p-1) = 1 -- we do arithmetic with `fin n` so that modulo and multiplication are interleaved
-else return ff
+else return (p = 2)
 
 def iterated_primality_test_aux (p : ℕ) (h : fact (0 < p)) : ℕ → rand bool
 | 0 := pure tt
@@ -37,7 +37,7 @@ mcond (f x)
 def find_prime_aux (p : ℕ) (h : 1 ≤ p / 2) : ℕ → rand (option ℕ)
 | 0 := pure none
 | (n+1) := do
-  k ← rand.random_r _ 1 (p / 2),
+  k ← rand.random_r 1 (p / 2),
   let xs := (list.range' k 20).map (λ i, 2*i+1),
   some r ← mfirst iterated_primality_test xs
     | find_prime_aux n,
@@ -62,11 +62,14 @@ run_cmd do
 test is deterministic because we pick the random seed -/
 run_cmd do
   let xs := list.range' 90 30,
-  let ⟨ps, _⟩ := (xs.mfilter iterated_primality_test).run ⟨ mk_std_gen 10 ⟩,
+  let ps : list ℕ := (xs.mfilter iterated_primality_test).eval ⟨ mk_std_gen 10 ⟩,
   guard (ps = [97, 101, 103, 107, 109, 113]) <|> fail "wrong list of prime numbers",
   trace ps
 
 /- this finds a random prime number -/
 run_cmd do
-  p ← tactic.run_rand (find_prime 1000000),
-  trace p
+  some p ← tactic.run_rand (find_prime 1000000) | trace "no prime found, gave up",
+  trace p,
+  if nat.prime p
+    then trace "true prime"
+    else trace "this number fooled Fermat's test"

@@ -48,6 +48,10 @@ lemma map_eq_bind_pure_comp (m : Type u → Type v) [monad m] [is_lawful_monad m
 
 universes u₀ u₁ v₀ v₁
 
+/-- run a `state_t` program and discard the final state -/
+def state_t.eval {m : Type u → Type v} [functor m] {σ α} (cmd : state_t σ m α) (s : σ) : m α :=
+prod.fst <$> cmd.run s
+
 /-- reduce the equivalence between two state monads to the equivalence between
 their respective function spaces -/
 def state_t.equiv {m₁ : Type u₀ → Type v₀} {m₂ : Type u₁ → Type v₁}

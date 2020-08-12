@@ -27,3 +27,13 @@ begin
   guard_hyp hu := ∀ n, u n ≥ 0 ∧ n = u n,
   intro, refl
 end
+
+-- test choose with conjunction
+example (h : ∀ i : ℕ, ∃ j, i < j ∧ j < i+i) : true :=
+begin
+  choose f h h' using h,
+  guard_hyp f := ℕ → ℕ,
+  guard_hyp h := ∀ (i : ℕ), i < f i,
+  guard_hyp h' := ∀ (i : ℕ), f i < i + i,
+  trivial,
+end

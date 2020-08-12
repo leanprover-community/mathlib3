@@ -181,7 +181,7 @@ def partition.rel_iso :
   inv_fun := λ x, mk_classes x.1 x.2.2,
   left_inv := mk_classes_classes,
   right_inv := λ x, by rw [subtype.ext_iff_val, ←classes_mk_classes x.1 x.2],
-  ord' := λ x y, by conv {to_lhs, rw [←mk_classes_classes x, ←mk_classes_classes y]}; refl }
+  map_rel_iff' := λ x y, by conv {to_lhs, rw [←mk_classes_classes x, ←mk_classes_classes y]}; refl }
 
 variables {α}
 

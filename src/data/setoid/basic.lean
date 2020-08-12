@@ -329,7 +329,7 @@ def correspondence (r : setoid α) : ((≤) : {s // r ≤ s} → {s // r ≤ s} 
       λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw (@eq_rel _ r x y).2 ((ker_mk_eq r) ▸ h) in
     ext' $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
       quotient.induction_on₂ x y $ λ w z h, ⟨w, z, rfl, rfl, h⟩⟩,
-  ord' := λ s t, ⟨λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩,
+  map_rel_iff' := λ s t, ⟨λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩,
     λ h x y hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨x, y, rfl, rfl, hs⟩ in
       t.1.trans' (t.1.symm' $ t.2 $ eq_rel.1 hx) $ t.1.trans' ht $ t.2 $ eq_rel.1 hy⟩ }
 

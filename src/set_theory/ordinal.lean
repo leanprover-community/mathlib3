@@ -146,7 +146,7 @@ initial_seg.eq (f.trans g) (initial_seg.refl _)
 is a well-order then `α` and `β` are order-isomorphic. -/
 def antisymm [is_well_order β s] (f : r ≼i s) (g : s ≼i r) : r ≃r s :=
 by haveI := f.to_rel_embedding.is_well_order; exact
-⟨⟨f, g, antisymm.aux f g, antisymm.aux g f⟩, f.ord'⟩
+⟨⟨f, g, antisymm.aux f g, antisymm.aux g f⟩, f.map_rel_iff'⟩
 
 @[simp] theorem antisymm_to_fun [is_well_order β s]
   (f : r ≼i s) (g : s ≼i r) : (antisymm f g : α → β) = f := rfl

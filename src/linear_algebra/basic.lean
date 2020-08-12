@@ -1428,7 +1428,7 @@ def map_subtype.rel_iso :
   inv_fun   := λ q, comap p.subtype q,
   left_inv  := λ p', comap_map_eq_self $ by simp,
   right_inv := λ ⟨q, hq⟩, subtype.ext_val $ by simp [map_comap_subtype p, inf_of_le_right hq],
-  ord'      := λ p₁ p₂, (map_le_map_iff' (ker_subtype p)).symm }
+  map_rel_iff'      := λ p₁ p₂, (map_le_map_iff' (ker_subtype p)).symm }
 
 /-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
 submodules of `M`. -/
@@ -1524,7 +1524,7 @@ def comap_mkq.rel_iso :
   inv_fun   := λ q, map p.mkq q,
   left_inv  := λ p', map_comap_eq_self $ by simp,
   right_inv := λ ⟨q, hq⟩, subtype.ext_val $ by simpa [comap_map_mkq p],
-  ord'      := λ p₁ p₂, (comap_le_comap_iff $ range_mkq _).symm }
+  map_rel_iff'      := λ p₁ p₂, (comap_le_comap_iff $ range_mkq _).symm }
 
 /-- The ordering on submodules of the quotient of `M` by `p` embeds into the ordering on submodules
 of `M`. -/

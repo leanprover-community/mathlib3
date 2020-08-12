@@ -659,7 +659,7 @@ def rel_iso_of_surjective :
   right_inv := λ I, subtype.eq $ show comap f (map f I.1) = I.1,
     from (comap_map_of_surjective f hf I).symm ▸ le_antisymm
       (sup_le (le_refl _) I.2) le_sup_left,
-  ord' := λ I1 I2, ⟨comap_mono, λ H, map_comap_of_surjective f hf I1 ▸
+  map_rel_iff' := λ I1 I2, ⟨comap_mono, λ H, map_comap_of_surjective f hf I1 ▸
     map_comap_of_surjective f hf I2 ▸ map_mono H⟩ }
 
 def le_rel_embedding_of_surjective :
@@ -722,7 +722,7 @@ def rel_iso_of_bijective :
   left_inv := (rel_iso_of_surjective f hf.right).left_inv,
   right_inv := λ J, subtype.ext_iff.1
     ((rel_iso_of_surjective f hf.right).right_inv ⟨J, comap_bot_le_of_injective f hf.left⟩),
-  ord' := (rel_iso_of_surjective f hf.right).ord' }
+  map_rel_iff' := (rel_iso_of_surjective f hf.right).map_rel_iff' }
 
 lemma comap_le_iff_le_map : comap f K ≤ I ↔ K ≤ map f I :=
 ⟨λ h, le_map_of_comap_le_of_surjective f hf.right h,

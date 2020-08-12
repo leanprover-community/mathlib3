@@ -512,8 +512,9 @@ meta def partition_local_deps (vs : list expr) : tactic (list (list expr)) :=
 do ls ← local_context,
    pure (partition_local_deps_aux vs ls []).tail.reverse
 
-/-- `clear_value e` clears the body of the local definition `e`, changing it into a regular
-hypothesis. A hypothesis `e : α := t` is changed to `e : α`.
+/-- `clear_value e₀ e₁ e₂` clears the body of the local definitions `e₀`, `e₁`, `e₂`, changing them into regular
+hypotheses. A hypothesis `e : α := t` is changed to `e : α`. The order of locals `e₀`, `e₁`, `e₂` does not
+matter as a permutation will be chosen so as to preserve type correctness.
 This tactic is called `clearbody` in Coq. -/
 meta def clear_value (vs : list expr) : tactic unit := do
   ls ← partition_local_deps vs,

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
 -/
 import tactic.interactive
-import tactic.mk_opaque
 import control.family
 import control.functor.indexed
 import data.sigma

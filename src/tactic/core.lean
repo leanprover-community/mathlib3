@@ -506,7 +506,7 @@ private def partition_local_deps_aux {α} [decidable_eq α] (vs : list α) : lis
 /-- `partition_local_deps vs`, with `vs` a list of local constants,
 reorders `vs` in the order they appear in the local context together
 with the variables that follow them. If local context is `[a,b,c,d,e,f]`,
-and that we call `partition_local_deps [d,b]`, we get `[[b,c],[d,e,f]]`.
+and that we call `partition_local_deps [d,b]`, we get `[[d,e,f], [b,c]]`.
 The head of each list is one of the variables given as a parameter. -/
 meta def partition_local_deps (vs : list expr) : tactic (list (list expr)) :=
 do ls ← local_context,

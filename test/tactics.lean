@@ -540,7 +540,7 @@ begin
   exact unit.star
 end
 
-/-- test `clear_body` and the preservation of naming -/
+/-- test `clear_value` and the preservation of naming -/
 example : ∀ x y : ℤ, let z := x + y in x = z - y → x = y - z → true :=
 begin
   introv h h,

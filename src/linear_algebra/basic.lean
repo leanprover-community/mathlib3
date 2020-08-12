@@ -955,6 +955,13 @@ semimodule.of_core $ by refine {smul := (•), ..};
   repeat {rintro ⟨⟩ <|> intro}; simp [smul_add, add_smul, smul_smul,
     -mk_add, (mk_add p).symm, -mk_smul, (mk_smul p).symm]
 
+lemma nontrivial_of_lt_top (h : p < ⊤) : nontrivial (p.quotient) :=
+begin
+  obtain ⟨x, _, not_mem_s⟩ := exists_of_lt h,
+  refine ⟨⟨mk x, 0, _⟩⟩,
+  simpa using not_mem_s
+end
+
 end quotient
 
 lemma quot_hom_ext ⦃f g : quotient p →ₗ[R] M₂⦄ (h : ∀ x, f (quotient.mk x) = g (quotient.mk x)) :
@@ -1353,10 +1360,10 @@ maximal submodule of `p` is just `p `. -/
 by simp
 
 @[simp] lemma comap_subtype_eq_top {p p' : submodule R M} :
-  p'.comap p.subtype = ⊤ ↔ p ≤ p' :=
+  comap p.subtype p' = ⊤ ↔ p ≤ p' :=
 eq_top_iff.trans $ map_le_iff_le_comap.symm.trans $ by rw [map_subtype_top]
 
-@[simp] lemma comap_subtype_self : p.comap p.subtype = ⊤ :=
+@[simp] lemma comap_subtype_self : comap p.subtype p = ⊤ :=
 comap_subtype_eq_top.2 (le_refl _)
 
 @[simp] theorem ker_of_le (p p' : submodule R M) (h : p ≤ p') : (of_le h).ker = ⊥ :=
@@ -2003,6 +2010,23 @@ end field
 end linear_equiv
 
 namespace submodule
+
+section semimodule
+
+variables [semiring R] [add_comm_monoid M] [semimodule R M]
+
+/-- If `s ≤ t`, then we can view `s` as a submodule of `t` by taking the comap
+of `t.subtype`. -/
+def comap_subtype_equiv_of_le {p q : submodule R M} (hpq : p ≤ q) :
+comap q.subtype p ≃ₗ[R] p :=
+{ to_fun := λ x, ⟨x, x.2⟩,
+  inv_fun := λ x, ⟨⟨x, hpq x.2⟩, x.2⟩,
+  left_inv := λ x, by simp only [coe_mk, submodule.eta, coe_coe],
+  right_inv := λ x, by simp only [subtype.coe_mk, submodule.eta, coe_coe],
+  map_add' := λ x y, rfl,
+  map_smul' := λ c x, rfl }
+
+end semimodule
 
 variables [ring R] [add_comm_group M] [module R M]
 variables (p : submodule R M)

@@ -1238,10 +1238,10 @@ propagate_tags $
 do let (p, x) := p,
    e ← i_to_expr p,
    some h ← pure h | tactic.generalize' e x >> skip,
+   -- `h` is given, the regular implementation of `generalize` works.
    tgt ← target,
-   -- if generalizing fails, fall back to not replacing anything
    tgt' ← do {
-     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize' e x >> target),
+     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize e x >> target),
      to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1))
    } <|> to_expr ``(Π x, %%e = x → %%tgt),
    t ← assert h tgt',

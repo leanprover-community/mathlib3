@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 import topology.algebra.continuous_functions
-import linear_algebra.affine_space
+import linear_algebra.affine_space.basic
 
 /-!
 # Topological properties of affine spaces and maps

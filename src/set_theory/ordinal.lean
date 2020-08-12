@@ -274,7 +274,7 @@ def lt_equiv {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ �
 ⟨@rel_embedding.trans _ _ _ r s t f g, g f.top,
   begin
     intro x,
-    rw [← g.apply_symm_apply x, ← g.ord, f.down', exists_congr],
+    rw [← g.apply_symm_apply x, ← g.map_rel_iff, f.down', exists_congr],
     intro y, exact ⟨congr_arg g, λ h, g.to_equiv.bijective.1 h⟩
   end⟩
 

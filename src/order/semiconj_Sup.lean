@@ -74,7 +74,7 @@ lemma semiconj.symm_adjoint [partial_order α] [preorder β]
 begin
   refine λ y, (hg' _).unique _,
   rw [← @image_preimage_eq _ _ _ {x | g x ≤ fb y} fa.surjective, preimage_set_of_eq],
-  simp only [h.eq, ← fb.ord, fa.left_ord_continuous (hg' _)]
+  simp only [h.eq, ← fb.map_rel_iff, fa.left_ord_continuous (hg' _)]
 end
 
 variable {G : Type*}

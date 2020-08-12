@@ -363,7 +363,7 @@ begin
   cases (univ : set α).eq_empty_or_nonempty with h h,
   { use (λ_, 0), assume x, exact absurd h (nonempty.ne_empty ⟨x, mem_univ x⟩) },
   { /- We construct a map x : ℕ → α with dense image -/
-    rcases h with basepoint,
+    rcases h with ⟨basepoint⟩,
     haveI : inhabited α := ⟨basepoint⟩,
     have : ∃s:set α, countable s ∧ closure s = univ := separable_space.exists_countable_closure_eq_univ,
     rcases this with ⟨S, ⟨S_countable, S_dense⟩⟩,

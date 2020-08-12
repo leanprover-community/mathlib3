@@ -213,6 +213,34 @@ def to_mon_end : Monad C ⥤ Mon_ (C ⥤ C) :=
       refl,
     end } }
 
+def mon_to_monad : Mon_ (C ⥤ C) → Monad C := λ M,
+{ func := M.X,
+  str :=
+  { η := M.one,
+    μ := M.mul,
+    assoc' := λ X, begin
+      have := M.mul_assoc,
+      rw ←nat_trans.hcomp_id_app,
+      change ((M.mul ◫ 𝟙 M.X) ≫ M.mul).app X = _,
+      erw this,
+      simp only [nat_trans.comp_app],
+      change ((α_ M.X M.X M.X).app X).hom ≫ (_ ◫ _).app X ≫ _ = _,
+      suffices : ((α_ M.X M.X M.X).app X).hom = 𝟙 _, by {rw this, simp},
+      refl,
+    end,
+    left_unit' := λ X, begin
+      have := M.mul_one,
+      change (_ ◫ _) ≫ _ = _ at this,
+      rw [←nat_trans.id_hcomp_app, ←nat_trans.comp_app, this],
+      refl,
+    end,
+    right_unit' := λ X, begin
+      have := M.one_mul,
+      change (_ ◫ _) ≫ _ = _ at this,
+      rw [←nat_trans.hcomp_id_app, ←nat_trans.comp_app, this],
+      refl,
+    end } }
+
 end bundled_monads
 
 end category_theory

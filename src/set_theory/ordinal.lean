@@ -1162,10 +1162,10 @@ by rw [← not_le, ← not_le, ord_le]
 quotient.induction_on c $ λ α,
 let ⟨r, _, e⟩ := ord_eq α in by simp only [mk_def, e, card_type]
 
-theorem ord_card_le (o : ordinal) : o.card.map_rel_iff≤ o :=
+theorem ord_card_le (o : ordinal) : o.card.ord ≤ o :=
 ord_le.2 (le_refl _)
 
-lemma lt_ord_succ_card (o : ordinal) : o < o.card.succ.map_rel_iff:=
+lemma lt_ord_succ_card (o : ordinal) : o < o.card.succ.ord :=
 by { rw [lt_ord], apply cardinal.lt_succ_self }
 
 @[simp] theorem ord_le_ord {c₁ c₂} : ord c₁ ≤ ord c₂ ↔ c₁ ≤ c₂ :=

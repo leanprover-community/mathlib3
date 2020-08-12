@@ -358,10 +358,6 @@ lemma mem_bot {x : R} : x ∈ (⊥ : subring R) ↔ ∃ (n : ℤ), ↑n = x :=  
 
 /-! # inf -/
 
-example : has_inf (submonoid R) := by apply_instance
-example (a b : submonoid R) : submonoid R := a ⊓ b -- how to intersect two submonoids
-
-
 /-- The inf of two subrings is their intersection. -/
 instance : has_inf (subring R) :=
 ⟨λ s t,
@@ -376,46 +372,6 @@ instance : has_inf (subring R) :=
 instance : has_Inf (subring R) :=
 ⟨λ s, subring.mk' (⋂ t ∈ s, ↑t) (⨅ t ∈ s, subring.to_submonoid t) (by simp)
   (⨅ t ∈ s, subring.to_add_subgroup t) (by simp)⟩
-
--- instance : has_Inf (subring R) :=
--- ⟨λ s, {carrier := (⋂ t ∈ s, ↑t),
--- one_mem' := begin
---             rw set.mem_bInter_iff,
---             intros S hS,
---             rw mem_coe,
---             exact S.one_mem,
---             end,
--- mul_mem' := begin
---             rintros a b ha hb,
---             rw set.mem_bInter_iff at *,
---             rintros,
---             apply mul_mem,
---             exact ha x H,
---             exact hb x H,
---             end,
--- zero_mem' := begin
---              rw set.mem_bInter_iff,
---             intros S hS,
---             rw mem_coe,
---             exact S.zero_mem,
---             end,
--- add_mem' := begin
---             rintros a b ha hb,
---             rw set.mem_bInter_iff at *,
---             rintros,
---             apply add_mem,
---             exact ha x H,
---             exact hb x H,
---             end,
--- neg_mem' := begin
---             rintros a ha,
---             rw set.mem_bInter_iff at *,
---             rintros,
---             apply neg_mem,
---             exact ha x H,
---             end
--- } ⟩
-
 
 @[simp, norm_cast] lemma coe_Inf (S : set (subring R)) :
   ((Inf S : subring R) : set R) = ⋂ s ∈ S, ↑s := rfl
@@ -477,133 +433,30 @@ lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 (@closure_le _ _ _ ⟨p, H1, Hmul, H0, Hadd, Hneg⟩).2 Hs h
 
-
--- **TODO** : golf this next proof
-
-/- Techniques for golfing.
-
-It might be easier to play with your tactic mode proof before you start porting
-to term mode. Here are some tips.
-
-1) `apply` is a clever tactic. If you have f : P -> Q -> R and your goal is ⊢ R
-then `apply f` will give you two goals, `⊢ P` and `⊢ Q`. `refine` is a more
-principled version of the same tactic but it makes you put the underscores in;
-in this case `apply f` is the same as `refine f _ _`. Note however that if your
-goal is `⊢ Q → R` then `apply f` will still work fine, it will leave you with
-the goal `⊢ P`, and here it's the same as `refine f _`. Try changing your
-tactic mode `apply`s into refines.
-
-2) If you have an `exact` then you're closing a goal. If the line before it is a `refine`
-then you might be able to change one of the `_`s (probably the first one) into exactly the
-term which you used `exact` with. If you can turn some tactic code block which used to have
-applys and refines and exacts into `exact a (b (c d)) (e f)` then you can drop this
-directly into the underscore which it represents in term mode. In particular
-
-begin
-  exact foo
-end
-
-in tactic mode is the same as `foo` in term mode.
-
-
-3) Term mode `rewrite` is this funny triangle `▸`. It's a nightmare to use. rewrite
-is clever like apply, and the stupid triangle is not at all clever. I see Yury mananged
-to get triangles working in term mode -- good luck with that. If at any point your
-next move is a rewrite then I would recommend just dropping temporarily into tactic mode.
-Remember that
-
-begin
-  foo
-end
-
-is the same as `(by foo)`
-
-and
-
-begin
-  foo
-  bar
-end
-
-is the same as `(by {foo, bar})`
-
--/
-
 lemma mem_closure_iff {s : set R} {x} :
   x ∈ closure s ↔ x ∈ add_subgroup.closure (submonoid.closure s : set R) :=
--- ⟨λ h, closure_induction h
---   (λ x hx, add_subgroup.subset_closure (submonoid.subset_closure hx))
---   (add_subgroup.zero_mem _)
---   (add_subgroup.subset_closure (submonoid.one_mem (submonoid.closure s)))
---   (λ x y hx hy, add_subgroup.add_mem _ hx hy)
---   _
---   _, _⟩
--- #exit
-
-begin
-  split,
-  { rintros h,
-    apply closure_induction h,
-    { rintros x hx,
-      exact add_subgroup.subset_closure (submonoid.subset_closure hx) },
-    { exact add_subgroup.zero_mem _ },
-    { exact add_subgroup.subset_closure (submonoid.one_mem (submonoid.closure s)) },
-    { rintros x y hx hy,
-      apply add_subgroup.add_mem _ _ _,
-      repeat{ assumption } },
-    -- up to here
-    { rintros x hx,
-      apply add_subgroup.neg_mem _ _,
-      exact hx },
-    { rintros x y hx hy,
-      apply add_subgroup.closure_induction hy,
-      { rintros q hq,
-        apply add_subgroup.closure_induction hx,
-        { rintros p hp,
-          apply add_subgroup.subset_closure,
-          apply (submonoid.closure s).mul_mem hp hq },
-        { rw zero_mul q,
-          apply add_subgroup.zero_mem _ },
-        { rintros p₁ p₂ ihp₁ ihp₂,
-          rw add_mul p₁ p₂ q,
-          apply add_subgroup.add_mem _ ihp₁ ihp₂ },
-        { rintros x hx,
-          have f : -x * q = -(x*q) := by simp,
-          rw f,
-          apply add_subgroup.neg_mem _ hx } },
-      { rw mul_zero x,
-        apply add_subgroup.zero_mem _ },
-      { rintros q₁ q₂ ihq₁ ihq₂,
-        rw mul_add x q₁ q₂,
-        apply add_subgroup.add_mem _ ihq₁ ihq₂ },
-      { rintros z hz,
-        have f : x * -z = -(x*z) := by simp,
-        rw f,
-        apply add_subgroup.neg_mem _ hz } } },
-  { rintros h,
-    apply add_subgroup.closure_induction h,
-    { rintros x hx,
-      apply submonoid.closure_induction hx,
-      {
-        rintros x hx,
-        apply subset_closure hx,
-      },
-      { apply one_mem _ },
-      { rintros x y hx hy,
-        apply mul_mem _ _ _,
-        repeat { assumption } } },
-    { apply zero_mem _ },
-    {
-      rintros x y hx hy,
-      apply add_mem _ _ _,
-      repeat{assumption},
-    },
-    {
-      rintros x hx,
-      apply neg_mem _ _,
-      assumption,
-    } }
-  end
+⟨ λ h, closure_induction h (λ x hx, add_subgroup.subset_closure $ submonoid.subset_closure hx )
+ (add_subgroup.zero_mem _)
+ (add_subgroup.subset_closure ( submonoid.one_mem (submonoid.closure s)) )
+ (λ x y hx hy, add_subgroup.add_mem _ hx hy )
+ (λ x hx, add_subgroup.neg_mem _ hx )
+ ( λ x y hx hy, add_subgroup.closure_induction hy
+  (λ q hq, add_subgroup.closure_induction hx
+    ( λ p hp, add_subgroup.subset_closure ((submonoid.closure s).mul_mem hp hq) )
+    ( begin rw zero_mul q, apply add_subgroup.zero_mem _, end )
+    ( λ p₁ p₂ ihp₁ ihp₂, begin rw add_mul p₁ p₂ q, apply add_subgroup.add_mem _ ihp₁ ihp₂, end )
+    ( λ x hx, begin have f : -x * q = -(x*q) := by simp, rw f, apply add_subgroup.neg_mem _ hx, end ) )
+  ( begin rw mul_zero x, apply add_subgroup.zero_mem _, end )
+  ( λ q₁ q₂ ihq₁ ihq₂, begin rw mul_add x q₁ q₂, apply add_subgroup.add_mem _ ihq₁ ihq₂ end )
+  ( λ z hz, begin have f : x * -z = -(x*z) := by simp, rw f, apply add_subgroup.neg_mem _ hz, end ) ),
+ λ h, add_subgroup.closure_induction h
+ ( λ x hx, submonoid.closure_induction hx
+  ( λ x hx, subset_closure hx )
+  ( one_mem _ )
+  ( λ x y hx hy, mul_mem _ hx hy ) )
+ ( zero_mem _ )
+ (λ x y hx hy, add_mem _ hx hy)
+ ( λ x hx, neg_mem _ hx ) ⟩
 
 -- **TODO** -- is this theorem going to be useful in practice?
 theorem exists_list_of_mem_closure {s : set R} {x : R} (hx : x ∈ closure s) :

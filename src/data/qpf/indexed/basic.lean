@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
 -/
 import data.pfunctor.indexed.basic
-import tactic.mk_opaque
 universe u
 
 /-!
@@ -232,13 +231,13 @@ begin
     refine ⟨a,_⟩, intros k b, refine ⟨(f₀ b,f₁ b),hr _ _⟩, },
   have h : g ≫ (P F).map (fam.subtype.val ≫ fam.prod.fst) ≫ abs F _ = x,
   { dsimp [g], ext _ ⟨ ⟩ : 2, simp only [abs_map, functor.map_comp, fam.comp_app],
-    mk_opaque g, simp only [hf₀, fam.comp_app],
+    simp only [hf₀, fam.comp_app],
     erw [← abs_map',← abs_map'], refl },
   have h' : g ≫ (P F).map (fam.subtype.val ≫ fam.prod.snd) ≫ abs F _ = y,
   { dsimp [g], ext _ ⟨ ⟩ : 2,
     simp only [abs_map, functor.map_comp, fam.comp_app, hf₁, fam.comp_app],
     erw [← abs_map',← abs_map'], refl },
-  mk_opaque g,
+  -- clear_value g, -- put this back when naming issue is fixed in `clear_value`
   refine ⟨g ≫ abs F _, _⟩,
   simp only [h.symm,h'.symm,ipfunctor.map_comp,abs_map,abs_map_assoc,
     category.assoc,and_self,eq_self_iff_true,category_theory.functor.map_comp],
@@ -282,14 +281,15 @@ begin
   { intros i y, rcases hf i y with ⟨hf,hf',hr⟩,
     refine ⟨a _ y,_⟩, intros k b, refine ⟨_,hr _ b⟩, },
   have h : g ≫ (P F).map (fam.subtype.val ≫ fam.prod.fst) ≫ abs F _ = x,
-  { dsimp [g], ext : 2, simp, mk_opaque g,
+  { dsimp [g], ext : 2, simp,
+    -- clear_value g, -- put this back when naming issue is fixed in `clear_value`
     rcases (hf x_1 x_2) with ⟨hf,hf',hr⟩, simp [hf],
     erw [← abs_map',← abs_map',map_eq'], refl },
   have h' : g ≫ (P F).map (fam.subtype.val ≫ fam.prod.snd) ≫ abs F _ = y,
   { dsimp [g], ext : 2, simp,
     rcases (hf x_1 x_2) with ⟨hf,hf',hr⟩, simp [hf'],
     erw [← abs_map',← abs_map',map_eq'], refl },
-  mk_opaque g,
+  -- clear_value g, -- put this back when naming issue is fixed in `clear_value`
   refine ⟨g ≫ abs F _, _⟩,
   simp only [h.symm,h'.symm,ipfunctor.map_comp,abs_map,abs_map_assoc,
     category.assoc,and_self,eq_self_iff_true,category_theory.functor.map_comp],

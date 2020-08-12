@@ -96,8 +96,8 @@ theorem init' (f : r ≼i s) {a : α} {b : β} : s b (f a) → ∃ a', f a' = b 
 f.init _ _
 
 theorem init_iff (f : r ≼i s) {a : α} {b : β} : s b (f a) ↔ ∃ a', f a' = b ∧ r a' a :=
-⟨λ h, let ⟨a', e⟩ := f.init' h in ⟨a', e, (f : r ↪r s).ord.2 (e.symm ▸ h)⟩,
- λ ⟨a', e, h⟩, e ▸ (f : r ↪r s).ord.1 h⟩
+⟨λ h, let ⟨a', e⟩ := f.init' h in ⟨a', e, (f : r ↪r s).map_rel_iff.2 (e.symm ▸ h)⟩,
+ λ ⟨a', e, h⟩, e ▸ (f : r ↪r s).map_rel_iff.1 h⟩
 
 /-- An order isomorphism is an initial segment -/
 def of_iso (f : r ≃r s) : r ≼i s :=
@@ -111,7 +111,7 @@ def of_iso (f : r ≃r s) : r ≼i s :=
 @[trans] protected def trans (f : r ≼i s) (g : s ≼i t) : r ≼i t :=
 ⟨f.1.trans g.1, λ a c h, begin
   simp at h ⊢,
-  rcases g.2 _ _ h with ⟨b, rfl⟩, have h := g.1.ord.2 h,
+  rcases g.2 _ _ h with ⟨b, rfl⟩, have h := g.1.map_rel_iff.2 h,
   rcases f.2 _ _ h with ⟨a', rfl⟩, exact ⟨a', rfl⟩
 end⟩
 
@@ -127,9 +127,9 @@ theorem unique_of_extensional [is_extensional β s] :
   funext a, have := h a, induction this with a H IH,
   refine @is_extensional.ext _ s _ _ _ (λ x, ⟨λ h, _, λ h, _⟩),
   { rcases f.init_iff.1 h with ⟨y, rfl, h'⟩,
-    rw IH _ h', exact (g : r ↪r s).ord.1 h' },
+    rw IH _ h', exact (g : r ↪r s).map_rel_iff.1 h' },
   { rcases g.init_iff.1 h with ⟨y, rfl, h'⟩,
-    rw ← IH _ h', exact (f : r ↪r s).ord.1 h' }
+    rw ← IH _ h', exact (f : r ↪r s).map_rel_iff.1 h' }
 end⟩
 
 instance [is_well_order β s] : subsingleton (r ≼i s) :=
@@ -374,8 +374,8 @@ def collapse_F [is_well_order β s] (f : r ↪r s) : Π a, {b // ¬ s (f a) b} :
 (rel_embedding.well_founded f $ is_well_order.wf).fix $ λ a IH, begin
   let S := {b | ∀ a h, s (IH a h).1 b},
   have : f a ∈ S, from λ a' h, ((trichotomous _ _)
-    .resolve_left $ λ h', (IH a' h).2 $ trans (f.ord.1 h) h')
-    .resolve_left $ λ h', (IH a' h).2 $ h' ▸ f.ord.1 h,
+    .resolve_left $ λ h', (IH a' h).2 $ trans (f.map_rel_iff.1 h) h')
+    .resolve_left $ λ h', (IH a' h).2 $ h' ▸ f.map_rel_iff.1 h,
   exact ⟨is_well_order.wf.min S ⟨_, this⟩,
    is_well_order.wf.not_lt_min _ _ this⟩
 end
@@ -596,9 +596,9 @@ eq.symm $ quot.sound ⟨rel_iso.of_surjective
 eq.symm $ quotient.sound ⟨rel_iso.of_surjective
   (rel_embedding.cod_restrict _
     ((subrel.rel_embedding _ _).trans f)
-    (λ ⟨x, h⟩, by rw [rel_embedding.trans_apply]; exact f.to_rel_embedding.ord.1 h))
+    (λ ⟨x, h⟩, by rw [rel_embedding.trans_apply]; exact f.to_rel_embedding.map_rel_iff.1 h))
   (λ ⟨y, h⟩, by rcases f.init' h with ⟨a, rfl⟩;
-    exact ⟨⟨a, f.to_rel_embedding.ord.2 h⟩, subtype.eq $ rel_embedding.trans_apply _ _ _⟩)⟩
+    exact ⟨⟨a, f.to_rel_embedding.map_rel_iff.2 h⟩, subtype.eq $ rel_embedding.trans_apply _ _ _⟩)⟩
 
 @[simp] theorem typein_lt_typein (r : α → α → Prop) [is_well_order α r]
   {a b : α} : typein r a < typein r b ↔ r a b :=
@@ -985,7 +985,7 @@ induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, b
     (sum.rec _ _) (λ a b, _), λ a b, _⟩⟩,
   { exact f }, { exact λ _, t },
   { rcases a with a|_; rcases b with b|_,
-    { simpa only [sum.lex_inl_inl] using f.ord.1 },
+    { simpa only [sum.lex_inl_inl] using f.map_rel_iff.1 },
     { intro _, rw hf, exact ⟨_, rfl⟩ },
     { exact false.elim ∘ sum.lex_inr_inl },
     { exact false.elim ∘ sum.lex_inr_inr.1 } },
@@ -1049,7 +1049,7 @@ def lift.principal_seg : @principal_seg ordinal.{u} ordinal.{max (u+1) v} (<) (<
     { exact λ b, enum r (f b) ((hf _).2 ⟨_, rfl⟩) },
     { refine λ a b h, (typein_lt_typein r).1 _,
       rw [typein_enum, typein_enum],
-      exact f.ord.1 h },
+      exact f.map_rel_iff.1 h },
     { intro a', cases (hf _).1 (typein_lt_type _ a') with b e,
       existsi b, simp, simp [e] } },
   { cases h with a e, rw [← e],

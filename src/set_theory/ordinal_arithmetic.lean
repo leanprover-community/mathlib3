@@ -575,7 +575,7 @@ quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩
     (λ a, (f a.1, a.2))
     (λ a b h, _)⟩, clear_,
   cases h with a₁ b₁ a₂ b₂ h' a b₁ b₂ h',
-  { exact prod.lex.left _ _ (f.to_rel_embedding.ord.1 h') },
+  { exact prod.lex.left _ _ (f.to_rel_embedding.map_rel_iff.1 h') },
   { exact prod.lex.right _ h' }
 end
 
@@ -587,7 +587,7 @@ quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩
     (λ a b h, _)⟩,
   cases h with a₁ b₁ a₂ b₂ h' a b₁ b₂ h',
   { exact prod.lex.left _ _ h' },
-  { exact prod.lex.right _ (f.to_rel_embedding.ord.1 h') }
+  { exact prod.lex.right _ (f.to_rel_embedding.map_rel_iff.1 h') }
 end
 
 theorem mul_le_mul {a b c d : ordinal} (h₁ : a ≤ c) (h₂ : b ≤ d) : a * b ≤ c * d :=

@@ -75,7 +75,7 @@ def aleph_idx : cardinal → ordinal := aleph_idx.initial_seg
   (aleph_idx.initial_seg : cardinal → ordinal) = aleph_idx := rfl
 
 @[simp] theorem aleph_idx_lt {a b} : aleph_idx a < aleph_idx b ↔ a < b :=
-aleph_idx.initial_seg.to_rel_embedding.ord.symm
+aleph_idx.initial_seg.to_rel_embedding.map_rel_iff.symm
 
 @[simp] theorem aleph_idx_le {a b} : aleph_idx a ≤ aleph_idx b ↔ a ≤ b :=
 by rw [← not_lt, ← not_lt, aleph_idx_lt]
@@ -130,7 +130,7 @@ def aleph' : ordinal → cardinal := aleph'.rel_iso
   (aleph'.rel_iso : ordinal → cardinal) = aleph' := rfl
 
 @[simp] theorem aleph'_lt {o₁ o₂ : ordinal.{u}} : aleph' o₁ < aleph' o₂ ↔ o₁ < o₂ :=
-aleph'.rel_iso.ord.symm
+aleph'.rel_iso.map_rel_iff.symm
 
 @[simp] theorem aleph'_le {o₁ o₂ : ordinal.{u}} : aleph' o₁ ≤ aleph' o₂ ↔ o₁ ≤ o₂ :=
 le_iff_le_iff_lt_iff_lt.2 aleph'_lt

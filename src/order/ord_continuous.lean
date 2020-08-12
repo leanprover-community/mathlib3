@@ -258,7 +258,7 @@ variables [preorder α] [preorder β] (e : ((≤) : α → α → Prop) ≃r ((�
 
 protected lemma left_ord_continuous : left_ord_continuous e :=
 λ s x hx,
-⟨monotone.mem_upper_bounds_image (λ x y, e.ord.1) hx.1,
+⟨monotone.mem_upper_bounds_image (λ x y, e.map_rel_iff.1) hx.1,
   λ y hy, e.rel_symm_apply.1 $ (is_lub_le_iff hx).2 $ λ x' hx', e.rel_symm_apply.2 $ hy $
     mem_image_of_mem _ hx'⟩
 

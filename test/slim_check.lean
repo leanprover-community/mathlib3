@@ -27,6 +27,27 @@ if h : 0 < p
   then iterated_primality_test_aux p h 10
   else pure ff
 
+def mfirst {α} {m} [monad m] (f : α → m bool) : list α → m (option α)
+| [] := pure none
+| (x :: xs) :=
+mcond (f x)
+  (pure x)
+  (mfirst xs)
+
+def find_prime_aux (p : ℕ) (h : 1 ≤ p / 2) : ℕ → rand (option ℕ)
+| 0 := pure none
+| (n+1) := do
+  k ← rand.random_r _ 1 (p / 2),
+  let xs := (list.range' k 20).map (λ i, 2*i+1),
+  some r ← mfirst iterated_primality_test xs
+    | find_prime_aux n,
+  pure r
+
+def find_prime (p : ℕ) : rand (option ℕ) :=
+if h : 1 ≤ p / 2 then
+  find_prime_aux p h 20
+else pure none
+
 open tactic
 
 /- this should print `[97, 101, 103, 107, 109, 113]` but
@@ -44,3 +65,8 @@ run_cmd do
   let ⟨ps, _⟩ := (xs.mfilter iterated_primality_test).run ⟨ mk_std_gen 10 ⟩,
   guard (ps = [97, 101, 103, 107, 109, 113]) <|> fail "wrong list of prime numbers",
   trace ps
+
+/- this finds a random prime number -/
+run_cmd do
+  p ← tactic.run_rand (find_prime 1000000),
+  trace p

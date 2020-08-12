@@ -64,10 +64,10 @@ open fin nat function
 /-- Elimination principle for the empty set `fin 0`, dependent version. -/
 def fin_zero_elim {α : fin 0 → Sort u} (x : fin 0) : α x := x.elim0
 
-def fact.succ.pos {n} : fact (0 < succ n) := zero_lt_succ _
-def fact.bit0.pos {n} [h : fact (0 < n)] : fact (0 < bit0 n) :=
+lemma fact.succ.pos {n} : fact (0 < succ n) := zero_lt_succ _
+lemma fact.bit0.pos {n} [h : fact (0 < n)] : fact (0 < bit0 n) :=
 nat.zero_lt_bit0 $ ne_of_gt h
-def fact.bit1.pos {n} : fact (0 < bit1 n) :=
+lemma fact.bit1.pos {n} : fact (0 < bit1 n) :=
 nat.zero_lt_bit1 _
 
 localized "attribute [instance] fact.succ.pos" in fin_fact
@@ -77,6 +77,7 @@ localized "attribute [instance] fact.bit1.pos" in fin_fact
 namespace fin
 variables {n m : ℕ} {a b : fin n}
 
+/-- convert a `ℕ` to `fin n`, provided `n` is positive -/
 def of_nat' [h : fact (0 < n)] (i : ℕ) : fin n := ⟨i%n, mod_lt _ h⟩
 
 @[simp] protected lemma eta (a : fin n) (h : a.1 < n) : (⟨a.1, h⟩ : fin n) = a :=

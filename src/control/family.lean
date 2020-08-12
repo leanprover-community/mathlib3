@@ -5,6 +5,8 @@ Author: Simon Hudon
 -/
 import category_theory.category
 import category_theory.types
+import category_theory.pi.basic
+import category_theory.limits.pi
 import logic.relation
 
 /-!
@@ -216,6 +218,9 @@ by ext : 2; rw subtype.ext_iff; apply congr_fun (congr_fun h x)
 lemma subtype.map_val {α β : fam I} {p : Pred α} {q : Pred β} (a : α ⟶ β) (h) :
   subtype.map p q a h ≫ subtype.val = subtype.val ≫ a :=
 by ext _ ⟨ ⟩ : 2; refl
+
+local attribute [instance] has_limit_of_has_limit_comp_eval
+instance : has_binary_products (fam I) := ⟨by apply_instance⟩
 
 /-- binary product in the category `fam I` -/
 def prod (α β : fam I) : fam I

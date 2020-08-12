@@ -177,7 +177,7 @@ int.coe_nat_lt.1 (by simp [-int.coe_nat_lt, norm_mod_lt x hy])
 lemma norm_le_norm_mul_left (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) :
   (norm x).nat_abs ≤ (norm (x * y)).nat_abs :=
 by rw [norm_mul, int.nat_abs_mul];
-  exact le_mul_of_one_le_right' (nat.zero_le _)
+  exact le_mul_of_one_le_right (nat.zero_le _)
     (int.coe_nat_le.1 (by rw [coe_nat_abs_norm]; exact norm_pos.2 hy))
 
 instance : nontrivial ℤ[i] :=

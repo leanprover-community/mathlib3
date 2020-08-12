@@ -6,7 +6,7 @@ Authors: Alexander Bentkamp, Yury Kudriashov
 import data.set.intervals.ord_connected
 import data.set.intervals.image_preimage
 import data.complex.module
-import linear_algebra.affine_space
+import linear_algebra.affine_space.basic
 
 /-!
 # Convex sets and functions on real vector spaces
@@ -485,7 +485,7 @@ lemma convex_on_iff_div:
 and_congr iff.rfl
 ⟨begin
   intros h x y hx hy a b ha hb hab,
-  apply h hx hy (div_nonneg ha hab) (div_nonneg hb hab),
+  apply h hx hy (div_nonneg ha $ le_of_lt hab) (div_nonneg hb $ le_of_lt hab),
   rw [←add_div],
   exact div_self (ne_of_gt hab)
 end,

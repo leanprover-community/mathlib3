@@ -137,6 +137,10 @@ lemma to_outer_measure_injective {α} [measurable_space α] :
   μ₁ = μ₂ :=
 to_outer_measure_injective $ by rw [← trimmed, outer_measure.trim_congr h, trimmed]
 
+lemma ext_iff {α} [measurable_space α] {μ₁ μ₂ : measure α} :
+  μ₁ = μ₂ ↔ ∀s, is_measurable s → μ₁ s = μ₂ s :=
+⟨by { rintro rfl s hs, refl }, measure.ext⟩
+
 end measure
 
 section
@@ -374,6 +378,7 @@ begin
 end
 
 end
+
 /-- Obtain a measure by giving an outer measure where all sets in the σ-algebra are
   Carathéodory measurable. -/
 def outer_measure.to_measure {α} (m : outer_measure α)
@@ -1110,7 +1115,7 @@ end finite_at_filter
 
 lemma finite_at_nhds_within [topological_space α] (μ : measure α) [locally_finite_measure μ]
   (x : α) (s : set α) :
-  μ.finite_at_filter (nhds_within x s) :=
+  μ.finite_at_filter (𝓝[s] x) :=
 (finite_at_nhds μ x).inf_of_left
 
 @[simp] lemma finite_at_principal {s : set α} : μ.finite_at_filter (𝓟 s) ↔ μ s < ⊤ :=
@@ -1305,7 +1310,7 @@ namespace is_compact
 variables {α : Type*} [topological_space α] [measurable_space α] {μ : measure α} {s : set α}
 
 lemma finite_measure_of_nhds_within (hs : is_compact s) :
-  (∀ a ∈ s, μ.finite_at_filter (nhds_within a s)) → μ s < ⊤ :=
+  (∀ a ∈ s, μ.finite_at_filter (𝓝[s] a)) → μ s < ⊤ :=
 by simpa only [← measure.compl_mem_cofinite, measure.finite_at_filter]
   using hs.compl_mem_sets_of_nhds_within
 
@@ -1313,7 +1318,7 @@ lemma finite_measure [locally_finite_measure μ] (hs : is_compact s) : μ s < �
 hs.finite_measure_of_nhds_within $ λ a ha, μ.finite_at_nhds_within _ _
 
 lemma measure_zero_of_nhds_within (hs : is_compact s) :
-  (∀ a ∈ s, ∃ t ∈ nhds_within a s, μ t = 0) → μ s = 0 :=
+  (∀ a ∈ s, ∃ t ∈ 𝓝[s] a, μ t = 0) → μ s = 0 :=
 by simpa only [← compl_mem_ae_iff] using hs.compl_mem_sets_of_nhds_within
 
 end is_compact

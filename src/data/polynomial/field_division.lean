@@ -207,6 +207,9 @@ by rw [← gcd_is_unit_iff, ← gcd_is_unit_iff, gcd_map, is_unit_map]
   p.map f = 0 ↔ p = 0 :=
 by simp [polynomial.ext_iff, f.map_eq_zero, coeff_map]
 
+lemma map_ne_zero [field k] {f : R →+* k} (hp : p ≠ 0) : p.map f ≠ 0 :=
+mt (map_eq_zero f).1 hp
+
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),
   have p.coeff 1 ≠ 0,
@@ -245,7 +248,7 @@ instance : normalization_domain (polynomial R) :=
     have hu : degree ↑u⁻¹ = 0, from degree_eq_zero_of_is_unit ⟨u⁻¹, rfl⟩,
     begin
       apply units.ext,
-      rw [dif_neg (units.coe_ne_zero u)],
+      rw [dif_neg (units.ne_zero u)],
       conv_rhs {rw eq_C_of_degree_eq_zero hu},
       refine C_inj.2 _,
       rw [← nat_degree_eq_of_degree_eq_some hu, leading_coeff,

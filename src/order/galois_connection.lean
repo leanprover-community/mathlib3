@@ -54,9 +54,9 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a a₁ a₂ :
 def galois_connection [preorder α] [preorder β] (l : α → β) (u : β → α) := ∀a b, l a ≤ b ↔ a ≤ u b
 
 /-- Makes a Galois connection from an order-preserving bijection. -/
-theorem rel_iso.to_galois_connection [preorder α] [preorder β] (oi : @rel_iso α β (≤) (≤)) :
-  galois_connection oi oi.symm :=
-λ b g, by rw [oi.map_rel_iff, rel_iso.apply_symm_apply]
+theorem rel_iso.to_galois_connection [preorder α] [preorder β] (ri : @rel_iso α β (≤) (≤)) :
+  galois_connection ri ri.symm :=
+λ b g, by rw [ri.map_rel_iff, rel_iso.apply_symm_apply]
 
 namespace galois_connection
 

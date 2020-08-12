@@ -7,7 +7,6 @@ Authors: Simon Hudon, Scott Morrison
 import tactic.interactive
 import tactic.finish
 import tactic.ext
-import tactic.mk_opaque
 import tactic.lift
 import tactic.apply
 import tactic.reassoc_axiom
@@ -541,19 +540,27 @@ begin
   exact unit.star
 end
 
-/-- test `clear_body` -/
-example : ∀ x y : ℤ, let z := x + y in x = z - y → true :=
+/-- test `clear_body` and the preservation of naming -/
+example : ∀ x y : ℤ, let z := x + y in x = z - y → x = y - z → true :=
 begin
-  introv h,
+  introv h h,
   guard_hyp x := ℤ,
   guard_hyp y := ℤ,
   guard_hyp z := ℤ,
-  guard_hyp h := x = z - y,
+  guard_hyp h := x = y - z,
+  suffices : true, -- test the type of the second assumption named `h`
+  { clear h,
+    guard_hyp h := x = z - y,
+    assumption },
   do { to_expr ```(z) >>= is_local_def },
-  clear_body z,
+  clear_value z,
   guard_hyp z := ℤ,
   success_if_fail { do { to_expr ```(z) >>= is_local_def } },
-  guard_hyp h := x = z - y,
+  guard_hyp h := x = y - z,
+  suffices : true,
+  { clear h,
+    guard_hyp h := x = z - y,
+    assumption },
   trivial
 end
 

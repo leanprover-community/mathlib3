@@ -521,8 +521,10 @@ meta def clear_value (vs : list expr) : tactic unit := do
   { revert_lst vs,
     (expr.elet v t d b) ← target | fail format!"Cannot clear the body of {vs.head}. It is not a local definition.",
     let e := expr.pi v binder_info.default t b,
-    g ← mk_meta_var e <|> fail format!"Cannot clear the body of {vs.head}. The resulting goal is not type correct.",
-    tactic.exact $ g d,
+    type_check e <|> fail format!"Cannot clear the body of {vs.head}. The resulting goal is not type correct.",
+    g ← mk_meta_var e,
+    h ← note `h none g,
+    tactic.exact $ h d,
     gs ← get_goals,
     set_goals $ g :: gs },
   ls.reverse.mmap' $ λ vs, intro_lst $ vs.map expr.local_pp_name

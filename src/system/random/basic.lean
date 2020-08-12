@@ -188,7 +188,7 @@ end bounded_random
 
 end io
 
-namespace tactic.interactive
+namespace tactic
 
 /-- create a seeded random number generator in the `tactic` monad -/
 meta def mk_generator : tactic std_gen := do
@@ -230,7 +230,7 @@ run_rand (rand.random_series α _)
 
 end random
 
-end tactic.interactive
+end tactic
 
 namespace bool
 

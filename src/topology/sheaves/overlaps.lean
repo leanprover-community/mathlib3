@@ -65,11 +65,24 @@ def cone_π_app : Π (o : overlap ι), op (supr U) ⟶ diagram_obj U o
 | (single i) := (opens.le_supr _ _).op
 | (pair i j) := (opens.inf_le_left _ _ ≫ opens.le_supr _ _).op
 
+@[simps]
 def cone : cone (diagram U) :=
 { X := op (supr U),
   π := { app := cone_π_app U, } }
 
--- TODO observe this is a limit cone?
+variables {α : Type u} [preorder α]
+def op_hom_of_le {U V : αᵒᵖ} (h : unop V ≤ unop U) : U ⟶ V :=
+has_hom.hom.op (hom_of_le h)
+def le_of_op_hom {U V : αᵒᵖ} (h : U ⟶ V) : unop V ≤ unop U :=
+le_of_hom (h.unop)
+
+def cone_is_limit : is_limit (cone U) :=
+{ lift := λ s, op_hom_of_le (λ x h,
+  begin
+    simp [opens.mem_supr] at h,
+    cases h with i mem,
+    exact le_of_op_hom (s.π.app (single i)) mem,
+  end) }
 
 variables {C : Type u} [category.{v} C] [has_products C]
 

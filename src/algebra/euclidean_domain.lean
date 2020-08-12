@@ -14,24 +14,18 @@ universe u
 section prio
 set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
+/-- A Euclidean domain is an integral domain with quotient and remainder functions-/
 @[protect_proj without mul_left_not_lt r_well_founded]
 class euclidean_domain (α : Type u) extends comm_ring α, nontrivial α :=
 (quotient : α → α → α)
 (quotient_zero : ∀ a, quotient a 0 = 0)
 (remainder : α → α → α)
  -- This could be changed to the same order as int.mod_add_div.
- -- We normally write qb+r rather than r + qb though.
+ -- We normally write `qb+r` rather than `r + qb` though.
 (quotient_mul_add_remainder_eq : ∀ a b, b * quotient a b + remainder a b = a)
 (r : α → α → Prop)
 (r_well_founded : well_founded r)
 (remainder_lt : ∀ a {b}, b ≠ 0 → r (remainder a b) b)
-/- `val_le_mul_left` is often not a required in definitions of a euclidean
-  domain since given the other properties we can show there is a
-  (noncomputable) euclidean domain α with the property `val_le_mul_left`.
-  So potentially this definition could be split into two different ones
-  (euclidean_domain_weak and euclidean_domain_strong) with a noncomputable
-  function from weak to strong. I've currently divided the lemmas into
-  strong and weak depending on whether they require `val_le_mul_left` or not. -/
 (mul_left_not_lt : ∀ a {b}, b ≠ 0 → ¬r (a * b) a)
 end prio
 
@@ -104,15 +98,15 @@ mod_eq_zero.2 (one_dvd _)
 @[simp] lemma zero_mod (b : α) : 0 % b = 0 :=
 mod_eq_zero.2 (dvd_zero _)
 
-@[simp] lemma div_zero (a : α) : a / 0 = 0 :=
+@[simp, priority 900] lemma div_zero (a : α) : a / 0 = 0 :=
 euclidean_domain.quotient_zero a
 
-@[simp] lemma zero_div {a : α} : 0 / a = 0 :=
+@[simp, priority 900] lemma zero_div {a : α} : 0 / a = 0 :=
 classical.by_cases
   (λ a0 : a = 0, a0.symm ▸ div_zero 0)
   (λ a0, by simpa only [zero_mul] using mul_div_cancel 0 a0)
 
-@[simp] lemma div_self {a : α} (a0 : a ≠ 0) : a / a = 1 :=
+@[simp, priority 900] lemma div_self {a : α} (a0 : a ≠ 0) : a / a = 1 :=
 by simpa only [one_mul] using mul_div_cancel 1 a0
 
 lemma eq_div_of_mul_eq_left {a b c : α} (hb : b ≠ 0) (h : a * b = c) : a = c / b :=

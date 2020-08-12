@@ -80,11 +80,24 @@ funext $ λ x, deriv_cos
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
 
+lemma has_deriv_at_tan {x:ℂ} (h : cos x ≠ 0) : has_deriv_at tan (1 / (cos x)^2) x :=
+begin
+  convert has_deriv_at.div (has_deriv_at_sin x) (has_deriv_at_cos x) h,
+  rw ← sin_sq_add_cos_sq x,
+  ring,
+end
+
+lemma differentiable_at_tan {x:ℂ} (h : cos x ≠ 0) : differentiable_at ℂ tan x :=
+(has_deriv_at_tan h).differentiable_at
+
+lemma deriv_tan {x:ℂ} (h : cos x ≠ 0) : deriv tan x = 1 / (cos x)^2 :=
+(has_deriv_at_tan h).deriv
+
 lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
 (continuous_sin.comp continuous_subtype_val).mul
   (continuous.inv subtype.property (continuous_cos.comp continuous_subtype_val))
 
-/-- The complex hyperbolic sine function is everywhere differentiable, with the derivative `sinh x`. -/
+/-- The complex hyperbolic sine function is everywhere differentiable, with the derivative `cosh x`. -/
 lemma has_deriv_at_sinh (x : ℂ) : has_deriv_at sinh (cosh x) x :=
 begin
   simp only [cosh, div_eq_mul_inv],
@@ -104,7 +117,7 @@ funext $ λ x, (has_deriv_at_sinh x).deriv
 lemma continuous_sinh : continuous sinh :=
 differentiable_sinh.continuous
 
-/-- The complex hyperbolic cosine function is everywhere differentiable, with the derivative `cosh x`. -/
+/-- The complex hyperbolic cosine function is everywhere differentiable, with the derivative `sinh x`. -/
 lemma has_deriv_at_cosh (x : ℂ) : has_deriv_at cosh (sinh x) x :=
 begin
   simp only [sinh, div_eq_mul_inv],
@@ -311,6 +324,20 @@ funext $ λ _, deriv_cos
 
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
+
+lemma has_deriv_at_tan {x:ℝ} (h : cos x ≠ 0) : has_deriv_at tan (1 / (cos x)^2) x :=
+begin
+  rw [← complex.of_real_ne_zero, complex.of_real_cos] at h,
+  convert has_deriv_at_real_of_complex (complex.has_deriv_at_tan h),
+  rw ← complex.of_real_re (1/((cos x)^2)),
+  simp,
+end
+
+lemma differentiable_at_tan {x:ℝ} (h : cos x ≠ 0) : differentiable_at ℝ tan x :=
+(has_deriv_at_tan h).differentiable_at
+
+lemma deriv_tan {x:ℝ} (h : cos x ≠ 0) : deriv tan x = 1 / (cos x)^2 :=
+(has_deriv_at_tan h).deriv
 
 lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
 by simp only [tan_eq_sin_div_cos]; exact
@@ -1243,6 +1270,15 @@ match lt_trichotomy x y with
 | or.inr (or.inl h) := h
 | or.inr (or.inr h) := absurd (tan_lt_tan_of_lt_of_lt_pi_div_two hy₁ hx₂ h) (by rw hxy; exact lt_irrefl _)
 end
+
+lemma has_deriv_at_tan_of_neg_pi_div_two_lt_of_lt_pi_div_two {x:ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) : has_deriv_at tan (1 / (cos x)^2) x :=
+has_deriv_at_tan (ne_of_gt (cos_pos_of_neg_pi_div_two_lt_of_lt_pi_div_two h.1 h.2))
+
+lemma differentiable_at_tan_of_neg_pi_div_two_lt_of_lt_pi_div_two {x:ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) : differentiable_at ℝ tan x :=
+(has_deriv_at_tan_of_neg_pi_div_two_lt_of_lt_pi_div_two h).differentiable_at
+
+lemma deriv_tan_of_neg_pi_div_two_lt_of_lt_pi_div_two {x:ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) : deriv tan x = 1 / (cos x)^2 :=
+(has_deriv_at_tan_of_neg_pi_div_two_lt_of_lt_pi_div_two h).deriv
 
 /-- Inverse of the `tan` function, returns values in the range `-π / 2 < arctan x` and `arctan x < π / 2` -/
 noncomputable def arctan (x : ℝ) : ℝ :=

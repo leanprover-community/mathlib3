@@ -464,29 +464,10 @@ begin
 end
 
 lemma map_comp (p q : polynomial R) : map f (p.comp q) = (map f p).comp (map f q) :=
-begin
-  rw polynomial.comp_eq_sum_left,
-  rw polynomial.comp_eq_sum_left,
-  dsimp only [finsupp.sum],
-  rw map_sum,
-  apply eq.symm,
-  apply sum_subset_zero_on_sdiff,
-  { exact map_support_is_subset f p, },
-  { intros x hx,
-    rw [map_mul, map_C, map_pow],
-    simp only [mem_sdiff, mem_support_iff, ne.def, classical.not_not] at hx,
-    replace hx := hx.right,
-    change (map f p).coeff x = 0 at hx,
-    rw coeff_map at hx,
-    change f.to_fun (p.coeff x) = 0 at hx,
-    change C (f.to_fun (p.coeff x)) * map f q ^ x = 0,
-    rw [hx, C_0, zero_mul], },
-  { intros x hx,
-    rw [map_mul, map_C, map_pow],
-    change C ((map f p).coeff x) * map f q ^ x =  C (f.to_fun (p.coeff x)) * map f q ^ x,
-    rw coeff_map,
-    refl, },
-end
+polynomial.induction_on p
+  (by simp)
+  (by simp {contextual := tt})
+  (by simp [pow_succ', ← mul_assoc, polynomial.comp] {contextual := tt})
 
 end map
 

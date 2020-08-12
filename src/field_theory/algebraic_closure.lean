@@ -57,10 +57,10 @@ namespace is_alg_closed
 theorem of_exists_root (H : ∀ p : polynomial k, p.monic → irreducible p → ∃ x, p.eval x = 0) :
   is_alg_closed k :=
 ⟨λ p, or.inr $ λ q hq hqp,
-have irreducible (q * C (leading_coeff q)⁻¹),
-by { rw ← coe_norm_unit hq.ne_zero, exact irreducible_of_associated associated_normalize hq },
-let ⟨x, hx⟩ := H (q * C (leading_coeff q)⁻¹) (monic_mul_leading_coeff_inv hq.ne_zero) this in
-degree_mul_leading_coeff_inv q hq.ne_zero ▸ degree_eq_one_of_irreducible_of_root this hx⟩
+ have irreducible (q * C (leading_coeff q)⁻¹),
+   by { rw ← coe_norm_unit hq.ne_zero, exact irreducible_of_associated associated_normalize hq },
+ let ⟨x, hx⟩ := H (q * C (leading_coeff q)⁻¹) (monic_mul_leading_coeff_inv hq.ne_zero) this in
+ degree_mul_leading_coeff_inv q hq.ne_zero ▸ degree_eq_one_of_irreducible_of_root this hx⟩
 
 end is_alg_closed
 
@@ -92,11 +92,13 @@ splitting field of the product of the polynomials sending each indeterminate `x_
 the polynomial `f` in the finset to a root of `f`. -/
 def to_splitting_field (s : finset (monic_irreducible k)) :
   mv_polynomial (monic_irreducible k) k →ₐ[k] splitting_field (∏ x in s, x : polynomial k) :=
-mv_polynomial.aeval $ λ f, if hf : f ∈ s
-then root_of_splits _ ((splits_prod_iff _ $ λ (j : monic_irreducible k) _, j.2.2.ne_zero).1
-    (splitting_field.splits _) f hf)
-  (mt is_unit_iff_degree_eq_zero.2 f.2.2.not_unit)
-else 37
+mv_polynomial.aeval $ λ f,
+  if hf : f ∈ s
+  then root_of_splits _
+    ((splits_prod_iff _ $ λ (j : monic_irreducible k) _, j.2.2.ne_zero).1
+      (splitting_field.splits _) f hf)
+    (mt is_unit_iff_degree_eq_zero.2 f.2.2.not_unit)
+  else 37
 
 theorem to_splitting_field_eval_X_self {s : finset (monic_irreducible k)} {f} (hf : f ∈ s) :
   to_splitting_field k s (eval_X_self k f) = 0 :=
@@ -108,10 +110,12 @@ by { rw [to_splitting_field, eval_X_self, ← alg_hom.coe_to_ring_hom, hom_eval�
 theorem span_eval_ne_top : span_eval k ≠ ⊤ :=
 begin
   rw [ideal.ne_top_iff_one, span_eval, ideal.span, ← set.image_univ, finsupp.mem_span_iff_total],
-  rintros ⟨v, _, hv⟩, replace hv := congr_arg (to_splitting_field k v.support) hv,
+  rintros ⟨v, _, hv⟩,
+  replace hv := congr_arg (to_splitting_field k v.support) hv,
   rw [alg_hom.map_one, finsupp.total_apply, finsupp.sum, alg_hom.map_sum, finset.sum_eq_zero] at hv,
   { exact zero_ne_one hv },
-  intros j hj, rw [smul_eq_mul, alg_hom.map_mul, to_splitting_field_eval_X_self k hj, mul_zero]
+  intros j hj,
+  rw [smul_eq_mul, alg_hom.map_mul, to_splitting_field_eval_X_self k hj, mul_zero]
 end
 
 /-- A random maximal ideal that contains `span_eval k` -/
@@ -148,14 +152,14 @@ let ⟨p, hp⟩ := ideal.quotient.mk_surjective z in hp ▸
 mv_polynomial.induction_on p (λ x, is_integral_algebra_map) (λ p q, is_integral_add)
   (λ p f ih, @is_integral_mul _ _ _ _ _ _ (ideal.quotient.mk _ _) ih ⟨f, f.2.1,
     by { erw [polynomial.aeval_def, adjoin_monic.algebra_map, ← hom_eval₂,
-        ideal.quotient.eq_zero_iff_mem],
+              ideal.quotient.eq_zero_iff_mem],
       exact le_max_ideal k (ideal.subset_span ⟨f, rfl⟩) }⟩)
 
 theorem adjoin_monic.exists_root {f : polynomial k} (hfm : f.monic) (hfi : irreducible f) :
   ∃ x : adjoin_monic k, f.eval₂ (to_adjoin_monic k) x = 0 :=
 ⟨ideal.quotient.mk _ $ X (⟨f, hfm, hfi⟩ : monic_irreducible k),
  by { rw [to_adjoin_monic, ← hom_eval₂, ideal.quotient.eq_zero_iff_mem],
-  exact le_max_ideal k (ideal.subset_span $ ⟨_, rfl⟩) }⟩
+      exact le_max_ideal k (ideal.subset_span $ ⟨_, rfl⟩) }⟩
 
 /-- The `n`th step of constructing `algebraic_closure`, together with its `field` instance. -/
 def step_aux (n : ℕ) : Σ α : Type u, field α :=
@@ -215,11 +219,11 @@ instance step.algebra (n) : algebra k (step k n) :=
 
 instance step.algebra_tower (n) : is_algebra_tower k (step k n) (step k (n + 1)) :=
 is_algebra_tower.of_algebra_map_eq $ λ z,
-@nat.le_rec_on_succ (step k) 0 n n.zero_le (n + 1).zero_le (λ n, to_step_succ k n) z
+  @nat.le_rec_on_succ (step k) 0 n n.zero_le (n + 1).zero_le (λ n, to_step_succ k n) z
 
 theorem step.is_integral (n) : ∀ z : step k n, is_integral k z :=
 nat.rec_on n (λ z, is_integral_algebra_map) $ λ n ih z,
-is_integral_trans ih _ (adjoin_monic.is_integral (step k n) z : _)
+  is_integral_trans ih _ (adjoin_monic.is_integral (step k n) z : _)
 
 instance to_step_of_le.directed_system :
   directed_system (step k) (λ i j h, to_step_of_le k i j h) :=
@@ -247,7 +251,7 @@ instance algebra_of_step (n) : algebra (step k n) (algebraic_closure k) :=
 
 theorem of_step_succ (n : ℕ) : (of_step k (n + 1)).comp (to_step_succ k n) = of_step k n :=
 ring_hom.ext $ λ x, show ring.direct_limit.of (step k) (λ i j h, to_step_of_le k i j h) _ _ = _,
-by { convert ring.direct_limit.of_f n.le_succ x, ext x, exact (nat.le_rec_on_succ' x).symm }
+  by { convert ring.direct_limit.of_f n.le_succ x, ext x, exact (nat.le_rec_on_succ' x).symm }
 
 theorem exists_of_step (z : algebraic_closure k) : ∃ n x, of_step k n x = z :=
 ring.direct_limit.exists_of z
@@ -260,7 +264,8 @@ begin
   have : ∃ n p, polynomial.map (of_step k n) p = f,
   { convert ring.direct_limit.polynomial.exists_of f },
   unfreezingI { obtain ⟨n, p, rfl⟩ := this },
-  rw monic_map_iff at hfm, have := irreducible_of_irreducible_map (of_step k n) p hfm hfi,
+  rw monic_map_iff at hfm,
+  have := irreducible_of_irreducible_map (of_step k n) p hfm hfi,
   obtain ⟨x, hx⟩ := to_step_succ.exists_root k hfm this,
   refine ⟨of_step k (n + 1) x, _⟩,
   rw [← of_step_succ k n, eval_map, ← hom_eval₂, hx, ring_hom.map_zero]

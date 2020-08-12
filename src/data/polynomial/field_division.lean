@@ -294,7 +294,7 @@ else λ hx, irreducible.not_unit hx $ is_unit_C.2 $ is_unit_iff_ne_zero.2 H
 
 theorem degree_pos_of_irreducible (hp : irreducible p) : 0 < p.degree :=
 lt_of_not_ge $ λ hp0, have _ := eq_C_of_degree_le_zero hp0,
-not_irreducible_C (p.coeff 0) $ this ▸ hp
+  not_irreducible_C (p.coeff 0) $ this ▸ hp
 
 theorem pairwise_coprime_X_sub {α : Type u} [field α] {I : Type v}
   {s : I → α} (H : function.injective s) :

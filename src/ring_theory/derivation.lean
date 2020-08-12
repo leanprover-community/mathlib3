@@ -151,7 +151,7 @@ instance : add_comm_monoid (derivation R A M) :=
   add_comm := λ D E, ext $ λ a, add_comm _ _,
   ..derivation.has_zero }
 
-lemma add_apply : (D1 + D2) a = D1 a + D2 a := rfl
+@[simp] lemma add_apply : (D1 + D2) a = D1 a + D2 a := rfl
 
 @[priority 100]
 instance derivation.Rsemimodule : semimodule R (derivation R A M) :=
@@ -222,45 +222,23 @@ open ring_commutator
 
 /-- The commutator of derivations is again a derivation. -/
 def commutator (D1 D2 : derivation R A A) : derivation R A A :=
-⟨commutator D1 D2, λ a b, by simp only [commutator, map_add, id.smul_eq_mul, linear_map.mul_app,
+⟨⁅D1, D2⁆, λ a b, by simp only [commutator, map_add, id.smul_eq_mul, linear_map.mul_app,
 leibniz, linear_map.to_fun_eq_coe, coe_linear_map, linear_map.sub_apply]; ring⟩
 
 instance : has_bracket (derivation R A A) := ⟨derivation.commutator⟩
 
-@[simp] lemma commutator_to_linear_map :
-  ⁅D1, D2⁆.to_linear_map = ⁅D1.to_linear_map, D2.to_linear_map⁆ := rfl
+@[simp] lemma commutator_coe_linear_map : ↑⁅D1, D2⁆ = (⁅D1, D2⁆ : A →ₗ[R] A) := rfl
 
-@[simp] lemma commutator_to_fun : ⁅D1, D2⁆.to_fun = ⁅D1.to_fun, D2.to_fun⁆ :=
-begin
-  simp only [commutator_to_linear_map, linear_map.to_fun_eq_coe],
-  sorry
-end
-
-variables (L1 L2 : A →ₗ[R] A)
-
-lemma commutator_to_fun_coe : ((⁅L1, L2⁆) : A → A) = ⁅(L1 : A → A), (L2 : A → A)⁆ :=
-begin
-  sorry
-end
-
-@[simp] lemma commutator_apply : ⁅D1, D2⁆ a = ⁅D1 a, D2 a⁆ :=
-begin
-  sorry
-end
+lemma commutator_apply : ⁅D1, D2⁆ a = D1 (D2 a) - D2 (D1 a) := rfl
 
 instance : lie_ring (derivation R A A) :=
-{ add_lie := λ d e f, by { ext a, simp only [commutator_apply, add_apply],
-    exact add_lie (d a) (e a) (f a),},
-  lie_add := λ d e f, by { ext a, simp only [commutator_apply, add_apply],
-    exact lie_add (d a) (e a) (f a),},
-  lie_self := λ d, by { ext a, simp only [commutator_apply, add_apply],
-    exact lie_self (d a),},
-  jacobi := λ d e f, by { ext a, simp only [commutator_apply, add_apply],
-    exact jacobi (d a) (e a) (f a),}, }
+{ add_lie := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring },
+  lie_add := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_add], ring },
+  lie_self := λ d, by { ext a, simp only [commutator_apply, add_apply, map_add], ring },
+  jacobi := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_sub], ring } }
 
 instance : lie_algebra R (derivation R A A) :=
-{ lie_smul := λ r d e, by { ext a, simp only [commutator_apply, add_apply, smul_apply],
-    exact lie_smul R A r (d a) (e a),},
+{ lie_smul := λ r d e, by { ext a, simp only [commutator_apply, smul_apply, map_smul, smul_sub] },
   ..derivation.Rsemimodule, }
 
 end

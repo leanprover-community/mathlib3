@@ -1641,7 +1641,7 @@ instead of
 ```lean
 meta def my_tactic := ...
 
-nprun_cmd add_interactive [``my_tactic]
+run_cmd add_interactive [``my_tactic]
 ```
 -/
 @[user_attribute]

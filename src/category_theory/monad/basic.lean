@@ -5,6 +5,8 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.functor_category
 import category_theory.concrete_category.bundled
+import category_theory.monoidal.End
+import category_theory.monoidal.internal
 
 namespace category_theory
 open category
@@ -102,10 +104,13 @@ A morphism of monads is a natural transformation which is compatible with `η` a
 variables (M N)
 /-- A morphism of unbundled monads. -/
 structure monad_hom extends nat_trans M N :=
-(app_η {X} : (η_ M).app X ≫ app X = (η_ N).app X . obviously)
-(app_μ {X} : (μ_ M).app X ≫ app X = (M.map (app X) ≫ app (N.obj X)) ≫ (μ_ N).app X . obviously)
+(app_η' {X} : (η_ M).app X ≫ app X = (η_ N).app X . obviously)
+(app_μ' {X} : (μ_ M).app X ≫ app X = (M.map (app X) ≫ app (N.obj X)) ≫ (μ_ N).app X . obviously)
 attribute [nolint has_inhabited_instance] monad_hom
 variables {M N}
+
+restate_axiom monad_hom.app_η'
+restate_axiom monad_hom.app_μ'
 
 namespace monad
 variable (M)
@@ -114,8 +119,8 @@ The identity morphism on a monad `M`.
 -/
 def ident : monad_hom M M :=
 { app := λ X, 𝟙 _,
-  app_η := by simp,
-  app_μ := λ X, by {simp only [auto_param_eq, functor.map_id, comp_id], tidy} }
+  app_η' := by simp,
+  app_μ' := λ X, by {simp only [auto_param_eq, functor.map_id, comp_id], tidy} }
 variable {M}
 end monad
 
@@ -129,8 +134,8 @@ The composition of morphisms of monads.
 -/
 def gg (f : monad_hom M N) (g : monad_hom N L) : monad_hom M L :=
 { app := λ X, (f.app X) ≫ (g.app X),
-  app_η := λ X, by {rw ←assoc, simp [app_η]},
-  app_μ := λ X, by {rw ←assoc, simp [app_μ]} }
+  app_η' := λ X, by {rw ←assoc, simp [app_η']},
+  app_μ' := λ X, by {rw ←assoc, simp [app_μ']} }
 
 @[simp] lemma ident_gg (f : monad_hom M N) : (monad.ident M).gg f = f := by {ext X, apply id_comp}
 @[simp] lemma gg_ident (f : monad_hom M N) : f.gg (monad.ident N) = f := by {ext X, apply comp_id}
@@ -160,6 +165,53 @@ instance : category (Monad C) :=
   id_comp' := λ _ _, by apply monad_hom.ident_gg,
   comp_id' := λ _ _, by apply monad_hom.gg_ident,
   assoc' := λ _ _ _ _, by apply monad_hom.gg_assoc }
+
+local attribute [instance] endofunctor_monoidal_category
+
+def monad_to_mon : Monad C → Mon_ (C ⥤ C) := λ M,
+{ X := M.func,
+  one := η_ _,
+  mul := μ_ _,
+  one_mul' := begin
+    change (_ ◫ _) ≫ _ = _,
+    ext A,
+    simp only [nat_trans.hcomp_id_app, nat_trans.comp_app],
+    apply monad.right_unit,
+  end,
+  mul_one' := begin
+    change (_ ◫ _) ≫ _ = _,
+    tidy,
+  end,
+  mul_assoc' := begin
+    change (_ ◫ _) ≫ _ = _ ≫ (_ ◫ _) ≫ _,
+    ext A,
+    simp only [nat_trans.hcomp_id_app, nat_trans.hcomp_app, functor.map_id,
+      nat_trans.id_app, comp_id, nat_trans.comp_app],
+    erw id_comp,
+    simp_rw monad.assoc,
+    change _ = ((α_ M.func M.func M.func).app A).hom ≫ _ ≫ _,
+    suffices : ((α_ M.func M.func M.func).app A).hom = 𝟙 _, by {rw this, simp},
+    refl,
+  end }
+
+def to_mon_end : Monad C ⥤ Mon_ (C ⥤ C) :=
+{ obj := monad_to_mon,
+  map := λ M N f,
+  { hom := f.to_nat_trans,
+    one_hom' := begin
+      ext,
+      simp only [nat_trans.comp_app],
+      apply f.app_η,
+    end,
+    mul_hom' := begin
+      change _ = (_ ◫ _) ≫ _,
+      ext,
+      simp only [nat_trans.hcomp_app, assoc, nat_trans.comp_app],
+      change (μ_ _).app x ≫ f.app x = _,
+      rw f.app_μ,
+      simp only [nat_trans.naturality, assoc],
+      refl,
+    end } }
 
 end bundled_monads
 

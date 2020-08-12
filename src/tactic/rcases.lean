@@ -198,8 +198,10 @@ meta instance has_reflect : has_reflect rcases_patt
 | (alts l) := `(λ l, alts l).subst $
   by haveI := has_reflect; exact list.reflect l
 
-/-- Formats an `rcases` pattern. -/
-protected meta def format : bool → rcases_patt → tactic _root_.format
+/-- Formats an `rcases` pattern. If the `bracket` argument is true, then it will be
+printed at high precedence, i.e. it will have parentheses around it if it is not already a tuple
+or atomic name. -/
+protected meta def format : ∀ bracket : bool, rcases_patt → tactic _root_.format
 | _ (one n) := pure $ to_fmt n
 | _ (tuple []) := pure "⟨⟩"
 | _ (tuple ls) := do
@@ -561,15 +563,28 @@ namespace interactive
 open interactive interactive.types expr
 
 /--
-The `rcases` tactic is the same as `cases`, but with more flexibility in the
-`with` pattern syntax to allow for recursive case splitting. The pattern syntax
-uses the following recursive grammar:
+`rcases` is a tactic that will perform `cases` recursively, according to a pattern. It is used to
+destructure hypotheses or expressions composed of inductive types like `h1 : a ∧ b ∧ c ∨ d` or
+`h2 : ∃ x y, trans_rel R x y`. Usual usage might be `rcases h1 with ⟨ha, hb, hc⟩ | hd` or
+`rcases h2 with ⟨x, y, _ | ⟨z, hxz, hzy⟩⟩` for these examples.
 
-```lean
-patt ::= patt_med (":" expr)?
-patt_med ::= (patt_hi "|")* patt_hi
-patt_hi ::= id | "rfl" | "_" | "⟨" (patt ",")* patt "⟩" | "(" patt ")"
-```
+Each element of an `rcases` pattern is matched against a particular local hypothesis (most of which
+are generated during the execution of `rcases` and represent individual elements destructured from
+the input expression). An `rcases` pattern has the following grammar:
+
+* A name like `x`, which names the active hypothesis as `x`.
+* A blank `_`, which does nothing (letting the automatic naming system used by `cases` name the
+  hypothesis).
+* The keyword `rfl`, which expects the hypothesis to be `h : a = b`, and calls `subst` on the
+  hypothesis (which has the effect of replacing `b` with `a` everywhere or vice versa).
+* A type ascription `p : ty`, which sets the type of the hypothesis to `ty` and then matches it
+  against `p`. (Of course, `ty` must unify with the actual type of `h` for this to work.)
+* A tuple pattern `⟨p1, p2, p3⟩`, which matches a constructor with many arguments, or a series
+  of nested conjunctions or existentials. For example if the active hypothesis is `a ∧ b ∧ c`,
+  then the conjunction will be destructured, and `p1` will be matched against `a`, `p2` against `b`
+  and so on.
+* An alteration pattern `p1 | p2 | p3`, which matches an inductive type with multiple constructors,
+  or a nested disjunction like `a ∨ b ∨ c`.
 
 A pattern like `⟨a, b, c⟩ | ⟨d, e⟩` will do a split over the inductive datatype,
 naming the first three parameters of the first constructor as `a,b,c` and the
@@ -580,14 +595,6 @@ such as `⟨⟨a⟩, b | c⟩ | d` then these will cause more case splits as nec
 If there are too many arguments, such as `⟨a, b, c⟩` for splitting on
 `∃ x, ∃ y, p x`, then it will be treated as `⟨a, ⟨b, c⟩⟩`, splitting the last
 parameter as necessary.
-
-If `rcases` results in an expression of the form `x = a`, then using `rfl`
-in the pattern will have the same effect as writing `h` and then
-following the `rcases` with a `subst h`.
-
-Type ascriptions like `⟨x : ℕ, h : x < 1⟩` can be inserted into the pattern,
-and they will `change` the target hypothesis to the stated type if it is defeq
-to the actual type of the hypothesis.
 
 `rcases` also has special support for quotient types: quotient induction into Prop works like
 matching on the constructor `quot.mk`.
@@ -661,7 +668,8 @@ with_desc "patt? (: expr)?" $
   prod.mk none <$> (tk ":" >> texpr)?
 
 /--
-The `obtain` tactic is a combination of `have` and `rcases`.
+The `obtain` tactic is a combination of `have` and `rcases`. See `rcases` for
+a description of supported patterns.
 
 ```lean
 obtain ⟨patt⟩ : type,

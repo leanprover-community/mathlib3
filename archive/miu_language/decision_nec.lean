@@ -161,19 +161,15 @@ lemma goodm_of_rule1 (xs : miustr) (h₁ : derivable (xs ++ [I])) (h₂ : goodm 
   : goodm (xs ++ [I,U]) :=
 begin
   cases h₂ with mhead nmtail,
-  have : xs ≠ nil, {
-    intro h,
-    rw h at *,
-    simpa,
-  },
+  have : xs ≠ nil,
+    intro h, rw h at *, rw [nil_append,head] at mhead, contradiction,
   split, {
-    rwa [head_append] at *,
-    simpa, exact this,
+    rwa [head_append] at *; exact this,
   },
   change [I,U] with [I] ++ [U],
   rw [←append_assoc,tail_append_singleton_of_ne_nil],
-  simp [mem_append,nmtail],
-  simp,
+    { simp [mem_append,nmtail], },
+  exact append_ne_nil_of_ne_nil_left _ _ this,
 end
 
 
@@ -189,29 +185,22 @@ begin
   exact (or_self _).mp (mem_append.mp mtail),
 end
 
-
 lemma goodm_of_rule3  (as bs : miustr) (h₁ : derivable (as ++ [I,I,I] ++ bs))
   (h₂ : goodm (as ++ [I,I,I] ++ bs)) : goodm (as ++ U :: bs) :=
 begin
   cases h₂ with mhead nmtail,
   have k : as ≠ nil , {
-    intro h,
-    rw h at mhead,
-    simpa,
+    intro h, rw h at mhead, rw [nil_append] at mhead, contradiction,
   },
   split, {
     rw [append_assoc,head_append] at *, {
-      rw [head_append], exact mhead, exact k,
-    },
-    exact k,
+      rw head_append, { exact mhead, },
+      exact k,
+    }, exact k,
   },
   contrapose! nmtail,
   rcases (exists_cons_of_ne_nil k) with ⟨x,xs,rfl⟩,
-  rw append_assoc, rw [cons_append] at *,
-  rw tail at *,
-  simp [mem_append,mem_append],
-  simp [mem_append,mem_cons_eq] at nmtail,
-  exact nmtail,
+  simp [cons_append, tail,mem_append] at *, exact nmtail,
 end
 
 
@@ -224,23 +213,17 @@ lemma goodm_of_rule4  (as bs : miustr) (h₁ : derivable (as ++ [U,U] ++ bs))
 begin
   cases h₂ with mhead nmtail,
   have k : as ≠ nil , {
-    intro h,
-    rw h at mhead,
-    simpa,
+    intro h, rw h at mhead, rw [nil_append] at mhead, contradiction,
   },
   split, {
     rw [append_assoc,head_append] at *, {
-      rw [head_append], exact mhead, exact k,
-    },
-    exact k,
+      rw head_append, { exact mhead, },
+      exact k,
+    }, exact k,
   },
   contrapose! nmtail,
   rcases (exists_cons_of_ne_nil k) with ⟨x,xs,rfl⟩,
-  rw append_assoc, rw [cons_append] at *,
-  rw tail at *,
-  simp [mem_append,mem_append],
-  simp [mem_append,mem_cons_eq] at nmtail,
-  exact nmtail,
+  simp [cons_append, tail,mem_append] at *, exact nmtail,
 end
 
 

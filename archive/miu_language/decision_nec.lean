@@ -120,8 +120,9 @@ string to be derivable, namely that the string must start with an M and contain 
 /--
 `goodm xs` holds if `xs : miustr` begins with `M` and contains no `M` in its tail.
 -/
+@[derive decidable_pred]
 def goodm (xs : miustr) : Prop :=
-  ∃ ys : miustr, xs = (M::ys) ∧ ¬(M ∈ ys)
+  list.head xs = M ∧ ¬(M ∈ list.tail xs)
 
 /-!
 Example usage
@@ -129,10 +130,9 @@ Example usage
 
 lemma goodmi : goodm [M,I] :=
 begin
-  constructor,
-    swap,
-  exact [I],
-  split, refl, rw mem_singleton, trivial,
+  split,
+    { refl },
+  rw [tail,mem_singleton], trivial
 end
 
 /-!
@@ -142,90 +142,105 @@ We'll show, for each `i` from 1 to 4, that if `en` follows by rule `i` from `st`
 
 open list
 
+lemma tail_append_singleton_of_ne_nil {a : miu_atom} {as : miustr} (h₁ : as ≠ nil) :
+  tail (as ++ [a]) = tail as ++ [a] :=
+begin
+  induction as with x xs hxs,
+    { contradiction, },
+  rw [tail,cons_append,tail],
+end
+
+lemma exists_cons_of_ne_nil {as : miustr} (h : as ≠ nil) : ∃ c cs, as = c :: cs :=
+begin
+  induction as with x xs hxs,
+    { contradiction, },
+  use [x,xs],
+end
+
 lemma goodm_of_rule1 (xs : miustr) (h₁ : derivable (xs ++ [I])) (h₂ : goodm (xs ++ [I]))
   : goodm (xs ++ [I,U]) :=
 begin
-  rcases h₂ with ⟨ys, k₁, k₂⟩,
-  use ys ++ [U],
-  split, {
-    rw [←(cons_append _ _ _), ←k₁],
-    simp only [append_assoc,singleton_append],
+  cases h₂ with mhead nmtail,
+  have : xs ≠ nil, {
+    intro h,
+    rw h at *,
+    simpa,
   },
-  simp [k₂],
+  split, {
+    rwa [head_append] at *,
+    simpa, exact this,
+  },
+  change [I,U] with [I] ++ [U],
+  rw [←append_assoc,tail_append_singleton_of_ne_nil],
+  simp [mem_append,nmtail],
+  simp,
 end
 
 
 lemma goodm_of_rule2 (xs : miustr) (h₁ : derivable (M :: xs))
   (h₂ : goodm (M :: xs)) : goodm (M :: xs ++ xs) :=
 begin
-  rcases h₂ with ⟨ys, k₁, k₂⟩,
-  use (ys ++ ys),
-  split, {
-    rw (cons_inj _).mp k₁,
-    refl,
-  },
-  simp [k₂],
+  split,
+    { refl, },
+  cases h₂ with mhead mtail,
+  contrapose! mtail,
+  rw cons_append at mtail,
+  rw [tail] at *,
+  exact (or_self _).mp (mem_append.mp mtail),
 end
 
 
 lemma goodm_of_rule3  (as bs : miustr) (h₁ : derivable (as ++ [I,I,I] ++ bs))
   (h₂ : goodm (as ++ [I,I,I] ++ bs)) : goodm (as ++ U :: bs) :=
 begin
-  rcases h₂ with ⟨ys, p₁, p₂⟩,
-  change as ++ [I,I,I] ++ bs with (as ++ [I,I,I]) ++ bs at p₁,
-  have h : ∃ zs, as = M :: zs,
-    induction as with x xs hxs, { -- base case
-      exfalso,
-      have : I = M,
-        exact head_eq_of_cons_eq p₁,
-      contradiction,
-    }, {
-      use xs,
-      rw head_eq_of_cons_eq p₁,
-    },
-  cases h with zs h,
-  use (zs++[U]++bs),
-  split, {
-    simp [h],
-  }, {
-    rw h at p₁,
-    rw ←((cons_inj M).mp p₁) at p₂,
-    simp [append_eq_has_append] at p₂,
-    simp [mem_append] at *,
-    exact p₂,
+  cases h₂ with mhead nmtail,
+  have k : as ≠ nil , {
+    intro h,
+    rw h at mhead,
+    simpa,
   },
+  split, {
+    rw [append_assoc,head_append] at *, {
+      rw [head_append], exact mhead, exact k,
+    },
+    exact k,
+  },
+  contrapose! nmtail,
+  rcases (exists_cons_of_ne_nil k) with ⟨x,xs,rfl⟩,
+  rw append_assoc, rw [cons_append] at *,
+  rw tail at *,
+  simp [mem_append,mem_append],
+  simp [mem_append,mem_cons_eq] at nmtail,
+  exact nmtail,
 end
 
+
 /-!
- The proof of the next lemma is very similar to the previous proof!
+ The proof of the next lemma is identical to the previous proof!
 -/
 
 lemma goodm_of_rule4  (as bs : miustr) (h₁ : derivable (as ++ [U,U] ++ bs))
   (h₂ : goodm (as ++ [U,U] ++ bs)) : goodm (as ++ bs) :=
 begin
-  rcases h₂ with ⟨ys, p₁, p₂⟩,
-  change as ++ [U,U] ++ bs with (as ++ [U,U]) ++ bs at p₁,
-  have h : ∃ zs, as = M :: zs,
-    induction as with x xs hxs, { -- base case
-      exfalso,
-      have : U = M,
-        exact head_eq_of_cons_eq p₁,
-      contradiction,
-    }, {
-      use xs,
-      rw head_eq_of_cons_eq p₁,
-    },
-  cases h with zs h,
-  use (zs++bs),
+  cases h₂ with mhead nmtail,
+  have k : as ≠ nil , {
+    intro h,
+    rw h at mhead,
+    simpa,
+  },
   split, {
-    rw h, refl,
-  }, {
-    rw h at p₁,
-    rw ←((cons_inj M).mp p₁) at p₂,
-    simp [append_eq_has_append] at p₂,
-    simp [mem_append] at *,
-    exact p₂,
-  }
+    rw [append_assoc,head_append] at *, {
+      rw [head_append], exact mhead, exact k,
+    },
+    exact k,
+  },
+  contrapose! nmtail,
+  rcases (exists_cons_of_ne_nil k) with ⟨x,xs,rfl⟩,
+  rw append_assoc, rw [cons_append] at *,
+  rw tail at *,
+  simp [mem_append,mem_append],
+  simp [mem_append,mem_cons_eq] at nmtail,
+  exact nmtail,
 end
 
 
@@ -255,6 +270,7 @@ this condition, we'll have proved that checking the condition is a decision proc
 `decstr en` is the condition that `count I en` is 1 or 2 modulo 3, that `en` starts with `M`, and
 that `en` contains no `M` in its tail.
 -/
+@[derive decidable_pred]
 def decstr (en : miustr) :=
   goodm en ∧ ((count I en) % 3 = 1 ∨ (count I en) % 3 = 2)
 

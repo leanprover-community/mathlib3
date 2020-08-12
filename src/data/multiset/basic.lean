@@ -37,6 +37,7 @@ instance has_decidable_eq [decidable_eq α] : decidable_eq (multiset α)
 | s₁ s₂ := quotient.rec_on_subsingleton₂ s₁ s₂ $ λ l₁ l₂,
   decidable_of_iff' _ quotient.eq
 
+/-- defines a size for a multiset by referring to the size of the underlying list -/
 protected def sizeof [has_sizeof α] (s : multiset α) : ℕ :=
 begin
   induction s with l x y ih, { exact l.sizeof },

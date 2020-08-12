@@ -37,7 +37,7 @@ instance has_decidable_eq [decidable_eq α] : decidable_eq (multiset α)
 | s₁ s₂ := quotient.rec_on_subsingleton₂ s₁ s₂ $ λ l₁ l₂,
   decidable_of_iff' _ quotient.eq
 
-private def sizeof_core [has_sizeof α] (s : multiset α) : ℕ :=
+protected def sizeof [has_sizeof α] (s : multiset α) : ℕ :=
 begin
   induction s with l x y ih, { exact l.sizeof },
   simp only [eq_rec_constant],
@@ -46,7 +46,7 @@ begin
   { dsimp [list.sizeof], apply add_left_comm }, { simp [h_sz₁₂, h_sz₂₃] }
 end
 
-instance has_sizeof [has_sizeof α] : has_sizeof (multiset α) := ⟨sizeof_core⟩
+instance has_sizeof [has_sizeof α] : has_sizeof (multiset α) := ⟨multiset.sizeof⟩
 
 /- empty multiset -/
 

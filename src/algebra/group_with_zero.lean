@@ -632,7 +632,7 @@ by simpa only [one_div] using eq_inv_of_mul_left_eq_one h
 @[simp] lemma one_div_div (a b : G₀) : 1 / (a / b) = b / a :=
 by rw [one_div, div_eq_mul_inv, mul_inv_rev', inv_inv', div_eq_mul_inv]
 
-@[simp] lemma one_div_one_div (a : G₀) : 1 / (1 / a) = a :=
+lemma one_div_one_div (a : G₀) : 1 / (1 / a) = a :=
 by simp
 
 lemma eq_of_one_div_eq_one_div {a b : G₀} (h : 1 / a = 1 / b) : a = b :=

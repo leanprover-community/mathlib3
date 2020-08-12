@@ -41,7 +41,7 @@ lemma dvd_and_not_dvd_iff [comm_cancel_monoid_with_zero α] {x y : α} :
   λ ⟨hx0, d, hdu, hdx⟩, ⟨⟨d, hdx⟩, λ ⟨e, he⟩, hdu (is_unit_of_dvd_one _
     ⟨e, mul_left_cancel' hx0 $ by conv {to_lhs, rw [he, hdx]};simp [mul_assoc]⟩)⟩⟩
 
-lemma pow_dvd_pow_iff [comm_cancel_monoid_with_zero α] [no_zero_divisors α]
+lemma pow_dvd_pow_iff [comm_cancel_monoid_with_zero α]
   {x : α} {n m : ℕ} (h0 : x ≠ 0) (h1 : ¬ is_unit x) :
   x ^ n ∣ x ^ m ↔ n ≤ m :=
 begin
@@ -161,7 +161,7 @@ lemma irreducible_of_prime [comm_cancel_monoid_with_zero α] {p : α} (hp : prim
       ⟨x, mul_right_cancel' (show b ≠ 0, from λ h, by simp [*, prime] at *)
         $ by conv {to_lhs, rw hx}; simp [mul_comm, mul_assoc, mul_left_comm]⟩))⟩
 
-lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul [comm_cancel_monoid_with_zero α] [no_zero_divisors α]
+lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul [comm_cancel_monoid_with_zero α]
   {p : α} (hp : prime p) {a b : α} {k l : ℕ} :
   p ^ k ∣ a → p ^ l ∣ b → p ^ ((k + l) + 1) ∣ a * b → p ^ (k + 1) ∣ a ∨ p ^ (l + 1) ∣ b :=
 λ ⟨x, hx⟩ ⟨y, hy⟩ ⟨z, hz⟩,
@@ -548,14 +548,14 @@ instance : order_top (associates α) :=
   le_top := assume a, ⟨0, (mul_zero a).symm⟩,
   .. associates.partial_order }
 
-instance [no_zero_divisors α] : no_zero_divisors (associates α) :=
+instance : no_zero_divisors (associates α) :=
 ⟨λ x y,
   (quotient.induction_on₂ x y $ assume a b h,
     have a * b = 0, from (associated_zero_iff_eq_zero _).1 (quotient.exact h),
     have a = 0 ∨ b = 0, from mul_eq_zero.1 this,
     this.imp (assume h, h.symm ▸ rfl) (assume h, h.symm ▸ rfl))⟩
 
-theorem prod_eq_zero_iff [no_zero_divisors α] [nontrivial α] {s : multiset (associates α)} :
+theorem prod_eq_zero_iff [nontrivial α] {s : multiset (associates α)} :
   s.prod = 0 ↔ (0 : associates α) ∈ s :=
 multiset.induction_on s (by simp) $
   assume a s, by simp [mul_eq_zero, @eq_comm _ 0 a] {contextual := tt}

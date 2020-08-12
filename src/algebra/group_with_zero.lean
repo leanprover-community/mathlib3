@@ -344,6 +344,15 @@ section cancel_monoid_with_zero
 
 variables [cancel_monoid_with_zero M₀] {a b c : M₀}
 
+section prio
+set_option default_priority 10 -- see Note [default priority]
+
+instance comm_cancel_monoid_with_zero.no_zero_divisors : no_zero_divisors M₀ :=
+⟨λ a b ab0, by { by_cases a = 0, {left, exact h}, right,
+  apply cancel_monoid_with_zero.mul_left_cancel_of_ne_zero h, rw [ab0, mul_zero], }⟩
+
+end prio
+
 lemma mul_left_cancel' (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
 cancel_monoid_with_zero.mul_left_cancel_of_ne_zero ha h
 
@@ -376,21 +385,6 @@ theorem eq_zero_of_mul_eq_self_left (h₁ : b ≠ 1) (h₂ : b * a = a) : a = 0 
 classical.by_contradiction $ λ ha, h₁ $ mul_right_cancel' ha $ h₂.symm ▸ (one_mul a).symm
 
 end cancel_monoid_with_zero
-
-section comm_cancel_monoid_with_zero
-
-variables [cancel_monoid_with_zero M₀] {a b c : M₀}
-
-section prio
-set_option default_priority 10 -- see Note [default priority]
-
-instance comm_cancel_monoid_with_zero.no_zero_divisors : no_zero_divisors M₀ :=
-⟨λ a b ab0, by { by_cases a = 0, {left, exact h}, right,
-  apply cancel_monoid_with_zero.mul_left_cancel_of_ne_zero h, rw [ab0, mul_zero], }⟩
-
-end prio
-
-end comm_cancel_monoid_with_zero
 
 section group_with_zero
 variables [group_with_zero G₀]

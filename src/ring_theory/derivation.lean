@@ -47,41 +47,36 @@ def transitive_module (R : Type*) (A : Type*) (M : Type*)
     algebra_map R A r • x + algebra_map R A s • x, by rw [map_add, add_smul],
   .. transitive_scalar R A M }
 
-/-- This class register an instance that the scalar multiplication over `M` is indeed defined as
-above in `transitive_scalar`. -/
-@[protect_proj]
-class compatible_semimodule (R : Type*) (A : Type*) [comm_semiring R] [semiring A] [algebra R A]
-(M : Type*) [add_comm_monoid M] [semimodule A M] [semimodule R M] :=
-(compatible_smul (r : R) (m : M) : r • m = ((algebra_map R A) r) • m)
+instance algebra.to_is_scalar_tower  {R : Type*} {A : Type*} [comm_semiring R] [semiring A]
+  [algebra R A] : is_scalar_tower R A A :=
+⟨λ r a b, by simp only [smul_def]; exact mul_smul _ _ _⟩
 
-instance algebra.to_compatible_semimodule  {R : Type*} {A : Type*} [comm_semiring R] [semiring A]
-  [algebra R A] : compatible_semimodule R A A :=
-⟨λ r a, by rw [smul_def]; refl⟩
-
-section compatible_semimodule
+section is_scalar_tower
 
 variables {R : Type*} [comm_semiring R]
 variables (A : Type*) [comm_semiring A] [algebra R A]
 variables {M : Type*} [add_comm_monoid M] [semimodule A M] [semimodule R M]
-  [compatible_semimodule R A M]
-variables {N : Type*} [add_comm_monoid N] [semimodule A N] [semimodule R N] [compatible_semimodule R A N]
+  [is_scalar_tower R A M]
+variables {N : Type*} [add_comm_monoid N] [semimodule A N] [semimodule R N] [is_scalar_tower R A N]
 
-@[simp] lemma compatible_smul (r : R) (m : M) : r • m = ((algebra_map R A) r) • m :=
-compatible_semimodule.compatible_smul r m
+@[simp] lemma algebra_compatible_smul (r : R) (m : M) : r • m = ((algebra_map R A) r) • m :=
+begin
+  sorry
+end
 
 variable {A}
 
-@[simp] lemma compatible_smul_comm (r : R) (a : A) (m : M) : a • r • m = r • a • m :=
-by rw [compatible_smul A r m, compatible_smul A r (a • m), ←mul_smul, mul_comm, mul_smul]
+@[simp] lemma algebra_compatible_smul_comm (r : R) (a : A) (m : M) : a • r • m = r • a • m :=
+by rw [algebra_compatible_smul A r m, algebra_compatible_smul A r (a • m), ←mul_smul, mul_comm, mul_smul]
 
 @[simp] lemma compatible_map_smul (f : M →ₗ[A] N) (r : R) (m : M) :
   f (r • m) = r • f m :=
-by rw [compatible_smul A r m, linear_map.map_smul, ←compatible_smul A r (f m)]
+by rw [algebra_compatible_smul A r m, linear_map.map_smul, ←algebra_compatible_smul A r (f m)]
 
 instance : has_coe (M →ₗ[A] N) (M →ₗ[R] N) :=
 ⟨λ f, ⟨f.to_fun, λ x y, f.map_add' x y, λ r n, compatible_map_smul _ _ _⟩⟩
 
-end compatible_semimodule
+end is_scalar_tower
 
 /-- `D : derivation R A M` is an `R`-linear map from `A` to `M` that satisfies the `leibniz`
 equality.
@@ -89,7 +84,7 @@ TODO: update this when bimodules are defined. -/
 @[protect_proj]
 structure derivation (R : Type*) (A : Type*) [comm_semiring R] [comm_semiring A]
   [algebra R A] (M : Type*) [add_cancel_comm_monoid M] [semimodule A M] [semimodule R M]
-  [compatible_semimodule R A M]
+  [is_scalar_tower R A M]
   extends A →ₗ[R] M :=
 (leibniz' (a b : A) : to_fun (a * b) = a • to_fun b + b • to_fun a)
 
@@ -100,7 +95,7 @@ section
 variables {R : Type*} [comm_semiring R]
 {A : Type*} [comm_semiring A] [algebra R A]
 {M : Type*} [add_cancel_comm_monoid M] [semimodule A M] [semimodule R M]
-[compatible_semimodule R A M]
+[is_scalar_tower R A M]
 (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
 instance : has_coe_to_fun (derivation R A M) := ⟨_, λ D, D.to_linear_map.to_fun⟩
@@ -156,7 +151,7 @@ instance : add_comm_monoid (derivation R A M) :=
 @[priority 100]
 instance derivation.Rsemimodule : semimodule R (derivation R A M) :=
 { smul := λ r D, ⟨r • D, λ a b, by simp only [linear_map.smul_apply, leibniz,
-  linear_map.to_fun_eq_coe, compatible_smul_comm, coe_linear_map, smul_add, add_comm],⟩,
+  linear_map.to_fun_eq_coe, algebra_compatible_smul_comm, coe_linear_map, smul_add, add_comm],⟩,
   mul_smul := λ a1 a2 D, ext $ λ b, mul_smul _ _ _,
   one_smul := λ D, ext $ λ b, one_smul _ _,
   smul_add := λ a D1 D2, ext $ λ b, smul_add _ _ _,
@@ -171,7 +166,7 @@ instance derivation.Rsemimodule : semimodule R (derivation R A M) :=
 instance : semimodule A (derivation R A M) :=
 { smul := λ a D, ⟨⟨λ b, a • D b,
     λ a1 a2, by rw [D.map_add, smul_add],
-    λ a1 a2, by rw [D.map_smul, compatible_smul_comm]⟩,
+    λ a1 a2, by rw [D.map_smul, algebra_compatible_smul_comm]⟩,
     λ b c, by { dsimp, simp only [smul_add, leibniz, smul_comm, add_comm] }⟩,
   mul_smul := λ a1 a2 D, ext $ λ b, mul_smul _ _ _,
   one_smul := λ D, ext $ λ b, one_smul A _,
@@ -182,7 +177,7 @@ instance : semimodule A (derivation R A M) :=
 
 /-- The composition of a derivation and a linear map is a derivation. -/
 def comp {N : Type*} [add_cancel_comm_monoid N] [semimodule A N] [semimodule R N]
-  [compatible_semimodule R A N]
+  [is_scalar_tower R A N]
   (D : derivation R A M) (f : M →ₗ[A] N) : derivation R A N :=
 { to_fun := λ a, f (D a),
   map_add' := λ a1 a2, by rw [D.map_add, f.map_add],
@@ -198,7 +193,7 @@ variables {A : Type*} [comm_ring A] [algebra R A]
 
 section
 
-variables {M : Type*} [add_comm_group M] [module A M] [module R M] [compatible_semimodule R A M]
+variables {M : Type*} [add_comm_group M] [module A M] [module R M] [is_scalar_tower R A M]
 variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
 @[simp] lemma map_neg : D (-a) = -D a := linear_map.map_neg D a
@@ -222,8 +217,8 @@ open ring_commutator
 
 /-- The commutator of derivations is again a derivation. -/
 def commutator (D1 D2 : derivation R A A) : derivation R A A :=
-⟨⁅D1, D2⁆, λ a b, by simp only [commutator, map_add, id.smul_eq_mul, linear_map.mul_app,
-leibniz, linear_map.to_fun_eq_coe, coe_linear_map, linear_map.sub_apply]; ring⟩
+⟨⁅D1, D2⁆, λ a b, by {simp only [commutator, map_add, id.smul_eq_mul, linear_map.mul_app,
+leibniz, linear_map.to_fun_eq_coe, coe_linear_map, linear_map.sub_apply], ring }⟩
 
 instance : has_bracket (derivation R A A) := ⟨derivation.commutator⟩
 

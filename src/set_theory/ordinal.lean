@@ -1213,7 +1213,7 @@ by { intros c c' h, rw [←card_ord c, ←card_ord c', h] }
   whose cardinal is `c`. This is the order-embedding version. For the regular function, see `ord`.
 -/
 def ord.rel_embedding : @rel_embedding cardinal ordinal (<) (<) :=
-rel_embedding.of_monotone cardinal.map_rel_iff$ λ a b, cardinal.ord_lt_ord.2
+rel_embedding.of_monotone cardinal.ord $ λ a b, cardinal.ord_lt_ord.2
 
 @[simp] theorem ord.rel_embedding_coe :
   (ord.rel_embedding : cardinal → ordinal) = ord := rfl

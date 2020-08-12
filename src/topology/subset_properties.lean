@@ -55,7 +55,7 @@ end
 /-- The complement to a compact set belongs to a filter `f` if each `a ∈ s` has a neighborhood `t`
 within `s` such that `tᶜ` belongs to `f`. -/
 lemma is_compact.compl_mem_sets_of_nhds_within (hs : is_compact s) {f : filter α}
-  (hf : ∀ a ∈ s, ∃ t ∈ nhds_within a s, tᶜ ∈ f) :
+  (hf : ∀ a ∈ s, ∃ t ∈ 𝓝[s] a, tᶜ ∈ f) :
   sᶜ ∈ f :=
 begin
   refine hs.compl_mem_sets (λ a ha, _),
@@ -65,6 +65,21 @@ begin
   rintros x ⟨h₁, h₂⟩ hs,
   exact h₂ (h₁ hs)
 end
+
+/-- If `p : set α → Prop` is stable under restriction and union, and each point `x of a compact set `s`
+  has a neighborhood `t` within `s` such that `p t`, then `p s` holds. -/
+@[elab_as_eliminator]
+lemma is_compact.induction_on {s : set α} (hs : is_compact s) {p : set α → Prop} (he : p ∅)
+  (hmono : ∀ ⦃s t⦄, s ⊆ t → p t → p s) (hunion : ∀ ⦃s t⦄, p s → p t → p (s ∪ t))
+  (hnhds : ∀ x ∈ s, ∃ t ∈ 𝓝[s] x, p t) :
+  p s :=
+let f : filter α :=
+  { sets := {t | p tᶜ},
+    univ_sets := by simpa,
+    sets_of_superset := λ t₁ t₂ ht₁ ht, hmono (compl_subset_compl.2 ht) ht₁,
+    inter_sets := λ t₁ t₂ ht₁ ht₂, by simp [compl_inter, hunion ht₁ ht₂] } in
+have sᶜ ∈ f, from hs.compl_mem_sets_of_nhds_within (by simpa using hnhds),
+by simpa
 
 /-- The intersection of a compact set and a closed set is a compact set. -/
 lemma is_compact.inter_right (hs : is_compact s) (ht : is_closed t) :
@@ -100,11 +115,11 @@ classical.by_cases mem_sets_of_eq_bot $
   let ⟨a, ha, (hfa : cluster_pt a $ f ⊓ 𝓟 tᶜ)⟩ := @@hs this $ inf_le_left_of_le hf₂ in
   have a ∈ t,
     from ht₂ a ha (hfa.of_inf_left),
-  have tᶜ ∩ t ∈ nhds_within a (tᶜ),
+  have tᶜ ∩ t ∈ 𝓝[tᶜ] a,
     from inter_mem_nhds_within _ (mem_nhds_sets ht₁ this),
-  have A : nhds_within a tᶜ = ⊥,
+  have A : 𝓝[tᶜ] a = ⊥,
     from empty_in_sets_eq_bot.1 $ compl_inter_self t ▸ this,
-  have nhds_within a tᶜ ≠ ⊥,
+  have 𝓝[tᶜ] a ≠ ⊥,
     from hfa.of_inf_right,
   absurd A this
 
@@ -126,21 +141,11 @@ lemma compact_iff_ultrafilter_le_nhds :
 lemma is_compact.elim_finite_subcover {ι : Type v} (hs : is_compact s)
   (U : ι → set α) (hUo : ∀i, is_open (U i)) (hsU : s ⊆ ⋃ i, U i) :
   ∃ t : finset ι, s ⊆ ⋃ i ∈ t, U i :=
-begin
-  by_contra h, push_neg at h,
-  set f : filter α := ⨅ t : finset ι, 𝓟 (s \ ⋃ i ∈ t, U i),
-  haveI hf : ne_bot f := infi_ne_bot_of_directed'
-    (directed_of_sup $ λ t₁ t₂ ht, principal_mono.2 $ diff_subset_diff_right $
-      bUnion_subset_bUnion_left ht)
-    (λ t, principal_ne_bot_iff.2 $ nonempty_of_not_subset (h t)),
-  have : f ≤ 𝓟 s := infi_le_of_le ∅ (le_principal_iff.2 (diff_subset _ _)),
-  obtain ⟨a, ha, h⟩ : ∃ a ∈ s, cluster_pt a f := hs this,
-  obtain ⟨_, ⟨i, rfl⟩, ha⟩ := hsU ha,
-  suffices : a ∈ (U i)ᶜ, from this ha,
-  have hfi : f ≤ 𝓟 (U i)ᶜ := infi_le_of_le {i} (principal_mono.2 $ by simp [diff_subset_iff]),
-  have hic : is_closed (U i)ᶜ := is_closed_compl_iff.2 (hUo i),
-  exact hic.mem_of_nhds_within_ne_bot (h.mono hfi),
-end
+is_compact.induction_on hs ⟨∅, empty_subset _⟩ (λ s₁ s₂ hs ⟨t, hs₂⟩, ⟨t, subset.trans hs hs₂⟩)
+  (λ s₁ s₂ ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩,
+    ⟨t₁ ∪ t₂, by { rw [finset.bUnion_union], exact union_subset_union ht₁ ht₂ }⟩)
+  (λ x hx, let ⟨i, hi⟩ := mem_Union.1 (hsU hx) in
+    ⟨U i, mem_nhds_within.2 ⟨U i, hUo i, hi, inter_subset_left _ _⟩, {i}, by simp⟩)
 
 /-- For every family of closed sets whose intersection avoids a compact set,
 there exists a finite subfamily whose intersection avoids this compact set. -/
@@ -153,6 +158,16 @@ let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, (Z i)ᶜ) hZc
     in
 ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
     exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using ht⟩
+
+/-- To show that a compact set intersects the intersection of a family of closed sets,
+  it is sufficient to show that it intersects every finite subfamily. -/
+lemma is_compact.inter_Inter_nonempty {s : set α} {ι : Type v} (hs : is_compact s)
+  (Z : ι → set α) (hZc : ∀i, is_closed (Z i)) (hsZ : ∀ t : finset ι, (s ∩ ⋂ i ∈ t, Z i).nonempty) :
+  (s ∩ ⋂ i, Z i).nonempty :=
+begin
+  simp only [← ne_empty_iff_nonempty] at hsZ ⊢,
+  apply mt (hs.elim_finite_subfamily_closed Z hZc), push_neg, exact hsZ
+end
 
 /-- Cantor's intersection theorem:
 the intersection of a directed family of nonempty compact closed sets is nonempty. -/
@@ -229,9 +244,9 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, cluster_pt
     from assume ⟨x, hxs, hx⟩,
     have ∅ ∈ 𝓝 x ⊓ f, by rw [empty_in_sets_eq_bot, hf x hxs],
     let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := by rw [mem_inf_sets] at this; exact this in
-    have ∅ ∈ 𝓝 x ⊓ 𝓟 t₂,
-      from (𝓝 x ⊓ 𝓟 t₂).sets_of_superset (inter_mem_inf_sets ht₁ (subset.refl t₂)) ht,
-    have 𝓝 x ⊓ 𝓟 t₂ = ⊥,
+    have ∅ ∈ 𝓝[t₂] x,
+      from (𝓝[t₂] x).sets_of_superset (inter_mem_inf_sets ht₁ (subset.refl t₂)) ht,
+    have 𝓝[t₂] x = ⊥,
       by rwa [empty_in_sets_eq_bot] at this,
     by simp only [closure_eq_cluster_pts] at hx; exact hx t₂ ht₂ this,
   let ⟨t, ht⟩ := h (λ i : f.sets, closure i.1) (λ i, is_closed_closure)
@@ -332,9 +347,9 @@ assume H n hn hp,
   let ⟨u, v, uo, vo, su, tv, p⟩ :=
     H (prod.swap ⁻¹' n)
       (continuous_swap n hn)
-      (by rwa [←image_subset_iff, prod.swap, image_swap_prod]) in
+      (by rwa [←image_subset_iff, image_swap_prod]) in
   ⟨v, u, vo, uo, tv, su,
-    by rwa [←image_subset_iff, prod.swap, image_swap_prod] at p⟩
+    by rwa [←image_subset_iff, image_swap_prod] at p⟩
 
 lemma nhds_contain_boxes.comm {s : set α} {t : set β} :
   nhds_contain_boxes s t ↔ nhds_contain_boxes t s :=
@@ -529,15 +544,13 @@ variables {ι : Type*} {π : ι → Type*} [∀i, topological_space (π i)]
 lemma compact_pi_infinite {s : Πi:ι, set (π i)} :
   (∀i, is_compact (s i)) → is_compact {x : Πi:ι, π i | ∀i, x i ∈ s i} :=
 begin
-  simp [compact_iff_ultrafilter_le_nhds, nhds_pi],
-  exact assume h f hf hfs,
-    let p : Πi:ι, filter (π i) := λi, map (λx:Πi:ι, π i, x i) f in
-    have ∀i:ι, ∃a, a∈s i ∧ p i ≤ 𝓝 a,
-      from assume i, h i (p i) (ultrafilter_map hf) $
-      show (λx:Πi:ι, π i, x i) ⁻¹' s i ∈ f.sets,
-        from mem_sets_of_superset hfs $ assume x (hx : ∀i, x i ∈ s i), hx i,
-    let ⟨a, ha⟩ := classical.axiom_of_choice this in
-    ⟨a, assume i, (ha i).left, assume i, map_le_iff_le_comap.mp $ (ha i).right⟩
+  simp only [compact_iff_ultrafilter_le_nhds, nhds_pi, exists_prop, mem_set_of_eq, le_infi_iff, le_principal_iff],
+  intros h f hf hfs,
+  have : ∀i:ι, ∃a, a∈s i ∧ tendsto (λx:Πi:ι, π i, x i) f (𝓝 a),
+  { refine λ i, h i _ (ultrafilter_map hf) (mem_map.2 _),
+    exact mem_sets_of_superset hfs (λ x hx, hx i) },
+  choose a ha,
+  exact  ⟨a, assume i, (ha i).left, assume i, (ha i).right.le_comap⟩
 end
 
 /-- A version of Tychonoff's theorem that uses `set.pi`. -/

@@ -23,6 +23,10 @@ lemma norm_indicator_eq_indicator_norm :
   ∥indicator s f a∥ = indicator s (λa, ∥f a∥) a :=
 flip congr_fun a (indicator_comp_of_zero norm_zero).symm
 
+lemma nnnorm_indicator_eq_indicator_nnnorm :
+  nnnorm (indicator s f a) = indicator s (λa, nnnorm (f a)) a :=
+flip congr_fun a (indicator_comp_of_zero nnnorm_zero).symm
+
 lemma norm_indicator_le_of_subset (h : s ⊆ t) (f : α → E) (a : α) :
   ∥indicator s f a∥ ≤ ∥indicator t f a∥ :=
 begin

@@ -136,6 +136,10 @@ def C : α →+* mv_polynomial σ α :=
   map_add' := λ a a', single_add,
   map_mul' := λ a a', by simp [monomial, single_mul_single] }
 
+variables (α σ)
+theorem algebra_map_eq : algebra_map α (mv_polynomial σ α) = C := rfl
+variables {α σ}
+
 /-- `X n` is the degree `1` monomial `1*n` -/
 def X (n : σ) : mv_polynomial σ α := monomial (single n 1) 1
 

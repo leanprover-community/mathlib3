@@ -456,7 +456,7 @@ begin
 end
 
 lemma units.norm_pos {α : Type*} [normed_ring α] [nontrivial α] (x : units α) : 0 < ∥(x:α)∥ :=
-norm_pos_iff.mpr (units.coe_ne_zero x)
+norm_pos_iff.mpr (units.ne_zero x)
 
 /-- In a normed ring, the left-multiplication `add_monoid_hom` is bounded. -/
 lemma mul_left_bound {α : Type*} [normed_ring α] (x : α) :
@@ -611,7 +611,7 @@ by rwa norm_fpow⟩
 
 @[instance]
 lemma punctured_nhds_ne_bot {α : Type*} [nondiscrete_normed_field α] (x : α) :
-  ne_bot (nhds_within x {x}ᶜ) :=
+  ne_bot (𝓝[{x}ᶜ] x) :=
 begin
   rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
   rintros ε ε0,
@@ -622,7 +622,7 @@ end
 
 @[instance]
 lemma nhds_within_is_unit_ne_bot {α : Type*} [nondiscrete_normed_field α] :
-  ne_bot (nhds_within (0:α) {x : α | is_unit x}) :=
+  ne_bot (𝓝[{x : α | is_unit x}] 0) :=
 by simpa only [is_unit_iff_ne_zero] using punctured_nhds_ne_bot (0:α)
 
 lemma tendsto_inv [normed_field α] {r : α} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
@@ -889,7 +889,7 @@ up in applications. -/
 lemma rescale_to_shell {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E} (hx : x ≠ 0) :
   ∃d:α, d ≠ 0 ∧ ∥d • x∥ ≤ ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
 begin
-  have xεpos : 0 < ∥x∥/ε := div_pos_of_pos_of_pos (norm_pos_iff.2 hx) εpos,
+  have xεpos : 0 < ∥x∥/ε := div_pos (norm_pos_iff.2 hx) εpos,
   rcases exists_int_pow_near xεpos hc with ⟨n, hn⟩,
   have cpos : 0 < ∥c∥ := lt_trans (zero_lt_one : (0 :ℝ) < 1) hc,
   have cnpos : 0 < ∥c^(n+1)∥ := by { rw norm_fpow, exact lt_trans xεpos hn.2 },
@@ -1081,13 +1081,33 @@ lemma has_sum_iff_tendsto_nat_of_summable_norm {f : ℕ → α} {a : α} (hf : s
 ⟨λ h, h.tendsto_sum_nat,
 λ h, has_sum_of_subseq_of_summable hf tendsto_finset_range h⟩
 
-variable [complete_space α]
-
 /-- The direct comparison test for series:  if the norm of `f` is bounded by a real function `g`
 which is summable, then `f` is summable. -/
-lemma summable_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hg : summable g) (h : ∀i, ∥f i∥ ≤ g i) :
+lemma summable_of_norm_bounded
+  [complete_space α] {f : ι → α} (g : ι → ℝ) (hg : summable g) (h : ∀i, ∥f i∥ ≤ g i) :
   summable f :=
 by { rw summable_iff_cauchy_seq_finset, exact cauchy_seq_finset_of_norm_bounded g hg h }
+
+/-- Quantitative result associated to the direct comparison test for series:  If `∑' i, g i` is
+summable, and for all `i`, `∥f i∥ ≤ g i`, then `∥(∑' i, f i)∥ ≤ (∑' i, g i)`. Note that we do not
+assume that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete space. -/
+lemma tsum_of_norm_bounded {f : ι → α} {g : ι → ℝ} {a : ℝ} (hg : has_sum g a) (h : ∀i, ∥f i∥ ≤ g i) :
+  ∥(∑' (i:ι), f i)∥ ≤ a :=
+begin
+  have h' : summable (λ (i : ι), ∥f i∥),
+  { let f' : ι → ℝ := λ i, ∥f i∥,
+    have h'' : ∀ i, ∥f' i∥ ≤ g i,
+    { intros i,
+      convert h i,
+      simp },
+    simpa [f'] using summable_of_norm_bounded g hg.summable h'' },
+  have h1 : ∥(∑' (i:ι), f i)∥ ≤ ∑' (i:ι), ∥f i∥ := by simpa using norm_tsum_le_tsum_norm h',
+  have h2 := tsum_le_tsum h h' hg.summable,
+  have h3 : a = ∑' (i:ι), g i := (has_sum.tsum_eq hg).symm,
+  linarith
+end
+
+variable [complete_space α]
 
 /-- Variant of the direct comparison test for series:  if the norm of `f` is eventually bounded by a
 real function `g` which is summable, then `f` is summable. -/

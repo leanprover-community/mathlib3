@@ -87,7 +87,7 @@ theorem add_le_add_iff_left (a) {b c : ordinal} : a + b ≤ a + c ↔ b ≤ c :=
     (by rw [fr, fr, h] : f (sum.inr x) = f (sum.inr y))⟩,
     λ a b, by simpa only [sum.lex_inr_inr, fr, rel_embedding.coe_fn_to_embedding,
         initial_seg.coe_fn_to_rel_embedding, function.embedding.coe_fn_mk]
-      using @rel_embedding.ord _ _ _ _ f.to_rel_embedding (sum.inr a) (sum.inr b)⟩,
+      using @rel_embedding.map_rel_iff_ _ _ _ f.to_rel_embedding (sum.inr a) (sum.inr b)⟩,
     λ a b H, begin
       rcases f.init' (by rw fr; exact sum.lex_inr_inr.2 H) with ⟨a'|a', h⟩,
       { rw fl at h, cases h },
@@ -860,7 +860,7 @@ eq_of_forall_ge_iff $ λ a,
 by rw [sup_le, comp, H.le_set' (λ_:ι, true) g (let ⟨i⟩ := h in ⟨i, ⟨⟩⟩)];
   intros; simp only [sup_le, true_implies_iff]
 
-theorem sup_ord {ι} (f : ι → cardinal) : sup (λ i, (f i).ord) = (cardinal.sup f).ord :=
+theorem sup_ord {ι} (f : ι → cardinal) : sup (λ i, (f i).ord) = (cardinal.sup f).map_rel_iff:=
 eq_of_forall_ge_iff $ λ a, by simp only [sup_le, cardinal.ord_le, cardinal.sup_le]
 
 lemma sup_succ {ι} (f : ι → ordinal) : sup (λ i, succ (f i)) ≤ succ (sup f) :=

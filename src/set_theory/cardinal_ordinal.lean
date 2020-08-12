@@ -200,7 +200,7 @@ by rw [← aleph'_omega, aleph'_le]
 theorem omega_le_aleph (o : ordinal) : omega ≤ aleph o :=
 by rw [aleph, omega_le_aleph']; apply ordinal.le_add_right
 
-theorem ord_aleph_is_limit (o : ordinal) : is_limit (aleph o).ord :=
+theorem ord_aleph_is_limit (o : ordinal) : is_limit (aleph o).map_rel_iff:=
 ord_is_limit $ omega_le_aleph _
 
 theorem exists_aleph {c : cardinal} : omega ≤ c ↔ ∃ o, c = aleph o :=

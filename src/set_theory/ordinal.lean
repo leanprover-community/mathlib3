@@ -1162,10 +1162,10 @@ by rw [← not_le, ← not_le, ord_le]
 quotient.induction_on c $ λ α,
 let ⟨r, _, e⟩ := ord_eq α in by simp only [mk_def, e, card_type]
 
-theorem ord_card_le (o : ordinal) : o.card.ord ≤ o :=
+theorem ord_card_le (o : ordinal) : o.card.map_rel_iff≤ o :=
 ord_le.2 (le_refl _)
 
-lemma lt_ord_succ_card (o : ordinal) : o < o.card.succ.ord :=
+lemma lt_ord_succ_card (o : ordinal) : o < o.card.succ.map_rel_iff:=
 by { rw [lt_ord], apply cardinal.lt_succ_self }
 
 @[simp] theorem ord_le_ord {c₁ c₂} : ord c₁ ≤ ord c₂ ↔ c₁ ≤ c₂ :=
@@ -1213,7 +1213,7 @@ by { intros c c' h, rw [←card_ord c, ←card_ord c', h] }
   whose cardinal is `c`. This is the order-embedding version. For the regular function, see `ord`.
 -/
 def ord.rel_embedding : @rel_embedding cardinal ordinal (<) (<) :=
-rel_embedding.of_monotone cardinal.ord $ λ a b, cardinal.ord_lt_ord.2
+rel_embedding.of_monotone cardinal.map_rel_iff$ λ a b, cardinal.ord_lt_ord.2
 
 @[simp] theorem ord.rel_embedding_coe :
   (ord.rel_embedding : cardinal → ordinal) = ord := rfl

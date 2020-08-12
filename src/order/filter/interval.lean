@@ -8,11 +8,34 @@ import order.filter.lift
 import order.filter.at_top_bot
 
 /-!
-# Interval-generated filters
+# Convergence of intervals
 
-We say that a filter `f` on a `preorder` is interval generated if each set `s ∈ f` includes
-an `ord_connected` subset `t ∈ f`. Equivalently, `f` has a basis `{s i | p i}` which consists
-of `ord_connected` sets.
+If both `a` and `b` tend to some filter `l₁`, sometimes this implies that `Ixx a b` tends to
+`l₂.lift' powerset`, i.e., for any `s ∈ l₂` eventually `Ixx a b` becomes a subset of `s`.  Here and
+below `Ixx` is one of `Icc`, `Ico`, `Ioc`, and `Ioo`. We define `filter.tendsto_Ixx_class Ixx l₁ l₂`
+to be a typeclass representing this property.
+
+The instances provide the best `l₂` for a given `l₁`. In many cases `l₁ = l₂` but sometimes we can
+drop an endpoint from an interval: e.g., we prove `tendsto_Ixx_class Ico (Iic a) (Iio a)`.
+
+The next table shows “output” filters `l₂` for different values of `Ixx` and `l₁`. The instances
+that need topology are defined in `topology/algebra/ordered`.
+
+| Input filter |  `Ixx = Icc`  |  `Ixx = Ico`  |  `Ixx = Ioc`  |  `Ixx = Ioo`  |
+| -----------: | :-----------: | :-----------: | :-----------: | :-----------: |
+|     `at_top` |    `at_top`   |    `at_top`   |    `at_top`   |    `at_top`   |
+|     `at_bot` |    `at_bot`   |    `at_bot`   |    `at_bot`   |    `at_bot`   |
+|     `pure a` |    `pure a`   |      `⊥`      |      `⊥`      |      `⊥`      |
+|  `𝓟 (Iic a)` |  `𝓟 (Iic a)`  |  `𝓟 (Iio a)`  |  `𝓟 (Iic a)`  |  `𝓟 (Iio a)`  |
+|  `𝓟 (Ici a)` |  `𝓟 (Ici a)`  |  `𝓟 (Ici a)`  |  `𝓟 (Ioi a)`  |  `𝓟 (Ioi a)`  |
+|  `𝓟 (Ioi a)` |  `𝓟 (Ioi a)`  |  `𝓟 (Ioi a)`  |  `𝓟 (Ioi a)`  |  `𝓟 (Ioi a)`  |
+|  `𝓟 (Iio a)` |  `𝓟 (Iio a)`  |  `𝓟 (Iio a)`  |  `𝓟 (Iio a)`  |  `𝓟 (Iio a)`  |
+|        `𝓝 a` |     `𝓝 a`     |     `𝓝 a`     |     `𝓝 a`     |     `𝓝 a`     |
+| `𝓝[Iic a] b` |  `𝓝[Iic a] b` |  `𝓝[Iio a] b` |  `𝓝[Iic a] b` |  `𝓝[Iio a] b` |
+| `𝓝[Ici a] b` |  `𝓝[Ici a] b` |  `𝓝[Ici a] b` |  `𝓝[Ioi a] b` |  `𝓝[Ioi a] b` |
+| `𝓝[Ioi a] b` |  `𝓝[Ioi a] b` |  `𝓝[Ioi a] b` |  `𝓝[Ioi a] b` |  `𝓝[Ioi a] b` |
+| `𝓝[Iio a] b` |  `𝓝[Iio a] b` |  `𝓝[Iio a] b` |  `𝓝[Iio a] b` |  `𝓝[Iio a] b` |
+
 -/
 
 variables {α β : Type*}
@@ -25,6 +48,11 @@ variables [preorder α]
 
 namespace filter
 
+/-- A pair of filters `l₁`, `l₂` has `tendsto_Ixx_class Ixx` property if `Ixx a b` tends to
+`l₂.lift' powerset` as `a` and `b` tend to `l₁`. In all instances `Ixx` is one of `Icc`,
+`Ico`, `Ioc`, or `Ioo`. The instances provide the best `l₂` for a given `l₁`. In many cases `l₁ = l₂`
+but sometimes we can drop an endpoint from an interval: e.g., we prove
+`tendsto_Ixx_class Ico (Iic a) (Iio a)`. -/
 class tendsto_Ixx_class (Ixx : α → α → set α) (l₁ : filter α) (l₂ : out_param $ filter α) : Prop :=
 (tendsto_Ixx : tendsto (λ p : α × α, Ixx p.1 p.2) (l₁ ×ᶠ l₁) (l₂.lift' powerset))
 

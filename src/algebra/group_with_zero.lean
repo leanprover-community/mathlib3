@@ -272,6 +272,8 @@ variables [monoid_with_zero M₀]
 
 namespace units
 
+/-- An element of the unit group of a nonzero monoid with zero represented as an element
+    of the monoid is nonzero. -/
 @[simp] lemma ne_zero [nontrivial M₀] (u : units M₀) :
   (u : M₀) ≠ 0 :=
 left_ne_zero_of_mul_eq_one u.mul_inv

@@ -584,7 +584,7 @@ end
 
 @[simp] lemma div_one (a : G₀) : a / 1 = a := by simp [div_eq_mul_inv]
 
-lemma one_div (a : G₀) : 1 / a = a⁻¹ := one_mul _
+@[simp] lemma one_div (a : G₀) : 1 / a = a⁻¹ := one_mul _
 
 @[simp] lemma zero_div (a : G₀) : 0 / a = 0 := zero_mul _
 

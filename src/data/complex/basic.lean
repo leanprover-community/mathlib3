@@ -258,7 +258,7 @@ theorem inv_def (z : ℂ) : z⁻¹ = conj z * ((norm_sq z)⁻¹:ℝ) := rfl
 ext_iff.2 $ begin
   simp,
   by_cases r = 0, { simp [h] },
-  { rw [← div_div_eq_div_mul, div_self h, one_div_eq_inv] },
+  { rw [← div_div_eq_div_mul, div_self h, one_div] },
 end
 
 protected lemma inv_zero : (0⁻¹ : ℂ) = 0 :=

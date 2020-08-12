@@ -6,7 +6,7 @@ open_locale topological_space filter
 variables {α : Type*} {β : Type*}
 variables [topological_space α]
 
-localized "notation `𝓝*` x : 100 := nhds_within x (univ \\ {x})" in topological_space
+localized "notation `𝓝*` x : 100 := nhds_within x (set.univ \\ {x})" in topological_space
 
 lemma nhds_punctured_has_basis {p : β → Prop} {s : β → set α} {a : α} (h : (𝓝 a).has_basis p s) :
   (𝓝* a).has_basis p (λ i, s i \ {a}) :=

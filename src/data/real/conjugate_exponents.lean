@@ -54,7 +54,7 @@ lemma sub_one_ne_zero : p - 1 ≠ 0 :=
 ne_of_gt h.sub_one_pos
 
 lemma one_div_pos : 0 < 1/p :=
-one_div_pos_of_pos h.pos
+one_div_pos.2 h.pos
 
 lemma one_div_nonneg : 0 ≤ 1/p :=
 le_of_lt h.one_div_pos

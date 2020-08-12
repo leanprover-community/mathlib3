@@ -1045,7 +1045,8 @@ do ls ← local_context,
    partition_vars' (name_set.of_list $ ls.map expr.local_uniq_name) ls [] []
 
 /--
-Format the current goal as a stand-alone example. Useful for testing tactic.
+Format the current goal as a stand-alone example. Useful for testing tactics
+or creating [minimal working examples](https://leanprover-community.github.io/mwe.html).
 
 * `extract_goal`: formats the statement as an `example` declaration
 * `extract_goal my_decl`: formats the statement as a `lemma` or `def` declaration
@@ -1153,7 +1154,7 @@ add_tactic_doc
 { name       := "extract_goal",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.extract_goal],
-  tags       := ["goal management", "proof extraction"] }
+  tags       := ["goal management", "proof extraction", "debugging"] }
 
 /--
 `inhabit α` tries to derive a `nonempty α` instance and then upgrades this
@@ -1237,10 +1238,10 @@ propagate_tags $
 do let (p, x) := p,
    e ← i_to_expr p,
    some h ← pure h | tactic.generalize' e x >> skip,
+   -- `h` is given, the regular implementation of `generalize` works.
    tgt ← target,
-   -- if generalizing fails, fall back to not replacing anything
    tgt' ← do {
-     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize' e x >> target),
+     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize e x >> target),
      to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1))
    } <|> to_expr ``(Π x, %%e = x → %%tgt),
    t ← assert h tgt',

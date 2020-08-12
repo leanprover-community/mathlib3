@@ -3,6 +3,7 @@ Copyright (c) 2020 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
+import algebra.invertible
 import algebra.lie_algebra
 import linear_algebra.matrix
 
@@ -10,16 +11,53 @@ import linear_algebra.matrix
 # Classical Lie algebras
 
 This file is the place to find definitions and basic properties of the classical Lie algebras:
-  * Aₙ sl(n+1)
-  * Bₙ so(2n+1)
-  * Cₙ sp(2n)
-  * Dₙ so(2n)
+  * Aₗ = sl(l+1)
+  * Bₗ ≃ so(l+1, l) ≃ so(2l+1)
+  * Cₗ = sp(l)
+  * Dₗ ≃ so(l, l) ≃ so(2l)
 
-As of April 2020, the definition of Aₙ is in place while the others still need to be provided.
+## Main definitions
+
+  * `lie_algebra.special_linear.sl`
+  * `lie_algebra.symplectic.sp`
+  * `lie_algebra.orthogonal.so`
+  * `lie_algebra.orthogonal.so'`
+  * `lie_algebra.orthogonal.so_indefinite_equiv`
+  * `lie_algebra.orthogonal.type_D`
+  * `lie_algebra.orthogonal.type_B`
+  * `lie_algebra.orthogonal.type_D_equiv_so'`
+  * `lie_algebra.orthogonal.type_B_equiv_so'`
+
+## Implementation notes
+
+### Matrices or endomorphisms
+
+Given a finite type and a commutative ring, the corresponding square matrices are equivalent to the
+endomorphisms of the corresponding finite-rank free module as Lie algebras, see `lie_equiv_matrix'`.
+We can thus define the classical Lie algebras as Lie subalgebras either of matrices or of
+endomorphisms. We have opted for the former. At the time of writing (August 2020) it is unclear
+which approach should be preferred so the choice should be assumed to be somewhat arbitrary.
+
+### Diagonal quadratic form or diagonal Cartan subalgebra
+
+For the algebras of type `B` and `D`, there are two natural definitions. For example since the
+the `2l × 2l` matrix:
+$$
+  J = \left[\begin{align}{cc}
+              0_l & 1_l\\
+              1_l & 0_l
+            \end{align}\right]
+$$
+defines a symmetric bilinear form equivalent to that defined by the identity matrix `I`, we can
+define the algebras of type `D` to be the Lie subalgebra of skew-adjoint matrices either for `J` or
+for `I`. Both definitions have their advantages (in particular the `J`-skew-adjoint matrices define
+a Lie algebra for which the diagonal matrices form a Cartan subalgebra) and so we provide both.
+We thus also provide equivalences `type_D_equiv_so'`, `so_indefinite_equiv` which show the two
+definitions are equivalent. Similarly for the algebras of type `B`.
 
 ## Tags
 
-classical lie algebra, special linear
+classical lie algebra, special linear, symplectic, orthogonal
 -/
 
 universes u₁ u₂
@@ -27,8 +65,10 @@ universes u₁ u₂
 namespace lie_algebra
 open_locale matrix
 
-variables (n : Type u₁) (R : Type u₂)
-variables [fintype n] [decidable_eq n] [comm_ring R]
+variables (n p q l : Type u₁) (R : Type u₂)
+variables [fintype n] [fintype l] [fintype p] [fintype q]
+variables [decidable_eq n] [decidable_eq p] [decidable_eq q] [decidable_eq l]
+variables [comm_ring R]
 
 local attribute [instance] matrix.lie_ring
 local attribute [instance] matrix.lie_algebra
@@ -84,10 +124,241 @@ begin
   let B := Eb R j i hij.symm,
   intros c,
   have c' : A.val ⬝ B.val = B.val ⬝ A.val := by { rw [←sub_eq_zero, ←sl_bracket, c.abelian], refl, },
-  have : (1 : R) = 0 := by simpa [matrix.mul_val, hij] using (congr_fun (congr_fun c' i) i),
+  have : (1 : R) = 0 := by simpa [matrix.mul_apply, hij] using (congr_fun (congr_fun c' i) i),
   exact one_ne_zero this,
 end
 
 end special_linear
+
+namespace symplectic
+
+/-- The matrix defining the canonical skew-symmetric bilinear form. -/
+def J : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 0 (-1) 1 0
+
+/-- The symplectic Lie algebra: skew-adjoint matrices with respect to the canonical skew-symmetric
+bilinear form. -/
+def sp : lie_subalgebra R (matrix (l ⊕ l) (l ⊕ l) R) :=
+  skew_adjoint_matrices_lie_subalgebra (J l R)
+
+end symplectic
+
+namespace orthogonal
+
+/-- The definite orthogonal Lie subalgebra: skew-adjoint matrices with respect to the symmetric
+bilinear form defined by the identity matrix. -/
+def so : lie_subalgebra R (matrix n n R) :=
+  skew_adjoint_matrices_lie_subalgebra (1 : matrix n n R)
+
+@[simp] lemma mem_so (A : matrix n n R) : A ∈ so n R ↔ Aᵀ = -A :=
+begin
+  erw mem_skew_adjoint_matrices_submodule,
+  simp only [matrix.is_skew_adjoint, matrix.is_adjoint_pair, matrix.mul_one, matrix.one_mul],
+end
+
+/-- The indefinite diagonal matrix with `p` 1s and `q` -1s. -/
+def indefinite_diagonal : matrix (p ⊕ q) (p ⊕ q) R :=
+  matrix.diagonal $ sum.elim (λ _, 1) (λ _, -1)
+
+/-- The indefinite orthogonal Lie subalgebra: skew-adjoint matrices with respect to the symmetric
+bilinear form defined by the indefinite diagonal matrix. -/
+def so' : lie_subalgebra R (matrix (p ⊕ q) (p ⊕ q) R) :=
+  skew_adjoint_matrices_lie_subalgebra $ indefinite_diagonal p q R
+
+/-- A matrix for transforming the indefinite diagonal bilinear form into the definite one, provided
+the parameter `i` is a square root of -1. -/
+def Pso (i : R) : matrix (p ⊕ q) (p ⊕ q) R :=
+  matrix.diagonal $ sum.elim (λ _, 1) (λ _, i)
+
+lemma Pso_inv {i : R} (hi : i*i = -1) : (Pso p q R i) * (Pso p q R (-i)) = 1 :=
+begin
+  ext x y, rcases x; rcases y,
+  { -- x y : p
+    by_cases h : x = y; simp [Pso, indefinite_diagonal, h], },
+  { -- x : p, y : q
+    simp [Pso, indefinite_diagonal], },
+  { -- x : q, y : p
+    simp [Pso, indefinite_diagonal], },
+  { -- x y : q
+    by_cases h : x = y; simp [Pso, indefinite_diagonal, h, hi], },
+end
+
+lemma is_unit_Pso {i : R} (hi : i*i = -1) : is_unit (Pso p q R i) :=
+⟨{ val     := Pso p q R i,
+   inv     := Pso p q R (-i),
+   val_inv := Pso_inv p q R hi,
+   inv_val := by { apply matrix.nonsing_inv_left_right, exact Pso_inv p q R hi, }, },
+rfl⟩
+
+lemma indefinite_diagonal_transform {i : R} (hi : i*i = -1) :
+  (Pso p q R i)ᵀ ⬝ (indefinite_diagonal p q R) ⬝ (Pso p q R i) = 1 :=
+begin
+  ext x y, rcases x; rcases y,
+  { -- x y : p
+    by_cases h : x = y; simp [Pso, indefinite_diagonal, h], },
+  { -- x : p, y : q
+    simp [Pso, indefinite_diagonal], },
+  { -- x : q, y : p
+    simp [Pso, indefinite_diagonal], },
+  { -- x y : q
+    by_cases h : x = y; simp [Pso, indefinite_diagonal, h, hi], },
+end
+
+/-- An equivalence between the indefinite and definite orthogonal Lie algebras, over a ring
+containing a square root of -1. -/
+noncomputable def so_indefinite_equiv {i : R} (hi : i*i = -1) : so' p q R ≃ₗ⁅R⁆ so (p ⊕ q) R :=
+begin
+  apply (skew_adjoint_matrices_lie_subalgebra_equiv
+    (indefinite_diagonal p q R) (Pso p q R i) (is_unit_Pso p q R hi)).trans,
+  apply lie_algebra.equiv.of_eq,
+  ext A, rw indefinite_diagonal_transform p q R hi, refl,
+end
+
+lemma so_indefinite_equiv_apply {i : R} (hi : i*i = -1) (A : so' p q R) :
+  (so_indefinite_equiv p q R hi A : matrix (p ⊕ q) (p ⊕ q) R) = (Pso p q R i)⁻¹ ⬝ (A : matrix (p ⊕ q) (p ⊕ q) R) ⬝ (Pso p q R i) :=
+by erw [lie_algebra.equiv.trans_apply, lie_algebra.equiv.of_eq_apply,
+        skew_adjoint_matrices_lie_subalgebra_equiv_apply]
+
+/-- A matrix defining a canonical even-rank symmetric bilinear form.
+
+It looks like this as a `2l x 2l` matrix of `l x l` blocks:
+   [ 0 1 ]
+   [ 1 0 ]
+-/
+def JD : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 0 1 1 0
+
+/-- The classical Lie algebra of type D as a Lie subalgebra of matrices associated to the matrix
+`JD`. -/
+def type_D := skew_adjoint_matrices_lie_subalgebra (JD l R)
+
+/-- A matrix transforming the bilinear form defined by the matrix `JD` into a split-signature
+diagonal matrix.
+
+It looks like this as a `2l x 2l` matrix of `l x l` blocks:
+   [ 1 -1 ]
+   [ 1  1 ]
+-/
+def PD : matrix (l ⊕ l) (l ⊕ l) R := matrix.from_blocks 1 (-1) 1 1
+
+/-- The split-signature diagonal matrix. -/
+def S := indefinite_diagonal l l R
+
+lemma S_as_blocks : S l R = matrix.from_blocks 1 0 0 (-1) :=
+begin
+  rw [← matrix.diagonal_one, matrix.diagonal_neg, matrix.from_blocks_diagonal],
+  refl,
+end
+
+lemma JD_transform : (PD l R)ᵀ ⬝ (JD l R) ⬝ (PD l R) = (2 : R) • (S l R) :=
+begin
+  have h : (PD l R)ᵀ ⬝ (JD l R) = matrix.from_blocks 1 1 1 (-1) := by
+  { simp [PD, JD, matrix.from_blocks_transpose, matrix.from_blocks_multiply], },
+  erw [h, S_as_blocks, matrix.from_blocks_multiply, matrix.from_blocks_smul],
+  congr; simp [two_smul],
+end
+
+lemma PD_inv [invertible (2 : R)] : (PD l R) * (⅟(2 : R) • (PD l R)ᵀ) = 1 :=
+begin
+  have h : ⅟(2 : R) • (1 : matrix l l R) + ⅟(2 : R) • 1 = 1 := by
+    rw [← smul_add, ← (two_smul R _), smul_smul, inv_of_mul_self, one_smul],
+  erw [matrix.from_blocks_transpose, matrix.from_blocks_smul, matrix.mul_eq_mul,
+    matrix.from_blocks_multiply],
+  simp [h],
+end
+
+lemma is_unit_PD [invertible (2 : R)] : is_unit (PD l R) :=
+⟨{ val     := PD l R,
+   inv     := ⅟(2 : R) • (PD l R)ᵀ,
+   val_inv := PD_inv l R,
+   inv_val := by { apply matrix.nonsing_inv_left_right, exact PD_inv l R, }, },
+rfl⟩
+
+/-- An equivalence between two possible definitions of the classical Lie algebra of type D. -/
+noncomputable def type_D_equiv_so' [invertible (2 : R)] :
+  type_D l R ≃ₗ⁅R⁆ so' l l R :=
+begin
+  apply (skew_adjoint_matrices_lie_subalgebra_equiv (JD l R) (PD l R) (is_unit_PD l R)).trans,
+  apply lie_algebra.equiv.of_eq,
+  ext A,
+  rw [JD_transform, ← unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe,
+      mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],
+  refl,
+end
+
+/-- A matrix defining a canonical odd-rank symmetric bilinear form.
+
+It looks like this as a `(2l+1) x (2l+1)` matrix of blocks:
+   [ 2 0 0 ]
+   [ 0 0 1 ]
+   [ 0 1 0 ]
+where sizes of the blocks are:
+   [`1 x 1` `1 x l` `1 x l`]
+   [`l x 1` `l x l` `l x l`]
+   [`l x 1` `l x l` `l x l`]
+-/
+def JB := matrix.from_blocks ((2 : R) • 1 : matrix punit punit R) 0 0 (JD l R)
+
+/-- The classical Lie algebra of type B as a Lie subalgebra of matrices associated to the matrix
+`JB`. -/
+def type_B := skew_adjoint_matrices_lie_subalgebra (JB l R)
+
+/-- A matrix transforming the bilinear form defined by the matrix `JB` into an
+almost-split-signature diagonal matrix.
+
+It looks like this as a `(2l+1) x (2l+1)` matrix of blocks:
+   [ 1 0  0 ]
+   [ 0 1 -1 ]
+   [ 0 1  1 ]
+where sizes of the blocks are:
+   [`1 x 1` `1 x l` `1 x l`]
+   [`l x 1` `l x l` `l x l`]
+   [`l x 1` `l x l` `l x l`]
+-/
+def PB := matrix.from_blocks (1 : matrix punit punit R) 0 0 (PD l R)
+
+lemma PB_inv [invertible (2 : R)] : (PB l R) * (matrix.from_blocks 1 0 0 (PD l R)⁻¹) = 1 :=
+begin
+  simp [PB, matrix.from_blocks_multiply, (PD l R).mul_nonsing_inv, is_unit_PD,
+        ← (PD l R).is_unit_iff_is_unit_det]
+end
+
+lemma is_unit_PB [invertible (2 : R)] : is_unit (PB l R) :=
+⟨{ val     := PB l R,
+   inv     := matrix.from_blocks 1 0 0 (PD l R)⁻¹,
+   val_inv := PB_inv l R,
+   inv_val := by { apply matrix.nonsing_inv_left_right, exact PB_inv l R, }, },
+rfl⟩
+
+lemma JB_transform : (PB l R)ᵀ ⬝ (JB l R) ⬝ (PB l R) = (2 : R) • matrix.from_blocks 1 0 0 (S l R) :=
+by simp [PB, JB, JD_transform, matrix.from_blocks_transpose, matrix.from_blocks_multiply,
+         matrix.from_blocks_smul]
+
+lemma indefinite_diagonal_assoc :
+  indefinite_diagonal ((punit : Type u₁) ⊕ l) l R =
+  matrix.reindex_lie_equiv (equiv.sum_assoc punit l l).symm
+    (matrix.from_blocks 1 0 0 (indefinite_diagonal l l R)) :=
+begin
+  ext i j,
+  rcases i with ⟨⟨i₁ | i₂⟩ | i₃⟩;
+  rcases j with ⟨⟨j₁ | j₂⟩ | j₃⟩;
+  simp [indefinite_diagonal, matrix.diagonal],
+end
+
+/-- An equivalence between two possible definitions of the classical Lie algebra of type B. -/
+noncomputable def type_B_equiv_so' [invertible (2 : R)] :
+  type_B l R ≃ₗ⁅R⁆ so' ((punit : Type u₁) ⊕ l) l R :=
+begin
+  apply (skew_adjoint_matrices_lie_subalgebra_equiv (JB l R) (PB l R) (is_unit_PB l R)).trans,
+  symmetry,
+  apply (skew_adjoint_matrices_lie_subalgebra_equiv_transpose
+    (indefinite_diagonal ((punit : Type u₁) ⊕ l) l R)
+    (matrix.reindex_alg_equiv (equiv.sum_assoc punit l l)) (matrix.reindex_transpose _ _)).trans,
+  apply lie_algebra.equiv.of_eq,
+  ext A,
+  rw [JB_transform, ← unit_of_invertible_val (2 : R), lie_subalgebra.mem_coe, lie_subalgebra.mem_coe,
+      mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],
+  simpa [indefinite_diagonal_assoc],
+end
+
+end orthogonal
 
 end lie_algebra

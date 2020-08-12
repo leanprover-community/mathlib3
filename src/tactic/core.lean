@@ -1110,7 +1110,8 @@ p ← mk_local' n bi d,
 return ((p :: ps), r)
 
 /-- Changes `(h : ∀xs, ∃a:α, p a) ⊢ g` to `(d : ∀xs, a) (s : ∀xs, p (d xs) ⊢ g` and
- `(h : ∀xs, p xs ∧ q xs) ⊢ g` to `(d : ∀xs, p xs) (s : ∀xs, q xs) ⊢ g` -/
+ `(h : ∀xs, p xs ∧ q xs) ⊢ g` to `(d : ∀xs, p xs) (s : ∀xs, q xs) ⊢ g` 
+ `choose1` returns the second local constant it introduces. -/
 meta def choose1 (h : expr) (data : name) (spec : name) : tactic expr := do
   t ← infer_type h,
   (ctxt, t) ← mk_local_pis_whnf t,

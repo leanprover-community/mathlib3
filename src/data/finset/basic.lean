@@ -780,7 +780,7 @@ def attach (s : finset α) : finset {x // x ∈ s} := ⟨attach s.1, nodup_attac
 theorem sizeof_lt_sizeof_of_mem [has_sizeof α] {x : α} {s : finset α} (hx : x ∈ s) :
   sizeof x < sizeof s := by
 { cases s, dsimp [sizeof, has_sizeof.sizeof, finset.sizeof],
-  exact lt_add_left _ _ _ (multiset.sizeof_lt_sizeof_of_mem hx) }
+  apply lt_add_left, exact multiset.sizeof_lt_sizeof_of_mem hx }
 
 @[simp] theorem attach_val (s : finset α) : s.attach.1 = s.1.attach := rfl
 

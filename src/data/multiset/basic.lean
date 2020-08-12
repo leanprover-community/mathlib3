@@ -39,13 +39,7 @@ instance has_decidable_eq [decidable_eq α] : decidable_eq (multiset α)
 
 /-- defines a size for a multiset by referring to the size of the underlying list -/
 protected def sizeof [has_sizeof α] (s : multiset α) : ℕ :=
-begin
-  induction s with l x y ih, { exact l.sizeof },
-  simp only [eq_rec_constant],
-  induction ih with hd l₁ l₂ h₁₂ h_sz₁₂ a b l l₁ l₂ l₃ h₁₂ h₂₃ h_sz₁₂ h_sz₂₃,
-  { refl }, { simp [list.sizeof, h_sz₁₂] },
-  { dsimp [list.sizeof], apply add_left_comm }, { simp [h_sz₁₂, h_sz₂₃] }
-end
+quot.lift_on s sizeof $ λ l₁ l₂, perm.sizeof_eq_sizeof
 
 instance has_sizeof [has_sizeof α] : has_sizeof (multiset α) := ⟨multiset.sizeof⟩
 

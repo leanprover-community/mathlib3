@@ -59,7 +59,7 @@ variables [encodable α]
 private def enle : α → α → Prop := encode ⁻¹'o (≤)
 
 private lemma enle.is_linear_order : is_linear_order α enle :=
-(order_embedding.preimage ⟨encode, encode_injective⟩ (≤)).is_linear_order
+(rel_embedding.preimage ⟨encode, encode_injective⟩ (≤)).is_linear_order
 
 private def decidable_enle (a b : α) : decidable (enle a b) :=
 by unfold enle order.preimage; apply_instance

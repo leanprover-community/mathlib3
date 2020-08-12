@@ -317,7 +317,7 @@ open quotient
 
 /-- Given an equivalence relation r on α, the order-preserving bijection between the set of
     equivalence relations containing r and the equivalence relations on the quotient of α by r. -/
-def correspondence (r : setoid α) : ((≤) : {s // r ≤ s} → {s // r ≤ s} → Prop) ≃o
+def correspondence (r : setoid α) : ((≤) : {s // r ≤ s} → {s // r ≤ s} → Prop) ≃r
   ((≤) : setoid (quotient r) → setoid (quotient r) → Prop) :=
 { to_fun := λ s, map_of_surjective s.1 quotient.mk ((ker_mk_eq r).symm ▸ s.2) exists_rep,
   inv_fun := λ s, ⟨comap quotient.mk s, λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw eq_rel.2 h⟩,

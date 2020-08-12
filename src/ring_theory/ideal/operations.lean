@@ -650,8 +650,8 @@ lemma le_map_of_comap_le_of_surjective : comap f K ≤ I → K ≤ map f I :=
 λ h, (map_comap_of_surjective f hf K) ▸ map_mono h
 
 /-- Correspondence theorem -/
-def order_iso_of_surjective :
-  ((≤) : ideal S → ideal S → Prop) ≃o
+def rel_iso_of_surjective :
+  ((≤) : ideal S → ideal S → Prop) ≃r
   ((≤) : { p : ideal R // comap f ⊥ ≤ p } → { p : ideal R // comap f ⊥ ≤ p } → Prop) :=
 { to_fun := λ J, ⟨comap f J, comap_mono bot_le⟩,
   inv_fun := λ I, map f I.1,
@@ -662,19 +662,19 @@ def order_iso_of_surjective :
   ord' := λ I1 I2, ⟨comap_mono, λ H, map_comap_of_surjective f hf I1 ▸
     map_comap_of_surjective f hf I2 ▸ map_mono H⟩ }
 
-def le_order_embedding_of_surjective :
-  ((≤) : ideal S → ideal S → Prop) ≼o ((≤) : ideal R → ideal R → Prop) :=
-(order_iso_of_surjective f hf).to_order_embedding.trans (subtype.order_embedding _ _)
+def le_rel_embedding_of_surjective :
+  ((≤) : ideal S → ideal S → Prop) ↪r ((≤) : ideal R → ideal R → Prop) :=
+(rel_iso_of_surjective f hf).to_rel_embedding.trans (subtype.rel_embedding _ _)
 
-def lt_order_embedding_of_surjective :
-  ((<) : ideal S → ideal S → Prop) ≼o ((<) : ideal R → ideal R → Prop) :=
-(le_order_embedding_of_surjective f hf).lt_embedding_of_le_embedding
+def lt_rel_embedding_of_surjective :
+  ((<) : ideal S → ideal S → Prop) ↪r ((<) : ideal R → ideal R → Prop) :=
+(le_rel_embedding_of_surjective f hf).lt_embedding_of_le_embedding
 
 theorem map_eq_top_or_is_maximal_of_surjective (H : is_maximal I) :
   (map f I) = ⊤ ∨ is_maximal (map f I) :=
 begin
   refine classical.or_iff_not_imp_left.2 (λ ne_top, ⟨λ h, ne_top h, λ J hJ, _⟩),
-  { refine (order_iso_of_surjective f hf).injective
+  { refine (rel_iso_of_surjective f hf).injective
       (subtype.ext_iff.2 (eq.trans (H.right (comap f J) (lt_of_le_of_ne _ _)) comap_top.symm)),
     { exact (map_le_iff_le_comap).1 (le_of_lt hJ) },
     { exact λ h, hJ.right (le_map_of_comap_le_of_surjective f hf (le_of_eq h.symm)) } }
@@ -715,23 +715,23 @@ include hf
 open function
 
 /-- Special case of the correspondence theorem for isomorphic rings -/
-def order_iso_of_bijective :
-  ((≤) : ideal S → ideal S → Prop) ≃o ((≤) : ideal R → ideal R → Prop):=
+def rel_iso_of_bijective :
+  ((≤) : ideal S → ideal S → Prop) ≃r ((≤) : ideal R → ideal R → Prop):=
 { to_fun := comap f,
   inv_fun := map f,
-  left_inv := (order_iso_of_surjective f hf.right).left_inv,
+  left_inv := (rel_iso_of_surjective f hf.right).left_inv,
   right_inv := λ J, subtype.ext_iff.1
-    ((order_iso_of_surjective f hf.right).right_inv ⟨J, comap_bot_le_of_injective f hf.left⟩),
-  ord' := (order_iso_of_surjective f hf.right).ord' }
+    ((rel_iso_of_surjective f hf.right).right_inv ⟨J, comap_bot_le_of_injective f hf.left⟩),
+  ord' := (rel_iso_of_surjective f hf.right).ord' }
 
 lemma comap_le_iff_le_map : comap f K ≤ I ↔ K ≤ map f I :=
 ⟨λ h, le_map_of_comap_le_of_surjective f hf.right h,
- λ h, ((order_iso_of_bijective f hf).right_inv I) ▸ comap_mono h⟩
+ λ h, ((rel_iso_of_bijective f hf).right_inv I) ▸ comap_mono h⟩
 
 theorem map.is_maximal (H : is_maximal I) : is_maximal (map f I) :=
 by refine classical.or_iff_not_imp_left.1
   (map_eq_top_or_is_maximal_of_surjective f hf.right H) (λ h, H.left _);
-calc I = comap f (map f I) : ((order_iso_of_bijective f hf).right_inv I).symm
+calc I = comap f (map f I) : ((rel_iso_of_bijective f hf).right_inv I).symm
    ... = comap f ⊤ : by rw h
    ... = ⊤ : by rw comap_top
 
@@ -739,8 +739,8 @@ theorem comap.is_maximal (H : is_maximal K) : is_maximal (comap f K) :=
 begin
   refine ⟨λ h, H.left _, λ J hJ, _⟩,
   { have : map f (comap f K) = ⊤ := eq.trans (congr_arg (map f) h) (map_top _),
-    rwa ← (order_iso_of_bijective f hf).left_inv K },
-  { refine (order_iso_of_bijective f hf).symm.injective
+    rwa ← (rel_iso_of_bijective f hf).left_inv K },
+  { refine (rel_iso_of_bijective f hf).symm.injective
       (eq.trans (H.right (map f J) (lt_of_le_of_ne _ _)) (map_top f).symm),
     { exact (comap_le_iff_le_map f hf).1 (le_of_lt hJ) },
     { exact λ h, hJ.right ((map_le_iff_le_comap).1 (le_of_eq h.symm)) } }

@@ -75,37 +75,37 @@ any `b' < b` also belongs to the range). The type of these embeddings from `r` t
 embedding whose range is an initial segment. That is, whenever `b < f a` in `β` then `b` is in the
 range of `f`. -/
 @[nolint has_inhabited_instance]
-structure initial_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ≼o s :=
-(init : ∀ a b, s b (to_order_embedding a) → ∃ a', to_order_embedding a' = b)
+structure initial_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ↪r s :=
+(init : ∀ a b, s b (to_rel_embedding a) → ∃ a', to_rel_embedding a' = b)
 
 local infix ` ≼i `:25 := initial_seg
 
 namespace initial_seg
 
-instance : has_coe (r ≼i s) (r ≼o s) := ⟨initial_seg.to_order_embedding⟩
-instance : has_coe_to_fun (r ≼i s) := ⟨λ _, α → β, λ f x, (f : r ≼o s) x⟩
+instance : has_coe (r ≼i s) (r ↪r s) := ⟨initial_seg.to_rel_embedding⟩
+instance : has_coe_to_fun (r ≼i s) := ⟨λ _, α → β, λ f x, (f : r ↪r s) x⟩
 
-@[simp] theorem coe_fn_mk (f : r ≼o s) (o) :
+@[simp] theorem coe_fn_mk (f : r ↪r s) (o) :
   (@initial_seg.mk _ _ r s f o : α → β) = f := rfl
 
-@[simp] theorem coe_fn_to_order_embedding (f : r ≼i s) : (f.to_order_embedding : α → β) = f := rfl
+@[simp] theorem coe_fn_to_rel_embedding (f : r ≼i s) : (f.to_rel_embedding : α → β) = f := rfl
 
-@[simp] theorem coe_coe_fn (f : r ≼i s) : ((f : r ≼o s) : α → β) = f := rfl
+@[simp] theorem coe_coe_fn (f : r ≼i s) : ((f : r ↪r s) : α → β) = f := rfl
 
 theorem init' (f : r ≼i s) {a : α} {b : β} : s b (f a) → ∃ a', f a' = b :=
 f.init _ _
 
 theorem init_iff (f : r ≼i s) {a : α} {b : β} : s b (f a) ↔ ∃ a', f a' = b ∧ r a' a :=
-⟨λ h, let ⟨a', e⟩ := f.init' h in ⟨a', e, (f : r ≼o s).ord.2 (e.symm ▸ h)⟩,
- λ ⟨a', e, h⟩, e ▸ (f : r ≼o s).ord.1 h⟩
+⟨λ h, let ⟨a', e⟩ := f.init' h in ⟨a', e, (f : r ↪r s).ord.2 (e.symm ▸ h)⟩,
+ λ ⟨a', e, h⟩, e ▸ (f : r ↪r s).ord.1 h⟩
 
 /-- An order isomorphism is an initial segment -/
-def of_iso (f : r ≃o s) : r ≼i s :=
-⟨f, λ a b h, ⟨f.symm b, order_iso.apply_symm_apply f _⟩⟩
+def of_iso (f : r ≃r s) : r ≼i s :=
+⟨f, λ a b h, ⟨f.symm b, rel_iso.apply_symm_apply f _⟩⟩
 
 /-- The identity function shows that `≼i` is reflexive -/
 @[refl] protected def refl (r : α → α → Prop) : r ≼i r :=
-⟨order_embedding.refl _, λ a b h, ⟨_, rfl⟩⟩
+⟨rel_embedding.refl _, λ a b h, ⟨_, rfl⟩⟩
 
 /-- Composition of functions shows that `≼i` is transitive -/
 @[trans] protected def trans (f : r ≼i s) (g : s ≼i t) : r ≼i t :=
@@ -123,18 +123,18 @@ theorem unique_of_extensional [is_extensional β s] :
   well_founded r → subsingleton (r ≼i s) | ⟨h⟩ :=
 ⟨λ f g, begin
   suffices : (f : α → β) = g, { cases f, cases g,
-    congr, exact order_embedding.coe_fn_inj this },
+    congr, exact rel_embedding.coe_fn_inj this },
   funext a, have := h a, induction this with a H IH,
   refine @is_extensional.ext _ s _ _ _ (λ x, ⟨λ h, _, λ h, _⟩),
   { rcases f.init_iff.1 h with ⟨y, rfl, h'⟩,
-    rw IH _ h', exact (g : r ≼o s).ord.1 h' },
+    rw IH _ h', exact (g : r ↪r s).ord.1 h' },
   { rcases g.init_iff.1 h with ⟨y, rfl, h'⟩,
-    rw ← IH _ h', exact (f : r ≼o s).ord.1 h' }
+    rw ← IH _ h', exact (f : r ↪r s).ord.1 h' }
 end⟩
 
 instance [is_well_order β s] : subsingleton (r ≼i s) :=
 ⟨λ a, @subsingleton.elim _ (unique_of_extensional
-  (@order_embedding.well_founded _ _ r s a is_well_order.wf)) a⟩
+  (@rel_embedding.well_founded _ _ r s a is_well_order.wf)) a⟩
 
 protected theorem eq [is_well_order β s] (f g : r ≼i s) (a) : f a = g a :=
 by rw subsingleton.elim f g
@@ -144,8 +144,8 @@ initial_seg.eq (f.trans g) (initial_seg.refl _)
 
 /-- If we have order embeddings between `α` and `β` whose images are initial segments, and `β`
 is a well-order then `α` and `β` are order-isomorphic. -/
-def antisymm [is_well_order β s] (f : r ≼i s) (g : s ≼i r) : r ≃o s :=
-by haveI := f.to_order_embedding.is_well_order; exact
+def antisymm [is_well_order β s] (f : r ≼i s) (g : s ≼i r) : r ≃r s :=
+by haveI := f.to_rel_embedding.is_well_order; exact
 ⟨⟨f, g, antisymm.aux f g, antisymm.aux g f⟩, f.ord'⟩
 
 @[simp] theorem antisymm_to_fun [is_well_order β s]
@@ -153,7 +153,7 @@ by haveI := f.to_order_embedding.is_well_order; exact
 
 @[simp] theorem antisymm_symm [is_well_order α r] [is_well_order β s]
   (f : r ≼i s) (g : s ≼i r) : (antisymm f g).symm = antisymm g f :=
-order_iso.coe_fn_injective rfl
+rel_iso.coe_fn_injective rfl
 
 theorem eq_or_principal [is_well_order β s] (f : r ≼i s) :
   surjective f ∨ ∃ b, ∀ x, s x b ↔ ∃ y, f y = x :=
@@ -166,7 +166,7 @@ h ⟨x, λ y, ⟨(IH _), λ ⟨a, e⟩, by rw ← e; exact
 
 /-- Restrict the codomain of an initial segment -/
 def cod_restrict (p : set β) (f : r ≼i s) (H : ∀ a, f a ∈ p) : r ≼i subrel s p :=
-⟨order_embedding.cod_restrict p f H, λ a ⟨b, m⟩ (h : s b (f a)),
+⟨rel_embedding.cod_restrict p f H, λ a ⟨b, m⟩ (h : s b (f a)),
   let ⟨a', e⟩ := f.init' h in ⟨a', by clear _let_match; subst e; refl⟩⟩
 
 @[simp] theorem cod_restrict_apply (p) (f : r ≼i s) (H a) : cod_restrict p f H a = ⟨f a, H a⟩ := rfl
@@ -194,23 +194,23 @@ segments.
 embedding whose range is an open interval `(-∞, top)` for some element `top` of `β`. Such order
 embeddings are called principal segments -/
 @[nolint has_inhabited_instance]
-structure principal_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ≼o s :=
+structure principal_seg {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends r ↪r s :=
 (top : β)
-(down : ∀ b, s b top ↔ ∃ a, to_order_embedding a = b)
+(down : ∀ b, s b top ↔ ∃ a, to_rel_embedding a = b)
 
 local infix ` ≺i `:25 := principal_seg
 
 namespace principal_seg
 
-instance : has_coe (r ≺i s) (r ≼o s) := ⟨principal_seg.to_order_embedding⟩
+instance : has_coe (r ≺i s) (r ↪r s) := ⟨principal_seg.to_rel_embedding⟩
 instance : has_coe_to_fun (r ≺i s) := ⟨λ _, α → β, λ f, f⟩
 
-@[simp] theorem coe_fn_mk (f : r ≼o s) (t o) :
+@[simp] theorem coe_fn_mk (f : r ↪r s) (t o) :
   (@principal_seg.mk _ _ r s f t o : α → β) = f := rfl
 
-@[simp] theorem coe_fn_to_order_embedding (f : r ≺i s) : (f.to_order_embedding : α → β) = f := rfl
+@[simp] theorem coe_fn_to_rel_embedding (f : r ≺i s) : (f.to_rel_embedding : α → β) = f := rfl
 
-@[simp] theorem coe_coe_fn (f : r ≺i s) : ((f : r ≼o s) : α → β) = f := rfl
+@[simp] theorem coe_coe_fn (f : r ≺i s) : ((f : r ↪r s) : α → β) = f := rfl
 
 theorem down' (f : r ≺i s) {b : β} : s b f.top ↔ ∃ a, f a = b :=
 f.down _
@@ -223,7 +223,7 @@ f.down'.1 $ trans h $ f.lt_top _
 
 /-- A principal segment is in particular an initial segment. -/
 instance has_coe_initial_seg [is_trans β s] : has_coe (r ≺i s) (r ≼i s) :=
-⟨λ f, ⟨f.to_order_embedding, λ a b, f.init⟩⟩
+⟨λ f, ⟨f.to_rel_embedding, λ a b, f.init⟩⟩
 
 theorem coe_coe_fn' [is_trans β s] (f : r ≺i s) : ((f : r ≼i s) : α → β) = f := rfl
 
@@ -241,12 +241,12 @@ end
 
 /-- Composition of a principal segment with an initial segment, as a principal segment -/
 def lt_le (f : r ≺i s) (g : s ≼i t) : r ≺i t :=
-⟨@order_embedding.trans _ _ _ r s t f g, g f.top, λ a,
+⟨@rel_embedding.trans _ _ _ r s t f g, g f.top, λ a,
  by simp only [g.init_iff, f.down', exists_and_distrib_left.symm,
-   exists_swap, order_embedding.trans_apply, exists_eq_right']; refl⟩
+   exists_swap, rel_embedding.trans_apply, exists_eq_right']; refl⟩
 
 @[simp] theorem lt_le_apply (f : r ≺i s) (g : s ≼i t) (a : α) : (f.lt_le g) a = g (f a) :=
-order_embedding.trans_apply _ _ _
+rel_embedding.trans_apply _ _ _
 
 @[simp] theorem lt_le_top (f : r ≺i s) (g : s ≼i t) : (f.lt_le g).top = g f.top := rfl
 
@@ -262,26 +262,26 @@ lt_le_apply _ _ _
   (f.trans g).top = g f.top := rfl
 
 /-- Composition of an order isomorphism with a principal segment, as a principal segment -/
-def equiv_lt (f : r ≃o s) (g : s ≺i t) : r ≺i t :=
-⟨@order_embedding.trans _ _ _ r s t f g, g.top, λ c,
+def equiv_lt (f : r ≃r s) (g : s ≺i t) : r ≺i t :=
+⟨@rel_embedding.trans _ _ _ r s t f g, g.top, λ c,
  suffices (∃ (a : β), g a = c) ↔ ∃ (a : α), g (f a) = c, by simpa [g.down],
- ⟨λ ⟨b, h⟩, ⟨f.symm b, by simp only [h, order_iso.apply_symm_apply, order_iso.coe_coe_fn]⟩,
+ ⟨λ ⟨b, h⟩, ⟨f.symm b, by simp only [h, rel_iso.apply_symm_apply, rel_iso.coe_coe_fn]⟩,
   λ ⟨a, h⟩, ⟨f a, h⟩⟩⟩
 
 /-- Composition of a principal segment with an order isomorphism, as a principal segment -/
 def lt_equiv {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
-  (f : principal_seg r s) (g : s ≃o t) : principal_seg r t :=
-⟨@order_embedding.trans _ _ _ r s t f g, g f.top,
+  (f : principal_seg r s) (g : s ≃r t) : principal_seg r t :=
+⟨@rel_embedding.trans _ _ _ r s t f g, g f.top,
   begin
     intro x,
     rw [← g.apply_symm_apply x, ← g.ord, f.down', exists_congr],
     intro y, exact ⟨congr_arg g, λ h, g.to_equiv.bijective.1 h⟩
   end⟩
 
-@[simp] theorem equiv_lt_apply (f : r ≃o s) (g : s ≺i t) (a : α) : (equiv_lt f g) a = g (f a) :=
-order_embedding.trans_apply _ _ _
+@[simp] theorem equiv_lt_apply (f : r ≃r s) (g : s ≺i t) (a : α) : (equiv_lt f g) a = g (f a) :=
+rel_embedding.trans_apply _ _ _
 
-@[simp] theorem equiv_lt_top (f : r ≃o s) (g : s ≺i t) : (equiv_lt f g).top = g.top := rfl
+@[simp] theorem equiv_lt_top (f : r ≃r s) (g : s ≺i t) : (equiv_lt f g).top = g.top := rfl
 
 /-- Given a well order `s`, there is a most one principal segment embedding of `r` into `s`. -/
 instance [is_well_order β s] : subsingleton (r ≺i s) :=
@@ -291,13 +291,13 @@ instance [is_well_order β s] : subsingleton (r ≺i s) :=
     rw @subsingleton.elim _ _ (f : r ≼i s) g, refl },
   have et : f.top = g.top,
   { refine @is_extensional.ext _ s _ _ _ (λ x, _),
-    simp only [f.down, g.down, ef, coe_fn_to_order_embedding] },
+    simp only [f.down, g.down, ef, coe_fn_to_rel_embedding] },
   cases f, cases g,
-  have := order_embedding.coe_fn_inj ef; congr'
+  have := rel_embedding.coe_fn_inj ef; congr'
 end⟩
 
 theorem top_eq [is_well_order γ t]
-  (e : r ≃o s) (f : r ≺i t) (g : s ≺i t) : f.top = g.top :=
+  (e : r ≃r s) (f : r ≺i t) (g : s ≺i t) : f.top = g.top :=
 by rw subsingleton.elim f (principal_seg.equiv_lt e g); refl
 
 lemma top_lt_top {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
@@ -307,7 +307,7 @@ by { rw [subsingleton.elim h (f.trans g)], apply principal_seg.lt_top }
 
 /-- Any element of a well order yields a principal segment -/
 def of_element {α : Type*} (r : α → α → Prop) (a : α) : subrel r {b | r b a} ≺i r :=
-⟨subrel.order_embedding _ _, a, λ b,
+⟨subrel.rel_embedding _ _, a, λ b,
   ⟨λ h, ⟨⟨_, h⟩, rfl⟩, λ ⟨⟨_, h⟩, rfl⟩, h⟩⟩
 
 @[simp] theorem of_element_apply {α : Type*} (r : α → α → Prop) (a : α) (b) :
@@ -319,7 +319,7 @@ def of_element {α : Type*} (r : α → α → Prop) (a : α) : subrel r {b | r 
 /-- Restrict the codomain of a principal segment -/
 def cod_restrict (p : set β) (f : r ≺i s)
   (H : ∀ a, f a ∈ p) (H₂ : f.top ∈ p) : r ≺i subrel s p :=
-⟨order_embedding.cod_restrict p f H, ⟨f.top, H₂⟩, λ ⟨b, h⟩,
+⟨rel_embedding.cod_restrict p f H, ⟨f.top, H₂⟩, λ ⟨b, h⟩,
   f.down'.trans $ exists_congr $ λ a,
   show (⟨f a, H a⟩ : p).1 = _ ↔ _, from ⟨subtype.eq, congr_arg _⟩⟩
 
@@ -337,8 +337,8 @@ end principal_seg
 segment (if the range is not everything, hence one can take as top the minimum of the complement
 of the range) or an order isomorphism (if the range is everything). -/
 def initial_seg.lt_or_eq [is_well_order β s] (f : r ≼i s) :
-  (r ≺i s) ⊕ (r ≃o s) :=
-if h : surjective f then sum.inr (order_iso.of_surjective f h) else
+  (r ≺i s) ⊕ (r ≃r s) :=
+if h : surjective f then sum.inr (rel_iso.of_surjective f h) else
 have h' : _, from (initial_seg.eq_or_principal f).resolve_left h,
 sum.inl ⟨f, classical.some h', classical.some_spec h'⟩
 
@@ -347,7 +347,7 @@ theorem initial_seg.lt_or_eq_apply_left [is_well_order β s]
 @initial_seg.eq α β r s _ g f a
 
 theorem initial_seg.lt_or_eq_apply_right [is_well_order β s]
-  (f : r ≼i s) (g : r ≃o s) (a : α) : g a = f a :=
+  (f : r ≼i s) (g : r ≃r s) (a : α) : g a = f a :=
 initial_seg.eq (initial_seg.of_iso g) f a
 
 /-- Composition of an initial segment taking values in a well order and a principal segment. -/
@@ -365,13 +365,13 @@ begin
   { simp only [principal_seg.equiv_lt_apply, f.lt_or_eq_apply_right] }
 end
 
-namespace order_embedding
+namespace rel_embedding
 
 /-- Given an order embedding into a well order, collapse the order embedding by filling the
 gaps, to obtain an initial segment. Here, we construct the collapsed order embedding pointwise,
 but the proof of the fact that it is an initial segment will be given in `collapse`. -/
-def collapse_F [is_well_order β s] (f : r ≼o s) : Π a, {b // ¬ s (f a) b} :=
-(order_embedding.well_founded f $ is_well_order.wf).fix $ λ a IH, begin
+def collapse_F [is_well_order β s] (f : r ↪r s) : Π a, {b // ¬ s (f a) b} :=
+(rel_embedding.well_founded f $ is_well_order.wf).fix $ λ a IH, begin
   let S := {b | ∀ a h, s (IH a h).1 b},
   have : f a ∈ S, from λ a' h, ((trichotomous _ _)
     .resolve_left $ λ h', (IH a' h).2 $ trans (f.ord.1 h) h')
@@ -380,14 +380,14 @@ def collapse_F [is_well_order β s] (f : r ≼o s) : Π a, {b // ¬ s (f a) b} :
    is_well_order.wf.not_lt_min _ _ this⟩
 end
 
-theorem collapse_F.lt [is_well_order β s] (f : r ≼o s) {a : α}
+theorem collapse_F.lt [is_well_order β s] (f : r ↪r s) {a : α}
    : ∀ {a'}, r a' a → s (collapse_F f a').1 (collapse_F f a).1 :=
 show (collapse_F f a).1 ∈ {b | ∀ a' (h : r a' a), s (collapse_F f a').1 b}, begin
   unfold collapse_F, rw well_founded.fix_eq,
   apply well_founded.min_mem _ _
 end
 
-theorem collapse_F.not_lt [is_well_order β s] (f : r ≼o s) (a : α)
+theorem collapse_F.not_lt [is_well_order β s] (f : r ↪r s) (a : α)
    {b} (h : ∀ a' (h : r a' a), s (collapse_F f a').1 b) : ¬ s b (collapse_F f a).1 :=
 begin
   unfold collapse_F, rw well_founded.fix_eq,
@@ -397,9 +397,9 @@ end
 
 /-- Construct an initial segment from an order embedding into a well order, by collapsing it
 to fill the gaps. -/
-def collapse [is_well_order β s] (f : r ≼o s) : r ≼i s :=
-by haveI := order_embedding.is_well_order f; exact
-⟨order_embedding.of_monotone
+def collapse [is_well_order β s] (f : r ↪r s) : r ≼i s :=
+by haveI := rel_embedding.is_well_order f; exact
+⟨rel_embedding.of_monotone
   (λ a, (collapse_F f a).1) (λ a b, collapse_F.lt f),
 λ a b, acc.rec_on (is_well_order.wf.apply b : acc s b) (λ b H IH a h, begin
   let S := {a | ¬ s (collapse_F f a).1 b},
@@ -412,10 +412,10 @@ by haveI := order_embedding.is_well_order f; exact
     exact is_well_order.wf.not_lt_min S this hn h' }
 end) a⟩
 
-theorem collapse_apply [is_well_order β s] (f : r ≼o s)
+theorem collapse_apply [is_well_order β s] (f : r ↪r s)
   (a) : collapse f a = (collapse_F f a).1 := rfl
 
-end order_embedding
+end rel_embedding
 
 /-! ### Well order on an arbitrary type -/
 
@@ -438,7 +438,7 @@ cardinals by some embedding. -/
 def well_ordering_rel : σ → σ → Prop := embedding_to_cardinal ⁻¹'o (<)
 
 instance well_ordering_rel.is_well_order : is_well_order σ well_ordering_rel :=
-(order_embedding.preimage _ _).is_well_order
+(rel_embedding.preimage _ _).is_well_order
 
 end well_ordering_thm
 
@@ -462,8 +462,8 @@ end Well_order
 /-- Equivalence relation on well orders on arbitrary types in universe `u`, given by order
 isomorphism. -/
 instance ordinal.is_equivalent : setoid Well_order :=
-{ r     := λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≃o s),
-  iseqv := ⟨λ⟨α, r, _⟩, ⟨order_iso.refl _⟩,
+{ r     := λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≃r s),
+  iseqv := ⟨λ⟨α, r, _⟩, ⟨rel_iso.refl _⟩,
     λ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, ⟨e.symm⟩,
     λ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨e₁⟩ ⟨e₂⟩, ⟨e₁.trans e₂⟩⟩ }
 
@@ -489,7 +489,7 @@ theorem type_def (r : α → α → Prop) [wo : is_well_order α r] :
 
 theorem type_eq {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] :
-  type r = type s ↔ nonempty (r ≃o s) := quotient.eq
+  type r = type s ↔ nonempty (r ≃r s) := quotient.eq
 
 @[simp] lemma type_out (o : ordinal) : type o.out.r = o :=
 by { refine eq.trans _ (by rw [←quotient.out_eq o]), cases quotient.out o, refl }
@@ -519,7 +519,7 @@ theorem type_le {α β} {r : α → α → Prop} {s : β → β → Prop}
   type r ≤ type s ↔ nonempty (r ≼i s) := iff.rfl
 
 theorem type_le' {α β} {r : α → α → Prop} {s : β → β → Prop}
-  [is_well_order α r] [is_well_order β s] : type r ≤ type s ↔ nonempty (r ≼o s) :=
+  [is_well_order α r] [is_well_order β s] : type r ≤ type s ↔ nonempty (r ↪r s) :=
 ⟨λ ⟨f⟩, ⟨f⟩, λ ⟨f⟩, ⟨f.collapse⟩⟩
 
 /-- Ordinal less-than is defined such that
@@ -571,9 +571,9 @@ begin
   cases quotient.out α, cases quotient.out β, exact classical.choice
 end
 
-/-- Given two ordinals `α = β`, then `order_iso_out α β` is the order isomorphism between two
+/-- Given two ordinals `α = β`, then `rel_iso_out α β` is the order isomorphism between two
 model types for `α` and `β`. -/
-def order_iso_out {α β : ordinal} (h : α = β) : order_iso α.out.r β.out.r :=
+def rel_iso_out {α β : ordinal} (h : α = β) : rel_iso α.out.r β.out.r :=
 begin
   rw [←quotient.out_eq α, ←quotient.out_eq β] at h, revert h,
   cases quotient.out α, cases quotient.out β, exact classical.choice ∘ quotient.exact
@@ -586,19 +586,19 @@ theorem typein_lt_type (r : α → α → Prop) [is_well_order α r]
 @[simp] theorem typein_top {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : r ≺i s) :
   typein s f.top = type r :=
-eq.symm $ quot.sound ⟨order_iso.of_surjective
-  (order_embedding.cod_restrict _ f f.lt_top)
+eq.symm $ quot.sound ⟨rel_iso.of_surjective
+  (rel_embedding.cod_restrict _ f f.lt_top)
   (λ ⟨a, h⟩, by rcases f.down'.1 h with ⟨b, rfl⟩; exact ⟨b, rfl⟩)⟩
 
 @[simp] theorem typein_apply {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : r ≼i s) (a : α) :
   ordinal.typein s (f a) = ordinal.typein r a :=
-eq.symm $ quotient.sound ⟨order_iso.of_surjective
-  (order_embedding.cod_restrict _
-    ((subrel.order_embedding _ _).trans f)
-    (λ ⟨x, h⟩, by rw [order_embedding.trans_apply]; exact f.to_order_embedding.ord.1 h))
+eq.symm $ quotient.sound ⟨rel_iso.of_surjective
+  (rel_embedding.cod_restrict _
+    ((subrel.rel_embedding _ _).trans f)
+    (λ ⟨x, h⟩, by rw [rel_embedding.trans_apply]; exact f.to_rel_embedding.ord.1 h))
   (λ ⟨y, h⟩, by rcases f.init' h with ⟨a, rfl⟩;
-    exact ⟨⟨a, f.to_order_embedding.ord.2 h⟩, subtype.eq $ order_embedding.trans_apply _ _ _⟩)⟩
+    exact ⟨⟨a, f.to_rel_embedding.ord.2 h⟩, subtype.eq $ rel_embedding.trans_apply _ _ _⟩)⟩
 
 @[simp] theorem typein_lt_typein (r : α → α → Prop) [is_well_order α r]
   {a b : α} : typein r a < typein r b ↔ r a b :=
@@ -645,7 +645,7 @@ end
 theorem enum_type {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : s ≺i r)
   {h : type s < type r} : enum r (type s) h = f.top :=
-principal_seg.top_eq (order_iso.refl _) _ _
+principal_seg.top_eq (rel_iso.refl _) _ _
 
 @[simp] theorem enum_typein (r : α → α → Prop) [is_well_order α r] (a : α)
   {h : typein r a < type r} : enum r (typein r a) h = a :=
@@ -658,7 +658,7 @@ by clear _let_match; subst e; rw enum_typein
 
 /-- A well order `r` is order isomorphic to the set of ordinals strictly smaller than the
 ordinal version of `r`. -/
-def typein_iso (r : α → α → Prop) [is_well_order α r] : r ≃o subrel (<) (< type r) :=
+def typein_iso (r : α → α → Prop) [is_well_order α r] : r ≃r subrel (<) (< type r) :=
 ⟨⟨λ x, ⟨typein r x, typein_lt_type r x⟩, λ x, enum r x.1 x.2, λ y, enum_typein r y,
  λ ⟨y, hy⟩, subtype.eq (typein_enum r hy)⟩,
   λ a b, (typein_lt_typein r).symm⟩
@@ -668,21 +668,21 @@ theorem enum_lt {r : α → α → Prop} [is_well_order α r]
   r (enum r o₁ h₁) (enum r o₂ h₂) ↔ o₁ < o₂ :=
 by rw [← typein_lt_typein r, typein_enum, typein_enum]
 
-lemma order_iso_enum' {α β : Type u} {r : α → α → Prop} {s : β → β → Prop}
+lemma rel_iso_enum' {α β : Type u} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s]
-  (f : order_iso r s) (o : ordinal) : ∀(hr : o < type r) (hs : o < type s),
+  (f : rel_iso r s) (o : ordinal) : ∀(hr : o < type r) (hs : o < type s),
   f (enum r o hr) = enum s o hs :=
 begin
   refine induction_on o _, rintros γ t wo ⟨g⟩ ⟨h⟩,
   resetI, rw [enum_type g, enum_type (principal_seg.lt_equiv g f)], refl
 end
 
-lemma order_iso_enum {α β : Type u} {r : α → α → Prop} {s : β → β → Prop}
+lemma rel_iso_enum {α β : Type u} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s]
-  (f : order_iso r s) (o : ordinal) (hr : o < type r) :
+  (f : rel_iso r s) (o : ordinal) (hr : o < type r) :
   f (enum r o hr) =
   enum s o (by {convert hr using 1, apply quotient.sound, exact ⟨f.symm⟩ }) :=
-order_iso_enum' _ _ _ _
+rel_iso_enum' _ _ _ _
 
 theorem wf : @well_founded ordinal (<) :=
 ⟨λ a, induction_on a $ λ α r wo, by exactI
@@ -699,7 +699,7 @@ instance : has_well_founded ordinal := ⟨(<), wf⟩
   ordinals as a principal segment. -/
 def typein.principal_seg {α : Type u} (r : α → α → Prop) [is_well_order α r] :
   @principal_seg α ordinal.{u} r (<) :=
-⟨order_embedding.of_monotone (typein r)
+⟨rel_embedding.of_monotone (typein r)
   (λ a b, (typein_lt_typein r).2), type r, λ b,
     ⟨λ h, ⟨enum r _ h, typein_enum r h⟩,
     λ ⟨a, e⟩, e ▸ typein_lt_type _ _⟩⟩
@@ -760,11 +760,11 @@ quotient.sound ⟨⟨punit_equiv_punit, λ _ _, iff.rfl⟩⟩
   see `lift.initial_seg`. -/
 def lift (o : ordinal.{u}) : ordinal.{max u v} :=
 quotient.lift_on o (λ ⟨α, r, wo⟩,
-  @type _ _ (@order_embedding.is_well_order _ _ (@equiv.ulift.{v} α ⁻¹'o r) r
-    (order_iso.preimage equiv.ulift.{v} r) wo)) $
+  @type _ _ (@rel_embedding.is_well_order _ _ (@equiv.ulift.{v} α ⁻¹'o r) r
+    (rel_iso.preimage equiv.ulift.{v} r) wo)) $
 λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨f⟩,
-quot.sound ⟨(order_iso.preimage equiv.ulift r).trans $
-  f.trans (order_iso.preimage equiv.ulift s).symm⟩
+quot.sound ⟨(rel_iso.preimage equiv.ulift r).trans $
+  f.trans (rel_iso.preimage equiv.ulift s).symm⟩
 
 theorem lift_type {α} (r : α → α → Prop) [is_well_order α r] :
   ∃ wo', lift (type r) = @type _ (@equiv.ulift.{v} α ⁻¹'o r) wo' :=
@@ -772,45 +772,45 @@ theorem lift_type {α} (r : α → α → Prop) [is_well_order α r] :
 
 theorem lift_umax : lift.{u (max u v)} = lift.{u v} :=
 funext $ λ a, induction_on a $ λ α r _,
-quotient.sound ⟨(order_iso.preimage equiv.ulift r).trans (order_iso.preimage equiv.ulift r).symm⟩
+quotient.sound ⟨(rel_iso.preimage equiv.ulift r).trans (rel_iso.preimage equiv.ulift r).symm⟩
 
 theorem lift_id' (a : ordinal) : lift a = a :=
 induction_on a $ λ α r _,
-quotient.sound ⟨order_iso.preimage equiv.ulift r⟩
+quotient.sound ⟨rel_iso.preimage equiv.ulift r⟩
 
 @[simp] theorem lift_id : ∀ a, lift.{u u} a = a := lift_id'.{u u}
 
 @[simp]
 theorem lift_lift (a : ordinal) : lift.{(max u v) w} (lift.{u v} a) = lift.{u (max v w)} a :=
 induction_on a $ λ α r _,
-quotient.sound ⟨(order_iso.preimage equiv.ulift _).trans $
-  (order_iso.preimage equiv.ulift _).trans (order_iso.preimage equiv.ulift _).symm⟩
+quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans $
+  (rel_iso.preimage equiv.ulift _).trans (rel_iso.preimage equiv.ulift _).symm⟩
 
 theorem lift_type_le {α : Type u} {β : Type v} {r s} [is_well_order α r] [is_well_order β s] :
   lift.{u (max v w)} (type r) ≤ lift.{v (max u w)} (type s) ↔ nonempty (r ≼i s) :=
-⟨λ ⟨f⟩, ⟨(initial_seg.of_iso (order_iso.preimage equiv.ulift r).symm).trans $
-    f.trans (initial_seg.of_iso (order_iso.preimage equiv.ulift s))⟩,
- λ ⟨f⟩, ⟨(initial_seg.of_iso (order_iso.preimage equiv.ulift r)).trans $
-    f.trans (initial_seg.of_iso (order_iso.preimage equiv.ulift s).symm)⟩⟩
+⟨λ ⟨f⟩, ⟨(initial_seg.of_iso (rel_iso.preimage equiv.ulift r).symm).trans $
+    f.trans (initial_seg.of_iso (rel_iso.preimage equiv.ulift s))⟩,
+ λ ⟨f⟩, ⟨(initial_seg.of_iso (rel_iso.preimage equiv.ulift r)).trans $
+    f.trans (initial_seg.of_iso (rel_iso.preimage equiv.ulift s).symm)⟩⟩
 
 theorem lift_type_eq {α : Type u} {β : Type v} {r s} [is_well_order α r] [is_well_order β s] :
-  lift.{u (max v w)} (type r) = lift.{v (max u w)} (type s) ↔ nonempty (r ≃o s) :=
+  lift.{u (max v w)} (type r) = lift.{v (max u w)} (type s) ↔ nonempty (r ≃r s) :=
 quotient.eq.trans
-⟨λ ⟨f⟩, ⟨(order_iso.preimage equiv.ulift r).symm.trans $
-    f.trans (order_iso.preimage equiv.ulift s)⟩,
- λ ⟨f⟩, ⟨(order_iso.preimage equiv.ulift r).trans $
-    f.trans (order_iso.preimage equiv.ulift s).symm⟩⟩
+⟨λ ⟨f⟩, ⟨(rel_iso.preimage equiv.ulift r).symm.trans $
+    f.trans (rel_iso.preimage equiv.ulift s)⟩,
+ λ ⟨f⟩, ⟨(rel_iso.preimage equiv.ulift r).trans $
+    f.trans (rel_iso.preimage equiv.ulift s).symm⟩⟩
 
 theorem lift_type_lt {α : Type u} {β : Type v} {r s} [is_well_order α r] [is_well_order β s] :
   lift.{u (max v w)} (type r) < lift.{v (max u w)} (type s) ↔ nonempty (r ≺i s) :=
-by haveI := @order_embedding.is_well_order _ _ (@equiv.ulift.{(max v w)} α ⁻¹'o r)
-     r (order_iso.preimage equiv.ulift.{(max v w)} r) _;
-   haveI := @order_embedding.is_well_order _ _ (@equiv.ulift.{(max u w)} β ⁻¹'o s)
-     s (order_iso.preimage equiv.ulift.{(max u w)} s) _; exact
-⟨λ ⟨f⟩, ⟨(f.equiv_lt (order_iso.preimage equiv.ulift r).symm).lt_le
-    (initial_seg.of_iso (order_iso.preimage equiv.ulift s))⟩,
- λ ⟨f⟩, ⟨(f.equiv_lt (order_iso.preimage equiv.ulift r)).lt_le
-    (initial_seg.of_iso (order_iso.preimage equiv.ulift s).symm)⟩⟩
+by haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{(max v w)} α ⁻¹'o r)
+     r (rel_iso.preimage equiv.ulift.{(max v w)} r) _;
+   haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{(max u w)} β ⁻¹'o s)
+     s (rel_iso.preimage equiv.ulift.{(max u w)} s) _; exact
+⟨λ ⟨f⟩, ⟨(f.equiv_lt (rel_iso.preimage equiv.ulift r).symm).lt_le
+    (initial_seg.of_iso (rel_iso.preimage equiv.ulift s))⟩,
+ λ ⟨f⟩, ⟨(f.equiv_lt (rel_iso.preimage equiv.ulift r)).lt_le
+    (initial_seg.of_iso (rel_iso.preimage equiv.ulift s).symm)⟩⟩
 
 @[simp] theorem lift_le {a b : ordinal} : lift.{u v} a ≤ lift b ↔ a ≤ b :=
 induction_on a $ λ α r _, induction_on b $ λ β s _,
@@ -823,14 +823,14 @@ by simp only [le_antisymm_iff, lift_le]
 by simp only [lt_iff_le_not_le, lift_le]
 
 @[simp] theorem lift_zero : lift 0 = 0 :=
-quotient.sound ⟨(order_iso.preimage equiv.ulift _).trans
+quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
  ⟨pempty_equiv_pempty, λ a b, iff.rfl⟩⟩
 
 theorem zero_eq_lift_type_empty : 0 = lift.{0 u} (@type empty empty_relation _) :=
 by rw [← zero_eq_type_empty, lift_zero]
 
 @[simp] theorem lift_one : lift 1 = 1 :=
-quotient.sound ⟨(order_iso.preimage equiv.ulift _).trans
+quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
  ⟨punit_equiv_punit, λ a b, iff.rfl⟩⟩
 
 theorem one_eq_lift_type_unit : 1 = lift.{0 u} (@type unit empty_relation _) :=
@@ -847,8 +847,8 @@ quotient.induction_on c (λ α, induction_on b $ λ β s _ e', begin
   rw [mk_def, card_type, ← cardinal.lift_id'.{(max u v) u} (mk β),
       ← cardinal.lift_umax.{u v}, lift_mk_eq.{u (max u v) (max u v)}] at e',
   cases e' with f,
-  have g := order_iso.preimage f s,
-  haveI := (g : ⇑f ⁻¹'o s ≼o s).is_well_order,
+  have g := rel_iso.preimage f s,
+  haveI := (g : ⇑f ⁻¹'o s ↪r s).is_well_order,
   have := lift_type_eq.{u (max u v) (max u v)}.2 ⟨g⟩,
   rw [lift_id, lift_umax.{u v}] at this,
   exact ⟨_, this⟩
@@ -904,7 +904,7 @@ instance : has_add ordinal.{u} :=
   (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨α ⊕ β, sum.lex r s, by exactI sum.lex.is_well_order⟩⟧
     : Well_order → Well_order → ordinal) $
 λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
-quot.sound ⟨order_iso.sum_lex_congr f g⟩⟩
+quot.sound ⟨rel_iso.sum_lex_congr f g⟩⟩
 
 @[simp] theorem card_add (o₁ o₂ : ordinal) : card (o₁ + o₂) = card o₁ + card o₂ :=
 induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _, rfl
@@ -979,7 +979,7 @@ sum.inr punit.star, λ b, sum.rec_on b
 theorem succ_le {a b : ordinal} : succ a ≤ b ↔ a < b :=
 ⟨lt_of_lt_of_le (lt_succ_self _),
 induction_on a $ λ α r hr, induction_on b $ λ β s hs ⟨⟨f, t, hf⟩⟩, begin
-  refine ⟨⟨@order_embedding.of_monotone (α ⊕ punit) β _ _
+  refine ⟨⟨@rel_embedding.of_monotone (α ⊕ punit) β _ _
     (@sum.lex.is_well_order _ _ _ _ hr _).1.1
     (@is_asymm_of_is_trans_of_is_irrefl _ _ hs.1.2.2 hs.1.2.1)
     (sum.rec _ _) (λ a b, _), λ a b, _⟩⟩,
@@ -1045,7 +1045,7 @@ def lift.principal_seg : @principal_seg ordinal.{u} ordinal.{max (u+1) v} (<) (<
     existsi a, revert hf,
     apply induction_on a, introsI α r _ hf,
     refine lift_type_eq.{u (max (u+1) v) (max (u+1) v)}.2
-      ⟨(order_iso.of_surjective (order_embedding.of_monotone _ _) _).symm⟩,
+      ⟨(rel_iso.of_surjective (rel_embedding.of_monotone _ _) _).symm⟩,
     { exact λ b, enum r (f b) ((hf _).2 ⟨_, rfl⟩) },
     { refine λ a b h, (typein_lt_typein r).1 _,
       rw [typein_enum, typein_enum],
@@ -1111,7 +1111,7 @@ namespace cardinal
 open ordinal
 
 /-- The ordinal corresponding to a cardinal `c` is the least ordinal
-  whose cardinal is `c`. For the order-embedding version, see `ord.order_embedding`. -/
+  whose cardinal is `c`. For the order-embedding version, see `ord.rel_embedding`. -/
 def ord (c : cardinal) : ordinal :=
 begin
   let ι := λ α, {r // is_well_order α r},
@@ -1121,10 +1121,10 @@ begin
   suffices : ∀ {α β}, α ≈ β → F α ≤ F β,
   from λ α β h, le_antisymm (this h) (this (setoid.symm h)),
   intros α β h, cases h with f, refine ordinal.le_min.2 (λ i, _),
-  haveI := @order_embedding.is_well_order _ _
-    (f ⁻¹'o i.1) _ ↑(order_iso.preimage f i.1) i.2,
+  haveI := @rel_embedding.is_well_order _ _
+    (f ⁻¹'o i.1) _ ↑(rel_iso.preimage f i.1) i.2,
   rw ← show type (f ⁻¹'o i.1) = ⟦⟨β, i.1, i.2⟩⟧, from
-    quot.sound ⟨order_iso.preimage f i.1⟩,
+    quot.sound ⟨rel_iso.preimage f i.1⟩,
   exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
 end
 
@@ -1150,8 +1150,8 @@ let ⟨r, _, e⟩ := ord_eq α in begin
   resetI, simp only [mk_def, card_type], split; intro h,
   { rw e at h, exact let ⟨f⟩ := h in ⟨f.to_embedding⟩ },
   { cases h with f,
-    have g := order_embedding.preimage f s,
-    haveI := order_embedding.is_well_order g,
+    have g := rel_embedding.preimage f s,
+    haveI := rel_embedding.is_well_order g,
     exact le_trans (ord_le_type _) (type_le'.2 ⟨g⟩) }
 end
 
@@ -1212,11 +1212,11 @@ by { intros c c' h, rw [←card_ord c, ←card_ord c', h] }
 /-- The ordinal corresponding to a cardinal `c` is the least ordinal
   whose cardinal is `c`. This is the order-embedding version. For the regular function, see `ord`.
 -/
-def ord.order_embedding : @order_embedding cardinal ordinal (<) (<) :=
-order_embedding.of_monotone cardinal.ord $ λ a b, cardinal.ord_lt_ord.2
+def ord.rel_embedding : @rel_embedding cardinal ordinal (<) (<) :=
+rel_embedding.of_monotone cardinal.ord $ λ a b, cardinal.ord_lt_ord.2
 
-@[simp] theorem ord.order_embedding_coe :
-  (ord.order_embedding : cardinal → ordinal) = ord := rfl
+@[simp] theorem ord.rel_embedding_coe :
+  (ord.rel_embedding : cardinal → ordinal) = ord := rfl
 
 /-- The cardinal `univ` is the cardinality of ordinal `univ`, or
   equivalently the cardinal of `ordinal.{u}`, or `cardinal.{u}`,

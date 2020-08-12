@@ -67,8 +67,8 @@ semiconjugate to `fa` by `g'`.
 This is a version of Proposition 2.1 from [Étienne Ghys, Groupes d'homeomorphismes du cercle et
 cohomologie bornee][ghys87:groupes]. -/
 lemma semiconj.symm_adjoint [partial_order α] [preorder β]
-  {fa : ((≤) : α → α → Prop) ≃o ((≤) : α → α → Prop)}
-  {fb : ((≤) : β → β → Prop) ≼o ((≤) : β → β → Prop)} {g : α → β}
+  {fa : ((≤) : α → α → Prop) ≃r ((≤) : α → α → Prop)}
+  {fb : ((≤) : β → β → Prop) ↪r ((≤) : β → β → Prop)} {g : α → β}
   (h : function.semiconj g fa fb) {g' : β → α} (hg' : is_order_right_adjoint g g') :
   function.semiconj g' fb fa :=
 begin
@@ -80,7 +80,7 @@ end
 variable {G : Type*}
 
 lemma semiconj_of_is_lub [partial_order α] [group G]
-  (f₁ f₂ : G →* ((≤) : α → α → Prop) ≃o ((≤) : α → α → Prop)) {h : α → α}
+  (f₁ f₂ : G →* ((≤) : α → α → Prop) ≃r ((≤) : α → α → Prop)) {h : α → α}
   (H : ∀ x, is_lub (range (λ g', (f₁ g')⁻¹ (f₂ g' x))) (h x)) (g : G) :
   function.semiconj h (f₂ g) (f₁ g) :=
 begin
@@ -96,7 +96,7 @@ isomorphisms. Then the map `x ↦ ⨆ g : G, (f₁ g)⁻¹ (f₂ g x)` semiconju
 This is a version of Proposition 5.4 from [Étienne Ghys, Groupes d'homeomorphismes du cercle et
 cohomologie bornee][ghys87:groupes]. -/
 lemma Sup_div_semiconj [complete_lattice α] [group G]
-  (f₁ f₂ : G →* ((≤) : α → α → Prop) ≃o ((≤) : α → α → Prop)) (g : G) :
+  (f₁ f₂ : G →* ((≤) : α → α → Prop) ≃r ((≤) : α → α → Prop)) (g : G) :
   function.semiconj (λ x, ⨆ g' : G, (f₁ g')⁻¹ (f₂ g' x)) (f₂ g) (f₁ g) :=
 semiconj_of_is_lub f₁ f₂ (λ x, is_lub_supr) _
 
@@ -107,7 +107,7 @@ Then the map `x ↦ Sup s(x)` semiconjugates each `f₁ g'` to `f₂ g'`.
 This is a version of Proposition 5.4 from [Étienne Ghys, Groupes d'homeomorphismes du cercle et
 cohomologie bornee][ghys87:groupes]. -/
 lemma cSup_div_semiconj [conditionally_complete_lattice α] [group G]
-  (f₁ f₂ : G →* ((≤) : α → α → Prop) ≃o ((≤) : α → α → Prop))
+  (f₁ f₂ : G →* ((≤) : α → α → Prop) ≃r ((≤) : α → α → Prop))
   (hbdd : ∀ x, bdd_above (range $ λ g, (f₁ g)⁻¹ (f₂ g x))) (g : G) :
   function.semiconj (λ x, ⨆ g' : G, (f₁ g')⁻¹ (f₂ g' x)) (f₂ g) (f₁ g) :=
 semiconj_of_is_lub f₁ f₂ (λ x, is_lub_cSup (range_nonempty _) (hbdd x)) _

@@ -516,7 +516,7 @@ open quotient
 @[to_additive "Given an additive congruence relation `c` on a type `M` with an addition,
 the order-preserving bijection between the set of additive congruence relations containing `c` and
 the additive congruence relations on the quotient of `M` by `c`."]
-def correspondence : ((≤) : {d // c ≤ d} → {d // c ≤ d} → Prop) ≃o
+def correspondence : ((≤) : {d // c ≤ d} → {d // c ≤ d} → Prop) ≃r
   ((≤) : con c.quotient → con c.quotient → Prop) :=
 { to_fun := λ d, d.1.map_of_surjective coe _
     (by rw mul_ker_mk_eq; exact d.2) $ @exists_rep _ c.to_setoid,

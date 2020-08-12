@@ -175,8 +175,8 @@ instance partition.partial_order : partial_order (subtype (@is_partition α)) :=
 variables (α)
 
 /-- The order-preserving bijection between equivalence relations and partitions of sets. -/
-def partition.order_iso :
-  ((≤) : setoid α → setoid α → Prop) ≃o (@setoid.partition.partial_order α).le :=
+def partition.rel_iso :
+  ((≤) : setoid α → setoid α → Prop) ≃r (@setoid.partition.partial_order α).le :=
 { to_fun := λ r, ⟨r.classes, empty_not_mem_classes, classes_eqv_classes⟩,
   inv_fun := λ x, mk_classes x.1 x.2.2,
   left_inv := mk_classes_classes,
@@ -188,8 +188,8 @@ variables {α}
 /-- A complete lattice instance for partitions; there is more infrastructure for the
     equivalent complete lattice on equivalence relations. -/
 instance partition.complete_lattice : complete_lattice (subtype (@is_partition α)) :=
-galois_insertion.lift_complete_lattice $ @order_iso.to_galois_insertion
-_ (subtype (@is_partition α)) _ (partial_order.to_preorder _) $ partition.order_iso α
+galois_insertion.lift_complete_lattice $ @rel_iso.to_galois_insertion
+_ (subtype (@is_partition α)) _ (partial_order.to_preorder _) $ partition.rel_iso α
 
 end partition
 

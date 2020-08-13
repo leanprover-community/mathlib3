@@ -138,7 +138,7 @@ end
 variables (P)
 
 /-- Adding the group element `g` to a point is an injective function. -/
-lemma vadd_left_injective (g : G) : function.injective (λ p : P, g +ᵥ p) :=
+lemma vadd_left_injective (g : G) : function.injective ((+ᵥ) g) :=
 λ p1 p2, vadd_left_cancel g
 
 end group

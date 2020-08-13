@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import linear_algebra.basic
+import ring_theory.algebra
 import tactic.omega
 import data.fintype.sort
 
@@ -514,6 +515,151 @@ protected def pi_ring_equiv [fintype ι]  : M₂ ≃ₗ[R] (multilinear_map R (�
   right_inv := λ f, f.mk_pi_ring_apply_one_eq_self }
 
 end comm_ring
+
+section algebra
+
+variables (S : Type u) [comm_semiring S]
+variables {N : Type u} [semiring N] [algebra S N]
+variable {q : ℕ}
+variable (ν : fin q → N)
+
+instance algebra_to_semimodule : semimodule S N := algebra.to_semimodule
+
+def algebra_prod_aux : N := list.prod $ list.map ν (list.fin_range q)
+
+lemma algebra_prod_split_aux (ν : fin q.succ → N):
+algebra_prod_aux ν = (ν 0) * algebra_prod_aux (λ i : fin q, ν i.succ) :=
+begin
+  have key : list.fin_range q.succ =
+  0 :: list.map fin.succ (list.fin_range q) :=
+    begin
+    unfold list.fin_range,
+    rw [list.map_pmap],
+    simp_rw [list.range_succ_eq_map],
+    rw [list.pmap],
+    congr' 1,
+    rw list.pmap_map,
+    apply list.pmap_congr,
+    intros, refl,
+    end,
+  unfold algebra_prod_aux,
+  rw [key, list.map_cons, list.prod_cons],
+  simp,
+end
+
+/--
+The multilinear map sending a vector of elements of a semiring to their product.
+-/
+def algebra_prod : multilinear_map S (λ i : fin q, N) N :=
+{ to_fun := algebra_prod_aux,
+  map_add' :=
+  begin
+    intros ν i x y,
+    induction q with q hq,
+    --Base case
+    cases i, exfalso, exact nat.not_lt_zero i_val i_is_lt,
+    --Inductive step
+    rw [algebra_prod_split_aux, algebra_prod_split_aux, algebra_prod_split_aux],
+    cases classical.em (i = 0),
+    --case i = 0
+    rw h,
+    rw [function.update_same, function.update_same, function.update_same],
+    rw right_distrib,
+    have fact : ∀ (z : N), ((λ k : fin q, function.update ν 0 z k.succ) = λ k : fin q, ν k.succ) :=
+    begin
+      intro z,
+      ext k,
+      rw function.update_noteq (fin.succ_ne_zero k),
+    end,
+    rw [fact (x+y), fact x, fact y],
+    --case i ≠ 0
+    rw [function.update_noteq (ne_comm.mp h), function.update_noteq (ne_comm.mp h),
+      function.update_noteq (ne_comm.mp h)],
+    have key : algebra_prod_aux (λ (i_1 : fin q), function.update ν i (x + y) i_1.succ) =
+    algebra_prod_aux (λ (i_1 : fin q), function.update ν i x i_1.succ) +
+    algebra_prod_aux (λ (i_1 : fin q), function.update ν i y i_1.succ) :=
+    begin
+      convert hq (λ i : fin q, ν i.succ) (i.pred h),
+      repeat{
+      ext j,
+      cases classical.em (i = j.succ) with hem hem,
+      --case i = j.succ
+      rw [←hem, function.update_same],
+      have hem1 : j = i.pred h :=
+        begin
+          ext,
+          simp [hem],
+        end,
+      rw [hem1, function.update_same],
+      --case i ≠ j.succ
+      rw function.update_noteq (ne_comm.mp hem),
+      have hem1 : j ≠ i.pred h :=
+      begin
+        intro hj,
+        rw [←fin.succ_inj, fin.succ_pred, eq_comm] at hj,
+        exact hem hj,
+      end,
+      rw function.update_noteq hem1,},
+    end,
+    rw key, rw left_distrib,
+  end,
+  map_smul' :=
+  begin
+    intros ν i r x,
+    induction q with q hq,
+    --Base case
+    cases i, exfalso, exact nat.not_lt_zero i_val i_is_lt,
+    --Inductive step
+    rw [algebra_prod_split_aux, algebra_prod_split_aux],
+    cases classical.em (i = 0),
+    --case i = 0
+    rw h,
+    rw [function.update_same, function.update_same],
+    have fact : (λ (i : fin q), function.update ν 0 (r • x) i.succ)
+    = (λ (i : fin q), function.update ν 0 x i.succ) :=
+      begin
+        ext j,
+        rw [function.update_noteq (fin.succ_ne_zero j), function.update_noteq (fin.succ_ne_zero j)]
+      end,
+    rw fact,
+    rw algebra.smul_mul_assoc,
+    --case i ≠ 0
+    rw [function.update_noteq (ne_comm.mp h), function.update_noteq (ne_comm.mp h)],
+    have key : algebra_prod_aux (λ (i_1 : fin q), function.update ν i (r • x) i_1.succ) =
+    r • algebra_prod_aux (λ (i_1 : fin q), function.update ν i x i_1.succ) :=
+      begin
+        convert hq (λ i : fin q, ν i.succ) (i.pred h),
+        repeat{
+        ext j,
+        cases classical.em (i = j.succ) with hem hem,
+        --case i = j.succ
+        rw ←hem,
+        rw function.update_same,
+        have hem1 : j = i.pred h :=
+          begin
+            ext, simp [hem],
+          end,
+        rw hem1,
+        rw function.update_same,
+        --case i ≠ j.succ
+        rw function.update_noteq (ne_comm.mp hem),
+        have hem1 : j ≠ i.pred h :=
+          begin
+          intro hj,
+          rw [←fin.succ_inj, fin.succ_pred, eq_comm] at hj,
+          exact hem hj,
+          end,
+        rw function.update_noteq hem1,},
+      end,
+    rw key, simp,
+  end }
+
+lemma algebra_prod_split (ν : fin q.succ → N):
+algebra_prod S ν = (ν 0) * algebra_prod S (ν ∘ fin.succ) := algebra_prod_split_aux ν
+
+
+
+end algebra
 
 end multilinear_map
 

@@ -305,33 +305,11 @@ begin
     simp [← A, B, IH] }
 end
 
--- `to_additive` does not work on `prod_take_of_fn` because of `0 : ℕ` in the proof. Copy-paste the
--- proof instead...
+-- `to_additive` does not work on `prod_take_of_fn` because of `0 : ℕ` in the proof.
+-- Use `multiplicative` instead.
 lemma sum_take_of_fn [add_comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
   ((of_fn f).take i).sum = ∑ j in finset.univ.filter (λ (j : fin n), j.val < i), f j :=
-begin
-  have A : ∀ (j : fin n), ¬ (j.val < 0) := λ j, not_lt_bot,
-  induction i with i IH, { simp [A] },
-  by_cases h : i < n,
-  { have : i < length (of_fn f), by rwa [length_of_fn f],
-    rw sum_take_succ _ _ this,
-    have A : ((finset.univ : finset (fin n)).filter (λ j, j.val < i + 1))
-      = ((finset.univ : finset (fin n)).filter (λ j, j.val < i)) ∪ singleton (⟨i, h⟩ : fin n),
-        by { ext j, simp [nat.lt_succ_iff_lt_or_eq, fin.ext_iff, - add_comm] },
-    have B : _root_.disjoint (finset.filter (λ (j : fin n), j.val < i) finset.univ)
-      (singleton (⟨i, h⟩ : fin n)), by simp,
-    rw [A, finset.sum_union B, IH],
-    simp },
-  { have A : (of_fn f).take i = (of_fn f).take i.succ,
-    { rw ← length_of_fn f at h,
-      have : length (of_fn f) ≤ i := not_lt.mp h,
-      rw [take_all_of_le this, take_all_of_le (le_trans this (nat.le_succ _))] },
-    have B : ∀ (j : fin n), (j.val < i.succ) = (j.val < i),
-    { assume j,
-      have : j.val < i := lt_of_lt_of_le j.2 (not_lt.mp h),
-      simp [this, lt_trans this (nat.lt_succ_self _)] },
-    simp [← A, B, IH] }
-end
+@prod_take_of_fn (multiplicative α) _ n f i
 
 attribute [to_additive] prod_take_of_fn
 

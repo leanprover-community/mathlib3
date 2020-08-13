@@ -60,5 +60,17 @@ def forget : Monad C ⥤ (C ⥤ C) :=
 { obj := func,
   map := λ _ _ f, f.to_nat_trans }
 
+theorem hext (M N : Monad C) : M.func = N.func → (η_ M.func) == (η_ N.func) →
+  (μ_ M.func) == (μ_ N.func) → M = N := λ h1 h2 h3,
+begin
+  cases M, cases N,
+  dsimp only [] at h1,
+  subst h1,
+  congr,
+  cases M_str, cases N_str,
+  congr,
+  repeat {apply eq_of_heq, assumption}
+end
+
 end Monad
 end category_theory

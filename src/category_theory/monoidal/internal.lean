@@ -39,6 +39,16 @@ attribute [simp, reassoc] Mon_.one_mul Mon_.mul_one Mon_.mul_assoc
 
 namespace Mon_
 
+theorem hext (M N : Mon_ C) : M.X = N.X → M.one == N.one → M.mul == N.mul → M = N :=
+begin
+  intros h1 h2 h3,
+  cases M, cases N,
+  dsimp only [] at h1,
+  subst h1,
+  congr,
+  repeat {apply eq_of_heq, assumption}
+end
+
 variables {C}
 
 variables {M : Mon_ C}

@@ -562,9 +562,7 @@ def algebra_prod : multilinear_map S (λ i : fin q, N) N :=
     rw [algebra_prod_split_aux, algebra_prod_split_aux, algebra_prod_split_aux],
     cases classical.em (i = 0),
     --case i = 0
-    rw h,
-    rw [function.update_same, function.update_same, function.update_same],
-    rw right_distrib,
+    rw [h, function.update_same, function.update_same, function.update_same, right_distrib],
     have fact : ∀ (z : N), ((λ k : fin q, function.update ν 0 z k.succ) = λ k : fin q, ν k.succ) :=
     begin
       intro z,
@@ -586,10 +584,7 @@ def algebra_prod : multilinear_map S (λ i : fin q, N) N :=
       --case i = j.succ
       rw [←hem, function.update_same],
       have hem1 : j = i.pred h :=
-        begin
-          ext,
-          simp [hem],
-        end,
+        by ext; simp [hem],
       rw [hem1, function.update_same],
       --case i ≠ j.succ
       rw function.update_noteq (ne_comm.mp hem),
@@ -601,7 +596,7 @@ def algebra_prod : multilinear_map S (λ i : fin q, N) N :=
       end,
       rw function.update_noteq hem1,},
     end,
-    rw key, rw left_distrib,
+    rw [key, left_distrib],
   end,
   map_smul' :=
   begin
@@ -613,16 +608,11 @@ def algebra_prod : multilinear_map S (λ i : fin q, N) N :=
     rw [algebra_prod_split_aux, algebra_prod_split_aux],
     cases classical.em (i = 0),
     --case i = 0
-    rw h,
-    rw [function.update_same, function.update_same],
+    rw [h, function.update_same, function.update_same],
     have fact : (λ (i : fin q), function.update ν 0 (r • x) i.succ)
     = (λ (i : fin q), function.update ν 0 x i.succ) :=
-      begin
-        ext j,
-        rw [function.update_noteq (fin.succ_ne_zero j), function.update_noteq (fin.succ_ne_zero j)]
-      end,
-    rw fact,
-    rw algebra.smul_mul_assoc,
+      by ext j; rw [function.update_noteq (fin.succ_ne_zero j), function.update_noteq (fin.succ_ne_zero j)],
+    rw [fact, algebra.smul_mul_assoc],
     --case i ≠ 0
     rw [function.update_noteq (ne_comm.mp h), function.update_noteq (ne_comm.mp h)],
     have key : algebra_prod_aux (λ (i_1 : fin q), function.update ν i (r • x) i_1.succ) =
@@ -633,14 +623,10 @@ def algebra_prod : multilinear_map S (λ i : fin q, N) N :=
         ext j,
         cases classical.em (i = j.succ) with hem hem,
         --case i = j.succ
-        rw ←hem,
-        rw function.update_same,
+        rw [←hem, function.update_same],
         have hem1 : j = i.pred h :=
-          begin
-            ext, simp [hem],
-          end,
-        rw hem1,
-        rw function.update_same,
+          by ext; simp [hem],
+        rw [hem1, function.update_same],
         --case i ≠ j.succ
         rw function.update_noteq (ne_comm.mp hem),
         have hem1 : j ≠ i.pred h :=
@@ -656,8 +642,6 @@ def algebra_prod : multilinear_map S (λ i : fin q, N) N :=
 
 lemma algebra_prod_split (ν : fin q.succ → N):
 algebra_prod S ν = (ν 0) * algebra_prod S (ν ∘ fin.succ) := algebra_prod_split_aux ν
-
-
 
 end algebra
 

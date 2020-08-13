@@ -6,18 +6,16 @@ Author: Zhangir Azerbayev.
 import .multilinear
 import group_theory.perm.sign
 
-
 variables (R : Type*) [ring R]
 variables (M : Type*) [add_comm_group M] [module R M]
 variables (N : Type*) [add_comm_group N] [module R N]
 variables (ι : Type*) [decidable_eq ι]
-variable (M₀ : Π i : ι, M)
 
 class alternating_map extends multilinear_map R (λ i : ι , M) N :=
 (map_alternating {ν : ι → M} {i j : ι} (h : ν i = ν j) (hij : i ≠ j) : to_fun ν = 0)
 
-
 namespace alternating
+
 variable {f : alternating_map R M N ι}
 variable (ν : ι → M)
 variables {R M N ι}

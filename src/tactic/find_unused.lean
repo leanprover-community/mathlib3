@@ -50,7 +50,7 @@ private meta def update_unsed_decls_list : name → name_map declaration → tac
        ns.mfold m update_unsed_decls_list
      else pure m
 
-/-- In the current file, list all the declaration that are not marked as `@[needed]` and
+/-- In the current file, list all the declaration that are not marked as `@[main_declaration]` and
 that are not referenced by such declarations -/
 meta def all_unused (fs : list (option string)) : tactic (name_map declaration) :=
 do ds ← get_decls_from fs,
@@ -63,9 +63,7 @@ do ds ← get_decls_from fs,
 /-- expecting a string literal (e.g. `"src/tactic/find_unused.lean"`)
 -/
 meta def parse_file_name (fn : pexpr) : tactic (option string) :=
-do fn ← to_expr fn,
-   do { fn ← eval_expr string fn, return (some fn) }
-     <|> fail "expecting: \"src/dir/file-name\""
+(some <$> to_expr fn >>= eval_expr string) <|> fail "expecting: \"src/dir/file-name\""
 
 setup_tactic_parser
 

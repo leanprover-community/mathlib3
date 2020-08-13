@@ -60,16 +60,12 @@ do ds ← get_decls_from fs,
      e ← get_env,
      return $ !d.is_auto_or_internal e
 
-/-- expecting a string literal (e.g. `"src/tactic/find_unused.lean"`) or
-the name literal `` `current_file``
+/-- expecting a string literal (e.g. `"src/tactic/find_unused.lean"`)
 -/
 meta def parse_file_name (fn : pexpr) : tactic (option string) :=
 do fn ← to_expr fn,
-   do { fn ← eval_expr string fn, return (some fn) } <|>
-   do { fn ← eval_expr name fn,
-        guard (fn = `current_file),
-        pure none } <|>
-   fail "expecting: \"src/dir/file-name\" or `current_file"
+   do { fn ← eval_expr string fn, return (some fn) }
+     <|> fail "expecting: \"src/dir/file-name\""
 
 setup_tactic_parser
 
@@ -81,24 +77,27 @@ of a file are taken as the declaration tagged with
 A list of files can be given to `#list_unused_decls` as follows:
 
 ```lean
-#list_unused_decls [`current_file,"src/tactic/core.lean","src/tactic/interactive.lean"]
+#list_unused_decls ["src/tactic/core.lean","src/tactic/interactive.lean"]
 ```
 
 They are given in a list that contains file names written as Lean
-strings or the Lean name ``\`current_file``, if the current file is to
-be considered. With a list of files, the declarations from all those
-files will be taken and their interdependencies will be analyzed to
-see which declarations are unused by declarations marked as
-`@[main_declaration]`. The files listed must be imported by the
+strings. With a list of files, the declarations from all those files
+in addition to the declarations above `#list_unused_decls` in the
+current file will be considered and their interdependencies will be
+analyzed to see which declarations are unused by declarations marked
+as `@[main_declaration]`. The files listed must be imported by the
 current file. The path of the file names is expected to be relative to
 the root of the project (i.e. the location of `leanpkg.toml` when it
-is present). -/
+is present).
+
+Neither `#list_unused_decls` nor `@[main_declaration]` should appear
+in a finished mathlib development. -/
 @[user_command]
 meta def unused_decls_cmd (_ : parse $ tk "#list_unused_decls") : lean.parser unit :=
-do fs ← opt_pexpr_list,
+do fs ← pexpr_list,
    show tactic unit, from
    do fs ← fs.mmap parse_file_name,
-      ds ← all_unused fs,
+      ds ← all_unused $ none :: fs,
       ds.to_list.mmap' $ λ ⟨n,_⟩, trace!"#print {n}"
 
 add_tactic_doc

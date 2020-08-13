@@ -337,15 +337,20 @@ filter (e.g., `𝓝 b`, `𝓝[Ici b] b`, or `𝓝[Iic b] b`) such that `μ` is f
 to `c` as `x` tends to `l ⊓ μ.ae` then
 `∫ x in a..v, f x ∂μ - ∫ x in a..u, f x ∂μ = ∫ x in u..v, c ∂μ + o(∫ x in u..v, 1 ∂μ)`
 as `u` and `v` tend to `l`.
-
 -/
 
+/-- An auxiliary typeclass for the Fundamental theorem of calculus, part 1. FTC-1 states that
+`∫ x in a..b, f x` is differentiable both in `a` and `b` provided that `f` is (almost surely)
+continuous at the endpoints.  For each endpoint it makes sense to take the usual limit,
+a one-sided limit, or freeze this endpoint. -/
 class FTC_filter {β : Type*} [linear_order β] [measurable_space β] [topological_space β]
   (a : out_param β) (outer : filter β) (inner : out_param $ filter β)
   extends tendsto_Ixx_class Ioc outer inner : Prop :=
 (pure_le : pure a ≤ outer)
 (le_nhds : inner ≤ 𝓝 a)
 [meas_gen : is_measurably_generated inner]
+
+attribute [nolint dangerous_instance] FTC_filter.to_tendsto_Ixx_class
 
 namespace FTC_filter
 
@@ -354,6 +359,11 @@ variables [linear_order β] [measurable_space β] [topological_space β]
 instance pure (a : β) : FTC_filter a (pure a) ⊥ :=
 { pure_le := le_refl _,
   le_nhds := bot_le }
+
+lemma finite_at_inner {a : β} (l : filter β) {l'} [h : FTC_filter a l l']
+  {μ : measure β} [locally_finite_measure μ] :
+  μ.finite_at_filter l' :=
+(μ.finite_at_nhds a).filter_mono h.le_nhds
 
 variables [opens_measurable_space β] [order_topology β]
 
@@ -368,11 +378,6 @@ instance nhds_left (a : β) : FTC_filter a (𝓝[Iic a] a) (𝓝[Iic a] a) :=
 instance nhds_right (a : β) : FTC_filter a (𝓝[Ici a] a) (𝓝[Ioi a] a) :=
 { pure_le := pure_le_nhds_within left_mem_Ici,
   le_nhds := inf_le_left }
-
-lemma finite_at_inner {a : β} (l : filter β) {l'} [h : FTC_filter a l l']
-  {μ : measure β} [locally_finite_measure μ] :
-  μ.finite_at_filter l' :=
-(μ.finite_at_nhds a).filter_mono h.le_nhds
 
 end FTC_filter
 
@@ -427,7 +432,7 @@ lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge'
 (measure_integral_sub_linear_is_o_of_tendsto_ae_of_le' hfm hf hl hv hu huv).neg_left.congr_left $
   λ t, by simp [integral_symm (u t), add_comm]
 
-variables [topological_space α] [order_topology α] [borel_space α]
+variables [topological_space α]
 
 section
 
@@ -458,6 +463,8 @@ lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge
 measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge' hfm hf (FTC_filter.finite_at_inner l) hu hv huv
 
 end
+
+variables [order_topology α] [borel_space α]
 
 /-- Fundamental theorem of calculus-1, strict derivative in both limits for any measure.
 Let `f` be a measurable function integrable on `a..b`.
@@ -582,7 +589,7 @@ variables {f : ℝ → E} {c ca cb : E} {l l' la la' lb lb' : filter ℝ} {lt : 
 `𝓝[Ici a] a`, `𝓝[Iic a] a`), then `∫ x in u..v, f x ∂μ = ∫ x in u..v, c ∂μ + o(∫ x in u..v, 1 ∂μ)`
 as both `u` and `v` tend to `l`. -/
 lemma integral_sub_linear_is_o_of_tendsto_ae [FTC_filter a l l']
-  [tendsto_Ixx_class Ioc l l'] (hfm : measurable f) (hf : tendsto f (l' ⊓ volume.ae) (𝓝 c))
+  (hfm : measurable f) (hf : tendsto f (l' ⊓ volume.ae) (𝓝 c))
   {u v : β → ℝ} (hu : tendsto u lt l) (hv : tendsto v lt l) :
   is_o (λ t, (∫ x in u t..v t, f x) - (v t - u t) • c) (v - u) lt :=
 by simpa [integral_const] using measure_integral_sub_linear_is_o_of_tendsto_ae hfm hf hu hv

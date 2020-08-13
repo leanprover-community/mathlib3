@@ -61,6 +61,10 @@ def forget : Monad C ⥤ (C ⥤ C) :=
 { obj := func,
   map := λ _ _ f, f.to_nat_trans }
 
+@[simp]
+lemma comp_to_nat_trans {M N L : Monad C} (f : M ⟶ N) (g : N ⟶ L) :
+  (f ≫ g).to_nat_trans = nat_trans.vcomp f.to_nat_trans g.to_nat_trans := rfl
+
 theorem hext (M N : Monad C) : M.func = N.func → (η_ M.func) == (η_ N.func) →
   (μ_ M.func) == (μ_ N.func) → M = N := λ h1 h2 h3,
 begin

@@ -12,6 +12,7 @@ import category_theory.monoidal.internal
 # The equivalence between `Monad C` and `Mon_ (C ⥤ C)`.
 
 A monad "is just" a monoid in the category of endofunctors.
+
 -/
 
 namespace category_theory
@@ -50,6 +51,7 @@ def to_Mon : Monad C → Mon_ (C ⥤ C) := λ M,
     refl,
   end }
 
+variable (C)
 /-- Passing from `Monad C` to `Mon_ (C ⥤ C)` is functorial. -/
 def Monad_to_Mon : Monad C ⥤ Mon_ (C ⥤ C) :=
 { obj := to_Mon,
@@ -69,8 +71,9 @@ def Monad_to_Mon : Monad C ⥤ Mon_ (C ⥤ C) :=
       simp only [nat_trans.naturality, assoc],
       refl,
     end } }
+variable {C}
 
-/-- To every term of `Mon_ (C ⥤ C)` we associate a `Monad C`. -/
+/-- To every monoid object in `C ⥤ C` we associate a `Monad C`. -/
 def of_Mon : Mon_ (C ⥤ C) → Monad C := λ M,
 { func := M.X,
   str :=
@@ -99,6 +102,7 @@ def of_Mon : Mon_ (C ⥤ C) → Monad C := λ M,
       refl,
     end } }
 
+variable (C)
 /-- Passing from `Mon_ (C ⥤ C)` to `Monad C` is functorial. -/
 def Mon_to_Monad : Mon_ (C ⥤ C) ⥤ Monad C :=
 { obj := of_Mon,
@@ -119,12 +123,45 @@ def Mon_to_Monad : Mon_ (C ⥤ C) ⥤ Monad C :=
       refl,
     end,
     ..show M.X ⟶ N.X, by exact f.hom } }
+variable {C}
 
-theorem of_to_mon_end_obj (M : Mon_ (C ⥤ C)) : (Mon_to_Monad ⋙ Monad_to_Mon).obj M = M :=
+theorem of_to_mon_end_obj (M : Mon_ (C ⥤ C)) : (Mon_to_Monad C ⋙ Monad_to_Mon C).obj M = M :=
   by {apply Mon_.hext, repeat {refl}}
 
-theorem to_of_mon_end_obj (M : Monad C) : (Monad_to_Mon ⋙ Mon_to_Monad).obj M = M :=
+theorem to_of_mon_end_obj (M : Monad C) : (Monad_to_Mon C ⋙ Mon_to_Monad C).obj M = M :=
   by {apply Monad.hext, repeat {refl}}
+
+theorem of_to_mon_end : Mon_to_Monad C ⋙ Monad_to_Mon C = 𝟭 _ :=
+begin
+  apply functor.ext,
+  { intros X Y f,
+    ext,
+    simp only [functor.id_map, functor.comp_map, Mon_.comp_hom', nat_trans.comp_app],
+    simp_rw [Mon_.hom_eq_to_hom, eq_to_hom_app],
+    simp only [id_comp, eq_to_hom_refl, comp_id],
+    refl },
+  { intro X, apply of_to_mon_end_obj },
+end
+
+theorem to_of_mon_end : Monad_to_Mon C ⋙ Mon_to_Monad _ = 𝟭 _ :=
+begin
+  apply functor.ext,
+  { intros X Y f,
+    ext,
+    simp only [Monad.comp_to_nat_trans, functor.id_map,
+      functor.comp_map, nat_trans.vcomp_eq_comp, nat_trans.comp_app],
+    simp_rw [to_nat_trans_eq_to_hom, eq_to_hom_app],
+    simp only [id_comp, eq_to_hom_refl, comp_id],
+    refl },
+  { intro X, apply to_of_mon_end_obj }
+end
+
+/-- Oh, monads are just monoids in the category of endofunctors. -/
+def Monad_Mon_equiv : equivalence (Monad C) (Mon_ (C ⥤ C)) :=
+{ functor := Monad_to_Mon _,
+  inverse := Mon_to_Monad _,
+  unit_iso := eq_to_iso (eq.symm to_of_mon_end),
+  counit_iso := eq_to_iso of_to_mon_end }
 
 end Monad
 end category_theory

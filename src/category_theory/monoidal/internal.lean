@@ -93,6 +93,9 @@ def forget : Mon_ C ⥤ C :=
 { obj := λ A, A.X,
   map := λ A B f, f.hom, }
 
+theorem hom_eq_to_hom (M N : Mon_ C) (h : M = N) :
+  Mon_.hom.hom (eq_to_hom h) = eq_to_hom (congr_arg _ h) := by {subst h, refl}
+
 end Mon_
 
 -- PROJECT: lax monoidal functors `C ⥤ D` induce functors `Mon_ C ⥤ Mon_ D`.
@@ -142,9 +145,6 @@ instance : category (Mod A) :=
 { hom := λ M N, hom M N,
   id := id,
   comp := λ M N O f g, comp f g, }
-
-theorem hom_eq_to_hom (M N : Mon_ C) (h : M = N) :
-  Mon_.hom.hom (eq_to_hom h) = eq_to_hom (congr_arg _ h) := by {subst h, refl}
 
 @[simp] lemma id_hom' (M : Mod A) : (𝟙 M : hom M M).hom = 𝟙 M.X := rfl
 @[simp] lemma comp_hom' {M N K : Mod A} (f : M ⟶ N) (g : N ⟶ K) :

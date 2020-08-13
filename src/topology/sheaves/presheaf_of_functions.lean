@@ -55,11 +55,6 @@ def presheaf_to_Type (T : Type v) : X.presheaf (Type v) :=
   (presheaf_to_Type X T).map i f = f ∘ i.unop :=
 rfl
 
-@[simp] lemma presheaf_to_Type_map_apply
-  {T : Type v} {U V : (opens X)ᵒᵖ} {i : U ⟶ V} {f} {x} {mem} :
-  (presheaf_to_Type X T).map i f ⟨x, mem⟩ = f ⟨x, i.unop.down.down mem⟩ :=
-rfl
-
 /-- The presheaf of continuous functions on `X` with values in fixed target topological space `T`. -/
 def presheaf_to_Top (T : Top.{v}) : X.presheaf (Type v) :=
 (opens.to_Top X).op ⋙ (yoneda.obj T)

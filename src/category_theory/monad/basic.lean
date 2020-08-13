@@ -81,6 +81,19 @@ instance : monad (𝟭 C) :=
 def initial : Monad C := { func := 𝟭 _ }
 instance unbundle_monad {M : Monad C} : monad M.func := M.str
 instance : inhabited (Monad C) := ⟨initial⟩
+
+theorem hext (M N : Monad C) : M.func = N.func → (η_ M.func) == (η_ N.func) →
+  (μ_ M.func) == (μ_ N.func) → M = N := λ h1 h2 h3,
+begin
+  cases M, cases N,
+  dsimp only [] at h1,
+  subst h1,
+  congr,
+  cases M_str, cases N_str,
+  congr,
+  repeat {apply eq_of_heq, assumption}
+end
+
 end monad
 
 namespace comonad
@@ -165,6 +178,13 @@ instance : category (Monad C) :=
   id_comp' := λ _ _, by apply monad_hom.ident_gg,
   comp_id' := λ _ _, by apply monad_hom.gg_ident,
   assoc' := λ _ _ _ _, by apply monad_hom.gg_assoc }
+
+@[simp]
+theorem Monad_hom_gg_to_nat_trans (X Y Z : Monad C) (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).to_nat_trans = nat_trans.vcomp f.to_nat_trans g.to_nat_trans := rfl
+
+theorem eq_to_hom_hom (M N : Monad C) (h : M = N) :
+  monad_hom.to_nat_trans (eq_to_hom h) = eq_to_hom (congr_arg (Monad.func) h) := by {subst h, refl}
 
 local attribute [instance] endofunctor_monoidal_category
 
@@ -265,8 +285,44 @@ def of_mon_end : Mon_ (C ⥤ C) ⥤ Monad C :=
     ..show M.X ⟶ N.X, by exact f.hom } }
 
 variable {C}
---theorem of_to_mon_end : of_mon_end C ⋙ to_mon_end _ = 𝟭 _ := sorry
---theorem to_of_mon_end : to_mon_end C ⋙ of_mon_end _ = 𝟭 _ := sorry
+
+theorem of_to_mon_end_obj (M : Mon_ (C ⥤ C)) : (of_mon_end C ⋙ to_mon_end _).obj M = M :=
+  by {apply Mon_.hext, repeat {refl}}
+
+theorem to_of_mon_end_obj (M : Monad C) : (to_mon_end C ⋙ of_mon_end _).obj M = M :=
+  by {apply monad.hext, repeat {refl}}
+
+theorem of_to_mon_end : (of_mon_end C ⋙ to_mon_end _) = 𝟭 _ :=
+begin
+  apply functor.ext,
+  { intros X Y f,
+    ext,
+    simp only [functor.id_map, functor.comp_map, Mon_.comp_hom', nat_trans.comp_app],
+    simp_rw [Mon_.eq_to_hom_hom, eq_to_hom_app],
+    simp only [id_comp, eq_to_hom_refl, comp_id],
+    refl },
+  { intro X, apply of_to_mon_end_obj },
+end
+
+theorem to_of_mon_end : to_mon_end C ⋙ of_mon_end _ = 𝟭 _ :=
+begin
+  apply functor.ext,
+  { intros X Y f,
+    ext,
+    simp only [Monad_hom_gg_to_nat_trans, functor.id_map,
+      functor.comp_map, nat_trans.vcomp_eq_comp, nat_trans.comp_app],
+    simp_rw [eq_to_hom_hom, eq_to_hom_app],
+    simp only [id_comp, eq_to_hom_refl, comp_id],
+    refl },
+  { intro X, apply to_of_mon_end_obj }
+end
+
+/-- Oh, monads on C are just monoids in C ⥤ C. -/
+def burrito : equivalence (Monad C) (Mon_ (C ⥤ C)) :=
+{ functor := to_mon_end C,
+  inverse := of_mon_end C,
+  unit_iso := eq_to_iso (eq.symm to_of_mon_end),
+  counit_iso := eq_to_iso of_to_mon_end }
 
 end bundled_monads
 

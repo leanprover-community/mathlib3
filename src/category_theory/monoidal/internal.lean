@@ -39,6 +39,16 @@ attribute [simp, reassoc] Mon_.one_mul Mon_.mul_one Mon_.mul_assoc
 
 namespace Mon_
 
+theorem hext (M N : Mon_ C) : M.X = N.X → M.one == N.one → M.mul == N.mul → M = N :=
+begin
+  intros h1 h2 h3,
+  cases M, cases N,
+  dsimp only [] at h1,
+  subst h1,
+  congr,
+  repeat {apply eq_of_heq, assumption}
+end
+
 variables {C}
 
 variables {M : Mon_ C}
@@ -73,6 +83,9 @@ instance : category (Mon_ C) :=
 { hom := λ M N, hom M N,
   id := id,
   comp := λ M N O f g, comp f g, }
+
+theorem eq_to_hom_hom (M N : Mon_ C) (h : M = N) :
+  Mon_.hom.hom (eq_to_hom h) = eq_to_hom (congr_arg _ h) := by {subst h, refl}
 
 @[simp] lemma id_hom' (M : Mon_ C) : (𝟙 M : hom M M).hom = 𝟙 M.X := rfl
 @[simp] lemma comp_hom' {M N K : Mon_ C} (f : M ⟶ N) (g : N ⟶ K) :

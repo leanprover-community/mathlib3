@@ -132,13 +132,7 @@ section semimodule_structure
 ### Semiodule stucture
 
 In this section we show that smooth functions valued in a smooth vector space `M` over a normed
-field `R` that is a normed space over `𝕜` inherit a structure of vector space.
-
-From now on, whenever a scalar multiplication is involved, we cannot consider `R` to be a generic
-semiring with a manifold structure, because of dangerous instances problems (the model with corners
-on which `R` is a manifold gets forgotten). Hence we do everything in the case of `R` being a field
-which is a normed space over `𝕜`, which is slightly more general that the case `𝕜 = R` as it takes
-into account the case `𝕜 = ℝ`, `R = ℂ`.
+field `𝕜` inherit a structure of vector space.
 -/
 
 instance smooth_map_has_scalar
@@ -163,13 +157,8 @@ section algebra_structure
 /-!
 ### Algebra structure
 
-In this section we show that smooth functions valued in a smooth algebra `A` over a normed field
-`R` that is a normed space over `𝕜` inherit a structure of algebra. Note that the hypothesis that
-`A` is a smooth algebra is obtained by requiring that `A` be both a `smooth_vector_space` and a
-`smooth_ring`.
-
-To see why `R` cannot be a generic semiring with a manifold structure see the note of "Semiodule
-stucture".
+In this section we show that smooth functions valued in a smooth algebra `A` over a normed field `𝕜`
+inherit a structure of algebra.
 -/
 
 variables {A : Type*} [normed_ring A] [normed_algebra 𝕜 A] [topological_ring A]

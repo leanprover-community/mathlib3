@@ -127,8 +127,7 @@ def Mon_to_Monad : Mon_ (C ⥤ C) ⥤ Monad C :=
   { app_η' := begin
       intro X,
       simp only [auto_param_eq],
-      rw ←nat_trans.comp_app,
-      erw f.one_hom,
+      erw [←nat_trans.comp_app,f.one_hom],
       refl,
     end,
     app_μ' := begin
@@ -139,7 +138,7 @@ def Mon_to_Monad : Mon_ (C ⥤ C) ⥤ Monad C :=
       erw [nat_trans.hcomp_app, assoc],
       refl,
     end,
-    ..show M.X ⟶ N.X, by exact f.hom } }
+    ..f.hom } }
 variable {C}
 
 theorem of_to_mon_end_obj (M : Mon_ (C ⥤ C)) : (Mon_to_Monad C ⋙ Monad_to_Mon C).obj M = M :=

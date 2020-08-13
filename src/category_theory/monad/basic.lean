@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Bhavik Mehta
+Authors: Scott Morrison, Bhavik Mehta, Adam Topaz
 -/
 import category_theory.functor_category
 
@@ -55,5 +55,52 @@ attribute [simp] comonad.left_counit comonad.right_counit
 
 notation `ε_` := comonad.ε
 notation `δ_` := comonad.δ
+
+/-- A morphisms of monads is a natural transformation compatible with η and μ. -/
+structure monad_hom (M N : C ⥤ C) [monad M] [monad N] extends nat_trans M N :=
+(app_η' {X} : (η_ M).app X ≫ app X = (η_ N).app X . obviously)
+(app_μ' {X} : (μ_ M).app X ≫ app X = (M.map (app X) ≫ app (N.obj X)) ≫ (μ_ N).app X . obviously)
+
+namespace monad_hom
+variables {M N L K : C ⥤ C} [monad M] [monad N] [monad L] [monad K]
+
+@[ext]
+theorem ext (f g : monad_hom M N) :
+  f.to_nat_trans = g.to_nat_trans → f = g := by {cases f, cases g, simp}
+
+variable (M)
+/-- The identity natural transformations is a morphism of monads. -/
+def ident : monad_hom M M :=
+{ app_η' := by tidy,
+  app_μ' := by tidy,
+  ..𝟙 M }
+variable {M}
+
+instance : inhabited (monad_hom M M) := ⟨ident _⟩
+
+/-- The composition of two morphisms of monads. -/
+def comp (f : monad_hom M N) (g : monad_hom N L) : monad_hom M L :=
+{ app := λ X, (f.app X) ≫ (g.app X),
+  app_η' := λ X, by {rw ←assoc, simp [app_η']},
+  app_μ' := λ X, by {rw ←assoc, simp [app_μ']} }
+
+@[simp] lemma ident_comp (f : monad_hom M N) : (monad_hom.ident M).comp f = f :=
+  by {ext, apply id_comp}
+@[simp] lemma comp_ident (f : monad_hom M N) : f.comp (monad_hom.ident N) = f :=
+  by {ext, apply comp_id}
+lemma comp_assoc (f : monad_hom M N) (g : monad_hom N L) (h : monad_hom L K) :
+  (f.comp g).comp h = f.comp (g.comp h) := by {ext, apply assoc}
+
+end monad_hom
+
+restate_axiom monad_hom.app_η'
+restate_axiom monad_hom.app_μ'
+attribute [simp] monad_hom.app_η monad_hom.app_μ
+
+namespace monad
+instance : monad (𝟭 C) :=
+{ η := 𝟙 _,
+  μ := 𝟙 _ }
+end monad
 
 end category_theory

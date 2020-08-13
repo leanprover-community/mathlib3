@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
 import category_theory.monad.basic
+import category_theory.eq_to_hom
 
 /-!
 # Bundled Monads
@@ -71,6 +72,9 @@ begin
   congr,
   repeat {apply eq_of_heq, assumption}
 end
+
+theorem to_nat_trans_eq_to_hom (M N : Monad C) (h : M = N) :
+  monad_hom.to_nat_trans (eq_to_hom h) = eq_to_hom (congr_arg (Monad.func) h) := by {subst h, refl}
 
 end Monad
 end category_theory

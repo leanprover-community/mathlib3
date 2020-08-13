@@ -87,7 +87,7 @@ alias not_le_of_lt ← has_lt.lt.not_le
 lemma not_lt_of_le [preorder α] {a b : α} (h : a ≤ b) : ¬ b < a
 | hab := not_le_of_gt hab h
 
-alias not_lt_of_le ← has_le.not_lt
+alias not_lt_of_le ← has_le.le.not_lt
 
 lemma le_iff_eq_or_lt [partial_order α] {a b : α} : a ≤ b ↔ a = b ∨ a < b :=
 le_iff_lt_or_eq.trans or.comm

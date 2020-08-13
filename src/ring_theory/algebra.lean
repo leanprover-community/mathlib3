@@ -300,7 +300,7 @@ theorem ext_iff {φ₁ φ₂ : A →ₐ[R] B} : φ₁ = φ₂ ↔ ∀ x, φ₁ x
 @[simp]
 theorem commutes (r : R) : φ (algebra_map R A r) = algebra_map R B r := φ.commutes' r
 
-theorem comp_algebra_map : φ.to_ring_hom.comp (algebra_map R A) = algebra_map R B :=
+theorem comp_algebra_map : (φ : A →+* B).comp (algebra_map R A) = algebra_map R B :=
 ring_hom.ext $ φ.commutes
 
 @[simp] lemma map_add (r s : A) : φ (r + s) = φ r + φ s :=
@@ -1144,6 +1144,10 @@ def module.restrict_scalars' : module R E :=
 /--
 When `E` is a module over a ring `S`, and `S` is an algebra over `R`, then `E` inherits a
 module structure over `R`, provided as a type synonym `module.restrict_scalars R S E := E`.
+
+When the `R`-module structure on `E` is registered directly (using `module.restrict_scalars'` for
+instance, or for `S = ℂ` and `R = ℝ`), theorems on `module.restrict_scalars R S E` can be directly
+applied to `E` as these types are the same for the kernel.
 -/
 @[nolint unused_arguments]
 def module.restrict_scalars (R : Type*) (S : Type*) (E : Type*) : Type* := E
@@ -1154,11 +1158,23 @@ instance (R : Type*) (S : Type*) (E : Type*) [I : inhabited E] :
 instance (R : Type*) (S : Type*) (E : Type*) [I : add_comm_group E] :
   add_comm_group (module.restrict_scalars R S E) := I
 
+instance module.restrict_scalars.module_orig (R : Type*) (S : Type*) [ring S]
+  (E : Type*) [add_comm_group E] [I : module S E] : module S (module.restrict_scalars R S E) :=
+I
+
 instance : module R (module.restrict_scalars R S E) :=
 (module.restrict_scalars' R S E : module R E)
 
 lemma module.restrict_scalars_smul_def (c : R) (x : module.restrict_scalars R S E) :
   c • x = ((algebra_map R S c) • x : E) := rfl
+
+lemma smul_algebra_smul (c : R) (d : S) (x : module.restrict_scalars R S E) :
+  (c • d) • x = c • d • x :=
+by { rw [algebra.smul_def, ← smul_smul], refl }
+
+lemma smul_algebra_smul_comm (c : R) (d : S) (x : module.restrict_scalars R S E) :
+  c • d • x = d • c • x :=
+by { rw [← smul_algebra_smul, algebra.smul_def, algebra.commutes, mul_smul], refl }
 
 /--
 `module.restrict_scalars R S S` is `R`-linearly equivalent to the original algebra `S`.
@@ -1242,12 +1258,58 @@ def subspace.restrict_scalars (V : subspace 𝕜' W) : subspace 𝕜 (restrict_s
 
 end restrict_scalars
 
+section extend_scalars
+/-! When `V` is an `R`-module and `W` is an `S`-module, where `S` is an algebra over `R`, then
+the collection of `R`-linear maps from `V` to `W` admits an `S`-module structure, given by
+multiplication in the target -/
+
+variables (R : Type*) [comm_ring R] (S : Type*) [ring S] [algebra R S]
+  (V : Type*) [add_comm_group V] [module R V]
+  (W : Type*) [add_comm_group W] [module S W]
+
+/-- The set of `R`-linear maps admits an `S`-action by left multiplication -/
+instance linear_map.has_scalar_extend_scalars :
+  has_scalar S (V →ₗ[R] (module.restrict_scalars R S W)) :=
+{ smul := λ r f,
+  { to_fun := λ v, r • f v,
+    map_add' := by simp [smul_add],
+    map_smul' := λ c x,
+    begin
+      rw linear_map.map_smul,
+      simp [module.restrict_scalars_smul_def, smul_smul, algebra.commutes],
+    end }}
+
+/-- The set of `R`-linear maps is an `S`-module-/
+instance linear_map.module_extend_scalars :
+  module S (V →ₗ[R] (module.restrict_scalars R S W)) :=
+{ one_smul := λ f, by { ext v, simp [(•)] },
+  mul_smul := λ r r' f, by { ext v, simp [(•), smul_smul] },
+  smul_add := λ r f g, by { ext v, simp [(•), smul_add] },
+  smul_zero := λ r, by { ext v, simp [(•)] },
+  add_smul := λ r r' f, by { ext v, simp [(•), add_smul] },
+  zero_smul := λ f, by { ext v, simp [(•)] } }
+
+variables {R S V W}
+
+/-- When `f` is a linear map taking values in `S`, then `λb, f b • x` is a linear map. -/
+def smul_algebra_right (f : V →ₗ[R] S) (x : module.restrict_scalars R S W) :
+  V →ₗ[R] (module.restrict_scalars R S W) :=
+{ to_fun := λb, f b • x,
+  map_add' := by simp [add_smul],
+  map_smul' := λ b y, by { simp [algebra.smul_def, ← smul_smul], refl } }
+
+@[simp] theorem smul_algebra_right_apply
+  (f : V →ₗ[R] S) (x : module.restrict_scalars R S W) (c : V) :
+  smul_algebra_right f x c = f c • x := rfl
+
+end extend_scalars
 
 /-!
 When `V` and `W` are `S`-modules, for some `R`-algebra `S`,
 the collection of `S`-linear maps from `V` to `W` forms an `R`-module.
 (But not generally an `S`-module, because `S` may be non-commutative.)
 -/
+
 section module_of_linear_maps
 
 variables (R : Type*) [comm_ring R] (S : Type*) [ring S] [algebra R S]

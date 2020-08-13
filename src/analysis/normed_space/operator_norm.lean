@@ -581,6 +581,16 @@ end uniformly_extend
 
 end op_norm
 
+end continuous_linear_map
+
+/-- If a continuous linear map is constructed from a linear map via the constructor `mk_continuous`,
+then its norm is bounded by the bound given to the constructor if it is nonnegative. -/
+lemma linear_map.mk_continuous_norm_le (f : E →ₗ[𝕜] F) {C : ℝ} (hC : 0 ≤ C) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  ∥f.mk_continuous C h∥ ≤ C :=
+continuous_linear_map.op_norm_le_bound _ hC h
+
+namespace continuous_linear_map
+
 /-- The norm of the tensor product of a scalar linear map and of an element of a normed space
 is the product of the norms. -/
 @[simp] lemma smul_right_norm {c : E →L[𝕜] 𝕜} {f : F} :
@@ -636,28 +646,68 @@ variables {𝕜' : Type*} [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 {E' : Type*} [normed_group E'] [normed_space 𝕜' E']
 {F' : Type*} [normed_group F'] [normed_space 𝕜' F']
 
-local attribute [instance, priority 500] normed_space.restrict_scalars
-
 /-- `𝕜`-linear continuous function induced by a `𝕜'`-linear continuous function when `𝕜'` is a
 normed algebra over `𝕜`. -/
-def restrict_scalars (f : E' →L[𝕜'] F') : E' →L[𝕜] F' :=
+def restrict_scalars (f : E' →L[𝕜'] F') :
+  (module.restrict_scalars 𝕜 𝕜' E') →L[𝕜] (module.restrict_scalars 𝕜 𝕜' F') :=
 { cont := f.cont,
   ..linear_map.restrict_scalars 𝕜 (f.to_linear_map) }
 
 @[simp, norm_cast] lemma restrict_scalars_coe_eq_coe (f : E' →L[𝕜'] F') :
-  (f.restrict_scalars 𝕜 : E' →ₗ[𝕜] F') = (f : E' →ₗ[𝕜'] F').restrict_scalars 𝕜 := rfl
+  (f.restrict_scalars 𝕜 :
+    (module.restrict_scalars 𝕜 𝕜' E') →ₗ[𝕜] (module.restrict_scalars 𝕜 𝕜' F')) =
+  (f : E' →ₗ[𝕜'] F').restrict_scalars 𝕜 := rfl
 
 @[simp, norm_cast squash] lemma restrict_scalars_coe_eq_coe' (f : E' →L[𝕜'] F') :
   (f.restrict_scalars 𝕜 : E' → F') = f := rfl
 
 end restrict_scalars
 
-end continuous_linear_map
+section extend_scalars
+
+variables {𝕜' : Type*} [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+{F' : Type*} [normed_group F'] [normed_space 𝕜' F']
+
+instance has_scalar_extend_scalars : has_scalar 𝕜' (E →L[𝕜] (module.restrict_scalars 𝕜 𝕜' F')) :=
+{ smul := λ c f, (c • f.to_linear_map).mk_continuous (∥c∥ * ∥f∥)
+begin
+  assume x,
+  calc ∥c • (f x)∥ = ∥c∥ * ∥f x∥ : norm_smul c _
+  ... ≤ ∥c∥ * (∥f∥ * ∥x∥) : mul_le_mul_of_nonneg_left (le_op_norm f x) (norm_nonneg _)
+  ... = ∥c∥ * ∥f∥ * ∥x∥ : (mul_assoc _ _ _).symm
+end }
+
+instance module_extend_scalars : module 𝕜' (E →L[𝕜] (module.restrict_scalars 𝕜 𝕜' F')) :=
+{ smul_zero := λ _, ext $ λ _, smul_zero _,
+  zero_smul := λ _, ext $ λ _, zero_smul _ _,
+  one_smul  := λ _, ext $ λ _, one_smul _ _,
+  mul_smul  := λ _ _ _, ext $ λ _, mul_smul _ _ _,
+  add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _,
+  smul_add  := λ _ _ _, ext $ λ _, smul_add _ _ _ }
+
+instance normed_space_extend_scalars : normed_space 𝕜' (E →L[𝕜] (module.restrict_scalars 𝕜 𝕜' F')) :=
+{ norm_smul_le := λ c f,
+    linear_map.mk_continuous_norm_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _ }
+
+/-- When `f` is a continuous linear map taking values in `S`, then `λb, f b • x` is a
+continuous linear map. -/
+def smul_algebra_right (f : E →L[𝕜] 𝕜') (x : module.restrict_scalars 𝕜 𝕜' F') :
+  E →L[𝕜] (module.restrict_scalars 𝕜 𝕜' F') :=
+{ cont := by continuity!,
+  .. smul_algebra_right f.to_linear_map x }
+
+@[simp] theorem smul_algebra_right_apply
+  (f : E →L[𝕜] 𝕜') (x : module.restrict_scalars 𝕜 𝕜' F') (c : E) :
+  smul_algebra_right f x c = f c • x := rfl
+
+end extend_scalars
+
+section has_sum
 
 variables {ι : Type*}
 
 /-- Applying a continuous linear map commutes with taking an (infinite) sum. -/
-lemma continuous_linear_map.has_sum {f : ι → E} (φ : E →L[𝕜] F) {x : E} (hf : has_sum f x) :
+protected lemma has_sum {f : ι → E} (φ : E →L[𝕜] F) {x : E} (hf : has_sum f x) :
   has_sum (λ (b:ι), φ (f b)) (φ x) :=
 begin
   unfold has_sum,
@@ -665,9 +715,13 @@ begin
   ext s, rw [function.comp_app, finset.sum_hom s φ],
 end
 
-lemma continuous_linear_map.has_sum_of_summable {f : ι → E} (φ : E →L[𝕜] F) (hf : summable f) :
+lemma has_sum_of_summable {f : ι → E} (φ : E →L[𝕜] F) (hf : summable f) :
   has_sum (λ (b:ι), φ (f b)) (φ (∑'b, f b)) :=
-continuous_linear_map.has_sum φ hf.has_sum
+φ.has_sum hf.has_sum
+
+end has_sum
+
+end continuous_linear_map
 
 namespace continuous_linear_equiv
 
@@ -831,12 +885,6 @@ continuous_linear_equiv.uniform_embedding
 { continuous_to_fun := h₁,
   continuous_inv_fun := h₂,
   .. e }
-
-/-- If a continuous linear map is constructed from a linear map via the constructor `mk_continuous`,
-then its norm is bounded by the bound given to the constructor if it is nonnegative. -/
-lemma linear_map.mk_continuous_norm_le (f : E →ₗ[𝕜] F) {C : ℝ} (hC : 0 ≤ C) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
-  ∥f.mk_continuous C h∥ ≤ C :=
-continuous_linear_map.op_norm_le_bound _ hC h
 
 namespace continuous_linear_map
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']

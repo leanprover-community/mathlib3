@@ -175,7 +175,7 @@ end,
 ( assume fx_eq_0 : f x = 0,
   have x_not_mem_A' : ∀ {M k}, x ∉ A' M k := λ M k,
   begin
-    simp only [mem_preimage, fx_eq_0, metric.mem_ball, one_div_eq_inv, norm_zero,
+    simp only [mem_preimage, fx_eq_0, metric.mem_ball, one_div, norm_zero,
                not_and, not_lt, add_comm, not_le, dist_zero_right, mem_diff],
     assume h, rw add_comm, exact inv_pos_of_nat
   end,
@@ -193,7 +193,7 @@ end,
     let ⟨k, hk⟩ := mem_closure_range_iff_nat.1 (by { rw E_dense, exact mem_univ (f x) }) N₀ in
     begin
       rw [Union_disjointed, mem_Union], use k,
-      rw [mem_preimage], simp, rw [← one_div_eq_inv],
+      rw [mem_preimage], simp, rw [← one_div],
       exact ⟨hk, le_of_lt norm_fx_gt⟩
     end,
   let ⟨k₀, x_mem_A⟩ := mem_Union.1 x_mem_Union_k_N₀ in

@@ -132,7 +132,7 @@ begin
   assume i,
   calc
   edist (x i) (y i) = (edist (x i) (y i) ^ p) ^ (1/p) :
-    by simp [← ennreal.rpow_mul, cancel, -one_div_eq_inv]
+    by simp [← ennreal.rpow_mul, cancel, -one_div]
   ... ≤ (∑ (i : ι), edist (x i) (y i) ^ p) ^ (1 / p) :
   begin
     apply ennreal.rpow_le_rpow _ (one_div_nonneg.2 $ le_of_lt pos),
@@ -147,7 +147,7 @@ begin
   have nonneg : 0 ≤ 1 / p := one_div_nonneg.2 (le_of_lt pos),
   have cancel : p * (1/p) = 1 := mul_div_cancel' 1 (ne_of_gt pos),
   assume x y,
-  simp [edist, -one_div_eq_inv],
+  simp [edist, -one_div],
   calc (∑ (i : ι), edist (x i) (y i) ^ p) ^ (1 / p) ≤
   (∑ (i : ι), edist (pi_Lp.equiv p hp α x) (pi_Lp.equiv p hp α y) ^ p) ^ (1 / p) :
   begin
@@ -211,7 +211,7 @@ begin
           ennreal.sum_eq_top_iff, edist_ne_top] },
   { have A : ∀ (i : ι), i ∈ (finset.univ : finset ι) → edist (f i) (g i) ^ p < ⊤ :=
       λ i hi, by simp [lt_top_iff_ne_top, edist_ne_top, le_of_lt pos],
-    simp [dist, -one_div_eq_inv, pi_Lp.edist, ← ennreal.to_real_rpow,
+    simp [dist, -one_div, pi_Lp.edist, ← ennreal.to_real_rpow,
           ennreal.to_real_sum A, dist_edist] }
 end
 

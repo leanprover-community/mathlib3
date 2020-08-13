@@ -3,10 +3,11 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
+import algebra.order_functions
+import control.monad.basic
 import deprecated.group
 import data.nat.basic
 import order.rel_classes
-import algebra.order_functions
 
 /-!
 # Basic properties of lists
@@ -1304,6 +1305,10 @@ end insert_nth
 
 @[simp] lemma map_nil (f : α → β) : map f [] = [] := rfl
 
+theorem map_eq_foldr (f : α → β) (l : list α) :
+  map f l = foldr (λ a bs, f a :: bs) [] l :=
+by induction l; simp *
+
 lemma map_congr {f g : α → β} : ∀ {l : list α}, (∀ x ∈ l, f x = g x) → map f l = map g l
 | []     _ := rfl
 | (a::l) h := let ⟨h₁, h₂⟩ := forall_mem_cons.1 h in
@@ -1362,6 +1367,10 @@ begin
   { induction y generalizing x, simpa using hxy,
     cases x, simpa using hxy, simp at hxy, simp [y_ih hxy.2, h hxy.1] }
 end
+
+theorem map_filter_eq_foldr (f : α → β) (p : α → Prop) [decidable_pred p] (as : list α) :
+  map f (filter p as) = foldr (λ a bs, if p a then f a :: bs else bs) [] as :=
+by { induction as, { refl }, { simp! [*, apply_ite (map f)] } }
 
 /-! ### map₂ -/
 
@@ -1765,7 +1774,22 @@ variables {m : Type v → Type w} [monad m]
 @[simp] theorem mfoldr_cons {f : α → β → m β} {b a l} :
   mfoldr f b (a :: l) = mfoldr f b l >>= f a := rfl
 
+theorem mfoldr_eq_foldr (f : α → β → m β) (b l) :
+  mfoldr f b l = foldr (λ a mb, mb >>= f a) (pure b) l :=
+by induction l; simp *
+
 variables [is_lawful_monad m]
+
+theorem mfoldl_eq_foldl (f : β → α → m β) (b l) :
+  mfoldl f b l = foldl (λ mb a, mb >>= λ b, f b a) (pure b) l :=
+begin
+  suffices h : ∀ (mb : m β),
+    (mb >>= λ b, mfoldl f b l) = foldl (λ mb a, mb >>= λ b, f b a) mb l,
+  by simp [←h (pure b)],
+  induction l; intro,
+  { simp },
+  { simp only [mfoldl, foldl, ←l_ih] with monad_norm }
+end
 
 @[simp] theorem mfoldl_append {f : β → α → m β} : ∀ {b l₁ l₂},
   mfoldl f b (l₁ ++ l₂) = mfoldl f b l₁ >>= λ x, mfoldl f x l₂
@@ -2521,6 +2545,10 @@ filter_map_eq_map f ▸ s.filter_map _
 
 section filter
 variables {p : α → Prop} [decidable_pred p]
+
+theorem filter_eq_foldr (p : α → Prop) [decidable_pred p] (l : list α) :
+  filter p l = foldr (λ a out, if p a then a :: out else out) [] l :=
+by induction l; simp [*, filter]
 
 lemma filter_congr {p q : α → Prop} [decidable_pred p] [decidable_pred q]
   : ∀ {l : list α}, (∀ x ∈ l, p x ↔ q x) → filter p l = filter q l

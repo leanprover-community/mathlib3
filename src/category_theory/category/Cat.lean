@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import category_theory.concrete_category
+import category_theory.eq_to_hom
 
 /-!
 # Category of categories
@@ -48,6 +49,13 @@ called `forget`, because it is not a faithful functor. -/
 def objects : Cat.{v u} ⥤ Type u :=
 { obj := bundled.α,
   map := λ C D F, F.obj }
+
+/-- Any isomorphism in `Cat` induces an equivalence of the underlying categories. -/
+def equiv_of_iso {C D : Cat} (γ : iso C D) : equivalence C.α D.α :=
+{ functor := γ.hom,
+  inverse := γ.inv,
+  unit_iso := eq_to_iso $ eq.symm γ.hom_inv_id',
+  counit_iso := eq_to_iso γ.inv_hom_id' }
 
 end Cat
 

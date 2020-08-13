@@ -6,6 +6,7 @@ Authors: Adam Topaz
 import category_theory.monad.bundled
 import category_theory.monoidal.End
 import category_theory.monoidal.internal
+import category_theory.category.Cat
 
 /-!
 
@@ -171,12 +172,16 @@ begin
     apply to_of_mon_end_obj }
 end
 
-/-- Oh, monads are just monoids in the category of endofunctors. -/
-def Monad_Mon_equiv : equivalence (Monad C) (Mon_ (C ⥤ C)) :=
-{ functor := Monad_to_Mon _,
-  inverse := Mon_to_Monad _,
-  unit_iso := eq_to_iso (eq.symm to_of_mon_end),
-  counit_iso := eq_to_iso of_to_mon_end }
+variable (C)
+/-- Oh, monads are just monoids in the category of endofunctors (isomorphism of categories). -/
+def Monad_Mon_iso : iso (Cat.of $ Monad C) (Cat.of $ Mon_ (C ⥤ C)) :=
+{ hom := Monad_to_Mon C,
+  inv := Mon_to_Monad C,
+  hom_inv_id' := by apply to_of_mon_end,
+  inv_hom_id' := by apply of_to_mon_end }
+
+/-- Oh, monads are just monoids in the category of endofunctors (equivalence of categories). -/
+def Monad_Mon_equiv : equivalence (Monad C) (Mon_ (C ⥤ C)) := Cat.equiv_of_iso $ Monad_Mon_iso C
 
 end Monad
 end category_theory

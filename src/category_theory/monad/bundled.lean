@@ -70,8 +70,9 @@ lemma comp_to_nat_trans {M N L : Monad C} (f : M ⟶ N) (g : N ⟶ L) :
   (f ≫ g).to_nat_trans = nat_trans.vcomp f.to_nat_trans g.to_nat_trans := rfl
 
 theorem hext (M N : Monad C) : M.func = N.func → (η_ M.func) == (η_ N.func) →
-  (μ_ M.func) == (μ_ N.func) → M = N := λ h1 h2 h3,
+  (μ_ M.func) == (μ_ N.func) → M = N :=
 begin
+  intros h1 h2 h3,
   cases M, cases N,
   dsimp only [] at h1,
   subst h1,
@@ -122,8 +123,9 @@ lemma comp_to_nat_trans {M N L : CoMonad C} (f : M ⟶ N) (g : N ⟶ L) :
   (f ≫ g).to_nat_trans = nat_trans.vcomp f.to_nat_trans g.to_nat_trans := rfl
 
 theorem hext (M N : CoMonad C) : M.func = N.func → (ε_ M.func) == (ε_ N.func) →
-  (δ_ M.func) == (δ_ N.func) → M = N := λ h1 h2 h3,
+  (δ_ M.func) == (δ_ N.func) → M = N :=
 begin
+  intros h1 h2 h3,
   cases M, cases N,
   dsimp only [] at h1,
   subst h1,

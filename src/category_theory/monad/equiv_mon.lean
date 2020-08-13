@@ -13,6 +13,21 @@ import category_theory.monoidal.internal
 
 A monad "is just" a monoid in the category of endofunctors.
 
+# Definitions/Theorems
+
+1. `to_Mon` associates a monoid object in `C ⥤ C` to any monad on `C`.
+2. `Monad_to_Mon` is the functorial version of `to_Mon`.
+3. `of_Mon` associates a monad on `C` to any monoid object in `C ⥤ C`.
+4. `Mon_to_Monad` is the functorial version of `of_Mon`.
+5. `Monad_Mon_equiv` is the equivalence between `Monad C` and `Mon_ (C ⥤ C)`.
+  NB: It is really an isomorphism of categories!
+
+The primary purpose for the theorems in this file is to construct `Monad_Mon_equiv`.
+1. `of_to_mon_end_obj` and `to_of_mon_end_obj` show that the compositions of
+  `Mon_to_Monad` and `Monad_to_Mon` act as the identity on objects.
+2. `of_to_mon_end` and `to_of_mon_end` promote the equalities from these two theorems to
+  equalities with the identity functor.
+
 -/
 
 namespace category_theory

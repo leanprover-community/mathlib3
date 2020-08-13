@@ -29,7 +29,7 @@ end
 
 example (x : (α × β) × γ) : true :=
 begin
-  rcases x with ⟨⟨a, b⟩, c⟩,
+  rcases x with ⟨⟨a:α, b⟩, c⟩,
   { guard_hyp a := α,
     guard_hyp b := β,
     guard_hyp c := γ,
@@ -62,7 +62,7 @@ end
 
 example : true :=
 begin
-  obtain ⟨n, h, f⟩ : ∃ n : ℕ, n = n ∧ true,
+  obtain ⟨n : ℕ, h : n = n, f : true⟩ : ∃ n : ℕ, n = n ∧ true,
   { existsi 0, simp },
   guard_hyp n := ℕ,
   guard_hyp h := n = n,
@@ -79,7 +79,7 @@ end
 
 example : true :=
 begin
-  obtain h | ⟨⟨⟩⟩ : true ∨ false,
+  obtain (h : true) | ⟨⟨⟩⟩ : true ∨ false,
   { left, trivial },
   guard_hyp h := true,
   trivial
@@ -112,4 +112,24 @@ begin
   rcases h' : h with ⟨x,h₀,h₁⟩,
   guard_hyp h' := h = ⟨x,h₀,h₁⟩,
   apply le_trans h₀ h₁,
+end
+
+protected def set.foo {α β} (s : set α) (t : set β) : set (α × β) := ∅
+
+example {α} (V : set α) (w : true → ∃ p, p ∈ (V.foo V) ∩ (V.foo V)) : true :=
+begin
+  obtain ⟨a, h⟩ : ∃ p, p ∈ (V.foo V) ∩ (V.foo V) := w trivial,
+  trivial,
+end
+
+example (n : ℕ) : true :=
+begin
+  obtain one_lt_n | n_le_one : 1 < n + 1 ∨ n + 1 ≤ 1 := nat.lt_or_ge 1 (n + 1),
+  trivial, trivial,
+end
+
+example (n : ℕ) : true :=
+begin
+  obtain one_lt_n | (n_le_one : n + 1 ≤ 1) := nat.lt_or_ge 1 (n + 1),
+  trivial, trivial,
 end

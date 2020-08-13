@@ -3,8 +3,22 @@ Copyright (c) 2020 Zhangir Azerbayev. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Zhangir Azerbayev.
 -/
+
 import .multilinear
 import group_theory.perm.sign
+
+/-!
+# Alternating Maps
+We construct the typeclass `alternating_map` which extends `multilinear_map`.
+
+## Notation
+For `R`-modules `M` and `N` and an index set `ι`, the class of alternating multilinear maps from
+`ι → M` into `N` is denoted `alternating_map R M N ι`.
+
+## Theorems
+1. `map_perm` asserts that for a map `f : alternating_map R M N ι`, and a
+permutation `sigma` of `ι`, we have that `f ν = (sign σ) f (ν ∘ σ)`.
+-/
 
 variables (R : Type*) [ring R]
 variables (M : Type*) [add_comm_group M] [module R M]
@@ -89,7 +103,6 @@ begin
   rw equiv.perm.sign_one,
   simp only [units.coe_one, one_smul, coe_fn_coe_base],
   congr,
-  --rw [equiv.perm.sign_one, one_smul], congr,
   --Inductive step
   intros s x y hxy hI,
   have assoc : ν ∘ (s * equiv.swap x y : equiv.perm ι) = (ν ∘ s ∘ equiv.swap x y) := rfl,

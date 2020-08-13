@@ -97,13 +97,7 @@ begin
   have assoc : ν ∘ (s * equiv.swap x y : equiv.perm ι) = (ν ∘ s ∘ equiv.swap x y) := rfl,
   rw [assoc, map_swap (ν ∘ s) hxy, ←neg_one_smul ℤ (f (ν ∘ s))],
   have h1 : (-1 : ℤ) = equiv.perm.sign (equiv.swap x y) := by simp [hxy],
-  rw h1,
-  rw smul_smul,
-  rw ←units.coe_mul,
-  rw ←equiv.perm.sign_mul,
-  rw mul_assoc,
-  rw equiv.swap_mul_self,
-  rw mul_one,
+  rw [h1, smul_smul, ←units.coe_mul, ←equiv.perm.sign_mul, mul_assoc, equiv.swap_mul_self, mul_one],
   assumption,
 end
 

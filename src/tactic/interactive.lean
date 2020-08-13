@@ -729,7 +729,7 @@ iterating the following steps:
 If the goal is an equality, this simpset will also clear the denominators, so that the proof
 can normally be concluded by an application of `ring` or `ring_exp`.
 
-`field_simp [hx, hy]` is a short form for `simp [-one_div_eq_inv, hx, hy] with field_simps`
+`field_simp [hx, hy]` is a short form for `simp [-one_div, hx, hy] with field_simps`
 
 Note that this naive algorithm will not try to detect common factors in denominators to reduce the
 complexity of the resulting expression. Instead, it relies on the ability of `ring` to handle
@@ -743,7 +743,7 @@ should be given explicitly. If your expression is not completely reduced by the 
 invocation, check the denominators of the resulting expression and provide proofs that they are
 nonzero to enable further progress.
 
-The invocation of `field_simp` removes the lemma `one_div_eq_inv` (which is marked as a simp lemma
+The invocation of `field_simp` removes the lemma `one_div` (which is marked as a simp lemma
 in core) from the simpset, as this lemma works against the algorithm explained above.
 
 For example,
@@ -765,7 +765,7 @@ meta def field_simp (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list)
   (locat : parse location) (cfg : simp_config_ext := {}) : tactic unit :=
 let attr_names := `field_simps :: attr_names,
-    hs := simp_arg_type.except `one_div_eq_inv :: hs in
+    hs := simp_arg_type.except `one_div :: hs in
 propagate_tags (simp_core cfg.to_simp_config cfg.discharger no_dflt hs attr_names locat)
 
 add_tactic_doc

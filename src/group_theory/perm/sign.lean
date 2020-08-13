@@ -246,6 +246,26 @@ begin
     exact hmul_swap _ _ _ hxy.1 (ih _ ⟨rfl, λ v hv, hl.2 _ (list.mem_cons_of_mem _ hv)⟩ h1 hmul_swap) }
 end
 
+lemma swap_induction_on' [fintype α] {P : perm α → Prop} (f : perm α) :
+  P 1 → (∀ f x y, x ≠ y → P f → P (f * swap x y)) → P f :=
+begin
+  intros h1 IH,
+  let Q : perm α → Prop := λ f, P (f⁻¹),
+  suffices hQ : ∀ f, Q f,
+  { convert hQ f⁻¹,
+    simp,
+  },
+  intro f,
+  apply swap_induction_on,
+  { exact h1 },
+  intros f x y h hQ,
+  show P (((swap x y) * f)⁻¹),
+  rw [mul_inv_rev, swap_inv],
+  apply IH,
+  exact h,
+  exact hQ,
+end
+
 lemma swap_mul_swap_mul_swap {x y z : α} (hwz: x ≠ y) (hxz : x ≠ z) :
   swap y z * swap x y * swap y z = swap z x :=
 equiv.ext $ λ n, by simp only [swap_apply_def, mul_apply]; split_ifs; cc

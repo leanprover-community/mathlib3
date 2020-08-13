@@ -1742,14 +1742,13 @@ theorem prod_mono {s₁ s₂ : set α} {t₁ t₂ : set β} (hs : s₁ ⊆ s₂)
   s₁.prod t₁ ⊆ s₂.prod t₂ :=
 assume x ⟨h₁, h₂⟩, ⟨hs h₁, ht h₂⟩
 
-lemma forall_prod_set {p : α × β → Prop} :
-  (∀ x ∈ s.prod t, p x) ↔ ∀ (x ∈ s) (y ∈ t), p (x, y) :=
-by { simp only [mem_prod, and_imp, prod.forall], exact forall_congr (λ _, forall_swap) }
-
 lemma prod_subset_iff {P : set (α × β)} :
   (s.prod t ⊆ P) ↔ ∀ (x ∈ s) (y ∈ t), (x, y) ∈ P :=
-⟨λ h _ xin _ yin, h (mk_mem_prod xin yin),
- λ h _ pin, by { cases mem_prod.1 pin with hs ht, simpa using h _ hs _ ht }⟩
+⟨λ h _ xin _ yin, h (mk_mem_prod xin yin), λ h ⟨_, _⟩ pin, h _ pin.1 _ pin.2⟩
+
+lemma forall_prod_set {p : α × β → Prop} :
+  (∀ x ∈ s.prod t, p x) ↔ ∀ (x ∈ s) (y ∈ t), p (x, y) :=
+prod_subset_iff
 
 @[simp] theorem prod_empty : s.prod ∅ = (∅ : set (α × β)) :=
 by { ext, simp }

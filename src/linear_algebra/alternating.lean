@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Zhangir Azerbayev.
 -/
 import .multilinear
+import group_theory.perm.sign
 
 
 variables (R : Type*) [ring R]
@@ -80,6 +81,30 @@ begin
   exact map_add_swap ν hij,
 end
 
+variable [fintype ι]
 
+lemma map_perm (σ : equiv.perm ι) :
+f ν = (equiv.perm.sign σ : ℤ) • f (ν ∘ σ) :=
+begin
+  apply equiv.perm.swap_induction_on' σ,
+  --Base case
+  rw equiv.perm.sign_one,
+  simp only [units.coe_one, one_smul, coe_fn_coe_base],
+  congr,
+  --rw [equiv.perm.sign_one, one_smul], congr,
+  --Inductive step
+  intros s x y hxy hI,
+  have assoc : ν ∘ (s * equiv.swap x y : equiv.perm ι) = (ν ∘ s ∘ equiv.swap x y) := rfl,
+  rw [assoc, map_swap (ν ∘ s) hxy, ←neg_one_smul ℤ (f (ν ∘ s))],
+  have h1 : (-1 : ℤ) = equiv.perm.sign (equiv.swap x y) := by simp [hxy],
+  rw h1,
+  rw smul_smul,
+  rw ←units.coe_mul,
+  rw ←equiv.perm.sign_mul,
+  rw mul_assoc,
+  rw equiv.swap_mul_self,
+  rw mul_one,
+  assumption,
+end
 
 end alternating

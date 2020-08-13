@@ -253,7 +253,7 @@ theorem separable_iff_derivative_ne_zero {f : polynomial F} (hf : irreducible f)
 ⟨λ h1 h2, hf.1 $ is_coprime_zero_right.1 $ h2 ▸ h1,
 λ h, is_coprime_of_dvd (mt and.right h) $ λ g hg1 hg2 ⟨p, hg3⟩ hg4,
 let ⟨u, hu⟩ := (hf.2 _ _ hg3).resolve_left hg1 in
-have f ∣ f.derivative, by { conv_lhs { rw [hg3, ← hu] }, rwa mul_unit_dvd_iff },
+have f ∣ f.derivative, by { conv_lhs { rw [hg3, ← hu] }, rwa units.mul_right_dvd },
 not_lt_of_le (nat_degree_le_of_dvd this h) $ nat_degree_derivative_lt h⟩
 
 theorem separable_map (f : F →+* K) {p : polynomial F} : (p.map f).separable ↔ p.separable :=

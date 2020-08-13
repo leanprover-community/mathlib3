@@ -301,7 +301,7 @@ lemma coeff_coe_units_zero_ne_zero (u : units (polynomial R)) :
 begin
   conv in (0) {rw [← nat_degree_coe_units u]},
   rw [← leading_coeff, ne.def, leading_coeff_eq_zero],
-  exact units.coe_ne_zero _
+  exact units.ne_zero _
 end
 
 lemma degree_eq_degree_of_associated (h : associated p q) : degree p = degree q :=

@@ -135,7 +135,7 @@ lemma to_GH_space_eq_to_GH_space_iff_isometric {α : Type u} [metric_space α] [
 ⟨begin
   simp only [to_GH_space, quotient.eq],
   assume h,
-  rcases h with e,
+  rcases h with ⟨e⟩,
   have I : ((nonempty_compacts.Kuratowski_embedding α).val ≃ᵢ (nonempty_compacts.Kuratowski_embedding β).val)
           = ((range (Kuratowski_embedding α)) ≃ᵢ (range (Kuratowski_embedding β))),
     by { dunfold nonempty_compacts.Kuratowski_embedding, refl },
@@ -601,7 +601,7 @@ begin
   { assume p t ht,
     letI : fintype t := finite.fintype ht,
     rcases fintype.exists_equiv_fin t with ⟨n, hn⟩,
-    rcases hn with e,
+    rcases hn with ⟨e⟩,
     exact ⟨n, e, trivial⟩ },
   choose N e hne using this,
   -- cardinality of the nice finite subset `s p` of `p.rep`, called `N p`

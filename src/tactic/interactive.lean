@@ -667,12 +667,14 @@ add_tactic_doc
   decl_names := [`tactic.interactive.h_generalize],
   tags       := ["context management"] }
 
-/-- `choose a b h using hyp` takes an hypothesis `hyp` of the form
-`∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
-into context a function `a : X → Y → A`, `b : X → Y → B` and a proposition `h` stating
-`∀ (x : X) (y : Y), P x y (a x y) (b x y)`. It presumably also works with dependent versions.
+/-- `choose a b h h' using hyp` takes an hypothesis `hyp` of the form
+`∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b ∧ Q x y a b` for some `P Q : X → Y → A → B → Prop` and outputs
+into context a function `a : X → Y → A`, `b : X → Y → B` and two assumptions:
+`h : ∀ (x : X) (y : Y), P x y (a x y) (b x y)` and `h' : ∀ (x : X) (y : Y), Q x y (a x y) (b x y)`.
 
-Example:
+It presumably also works with dependent versions.
+
+Examples:
 
 ```lean
 example (h : ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n) : true :=
@@ -682,6 +684,17 @@ begin
   guard_hyp j := ℕ → ℕ → ℕ,
   guard_hyp h := ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
   trivial
+end
+```
+
+```lean
+example (h : ∀ i : ℕ, ∃ j, i < j ∧ j < i+i) : true :=
+begin
+  choose f h h' using h,
+  guard_hyp f := ℕ → ℕ,
+  guard_hyp h := ∀ (i : ℕ), i < f i,
+  guard_hyp h' := ∀ (i : ℕ), f i < i + i,
+  trivial,
 end
 ```
 -/
@@ -1215,7 +1228,7 @@ add_tactic_doc
 /-- `clear_value n₁ n₂ ...` clears the bodies of the local definitions `n₁, n₂ ...`, changing them
 into regular hypotheses. A hypothesis `n : α := t` is changed to `n : α`. -/
 meta def clear_value (ns : parse ident*) : tactic unit :=
-propagate_tags $ ns.reverse.mmap' $ λ n, get_local n >>= tactic.clear_value
+propagate_tags $ ns.reverse.mmap get_local >>= tactic.clear_value
 
 add_tactic_doc
 { name       := "clear_value",
@@ -1238,10 +1251,10 @@ propagate_tags $
 do let (p, x) := p,
    e ← i_to_expr p,
    some h ← pure h | tactic.generalize' e x >> skip,
+   -- `h` is given, the regular implementation of `generalize` works.
    tgt ← target,
-   -- if generalizing fails, fall back to not replacing anything
    tgt' ← do {
-     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize' e x >> target),
+     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize e x >> target),
      to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1))
    } <|> to_expr ``(Π x, %%e = x → %%tgt),
    t ← assert h tgt',

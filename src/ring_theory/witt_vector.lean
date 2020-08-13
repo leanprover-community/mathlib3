@@ -103,8 +103,7 @@ lemma aeval_witt_polynomial {A : Type*} [comm_ring A] [algebra R A] (f : ℕ →
 by { -- clean this up
   simp only [witt_polynomial, alg_hom.map_sum, aeval_C, ring_hom.map_nat_cast, alg_hom.map_pow,
     C_pow, aeval_X, alg_hom.map_mul,
- ring_hom.map_nat_cast, alg_hom.map_pow, C_pow, aeval_X, alg_hom.map_mul],
- simp only [alg_hom.map_nat_cast], }
+ ring_hom.map_nat_cast, alg_hom.map_pow, C_pow, aeval_X, alg_hom.map_mul, alg_hom.map_nat_cast], }
 
 end
 
@@ -231,6 +230,8 @@ equiv_of_family (W_ R) (X_in_terms_of_W p R)
 (X_in_terms_of_W_prop₂ p R)
 (X_in_terms_of_W_prop p R)
 
+section p_prime
+
 variables {idx : Type*} [fact p.prime]
 
 noncomputable def witt_structure_rat (Φ : mv_polynomial idx ℚ) (n : ℕ) :
@@ -303,15 +304,19 @@ begin
 end
 .
 
+end p_prime
+
 lemma sub_congr (a b c d : R) (h1 : a = c) (h2 : b = d) : a - b = c - d :=
 by rw [h1, h2]
 .
+
+variables {idx : Type*}
 
 variables {ι : Type*} {σ : Type*}
 variables {S : Type*} [comm_ring S]
 variables {T : Type*} [comm_ring T]
 
-lemma foo' (Φ : mv_polynomial idx ℤ) (n : ℕ)
+lemma foo' [fact p.prime] (Φ : mv_polynomial idx ℤ) (n : ℕ)
   (IH : ∀ m : ℕ, m < n →
     map_hom (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) =
     witt_structure_rat p (map_hom (int.cast_ring_hom ℚ) Φ) m) :
@@ -370,7 +375,7 @@ end
 lemma fermat_little' (p : ℕ) [hp : fact p.prime] (a : zmod p) : a^p = a :=
 frobenius_zmod p a
 
-lemma mv_polynomial.frobenius_zmod (φ : mv_polynomial σ (zmod p)) :
+lemma mv_polynomial.frobenius_zmod [fact p.prime] (φ : mv_polynomial σ (zmod p)) :
   frobenius _ p φ = aeval (λ i, X i ^ p) φ :=
 begin
   apply induction_on φ,
@@ -380,7 +385,7 @@ begin
     intros _ _ hf, rw [hf, frobenius_def], },
 end
 
-lemma mv_polynomial.zmod_pow_char (φ : mv_polynomial ι (zmod p)) :
+lemma mv_polynomial.zmod_pow_char [fact p.prime] (φ : mv_polynomial ι (zmod p)) :
   (aeval (λ i, (X i)^p)) φ = φ^p :=
 begin
   symmetry,
@@ -404,6 +409,10 @@ end
 lemma mv_polynomial.algebra_map_eq_C (r : R) :
   algebra_map R (mv_polynomial σ R) r = C r :=
 rfl
+
+section p_prime
+
+variable [fact p.prime]
 
 lemma blur' (Φ : mv_polynomial idx ℤ) (n : ℕ)
   (IH : ∀ m : ℕ, m < (n + 1) →
@@ -451,7 +460,6 @@ begin
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     funext bi, rw map_hom_X }
 end
-.
 
 lemma map_hom_witt_structure_int (Φ : mv_polynomial idx ℤ) (n : ℕ) :
   map_hom (int.cast_ring_hom ℚ) (witt_structure_int p Φ n) =
@@ -570,6 +578,8 @@ begin
     simp only [map_hom_rename_hom, map_hom_witt_polynomial] }
 end
 
+end p_prime
+
 namespace witt_vectors
 
 local notation `𝕎` := witt_vectors -- type as `\bbW`
@@ -602,6 +612,10 @@ variable (R)
 instance : has_one (𝕎 p R) :=
 ⟨Teichmuller p 1⟩
 
+section p_prime
+
+variable [fact p.prime]
+
 noncomputable def witt_add : ℕ → mv_polynomial (bool × ℕ) ℤ :=
 witt_structure_int p (X tt + X ff)
 
@@ -620,6 +634,8 @@ noncomputable instance : has_mul (𝕎 p R) :=
 noncomputable instance : has_neg (𝕎 p R) :=
 ⟨λ x n, aeval (λ n : unit × ℕ, x n.2) (witt_neg p n)⟩
 
+end p_prime
+
 variable {R}
 
 @[simp] lemma Teichmuller_one : Teichmuller p (1:R) = 1 := rfl
@@ -629,9 +645,11 @@ variable {p}
 noncomputable def ghost_component (n : ℕ) (w : 𝕎 p R) : R :=
 aeval w (W_ R n)
 
+
 section map
 open function
 variables {α : Type*} {β : Type*}
+
 
 def map (f : α → β) : 𝕎 p α → 𝕎 p β := λ w, f ∘ w
 
@@ -655,6 +673,8 @@ match n with
 | 0     := f.map_one
 | (n+1) := f.map_zero
 end
+
+variable [fact p.prime]
 
 @[simp] lemma map_add (x y : 𝕎 p R) :
   map f (x + y) = map f x + map f y :=
@@ -688,7 +708,12 @@ end
 
 end map
 
+
 noncomputable def ghost_map : 𝕎 p R → (ℕ → R) := λ w n, ghost_component n w
+
+section p_prime
+
+variable [fact p.prime]
 
 @[simp] lemma ghost_map.zero : ghost_map (0 : 𝕎 p R) = 0 :=
 funext $ λ n,
@@ -778,7 +803,8 @@ begin
   { simp only [aeval_eq_eval₂_hom', ring_hom.map_neg, eval₂_hom_X', eval₂_hom_rename_hom],
     refl },
 end
-.
+
+end p_prime
 
 variables (p) (R)
 
@@ -815,6 +841,9 @@ local attribute [instance] mv_polynomial.invertible_rat_coe_nat
 
 variable (R)
 
+variable [hp : fact p.prime]
+include hp
+
 noncomputable def aux₁ : comm_ring (𝕎 p (mv_polynomial R ℚ)) :=
 function.injective.comm_ring (ghost_map)
   (ghost_map.bijective_of_invertible p (mv_polynomial R ℚ)).1
@@ -834,10 +863,14 @@ function.surjective.comm_ring
   (map $ mv_polynomial.counit _) (map_surjective _ $ counit_surjective _)
   (map_zero _) (map_one _) (map_add _) (map_mul _) (map_neg _)
 
+omit hp
+
 /-- Teichmuller is a natural transformation -/
 @[simp] lemma map_Teichmuller (f : R →+* S) (r : R) :
   map f (Teichmuller p r) = Teichmuller p (f r) :=
 by { ext n, cases n, { refl }, { exact f.map_zero } }
+
+include hp
 
 @[simp] lemma aeval_Teichmuller_witt_polynomial (r : R) (n : ℕ) :
   aeval (Teichmuller p r) (W_ R n) = r ^ p ^ n :=
@@ -866,8 +899,7 @@ lemma Teichmuller_mul_aux₂ (x y : mv_polynomial R ℤ) :
   Teichmuller p (x * y) = Teichmuller p x * Teichmuller p y :=
 begin
   apply map_injective (map_hom (int.cast_ring_hom ℚ)) (mv_polynomial.coe_int_rat_map_injective _),
-  { simp [Teichmuller_mul_aux₁], },
-  { assumption } -- map_injective shouldn't have the p.prime assumption
+  { simp [Teichmuller_mul_aux₁], }
 end
 
 @[simp] lemma Teichmuller_mul (x y : R) :

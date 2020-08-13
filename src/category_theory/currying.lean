@@ -94,6 +94,6 @@ equivalence.mk uncurry curry
   (nat_iso.of_components (λ F, nat_iso.of_components
     (λ X, nat_iso.of_components (λ Y, as_iso (𝟙 _)) (by tidy)) (by tidy)) (by tidy))
   (nat_iso.of_components (λ F, nat_iso.of_components
-    (λ X, eq_to_iso (by {dsimp, simp})) (by tidy)) (by tidy))
+    (λ X, eq_to_iso (by simp)) (by tidy)) (by tidy))
 
 end category_theory

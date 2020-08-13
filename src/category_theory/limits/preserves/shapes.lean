@@ -1,4 +1,9 @@
-import category_theory.limits.preserves
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
+import category_theory.limits.preserves.basic
 import category_theory.limits.shapes.products
 
 universes v u₁ u₂
@@ -53,12 +58,12 @@ begin
     is_limit.unique_up_to_iso, is_limit.lift_cone_morphism],
   simp only [limit.lift_π, discrete.nat_iso_hom_app, limit.cone_π, limit.lift_π_assoc,
     nat_trans.comp_app, category.assoc, functor.map_cone_π],
-  dsimp, simp,
+  dsimp, simp, -- See note [dsimp, simp],
 end
 
 @[simp, reassoc]
 lemma map_lift_comp_preserves_products_iso_hom
-  {J : Type v} (f : J → C) [has_limits C] [has_limits D] (P) (g : Π j, P ⟶ f j) :
+  {J : Type v} (f : J → C) [has_limits C] [has_limits D] (P : C) (g : Π j, P ⟶ f j) :
   G.map (pi.lift g) ≫ (preserves_products_iso G f).hom = pi.lift (λ j, G.map (g j)) :=
 begin
   ext,

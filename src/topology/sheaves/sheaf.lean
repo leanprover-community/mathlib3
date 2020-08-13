@@ -71,7 +71,7 @@ lemma w : res F U ≫ left_res F U = res F U ≫ right_res F U :=
 begin
   dsimp [res, left_res, right_res],
   ext,
-  simp,
+  simp only [limit.lift_π, limit.lift_π_assoc, fan.mk_π_app, category.assoc],
   rw [←F.map_comp],
   rw [←F.map_comp],
   congr,
@@ -110,9 +110,9 @@ The sheaf condition for a `F : presheaf C X` requires that the morphism
 is the equalizer of the two morphisms
 `∏ F.obj (U i) ⟶ ∏ F.obj (U i) ⊓ (U j)`.
 -/
--- Perhaps we want to work with sets of opens, rather than indexed families,
--- to avoid the `v+1` here in the universe levels?
--- Presumably because it's a subsingleton the universe level doesn't matter.
+-- One might prefer to work with sets of opens, rather than indexed families,
+-- which would reduce the universe level here to `max u v`.
+-- However as it's a subsingleton the universe level doesn't matter much.
 @[derive subsingleton]
 def sheaf_condition (F : presheaf C X) : Type (max u (v+1)) :=
 Π ⦃ι : Type v⦄ (U : ι → opens X), is_limit (sheaf_condition.fork F U)
@@ -138,11 +138,7 @@ structure sheaf :=
 (presheaf : presheaf C X)
 (sheaf_condition : sheaf_condition presheaf)
 
-instance : category (sheaf C X) :=
-begin
-  change category (induced_category (presheaf C X) sheaf.presheaf),
-  apply_instance,
-end
+instance : category (sheaf C X) := induced_category.category sheaf.presheaf
 
 -- Let's construct a trivial example, to keep the inhabited linter happy.
 instance sheaf_inhabited : inhabited (sheaf (category_theory.discrete punit) X) :=

@@ -303,13 +303,10 @@ by refine_struct { to_fun := add_equiv.to_equiv }; intros; refl
 
 end add_aut
 
-/-- Create an element of `units` from an element of a group. -/
-@[to_additive "Create an element of `add_units` from an element of an additive group."]
-def units.mk' [group G] (x : G) : units G := ⟨x, x⁻¹, mul_inv_self _, inv_mul_self _⟩
-
 /-- A group is isomorphic to its group of units. -/
-def to_units (G) [group G] : G ≃* units G :=
-{ to_fun := units.mk',
+@[to_additive to_add_units]
+def to_units {G} [group G] : G ≃* units G :=
+{ to_fun := λ x, ⟨x, x⁻¹, mul_inv_self _, inv_mul_self _⟩,
   inv_fun := coe,
   left_inv := λ x, rfl,
   right_inv := λ u, units.ext rfl,
@@ -366,7 +363,7 @@ variables [group G]
 
 /-- Left multiplication in a `group` is a permutation of the underlying type. -/
 @[to_additive "Left addition in an `add_group` is a permutation of the underlying type."]
-protected def mul_left (a : G) : perm G := (units.mk' a).mul_left
+protected def mul_left (a : G) : perm G := (to_units a).mul_left
 
 @[simp, to_additive]
 lemma coe_mul_left (a : G) : ⇑(equiv.mul_left a) = (*) a := rfl
@@ -377,7 +374,7 @@ ext $ λ x, rfl
 
 /-- Right multiplication in a `group` is a permutation of the underlying type. -/
 @[to_additive "Right addition in an `add_group` is a permutation of the underlying type."]
-protected def mul_right (a : G) : perm G := (units.mk' a).mul_right
+protected def mul_right (a : G) : perm G := (to_units a).mul_right
 
 @[simp, to_additive]
 lemma coe_mul_right (a : G) : ⇑(equiv.mul_right a) = λ x, x * a := rfl

@@ -10,8 +10,8 @@ import tactic
 /-!
 # Derivations
 
-This file defines derivation. A derivation from the `R`-agebra `A` to the `A`-module `M` is an `R`
-linear map that satisfy the Leibniz rule.
+This file defines derivation. A derivation `D` from the `R`-algebra `A` to the `A`-module `M` is an
+`R`-linear map that satisfy the Leibniz rule `D (a * b) = a * D b + D a * b`.
 
 ## Notation
 
@@ -38,8 +38,7 @@ section is_scalar_tower
 
 variables {R : Type*} [comm_semiring R]
 variables (A : Type*) [comm_semiring A] [algebra R A]
-variables {M : Type*} [add_comm_monoid M] [semimodule A M] [semimodule R M]
-  [is_scalar_tower R A M]
+variables {M : Type*} [add_comm_monoid M] [semimodule A M] [semimodule R M] [is_scalar_tower R A M]
 variables {N : Type*} [add_comm_monoid N] [semimodule A N] [semimodule R N] [is_scalar_tower R A N]
 
 @[simp] lemma algebra_compatible_smul (r : R) (m : M) : r • m = ((algebra_map R A) r) • m :=
@@ -74,15 +73,15 @@ namespace derivation
 section
 
 variables {R : Type*} [comm_semiring R]
-{A : Type*} [comm_semiring A] [algebra R A]
-{M : Type*} [add_cancel_comm_monoid M] [semimodule A M] [semimodule R M]
-[is_scalar_tower R A M]
-(D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
+variables {A : Type*} [comm_semiring A] [algebra R A]
+variables {M : Type*} [add_cancel_comm_monoid M] [semimodule A M] [semimodule R M]
+variables [is_scalar_tower R A M]
+variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
 instance : has_coe_to_fun (derivation R A M) := ⟨_, λ D, D.to_linear_map.to_fun⟩
 
 instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
-  ⟨λ D, D.to_linear_map⟩
+⟨λ D, D.to_linear_map⟩
 
 @[simp] lemma to_fun_eq_coe : D.to_fun = ⇑D := rfl
 
@@ -113,7 +112,7 @@ by rw [←mul_one r, ring_hom.map_mul, map_one, ←smul_def, map_smul, map_one_e
 
 instance : has_zero (derivation R A M) :=
 ⟨⟨(0 : A →ₗ[R] M), λ a b, by simp only [add_zero, linear_map.zero_apply,
-                                      linear_map.to_fun_eq_coe, smul_zero]⟩⟩
+                                        linear_map.to_fun_eq_coe, smul_zero]⟩⟩
 
 instance : inhabited (derivation R A M) := ⟨0⟩
 
@@ -132,7 +131,7 @@ instance : add_comm_monoid (derivation R A M) :=
 @[priority 100]
 instance derivation.Rsemimodule : semimodule R (derivation R A M) :=
 { smul := λ r D, ⟨r • D, λ a b, by simp only [linear_map.smul_apply, leibniz,
-  linear_map.to_fun_eq_coe, algebra_compatible_smul_comm, coe_linear_map, smul_add, add_comm],⟩,
+    linear_map.to_fun_eq_coe, algebra_compatible_smul_comm, coe_linear_map, smul_add, add_comm],⟩,
   mul_smul := λ a1 a2 D, ext $ λ b, mul_smul _ _ _,
   one_smul := λ D, ext $ λ b, one_smul _ _,
   smul_add := λ a D1 D2, ext $ λ b, smul_add _ _ _,
@@ -141,7 +140,7 @@ instance derivation.Rsemimodule : semimodule R (derivation R A M) :=
   zero_smul := λ D, ext $ λ b, zero_smul _ _ }
 
 @[simp] lemma smul_to_linear_map_coe : ↑(r • D) = (r • D : A →ₗ[R] M) := rfl
-@[simp] lemma smul_apply : (r • D) a = r • D a := rfl
+@[simp] lemma Rsmul_apply : (r • D) a = r • D a := rfl
 
 instance : semimodule A (derivation R A M) :=
 { smul := λ a D, ⟨⟨λ b, a • D b,
@@ -155,6 +154,10 @@ instance : semimodule A (derivation R A M) :=
   add_smul := λ a1 a2 D, ext $ λ b, add_smul _ _ _,
   zero_smul := λ D, ext $ λ b, zero_smul A _ }
 
+@[simp] lemma smul_apply : (a • D) b = a • D b := rfl
+
+instance : is_scalar_tower R A (derivation R A M) :=
+⟨ λ x y z, ext (λ a, smul_assoc _ _ _) ⟩
 /-- The composition of a derivation and a linear map is a derivation. -/
 def comp {N : Type*} [add_cancel_comm_monoid N] [semimodule A N] [semimodule R N]
   [is_scalar_tower R A N]
@@ -198,7 +201,7 @@ open ring_commutator
 /-- The commutator of derivations is again a derivation. -/
 def commutator (D1 D2 : derivation R A A) : derivation R A A :=
 ⟨⁅D1, D2⁆, λ a b, by {simp only [commutator, map_add, id.smul_eq_mul, linear_map.mul_app,
-leibniz, linear_map.to_fun_eq_coe, coe_linear_map, linear_map.sub_apply], ring }⟩
+  leibniz, linear_map.to_fun_eq_coe, coe_linear_map, linear_map.sub_apply], ring }⟩
 
 instance : has_bracket (derivation R A A) := ⟨derivation.commutator⟩
 
@@ -214,7 +217,7 @@ instance : lie_ring (derivation R A A) :=
 
 instance : lie_algebra R (derivation R A A) :=
 { lie_smul := λ r d e, by { ext a, simp only [commutator_apply, smul_apply, map_smul, smul_sub] },
-  ..derivation.Rsemimodule, }
+  ..derivation.Rsemimodule }
 
 end
 

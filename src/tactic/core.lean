@@ -262,7 +262,13 @@ in `fs`, with the current file listed as `none`.
 
 The path of the file names is expected to be relative to
 the root of the project (i.e. the location of `leanpkg.toml` when it
-is present); e.g. `"src/tactic/core.lean"` -/
+is present); e.g. `"src/tactic/core.lean"`
+
+Possible issue: `get_decls_from` uses `get_cwd`, the current working
+directory, which may not always point at the root of the project.
+It would work better if it searched for the root directory or,
+better yet, if Lean exposed its path information.
+-/
 meta def get_decls_from (fs : list (option string)) : tactic (name_map declaration) :=
 do root ← unsafe_run_io $ io.env.get_cwd,
    let fs := fs.map (option.map $ λ path, root ++ "/" ++ path),

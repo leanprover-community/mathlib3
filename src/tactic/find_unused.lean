@@ -63,7 +63,7 @@ do ds ← get_decls_from fs,
 /-- expecting a string literal (e.g. `"src/tactic/find_unused.lean"`)
 -/
 meta def parse_file_name (fn : pexpr) : tactic (option string) :=
-(some <$> to_expr fn >>= eval_expr string) <|> fail "expecting: \"src/dir/file-name\""
+some <$> (to_expr fn >>= eval_expr string) <|> fail "expecting: \"src/dir/file-name\""
 
 setup_tactic_parser
 

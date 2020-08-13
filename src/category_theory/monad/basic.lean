@@ -194,6 +194,7 @@ def monad_to_mon : Monad C → Mon_ (C ⥤ C) := λ M,
     refl,
   end }
 
+variable (C)
 def to_mon_end : Monad C ⥤ Mon_ (C ⥤ C) :=
 { obj := monad_to_mon,
   map := λ M N f,
@@ -213,6 +214,7 @@ def to_mon_end : Monad C ⥤ Mon_ (C ⥤ C) :=
       refl,
     end } }
 
+variable {C}
 def mon_to_monad : Mon_ (C ⥤ C) → Monad C := λ M,
 { func := M.X,
   str :=
@@ -240,6 +242,31 @@ def mon_to_monad : Mon_ (C ⥤ C) → Monad C := λ M,
       rw [←nat_trans.hcomp_id_app, ←nat_trans.comp_app, this],
       refl,
     end } }
+
+variable (C)
+def of_mon_end : Mon_ (C ⥤ C) ⥤ Monad C :=
+{ obj := mon_to_monad,
+  map := λ M N f,
+  { app_η' := λ X, begin
+      simp only [auto_param_eq],
+      rw ←nat_trans.comp_app,
+      erw f.one_hom,
+      refl,
+    end,
+    app_μ' := λ X, begin
+      simp only [auto_param_eq],
+      rw ←nat_trans.comp_app,
+      erw f.mul_hom,
+      simp only [nat_trans.naturality, assoc, nat_trans.comp_app],
+      erw nat_trans.hcomp_app,
+      simp only [assoc],
+      refl,
+    end,
+    ..show M.X ⟶ N.X, by exact f.hom } }
+
+variable {C}
+--theorem of_to_mon_end : of_mon_end C ⋙ to_mon_end _ = 𝟭 _ := sorry
+--theorem to_of_mon_end : to_mon_end C ⋙ of_mon_end _ = 𝟭 _ := sorry
 
 end bundled_monads
 

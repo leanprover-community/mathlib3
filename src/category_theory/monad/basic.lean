@@ -61,6 +61,19 @@ structure monad_hom (M N : C ⥤ C) [monad M] [monad N] extends nat_trans M N :=
 (app_η' {X} : (η_ M).app X ≫ app X = (η_ N).app X . obviously)
 (app_μ' {X} : (μ_ M).app X ≫ app X = (M.map (app X) ≫ app (N.obj X)) ≫ (μ_ N).app X . obviously)
 
+restate_axiom monad_hom.app_η'
+restate_axiom monad_hom.app_μ'
+attribute [simp, reassoc] monad_hom.app_η monad_hom.app_μ
+
+/-- A morphisms of comonads is a natural transformation compatible with η and μ. -/
+structure comonad_hom (M N : C ⥤ C) [comonad M] [comonad N] extends nat_trans M N :=
+(app_ε' {X} : app X ≫ (ε_ N).app X = (ε_ M).app X . obviously)
+(app_δ' {X} : app X ≫ (δ_ N).app X = (δ_ M).app X ≫ app (M.obj X) ≫ N.map (app X) . obviously)
+
+restate_axiom comonad_hom.app_ε'
+restate_axiom comonad_hom.app_δ'
+attribute [simp, reassoc] comonad_hom.app_ε comonad_hom.app_δ
+
 namespace monad_hom
 variables {M N L K : C ⥤ C} [monad M] [monad N] [monad L] [monad K]
 
@@ -93,14 +106,48 @@ lemma comp_assoc (f : monad_hom M N) (g : monad_hom N L) (h : monad_hom L K) :
 
 end monad_hom
 
-restate_axiom monad_hom.app_η'
-restate_axiom monad_hom.app_μ'
-attribute [simp] monad_hom.app_η monad_hom.app_μ
+namespace comonad_hom
+variables {M N L K : C ⥤ C} [comonad M] [comonad N] [comonad L] [comonad K]
+
+@[ext]
+theorem ext (f g : comonad_hom M N) :
+  f.to_nat_trans = g.to_nat_trans → f = g := by {cases f, cases g, simp}
+
+variable (M)
+/-- The identity natural transformations is a morphism of comonads. -/
+def ident : comonad_hom M M :=
+{ app_ε' := by tidy,
+  app_δ' := by tidy,
+  ..𝟙 M }
+variable {M}
+
+instance : inhabited (comonad_hom M M) := ⟨ident _⟩
+
+/-- The composition of two morphisms of comonads. -/
+def comp (f : comonad_hom M N) (g : comonad_hom N L) : comonad_hom M L :=
+{ app := λ X, (f.app X) ≫ (g.app X),
+  app_ε' := λ X, by {rw assoc, simp [app_ε']},
+  app_δ' := λ X, by {rw assoc, simp [app_δ']} }
+
+@[simp] lemma ident_comp (f : comonad_hom M N) : (comonad_hom.ident M).comp f = f :=
+  by {ext, apply id_comp}
+@[simp] lemma comp_ident (f : comonad_hom M N) : f.comp (comonad_hom.ident N) = f :=
+  by {ext, apply comp_id}
+lemma comp_assoc (f : comonad_hom M N) (g : comonad_hom N L) (h : comonad_hom L K) :
+  (f.comp g).comp h = f.comp (g.comp h) := by {ext, apply assoc}
+
+end comonad_hom
 
 namespace monad
 instance : monad (𝟭 C) :=
 { η := 𝟙 _,
   μ := 𝟙 _ }
 end monad
+
+namespace comonad
+instance : comonad (𝟭 C) :=
+{ ε := 𝟙 _,
+  δ := 𝟙_ }
+end comonad
 
 end category_theory

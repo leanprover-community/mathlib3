@@ -9,12 +9,12 @@ import category_theory.eq_to_hom
 /-!
 # Bundled Monads
 
-We define bundled monads as a structure consisting of a functor `func : C ⥤ C` endowed with
-a term of type `monad func`. See `category_theory.monad.basic` for the definition.
-The type of bundled monads on a category `C` is denoted `Monad C`.
+We define bundled (co)monads as a structure consisting of a functor `func : C ⥤ C` endowed with
+a term of type `(co)monad func`. See `category_theory.monad.basic` for the definition.
+The type of bundled (co)monads on a category `C` is denoted `(Co)Monad C`.
 
-We also define morphisms of bundled monads as morphisms of their underlying monads
-in the sense of `category_theory.monad_hom`. We construct a category instance on `Monad C`.
+We also define morphisms of bundled (co)monads as morphisms of their underlying (co)monads
+in the sense of `category_theory.(co)monad_hom`. We construct a category instance on `(Co)Monad C`.
 -/
 
 namespace category_theory
@@ -29,6 +29,10 @@ structure Monad :=
 (func : C ⥤ C)
 (str : monad func . tactic.apply_instance)
 
+/-- Bundled comonads -/
+structure CoMonad :=
+(func : C ⥤ C)
+(str : comonad func . tactic.apply_instance)
 
 namespace Monad
 
@@ -81,4 +85,58 @@ theorem to_nat_trans_eq_to_hom (M N : Monad C) (h : M = N) :
   monad_hom.to_nat_trans (eq_to_hom h) = eq_to_hom (congr_arg (Monad.func) h) := by {subst h, refl}
 
 end Monad
+
+namespace CoMonad
+
+/-- The terminal comonad. TODO: Prove it's terminal. -/
+def terminal : CoMonad C := { func := 𝟭 _ }
+
+variable {C}
+
+instance : inhabited (CoMonad C) := ⟨terminal C⟩
+
+instance {M : CoMonad C} : comonad M.func := M.str
+
+/-- Morphisms of bundled comonads. -/
+def hom (M N : CoMonad C) := comonad_hom M.func N.func
+
+namespace hom
+instance {M : CoMonad C} : inhabited (hom M M) := ⟨comonad_hom.ident _⟩
+end hom
+
+instance : category (CoMonad C) :=
+{ hom := hom,
+  id := λ _, comonad_hom.ident _,
+  comp := λ _ _ _, comonad_hom.comp,
+  id_comp' := λ _ _, by apply comonad_hom.ident_comp,
+  comp_id' := λ _ _, by apply comonad_hom.comp_ident,
+  assoc' := λ _ _ _ _, by apply comonad_hom.comp_assoc }
+
+/-- The forgetful functor from `Monad C` to `C ⥤ C`. -/
+def forget : CoMonad C ⥤ (C ⥤ C) :=
+{ obj := func,
+  map := λ _ _ f, f.to_nat_trans }
+
+@[simp]
+lemma comp_to_nat_trans {M N L : CoMonad C} (f : M ⟶ N) (g : N ⟶ L) :
+  (f ≫ g).to_nat_trans = nat_trans.vcomp f.to_nat_trans g.to_nat_trans := rfl
+
+theorem hext (M N : CoMonad C) : M.func = N.func → (ε_ M.func) == (ε_ N.func) →
+  (δ_ M.func) == (δ_ N.func) → M = N := λ h1 h2 h3,
+begin
+  cases M, cases N,
+  dsimp only [] at h1,
+  subst h1,
+  congr,
+  cases M_str, cases N_str,
+  congr,
+  repeat {apply eq_of_heq, assumption}
+end
+
+theorem to_nat_trans_eq_to_hom (M N : CoMonad C) (h : M = N) :
+  comonad_hom.to_nat_trans (eq_to_hom h) = eq_to_hom (congr_arg (CoMonad.func) h) :=
+  by {subst h, refl}
+
+
+end CoMonad
 end category_theory

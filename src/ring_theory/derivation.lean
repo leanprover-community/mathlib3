@@ -22,30 +22,13 @@ implements the definition of derivations in commutative algebra. This will soon 
 as bimodules will be there in mathlib I will change this file to take into account the
 non-commutative case. Any development on the theory of derivations is discouraged until the
 definitive definition of derivation will be implemented.
+
+Also note that this file implements bundled derivations only by now. To be better integrated with
+the algebra section of mathlib it would probably be better to define a notion of `is_derivation` and
+link it to bundled derivations.
 -/
 
 open algebra ring_hom
-
-/-- Natural way to define a scalar multiplication over a ring `R` for a module `M` over an
-algebra `A` over `R`. -/
-def transitive_scalar (R : Type*) (A : Type*) (M : Type*)
-  [comm_semiring R] [semiring A] [algebra R A]
-  [add_comm_monoid M] [semimodule A M] : has_scalar R M :=
-{ smul := λ r m, ((algebra_map R A) r) • m, }
-
-/-- With the operation defined above the module `M` is also naturally a module over `R`. -/
-def transitive_module (R : Type*) (A : Type*) (M : Type*)
-  [comm_semiring R] [semiring A] [algebra R A] [add_comm_monoid M] [semimodule A M] :
-  semimodule R M :=
-{ smul_add := λ r x y, smul_add _ _ _,
-  smul_zero := λ r, smul_zero _,
-  zero_smul := λ x, show algebra_map R A 0 • x = 0, by rw [map_zero, zero_smul],
-  one_smul := λ x, show algebra_map R A 1 • x = x, by rw [map_one, one_smul],
-  mul_smul := λ r s x, show algebra_map R A (r * s) • x =
-    algebra_map R A r • algebra_map R A s • x, by rw [map_mul, mul_smul],
-  add_smul := λ r s x, show algebra_map R A (r + s) • x =
-    algebra_map R A r • x + algebra_map R A s • x, by rw [map_add, add_smul],
-  .. transitive_scalar R A M }
 
 instance algebra.to_is_scalar_tower  {R : Type*} {A : Type*} [comm_semiring R] [semiring A]
   [algebra R A] : is_scalar_tower R A A :=

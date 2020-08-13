@@ -155,7 +155,8 @@ begin
     simp only [functor.id_map, functor.comp_map, Mon_.comp_hom', nat_trans.comp_app,
       Mon_.hom_eq_to_hom, eq_to_hom_app, id_comp, eq_to_hom_refl, comp_id],
     refl },
-  { intro X, apply of_to_mon_end_obj },
+  { intro X,
+    apply of_to_mon_end_obj },
 end
 
 theorem to_of_mon_end : Monad_to_Mon C ⋙ Mon_to_Monad _ = 𝟭 _ :=
@@ -166,7 +167,8 @@ begin
     simp only [Monad.comp_to_nat_trans, functor.id_map, functor.comp_map, nat_trans.vcomp_eq_comp,
       nat_trans.comp_app, to_nat_trans_eq_to_hom, eq_to_hom_app, id_comp, eq_to_hom_refl, comp_id],
     refl },
-  { intro X, apply to_of_mon_end_obj }
+  { intro X,
+    apply to_of_mon_end_obj }
 end
 
 /-- Oh, monads are just monoids in the category of endofunctors. -/

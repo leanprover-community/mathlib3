@@ -79,7 +79,8 @@ def of_Mon : Mon_ (C ⥤ C) → Monad C := λ M,
   str :=
   { η := M.one,
     μ := M.mul,
-    assoc' := λ X, begin
+    assoc' := begin
+      intro X,
       rw ←nat_trans.hcomp_id_app,
       change ((M.mul ◫ 𝟙 M.X) ≫ M.mul).app X = _,
       erw M.mul_assoc,
@@ -88,13 +89,15 @@ def of_Mon : Mon_ (C ⥤ C) → Monad C := λ M,
       suffices : ((α_ M.X M.X M.X).app X).hom = 𝟙 _, by {rw this, simp},
       refl,
     end,
-    left_unit' := λ X, begin
+    left_unit' := begin
+      intro X,
       have := M.mul_one,
       change (_ ◫ _) ≫ _ = _ at this,
       rw [←nat_trans.id_hcomp_app, ←nat_trans.comp_app, this],
       refl,
     end,
-    right_unit' := λ X, begin
+    right_unit' := begin
+      intro X,
       have := M.one_mul,
       change (_ ◫ _) ≫ _ = _ at this,
       rw [←nat_trans.hcomp_id_app, ←nat_trans.comp_app, this],
@@ -106,13 +109,15 @@ variable (C)
 def Mon_to_Monad : Mon_ (C ⥤ C) ⥤ Monad C :=
 { obj := of_Mon,
   map := λ M N f,
-  { app_η' := λ X, begin
+  { app_η' := begin
+      intro X,
       simp only [auto_param_eq],
       rw ←nat_trans.comp_app,
       erw f.one_hom,
       refl,
     end,
-    app_μ' := λ X, begin
+    app_μ' := begin
+      intro X,
       simp only [auto_param_eq],
       erw [←nat_trans.comp_app, f.mul_hom],
       simp only [nat_trans.naturality, assoc, nat_trans.comp_app],

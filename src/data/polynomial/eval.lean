@@ -451,7 +451,7 @@ lemma map_sum {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
   (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
 eq.symm $ sum_hom _ _
 
-lemma map_support_is_subset (p : polynomial R) : (map f p).support ⊆ p.support :=
+lemma support_map_subset (p : polynomial R) : (map f p).support ⊆ p.support :=
 begin
   intros x,
   simp only [mem_support_iff],

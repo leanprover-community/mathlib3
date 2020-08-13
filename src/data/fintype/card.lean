@@ -24,6 +24,9 @@ open_locale big_operators
 
 namespace fintype
 
+@[to_additive]
+lemma prod_bool [comm_monoid α] (f : bool → α) : ∏ b, f b = f tt * f ff := by simp
+
 lemma card_eq_sum_ones {α} [fintype α] : fintype.card α = ∑ a : α, 1 :=
 finset.card_eq_sum_ones _
 

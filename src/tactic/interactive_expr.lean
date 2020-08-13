@@ -163,7 +163,7 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
   ] [html.of_string s]]
 | ca (sf.block i a) := do
   inner ← view ca a,
-  pure [h "span" [cn "indent-code", style [("--indent-level", to_string i)]] inner]
+  pure [h "span" [cn "indent-code dib", style [("--indent-level", to_string i)]] inner]
 | ca (sf.highlight c a) := do
   inner ← view ca a,
   pure [h "span" [cn $ "highlight_" ++ c.to_string] inner]

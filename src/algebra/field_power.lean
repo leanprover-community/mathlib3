@@ -37,7 +37,7 @@ begin
   { apply absurd h,
     apply not_le_of_gt,
     exact lt_of_lt_of_le (neg_succ_lt_zero _) (of_nat_nonneg _) },
-  { simp only [fpow_neg_succ_of_nat, one_div_eq_inv],
+  { simp only [fpow_neg_succ_of_nat, one_div],
     apply le_trans (inv_le_one _); apply one_le_pow_of_one_le hx },
   { simp only [fpow_neg_succ_of_nat],
     apply (inv_le_inv _ _).2,

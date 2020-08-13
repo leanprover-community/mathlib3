@@ -497,17 +497,43 @@ meta def revert_deps (e : expr) : tactic ℕ := do
 meta def is_local_def (e : expr) : tactic unit :=
 retrieve $ do revert e, expr.elet _ _ _ _ ← target, skip
 
-/-- `clear_value e` clears the body of the local definition `e`, changing it into a regular
-hypothesis. A hypothesis `e : α := t` is changed to `e : α`.
+/-- like `split_on_p p xs`, `partition_local_deps_aux vs xs acc` searches for matches in `xs` 
+(using membership to `vs` instead of a predicate) and breaks `xs` when matches are found.
+whereas `split_on_p p xs` removes the matches, `partition_local_deps_aux vs xs acc` includes
+them in the following partition. Also, `partition_local_deps_aux vs xs acc` discards the partition
+running up to the first match. -/
+private def partition_local_deps_aux {α} [decidable_eq α] (vs : list α) : list α → list α → list (list α)
+| [] acc := [acc.reverse]
+| (l :: ls) acc :=
+  if l ∈ vs then acc.reverse :: partition_local_deps_aux ls [l]
+  else partition_local_deps_aux ls (l :: acc)
+
+/-- `partition_local_deps vs`, with `vs` a list of local constants,
+reorders `vs` in the order they appear in the local context together
+with the variables that follow them. If local context is `[a,b,c,d,e,f]`,
+and that we call `partition_local_deps [d,b]`, we get `[[d,e,f], [b,c]]`.
+The head of each list is one of the variables given as a parameter. -/
+meta def partition_local_deps (vs : list expr) : tactic (list (list expr)) :=
+do ls ← local_context,
+   pure (partition_local_deps_aux vs ls []).tail.reverse
+
+/-- `clear_value [e₀, e₁, e₂, ...]` clears the body of the local definitions `e₀`, `e₁`, `e₂`, ... changing them into regular
+hypotheses. A hypothesis `e : α := t` is changed to `e : α`. The order of locals `e₀`, `e₁`, `e₂` does not
+matter as a permutation will be chosen so as to preserve type correctness.
 This tactic is called `clearbody` in Coq. -/
-meta def clear_value (e : expr) : tactic unit := do
-  n ← revert_after e,
-  is_local_def e <|>
-    pp e >>= λ s, fail format!"Cannot clear the body of {s}. It is not a local definition.",
-  let nm := e.local_pp_name,
-  (generalize' e nm >> clear e) <|>
-    fail format!"Cannot clear the body of {nm}. The resulting goal is not type correct.",
-  intron n
+meta def clear_value (vs : list expr) : tactic unit := do
+  ls ← partition_local_deps vs,
+  ls.mmap' $ λ vs, do
+  { revert_lst vs,
+    (expr.elet v t d b) ← target | fail format!"Cannot clear the body of {vs.head}. It is not a local definition.",
+    let e := expr.pi v binder_info.default t b,
+    type_check e <|> fail format!"Cannot clear the body of {vs.head}. The resulting goal is not type correct.",
+    g ← mk_meta_var e,
+    h ← note `h none g,
+    tactic.exact $ h d,
+    gs ← get_goals,
+    set_goals $ g :: gs },
+  ls.reverse.mmap' $ λ vs, intro_lst $ vs.map expr.local_pp_name
 
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
 `simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting
@@ -1108,26 +1134,36 @@ p ← mk_local' n bi d,
 (ps, r) ← mk_local_pis (expr.instantiate_var b p),
 return ((p :: ps), r)
 
-/-- Changes `(h : ∀xs, ∃a:α, p a) ⊢ g` to `(d : ∀xs, a) (s : ∀xs, p (d xs) ⊢ g`. -/
+/-- Changes `(h : ∀xs, ∃a:α, p a) ⊢ g` to `(d : ∀xs, a) (s : ∀xs, p (d xs) ⊢ g` and
+ `(h : ∀xs, p xs ∧ q xs) ⊢ g` to `(d : ∀xs, p xs) (s : ∀xs, q xs) ⊢ g` 
+ `choose1` returns the second local constant it introduces. -/
 meta def choose1 (h : expr) (data : name) (spec : name) : tactic expr := do
   t ← infer_type h,
   (ctxt, t) ← mk_local_pis_whnf t,
-  `(@Exists %%α %%p) ← whnf t transparency.all |
-    fail "expected a term of the shape ∀xs, ∃a, p xs a",
-  α_t ← infer_type α,
-  expr.sort u ← whnf α_t transparency.all,
-  value ← mk_local_def data (α.pis ctxt),
-  t' ← head_beta (p.app (value.mk_app ctxt)),
-  spec ← mk_local_def spec (t'.pis ctxt),
-  dependent_pose_core [
-    (value, ((((expr.const `classical.some [u]).app α).app p).app (h.mk_app ctxt)).lambdas ctxt),
-    (spec, ((((expr.const `classical.some_spec [u]).app α).app p).app (h.mk_app ctxt)).lambdas ctxt)],
-  try (tactic.clear h),
-  intro1,
-  intro1
+  t ← whnf t transparency.all,
+  match t with
+  | `(@Exists %%α %%p) := do
+    α_t ← infer_type α,
+    expr.sort u ← whnf α_t transparency.all,
+    value ← mk_local_def data (α.pis ctxt),
+    t' ← head_beta (p.app (value.mk_app ctxt)),
+    spec ← mk_local_def spec (t'.pis ctxt),
+    dependent_pose_core [
+      (value, ((((expr.const `classical.some [u]).app α).app p).app (h.mk_app ctxt)).lambdas ctxt),
+      (spec, ((((expr.const `classical.some_spec [u]).app α).app p).app (h.mk_app ctxt)).lambdas ctxt)],
+    try (tactic.clear h),
+    intro1,
+    intro1
+  | `(%%p ∧ %%q) := do
+    mk_app ``and.elim_left [h.mk_app ctxt] >>= lambdas ctxt >>= note data none,
+    hq ← mk_app ``and.elim_right [h.mk_app ctxt] >>= lambdas ctxt >>= note spec none,
+    try (tactic.clear h),
+    pure hq
+  | _ := fail "expected a term of the shape `∀xs, ∃a, p xs a` or `∀xs, p xs ∧ q xs`"
+  end
 
-/-- Changes `(h : ∀xs, ∃as, p as) ⊢ g` to a list of functions `as`,
-and a final hypothesis on `p as`. -/
+/-- Changes `(h : ∀xs, ∃as, p as ∧ q as) ⊢ g` to a list of functions `as`,
+and a final hypothesis on `p as` and `q as`. -/
 meta def choose : expr → list name → tactic unit
 | h [] := fail "expect list of variables"
 | h [n] := do

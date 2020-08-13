@@ -138,7 +138,7 @@ end
 variables (P)
 
 /-- Adding the group element `g` to a point is an injective function. -/
-lemma vadd_left_injective (g : G) : function.injective ((+ᵥ) g) :=
+lemma vadd_left_injective (g : G) : function.injective ((+ᵥ) g : P → P) :=
 λ p1 p2, vadd_left_cancel g
 
 end group
@@ -317,7 +317,7 @@ if and only if those points are equal. -/
 
 /-- Subtracting a point from the point `p` is an injective
 function. -/
-lemma vsub_right_injective (p : P) : function.injective (λ p1 : P, (p -ᵥ p1 : G)) :=
+lemma vsub_right_injective (p : P) : function.injective ((-ᵥ) p : P → G) :=
 λ p2 p3, vsub_right_cancel G
 
 end general

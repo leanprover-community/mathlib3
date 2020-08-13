@@ -1010,13 +1010,22 @@ theorem mem_powerset {x s : set α} (h : x ⊆ s) : x ∈ powerset s := h
 
 theorem subset_of_mem_powerset {x s : set α} (h : x ∈ powerset s) : x ⊆ s := h
 
-theorem mem_powerset_iff (x s : set α) : x ∈ powerset s ↔ x ⊆ s := iff.rfl
+@[simp] theorem mem_powerset_iff (x s : set α) : x ∈ powerset s ↔ x ⊆ s := iff.rfl
 
-@[simp] theorem powerset_mono : powerset s ⊆ powerset t ↔ s ⊆ t :=
+theorem powerset_inter (s t : set α) : 𝒫 (s ∩ t) = 𝒫 s ∩ 𝒫 t :=
+ext $ λ u, subset_inter_iff
+
+@[simp] theorem powerset_mono : 𝒫 s ⊆ 𝒫 t ↔ s ⊆ t :=
 ⟨λ h, h (subset.refl s), λ h u hu, subset.trans hu h⟩
 
-@[simp] theorem powerset_nonempty : (powerset s).nonempty :=
+theorem monotone_powerset : monotone (powerset : set α → set (set α)) :=
+λ s t, powerset_mono.2
+
+@[simp] theorem powerset_nonempty : (𝒫 s).nonempty :=
 ⟨∅, empty_subset s⟩
+
+@[simp] theorem powerset_empty : 𝒫 (∅ : set α) = {∅} :=
+ext $ λ s, subset_empty_iff
 
 /-! ### Inverse image -/
 
@@ -1732,6 +1741,10 @@ lemma mk_mem_prod {a : α} {b : β} (a_in : a ∈ s) (b_in : b ∈ t) : (a, b) �
 theorem prod_mono {s₁ s₂ : set α} {t₁ t₂ : set β} (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) :
   s₁.prod t₁ ⊆ s₂.prod t₂ :=
 assume x ⟨h₁, h₂⟩, ⟨hs h₁, ht h₂⟩
+
+lemma forall_prod_set {p : α × β → Prop} :
+  (∀ x ∈ s.prod t, p x) ↔ ∀ (x ∈ s) (y ∈ t), p (x, y) :=
+by { simp only [mem_prod, and_imp, prod.forall], exact forall_congr (λ _, forall_swap) }
 
 lemma prod_subset_iff {P : set (α × β)} :
   (s.prod t ⊆ P) ↔ ∀ (x ∈ s) (y ∈ t), (x, y) ∈ P :=

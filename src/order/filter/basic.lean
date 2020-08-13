@@ -1387,11 +1387,15 @@ lemma pure_sets (a : α) : (pure a : filter α).sets = {s | a ∈ s} := rfl
 
 @[simp] lemma mem_pure_sets {a : α} {s : set α} : s ∈ (pure a : filter α) ↔ a ∈ s := iff.rfl
 
-lemma pure_eq_principal (a : α) : (pure a : filter α) = 𝓟 {a} :=
+@[simp] lemma eventually_pure {a : α} {p : α → Prop} :
+  (∀ᶠ x in pure a, p x) ↔ p a :=
+iff.rfl
+
+@[simp] lemma principal_singleton (a : α) : 𝓟 {a} = pure a :=
 filter.ext $ λ s, by simp only [mem_pure_sets, mem_principal_sets, singleton_subset_iff]
 
 @[simp] lemma map_pure (f : α → β) (a : α) : map f (pure a) = pure (f a) :=
-filter.ext $ λ s, iff.rfl
+rfl
 
 @[simp] lemma join_pure (f : filter α) : join (pure f) = f := filter.ext $ λ s, iff.rfl
 
@@ -1468,6 +1472,9 @@ le_antisymm
 filter_eq $ set.ext $ assume s,
   ⟨assume ⟨u, (hu : t ⊆ u), (b : preimage m u ⊆ s)⟩, subset.trans (preimage_mono hu) b,
     assume : preimage m t ⊆ s, ⟨t, subset.refl t, this⟩⟩
+
+@[simp] theorem comap_pure {b : β} : comap m (pure b) = 𝓟 (m ⁻¹' {b}) :=
+by rw [← principal_singleton, comap_principal]
 
 lemma map_le_iff_le_comap : map m f ≤ g ↔ f ≤ comap m g :=
 ⟨assume h s ⟨t, ht, hts⟩, mem_sets_of_superset (h ht) hts, assume h s ht, h ⟨_, ht, subset.refl _⟩⟩
@@ -1982,6 +1989,10 @@ def tendsto (f : α → β) (l₁ : filter α) (l₂ : filter β) := l₁.map f 
 lemma tendsto_def {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ ∀ s ∈ l₂, f ⁻¹' s ∈ l₁ := iff.rfl
 
+lemma tendsto_iff_eventually {f : α → β} {l₁ : filter α} {l₂ : filter β} :
+  tendsto f l₁ l₂ ↔ ∀ ⦃p : β → Prop⦄, (∀ᶠ y in l₂, p y) → ∀ᶠ x in l₁, p (f x) :=
+iff.rfl
+
 lemma tendsto.eventually {f : α → β} {l₁ : filter α} {l₂ : filter β} {p : β → Prop}
   (hf : tendsto f l₁ l₂) (h : ∀ᶠ y in l₂, p y) :
   ∀ᶠ x in l₁, p (f x) :=
@@ -2097,7 +2108,7 @@ lemma tendsto.inf {f : α → β} {x₁ x₂ : filter α} {y₁ y₂ : filter β
   (h₁ : tendsto f x₁ y₁) (h₂ : tendsto f x₂ y₂) : tendsto f (x₁ ⊓ x₂) (y₁ ⊓ y₂) :=
 tendsto_inf.2 ⟨tendsto_inf_left h₁, tendsto_inf_right h₂⟩
 
-lemma tendsto_infi {f : α → β} {x : filter α} {y : ι → filter β} :
+@[simp] lemma tendsto_infi {f : α → β} {x : filter α} {y : ι → filter β} :
   tendsto f x (⨅i, y i) ↔ ∀i, tendsto f x (y i) :=
 by simp only [tendsto, iff_self, le_infi_iff]
 
@@ -2113,15 +2124,15 @@ lemma tendsto.sup {f : α → β} {x₁ x₂ : filter α} {y : filter β} :
   tendsto f x₁ y → tendsto f x₂ y → tendsto f (x₁ ⊔ x₂) y :=
 λ h₁ h₂, tendsto_sup.mpr ⟨ h₁, h₂ ⟩
 
-lemma tendsto_principal {f : α → β} {l : filter α} {s : set β} :
+@[simp] lemma tendsto_principal {f : α → β} {l : filter α} {s : set β} :
   tendsto f l (𝓟 s) ↔ ∀ᶠ a in l, f a ∈ s :=
-by simp only [tendsto, le_principal_iff, mem_map, iff_self, filter.eventually]
+by simp only [tendsto, le_principal_iff, mem_map, filter.eventually]
 
-lemma tendsto_principal_principal {f : α → β} {s : set α} {t : set β} :
+@[simp] lemma tendsto_principal_principal {f : α → β} {s : set α} {t : set β} :
   tendsto f (𝓟 s) (𝓟 t) ↔ ∀a∈s, f a ∈ t :=
-by simp only [tendsto, image_subset_iff, le_principal_iff, map_principal, mem_principal_sets]; refl
+by simp only [tendsto_principal, eventually_principal]
 
-lemma tendsto_pure {f : α → β} {a : filter α} {b : β} :
+@[simp] lemma tendsto_pure {f : α → β} {a : filter α} {b : β} :
   tendsto f a (pure b) ↔ ∀ᶠ x in a, f x = b :=
 by simp only [tendsto, le_pure_iff, mem_map, mem_singleton_iff, filter.eventually]
 
@@ -2131,6 +2142,13 @@ tendsto_pure.2 rfl
 
 lemma tendsto_const_pure {a : filter α} {b : β} : tendsto (λx, b) a (pure b) :=
 tendsto_pure.2 $ univ_mem_sets' $ λ _, rfl
+
+lemma pure_le_iff {a : α} {l : filter α} : pure a ≤ l ↔ ∀ s ∈ l, a ∈ s :=
+iff.rfl
+
+lemma tendsto_pure_left {f : α → β} {a : α} {l : filter β} :
+  tendsto f (pure a) l ↔ ∀ s ∈ l, f a ∈ s :=
+iff.rfl
 
 /-- If two filters are disjoint, then a function cannot tend to both of them along a non-trivial
 filter. -/
@@ -2304,7 +2322,7 @@ by simp only [filter.prod, comap_inf, inf_comm, inf_assoc, inf_left_comm]
 by simp only [filter.prod, comap_principal, principal_eq_iff_eq, comap_principal, inf_principal]; refl
 
 @[simp] lemma prod_pure_pure {a : α} {b : β} : (pure a) ×ᶠ (pure b) = pure (a, b) :=
-by simp [pure_eq_principal]
+by simp only [← principal_singleton, prod_principal_principal, singleton_prod_singleton]
 
 lemma prod_eq_bot {f : filter α} {g : filter β} : f ×ᶠ g = ⊥ ↔ (f = ⊥ ∨ g = ⊥) :=
 begin

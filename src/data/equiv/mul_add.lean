@@ -304,7 +304,7 @@ by refine_struct { to_fun := add_equiv.to_equiv }; intros; refl
 end add_aut
 
 /-- A group is isomorphic to its group of units. -/
-@[to_additive to_add_units]
+@[to_additive to_add_units "An additive group is isomorphic to its group of additive units"]
 def to_units {G} [group G] : G ≃* units G :=
 { to_fun := λ x, ⟨x, x⁻¹, mul_inv_self _, inv_mul_self _⟩,
   inv_fun := coe,

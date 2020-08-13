@@ -458,9 +458,39 @@ lemma mem_closure_iff {s : set R} {x} :
  (λ x y hx hy, add_mem _ hx hy)
  ( λ x hx, neg_mem _ hx ) ⟩
 
--- **TODO** -- is this theorem going to be useful in practice?
 theorem exists_list_of_mem_closure {s : set R} {x : R} (hx : x ∈ closure s) :
   (∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s ∨ y = (-1:R)) ∧ (L.map list.prod).sum = x) :=
+ ⟨ add_subgroup.closure_induction (mem_closure_iff.1 hx)
+(λ x hx, suffices f : ∃ t : list R, (∀ y ∈ t, y ∈ s ∨ y = (-1:R)) ∧ t.prod = x,
+  from let ⟨t, ht1, ht2⟩ := f in ⟨[t], list.forall_mem_singleton.2 ht1,
+      by rw [list.map_singleton, list.sum_singleton, ht2]⟩,
+      submonoid.closure_induction hx
+      ( λ x hx, ⟨[x], mul_one, and_true, forall_eq, eq_self_iff_true, list.mem_singleton, list.prod_cons, list.prod_nil.2 hx ⟩ )
+      ( ⟨[], list.not_mem_nil, forall_const, forall_prop_of_false, eq_self_iff_true, not_false_iff, and_self, list.prod_nil ⟩ )
+      ( λ x y ⟨t, ht1, ht2⟩ ⟨u, hu1, hu2⟩, ⟨ [t ++ u], list.prod_append, ht2, hu2, begin rintros y hy,
+    cases hy,
+    apply ht1 y hy,
+    apply hu1 y hy, end ⟩ ) )
+(⟨[], list.not_mem_nil, list.sum_nil, forall_const, forall_prop_of_false, eq_self_iff_true, not_false_iff, and_self,
+  list.map ⟩ )
+( λ x y ⟨L, HL1, HL2⟩ ⟨M, HM1, HM2⟩, ⟨[L ++ M], by     rw [list.map_append, list.sum_append, HL2, HM2],
+list.mem_append, and_true, eq_self_iff_true, begin  rintros t ht,
+    cases ht,
+    apply HL1 t ht,
+    apply HM1 t ht, end ⟩ )
+( λ z ⟨L, HL1, HL2⟩, let M := list.map (list.cons (-1)) L,
+ ⟨ [M], ⟨ λ t ht, begin simp at ht,
+      cases ht with a ht,
+      cases ht with ht1 ht2,
+      specialize HL1 a ht1,
+      rw <-ht2,
+      simp,
+      exact HL1, end,
+      list.map_map, (∘), list.prod_cons, neg_one_mul, begin rw <-neg_one_mul, rw <-HL2,
+  rw <-list.sum_map_mul_left,
+  simp, end ⟩  ⟩  ) ⟩
+
+/-
 begin
 apply add_subgroup.closure_induction (mem_closure_iff.1 hx),
 {
@@ -472,13 +502,13 @@ apply add_subgroup.closure_induction (mem_closure_iff.1 hx),
   {
     rintros x hx,
     use ([x]),
-    simp,
+    simp only [mul_one, and_true, forall_eq, eq_self_iff_true, list.mem_singleton, list.prod_cons, list.prod_nil],
     left,
     exact hx,
   },
   {
     use ([]),
-    simp,
+    simp only [list.not_mem_nil, forall_const, forall_prop_of_false, eq_self_iff_true, not_false_iff, and_self, list.prod_nil],
   },
   {
     rintros x y ⟨t, ht1, ht2⟩ ⟨u, hu1, hu2⟩,
@@ -499,33 +529,33 @@ apply add_subgroup.closure_induction (mem_closure_iff.1 hx),
     rintros x y ⟨L, HL1, HL2⟩ ⟨M, HM1, HM2⟩,
     use L ++ M,
     rw [list.map_append, list.sum_append, HL2, HM2],
-    simp,
+    simp only [list.mem_append, and_true, eq_self_iff_true],
     rintros t ht,
     cases ht,
     apply HL1 t ht,
     apply HM1 t ht,
-  },
-  {
-    rintros z ⟨L, HL1, HL2⟩,
-    let M := list.map (list.cons (-1)) L,
-    use (M),
-    split,
-    {
-      rintros t ht,
-      simp at ht,
-      cases ht with a ht,
-      cases ht with ht1 ht2,
-      specialize HL1 a ht1,
-      rw <-ht2,
-      simp,
-      exact HL1,
-    },
-    simp only [list.map_map, (∘), list.prod_cons, neg_one_mul],
-    rw <-neg_one_mul, rw <-HL2,
-    rw <-list.sum_map_mul_left,
-    simp,
 },
-end
+{
+  rintros z ⟨L, HL1, HL2⟩,
+  let M := list.map (list.cons (-1)) L,
+  use (M),
+  split,
+  {
+    rintros t ht,
+    simp at ht,
+    cases ht with a ht,
+    cases ht with ht1 ht2,
+    specialize HL1 a ht1,
+    rw <-ht2,
+    simp,
+    exact HL1,
+  },
+  simp only [list.map_map, (∘), list.prod_cons, neg_one_mul],
+  rw <-neg_one_mul, rw <-HL2,
+  rw <-list.sum_map_mul_left,
+  simp,
+},
+end -/
 
 variable (R)
 /-- `closure` forms a Galois insertion with the coercion to set. -/

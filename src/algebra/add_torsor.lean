@@ -135,6 +135,12 @@ end
   g +ᵥ p₁ = g +ᵥ p₂ ↔ p₁ = p₂ :=
 ⟨vadd_left_cancel g, λ h, h ▸ rfl⟩
 
+variables (P)
+
+/-- Adding the group element `g` to a point is an injective function. -/
+lemma vadd_left_injective (g : G) : function.injective (λ p : P, g +ᵥ p) :=
+λ p1 p2, vadd_left_cancel g
+
 end group
 
 end add_action
@@ -178,6 +184,11 @@ begin
 end
 
 variable (G)
+
+/-- Adding a group element to the point `p` is an injective
+function. -/
+lemma vadd_right_injective (p : P) : function.injective ((+ᵥ p) : G → P) :=
+λ g1 g2, vadd_right_cancel p
 
 /-- Subtracting a point from itself produces 0. -/
 @[simp] lemma vsub_self (p : P) : p -ᵥ p = (0 : G) :=
@@ -284,6 +295,10 @@ if and only if those points are equal. -/
 @[simp] lemma vsub_left_cancel_iff {p1 p2 p : P} : (p1 -ᵥ p : G) = p2 -ᵥ p ↔ p1 = p2 :=
 ⟨vsub_left_cancel _, λ h, h ▸ rfl⟩
 
+/-- Subtracting the point `p` is an injective function. -/
+lemma vsub_left_injective (p : P) : function.injective ((-ᵥ p) : P → G) :=
+λ p2 p3, vsub_left_cancel G
+
 /-- If subtracting two points from the same point produces equal
 results, those points are equal. -/
 lemma vsub_right_cancel {p1 p2 p : P} (h : (p -ᵥ p1 : G) = p -ᵥ p2) : p1 = p2 :=
@@ -299,6 +314,11 @@ end
 if and only if those points are equal. -/
 @[simp] lemma vsub_right_cancel_iff {p1 p2 p : P} : (p -ᵥ p1 : G) = p -ᵥ p2 ↔ p1 = p2 :=
 ⟨vsub_right_cancel _, λ h, h ▸ rfl⟩
+
+/-- Subtracting a point from the point `p` is an injective
+function. -/
+lemma vsub_right_injective (p : P) : function.injective (λ p1 : P, (p -ᵥ p1 : G)) :=
+λ p2 p3, vsub_right_cancel G
 
 end general
 

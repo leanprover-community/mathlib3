@@ -76,8 +76,13 @@ iff.intro (congr_arg _) fin.eq_of_veq
 
 lemma val_injective {n : ℕ} : injective (val : fin n → ℕ) := λ _ _, fin.eq_of_veq
 
+/-- Terms are equal if their values are equal -/
 lemma eq_iff_veq (a b : fin n) : a = b ↔ a.1 = b.1 :=
 ⟨veq_of_eq, eq_of_veq⟩
+
+/-- Terms are not equal if their values are not equal -/
+lemma ne_iff_vne (a b : fin n) : a ≠ b ↔ a.1 ≠ b.1 :=
+⟨vne_of_ne, ne_of_vne⟩
 
 @[simp] protected lemma mk.inj_iff {n a b : ℕ} {ha : a < n} {hb : b < n} :
   fin.mk a ha = fin.mk b hb ↔ a = b :=
@@ -86,6 +91,10 @@ lemma eq_iff_veq (a b : fin n) : a = b ↔ a.1 = b.1 :=
 instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 
 lemma mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
+
+/-- Equality between terms of type `fin n` where one is constructed from the value and proof -/
+lemma eq_mk_iff_val_eq {k : ℕ} {hk : k < n} : a = ⟨k, hk⟩ ↔ a.val = k :=
+fin.eq_iff_veq a ⟨k, hk⟩
 
 @[simp, norm_cast] lemma coe_mk {m n : ℕ} (h : m < n) : ((⟨m, h⟩ : fin n) : ℕ) = m := rfl
 
@@ -114,7 +123,16 @@ lemma val_mul {n : ℕ} :  ∀ a b : fin n, (a * b).val = (a.val * b.val) % n
 
 lemma one_val {n : ℕ} : (1 : fin (n+1)).val = 1 % (n+1) := rfl
 
-@[simp] lemma zero_val (n : ℕ) : (0 : fin (n+1)).val = 0 := rfl
+/-- The `val_zero` lemma uses `n.succ` instead `n+1` -/
+@[simp] lemma val_zero' (n) : (0 : fin (n+1)).val = 0 := rfl
+
+/-- All types of `fin (n + 1)` have a zero term,
+so constructing with a zero `nat` gives zero -/
+@[simp] lemma mk_zero_eq_zero : (⟨0, nat.succ_pos'⟩ : fin (n + 1)) = 0 := rfl
+
+/-- All types of `fin (n + 2)` have a 1 term that is different than 0,
+so constructing with 1 gives 1 -/
+@[simp] lemma mk_one_eq_one : (⟨1, nat.succ_lt_succ (nat.succ_pos n)⟩ : fin (n + 2)) = 1 := rfl
 
 @[simp]
 lemma of_nat_eq_coe (n : ℕ) (a : ℕ) : (of_nat a : fin (n+1)) = a :=
@@ -173,14 +191,18 @@ lemma exists_iff {p : fin n → Prop} : (∃ i, p i) ↔ ∃ i h, p ⟨i, h⟩ :
 lemma forall_iff {p : fin n → Prop} : (∀ i, p i) ↔ ∀ i h, p ⟨i, h⟩ :=
 ⟨λ h i hi, h ⟨i, hi⟩, λ h ⟨i, hi⟩, h i hi⟩
 
-lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
-
 lemma lt_iff_val_lt_val : a < b ↔ a.val < b.val := iff.rfl
 
 lemma le_iff_val_le_val : a ≤ b ↔ a.val ≤ b.val := iff.rfl
 
+/-- Zero is always the lowest term in the order -/
+lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
+
 @[simp] lemma succ_val (j : fin n) : j.succ.val = j.val.succ :=
 by cases j; simp [fin.succ]
+
+/-- Zero is less than any term that is the result of `succ` -/
+lemma zero_lt (a : fin (n + 1)) : (0 : fin (n + 2)) < a.succ := by simp [lt_iff_val_lt_val]
 
 protected theorem succ.inj (p : fin.succ a = fin.succ b) : a = b :=
 by cases a; cases b; exact eq_of_veq (nat.succ.inj (veq_of_eq p))
@@ -188,11 +210,34 @@ by cases a; cases b; exact eq_of_veq (nat.succ.inj (veq_of_eq p))
 @[simp] lemma succ_inj {a b : fin n} : a.succ = b.succ ↔ a = b :=
 ⟨λh, succ.inj h, λh, by rw h⟩
 
+/-- `succ` is injective across an order -/
+lemma succ_le_succ_iff : a.succ ≤ b.succ ↔ a ≤ b :=
+by { simp only [le_iff_val_le_val, succ_val], exact ⟨le_of_succ_le_succ, succ_le_succ⟩ }
+
+/-- `succ` is injective across an inequality -/
+lemma succ_lt_succ_iff : a.succ < b.succ ↔ a < b :=
+by { simp only [lt_iff_val_lt_val, succ_val], exact ⟨lt_of_succ_lt_succ, succ_lt_succ⟩ }
+
+/-- `succ` is injective across a strict inequality -/
+lemma succ_ne_succ_iff : a.succ ≠ b.succ ↔ a ≠ b :=
+⟨λ h H, h (congr_arg fin.succ H), λ h H, h (succ.inj H)⟩
+
 lemma succ_injective (n : ℕ) : injective (@fin.succ n) :=
 λa b, succ.inj
 
 lemma succ_ne_zero {n} : ∀ k : fin n, fin.succ k ≠ 0
 | ⟨k, hk⟩ heq := nat.succ_ne_zero k $ (fin.ext_iff _ _).1 heq
+
+/-- All terms of zero can be `succ` into a 1 -/
+@[simp] lemma succ_zero_eq_one : fin.succ (0 : fin (n + 1)) = 1 := rfl
+
+/-- All terms that `succ` twice are not 1 -/
+lemma succ_succ_ne_one : fin.succ (fin.succ a) ≠ 1 :=
+by { intro h, rw [←succ_zero_eq_one, succ_inj] at h, exact (fin.succ_ne_zero a) h }
+
+/-- All `fin n` inhabited by more than two terms have a term greater than 1 -/
+lemma one_lt_succ_succ (a : fin (n + 1)) : (1 : fin (n + 3)) < a.succ.succ :=
+by { rw [←succ_zero_eq_one, succ_lt_succ_iff], exact zero_lt a }
 
 @[simp] lemma pred_val (j : fin (n+1)) (h : j ≠ 0) : (j.pred h).val = j.val.pred :=
 by cases j; simp [fin.pred]
@@ -280,7 +325,7 @@ by cases a; refl
 @[simp] lemma sub_nat_val (i : fin (n + m)) (h : m ≤ i.val) : (i.sub_nat m h).val = i.val - m :=
 rfl
 
-@[simp] lemma add_nat_val (i : fin (n + m)) (h : m ≤ i.val) : (i.add_nat m).val = i.val + m :=
+@[simp] lemma add_nat_val (i : fin (n + m)) : (i.add_nat m).val = i.val + m :=
 rfl
 
 @[simp] lemma cast_succ_inj {a b : fin n} : a.cast_succ = b.cast_succ ↔ a = b :=
@@ -289,12 +334,77 @@ by simp [eq_iff_veq]
 lemma cast_succ_ne_last (a : fin n) : cast_succ a ≠ last n :=
 by simp [eq_iff_veq, ne_of_lt a.2]
 
+/-- Zero embedded into the `fin` directly above is zero -/
+@[simp] lemma cast_succ_zero : cast_succ (0 : fin (n + 1)) = 0 := rfl
+
+/-- Zero is less than the greatest term -/
+@[simp] lemma zero_lt_last : (0 : fin (n + 2)) < last (n + 1) :=
+by simp [lt_iff_val_lt_val]
+
+/-- Coercing a `nat` into a term of the smallest `fin` that can hold it
+results in the greatest term for that type -/
+@[norm_cast, simp] lemma coe_nat_eq_last (n) : (n : fin (n + 1)) = fin.last n :=
+by { rw [←fin.of_nat_eq_coe, fin.of_nat, fin.last], simp only [nat.mod_eq_of_lt n.lt_succ_self] }
+
+/-- Every term is less than or equal to the greatest term of the type,
+even if the greatest term is coerced from `nat` -/
+lemma le_coe_last {n : ℕ} (i : fin (n + 1)) : i ≤ n :=
+by { rw fin.coe_nat_eq_last, exact fin.le_last i }
+
 lemma eq_last_of_not_lt {i : fin (n+1)} (h : ¬ i.val < n) : i = last n :=
 le_antisymm (le_last i) (not_lt.1 h)
+
+/-- Adding 1 to a term strictly less than the greatest term will not overflow,
+that is, zero is not equal to a term + 1, as long as the term is not the greatest term -/
+lemma zero_ne_not_last_add_one {n : ℕ} (i : fin (n + 1)) (hl : i < fin.last n) : (0 : fin (n + 1)) ≠ i + 1 :=
+begin
+  intro h,
+  rw [lt_iff_val_lt_val, last_val] at hl,
+  cases n,
+  { exact nat.not_lt_zero _ hl },
+  { rw ←add_lt_add_iff_right 1 at hl,
+    rw [eq_iff_veq, add_def, val_zero, val_one, nat.mod_eq_of_lt hl] at h,
+    exact nat.succ_ne_zero _ h.symm }
+end
+
+/-- In any `fin` inhabited by more than two terms, 0 is not equal to 1 -/
+lemma zero_ne_one : (0 : fin (n + 2)) ≠ 1 := zero_ne_not_last_add_one 0 zero_lt_last
 
 lemma cast_succ_fin_succ (n : ℕ) (j : fin n) :
   cast_succ (fin.succ j) = fin.succ (cast_succ j) :=
 by simp [fin.ext_iff]
+
+/-- Casting an existing term into the `fin` directly larger
+is never equal to `succ` of the term -/
+lemma cast_succ_ne_succ (i : fin (n + 1)) : i.cast_succ ≠ i.succ :=
+begin
+  intro h,
+  rw [eq_iff_veq, cast_succ, cast_add_val, succ_val] at h,
+  exact (nat.succ_ne_self _) h.symm
+end
+
+/-- Coercing a term into the `fin` directly larger
+is equal to `cast_succ` of the term -/
+@[norm_cast, simp] lemma coe_eq_cast_succ : (a : fin (n + 1)) = a.cast_succ :=
+begin
+  rw [cast_succ, cast_add, cast_le, cast_lt, eq_iff_veq],
+  exact coe_val_of_lt (nat.lt.step a.is_lt),
+end
+
+/-- Coercing a term by adding 1 from the `fin` directly larger
+is equal to `succ` of the term. Relies on simplifying the coercion
+via `coe_eq_cast_succ`. -/
+@[simp] lemma coe_succ_eq_succ (a : fin n) : (a.cast_succ + 1) = a.succ :=
+begin
+  cases n,
+  { exact fin.elim0 a },
+  { simp [a.is_lt, eq_iff_veq, add_def, nat.mod_eq_of_lt] }
+end
+
+/-- Casting a term into the `fin` directly larger is always less
+than `succ` of the term. Useful for statements like `↑a < ↑a + 1` -/
+@[simp] lemma lt_succ : a.cast_succ < a.succ :=
+by { rw [cast_succ, lt_iff_val_lt_val, cast_add_val, succ_val], exact lt_add_one a.val }
 
 /-- `min n m` as an element of `fin (m + 1)` -/
 def clamp (n m : ℕ) : fin (m + 1) := fin.of_nat $ min n m
@@ -307,6 +417,16 @@ lemma cast_le_injective {n₁ n₂ : ℕ} (h : n₁ ≤ n₂) : injective (fin.c
 
 lemma cast_succ_injective (n : ℕ) : injective (@fin.cast_succ n) :=
 cast_le_injective (le_add_right n 1)
+
+/-- `succ_above` of a term below the pivot is equal to `cast_succ` of the term -/
+@[simp] lemma succ_above_below (p : fin (n + 1)) (i : fin n) (h : i.val < p.val) :
+  p.succ_above i = i.cast_succ :=
+by { rw [fin.succ_above], split_ifs, refl }
+
+/-- `succ_above` of a term above the pivot is equal to `succ` of the term -/
+@[simp] lemma succ_above_above (p : fin (n + 1)) (i : fin n) (h : p.val ≤ i.val) :
+  p.succ_above i = i.succ :=
+by { rw [fin.succ_above], split_ifs with H, { exfalso, exact nat.lt_le_antisymm H h }, refl }
 
 theorem succ_above_ne (p : fin (n+1)) (i : fin n) : p.succ_above i ≠ p :=
 begin

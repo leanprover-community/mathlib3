@@ -263,6 +263,11 @@ end
 @[simp] lemma pred_one_add (n : ℕ) : pred (1 + n) = n :=
 by rw [add_comm, add_one, pred_succ]
 
+/-- Decreasing then increasing via `pred` then `succ` is idempotent
+only if the term is not 0 -/
+@[simp] lemma pred_succ_ne_zero (n : ℕ) (h : n ≠ 0) : n.pred.succ = n :=
+by { cases n, exact absurd rfl h, rw nat.pred_succ }
+
 theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 :=
 ⟨ne_of_gt, nat.pos_of_ne_zero⟩
 

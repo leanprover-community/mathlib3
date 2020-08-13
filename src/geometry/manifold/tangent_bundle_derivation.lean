@@ -1,6 +1,6 @@
 import geometry.manifold.algebra.smooth_functions
 import ring_theory.derivation
-/-import geometry.manifold.temporary_to_be_removed-/
+import geometry.manifold.temporary_to_be_removed
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -28,13 +28,8 @@ def compatible_semimodule_tangent_space (x : M) :
 
 def tangent_bundle_derivation := Σ x : M, point_derivation I M x
 
-/-instance : add_semigroup (tangent_bundle_derivation I M) :=
-{ add := λ v w, sigma.mk v.1 (v.2 + w.2),
-  add_assoc := sorry, }-/
-
-structure vector_field_derivation (I : model_with_corners 𝕜 E H)
-  (M : Type*) [topological_space M] [charted_space H M] [Is : smooth_manifold_with_corners I M]
-  extends derivation 𝕜 (@smooth_map 𝕜 _ E _ _ 𝕜 _ _ H _ 𝕜 _ I Isf(𝕜) M _ _ Is 𝕜 _ _ _) (@smooth_map 𝕜 _ E _ _ 𝕜 _ _ H _ 𝕜 _ I Isf(𝕜) M _ _ Is 𝕜 _ _ _)
+/-instance : has_add (tangent_bundle_derivation I M) :=
+{ add := λ v w, sigma.mk v.1 (v.2 + w.2) }-/
 
 variables {I M}
 
@@ -141,9 +136,26 @@ by rw [commutator_coe_derivation, derivation.commutator_apply]; refl
 instance : lie_ring (vector_field_derivation I M) :=
 { add_lie := λ X Y Z, by { ext1 f, simp only [commutator_apply, add_apply, map_add], ring, },
   lie_add := λ X Y Z, by { ext1 f, simp only [commutator_apply, add_apply, map_add], ring },
-  lie_self := λ d, by { ext1 f, simp only [commutator_apply, zero_apply, sub_self] },
+  lie_self := λ X, by { ext1 f, simp only [commutator_apply, zero_apply, sub_self] },
   jacobi := λ X Y Z, by { ext1 f, simp only [commutator_apply, add_apply, map_sub,
     zero_apply], ring }, }
+
+instance : has_scalar 𝕜 (vector_field_derivation I M) :=
+{ smul := λ k X, ⟨k • X⟩ }
+
+instance kmodule : module 𝕜 (vector_field_derivation I M) :=
+semimodule.of_core $
+{ mul_smul := λ r s X, ext $ λ b, mul_smul _ _ _,
+  one_smul := λ X, ext $ λ b, one_smul 𝕜 _,
+  smul_add := λ r X Y, ext $ λ b, smul_add _ _ _,
+  add_smul := λ r s X, ext $ λ b, add_smul _ _ _,
+  ..vector_field_derivation.has_scalar }
+
+@[simp] lemma smul_apply : (r • X) f = r • X f := rfl
+
+instance : lie_algebra 𝕜 (vector_field_derivation I M) :=
+{ lie_smul := λ X Y Z, by { ext1 f, simp only [commutator_apply, smul_apply, map_smul, smul_sub] },
+  ..vector_field_derivation.kmodule, }
 
 def eval (X : vector_field_derivation I M) (x : M) : point_derivation I M x :=
 { to_fun := λ f, (X f) x,
@@ -172,16 +184,21 @@ variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 
 def fdifferential (f : C∞(I, M; I', M')) (x : M) (v : point_derivation I M x) : (point_derivation I' M' (f x)) :=
 { to_fun := λ g, v (g.comp f),
-  map_add' := λ g h, by { sorry, },
+  map_add' := λ g h, by { rw smooth_map.comp_add, },
   map_smul' := λ k g, by { sorry, },
-  leibniz' := λ f g, by {dsimp only [], sorry}, }
-
-@[simp] lemma apply_fdifferential (f : C∞(I, M; I', M')) (x : M) (v : point_derivation I M x) (g : C∞(I', M'; 𝕜)) :
-  fdifferential f x v g = v (g.comp f) := rfl
+  leibniz' := λ f g, by {dsimp only [], sorry}, } /-TODO: change it so that it is a linear map -/
 
 localized "notation `fd` := fdifferential" in manifold
 
+lemma apply_fdifferential (f : C∞(I, M; I', M')) (x : M) (v : point_derivation I M x) (g : C∞(I', M'; 𝕜)) :
+  fd f x v g = v (g.comp f) := rfl
+
+variables {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
+{H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
+{M'' : Type*} [topological_space M''] [charted_space H'' M''] [smooth_manifold_with_corners I'' M'']
+
+@[simp] lemma fdifferential_comp (g : C∞(I', M'; I'', M'')) (f : C∞(I, M; I', M')) (x : M) :
+  (fd g (f x)) ∘ (fd f x) = fd (g.comp f) x :=
+by { ext, simp only [apply_fdifferential], refl }
+
 end
-
-
-#check pi.sub_apply

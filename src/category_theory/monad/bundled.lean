@@ -112,7 +112,7 @@ instance : category (CoMonad C) :=
   comp_id' := λ _ _, by apply comonad_hom.comp_ident,
   assoc' := λ _ _ _ _, by apply comonad_hom.comp_assoc }
 
-/-- The forgetful functor from `Monad C` to `C ⥤ C`. -/
+/-- The forgetful functor from `CoMonad C` to `C ⥤ C`. -/
 def forget : CoMonad C ⥤ (C ⥤ C) :=
 { obj := func,
   map := λ _ _ f, f.to_nat_trans }

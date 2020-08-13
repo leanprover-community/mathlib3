@@ -157,8 +157,7 @@ instance derivation.Rsemimodule : semimodule R (derivation R A M) :=
   add_smul := λ a1 a2 D, ext $ λ b, add_smul _ _ _,
   zero_smul := λ D, ext $ λ b, zero_smul _ _ }
 
-@[simp] lemma smul_to_linear_map_coe : (r • D).to_linear_map = r • D.to_linear_map := rfl
-@[simp] lemma smul_to_fun_coe : (r • D).to_fun = r • D.to_fun := rfl
+@[simp] lemma smul_to_linear_map_coe : ↑(r • D) = (r • D : A →ₗ[R] M) := rfl
 @[simp] lemma smul_apply : (r • D) a = r • D a := rfl
 
 instance : semimodule A (derivation R A M) :=

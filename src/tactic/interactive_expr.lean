@@ -88,6 +88,8 @@ private meta def elim_part_apps : sf → expr.address → sf
     sf.tag_expr (acc ++ ea) e (elim_part_apps m [])
 | (sf.compose a b) acc := (elim_part_apps a acc).compose (elim_part_apps b acc)
 | (sf.of_string s) _ := sf.of_string s
+| (sf.block i a) acc := sf.block i $ elim_part_apps a acc
+| (sf.highlight c a) acc := sf.highlight c $ elim_part_apps a acc
 
 /--
 Post-process an `sf` object to eliminate tags for partial applications by
@@ -159,7 +161,7 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
     on_click (λ _, action.on_click ca),
     key s
   ] [html.of_string s]]
-| ca (sf.block i a) := do 
+| ca (sf.block i a) := do
   inner ← view ca a,
   pure [h "span" [cn "indent-code", style [("--indent-level", to_string i)]] inner]
 | ca (sf.highlight c a) := do

@@ -435,16 +435,5 @@ eq_neg_of_add_eq_zero $ by rw [← smul_add, neg_add_self, smul_zero]
 
 theorem smul_sub (r : α) (x y : β) : r • (x - y) = r • x - r • y :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, smul_add, smul_neg]
-end
 
-
-section
-instance units_action [semiring α] [mul_action α β] : mul_action (units α) β :=
-{ smul := λ a b, (a : α) • b,
-  one_smul := by simp,
-  mul_smul := begin
-    intros u v b,
-    change ((u : α) * v) • _ = _,
-    rw mul_smul,
-  end}
 end

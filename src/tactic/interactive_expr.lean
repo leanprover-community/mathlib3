@@ -39,6 +39,8 @@ meta inductive sf : Type
 | tag_expr : expr.address → expr → sf → sf
 | compose : sf →  sf →  sf
 | of_string : string →  sf
+| highlight : format.color → sf → sf
+| block : ℕ → sf → sf
 
 /-- Prints a debugging representation of an `sf` object. -/
 meta def sf.repr : sf → format
@@ -47,6 +49,8 @@ meta def sf.repr : sf → format
     "`(" ++ to_fmt e ++ ")" ++ format.line ++ a.repr ++ ")"
 | (sf.compose a b) := a.repr ++ format.line ++ b.repr
 | (sf.of_string s) := repr s
+| (sf.block i a) := "(block " ++ to_fmt i ++ format.line ++ a.repr ++ ")"
+| (sf.highlight c a) := "(highlight " ++ c.to_string ++ a.repr ++ ")"
 
 meta instance : has_to_format sf := ⟨sf.repr⟩
 meta instance : has_to_string sf := ⟨λ s, s.repr.to_string⟩
@@ -55,15 +59,15 @@ meta instance : has_repr sf := ⟨λ s, s.repr.to_string⟩
 /-- Constructs an `sf` from an `eformat` by forgetting grouping, nesting, etc. -/
 meta def sf.of_eformat : eformat → sf
 | (tag ⟨ea,e⟩ m) := sf.tag_expr ea e $ sf.of_eformat m
-| (group m) := sf.of_eformat m
-| (nest i m) := sf.of_eformat m
-| (highlight i m) := sf.of_eformat m
+| (group m) := sf.block 0 $ sf.of_eformat m
+| (nest i m) := sf.block i $ sf.of_eformat m
+| (highlight c m) := sf.highlight c $ sf.of_eformat m
 | (of_format f) := sf.of_string $ format.to_string f
 | (compose x y) := sf.compose (sf.of_eformat x) (sf.of_eformat y)
 
 /-- Flattens an `sf`, i.e. merges adjacent `of_string` constructors. -/
 meta def sf.flatten : sf → sf
-| (sf.tag_expr e ea m) := (sf.tag_expr e ea $ sf.flatten m)
+| (sf.tag_expr ea e m) := (sf.tag_expr ea e $ sf.flatten m)
 | (sf.compose x y) :=
   match (sf.flatten x), (sf.flatten y) with
   | (sf.of_string sx), (sf.of_string sy) := sf.of_string (sx ++ sy)
@@ -73,6 +77,8 @@ meta def sf.flatten : sf → sf
   | x, y := sf.compose x y
   end
 | (sf.of_string s) := sf.of_string s
+| (sf.block i a) := sf.block i a.flatten
+| (sf.highlight i a) := sf.highlight i a.flatten
 
 private meta def elim_part_apps : sf → expr.address → sf
 | (sf.tag_expr ea e m) acc :=
@@ -153,6 +159,12 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
     on_click (λ _, action.on_click ca),
     key s
   ] [html.of_string s]]
+| ca (sf.block i a) := do 
+  inner ← view ca a,
+  pure [h "span" [cn "indent-code", style [("--indent-level", to_string i)]] inner]
+| ca (sf.highlight c a) := do
+  inner ← view ca a,
+  pure [h "span" [cn $ "highlight_" ++ c.to_string] inner]
 
 
 /-- Make an interactive expression. -/

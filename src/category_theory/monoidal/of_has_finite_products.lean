@@ -6,6 +6,7 @@ Authors: Scott Morrison, Simon Hudon
 import category_theory.monoidal.braided
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.terminal
+import category_theory.pempty
 
 /-!
 # The natural monoidal structure on any category with finite (co)products.
@@ -197,17 +198,28 @@ open category_theory.limits
 section
 local attribute [tidy] tactic.case_bash
 
+variables {C}
+variables (𝒯 : limit_data (functor.empty C))
+variables (ℬ : Π (X Y : C), limit_data (pair X Y))
+
+def tensor_obj (X Y : C) : C := (ℬ X Y).cone.X
+def tensor_hom {W X Y Z : C} (f : W ⟶ X) (g : Y ⟶ Z) : tensor_obj ℬ W Y ⟶ tensor_obj ℬ X Z :=
+  (binary_fan.is_limit.lift' (ℬ X Z).is_limit
+    ((ℬ W Y).cone.π.app walking_pair.left ≫ f)
+    (((ℬ W Y).cone.π.app walking_pair.right : (ℬ W Y).cone.X ⟶ Y) ≫ g)).val
+
 /-- A category with a terminal object and binary products has a natural monoidal structure. -/
-def monoidal_of_has_finite_products [has_terminal C] [has_binary_products C] : monoidal_category C :=
-{ tensor_unit  := ⊤_ C,
-  tensor_obj   := λ X Y, X ⨯ Y,
-  tensor_hom   := λ _ _ _ _ f g, limits.prod.map f g,
-  associator   := prod.associator,
-  left_unitor  := prod.left_unitor,
-  right_unitor := prod.right_unitor,
-  pentagon'    := prod.pentagon,
-  triangle'    := prod.triangle,
-  associator_naturality' := @prod.associator_naturality _ _ _, }
+def monoidal_of_has_finite_products :
+  monoidal_category C :=
+{ tensor_unit  := 𝒯.cone.X,
+  tensor_obj   := λ X Y, tensor_obj ℬ X Y,
+  tensor_hom   := λ _ _ _ _ f g, tensor_hom ℬ f g,
+  associator   := sorry,
+  left_unitor  := sorry,
+  right_unitor := sorry,
+  pentagon'    := sorry,
+  triangle'    := sorry,
+  associator_naturality' := sorry, }
 end
 
 section

@@ -86,11 +86,11 @@ def edge_set : set (sym2 V) := sym2.from_rel G.sym
 lemma edge_iff_adj {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w :=
 by refl
 
-lemma adj_iff_exists_edge {v w : V} (hne : v ≠ w) :
-  G.adj v w ↔ ∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e :=
+lemma adj_iff_exists_edge {v w : V} :
+  G.adj v w ↔ v ≠ w ∧ ∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e :=
 begin
-  split, { intro, use ⟦(v,w)⟧, simpa },
-  { rintro ⟨e, he, hv⟩,
+  split, { intro, split, { intro c, rw c at a, apply G.loopless _ a, }, {use ⟦(v,w)⟧, simpa} },
+  { rintro ⟨hne, e, he, hv⟩,
     rw sym2.elems_iff_eq hne at hv,
     subst e,
     rwa edge_iff_adj at he, }

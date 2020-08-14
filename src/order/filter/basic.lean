@@ -2246,7 +2246,7 @@ lemma eventually.prod_mk {la : filter α} {pa : α → Prop} (ha : ∀ᶠ x in l
 (ha.prod_inl lb).and (hb.prod_inr la)
 
 lemma eventually.curry {la : filter α} {lb : filter β} {p : α × β → Prop}
-  (h : ∀ᶠ x in la.prod lb, p x) :
+  (h : ∀ᶠ x in la ×ᶠ lb, p x) :
   ∀ᶠ x in la, ∀ᶠ y in lb, p (x, y) :=
 begin
   rcases eventually_prod_iff.1 h with ⟨pa, ha, pb, hb, h⟩,
@@ -2298,7 +2298,7 @@ begin
 end
 
 lemma map_prod (m : α × β → γ) (f : filter α) (g : filter β) :
-  map m (f.prod g) = (f.map (λa b, m (a, b))).seq g :=
+  map m (f ×ᶠ g) = (f.map (λa b, m (a, b))).seq g :=
 begin
   simp [filter.ext_iff, mem_prod_iff, mem_map_seq_iff],
   assume s,
@@ -2307,7 +2307,7 @@ begin
   exact assume ⟨s, hs, t, ht, h⟩, ⟨t, ht, s, hs, assume ⟨x, y⟩ ⟨hx, hy⟩, h x hx y hy⟩
 end
 
-lemma prod_eq {f : filter α} {g : filter β} : f.prod g = (f.map prod.mk).seq g  :=
+lemma prod_eq {f : filter α} {g : filter β} : f ×ᶠ g = (f.map prod.mk).seq g  :=
 have h : _ := map_prod id f g, by rwa [map_id] at h
 
 lemma prod_inf_prod {f₁ f₂ : filter α} {g₁ g₂ : filter β} :

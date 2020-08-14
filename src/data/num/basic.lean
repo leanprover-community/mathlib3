@@ -133,9 +133,11 @@ section
   | 0           := 0
   | (num.pos p) := cast_pos_num p
 
-  @[priority 10] instance pos_num_coe : has_coe pos_num α := ⟨cast_pos_num⟩
+  -- see Note [coercion into rings]
+  @[priority 900] instance pos_num_coe : has_coe_t pos_num α := ⟨cast_pos_num⟩
 
-  @[priority 10] instance num_nat_coe : has_coe num α := ⟨cast_num⟩
+  -- see Note [coercion into rings]
+  @[priority 900] instance num_nat_coe : has_coe_t num α := ⟨cast_num⟩
 
   instance : has_repr pos_num := ⟨λ n, repr (n : ℕ)⟩
   instance : has_repr num := ⟨λ n, repr (n : ℕ)⟩
@@ -477,7 +479,8 @@ section
   | (znum.pos p) := p
   | (znum.neg p) := -p
 
-  @[priority 10] instance znum_coe : has_coe znum α := ⟨cast_znum⟩
+  -- see Note [coercion into rings]
+  @[priority 900] instance znum_coe : has_coe_t znum α := ⟨cast_znum⟩
 
   instance : has_repr znum := ⟨λ n, repr (n : ℤ)⟩
 end

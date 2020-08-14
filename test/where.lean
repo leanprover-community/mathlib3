@@ -1,4 +1,4 @@
-import data.multiset
+import data.multiset.basic
 import tactic.where
 
 -- First set up the testing framework...
@@ -53,11 +53,13 @@ if n₁ = n₂ then return () else tactic.fail sformat!"violation: '{n₁}' ≠ 
 
 meta def assert_list_noorder_eq {α : Type} [decidable_eq α] [has_to_string α]
   (l₁ l₂ : list α) : lean.parser unit :=
-if (l₁ : multiset α) = (l₂ : multiset α) then return () else tactic.fail sformat!"violation: '{l₁}' ≠ '{l₂}'!"
+if (l₁ : multiset α) = (l₂ : multiset α) then return ()
+else tactic.fail sformat!"violation: '{l₁}' ≠ '{l₂}'!"
 
 meta def assert_where_msg_eq (s : string) : lean.parser unit :=
 do tw ← where.build_msg,
-   if s = tw then return () else tactic.fail sformat!"violation:\n'\n{tw}\n'\n\n          ≠\n\n'\n{s}\n'!"
+   if s = tw then return ()
+   else tactic.fail sformat!"violation:\n'\n{tw}\n'\n\n          ≠\n\n'\n{s}\n'!"
 
 -- Test the test framework...
 
@@ -78,12 +80,18 @@ end framework
 --       reordered here: changes to `#where` which break this set of tests are possible, without an
 --       error.
 
-meta def test_output_1 : lean.parser unit := assert_where_msg_eq "namespace [root namespace]\n\n\n\n\nend [root namespace]\n"
-meta def test_output_2 : lean.parser unit := assert_where_msg_eq "namespace [root namespace]\n\nopen list nat\n\n\n\nend [root namespace]\n"
-meta def test_output_3 : lean.parser unit := assert_where_msg_eq "namespace [root namespace]\n\nopen list nat\nvariables {c : ℕ → list ℕ} (b a : ℕ) [decidable_eq : ℕ]\n\n\n\nend [root namespace]\n"
-meta def test_output_4 : lean.parser unit := assert_where_msg_eq "namespace [root namespace]\n\nopen list nat\nvariables {c : ℕ → list ℕ} (b a : ℕ) [decidable_eq : ℕ]\ninclude c a\n\n\n\nend [root namespace]\n"
-meta def test_output_5 : lean.parser unit := assert_where_msg_eq "namespace a\n\nopen list nat\nvariables {c : ℕ → list ℕ} (b a : ℕ) [decidable_eq : ℕ]\ninclude c a\n\n\n\nend a\n"
-meta def test_output_6 : lean.parser unit := assert_where_msg_eq "namespace a.b\n\nopen a list nat\nvariables {c : ℕ → list ℕ} (b a : ℕ) [decidable_eq : ℕ]\ninclude c a\n\n\n\nend a.b\n"
+meta def test_output_1 : lean.parser unit :=
+assert_where_msg_eq "namespace [root namespace]\n\n\n\n\nend [root namespace]\n"
+meta def test_output_2 : lean.parser unit :=
+assert_where_msg_eq "namespace [root namespace]\n\nopen list nat\n\n\n\nend [root namespace]\n"
+meta def test_output_3 : lean.parser unit :=
+assert_where_msg_eq "namespace [root namespace]\n\nopen list nat\nvariables {c : ℕ → list ℕ} (b a : ℕ) [decidable_eq : ℕ]\n\n\n\nend [root namespace]\n"
+meta def test_output_4 : lean.parser unit :=
+assert_where_msg_eq "namespace [root namespace]\n\nopen list nat\nvariables {c : ℕ → list ℕ} (b a : ℕ) [decidable_eq : ℕ]\ninclude c a\n\n\n\nend [root namespace]\n"
+meta def test_output_5 : lean.parser unit :=
+assert_where_msg_eq "namespace a\n\nopen list nat\nvariables {c : ℕ → list ℕ} (b a : ℕ) [decidable_eq : ℕ]\ninclude c a\n\n\n\nend a\n"
+meta def test_output_6 : lean.parser unit :=
+assert_where_msg_eq "namespace a.b\n\nopen a list nat\nvariables {c : ℕ → list ℕ} (b a : ℕ) [decidable_eq : ℕ]\ninclude c a\n\n\n\nend a.b\n"
 
 section b1
 

@@ -52,19 +52,19 @@ variables [semilattice_sup α] {a b c d : α}
 semilattice_sup.le_sup_left a b
 
 @[ematch] theorem le_sup_left' : a ≤ (: a ⊔ b :) :=
-semilattice_sup.le_sup_left a b
+le_sup_left
 
 @[simp] theorem le_sup_right : b ≤ a ⊔ b :=
 semilattice_sup.le_sup_right a b
 
 @[ematch] theorem le_sup_right' : b ≤ (: a ⊔ b :) :=
-semilattice_sup.le_sup_right a b
+le_sup_right
 
 theorem le_sup_left_of_le (h : c ≤ a) : c ≤ a ⊔ b :=
-by finish
+le_trans h le_sup_left
 
 theorem le_sup_right_of_le (h : c ≤ b) : c ≤ a ⊔ b :=
-by finish
+le_trans h le_sup_right
 
 theorem sup_le : a ≤ c → b ≤ c → a ⊔ b ≤ c :=
 semilattice_sup.sup_le a b c
@@ -73,52 +73,69 @@ semilattice_sup.sup_le a b c
 ⟨assume h : a ⊔ b ≤ c, ⟨le_trans le_sup_left h, le_trans le_sup_right h⟩,
   assume ⟨h₁, h₂⟩, sup_le h₁ h₂⟩
 
--- TODO: if we just write le_antisymm, Lean doesn't know which ≤ we want to use
--- Can we do anything about that?
+@[simp] theorem sup_eq_left : a ⊔ b = a ↔ b ≤ a :=
+le_antisymm_iff.trans $ by simp [le_refl]
+
 theorem sup_of_le_left (h : b ≤ a) : a ⊔ b = a :=
-by apply le_antisymm; finish
+sup_eq_left.2 h
+
+@[simp] theorem left_eq_sup : a = a ⊔ b ↔ b ≤ a :=
+eq_comm.trans sup_eq_left
+
+@[simp] theorem sup_eq_right : a ⊔ b = b ↔ a ≤ b :=
+le_antisymm_iff.trans $ by simp [le_refl]
 
 theorem sup_of_le_right (h : a ≤ b) : a ⊔ b = b :=
-by apply le_antisymm; finish
+sup_eq_right.2 h
+
+@[simp] theorem right_eq_sup : b = a ⊔ b ↔ a ≤ b :=
+eq_comm.trans sup_eq_right
 
 theorem sup_le_sup (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊔ c ≤ b ⊔ d :=
-by finish
+sup_le (le_sup_left_of_le h₁) (le_sup_right_of_le h₂)
 
 theorem sup_le_sup_left (h₁ : a ≤ b) (c) : c ⊔ a ≤ c ⊔ b :=
-by finish
+sup_le_sup (le_refl _) h₁
 
 theorem sup_le_sup_right (h₁ : a ≤ b) (c) : a ⊔ c ≤ b ⊔ c :=
-by finish
+sup_le_sup h₁ (le_refl _)
 
 theorem le_of_sup_eq (h : a ⊔ b = b) : a ≤ b :=
-by finish
+by { rw ← h, simp }
 
-/-- A monotone function on a sup-semilattice is directed. -/
-lemma directed_of_mono (f : α → β) {r : β → β → Prop}
-  (H : ∀ ⦃i j⦄, i ≤ j → r (f i) (f j)) : directed r f :=
-λ a b, ⟨a ⊔ b, H le_sup_left, H le_sup_right⟩
+lemma sup_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : p b) : p (a ⊔ b) :=
+(is_total.total a b).elim (λ h : a ≤ b, by rwa sup_eq_right.2 h) (λ h, by rwa sup_eq_left.2 h)
 
 @[simp] lemma sup_lt_iff [is_total α (≤)] {a b c : α} : b ⊔ c < a ↔ b < a ∧ c < a :=
-begin
-  cases (@is_total.total _ (≤) _ b c) with h,
-  { simp [sup_of_le_right h], exact ⟨λI, ⟨lt_of_le_of_lt h I, I⟩, λH, H.2⟩ },
-  { simp [sup_of_le_left h], exact ⟨λI, ⟨I, lt_of_le_of_lt h I⟩, λH, H.1⟩ }
-end
+⟨λ h, ⟨lt_of_le_of_lt le_sup_left h, lt_of_le_of_lt le_sup_right h⟩,
+  λ h, sup_ind b c h.1 h.2⟩
 
 @[simp] theorem sup_idem : a ⊔ a = a :=
-by apply le_antisymm; finish
+by apply le_antisymm; simp
 
 instance sup_is_idempotent : is_idempotent α (⊔) := ⟨@sup_idem _ _⟩
 
 theorem sup_comm : a ⊔ b = b ⊔ a :=
-by apply le_antisymm; finish
+by apply le_antisymm; simp
 
 instance sup_is_commutative : is_commutative α (⊔) := ⟨@sup_comm _ _⟩
 
 theorem sup_assoc : a ⊔ b ⊔ c = a ⊔ (b ⊔ c) :=
-by apply le_antisymm; finish
+le_antisymm
+  (sup_le
+    (sup_le le_sup_left (le_sup_right_of_le le_sup_left))
+    (le_sup_right_of_le le_sup_right))
+  (sup_le
+    (le_sup_left_of_le le_sup_left)
+    (sup_le (le_sup_left_of_le le_sup_right) le_sup_right))
 
 instance sup_is_associative : is_associative α (⊔) := ⟨@sup_assoc _ _⟩
+
+@[simp] lemma sup_left_idem : a ⊔ (a ⊔ b) = a ⊔ b :=
+by rw [← sup_assoc, sup_idem]
+
+@[simp] lemma sup_right_idem : (a ⊔ b) ⊔ b = a ⊔ b :=
+by rw [sup_assoc, sup_idem]
 
 lemma sup_left_comm (a b c : α) : a ⊔ (b ⊔ c) = b ⊔ (a ⊔ c) :=
 by rw [← sup_assoc, ← sup_assoc, @sup_comm α _ a]
@@ -127,8 +144,7 @@ lemma forall_le_or_exists_lt_sup (a : α) : (∀b, b ≤ a) ∨ (∃b, a < b) :=
 suffices (∃b, ¬b ≤ a) → (∃b, a < b),
   by rwa [classical.or_iff_not_imp_left, classical.not_forall],
 assume ⟨b, hb⟩,
-have a ≠ a ⊔ b, from assume eq, hb $ eq.symm ▸ le_sup_right,
-⟨a ⊔ b, lt_of_le_of_ne le_sup_left ‹a ≠ a ⊔ b›⟩
+⟨a ⊔ b, lt_of_le_of_ne le_sup_left $ mt left_eq_sup.1 hb⟩
 
 theorem semilattice_sup.ext_sup {α} {A B : semilattice_sup α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
@@ -139,14 +155,11 @@ by simp only [sup_le_iff]; rw [← H, @sup_le_iff α A, H, H]
 theorem semilattice_sup.ext {α} {A B : semilattice_sup α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin
-  haveI this := partial_order.ext H,
+  have := partial_order.ext H,
   have ss := funext (λ x, funext $ semilattice_sup.ext_sup H x),
-  cases A; cases B; injection this; congr'
+  casesI A, casesI B,
+  injection this; congr'
 end
-
-lemma directed_of_sup {β : Type*} {r : β → β → Prop} {f : α → β}
-  (hf : ∀a₁ a₂, a₁ ≤ a₂ → r (f a₁) (f a₂)) : directed r f :=
-assume x y, ⟨x ⊔ y, hf _ _ le_sup_left, hf _ _ le_sup_right⟩
 
 end semilattice_sup
 
@@ -189,45 +202,69 @@ le_trans inf_le_right h
 ⟨assume h : a ≤ b ⊓ c, ⟨le_trans h inf_le_left, le_trans h inf_le_right⟩,
   assume ⟨h₁, h₂⟩, le_inf h₁ h₂⟩
 
+@[simp] theorem inf_eq_left : a ⊓ b = a ↔ a ≤ b :=
+le_antisymm_iff.trans $ by simp [le_refl]
+
 theorem inf_of_le_left (h : a ≤ b) : a ⊓ b = a :=
-by apply le_antisymm; finish
+inf_eq_left.2 h
+
+@[simp] theorem left_eq_inf : a = a ⊓ b ↔ a ≤ b :=
+eq_comm.trans inf_eq_left
+
+@[simp] theorem inf_eq_right : a ⊓ b = b ↔ b ≤ a :=
+le_antisymm_iff.trans $ by simp [le_refl]
 
 theorem inf_of_le_right (h : b ≤ a) : a ⊓ b = b :=
-by apply le_antisymm; finish
+inf_eq_right.2 h
+
+@[simp] theorem right_eq_inf : b = a ⊓ b ↔ b ≤ a :=
+eq_comm.trans inf_eq_right
 
 theorem inf_le_inf (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊓ c ≤ b ⊓ d :=
-by finish
+le_inf (inf_le_left_of_le h₁) (inf_le_right_of_le h₂)
 
-lemma inf_le_inf_left (a : α) {b c: α} (h : b ≤ c): b ⊓ a ≤ c ⊓ a :=
-by finish
+lemma inf_le_inf_right (a : α) {b c : α} (h : b ≤ c) : b ⊓ a ≤ c ⊓ a :=
+inf_le_inf h (le_refl _)
 
-lemma inf_le_inf_right (a : α) {b c: α} (h : b ≤ c): a ⊓ b ≤ a ⊓ c :=
-by finish
+lemma inf_le_inf_left (a : α) {b c : α} (h : b ≤ c) : a ⊓ b ≤ a ⊓ c :=
+inf_le_inf (le_refl _) h
 
 theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=
-by finish
+by { rw ← h, simp }
+
+lemma inf_ind [is_total α (≤)] (a b : α) {p : α → Prop} (ha : p a) (hb : p b) : p (a ⊓ b) :=
+(is_total.total a b).elim (λ h : a ≤ b, by rwa inf_eq_left.2 h) (λ h, by rwa inf_eq_right.2 h)
 
 @[simp] lemma lt_inf_iff [is_total α (≤)] {a b c : α} : a < b ⊓ c ↔ a < b ∧ a < c :=
-begin
-  cases (@is_total.total _ (≤) _ b c) with h,
-  { simp [inf_of_le_left h], exact ⟨λI, ⟨I, lt_of_lt_of_le I h⟩, λH, H.1⟩ },
-  { simp [inf_of_le_right h], exact ⟨λI, ⟨lt_of_lt_of_le I h, I⟩, λH, H.2⟩ }
-end
+⟨λ h, ⟨lt_of_lt_of_le h inf_le_left, lt_of_lt_of_le h inf_le_right⟩,
+  λ h, inf_ind b c h.1 h.2⟩
 
 @[simp] theorem inf_idem : a ⊓ a = a :=
-by apply le_antisymm; finish
+by apply le_antisymm; simp
 
 instance inf_is_idempotent : is_idempotent α (⊓) := ⟨@inf_idem _ _⟩
 
 theorem inf_comm : a ⊓ b = b ⊓ a :=
-by apply le_antisymm; finish
+by apply le_antisymm; simp
 
 instance inf_is_commutative : is_commutative α (⊓) := ⟨@inf_comm _ _⟩
 
 theorem inf_assoc : a ⊓ b ⊓ c = a ⊓ (b ⊓ c) :=
-by apply le_antisymm; finish
+le_antisymm
+  (le_inf
+    (inf_le_left_of_le inf_le_left)
+    (le_inf (inf_le_left_of_le inf_le_right) inf_le_right))
+  (le_inf
+    (le_inf inf_le_left (inf_le_right_of_le inf_le_left))
+    (inf_le_right_of_le inf_le_right))
 
 instance inf_is_associative : is_associative α (⊓) := ⟨@inf_assoc _ _⟩
+
+@[simp] lemma inf_left_idem : a ⊓ (a ⊓ b) = a ⊓ b :=
+by rw [← inf_assoc, inf_idem]
+
+@[simp] lemma inf_right_idem : (a ⊓ b) ⊓ b = a ⊓ b :=
+by rw [inf_assoc, inf_idem]
 
 lemma inf_left_comm (a b c : α) : a ⊓ (b ⊓ c) = b ⊓ (a ⊓ c) :=
 by rw [← inf_assoc, ← inf_assoc, @inf_comm α _ a]
@@ -248,15 +285,11 @@ by simp only [le_inf_iff]; rw [← H, @le_inf_iff α A, H, H]
 theorem semilattice_inf.ext {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin
-  haveI this := partial_order.ext H,
+  have := partial_order.ext H,
   have ss := funext (λ x, funext $ semilattice_inf.ext_inf H x),
-  cases A; cases B; injection this; congr'
+  casesI A, casesI B,
+  injection this; congr'
 end
-
-/-- An antimonotone function on an inf-semilattice is directed. -/
-lemma directed_of_inf {r : β → β → Prop} {f : α → β}
-  (hf : ∀a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
-assume x y, ⟨x ⊓ y, hf _ _ inf_le_left, hf _ _ inf_le_right⟩
 
 end semilattice_inf
 
@@ -274,16 +307,16 @@ variables [lattice α] {a b c d : α}
 /- Distributivity laws -/
 /- TODO: better names? -/
 theorem sup_inf_le : a ⊔ (b ⊓ c) ≤ (a ⊔ b) ⊓ (a ⊔ c) :=
-by finish
+le_inf (sup_le_sup_left inf_le_left _) (sup_le_sup_left inf_le_right _)
 
 theorem le_inf_sup : (a ⊓ b) ⊔ (a ⊓ c) ≤ a ⊓ (b ⊔ c) :=
-by finish
+sup_le (inf_le_inf_left _ le_sup_left) (inf_le_inf_left _ le_sup_right)
 
 theorem inf_sup_self : a ⊓ (a ⊔ b) = a :=
-le_antisymm (by finish) (by finish)
+by simp
 
 theorem sup_inf_self : a ⊔ (a ⊓ b) = a :=
-le_antisymm (by finish) (by finish)
+by simp
 
 theorem lattice.ext {α} {A B : lattice α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
@@ -291,7 +324,8 @@ begin
   have SS : @lattice.to_semilattice_sup α A =
             @lattice.to_semilattice_sup α B := semilattice_sup.ext H,
   have II := semilattice_inf.ext H,
-  resetI, cases A; cases B; injection SS; injection II; congr'
+  casesI A, casesI B,
+  injection SS; injection II; congr'
 end
 
 end lattice
@@ -330,17 +364,19 @@ calc x ⊓ (y ⊔ z) = (x ⊓ (x ⊔ z)) ⊓ (y ⊔ z)       : by rw [inf_sup_se
 theorem inf_sup_right : (y ⊔ z) ⊓ x = (y ⊓ x) ⊔ (z ⊓ x) :=
 by simp only [inf_sup_left, λy:α, @inf_comm α _ y x, eq_self_iff_true]
 
-lemma eq_of_sup_eq_inf_eq {α : Type u} [distrib_lattice α] {a b c : α}
+lemma le_of_inf_le_sup_le (h₁ : x ⊓ z ≤ y ⊓ z) (h₂ : x ⊔ z ≤ y ⊔ z) : x ≤ y :=
+calc x ≤ (y ⊓ z) ⊔ x : le_sup_right
+... = (y ⊔ x) ⊓ (x ⊔ z) : by rw [sup_inf_right, @sup_comm _ _ x]
+... ≤ (y ⊔ x) ⊓ (y ⊔ z) : inf_le_inf_left _ h₂
+... = y ⊔ (x ⊓ z) : sup_inf_left.symm
+... ≤ y ⊔ (y ⊓ z) : sup_le_sup_left h₁ _
+... ≤ _ : sup_le (le_refl y) inf_le_left
+
+lemma eq_of_inf_eq_sup_eq {α : Type u} [distrib_lattice α] {a b c : α}
   (h₁ : b ⊓ a = c ⊓ a) (h₂ : b ⊔ a = c ⊔ a) : b = c :=
 le_antisymm
-  (calc b ≤ (c ⊓ a) ⊔ b     : le_sup_right
-    ... = (c ⊔ b) ⊓ (a ⊔ b) : sup_inf_right
-    ... = c ⊔ (c ⊓ a)       : by rw [←h₁, sup_inf_left, ←h₂]; simp only [sup_comm, eq_self_iff_true]
-    ... = c                 : sup_inf_self)
-  (calc c ≤ (b ⊓ a) ⊔ c     : le_sup_right
-    ... = (b ⊔ c) ⊓ (a ⊔ c) : sup_inf_right
-    ... = b ⊔ (b ⊓ a)       : by rw [h₁, sup_inf_left, h₂]; simp only [sup_comm, eq_self_iff_true]
-    ... = b                 : sup_inf_self)
+  (le_of_inf_le_sup_le (le_of_eq h₁) (le_of_eq h₂))
+  (le_of_inf_le_sup_le (le_of_eq h₁.symm) (le_of_eq h₂.symm))
 
 end distrib_lattice
 
@@ -382,10 +418,24 @@ lemma le_map_sup [semilattice_sup α] [semilattice_sup β]
   f x ⊔ f y ≤ f (x ⊔ y) :=
 sup_le (h le_sup_left) (h le_sup_right)
 
+lemma map_sup [semilattice_sup α] [is_total α (≤)] [semilattice_sup β] {f : α → β}
+  (hf : monotone f) (x y : α) :
+  f (x ⊔ y) = f x ⊔ f y :=
+(is_total.total x y).elim
+  (λ h : x ≤ y, by simp only [h, hf h, sup_of_le_right])
+  (λ h, by simp only [h, hf h, sup_of_le_left])
+
 lemma map_inf_le [semilattice_inf α] [semilattice_inf β]
   {f : α → β} (h : monotone f) (x y : α) :
   f (x ⊓ y) ≤ f x ⊓ f y :=
 le_inf (h inf_le_left) (h inf_le_right)
+
+lemma map_inf [semilattice_inf α] [is_total α (≤)] [semilattice_inf β] {f : α → β}
+  (hf : monotone f) (x y : α) :
+  f (x ⊓ y) = f x ⊓ f y :=
+(is_total.total x y).elim
+  (λ h : x ≤ y, by simp only [h, hf h, inf_of_le_left])
+  (λ h, by simp only [h, hf h, inf_of_le_right])
 
 end monotone
 

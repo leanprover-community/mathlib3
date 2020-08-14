@@ -4,9 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
 
-import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply
-import tactic.reassoc_axiom tactic.tfae tactic.elide tactic.ring_exp
-       tactic.clear tactic.simp_rw
+import tactic.interactive
+import tactic.finish
+import tactic.ext
+import tactic.lift
+import tactic.apply
+import tactic.reassoc_axiom
+import tactic.tfae
+import tactic.elide
+import tactic.ring_exp
+import tactic.clear
+import tactic.simp_rw
 
 example (m n p q : nat) (h : m + n = p) : true :=
 begin
@@ -51,32 +59,6 @@ begin
   guard_hyp' h' := q ↔ p,
   trivial
 end
-
-section apply_rules
-
-example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
-add_le_add (add_le_add (add_le_add (add_le_add h1 (mul_le_mul_of_nonneg_right h2 h3)) h1 ) h2) h3
-
-example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
-by apply_rules [add_le_add, mul_le_mul_of_nonneg_right]
-
-@[user_attribute]
-meta def mono_rules : user_attribute :=
-{ name := `mono_rules,
-  descr := "lemmas usable to prove monotonicity" }
-attribute [mono_rules] add_le_add mul_le_mul_of_nonneg_right
-
-example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
-by apply_rules [mono_rules]
-
-example {a b c d e : nat} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
-by apply_rules mono_rules
-
-end apply_rules
 
 section h_generalize
 
@@ -506,36 +488,6 @@ section simp_rw
   by simp_rw [set.image_subset_iff, set.subset_def]
 end simp_rw
 
-section rename'
-
-example {α β} (a : α) (b : β) : unit :=
-begin
-  rename' a a',              -- rename-compatible syntax
-  guard_hyp a' := α,
-
-  rename' a' → a,            -- more suggestive syntax
-  guard_hyp a := α,
-
-  rename' [a a', b b'],      -- parallel renaming
-  guard_hyp a' := α,
-  guard_hyp b' := β,
-
-  rename' [a' → a, b' → b],  -- ditto with alternative syntax
-  guard_hyp a := α,
-  guard_hyp b := β,
-
-  rename' [a → b, b → a],    -- renaming really is parallel
-  guard_hyp a := β,
-  guard_hyp b := α,
-
-  rename' b a,               -- shadowing is allowed (but guard_hyp doesn't like it)
-
-  success_if_fail { rename' d e }, -- cannot rename nonexistent hypothesis
-  exact ()
-end
-
-end rename'
-
 section local_definitions
 /- Some tactics about local definitions.
   Testing revert_deps, revert_after, generalize', clear_value. -/
@@ -576,6 +528,7 @@ begin
   success_if_fail_with_msg {clear_value k}
     "Cannot clear the body of k. The resulting goal is not type correct.",
   clear_value k f,
+  get_local `k, -- test that `k` is not renamed.
   exact unit.star
 end
 
@@ -587,4 +540,67 @@ begin
   exact unit.star
 end
 
+/-- test `clear_value` and the preservation of naming -/
+example : ∀ x y : ℤ, let z := x + y in x = z - y → x = y - z → true :=
+begin
+  introv h h,
+  guard_hyp x := ℤ,
+  guard_hyp y := ℤ,
+  guard_hyp z := ℤ,
+  guard_hyp h := x = y - z,
+  suffices : true, -- test the type of the second assumption named `h`
+  { clear h,
+    guard_hyp h := x = z - y,
+    assumption },
+  do { to_expr ```(z) >>= is_local_def },
+  clear_value z,
+  guard_hyp z := ℤ,
+  success_if_fail { do { to_expr ```(z) >>= is_local_def } },
+  guard_hyp h := x = y - z,
+  suffices : true,
+  { clear h,
+    guard_hyp h := x = z - y,
+    assumption },
+  trivial
+end
+
+/- Test whether generalize' always uses the exact name stated by the user, even if that name already
+  exists. -/
+example (n : Type) (k : ℕ) : k = 5 → unit :=
+begin
+  generalize' : 5 = n,
+  guard_target (k = n → unit),
+  intro, constructor
+end
+
+/- Test that `generalize'` works correctly with argument `h`, when the expression occurs in the
+  target -/
+example (n : Type) (k : ℕ) : k = 5 → unit :=
+begin
+  generalize' h : 5 = n,
+  guard_target (k = n → unit),
+  intro, constructor
+end
+
 end local_definitions
+
+section set_attribute
+
+open tactic
+
+@[user_attribute] meta def my_user_attribute : user_attribute unit bool :=
+{ name := `my_attr,
+  descr := "",
+  parser := return ff }
+
+run_cmd do nm ← get_user_attribute_name `library_note, guard $ nm = `library_note_attr
+run_cmd do nm ← get_user_attribute_name `higher_order, guard $ nm = `tactic.higher_order_attr
+run_cmd do success_if_fail $ get_user_attribute_name `zxy.xzy
+
+run_cmd set_attribute `norm `prod.map tt
+run_cmd success_if_fail $ set_attribute `higher_order `prod.map tt
+run_cmd success_if_fail $ set_attribute `my_attr `prod.map
+run_cmd success_if_fail $ set_attribute `norm `xyz.zxy
+run_cmd success_if_fail $ set_attribute `zxy.xyz `prod.map
+
+end set_attribute

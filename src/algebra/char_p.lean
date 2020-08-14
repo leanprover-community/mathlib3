@@ -2,13 +2,17 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Kenny Lau, Joey van Langen, Casper Putz
-
-Characteristic of semirings.
 -/
-import data.padics.padic_norm
+
+import data.fintype.basic
 import data.nat.choose
-import data.zmod.basic
-import algebra.module
+import data.int.modeq
+import algebra.module.basic
+import algebra.iterate_hom
+
+/-!
+# Characteristic of semirings
+-/
 
 universes u v
 
@@ -18,6 +22,23 @@ class char_p (α : Type u) [semiring α] (p : ℕ) : Prop :=
 
 theorem char_p.cast_eq_zero (α : Type u) [semiring α] (p : ℕ) [char_p α p] : (p:α) = 0 :=
 (char_p.cast_eq_zero_iff α p p).2 (dvd_refl p)
+
+lemma char_p.int_cast_eq_zero_iff (R : Type u) [ring R] (p : ℕ) [char_p R p] (a : ℤ) :
+  (a : R) = 0 ↔ (p:ℤ) ∣ a :=
+begin
+  rcases lt_trichotomy a 0 with h|rfl|h,
+  { rw [← neg_eq_zero, ← int.cast_neg, ← dvd_neg],
+    lift -a to ℕ using neg_nonneg.mpr (le_of_lt h) with b,
+    rw [int.cast_coe_nat, char_p.cast_eq_zero_iff R p, int.coe_nat_dvd] },
+  { simp only [int.cast_zero, eq_self_iff_true, dvd_zero] },
+  { lift a to ℕ using (le_of_lt h) with b,
+    rw [int.cast_coe_nat, char_p.cast_eq_zero_iff R p, int.coe_nat_dvd] }
+end
+
+lemma char_p.int_coe_eq_int_coe_iff (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
+  (a : R) = (b : R) ↔ a ≡ b [ZMOD p] :=
+by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
+       char_p.int_cast_eq_zero_iff R p, int.modeq.modeq_iff_dvd]
 
 theorem char_p.eq (α : Type u) [semiring α] {p q : ℕ} (c1 : char_p α p) (c2 : char_p α q) : p = q :=
 nat.dvd_antisymm
@@ -57,25 +78,50 @@ unfold ring_char; exact char_p.cast_eq_zero_iff α (ring_char α)
 theorem ring_char.eq (α : Type u) [semiring α] {p : ℕ} (C : char_p α p) : p = ring_char α :=
 (classical.some_spec (char_p.exists_unique α)).2 p C
 
+theorem add_pow_char_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] (x y : R) (h : commute x y):
+(x + y)^p = x^p + y^p :=
+begin
+  rw [commute.add_pow h, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
+  rw [nat.cast_one, mul_one, mul_one, add_right_inj],
+  convert finset.sum_eq_single 0 _ _, { simp },
+  swap, { intro h1, contrapose! h1, rw finset.mem_range, apply nat.prime.pos, assumption },
+  intros b h1 h2,
+  suffices : (p.choose b : R) = 0, { rw this, simp },
+  rw char_p.cast_eq_zero_iff R p,
+  apply nat.prime.dvd_choose_self, assumption', { omega },
+  rwa ← finset.mem_range
+end
+
 theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} (hp : nat.prime p)
   [char_p α p] (x y : α) : (x + y)^p = x^p + y^p :=
 begin
-  rw [add_pow, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
-  rw [nat.cast_one, mul_one, mul_one, add_left_inj],
-  transitivity,
-  { refine finset.sum_eq_single 0 _ _,
-    { intros b h1 h2,
-      have := nat.prime.dvd_choose (nat.pos_of_ne_zero h2) (finset.mem_range.1 h1) hp,
-      rw [← nat.div_mul_cancel this, nat.cast_mul, char_p.cast_eq_zero α p],
-      simp only [mul_zero] },
-    { intro H, exfalso, apply H, exact finset.mem_range.2 hp.pos } },
-  rw [pow_zero, nat.sub_zero, one_mul, nat.choose_zero_right, nat.cast_one, mul_one]
+  haveI : fact p.prime := hp,
+  apply add_pow_char_of_commute,
+  apply commute.all,
+end
+
+lemma eq_iff_modeq_int (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
+  (a : R) = b ↔ a ≡ b [ZMOD p] :=
+by rw [eq_comm, ←sub_eq_zero, ←int.cast_sub,
+       char_p.int_cast_eq_zero_iff R p, int.modeq.modeq_iff_dvd]
+
+lemma char_p.neg_one_ne_one (R : Type*) [ring R] (p : ℕ) [char_p R p] [fact (2 < p)] :
+  (-1 : R) ≠ (1 : R) :=
+begin
+  suffices : (2 : R) ≠ 0,
+  { symmetry, rw [ne.def, ← sub_eq_zero, sub_neg_eq_add], exact this },
+  assume h,
+  rw [show (2 : R) = (2 : ℕ), by norm_cast] at h,
+  have := (char_p.cast_eq_zero_iff R p 2).mp h,
+  have := nat.le_of_dvd dec_trivial this,
+  rw fact at *, linarith,
 end
 
 section frobenius
 
 variables (R : Type u) [comm_ring R] {S : Type v} [comm_ring S] (f : R →* S) (g : R →+* S)
-  (p : ℕ) [nat.prime p] [char_p R p]  [char_p S p] (x y : R)
+  (p : ℕ) [fact p.prime] [char_p R p]  [char_p S p] (x y : R)
 
 /-- The frobenius map that sends x to x^p -/
 def frobenius : R →+* R :=
@@ -104,17 +150,17 @@ g.map_pow x p
 
 theorem monoid_hom.map_iterate_frobenius (n : ℕ) :
   f (frobenius R p^[n] x) = (frobenius S p^[n] (f x)) :=
-(nat.iterate₁ $ λ x, (f.map_frobenius p x).symm).symm
+function.semiconj.iterate_right (f.map_frobenius p) n x
 
 theorem ring_hom.map_iterate_frobenius (n : ℕ) :
   g (frobenius R p^[n] x) = (frobenius S p^[n] (g x)) :=
 g.to_monoid_hom.map_iterate_frobenius p x n
 
-theorem monoid_hom.iterate_map_frobenius (f : R →* R) (p : ℕ) [nat.prime p] [char_p R p] (n : ℕ) :
+theorem monoid_hom.iterate_map_frobenius (f : R →* R) (p : ℕ) [fact p.prime] [char_p R p] (n : ℕ) :
   f^[n] (frobenius R p x) = frobenius R p (f^[n] x) :=
 f.iterate_map_pow _ _ _
 
-theorem ring_hom.iterate_map_frobenius (f : R →+* R) (p : ℕ) [nat.prime p] [char_p R p] (n : ℕ) :
+theorem ring_hom.iterate_map_frobenius (f : R →+* R) (p : ℕ) [fact p.prime] [char_p R p] (n : ℕ) :
   f^[n] (frobenius R p x) = frobenius R p (f^[n] x) :=
 f.iterate_map_pow _ _ _
 
@@ -134,7 +180,7 @@ theorem frobenius_nat_cast (n : ℕ) : frobenius R p n = n := (frobenius R p).ma
 
 end frobenius
 
-theorem frobenius_inj (α : Type u) [integral_domain α] (p : ℕ) [nat.prime p] [char_p α p] :
+theorem frobenius_inj (α : Type u) [integral_domain α] (p : ℕ) [fact p.prime] [char_p α p] :
   function.injective (frobenius α p) :=
 λ x h H, by { rw ← sub_eq_zero at H ⊢, rw ← frobenius_sub at H, exact pow_eq_zero H }
 
@@ -174,7 +220,7 @@ assume (d : ℕ) (hdvd : ∃ e, p = d * e),
 let ⟨e, hmul⟩ := hdvd in
 have (p : α) = 0, from (cast_eq_zero_iff α p p).mpr (dvd_refl p),
 have (d : α) * e = 0, from (@cast_mul α _ d e) ▸ (hmul ▸ this),
-or.elim (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero (d : α) e this)
+or.elim (eq_zero_or_eq_zero_of_mul_eq_zero this)
   (assume hd : (d : α) = 0,
   have p ∣ d, from (cast_eq_zero_iff α p d).mp hd,
   show d = 1 ∨ d = p, from or.inr (dvd_antisymm ⟨e, hmul⟩ this))
@@ -193,30 +239,39 @@ match p, hc with
 | (m+2), hc := or.inl (@char_is_prime_of_ge_two α _ (m+2) hc (nat.le_add_left 2 m))
 end
 
-theorem char_is_prime [fintype α] (p : ℕ) [char_p α p] : nat.prime p :=
+lemma char_is_prime_of_pos (p : ℕ) [h : fact (0 < p)] [char_p α p] : fact p.prime :=
+(char_p.char_is_prime_or_zero α _).resolve_right (nat.pos_iff_ne_zero.1 h)
+
+theorem char_is_prime [fintype α] (p : ℕ) [char_p α p] : p.prime :=
 or.resolve_right (char_is_prime_or_zero α p) (char_ne_zero_of_fintype α p)
 
 end integral_domain
 
+section char_one
+
+variables {R : Type*}
+
+section prio
+set_option default_priority 100 -- see Note [default priority]
+
+instance [semiring R] [char_p R 1] : subsingleton R :=
+subsingleton.intro $
+suffices ∀ (r : R), r = 0,
+  from assume a b, show a = b, by rw [this a, this b],
+assume r,
+calc r = 1 * r       : by rw one_mul
+   ... = (1 : ℕ) * r : by rw nat.cast_one
+   ... = 0 * r       : by rw char_p.cast_eq_zero
+   ... = 0           : by rw zero_mul
+
+end prio
+
+lemma false_of_nonzero_of_char_one [semiring R] [nontrivial R] [char_p R 1] : false :=
+zero_ne_one $ show (0:R) = 1, from subsingleton.elim 0 1
+
+lemma ring_char_ne_one [semiring R] [nontrivial R] : ring_char R ≠ 1 :=
+by { intros h, apply @zero_ne_one R, symmetry, rw [←nat.cast_one, ring_char.spec, h], }
+
+end char_one
+
 end char_p
-
-namespace zmod
-
-variables (α : Type u) [ring α] {n : ℕ+}
-
-/-- `zmod.cast : zmod n →+* α` as a ring homomorphism. -/
-def cast_hom [char_p α n] : zmod n →+* α :=
-{ to_fun := cast,
-  map_zero' := rfl,
-  map_one' := by rw ←@nat.cast_one α _ _; exact eq.symm (char_p.cast_eq_mod α n 1),
-  map_mul' := assume x y : zmod n, show ↑((x * y).val) = ↑(x.val) * ↑(y.val),
-    by rw [zmod.mul_val, ←char_p.cast_eq_mod, nat.cast_mul],
-  map_add' := assume x y : zmod n, show ↑((x + y).val) = ↑(x.val) + ↑(y.val),
-    by rw [zmod.add_val, ←char_p.cast_eq_mod, nat.cast_add] }
-
-instance to_module [char_p α n] : module (zmod n) α := (cast_hom α).to_module
-
-instance to_module' {m : ℕ} {hm : m > 0} [hc : char_p α m] : module (zmod ⟨m, hm⟩) α :=
-@zmod.to_module α _ ⟨m, hm⟩ hc
-
-end zmod

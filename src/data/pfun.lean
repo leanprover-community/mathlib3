@@ -203,7 +203,7 @@ eq_some_iff.2 $ mem_map f $ mem_some _
 
 theorem mem_assert {p : Prop} {f : p → roption α}
   : ∀ {a} (h : p), a ∈ f h → a ∈ assert p f
-| _ _ ⟨h, rfl⟩ := ⟨⟨_, _⟩, rfl⟩
+| _ x ⟨h, rfl⟩ := ⟨⟨x, h⟩, rfl⟩
 
 @[simp] theorem mem_assert_iff {p : Prop} {f : p → roption α} {a} :
   a ∈ assert p f ↔ ∃ h : p, a ∈ f h :=
@@ -212,7 +212,7 @@ theorem mem_assert {p : Prop} {f : p → roption α}
 
 theorem mem_bind {f : roption α} {g : α → roption β} :
   ∀ {a b}, a ∈ f → b ∈ g a → b ∈ f.bind g
-| _ _ ⟨h, rfl⟩ ⟨h₂, rfl⟩ := ⟨⟨_, _⟩, rfl⟩
+| _ _ ⟨h, rfl⟩ ⟨h₂, rfl⟩ := ⟨⟨h, h₂⟩, rfl⟩
 
 @[simp] theorem mem_bind_iff {f : roption α} {g : α → roption β} {b} :
   b ∈ f.bind g ↔ ∃ a ∈ f, b ∈ g a :=
@@ -264,6 +264,7 @@ by rw [show f = id, from funext H]; exact id_map o
 @[simp] theorem bind_some_right (x : roption α) : x.bind some = x :=
 by rw [bind_some_eq_map]; simp [map_id']
 
+@[simp] theorem pure_eq_some (a : α) : pure a = some a := rfl
 @[simp] theorem ret_eq_some (a : α) : return a = some a := rfl
 
 @[simp] theorem map_eq_map {α β} (f : α → β) (o : roption α) :
@@ -316,10 +317,10 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 instance : inhabited (α →. β) := ⟨λ a, roption.none⟩
 
 /-- The domain of a partial function -/
-def dom (f : α →. β) : set α := λ a, (f a).dom
+def dom (f : α →. β) : set α := {a | (f a).dom}
 
 theorem mem_dom (f : α →. β) (x : α) : x ∈ dom f ↔ ∃ y, y ∈ f x :=
-by simp [dom, set.mem_def, roption.dom_iff_mem]
+by simp [dom, roption.dom_iff_mem]
 
 theorem dom_eq (f : α →. β) : dom f = {x | ∃ y, y ∈ f x} :=
 set.ext (mem_dom f)
@@ -341,11 +342,13 @@ theorem ext {f g : α →. β} (H : ∀ a b, b ∈ f a ↔ b ∈ g a) : f = g :=
 funext $ λ a, roption.ext (H a)
 
 /-- Turn a partial function into a function out of a subtype -/
-def as_subtype (f : α →. β) (s : {x // f.dom x}) : β := f.fn s.1 s.2
+def as_subtype (f : α →. β) (s : f.dom) : β := f.fn s s.2
 
+/-- The set of partial functions `α →. β` is equivalent to
+the set of pairs `(p : α → Prop, f : subtype p → β)`. -/
 def equiv_subtype : (α →. β) ≃ (Σ p : α → Prop, subtype p → β) :=
-⟨λ f, ⟨f.dom, as_subtype f⟩,
- λ ⟨p, f⟩ x, ⟨p x, λ h, f ⟨x, h⟩⟩,
+⟨λ f, ⟨λ a, (f a).dom, as_subtype f⟩,
+ λ f x, ⟨f.1 x, λ h, f.2 ⟨x, h⟩⟩,
  λ f, funext $ λ a, roption.eta _,
  λ ⟨p, f⟩, by dsimp; congr; funext a; cases a; refl⟩
 
@@ -530,7 +533,7 @@ lemma core_def (s : set β) : core f s = {x | ∀ y, y ∈ f x → y ∈ s} := r
 lemma mem_core (x : α) (s : set β) : x ∈ core f s ↔ (∀ y, y ∈ f x → y ∈ s) :=
 iff.rfl
 
-lemma compl_dom_subset_core (s : set β) : -f.dom ⊆ f.core s :=
+lemma compl_dom_subset_core (s : set β) : f.domᶜ ⊆ f.core s :=
 assume x hx y fxy,
 absurd ((mem_dom f x).mpr ⟨y, fxy⟩) hx
 
@@ -551,7 +554,7 @@ end
 section
 open_locale classical
 
-lemma core_res (f : α → β) (s : set α) (t : set β) : core (res f s) t = -s ∪ f ⁻¹' t :=
+lemma core_res (f : α → β) (s : set α) (t : set β) : core (res f s) t = sᶜ ∪ f ⁻¹' t :=
 by { ext, rw mem_core_res, by_cases h : x ∈ s; simp [h] }
 
 end
@@ -572,7 +575,7 @@ set.eq_of_subset_of_subset
     have ys : y ∈ s, from xcore _ (roption.get_mem _),
     show x ∈ preimage f s, from  ⟨(f x).get xdom, ys, roption.get_mem _⟩)
 
-lemma core_eq (f : α →. β) (s : set β) : f.core s = f.preimage s ∪ -f.dom :=
+lemma core_eq (f : α →. β) (s : set β) : f.core s = f.preimage s ∪ f.domᶜ :=
 by rw [preimage_eq, set.union_distrib_right, set.union_comm (dom f), set.compl_union_self,
         set.inter_univ, set.union_eq_self_of_subset_right (compl_dom_subset_core f s)]
 

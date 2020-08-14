@@ -14,10 +14,9 @@ namespace category_theory
 universes u₁ v₁ u₂ v₂ u₃ v₃ u₄ v₄
 
 section
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-          {D : Type u₂} [𝒟 : category.{v₂} D]
-          {E : Type u₃} [ℰ : category.{v₃} E]
-include 𝒞 𝒟 ℰ
+variables {C : Type u₁} [category.{v₁} C]
+          {D : Type u₂} [category.{v₂} D]
+          {E : Type u₃} [category.{v₃} E]
 
 @[simps] def whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) : (F ⋙ G) ⟶ (F ⋙ H) :=
 { app := λ c, α.app (F.obj c),
@@ -96,8 +95,7 @@ instance is_iso_whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) [is_is
 instance is_iso_whisker_right {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) [is_iso α] : is_iso (whisker_right α F) :=
 { .. iso_whisker_right (as_iso α) F }
 
-variables {B : Type u₄} [ℬ : category.{v₄} B]
-include ℬ
+variables {B : Type u₄} [category.{v₄} B]
 
 local attribute [elab_simple] whisker_left whisker_right
 
@@ -118,9 +116,8 @@ namespace functor
 
 universes u₅ v₅
 
-variables {A : Type u₁} [𝒜 : category.{v₁} A]
-variables {B : Type u₂} [ℬ : category.{v₂} B]
-include 𝒜 ℬ
+variables {A : Type u₁} [category.{v₁} A]
+variables {B : Type u₂} [category.{v₂} B]
 
 @[simps] def left_unitor (F : A ⥤ B) : ((𝟭 _) ⋙ F) ≅ F :=
 { hom := { app := λ X, 𝟙 (F.obj X) },
@@ -130,23 +127,19 @@ include 𝒜 ℬ
 { hom := { app := λ X, 𝟙 (F.obj X) },
   inv := { app := λ X, 𝟙 (F.obj X) } }
 
-variables {C : Type u₃} [𝒞 : category.{v₃} C]
-variables {D : Type u₄} [𝒟 : category.{v₄} D]
-include 𝒞 𝒟
+variables {C : Type u₃} [category.{v₃} C]
+variables {D : Type u₄} [category.{v₄} D]
 
 @[simps] def associator (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) : ((F ⋙ G) ⋙ H) ≅ (F ⋙ (G ⋙ H)) :=
 { hom := { app := λ _, 𝟙 _ },
   inv := { app := λ _, 𝟙 _ } }
 
-omit 𝒟
-
 lemma triangle (F : A ⥤ B) (G : B ⥤ C) :
   (associator F (𝟭 B) G).hom ≫ (whisker_left F (left_unitor G).hom) =
     (whisker_right (right_unitor F).hom G) :=
-by { ext, dsimp, simp }
+by { ext, dsimp, simp }  -- See note [dsimp, simp].
 
-variables {E : Type u₅} [ℰ : category.{v₅} E]
-include 𝒟 ℰ
+variables {E : Type u₅} [category.{v₅} E]
 
 variables (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) (K : D ⥤ E)
 

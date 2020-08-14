@@ -3,9 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov
 -/
-import tactic.tauto
 import algebra.order_functions
-import algebra.ordered_field
+import data.set.basic
 
 /-!
 # Intervals
@@ -22,8 +21,6 @@ Each interval has the name `I` + letter for left side + letter for right side. F
 This file contains these definitions, and basic facts on inclusion, intersection, difference of
 intervals (where the precise statements may depend on the properties of the order, in particular
 for some statements it should be `linear_order` or `densely_ordered`).
-
-This file also contains statements on lower and upper bounds of intervals.
 
 TODO: This is just the beginning; a lot of rules are missing
 -/
@@ -60,6 +57,22 @@ def Ici (a : α) := {x | a ≤ x}
 
 /-- Left-open right-infinite interval -/
 def Ioi (a : α) := {x | a < x}
+
+lemma Ioo_def (a b : α) : {x | a < x ∧ x < b} = Ioo a b := rfl
+
+lemma Ico_def (a b : α) : {x | a ≤ x ∧ x < b} = Ico a b := rfl
+
+lemma Iio_def (a : α) : {x | x < a} = Iio a := rfl
+
+lemma Icc_def (a b : α) : {x | a ≤ x ∧ x ≤ b} = Icc a b := rfl
+
+lemma Iic_def (b : α) : {x | x ≤ b} = Iic b := rfl
+
+lemma Ioc_def (a b : α) : {x | a < x ∧ x ≤ b} = Ioc a b := rfl
+
+lemma Ici_def (a : α) : {x | a ≤ x} = Ici a := rfl
+
+lemma Ioi_def (a : α) : {x | a < x} = Ioi a := rfl
 
 @[simp] lemma mem_Ioo : x ∈ Ioo a b ↔ a < x ∧ x < b := iff.rfl
 @[simp] lemma mem_Ico : x ∈ Ico a b ↔ a ≤ x ∧ x < b := iff.rfl
@@ -172,6 +185,14 @@ Icc_subset_Icc h (le_refl _)
 lemma Icc_subset_Icc_right (h : b₁ ≤ b₂) : Icc a b₁ ⊆ Icc a b₂ :=
 Icc_subset_Icc (le_refl _) h
 
+lemma Icc_subset_Ioo (ha : a₂ < a₁) (hb : b₁ < b₂) :
+  Icc a₁ b₁ ⊆ Ioo a₂ b₂ :=
+λ x hx, ⟨lt_of_lt_of_le ha hx.1, lt_of_le_of_lt hx.2 hb⟩
+
+lemma Icc_subset_Ici_self : Icc a b ⊆ Ici a := λ x, and.left
+
+lemma Icc_subset_Iic_self : Icc a b ⊆ Iic b := λ x, and.right
+
 lemma Ioc_subset_Ioc (h₁ : a₂ ≤ a₁) (h₂ : b₁ ≤ b₂) :
   Ioc a₁ b₁ ⊆ Ioc a₂ b₂ :=
 λ x ⟨hx₁, hx₂⟩, ⟨lt_of_le_of_lt h₁ hx₁, le_trans hx₂ h₂⟩
@@ -184,6 +205,9 @@ Ioc_subset_Ioc (le_refl _) h
 
 lemma Ico_subset_Ioo_left (h₁ : a₁ < a₂) : Ico a₂ b ⊆ Ioo a₁ b :=
 λ x, and.imp_left $ lt_of_lt_of_le h₁
+
+lemma Ioc_subset_Ioo_right (h : b₁ < b₂) : Ioc a b₁ ⊆ Ioo a b₂ :=
+λ x, and.imp_right $ λ h', lt_of_le_of_lt h' h
 
 lemma Icc_subset_Ico_right (h₁ : b₁ < b₂) : Icc a b₁ ⊆ Ico a b₂ :=
 λ x, and.imp_right $ λ h₂, lt_of_le_of_lt h₂ h₁
@@ -280,38 +304,108 @@ variables {α : Type u} [partial_order α] {a b : α}
 @[simp] lemma Icc_self (a : α) : Icc a a = {a} :=
 set.ext $ by simp [Icc, le_antisymm_iff, and_comm]
 
-lemma Ico_diff_Ioo_eq_singleton (h : a < b) : Ico a b \ Ioo a b = {a} :=
-set.ext $ λ x, begin
-  simp [not_and'], split,
-  { rintro ⟨⟨ax, xb⟩, hne⟩,
-    exact (eq_or_lt_of_le ax).elim eq.symm (λ h', absurd h' (hne xb)) },
-  { rintro rfl, exact ⟨⟨le_refl _, h⟩, λ _, lt_irrefl x⟩ }
+@[simp] lemma Icc_diff_left : Icc a b \ {a} = Ioc a b :=
+ext $ λ x, by simp [lt_iff_le_and_ne, eq_comm, and.right_comm]
+
+@[simp] lemma Icc_diff_right : Icc a b \ {b} = Ico a b :=
+ext $ λ x, by simp [lt_iff_le_and_ne, and_assoc]
+
+@[simp] lemma Ico_diff_left : Ico a b \ {a} = Ioo a b :=
+ext $ λ x, by simp [and.right_comm, ← lt_iff_le_and_ne, eq_comm]
+
+@[simp] lemma Ioc_diff_right : Ioc a b \ {b} = Ioo a b :=
+ext $ λ x, by simp [and_assoc, ← lt_iff_le_and_ne]
+
+@[simp] lemma Icc_diff_both : Icc a b \ {a, b} = Ioo a b :=
+by rw [insert_eq, ← diff_diff, Icc_diff_left, Ioc_diff_right]
+
+@[simp] lemma Ici_diff_left : Ici a \ {a} = Ioi a :=
+ext $ λ x, by simp [lt_iff_le_and_ne, eq_comm]
+
+@[simp] lemma Iic_diff_right : Iic a \ {a} = Iio a :=
+ext $ λ x, by simp [lt_iff_le_and_ne]
+
+@[simp] lemma Ico_diff_Ioo_same (h : a < b) : Ico a b \ Ioo a b = {a} :=
+by rw [← Ico_diff_left, diff_diff_cancel_left (singleton_subset_iff.2 $ left_mem_Ico.2 h)]
+
+@[simp] lemma Ioc_diff_Ioo_same (h : a < b) : Ioc a b \ Ioo a b = {b} :=
+by rw [← Ioc_diff_right, diff_diff_cancel_left (singleton_subset_iff.2 $ right_mem_Ioc.2 h)]
+
+@[simp] lemma Icc_diff_Ico_same (h : a ≤ b) : Icc a b \ Ico a b = {b} :=
+by rw [← Icc_diff_right, diff_diff_cancel_left (singleton_subset_iff.2 $ right_mem_Icc.2 h)]
+
+@[simp] lemma Icc_diff_Ioc_same (h : a ≤ b) : Icc a b \ Ioc a b = {a} :=
+by rw [← Icc_diff_left, diff_diff_cancel_left (singleton_subset_iff.2 $ left_mem_Icc.2 h)]
+
+@[simp] lemma Icc_diff_Ioo_same (h : a ≤ b) : Icc a b \ Ioo a b = {a, b} :=
+by { rw [← Icc_diff_both, diff_diff_cancel_left], simp [insert_subset, h] }
+
+@[simp] lemma Ici_diff_Ioi_same : Ici a \ Ioi a = {a} :=
+by rw [← Ici_diff_left, diff_diff_cancel_left (singleton_subset_iff.2 left_mem_Ici)]
+
+@[simp] lemma Iic_diff_Iio_same : Iic a \ Iio a = {a} :=
+by rw [← Iic_diff_right, diff_diff_cancel_left (singleton_subset_iff.2 right_mem_Iic)]
+
+@[simp] lemma Ioi_union_left : Ioi a ∪ {a} = Ici a := ext $ λ x, by simp [eq_comm, le_iff_eq_or_lt]
+
+@[simp] lemma Iio_union_right : Iio a ∪ {a} = Iic a := ext $ λ x, le_iff_lt_or_eq.symm
+
+lemma mem_Ici_Ioi_of_subset_of_subset {s : set α} (ho : Ioi a ⊆ s) (hc : s ⊆ Ici a) :
+  s ∈ ({Ici a, Ioi a} : set (set α)) :=
+classical.by_cases
+  (λ h : a ∈ s, or.inl $ subset.antisymm hc $ by rw [← Ioi_union_left, union_subset_iff]; simp *)
+  (λ h, or.inr $ subset.antisymm (λ x hx, lt_of_le_of_ne (hc hx) (λ heq, h $ heq.symm ▸ hx)) ho)
+
+lemma mem_Iic_Iio_of_subset_of_subset {s : set α} (ho : Iio a ⊆ s) (hc : s ⊆ Iic a) :
+  s ∈ ({Iic a, Iio a} : set (set α)) :=
+@mem_Ici_Ioi_of_subset_of_subset (order_dual α) _ a s ho hc
+
+lemma mem_Icc_Ico_Ioc_Ioo_of_subset_of_subset {s : set α} (ho : Ioo a b ⊆ s) (hc : s ⊆ Icc a b) :
+  s ∈ ({Icc a b, Ico a b, Ioc a b, Ioo a b} : set (set α)) :=
+begin
+  classical,
+  by_cases ha : a ∈ s; by_cases hb : b ∈ s,
+  { refine or.inl (subset.antisymm hc _),
+    rwa [← Ico_diff_left, diff_singleton_subset_iff, insert_eq_of_mem ha,
+      ← Icc_diff_right, diff_singleton_subset_iff, insert_eq_of_mem hb] at ho },
+  { refine (or.inr $ or.inl $ subset.antisymm _ _),
+    { rw [← Icc_diff_right],
+      exact subset_diff_singleton hc hb },
+    { rwa [← Ico_diff_left, diff_singleton_subset_iff, insert_eq_of_mem ha] at ho } },
+  { refine (or.inr $ or.inr $ or.inl $ subset.antisymm _ _),
+    { rw [← Icc_diff_left],
+      exact subset_diff_singleton hc ha },
+    { rwa [← Ioc_diff_right, diff_singleton_subset_iff, insert_eq_of_mem hb] at ho } },
+  { refine (or.inr $ or.inr $ or.inr $ subset.antisymm _ ho),
+    rw [← Ico_diff_left, ← Icc_diff_right],
+    apply_rules [subset_diff_singleton] }
 end
 
-lemma Ioc_diff_Ioo_eq_singleton (h : a < b) : Ioc a b \ Ioo a b = {b} :=
-set.ext $ λ x, begin
-  simp, split,
-  { rintro ⟨⟨ax, xb⟩, hne⟩,
-    exact (eq_or_lt_of_le xb).elim id (λ h', absurd h' (hne ax)) },
-  { rintro rfl, exact ⟨⟨h, le_refl _⟩, λ _, lt_irrefl x⟩ }
+lemma mem_Ioo_or_eq_endpoints_of_mem_Icc {x : α} (hmem : x ∈ Icc a b) :
+  x = a ∨ x = b ∨ x ∈ Ioo a b :=
+begin
+  rw [mem_Icc, le_iff_lt_or_eq, le_iff_lt_or_eq] at hmem,
+  rcases hmem with ⟨hxa | hxa, hxb | hxb⟩,
+  { exact or.inr (or.inr ⟨hxa, hxb⟩) },
+  { exact or.inr (or.inl hxb) },
+  all_goals { exact or.inl hxa.symm }
 end
 
-lemma Icc_diff_Ico_eq_singleton (h : a ≤ b) : Icc a b \ Ico a b = {b} :=
-set.ext $ λ x, begin
-  simp, split,
-  { rintro ⟨⟨ax, xb⟩, h⟩,
-    exact classical.by_contradiction
-      (λ ne, h ax (lt_of_le_of_ne xb ne)) },
-  { rintro rfl, exact ⟨⟨h, le_refl _⟩, λ _, lt_irrefl x⟩ }
+lemma mem_Ioo_or_eq_left_of_mem_Ico {x : α} (hmem : x ∈ Ico a b) :
+  x = a ∨ x ∈ Ioo a b :=
+begin
+  rw [mem_Ico, le_iff_lt_or_eq] at hmem,
+  rcases hmem with ⟨hxa | hxa, hxb⟩,
+  { exact or.inr ⟨hxa, hxb⟩ },
+  { exact or.inl hxa.symm }
 end
 
-lemma Icc_diff_Ioc_eq_singleton (h : a ≤ b) : Icc a b \ Ioc a b = {a} :=
-set.ext $ λ x, begin
-  simp [not_and'], split,
-  { rintro ⟨⟨ax, xb⟩, h⟩,
-    exact classical.by_contradiction
-      (λ hne, h xb (lt_of_le_of_ne ax (ne.symm hne))) },
-  { rintro rfl, exact ⟨⟨le_refl _, h⟩, λ _, lt_irrefl x⟩ }
+lemma mem_Ioo_or_eq_right_of_mem_Ioc {x : α} (hmem : x ∈ Ioc a b) :
+  x = b ∨ x ∈ Ioo a b :=
+begin
+  have := @mem_Ioo_or_eq_left_of_mem_Ico (order_dual α) _ b a x,
+  rw [dual_Ioo, dual_Ico] at this,
+  exact this hmem
 end
 
 end partial_order
@@ -319,10 +413,34 @@ end partial_order
 section linear_order
 variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ : α}
 
-lemma compl_Iic : -(Iic a) = Ioi a := ext $ λ _, not_le
-lemma compl_Ici : -(Ici a) = Iio a := ext $ λ _, not_le
-lemma compl_Iio : -(Iio a) = Ici a := ext $ λ _, not_lt
-lemma compl_Ioi : -(Ioi a) = Iic a := ext $ λ _, not_lt
+@[simp] lemma compl_Iic : (Iic a)ᶜ = Ioi a := ext $ λ _, not_le
+@[simp] lemma compl_Ici : (Ici a)ᶜ = Iio a := ext $ λ _, not_le
+@[simp] lemma compl_Iio : (Iio a)ᶜ = Ici a := ext $ λ _, not_lt
+@[simp] lemma compl_Ioi : (Ioi a)ᶜ = Iic a := ext $ λ _, not_lt
+
+@[simp] lemma Ici_diff_Ici : Ici a \ Ici b = Ico a b :=
+by rw [diff_eq, compl_Ici, Ici_inter_Iio]
+
+@[simp] lemma Ici_diff_Ioi : Ici a \ Ioi b = Icc a b :=
+by rw [diff_eq, compl_Ioi, Ici_inter_Iic]
+
+@[simp] lemma Ioi_diff_Ioi : Ioi a \ Ioi b = Ioc a b :=
+by rw [diff_eq, compl_Ioi, Ioi_inter_Iic]
+
+@[simp] lemma Ioi_diff_Ici : Ioi a \ Ici b = Ioo a b :=
+by rw [diff_eq, compl_Ici, Ioi_inter_Iio]
+
+@[simp] lemma Iic_diff_Iic : Iic b \ Iic a = Ioc a b :=
+by rw [diff_eq, compl_Iic, inter_comm, Ioi_inter_Iic]
+
+@[simp] lemma Iio_diff_Iic : Iio b \ Iic a = Ioo a b :=
+by rw [diff_eq, compl_Iic, inter_comm, Ioi_inter_Iio]
+
+@[simp] lemma Iic_diff_Iio : Iic b \ Iio a = Icc a b :=
+by rw [diff_eq, compl_Iio, inter_comm, Ici_inter_Iic]
+
+@[simp] lemma Iio_diff_Iio : Iio b \ Iio a = Ico a b :=
+by rw [diff_eq, compl_Iio, inter_comm, Ici_inter_Iio]
 
 lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ b ≤ a :=
 ⟨λ eq, le_of_not_lt $ λ h,
@@ -389,12 +507,7 @@ begin
 end
 
 @[simp] lemma Iio_subset_Iic_iff [densely_ordered α] : Iio a ⊆ Iic b ↔ a ≤ b :=
-begin
-  refine ⟨λh, _, λh, Iio_subset_Iic h⟩,
-  by_contradiction ba,
-  obtain ⟨c, bc, ca⟩ : ∃c, b < c ∧ c < a := dense (not_le.mp ba),
-  exact lt_irrefl _ (lt_of_lt_of_le bc (h ca))
-end
+by rw [← diff_eq_empty, Iio_diff_Iic, Ioo_eq_empty_iff]
 
 /-! ### Unions of adjacent intervals -/
 
@@ -408,126 +521,190 @@ end
 
 /-! #### A finite and an infinite interval -/
 
-@[simp] lemma Ioc_union_Ici_eq_Ioi (h : a < b) : Ioc a b ∪ Ici b = Ioi a :=
-ext $ λ x, ⟨λ hx, hx.elim and.left (lt_of_lt_of_le h),
-  λ hx, (le_total x b).elim (λ hxb, or.inl ⟨hx, hxb⟩) (λ hxb, or.inr hxb)⟩
-
-@[simp] lemma Icc_union_Ici_eq_Ioi (h : a ≤ b) : Icc a b ∪ Ici b = Ici a :=
-ext $ λ x, ⟨λ hx, hx.elim and.left (le_trans h),
-  λ hx, (le_total x b).elim (λ hxb, or.inl ⟨hx, hxb⟩) (λ hxb, or.inr hxb)⟩
+lemma Ioi_subset_Ioo_union_Ici : Ioi a ⊆ Ioo a b ∪ Ici b :=
+λ x hx, (lt_or_le x b).elim (λ hxb, or.inl ⟨hx, hxb⟩) (λ hxb, or.inr hxb)
 
 @[simp] lemma Ioo_union_Ici_eq_Ioi (h : a < b) : Ioo a b ∪ Ici b = Ioi a :=
-ext $ λ x, ⟨λ hx, hx.elim and.left (lt_of_lt_of_le h),
-  λ hx, (lt_or_le x b).elim (λ hxb, or.inl ⟨hx, hxb⟩) (λ hxb, or.inr hxb)⟩
+subset.antisymm (λ x hx, hx.elim and.left (lt_of_lt_of_le h)) Ioi_subset_Ioo_union_Ici
 
-@[simp] lemma Ico_union_Ici_eq_Ioi (h : a ≤ b) : Ico a b ∪ Ici b = Ici a :=
-ext $ λ x, ⟨λ hx, hx.elim and.left (le_trans h),
-  λ hx, (lt_or_le x b).elim (λ hxb, or.inl ⟨hx, hxb⟩) (λ hxb, or.inr hxb)⟩
+lemma Ici_subset_Ico_union_Ici : Ici a ⊆ Ico a b ∪ Ici b :=
+λ x hx, (lt_or_le x b).elim (λ hxb, or.inl ⟨hx, hxb⟩) (λ hxb, or.inr hxb)
+
+@[simp] lemma Ico_union_Ici_eq_Ici (h : a ≤ b) : Ico a b ∪ Ici b = Ici a :=
+subset.antisymm (λ x hx, hx.elim and.left (le_trans h)) Ici_subset_Ico_union_Ici
+
+lemma Ioi_subset_Ioc_union_Ioi : Ioi a ⊆ Ioc a b ∪ Ioi b :=
+λ x hx, (le_or_lt x b).elim (λ hxb, or.inl ⟨hx, hxb⟩) (λ hxb, or.inr hxb)
 
 @[simp] lemma Ioc_union_Ioi_eq_Ioi (h : a ≤ b) : Ioc a b ∪ Ioi b = Ioi a :=
-ext $ λ x, ⟨λ hx, hx.elim and.left (lt_of_le_of_lt h),
-  λ hx, (le_or_lt x b).elim (λ hxb, or.inl ⟨hx, hxb⟩) (λ hxb, or.inr hxb)⟩
+subset.antisymm (λ x hx, hx.elim and.left (lt_of_le_of_lt h)) Ioi_subset_Ioc_union_Ioi
 
-@[simp] lemma Icc_union_Ioi_eq_Ioi (h : a ≤ b) : Icc a b ∪ Ioi b = Ici a :=
-ext $ λ x, ⟨λ hx, hx.elim and.left (λ hx, le_trans h (le_of_lt hx)),
-  λ hx, (le_or_lt x b).elim (λ hxb, or.inl ⟨hx, hxb⟩) (λ hxb, or.inr hxb)⟩
+lemma Ici_subset_Icc_union_Ioi : Ici a ⊆ Icc a b ∪ Ioi b :=
+λ x hx, (le_or_lt x b).elim (λ hxb, or.inl ⟨hx, hxb⟩) (λ hxb, or.inr hxb)
+
+@[simp] lemma Icc_union_Ioi_eq_Ici (h : a ≤ b) : Icc a b ∪ Ioi b = Ici a :=
+subset.antisymm (λ x hx, hx.elim and.left (λ hx, le_trans h (le_of_lt hx))) Ici_subset_Icc_union_Ioi
+
+lemma Ioi_subset_Ioc_union_Ici : Ioi a ⊆ Ioc a b ∪ Ici b :=
+subset.trans Ioi_subset_Ioo_union_Ici (union_subset_union_left _ Ioo_subset_Ioc_self)
+
+@[simp] lemma Ioc_union_Ici_eq_Ioi (h : a < b) : Ioc a b ∪ Ici b = Ioi a :=
+subset.antisymm (λ x hx, hx.elim and.left (lt_of_lt_of_le h)) Ioi_subset_Ioc_union_Ici
+
+lemma Ici_subset_Icc_union_Ici : Ici a ⊆ Icc a b ∪ Ici b :=
+subset.trans Ici_subset_Ico_union_Ici (union_subset_union_left _ Ico_subset_Icc_self)
+
+@[simp] lemma Icc_union_Ici_eq_Ici (h : a ≤ b) : Icc a b ∪ Ici b = Ici a :=
+subset.antisymm (λ x hx, hx.elim and.left (le_trans h)) Ici_subset_Icc_union_Ici
 
 /-! #### An infinite and a finite interval -/
 
-@[simp] lemma Iic_union_Icc_eq_Iic (h : a ≤ b) : Iic a ∪ Icc a b = Iic b :=
-ext $ λ x, ⟨λ hx, hx.elim (λ hx, le_trans hx h) and.right,
-  λ hx, (le_total x a).elim (λ hxa, or.inl hxa) (λ hxa, or.inr ⟨hxa, hx⟩)⟩
-
-@[simp] lemma Iic_union_Ico_eq_Iio (h : a < b) : Iic a ∪ Ico a b = Iio b :=
-ext $ λ x, ⟨λ hx, hx.elim (λ hx, lt_of_le_of_lt hx h) and.right,
-  λ hx, (le_total x a).elim (λ hxa, or.inl hxa) (λ hxa, or.inr ⟨hxa, hx⟩)⟩
+lemma Iic_subset_Iio_union_Icc : Iic b ⊆ Iio a ∪ Icc a b :=
+λ x hx, (lt_or_le x a).elim (λ hxa, or.inl hxa) (λ hxa, or.inr ⟨hxa, hx⟩)
 
 @[simp] lemma Iio_union_Icc_eq_Iic (h : a ≤ b) : Iio a ∪ Icc a b = Iic b :=
-ext $ λ x, ⟨λ hx, hx.elim (λ hx, le_trans (le_of_lt hx) h) and.right,
-  λ hx, (lt_or_le x a).elim (λ hxa, or.inl hxa) (λ hxa, or.inr ⟨hxa, hx⟩)⟩
+subset.antisymm (λ x hx, hx.elim (λ hx, le_trans (le_of_lt hx) h) and.right)
+  Iic_subset_Iio_union_Icc
+
+lemma Iio_subset_Iio_union_Ico : Iio b ⊆ Iio a ∪ Ico a b :=
+λ x hx, (lt_or_le x a).elim (λ hxa, or.inl hxa) (λ hxa, or.inr ⟨hxa, hx⟩)
 
 @[simp] lemma Iio_union_Ico_eq_Iio (h : a ≤ b) : Iio a ∪ Ico a b = Iio b :=
-ext $ λ x, ⟨λ hx, hx.elim (λ hx, lt_of_lt_of_le hx h) and.right,
-  λ hx, (lt_or_le x a).elim (λ hxa, or.inl hxa) (λ hxa, or.inr ⟨hxa, hx⟩)⟩
+subset.antisymm (λ x hx, hx.elim (λ hx, lt_of_lt_of_le hx h) and.right) Iio_subset_Iio_union_Ico
+
+lemma Iic_subset_Iic_union_Ioc : Iic b ⊆ Iic a ∪ Ioc a b :=
+λ x hx, (le_or_lt x a).elim (λ hxa, or.inl hxa) (λ hxa, or.inr ⟨hxa, hx⟩)
 
 @[simp] lemma Iic_union_Ioc_eq_Iic (h : a ≤ b) : Iic a ∪ Ioc a b = Iic b :=
-ext $ λ x, ⟨λ hx, hx.elim (λ hx, le_trans hx h) and.right,
-  λ hx, (le_or_lt x a).elim (λ hxa, or.inl hxa) (λ hxa, or.inr ⟨hxa, hx⟩)⟩
+subset.antisymm (λ x hx, hx.elim (λ hx, le_trans hx h) and.right) Iic_subset_Iic_union_Ioc
+
+lemma Iio_subset_Iic_union_Ioo : Iio b ⊆ Iic a ∪ Ioo a b :=
+λ x hx, (le_or_lt x a).elim (λ hxa, or.inl hxa) (λ hxa, or.inr ⟨hxa, hx⟩)
 
 @[simp] lemma Iic_union_Ioo_eq_Iio (h : a < b) : Iic a ∪ Ioo a b = Iio b :=
-ext $ λ x, ⟨λ hx, hx.elim (λ hx, lt_of_le_of_lt hx h) and.right,
-  λ hx, (le_or_lt x a).elim (λ hxa, or.inl hxa) (λ hxa, or.inr ⟨hxa, hx⟩)⟩
+subset.antisymm (λ x hx, hx.elim (λ hx, lt_of_le_of_lt hx h) and.right) Iio_subset_Iic_union_Ioo
 
-/-! #### Two finite intervals with a common point -/
+lemma Iic_subset_Iic_union_Icc : Iic b ⊆ Iic a ∪ Icc a b :=
+subset.trans Iic_subset_Iic_union_Ioc (union_subset_union_right _ Ioc_subset_Icc_self)
 
-@[simp] lemma Ioc_union_Ico_eq_Ioo {c} (h₁ : a < b) (h₂ : b < c) : Ioc a b ∪ Ico b c = Ioo a c :=
-ext $ λ x,
-  ⟨λ hx, hx.elim (λ hx, ⟨hx.1, lt_of_le_of_lt hx.2 h₂⟩) (λ hx, ⟨lt_of_lt_of_le h₁ hx.1, hx.2⟩),
-   λ hx, (le_total x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)⟩
+@[simp] lemma Iic_union_Icc_eq_Iic (h : a ≤ b) : Iic a ∪ Icc a b = Iic b :=
+subset.antisymm (λ x hx, hx.elim (λ hx, le_trans hx h) and.right) Iic_subset_Iic_union_Icc
 
-@[simp] lemma Icc_union_Ico_eq_Ico {c} (h₁ : a ≤ b) (h₂ : b < c) : Icc a b ∪ Ico b c = Ico a c :=
-ext $ λ x,
-  ⟨λ hx, hx.elim (λ hx, ⟨hx.1, lt_of_le_of_lt hx.2 h₂⟩) (λ hx, ⟨le_trans h₁ hx.1, hx.2⟩),
-   λ hx, (le_total x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)⟩
+lemma Iio_subset_Iic_union_Ico : Iio b ⊆ Iic a ∪ Ico a b :=
+subset.trans Iio_subset_Iic_union_Ioo (union_subset_union_right _ Ioo_subset_Ico_self)
 
-@[simp] lemma Icc_union_Icc_eq_Icc {c} (h₁ : a ≤ b) (h₂ : b ≤ c) : Icc a b ∪ Icc b c = Icc a c :=
-ext $ λ x,
-  ⟨λ hx, hx.elim (λ hx, ⟨hx.1, le_trans hx.2 h₂⟩) (λ hx, ⟨le_trans h₁ hx.1, hx.2⟩),
-   λ hx, (le_total x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)⟩
-
-@[simp] lemma Ioc_union_Icc_eq_Ioc {c} (h₁ : a < b) (h₂ : b ≤ c) : Ioc a b ∪ Icc b c = Ioc a c :=
-ext $ λ x,
-  ⟨λ hx, hx.elim (λ hx, ⟨hx.1, le_trans hx.2 h₂⟩) (λ hx, ⟨lt_of_lt_of_le h₁ hx.1, hx.2⟩),
-   λ hx, (le_total x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)⟩
+@[simp] lemma Iic_union_Ico_eq_Iio (h : a < b) : Iic a ∪ Ico a b = Iio b :=
+subset.antisymm (λ x hx, hx.elim (λ hx, lt_of_le_of_lt hx h) and.right) Iio_subset_Iic_union_Ico
 
 /-! #### Two finite intervals, `I?o` and `Ic?` -/
 
-@[simp] lemma Ioo_union_Ico_eq_Ioo {c} (h₁ : a < b) (h₂ : b ≤ c) : Ioo a b ∪ Ico b c = Ioo a c :=
-ext $ λ x,
-  ⟨λ hx, hx.elim (λ hx, ⟨hx.1, lt_of_lt_of_le hx.2 h₂⟩) (λ hx, ⟨lt_of_lt_of_le h₁ hx.1, hx.2⟩),
-   λ hx, (lt_or_le x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)⟩
+variable {c : α}
 
-@[simp] lemma Ico_union_Ico_eq_Ico {c} (h₁ : a ≤ b) (h₂ : b ≤ c) : Ico a b ∪ Ico b c = Ico a c :=
-ext $ λ x,
-  ⟨λ hx, hx.elim (λ hx, ⟨hx.1, lt_of_lt_of_le hx.2 h₂⟩) (λ hx, ⟨le_trans h₁ hx.1, hx.2⟩),
-   λ hx, (lt_or_le x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)⟩
+lemma Ioo_subset_Ioo_union_Ico : Ioo a c ⊆ Ioo a b ∪ Ico b c :=
+λ x hx, (lt_or_le x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)
 
-@[simp] lemma Ico_union_Icc_eq_Icc {c} (h₁ : a ≤ b) (h₂ : b ≤ c) : Ico a b ∪ Icc b c = Icc a c :=
-ext $ λ x,
-  ⟨λ hx, hx.elim (λ hx, ⟨hx.1, le_trans (le_of_lt hx.2) h₂⟩) (λ hx, ⟨le_trans h₁ hx.1, hx.2⟩),
-   λ hx, (lt_or_le x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)⟩
+@[simp] lemma Ioo_union_Ico_eq_Ioo (h₁ : a < b) (h₂ : b ≤ c) : Ioo a b ∪ Ico b c = Ioo a c :=
+subset.antisymm
+  (λ x hx, hx.elim (λ hx, ⟨hx.1, lt_of_lt_of_le hx.2 h₂⟩) (λ hx, ⟨lt_of_lt_of_le h₁ hx.1, hx.2⟩))
+  Ioo_subset_Ioo_union_Ico
 
-@[simp] lemma Ioo_union_Icc_eq_Ioc {c} (h₁ : a < b) (h₂ : b ≤ c) : Ioo a b ∪ Icc b c = Ioc a c :=
-ext $ λ x,
-  ⟨λ hx, hx.elim (λ hx, ⟨hx.1, le_trans (le_of_lt hx.2) h₂⟩) (λ hx, ⟨lt_of_lt_of_le h₁ hx.1, hx.2⟩),
-   λ hx, (lt_or_le x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)⟩
+lemma Ico_subset_Ico_union_Ico : Ico a c ⊆ Ico a b ∪ Ico b c :=
+λ x hx, (lt_or_le x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)
+
+@[simp] lemma Ico_union_Ico_eq_Ico (h₁ : a ≤ b) (h₂ : b ≤ c) : Ico a b ∪ Ico b c = Ico a c :=
+subset.antisymm
+  (λ x hx, hx.elim (λ hx, ⟨hx.1, lt_of_lt_of_le hx.2 h₂⟩) (λ hx, ⟨le_trans h₁ hx.1, hx.2⟩))
+  Ico_subset_Ico_union_Ico
+
+lemma Icc_subset_Ico_union_Icc : Icc a c ⊆ Ico a b ∪ Icc b c :=
+λ x hx, (lt_or_le x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)
+
+@[simp] lemma Ico_union_Icc_eq_Icc (h₁ : a ≤ b) (h₂ : b ≤ c) : Ico a b ∪ Icc b c = Icc a c :=
+subset.antisymm
+  (λ x hx, hx.elim (λ hx, ⟨hx.1, le_trans (le_of_lt hx.2) h₂⟩) (λ hx, ⟨le_trans h₁ hx.1, hx.2⟩))
+  Icc_subset_Ico_union_Icc
+
+lemma Ioc_subset_Ioo_union_Icc : Ioc a c ⊆ Ioo a b ∪ Icc b c :=
+λ x hx, (lt_or_le x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)
+
+@[simp] lemma Ioo_union_Icc_eq_Ioc (h₁ : a < b) (h₂ : b ≤ c) : Ioo a b ∪ Icc b c = Ioc a c :=
+subset.antisymm
+  (λ x hx, hx.elim (λ hx, ⟨hx.1, le_trans (le_of_lt hx.2) h₂⟩)
+    (λ hx, ⟨lt_of_lt_of_le h₁ hx.1, hx.2⟩))
+  Ioc_subset_Ioo_union_Icc
 
 /-! #### Two finite intervals, `I?c` and `Io?` -/
 
-@[simp] lemma Ioc_union_Ioo_eq_Ioo {c} (h₁ : a ≤ b) (h₂ : b < c) : Ioc a b ∪ Ioo b c = Ioo a c :=
-ext $ λ x,
-  ⟨λ hx, hx.elim (λ hx, ⟨hx.1, lt_of_le_of_lt hx.2 h₂⟩) (λ hx, ⟨lt_of_le_of_lt h₁ hx.1, hx.2⟩),
-   λ hx, (le_or_lt x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)⟩
+lemma Ioo_subset_Ioc_union_Ioo : Ioo a c ⊆ Ioc a b ∪ Ioo b c :=
+λ x hx, (le_or_lt x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)
 
-@[simp] lemma Icc_union_Ioo_eq_Ico {c} (h₁ : a ≤ b) (h₂ : b < c) : Icc a b ∪ Ioo b c = Ico a c :=
-ext $ λ x,
-  ⟨λ hx, hx.elim (λ hx, ⟨hx.1, lt_of_le_of_lt hx.2 h₂⟩) (λ hx, ⟨le_trans h₁ (le_of_lt hx.1), hx.2⟩),
-   λ hx, (le_or_lt x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)⟩
+@[simp] lemma Ioc_union_Ioo_eq_Ioo (h₁ : a ≤ b) (h₂ : b < c) : Ioc a b ∪ Ioo b c = Ioo a c :=
+subset.antisymm
+  (λ x hx, hx.elim (λ hx, ⟨hx.1, lt_of_le_of_lt hx.2 h₂⟩) (λ hx, ⟨lt_of_le_of_lt h₁ hx.1, hx.2⟩))
+  Ioo_subset_Ioc_union_Ioo
 
-@[simp] lemma Icc_union_Ioc_eq_Icc {c} (h₁ : a ≤ b) (h₂ : b ≤ c) : Icc a b ∪ Ioc b c = Icc a c :=
-ext $ λ x,
-  ⟨λ hx, hx.elim (λ hx, ⟨hx.1, le_trans hx.2 h₂⟩) (λ hx, ⟨le_trans h₁ (le_of_lt hx.1), hx.2⟩),
-   λ hx, (le_or_lt x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)⟩
+lemma Ico_subset_Icc_union_Ioo : Ico a c ⊆ Icc a b ∪ Ioo b c :=
+λ x hx, (le_or_lt x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)
 
-@[simp] lemma Ioc_union_Ioc_eq_Ioc {c} (h₁ : a ≤ b) (h₂ : b ≤ c) : Ioc a b ∪ Ioc b c = Ioc a c :=
-ext $ λ x,
-  ⟨λ hx, hx.elim (λ hx, ⟨hx.1, le_trans hx.2 h₂⟩) (λ hx, ⟨lt_of_le_of_lt h₁ hx.1, hx.2⟩),
-   λ hx, (le_or_lt x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)⟩
+@[simp] lemma Icc_union_Ioo_eq_Ico (h₁ : a ≤ b) (h₂ : b < c) : Icc a b ∪ Ioo b c = Ico a c :=
+subset.antisymm
+  (λ x hx, hx.elim (λ hx, ⟨hx.1, lt_of_le_of_lt hx.2 h₂⟩)
+    (λ hx, ⟨le_trans h₁ (le_of_lt hx.1), hx.2⟩))
+  Ico_subset_Icc_union_Ioo
+
+lemma Icc_subset_Icc_union_Ioc : Icc a c ⊆ Icc a b ∪ Ioc b c :=
+λ x hx, (le_or_lt x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)
+
+@[simp] lemma Icc_union_Ioc_eq_Icc (h₁ : a ≤ b) (h₂ : b ≤ c) : Icc a b ∪ Ioc b c = Icc a c :=
+subset.antisymm
+  (λ x hx, hx.elim (λ hx, ⟨hx.1, le_trans hx.2 h₂⟩) (λ hx, ⟨le_trans h₁ (le_of_lt hx.1), hx.2⟩))
+  Icc_subset_Icc_union_Ioc
+
+lemma Ioc_subset_Ioc_union_Ioc : Ioc a c ⊆ Ioc a b ∪ Ioc b c :=
+λ x hx, (le_or_lt x b).elim (λ hxb, or.inl ⟨hx.1, hxb⟩) (λ hxb, or.inr ⟨hxb, hx.2⟩)
+
+@[simp] lemma Ioc_union_Ioc_eq_Ioc (h₁ : a ≤ b) (h₂ : b ≤ c) : Ioc a b ∪ Ioc b c = Ioc a c :=
+subset.antisymm
+  (λ x hx, hx.elim (λ hx, ⟨hx.1, le_trans hx.2 h₂⟩) (λ hx, ⟨lt_of_le_of_lt h₁ hx.1, hx.2⟩))
+  Ioc_subset_Ioc_union_Ioc
+
+/-! #### Two finite intervals with a common point -/
+
+lemma Ioo_subset_Ioc_union_Ico : Ioo a c ⊆ Ioc a b ∪ Ico b c :=
+subset.trans Ioo_subset_Ioc_union_Ioo (union_subset_union_right _ Ioo_subset_Ico_self)
+
+@[simp] lemma Ioc_union_Ico_eq_Ioo (h₁ : a < b) (h₂ : b < c) : Ioc a b ∪ Ico b c = Ioo a c :=
+subset.antisymm
+  (λ x hx, hx.elim (λ hx, ⟨hx.1, lt_of_le_of_lt hx.2 h₂⟩) (λ hx, ⟨lt_of_lt_of_le h₁ hx.1, hx.2⟩))
+  Ioo_subset_Ioc_union_Ico
+
+lemma Ico_subset_Icc_union_Ico : Ico a c ⊆ Icc a b ∪ Ico b c :=
+subset.trans Ico_subset_Icc_union_Ioo (union_subset_union_right _ Ioo_subset_Ico_self)
+
+@[simp] lemma Icc_union_Ico_eq_Ico (h₁ : a ≤ b) (h₂ : b < c) : Icc a b ∪ Ico b c = Ico a c :=
+subset.antisymm
+  (λ x hx, hx.elim (λ hx, ⟨hx.1, lt_of_le_of_lt hx.2 h₂⟩) (λ hx, ⟨le_trans h₁ hx.1, hx.2⟩))
+  Ico_subset_Icc_union_Ico
+
+lemma Icc_subset_Icc_union_Icc : Icc a c ⊆ Icc a b ∪ Icc b c :=
+subset.trans Icc_subset_Icc_union_Ioc (union_subset_union_right _ Ioc_subset_Icc_self)
+
+@[simp] lemma Icc_union_Icc_eq_Icc (h₁ : a ≤ b) (h₂ : b ≤ c) : Icc a b ∪ Icc b c = Icc a c :=
+subset.antisymm
+  (λ x hx, hx.elim (λ hx, ⟨hx.1, le_trans hx.2 h₂⟩) (λ hx, ⟨le_trans h₁ hx.1, hx.2⟩))
+  Icc_subset_Icc_union_Icc
+
+lemma Ioc_subset_Ioc_union_Icc : Ioc a c ⊆ Ioc a b ∪ Icc b c :=
+subset.trans Ioc_subset_Ioc_union_Ioc (union_subset_union_right _ Ioc_subset_Icc_self)
+
+@[simp] lemma Ioc_union_Icc_eq_Ioc (h₁ : a < b) (h₂ : b ≤ c) : Ioc a b ∪ Icc b c = Ioc a c :=
+subset.antisymm
+  (λ x hx, hx.elim (λ hx, ⟨hx.1, le_trans hx.2 h₂⟩) (λ hx, ⟨lt_of_lt_of_le h₁ hx.1, hx.2⟩))
+  Ioc_subset_Ioc_union_Icc
 
 end linear_order
 
 section lattice
-
 
 section inf
 
@@ -562,12 +739,7 @@ by simp only [Ici_inter_Iic.symm, Ici_inter_Ici.symm, Iic_inter_Iic.symm]; ac_re
 
 @[simp] lemma Icc_inter_Icc_eq_singleton (hab : a ≤ b) (hbc : b ≤ c) :
   Icc a b ∩ Icc b c = {b} :=
-begin
-  rw [Icc_inter_Icc],
-  convert Icc_self b,
-  exact sup_of_le_right hab,
-  exact inf_of_le_left hbc
-end
+by rw [Icc_inter_Icc, sup_of_le_right hab, inf_of_le_left hbc, Icc_self]
 
 include ht
 
@@ -585,70 +757,43 @@ end both
 end lattice
 
 section decidable_linear_order
-variables {α : Type u} [decidable_linear_order α] {a a₁ a₂ b b₁ b₂ : α}
+variables {α : Type u} [decidable_linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
 
-@[simp] lemma Ico_diff_Iio {a b c : α} : Ico a b \ Iio c = Ico (max a c) b :=
-set.ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}
+@[simp] lemma Ico_diff_Iio : Ico a b \ Iio c = Ico (max a c) b :=
+ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}
 
-@[simp] lemma Ico_inter_Iio {a b c : α} : Ico a b ∩ Iio c = Ico a (min b c) :=
-set.ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
+@[simp] lemma Ico_inter_Iio : Ico a b ∩ Iio c = Ico a (min b c) :=
+ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
+
+lemma Ioc_union_Ioc (h₁ : min a b ≤ max c d) (h₂ : min c d ≤ max a b) :
+  Ioc a b ∪ Ioc c d = Ioc (min a c) (max b d) :=
+begin
+  cases le_total a b with hab hab; cases le_total c d with hcd hcd; simp [hab, hcd] at h₁ h₂,
+  { ext x,
+    simp [iff_def, and_imp, or_imp_distrib, (h₂.lt_or_le x).symm, h₁.lt_or_le]
+      { contextual := tt } },
+  all_goals { simp [*] }
+end
+
+@[simp] lemma Ioc_union_Ioc_right : Ioc a b ∪ Ioc a c = Ioc a (max b c) :=
+by rw [Ioc_union_Ioc, min_self]; exact (min_le_left _ _).trans (le_max_left _ _)
+
+@[simp] lemma Ioc_union_Ioc_left : Ioc a c ∪ Ioc b c = Ioc (min a b) c :=
+by rw [Ioc_union_Ioc, max_self]; exact (min_le_right _ _).trans (le_max_right _ _)
+
+@[simp] lemma Ioc_union_Ioc_symm : Ioc a b ∪ Ioc b a = Ioc (min a b) (max a b) :=
+by { rw max_comm, apply Ioc_union_Ioc; rw max_comm; exact min_le_max }
+
+@[simp] lemma Ioc_union_Ioc_union_Ioc_cycle :
+  Ioc a b ∪ Ioc b c ∪ Ioc c a = Ioc (min a (min b c)) (max a (max b c)) :=
+begin
+  rw [Ioc_union_Ioc, Ioc_union_Ioc],
+  ac_refl,
+  all_goals { solve_by_elim [min_le_left_of_le, min_le_right_of_le, le_max_left_of_le,
+    le_max_right_of_le, le_refl] { max_depth := 5 }}
+end
 
 end decidable_linear_order
-
-section ordered_add_comm_group
-
-variables {α : Type u} [ordered_add_comm_group α]
-
-lemma image_add_left_Icc (a b c : α) : ((+) a) '' Icc b c = Icc (a + b) (a + c) :=
-begin
-  ext x,
-  split,
-  { rintros ⟨x, hx, rfl⟩,
-    exact ⟨add_le_add_left hx.1 a, add_le_add_left hx.2 a⟩},
-  { intro hx,
-    refine ⟨-a + x, _, add_neg_cancel_left _ _⟩,
-    exact ⟨le_neg_add_iff_add_le.2 hx.1, neg_add_le_iff_le_add.2 hx.2⟩ }
-end
-
-lemma image_add_right_Icc (a b c : α) : (λ x, x + c) '' Icc a b = Icc (a + c) (b + c) :=
-by convert image_add_left_Icc c a b using 1; simp only [add_comm _ c]
-
-lemma image_neg_Iio (r : α) : image (λz, -z) (Iio r) = Ioi (-r) :=
-begin
-  ext z,
-  apply iff.intro,
-  { intros hz,
-    apply exists.elim hz,
-    intros z' hz',
-    rw [←hz'.2],
-    simp only [mem_Ioi, neg_lt_neg_iff],
-    exact hz'.1 },
-  { intros hz,
-    simp only [mem_image, mem_Iio],
-    use -z,
-    simp [hz],
-    exact neg_lt.1 hz }
-end
-
-lemma image_neg_Iic (r : α)  : image (λz, -z) (Iic r) = Ici (-r) :=
-begin
-  apply set.ext,
-  intros z,
-  apply iff.intro,
-  { intros hz,
-    apply exists.elim hz,
-    intros z' hz',
-    rw [←hz'.2],
-    simp only [neg_le_neg_iff, mem_Ici],
-    exact hz'.1 },
-  { intros hz,
-    simp only [mem_image, mem_Iic],
-    use -z,
-    simp [hz],
-    exact neg_le.1 hz }
-end
-
-end ordered_add_comm_group
 
 section decidable_linear_ordered_add_comm_group
 
@@ -664,41 +809,5 @@ begin
 end
 
 end decidable_linear_ordered_add_comm_group
-
-section linear_ordered_field
-
-variables {α : Type u} [linear_ordered_field α]
-
-lemma image_mul_right_Icc' (a b : α) {c : α} (h : 0 < c) :
-  (λ x, x * c) '' Icc a b = Icc (a * c) (b * c) :=
-begin
-  ext x,
-  split,
-  { rintros ⟨x, hx, rfl⟩,
-    exact ⟨mul_le_mul_of_nonneg_right hx.1 (le_of_lt h),
-      mul_le_mul_of_nonneg_right hx.2 (le_of_lt h)⟩ },
-  { intro hx,
-    refine ⟨x / c, _, div_mul_cancel x (ne_of_gt h)⟩,
-    exact ⟨le_div_of_mul_le h hx.1, div_le_of_le_mul h (mul_comm b c ▸ hx.2)⟩ }
-end
-
-lemma image_mul_right_Icc {a b c : α} (hab : a ≤ b) (hc : 0 ≤ c) :
-  (λ x, x * c) '' Icc a b = Icc (a * c) (b * c) :=
-begin
-  cases eq_or_lt_of_le hc,
-  { subst c,
-    simp [(nonempty_Icc.2 hab).image_const] },
-  exact image_mul_right_Icc' a b ‹0 < c›
-end
-
-lemma image_mul_left_Icc' {a : α} (h : 0 < a) (b c : α) :
-  ((*) a) '' Icc b c = Icc (a * b) (a * c) :=
-by { convert image_mul_right_Icc' b c h using 1; simp only [mul_comm _ a] }
-
-lemma image_mul_left_Icc {a b c : α} (ha : 0 ≤ a) (hbc : b ≤ c) :
-  ((*) a) '' Icc b c = Icc (a * b) (a * c) :=
-by { convert image_mul_right_Icc hbc ha using 1; simp only [mul_comm _ a] }
-
-end linear_ordered_field
 
 end set

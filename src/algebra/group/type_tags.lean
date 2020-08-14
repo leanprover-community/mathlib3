@@ -33,8 +33,8 @@ def additive.of_mul (x : α) : additive α := x
 /-- Reinterpret `x : additive α` as an element of `α`. -/
 def additive.to_mul (x : additive α) : α := x
 
-lemma of_mul_inj : function.injective (@additive.of_mul α) := λ _ _, id
-lemma to_mul_inj : function.injective (@additive.to_mul α) := λ _ _, id
+lemma of_mul_injective : function.injective (@additive.of_mul α) := λ _ _, id
+lemma to_mul_injective : function.injective (@additive.to_mul α) := λ _ _, id
 
 /-- Reinterpret `x : α` as an element of `multiplicative α`. -/
 def multiplicative.of_add (x : α) : multiplicative α := x
@@ -42,8 +42,8 @@ def multiplicative.of_add (x : α) : multiplicative α := x
 /-- Reinterpret `x : multiplicative α` as an element of `α`. -/
 def multiplicative.to_add (x : multiplicative α) : α := x
 
-lemma of_add_inj : function.injective (@multiplicative.of_add α) := λ _ _, id
-lemma to_add_inj : function.injective (@multiplicative.to_add α) := λ _ _, id
+lemma of_add_injective : function.injective (@multiplicative.of_add α) := λ _ _, id
+lemma to_add_injective : function.injective (@multiplicative.to_add α) := λ _ _, id
 
 @[simp] lemma to_add_of_add (x : α) : (multiplicative.of_add x).to_add = x := rfl
 @[simp] lemma of_add_to_add (x : multiplicative α) : multiplicative.of_add x.to_add = x := rfl
@@ -173,4 +173,14 @@ def add_monoid_hom.to_multiplicative [add_monoid α] [add_monoid β] (f : α →
 
 /-- Reinterpret `f : α →* β` as `additive α →+ additive β`. -/
 def monoid_hom.to_additive [monoid α] [monoid β] (f : α →* β) : additive α →+ additive β :=
+⟨f.1, f.2, f.3⟩
+
+/-- Reinterpret `f : additive α →+ β` as `α →* multiplicative β`. -/
+def add_monoid_hom.to_multiplicative' [monoid α] [add_monoid β] (f : additive α →+ β) :
+  α →* multiplicative β :=
+⟨f.1, f.2, f.3⟩
+
+/-- Reinterpret `f : α →* multiplicative β` as `additive α →+ β`. -/
+def monoid_hom.to_additive' [monoid α] [add_monoid β] (f : α →* multiplicative β) :
+  additive α →+ β :=
 ⟨f.1, f.2, f.3⟩

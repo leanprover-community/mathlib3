@@ -5,7 +5,6 @@ Authors: Yury Kudryashov, Scott Morrison, Simon Hudon
 
 Definition and basic properties of endomorphisms and automorphisms of an object in a category.
 -/
-import category_theory.category
 import category_theory.groupoid
 import data.equiv.mul_add
 
@@ -13,15 +12,15 @@ universes v v' u u'
 
 namespace category_theory
 
-/-- Endomorphisms of an object in a category. Arguments order in multiplication agrees with `function.comp`, not with `category.comp`. -/
-def End {C : Type u} [𝒞_struct : category_struct.{v} C] (X : C) := X ⟶ X
+/-- Endomorphisms of an object in a category. Arguments order in multiplication agrees with
+`function.comp`, not with `category.comp`. -/
+def End {C : Type u} [category_struct.{v} C] (X : C) := X ⟶ X
 
 namespace End
 
 section struct
 
-variables {C : Type u} [𝒞_struct : category_struct.{v} C] (X : C)
-include 𝒞_struct
+variables {C : Type u} [category_struct.{v} C] (X : C)
 
 instance has_one : has_one (End X) := ⟨𝟙 X⟩
 
@@ -49,8 +48,7 @@ instance group {C : Type u} [groupoid.{v} C] (X : C) : group (End X) :=
 
 end End
 
-variables {C : Type u} [𝒞 : category.{v} C] (X : C)
-include 𝒞
+variables {C : Type u} [category.{v} C] (X : C)
 
 def Aut (X : C) := X ≅ X
 
@@ -61,7 +59,7 @@ namespace Aut
 instance : group (Aut X) :=
 by refine { one := iso.refl X,
             inv := iso.symm,
-            mul := flip iso.trans, .. } ; dunfold flip; obviously
+            mul := flip iso.trans, .. } ; simp [flip, (*), has_one.one]
 
 /--
 Units in the monoid of endomorphisms of an object
@@ -78,8 +76,7 @@ end Aut
 
 namespace functor
 
-variables {D : Type u'} [𝒟 : category.{v'} D] (f : C ⥤ D) (X)
-include 𝒟
+variables {D : Type u'} [category.{v'} D] (f : C ⥤ D) (X)
 
 /-- `f.map` as a monoid hom between endomorphism monoids. -/
 def map_End : End X →* End (f.obj X) :=

@@ -24,7 +24,7 @@ has to be `dense_inducing` (not necessarily injective).
 noncomputable theory
 
 open set filter
-open_locale classical topological_space
+open_locale classical topological_space filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -41,6 +41,10 @@ eq_univ_iff_forall.symm
 
 lemma dense_range.closure_range (h : dense_range f) : closure (range f) = univ :=
 eq_univ_iff_forall.mpr h
+
+lemma dense_range.nhds_within_ne_bot (h : dense_range f) (x : β) :
+  ne_bot (𝓝[range f] x) :=
+mem_closure_iff_cluster_pt.1 (h x)
 
 lemma dense_range.comp (hg : dense_range g) (hf : dense_range f) (cg : continuous g) :
   dense_range (g ∘ f) :=
@@ -142,13 +146,11 @@ begin
   exact le_trans lim1 lim2,
 end
 
-protected lemma nhds_inf_ne_bot (di : dense_inducing i) {b : β} : 𝓝 b ⊓ principal (range i) ≠ ⊥ :=
-begin
-  convert di.dense b,
-  simp [closure_eq_nhds]
-end
+protected lemma nhds_within_ne_bot (di : dense_inducing i) (b : β) :
+  ne_bot (𝓝[range i] b) :=
+di.dense.nhds_within_ne_bot b
 
-lemma comap_nhds_ne_bot (di : dense_inducing i) {b : β} : comap i (𝓝 b) ≠ ⊥ :=
+lemma comap_nhds_ne_bot (di : dense_inducing i) (b : β) : ne_bot (comap i (𝓝 b)) :=
 comap_ne_bot $ λ s hs,
 let ⟨_, ⟨ha, a, rfl⟩⟩ := mem_closure_iff_nhds.1 (di.dense b) s hs in ⟨a, ha⟩
 
@@ -159,60 +161,69 @@ variables [topological_space γ]
   continuous extension, then `g` is the unique such extension. In general,
   `g` might not be continuous or even extend `f`. -/
 def extend (di : dense_inducing i) (f : α → γ) (b : β) : γ :=
-@lim _ _ ⟨f (dense_range.inhabited di.dense b).default⟩ (map f (comap i (𝓝 b)))
+@@lim _ ⟨f (di.dense.inhabited b).default⟩ (comap i (𝓝 b)) f
 
-lemma extend_eq [t2_space γ] {b : β} {c : γ} {f : α → γ} (hf : map f (comap i (𝓝 b)) ≤ 𝓝 c) :
+lemma extend_eq_of_tendsto [t2_space γ] {b : β} {c : γ} {f : α → γ}
+  (hf : tendsto f (comap i (𝓝 b)) (𝓝 c)) :
   di.extend f b = c :=
-@lim_eq _ _ (id _) _ _ _ (by simp; exact comap_nhds_ne_bot di) hf
+by haveI := di.comap_nhds_ne_bot; exact hf.lim_eq
 
-lemma extend_e_eq [t2_space γ] {f : α → γ} (a : α) (hf : continuous_at f a) :
+lemma extend_eq_at [t2_space γ] {f : α → γ} (a : α) (hf : continuous_at f a) :
   di.extend f (i a) = f a :=
-extend_eq _ $ di.nhds_eq_comap a ▸ hf
+extend_eq_of_tendsto _ $ di.nhds_eq_comap a ▸ hf
 
-lemma extend_eq_of_cont [t2_space γ] {f : α → γ} (hf : continuous f) (a : α) :
+lemma extend_eq [t2_space γ] {f : α → γ} (hf : continuous f) (a : α) :
   di.extend f (i a) = f a :=
-di.extend_e_eq a (continuous_iff_continuous_at.1 hf a)
+di.extend_eq_at a hf.continuous_at
 
-lemma tendsto_extend [regular_space γ] {b : β} {f : α → γ} (di : dense_inducing i)
-  (hf : {b | ∃c, tendsto f (comap i $ 𝓝 b) (𝓝 c)} ∈ 𝓝 b) :
-  tendsto (di.extend f) (𝓝 b) (𝓝 (di.extend f b)) :=
-let φ := {b | tendsto f (comap i $ 𝓝 b) (𝓝 $ di.extend f b)} in
-have hφ : φ ∈ 𝓝 b,
-  from (𝓝 b).sets_of_superset hf $ assume b ⟨c, hc⟩,
-    show tendsto f (comap i (𝓝 b)) (𝓝 (di.extend f b)), from (di.extend_eq hc).symm ▸ hc,
-assume s hs,
-let ⟨s'', hs''₁, hs''₂, hs''₃⟩ := nhds_is_closed hs in
-let ⟨s', hs'₁, (hs'₂ : i ⁻¹' s' ⊆ f ⁻¹' s'')⟩ := mem_of_nhds hφ hs''₁ in
-let ⟨t, (ht₁ : t ⊆ φ ∩ s'), ht₂, ht₃⟩ := mem_nhds_sets_iff.mp $ inter_mem_sets hφ hs'₁ in
-have h₁ : closure (f '' (i ⁻¹' s')) ⊆ s'',
-  by rw [closure_subset_iff_subset_of_is_closed hs''₃, image_subset_iff]; exact hs'₂,
-have h₂ : t ⊆ di.extend f ⁻¹' closure (f '' (i ⁻¹' t)), from
-  assume b' hb',
-  have 𝓝 b' ≤ principal t, by simp; exact mem_nhds_sets ht₂ hb',
-  have map f (comap i (𝓝 b')) ≤ 𝓝 (di.extend f b') ⊓ principal (f '' (i ⁻¹' t)),
-    from calc _ ≤ map f (comap i (𝓝 b' ⊓ principal t)) : map_mono $ comap_mono $ le_inf (le_refl _) this
-      ... ≤ map f (comap i (𝓝 b')) ⊓ map f (comap i (principal t)) :
-        le_inf (map_mono $ comap_mono $ inf_le_left) (map_mono $ comap_mono $ inf_le_right)
-      ... ≤ map f (comap i (𝓝 b')) ⊓ principal (f '' (i ⁻¹' t)) : by simp [le_refl]
-      ... ≤ _ : inf_le_inf ((ht₁ hb').left) (le_refl _),
-  show di.extend f b' ∈ closure (f '' (i ⁻¹' t)),
-  begin
-    rw [closure_eq_nhds],
-    apply ne_bot_of_le_ne_bot _ this,
-    simp,
-    exact di.comap_nhds_ne_bot
-  end,
-(𝓝 b).sets_of_superset
-  (show t ∈ 𝓝 b, from mem_nhds_sets ht₂ ht₃)
-  (calc t ⊆ di.extend f ⁻¹' closure (f '' (i ⁻¹' t)) : h₂
-    ... ⊆ di.extend f ⁻¹' closure (f '' (i ⁻¹' s')) :
-      preimage_mono $ closure_mono $ image_subset f $ preimage_mono $ subset.trans ht₁ $ inter_subset_right _ _
-    ... ⊆ di.extend f ⁻¹' s'' : preimage_mono h₁
-    ... ⊆ di.extend f ⁻¹' s : preimage_mono hs''₂)
+lemma extend_unique_at [t2_space γ] {b : β} {f : α → γ} {g : β → γ} (di : dense_inducing i)
+  (hf : ∀ᶠ x in comap i (𝓝 b), g (i x) = f x) (hg : continuous_at g b) :
+  di.extend f b = g b :=
+begin
+  refine di.extend_eq_of_tendsto (λ s hs, mem_map.2 _),
+  suffices : ∀ᶠ (x : α) in comap i (𝓝 b), g (i x) ∈ s,
+    from hf.mp (this.mono $ λ x hgx hfx, hfx ▸ hgx),
+  clear hf f,
+  refine eventually_comap.2 ((hg.eventually hs).mono _),
+  rintros _ hxs x rfl,
+  exact hxs
+end
+
+lemma extend_unique [t2_space γ] {f : α → γ} {g : β → γ} (di : dense_inducing i)
+  (hf : ∀ x, g (i x) = f x) (hg : continuous g) :
+  di.extend f = g :=
+funext $ λ b, extend_unique_at di (eventually_of_forall hf) hg.continuous_at
+
+lemma continuous_at_extend [regular_space γ] {b : β} {f : α → γ} (di : dense_inducing i)
+  (hf : ∀ᶠ x in 𝓝 b, ∃c, tendsto f (comap i $ 𝓝 x) (𝓝 c)) :
+  continuous_at (di.extend f) b :=
+begin
+  set φ := di.extend f,
+  haveI := di.comap_nhds_ne_bot,
+  suffices : ∀ V' ∈ 𝓝 (φ b), is_closed V' → φ ⁻¹' V' ∈ 𝓝 b,
+    by simpa [continuous_at, (closed_nhds_basis _).tendsto_right_iff],
+  intros V' V'_in V'_closed,
+  set V₁ := {x | tendsto f (comap i $ 𝓝 x) (𝓝 $ φ x)},
+  have V₁_in : V₁ ∈ 𝓝 b,
+  { filter_upwards [hf],
+    rintros x ⟨c, hc⟩,
+    dsimp [V₁, φ],
+    rwa di.extend_eq_of_tendsto hc },
+  obtain ⟨V₂, V₂_in, V₂_op, hV₂⟩ : ∃ V₂ ∈ 𝓝 b, is_open V₂ ∧ ∀ x ∈ i ⁻¹' V₂, f x ∈ V',
+  { simpa [and_assoc] using ((nhds_basis_opens' b).comap i).tendsto_left_iff.mp
+                            (mem_of_nhds V₁_in : b ∈ V₁) V' V'_in },
+  suffices : ∀ x ∈ V₁ ∩ V₂, φ x ∈ V',
+  { filter_upwards [inter_mem_sets V₁_in V₂_in], exact this },
+  rintros x ⟨x_in₁, x_in₂⟩,
+  have hV₂x : V₂ ∈ 𝓝 x := mem_nhds_sets V₂_op x_in₂,
+  apply mem_of_closed_of_tendsto x_in₁ V'_closed,
+  use V₂,
+  tauto,
+end
 
 lemma continuous_extend [regular_space γ] {f : α → γ} (di : dense_inducing i)
   (hf : ∀b, ∃c, tendsto f (comap i (𝓝 b)) (𝓝 c)) : continuous (di.extend f) :=
-continuous_iff_continuous_at.mpr $ assume b, di.tendsto_extend $ univ_mem_sets' hf
+continuous_iff_continuous_at.mpr $ assume b, di.continuous_at_extend $ univ_mem_sets' hf
 
 lemma mk'
   (i : α → β)
@@ -262,22 +273,22 @@ protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedd
 /-- The dense embedding of a subtype inside its closure. -/
 def subtype_emb {α : Type*} (p : α → Prop) (e : α → β) (x : {x // p x}) :
   {x // x ∈ closure (e '' {x | p x})} :=
-⟨e x.1, subset_closure $ mem_image_of_mem e x.2⟩
+⟨e x, subset_closure $ mem_image_of_mem e x.prop⟩
 
 protected lemma subtype (p : α → Prop) : dense_embedding (subtype_emb p e) :=
 { dense_embedding .
   dense   := assume ⟨x, hx⟩, closure_subtype.mpr $
-    have (λ (x : {x // p x}), e (x.val)) = e ∘ subtype.val, from rfl,
+    have (λ (x : {x // p x}), e x) = e ∘ coe, from rfl,
     begin
       rw ← image_univ,
       simp [(image_comp _ _ _).symm, (∘), subtype_emb, -image_univ],
-      rw [this, image_comp, subtype.val_image],
+      rw [this, image_comp, subtype.coe_image],
       simp,
       assumption
     end,
   inj     := assume ⟨x, hx⟩ ⟨y, hy⟩ h, subtype.eq $ de.inj $ @@congr_arg subtype.val h,
   induced := (induced_iff_nhds_eq _).2 (assume ⟨x, hx⟩,
-    by simp [subtype_emb, nhds_subtype_eq_comap, de.to_inducing.nhds_eq_comap, comap_comap_comp, (∘)]) }
+    by simp [subtype_emb, nhds_subtype_eq_comap, de.to_inducing.nhds_eq_comap, comap_comap, (∘)]) }
 
 end dense_embedding
 
@@ -287,7 +298,7 @@ lemma is_closed_property [topological_space β] {e : α → β} {p : β → Prop
 have univ ⊆ {b | p b},
   from calc univ = closure (range e) : he.closure_range.symm
     ... ⊆ closure {b | p b} : closure_mono $ range_subset_iff.mpr h
-    ... = _ : closure_eq_of_is_closed hp,
+    ... = _ : hp.closure_eq,
 assume b, this trivial
 
 lemma is_closed_property2 [topological_space β] {e : α → β} {p : β → β → Prop}

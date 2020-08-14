@@ -5,6 +5,8 @@ Authors: Simon Hudon
 -/
 import tactic.rcases
 import data.sum
+import logic.function.basic
+
 universes u₁ u₂
 
 open interactive interactive.types
@@ -150,6 +152,82 @@ do e  ← saturate_fun n,
    e' ← saturate_fun n',
    unify e e' <|> fail format!"{n} and {n'} are not definitionally equal types"
 
+section performance_hack
+/--
+For performance reasons, it is inadvisable to use `user_attribute.get_param`.
+The parameter is stored as a reflected expression.  When calling `get_param`,
+the stored parameter is evaluated using `eval_expr`, which first compiles the
+expression into VM bytecode. The unevaluated expression is available using
+`user_attribute.get_param_untyped`.
+
+In particular, `user_attribute.get_param` MUST NEVER BE USED in the
+implementation of an attribute cache. This is because calling `eval_expr`
+disables the attribute cache.
+
+There are several possible workarounds:
+ 1. Set a different attribute depending on the parameter.
+ 2. Use your own evaluation function instead of `eval_expr`, such as e.g. `expr.to_nat`.
+ 3. Write your own `has_reflect Param` instance (using a more efficient serialization format).
+   The `user_attribute` code unfortunately checks whether the expression has the correct type,
+   but you can use `` `(id %%e : Param) `` to pretend that your expression `e` has type `Param`.
+-/
+library_note "user attribute parameters"
+
+/-!
+For performance reasons, the parameters of the `@[ext]` attribute are stored
+in two auxiliary attributes:
+```lean
+attribute [ext [thunk]] funext
+
+-- is turned into
+attribute [_ext_core (@id name @funext)] thunk
+attribute [_ext_lemma_core] funext
+```
+
+see Note [user attribute parameters]
+-/
+
+local attribute [semireducible] reflected
+
+local attribute [instance, priority 9000]
+private meta def hacky_name_reflect : has_reflect name :=
+λ n, `(id %%(expr.const n []) : name)
+
+@[user_attribute]
+private meta def ext_attr_core : user_attribute (name_map name) name :=
+{ name := `_ext_core,
+  descr := "(internal attribute used by ext)",
+  cache_cfg := {
+    dependencies := [],
+    mk_cache := λ ns, do
+      attrs ← ns.mmap (λ n, do
+        ext_l ← ext_attr_core.get_param_untyped n,
+        pure (n, ext_l.app_arg.const_name)),
+      pure $ rb_map.of_list attrs },
+  parser := failure }
+
+end performance_hack
+
+/-- Private attribute used to tag extensionality lemmas. -/
+@[user_attribute]
+private meta def ext_lemma_attr_core : user_attribute :=
+{ name := `_ext_lemma_core,
+  descr := "(internal attribute used by ext)",
+  parser := failure }
+
+/--
+Returns the extensionality lemmas in the environment, as a map from structure
+name to lemma name.
+-/
+meta def get_ext_lemmas : tactic (name_map name) :=
+ext_attr_core.get_cache
+
+/--
+Returns the extensionality lemmas in the environment, as a list of lemma names.
+-/
+meta def get_ext_lemma_names : tactic (list name) :=
+attribute.get_instances ext_lemma_attr_core.name
+
 /--
 Tag lemmas of the form:
 
@@ -235,22 +313,12 @@ x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
 
 -/
 @[user_attribute]
-meta def extensional_attribute : user_attribute (name_map name)
-  (bool × list ext_param_type × list name × list (name × name)) :=
+meta def extensional_attribute : user_attribute unit (list ext_param_type) :=
 { name := `ext,
   descr := "lemmas usable by `ext` tactic",
-  cache_cfg := { mk_cache := λ ls,
-                          do { attrs ← ls.mmap $ λ l,
-                                     do { ⟨_,_,ls,_⟩ ← extensional_attribute.get_param l,
-                                          pure $ prod.mk <$> ls <*> pure l },
-                               pure $ rb_map.of_list $ attrs.join },
-                 dependencies := [] },
-  parser :=
-    do { ls ← pure <$> ext_param <|> list_of ext_param <|> pure [],
-         m ← extensional_attribute.get_cache,
-         pure $ (ff,ls,[],m.to_list)  },
-  after_set := some $ λ n _ b,
-    do (ff,ls,_,ls') ← extensional_attribute.get_param n | pure (),
+  parser := pure <$> ext_param <|> list_of ext_param <|> pure [],
+  after_set := some $ λ n prio b,
+    do ls ← extensional_attribute.get_param n,
        e ← get_env,
        n ← if (e.structure_fields n).is_some
          then derive_struct_ext_lemma n
@@ -261,8 +329,11 @@ meta def extensional_attribute : user_attribute (name_map name)
                            else ls.partition_map (sum.map (flip option.get_or_else s)
                                                     (flip option.get_or_else s)),
        ls''.mmap' (equiv_type_constr s),
-       let l := ls'' ∪ (ls'.filter $ λ l, prod.snd l = n).map prod.fst \ rs,
-       extensional_attribute.set n (tt,[],l,[]) b }
+       ls' ← get_ext_lemmas,
+       let l := ls'' ∪ (ls'.to_list.filter $ λ l, prod.snd l = n).map prod.fst \ rs,
+       l.mmap' $ λ l, do
+        ext_attr_core.set l n b prio,
+        ext_lemma_attr_core.set n () b prio }
 
 add_tactic_doc
 { name                     := "ext",
@@ -271,7 +342,7 @@ add_tactic_doc
   tags                     := ["rewrite", "logic"] }
 
 -- We mark some existing extensionality lemmas.
-attribute [ext] array.ext propext
+attribute [ext] array.ext propext function.hfunext
 attribute [ext [(→),thunk]] _root_.funext
 
 -- We create some extensionality lemmas for existing structures.
@@ -289,9 +360,12 @@ end plift
 -- as they become useful.
 attribute [ext] has_zero
 
+@[ext] lemma unit.ext {x y : unit} : x = y := by { cases x, cases y, refl, }
+@[ext] lemma punit.ext {x y : punit} : x = y := by { cases x, cases y, refl, }
+
 namespace tactic
 
-meta def try_intros : ext_patt → tactic ext_patt
+meta def try_intros : list rcases_patt → tactic (list rcases_patt)
 | [] := try intros $> []
 | (x::xs) :=
 do tgt ← target >>= whnf,
@@ -299,17 +373,17 @@ do tgt ← target >>= whnf,
      then rintro [x] >> try_intros xs
      else pure (x :: xs)
 
-meta def ext1 (xs : ext_patt) (cfg : apply_cfg := {}) : tactic ext_patt :=
+meta def ext1 (xs : list rcases_patt) (cfg : apply_cfg := {}) : tactic (list rcases_patt) :=
 do subject ← target >>= get_ext_subject,
-   m ← extensional_attribute.get_cache,
+   m ← get_ext_lemmas,
    do { rule ← m.find subject,
         applyc rule cfg } <|>
-     do { ls ← attribute.get_instances `ext,
+     do { ls ← get_ext_lemma_names,
           ls.any_of (λ n, applyc n cfg) } <|>
      fail format!"no applicable extensionality rule found for {subject}",
    try_intros xs
 
-meta def ext : ext_patt → option ℕ → tactic unit
+meta def ext : list rcases_patt → option ℕ → tactic unit
 | _  (some 0) := skip
 | xs n        := focus1 $ do
   ys ← ext1 xs, try (ext ys (nat.pred <$> n))
@@ -324,13 +398,15 @@ local postfix *:9001 := many
 introduced by the lemma. If `id` is omitted, the local constant is
 named automatically, as per `intro`.
 -/
-meta def interactive.ext1 (xs : parse ext_parse) : tactic unit :=
+meta def interactive.ext1 (xs : parse (rcases_patt_parse tt)*) : tactic unit :=
 ext1 xs $> ()
 
 /--
 - `ext` applies as many extensionality lemmas as possible;
 - `ext ids`, with `ids` a list of identifiers, finds extentionality and applies them
   until it runs out of identifiers in `ids` to name the local constants.
+- `ext` can also be given an `rcases` pattern in place of an identifier.
+  This will destruct the introduced local constant.
 
 When trying to prove:
 
@@ -352,23 +428,46 @@ y : β
 
 by applying functional extensionality and set extensionality.
 
+When trying to prove:
+
+```lean
+α β γ : Type
+f g : α × β → γ
+⊢ f = g
+```
+
+applying `ext ⟨a, b⟩` yields:
+
+```lean
+α β γ : Type,
+f g : α × β → γ,
+a : α,
+b : β
+⊢ f (a, b) = g (a, b)
+```
+
+by applying functional extensionality and destructing the introduced pair.
+
 A maximum depth can be provided with `ext x y z : 3`.
 -/
-meta def interactive.ext : parse ext_parse → parse (tk ":" *> small_nat)? → tactic unit
+meta def interactive.ext :
+  parse (rcases_patt_parse tt)* → parse (tk ":" *> small_nat)? → tactic unit
  | [] (some n) := iterate_range 1 n (ext1 [] $> ())
  | [] none     := repeat1 (ext1 [] $> ())
  | xs n        := tactic.ext xs n
 
 /--
- * `ext1 id` selects and apply one extensionality lemma (with
-    attribute `ext`), using `id`, if provided, to name a
-    local constant introduced by the lemma. If `id` is omitted, the
-    local constant is named automatically, as per `intro`.
+* `ext1 id` selects and apply one extensionality lemma (with
+  attribute `ext`), using `id`, if provided, to name a
+  local constant introduced by the lemma. If `id` is omitted, the
+  local constant is named automatically, as per `intro`.
 
- * `ext` applies as many extensionality lemmas as possible;
- * `ext ids`, with `ids` a list of identifiers, finds extensionality lemmas
-    and applies them until it runs out of identifiers in `ids` to name
-    the local constants.
+* `ext` applies as many extensionality lemmas as possible;
+* `ext ids`, with `ids` a list of identifiers, finds extensionality lemmas
+  and applies them until it runs out of identifiers in `ids` to name
+  the local constants.
+* `ext` can also be given an `rcases` pattern in place of an identifier.
+  This will destruct the introduced local constant.
 
 When trying to prove:
 
@@ -387,8 +486,27 @@ x : α,
 y : β
 ⊢ y ∈ f x ↔ y ∈ g x
 ```
-
 by applying functional extensionality and set extensionality.
+
+When trying to prove:
+
+```lean
+α β γ : Type
+f g : α × β → γ
+⊢ f = g
+```
+
+applying `ext ⟨a, b⟩` yields:
+
+```lean
+α β γ : Type,
+f g : α × β → γ,
+a : α,
+b : β
+⊢ f (a, b) = g (a, b)
+```
+
+by applying functional extensionality and destructing the introduced pair.
 
 A maximum depth can be provided with `ext x y z : 3`.
 -/

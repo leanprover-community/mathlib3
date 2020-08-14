@@ -3,9 +3,10 @@ Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Yury Kudriashov
 -/
-import data.set.intervals
-import ring_theory.algebra
-import algebra.pointwise
+import data.set.intervals.ord_connected
+import data.set.intervals.image_preimage
+import data.complex.module
+import linear_algebra.affine_space.basic
 
 /-!
 # Convex sets and functions on real vector spaces
@@ -36,18 +37,17 @@ We use the following local notations:
 They are defined using `local notation`, so they are not available outside of this file.
 -/
 
-universes u' u v w x
+universes u' u v v' w x
 
-variables {E : Type u} {F : Type v} {ι : Type w} {ι' : Type x}
+variables {E : Type u} {F : Type v} {ι : Type w} {ι' : Type x} {α : Type v'}
   [add_comm_group E] [vector_space ℝ E] [add_comm_group F] [vector_space ℝ F]
+  [linear_ordered_field α]
   {s : set E}
 
-open set
-open_locale classical
+open set linear_map
+open_locale classical big_operators
 
 local notation `I` := (Icc 0 1 : set ℝ)
-
-local attribute [instance] set.pointwise_add set.smul_set
 
 section sets
 
@@ -91,7 +91,7 @@ lemma segment_eq_Icc {a b : ℝ} (h : a ≤ b) : [a, b] = Icc a b :=
 begin
   rw [segment_eq_image'],
   show (((+) a) ∘ (λ t, t * (b - a))) '' Icc 0 1 = Icc a b,
-  rw [image_comp, image_mul_right_Icc (@zero_le_one ℝ _) (sub_nonneg.2 h), image_add_left_Icc],
+  rw [image_comp, image_mul_right_Icc (@zero_le_one ℝ _) (sub_nonneg.2 h), image_const_add_Icc],
   simp
 end
 
@@ -105,7 +105,7 @@ lemma mem_segment_translate (a : E) {x b c} : a + x ∈ [a + b, a + c] ↔ x ∈
 begin
   rw [segment_eq_image', segment_eq_image'],
   refine exists_congr (λ θ, and_congr iff.rfl _),
-  simp only [add_sub_add_left_eq_sub, add_assoc, add_left_inj]
+  simp only [add_sub_add_left_eq_sub, add_assoc, add_right_inj]
 end
 
 lemma segment_translate_preimage (a b c : E) : (λ x, a + x) ⁻¹' [a + b, a + c] = [b, c] :=
@@ -144,11 +144,11 @@ lemma convex_iff_pointwise_add_subset:
   convex s ↔ ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → a + b = 1 → a • s + b • s ⊆ s :=
 iff.intro
   begin
-    rintros hA a b ha hb hab w ⟨au, ⟨u, hu, rfl⟩, bv, ⟨v, hv, rfl⟩, rfl⟩,
+    rintros hA a b ha hb hab w ⟨au, bv, ⟨u, hu, rfl⟩, ⟨v, hv, rfl⟩, rfl⟩,
     exact hA hu hv ha hb hab
   end
   (λ h x y hx hy a b ha hb hab,
-    (h ha hb hab) (set.add_mem_pointwise_add ⟨_, hx, rfl⟩ ⟨_, hy, rfl⟩))
+    (h ha hb hab) (set.add_mem_add ⟨_, hx, rfl⟩ ⟨_, hy, rfl⟩))
 
 /-- Alternative definition of set convexity, using division -/
 lemma convex_iff_div:
@@ -158,9 +158,9 @@ lemma convex_iff_div:
   assume h x y hx hy a b ha hb hab,
   apply h hx hy,
   have ha', from mul_le_mul_of_nonneg_left ha (le_of_lt (inv_pos.2 hab)),
-  rwa [mul_zero, ←div_eq_inv_mul'] at ha',
+  rwa [mul_zero, ←div_eq_inv_mul] at ha',
   have hb', from mul_le_mul_of_nonneg_left hb (le_of_lt (inv_pos.2 hab)),
-  rwa [mul_zero, ←div_eq_inv_mul'] at hb',
+  rwa [mul_zero, ←div_eq_inv_mul] at hb',
   rw [←add_div],
   exact div_self (ne_of_lt hab).symm
 end,
@@ -204,27 +204,57 @@ begin
         ht (mem_prod.1 hx).2 (mem_prod.1 hy).2 ha hb hab⟩
 end
 
-lemma convex.is_linear_image (hs : convex s) {f : E → F} (hf : is_linear_map ℝ f) :
+lemma convex.combo_to_vadd {a b : ℝ} {x y : E} (h : a + b = 1) :
+  a • x + b • y = b • (y - x) + x  :=
+  eq.symm (calc
+    b • (y - x) + x = b • (y - x) + (1 : ℝ) • x          : by rw [one_smul]
+                ... = b • (y - x) + (a + b) • x           : by rw [h]
+                ... = (b • y - b • x) + (a • x + b • x)   : by rw [add_smul, smul_sub]
+                ... = a • x + b • y                       : by abel )
+
+/--
+Applying an affine map to an affine combination of two points yields
+an affine combination of the images.
+ -/
+lemma convex.combo_affine_apply {a b : ℝ} {x y : E} {f : affine_map ℝ E E F F} (h : a + b = 1) :
+  f (a • x + b • y) = a • f x + b • f y :=
+begin
+  simp only [convex.combo_to_vadd h, ← vsub_eq_sub, ← f.linear_map_vsub],
+  exact affine_map.affine_apply_line_map f x (y - x) b,
+end
+
+/-- The preimage of a convex set under an affine map is convex. -/
+lemma convex.affine_preimage (f : affine_map ℝ E E F F) {s : set F} (hs : convex s) :
+  convex (f ⁻¹' s) :=
+begin
+  intros x y xs ys a b ha hb hab,
+  rw [mem_preimage, convex.combo_affine_apply hab],
+  exact hs xs ys ha hb hab,
+end
+
+/-- The image of a convex set under an affine map is convex. -/
+lemma convex.affine_image (f : affine_map ℝ E E F F) {s : set E} (hs : convex s) :
   convex (f '' s) :=
 begin
-  rintros _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩ a b ha hb hab,
-  exact ⟨a • x + b • y, hs hx hy ha hb hab, by simp only [hf.add,hf.smul]⟩
+  rintros x y ⟨x', ⟨hx', hx'f⟩⟩ ⟨y', ⟨hy', hy'f⟩⟩ a b ha hb hab,
+  refine ⟨a • x' + b • y', ⟨hs hx' hy' ha hb hab, _⟩⟩,
+  rw [convex.combo_affine_apply hab, hx'f, hy'f]
 end
 
 lemma convex.linear_image (hs : convex s) (f : E →ₗ[ℝ] F) : convex (image f s) :=
-hs.is_linear_image f.is_linear
+hs.affine_image f.to_affine_map
 
-lemma convex.is_linear_preimage {s : set F} (hs : convex s) {f : E → F} (hf : is_linear_map ℝ f) :
-  convex (preimage f s) :=
-begin
-  intros x y hx hy a b ha hb hab,
-  convert hs hx hy ha hb hab,
-  simp only [mem_preimage, hf.add, hf.smul]
-end
+lemma convex.is_linear_image (hs : convex s) {f : E → F} (hf : is_linear_map ℝ f) :
+  convex (f '' s) :=
+hs.linear_image $ hf.mk' f
 
 lemma convex.linear_preimage {s : set F} (hs : convex s) (f : E →ₗ[ℝ] F) :
   convex (preimage f s) :=
-hs.is_linear_preimage f.is_linear
+hs.affine_preimage f.to_affine_map
+
+lemma convex.is_linear_preimage {s : set F} (hs : convex s) {f : E → F} (hf : is_linear_map ℝ f) :
+  convex (preimage f s) :=
+hs.linear_preimage $ hf.mk' f
 
 lemma convex.neg (hs : convex s) : convex ((λ z, -z) '' s) :=
 hs.is_linear_image is_linear_map.is_linear_map_neg
@@ -233,68 +263,49 @@ lemma convex.neg_preimage (hs : convex s) : convex ((λ z, -z) ⁻¹' s) :=
 hs.is_linear_preimage is_linear_map.is_linear_map_neg
 
 lemma convex.smul (c : ℝ) (hs : convex s) : convex (c • s) :=
-begin
-  rw smul_set_eq_image,
-  exact hs.is_linear_image (is_linear_map.is_linear_map_smul c)
-end
+hs.linear_image (linear_map.lsmul _ _ c)
 
 lemma convex.smul_preimage (c : ℝ) (hs : convex s) : convex ((λ z, c • z) ⁻¹' s) :=
-hs.is_linear_preimage (is_linear_map.is_linear_map_smul c)
+hs.linear_preimage (linear_map.lsmul _ _ c)
 
 lemma convex.add {t : set E}  (hs : convex s) (ht : convex t) : convex (s + t) :=
-by { rw pointwise_add_eq_image, exact (hs.prod ht).is_linear_image is_linear_map.is_linear_map_add }
+by { rw ← add_image_prod, exact (hs.prod ht).is_linear_image is_linear_map.is_linear_map_add }
 
 lemma convex.sub {t : set E}  (hs : convex s) (ht : convex t) :
   convex ((λx : E × E, x.1 - x.2) '' (s.prod t)) :=
 (hs.prod ht).is_linear_image is_linear_map.is_linear_map_sub
 
 lemma convex.translate (hs : convex s) (z : E) : convex ((λx, z + x) '' s) :=
-begin
-  convert (convex_singleton z).add hs,
-  ext x,
-  simp [set.mem_image, mem_pointwise_add, eq_comm]
-end
+hs.affine_image $ affine_map.const ℝ E E E z +ᵥ affine_map.id ℝ E E
+
+/-- The translation of a convex set is also convex -/
+lemma convex.translate_preimage_right (hs : convex s) (a : E) : convex ((λ z, a + z) ⁻¹' s) :=
+hs.affine_preimage $ affine_map.const ℝ E E E a +ᵥ affine_map.id ℝ E E
+
+/-- The translation of a convex set is also convex -/
+lemma convex.translate_preimage_left (hs : convex s) (a : E) : convex ((λ z, z + a) ⁻¹' s) :=
+by simpa only [add_comm] using hs.translate_preimage_right a
 
 lemma convex.affinity (hs : convex s) (z : E) (c : ℝ) : convex ((λx, z + c • x) '' s) :=
+hs.affine_image $ affine_map.const ℝ E E E z +ᵥ c • affine_map.id ℝ E E
+
+lemma real.convex_iff_ord_connected {s : set ℝ} : convex s ↔ ord_connected s :=
 begin
-  convert (hs.smul c).translate z using 1,
-  erw [smul_set_eq_image, ←image_comp]
+  simp only [convex_iff_segment_subset, segment_eq_interval, ord_connected_iff_interval_subset],
+  exact forall_congr (λ x, forall_swap)
 end
 
-lemma convex_real_iff {s : set ℝ} :
-  convex s ↔ ∀ {x y}, x ∈ s → y ∈ s → Icc x y ⊆ s :=
-begin
-  simp only [convex_iff_segment_subset, segment_eq_Icc'],
-  split; intros h x y hx hy,
-  { cases le_or_lt x y with hxy hxy,
-    { simpa [hxy] using h hx hy },
-    { simp [hxy] } },
-  { apply h; cases le_total x y; simp [*] }
-end
+alias real.convex_iff_ord_connected ↔ convex.ord_connected set.ord_connected.convex
 
-lemma convex_Iio (r : ℝ) : convex (Iio r) :=
-convex_real_iff.2 $ λ x y hx hy z hz, lt_of_le_of_lt hz.2 hy
-
-lemma convex_Ioi (r : ℝ) : convex (Ioi r) :=
-convex_real_iff.2 $ λ x y hx hy z hz, lt_of_lt_of_le hx hz.1
-
-lemma convex_Iic (r : ℝ) : convex (Iic r) :=
-convex_real_iff.2 $ λ x y hx hy z hz, le_trans hz.2 hy
-
-lemma convex_Ici (r : ℝ) : convex (Ici r) :=
-convex_real_iff.2 $ λ x y hx hy z hz, le_trans hx hz.1
-
-lemma convex_Ioo (r : ℝ) (s : ℝ) : convex (Ioo r s) :=
-(convex_Ioi _).inter (convex_Iio _)
-
-lemma convex_Ico (r : ℝ) (s : ℝ) : convex (Ico r s) :=
-(convex_Ici _).inter (convex_Iio _)
-
-lemma convex_Ioc (r : ℝ) (s : ℝ) : convex (Ioc r s) :=
-(convex_Ioi _).inter (convex_Iic _)
-
-lemma convex_Icc (r : ℝ) (s : ℝ) : convex (Icc r s) :=
-(convex_Ici _).inter (convex_Iic _)
+lemma convex_Iio (r : ℝ) : convex (Iio r) := ord_connected_Iio.convex
+lemma convex_Ioi (r : ℝ) : convex (Ioi r) := ord_connected_Ioi.convex
+lemma convex_Iic (r : ℝ) : convex (Iic r) := ord_connected_Iic.convex
+lemma convex_Ici (r : ℝ) : convex (Ici r) := ord_connected_Ici.convex
+lemma convex_Ioo (r s : ℝ) : convex (Ioo r s) := ord_connected_Ioo.convex
+lemma convex_Ico (r s : ℝ) : convex (Ico r s) := ord_connected_Ico.convex
+lemma convex_Ioc (r : ℝ) (s : ℝ) : convex (Ioc r s) := ord_connected_Ioc.convex
+lemma convex_Icc (r : ℝ) (s : ℝ) : convex (Icc r s) := ord_connected_Icc.convex
+lemma convex_interval (r : ℝ) (s : ℝ) : convex (interval r s) := ord_connected_interval.convex
 
 lemma convex_segment (a b : E) : convex [a, b] :=
 begin
@@ -352,6 +363,90 @@ convex_halfspace_gt (is_linear_map.mk complex.add_im complex.smul_im) _
 lemma convex_halfspace_im_lge (r : ℝ) : convex {c : ℂ | r ≤ c.im} :=
 convex_halfspace_ge (is_linear_map.mk complex.add_im complex.smul_im) _
 
+/- Convex combinations in intervals -/
+
+lemma convex.combo_self (a : α) {x y : α} (h : x + y = 1) : a = x * a + y * a :=
+  calc
+      a   = 1 * a           : by rw [one_mul]
+      ... = (x + y) * a     : by rw [h]
+      ... = x * a + y * a   : by rw [add_mul]
+
+/--
+If x is in an Ioo, it can be expressed as a convex combination of the endpoints.
+-/
+lemma convex.mem_Ioo {a b x : α} (h : a < b) :
+    x ∈ Ioo a b ↔ ∃ (x_a x_b : α), 0 < x_a ∧ 0 < x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+begin
+  split,
+  { rintros ⟨h_ax, h_bx⟩,
+    by_cases hab : ¬a < b,
+    { exfalso; exact hab h },
+    { refine ⟨(b-x) / (b-a), (x-a) / (b-a), _⟩,
+      refine ⟨div_pos (by linarith) (by linarith), div_pos (by linarith) (by linarith),_,_⟩;
+      { field_simp [show b - a ≠ 0, by linarith], ring } } },
+  { rw [mem_Ioo],
+    rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
+    rw [←h₂],
+    exact ⟨by nlinarith [convex.combo_self a hxaxb], by nlinarith [convex.combo_self b hxaxb]⟩ }
+end
+
+/-- If x is in an Ioc, it can be expressed as a convex combination of the endpoints. -/
+lemma convex.mem_Ioc {a b x : α} (h : a < b) :
+    x ∈ Ioc a b ↔ ∃ (x_a x_b : α), 0 ≤ x_a ∧ 0 < x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+begin
+  split,
+  { rintros ⟨h_ax, h_bx⟩,
+    by_cases h_x : x = b,
+    { exact ⟨0, 1, by linarith, by linarith, by ring, by {rw [h_x], ring}⟩ },
+    { rcases (convex.mem_Ioo h).mp ⟨h_ax, lt_of_le_of_ne h_bx h_x⟩ with ⟨x_a, x_b, Ioo_case⟩,
+      exact ⟨x_a, x_b, by linarith, Ioo_case.2⟩ } },
+  { rw [mem_Ioc],
+    rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
+    rw [←h₂],
+    exact ⟨by nlinarith [convex.combo_self a hxaxb], by nlinarith [convex.combo_self b hxaxb]⟩ }
+end
+
+/-- If x is in an Ico, it can be expressed as a convex combination of the endpoints. -/
+lemma convex.mem_Ico {a b x : α} (h : a < b) :
+    x ∈ Ico a b ↔ ∃ (x_a x_b : α), 0 < x_a ∧ 0 ≤ x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+begin
+  split,
+  { rintros ⟨h_ax, h_bx⟩,
+    by_cases h_x : x = a,
+    { exact ⟨1, 0, by linarith, by linarith, by ring, by {rw [h_x], ring}⟩ },
+    { rcases (convex.mem_Ioo h).mp ⟨lt_of_le_of_ne h_ax (ne.symm h_x), h_bx⟩
+              with ⟨x_a, x_b, Ioo_case⟩,
+      exact ⟨x_a, x_b, Ioo_case.1, by linarith, (Ioo_case.2).2⟩ } },
+  { rw [mem_Ico],
+    rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
+    rw [←h₂],
+    exact ⟨by nlinarith [convex.combo_self a hxaxb], by nlinarith [convex.combo_self b hxaxb]⟩ }
+end
+
+/-- If x is in an Icc, it can be expressed as a convex combination of the endpoints. -/
+lemma convex.mem_Icc {a b x : α} (h : a ≤ b):
+    x ∈ Icc a b ↔ ∃ (x_a x_b : α), 0 ≤ x_a ∧ 0 ≤ x_b ∧ x_a + x_b = 1 ∧ x_a * a + x_b * b = x :=
+begin
+  split,
+  { intro x_in_I,
+    rw [Icc, mem_set_of_eq] at x_in_I,
+    rcases x_in_I with ⟨h_ax, h_bx⟩,
+    by_cases hab' : a = b,
+    { exact ⟨0, 1, le_refl 0, by linarith, by ring, by linarith⟩ },
+    change a ≠ b at hab',
+    replace h : a < b, exact lt_of_le_of_ne h hab',
+    by_cases h_x : x = a,
+    { exact ⟨1, 0, by linarith, by linarith, by ring, by {rw [h_x], ring}⟩ },
+    { rcases (convex.mem_Ioc h).mp ⟨lt_of_le_of_ne h_ax (ne.symm h_x), h_bx⟩
+              with ⟨x_a, x_b, Ioo_case⟩,
+      exact ⟨x_a, x_b, Ioo_case.1, by linarith, (Ioo_case.2).2⟩ } },
+  { rw [mem_Icc],
+    rintros ⟨xa, xb, ⟨hxa, hxb, hxaxb, h₂⟩⟩,
+    rw [←h₂],
+    exact ⟨by nlinarith [convex.combo_self a hxaxb], by nlinarith [convex.combo_self b hxaxb]⟩ }
+end
+
+
 section submodule
 
 open submodule
@@ -377,6 +472,11 @@ def convex_on (s : set E) (f : E → ℝ) : Prop :=
   ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
     f (a • x + b • y) ≤ a * f x + b * f y
 
+lemma convex_on_id {s : set ℝ} (hs : convex s) : convex_on s id := ⟨hs, by { intros, refl }⟩
+
+lemma convex_on_const (c : ℝ) (hs : convex s) : convex_on s (λ x:E, c) :=
+⟨hs, by { intros, simp only [← add_mul, *, one_mul] }⟩
+
 variables {t : set E} {f g : E → ℝ}
 
 lemma convex_on_iff_div:
@@ -385,7 +485,7 @@ lemma convex_on_iff_div:
 and_congr iff.rfl
 ⟨begin
   intros h x y hx hy a b ha hb hab,
-  apply h hx hy (div_nonneg ha hab) (div_nonneg hb hab),
+  apply h hx hy (div_nonneg ha $ le_of_lt hab) (div_nonneg hb $ le_of_lt hab),
   rw [←add_div],
   exact div_self (ne_of_gt hab)
 end,
@@ -460,7 +560,7 @@ begin
     f (a • x + b • y) + g (a • x + b • y) ≤ (a * f x + b * f y) + (a * g x + b * g y)
       : add_le_add (hf.2 hx hy ha hb hab) (hg.2 hx hy ha hb hab)
     ... = a * f x + a * g x + b * f y + b * g y : by linarith
-    ... = a * (f x + g x) + b * (f y + g y) : by simp [mul_add]
+    ... = a * (f x + g x) + b * (f y + g y) : by simp [mul_add, add_assoc]
 end
 
 lemma convex_on.smul {c : ℝ} (hc : 0 ≤ c) (hf : convex_on s f) : convex_on s (λx, c * f x) :=
@@ -516,6 +616,34 @@ begin
     exact (@h (x, f x) (y, f y) ⟨hx, le_refl _⟩ ⟨hy, le_refl _⟩ a b ha hb hab).2 }
 end
 
+/-- If a function is convex on s, it remains convex when precomposed by an affine map -/
+lemma convex_on.comp_affine_map {f : F → ℝ} (g : affine_map ℝ E E F F) {s : set F}
+  (hf : convex_on s f) : convex_on (g ⁻¹' s) (f ∘ g) :=
+begin
+  refine ⟨hf.1.affine_preimage  _,_⟩,
+  intros x y xs ys a b ha hb hab,
+  calc
+    (f ∘ g) (a • x + b • y) = f (g (a • x + b • y))         : rfl
+                       ...  = f (a • (g x) + b • (g y))     : by rw [convex.combo_affine_apply hab]
+                       ...  ≤ a * f (g x) + b * f (g y)     : hf.2 xs ys ha hb hab
+                       ...  = a * (f ∘ g) x + b * (f ∘ g) y  : rfl
+end
+
+/-- If g is convex on s, so is (g ∘ f) on f ⁻¹' s for a linear f. -/
+lemma convex_on.comp_linear_map {g : F → ℝ} {s : set F} (hg : convex_on s g) (f : E →ₗ[ℝ] F) :
+  convex_on (f ⁻¹' s) (g ∘ f) :=
+hg.comp_affine_map f.to_affine_map
+
+/-- If a function is convex on s, it remains convex after a translation. -/
+lemma convex_on.translate_right {f : E → ℝ} {s : set E} {a : E} (hf : convex_on s f) :
+  convex_on ((λ z, a + z) ⁻¹' s) (f ∘ (λ z, a + z)) :=
+hf.comp_affine_map $ affine_map.const ℝ E E E a +ᵥ affine_map.id ℝ E E
+
+/-- If a function is convex on s, it remains convex after a translation. -/
+lemma convex_on.translate_left {f : E → ℝ} {s : set E} {a : E} (hf : convex_on s f) :
+  convex_on ((λ z, a + z) ⁻¹' s) (f ∘ (λ z, z + a)) :=
+by simpa only [add_comm] using  hf.translate_right
+
 end functions
 
 section center_mass
@@ -523,36 +651,36 @@ section center_mass
 /-- Center mass of a finite collection of points with prescribed weights.
 Note that we require neither `0 ≤ w i` nor `∑ w = 1`. -/
 noncomputable def finset.center_mass (t : finset ι) (w : ι → ℝ) (z : ι → E) : E :=
-(t.sum w)⁻¹ • (t.sum (λ i, w i • z i))
+(∑ i in t, w i)⁻¹ • (∑ i in t, w i • z i)
 
 variables (i j : ι) (c : ℝ) (t : finset ι) (w : ι → ℝ) (z : ι → E)
 
-open finset (hiding singleton)
+open finset
 
 lemma finset.center_mass_empty : (∅ : finset ι).center_mass w z = 0 :=
 by simp only [center_mass, sum_empty, smul_zero]
 
 lemma finset.center_mass_pair (hne : i ≠ j) :
   ({i, j} : finset ι).center_mass w z = (w i / (w i + w j)) • z i + (w j / (w i + w j)) • z j :=
-by simp only [center_mass, sum_pair hne, smul_add, (mul_smul _ _ _).symm, div_eq_inv_mul']
+by simp only [center_mass, sum_pair hne, smul_add, (mul_smul _ _ _).symm, div_eq_inv_mul]
 
 variable {w}
 
-lemma finset.center_mass_insert (ha : i ∉ t) (hw : t.sum w ≠ 0) :
-  (insert i t).center_mass w z = (w i / (w i + t.sum w)) • z i +
-    (t.sum w / (w i + t.sum w)) • t.center_mass w z :=
+lemma finset.center_mass_insert (ha : i ∉ t) (hw : ∑ j in t, w j ≠ 0) :
+  (insert i t).center_mass w z = (w i / (w i + ∑ j in t, w j)) • z i +
+    ((∑ j in t, w j) / (w i + ∑ j in t, w j)) • t.center_mass w z :=
 begin
   simp only [center_mass, sum_insert ha, smul_add, (mul_smul _ _ _).symm],
   congr' 2,
   { apply mul_comm },
-  { rw [div_mul_eq_mul_div, mul_inv_cancel hw, one_div_eq_inv] }
+  { rw [div_mul_eq_mul_div, mul_inv_cancel hw, one_div] }
 end
 
-lemma finset.center_mass_singleton (hw : w i ≠ 0) : (finset.singleton i).center_mass w z = z i :=
+lemma finset.center_mass_singleton (hw : w i ≠ 0) : ({i} : finset ι).center_mass w z = z i :=
 by rw [center_mass, sum_singleton, sum_singleton, ← mul_smul, inv_mul_cancel hw, one_smul]
 
-lemma finset.center_mass_eq_of_sum_1 (hw : t.sum w = 1) :
-  t.center_mass w z = t.sum (λ i, w i • z i) :=
+lemma finset.center_mass_eq_of_sum_1 (hw : ∑ i in t, w i = 1) :
+  t.center_mass w z = ∑ i in t, w i • z i :=
 by simp only [finset.center_mass, hw, inv_one, one_smul]
 
 lemma finset.center_mass_smul : t.center_mass w (λ i, c • z i) = c • t.center_mass w z :=
@@ -562,7 +690,7 @@ by simp only [finset.center_mass, finset.smul_sum, (mul_smul _ _ _).symm, mul_co
 deals with two different index types. -/
 lemma finset.center_mass_segment'
   (s : finset ι) (t : finset ι') (ws : ι → ℝ) (zs : ι → E) (wt : ι' → ℝ) (zt : ι' → E)
-  (hws : s.sum ws = 1) (hwt : t.sum wt = 1) (a b : ℝ) (hab : a + b = 1):
+  (hws : ∑ i in s, ws i = 1) (hwt : ∑ i in t, wt i = 1) (a b : ℝ) (hab : a + b = 1):
   a • s.center_mass ws zs + b • t.center_mass wt zt =
     (s.image sum.inl ∪ t.image sum.inr).center_mass
       (sum.elim (λ i, a * ws i) (λ j, b * wt j))
@@ -570,7 +698,7 @@ lemma finset.center_mass_segment'
 begin
   rw [s.center_mass_eq_of_sum_1 _ hws, t.center_mass_eq_of_sum_1 _ hwt,
     smul_sum, smul_sum, ← finset.sum_sum_elim, finset.center_mass_eq_of_sum_1],
-  { congr, ext i, cases i; simp only [sum.elim_inl, sum.elim_inr, mul_smul] },
+  { congr, ext ⟨⟩; simp only [sum.elim_inl, sum.elim_inr, mul_smul] },
   { rw [sum_sum_elim, ← mul_sum, ← mul_sum, hws, hwt, mul_one, mul_one, hab] }
 end
 
@@ -578,10 +706,10 @@ end
 works if two centers of mass share the set of original points. -/
 lemma finset.center_mass_segment
   (s : finset ι) (w₁ w₂ : ι → ℝ) (z : ι → E)
-  (hw₁ : s.sum w₁ = 1) (hw₂ : s.sum w₂ = 1) (a b : ℝ) (hab : a + b = 1):
+  (hw₁ : ∑ i in s, w₁ i = 1) (hw₂ : ∑ i in s, w₂ i = 1) (a b : ℝ) (hab : a + b = 1):
   a • s.center_mass w₁ z + b • s.center_mass w₂ z =
     s.center_mass (λ i, a * w₁ i + b * w₂ i) z :=
-have hw : s.sum (λ i, a * w₁ i + b * w₂ i) = 1,
+have hw : ∑ i in s, (a * w₁ i + b * w₂ i) = 1,
   by simp only [mul_sum.symm, sum_add_distrib, mul_one, *],
 by simp only [finset.center_mass_eq_of_sum_1, smul_sum, sum_add_distrib, add_smul, mul_smul, *]
 
@@ -589,7 +717,7 @@ lemma finset.center_mass_ite_eq (hi : i ∈ t) :
   t.center_mass (λ j, if (i = j) then 1 else 0) z = z i :=
 begin
   rw [finset.center_mass_eq_of_sum_1],
-  transitivity t.sum (λ j, if (i = j) then z i else 0),
+  transitivity ∑ j in t, if (i = j) then z i else 0,
   { congr, ext i, split_ifs, exacts [h ▸ one_smul _ _, zero_smul _ _] },
   { rw [sum_ite_eq, if_pos hi] },
   { rw [sum_ite_eq, if_pos hi] }
@@ -617,15 +745,16 @@ variable {z}
 /-- Center mass of a finite subset of a convex set belongs to the set
 provided that all weights are non-negative, and the total weight is positive. -/
 lemma convex.center_mass_mem (hs : convex s) :
-  (∀ i ∈ t, 0 ≤ w i) → (0 < t.sum w) → (∀ i ∈ t, z i ∈ s) → t.center_mass w z ∈ s :=
+  (∀ i ∈ t, 0 ≤ w i) → (0 < ∑ i in t, w i) → (∀ i ∈ t, z i ∈ s) → t.center_mass w z ∈ s :=
 begin
-  refine finset.induction (by simp [lt_irrefl]) (λ i t hi ht h₀ hpos hmem, _) t,
+  induction t using finset.induction with i t hi ht, { simp [lt_irrefl] },
+  intros h₀ hpos hmem,
   have zi : z i ∈ s, from hmem _ (mem_insert_self _ _),
   have hs₀ : ∀ j ∈ t, 0 ≤ w j, from λ j hj, h₀ j $ mem_insert_of_mem hj,
   rw [sum_insert hi] at hpos,
-  by_cases hsum_t : t.sum w = 0,
+  by_cases hsum_t : ∑ j in t, w j = 0,
   { have ws : ∀ j ∈ t, w j = 0, from (sum_eq_zero_iff_of_nonneg hs₀).1 hsum_t,
-    have wz : t.sum (λ j, w j • z j) = 0, from sum_eq_zero (λ i hi, by simp [ws i hi]),
+    have wz : ∑ j in t, w j • z j = 0, from sum_eq_zero (λ i hi, by simp [ws i hi]),
     simp only [center_mass, sum_insert hi, wz, hsum_t, add_zero],
     simp only [hsum_t, add_zero] at hpos,
     rw [← mul_smul, inv_mul_cancel (ne_of_gt hpos), one_smul],
@@ -637,16 +766,16 @@ begin
     { exact h₀ _ (mem_insert_self _ _) } }
 end
 
-lemma convex.sum_mem (hs : convex s) (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : t.sum w = 1)
+lemma convex.sum_mem (hs : convex s) (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i in t, w i = 1)
   (hz : ∀ i ∈ t, z i ∈ s) :
-  t.sum (λ i, w i • z i) ∈ s :=
+  ∑ i in t, w i • z i ∈ s :=
 by simpa only [h₁, center_mass, inv_one, one_smul] using
   hs.center_mass_mem h₀ (h₁.symm ▸ zero_lt_one) hz
 
 lemma convex_iff_sum_mem :
   convex s ↔
     (∀ (t : finset E) (w : E → ℝ),
-      (∀ i ∈ t, 0 ≤ w i) → t.sum w = 1 → (∀ x ∈ t, x ∈ s) → t.sum (λx, w x • x) ∈ s ) :=
+      (∀ i ∈ t, 0 ≤ w i) → ∑ i in t, w i = 1 → (∀ x ∈ t, x ∈ s) → ∑ x in t, w x • x ∈ s ) :=
 begin
   refine ⟨λ hs t w hw₀ hw₁ hts, hs.sum_mem hw₀ hw₁ hts, _⟩,
   intros h x y hx hy a b ha hb hab,
@@ -663,7 +792,7 @@ end
 
 /-- Jensen's inequality, `finset.center_mass` version. -/
 lemma convex_on.map_center_mass_le {f : E → ℝ} (hf : convex_on s f)
-  (h₀ : ∀ i ∈ t, 0 ≤ w i) (hpos : 0 < t.sum w)
+  (h₀ : ∀ i ∈ t, 0 ≤ w i) (hpos : 0 < ∑ i in t, w i)
   (hmem : ∀ i ∈ t, z i ∈ s) : f (t.center_mass w z) ≤ t.center_mass w (f ∘ z) :=
 begin
   have hmem' : ∀ i ∈ t, (z i, (f ∘ z) i) ∈ {p : E × ℝ | p.1 ∈ s ∧ f p.1 ≤ p.2},
@@ -674,22 +803,22 @@ end
 
 /-- Jensen's inequality, `finset.sum` version. -/
 lemma convex_on.map_sum_le {f : E → ℝ} (hf : convex_on s f)
-  (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : t.sum w = 1)
-  (hmem : ∀ i ∈ t, z i ∈ s) : f (t.sum (λ i, w i • z i)) ≤ t.sum (λ i, w i * (f (z i))) :=
+  (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i in t, w i = 1)
+  (hmem : ∀ i ∈ t, z i ∈ s) : f (∑ i in t, w i • z i) ≤ ∑ i in t, w i * (f (z i)) :=
 by simpa only [center_mass, h₁, inv_one, one_smul]
   using hf.map_center_mass_le h₀ (h₁.symm ▸ zero_lt_one) hmem
 
 /-- If a function `f` is convex on `s` takes value `y` at the center mass of some points
 `z i ∈ s`, then for some `i` we have `y ≤ f (z i)`. -/
 lemma convex_on.exists_ge_of_center_mass {f : E → ℝ} (h : convex_on s f)
-  (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hws : 0 < t.sum w) (hz : ∀ i ∈ t, z i ∈ s) :
+  (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hws : 0 < ∑ i in t, w i) (hz : ∀ i ∈ t, z i ∈ s) :
   ∃ i ∈ t, f (t.center_mass w z) ≤ f (z i) :=
 begin
   set y := t.center_mass w z,
   have : f y ≤ t.center_mass w (f ∘ z) := h.map_center_mass_le hw₀ hws hz,
   rw ← sum_filter_ne_zero at hws,
   rw [← finset.center_mass_filter_ne_zero (f ∘ z), center_mass, smul_eq_mul,
-    ← div_eq_inv_mul', le_div_iff hws, mul_sum] at this,
+    ← div_eq_inv_mul, le_div_iff hws, mul_sum] at this,
   replace : ∃ i ∈ t.filter (λ i, w i ≠ 0), f y * w i ≤ w i • (f ∘ z) i :=
     exists_le_of_sum_le (nonempty_of_sum_ne_zero (ne_of_gt hws)) this,
   rcases this with ⟨i, hi, H⟩,
@@ -729,6 +858,10 @@ convex_hull_min (set.subset.trans hst $ subset_convex_hull t) (convex_convex_hul
 lemma convex.convex_hull_eq {s : set E} (hs : convex s) : convex_hull s = s :=
 set.subset.antisymm (convex_hull_min (set.subset.refl _) hs) (subset_convex_hull s)
 
+@[simp]
+lemma convex_hull_singleton {x : E} : convex_hull ({x} : set E) = {x} :=
+(convex_singleton x).convex_hull_eq
+
 lemma is_linear_map.image_convex_hull {f : E → F} (hf : is_linear_map ℝ f) :
   f '' (convex_hull s) = convex_hull (f '' s) :=
 begin
@@ -745,7 +878,7 @@ lemma linear_map.image_convex_hull (f : E →ₗ[ℝ] F) :
 f.is_linear.image_convex_hull
 
 lemma finset.center_mass_mem_convex_hull (t : finset ι) {w : ι → ℝ} (hw₀ : ∀ i ∈ t, 0 ≤ w i)
-  (hws : 0 < t.sum w) {z : ι → E} (hz : ∀ i ∈ t, z i ∈ s) :
+  (hws : 0 < ∑ i in t, w i) {z : ι → E} (hz : ∀ i ∈ t, z i ∈ s) :
   t.center_mass w z ∈ convex_hull s :=
 (convex_convex_hull s).center_mass_mem hw₀ hws (λ i hi, subset_convex_hull s $ hz i hi)
 
@@ -755,11 +888,11 @@ lemma finset.center_mass_mem_convex_hull (t : finset ι) {w : ι → ℝ} (hw₀
 This version allows finsets in any type in any universe. -/
 lemma convex_hull_eq (s : set E) :
   convex_hull s = {x : E | ∃ (ι : Type u') (t : finset ι) (w : ι → ℝ) (z : ι → E)
-    (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hw₁ : t.sum w = 1) (hz : ∀ i ∈ t, z i ∈ s) , t.center_mass w z = x} :=
+    (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hw₁ : ∑ i in t, w i = 1) (hz : ∀ i ∈ t, z i ∈ s) , t.center_mass w z = x} :=
 begin
   refine subset.antisymm (convex_hull_min _ _) _,
   { intros x hx,
-    use [punit, finset.singleton punit.star, λ _, 1, λ _, x, λ _ _, zero_le_one,
+    use [punit, {punit.star}, λ _, 1, λ _, x, λ _ _, zero_le_one,
       finset.sum_singleton, λ _ _, hx],
     simp only [finset.center_mass, finset.sum_singleton, inv_one, one_smul] },
   { rintros x y ⟨ι, sx, wx, zx, hwx₀, hwx₁, hzx, rfl⟩ ⟨ι', sy, wy, zy, hwy₀, hwy₁, hzy, rfl⟩
@@ -792,13 +925,13 @@ begin
   exact ⟨z i, hz i hit, Hi⟩
 end
 
-lemma set.finite.convex_hull_eq {s : set E} (hs : finite s) :
-  convex_hull s = {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ s, 0 ≤ w y) (hw₁ : hs.to_finset.sum w = 1),
-    hs.to_finset.center_mass w id = x} :=
+lemma finset.convex_hull_eq (s : finset E) :
+  convex_hull ↑s = {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ s, 0 ≤ w y) (hw₁ : ∑ y in s, w y = 1),
+    s.center_mass w id = x} :=
 begin
   refine subset.antisymm (convex_hull_min _ _) _,
   { intros x hx,
-    replace hx : x ∈ hs.to_finset, from finite.mem_to_finset.2 hx,
+    rw [finset.mem_coe] at hx,
     refine ⟨_, _, _, finset.center_mass_ite_eq _ _ _ hx⟩,
     { intros, split_ifs, exacts [zero_le_one, le_refl 0] },
     { rw [finset.sum_ite_eq, if_pos hx] } },
@@ -810,8 +943,30 @@ begin
       apply_rules [add_nonneg, mul_nonneg, hwx₀, hwy₀], },
     { simp only [finset.sum_add_distrib, finset.mul_sum.symm, mul_one, *] } },
   { rintros _ ⟨w, hw₀, hw₁, rfl⟩,
-    exact hs.to_finset.center_mass_mem_convex_hull (λ x hx, hw₀ _ $ finite.mem_to_finset.1 hx)
-      (hw₁.symm ▸ zero_lt_one) (λ x hx, finite.mem_to_finset.1 hx) }
+    exact s.center_mass_mem_convex_hull (λ x hx, hw₀ _  hx)
+      (hw₁.symm ▸ zero_lt_one) (λ x hx, hx) }
+end
+
+lemma set.finite.convex_hull_eq {s : set E} (hs : finite s) :
+  convex_hull s = {x : E | ∃ (w : E → ℝ) (hw₀ : ∀ y ∈ s, 0 ≤ w y) (hw₁ : ∑ y in hs.to_finset, w y = 1),
+    hs.to_finset.center_mass w id = x} :=
+by simpa only [set.finite.coe_to_finset, set.finite.mem_to_finset, exists_prop]
+  using hs.to_finset.convex_hull_eq
+
+lemma convex_hull_eq_union_convex_hull_finite_subsets (s : set E) :
+  convex_hull s = ⋃ (t : finset E) (w : ↑t ⊆ s), convex_hull ↑t :=
+begin
+  refine subset.antisymm _ _,
+  { rw [convex_hull_eq.{u}],
+    rintros x ⟨ι, t, w, z, hw₀, hw₁, hz, rfl⟩,
+    simp only [mem_Union],
+    refine ⟨t.image z, _, _⟩,
+    { rw [finset.coe_image, image_subset_iff],
+      exact hz },
+    { apply t.center_mass_mem_convex_hull hw₀,
+      { simp only [hw₁, zero_lt_one] },
+      { exact λ i hi, finset.mem_coe.2 (finset.mem_image_of_mem _ hi) } } },
+   { exact Union_subset (λ i, Union_subset convex_hull_mono), },
 end
 
 lemma is_linear_map.convex_hull_image {f : E → F} (hf : is_linear_map ℝ f) (s : set E) :
@@ -837,10 +992,10 @@ variables (ι) [fintype ι] {f : ι → ℝ}
 /-- Standard simplex in the space of functions `ι → ℝ` is the set
 of vectors with non-negative coordinates with total sum `1`. -/
 def std_simplex (ι : Type*) [fintype ι] : set (ι → ℝ) :=
-{ f | (∀ x, 0 ≤ f x) ∧ finset.univ.sum f = 1 }
+{ f | (∀ x, 0 ≤ f x) ∧ ∑ x, f x = 1 }
 
 lemma std_simplex_eq_inter :
-  std_simplex ι = (⋂ x, {f | 0 ≤ f x}) ∩ {f | finset.univ.sum f = 1} :=
+  std_simplex ι = (⋂ x, {f | 0 ≤ f x}) ∩ {f | ∑ x, f x = 1} :=
 by { ext f, simp only [std_simplex, set.mem_inter_eq, set.mem_Inter, set.mem_set_of_eq] }
 
 lemma convex_std_simplex : convex (std_simplex ι) :=
@@ -855,7 +1010,7 @@ end
 variable {ι}
 
 lemma ite_eq_mem_std_simplex (i : ι) : (λ j, ite (i = j) (1:ℝ) 0) ∈ std_simplex ι :=
-⟨λ j, by simp only []; split_ifs; norm_num, by rw [finset.sum_ite_eq, if_pos (finset.mem_univ _)] ⟩
+⟨λ j, by simp only; split_ifs; norm_num, by rw [finset.sum_ite_eq, if_pos (finset.mem_univ _)] ⟩
 
 /-- `std_simplex ι` is the convex hull of the canonical basis in `ι → ℝ`. -/
 lemma convex_hull_basis_eq_std_simplex :
@@ -873,19 +1028,18 @@ end
 variable {ι}
 
 /-- Convex hull of a finite set is the image of the standard simplex in `s → ℝ`
-under the linear map sending each function `w` to `s.sum (λ x, w x • x)`.
+under the linear map sending each function `w` to `∑ x in s, w x • x`.
 
 Since we have no sums over finite sets, we use sum over `@finset.univ _ hs.fintype`.
 The map is defined in terms of operations on `(s → ℝ) →ₗ[ℝ] ℝ` so that later we will not need
 to prove that this map is linear. -/
 lemma set.finite.convex_hull_eq_image {s : set E} (hs : finite s) :
-  convex_hull s =
-    (⇑((@finset.univ _ hs.fintype).sum (λ x, (linear_map.proj x : (s → ℝ) →ₗ[ℝ] ℝ).smul_right x.1))) ''
-      (@std_simplex _ hs.fintype) :=
+  convex_hull s = by haveI := hs.fintype; exact
+    (⇑(∑ x : s, (@linear_map.proj ℝ s _ (λ i, ℝ) _ _ x).smul_right x.1)) '' (std_simplex s) :=
 begin
-  rw [← convex_hull_basis_eq_std_simplex, ← linear_map.convex_hull_image, ← range_comp, (∘)],
+  rw [← convex_hull_basis_eq_std_simplex, ← linear_map.convex_hull_image, ← set.range_comp, (∘)],
   apply congr_arg,
-  convert (subtype.range_val s).symm,
+  convert subtype.range_coe.symm,
   ext x,
   simp [linear_map.sum_apply, ite_smul, finset.filter_eq]
 end

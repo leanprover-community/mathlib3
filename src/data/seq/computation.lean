@@ -7,6 +7,7 @@ Coinductive formalization of unbounded computations.
 -/
 import data.stream
 import tactic.basic
+
 universes u v w
 
 /-
@@ -336,7 +337,7 @@ get_eq_of_mem _ $ (thinkN_mem _).2 (get_mem _)
 theorem get_promises : s ~> get s := λ a, get_eq_of_mem _
 
 theorem mem_of_promises {a} (p : s ~> a) : a ∈ s :=
-by unfreezeI; cases h with a' h; rw p h; exact h
+by { casesI h with a' h, rw p h, exact h }
 
 theorem get_eq_of_promises {a} : s ~> a → get s = a :=
 get_eq_of_mem _ ∘ mem_of_promises _
@@ -422,7 +423,7 @@ theorem results_thinkN {s : computation α} {a m} :
 | (n+1) h := results_think (results_thinkN n h)
 
 theorem results_thinkN_ret (a : α) (n) : results (thinkN (return a) n) a n :=
-by have := results_thinkN n (results_ret a); rwa zero_add at this
+by have := results_thinkN n (results_ret a); rwa nat.zero_add at this
 
 @[simp] theorem length_thinkN (s : computation α) [h : terminates s] (n) :
   length (thinkN s n) = length s + n :=
@@ -496,14 +497,15 @@ def join (c : computation (computation α)) : computation α := c >>= id
 @[simp] theorem map_think (f : α → β) : ∀ s, map f (think s) = think (map f s)
 | ⟨s, al⟩ := by apply subtype.eq; dsimp [think, map]; rw stream.map_cons
 
-@[simp] theorem destruct_map (f : α → β) (s) : destruct (map f s) = lmap f (rmap (map f) (destruct s)) :=
+@[simp]
+theorem destruct_map (f : α → β) (s) : destruct (map f s) = lmap f (rmap (map f) (destruct s)) :=
 by apply s.cases_on; intro; simp
 
 @[simp] theorem map_id : ∀ (s : computation α), map id s = s
 | ⟨f, al⟩ := begin
   apply subtype.eq; simp [map, function.comp],
   have e : (@option.rec α (λ_, option α) none some) = id,
-  { funext x, cases x; refl },
+  { ext ⟨⟩; refl },
   simp [e, stream.map_id]
 end
 
@@ -513,7 +515,7 @@ theorem map_comp (f : α → β) (g : β → γ) :
   apply subtype.eq; dsimp [map],
   rw stream.map_map,
   apply congr_arg (λ f : _ → option γ, stream.map f s),
-  funext x, cases x with x; refl
+  ext ⟨⟩; refl
 end
 
 @[simp] theorem ret_bind (a) (f : α → computation β) :

@@ -2,10 +2,11 @@
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
-
-Cofinality on ordinals, regular cardinals.
 -/
-import set_theory.ordinal
+import set_theory.cardinal_ordinal
+/-!
+# Cofinality on ordinals, regular cardinals
+-/
 noncomputable theory
 
 open function cardinal set
@@ -65,11 +66,12 @@ namespace ordinal
   `cof 0 = 0` and `cof (succ o) = 1`, so it is only really
   interesting on limit ordinals (when it is an infinite cardinal). -/
 def cof (o : ordinal.{u}) : cardinal.{u} :=
-quot.lift_on o (λ ⟨α, r, _⟩, by exactI strict_order.cof r) $
-λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨⟨f, hf⟩⟩, begin resetI,
-  show strict_order.cof r = strict_order.cof s,
-  refine cardinal.lift_inj.1 (@order_iso.cof _ _ _ _ ⟨_⟩ ⟨_⟩ _),
-  exact ⟨f, λ a b, not_congr hf⟩,
+quot.lift_on o (λ ⟨α, r, _⟩, by exactI strict_order.cof r)
+begin
+  rintros ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨⟨f, hf⟩⟩,
+  rw ← cardinal.lift_inj,
+  apply order_iso.cof ⟨f, _⟩,
+  simp [hf]
 end
 
 lemma cof_type (r : α → α → Prop) [is_well_order α r] : (type r).cof = strict_order.cof r := rfl
@@ -127,7 +129,7 @@ theorem lift_cof (o) : (cof o).lift = cof o.lift :=
 induction_on o $ begin introsI α r _,
   cases lift_type r with _ e, rw e,
   apply le_antisymm,
-  { refine le_cof_type.2 (λ S H, _),
+  { unfreezingI { refine le_cof_type.2 (λ S H, _) },
     have : (mk (ulift.up ⁻¹' S)).lift ≤ mk S :=
      ⟨⟨λ ⟨⟨x, h⟩⟩, ⟨⟨x⟩, h⟩,
        λ ⟨⟨x, h₁⟩⟩ ⟨⟨y, h₂⟩⟩ e, by simp at e; congr; injection e⟩⟩,
@@ -138,7 +140,7 @@ induction_on o $ begin introsI α r _,
      ⟨⟨λ ⟨⟨x⟩, h⟩, ⟨⟨x, h⟩⟩,
        λ ⟨⟨x⟩, h₁⟩ ⟨⟨y⟩, h₂⟩ e, by simp at e; congr; injections⟩⟩,
     rw e' at this,
-    refine le_trans (cof_type_le _ _) this,
+    unfreezingI { refine le_trans (cof_type_le _ _) this },
     exact λ ⟨a⟩, let ⟨b, bs, br⟩ := H a in ⟨⟨b⟩, bs, br⟩ }
 end
 
@@ -280,13 +282,13 @@ begin
   refine ordinal.induction_on o _ e, introsI α r _ e',
   rw e' at H,
   refine le_trans (cof_type_le (set.range (λ i, enum r _ (H i))) _)
-    ⟨embedding.of_surjective _⟩,
+    ⟨embedding.of_surjective _ _⟩,
   { intro a, by_contra h,
     apply not_le_of_lt (typein_lt_type r a),
     rw [← e', sup_le],
     intro i,
-    simp [set.range] at h,
-    simpa using le_of_lt ((typein_lt_typein r).2 (h _ i rfl)) },
+    have h : ∀ (x : ι), r (enum r (f x) _) a, { simpa using h },
+    simpa only [typein_enum] using le_of_lt ((typein_lt_typein r).2 (h i)) },
   { exact λ i, ⟨_, set.mem_range_self i.1⟩ },
   { intro a, rcases a with ⟨_, i, rfl⟩, exact ⟨⟨i⟩, by simp⟩ }
 end
@@ -447,7 +449,7 @@ theorem succ_is_regular {c : cardinal.{u}} (h : omega ≤ c) : is_regular (succ 
   rw [mul_eq_self h, ← succ_le, ← αe, ← sum_const],
   refine le_trans _ (sum_le_sum (λ x:S, card (typein r x)) _ _),
   { simp [typein, sum_mk (λ x:S, {a//r a x})],
-    refine ⟨embedding.of_surjective _⟩,
+    refine ⟨embedding.of_surjective _ _⟩,
     { exact λ x, x.2.1 },
     { exact λ a, let ⟨b, h, ab⟩ := H a in ⟨⟨⟨_, h⟩, _, ab⟩, rfl⟩ } },
   { intro i,
@@ -503,7 +505,7 @@ quotient.induction_on c $ λ α h, begin
   have := sum_lt_prod (λ a:S, mk {x // r x a}) (λ _, mk α) (λ i, _),
   { simp [Se.symm] at this ⊢,
     refine lt_of_le_of_lt _ this,
-    refine ⟨embedding.of_surjective _⟩,
+    refine ⟨embedding.of_surjective _ _⟩,
     { exact λ x, x.2.1 },
     { exact λ a, let ⟨b, h, ab⟩ := H a in ⟨⟨⟨_, h⟩, _, ab⟩, rfl⟩ } },
   { have := typein_lt_type r i,

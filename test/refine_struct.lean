@@ -1,4 +1,5 @@
 import tactic.interactive
+import algebra.group.basic
 
 /-!
 `refine_struct` caused a variety of interesting problems,

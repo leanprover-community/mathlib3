@@ -79,9 +79,9 @@ begin
     ... ≤ edist x y + edist y z : edist_triangle _ _ _
     ... = edist y z + edist x y : add_comm _ _,
   have : (λz, z + edist x y) (Inf (edist y '' s)) = Inf ((λz, z + edist x y) '' (edist y '' s)),
-  { refine Inf_of_continuous _ _ (by simp),
-    { exact continuous_id.add continuous_const },
-    { assume a b h, simp, apply add_le_add_right' h }},
+  { refine map_Inf_of_continuous_at_of_monotone _ _ (by simp),
+    { exact continuous_at_id.add continuous_at_const },
+    { assume a b h, simp, apply add_le_add_right h _ }},
   simp only [inf_edist] at this,
   rw [inf_edist, inf_edist, this, ← image_comp],
   simpa only [and_imp, function.comp_app, le_Inf_iff, exists_imp_distrib, ball_image_iff]
@@ -106,8 +106,8 @@ begin
   -- z : α,  zs : z ∈ s,  dyz : edist y z < ↑ε / 2
   calc inf_edist x s ≤ edist x z : inf_edist_le_edist_of_mem zs
         ... ≤ edist x y + edist y z : edist_triangle _ _ _
-        ... ≤ (inf_edist x (closure s) + ε / 2) + (ε/2) : add_le_add' (le_of_lt hy) (le_of_lt dyz)
-        ... = inf_edist x (closure s) + ↑ε : by simp [ennreal.add_halves]
+        ... ≤ (inf_edist x (closure s) + ε / 2) + (ε/2) : add_le_add (le_of_lt hy) (le_of_lt dyz)
+        ... = inf_edist x (closure s) + ↑ε : by rw [add_assoc, ennreal.add_halves]
 end
 
 /-- A point belongs to the closure of `s` iff its infimum edistance to this set vanishes -/
@@ -119,7 +119,7 @@ lemma mem_closure_iff_inf_edist_zero : x ∈ closure s ↔ inf_edist x s = 0 :=
 lemma mem_iff_ind_edist_zero_of_closed (h : is_closed s) : x ∈ s ↔ inf_edist x s = 0 :=
 begin
   convert ← mem_closure_iff_inf_edist_zero,
-  exact closure_eq_iff_is_closed.2 h
+  exact h.closure_eq
 end
 
 /-- The infimum edistance is invariant under isometries -/
@@ -211,7 +211,7 @@ exists_edist_lt_of_inf_edist_lt $ calc
   ... ≤ Sup ((λx, inf_edist x t) '' s) ⊔ Sup ((λx, inf_edist x s) '' t) : le_sup_left
   ... < r : by rwa Hausdorff_edist_def at H
 
-/-- The distance from `x` to `s`or `t` is controlled in terms of the Hausdorff distance
+/-- The distance from `x` to `s` or `t` is controlled in terms of the Hausdorff distance
 between `s` and `t` -/
 lemma inf_edist_le_inf_edist_add_Hausdorff_edist :
   inf_edist x t ≤ inf_edist x s + Hausdorff_edist s t :=
@@ -227,7 +227,7 @@ ennreal.le_of_forall_epsilon_le $ λε εpos h, begin
   -- z : α,  zt : z ∈ t,  dyz : edist y z < Hausdorff_edist s t + ↑ε / 2
   calc inf_edist x t ≤ edist x z : inf_edist_le_edist_of_mem zt
     ... ≤ edist x y + edist y z : edist_triangle _ _ _
-    ... ≤ (inf_edist x s + ε/2) + (Hausdorff_edist s t + ε/2) : add_le_add' (le_of_lt dxy) (le_of_lt dyz)
+    ... ≤ (inf_edist x s + ε/2) + (Hausdorff_edist s t + ε/2) : add_le_add (le_of_lt dxy) (le_of_lt dyz)
     ... = inf_edist x s + Hausdorff_edist s t + ε : by simp [ennreal.add_halves, add_comm, add_left_comm]
 end
 
@@ -281,11 +281,11 @@ begin
   show ∀x ∈ s, inf_edist x u ≤ Hausdorff_edist s t + Hausdorff_edist t u, from λx xs, calc
     inf_edist x u ≤ inf_edist x t + Hausdorff_edist t u : inf_edist_le_inf_edist_add_Hausdorff_edist
     ... ≤ Hausdorff_edist s t + Hausdorff_edist t u :
-      add_le_add_right' (inf_edist_le_Hausdorff_edist_of_mem  xs),
+      add_le_add_right (inf_edist_le_Hausdorff_edist_of_mem  xs) _,
   show ∀x ∈ u, inf_edist x s ≤ Hausdorff_edist s t + Hausdorff_edist t u, from λx xu, calc
     inf_edist x s ≤ inf_edist x t + Hausdorff_edist t s : inf_edist_le_inf_edist_add_Hausdorff_edist
     ... ≤ Hausdorff_edist u t + Hausdorff_edist t s :
-      add_le_add_right' (inf_edist_le_Hausdorff_edist_of_mem xu)
+      add_le_add_right (inf_edist_le_Hausdorff_edist_of_mem xu) _
     ... = Hausdorff_edist s t + Hausdorff_edist t u : by simp [Hausdorff_edist_comm, add_comm]
 end
 
@@ -343,8 +343,8 @@ end,
 /-- Two closed sets are at zero Hausdorff edistance if and only if they coincide -/
 lemma Hausdorff_edist_zero_iff_eq_of_closed (hs : is_closed s) (ht : is_closed t) :
   Hausdorff_edist s t = 0 ↔ s = t :=
-by rw [Hausdorff_edist_zero_iff_closure_eq_closure, closure_eq_iff_is_closed.2 hs,
-       closure_eq_iff_is_closed.2 ht]
+by rw [Hausdorff_edist_zero_iff_closure_eq_closure, hs.closure_eq,
+       ht.closure_eq]
 
 /-- The Haudorff edistance to the empty set is infinite -/
 lemma Hausdorff_edist_empty (ne : s.nonempty) : Hausdorff_edist s ∅ = ∞ :=
@@ -484,7 +484,7 @@ lemma mem_iff_inf_dist_zero_of_closed (h : is_closed s) (hs : s.nonempty) :
   x ∈ s ↔ inf_dist x s = 0 :=
 begin
   have := @mem_closure_iff_inf_dist_zero _ _ s x hs,
-  rwa closure_eq_iff_is_closed.2 h at this
+  rwa h.closure_eq at this
 end
 
 /-- The infimum distance is invariant under isometries -/

@@ -5,7 +5,7 @@ Isometries of emetric and metric spaces
 Authors: Sébastien Gouëzel
 -/
 import topology.bounded_continuous_function
-import topology.opens
+import topology.compacts
 
 /-!
 # Isometries
@@ -34,12 +34,13 @@ lemma isometry_emetric_iff_metric [metric_space α] [metric_space β] {f : α �
 assume H x y, by simp [edist_dist, H x y]⟩
 
 /-- An isometry preserves edistances. -/
-theorem isometry.edist_eq [emetric_space α] [emetric_space β] {f : α → β} {x y : α} (hf : isometry f) :
+theorem isometry.edist_eq [emetric_space α] [emetric_space β] {f : α → β} (hf : isometry f)
+  (x y : α) :
   edist (f x) (f y) = edist x y :=
 hf x y
 
 /-- An isometry preserves distances. -/
-theorem isometry.dist_eq [metric_space α] [metric_space β] {f : α → β} {x y : α} (hf : isometry f) :
+theorem isometry.dist_eq [metric_space α] [metric_space β] {f : α → β} (hf : isometry f) (x y : α) :
   dist (f x) (f y) = dist x y :=
 by rw [dist_edist, dist_edist, hf]
 
@@ -79,9 +80,10 @@ hf.antilipschitz.uniform_embedding hf.lipschitz.uniform_continuous
 lemma isometry.continuous (hf : isometry f) : continuous f :=
 hf.lipschitz.continuous
 
-/-- The inverse of an isometry is an isometry. -/
-lemma isometry.inv (e : α ≃ β) (h : isometry e.to_fun) : isometry e.inv_fun :=
-λx y, by rw [← h, e.right_inv _, e.right_inv _]
+/-- The right inverse of an isometry is an isometry. -/
+lemma isometry.right_inv {f : α → β} {g : β → α} (h : isometry f) (hg : right_inverse g f) :
+  isometry g :=
+λ x y, by rw [← h, hg _, hg _]
 
 /-- Isometries preserve the diameter in emetric spaces. -/
 lemma isometry.ediam_image (hf : isometry f) (s : set α) :
@@ -94,7 +96,7 @@ lemma isometry.ediam_range (hf : isometry f) :
 by { rw ← image_univ, exact hf.ediam_image univ }
 
 /-- The injection from a subtype is an isometry -/
-lemma isometry_subtype_val {s : set α} : isometry (subtype.val : s → α) :=
+lemma isometry_subtype_coe {s : set α} : isometry (coe : s → α) :=
 λx y, rfl
 
 end emetric_isometry --section
@@ -122,11 +124,22 @@ instance : has_coe_to_fun (α ≃ᵢ β) := ⟨λ_, α → β, λe, e.to_equiv�
 
 lemma coe_eq_to_equiv (h : α ≃ᵢ β) (a : α) : h a = h.to_equiv a := rfl
 
-lemma isometry_inv_fun (h : α ≃ᵢ β) : isometry h.to_equiv.symm :=
-h.isometry_to_fun.inv h.to_equiv
+protected lemma isometry (h : α ≃ᵢ β) : isometry h := h.isometry_to_fun
 
-@[ext] lemma ext : ∀ ⦃h₁ h₂ : α ≃ᵢ β⦄, (∀ x, h₁ x = h₂ x) → h₁ = h₂
-| ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ H := have e₁ = e₂ := equiv.ext _ _ H, by subst e₁
+protected lemma edist_eq (h : α ≃ᵢ β) (x y : α) : edist (h x) (h y) = edist x y :=
+h.isometry.edist_eq x y
+
+protected lemma dist_eq {α β : Type*} [metric_space α] [metric_space β] (h : α ≃ᵢ β) (x y : α) :
+  dist (h x) (h y) = dist x y :=
+h.isometry.dist_eq x y
+
+protected lemma continuous (h : α ≃ᵢ β) : continuous h := h.isometry.continuous
+
+lemma to_equiv_inj : ∀ ⦃h₁ h₂ : α ≃ᵢ β⦄, (h₁.to_equiv = h₂.to_equiv) → h₁ = h₂
+| ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ H := by { dsimp at H, subst e₁ }
+
+@[ext] lemma ext ⦃h₁ h₂ : α ≃ᵢ β⦄ (H : ∀ x, h₁ x = h₂ x) : h₁ = h₂ :=
+to_equiv_inj $ equiv.ext H
 
 /-- Alternative constructor for isometric bijections,
 taking as input an isometry, and a right inverse. -/
@@ -136,42 +149,6 @@ def mk' (f : α → β) (g : β → α) (hfg : ∀ x, f (g x) = x) (hf : isometr
   left_inv := λ x, hf.injective $ hfg _,
   right_inv := hfg,
   isometry_to_fun := hf }
-
-section normed_group
-
-variables {G : Type*} [normed_group G]
-
-/-- Addition `y ↦ y + x` as an `isometry`. -/
-protected def add_right (x : G) : G ≃ᵢ G :=
-{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_right _ _ _,
-  .. equiv.add_right x }
-
-/-- Addition `y ↦ x + y` as an `isometry`. -/
-protected def add_left (x : G) : G ≃ᵢ G :=
-{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_left _ _ _,
-  .. equiv.add_left x }
-
-variable (G)
-
-/-- Negation `x ↦ -x` as an `isometry`. -/
-protected def neg : G ≃ᵢ G :=
-{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ x y, dist_neg_neg _ _,
-  .. equiv.neg G }
-
-end normed_group
-
-/-- The (bundled) homeomorphism associated to an isometric isomorphism. -/
-protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
-{ continuous_to_fun  := (isometry_to_fun h).continuous,
-  continuous_inv_fun := (isometry_inv_fun h).continuous,
-  .. h.to_equiv }
-
-lemma coe_eq_to_homeomorph (h : α ≃ᵢ β) (a : α) :
-  h a = h.to_homeomorph a := rfl
-
-lemma to_homeomorph_to_equiv (h : α ≃ᵢ β) :
-  h.to_homeomorph.to_equiv = h.to_equiv :=
-by ext; refl
 
 /-- The identity isometry of a space. -/
 protected def refl (α : Type*) [emetric_space α] : α ≃ᵢ α :=
@@ -186,12 +163,10 @@ protected def trans (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) : α ≃ᵢ γ :
 
 /-- The inverse of an isometric isomorphism, as an isometric isomorphism. -/
 protected def symm (h : α ≃ᵢ β) : β ≃ᵢ α :=
-{ isometry_to_fun  := h.isometry_inv_fun,
-  .. h.to_equiv.symm }
+{ isometry_to_fun  := h.isometry.right_inv h.right_inv,
+  to_equiv := h.to_equiv.symm }
 
-protected lemma isometry (h : α ≃ᵢ β) : isometry h := h.isometry_to_fun
-
-protected lemma continuous (h : α ≃ᵢ β) : continuous h := h.isometry.continuous
+@[simp] lemma symm_symm (h : α ≃ᵢ β) : h.symm.symm = h := to_equiv_inj h.to_equiv.symm_symm
 
 @[simp] lemma apply_symm_apply (h : α ≃ᵢ β) (y : β) : h (h.symm y) = y :=
 h.to_equiv.apply_symm_apply y
@@ -222,27 +197,104 @@ image_eq_preimage_of_inverse h.symm.to_equiv.left_inv h.symm.to_equiv.right_inv
 lemma preimage_symm (h : α ≃ᵢ β) : preimage h.symm = image h :=
 (image_eq_preimage_of_inverse h.to_equiv.left_inv h.to_equiv.right_inv).symm
 
+@[simp] lemma symm_trans_apply (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) (x : γ) :
+  (h₁.trans h₂).symm x = h₁.symm (h₂.symm x) := rfl
+
+/-- The (bundled) homeomorphism associated to an isometric isomorphism. -/
+protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
+{ continuous_to_fun  := h.continuous,
+  continuous_inv_fun := h.symm.continuous,
+  .. h }
+
+@[simp] lemma coe_to_homeomorph (h : α ≃ᵢ β) : ⇑(h.to_homeomorph) = h := rfl
+
+@[simp] lemma to_homeomorph_to_equiv (h : α ≃ᵢ β) :
+  h.to_homeomorph.to_equiv = h.to_equiv :=
+rfl
+
+/-- The group of isometries. -/
+instance : group (α ≃ᵢ α) :=
+  { one := isometric.refl _,
+    mul := λ e₁ e₂, e₁.trans e₂,
+    inv := isometric.symm,
+    mul_assoc := λ e₁ e₂ e₃, rfl,
+    one_mul := λ e, ext $ λ _, rfl,
+    mul_one := λ e, ext $ λ _, rfl,
+    mul_left_inv := λ e, ext e.apply_symm_apply }
+
+@[simp] lemma coe_one : ⇑(1 : α ≃ᵢ α) = id := rfl
+
+@[simp] lemma coe_mul (e₁ e₂ : α ≃ᵢ α) : ⇑(e₁ * e₂) = e₂ ∘ e₁ := rfl
+
+lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₂ (e₁ x) := rfl
+
+@[simp] lemma inv_apply_self (e : α ≃ᵢ α) (x: α) : e⁻¹ (e x) = x := e.symm_apply_apply x
+
+@[simp] lemma apply_inv_self (e : α ≃ᵢ α) (x: α) : e (e⁻¹ x) = x := e.apply_symm_apply x
+
+section normed_group
+
+variables {G : Type*} [normed_group G]
+
+/-- Addition `y ↦ y + x` as an `isometry`. -/
+protected def add_right (x : G) : G ≃ᵢ G :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_right _ _ _,
+  .. equiv.add_right x }
+
+@[simp] lemma add_right_to_equiv (x : G) :
+  (isometric.add_right x).to_equiv = equiv.add_right x := rfl
+
+@[simp] lemma coe_add_right (x : G) : (isometric.add_right x : G → G) = λ y, y + x := rfl
+
+lemma add_right_apply (x y : G) : (isometric.add_right x : G → G) y = y + x := rfl
+
+@[simp] lemma add_right_symm (x : G) :
+  (isometric.add_right x).symm = isometric.add_right (-x) :=
+ext $ λ y, rfl
+
+/-- Addition `y ↦ x + y` as an `isometry`. -/
+protected def add_left (x : G) : G ≃ᵢ G :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ y z, dist_add_left _ _ _,
+  to_equiv := equiv.add_left x }
+
+@[simp] lemma add_left_to_equiv (x : G) :
+  (isometric.add_left x).to_equiv = equiv.add_left x := rfl
+
+@[simp] lemma coe_add_left (x : G) : ⇑(isometric.add_left x) = (+) x := rfl
+
+@[simp] lemma add_left_symm (x : G) :
+  (isometric.add_left x).symm = isometric.add_left (-x) :=
+ext $ λ y, rfl
+
+variable (G)
+
+/-- Negation `x ↦ -x` as an `isometry`. -/
+protected def neg : G ≃ᵢ G :=
+{ isometry_to_fun := isometry_emetric_iff_metric.2 $ λ x y, dist_neg_neg _ _,
+  to_equiv := equiv.neg G }
+
+variable {G}
+
+@[simp] lemma neg_symm : (isometric.neg G).symm = isometric.neg G := rfl
+
+@[simp] lemma neg_to_equiv : (isometric.neg G).to_equiv = equiv.neg G := rfl
+
+@[simp] lemma coe_neg : ⇑(isometric.neg G) = has_neg.neg := rfl
+
+end normed_group
+
 end isometric
 
 /-- An isometry induces an isometric isomorphism between the source space and the
 range of the isometry. -/
 def isometry.isometric_on_range [emetric_space α] [emetric_space β] {f : α → β} (h : isometry f) :
   α ≃ᵢ range f :=
-{ isometry_to_fun := λx y,
-  begin
-    change edist ((equiv.set.range f _) x) ((equiv.set.range f _) y) = edist x y,
-    rw [equiv.set.range_apply f h.injective, equiv.set.range_apply f h.injective],
-    exact h x y
-  end,
+{ isometry_to_fun := λx y, by simpa [subtype.edist_eq] using h x y,
   .. equiv.set.range f h.injective }
 
-lemma isometry.isometric_on_range_apply [emetric_space α] [emetric_space β]
+@[simp] lemma isometry.isometric_on_range_apply [emetric_space α] [emetric_space β]
   {f : α → β} (h : isometry f) (x : α) : h.isometric_on_range x = ⟨f x, mem_range_self _⟩ :=
-begin
-  dunfold isometry.isometric_on_range,
-  rw ← equiv.set.range_apply f h.injective x,
-  refl
-end
+rfl
 
 /-- In a normed algebra, the inclusion of the base field in the extended field is an isometry. -/
 lemma algebra_map_isometry (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
@@ -275,11 +327,9 @@ lemma embedding_of_subset_dist_le (a b : α) :
   dist (embedding_of_subset x a) (embedding_of_subset x b) ≤ dist a b :=
 begin
   refine (dist_le dist_nonneg).2 (λn, _),
-  have A : dist a (x n) + (dist (x 0) (x n) + (-dist b (x n) + -dist (x 0) (x n)))
-    = dist a (x n) - dist b (x n), by ring,
-  simp only [embedding_of_subset_coe, real.dist_eq, A, add_comm, neg_add_rev, _root_.neg_neg,
-             sub_eq_add_neg, add_left_comm],
-  exact abs_dist_sub_le _ _ _
+  simp only [embedding_of_subset_coe, real.dist_eq],
+  convert abs_dist_sub_le a b (x n) using 2,
+  ring
 end
 
 /-- When the reference set is dense, the embedding map is an isometry on its image. -/
@@ -292,7 +342,7 @@ begin
   rcases metric.mem_closure_range_iff.1 A (e/2) (half_pos epos) with ⟨n, hn⟩,
   /- Second step: use the norm control at index n to conclude -/
   have C : dist b (x n) - dist a (x n) = embedding_of_subset x b n - embedding_of_subset x a n :=
-    by { simp [embedding_of_subset_coe, sub_eq_add_neg] },
+    by { simp only [embedding_of_subset_coe, sub_sub_sub_cancel_right] },
   have := calc
     dist a b ≤ dist a (x n) + dist (x n) b : dist_triangle _ _ _
     ...    = 2 * dist a (x n) + (dist b (x n) - dist a (x n)) : by { simp [dist_comm], ring }
@@ -301,7 +351,7 @@ begin
     ...    ≤ 2 * (e/2) + abs (embedding_of_subset x b n - embedding_of_subset x a n) :
       begin rw [C], apply_rules [add_le_add, mul_le_mul_of_nonneg_left, le_of_lt hn, le_refl], norm_num end
     ...    ≤ 2 * (e/2) + dist (embedding_of_subset x b) (embedding_of_subset x a) :
-      begin rw [← coe_diff], apply add_le_add_left, rw [coe_diff, ←real.dist_eq], apply dist_coe_le_dist end
+      begin rw [← sub_apply], apply add_le_add_left, rw [sub_apply, ←real.dist_eq], apply dist_coe_le_dist end
     ...    = dist (embedding_of_subset x b) (embedding_of_subset x a) + e : by ring,
   simpa [dist_comm] using this
 end
@@ -313,7 +363,7 @@ begin
   cases (univ : set α).eq_empty_or_nonempty with h h,
   { use (λ_, 0), assume x, exact absurd h (nonempty.ne_empty ⟨x, mem_univ x⟩) },
   { /- We construct a map x : ℕ → α with dense image -/
-    rcases h with basepoint,
+    rcases h with ⟨basepoint⟩,
     haveI : inhabited α := ⟨basepoint⟩,
     have : ∃s:set α, countable s ∧ closure s = univ := separable_space.exists_countable_closure_eq_univ,
     rcases this with ⟨S, ⟨S_countable, S_dense⟩⟩,

@@ -33,7 +33,6 @@ complex derivative.
 -/
 noncomputable theory
 
-set_option class.instance_max_depth 40
 
 namespace complex
 
@@ -76,15 +75,22 @@ finite_dimensional.proper ℂ E
 attribute [instance, priority 900] complex.finite_dimensional.proper
 
 /-- A complex normed vector space is also a real normed vector space. -/
+@[priority 900]
 instance normed_space.restrict_scalars_real (E : Type*) [normed_group E] [normed_space ℂ E] :
-  normed_space ℝ E := normed_space.restrict_scalars ℝ ℂ
-attribute [instance, priority 900] complex.normed_space.restrict_scalars_real
+  normed_space ℝ E := normed_space.restrict_scalars' ℝ ℂ E
+
+/-- The space of continuous linear maps over `ℝ`, from a real vector space to a complex vector
+space, is a normed vector space over `ℂ`. -/
+instance continuous_linear_map.real_smul_complex (E : Type*) [normed_group E] [normed_space ℝ E]
+  (F : Type*) [normed_group F] [normed_space ℂ F] :
+  normed_space ℂ (E →L[ℝ] F) :=
+continuous_linear_map.normed_space_extend_scalars
 
 /-- Linear map version of the real part function, from `ℂ` to `ℝ`. -/
 def linear_map.re : ℂ →ₗ[ℝ] ℝ :=
 { to_fun := λx, x.re,
-  add := by simp,
-  smul := λc x, by { change ((c : ℂ) * x).re = c * x.re, simp } }
+  map_add' := by simp,
+  map_smul' := λc x, by { change ((c : ℂ) * x).re = c * x.re, simp } }
 
 @[simp] lemma linear_map.re_apply (z : ℂ) : linear_map.re z = z.re := rfl
 
@@ -113,8 +119,8 @@ end
 /-- Linear map version of the imaginary part function, from `ℂ` to `ℝ`. -/
 def linear_map.im : ℂ →ₗ[ℝ] ℝ :=
 { to_fun := λx, x.im,
-  add := by simp,
-  smul := λc x, by { change ((c : ℂ) * x).im = c * x.im, simp } }
+  map_add' := by simp,
+  map_smul' := λc x, by { change ((c : ℂ) * x).im = c * x.im, simp } }
 
 @[simp] lemma linear_map.im_apply (z : ℂ) : linear_map.im z = z.im := rfl
 
@@ -144,8 +150,8 @@ end
 /-- Linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
 def linear_map.of_real : ℝ →ₗ[ℝ] ℂ :=
 { to_fun := λx, of_real x,
-  add := by simp,
-  smul := λc x, by { simp, refl } }
+  map_add' := by simp,
+  map_smul' := λc x, by { simp, refl } }
 
 @[simp] lemma linear_map.of_real_apply (x : ℝ) : linear_map.of_real x = x := rfl
 

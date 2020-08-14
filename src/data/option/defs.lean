@@ -12,7 +12,7 @@ variables {α : Type*} {β : Type*}
 attribute [inline] option.is_some option.is_none
 
 /-- An elimination principle for `option`. It is a nondependent version of `option.rec_on`. -/
-protected def elim : option α → β → (α → β) → β
+@[simp] protected def elim : option α → β → (α → β) → β
 | (some x) y f := f x
 | none     y f := y
 
@@ -26,7 +26,14 @@ theorem is_none_iff_eq_none {o : option α} : o.is_none = tt ↔ o = none :=
 
 theorem some_inj {a b : α} : some a = some b ↔ a = b := by simp
 
-instance decidable_eq_none {o : option α} : decidable (o = none) :=
+/--
+`o = none` is decidable even if the wrapped type does not have decidable equality.
+
+This is not an instance because it is not definitionally equal to `option.decidable_eq`.
+Try to use `o.is_none` or `o.is_some` instead.
+-/
+@[inline]
+def decidable_eq_none {o : option α} : decidable (o = none) :=
 decidable_of_decidable_of_iff (bool.decidable_eq _ _) is_none_iff_eq_none
 
 instance decidable_forall_mem {p : α → Prop} [decidable_pred p] :

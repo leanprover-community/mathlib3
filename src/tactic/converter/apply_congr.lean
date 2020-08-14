@@ -86,7 +86,7 @@ do
   -- For every lemma:
   congr_lemmas.any_of (λ n,
     -- Call tactic.eapply
-    seq (tactic.eapply n >> tactic.skip)
+    seq' (tactic.eapply n >> tactic.skip)
     -- and then call `intros` on each resulting goal, and require that afterwards it's an equation.
         (tactic.intros >> (do `(_ = _) ← target, tactic.skip)))
 

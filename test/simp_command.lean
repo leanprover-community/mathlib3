@@ -1,5 +1,5 @@
 import tactic.simp_command
-import analysis.complex.exponential
+import analysis.special_functions.trigonometric
 
 /-!
 Tests for the #simp command.

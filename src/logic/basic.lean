@@ -26,6 +26,8 @@ section miscellany
 attribute [inline] and.decidable or.decidable decidable.false xor.decidable iff.decidable
   decidable.true implies.decidable not.decidable ne.decidable
   bool.decidable_eq decidable.to_bool
+  
+attribute [simp] cast_eq
 
 variables {α : Type*} {β : Type*}
 
@@ -34,6 +36,9 @@ variables {α : Type*} {β : Type*}
 def empty.elim {C : Sort*} : empty → C.
 
 instance : subsingleton empty := ⟨λa, a.elim⟩
+
+instance subsingleton.prod {α β : Type*} [subsingleton α] [subsingleton β] : subsingleton (α × β) :=
+⟨by { intros a b, cases a, cases b, congr, }⟩
 
 instance : decidable_eq empty := λa, a.elim
 
@@ -46,6 +51,10 @@ instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) :=
 @[priority 10] instance decidable_eq_of_subsingleton
   {α} [subsingleton α] : decidable_eq α
 | a b := is_true (subsingleton.elim a b)
+
+@[simp] lemma eq_iff_true_of_subsingleton [subsingleton α] (x y : α) :
+  x = y ↔ true :=
+by cc
 
 /-- Add an instance to "undo" coercion transitivity into a chain of coercions, because
    most simp lemmas are stated with respect to simple coercions and will not match when
@@ -131,6 +140,26 @@ lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
 @[simp] lemma eq_iff_eq_cancel_right {a b : α} :
   (∀ {c}, a = c ↔ b = c) ↔ (a = b) :=
 ⟨λ h, by rw h, λ h a, by rw h⟩
+
+/-- Wrapper for adding elementary propositions to the type class systems.
+Warning: this can easily be abused. See the rest of this docstring for details.
+
+Certain propositions should not be treated as a class globally,
+but sometimes it is very convenient to be able to use the type class system
+in specific circumstances.
+
+For example, `zmod p` is a field if and only if `p` is a prime number.
+In order to be able to find this field instance automatically by type class search,
+we have to turn `p.prime` into an instance implicit assumption.
+
+On the other hand, making `nat.prime` a class would require a major refactoring of the library,
+and it is questionable whether making `nat.prime` a class is desirable at all.
+The compromise is to add the assumption `[fact p.prime]` to `zmod.field`.
+
+In particular, this class is not intended for turning the type class system
+into an automated theorem prover for first order logic. -/
+@[class]
+def fact (p : Prop) := p
 
 end miscellany
 
@@ -474,6 +503,9 @@ end equality
 section quantifiers
 variables {α : Sort*} {β : Sort*} {p q : α → Prop} {b : Prop}
 
+lemma forall_imp (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a :=
+λ h' a, h a (h' a)
+
 lemma Exists.imp (h : ∀ a, (p a → q a)) (p : ∃ a, p a) : ∃ a, q a := exists_imp_exists h p
 
 lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a))
@@ -488,6 +520,17 @@ theorem exists_swap {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x
 
 @[simp] theorem exists_imp_distrib : ((∃ x, p x) → b) ↔ ∀ x, p x → b :=
 ⟨λ h x hpx, h ⟨x, hpx⟩, λ h ⟨x, hpx⟩, h x hpx⟩
+
+/--
+Extract an element from a existential statement, using `classical.some`.
+-/
+-- This enables projection notation.
+@[reducible] noncomputable def Exists.some {p : α → Prop} (P : ∃ a, p a) : α := classical.some P
+
+/--
+Show that an element extracted from `P : ∃ a, p a` using `P.some` satisfies `p`.
+-/
+lemma Exists.some_spec {p : α → Prop} (P : ∃ a, p a) : p (P.some) := classical.some_spec P
 
 --theorem forall_not_of_not_exists (h : ¬ ∃ x, p x) : ∀ x, ¬ p x :=
 --forall_imp_of_exists_imp h
@@ -564,6 +607,14 @@ by simp [and_comm]
 @[simp] theorem exists_eq_right {a' : α} : (∃ a, p a ∧ a = a') ↔ p a' :=
 (exists_congr $ by exact λ a, and.comm).trans exists_eq_left
 
+@[simp] theorem exists_exists_and_eq_and {f : α → β} {p : α → Prop} {q : β → Prop} :
+  (∃ b, (∃ a, p a ∧ f a = b) ∧ q b) ↔ ∃ a, p a ∧ q (f a) :=
+⟨λ ⟨b, ⟨a, ha, hab⟩, hb⟩, ⟨a, ha, hab.symm ▸ hb⟩, λ ⟨a, hp, hq⟩, ⟨f a, ⟨a, hp, rfl⟩, hq⟩⟩
+
+@[simp] theorem exists_exists_eq_and {f : α → β} {p : β → Prop} :
+  (∃ b, (∃ a, f a = b) ∧ p b) ↔ ∃ a, p (f a) :=
+⟨λ ⟨b, ⟨a, ha⟩, hb⟩, ⟨a, ha.symm ▸ hb⟩, λ ⟨a, ha⟩, ⟨f a, ⟨a, rfl⟩, ha⟩⟩
+
 @[simp] theorem forall_eq' {a' : α} : (∀a, a' = a → p a) ↔ p a' :=
 by simp [@eq_comm _ a']
 
@@ -572,6 +623,9 @@ by simp [@eq_comm _ a']
 
 @[simp] theorem exists_eq_right' {a' : α} : (∃ a, p a ∧ a' = a) ↔ p a' :=
 by simp [@eq_comm _ a']
+
+theorem exists_comm {p : α → β → Prop} : (∃ a b, p a b) ↔ ∃ b a, p a b :=
+⟨λ ⟨a, b, h⟩, ⟨b, a, h⟩, λ ⟨b, a, h⟩, ⟨a, b, h⟩⟩
 
 theorem forall_or_of_or_forall (h : b ∨ ∀x, p x) (x) : b ∨ p x :=
 h.imp_right $ λ h₂, h₂ x
@@ -835,6 +889,10 @@ theorem not_ball {α : Sort*} {p : α → Prop} {P : Π (x : α), p x → Prop} 
 
 end classical
 
+lemma ite_eq_iff {α} {p : Prop} [decidable p] {a b c : α} :
+  (if p then a else b) = c ↔ p ∧ a = c ∨ ¬p ∧ b = c :=
+by by_cases p; simp *
+
 /-! ### Declarations about `nonempty` -/
 
 section nonempty
@@ -842,6 +900,11 @@ universe variables u v w
 variables {α : Type u} {β : Type v} {γ : α → Type w}
 
 attribute [simp] nonempty_of_inhabited
+
+@[priority 20]
+instance has_zero.nonempty [has_zero α] : nonempty α := ⟨0⟩
+@[priority 20]
+instance has_one.nonempty [has_one α] : nonempty α := ⟨1⟩
 
 lemma exists_true_iff_nonempty {α : Sort*} : (∃a:α, true) ↔ nonempty α :=
 iff.intro (λ⟨a, _⟩, ⟨a⟩) (λ⟨a⟩, ⟨a, trivial⟩)
@@ -908,6 +971,14 @@ iff.intro (assume ⟨f⟩ a, ⟨f a⟩) (assume f, ⟨assume a, classical.choice
 noncomputable def classical.inhabited_of_nonempty' {α : Sort u} [h : nonempty α] : inhabited α :=
 ⟨classical.choice h⟩
 
+/-- Using `classical.choice`, extracts a term from a `nonempty` type. -/
+@[reducible] protected noncomputable def nonempty.some {α : Sort u} (h : nonempty α) : α :=
+classical.choice h
+
+/-- Using `classical.choice`, extracts a term from a `nonempty` type. -/
+@[reducible] protected noncomputable def classical.arbitrary (α : Sort u) [h : nonempty α] : α :=
+classical.choice h
+
 /-- Given `f : α → β`, if `α` is nonempty then `β` is also nonempty.
   `nonempty` cannot be a `functor`, because `functor` is restricted to `Type`. -/
 lemma nonempty.map {α : Sort u} {β : Sort v} (f : α → β) : nonempty α → nonempty β
@@ -928,3 +999,25 @@ instance {α β} [h : nonempty α] [h2 : nonempty β] : nonempty (α × β) :=
 h.elim $ λ g, h2.elim $ λ g2, ⟨⟨g, g2⟩⟩
 
 end nonempty
+
+section ite
+
+lemma apply_dite {α β : Type*} (f : α → β) (P : Prop) [decidable P] (x : P → α) (y : ¬P → α) :
+  f (dite P x y) = dite P (λ h, f (x h)) (λ h, f (y h)) :=
+by { by_cases h : P; simp [h], }
+
+lemma apply_ite {α β : Type*} (f : α → β) (P : Prop) [decidable P] (x y : α) :
+  f (ite P x y) = ite P (f x) (f y) :=
+apply_dite f P (λ _, x) (λ _, y)
+
+lemma dite_apply {α : Type*} {β : α → Type*} (P : Prop) [decidable P]
+  (f : P → Π a, β a) (g : ¬ P → Π a, β a) (x : α) :
+  (dite P f g) x = dite P (λ h, f h x) (λ h, g h x) :=
+by { by_cases h : P; simp [h], }
+
+lemma ite_apply {α : Type*} {β : α → Type*} (P : Prop) [decidable P]
+  (f g : Π a, β a) (x : α) :
+  (ite P f g) x = ite P (f x) (g x) :=
+dite_apply P (λ _, f) (λ _, g) x
+
+end ite

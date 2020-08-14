@@ -10,29 +10,33 @@ import data.rat
 
 variables {α : Type*}
 
-open_locale add_monoid
-
+/-- An ordered additive commutative monoid is called `archimedean` if for any two elements `x`, `y`
+such that `0 < y` there exists a natural number `n` such that `x ≤ n •ℕ y`. -/
 class archimedean (α) [ordered_add_comm_monoid α] : Prop :=
-(arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n • y)
+(arch : ∀ (x : α) {y}, 0 < y → ∃ n : ℕ, x ≤ n •ℕ y)
 
 theorem exists_nat_gt [linear_ordered_semiring α] [archimedean α]
   (x : α) : ∃ n : ℕ, x < n :=
 let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
-⟨n+1, lt_of_le_of_lt (by rwa ← add_monoid.smul_one)
+⟨n+1, lt_of_le_of_lt (by rwa ← nsmul_one)
   (nat.cast_lt.2 (nat.lt_succ_self _))⟩
+
+lemma add_one_pow_unbounded_of_pos [linear_ordered_semiring α] [archimedean α] (x : α) {y : α}
+  (hy : 0 < y) :
+  ∃ n : ℕ, x < (y + 1) ^ n :=
+let ⟨n, h⟩ := archimedean.arch x hy in
+⟨n, calc x ≤ n •ℕ y : h
+       ... < 1 + n •ℕ y : lt_one_add _
+       ... ≤ (1 + y) ^ n : one_add_mul_le_pow' (mul_nonneg (le_of_lt hy) (le_of_lt hy))
+                             (le_of_lt $ lt_trans hy (lt_one_add y)) _
+       ... = (y + 1) ^ n : by rw [add_comm]⟩
 
 section linear_ordered_ring
 variables [linear_ordered_ring α] [archimedean α]
 
-lemma pow_unbounded_of_one_lt (x : α) {y : α}
-    (hy1 : 1 < y) : ∃ n : ℕ, x < y ^ n :=
-have hy0 : 0 < y - 1 := sub_pos_of_lt hy1,
--- TODO `by linarith` fails to prove hy1'
-have hy1' : (-1:α) ≤ y, from le_trans (neg_le_self zero_le_one) (le_of_lt hy1),
-let ⟨n, h⟩ := archimedean.arch x hy0 in
-⟨n, calc x ≤ n • (y - 1)     : h
-       ... < 1 + n • (y - 1) : lt_one_add _
-       ... ≤ y ^ n           : one_add_sub_mul_le_pow hy1' n⟩
+lemma pow_unbounded_of_one_lt (x : α) {y : α} (hy1 : 1 < y) :
+  ∃ n : ℕ, x < y ^ n :=
+sub_add_cancel y 1 ▸ add_one_pow_unbounded_of_pos _ (sub_pos.2 hy1)
 
 /-- Every x greater than 1 is between two successive natural-number
 powers of another y greater than one. -/
@@ -124,13 +128,15 @@ end
 end linear_ordered_field
 
 instance : archimedean ℕ :=
-⟨λ n m m0, ⟨n, by simpa only [mul_one, nat.smul_eq_mul] using nat.mul_le_mul_left n m0⟩⟩
+⟨λ n m m0, ⟨n, by simpa only [mul_one, nat.nsmul_eq_mul] using nat.mul_le_mul_left n m0⟩⟩
 
 instance : archimedean ℤ :=
 ⟨λ n m m0, ⟨n.to_nat, le_trans (int.le_to_nat _) $
-by simpa only [add_monoid.smul_eq_mul, int.nat_cast_eq_coe_nat, zero_add, mul_one] using mul_le_mul_of_nonneg_left
+by simpa only [nsmul_eq_mul, int.nat_cast_eq_coe_nat, zero_add, mul_one] using mul_le_mul_of_nonneg_left
     (int.add_one_le_iff.2 m0) (int.coe_zero_le n.to_nat)⟩⟩
 
+/-- A linear ordered archimedean ring is a floor ring. This is not an `instance` because in some
+cases we have a computable `floor` function. -/
 noncomputable def archimedean.floor_ring (α)
   [linear_ordered_ring α] [archimedean α] : floor_ring α :=
 { floor := λ x, classical.some (exists_floor x),
@@ -143,7 +149,7 @@ theorem archimedean_iff_nat_lt :
   archimedean α ↔ ∀ x : α, ∃ n : ℕ, x < n :=
 ⟨@exists_nat_gt α _, λ H, ⟨λ x y y0,
   (H (x / y)).imp $ λ n h, le_of_lt $
-  by rwa [div_lt_iff y0, ← add_monoid.smul_eq_mul] at h⟩⟩
+  by rwa [div_lt_iff y0, ← nsmul_eq_mul] at h⟩⟩
 
 theorem archimedean_iff_nat_le :
   archimedean α ↔ ∀ x : α, ∃ n : ℕ, x ≤ n :=
@@ -188,7 +194,7 @@ begin
   rw [int.cast_add, int.cast_one],
   refine lt_of_le_of_lt (add_le_add_right ((zh _).1 (le_refl _)) _) _,
   rwa [← lt_sub_iff_add_lt', ← sub_mul,
-       ← div_lt_iff' (sub_pos.2 h), one_div_eq_inv],
+       ← div_lt_iff' (sub_pos.2 h), one_div],
   { rw [rat.coe_int_denom, nat.cast_one], exact one_ne_zero },
   { intro H, rw [rat.coe_nat_num, ← coe_coe, nat.cast_eq_zero] at H, subst H, cases n0 },
   { rw [rat.coe_nat_denom, nat.cast_one], exact one_ne_zero }
@@ -196,14 +202,12 @@ end
 
 theorem exists_nat_one_div_lt {ε : α} (hε : 0 < ε) : ∃ n : ℕ, 1 / (n + 1: α) < ε :=
 begin
-  cases archimedean_iff_nat_lt.1 (by apply_instance) (1/ε) with n hn,
-  existsi n,
-  apply div_lt_of_mul_lt_of_pos,
-  { simp, apply add_pos_of_nonneg_of_pos, apply nat.cast_nonneg, apply zero_lt_one },
-  { apply (div_lt_iff' hε).1,
-    transitivity,
-    { exact hn },
-    { simp [zero_lt_one] }}
+  cases exists_nat_gt (1/ε) with n hn,
+  use n,
+  rw [div_lt_iff, ← div_lt_iff' hε],
+  { apply hn.trans,
+    simp [zero_lt_one] },
+  { exact n.cast_add_one_pos }
 end
 
 theorem exists_pos_rat_lt {x : α} (x0 : 0 < x) : ∃ q : ℚ, 0 < q ∧ (q : α) < x :=

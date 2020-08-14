@@ -35,7 +35,7 @@ lemma exists_le_mul_self : ∀ a : α, ∃ x : α, a ≤ x * x :=
 begin
   classical, -- TODO: otherwise linarith performance sucks
   assume a, cases le_total 1 a with ha ha,
-  { use a, exact le_mul_of_ge_one_left (by linarith) ha },
+  { use a, exact le_mul_of_one_le_left (by linarith) ha },
   { use 1, linarith }
 end
 
@@ -71,7 +71,7 @@ assume x, iff.intro
       ... = (2*a*x + b)^2 : by ring)
   (assume h,
     have ha : 2*2*a ≠ 0 := mul_ne_zero (mul_ne_zero two_ne_zero two_ne_zero) ha,
-    eq_of_mul_eq_mul_left_of_ne_zero ha $
+    mul_left_cancel' ha $
     calc
       2 * 2 * a * (a * x * x + b * x + c) = (2*a*x + b)^2 - (b^2 - 4*a*c) : by ring
       ... = 0 : by { rw [← h, discrim], ring }
@@ -132,13 +132,13 @@ begin
   rw [discrim, pow_two],
   cases lt_trichotomy a 0 with ha ha,
   -- if a < 0
-  cases classical.em (b = 0) with hb hb,
+  by_cases hb : b = 0,
   { rw hb at *,
     rcases exists_lt_mul_self (-c/a) with ⟨x, hx⟩,
     have := mul_lt_mul_of_neg_left hx ha,
     rw [mul_div_cancel' _ (ne_of_lt ha), ← mul_assoc] at this,
     have h₂ := h x, linarith },
-  { cases classical.em (c = 0) with hc' hc',
+  { by_cases hc' : c = 0,
     { rw hc' at *,
       have : -(a*-b*-b + b*-b + 0) = (1-a)*(b*b), {ring},
       have h := h (-b), rw [← neg_nonpos, this] at h,
@@ -152,7 +152,7 @@ begin
       linarith [ha] } },
   cases ha with ha ha,
   -- if a = 0
-  cases classical.em (b = 0) with hb hb,
+  by_cases hb : b = 0,
     { rw [ha, hb], linarith },
     { have := h ((-c-1)/b), rw [ha, mul_div_cancel' _ hb] at this, linarith },
   -- if a > 0

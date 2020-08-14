@@ -51,11 +51,11 @@ protected def const : ℕ → code
 | 0     := zero
 | (n+1) := comp succ (const n)
 
-theorem injective_const : Π {n₁ n₂}, nat.partrec.code.const n₁ = nat.partrec.code.const n₂ → n₁ = n₂
+theorem const_inj : Π {n₁ n₂}, nat.partrec.code.const n₁ = nat.partrec.code.const n₂ → n₁ = n₂
 | 0 0 h := by simp
-| (n₁+1) (n₂+1) h := by { dsimp [nat.partrec.code.const] at h, 
-                          injection h with h₁ h₂, 
-                          simp only [injective_const h₂] }
+| (n₁+1) (n₂+1) h := by { dsimp [nat.partrec.code.const] at h,
+                          injection h with h₁ h₂,
+                          simp only [const_inj h₂] }
 
 protected def id : code := pair left right
 
@@ -482,8 +482,8 @@ end
 def eval : code → ℕ →. ℕ
 | zero         := pure 0
 | succ         := nat.succ
-| left         := λ n, n.unpair.1
-| right        := λ n, n.unpair.2
+| left         := ↑(λ n : ℕ, n.unpair.1)
+| right        := ↑(λ n : ℕ, n.unpair.2)
 | (pair cf cg) := λ n, mkpair <$> eval cf n <*> eval cg n
 | (comp cf cg) := λ n, eval cg n >>= eval cf
 | (prec cf cg) := nat.unpaired (λ a n,
@@ -506,20 +506,20 @@ by simp! [(<*>)]
 theorem const_prim : primrec code.const :=
 (primrec.id.nat_iterate (primrec.const zero)
   (comp_prim.comp (primrec.const succ) primrec.snd).to₂).of_eq $
-λ n, by simp; induction n; simp [*, code.const, nat.iterate_succ']
+λ n, by simp; induction n; simp [*, code.const, function.iterate_succ']
 
 theorem curry_prim : primrec₂ curry :=
 comp_prim.comp primrec.fst $
 pair_prim.comp (const_prim.comp primrec.snd) (primrec.const code.id)
 
-theorem injective_curry {c₁ c₂ n₁ n₂} (h : curry c₁ n₁ = curry c₂ n₂) : c₁ = c₂ ∧ n₁ = n₂ :=
-⟨by injection h, by { injection h, 
-                      injection h with h₁ h₂, 
-                      injection h₂ with h₃ h₄, 
-                      exact injective_const h₃ }⟩
+theorem curry_inj {c₁ c₂ n₁ n₂} (h : curry c₁ n₁ = curry c₂ n₂) : c₁ = c₂ ∧ n₁ = n₂ :=
+⟨by injection h, by { injection h,
+                      injection h with h₁ h₂,
+                      injection h₂ with h₃ h₄,
+                      exact const_inj h₃ }⟩
 
-theorem smn : ∃ f : code → ℕ → code, 
-  computable₂ f ∧ ∀ c n x, eval (f c n) x = eval c (mkpair n x) := 
+theorem smn : ∃ f : code → ℕ → code,
+  computable₂ f ∧ ∀ c n x, eval (f c n) x = eval c (mkpair n x) :=
 ⟨curry, primrec₂.to_comp curry_prim, eval_curry⟩
 
 theorem exists_code {f : ℕ →. ℕ} : nat.partrec f ↔ ∃ c : code, eval c = f :=
@@ -596,9 +596,7 @@ theorem evaln_mono : ∀ {k₁ k₂ c n x}, k₁ ≤ k₂ → x ∈ evaln k₁ c
   iterate 4 {exact h},
   { -- pair cf cg
     simp [(<*>)] at h ⊢,
-    exact h.imp (λ a, and.imp
-      (Exists.imp (λ b, and.imp_left (hf _ _)))
-      (Exists.imp (λ b, and.imp_left (hg _ _)))) },
+    exact h.imp (λ a, and.imp (hf _ _) $ Exists.imp $ λ b, and.imp_left (hg _ _)) },
   { -- comp cf cg
     simp at h ⊢,
     exact h.imp (λ a, and.imp (hg _ _) (hf _ _)) },
@@ -621,7 +619,7 @@ theorem evaln_sound : ∀ {k c n x}, x ∈ evaln k c n → x ∈ eval c n
     simp [eval, evaln, (>>), (<*>)] at h ⊢; cases h with _ h,
   iterate 4 {simpa [pure, pfun.pure, eq_comm] using h},
   { -- pair cf cg
-    rcases h with ⟨_, ⟨y, ef, rfl⟩, z, eg, rfl⟩,
+    rcases h with ⟨y, ef, z, eg, rfl⟩,
     exact ⟨_, hf _ _ ef, _, hg _ _ eg, rfl⟩ },
   { --comp hf hg
     rcases h with ⟨y, eg, ef⟩,
@@ -663,8 +661,8 @@ theorem evaln_complete {c n x} : x ∈ eval c n ↔ ∃ k, x ∈ evaln k c n :=
     rcases h with ⟨x, hx, y, hy, rfl⟩,
     rcases hf hx with ⟨k₁, hk₁⟩, rcases hg hy with ⟨k₂, hk₂⟩,
     refine ⟨max k₁ k₂, _⟩,
-    exact ⟨le_max_left_of_le $ nat.le_of_lt_succ $ evaln_bound hk₁, _,
-     ⟨_, evaln_mono (nat.succ_le_succ $ le_max_left _ _) hk₁, rfl⟩,
+    refine ⟨le_max_left_of_le $ nat.le_of_lt_succ $ evaln_bound hk₁,
+      _, evaln_mono (nat.succ_le_succ $ le_max_left _ _) hk₁,
       _, evaln_mono (nat.succ_le_succ $ le_max_right _ _) hk₂, rfl⟩ },
   case nat.partrec.code.comp : cf cg hf hg {
     rcases h with ⟨y, hy, hx⟩,

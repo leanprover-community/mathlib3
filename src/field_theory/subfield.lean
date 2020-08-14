@@ -15,17 +15,17 @@ end prio
 
 instance is_subfield.field [is_subfield S] : field S :=
 { inv := λ x, ⟨x⁻¹, is_subfield.inv_mem x.2⟩,
-  zero_ne_one := λ h : 0 = 1, (@zero_ne_one F _) (subtype.ext.1 h),
-  mul_inv_cancel := λ a ha, subtype.ext.2 (mul_inv_cancel
-    (λ h, ha $ subtype.ext.2 h)),
-  inv_zero := subtype.ext.2 inv_zero,
+  exists_pair_ne := ⟨0, 1, λ h, zero_ne_one (subtype.ext_iff_val.1 h)⟩,
+  mul_inv_cancel := λ a ha, subtype.ext_iff_val.2 (mul_inv_cancel
+    (λ h, ha $ subtype.ext_iff_val.2 h)),
+  inv_zero := subtype.ext_iff_val.2 inv_zero,
   ..show comm_ring S, by apply_instance }
 
 instance univ.is_subfield : is_subfield (@set.univ F) :=
 { inv_mem := by intros; trivial }
 
 /- note: in the next two declarations, if we let type-class inference figure out the instance
-  `is_ring_hom.is_subring_preimage` then that instance only applies when particular instances of
+  `ring_hom.is_subring_preimage` then that instance only applies when particular instances of
   `is_add_subgroup _` and `is_submonoid _` are chosen (which are not the default ones).
   If we specify it explicitly, then it doesn't complain. -/
 instance preimage.is_subfield {K : Type*} [field K]
@@ -37,7 +37,7 @@ instance preimage.is_subfield {K : Type*} [field K]
 
 instance image.is_subfield {K : Type*} [field K]
   (f : F →+* K) (s : set F) [is_subfield s] : is_subfield (f '' s) :=
-{ inv_mem := λ a ⟨x, xmem, ha⟩, ⟨x⁻¹, is_subfield.inv_mem xmem, ha ▸ f.map_inv⟩,
+{ inv_mem := λ a ⟨x, xmem, ha⟩, ⟨x⁻¹, is_subfield.inv_mem xmem, ha ▸ f.map_inv _⟩,
   ..f.is_subring_image s }
 
 instance range.is_subfield {K : Type*} [field K]
@@ -46,6 +46,7 @@ by { rw ← set.image_univ, apply_instance }
 
 namespace field
 
+/-- `field.closure s` is the minimal subfield that includes `s`. -/
 def closure : set F :=
 { x | ∃ y ∈ ring.closure S, ∃ z ∈ ring.closure S, y / z = x }
 
@@ -110,3 +111,11 @@ lemma is_subfield_Union_of_directed {ι : Type*} [hι : nonempty ι]
 { inv_mem := λ x hx, let ⟨i, hi⟩ := set.mem_Union.1 hx in
     set.mem_Union.2 ⟨i, is_subfield.inv_mem hi⟩,
   to_is_subring := is_subring_Union_of_directed s directed }
+
+instance is_subfield.inter (S₁ S₂ : set F) [is_subfield S₁] [is_subfield S₂] :
+  is_subfield (S₁ ∩ S₂) :=
+{ inv_mem := λ x hx, ⟨is_subfield.inv_mem hx.1, is_subfield.inv_mem hx.2⟩ }
+
+instance is_subfield.Inter {ι : Sort*} (S : ι → set F) [h : ∀ y : ι, is_subfield (S y)] :
+  is_subfield (set.Inter S) :=
+{ inv_mem := λ x hx, set.mem_Inter.2 $ λ y, is_subfield.inv_mem $ set.mem_Inter.1 hx y }

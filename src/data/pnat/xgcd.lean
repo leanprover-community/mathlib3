@@ -83,7 +83,7 @@ begin
   split; intro h,
   { apply eq, dsimp [w, z, succ_pnat], rw [← h],
     repeat { rw [nat.succ_eq_add_one] }, ring },
-  { apply nat.succ_inj,
+  { apply nat.succ.inj,
     replace h := congr_arg (coe : ℕ+ → ℕ) h,
     rw [mul_coe, w, z] at h,
     repeat { rw [succ_pnat_coe, nat.succ_eq_add_one] at h },
@@ -117,7 +117,7 @@ theorem flip_is_special : (flip u).is_special ↔ u.is_special :=
 by { dsimp [is_special, flip], rw[mul_comm u.x, mul_comm u.zp, add_comm u.zp] }
 
 theorem flip_v : (flip u).v = (u.v).swap :=
-by { dsimp [v], ext, { simp only [], ring }, { simp only [], ring } }
+by { dsimp [v], ext, { simp only, ring }, { simp only, ring } }
 
 /-- Properties of division with remainder for a / b.  -/
 theorem rq_eq : u.r + (u.bp + 1) * u.q = u.ap + 1 :=
@@ -222,10 +222,10 @@ def reduce : xgcd_type → xgcd_type
      flip (reduce u.step))
 
 theorem reduce_a {u : xgcd_type} (h : u.r = 0) :
-u.reduce = u.finish := by { rw [reduce], simp only [], rw [if_pos h] }
+u.reduce = u.finish := by { rw [reduce], simp only, rw [if_pos h] }
 
 theorem reduce_b {u : xgcd_type} (h : u.r ≠ 0) :
-u.reduce = u.step.reduce.flip := by { rw [reduce], simp only [], rw [if_neg h, step] }
+u.reduce = u.step.reduce.flip := by { rw [reduce], simp only, rw [if_neg h, step] }
 
 theorem reduce_reduced : ∀ (u : xgcd_type), u.reduce.is_reduced
 | u := dite (u.r = 0) (λ h, by { rw [reduce_a h], exact u.finish_is_reduced })
@@ -318,21 +318,17 @@ begin
   split; ring,
 end
 
-theorem gcd_eq : gcd_d a b  = gcd a b :=
+theorem gcd_eq : gcd_d a b = gcd a b :=
 begin
   rcases gcd_props a b with ⟨h₀, h₁, h₂, h₃, h₄, h₅, h₆⟩,
   apply dvd_antisymm,
   { apply dvd_gcd,
-    exact dvd_intro (gcd_a' a b) (h₁.trans (mul_comm _ _)).symm,
-    exact dvd_intro (gcd_b' a b) (h₂.trans (mul_comm _ _)).symm},
-  { have h₇ := calc
-     ((gcd a b) : ℕ) ∣ a : nat.gcd_dvd_left a b
-      ... ∣ (gcd_z a b) * a : dvd_mul_left _ _,
-    have h₈ := calc
-     ((gcd a b) : ℕ) ∣ b : nat.gcd_dvd_right a b
-      ... ∣ (gcd_x a b) * b : dvd_mul_left _ _,
-   rw[h₅] at h₇,
-   exact (nat.dvd_add_iff_right h₈).mpr h₇}
+    exact dvd.intro (gcd_a' a b) (h₁.trans (mul_comm _ _)).symm,
+    exact dvd.intro (gcd_b' a b) (h₂.trans (mul_comm _ _)).symm},
+  { have h₇ : (gcd a b : ℕ) ∣ (gcd_z a b) * a := dvd_trans (nat.gcd_dvd_left a b) (dvd_mul_left _ _),
+    have h₈ : (gcd a b : ℕ) ∣ (gcd_x a b) * b := dvd_trans (nat.gcd_dvd_right a b) (dvd_mul_left _ _),
+    rw[h₅] at h₇, rw dvd_iff,
+    exact (nat.dvd_add_iff_right h₈).mpr h₇,}
 end
 
 theorem gcd_det_eq :

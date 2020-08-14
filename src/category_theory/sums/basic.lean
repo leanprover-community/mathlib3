@@ -16,8 +16,7 @@ universes v₁ u₁ -- declare the `v`'s first; see `category_theory.category` f
 open sum
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₁) [𝒟 : category.{v₁} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₁) [category.{v₁} D]
 
 /--
 `sum C D` gives the direct sum of two categories.
@@ -49,8 +48,7 @@ end
 
 namespace sum
 
-variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₁) [𝒟 : category.{v₁} D]
-include 𝒞 𝒟
+variables (C : Type u₁) [category.{v₁} C] (D : Type u₁) [category.{v₁} D]
 
 /-- `inl_` is the functor `X ↦ inl X`. -/
 -- Unfortunate naming here, suggestions welcome.
@@ -100,11 +98,10 @@ end swap
 
 end sum
 
-variables {A : Type u₁} [𝒜 : category.{v₁} A]
-          {B : Type u₁} [ℬ : category.{v₁} B]
-          {C : Type u₁} [𝒞 : category.{v₁} C]
-          {D : Type u₁} [𝒟 : category.{v₁} D]
-include 𝒜 ℬ 𝒞 𝒟
+variables {A : Type u₁} [category.{v₁} A]
+          {B : Type u₁} [category.{v₁} B]
+          {C : Type u₁} [category.{v₁} C]
+          {D : Type u₁} [category.{v₁} D]
 
 namespace functor
 

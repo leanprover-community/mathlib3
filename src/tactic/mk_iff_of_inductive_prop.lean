@@ -174,7 +174,7 @@ meta def mk_iff_of_inductive_prop (i : name) (r : name) : tactic unit := do
   add_theorem_by r univ_names ((mk_iff lhs (mk_or_lst rhss)).pis g) (do
     gs ← intro_lst (g.map local_pp_name),
     split,
-    focus [to_cases shape, intro1 >>= to_inductive constrs (gs.take params) shape]),
+    focus' [to_cases shape, intro1 >>= to_inductive constrs (gs.take params) shape]),
   skip
 
 end tactic

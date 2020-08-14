@@ -3,7 +3,7 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import category.traversable.equiv
+import control.traversable.equiv
 import data.vector2
 
 universes u v w
@@ -134,7 +134,7 @@ theorem to_list_nth_le_aux (i : ℕ) (ih : i < n) : ∀ j {jh t h'},
   show list.nth_le (a.read ⟨j, jh⟩ :: t) k tl = a.read ⟨i, ih⟩, from
   match k, hjk, tl with
   | 0,    e, tl := match i, e, ih with ._, rfl, _ := rfl end
-  | k'+1, _, tl := by simp[list.nth_le]; exact al _ _ (by simp [*]; cc)
+  | k'+1, _, tl := by simp[list.nth_le]; exact al _ _ (by simp [add_comm, add_assoc, *]; cc)
   end
 
 theorem to_list_nth_le (i : ℕ) (h h') : list.nth_le a.to_list i h' = a.read ⟨i, h⟩ :=
@@ -191,7 +191,7 @@ heq_of_heq_of_eq
   d_array.ext $ λ ⟨i, h⟩, to_list_nth_le i h _
 
 @[simp] theorem to_array_to_list (l : list α) : l.to_array.to_list = l :=
-list.ext_le (to_list_length _) $ λ n h1 h2, to_list_nth_le _ _ _
+list.ext_le (to_list_length _) $ λ n h1 h2, to_list_nth_le _ h2 _
 
 end to_array
 

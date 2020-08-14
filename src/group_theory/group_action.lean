@@ -3,11 +3,13 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.set.finite
 import group_theory.coset
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
+
+open_locale big_operators
+open function
 
 /-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
 class has_scalar (α : Type u) (γ : Type v) := (smul : α → γ → γ)
@@ -16,8 +18,8 @@ infixr ` • `:73 := has_scalar.smul
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
-/-- Typeclass for multiplictive actions by monoids. This generalizes group actions. -/
-class mul_action (α : Type u) (β : Type v) [monoid α] extends has_scalar α β :=
+/-- Typeclass for multiplicative actions by monoids. This generalizes group actions. -/
+@[protect_proj] class mul_action (α : Type u) (β : Type v) [monoid α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
 end prio
@@ -35,7 +37,51 @@ lemma smul_comm {α : Type u} {β : Type v} [comm_monoid α] [mul_action α β] 
 variable (α)
 @[simp] theorem one_smul (b : β) : (1 : α) • b = b := mul_action.one_smul _
 
-variables {α} (p : Prop) [decidable p]
+variables {α}
+
+@[simp] lemma units.inv_smul_smul (u : units α) (x : β) :
+  (↑u⁻¹:α) • (u:α) • x = x :=
+by rw [smul_smul, u.inv_mul, one_smul]
+
+@[simp] lemma units.smul_inv_smul (u : units α) (x : β) :
+  (u:α) • (↑u⁻¹:α) • x = x :=
+by rw [smul_smul, u.mul_inv, one_smul]
+
+/-- Pullback a multiplicative action along an injective map respecting `•`. -/
+protected def function.injective.mul_action [has_scalar α γ] (f : γ → β)
+  (hf : injective f) (smul : ∀ (c : α) x, f (c • x) = c • f x) :
+  mul_action α γ :=
+{ smul := (•),
+  one_smul := λ x, hf $ (smul _ _).trans $ one_smul _ (f x),
+  mul_smul := λ c₁ c₂ x, hf $ by simp only [smul, mul_smul] }
+
+/-- Pushforward a multiplicative action along a surjective map respecting `•`. -/
+protected def function.surjective.mul_action [has_scalar α γ] (f : β → γ) (hf : surjective f)
+  (smul : ∀ (c : α) x, f (c • x) = c • f x) :
+  mul_action α γ :=
+{ smul := (•),
+  one_smul := λ y, by { rcases hf y with ⟨x, rfl⟩, rw [← smul, one_smul] },
+  mul_smul := λ c₁ c₂ y, by { rcases hf y with ⟨x, rfl⟩, simp only [← smul, mul_smul] } }
+
+section gwz
+
+variables {G : Type*} [group_with_zero G] [mul_action G β]
+
+lemma inv_smul_smul' {c : G} (hc : c ≠ 0) (x : β) : c⁻¹ • c • x = x :=
+(units.mk0 c hc).inv_smul_smul x
+
+lemma smul_inv_smul' {c : G} (hc : c ≠ 0) (x : β) : c • c⁻¹ • x = x :=
+(units.mk0 c hc).smul_inv_smul x
+
+lemma inv_smul_eq_iff {a : G} (ha : a ≠ 0) {x y : β} : a⁻¹ • x = y ↔ x = a • y :=
+by { split; intro h, rw [← h, smul_inv_smul' ha], rw [h, inv_smul_smul' ha] }
+
+lemma eq_inv_smul_iff {a : G} (ha : a ≠ 0) {x y : β} : x = a⁻¹ • y ↔ a • x = y :=
+by { split; intro h, rw [h, smul_inv_smul' ha], rw [← h, inv_smul_smul' ha] }
+
+end gwz
+
+variables (p : Prop) [decidable p]
 
 lemma ite_smul (a₁ a₂ : α) (b : β) : (ite p a₁ a₂) • b = ite p (a₁ • b) (a₂ • b) :=
 by split_ifs; refl
@@ -44,6 +90,23 @@ lemma smul_ite (a : α) (b₁ b₂ : β) : a • (ite p b₁ b₂) = ite p (a �
 by split_ifs; refl
 
 end
+
+section compatible_scalar
+
+variables (R M N : Type*) [has_scalar R M] [has_scalar M N] [has_scalar R N]
+
+/-- An instance of `is_scalar_tower R M N` states that the multiplicative
+action of `R` on `N` is determined by the multiplicative actions of `R` on `M`
+and `M` on `N`. -/
+class is_scalar_tower : Prop :=
+(smul_assoc : ∀ (x : R) (y : M) (z : N), (x • y) • z = x • (y • z))
+
+variables {R M N}
+
+lemma smul_assoc [is_scalar_tower R M N] (x : R) (y : M) (z : N) :
+  (x • y) • z = x • y • z := is_scalar_tower.smul_assoc x y z
+
+end compatible_scalar
 
 namespace mul_action
 
@@ -57,11 +120,21 @@ def regular : mul_action α α :=
 
 variables [mul_action α β]
 
+section regular
+
+local attribute [instance] regular
+
+instance is_scalar_tower.left : is_scalar_tower α α β :=
+⟨λ x y z, mul_smul x y z⟩
+
+end regular
+
+/-- The orbit of an element under an action. -/
 def orbit (b : β) := set.range (λ x : α, x • b)
 
 variable {α}
 
-@[simp] lemma mem_orbit_iff {b₁ b₂ : β} : b₂ ∈ orbit α b₁ ↔ ∃ x : α, x • b₁ = b₂ :=
+lemma mem_orbit_iff {b₁ b₂ : β} : b₂ ∈ orbit α b₁ ↔ ∃ x : α, x • b₁ = b₂ :=
 iff.rfl
 
 @[simp] lemma mem_orbit (b : β) (x : α) : x • b ∈ orbit α b :=
@@ -70,42 +143,57 @@ iff.rfl
 @[simp] lemma mem_orbit_self (b : β) : b ∈ orbit α b :=
 ⟨1, by simp [mul_action.one_smul]⟩
 
-instance orbit_fintype (b : β) [fintype α] [decidable_eq β] :
-  fintype (orbit α b) := set.fintype_range _
-
 variable (α)
 
-def stabilizer (b : β) : set α :=
+/-- The stabilizer of an element under an action, i.e. what sends the element to itself. Note
+that this is a set: for the group stabilizer see `stabilizer`. -/
+def stabilizer_carrier (b : β) : set α :=
 {x : α | x • b = b}
 
 variable {α}
 
 @[simp] lemma mem_stabilizer_iff {b : β} {x : α} :
-  x ∈ stabilizer α b ↔ x • b = b := iff.rfl
+  x ∈ stabilizer_carrier α b ↔ x • b = b := iff.rfl
 
 variables (α) (β)
 
-def fixed_points : set β := {b : β | ∀ x, x ∈ stabilizer α b}
+/-- The set of elements fixed under the whole action. -/
+def fixed_points : set β := {b : β | ∀ x : α, x • b = b}
+
+/-- `fixed_by g` is the subfield of elements fixed by `g`. -/
+def fixed_by (g : α) : set β :=
+{ x | g • x = x }
+
+theorem fixed_eq_Inter_fixed_by : fixed_points α β = ⋂ g : α, fixed_by α β g :=
+set.ext $ λ x, ⟨λ hx, set.mem_Inter.2 $ λ g, hx g, λ hx g, by exact (set.mem_Inter.1 hx g : _)⟩
 
 variables {α} (β)
 
 @[simp] lemma mem_fixed_points {b : β} :
   b ∈ fixed_points α β ↔ ∀ x : α, x • b = b := iff.rfl
 
+@[simp] lemma mem_fixed_by {g : α} {b : β} :
+  b ∈ fixed_by α β g ↔ g • b = b := iff.rfl
+
 lemma mem_fixed_points' {b : β} : b ∈ fixed_points α β ↔
   (∀ b', b' ∈ orbit α b → b' = b) :=
 ⟨λ h b h₁, let ⟨x, hx⟩ := mem_orbit_iff.1 h₁ in hx ▸ h x,
 λ h b, mem_stabilizer_iff.2 (h _ (mem_orbit _ _))⟩
 
-def comp_hom [monoid γ] (g : γ → α) [is_monoid_hom g] :
+/-- An action of `α` on `β` and a monoid homomorphism `γ → α` induce an action of `γ` on `β`. -/
+def comp_hom [monoid γ] (g : γ →* α) :
   mul_action γ β :=
 { smul := λ x b, (g x) • b,
-  one_smul := by simp [is_monoid_hom.map_one g, mul_action.one_smul],
-  mul_smul := by simp [is_monoid_hom.map_mul g, mul_action.mul_smul] }
+  one_smul := by simp [g.map_one, mul_action.one_smul],
+  mul_smul := by simp [g.map_mul, mul_action.mul_smul] }
 
-instance (b : β) : is_submonoid (stabilizer α b) :=
-{ one_mem := one_smul b,
-  mul_mem := λ a a' (ha : a • b = b) (hb : a' • b = b),
+variables (α) {β}
+
+/-- The stabilizer of a point `b` as a submonoid of `α`. -/
+def stabilizer.submonoid (b : β) : submonoid α :=
+{ carrier := stabilizer_carrier α b,
+  one_mem' := one_smul _ b,
+  mul_mem' := λ a a' (ha : a • b = b) (hb : a' • b = b),
     by rw [mem_stabilizer_iff, ←smul_smul, hb, ha] }
 
 end mul_action
@@ -116,20 +204,52 @@ variables [group α] [mul_action α β]
 section
 open mul_action quotient_group
 
-variables (α) (β)
+@[simp] lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
+(to_units c).inv_smul_smul x
 
+@[simp] lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
+(to_units c).smul_inv_smul x
+
+lemma inv_smul_eq_iff {a : α} {x y : β} : a⁻¹ • x = y ↔ x = a • y :=
+begin
+  split;
+  rintro rfl,
+  {rw smul_inv_smul},
+  {rw inv_smul_smul},
+end
+
+lemma eq_inv_smul_iff {a : α} {x y : β} : x = a⁻¹ • y ↔ a • x = y :=
+begin
+  split;
+  rintro rfl,
+  {rw smul_inv_smul},
+  {rw inv_smul_smul},
+end
+
+variable (α)
+
+/-- The stabilizer of an element under an action, i.e. what sends the element to itself.
+A subgroup.-/
+def stabilizer (b : β) : subgroup α :=
+{ inv_mem' := λ a (ha : a • b = b), show a⁻¹ • b = b, by rw [inv_smul_eq_iff, ha]
+  ..stabilizer.submonoid α b
+}
+
+variable (β)
+
+/-- Given an action of a group `α` on a set `β`, each `g : α` defines a permutation of `β`. -/
 def to_perm (g : α) : equiv.perm β :=
 { to_fun := (•) g,
   inv_fun := (•) g⁻¹,
-  left_inv := λ a, by rw [← mul_action.mul_smul, inv_mul_self, mul_action.one_smul],
-  right_inv := λ a, by rw [← mul_action.mul_smul, mul_inv_self, mul_action.one_smul] }
+  left_inv := inv_smul_smul g,
+  right_inv := smul_inv_smul g }
 
 variables {α} {β}
 
 instance : is_group_hom (to_perm α β) :=
-{ map_mul := λ x y, equiv.ext _ _ (λ a, mul_action.mul_smul x y a) }
+{ map_mul := λ x y, equiv.ext (λ a, mul_action.mul_smul x y a) }
 
-lemma bijective (g : α) : function.bijective (λ b : β, g • b) :=
+protected lemma bijective (g : α) : bijective (λ b : β, g • b) :=
 (to_perm α β g).bijective
 
 lemma orbit_eq_iff {a b : β} :
@@ -142,60 +262,88 @@ lemma orbit_eq_iff {a b : β} :
       conv {to_rhs, rw [← hy, ← mul_one y, ← inv_mul_self x, ← mul_assoc,
         mul_action.mul_smul, hx]}⟩⟩)⟩
 
-instance (b : β) : is_subgroup (stabilizer α b) :=
-{ one_mem := mul_action.one_smul _,
-  mul_mem := λ x y (hx : x • b = b) (hy : y • b = b),
-    show (x * y) • b = b, by rw mul_action.mul_smul; simp *,
-  inv_mem := λ x (hx : x • b = b), show x⁻¹ • b = b,
-    by rw [← hx, ← mul_action.mul_smul, inv_mul_self, mul_action.one_smul, hx] }
+variables (α) {β}
 
+/-- The stabilizer of a point `b` as a subgroup of `α`. -/
+def stabilizer.subgroup (b : β) : subgroup α :=
+{ inv_mem' := λ x (hx : x • b = b), show x⁻¹ • b = b,
+    by rw [← hx, ← mul_action.mul_smul, inv_mul_self, mul_action.one_smul, hx],
+  ..stabilizer.submonoid α b }
+
+variables {β}
+
+@[simp] lemma mem_orbit_smul (g : α) (a : β) : a ∈ orbit α (g • a) :=
+⟨g⁻¹, by simp⟩
+
+@[simp] lemma smul_mem_orbit_smul (g h : α) (a : β) : g • a ∈ orbit α (h • a) :=
+⟨g * h⁻¹, by simp [mul_smul]⟩
 
 variables (α) (β)
-
+/-- The relation "in the same orbit". -/
 def orbit_rel : setoid β :=
 { r := λ a b, a ∈ orbit α b,
   iseqv := ⟨mem_orbit_self, λ a b, by simp [orbit_eq_iff.symm, eq_comm],
     λ a b, by simp [orbit_eq_iff.symm, eq_comm] {contextual := tt}⟩ }
 
-variables {β}
+variables {α β}
 
-open quotient_group
+open quotient_group mul_action
 
-noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
-  orbit α b ≃ quotient (stabilizer α b) :=
-equiv.symm (@equiv.of_bijective _ _
-  (λ x : quotient (stabilizer α b), quotient.lift_on' x
-    (λ x, (⟨x • b, mem_orbit _ _⟩ : orbit α b))
-    (λ g h (H : _ = _), subtype.eq $ (mul_action.bijective (g⁻¹)).1
-      $ show g⁻¹ • (g • b) = g⁻¹ • (h • b),
-      by rw [← mul_action.mul_smul, ← mul_action.mul_smul,
-        H, inv_mul_self, mul_action.one_smul]))
-⟨λ g h, quotient.induction_on₂' g h (λ g h H, quotient.sound' $
-  have H : g • b = h • b := subtype.mk.inj H,
-  show (g⁻¹ * h) • b = b,
-  by rw [mul_action.mul_smul, ← H, ← mul_action.mul_smul, inv_mul_self, mul_action.one_smul]),
-  λ ⟨b, ⟨g, hgb⟩⟩, ⟨g, subtype.eq hgb⟩⟩)
-
-end
-
-open quotient_group mul_action is_subgroup
-
-def mul_left_cosets (H : set α) [is_subgroup H]
+/-- Action on left cosets. -/
+def mul_left_cosets (H : subgroup α)
   (x : α) (y : quotient H) : quotient H :=
 quotient.lift_on' y (λ y, quotient_group.mk ((x : α) * y))
   (λ a b (hab : _ ∈ H), quotient_group.eq.2
     (by rwa [mul_inv_rev, ← mul_assoc, mul_assoc (a⁻¹), inv_mul_self, mul_one]))
 
-instance (H : set α) [is_subgroup H] : mul_action α (quotient H) :=
+instance (H : subgroup α) : mul_action α (quotient H) :=
 { smul := mul_left_cosets H,
   one_smul := λ a, quotient.induction_on' a (λ a, quotient_group.eq.2
-    (by simp [is_submonoid.one_mem])),
+    (by simp [subgroup.one_mem])),
   mul_smul := λ x y a, quotient.induction_on' a (λ a, quotient_group.eq.2
-    (by simp [mul_inv_rev, is_submonoid.one_mem, mul_assoc])) }
+    (by simp [mul_inv_rev, subgroup.one_mem, mul_assoc])) }
 
-instance mul_left_cosets_comp_subtype_val (H I : set α) [is_subgroup H] [is_subgroup I] :
+instance mul_left_cosets_comp_subtype_val (H I : subgroup α)  :
   mul_action I (quotient H) :=
-mul_action.comp_hom (quotient H) (subtype.val : I → α)
+mul_action.comp_hom (quotient H) (subgroup.subtype I)
+
+variables (α) {β} (x : β)
+
+/-- The canonical map from the quotient of the stabilizer to the set. -/
+def of_quotient_stabilizer (g : quotient (mul_action.stabilizer α x)) : β :=
+quotient.lift_on' g (•x) $ λ g1 g2 H,
+calc  g1 • x
+    = g1 • (g1⁻¹ * g2) • x : congr_arg _ H.symm
+... = g2 • x : by rw [smul_smul, mul_inv_cancel_left]
+
+@[simp] theorem of_quotient_stabilizer_mk (g : α) :
+  of_quotient_stabilizer α x (quotient_group.mk g) = g • x :=
+rfl
+
+theorem of_quotient_stabilizer_mem_orbit (g) : of_quotient_stabilizer α x g ∈ orbit α x :=
+quotient.induction_on' g $ λ g, ⟨g, rfl⟩
+
+theorem of_quotient_stabilizer_smul (g : α) (g' : quotient (mul_action.stabilizer α x)) :
+  of_quotient_stabilizer α x (g • g') = g • of_quotient_stabilizer α x g' :=
+quotient.induction_on' g' $ λ _, mul_smul _ _ _
+
+theorem injective_of_quotient_stabilizer : function.injective (of_quotient_stabilizer α x) :=
+λ y₁ y₂, quotient.induction_on₂' y₁ y₂ $ λ g₁ g₂ (H : g₁ • x = g₂ • x), quotient.sound' $
+show (g₁⁻¹ * g₂) • x = x, by rw [mul_smul, ← H, mul_action.inv_smul_smul]
+
+/-- Orbit-stabilizer theorem. -/
+noncomputable def orbit_equiv_quotient_stabilizer (b : β) :
+  orbit α b ≃ quotient (stabilizer α b) :=
+equiv.symm $ equiv.of_bijective
+  (λ g, ⟨of_quotient_stabilizer α b g, of_quotient_stabilizer_mem_orbit α b g⟩)
+  ⟨λ x y hxy, injective_of_quotient_stabilizer α b (by convert congr_arg subtype.val hxy),
+  λ ⟨b, ⟨g, hgb⟩⟩, ⟨g, subtype.eq hgb⟩⟩
+
+@[simp] theorem orbit_equiv_quotient_stabilizer_symm_apply (b : β) (a : α) :
+  ((orbit_equiv_quotient_stabilizer α b).symm a : β) = a • b :=
+rfl
+
+end
 
 end mul_action
 
@@ -216,14 +364,53 @@ distrib_mul_action.smul_add _ _ _
 @[simp] theorem smul_zero (a : α) : a • (0 : β) = 0 :=
 distrib_mul_action.smul_zero _
 
-instance distrib_mul_action.is_add_monoid_hom (r : α) :
-  is_add_monoid_hom ((•) r : β → β) :=
-{ map_zero := smul_zero r,
-  map_add := smul_add r }
+/-- Pullback a distributive multiplicative action along an injective additive monoid
+homomorphism. -/
+protected def function.injective.distrib_mul_action [add_monoid γ] [has_scalar α γ] (f : γ →+ β)
+  (hf : injective f) (smul : ∀ (c : α) x, f (c • x) = c • f x) :
+  distrib_mul_action α γ :=
+{ smul := (•),
+  smul_add := λ c x y, hf $ by simp only [smul, f.map_add, smul_add],
+  smul_zero := λ c, hf $ by simp only [smul, f.map_zero, smul_zero],
+  .. hf.mul_action f smul }
+
+/-- Pushforward a distributive multiplicative action along a surjective additive monoid
+homomorphism.-/
+protected def function.surjective.distrib_mul_action [add_monoid γ] [has_scalar α γ] (f : β →+ γ)
+  (hf : surjective f) (smul : ∀ (c : α) x, f (c • x) = c • f x) :
+  distrib_mul_action α γ :=
+{ smul := (•),
+  smul_add := λ c x y, by { rcases hf x with ⟨x, rfl⟩, rcases hf y with ⟨y, rfl⟩,
+    simp only [smul_add, ← smul, ← f.map_add] },
+  smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero],
+  .. hf.mul_action f smul }
+
+theorem units.smul_eq_zero (u : units α) {x : β} : (u : α) • x = 0 ↔ x = 0 :=
+⟨λ h, by rw [← u.inv_smul_smul x, h, smul_zero], λ h, h.symm ▸ smul_zero _⟩
+
+theorem units.smul_ne_zero (u : units α) {x : β} : (u : α) • x ≠ 0 ↔ x ≠ 0 :=
+not_congr u.smul_eq_zero
+
+@[simp] theorem is_unit.smul_eq_zero {u : α} (hu : is_unit u) {x : β} :
+  u • x = 0 ↔ x = 0 :=
+exists.elim hu $ λ u hu, hu ▸ u.smul_eq_zero
+
+variable (β)
+
+/-- Scalar multiplication by `r` as an `add_monoid_hom`. -/
+def const_smul_hom (r : α) : β →+ β :=
+{ to_fun := (•) r,
+  map_zero' := smul_zero r,
+  map_add' := smul_add r }
+
+variable {β}
+
+@[simp] lemma const_smul_hom_apply (r : α) (x : β) :
+  const_smul_hom β r x = r • x := rfl
 
 lemma list.smul_sum {r : α} {l : list β} :
   r • l.sum = (l.map ((•) r)).sum :=
-(list.sum_hom _ _).symm
+(const_smul_hom β r).map_list_sum l
 
 end
 
@@ -232,10 +419,21 @@ variables [monoid α] [add_comm_monoid β] [distrib_mul_action α β]
 
 lemma multiset.smul_sum {r : α} {s : multiset β} :
   r • s.sum = (s.map ((•) r)).sum :=
-(multiset.sum_hom _ _).symm
+(const_smul_hom β r).map_multiset_sum s
 
 lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
-  r • s.sum f = s.sum (λ x, r • f x) :=
-(finset.sum_hom _ _).symm
+  r • ∑ x in s, f x = ∑ x in s, r • f x :=
+(const_smul_hom β r).map_sum f s
+
+end
+
+section
+variables [monoid α] [add_group β] [distrib_mul_action α β]
+
+@[simp] theorem smul_neg (r : α) (x : β) : r • (-x) = -(r • x) :=
+eq_neg_of_add_eq_zero $ by rw [← smul_add, neg_add_self, smul_zero]
+
+theorem smul_sub (r : α) (x y : β) : r • (x - y) = r • x - r • y :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, smul_add, smul_neg]
 
 end

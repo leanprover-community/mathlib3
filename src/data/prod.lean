@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import tactic.ext
+import tactic.basic
 
 /-!
 # Extra facts about `prod`
@@ -19,18 +19,20 @@ variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 @[simp] theorem prod.exists {p : α × β → Prop} : (∃ x, p x) ↔ (∃ a b, p (a, b)) :=
 ⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
 
+@[simp] lemma prod_map (f : α → γ) (g : β → δ) (p : α × β) : prod.map f g p = (f p.1, g p.2) := rfl
+
 namespace prod
 
 @[simp] lemma map_mk (f : α → γ) (g : β → δ) (a : α) (b : β) : map f g (a, b) = (f a, g b) := rfl
 
-@[simp] lemma map_fst (f : α → γ) (g : β → δ) (p : α × β) : (map f g p).1 = f (p.1) := rfl
+lemma map_fst (f : α → γ) (g : β → δ) (p : α × β) : (map f g p).1 = f (p.1) := rfl
 
-@[simp] lemma map_snd (f : α → γ) (g : β → δ) (p : α × β) : (map f g p).2 = g (p.2) := rfl
+lemma map_snd (f : α → γ) (g : β → δ) (p : α × β) : (map f g p).2 = g (p.2) := rfl
 
-@[simp] lemma map_fst' (f : α → γ) (g : β → δ) : (prod.fst ∘ map f g) = f ∘ prod.fst :=
+lemma map_fst' (f : α → γ) (g : β → δ) : (prod.fst ∘ map f g) = f ∘ prod.fst :=
 funext $ map_fst f g
 
-@[simp] lemma map_snd' (f : α → γ) (g : β → δ) : (prod.snd ∘ map f g) = g ∘ prod.snd :=
+lemma map_snd' (f : α → γ) (g : β → δ) : (prod.snd ∘ map f g) = g ∘ prod.snd :=
 funext $ map_snd f g
 
 @[simp] theorem mk.inj_iff {a₁ a₂ : α} {b₁ b₂ : β} : (a₁, b₁) = (a₂, b₂) ↔ (a₁ = a₂ ∧ b₁ = b₂) :=
@@ -85,6 +87,12 @@ swap_swap
 lemma eq_iff_fst_eq_snd_eq : ∀{p q : α × β}, p = q ↔ (p.1 = q.1 ∧ p.2 = q.2)
 | ⟨p₁, p₂⟩ ⟨q₁, q₂⟩ := by simp
 
+lemma fst_eq_iff : ∀ {p : α × β} {x : α}, p.1 = x ↔ p = (x, p.2)
+| ⟨a, b⟩ x := by simp
+
+lemma snd_eq_iff : ∀ {p : α × β} {x : β}, p.2 = x ↔ p = (p.1, x)
+| ⟨a, b⟩ x := by simp
+
 theorem lex_def (r : α → α → Prop) (s : β → β → Prop)
   {p q : α × β} : prod.lex r s p q ↔ r p.1 q.1 ∨ p.1 = q.1 ∧ s p.2 q.2 :=
 ⟨λ h, by cases h; simp *,
@@ -103,9 +111,10 @@ end prod
 
 open function
 
-lemma function.injective.prod {f : α → γ} {g : β → δ} (hf : injective f) (hg : injective g) :
-  injective (λ p : α × β, (f p.1, g p.2)) :=
-assume ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ h,
-  have a₁ = a₂, from hf (by cc),
-  have b₁ = b₂, from hg (by cc),
-  by cc
+lemma function.injective.prod_map {f : α → γ} {g : β → δ} (hf : injective f) (hg : injective g) :
+  injective (prod.map f g) :=
+λ x y h, prod.ext (hf (prod.ext_iff.1 h).1) (hg $ (prod.ext_iff.1 h).2)
+
+lemma function.surjective.prod_map {f : α → γ} {g : β → δ} (hf : surjective f) (hg : surjective g) :
+  surjective (prod.map f g) :=
+λ p, let ⟨x, hx⟩ := hf p.1 in let ⟨y, hy⟩ := hg p.2 in ⟨(x, y), prod.ext hx hy⟩

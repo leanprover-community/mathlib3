@@ -5,19 +5,14 @@ Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.const
 import category_theory.yoneda
+import category_theory.reflects_isomorphisms
 
 universes v u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 open category_theory
 
--- There is an awkward difficulty with universes here.
--- If we allowed `J` to be a small category in `Prop`, we'd run into trouble
--- because `yoneda.obj (F : (J ⥤ C)ᵒᵖ)` will be a functor into `Sort (max v 1)`,
--- not into `Sort v`.
--- So we don't allow this case; it's not particularly useful anyway.
 variables {J : Type v} [small_category J]
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 open category_theory
 open category_theory.category
@@ -186,6 +181,16 @@ namespace cones
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.inv_comp_eq.mpr (w j) } }
 
+/--
+Given a cone morphism whose object part is an isomorphism, produce an
+isomorphism of cones.
+-/
+def cone_iso_of_hom_iso {K : J ⥤ C} {c d : cone K} (f : c ⟶ d) [i : is_iso f.hom] :
+  is_iso f :=
+{ inv :=
+  { hom := i.inv,
+    w' := λ j, (as_iso f.hom).inv_comp_eq.2 (f.w j).symm } }
+
 @[simps] def postcompose {G : J ⥤ C} (α : F ⟶ G) : cone F ⥤ cone G :=
 { obj := λ c, { X := c.X, π := c.π ≫ α },
   map := λ c₁ c₂ f, { hom := f.hom, w' :=
@@ -193,18 +198,61 @@ namespace cones
 
 def postcompose_comp {G H : J ⥤ C} (α : F ⟶ G) (β : G ⟶ H) :
   postcompose (α ≫ β) ≅ postcompose α ⋙ postcompose β :=
-by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
+nat_iso.of_components (λ s, cones.ext (iso.refl _) (by tidy)) (by tidy)
 
 def postcompose_id : postcompose (𝟙 F) ≅ 𝟭 (cone F) :=
-by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
+nat_iso.of_components (λ s, cones.ext (iso.refl _) (by tidy)) (by tidy)
 
+@[simps]
 def postcompose_equivalence {G : J ⥤ C} (α : F ≅ G) : cone F ≌ cone G :=
-begin
-  refine equivalence.mk (postcompose α.hom) (postcompose α.inv) _ _,
-  { symmetry,
-    refine (postcompose_comp _ _).symm.trans _, rw [iso.hom_inv_id], exact postcompose_id },
-  { refine (postcompose_comp _ _).symm.trans _, rw [iso.inv_hom_id], exact postcompose_id }
-end
+{ functor := postcompose α.hom,
+  inverse := postcompose α.inv,
+  unit_iso := nat_iso.of_components (λ s, cones.ext (iso.refl _) (by tidy)) (by tidy),
+  counit_iso := nat_iso.of_components (λ s, cones.ext (iso.refl _) (by tidy)) (by tidy) }
+
+/--
+Whiskering on the left by `E : K ⥤ J` gives a functor from `cone F` to `cone (E ⋙ F)`.
+-/
+@[simps]
+def whiskering {K : Type v} [small_category K] (E : K ⥤ J) : cone F ⥤ cone (E ⋙ F) :=
+{ obj := λ c, c.whisker E,
+  map := λ c c' f, { hom := f.hom, } }
+
+/--
+Whiskering by an equivalence gives an equivalence between categories of cones.
+-/
+@[simps]
+def whiskering_equivalence {K : Type v} [small_category K] (e : K ≌ J) :
+  cone F ≌ cone (e.functor ⋙ F) :=
+{ functor := whiskering e.functor,
+  inverse := whiskering e.inverse ⋙
+    postcompose ((functor.associator _ _ _).inv ≫ (whisker_right (e.counit_iso).hom F) ≫
+      (functor.left_unitor F).hom),
+  unit_iso := nat_iso.of_components (λ s, cones.ext (iso.refl _) (by tidy)) (by tidy),
+  counit_iso := nat_iso.of_components (λ s, cones.ext (iso.refl _)
+  (begin
+    intro k,
+    have t := s.π.naturality (e.unit_inv.app k),
+    dsimp at t,
+    simp only [←e.counit_functor k, id_comp] at t,
+    dsimp,
+    simp [t],
+  end)) (by tidy), }
+
+/--
+The categories of cones over `F` and `G` are equivalent if `F` and `G` are naturally isomorphic
+(possibly after changing the indexing category by an equivalence).
+-/
+def equivalence_of_reindexing {K : Type v} [small_category K] {G : K ⥤ C}
+  (e : K ≌ J) (α : e.functor ⋙ F ≅ G) : cone F ≌ cone G :=
+(whiskering_equivalence e).trans (postcompose_equivalence α)
+
+@[simp]
+lemma equivalence_of_reindexing_functor_obj {K : Type v} [small_category K] {G : K ⥤ C}
+  (e : K ≌ J) (α : e.functor ⋙ F ≅ G) (c : cone F) :
+  (equivalence_of_reindexing e α).functor.obj c =
+  (postcompose α.hom).obj (cone.whisker e.functor c) :=
+rfl
 
 section
 variable (F)
@@ -213,17 +261,40 @@ variable (F)
 def forget : cone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }
 
-variables {D : Type u'} [𝒟 : category.{v} D]
-include 𝒟
+variables {D : Type u'} [category.{v} D] (G : C ⥤ D)
 
-@[simps] def functoriality (G : C ⥤ D) : cone F ⥤ cone (F ⋙ G) :=
+@[simps] def functoriality : cone F ⥤ cone (F ⋙ G) :=
 { obj := λ A,
   { X := G.obj A.X,
     π := { app := λ j, G.map (A.π.app j), naturality' := by intros; erw ←G.map_comp; tidy } },
   map := λ X Y f,
   { hom := G.map f.hom,
     w'  := by intros; rw [←functor.map_comp, f.w] } }
+
+instance functoriality_full [full G] [faithful G] : full (functoriality F G) :=
+{ preimage := λ X Y t,
+  { hom := G.preimage t.hom,
+    w' := λ j, G.map_injective (by simpa using t.w j) } }
+
+instance functoriality_faithful [faithful G] : faithful (cones.functoriality F G) :=
+{ map_injective' := λ X Y f g e, by { ext1, injection e, apply G.map_injective h_1 } }
+
+/--
+If `F` reflects isomorphisms, then `cones.functoriality F` reflects isomorphisms
+as well.
+-/
+instance reflects_cone_isomorphism (F : C ⥤ D) [reflects_isomorphisms F] (K : J ⥤ C) :
+  reflects_isomorphisms (cones.functoriality K F) :=
+begin
+  constructor,
+  introsI,
+  haveI : is_iso (F.map f.hom) := (cones.forget (K ⋙ F)).map_is_iso ((cones.functoriality K F).map f),
+  haveI := reflects_isomorphisms.reflects F f.hom,
+  apply cone_iso_of_hom_iso
 end
+
+end
+
 end cones
 
 @[ext] structure cocone_morphism (A B : cocone F) :=
@@ -249,6 +320,16 @@ namespace cocones
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.comp_inv_eq.mpr (w j).symm } }
 
+/--
+Given a cocone morphism whose object part is an isomorphism, produce an
+isomorphism of cocones.
+-/
+def cocone_iso_of_hom_iso {K : J ⥤ C} {c d : cocone K} (f : c ⟶ d) [i : is_iso f.hom] :
+  is_iso f :=
+{ inv :=
+  { hom := i.inv,
+    w' := λ j, (as_iso f.hom).comp_inv_eq.2 (f.w j).symm } }
+
 @[simps] def precompose {G : J ⥤ C} (α : G ⟶ F) : cocone F ⥤ cocone G :=
 { obj := λ c, { X := c.X, ι := α ≫ c.ι },
   map := λ c₁ c₂ f, { hom := f.hom } }
@@ -260,12 +341,55 @@ by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obv
 def precompose_id : precompose (𝟙 F) ≅ 𝟭 (cocone F) :=
 by { fapply nat_iso.of_components, { intro s, fapply ext, refl, obviously }, obviously }
 
+@[simps]
 def precompose_equivalence {G : J ⥤ C} (α : G ≅ F) : cocone F ≌ cocone G :=
-begin
-  refine equivalence.mk (precompose α.hom) (precompose α.inv) _ _,
-  { symmetry, refine (precompose_comp _ _).symm.trans _, rw [iso.inv_hom_id], exact precompose_id },
-  { refine (precompose_comp _ _).symm.trans _, rw [iso.hom_inv_id], exact precompose_id }
-end
+{ functor := precompose α.hom,
+  inverse := precompose α.inv,
+  unit_iso := nat_iso.of_components (λ s, cocones.ext (iso.refl _) (by tidy)) (by tidy),
+  counit_iso := nat_iso.of_components (λ s, cocones.ext (iso.refl _) (by tidy)) (by tidy) }
+
+/--
+Whiskering on the left by `E : K ⥤ J` gives a functor from `cocone F` to `cocone (E ⋙ F)`.
+-/
+@[simps]
+def whiskering {K : Type v} [small_category K] (E : K ⥤ J) : cocone F ⥤ cocone (E ⋙ F) :=
+{ obj := λ c, c.whisker E,
+  map := λ c c' f, { hom := f.hom, } }
+
+/--
+Whiskering by an equivalence gives an equivalence between categories of cones.
+-/
+@[simps]
+def whiskering_equivalence {K : Type v} [small_category K] (e : K ≌ J) :
+  cocone F ≌ cocone (e.functor ⋙ F) :=
+{ functor := whiskering e.functor,
+  inverse := whiskering e.inverse ⋙
+    precompose ((functor.left_unitor F).inv ≫ (whisker_right (e.counit_iso).inv F) ≫ (functor.associator _ _ _).inv),
+  unit_iso := nat_iso.of_components (λ s, cocones.ext (iso.refl _) (by tidy)) (by tidy),
+  counit_iso := nat_iso.of_components (λ s, cocones.ext (iso.refl _)
+  (begin
+    intro k,
+    have t := s.ι.naturality (e.unit.app k),
+    dsimp at t,
+    simp only [e.functor_unit k, comp_id] at t,
+    dsimp,
+    simp [t],
+  end)) (by tidy), }
+
+/--
+The categories of cocones over `F` and `G` are equivalent if `F` and `G` are naturally isomorphic
+(possibly after changing the indexing category by an equivalence).
+-/
+def equivalence_of_reindexing {K : Type v} [small_category K] {G : K ⥤ C}
+  (e : K ≌ J) (α : e.functor ⋙ F ≅ G) : cocone F ≌ cocone G :=
+(whiskering_equivalence e).trans (precompose_equivalence α.symm)
+
+@[simp]
+lemma equivalence_of_reindexing_functor_obj {K : Type v} [small_category K] {G : K ⥤ C}
+  (e : K ≌ J) (α : e.functor ⋙ F ≅ G) (c : cocone F) :
+  (equivalence_of_reindexing e α).functor.obj c =
+  (precompose α.inv).obj (cocone.whisker e.functor c) :=
+rfl
 
 section
 variable (F)
@@ -274,16 +398,38 @@ variable (F)
 def forget : cocone F ⥤ C :=
 { obj := λ t, t.X, map := λ s t f, f.hom }
 
-variables {D : Type u'} [𝒟 : category.{v} D]
-include 𝒟
+variables {D : Type u'} [category.{v} D] (G : C ⥤ D)
 
-@[simps] def functoriality (G : C ⥤ D) : cocone F ⥤ cocone (F ⋙ G) :=
+@[simps] def functoriality : cocone F ⥤ cocone (F ⋙ G) :=
 { obj := λ A,
   { X := G.obj A.X,
     ι := { app := λ j, G.map (A.ι.app j), naturality' := by intros; erw ←G.map_comp; tidy } },
   map := λ _ _ f,
   { hom := G.map f.hom,
     w'  := by intros; rw [←functor.map_comp, cocone_morphism.w] } }
+
+instance functoriality_full [full G] [faithful G] : full (functoriality F G) :=
+{ preimage := λ X Y t,
+  { hom := G.preimage t.hom,
+    w' := λ j, G.map_injective (by simpa using t.w j) } }
+
+instance functoriality_faithful [faithful G] : faithful (functoriality F G) :=
+{ map_injective' := λ X Y f g e, by { ext1, injection e, apply G.map_injective h_1 } }
+
+/--
+If `F` reflects isomorphisms, then `cocones.functoriality F` reflects isomorphisms
+as well.
+-/
+instance reflects_cocone_isomorphism (F : C ⥤ D) [reflects_isomorphisms F] (K : J ⥤ C) :
+  reflects_isomorphisms (cocones.functoriality K F) :=
+begin
+  constructor,
+  introsI,
+  haveI : is_iso (F.map f.hom) := (cocones.forget (K ⋙ F)).map_is_iso ((cocones.functoriality K F).map f),
+  haveI := reflects_isomorphisms.reflects F f.hom,
+  apply cocone_iso_of_hom_iso
+end
+
 end
 end cocones
 
@@ -332,8 +478,8 @@ begin
   { dsimp,
     erw [comp_id, ← H.inv_fun_id.hom.naturality (c.π.app j), comp_map, H.map_comp],
     congr' 1,
-    erw [← cancel_epi (H.inv_fun_id.inv.app (H.obj (F.obj j))), nat_iso.inv_hom_id_app,
-         ← (functor.as_equivalence H).functor_unit _, ← H.map_comp, nat_iso.hom_inv_id_app,
+    erw [← cancel_epi (H.inv_fun_id.inv.app (H.obj (F.obj j))), iso.inv_hom_id_app,
+         ← (functor.as_equivalence H).functor_unit _, ← H.map_comp, iso.hom_inv_id_app,
          H.map_id],
     refl }
 end

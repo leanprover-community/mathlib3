@@ -6,6 +6,7 @@ Author: Mario Carneiro
 Additional equiv and encodable instances for lists, finsets, and fintypes.
 -/
 import data.equiv.denumerable
+import data.finset.sort
 
 open nat list
 
@@ -104,13 +105,13 @@ by haveI := decidable_eq_of_encodable α; exact
  of_equiv {s : multiset α // s.nodup}
   ⟨λ ⟨a, b⟩, ⟨a, b⟩, λ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ⟨a, b⟩, rfl⟩
 
-def fintype_arrow (α : Type*) (β : Type*) [fintype α] [decidable_eq α] [encodable β] :
+def fintype_arrow (α : Type*) (β : Type*) [decidable_eq α] [fintype α] [encodable β] :
   trunc (encodable (α → β)) :=
 (fintype.equiv_fin α).map $
   λf, encodable.of_equiv (fin (fintype.card α) → β) $
   equiv.arrow_congr f (equiv.refl _)
 
-def fintype_pi (α : Type*) (π : α → Type*) [fintype α] [decidable_eq α] [∀a, encodable (π a)] :
+def fintype_pi (α : Type*) (π : α → Type*) [decidable_eq α] [fintype α] [∀a, encodable (π a)] :
   trunc (encodable (Πa, π a)) :=
 (encodable.trunc_encodable_of_fintype α).bind $ λa,
   (@fintype_arrow α (Σa, π a) _ _ (@encodable.sigma _ _ a _)).bind $ λf,
@@ -123,7 +124,8 @@ finset.univ.sort (encodable.encode' α ⁻¹'o (≤))
 theorem mem_sorted_univ {α} [fintype α] [encodable α] (x : α) : x ∈ sorted_univ α :=
 (finset.mem_sort _).2 (finset.mem_univ _)
 
-theorem length_sorted_univ {α} [fintype α] [encodable α] : (sorted_univ α).length = fintype.card α :=
+theorem length_sorted_univ {α} [fintype α] [encodable α] :
+  (sorted_univ α).length = fintype.card α :=
 finset.length_sort _
 
 theorem sorted_univ_nodup {α} [fintype α] [encodable α] : (sorted_univ α).nodup :=
@@ -275,7 +277,7 @@ namespace equiv
 def list_unit_equiv : list unit ≃ ℕ :=
 { to_fun := list.length,
   inv_fun := list.repeat (),
-  left_inv := λ u, list.injective_length (by simp),
+  left_inv := λ u, list.length_injective (by simp),
   right_inv := λ n, list.length_repeat () n }
 
 def list_nat_equiv_nat : list ℕ ≃ ℕ := denumerable.eqv _

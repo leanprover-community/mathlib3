@@ -21,7 +21,8 @@ and the appropriate definition of instances:
  * `has_coe_variable` checks that there is no instance of type `has_coe α t`
  * `inhabited_nonempty` checks whether `[inhabited α]` arguments could be generalized
    to `[nonempty α]`
- * `decidable_classical` checks propositions for `[decidable_... p]` hypotheses that are not used in the statement, and could thus be removed by using `classical` in the proof.
+ * `decidable_classical` checks propositions for `[decidable_... p]` hypotheses that are not used
+   in the statement, and could thus be removed by using `classical` in the proof.
 -/
 
 open tactic
@@ -122,6 +123,7 @@ else
 @[linter]
 meta def linter.has_inhabited_instance : linter :=
 { test := has_inhabited_instance,
+  auto_decls := ff,
   no_errors_found := "No types have missing inhabited instances",
   errors_found := "TYPES ARE MISSING INHABITED INSTANCES",
   is_fast := ff }
@@ -139,6 +141,7 @@ private meta def impossible_instance (d : declaration) : tactic (option string) 
 /-- A linter object for `impossible_instance`. -/
 @[linter] meta def linter.impossible_instance : linter :=
 { test := impossible_instance,
+  auto_decls := tt,
   no_errors_found := "All instances are applicable",
   errors_found := "IMPOSSIBLE INSTANCES FOUND.
 These instances have an argument that cannot be found during type-class resolution, and therefore can never succeed. Either mark the arguments with square brackets (if it is a class), or don't make it an instance" }
@@ -161,6 +164,7 @@ private meta def incorrect_type_class_argument (d : declaration) : tactic (optio
 /-- A linter object for `incorrect_type_class_argument`. -/
 @[linter] meta def linter.incorrect_type_class_argument : linter :=
 { test := incorrect_type_class_argument,
+  auto_decls := tt,
   no_errors_found := "All declarations have correct type-class arguments",
   errors_found := "INCORRECT TYPE-CLASS ARGUMENTS.
 Some declarations have non-classes between [square brackets]" }
@@ -223,22 +227,31 @@ meta def fails_quickly (max_steps : ℕ) (d : declaration) : tactic (option stri
   As of 5 Mar 2020 the longest trace (for `is_add_hom`) takes 2900-3000 "heartbeats". -/
 @[linter] meta def linter.fails_quickly : linter :=
 { test := fails_quickly 3000,
+  auto_decls := tt,
   no_errors_found := "No type-class searches timed out",
   errors_found := "TYPE CLASS SEARCHES TIMED OUT.
 For the following classes, there is an instance that causes a loop, or an excessively long search.",
   is_fast := ff }
 
-/-- Tests whether there is no instance of type `has_coe α t` where `α` is a variable.
-See note [use has_coe_t]. -/
+/--
+Tests whether there is no instance of type `has_coe α t` where `α` is a variable,
+or `has_coe t α` where `α` does not occur in `t`.
+See note [use has_coe_t].
+-/
 private meta def has_coe_variable (d : declaration) : tactic (option string) := do
-  tt ← is_instance d.to_name | return none,
-  `(has_coe %%a _) ← return d.type.pi_codomain | return none,
-  tt ← return a.is_var | return none,
-  return $ some $ "illegal instance"
+tt ← is_instance d.to_name | return none,
+`(has_coe %%a %%b) ← return d.type.pi_codomain | return none,
+if a.is_var then
+  return $ some $ "illegal instance, first argument is variable"
+else if b.is_var ∧ ¬ b.occurs a then
+  return $ some $ "illegal instance, second argument is variable not occurring in first argument"
+else
+  return none
 
 /-- A linter object for `has_coe_variable`. -/
 @[linter] meta def linter.has_coe_variable : linter :=
 { test := has_coe_variable,
+  auto_decls := tt,
   no_errors_found := "No invalid `has_coe` instances",
   errors_found := "INVALID `has_coe` INSTANCES.
 Make the following declarations instances of the class `has_coe_t` instead of `has_coe`." }
@@ -256,6 +269,7 @@ do tt ← is_prop d.type | return none,
 /-- A linter object for `inhabited_nonempty`. -/
 @[linter] meta def linter.inhabited_nonempty : linter :=
 { test := inhabited_nonempty,
+  auto_decls := ff,
   no_errors_found := "No uses of `inhabited` arguments should be replaced with `nonempty`",
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
 
@@ -275,6 +289,7 @@ do tt ← is_prop d.type | return none,
 /-- A linter object for `decidable_classical`. -/
 @[linter] meta def linter.decidable_classical : linter :=
 { test := decidable_classical,
+  auto_decls := ff,
   no_errors_found := "No uses of `decidable` arguments should be replaced with `classical`",
   errors_found := "USES OF `decidable` SHOULD BE REPLACED WITH `classical` IN THE PROOF." }
 
@@ -290,9 +305,8 @@ forall_or_distrib_right not_ball
 
 private meta def has_coe_to_fun_linter (d : declaration) : tactic (option string) :=
 retrieve $ do
-reset_instance_cache,
 mk_meta_var d.type >>= set_goals ∘ pure,
-args ← intros,
+args ← unfreezing intros,
 expr.sort _ ← target | pure none,
 let ty : expr := (expr.const d.to_name d.univ_levels).mk_app args,
 some coe_fn_inst ←
@@ -312,6 +326,7 @@ pure $ format.to_string $
 /-- Linter that checks whether `has_coe_to_fun` instances comply with Note [function coercion]. -/
 @[linter] meta def linter.has_coe_to_fun : linter :=
 { test := has_coe_to_fun_linter,
+  auto_decls := tt,
   no_errors_found := "has_coe_to_fun is used correctly",
   errors_found := "INVALID/MISSING `has_coe_to_fun` instances.
 You should add a `has_coe_to_fun` instance for the following types.

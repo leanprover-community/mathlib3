@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import topology.opens
-import ring_theory.ideal_operations
+import ring_theory.ideal.operations
 import linear_algebra.finsupp
 
 /-!
@@ -68,7 +68,7 @@ instance as_ideal.is_prime (x : prime_spectrum R) :
 
 @[ext] lemma ext {x y : prime_spectrum R} :
   x = y ↔ x.as_ideal = y.as_ideal :=
-subtype.ext
+subtype.ext_iff_val
 
 /-- The zero locus of a set `s` of elements of a commutative ring `R`
 is the set of all prime ideals of the ring that contain the set `s`.
@@ -122,16 +122,16 @@ lemma subset_zero_locus_iff_le_vanishing_ideal (t : set (prime_spectrum R)) (I :
 begin
   split; intro h,
   { intros f hf,
-    rw [submodule.mem_coe, mem_vanishing_ideal],
+    rw [mem_vanishing_ideal],
     intros x hx,
     have hxI := h hx,
     rw mem_zero_locus at hxI,
     exact hxI hf },
   { intros x hx,
     rw mem_zero_locus,
-    refine set.subset.trans h _,
+    refine le_trans h _,
     intros f hf,
-    rw [submodule.mem_coe, mem_vanishing_ideal] at hf,
+    rw [mem_vanishing_ideal] at hf,
     exact hf x hx }
 end
 
@@ -176,7 +176,7 @@ lemma zero_locus_bot :
 (gc R).l_bot
 
 @[simp] lemma zero_locus_singleton_zero :
-  zero_locus ({0} : set R) = set.univ :=
+  zero_locus (0 : set R) = set.univ :=
 zero_locus_bot
 
 @[simp] lemma zero_locus_empty :
@@ -271,7 +271,7 @@ lemma sup_vanishing_ideal_le (t t' : set (prime_spectrum R)) :
   vanishing_ideal t ⊔ vanishing_ideal t' ≤ vanishing_ideal (t ∩ t') :=
 begin
   intros r,
-  rw [submodule.mem_coe, submodule.mem_sup, submodule.mem_coe, mem_vanishing_ideal],
+  rw [submodule.mem_sup, mem_vanishing_ideal],
   rintro ⟨f, hf, g, hg, rfl⟩ x ⟨hxt, hxt'⟩,
   rw mem_vanishing_ideal at hf hg,
   apply submodule.add_mem; solve_by_elim
@@ -287,15 +287,15 @@ topological_space.of_closed (set.range prime_spectrum.zero_locus)
     intros Zs h,
     rw set.sInter_eq_Inter,
     let f : Zs → set R := λ i, classical.some (h i.2),
-    have hf : ∀ i : Zs, i.1 = zero_locus (f i) := λ i, (classical.some_spec (h i.2)).symm,
+    have hf : ∀ i : Zs, ↑i = zero_locus (f i) := λ i, (classical.some_spec (h i.2)).symm,
     simp only [hf],
     exact ⟨_, zero_locus_Union _⟩
   end
   (by { rintro _ _ ⟨s, rfl⟩ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus s t).symm⟩ })
 
 lemma is_open_iff (U : set (prime_spectrum R)) :
-  is_open U ↔ ∃ s, -U = zero_locus s :=
-by simp only [@eq_comm _ (-U)]; refl
+  is_open U ↔ ∃ s, Uᶜ = zero_locus s :=
+by simp only [@eq_comm _ Uᶜ]; refl
 
 lemma is_closed_iff_zero_locus (Z : set (prime_spectrum R)) :
   is_closed Z ↔ ∃ s, Z = zero_locus s :=
@@ -354,7 +354,7 @@ begin
     rw [subset_zero_locus_iff_subset_vanishing_ideal] at ht,
     calc fs ⊆ vanishing_ideal t : ht
         ... ⊆ x.as_ideal        : hx },
-  { rw closure_subset_iff_subset_of_is_closed (is_closed_zero_locus _),
+  { rw (is_closed_zero_locus _).closure_subset_iff,
     exact subset_zero_locus_vanishing_ideal t }
 end
 
@@ -366,7 +366,7 @@ begin
   let I : ι → ideal R := λ i, vanishing_ideal (Z i),
   have hI : ∀ i, Z i = zero_locus (I i),
   { intro i,
-    rw [zero_locus_vanishing_ideal_eq_closure, closure_eq_of_is_closed],
+    rw [zero_locus_vanishing_ideal_eq_closure, is_closed.closure_eq],
     exact hZc i },
   have one_mem : (1:R) ∈ ⨆ (i : ι), I i,
   { rw [← ideal.eq_top_iff_one, ← zero_locus_empty_iff_eq_top, zero_locus_supr],

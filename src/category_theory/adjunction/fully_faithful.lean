@@ -14,9 +14,8 @@ universes v₁ v₂ u₁ u₂
 open category
 open opposite
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C]
-variables {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables {C : Type u₁} [category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D]
 variables {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R)
 
 -- Lemma 4.5.13 from [Riehl][riehl2017]
@@ -36,7 +35,7 @@ instance unit_is_iso_of_L_fully_faithful [full L] [faithful L] : is_iso (adjunct
   hom_inv_id' :=
   begin
     ext, dsimp,
-    apply L.injectivity,
+    apply L.map_injective,
     simp,
   end }.
 
@@ -55,7 +54,7 @@ instance counit_is_iso_of_R_fully_faithful [full R] [faithful R] : is_iso (adjun
   hom_inv_id' :=
   begin
     ext, dsimp,
-    apply R.injectivity,
+    apply R.map_injective,
     simp,
   end }
 

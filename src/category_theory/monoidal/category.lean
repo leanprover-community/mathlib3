@@ -69,8 +69,11 @@ attribute [simp] monoidal_category.tensor_id
 restate_axiom monoidal_category.tensor_comp'
 attribute [simp] monoidal_category.tensor_comp
 restate_axiom monoidal_category.associator_naturality'
+attribute [reassoc] monoidal_category.associator_naturality
 restate_axiom monoidal_category.left_unitor_naturality'
+attribute [reassoc] monoidal_category.left_unitor_naturality
 restate_axiom monoidal_category.right_unitor_naturality'
+attribute [reassoc] monoidal_category.right_unitor_naturality
 restate_axiom monoidal_category.pentagon'
 restate_axiom monoidal_category.triangle'
 attribute [simp] monoidal_category.triangle
@@ -99,8 +102,7 @@ namespace monoidal_category
 
 section
 
-variables {C : Type u} [category.{v} C] [𝒞 : monoidal_category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C] [monoidal_category.{v} C]
 
 instance tensor_is_iso {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_iso g] : is_iso (f ⊗ g) :=
 { ..(as_iso f ⊗ as_iso g) }
@@ -156,6 +158,14 @@ begin
   simp only [assoc, comp_id, iso.inv_hom_id],
   rw [right_unitor_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
 end
+
+@[simp]
+lemma right_unitor_conjugation {X Y : C} (f : X ⟶ Y) : (ρ_ X).inv ≫ (f ⊗ (𝟙 (𝟙_ C))) ≫ (ρ_ Y).hom = f :=
+by rw [right_unitor_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
+
+@[simp]
+lemma left_unitor_conjugation {X Y : C} (f : X ⟶ Y) : (λ_ X).inv ≫ ((𝟙 (𝟙_ C)) ⊗ f) ≫ (λ_ Y).hom = f :=
+by rw [left_unitor_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
 
 @[simp] lemma tensor_left_iff
   {X Y : C} (f g : X ⟶ Y) :
@@ -338,8 +348,7 @@ end
 end
 
 section
-variables (C : Type u) [category.{v} C] [𝒞 : monoidal_category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 
 /-- The tensor product expressed as a functor. -/
 def tensor : (C × C) ⥤ C :=
@@ -379,6 +388,7 @@ def tensor_unit_right : C ⥤ C :=
 -- as natural isomorphisms.
 
 /-- The associator as a natural isomorphism. -/
+@[simps {rhs_md := semireducible}]
 def associator_nat_iso :
   left_assoc_tensor C ≅ right_assoc_tensor C :=
 nat_iso.of_components
@@ -386,6 +396,7 @@ nat_iso.of_components
   (by { intros, apply monoidal_category.associator_naturality })
 
 /-- The left unitor as a natural isomorphism. -/
+@[simps {rhs_md := semireducible}]
 def left_unitor_nat_iso :
   tensor_unit_left C ≅ 𝟭 C :=
 nat_iso.of_components
@@ -393,11 +404,86 @@ nat_iso.of_components
   (by { intros, apply monoidal_category.left_unitor_naturality })
 
 /-- The right unitor as a natural isomorphism. -/
+@[simps {rhs_md := semireducible}]
 def right_unitor_nat_iso :
   tensor_unit_right C ≅ 𝟭 C :=
 nat_iso.of_components
   (by { intros, apply monoidal_category.right_unitor })
   (by { intros, apply monoidal_category.right_unitor_naturality })
+
+
+
+section
+variables {C}
+
+/-- Tensoring on the left with as fixed object, as a functor. -/
+@[simps]
+def tensor_left (X : C) : C ⥤ C :=
+{ obj := λ Y, X ⊗ Y,
+  map := λ Y Y' f, (𝟙 X) ⊗ f, }
+
+/--
+Tensoring on the left with `X ⊗ Y` is naturally isomorphic to
+tensoring on the left with `Y`, and then again with `X`.
+-/
+def tensor_left_tensor (X Y : C) : tensor_left (X ⊗ Y) ≅ tensor_left Y ⋙ tensor_left X :=
+nat_iso.of_components
+  (associator _ _)
+  (λ Z Z' f, by { dsimp, rw[←tensor_id], apply associator_naturality })
+
+@[simp] lemma tensor_left_tensor_hom_app (X Y Z : C) :
+  (tensor_left_tensor X Y).hom.app Z = (associator X Y Z).hom :=
+rfl
+@[simp] lemma tensor_left_tensor_inv_app (X Y Z : C) :
+  (tensor_left_tensor X Y).inv.app Z = (associator X Y Z).inv :=
+rfl
+
+/-- Tensoring on the right with as fixed object, as a functor. -/
+@[simps]
+def tensor_right (X : C) : C ⥤ C :=
+{ obj := λ Y, Y ⊗ X,
+  map := λ Y Y' f, f ⊗ (𝟙 X), }
+
+variables (C)
+
+/--
+Tensoring on the right, as a functor from `C` into endofunctors of `C`.
+
+We later show this is a monoidal functor.
+-/
+@[simps]
+def tensoring_right : C ⥤ (C ⥤ C) :=
+{ obj := tensor_right,
+  map := λ X Y f,
+  { app := λ Z, (𝟙 Z) ⊗ f } }
+
+instance : faithful (tensoring_right C) :=
+{ map_injective' := λ X Y f g h,
+  begin
+    injections with h,
+    replace h := congr_fun h (𝟙_ C),
+    simpa using h,
+  end }
+
+variables {C}
+
+/--
+Tensoring on the right with `X ⊗ Y` is naturally isomorphic to
+tensoring on the right with `X`, and then again with `Y`.
+-/
+def tensor_right_tensor (X Y : C) : tensor_right (X ⊗ Y) ≅ tensor_right X ⋙ tensor_right Y :=
+nat_iso.of_components
+  (λ Z, (associator Z X Y).symm)
+  (λ Z Z' f, by { dsimp, rw[←tensor_id], apply associator_inv_naturality })
+
+@[simp] lemma tensor_right_tensor_hom_app (X Y Z : C) :
+  (tensor_right_tensor X Y).hom.app Z = (associator Z X Y).inv :=
+rfl
+@[simp] lemma tensor_right_tensor_inv_app (X Y Z : C) :
+  (tensor_right_tensor X Y).inv.app Z = (associator Z X Y).hom :=
+rfl
+
+end
 
 end
 

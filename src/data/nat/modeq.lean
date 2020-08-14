@@ -2,13 +2,25 @@
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Modular equality relation.
 -/
 import data.int.gcd
 import tactic.abel
 import data.list.rotate
+/-
+# Congruences modulo a natural number
 
+This file defines the equivalence relation `a ≡ b [MOD n]` on the natural numbers,
+and proves basic properties about it such as the Chinese Remainder Theorem
+`modeq_and_modeq_iff_modeq_mul`.
+
+## Notations
+
+`a ≡ b [MOD n]` is notation for `modeq n a b`, which is defined to mean `a % n = b % n`.
+
+## Tags
+
+modeq, congruence, mod, MOD, modulo
+-/
 namespace nat
 
 /-- Modular equality. `modeq n a b`, or `a ≡ b [MOD n]`, means
@@ -36,6 +48,10 @@ by rw [modeq, eq_comm, ← int.coe_nat_inj', int.coe_nat_mod, int.coe_nat_mod,
 
 theorem modeq_of_dvd : (n:ℤ) ∣ b - a → a ≡ b [MOD n] := modeq_iff_dvd.2
 theorem dvd_of_modeq : a ≡ b [MOD n] → (n:ℤ) ∣ b - a := modeq_iff_dvd.1
+
+/-- A variant of `modeq_iff_dvd` with `nat` divisibility -/
+theorem modeq_iff_dvd' (h : a ≤ b) : a ≡ b [MOD n] ↔ n ∣ b - a :=
+by rw [modeq_iff_dvd, ←int.coe_nat_dvd, int.coe_nat_sub h]
 
 theorem mod_modeq (a n) : a % n ≡ a [MOD n] := nat.mod_mod _ _
 
@@ -80,6 +96,7 @@ by rw [modeq_iff_dvd] at *; exact dvd.trans (dvd_mul_left (n : ℤ) (m : ℤ)) h
 theorem modeq_of_modeq_mul_right (m : ℕ) : a ≡ b [MOD n * m] → a ≡ b [MOD n] :=
 mul_comm m n ▸ modeq_of_modeq_mul_left _
 
+/-- The natural number less than `n*m` congruent to `a` mod `n` and `b` mod `m` -/
 def chinese_remainder (co : coprime n m) (a b : ℕ) : {k // k ≡ a [MOD n] ∧ k ≡ b [MOD m]} :=
 ⟨let (c, d) := xgcd n m in int.to_nat ((b * c * n + a * d * m) % (n * m)), begin
   rw xgcd_val, dsimp [chinese_remainder._match_1],
@@ -133,7 +150,7 @@ modeq.modeq_of_modeq_mul_left _ (modeq.mod_modeq _ _)
 lemma div_mod_eq_mod_mul_div (a b c : ℕ) : a / b % c = a % (b * c) / b :=
 if hb0 : b = 0 then by simp [hb0]
 else by rw [← @add_right_cancel_iff _ _ (c * (a / b / c)), mod_add_div, nat.div_div_eq_div_mul,
-  ← nat.mul_left_inj (nat.pos_of_ne_zero hb0),← @add_left_cancel_iff _ _ (a % b), mod_add_div,
+  ← nat.mul_right_inj (nat.pos_of_ne_zero hb0),← @add_left_cancel_iff _ _ (a % b), mod_add_div,
   mul_add, ← @add_left_cancel_iff _ _ (a % (b * c) % b), add_left_comm,
   ← add_assoc (a % (b * c) % b), mod_add_div, ← mul_assoc, mod_add_div, mod_mul_right_mod]
 
@@ -167,7 +184,7 @@ by rw [← add_mod_add_ite, if_pos hc]
 lemma add_div {a b c : ℕ} (hc0 : 0 < c) : (a + b) / c = a / c + b / c +
   if c ≤ a % c + b % c then 1 else 0 :=
 begin
-  rw [← nat.mul_left_inj hc0, ← @add_left_cancel_iff _ _ ((a + b) % c + a % c + b % c)],
+  rw [← nat.mul_right_inj hc0, ← @add_left_cancel_iff _ _ ((a + b) % c + a % c + b % c)],
   suffices : (a + b) % c + c * ((a + b) / c) + a % c + b % c =
     a % c + c * (a / c) + (b % c + c * (b / c)) + c * (if c ≤ a % c + b % c then 1 else 0) + (a + b) % c,
   { simpa only [mul_add, add_comm, add_left_comm, add_assoc] },
@@ -202,10 +219,10 @@ lemma odd_mul_odd_div_two {m n : ℕ} (hm1 : m % 2 = 1) (hn1 : n % 2 = 1) :
   (m * n) / 2 = m * (n / 2) + m / 2 :=
 have hm0 : 0 < m := nat.pos_of_ne_zero (λ h, by simp * at *),
 have hn0 : 0 < n := nat.pos_of_ne_zero (λ h, by simp * at *),
-(nat.mul_left_inj (show 0 < 2, from dec_trivial)).1 $
+(nat.mul_right_inj (show 0 < 2, from dec_trivial)).1 $
 by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
   two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), nat.mul_sub_left_distrib, mul_one,
-  ← nat.add_sub_assoc hm0, nat.sub_add_cancel (le_mul_of_one_le_right' (nat.zero_le _) hn0)]
+  ← nat.add_sub_assoc hm0, nat.sub_add_cancel (le_mul_of_one_le_right (nat.zero_le _) hn0)]
 
 lemma odd_of_mod_four_eq_one {n : ℕ} (h : n % 4 = 1) : n % 2 = 1 :=
 @modeq.modeq_of_modeq_mul_left 2 n 1 2 h
@@ -254,7 +271,7 @@ lemma rotate_eq_self_iff_eq_repeat [hα : nonempty α] : ∀ {l : list α},
     rw [← option.some_inj, ← list.nth_le_nth],
     conv {to_lhs, rw ← h ((list.length (a :: l)) - n)},
     rw [nth_rotate hn, nat.add_sub_cancel' (le_of_lt hn),
-      nat.mod_self, nth_le_repeat _ hn], refl
+      nat.mod_self, nth_le_repeat], refl
   end⟩,
   λ ⟨a, ha⟩ n, ha.symm ▸ list.ext_le (by simp)
     (λ m hm h,

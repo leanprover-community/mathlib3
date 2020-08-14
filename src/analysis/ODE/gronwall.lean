@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.calculus.mean_value
-import analysis.complex.exponential
+import analysis.special_functions.exp_log
 
 /-!
 # Grönwall's inequality
@@ -32,7 +32,7 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]
 
 open metric set asymptotics filter real
-open_locale classical
+open_locale classical topological_space
 
 /-! ### Technical lemmas about `gronwall_bound` -/
 
@@ -56,8 +56,8 @@ begin
     convert ((has_deriv_at_id x).const_mul ε).const_add δ,
     rw [mul_one] },
   { simp only [gronwall_bound_of_K_ne_0 hK],
-    convert (((has_deriv_at_id x).const_mul K).rexp.const_mul δ).add
-      ((((has_deriv_at_id x).const_mul K).rexp.sub_const 1).const_mul (ε / K)) using 1,
+    convert (((has_deriv_at_id x).const_mul K).exp.const_mul δ).add
+      ((((has_deriv_at_id x).const_mul K).exp.sub_const 1).const_mul (ε / K)) using 1,
     simp only [id, mul_add, (mul_assoc _ _ _).symm, mul_comm _ K, mul_div_cancel' _ hK],
     ring }
 end
@@ -107,7 +107,7 @@ See also `norm_le_gronwall_bound_of_norm_deriv_right_le` for a version bounding 
 theorem le_gronwall_bound_of_liminf_deriv_right_le {f f' : ℝ → ℝ} {δ K ε : ℝ} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (f z - f x) < r)
+    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r)
   (ha : f a ≤ δ) (bound : ∀ x ∈ Ico a b, f' x ≤ K * f x + ε) :
   ∀ x ∈ Icc a b, f x ≤ gronwall_bound δ K ε (x - a) :=
 begin

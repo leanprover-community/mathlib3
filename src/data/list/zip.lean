@@ -27,7 +27,8 @@ by cases l; refl
   (zip l₁ l₂).map prod.swap = zip l₂ l₁
 | []      l₂      := (zip_nil_right _).symm
 | l₁      []      := by rw zip_nil_right; refl
-| (a::l₁) (b::l₂) := by simp only [zip_cons_cons, map_cons, zip_swap l₁ l₂, prod.swap_prod_mk]; split; refl
+| (a::l₁) (b::l₂) := by simp only [zip_cons_cons, map_cons, zip_swap l₁ l₂, prod.swap_prod_mk];
+    split; refl
 
 @[simp] theorem length_zip : ∀ (l₁ : list α) (l₂ : list β),
    length (zip l₁ l₂) = min (length l₁) (length l₂)
@@ -39,7 +40,8 @@ theorem zip_append : ∀ {l₁ l₂ r₁ r₂ : list α} (h : length l₁ = leng
    zip (l₁ ++ r₁) (l₂ ++ r₂) = zip l₁ l₂ ++ zip r₁ r₂
 | []      l₂      r₁ r₂ h := by simp only [eq_nil_of_length_eq_zero h.symm]; refl
 | l₁      []      r₁ r₂ h := by simp only [eq_nil_of_length_eq_zero h]; refl
-| (a::l₁) (b::l₂) r₁ r₂ h := by simp only [cons_append, zip_cons_cons, zip_append (succ_inj h)]; split; refl
+| (a::l₁) (b::l₂) r₁ r₂ h := by simp only [cons_append, zip_cons_cons, zip_append (succ.inj h)];
+    split; refl
 
 theorem zip_map (f : α → γ) (g : β → δ) : ∀ (l₁ : list α) (l₂ : list β),
    zip (l₁.map f) (l₂.map g) = (zip l₁ l₂).map (prod.map f g)
@@ -64,6 +66,20 @@ theorem mem_zip {a b} : ∀ {l₁ : list α} {l₂ : list β},
    (a, b) ∈ zip l₁ l₂ → a ∈ l₁ ∧ b ∈ l₂
 | (_::l₁) (_::l₂) (or.inl rfl) := ⟨or.inl rfl, or.inl rfl⟩
 | (a'::l₁) (b'::l₂) (or.inr h) := by split; simp only [mem_cons_iff, or_true, mem_zip h]
+
+theorem map_fst_zip : ∀ (l₁ : list α) (l₂ : list β),
+  l₁.length ≤ l₂.length →
+  map prod.fst (zip l₁ l₂) = l₁
+| [] bs _ := rfl
+| (a :: as) (b :: bs) h := by { simp at h, simp! * }
+| (a :: as) [] h := by { simp at h, contradiction }
+
+theorem map_snd_zip : ∀ (l₁ : list α) (l₂ : list β),
+  l₂.length ≤ l₁.length →
+  map prod.snd (zip l₁ l₂) = l₂
+| _ [] _ := by { rw zip_nil_right, refl }
+| [] (b :: bs) h := by { simp at h, contradiction }
+| (a :: as) (b :: bs) h := by { simp at h, simp! * }
 
 @[simp] theorem unzip_nil : unzip (@nil (α × β)) = ([], []) := rfl
 
@@ -92,7 +108,8 @@ theorem unzip_zip_left : ∀ {l₁ : list α} {l₂ : list β}, length l₁ ≤ 
   (unzip (zip l₁ l₂)).1 = l₁
 | []      l₂      h := rfl
 | l₁      []      h := by rw eq_nil_of_length_eq_zero (eq_zero_of_le_zero h); refl
-| (a::l₁) (b::l₂) h := by simp only [zip_cons_cons, unzip_cons, unzip_zip_left (le_of_succ_le_succ h)]; split; refl
+| (a::l₁) (b::l₂) h := by simp only [zip_cons_cons, unzip_cons,
+    unzip_zip_left (le_of_succ_le_succ h)]; split; refl
 
 theorem unzip_zip_right {l₁ : list α} {l₂ : list β} (h : length l₂ ≤ length l₁) :
   (unzip (zip l₁ l₂)).2 = l₂ :=

@@ -4,6 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Leonardo de Moura, Jeremy Avigad
 -/
 
+/-!
+# booleans
+
+This file proves various trivial lemmas about booleans and their
+relation to decidable propositions.
+
+## Notations
+
+This file introduces the notation `!b` for `bnot b`, the boolean "not".
+
+## Tags
+bool, boolean, De Morgan
+-/
+
 prefix `!`:90 := bnot
 
 namespace bool
@@ -61,9 +75,11 @@ theorem exists_bool {p : bool → Prop} : (∃ b, p b) ↔ p ff ∨ p tt :=
 ⟨λ ⟨b, h⟩, by cases b; [exact or.inl h, exact or.inr h],
  λ h, by cases h; exact ⟨_, h⟩⟩
 
+/-- If `p b` is decidable for all `b : bool`, then `∀ b, p b` is decidable -/
 instance decidable_forall_bool {p : bool → Prop} [∀ b, decidable (p b)] : decidable (∀ b, p b) :=
 decidable_of_decidable_of_iff and.decidable forall_bool.symm
 
+/-- If `p b` is decidable for all `b : bool`, then `∃ b, p b` is decidable -/
 instance decidable_exists_bool {p : bool → Prop} [∀ b, decidable (p b)] : decidable (∃ b, p b) :=
 decidable_of_decidable_of_iff or.decidable exists_bool.symm
 
@@ -122,4 +138,18 @@ theorem bxor_left_comm : ∀ a b c, bxor a (bxor b c) = bxor b (bxor a c) := dec
 
 lemma bxor_iff_ne : ∀ {x y : bool}, bxor x y = tt ↔ x ≠ y := dec_trivial
 
+/-! ### De Morgan's laws for booleans-/
+@[simp] lemma bnot_band : ∀ (a b : bool), !(a && b) = !a || !b := dec_trivial
+@[simp] lemma bnot_bor : ∀ (a b : bool), !(a || b) = !a && !b := dec_trivial
+
+lemma bnot_inj : ∀ {a b : bool}, !a = !b → a = b := dec_trivial
+
 end bool
+
+instance : decidable_linear_order bool :=
+begin
+  constructor,
+  show bool → bool → Prop,
+  { exact λ a b, a = ff ∨ b = tt },
+  all_goals {apply_instance <|> exact dec_trivial}
+end

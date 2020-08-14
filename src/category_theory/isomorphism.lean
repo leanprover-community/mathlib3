@@ -51,8 +51,7 @@ attribute [simp, reassoc] iso.hom_inv_id iso.inv_hom_id
 
 infixr ` ≅ `:10  := iso             -- type as \cong or \iso
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 variables {X Y Z : C}
 
 namespace iso
@@ -88,6 +87,8 @@ by cases α; refl
 @[refl, simps] def refl (X : C) : X ≅ X :=
 { hom := 𝟙 X,
   inv := 𝟙 X }
+
+instance : inhabited (X ≅ X) := ⟨iso.refl X⟩
 
 @[simp] lemma refl_symm (X : C) : (iso.refl X).symm = iso.refl X := rfl
 
@@ -233,13 +234,65 @@ instance (f : X ⟶ Y) : subsingleton (is_iso f) :=
 lemma is_iso.inv_eq_inv {f g : X ⟶ Y} [is_iso f] [is_iso g] : inv f = inv g ↔ f = g :=
 iso.inv_eq_inv (as_iso f) (as_iso g)
 
+namespace iso
+
+/-!
+All these cancellation lemmas can be solved by `simp [cancel_mono]` (or `simp [cancel_epi]`),
+but with the current design `cancel_mono` is not a good `simp` lemma,
+because it generates a typeclass search.
+
+When we can see syntactically that a morphism is a `mono` or an `epi`
+because it came from an isomorphism, it's fine to do the cancellation via `simp`.
+
+In the longer term, it might be worth exploring making `mono` and `epi` structures,
+rather than typeclasses, with coercions back to `X ⟶ Y`.
+Presumably we could write `X ↪ Y` and `X ↠ Y`.
+-/
+
+@[simp] lemma cancel_iso_hom_left {X Y Z : C} (f : X ≅ Y) (g g' : Y ⟶ Z) :
+  f.hom ≫ g = f.hom ≫ g' ↔ g = g' :=
+by simp only [cancel_epi]
+
+@[simp] lemma cancel_iso_inv_left {X Y Z : C} (f : Y ≅ X) (g g' : Y ⟶ Z) :
+  f.inv ≫ g = f.inv ≫ g' ↔ g = g' :=
+by simp only [cancel_epi]
+
+@[simp] lemma cancel_iso_hom_right {X Y Z : C} (f f' : X ⟶ Y) (g : Y ≅ Z) :
+  f ≫ g.hom = f' ≫ g.hom ↔ f = f' :=
+by simp only [cancel_mono]
+
+@[simp] lemma cancel_iso_inv_right {X Y Z : C} (f f' : X ⟶ Y) (g : Z ≅ Y) :
+  f ≫ g.inv = f' ≫ g.inv ↔ f = f' :=
+by simp only [cancel_mono]
+
+/-
+Unfortunately cancelling an isomorphism from the right of a chain of compositions is awkward.
+We would need separate lemmas for each chain length (worse: for each pair of chain lengths).
+
+We provide two more lemmas, for case of three morphisms, because this actually comes up in practice,
+but then stop.
+-/
+
+@[simp] lemma cancel_iso_hom_right_assoc {W X X' Y Z : C}
+  (f : W ⟶ X) (g : X ⟶ Y) (f' : W ⟶ X') (g' : X' ⟶ Y)
+  (h : Y ≅ Z) :
+  f ≫ g ≫ h.hom = f' ≫ g' ≫ h.hom ↔ f ≫ g = f' ≫ g' :=
+by simp only [←category.assoc, cancel_mono]
+
+@[simp] lemma cancel_iso_inv_right_assoc {W X X' Y Z : C}
+  (f : W ⟶ X) (g : X ⟶ Y) (f' : W ⟶ X') (g' : X' ⟶ Y)
+  (h : Z ≅ Y) :
+  f ≫ g ≫ h.inv = f' ≫ g' ≫ h.inv ↔ f ≫ g = f' ≫ g' :=
+by simp only [←category.assoc, cancel_mono]
+
+end iso
+
 namespace functor
 
 universes u₁ v₁ u₂ v₂
 variables {D : Type u₂}
 
-variables [𝒟 : category.{v₂} D]
-include 𝒟
+variables [category.{v₂} D]
 
 /-- A functor `F : C ⥤ D` sends isomorphisms `i : X ≅ Y` to isomorphisms `F.obj X ≅ F.obj Y` -/
 def map_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : F.obj X ≅ F.obj Y :=

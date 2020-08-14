@@ -49,7 +49,7 @@ do
   -- We explode the goal into individual fields using `refine_struct`.
   -- Later we'll want to also consider falling back to `fconstructor`,
   -- but for now this suffices.
-  seq `[refine_struct { .. }]
+  seq' `[refine_struct { .. }]
   -- We now deal with each field sequentially.
   -- Since we may pass goals through to the user if the heuristics here fail,
   -- we wrap everything in `propagate_tags`.
@@ -73,7 +73,7 @@ do
       -- The goal probably has messy expressions produced by `equiv_rw` acting on early data fields,
       -- so we clean up a little.
       try unfold_projs_target,
-      `[simp only [] with transport_simps],
+      `[simp only with transport_simps],
       -- If the field is an equation in `β`, try to use injectivity of the equivalence
       -- to turn it into an equation in `α`.
       -- (If the left hand side of the equation involved an operation we've already transported,
@@ -122,6 +122,12 @@ do
   end,
   e ← to_expr e,
   tactic.transport s e
+
+add_tactic_doc
+{ name        := "transport",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.transport],
+  tags        := ["rewriting", "equiv", "transport"] }
 
 end interactive
 

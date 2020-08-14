@@ -103,12 +103,12 @@ lemma mem_ext {l₀ l₁ : list (sigma β)}
   (nd₀ : l₀.nodup) (nd₁ : l₁.nodup)
   (h : ∀ x, x ∈ l₀ ↔ x ∈ l₁) : l₀ ~ l₁ :=
 begin
-  induction l₀ with x xs generalizing l₁; cases l₁ with x ys,
+  induction l₀ with x xs generalizing l₁; cases l₁ with y ys,
   { constructor },
   iterate 2
-  { specialize h x, simp at h,
+  { specialize h x <|> specialize h y, simp at h,
     cases h },
-  simp at nd₀ nd₁, rename x y, classical,
+  simp at nd₀ nd₁, classical,
   cases nd₀, cases nd₁,
   by_cases h' : x = y,
   { subst y, constructor, apply l₀_ih ‹ _ › ‹ nodup ys ›,
@@ -161,11 +161,7 @@ end
 
 theorem lookup_eq_none {a : α} {l : list (sigma β)} :
   lookup a l = none ↔ a ∉ l.keys :=
-begin
-  have := not_congr (@lookup_is_some _ _ _ a l),
-  simp at this, refine iff.trans _ this,
-  cases lookup a l; exact dec_trivial
-end
+by simp [← lookup_is_some, option.is_none_iff_eq_none]
 
 theorem of_mem_lookup
   {a : α} {b : β a} : ∀ {l : list (sigma β)}, b ∈ lookup a l → sigma.mk a b ∈ l

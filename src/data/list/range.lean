@@ -35,7 +35,8 @@ theorem map_add_range' (a) : ∀ s n : ℕ, map ((+) a) (range' s n) = range' (a
 | s 0     := rfl
 | s (n+1) := congr_arg (cons _) (map_add_range' (s+1) n)
 
-theorem map_sub_range' (a) : ∀ (s n : ℕ) (h : a ≤ s), map (λ x, x - a) (range' s n) = range' (s - a) n
+theorem map_sub_range' (a) :
+  ∀ (s n : ℕ) (h : a ≤ s), map (λ x, x - a) (range' s n) = range' (s - a) n
 | s 0     _ := rfl
 | s (n+1) h :=
 begin
@@ -74,14 +75,16 @@ theorem range'_subset_right {s m n : ℕ} : range' s m ⊆ range' s n ↔ m ≤ 
 
 theorem nth_range' : ∀ s {m n : ℕ}, m < n → nth (range' s n) m = some (s + m)
 | s 0     (n+1) _ := rfl
-| s (m+1) (n+1) h := (nth_range' (s+1) (lt_of_add_lt_add_right h)).trans $ by rw add_right_comm; refl
+| s (m+1) (n+1) h := (nth_range' (s+1) (lt_of_add_lt_add_right h)).trans $
+    by rw add_right_comm; refl
 
 theorem range'_concat (s n : ℕ) : range' s (n + 1) = range' s n ++ [s+n] :=
 by rw add_comm n 1; exact (range'_append s n 1).symm
 
 theorem range_core_range' : ∀ s n : ℕ, range_core s (range' s n) = range' 0 (n + s)
 | 0     n := rfl
-| (s+1) n := by rw [show n+(s+1) = n+1+s, from add_right_comm n s 1]; exact range_core_range' s (n+1)
+| (s+1) n := by rw [show n+(s+1) = n+1+s, from add_right_comm n s 1];
+    exact range_core_range' s (n+1)
 
 theorem range_eq_range' (n : ℕ) : range n = range' 0 n :=
 (range_core_range' n 0).trans $ by rw zero_add
@@ -114,6 +117,9 @@ by simp only [range_eq_range', mem_range', nat.zero_le, true_and, zero_add]
 
 @[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n :=
 mt mem_range.1 $ lt_irrefl _
+
+@[simp] theorem self_mem_range_succ (n : ℕ) : n ∈ range (n + 1) :=
+by simp only [succ_pos', lt_add_iff_pos_right, mem_range]
 
 theorem nth_range {m n : ℕ} (h : m < n) : nth (range n) m = some m :=
 by simp only [range_eq_range', nth_range' _ h, zero_add]
@@ -192,7 +198,7 @@ option.some.inj $ by rw [← nth_le_nth _, nth_range (by simpa using H)]
 theorem of_fn_eq_pmap {α n} {f : fin n → α} :
   of_fn f = pmap (λ i hi, f ⟨i, hi⟩) (range n) (λ _, mem_range.1) :=
 by rw [pmap_eq_map_attach]; from ext_le (by simp)
-  (λ i hi1 hi2, by simp at hi1; simp [nth_le_of_fn f ⟨i, hi1⟩])
+  (λ i hi1 hi2, by { simp at hi1, simp [nth_le_of_fn f ⟨i, hi1⟩, -subtype.val_eq_coe] })
 
 theorem nodup_of_fn {α n} {f : fin n → α} (hf : function.injective f) :
   nodup (of_fn f) :=

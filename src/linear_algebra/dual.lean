@@ -29,14 +29,6 @@ The dual space of an R-module M is the R-module of linear maps `M → R`.
 
 We sometimes use `V'` as local notation for `dual K V`.
 
-## Implementation details
-
-Because of unresolved type class issues, the following local instance can be of use:
-
-```
-private def help_tcs : has_scalar K V := mul_action.to_has_scalar _ _
-local attribute [instance] help_tcs
-```
 -/
 
 namespace module
@@ -48,13 +40,13 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 
 namespace dual
 
-instance : inhabited (dual R M) := by unfold dual; apply_instance
+instance : inhabited (dual R M) := by dunfold dual; apply_instance
 
 instance : has_coe_to_fun (dual R M) := ⟨_, linear_map.to_fun⟩
 
-/-- Maps a module M to the dual of the dual of M. See `vector_space.eval_range` and
+/-- Maps a module M to the dual of the dual of M. See `vector_space.erange_coe` and
 `vector_space.eval_equiv`. -/
-def eval : M →ₗ[R] (dual R (dual R M)) := linear_map.id.flip
+def eval : M →ₗ[R] (dual R (dual R M)) := linear_map.flip linear_map.id
 
 lemma eval_apply (v : M) (a : dual R M) : (eval R M v) a = a v :=
 begin
@@ -70,8 +62,6 @@ universes u v w
 variables {K : Type u} {V : Type v} {ι : Type w}
 variables [field K] [add_comm_group V] [vector_space K V]
 open vector_space module module.dual submodule linear_map cardinal function
-
-instance dual.vector_space : vector_space K (dual K V) := { ..module.dual.inst K V }
 
 variables [de : decidable_eq ι]
 variables {B : ι → V} (h : is_basis K B)
@@ -92,14 +82,13 @@ def to_dual_flip (v : V) : (V →ₗ[K] K) := (linear_map.flip h.to_dual).to_fun
 omit de h
 /-- Evaluation of finitely supported functions at a fixed point `i`, as a `K`-linear map. -/
 def eval_finsupp_at (i : ι) : (ι →₀ K) →ₗ[K] K :=
-{ to_fun := λ f, f i,
-  add := by intros; rw finsupp.add_apply,
-  smul := by intros; rw finsupp.smul_apply }
+{ to_fun    := λ f, f i,
+  map_add'  := by intros; rw finsupp.add_apply,
+  map_smul' := by intros; rw finsupp.smul_apply }
 include h
 
-set_option class.instance_max_depth 50
 
-def coord_fun (i : ι) : (V →ₗ[K] K) := (eval_finsupp_at i).comp h.repr
+def coord_fun (i : ι) : (V →ₗ[K] K) := linear_map.comp (eval_finsupp_at i) h.repr
 
 lemma coord_fun_eq_repr (v : V) (i : ι) : h.coord_fun i v = h.repr v i := rfl
 
@@ -170,18 +159,15 @@ h.to_dual_equiv.is_basis h
 @[simp] lemma to_dual_to_dual [fintype ι] :
   (h.dual_basis_is_basis.to_dual).comp h.to_dual = eval K V :=
 begin
-  apply @is_basis.ext _ _ _ _ _ _ _ _ _ _ _ _ h,
-  intros i,
-  apply @is_basis.ext _ _ _ _ _ _ _ _ _ _ _ _ h.dual_basis_is_basis,
-  intros j,
+  refine h.ext (λ i, h.dual_basis_is_basis.ext (λ j, _)),
   dunfold eval,
   rw [linear_map.flip_apply, linear_map.id_apply, linear_map.comp_apply],
   apply eq.trans (to_dual_apply h.dual_basis_is_basis i j),
   { dunfold dual_basis,
     rw to_dual_apply,
-    split_ifs with h₁ h₂; try {refl},
-    { exfalso, apply h₂ h₁.symm },
-    { exfalso, apply ne.symm h₁ (by assumption) } }
+    by_cases h : i = j,
+    { rw [if_pos h, if_pos h.symm] },
+    { rw [if_neg h, if_neg (ne.symm h)] } }
 end
 
 omit de
@@ -207,47 +193,40 @@ open module module.dual submodule linear_map cardinal is_basis
 
 theorem eval_ker : (eval K V).ker = ⊥ :=
 begin
-  haveI := classical.dec_eq K,
-  haveI := classical.dec_eq V,
-  haveI := classical.dec_eq (dual K V),
+  classical,
   rw ker_eq_bot',
   intros v h,
   rw linear_map.ext_iff at h,
   by_contradiction H,
   rcases exists_subset_is_basis (linear_independent_singleton H) with ⟨b, hv, hb⟩,
   swap 4, assumption,
-  have hv' : v = (λ (i : b), i.val) ⟨v, hv (set.mem_singleton v)⟩ := rfl,
+  have hv' : v = (coe : b → V) ⟨v, hv (set.mem_singleton v)⟩ := rfl,
   let hx := h (hb.to_dual v),
-  erw [eval_apply, hv', to_dual_apply, if_pos rfl, zero_apply _] at hx,
+  rw [eval_apply, hv', to_dual_apply, if_pos rfl, zero_apply] at hx,
   exact one_ne_zero hx
 end
 
 theorem dual_dim_eq (h : dim K V < omega) :
   cardinal.lift.{v u} (dim K V) = dim K (dual K V) :=
 begin
-  letI := classical.dec_eq (dual K V),
-  letI := classical.dec_eq V,
+  classical,
   rcases exists_is_basis_fintype h with ⟨b, hb, ⟨hf⟩⟩,
   resetI,
   exact hb.dual_dim_eq
 end
 
-set_option class.instance_max_depth 70
 
-lemma eval_range (h : dim K V < omega) : (eval K V).range = ⊤ :=
+lemma erange_coe (h : dim K V < omega) : (eval K V).range = ⊤ :=
 begin
-  haveI := classical.dec_eq (dual K V),
-  haveI := classical.dec_eq (dual K (dual K V)),
-  letI := classical.dec_eq V,
+  classical,
   rcases exists_is_basis_fintype h with ⟨b, hb, ⟨hf⟩⟩,
-  resetI,
-  rw [← hb.to_dual_to_dual, range_comp, hb.to_dual_range, map_top, to_dual_range _],
+  unfreezingI { rw [← hb.to_dual_to_dual, range_comp, hb.to_dual_range, map_top, to_dual_range _] },
   apply_instance
 end
 
 /-- A vector space is linearly equivalent to the dual of its dual space. -/
 def eval_equiv (h : dim K V < omega) : V ≃ₗ[K] dual K (dual K V) :=
-linear_equiv.of_bijective (eval K V) eval_ker (eval_range h)
+linear_equiv.of_bijective (eval K V) eval_ker (erange_coe h)
 
 end vector_space
 
@@ -290,10 +269,6 @@ def coeffs (v : V) : ι →₀ K :=
 @[simp] lemma coeffs_apply (v : V) (i : ι) : h.coeffs v i = ε i v := rfl
 
 omit h
-private def help_tcs : has_scalar K V := mul_action.to_has_scalar
-
-local attribute [instance] help_tcs
-
 /-- linear combinations of elements of `e`.
 This is a convenient abbreviation for `finsupp.total _ V K e l` -/
 def lc (e : ι → V) (l : ι →₀ K) : V := l.sum (λ (i : ι) (a : K), a • (e i))

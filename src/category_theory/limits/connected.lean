@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.limits.shapes.pullbacks
-import category_theory.limits.shapes.wide_pullbacks
-import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.equalizers
-import category_theory.limits.preserves
+import category_theory.limits.preserves.basic
 import category_theory.connected
 
 /-!
@@ -59,10 +57,9 @@ end examples
 
 local attribute [tidy] tactic.case_bash
 
-variables {C : Type u₂} [𝒞 : category.{v₂} C]
-include 𝒞
+variables {C : Type u₂} [category.{v₂} C]
 
-variables [has_binary_products.{v₂} C]
+variables [has_binary_products C]
 
 variables {J : Type v₂} [small_category J]
 

@@ -16,8 +16,7 @@ open category_theory
 
 namespace category_theory.functor
 
-variables (C : Type u) [𝒞 : category.{v} C]
-include 𝒞
+variables (C : Type u) [category.{v} C]
 
 /-- `functor.hom` is the hom-pairing, sending (X,Y) to X → Y, contravariant in X and covariant in Y. -/
 definition hom : Cᵒᵖ × C ⥤ Type v :=

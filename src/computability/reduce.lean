@@ -74,7 +74,7 @@ theorem one_one_reducible_refl {α} [primcodable α] (p : α → Prop) :
 @[trans]
 theorem one_one_reducible.trans {α β γ} [primcodable α] [primcodable β] [primcodable γ]
   {p : α → Prop} {q : β → Prop} {r : γ → Prop} : p ≤₁ q → q ≤₁ r → p ≤₁ r
-| ⟨f, c₁, i₁, h₁⟩ ⟨g, c₂, i₂, h₂⟩ := ⟨g ∘ f, c₂.comp c₁, injective_comp i₂ i₁,
+| ⟨f, c₁, i₁, h₁⟩ ⟨g, c₂, i₂, h₂⟩ := ⟨g ∘ f, c₂.comp c₁, i₂.comp i₁,
   λ a, ⟨λ h, by rwa [←h₂, ←h₁], λ h, by rwa [h₁, h₂]⟩⟩
 
 theorem one_one_reducible.to_many_one {α β} [primcodable α] [primcodable β]

@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import analysis.calculus.extend_deriv
 import analysis.calculus.iterated_deriv
-import analysis.complex.exponential
+import analysis.special_functions.exp_log
 
 /-!
 # Smoothness of specific functions
@@ -34,7 +34,7 @@ derivatives for `x > 0`. The `n`-th derivative is of the form `P_aux n (x) exp(-
 where `P_aux n` is computed inductively. -/
 noncomputable def P_aux : ℕ → polynomial ℝ
 | 0 := 1
-| (n+1) := X^2 * (P_aux n).derivative  + (1 - C (2 * n) * X) * (P_aux n)
+| (n+1) := X^2 * (P_aux n).derivative  + (1 - C ↑(2 * n) * X) * (P_aux n)
 
 /-- Formula for the `n`-th derivative of `exp_neg_inv_glue`, as an auxiliary function `f_aux`. -/
 def f_aux (n : ℕ) (x : ℝ) : ℝ :=
@@ -69,7 +69,7 @@ is the `n+1`-th auxiliary function. -/
 lemma f_aux_deriv_pos (n : ℕ) (x : ℝ) (hx : 0 < x) :
   has_deriv_at (f_aux n) ((P_aux (n+1)).eval x * exp (-x⁻¹) / x^(2 * (n + 1))) x :=
 begin
-  apply (f_aux_deriv n x (ne_of_gt hx)).congr_of_mem_nhds,
+  apply (f_aux_deriv n x (ne_of_gt hx)).congr_of_eventually_eq,
   have : Ioi (0 : ℝ) ∈ 𝓝 x := lt_mem_nhds hx,
   filter_upwards [this],
   assume y hy,
@@ -81,11 +81,11 @@ end
 is `0`, to be able to apply general differentiability extension theorems. This limit is checked in
 this lemma. -/
 lemma f_aux_limit (n : ℕ) :
-  tendsto (λx, (P_aux n).eval x * exp (-x⁻¹) / x^(2 * n)) (nhds_within 0 (Ioi 0)) (𝓝 0) :=
+  tendsto (λx, (P_aux n).eval x * exp (-x⁻¹) / x^(2 * n)) (𝓝[Ioi 0] 0) (𝓝 0) :=
 begin
-  have A : tendsto (λx, (P_aux n).eval x) (nhds_within 0 (Ioi 0)) (𝓝 ((P_aux n).eval 0)) :=
+  have A : tendsto (λx, (P_aux n).eval x) (𝓝[Ioi 0] 0) (𝓝 ((P_aux n).eval 0)) :=
   (P_aux n).continuous_within_at,
-  have B : tendsto (λx, exp (-x⁻¹) / x^(2 * n)) (nhds_within 0 (Ioi 0)) (𝓝 0),
+  have B : tendsto (λx, exp (-x⁻¹) / x^(2 * n)) (𝓝[Ioi 0] 0) (𝓝 0),
   { convert (tendsto_pow_mul_exp_neg_at_top_nhds_0 (2 * n)).comp tendsto_inv_zero_at_top,
     ext x,
     field_simp },
@@ -133,7 +133,7 @@ begin
   rcases lt_trichotomy x 0 with hx|hx|hx,
   { have : f_aux (n+1) x = 0, by simp [f_aux, le_of_lt hx],
     rw this,
-    apply (has_deriv_at_const x (0 : ℝ)).congr_of_mem_nhds,
+    apply (has_deriv_at_const x (0 : ℝ)).congr_of_eventually_eq,
     have : Iio (0 : ℝ) ∈ 𝓝 x := gt_mem_nhds hx,
     filter_upwards [this],
     assume y hy,

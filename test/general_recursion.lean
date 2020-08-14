@@ -1,6 +1,7 @@
 import tactic.norm_num
 import tactic.linarith
 import tactic.omega
+import tactic.find_unused
 import data.pfun.fix
 import data.nat.basic
 
@@ -25,6 +26,7 @@ pi.continuous_ext easy.intl
        (λ (x_1 : ℕ), id (cont_const' (pure x))))
 
 -- automation coming soon
+@[main_declaration]
 theorem easy.equations.eqn_1 (x y : ℕ) : easy x y = pure x :=
 by rw [easy, lawful_fix.fix_eq easy.cont]; refl
 
@@ -56,6 +58,7 @@ pi.continuous_ext div.intl
                (cont_const' (pure x)))))
 
 -- automation coming soon
+@[main_declaration]
 theorem div.equations.eqn_1 (x y : ℕ) : div x y = if y ≤ x ∧ y > 0 then div (x - y) y else pure x :=
 by conv_lhs { rw [div, lawful_fix.fix_eq div.cont] }; refl
 
@@ -103,10 +106,12 @@ theorem tree_map.cont : ∀ {α : Type u_1} {β : Type u_2} (f : α → β), con
                             (λ (x_1 : tree β), cont_const' (pure (node (f x_x) x x_1)))))))))
 
 -- automation coming soon
+@[main_declaration]
 theorem tree_map.equations.eqn_1 {α : Type u_1} {β : Type u_2} (f : α → β) : tree_map f nil = pure nil :=
 by rw [tree_map,lawful_fix.fix_eq (tree_map.cont f)]; refl
 
 -- automation coming soon
+@[main_declaration]
 theorem tree_map.equations.eqn_2 {α : Type u_1} {β : Type u_2} (f : α → β) (x : α) (t₀ t₁ : tree α) :
   tree_map f (node x t₀ t₁) = tree_map f t₀ >>= λ (tt₀ : tree β), tree_map f t₁ >>= λ (tt₁ : tree β), pure (node (f x) tt₀ tt₁) :=
 by conv_lhs { rw [tree_map,lawful_fix.fix_eq (tree_map.cont f)] }; refl
@@ -137,11 +142,13 @@ theorem tree_map'.cont : ∀ {α : Type u_1} {β : Type u_2} (f : α → β), co
                  (pi.continuous_congr (λ (v : tree α) (x : tree α → roption (tree β)), x v) x_a_1 cont_id'))))
 
 -- automation coming soon
+@[main_declaration]
 theorem tree_map'.equations.eqn_1 {α : Type u_1} {β : Type u_2} (f : α → β) :
   tree_map' f nil = pure nil :=
 by rw [tree_map',lawful_fix.fix_eq (tree_map'.cont f)]; refl
 
 -- automation coming soon
+@[main_declaration]
 theorem tree_map'.equations.eqn_2 {α : Type u_1} {β : Type u_2} (f : α → β) (x : α) (t₀ t₁ : tree α) :
   tree_map' f (node x t₀ t₁) = node (f x) <$> tree_map' f t₀ <*> tree_map' f t₁ :=
 by conv_lhs { rw [tree_map',lawful_fix.fix_eq (tree_map'.cont f)] }; refl
@@ -172,6 +179,7 @@ pi.continuous_ext f91.intl
                 (λ (x_1 : ℕ), pi.continuous_congr (λ (v : ℕ) (g : ℕ → roption ℕ), g v) x_1 cont_id')))))
 .
 -- automation coming soon
+@[main_declaration]
 theorem f91.equations.eqn_1 (n : ℕ) : f91 n = ite (n > 100) (pure (n - 10)) (f91 (n + 11) >>= f91) :=
 by conv_lhs { rw [f91, lawful_fix.fix_eq f91.cont] }; refl
 
@@ -200,6 +208,7 @@ def f91' (n : ℕ) : ℕ := (f91 n).get (f91_dom n)
 #eval f91' 109
 -- 99
 
+@[main_declaration]
 lemma f91_spec' (n : ℕ) : f91' n = if n > 100 then n - 10 else 91 :=
 begin
   suffices : (∃ n', n' ∈ f91 n ∧ n' = if n > 100 then n - 10 else 91),

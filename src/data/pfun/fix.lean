@@ -19,7 +19,7 @@ open roption nat nat.up
 
 variables {β : α → Type*} (f : (Π a, roption $ β a) → (Π a, roption $ β a))
 
-def succ' (i : α → ℕ) (x : α) : ℕ := (i x).succ
+-- def succ' (i : α → ℕ) (x : α) : ℕ := (i x).succ
 
 def approx : stream $ Π a, roption $ β a
 | 0 := ⊥
@@ -123,21 +123,21 @@ begin
     cases hh _ _ h' }
 end
 
-lemma approx_eq {i j : ℕ} {a : α} (hi : (approx f i a).dom) (hj : (approx f j a).dom) :
-  approx f i a = approx f j a :=
-begin
-  simp [dom_iff_mem] at hi hj,
-  cases hi with b hi, cases hj with b' hj,
-  have : b' = b,
-  { wlog hij : i ≤ j := le_total i j using [i j b b',j i b' b],
-    apply mem_unique hj, apply approx_mono hf hij _ _ hi, },
-  subst b',
-  ext y, split; intro hy,
-  rename hi hh, rename hj hi, rename hh hj,
-  all_goals
-  { have := mem_unique hy hj, subst this,
-    exact hi }
-end
+-- lemma approx_eq {i j : ℕ} {a : α} (hi : (approx f i a).dom) (hj : (approx f j a).dom) :
+--   approx f i a = approx f j a :=
+-- begin
+--   simp [dom_iff_mem] at hi hj,
+--   cases hi with b hi, cases hj with b' hj,
+--   have : b' = b,
+--   { wlog hij : i ≤ j := le_total i j using [i j b b',j i b' b],
+--     apply mem_unique hj, apply approx_mono hf hij _ _ hi, },
+--   subst b',
+--   ext y, split; intro hy,
+--   rename hi hh, rename hj hi, rename hh hj,
+--   all_goals
+--   { have := mem_unique hy hj, subst this,
+--     exact hi }
+-- end
 
 noncomputable def approx_chain : chain (Π a, roption $ β a) :=
 begin
@@ -192,6 +192,7 @@ begin
     intros y x, revert y, simp, apply max_fix hf },
 end
 
+@[main_declaration]
 lemma fix_le {X : Π a, roption $ β a} (hX : f X ≤ X) : fix f ≤ X :=
 begin
   rw fix_eq_Sup hf,
@@ -244,6 +245,7 @@ show to_unit f x ≤ to_unit f y,
 def to_unit_cont (f : roption α → roption α) : Π hc : continuous' f, continuous (to_unit f) (to_unit_mono f hc.fst)
 | ⟨hm,hc⟩ := by { intro c, ext : 1, dsimp [to_unit,complete_partial_order.Sup], erw [hc _,chain.map_comp], refl }
 
+@[main_declaration]
 noncomputable instance : lawful_fix (roption α) :=
 ⟨ λ f hc, by { dsimp [fix],
               conv { to_lhs, rw [pi.fix_eq (to_unit_cont f hc)] }, refl } ⟩

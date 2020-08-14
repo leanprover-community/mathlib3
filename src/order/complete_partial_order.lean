@@ -6,6 +6,7 @@ Helpful for a small-scale domain theory, see
 import data.pfun
 import data.stream.basic
 import tactic.wlog
+import tactic.find_unused
 
 universes u v
 
@@ -64,27 +65,17 @@ instance : has_mem α (chain α) :=
 
 @[simp] lemma mem_mk (x : α) (s : stream α) (h) : x ∈ chain.mk s h ↔ x ∈ s := iff.refl _
 
-def nth (i : ℕ) (c : chain α) : α := c.elems.nth i
-
-@[simp] lemma nth_mk (i : ℕ) (s : stream α) (h) : (chain.mk s h).nth i = s.nth i := rfl
-
 variables (c c' : chain α)
-  (f : α → β) (hf : monotone f)
-  {g : β → γ} (hg : monotone g)
+variables (f : α → β) (hf : monotone f)
+variables {g : β → γ} (hg : monotone g)
 
 instance : has_le (chain α) :=
 { le := λ x y, ∀ a, a ∈ x → ∃ b ∈ y, a ≤ b  }
-
-@[ext]
-lemma ext (h : ∀ i, c.nth i = c'.nth i) : c = c' :=
-by cases c; cases c'; congr; ext; apply h
 
 def map : chain β :=
 ⟨c.elems.map f, stream.monotone_map hf c.mono ⟩
 
 variables {f}
-
-@[simp] lemma elems_map (c : chain α) : (c.map f hf).elems = c.elems.map f := rfl
 
 lemma mem_map (x : α) : x ∈ c → f x ∈ chain.map c f hf :=
 stream.mem_map _
@@ -94,29 +85,6 @@ stream.exists_of_mem_map
 
 lemma mem_map_iff {b : β} : b ∈ c.map f hf ↔ ∃ a, a ∈ c ∧ f a = b :=
 ⟨ exists_of_mem_map _ _, λ h, by { rcases h with ⟨w,h,h'⟩, subst b, apply mem_map c hf _ h, } ⟩
-
-lemma chain_map_le (c' : chain β) (h : ∀ a, a ∈ c → f a ∈ c') : chain.map c f hf ≤ c' :=
-begin
-  intros b hb,
-  rcases exists_of_mem_map _ hf hb with ⟨a,h₀,h₁⟩,
-  subst b, existsi [f a,h _ h₀], refl
-end
-
-lemma le_chain_map (c' : chain β) (h : ∀ b, b ∈ c' → ∃ a, b ≤ f a ∧ a ∈ c) : c' ≤ chain.map c f hf :=
-begin
-  intros b hb,
-  replace h := h _ hb, rcases h with ⟨a,h₀,h₁⟩,
-  exact ⟨f a,mem_map _ hf _ h₁,h₀⟩
-end
-
-lemma map_le_map {g : α → β} (hg : monotone g) (h : ∀ a ∈ c, f a ≤ g a) : c.map f hf ≤ c.map g hg :=
-begin
-  intros a ha,
-  replace ha := exists_of_mem_map _ _ ha,
-  rcases ha with ⟨a',ha₀,ha₁⟩,
-  existsi [g a', mem_map _ hg _ ha₀],
-  rw ← ha₁, apply h _ ha₀,
-end
 
 lemma map_id : c.map id (monotone_id) = c :=
 by cases c; refl
@@ -150,9 +118,11 @@ variables [complete_partial_order α]
 
 export order_bot (bot_le)
 
+@[main_declaration]
 lemma le_Sup_of_le {c : chain α} {x y : α} (h : x ≤ y) (hy : y ∈ c) : x ≤ Sup c :=
 le_trans h (le_Sup c y hy)
 
+@[main_declaration]
 lemma Sup_total {c : chain α} {x : α} (h : ∀y∈c, y ≤ x ∨ x ≤ y) : Sup c ≤ x ∨ x ≤ Sup c :=
 classical.by_cases
   (assume : ∀y ∈ c, y ≤ x, or.inl (Sup_le _ _ this))
@@ -163,11 +133,13 @@ classical.by_cases
     have x ≤ y, from (h y hy).resolve_left hyx,
     or.inr $ le_Sup_of_le this hy)
 
+@[main_declaration]
 lemma Sup_le_Sup_of_le {c₀ c₁ : chain α} (h : c₀ ≤ c₁) : Sup c₀ ≤ Sup c₁ :=
 Sup_le _ _ $
 λ y hy, Exists.rec_on (h y hy) $
 λ x ⟨hx,hxy⟩, le_trans hxy $ le_Sup _ _ hx
 
+@[main_declaration]
 lemma Sup_le_iff (c : chain α) (x : α) : Sup c ≤ x ↔ (∀ y ∈ c, y ≤ x) :=
 begin
   split; intros,
@@ -223,6 +195,7 @@ have a' : some (classical.some this) ∈ c, from classical.some_spec this,
 calc roption.Sup c = some (classical.some this) : dif_pos this
                ... = some a : congr_arg _ (eq_of_chain a' h)
 
+@[main_declaration]
 lemma Sup_eq_none {c : chain (roption α)} (h : ¬∃a, some a ∈ c) : roption.Sup c = none :=
 dif_neg h
 
@@ -271,9 +244,9 @@ variables [∀a, partial_order (β a)]
 lemma monotone_apply (a : α) : monotone (λf:Πa, β a, f a) :=
 assume f g hfg, hfg a
 
-lemma monotone_lambda {γ : Type*} [partial_order γ] {m : γ → Πa, β a}
-  (hm : ∀a, monotone (λc, m c a)) : monotone m :=
-assume f g h a, hm a h
+-- lemma monotone_lambda {γ : Type*} [partial_order γ] {m : γ → Πa, β a}
+--   (hm : ∀a, monotone (λc, m c a)) : monotone m :=
+-- assume f g h a, hm a h
 
 end monotone
 
@@ -323,6 +296,7 @@ instance : partial_order (set α) :=
   le_trans    := assume a b c hab hbc x hx, hbc $ hab $ hx,
   le_antisymm := assume a b hab hba, ext $ assume x, ⟨@hab x, @hba x⟩ }
 
+@[main_declaration]
 instance : complete_partial_order (set α) :=
 { Sup    := λc, ⋃ i, c.elems i,
   Sup_le := assume ⟨c, _⟩ s hs x, by simp [stream.mem_def] at ⊢ hs; intros i hx; apply hs _ i rfl hx,

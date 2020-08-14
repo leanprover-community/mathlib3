@@ -382,6 +382,10 @@ by rw [mul_comm, div_lt_iff hc]
 lemma div_lt_iff_of_neg (hc : c < 0) : b / c < a ↔ a * c < b :=
 ⟨mul_lt_of_neg_of_div_lt hc, div_lt_of_neg_of_mul_lt hc⟩
 
+lemma lt_div_iff_of_neg (hc : c < 0) : a < b / c ↔ b < a * c :=
+by rw [← neg_neg c, div_neg, lt_neg, div_lt_iff (neg_pos.2 hc), ← neg_mul_eq_neg_mul,
+  ← neg_mul_eq_mul_neg _ (-c)]
+
 lemma inv_le_inv (ha : 0 < a) (hb : 0 < b) : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 by rw [inv_eq_one_div, div_le_iff ha,
        ← div_eq_inv_mul, one_le_div_iff_le hb]
@@ -393,7 +397,7 @@ lemma le_inv (ha : 0 < a) (hb : 0 < b) : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
 by rw [← inv_le_inv (inv_pos.2 hb) ha, inv_inv']
 
 lemma one_div_le_one_div (ha : 0 < a) (hb : 0 < b) : 1 / a ≤ 1 / b ↔ b ≤ a :=
-by simpa [one_div_eq_inv] using inv_le_inv ha hb
+by simpa [one_div] using inv_le_inv ha hb
 
 lemma inv_lt_inv (ha : 0 < a) (hb : 0 < b) : a⁻¹ < b⁻¹ ↔ b < a :=
 lt_iff_lt_of_le_iff_le (inv_le_inv hb ha)
@@ -402,7 +406,7 @@ lemma inv_lt (ha : 0 < a) (hb : 0 < b) : a⁻¹ < b ↔ b⁻¹ < a :=
 lt_iff_lt_of_le_iff_le (le_inv hb ha)
 
 lemma one_div_lt (ha : 0 < a) (hb : 0 < b) : 1 / a < b ↔ 1 / b < a :=
-(one_div_eq_inv a).symm ▸ (one_div_eq_inv b).symm ▸ inv_lt ha hb
+(one_div a).symm ▸ (one_div b).symm ▸ inv_lt ha hb
 
 lemma one_div_le (ha : 0 < a) (hb : 0 < b) : 1 / a ≤ b ↔ 1 / b ≤ a :=
 by simpa using inv_le ha hb

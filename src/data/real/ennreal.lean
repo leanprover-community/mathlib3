@@ -461,7 +461,7 @@ le_antisymm (Inf_le $ le_add_left h) (zero_le _)
 @[simp] lemma sub_self : a - a = 0 := sub_eq_zero_of_le $ le_refl _
 
 @[simp] lemma zero_sub : 0 - a = 0 :=
-le_antisymm (Inf_le $ zero_le _) (zero_le _)
+le_antisymm (Inf_le $ zero_le $ 0 + a) (zero_le _)
 
 @[simp] lemma sub_infty : a - ∞ = 0 :=
 le_antisymm (Inf_le $ by simp) (zero_le _)

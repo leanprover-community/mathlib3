@@ -557,90 +557,87 @@ def algebra_prod : multilinear_map S (λ i : fin q, N) N :=
     intros ν i x y,
     induction q with q hq,
     --Base case
-    cases i, exfalso, exact nat.not_lt_zero i_val i_is_lt,
+    { cases i, exfalso, exact nat.not_lt_zero i_val i_is_lt, },
     --Inductive step
-    rw [algebra_prod_split_aux, algebra_prod_split_aux, algebra_prod_split_aux],
-    cases classical.em (i = 0),
-    --case i = 0
-    rw [h, function.update_same, function.update_same, function.update_same, right_distrib],
-    have fact : ∀ (z : N), ((λ k : fin q, function.update ν 0 z k.succ) = λ k : fin q, ν k.succ) :=
-    begin
-      intro z,
-      ext k,
-      rw function.update_noteq (fin.succ_ne_zero k),
-    end,
-    rw [fact (x+y), fact x, fact y],
-    --case i ≠ 0
-    rw [function.update_noteq (ne_comm.mp h), function.update_noteq (ne_comm.mp h),
-      function.update_noteq (ne_comm.mp h)],
-    have key : algebra_prod_aux (λ (i_1 : fin q), function.update ν i (x + y) i_1.succ) =
-    algebra_prod_aux (λ (i_1 : fin q), function.update ν i x i_1.succ) +
-    algebra_prod_aux (λ (i_1 : fin q), function.update ν i y i_1.succ) :=
-    begin
-      convert hq (λ i : fin q, ν i.succ) (i.pred h),
-      repeat{
-      ext j,
-      cases classical.em (i = j.succ) with hem hem,
-      --case i = j.succ
-      rw [←hem, function.update_same],
-      have hem1 : j = i.pred h :=
-        by ext; simp [hem],
-      rw [hem1, function.update_same],
-      --case i ≠ j.succ
-      rw function.update_noteq (ne_comm.mp hem),
-      have hem1 : j ≠ i.pred h :=
-      begin
-        intro hj,
-        rw [←fin.succ_inj, fin.succ_pred, eq_comm] at hj,
-        exact hem hj,
+    { rw [algebra_prod_split_aux, algebra_prod_split_aux, algebra_prod_split_aux],
+      cases classical.em (i = 0),
+      --case i = 0
+      { rw [h, function.update_same, function.update_same, function.update_same, right_distrib],
+        have fact : ∀ (z : N), ((λ k : fin q, function.update ν 0 z k.succ) = λ k : fin q, ν k.succ) :=
+        begin
+          intro z,
+          ext k,
+          rw function.update_noteq (fin.succ_ne_zero k),
+        end,
+        rw [fact (x+y), fact x, fact y],  },
+      --case i ≠ 0
+      { rw [function.update_noteq (ne_comm.mp h), function.update_noteq (ne_comm.mp h),
+          function.update_noteq (ne_comm.mp h)],
+        have key : algebra_prod_aux (λ (i_1 : fin q), function.update ν i (x + y) i_1.succ) =
+          algebra_prod_aux (λ (i_1 : fin q), function.update ν i x i_1.succ) +
+          algebra_prod_aux (λ (i_1 : fin q), function.update ν i y i_1.succ) :=
+        begin
+          convert hq (λ i : fin q, ν i.succ) (i.pred h),
+          repeat {  ext j,
+                    cases classical.em (i = j.succ) with hem hem,
+                    --case i = j.succ
+                    { rw [←hem, function.update_same],
+                      have hem1 : j = i.pred h := by ext; simp [hem],
+                      rw [hem1, function.update_same],  },
+                    --case i ≠ j.succ
+                    { rw function.update_noteq (ne_comm.mp hem),
+                      have hem1 : j ≠ i.pred h :=
+                      begin
+                        intro hj,
+                        rw [←fin.succ_inj, fin.succ_pred, eq_comm] at hj,
+                        exact hem hj,
+                      end,
+                      rw function.update_noteq hem1,  },  },
       end,
-      rw function.update_noteq hem1,},
-    end,
-    rw [key, left_distrib],
+      rw [key, left_distrib], },  },
   end,
   map_smul' :=
   begin
     intros ν i r x,
     induction q with q hq,
     --Base case
-    cases i, exfalso, exact nat.not_lt_zero i_val i_is_lt,
+    { cases i, exfalso, exact nat.not_lt_zero i_val i_is_lt,  },
     --Inductive step
-    rw [algebra_prod_split_aux, algebra_prod_split_aux],
-    cases classical.em (i = 0),
+    { rw [algebra_prod_split_aux, algebra_prod_split_aux],
+      cases classical.em (i = 0),
     --case i = 0
-    rw [h, function.update_same, function.update_same],
-    have fact : (λ (i : fin q), function.update ν 0 (r • x) i.succ)
-    = (λ (i : fin q), function.update ν 0 x i.succ) :=
-      by ext j; rw [function.update_noteq (fin.succ_ne_zero j), function.update_noteq (fin.succ_ne_zero j)],
-    rw [fact, algebra.smul_mul_assoc],
-    --case i ≠ 0
-    rw [function.update_noteq (ne_comm.mp h), function.update_noteq (ne_comm.mp h)],
-    have key : algebra_prod_aux (λ (i_1 : fin q), function.update ν i (r • x) i_1.succ) =
-    r • algebra_prod_aux (λ (i_1 : fin q), function.update ν i x i_1.succ) :=
-      begin
-        convert hq (λ i : fin q, ν i.succ) (i.pred h),
-        repeat{
-        ext j,
-        cases classical.em (i = j.succ) with hem hem,
-        --case i = j.succ
-        rw [←hem, function.update_same],
-        have hem1 : j = i.pred h :=
-          by ext; simp [hem],
-        rw [hem1, function.update_same],
-        --case i ≠ j.succ
-        rw function.update_noteq (ne_comm.mp hem),
-        have hem1 : j ≠ i.pred h :=
-          begin
-          intro hj,
-          rw [←fin.succ_inj, fin.succ_pred, eq_comm] at hj,
-          exact hem hj,
-          end,
-        rw function.update_noteq hem1,},
-      end,
-    rw key, simp,
+      { rw [h, function.update_same, function.update_same],
+        have fact : (λ (i : fin q), function.update ν 0 (r • x) i.succ)
+          = (λ (i : fin q), function.update ν 0 x i.succ) :=
+          by ext j; rw [function.update_noteq (fin.succ_ne_zero j), function.update_noteq (fin.succ_ne_zero j)],
+        rw [fact, algebra.smul_mul_assoc],  },
+      --case i ≠ 0
+      { rw [function.update_noteq (ne_comm.mp h), function.update_noteq (ne_comm.mp h)],
+        have key : algebra_prod_aux (λ (i_1 : fin q), function.update ν i (r • x) i_1.succ) =
+          r • algebra_prod_aux (λ (i_1 : fin q), function.update ν i x i_1.succ) :=
+        begin
+          convert hq (λ i : fin q, ν i.succ) (i.pred h),
+          repeat  { ext j,
+                    cases classical.em (i = j.succ) with hem hem,
+                    --case i = j.succ
+                    { rw [←hem, function.update_same],
+                      have hem1 : j = i.pred h :=
+                        by ext; simp [hem],
+                      rw [hem1, function.update_same],  },
+                    --case i ≠ j.succ
+                    { rw function.update_noteq (ne_comm.mp hem),
+                      have hem1 : j ≠ i.pred h :=
+                      begin
+                        intro hj,
+                        rw [←fin.succ_inj, fin.succ_pred, eq_comm] at hj,
+                        exact hem hj,
+                      end,
+                      rw function.update_noteq hem1,  },  },
+        end,
+        rw key, simp, },  },
   end }
 
-lemma algebra_prod_split (ν : fin q.succ → N):
+lemma algebra_prod_split (ν : fin q.succ → N) :
 algebra_prod S ν = (ν 0) * algebra_prod S (ν ∘ fin.succ) := algebra_prod_split_aux ν
 
 end algebra

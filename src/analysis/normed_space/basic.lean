@@ -999,13 +999,13 @@ def normed_space.restrict_scalars' : normed_space 𝕜 E :=
   ..semimodule.restrict_scalars' 𝕜 𝕜' E }
 
 instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : normed_group E] :
-  normed_group (module.restrict_scalars 𝕜 𝕜' E) := I
+  normed_group (semimodule.restrict_scalars 𝕜 𝕜' E) := I
 
-instance module.restrict_scalars.normed_space_orig {𝕜 : Type*} {𝕜' : Type*} {E : Type*}
+instance semimodule.restrict_scalars.normed_space_orig {𝕜 : Type*} {𝕜' : Type*} {E : Type*}
   [normed_field 𝕜'] [normed_group E] [I : normed_space 𝕜' E] :
-  normed_space 𝕜' (module.restrict_scalars 𝕜 𝕜' E) := I
+  normed_space 𝕜' (semimodule.restrict_scalars 𝕜 𝕜' E) := I
 
-instance : normed_space 𝕜 (module.restrict_scalars 𝕜 𝕜' E) :=
+instance : normed_space 𝕜 (semimodule.restrict_scalars 𝕜 𝕜' E) :=
 (normed_space.restrict_scalars' 𝕜 𝕜' E : normed_space 𝕜 E)
 
 end restrict_scalars

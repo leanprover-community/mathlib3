@@ -86,7 +86,7 @@ end
 lemma tendsto_Ixx_class_inf {l₁ l₁' l₂ l₂' : filter α} {Ixx}
   [h : tendsto_Ixx_class Ixx l₁ l₂] [h' : tendsto_Ixx_class Ixx l₁' l₂'] :
   tendsto_Ixx_class Ixx (l₁ ⊓ l₁') (l₂ ⊓ l₂') :=
-⟨by simpa only [prod_inf_prod, inf_lift'_powerset] using h.1.inf h'.1⟩
+⟨by simpa only [prod_inf_prod, lift'_inf_powerset] using h.1.inf h'.1⟩
 
 lemma tendsto_Ixx_class_of_subset {l₁ l₂ : filter α} {Ixx Ixx' : α → α → set α}
   (h : ∀ a b, Ixx a b ⊆ Ixx' a b) [h' : tendsto_Ixx_class Ixx' l₁ l₂] :

@@ -236,6 +236,10 @@ instance nhds_within_Ioi_is_measurably_generated :
   (𝓝[Ioi b] a).is_measurably_generated :=
 is_measurable_Ioi.nhds_within_is_measurably_generated _
 
+instance nhds_within_Iio_is_measurably_generated :
+  (𝓝[Iio b] a).is_measurably_generated :=
+is_measurable_Iio.nhds_within_is_measurably_generated _
+
 end order_closed_topology
 
 lemma is_measurable_interval [decidable_linear_order α] [order_closed_topology α] {a b : α} :

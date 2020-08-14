@@ -12,17 +12,19 @@ import group_theory.perm.sign
 We construct the typeclass `alternating_map` which extends `multilinear_map`.
 
 ## Notation
-For `R`-modules `M` and `N` and an index set `ι`, the class of alternating multilinear maps from
-`ι → M` into `N` is denoted `alternating_map R M N ι`.
+For `R`-semimodules `M` and `N` and an index set `ι`, the structure of alternating multilinear maps
+from`ι → M` into `N` is denoted `alternating_map R M N ι`. For some results, we must work with
+`L` an `R-semimodule` that is also an `add_comm_group` and the structure `alternating_map R M L ι`.
 
 ## Theorems
 1. `map_perm` asserts that for a map `f : alternating_map R M N ι`, and a
 permutation `sigma` of `ι`, we have that `f ν = (sign σ) f (ν ∘ σ)`.
 -/
 
-variables (R : Type*) [ring R]
-variables (M : Type*) [add_comm_group M] [module R M]
-variables (N : Type*) [add_comm_group N] [module R N]
+variables (R : Type*) [semiring R]
+variables (M : Type*) [add_comm_monoid M] [semimodule R M]
+variables (N : Type*) [add_comm_monoid N] [semimodule R N]
+variables (L : Type*) [add_comm_group L] [semimodule R L]
 variables (ι : Type*) [decidable_eq ι]
 
 structure alternating_map extends multilinear_map R (λ i : ι , M) N :=
@@ -32,7 +34,7 @@ namespace alternating_map
 
 variable {f : alternating_map R M N ι}
 variable (ν : ι → M)
-variables {R M N ι}
+variables {R M N L ι}
 open function
 
 instance : has_coe (alternating_map R M N ι) (multilinear_map R (λ i : ι, M) N) :=
@@ -84,8 +86,10 @@ begin
         rw equiv.swap_apply_of_ne_of_ne hx hx1, }, }, },
 end
 
+variable {g : alternating_map R M L ι}
+
 lemma map_swap {i j : ι} (hij : i ≠ j) :
-  f (ν ∘ equiv.swap i j) = - f ν  :=
+  g (ν ∘ equiv.swap i j) = - g ν  :=
 begin
   apply eq_neg_of_add_eq_zero,
   rw add_comm,
@@ -95,7 +99,7 @@ end
 variable [fintype ι]
 
 lemma map_perm (σ : equiv.perm ι) :
-  f ν = (equiv.perm.sign σ : ℤ) • f (ν ∘ σ) :=
+  g ν = (equiv.perm.sign σ : ℤ) • g (ν ∘ σ) :=
 begin
   apply equiv.perm.swap_induction_on' σ,
   { rw equiv.perm.sign_one,
@@ -103,7 +107,7 @@ begin
     congr,  },
   { intros s x y hxy hI,
     have assoc : ν ∘ (s * equiv.swap x y : equiv.perm ι) = (ν ∘ s ∘ equiv.swap x y) := rfl,
-    rw [assoc, map_swap (ν ∘ s) hxy, ←neg_one_smul ℤ (f (ν ∘ s))],
+    rw [assoc, map_swap (ν ∘ s) hxy, ←neg_one_smul ℤ (g (ν ∘ s))],
     have h1 : (-1 : ℤ) = equiv.perm.sign (equiv.swap x y) := by simp [hxy],
     rw [h1, smul_smul, ←units.coe_mul, ←equiv.perm.sign_mul, mul_assoc, equiv.swap_mul_self, mul_one],
     assumption, },

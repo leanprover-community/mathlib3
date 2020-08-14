@@ -10,11 +10,9 @@ import tactic
 /-!
 # Simple graphs
 
-This module defines simple graphs as irreflexive symmetric
-relations.  The basic interface is that one defines an instance
-`[simple_graphs α]` to declare that every term of `α` has an
-interpretation as a simple graph, and then one may write `G : α` to
-obtain individual graphs.
+This module defines simple graphs as irreflexive symmetric relations.
+Since graphs are terms, the basic interface is that a term `G` is a
+simple graph if there is an instance `[simple_graph G]`.
 
 To construct a simple graph from a specific relation, one uses
 `simple_graph.from_rel`.
@@ -24,7 +22,7 @@ finitely many vertices.
 
 ## Main definitions
 
-* `simple_graphs` is a class for types whose terms can be interpreted as
+* `simple_graph` is a class for terms that can be interpreted as
   symmetric, irreflexive relations (i.e., simple graphs)
 
 * `neighbor_set` is the `set` of vertices adjacent to a given vertex
@@ -54,67 +52,65 @@ universes u v
 A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
 The relation describes which pairs of vertices are adjacent.
 There is exactly one edge for every pair of adjacent edges;
-see `simple_graphs.edge_set` for the corresponding edge set.
+see `simple_graph.edge_set` for the corresponding edge set.
 
 To construct a simple graph, use `simple_graph.from_rel`.
-
-The way the interface works is you define an instance `[simple_graphs α]`
-for a type `α`, and then terms `G : α` refer to graphs.
 -/
-class simple_graphs (α : Type u) :=
-(V : α → Type v)
-(adj : Π (G : α), V G → V G → Prop)
-(symm : Π (G : α), symmetric (adj G) . obviously)
-(loopless : Π (G : α), irreflexive (adj G) . obviously)
+class simple_graph {α : Type u} (G : α) :=
+(V : Type v)
+(adj : V → V → Prop)
+(symm : symmetric adj . obviously)
+(loopless : irreflexive adj . obviously)
 
 namespace simple_graph
-open simple_graphs
 
 /--
-This is `simple_graphs.adj` but with an implicit `G`.  It is used for the
-`v ~ w` notation for `(v w : V G)`, meaning `v` and `w` are adjacent.
+This is `simple_graph.adj` but with an explicit `G`.  It is used for situations such as `[decidable_rel (adj_rel G)]`.
 -/
 @[reducible]
-abbreviation adj_rel {α : Type u} [simple_graphs α] {G : α} (v w : V G) := adj G v w
+abbreviation adj_rel {α : Type u} (G : α) [simple_graph G] (v w : V G) := adj v w
 
-local infix ` ~ ` := adj_rel
+local infix ` ~ ` := adj
 
 /--
 Basic constructor for a simple graph, using a symmetric irreflexive relation.
 -/
 structure from_rel (V : Type u) :=
 (rel : V → V → Prop)
-(sym : symmetric rel . obviously)
-(irr : irreflexive rel . obviously)
+(symm : symmetric rel . obviously)
+(irref : irreflexive rel . obviously)
 
-instance (V : Type u) : simple_graphs (from_rel V) :=
-{ V := λ _, V,
-  adj := from_rel.rel,
-  symm := from_rel.sym,
-  loopless := from_rel.irr }
+instance (V : Type u) (G : from_rel V) : simple_graph G :=
+{ V := V,
+  adj := G.rel,
+  symm := G.symm,
+  loopless := G.irref }
 
-variables {α : Type u} [simple_graphs α] (G : α)
+variables {α : Type u} {G : α} [simple_graph G]
 
 /-- `neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
-def neighbor_set {G : α} (v : V G) : set (V G) := set_of (adj G v)
+def neighbor_set (v : V G) : set (V G) := set_of (adj v)
 
-lemma ne_of_edge {a b : V G} (hab : a ~ b) : a ≠ b :=
-by { rintro rfl, exact loopless G a hab }
+lemma ne_of_adj {a b : V G} (hab : a ~ b) : a ≠ b :=
+by { rintro rfl, exact loopless a hab }
 
+variable (G)
 /--
 The edges of G consist of the unordered pairs of vertices related by `adj`.
 -/
-def edge_set : set (sym2 (V G)) := sym2.from_rel (symm G)
+def edge_set : set (sym2 (V G)) := sym2.from_rel symm
+
+variable {G}
 
 @[simp]
 lemma edge_iff_adj {v w : V G} : ⟦(v, w)⟧ ∈ edge_set G ↔ v ~ w :=
 by refl
 
-lemma adj_iff_exists_edge {v w : V G} (hne : v ≠ w) :
-  v ~ w ↔ ∃ (e ∈ edge_set G), v ∈ e ∧ w ∈ e :=
+lemma adj_iff_exists_edge {v w : V G} :
+  v ~ w ↔ v ≠ w ∧ ∃ (e ∈ edge_set G), v ∈ e ∧ w ∈ e :=
 begin
-  split, { intro, use ⟦(v,w)⟧, simpa },
-  { rintro ⟨e, he, hv⟩,
+  split, { intro, use [ne_of_adj a, ⟦(v,w)⟧], simpa },
+  { rintro ⟨hne, e, he, hv⟩,
     rw sym2.elems_iff_eq hne at hv,
     subst e,
     rwa edge_iff_adj at he, }
@@ -123,25 +119,28 @@ end
 lemma edge_other_ne {e : sym2 (V G)} (he : e ∈ edge_set G) {v : V G} (h : v ∈ e) : h.other ≠ v :=
 begin
   erw [← sym2.mem_other_spec h, sym2.eq_swap] at he,
-  exact ne_of_edge G he,
+  exact ne_of_adj he,
 end
 
-instance edges_fintype [decidable_eq (V G)] [fintype (V G)] [decidable_rel (adj G)] :
+instance edges_fintype [decidable_eq (V G)] [fintype (V G)] [decidable_rel (adj_rel G)] :
   fintype (edge_set G) := by { dunfold edge_set, exact subtype.fintype _ }
 
+variable (G)
 /--
 The `edge_set` of the graph as a `finset`.
 -/
-def edge_finset [decidable_eq (V G)] [fintype (V G)] [decidable_rel (adj G)] : finset (sym2 (V G)) :=
+def edge_finset [decidable_eq (V G)] [fintype (V G)] [decidable_rel (adj_rel G)] : finset (sym2 (V G)) :=
 set.to_finset (edge_set G)
 
-@[simp] lemma mem_edge_finset [decidable_eq (V G)] [fintype (V G)] [decidable_rel (adj G)] (e : sym2 (V G)) :
+variable {G}
+
+@[simp] lemma mem_edge_finset [decidable_eq (V G)] [fintype (V G)] [decidable_rel (adj_rel G)] (e : sym2 (V G)) :
   e ∈ edge_finset G ↔ e ∈ edge_set G :=
 by { dunfold edge_finset, simp }
 
-@[simp] lemma irrefl {v : V G} : ¬(v ~ v) := loopless G v
+@[simp] lemma irrefl {v : V G} : ¬(v ~ v) := loopless v
 
-@[symm] lemma edge_symm (u v : V G) : u ~ v ↔ v ~ u := ⟨λ x, symm G x, λ x, symm G x⟩
+@[symm] lemma edge_symm (u v : V G) : u ~ v ↔ v ~ u := ⟨λ x, symm x, λ x, symm x⟩
 
 @[simp] lemma mem_neighbor_set (v w : V G) : w ∈ neighbor_set v ↔ v ~ w :=
 by tauto
@@ -183,6 +182,8 @@ end finite_at
 
 section locally_finite
 
+variable (G)
+
 /--
 A graph is locally finite if every vertex has a finite neighbor set.
 -/
@@ -202,34 +203,36 @@ section finite
 
 variables [fintype (V G)]
 
-instance neighbor_set_fintype [decidable_rel (adj G)] (v : V G) : fintype (neighbor_set v) :=
-  @subtype.fintype _ _ (by { simp_rw mem_neighbor_set, apply_instance }) _
+instance neighbor_set_fintype [decidable_rel (adj_rel G)] (v : V G) : fintype (neighbor_set v) :=
+@subtype.fintype _ _ (by { simp_rw mem_neighbor_set, apply_instance }) _
 
-lemma neighbor_finset_eq_filter {v : V G} [decidable_rel (adj G)] :
-  neighbor_finset v = finset.univ.filter (adj G v) :=
+lemma neighbor_finset_eq_filter {v : V G} [decidable_rel (adj_rel G)] :
+  neighbor_finset v = finset.univ.filter (adj v) :=
 by { ext, simp }
 
 end finite
 
 section subgraphs
 
+variable (G)
+
 /--
 A subgraph of a graph is a subset of vertices and a subset of edges
 such that each endpoint of an edge is contained in the vertex set.
 
-Subgraphs implement the `simple_graphs` class.  They also form a bounded lattice.
+Subgraphs implement the `simple_graph` class.  They also form a bounded lattice.
 -/
-structure subgraph (G : α) :=
+structure subgraph :=
 (V' : set (V G))
 (E' : set (sym2 (V G)))
 (edge_sub : E' ⊆ edge_set G)
 (has_verts : ∀ (e ∈ E') (v ∈ e), v ∈ V')
 
-instance subgraph.simple_graphs : simple_graphs (subgraph G) :=
-{ V := λ G', G'.V',
-  adj := λ G' v w, ⟦(v.val, w.val)⟧ ∈ G'.E',
-  symm := λ G' v w h, by rwa sym2.eq_swap,
-  loopless := λ G' ⟨v, _⟩ h, loopless G v (sym2.from_rel_prop.mp (G'.edge_sub h)) }
+instance subgraph.simple_graph (G' : subgraph G) : simple_graph G' :=
+{ V := G'.V',
+  adj := λ v w, ⟦(v.val, w.val)⟧ ∈ G'.E',
+  symm := λ v w h, by rwa sym2.eq_swap,
+  loopless := λ ⟨v, _⟩ h, loopless v (sym2.from_rel_prop.mp (G'.edge_sub h)) }
 
 variable {G}
 
@@ -337,7 +340,6 @@ end subgraphs
 end simple_graph
 
 namespace simple_graph
-open simple_graphs
 
 section complete_graphs
 

@@ -7,7 +7,7 @@ import logic.basic data.fintype.basic
 /-!
 # Derive handler for `fintype` instances
 
-This file introduces a derive handle to automatically generate `fintype`
+This file introduces a derive handler to automatically generate `fintype`
 instances for structures and inductives.
 
 ## Implementation notes

@@ -712,9 +712,10 @@ using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.support
 
 end sign
 
-lemma prod_swap_adj_aug {n i j : ℕ} (hi : i < n) (hj : i + 1 ≤ j) (hjn : j < n) (hj' : j + 1 < n)
-  {L : list (perm (fin n))} (M : list (perm (fin n))) (hL : L.prod = swap ⟨i, hi⟩ ⟨j, hjn⟩)
-  (hM : M = [swap ⟨j, hjn⟩ ⟨j + 1, hj'⟩] ++ L ++ [swap ⟨j, hjn⟩ ⟨j + 1, hj'⟩]) :
+lemma prod_swap_adj_aug {n i j : ℕ} (hi : i < n) (hj : i + 1 ≤ j) (hj' : j + 1 < n)
+  {L : list (perm (fin n))} (M : list (perm (fin n)))
+  (hL : L.prod = swap ⟨i, hi⟩ ⟨j, buffer.lt_aux_1 hj'⟩)
+  (hM : M = [swap ⟨j, buffer.lt_aux_1 hj'⟩ ⟨j + 1, hj'⟩] ++ L ++ [swap ⟨j, buffer.lt_aux_1 hj'⟩ ⟨j + 1, hj'⟩]) :
   M.prod = swap ⟨i, hi⟩ ⟨j + 1, hj'⟩ :=
 begin
   rw hM,
@@ -750,7 +751,7 @@ begin
     let M := [swap (⟨j, hjn⟩ : fin n) (⟨j+1, hj'⟩ : fin n)] ++ L ++ [swap (⟨j, hjn⟩ : fin n) (⟨j+1, hj'⟩)],
     use M,
     split,
-    { exact prod_swap_adj_aug hi hj hjn hj' M hL1 rfl, },
+    { exact prod_swap_adj_aug hi hj hj' M hL1 rfl, },
     { intros l hl,
       rw [list.mem_append, list.mem_append, list.mem_singleton] at hl,
       rcases hl with ⟨rfl | hl⟩ | rfl,

@@ -284,45 +284,21 @@ def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
   map_mul' := coe_mul,
   map_add' := coe_add }
 
-lemma padic_norm_p : padic_norm p p = 1 / p :=
-by simp [padic_norm, _inst_1.ne_zero, padic_val_rat.padic_val_rat_self _inst_1.one_lt]
+/-- `base : ℤ_[p]` is `p` considered as a p-adic integer. -/
+def base : ℤ_[p] :=
+⟨p, le_of_lt padic_norm_e.norm_p_lt_one⟩
 
-lemma padic_norm_p_lt_one : padic_norm p p < 1 :=
-begin
-  rw [padic_norm_p, div_lt_iff, one_mul],
-  { exact_mod_cast _inst_1.one_lt },
-  { exact_mod_cast _inst_1.pos }
-end
+lemma nonunit_is_nonunit : base ∈ nonunits ℤ_[p] :=
+by simp [base, -cast_eq_of_rat_of_nat, -padic_norm_e.norm_p, padic_norm_e.norm_p_lt_one]
 
-lemma padic_val_p : ∥(p : ℚ_[p])∥ = 1 / p :=
-begin
-  have := @padic_norm_e.eq_padic_norm p _ p,
-  norm_cast at this,
-  rw [this, padic_norm_p],
-  simp [_inst_1.ne_zero]
-end
-
-lemma padic_val_p_lt_one : ∥(p : ℚ_[p])∥ < 1 :=
-begin
-  rw [padic_val_p, div_lt_iff, one_mul],
-  { exact_mod_cast _inst_1.one_lt },
-  { exact_mod_cast _inst_1.pos }
-end
-
-def nonunit : ℤ_[p] :=
-⟨ p, le_of_lt padic_val_p_lt_one ⟩
-
-lemma nonunit_is_nonunit : nonunit ∈ nonunits ℤ_[p] :=
-by simp [nonunit, -cast_eq_of_rat_of_nat, padic_val_p_lt_one]
-
-lemma norm_nonunit : ∥(nonunit : ℤ_[p])∥ = 1 / p :=
-by simp [nonunit, -cast_eq_of_rat_of_nat, padic_val_p]
+lemma norm_nonunit : ∥(base : ℤ_[p])∥ = 1 / p :=
+by simp [base, -cast_eq_of_rat_of_nat, padic_norm_e.norm_p]
 
 instance : algebra ℤ_[p] ℚ_[p] := (coe.ring_hom : ℤ_[p] →+* ℚ_[p]).to_algebra
 
 lemma not_a_field : local_ring.maximal_ideal ℤ_[p] ≠ ⊥ :=
 begin
-  refine (submodule.ne_bot_iff _).mpr ⟨nonunit, _, _⟩,
+  refine (submodule.ne_bot_iff _).mpr ⟨base, _, _⟩,
   { exact nonunit_is_nonunit },
   { rw [ne.def, ← norm_eq_zero, norm_nonunit],
     apply one_div_ne_zero,

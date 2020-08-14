@@ -220,7 +220,6 @@ begin
 end
 
 end valuation
-#exit
 
 end padic_seq
 
@@ -817,6 +816,19 @@ instance : nondiscrete_normed_field ℚ_[p] :=
     exact_mod_cast h1,
   end⟩ }
 
+@[simp] lemma norm_p : ∥(p : ℚ_[p])∥ = p⁻¹ :=
+begin
+  have p₀ : p ≠ 0 := nat.prime.ne_zero ‹_›,
+  have p₁ : p ≠ 1 := nat.prime.ne_one ‹_›,
+  simp [p₀, p₁, norm, padic_norm, padic_val_rat, fpow_neg, padic.cast_eq_of_rat_of_nat],
+end
+
+lemma norm_p_lt_one : ∥(p : ℚ_[p])∥ < 1 :=
+begin
+  rw [norm_p, inv_eq_one_div, div_lt_iff, one_mul],
+  { exact_mod_cast nat.prime.one_lt ‹_› },
+  { exact_mod_cast nat.prime.pos ‹_› }
+end
 
 protected theorem image {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, ∥q∥ = ↑((↑p : ℚ) ^ (-n)) :=
 quotient.induction_on q $ λ f hf,

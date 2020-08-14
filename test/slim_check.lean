@@ -14,6 +14,8 @@ if h : 2 ≤ p-1 then do
   return $ (fin.of_nat' n : fin p)^(p-1) = 1 -- we do arithmetic with `fin n` so that modulo and multiplication are interleaved
 else return (p = 2)
 
+/-- `iterated_primality_test_aux p h n` generating `n` candidate witnesses that `p` is a
+composite number and concludes that `p` is prime if none of them is a valid witness  -/
 def iterated_primality_test_aux (p : ℕ) (h : fact (0 < p)) : ℕ → rand bool
 | 0 := pure tt
 | (n+1) := do
@@ -27,19 +29,15 @@ if h : 0 < p
   then iterated_primality_test_aux p h 10
   else pure ff
 
-def mfirst {α} {m} [monad m] (f : α → m bool) : list α → m (option α)
-| [] := pure none
-| (x :: xs) :=
-mcond (f x)
-  (pure x)
-  (mfirst xs)
-
+/-- `find_prime_aux p h n` generates `n` candidate prime numbers,
+tests each and 20 of their successors with `iterated_primality_test`
+and return the first one that can pass the primality test. -/
 def find_prime_aux (p : ℕ) (h : 1 ≤ p / 2) : ℕ → rand (option ℕ)
 | 0 := pure none
 | (n+1) := do
   k ← rand.random_r 1 (p / 2),
   let xs := (list.range' k 20).map (λ i, 2*i+1),
-  some r ← mfirst iterated_primality_test xs
+  some r ← option_t.run $ xs.mfirst (λ n, option_t.mk $ mcond (iterated_primality_test n) (pure (some n)) (pure none))
     | find_prime_aux n,
   pure r
 
@@ -66,7 +64,7 @@ run_cmd do
   guard (ps = [97, 101, 103, 107, 109, 113]) <|> fail "wrong list of prime numbers",
   trace ps
 
-/- this finds a random prime number -/
+/- this finds a random probably-prime number -/
 run_cmd do
   some p ← tactic.run_rand (find_prime 1000000) | trace "no prime found, gave up",
   trace p,

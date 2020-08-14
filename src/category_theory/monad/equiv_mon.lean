@@ -29,6 +29,15 @@ The primary purpose for the theorems in this file is to construct `Monad_Mon_equ
 2. `of_to_mon_end` and `to_of_mon_end` promote the equalities from these two theorems to
   equalities with the identity functor.
 
+# Note
+
+It is tempting to use `eq_to_iso` along with `of_to_mon_end` and `to_of_mon_end` in order to
+construct `Monad_Mon_equiv`, or equivalently, to use `Cat.equiv_of_iso` applied to `Monad_Mon_iso`.
+Unfortunately, such an equivalence is difficult to use in practice.
+
+Because of this, we construct `Monad_Mon_equiv` "by hand" using `of_to_mon_end_iso` and
+`to_of_mon_end_iso`. See the "sanity check" example in this file.
+
 -/
 
 namespace category_theory
@@ -172,6 +181,7 @@ begin
     apply to_of_mon_end_obj }
 end
 
+/-- Isomorphism of functors used in `Monad_Mon_equiv` -/
 def of_to_mon_end_iso : Mon_to_Monad C ⋙ Monad_to_Mon C ≅ 𝟭 _ :=
 { hom :=
   { app := λ M,
@@ -180,6 +190,7 @@ def of_to_mon_end_iso : Mon_to_Monad C ⋙ Monad_to_Mon C ≅ 𝟭 _ :=
   { app := λ M,
   { hom := 𝟙 _ } } }
 
+/-- Isomorphism of functors used in `Monad_Mon_equiv` -/
 def to_of_mon_end_iso : Monad_to_Mon C ⋙ Mon_to_Monad C ≅ 𝟭 _ :=
 { hom :=
   { app := λ M,

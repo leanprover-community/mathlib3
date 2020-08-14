@@ -165,7 +165,7 @@ lemma der_rep_I_of_mod3 (c : ℕ) (h : c % 3 = 1 ∨ c % 3 = 2):
   derivable (M::(repeat I c)) :=
 begin
   -- From pow2str, we can derive the `miustr` `M::w` described in the introduction.
-  cases (mod12pow c h) with m hm, -- `2^m` will be  the number of `I`s in the string `M::w`
+  cases (le_pow2_and_pow2_eq_mod3 c h) with m hm, -- `2^m` will be  the number of `I`s in `M::w`
   have hw₂ : derivable (M::(repeat I (2^m)) ++ repeat U ((2^m -c)/3 % 2)),
     cases mod_two_eq_zero_or_one ((2^m -c)/3) with h_zero h_one, {
       simp only [pow2str m,append_nil,list.repeat,h_zero] }, -- case `(2^m - c)/3 ≡ 0 [MOD 2]`

@@ -73,7 +73,7 @@ variables {V : Type u} (G : simple_graph V)
 /-- `G.neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
 def neighbor_set (v : V) : set V := set_of (G.adj v)
 
-lemma ne_of_edge {a b : V} (hab : G.adj a b) : a ≠ b :=
+lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.loopless a hab }
 
 /--
@@ -89,7 +89,7 @@ by refl
 lemma adj_iff_exists_edge {v w : V} :
   G.adj v w ↔ v ≠ w ∧ ∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e :=
 begin
-  split, { intro, split, { intro c, rw c at a, apply G.loopless _ a, }, {use ⟦(v,w)⟧, simpa} },
+  split, { intro, split, { exact G.ne_of_adj a, }, {use ⟦(v,w)⟧, simpa} },
   { rintro ⟨hne, e, he, hv⟩,
     rw sym2.elems_iff_eq hne at hv,
     subst e,
@@ -99,7 +99,7 @@ end
 lemma edge_other_ne {e : sym2 V} (he : e ∈ G.edge_set) {v : V} (h : v ∈ e) : h.other ≠ v :=
 begin
   erw [← sym2.mem_other_spec h, sym2.eq_swap] at he,
-  exact G.ne_of_edge he,
+  exact G.ne_of_adj he,
 end
 
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :

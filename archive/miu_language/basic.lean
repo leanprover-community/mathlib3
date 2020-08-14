@@ -14,16 +14,20 @@ Hofstadter in the first chapter of his 1979 book,
 The system is defined by four rules of inference, one axiom, and an alphabet of three symbols:
 `M`, `I`, and `U`.
 
-Hofstadter's central question is: can the string "MU" be derived?
+Hofstadter's central question is: can the string `"MU"` be derived?
 
 It transpires that there is a simple decision procedure for this system. A string is derivable if
-and only if it starts with `"M"`, contains no other `"M"`s, and the number of `"I"`s in the string
-is congruent to 1 or 2 modulo 3.
+and only if it starts with `M`, contains no other `M`s, and the number of `I`s in the string is
+congruent to 1 or 2 modulo 3.
+
+The principal aim of this project is to give a Lean proof that the derivability of a string is a
+decidable predicate.
 
 ## The MIU System
 
-An _atom_ is any one of `M`, `I` or `U`. A _string_ is a finite sequence of zero or more symbols.
-To simplify notation, we write a sequence `[I,U,U,M]`, for example, as `IUUM`.
+In Hofstadter's description, an _atom_ is any one of `M`, `I` or `U`. A _string_ is a finite
+sequence of zero or more symbols. To simplify notation, we write a sequence `[I,U,U,M]`,
+for example, as `IUUM`.
 
 The four rules of inference are:
 
@@ -34,11 +38,15 @@ The four rules of inference are:
 
 where the notation α → β is to be interpreted as 'if α is derivable, then β is derivable'.
 
-Additionally, we have an axiom
+Additionally, he has an axiom:
 
 * `MI` is derivable.
 
-In this file, the set of atoms and the set of derivable strings are represented as inductive types.
+In Lean, it is natural to treat the rules of inference and the axiom on an equal footing via an
+inductive data type `derivable` designed so that `derviable x` represents the notion that the string
+`x` can be derived from the axiom by the rules of inference. The axiom is represented as a
+nonrecursive constructor for `derivable`. This mirrors the translation of Peano's axiom '0 is a
+natural number' into the nonrecursive constructor `zero` of the inductive type `nat`.
 -/
 
 
@@ -49,14 +57,19 @@ namespace miu
 -/
 
 /--
-Each MIU string consists of either an `M`, `I`, or `U`. Such an elementary unit is called an
-`miu_atom`. We represent `miu_atom` as an enumerated type.
+The atoms of MIU can be represented as an enumerated type in Lean.
 -/
 @[derive decidable_eq]
 inductive miu_atom : Type
 | M : miu_atom
 | I : miu_atom
 | U : miu_atom
+
+/-!
+The annotation `@[derive decidable_eq]` above assigns the attribute `derive` to `miu_atom`, through
+which Lean automatically derives that `miu_atom` is an instance of `decidable_eq`. The use of
+`derive` is crucial in this project and will lead to the automatica derivation of decidability.
+-/
 
 open miu_atom
 
@@ -68,21 +81,24 @@ instance miu_atom_inhabited : inhabited miu_atom :=
 inhabited.mk M
 
 /--
-A simple function from `miu_atom` to `string`.
+`miu_atom.repr` is the 'natural' function from `miu_atom` to `string`.
 -/
 def miu_atom.repr : miu_atom → string
 | M := "M"
 | I := "I"
 | U := "U"
 
+
+#print attributes
+
 /--
-A representation of an `miu_atom`.
+Using `miu_atom.repr`, we prove that ``miu_atom` is an instance of `has_repr`.
 -/
 instance : has_repr miu_atom :=
 ⟨λ u, u.repr⟩
 
 /--
-For simplicity, an `miustr` is just a list of `miu_atom`.
+For simplicity, an `miustr` is just a list of elements of type `miu_atom`.
 -/
 @[derive has_append]
 def miustr := list miu_atom
@@ -123,15 +139,12 @@ instance string_coe_miustr : has_coe string miustr :=
 
 /-!
 ### Derivability
-There is exactly one axiom of MIU, namely that `"MI"` is derivable. From this, and the rules of
-inference, we define a type `derivable` so that `derivable st` corresonds to the notion that
-the `miutr` st is derivable in MIU. We represent `derivable` as an inductive family.
 -/
 
 /--
-The inductive type derivable has five constructors. The default constructor corresponds to the
-axiom that `"MI"` is derivable. Each of the constructors `r1`, `r2`, `r3`, `r4` corresponds to the
-one of the rules of inference described above.
+The inductive type `derivable` has five constructors. The nonrecursive constructor `mk` corresponds
+to Hofstadter's axiom that `"MI"` is derivable. Each of the constructors `r1`, `r2`, `r3`, `r4`
+corresponds to the one of Hofstadter's rules of inference.
 -/
 inductive derivable : miustr → Prop
 | mk : derivable "MI"
@@ -166,7 +179,7 @@ end
 example (h : derivable "MIMIMUUIIM") : derivable "MIMIMIIM" :=
 begin
   change ("MIMIMIIM" : miustr) with [M,I,M,I,M] ++ [I,I,M],
-  exact derivable.r4 h,
+  exact derivable.r4 h, -- Rule 4
 end
 
 
@@ -179,7 +192,7 @@ end
 private lemma MIU_der : derivable "MIU":=
 begin
   change ("MIU" :miustr) with [M] ++ [I,U],
-  apply derivable.r1, -- "e reduce to deriving "MI",
+  apply derivable.r1, -- reduce to deriving "MI",
   constructor, -- which is the base of the inductive construction.
 end
 

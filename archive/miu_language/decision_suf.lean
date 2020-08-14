@@ -102,9 +102,9 @@ end
 
 
 /-!
-The following option is incredibly useful for determining which lemmas are used by simp.
+The following option is incredibly useful for determining which lemmas are used by `simp`.
 
-set_option trace.simplify.rewrite true
+`set_option trace.simplify.rewrite true`
 -/
 
 

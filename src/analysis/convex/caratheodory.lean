@@ -69,7 +69,7 @@ begin
       exact w _ hes, },
     { calc _ ≤ 0   : mul_nonpos_of_nonneg_of_nonpos _ _ -- prove two goals below
          ... ≤ f e : fpos e het,
-      { apply div_nonneg_of_nonneg_of_pos (fpos i₀ (mem_of_subset (filter_subset t) mem)) hg },
+      { apply div_nonneg (fpos i₀ (mem_of_subset (filter_subset t) mem)) (le_of_lt hg) },
       { simpa only [mem_filter, het, true_and, not_lt] using hes }, } },
   { simp only [subtype.coe_mk, center_mass_eq_of_sum_1 _ id ksum, id],
     calc ∑ e in t.erase i₀, k e • e = ∑ e in t, k e • e :

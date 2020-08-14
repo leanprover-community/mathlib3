@@ -37,14 +37,9 @@ equivalence_reflects_normal_epi (forget₂ (Module.{u} ℤ) AddCommGroup.{u}).in
 
 end
 
-local attribute [instance] has_equalizers_of_has_finite_limits
-local attribute [instance] has_coequalizers_of_has_finite_colimits
-
 /-- The category of abelian groups is abelian. -/
-instance : abelian AddCommGroup.{u} :=
-{ has_finite_products := by apply_instance,
-  has_kernels := by apply_instance,
-  has_cokernels := by apply_instance,
+instance : abelian AddCommGroup :=
+{ has_finite_products := by { dsimp [has_finite_products], apply_instance },
   normal_mono := λ X Y, normal_mono,
   normal_epi := λ X Y, normal_epi }
 

@@ -6,13 +6,54 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 import algebra.associated
 import linear_algebra.basic
 import order.zorn
+/-!
+
+# Ideals over a ring
+
+This file defines `ideal R`, the type of ideals over a commutative ring `R`.
+
+## Implementation notes
+
+`ideal R` is implemented using `submodule R R`, where `•` is interpreted as `*`.
+
+## TODO
+
+Support one-sided ideals, and ideals over non-commutative rings
+-/
 
 universes u v w
-variables {α : Type u} {β : Type v} {a b : α}
+variables {α : Type u} {β : Type v}
 open set function
 
 open_locale classical big_operators
 
+/-- Ideal in a commutative ring is an additive subgroup `s` such that
+`a * b ∈ s` whenever `b ∈ s`. -/
+@[reducible] def ideal (R : Type u) [comm_ring R] := submodule R R
+
+namespace ideal
+variables [comm_ring α] (I : ideal α) {a b : α}
+
+protected lemma zero_mem : (0 : α) ∈ I := I.zero_mem
+
+protected lemma add_mem : a ∈ I → b ∈ I → a + b ∈ I := I.add_mem
+
+lemma neg_mem_iff : -a ∈ I ↔ a ∈ I := I.neg_mem_iff
+
+lemma add_mem_iff_left : b ∈ I → (a + b ∈ I ↔ a ∈ I) := I.add_mem_iff_left
+
+lemma add_mem_iff_right : a ∈ I → (a + b ∈ I ↔ b ∈ I) := I.add_mem_iff_right
+
+protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := I.sub_mem
+
+lemma mul_mem_left : b ∈ I → a * b ∈ I := I.smul_mem _
+
+lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_left h
+end ideal
+
+variables {a b : α}
+
+-- A separate namespace definition is needed because the variables were historically in a different order
 namespace ideal
 variables [comm_ring α] (I : ideal α)
 
@@ -91,7 +132,7 @@ lemma span_singleton_mul_right_unit {a : α} (h2 : is_unit a) (x : α) :
 begin
   apply le_antisymm,
   { rw span_singleton_le_span_singleton, use a},
-  { rw span_singleton_le_span_singleton, rw mul_dvd_of_is_unit_right h2}
+  { rw span_singleton_le_span_singleton, rw is_unit.mul_right_dvd h2}
 end
 
 lemma span_singleton_mul_left_unit {a : α} (h2 : is_unit a) (x : α) :
@@ -309,9 +350,28 @@ end quotient
 section lattice
 variables {R : Type u} [comm_ring R]
 
+lemma mem_sup_left {S T : ideal R} : ∀ {x : R}, x ∈ S → x ∈ S ⊔ T :=
+show S ≤ S ⊔ T, from le_sup_left
+
+lemma mem_sup_right {S T : ideal R} : ∀ {x : R}, x ∈ T → x ∈ S ⊔ T :=
+show T ≤ S ⊔ T, from le_sup_right
+
+lemma mem_supr_of_mem {ι : Type*} {S : ι → ideal R} (i : ι) :
+  ∀ {x : R}, x ∈ S i → x ∈ supr S :=
+show S i ≤ supr S, from le_supr _ _
+
+lemma mem_Sup_of_mem {S : set (ideal R)} {s : ideal R}
+  (hs : s ∈ S) : ∀ {x : R}, x ∈ s → x ∈ Sup S :=
+show s ≤ Sup S, from le_Sup hs
+
 theorem mem_Inf {s : set (ideal R)} {x : R} :
   x ∈ Inf s ↔ ∀ ⦃I⦄, I ∈ s → x ∈ I :=
 ⟨λ hx I his, hx I ⟨I, infi_pos his⟩, λ H I ⟨J, hij⟩, hij ▸ λ S ⟨hj, hS⟩, hS ▸ H hj⟩
+
+@[simp] lemma mem_inf {I J : ideal R} {x : R} : x ∈ I ⊓ J ↔ x ∈ I ∧ x ∈ J := iff.rfl
+
+@[simp] lemma mem_infi {ι : Type*} {I : ι → ideal R} {x : R} : x ∈ infi I ↔ ∀ i, x ∈ I i :=
+submodule.mem_infi _
 
 end lattice
 

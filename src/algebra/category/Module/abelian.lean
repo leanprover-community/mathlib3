@@ -64,11 +64,9 @@ def normal_epi (hf : epi f) : normal_epi f :=
             (linear_map.quot_ker_equiv_range f)) (linear_equiv.of_top _ (range_eq_top_of_epi _)))) $
       by { ext, refl } }
 
-local attribute [instance] has_equalizers_of_has_finite_limits
-
 /-- The category of R-modules is abelian. -/
-instance : abelian (Module.{v} R) :=
-{ has_finite_products := by apply_instance,
+instance : abelian (Module R) :=
+{ has_finite_products := by { dsimp [has_finite_products], apply_instance },
   has_kernels := by apply_instance,
   has_cokernels := has_cokernels_Module,
   normal_mono := λ X Y, normal_mono,

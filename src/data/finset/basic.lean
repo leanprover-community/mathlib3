@@ -251,6 +251,14 @@ by rw [coe_singleton, set.singleton_subset_iff]
   {a} ⊆ s ↔ a ∈ s :=
 singleton_subset_set_iff
 
+/-! ### cons -/
+
+def cons {α} (a : α) (s : finset α) (h : a ∉ s) : finset α :=
+⟨a :: s.1, multiset.nodup_cons.2 ⟨h, s.2⟩⟩
+
+@[simp] theorem mem_cons {α a s h b} : b ∈ @cons α a s h ↔ b = a ∨ b ∈ s :=
+by rcases s with ⟨⟨s⟩⟩; apply list.mem_cons_iff
+
 /-! ### insert -/
 section decidable_eq
 variables [decidable_eq α]
@@ -276,6 +284,10 @@ mem_ndinsert_of_mem h
 theorem mem_of_mem_insert_of_ne {a b : α} {s : finset α} (h : b ∈ insert a s) : b ≠ a → b ∈ s :=
 (mem_insert.1 h).resolve_left
 
+@[simp] theorem cons_eq_insert {α} [decidable_eq α] (a s h) :
+  @cons α a s h = insert a s :=
+ext $ λ a, by simp
+
 @[simp, norm_cast] lemma coe_insert (a : α) (s : finset α) :
   ↑(insert a s) = (insert a ↑s : set α) :=
 set.ext $ λ x, by simp only [mem_coe, mem_insert, set.mem_insert_iff]
@@ -289,10 +301,10 @@ eq_of_veq $ ndinsert_of_mem h
 insert_eq_of_mem $ mem_singleton_self _
 
 theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
-ext $ λ x, by simp only [finset.mem_insert, or.left_comm]
+ext $ λ x, by simp only [mem_insert, or.left_comm]
 
 @[simp] theorem insert_idem (a : α) (s : finset α) : insert a (insert a s) = insert a s :=
-ext $ λ x, by simp only [finset.mem_insert, or.assoc.symm, or_self]
+ext $ λ x, by simp only [mem_insert, or.assoc.symm, or_self]
 
 @[simp] theorem insert_ne_empty (a : α) (s : finset α) : insert a s ≠ ∅ :=
 ne_empty_of_mem (mem_insert_self a s)
@@ -342,8 +354,8 @@ def subtype_insert_equiv_option {t : finset α} {x : α} (h : x ∉ t) :
   {i // i ∈ insert x t} ≃ option {i // i ∈ t} :=
 begin
   refine
-  { to_fun := λ y, if h : ↑y = x then none else some ⟨y, (finset.mem_insert.mp y.2).resolve_left h⟩,
-    inv_fun := λ y, y.elim ⟨x, finset.mem_insert_self _ _⟩ $ λ z, ⟨z, finset.mem_insert_of_mem z.2⟩,
+  { to_fun := λ y, if h : ↑y = x then none else some ⟨y, (mem_insert.mp y.2).resolve_left h⟩,
+    inv_fun := λ y, y.elim ⟨x, mem_insert_self _ _⟩ $ λ z, ⟨z, mem_insert_of_mem z.2⟩,
     .. },
   { intro y, by_cases h : ↑y = x,
     simp only [subtype.ext_iff, h, option.elim, dif_pos, subtype.coe_mk],
@@ -353,6 +365,15 @@ begin
     simp only [this, option.elim, subtype.eta, dif_neg, not_false_iff, subtype.coe_eta,
       subtype.coe_mk] },
 end
+
+/-! ### disjoint union -/
+
+def disj_union {α} (s t : finset α) (h : ∀ a ∈ s, a ∉ t) : finset α :=
+⟨s.1 + t.1, multiset.nodup_add.2 ⟨s.2, t.2, h⟩⟩
+
+@[simp] theorem mem_disj_union {α s t h a} :
+  a ∈ @disj_union α s t h ↔ a ∈ s ∨ a ∈ t :=
+by rcases s with ⟨⟨s⟩⟩; rcases t with ⟨⟨t⟩⟩; apply list.mem_append
 
 /-! ### union -/
 
@@ -365,6 +386,10 @@ theorem union_val_nd (s₁ s₂ : finset α) : (s₁ ∪ s₂).1 = ndunion s₁.
 ndunion_eq_union s₁.2
 
 @[simp] theorem mem_union {a : α} {s₁ s₂ : finset α} : a ∈ s₁ ∪ s₂ ↔ a ∈ s₁ ∨ a ∈ s₂ := mem_ndunion
+
+@[simp] theorem finset.disj_union_eq_union {α} [decidable_eq α] (s t h) :
+  @finset.disj_union α s t h = s ∪ t :=
+finset.ext $ λ a, by simp
 
 theorem mem_union_left {a : α} {s₁ : finset α} (s₂ : finset α) (h : a ∈ s₁) : a ∈ s₁ ∪ s₂ :=
 mem_union.2 $ or.inl h

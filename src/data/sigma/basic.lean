@@ -84,6 +84,11 @@ end sigma
 section psigma
 variables {α : Sort*} {β : α → Sort*}
 
+def psigma.elim {γ} (f : ∀ a, β a → γ) (a : psigma β) : γ :=
+psigma.cases_on a f
+
+@[simp] theorem psigma.elim_val {γ} (f : ∀ a, β a → γ) (a b) : psigma.elim f ⟨a, b⟩ = f a b := rfl
+
 instance [inhabited α] [inhabited (β (default α))] : inhabited (psigma β) :=
 ⟨⟨default α, default (β (default α))⟩⟩
 

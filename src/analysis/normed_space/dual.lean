@@ -61,8 +61,8 @@ end general
 
 universes u v
 
-variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜] [has_exists_extension_norm_eq.{u v} 𝕜]
-variables {E : Type v} [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 : Type v} [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜] [has_exists_extension_norm_eq.{u v} 𝕜]
+variables {E : Type u} [normed_group E] [normed_space 𝕜 E]
 
 /-- If one controls the norm of every `f x`, then one controls the norm of `x`.
     Compare `continuous_linear_map.op_norm_le_bound`. -/
@@ -72,8 +72,8 @@ begin
   classical,
   by_cases h : x = 0,
   { simp only [h, hMp, norm_zero] },
-  { obtain ⟨f, hf⟩ : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = (coe_from_ℝ 𝕜 ∥x∥) := exists_dual_vector x h,
-    calc ∥x∥ = ∥(coe_from_ℝ 𝕜 ∥x∥)∥ : (norm_norm' _ _ _).symm
+  { obtain ⟨f, hf⟩ : ∃ g : E →L[𝕜] 𝕜, _ := exists_dual_vector x h,
+    calc ∥x∥ = ∥norm' 𝕜 x∥ : (norm_norm' _ _ _).symm
     ... = ∥f x∥ : by rw hf.2
     ... ≤ M * ∥f∥ : hM f
     ... = M : by rw [hf.1, mul_one] }

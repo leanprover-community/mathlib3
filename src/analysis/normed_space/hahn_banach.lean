@@ -24,27 +24,27 @@ Prove more corollaries
 universes u v
 
 /-- Hahn-Banach theorem for continuous linear functions. -/
-class has_exists_extension_norm_eq (𝕜 : Type u)
+class has_exists_extension_norm_eq (𝕜 : Type v)
   [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜] : Prop :=
-(exists_extension_norm_eq : ∀
-  (E : Type v)
+(exists_extension_norm_eq :
+  ∀ (E : Type u)
   [normed_group E] [normed_space 𝕜 E]
   (p : subspace 𝕜 E)
   (f : p →L[𝕜] 𝕜),
   ∃ g : E →L[𝕜] 𝕜, (∀ x : p, g x = f x) ∧ ∥g∥ = ∥f∥)
 
-/-- Convert a real number (in particular, a norm) to 𝕜 -/
-noncomputable def coe_from_ℝ (𝕜 : Type*)
-[nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
-  (x : ℝ) : 𝕜 :=
-  x • 1
+/-- The norm of `x` as an element of 𝕜 -/
+noncomputable def norm' (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
+  {E : Type*} [normed_group E] (x : E) : 𝕜 :=
+  algebra_map ℝ 𝕜 ∥x∥
 
 lemma norm_norm'
   (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
   (A : Type*) [normed_group A]
-  (x : A) : ∥(coe_from_ℝ 𝕜 ∥x∥)∥ = ∥x∥ := begin
-  unfold coe_from_ℝ,
-  rw [norm_smul, norm_norm, normed_field.norm_one, mul_one],
+  (x : A) : ∥norm' 𝕜 x∥ = ∥x∥ :=
+begin
+  unfold norm',
+  rw [norm_algebra_map_eq, norm_norm],
 end
 
 section basic
@@ -129,48 +129,52 @@ instance complex_has_exists_extension_norm_eq : has_exists_extension_norm_eq ℂ
 
 end complex
 
-variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
-variables {E : Type v} [normed_group E] [normed_space 𝕜 E]
+section dual_vector
+variables {𝕜 : Type v} [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
+variables {E : Type u} [normed_group E] [normed_space 𝕜 E]
 
 open continuous_linear_equiv
 open_locale classical
 
-lemma coord_self' (x : E) (h : x ≠ 0) : (coe_from_ℝ 𝕜 (∥x∥) • (coord 𝕜 x h))
-  ⟨x, submodule.mem_span_singleton_self x⟩ = coe_from_ℝ 𝕜 (∥x∥) :=
-calc ((coe_from_ℝ 𝕜 (∥x∥)) • (coord 𝕜 x h)) ⟨x, submodule.mem_span_singleton_self x⟩
-    = (coe_from_ℝ 𝕜 (∥x∥)) • (linear_equiv.coord 𝕜 E x h) ⟨x, submodule.mem_span_singleton_self x⟩ : rfl
-... = (coe_from_ℝ 𝕜 (∥x∥)) • 1 : by rw linear_equiv.coord_self 𝕜 E x h
-... = (coe_from_ℝ 𝕜 (∥x∥)) : mul_one _
+lemma coord_self' (x : E) (h : x ≠ 0) :
+  (norm' 𝕜 x • coord 𝕜 x h) ⟨x, submodule.mem_span_singleton_self x⟩ = norm' 𝕜 x :=
+calc (norm' 𝕜 x • coord 𝕜 x h) ⟨x, submodule.mem_span_singleton_self x⟩
+    = norm' 𝕜 x • (linear_equiv.coord 𝕜 E x h) ⟨x, submodule.mem_span_singleton_self x⟩ : rfl
+... = norm' 𝕜 x • 1 : by rw linear_equiv.coord_self 𝕜 E x h
+... = norm' 𝕜 x : mul_one _
 
-lemma coord_norm' (x : E) (h : x ≠ 0) : ∥(coe_from_ℝ 𝕜 (∥x∥)) • coord 𝕜 x h∥ = 1 :=
+lemma coord_norm' (x : E) (h : x ≠ 0) : ∥norm' 𝕜 x • coord 𝕜 x h∥ = 1 :=
 by rw [norm_smul, norm_norm', coord_norm, mul_inv_cancel (mt norm_eq_zero.mp h)]
 
-variables [has_exists_extension_norm_eq.{u v} 𝕜]
+variables [has_exists_extension_norm_eq.{u} 𝕜]
+open submodule
 
 /-- Corollary of Hahn-Banach.  Given a nonzero element `x` of a normed space, there exists an
     element of the dual space, of norm 1, whose value on `x` is `∥x∥`. -/
-theorem exists_dual_vector (x : E) (h : x ≠ 0) : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = (coe_from_ℝ 𝕜 (∥x∥)) :=
+theorem exists_dual_vector (x : E) (h : x ≠ 0) : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = norm' 𝕜 x :=
 begin
-  let p : submodule 𝕜 E := submodule.span 𝕜 {x},
-  let f := (coe_from_ℝ 𝕜 ∥x∥) • coord 𝕜 x h,
+  let p : submodule 𝕜 E := span 𝕜 {x},
+  let f := norm' 𝕜 x • coord 𝕜 x h,
   obtain ⟨g, hg⟩ := has_exists_extension_norm_eq.exists_extension_norm_eq E p f,
   use g, split,
   { rw [hg.2, coord_norm'] },
-  { calc g x = g (⟨x, submodule.mem_span_singleton_self x⟩ : submodule.span 𝕜 {x}) : by rw submodule.coe_mk
-  ... = ((coe_from_ℝ 𝕜 (∥x∥)) • (coord 𝕜 x h)) (⟨x, submodule.mem_span_singleton_self x⟩ : submodule.span 𝕜 {x}) : by rw ← hg.1
-  ... = (coe_from_ℝ 𝕜 (∥x∥)) : by rw coord_self' }
+  { calc g x = g (⟨x, mem_span_singleton_self x⟩ : span 𝕜 {x}) : by rw coe_mk
+    ... = (norm' 𝕜 x • coord 𝕜 x h) (⟨x, mem_span_singleton_self x⟩ : span 𝕜 {x}) : by rw ← hg.1
+    ... = norm' 𝕜 x : coord_self' _ _ }
 end
 
 /-- Variant of the above theorem, eliminating the hypothesis that `x` be nonzero, and choosing
     the dual element arbitrarily when `x = 0`. -/
-theorem exists_dual_vector' [nontrivial E] (x : E) : ∃ g : E →L[𝕜] 𝕜,
-  ∥g∥ = 1 ∧ g x = (coe_from_ℝ 𝕜 ∥x∥) :=
+theorem exists_dual_vector' [nontrivial E] (x : E) :
+  ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = norm' 𝕜 x :=
 begin
   by_cases hx : x = 0,
   { obtain ⟨y, hy⟩ := exists_ne (0 : E),
-    obtain ⟨g, hg⟩ : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g y = (coe_from_ℝ 𝕜 ∥y∥) := exists_dual_vector y hy,
+    obtain ⟨g, hg⟩ : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g y = norm' 𝕜 y := exists_dual_vector y hy,
     refine ⟨g, hg.left, _⟩,
-    unfold coe_from_ℝ,
-    rw [hx, norm_zero, continuous_linear_map.map_zero, zero_smul] },
+    unfold norm',
+    rw [hx, norm_zero, ring_hom.map_zero, continuous_linear_map.map_zero] },
   { exact exists_dual_vector x hx }
 end
+
+end dual_vector

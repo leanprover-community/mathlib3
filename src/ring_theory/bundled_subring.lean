@@ -479,7 +479,8 @@ list.mem_append, and_true, eq_self_iff_true, begin  rintros t ht,
     apply HL1 t ht,
     apply HM1 t ht, end ⟩ )
 ( λ z ⟨L, HL1, HL2⟩, let M := list.map (list.cons (-1)) L,
- ⟨ [M], ⟨ λ t ht, begin simp at ht,
+ ⟨ [M], ⟨ begin rintros t ht,
+      simp at ht,
       cases ht with a ht,
       cases ht with ht1 ht2,
       specialize HL1 a ht1,
@@ -488,7 +489,7 @@ list.mem_append, and_true, eq_self_iff_true, begin  rintros t ht,
       exact HL1, end,
       list.map_map, (∘), list.prod_cons, neg_one_mul, begin rw <-neg_one_mul, rw <-HL2,
   rw <-list.sum_map_mul_left,
-  simp, end ⟩  ⟩  ) ⟩
+  simp, end ⟩  ⟩ ) ⟩
 
 /-
 begin

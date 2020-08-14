@@ -305,7 +305,11 @@ do
   (const I ls, args) ← pure (get_app_fn_args e),
   env ← get_env,
   let cs := env.constructors_of I,
-  guard (env.inductive_num_indices I = 0) <|> fail "inductive indices are not supported",
+  guard (env.inductive_num_indices I = 0) <|>
+    fail "@[derive fintype]: inductive indices are not supported",
+  guard (¬ env.is_recursive I) <|>
+    fail ("@[derive fintype]: recursive inductive types are " ++
+          "not supported (they are also usually infinite)"),
   applyc ``mk_fintype {new_goals := new_goals.all},
   intro1 >>= cases >>= (λ gs,
     gs.enum.mmap' $ λ ⟨i, _⟩, exact (reflect i)),

@@ -37,7 +37,8 @@ variables (V : Type u) {P : Type v} [normed_group V] [metric_space P] [normed_ad
 include V
 
 /-- The distance equals the norm of subtracting two points. This lemma
-is needed to make V an explicit rather than implicit argument. -/
+is needed to make V an explicit rather than implicit argument. Without
+`V` as an explicit argument, `rw dist_eq_norm_vsub` does not work. -/
 lemma dist_eq_norm_vsub (x y : P) :
   dist x y = ∥(x -ᵥ y)∥ :=
 normed_add_torsor.dist_eq_norm' x y

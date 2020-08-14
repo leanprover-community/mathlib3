@@ -61,9 +61,9 @@ results relating to finite-dimensional subspaces of affine spaces, see
 
 ## Implementation notes
 
-The variables `k` and `V` are explicit rather than implicit arguments
-to lemmas because otherwise the elaborator sometimes has problems
-inferring appropriate types and type class instances.
+`out_param` is used to make `V` an implicit argument (deduced from
+`P`) in most cases.  As for modules, `k` is an explicit argument
+rather than implied by `P` or `V`.
 
 This file only provides purely algebraic definitions and results.
 Those depending on analysis or topology are defined elsewhere; see

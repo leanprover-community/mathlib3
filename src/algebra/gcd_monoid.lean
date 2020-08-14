@@ -96,10 +96,10 @@ theorem dvd_antisymm_of_normalize_eq {a b : α}
   a = b :=
 ha ▸ hb ▸ normalize_eq_normalize hab hba
 
-@[simp] lemma dvd_normalize_iff {a b : α} : a ∣ normalize b ↔ a ∣ b :=
+lemma dvd_normalize_iff {a b : α} : a ∣ normalize b ↔ a ∣ b :=
 units.dvd_mul_right
 
-@[simp] lemma normalize_dvd_iff {a b : α} : normalize a ∣ b ↔ a ∣ b :=
+lemma normalize_dvd_iff {a b : α} : normalize a ∣ b ↔ a ∣ b :=
 units.mul_right_dvd
 
 end normalization_monoid

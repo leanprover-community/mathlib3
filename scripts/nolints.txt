@@ -50,11 +50,6 @@ apply_nolint with_zero.inv doc_blame
 apply_nolint with_zero.lift doc_blame
 apply_nolint with_zero.map doc_blame
 
--- algebra/order.lean
-apply_nolint decidable.lt_by_cases doc_blame
-apply_nolint ge_iff_le ge_or_gt
-apply_nolint gt_iff_lt ge_or_gt
-
 -- algebra/ordered_field.lean
 apply_nolint discrete_linear_ordered_field doc_blame
 apply_nolint linear_ordered_field doc_blame

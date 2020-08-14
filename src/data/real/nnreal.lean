@@ -594,7 +594,7 @@ by simpa using div_add_div b a one_ne_zero hc
   a / c + b = (a + b * c) / c :=
 by rwa [add_comm, add_div', add_comm]
 
-lemma one_div_eq_inv (a : ℝ≥0) : 1 / a = a⁻¹ :=
+lemma one_div (a : ℝ≥0) : 1 / a = a⁻¹ :=
 one_mul a⁻¹
 
 lemma one_div_div (a b : ℝ≥0) : 1 / (a / b) = b / a :=

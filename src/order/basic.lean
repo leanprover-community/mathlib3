@@ -46,6 +46,9 @@ open function
 - expand module docs
 - automatic construction of dual definitions / theorems
 
+## See also
+- `algebra.order` for basic lemmas about orders, and projection notation for orders
+
 ## Tags
 
 preorder, order, partial order, linear order, monotone, strictly monotone
@@ -53,10 +56,6 @@ preorder, order, partial order, linear order, monotone, strictly monotone
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
-
-@[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem ge_of_eq [preorder α] {a b : α} : a = b → a ≥ b :=
-λ h, h ▸ le_refl a
 
 theorem preorder.ext {α} {A B : preorder α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
@@ -180,7 +179,7 @@ lemma le_iff_le (H : strict_mono f) {a b} :
 end
 
 protected lemma nat {β} [preorder β] {f : ℕ → β} (h : ∀n, f n < f (n+1)) : strict_mono f :=
-by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact lt.trans ih (h _) }
+by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact ih.trans (h _) }
 
 -- `preorder α` isn't strong enough: if the preorder on α is an equivalence relation,
 -- then `strict_mono f` is vacuously true.
@@ -236,7 +235,7 @@ lemma dual_lt [has_lt α] {a b : α} :
 
 instance (α : Type*) [preorder α] : preorder (order_dual α) :=
 { le_refl  := le_refl,
-  le_trans := assume a b c hab hbc, le_trans hbc hab,
+  le_trans := assume a b c hab hbc, hbc.trans hab,
   lt_iff_le_not_le := λ _ _, lt_iff_le_not_le,
   .. order_dual.has_le α,
   .. order_dual.has_lt α }

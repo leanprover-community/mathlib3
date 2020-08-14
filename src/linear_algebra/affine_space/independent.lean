@@ -239,7 +239,7 @@ by simp [ha]
 
 end affine_independent
 
-section affine_space'
+namespace affine
 
 variables (k : Type*) {V : Type*} (P : Type*) [ring k] [add_comm_group V] [module k V]
 variables [affine_space V P]
@@ -310,4 +310,4 @@ by { ext, simp [face_points] }
 
 end simplex
 
-end affine_space'
+end affine

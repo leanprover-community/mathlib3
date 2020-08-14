@@ -190,6 +190,38 @@ end
 
 end embedding
 
+
+section valuation
+open cau_seq
+variables {p : ℕ} [fact p.prime]
+
+def valuation (f : padic_seq p) : ℤ :=
+if hf : f ≈ 0 then 0 else padic_val_rat p (f (stationary_point hf))
+
+lemma norm_eq_pow_val {f : padic_seq p} (hf : ¬ f ≈ 0) :
+  f.norm = p^(-f.valuation : ℤ) :=
+begin
+  rw [norm, valuation, dif_neg hf, dif_neg hf, padic_norm, if_neg],
+  intro H,
+  apply cau_seq.not_lim_zero_of_not_congr_zero hf,
+  intros ε hε,
+  use (stationary_point hf),
+  intros n hn,
+  rw stationary_point_spec hf (le_refl _) hn,
+  simpa [H] using hε,
+end
+
+lemma val_eq_iff_norm_eq {f g : padic_seq p} (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0) :
+  f.valuation = g.valuation ↔ f.norm = g.norm :=
+begin
+  rw [norm_eq_pow_val hf, norm_eq_pow_val hg, ← neg_inj, fpow_inj],
+  { exact_mod_cast nat.prime.pos ‹_› },
+  { exact_mod_cast nat.prime.ne_one ‹_› },
+end
+
+end valuation
+#exit
+
 end padic_seq
 
 section

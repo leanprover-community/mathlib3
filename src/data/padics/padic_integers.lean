@@ -211,6 +211,13 @@ by simp [padic_norm_z]
 @[simp] lemma padic_norm_z_eq_padic_norm_e {q : ℚ_[p]} (hq : ∥q∥ ≤ 1) :
   @norm ℤ_[p] _ ⟨q, hq⟩ = ∥q∥ := rfl
 
+@[simp] lemma norm_p : ∥(p : ℤ_[p])∥ = p⁻¹ :=
+show ∥((p : ℤ_[p]) : ℚ_[p])∥ = p⁻¹, by exact_mod_cast padic_norm_e.norm_p
+
+@[simp] lemma norm_p_pow (n : ℕ) : ∥(p : ℤ_[p])^n∥ = p^(-n:ℤ) :=
+show ∥((p^n : ℤ_[p]) : ℚ_[p])∥ = p^(-n:ℤ),
+by { convert padic_norm_e.norm_p_pow n, simp, }
+
 end padic_norm_z
 
 private lemma mul_lt_one {α} [decidable_linear_ordered_comm_ring α] {a b : α} (hbz : 0 < b)
@@ -227,6 +234,41 @@ else mul_lt_one (lt_of_le_of_ne hbz (ne.symm hb')) (lt_of_le_of_ne ha ha') hb
 namespace padic_int
 
 variables {p : ℕ} [fact p.prime]
+
+/-! ### Valuation on `ℤ_[p]` -/
+
+/-- `padic_int.valuation` lifts the p-adic valuation on `ℚ` to `ℤ_[p]`.  -/
+def valuation (x : ℤ_[p]) := padic.valuation (x : ℚ_[p])
+
+lemma norm_eq_pow_val {x : ℤ_[p]} (hx : x ≠ 0) :
+  ∥x∥ = p^(-x.valuation) :=
+begin
+  convert padic.norm_eq_pow_val _,
+  contrapose! hx,
+  exact subtype.val_injective hx
+end
+
+@[simp] lemma valuation_zero : valuation (0 : ℤ_[p]) = 0 :=
+padic.valuation_zero
+
+@[simp] lemma valuation_one : valuation (1 : ℤ_[p]) = 0 :=
+padic.valuation_one
+
+@[simp] lemma valuation_p : valuation (p : ℤ_[p]) = 1 :=
+by simp [valuation, -cast_eq_of_rat_of_nat]
+
+lemma valuation_nonneg (x : ℤ_[p]) : 0 ≤ x.valuation :=
+begin
+  by_cases hx : x = 0,
+  { simp [hx] },
+  have h : (1 : ℝ) < p := by exact_mod_cast nat.prime.one_lt ‹_›,
+  rw [← neg_nonpos, ← (fpow_strict_mono h).le_iff_le],
+  show ↑p ^ -valuation x ≤ ↑p ^ 0,
+  rw [← norm_eq_pow_val hx],
+  simpa using x.property,
+end
+
+/-! ### Units of `ℤ_[p]` -/
 
 local attribute [reducible] padic_int
 

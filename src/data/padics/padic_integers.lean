@@ -310,6 +310,9 @@ let z : ℤ_[p] := ⟨u, le_of_eq h⟩ in ⟨z, z.inv, mul_inv h, inv_mul h⟩
 lemma mk_units_eq {u : ℚ_[p]} (h : ∥u∥ = 1) : ((mk_units h : ℤ_[p]) : ℚ_[p]) = u :=
 rfl
 
+@[simp] lemma norm_units (u : units ℤ_[p]) : ∥(u : ℤ_[p])∥ = 1 :=
+is_unit_iff.mp $ by simp
+
 lemma exists_repr {x : ℤ_[p]} (hx : x ≠ 0) :
   ∃ (u : units ℤ_[p]) (n : ℕ), x = u*p^n :=
 begin
@@ -327,6 +330,16 @@ begin
   apply subtype.val_injective,
   simp [hn, repr]
 end
+
+def unit_coeff {x : ℤ_[p]} (hx : x ≠ 0) : units ℤ_[p] :=
+classical.some $ exists_repr hx
+
+def repr_exp {x : ℤ_[p]} (hx : x ≠ 0) : ℕ :=
+classical.some $ classical.some_spec (exists_repr hx)
+
+lemma repr_exp_spec {x : ℤ_[p]} (hx : x ≠ 0) :
+  x = ↑(unit_coeff hx) * ↑p ^ (repr_exp hx) :=
+classical.some_spec (classical.some_spec (exists_repr hx))
 
 instance : local_ring ℤ_[p] :=
 local_of_nonunits_ideal zero_ne_one $ λ x y, by simp; exact norm_lt_one_add
@@ -355,6 +368,8 @@ def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
 def base : ℤ_[p] :=
 ⟨p, le_of_lt padic_norm_e.norm_p_lt_one⟩
 
+lemma base_eq_p : (base : ℤ_[p]) = p := subtype.ext $ by simp [base]
+
 lemma base_nonunit : base ∈ nonunits ℤ_[p] :=
 by simp [base, -cast_eq_of_rat_of_nat, -padic_norm_e.norm_p, padic_norm_e.norm_p_lt_one]
 
@@ -376,6 +391,92 @@ instance : can_lift ℤ_[p] (units ℤ_[p]) :=
 { coe := coe,
   cond := is_unit,
   prf := λ z hz, hz }
+
+lemma ideal_is_principal_aux
+  (s : ideal ℤ_[p])
+  (h_all_pows : ¬∃ (i : ℕ), ¬s ≤ ideal.span {base ^ (i+1)}) :
+  s = submodule.span ℤ_[p] {0} :=
+begin
+  suffices : s = ⊥, by simpa,
+  push_neg at h_all_pows,
+  rw submodule.eq_bot_iff,
+  intros x hxs,
+  by_contradiction h_xne,
+  rcases exists_repr h_xne with ⟨xu, n, hxu⟩,
+  have := h_all_pows (n+1) hxs,
+  rw [ideal.mem_span_singleton', base_eq_p, hxu] at this,
+  cases this with a ha,
+  have := congr_arg has_norm.norm ha,
+  refine ne_of_lt _ this,
+  calc _ = ∥a∥ * ↑p ^ (-(n + 1 + 1) : ℤ) : by simp
+      ... ≤ ↑p ^ (-(n + 1 + 1) : ℤ) : _
+      ... < ↑p ^ (-n : ℤ) : _
+      ... = _ : _,
+  { refine mul_le_of_le_one_left _ (padic_norm_z.le_one _),
+    apply fpow_nonneg_of_nonneg,
+    exact_mod_cast le_of_lt (nat.prime.pos ‹_›) },
+  { rw fpow_lt_iff_lt,
+    { linarith },
+    { exact_mod_cast nat.prime.one_lt ‹_› } },
+  { simp }
+end
+
+lemma ideal_is_principal (s : ideal ℤ_[p]) : s.is_principal :=
+begin
+  constructor,
+  by_cases h_bot : s = ⊥,
+  { subst h_bot,
+    use 0,
+    simp },
+  { have h_bot' := h_bot,
+    rw submodule.eq_bot_iff at h_bot,
+    push_neg at h_bot,
+    rcases h_bot with ⟨z, hzs, hznz⟩,
+    have exists_n : ∃ n : ℕ, ∃ z, ∃ u : units ℤ_[p], z ∈ s ∧ z = ↑u * ↑p ^ n,
+      from ⟨repr_exp hznz, z, unit_coeff hznz, hzs, repr_exp_spec hznz⟩,
+    let min_n := nat.find exists_n,
+    obtain ⟨min_z, u, minz_s, minz_spec⟩ : ∃ (z : ℤ_[p]) (u : units ℤ_[p]), z ∈ s ∧ z = ↑u * ↑p ^ min_n :=
+      nat.find_spec exists_n,
+    have uinv_min_z : ↑u⁻¹ * min_z = p ^ min_n,
+    { symmetry,
+      rw [units.eq_inv_mul_iff_mul_eq, minz_spec] },
+    have uinv_min_z_s : ↑u⁻¹ * min_z ∈ s, from ideal.mul_mem_left _ minz_s,
+    rw uinv_min_z at uinv_min_z_s,
+    have span_sub_s : submodule.span ℤ_[p] {↑p ^ min_n} ≤ s,
+    { exact (submodule.span_singleton_le_iff_mem _ _).mpr uinv_min_z_s, },
+    have s_sub_span : s ≤ submodule.span ℤ_[p] {↑p ^ min_n},
+    { intros y hy,
+      have exists_n_spec := @nat.find_min' _ _ exists_n,
+      dsimp at exists_n_spec,
+      by_cases hyz : y = 0,
+      { simp [hyz] },
+      { have min_n_y : min_n ≤ repr_exp hyz := @exists_n_spec (repr_exp hyz) ⟨y, unit_coeff hyz, hy, repr_exp_spec hyz⟩,
+        rw repr_exp_spec hyz,
+        apply ideal.mul_mem_left _ _,
+        have : repr_exp hyz = (repr_exp hyz - min_n) + min_n, {omega},
+        rw [this, _root_.pow_add],
+        apply ideal.mul_mem_left _ (submodule.mem_span_singleton_self _) } },
+    use p ^ min_n,
+    apply le_antisymm; assumption }
+
+end
+
+lemma ideal_is_principal2 (s : ideal ℤ_[p]) : s.is_principal :=
+begin
+  constructor,
+  by_cases h_all_pows : ∃ i : ℕ, ¬ s ≤ ideal.span {base^(i)},
+  { let i := nat.find h_all_pows,
+    have i_spec : ¬s ≤ ideal.span {base ^ (i)} := nat.find_spec h_all_pows,
+    have i_spec2 :  ∀ m, ¬s ≤ ideal.span {base ^ (m )} → i ≤ m := @nat.find_min' _ _ h_all_pows,
+    have s_i_pred : s ≤ ideal.span {base^i.pred},
+    { by_contradiction h,
+      have := i_spec2 _ h,
+      rw nat.le_pred_se },
+     },
+  -- { use 0, exact ideal_is_principal_aux s h_all_pows }
+end
+
+#check ideal.span_singleton_mul_right_unit
 
 lemma ideal_is_principal (s : ideal ℤ_[p]) : s.is_principal :=
 begin

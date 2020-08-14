@@ -47,58 +47,26 @@ universes v u -- declare the `v`'s first; see `category_theory.category` for an 
 variables {C : Type u} [category.{v} C]
 
 namespace Monad
-local attribute [instance] endofunctor_monoidal_category
+local attribute [instance, reducible] endofunctor_monoidal_category
 
 /-- To every `Monad C` we associated a monoid object in `C ⥤ C`.-/
+@[simps]
 def to_Mon : Monad C → Mon_ (C ⥤ C) := λ M,
 { X := M.func,
   one := η_ _,
-  mul := μ_ _,
-  one_mul' := begin
-    change (_ ◫ _) ≫ _ = _,
-    ext A,
-    simp only [nat_trans.hcomp_id_app, nat_trans.comp_app],
-    apply monad.right_unit,
-  end,
-  mul_one' := begin
-    change (_ ◫ _) ≫ _ = _,
-    tidy,
-  end,
-  mul_assoc' := begin
-    change (_ ◫ _) ≫ _ = _ ≫ (_ ◫ _) ≫ _,
-    ext A,
-    simp only [nat_trans.hcomp_id_app, nat_trans.hcomp_app, functor.map_id,
-      nat_trans.id_app, comp_id, nat_trans.comp_app],
-    erw id_comp,
-    simp_rw monad.assoc,
-    change _ = ((α_ M.func M.func M.func).app A).hom ≫ _ ≫ _,
-    suffices : ((α_ M.func M.func M.func).app A).hom = 𝟙 _, by {rw this, simp},
-    refl,
-  end }
+  mul := μ_ _ }
 
 variable (C)
 /-- Passing from `Monad C` to `Mon_ (C ⥤ C)` is functorial. -/
+@[simps]
 def Monad_to_Mon : Monad C ⥤ Mon_ (C ⥤ C) :=
 { obj := to_Mon,
   map := λ M N f,
-  { hom := f.to_nat_trans,
-    one_hom' := begin
-      ext,
-      simp only [nat_trans.comp_app],
-      apply f.app_η,
-    end,
-    mul_hom' := begin
-      change _ = (_ ◫ _) ≫ _,
-      ext,
-      simp only [nat_trans.hcomp_app, assoc, nat_trans.comp_app],
-      change (μ_ _).app x ≫ f.app x = _,
-      rw f.app_μ,
-      simp only [nat_trans.naturality, assoc],
-      refl,
-    end } }
+  { hom := f.to_nat_trans} }
 variable {C}
 
 /-- To every monoid object in `C ⥤ C` we associate a `Monad C`. -/
+@[simps]
 def of_Mon : Mon_ (C ⥤ C) → Monad C := λ M,
 { func := M.X,
   str :=
@@ -131,6 +99,7 @@ def of_Mon : Mon_ (C ⥤ C) → Monad C := λ M,
 
 variable (C)
 /-- Passing from `Mon_ (C ⥤ C)` to `Monad C` is functorial. -/
+@[simps]
 def Mon_to_Monad : Mon_ (C ⥤ C) ⥤ Monad C :=
 { obj := of_Mon,
   map := λ M N f,
@@ -144,8 +113,8 @@ def Mon_to_Monad : Mon_ (C ⥤ C) ⥤ Monad C :=
       intro X,
       simp only [auto_param_eq],
       erw [←nat_trans.comp_app, f.mul_hom],
-      simp only [nat_trans.naturality, assoc, nat_trans.comp_app],
-      erw [nat_trans.hcomp_app, assoc],
+      simp only [nat_trans.naturality, assoc, nat_trans.comp_app, nat_trans.hcomp_app,
+        category.assoc],
       refl,
     end,
     ..f.hom } }
@@ -194,14 +163,10 @@ def of_to_mon_end_iso : Mon_to_Monad C ⋙ Monad_to_Mon C ≅ 𝟭 _ :=
 def to_of_mon_end_iso : Monad_to_Mon C ⋙ Mon_to_Monad C ≅ 𝟭 _ :=
 { hom :=
   { app := λ M,
-  { app := λ X, 𝟙 _,
-    app_η' := by tidy,
-    app_μ' := by tidy } },
+  { app := λ X, 𝟙 _ } },
   inv :=
   { app := λ M,
-  { app := λ X, 𝟙 _,
-    app_η' := by tidy,
-    app_μ' := by tidy } } }
+  { app := λ X, 𝟙 _ } } }
 
 variable (C)
 /-- Oh, monads are just monoids in the category of endofunctors (isomorphism of categories). -/

@@ -58,8 +58,8 @@ notation `δ_` := comonad.δ
 
 /-- A morphisms of monads is a natural transformation compatible with η and μ. -/
 structure monad_hom (M N : C ⥤ C) [monad M] [monad N] extends nat_trans M N :=
-(app_η' {X} : (η_ M).app X ≫ app X = (η_ N).app X . obviously)
-(app_μ' {X} : (μ_ M).app X ≫ app X = (M.map (app X) ≫ app (N.obj X)) ≫ (μ_ N).app X . obviously)
+(app_η' : ∀ {X}, (η_ M).app X ≫ app X = (η_ N).app X . obviously)
+(app_μ' : ∀ {X}, (μ_ M).app X ≫ app X = (M.map (app X) ≫ app (N.obj X)) ≫ (μ_ N).app X . obviously)
 
 restate_axiom monad_hom.app_η'
 restate_axiom monad_hom.app_μ'
@@ -67,8 +67,8 @@ attribute [simp, reassoc] monad_hom.app_η monad_hom.app_μ
 
 /-- A morphisms of comonads is a natural transformation compatible with η and μ. -/
 structure comonad_hom (M N : C ⥤ C) [comonad M] [comonad N] extends nat_trans M N :=
-(app_ε' {X} : app X ≫ (ε_ N).app X = (ε_ M).app X . obviously)
-(app_δ' {X} : app X ≫ (δ_ N).app X = (δ_ M).app X ≫ app (M.obj X) ≫ N.map (app X) . obviously)
+(app_ε' : ∀ {X}, app X ≫ (ε_ N).app X = (ε_ M).app X . obviously)
+(app_δ' : ∀ {X}, app X ≫ (δ_ N).app X = (δ_ M).app X ≫ app (M.obj X) ≫ N.map (app X) . obviously)
 
 restate_axiom comonad_hom.app_ε'
 restate_axiom comonad_hom.app_δ'

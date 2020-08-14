@@ -184,8 +184,8 @@ variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 
 def fdifferential (f : C∞(I, M; I', M')) (x : M) (v : point_derivation I M x) : (point_derivation I' M' (f x)) :=
 { to_fun := λ g, v (g.comp f),
-  map_add' := λ g h, by { rw smooth_map.comp_add, },
-  map_smul' := λ k g, by { sorry, },
+  map_add' := λ g h, by { rw smooth_map.add_comp, },
+  map_smul' := λ k g, by { rw smooth_map.smul_comp, },
   leibniz' := λ f g, by {dsimp only [], sorry}, } /-TODO: change it so that it is a linear map -/
 
 localized "notation `fd` := fdifferential" in manifold

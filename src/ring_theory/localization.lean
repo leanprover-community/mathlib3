@@ -894,6 +894,8 @@ lemma map_mem_non_zero_divisors {B : Type*} [integral_domain B] {g : A →+* B}
 
 variables {K}
 
+/-- Submonoids in which localization of an integral domain is an integral domain
+TODO: should this have a class annotation or is that not useful? -/
 @[class]
 def le_non_zero_divisors [comm_ring K] (M : submonoid K) := M ≤ non_zero_divisors K
 

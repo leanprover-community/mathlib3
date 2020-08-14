@@ -7,6 +7,7 @@ import algebra.group.pi
 import algebra.category.Mon.basic
 import category_theory.limits.types
 import category_theory.limits.creates
+import tactic.transport
 
 /-!
 # The category of (commutative) (additive) monoids has all limits
@@ -20,6 +21,8 @@ open category_theory
 open category_theory.limits
 
 universe u
+
+noncomputable theory
 
 namespace Mon
 
@@ -50,7 +53,20 @@ def sections_submonoid (F : J ⥤ Mon) :
 @[to_additive AddMon.limit_add_monoid]
 instance limit_monoid (F : J ⥤ Mon) :
   monoid (limit (F ⋙ forget Mon)) :=
-(sections_submonoid F).to_monoid
+begin
+  haveI : monoid ((F ⋙ forget Mon).sections) := (sections_submonoid F).to_monoid,
+  transport using (types.limit_equiv_sections (F ⋙ forget Mon)).symm,
+end
+
+@[simp, to_additive]
+lemma map_one (F : J ⥤ Mon) (j : J) : limit.π (F ⋙ forget Mon) j 1 = 1 :=
+by { erw types.limit_equiv_sections_symm_apply, refl }
+
+@[simp, to_additive]
+lemma map_mul (F : J ⥤ Mon) (j : J) (x y) :
+  limit.π (F ⋙ forget Mon) j (x * y) =
+    limit.π (F ⋙ forget Mon) j x * limit.π (F ⋙ forget Mon) j y :=
+by { erw types.limit_equiv_sections_symm_apply, refl }
 
 /-- `limit.π (F ⋙ forget Mon) j` as a `monoid_hom`. -/
 @[to_additive AddMon.limit_π_add_monoid_hom
@@ -58,8 +74,8 @@ instance limit_monoid (F : J ⥤ Mon) :
 def limit_π_monoid_hom (F : J ⥤ Mon) (j) :
   limit (F ⋙ forget Mon) →* (F ⋙ forget Mon).obj j :=
 { to_fun := limit.π (F ⋙ forget Mon) j,
-  map_one' := by { simp only [types.types_limit_π], refl },
-  map_mul' := λ x y, by { simp only [types.types_limit_π], refl } }
+  map_one' := by simp,
+  map_mul' := λ x y, by simp }
 
 namespace has_limits
 -- The next two definitions are used in the construction of `has_limits Mon`.
@@ -71,22 +87,31 @@ Construction of a limit cone in `Mon`.
 (Internal use only; use the limits API.)
 -/
 @[to_additive AddMon.has_limits.limit "(Internal use only; use the limits API.)"]
-def limit (F : J ⥤ Mon) : cone F :=
+def limit_cone (F : J ⥤ Mon) : cone F :=
 { X := Mon.of (limit (F ⋙ forget _)),
   π :=
   { app := limit_π_monoid_hom F,
     naturality' := λ j j' f,
       monoid_hom.coe_inj ((limit.cone (F ⋙ forget _)).π.naturality f) } }
 
+@[simps, to_additive]
+def foo (F : J ⥤ Mon) : (forget Mon).map_cone (limit_cone F) ≅ limit.cone (F ⋙ forget Mon) :=
+{ hom := { hom := 𝟙 _, },
+  inv := { hom := 𝟙 _, } }
+
+@[to_additive]
+def bar (F : J ⥤ Mon) : is_limit ((forget Mon).map_cone (limit_cone F)) :=
+is_limit.of_iso_limit (limit.is_limit _) (foo F).symm
+
 /--
 Witness that the limit cone in `Mon` is a limit cone.
 (Internal use only; use the limits API.)
 -/
 @[to_additive AddMon.has_limits.limit_is_limit "(Internal use only; use the limits API.)"]
-def limit_is_limit (F : J ⥤ Mon) : is_limit (limit F) :=
+def limit_cone_is_limit (F : J ⥤ Mon) : is_limit (limit_cone F) :=
 begin
   refine is_limit.of_faithful
-    (forget Mon) (limit.is_limit _)
+    (forget Mon) (bar F)
     (λ s, ⟨_, _, _⟩) (λ s, rfl); tidy,
 end
 
@@ -98,9 +123,9 @@ open has_limits
 @[to_additive AddMon.has_limits]
 instance has_limits : has_limits Mon :=
 { has_limits_of_shape := λ J 𝒥,
-  { has_limit := λ F, by exactI
-    { cone     := limit F,
-      is_limit := limit_is_limit F } } }
+  { has_limit := λ F, by exactI has_limit.mk
+    { cone     := limit_cone F,
+      is_limit := limit_cone_is_limit F } } }
 
 /--
 The forgetful functor from monoids to types preserves all limits. (That is, the underlying

@@ -71,10 +71,8 @@ namespace tactic
 -- (example goal: we could rewrite along an isomorphism of rings (either as `R ≅ S` or `R ≃+* S`)
 -- and turn an `x : mv_polynomial σ R` into an `x : mv_polynomial σ S`.).
 
-meta def equiv_congr_lemmas : tactic (list expr) :=
-do exprs ←
-  [
-  `equiv.of_iff,
+meta def equiv_congr_lemmas : list (tactic expr) :=
+[ `equiv.of_iff,
   -- TODO decide what to do with this; it's an equiv_bifunctor?
   `equiv.equiv_congr,
   -- The function arrow is technically a bifunctor `Typeᵒᵖ → Type → Type`,
@@ -99,8 +97,7 @@ do exprs ←
   -- We have to filter results to ensure we don't cheat and use exclusively `equiv.refl` and `iff.refl`!
   `equiv.refl,
   `iff.refl
-  ].mmap (λ n, try_core (mk_const n)),
-  return (exprs.map option.to_list).join -- TODO: implement `.mfilter_map mk_const`?
+  ].map (λ n, mk_const n)
 
 declare_trace equiv_rw_type
 
@@ -122,8 +119,6 @@ and tries to solve it using `eq : α ≃ β` and congruence lemmas.
 -/
 meta def equiv_rw_type_core (eq : expr) (cfg : equiv_rw_cfg) : tactic unit :=
 do
-  -- Assemble the relevant lemmas.
-  equiv_congr_lemmas ← equiv_congr_lemmas,
   /-
     We now call `solve_by_elim` to try to generate the requested equivalence.
     There are a few subtleties!
@@ -136,14 +131,17 @@ do
   solve_by_elim
   { use_symmetry := false,
     use_exfalso := false,
-    lemmas := some (eq :: equiv_congr_lemmas),
+    lemma_thunks := some (pure eq :: equiv_congr_lemmas),
     max_depth := cfg.max_depth,
     -- Subgoals may contain function types,
     -- and we want to continue trying to construct equivalences after the binders.
     pre_apply := tactic.intros >> skip,
+    backtrack_all_goals := tt,
     -- If solve_by_elim gets stuck, make sure it isn't because there's a later `≃` or `↔` goal
     -- that we should still attempt.
-    discharger :=  `[show _ ≃ _] <|> `[show _ ↔ _] <|>
+    discharger :=
+      `[success_if_fail { match_target _ ≃ _ }] >> `[success_if_fail { match_target _ ↔ _ }] >>
+      (`[show _ ≃ _] <|> `[show _ ↔ _]) <|>
       trace_if_enabled `equiv_rw_type "Failed, no congruence lemma applied!" >> failed,
     -- We use the `accept` tactic in `solve_by_elim` to provide tracing.
     accept := λ goals, lock_tactic_state (do

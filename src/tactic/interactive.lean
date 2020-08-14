@@ -309,6 +309,27 @@ add_tactic_doc
   decl_names := [`tactic.interactive.convert],
   tags       := ["congruence"] }
 
+/--
+Helper function for `show_other`.
+Unfortunately `show_aux` is private in core, so we have to make a copy here.
+-/
+meta def show_other_aux (p : pexpr) : list expr → list expr → tactic unit
+| []      r := fail "show tactic failed"
+| (g::gs) r := do
+  do {set_goals [g], g_ty ← target, ty ← i_to_expr p, unify g_ty ty, set_goals (g :: r.reverse ++ gs), tactic.change ty}
+  <|>
+  show_other_aux gs (g::r)
+
+/--
+`show_other t` finds the first goal, other than the main goal, whose target unifies with `t`.
+It makes that the main goal, performs the unification,
+and replaces the target with the unified version of `t`.
+-/
+meta def show_other (q : parse texpr) : tactic unit :=
+do g :: gs ← get_goals,
+   show_other_aux q gs [g]
+
+
 meta def compact_decl_aux : list name → binder_info → expr → list expr →
   tactic (list (list name × binder_info × expr))
 | ns bi t [] := pure [(ns.reverse, bi, t)]

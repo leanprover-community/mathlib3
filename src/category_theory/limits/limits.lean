@@ -42,6 +42,7 @@ instance subsingleton {t : cone F} : subsingleton (is_limit t) :=
 /- Repackaging the definition in terms of cone morphisms. -/
 
 /-- The universal morphism from any other cone to a limit cone. -/
+@[simps]
 def lift_cone_morphism {t : cone F} (h : is_limit t) (s : cone F) : s ⟶ t :=
 { hom := h.lift s }
 
@@ -386,6 +387,7 @@ instance subsingleton {t : cocone F} : subsingleton (is_colimit t) :=
 /- Repackaging the definition in terms of cone morphisms. -/
 
 /-- The universal morphism from a colimit cocone to any other cone. -/
+@[simps]
 def desc_cocone_morphism {t : cocone F} (h : is_colimit t) (s : cocone F) : t ⟶ s :=
 { hom := h.desc s }
 

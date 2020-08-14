@@ -303,6 +303,31 @@ calc  ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ : by simp
 @[simp] lemma mem_nonunits {z : ℤ_[p]} : z ∈ nonunits ℤ_[p] ↔ ∥z∥ < 1 :=
 by rw lt_iff_le_and_ne; simp [padic_norm_z.le_one z, nonunits, is_unit_iff]
 
+def mk_units {u : ℚ_[p]} (h : ∥u∥ = 1) : units ℤ_[p] :=
+let z : ℤ_[p] := ⟨u, le_of_eq h⟩ in ⟨z, z.inv, mul_inv h, inv_mul h⟩
+
+@[simp]
+lemma mk_units_eq {u : ℚ_[p]} (h : ∥u∥ = 1) : ((mk_units h : ℤ_[p]) : ℚ_[p]) = u :=
+rfl
+
+lemma exists_repr {x : ℤ_[p]} (hx : x ≠ 0) :
+  ∃ (u : units ℤ_[p]) (n : ℕ), x = u*p^n :=
+begin
+  let u : ℚ_[p] := x*p^(-x.valuation),
+  have repr : (x : ℚ_[p]) = u*p^x.valuation,
+  { rw [mul_assoc, ← fpow_add],
+    { simp },
+    { exact_mod_cast nat.prime.ne_zero ‹_› } },
+  have hu : ∥u∥ = 1,
+    by simp [hx, nat.fpow_ne_zero_of_pos (by exact_mod_cast nat.prime.pos ‹_›) x.valuation,
+             norm_eq_pow_val, fpow_neg, inv_mul_cancel, -cast_eq_of_rat_of_nat],
+  obtain ⟨n, hn⟩ : ∃ n : ℕ, valuation x = n,
+    from int.eq_coe_of_zero_le (valuation_nonneg x),
+  use [mk_units hu, n],
+  apply subtype.val_injective,
+  simp [hn, repr]
+end
+
 instance : local_ring ℤ_[p] :=
 local_of_nonunits_ideal zero_ne_one $ λ x y, by simp; exact norm_lt_one_add
 
@@ -330,7 +355,7 @@ def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
 def base : ℤ_[p] :=
 ⟨p, le_of_lt padic_norm_e.norm_p_lt_one⟩
 
-lemma nonunit_is_nonunit : base ∈ nonunits ℤ_[p] :=
+lemma base_nonunit : base ∈ nonunits ℤ_[p] :=
 by simp [base, -cast_eq_of_rat_of_nat, -padic_norm_e.norm_p, padic_norm_e.norm_p_lt_one]
 
 lemma norm_nonunit : ∥(base : ℤ_[p])∥ = 1 / p :=
@@ -341,7 +366,7 @@ instance : algebra ℤ_[p] ℚ_[p] := (coe.ring_hom : ℤ_[p] →+* ℚ_[p]).to_
 lemma not_a_field : local_ring.maximal_ideal ℤ_[p] ≠ ⊥ :=
 begin
   refine (submodule.ne_bot_iff _).mpr ⟨base, _, _⟩,
-  { exact nonunit_is_nonunit },
+  { exact base_nonunit },
   { rw [ne.def, ← norm_eq_zero, norm_nonunit],
     apply one_div_ne_zero,
     exact_mod_cast _inst_1.ne_zero }
@@ -356,17 +381,17 @@ lemma ideal_is_principal (s : ideal ℤ_[p]) : s.is_principal :=
 begin
   constructor,
   by_cases h_all_pows :
-    ∃ i : ℕ, s ≤ ideal.span {(nonunit : ℤ_[p]) ^ i} ∧ ¬ s ≤ ideal.span {nonunit ^ (i+1)},
+    ∃ i : ℕ, s ≤ ideal.span {(base : ℤ_[p]) ^ i} ∧ ¬ s ≤ ideal.span {base ^ (i+1)},
   { rcases h_all_pows with ⟨i, hsi, hsi_succ⟩,
-    have : ∃ z, z ∈ s ∧ z ∉ (ideal.span {nonunit ^ (i+1)} : ideal ℤ_[p]) := sorry,
+    have : ∃ z, z ∈ s ∧ z ∉ (ideal.span {base ^ (i+1)} : ideal ℤ_[p]) := sorry,
     rcases this with ⟨z, hzs, hznsp⟩,
-    have : z ∈ (ideal.span {nonunit ^ i} : ideal ℤ_[p]) := sorry,
+    have : z ∈ (ideal.span {base ^ i} : ideal ℤ_[p]) := sorry,
     rw ideal.mem_span_singleton' at this,
     cases this with g hgz,
-    have hg_ne : g ∉ (ideal.span {nonunit} : ideal ℤ_[p]) := sorry,
+    have hg_ne : g ∉ (ideal.span {base} : ideal ℤ_[p]) := sorry,
     have hg_unit : is_unit g := sorry,
     lift g to units ℤ_[p] using hg_unit,
-    have : z * g.inv = nonunit ^ i := sorry,
+    have : z * g.inv = base ^ i := sorry,
   }
 end
 

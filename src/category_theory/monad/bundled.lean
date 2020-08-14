@@ -82,11 +82,10 @@ begin
   repeat {apply eq_of_heq, assumption}
 end
 
-@[simp] lemma assoc {M : Monad C} {X : C} : M.func.map ((μ_ M.func).app X) ≫ (μ_ M.func).app X =
+-- TODO: Add analogue for comonads
+@[simp] lemma assoc_func_app {M : Monad C} {X : C} :
+  M.func.map ((μ_ M.func).app X) ≫ (μ_ M.func).app X =
   (μ_ M.func).app (M.func.obj X) ≫ (μ_ M.func).app X := by apply monad.assoc
-
-theorem to_nat_trans_eq_to_hom (M N : Monad C) (h : M = N) :
-  monad_hom.to_nat_trans (eq_to_hom h) = eq_to_hom (congr_arg (Monad.func) h) := by {subst h, refl}
 
 end Monad
 
@@ -137,11 +136,6 @@ begin
   congr,
   repeat {apply eq_of_heq, assumption}
 end
-
-theorem to_nat_trans_eq_to_hom (M N : CoMonad C) (h : M = N) :
-  comonad_hom.to_nat_trans (eq_to_hom h) = eq_to_hom (congr_arg (CoMonad.func) h) :=
-  by {subst h, refl}
-
 
 end CoMonad
 end category_theory

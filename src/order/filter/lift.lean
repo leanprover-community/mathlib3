@@ -345,7 +345,7 @@ lemma lift'_infi {f : ι → filter α} {g : set α → set β}
   [nonempty ι] (hg : ∀{s t}, g s ∩ g t = g (s ∩ t)) : (infi f).lift' g = (⨅i, (f i).lift' g) :=
 lift_infi $ λ s t, by simp only [principal_eq_iff_eq, inf_principal, (∘), hg]
 
-lemma inf_lift' (f g : filter α) {s : set α → set β} (hs : ∀ {t₁ t₂}, s t₁ ∩ s t₂ = s (t₁ ∩ t₂)) :
+lemma lift'_inf (f g : filter α) {s : set α → set β} (hs : ∀ {t₁ t₂}, s t₁ ∩ s t₂ = s (t₁ ∩ t₂)) :
   (f ⊓ g).lift' s = f.lift' s ⊓ g.lift' s :=
 have (⨅ b : bool, cond b f g).lift' s = ⨅ b : bool, (cond b f g).lift' s :=
   lift'_infi @hs,
@@ -355,9 +355,9 @@ theorem comap_eq_lift' {f : filter β} {m : α → β} :
   comap m f = f.lift' (preimage m) :=
 filter.ext $ λ s, (mem_lift'_sets monotone_preimage).symm
 
-lemma inf_lift'_powerset (f g : filter α) :
+lemma lift'_inf_powerset (f g : filter α) :
   (f ⊓ g).lift' powerset = f.lift' powerset ⊓ g.lift' powerset :=
-inf_lift' f g $ λ _ _, (powerset_inter _ _).symm
+lift'_inf f g $ λ _ _, (powerset_inter _ _).symm
 
 lemma eventually_lift'_powerset {f : filter α} {p : set α → Prop} :
   (∀ᶠ s in f.lift' powerset, p s) ↔ ∃ s ∈ f, ∀ t ⊆ s, p t :=

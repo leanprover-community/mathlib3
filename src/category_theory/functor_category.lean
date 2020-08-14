@@ -66,10 +66,7 @@ infix ` ◫ `:80 := hcomp
   (α ◫ β).app X = (β.app (F.obj X)) ≫ (I.map (α.app X)) := rfl
 
 @[simp] lemma hcomp_id_app {H : D ⥤ E} (α : F ⟶ G) (X : C) : (α ◫ 𝟙 H).app X = H.map (α.app X) :=
-begin
-  simp only [id_app, hcomp_app],
-  apply id_comp,
-end
+  by {dsimp, simp} -- See note [dsimp, simp].
 
 lemma id_hcomp_app {H : E ⥤ C} (α : F ⟶ G) (X : E) : (𝟙 H ◫ α).app X = α.app _ := by simp
 

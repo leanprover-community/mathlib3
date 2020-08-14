@@ -30,6 +30,10 @@ namespace Cat
 
 instance : inhabited Cat := ⟨⟨Type u, category_theory.types⟩⟩
 
+instance : has_coe_to_sort Cat :=
+{ S := Type u,
+  coe := bundled.α }
+
 instance str (C : Cat.{v u}) : category.{v u} C.α := C.str
 
 /-- Construct a bundled `Cat` from the underlying type and the typeclass. -/
@@ -51,11 +55,11 @@ def objects : Cat.{v u} ⥤ Type u :=
   map := λ C D F, F.obj }
 
 /-- Any isomorphism in `Cat` induces an equivalence of the underlying categories. -/
-def equiv_of_iso {C D : Cat} (γ : C ≅ D) : C.α ≌ D.α :=
+def equiv_of_iso {C D : Cat} (γ : C ≅ D) : C ≌ D :=
 { functor := γ.hom,
   inverse := γ.inv,
-  unit_iso := eq_to_iso $ eq.symm γ.hom_inv_id',
-  counit_iso := eq_to_iso γ.inv_hom_id' }
+  unit_iso := eq_to_iso $ eq.symm γ.hom_inv_id,
+  counit_iso := eq_to_iso γ.inv_hom_id }
 
 end Cat
 

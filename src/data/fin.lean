@@ -348,7 +348,7 @@ by { rw [←fin.of_nat_eq_coe, fin.of_nat, fin.last], simp only [nat.mod_eq_of_l
 
 /-- Every term is less than or equal to the greatest term of the type,
 even if the greatest term is coerced from `nat` -/
-lemma le_coe_last {n : ℕ} (i : fin (n + 1)) : i ≤ n :=
+lemma le_coe_last (i : fin (n + 1)) : i ≤ n :=
 by { rw fin.coe_nat_eq_last, exact fin.le_last i }
 
 lemma eq_last_of_not_lt {i : fin (n+1)} (h : ¬ i.val < n) : i = last n :=
@@ -356,7 +356,7 @@ le_antisymm (le_last i) (not_lt.1 h)
 
 /-- Adding 1 to a term strictly less than the greatest term will not overflow,
 that is, zero is not equal to a term + 1, as long as the term is not the greatest term -/
-lemma zero_ne_not_last_add_one {n : ℕ} (i : fin (n + 1)) (hl : i < fin.last n) : (0 : fin (n + 1)) ≠ i + 1 :=
+lemma zero_ne_not_last_add_one (i : fin (n + 1)) (hl : i < fin.last n) : (0 : fin (n + 1)) ≠ i + 1 :=
 begin
   intro h,
   rw [lt_iff_val_lt_val, last_val] at hl,

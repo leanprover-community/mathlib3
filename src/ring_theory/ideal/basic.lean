@@ -350,9 +350,28 @@ end quotient
 section lattice
 variables {R : Type u} [comm_ring R]
 
+lemma mem_sup_left {S T : ideal R} : ∀ {x : R}, x ∈ S → x ∈ S ⊔ T :=
+show S ≤ S ⊔ T, from le_sup_left
+
+lemma mem_sup_right {S T : ideal R} : ∀ {x : R}, x ∈ T → x ∈ S ⊔ T :=
+show T ≤ S ⊔ T, from le_sup_right
+
+lemma mem_supr_of_mem {ι : Type*} {S : ι → ideal R} (i : ι) :
+  ∀ {x : R}, x ∈ S i → x ∈ supr S :=
+show S i ≤ supr S, from le_supr _ _
+
+lemma mem_Sup_of_mem {S : set (ideal R)} {s : ideal R}
+  (hs : s ∈ S) : ∀ {x : R}, x ∈ s → x ∈ Sup S :=
+show s ≤ Sup S, from le_Sup hs
+
 theorem mem_Inf {s : set (ideal R)} {x : R} :
   x ∈ Inf s ↔ ∀ ⦃I⦄, I ∈ s → x ∈ I :=
 ⟨λ hx I his, hx I ⟨I, infi_pos his⟩, λ H I ⟨J, hij⟩, hij ▸ λ S ⟨hj, hS⟩, hS ▸ H hj⟩
+
+@[simp] lemma mem_inf {I J : ideal R} {x : R} : x ∈ I ⊓ J ↔ x ∈ I ∧ x ∈ J := iff.rfl
+
+@[simp] lemma mem_infi {ι : Type*} {I : ι → ideal R} {x : R} : x ∈ infi I ↔ ∀ i, x ∈ I i :=
+submodule.mem_infi _
 
 end lattice
 

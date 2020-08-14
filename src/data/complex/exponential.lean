@@ -728,7 +728,7 @@ lemma sin_two_mul : sin (2 * x) = 2 * sin x * cos x :=
 by rw [two_mul, sin_add, two_mul, add_mul, mul_comm]
 
 lemma cos_square : cos x ^ 2 = 1 / 2 + cos (2 * x) / 2 :=
-by simp [cos_two_mul, div_add_div_same, mul_div_cancel_left, two_ne_zero', -one_div_eq_inv]
+by simp [cos_two_mul, div_add_div_same, mul_div_cancel_left, two_ne_zero', -one_div]
 
 lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
 by { rw [←sin_sq_add_cos_sq x], simp }
@@ -964,7 +964,7 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m.fact : α)
 ... ≤ ∑ m in range (j - n), (nat.fact n * n.succ ^ m)⁻¹ :
   begin
     refine  sum_le_sum (assume m n, _),
-    rw [one_div_eq_inv, inv_le_inv],
+    rw [one_div, inv_le_inv],
     { rw [← nat.cast_pow, ← nat.cast_mul, nat.cast_le, add_comm],
       exact nat.fact_mul_pow_le_fact },
     { exact nat.cast_pos.2 (nat.fact_pos _) },

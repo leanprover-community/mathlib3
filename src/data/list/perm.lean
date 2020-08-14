@@ -216,6 +216,17 @@ begin
           ⟨r₁, pr.trans pm, sr⟩ }
 end
 
+theorem perm.sizeof_eq_sizeof [has_sizeof α] {l₁ l₂ : list α} (h : l₁ ~ l₂) :
+  l₁.sizeof = l₂.sizeof :=
+begin
+  induction h with hd l₁ l₂ h₁₂ h_sz₁₂ a b l l₁ l₂ l₃ h₁₂ h₂₃ h_sz₁₂ h_sz₂₃,
+  { refl },
+  { simp only [list.sizeof, h_sz₁₂] },
+  { simp only [list.sizeof, add_left_comm] },
+  { simp only [h_sz₁₂, h_sz₂₃] }
+end
+
+
 section rel
 open relator
 variables {γ : Type*} {δ : Type*} {r : α → β → Prop} {p : γ → δ → Prop}

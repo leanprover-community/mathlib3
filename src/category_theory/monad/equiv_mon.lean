@@ -97,7 +97,7 @@ by {apply Mon_.hext, repeat {refl}}
 
 @[simp]
 theorem to_of_mon_end_obj (M : Monad C) : (Monad_to_Mon C ⋙ Mon_to_Monad C).obj M = M :=
-  by {apply Monad.hext, repeat {refl}}
+by {apply Monad.hext, repeat {refl}}
 
 /-- Isomorphism of functors used in `Monad_Mon_equiv` -/
 @[simps]

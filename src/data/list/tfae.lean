@@ -42,9 +42,15 @@ begin
 end
 
 theorem tfae.out {l} (h : tfae l) (n₁ n₂)
- (h₁ : n₁ < list.length l . tactic.exact_dec_trivial)
- (h₂ : n₂ < list.length l . tactic.exact_dec_trivial) :
+  (h₁ : n₁ < list.length l . tactic.exact_dec_trivial)
+  (h₂ : n₂ < list.length l . tactic.exact_dec_trivial) :
   list.nth_le l n₁ h₁ ↔ list.nth_le l n₂ h₂ :=
 h _ (list.nth_le_mem _ _ _) _ (list.nth_le_mem _ _ _)
+
+theorem tfae.out' {l} (h : tfae l) (n₁ n₂) {a b}
+  (h₁ : list.nth l n₁ = some a . tactic.interactive.refl)
+  (h₂ : list.nth l n₂ = some b . tactic.interactive.refl) :
+  a ↔ b :=
+h _ (list.nth_mem h₁) _ (list.nth_mem h₂)
 
 end list

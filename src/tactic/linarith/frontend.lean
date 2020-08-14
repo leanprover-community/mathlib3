@@ -228,6 +228,7 @@ expressions.
 -/
 meta def tactic.linarith (reduce_semi : bool) (only_on : bool) (hyps : list pexpr)
   (cfg : linarith_config := {}) : tactic unit :=
+focus1 $
 do t ← target,
 -- if the target is an equality, we run `linarith` twice, to prove ≤ and ≥.
 if t.is_eq.is_some then

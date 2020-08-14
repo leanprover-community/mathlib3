@@ -925,7 +925,7 @@ begin
   intros a ha,
   rw [← f.to_map.map_zero, f.eq_iff_exists] at ha,
   cases ha with c hc,
-  rw [zero_mul] at hc,
+  rw zero_mul at hc,
   exact hM c.2 a hc,
 end
 
@@ -942,13 +942,10 @@ def to_integral_domain {M : submonoid A} (f : localization_map M S)
       intros z w h,
       cases f.surj z with x hx,
       cases f.surj w with y hy,
-      have : z * w * f.to_map y.2 * f.to_map x.2 = f.to_map x.1 * f.to_map y.1, by
-        rw [mul_assoc z, hy, ←hx]; ac_refl,
-      erw h at this,
-      rw [zero_mul, zero_mul, ← f.to_map.map_mul] at this,
-      replace this := this.symm,
-      rw ← to_map_eq_zero_iff f at this,
-      cases eq_zero_or_eq_zero_of_mul_eq_zero this with H H,
+      have : z * w * f.to_map y.2 * f.to_map x.2 = f.to_map x.1 * f.to_map y.1,
+      by rw [mul_assoc z, hy, ←hx]; ac_refl,
+      rw [h, zero_mul, zero_mul, ← f.to_map.map_mul] at this,
+      cases eq_zero_or_eq_zero_of_mul_eq_zero ((to_map_eq_zero_iff f).mpr this.symm) with H H,
       { exact or.inl (f.eq_zero_of_fst_eq_zero hx H) },
       { exact or.inr (f.eq_zero_of_fst_eq_zero hy H) },
     end,

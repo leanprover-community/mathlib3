@@ -1,17 +1,13 @@
 
-import system.random.basic data.nat.prime
-
-instance fin.has_one' {n} [fact (0 < n)] : has_one (fin n) :=
-⟨ fin.of_nat' 1 ⟩
-
-instance fin.has_pow' {n} [fact (0 < n)] : has_pow (fin n) ℕ :=
-⟨ monoid.pow ⟩
+import system.random.basic
+import data.nat.prime
+import data.zmod.basic
 
 /-- fermat's primality test -/
 def primality_test (p : ℕ) (h : fact (0 < p)) : rand bool :=
 if h : 2 ≤ p-1 then do
   n ← rand.random_r 2 (p-1), -- `random_r` requires a proof of `2 ≤ p-1` but it is dischared using `assumption`
-  return $ (fin.of_nat' n : fin p)^(p-1) = 1 -- we do arithmetic with `fin n` so that modulo and multiplication are interleaved
+  return $ (n : zmod p)^(p-1) = 1 -- we do arithmetic with `fin n` so that modulo and multiplication are interleaved
 else return (p = 2)
 
 /-- `iterated_primality_test_aux p h n` generating `n` candidate witnesses that `p` is a

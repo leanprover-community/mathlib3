@@ -1302,25 +1302,25 @@ section extend_scalars
 the collection of `R`-linear maps from `V` to `W` admits an `S`-module structure, given by
 multiplication in the target -/
 
-variables (R : Type*) [comm_ring R] (S : Type*) [ring S] [algebra R S]
-  (V : Type*) [add_comm_group V] [module R V]
-  (W : Type*) [add_comm_group W] [module S W]
+variables (R : Type*) [comm_semiring R] (S : Type*) [semiring S] [algebra R S]
+  (V : Type*) [add_comm_monoid V] [semimodule R V]
+  (W : Type*) [add_comm_monoid W] [semimodule S W]
 
 /-- The set of `R`-linear maps admits an `S`-action by left multiplication -/
 instance linear_map.has_scalar_extend_scalars :
-  has_scalar S (V →ₗ[R] (module.restrict_scalars R S W)) :=
+  has_scalar S (V →ₗ[R] (semimodule.restrict_scalars R S W)) :=
 { smul := λ r f,
   { to_fun := λ v, r • f v,
     map_add' := by simp [smul_add],
     map_smul' := λ c x,
     begin
       rw linear_map.map_smul,
-      simp [module.restrict_scalars_smul_def, smul_smul, algebra.commutes],
+      simp [semimodule.restrict_scalars_smul_def, smul_smul, algebra.commutes],
     end }}
 
 /-- The set of `R`-linear maps is an `S`-module-/
 instance linear_map.module_extend_scalars :
-  module S (V →ₗ[R] (module.restrict_scalars R S W)) :=
+  semimodule S (V →ₗ[R] (semimodule.restrict_scalars R S W)) :=
 { one_smul := λ f, by { ext v, simp [(•)] },
   mul_smul := λ r r' f, by { ext v, simp [(•), smul_smul] },
   smul_add := λ r f g, by { ext v, simp [(•), smul_add] },
@@ -1331,14 +1331,14 @@ instance linear_map.module_extend_scalars :
 variables {R S V W}
 
 /-- When `f` is a linear map taking values in `S`, then `λb, f b • x` is a linear map. -/
-def smul_algebra_right (f : V →ₗ[R] S) (x : module.restrict_scalars R S W) :
-  V →ₗ[R] (module.restrict_scalars R S W) :=
+def smul_algebra_right (f : V →ₗ[R] S) (x : semimodule.restrict_scalars R S W) :
+  V →ₗ[R] (semimodule.restrict_scalars R S W) :=
 { to_fun := λb, f b • x,
   map_add' := by simp [add_smul],
   map_smul' := λ b y, by { simp [algebra.smul_def, ← smul_smul], refl } }
 
 @[simp] theorem smul_algebra_right_apply
-  (f : V →ₗ[R] S) (x : module.restrict_scalars R S W) (c : V) :
+  (f : V →ₗ[R] S) (x : semimodule.restrict_scalars R S W) (c : V) :
   smul_algebra_right f x c = f c • x := rfl
 
 end extend_scalars

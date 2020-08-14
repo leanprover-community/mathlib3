@@ -178,8 +178,8 @@ in the partition.
 If `pref_type` is given, it will first use the class of proofs of comparisons over that type.
 -/
 meta def run_linarith_on_pfs (cfg : linarith_config) (hyps : list expr) (pref_type : option expr) :
-  tactic expr :=
-do hyps ← preprocess (cfg.preprocessors.get_or_else default_preprocessors) hyps,
+  tactic unit :=
+let single_process := λ hyps : list expr, do
    linarith_trace_proofs
      ("after preprocessing, linarith has " ++ to_string hyps.length ++ " facts:") hyps,
    hyp_set ← partition_by_type hyps,
@@ -188,7 +188,9 @@ do hyps ← preprocess (cfg.preprocessors.get_or_else default_preprocessors) hyp
    | some t := prove_false_by_linarith cfg (hyp_set.ifind t) <|>
                try_linarith_on_lists cfg (rb_map.values (hyp_set.erase t))
    | none := try_linarith_on_lists cfg (rb_map.values hyp_set)
-   end
+   end in
+do hyps ← preprocess (cfg.preprocessors.get_or_else default_preprocessors) hyps,
+hyps.mmap' $ λ hs, do set_goals [hs.1], single_process hs.2 >>= exact
 
 /--
 `filter_hyps_to_type restr_type hyps` takes a list of proofs of comparisons `hyps`, and filters it
@@ -248,7 +250,7 @@ do when cfg.split_hypotheses (linarith_trace "trying to split hypotheses" >> try
    hyps ← if only_on then return (new_var.elim [] singleton ++ hyps) else (++ hyps) <$> local_context,
    hyps ← (do t ← get_restrict_type cfg.restrict_type_reflect, filter_hyps_to_type t hyps) <|> return hyps,
    linarith_trace_proofs "linarith is running on the following hypotheses:" hyps,
-   run_linarith_on_pfs cfg hyps pref_type >>= exact
+   run_linarith_on_pfs cfg hyps pref_type
 
 setup_tactic_parser
 

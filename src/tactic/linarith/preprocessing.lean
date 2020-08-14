@@ -261,7 +261,7 @@ do s ← ls.mfoldr (λ h s', infer_type h >>= find_squares s') mk_rb_set,
 /--
 The default list of preprocessors, in the order they should typically run.
 -/
-meta def default_preprocessors : list global_preprocessor :=
+meta def default_preprocessors : list global_branching_preprocessor :=
 [filter_comparisons, remove_negations, nat_to_int, strengthen_strict_int,
   make_comp_with_zero, cancel_denoms]
 
@@ -272,8 +272,10 @@ The preprocessors are run sequentially: each recieves the output of the previous
 Note that a preprocessor produces a `list expr` for each input `expr`,
 so the size of the list may change.
 -/
-meta def preprocess (pps : list global_preprocessor) (l : list expr) : tactic (list expr) :=
-pps.mfoldl (λ l' pp, pp.process l') l
-
+meta def preprocess (pps : list global_branching_preprocessor) (l : list expr) : tactic (list branch) :=
+do g ← get_goal,
+pps.mfoldl (λ ls pp,
+  list.join <$> (ls.mmap $ λ b, set_goals [b.1] >> pp.process b.2))
+  [(g, l)]
 
 end linarith

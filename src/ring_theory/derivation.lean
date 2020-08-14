@@ -5,6 +5,7 @@ Author: Nicolò Cavalleri.
 -/
 
 import algebra.lie_algebra
+import ring_theory.algebra_tower
 import tactic
 
 /-!
@@ -22,41 +23,9 @@ implements the definition of derivations in commutative algebra. This will soon 
 as bimodules will be there in mathlib I will change this file to take into account the
 non-commutative case. Any development on the theory of derivations is discouraged until the
 definitive definition of derivation will be implemented.
-
-Also note that this file implements bundled derivations only by now. To be better integrated with
-the algebra section of mathlib it would probably be better to define a notion of `is_derivation` and
-link it to bundled derivations.
 -/
 
 open algebra ring_hom
-
-instance algebra.to_is_scalar_tower  {R : Type*} {A : Type*} [comm_semiring R] [semiring A]
-  [algebra R A] : is_scalar_tower R A A :=
-⟨λ r a b, by simp only [smul_def]; exact mul_smul _ _ _⟩
-
-section is_scalar_tower
-
-variables {R : Type*} [comm_semiring R]
-variables (A : Type*) [comm_semiring A] [algebra R A]
-variables {M : Type*} [add_comm_monoid M] [semimodule A M] [semimodule R M] [is_scalar_tower R A M]
-variables {N : Type*} [add_comm_monoid N] [semimodule A N] [semimodule R N] [is_scalar_tower R A N]
-
-@[simp] lemma algebra_compatible_smul (r : R) (m : M) : r • m = ((algebra_map R A) r) • m :=
-by rw [←(one_smul A m), ←smul_assoc, algebra.smul_def, mul_one, one_smul]
-
-variable {A}
-
-@[simp] lemma algebra_compatible_smul_comm (r : R) (a : A) (m : M) : a • r • m = r • a • m :=
-by rw [algebra_compatible_smul A r m, algebra_compatible_smul A r (a • m), ←mul_smul, mul_comm, mul_smul]
-
-@[simp] lemma compatible_map_smul (f : M →ₗ[A] N) (r : R) (m : M) :
-  f (r • m) = r • f m :=
-by rw [algebra_compatible_smul A r m, linear_map.map_smul, ←algebra_compatible_smul A r (f m)]
-
-instance : has_coe (M →ₗ[A] N) (M →ₗ[R] N) :=
-⟨λ f, ⟨f.to_fun, λ x y, f.map_add' x y, λ r n, compatible_map_smul _ _ _⟩⟩
-
-end is_scalar_tower
 
 /-- `D : derivation R A M` is an `R`-linear map from `A` to `M` that satisfies the `leibniz`
 equality.
@@ -104,7 +73,7 @@ coe_injective $ funext H
 begin
   have h : D 1 = D (1 * 1) := by rw mul_one,
   rw [leibniz D 1 1, one_smul] at h,
-  exact zero_left_cancel h,
+  exact eq_zero_left_cancel h,
 end
 
 @[simp] lemma map_algebra_map : D (algebra_map R A r) = 0 :=
@@ -117,9 +86,8 @@ instance : has_zero (derivation R A M) :=
 instance : inhabited (derivation R A M) := ⟨0⟩
 
 instance : add_comm_monoid (derivation R A M) :=
-{ add := λ D1 D2, ⟨D1 + D2, λ a b, begin
-  simp only [leibniz, linear_map.add_apply, linear_map.to_fun_eq_coe, coe_linear_map, smul_add],
-  cc, end⟩,
+{ add := λ D1 D2, ⟨D1 + D2, λ a b, by { simp only [leibniz, linear_map.add_apply,
+    linear_map.to_fun_eq_coe, coe_linear_map, smul_add], cc }⟩,
   add_assoc := λ D E F, ext $ λ a, add_assoc _ _ _,
   zero_add := λ D, ext $ λ a, zero_add _,
   add_zero := λ D, ext $ λ a, add_zero _,
@@ -216,7 +184,7 @@ instance : lie_ring (derivation R A A) :=
   jacobi := λ d e f, by { ext a, simp only [commutator_apply, add_apply, map_sub], ring } }
 
 instance : lie_algebra R (derivation R A A) :=
-{ lie_smul := λ r d e, by { ext a, simp only [commutator_apply, smul_apply, map_smul, smul_sub] },
+{ lie_smul := λ r d e, by { ext a, simp only [commutator_apply, map_smul, smul_sub, Rsmul_apply]},
   ..derivation.Rsemimodule }
 
 end

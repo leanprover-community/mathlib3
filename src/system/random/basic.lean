@@ -79,8 +79,7 @@ open stream
 /-- `bounded_random α` gives us machinery to generate values of type `α` between certain bounds -/
 class bounded_random (α : Type u) [preorder α] :=
 (random_r : Π g [random_gen g] (x y : α),
-              auto_param (x ≤ y) `random.assumption_or_dec_trivial →
-              rand_g g (x .. y))
+              (x ≤ y) → rand_g g (x .. y))
 
 /-- `random α` gives us machinery to generate values of type `α` -/
 class random (α : Type u) [preorder α] extends bounded_random α :=
@@ -103,10 +102,6 @@ stream.corec prod.fst (cmd.run ∘ prod.snd) (cmd.run s)
 end stream
 
 namespace rand
-
-/-- Handy tactic tactic checks that a range taken as an argument is non-empty -/
-meta def assumption_or_dec_trivial : tactic unit :=
-tactic.assumption <|> tactic.exact_dec_trivial
 
 open stream
 
@@ -137,11 +132,11 @@ end random
 variables {α}
 
 /-- re-export `bounded_random.random_r` -/
-def random_r [preorder α] [bounded_random α] (x y : α) (h : x ≤ y . assumption_or_dec_trivial) : rand_g g (x .. y) :=
+def random_r [preorder α] [bounded_random α] (x y : α) (h : x ≤ y) : rand_g g (x .. y) :=
 bounded_random.random_r g x y h
 
 /-- generate an infinite series of random values of type `α` between `x` and `y` -/
-def random_series_r [preorder α] [bounded_random α] (x y : α) (h : x ≤ y . assumption_or_dec_trivial) : rand_g g (stream (x .. y)) :=
+def random_series_r [preorder α] [bounded_random α] (x y : α) (h : x ≤ y) : rand_g g (stream (x .. y)) :=
 do gen ← uliftable.up (split g),
    pure $ corec_state (bounded_random.random_r g x y h) gen
 
@@ -164,8 +159,6 @@ def run_rand (cmd : _root_.rand α) : io α :=
 do g ← io.mk_generator,
    return $ (cmd.run ⟨g⟩).1
 
-open rand (assumption_or_dec_trivial)
-
 section random
 variables [preorder α] [random α]
 
@@ -183,11 +176,11 @@ section bounded_random
 variables [preorder α] [bounded_random α]
 
 /-- randomly generate a value of type α between `x` and `y` -/
-def random_r (x y : α) (p : x ≤ y . rand.assumption_or_dec_trivial) : io (x .. y) :=
+def random_r (x y : α) (p : x ≤ y) : io (x .. y) :=
 io.run_rand (bounded_random.random_r _ x y p)
 
 /-- randomly generate an infinite series of value of type α between `x` and `y` -/
-def random_series_r (x y : α) (h : x ≤ y . rand.assumption_or_dec_trivial) : io (stream $ x .. y) :=
+def random_series_r (x y : α) (h : x ≤ y) : io (stream $ x .. y) :=
 io.run_rand (rand.random_series_r x y h)
 
 end bounded_random
@@ -206,18 +199,17 @@ meta def run_rand {α : Type u} (cmd : rand α) : tactic α := do
 ⟨g⟩ ← tactic.up mk_generator,
 return (cmd.run ⟨g⟩).1
 
-open rand (assumption_or_dec_trivial)
 variables {α : Type u}
 
 section bounded_random
 variables [preorder α] [bounded_random α]
 
 /-- use `random_r` in the `tactic` monad -/
-meta def random_r (x y : α) (p : x ≤ y . assumption_or_dec_trivial) : tactic (x .. y) :=
-run_rand (rand.random_r x y p)
+meta def random_r (x y : α) (h : x ≤ y) : tactic (x .. y) :=
+run_rand (rand.random_r x y h)
 
 /-- use `random_series_r` in the `tactic` monad -/
-meta def random_series_r (x y : α) (h : x ≤ y . assumption_or_dec_trivial) : tactic (stream $ x .. y) :=
+meta def random_series_r (x y : α) (h : x ≤ y) : tactic (stream $ x .. y) :=
 run_rand (rand.random_series_r x y h)
 
 end bounded_random

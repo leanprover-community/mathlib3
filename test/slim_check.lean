@@ -6,8 +6,8 @@ import data.zmod.basic
 /-- fermat's primality test -/
 def primality_test (p : ℕ) (h : fact (0 < p)) : rand bool :=
 if h : 2 ≤ p-1 then do
-  n ← rand.random_r 2 (p-1), -- `random_r` requires a proof of `2 ≤ p-1` but it is dischared using `assumption`
-  return $ (n : zmod p)^(p-1) = 1 -- we do arithmetic with `fin n` so that modulo and multiplication are interleaved
+  n ← rand.random_r 2 (p-1) h,
+  return $ (n : zmod p)^(p-1) = 1 -- we do arithmetic with `zmod n` so that modulo and multiplication are interleaved
 else return (p = 2)
 
 /-- `iterated_primality_test_aux p h n` generating `n` candidate witnesses that `p` is a
@@ -31,7 +31,7 @@ and return the first one that can pass the primality test. -/
 def find_prime_aux (p : ℕ) (h : 1 ≤ p / 2) : ℕ → rand (option ℕ)
 | 0 := pure none
 | (n+1) := do
-  k ← rand.random_r 1 (p / 2),
+  k ← rand.random_r 1 (p / 2) h,
   let xs := (list.range' k 20).map (λ i, 2*i+1),
   some r ← option_t.run $ xs.mfirst (λ n, option_t.mk $ mcond (iterated_primality_test n) (pure (some n)) (pure none))
     | find_prime_aux n,

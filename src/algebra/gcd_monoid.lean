@@ -32,6 +32,23 @@ export normalization_monoid (norm_unit norm_unit_zero norm_unit_mul norm_unit_co
 
 attribute [simp] norm_unit_coe_units norm_unit_zero norm_unit_mul
 
+section instances
+
+instance nat.unique_units : unique (units ℕ) :=
+{ default := 1, uniq := nat.units_eq_one }
+
+variables [comm_cancel_monoid_with_zero α] [nontrivial α] [unique (units α)]
+
+@[simp] lemma units_eq_one (u : units α) : u = 1 := subsingleton.elim u 1
+
+instance normalization_monoid_of_unique_units : normalization_monoid α :=
+{ norm_unit := λ x, 1,
+  norm_unit_zero := rfl,
+  norm_unit_mul := λ x y hx hy, (mul_one 1).symm,
+  norm_unit_coe_units := λ u, by simp, }
+
+end instances
+
 section normalization_monoid
 variables [comm_cancel_monoid_with_zero α] [nontrivial α] [normalization_monoid α]
 

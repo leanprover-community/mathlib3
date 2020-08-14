@@ -435,11 +435,11 @@ end associates
 section
 open associates unique_factorization_domain
 
-/-- `to_gcd_monoid` constructs a GCD domain out of a unique factorization domain over a normalization
-domain. -/
+/-- `to_gcd_monoid` constructs a GCD monoid out of a normalization on a
+  unique factorization domain. -/
 def unique_factorization_domain.to_gcd_monoid
-  (α : Type*) [normalization_monoid α] [unique_factorization_domain α] [decidable_eq (associates α)] :
-  gcd_monoid α :=
+  (α : Type*) [integral_domain α] [unique_factorization_domain α] [normalization_monoid α]
+  [decidable_eq (associates α)] : gcd_monoid α :=
 { gcd := λa b, (associates.mk a ⊓ associates.mk b).out,
   lcm := λa b, (associates.mk a ⊔ associates.mk b).out,
   gcd_dvd_left := assume a b, (out_dvd_iff a (associates.mk a ⊓ associates.mk b)).2 $ inf_le_left,

@@ -412,8 +412,14 @@ multiset.induction_on p
   (by simp)
   (by simp [mul_eq_one_iff, or_imp_distrib, forall_and_distrib] {contextual := tt})
 
-theorem coe_unit_eq_one : ∀u:units (associates α), (u : associates α) = 1
-| ⟨u, v, huv, hvu⟩ := by rw [mul_eq_one_iff] at huv; exact huv.1
+@[simp] theorem associates.units_eq_one (u : units (associates α)) : u = 1 :=
+units.ext (mul_eq_one_iff.1 u.val_inv).1
+
+instance associates.unique_units [comm_monoid α] : unique (units (associates α)) :=
+{ default := 1, uniq := associates.units_eq_one }
+
+theorem coe_unit_eq_one (u : units (associates α)): (u : associates α) = 1 :=
+by simp
 
 theorem is_unit_iff_eq_one (a : associates α) : is_unit a ↔ a = 1 :=
 iff.intro

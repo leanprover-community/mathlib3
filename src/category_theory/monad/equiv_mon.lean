@@ -172,6 +172,26 @@ begin
     apply to_of_mon_end_obj }
 end
 
+def of_to_mon_end_iso : Mon_to_Monad C ⋙ Monad_to_Mon C ≅ 𝟭 _ :=
+{ hom :=
+  { app := λ M,
+  { hom := 𝟙 _ } },
+  inv :=
+  { app := λ M,
+  { hom := 𝟙 _ } } }
+
+def to_of_mon_end_iso : Monad_to_Mon C ⋙ Mon_to_Monad C ≅ 𝟭 _ :=
+{ hom :=
+  { app := λ M,
+  { app := λ X, 𝟙 _,
+    app_η' := by tidy,
+    app_μ' := by tidy } },
+  inv :=
+  { app := λ M,
+  { app := λ X, 𝟙 _,
+    app_η' := by tidy,
+    app_μ' := by tidy } } }
+
 variable (C)
 /-- Oh, monads are just monoids in the category of endofunctors (isomorphism of categories). -/
 def Monad_Mon_iso : (Cat.of $ Monad C) ≅ (Cat.of $ Mon_ (C ⥤ C)) :=
@@ -181,7 +201,22 @@ def Monad_Mon_iso : (Cat.of $ Monad C) ≅ (Cat.of $ Mon_ (C ⥤ C)) :=
   inv_hom_id' := by apply of_to_mon_end }
 
 /-- Oh, monads are just monoids in the category of endofunctors (equivalence of categories). -/
-def Monad_Mon_equiv : (Monad C) ≌ (Mon_ (C ⥤ C)) := Cat.equiv_of_iso $ Monad_Mon_iso C
+def Monad_Mon_equiv : (Monad C) ≌ (Mon_ (C ⥤ C)) :=
+{ functor := Monad_to_Mon _,
+  inverse := Mon_to_Monad _,
+  unit_iso := to_of_mon_end_iso.symm,
+  counit_iso := of_to_mon_end_iso,
+  functor_unit_iso_comp' :=
+  begin
+    intro M,
+    ext Y,
+    simp only [to_of_mon_end_iso, of_to_mon_end_iso, Mon_.comp_hom',
+      iso.symm_mk, nat_trans.comp_app],
+    tidy,
+  end }
+
+-- Sanity check
+example (A : Monad C) {X : C} : ((Monad_Mon_equiv C).unit_iso.app A).hom.app X = 𝟙 _ := rfl
 
 end Monad
 end category_theory

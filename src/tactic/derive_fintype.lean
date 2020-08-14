@@ -13,7 +13,7 @@ instances for structures and inductives.
 
 namespace derive_fintype
 
-/-- A step in the construction of `finset.univ` for a finite inductive type.#check
+/-- A step in the construction of `finset.univ` for a finite inductive type.
 We will set `enum` to the discriminant of the inductive type, so a `finset_above`
 represents a finset that enumerates all elements in a tail of the constructor list. -/
 def finset_above (α) (enum : α → ℕ) (n : ℕ) :=

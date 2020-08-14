@@ -7,7 +7,7 @@ Theory of unique factorization domains.
 
 @TODO: setup the complete lattice structure on `factor_set`.
 -/
-import algebra.gcd_domain
+import algebra.gcd_monoid
 import ring_theory.integral_domain
 
 variables {α : Type*}
@@ -435,11 +435,11 @@ end associates
 section
 open associates unique_factorization_domain
 
-/-- `to_gcd_domain` constructs a GCD domain out of a unique factorization domain over a normalization
+/-- `to_gcd_monoid` constructs a GCD domain out of a unique factorization domain over a normalization
 domain. -/
-def unique_factorization_domain.to_gcd_domain
-  (α : Type*) [normalization_domain α] [unique_factorization_domain α] [decidable_eq (associates α)] :
-  gcd_domain α :=
+def unique_factorization_domain.to_gcd_monoid
+  (α : Type*) [normalization_monoid α] [unique_factorization_domain α] [decidable_eq (associates α)] :
+  gcd_monoid α :=
 { gcd := λa b, (associates.mk a ⊓ associates.mk b).out,
   lcm := λa b, (associates.mk a ⊔ associates.mk b).out,
   gcd_dvd_left := assume a b, (out_dvd_iff a (associates.mk a ⊓ associates.mk b)).2 $ inf_le_left,
@@ -453,7 +453,7 @@ def unique_factorization_domain.to_gcd_domain
       normalize (a * b),
     by rw [← out_mk, ← out_mul, mul_comm, sup_mul_inf]; refl,
   normalize_gcd := assume a b, by convert normalize_out _,
-  .. ‹normalization_domain α› }
+  .. ‹normalization_monoid α› }
 
 end
 

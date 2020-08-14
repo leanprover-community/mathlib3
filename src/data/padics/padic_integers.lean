@@ -387,40 +387,6 @@ begin
     exact_mod_cast _inst_1.ne_zero }
 end
 
-instance : can_lift ℤ_[p] (units ℤ_[p]) :=
-{ coe := coe,
-  cond := is_unit,
-  prf := λ z hz, hz }
-
-lemma ideal_is_principal_aux
-  (s : ideal ℤ_[p])
-  (h_all_pows : ¬∃ (i : ℕ), ¬s ≤ ideal.span {base ^ (i+1)}) :
-  s = submodule.span ℤ_[p] {0} :=
-begin
-  suffices : s = ⊥, by simpa,
-  push_neg at h_all_pows,
-  rw submodule.eq_bot_iff,
-  intros x hxs,
-  by_contradiction h_xne,
-  rcases exists_repr h_xne with ⟨xu, n, hxu⟩,
-  have := h_all_pows (n+1) hxs,
-  rw [ideal.mem_span_singleton', base_eq_p, hxu] at this,
-  cases this with a ha,
-  have := congr_arg has_norm.norm ha,
-  refine ne_of_lt _ this,
-  calc _ = ∥a∥ * ↑p ^ (-(n + 1 + 1) : ℤ) : by simp
-      ... ≤ ↑p ^ (-(n + 1 + 1) : ℤ) : _
-      ... < ↑p ^ (-n : ℤ) : _
-      ... = _ : _,
-  { refine mul_le_of_le_one_left _ (padic_norm_z.le_one _),
-    apply fpow_nonneg_of_nonneg,
-    exact_mod_cast le_of_lt (nat.prime.pos ‹_›) },
-  { rw fpow_lt_iff_lt,
-    { linarith },
-    { exact_mod_cast nat.prime.one_lt ‹_› } },
-  { simp }
-end
-
 lemma ideal_is_principal (s : ideal ℤ_[p]) : s.is_principal :=
 begin
   constructor,
@@ -461,65 +427,12 @@ begin
 
 end
 
-lemma ideal_is_principal2 (s : ideal ℤ_[p]) : s.is_principal :=
-begin
-  constructor,
-  by_cases h_all_pows : ∃ i : ℕ, ¬ s ≤ ideal.span {base^(i)},
-  { let i := nat.find h_all_pows,
-    have i_spec : ¬s ≤ ideal.span {base ^ (i)} := nat.find_spec h_all_pows,
-    have i_spec2 :  ∀ m, ¬s ≤ ideal.span {base ^ (m )} → i ≤ m := @nat.find_min' _ _ h_all_pows,
-    have s_i_pred : s ≤ ideal.span {base^i.pred},
-    { by_contradiction h,
-      have := i_spec2 _ h,
-      rw nat.le_pred_se },
-     },
-  -- { use 0, exact ideal_is_principal_aux s h_all_pows }
-end
-
-#check ideal.span_singleton_mul_right_unit
-
-lemma ideal_is_principal (s : ideal ℤ_[p]) : s.is_principal :=
-begin
-  constructor,
-  by_cases h_all_pows :
-    ∃ i : ℕ, s ≤ ideal.span {(base : ℤ_[p]) ^ i} ∧ ¬ s ≤ ideal.span {base ^ (i+1)},
-  { rcases h_all_pows with ⟨i, hsi, hsi_succ⟩,
-    have : ∃ z, z ∈ s ∧ z ∉ (ideal.span {base ^ (i+1)} : ideal ℤ_[p]) := sorry,
-    rcases this with ⟨z, hzs, hznsp⟩,
-    have : z ∈ (ideal.span {base ^ i} : ideal ℤ_[p]) := sorry,
-    rw ideal.mem_span_singleton' at this,
-    cases this with g hgz,
-    have hg_ne : g ∉ (ideal.span {base} : ideal ℤ_[p]) := sorry,
-    have hg_unit : is_unit g := sorry,
-    lift g to units ℤ_[p] using hg_unit,
-    have : z * g.inv = base ^ i := sorry,
-  }
-end
-
-
-
-lemma ideal_is_principal (s : ideal ℤ_[p]) : s.is_principal :=
-begin
-  constructor,
-  by_cases h_all_pows : ∀ i : ℕ, s ≤ submodule.span ℤ_[p] {nonunit ^ (i+1)},
-  { admit },
-  { push_neg at h_all_pows,
-    cases h_all_pows with i h_si,
-    have : ∃ z, z ∈ s ∧ z ∉ (submodule.span ℤ_[p] {nonunit ^ (i+1)} : ideal ℤ_[p]) := sorry,
-    rcases this with ⟨z, hzs, hznsp⟩,
-     }
-end
-
 instance : discrete_valuation_ring ℤ_[p] :=
 { principal := ideal_is_principal,
   exists_pair_ne := ⟨0, 1, zero_ne_one⟩,
   not_a_field' := not_a_field,
   .. padic_int.local_ring }
-/- (discrete_valuation_ring.iff_PID_with_one_nonzero_prime _).mpr
-⟨ _,
-  _ ⟩ -/
 
-#check is_principal_ideal_ring
 end padic_int
 
 namespace padic_norm_z

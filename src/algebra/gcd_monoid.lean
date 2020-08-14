@@ -32,23 +32,6 @@ export normalization_monoid (norm_unit norm_unit_zero norm_unit_mul norm_unit_co
 
 attribute [simp] norm_unit_coe_units norm_unit_zero norm_unit_mul
 
-section instances
-
-instance nat.unique_units : unique (units ℕ) :=
-{ default := 1, uniq := nat.units_eq_one }
-
-variables [comm_cancel_monoid_with_zero α] [nontrivial α] [unique (units α)]
-
-@[simp] lemma units_eq_one (u : units α) : u = 1 := subsingleton.elim u 1
-
-instance normalization_monoid_of_unique_units : normalization_monoid α :=
-{ norm_unit := λ x, 1,
-  norm_unit_zero := rfl,
-  norm_unit_mul := λ x y hx hy, (mul_one 1).symm,
-  norm_unit_coe_units := λ u, by simp, }
-
-end instances
-
 section normalization_monoid
 variables [comm_cancel_monoid_with_zero α] [nontrivial α] [normalization_monoid α]
 
@@ -674,3 +657,29 @@ begin
     rw [pow_two, int.nat_abs_mul] at hpp,
     exact (or_self _).mp ((nat.prime.dvd_mul hp).mp hpp)}
 end
+
+instance nat.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero ℕ :=
+{ mul_left_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_left (nat.pos_of_ne_zero h1) h2,
+  mul_right_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
+  .. (infer_instance : comm_monoid_with_zero ℕ) }
+
+section unique_unit
+
+instance nat.unique_units : unique (units ℕ) :=
+{ default := 1, uniq := nat.units_eq_one }
+
+variables [comm_cancel_monoid_with_zero α] [nontrivial α] [unique (units α)]
+
+@[simp] lemma units_eq_one (u : units α) : u = 1 := subsingleton.elim u 1
+
+instance normalization_monoid_of_unique_units : normalization_monoid α :=
+{ norm_unit := λ x, 1,
+  norm_unit_zero := rfl,
+  norm_unit_mul := λ x y hx hy, (mul_one 1).symm,
+  norm_unit_coe_units := λ u, by simp, }
+
+@[simp] lemma norm_unit_eq_one (x : α) : norm_unit x = 1 := rfl
+
+@[simp] lemma normalize_eq (x : α) : normalize x = x := mul_one x
+
+end unique_unit

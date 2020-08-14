@@ -6,9 +6,11 @@ Authors: Alexander Bentkamp, Sébastien Gouëzel
 import data.complex.basic
 import ring_theory.algebra
 /-!
-This file contains two instance, the fact the ℂ is an ℝ algebra,
-and an instance to view any complex vector space as a
-real vector space
+This file contains three instances:
+* `ℂ` is an `ℝ` algebra;
+* any complex vector space is a real vector space;
+* the space of `ℝ`-linear maps from a real vector space to a complex vector space is a complex
+  vector space.
 -/
 noncomputable theory
 
@@ -23,3 +25,7 @@ vector space. -/
 instance module.complex_to_real (E : Type*) [add_comm_group E] [module ℂ E] : module ℝ E :=
 semimodule.restrict_scalars' ℝ ℂ E
 attribute [instance, priority 900] module.complex_to_real
+
+instance (E : Type*) [add_comm_group E] [module ℝ E]
+  (F : Type*) [add_comm_group F] [module ℂ F] : module ℂ (E →ₗ[ℝ] F) :=
+linear_map.module_extend_scalars _ _ _ _

@@ -50,11 +50,6 @@ apply_nolint with_zero.inv doc_blame
 apply_nolint with_zero.lift doc_blame
 apply_nolint with_zero.map doc_blame
 
--- algebra/order.lean
-apply_nolint decidable.lt_by_cases doc_blame
-apply_nolint ge_iff_le ge_or_gt
-apply_nolint gt_iff_lt ge_or_gt
-
 -- algebra/ordered_field.lean
 apply_nolint discrete_linear_ordered_field doc_blame
 apply_nolint linear_ordered_field doc_blame
@@ -1876,41 +1871,6 @@ apply_nolint push_neg.normalize_negations doc_blame
 apply_nolint push_neg.push_neg_at_goal doc_blame
 apply_nolint push_neg.push_neg_at_hyp doc_blame
 apply_nolint push_neg.whnf_reducible doc_blame
-
--- tactic/rcases.lean
-apply_nolint tactic.ext_parse doc_blame
-apply_nolint tactic.ext_patt doc_blame
-apply_nolint tactic.goals doc_blame
-apply_nolint tactic.interactive.obtain_parse doc_blame
-apply_nolint tactic.list_Pi doc_blame
-apply_nolint tactic.list_Sigma doc_blame
-apply_nolint tactic.merge_list doc_blame
-apply_nolint tactic.rcases.continue doc_blame
-apply_nolint tactic.rcases.process_constructors doc_blame
-apply_nolint tactic.rcases_core doc_blame
-apply_nolint tactic.rcases_hint doc_blame
-apply_nolint tactic.rcases_hint.continue doc_blame
-apply_nolint tactic.rcases_hint.process_constructors doc_blame
-apply_nolint tactic.rcases_hint_core doc_blame
-apply_nolint tactic.rcases_parse_depth doc_blame
-apply_nolint tactic.rcases_patt doc_blame
-apply_nolint tactic.rcases_patt.format doc_blame
-apply_nolint tactic.rcases_patt.invert doc_blame
-apply_nolint tactic.rcases_patt.invert' doc_blame
-apply_nolint tactic.rcases_patt.invert_list doc_blame
-apply_nolint tactic.rcases_patt.invert_many doc_blame
-apply_nolint tactic.rcases_patt.merge doc_blame
-apply_nolint tactic.rcases_patt.name doc_blame
-apply_nolint tactic.rcases_patt_inverted.format doc_blame
-apply_nolint tactic.rcases_patt_inverted.format_list doc_blame
-apply_nolint tactic.rcases_patt_inverted.invert doc_blame
-apply_nolint tactic.rcases_patt_inverted.invert_list doc_blame
-apply_nolint tactic.rcases_patt_parse doc_blame
-apply_nolint tactic.rcases_patt_parse_core doc_blame
-apply_nolint tactic.rcases_patt_parse_list doc_blame
-apply_nolint tactic.rintro doc_blame
-apply_nolint tactic.rintro_hint doc_blame
-apply_nolint tactic.rintro_parse doc_blame
 
 -- tactic/reassoc_axiom.lean
 apply_nolint tactic.calculated_Prop doc_blame unused_arguments

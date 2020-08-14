@@ -46,9 +46,12 @@ multiset.mem_cons_of_mem
 /-- The base case is when we run out of variants; we just put an empty finset at the end. -/
 def finset_above.nil {α} {enum : α → ℕ} (n) : finset_above α enum n := ⟨∅, by rintro _ ⟨⟩⟩
 
+instance (α enum n) : inhabited (finset_above α enum n) := ⟨finset_above.nil _⟩
+
 /-- This is a finset covering a nontrivial variant (with one or more constructor arguments).
 The property `P` here is `λ a, enum a = n` where `n` is the discriminant for the current
 variant. -/
+@[nolint has_inhabited_instance]
 def finset_in {α} (P : α → Prop) := {s : finset α // ∀ x ∈ s, P x}
 
 /-- To construct the finset, we use an injective map from the type `Γ`, which will be the

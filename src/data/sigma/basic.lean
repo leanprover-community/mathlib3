@@ -84,6 +84,7 @@ end sigma
 section psigma
 variables {α : Sort*} {β : α → Sort*}
 
+/-- Nondependent eliminator for `psigma`. -/
 def psigma.elim {γ} (f : ∀ a, β a → γ) (a : psigma β) : γ :=
 psigma.cases_on a f
 

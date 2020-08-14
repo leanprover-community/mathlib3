@@ -152,7 +152,7 @@ def Mon_to_Monad : Mon_ (C ⥤ C) ⥤ Monad C :=
 variable {C}
 
 theorem of_to_mon_end_obj (M : Mon_ (C ⥤ C)) : (Mon_to_Monad C ⋙ Monad_to_Mon C).obj M = M :=
-  by {apply Mon_.hext, repeat {refl}}
+by {apply Mon_.hext, repeat {refl}}
 
 theorem to_of_mon_end_obj (M : Monad C) : (Monad_to_Mon C ⋙ Mon_to_Monad C).obj M = M :=
   by {apply Monad.hext, repeat {refl}}

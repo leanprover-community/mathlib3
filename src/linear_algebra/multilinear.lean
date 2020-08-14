@@ -528,7 +528,7 @@ instance algebra_to_semimodule : semimodule S N := algebra.to_semimodule
 def algebra_prod_aux : N := list.prod $ list.map ν (list.fin_range q)
 
 lemma algebra_prod_split_aux (ν : fin q.succ → N):
-algebra_prod_aux ν = (ν 0) * algebra_prod_aux (λ i : fin q, ν i.succ) :=
+  algebra_prod_aux ν = (ν 0) * algebra_prod_aux (λ i : fin q, ν i.succ) :=
 begin
   have key : list.fin_range q.succ =
   0 :: list.map fin.succ (list.fin_range q) :=

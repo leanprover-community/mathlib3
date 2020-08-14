@@ -349,12 +349,12 @@ variables (k)
 /-- When `V` is a `k[G]`-module, multiplication by a group element `g` is a `k`-linear map. -/
 def group_smul.linear_map [group G] [comm_ring k]
   (V : Type u₃) [add_comm_group V] [module (monoid_algebra k G) V] (g : G) :
-  (module.restrict_scalars k (monoid_algebra k G) V) →ₗ[k]
-  (module.restrict_scalars k (monoid_algebra k G) V) :=
+  (semimodule.restrict_scalars k (monoid_algebra k G) V) →ₗ[k]
+  (semimodule.restrict_scalars k (monoid_algebra k G) V) :=
 { to_fun    := λ v, (single g (1 : k) • v : V),
   map_add'  := λ x y, smul_add (single g (1 : k)) x y,
   map_smul' := λ c x,
-  by simp only [module.restrict_scalars_smul_def, coe_algebra_map, ←mul_smul, single_one_comm], }.
+  by simp only [semimodule.restrict_scalars_smul_def, coe_algebra_map, ←mul_smul, single_one_comm], }.
 
 @[simp]
 lemma group_smul.linear_map_apply [group G] [comm_ring k]
@@ -367,8 +367,8 @@ variables {k}
 variables [group G] [comm_ring k]
   {V : Type u₃} {gV : add_comm_group V} {mV : module (monoid_algebra k G) V}
   {W : Type u₃} {gW : add_comm_group W} {mW : module (monoid_algebra k G) W}
-  (f : (module.restrict_scalars k (monoid_algebra k G) V) →ₗ[k]
-       (module.restrict_scalars k (monoid_algebra k G) W))
+  (f : (semimodule.restrict_scalars k (monoid_algebra k G) V) →ₗ[k]
+       (semimodule.restrict_scalars k (monoid_algebra k G) W))
   (h : ∀ (g : G) (v : V), f (single g (1 : k) • v : V) = (single g (1 : k) • (f v) : W))
 include h
 

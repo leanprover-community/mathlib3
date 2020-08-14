@@ -485,7 +485,7 @@ lemma convex_on_iff_div:
 and_congr iff.rfl
 ⟨begin
   intros h x y hx hy a b ha hb hab,
-  apply h hx hy (div_nonneg ha hab) (div_nonneg hb hab),
+  apply h hx hy (div_nonneg ha $ le_of_lt hab) (div_nonneg hb $ le_of_lt hab),
   rw [←add_div],
   exact div_self (ne_of_gt hab)
 end,
@@ -673,7 +673,7 @@ begin
   simp only [center_mass, sum_insert ha, smul_add, (mul_smul _ _ _).symm],
   congr' 2,
   { apply mul_comm },
-  { rw [div_mul_eq_mul_div, mul_inv_cancel hw, one_div_eq_inv] }
+  { rw [div_mul_eq_mul_div, mul_inv_cancel hw, one_div] }
 end
 
 lemma finset.center_mass_singleton (hw : w i ≠ 0) : ({i} : finset ι).center_mass w z = z i :=

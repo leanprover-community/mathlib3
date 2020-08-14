@@ -60,30 +60,14 @@ namespace ring_commutator
 variables {A : Type v} [ring A]
 
 /--
-The ring commutator captures the extent to which a ring is commutative. It is identically zero
-exactly when the ring is commutative.
+The bracket operation for rings is the ring commutator, which captures the extent to which a ring is
+commutative. It is identically zero exactly when the ring is commutative.
 -/
-
+@[priority 100]
 instance : has_bracket A :=
 { bracket := λ x y, x*y - y*x }
 
-lemma commutator (x y : A) : ⁅x, y⁆ = x*y -y*x := rfl
-
-@[simp] lemma add_left (x y z : A) :
-  ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆ :=
-by simp [commutator, right_distrib, left_distrib, sub_eq_add_neg, add_comm, add_left_comm]
-
-@[simp] lemma add_right (x y z : A) :
-  ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆ :=
-by simp [commutator, right_distrib, left_distrib, sub_eq_add_neg, add_comm, add_left_comm]
-
-@[simp] lemma alternate (x : A) :
-  ⁅x, x⁆ = 0 :=
-by simp [commutator]
-
-lemma jacobi (x y z : A) :
-  ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0 :=
-by { repeat {rw commutator}, noncomm_ring, }
+lemma commutator (x y : A) : ⁅x, y⁆ = x*y - y*x := rfl
 
 end ring_commutator
 
@@ -150,10 +134,12 @@ An associative ring gives rise to a Lie ring by taking the bracket to be the rin
 -/
 @[priority 100]
 instance lie_ring.of_associative_ring (A : Type v) [ring A] : lie_ring A :=
-{ add_lie  := ring_commutator.add_left,
-  lie_add  := ring_commutator.add_right,
-  lie_self := ring_commutator.alternate,
-  jacobi   := ring_commutator.jacobi }
+{ add_lie  := by simp only [ring_commutator.commutator, right_distrib, left_distrib, sub_eq_add_neg,
+    add_comm, add_left_comm, forall_const, eq_self_iff_true, neg_add_rev],
+  lie_add  := by simp only [ring_commutator.commutator, right_distrib, left_distrib, sub_eq_add_neg,
+    add_comm, add_left_comm, forall_const, eq_self_iff_true, neg_add_rev],
+  lie_self := by simp only [ring_commutator.commutator, forall_const, sub_self],
+  jacobi   := λ x y z, by { repeat {rw ring_commutator.commutator}, noncomm_ring, } }
 
 lemma lie_ring.of_associative_ring_bracket (A : Type v) [ring A] (x y : A) :
   ⁅x, y⁆ = x*y - y*x := rfl
@@ -373,11 +359,8 @@ def of_associative_algebra_hom {R : Type u} {A : Type v} {B : Type w}
 
 /--
 An important class of Lie algebras are those arising from the associative algebra structure on
-module endomorphisms.
+module endomorphisms. We state a lemma and give a definition concerning them.
 -/
-instance of_endomorphism_algebra (M : Type v) [add_comm_group M] [module R M] :
-  lie_algebra R (module.End R M) := by apply_instance
-
 lemma endo_algebra_bracket (M : Type v) [add_comm_group M] [module R M] (f g : module.End R M) :
   ⁅f, g⁆ = f.comp g - g.comp f := rfl
 
@@ -782,18 +765,11 @@ open_locale matrix
 variables {R : Type u} [comm_ring R]
 variables {n : Type w} [decidable_eq n] [fintype n]
 
-/-- An important class of Lie rings are those arising from the associative algebra structure on
-square matrices over a commutative ring. -/
-def matrix.lie_ring : lie_ring (matrix n n R) :=
-lie_ring.of_associative_ring (matrix n n R)
+/-! ### Matrices
 
-local attribute [instance] matrix.lie_ring
-
-/-- An important class of Lie algebras are those arising from the associative algebra structure on
-square matrices over a commutative ring. -/
-def matrix.lie_algebra : lie_algebra R (matrix n n R) := by apply_instance
-
-local attribute [instance] matrix.lie_algebra
+An important class of Lie algebras are those arising from the associative algebra structure on
+square matrices over a commutative ring.
+-/
 
 /-- The natural equivalence between linear endomorphisms of finite free modules and square matrices
 is compatible with the Lie algebra structures. -/
@@ -898,9 +874,6 @@ open_locale matrix
 
 variables {R : Type u} {n : Type w} [comm_ring R] [decidable_eq n] [fintype n]
 variables (J : matrix n n R)
-
-local attribute [instance] matrix.lie_ring
-local attribute [instance] matrix.lie_algebra
 
 lemma matrix.lie_transpose (A B : matrix n n R) : ⁅A, B⁆ᵀ = ⁅Bᵀ, Aᵀ⁆ :=
 show (A * B - B * A)ᵀ = (Bᵀ * Aᵀ - Aᵀ * Bᵀ), by simp

@@ -381,7 +381,8 @@ variables {G : Type u} [comm_group G]
 
 @[to_additive]
 instance comm_group.to_cancel_comm_monoid : cancel_comm_monoid G :=
-{ ..‹comm_group G›, .. group.to_left_cancel_semigroup,
+{ ..‹comm_group G›,
+  ..group.to_left_cancel_semigroup,
   ..group.to_right_cancel_semigroup }
 
 end comm_group

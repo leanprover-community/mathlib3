@@ -324,6 +324,23 @@ quotient.induction_on' z $ λ x, free_abelian_group.induction_on x
   (λ p q ⟨i, x, ihx⟩ ⟨j, y, ihy⟩, let ⟨k, hik, hjk⟩ := directed_order.directed i j in
     ⟨k, f i k hik x + f j k hjk y, by rw [of_add, of_f, of_f, ihx, ihy]; refl⟩)
 
+section
+open_locale classical
+open polynomial
+
+theorem polynomial.exists_of (q : polynomial (direct_limit G f)) :
+  ∃ i p, polynomial.map (ring_hom.of $ of G f i) p = q :=
+polynomial.induction_on q
+  (λ z, let ⟨i, x, h⟩ := exists_of z in ⟨i, C x, by rw [map_C, ring_hom.coe_of, h]⟩)
+  (λ q₁ q₂ ⟨i₁, p₁, ih₁⟩ ⟨i₂, p₂, ih₂⟩, let ⟨i, h1, h2⟩ := directed_order.directed i₁ i₂ in
+    ⟨i, p₁.map (ring_hom.of $ f i₁ i h1) + p₂.map (ring_hom.of $ f i₂ i h2),
+     by { rw [polynomial.map_add, map_map, map_map, ← ih₁, ← ih₂],
+      congr' 2; ext x; simp_rw [ring_hom.comp_apply, ring_hom.coe_of, of_f] }⟩)
+  (λ n z ih, let ⟨i, x, h⟩ := exists_of z in ⟨i, C x * X ^ (n + 1),
+    by rw [polynomial.map_mul, map_C, ring_hom.coe_of, h, polynomial.map_pow, map_X]⟩)
+
+end
+
 @[elab_as_eliminator] theorem induction_on {C : direct_limit G f → Prop} (z : direct_limit G f)
   (ih : ∀ i x, C (of G f i x)) : C z :=
 let ⟨i, x, hx⟩ := exists_of z in hx ▸ ih i x

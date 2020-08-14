@@ -678,7 +678,7 @@ lemma inv_eq_zero {φ : mv_power_series σ α} :
 @[simp] lemma inv_of_unit_eq' (φ : mv_power_series σ α) (u : units α) (h : constant_coeff σ α φ = u) :
   inv_of_unit φ u = φ⁻¹ :=
 begin
-  rw ← inv_of_unit_eq φ (h.symm ▸ u.coe_ne_zero),
+  rw ← inv_of_unit_eq φ (h.symm ▸ u.ne_zero),
   congr' 1, rw [units.ext_iff], exact h.symm,
 end
 

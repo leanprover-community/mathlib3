@@ -87,6 +87,9 @@ by simp [splits, polynomial.map_map]
 theorem splits_one : splits i 1 :=
 splits_C i 1
 
+theorem splits_of_is_unit {u : polynomial α} (hu : is_unit u) : u.splits i :=
+splits_of_splits_of_dvd i one_ne_zero (splits_one _) $ is_unit_iff_dvd_one.1 hu
+
 theorem splits_X_sub_C {x : α} : (X - C x).splits i :=
 splits_of_degree_eq_one _ $ degree_X_sub_C x
 
@@ -150,6 +153,14 @@ is_noetherian_ring.irreducible_induction_on (f.map i)
           mul_inv_cancel (show p.leading_coeff ≠ 0, from mt leading_coeff_eq_zero.1
             hp.ne_zero), one_mul],
       end⟩)
+
+/-- Pick a root of a polynomial that splits. -/
+def root_of_splits {f : polynomial α} (hf : f.splits i) (hfd : f.degree ≠ 0) : β :=
+classical.some $ exists_root_of_splits i hf hfd
+
+theorem map_root_of_splits {f : polynomial α} (hf : f.splits i) (hfd) :
+  f.eval₂ i (root_of_splits i hf hfd) = 0 :=
+classical.some_spec $ exists_root_of_splits i hf hfd
 
 theorem roots_map {f : polynomial α} (hf : f.splits $ ring_hom.id α) :
   (f.map i).roots = (f.roots).image i :=

@@ -59,10 +59,10 @@ section left_cancel_monoid
 
 variables {M : Type u} [left_cancel_monoid M]
 
-@[to_additive] lemma left_cancel_one {a : M} (h : a * a = a) : a = 1 :=
+@[to_additive] lemma left_cancel_eq_one {a : M} (h : a * a = a) : a = 1 :=
 mul_left_cancel (show a * a = a * 1, by rwa mul_one)
 
-@[to_additive] lemma one_left_cancel {a : M} (h : a = a * a) : a = 1 :=
+@[to_additive] lemma eq_one_left_cancel {a : M} (h : a = a * a) : a = 1 :=
 mul_left_cancel (show a * a = a * 1, by rwa [mul_one, eq_comm])
 
 end left_cancel_monoid
@@ -71,10 +71,10 @@ section right_cancel_monoid
 
 variables {M : Type u} [right_cancel_monoid M]
 
-@[to_additive] lemma right_cancel_one {a : M} (h : a * a = a) : a = 1 :=
+@[to_additive] lemma right_cancel_eq_one {a : M} (h : a * a = a) : a = 1 :=
 mul_right_cancel (show a * a = 1 * a, by rwa one_mul)
 
-@[to_additive] lemma one_right_cancel {a : M} (h : a = a * a) : a = 1 :=
+@[to_additive] lemma eq_one_right_cancel {a : M} (h : a = a * a) : a = 1 :=
 mul_right_cancel (show a * a = 1 * a, by rwa [one_mul, eq_comm])
 
 end right_cancel_monoid

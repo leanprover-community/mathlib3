@@ -532,7 +532,7 @@ algebra_prod_aux ν = (ν 0) * algebra_prod_aux (λ i : fin q, ν i.succ) :=
 begin
   have key : list.fin_range q.succ =
   0 :: list.map fin.succ (list.fin_range q) :=
-    begin
+  begin
     unfold list.fin_range,
     rw [list.map_pmap],
     simp_rw [list.range_succ_eq_map],
@@ -541,7 +541,7 @@ begin
     rw list.pmap_map,
     apply list.pmap_congr,
     intros, refl,
-    end,
+  end,
   unfold algebra_prod_aux,
   rw [key, list.map_cons, list.prod_cons],
   simp,

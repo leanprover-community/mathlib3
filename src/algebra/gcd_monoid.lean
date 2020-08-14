@@ -670,13 +670,16 @@ instance nat.unique_units : unique (units ℕ) :=
 
 variables [comm_cancel_monoid_with_zero α] [nontrivial α] [unique (units α)]
 
-@[simp] lemma units_eq_one (u : units α) : u = 1 := subsingleton.elim u 1
+lemma units_eq_one (u : units α) : u = 1 := subsingleton.elim u 1
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 instance normalization_monoid_of_unique_units : normalization_monoid α :=
 { norm_unit := λ x, 1,
   norm_unit_zero := rfl,
   norm_unit_mul := λ x y hx hy, (mul_one 1).symm,
-  norm_unit_coe_units := λ u, by simp, }
+  norm_unit_coe_units := λ u, subsingleton.elim _ _ }
+end prio
 
 @[simp] lemma norm_unit_eq_one (x : α) : norm_unit x = 1 := rfl
 

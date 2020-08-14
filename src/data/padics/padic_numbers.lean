@@ -830,6 +830,9 @@ begin
   { exact_mod_cast nat.prime.pos ‹_› }
 end
 
+@[simp] lemma norm_p_pow (n : ℤ) : ∥(p^n : ℚ_[p])∥ = p^-n :=
+by rw [normed_field.norm_fpow, norm_p]; field_simp
+
 protected theorem image {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, ∥q∥ = ↑((↑p : ℚ) ^ (-n)) :=
 quotient.induction_on q $ λ f hf,
   have ¬ f ≈ 0, from (padic_seq.ne_zero_iff_nequiv_zero f).1 hf,
@@ -908,5 +911,63 @@ let ⟨N, hN⟩ := setoid.symm (cau_seq.equiv_lim f) _ ha in
 calc ∥f.lim∥ = ∥f.lim - f N + f N∥ : by simp
                 ... ≤ max (∥f.lim - f N∥) (∥f N∥) : padic_norm_e.nonarchimedean _ _
                 ... ≤ a : max_le (le_of_lt (hN _ (le_refl _))) (hf _)
+
+/-!
+### Valuation on `ℚ_[p]`
+-/
+
+/--
+`padic.valuation` lifts the p-adic valuation on rationals to `ℚ_[p]`.
+-/
+def valuation : ℚ_[p] → ℤ :=
+quotient.lift (@padic_seq.valuation p _) (λ f g h,
+begin
+  by_cases hf : f ≈ 0,
+  { have hg : g ≈ 0, from setoid.trans (setoid.symm h) hf,
+    simp [hf, hg, padic_seq.valuation] },
+  { have hg : ¬ g ≈ 0, from (λ hg, hf (setoid.trans h hg)),
+    rw padic_seq.val_eq_iff_norm_eq hf hg,
+    exact padic_seq.norm_equiv h },
+end)
+
+@[simp] lemma valuation_zero : valuation (0 : ℚ_[p]) = 0 :=
+dif_pos ((const_equiv p).2 rfl)
+
+@[simp] lemma valuation_one : valuation (1 : ℚ_[p]) = 0 :=
+begin
+  change dite (cau_seq.const (padic_norm p) 1 ≈ _) _ _ = _,
+  have h : ¬ cau_seq.const (padic_norm p) 1 ≈ 0,
+  { assume H, erw const_equiv p at H, exact one_ne_zero H },
+  rw dif_neg h,
+  simp,
+end
+
+lemma norm_eq_pow_val {x : ℚ_[p]} : x ≠ 0 → ∥x∥ = p^(-x.valuation) :=
+begin
+  apply quotient.induction_on' x, clear x,
+  intros f hf,
+  change (padic_seq.norm _ : ℝ) = (p : ℝ) ^ -padic_seq.valuation _,
+  rw padic_seq.norm_eq_pow_val,
+  change ↑((p : ℚ) ^ -padic_seq.valuation f) = (p : ℝ) ^ -padic_seq.valuation f,
+  { rw rat.cast_fpow,
+    congr' 1,
+    norm_cast },
+  { apply cau_seq.not_lim_zero_of_not_congr_zero,
+    contrapose! hf,
+    apply quotient.sound,
+    simpa using hf, }
+end
+
+
+@[simp] lemma valuation_p : valuation (p : ℚ_[p]) = 1 :=
+begin
+  have h : (1 : ℝ) < p := by exact_mod_cast nat.prime.one_lt ‹_›,
+  rw ← neg_inj,
+  apply (fpow_strict_mono h).injective,
+  dsimp only,
+  rw ← norm_eq_pow_val,
+  { simp [-cast_eq_of_rat_of_nat] },
+  { exact_mod_cast nat.prime.ne_zero ‹_›, }
+end
 
 end padic

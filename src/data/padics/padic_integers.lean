@@ -5,6 +5,7 @@ Authors: Robert Y. Lewis, Mario Carneiro
 -/
 import data.int.modeq
 import data.padics.padic_numbers
+import ring_theory.discrete_valuation_ring
 
 /-!
 # p-adic integers
@@ -283,8 +284,98 @@ def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
   map_mul' := coe_mul,
   map_add' := coe_add }
 
+lemma padic_norm_p : padic_norm p p = 1 / p :=
+by simp [padic_norm, _inst_1.ne_zero, padic_val_rat.padic_val_rat_self _inst_1.one_lt]
+
+lemma padic_norm_p_lt_one : padic_norm p p < 1 :=
+begin
+  rw [padic_norm_p, div_lt_iff, one_mul],
+  { exact_mod_cast _inst_1.one_lt },
+  { exact_mod_cast _inst_1.pos }
+end
+
+lemma padic_val_p : ∥(p : ℚ_[p])∥ = 1 / p :=
+begin
+  have := @padic_norm_e.eq_padic_norm p _ p,
+  norm_cast at this,
+  rw [this, padic_norm_p],
+  simp [_inst_1.ne_zero]
+end
+
+lemma padic_val_p_lt_one : ∥(p : ℚ_[p])∥ < 1 :=
+begin
+  rw [padic_val_p, div_lt_iff, one_mul],
+  { exact_mod_cast _inst_1.one_lt },
+  { exact_mod_cast _inst_1.pos }
+end
+
+def nonunit : ℤ_[p] :=
+⟨ p, le_of_lt padic_val_p_lt_one ⟩
+
+lemma nonunit_is_nonunit : nonunit ∈ nonunits ℤ_[p] :=
+by simp [nonunit, -cast_eq_of_rat_of_nat, padic_val_p_lt_one]
+
+lemma norm_nonunit : ∥(nonunit : ℤ_[p])∥ = 1 / p :=
+by simp [nonunit, -cast_eq_of_rat_of_nat, padic_val_p]
+
 instance : algebra ℤ_[p] ℚ_[p] := (coe.ring_hom : ℤ_[p] →+* ℚ_[p]).to_algebra
 
+lemma not_a_field : local_ring.maximal_ideal ℤ_[p] ≠ ⊥ :=
+begin
+  refine (submodule.ne_bot_iff _).mpr ⟨nonunit, _, _⟩,
+  { exact nonunit_is_nonunit },
+  { rw [ne.def, ← norm_eq_zero, norm_nonunit],
+    apply one_div_ne_zero,
+    exact_mod_cast _inst_1.ne_zero }
+end
+
+instance : can_lift ℤ_[p] (units ℤ_[p]) :=
+{ coe := coe,
+  cond := is_unit,
+  prf := λ z hz, hz }
+
+lemma ideal_is_principal (s : ideal ℤ_[p]) : s.is_principal :=
+begin
+  constructor,
+  by_cases h_all_pows :
+    ∃ i : ℕ, s ≤ ideal.span {(nonunit : ℤ_[p]) ^ i} ∧ ¬ s ≤ ideal.span {nonunit ^ (i+1)},
+  { rcases h_all_pows with ⟨i, hsi, hsi_succ⟩,
+    have : ∃ z, z ∈ s ∧ z ∉ (ideal.span {nonunit ^ (i+1)} : ideal ℤ_[p]) := sorry,
+    rcases this with ⟨z, hzs, hznsp⟩,
+    have : z ∈ (ideal.span {nonunit ^ i} : ideal ℤ_[p]) := sorry,
+    rw ideal.mem_span_singleton' at this,
+    cases this with g hgz,
+    have hg_ne : g ∉ (ideal.span {nonunit} : ideal ℤ_[p]) := sorry,
+    have hg_unit : is_unit g := sorry,
+    lift g to units ℤ_[p] using hg_unit,
+    have : z * g.inv = nonunit ^ i := sorry,
+  }
+end
+
+
+
+lemma ideal_is_principal (s : ideal ℤ_[p]) : s.is_principal :=
+begin
+  constructor,
+  by_cases h_all_pows : ∀ i : ℕ, s ≤ submodule.span ℤ_[p] {nonunit ^ (i+1)},
+  { admit },
+  { push_neg at h_all_pows,
+    cases h_all_pows with i h_si,
+    have : ∃ z, z ∈ s ∧ z ∉ (submodule.span ℤ_[p] {nonunit ^ (i+1)} : ideal ℤ_[p]) := sorry,
+    rcases this with ⟨z, hzs, hznsp⟩,
+     }
+end
+
+instance : discrete_valuation_ring ℤ_[p] :=
+{ principal := ideal_is_principal,
+  exists_pair_ne := ⟨0, 1, zero_ne_one⟩,
+  not_a_field' := not_a_field,
+  .. padic_int.local_ring }
+/- (discrete_valuation_ring.iff_PID_with_one_nonzero_prime _).mpr
+⟨ _,
+  _ ⟩ -/
+
+#check is_principal_ideal_ring
 end padic_int
 
 namespace padic_norm_z

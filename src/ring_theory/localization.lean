@@ -846,6 +846,7 @@ end integer_normalization
 
 end localization_map
 variables (R) {A : Type*} [integral_domain A]
+variables (K : Type*)
 
 section non_zero_divisors
 
@@ -891,7 +892,7 @@ lemma map_mem_non_zero_divisors {B : Type*} [integral_domain B] {g : A →+* B}
 λ z hz, eq_zero_of_ne_zero_of_mul_eq_zero
   (map_ne_zero_of_mem_non_zero_divisors hg) hz
 
-variables {K : Type*}
+variables {K}
 
 @[class]
 def le_non_zero_divisors [comm_ring K] (M : submonoid K) := M ≤ non_zero_divisors K
@@ -928,6 +929,10 @@ begin
   exact hM c.2 a hc,
 end
 
+protected lemma map_ne_zero_of_mem_non_zero_divisors {M : submonoid A} (f : localization_map M S)
+  [hM : le_non_zero_divisors M] (x : non_zero_divisors A) : f.to_map x ≠ 0 :=
+map_ne_zero_of_mem_non_zero_divisors f.injective
+
 /-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of `R - {0}`
 is an integral domain. -/
 def to_integral_domain {M : submonoid A} (f : localization_map M S)
@@ -958,8 +963,6 @@ instance integral_domain_localization {M : submonoid A} [hM : le_non_zero_diviso
 end localization_map
 end non_zero_divisors
 
-variables (K : Type*) (R)
-
 /-- Localization map from an integral domain `R` to its field of fractions. -/
 @[reducible] def fraction_map [comm_ring K] := localization_map (non_zero_divisors R) K
 
@@ -967,16 +970,7 @@ namespace fraction_map
 open localization_map
 variables {R K}
 
-protected lemma map_ne_zero_of_mem_non_zero_divisors [comm_ring K] (φ : fraction_map A K)
-  (x : non_zero_divisors A) : φ.to_map x ≠ 0 :=
-map_ne_zero_of_mem_non_zero_divisors φ.injective
-
 local attribute [instance] classical.dec_eq
-
-/-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is an
-integral domain. -/
-def to_integral_domain [comm_ring K] (φ : fraction_map A K) : integral_domain K :=
-φ.to_integral_domain
 
 /-- The inverse of an element in the field of fractions of an integral domain. -/
 protected noncomputable def inv [comm_ring K] (φ : fraction_map A K) (z : K) : K :=
@@ -1005,7 +999,7 @@ lemma mk'_eq_div {r s} : f.mk' r s = f.to_map r / f.to_map s :=
 f.mk'_eq_iff_eq_mul.2 $ (div_mul_cancel _
     (f.map_ne_zero_of_mem_non_zero_divisors _)).symm
 
-lemma is_unit_map_of_injective (hg : injective g)
+lemma is_unit_map_of_injective (hg : function.injective g)
   (y : non_zero_divisors A) : is_unit (g y) :=
 is_unit.mk0 (g y) $ map_ne_zero_of_mem_non_zero_divisors hg
 

@@ -82,7 +82,6 @@ begin
   repeat {apply eq_of_heq, assumption}
 end
 
--- TODO: Add analogue for comonads
 @[simp] lemma assoc_func_app {M : Monad C} {X : C} :
   M.func.map ((μ_ M.func).app X) ≫ (μ_ M.func).app X =
   (μ_ M.func).app (M.func.obj X) ≫ (μ_ M.func).app X := by apply monad.assoc
@@ -136,6 +135,10 @@ begin
   congr,
   repeat {apply eq_of_heq, assumption}
 end
+
+@[simp] lemma coassoc_func_app {M : CoMonad C} {X : C} :
+  (δ_ M.func).app X ≫ M.func.map ((δ_ M.func).app X) =
+  (δ_ M.func).app X ≫ (δ_ M.func).app (M.func.obj X) := by apply comonad.coassoc
 
 end CoMonad
 end category_theory

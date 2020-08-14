@@ -27,7 +27,7 @@ begin
   use (g+2),
   split,
   { rw [mul_succ, ←add_assoc,nat.pow_add],
-    change 2^2 with (1+3), rw [mul_add (2^g) 1 3,mul_one],
+    change 2^2 with (1+3), rw [mul_add (2^g) 1 3, mul_one],
     linarith [hkg,one_le_two_pow g], },
   rw [nat.pow_add,←mul_one c],
   exact modeq.modeq_mul hgmod rfl,

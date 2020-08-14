@@ -89,8 +89,6 @@ def miu_atom.repr : miu_atom → string
 | U := "U"
 
 
-#print attributes
-
 /--
 Using `miu_atom.repr`, we prove that ``miu_atom` is an instance of `has_repr`.
 -/
@@ -205,11 +203,11 @@ end
 example : derivable "MUI" :=
 begin
   have h₂ : derivable "MII",
-    change ("MII" : miustr) with M :: [I] ++ [I],
-    exact derivable.r2 derivable.mk,
+  { change ("MII" : miustr) with M :: [I] ++ [I],
+    exact derivable.r2 derivable.mk, },
   have h₃ : derivable "MIIII",
-    change ("MIIII" : miustr) with M :: [I,I] ++ [I,I],
-    exact derivable.r2 h₂,
+  { change ("MIIII" : miustr) with M :: [I,I] ++ [I,I],
+    exact derivable.r2 h₂, },
   change ("MUI" : miustr) with [M] ++ U :: [I],
   exact derivable.r3 h₃, -- We prove our main goal using rule 3
 end

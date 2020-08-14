@@ -118,8 +118,7 @@ meta def mk_sigma_elim : expr → expr → tactic ℕ
   (+ 1) <$> mk_sigma_elim (expr.instantiate_var b i) (c i)
 | (expr.pi n bi d b) c := do
   i ← intro_fresh n,
-  exact (c i),
-  return 0
+  exact (c i) $> 0
 | _ c := failed
 
 /-- Prove the goal `a, b |- f a = f b → g a = g b` where `f` is the function we constructed in
@@ -208,7 +207,7 @@ meta def mk_fintype_instance : tactic unit :=
 do
   intros,
   `(fintype %%e) ← target >>= whnf,
-  (const I ls, args) ← return (get_app_fn_args e),
+  (const I ls, args) ← pure (get_app_fn_args e),
   env ← get_env,
   let cs := env.constructors_of I,
   guard (env.inductive_num_indices I = 0) <|> fail "inductive indices are not supported",

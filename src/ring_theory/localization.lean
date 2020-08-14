@@ -845,7 +845,9 @@ by rw [aeval_def, is_algebra_tower.algebra_map_eq R f.codomain R', algebra_map_e
 end integer_normalization
 
 end localization_map
-variables (R)
+variables (R) {A : Type*} [integral_domain A]
+
+section non_zero_divisors
 
 /-- The submonoid of non-zero-divisors of a `comm_ring` `R`. -/
 def non_zero_divisors : submonoid R :=
@@ -871,8 +873,6 @@ begin
     rw [mul_assoc, hx] },
 end
 
-variables (R) {A : Type*} [integral_domain A]
-
 lemma eq_zero_of_ne_zero_of_mul_eq_zero
   {x y : A} (hnx : x ≠ 0) (hxy : y * x = 0) :
   y = 0 := or.resolve_right (eq_zero_or_eq_zero_of_mul_eq_zero hxy) hnx
@@ -891,7 +891,74 @@ lemma map_mem_non_zero_divisors {B : Type*} [integral_domain B] {g : A →+* B}
 λ z hz, eq_zero_of_ne_zero_of_mul_eq_zero
   (map_ne_zero_of_mem_non_zero_divisors hg) hz
 
-variables (K : Type*)
+variables {K : Type*}
+
+@[class]
+def le_non_zero_divisors [comm_ring K] (M : submonoid K) := M ≤ non_zero_divisors K
+
+instance le_non_zero_divisors_self [comm_ring K] : le_non_zero_divisors (non_zero_divisors K) :=
+le_of_eq rfl
+
+lemma le_non_zero_divisors_of_domain [integral_domain K] {M : submonoid K} (hM : ↑0 ∉ M)
+  : le_non_zero_divisors M :=
+λ x hx y hy, or.rec_on (eq_zero_or_eq_zero_of_mul_eq_zero hy)
+  (λ h, h) (λ h, absurd (h ▸ hx : (0 : K) ∈ M) hM)
+
+namespace localization_map
+
+lemma to_map_eq_zero_iff (f : localization_map M S) {x : R}
+  [hM : le_non_zero_divisors M] : x = 0 ↔ f.to_map x = 0 :=
+begin
+  rw ← f.to_map.map_zero,
+  split; intro h,
+  { rw h },
+  { cases f.eq_iff_exists.mp h with c hc,
+    rw zero_mul at hc,
+    exact hM c.2 x hc }
+end
+
+lemma injective (f : localization_map M S)
+  [hM : le_non_zero_divisors M] : injective f.to_map :=
+begin
+  rw ring_hom.injective_iff f.to_map,
+  intros a ha,
+  rw [← f.to_map.map_zero, f.eq_iff_exists] at ha,
+  cases ha with c hc,
+  rw [zero_mul] at hc,
+  exact hM c.2 a hc,
+end
+
+/-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of `R - {0}`
+is an integral domain. -/
+def to_integral_domain {M : submonoid A} (f : localization_map M S)
+  [hM : le_non_zero_divisors M] : integral_domain S :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero :=
+    begin
+      intros z w h,
+      cases f.surj z with x hx,
+      cases f.surj w with y hy,
+      have : z * w * f.to_map y.2 * f.to_map x.2 = f.to_map x.1 * f.to_map y.1, by
+        rw [mul_assoc z, hy, ←hx]; ac_refl,
+      erw h at this,
+      rw [zero_mul, zero_mul, ← f.to_map.map_mul] at this,
+      replace this := this.symm,
+      rw ← to_map_eq_zero_iff f at this,
+      cases eq_zero_or_eq_zero_of_mul_eq_zero this with H H,
+      { exact or.inl (f.eq_zero_of_fst_eq_zero hx H) },
+      { exact or.inr (f.eq_zero_of_fst_eq_zero hy H) },
+    end,
+  exists_pair_ne := ⟨f.to_map 0, f.to_map 1, λ h, zero_ne_one (f.injective h)⟩,
+  ..(infer_instance : comm_ring S) }
+
+@[priority 100]
+instance integral_domain_localization {M : submonoid A} [hM : le_non_zero_divisors M]
+  : integral_domain (localization M) :=
+(localization.of M).to_integral_domain
+
+end localization_map
+end non_zero_divisors
+
+variables (K : Type*) (R)
 
 /-- Localization map from an integral domain `R` to its field of fractions. -/
 @[reducible] def fraction_map [comm_ring K] := localization_map (non_zero_divisors R) K
@@ -899,21 +966,6 @@ variables (K : Type*)
 namespace fraction_map
 open localization_map
 variables {R K}
-
-lemma to_map_eq_zero_iff [comm_ring K] (φ : fraction_map R K) {x : R} :
-  x = 0 ↔ φ.to_map x = 0 :=
-begin
-  rw ← φ.to_map.map_zero,
-  split; intro h,
-  { rw h },
-  { cases φ.eq_iff_exists.mp h with c hc,
-    rw zero_mul at hc,
-    exact c.2 x hc }
-end
-
-protected theorem injective [comm_ring K] (φ : fraction_map R K) :
-  injective φ.to_map :=
-φ.to_map.injective_iff.2 (λ _ h, φ.to_map_eq_zero_iff.mpr h)
 
 protected lemma map_ne_zero_of_mem_non_zero_divisors [comm_ring K] (φ : fraction_map A K)
   (x : non_zero_divisors A) : φ.to_map x ≠ 0 :=
@@ -924,21 +976,7 @@ local attribute [instance] classical.dec_eq
 /-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is an
 integral domain. -/
 def to_integral_domain [comm_ring K] (φ : fraction_map A K) : integral_domain K :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero :=
-    begin
-      intros z w h,
-      cases φ.surj z with x hx,
-      cases φ.surj w with y hy,
-      have : z * w * φ.to_map y.2 * φ.to_map x.2 = φ.to_map x.1 * φ.to_map y.1, by
-        rw [mul_assoc z, hy, ←hx]; ac_refl,
-      erw h at this,
-      rw [zero_mul, zero_mul, ←φ.to_map.map_mul] at this,
-      cases eq_zero_or_eq_zero_of_mul_eq_zero (φ.to_map_eq_zero_iff.mpr this.symm) with H H,
-        { exact or.inl (φ.eq_zero_of_fst_eq_zero hx H) },
-      { exact or.inr (φ.eq_zero_of_fst_eq_zero hy H) },
-    end,
-  exists_pair_ne := ⟨φ.to_map 0, φ.to_map 1, λ h, zero_ne_one (φ.injective h)⟩,
-  ..(infer_instance : comm_ring K) }
+φ.to_integral_domain
 
 /-- The inverse of an element in the field of fractions of an integral domain. -/
 protected noncomputable def inv [comm_ring K] (φ : fraction_map A K) (z : K) : K :=

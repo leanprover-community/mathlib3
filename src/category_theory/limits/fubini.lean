@@ -177,7 +177,7 @@ The Fubini theorem for a functor `F : J ⥤ K ⥤ C`,
 showing that the limit of `uncurry.obj F` can be computed as
 the limit of the limits of the functors `F.obj j`.
 -/
-def fubini : limit (uncurry.obj F) ≅ limit (F ⋙ lim) :=
+def limit_uncurry_iso_limit_comp_lim : limit (uncurry.obj F) ≅ limit (F ⋙ lim) :=
 begin
   let c := limit.cone (uncurry.obj F),
   let P : is_limit c := limit.is_limit _,
@@ -214,7 +214,7 @@ The Fubini theorem for a functor `G : J × K ⥤ C`,
 showing that the limit of `G` can be computed as
 the limit of the limits of the functors `G.obj (j, _)`.
 -/
-def fubini' : limit G ≅ limit ((curry.obj G) ⋙ lim) :=
+def limit_iso_limit_curry_comp_lim : limit G ≅ limit ((curry.obj G) ⋙ lim) :=
 begin
   have i : G ≅ uncurry.obj ((@curry J _ K _ C _).obj G) := currying.symm.unit_iso.app G,
   haveI : limits.has_limit (uncurry.obj ((@curry J _ K _ C _).obj G)) :=

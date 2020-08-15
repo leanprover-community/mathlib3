@@ -50,7 +50,7 @@ lemma symm :
   pythagorean_triple y x z :=
 by rwa [pythagorean_triple_comm]
 
-/-- A triple is still a triple if you multiple each of `x`, `y` and `z`
+/-- A triple is still a triple if you multiply `x`, `y` and `z`
 by a constant `k` -/
 lemma mul (k : ℤ) : pythagorean_triple (k * x) (k * y) (k * z) :=
 begin

@@ -1209,13 +1209,8 @@ def fraction_map_of_finite_extension [algebra A L] [algebra f.codomain L]
   fraction_map (integral_closure A L) L :=
 fraction_map_of_algebraic
   (f.comap_is_algebraic_iff.mpr is_algebraic_of_finite)
-<<<<<<< HEAD
-  (λ x hx, f.to_map_eq_zero_iff.mp ((algebra_map f.codomain L).map_eq_zero.mp $
-    (is_algebra_tower.algebra_map_apply _ _ _ _).symm.trans hx))
-=======
   (λ x hx, f.to_map_eq_zero_iff.mpr ((algebra_map f.codomain L).map_eq_zero.mp $
     (is_scalar_tower.algebra_map_apply _ _ _ _).symm.trans hx))
->>>>>>> 8f75f96381240118c7db8c34ebbf73c24018586d
 
 end integral_closure
 

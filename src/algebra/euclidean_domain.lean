@@ -14,15 +14,19 @@ universe u
 section prio
 set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
+/-- A `euclidean_domain` is an `integral_domain` with a division and a remainder, satisfying
+  `b * (a / b) + a % b = a`. The definition of a euclidean domain usually includes a valuation
+  function `R → ℕ`. This definition is slightly generalised to include a well founded relation
+  `r` with the property that `r (a % b) b`, instead of a valuation.  -/
 @[protect_proj without mul_left_not_lt r_well_founded]
-class euclidean_domain (α : Type u) extends comm_ring α, nontrivial α :=
-(quotient : α → α → α)
+class euclidean_domain (R : Type u) extends comm_ring R, nontrivial R :=
+(quotient : R → R → R)
 (quotient_zero : ∀ a, quotient a 0 = 0)
-(remainder : α → α → α)
+(remainder : R → R → R)
  -- This could be changed to the same order as int.mod_add_div.
  -- We normally write qb+r rather than r + qb though.
 (quotient_mul_add_remainder_eq : ∀ a b, b * quotient a b + remainder a b = a)
-(r : α → α → Prop)
+(r : R → R → Prop)
 (r_well_founded : well_founded r)
 (remainder_lt : ∀ a {b}, b ≠ 0 → r (remainder a b) b)
 /- `val_le_mul_left` is often not a required in definitions of a euclidean
@@ -148,6 +152,8 @@ end
 section gcd
 variable [decidable_eq α]
 
+/-- `gcd a b` is a (non-unique) element such that `gcd a b ∣ a` `gcd a b ∣ b`, and for 
+  any element `c` such that `c ∣ a` and `c ∣ b`, then `c ∣ gcd a b` -/
 def gcd : α → α → α
 | a := λ b, if a0 : a = 0 then b else
   have h:_ := mod_lt b a0,
@@ -261,6 +267,8 @@ end gcd
 section lcm
 variables [decidable_eq α]
 
+/-- `lcm a b` is a (non-unique) element such that `a ∣ lcm a b` `b ∣ lcm a b`, and for 
+  any element `c` such that `a ∣ c` and `b ∣ c`, then `lcm a b ∣ c` -/
 def lcm (x y : α) : α :=
 x * y / gcd x y
 

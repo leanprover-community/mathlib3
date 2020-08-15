@@ -26,14 +26,13 @@ Let R be an integral domain, assumed to be a principal ideal ring and a local ri
 
 * `discrete_valuation_ring R` : a predicate expressing that R is a DVR
 
-### Notation
+### Definitions
+
+## Implementation notes
 
 It's a theorem that an element of a DVR is a uniformiser if and only if it's irreducible.
 We do not hence define `uniformiser` at all, because we can use `irreducible` instead.
 
-### Definitions
-
-## Implementation notes
 
 ## Tags
 
@@ -73,13 +72,11 @@ begin
   intro h,
   have h2 : ¬(is_unit ϖ) := show ϖ ∈ maximal_ideal R,
     from h.symm ▸ submodule.mem_span_singleton_self ϖ,
-  split, exact h2,
+  refine ⟨h2, _⟩,
   intros a b hab,
   by_contra h,
   push_neg at h,
-  cases h with ha hb,
-  change a ∈ maximal_ideal R at ha,
-  change b ∈ maximal_ideal R at hb,
+  obtain ⟨ha : a ∈ maximal_ideal R, hb : b ∈ maximal_ideal R⟩ := h,
   rw h at ha hb,
   rw mem_span_singleton' at ha hb,
   rcases ha with ⟨a, rfl⟩,
@@ -87,10 +84,10 @@ begin
   rw (show a * ϖ * (b * ϖ) = ϖ * (ϖ * (a * b)), by ring) at hab,
   have h3 := eq_zero_of_mul_eq_self_right _ hab.symm,
   { apply not_a_field R,
-    simp [h, h3]},
+    simp [h, h3] },
   { intro hh, apply h2,
     refine is_unit_of_dvd_one ϖ _,
-    use a * b, exact hh.symm}
+    use a * b, exact hh.symm }
 end⟩
 
 variable (R)
@@ -111,25 +108,24 @@ begin
     resetI,
     use local_ring.maximal_ideal R,
     split, split,
-    { assumption},
-    { apply_instance},
+    { assumption },
+    { apply_instance } ,
     { rintro Q ⟨hQ1, hQ2⟩,
       obtain ⟨q, rfl⟩ := (is_principal_ideal_ring.principal Q).1,
       have hq : q ≠ 0,
       { rintro rfl,
         apply hQ1,
-        simp,
-      },
+        simp },
       erw span_singleton_prime hq at hQ2,
       replace hQ2 := irreducible_of_prime hQ2,
       rw irreducible_iff_uniformiser at hQ2,
-      exact hQ2.symm}},
+      exact hQ2.symm } },
   { rintro ⟨RPID, Punique⟩,
     haveI : local_ring R := local_of_unique_nonzero_prime R Punique,
     refine {not_a_field' := _},
     rcases Punique with ⟨P, ⟨hP1, hP2⟩, hP3⟩,
     have hPM : P ≤ maximal_ideal R := le_maximal_ideal (hP2.1),
-    intro h, rw [h, le_bot_iff] at hPM, exact hP1 hPM}
+    intro h, rw [h, le_bot_iff] at hPM, exact hP1 hPM }
 end
 
 lemma associated_of_irreducible {a b : R} (ha : irreducible a) (hb : irreducible b) :
@@ -154,9 +150,6 @@ namespace has_unit_mul_pow_irreducible_factorization
 variables {R} [integral_domain R] (hR : has_unit_mul_pow_irreducible_factorization R)
 include hR
 
--- /-- Implementation detail: temporary valuation on `R` -/
--- def val (x : R) : ℕ :=
-
 lemma unique_irreducible ⦃p q : R⦄ (hp : irreducible p) (hq : irreducible q) :
   associated p q :=
 begin
@@ -179,7 +172,10 @@ begin
       exact (hϖ.not_unit (is_unit_of_mul_is_unit_left H0)).elim } }
 end
 
-/-- Implementation detail: an integral domain in which-/
+/-- Implementation detail: an integral domain in which there is a unit `p`
+such that every nonzero element is associated to a power of `p` is a unique factorization domain.
+
+See `discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization`. -/
 noncomputable def UFD : unique_factorization_domain R :=
 let p := classical.some hR in
 let spec := classical.some_spec hR in
@@ -210,7 +206,7 @@ let spec := classical.some_spec hR in
 
 omit hR
 
-def of_UFD_of_unique_irreducible [unique_factorization_domain R]
+lemma of_UFD_of_unique_irreducible [unique_factorization_domain R]
   (h₁ : ∃ p : R, irreducible p)
   (h₂ : ∀ ⦃p q : R⦄, irreducible p → irreducible q → associated p q) :
   has_unit_mul_pow_irreducible_factorization R :=
@@ -266,6 +262,11 @@ begin
     exact nat.find_spec ex, },
 end
 
+/--
+A unique factorization domain with at least one irreducible element
+in which all irreducible elements are associated
+is a discrete valuation ring.
+-/
 def of_UFD_of_unique_irreducible {R : Type u} [integral_domain R] [unique_factorization_domain R]
   (h₁ : ∃ p : R, irreducible p)
   (h₂ : ∀ ⦃p q : R⦄, irreducible p → irreducible q → associated p q) :
@@ -288,6 +289,11 @@ begin
     rwa [unique_factorization_domain.irreducible_iff_prime, ← ideal.span_singleton_prime I0], },
 end
 
+/--
+An integral domain in which there is a unit `p`
+such that every nonzero element is associated to a power of `p`
+is a discrete valuation ring.
+-/
 def of_has_unit_mul_pow_irreducible_factorization {R : Type u} [integral_domain R]
   (hR : has_unit_mul_pow_irreducible_factorization R) :
   discrete_valuation_ring R :=

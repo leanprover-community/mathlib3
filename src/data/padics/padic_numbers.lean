@@ -10,37 +10,40 @@ import analysis.normed_space.basic
 /-!
 # p-adic numbers
 
-This file defines the p-adic numbers (rationals) ℚ_p as the completion of ℚ with respect to the
-p-adic norm. We show that the p-adic norm on ℚ extends to ℚ_p, that ℚ is embedded in ℚ_p, and that
-ℚ_p is Cauchy complete.
+This file defines the p-adic numbers (rationals) `ℚ_p` as the completion of `ℚ` with respect to the
+p-adic norm. We show that the p-adic norm on ℚ extends to `ℚ_p`, that `ℚ` is embedded in `ℚ_p`, and that
+`ℚ_p` is Cauchy complete.
 
 ## Important definitions
 
 * `padic` : the type of p-adic numbers
-* `padic_norm_e` : the rational valued p-adic norm on ℚ_p
+* `padic_norm_e` : the rational valued p-adic norm on `ℚ_p`
 
 ## Notation
 
-We introduce the notation ℚ_[p] for the p-adic numbers.
+We introduce the notation `ℚ_[p]` for the p-adic numbers.
 
 ## Implementation notes
 
 Much, but not all, of this file assumes that `p` is prime. This assumption is inferred automatically
 by taking `[fact (prime p)]` as a type class argument.
 
-We use the same concrete Cauchy sequence construction that is used to construct ℝ. ℚ_p inherits a
-field structure from this construction. The extension of the norm on ℚ to ℚ_p is *not* analogous to
-extending the absolute value to ℝ, and hence the proof that ℚ_p is complete is different from the
+We use the same concrete Cauchy sequence construction that is used to construct ℝ. `ℚ_p` inherits a
+field structure from this construction. The extension of the norm on ℚ to `ℚ_p` is *not* analogous to
+extending the absolute value to ℝ, and hence the proof that `ℚ_p` is complete is different from the
 proof that ℝ is complete.
 
 A small special-purpose simplification tactic, `padic_index_simp`, is used to manipulate sequence
 indices in the proof that the norm extends.
 
-`padic_norm_e` is the rational-valued p-adic norm on ℚ_p. To instantiate ℚ_p as a normed field, we
-must cast this into a ℝ-valued norm. The ℝ-valued norm, using notation ∥ ∥ from normed spaces, is
-the canonical representation of this norm.
+`padic_norm_e` is the rational-valued p-adic norm on `ℚ_p`. To instantiate `ℚ_p` as a normed field,
+we must cast this into a ℝ-valued norm. The `ℝ`-valued norm, using notation `∥ ∥` from normed spaces,
+is the canonical representation of this norm.
 
-Coercions from ℚ to ℚ_p are set up to work with the `norm_cast` tactic.
+`simp` prefers `padic_norm` to `padic_norm_e` when possible.
+Since `padic_norm_e` and `∥ ∥` have different types, `simp` does not rewrite one to the other.
+
+Coercions from `ℚ` to `ℚ_p` are set up to work with the `norm_cast` tactic.
 
 ## References
 
@@ -450,7 +453,7 @@ namespace padic
 section completion
 variables {p : ℕ} [fact p.prime]
 
-/-- The discrete field structure on ℚ_p is inherited from the Cauchy completion construction. -/
+/-- The discrete field structure on `ℚ_p` is inherited from the Cauchy completion construction. -/
 instance field : field (ℚ_[p]) :=
 cau_seq.completion.field
 
@@ -541,7 +544,7 @@ instance : char_zero ℚ_[p] :=
 end completion
 end padic
 
-/-- The rational-valued p-adic norm on ℚ_p is lifted from the norm on Cauchy sequences. The
+/-- The rational-valued p-adic norm on `ℚ_p` is lifted from the norm on Cauchy sequences. The
 canonical form of this function is the normed space instance, with notation `∥ ∥`. -/
 def padic_norm_e {p : ℕ} [hp : fact p.prime] : ℚ_[p] → ℚ :=
 quotient.lift padic_seq.norm $ @padic_seq.norm_equiv _ _

@@ -224,6 +224,11 @@ instance pow.is_monoid_hom (n : ℕ) : is_monoid_hom ((^ n) : M → M) :=
 instance nsmul.is_add_monoid_hom (n : ℕ) : is_add_monoid_hom (nsmul n : A → A) :=
 { map_add := λ _ _, nsmul_add _ _ _, map_zero := nsmul_zero _ }
 
+lemma dvd_pow {x y : M} :
+  ∀ {n : ℕ} (hxy : x ∣ y) (hn : n ≠ 0), x ∣ y^n
+| 0     hxy hn := (hn rfl).elim
+| (n+1) hxy hn := by { rw [pow_succ], exact dvd_mul_of_dvd_left hxy _ }
+
 end comm_monoid
 
 section group

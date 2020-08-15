@@ -125,6 +125,11 @@ inverse is defined to be 0. -/
 def inv : ℤ_[p] → ℤ_[p]
 | ⟨k, _⟩ := if h : ∥k∥ = 1 then ⟨1/k, by simp [h]⟩ else 0
 
+instance : char_zero ℤ_[p] :=
+{ cast_injective :=
+  λ m n h, cast_injective $
+  show (m:ℚ_[p]) = n, by { rw subtype.ext_iff at h, norm_cast at h, exact h } }
+
 end padic_int
 
 section instances
@@ -387,14 +392,8 @@ begin
   { exact uniformizer_nonunit },
   { rw [ne.def, ← norm_eq_zero, norm_uniformizer],
     apply one_div_ne_zero,
-    exact_mod_cast _inst_1.ne_zero }
+    exact_mod_cast nat.prime.ne_zero ‹_› }
 end
-
--- move this
-lemma dvd_pow {M : Type*} [comm_monoid M] {x y : M} :
-  ∀ {n : ℕ} (hxy : x ∣ y) (hn : n ≠ 0), x ∣ y^n
-| 0     hxy hn := (hn rfl).elim
-| (n+1) hxy hn := by { rw [pow_succ], exact dvd_mul_of_dvd_left hxy _ }
 
 -- move this
 lemma p_dvd_of_norm_lt_one {x : ℤ_[p]} (hx : ∥x∥ < 1) : ↑p ∣ x :=
@@ -419,11 +418,6 @@ begin
   { rw [ideal.span_le, set.singleton_subset_iff, ← uniformizer_eq_p], exact uniformizer_nonunit }
 end
 
--- move this?
-instance : char_zero ℤ_[p] :=
-{ cast_injective :=
-  λ m n h, cast_injective $
-  show (m:ℚ_[p]) = n, by { rw subtype.ext_iff at h, norm_cast at h, exact h } }
 
 lemma prime_p : prime (p : ℤ_[p]) :=
 begin

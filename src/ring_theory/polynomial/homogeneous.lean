@@ -128,7 +128,9 @@ begin
   rw [coeff_mul] at hc,
   obtain ⟨⟨d, e⟩, hde, H⟩ := finset.exists_ne_zero_of_sum_ne_zero hc,
   have aux : coeff d φ ≠ 0 ∧ coeff e ψ ≠ 0,
-  { contrapose! H, cases H with H H; simp only [H, zero_mul, mul_zero] },
+  { contrapose! H,
+    by_cases h : coeff d φ = 0;
+    simp only [*, ne.def, not_false_iff, zero_mul, mul_zero] at * },
   specialize hφ aux.1, specialize hψ aux.2,
   rw finsupp.mem_antidiagonal_support at hde,
   classical,

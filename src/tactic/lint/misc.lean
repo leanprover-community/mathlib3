@@ -89,7 +89,8 @@ return $ if d.type.contains_constant (λ n, n ∈ illegal_ge_gt) &&
 { test := ge_or_gt_in_statement,
   auto_decls := ff,
   no_errors_found := "Not using ≥/> in declarations",
-  errors_found := "USING ≥/> IN DECLARATIONS",
+  errors_found := "The following declarations use ≥/>, probably in a way where we would prefer
+  to use ≤/< instead. See note [nolint_ge] for more information.",
   is_fast := ff }
 
 /--

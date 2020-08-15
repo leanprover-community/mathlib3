@@ -24,12 +24,49 @@ open tactic expr
 /-!
 ## Linter against use of `>`/`≥`
 -/
+/-- The names of `≥` and `>`, mostly disallowed in lemma statements -/
+private meta def illegal_ge_gt : list name := [`gt, `ge]
+
+set_option eqn_compiler.max_steps 20000
+/--
+  Checks whether `≥` and `>` occurs in an illegal way in the expression.
+  The main ways it can occur legally are:
+  - `f (≥)`
+  - `∃ x ≥ t, b`. This corresponds to the expression
+    `@Exists α (fun (x : α), (@Exists (x > t) (λ (H : x > t), b)))`
+  The only legal ways for `ge` (or `gt`) to occur are
+  - `f (@ge _ _)`
+  - `f (&0 ≥ y) (λ x : t, b)`
+  - `λ H : &0 ≥ t, b`
+  Here `&0` is the 0-th de Bruijn variable.
+-/
+private meta def contains_illegal_ge_gt : expr → bool
+| (const nm us) := if nm ∈ illegal_ge_gt then tt else ff
+| (app f e@(app (app (const nm us) tp) tc)) :=
+  contains_illegal_ge_gt f || if nm ∈ illegal_ge_gt then ff else contains_illegal_ge_gt e
+| (app (app custom_binder (app (app (app (app (const nm us) tp) tc) (var 0)) t))
+    e@(lam var_name bi var_type body)) :=
+  contains_illegal_ge_gt e || if nm ∈ illegal_ge_gt then ff else contains_illegal_ge_gt e
+| (app f x) := contains_illegal_ge_gt f || contains_illegal_ge_gt x
+| (lam `H bi (app (app (app (app (const nm us) tp) tc) (var 0)) t) body) :=
+  contains_illegal_ge_gt body
+| (lam var_name bi var_type body) := contains_illegal_ge_gt var_type || contains_illegal_ge_gt body
+| (pi `H bi (app (app (app (app (const nm us) tp) tc) (var 0)) t) body) :=
+  contains_illegal_ge_gt body
+| (pi var_name bi var_type body) := contains_illegal_ge_gt var_type || contains_illegal_ge_gt body
+| (elet var_name type assignment body) :=
+  contains_illegal_ge_gt type || contains_illegal_ge_gt assignment || contains_illegal_ge_gt body
+| _ := ff
 
 /-- Checks whether a `>`/`≥` is used in the statement of `d`.
+
+It first does a quick check to see if there is any `≥` or `>` in the statement, and then does a
+slower check whether the occurrences of `≥` and `>` are allowed.
 Currently it checks only the conclusion of the declaration, to eliminate false positive from
 binders such as `∀ ε > 0, ...` -/
 private meta def ge_or_gt_in_statement (d : declaration) : tactic (option string) :=
-return $ let illegal := [`gt, `ge] in if d.type.pi_codomain.contains_constant (λ n, n ∈ illegal)
+return $ if d.type.contains_constant (λ n, n ∈ illegal_ge_gt) &&
+  contains_illegal_ge_gt d.type
   then some "the type contains ≥/>. Use ≤/< instead."
   else none
 
@@ -58,10 +95,14 @@ return $ let illegal := [`gt, `ge] in if d.type.pi_codomain.contains_constant (�
 
 /--
 Currently, the linter forbids the use of `>` and `≥` in definitions and
-statements, as they cause problems in rewrites. However, we still allow them in some contexts,
-for instance when expressing properties of the operator (as in `cobounded (≥)`), or in quantifiers
-such as `∀ ε > 0`. Such statements should be marked with the attribute `nolint` to avoid linter
-failures.
+statements, as they cause problems in rewrites.
+They are still allowed in statements such as `bounded (≥)` or `∀ ε > 0` or `⨆ n ≥ m`,
+and the linter allows that.
+If you write a pattern where you bind two or more variables `∃ n m > 0`, the linter will flag this
+as illegal, but is is also allowed. In this case, add the attribute
+```
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+```
 -/
 library_note "nolint_ge"
 

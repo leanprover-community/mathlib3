@@ -3,8 +3,6 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
-import tactic.interactive
-import tactic.push_neg
 import data.subtype
 import data.prod
 
@@ -48,6 +46,9 @@ open function
 - expand module docs
 - automatic construction of dual definitions / theorems
 
+## See also
+- `algebra.order` for basic lemmas about orders, and projection notation for orders
+
 ## Tags
 
 preorder, order, partial order, linear order, monotone, strictly monotone
@@ -55,10 +56,6 @@ preorder, order, partial order, linear order, monotone, strictly monotone
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
-
-@[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem ge_of_eq [preorder α] {a b : α} : a = b → a ≥ b :=
-λ h, h ▸ le_refl a
 
 theorem preorder.ext {α} {A B : preorder α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
@@ -182,7 +179,7 @@ lemma le_iff_le (H : strict_mono f) {a b} :
 end
 
 protected lemma nat {β} [preorder β] {f : ℕ → β} (h : ∀n, f n < f (n+1)) : strict_mono f :=
-by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact lt.trans ih (h _) }
+by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact ih.trans (h _) }
 
 -- `preorder α` isn't strong enough: if the preorder on α is an equivalence relation,
 -- then `strict_mono f` is vacuously true.
@@ -205,15 +202,17 @@ begin
     apply h _ _ k }
 end
 
-variables [partial_order α] [partial_order β] {f : α → β}
-
-lemma strict_mono_of_monotone_of_injective (h₁ : monotone f) (h₂ : injective f) :
-  strict_mono f :=
+lemma strict_mono_of_monotone_of_injective [partial_order α] [partial_order β] {f : α → β}
+  (h₁ : monotone f) (h₂ : injective f) : strict_mono f :=
 λ a b h,
 begin
   rw lt_iff_le_and_ne at ⊢ h,
   exact ⟨h₁ h.1, λ e, h.2 (h₂ e)⟩
 end
+
+lemma strict_mono_of_le_iff_le [preorder α] [preorder β] {f : α → β}
+  (h : ∀ x y, x ≤ y ↔ f x ≤ f y) : strict_mono f :=
+λ a b, by simp [lt_iff_le_not_le, h] {contextual := tt}
 
 end
 
@@ -236,7 +235,7 @@ lemma dual_lt [has_lt α] {a b : α} :
 
 instance (α : Type*) [preorder α] : preorder (order_dual α) :=
 { le_refl  := le_refl,
-  le_trans := assume a b c hab hbc, le_trans hbc hab,
+  le_trans := assume a b c hab hbc, hbc.trans hab,
   lt_iff_le_not_le := λ _ _, lt_iff_le_not_le,
   .. order_dual.has_le α,
   .. order_dual.has_lt α }
@@ -364,6 +363,10 @@ class no_top_order (α : Type u) [preorder α] : Prop :=
 lemma no_top [preorder α] [no_top_order α] : ∀a:α, ∃a', a < a' :=
 no_top_order.no_top
 
+instance nonempty_gt {α : Type u} [preorder α] [no_top_order α] (a : α) :
+  nonempty {x // a < x} :=
+nonempty_subtype.2 (no_top a)
+
 /-- order without a bottom element; somtimes called coinitial or dense -/
 class no_bot_order (α : Type u) [preorder α] : Prop :=
 (no_bot : ∀a:α, ∃a', a' < a)
@@ -378,6 +381,10 @@ instance order_dual.no_top_order (α : Type u) [preorder α] [no_bot_order α] :
 instance order_dual.no_bot_order (α : Type u) [preorder α] [no_top_order α] :
   no_bot_order (order_dual α) :=
 ⟨λ a, @no_top α _ _ a⟩
+
+instance nonempty_lt {α : Type u} [preorder α] [no_bot_order α] (a : α) :
+  nonempty {x // x < a} :=
+nonempty_subtype.2 (no_bot a)
 
 /-- An order is dense if there is an element between any pair of distinct elements. -/
 class densely_ordered (α : Type u) [preorder α] : Prop :=

@@ -31,7 +31,7 @@ lemma tendsto_at_top_mul_left [decidable_linear_ordered_semiring α] [archimedea
   tendsto (λx, r * f x) l at_top :=
 begin
   apply (tendsto_at_top _ _).2 (λb, _),
-  obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1 : α) ≤ n • r := archimedean.arch 1 hr,
+  obtain ⟨n : ℕ, hn : 1 ≤ n •ℕ r⟩ := archimedean.arch 1 hr,
   have hn' : 1 ≤ r * n, by rwa nsmul_eq_mul' at hn,
   filter_upwards [(tendsto_at_top _ _).1 hf (n * max b 0)],
   assume x hx,
@@ -50,7 +50,7 @@ lemma tendsto_at_top_mul_right [decidable_linear_ordered_semiring α] [archimede
   tendsto (λx, f x * r) l at_top :=
 begin
   apply (tendsto_at_top _ _).2 (λb, _),
-  obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1 : α) ≤ n • r := archimedean.arch 1 hr,
+  obtain ⟨n : ℕ, hn : 1 ≤ n •ℕ r⟩ := archimedean.arch 1 hr,
   have hn' : 1 ≤ (n : α) * r, by rwa nsmul_eq_mul at hn,
   filter_upwards [(tendsto_at_top _ _).1 hf (max b 0 * n)],
   assume x hx,
@@ -90,7 +90,7 @@ tendsto_at_top_mul_right' (inv_pos.2 hr) hf
 
 /-- The function `x ↦ x⁻¹` tends to `+∞` on the right of `0`. -/
 lemma tendsto_inv_zero_at_top [discrete_linear_ordered_field α] [topological_space α]
-  [order_topology α] : tendsto (λx:α, x⁻¹) (nhds_within (0 : α) (set.Ioi 0)) at_top :=
+  [order_topology α] : tendsto (λx:α, x⁻¹) (𝓝[set.Ioi (0:α)] 0) at_top :=
 begin
   apply (tendsto_at_top _ _).2 (λb, _),
   refine mem_nhds_within_Ioi_iff_exists_Ioo_subset.2 ⟨(max b 1)⁻¹, by simp [zero_lt_one], λx hx, _⟩,
@@ -103,7 +103,7 @@ end
 
 /-- The function `r ↦ r⁻¹` tends to `0` on the right as `r → +∞`. -/
 lemma tendsto_inv_at_top_zero' [discrete_linear_ordered_field α] [topological_space α]
-  [order_topology α] : tendsto (λr:α, r⁻¹) at_top (nhds_within (0 : α) (set.Ioi 0)) :=
+  [order_topology α] : tendsto (λr:α, r⁻¹) at_top (𝓝[set.Ioi (0:α)] 0) :=
 begin
   assume s hs,
   rw mem_nhds_within_Ioi_iff_exists_Ioc_subset at hs,
@@ -167,11 +167,11 @@ begin
 end
 
 lemma lim_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
-  tendsto (norm : 𝕜 → ℝ) (nhds_within 0 {x | x ≠ 0}) (nhds_within 0 (set.Ioi 0)) :=
+  tendsto (norm : 𝕜 → ℝ) (𝓝[{x | x ≠ 0}] 0) (𝓝[set.Ioi 0] 0) :=
 lim_norm_zero.inf $ tendsto_principal_principal.2 $ λ x hx, norm_pos_iff.2 hx
 
 lemma normed_field.tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] :
-  tendsto (λ x:𝕜, ∥x⁻¹∥) (nhds_within 0 {x | x ≠ 0}) at_top :=
+  tendsto (λ x:𝕜, ∥x⁻¹∥) (𝓝[{x | x ≠ 0}] 0) at_top :=
 (tendsto_inv_zero_at_top.comp lim_norm_zero').congr $ λ x, (normed_field.norm_inv x).symm
 
 lemma tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
@@ -261,7 +261,7 @@ lemma summable_geometric_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : sum
 ⟨_, has_sum_geometric_of_lt_1 h₁ h₂⟩
 
 lemma tsum_geometric_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
-tsum_eq_has_sum (has_sum_geometric_of_lt_1 h₁ h₂)
+(has_sum_geometric_of_lt_1 h₁ h₂).tsum_eq
 
 lemma has_sum_geometric_two : has_sum (λn:ℕ, ((1:ℝ)/2) ^ n) 2 :=
 by convert has_sum_geometric_of_lt_1 _ _; norm_num
@@ -270,7 +270,7 @@ lemma summable_geometric_two : summable (λn:ℕ, ((1:ℝ)/2) ^ n) :=
 ⟨_, has_sum_geometric_two⟩
 
 lemma tsum_geometric_two : (∑'n:ℕ, ((1:ℝ)/2) ^ n) = 2 :=
-tsum_eq_has_sum has_sum_geometric_two
+has_sum_geometric_two.tsum_eq
 
 lemma sum_geometric_two_le (n : ℕ) : ∑ (i : ℕ) in range n, (1 / (2 : ℝ)) ^ i ≤ 2 :=
 begin
@@ -292,7 +292,7 @@ lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :
 ⟨a, has_sum_geometric_two' a⟩
 
 lemma tsum_geometric_two' (a : ℝ) : (∑' n:ℕ, (a / 2) / 2^n) = a :=
-tsum_eq_has_sum $ has_sum_geometric_two' a
+(has_sum_geometric_two' a).tsum_eq
 
 lemma nnreal.has_sum_geometric {r : nnreal} (hr : r < 1) :
   has_sum (λ n : ℕ, r ^ n) (1 - r)⁻¹ :=
@@ -307,7 +307,7 @@ lemma nnreal.summable_geometric {r : nnreal} (hr : r < 1) : summable (λn:ℕ, r
 ⟨_, nnreal.has_sum_geometric hr⟩
 
 lemma tsum_geometric_nnreal {r : nnreal} (hr : r < 1) : (∑'n:ℕ, r ^ n) = (1 - r)⁻¹ :=
-tsum_eq_has_sum (nnreal.has_sum_geometric hr)
+(nnreal.has_sum_geometric hr).tsum_eq
 
 /-- The series `pow r` converges to `(1-r)⁻¹`. For `r < 1` the RHS is a finite number,
 and for `1 ≤ r` the RHS equals `∞`. -/
@@ -343,7 +343,7 @@ lemma summable_geometric_of_norm_lt_1 (h : ∥ξ∥ < 1) : summable (λn:ℕ, ξ
 ⟨_, has_sum_geometric_of_norm_lt_1 h⟩
 
 lemma tsum_geometric_of_norm_lt_1 (h : ∥ξ∥ < 1) : (∑'n:ℕ, ξ ^ n) = (1 - ξ)⁻¹ :=
-tsum_eq_has_sum (has_sum_geometric_of_norm_lt_1 h)
+(has_sum_geometric_of_norm_lt_1 h).tsum_eq
 
 lemma has_sum_geometric_of_abs_lt_1 {r : ℝ} (h : abs r < 1) : has_sum (λn:ℕ, r ^ n) (1 - r)⁻¹ :=
 has_sum_geometric_of_norm_lt_1 h
@@ -467,7 +467,7 @@ cauchy_seq_of_dist_le_of_summable _ hu ⟨_, aux_has_sum_of_le_geometric hr hu�
 `f n` to the limit of `f` is bounded above by `C * r^n / (1 - r)`. -/
 lemma dist_le_of_le_geometric_of_tendsto₀ {a : α} (ha : tendsto f at_top (𝓝 a)) :
   dist (f 0) a ≤ C / (1 - r) :=
-(tsum_eq_has_sum $ aux_has_sum_of_le_geometric hr hu) ▸
+(aux_has_sum_of_le_geometric hr hu).tsum_eq ▸
   dist_le_tsum_of_dist_le_of_tendsto₀ _ hu ⟨_, aux_has_sum_of_le_geometric hr hu⟩ ha
 
 /-- If `dist (f n) (f (n+1))` is bounded by `C * r^n`, `r < 1`, then the distance from
@@ -479,7 +479,7 @@ begin
   convert dist_le_tsum_of_dist_le_of_tendsto _ hu ⟨_, this⟩ ha n,
   simp only [pow_add, mul_left_comm C, mul_div_right_comm],
   rw [mul_comm],
-  exact (eq.symm $ tsum_eq_has_sum $ this.mul_left _)
+  exact (this.mul_left _).tsum_eq.symm
 end
 
 omit hr hu
@@ -506,7 +506,7 @@ begin
   convert dist_le_tsum_of_dist_le_of_tendsto _ hu₂ (summable_geometric_two' C) ha n,
   simp only [add_comm n, pow_add, (div_div_eq_div_mul _ _ _).symm],
   symmetry,
-  exact tsum_eq_has_sum (has_sum.mul_right _ $ has_sum_geometric_two' C)
+  exact ((has_sum_geometric_two' C).mul_right _).tsum_eq
 end
 
 end le_geometric
@@ -560,13 +560,28 @@ begin
   exact eventually_norm_pow_le x,
 end
 
+/-- Bound for the sum of a geometric series in a normed ring.  This formula does not assume that the
+normed ring satisfies the axiom `∥1∥ = 1`. -/
+lemma normed_ring.tsum_geometric_of_norm_lt_1
+  (x : R) (h : ∥x∥ < 1) : ∥(∑' (n:ℕ), x ^ n)∥ ≤ ∥(1:R)∥ - 1 + (1 - ∥x∥)⁻¹ :=
+begin
+  rw tsum_eq_zero_add (normed_ring.summable_geometric_of_norm_lt_1 x h),
+  simp only [pow_zero],
+  refine le_trans (norm_add_le _ _) _,
+  have : ∥(∑' (b : ℕ), (λ n, x ^ (n + 1)) b)∥ ≤ (1 - ∥x∥)⁻¹ - 1,
+  { refine tsum_of_norm_bounded _ (λ b, norm_pow_le _ (nat.succ_pos b)),
+    convert (has_sum_nat_add_iff' 1).mpr (has_sum_geometric_of_lt_1 (norm_nonneg x) h),
+    simp },
+  linarith
+end
+
 lemma geom_series_mul_neg (x : R) (h : ∥x∥ < 1) :
   (∑' (i:ℕ), x ^ i) * (1 - x) = 1 :=
 begin
   have := has_sum_of_bounded_monoid_hom_of_summable
     (normed_ring.summable_geometric_of_norm_lt_1 x h) (∥1 - x∥)
     (mul_right_bound (1 - x)),
-  refine tendsto_nhds_unique at_top_ne_bot this.tendsto_sum_nat _,
+  refine tendsto_nhds_unique this.tendsto_sum_nat _,
   have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
   { simpa using tendsto_const_nhds.sub
       (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
@@ -582,7 +597,7 @@ begin
   have := has_sum_of_bounded_monoid_hom_of_summable
     (normed_ring.summable_geometric_of_norm_lt_1 x h) (∥1 - x∥)
     (mul_left_bound (1 - x)),
-  refine tendsto_nhds_unique at_top_ne_bot this.tendsto_sum_nat _,
+  refine tendsto_nhds_unique this.tendsto_sum_nat _,
   have : tendsto (λ (n : ℕ), 1 - x ^ n) at_top (nhds 1),
   { simpa using tendsto_const_nhds.sub
       (tendsto_pow_at_top_nhds_0_of_norm_lt_1 h) },
@@ -604,8 +619,7 @@ begin
   have hf : has_sum f ε := has_sum_geometric_two' _,
   have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos two_pos _),
   refine ⟨f ∘ encodable.encode, λ i, f0 _, _⟩,
-  rcases hf.summable.summable_comp_of_injective (@encodable.encode_injective ι _)
-    with ⟨c, hg⟩,
+  rcases hf.summable.comp_injective (@encodable.encode_injective ι _) with ⟨c, hg⟩,
   refine ⟨c, hg, has_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,
   { assume i _, exact le_of_lt (f0 _) },
   { assume n, exact le_refl _ }
@@ -683,7 +697,7 @@ lemma self_div_two_le_harmonic_two_pow (n : ℕ) : (n / 2 : ℝ) ≤ harmonic_se
 begin
   induction n with n hn,
   unfold harmonic_series,
-  simp only [one_div_eq_inv, nat.cast_zero, euclidean_domain.zero_div, nat.cast_succ, sum_singleton,
+  simp only [one_div, nat.cast_zero, euclidean_domain.zero_div, nat.cast_succ, sum_singleton,
     inv_one, zero_add, nat.pow_zero, range_one, zero_le_one],
   have : harmonic_series (2^n) + 1 / 2 ≤ harmonic_series (2^(n+1)),
   { have := half_le_harmonic_double_sub_harmonic (2^n) (by {apply nat.pow_pos, linarith}),
@@ -698,7 +712,7 @@ end
 theorem harmonic_tendsto_at_top : tendsto harmonic_series at_top at_top :=
 begin
   suffices : tendsto (λ n : ℕ, harmonic_series (2^n)) at_top at_top, by
-  { exact tendsto_at_top_of_monotone_of_subseq mono_harmonic at_top_ne_bot this },
+  { exact tendsto_at_top_of_monotone_of_subseq mono_harmonic this },
   apply tendsto_at_top_mono self_div_two_le_harmonic_two_pow,
   apply tendsto_at_top_div,
   norm_num,

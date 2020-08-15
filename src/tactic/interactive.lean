@@ -85,6 +85,35 @@ non-interactive tactic for patterns like `tac1; id {tac2}` where `tac2` is non-i
 @[inline] protected meta def id (tac : itactic) : tactic unit := tac
 
 /--
+`work_on_goal n { tac }` creates a block scope for the `n`-goal (indexed from zero),
+and does not require that the goal be solved at the end
+(any remaining subgoals are inserted back into the list of goals).
+
+Typically usage might look like:
+````
+intros,
+simp,
+apply lemma_1,
+work_on_goal 2 {
+  dsimp,
+  simp
+},
+refl
+````
+
+See also `id { tac }`, which is equivalent to `work_on_goal 0 { tac }`.
+-/
+meta def work_on_goal : parse small_nat → itactic → tactic unit
+| n t := do
+  goals ← get_goals,
+  let earlier_goals := goals.take n,
+  let later_goals := goals.drop (n+1),
+  set_goals (goals.nth n).to_list,
+  t,
+  new_goals ← get_goals,
+  set_goals (earlier_goals ++ new_goals ++ later_goals)
+
+/--
 `swap n` will move the `n`th goal to the front.
 `swap` defaults to `swap 2`, and so interchanges the first and second goals.
 -/
@@ -284,7 +313,7 @@ meta def compact_decl_aux : list name → binder_info → expr → list expr →
   tactic (list (list name × binder_info × expr))
 | ns bi t [] := pure [(ns.reverse, bi, t)]
 | ns bi t (v'@(local_const n pp bi' t') :: xs) :=
-  do t' ← get_local pp >>= infer_type,
+  do t' ← infer_type v',
      if bi = bi' ∧ t = t'
        then compact_decl_aux (pp :: ns) bi t xs
        else do vs ← compact_decl_aux [pp] bi' t' xs,
@@ -299,24 +328,16 @@ meta def compact_decl : list expr → tactic (list (list name × binder_info × 
      compact_decl_aux [pp] bi t xs
 | (_ :: xs) := compact_decl xs
 
-meta def clean_ids : list name :=
-[``id, ``id_rhs, ``id_delta, ``hidden]
-
 /--
 Remove identity functions from a term. These are normally
 automatically generated with terms like `show t, from p` or
 `(p : t)` which translate to some variant on `@id t p` in
-order to retain the type. -/
+order to retain the type.
+-/
 meta def clean (q : parse texpr) : tactic unit :=
 do tgt : expr ← target,
    e ← i_to_expr_strict ``(%%q : %%tgt),
-   tactic.exact $ e.replace (λ e n,
-     match e with
-     | (app (app (const n _) _) e') :=
-       if n ∈ clean_ids then some e' else none
-     | (app (lam _ _ _ (var 0)) e') := some e'
-     | _ := none
-     end)
+   tactic.exact $ e.clean
 
 meta def source_fields (missing : list name) (e : pexpr) : tactic (list (name × pexpr)) :=
 do e ← to_expr e,
@@ -522,6 +543,11 @@ add_tactic_doc
 `apply_rules hs n` applies the list of lemmas `hs` and `assumption` on the
 first goal and the resulting subgoals, iteratively, at most `n` times.
 `n` is optional, equal to 50 by default.
+You can pass an `apply_cfg` option argument as `apply_rules hs n opt`.
+(A typical usage would be with `apply_rules hs n { md := reducible })`,
+which asks `apply_rules` to not unfold `semireducible` definitions (i.e. most)
+when checking if a lemma matches the goal.)
+
 `hs` can contain user attributes: in this case all theorems with this
 attribute are added to the list of rules.
 
@@ -544,8 +570,9 @@ by apply_rules [mono_rules]
 by apply_rules mono_rules
 ```
 -/
-meta def apply_rules (hs : parse pexpr_list_or_texpr) (n : nat := 50) : tactic unit :=
-tactic.apply_rules hs n
+meta def apply_rules (hs : parse pexpr_list_or_texpr) (n : nat := 50) (opt : apply_cfg := {}) :
+  tactic unit :=
+tactic.apply_rules hs n opt
 
 add_tactic_doc
 { name       := "apply_rules",
@@ -640,12 +667,14 @@ add_tactic_doc
   decl_names := [`tactic.interactive.h_generalize],
   tags       := ["context management"] }
 
-/-- `choose a b h using hyp` takes an hypothesis `hyp` of the form
-`∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
-into context a function `a : X → Y → A`, `b : X → Y → B` and a proposition `h` stating
-`∀ (x : X) (y : Y), P x y (a x y) (b x y)`. It presumably also works with dependent versions.
+/-- `choose a b h h' using hyp` takes an hypothesis `hyp` of the form
+`∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b ∧ Q x y a b` for some `P Q : X → Y → A → B → Prop` and outputs
+into context a function `a : X → Y → A`, `b : X → Y → B` and two assumptions:
+`h : ∀ (x : X) (y : Y), P x y (a x y) (b x y)` and `h' : ∀ (x : X) (y : Y), Q x y (a x y) (b x y)`.
 
-Example:
+It presumably also works with dependent versions.
+
+Examples:
 
 ```lean
 example (h : ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n) : true :=
@@ -655,6 +684,17 @@ begin
   guard_hyp j := ℕ → ℕ → ℕ,
   guard_hyp h := ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
   trivial
+end
+```
+
+```lean
+example (h : ∀ i : ℕ, ∃ j, i < j ∧ j < i+i) : true :=
+begin
+  choose f h h' using h,
+  guard_hyp f := ℕ → ℕ,
+  guard_hyp h := ∀ (i : ℕ), i < f i,
+  guard_hyp h' := ∀ (i : ℕ), f i < i + i,
+  trivial,
 end
 ```
 -/
@@ -689,7 +729,7 @@ iterating the following steps:
 If the goal is an equality, this simpset will also clear the denominators, so that the proof
 can normally be concluded by an application of `ring` or `ring_exp`.
 
-`field_simp [hx, hy]` is a short form for `simp [-one_div_eq_inv, hx, hy] with field_simps`
+`field_simp [hx, hy]` is a short form for `simp [-one_div, hx, hy] with field_simps`
 
 Note that this naive algorithm will not try to detect common factors in denominators to reduce the
 complexity of the resulting expression. Instead, it relies on the ability of `ring` to handle
@@ -703,7 +743,7 @@ should be given explicitly. If your expression is not completely reduced by the 
 invocation, check the denominators of the resulting expression and provide proofs that they are
 nonzero to enable further progress.
 
-The invocation of `field_simp` removes the lemma `one_div_eq_inv` (which is marked as a simp lemma
+The invocation of `field_simp` removes the lemma `one_div` (which is marked as a simp lemma
 in core) from the simpset, as this lemma works against the algorithm explained above.
 
 For example,
@@ -725,7 +765,7 @@ meta def field_simp (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list)
   (locat : parse location) (cfg : simp_config_ext := {}) : tactic unit :=
 let attr_names := `field_simps :: attr_names,
-    hs := simp_arg_type.except `one_div_eq_inv :: hs in
+    hs := simp_arg_type.except `one_div :: hs in
 propagate_tags (simp_core cfg.to_simp_config cfg.discharger no_dflt hs attr_names locat)
 
 add_tactic_doc
@@ -973,7 +1013,7 @@ meta def clear_except (xs : parse ident *) : tactic unit :=
 do n ← xs.mmap (try_core ∘ get_local) >>= revert_lst ∘ list.filter_map id,
    ls ← local_context,
    ls.reverse.mmap' $ try ∘ tactic.clear,
-   intron n
+   intron_no_renames n
 
 add_tactic_doc
 { name       := "clear_except",
@@ -1018,7 +1058,8 @@ do ls ← local_context,
    partition_vars' (name_set.of_list $ ls.map expr.local_uniq_name) ls [] []
 
 /--
-Format the current goal as a stand-alone example. Useful for testing tactic.
+Format the current goal as a stand-alone example. Useful for testing tactics
+or creating [minimal working examples](https://leanprover-community.github.io/mwe.html).
 
 * `extract_goal`: formats the statement as an `example` declaration
 * `extract_goal my_decl`: formats the statement as a `lemma` or `def` declaration
@@ -1032,14 +1073,15 @@ example (i j k : ℕ) (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
 begin
   extract_goal,
      -- prints:
-     -- example {i j k : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
+     -- example (i j k : ℕ) (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
      -- begin
-
+     --   admit,
      -- end
   extract_goal my_lemma
-     -- lemma my_lemma {i j k : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
+     -- prints:
+     -- lemma my_lemma (i j k : ℕ) (h₀ : i ≤ j) (h₁ : j ≤ k) : i ≤ k :=
      -- begin
-
+     --   admit,
      -- end
 end
 
@@ -1047,17 +1089,39 @@ example {i j k x y z w p q r m n : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k) (h₁ 
 begin
   extract_goal my_lemma,
     -- prints:
-    -- lemma my_lemma {i j k x y z w p q r m n : ℕ} (h₀ : i ≤ j) (h₁ : j ≤ k)
-    --   (h₁ : k ≤ p) (h₁ : p ≤ q) : i ≤ k :=
+    -- lemma my_lemma {i j k x y z w p q r m n : ℕ}
+    --   (h₀ : i ≤ j)
+    --   (h₁ : j ≤ k)
+    --   (h₁ : k ≤ p)
+    --   (h₁ : p ≤ q) :
+    --   i ≤ k :=
     -- begin
-
+    --   admit,
     -- end
 
   extract_goal my_lemma with i j k
     -- prints:
-    -- lemma my_lemma {i j k : ℕ} : i ≤ k :=
+    -- lemma my_lemma {p i j k : ℕ}
+    --   (h₀ : i ≤ j)
+    --   (h₁ : j ≤ k)
+    --   (h₁ : k ≤ p) :
+    --   i ≤ k :=
     -- begin
+    --   admit,
+    -- end
+end
 
+example : true :=
+begin
+  let n := 0,
+  have m : ℕ, admit,
+  have k : fin n, admit,
+  have : n + m + k.1 = 0, extract_goal,
+    -- prints:
+    -- example (m : ℕ)  : let n : ℕ := 0 in ∀ (k : fin n), n + m + k.val = 0 :=
+    -- begin
+    --   intros n k,
+    --   admit,
     -- end
 end
 ```
@@ -1067,33 +1131,43 @@ meta def extract_goal (print_use : parse $ tt <$ tk "!" <|> pure ff)
   (n : parse ident?) (vs : parse with_ident_list)
   : tactic unit :=
 do tgt ← target,
-   ((cxt₀,cxt₁),_) ← solve_aux tgt $
-       when (¬ vs.empty) (clear_except vs) >>
-       partition_vars,
-   tgt ← target,
-   is_prop ← is_prop tgt,
-   let title := match n, is_prop with
-                | none, _ := to_fmt "example"
-                | (some n), tt := format!"lemma {n}"
-                | (some n), ff := format!"def {n}"
-                end,
-   cxt₀ ← compact_decl cxt₀ >>= list.mmap format_binders,
-   cxt₁ ← compact_decl cxt₁ >>= list.mmap format_binders,
-   stmt ← pformat!"{tgt} :=",
-   let fmt :=
-     format.group $ format.nest 2 $
-       title ++ cxt₀.foldl (λ acc x, acc ++ format.group (format.line ++ x)) "" ++
-       format.line ++ format.intercalate format.line cxt₁ ++ " :" ++
-       format.line ++ stmt,
-   trace $ fmt.to_string $ options.mk.set_nat `pp.width 80,
-   trace!"begin\n  admit\nend\n"
+   solve_aux tgt $ do {
+     ((cxt₀,cxt₁,ls,tgt),_) ← solve_aux tgt $ do {
+         when (¬ vs.empty) (clear_except vs),
+         ls ← local_context,
+         ls ← ls.mfilter $ succeeds ∘ is_local_def,
+         n ← revert_lst ls,
+         (c₀,c₁) ← partition_vars,
+         tgt ← target,
+         ls ← intron' n,
+         pure (c₀,c₁,ls,tgt) },
+     is_prop ← is_prop tgt,
+     let title := match n, is_prop with
+                  | none, _ := to_fmt "example"
+                  | (some n), tt := format!"lemma {n}"
+                  | (some n), ff := format!"def {n}"
+                  end,
+     cxt₀ ← compact_decl cxt₀ >>= list.mmap format_binders,
+     cxt₁ ← compact_decl cxt₁ >>= list.mmap format_binders,
+     stmt ← pformat!"{tgt} :=",
+     let fmt :=
+       format.group $ format.nest 2 $
+         title ++ cxt₀.foldl (λ acc x, acc ++ format.group (format.line ++ x)) "" ++
+         format.join (list.map (λ x, format.line ++ x) cxt₁) ++ " :" ++
+         format.line ++ stmt,
+     trace $ fmt.to_string $ options.mk.set_nat `pp.width 80,
+     let var_names := format.intercalate " " $ ls.map (to_fmt ∘ local_pp_name),
+     let call_intron := if ls.empty
+                     then to_fmt ""
+                     else format!"\n  intros {var_names},",
+     trace!"begin{call_intron}\n  admit,\nend\n" },
+   skip
 
 add_tactic_doc
 { name       := "extract_goal",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.extract_goal],
-  tags       := ["goal management", "proof extraction"] }
-
+  tags       := ["goal management", "proof extraction", "debugging"] }
 
 /--
 `inhabit α` tries to derive a `nonempty α` instance and then upgrades this
@@ -1154,7 +1228,7 @@ add_tactic_doc
 /-- `clear_value n₁ n₂ ...` clears the bodies of the local definitions `n₁, n₂ ...`, changing them
 into regular hypotheses. A hypothesis `n : α := t` is changed to `n : α`. -/
 meta def clear_value (ns : parse ident*) : tactic unit :=
-propagate_tags $ ns.reverse.mmap' $ λ n, get_local n >>= tactic.clear_value
+propagate_tags $ ns.reverse.mmap get_local >>= tactic.clear_value
 
 add_tactic_doc
 { name       := "clear_value",
@@ -1177,10 +1251,10 @@ propagate_tags $
 do let (p, x) := p,
    e ← i_to_expr p,
    some h ← pure h | tactic.generalize' e x >> skip,
+   -- `h` is given, the regular implementation of `generalize` works.
    tgt ← target,
-   -- if generalizing fails, fall back to not replacing anything
    tgt' ← do {
-     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize' e x >> target),
+     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize e x >> target),
      to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1))
    } <|> to_expr ``(Π x, %%e = x → %%tgt),
    t ← assert h tgt',

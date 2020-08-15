@@ -31,7 +31,7 @@ noncomputable instance : has_coe_t ℝ ℝ* := ⟨λ x, (↑x : germ _ _)⟩
 
 @[simp, norm_cast]
 lemma coe_eq_coe {x y : ℝ} : (x : ℝ*) = y ↔ x = y :=
-germ.const_inj U.1
+germ.const_inj
 
 @[simp, norm_cast] lemma coe_eq_zero {x : ℝ} : (x : ℝ*) = 0 ↔ x = 0 := coe_eq_coe
 @[simp, norm_cast] lemma coe_eq_one {x : ℝ} : (x : ℝ*) = 1 ↔ x = 1 := coe_eq_coe
@@ -50,7 +50,7 @@ germ.const_inj U.1
 @[simp, norm_cast] lemma coe_lt_coe {x y : ℝ} : (x : ℝ*) < y ↔ x < y := germ.const_lt U
 @[simp, norm_cast] lemma coe_pos {x : ℝ} : 0 < (x : ℝ*) ↔ 0 < x :=
 coe_lt_coe
-@[simp, norm_cast] lemma coe_le_coe {x y : ℝ} : (x : ℝ*) ≤ y ↔ x ≤ y := germ.const_le_iff U.1
+@[simp, norm_cast] lemma coe_le_coe {x y : ℝ} : (x : ℝ*) ≤ y ↔ x ≤ y := germ.const_le_iff
 @[simp, norm_cast] lemma coe_abs (x : ℝ) : ((abs x : ℝ) : ℝ*) = abs x := germ.const_abs _ _
 @[simp, norm_cast] lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y := germ.const_max _ _ _
 @[simp, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min _ _ _
@@ -689,7 +689,7 @@ lemma is_st_inv {x : ℝ*} {r : ℝ} (hi : ¬ infinitesimal x) : is_st x r → i
 have H : _ := exists_st_of_not_infinite $ not_imp_not.mpr (infinitesimal_iff_infinite_inv h).mpr hi,
 Exists.cases_on H $ λ s hs,
 have H' : is_st 1 (r * s) := mul_inv_cancel h ▸ is_st_mul hxr hs,
-have H'' : s = r⁻¹ := one_div_eq_inv r ▸ eq_one_div_of_mul_eq_one (eq_of_is_st_real H').symm,
+have H'' : s = r⁻¹ := one_div r ▸ eq_one_div_of_mul_eq_one (eq_of_is_st_real H').symm,
 H'' ▸ hs
 
 lemma st_inv (x : ℝ*) : st x⁻¹ = (st x)⁻¹ :=

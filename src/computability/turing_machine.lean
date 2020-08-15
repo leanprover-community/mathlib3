@@ -7,6 +7,7 @@ import algebra.order
 import data.fintype.basic
 import data.pfun
 import tactic.apply_fun
+import logic.function.iterate
 
 /-!
 # Turing machines

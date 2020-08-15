@@ -43,7 +43,7 @@ private def max_var : nnreal :=
 private lemma one_le_max_var : 1 ≤ max_var α β := calc
   (1 : real) = 2 * 0 + 1 + 2 * 0 : by simp
   ... ≤ 2 * diam (univ : set α) + 1 + 2 * diam (univ : set β) :
-  by apply_rules [add_le_add, mul_le_mul_of_nonneg_left, diam_nonneg, diam_nonneg]; norm_num
+  by apply_rules [add_le_add, mul_le_mul_of_nonneg_left, diam_nonneg]; norm_num
 
 /-- The set of functions on α ⊕ β that are candidates distances to realize the
 minimum of the Hausdorff distances between α and β in a coupling -/
@@ -80,7 +80,7 @@ private lemma max_var_bound : dist x y ≤ max_var α β := calc
   ... = 1 * diam (univ : set α) + 1 + 1 * diam (univ : set β) : by simp
   ... ≤ 2 * diam (univ : set α) + 1 + 2 * diam (univ : set β) :
   begin
-    apply_rules [add_le_add, mul_le_mul_of_nonneg_right, diam_nonneg, diam_nonneg, le_refl],
+    apply_rules [add_le_add, mul_le_mul_of_nonneg_right, diam_nonneg, le_refl],
     norm_num, norm_num
   end
 
@@ -232,7 +232,7 @@ begin
 end
 
 /-- Compactness of candidates (in bounded_continuous_functions) follows -/
-private lemma compact_candidates_b : compact (candidates_b α β) :=
+private lemma compact_candidates_b : is_compact (candidates_b α β) :=
 begin
   refine arzela_ascoli₂ (Icc 0 (max_var α β)) compact_Icc (candidates_b α β) closed_candidates_b _ _,
   { rintros f ⟨x1, x2⟩ hf,

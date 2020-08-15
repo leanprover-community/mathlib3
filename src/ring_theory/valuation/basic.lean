@@ -6,7 +6,7 @@ Authors: Kevin Buzzard, Johan Commelin, Patrick Massot
 
 import algebra.linear_ordered_comm_group_with_zero
 import algebra.group_power
-import ring_theory.ideal_operations
+import ring_theory.ideal.operations
 import ring_theory.subring
 import algebra.punit_instances
 
@@ -321,6 +321,10 @@ begin
        ... ≤ v (a + s)      : aux (a + s) (-s) (by rwa ←ideal.neg_mem_iff at h)
 end
 
+-- This causes a loop between `decidable_linear_order` and `linear_order`.
+-- see https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.233733.20algebraic.20closure
+local attribute [-instance] classical.DLO
+
 /-- If `hJ : J ⊆ supp v` then `on_quot_val hJ` is the induced function on R/J as a function.
 Note: it's just the function; the valuation is `on_quot hJ`. -/
 def on_quot_val {J : ideal R} (hJ : J ≤ supp v) :
@@ -339,7 +343,7 @@ def on_quot {J : ideal R} (hJ : J ≤ supp v) :
   map_add'  := λ xbar ybar, quotient.ind₂' v.map_add xbar ybar }
 
 @[simp] lemma on_quot_comap_eq {J : ideal R} (hJ : J ≤ supp v) :
-  (v.on_quot hJ).comap (ideal.quotient.mk_hom J) = v :=
+  (v.on_quot hJ).comap (ideal.quotient.mk J) = v :=
 ext $ λ r,
 begin
   refine @quotient.lift_on_beta _ _ (J.quotient_rel) v (λ a b h, _) _,
@@ -356,16 +360,16 @@ begin
 end
 
 lemma self_le_supp_comap (J : ideal R) (v : valuation (quotient J) Γ₀) :
-  J ≤ (v.comap (ideal.quotient.mk_hom J)).supp :=
+  J ≤ (v.comap (ideal.quotient.mk J)).supp :=
 by { rw [comap_supp, ← ideal.map_le_iff_le_comap], simp }
 
 @[simp] lemma comap_on_quot_eq (J : ideal R) (v : valuation J.quotient Γ₀) :
-  (v.comap (ideal.quotient.mk_hom J)).on_quot (v.self_le_supp_comap J) = v :=
+  (v.comap (ideal.quotient.mk J)).on_quot (v.self_le_supp_comap J) = v :=
 ext $ by { rintro ⟨x⟩, refl }
 
 /-- The quotient valuation on R/J has support supp(v)/J if J ⊆ supp v. -/
 lemma supp_quot {J : ideal R} (hJ : J ≤ supp v) :
-  supp (v.on_quot hJ) = (supp v).map (ideal.quotient.mk_hom J) :=
+  supp (v.on_quot hJ) = (supp v).map (ideal.quotient.mk J) :=
 begin
   apply le_antisymm,
   { rintro ⟨x⟩ hx,

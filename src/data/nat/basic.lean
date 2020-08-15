@@ -3,8 +3,6 @@ Copyright (c) 2014 Floris van Doorn (c) 2016 Microsoft Corporation. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import tactic.finish
-import algebra.ordered_ring
 import algebra.order_functions
 import data.set.basic
 
@@ -647,6 +645,9 @@ protected theorem dvd_add_left {k m n : ℕ} (h : k ∣ n) : k ∣ m + n ↔ k �
 protected theorem dvd_add_right {k m n : ℕ} (h : k ∣ m) : k ∣ m + n ↔ k ∣ n :=
 (nat.dvd_add_iff_right h).symm
 
+@[simp] protected theorem not_two_dvd_bit1 (n : ℕ) : ¬ 2 ∣ bit1 n :=
+mt (nat.dvd_add_right two_dvd_bit0).1 dec_trivial
+
 /-- A natural number m divides the sum m + n if and only if m divides b.-/
 @[simp] protected lemma dvd_add_self_left {m n : ℕ} :
   m ∣ m + n ↔ m ∣ n :=
@@ -718,6 +719,8 @@ end
 lemma sub_mod_eq_zero_of_mod_eq {a b c : ℕ} (h : a % c = b % c) : (a - b) % c = 0 :=
 by rw [←nat.mod_add_div a c, ←nat.mod_add_div b c, ←h, ←nat.sub_sub, nat.add_sub_cancel_left,
        ←nat.mul_sub_left_distrib, nat.mul_mod_right]
+
+@[simp] lemma one_mod (n : ℕ) : 1 % (n + 2) = 1 := nat.mod_eq_of_lt (add_lt_add_right n.succ_pos 1)
 
 lemma dvd_sub_mod (k : ℕ) : n ∣ (k - (k % n)) :=
 ⟨k / n, nat.sub_eq_of_eq_add (nat.mod_add_div k n).symm⟩
@@ -1535,6 +1538,24 @@ begin
   apply mul_pos,
   repeat {assumption},
   cc
+end
+
+@[simp]
+lemma div_div_div_eq_div : ∀ {a b c : ℕ} (dvd : b ∣ a) (dvd2 : a ∣ c), (c / (a / b)) / b = c / a
+| 0 _ := by simp
+| (a + 1) 0 := λ _ dvd _, by simpa using dvd
+| (a + 1) (c + 1) :=
+have a_split : a + 1 ≠ 0 := succ_ne_zero a,
+have c_split : c + 1 ≠ 0 := succ_ne_zero c,
+λ b dvd dvd2,
+begin
+  rcases dvd2 with ⟨k, rfl⟩,
+  rcases dvd with ⟨k2, pr⟩,
+  have k2_nonzero : k2 ≠ 0 := λ k2_zero, by simpa [k2_zero] using pr,
+  rw [nat.mul_div_cancel_left k (nat.pos_of_ne_zero a_split), pr,
+    nat.mul_div_cancel_left k2 (nat.pos_of_ne_zero c_split), nat.mul_comm ((c + 1) * k2) k,
+    ←nat.mul_assoc k (c + 1) k2, nat.mul_div_cancel _ (nat.pos_of_ne_zero k2_nonzero),
+    nat.mul_div_cancel _ (nat.pos_of_ne_zero c_split)],
 end
 
 lemma pow_dvd_of_le_of_pow_dvd {p m n k : ℕ} (hmn : m ≤ n) (hdiv : p ^ n ∣ k) : p ^ m ∣ k :=

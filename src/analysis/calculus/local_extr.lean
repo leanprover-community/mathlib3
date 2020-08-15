@@ -122,8 +122,8 @@ begin
   rcases hy with ⟨c, d, hd, hc, hcd⟩,
   have hc' : tendsto (λ n, ∥c n∥) at_top at_top,
     from tendsto_at_top_mono (λ n, le_abs_self _) hc,
-  refine le_of_tendsto at_top_ne_bot (hf.lim at_top hd hc' hcd) _,
-  replace hd : tendsto (λ n, a + d n) at_top (nhds_within (a + 0) s),
+  refine le_of_tendsto (hf.lim at_top hd hc' hcd) _,
+  replace hd : tendsto (λ n, a + d n) at_top (𝓝[s] (a + 0)),
   from tendsto_inf.2 ⟨tendsto_const_nhds.add (tangent_cone_at.lim_zero _ hc' hcd),
     by rwa tendsto_principal⟩,
   rw [add_zero] at hd,
@@ -314,5 +314,37 @@ let ⟨c, cmem, hc⟩ := exists_local_extr_Ioo f hab hfc hfI in
 lemma exists_deriv_eq_zero : ∃ c ∈ Ioo a b, deriv f c = 0 :=
 let ⟨c, cmem, hc⟩ := exists_local_extr_Ioo f hab hfc hfI in
   ⟨c, cmem, hc.deriv_eq_zero⟩
+
+omit hfc hfI
+
+variables {f f'}
+
+lemma exists_has_deriv_at_eq_zero' {l : ℝ}
+  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 l)) (hfb : tendsto f (𝓝[Iio b] b) (𝓝 l))
+  (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) :
+  ∃ c ∈ Ioo a b, f' c = 0 :=
+begin
+  have : continuous_on f (Ioo a b) := λ x hx, (hff' x hx).continuous_at.continuous_within_at,
+  have hcont := continuous_on_Icc_extend_from_Ioo hab this hfa hfb,
+  obtain ⟨c, hc, hcextr⟩ : ∃ c ∈ Ioo a b, is_local_extr (extend_from (Ioo a b) f) c,
+  { apply exists_local_extr_Ioo _ hab hcont,
+    rw eq_lim_at_right_extend_from_Ioo hab hfb,
+    exact eq_lim_at_left_extend_from_Ioo hab hfa },
+  use [c, hc],
+  apply (hcextr.congr _).has_deriv_at_eq_zero (hff' c hc),
+  rw eventually_eq_iff_exists_mem,
+  exact ⟨Ioo a b, Ioo_mem_nhds hc.1 hc.2, extend_from_extends this⟩
+end
+
+lemma exists_deriv_eq_zero' {l : ℝ}
+  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 l)) (hfb : tendsto f (𝓝[Iio b] b) (𝓝 l)) :
+  ∃ c ∈ Ioo a b, deriv f c = 0 :=
+classical.by_cases
+  (assume h : ∀ x ∈ Ioo a b, differentiable_at ℝ f x,
+    show ∃ c ∈ Ioo a b, deriv f c = 0,
+      from exists_has_deriv_at_eq_zero' hab hfa hfb (λ x hx, (h x hx).has_deriv_at))
+  (assume h : ¬∀ x ∈ Ioo a b, differentiable_at ℝ f x,
+    have h : ∃ x, x ∈ Ioo a b ∧ ¬differentiable_at ℝ f x, by { push_neg at h, exact h },
+      let ⟨c, hc, hcdiff⟩ := h in ⟨c, hc, deriv_zero_of_not_differentiable_at hcdiff⟩)
 
 end Rolle

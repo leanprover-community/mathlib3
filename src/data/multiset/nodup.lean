@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 import data.multiset.powerset
+import data.multiset.range
 
 /-!
 # The `nodup` predicate for multisets without duplicate elements.
@@ -54,6 +55,9 @@ quot.induction_on s $ λ l, nodup_iff_count_le_one
 @[simp] theorem count_eq_one_of_mem [decidable_eq α] {a : α} {s : multiset α}
   (d : nodup s) (h : a ∈ s) : count a s = 1 :=
 le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos.2 h)
+
+lemma nodup_iff_pairwise {α} {s : multiset α} : nodup s ↔ pairwise (≠) s :=
+quotient.induction_on s $ λ l, (pairwise_coe_iff_pairwise (by exact λ a b, ne.symm)).symm
 
 lemma pairwise_of_nodup {r : α → α → Prop} {s : multiset α} :
   (∀a∈s, ∀b∈s, a ≠ b → r a b) → nodup s → pairwise r s :=

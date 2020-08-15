@@ -50,8 +50,7 @@ begin
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine ⟨(ε/2)⁻¹ * ∥c∥ * 2 * n, _, λy, _⟩,
   { refine mul_nonneg (mul_nonneg (mul_nonneg _ (norm_nonneg _)) (by norm_num)) _,
-    refine inv_nonneg.2 (div_nonneg' (le_of_lt εpos) (by norm_num)),
-    exact nat.cast_nonneg n },
+    exacts [inv_nonneg.2 (div_nonneg (le_of_lt εpos) (by norm_num)), n.cast_nonneg] },
   { by_cases hy : y = 0,
     { use 0, simp [hy] },
     { rcases rescale_to_shell hc (half_pos εpos) hy with ⟨d, hd, ydle, leyd, dinv⟩,
@@ -132,7 +131,7 @@ begin
   have hnle : ∀n:ℕ, ∥(h^[n]) y∥ ≤ (1/2)^n * ∥y∥,
   { assume n,
     induction n with n IH,
-    { simp only [one_div_eq_inv, nat.nat_zero_eq_zero, one_mul, iterate_zero_apply,
+    { simp only [one_div, nat.nat_zero_eq_zero, one_mul, iterate_zero_apply,
         pow_zero] },
     { rw [iterate_succ'],
       apply le_trans (hle _) _,
@@ -179,9 +178,7 @@ begin
     rw this,
     refine tendsto.mul _ tendsto_const_nhds,
     exact tendsto_pow_at_top_nhds_0_of_lt_1 (by norm_num) (by norm_num) },
-  have feq : f x = y - 0,
-  { apply tendsto_nhds_unique _ L₁ L₂,
-    simp },
+  have feq : f x = y - 0 := tendsto_nhds_unique L₁ L₂,
   rw sub_zero at feq,
   exact ⟨x, feq, x_ineq⟩
 end
@@ -212,6 +209,7 @@ end
 namespace linear_equiv
 
 /-- If a bounded linear map is a bijection, then its inverse is also a bounded linear map. -/
+@[continuity]
 theorem continuous_symm (e : E ≃ₗ[𝕜] F) (h : continuous e) :
   continuous e.symm :=
 begin
@@ -229,7 +227,6 @@ def to_continuous_linear_equiv_of_continuous (e : E ≃ₗ[𝕜] F) (h : continu
 { continuous_to_fun := h,
   continuous_inv_fun := e.continuous_symm h,
   ..e }
-
 @[simp] lemma coe_fn_to_continuous_linear_equiv_of_continuous (e : E ≃ₗ[𝕜] F) (h : continuous e) :
   ⇑(e.to_continuous_linear_equiv_of_continuous h) = e := rfl
 

@@ -10,7 +10,6 @@ Includes the Prop and fun instances.
 import order.lattice
 import data.option.basic
 import tactic.pi_instances
-import tactic.norm_cast
 
 set_option old_structure_cmd true
 
@@ -899,6 +898,9 @@ instance [bounded_distrib_lattice α] [bounded_distrib_lattice β] :
 end prod
 
 section disjoint
+
+section semilattice_inf_bot
+
 variable [semilattice_inf_bot α]
 
 /-- Two elements of a lattice are disjoint if their inf is the bottom element.
@@ -934,6 +936,26 @@ by simp [disjoint]
 
 lemma disjoint.ne {a b : α} (ha : a ≠ ⊥) (hab : disjoint a b) : a ≠ b :=
 by { intro h, rw [←h, disjoint_self] at hab, exact ha hab }
+
+end semilattice_inf_bot
+
+section bounded_distrib_lattice
+
+variables [bounded_distrib_lattice α] {a b c : α}
+
+@[simp] lemma disjoint_sup_left : disjoint (a ⊔ b) c ↔ disjoint a c ∧ disjoint b c :=
+by simp only [disjoint_iff, inf_sup_right, sup_eq_bot_iff]
+
+@[simp] lemma disjoint_sup_right : disjoint a (b ⊔ c) ↔ disjoint a b ∧ disjoint a c :=
+by simp only [disjoint_iff, inf_sup_left, sup_eq_bot_iff]
+
+lemma disjoint.sup_left (ha : disjoint a c) (hb : disjoint b c) : disjoint (a ⊔ b) c :=
+disjoint_sup_left.2 ⟨ha, hb⟩
+
+lemma disjoint.sup_right (hb : disjoint a b) (hc : disjoint a c) : disjoint a (b ⊔ c) :=
+disjoint_sup_right.2 ⟨hb, hc⟩
+
+end bounded_distrib_lattice
 
 end disjoint
 
@@ -1007,6 +1029,18 @@ of_eq
 lemma inf_sup {x' y'} (h : is_compl x y) (h' : is_compl x' y') :
   is_compl (x ⊓ x') (y ⊔ y') :=
 (h.symm.sup_inf h'.symm).symm
+
+lemma inf_left_eq_bot_iff (h : is_compl y z) : x ⊓ y = ⊥ ↔ x ≤ z :=
+inf_eq_bot_iff_le_compl h.sup_eq_top h.inf_eq_bot
+
+lemma inf_right_eq_bot_iff (h : is_compl y z) : x ⊓ z = ⊥ ↔ x ≤ y :=
+h.symm.inf_left_eq_bot_iff
+
+lemma disjoint_left_iff (h : is_compl y z) : disjoint x y ↔ x ≤ z :=
+disjoint_iff.trans h.inf_left_eq_bot_iff
+
+lemma disjoint_right_iff (h : is_compl y z) : disjoint x z ↔ x ≤ y :=
+h.symm.disjoint_left_iff
 
 end is_compl
 

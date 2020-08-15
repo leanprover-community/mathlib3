@@ -114,19 +114,19 @@ end constructions
 section prod
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 
-lemma continuous_fst : continuous (@prod.fst α β) :=
+@[continuity] lemma continuous_fst : continuous (@prod.fst α β) :=
 continuous_inf_dom_left continuous_induced_dom
 
 lemma continuous_at_fst {p : α × β} : continuous_at prod.fst p :=
 continuous_fst.continuous_at
 
-lemma continuous_snd : continuous (@prod.snd α β) :=
+@[continuity] lemma continuous_snd : continuous (@prod.snd α β) :=
 continuous_inf_dom_right continuous_induced_dom
 
 lemma continuous_at_snd {p : α × β} : continuous_at prod.snd p :=
 continuous_snd.continuous_at
 
-lemma continuous.prod_mk {f : γ → α} {g : γ → β}
+@[continuity] lemma continuous.prod_mk {f : γ → α} {g : γ → β}
   (hf : continuous f) (hg : continuous g) : continuous (λx, (f x, g x)) :=
 continuous_inf_rng (continuous_induced_rng hf) (continuous_induced_rng hg)
 
@@ -154,7 +154,7 @@ lemma is_open_prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
   is_open (set.prod s t) :=
 is_open_inter (continuous_fst s hs) (continuous_snd t ht)
 
-lemma nhds_prod_eq {a : α} {b : β} : 𝓝 (a, b) = filter.prod (𝓝 a) (𝓝 b) :=
+lemma nhds_prod_eq {a : α} {b : β} : 𝓝 (a, b) = 𝓝 a ×ᶠ 𝓝 b :=
 by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced, nhds_induced]
 
 instance [discrete_topology α] [discrete_topology β] : discrete_topology (α × β) :=
@@ -314,8 +314,7 @@ end
 lemma closure_prod_eq {s : set α} {t : set β} :
   closure (set.prod s t) = set.prod (closure s) (closure t) :=
 set.ext $ assume ⟨a, b⟩,
-have filter.prod (𝓝 a) (𝓝 b) ⊓ 𝓟 (set.prod s t) =
-  filter.prod (𝓝 a ⊓ 𝓟 s) (𝓝 b ⊓ 𝓟 t),
+have (𝓝 a ×ᶠ 𝓝 b) ⊓ 𝓟 (set.prod s t) = (𝓝 a ⊓ 𝓟 s) ×ᶠ (𝓝 b ⊓ 𝓟 t),
   by rw [←prod_inf_prod, prod_principal_principal],
 by simp [closure_eq_cluster_pts, cluster_pt, nhds_prod_eq, this]; exact prod_ne_bot
 
@@ -364,13 +363,13 @@ section sum
 open sum
 variables [topological_space α] [topological_space β] [topological_space γ]
 
-lemma continuous_inl : continuous (@inl α β) :=
+@[continuity] lemma continuous_inl : continuous (@inl α β) :=
 continuous_sup_rng_left continuous_coinduced_rng
 
-lemma continuous_inr : continuous (@inr α β) :=
+@[continuity] lemma continuous_inr : continuous (@inr α β) :=
 continuous_sup_rng_right continuous_coinduced_rng
 
-lemma continuous_sum_rec {f : α → γ} {g : β → γ}
+@[continuity] lemma continuous_sum_rec {f : α → γ} {g : β → γ}
   (hf : continuous f) (hg : continuous g) : @continuous (α ⊕ β) γ _ _ (@sum.rec α β (λ_, γ) f g) :=
 continuous_sup_dom hf hg
 
@@ -451,7 +450,7 @@ variables [topological_space α] [topological_space β] [topological_space γ] {
 lemma embedding_subtype_coe : embedding (coe : subtype p → α) :=
 ⟨⟨rfl⟩, subtype.coe_injective⟩
 
-lemma continuous_subtype_val : continuous (@subtype.val α p) :=
+@[continuity] lemma continuous_subtype_val : continuous (@subtype.val α p) :=
 continuous_induced_dom
 
 lemma continuous_subtype_coe : continuous (coe : subtype p → α) :=
@@ -477,7 +476,7 @@ lemma is_closed.closed_embedding_subtype_coe {s : set α} (hs : is_closed s) :
   inj := subtype.coe_injective,
   closed_range := (subtype.range_coe : range coe = s).symm ▸ hs }
 
-lemma continuous_subtype_mk {f : β → α}
+@[continuity] lemma continuous_subtype_mk {f : β → α}
   (hp : ∀x, p (f x)) (h : continuous f) : continuous (λx, (⟨f x, hp x⟩ : subtype p)) :=
 continuous_induced_rng h
 
@@ -552,10 +551,10 @@ variables {r : α → α → Prop} {s : setoid α}
 lemma quotient_map_quot_mk : quotient_map (@quot.mk α r) :=
 ⟨quot.exists_rep, rfl⟩
 
-lemma continuous_quot_mk : continuous (@quot.mk α r) :=
+@[continuity] lemma continuous_quot_mk : continuous (@quot.mk α r) :=
 continuous_coinduced_rng
 
-lemma continuous_quot_lift {f : α → β} (hr : ∀ a b, r a b → f a = f b)
+@[continuity] lemma continuous_quot_lift {f : α → β} (hr : ∀ a b, r a b → f a = f b)
   (h : continuous f) : continuous (quot.lift f hr : quot r → β) :=
 continuous_coinduced_dom h
 
@@ -574,16 +573,19 @@ end quotient
 section pi
 variables {ι : Type*} {π : ι → Type*}
 
+@[continuity]
 lemma continuous_pi [topological_space α] [∀i, topological_space (π i)] {f : α → Πi:ι, π i}
   (h : ∀i, continuous (λa, f a i)) : continuous f :=
 continuous_infi_rng $ assume i, continuous_induced_rng $ h i
 
+@[continuity]
 lemma continuous_apply [∀i, topological_space (π i)] (i : ι) :
   continuous (λp:Πi, π i, p i) :=
 continuous_infi_dom continuous_induced_dom
 
 /-- Embedding a factor into a product space (by fixing arbitrarily all the other coordinates) is
 continuous. -/
+@[continuity]
 lemma continuous_update [decidable_eq ι] [∀i, topological_space (π i)] {i : ι} {f : Πi:ι, π i} :
   continuous (λ x : π i, function.update f i x) :=
 begin
@@ -653,6 +655,7 @@ end pi
 section sigma
 variables {ι : Type*} {σ : ι → Type*} [Π i, topological_space (σ i)]
 
+@[continuity]
 lemma continuous_sigma_mk {i : ι} : continuous (@sigma.mk ι σ i) :=
 continuous_supr_rng continuous_coinduced_rng
 
@@ -714,10 +717,12 @@ lemma embedding_sigma_mk {i : ι} : embedding (@sigma.mk ι σ i) :=
 closed_embedding_sigma_mk.1
 
 /-- A map out of a sum type is continuous if its restriction to each summand is. -/
+@[continuity]
 lemma continuous_sigma [topological_space β] {f : sigma σ → β}
   (h : ∀ i, continuous (λ a, f ⟨i, a⟩)) : continuous f :=
 continuous_supr_dom (λ i, continuous_coinduced_dom (h i))
 
+@[continuity]
 lemma continuous_sigma_map {κ : Type*} {τ : κ → Type*} [Π k, topological_space (τ k)]
   {f₁ : ι → κ} {f₂ : Π i, σ i → τ (f₁ i)} (hf : ∀ i, continuous (f₂ i)) :
   continuous (sigma.map f₁ f₂) :=
@@ -744,7 +749,7 @@ end
 lemma embedding_sigma_map {τ : ι → Type*} [Π i, topological_space (τ i)]
   {f : Π i, σ i → τ i} (hf : ∀ i, embedding (f i)) : embedding (sigma.map id f) :=
 begin
-  refine ⟨⟨_⟩, sigma_map_injective function.injective_id (λ i, (hf i).inj)⟩,
+  refine ⟨⟨_⟩, function.injective_id.sigma_map (λ i, (hf i).inj)⟩,
   refine le_antisymm
     (continuous_iff_le_induced.mp (continuous_sigma_map (λ i, (hf i).continuous))) _,
   intros s hs,
@@ -778,10 +783,12 @@ end sigma
 
 section ulift
 
-lemma continuous_ulift_down [topological_space α] : continuous (ulift.down : ulift.{v u} α → α) :=
+@[continuity] lemma continuous_ulift_down [topological_space α] :
+  continuous (ulift.down : ulift.{v u} α → α) :=
 continuous_induced_dom
 
-lemma continuous_ulift_up [topological_space α] : continuous (ulift.up : α → ulift.{v u} α) :=
+@[continuity] lemma continuous_ulift_up [topological_space α] :
+  continuous (ulift.up : α → ulift.{v u} α) :=
 continuous_induced_rng continuous_id
 
 end ulift

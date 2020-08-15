@@ -5,6 +5,7 @@ Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.const
 import category_theory.yoneda
+import category_theory.reflects_isomorphisms
 
 universes v u u' -- declare the `v`'s first; see `category_theory.category` for an explanation
 
@@ -180,6 +181,16 @@ namespace cones
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.inv_comp_eq.mpr (w j) } }
 
+/--
+Given a cone morphism whose object part is an isomorphism, produce an
+isomorphism of cones.
+-/
+def cone_iso_of_hom_iso {K : J ⥤ C} {c d : cone K} (f : c ⟶ d) [i : is_iso f.hom] :
+  is_iso f :=
+{ inv :=
+  { hom := i.inv,
+    w' := λ j, (as_iso f.hom).inv_comp_eq.2 (f.w j).symm } }
+
 @[simps] def postcompose {G : J ⥤ C} (α : F ⟶ G) : cone F ⥤ cone G :=
 { obj := λ c, { X := c.X, π := c.π ≫ α },
   map := λ c₁ c₂ f, { hom := f.hom, w' :=
@@ -268,6 +279,20 @@ instance functoriality_full [full G] [faithful G] : full (functoriality F G) :=
 instance functoriality_faithful [faithful G] : faithful (cones.functoriality F G) :=
 { map_injective' := λ X Y f g e, by { ext1, injection e, apply G.map_injective h_1 } }
 
+/--
+If `F` reflects isomorphisms, then `cones.functoriality F` reflects isomorphisms
+as well.
+-/
+instance reflects_cone_isomorphism (F : C ⥤ D) [reflects_isomorphisms F] (K : J ⥤ C) :
+  reflects_isomorphisms (cones.functoriality K F) :=
+begin
+  constructor,
+  introsI,
+  haveI : is_iso (F.map f.hom) := (cones.forget (K ⋙ F)).map_is_iso ((cones.functoriality K F).map f),
+  haveI := reflects_isomorphisms.reflects F f.hom,
+  apply cone_iso_of_hom_iso
+end
+
 end
 
 end cones
@@ -294,6 +319,16 @@ namespace cocones
   (φ : c.X ≅ c'.X) (w : ∀ j, c.ι.app j ≫ φ.hom = c'.ι.app j) : c ≅ c' :=
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.comp_inv_eq.mpr (w j).symm } }
+
+/--
+Given a cocone morphism whose object part is an isomorphism, produce an
+isomorphism of cocones.
+-/
+def cocone_iso_of_hom_iso {K : J ⥤ C} {c d : cocone K} (f : c ⟶ d) [i : is_iso f.hom] :
+  is_iso f :=
+{ inv :=
+  { hom := i.inv,
+    w' := λ j, (as_iso f.hom).comp_inv_eq.2 (f.w j).symm } }
 
 @[simps] def precompose {G : J ⥤ C} (α : G ⟶ F) : cocone F ⥤ cocone G :=
 { obj := λ c, { X := c.X, ι := α ≫ c.ι },
@@ -381,6 +416,20 @@ instance functoriality_full [full G] [faithful G] : full (functoriality F G) :=
 instance functoriality_faithful [faithful G] : faithful (functoriality F G) :=
 { map_injective' := λ X Y f g e, by { ext1, injection e, apply G.map_injective h_1 } }
 
+/--
+If `F` reflects isomorphisms, then `cocones.functoriality F` reflects isomorphisms
+as well.
+-/
+instance reflects_cocone_isomorphism (F : C ⥤ D) [reflects_isomorphisms F] (K : J ⥤ C) :
+  reflects_isomorphisms (cocones.functoriality K F) :=
+begin
+  constructor,
+  introsI,
+  haveI : is_iso (F.map f.hom) := (cocones.forget (K ⋙ F)).map_is_iso ((cocones.functoriality K F).map f),
+  haveI := reflects_isomorphisms.reflects F f.hom,
+  apply cocone_iso_of_hom_iso
+end
+
 end
 end cocones
 
@@ -429,8 +478,8 @@ begin
   { dsimp,
     erw [comp_id, ← H.inv_fun_id.hom.naturality (c.π.app j), comp_map, H.map_comp],
     congr' 1,
-    erw [← cancel_epi (H.inv_fun_id.inv.app (H.obj (F.obj j))), nat_iso.inv_hom_id_app,
-         ← (functor.as_equivalence H).functor_unit _, ← H.map_comp, nat_iso.hom_inv_id_app,
+    erw [← cancel_epi (H.inv_fun_id.inv.app (H.obj (F.obj j))), iso.inv_hom_id_app,
+         ← (functor.as_equivalence H).functor_unit _, ← H.map_comp, iso.hom_inv_id_app,
          H.map_id],
     refl }
 end

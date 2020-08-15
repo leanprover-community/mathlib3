@@ -147,7 +147,7 @@ lemma ultrafilter_extend_extends (f : α → γ) : ultrafilter.extend f ∘ pure
 begin
   letI : topological_space α := ⊥,
   letI : discrete_topology α := ⟨rfl⟩,
-  exact funext (dense_inducing_pure.extend_eq_of_cont continuous_of_discrete_topology)
+  exact funext (dense_inducing_pure.extend_eq continuous_of_discrete_topology)
 end
 
 variables  [compact_space γ]
@@ -182,7 +182,7 @@ lemma ultrafilter_extend_eq_iff {f : α → γ} {b : ultrafilter α} {c : γ} :
    exact le_refl _
  end,
  assume h, by letI : topological_space α := ⊥; exact
-   dense_inducing_pure.extend_eq (le_trans (map_mono (ultrafilter_comap_pure_nhds _)) h)⟩
+   dense_inducing_pure.extend_eq_of_tendsto (le_trans (map_mono (ultrafilter_comap_pure_nhds _)) h)⟩
 
 end extension
 
@@ -277,7 +277,8 @@ begin
   assume z gz,
     calc map ff g ≤ map ff (𝓝 ⟦z⟧) : map_mono gz
               ... ≤ 𝓝 (ff ⟦z⟧) : (continuous_stone_cech_extend hf).tendsto _,
-  exact tendsto_nhds_unique u.1 (lim x gx) (lim y gy)
+  haveI := u.1,
+  exact tendsto_nhds_unique (lim x gx) (lim y gy)
 end
 
 instance stone_cech.compact_space : compact_space (stone_cech α) :=

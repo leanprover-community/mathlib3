@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébastien Gouëzel
 -/
 import data.real.ennreal
+import data.finset.intervals
 import topology.uniform_space.uniform_embedding
 import topology.uniform_space.pi
 import topology.uniform_space.uniform_convergence
@@ -335,7 +336,7 @@ uniform_space.complete_of_cauchy_seq_tendsto uniformity_has_countable_basis
 lemma tendsto_locally_uniformly_on_iff {ι : Type*} [topological_space β]
   {F : ι → β → α} {f : β → α} {p : filter ι} {s : set β} :
   tendsto_locally_uniformly_on F f p s ↔
-  ∀ ε > 0, ∀ x ∈ s, ∃ t ∈ nhds_within x s, ∀ᶠ n in p, ∀ y ∈ t, edist (f y) (F n y) < ε :=
+  ∀ ε > 0, ∀ x ∈ s, ∃ t ∈ 𝓝[s] x, ∀ᶠ n in p, ∀ y ∈ t, edist (f y) (F n y) < ε :=
 begin
   refine ⟨λ H ε hε, H _ (edist_mem_uniformity hε), λ H u hu x hx, _⟩,
   rcases mem_uniformity_edist.1 hu with ⟨ε, εpos, hε⟩,
@@ -360,14 +361,15 @@ lemma tendsto_locally_uniformly_iff {ι : Type*} [topological_space β]
   {F : ι → β → α} {f : β → α} {p : filter ι} :
   tendsto_locally_uniformly F f p ↔
   ∀ ε > 0, ∀ (x : β), ∃ t ∈ 𝓝 x, ∀ᶠ n in p, ∀ y ∈ t, edist (f y) (F n y) < ε :=
-by simp [← nhds_within_univ, ← tendsto_locally_uniformly_on_univ, tendsto_locally_uniformly_on_iff]
+by simp only [← tendsto_locally_uniformly_on_univ, tendsto_locally_uniformly_on_iff,
+  mem_univ, forall_const, exists_prop, nhds_within_univ]
 
 /-- Expressing uniform convergence using `edist`. -/
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma tendsto_uniformly_iff {ι : Type*}
   {F : ι → β → α} {f : β → α} {p : filter ι} :
   tendsto_uniformly F f p ↔ ∀ ε > 0, ∀ᶠ n in p, ∀ x, edist (f x) (F n x) < ε :=
-by { rw [← tendsto_uniformly_on_univ, tendsto_uniformly_on_iff], simp }
+by simp only [← tendsto_uniformly_on_univ, tendsto_uniformly_on_iff, mem_univ, forall_const]
 
 end emetric
 
@@ -646,7 +648,7 @@ theorem totally_bounded_iff' {s : set α} :
 section compact
 
 /-- A compact set in an emetric space is separable, i.e., it is the closure of a countable set -/
-lemma countable_closure_of_compact {α : Type u} [emetric_space α] {s : set α} (hs : compact s) :
+lemma countable_closure_of_compact {α : Type u} [emetric_space α] {s : set α} (hs : is_compact s) :
   ∃ t ⊆ s, (countable t ∧ s = closure t) :=
 begin
   have A : ∀ (e:ennreal), e > 0 → ∃ t ⊆ s, (finite t ∧ s ⊆ (⋃x∈t, ball x e)) :=

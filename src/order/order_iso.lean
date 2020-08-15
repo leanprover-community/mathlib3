@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import logic.embedding
-import logic.function.iterate
 import order.rel_classes
 
 open function
@@ -149,7 +148,7 @@ end
 
 -- If le is preserved by an order embedding of preorders, then lt is too
 def lt_embedding_of_le_embedding [preorder α] [preorder β]
-  (f : (has_le.le : α → α → Prop) ≼o (has_le.le : β → β → Prop)) :
+  (f : ((≤) : α → α → Prop) ≼o ((≤) : β → β → Prop)) :
 (has_lt.lt : α → α → Prop) ≼o (has_lt.lt : β → β → Prop) :=
 { ord' := by intros; simp [lt_iff_le_not_le,f.ord], .. f }
 
@@ -338,3 +337,48 @@ def order_embedding.cod_restrict (p : set β) (f : r ≼o s) (H : ∀ a, f a ∈
 
 @[simp] theorem order_embedding.cod_restrict_apply (p) (f : r ≼o s) (H a) :
   order_embedding.cod_restrict p f H a = ⟨f a, H a⟩ := rfl
+
+section lattice_isos
+
+lemma order_iso.map_bot [order_bot α] [order_bot β]
+  (f : ((≤) : α → α → Prop) ≃o ((≤) : β → β → Prop)) :
+  f ⊥ = ⊥ :=
+by { rw [eq_bot_iff, ← f.apply_symm_apply ⊥, ← f.ord], apply bot_le, }
+
+lemma order_iso.map_top [order_top α] [order_top β]
+  (f : ((≤) : α → α → Prop) ≃o ((≤) : β → β → Prop)) :
+  f ⊤ = ⊤ :=
+by { rw [eq_top_iff, ← f.apply_symm_apply ⊤, ← f.ord], apply le_top, }
+
+variables {a₁ a₂ : α}
+
+lemma order_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β]
+  (f : ((≤) : α → α → Prop) ≼o ((≤) : β → β → Prop)) :
+  f (a₁ ⊓ a₂) ≤ f a₁ ⊓ f a₂ :=
+by simp [← f.ord]
+
+lemma order_iso.map_inf [semilattice_inf α] [semilattice_inf β]
+  (f : ((≤) : α → α → Prop) ≃o ((≤) : β → β → Prop)) :
+  f (a₁ ⊓ a₂) = f a₁ ⊓ f a₂ :=
+begin
+  apply le_antisymm, { apply f.to_order_embedding.map_inf_le },
+  rw [f.symm.ord, order_iso.symm_apply_apply],
+  convert f.symm.to_order_embedding.map_inf_le; simp,
+end
+
+lemma order_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]
+  (f : ((≤) : α → α → Prop) ≼o ((≤) : β → β → Prop)) :
+  f a₁ ⊔ f a₂ ≤ f (a₁ ⊔ a₂) :=
+by simp [← f.ord]
+
+
+lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β]
+  (f : ((≤) : α → α → Prop) ≃o ((≤) : β → β → Prop)) :
+  f (a₁ ⊔ a₂) = f a₁ ⊔ f a₂ :=
+begin
+  apply le_antisymm, swap, { apply f.to_order_embedding.le_map_sup },
+  rw [f.symm.ord, order_iso.symm_apply_apply],
+  convert f.symm.to_order_embedding.le_map_sup; simp,
+end
+
+end lattice_isos

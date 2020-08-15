@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 import data.fintype.basic
-import data.nat.choose
-import tactic.ring
+import algebra.big_operators.ring
 
 /-!
 Results about "big operations" over a `fintype`, and consequent
@@ -25,13 +24,16 @@ open_locale big_operators
 
 namespace fintype
 
+@[to_additive]
+lemma prod_bool [comm_monoid α] (f : bool → α) : ∏ b, f b = f tt * f ff := by simp
+
 lemma card_eq_sum_ones {α} [fintype α] : fintype.card α = ∑ a : α, 1 :=
 finset.card_eq_sum_ones _
 
 section
 open finset
 
-variables {ι : Type*} [fintype ι] [decidable_eq ι]
+variables {ι : Type*} [decidable_eq ι] [fintype ι]
 
 @[to_additive]
 lemma prod_extend_by_one [comm_monoid α] (s : finset ι) (f : ι → α) :
@@ -111,17 +113,22 @@ card_sigma _ _
   fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
 by simp [sum.fintype, fintype.of_equiv_card]
 
+@[simp] lemma finset.card_pi [decidable_eq α] {δ : α → Type*}
+  (s : finset α) (t : Π a, finset (δ a)) :
+  (s.pi t).card = ∏ a in s, card (t a) :=
+multiset.card_pi _ _
+
 @[simp] lemma fintype.card_pi_finset [decidable_eq α] [fintype α]
   {δ : α → Type*} (t : Π a, finset (δ a)) :
   (fintype.pi_finset t).card = ∏ a, card (t a) :=
 by simp [fintype.pi_finset, card_map]
 
-@[simp] lemma fintype.card_pi {β : α → Type*} [fintype α] [decidable_eq α]
+@[simp] lemma fintype.card_pi {β : α → Type*} [decidable_eq α] [fintype α]
   [f : Π a, fintype (β a)] : fintype.card (Π a, β a) = ∏ a, fintype.card (β a) :=
 fintype.card_pi_finset _
 
 -- FIXME ouch, this should be in the main file.
-@[simp] lemma fintype.card_fun [fintype α] [decidable_eq α] [fintype β] :
+@[simp] lemma fintype.card_fun [decidable_eq α] [fintype α] [fintype β] :
   fintype.card (α → β) = fintype.card β ^ fintype.card α :=
 by rw [fintype.card_pi, finset.prod_const, nat.pow_eq_pow]; refl
 
@@ -225,7 +232,7 @@ begin
   simp [finset.ext_iff]
 end
 
-@[to_additive] lemma finset.prod_fiberwise [fintype β] [decidable_eq β] [comm_monoid γ]
+@[to_additive] lemma finset.prod_fiberwise [decidable_eq β] [fintype β] [comm_monoid γ]
   (s : finset α) (f : α → β) (g : α → γ) :
   ∏ b : β, ∏ a in s.filter (λ a, f a = b), g a = ∏ a in s, g a :=
 begin
@@ -243,7 +250,7 @@ begin
 end
 
 @[to_additive]
-lemma fintype.prod_fiberwise [fintype α] [fintype β] [decidable_eq β] [comm_monoid γ]
+lemma fintype.prod_fiberwise [fintype α] [decidable_eq β] [fintype β] [comm_monoid γ]
   (f : α → β) (g : α → γ) :
   (∏ b : β, ∏ a : {a // f a = b}, g (a : α)) = ∏ a, g a :=
 begin
@@ -301,33 +308,11 @@ begin
     simp [← A, B, IH] }
 end
 
--- `to_additive` does not work on `prod_take_of_fn` because of `0 : ℕ` in the proof. Copy-paste the
--- proof instead...
+-- `to_additive` does not work on `prod_take_of_fn` because of `0 : ℕ` in the proof.
+-- Use `multiplicative` instead.
 lemma sum_take_of_fn [add_comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
   ((of_fn f).take i).sum = ∑ j in finset.univ.filter (λ (j : fin n), j.val < i), f j :=
-begin
-  have A : ∀ (j : fin n), ¬ (j.val < 0) := λ j, not_lt_bot,
-  induction i with i IH, { simp [A] },
-  by_cases h : i < n,
-  { have : i < length (of_fn f), by rwa [length_of_fn f],
-    rw sum_take_succ _ _ this,
-    have A : ((finset.univ : finset (fin n)).filter (λ j, j.val < i + 1))
-      = ((finset.univ : finset (fin n)).filter (λ j, j.val < i)) ∪ singleton (⟨i, h⟩ : fin n),
-        by { ext j, simp [nat.lt_succ_iff_lt_or_eq, fin.ext_iff, - add_comm] },
-    have B : _root_.disjoint (finset.filter (λ (j : fin n), j.val < i) finset.univ)
-      (singleton (⟨i, h⟩ : fin n)), by simp,
-    rw [A, finset.sum_union B, IH],
-    simp },
-  { have A : (of_fn f).take i = (of_fn f).take i.succ,
-    { rw ← length_of_fn f at h,
-      have : length (of_fn f) ≤ i := not_lt.mp h,
-      rw [take_all_of_le this, take_all_of_le (le_trans this (nat.le_succ _))] },
-    have B : ∀ (j : fin n), (j.val < i.succ) = (j.val < i),
-    { assume j,
-      have : j.val < i := lt_of_lt_of_le j.2 (not_lt.mp h),
-      simp [this, lt_trans this (nat.lt_succ_self _)] },
-    simp [← A, B, IH] }
-end
+@prod_take_of_fn (multiplicative α) _ n f i
 
 attribute [to_additive] prod_take_of_fn
 

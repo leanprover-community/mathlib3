@@ -97,7 +97,8 @@ term_of_ineq_prf prf >>= infer_type
 where the numerals are natively of type `tp`.
 -/
 meta def mk_neg_one_lt_zero_pf (tp : expr) : tactic expr :=
-to_expr ``((neg_neg_of_pos zero_lt_one : -1 < (0 : %%tp)))
+do zero_lt_one ← mk_mapp `zero_lt_one [tp, none],
+   mk_app `neg_neg_of_pos [zero_lt_one]
 
 /--
 If `e` is a proof that `t = 0`, `mk_neg_eq_zero_pf e` returns a proof that `-t = 0`.
@@ -161,8 +162,8 @@ meta def prove_false_by_linarith (cfg : linarith_config) : list expr → tactic 
     let inputs := hz::l',
     -- perform the elimination and fail if no contradiction is found.
     (comps, max_var) ← linear_forms_and_max_var cfg.transparency inputs,
-    certificate ← fourier_motzkin.produce_certificate comps max_var
-      | fail "linarith failed to find a contradiction",
+    certificate ← cfg.oracle.get_or_else fourier_motzkin.produce_certificate comps max_var
+      <|> fail "linarith failed to find a contradiction",
     linarith_trace "linarith has found a contradiction",
     let enum_inputs := inputs.enum,
     -- construct a list pairing nonzero coeffs with the proof of their corresponding comparison

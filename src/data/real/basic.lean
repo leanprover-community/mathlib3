@@ -458,7 +458,7 @@ def sqrt_aux (f : cau_seq ℚ abs) : ℕ → ℚ
 
 theorem sqrt_aux_nonneg (f : cau_seq ℚ abs) : ∀ i : ℕ, 0 ≤ sqrt_aux f i
 | 0       := by rw [sqrt_aux, mk_nat_eq, mk_eq_div];
-  apply div_nonneg'; exact int.cast_nonneg.2 (int.of_nat_nonneg _)
+  apply div_nonneg; exact int.cast_nonneg.2 (int.of_nat_nonneg _)
 | (n + 1) := le_max_left _ _
 
 /- TODO(Mario): finish the proof
@@ -476,7 +476,7 @@ begin
      }
 end -/
 
-noncomputable def sqrt (x : ℝ) : ℝ :=
+@[pp_nodot] noncomputable def sqrt (x : ℝ) : ℝ :=
 classical.some (sqrt_exists (le_max_left 0 x))
 /-quotient.lift_on x
   (λ f, mk ⟨sqrt_aux f, (sqrt_aux_converges f).fst⟩)

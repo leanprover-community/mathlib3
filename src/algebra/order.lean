@@ -3,24 +3,94 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import tactic.alias
+import tactic.lint
+
+/-!
+# Lemmas about inequalities
+
+This file contains some lemmas about `≤`/`≥`/`<`/`>`, and `cmp`.
+
+* We simplify `a ≥ b` and `a > b` to `b ≤ a` and `b < a`, respectively. This way we can formulate
+  all lemmas using `≤`/`<` avoiding duplication.
+
+* In some cases we introduce dot syntax aliases so that, e.g., from
+  `(hab : a ≤ b) (hbc : b ≤ c) (hbc' : b < c)` one can prove `hab.trans hbc : a ≤ c` and
+  `hab.trans_lt hbc' : a < c`.
+-/
 
 universe u
 variables {α : Type u}
 
-@[simp] lemma ge_iff_le [preorder α] {a b : α} : a ≥ b ↔ b ≤ a := iff.rfl
-@[simp] lemma gt_iff_lt [preorder α] {a b : α} : a > b ↔ b < a := iff.rfl
+alias le_trans ← has_le.le.trans
+alias lt_of_le_of_lt ← has_le.le.trans_lt
+alias le_antisymm ← has_le.le.antisymm
+alias lt_of_le_of_ne ← has_le.le.lt_of_ne
+alias le_of_lt ← has_lt.lt.le
+alias lt_trans ← has_lt.lt.trans
+alias lt_of_lt_of_le ← has_lt.lt.trans_le
+alias ne_of_lt ← has_lt.lt.ne
+alias lt_asymm ← has_lt.lt.asymm has_lt.lt.not_lt
+alias le_of_eq ← eq.le
+
+/-- A version of `le_refl` where the argument is implicit -/
+lemma le_rfl [preorder α] {x : α} : x ≤ x := le_refl x
+
+namespace eq
+/--
+If `x = y` then `y ≤ x`. Note: this lemma uses `y ≤ x` instead of `x ≥ y`,
+because `le` is used almost exclusively in mathlib.
+-/
+protected lemma ge [preorder α] {x y : α} (h : x = y) : y ≤ x := h.symm.le
+
+lemma trans_le [preorder α] {x y z : α} (h1 : x = y) (h2 : y ≤ z) : x ≤ z := h1.le.trans h2
+end eq
+
+namespace has_le
+namespace le
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+protected lemma ge [has_le α] {x y : α} (h : x ≤ y) : y ≥ x := h
+lemma trans_eq [preorder α] {x y z : α} (h1 : x ≤ y) (h2 : y = z) : x ≤ z := h1.trans h2.le
+end le
+end has_le
+
+namespace has_lt
+namespace lt
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+protected lemma gt [has_lt α] {x y : α} (h : x < y) : y > x := h
+protected lemma false [preorder α] {x : α} : x < x → false := lt_irrefl x
+end lt
+end has_lt
+
+namespace ge
+protected lemma le [has_le α] {x y : α} (h : x ≥ y) : y ≤ x := h
+end ge
+
+namespace gt
+protected lemma lt [has_lt α] {x y : α} (h : x > y) : y < x := h
+end gt
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem ge_of_eq [preorder α] {a b : α} (h : a = b) : a ≥ b :=
+h.ge
+
+@[simp, nolint ge_or_gt] -- see Note [nolint_ge]
+lemma ge_iff_le [preorder α] {a b : α} : a ≥ b ↔ b ≤ a := iff.rfl
+@[simp, nolint ge_or_gt] -- see Note [nolint_ge]
+lemma gt_iff_lt [preorder α] {a b : α} : a > b ↔ b < a := iff.rfl
 
 lemma not_le_of_lt [preorder α] {a b : α} (h : a < b) : ¬ b ≤ a :=
 (le_not_le_of_lt h).right
 
+alias not_le_of_lt ← has_lt.lt.not_le
+
 lemma not_lt_of_le [preorder α] {a b : α} (h : a ≤ b) : ¬ b < a
 | hab := not_le_of_gt hab h
 
+alias not_lt_of_le ← has_le.le.not_lt
+
 lemma le_iff_eq_or_lt [partial_order α] {a b : α} : a ≤ b ↔ a = b ∨ a < b :=
 le_iff_lt_or_eq.trans or.comm
-
-lemma lt_of_le_of_ne' [partial_order α] {a b : α} (h₁ : a ≤ b) (h₂ : a ≠ b) : a < b :=
-lt_of_le_not_le h₁ $ mt (le_antisymm h₁) h₂
 
 lemma lt_iff_le_and_ne [partial_order α] {a b : α} : a < b ↔ a ≤ b ∧ a ≠ b :=
 ⟨λ h, ⟨le_of_lt h, ne_of_lt h⟩, λ ⟨h1, h2⟩, lt_of_le_of_ne h1 h2⟩
@@ -31,6 +101,9 @@ lemma eq_iff_le_not_lt [partial_order α] {a b : α} : a = b ↔ a ≤ b ∧ ¬ 
 
 lemma eq_or_lt_of_le [partial_order α] {a b : α} (h : a ≤ b) : a = b ∨ a < b :=
 (lt_or_eq_of_le h).symm
+
+alias eq_or_lt_of_le ← has_le.le.eq_or_lt
+alias lt_or_eq_of_le ← has_le.le.lt_or_eq
 
 lemma lt_of_not_ge' [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
 lt_of_le_not_le ((le_total _ _).resolve_right h) h
@@ -46,6 +119,12 @@ lemma le_of_not_lt [linear_order α] {a b : α} : ¬ a < b → b ≤ a := not_lt
 
 lemma lt_or_le [linear_order α] : ∀ a b : α, a < b ∨ b ≤ a := lt_or_ge
 lemma le_or_lt [linear_order α] : ∀ a b : α, a ≤ b ∨ b < a := le_or_gt
+
+lemma has_le.le.lt_or_le [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a < c ∨ c ≤ b :=
+(lt_or_le a c).imp id (λ hc, hc.trans h)
+
+lemma has_le.le.le_or_lt [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a ≤ c ∨ c < b :=
+(le_or_lt a c).imp id (λ hc, hc.trans_le h)
 
 lemma not_lt_iff_eq_or_lt [linear_order α] {a b : α} : ¬ a < b ↔ a = b ∨ b < a :=
 not_lt.trans $ le_iff_eq_or_lt.trans $ or_congr eq_comm iff.rfl
@@ -113,8 +192,7 @@ lemma eq_of_forall_ge_iff [partial_order α] {a b : α}
 le_antisymm ((H _).2 (le_refl _)) ((H _).1 (le_refl _))
 
 /-- monotonicity of `≤` with respect to `→` -/
-lemma le_implies_le_of_le_of_le {a b c d : α} [preorder α]
-   (h₀ : c ≤ a) (h₁ : b ≤ d) :
+lemma le_implies_le_of_le_of_le {a b c d : α} [preorder α] (h₀ : c ≤ a) (h₁ : b ≤ d) :
   a ≤ b → c ≤ d :=
 assume h₂ : a ≤ b,
 calc  c
@@ -154,6 +232,7 @@ lemma lt_trichotomy [linear_order α] (a b : α) : a < b ∨ a = b ∨ b < a :=
 lemma lt_or_gt_of_ne [linear_order α] {a b : α} (h : a ≠ b) : a < b ∨ b < a :=
 (lt_trichotomy a b).imp_right $ λ h', h'.resolve_left h
 
+/-- Perform a case-split on the ordering of `x` and `y` in a decidable linear order. -/
 def lt_by_cases [decidable_linear_order α] (x y : α) {P : Sort*}
   (h₁ : x < y → P) (h₂ : x = y → P) (h₃ : y < x → P) : P :=
 begin

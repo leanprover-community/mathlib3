@@ -3,15 +3,17 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
+import algebra.big_operators.order
 import group_theory.coset
 import data.nat.totient
 import data.set.finite
+
 open function
 open_locale big_operators
 
 variables {α : Type*} {s : set α} {a a₁ a₂ b c: α}
 
--- TODO this lemma isn't used anywhere in this file, and should be moved elsewhere.
+-- TODO mem_range_iff_mem_finset_range_of_mod_eq should be moved elsewhere.
 namespace finset
 open finset
 
@@ -34,7 +36,7 @@ lemma conj_injective [group α] {x : α} : function.injective (λ (g : α), x * 
 λ a b h, by simpa [mul_left_inj, mul_right_inj] using h
 
 lemma mem_normalizer_fintype [group α] {s : set α} [fintype s] {x : α}
-  (h : ∀ n, n ∈ s → x * n * x⁻¹ ∈ s) : x ∈ is_subgroup.normalizer s :=
+  (h : ∀ n, n ∈ s → x * n * x⁻¹ ∈ s) : x ∈ subgroup.set_normalizer s :=
 by haveI := classical.prop_decidable;
 haveI := set.fintype_image s (λ n, x * n * x⁻¹); exact
 λ n, ⟨h n, λ h₁,
@@ -47,27 +49,30 @@ section order_of
 variable [group α]
 open quotient_group set
 
-@[simp] lemma card_trivial [fintype (is_subgroup.trivial α)] :
-  fintype.card (is_subgroup.trivial α) = 1 :=
+instance fintype_bot : fintype (⊥ : subgroup α) := ⟨{1},
+by {rintro ⟨x, ⟨hx⟩⟩, exact finset.mem_singleton_self _}⟩
+
+@[simp] lemma card_trivial :
+  fintype.card (⊥ : subgroup α) = 1 :=
 fintype.card_eq_one_iff.2
-  ⟨⟨(1 : α), by simp⟩, λ ⟨y, hy⟩, subtype.eq $ is_subgroup.mem_trivial.1 hy⟩
+  ⟨⟨(1 : α), set.mem_singleton 1⟩, λ ⟨y, hy⟩, subtype.eq $ subgroup.mem_bot.1 hy⟩
 
 variables [fintype α] [dec : decidable_eq α]
 
-instance quotient_group.fintype (s : set α) [is_subgroup s] [d : decidable_pred s] :
+instance quotient_group.fintype (s : subgroup α) [d : decidable_pred (λ a, a ∈ s)] :
   fintype (quotient s) :=
 @quotient.fintype _ _ (left_rel s) (λ _ _, d _)
 
-lemma card_eq_card_quotient_mul_card_subgroup (s : set α) [hs : is_subgroup s] [fintype s]
-  [decidable_pred s] : fintype.card α = fintype.card (quotient s) * fintype.card s :=
+lemma card_eq_card_quotient_mul_card_subgroup (s : subgroup α) [fintype s]
+  [decidable_pred (λ a, a ∈ s)] : fintype.card α = fintype.card (quotient s) * fintype.card s :=
 by rw ← fintype.card_prod;
-  exact fintype.card_congr (is_subgroup.group_equiv_quotient_times_subgroup hs)
+  exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
 
-lemma card_subgroup_dvd_card (s : set α) [is_subgroup s] [fintype s] :
+lemma card_subgroup_dvd_card (s : subgroup α) [fintype s] :
   fintype.card s ∣ fintype.card α :=
 by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgroup s]
 
-lemma card_quotient_dvd_card (s : set α) [is_subgroup s] [decidable_pred s] [fintype s] :
+lemma card_quotient_dvd_card (s : subgroup α) [decidable_pred (λ a, a ∈ s)] [fintype s] :
   fintype.card (quotient s) ∣ fintype.card α :=
 by simp [card_eq_card_quotient_mul_card_subgroup s]
 
@@ -134,12 +139,12 @@ calc a ^ i = a ^ (i % order_of a + order_of a * (i / order_of a)) :
     by simp [gpow_add, gpow_mul, pow_order_of_eq_one]
 
 lemma mem_gpowers_iff_mem_range_order_of {a a' : α} :
-  a' ∈ gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
+  a' ∈ subgroup.gpowers a ↔ a' ∈ (finset.range (order_of a)).image ((^) a : ℕ → α) :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq
   (order_of_pos a)
   (assume i, gpow_eq_mod_order_of.symm)
 
-instance decidable_gpowers : decidable_pred (gpowers a) :=
+instance decidable_gpowers : decidable_pred (subgroup.gpowers a : set α) :=
 assume a', decidable_of_iff'
   (a' ∈ (finset.range (order_of a)).image ((^) a))
   mem_gpowers_iff_mem_range_order_of
@@ -172,7 +177,7 @@ end))
 section
 local attribute [instance] set_fintype
 
-lemma order_eq_card_gpowers : order_of a = fintype.card (gpowers a) :=
+lemma order_eq_card_gpowers : order_of a = fintype.card (subgroup.gpowers a : set α) :=
 begin
   refine (finset.card_eq_of_bijective _ _ _ _).symm,
   { exact λn hn, ⟨gpow a n, ⟨n, rfl⟩⟩ },
@@ -201,21 +206,21 @@ lemma order_of_eq_prime {p : ℕ} [hp : fact p.prime]
 
 section classical
 open_locale classical
-open quotient_group
+open quotient_group subgroup
 
 /- TODO: use cardinal theory, introduce `card : set α → ℕ`, or setup decidability for cosets -/
 lemma order_of_dvd_card_univ : order_of a ∣ fintype.card α :=
 have ft_prod : fintype (quotient (gpowers a) × (gpowers a)),
-  from fintype.of_equiv α (gpowers.is_subgroup a).group_equiv_quotient_times_subgroup,
+  from fintype.of_equiv α group_equiv_quotient_times_subgroup,
 have ft_s : fintype (gpowers a),
   from @fintype.fintype_prod_right _ _ _ ft_prod _,
 have ft_cosets : fintype (quotient (gpowers a)),
-  from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, is_submonoid.one_mem⟩⟩,
+  from @fintype.fintype_prod_left _ _ _ ft_prod ⟨⟨1, (gpowers a).one_mem⟩⟩,
 have ft : fintype (quotient (gpowers a) × (gpowers a)),
   from @prod.fintype _ _ ft_cosets ft_s,
 have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
   from calc fintype.card α = @fintype.card _ ft_prod :
-      @fintype.card_congr _ _ _ ft_prod (gpowers.is_subgroup a).group_equiv_quotient_times_subgroup
+      @fintype.card_congr _ _ _ ft_prod group_equiv_quotient_times_subgroup
     ... = @fintype.card _ (@prod.fintype _ _ ft_cosets ft_s) :
       congr_arg (@fintype.card _) $ subsingleton.elim _ _
     ... = @fintype.card _ ft_cosets * @fintype.card _ ft_s :
@@ -223,7 +228,7 @@ have eq₁ : fintype.card α = @fintype.card _ ft_cosets * @fintype.card _ ft_s,
 have eq₂ : order_of a = @fintype.card _ ft_s,
   from calc order_of a = _ : order_eq_card_gpowers
     ... = _ : congr_arg (@fintype.card _) $ subsingleton.elim _ _,
-dvd.intro (@fintype.card (quotient (gpowers a)) ft_cosets) $
+dvd.intro (@fintype.card (quotient (subgroup.gpowers a)) ft_cosets) $
   by rw [eq₁, eq₂, mul_comm]
 
 omit dec
@@ -232,15 +237,18 @@ omit dec
 let ⟨m, hm⟩ := @order_of_dvd_card_univ _ a _ _ _ in
 by simp [hm, pow_mul, pow_order_of_eq_one]
 
-lemma powers_eq_gpowers (a : α) : powers a = gpowers a :=
-set.ext (λ x, ⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
-  λ ⟨i, hi⟩, ⟨(i % order_of a).nat_abs,
-    by rwa [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
-      (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← gpow_eq_mod_order_of]⟩⟩)
+lemma mem_powers_iff_mem_gpowers {a x : α} : x ∈ submonoid.powers a ↔ x ∈ gpowers a :=
+⟨λ ⟨n, hn⟩, ⟨n, by simp * at *⟩,
+λ ⟨i, hi⟩, ⟨(i % order_of a).nat_abs,
+  by rwa [← gpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
+    (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← gpow_eq_mod_order_of]⟩⟩
+
+lemma powers_eq_gpowers (a : α) : (submonoid.powers a : set α) = gpowers a :=
+set.ext $ λ x, mem_powers_iff_mem_gpowers
 
 end classical
 
-open nat
+open nat subgroup
 
 lemma order_of_pow (a : α) (n : ℕ) : order_of (a ^ n) = order_of a / gcd (order_of a) n :=
 dvd_antisymm
@@ -256,8 +264,8 @@ dvd_antisymm
             nat.div_mul_cancel (gcd_dvd_right _ _), mul_comm])))
 
 lemma image_range_order_of (a : α) :
-  finset.image (λ i, a ^ i) (finset.range (order_of a)) = (gpowers a).to_finset :=
-by { ext x, rw [set.mem_to_finset, mem_gpowers_iff_mem_range_order_of] }
+  finset.image (λ i, a ^ i) (finset.range (order_of a)) = (gpowers a : set α).to_finset :=
+by { ext x, rw [set.mem_to_finset, mem_coe, mem_gpowers_iff_mem_range_order_of] }
 
 omit dec
 open_locale classical
@@ -281,6 +289,8 @@ section cyclic
 
 local attribute [instance] set_fintype
 
+open subgroup
+
 /-- A group is called *cyclic* if it is generated by a single element. -/
 class is_cyclic (α : Type*) [group α] : Prop :=
 (exists_generator [] : ∃ g : α, ∀ x, x ∈ gpowers g)
@@ -294,21 +304,21 @@ def is_cyclic.comm_group [hg : group α] [is_cyclic α] : comm_group α :=
     hm ▸ hn ▸ gpow_mul_comm _ _ _,
   ..hg }
 
-lemma is_cyclic_of_order_of_eq_card [group α] [fintype α] [decidable_eq α]
+lemma is_cyclic_of_order_of_eq_card [group α] [decidable_eq α] [fintype α]
   (x : α) (hx : order_of x = fintype.card α) : is_cyclic α :=
 ⟨⟨x, set.eq_univ_iff_forall.1 $ set.eq_of_subset_of_card_le
   (set.subset_univ _)
-  (by rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers])⟩⟩
+  (by {rw [fintype.card_congr (equiv.set.univ α), ← hx, order_eq_card_gpowers], refl})⟩⟩
 
-lemma order_of_eq_card_of_forall_mem_gpowers [group α] [fintype α] [decidable_eq α]
+lemma order_of_eq_card_of_forall_mem_gpowers [group α] [decidable_eq α] [fintype α]
   {g : α} (hx : ∀ x, x ∈ gpowers g) : order_of g = fintype.card α :=
-by rw [← fintype.card_congr (equiv.set.univ α), order_eq_card_gpowers];
-  simp [hx]; congr
+by {rw [← fintype.card_congr (equiv.set.univ α), order_eq_card_gpowers],
+  simp [hx], apply fintype.card_of_finset', simp, intro x, exact hx x}
 
-instance [group α] : is_cyclic (is_subgroup.trivial α) :=
-⟨⟨(1 : is_subgroup.trivial α), λ x, ⟨0, subtype.eq $ eq.symm (is_subgroup.mem_trivial.1 x.2)⟩⟩⟩
+instance bot.is_cyclic [group α] : is_cyclic (⊥ : subgroup α) :=
+⟨⟨1, λ x, ⟨0, subtype.eq $ eq.symm (subgroup.mem_bot.1 x.2)⟩⟩⟩
 
-instance is_subgroup.is_cyclic [group α] [is_cyclic α] (H : set α) [is_subgroup H] : is_cyclic H :=
+instance subgroup.is_cyclic [group α] [is_cyclic α] (H : subgroup α) : is_cyclic H :=
 by haveI := classical.prop_decidable; exact
 let ⟨g, hg⟩ := is_cyclic.exists_generator α in
 if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
@@ -320,16 +330,16 @@ if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
         match k, hk with
         | (k : ℕ), hk := by rw [int.nat_abs_of_nat, ← gpow_coe_nat, hk]; exact hx₁
         | -[1+ k], hk := by rw [int.nat_abs_of_neg_succ_of_nat,
-          ← is_subgroup.inv_mem_iff H]; simp * at *
+          ← subgroup.inv_mem_iff H]; simp * at *
         end⟩,
   ⟨⟨⟨g ^ nat.find hex, (nat.find_spec hex).2⟩,
     λ ⟨x, hx⟩, let ⟨k, hk⟩ := hg x in
       have hk₁ : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) ∈ gpowers (g ^ nat.find hex),
         from ⟨k / nat.find hex, eq.symm $ gpow_mul _ _ _⟩,
       have hk₂ : g ^ ((nat.find hex : ℤ) * (k / nat.find hex)) ∈ H,
-        by rw gpow_mul; exact is_subgroup.gpow_mem (nat.find_spec hex).2,
+        by rw gpow_mul; exact H.gpow_mem (nat.find_spec hex).2 _,
       have hk₃ : g ^ (k % nat.find hex) ∈ H,
-        from (is_subgroup.mul_mem_cancel_right H hk₂).1 $
+        from (subgroup.mul_mem_cancel_right H hk₂).1 $
           by rw [← gpow_add, int.mod_add_div, hk]; exact hx,
       have hk₄ : k % nat.find hex = (k % nat.find hex).nat_abs,
         by rw int.nat_abs_of_nonneg (int.mod_nonneg _
@@ -347,18 +357,18 @@ if hx : ∃ (x : α), x ∈ H ∧ x ≠ (1 : α) then
         rw [int.mul_div_cancel' (int.dvd_of_mod_eq_zero (int.eq_zero_of_nat_abs_eq_zero hk₆)), hk]
       end⟩⟩⟩
 else
-  have H = is_subgroup.trivial α,
-    from set.ext $ λ x, ⟨λ h, by simp at *; tauto,
-      λ h, by rw [is_subgroup.mem_trivial.1 h]; exact is_submonoid.one_mem⟩,
+  have H = (⊥ : subgroup α), from subgroup.ext $ λ x, ⟨λ h, by simp at *; tauto,
+    λ h, by rw [subgroup.mem_bot.1 h]; exact H.one_mem⟩,
   by clear _let_match; substI this; apply_instance
 
 open finset nat
-
-lemma is_cyclic.card_pow_eq_one_le [group α] [fintype α] [decidable_eq α] [is_cyclic α] {n : ℕ}
+lemma is_cyclic.card_pow_eq_one_le [group α] [decidable_eq α] [fintype α] [is_cyclic α] {n : ℕ}
   (hn0 : 0 < n) : (univ.filter (λ a : α, a ^ n = 1)).card ≤ n :=
 let ⟨g, hg⟩ := is_cyclic.exists_generator α in
-calc (univ.filter (λ a : α, a ^ n = 1)).card ≤ (gpowers (g ^ (fintype.card α / (gcd n (fintype.card α))))).to_finset.card :
-  card_le_of_subset (λ x hx, let ⟨m, hm⟩ := show x ∈ powers g, from (powers_eq_gpowers g).symm ▸ hg x in
+calc (univ.filter (λ a : α, a ^ n = 1)).card
+  ≤ ((gpowers (g ^ (fintype.card α / (gcd n (fintype.card α))))) : set α).to_finset.card :
+  card_le_of_subset (λ x hx, let ⟨m, hm⟩ := show x ∈ submonoid.powers g,
+    from mem_powers_iff_mem_gpowers.2 $ hg x in
     set.mem_to_finset.2 ⟨(m / (fintype.card α / (gcd n (fintype.card α))) : ℕ),
       have hgmn : g ^ (m * gcd n (fintype.card α)) = 1,
         by rw [pow_mul, hm, ← pow_gcd_card_eq_one_iff]; exact (mem_filter.1 hx).2,
@@ -382,16 +392,17 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card ≤ (gpowers (g ^ (fintype.card �
   end
 
 lemma is_cyclic.exists_monoid_generator (α : Type*) [group α] [fintype α] [is_cyclic α] :
-  ∃ x : α, ∀ y : α, y ∈ powers x :=
-by simp only [powers_eq_gpowers]; exact is_cyclic.exists_generator α
+  ∃ x : α, ∀ y : α, y ∈ submonoid.powers x :=
+by { simp only [mem_powers_iff_mem_gpowers], exact is_cyclic.exists_generator α }
 
 section
 
-variables [group α] [fintype α] [decidable_eq α]
+variables [group α] [decidable_eq α] [fintype α]
 
 lemma is_cyclic.image_range_order_of (ha : ∀ x : α, x ∈ gpowers a) :
   finset.image (λ i, a ^ i) (range (order_of a)) = univ :=
 begin
+  simp_rw [←subgroup.mem_coe] at ha,
   simp only [image_range_order_of, set.eq_univ_iff_forall.mpr ha],
   convert set.to_finset_univ
 end
@@ -404,7 +415,7 @@ end
 
 section totient
 
-variables [group α] [fintype α] [decidable_eq α] (hn : ∀ n : ℕ, 0 < n → (univ.filter (λ a : α, a ^ n = 1)).card ≤ n)
+variables [group α] [decidable_eq α] [fintype α] (hn : ∀ n : ℕ, 0 < n → (univ.filter (λ a : α, a ^ n = 1)).card ≤ n)
 include hn
 
 lemma card_pow_eq_one_eq_order_of_aux (a : α) :
@@ -504,7 +515,7 @@ is_cyclic_of_order_of_eq_card x (finset.mem_filter.1 hx).2
 
 end totient
 
-lemma is_cyclic.card_order_of_eq_totient [group α] [is_cyclic α] [fintype α] [decidable_eq α]
+lemma is_cyclic.card_order_of_eq_totient [group α] [is_cyclic α] [decidable_eq α] [fintype α]
   {d : ℕ} (hd : d ∣ fintype.card α) : (univ.filter (λ a : α, order_of a = d)).card = totient d :=
 card_order_of_eq_totient_aux₂ (λ n, is_cyclic.card_pow_eq_one_le) hd
 

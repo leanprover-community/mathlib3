@@ -43,13 +43,13 @@ section preorder
 variables [preorder β] [preorder γ] (f : α → β) (s : set α) (a : α)
 
 /-- `is_local_min_on f s a` means that `f a ≤ f x` for all `x ∈ s` in some neighborhood of `a`. -/
-def is_local_min_on := is_min_filter f (nhds_within a s) a
+def is_local_min_on := is_min_filter f (𝓝[s] a) a
 
 /-- `is_local_max_on f s a` means that `f x ≤ f a` for all `x ∈ s` in some neighborhood of `a`. -/
-def is_local_max_on := is_max_filter f (nhds_within a s) a
+def is_local_max_on := is_max_filter f (𝓝[s] a) a
 
 /-- `is_local_extr_on f s a` means `is_local_min_on f s a ∨ is_local_max_on f s a`. -/
-def is_local_extr_on := is_extr_filter f (nhds_within a s) a
+def is_local_extr_on := is_extr_filter f (𝓝[s] a) a
 
 /-- `is_local_min f a` means that `f a ≤ f x` for all `x` in some neighborhood of `a`. -/
 def is_local_min := is_min_filter f (𝓝 a) a
@@ -252,6 +252,24 @@ lemma is_local_extr.comp_continuous_on [topological_space δ] {s : set δ} (g : 
 hf.elim (λ hf, (hf.comp_continuous_on hg hb).is_extr)
   (λ hf, (is_local_max.comp_continuous_on hf hg hb).is_extr)
 
+lemma is_local_min_on.comp_continuous_on [topological_space δ] {t : set α} {s : set δ} {g : δ → α} {b : δ}
+  (hf : is_local_min_on f t (g b)) (hst : s ⊆ g ⁻¹' t) (hg : continuous_on g s) (hb : b ∈ s) :
+  is_local_min_on (f ∘ g) s b :=
+hf.comp_tendsto (tendsto_nhds_within_mono_right (image_subset_iff.mpr hst)
+  (continuous_within_at.tendsto_nhds_within_image (hg b hb)))
+
+lemma is_local_max_on.comp_continuous_on [topological_space δ] {t : set α} {s : set δ} {g : δ → α} {b : δ}
+  (hf : is_local_max_on f t (g b)) (hst : s ⊆ g ⁻¹' t) (hg : continuous_on g s) (hb : b ∈ s) :
+  is_local_max_on (f ∘ g) s b :=
+hf.comp_tendsto (tendsto_nhds_within_mono_right (image_subset_iff.mpr hst)
+  (continuous_within_at.tendsto_nhds_within_image (hg b hb)))
+
+lemma is_local_extr_on.comp_continuous_on [topological_space δ] {t : set α} {s : set δ} (g : δ → α) {b : δ}
+  (hf : is_local_extr_on f t (g b)) (hst : s ⊆ g ⁻¹' t) (hg : continuous_on g s) (hb : b ∈ s) :
+  is_local_extr_on (f ∘ g) s b :=
+hf.elim (λ hf, (hf.comp_continuous_on hst hg hb).is_extr)
+  (λ hf, (is_local_max_on.comp_continuous_on hf hst hg hb).is_extr)
+
 end preorder
 
 /-! ### Pointwise addition -/
@@ -405,3 +423,75 @@ lemma is_local_max_on.max (hf : is_local_max_on f s a) (hg : is_local_max_on g s
 hf.max hg
 
 end decidable_linear_order
+
+section eventually
+
+/-! ### Relation with `eventually` comparisons of two functions -/
+
+variables [preorder β] {s : set α}
+
+lemma filter.eventually_le.is_local_max_on {f g : α → β} {a : α} (hle : g ≤ᶠ[𝓝[s] a] f)
+  (hfga : f a = g a) (h : is_local_max_on f s a) : is_local_max_on g s a :=
+hle.is_max_filter hfga h
+
+lemma is_local_max_on.congr {f g : α → β} {a : α} (h : is_local_max_on f s a)
+  (heq : f =ᶠ[𝓝[s] a] g) (hmem : a ∈ s) : is_local_max_on g s a :=
+h.congr heq $ heq.eq_of_nhds_within hmem
+
+lemma filter.eventually_eq.is_local_max_on_iff {f g : α → β} {a : α} (heq : f =ᶠ[𝓝[s] a] g)
+  (hmem : a ∈ s) : is_local_max_on f s a ↔ is_local_max_on g s a :=
+heq.is_max_filter_iff $ heq.eq_of_nhds_within hmem
+
+lemma filter.eventually_le.is_local_min_on {f g : α → β} {a : α} (hle : f ≤ᶠ[𝓝[s] a] g)
+  (hfga : f a = g a) (h : is_local_min_on f s a) : is_local_min_on g s a :=
+hle.is_min_filter hfga h
+
+lemma is_local_min_on.congr {f g : α → β} {a : α} (h : is_local_min_on f s a)
+  (heq : f =ᶠ[𝓝[s] a] g) (hmem : a ∈ s) : is_local_min_on g s a :=
+h.congr heq $ heq.eq_of_nhds_within hmem
+
+lemma filter.eventually_eq.is_local_min_on_iff {f g : α → β} {a : α} (heq : f =ᶠ[𝓝[s] a] g)
+  (hmem : a ∈ s) : is_local_min_on f s a ↔ is_local_min_on g s a :=
+heq.is_min_filter_iff $ heq.eq_of_nhds_within hmem
+
+lemma is_local_extr_on.congr {f g : α → β} {a : α} (h : is_local_extr_on f s a)
+  (heq : f =ᶠ[𝓝[s] a] g) (hmem : a ∈ s) : is_local_extr_on g s a :=
+h.congr heq $ heq.eq_of_nhds_within hmem
+
+lemma filter.eventually_eq.is_local_extr_on_iff {f g : α → β} {a : α} (heq : f =ᶠ[𝓝[s] a] g)
+  (hmem : a ∈ s) : is_local_extr_on f s a ↔ is_local_extr_on g s a :=
+heq.is_extr_filter_iff $ heq.eq_of_nhds_within hmem
+
+lemma filter.eventually_le.is_local_max {f g : α → β} {a : α} (hle : g ≤ᶠ[𝓝 a] f) (hfga : f a = g a)
+  (h : is_local_max f a) : is_local_max g a :=
+hle.is_max_filter hfga h
+
+lemma is_local_max.congr {f g : α → β} {a : α} (h : is_local_max f a) (heq : f =ᶠ[𝓝 a] g) :
+  is_local_max g a :=
+h.congr heq heq.eq_of_nhds
+
+lemma filter.eventually_eq.is_local_max_iff {f g : α → β} {a : α} (heq : f =ᶠ[𝓝 a] g) :
+  is_local_max f a ↔ is_local_max g a :=
+heq.is_max_filter_iff heq.eq_of_nhds
+
+lemma filter.eventually_le.is_local_min {f g : α → β} {a : α} (hle : f ≤ᶠ[𝓝 a] g) (hfga : f a = g a)
+  (h : is_local_min f a) : is_local_min g a :=
+hle.is_min_filter hfga h
+
+lemma is_local_min.congr {f g : α → β} {a : α} (h : is_local_min f a) (heq : f =ᶠ[𝓝 a] g) :
+  is_local_min g a :=
+h.congr heq heq.eq_of_nhds
+
+lemma filter.eventually_eq.is_local_min_iff {f g : α → β} {a : α} (heq : f =ᶠ[𝓝 a] g) :
+  is_local_min f a ↔ is_local_min g a :=
+heq.is_min_filter_iff heq.eq_of_nhds
+
+lemma is_local_extr.congr {f g : α → β} {a : α} (h : is_local_extr f a) (heq : f =ᶠ[𝓝 a] g) :
+  is_local_extr g a :=
+h.congr heq heq.eq_of_nhds
+
+lemma filter.eventually_eq.is_local_extr_iff {f g : α → β} {a : α} (heq : f =ᶠ[𝓝 a] g) :
+  is_local_extr f a ↔ is_local_extr g a :=
+heq.is_extr_filter_iff heq.eq_of_nhds
+
+end eventually

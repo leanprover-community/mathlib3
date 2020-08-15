@@ -5,7 +5,9 @@ Authors: Robert Y. Lewis, Chris Hughes
 -/
 import algebra.associated
 import data.int.gcd
-import algebra.big_operators
+import algebra.big_operators.basic
+import data.nat.enat
+
 
 variables {α : Type*}
 
@@ -321,8 +323,7 @@ have hdiv : p ^ (get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
 have hsucc : ¬p ^ ((get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
     get (multiplicity p b) ((finite_mul_iff hp).1 h).2) + 1) ∣ a * b,
   from λ h, not_or (is_greatest' _ (lt_succ_self _)) (is_greatest' _ (lt_succ_self _))
-    (succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul hp (by convert hdiva)
-      (by convert hdivb) h),
+    (by exact succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul hp hdiva hdivb h),
 by rw [← enat.coe_inj, enat.coe_get, eq_some_iff];
   exact ⟨hdiv, hsucc⟩
 

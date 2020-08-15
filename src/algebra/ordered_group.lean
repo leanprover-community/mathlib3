@@ -3,7 +3,6 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
-import algebra.group.units
 import algebra.group.with_one
 import algebra.group.type_tags
 import order.bounded_lattice
@@ -47,7 +46,7 @@ class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_o
 (add_le_add_left       : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 (lt_of_add_lt_add_left : ∀ a b c : α, a + b < a + c → b < c)
 
-attribute [to_additive ordered_add_comm_monoid] ordered_comm_monoid
+attribute [to_additive] ordered_comm_monoid
 
 section ordered_comm_monoid
 variables [ordered_comm_monoid α] {a b c d : α}
@@ -73,13 +72,13 @@ lemma mul_le_mul_three {a b c d e f : α} (h₁ : a ≤ d) (h₂ : b ≤ e) (h�
       a * b * c ≤ d * e * f :=
 mul_le_mul' (mul_le_mul' h₁ h₂) h₃
 
-@[to_additive]
-lemma le_mul_of_one_le_right (h : 1 ≤ b) : a ≤ a * b :=
+@[to_additive le_add_of_nonneg_right]
+lemma le_mul_of_one_le_right' (h : 1 ≤ b) : a ≤ a * b :=
 have a * 1 ≤ a * b, from mul_le_mul_left' h _,
 by rwa mul_one at this
 
-@[to_additive]
-lemma le_mul_of_one_le_left (h : 1 ≤ b) : a ≤ b * a :=
+@[to_additive le_add_of_nonneg_left]
+lemma le_mul_of_one_le_left' (h : 1 ≤ b) : a ≤ b * a :=
 have 1 * a ≤ b * a, from mul_le_mul_right' h a,
 by rwa one_mul at this
 
@@ -103,11 +102,11 @@ le_mul_of_one_le_of_le ha hb
 
 @[to_additive add_pos_of_pos_of_nonneg]
 lemma one_lt_mul_of_lt_of_le' (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
-lt_of_lt_of_le ha $ le_mul_of_one_le_right hb
+lt_of_lt_of_le ha $ le_mul_of_one_le_right' hb
 
 @[to_additive add_pos_of_nonneg_of_pos]
 lemma one_lt_mul_of_le_of_lt' (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
-lt_of_lt_of_le hb $ le_mul_of_one_le_left ha
+lt_of_lt_of_le hb $ le_mul_of_one_le_left' ha
 
 @[to_additive add_pos]
 lemma one_lt_mul' (ha : 1 < a) (hb : 1 < b) : 1 < a * b :=
@@ -139,11 +138,11 @@ mul_lt_one_of_le_one_of_lt_one' (le_of_lt ha) hb
 
 @[to_additive]
 lemma lt_mul_of_one_le_of_lt' (ha : 1 ≤ a) (hbc : b < c) : b < a * c :=
-lt_of_lt_of_le hbc $ le_mul_of_one_le_left ha
+lt_of_lt_of_le hbc $ le_mul_of_one_le_left' ha
 
 @[to_additive]
 lemma lt_mul_of_lt_of_one_le' (hbc : b < c) (ha : 1 ≤ a) : b < c * a :=
-lt_of_lt_of_le hbc $ le_mul_of_one_le_right ha
+lt_of_lt_of_le hbc $ le_mul_of_one_le_right' ha
 
 @[to_additive]
 lemma lt_mul_of_one_lt_of_lt' (ha : 1 < a) (hbc : b < c) : b < a * c :=
@@ -232,7 +231,7 @@ decidable_linear_order.lift coe units.ext
 @[simp, to_additive, norm_cast]
 theorem max_coe [monoid α] [decidable_linear_order α] {a b : units α} :
   (↑(max a b) : α) = max a b :=
-by by_cases a ≤ b; simp [max, h]
+by by_cases b ≤ a; simp [max, h]
 
 @[simp, to_additive, norm_cast]
 theorem min_coe [monoid α] [decidable_linear_order α] {a b : units α} :
@@ -447,7 +446,7 @@ by norm_cast
 
 end with_bot
 
-/-- A canonically ordered monoid is an ordered commutative monoid
+/-- A canonically ordered additive monoid is an ordered commutative additive monoid
   in which the ordering coincides with the divisibility relation,
   which is to say, `a ≤ b` iff there exists `c` with `b = a + c`.
   This is satisfied by the natural numbers, for example, but not
@@ -533,6 +532,20 @@ instance with_top.canonically_ordered_add_monoid : canonically_ordered_add_monoi
 
 end canonically_ordered_add_monoid
 
+/-- A canonically linear-ordered additive monoid is a canonically ordered additive monoid
+    whose ordering is a decidable linear order. -/
+@[protect_proj]
+class canonically_linear_ordered_add_monoid (α : Type*)
+      extends canonically_ordered_add_monoid α, decidable_linear_order α
+
+section canonically_linear_ordered_add_monoid
+variables [canonically_linear_ordered_add_monoid α]
+
+instance canonically_linear_ordered_add_monoid.semilattice_sup_bot : semilattice_sup_bot α :=
+{ ..lattice_of_decidable_linear_order, ..canonically_ordered_add_monoid.to_order_bot α }
+
+end canonically_linear_ordered_add_monoid
+
 /-- An ordered cancellative additive commutative monoid
 is an additive commutative monoid with a partial order,
 in which addition is cancellative and strictly monotone. -/
@@ -553,7 +566,7 @@ class ordered_cancel_comm_monoid (α : Type u)
 (mul_le_mul_left       : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 (le_of_mul_le_mul_left : ∀ a b c : α, a * b ≤ a * c → b ≤ c)
 
-attribute [to_additive ordered_cancel_add_comm_monoid] ordered_cancel_comm_monoid
+attribute [to_additive] ordered_cancel_comm_monoid
 
 section ordered_cancel_comm_monoid
 variables [ordered_cancel_comm_monoid α] {a b c d : α}
@@ -596,13 +609,13 @@ lt_of_le_of_lt (mul_le_mul_right' h₁ _) (mul_lt_mul_left' h₂ b)
 lemma mul_lt_mul_of_lt_of_le (h₁ : a < b) (h₂ : c ≤ d) : a * c < b * d :=
 lt_of_lt_of_le (mul_lt_mul_right' h₁ c) (mul_le_mul_left' h₂ _)
 
-@[to_additive]
-lemma lt_mul_of_one_lt_right (a : α) {b : α} (h : 1 < b) : a < a * b :=
+@[to_additive lt_add_of_pos_right]
+lemma lt_mul_of_one_lt_right' (a : α) {b : α} (h : 1 < b) : a < a * b :=
 have a * 1 < a * b, from mul_lt_mul_left' h a,
 by rwa [mul_one] at this
 
-@[to_additive]
-lemma lt_mul_of_one_lt_left (a : α) {b : α} (h : 1 < b) : a < b * a :=
+@[to_additive lt_add_of_pos_left]
+lemma lt_mul_of_one_lt_left' (a : α) {b : α} (h : 1 < b) : a < b * a :=
 have 1 * a < b * a, from mul_lt_mul_right' h a,
 by rwa [one_mul] at this
 
@@ -799,7 +812,7 @@ with a partial order in which multiplication is strictly monotone. -/
 class ordered_comm_group (α : Type u) extends comm_group α, partial_order α :=
 (mul_le_mul_left : ∀ a b : α, a ≤ b → ∀ c : α, c * a ≤ c * b)
 
-attribute [to_additive ordered_add_comm_group] ordered_comm_group
+attribute [to_additive] ordered_comm_group
 
 /--The units of an ordered commutative monoid form an ordered commutative group. -/
 @[to_additive]
@@ -1823,3 +1836,48 @@ instance [ordered_add_comm_group α] : ordered_add_comm_group (order_dual α) :=
   ..show add_comm_group α, by apply_instance }
 
 end order_dual
+
+section type_tags
+
+instance : Π [preorder α], preorder (multiplicative α) := id
+instance : Π [preorder α], preorder (additive α) := id
+instance : Π [partial_order α], partial_order (multiplicative α) := id
+instance : Π [partial_order α], partial_order (additive α) := id
+instance : Π [linear_order α], linear_order (multiplicative α) := id
+instance : Π [linear_order α], linear_order (additive α) := id
+instance : Π [decidable_linear_order α], decidable_linear_order (multiplicative α) := id
+instance : Π [decidable_linear_order α], decidable_linear_order (additive α) := id
+
+instance [ordered_add_comm_monoid α] : ordered_comm_monoid (multiplicative α) :=
+{ mul_le_mul_left := @ordered_add_comm_monoid.add_le_add_left α _,
+  lt_of_mul_lt_mul_left := @ordered_add_comm_monoid.lt_of_add_lt_add_left α _,
+  ..multiplicative.partial_order,
+  ..multiplicative.comm_monoid }
+
+instance [ordered_comm_monoid α] : ordered_add_comm_monoid (additive α) :=
+{ add_le_add_left := @ordered_comm_monoid.mul_le_mul_left α _,
+  lt_of_add_lt_add_left := @ordered_comm_monoid.lt_of_mul_lt_mul_left α _,
+  ..additive.partial_order,
+  ..additive.add_comm_monoid }
+
+instance [ordered_cancel_add_comm_monoid α] : ordered_cancel_comm_monoid (multiplicative α) :=
+{ le_of_mul_le_mul_left := @ordered_cancel_add_comm_monoid.le_of_add_le_add_left α _,
+  ..multiplicative.right_cancel_semigroup,
+  ..multiplicative.left_cancel_semigroup,
+  ..multiplicative.ordered_comm_monoid }
+
+instance [ordered_cancel_comm_monoid α] : ordered_cancel_add_comm_monoid (additive α) :=
+{ le_of_add_le_add_left := @ordered_cancel_comm_monoid.le_of_mul_le_mul_left α _,
+  ..additive.add_right_cancel_semigroup,
+  ..additive.add_left_cancel_semigroup,
+  ..additive.ordered_add_comm_monoid }
+
+instance [ordered_add_comm_group α] : ordered_comm_group (multiplicative α) :=
+{ ..multiplicative.comm_group,
+  ..multiplicative.ordered_comm_monoid }
+
+instance [ordered_comm_group α] : ordered_add_comm_group (additive α) :=
+{ ..additive.add_comm_group,
+  ..additive.ordered_add_comm_monoid }
+
+end type_tags

@@ -12,8 +12,8 @@ In a category with zero morphisms, images, and equalizers we say that `f : A ⟶
 are exact if `f ≫ g = 0` and the natural map `image f ⟶ kernel g` is an epimorphism.
 
 # Main results
-* If cokernels exist and if `s` is any kernel fork over `g` and `t` is any cokernel cofork over `f`,
-  then `fork.ι s ≫ cofork.π t = 0`.
+* Suppoose that cokernels exist and that `f` and `g` are exact. If `s` is any kernel fork over `g`
+  and `t` is any cokernel cofork over `f`, then `fork.ι s ≫ cofork.π t = 0`.
 
 See also `category_theory/abelian/exact.lean` for results that only hold in abelian categories.
 

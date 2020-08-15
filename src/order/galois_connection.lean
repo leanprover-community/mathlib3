@@ -216,7 +216,7 @@ end galois_connection
 
 namespace nat
 
-lemma galois_connection_mul_div {k : ℕ} (h : k > 0) : galois_connection (λn, n * k) (λn, n / k) :=
+lemma galois_connection_mul_div {k : ℕ} (h : 0 < k) : galois_connection (λn, n * k) (λn, n / k) :=
 assume x y, (le_div_iff_mul_le x y h).symm
 
 end nat

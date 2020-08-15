@@ -1791,7 +1791,7 @@ apply_nolint tactic.interactive.solve_mvar doc_blame
 apply_nolint tactic.interactive.unify_with_instance doc_blame
 
 -- tactic/monotonicity/lemmas.lean
-apply_nolint gt_of_mul_lt_mul_neg_right ge_or_gt
+apply_nolint lt_of_mul_lt_mul_neg_right ge_or_gt
 
 -- tactic/norm_num.lean
 apply_nolint norm_num.derive doc_blame

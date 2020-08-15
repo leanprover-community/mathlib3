@@ -485,21 +485,21 @@ cau_seq.completion.of_rat_div
 
 @[simp] lemma of_rat_zero : of_rat p 0 = 0 := rfl
 
-@[simp] lemma cast_eq_of_rat_of_nat (n : ℕ) : (↑n : ℚ_[p]) = of_rat p n :=
+lemma cast_eq_of_rat_of_nat (n : ℕ) : (↑n : ℚ_[p]) = of_rat p n :=
 begin
   induction n with n ih,
   { refl },
   { simpa using ih }
 end
 
-@[simp] lemma cast_eq_of_rat_of_int (n : ℤ) : ↑n = of_rat p n :=
-by induction n; simp
+lemma cast_eq_of_rat_of_int (n : ℤ) : ↑n = of_rat p n :=
+by induction n; simp [cast_eq_of_rat_of_nat]
 
 lemma cast_eq_of_rat : ∀ (q : ℚ), (↑q : ℚ_[p]) = of_rat p q
 | ⟨n, d, h1, h2⟩ :=
   show ↑n / ↑d = _, from
     have (⟨n, d, h1, h2⟩ : ℚ) = rat.mk n d, from rat.num_denom',
-    by simp [this, rat.mk_eq_div, of_rat_div]
+    by simp [this, rat.mk_eq_div, of_rat_div, cast_eq_of_rat_of_int, cast_eq_of_rat_of_nat]
 
 @[norm_cast] lemma coe_add : ∀ {x y : ℚ}, (↑(x + y) : ℚ_[p]) = ↑x + ↑y := by simp [cast_eq_of_rat]
 @[norm_cast] lemma coe_neg : ∀ {x : ℚ}, (↑(-x) : ℚ_[p]) = -↑x := by simp [cast_eq_of_rat]
@@ -970,7 +970,7 @@ begin
   apply (fpow_strict_mono h).injective,
   dsimp only,
   rw ← norm_eq_pow_val,
-  { simp [-cast_eq_of_rat_of_nat] },
+  { simp },
   { exact_mod_cast nat.prime.ne_zero ‹_›, }
 end
 

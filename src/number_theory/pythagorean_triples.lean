@@ -33,7 +33,7 @@ lemma pythagorean_triple_comm {x y z : ℤ} :
  (pythagorean_triple x y z) ↔ (pythagorean_triple y x z) :=
 by { delta pythagorean_triple, rw add_comm }
 
-/-- The zeroth pythagorean triple is zero -/
+/-- The zeroth Pythagorean triple is all zeros -/
 lemma pythagorean_triple.zero : pythagorean_triple 0 0 0 :=
 by simp only [pythagorean_triple, zero_mul, zero_add]
 

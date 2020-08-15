@@ -5,7 +5,6 @@ Authors: Gihan Marasingha
 -/
 import .decision_nec
 import tactic.linarith
-import .arithmetic
 
 /-!
 # Decision procedure - sufficient condition and decidability
@@ -51,7 +50,7 @@ open nat
 We start by showing that an `miustr` `M::w` can be derived, where `w` consists only of `I`s and
 where `count I w` is a power of 2.
 -/
-private lemma pow2str (n : ℕ) : derivable (M::(repeat I (2^n))) :=
+private lemma der_cons_repeat (n : ℕ) : derivable (M::(repeat I (2^n))) :=
 begin
   induction n with k hk,
   { constructor, }, /- base case -/
@@ -81,7 +80,7 @@ an even number of `U`s and `z` is any `miustr`.
 Any number of successive occurrences of `"UU"` can be removed from the end of a `derivable` `miustr`
 to produce another `derivable` `miustr`.
 -/
-lemma remove_UUs {z : miustr} {m : ℕ} (h : derivable (z ++ repeat U (m*2)))
+lemma der_of_der_append_repeat_U_even {z : miustr} {m : ℕ} (h : derivable (z ++ repeat U (m*2)))
   : derivable z :=
 begin
   induction m with k hk,
@@ -108,8 +107,8 @@ In fine-tuning my application of `simp`, I issued the following commend to deter
 We may replace several consecutive occurrences of  `"III"` with the same number of `"U"`s.
 In application of the following lemma, `xs` will either be `[]` or `[U]`.
 -/
-lemma i_to_u (c k : ℕ) (hc : c % 3 = 1 ∨ c % 3 = 2)
-  (xs : miustr) (hder : derivable (M ::(repeat I (c+3*k)) ++ xs)) :
+lemma der_cons_repeat_I_repeat_U_append_of_der_cons_repeat_I_append (c k : ℕ)
+  (hc : c % 3 = 1 ∨ c % 3 = 2) (xs : miustr) (hder : derivable (M ::(repeat I (c+3*k)) ++ xs)) :
     derivable (M::(repeat I c ++ repeat U k) ++ xs) :=
 begin
   revert xs,
@@ -130,6 +129,14 @@ begin
 end
 
 
+/-!
+### Arithmetic
+
+We collect purely arithmetic lemmas: `add_mod2` is used to ensure we have an even number of `U`s
+while `le_pow2_and_pow2_eq_mod3` treats the congruence condition modulo 3.
+-/
+section arithmetic
+
 /--
 For every `a`, the number `a + a % 2` is even.
 -/
@@ -140,7 +147,39 @@ begin
   rw [add_mod,mod_mod,←two_mul,mul_mod_right],
 end
 
+private lemma le_pow2_and_pow2_eq_mod3' (c : ℕ) (x : ℕ) (h : c = 1 ∨ c = 2) :
+  ∃ m : ℕ, c + 3*x ≤ 2^m ∧ 2^m % 3 = c % 3 :=
+begin
+  induction x with k hk,
+  { use (c+1),
+    cases h with hc hc;
+    { rw hc, norm_num }, },
+  rcases hk with ⟨g, hkg, hgmod⟩,
+  by_cases hp : (c + 3*(k+1) ≤ 2 ^g),
+  { use g, exact ⟨hp,hgmod⟩ },
+  use (g+2),
+  split,
+  { rw [mul_succ, ←add_assoc,nat.pow_add],
+    change 2^2 with (1+3), rw [mul_add (2^g) 1 3, mul_one],
+    linarith [hkg,one_le_two_pow g], },
+  rw [nat.pow_add,←mul_one c],
+  exact modeq.modeq_mul hgmod rfl,
+end
 
+/--
+If `a` is 1 or 2 modulo 3, then exists `k` a power of 2 for which `a ≤ k` and `a ≡ k [MOD 3]`.
+-/
+lemma le_pow2_and_pow2_eq_mod3 (a : ℕ) (h : a % 3 = 1 ∨ a % 3 = 2) :
+  ∃ m : ℕ, a ≤ 2^m ∧ 2^m % 3 = a % 3:=
+begin
+  cases le_pow2_and_pow2_eq_mod3' (a%3) (a/3) h with m hm,
+  use m,
+  split,
+  { convert hm.1, exact (mod_add_div a 3).symm, },
+  rw [hm.2, mod_mod _ 3],
+end
+
+end arithmetic
 
 lemma repeat_pow_minus_append  {m : ℕ} : M :: repeat I (2^m - 1) ++ [I] = M::(repeat I (2^m)) :=
 begin
@@ -156,17 +195,17 @@ end
 lemma der_repeat_I_of_mod3 (c : ℕ) (h : c % 3 = 1 ∨ c % 3 = 2):
   derivable (M::(repeat I c)) :=
 begin
-  -- From pow2str, we can derive the `miustr` `M::w` described in the introduction.
+  -- From `der_cons_repeat`, we can derive the `miustr` `M::w` described in the introduction.
   cases (le_pow2_and_pow2_eq_mod3 c h) with m hm, -- `2^m` will be  the number of `I`s in `M::w`
   have hw₂ : derivable (M::(repeat I (2^m)) ++ repeat U ((2^m -c)/3 % 2)),
   { cases mod_two_eq_zero_or_one ((2^m -c)/3) with h_zero h_one,
-    { simp only [pow2str m,append_nil,list.repeat,h_zero], }, -- case `(2^m - c)/3 ≡ 0 [MOD 2]`
+    { simp only [der_cons_repeat m,append_nil,list.repeat,h_zero], }, -- `(2^m - c)/3 ≡ 0 [MOD 2]`
       rw [h_one,←repeat_pow_minus_append, append_assoc], -- case `(2^m - c)/3 ≡ 1 [MOD 2]`
       apply derivable.r1,
       rw repeat_pow_minus_append,
-      exact (pow2str m), },
+      exact (der_cons_repeat m), },
   have hw₃ : derivable (M::(repeat I c) ++ repeat U ((2^m-c)/3) ++ repeat U ((2^m-c)/3 % 2)),
-  { apply i_to_u c ((2^m-c)/3),
+  { apply der_cons_repeat_I_repeat_U_append_of_der_cons_repeat_I_append c ((2^m-c)/3),
     { exact h, }, /- `c` is 1 or 2 (mod 3) -/
       convert hw₂, -- now we must show `c + 3 * ((2 ^ m - c) / 3) = 2 ^ m`
       rw nat.mul_div_cancel',
@@ -175,7 +214,7 @@ begin
   rw [append_assoc, ←repeat_add _ _] at hw₃,
   cases add_mod2 ((2^m-c)/3) with t ht,
   rw ht at hw₃,
-  exact remove_UUs hw₃,
+  exact der_of_der_append_repeat_U_even hw₃,
 end
 
 
@@ -196,7 +235,7 @@ conditions under which  `count I ys = length ys`.
 /--
 If the `count I` of `ys : miustr` equals its length, then `ys` consists entirely of `I`s
 -/
-lemma eq_of_countI_eq_length  {ys : miustr} (h : count I ys = length ys) :
+lemma eq_of_count_I_eq_length  {ys : miustr} (h : count I ys = length ys) :
   ys = repeat I (count I ys) :=
 begin
   have h₂ : repeat I (count I ys) <+ ys := le_count_iff_repeat_sublist.mp (le_refl _),
@@ -209,7 +248,7 @@ end
 /--
 If an `miustr` has a zero `count U` and contains no `M`, then its `count I` is its length.
 -/
-lemma countI_eq_length_of_countU_zero_and_neg_mem {ys : miustr} (hu : count U ys = 0)
+lemma count_I_eq_length_of_count_U_zero_and_neg_mem {ys : miustr} (hu : count U ys = 0)
   (hm : M ∉ ys) : count I ys = length ys :=
 begin
   induction ys with x xs hxs,
@@ -242,8 +281,8 @@ begin
   simp only [count] at *,
   use (count I ys),
   split,
-  { apply eq_of_countI_eq_length,
-    apply countI_eq_length_of_countU_zero_and_neg_mem,
+  { apply eq_of_count_I_eq_length,
+    apply count_I_eq_length_of_count_U_zero_and_neg_mem,
     { exact hu, },
     exact nmtail, },
   exact hi,
@@ -256,7 +295,7 @@ end
 Before continuing to the proof of the induction step, we need other auxiliary results that
 relate to `count U`.
 -/
-lemma mem_of_countU_eq_succ {xs : miustr} {k : ℕ} (h : count U xs = succ k) : U ∈ xs :=
+lemma mem_of_count_U_eq_succ {xs : miustr} {k : ℕ} (h : count U xs = succ k) : U ∈ xs :=
 begin
   induction xs with z zs hzs,
   { exfalso, rw count at h, contradiction, },
@@ -269,11 +308,11 @@ end
 
 
 
-lemma eq_append_cons_U_of_countU_pos {k : ℕ} {zs : miustr} (h : count U zs = succ k) :
+lemma eq_append_cons_U_of_count_U_pos {k : ℕ} {zs : miustr} (h : count U zs = succ k) :
 ∃ (as bs : miustr), (zs = as ++ U :: bs) :=
 begin
   apply mem_split,
-  exact mem_of_countU_eq_succ h,
+  exact mem_of_count_U_eq_succ h,
 end
 
 
@@ -291,7 +330,7 @@ begin
   rw head at mhead,
   rw mhead at *,
   simp [count] at *,
-  rcases (eq_append_cons_U_of_countU_pos hu) with ⟨as,bs,hab⟩,
+  rcases (eq_append_cons_U_of_count_U_pos hu) with ⟨as,bs,hab⟩,
   use [as,bs],
   split,
   { rw [cons_inj,hab], },

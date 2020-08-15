@@ -36,12 +36,6 @@ end
 
 end mono
 
-
-/-- Chains are monotonically increasing sequences -/
-structure chain (α : Type u) [preorder α] :=
-(elems : stream α)
-(mono : monotone elems)
-
 namespace stream
 
 variables {α : Type u} {β : Type v} {γ : Type*}
@@ -55,10 +49,19 @@ lemma monotone_map : monotone (s.map f) :=
 
 end stream
 
+/-- Chains are monotonically increasing sequences -/
+structure chain (α : Type u) [preorder α] :=
+(elems : stream α)
+(mono : monotone elems)
+
 namespace chain
 
 variables {α : Type u} {β : Type v} {γ : Type*}
 variables [preorder α] [preorder β] [preorder γ]
+
+@[main_declaration]
+instance [inhabited α] : inhabited (chain α) :=
+⟨ ⟨ λ _, default _, λ _ _ _, le_refl _ ⟩ ⟩
 
 instance : has_mem α (chain α) :=
 ⟨λa c, a ∈ c.elems⟩
@@ -72,6 +75,7 @@ variables {g : β → γ} (hg : monotone g)
 instance : has_le (chain α) :=
 { le := λ x y, ∀ a, a ∈ x → ∃ b ∈ y, a ≤ b  }
 
+/-- `map` function for `chain` -/
 def map : chain β :=
 ⟨c.elems.map f, stream.monotone_map hf c.mono ⟩
 
@@ -104,17 +108,19 @@ end chain
 section prio
 set_option default_priority 100 -- see Note [default priority]
 
-/- CPOs (complete partial orders) -/
-class complete_partial_order (α : Type*) extends partial_order α :=
+/-- Complete partial order (ωCPO) are useful for the formalization
+of the semantics of programming languages. Its notion of limit
+helps define the meaning of recursive procedures -/
+class omega_complete_partial_order (α : Type*) extends partial_order α :=
 (Sup     : chain α → α)
 (le_Sup  : ∀(c:chain α), ∀x∈c, x ≤ Sup c)
 (Sup_le  : ∀(c:chain α) x, (∀y∈c, y ≤ x) → Sup c ≤ x)
 
 end prio
 
-namespace complete_partial_order
+namespace omega_complete_partial_order
 variables {α : Type u} {β : Type v} {γ : Type*}
-variables [complete_partial_order α]
+variables [omega_complete_partial_order α]
 
 export order_bot (bot_le)
 
@@ -151,14 +157,16 @@ end
 section continuity
 open chain
 
-variables [complete_partial_order β]
-          [complete_partial_order γ]
+variables [omega_complete_partial_order β]
+          [omega_complete_partial_order γ]
   (f : α → β) (hf : monotone f)
   (g : β → γ) (hg : monotone g)
 
+/-- A monotone function is continuous if it preserves the supremum of chains -/
 def continuous :=
 ∀ C : chain α, f (Sup C) = Sup (C.map f hf)
 
+/-- `continuous'` asserts both monotonicity and continuity of function `f` -/
 def continuous' := ∃ h, continuous f h
 
 lemma continuous_comp (hfc : continuous f hf) (hgc : continuous g hg) :
@@ -170,12 +178,12 @@ end
 
 end continuity
 
-end complete_partial_order
+end omega_complete_partial_order
 
 namespace roption
 
 variables {α : Type u} {β : Type v} {γ : Type*}
-open complete_partial_order
+open omega_complete_partial_order
 
 lemma eq_of_chain {c : chain (roption α)} {a b : α} (ha : some a ∈ c) (hb : some b ∈ c) : a = b :=
 begin
@@ -186,6 +194,7 @@ begin
   have := c.mono h _ ha, apply mem_unique this hb
 end
 
+/-- the `Sup` definition for the instance `omega_complete_partial_order (roption α)` -/
 protected noncomputable def Sup (c : chain (roption α)) : roption α :=
 if h : ∃a, some a ∈ c then some (classical.some h) else none
 
@@ -207,7 +216,7 @@ begin
   { rcases h with ⟨ ⟨ ⟩ ⟩ }
 end
 
-noncomputable instance complete_partial_order : complete_partial_order (roption α) :=
+noncomputable instance omega_complete_partial_order : omega_complete_partial_order (roption α) :=
 { Sup    := roption.Sup,
   le_Sup := λ c x hx, by { intros a ha, rw ← eq_some_iff at ha, subst x,
                            rw Sup_eq_some hx, apply mem_some },
@@ -218,7 +227,7 @@ section inst
 
 lemma mem_Sup (x : α) (c : chain (roption α)) : x ∈ Sup c ↔ some x ∈ c :=
 begin
-  simp [complete_partial_order.Sup,roption.Sup],
+  simp [omega_complete_partial_order.Sup,roption.Sup],
   split,
   { split_ifs, swap, rintro ⟨⟨⟩⟩,
     intro h', have hh := classical.some_spec h,
@@ -250,10 +259,10 @@ assume f g hfg, hfg a
 
 end monotone
 
-open complete_partial_order chain
+open omega_complete_partial_order chain
 
-variables  [∀a, complete_partial_order (β a)]
-instance : complete_partial_order (Πa, β a) :=
+variables  [∀a, omega_complete_partial_order (β a)]
+instance : omega_complete_partial_order (Πa, β a) :=
 { Sup    := λc a, Sup (c.map _ (monotone_apply a)),
   Sup_le := assume c f hf a, Sup_le _ _ $ by { rintro b ⟨i,⟨ ⟩⟩, apply hf, exact ⟨i,rfl⟩ },
   le_Sup := assume c x hx a, le_Sup _ _ $ by { rw mem_map_iff, exact ⟨x,hx,rfl⟩ } }
@@ -262,7 +271,7 @@ protected lemma Sup_eq (c : chain (Π x, β x)) (a : α) : Sup c a = Sup (c.map 
 
 section continuity
 
-variables {γ : Type*} [complete_partial_order γ]
+variables {γ : Type*} [omega_complete_partial_order γ]
 
 lemma continuous_ext (f : γ → Π a, β a) (h : ∀ x, continuous' (λ g, f g x)) :
   continuous' f :=
@@ -297,7 +306,7 @@ instance : partial_order (set α) :=
   le_antisymm := assume a b hab hba, ext $ assume x, ⟨@hab x, @hba x⟩ }
 
 @[main_declaration]
-instance : complete_partial_order (set α) :=
+instance : omega_complete_partial_order (set α) :=
 { Sup    := λc, ⋃ i, c.elems i,
   Sup_le := assume ⟨c, _⟩ s hs x, by simp [stream.mem_def] at ⊢ hs; intros i hx; apply hs _ i rfl hx,
   le_Sup := assume ⟨c, _⟩ s hs x hxs, by simp [stream.mem_def,stream.nth] at ⊢ hs;
@@ -305,13 +314,13 @@ instance : complete_partial_order (set α) :=
 
 end set
 
-namespace complete_partial_order
-open complete_partial_order
+namespace omega_complete_partial_order
+open omega_complete_partial_order
 
 variables {α : Type u} {β : Type v} {γ : Type*}
-variables [complete_partial_order α] [complete_partial_order β] [complete_partial_order γ]
+variables [omega_complete_partial_order α] [omega_complete_partial_order β] [omega_complete_partial_order γ]
 
-lemma cont_const [complete_partial_order β] (f : β) (c : chain α) :
+lemma cont_const (f : β) (c : chain α) :
   Sup (c.map (λ _, f) (const_mono _)) = f :=
 begin
   apply le_antisymm,
@@ -320,11 +329,11 @@ begin
   { apply le_Sup, simp [chain.mem_map_iff], exact ⟨ c.elems 0,0,rfl ⟩ }
 end
 
-lemma cont_ite [complete_partial_order β] {p : Prop} {hp : decidable p} (c : chain α) (f g : α → β) (hf hg) :
+lemma cont_ite {p : Prop} {hp : decidable p} (c : chain α) (f g : α → β) (hf hg) :
   Sup (c.map (λ x, @ite p hp _ (f x) (g x)) (ite_mono hf hg)) = @ite p hp _ (Sup $ c.map f hf) (Sup $ c.map g hg) :=
 by split_ifs; refl
 
-lemma cont_bind {β γ} (c : chain α) (f : α → roption β) (g : α → β → roption γ) (h' h'') :
+lemma cont_bind {β γ : Type v} (c : chain α) (f : α → roption β) (g : α → β → roption γ) (h' h'') :
   Sup (c.map (λ x, f x >>= g x : α → roption γ) (bind_mono _ g h' h'')) = Sup (c.map (λ x, f x) h') >>= Sup (c.map (λ x, g x) h'') :=
 begin
   apply eq_of_forall_ge_iff, intro x,
@@ -365,13 +374,13 @@ lemma cont_ite' {p : Prop} {hp : decidable p} (f g : α → β)
   continuous' (λ x, @ite p hp _ (f x) (g x)) :=
 by { split, intro c, rw [cont_ite,← hg.snd,← hf.snd] }
 
-lemma cont_bind' {β γ} (f : α → roption β) (g : α → β → roption γ)
+lemma cont_bind' {β γ : Type v} (f : α → roption β) (g : α → β → roption γ)
   (hf : continuous' f)
   (hg : continuous' g) :
   continuous' (λ x, f x >>= g x) :=
 by { split, intro c, rw [cont_bind,← hg.snd,← hf.snd] }
 
-lemma cont_map' {β γ : Type*} (f : β → γ) (g : α → roption β)
+lemma cont_map' {β γ : Type v} (f : β → γ) (g : α → roption β)
   (hg : continuous' g) :
   continuous' (λ x, f <$> g x) :=
 begin
@@ -379,7 +388,7 @@ begin
   apply cont_bind' _ _ hg, apply cont_const'
 end
 
-lemma cont_seq' {β γ : Type*} (f : α → roption (β → γ)) (g : α → roption β)
+lemma cont_seq' {β γ : Type v} (f : α → roption (β → γ)) (g : α → roption β)
   (hf : continuous' f)
   (hg : continuous' g) :
   continuous' (λ x, f x <*> g x) :=
@@ -388,4 +397,4 @@ begin
   apply pi.continuous_ext, intro x, apply cont_map' _ _ hg,
 end
 
-end complete_partial_order
+end omega_complete_partial_order

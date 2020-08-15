@@ -8,7 +8,7 @@ import data.nat.basic
 universes u_1 u_2
 
 namespace roption.examples
-open function has_fix complete_partial_order
+open function has_fix omega_complete_partial_order
 
 /-! `easy` is a trivial, non-recursive example -/
 
@@ -237,3 +237,5 @@ begin
 end
 
 end roption.examples
+
+#list_unused_decls ["src/data/pfun/fix.lean","src/order/omega_complete_partial_order.lean","src/data/nat/up.lean"]

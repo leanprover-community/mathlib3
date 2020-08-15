@@ -48,8 +48,6 @@ open function set
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a a₁ a₂ : α} {b b₁ b₂ : β}
 
-open has_Sup has_Inf
-
 /-- A Galois connection is a pair of functions `l` and `u` satisfying
   `l a ≤ b ↔ a ≤ u b`. They are special cases of  adjoint functors in category theory,
     but do not depend on the category theory library in mathlib. -/

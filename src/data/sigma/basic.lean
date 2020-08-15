@@ -78,6 +78,13 @@ begin
   exact ⟨⟨i, x⟩, rfl⟩
 end
 
+/-- like `function.curry` with the difference that `curry` produces a function with a dependent type -/
+def curry {γ : Π a, β a → Type*} (f : Π x : sigma β, γ x.1 x.2) (x : α) (y : β x) : γ x y :=
+f ⟨x,y⟩
+
+/-- like `function.curry` with the difference that `uncurry` transforms a function with a dependent type -/
+def uncurry {γ : Π a, β a → Type*} (f : Π x (y : β x), γ x y) (x : sigma β) : γ x.1 x.2 :=
+f x.1 x.2
 
 end sigma
 

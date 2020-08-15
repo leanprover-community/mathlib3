@@ -47,15 +47,11 @@ kernel.lift g (image.ι f) $ (cancel_epi (factor_thru_image f)).1 $ by simp [w]
 @[simp]
 lemma image_to_kernel_map_zero_left [has_zero_object V] {w} :
   image_to_kernel_map (0 : A ⟶ B) g w = 0 :=
-by delta image_to_kernel_map; simp
+by { delta image_to_kernel_map, simp }
 
 lemma image_to_kernel_map_zero_right {w} :
   image_to_kernel_map f (0 : B ⟶ C) w = image.ι f ≫ inv (kernel.ι (0 : B ⟶ C)) :=
-begin
-  ext,
-  delta image_to_kernel_map,
-  simp
-end
+by { ext, simp }
 
 local attribute [instance] has_zero_object.has_zero
 

@@ -299,7 +299,7 @@ namespace well_founded
 with respect to `r`. -/
 theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
   (s : set α) : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
-| ⟨a, ha⟩ := (acc.rec_on (H.apply a) $ λ x _ IH, classical.not_imp_not.1 $ λ hne hx, hne $
+| ⟨a, ha⟩ := (acc.rec_on (H.apply a) $ λ x _ IH, not_imp_not.1 $ λ hne hx, hne $
   ⟨x, hx, λ y hy hyx, hne $ IH y hyx hy⟩) ha
 
 /-- A minimal element of a nonempty set in a well-founded order -/

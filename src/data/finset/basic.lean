@@ -720,7 +720,7 @@ by simp only [mem_inter, mem_sdiff]; rintro x ⟨h, _, hn⟩; exact hn h
 by ext; simp
 
 theorem sdiff_inter_distrib_right (s₁ s₂ s₃ : finset α) : s₁ \ (s₂ ∩ s₃) = (s₁ \ s₂) ∪ (s₁ \ s₃) :=
-by ext; simp only [and_or_distrib_left, mem_union, classical.not_and_distrib, mem_sdiff, mem_inter]
+by ext; simp only [and_or_distrib_left, mem_union, not_and_distrib, mem_sdiff, mem_inter]
 
 @[simp] theorem sdiff_inter_self_left (s₁ s₂ : finset α) : s₁ \ (s₁ ∩ s₂) = s₁ \ s₂ :=
 by simp only [sdiff_inter_distrib_right, sdiff_self, empty_union]
@@ -1003,7 +1003,7 @@ lemma subset_union_elim {s : finset α} {t₁ t₂ : set α} (h : ↑s ⊆ t₁ 
 begin
   classical,
   refine ⟨s.filter (∈ t₁), s.filter (∉ t₁), _, _ , _⟩,
-  { simp [filter_union_right, classical.or_not] },
+  { simp [filter_union_right, em] },
   { intro x, simp },
   { intro x, simp, intros hx hx₂, refine ⟨or.resolve_left (h hx) hx₂, hx₂⟩ }
 end

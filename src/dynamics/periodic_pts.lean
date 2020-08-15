@@ -222,7 +222,7 @@ minimal_period_pos_of_mem_periodic_pts $ mk_mem_periodic_pts hn hx
 
 lemma minimal_period_pos_iff_mem_periodic_pts :
   0 < minimal_period f x ↔ x ∈ periodic_pts f :=
-⟨classical.not_imp_not.1 $ λ h,
+⟨not_imp_not.1 $ λ h,
   by simp only [minimal_period, dif_neg h, lt_irrefl 0, not_false_iff],
   minimal_period_pos_of_mem_periodic_pts⟩
 

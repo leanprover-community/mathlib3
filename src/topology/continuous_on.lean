@@ -665,7 +665,7 @@ lemma continuous_within_at_of_not_mem_closure {f : α → β} {s : set α} {x : 
   x ∉ closure s → continuous_within_at f s x :=
 begin
   intros hx,
-  rw [mem_closure_iff_nhds_within_ne_bot, ne_bot, classical.not_not] at hx,
+  rw [mem_closure_iff_nhds_within_ne_bot, ne_bot, not_not] at hx,
   rw [continuous_within_at, hx],
   exact tendsto_bot,
 end

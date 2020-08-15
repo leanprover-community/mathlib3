@@ -409,7 +409,7 @@ let ⟨m, (hrm : r ∉ radical m), him, hm⟩ := zorn.zorn_partial_order₀ {K :
 have ∀ x ∉ m, r ∈ radical (m ⊔ span {x}) := λ x hxm, classical.by_contradiction $ λ hrmx, hxm $
   hm (m ⊔ span {x}) hrmx le_sup_left ▸ (le_sup_right : _ ≤ m ⊔ span {x}) (subset_span $ set.mem_singleton _),
 have is_prime m, from ⟨by rintro rfl; rw radical_top at hrm; exact hrm trivial,
-  λ x y hxym, classical.or_iff_not_imp_left.2 $ λ hxm, classical.by_contradiction $ λ hym,
+  λ x y hxym, or_iff_not_imp_left.2 $ λ hxm, classical.by_contradiction $ λ hym,
   let ⟨n, hrn⟩ := this _ hxm, ⟨p, hpm, q, hq, hpqrn⟩ := submodule.mem_sup.1 hrn, ⟨c, hcxq⟩ := mem_span_singleton'.1 hq in
   let ⟨k, hrk⟩ := this _ hym, ⟨f, hfm, g, hg, hfgrk⟩ := submodule.mem_sup.1 hrk, ⟨d, hdyg⟩ := mem_span_singleton'.1 hg in
   hrm ⟨n + k, by rw [pow_add, ← hpqrn, ← hcxq, ← hfgrk, ← hdyg, add_mul, mul_add (c*x), mul_assoc c x (d*y), mul_left_comm x, ← mul_assoc];
@@ -673,7 +673,7 @@ def lt_order_embedding_of_surjective :
 theorem map_eq_top_or_is_maximal_of_surjective (H : is_maximal I) :
   (map f I) = ⊤ ∨ is_maximal (map f I) :=
 begin
-  refine classical.or_iff_not_imp_left.2 (λ ne_top, ⟨λ h, ne_top h, λ J hJ, _⟩),
+  refine or_iff_not_imp_left.2 (λ ne_top, ⟨λ h, ne_top h, λ J hJ, _⟩),
   { refine (order_iso_of_surjective f hf).injective
       (subtype.ext_iff.2 (eq.trans (H.right (comap f J) (lt_of_le_of_ne _ _)) comap_top.symm)),
     { exact (map_le_iff_le_comap).1 (le_of_lt hJ) },
@@ -729,7 +729,7 @@ lemma comap_le_iff_le_map : comap f K ≤ I ↔ K ≤ map f I :=
  λ h, ((order_iso_of_bijective f hf).right_inv I) ▸ comap_mono h⟩
 
 theorem map.is_maximal (H : is_maximal I) : is_maximal (map f I) :=
-by refine classical.or_iff_not_imp_left.1
+by refine or_iff_not_imp_left.1
   (map_eq_top_or_is_maximal_of_surjective f hf.right H) (λ h, H.left _);
 calc I = comap f (map f I) : ((order_iso_of_bijective f hf).right_inv I).symm
    ... = comap f ⊤ : by rw h

@@ -142,7 +142,7 @@ by rw [← sup_assoc, ← sup_assoc, @sup_comm α _ a]
 
 lemma forall_le_or_exists_lt_sup (a : α) : (∀b, b ≤ a) ∨ (∃b, a < b) :=
 suffices (∃b, ¬b ≤ a) → (∃b, a < b),
-  by rwa [classical.or_iff_not_imp_left, classical.not_forall],
+  by rwa [or_iff_not_imp_left, not_forall],
 assume ⟨b, hb⟩,
 ⟨a ⊔ b, lt_of_le_of_ne le_sup_left $ mt left_eq_sup.1 hb⟩
 
@@ -271,7 +271,7 @@ by rw [← inf_assoc, ← inf_assoc, @inf_comm α _ a]
 
 lemma forall_le_or_exists_lt_inf (a : α) : (∀b, a ≤ b) ∨ (∃b, b < a) :=
 suffices (∃b, ¬a ≤ b) → (∃b, b < a),
-  by rwa [classical.or_iff_not_imp_left, classical.not_forall],
+  by rwa [or_iff_not_imp_left, not_forall],
 assume ⟨b, hb⟩,
 have a ⊓ b ≠ a, from assume eq, hb $ eq ▸ inf_le_right,
 ⟨a ⊓ b, lt_of_le_of_ne inf_le_left ‹a ⊓ b ≠ a›⟩

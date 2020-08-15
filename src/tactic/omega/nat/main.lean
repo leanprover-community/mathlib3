@@ -25,8 +25,8 @@ attribute [sugar_nat]
   and_true true_and
   ge gt mul_add add_mul mul_comm
   one_mul mul_one
-  classical.imp_iff_not_or
-  classical.iff_iff_not_or_and_or_not
+  imp_iff_not_or
+  iff_iff_not_or_and_or_not
 
 meta def desugar := `[try {simp only with sugar_nat at *}]
 

@@ -544,7 +544,7 @@ protected lemma ne_top_of_tsum_ne_top (h : (∑' a, f a) ≠ ∞) (a : α) : f a
 
 protected lemma tsum_mul_left : (∑'i, a * f i) = a * (∑'i, f i) :=
 if h : ∀i, f i = 0 then by simp [h] else
-let ⟨i, (hi : f i ≠ 0)⟩ := classical.not_forall.mp h in
+let ⟨i, (hi : f i ≠ 0)⟩ := not_forall.mp h in
 have sum_ne_0 : (∑'i, f i) ≠ 0, from ne_of_gt $
   calc 0 < f i : lt_of_le_of_ne (zero_le _) hi.symm
     ... ≤ (∑'i, f i) : ennreal.le_tsum _,

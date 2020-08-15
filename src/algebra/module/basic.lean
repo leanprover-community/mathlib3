@@ -192,7 +192,7 @@ by simp [add_smul, sub_eq_add_neg]
 theorem smul_eq_zero {R E : Type*} [division_ring R] [add_comm_group E] [module R E]
   {c : R} {x : E} :
   c • x = 0 ↔ c = 0 ∨ x = 0 :=
-⟨λ h, classical.or_iff_not_imp_left.2 $ λ hc, (units.mk0 c hc).smul_eq_zero.1 h,
+⟨λ h, or_iff_not_imp_left.2 $ λ hc, (units.mk0 c hc).smul_eq_zero.1 h,
   λ h, h.elim (λ hc, hc.symm ▸ zero_smul R x) (λ hx, hx.symm ▸ smul_zero c)⟩
 
 end module

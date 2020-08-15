@@ -86,7 +86,7 @@ lemma trans_eq_some (f : α ≃. β) (g : β ≃. γ) (a : α) (c : γ) :
 lemma trans_eq_none (f : α ≃. β) (g : β ≃. γ) (a : α) :
   f.trans g a = none ↔ (∀ b c, b ∉ f a ∨ c ∉ g b) :=
 begin
-  simp only [eq_none_iff_forall_not_mem, mem_trans, classical.imp_iff_not_or.symm],
+  simp only [eq_none_iff_forall_not_mem, mem_trans, imp_iff_not_or.symm],
   push_neg, tauto
 end
 

@@ -53,16 +53,16 @@ by letI := classical.dec_eq α; exact
 classical.by_cases
   (assume H : ∀ p:ℕ, (p:α) = 0 → p = 0, ⟨0,
     ⟨λ x, by rw [zero_dvd_iff]; exact ⟨H x, by rintro rfl; refl⟩⟩⟩)
-  (λ H, ⟨nat.find (classical.not_forall.1 H), ⟨λ x,
+  (λ H, ⟨nat.find (not_forall.1 H), ⟨λ x,
     ⟨λ H1, nat.dvd_of_mod_eq_zero (by_contradiction $ λ H2,
-      nat.find_min (classical.not_forall.1 H)
+      nat.find_min (not_forall.1 H)
         (nat.mod_lt x $ nat.pos_of_ne_zero $ not_of_not_imp $
-          nat.find_spec (classical.not_forall.1 H))
-        (not_imp_of_and_not ⟨by rwa [← nat.mod_add_div x (nat.find (classical.not_forall.1 H)),
-          nat.cast_add, nat.cast_mul, of_not_not (not_not_of_not_imp $ nat.find_spec (classical.not_forall.1 H)),
+          nat.find_spec (not_forall.1 H))
+        (not_imp_of_and_not ⟨by rwa [← nat.mod_add_div x (nat.find (not_forall.1 H)),
+          nat.cast_add, nat.cast_mul, of_not_not (not_not_of_not_imp $ nat.find_spec (not_forall.1 H)),
           zero_mul, add_zero] at H1, H2⟩)),
     λ H1, by rw [← nat.mul_div_cancel' H1, nat.cast_mul,
-      of_not_not (not_not_of_not_imp $ nat.find_spec (classical.not_forall.1 H)), zero_mul]⟩⟩⟩)
+      of_not_not (not_not_of_not_imp $ nat.find_spec (not_forall.1 H)), zero_mul]⟩⟩⟩)
 
 theorem char_p.exists_unique (α : Type u) [semiring α] : ∃! p, char_p α p :=
 let ⟨c, H⟩ := char_p.exists α in ⟨c, H, λ y H2, char_p.eq α H2 H⟩

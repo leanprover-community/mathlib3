@@ -489,7 +489,7 @@ theorem eq_mk_support (f : Π₀ i, β i) : f = mk f.support (λ i, f i) :=
 begin
   change f = mk f.support (λ i, f i.1),
   ext i,
-  by_cases h : f i ≠ 0; [skip, rw [classical.not_not] at h];
+  by_cases h : f i ≠ 0; [skip, rw [not_not] at h];
     simp [h]
 end
 
@@ -548,7 +548,7 @@ lemma zip_with_def {f : Π i, β₁ i → β₂ i → β i} {hf : ∀ i, f i 0 0
 begin
   ext i,
   by_cases h1 : g₁ i ≠ 0; by_cases h2 : g₂ i ≠ 0;
-    simp only [classical.not_not, ne.def] at h1 h2; simp [h1, h2, hf]
+    simp only [not_not, ne.def] at h1 h2; simp [h1, h2, hf]
 end
 
 lemma support_zip_with {f : Π i, β₁ i → β₂ i → β i} {hf : ∀ i, f i 0 0 = 0}
@@ -666,7 +666,7 @@ lemma prod_single_index [Π i, has_zero (β i)] [Π i (x : β i), decidable (x �
 begin
   by_cases h : b ≠ 0,
   { simp [dfinsupp.prod, support_single_ne_zero h] },
-  { rw [classical.not_not] at h, simp [h, prod_zero_index, h_zero], refl }
+  { rw [not_not] at h, simp [h, prod_zero_index, h_zero], refl }
 end
 
 @[to_additive]

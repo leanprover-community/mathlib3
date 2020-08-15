@@ -247,7 +247,7 @@ begin
     rw set.mem_union,
     simp only [mem_zero_locus] at h ⊢,
     -- TODO: The rest of this proof should be factored out.
-    rw classical.or_iff_not_imp_right,
+    rw or_iff_not_imp_right,
     intros hs r hr,
     rw set.not_subset at hs,
     rcases hs with ⟨s, hs1, hs2⟩,

@@ -259,7 +259,7 @@ have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2 $
   by rw [norm_nat_cast, int.nat_abs_mul, nat.mul_eq_one_iff];
     exact λ h, (ne_of_lt hp.one_lt).symm h.1,
 have hab : ∃ a b, (p : ℤ[i]) = a * b ∧ ¬ is_unit a ∧ ¬ is_unit b,
-  by simpa [irreducible, hpu, classical.not_forall, not_or_distrib] using hpi,
+  by simpa [irreducible, hpu, not_forall, not_or_distrib] using hpi,
 let ⟨a, b, hpab, hau, hbu⟩ := hab in
 have hnap : (norm a).nat_abs = p, from ((hp.mul_eq_prime_pow_two_iff
     (mt norm_eq_one_iff.1 hau) (mt norm_eq_one_iff.1 hbu)).1 $

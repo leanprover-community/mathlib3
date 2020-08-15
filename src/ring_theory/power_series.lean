@@ -1113,7 +1113,7 @@ variable [integral_domain α]
 lemma eq_zero_or_eq_zero_of_mul_eq_zero (φ ψ : power_series α) (h : φ * ψ = 0) :
   φ = 0 ∨ ψ = 0 :=
 begin
-    rw classical.or_iff_not_imp_left, intro H,
+    rw or_iff_not_imp_left, intro H,
     have ex : ∃ m, coeff α m φ ≠ 0, { contrapose! H, exact ext H },
     let P : ℕ → Prop := λ k, coeff α k φ ≠ 0,
     let m := nat.find ex,

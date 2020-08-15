@@ -552,7 +552,7 @@ begin
   classical,
   rw ← not_iff_not,
   push_neg,
-  simpa [classical.or_iff_not_imp_left] using finset.card_le_one_iff
+  simpa [or_iff_not_imp_left] using finset.card_le_one_iff
 end
 
 instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
@@ -671,7 +671,7 @@ by rw fintype.subtype_card; exact card_le_of_subset (subset_univ _)
 theorem fintype.card_subtype_lt [fintype α] {p : α → Prop} [decidable_pred p]
   {x : α} (hx : ¬ p x) : fintype.card {x // p x} < fintype.card α :=
 by rw [fintype.subtype_card]; exact finset.card_lt_card
-  ⟨subset_univ _, classical.not_forall.2 ⟨x, by simp [hx]⟩⟩
+  ⟨subset_univ _, not_forall.2 ⟨x, by simp [hx]⟩⟩
 
 instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] :
   fintype (Σ' a, β a) :=
@@ -986,7 +986,7 @@ class infinite (α : Type*) : Prop :=
 namespace infinite
 
 lemma exists_not_mem_finset [infinite α] (s : finset α) : ∃ x, x ∉ s :=
-classical.not_forall.1 $ λ h, not_fintype ⟨s, h⟩
+not_forall.1 $ λ h, not_fintype ⟨s, h⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance nonempty (α : Type*) [infinite α] : nonempty α :=

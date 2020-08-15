@@ -138,7 +138,7 @@ ext (by simp)
 
 -- classical -- complete_boolean_algebra
 theorem compl_Inter (s : ι → set β) : (⋂ i, s i)ᶜ = (⋃ i, (s i)ᶜ) :=
-ext (λ x, by simp [classical.not_forall])
+ext (λ x, by simp [not_forall])
 
 -- classical -- complete_boolean_algebra
 theorem Union_eq_comp_Inter_comp (s : ι → set β) : (⋃ i, s i) = (⋂ i, (s i)ᶜ)ᶜ :=
@@ -183,7 +183,7 @@ by rw [Inter_inter_distrib, Inter_const]
 -- classical
 theorem union_Inter (s : set β) (t : ι → set β) :
   s ∪ (⋂ i, t i) = ⋂ i, s ∪ t i :=
-ext $ assume x, by simp [classical.forall_or_distrib_left]
+ext $ assume x, by simp [forall_or_distrib_left]
 
 theorem Union_diff (s : set β) (t : ι → set β) :
   (⋃ i, t i) \ s = ⋃ i, t i \ s :=
@@ -353,7 +353,7 @@ ext (λ x, by simp)
 
 -- classical -- complete_boolean_algebra
 theorem compl_bInter (s : set α) (t : α → set β) : (⋂ i ∈ s, t i)ᶜ = (⋃ i ∈ s, (t i)ᶜ) :=
-ext (λ x, by simp [classical.not_forall])
+ext (λ x, by simp [not_forall])
 
 theorem inter_bUnion (s : set α) (t : α → set β) (u : set β) :
   u ∩ (⋃ i ∈ s, t i) = ⋃ i ∈ s, u ∩ t i :=
@@ -1010,7 +1010,7 @@ theorem disjoint_iff_inter_eq_empty {s t : set α} : disjoint s t ↔ s ∩ t = 
 disjoint_iff
 
 lemma not_disjoint_iff {s t : set α} : ¬disjoint s t ↔ ∃x, x ∈ s ∧ x ∈ t :=
-classical.not_forall.trans $ exists_congr $ λ x, classical.not_not
+not_forall.trans $ exists_congr $ λ x, not_not
 
 lemma disjoint_left {s t : set α} : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
 show (∀ x, ¬(x ∈ s ∩ t)) ↔ _, from ⟨λ h a, not_and.1 $ h a, λ h a, not_and.2 $ h a⟩
@@ -1086,7 +1086,7 @@ end
 /- warning: classical -/
 lemma pairwise_disjoint.elim {s : set (set α)} (h : pairwise_disjoint s) {x y : set α}
   (hx : x ∈ s) (hy : y ∈ s) (z : α) (hzx : z ∈ x) (hzy : z ∈ y) : x = y :=
-classical.not_not.1 $ λ h', h x hx y hy h' ⟨hzx, hzy⟩
+not_not.1 $ λ h', h x hx y hy h' ⟨hzx, hzy⟩
 
 end set
 

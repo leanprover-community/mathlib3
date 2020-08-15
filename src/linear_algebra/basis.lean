@@ -114,7 +114,7 @@ theorem linear_dependent_iff : ¬ linear_independent R v ↔
   ∃ s : finset ι, ∃ g : ι → R, s.sum (λ i, g i • v i) = 0 ∧ (∃ i ∈ s, g i ≠ 0) :=
 begin
   rw linear_independent_iff',
-  simp only [exists_prop, classical.not_forall],
+  simp only [exists_prop, not_forall],
 end
 
 lemma linear_independent_empty_type (h : ¬ nonempty ι) : linear_independent R v :=
@@ -529,7 +529,7 @@ end, λ H, linear_independent_iff.2 $ λ l hl, begin
   { rw finsupp.mem_supported',
     intros j hj,
     have hij : j = i :=
-      classical.not_not.1
+      not_not.1
           (λ hij : j ≠ i, hj ((mem_diff _).2 ⟨mem_univ _, λ h, hij (eq_of_mem_singleton h)⟩)),
     simp [hij] },
   { simp [hl] }

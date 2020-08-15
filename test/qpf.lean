@@ -139,7 +139,7 @@ Such a QPF is not uniform
 -/
 lemma foo_not_uniform : ¬ @qpf.is_uniform foo _ qpf.foo :=
 begin
-  simp only [qpf.is_uniform, foo, qpf.foo, set.image_univ, classical.not_forall, classical.not_imp],
+  simp only [qpf.is_uniform, foo, qpf.foo, set.image_univ, not_forall, not_imp],
   existsi [bool,ff,ff,λ a : unit, tt,λ a : unit, ff], split,
   { apply quot.sound, simp [foo.R,qpf.abs,qpf._match_1], },
   { simp! only [set.range,set.ext_iff], simp,

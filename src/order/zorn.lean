@@ -112,7 +112,7 @@ begin
       { exact or.inl h } },
     { exact or.inr (subset.trans ih succ_increasing) } },
   case union : s hs ih {
-    refine (classical.or_iff_not_imp_right.2 $ λ hn, sUnion_subset $ λ a ha, _),
+    refine (or_iff_not_imp_right.2 $ λ hn, sUnion_subset $ λ a ha, _),
     apply (ih a ha).resolve_right,
     apply mt (λ h, _) hn,
     exact subset.trans h (subset_sUnion_of_mem ha) }
@@ -134,7 +134,7 @@ begin
   case union : s hs ih {
     apply or.imp_left (assume h', subset.antisymm h' h),
     apply classical.by_contradiction,
-    simp [not_or_distrib, sUnion_subset_iff, classical.not_forall],
+    simp [not_or_distrib, sUnion_subset_iff, not_forall],
     intros c₃ hc₃ h₁ h₂,
     have h := chain_closure_succ_total_aux hc₁ (hs c₃ hc₃) (assume c₄, ih _ hc₃),
     cases h with h h,

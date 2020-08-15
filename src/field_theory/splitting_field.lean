@@ -39,7 +39,7 @@ if ha : a = 0 then ha.symm ▸ (@C_0 α _).symm ▸ splits_zero i
 else
 have hia : i a ≠ 0, from mt ((is_add_group_hom.injective_iff i).1
   i.injective _) ha,
-or.inr $ λ g hg ⟨p, hp⟩, absurd hg.1 (classical.not_not.2 (is_unit_iff_degree_eq_zero.2 $
+or.inr $ λ g hg ⟨p, hp⟩, absurd hg.1 (not_not.2 (is_unit_iff_degree_eq_zero.2 $
   by have := congr_arg degree hp;
     simp [degree_C hia, @eq_comm (with_bot ℕ) 0,
       nat.with_bot.add_eq_zero_iff] at this; clear _fun_match; tautology))

@@ -24,9 +24,9 @@ lemma push_neg_equiv :
   ∀ {p : preform}, preform.equiv (push_neg p) (¬* p) :=
 begin
   preform.induce `[intros v; try {refl}],
-  { simp only [classical.not_not, push_neg, preform.holds] },
+  { simp only [not_not, push_neg, preform.holds] },
   { simp only [preform.holds, push_neg, not_or_distrib, ihp v, ihq v] },
-  { simp only [preform.holds, push_neg, classical.not_and_distrib, ihp v, ihq v] }
+  { simp only [preform.holds, push_neg, not_and_distrib, ihp v, ihq v] }
 end
 
 /-- NNF transformation -/
@@ -107,7 +107,7 @@ begin
   preform.induce `[intros v h, try {apply h}],
   { cases p with t s t s; try {apply h},
     { simp only [le_and_le_iff_eq.symm,
-        classical.not_and_distrib, not_le,
+        not_and_distrib, not_le,
         preterm.val, preform.holds] at h,
       simp only [int.add_one_le_iff, preterm.add_one,
         preterm.val, preform.holds, neg_elim],

@@ -379,7 +379,7 @@ end lattice
 lemma eq_bot_or_top {K : Type u} [field K] (I : ideal K) :
   I = ⊥ ∨ I = ⊤ :=
 begin
-  rw classical.or_iff_not_imp_right,
+  rw or_iff_not_imp_right,
   change _ ≠ _ → _,
   rw ideal.ne_top_iff_one,
   intro h1,
@@ -391,7 +391,7 @@ end
 
 lemma eq_bot_of_prime {K : Type u} [field K] (I : ideal K) [h : I.is_prime] :
   I = ⊥ :=
-classical.or_iff_not_imp_right.mp I.eq_bot_or_top h.1
+or_iff_not_imp_right.mp I.eq_bot_or_top h.1
 
 lemma bot_is_maximal {K : Type u} [field K] : is_maximal (⊥ : ideal K) :=
 ⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simp),

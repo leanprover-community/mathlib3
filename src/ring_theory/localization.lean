@@ -894,26 +894,26 @@ lemma map_mem_non_zero_divisors {B : Type*} [integral_domain B] {g : A →+* B}
 
 variables {K}
 
-lemma le_non_zero_divisors_of_domain [integral_domain K] {M : submonoid K} (hM : ↑0 ∉ M)
-  : M ≤ non_zero_divisors K :=
+lemma le_non_zero_divisors_of_domain [integral_domain K] {M : submonoid K} (hM : ↑0 ∉ M) :
+  M ≤ non_zero_divisors K :=
 λ x hx y hy, or.rec_on (eq_zero_or_eq_zero_of_mul_eq_zero hy)
   (λ h, h) (λ h, absurd (h ▸ hx : (0 : K) ∈ M) hM)
 
 namespace localization_map
 
-lemma to_map_eq_zero_iff (f : localization_map M S) {x : R}
-  (hM : M ≤ non_zero_divisors R) : x = 0 ↔ f.to_map x = 0 :=
+lemma to_map_eq_zero_iff (f : localization_map M S) {x : R} (hM : M ≤ non_zero_divisors R) :
+  f.to_map x = 0 ↔ x = 0 :=
 begin
   rw ← f.to_map.map_zero,
   split; intro h,
-  { rw h },
   { cases f.eq_iff_exists.mp h with c hc,
     rw zero_mul at hc,
-    exact hM c.2 x hc }
+    exact hM c.2 x hc },
+  { rw h },
 end
 
-lemma injective (f : localization_map M S)
-  (hM : M ≤ non_zero_divisors R) : injective f.to_map :=
+lemma injective_to_map (f : localization_map M S) (hM : M ≤ non_zero_divisors R) :
+  injective f.to_map :=
 begin
   rw ring_hom.injective_iff f.to_map,
   intros a ha,
@@ -923,13 +923,13 @@ begin
   exact hM c.2 a hc,
 end
 
-protected lemma map_ne_zero_of_mem_non_zero_divisors {M : submonoid A} (f : localization_map M S)
+protected lemma to_map_ne_zero_of_mem_non_zero_divisors {M : submonoid A} (f : localization_map M S)
   (hM : M ≤ non_zero_divisors A) (x : non_zero_divisors A) : f.to_map x ≠ 0 :=
-map_ne_zero_of_mem_non_zero_divisors (f.injective hM)
+map_ne_zero_of_mem_non_zero_divisors (f.injective_to_map hM)
 
 /-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of `R - {0}`
 is an integral domain. -/
-def to_integral_domain {M : submonoid A} (f : localization_map M S)
+def integral_domain_of_le_non_zero_divisors {M : submonoid A} (f : localization_map M S)
   (hM : M ≤ non_zero_divisors A) : integral_domain S :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     begin
@@ -939,17 +939,16 @@ def to_integral_domain {M : submonoid A} (f : localization_map M S)
       have : z * w * f.to_map y.2 * f.to_map x.2 = f.to_map x.1 * f.to_map y.1,
       by rw [mul_assoc z, hy, ←hx]; ac_refl,
       rw [h, zero_mul, zero_mul, ← f.to_map.map_mul] at this,
-      cases eq_zero_or_eq_zero_of_mul_eq_zero ((to_map_eq_zero_iff f hM).mpr this.symm) with H H,
+      cases eq_zero_or_eq_zero_of_mul_eq_zero ((to_map_eq_zero_iff f hM).mp this.symm) with H H,
       { exact or.inl (f.eq_zero_of_fst_eq_zero hx H) },
       { exact or.inr (f.eq_zero_of_fst_eq_zero hy H) },
     end,
-  exists_pair_ne := ⟨f.to_map 0, f.to_map 1, λ h, zero_ne_one (f.injective hM h)⟩,
+  exists_pair_ne := ⟨f.to_map 0, f.to_map 1, λ h, zero_ne_one (f.injective_to_map hM h)⟩,
   ..(infer_instance : comm_ring S) }
 
-@[priority 100]
-instance integral_domain_localization {M : submonoid A} (hM : M ≤ non_zero_divisors A)
-  : integral_domain (localization M) :=
-(localization.of M).to_integral_domain hM
+def integral_domain_localization {M : submonoid A} (hM : M ≤ non_zero_divisors A) :
+  integral_domain (localization M) :=
+(localization.of M).integral_domain_of_le_non_zero_divisors hM
 
 end localization_map
 end non_zero_divisors
@@ -962,21 +961,21 @@ open localization_map
 variables {R K}
 
 lemma to_map_eq_zero_iff [comm_ring K] (φ : fraction_map R K) {x : R} :
-  x = 0 ↔ φ.to_map x = 0 :=
+  φ.to_map x = 0 ↔ x = 0 :=
 φ.to_map_eq_zero_iff (le_of_eq rfl)
 
-protected theorem injective [comm_ring K] (φ : fraction_map R K) :
+protected theorem injective_to_map [comm_ring K] (φ : fraction_map R K) :
   function.injective φ.to_map :=
-φ.injective (le_of_eq rfl)
+φ.injective_to_map (le_of_eq rfl)
 
-protected lemma map_ne_zero_of_mem_non_zero_divisors [comm_ring K] (φ : fraction_map A K)
+protected lemma to_map_ne_zero_of_mem_non_zero_divisors [comm_ring K] (φ : fraction_map A K)
   (x : non_zero_divisors A) : φ.to_map x ≠ 0 :=
-φ.map_ne_zero_of_mem_non_zero_divisors (le_of_eq rfl) x
+φ.to_map_ne_zero_of_mem_non_zero_divisors (le_of_eq rfl) x
 
 /-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is an
 integral domain. -/
 def to_integral_domain [comm_ring K] (φ : fraction_map A K) : integral_domain K :=
-φ.to_integral_domain (le_of_eq rfl)
+φ.integral_domain_of_le_non_zero_divisors (le_of_eq rfl)
 
 local attribute [instance] classical.dec_eq
 
@@ -1005,7 +1004,7 @@ variables {B : Type*} [integral_domain B] [field K] {L : Type*} [field L]
 
 lemma mk'_eq_div {r s} : f.mk' r s = f.to_map r / f.to_map s :=
 f.mk'_eq_iff_eq_mul.2 $ (div_mul_cancel _
-    (f.map_ne_zero_of_mem_non_zero_divisors _)).symm
+    (f.to_map_ne_zero_of_mem_non_zero_divisors _)).symm
 
 lemma is_unit_map_of_injective (hg : function.injective g)
   (y : non_zero_divisors A) : is_unit (g y) :=
@@ -1086,15 +1085,15 @@ begin
   refine (polynomial.ext_iff.trans (polynomial.ext_iff.trans _).symm),
   obtain ⟨⟨b, nonzero⟩, hb⟩ := integer_normalization_spec p,
   split; intros h i,
-  { apply f.to_map_eq_zero_iff.mpr,
+  { apply f.to_map_eq_zero_iff.mp,
     rw [hb i, h i],
     exact _root_.mul_zero _ },
   { have hi := h i,
-    rw [polynomial.coeff_zero, f.to_map_eq_zero_iff, hb i] at hi,
+    rw [polynomial.coeff_zero, ← f.to_map_eq_zero_iff, hb i] at hi,
     apply or.resolve_left (eq_zero_or_eq_zero_of_mul_eq_zero hi),
     intro h,
     apply mem_non_zero_divisors_iff_ne_zero.mp nonzero,
-    exact f.to_map_eq_zero_iff.mpr h }
+    exact f.to_map_eq_zero_iff.mp h }
 end
 
 /-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`. -/
@@ -1104,7 +1103,7 @@ begin
   split; intros h x; obtain ⟨p, hp, px⟩ := h x,
   { refine ⟨p.map f.to_map, λ h, hp (polynomial.ext (λ i, _)), _⟩,
   { have : f.to_map (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
-    exact f.to_map_eq_zero_iff.mpr this },
+    exact f.to_map_eq_zero_iff.mp this },
   { rwa [is_algebra_tower.aeval_apply _ f.codomain, algebra_map_eq] at px } },
   { exact ⟨integer_normalization p,
            mt f.integer_normalization_eq_zero_iff.mp hp,
@@ -1125,7 +1124,7 @@ begin
       (mem_non_zero_divisors_iff_ne_zero.mp b_nonzero),
   obtain ⟨c'_nonzero, b'_nonzero⟩ := mul_mem_non_zero_divisors.mp b_nonzero,
   refine ⟨a', ⟨b', b'_nonzero⟩, @no_factor, _⟩,
-  apply mul_left_cancel' (φ.map_ne_zero_of_mem_non_zero_divisors ⟨c' * b', b_nonzero⟩),
+  apply mul_left_cancel' (φ.to_map_ne_zero_of_mem_non_zero_divisors ⟨c' * b', b_nonzero⟩),
   simp only [subtype.coe_mk, φ.to_map.map_mul] at *,
   erw [←hab, mul_assoc, φ.mk'_spec' a' ⟨b', b'_nonzero⟩],
 end
@@ -1166,7 +1165,8 @@ lemma eq_zero_of_num_eq_zero {x : φ.codomain} (h : φ.num x = 0) : x = 0 :=
 lemma is_integer_of_is_unit_denom {x : φ.codomain} (h : is_unit (φ.denom x : A)) : φ.is_integer x :=
 begin
   cases h with d hd,
-  have d_ne_zero : φ.to_map (φ.denom x) ≠ 0 := φ.map_ne_zero_of_mem_non_zero_divisors (φ.denom x),
+  have d_ne_zero : φ.to_map (φ.denom x) ≠ 0 :=
+    φ.to_map_ne_zero_of_mem_non_zero_divisors (φ.denom x),
   use ↑d⁻¹ * φ.num x,
   refine trans _ (φ.mk'_num_denom x),
   rw [φ.to_map.map_mul, φ.to_map.map_units_inv, hd],
@@ -1209,7 +1209,7 @@ def fraction_map_of_finite_extension [algebra A L] [algebra f.codomain L]
   fraction_map (integral_closure A L) L :=
 fraction_map_of_algebraic
   (f.comap_is_algebraic_iff.mpr is_algebraic_of_finite)
-  (λ x hx, f.to_map_eq_zero_iff.mpr ((algebra_map f.codomain L).map_eq_zero.mp $
+  (λ x hx, f.to_map_eq_zero_iff.mp ((algebra_map f.codomain L).map_eq_zero.mp $
     (is_algebra_tower.algebra_map_apply _ _ _ _).symm.trans hx))
 
 end integral_closure

@@ -30,7 +30,6 @@ All the following declarations exist in the namespace `nat`.
 open bool subtype
 
 namespace nat
-open decidable
 
 /-- `prime p` means that `p` is a prime number, that is, a natural number
   at least 2 whose only divisors are `p` and `1`. -/

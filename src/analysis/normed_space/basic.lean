@@ -195,7 +195,6 @@ calc
   ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
   ... < ∥g∥ + r : by { apply add_lt_add_left, rw ← dist_eq_norm, exact H }
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
 metric.tendsto_nhds.trans $ by simp only [dist_zero_right]
@@ -1030,7 +1029,6 @@ lemma has_sum_of_bounded_monoid_hom_of_summable
   has_sum (λ (b:ι), φ (f b)) (φ (∑'b, f b)) :=
 has_sum_of_bounded_monoid_hom_of_has_sum hf.has_sum C hφ
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → α} :
   cauchy_seq (λ s : finset ι, ∑ i in s, f i) ↔ ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
 begin
@@ -1044,7 +1042,6 @@ begin
     exact ht u hu }
 end
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma summable_iff_vanishing_norm [complete_space α] {f : ι → α} :
   summable f ↔ ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
 by rw [summable_iff_cauchy_seq_finset, cauchy_seq_finset_iff_vanishing_norm]

@@ -24,7 +24,6 @@ open filter finset
 
 local notation `d` := dist
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma hofer {X: Type*} [metric_space X] [complete_space X]
   (x : X) (ε : ℝ) (ε_pos : 0 < ε)
   {ϕ : X → ℝ} (cont : continuous ϕ) (nonneg : ∀ y, 0 ≤ ϕ y) :

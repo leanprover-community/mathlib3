@@ -256,7 +256,6 @@ iff.intro
     let ⟨a, ha, h⟩ := h _ h' in
     lt_irrefl a $ lt_of_le_of_lt (le_Sup ha) h)
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma Inf_eq_bot : Inf s = ⊥ ↔ (∀b>⊥, ∃a∈s, a < b) :=
 @Sup_eq_top (order_dual α) _ _
 
@@ -829,7 +828,6 @@ variables [complete_linear_order α]
 lemma supr_eq_top (f : ι → α) : supr f = ⊤ ↔ (∀b<⊤, ∃i, b < f i) :=
 by simp only [← Sup_range, Sup_eq_top, set.exists_range_iff]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma infi_eq_bot (f : ι → α) : infi f = ⊥ ↔ (∀b>⊥, ∃i, f i < b) :=
 by simp only [← Inf_range, Inf_eq_bot, set.exists_range_iff]
 

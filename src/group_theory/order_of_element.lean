@@ -85,7 +85,6 @@ have a ^ (i - j) = 1,
   by simp [sub_eq_add_neg, gpow_add, gpow_neg, a_eq],
 ⟨i - j, sub_ne_zero.mpr ne, this⟩
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma exists_pow_eq_one (a : α) : ∃i > 0, a ^ i = 1 :=
 let ⟨i, hi, eq⟩ := exists_gpow_eq_one a in
 begin

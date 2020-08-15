@@ -32,7 +32,6 @@ Rescaling everything, it follows that any `y ∈ F` is arbitrarily well approach
 images of elements of norm at most `C * ∥y∥`.
 For further use, we will only need such an element whose image
 is within distance `∥y∥/2` of `y`, to apply an iterative process. -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma exists_approx_preimage_norm_le (surj : surjective f) :
   ∃C ≥ 0, ∀y, ∃x, dist (f x) y ≤ 1/2 * ∥y∥ ∧ ∥x∥ ≤ C * ∥y∥ :=
 begin
@@ -110,7 +109,6 @@ variable [complete_space E]
 
 /-- The Banach open mapping theorem: if a bounded linear map between Banach spaces is onto, then
 any point has a preimage with controlled norm. -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem exists_preimage_norm_le (surj : surjective f) :
   ∃C > 0, ∀y, ∃x, f x = y ∧ ∥x∥ ≤ C * ∥y∥ :=
 begin

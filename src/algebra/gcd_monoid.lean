@@ -425,7 +425,7 @@ begin
     transitivity, {apply dvd_of_associated, symmetry, use u}, apply gcd_dvd_right, }
 end
 
-theorem irreducible_iff_prime {p : α} : irreducible p ↔ prime p :=
+theorem gcd_monoid.irreducible_iff_prime {p : α} : irreducible p ↔ prime p :=
 ⟨prime_of_irreducible, irreducible_of_prime⟩
 
 end gcd_monoid

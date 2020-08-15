@@ -34,15 +34,15 @@ instance : has_coe_to_sort Cat :=
 { S := Type u,
   coe := bundled.α }
 
-instance str (C : Cat.{v u}) : category.{v u} C.α := C.str
+instance str (C : Cat.{v u}) : category.{v u} C := C.str
 
 /-- Construct a bundled `Cat` from the underlying type and the typeclass. -/
 def of (C : Type u) [category.{v} C] : Cat.{v u} := bundled.of C
 
 /-- Category structure on `Cat` -/
 instance category : large_category.{max v u} Cat.{v u} :=
-{ hom := λ C D, C.α ⥤ D.α,
-  id := λ C, 𝟭 C.α,
+{ hom := λ C D, C ⥤ D,
+  id := λ C, 𝟭 C,
   comp := λ C D E F G, F ⋙ G,
   id_comp' := λ C D F, by cases F; refl,
   comp_id' := λ C D F, by cases F; refl,
@@ -51,7 +51,7 @@ instance category : large_category.{max v u} Cat.{v u} :=
 /-- Functor that gets the set of objects of a category. It is not
 called `forget`, because it is not a faithful functor. -/
 def objects : Cat.{v u} ⥤ Type u :=
-{ obj := bundled.α,
+{ obj := λ C, C,
   map := λ C D F, F.obj }
 
 /-- Any isomorphism in `Cat` induces an equivalence of the underlying categories. -/

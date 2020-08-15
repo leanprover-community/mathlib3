@@ -19,8 +19,6 @@ This file defines several small linters:
 
 open tactic expr
 
-
-
 /-!
 ## Linter against use of `>`/`≥`
 -/
@@ -30,11 +28,12 @@ private meta def illegal_ge_gt : list name := [`gt, `ge]
 set_option eqn_compiler.max_steps 20000
 /--
   Checks whether `≥` and `>` occurs in an illegal way in the expression.
-  The main ways it can occur legally are:
+  The main ways we legally use these orderings are:
   - `f (≥)`
   - `∃ x ≥ t, b`. This corresponds to the expression
     `@Exists α (fun (x : α), (@Exists (x > t) (λ (H : x > t), b)))`
-  The only legal ways for `ge` (or `gt`) to occur are
+  This function returns `tt` when it finds `ge`/`gt`, except in the following patterns
+  (which are the same for `gt`):
   - `f (@ge _ _)`
   - `f (&0 ≥ y) (λ x : t, b)`
   - `λ H : &0 ≥ t, b`
@@ -48,11 +47,11 @@ private meta def contains_illegal_ge_gt : expr → bool
     e@(lam var_name bi var_type body)) :=
   contains_illegal_ge_gt e || if nm ∈ illegal_ge_gt then ff else contains_illegal_ge_gt e
 | (app f x) := contains_illegal_ge_gt f || contains_illegal_ge_gt x
-| (lam `H bi (app (app (app (app (const nm us) tp) tc) (var 0)) t) body) :=
-  contains_illegal_ge_gt body
+| (lam `H bi type@(app (app (app (app (const nm us) tp) tc) (var 0)) t) body) :=
+  contains_illegal_ge_gt body || if nm ∈ illegal_ge_gt then ff else contains_illegal_ge_gt type
 | (lam var_name bi var_type body) := contains_illegal_ge_gt var_type || contains_illegal_ge_gt body
-| (pi `H bi (app (app (app (app (const nm us) tp) tc) (var 0)) t) body) :=
-  contains_illegal_ge_gt body
+| (pi `H bi type@(app (app (app (app (const nm us) tp) tc) (var 0)) t) body) :=
+  contains_illegal_ge_gt body || if nm ∈ illegal_ge_gt then ff else contains_illegal_ge_gt type
 | (pi var_name bi var_type body) := contains_illegal_ge_gt var_type || contains_illegal_ge_gt body
 | (elet var_name type assignment body) :=
   contains_illegal_ge_gt type || contains_illegal_ge_gt assignment || contains_illegal_ge_gt body

@@ -894,23 +894,15 @@ lemma map_mem_non_zero_divisors {B : Type*} [integral_domain B] {g : A →+* B}
 
 variables {K}
 
-/-- Submonoids in which localization of an integral domain is an integral domain
-TODO: should this have a class annotation or is that not useful? -/
-@[class]
-def le_non_zero_divisors [comm_ring K] (M : submonoid K) := M ≤ non_zero_divisors K
-
-instance le_non_zero_divisors_self [comm_ring K] : le_non_zero_divisors (non_zero_divisors K) :=
-le_of_eq rfl
-
 lemma le_non_zero_divisors_of_domain [integral_domain K] {M : submonoid K} (hM : ↑0 ∉ M)
-  : le_non_zero_divisors M :=
+  : M ≤ non_zero_divisors K :=
 λ x hx y hy, or.rec_on (eq_zero_or_eq_zero_of_mul_eq_zero hy)
   (λ h, h) (λ h, absurd (h ▸ hx : (0 : K) ∈ M) hM)
 
 namespace localization_map
 
 lemma to_map_eq_zero_iff (f : localization_map M S) {x : R}
-  [hM : le_non_zero_divisors M] : x = 0 ↔ f.to_map x = 0 :=
+  (hM : M ≤ non_zero_divisors R) : x = 0 ↔ f.to_map x = 0 :=
 begin
   rw ← f.to_map.map_zero,
   split; intro h,
@@ -921,7 +913,7 @@ begin
 end
 
 lemma injective (f : localization_map M S)
-  [hM : le_non_zero_divisors M] : injective f.to_map :=
+  (hM : M ≤ non_zero_divisors R) : injective f.to_map :=
 begin
   rw ring_hom.injective_iff f.to_map,
   intros a ha,
@@ -932,13 +924,13 @@ begin
 end
 
 protected lemma map_ne_zero_of_mem_non_zero_divisors {M : submonoid A} (f : localization_map M S)
-  [hM : le_non_zero_divisors M] (x : non_zero_divisors A) : f.to_map x ≠ 0 :=
-map_ne_zero_of_mem_non_zero_divisors f.injective
+  (hM : M ≤ non_zero_divisors A) (x : non_zero_divisors A) : f.to_map x ≠ 0 :=
+map_ne_zero_of_mem_non_zero_divisors (f.injective hM)
 
 /-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of `R - {0}`
 is an integral domain. -/
 def to_integral_domain {M : submonoid A} (f : localization_map M S)
-  [hM : le_non_zero_divisors M] : integral_domain S :=
+  (hM : M ≤ non_zero_divisors A) : integral_domain S :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     begin
       intros z w h,
@@ -947,17 +939,17 @@ def to_integral_domain {M : submonoid A} (f : localization_map M S)
       have : z * w * f.to_map y.2 * f.to_map x.2 = f.to_map x.1 * f.to_map y.1,
       by rw [mul_assoc z, hy, ←hx]; ac_refl,
       rw [h, zero_mul, zero_mul, ← f.to_map.map_mul] at this,
-      cases eq_zero_or_eq_zero_of_mul_eq_zero ((to_map_eq_zero_iff f).mpr this.symm) with H H,
+      cases eq_zero_or_eq_zero_of_mul_eq_zero ((to_map_eq_zero_iff f hM).mpr this.symm) with H H,
       { exact or.inl (f.eq_zero_of_fst_eq_zero hx H) },
       { exact or.inr (f.eq_zero_of_fst_eq_zero hy H) },
     end,
-  exists_pair_ne := ⟨f.to_map 0, f.to_map 1, λ h, zero_ne_one (f.injective h)⟩,
+  exists_pair_ne := ⟨f.to_map 0, f.to_map 1, λ h, zero_ne_one (f.injective hM h)⟩,
   ..(infer_instance : comm_ring S) }
 
 @[priority 100]
-instance integral_domain_localization {M : submonoid A} [hM : le_non_zero_divisors M]
+instance integral_domain_localization {M : submonoid A} (hM : M ≤ non_zero_divisors A)
   : integral_domain (localization M) :=
-(localization.of M).to_integral_domain
+(localization.of M).to_integral_domain hM
 
 end localization_map
 end non_zero_divisors
@@ -968,6 +960,23 @@ end non_zero_divisors
 namespace fraction_map
 open localization_map
 variables {R K}
+
+lemma to_map_eq_zero_iff [comm_ring K] (φ : fraction_map R K) {x : R} :
+  x = 0 ↔ φ.to_map x = 0 :=
+φ.to_map_eq_zero_iff (le_of_eq rfl)
+
+protected theorem injective [comm_ring K] (φ : fraction_map R K) :
+  function.injective φ.to_map :=
+φ.injective (le_of_eq rfl)
+
+protected lemma map_ne_zero_of_mem_non_zero_divisors [comm_ring K] (φ : fraction_map A K)
+  (x : non_zero_divisors A) : φ.to_map x ≠ 0 :=
+φ.map_ne_zero_of_mem_non_zero_divisors (le_of_eq rfl) x
+
+/-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is an
+integral domain. -/
+def to_integral_domain [comm_ring K] (φ : fraction_map A K) : integral_domain K :=
+φ.to_integral_domain (le_of_eq rfl)
 
 local attribute [instance] classical.dec_eq
 

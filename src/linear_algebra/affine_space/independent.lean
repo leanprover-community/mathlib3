@@ -107,7 +107,7 @@ combinations (with sum of weights 1) that evaluate to the same point
 have equal `set.indicator`. -/
 lemma affine_independent_iff_indicator_eq_of_affine_combination_eq (p : ι → P) :
   affine_independent k p ↔ ∀ (s1 s2 : finset ι) (w1 w2 : ι → k), ∑ i in s1, w1 i = 1 →
-    ∑ i in s2, w2 i = 1 → s1.affine_combination w1 p = s2.affine_combination w2 p →
+    ∑ i in s2, w2 i = 1 → s1.affine_combination p w1 = s2.affine_combination p w2 →
       set.indicator ↑s1 w1 = set.indicator ↑s2 w2 :=
 begin
   split,
@@ -129,13 +129,13 @@ begin
     let w1 : ι → k := function.update (function.const ι 0) i0 1,
     have hw1 : ∑ i in s, w1 i = 1,
     { rw [finset.sum_update_of_mem hi0, finset.sum_const_zero, add_zero] },
-    have hw1s : s.affine_combination w1 p = p i0 :=
+    have hw1s : s.affine_combination p w1 = p i0 :=
       s.affine_combination_of_eq_one_of_eq_zero w1 p hi0 (function.update_same _ _ _)
                                                 (λ _ _ hne, function.update_noteq hne _ _),
     let w2 := w + w1,
     have hw2 : ∑ i in s, w2 i = 1,
     { simp [w2, finset.sum_add_distrib, hw, hw1] },
-    have hw2s : s.affine_combination w2 p = p i0,
+    have hw2s : s.affine_combination p w2 = p i0,
     { simp [w2, ←finset.weighted_vsub_vadd_affine_combination, hs, hw1s] },
     replace ha := ha s s w2 w1 hw2 hw1 (hw1s.symm ▸ hw2s),
     have hws : w2 i0 - w1 i0 = 0,

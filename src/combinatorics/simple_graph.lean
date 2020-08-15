@@ -5,6 +5,7 @@ Author: Aaron Anderson, Jalex Stark, Kyle Miller.
 -/
 import data.fintype.basic
 import data.sym2
+import data.equiv.basic
 import order.bounded_lattice
 import tactic
 /-!
@@ -15,7 +16,7 @@ Since graphs are terms, the basic interface is that a term `G` is a
 simple graph if there is an instance `[simple_graph G]`.
 
 To construct a simple graph from a specific relation, one uses
-`simple_graph.from_rel`.
+`simple_graph.from_adj_rel`.
 
 There is a basic API for locally finite graphs and for graphs with
 finitely many vertices.
@@ -75,16 +76,16 @@ local infix ` ~ ` := adj
 /--
 Basic constructor for a simple graph, using a symmetric irreflexive relation.
 -/
-structure from_rel (V : Type u) :=
+structure from_adj_rel (V : Type u) :=
 (rel : V → V → Prop)
 (symm : symmetric rel . obviously)
-(irref : irreflexive rel . obviously)
+(irrefl : irreflexive rel . obviously)
 
-instance (V : Type u) (G : from_rel V) : simple_graph G :=
+instance (V : Type u) (G : from_adj_rel V) : simple_graph G :=
 { V := V,
   adj := G.rel,
   symm := G.symm,
-  loopless := G.irref }
+  loopless := G.irrefl }
 
 variables {α : Type u} {G : α} [simple_graph G]
 
@@ -101,6 +102,11 @@ The edges of G consist of the unordered pairs of vertices related by `adj`.
 def edge_set : set (sym2 (V G)) := sym2.from_rel symm
 
 variable {G}
+
+def incident_set (v : V G) : set (sym2 (V G)) := {e ∈ edge_set G | v ∈ e}
+
+lemma incident_set_subset (v : V G) : incident_set v ⊆ edge_set G :=
+by tidy
 
 @[simp]
 lemma edge_iff_adj {v w : V G} : ⟦(v, w)⟧ ∈ edge_set G ↔ v ~ w :=
@@ -145,6 +151,41 @@ by { dunfold edge_finset, simp }
 @[simp] lemma mem_neighbor_set (v w : V G) : w ∈ neighbor_set v ↔ v ~ w :=
 by tauto
 
+@[simp] lemma mem_incident_set (v w : V G) : ⟦(v, w)⟧ ∈ incident_set v ↔ v ~ w :=
+by { dsimp [incident_set], simp }
+
+section incidence
+variable [decidable_eq (V G)]
+
+def incident_other [decidable_eq (V G)] {v : V G} {e : sym2 (V G)} (h : e ∈ incident_set v) : V G := h.2.other'
+
+def incident_other_spec {v : V G} {e : sym2 (V G)} (h : e ∈ incident_set v) : incident_other h ∈ neighbor_set v :=
+by { cases h, rwa [←sym2.mem_other_spec' h_right, edge_iff_adj] at h_left }
+
+def neighbor_edge {v w : V G} (h : w ∈ neighbor_set v) : sym2 (V G) := ⟦(v, w)⟧
+
+def neighbor_edge_spec {v w : V G} (h : w ∈ neighbor_set v) : neighbor_edge h ∈ incident_set v :=
+by { dunfold neighbor_edge, rw mem_neighbor_set at h, simpa }
+
+@[simp]
+lemma incident_other_neighbor_edge {v w : V G} (h : w ∈ neighbor_set v) : incident_other (neighbor_edge_spec h) = w :=
+begin
+  set h' := neighbor_edge_spec h,
+  dsimp [neighbor_edge, incident_set] at h',
+  dsimp [incident_other],
+  dunfold incident_other._proof_1,
+  have h'' := sym2.mem_other_spec' h'.right,
+  rwa sym2.congr_right at h'',
+end
+
+def incident_set_equiv_neighbor_set (v : V G) : incident_set v ≃ neighbor_set v :=
+{ to_fun := λ e, ⟨incident_other e.2, incident_other_spec e.2⟩,
+  inv_fun := λ w, ⟨neighbor_edge w.2, neighbor_edge_spec w.2⟩,
+  left_inv := by { intro x, dsimp [incident_other, neighbor_edge], simp },
+  right_inv := by { intro x, rcases x with ⟨w, hw⟩, simp, } }
+
+end incidence
+
 section finite_at
 
 /-!
@@ -177,6 +218,15 @@ def degree : ℕ := (neighbor_finset v).card
 @[simp]
 lemma card_neighbor_set_eq_degree : fintype.card (neighbor_set v) = degree v :=
 by simp [degree, neighbor_finset]
+
+instance incident_set_fintype [decidable_eq (V G)] : fintype (incident_set v) :=
+fintype.of_equiv (neighbor_set v) (incident_set_equiv_neighbor_set v).symm
+
+def incident_finset [decidable_eq (V G)] : finset (sym2 (V G)) := (incident_set v).to_finset
+
+@[simp]
+lemma card_incident_set_eq_degree [decidable_eq (V G)] : fintype.card (incident_set v) = degree v :=
+by { rw fintype.card_congr (incident_set_equiv_neighbor_set v), simp }
 
 end finite_at
 
@@ -346,10 +396,10 @@ section complete_graphs
 /--
 The complete graph on a type `α` is the simple graph with all pairs of distinct vertices adjacent.
 -/
-def complete_graph (α : Type u) : from_rel α :=
+def complete_graph (α : Type u) : from_adj_rel α :=
 { rel := ne }
 
-instance from_rel_inhabited (α : Type u) : inhabited (from_rel α) :=
+instance from_rel_inhabited (α : Type u) : inhabited (from_adj_rel α) :=
 ⟨complete_graph α⟩
 
 variables (α : Type u) [decidable_eq α]
@@ -373,5 +423,20 @@ lemma complete_graph_is_regular :
 by { intro v, simp }
 
 end complete_graphs
+
+section degree_sum
+
+variables {α : Type u} (G : α) [simple_graph G] [fintype (V G)] [decidable_eq (V G)]
+
+def darts := Σ (v : V G), incident_set v
+
+def dart_to_edge : darts G → edge_set G := λ d, ⟨d.2.1, incident_set_subset d.1 d.2.2⟩
+def dart_to_vert : darts G → V G := λ d, d.1
+
+-- want to show dart_to_edge is a 2-1 map
+-- want to show card (dart_to_vert '⁻¹ v) = degree v
+-- then put this together to get degree-sum formula
+
+end degree_sum
 
 end simple_graph

@@ -153,10 +153,11 @@ This is the `mem`-based version of `other`.
 noncomputable def mem.other {a : α} {z : sym2 α} (h : a ∈ z) : α :=
 classical.some h
 
+@[simp]
 lemma mem_other_spec {a : α} {z : sym2 α} (h : a ∈ z) :
   ⟦(a, h.other)⟧ = z := by erw ← classical.some_spec h
 
-lemma other_is_mem_other {a : α} {z : sym2 α} (h : vmem a z) (h' : a ∈ z) :
+lemma other_eq_mem_other {a : α} {z : sym2 α} (h : vmem a z) (h' : a ∈ z) :
   h.other = mem.other h' := by rw [← congr_right a, ← vmem_other_spec h, mem_other_spec]
 
 lemma eq_iff {x y z w : α} :
@@ -304,7 +305,7 @@ equiv_sym α
 
 end sym_equiv
 
-section fintype
+section decidable
 
 /--
 An algorithm for computing `sym2.rel`.
@@ -331,6 +332,64 @@ Given `[decidable_eq α]` and `[fintype α]`, the following instance gives `fint
 instance (α : Type*) [decidable_eq α] : decidable_rel (sym2.rel α) :=
 λ x y, decidable_of_bool (rel_bool x y) (rel_bool_spec x y)
 
-end fintype
+def quot.plift {α r} {p : @quot α r → Prop} {β} (f : ∀ a, p (quot.mk _ a) → β)
+  (hf : ∀ a b ha hb, r a b → f a ha = f b hb) (a) : p a → β :=
+quot.rec f (begin
+  intros a b h,
+  ext hb,
+  have ha : p (quot.mk _ a), {rwa quot.sound h},
+  have : ∀ {c e h}, @eq.rec (quot r) (quot.mk _ a) (λ s, p s → β)
+    (λ h, f a ha) c e h = f a ha,
+  { intros s₂ e _; subst e },
+  refine this.trans (hf _ _ _ _ h),
+end) a
+
+def mem.other' [decidable_eq α] {a : α} {z : sym2 α} (h : a ∈ z) : α :=
+@quot.plift _ _ (λ z' : sym2 α, a ∈ z') _
+  (λ x z', if a = x.1 then x.2 else x.1)
+  (λ x y ha hb z', begin
+    dsimp,
+    change a ∈ ⟦x⟧ at ha,
+    change a ∈ ⟦y⟧ at hb,
+    have h' := (rel_bool_spec x y).mpr z',
+    cases x with x₁ x₂, cases y with y₁ y₂,
+    dsimp [rel_bool] at h',
+    dsimp,
+    rw mem_iff at ha hb,
+    by_cases h'' : x₁ = y₁, subst x₁,
+    cases ha; subst a; simp only [if_true, bool.of_to_bool_iff, eq_self_iff_true] at h',
+    simpa, subst x₂,
+    cases ha; subst a; cases hb,
+    subst x₁, exfalso, cc,
+    subst x₁, simp only [h'', if_true, eq_self_iff_true, if_false] at h' ⊢, exact bool.of_to_bool_iff.mp h',
+    subst x₂,
+    by_cases h''' : x₁ = y₂,
+    simp [h'', h'''], split_ifs, assumption, refl,
+    simp only [if_true, eq_self_iff_true],
+    split_ifs, subst y₁,
+    simp only [if_true, bool.of_to_bool_iff, eq_self_iff_true] at h', exact h',
+    by_contradiction, simp [h'', a] at h', assumption,
+    subst x₂, simp [h''] at h',
+    split_ifs, refl, subst y₂, exfalso, simp [h_2] at h', exact h',
+    subst y₂, exfalso, simp [h_1, h''] at h', exact h',
+    exfalso, simp [ne.symm h_1] at h', exact h',
+  end) z h
+
+@[simp]
+lemma mem_other_spec' [decidable_eq α] {a : α} {z : sym2 α} (h : a ∈ z) :
+  ⟦(a, h.other')⟧ = z :=
+begin
+  induction z, cases z with x y,
+  have h' := mem_iff.mp h,
+  dsimp [mem.other', quot.plift, quot.rec],
+  cases h', subst a, simp, refl, split_ifs, subst a, subst y, refl, subst a, exact eq_swap,
+  refl,
+end
+
+@[simp]
+lemma other_eq_other' [decidable_eq α] {a : α} {z : sym2 α} (h : a ∈ z) : h.other = h.other' :=
+by rw [←congr_right a, mem_other_spec' h, mem_other_spec]
+
+end decidable
 
 end sym2

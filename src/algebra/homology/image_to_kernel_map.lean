@@ -44,12 +44,6 @@ abbreviation image_to_kernel_map (w : f ≫ g = 0) :
   image f ⟶ kernel g :=
 kernel.lift g (image.ι f) $ (cancel_epi (factor_thru_image f)).1 $ by simp [w]
 
-/-instance image_to_kernel_map_mono {w : f ≫ g = 0} : mono (image_to_kernel_map f g w) :=
-begin
-  --dsimp [image_to_kernel_map],
-  apply_instance,
-end-/
-
 @[simp]
 lemma image_to_kernel_map_zero_left [has_zero_object V] {w} :
   image_to_kernel_map (0 : A ⟶ B) g w = 0 :=

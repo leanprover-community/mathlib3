@@ -3,13 +3,39 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
 
-GCD monoid and integral monoids with normalization functions
-
-TODO: abstract the monoids to semi monoids (i.e. monoids on semirings) to include ℕ and ℕ[X] etc.
+TODO: Provide a GCD monoid instance for `ℕ`, port GCD facts about nats
+TODO: Generalize normalization monoids commutative (cancellative) monoids with or without zero
+TODO: Generalize GCD monoid to not require normalization in all cases
 -/
 import algebra.associated
 import data.nat.basic
 import data.int.gcd
+
+/-!
+
+# Monoids with Normalization Functions, GCD, and LCM
+
+This file defines extra structures on `comm_cancel_monoid_with_zero`s, including `integral_domain`s.
+
+## Main Definitions
+
+* `normalization_monoid`
+* `gcd_monoid`
+
+## Implementation Notes
+
+* `normalization_monoid` is defined by assigning to each element a `norm_unit` such that multiplying
+by that unit normalizes the monoid, and `normalize` is an idempotent monoid homomorphism.
+
+* `gcd_monoid` extends `normalization_monoid`, so the `gcd` and `lcm` are always normalized.
+This makes `gcd`s of polynomials easier to work with, but excludes Euclidean domains, and monoids
+without zero.
+
+## Tags
+
+divisibility, gcd, lcm, normalize
+
+-/
 
 variables {α : Type*}
 
@@ -72,7 +98,7 @@ theorem norm_unit_mul_norm_unit (a : α) : norm_unit (a * norm_unit a) = 1 :=
 classical.by_cases (assume : a = 0, by simp only [this, norm_unit_zero, zero_mul]) $
   assume h, by rw [norm_unit_mul h (units.ne_zero _), norm_unit_coe_units, mul_inv_eq_one]
 
-theorem normalize_idem (x : α) : normalize (normalize x) = normalize x :=
+@[simp] theorem normalize_idem (x : α) : normalize (normalize x) = normalize x :=
 by rw [normalize_apply, normalize_apply, norm_unit_mul_norm_unit, units.coe_one, mul_one]
 
 theorem normalize_eq_normalize {a b : α}
@@ -138,7 +164,7 @@ end associates
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
-/-- GCD monoid: an integral monoid with normalization and `gcd` (greatest common divisor) and
+/-- GCD monoid: an `comm_cancel_monoid_with_zero` with normalization and `gcd` (greatest common divisor) and
 `lcm` (least common multiple) operations. In this setting `gcd` and `lcm` form a bounded lattice on
 the associated elements where `gcd` is the infimum, `lcm` is the supremum, `1` is bottom, and
 `0` is top. The type class focuses on `gcd` and we derive the correpsonding `lcm` facts from `gcd`.

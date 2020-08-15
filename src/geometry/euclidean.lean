@@ -942,36 +942,13 @@ end
 lemma dist_set_eq_iff_dist_orthogonal_projection_eq {s : affine_subspace ℝ P}
     (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) {ps : set P}
     (hps : ps ⊆ s) (p : P) :
-  (∀ p1 p2 ∈ ps, dist p1 p = dist p2 p) ↔
-    ∀ p1 p2 ∈ ps, dist p1 (orthogonal_projection hn hc p) =
-      dist p2 (orthogonal_projection hn hc p) :=
-⟨λ h p1 p2 hp1 hp2,
-  (dist_eq_iff_dist_orthogonal_projection_eq hn hc p (hps hp1) (hps hp2)).1 (h p1 p2 hp1 hp2),
-λ h p1 p2 hp1 hp2,
-  (dist_eq_iff_dist_orthogonal_projection_eq hn hc p (hps hp1) (hps hp2)).2 (h p1 p2 hp1 hp2)⟩
-
-omit V
-
-/-- `p` has pairwise equal distances to a set of points if and only if
-there exists an `r` that all those distances equal. -/
-lemma dist_set_eq_iff_exists_dist_eq (ps : set P) (p : P) :
-  (∀ p1 p2 ∈ ps, dist p1 p = dist p2 p) ↔ ∃ r, ∀ p1 ∈ ps, dist p1 p = r :=
-begin
-  split,
-  { intro h,
-    by_cases hn : ps.nonempty,
-    { cases hn with q hq,
-      exact ⟨dist q p, λ p1 hp1, h p1 q hp1 hq⟩ },
-    { rw set.not_nonempty_iff_eq_empty at hn,
-      use 0,
-      intros p1 hp1,
-      rw hn at hp1,
-      exact false.elim hp1 } },
-  { rintros ⟨r, hr⟩ p1 p2 hp1 hp2,
-    rw [hr p1 hp1, hr p2 hp2] }
-end
-
-include V
+  (set.pairwise_on ps (λ p1 p2, dist p1 p = dist p2 p) ↔
+    (set.pairwise_on ps (λ p1 p2, dist p1 (orthogonal_projection hn hc p) =
+      dist p2 (orthogonal_projection hn hc p)))) :=
+⟨λ h p1 hp1 p2 hp2 hne,
+  (dist_eq_iff_dist_orthogonal_projection_eq hn hc p (hps hp1) (hps hp2)).1 (h p1 hp1 p2 hp2 hne),
+λ h p1 hp1 p2 hp2 hne,
+  (dist_eq_iff_dist_orthogonal_projection_eq hn hc p (hps hp1) (hps hp2)).2 (h p1 hp1 p2 hp2 hne)⟩
 
 /-- There exists `r` such that `p` has distance `r` from all the
 points of a set of points in `s` if and only if there exists (possibly
@@ -984,7 +961,7 @@ lemma exists_dist_eq_iff_exists_dist_orthogonal_projection_eq {s : affine_subspa
     ∃ r, ∀ p1 ∈ ps, dist p1 (orthogonal_projection hn hc p) = r :=
 begin
   have h := dist_set_eq_iff_dist_orthogonal_projection_eq hn hc hps p,
-  simp_rw dist_set_eq_iff_exists_dist_eq at h,
+  simp_rw set.pairwise_on_eq_iff_exists_eq at h,
   exact h
 end
 

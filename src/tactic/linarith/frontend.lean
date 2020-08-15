@@ -371,4 +371,4 @@ add_tactic_doc
 { name       := "nlinarith",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.nlinarith],
-  tags       := ["arithmetic", "finishing"] }
+  tags       := ["arithmetic", "decision procedure", "finishing"] }

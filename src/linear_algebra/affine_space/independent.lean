@@ -106,7 +106,7 @@ end
 a base point in that set are linearly independent. -/
 lemma affine_independent_set_iff_linear_independent_vsub {s : set P} {p1 : P} (hp1 : p1 ∈ s) :
   affine_independent k (λ p, p : s → P) ↔
-    linear_independent k (λ v, v : (λ p, (p -ᵥ p1 : V)) '' (s \ {p1}) → V) :=
+  linear_independent k (λ v, v : (λ p, (p -ᵥ p1 : V)) '' (s \ {p1}) → V) :=
 begin
   rw affine_independent_iff_linear_independent_vsub k (λ p, p : s → P) ⟨p1, hp1⟩,
   split,

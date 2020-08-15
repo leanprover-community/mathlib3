@@ -128,9 +128,11 @@ theorem dvd_antisymm_of_normalize_eq {a b : α}
   a = b :=
 ha ▸ hb ▸ normalize_eq_normalize hab hba
 
+--can be proven by simp
 lemma dvd_normalize_iff {a b : α} : a ∣ normalize b ↔ a ∣ b :=
 units.dvd_mul_right
 
+--can be proven by simp
 lemma normalize_dvd_iff {a b : α} : normalize a ∣ b ↔ a ∣ b :=
 units.mul_right_dvd
 
@@ -415,9 +417,8 @@ end lcm
 
 namespace gcd_monoid
 theorem prime_of_irreducible {x : α} (hi: irreducible x) : prime x :=
+⟨hi.ne_zero, ⟨hi.1, λ a b h,
 begin
-  split, apply hi.ne_zero, --unfold irreducible at hi,
-  split, apply hi.1, intros a b h,
   cases gcd_dvd_left x a with y hy,
   cases hi.2 _ _ hy with hu hu; cases hu with u hu,
   { right, transitivity (gcd (x * b) (a * b)), apply dvd_gcd (dvd_mul_right x b) h,
@@ -426,7 +427,7 @@ begin
     apply normalize_associated, },
   { left, rw [hy, ← hu],
     transitivity, {apply dvd_of_associated, symmetry, use u}, apply gcd_dvd_right, }
-end
+end ⟩⟩
 
 theorem irreducible_iff_prime {p : α} : irreducible p ↔ prime p :=
 ⟨prime_of_irreducible, irreducible_of_prime⟩

@@ -308,7 +308,7 @@ lemma is_integral_tower_bot_of_is_integral (H : function.injective (algebra_map 
 begin
   rcases h with ⟨p, ⟨hp, hp'⟩⟩,
   refine ⟨p, ⟨hp, _⟩⟩,
-  rw [aeval_def, is_algebra_tower.algebra_map_eq R A B, ← eval₂_map,
+  rw [aeval_def, is_scalar_tower.algebra_map_eq R A B, ← eval₂_map,
       eval₂_hom, ← ring_hom.map_zero (algebra_map A B)] at hp',
   rw [aeval_def, eval₂_eq_eval_map],
   exact H hp',
@@ -320,7 +320,7 @@ lemma is_integral_tower_top_of_is_integral {x : B} (h : is_integral R x) : is_in
 begin
   rcases h with ⟨p, ⟨hp, hp'⟩⟩,
   refine ⟨p.map (algebra_map R A), ⟨monic_map (algebra_map R A) hp, _⟩⟩,
-  rw [aeval_def, is_algebra_tower.algebra_map_eq R A B, ← eval₂_map] at hp',
+  rw [aeval_def, is_scalar_tower.algebra_map_eq R A B, ← eval₂_map] at hp',
   rw [aeval_def],
   exact hp',
 end

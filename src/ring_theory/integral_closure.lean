@@ -303,11 +303,10 @@ lemma is_integral_of_surjective (h : function.surjective (algebra_map R A)) :
 
 /-- If `R → A → B` is an algebra tower with `A → B` injective,
 then if the entire tower is an integral extension so is `R → A` -/
-lemma is_integral_of_is_integral_tower_bot (H : function.injective (algebra_map A B)) :
-  (∀ x : B, is_integral R x) → (∀ x : A, is_integral R x) :=
+lemma is_integral_tower_bot_of_is_integral (H : function.injective (algebra_map A B))
+  {x : A} (h : is_integral R (algebra_map A B x)) : is_integral R x :=
 begin
-  intros h x,
-  rcases h (algebra_map A B x) with ⟨p, ⟨hp, hp'⟩⟩,
+  rcases h with ⟨p, ⟨hp, hp'⟩⟩,
   refine ⟨p, ⟨hp, _⟩⟩,
   rw [aeval_def, is_algebra_tower.algebra_map_eq R A B, ← eval₂_map,
       eval₂_hom, ← ring_hom.map_zero (algebra_map A B)] at hp',
@@ -317,11 +316,9 @@ end
 
 /-- If `R → A → B` is an algebra tower,
 then if the entire tower is an integral extension so is `A → B` -/
-lemma is_integral_of_is_integral_tower_top :
-  (∀ x : B, is_integral R x) → (∀ x : B, is_integral A x) :=
+lemma is_integral_tower_top_of_is_integral {x : B} (h : is_integral R x) : is_integral A x :=
 begin
-  intros h x,
-  rcases h x with ⟨p, ⟨hp, hp'⟩⟩,
+  rcases h with ⟨p, ⟨hp, hp'⟩⟩,
   refine ⟨p.map (algebra_map R A), ⟨monic_map (algebra_map R A) hp, _⟩⟩,
   rw [aeval_def, is_algebra_tower.algebra_map_eq R A B, ← eval₂_map] at hp',
   rw [aeval_def],

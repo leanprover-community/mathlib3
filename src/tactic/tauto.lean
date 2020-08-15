@@ -25,8 +25,7 @@ do hs ← local_context,
          | `(¬ _ = _) := replace h.local_pp_name ``(mt iff.to_eq %%h)
          | `(_ ≠ _)   := replace h.local_pp_name ``(mt iff.to_eq %%h)
          | `(_ = _)   := replace h.local_pp_name ``(eq.to_iff %%h)
-         | `(¬ (_ ∧ _))  := replace h.local_pp_name ``(not_and_distrib'.mp %%h) <|>
-                            replace h.local_pp_name ``(not_and_distrib.mp %%h)
+         | `(¬ (_ ∧ _))  := replace h.local_pp_name ``(not_and_distrib.mp %%h)
          | `(¬ (_ ∨ _))  := replace h.local_pp_name ``(not_or_distrib.mp %%h)
          | `(¬ ¬ _)      := replace h.local_pp_name ``(of_not_not %%h)
          | `(¬ (_ → (_ : Prop))) := replace h.local_pp_name ``(not_imp.mp %%h)

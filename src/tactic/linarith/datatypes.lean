@@ -228,7 +228,6 @@ meta structure preprocessor : Type :=
 (name : string)
 (transform : expr → tactic (list expr))
 
-
 /--
 Some preprocessors need to examine the full list of hypotheses instead of working item by item.
 As with `preprocessor`, the input to a `global_preprocessor` is replaced by, not added to, its output.

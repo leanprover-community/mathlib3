@@ -178,6 +178,36 @@ variables {R : Type u} {σ : Type v} [comm_ring R]
 namespace ideal
 open polynomial
 
+/-- The push-forward of an ideal `I` of `R` to `polynomial R` via inclusion
+ is exactly the set of polynomials whose coefficients are in `I` -/
+theorem mem_map_C_iff {I : ideal R} {f : polynomial R} :
+  f ∈ (ideal.map C I : ideal (polynomial R)) ↔ ∀ n : ℕ, f.coeff n ∈ I :=
+begin
+  split,
+  { intros hf,
+    apply submodule.span_induction hf,
+    { intros f hf,
+      rw set.mem_image at hf,
+      cases hf with x hx,
+      rw ← hx.right,
+      intro n,
+      rw coeff_C,
+      by_cases (n = 0),
+      { simpa [h] using hx.left },
+      { simp [h] } },
+    { simp },
+    { exact λ f g hf hg n, by simp [I.add_mem (hf n) (hg n)] },
+    { refine λ f g hg n, _,
+      rw [smul_eq_mul, coeff_mul],
+      refine I.sum_mem (λ c hc, I.smul_mem (f.coeff c.fst) (hg c.snd)) } },
+  { intros hf,
+    rw ← sum_monomial_eq f,
+    refine (map C I : ideal (polynomial R)).sum_mem (λ n hn, _),
+    simp [single_eq_C_mul_X],
+    rw mul_comm,
+    exact (map C I : ideal (polynomial R)).smul_mem _ (mem_map_of_mem (hf n)) }
+end
+
 /-- Transport an ideal of `R[X]` to an `R`-submodule of `R[X]`. -/
 def of_polynomial (I : ideal (polynomial R)) : submodule R (polynomial R) :=
 { carrier := I.carrier,

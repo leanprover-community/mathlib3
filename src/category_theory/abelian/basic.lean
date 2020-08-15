@@ -128,6 +128,7 @@ section to_non_preadditive_abelian
 
 local attribute [instance] has_finite_biproducts
 
+/-- Every abelian category is, in particular, `non_preadditive_abelian`. -/
 def non_preadditive_abelian : non_preadditive_abelian C := { ..‹abelian C› }
 
 end to_non_preadditive_abelian
@@ -522,3 +523,4 @@ def abelian : abelian C :=
   ..non_preadditive_abelian.preadditive }
 
 end category_theory.non_preadditive_abelian
+#lint

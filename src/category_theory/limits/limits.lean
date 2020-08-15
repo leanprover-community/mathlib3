@@ -772,13 +772,13 @@ lemma limit.cone_morphism_π {F : J ⥤ C} [has_limit F] (c : cone F) (j : J) :
   (limit.cone_morphism c).hom ≫ limit.π F j = c.π.app j :=
 by simp
 
-@[simp, reassoc] lemma limit.unique_up_to_iso_hom_comp {F : J ⥤ C} [has_limit F] {c : cone F}
-  (hc : is_limit c) (j : J) :
+@[simp, reassoc] lemma limit.cone_point_unique_up_to_iso_hom_comp {F : J ⥤ C} [has_limit F]
+  {c : cone F} (hc : is_limit c) (j : J) :
   (is_limit.cone_point_unique_up_to_iso hc (limit.is_limit _)).hom ≫ limit.π F j = c.π.app j :=
 is_limit.cone_point_unique_up_to_iso_hom_comp _ _ _
 
-@[simp, reassoc] lemma limit.unique_up_to_iso_inv_comp {F : J ⥤ C} [has_limit F] {c : cone F}
-  (hc : is_limit c) (j : J) :
+@[simp, reassoc] lemma limit.cone_point_unique_up_to_iso_inv_comp {F : J ⥤ C} [has_limit F]
+  {c : cone F} (hc : is_limit c) (j : J) :
   (is_limit.cone_point_unique_up_to_iso (limit.is_limit _) hc).inv ≫ limit.π F j = c.π.app j :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _
 
@@ -1132,6 +1132,16 @@ def colimit.cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) :
 lemma colimit.ι_cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) (j : J) :
   colimit.ι F j ≫ (colimit.cocone_morphism c).hom = c.ι.app j :=
 by simp
+
+@[simp, reassoc] lemma colimit.comp_cocone_point_unique_up_to_iso_hom {F : J ⥤ C} [has_colimit F]
+  {c : cocone F} (hc : is_colimit c) (j : J) :
+  colimit.ι F j ≫ (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _) hc).hom = c.ι.app j :=
+is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _
+
+@[simp, reassoc] lemma colimit.comp_cocone_point_unique_up_to_iso_inv {F : J ⥤ C} [has_colimit F]
+  {c : cocone F} (hc : is_colimit c) (j : J) :
+  colimit.ι F j ≫ (is_colimit.cocone_point_unique_up_to_iso hc (colimit.is_colimit _)).inv = c.ι.app j :=
+is_colimit.comp_cocone_point_unique_up_to_iso_inv _ _ _
 
 @[ext] lemma colimit.hom_ext {F : J ⥤ C} [has_colimit F] {X : C} {f f' : colimit F ⟶ X}
   (w : ∀ j, colimit.ι F j ≫ f = colimit.ι F j ≫ f') : f = f' :=

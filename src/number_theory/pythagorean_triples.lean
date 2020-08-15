@@ -64,7 +64,7 @@ end
 
 omit h
 
-/-- The pythagorean triple `(k*x, k*y, k*z)` is a triple if and only if
+/-- `(k*x, k*y, k*z)` is a Pythagorean triple if and only if
 `(x, y, z)` is also a triple  -/
 lemma mul_iff (k : ℤ) (hk : k ≠ 0) :
   pythagorean_triple (k * x) (k * y) (k * z) ↔ pythagorean_triple x y z :=

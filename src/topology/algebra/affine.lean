@@ -3,7 +3,6 @@ Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
-
 import topology.algebra.continuous_functions
 import linear_algebra.affine_space.basic
 
@@ -26,7 +25,7 @@ TODO: Deal with the case where the point spaces are different from the vector sp
 -/
 
 /-- An affine map is continuous iff its underlying linear map is continuous. -/
-lemma continuous_iff {f : affine_map R E E F F} :
+lemma continuous_iff {f : affine_map R E F} :
   continuous f ↔ continuous f.linear :=
 begin
   split,
@@ -40,11 +39,7 @@ end
 
 /-- The line map is continuous. -/
 lemma line_map_continuous [topological_space R] [topological_semimodule R F] {p v : F} :
-  continuous (@line_map R F F _ _ _ _ p v) :=
-begin
-  refine continuous_iff.mpr _,
-  change continuous ((λ z : R × F, z.1 • z.2) ∘ (λ z : R, (⟨z, v⟩ : R × F))),
-  exact continuous_smul.comp (by continuity),
-end
+  continuous ⇑(line_map p v : affine_map R R F) :=
+continuous_iff.mpr $ continuous_id.smul continuous_const
 
 end affine_map

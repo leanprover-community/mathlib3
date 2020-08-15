@@ -867,7 +867,7 @@ lemma sup_succ {ι} (f : ι → ordinal) : sup (λ i, succ (f i)) ≤ succ (sup 
 by { rw [ordinal.sup_le], intro i, rw ordinal.succ_le_succ, apply ordinal.le_sup }
 
 lemma unbounded_range_of_sup_ge {α β : Type u} (r : α → α → Prop) [is_well_order α r] (f : β → α)
-  (h : sup.{u u} (typein r ∘ f) ≥ type r) : unbounded r (range f) :=
+  (h : type r ≤ sup.{u u} (typein r ∘ f)) : unbounded r (range f) :=
 begin
   apply (not_bounded_iff _).mp, rintro ⟨x, hx⟩, apply not_lt_of_ge h,
   refine lt_of_le_of_lt _ (typein_lt_type r x), rw [sup_le], intro y,
@@ -1498,7 +1498,7 @@ by rwa [← add_omega_power h₁, add_lt_add_iff_left]
 theorem add_absorp {a b c : ordinal} (h₁ : a < omega ^ b) (h₂ : omega ^ b ≤ c) : a + c = c :=
 by rw [← add_sub_cancel_of_le h₂, ← add_assoc, add_omega_power h₁]
 
-theorem add_absorp_iff {o : ordinal} (o0 : o > 0) : (∀ a < o, a + o = o) ↔ ∃ a, o = omega ^ a :=
+theorem add_absorp_iff {o : ordinal} (o0 : 0 < o) : (∀ a < o, a + o = o) ↔ ∃ a, o = omega ^ a :=
 ⟨λ H, ⟨log omega o, begin
   refine ((lt_or_eq_of_le (power_log_le _ o0))
     .resolve_left $ λ h, _).symm,

@@ -53,13 +53,7 @@ variables {C : Type u} [category.{v} C]
 instance category_of_graded_objects (β : Type w) : category.{(max w v)} (graded_object β C) :=
 category_theory.pi (λ _, C)
 
--- @[simp]
--- lemma id_apply {β : Type w} (X : graded_object β C) (b : β) :
---   ((𝟙 X) : Π b, X b ⟶ X b) b = 𝟙 (X b) := rfl
 
--- @[simp]
--- lemma comp_apply {β : Type w} {X Y Z : graded_object β C} (f : X ⟶ Y) (g : Y ⟶ Z) (b : β) :
---   ((f ≫ g) : Π b, X b ⟶ Z b) b = f b ≫ g b := rfl
 
 section
 variable (C)

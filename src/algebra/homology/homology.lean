@@ -103,7 +103,7 @@ category_theory.image_to_kernel_map (C.d i) (C.d (i+b)) (by simp)
 @[simp, reassoc]
 lemma image_to_kernel_map_condition (C : homological_complex V b) (i : β) :
   image_to_kernel_map C i ≫ kernel.ι (C.d (i + b)) = image.ι (C.d i) :=
-by simp [image_to_kernel_map, category_theory.image_to_kernel_map]
+by simp [image_to_kernel_map]
 
 @[reassoc]
 lemma image_to_kernel_map_comp_kernel_map [has_image_maps V]

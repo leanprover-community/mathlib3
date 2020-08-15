@@ -33,11 +33,6 @@ apply_nolint euclidean_domain.xgcd_aux doc_blame
 apply_nolint division_ring doc_blame
 apply_nolint field doc_blame
 
--- algebra/gcd_monoid.lean
-apply_nolint associates.out doc_blame
-apply_nolint associates_int_equiv_nat doc_blame
-apply_nolint normalize doc_blame
-
 -- algebra/group/defs.lean
 apply_nolint algebra.sub doc_blame
 

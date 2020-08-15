@@ -72,6 +72,7 @@ variables [comm_cancel_monoid_with_zero α] [nontrivial α] [normalization_monoi
 @[simp] theorem norm_unit_one : norm_unit (1:α) = 1 :=
 norm_unit_coe_units 1
 
+/-- Chooses an element of each associate class, by multiplying by `norm_unit` -/
 def normalize : α →* α :=
 { to_fun := λ x, x * norm_unit x,
   map_one' := by rw [norm_unit_one, units.coe_one, mul_one],
@@ -140,6 +141,7 @@ variables [comm_cancel_monoid_with_zero α] [nontrivial α] [normalization_monoi
 
 local attribute [instance] associated.setoid
 
+/-- Maps an element of `associates` back to the normalized element of its associate class -/
 protected def out : associates α → α :=
 quotient.lift (normalize : α → α) $ λ a b ⟨u, hu⟩, hu ▸
 normalize_eq_normalize ⟨_, rfl⟩ (units.mul_right_dvd.2 $ dvd_refl a)
@@ -672,6 +674,7 @@ lemma nat.prime_iff_prime_int {p : ℕ} : p.prime ↔ _root_.prime (p : ℤ) :=
       mt nat.is_unit_iff.1 $ λ h, by simpa [h, not_prime_one] using hp,
     λ a b, by simpa only [int.coe_nat_dvd, (int.coe_nat_mul _ _).symm] using hp.2.2 a b⟩⟩
 
+/-- Maps an associate class of integers consisting of `-n, n` to `n : ℕ` -/
 def associates_int_equiv_nat : associates ℤ ≃ ℕ :=
 begin
   refine ⟨λz, z.out.nat_abs, λn, associates.mk n, _, _⟩,

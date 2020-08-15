@@ -151,13 +151,13 @@ def has_unit_mul_pow_irreducible_factorization [integral_domain R] : Prop :=
 
 namespace has_unit_mul_pow_irreducible_factorization
 
-variables [integral_domain R] (hR : has_unit_mul_pow_irreducible_factorization R)
+variables {R} [integral_domain R] (hR : has_unit_mul_pow_irreducible_factorization R)
 include hR
 
 -- /-- Implementation detail: temporary valuation on `R` -/
 -- def val (x : R) : ℕ :=
 
-lemma unique_irreducible {p q : R} (hp : irreducible p) (hq : irreducible q) :
+lemma unique_irreducible ⦃p q : R⦄ (hp : irreducible p) (hq : irreducible q) :
   associated p q :=
 begin
   rcases hR with ⟨ϖ, hϖ, hR⟩,
@@ -245,7 +245,7 @@ begin
   by_cases I0 : I = ⊥, { rw I0, use 0, simp only [set.singleton_zero, submodule.span_zero], },
   obtain ⟨x, hxI, hx0⟩ : ∃ x ∈ I, x ≠ (0:R) := I.ne_bot_iff.mp I0,
   obtain ⟨p, hp, H⟩ :=
-    has_unit_mul_pow_irreducible_factorization.of_UFD_of_unique_irreducible R h₁ h₂,
+    has_unit_mul_pow_irreducible_factorization.of_UFD_of_unique_irreducible h₁ h₂,
   have ex : ∃ n : ℕ, p ^ n ∈ I,
   { obtain ⟨n, u, rfl⟩ := H hx0,
     refine ⟨n, _⟩,
@@ -266,7 +266,7 @@ begin
     exact nat.find_spec ex, },
 end
 
-def of_UFD_of_unique_irreducible (R : Type u) [integral_domain R] [unique_factorization_domain R]
+def of_UFD_of_unique_irreducible {R : Type u} [integral_domain R] [unique_factorization_domain R]
   (h₁ : ∃ p : R, irreducible p)
   (h₂ : ∀ ⦃p q : R⦄, irreducible p → irreducible q → associated p q) :
   discrete_valuation_ring R :=
@@ -286,6 +286,15 @@ begin
     apply h₂ _ hp,
     erw [ne.def, span_singleton_eq_bot] at I0,
     rwa [unique_factorization_domain.irreducible_iff_prime, ← ideal.span_singleton_prime I0], },
+end
+
+def of_has_unit_mul_pow_irreducible_factorization {R : Type u} [integral_domain R]
+  (hR : has_unit_mul_pow_irreducible_factorization R) :
+  discrete_valuation_ring R :=
+begin
+  letI : unique_factorization_domain R := hR.UFD,
+  apply of_UFD_of_unique_irreducible _ hR.unique_irreducible,
+  unfreezingI { obtain ⟨p, hp, H⟩ := hR, exact ⟨p, hp⟩, },
 end
 
 end discrete_valuation_ring

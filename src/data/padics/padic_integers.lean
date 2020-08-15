@@ -419,6 +419,7 @@ begin
   { rw [ideal.span_le, set.singleton_subset_iff, ← uniformizer_eq_p], exact uniformizer_nonunit }
 end
 
+-- move this?
 instance : char_zero ℤ_[p] :=
 { cast_injective :=
   λ m n h, cast_injective $
@@ -434,86 +435,91 @@ end
 lemma irreducible_p : irreducible (p : ℤ_[p]) :=
 irreducible_of_prime prime_p
 
-instance : unique_factorization_domain ℤ_[p] :=
-{ factors := λ x, if h : x = 0 then {0}
-                               else multiset.repeat p (valuation x).nat_abs,
-  factors_prod := λ x hx,
-    ⟨unit_coeff hx, by rw [dif_neg hx, multiset.prod_repeat, mul_comm, ← unit_coeff_spec hx]⟩,
-  prime_factors :=
-  begin
-    intros x hx y hy,
-    rw [dif_neg hx] at hy,
-    obtain rfl := multiset.eq_of_mem_repeat hy,
-    exact prime_p
-  end }
-
-lemma associated_of_irreducible (ϖ : ℤ_[p]) (h : irreducible ϖ) : associated ϖ p :=
-begin
-  suffices : ↑p ∣ ϖ,
-  { apply associated_of_dvd_dvd _ this,
-    apply dvd_symm_of_irreducible irreducible_p h this },
-  apply p_dvd_of_norm_lt_one,
-  suffices : ∥ϖ∥ ≠ 1, { exact lt_of_le_of_ne (ϖ.2) this, },
-  rw [ne.def, ← is_unit_iff],
-  exact h.not_unit
-end
-
-lemma exists_pow_mem_ideal_of_ne_bot {I : ideal ℤ_[p]} (hI : I ≠ ⊥) :
-  ∃ n : ℕ, (p ^ n : ℤ_[p]) ∈ I :=
-begin
-  obtain ⟨x, hxI, hxnz⟩ : ∃ x : ℤ_[p], x ∈ I ∧ x ≠ 0,
-  { rw [ne.def, submodule.eq_bot_iff] at hI, push_neg at hI, exact hI },
-  refine ⟨x.valuation.nat_abs, _⟩,
-  rw unit_coeff_spec hxnz at hxI,
-  have : (↑(unit_coeff hxnz)⁻¹ : ℤ_[p]) * ((unit_coeff hxnz) * p ^ x.valuation.nat_abs) ∈ I :=
-    I.mul_mem_left hxI,
-  rwa [← mul_assoc, units.inv_mul, one_mul] at this,
-end
-
-lemma ideal_is_principal (s : ideal ℤ_[p]) : s.is_principal :=
-begin
-  constructor,
-  by_cases h_bot : s = ⊥,
-  { subst h_bot,
-    use 0,
-    simp },
-  { have h_bot' := h_bot,
-    rw submodule.eq_bot_iff at h_bot,
-    push_neg at h_bot,
-    rcases h_bot with ⟨z, hzs, hznz⟩,
-    have exists_n : ∃ n : ℕ, ∃ z, ∃ u : units ℤ_[p], z ∈ s ∧ z = ↑u * ↑p ^ n,
-      from ⟨_, z, unit_coeff hznz, hzs, unit_coeff_spec hznz⟩,
-    let min_n := nat.find exists_n,
-    obtain ⟨min_z, u, minz_s, minz_spec⟩ : ∃ (z : ℤ_[p]) (u : units ℤ_[p]), z ∈ s ∧ z = ↑u * ↑p ^ min_n :=
-      nat.find_spec exists_n,
-    have uinv_min_z : ↑u⁻¹ * min_z = p ^ min_n,
-    { symmetry,
-      rw [units.eq_inv_mul_iff_mul_eq, minz_spec] },
-    have uinv_min_z_s : ↑u⁻¹ * min_z ∈ s, from ideal.mul_mem_left _ minz_s,
-    rw uinv_min_z at uinv_min_z_s,
-    have span_sub_s : submodule.span ℤ_[p] {↑p ^ min_n} ≤ s,
-    { exact (submodule.span_singleton_le_iff_mem _ _).mpr uinv_min_z_s, },
-    have s_sub_span : s ≤ submodule.span ℤ_[p] {↑p ^ min_n},
-    { intros y hy,
-      have exists_n_spec := @nat.find_min' _ _ exists_n,
-      dsimp at exists_n_spec,
-      by_cases hyz : y = 0,
-      { simp [hyz] },
-      { have min_n_y : min_n ≤ repr_exp hyz := @exists_n_spec (repr_exp hyz) ⟨y, unit_coeff hyz, hy, unit_coeff_spec hyz⟩,
-        rw unit_coeff_spec hyz,
-        apply ideal.mul_mem_left _ _,
-        have : repr_exp hyz = (repr_exp hyz - min_n) + min_n, {omega},
-        rw [this, _root_.pow_add],
-        apply ideal.mul_mem_left _ (submodule.mem_span_singleton_self _) } },
-    use p ^ min_n,
-    apply le_antisymm; assumption }
-
-end
-
 instance : discrete_valuation_ring ℤ_[p] :=
-{ principal := ideal_is_principal,
-  not_a_field' := not_a_field,
-  .. padic_int.local_ring }
+discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization
+⟨p, irreducible_p, λ x hx, ⟨x.valuation.nat_abs, unit_coeff hx,
+  by rw [mul_comm, ← unit_coeff_spec hx]⟩⟩
+
+-- instance : unique_factorization_domain ℤ_[p] :=
+-- { factors := λ x, if h : x = 0 then {0}
+--                                else multiset.repeat p (valuation x).nat_abs,
+--   factors_prod := λ x hx,
+--     ⟨unit_coeff hx, by rw [dif_neg hx, multiset.prod_repeat, mul_comm, ← unit_coeff_spec hx]⟩,
+--   prime_factors :=
+--   begin
+--     intros x hx y hy,
+--     rw [dif_neg hx] at hy,
+--     obtain rfl := multiset.eq_of_mem_repeat hy,
+--     exact prime_p
+--   end }
+
+-- lemma associated_of_irreducible (ϖ : ℤ_[p]) (h : irreducible ϖ) : associated ϖ p :=
+-- begin
+--   suffices : ↑p ∣ ϖ,
+--   { apply associated_of_dvd_dvd _ this,
+--     apply dvd_symm_of_irreducible irreducible_p h this },
+--   apply p_dvd_of_norm_lt_one,
+--   suffices : ∥ϖ∥ ≠ 1, { exact lt_of_le_of_ne (ϖ.2) this, },
+--   rw [ne.def, ← is_unit_iff],
+--   exact h.not_unit
+-- end
+
+-- lemma exists_pow_mem_ideal_of_ne_bot {I : ideal ℤ_[p]} (hI : I ≠ ⊥) :
+--   ∃ n : ℕ, (p ^ n : ℤ_[p]) ∈ I :=
+-- begin
+--   obtain ⟨x, hxI, hxnz⟩ : ∃ x : ℤ_[p], x ∈ I ∧ x ≠ 0,
+--   { rw [ne.def, submodule.eq_bot_iff] at hI, push_neg at hI, exact hI },
+--   refine ⟨x.valuation.nat_abs, _⟩,
+--   rw unit_coeff_spec hxnz at hxI,
+--   have : (↑(unit_coeff hxnz)⁻¹ : ℤ_[p]) * ((unit_coeff hxnz) * p ^ x.valuation.nat_abs) ∈ I :=
+--     I.mul_mem_left hxI,
+--   rwa [← mul_assoc, units.inv_mul, one_mul] at this,
+-- end
+
+-- lemma ideal_is_principal (s : ideal ℤ_[p]) : s.is_principal :=
+-- begin
+--   constructor,
+--   by_cases h_bot : s = ⊥,
+--   { subst h_bot,
+--     use 0,
+--     simp },
+--   { have h_bot' := h_bot,
+--     rw submodule.eq_bot_iff at h_bot,
+--     push_neg at h_bot,
+--     rcases h_bot with ⟨z, hzs, hznz⟩,
+--     have exists_n : ∃ n : ℕ, ∃ z, ∃ u : units ℤ_[p], z ∈ s ∧ z = ↑u * ↑p ^ n,
+--       from ⟨_, z, unit_coeff hznz, hzs, unit_coeff_spec hznz⟩,
+--     let min_n := nat.find exists_n,
+--     obtain ⟨min_z, u, minz_s, minz_spec⟩ : ∃ (z : ℤ_[p]) (u : units ℤ_[p]), z ∈ s ∧ z = ↑u * ↑p ^ min_n :=
+--       nat.find_spec exists_n,
+--     have uinv_min_z : ↑u⁻¹ * min_z = p ^ min_n,
+--     { symmetry,
+--       rw [units.eq_inv_mul_iff_mul_eq, minz_spec] },
+--     have uinv_min_z_s : ↑u⁻¹ * min_z ∈ s, from ideal.mul_mem_left _ minz_s,
+--     rw uinv_min_z at uinv_min_z_s,
+--     have span_sub_s : submodule.span ℤ_[p] {↑p ^ min_n} ≤ s,
+--     { exact (submodule.span_singleton_le_iff_mem _ _).mpr uinv_min_z_s, },
+--     have s_sub_span : s ≤ submodule.span ℤ_[p] {↑p ^ min_n},
+--     { intros y hy,
+--       have exists_n_spec := @nat.find_min' _ _ exists_n,
+--       dsimp at exists_n_spec,
+--       by_cases hyz : y = 0,
+--       { simp [hyz] },
+--       { have min_n_y : min_n ≤ repr_exp hyz := @exists_n_spec (repr_exp hyz) ⟨y, unit_coeff hyz, hy, unit_coeff_spec hyz⟩,
+--         rw unit_coeff_spec hyz,
+--         apply ideal.mul_mem_left _ _,
+--         have : repr_exp hyz = (repr_exp hyz - min_n) + min_n, {omega},
+--         rw [this, _root_.pow_add],
+--         apply ideal.mul_mem_left _ (submodule.mem_span_singleton_self _) } },
+--     use p ^ min_n,
+--     apply le_antisymm; assumption }
+
+-- end
+
+-- instance : discrete_valuation_ring ℤ_[p] :=
+-- { principal := ideal_is_principal,
+--   not_a_field' := not_a_field,
+--   .. padic_int.local_ring }
 
 end padic_int
 

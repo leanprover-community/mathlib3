@@ -448,7 +448,7 @@ begin
     intro y'_eq_zero,
     have : g.to_map aJ * y = 0 := by rw [←hy', y'_eq_zero, g.to_map.map_zero],
     obtain aJ_zero | y_zero := mul_eq_zero.mp this,
-    { have : aJ = 0 := g.to_map.injective_iff.1 g.injective _ aJ_zero,
+    { have : aJ = 0 := g.to_map.injective_iff.1 g.injective_to_map _ aJ_zero,
       have : aJ ≠ 0 := mem_non_zero_divisors_iff_ne_zero.mp haJ,
       contradiction },
     { exact not_mem_zero (mem_zero_iff.mpr y_zero) } },
@@ -633,7 +633,7 @@ lemma exists_eq_span_singleton_mul (I : fractional_ideal g) :
 begin
   obtain ⟨a_inv, nonzero, ha⟩ := I.2,
   have nonzero := mem_non_zero_divisors_iff_ne_zero.mp nonzero,
-  have map_a_nonzero := mt g.to_map_eq_zero_iff.mpr nonzero,
+  have map_a_nonzero := mt g.to_map_eq_zero_iff.mp nonzero,
   use (g.to_map a_inv)⁻¹,
   use (span_singleton (g.to_map a_inv) * I).1.comap g.lin_coe,
   ext,

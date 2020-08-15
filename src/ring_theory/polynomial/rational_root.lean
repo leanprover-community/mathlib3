@@ -151,7 +151,7 @@ lemma num_is_root_scale_roots_of_aeval_eq_zero
   {p : polynomial A} {x : g.codomain} (hr : aeval x p = 0) :
   is_root (scale_roots p (g.denom x)) (g.num x) :=
 begin
-  apply is_root_of_eval₂_map_eq_zero g.injective,
+  apply is_root_of_eval₂_map_eq_zero g.injective_to_map,
   refine scale_roots_aeval_eq_zero_of_aeval_mk'_eq_zero _ (le_refl (non_zero_divisors A)),
   rw g.mk'_num_denom,
   exact hr

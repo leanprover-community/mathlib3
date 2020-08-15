@@ -25,7 +25,8 @@ This file defines extra structures on `comm_cancel_monoid_with_zero`s, including
 ## Implementation Notes
 
 * `normalization_monoid` is defined by assigning to each element a `norm_unit` such that multiplying
-by that unit normalizes the monoid, and `normalize` is an idempotent monoid homomorphism.
+by that unit normalizes the monoid, and `normalize` is an idempotent monoid homomorphism. This
+definition as currently implemented does casework on `0`.
 
 * `gcd_monoid` extends `normalization_monoid`, so the `gcd` and `lcm` are always normalized.
 This makes `gcd`s of polynomials easier to work with, but excludes Euclidean domains, and monoids
@@ -405,6 +406,23 @@ lcm_dvd_lcm (dvd_refl _) (dvd_mul_right _ _)
 
 end lcm
 
+theorem prime_of_irreducible {x : α} (hi: irreducible x) : prime x :=
+begin
+  split, apply hi.ne_zero, --unfold irreducible at hi,
+  split, apply hi.1, intros a b h,
+  cases gcd_dvd_left x a with y hy,
+  cases hi.2 _ _ hy with hu hu; cases hu with u hu,
+  { right, transitivity (gcd (x * b) (a * b)), apply dvd_gcd (dvd_mul_right x b) h,
+    rw gcd_mul_right, rw ← hu,
+    apply dvd_of_associated, transitivity (normalize b), symmetry, use u, apply mul_comm,
+    apply normalize_associated, },
+  { left, rw [hy, ← hu],
+    transitivity, {apply dvd_of_associated, symmetry, use u}, apply gcd_dvd_right, }
+end
+
+theorem irreducible_iff_prime {p : α} : irreducible p ↔ prime p :=
+⟨prime_of_irreducible, irreducible_of_prime⟩
+
 end gcd_monoid
 
 namespace int
@@ -683,11 +701,6 @@ begin
     rw [pow_two, int.nat_abs_mul] at hpp,
     exact (or_self _).mp ((nat.prime.dvd_mul hp).mp hpp)}
 end
-
-instance nat.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero ℕ :=
-{ mul_left_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_left (nat.pos_of_ne_zero h1) h2,
-  mul_right_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
-  .. (infer_instance : comm_monoid_with_zero ℕ) }
 
 section unique_unit
 

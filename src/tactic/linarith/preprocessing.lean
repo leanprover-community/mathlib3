@@ -259,6 +259,31 @@ do s ← ls.mfoldr (λ h s', infer_type h >>= find_squares s') mk_rb_set,
    return $ new_es ++ ls ++ products }
 
 /--
+`remove_ne_aux` case splits on any proof `h : a ≠ b` in the input, turning it into `a < b ∨ a > b`.
+This produces `2^n` branches when there are `n` such hypotheses in the input.
+-/
+meta def remove_ne_aux : list expr → tactic (list branch) :=
+λ hs,
+(do e ← hs.mfind (λ e : expr, do e ← infer_type e, guard $ e.is_ne.is_some),
+    [(_, ng1), (_, ng2)] ← to_expr ``(or.elim (lt_or_gt_of_ne %%e)) >>= apply,
+     let do_goal : expr → tactic (list branch) := λ g,
+       do set_goals [g],
+          h ← intro1,
+          ls ← remove_ne_aux $ hs.remove_all [e],
+          return $ ls.map (λ b : branch, (b.1, h::b.2)) in
+      (++) <$> do_goal ng1 <*> do_goal ng2)
+<|> do g ← get_goal, return [(g, hs)]
+
+/--
+`remove_ne` case splits on any proof `h : a ≠ b` in the input, turning it into `a < b ∨ a > b`,
+by calling `linarith.remove_ne_aux`.
+This produces `2^n` branches when there are `n` such hypotheses in the input.
+-/
+meta def remove_ne : global_branching_preprocessor :=
+{ name := "remove_ne",
+  transform := remove_ne_aux }
+
+/--
 The default list of preprocessors, in the order they should typically run.
 -/
 meta def default_preprocessors : list global_branching_preprocessor :=
@@ -269,7 +294,7 @@ meta def default_preprocessors : list global_branching_preprocessor :=
 `preprocess pps l` takes a list `l` of proofs of propositions.
 It maps each preprocessor `pp ∈ pps` over this list.
 The preprocessors are run sequentially: each recieves the output of the previous one.
-Note that a preprocessor produces a `list expr` for each input `expr`,
+Note that a preprocessor may produce multiple or no expressions from each input expression,
 so the size of the list may change.
 -/
 meta def preprocess (pps : list global_branching_preprocessor) (l : list expr) : tactic (list branch) :=

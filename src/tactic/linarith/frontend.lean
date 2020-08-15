@@ -49,6 +49,10 @@ numbers are cast into inequalities about integers, and rational division by nume
 into multiplication. We do this so that we can guarantee the coefficients in the certificate are
 natural numbers, which allows the tactic to solve goals over types that are not fields.
 
+Preprocessors are allowed to branch, that is, to case split on disjunctions. `linarith` will succeed
+overall if it succeeds in all cases. This leads to exponential blowup in the number of `linarith`
+calls, and should be used sparingly. The default preprocessor set does not include case splits.
+
 ## Fourier-Motzkin elimination
 
 The oracle implemented to search for certificates uses Fourier-Motzkin variable elimination.
@@ -172,9 +176,11 @@ meta def try_linarith_on_lists (cfg : linarith_config) (ls : list (list expr)) :
 /--
 Given a list `hyps` of proofs of comparisons, `run_linarith_on_pfs cfg hyps pref_type`
 preprocesses `hyps` according to the list of preprocessors in `cfg`.
-It then partitions the resulting list of hypotheses by type, and runs `linarith` on each class
-in the partition.
+This results in a list of branches (typically only one),
+each of which must succeed in order to close the goal.
 
+In each branch, we partition the  list of hypotheses by type, and run `linarith` on each class
+in the partition; one of these must succeed in order for `linarith` to succeed on this branch.
 If `pref_type` is given, it will first use the class of proofs of comparisons over that type.
 -/
 meta def run_linarith_on_pfs (cfg : linarith_config) (hyps : list expr) (pref_type : option expr) :
@@ -189,7 +195,9 @@ let single_process := λ hyps : list expr, do
                try_linarith_on_lists cfg (rb_map.values (hyp_set.erase t))
    | none := try_linarith_on_lists cfg (rb_map.values hyp_set)
    end in
-do hyps ← preprocess (cfg.preprocessors.get_or_else default_preprocessors) hyps,
+let preprocessors := cfg.preprocessors.get_or_else default_preprocessors,
+    preprocessors := if cfg.split_ne then linarith.remove_ne::preprocessors else preprocessors in
+do hyps ← preprocess preprocessors hyps,
 hyps.mmap' $ λ hs, do set_goals [hs.1], single_process hs.2 >>= exact
 
 /--
@@ -363,4 +371,4 @@ add_tactic_doc
 { name       := "nlinarith",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.nlinarith],
-  tags       := ["arithmetic", "decision procedure", "finishing"] }
+  tags       := ["arithmetic", "finishing"] }

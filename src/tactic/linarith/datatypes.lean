@@ -228,27 +228,44 @@ meta structure preprocessor : Type :=
 (name : string)
 (transform : expr → tactic (list expr))
 
+
+/--
+Some preprocessors need to examine the full list of hypotheses instead of working item by item.
+As with `preprocessor`, the input to a `global_preprocessor` is replaced by, not added to, its output.
+-/
 meta structure global_preprocessor : Type :=
 (name : string)
 (transform : list expr → tactic (list expr))
 
+/--
+Some preprocessors perform branching case splits. A `branch` is used to track one of these case
+splits. The first component, an `expr`, is the goal corresponding to this branch of the split,
+given as a metavariable. The `list expr` component is the list of hypotheses for `linarith`
+in this branch. Every `expr` in this list should be type correct in the context of the associated goal.
+-/
 meta def branch : Type := expr × list expr
 
 /--
-Some preprocessors need to examine the full list of hypotheses instead of working item by item.
-As with `preprocessor`, the input to a `global_branching_preprocessor` is replaced by, not added to, its output.
+Some preprocessors perform branching case splits.
+A `global_branching_preprocessor` produces a list of branches to run.
+Each branch is independent, so hypotheses that appear in multiple branches should be duplicated.
+The preprocessor is responsible for making sure that each branch contains the correct goal
+metavariable.
 -/
 meta structure global_branching_preprocessor : Type :=
 (name : string)
 (transform : list expr → tactic (list branch))
 
 /--
-A `preprocessor` lifts to a `global_branching_preprocessor` by folding it over the input list.
+A `preprocessor` lifts to a `global_preprocessor` by folding it over the input list.
 -/
 meta def preprocessor.globalize (pp : preprocessor) : global_preprocessor :=
 { name := pp.name,
   transform := list.mfoldl (λ ret e, do l' ← pp.transform e, return (l' ++ ret)) [] }
 
+/--
+A `global_preprocessor` lifts to a `global_branching_preprocessor` by producing only one branch.
+-/
 meta def global_preprocessor.branching (pp : global_preprocessor) : global_branching_preprocessor :=
 { name := pp.name,
   transform := λ l, do g ← tactic.get_goal, singleton <$> prod.mk g <$> pp.transform l }
@@ -262,7 +279,8 @@ meta def global_branching_preprocessor.process (pp : global_branching_preprocess
 do l ← pp.transform l,
    when (l.length > 1) $
      linarith_trace format!"Preprocessing: {pp.name} has branched, with branches:",
-   l.mmap' $ λ l, tactic.set_goals [l.1] >> linarith_trace_proofs (to_string format!"Preprocessing: {pp.name}") l.2,
+   l.mmap' $ λ l, tactic.set_goals [l.1] >>
+     linarith_trace_proofs (to_string format!"Preprocessing: {pp.name}") l.2,
    return l
 
 meta instance preprocessor_to_gb_preprocessor :
@@ -294,6 +312,7 @@ meta structure linarith_config : Type :=
 (exfalso : bool := tt)
 (transparency : tactic.transparency := reducible)
 (split_hypotheses : bool := tt)
+(split_ne : bool := ff)
 (preprocessors : option (list global_branching_preprocessor) := none)
 (oracle : option certificate_oracle := none)
 

@@ -155,7 +155,7 @@ def equiv (F : J ⥤ C) : cocone F ≅ Σ X, F.cocones.obj X :=
 rfl
 
 /--
-Whisker a cocone by precomposition of a functor. See `whiskering` below for a functorial
+Whisker a cocone by precomposition of a functor. See `whiskering` for a functorial
 version.
 -/
 @[simps] def whisker {K : Type v} [small_category K] (E : K ⥤ J) (c : cocone F) : cocone (E ⋙ F) :=

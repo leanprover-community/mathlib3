@@ -95,13 +95,15 @@ def limit_cone (F : J ⥤ Mon) : cone F :=
       monoid_hom.coe_inj ((limit.cone (F ⋙ forget _)).π.naturality f) } }
 
 @[simps, to_additive]
-def foo (F : J ⥤ Mon) : (forget Mon).map_cone (limit_cone F) ≅ limit.cone (F ⋙ forget Mon) :=
+def forget_map_cone_limit_cone_iso (F : J ⥤ Mon) :
+  (forget Mon).map_cone (limit_cone F) ≅ limit.cone (F ⋙ forget Mon) :=
 { hom := { hom := 𝟙 _, },
   inv := { hom := 𝟙 _, } }
 
 @[to_additive]
-def bar (F : J ⥤ Mon) : is_limit ((forget Mon).map_cone (limit_cone F)) :=
-is_limit.of_iso_limit (limit.is_limit _) (foo F).symm
+def is_limit_forget_map_cone_limit_cone (F : J ⥤ Mon) :
+  is_limit ((forget Mon).map_cone (limit_cone F)) :=
+is_limit.of_iso_limit (limit.is_limit _) (forget_map_cone_limit_cone_iso F).symm
 
 /--
 Witness that the limit cone in `Mon` is a limit cone.
@@ -111,7 +113,7 @@ Witness that the limit cone in `Mon` is a limit cone.
 def limit_cone_is_limit (F : J ⥤ Mon) : is_limit (limit_cone F) :=
 begin
   refine is_limit.of_faithful
-    (forget Mon) (bar F)
+    (forget Mon) (is_limit_forget_map_cone_limit_cone F)
     (λ s, ⟨_, _, _⟩) (λ s, rfl); tidy,
 end
 
@@ -136,7 +138,7 @@ instance forget_preserves_limits : preserves_limits (forget Mon) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F,
     by exactI preserves_limit_of_preserves_limit_cone
-      (limit.is_limit F) (limit.is_limit (F ⋙ forget _)) } }
+      (limit_cone_is_limit F) (is_limit_forget_map_cone_limit_cone F) } }
 
 end Mon
 

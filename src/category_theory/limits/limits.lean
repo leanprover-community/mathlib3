@@ -56,6 +56,7 @@ Alternative constructor for `is_limit`,
 providing a morphism of cones rather than a morphism between the cone points
 and separately the factorisation condition.
 -/
+@[simps]
 def mk_cone_morphism {t : cone F}
   (lift : Π (s : cone F), s ⟶ t)
   (uniq' : ∀ (s : cone F) (m : s ⟶ t), m = lift s) : is_limit t :=
@@ -65,6 +66,7 @@ def mk_cone_morphism {t : cone F}
     congr_arg cone_morphism.hom this }
 
 /-- Limit cones on `F` are unique up to isomorphism. -/
+@[simps]
 def unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s ≅ t :=
 { hom := Q.lift_cone_morphism s,
   inv := P.lift_cone_morphism t,
@@ -81,6 +83,9 @@ def hom_is_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) (f : s ⟶ t) : 
 -- We may later want to prove the coherence of these isomorphisms.
 def cone_point_unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s.X ≅ t.X :=
 (cones.forget F).map_iso (unique_up_to_iso P Q)
+
+@[simp] lemma cone_point_unique_up_to_iso_hom {s t : cone F} (P : is_limit s) (Q : is_limit t) :
+  (cone_point_unique_up_to_iso P Q).hom = (cones.forget F).map (unique_up_to_iso P Q).hom := rfl
 
 /-- Transport evidence that a cone is a limit cone across an isomorphism of cones. -/
 def of_iso_limit {r t : cone F} (P : is_limit r) (i : r ≅ t) : is_limit t :=
@@ -401,6 +406,7 @@ Alternative constructor for `is_colimit`,
 providing a morphism of cocones rather than a morphism between the cocone points
 and separately the factorisation condition.
 -/
+@[simps]
 def mk_cocone_morphism {t : cocone F}
   (desc : Π (s : cocone F), t ⟶ s)
   (uniq' : ∀ (s : cocone F) (m : t ⟶ s), m = desc s) : is_colimit t :=
@@ -410,6 +416,7 @@ def mk_cocone_morphism {t : cocone F}
     congr_arg cocone_morphism.hom this }
 
 /-- Colimit cocones on `F` are unique up to isomorphism. -/
+@[simps]
 def unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s ≅ t :=
 { hom := P.desc_cocone_morphism t,
   inv := Q.desc_cocone_morphism s,
@@ -426,6 +433,9 @@ def hom_is_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) (f : s ⟶
 -- We may later want to prove the coherence of these isomorphisms.
 def cocone_point_unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s.X ≅ t.X :=
 (cocones.forget F).map_iso (unique_up_to_iso P Q)
+
+@[simp] lemma cocone_point_unique_up_to_iso_hom {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) :
+  (cocone_point_unique_up_to_iso P Q).hom = (cocones.forget F).map (unique_up_to_iso P Q).hom := rfl
 
 /-- Transport evidence that a cocone is a colimit cocone across an isomorphism of cocones. -/
 def of_iso_colimit {r t : cocone F} (P : is_colimit r) (i : r ≅ t) : is_colimit t :=

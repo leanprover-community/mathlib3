@@ -131,7 +131,7 @@ instance has_limits : has_limits Mon :=
 
 @[to_additive]
 def limit_iso_Mon_of_limit_forget (F : J ⥤ Mon) : limit F ≅ Mon.of (limit (F ⋙ forget Mon)) :=
-sorry
+is_limit.cone_point_unique_up_to_iso (limit.is_limit F) (limit_cone_is_limit F)
 
 /--
 The forgetful functor from monoids to types preserves all limits. (That is, the underlying
@@ -172,11 +172,12 @@ def lifted_cone (F : J ⥤ CommMon) : cone F :=
   { app := Mon.limit_π_monoid_hom (F ⋙ forget₂ CommMon Mon),
     naturality' := (Mon.has_limits.limit_cone (F ⋙ forget₂ _ _)).π.naturality, } }
 
+-- FIXME surely this could be easier:
 @[to_additive]
 def is_limit_forget₂_map_cone_lifted_cone (F : J ⥤ CommMon) :
   is_limit ((forget₂ CommMon Mon).map_cone (lifted_cone F)) :=
 { lift := λ s, limit.lift (F ⋙ forget₂ CommMon Mon) s ≫ (Mon.limit_iso_Mon_of_limit_forget _).hom,
-  fac' := sorry,
+  fac' := λ s j, begin simp [Mon.limit_iso_Mon_of_limit_forget], sorry, end,
   uniq' := sorry, }
 
 /--

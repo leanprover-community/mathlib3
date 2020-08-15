@@ -68,7 +68,7 @@ inductive miu_atom : Type
 /-!
 The annotation `@[derive decidable_eq]` above assigns the attribute `derive` to `miu_atom`, through
 which Lean automatically derives that `miu_atom` is an instance of `decidable_eq`. The use of
-`derive` is crucial in this project and will lead to the automatica derivation of decidability.
+`derive` is crucial in this project and will lead to the automatic derivation of decidability.
 -/
 
 open miu_atom

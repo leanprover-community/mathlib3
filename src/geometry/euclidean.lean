@@ -672,12 +672,12 @@ in terms of the pairwise distances between the points in that
 combination. -/
 lemma dist_affine_combination {ι : Type*} {s : finset ι} {w₁ w₂ : ι → ℝ} (p : ι → P)
     (h₁ : ∑ i in s, w₁ i = 1) (h₂ : ∑ i in s, w₂ i = 1) :
-  dist (s.affine_combination w₁ p) (s.affine_combination w₂ p) *
-    dist (s.affine_combination w₁ p) (s.affine_combination w₂ p) =
+  dist (s.affine_combination p w₁) (s.affine_combination p w₂) *
+    dist (s.affine_combination p w₁) (s.affine_combination p w₂) =
     (-∑ i₁ in s, ∑ i₂ in s,
       (w₁ - w₂) i₁ * (w₁ - w₂) i₂ * (dist (p i₁) (p i₂) * dist (p i₁) (p i₂))) / 2 :=
 begin
-  rw [dist_eq_norm_vsub V (s.affine_combination w₁ p) (s.affine_combination w₂ p),
+  rw [dist_eq_norm_vsub V (s.affine_combination p w₁) (s.affine_combination p w₂),
       ←inner_self_eq_norm_square, finset.affine_combination_vsub],
   have h : ∑ i in s, (w₁ - w₂) i = 0,
   { simp_rw [pi.sub_apply, finset.sum_sub_distrib, h₁, h₂, sub_self] },

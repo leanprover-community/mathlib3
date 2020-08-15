@@ -1597,6 +1597,24 @@ theorem pairwise_on.mono' {s : set α} {r r' : α → α → Prop}
   (H : ∀ a b, r a b → r' a b) (hp : pairwise_on s r) : pairwise_on s r' :=
 λ x xs y ys h, H _ _ (hp x xs y ys h)
 
+/-- If and only if `f` takes pairwise equal values on `s`, there is
+some value it takes everywhere on `s`. -/
+lemma pairwise_on_eq_iff_exists_eq [nonempty β] (s : set α) (f : α → β) :
+  (pairwise_on s (λ x y, f x = f y)) ↔ ∃ z, ∀ x ∈ s, f x = z :=
+begin
+  split,
+  { intro h,
+    rcases eq_empty_or_nonempty s with rfl | ⟨x, hx⟩,
+    { exact ⟨classical.arbitrary β, λ x hx, false.elim hx⟩ },
+    { use f x,
+      intros y hy,
+      by_cases hyx : y = x,
+      { rw hyx },
+      { exact h y hy x hx hyx } } },
+  { rintros ⟨z, hz⟩ x hx y hy hne,
+    rw [hz x hx, hz y hy] }
+end
+
 end set
 open set
 

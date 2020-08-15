@@ -523,8 +523,11 @@ variables {N : Type u} [semiring N] [algebra S N]
 variable {q : ℕ}
 variable (ν : fin q → N)
 
-instance algebra_to_semimodule : semimodule S N := algebra.to_semimodule
+@[priority 100] instance algebra_to_semimodule : semimodule S N := algebra.to_semimodule
 
+/--
+Auxiliary function used to define the multilinear map `algebra_prod`.
+-/
 def algebra_prod_aux : N := list.prod $ list.map ν (list.fin_range q)
 
 lemma algebra_prod_split_aux (ν : fin q.succ → N) :

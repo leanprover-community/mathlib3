@@ -27,6 +27,9 @@ variables (N : Type*) [add_comm_monoid N] [semimodule R N]
 variables (L : Type*) [add_comm_group L] [semimodule R L]
 variables (ι : Type*) [decidable_eq ι]
 
+/--
+An alternating map is a multilinear map that vanishes when two of its arguments are equal.
+-/
 structure alternating_map extends multilinear_map R (λ i : ι , M) N :=
 (map_alternating {ν : ι → M} {i j : ι} (h : ν i = ν j) (hij : i ≠ j) : to_fun ν = 0)
 
@@ -39,6 +42,11 @@ open function
 
 instance : has_coe (alternating_map R M N ι) (multilinear_map R (λ i : ι, M) N) :=
 ⟨λ x , ⟨x.to_fun, x.map_add', x.map_smul'⟩⟩
+
+instance : has_coe_to_fun (alternating_map R M N ι) := by apply_instance
+
+instance : inhabited (alternating_map R M N ι) :=
+⟨⟨0, λ _ _ _ _ _, rfl⟩⟩
 
 @[simp] lemma map_add (i : ι) (x y : M) :
   f (update ν i (x + y)) = f (update ν i x) + f (update ν i y) :=

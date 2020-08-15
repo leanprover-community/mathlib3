@@ -14,8 +14,6 @@ variables {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 
 local attribute [instance] has_equalizers_of_has_kernels
 
---set_option pp.all true
-
 theorem exact_iff : exact f g ↔ f ≫ g = 0 ∧ kernel.ι g ≫ cokernel.π f = 0 :=
 begin
   split,
@@ -45,8 +43,7 @@ begin
     refine λ h, ⟨h.1, _⟩,
     apply zero_of_epi_comp (is_limit.cone_point_unique_up_to_iso hg (limit.is_limit _)).hom,
     apply zero_of_comp_mono (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _) hf).hom,
-    simp,
-     }
+    simp [h.2] }
 end
 
 end category_theory.abelian

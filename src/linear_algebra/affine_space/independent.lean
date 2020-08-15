@@ -290,7 +290,7 @@ include V
 /-- An affinely independent set of points can be extended to such a
 set that spans the whole space. -/
 lemma exists_subset_affine_independent_affine_span_eq_top {s : set P}
-    (h : affine_independent k (λ p, p : s → P)) :
+  (h : affine_independent k (λ p, p : s → P)) :
   ∃ t : set P, s ⊆ t ∧ affine_independent k (λ p, p : t → P) ∧ affine_span k t = ⊤ :=
 begin
   by_cases hn : s.nonempty,

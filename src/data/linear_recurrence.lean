@@ -35,17 +35,18 @@ def mk_sol (init : fin E.order → α) : ℕ → α
   ∑ k : fin E.order, have n - E.order + k.1 < n, by have := k.2; omega,
     E.coeffs k * mk_sol (n - E.order + k)
 
-/-- `E.mk_sol` indeed gives solutions to `E` -/
+/-- `E.mk_sol` indeed gives solutions to `E`. -/
 lemma is_sol_mk_sol (init : fin E.order → α) :
   E.is_solution (E.mk_sol init) :=
   λ n, by rw mk_sol; simp
 
+/-- `E.mk_sol init`'s first `E.order` terms are `init`. -/
 lemma mk_sol_eq_init (init : fin E.order → α) :
   ∀ n : fin E.order, E.mk_sol init n = init n :=
   λ n, by rw mk_sol; simp [fin.coe_eq_val, n.2]
 
 /-- If `u` is a solution to `E` and `init` designates its first `E.order` values,
-  then `∀ n, u n = E.mk_sol init n`-/
+  then `∀ n, u n = E.mk_sol init n`. -/
 lemma eq_mk_of_is_sol_of_eq_init {u : ℕ → α} {init : fin E.order → α}
   (h : E.is_solution u) (heq : ∀ n : fin E.order, u n = init n) :
   ∀ n, u n = E.mk_sol init n
@@ -71,7 +72,7 @@ lemma eq_mk_of_is_sol_of_eq_init' {u : ℕ → α} {init : fin E.order → α}
 
 example : semimodule α (ℕ → α) := by apply_instance
 
-/-- The space of solutions of `E`, as a `submodule` over `α` of the semimodule `ℕ → α` -/
+/-- The space of solutions of `E`, as a `submodule` over `α` of the semimodule `ℕ → α`. -/
 def sol_space : submodule α (ℕ → α) :=
 { carrier := {u | E.is_solution u},
   zero_mem' := λ n, by simp,
@@ -79,7 +80,7 @@ def sol_space : submodule α (ℕ → α) :=
   smul_mem' := λ a u hu n, by simp [hu n, mul_sum]; congr'; ext; ac_refl }
 
 /-- Defining property of the solution space : `u` is a solution
-  iff it belongs to the solution space-/
+  iff it belongs to the solution space. -/
 lemma is_sol_iff_mem_sol_space (u : ℕ → α) :
   E.is_solution u ↔ u ∈ E.sol_space := by refl
 
@@ -94,6 +95,12 @@ def sol_space_linear_equiv_init_space :
   left_inv := λ u, by ext n; symmetry; apply E.eq_mk_of_is_sol_of_eq_init u.2; intros k; refl,
   right_inv := λ u, function.funext_iff.mpr (λ n, E.mk_sol_eq_init u n) }
 
+/-! `E.tuple_succ` maps `![s₀, s₁, ..., sₙ]` to `![s₁, ..., sₙ, ∑ (E.coeffs i) * sᵢ]`,
+  where `n := E.order`. This operation is quite useful for determining closed-form
+  solutions of `E`. -/
+
+/-- `E.tuple_succ` maps `![s₀, s₁, ..., sₙ]` to `![s₁, ..., sₙ, ∑ (E.coeffs i) * sᵢ]`,
+  where `n := E.order`. -/
 def tuple_succ : (fin E.order → α) →ₗ[α] (fin E.order → α) :=
 { to_fun := λ X i, if h : i.1 + 1 < E.order then X ⟨i+1, h⟩ else (∑ i, E.coeffs i * X i),
   map_add' := λ x y,
@@ -117,13 +124,23 @@ section field
 
 variables {α : Type*} [field α] (E : linear_recurrence α)
 
+/-- The dimension of `E.sol_space` is `E.order`. -/
 lemma sol_space_dim :
   vector_space.dim α E.sol_space = E.order :=
 @dim_fin_fun α _ E.order ▸ E.sol_space_linear_equiv_init_space.dim_eq
 
+end field
+
+section comm_ring
+
+variables {α : Type*} [comm_ring α] (E : linear_recurrence α)
+
+/-- The auxiliary polynomial of `E` is `X ^ E.order - ∑ i : fin E.order, (E.coeffs i) * X ^ i`. -/
 def aux_poly : polynomial α :=
   polynomial.monomial E.order 1 - (∑ i : fin E.order, polynomial.monomial i (E.coeffs i))
 
+/-- The geometric sequence `q^n` is a solution of `E` iff
+  `q` is a root of `E`'s auxiliary polynomial. -/
 lemma geom_sol_iff_root_aux_poly (q : α) :
   E.is_solution (λ n, q^n) ↔ E.aux_poly.is_root q :=
 begin
@@ -144,6 +161,6 @@ begin
     ring }
 end
 
-end field
+end comm_ring
 
 end linear_recurrence

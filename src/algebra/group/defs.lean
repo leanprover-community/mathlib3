@@ -293,6 +293,7 @@ section add_group
 
 variables {G : Type u} [add_group G]
 
+/-- The subtraction operation on an `add_group` -/
 @[reducible] protected def algebra.sub (a b : G) : G :=
 a + -b
 

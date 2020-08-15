@@ -250,6 +250,8 @@ section images
 variables {X Y : C} (f : X ⟶ Y)
 
 lemma image_eq_image : limits.image f = images.image f := rfl
+lemma image_ι_eq_image_ι : limits.image.ι f = images.image.ι f := rfl
+lemma kernel_cokernel_eq_image_ι : kernel.ι (cokernel.π f) = images.image.ι f := rfl
 
 /-- There is a canonical isomorphism between the coimage and the image of a morphism. -/
 abbreviation coimage_iso_image : coimages.coimage f ≅ images.image f :=

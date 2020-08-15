@@ -837,9 +837,9 @@ let ⟨b, hb⟩ := integer_normalization_map_to_map p in
 trans (eval₂_map f.to_map g x).symm (by rw [hb, eval₂_smul, hx, smul_zero])
 
 lemma integer_normalization_aeval_eq_zero [algebra R R'] [algebra f.codomain R']
-  [is_algebra_tower R f.codomain R'] (p : polynomial f.codomain)
+  [is_scalar_tower R f.codomain R'] (p : polynomial f.codomain)
   {x : R'} (hx : aeval x p = 0) : aeval x (integer_normalization p) = 0 :=
-by rw [aeval_def, is_algebra_tower.algebra_map_eq R f.codomain R', algebra_map_eq,
+by rw [aeval_def, is_scalar_tower.algebra_map_eq R f.codomain R', algebra_map_eq,
     integer_normalization_eval₂_eq_zero _ _ hx]
 
 end integer_normalization
@@ -1058,14 +1058,14 @@ begin
 end
 
 /-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`. -/
-lemma comap_is_algebraic_iff [algebra A L] [algebra f.codomain L] [is_algebra_tower A f.codomain L] :
+lemma comap_is_algebraic_iff [algebra A L] [algebra f.codomain L] [is_scalar_tower A f.codomain L] :
   algebra.is_algebraic A L ↔ algebra.is_algebraic f.codomain L :=
 begin
   split; intros h x; obtain ⟨p, hp, px⟩ := h x,
   { refine ⟨p.map f.to_map, λ h, hp (polynomial.ext (λ i, _)), _⟩,
   { have : f.to_map (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
     exact f.to_map_eq_zero_iff.mpr this },
-  { rwa [is_algebra_tower.aeval_apply _ f.codomain, algebra_map_eq] at px } },
+  { rwa [is_scalar_tower.aeval_apply _ f.codomain, algebra_map_eq] at px } },
   { exact ⟨integer_normalization p,
            mt f.integer_normalization_eq_zero_iff.mp hp,
            integer_normalization_aeval_eq_zero p px⟩ },
@@ -1165,12 +1165,12 @@ def fraction_map_of_algebraic [algebra A L] (alg : is_algebraic A L)
 /-- If the field `L` is a finite extension of the fraction field of the integral domain `A`,
 the integral closure of `A` in `L` has fraction field `L`. -/
 def fraction_map_of_finite_extension [algebra A L] [algebra f.codomain L]
-  [is_algebra_tower A f.codomain L] [finite_dimensional f.codomain L] :
+  [is_scalar_tower A f.codomain L] [finite_dimensional f.codomain L] :
   fraction_map (integral_closure A L) L :=
 fraction_map_of_algebraic
   (f.comap_is_algebraic_iff.mpr is_algebraic_of_finite)
   (λ x hx, f.to_map_eq_zero_iff.mpr ((algebra_map f.codomain L).map_eq_zero.mp $
-    (is_algebra_tower.algebra_map_apply _ _ _ _).symm.trans hx))
+    (is_scalar_tower.algebra_map_apply _ _ _ _).symm.trans hx))
 
 end integral_closure
 

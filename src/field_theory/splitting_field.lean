@@ -283,15 +283,15 @@ begin
   haveI : finite_dimensional F (algebra.adjoin F (↑s : set K)) :=
     (submodule.fg_iff_finite_dimensional _).1 (fg_adjoin_of_finite (set.finite_mem_finset s) H3),
   letI := field_of_finite_dimensional F (algebra.adjoin F (↑s : set K)),
-  have H5 : is_integral (algebra.adjoin F (↑s : set K)) a := is_integral_of_is_algebra_tower a H1,
+  have H5 : is_integral (algebra.adjoin F (↑s : set K)) a := is_integral_of_is_scalar_tower a H1,
   have H6 : (minimal_polynomial H5).splits (algebra_map (algebra.adjoin F (↑s : set K)) L),
   { refine polynomial.splits_of_splits_of_dvd _
       (polynomial.map_ne_zero $ minimal_polynomial.ne_zero H1 :
         polynomial.map (algebra_map _ _) _ ≠ 0)
       ((polynomial.splits_map_iff _ _).2 _)
       (minimal_polynomial.dvd _ _),
-    { rw ← is_algebra_tower.algebra_map_eq, exact H2 },
-    { rw [← is_algebra_tower.aeval_apply, minimal_polynomial.aeval H1] } },
+    { rw ← is_scalar_tower.algebra_map_eq, exact H2 },
+    { rw [← is_scalar_tower.aeval_apply, minimal_polynomial.aeval H1] } },
   obtain ⟨y, hy⟩ := polynomial.exists_root_of_splits _ H6 (minimal_polynomial.degree_ne_zero H5),
   exact ⟨subalgebra.of_under _ _ $ (adjoin_root.alg_hom (minimal_polynomial H5) y hy).comp $
     alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial _ _ H5⟩
@@ -384,14 +384,14 @@ instance algebra''' {n : ℕ} {f : polynomial α} (hfn : f.nat_degree = n + 1) :
     (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
 splitting_field_aux.algebra n _
 
-instance algebra_tower {n : ℕ} {f : polynomial α} (hfn : f.nat_degree = n + 1) :
-  is_algebra_tower α (adjoin_root f.factor) (splitting_field_aux _ _ hfn) :=
-is_algebra_tower.of_algebra_map_eq $ λ x, rfl
+instance scalar_tower {n : ℕ} {f : polynomial α} (hfn : f.nat_degree = n + 1) :
+  is_scalar_tower α (adjoin_root f.factor) (splitting_field_aux _ _ hfn) :=
+is_scalar_tower.of_algebra_map_eq $ λ x, rfl
 
-instance algebra_tower' {n : ℕ} {f : polynomial α} (hfn : f.nat_degree = n + 1) :
-  is_algebra_tower α (adjoin_root f.factor)
+instance scalar_tower' {n : ℕ} {f : polynomial α} (hfn : f.nat_degree = n + 1) :
+  is_scalar_tower α (adjoin_root f.factor)
     (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)) :=
-is_algebra_tower.of_algebra_map_eq $ λ x, rfl
+is_scalar_tower.of_algebra_map_eq $ λ x, rfl
 
 theorem algebra_map_succ (n : ℕ) (f : polynomial α) (hfn : f.nat_degree = n + 1) :
   by exact algebra_map α (splitting_field_aux _ _ hfn) =
@@ -440,7 +440,7 @@ rw [roots_mul hmf0, map_sub, map_X, map_C, roots_X_sub_C, finset.coe_union, fins
     algebra.adjoin_union, ← set.image_singleton, algebra.adjoin_algebra_map α (adjoin_root f.factor)
       (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
     adjoin_root.adjoin_root_eq_top, algebra.map_top,
-    is_algebra_tower.range_under_adjoin α (adjoin_root f.factor)
+    is_scalar_tower.range_under_adjoin α (adjoin_root f.factor)
       (splitting_field_aux n f.remove_factor (nat_degree_remove_factor' hfn)),
     ih, subalgebra.res_top] }
 
@@ -491,15 +491,15 @@ variables {α}
 instance splitting_field (f : polynomial α) : is_splitting_field α (splitting_field f) f :=
 ⟨splitting_field.splits f, splitting_field.adjoin_roots f⟩
 
-section algebra_tower
+section scalar_tower
 
-variables {α β γ} [algebra β γ] [algebra α γ] [is_algebra_tower α β γ]
+variables {α β γ} [algebra β γ] [algebra α γ] [is_scalar_tower α β γ]
 
 variables {α}
 instance map (f : polynomial α) [is_splitting_field α γ f] :
   is_splitting_field β γ (f.map $ algebra_map α β) :=
-⟨by { rw [splits_map_iff, ← is_algebra_tower.algebra_map_eq], exact splits γ f },
- subalgebra.res_inj α $ by { rw [map_map, ← is_algebra_tower.algebra_map_eq, subalgebra.res_top,
+⟨by { rw [splits_map_iff, ← is_scalar_tower.algebra_map_eq], exact splits γ f },
+ subalgebra.res_inj α $ by { rw [map_map, ← is_scalar_tower.algebra_map_eq, subalgebra.res_top,
     eq_top_iff, ← adjoin_roots γ f, algebra.adjoin_le_iff],
   exact λ x hx, @algebra.subset_adjoin β _ _ _ _ _ _ hx }⟩
 
@@ -516,17 +516,17 @@ theorem splits_iff (f : polynomial α) [is_splitting_field α β f] :
 theorem mul (f g : polynomial α) (hf : f ≠ 0) (hg : g ≠ 0) [is_splitting_field α β f]
   [is_splitting_field β γ (g.map $ algebra_map α β)] :
   is_splitting_field α γ (f * g) :=
-⟨(is_algebra_tower.algebra_map_eq α β γ).symm ▸ splits_mul _
+⟨(is_scalar_tower.algebra_map_eq α β γ).symm ▸ splits_mul _
   (splits_comp_of_splits _ _ (splits β f))
   ((splits_map_iff _ _).1 (splits γ $ g.map $ algebra_map α β)),
  by rw [map_mul, roots_mul (mul_ne_zero (map_ne_zero hf : f.map (algebra_map α γ) ≠ 0)
         (map_ne_zero hg)), finset.coe_union, algebra.adjoin_union,
-      is_algebra_tower.algebra_map_eq α β γ, ← map_map,
+      is_scalar_tower.algebra_map_eq α β γ, ← map_map,
       roots_map (algebra_map β γ) ((splits_id_iff_splits $ algebra_map α β).2 $ splits β f),
       finset.coe_image, algebra.adjoin_algebra_map, adjoin_roots, algebra.map_top,
-      is_algebra_tower.range_under_adjoin, ← map_map, adjoin_roots, subalgebra.res_top]⟩
+      is_scalar_tower.range_under_adjoin, ← map_map, adjoin_roots, subalgebra.res_top]⟩
 
-end algebra_tower
+end scalar_tower
 
 /-- Splitting field of `f` embeds into any field that splits `f`. -/
 def lift [algebra α γ] (f : polynomial α) [is_splitting_field α β f]

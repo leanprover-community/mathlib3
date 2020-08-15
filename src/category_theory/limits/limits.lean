@@ -772,6 +772,16 @@ lemma limit.cone_morphism_π {F : J ⥤ C} [has_limit F] (c : cone F) (j : J) :
   (limit.cone_morphism c).hom ≫ limit.π F j = c.π.app j :=
 by simp
 
+@[simp, reassoc] lemma limit.unique_up_to_iso_hom_comp {F : J ⥤ C} [has_limit F] {c : cone F}
+  (hc : is_limit c) (j : J) :
+  (is_limit.cone_point_unique_up_to_iso hc (limit.is_limit _)).hom ≫ limit.π F j = c.π.app j :=
+is_limit.cone_point_unique_up_to_iso_hom_comp _ _ _
+
+@[simp, reassoc] lemma limit.unique_up_to_iso_inv_comp {F : J ⥤ C} [has_limit F] {c : cone F}
+  (hc : is_limit c) (j : J) :
+  (is_limit.cone_point_unique_up_to_iso (limit.is_limit _) hc).inv ≫ limit.π F j = c.π.app j :=
+is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _
+
 @[ext] lemma limit.hom_ext {F : J ⥤ C} [has_limit F] {X : C} {f f' : X ⟶ limit F}
   (w : ∀ j, f ≫ limit.π F j = f' ≫ limit.π F j) : f = f' :=
 (limit.is_limit F).hom_ext w

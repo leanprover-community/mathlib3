@@ -12,18 +12,31 @@ variables {C : Type u} [category.{v} C] [abelian C]
 namespace category_theory.abelian
 variables {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 
-lemma exact_iff' {kg : kernel_fork g} (hkg : is_limit kg)
-  {cf : cokernel_cofork f} (hcf : is_colimit cf) : exact f g ↔ f ≫ g = 0 ∧ kg.ι ≫ cf.π = 0 :=
-begin
-  refine ⟨λ h, ⟨h.1, _⟩, λ h, ⟨h.1, _⟩⟩,
-  { --have := (epi_iff_cancel_zero _).1 h.2 _ _,
-    apply (mono_iff_cancel_zero (is_colimit.cocone_point_unique_up_to_iso hcf (colimit.is_colimit _)).hom).1
-      (by apply_instance),
-    apply (epi_iff_cancel_zero (is_limit.cone_point_unique_up_to_iso (limit.is_limit _) hkg).hom).1
-      (by apply_instance),
-    simp,
+local attribute [instance] has_equalizers_of_has_kernels
 
-  }
+--set_option pp.all true
+
+lemma exact_iff' {cg : kernel_fork g} (hg : is_limit cg)
+  {cf : cokernel_cofork f} (hf : is_colimit cf) : exact f g ↔ f ≫ g = 0 ∧ cg.ι ≫ cf.π = 0 :=
+begin
+  split,
+  { introI h,
+    exact ⟨h.1, bla' f g cg cf⟩ },
+  { refine λ h, ⟨h.1, _⟩,
+    suffices hl : is_limit (kernel_fork.of_ι (image.ι f) ((epi_iff_cancel_zero (factor_thru_image f)).1
+      (by apply_instance) _ (image.ι f ≫ g) (by simp [h.1]))),
+    { have : image_to_kernel_map f g h.1 = (is_limit.cone_point_unique_up_to_iso hl (limit.is_limit _)).hom,
+      { ext,
+        simp only [image.fac, category.assoc, kernel.lift_ι],
+        rw is_limit.cone_point_unique_up_to_iso_hom_comp hl (limit.is_limit _)
+          walking_parallel_pair.zero,
+
+        simp,
+       },
+      rw this,
+      apply_instance },
+
+     }
 end
 
 theorem exact_iff : exact f g ↔ f ≫ g = 0 ∧ kernel.ι g ≫ cokernel.π f = 0 :=

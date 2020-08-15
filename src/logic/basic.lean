@@ -431,7 +431,7 @@ by split; intro h; [split, skip]; intro h'; [by_contra, intro, skip];
 theorem not_iff : ¬ (a ↔ b) ↔ (¬ a ↔ b) := decidable.not_iff
 
 theorem decidable.iff_not_comm [decidable a] [decidable b] : (a ↔ ¬ b) ↔ (b ↔ ¬ a) :=
-by rw [@iff_def a, @iff_def b]; exact and_congr imp_not_comm not_imp_comm
+by rw [@iff_def a, @iff_def b]; exact and_congr imp_not_comm decidable.not_imp_comm
 
 theorem iff_not_comm : (a ↔ ¬ b) ↔ (b ↔ ¬ a) := decidable.iff_not_comm
 
@@ -491,12 +491,12 @@ theorem not_or_distrib : ¬ (a ∨ b) ↔ ¬ a ∧ ¬ b :=
  λ ⟨h₁, h₂⟩ h, or.elim h h₁ h₂⟩
 
 theorem decidable.or_iff_not_and_not [decidable a] [decidable b] : a ∨ b ↔ ¬ (¬a ∧ ¬b) :=
-by rw [← not_or_distrib, not_not]
+by rw [← not_or_distrib, decidable.not_not]
 
 theorem or_iff_not_and_not : a ∨ b ↔ ¬ (¬a ∧ ¬b) := decidable.or_iff_not_and_not
 
 theorem decidable.and_iff_not_or_not [decidable a] [decidable b] : a ∧ b ↔ ¬ (¬ a ∨ ¬ b) :=
-by rw [← not_and_distrib, not_not]
+by rw [← decidable.not_and_distrib, decidable.not_not]
 
 theorem and_iff_not_or_not : a ∧ b ↔ ¬ (¬ a ∨ ¬ b) := decidable.and_iff_not_or_not
 
@@ -703,7 +703,7 @@ theorem forall_or_distrib_left {q : Prop} {p : α → Prop} :
 
 theorem decidable.forall_or_distrib_right {q : Prop} {p : α → Prop} [decidable q] :
   (∀x, p x ∨ q) ↔ (∀x, p x) ∨ q :=
-by simp [or_comm, forall_or_distrib_left]
+by simp [or_comm, decidable.forall_or_distrib_left]
 
 theorem forall_or_distrib_right {q : Prop} {p : α → Prop} :
   (∀x, p x ∨ q) ↔ (∀x, p x) ∨ q := decidable.forall_or_distrib_right

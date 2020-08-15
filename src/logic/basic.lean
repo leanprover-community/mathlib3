@@ -234,7 +234,7 @@ theorem by_contra {p} : (¬p → false) → p := decidable.by_contradiction
 theorem decidable.not_not [decidable a] : ¬¬a ↔ a :=
 iff.intro decidable.by_contradiction not_not_intro
 
-theorem not_not : ¬¬a ↔ a := decidable.not_not
+@[simp] theorem not_not : ¬¬a ↔ a := decidable.not_not
 
 theorem of_not_not : ¬¬a → a := by_contra
 
@@ -400,8 +400,10 @@ theorem imp_or_distrib' : (a → b ∨ c) ↔ (a → b) ∨ (a → c) := decidab
 theorem not_imp_of_and_not : a ∧ ¬ b → ¬ (a → b)
 | ⟨ha, hb⟩ h := hb $ h ha
 
-theorem not_imp [decidable a] : ¬(a → b) ↔ a ∧ ¬b :=
+theorem decidable.not_imp [decidable a] : ¬(a → b) ↔ a ∧ ¬b :=
 ⟨λ h, ⟨of_not_imp h, not_of_not_imp h⟩, not_imp_of_and_not⟩
+
+@[simp] theorem not_imp : ¬(a → b) ↔ a ∧ ¬b := decidable.not_imp
 
 -- for monotonicity
 lemma imp_imp_imp (h₀ : c → a) (h₁ : b → d) : (a → b) → (c → d) :=

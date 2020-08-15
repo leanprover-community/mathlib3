@@ -5,7 +5,6 @@ Authors: Robert Y. Lewis, Mario Carneiro
 -/
 import data.int.modeq
 import data.padics.padic_numbers
-import ring_theory.discrete_valuation_ring
 
 /-!
 # p-adic integers
@@ -211,13 +210,6 @@ by simp [padic_norm_z]
 @[simp] lemma padic_norm_z_eq_padic_norm_e {q : ℚ_[p]} (hq : ∥q∥ ≤ 1) :
   @norm ℤ_[p] _ ⟨q, hq⟩ = ∥q∥ := rfl
 
-@[simp] lemma norm_p : ∥(p : ℤ_[p])∥ = p⁻¹ :=
-show ∥((p : ℤ_[p]) : ℚ_[p])∥ = p⁻¹, by exact_mod_cast padic_norm_e.norm_p
-
-@[simp] lemma norm_p_pow (n : ℕ) : ∥(p : ℤ_[p])^n∥ = p^(-n:ℤ) :=
-show ∥((p^n : ℤ_[p]) : ℚ_[p])∥ = p^(-n:ℤ),
-by { convert padic_norm_e.norm_p_pow n, simp, }
-
 end padic_norm_z
 
 private lemma mul_lt_one {α} [decidable_linear_ordered_comm_ring α] {a b : α} (hbz : 0 < b)
@@ -234,41 +226,6 @@ else mul_lt_one (lt_of_le_of_ne hbz (ne.symm hb')) (lt_of_le_of_ne ha ha') hb
 namespace padic_int
 
 variables {p : ℕ} [fact p.prime]
-
-/-! ### Valuation on `ℤ_[p]` -/
-
-/-- `padic_int.valuation` lifts the p-adic valuation on `ℚ` to `ℤ_[p]`.  -/
-def valuation (x : ℤ_[p]) := padic.valuation (x : ℚ_[p])
-
-lemma norm_eq_pow_val {x : ℤ_[p]} (hx : x ≠ 0) :
-  ∥x∥ = p^(-x.valuation) :=
-begin
-  convert padic.norm_eq_pow_val _,
-  contrapose! hx,
-  exact subtype.val_injective hx
-end
-
-@[simp] lemma valuation_zero : valuation (0 : ℤ_[p]) = 0 :=
-padic.valuation_zero
-
-@[simp] lemma valuation_one : valuation (1 : ℤ_[p]) = 0 :=
-padic.valuation_one
-
-@[simp] lemma valuation_p : valuation (p : ℤ_[p]) = 1 :=
-by simp [valuation, -cast_eq_of_rat_of_nat]
-
-lemma valuation_nonneg (x : ℤ_[p]) : 0 ≤ x.valuation :=
-begin
-  by_cases hx : x = 0,
-  { simp [hx] },
-  have h : (1 : ℝ) < p := by exact_mod_cast nat.prime.one_lt ‹_›,
-  rw [← neg_nonpos, ← (fpow_strict_mono h).le_iff_le],
-  show ↑p ^ -valuation x ≤ ↑p ^ 0,
-  rw [← norm_eq_pow_val hx],
-  simpa using x.property,
-end
-
-/-! ### Units of `ℤ_[p]` -/
 
 local attribute [reducible] padic_int
 
@@ -303,46 +260,6 @@ calc  ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ : by simp
 @[simp] lemma mem_nonunits {z : ℤ_[p]} : z ∈ nonunits ℤ_[p] ↔ ∥z∥ < 1 :=
 by rw lt_iff_le_and_ne; simp [padic_norm_z.le_one z, nonunits, is_unit_iff]
 
-/-- A `p`-adic number `u` with `∥u∥ = 1` is a unit of `ℤ_[p]`. -/
-def mk_units {u : ℚ_[p]} (h : ∥u∥ = 1) : units ℤ_[p] :=
-let z : ℤ_[p] := ⟨u, le_of_eq h⟩ in ⟨z, z.inv, mul_inv h, inv_mul h⟩
-
-@[simp]
-lemma mk_units_eq {u : ℚ_[p]} (h : ∥u∥ = 1) : ((mk_units h : ℤ_[p]) : ℚ_[p]) = u :=
-rfl
-
-@[simp] lemma norm_units (u : units ℤ_[p]) : ∥(u : ℤ_[p])∥ = 1 :=
-is_unit_iff.mp $ by simp
-
-/-- `unit_coeff hx` is the unit `u` in the unique representation `x = u * p ^ n`.
-See `unit_coeff_spec`. -/
-def unit_coeff {x : ℤ_[p]} (hx : x ≠ 0) : units ℤ_[p] :=
-let u : ℚ_[p] := x*p^(-x.valuation) in
-have hu : ∥u∥ = 1,
-by simp [hx, nat.fpow_ne_zero_of_pos (by exact_mod_cast nat.prime.pos ‹_›) x.valuation,
-         norm_eq_pow_val, fpow_neg, inv_mul_cancel, -cast_eq_of_rat_of_nat],
-mk_units hu
-
-@[simp] lemma unit_coeff_coe {x : ℤ_[p]} (hx : x ≠ 0) :
-  (unit_coeff hx : ℚ_[p]) = x * p ^ (-x.valuation) := rfl
-
-lemma unit_coeff_spec {x : ℤ_[p]} (hx : x ≠ 0) :
-  x = (unit_coeff hx : ℤ_[p]) * p ^ int.nat_abs (valuation x) :=
-begin
-  apply subtype.coe_injective,
-  push_cast,
-  have repr : (x : ℚ_[p]) = (unit_coeff hx) * p ^ x.valuation,
-  { rw [unit_coeff_coe, mul_assoc, ← fpow_add],
-    { simp },
-    { exact_mod_cast nat.prime.ne_zero ‹_› } },
-  convert repr using 2,
-  rw [← fpow_coe_nat, int.nat_abs_of_nonneg (valuation_nonneg x)],
-end
-
-lemma exists_repr {x : ℤ_[p]} (hx : x ≠ 0) :
-  ∃ (u : units ℤ_[p]) (n : ℕ), x = u*p^n :=
-⟨unit_coeff hx, int.nat_abs (valuation x), unit_coeff_spec hx⟩
-
 instance : local_ring ℤ_[p] :=
 local_of_nonunits_ideal zero_ne_one $ λ x y, by simp; exact norm_lt_one_add
 
@@ -366,154 +283,7 @@ def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
   map_mul' := coe_mul,
   map_add' := coe_add }
 
-/-- `uniformizer : ℤ_[p]` is `p` considered as a p-adic integer;
- the canonical uniformizer of `ℤ_[p]`. -/
-def uniformizer : ℤ_[p] :=
-⟨p, le_of_lt padic_norm_e.norm_p_lt_one⟩
-
-lemma uniformizer_eq_p : (uniformizer : ℤ_[p]) = p := subtype.ext $ by simp [uniformizer]
-
-lemma uniformizer_nonunit : uniformizer ∈ nonunits ℤ_[p] :=
-by simp [uniformizer, -cast_eq_of_rat_of_nat, -padic_norm_e.norm_p, padic_norm_e.norm_p_lt_one]
-
-lemma norm_uniformizer : ∥(uniformizer : ℤ_[p])∥ = 1 / p :=
-by simp [uniformizer, -cast_eq_of_rat_of_nat, padic_norm_e.norm_p]
-
 instance : algebra ℤ_[p] ℚ_[p] := (coe.ring_hom : ℤ_[p] →+* ℚ_[p]).to_algebra
-
-lemma not_a_field : local_ring.maximal_ideal ℤ_[p] ≠ ⊥ :=
-begin
-  refine (submodule.ne_bot_iff _).mpr ⟨uniformizer, _, _⟩,
-  { exact uniformizer_nonunit },
-  { rw [ne.def, ← norm_eq_zero, norm_uniformizer],
-    apply one_div_ne_zero,
-    exact_mod_cast _inst_1.ne_zero }
-end
-
--- move this
-lemma dvd_pow {M : Type*} [comm_monoid M] {x y : M} :
-  ∀ {n : ℕ} (hxy : x ∣ y) (hn : n ≠ 0), x ∣ y^n
-| 0     hxy hn := (hn rfl).elim
-| (n+1) hxy hn := by { rw [pow_succ], exact dvd_mul_of_dvd_left hxy _ }
-
--- move this
-lemma p_dvd_of_norm_lt_one {x : ℤ_[p]} (hx : ∥x∥ < 1) : ↑p ∣ x :=
-begin
-  by_cases hx0 : x = 0, { simp only [hx0, dvd_zero] },
-  rw unit_coeff_spec hx0,
-  by_cases H : x.valuation.nat_abs = 0,
-  { rw [int.nat_abs_eq_zero] at H,
-    rw [norm_eq_pow_val hx0, H, neg_zero, fpow_zero] at hx,
-    exact (lt_irrefl _ hx).elim, },
-  { apply dvd_mul_of_dvd_right,
-    exact dvd_pow (dvd_refl _) H, }
-end
-
-lemma maximal_ideal_eq_span_p : local_ring.maximal_ideal ℤ_[p] = ideal.span {p} :=
-begin
-  apply le_antisymm,
-  { intros x hx,
-    rw ideal.mem_span_singleton,
-    simp only [local_ring.mem_maximal_ideal, mem_nonunits] at hx,
-    exact p_dvd_of_norm_lt_one hx, },
-  { rw [ideal.span_le, set.singleton_subset_iff, ← uniformizer_eq_p], exact uniformizer_nonunit }
-end
-
-instance : char_zero ℤ_[p] :=
-{ cast_injective :=
-  λ m n h, cast_injective $
-  show (m:ℚ_[p]) = n, by { rw subtype.ext_iff at h, norm_cast at h, exact h } }
-
-lemma prime_p : prime (p : ℤ_[p]) :=
-begin
-  have hpnz : (p : ℤ_[p]) ≠ 0, { exact_mod_cast nat.prime.ne_zero ‹_› },
-  rw [← ideal.span_singleton_prime hpnz, ← maximal_ideal_eq_span_p],
-  apply_instance
-end
-
-lemma irreducible_p : irreducible (p : ℤ_[p]) :=
-irreducible_of_prime prime_p
-
-instance : unique_factorization_domain ℤ_[p] :=
-{ factors := λ x, if h : x = 0 then {0}
-                               else multiset.repeat p (valuation x).nat_abs,
-  factors_prod := λ x hx,
-    ⟨unit_coeff hx, by rw [dif_neg hx, multiset.prod_repeat, mul_comm, ← unit_coeff_spec hx]⟩,
-  prime_factors :=
-  begin
-    intros x hx y hy,
-    rw [dif_neg hx] at hy,
-    obtain rfl := multiset.eq_of_mem_repeat hy,
-    exact prime_p
-  end }
-
-lemma associated_of_irreducible (ϖ : ℤ_[p]) (h : irreducible ϖ) : associated ϖ p :=
-begin
-  suffices : ↑p ∣ ϖ,
-  { apply associated_of_dvd_dvd _ this,
-    apply dvd_symm_of_irreducible irreducible_p h this },
-  apply p_dvd_of_norm_lt_one,
-  suffices : ∥ϖ∥ ≠ 1, { exact lt_of_le_of_ne (ϖ.2) this, },
-  rw [ne.def, ← is_unit_iff],
-  exact h.not_unit
-end
-
-lemma exists_pow_mem_ideal_of_ne_bot {I : ideal ℤ_[p]} (hI : I ≠ ⊥) :
-  ∃ n : ℕ, (p ^ n : ℤ_[p]) ∈ I :=
-begin
-  obtain ⟨x, hxI, hxnz⟩ : ∃ x : ℤ_[p], x ∈ I ∧ x ≠ 0,
-  { rw [ne.def, submodule.eq_bot_iff] at hI, push_neg at hI, exact hI },
-  refine ⟨x.valuation.nat_abs, _⟩,
-  rw unit_coeff_spec hxnz at hxI,
-  have : (↑(unit_coeff hxnz)⁻¹ : ℤ_[p]) * ((unit_coeff hxnz) * p ^ x.valuation.nat_abs) ∈ I :=
-    I.mul_mem_left hxI,
-  rwa [← mul_assoc, units.inv_mul, one_mul] at this,
-end
-
-lemma ideal_is_principal (s : ideal ℤ_[p]) : s.is_principal :=
-begin
-  constructor,
-  by_cases h_bot : s = ⊥,
-  { subst h_bot,
-    use 0,
-    simp },
-  { have h_bot' := h_bot,
-    rw submodule.eq_bot_iff at h_bot,
-    push_neg at h_bot,
-    rcases h_bot with ⟨z, hzs, hznz⟩,
-    have exists_n : ∃ n : ℕ, ∃ z, ∃ u : units ℤ_[p], z ∈ s ∧ z = ↑u * ↑p ^ n,
-      from ⟨_, z, unit_coeff hznz, hzs, unit_coeff_spec hznz⟩,
-    let min_n := nat.find exists_n,
-    obtain ⟨min_z, u, minz_s, minz_spec⟩ : ∃ (z : ℤ_[p]) (u : units ℤ_[p]), z ∈ s ∧ z = ↑u * ↑p ^ min_n :=
-      nat.find_spec exists_n,
-    have uinv_min_z : ↑u⁻¹ * min_z = p ^ min_n,
-    { symmetry,
-      rw [units.eq_inv_mul_iff_mul_eq, minz_spec] },
-    have uinv_min_z_s : ↑u⁻¹ * min_z ∈ s, from ideal.mul_mem_left _ minz_s,
-    rw uinv_min_z at uinv_min_z_s,
-    have span_sub_s : submodule.span ℤ_[p] {↑p ^ min_n} ≤ s,
-    { exact (submodule.span_singleton_le_iff_mem _ _).mpr uinv_min_z_s, },
-    have s_sub_span : s ≤ submodule.span ℤ_[p] {↑p ^ min_n},
-    { intros y hy,
-      have exists_n_spec := @nat.find_min' _ _ exists_n,
-      dsimp at exists_n_spec,
-      by_cases hyz : y = 0,
-      { simp [hyz] },
-      { have min_n_y : min_n ≤ repr_exp hyz := @exists_n_spec (repr_exp hyz) ⟨y, unit_coeff hyz, hy, unit_coeff_spec hyz⟩,
-        rw unit_coeff_spec hyz,
-        apply ideal.mul_mem_left _ _,
-        have : repr_exp hyz = (repr_exp hyz - min_n) + min_n, {omega},
-        rw [this, _root_.pow_add],
-        apply ideal.mul_mem_left _ (submodule.mem_span_singleton_self _) } },
-    use p ^ min_n,
-    apply le_antisymm; assumption }
-
-end
-
-instance : discrete_valuation_ring ℤ_[p] :=
-{ principal := ideal_is_principal,
-  not_a_field' := not_a_field,
-  .. padic_int.local_ring }
 
 end padic_int
 

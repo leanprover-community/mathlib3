@@ -112,9 +112,9 @@ set_option default_priority 100 -- see Note [default priority]
 of the semantics of programming languages. Its notion of limit
 helps define the meaning of recursive procedures -/
 class omega_complete_partial_order (α : Type*) extends partial_order α :=
-(Sup     : chain α → α)
-(le_Sup  : ∀(c:chain α), ∀x∈c, x ≤ Sup c)
-(Sup_le  : ∀(c:chain α) x, (∀y∈c, y ≤ x) → Sup c ≤ x)
+(ωSup     : chain α → α)
+(le_ωSup  : ∀(c:chain α), ∀x∈c, x ≤ ωSup c)
+(ωSup_le  : ∀(c:chain α) x, (∀y∈c, y ≤ x) → ωSup c ≤ x)
 
 end prio
 
@@ -122,36 +122,34 @@ namespace omega_complete_partial_order
 variables {α : Type u} {β : Type v} {γ : Type*}
 variables [omega_complete_partial_order α]
 
-export order_bot (bot_le)
+@[main_declaration]
+lemma le_ωSup_of_le {c : chain α} {x y : α} (h : x ≤ y) (hy : y ∈ c) : x ≤ ωSup c :=
+le_trans h (le_ωSup c y hy)
 
 @[main_declaration]
-lemma le_Sup_of_le {c : chain α} {x y : α} (h : x ≤ y) (hy : y ∈ c) : x ≤ Sup c :=
-le_trans h (le_Sup c y hy)
-
-@[main_declaration]
-lemma Sup_total {c : chain α} {x : α} (h : ∀y∈c, y ≤ x ∨ x ≤ y) : Sup c ≤ x ∨ x ≤ Sup c :=
+lemma ωSup_total {c : chain α} {x : α} (h : ∀y∈c, y ≤ x ∨ x ≤ y) : ωSup c ≤ x ∨ x ≤ ωSup c :=
 classical.by_cases
-  (assume : ∀y ∈ c, y ≤ x, or.inl (Sup_le _ _ this))
+  (assume : ∀y ∈ c, y ≤ x, or.inl (ωSup_le _ _ this))
   (assume : ¬ ∀y ∈ c, y ≤ x,
     have ∃y∈c, ¬ y ≤ x,
       by simp only [not_forall] at this ⊢; assumption,
     let ⟨y, hy, hyx⟩ := this in
     have x ≤ y, from (h y hy).resolve_left hyx,
-    or.inr $ le_Sup_of_le this hy)
+    or.inr $ le_ωSup_of_le this hy)
 
 @[main_declaration]
-lemma Sup_le_Sup_of_le {c₀ c₁ : chain α} (h : c₀ ≤ c₁) : Sup c₀ ≤ Sup c₁ :=
-Sup_le _ _ $
+lemma ωSup_le_ωSup_of_le {c₀ c₁ : chain α} (h : c₀ ≤ c₁) : ωSup c₀ ≤ ωSup c₁ :=
+ωSup_le _ _ $
 λ y hy, Exists.rec_on (h y hy) $
-λ x ⟨hx,hxy⟩, le_trans hxy $ le_Sup _ _ hx
+λ x ⟨hx,hxy⟩, le_trans hxy $ le_ωSup _ _ hx
 
 @[main_declaration]
-lemma Sup_le_iff (c : chain α) (x : α) : Sup c ≤ x ↔ (∀ y ∈ c, y ≤ x) :=
+lemma ωSup_le_iff (c : chain α) (x : α) : ωSup c ≤ x ↔ (∀ y ∈ c, y ≤ x) :=
 begin
   split; intros,
-  { transitivity Sup c,
-    apply le_Sup _ _ H, exact a },
-  apply Sup_le _ _ a,
+  { transitivity ωSup c,
+    apply le_ωSup _ _ H, exact a },
+  apply ωSup_le _ _ a,
 end
 
 section continuity
@@ -164,7 +162,7 @@ variables [omega_complete_partial_order β]
 
 /-- A monotone function is continuous if it preserves the supremum of chains -/
 def continuous :=
-∀ C : chain α, f (Sup C) = Sup (C.map f hf)
+∀ C : chain α, f (ωSup C) = ωSup (C.map f hf)
 
 /-- `continuous'` asserts both monotonicity and continuity of function `f` -/
 def continuous' := ∃ h, continuous f h
@@ -194,40 +192,40 @@ begin
   have := c.mono h _ ha, apply mem_unique this hb
 end
 
-/-- the `Sup` definition for the instance `omega_complete_partial_order (roption α)` -/
-protected noncomputable def Sup (c : chain (roption α)) : roption α :=
+/-- the `ωSup` definition for the instance `omega_complete_partial_order (roption α)` -/
+protected noncomputable def ωSup (c : chain (roption α)) : roption α :=
 if h : ∃a, some a ∈ c then some (classical.some h) else none
 
-lemma Sup_eq_some {c : chain (roption α)} {a : α} (h : some a ∈ c) : roption.Sup c = some a :=
+lemma ωSup_eq_some {c : chain (roption α)} {a : α} (h : some a ∈ c) : roption.ωSup c = some a :=
 have ∃a, some a ∈ c, from ⟨a, h⟩,
 have a' : some (classical.some this) ∈ c, from classical.some_spec this,
-calc roption.Sup c = some (classical.some this) : dif_pos this
+calc roption.ωSup c = some (classical.some this) : dif_pos this
                ... = some a : congr_arg _ (eq_of_chain a' h)
 
 @[main_declaration]
-lemma Sup_eq_none {c : chain (roption α)} (h : ¬∃a, some a ∈ c) : roption.Sup c = none :=
+lemma ωSup_eq_none {c : chain (roption α)} (h : ¬∃a, some a ∈ c) : roption.ωSup c = none :=
 dif_neg h
 
-lemma mem_chain_of_mem_Sup {c : chain (roption α)} {a : α} (h : a ∈ roption.Sup c) : some a ∈ c :=
+lemma mem_chain_of_mem_ωSup {c : chain (roption α)} {a : α} (h : a ∈ roption.ωSup c) : some a ∈ c :=
 begin
-  simp [roption.Sup] at h, split_ifs at h,
+  simp [roption.ωSup] at h, split_ifs at h,
   { have h' := classical.some_spec h_1,
     rw ← eq_some_iff at h, rw ← h, exact h' },
   { rcases h with ⟨ ⟨ ⟩ ⟩ }
 end
 
 noncomputable instance omega_complete_partial_order : omega_complete_partial_order (roption α) :=
-{ Sup    := roption.Sup,
-  le_Sup := λ c x hx, by { intros a ha, rw ← eq_some_iff at ha, subst x,
-                           rw Sup_eq_some hx, apply mem_some },
-  Sup_le := by { intros c x hx a ha, replace ha := mem_chain_of_mem_Sup ha,
+{ ωSup    := roption.ωSup,
+  le_ωSup := λ c x hx, by { intros a ha, rw ← eq_some_iff at ha, subst x,
+                           rw ωSup_eq_some hx, apply mem_some },
+  ωSup_le := by { intros c x hx a ha, replace ha := mem_chain_of_mem_ωSup ha,
                  apply hx _ ha _ (mem_some _) } }
 
 section inst
 
-lemma mem_Sup (x : α) (c : chain (roption α)) : x ∈ Sup c ↔ some x ∈ c :=
+lemma mem_ωSup (x : α) (c : chain (roption α)) : x ∈ ωSup c ↔ some x ∈ c :=
 begin
-  simp [omega_complete_partial_order.Sup,roption.Sup],
+  simp [omega_complete_partial_order.ωSup,roption.ωSup],
   split,
   { split_ifs, swap, rintro ⟨⟨⟩⟩,
     intro h', have hh := classical.some_spec h,
@@ -263,11 +261,11 @@ open omega_complete_partial_order chain
 
 variables  [∀a, omega_complete_partial_order (β a)]
 instance : omega_complete_partial_order (Πa, β a) :=
-{ Sup    := λc a, Sup (c.map _ (monotone_apply a)),
-  Sup_le := assume c f hf a, Sup_le _ _ $ by { rintro b ⟨i,⟨ ⟩⟩, apply hf, exact ⟨i,rfl⟩ },
-  le_Sup := assume c x hx a, le_Sup _ _ $ by { rw mem_map_iff, exact ⟨x,hx,rfl⟩ } }
+{ ωSup    := λc a, ωSup (c.map _ (monotone_apply a)),
+  ωSup_le := assume c f hf a, ωSup_le _ _ $ by { rintro b ⟨i,⟨ ⟩⟩, apply hf, exact ⟨i,rfl⟩ },
+  le_ωSup := assume c x hx a, le_ωSup _ _ $ by { rw mem_map_iff, exact ⟨x,hx,rfl⟩ } }
 
-protected lemma Sup_eq (c : chain (Π x, β x)) (a : α) : Sup c a = Sup (c.map _ (monotone_apply a) ) := rfl
+protected lemma ωSup_eq (c : chain (Π x, β x)) (a : α) : ωSup c a = ωSup (c.map _ (monotone_apply a) ) := rfl
 
 section continuity
 
@@ -279,7 +277,7 @@ begin
   have : monotone f,
   { intros x y h' a, apply (h a).fst h' },
   existsi this, intro c, ext,
-  rw [pi.Sup_eq,map_comp,← (h x).snd c],
+  rw [pi.ωSup_eq,map_comp,← (h x).snd c],
 end
 
 lemma continuous_congr (f : Π a, γ → β a) (x : α) (h : continuous' (λ g x, f x g)) :
@@ -296,23 +294,19 @@ end continuity
 
 end pi
 
-namespace set
-variables (α : Type u)
+namespace complete_lattice
+variables (α : Type u) [complete_lattice α]
 
-instance : partial_order (set α) :=
-{ le          := (⊆),
-  le_refl     := assume s x hx, hx,
-  le_trans    := assume a b c hab hbc x hx, hbc $ hab $ hx,
-  le_antisymm := assume a b hab hba, ext $ assume x, ⟨@hab x, @hba x⟩ }
+set_option default_priority 100 -- see Note [default priority]
 
 @[main_declaration]
-instance : omega_complete_partial_order (set α) :=
-{ Sup    := λc, ⋃ i, c.elems i,
-  Sup_le := assume ⟨c, _⟩ s hs x, by simp [stream.mem_def] at ⊢ hs; intros i hx; apply hs _ i rfl hx,
-  le_Sup := assume ⟨c, _⟩ s hs x hxs, by simp [stream.mem_def,stream.nth] at ⊢ hs;
-                                         cases hs with i hs; exact ⟨_,(hs ▸ hxs : x ∈ c i)⟩ }
+instance : omega_complete_partial_order α :=
+{ ωSup    := λc, ⨆ i, c.elems i,
+  ωSup_le := assume ⟨c, _⟩ s hs, by simp [stream.mem_def] at ⊢ hs; intros i; apply hs _ i rfl,
+  le_ωSup := assume ⟨c, _⟩ x hx, by simp [stream.mem_def,stream.nth] at ⊢ hx;
+                                         cases hx with i hs; apply le_supr_of_le i; rw hs }
 
-end set
+end complete_lattice
 
 namespace omega_complete_partial_order
 open omega_complete_partial_order
@@ -321,28 +315,28 @@ variables {α : Type u} {β : Type v} {γ : Type*}
 variables [omega_complete_partial_order α] [omega_complete_partial_order β] [omega_complete_partial_order γ]
 
 lemma cont_const (f : β) (c : chain α) :
-  Sup (c.map (λ _, f) (const_mono _)) = f :=
+  ωSup (c.map (λ _, f) (const_mono _)) = f :=
 begin
   apply le_antisymm,
-  { apply Sup_le, simp [chain.mem_map_iff],
+  { apply ωSup_le, simp [chain.mem_map_iff],
     intros, subst f },
-  { apply le_Sup, simp [chain.mem_map_iff], exact ⟨ c.elems 0,0,rfl ⟩ }
+  { apply le_ωSup, simp [chain.mem_map_iff], exact ⟨ c.elems 0,0,rfl ⟩ }
 end
 
 lemma cont_ite {p : Prop} {hp : decidable p} (c : chain α) (f g : α → β) (hf hg) :
-  Sup (c.map (λ x, @ite p hp _ (f x) (g x)) (ite_mono hf hg)) = @ite p hp _ (Sup $ c.map f hf) (Sup $ c.map g hg) :=
+  ωSup (c.map (λ x, @ite p hp _ (f x) (g x)) (ite_mono hf hg)) = @ite p hp _ (ωSup $ c.map f hf) (ωSup $ c.map g hg) :=
 by split_ifs; refl
 
 lemma cont_bind {β γ : Type v} (c : chain α) (f : α → roption β) (g : α → β → roption γ) (h' h'') :
-  Sup (c.map (λ x, f x >>= g x : α → roption γ) (bind_mono _ g h' h'')) = Sup (c.map (λ x, f x) h') >>= Sup (c.map (λ x, g x) h'') :=
+  ωSup (c.map (λ x, f x >>= g x : α → roption γ) (bind_mono _ g h' h'')) = ωSup (c.map (λ x, f x) h') >>= ωSup (c.map (λ x, g x) h'') :=
 begin
   apply eq_of_forall_ge_iff, intro x,
-  simp [Sup_le_iff,roption.bind_le,-roption.bind_eq_bind,chain.mem_map_iff],
+  simp [ωSup_le_iff,roption.bind_le,-roption.bind_eq_bind,chain.mem_map_iff],
   split; intro h''',
-  { intros b hb, apply Sup_le _ _ _,
+  { intros b hb, apply ωSup_le _ _ _,
     simp [-roption.bind_eq_bind,chain.mem_map_iff],
     intros y z hz hy, subst y,
-    { intros y hy, simp [roption.mem_Sup] at hb,
+    { intros y hy, simp [roption.mem_ωSup] at hb,
       replace h₀ := chain.exists_of_mem_map _ _ hb,
       rcases h₀ with ⟨k,h₂,h₃⟩,
       rw roption.eq_some_iff at h₃,
@@ -356,8 +350,8 @@ begin
   { intros y a ha hy, subst hy, intros b hb, simp at hb,
     rcases hb with ⟨b',hb₀,hb₁⟩,
     apply h''' b' _ b _, revert hb₀,
-    apply le_Sup _ (f a) _, apply chain.mem_map _ _ _ ha,
-    apply le_Sup _ (g a b') _, exact hb₁,
+    apply le_ωSup _ (f a) _, apply chain.mem_map _ _ _ ha,
+    apply le_ωSup _ (g a b') _, exact hb₁,
     apply chain.mem_map _ _ _ ha, introv _ h, apply h'' h, },
 end
 

@@ -1121,19 +1121,11 @@ begin
         ext,
         simp [classical.em] },
       change ∃! (cccr : P × ℝ), (_ ∧ ∀ i2, (λ q, dist q cccr.fst = cccr.snd) (p i2)),
-      conv {
-        congr,
-        funext,
-        conv { congr, skip, rw ←set.forall_range_iff }
-      },
+      conv { congr, funext, conv { congr, skip, rw ←set.forall_range_iff } },
       dsimp only,
       rw hr,
       change ∃! (cccr : P × ℝ), (_ ∧ ∀ (i2 : ι2), (λ q, dist q cccr.fst = cccr.snd) (p i2)) at hm,
-      conv at hm {
-        congr,
-        funext,
-        conv { congr, skip, rw ←set.forall_range_iff }
-      },
+      conv at hm { congr, funext, conv { congr, skip, rw ←set.forall_range_iff } },
       have hs : affine_span ℝ (insert (p i) (set.range (λ (i2 : ι2), p i2))) =
         affine_span ℝ (insert (p i) (affine_span ℝ (set.range (λ (i2 : ι2), p i2)) : set P)),
       { rw [set.insert_eq, set.insert_eq, span_union, span_union, affine_span_coe] },

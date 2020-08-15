@@ -1010,13 +1010,22 @@ theorem mem_powerset {x s : set α} (h : x ⊆ s) : x ∈ powerset s := h
 
 theorem subset_of_mem_powerset {x s : set α} (h : x ∈ powerset s) : x ⊆ s := h
 
-theorem mem_powerset_iff (x s : set α) : x ∈ powerset s ↔ x ⊆ s := iff.rfl
+@[simp] theorem mem_powerset_iff (x s : set α) : x ∈ powerset s ↔ x ⊆ s := iff.rfl
 
-@[simp] theorem powerset_mono : powerset s ⊆ powerset t ↔ s ⊆ t :=
+theorem powerset_inter (s t : set α) : 𝒫 (s ∩ t) = 𝒫 s ∩ 𝒫 t :=
+ext $ λ u, subset_inter_iff
+
+@[simp] theorem powerset_mono : 𝒫 s ⊆ 𝒫 t ↔ s ⊆ t :=
 ⟨λ h, h (subset.refl s), λ h u hu, subset.trans hu h⟩
 
-@[simp] theorem powerset_nonempty : (powerset s).nonempty :=
+theorem monotone_powerset : monotone (powerset : set α → set (set α)) :=
+λ s t, powerset_mono.2
+
+@[simp] theorem powerset_nonempty : (𝒫 s).nonempty :=
 ⟨∅, empty_subset s⟩
+
+@[simp] theorem powerset_empty : 𝒫 (∅ : set α) = {∅} :=
+ext $ λ s, subset_empty_iff
 
 /-! ### Inverse image -/
 
@@ -1588,6 +1597,24 @@ theorem pairwise_on.mono' {s : set α} {r r' : α → α → Prop}
   (H : ∀ a b, r a b → r' a b) (hp : pairwise_on s r) : pairwise_on s r' :=
 λ x xs y ys h, H _ _ (hp x xs y ys h)
 
+/-- If and only if `f` takes pairwise equal values on `s`, there is
+some value it takes everywhere on `s`. -/
+lemma pairwise_on_eq_iff_exists_eq [nonempty β] (s : set α) (f : α → β) :
+  (pairwise_on s (λ x y, f x = f y)) ↔ ∃ z, ∀ x ∈ s, f x = z :=
+begin
+  split,
+  { intro h,
+    rcases eq_empty_or_nonempty s with rfl | ⟨x, hx⟩,
+    { exact ⟨classical.arbitrary β, λ x hx, false.elim hx⟩ },
+    { use f x,
+      intros y hy,
+      by_cases hyx : y = x,
+      { rw hyx },
+      { exact h y hy x hx hyx } } },
+  { rintros ⟨z, hz⟩ x hx y hy hne,
+    rw [hz x hx, hz y hy] }
+end
+
 end set
 open set
 
@@ -1735,8 +1762,11 @@ assume x ⟨h₁, h₂⟩, ⟨hs h₁, ht h₂⟩
 
 lemma prod_subset_iff {P : set (α × β)} :
   (s.prod t ⊆ P) ↔ ∀ (x ∈ s) (y ∈ t), (x, y) ∈ P :=
-⟨λ h _ xin _ yin, h (mk_mem_prod xin yin),
- λ h _ pin, by { cases mem_prod.1 pin with hs ht, simpa using h _ hs _ ht }⟩
+⟨λ h _ xin _ yin, h (mk_mem_prod xin yin), λ h ⟨_, _⟩ pin, h _ pin.1 _ pin.2⟩
+
+lemma forall_prod_set {p : α × β → Prop} :
+  (∀ x ∈ s.prod t, p x) ↔ ∀ (x ∈ s) (y ∈ t), p (x, y) :=
+prod_subset_iff
 
 @[simp] theorem prod_empty : s.prod ∅ = (∅ : set (α × β)) :=
 by { ext, simp }

@@ -37,6 +37,12 @@ instance has_decidable_eq [decidable_eq α] : decidable_eq (multiset α)
 | s₁ s₂ := quotient.rec_on_subsingleton₂ s₁ s₂ $ λ l₁ l₂,
   decidable_of_iff' _ quotient.eq
 
+/-- defines a size for a multiset by referring to the size of the underlying list -/
+protected def sizeof [has_sizeof α] (s : multiset α) : ℕ :=
+quot.lift_on s sizeof $ λ l₁ l₂, perm.sizeof_eq_sizeof
+
+instance has_sizeof [has_sizeof α] : has_sizeof (multiset α) := ⟨multiset.sizeof⟩
+
 /- empty multiset -/
 
 /-- `0 : multiset α` is the empty set -/
@@ -1024,6 +1030,10 @@ def attach (s : multiset α) : multiset {x // x ∈ s} := pmap subtype.mk s (λ 
 
 @[simp] theorem coe_attach (l : list α) :
  @eq (multiset {x // x ∈ l}) (@attach α l) l.attach := rfl
+
+theorem sizeof_lt_sizeof_of_mem [has_sizeof α] {x : α} {s : multiset α} (hx : x ∈ s) :
+  sizeof x < sizeof s := by
+{ induction s with l a b, exact list.sizeof_lt_sizeof_of_mem hx, refl }
 
 theorem pmap_eq_map (p : α → Prop) (f : α → β) (s : multiset α) :
   ∀ H, @pmap _ _ p (λ a _, f a) s H = map f s :=

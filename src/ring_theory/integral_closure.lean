@@ -297,6 +297,37 @@ lemma algebra.is_integral_trans (A_int : ∀ x : A, is_integral R x)(B_int : ∀
   ∀ x:B, is_integral R x :=
 λ x, is_integral_trans A_int x (B_int x)
 
+lemma is_integral_of_surjective (h : function.surjective (algebra_map R A))
+  : ∀ x : A, is_integral R x :=
+λ x, (h x).rec_on (λ y hy, (hy ▸ is_integral_algebra_map : is_integral R x))
+
+/-- If `R → A → B` is an algebra tower with `A → B` injective,
+then if the entire tower is an integral extension so is `R → A` -/
+lemma is_integral_of_is_integral_tower_back (H : function.injective (algebra_map A B))
+  : (∀ x : B, is_integral R x) → (∀ x : A, is_integral R x) :=
+begin
+  intros h x,
+  rcases h (algebra_map A B x) with ⟨p, ⟨hp, hp'⟩⟩,
+  refine ⟨p, ⟨hp, _⟩⟩,
+  rw [aeval_def, is_algebra_tower.algebra_map_eq R A B, ← eval₂_map,
+      eval₂_hom, ← ring_hom.map_zero (algebra_map A B)] at hp',
+  rw [aeval_def, eval₂_eq_eval_map],
+  exact H hp',
+end
+
+/-- If `R → A → B` is an algebra tower,
+then if the entire tower is an integral extension so is `A → B` -/
+lemma is_integral_of_is_integral_tower_front
+  : (∀ x : B, is_integral R x) → (∀ x : B, is_integral A x) :=
+begin
+  intros h x,
+  rcases h x with ⟨p, ⟨hp, hp'⟩⟩,
+  refine ⟨p.map (algebra_map R A), ⟨monic_map (algebra_map R A) hp, _⟩⟩,
+  rw [aeval_def, is_algebra_tower.algebra_map_eq R A B, ← eval₂_map] at hp',
+  rw [aeval_def],
+  exact hp',
+end
+
 end algebra
 
 theorem integral_closure_idem {R : Type*} {A : Type*} [comm_ring R] [comm_ring A] [algebra R A] :

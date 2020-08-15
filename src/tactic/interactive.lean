@@ -668,11 +668,18 @@ add_tactic_doc
   tags       := ["context management"] }
 
 /-- `choose a b h h' using hyp` takes an hypothesis `hyp` of the form
-`∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b ∧ Q x y a b` for some `P Q : X → Y → A → B → Prop` and outputs
+`∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b ∧ Q x y a b`
+for some `P Q : X → Y → A → B → Prop` and outputs
 into context a function `a : X → Y → A`, `b : X → Y → B` and two assumptions:
-`h : ∀ (x : X) (y : Y), P x y (a x y) (b x y)` and `h' : ∀ (x : X) (y : Y), Q x y (a x y) (b x y)`.
+`h : ∀ (x : X) (y : Y), P x y (a x y) (b x y)` and
+`h' : ∀ (x : X) (y : Y), Q x y (a x y) (b x y)`. It also works with dependent versions.
 
-It presumably also works with dependent versions.
+`choose! a b h h' using hyp` does the same, except that it will remove dependency of
+the functions on propositional arguments if possible. For example if `Y` is a proposition
+and `A` and `B` are inhabited in the above example then we will instead get
+`a : X → A`, `b : X → B`, and the assumptions
+`h : ∀ (x : X) (y : Y), P x y (a x) (b x)` and
+`h' : ∀ (x : X) (y : Y), Q x y (a x) (b x)`.
 
 Examples:
 
@@ -688,23 +695,23 @@ end
 ```
 
 ```lean
-example (h : ∀ i : ℕ, ∃ j, i < j ∧ j < i+i) : true :=
+example (h : ∀ i : ℕ, i < 7 → ∃ j, i < j ∧ j < i+i) : true :=
 begin
-  choose f h h' using h,
+  choose! f h h' using h,
   guard_hyp f := ℕ → ℕ,
-  guard_hyp h := ∀ (i : ℕ), i < f i,
-  guard_hyp h' := ∀ (i : ℕ), f i < i + i,
+  guard_hyp h := ∀ (i : ℕ), i < 7 → i < f i,
+  guard_hyp h' := ∀ (i : ℕ), i < 7 → f i < i + i,
   trivial,
 end
 ```
 -/
-meta def choose (first : parse ident) (names : parse ident*) (tgt : parse (tk "using" *> texpr)?) :
-  tactic unit := do
+meta def choose (nondep : parse (tk "!")?) (first : parse ident) (names : parse ident*)
+  (tgt : parse (tk "using" *> texpr)?) : tactic unit := do
 tgt ← match tgt with
   | none := get_local `this
   | some e := tactic.i_to_expr_strict e
   end,
-tactic.choose tgt (first :: names),
+tactic.choose nondep.is_some tgt (first :: names),
 try (interactive.simp none tt [simp_arg_type.expr ``(exists_prop)] [] (loc.ns $ some <$> names)),
 try (tactic.clear tgt)
 

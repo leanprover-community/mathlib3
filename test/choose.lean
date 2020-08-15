@@ -1,12 +1,21 @@
 import tactic.interactive
 
 /- choice -/
-example (h : ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n) : true :=
+example (h : ∀n m : ℕ, n < m → ∃i j, m = n + i ∨ m + j = n) : true :=
 begin
   choose i j h using h,
+  guard_hyp i := ∀n m : ℕ, n < m → ℕ,
+  guard_hyp j := ∀n m : ℕ, n < m → ℕ,
+  guard_hyp h := ∀ (n m : ℕ) (h : n < m), m = n + i n m h ∨ m + j n m h = n,
+  trivial
+end
+
+example (h : ∀n m : ℕ, n < m → ∃i j, m = n + i ∨ m + j = n) : true :=
+begin
+  choose! i j h using h,
   guard_hyp i := ℕ → ℕ → ℕ,
   guard_hyp j := ℕ → ℕ → ℕ,
-  guard_hyp h := ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
+  guard_hyp h := ∀ (n m : ℕ), n < m → m = n + i n m ∨ m + j n m = n,
   trivial
 end
 

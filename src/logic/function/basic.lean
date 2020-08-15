@@ -395,6 +395,21 @@ lemma eq_iff (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ : f a₁ b₁ = f a�
 
 end injective2
 
+section else_default
+local attribute [instance, priority 10] classical.prop_decidable
+
+noncomputable def else_default {α β} [inhabited β] (f : α → β) : β :=
+if h : nonempty α then f (classical.choice h) else default _
+
+theorem else_default_eq {p : Prop} {α} [inhabited α] (f : p → α) (a : p) : else_default f = f a :=
+dif_pos ⟨a⟩
+
+theorem else_default_spec {p : Prop} {α} [inhabited α]
+  (P : α → Prop) (f : p → α) (a : p) (h : P (f a)) : P (else_default f) :=
+by rwa else_default_eq
+
+end else_default
+
 end function
 
 /-- `s.piecewise f g` is the function equal to `f` on the set `s`, and to `g` on its complement. -/

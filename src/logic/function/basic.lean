@@ -398,6 +398,9 @@ end injective2
 section sometimes
 local attribute [instance, priority 10] classical.prop_decidable
 
+/-- A function that evaluates to some value of `f`, if it exists. This function is especially
+interesting in the case where `α` is a proposition, in which case `f` is necessarily a
+constant function, so that `sometimes f = f a` for all `a`. -/
 noncomputable def sometimes {α β} [nonempty β] (f : α → β) : β :=
 if h : nonempty α then f (classical.choice h) else classical.choice ‹_›
 

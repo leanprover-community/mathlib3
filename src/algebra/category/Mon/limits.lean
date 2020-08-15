@@ -172,13 +172,11 @@ def lifted_cone (F : J ⥤ CommMon) : cone F :=
   { app := Mon.limit_π_monoid_hom (F ⋙ forget₂ CommMon Mon),
     naturality' := (Mon.has_limits.limit_cone (F ⋙ forget₂ _ _)).π.naturality, } }
 
--- FIXME surely this could be easier:
 @[to_additive]
 def is_limit_forget₂_map_cone_lifted_cone (F : J ⥤ CommMon) :
   is_limit ((forget₂ CommMon Mon).map_cone (lifted_cone F)) :=
-{ lift := λ s, limit.lift (F ⋙ forget₂ CommMon Mon) s ≫ (Mon.limit_iso_Mon_of_limit_forget _).hom,
-  fac' := λ s j, begin simp [Mon.limit_iso_Mon_of_limit_forget], sorry, end,
-  uniq' := sorry, }
+is_limit.of_iso_limit (limit.is_limit _) $ cones.ext (Mon.limit_iso_Mon_of_limit_forget _) $
+  λ j, by erw is_limit.fac
 
 /--
 We show that the forgetful functor `CommMon ⥤ Mon` creates limits.

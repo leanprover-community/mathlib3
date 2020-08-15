@@ -527,9 +527,9 @@ lemma padic_norm_p_lt_one_of_prime (p : ℕ) [fact p.prime] : padic_norm p p < 1
 padic_norm_p_lt_one $ nat.prime.one_lt ‹_›
 
 /--
-The image of `padic_norm p` is `{0} ∪ {p^(-n) | n ∈ ℤ}`.
+`padic_norm p q` takes discrete values `p ^ -z` for `z : ℤ`.
 -/
-protected theorem image {q : ℚ} (hq : q ≠ 0) : ∃ n : ℤ, padic_norm p q = p ^ (-n) :=
+protected theorem values_discrete {q : ℚ} (hq : q ≠ 0) : ∃ z : ℤ, padic_norm p q = p ^ (-z) :=
 ⟨ (padic_val_rat p q), by simp [padic_norm, hq] ⟩
 
 variable [hp : fact p.prime]

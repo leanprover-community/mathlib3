@@ -307,10 +307,10 @@ else
   have ¬ (const (padic_norm p) q) ≈ 0, from not_equiv_zero_const_of_nonzero hq,
   by simp [norm, this]
 
-lemma norm_image (a : padic_seq p) (ha : ¬ a ≈ 0) :
-  (∃ (n : ℤ), a.norm = ↑p ^ (-n)) :=
+lemma norm_values_discrete (a : padic_seq p) (ha : ¬ a ≈ 0) :
+  (∃ (z : ℤ), a.norm = ↑p ^ (-z)) :=
 let ⟨k, hk, hk'⟩ := norm_eq_norm_app_of_nonzero ha in
-by simpa [hk] using padic_norm.image p hk'
+by simpa [hk] using padic_norm.values_discrete p hk'
 
 lemma norm_one : norm (1 : padic_seq p) = 1 :=
 have h1 : ¬ (1 : padic_seq p) ≈ 0, from one_not_equiv_zero _,
@@ -635,7 +635,7 @@ norm_const _
 protected theorem image' {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, padic_norm_e q = p ^ (-n) :=
 quotient.induction_on q $ λ f hf,
   have ¬ f ≈ 0, from (ne_zero_iff_nequiv_zero f).1 hf,
-  norm_image f this
+  norm_values_discrete f this
 
 lemma sub_rev (q r : ℚ_[p]) : padic_norm_e (q - r) = padic_norm_e (r - q) :=
 by rw ←(padic_norm_e.neg); simp
@@ -858,7 +858,7 @@ by rw [normed_field.norm_fpow, norm_p]; field_simp
 protected theorem image {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, ∥q∥ = ↑((↑p : ℚ) ^ (-n)) :=
 quotient.induction_on q $ λ f hf,
   have ¬ f ≈ 0, from (padic_seq.ne_zero_iff_nequiv_zero f).1 hf,
-  let ⟨n, hn⟩ := padic_seq.norm_image f this in
+  let ⟨n, hn⟩ := padic_seq.norm_values_discrete f this in
   ⟨n, congr_arg coe hn⟩
 
 protected lemma is_rat (q : ℚ_[p]) : ∃ q' : ℚ, ∥q∥ = ↑q' :=

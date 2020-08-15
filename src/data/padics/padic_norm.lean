@@ -492,18 +492,24 @@ The p-adic norm of 1 is 1.
 
 /--
 The p-adic norm of `p` is `1/p` if `p > 1`.
+
+See also `padic_norm.padic_norm_p_of_prime` for a version that assumes `p` is prime.
 -/
 lemma padic_norm_p {p : ℕ} (hp : 1 < p) : padic_norm p p = 1 / p :=
 by simp [padic_norm, (show p ≠ 0, by linarith), padic_val_rat.padic_val_rat_self hp]
 
 /--
-An alternate version of `padic_norm.padic_norm_p` that assumes `p` is prime.
+The p-adic norm of `p` is `1/p` if `p` is prime.
+
+See also `padic_norm.padic_norm_p` for a version that assumes `1 < p`.
 -/
 @[simp] lemma padic_norm_p_of_prime (p : ℕ) [fact p.prime] : padic_norm p p = 1 / p :=
 padic_norm_p $ nat.prime.one_lt ‹_›
 
 /--
-The p-adic norm of `p` is less than 1 if `p > 1`.
+The p-adic norm of `p` is less than 1 if `1 < p`.
+
+See also `padic_norm.padic_norm_p_lt_one_of_prime` for a version assuming `prime p`.
 -/
 lemma padic_norm_p_lt_one {p : ℕ} (hp : 1 < p) : padic_norm p p < 1 :=
 begin
@@ -513,7 +519,9 @@ begin
 end
 
 /--
-An alternate version of `padic_norm.padic_norm_p_lt_one` that assumes `p` is prime.
+The p-adic norm of `p` is less than 1 if `p` is prime.
+
+See also `padic_norm.padic_norm_p_lt_one` for a version assuming `1 < p`.
 -/
 lemma padic_norm_p_lt_one_of_prime (p : ℕ) [fact p.prime] : padic_norm p p < 1 :=
 padic_norm_p_lt_one $ nat.prime.one_lt ‹_›

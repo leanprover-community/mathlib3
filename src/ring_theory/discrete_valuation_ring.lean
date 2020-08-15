@@ -175,14 +175,8 @@ begin
     rw pow_succ at this,
     rcases this.2 _ _ rfl with H0|H0,
     { exact (hϖ.not_unit H0).elim, },
-    {  } }
-  -- suffices : ϖ ∣ p,
-  -- { apply associated_of_dvd_dvd _ this,
-  --   apply dvd_symm_of_irreducible hϖ hp this, },
-  -- apply p_dvd_of_norm_lt_one,
-  -- suffices : ∥ϖ∥ ≠ 1, { exact lt_of_le_of_ne (ϖ.2) this, },
-  -- rw [ne.def, ← is_unit_iff],
-  -- exact h.not_unit
+    { rw [add_comm, pow_succ] at H0,
+      exact (hϖ.not_unit (is_unit_of_mul_is_unit_left H0)).elim } }
 end
 
 /-- Implementation detail: an integral domain in which-/

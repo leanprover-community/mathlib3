@@ -497,6 +497,12 @@ lemma padic_norm_p {p : ℕ} (hp : 1 < p) : padic_norm p p = 1 / p :=
 by simp [padic_norm, (show p ≠ 0, by linarith), padic_val_rat.padic_val_rat_self hp]
 
 /--
+An alternate version of `padic_norm.padic_norm_p` that assumes `p` is prime.
+-/
+@[simp] lemma padic_norm_p_of_prime (p : ℕ) [fact p.prime] : padic_norm p p = 1 / p :=
+padic_norm_p $ nat.prime.one_lt ‹_›
+
+/--
 The p-adic norm of `p` is less than 1 if `p > 1`.
 -/
 lemma padic_norm_p_lt_one {p : ℕ} (hp : 1 < p) : padic_norm p p < 1 :=
@@ -505,6 +511,12 @@ begin
   { exact_mod_cast hp },
   { exact_mod_cast zero_lt_one.trans hp },
 end
+
+/--
+An alternate version of `padic_norm.padic_norm_p_lt_one` that assumes `p` is prime.
+-/
+@[simp] lemma padic_norm_p_lt_one_of_prime (p : ℕ) [fact p.prime] : padic_norm p p < 1 :=
+padic_norm_p_lt_one $ nat.prime.one_lt ‹_›
 
 /--
 The image of `padic_norm p` is `{0} ∪ {p^(-n) | n ∈ ℤ}`.

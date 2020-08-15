@@ -222,7 +222,7 @@ def id : 𝟭 C ⊣ 𝟭 C :=
   unit := 𝟙 _,
   counit := 𝟙 _ }
 
-/-- Satisfy the inhabited linter. -/
+-- Satisfy the inhabited linter.
 instance : inhabited (adjunction (𝟭 C) (𝟭 C)) := ⟨id⟩
 
 /-- If F and G are naturally isomorphic functors, establish an equivalence of hom-sets. -/

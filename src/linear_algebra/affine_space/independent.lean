@@ -104,41 +104,41 @@ end
 
 /-- A set is affinely independent if and only if the differences from
 a base point in that set are linearly independent. -/
-lemma affine_independent_set_iff_linear_independent_vsub {s : set P} {p1 : P} (hp1 : p1 ∈ s) :
+lemma affine_independent_set_iff_linear_independent_vsub {s : set P} {p₁ : P} (hp₁ : p₁ ∈ s) :
   affine_independent k (λ p, p : s → P) ↔
-  linear_independent k (λ v, v : (λ p, (p -ᵥ p1 : V)) '' (s \ {p1}) → V) :=
+  linear_independent k (λ v, v : (λ p, (p -ᵥ p₁ : V)) '' (s \ {p₁}) → V) :=
 begin
-  rw affine_independent_iff_linear_independent_vsub k (λ p, p : s → P) ⟨p1, hp1⟩,
+  rw affine_independent_iff_linear_independent_vsub k (λ p, p : s → P) ⟨p₁, hp₁⟩,
   split,
   { intro h,
-    have hv : ∀ v : (λ p, (p -ᵥ p1 : V)) '' (s \ {p1}), (v : V) +ᵥ p1 ∈ s \ {p1} :=
-      λ v, (set.mem_image_of_injective (vsub_left_injective p1)).1
-             ((vadd_vsub (v : V) p1).symm ▸ v.property),
-    let f : (λ p : P, (p -ᵥ p1 : V)) '' (s \ {p1}) → {x : s // x ≠ ⟨p1, hp1⟩} :=
-      λ x, ⟨⟨(x : V) +ᵥ p1, set.mem_of_mem_diff (hv x)⟩,
+    have hv : ∀ v : (λ p, (p -ᵥ p₁ : V)) '' (s \ {p₁}), (v : V) +ᵥ p₁ ∈ s \ {p₁} :=
+      λ v, (set.mem_image_of_injective (vsub_left_injective p₁)).1
+             ((vadd_vsub (v : V) p₁).symm ▸ v.property),
+    let f : (λ p : P, (p -ᵥ p₁ : V)) '' (s \ {p₁}) → {x : s // x ≠ ⟨p₁, hp₁⟩} :=
+      λ x, ⟨⟨(x : V) +ᵥ p₁, set.mem_of_mem_diff (hv x)⟩,
             λ hx, set.not_mem_of_mem_diff (hv x) (subtype.ext_iff.1 hx)⟩,
     convert h.comp f
-      (λ x1 x2 hx, (subtype.ext (vadd_right_cancel p1 (subtype.ext_iff.1 (subtype.ext_iff.1 hx))))),
+      (λ x1 x2 hx, (subtype.ext (vadd_right_cancel p₁ (subtype.ext_iff.1 (subtype.ext_iff.1 hx))))),
     ext v,
-    exact (vadd_vsub (v : V) p1).symm },
+    exact (vadd_vsub (v : V) p₁).symm },
   { intro h,
-    let f : {x : s // x ≠ ⟨p1, hp1⟩} → (λ p : P, (p -ᵥ p1 : V)) '' (s \ {p1}) :=
-      λ x, ⟨((x : s) : P) -ᵥ p1, ⟨x, ⟨⟨(x : s).property, λ hx, x.property (subtype.ext hx)⟩, rfl⟩⟩⟩,
+    let f : {x : s // x ≠ ⟨p₁, hp₁⟩} → (λ p : P, (p -ᵥ p₁ : V)) '' (s \ {p₁}) :=
+      λ x, ⟨((x : s) : P) -ᵥ p₁, ⟨x, ⟨⟨(x : s).property, λ hx, x.property (subtype.ext hx)⟩, rfl⟩⟩⟩,
     convert h.comp f
       (λ x1 x2 hx, subtype.ext (subtype.ext (vsub_left_cancel (subtype.ext_iff.1 hx)))) }
 end
 
 /-- A set of nonzero vectors is linearly independent if and only if,
-given a point `p1`, the vectors added to `p1` and `p1` itself are
+given a point `p₁`, the vectors added to `p₁` and `p₁` itself are
 affinely independent. -/
 lemma linear_independent_set_iff_affine_independent_vadd_union_singleton {s : set V}
-  (hs : ∀ v ∈ s, v ≠ (0 : V)) (p1 : P) : linear_independent k (λ v, v : s → V) ↔
-  affine_independent k (λ p, p : {p1} ∪ ((λ v, v +ᵥ p1) '' s) → P) :=
+  (hs : ∀ v ∈ s, v ≠ (0 : V)) (p₁ : P) : linear_independent k (λ v, v : s → V) ↔
+  affine_independent k (λ p, p : {p₁} ∪ ((λ v, v +ᵥ p₁) '' s) → P) :=
 begin
   rw affine_independent_set_iff_linear_independent_vsub k
-    (set.mem_union_left _ (set.mem_singleton p1)),
-  have h : (λ p, (p -ᵥ p1 : V)) '' (({p1} ∪ (λ v, v +ᵥ p1) '' s) \ {p1}) = s,
-  { simp_rw [set.union_diff_left, set.image_diff (vsub_left_injective p1), set.image_image,
+    (set.mem_union_left _ (set.mem_singleton p₁)),
+  have h : (λ p, (p -ᵥ p₁ : V)) '' (({p₁} ∪ (λ v, v +ᵥ p₁) '' s) \ {p₁}) = s,
+  { simp_rw [set.union_diff_left, set.image_diff (vsub_left_injective p₁), set.image_image,
              set.image_singleton, vsub_self, vadd_vsub, set.image_id'],
     exact set.diff_singleton_eq_self (λ h, hs 0 h rfl) },
   rw h

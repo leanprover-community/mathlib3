@@ -102,6 +102,48 @@ begin
     exact finset.eq_zero_of_sum_eq_zero hw h2b i hi }
 end
 
+/-- A set is affinely independent if and only if the differences from
+a base point in that set are linearly independent. -/
+lemma affine_independent_set_iff_linear_independent_vsub {s : set P} {p1 : P} (hp1 : p1 ∈ s) :
+  affine_independent k (λ p, p : s → P) ↔
+    linear_independent k (λ v, v : (λ p, (p -ᵥ p1 : V)) '' (s \ {p1}) → V) :=
+begin
+  rw affine_independent_iff_linear_independent_vsub k (λ p, p : s → P) ⟨p1, hp1⟩,
+  split,
+  { intro h,
+    have hv : ∀ v : (λ p, (p -ᵥ p1 : V)) '' (s \ {p1}), (v : V) +ᵥ p1 ∈ s \ {p1} :=
+      λ v, (set.mem_image_of_injective (vsub_left_injective p1)).1
+             ((vadd_vsub (v : V) p1).symm ▸ v.property),
+    let f : (λ p : P, (p -ᵥ p1 : V)) '' (s \ {p1}) → {x : s // x ≠ ⟨p1, hp1⟩} :=
+      λ x, ⟨⟨(x : V) +ᵥ p1, set.mem_of_mem_diff (hv x)⟩,
+            λ hx, set.not_mem_of_mem_diff (hv x) (subtype.ext_iff.1 hx)⟩,
+    convert h.comp f
+      (λ x1 x2 hx, (subtype.ext (vadd_right_cancel p1 (subtype.ext_iff.1 (subtype.ext_iff.1 hx))))),
+    ext v,
+    exact (vadd_vsub (v : V) p1).symm },
+  { intro h,
+    let f : {x : s // x ≠ ⟨p1, hp1⟩} → (λ p : P, (p -ᵥ p1 : V)) '' (s \ {p1}) :=
+      λ x, ⟨((x : s) : P) -ᵥ p1, ⟨x, ⟨⟨(x : s).property, λ hx, x.property (subtype.ext hx)⟩, rfl⟩⟩⟩,
+    convert h.comp f
+      (λ x1 x2 hx, subtype.ext (subtype.ext (vsub_left_cancel (subtype.ext_iff.1 hx)))) }
+end
+
+/-- A set of nonzero vectors is linearly independent if and only if,
+given a point `p1`, the vectors added to `p1` and `p1` itself are
+affinely independent. -/
+lemma linear_independent_set_iff_affine_independent_vadd_union_singleton {s : set V}
+  (hs : ∀ v ∈ s, v ≠ (0 : V)) (p1 : P) : linear_independent k (λ v, v : s → V) ↔
+    affine_independent k (λ p, p : {p1} ∪ ((λ v, v +ᵥ p1) '' s) → P) :=
+begin
+  rw affine_independent_set_iff_linear_independent_vsub k
+    (set.mem_union_left _ (set.mem_singleton p1)),
+  have h : (λ p, (p -ᵥ p1 : V)) '' (({p1} ∪ (λ v, v +ᵥ p1) '' s) \ {p1}) = s,
+  { simp_rw [set.union_diff_left, set.image_diff (vsub_left_injective p1), set.image_image,
+             set.image_singleton, vsub_self, vadd_vsub, set.image_id'],
+    exact set.diff_singleton_eq_self (λ h, hs 0 h rfl) },
+  rw h
+end
+
 /-- A family is affinely independent if and only if any affine
 combinations (with sum of weights 1) that evaluate to the same point
 have equal `set.indicator`. -/
@@ -238,6 +280,47 @@ lemma not_mem_affine_span_diff_of_affine_independent [nontrivial k] {p : ι → 
 by simp [ha]
 
 end affine_independent
+
+section field
+
+variables {k : Type*} {V : Type*} {P : Type*} [field k] [add_comm_group V] [module k V]
+variables [affine_space V P]
+include V
+
+/-- An affinely independent set of points can be extended to such a
+set that spans the whole space. -/
+lemma exists_subset_affine_independent_affine_span_eq_top {s : set P}
+    (h : affine_independent k (λ p, p : s → P)) :
+  ∃ t : set P, s ⊆ t ∧ affine_independent k (λ p, p : t → P) ∧ affine_span k t = ⊤ :=
+begin
+  by_cases hn : s.nonempty,
+  { cases hn with p1 hp1,
+    rw affine_independent_set_iff_linear_independent_vsub k hp1 at h,
+    rcases exists_subset_is_basis h with ⟨sv, hsv, hsvi, hsvt⟩,
+    have h0 : ∀ v : V, v ∈ sv → v ≠ 0,
+    { intros v hv,
+      change ((⟨v, hv⟩ : sv) : V) ≠ 0,
+      exact hsvi.ne_zero },
+    rw linear_independent_set_iff_affine_independent_vadd_union_singleton k h0 p1 at hsvi,
+    use {p1} ∪ (λ v, v +ᵥ p1) '' sv,
+    split,
+    { refine set.subset.trans _ (set.union_subset_union_right _ (set.image_subset _ hsv)),
+      simp [set.image_image] },
+    { use [hsvi, affine_span_singleton_union_vadd_eq_top_of_span_eq_top p1 hsvt] } },
+  { rw set.not_nonempty_iff_eq_empty at hn,
+    subst hn,
+    have p1 : P := add_torsor.nonempty.some,
+    rcases exists_is_basis k V with ⟨sv, hsvi, hsvt⟩,
+    have h0 : ∀ v : V, v ∈ sv → v ≠ 0,
+    { intros v hv,
+      change ((⟨v, hv⟩ : sv) : V) ≠ 0,
+      exact hsvi.ne_zero },
+    rw linear_independent_set_iff_affine_independent_vadd_union_singleton k h0 p1 at hsvi,
+    use [{p1} ∪ (λ v, v +ᵥ p1) '' sv, set.empty_subset _, hsvi,
+         affine_span_singleton_union_vadd_eq_top_of_span_eq_top p1 hsvt] },
+end
+
+end field
 
 namespace affine
 

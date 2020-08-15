@@ -846,6 +846,27 @@ lemma affine_span_nonempty (s : set P) :
   (affine_span k s : set P).nonempty ↔ s.nonempty :=
 span_points_nonempty k s
 
+variables {k}
+
+/-- Suppose a set of vectors spans `V`.  Then a point `p`, together
+with those vectors added to `p`, spans `P`. -/
+lemma affine_span_singleton_union_vadd_eq_top_of_span_eq_top {s : set V} (p : P)
+    (h : submodule.span k (set.range (coe : s → V)) = ⊤) :
+  affine_span k ({p} ∪ (λ v, v +ᵥ p) '' s) = ⊤ :=
+begin
+  convert affine_subspace.ext_of_direction_eq _
+    ⟨p,
+     mem_affine_span k (set.mem_union_left _ (set.mem_singleton _)),
+     affine_subspace.mem_top k V p⟩,
+  rw [direction_affine_span, affine_subspace.direction_top,
+      vector_span_eq_span_vsub_set_right k
+        ((set.mem_union_left _ (set.mem_singleton _)) : p ∈ _), eq_top_iff, ←h],
+  apply submodule.span_mono,
+  rintros v ⟨v', rfl⟩,
+  use (v' : V) +ᵥ p,
+  simp
+end
+
 end affine_space'
 
 namespace affine_subspace

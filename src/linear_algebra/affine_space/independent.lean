@@ -133,7 +133,7 @@ given a point `p1`, the vectors added to `p1` and `p1` itself are
 affinely independent. -/
 lemma linear_independent_set_iff_affine_independent_vadd_union_singleton {s : set V}
   (hs : ∀ v ∈ s, v ≠ (0 : V)) (p1 : P) : linear_independent k (λ v, v : s → V) ↔
-    affine_independent k (λ p, p : {p1} ∪ ((λ v, v +ᵥ p1) '' s) → P) :=
+  affine_independent k (λ p, p : {p1} ∪ ((λ v, v +ᵥ p1) '' s) → P) :=
 begin
   rw affine_independent_set_iff_linear_independent_vsub k
     (set.mem_union_left _ (set.mem_singleton p1)),

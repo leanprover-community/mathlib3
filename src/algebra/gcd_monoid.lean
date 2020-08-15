@@ -81,13 +81,11 @@ theorem associated_normalize {x : α} : associated x (normalize x) :=
 theorem normalize_associated {x : α} : associated (normalize x) x :=
 associated_normalize.symm
 
-@[simp] lemma normalize_zero : normalize (0 : α) = 0 :=
-by rw [normalize_apply, zero_mul]
+@[simp] lemma normalize_zero : normalize (0 : α) = 0 := by simp
 
 @[simp] lemma normalize_one : normalize (1 : α) = 1 := normalize.map_one
 
-lemma normalize_coe_units (u : units α) : normalize (u : α) = 1 :=
-by rw [normalize_apply, norm_unit_coe_units, ← units.coe_mul, mul_inv_self, units.coe_one]
+lemma normalize_coe_units (u : units α) : normalize (u : α) = 1 := by simp
 
 lemma normalize_eq_zero {x : α} : normalize x = 0 ↔ x = 0 :=
 ⟨λ hx, (associated_zero_iff_eq_zero x).1 $ hx ▸ associated_normalize, by rintro rfl; exact normalize_zero⟩
@@ -95,12 +93,11 @@ lemma normalize_eq_zero {x : α} : normalize x = 0 ↔ x = 0 :=
 lemma normalize_eq_one {x : α} : normalize x = 1 ↔ is_unit x :=
 ⟨λ hx, is_unit_iff_exists_inv.2 ⟨_, hx⟩, λ ⟨u, hu⟩, hu ▸ normalize_coe_units u⟩
 
-theorem norm_unit_mul_norm_unit (a : α) : norm_unit (a * norm_unit a) = 1 :=
+@[simp] theorem norm_unit_mul_norm_unit (a : α) : norm_unit (a * norm_unit a) = 1 :=
 classical.by_cases (assume : a = 0, by simp only [this, norm_unit_zero, zero_mul]) $
   assume h, by rw [norm_unit_mul h (units.ne_zero _), norm_unit_coe_units, mul_inv_eq_one]
 
-@[simp] theorem normalize_idem (x : α) : normalize (normalize x) = normalize x :=
-by rw [normalize_apply, normalize_apply, norm_unit_mul_norm_unit, units.coe_one, mul_one]
+theorem normalize_idem (x : α) : normalize (normalize x) = normalize x := by simp
 
 theorem normalize_eq_normalize {a b : α}
   (hab : a ∣ b) (hba : b ∣ a) : normalize a = normalize b :=

@@ -28,12 +28,12 @@ open_locale classical
 def pythagorean_triple (x y z : ℤ) : Prop := x * x + y * y = z * z
 
 /-- Pythagorean triples are interchangable, i.e `x * x + y * y = y * y + x * x = z * z`.
-This comes from additive commutativity -/
+This comes from additive commutativity. -/
 lemma pythagorean_triple_comm {x y z : ℤ} :
  (pythagorean_triple x y z) ↔ (pythagorean_triple y x z) :=
 by { delta pythagorean_triple, rw add_comm }
 
-/-- The zeroth Pythagorean triple is all zeros -/
+/-- The zeroth Pythagorean triple is all zeros. -/
 lemma pythagorean_triple.zero : pythagorean_triple 0 0 0 :=
 by simp only [pythagorean_triple, zero_mul, zero_add]
 
@@ -51,7 +51,7 @@ lemma symm :
 by rwa [pythagorean_triple_comm]
 
 /-- A triple is still a triple if you multiply `x`, `y` and `z`
-by a constant `k` -/
+by a constant `k`. -/
 lemma mul (k : ℤ) : pythagorean_triple (k * x) (k * y) (k * z) :=
 begin
   by_cases hk : k = 0,
@@ -65,7 +65,7 @@ end
 omit h
 
 /-- `(k*x, k*y, k*z)` is a Pythagorean triple if and only if
-`(x, y, z)` is also a triple  -/
+`(x, y, z)` is also a triple. -/
 lemma mul_iff (k : ℤ) (hk : k ≠ 0) :
   pythagorean_triple (k * x) (k * y) (k * z) ↔ pythagorean_triple x y z :=
 begin

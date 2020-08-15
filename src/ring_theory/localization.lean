@@ -1103,13 +1103,8 @@ begin
   split; intros h x; obtain ⟨p, hp, px⟩ := h x,
   { refine ⟨p.map f.to_map, λ h, hp (polynomial.ext (λ i, _)), _⟩,
   { have : f.to_map (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
-<<<<<<< HEAD
-    exact f.to_map_eq_zero_iff.mp this },
-  { rwa [is_algebra_tower.aeval_apply _ f.codomain, algebra_map_eq] at px } },
-=======
     exact f.to_map_eq_zero_iff.mpr this },
   { rwa [is_scalar_tower.aeval_apply _ f.codomain, algebra_map_eq] at px } },
->>>>>>> 8f75f96381240118c7db8c34ebbf73c24018586d
   { exact ⟨integer_normalization p,
            mt f.integer_normalization_eq_zero_iff.mp hp,
            integer_normalization_aeval_eq_zero p px⟩ },

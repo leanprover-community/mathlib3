@@ -93,7 +93,7 @@ instance : inhabited (monad_hom M M) := ⟨ident _⟩
 
 /-- The composition of two morphisms of monads. -/
 def comp (f : monad_hom M N) (g : monad_hom N L) : monad_hom M L :=
-{ app := λ X, (f.app X) ≫ (g.app X),
+{ app := λ X, f.app X ≫ g.app X,
   app_η' := λ X, by {rw ←assoc, simp [app_η']},
   app_μ' := λ X, by {rw ←assoc, simp [app_μ']} }
 
@@ -126,7 +126,7 @@ instance : inhabited (comonad_hom M M) := ⟨ident _⟩
 
 /-- The composition of two morphisms of comonads. -/
 def comp (f : comonad_hom M N) (g : comonad_hom N L) : comonad_hom M L :=
-{ app := λ X, (f.app X) ≫ (g.app X),
+{ app := λ X, f.app X ≫ g.app X,
   app_ε' := λ X, by {rw assoc, simp [app_ε']},
   app_δ' := λ X, by {rw assoc, simp [app_δ']} }
 

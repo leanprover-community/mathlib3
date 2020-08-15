@@ -10,6 +10,7 @@ import tactic.norm_num
 
 open roption
 
+/-- Type of natural numbers with infinity -/
 def enat : Type := roption ℕ
 
 namespace enat

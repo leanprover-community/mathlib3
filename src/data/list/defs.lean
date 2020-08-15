@@ -89,6 +89,7 @@ def to_array (l : list α) : array l.length α :=
 def modify_nth (f : α → α) : ℕ → list α → list α :=
 modify_nth_tail (modify_head f)
 
+/-- Insert `a` at the `n`th index in the list, provided the list has at least `n` elements -/
 def insert_nth (n : ℕ) (a : α) : list α → list α := modify_nth_tail (list.cons a) n
 
 section take'
@@ -452,6 +453,9 @@ def extractp (p : α → Prop) [decidable_pred p] : list α → option α × lis
 | (a::l) := if p a then (some a, l) else
   let (a', l') := extractp l in (a', a :: l')
 
+/--
+Zip a list to it's reverse, with the original list as the first element in the pairs.
+-/
 def revzip (l : list α) : list (α × α) := zip l l.reverse
 
 /-- `product l₁ l₂` is the list of pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂`.
@@ -470,6 +474,9 @@ def of_fn_aux {n} (f : fin n → α) : ∀ m, m ≤ n → list α → list α
 | 0        h l := l
 | (succ m) h l := of_fn_aux m (le_of_lt h) (f ⟨m, h⟩ :: l)
 
+/--
+Given a function `f` from `fin n` to `α`, generate the list `[f 0, f 1, ..., f (n - 1)]`
+-/
 def of_fn {n} (f : fin n → α) : list α :=
 of_fn_aux f n (le_refl _) []
 

@@ -10,6 +10,7 @@ open_locale big_operators
 
 namespace nat
 
+/-- Euler's totient function -/
 def totient (n : ℕ) : ℕ := ((range n).filter (nat.coprime n)).card
 
 localized "notation `φ` := nat.totient" in nat

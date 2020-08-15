@@ -275,7 +275,7 @@ else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff (polynomial R),
     leading_coeff_map, ← f.map_inv, ← map_C, ← map_mul,
     map_dvd_map _ f.injective (monic_mul_leading_coeff_inv H)]
 
-lemma degree_normalize : degree (normalize p) = degree p :=
+@[simp] lemma degree_normalize : degree (normalize p) = degree p :=
 if hp0 : p = 0 then by simp [hp0]
 else by rw [normalize_apply, degree_mul, degree_eq_zero_of_is_unit (is_unit_unit _), add_zero]
 

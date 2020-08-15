@@ -140,3 +140,126 @@ begin
 end
 
 end discrete_valuation_ring
+
+namespace discrete_valuation_ring
+
+variable (R : Type*)
+
+/-- Alternative characterisation of discrete valuation rings. -/
+def has_unit_mul_pow_irreducible_factorization [integral_domain R] : Prop :=
+∃ p : R, irreducible p ∧ ∀ {x : R}, x ≠ 0 → ∃ (n : ℕ), associated x (p ^ n)
+
+namespace has_unit_mul_pow_irreducible_factorization
+
+variables [integral_domain R] (hR : has_unit_mul_pow_irreducible_factorization R)
+include hR
+
+-- /-- Implementation detail: temporary valuation on `R` -/
+-- def val (x : R) : ℕ :=
+
+lemma unique_irreducible {p q : R} (hp : irreducible p) (hq : irreducible q) :
+  associated p q :=
+begin
+  rcases hR with ⟨ϖ, hϖ, hR⟩,
+  suffices : ∀ {p : R} (hp : irreducible p), associated p ϖ,
+  { apply associated.trans (this hp) (this hq).symm, },
+  clear hp hq p q,
+  intros p hp,
+  obtain ⟨n, hn⟩ := hR hp.ne_zero,
+  have : irreducible (ϖ ^ n) := irreducible_of_associated hn hp,
+  rcases lt_trichotomy n 1 with (H|rfl|H),
+  { obtain rfl : n = 0, { clear hn this, revert H n, exact dec_trivial },
+    simpa only [not_irreducible_one, pow_zero] using this, },
+  { simpa only [pow_one] using hn, },
+  { obtain ⟨n, rfl⟩ : ∃ k, n = 1 + k + 1 := nat.exists_eq_add_of_lt H,
+    rw pow_succ at this,
+    rcases this.2 _ _ rfl with H0|H0,
+    { exact (hϖ.not_unit H0).elim, },
+    {  } }
+  -- suffices : ϖ ∣ p,
+  -- { apply associated_of_dvd_dvd _ this,
+  --   apply dvd_symm_of_irreducible hϖ hp this, },
+  -- apply p_dvd_of_norm_lt_one,
+  -- suffices : ∥ϖ∥ ≠ 1, { exact lt_of_le_of_ne (ϖ.2) this, },
+  -- rw [ne.def, ← is_unit_iff],
+  -- exact h.not_unit
+end
+
+/-- Implementation detail: an integral domain in which-/
+noncomputable def UFD : unique_factorization_domain R :=
+let p := classical.some hR in
+let spec := classical.some_spec hR in
+{ factors := λ x, if h : x = 0 then 0 else multiset.repeat p (classical.some (spec.2 h)),
+  factors_prod := λ x hx,
+  begin
+    rw [dif_neg hx, multiset.prod_repeat],
+    exact (classical.some_spec (spec.2 hx)).symm,
+  end,
+  prime_factors := _ }
+
+/-
+{ factors := λ x, if h : x = 0 then {0}
+                               else multiset.repeat p (valuation x).nat_abs,
+  factors_prod := λ x hx,
+    ⟨unit_coeff hx, by rw [dif_neg hx, multiset.prod_repeat, mul_comm, ← unit_coeff_spec hx]⟩,
+  prime_factors :=
+  begin
+    intros x hx y hy,
+    rw [dif_neg hx] at hy,
+    obtain rfl := multiset.eq_of_mem_repeat hy,
+    exact prime_p
+  end }
+-/
+
+
+end has_unit_mul_pow_irreducible_factorization
+
+
+lemma aux_PID_of_UFD_of_unique_irreducible
+  (R : Type u) [integral_domain R] [unique_factorization_domain R]
+  (h₁ : ∃ p : R, irreducible p)
+  (h₂ : ∀ (p q : R), irreducible p → irreducible q → associated p q) :
+  is_principal_ideal_ring R :=
+begin
+  constructor,
+  intro I,
+  by_cases I0 : I = ⊥, { rw I0, use 0, simp only [set.singleton_zero, submodule.span_zero], },
+  obtain ⟨x, hxI, hx0⟩ : ∃ x ∈ I, x ≠ (0:R) := I.ne_bot_iff.mp I0,
+  let n := (unique_factorization_domain.factors x).card,
+  obtain ⟨p, hp⟩ := h₁,
+  have hn : p ^ n ∈ I,
+  { suffices : x ∣ p ^ n,
+    { rcases this with ⟨u, hu⟩, rw hu, apply I.mul_mem_right hxI, },
+    apply dvd_of_associated,
+    have H := unique_factorization_domain.factors_prod hx0,
+    rw ← associates.mk_eq_mk_iff_associated at H ⊢,
+    rw [← H, ← associates.prod_mk, associates.mk_pow, ← multiset.prod_repeat],
+    congr' 1,
+    sorry, },
+  have exn : ∃ n : ℕ, p ^ n ∈ I := ⟨n, hn⟩,
+
+end
+
+def of_UFD_of_unique_irreducible (R : Type u) [integral_domain R] [unique_factorization_domain R]
+  (h₁ : ∃ p : R, irreducible p)
+  (h₂ : ∀ p q : R, irreducible p → irreducible q → associated p q) :
+  discrete_valuation_ring R :=
+begin
+  rw iff_PID_with_one_nonzero_prime,
+  haveI PID : is_principal_ideal_ring R := aux_PID_of_UFD_of_unique_irreducible R h₁ h₂,
+  obtain ⟨p, hp⟩ := h₁,
+  refine ⟨PID, ⟨ideal.span {p}, ⟨_, _⟩, _⟩⟩,
+  { rw submodule.ne_bot_iff,
+    refine ⟨p, ideal.mem_span_singleton.mpr (dvd_refl p), hp.ne_zero⟩, },
+  { rwa [ideal.span_singleton_prime hp.ne_zero, ← irreducible_iff_prime], },
+  { intro I,
+    rw ← submodule.is_principal.span_singleton_generator I,
+    rintro ⟨I0, hI⟩,
+    apply span_singleton_eq_span_singleton.mpr,
+    apply h₂ _ _ _ hp,
+    erw [ne.def, span_singleton_eq_bot] at I0,
+    rwa [irreducible_iff_prime, ← ideal.span_singleton_prime I0], },
+end
+
+
+end discrete_valuation_ring

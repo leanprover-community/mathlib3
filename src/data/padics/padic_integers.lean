@@ -390,6 +390,35 @@ begin
     exact_mod_cast _inst_1.ne_zero }
 end
 
+-- move this
+lemma dvd_pow {M : Type*} [comm_monoid M] {x y : M} :
+  ∀ {n : ℕ} (hxy : x ∣ y) (hn : n ≠ 0), x ∣ y^n
+| 0     hxy hn := (hn rfl).elim
+| (n+1) hxy hn := by { rw [pow_succ], exact dvd_mul_of_dvd_left hxy _ }
+
+-- move this
+lemma p_dvd_of_norm_lt_one {x : ℤ_[p]} (hx : ∥x∥ < 1) : ↑p ∣ x :=
+begin
+  by_cases hx0 : x = 0, { simp only [hx0, dvd_zero] },
+  rw unit_coeff_spec hx0,
+  by_cases H : x.valuation.nat_abs = 0,
+  { rw [int.nat_abs_eq_zero] at H,
+    rw [norm_eq_pow_val hx0, H, neg_zero, fpow_zero] at hx,
+    exact (lt_irrefl _ hx).elim, },
+  { apply dvd_mul_of_dvd_right,
+    exact dvd_pow (dvd_refl _) H, }
+end
+
+lemma maximal_ideal_eq_span_p : local_ring.maximal_ideal ℤ_[p] = ideal.span {p} :=
+begin
+  apply le_antisymm,
+  { intros x hx,
+    rw ideal.mem_span_singleton,
+    simp only [local_ring.mem_maximal_ideal, mem_nonunits] at hx,
+    exact p_dvd_of_norm_lt_one hx, },
+  { rw [ideal.span_le, set.singleton_subset_iff, ← uniformizer_eq_p], exact uniformizer_nonunit }
+end
+
 instance : char_zero ℤ_[p] :=
 { cast_injective :=
   λ m n h, cast_injective $
@@ -397,11 +426,9 @@ instance : char_zero ℤ_[p] :=
 
 lemma prime_p : prime (p : ℤ_[p]) :=
 begin
-  have hpnz : p ≠ 0 := nat.prime.ne_zero ‹_›,
-  refine ⟨_, _, _⟩,
-  { simpa only [cast_eq_zero, ne.def] using hpnz, },
-  { rw ← uniformizer_eq_p, exact uniformizer_nonunit },
-  { intros a b h, sorry }
+  have hpnz : (p : ℤ_[p]) ≠ 0, { exact_mod_cast nat.prime.ne_zero ‹_› },
+  rw [← ideal.span_singleton_prime hpnz, ← maximal_ideal_eq_span_p],
+  apply_instance
 end
 
 lemma irreducible_p : irreducible (p : ℤ_[p]) :=
@@ -425,9 +452,10 @@ begin
   suffices : ↑p ∣ ϖ,
   { apply associated_of_dvd_dvd _ this,
     apply dvd_symm_of_irreducible irreducible_p h this },
-  rw unit_coeff_spec h.ne_zero,
-  apply dvd_mul_of_dvd_right,
-  sorry
+  apply p_dvd_of_norm_lt_one,
+  suffices : ∥ϖ∥ ≠ 1, { exact lt_of_le_of_ne (ϖ.2) this, },
+  rw [ne.def, ← is_unit_iff],
+  exact h.not_unit
 end
 
 lemma exists_pow_mem_ideal_of_ne_bot {I : ideal ℤ_[p]} (hI : I ≠ ⊥) :

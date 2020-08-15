@@ -503,10 +503,21 @@ mul_div_cancel' _ two_ne_zero'
 lemma two_cosh : 2 * cosh x = exp x + exp (-x) :=
 mul_div_cancel' _ two_ne_zero'
 
+/-- The real definition of `sinh`-/
+lemma sinh_def (x : ℝ) : sinh x = (exp x - exp (-x)) / 2 :=
+by simp only [sinh, complex.sinh, complex.div_re, complex.exp_of_real_re, complex.one_re,
+  bit0_zero, add_zero, complex.sub_re, euclidean_domain.zero_div, complex.bit0_re,
+  complex.one_im, complex.bit0_im, mul_zero, ← complex.of_real_neg, complex.norm_sq];
+  ring
+
 @[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
 
 @[simp] lemma sinh_neg : sinh (-x) = -sinh x :=
 by simp [sinh, exp_neg, (neg_div _ _).symm, add_mul]
+
+/-- `sinh` is strictly monotone-/
+lemma sinh_strict_mono : strict_mono sinh :=
+strict_mono_of_deriv_pos differentiable_sinh (by rw [real.deriv_sinh]; exact cosh_pos)
 
 private lemma sinh_add_aux {a b c d : ℂ} :
   (a - b) * (c + d) + (a + b) * (c - d) = 2 * (a * c - b * d) := by ring
@@ -521,10 +532,21 @@ begin
   exact sinh_add_aux
 end
 
+/-- The real definition of `cosh`-/
+lemma cosh_def (x : ℝ) : cosh x = (exp x + exp (-x)) / 2 :=
+by simp only [cosh, complex.cosh, complex.div_re, complex.exp_of_real_re, complex.one_re,
+  bit0_zero, add_zero, complex.add_re, euclidean_domain.zero_div, complex.bit0_re,
+  complex.one_im, complex.bit0_im, mul_zero, ← complex.of_real_neg, complex.norm_sq];
+  ring
+
 @[simp] lemma cosh_zero : cosh 0 = 1 := by simp [cosh]
 
 @[simp] lemma cosh_neg : cosh (-x) = cosh x :=
 by simp [add_comm, cosh, exp_neg]
+
+/-- `real.cosh` is positive-/
+lemma cosh_pos (x : ℝ) : 0 < real.cosh x :=
+(cosh_def x).symm ▸ half_pos (add_pos (exp_pos x) (exp_pos (-x)))
 
 private lemma cosh_add_aux {a b c d : ℂ} :
   (a + b) * (c + d) + (a - b) * (c - d) = 2 * (a * c + b * d) := by ring

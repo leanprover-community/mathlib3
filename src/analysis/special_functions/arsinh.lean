@@ -22,9 +22,6 @@ inverse, arsinh.
 - `sinm_injective`: The proof that `sinm` is injective
 - `sinm_surjective`: The proof that `sinm` is surjective
 - `sinm_bijective`: The proof `sinm` is bijective
-
-## Notation
-
 - `arsinh`: The inverse function of `sinm`
 
 ## Tags

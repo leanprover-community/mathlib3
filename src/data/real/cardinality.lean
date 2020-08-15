@@ -13,20 +13,20 @@ import data.set.intervals.image_preimage
 This file shows that the real numbers have cardinality continuum, i.e. `#ℝ = 2^ω`.
 
 We shows that `#ℝ ≤ 2^ω` by noting that every real number is determined by a Cauchy-sequence of the
-form `ℕ → ℚ`, which card cardinality `2^ω`. To show that `#ℝ ≥ 2^ω` we define an injection from
+form `ℕ → ℚ`, which has cardinality `2^ω`. To show that `#ℝ ≥ 2^ω` we define an injection from
 `{0, 1} ^ ℕ` to `ℝ` with `f ↦ Σ n, f n * (1 / 3) ^ n`.
 
 We conclude that all intervals with distinct endpoints have cardinality continuum.
 
 ## Main definitions
 
-* `cantor_function` is the function that sends `f` in `{0, 1} ^ ℕ` to `ℝ` by
+* `cardinal.cantor_function` is the function that sends `f` in `{0, 1} ^ ℕ` to `ℝ` by
   `f ↦ Σ' n, f n * (1 / 3) ^ n`
 
 ## Main statements
 
-* `mk_real : #ℝ = 2 ^ omega`: the reals have cardinality continuum.
-* `not_countable_real`: the universal set of real numbers is not countable. We can use this same
+* `cardinal.mk_real : #ℝ = 2 ^ omega`: the reals have cardinality continuum.
+* `cardinal.not_countable_real`: the universal set of real numbers is not countable. We can use this same
   proof to show that all the other sets in this file are not countable.
 * 8 lemmas of the form `mk_Ixy_real` for `x,y ∈ {i,o,c}` state that intervals on the reals
   have cardinality continuum.

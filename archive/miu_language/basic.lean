@@ -47,13 +47,18 @@ inductive data type `derivable` designed so that `derviable x` represents the no
 `x` can be derived from the axiom by the rules of inference. The axiom is represented as a
 nonrecursive constructor for `derivable`. This mirrors the translation of Peano's axiom '0 is a
 natural number' into the nonrecursive constructor `zero` of the inductive type `nat`.
+
+## Tags
+
+miu, derivable strings
+
 -/
 
 
 namespace miu
 
 /-!
-### Basic data types
+### Declarations and instance derivations for `miu_atom` and `miustr`
 -/
 
 /--
@@ -184,8 +189,6 @@ end
 /-!
 ### Derivability examples
 -/
-
-
 
 private lemma MIU_der : derivable "MIU":=
 begin

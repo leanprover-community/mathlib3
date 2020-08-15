@@ -38,13 +38,15 @@ of `U`s.
 Writing `d = count I w`, we see that this happens if and only if `(d-c)/3` is odd.
 In this case, we must apply Rule 1 to `z`, prior to removing triples of `I`s. We thereby
 introduce an additional `U` and ensure that the final number of `U`s will be even.
+
+## Tags
+
+miu, decision procedure, decidability, decidable_pred, decidable
 -/
 
 namespace miu
 
-open miu_atom
-open list
-open nat
+open miu_atom list nat
 
 /--
 We start by showing that an `miustr` `M::w` can be derived, where `w` consists only of `I`s and

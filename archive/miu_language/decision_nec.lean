@@ -8,17 +8,21 @@ import data.nat.modeq
 import tactic.ring
 
 /-!
-# Decision procedure - necessary condition
+# Decision procedure: necessary condition
 
 We introduce a condition `decstr` and show that if a string `en` is `derivable`, then `decstr en`
 holds.
 
 Using this, we give a negative answer to the question: is `"MU"` derivable?
+
+## Tags
+
+miu, decision procedure
 -/
 
 namespace miu
 
-open miu_atom
+open miu_atom nat list
 
 /-!
 ### Numerical condition on the `I` count
@@ -29,9 +33,6 @@ the `en : miustr` is derived from `st`, then `count I en` moudulo 3 is either eq
 `count I st`, modulo 3.
 -/
 
-
-open nat
-open list
 
 /--
 Given `st en : miustr`, the relation `count_equiv_or_equiv_two_mul_mod3 st en` holds if `st` and
@@ -49,14 +50,10 @@ example : count_equiv_or_equiv_two_mul_mod3 "IUIM" "MI" :=
 or.inr rfl
 
 
-
-open nat
-
-
 /--
 If `a` is 1 or 2 mod 3 and if `b` is `a` or twice `a` mod 3, then `b` is 1 or 2 mod 3.
 -/
-lemma inherit_mod3 {a b : ℕ} (h1 : a % 3 = 1 ∨ a % 3 = 2)
+lemma mod3_eq_1_or_mod3_eq_2 {a b : ℕ} (h1 : a % 3 = 1 ∨ a % 3 = 2)
   (h2 : b % 3 = a % 3 ∨  b % 3 = (2 * a % 3)) : b % 3 = 1 ∨ b % 3 = 2 :=
 begin
   cases h2,
@@ -65,7 +62,6 @@ begin
   { right, simpa [h2,mul_mod,h1], },
   left, simpa [h2,mul_mod,h1],
 end
-
 
 /--
 `count_equiv_one_or_two_mod3_of_derivable` shows any derivable string must have a `count I` that
@@ -77,7 +73,7 @@ begin
   intro h,
   induction h,
   { left, apply mod_def, },
-    any_goals {apply inherit_mod3 h_ih},
+    any_goals {apply mod3_eq_1_or_mod3_eq_2 h_ih},
   { left, simp only [count_append], refl, },
   { right, simp [count,count_append], ring, },
   { left, simp [count_append,count I,refl], ring, },
@@ -112,10 +108,9 @@ string to be derivable, namely that the string must start with an M and contain 
 def goodm (xs : miustr) : Prop :=
 list.head xs = M ∧ ¬(M ∈ list.tail xs)
 
-/-!
-Example usage
+/--
+Demonstration that `"MI"` starts with `M` and has no `M` in its tail.
 -/
-
 lemma goodmi : goodm [M,I] :=
 begin
   split,
@@ -128,7 +123,6 @@ We'll show, for each `i` from 1 to 4, that if `en` follows by Rule `i` from `st`
 `goodm st` holds, then so does `goodm en`.
 -/
 
-open list
 
 lemma tail_append_singleton_of_ne_nil {a : miu_atom} {as : miustr} (h₁ : as ≠ nil) :
   tail (as ++ [a]) = tail as ++ [a] :=

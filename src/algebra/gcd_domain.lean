@@ -34,6 +34,10 @@ attribute [simp] norm_unit_coe_units norm_unit_zero norm_unit_mul
 section normalization_domain
 variable [normalization_domain α]
 
+/-- `normalize a` returns a canonical elements of the equivalence class of associates of `a`,
+  given by the `normalization_domain` structure defined on `α`
+  As an example if `a` is an integer it would return the absolute value of `a`, and if 
+  `a` was a polynomial, it would return a monic polynomial. -/
 def normalize (x : α) : α :=
 x * norm_unit x
 
@@ -107,6 +111,8 @@ variable [normalization_domain α]
 
 local attribute [instance] associated.setoid
 
+/-- Given a `normalization_domain α`, `out b`
+  something to the unique normalized element `a` such that `associates.mk a = b`  -/
 protected def out : associates α → α :=
 quotient.lift (normalize : α → α) $ λ a b ⟨u, hu⟩, hu ▸
 normalize_eq_normalize ⟨_, rfl⟩ (units.mul_right_dvd.2 $ dvd_refl a)
@@ -619,6 +625,7 @@ lemma nat.prime_iff_prime_int {p : ℕ} : p.prime ↔ _root_.prime (p : ℤ) :=
       mt nat.is_unit_iff.1 $ λ h, by simpa [h, not_prime_one] using hp,
     λ a b, by simpa only [int.coe_nat_dvd, (int.coe_nat_mul _ _).symm] using hp.2.2 a b⟩⟩
 
+/-- The quotient of the integers by the `associates` relation is isomorphic to `ℕ` -/
 def associates_int_equiv_nat : associates ℤ ≃ ℕ :=
 begin
   refine ⟨λz, z.out.nat_abs, λn, associates.mk n, _, _⟩,

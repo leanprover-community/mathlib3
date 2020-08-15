@@ -18,6 +18,11 @@ variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D
 /--
 `F ⊣ G` represents the data of an adjunction between two functors
 `F : C ⥤ D` and `G : D ⥤ C`. `F` is the left adjoint and `G` is the right adjoint.
+
+To construct an `adjunction` between two functors, it's often easier to instead use the 
+constructors `mk_of_hom_equiv` or `mk_of_unit_counit`. To construct a left adjoint, 
+there are also constructors `left_adjoint_of_equiv` and `adjunction_of_equiv_left` (as
+well as their duals) which can be simpler in practice.
 -/
 structure adjunction (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv : Π (X Y), (F.obj X ⟶ Y) ≃ (X ⟶ G.obj Y))

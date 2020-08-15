@@ -8,7 +8,8 @@ import algebra.ring.basic
 universes u v
 variable {α : Type u}
 
-@[to_additive]
+/-- Add an extra element `1` to a type -/
+@[to_additive "Add an extra element `0` to a type"]
 def with_one (α) := option α
 
 namespace with_one
@@ -77,7 +78,9 @@ variables [semigroup α] {β : Type v} [monoid β]
 /-- Lift a semigroup homomorphism `f` to a bundled monoid homorphism.
 We have no bundled semigroup homomorphisms, so this function
 takes `∀ x y, f (x * y) = f x * f y` as an explicit argument. -/
-@[to_additive]
+@[to_additive "Lift a add_semigroup homomorphism `f` to a bundled add_monoid homorphism.
+  We have no bundled add_semigroup homomorphisms, so this function
+  takes `∀ x y, f (x + y) = f x + f y` as an explicit argument."]
 def lift (f : α → β) (hf : ∀ x y, f (x * y) = f x * f y) :
   (with_one α) →* β :=
 { to_fun := λ x, option.cases_on x 1 f,
@@ -105,7 +108,10 @@ section map
 
 variables {β : Type v} [semigroup α] [semigroup β]
 
-@[to_additive]
+/-- Given a multiplicative map from `α → β` returns a monoid homomorphism
+  from `with_one α` to `with_one β` -/
+@[to_additive "Given an additive map from `α → β` returns an add_monoid homomorphism
+  from `with_zero α` to `with_zero β`"]
 def map (f : α → β) (hf : ∀ x y, f (x * y) = f x * f y) :
   with_one α →* with_one β :=
 lift (coe ∘ f) (λ x y, coe_inj.2 $ hf x y)
@@ -163,6 +169,8 @@ instance [monoid α] : monoid_with_zero (with_zero α) :=
 instance [comm_monoid α] : comm_monoid_with_zero (with_zero α) :=
 { ..with_zero.monoid_with_zero, ..with_zero.comm_semigroup }
 
+/-- Given an inverse operation on `α` there is an inverse operation
+  on `with_zero α` sending `0` to `0`-/
 definition inv [has_inv α] (x : with_zero α) : with_zero α :=
 do a ← x, return a⁻¹
 
@@ -179,6 +187,7 @@ variables [group α]
 @[simp] lemma inv_one : (1 : with_zero α)⁻¹ = 1 :=
 show ((1⁻¹ : α) : with_zero α) = 1, by simp [coe_one]
 
+/-- A division operation on `with_zero α` when `α` has an inverse operation -/
 definition div (x y : with_zero α) : with_zero α :=
 x * y⁻¹
 

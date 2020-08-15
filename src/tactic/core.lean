@@ -10,6 +10,7 @@ import meta.rb_map
 import data.bool
 import tactic.lean_core_docs
 import tactic.interactive_expr
+import system.io
 
 universe variable u
 
@@ -253,6 +254,32 @@ do e ← tactic.get_env,
    let xs := e.fold native.mk_rb_map
      (λ d s, if environment.in_current_file' e d.to_name
              then s.insert d.to_name d else s),
+   pure xs
+
+/-- `get_decls_from` returns a dictionary mapping names to their
+corresponding declarations.  Covers all declarations the files listed
+in `fs`, with the current file listed as `none`.
+
+The path of the file names is expected to be relative to
+the root of the project (i.e. the location of `leanpkg.toml` when it
+is present); e.g. `"src/tactic/core.lean"`
+
+Possible issue: `get_decls_from` uses `get_cwd`, the current working
+directory, which may not always point at the root of the project.
+It would work better if it searched for the root directory or,
+better yet, if Lean exposed its path information.
+-/
+meta def get_decls_from (fs : list (option string)) : tactic (name_map declaration) :=
+do root ← unsafe_run_io $ io.env.get_cwd,
+   let fs := fs.map (option.map $ λ path, root ++ "/" ++ path),
+   err ← unsafe_run_io $ (fs.filter_map id).mfilter $ (<$>) bnot ∘ io.fs.file_exists,
+   guard (err = []) <|> fail format!"File not found: {err}",
+   e ← tactic.get_env,
+   let xs := e.fold native.mk_rb_map
+     (λ d s,
+       let source := e.decl_olean d.to_name in
+       if source ∈ fs ∧ (source = none → e.in_current_file' d.to_name)
+       then s.insert d.to_name d else s),
    pure xs
 
 /-- If `{nm}_{n}` doesn't exist in the environment, returns that, otherwise tries `{nm}_{n+1}` -/
@@ -1646,7 +1673,6 @@ add_tactic_doc
   tags                     := ["lemma derivation"] }
 
 attribute [higher_order map_comp_pure] map_pure
-
 
 /--
 Copies a definition into the `tactic.interactive` namespace to make it usable

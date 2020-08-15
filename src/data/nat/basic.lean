@@ -113,7 +113,7 @@ theorem le_mul_self : Π (n : ℕ), n ≤ n * n
 | 0     := le_refl _
 | (n+1) := let t := mul_le_mul_left (n+1) (succ_pos n) in by simp at t; exact t
 
-theorem eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : m > 0) (H : n * m = k * m) : n = k :=
+theorem eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m) : n = k :=
 by rw [mul_comm n m, mul_comm k m] at H; exact eq_of_mul_eq_mul_left Hm H
 
 theorem one_add (n : ℕ) : 1 + n = succ n := by simp [add_comm]
@@ -719,6 +719,8 @@ end
 lemma sub_mod_eq_zero_of_mod_eq {a b c : ℕ} (h : a % c = b % c) : (a - b) % c = 0 :=
 by rw [←nat.mod_add_div a c, ←nat.mod_add_div b c, ←h, ←nat.sub_sub, nat.add_sub_cancel_left,
        ←nat.mul_sub_left_distrib, nat.mul_mod_right]
+
+@[simp] lemma one_mod (n : ℕ) : 1 % (n + 2) = 1 := nat.mod_eq_of_lt (add_lt_add_right n.succ_pos 1)
 
 lemma dvd_sub_mod (k : ℕ) : n ∣ (k - (k % n)) :=
 ⟨k / n, nat.sub_eq_of_eq_add (nat.mod_add_div k n).symm⟩

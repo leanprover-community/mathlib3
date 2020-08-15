@@ -434,13 +434,11 @@ by simpa [re_add_im] using abs_add z.re (z.im * I)
 
 lemma abs_re_div_abs_le_one (z : ℂ) : abs' (z.re / z.abs) ≤ 1 :=
 if hz : z = 0 then by simp [hz, zero_le_one]
-else by rw [_root_.abs_div, abs_abs]; exact
-  div_le_of_le_mul (abs_pos.2 hz) (by rw mul_one; exact abs_re_le_abs _)
+else by { simp_rw [_root_.abs_div, abs_abs, div_le_iff (abs_pos.2 hz), one_mul, abs_re_le_abs] }
 
 lemma abs_im_div_abs_le_one (z : ℂ) : abs' (z.im / z.abs) ≤ 1 :=
 if hz : z = 0 then by simp [hz, zero_le_one]
-else by rw [_root_.abs_div, abs_abs]; exact
-  div_le_of_le_mul (abs_pos.2 hz) (by rw mul_one; exact abs_im_le_abs _)
+else by { simp_rw [_root_.abs_div, abs_abs, div_le_iff (abs_pos.2 hz), one_mul, abs_im_le_abs] }
 
 @[simp, norm_cast] lemma abs_cast_nat (n : ℕ) : abs (n : ℂ) = n :=
 by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]

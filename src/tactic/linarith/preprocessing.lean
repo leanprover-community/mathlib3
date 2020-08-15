@@ -266,12 +266,12 @@ meta def remove_ne_aux : list expr → tactic (list branch) :=
 λ hs,
 (do e ← hs.mfind (λ e : expr, do e ← infer_type e, guard $ e.is_ne.is_some),
     [(_, ng1), (_, ng2)] ← to_expr ``(or.elim (lt_or_gt_of_ne %%e)) >>= apply,
-     let do_goal : expr → tactic (list branch) := λ g,
-       do set_goals [g],
-          h ← intro1,
-          ls ← remove_ne_aux $ hs.remove_all [e],
-          return $ ls.map (λ b : branch, (b.1, h::b.2)) in
-      (++) <$> do_goal ng1 <*> do_goal ng2)
+    let do_goal : expr → tactic (list branch) := λ g,
+      do set_goals [g],
+         h ← intro1,
+         ls ← remove_ne_aux $ hs.remove_all [e],
+         return $ ls.map (λ b : branch, (b.1, h::b.2)) in
+    (++) <$> do_goal ng1 <*> do_goal ng2)
 <|> do g ← get_goal, return [(g, hs)]
 
 /--

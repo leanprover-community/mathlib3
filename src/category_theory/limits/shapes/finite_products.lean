@@ -30,6 +30,10 @@ instance has_limits_of_shape_discrete
   has_limits_of_shape (discrete J) C :=
 ‹has_finite_products C› J
 
+@[priority 10]
+instance [has_finite_limits C] : has_finite_products C :=
+λ J 𝒥₁ 𝒥₂, by exactI infer_instance
+
 /--
 If a category has all products then in particular it has finite products.
 -/
@@ -49,6 +53,10 @@ instance has_colimits_of_shape_discrete
   (J : Type v) [decidable_eq J] [fintype J] [has_finite_coproducts C] :
   has_colimits_of_shape (discrete J) C :=
 ‹has_finite_coproducts C› J
+
+@[priority 10]
+instance [has_finite_colimits C] : has_finite_coproducts C :=
+λ J 𝒥₁ 𝒥₂, by exactI infer_instance
 
 /--
 If a category has all coproducts then in particular it has finite coproducts.

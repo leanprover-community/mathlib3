@@ -52,6 +52,10 @@ instance has_limits_of_shape_of_has_finite_limits
   has_limits_of_shape J C :=
 ‹has_finite_limits C› J
 
+@[priority 10]
+instance has_finite_limits_of_has_limits [has_limits C] : has_finite_limits C :=
+λ J 𝒥₁ 𝒥₂, infer_instance
+
 def has_finite_colimits : Type (max (v+1) u) :=
 Π (J : Type v) [𝒥 : small_category J] [@fin_category J 𝒥], @has_colimits_of_shape J 𝒥 C _
 
@@ -62,6 +66,10 @@ instance has_colimits_of_shape_of_has_finite_colimits
   (J : Type v) [small_category J] [fin_category J] [has_finite_colimits C] :
   has_colimits_of_shape J C :=
 ‹has_finite_colimits C› J
+
+@[priority 10]
+instance has_finite_colimits_of_has_colimits [has_colimits C] : has_finite_colimits C :=
+λ J 𝒥₁ 𝒥₂, infer_instance
 
 section
 

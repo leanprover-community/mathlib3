@@ -610,7 +610,7 @@ theorem decidable.not_forall {p : α → Prop} [decidable (∃ x, ¬ p x)] [∀ 
 ⟨not.decidable_imp_symm $ λ nx x, nx.decidable_imp_symm $ λ h, ⟨x, h⟩,
  not_forall_of_exists_not⟩
 
-theorem not_forall {p : α → Prop} : (¬ ∀ x, p x) ↔ ∃ x, ¬ p x := decidable.not_forall
+@[simp] theorem not_forall {p : α → Prop} : (¬ ∀ x, p x) ↔ ∃ x, ¬ p x := decidable.not_forall
 
 theorem decidable.not_forall_not [decidable (∃ x, p x)] :
   (¬ ∀ x, ¬ p x) ↔ ∃ x, p x :=
@@ -621,7 +621,7 @@ theorem not_forall_not : (¬ ∀ x, ¬ p x) ↔ ∃ x, p x := decidable.not_fora
 theorem decidable.not_exists_not [∀ x, decidable (p x)] : (¬ ∃ x, ¬ p x) ↔ ∀ x, p x :=
 by simp [decidable.not_not]
 
-theorem not_exists_not : (¬ ∃ x, ¬ p x) ↔ ∀ x, p x := decidable.not_exists_not
+@[simp] theorem not_exists_not : (¬ ∃ x, ¬ p x) ↔ ∀ x, p x := decidable.not_exists_not
 
 @[simp] theorem forall_true_iff : (α → true) ↔ true :=
 iff_true_intro (λ _, trivial)

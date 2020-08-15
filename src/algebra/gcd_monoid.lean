@@ -668,9 +668,11 @@ section unique_unit
 instance nat.unique_units : unique (units ℕ) :=
 { default := 1, uniq := nat.units_eq_one }
 
-variables [comm_cancel_monoid_with_zero α] [nontrivial α] [unique (units α)]
+variables [comm_cancel_monoid_with_zero α] [unique (units α)]
 
 lemma units_eq_one (u : units α) : u = 1 := subsingleton.elim u 1
+
+variable [nontrivial α]
 
 section prio
 set_option default_priority 100 -- see Note [default priority]

@@ -719,10 +719,20 @@ begin
   { exact λ a x i hi, ⟨i, smul_mem _ a hi⟩ },
 end
 
-lemma mem_supr_of_mem {ι : Sort*} {b : M} (p : ι → submodule R M) (i : ι) (h : b ∈ p i) :
+lemma mem_sup_left {S T : submodule R M} : ∀ {x : M}, x ∈ S → x ∈ S ⊔ T :=
+show S ≤ S ⊔ T, from le_sup_left
+
+lemma mem_sup_right {S T : submodule R M} : ∀ {x : M}, x ∈ T → x ∈ S ⊔ T :=
+show T ≤ S ⊔ T, from le_sup_right
+
+lemma mem_supr_of_mem {ι : Sort*} {b : M} {p : ι → submodule R M} (i : ι) (h : b ∈ p i) :
   b ∈ (⨆i, p i) :=
 have p i ≤ (⨆i, p i) := le_supr p i,
 @this b h
+
+lemma mem_Sup_of_mem {S : set (submodule R M)} {s : submodule R M}
+  (hs : s ∈ S) : ∀ {x : M}, x ∈ s → x ∈ Sup S :=
+show s ≤ Sup S, from le_Sup hs
 
 @[simp] theorem mem_supr_of_directed {ι} [nonempty ι]
   (S : ι → submodule R M) (H : directed (≤) S) {x} :
@@ -829,7 +839,7 @@ lemma supr_eq_span {ι : Sort w} (p : ι → submodule R M) :
   (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
 le_antisymm
   (supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
-  (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem _ i hm)
+  (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem i hm)
 
 lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) :
   span R {m} ≤ p ↔ m ∈ p :=
@@ -2349,7 +2359,7 @@ begin
     assume hiI,
     rw [std_basis_same],
     exact hb _ ((hu trivial).resolve_left hiI) },
-  exact sum_mem _ (assume i hiI, mem_supr_of_mem _ i $ mem_supr_of_mem _ hiI $
+  exact sum_mem _ (assume i hiI, mem_supr_of_mem i $ mem_supr_of_mem hiI $
     (std_basis R φ i).mem_range_self (b i))
 end
 

@@ -13,20 +13,12 @@ import tactic
 /-!
 # Complex dot product
 
-In a future refactor, the same facts about the real inner product and complex
-inner product should live in this file, assuming we can rip them out of basic.lean without too much trouble.
-
-We give methods for computing coefficients of the characteristic polynomial.
+In a future refactor, the same facts about the real inner product and complex inner product
+should live in this file, assuming we can rip them out of basic.lean without too much trouble.
 
 ## Main definitions
 
-- `char_poly_degree_eq_dim` proves that the degree of the characteristic polynomial
-  over a nonzero ring is the dimension of the matrix
-- `det_eq_sign_char_poly_coeff` proves that the determinant is the constant term of the characteristic
-  polynomial, up to sign.
-- `trace_eq_neg_char_poly_coeff` proves that the trace is the negative of the (d-1)th coefficient of the
-  characteristic polynomial, where d is the dimension of the matrix.
-  For a nonzero ring, this is the second-highest coefficient.
+-
 
 -/
 noncomputable theory
@@ -67,10 +59,19 @@ lemma complex_dot_product_smul {v w : Euc} {c : ℂ} :
   (c * complex_dot_product v w) = complex_dot_product (c • v) w :=
 by {ext; simp}
 
+-- want a simpe lemma that commutes complex.conj past sum
+
+@[simp]
+lemma complex.conj_sum {α : Type*} (s : finset α) (f : α → ℂ) :
+  complex.conj (∑ i in s, f i) = ∑ i in s, complex.conj (f i)  :=
+begin
+sorry
+end
+
 lemma complex_dot_product_symm {v w : Euc} :
   (complex_dot_product v w) = (complex_dot_product w v).conj :=
 begin
-  sorry,
+  simp [complex_dot_product, matrix.dot_product];  simp_rw mul_comm,
 end
 
 @[simp]

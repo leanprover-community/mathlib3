@@ -23,9 +23,11 @@ We then show that if `c` is a limit cone, the constructed cone is also a limit c
 In the second part, we state the Fubini theorem in the setting where we have chosen limits
 provided by suitable `has_limit` classes.
 
-We construct `fubini F : limit (uncurry.obj F) ≅ limit (F ⋙ lim)`,
+We construct
+`limit_uncurry_iso_limit_comp_lim F : limit (uncurry.obj F) ≅ limit (F ⋙ lim)`
 and give simp lemmas characterising it.
-For convenience, we also provide `fubini' G : limit G ≅ limit ((curry.obj G) ⋙ lim)`,
+For convenience, we also provide
+`limit_iso_limit_curry_comp_lim G : limit G ≅ limit ((curry.obj G) ⋙ lim)`
 in terms of the uncurried functor.
 -/
 
@@ -189,16 +191,19 @@ begin
 end
 
 @[simp]
-lemma fubini_hom_π_π {j} {k} : (fubini F).hom ≫ limit.π _ j ≫ limit.π _ k = limit.π _ (j, k) :=
+lemma limit_uncurry_iso_limit_comp_lim_hom_π_π {j} {k} :
+  (limit_uncurry_iso_limit_comp_lim F).hom ≫ limit.π _ j ≫ limit.π _ k = limit.π _ (j, k) :=
 begin
-  dsimp [fubini, is_limit.cone_point_unique_up_to_iso, is_limit.unique_up_to_iso],
+  dsimp [limit_uncurry_iso_limit_comp_lim, is_limit.cone_point_unique_up_to_iso,
+    is_limit.unique_up_to_iso],
   simp,
 end
 
 @[simp]
-lemma fubini_inv_π {j} {k} : (fubini F).inv ≫ limit.π _ (j, k) = limit.π _ j ≫ limit.π _ k :=
+lemma limit_uncurry_iso_limit_comp_lim_inv_π {j} {k} :
+  (limit_uncurry_iso_limit_comp_lim F).inv ≫ limit.π _ (j, k) = limit.π _ j ≫ limit.π _ k :=
 begin
-  rw [←cancel_epi (fubini F).hom],
+  rw [←cancel_epi (limit_uncurry_iso_limit_comp_lim F).hom],
   simp,
 end
 end
@@ -221,20 +226,23 @@ begin
     has_limit_of_iso i,
   transitivity limit (uncurry.obj ((@curry J _ K _ C _).obj G)),
   apply has_limit.iso_of_nat_iso i,
-  exact fubini ((@curry J _ K _ C _).obj G),
+  exact limit_uncurry_iso_limit_comp_lim ((@curry J _ K _ C _).obj G),
 end
 
 @[simp]
-lemma fubini'_hom_π_π {j} {k} : (fubini' G).hom ≫ limit.π _ j ≫ limit.π _ k = limit.π _ (j, k) :=
+lemma limit_iso_limit_curry_comp_lim_hom_π_π {j} {k} :
+  (limit_iso_limit_curry_comp_lim G).hom ≫ limit.π _ j ≫ limit.π _ k = limit.π _ (j, k) :=
 begin
-  dsimp [fubini', is_limit.cone_point_unique_up_to_iso, is_limit.unique_up_to_iso],
+  dsimp [limit_iso_limit_curry_comp_lim, is_limit.cone_point_unique_up_to_iso,
+    is_limit.unique_up_to_iso],
   simp, dsimp, simp, -- See note [dsimp, simp].
 end
 
 @[simp]
-lemma fubini'_inv_π {j} {k} : (fubini' G).inv ≫ limit.π _ (j, k) = limit.π _ j ≫ limit.π _ k :=
+lemma limit_iso_limit_curry_comp_lim_inv_π {j} {k} :
+  (limit_iso_limit_curry_comp_lim G).inv ≫ limit.π _ (j, k) = limit.π _ j ≫ limit.π _ k :=
 begin
-  rw [←cancel_epi (fubini' G).hom],
+  rw [←cancel_epi (limit_iso_limit_curry_comp_lim G).hom],
   simp,
 end
 

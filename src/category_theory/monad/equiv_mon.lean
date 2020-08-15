@@ -90,13 +90,12 @@ def Mon_to_Monad : Mon_ (C ⥤ C) ⥤ Monad C :=
     ..f.hom } }
 variable {C}
 
-
 @[simp]
-theorem of_to_mon_end_obj (M : Mon_ (C ⥤ C)) : (Mon_to_Monad C ⋙ Monad_to_Mon C).obj M = M :=
+theorem of_to_mon_end_obj (M : Mon_ (C ⥤ C)) : (of_Mon M).to_Mon = M :=
 by {apply Mon_.hext, repeat {refl}}
 
 @[simp]
-theorem to_of_mon_end_obj (M : Monad C) : (Monad_to_Mon C ⋙ Mon_to_Monad C).obj M = M :=
+theorem to_of_mon_end_obj (M : Monad C) : of_Mon M.to_Mon = M :=
 by {apply Monad.hext, repeat {refl}}
 
 /-- Isomorphism of functors used in `Monad_Mon_equiv` -/

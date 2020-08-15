@@ -169,7 +169,7 @@ variables {α : Type*} [discrete_linear_ordered_field α]
   {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv] {f : ℕ → β}
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem cauchy₂ (hf : is_cau_seq abv f) {ε : α} (ε0 : ε > 0) :
+theorem cauchy₂ (hf : is_cau_seq abv f) {ε : α} (ε0 : 0 < ε) :
   ∃ i, ∀ j k ≥ i, abv (f j - f k) < ε :=
 begin
   refine (hf _ (half_pos ε0)).imp (λ i hi j k ij ik, _),
@@ -179,7 +179,7 @@ begin
 end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem cauchy₃ (hf : is_cau_seq abv f) {ε : α} (ε0 : ε > 0) :
+theorem cauchy₃ (hf : is_cau_seq abv f) {ε : α} (ε0 : 0 < ε) :
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - f j) < ε :=
 let ⟨i, H⟩ := hf.cauchy₂ ε0 in ⟨i, λ j ij k jk, H _ _ (le_trans ij jk) ij⟩
 
@@ -209,7 +209,7 @@ theorem is_cau (f : cau_seq β abv) : is_cau_seq abv f := f.2
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem cauchy (f : cau_seq β abv) :
-  ∀ {ε}, ε > 0 → ∃ i, ∀ j ≥ i, abv (f j - f i) < ε := f.2
+  ∀ {ε}, 0 < ε → ∃ i, ∀ j ≥ i, abv (f j - f i) < ε := f.2
 
 /-- Given a Cauchy sequence `f`, create a Cauchy sequence from a sequence `g` with
 the same values as `f`. -/
@@ -219,11 +219,11 @@ def of_eq (f : cau_seq β abv) (g : ℕ → β) (e : ∀ i, f i = g i) : cau_seq
 variable [is_absolute_value abv]
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem cauchy₂ (f : cau_seq β abv) {ε} : ε > 0 →
+theorem cauchy₂ (f : cau_seq β abv) {ε} : 0 < ε →
   ∃ i, ∀ j k ≥ i, abv (f j - f k) < ε := f.2.cauchy₂
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem cauchy₃ (f : cau_seq β abv) {ε} : ε > 0 →
+theorem cauchy₃ (f : cau_seq β abv) {ε} : 0 < ε →
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - f j) < ε := f.2.cauchy₃
 
 theorem bounded (f : cau_seq β abv) : ∃ r, ∀ i, abv (f i) < r :=
@@ -424,7 +424,7 @@ have hg' : ¬ lim_zero g, by simpa using (show ¬ lim_zero (g - 0), from hg),
 begin
   rcases abv_pos_of_not_lim_zero hf' with ⟨a1, ha1, N1, hN1⟩,
   rcases abv_pos_of_not_lim_zero hg' with ⟨a2, ha2, N2, hN2⟩,
-  have : a1 * a2 > 0, from mul_pos ha1 ha2,
+  have : 0 < a1 * a2, from mul_pos ha1 ha2,
   cases hlz _ this with N hN,
   let i := max N (max N1 N2),
   have hN' := hN i (le_max_left _ _),
@@ -456,12 +456,12 @@ variables {β : Type*} [integral_domain β] (abv : β → α) [is_absolute_value
 
 lemma one_not_equiv_zero : ¬ (const abv 1) ≈ (const abv 0) :=
 assume h,
-have ∀ ε > 0, ∃ i, ∀ k, k ≥ i → abv (1 - 0) < ε, from h,
+have ∀ ε > 0, ∃ i, ∀ k, i ≤ k → abv (1 - 0) < ε, from h,
 have h1 : abv 1 ≤ 0, from le_of_not_gt $
-  assume h2 : abv 1 > 0,
+  assume h2 : 0 < abv 1,
   exists.elim (this _ h2) $ λ i hi,
     lt_irrefl (abv 1) $ by simpa using hi _ (le_refl _),
-have h2 : abv 1 ≥ 0, from is_absolute_value.abv_nonneg _ _,
+have h2 : 0 ≤ abv 1, from is_absolute_value.abv_nonneg _ _,
 have abv 1 = 0, from le_antisymm h1 h2,
 have (1 : β) = 0, from (is_absolute_value.abv_eq_zero abv).1 this,
 absurd this one_ne_zero

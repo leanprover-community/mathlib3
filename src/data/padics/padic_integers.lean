@@ -344,10 +344,6 @@ begin
   rw [← fpow_coe_nat, int.nat_abs_of_nonneg (valuation_nonneg x)],
 end
 
-lemma exists_repr {x : ℤ_[p]} (hx : x ≠ 0) :
-  ∃ (u : units ℤ_[p]) (n : ℕ), x = u*p^n :=
-⟨unit_coeff hx, int.nat_abs (valuation x), unit_coeff_spec hx⟩
-
 instance : local_ring ℤ_[p] :=
 local_of_nonunits_ideal zero_ne_one $ λ x y, by simp; exact norm_lt_one_add
 
@@ -371,31 +367,6 @@ def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
   map_mul' := coe_mul,
   map_add' := coe_add }
 
-/-- `uniformizer : ℤ_[p]` is `p` considered as a p-adic integer;
- the canonical uniformizer of `ℤ_[p]`. -/
-def uniformizer : ℤ_[p] :=
-⟨p, le_of_lt padic_norm_e.norm_p_lt_one⟩
-
-lemma uniformizer_eq_p : (uniformizer : ℤ_[p]) = p := subtype.ext $ by simp [uniformizer]
-
-lemma uniformizer_nonunit : uniformizer ∈ nonunits ℤ_[p] :=
-by simp [uniformizer, -cast_eq_of_rat_of_nat, -padic_norm_e.norm_p, padic_norm_e.norm_p_lt_one]
-
-lemma norm_uniformizer : ∥(uniformizer : ℤ_[p])∥ = 1 / p :=
-by simp [uniformizer, -cast_eq_of_rat_of_nat, padic_norm_e.norm_p]
-
-instance : algebra ℤ_[p] ℚ_[p] := (coe.ring_hom : ℤ_[p] →+* ℚ_[p]).to_algebra
-
-lemma not_a_field : local_ring.maximal_ideal ℤ_[p] ≠ ⊥ :=
-begin
-  refine (submodule.ne_bot_iff _).mpr ⟨uniformizer, _, _⟩,
-  { exact uniformizer_nonunit },
-  { rw [ne.def, ← norm_eq_zero, norm_uniformizer],
-    apply one_div_ne_zero,
-    exact_mod_cast nat.prime.ne_zero ‹_› }
-end
-
--- move this
 lemma p_dvd_of_norm_lt_one {x : ℤ_[p]} (hx : ∥x∥ < 1) : ↑p ∣ x :=
 begin
   by_cases hx0 : x = 0, { simp only [hx0, dvd_zero] },
@@ -408,6 +379,10 @@ begin
     exact dvd_pow (dvd_refl _) H, }
 end
 
+lemma p_nonnunit : (p : ℤ_[p]) ∈ nonunits ℤ_[p] :=
+have (p : ℝ)⁻¹ < 1, from inv_lt_one $ by exact_mod_cast nat.prime.one_lt ‹_›,
+by simp [this]
+
 lemma maximal_ideal_eq_span_p : local_ring.maximal_ideal ℤ_[p] = ideal.span {p} :=
 begin
   apply le_antisymm,
@@ -415,15 +390,14 @@ begin
     rw ideal.mem_span_singleton,
     simp only [local_ring.mem_maximal_ideal, mem_nonunits] at hx,
     exact p_dvd_of_norm_lt_one hx, },
-  { rw [ideal.span_le, set.singleton_subset_iff, ← uniformizer_eq_p], exact uniformizer_nonunit }
+  { rw [ideal.span_le, set.singleton_subset_iff], exact p_nonnunit }
 end
-
 
 lemma prime_p : prime (p : ℤ_[p]) :=
 begin
-  have hpnz : (p : ℤ_[p]) ≠ 0, { exact_mod_cast nat.prime.ne_zero ‹_› },
-  rw [← ideal.span_singleton_prime hpnz, ← maximal_ideal_eq_span_p],
-  apply_instance
+  rw [← ideal.span_singleton_prime, ← maximal_ideal_eq_span_p],
+  { apply_instance },
+  { exact_mod_cast nat.prime.ne_zero ‹_› }
 end
 
 lemma irreducible_p : irreducible (p : ℤ_[p]) :=
@@ -433,87 +407,6 @@ instance : discrete_valuation_ring ℤ_[p] :=
 discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization
 ⟨p, irreducible_p, λ x hx, ⟨x.valuation.nat_abs, unit_coeff hx,
   by rw [mul_comm, ← unit_coeff_spec hx]⟩⟩
-
--- instance : unique_factorization_domain ℤ_[p] :=
--- { factors := λ x, if h : x = 0 then {0}
---                                else multiset.repeat p (valuation x).nat_abs,
---   factors_prod := λ x hx,
---     ⟨unit_coeff hx, by rw [dif_neg hx, multiset.prod_repeat, mul_comm, ← unit_coeff_spec hx]⟩,
---   prime_factors :=
---   begin
---     intros x hx y hy,
---     rw [dif_neg hx] at hy,
---     obtain rfl := multiset.eq_of_mem_repeat hy,
---     exact prime_p
---   end }
-
--- lemma associated_of_irreducible (ϖ : ℤ_[p]) (h : irreducible ϖ) : associated ϖ p :=
--- begin
---   suffices : ↑p ∣ ϖ,
---   { apply associated_of_dvd_dvd _ this,
---     apply dvd_symm_of_irreducible irreducible_p h this },
---   apply p_dvd_of_norm_lt_one,
---   suffices : ∥ϖ∥ ≠ 1, { exact lt_of_le_of_ne (ϖ.2) this, },
---   rw [ne.def, ← is_unit_iff],
---   exact h.not_unit
--- end
-
--- lemma exists_pow_mem_ideal_of_ne_bot {I : ideal ℤ_[p]} (hI : I ≠ ⊥) :
---   ∃ n : ℕ, (p ^ n : ℤ_[p]) ∈ I :=
--- begin
---   obtain ⟨x, hxI, hxnz⟩ : ∃ x : ℤ_[p], x ∈ I ∧ x ≠ 0,
---   { rw [ne.def, submodule.eq_bot_iff] at hI, push_neg at hI, exact hI },
---   refine ⟨x.valuation.nat_abs, _⟩,
---   rw unit_coeff_spec hxnz at hxI,
---   have : (↑(unit_coeff hxnz)⁻¹ : ℤ_[p]) * ((unit_coeff hxnz) * p ^ x.valuation.nat_abs) ∈ I :=
---     I.mul_mem_left hxI,
---   rwa [← mul_assoc, units.inv_mul, one_mul] at this,
--- end
-
--- lemma ideal_is_principal (s : ideal ℤ_[p]) : s.is_principal :=
--- begin
---   constructor,
---   by_cases h_bot : s = ⊥,
---   { subst h_bot,
---     use 0,
---     simp },
---   { have h_bot' := h_bot,
---     rw submodule.eq_bot_iff at h_bot,
---     push_neg at h_bot,
---     rcases h_bot with ⟨z, hzs, hznz⟩,
---     have exists_n : ∃ n : ℕ, ∃ z, ∃ u : units ℤ_[p], z ∈ s ∧ z = ↑u * ↑p ^ n,
---       from ⟨_, z, unit_coeff hznz, hzs, unit_coeff_spec hznz⟩,
---     let min_n := nat.find exists_n,
---     obtain ⟨min_z, u, minz_s, minz_spec⟩ : ∃ (z : ℤ_[p]) (u : units ℤ_[p]), z ∈ s ∧ z = ↑u * ↑p ^ min_n :=
---       nat.find_spec exists_n,
---     have uinv_min_z : ↑u⁻¹ * min_z = p ^ min_n,
---     { symmetry,
---       rw [units.eq_inv_mul_iff_mul_eq, minz_spec] },
---     have uinv_min_z_s : ↑u⁻¹ * min_z ∈ s, from ideal.mul_mem_left _ minz_s,
---     rw uinv_min_z at uinv_min_z_s,
---     have span_sub_s : submodule.span ℤ_[p] {↑p ^ min_n} ≤ s,
---     { exact (submodule.span_singleton_le_iff_mem _ _).mpr uinv_min_z_s, },
---     have s_sub_span : s ≤ submodule.span ℤ_[p] {↑p ^ min_n},
---     { intros y hy,
---       have exists_n_spec := @nat.find_min' _ _ exists_n,
---       dsimp at exists_n_spec,
---       by_cases hyz : y = 0,
---       { simp [hyz] },
---       { have min_n_y : min_n ≤ repr_exp hyz := @exists_n_spec (repr_exp hyz) ⟨y, unit_coeff hyz, hy, unit_coeff_spec hyz⟩,
---         rw unit_coeff_spec hyz,
---         apply ideal.mul_mem_left _ _,
---         have : repr_exp hyz = (repr_exp hyz - min_n) + min_n, {omega},
---         rw [this, _root_.pow_add],
---         apply ideal.mul_mem_left _ (submodule.mem_span_singleton_self _) } },
---     use p ^ min_n,
---     apply le_antisymm; assumption }
-
--- end
-
--- instance : discrete_valuation_ring ℤ_[p] :=
--- { principal := ideal_is_principal,
---   not_a_field' := not_a_field,
---   .. padic_int.local_ring }
 
 end padic_int
 

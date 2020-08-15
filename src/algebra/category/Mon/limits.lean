@@ -129,6 +129,10 @@ instance has_limits : has_limits Mon :=
     { cone     := limit_cone F,
       is_limit := limit_cone_is_limit F } } }
 
+@[to_additive]
+def limit_iso_Mon_of_limit_forget (F : J ⥤ Mon) : limit F ≅ Mon.of (limit (F ⋙ forget Mon)) :=
+sorry
+
 /--
 The forgetful functor from monoids to types preserves all limits. (That is, the underlying
 types could have been computed instead as limits in the category of types.)
@@ -154,8 +158,26 @@ by { change comm_monoid (F.obj j), apply_instance }
 @[to_additive AddCommMon.limit_add_comm_monoid]
 instance limit_comm_monoid (F : J ⥤ CommMon) :
   comm_monoid (limit (F ⋙ forget CommMon)) :=
-@submonoid.to_comm_monoid (Π j, F.obj j) _
-  (Mon.sections_submonoid (F ⋙ forget₂ CommMon Mon))
+begin
+  haveI : comm_monoid ((F ⋙ forget CommMon).sections) :=
+    @submonoid.to_comm_monoid (Π j, F.obj j) _
+      (Mon.sections_submonoid (F ⋙ forget₂ CommMon Mon)),
+  transport using (types.limit_equiv_sections (F ⋙ forget CommMon)).symm,
+end
+
+@[simps, to_additive]
+def lifted_cone (F : J ⥤ CommMon) : cone F :=
+{ X := CommMon.of (limit (F ⋙ forget CommMon)),
+  π :=
+  { app := Mon.limit_π_monoid_hom (F ⋙ forget₂ CommMon Mon),
+    naturality' := (Mon.has_limits.limit_cone (F ⋙ forget₂ _ _)).π.naturality, } }
+
+@[to_additive]
+def is_limit_forget₂_map_cone_lifted_cone (F : J ⥤ CommMon) :
+  is_limit ((forget₂ CommMon Mon).map_cone (lifted_cone F)) :=
+{ lift := λ s, limit.lift (F ⋙ forget₂ CommMon Mon) s ≫ (Mon.limit_iso_Mon_of_limit_forget _).hom,
+  fac' := sorry,
+  uniq' := sorry, }
 
 /--
 We show that the forgetful functor `CommMon ⥤ Mon` creates limits.
@@ -166,13 +188,9 @@ and then reuse the existing limit.
 @[to_additive AddCommMon.creates_limit]
 instance (F : J ⥤ CommMon) : creates_limit F (forget₂ CommMon Mon) :=
 creates_limit_of_reflects_iso (λ c' t,
-{ lifted_cone :=
-  { X := CommMon.of (limit (F ⋙ forget CommMon)),
-    π :=
-    { app := Mon.limit_π_monoid_hom (F ⋙ forget₂ CommMon Mon),
-      naturality' := (Mon.has_limits.limit (F ⋙ forget₂ _ _)).π.naturality, } },
-  valid_lift := is_limit.unique_up_to_iso (limit.is_limit _) t,
-  makes_limit := is_limit.of_faithful (forget₂ CommMon Mon) (limit.is_limit _)
+{ lifted_cone := lifted_cone F,
+  valid_lift := is_limit.unique_up_to_iso (is_limit_forget₂_map_cone_lifted_cone F) t,
+  makes_limit := is_limit.of_faithful (forget₂ CommMon Mon) (is_limit_forget₂_map_cone_lifted_cone F)
     (λ s, _) (λ s, rfl) })
 
 /-- The category of commutative monoids has all limits. -/
@@ -196,9 +214,7 @@ types could have been computed instead as limits in the category of types.)
 -/
 @[to_additive AddCommMon.forget_preserves_limits]
 instance forget_preserves_limits : preserves_limits (forget CommMon) :=
-{ preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F,
-    by exactI preserves_limit_of_preserves_limit_cone
-      (limit.is_limit F) (limit.is_limit (F ⋙ forget _)) } }
+{ preserves_limits_of_shape := λ J 𝒥, by exactI
+  { preserves_limit := λ F, limits.comp_preserves_limit (forget₂ CommMon Mon) (forget Mon) } }
 
 end CommMon

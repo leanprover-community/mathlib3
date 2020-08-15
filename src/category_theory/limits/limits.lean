@@ -737,6 +737,9 @@ def limit (F : J ⥤ C) [has_limit F] := (limit.cone F).X
 def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F.obj j :=
 (limit.cone F).π.app j
 
+@[simp] lemma limit.cone_X {F : J ⥤ C} [has_limit F] (j : J) :
+  (limit.cone F).X = limit F := rfl
+
 @[simp] lemma limit.cone_π {F : J ⥤ C} [has_limit F] (j : J) :
   (limit.cone F).π.app j = limit.π _ j := rfl
 
@@ -1098,6 +1101,9 @@ def colimit.ι (F : J ⥤ C) [has_colimit F] (j : J) : F.obj j ⟶ colimit F :=
 
 @[simp] lemma colimit.cocone_ι {F : J ⥤ C} [has_colimit F] (j : J) :
   (colimit.cocone F).ι.app j = colimit.ι _ j := rfl
+
+@[simp] lemma colimit.cocone_X {F : J ⥤ C} [has_colimit F] (j : J) :
+  (colimit.cocone F).X = colimit F := rfl
 
 @[simp] lemma colimit.w (F : J ⥤ C) [has_colimit F] {j j' : J} (f : j ⟶ j') :
   F.map f ≫ colimit.ι F j' = colimit.ι F j := (colimit.cocone F).w f

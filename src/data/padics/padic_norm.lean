@@ -515,7 +515,7 @@ end
 /--
 An alternate version of `padic_norm.padic_norm_p_lt_one` that assumes `p` is prime.
 -/
-@[simp] lemma padic_norm_p_lt_one_of_prime (p : ℕ) [fact p.prime] : padic_norm p p < 1 :=
+lemma padic_norm_p_lt_one_of_prime (p : ℕ) [fact p.prime] : padic_norm p p < 1 :=
 padic_norm_p_lt_one $ nat.prime.one_lt ‹_›
 
 /--

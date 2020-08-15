@@ -579,7 +579,7 @@ begin
   induction x,
   exact neg_neg.symm
 end
-@[simp] lemma move_left_right_moves_neg_symm {x : pgame} (i : right_moves x) :
+@[simp] lemma move_left_left_moves_neg_symm {x : pgame} (i : right_moves x) :
   move_left (-x) ((left_moves_neg x).symm i) = -(move_right x i) :=
 by { cases x, refl }
 @[simp] lemma move_left_right_moves_neg {x : pgame} (i : right_moves (-x)) :
@@ -588,7 +588,7 @@ begin
   induction x,
   exact neg_neg.symm
 end
-@[simp] lemma move_right_left_moves_neg_symm {x : pgame} (i : left_moves x) :
+@[simp] lemma move_right_right_moves_neg_symm {x : pgame} (i : left_moves x) :
   move_right (-x) ((right_moves_neg x).symm i) = -(move_left x i) :=
 by { cases x, refl }
 

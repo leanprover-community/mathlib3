@@ -411,6 +411,7 @@ lcm_dvd_lcm (dvd_refl _) (dvd_mul_right _ _)
 
 end lcm
 
+namespace gcd_monoid
 theorem prime_of_irreducible {x : α} (hi: irreducible x) : prime x :=
 begin
   split, apply hi.ne_zero, --unfold irreducible at hi,
@@ -425,9 +426,10 @@ begin
     transitivity, {apply dvd_of_associated, symmetry, use u}, apply gcd_dvd_right, }
 end
 
-theorem gcd_monoid.irreducible_iff_prime {p : α} : irreducible p ↔ prime p :=
+theorem irreducible_iff_prime {p : α} : irreducible p ↔ prime p :=
 ⟨prime_of_irreducible, irreducible_of_prime⟩
 
+end gcd_monoid
 end gcd_monoid
 
 namespace int

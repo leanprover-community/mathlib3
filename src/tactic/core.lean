@@ -1162,17 +1162,17 @@ meta def mk_local_pis_whnf (e : expr) (md := semireducible) : tactic (list expr 
   (ps, r) ← mk_local_pis (expr.instantiate_var b p),
   return ((p :: ps), r)
 
-meta def mk_else_default (u : level) (α inh p : expr) :
+meta def mk_sometimes (u : level) (α nonemp p : expr) :
   list expr → expr × expr → tactic (expr × expr)
 | [] (val, spec) := pure (val, spec)
 | (e :: ctxt) (val, spec) := do
-  (val, spec) ← mk_else_default ctxt (val, spec),
+  (val, spec) ← mk_sometimes ctxt (val, spec),
   t ← infer_type e,
   b ← is_prop t,
   pure $ if b then
     let val' := expr.bind_lambda val e in
-    (expr.const ``function.else_default [level.zero, u] t α inh val',
-     expr.const ``function.else_default_spec [u] t α inh p val' e spec)
+    (expr.const ``function.sometimes [level.zero, u] t α nonemp val',
+     expr.const ``function.sometimes_spec [u] t α nonemp p val' e spec)
   else (val, spec)
 
 /-- Changes `(h : ∀xs, ∃a:α, p a) ⊢ g` to `(d : ∀xs, a) (s : ∀xs, p (d xs)) ⊢ g` and
@@ -1190,16 +1190,16 @@ meta def choose1 (nondep : bool) (h : expr) (data : name) (spec : name) : tactic
   | `(@Exists %%α %%p) := do
     α_t ← infer_type α,
     expr.sort u ← whnf α_t transparency.all,
-    (ctxt', inh) ← (do
+    (ctxt', nonemp) ← (do
         guard nondep,
-        inh ← mk_instance (expr.const ``inhabited [u] α),
+        nonemp ← mk_instance (expr.const ``nonempty [u] α),
         ctxt' ← ctxt.mfilter (λ e, bnot <$> is_proof e),
-        pure (ctxt', some inh)) <|>
+        pure (ctxt', some nonemp)) <|>
       pure (ctxt, none),
     value ← mk_local_def data (α.pis ctxt'),
     t' ← head_beta (p.app (value.mk_app ctxt')),
     spec ← mk_local_def spec (t'.pis ctxt),
-    (value_proof, spec_proof) ← inh.elim pure (λ inh, mk_else_default u α inh p ctxt)
+    (value_proof, spec_proof) ← nonemp.elim pure (λ nonemp, mk_sometimes u α nonemp p ctxt)
       (expr.const ``classical.some [u] α p (h.mk_app ctxt),
        expr.const ``classical.some_spec [u] α p (h.mk_app ctxt)),
     dependent_pose_core [(value, value_proof.lambdas ctxt'), (spec, spec_proof.lambdas ctxt)],

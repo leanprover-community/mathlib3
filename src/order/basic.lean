@@ -409,19 +409,19 @@ lemma eq_of_le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a�
 le_antisymm (le_of_forall_le_of_dense h₂) h₁
 
 lemma le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
-  (h : ∀a₃<a₁, a₂ ≥ a₃) :
+  (h : ∀a₃<a₁, a₃ ≤ a₂) :
   a₁ ≤ a₂ :=
 le_of_not_gt $ assume ha,
   let ⟨a, ha₁, ha₂⟩ := dense ha in
   lt_irrefl a $ lt_of_le_of_lt (h _ ‹a < a₁›) ‹a₂ < a›
 
 lemma eq_of_le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
-  (h₁ : a₂ ≤ a₁) (h₂ : ∀a₃<a₁, a₂ ≥ a₃) : a₁ = a₂ :=
+  (h₁ : a₂ ≤ a₁) (h₂ : ∀a₃<a₁, a₃ ≤ a₂) : a₁ = a₂ :=
 le_antisymm (le_of_forall_ge_of_dense h₂) h₁
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma dense_or_discrete [linear_order α] (a₁ a₂ : α) :
-  (∃a, a₁ < a ∧ a < a₂) ∨ ((∀a>a₁, a ≥ a₂) ∧ (∀a<a₂, a ≤ a₁)) :=
+  (∃a, a₁ < a ∧ a < a₂) ∨ ((∀a>a₁, a₂ ≤ a) ∧ (∀a<a₂, a ≤ a₁)) :=
 or_iff_not_imp_left.2 $ assume h,
   ⟨assume a ha₁, le_of_not_gt $ assume ha₂, h ⟨a, ha₁, ha₂⟩,
     assume a ha₂, le_of_not_gt $ assume ha₁, h ⟨a, ha₁, ha₂⟩⟩

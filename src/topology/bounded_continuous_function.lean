@@ -335,7 +335,7 @@ lemma equicontinuous_of_continuity_modulus {α : Type u} [metric_space α]
   (b : ℝ → ℝ) (b_lim : tendsto b (𝓝 0) (𝓝 0))
   (A : set (α →ᵇ β))
   (H : ∀(x y:α) (f : α →ᵇ β), f ∈ A → dist (f x) (f y) ≤ b (dist x y))
-  (x:α) (ε : ℝ) (ε0 : ε > 0) : ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
+  (x:α) (ε : ℝ) (ε0 : 0 < ε) : ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε :=
 begin
   rcases tendsto_nhds_nhds.1 b_lim ε ε0 with ⟨δ, δ0, hδ⟩,

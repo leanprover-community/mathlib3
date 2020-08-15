@@ -28,7 +28,7 @@ open sum
 | (inl _) := tt
 | (inr _) := ff
 
-/-- Check if a sum is `inl`. -/
+/-- Check if a sum is `inr`. -/
 @[simp] def sum.is_right {α β} : α ⊕ β → bool
 | (inl _) := ff
 | (inr _) := tt

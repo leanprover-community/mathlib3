@@ -214,7 +214,7 @@ assume hp : p = 1,
 have ( 1 : α) = 0, by simpa using (cast_eq_zero_iff α p 1).mpr (hp ▸ dvd_refl p),
 absurd this one_ne_zero
 
-theorem char_is_prime_of_ge_two (p : ℕ) [hc : char_p α p] (hp : p ≥ 2) : nat.prime p :=
+theorem char_is_prime_of_two_le (p : ℕ) [hc : char_p α p] (hp : 2 ≤ p) : nat.prime p :=
 suffices ∀d ∣ p, d = 1 ∨ d = p, from ⟨hp, this⟩,
 assume (d : ℕ) (hdvd : ∃ e, p = d * e),
 let ⟨e, hmul⟩ := hdvd in
@@ -236,7 +236,7 @@ theorem char_is_prime_or_zero (p : ℕ) [hc : char_p α p] : nat.prime p ∨ p =
 match p, hc with
 | 0,     _  := or.inr rfl
 | 1,     hc := absurd (eq.refl (1 : ℕ)) (@char_ne_one α _ (1 : ℕ) hc)
-| (m+2), hc := or.inl (@char_is_prime_of_ge_two α _ (m+2) hc (nat.le_add_left 2 m))
+| (m+2), hc := or.inl (@char_is_prime_of_two_le α _ (m+2) hc (nat.le_add_left 2 m))
 end
 
 lemma char_is_prime_of_pos (p : ℕ) [h : fact (0 < p)] [char_p α p] : fact p.prime :=

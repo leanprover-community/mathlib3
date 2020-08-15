@@ -13,7 +13,7 @@ import data.int.gcd
 
 /-!
 
-# Monoids with Normalization Functions, GCD, and LCM
+# Monoids with normalization functions, `gcd`, and `lcm`
 
 This file defines extra structures on `comm_cancel_monoid_with_zero`s, including `integral_domain`s.
 
@@ -31,6 +31,13 @@ definition as currently implemented does casework on `0`.
 * `gcd_monoid` extends `normalization_monoid`, so the `gcd` and `lcm` are always normalized.
 This makes `gcd`s of polynomials easier to work with, but excludes Euclidean domains, and monoids
 without zero.
+
+## TODO
+
+* Provide a GCD monoid instance for `ℕ`, port GCD facts about nats, definition of coprime
+* Generalize normalization monoids to commutative (cancellative) monoids with or without zero
+* Generalize GCD monoid to not require normalization in all cases
+
 
 ## Tags
 
@@ -162,10 +169,11 @@ end associates
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
-/-- GCD monoid: an `comm_cancel_monoid_with_zero` with normalization and `gcd` (greatest common divisor) and
-`lcm` (least common multiple) operations. In this setting `gcd` and `lcm` form a bounded lattice on
-the associated elements where `gcd` is the infimum, `lcm` is the supremum, `1` is bottom, and
-`0` is top. The type class focuses on `gcd` and we derive the correpsonding `lcm` facts from `gcd`.
+/-- GCD monoid: a `comm_cancel_monoid_with_zero` with normalization and `gcd`
+(greatest common divisor) and `lcm` (least common multiple) operations. In this setting `gcd` and
+`lcm` form a bounded lattice on the associated elements where `gcd` is the infimum, `lcm` is the
+supremum, `1` is bottom, and `0` is top. The type class focuses on `gcd` and we derive the
+corresponding `lcm` facts from `gcd`.
 -/
 @[protect_proj] class gcd_monoid (α : Type*) [comm_cancel_monoid_with_zero α] [nontrivial α]
   extends normalization_monoid α :=

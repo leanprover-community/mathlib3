@@ -190,6 +190,35 @@ end
 
 end embedding
 
+end padic_seq
+
+section
+open padic_seq
+
+private meta def index_simp_core (hh hf hg : expr)
+  (at_ : interactive.loc := interactive.loc.ns [none]) : tactic unit :=
+do [v1, v2, v3] ← [hh, hf, hg].mmap
+     (λ n, tactic.mk_app ``stationary_point [n] <|> return n),
+   e1 ← tactic.mk_app ``lift_index_left_left [hh, v2, v3] <|> return `(true),
+   e2 ← tactic.mk_app ``lift_index_left [hf, v1, v3] <|> return `(true),
+   e3 ← tactic.mk_app ``lift_index_right [hg, v1, v2] <|> return `(true),
+   sl ← [e1, e2, e3].mfoldl (λ s e, simp_lemmas.add s e) simp_lemmas.mk,
+   when at_.include_goal (tactic.simp_target sl),
+   hs ← at_.get_locals, hs.mmap' (tactic.simp_hyp sl [])
+
+/--
+  This is a special-purpose tactic that lifts padic_norm (f (stationary_point f)) to
+  padic_norm (f (max _ _ _)).
+-/
+meta def tactic.interactive.padic_index_simp (l : interactive.parse interactive.types.pexpr_list)
+  (at_ : interactive.parse interactive.types.location) : tactic unit :=
+do [h, f, g] ← l.mmap tactic.i_to_expr,
+   index_simp_core h f g at_
+end
+
+namespace padic_seq
+
+
 section valuation
 open cau_seq
 variables {p : ℕ} [fact p.prime]
@@ -224,35 +253,20 @@ begin
   { exact_mod_cast nat.prime.ne_one ‹_› },
 end
 
-end valuation
-
-end padic_seq
-
-section
-open padic_seq
-
-private meta def index_simp_core (hh hf hg : expr)
-  (at_ : interactive.loc := interactive.loc.ns [none]) : tactic unit :=
-do [v1, v2, v3] ← [hh, hf, hg].mmap
-     (λ n, tactic.mk_app ``stationary_point [n] <|> return n),
-   e1 ← tactic.mk_app ``lift_index_left_left [hh, v2, v3] <|> return `(true),
-   e2 ← tactic.mk_app ``lift_index_left [hf, v1, v3] <|> return `(true),
-   e3 ← tactic.mk_app ``lift_index_right [hg, v1, v2] <|> return `(true),
-   sl ← [e1, e2, e3].mfoldl (λ s e, simp_lemmas.add s e) simp_lemmas.mk,
-   when at_.include_goal (tactic.simp_target sl),
-   hs ← at_.get_locals, hs.mmap' (tactic.simp_hyp sl [])
-
-/--
-  This is a special-purpose tactic that lifts padic_norm (f (stationary_point f)) to
-  padic_norm (f (max _ _ _)).
--/
-meta def tactic.interactive.padic_index_simp (l : interactive.parse interactive.types.pexpr_list)
-  (at_ : interactive.parse interactive.types.location) : tactic unit :=
-do [h, f, g] ← l.mmap tactic.i_to_expr,
-   index_simp_core h f g at_
+/- lemma val_mul {f g : padic_seq p} (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0) :
+  valuation (f * g) = valuation f + valuation g :=
+begin
+  unfold valuation,
+  have := mul_not_equiv_zero hf hg,
+  split_ifs,
+  { contradiction },
+  { padic_index_simp [this, hf, hg] }
 end
 
-namespace padic_seq
+#check padic_val_rat.mul -/
+
+end valuation
+
 section embedding
 
 open cau_seq

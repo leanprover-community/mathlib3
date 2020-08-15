@@ -16,7 +16,7 @@ algebra equivalences `alg_equiv`, and `subalgebra`s. We also define usual operat
 
 If `S` is an `R`-algebra and `A` is an `S`-algebra then `algebra.comap.algebra R S A` can be used
 to provide `A` with a structure of an `R`-algebra. Other than that, `algebra.comap` is now
-deprecated and replcaed with `is_scalar_tower`.
+deprecated and replcaed with `is_algebra_tower`.
 
 ## Notations
 
@@ -577,7 +577,7 @@ include R S A
 /-- `comap R S A` is a type alias for `A`, and has an R-algebra structure defined on it
   when `algebra R S` and `algebra S A`. If `S` is an `R`-algebra and `A` is an `S`-algebra then
   `algebra.comap.algebra R S A` can be used to provide `A` with a structure of an `R`-algebra.
-  Other than that, `algebra.comap` is now deprecated and replcaed with `is_scalar_tower`. -/
+  Other than that, `algebra.comap` is now deprecated and replcaed with `is_algebra_tower`. -/
 /- This is done to avoid a type class search with meta-variables `algebra R ?m_1` and
     `algebra ?m_1 A -/
 /- The `nolint` attribute is added because it has unused arguments `R` and `S`, but these are necessary for synthesizing the

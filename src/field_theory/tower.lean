@@ -37,7 +37,7 @@ open cardinal
 
 variables (F : Type u) (K : Type v) (A : Type w)
 variables [field F] [field K] [ring A]
-variables [algebra F K] [algebra K A] [algebra F A] [is_scalar_tower F K A]
+variables [algebra F K] [algebra K A] [algebra F A] [is_algebra_tower F K A]
 
 /-- Tower law: if `A` is a `K`-algebra and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
@@ -54,7 +54,7 @@ by rw [← (vector_space.dim F K).lift_id, ← hb.mk_eq_dim,
 /-- Tower law: if `A` is a `K`-algebra and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
 theorem dim_mul_dim (F : Type u) (K A : Type v) [field F] [field K] [ring A]
-  [algebra F K] [algebra K A] [algebra F A] [is_scalar_tower F K A] :
+  [algebra F K] [algebra K A] [algebra F A] [is_algebra_tower F K A] :
   vector_space.dim F K * vector_space.dim K A = vector_space.dim F A :=
 by convert dim_mul_dim' F K A; rw lift_id
 

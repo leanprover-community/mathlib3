@@ -92,7 +92,7 @@ end field
 namespace algebra
 variables {K : Type*} {L : Type*} {A : Type*}
 variables [field K] [field L] [comm_ring A]
-variables [algebra K L] [algebra L A] [algebra K A] [is_scalar_tower K L A]
+variables [algebra K L] [algebra L A] [algebra K A] [is_algebra_tower K L A]
 
 /-- If L is an algebraic field extension of K and A is an algebraic algebra over L,
 then A is algebraic over K. -/

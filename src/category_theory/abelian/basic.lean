@@ -91,7 +91,7 @@ variables {C : Type u} [category.{v} C]
 variables (C)
 
 section prio
-set_option default_priority 200
+set_option default_priority 100
 
 /--
 A (preadditive) category `C` is called abelian if it has all finite products,

@@ -6,8 +6,6 @@ Authors: Johan Commelin
 
 import data.mv_polynomial
 import data.fintype.card
-import tactic
-#print tactic.interactive.squeeze_simp
 
 /-!
 # Homogeneous polynomials

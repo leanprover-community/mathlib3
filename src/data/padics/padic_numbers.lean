@@ -190,11 +190,16 @@ end
 
 end embedding
 
-
 section valuation
 open cau_seq
 variables {p : ℕ} [fact p.prime]
 
+/-! ### Valuation on `padic_seq` -/
+
+/--
+The `p`-adic valuation on `ℚ` lifts to `padic_seq p`.
+`valuation f` is defined to be the valuation of the (`ℚ`-valued) stationary point of `f`.
+-/
 def valuation (f : padic_seq p) : ℤ :=
 if hf : f ≈ 0 then 0 else padic_val_rat p (f (stationary_point hf))
 
@@ -957,7 +962,6 @@ begin
     apply quotient.sound,
     simpa using hf, }
 end
-
 
 @[simp] lemma valuation_p : valuation (p : ℚ_[p]) = 1 :=
 begin

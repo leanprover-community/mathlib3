@@ -7,15 +7,22 @@ import data.polynomial.ring_division
 import linear_algebra.dimension
 import algebra.polynomial.big_operators
 
-open finset
+/-!
+# Linear recurrence
 
-open_locale big_operators
+
+-/
 
 noncomputable theory
+open finset
+open_locale big_operators
 
 /-- A "linear recurrence relation" over a commutative semiring is given by its
   order `n` and `n` coefficients. -/
 structure linear_recurrence (α : Type*) [comm_semiring α] := (order : ℕ) (coeffs : fin order → α)
+
+instance truc (α : Type*) [comm_semiring α] : inhabited (linear_recurrence α) :=
+⟨⟨0, default _⟩⟩
 
 namespace linear_recurrence
 

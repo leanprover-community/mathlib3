@@ -11,7 +11,7 @@ import ring_theory.adjoin
 
 We set up the basic theory of algebra towers.
 An algebra tower A/S/R is expressed by having instances of `algebra A S`,
-`algebra R S`, `algebra R A` and `is_scalar_tower R S A`, which has the
+`algebra R S`, `algebra R A` and `is_scalar_tower R S A`, the later asserting the
 compatibility condition `(r • s) • a = r • (s • a)`.
 
 In `field_theory/tower.lean` we use this to prove the tower law for finite extensions,

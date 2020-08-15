@@ -133,7 +133,9 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
     let e_str := (expr.const str raw_levels).mk_app args,
     automatic_projs ← attribute.get_instances `notation_class,
     raw_exprs ← automatic_projs.mfoldl (λ (raw_exprs : list expr) class_nm, (do
+      -- trace class_nm,
       (is_class, proj_nm) ← notation_class_attr.get_param class_nm,
+      -- trace!"{(is_class, proj_nm)}",
       proj_nm ← proj_nm <|> (e.structure_fields_full class_nm).map list.head,
       (raw_expr, lambda_raw_expr) ← if is_class then (do
         guard $ args.length = 1,
@@ -150,6 +152,9 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
         return (raw_expr, raw_expr.lambdas args)),
       raw_expr_whnf ← whnf raw_expr.binding_body,
       let relevant_proj := raw_expr_whnf.get_app_fn.const_name,
+      -- let b1 : bool := ¬ e.contains (str ++ `simps ++ relevant_proj.last),
+      -- let b2 : bool := projs.any (= relevant_proj),
+      when_tracing `simps.verbose trace!"        > using function {proj_nm} instead of the default projection {relevant_proj.last}.",
       /- use this as projection, if the function reduces to a projection, and this projection has
         not been overrriden by the user. -/
       guard (projs.any (= relevant_proj) ∧ ¬ e.contains (str ++ `simps ++ relevant_proj.last)),

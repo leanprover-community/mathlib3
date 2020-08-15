@@ -8,7 +8,7 @@ import category_theory.products.basic
 import category_theory.currying
 
 /-!
-# A Fubini theorem for limits
+# A Fubini theorem for categorical limits
 
 We prove that $lim_{J × K} G = lim_J (lim_K G(j, -))$ for a functor `G : J × K ⥤ C`,
 when all the appropriate limits exist.

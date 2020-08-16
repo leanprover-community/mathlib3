@@ -781,24 +781,10 @@ begin
   rcases h with h|⟨rfl, h⟩, exact add_is_limit a h, simpa only [add_zero]
 end
 
-/-- Divisibility is defined by right multiplication:
-  `a ∣ b` if there exists `c` such that `b = a * c`. -/
-instance : has_dvd ordinal := ⟨λ a b, ∃ c, b = a * c⟩
-
-theorem dvd_def {a b : ordinal} : a ∣ b ↔ ∃ c, b = a * c := iff.rfl
-
-theorem dvd_mul (a b : ordinal) : a ∣ a * b := ⟨_, rfl⟩
-
-theorem dvd_trans : ∀ {a b c : ordinal}, a ∣ b → b ∣ c → a ∣ c
-| a _ _ ⟨b, rfl⟩ ⟨c, rfl⟩ := ⟨b * c, mul_assoc _ _ _⟩
-
-theorem dvd_mul_of_dvd {a b : ordinal} (c) (h : a ∣ b) : a ∣ b * c :=
-dvd_trans h (dvd_mul _ _)
-
 theorem dvd_add_iff : ∀ {a b c : ordinal}, a ∣ b → (a ∣ b + c ↔ a ∣ c)
 | a _ c ⟨b, rfl⟩ :=
  ⟨λ ⟨d, e⟩, ⟨d - b, by rw [mul_sub, ← e, add_sub_cancel]⟩,
-  λ ⟨d, e⟩, by rw [e, ← mul_add]; apply dvd_mul⟩
+  λ ⟨d, e⟩, by { rw [e, ← mul_add], apply dvd_mul_right }⟩
 
 theorem dvd_add {a b c : ordinal} (h₁ : a ∣ b) : a ∣ c → a ∣ b + c :=
 (dvd_add_iff h₁).2
@@ -881,7 +867,7 @@ lemma sup_succ {ι} (f : ι → ordinal) : sup (λ i, succ (f i)) ≤ succ (sup 
 by { rw [ordinal.sup_le], intro i, rw ordinal.succ_le_succ, apply ordinal.le_sup }
 
 lemma unbounded_range_of_sup_ge {α β : Type u} (r : α → α → Prop) [is_well_order α r] (f : β → α)
-  (h : sup.{u u} (typein r ∘ f) ≥ type r) : unbounded r (range f) :=
+  (h : type r ≤ sup.{u u} (typein r ∘ f)) : unbounded r (range f) :=
 begin
   apply (not_bounded_iff _).mp, rintro ⟨x, hx⟩, apply not_lt_of_ge h,
   refine lt_of_le_of_lt _ (typein_lt_type r x), rw [sup_le], intro y,
@@ -1093,7 +1079,7 @@ end
 
 theorem power_dvd_power (a) {b c : ordinal}
   (h : b ≤ c) : a ^ b ∣ a ^ c :=
-by rw [← add_sub_cancel_of_le h, power_add]; apply dvd_mul
+by { rw [← add_sub_cancel_of_le h, power_add], apply dvd_mul_right }
 
 theorem power_dvd_power_iff {a b c : ordinal}
   (a1 : 1 < a) : a ^ b ∣ a ^ c ↔ b ≤ c :=
@@ -1512,7 +1498,7 @@ by rwa [← add_omega_power h₁, add_lt_add_iff_left]
 theorem add_absorp {a b c : ordinal} (h₁ : a < omega ^ b) (h₂ : omega ^ b ≤ c) : a + c = c :=
 by rw [← add_sub_cancel_of_le h₂, ← add_assoc, add_omega_power h₁]
 
-theorem add_absorp_iff {o : ordinal} (o0 : o > 0) : (∀ a < o, a + o = o) ↔ ∃ a, o = omega ^ a :=
+theorem add_absorp_iff {o : ordinal} (o0 : 0 < o) : (∀ a < o, a + o = o) ↔ ∃ a, o = omega ^ a :=
 ⟨λ H, ⟨log omega o, begin
   refine ((lt_or_eq_of_le (power_log_le _ o0))
     .resolve_left $ λ h, _).symm,

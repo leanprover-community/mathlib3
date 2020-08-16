@@ -184,6 +184,7 @@ namespace monoidal_functor
 variables (F : monoidal_functor.{v₁ v₂} C D) (G : monoidal_functor.{v₂ v₃} D E)
 
 /-- The composition of two monoidal functors is again monoidal. -/
+@[simps]
 def comp : monoidal_functor.{v₁ v₃} C E :=
 { ε_is_iso := by { dsimp, apply_instance },
   μ_is_iso := by { dsimp, apply_instance },

@@ -8,7 +8,7 @@ More operations on modules and ideals.
 import data.nat.choose
 import data.equiv.ring
 import ring_theory.algebra_operations
-import ring_theory.ideals
+import ring_theory.ideal.basic
 
 universes u v w x
 
@@ -130,7 +130,7 @@ le_antisymm (smul_le.2 $ λ r hrij n hn, let ⟨ri, hri, rj, hrj, hrijr⟩ := me
 (sup_le (smul_mono_left le_sup_left)
   (smul_mono_left le_sup_right))
 
-theorem smul_assoc : (I • J) • N = I • (J • N) :=
+protected theorem smul_assoc : (I • J) • N = I • (J • N) :=
 le_antisymm (smul_le.2 $ λ rs hrsij t htn,
   smul_induction_on hrsij
   (λ r hr s hs, (@smul_eq_mul R _ r s).symm ▸ smul_smul r s t ▸ smul_mem_smul hr (smul_mem_smul hs htn))
@@ -940,7 +940,7 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 instance semimodule_submodule : semimodule (ideal R) (submodule R M) :=
 { smul_add := smul_sup,
   add_smul := sup_smul,
-  mul_smul := smul_assoc,
+  mul_smul := submodule.smul_assoc,
   one_smul := by simp,
   zero_smul := bot_smul,
   smul_zero := smul_bot }

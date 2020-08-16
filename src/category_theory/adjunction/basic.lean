@@ -28,16 +28,20 @@ structure adjunction (F : C ⥤ D) (G : D ⥤ C) :=
 
 infix ` ⊣ `:15 := adjunction
 
+/-- A class giving a chosen right adjoint to the functor `left`. -/
 class is_left_adjoint (left : C ⥤ D) :=
 (right : D ⥤ C)
 (adj : left ⊣ right)
 
+/-- A class giving a chosen left adjoint to the functor `right`. -/
 class is_right_adjoint (right : D ⥤ C) :=
 (left : C ⥤ D)
 (adj : left ⊣ right)
 
+/-- Extract the left adjoint from the instance giving the chosen adjoint. -/
 def left_adjoint (R : D ⥤ C) [is_right_adjoint R] : C ⥤ D :=
 is_right_adjoint.left R
+/-- Extract the right adjoint from the instance giving the chosen adjoint. -/
 def right_adjoint (L : C ⥤ D) [is_left_adjoint L] : D ⥤ C :=
 is_left_adjoint.right L
 
@@ -163,6 +167,8 @@ end core_unit_counit
 
 variables {F : C ⥤ D} {G : D ⥤ C}
 
+/-- Construct an adjunction between `F` and `G` out of a natural bijection between each
+`F.obj X ⟶ Y` and `X ⟶ G.obj Y`. -/
 def mk_of_hom_equiv (adj : core_hom_equiv F G) : F ⊣ G :=
 { unit :=
   { app := λ X, (adj.hom_equiv X (F.obj X)) (𝟙 (F.obj X)),
@@ -170,7 +176,7 @@ def mk_of_hom_equiv (adj : core_hom_equiv F G) : F ⊣ G :=
     begin
       intros,
       erw [← adj.hom_equiv_naturality_left, ← adj.hom_equiv_naturality_right],
-      dsimp, simp
+      dsimp, simp  -- See note [dsimp, simp].
     end },
   counit :=
   { app := λ Y, (adj.hom_equiv _ _).inv_fun (𝟙 (G.obj Y)),
@@ -184,6 +190,8 @@ def mk_of_hom_equiv (adj : core_hom_equiv F G) : F ⊣ G :=
   hom_equiv_counit' := λ X Y f, by erw [← adj.hom_equiv_naturality_left_symm]; simp,
   .. adj }
 
+/-- Construct an adjunction between functors `F` and `G` given a unit and counit for the adjunction
+satisfying the triangle identities. -/
 def mk_of_unit_counit (adj : core_unit_counit F G) : F ⊣ G :=
 { hom_equiv := λ X Y,
   { to_fun := λ f, adj.unit.app X ≫ G.map f,
@@ -208,10 +216,14 @@ def mk_of_unit_counit (adj : core_unit_counit F G) : F ⊣ G :=
   end },
   .. adj }
 
+/-- The adjunction between the identity functor on a category and itself. -/
 def id : 𝟭 C ⊣ 𝟭 C :=
 { hom_equiv := λ X Y, equiv.refl _,
   unit := 𝟙 _,
   counit := 𝟙 _ }
+
+-- Satisfy the inhabited linter.
+instance : inhabited (adjunction (𝟭 C) (𝟭 C)) := ⟨id⟩
 
 /-- If F and G are naturally isomorphic functors, establish an equivalence of hom-sets. -/
 def equiv_homset_left_of_nat_iso
@@ -304,12 +316,16 @@ section construct_left
 -- constructed from this data.
 variables {F_obj : C → D} {G}
 variables (e : Π X Y, (F_obj X ⟶ Y) ≃ (X ⟶ G.obj Y))
-variables (he : Π X Y Y' g h, e X Y' (h ≫ g) = e X Y h ≫ G.map g)
+variables (he : ∀ X Y Y' g h, e X Y' (h ≫ g) = e X Y h ≫ G.map g)
 include he
 
 private lemma he' {X Y Y'} (f g) : (e X Y').symm (f ≫ G.map g) = (e X Y).symm f ≫ g :=
 by intros; rw [equiv.symm_apply_eq, he]; simp
 
+/-- Construct a left adjoint functor to `G`, given the functor's value on objects `F_obj` and
+a bijection `e` between `F_obj X ⟶ Y` and `X ⟶ G.obj Y` satisfying a naturality law
+`he : ∀ X Y Y' g h, e X Y' (h ≫ g) = e X Y h ≫ G.map g`.
+Dual to `right_adjoint_of_equiv`. -/
 def left_adjoint_of_equiv : C ⥤ D :=
 { obj := F_obj,
   map := λ X X' f, (e X (F_obj X')).symm (f ≫ e X' (F_obj X') (𝟙 _)),
@@ -319,6 +335,8 @@ def left_adjoint_of_equiv : C ⥤ D :=
     simp
   end }
 
+/-- Show that the functor given by `left_adjoint_of_equiv` is indeed left adjoint to `G`. Dual
+to `adjunction_of_equiv_right`. -/
 def adjunction_of_equiv_left : left_adjoint_of_equiv e he ⊣ G :=
 mk_of_hom_equiv
 { hom_equiv := e,
@@ -335,12 +353,16 @@ section construct_right
 -- Construction of a right adjoint, analogous to the above.
 variables {F} {G_obj : D → C}
 variables (e : Π X Y, (F.obj X ⟶ Y) ≃ (X ⟶ G_obj Y))
-variables (he : Π X' X Y f g, e X' Y (F.map f ≫ g) = f ≫ e X Y g)
+variables (he : ∀ X' X Y f g, e X' Y (F.map f ≫ g) = f ≫ e X Y g)
 include he
 
 private lemma he' {X' X Y} (f g) : F.map f ≫ (e X Y).symm g = (e X' Y).symm (f ≫ g) :=
 by intros; rw [equiv.eq_symm_apply, he]; simp
 
+/-- Construct a right adjoint functor to `F`, given the functor's value on objects `G_obj` and
+a bijection `e` between `F.obj X ⟶ Y` and `X ⟶ G_obj Y` satisfying a naturality law
+`he : ∀ X Y Y' g h, e X' Y (F.map f ≫ g) = f ≫ e X Y g`.
+Dual to `left_adjoint_of_equiv`. -/
 def right_adjoint_of_equiv : D ⥤ C :=
 { obj := G_obj,
   map := λ Y Y' g, (e (G_obj Y) Y') ((e (G_obj Y) Y).symm (𝟙 _) ≫ g),
@@ -350,6 +372,8 @@ def right_adjoint_of_equiv : D ⥤ C :=
     simp
   end }
 
+/-- Show that the functor given by `right_adjoint_of_equiv` is indeed right adjoint to `F`. Dual
+to `adjunction_of_equiv_left`. -/
 def adjunction_of_equiv_right : F ⊣ right_adjoint_of_equiv e he :=
 mk_of_hom_equiv
 { hom_equiv := e,
@@ -368,6 +392,8 @@ open adjunction
 
 namespace equivalence
 
+/-- The adjunction given by an equivalence of categories. (To obtain the opposite adjunction,
+simply use `e.symm.to_adjunction`. -/
 def to_adjunction (e : C ≌ D) : e.functor ⊣ e.inverse :=
 mk_of_unit_counit ⟨e.unit, e.counit,
   by { ext, dsimp, simp only [id_comp], exact e.functor_unit_comp _, },

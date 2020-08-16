@@ -246,14 +246,14 @@ have ne_bot (comap m g), from comap_ne_bot $ assume t ht,
   let ⟨t', ht', ht_mem⟩ := (mem_lift_sets $ monotone_lift' monotone_const mp₀).mp ht in
   let ⟨t'', ht'', ht'_sub⟩ := (mem_lift'_sets mp₁).mp ht_mem in
   let ⟨x, (hx : x ∈ t'')⟩ := hf.left.nonempty_of_mem ht'' in
-  have h₀ : ne_bot (nhds_within x (range m)),
+  have h₀ : ne_bot (𝓝[range m] x),
     from dense.nhds_within_ne_bot x,
-  have h₁ : {y | (x, y) ∈ t'} ∈ 𝓝 x ⊓ 𝓟 (range m),
+  have h₁ : {y | (x, y) ∈ t'} ∈ 𝓝[range m] x,
     from @mem_inf_sets_of_left α (𝓝 x) (𝓟 (range m)) _ $ mem_nhds_left x ht',
-  have h₂ : range m ∈ 𝓝 x ⊓ 𝓟 (range m),
+  have h₂ : range m ∈ 𝓝[range m] x,
     from @mem_inf_sets_of_right α (𝓝 x) (𝓟 (range m)) _ $ subset.refl _,
-  have {y | (x, y) ∈ t'} ∩ range m ∈ 𝓝 x ⊓ 𝓟 (range m),
-    from @inter_mem_sets α (𝓝 x ⊓ 𝓟 (range m)) _ _ h₁ h₂,
+  have {y | (x, y) ∈ t'} ∩ range m ∈ 𝓝[range m] x,
+    from @inter_mem_sets α (𝓝[range m] x) _ _ h₁ h₂,
   let ⟨y, xyt', b, b_eq⟩ := h₀.nonempty_of_mem this in
   ⟨b, b_eq.symm ▸ ht'_sub ⟨x, hx, xyt'⟩⟩,
 
@@ -268,9 +268,9 @@ have cauchy g, from
     from mem_lift (symm_le_uniformity hs₁) $ @mem_lift' α α f _ t ht,
   have hg₂ : p s₂ t ∈ g,
     from mem_lift hs₂ $ @mem_lift' α α f _ t ht,
-  have hg : set.prod (p (preimage prod.swap s₁) t) (p s₂ t) ∈ filter.prod g g,
+  have hg : set.prod (p (preimage prod.swap s₁) t) (p s₂ t) ∈ g ×ᶠ g,
     from @prod_mem_prod α α _ _ g g hg₁ hg₂,
-  (filter.prod g g).sets_of_superset hg
+  (g ×ᶠ g).sets_of_superset hg
     (assume ⟨a, b⟩ ⟨⟨c₁, c₁t, hc₁⟩, ⟨c₂, c₂t, hc₂⟩⟩,
       have (c₁, c₂) ∈ set.prod t t, from ⟨c₁t, c₂t⟩,
       comp_s₁ $ prod_mk_mem_comp_rel hc₁ $
@@ -410,7 +410,7 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
   assume ⟨x₁, x₂⟩ hx_t,
   have 𝓝 (x₁, x₂) ≤ 𝓟 (interior t),
     from is_open_iff_nhds.mp is_open_interior (x₁, x₂) hx_t,
-  have interior t ∈ filter.prod (𝓝 x₁) (𝓝 x₂),
+  have interior t ∈ 𝓝 x₁ ×ᶠ 𝓝 x₂,
     by rwa [nhds_prod_eq, le_principal_iff] at this,
   let ⟨m₁, hm₁, m₂, hm₂, (hm : set.prod m₁ m₂ ⊆ interior t)⟩ := mem_prod_iff.mp this in
   let ⟨a, ha₁, _, ha₂⟩ := h_pnt hm₁ in

@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 import algebra.big_operators.pi
 import algebra.module.pi
 import algebra.module.prod
+import algebra.module.submodule
 import algebra.group.prod
 import ring_theory.subring
 import data.finsupp.basic
@@ -718,10 +719,20 @@ begin
   { exact λ a x i hi, ⟨i, smul_mem _ a hi⟩ },
 end
 
-lemma mem_supr_of_mem {ι : Sort*} {b : M} (p : ι → submodule R M) (i : ι) (h : b ∈ p i) :
+lemma mem_sup_left {S T : submodule R M} : ∀ {x : M}, x ∈ S → x ∈ S ⊔ T :=
+show S ≤ S ⊔ T, from le_sup_left
+
+lemma mem_sup_right {S T : submodule R M} : ∀ {x : M}, x ∈ T → x ∈ S ⊔ T :=
+show T ≤ S ⊔ T, from le_sup_right
+
+lemma mem_supr_of_mem {ι : Sort*} {b : M} {p : ι → submodule R M} (i : ι) (h : b ∈ p i) :
   b ∈ (⨆i, p i) :=
 have p i ≤ (⨆i, p i) := le_supr p i,
 @this b h
+
+lemma mem_Sup_of_mem {S : set (submodule R M)} {s : submodule R M}
+  (hs : s ∈ S) : ∀ {x : M}, x ∈ s → x ∈ Sup S :=
+show s ≤ Sup S, from le_Sup hs
 
 @[simp] theorem mem_supr_of_directed {ι} [nonempty ι]
   (S : ι → submodule R M) (H : directed (≤) S) {x} :
@@ -828,7 +839,7 @@ lemma supr_eq_span {ι : Sort w} (p : ι → submodule R M) :
   (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
 le_antisymm
   (supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
-  (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem _ i hm)
+  (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem i hm)
 
 lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) :
   span R {m} ≤ p ↔ m ∈ p :=
@@ -956,6 +967,13 @@ semimodule.of_core $ by refine {smul := (•), ..};
 
 lemma mk_surjective : function.surjective (@mk _ _ _ _ _ p) :=
 by rintros ⟨x⟩; exact ⟨x, rfl⟩
+
+lemma nontrivial_of_lt_top (h : p < ⊤) : nontrivial (p.quotient) :=
+begin
+  obtain ⟨x, _, not_mem_s⟩ := exists_of_lt h,
+  refine ⟨⟨mk x, 0, _⟩⟩,
+  simpa using not_mem_s
+end
 
 end quotient
 
@@ -1085,6 +1103,9 @@ def ker (f : M →ₗ[R] M₂) : submodule R M := comap f ⊥
 @[simp] theorem ker_id : ker (linear_map.id : M →ₗ[R] M) = ⊥ := rfl
 
 @[simp] theorem map_coe_ker (f : M →ₗ[R] M₂) (x : ker f) : f x = 0 := mem_ker.1 x.2
+
+lemma comp_ker_subtype (f : M →ₗ[R] M₂) : f.comp f.ker.subtype = 0 :=
+linear_map.ext $ λ x, suffices f x = 0, by simp [this], mem_ker.1 x.2
 
 theorem ker_comp (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) : ker (g.comp f) = comap f (ker g) := rfl
 
@@ -1352,10 +1373,10 @@ maximal submodule of `p` is just `p `. -/
 by simp
 
 @[simp] lemma comap_subtype_eq_top {p p' : submodule R M} :
-  p'.comap p.subtype = ⊤ ↔ p ≤ p' :=
+  comap p.subtype p' = ⊤ ↔ p ≤ p' :=
 eq_top_iff.trans $ map_le_iff_le_comap.symm.trans $ by rw [map_subtype_top]
 
-@[simp] lemma comap_subtype_self : p.comap p.subtype = ⊤ :=
+@[simp] lemma comap_subtype_self : comap p.subtype p = ⊤ :=
 comap_subtype_eq_top.2 (le_refl _)
 
 @[simp] theorem ker_of_le (p p' : submodule R M) (h : p ≤ p') : (of_le h).ker = ⊥ :=
@@ -1536,6 +1557,32 @@ def comap_mkq.lt_order_embedding :
 end ring
 
 end submodule
+
+namespace linear_map
+variables [ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
+
+lemma range_mkq_comp (f : M →ₗ[R] M₂) : f.range.mkq.comp f = 0 :=
+linear_map.ext $ λ x, by { simp, use x }
+
+/-- A monomorphism is injective. -/
+lemma ker_eq_bot_of_cancel {f : M →ₗ[R] M₂}
+  (h : ∀ (u v : f.ker →ₗ[R] M), f.comp u = f.comp v → u = v) : f.ker = ⊥ :=
+begin
+  have h₁ : f.comp (0 : f.ker →ₗ[R] M) = 0 := comp_zero _,
+  rw [←submodule.range_subtype f.ker, ←h 0 f.ker.subtype (eq.trans h₁ (comp_ker_subtype f).symm)],
+  exact range_zero
+end
+
+/-- An epimorphism is surjective. -/
+lemma range_eq_top_of_cancel {f : M →ₗ[R] M₂}
+  (h : ∀ (u v : M₂ →ₗ[R] f.range.quotient), u.comp f = v.comp f → u = v) : f.range = ⊤ :=
+begin
+  have h₁ : (0 : M₂ →ₗ[R] f.range.quotient).comp f = 0 := zero_comp _,
+  rw [←submodule.ker_mkq f.range, ←h 0 f.range.mkq (eq.trans h₁ (range_mkq_comp _).symm)],
+  exact ker_zero
+end
+
+end linear_map
 
 @[simp] lemma linear_map.range_range_restrict [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
   [semimodule R M] [semimodule R M₂] (f : M →ₗ[R] M₂) :
@@ -1977,6 +2024,23 @@ end linear_equiv
 
 namespace submodule
 
+section semimodule
+
+variables [semiring R] [add_comm_monoid M] [semimodule R M]
+
+/-- If `s ≤ t`, then we can view `s` as a submodule of `t` by taking the comap
+of `t.subtype`. -/
+def comap_subtype_equiv_of_le {p q : submodule R M} (hpq : p ≤ q) :
+comap q.subtype p ≃ₗ[R] p :=
+{ to_fun := λ x, ⟨x, x.2⟩,
+  inv_fun := λ x, ⟨⟨x, hpq x.2⟩, x.2⟩,
+  left_inv := λ x, by simp only [coe_mk, submodule.eta, coe_coe],
+  right_inv := λ x, by simp only [subtype.coe_mk, submodule.eta, coe_coe],
+  map_add' := λ x y, rfl,
+  map_smul' := λ c x, rfl }
+
+end semimodule
+
 variables [ring R] [add_comm_group M] [module R M]
 variables (p : submodule R M)
 
@@ -1995,6 +2059,13 @@ linear_equiv.of_linear (p.liftq id $ hp.symm ▸ bot_le) p.mkq (liftq_mkq _ _ _)
 
 @[simp] lemma coe_quot_equiv_of_eq_bot_symm (hp : p = ⊥) :
   ((p.quot_equiv_of_eq_bot hp).symm : M →ₗ[R] p.quotient) = p.mkq := rfl
+
+variables (q : submodule R M)
+
+/-- Quotienting by equal submodules gives linearly equivalent quotients. -/
+def quot_equiv_of_eq (h : p = q) : p.quotient ≃ₗ[R] q.quotient :=
+{ map_add' := by { rintros ⟨x⟩ ⟨y⟩, refl }, map_smul' := by { rintros x ⟨y⟩, refl },
+  ..@quotient.congr _ _ (quotient_rel p) (quotient_rel q) (equiv.refl _) $ λ a b, by { subst h, refl } }
 
 end submodule
 
@@ -2031,7 +2102,7 @@ begin
 end
 
 /-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`, the
-set of maps $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \}$ is a submodule of `Hom(M, M₂)`. -/
+set of maps $\\{f ∈ Hom(M, M₂) | f(p) ⊆ q \\}$ is a submodule of `Hom(M, M₂)`. -/
 def compatible_maps : submodule R (M →ₗ[R] M₂) :=
 { carrier   := {f | p ≤ comap f q},
   zero_mem' := by { change p ≤ comap 0 q, rw comap_zero, refine le_top, },
@@ -2040,7 +2111,7 @@ def compatible_maps : submodule R (M →ₗ[R] M₂) :=
   smul_mem' := λ c f h, le_trans h (comap_le_comap_smul q f c), }
 
 /-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`, the
-natural map $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \} \to Hom(M/p, M₂/q)$ is linear. -/
+natural map $\\{f ∈ Hom(M, M₂) | f(p) ⊆ q \\} \to Hom(M/p, M₂/q)$ is linear. -/
 def mapq_linear : compatible_maps p q →ₗ[R] p.quotient →ₗ[R] q.quotient :=
 { to_fun    := λ f, mapq _ _ f.val f.property,
   map_add'  := λ x y, by { ext m', apply quotient.induction_on' m', intros m, refl, },
@@ -2291,7 +2362,7 @@ begin
     assume hiI,
     rw [std_basis_same],
     exact hb _ ((hu trivial).resolve_left hiI) },
-  exact sum_mem _ (assume i hiI, mem_supr_of_mem _ i $ mem_supr_of_mem _ hiI $
+  exact sum_mem _ (assume i hiI, mem_supr_of_mem i $ mem_supr_of_mem hiI $
     (std_basis R φ i).mem_range_self (b i))
 end
 

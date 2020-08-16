@@ -49,7 +49,7 @@ open polynomial
 
 /-- The cardinality of a field is at most `n` times the cardinality of the image of a degree `n`
   polynomial -/
-lemma card_image_polynomial_eval [fintype R] [decidable_eq R] {p : polynomial R} (hp : 0 < p.degree) :
+lemma card_image_polynomial_eval [decidable_eq R] [fintype R] {p : polynomial R} (hp : 0 < p.degree) :
   fintype.card R ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
 finset.card_le_mul_card_image _ _
   (λ a _, calc _ = (p - C a).roots.card : congr_arg card
@@ -153,7 +153,7 @@ begin
   split,
   { intro h, apply h },
   { intros h y,
-    rw ← powers_eq_gpowers at hx,
+    simp_rw ← mem_powers_iff_mem_gpowers at hx,
     rcases hx y with ⟨j, rfl⟩,
     rw [← pow_mul, mul_comm, pow_mul, h, one_pow], }
 end

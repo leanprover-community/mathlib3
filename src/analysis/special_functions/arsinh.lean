@@ -50,11 +50,11 @@ begin
   exact H,
   { intros fx,
     rw sub_eq_zero at fx,
-    have fx_sq : x^2 = (sqrt (1 + x ^ 2)) ^ 2 := by rw fx.symm,
+    have fx_sq : x^2 = (sqrt (1 + x ^ 2)) ^ 2 := by { rw fx.symm },
     rw sqr_sqrt at fx_sq,
-    linarith,
-    have G : 0 ≤ x^2 := by apply pow_two_nonneg,
-    linarith }
+    { linarith },
+    { have G : 0 ≤ x^2 := by {apply pow_two_nonneg},
+    linarith }}
 end
 
 private lemma b_lt_sqrt_b_sq_add_one (b : ℝ) : b < sqrt (b^2 + 1) :=

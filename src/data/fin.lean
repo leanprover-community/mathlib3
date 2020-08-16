@@ -343,7 +343,7 @@ by simp [lt_iff_val_lt_val]
 
 /-- Coercing a `nat` into a term of the smallest `fin` that can hold it
 results in the greatest term for that type -/
-@[norm_cast, simp] lemma coe_nat_eq_last (n) : (n : fin (n + 1)) = fin.last n :=
+lemma coe_nat_eq_last (n) : (n : fin (n + 1)) = fin.last n :=
 by { rw [←fin.of_nat_eq_coe, fin.of_nat, fin.last], simp only [nat.mod_eq_of_lt n.lt_succ_self] }
 
 /-- Every term is less than or equal to the greatest term of the type,

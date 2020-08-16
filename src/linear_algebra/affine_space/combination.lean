@@ -162,13 +162,22 @@ lemma weighted_vsub_indicator_subset (w : ι → k) (p : ι → P) {s₁ s₂ : 
 weighted_vsub_of_point_indicator_subset _ _ _ h
 
 /-- A weighted sum of the results of subtracting a default base point
-from the given points, added to that base point.  This is intended to
-be used when the sum of the weights is 1, in which case it is an
-affine combination (barycenter) of the points with the given weights;
-that condition is specified as a hypothesis on those lemmas that
-require it. -/
-def affine_combination (w : ι → k) (p : ι → P) : P :=
-s.weighted_vsub_of_point p (classical.choice S.nonempty) w +ᵥ (classical.choice S.nonempty)
+from the given points, added to that base point, as an affine map on
+the weights.  This is intended to be used when the sum of the weights
+is 1, in which case it is an affine combination (barycenter) of the
+points with the given weights; that condition is specified as a
+hypothesis on those lemmas that require it. -/
+def affine_combination (p : ι → P) : affine_map k (ι → k) P :=
+{ to_fun := λ w,
+    s.weighted_vsub_of_point p (classical.choice S.nonempty) w +ᵥ (classical.choice S.nonempty),
+  linear := s.weighted_vsub p,
+  map_vadd' := λ w₁ w₂, by simp_rw [vadd_assoc, weighted_vsub, vadd_eq_add, linear_map.map_add] }
+
+/-- The linear map corresponding to `affine_combination` is
+`weighted_vsub`. -/
+@[simp] lemma affine_combination_linear (p : ι → P) :
+  (s.affine_combination p : affine_map k (ι → k) P).linear = s.weighted_vsub p :=
+rfl
 
 /-- Applying `affine_combination` with given weights.  This is for the
 case where a result involving a default base point is OK (for example,
@@ -178,7 +187,7 @@ point with
 `affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one` and
 then using `weighted_vsub_of_point_apply`. -/
 lemma affine_combination_apply (w : ι → k) (p : ι → P) :
-  s.affine_combination w p =
+  s.affine_combination p w =
     s.weighted_vsub_of_point p (classical.choice S.nonempty) w +ᵥ (classical.choice S.nonempty) :=
 rfl
 
@@ -186,31 +195,24 @@ rfl
 sum of the weights is 1. -/
 lemma affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one (w : ι → k) (p : ι → P)
     (h : ∑ i in s, w i = 1) (b : P) :
-  s.affine_combination w p = s.weighted_vsub_of_point p b w +ᵥ b :=
+  s.affine_combination p w = s.weighted_vsub_of_point p b w +ᵥ b :=
 s.weighted_vsub_of_point_vadd_eq_of_sum_eq_one w p h _ _
 
 /-- Adding a `weighted_vsub` to an `affine_combination`. -/
 lemma weighted_vsub_vadd_affine_combination (w₁ w₂ : ι → k) (p : ι → P) :
-  s.weighted_vsub p w₁ +ᵥ s.affine_combination w₂ p = s.affine_combination (w₁ + w₂) p :=
-begin
-  erw vadd_assoc,
-  congr,
-  exact (linear_map.map_add _ _ _).symm
-end
+  s.weighted_vsub p w₁ +ᵥ s.affine_combination p w₂ = s.affine_combination p (w₁ + w₂) :=
+by rw [←vadd_eq_add, affine_map.map_vadd, affine_combination_linear]
 
 /-- Subtracting two `affine_combination`s. -/
 lemma affine_combination_vsub (w₁ w₂ : ι → k) (p : ι → P) :
-  s.affine_combination w₁ p -ᵥ s.affine_combination w₂ p = s.weighted_vsub p (w₁ - w₂) :=
-begin
-  erw vadd_vsub_vadd_cancel_right,
-  exact (linear_map.map_sub _ _ _).symm
-end
+  s.affine_combination p w₁ -ᵥ s.affine_combination p w₂ = s.weighted_vsub p (w₁ - w₂) :=
+by rw [←affine_map.linear_map_vsub, affine_combination_linear, vsub_eq_sub]
 
 /-- An `affine_combination` equals a point if that point is in the set
 and has weight 1 and the other points in the set have weight 0. -/
 @[simp] lemma affine_combination_of_eq_one_of_eq_zero (w : ι → k) (p : ι → P) {i : ι}
     (his : i ∈ s) (hwi : w i = 1) (hw0 : ∀ i2 ∈ s, i2 ≠ i → w i2 = 0) :
-  s.affine_combination w p = p i :=
+  s.affine_combination p w = p i :=
 begin
   have h1 : ∑ i in s, w i = 1 := hwi ▸ sum_eq_single i hw0 (λ h, false.elim (h his)),
   rw [s.affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one w p h1 (p i),
@@ -227,7 +229,7 @@ end
 corresponding indicator function and adding points to the set. -/
 lemma affine_combination_indicator_subset (w : ι → k) (p : ι → P) {s₁ s₂ : finset ι}
     (h : s₁ ⊆ s₂) :
-  s₁.affine_combination w p = s₂.affine_combination (set.indicator ↑s₁ w) p :=
+  s₁.affine_combination p w = s₂.affine_combination p (set.indicator ↑s₁ w) :=
 by rw [affine_combination_apply, affine_combination_apply,
        weighted_vsub_of_point_indicator_subset _ _ _ h]
 
@@ -284,9 +286,9 @@ subset. -/
 lemma eq_affine_combination_subset_iff_eq_affine_combination_subtype {p0 : P} {s : set ι}
     {p : ι → P} :
   (∃ (fs : finset ι) (hfs : ↑fs ⊆ s) (w : ι → k) (hw : ∑ i in fs, w i = 1),
-    p0 = fs.affine_combination w p) ↔
+    p0 = fs.affine_combination p w) ↔
   ∃ (fs : finset s) (w : s → k) (hw : ∑ i in fs, w i = 1),
-    p0 = fs.affine_combination w (λ (i : s), p i) :=
+    p0 = fs.affine_combination (λ (i : s), p i) w :=
 begin
   simp_rw [affine_combination_apply, eq_vadd_iff_vsub_eq],
   exact eq_weighted_vsub_of_point_subset_iff_eq_weighted_vsub_of_point_subtype
@@ -329,7 +331,7 @@ end
 nontrivial. -/
 lemma affine_combination_mem_affine_span [nontrivial k] {s : finset ι} {w : ι → k}
     (h : ∑ i in s, w i = 1) (p : ι → P) :
-  s.affine_combination w p ∈ affine_span k (set.range p) :=
+  s.affine_combination p w ∈ affine_span k (set.range p) :=
 begin
   have hnz : ∑ i in s, w i ≠ 0 := h.symm ▸ one_ne_zero,
   have hn : s.nonempty := finset.nonempty_of_sum_ne_zero hnz,
@@ -337,14 +339,14 @@ begin
   let w1 : ι → k := function.update (function.const ι 0) i1 1,
   have hw1 : ∑ i in s, w1 i = 1,
   { rw [finset.sum_update_of_mem hi1, finset.sum_const_zero, add_zero] },
-  have hw1s : s.affine_combination w1 p = p i1 :=
+  have hw1s : s.affine_combination p w1 = p i1 :=
     s.affine_combination_of_eq_one_of_eq_zero w1 p hi1 (function.update_same _ _ _)
                                               (λ _ _ hne, function.update_noteq hne _ _),
-  have hv : s.affine_combination w p -ᵥ p i1 ∈ (affine_span k (set.range p)).direction,
+  have hv : s.affine_combination p w -ᵥ p i1 ∈ (affine_span k (set.range p)).direction,
   { rw [direction_affine_span, ←hw1s, finset.affine_combination_vsub],
     apply weighted_vsub_mem_vector_span,
     simp [pi.sub_apply, h, hw1] },
-  rw ←vsub_vadd (s.affine_combination w p) (p i1),
+  rw ←vsub_vadd (s.affine_combination p w) (p i1),
   exact affine_subspace.vadd_mem_of_mem_direction hv (mem_affine_span k (set.mem_range_self _))
 end
 
@@ -398,7 +400,7 @@ variables {k}
 `affine_combination` with sum of weights 1. -/
 lemma eq_affine_combination_of_mem_affine_span {p1 : P} {p : ι → P}
     (h : p1 ∈ affine_span k (set.range p)) :
-  ∃ (s : finset ι) (w : ι → k) (hw : ∑ i in s, w i = 1), p1 = s.affine_combination w p :=
+  ∃ (s : finset ι) (w : ι → k) (hw : ∑ i in s, w i = 1), p1 = s.affine_combination p w :=
 begin
   have hn : ((affine_span k (set.range p)) : set P).nonempty := ⟨p1, h⟩,
   rw [affine_span_nonempty, set.range_nonempty_iff_nonempty] at hn,
@@ -418,7 +420,7 @@ begin
   let w0 : ι → k := function.update (function.const ι 0) i0 1,
   have hw0 : ∑ i in s', w0 i = 1,
   { rw [finset.sum_update_of_mem (finset.mem_insert_self _ _), finset.sum_const_zero, add_zero] },
-  have hw0s : s'.affine_combination w0 p = p i0 :=
+  have hw0s : s'.affine_combination p w0 = p i0 :=
     s'.affine_combination_of_eq_one_of_eq_zero w0 p
                                                (finset.mem_insert_self _ _)
                                                (function.update_same _ _ _)
@@ -436,7 +438,7 @@ if it is an `affine_combination` with sum of weights 1, provided the
 underlying ring is nontrivial. -/
 lemma mem_affine_span_iff_eq_affine_combination [nontrivial k] {p1 : P} {p : ι → P} :
   p1 ∈ affine_span k (set.range p) ↔
-    ∃ (s : finset ι) (w : ι → k) (hw : ∑ i in s, w i = 1), p1 = s.affine_combination w p :=
+    ∃ (s : finset ι) (w : ι → k) (hw : ∑ i in s, w i = 1), p1 = s.affine_combination p w :=
 begin
   split,
   { exact eq_affine_combination_of_mem_affine_span },

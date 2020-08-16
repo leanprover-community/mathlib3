@@ -202,6 +202,7 @@ namespace associated
 @[trans] protected theorem trans [monoid α] : ∀{x y z : α}, x ~ᵤ y → y ~ᵤ z → x ~ᵤ z
 | x _ _ ⟨u, rfl⟩ ⟨v, rfl⟩ := ⟨u * v, by rw [units.coe_mul, mul_assoc]⟩
 
+/-- The setoid of the relation `x ~ᵤ y` iff there is a unit `u` such that `x * u = y` -/
 protected def setoid (α : Type*) [monoid α] : setoid α :=
 { r := associated, iseqv := ⟨associated.refl, λa b, associated.symm, λa b c, associated.trans⟩ }
 
@@ -324,12 +325,16 @@ lemma associated_mul_right_cancel [comm_cancel_monoid_with_zero α] {a b c d : �
   a * b ~ᵤ c * d → b ~ᵤ d → b ≠ 0 → a ~ᵤ c :=
 by rw [mul_comm a, mul_comm c]; exact associated_mul_left_cancel
 
+/-- The quotient of a monoid by the `associated` relation. Two elements `x` and `y`
+  are associated iff there is a unit `u` such that `x * u = y`. `associates α`
+  forms a monoid. -/
 def associates (α : Type*) [monoid α] : Type* :=
 quotient (associated.setoid α)
 
 namespace associates
 open associated
 
+/-- The canonical quotient map from a monoid `α` into the `associates` of `α` -/
 protected def mk {α : Type*} [monoid α] (a : α) : associates α :=
 ⟦ a ⟧
 
@@ -488,6 +493,9 @@ assume ⟨c, hc⟩, ⟨associates.mk c, by simp [hc]; refl⟩
 theorem mk_le_mk_iff_dvd_iff {a b : α} : associates.mk a ≤ associates.mk b ↔ a ∣ b :=
 iff.intro dvd_of_mk_le_mk mk_le_mk_of_dvd
 
+/-- The relation `prime` on associates is very similar to the familiar definition
+  from a `comm_ring`. A `prime` `p` is not equal to `1` or `0` and if `p ∣ a * b`,
+  then `p ∣ a` or `p ∣ b` -/
 def prime (p : associates α) : Prop := p ≠ 0 ∧ p ≠ 1 ∧ (∀a b, p ≤ a * b → p ≤ a ∨ p ≤ b)
 
 lemma prime.ne_zero {p : associates α} (hp : prime p) : p ≠ 0 :=

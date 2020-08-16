@@ -378,3 +378,9 @@ begin
 end
 
 end T
+
+example (a b c : ℚ) (h : a ≠ b) (h3 : b ≠ c) (h2 : a ≥ b) : b ≠ c :=
+by linarith {split_ne := tt}
+
+example (a b c : ℚ) (h : a ≠ b) (h2 : a ≥ b) (h3 : b ≠ c) : a > b :=
+by linarith {split_ne := tt}

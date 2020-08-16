@@ -328,8 +328,9 @@ begin
     rw [this, norm_zero],
     exact mul_nonneg (op_norm_nonneg f) A },
   { have hlt : 0 < ∏ i, ∥m i∥ := lt_of_le_of_ne A (ne.symm h),
-    exact le_mul_of_div_le hlt ((le_Inf _ bounds_nonempty bounds_bdd_below).2
-      (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (begin rw mul_comm, apply hc, end))) }
+    rw [← div_le_iff hlt],
+    apply (le_Inf _ bounds_nonempty bounds_bdd_below).2,
+    rintro c ⟨_, hc⟩, rw [div_le_iff hlt], apply hc }
 end
 
 lemma ratio_le_op_norm : ∥f m∥ / ∏ i, ∥m i∥ ≤ ∥f∥ :=

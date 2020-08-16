@@ -98,7 +98,7 @@ by {simp_rw [irreducible_iff_uniformizer],
     exact (is_principal_ideal_ring.principal $ maximal_ideal R).principal}
 
 /-- an integral domain is a DVR iff it's a PID with a unique non-zero prime ideal -/
-theorem iff_PID_with_one_nonzero_prime (R : Type u) [integral_domain R] :
+theorem iff_pid_with_one_nonzero_prime (R : Type u) [integral_domain R] :
   discrete_valuation_ring R ↔ is_principal_ideal_ring R ∧ ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P :=
 begin
   split,
@@ -176,7 +176,7 @@ end
 such that every nonzero element is associated to a power of `p` is a unique factorization domain.
 
 See `discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization`. -/
-noncomputable def UFD : unique_factorization_domain R :=
+noncomputable def ufd : unique_factorization_domain R :=
 let p := classical.some hR in
 let spec := classical.some_spec hR in
 { factors := λ x, if h : x = 0 then 0 else multiset.repeat p (classical.some (spec.2 h)),
@@ -206,7 +206,7 @@ let spec := classical.some_spec hR in
 
 omit hR
 
-lemma of_UFD_of_unique_irreducible [unique_factorization_domain R]
+lemma of_ufd_of_unique_irreducible [unique_factorization_domain R]
   (h₁ : ∃ p : R, irreducible p)
   (h₂ : ∀ ⦃p q : R⦄, irreducible p → irreducible q → associated p q) :
   has_unit_mul_pow_irreducible_factorization R :=
@@ -230,7 +230,7 @@ end
 
 end has_unit_mul_pow_irreducible_factorization
 
-lemma aux_PID_of_UFD_of_unique_irreducible
+lemma aux_pid_of_ufd_of_unique_irreducible
   (R : Type u) [integral_domain R] [unique_factorization_domain R]
   (h₁ : ∃ p : R, irreducible p)
   (h₂ : ∀ ⦃p q : R⦄, irreducible p → irreducible q → associated p q) :
@@ -241,7 +241,7 @@ begin
   by_cases I0 : I = ⊥, { rw I0, use 0, simp only [set.singleton_zero, submodule.span_zero], },
   obtain ⟨x, hxI, hx0⟩ : ∃ x ∈ I, x ≠ (0:R) := I.ne_bot_iff.mp I0,
   obtain ⟨p, hp, H⟩ :=
-    has_unit_mul_pow_irreducible_factorization.of_UFD_of_unique_irreducible h₁ h₂,
+    has_unit_mul_pow_irreducible_factorization.of_ufd_of_unique_irreducible h₁ h₂,
   have ex : ∃ n : ℕ, p ^ n ∈ I,
   { obtain ⟨n, u, rfl⟩ := H hx0,
     refine ⟨n, _⟩,
@@ -267,13 +267,13 @@ A unique factorization domain with at least one irreducible element
 in which all irreducible elements are associated
 is a discrete valuation ring.
 -/
-def of_UFD_of_unique_irreducible {R : Type u} [integral_domain R] [unique_factorization_domain R]
+def of_ufd_of_unique_irreducible {R : Type u} [integral_domain R] [unique_factorization_domain R]
   (h₁ : ∃ p : R, irreducible p)
   (h₂ : ∀ ⦃p q : R⦄, irreducible p → irreducible q → associated p q) :
   discrete_valuation_ring R :=
 begin
-  rw iff_PID_with_one_nonzero_prime,
-  haveI PID : is_principal_ideal_ring R := aux_PID_of_UFD_of_unique_irreducible R h₁ h₂,
+  rw iff_pid_with_one_nonzero_prime,
+  haveI PID : is_principal_ideal_ring R := aux_pid_of_ufd_of_unique_irreducible R h₁ h₂,
   obtain ⟨p, hp⟩ := h₁,
   refine ⟨PID, ⟨ideal.span {p}, ⟨_, _⟩, _⟩⟩,
   { rw submodule.ne_bot_iff,
@@ -298,8 +298,8 @@ lemma of_has_unit_mul_pow_irreducible_factorization {R : Type u} [integral_domai
   (hR : has_unit_mul_pow_irreducible_factorization R) :
   discrete_valuation_ring R :=
 begin
-  letI : unique_factorization_domain R := hR.UFD,
-  apply of_UFD_of_unique_irreducible _ hR.unique_irreducible,
+  letI : unique_factorization_domain R := hR.ufd,
+  apply of_ufd_of_unique_irreducible _ hR.unique_irreducible,
   unfreezingI { obtain ⟨p, hp, H⟩ := hR, exact ⟨p, hp⟩, },
 end
 

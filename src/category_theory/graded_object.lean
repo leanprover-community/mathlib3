@@ -67,11 +67,9 @@ def comap_eq {β γ : Type w} {f g : β → γ} (h : f = g) : comap (λ _, C) f 
 { hom := { app := λ X b, eq_to_hom begin dsimp [comap], subst h, end },
   inv := { app := λ X b, eq_to_hom begin dsimp [comap], subst h, end }, }
 
-@[simp]
 lemma comap_eq_symm {β γ : Type w} {f g : β → γ} (h : f = g) : comap_eq C h.symm = (comap_eq C h).symm :=
 by tidy
 
-@[simp]
 lemma comap_eq_trans {β γ : Type w} {f g h : β → γ} (k : f = g) (l : g = h) :
   comap_eq C (k.trans l) = comap_eq C k ≪≫ comap_eq C l :=
 begin

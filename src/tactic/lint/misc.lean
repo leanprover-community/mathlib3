@@ -98,8 +98,8 @@ Currently, the linter forbids the use of `>` and `≥` in definitions and
 statements, as they cause problems in rewrites.
 They are still allowed in statements such as `bounded (≥)` or `∀ ε > 0` or `⨆ n ≥ m`,
 and the linter allows that.
-If you write a pattern where you bind two or more variables `∃ n m > 0`, the linter will flag this
-as illegal, but is is also allowed. In this case, add the attribute
+If you write a pattern where you bind two or more variables, like `∃ n m > 0`, the linter will
+flag this as illegal, but it is also allowed. In this case, add the line
 ```
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 ```

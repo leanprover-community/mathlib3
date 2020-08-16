@@ -1205,13 +1205,13 @@ end linear_order
 
 section linear_ordered_ring
 variables [topological_space α] [linear_ordered_ring α] [order_topology α]
-variables {l : filter β} {f g : ι → α}
+variables {l : filter β} {f g : β → α}
 
 /- TODO The theorems in this section ought to be written in the context of linearly ordered
 (additive) commutative groups rather than linearly ordered rings; however, the former concept does
 not currently exist in mathlib. -/
 
-/--! In a linearly ordered ring with the induced topology, if `f` tends to `C` and `g` tends to
+/-- In a linearly ordered ring with the induced topology, if `f` tends to `C` and `g` tends to
 `at_top` then `f + g` tends to `at_top`. -/
 lemma tendsto_at_top_add_tendsto_left
   {C : α} (hf : tendsto f l (nhds C)) (hg : tendsto g l at_top) :
@@ -1225,7 +1225,7 @@ begin
   exact le_of_lt hx
 end
 
-/--! In a linearly ordered ring with the induced topology, if `f` tends to `at_top` and `g` tends to
+/-- In a linearly ordered ring with the induced topology, if `f` tends to `at_top` and `g` tends to
 `C` then `f + g` tends to `at_top`. -/
 lemma tendsto_at_top_add_tendsto_right
   {C : α} (hf : tendsto f l at_top) (hg : tendsto g l (nhds C)) :

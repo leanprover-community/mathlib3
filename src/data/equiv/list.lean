@@ -62,7 +62,7 @@ private lemma enle.is_linear_order : is_linear_order α enle :=
 (rel_embedding.preimage ⟨encode, encode_injective⟩ (≤)).is_linear_order
 
 private def decidable_enle (a b : α) : decidable (enle a b) :=
-by unfold enle rel.preimage; apply_instance
+by unfold enle order.preimage; apply_instance
 
 local attribute [instance] enle.is_linear_order decidable_enle
 

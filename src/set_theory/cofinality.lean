@@ -189,7 +189,7 @@ end
       (λ x y, _)) (λ x, _)⟩⟩,
   { apply sum.rec; [exact subtype.val, exact λ _, a] },
   { rcases x with x|⟨⟨⟨⟩⟩⟩; rcases y with y|⟨⟨⟨⟩⟩⟩;
-      simp [subrel, rel.preimage, empty_relation],
+      simp [subrel, order.preimage, empty_relation],
     exact x.2 },
   { suffices : r x a ∨ ∃ (b : punit), ↑a = x, {simpa},
     rcases trichotomous_of r x a with h|h|h,

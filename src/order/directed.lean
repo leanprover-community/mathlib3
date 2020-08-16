@@ -28,7 +28,7 @@ alias directed_on_iff_directed ↔ directed_on.directed_coe _
 
 theorem directed_on_image {s} {f : β → α} :
   directed_on r (f '' s) ↔ directed_on (f ⁻¹'o r) s :=
-by simp only [directed_on, set.ball_image_iff, set.bex_image_iff, rel.preimage]
+by simp only [directed_on, set.ball_image_iff, set.bex_image_iff, order.preimage]
 
 theorem directed_on.mono {s : set α} (h : directed_on r s)
   {r' : α → α → Prop} (H : ∀ {a b}, r a b → r' a b) :

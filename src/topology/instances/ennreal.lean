@@ -157,7 +157,7 @@ by refine (homeomorph.set_congr $ set.ext $ λ x, _).trans ne_top_homeomorph_nnr
 -- using Icc because
 -- • don't have 'Ioo (x - ε) (x + ε) ∈ 𝓝 x' unless x > 0
 -- • (x - y ≤ ε ↔ x ≤ ε + y) is true, while (x - y < ε ↔ x < ε + y) is not
-lemma Icc_mem_nhds : x ≠ ⊤ → ε > 0 → Icc (x - ε) (x + ε) ∈ 𝓝 x :=
+lemma Icc_mem_nhds : x ≠ ⊤ → 0 < ε → Icc (x - ε) (x + ε) ∈ 𝓝 x :=
 begin
   assume xt ε0, rw mem_nhds_sets_iff,
   by_cases x0 : x = 0,

@@ -149,10 +149,10 @@ begin
   exact hε εpos
 end
 
-/- Reformulate `completion.mem_uniformity_dist` in terms that are suitable for the definition
+/-- Reformulate `completion.mem_uniformity_dist` in terms that are suitable for the definition
 of the metric space structure. -/
 protected lemma completion.uniformity_dist' :
-  uniformity (completion α) = (⨅ε:{ε:ℝ // ε>0}, 𝓟 {p | dist p.1 p.2 < ε.val}) :=
+  uniformity (completion α) = (⨅ε:{ε : ℝ // 0 < ε}, 𝓟 {p | dist p.1 p.2 < ε.val}) :=
 begin
   ext s, rw mem_infi,
   { simp [completion.mem_uniformity_dist, subset_def] },

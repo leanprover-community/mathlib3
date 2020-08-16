@@ -1203,6 +1203,32 @@ end
 
 end linear_order
 
+section linear_ordered_ring
+
+variables {ι : Type*}
+variables [topological_space α] [linear_ordered_ring α] [order_topology α]
+variables {l : filter ι} {f g : ι → α}
+
+/--! In a linearly ordered ring, if `f` tends to `at_top` and `g` tends to `C` then `f` tends to
+`at_top`.
+
+TODO This theorem ought to be written in the context of linearly ordered (additive) commutative
+groups rather than linearly ordered rings; however, the former concept does not currently exist in
+mathlib. -/
+lemma tendsto_at_top_add_tendsto_right
+  {C : α} (hf : tendsto f l at_top) (hg : tendsto g l (nhds C)) :
+  tendsto (λ x, f x + g x) l at_top :=
+begin
+  obtain ⟨C', hC'⟩ : ∃ C', C' < C := no_bot C,
+  refine tendsto_at_top_add_right_of_le' _ C' hf _,
+  rw tendsto_order at hg,
+  refine (hg.1 C' hC').mp (eventually_of_forall _),
+  intros x hx,
+  exact le_of_lt hx
+end
+
+end linear_ordered_ring
+
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
 (image_eq_preimage_of_inverse neg_neg neg_neg).symm
 

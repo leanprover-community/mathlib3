@@ -48,11 +48,11 @@ Here are the metatheorems we provide:
 * If `f` is a morphism and `a, a'` are such that `f a = f a'`, then there is some
   pseudoelement `a''` such that `f a'' = 0` and for every `g` we have
   `g a' = 0 → g a = g a''`. We can think of `a''` as `a - a'`, but don't get too carried away
-  by that: Pseudoelements of an object to not form an abelian group.
+  by that: pseudoelements of an object do not form an abelian group.
 
 ## Notations
 
-We introduce coercions from an element of an abelian category to the set of its pseudoelements
+We introduce coercions from an object of an abelian category to the set of its pseudoelements
 and from a morphism to the function it induces on pseudoelements.
 
 These coercions must be explicitly enabled via local instances:
@@ -175,12 +175,12 @@ lemma pseudo_apply_bar {P Q : C} (f : P ⟶ Q) (a : over P) : f ⟦a⟧ = ⟦a.h
 rfl
 
 /-- Applying a pseudoelement to a composition of morphisms is the same as composing
-    with each morphism. Sadly, this is not a definition equality, but at least it is
+    with each morphism. Sadly, this is not a definitional equality, but at least it is
     true. -/
 theorem comp_apply {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) (a : P) : (f ≫ g) a = g (f a) :=
 quotient.induction_on a $ λ x, quotient.sound $ by { unfold app, rw [←category.assoc, coe_hom] }
 
-/-- Composition of functions on pseudoelements is composition of morphisms -/
+/-- Composition of functions on pseudoelements is composition of morphisms. -/
 theorem comp_comp {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) : g ∘ f = f ≫ g :=
 funext $ λ x, (comp_apply _ _ _).symm
 
@@ -231,7 +231,7 @@ theorem zero_apply {P : C} (Q : C) (a : P) : (0 : P ⟶ Q) a = 0 :=
 quotient.induction_on a $ λ a',
   by { rw [pseudo_zero_def, pseudo_apply_bar], simp }
 
-/-- An existentionality lemma for being the zero arrow. -/
+/-- An extensionality lemma for being the zero arrow. -/
 @[ext] theorem zero_morphism_ext {P Q : C} (f : P ⟶ Q) : (∀ a, f a = 0) → f = 0 :=
 λ h, by { rw ←category.id_comp f,
   apply (pseudo_zero_iff ((𝟙 P ≫ f) : over Q)).1,

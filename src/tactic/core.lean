@@ -1163,7 +1163,8 @@ meta def mk_local_pis_whnf (e : expr) (md := semireducible) : tactic (list expr 
   return ((p :: ps), r)
 
 /-- Given `α : Sort u`, `nonemp : nonempty α`, `p : α → Prop`, a context of local variables
-`ctxt`, and a pair of an element `val : α` and `spec : p val`, produce another pair `val', spec'`
+`ctxt`, and a pair of an element `val : α` and `spec : p val`, 
+`mk_sometimes u α nonemp p ctx (val, spec)` produces another pair `val', spec'`
 such that `val'` does not have any free variables from elements of `ctxt` whose types are
 propositions. This is done by applying `function.sometimes` to abstract over all the propositional
 arguments. -/

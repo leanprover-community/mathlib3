@@ -33,8 +33,12 @@ attribute [simp] cast_eq
 
 variables {α : Type*} {β : Type*}
 
+/-- An identity function with its main argument implicit. This will be printed as `hidden` even
+if it is applied to a large term, so it can be used for elision,
+as done in the `elide` and `unelide` tactics. -/
 @[reducible] def hidden {α : Sort*} {a : α} := a
 
+/-- Ex falso, the nondependent eliminator for the `empty` type. -/
 def empty.elim {C : Sort*} : empty → C.
 
 instance : subsingleton empty := ⟨λa, a.elim⟩
@@ -111,6 +115,7 @@ library_note "function coercion"
 @[derive decidable_eq]
 inductive {u} pempty : Sort u
 
+/-- Ex falso, the nondependent eliminator for the `pempty` type. -/
 def pempty.elim {C : Sort*} : pempty → C.
 
 instance subsingleton_pempty : subsingleton pempty := ⟨λa, a.elim⟩
@@ -210,6 +215,8 @@ iff_true_intro $ λ_, trivial
 
 /-! ### Declarations about `not` -/
 
+/-- Ex falso for negation. From `¬ a` and `a` anything follows. This is the same as `absurd` with
+the arguments flipped, but it is in the `not` namespace so that projection notation can be used. -/
 def not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
 
 @[reducible] theorem not.imp {a b : Prop} (H2 : ¬b) (H1 : a → b) : ¬a := mt H1 H2
@@ -401,9 +408,9 @@ theorem not_imp_of_and_not : a ∧ ¬ b → ¬ (a → b)
 | ⟨ha, hb⟩ h := hb $ h ha
 
 protected theorem decidable.not_imp [decidable a] : ¬(a → b) ↔ a ∧ ¬b :=
-⟨λ h, ⟨of_not_imp h, not_of_not_imp h⟩, not_imp_of_and_not⟩
+⟨λ h, ⟨decidable.of_not_imp h, not_of_not_imp h⟩, not_imp_of_and_not⟩
 
-@[simp] theorem not_imp : ¬(a → b) ↔ a ∧ ¬b := decidable.not_imp
+theorem not_imp : ¬(a → b) ↔ a ∧ ¬b := decidable.not_imp
 
 -- for monotonicity
 lemma imp_imp_imp (h₀ : c → a) (h₁ : b → d) : (a → b) → (c → d) :=
@@ -460,12 +467,20 @@ protected theorem decidable.not_and_not_right [decidable b] : ¬(a ∧ ¬b) ↔ 
 
 theorem not_and_not_right : ¬(a ∧ ¬b) ↔ (a → b) := decidable.not_and_not_right
 
+/-- Transfer decidability of `a` to decidability of `b`, if the propositions are equivalent.
+**Important**: this function should be used instead of `rw` on `decidable b`, because the
+kernel will get stuck reducing the usage of `propext` otherwise,
+and `dec_trivial` will not work. -/
 @[inline] def decidable_of_iff (a : Prop) (h : a ↔ b) [D : decidable a] : decidable b :=
 decidable_of_decidable_of_iff D h
 
+/-- Transfer decidability of `b` to decidability of `a`, if the propositions are equivalent.
+This is the same as `decidable_of_iff` but the iff is flipped. -/
 @[inline] def decidable_of_iff' (b : Prop) (h : a ↔ b) [D : decidable b] : decidable a :=
 decidable_of_decidable_of_iff D h.symm
 
+/-- Prove that `a` is decidable by constructing a boolean `b` and a proof that `b ↔ a`.
+(This is sometimes taken as an alternate definition of decidability.) -/
 def decidable_of_bool : ∀ (b : bool) (h : b ↔ a), decidable a
 | tt h := is_true (h.1 rfl)
 | ff h := is_false (mt h.2 bool.ff_ne_tt)
@@ -814,6 +829,8 @@ Cf. <https://leanprover-community.github.io/archive/113488general/08268noncomput
 -/
 library_note "classical lemma"
 
+/-- Construct a function from a default value `H0`, and a function to use if there exists a value
+satisfying the predicate. -/
 @[elab_as_eliminator]
 noncomputable def {u} exists_cases {C : Sort u} (H0 : C) (H : ∀ a, p a → C) : C :=
 if h : ∃ a, p a then H (classical.some h) (classical.some_spec h) else H0
@@ -828,6 +845,9 @@ noncomputable def subtype_of_exists {α : Type*} {P : α → Prop} (h : ∃ x, P
 
 end classical
 
+/-- This function has the same type as `exists.rec_on`, and can be used to case on an equality,
+but `exists.rec_on` can only eliminate into Prop, while this version eliminates into any universe
+using the axiom of choice. -/
 @[elab_as_eliminator]
 noncomputable def {u} exists.classical_rec_on
  {α} {p : α → Prop} (h : ∃ a, p a) {C : Sort u} (H : ∀ a, p a → C) : C :=

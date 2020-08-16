@@ -318,8 +318,10 @@ attribute [nolint decidable_classical] dec_em
   decidable.not_iff
   decidable.iff_not_comm
   decidable.iff_iff_and_or_not_and_not
+  decidable.iff_iff_not_or_and_or_not
   decidable.not_and_not_right
   decidable.not_and_distrib
+  decidable.not_and_distrib'
   decidable.or_iff_not_and_not
   decidable.and_iff_not_or_not
   decidable.not_forall

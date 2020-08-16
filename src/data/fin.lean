@@ -372,6 +372,8 @@ end
 @[simp] lemma lt_succ : a.cast_succ < a.succ :=
 by { rw [cast_succ, lt_iff_val_lt_val, cast_add_val, succ_val], exact lt_add_one a.val }
 
+@[simp] lemma pred_one {n : ℕ} : fin.pred (1 : fin (n + 2)) (zero_ne_one.symm) = 0 := rfl
+
 /-- `min n m` as an element of `fin (m + 1)` -/
 def clamp (n m : ℕ) : fin (m + 1) := fin.of_nat $ min n m
 
@@ -387,6 +389,8 @@ cast_le_injective (le_add_right n 1)
 @[simp] lemma succ_above_below (p : fin (n + 1)) (i : fin n) (h : i.val < p.val) :
   p.succ_above i = i.cast_succ :=
 by { rw [fin.succ_above], split_ifs, refl }
+
+@[simp] lemma succ_above_zero (i : fin n) : succ_above 0 i = i.succ := rfl
 
 @[simp] lemma succ_above_above (p : fin (n + 1)) (i : fin n) (h : p.val ≤ i.val) :
   p.succ_above i = i.succ :=

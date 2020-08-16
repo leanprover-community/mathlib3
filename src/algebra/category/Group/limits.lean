@@ -187,14 +187,10 @@ instance forget₂_Group_preserves_limits : preserves_limits (forget₂ CommGrou
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F, by apply_instance } }
 
-/--
-An auxiliary declaration to speed up typechecking.
--/
-@[to_additive AddCommGroup.forget₂_AddCommMon_preserves_limits_aux
-  "An auxiliary declaration to speed up typechecking."]
-def forget₂_CommMon_preserves_limits_aux (F : J ⥤ CommGroup) :
-  is_limit ((forget₂ CommGroup CommMon).map_cone (limit.cone F)) :=
-is_limit.of_iso_limit (limit.is_limit _) sorry
+@[to_additive AddCommGroup.forget₂_AddMon_comp_forget₂_AddMon_preserves_limit]
+instance forget₂_CommMon_comp_forget₂_Mon_preserves_limit {F : J ⥤ CommGroup} :
+  preserves_limit F (forget₂ CommGroup CommMon ⋙ forget₂ CommMon Mon) :=
+show preserves_limit F (forget₂ CommGroup Group ⋙ forget₂ Group Mon), by apply_instance
 
 /--
 The forgetful functor from commutative groups to commutative monoids preserves all limits.
@@ -204,9 +200,8 @@ in the category of commutative monoids.)
 @[to_additive AddCommGroup.forget₂_AddCommMon_preserves_limits]
 instance forget₂_CommMon_preserves_limits : preserves_limits (forget₂ CommGroup CommMon) :=
 { preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F,
-    by exactI preserves_limit_of_preserves_limit_cone
-      (limit.is_limit F) (forget₂_CommMon_preserves_limits_aux F) } }
+  { preserves_limit := λ F, by exactI
+      preserves_of_reflects_of_preserves (forget₂ CommGroup CommMon) (forget₂ CommMon Mon) } }
 
 /--
 The forgetful functor from commutative groups to types preserves all limits. (That is, the underlying

@@ -360,7 +360,7 @@ prod.map id list.reverse <$> (collect_struct' e).run []
 
 meta def refine_one (str : structure_instance_info) :
   tactic $ list (expr×structure_instance_info) :=
-do    tgt ← target,
+do    tgt ← target >>= whnf,
       let struct_n : name := tgt.get_app_fn.const_name,
       exp_fields ← expanded_field_list struct_n,
       let missing_f := exp_fields.filter (λ f, (f.2 : name) ∉ str.field_names),

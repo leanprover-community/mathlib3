@@ -524,7 +524,7 @@ meta def revert_deps (e : expr) : tactic ℕ := do
 meta def is_local_def (e : expr) : tactic unit :=
 retrieve $ do revert e, expr.elet _ _ _ _ ← target, skip
 
-/-- like `split_on_p p xs`, `partition_local_deps_aux vs xs acc` searches for matches in `xs` 
+/-- like `split_on_p p xs`, `partition_local_deps_aux vs xs acc` searches for matches in `xs`
 (using membership to `vs` instead of a predicate) and breaks `xs` when matches are found.
 whereas `split_on_p p xs` removes the matches, `partition_local_deps_aux vs xs acc` includes
 them in the following partition. Also, `partition_local_deps_aux vs xs acc` discards the partition
@@ -716,7 +716,14 @@ The names in `instances` are the projections from `struct_n` to the structures t
 The names in `fields` are the standard fields of `struct_n`. -/
 meta def subobject_names (struct_n : name) : tactic (list name × list name) :=
 do env ← get_env,
-   [c] ← pure $ env.constructors_of struct_n | fail "too many constructors",
+   c ← match env.constructors_of struct_n with
+       | [c] := pure c
+       | [] :=
+         if env.is_inductive struct_n
+           then fail format!"{struct_n} does not have constructors"
+           else fail format!"{struct_n} is not an inductive type"
+       | _ := fail "too many constructors"
+       end,
    vs  ← var_names <$> (mk_const c >>= infer_type),
    fields ← env.structure_fields struct_n,
    return $ fields.partition (λ fn, ↑("_" ++ fn.to_string) ∈ vs)
@@ -731,7 +738,9 @@ open functor function
 
 /-- `expanded_field_list struct_n` produces a list of the names of the fields of the structure
 named `struct_n`. These are returned as pairs of names `(prefix, name)`, where the full name
-of the projection is `prefix.name`. -/
+of the projection is `prefix.name`.
+
+`struct_n` cannot be a synonym for a `structure`, it must be itself a `structure` -/
 meta def expanded_field_list (struct_n : name) : tactic (list $ name × name) :=
 dlist.to_list <$> expanded_field_list' struct_n
 
@@ -1162,7 +1171,7 @@ p ← mk_local' n bi d,
 return ((p :: ps), r)
 
 /-- Changes `(h : ∀xs, ∃a:α, p a) ⊢ g` to `(d : ∀xs, a) (s : ∀xs, p (d xs) ⊢ g` and
- `(h : ∀xs, p xs ∧ q xs) ⊢ g` to `(d : ∀xs, p xs) (s : ∀xs, q xs) ⊢ g` 
+ `(h : ∀xs, p xs ∧ q xs) ⊢ g` to `(d : ∀xs, p xs) (s : ∀xs, q xs) ⊢ g`
  `choose1` returns the second local constant it introduces. -/
 meta def choose1 (h : expr) (data : name) (spec : name) : tactic expr := do
   t ← infer_type h,

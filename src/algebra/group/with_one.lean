@@ -128,7 +128,7 @@ instance [has_mul α] : mul_zero_class (with_zero α) :=
   ..with_zero.has_zero }
 
 @[simp, norm_cast] lemma coe_mul {α : Type u} [has_mul α]
-  {a b : α} : ((a * b : α) : with_zero α) = (a : with_zero α) * b := rfl
+  {a b : α} : ((a * b : α) : with_zero α) = a * b := rfl
 
 @[simp] lemma zero_mul {α : Type u} [has_mul α]
   (a : with_zero α) : 0 * a = 0 := rfl

@@ -417,8 +417,9 @@ mul_left_mono.map_max
 lemma mul_eq_mul_left : a ≠ 0 → a ≠ ⊤ → (a * b = a * c ↔ b = c) :=
 begin
   cases a; cases b; cases c;
-    simp [none_eq_top, some_eq_coe, mul_top, top_mul, -coe_mul, coe_mul.symm,
-      nnreal.mul_eq_mul_left] {contextual := tt},
+    simp [none_eq_top, some_eq_coe, mul_top, top_mul, -coe_mul,
+      -with_zero.coe_mul, with_zero.coe_mul.symm, coe_mul.symm,
+      nnreal.mul_eq_mul_left] {contextual := tt}
 end
 
 lemma mul_eq_mul_right : c ≠ 0 → c ≠ ∞ → (a * c = b * c ↔ a = b) :=
@@ -427,7 +428,8 @@ mul_comm c a ▸ mul_comm c b ▸ mul_eq_mul_left
 lemma mul_le_mul_left : a ≠ 0 → a ≠ ⊤ → (a * b ≤ a * c ↔ b ≤ c) :=
 begin
   cases a; cases b; cases c;
-    simp [none_eq_top, some_eq_coe, mul_top, top_mul, -coe_mul, coe_mul.symm] {contextual := tt},
+    simp [none_eq_top, some_eq_coe, mul_top, top_mul, -coe_mul, coe_mul.symm,
+    -with_zero.coe_mul, with_zero.coe_mul.symm] {contextual := tt},
   assume h, exact mul_le_mul_left (zero_lt_iff_ne_zero.2 h)
 end
 
@@ -721,7 +723,7 @@ bot_unique $ le_of_forall_le_of_dense $ λ a (h : a > 0), Inf_le $ by simp [*, n
 le_antisymm
   (le_Inf $ assume b (hb : 1 ≤ ↑r * b), coe_le_iff.2 $
     by rintros b rfl; rwa [← coe_mul, ← coe_one, coe_le_coe, ← nnreal.inv_le hr] at hb)
-  (Inf_le $ by simp; rw [← coe_mul, nnreal.mul_inv_cancel hr]; exact le_refl 1)
+  (Inf_le $ show (1 : ennreal) ≤ _, by rw [← coe_mul, nnreal.mul_inv_cancel hr]; exact le_refl 1)
 
 lemma coe_inv_le :  (↑r⁻¹ : ennreal) ≤ (↑r)⁻¹ :=
 if hr : r = 0 then by simp only [hr, nnreal.inv_zero, inv_zero, coe_zero, zero_le]
@@ -750,8 +752,8 @@ begin
 end
 
 @[simp] lemma inv_inv : (a⁻¹)⁻¹ = a :=
-by by_cases a = 0; cases a; simp [*, none_eq_top, some_eq_coe,
-  -coe_inv, (coe_inv _).symm] at *
+by {by_cases a = 0; cases a; simp [*, none_eq_top, some_eq_coe,
+  -coe_inv, (coe_inv _).symm, -with_zero.coe_inv, (with_zero.coe_inv _).symm] at * }
 
 lemma inv_involutive : function.involutive (λ a:ennreal, a⁻¹) :=
 λ a, ennreal.inv_inv
@@ -875,7 +877,8 @@ by { contrapose! h, exact ennreal.div_le_of_le_mul h }
 lemma inv_le_iff_le_mul : (b = ⊤ → a ≠ 0) → (a = ⊤ → b ≠ 0) → (a⁻¹ ≤ b ↔ 1 ≤ a * b) :=
 begin
   cases a; cases b; simp [none_eq_top, some_eq_coe, mul_top, top_mul] {contextual := tt},
-  by_cases a = 0; simp [*, -coe_mul, coe_mul.symm, -coe_inv, (coe_inv _).symm, nnreal.inv_le]
+  by_cases a = 0; simp [*, -coe_mul, coe_mul.symm, -with_zero.coe_mul, with_zero.coe_mul.symm,
+    -coe_inv, (coe_inv _).symm, -with_zero.coe_inv, (with_zero.coe_inv _).symm, nnreal.inv_le]
 end
 
 @[simp] lemma le_inv_iff_mul_le : a ≤ b⁻¹ ↔ a * b ≤ 1 :=

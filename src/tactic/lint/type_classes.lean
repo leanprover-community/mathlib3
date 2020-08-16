@@ -277,6 +277,7 @@ do tt ← is_prop d.type | return none,
 elsewhere in the type. In this case, that hypothesis can be replaced with `classical` in the proof. -/
 private meta def decidable_classical (d : declaration) : tactic (option string) :=
 do tt ← is_prop d.type | return none,
+   ff ← pure $ (`decidable).is_prefix_of d.to_name | return none,
    (binders, _) ← get_pi_binders_dep d.type,
    let deceq_binders := binders.filter $ λ pr, pr.2.type.is_app_of `decidable_eq
      ∨ pr.2.type.is_app_of `decidable_pred ∨ pr.2.type.is_app_of `decidable_rel
@@ -296,39 +297,7 @@ do tt ← is_prop d.type | return none,
 /- The file `logic/basic.lean` emphasizes the differences between what holds under classical
 and non-classical logic. It makes little sense to make all these lemmas classical, so we add them
 to the list of lemmas which are not checked by the linter `decidable_classical`. -/
-attribute [nolint decidable_classical] dec_em
-  decidable.by_contradiction
-  decidable.not_not
-  decidable.of_not_not
-  decidable.of_not_imp
-  not.decidable_imp_symm
-  decidable.not_imp_symm
-  decidable.not_imp_comm
-  decidable.or_iff_not_imp_left
-  decidable.or_iff_not_imp_right
-  decidable.not_imp_not
-  decidable.not_or_of_imp
-  decidable.imp_iff_not_or
-  decidable.imp_or_distrib
-  decidable.imp_or_distrib'
-  decidable.not_imp
-  decidable.peirce
-  decidable.not_iff_not
-  decidable.not_iff_comm
-  decidable.not_iff
-  decidable.iff_not_comm
-  decidable.iff_iff_and_or_not_and_not
-  decidable.iff_iff_not_or_and_or_not
-  decidable.not_and_not_right
-  decidable.not_and_distrib
-  decidable.not_and_distrib'
-  decidable.or_iff_not_and_not
-  decidable.and_iff_not_or_not
-  decidable.not_forall
-  decidable.not_forall_not
-  decidable.forall_or_distrib_left
-  decidable.forall_or_distrib_right
-  decidable.not_ball
+attribute [nolint decidable_classical] dec_em not.decidable_imp_symm
 
 private meta def has_coe_to_fun_linter (d : declaration) : tactic (option string) :=
 retrieve $ do

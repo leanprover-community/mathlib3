@@ -202,16 +202,16 @@ calc  c
 
 namespace decidable
 
-@[nolint decidable_classical] -- See Note [decidable namespace]
+-- See Note [decidable namespace]
 lemma lt_or_eq_of_le [partial_order α] [@decidable_rel α (≤)] {a b : α} (hab : a ≤ b) : a < b ∨ a = b :=
 if hba : b ≤ a then or.inr (le_antisymm hab hba)
 else or.inl (lt_of_le_not_le hab hba)
 
-@[nolint decidable_classical] -- See Note [decidable namespace]
+-- See Note [decidable namespace]
 lemma eq_or_lt_of_le [partial_order α] [@decidable_rel α (≤)] {a b : α} (hab : a ≤ b) : a = b ∨ a < b :=
 (lt_or_eq_of_le hab).swap
 
-@[nolint decidable_classical] -- See Note [decidable namespace]
+-- See Note [decidable namespace]
 lemma le_iff_lt_or_eq [partial_order α] [@decidable_rel α (≤)] {a b : α} : a ≤ b ↔ a < b ∨ a = b :=
 ⟨lt_or_eq_of_le, le_of_lt_or_eq⟩
 

@@ -10,7 +10,7 @@ import data.equiv.basic
 import tactic.interactive
 
 /-!
-# uLiftable Class
+# Universe lifting for type families
 
 Some functors such as `option` and `list` are universe polymorphic. Unlike
 type polymorphism where `option α` is a function application and reasoning and
@@ -80,11 +80,13 @@ down (functor.map (ulift.up ∘ f) x : F (ulift β))
 
 @[simp]
 lemma up_down  {f : Type u₀ → Type u₁} {g : Type (max u₀ v₀) → Type v₁} [uliftable f g]
-  {α} (x : g (ulift α)) : up (down x : f α) = x := (uliftable.congr f g equiv.ulift.symm).right_inv _
+  {α} (x : g (ulift α)) : up (down x : f α) = x :=
+(uliftable.congr f g equiv.ulift.symm).right_inv _
 
 @[simp]
 lemma down_up  {f : Type u₀ → Type u₁} {g : Type (max u₀ v₀) → Type v₁} [uliftable f g]
-  {α} (x : f α) : down (up x : g _) = x := (uliftable.congr f g equiv.ulift.symm).left_inv _
+  {α} (x : f α) : down (up x : g _) = x :=
+(uliftable.congr f g equiv.ulift.symm).left_inv _
 
 end uliftable
 

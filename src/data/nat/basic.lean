@@ -1675,8 +1675,7 @@ by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_t
          decreasing_induction_succ'] }
 
 /-- `log b n`, is the logarithm of natural number
-`n` in base `b`. If `n` is not a power of `b`, it returns the
-largest `k:ℕ` such that `b^k ≤ n`. -/
+`n` in base `b`. It returns the largest `k:ℕ` such that `b^k ≤ n`, so if `b^k = n`, it returns exactly `k`. -/
 def log (b : ℕ) : ℕ → ℕ
 | n :=
   if h : b ≤ n ∧ 1 < b then

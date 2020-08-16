@@ -104,31 +104,44 @@ lemma sub (hfm : measurable f) (hfi : interval_integrable f μ a b)
 
 end interval_integrable
 
--- TODO: rewrite docstring
-/-- If `f : α → E` has a finite limit at `l ⊓ μ.ae`, where `l` is a measurably generated interval
-generated filter and `μ` is a measure finite at this filter, then `f` is interval integrable
-with respect to `μ` on `u..v` as both `u` and `v` tend to `l`. -/
+/-- Let `l'` be a measurably generated filter; let `l` be a of filter such that each `s ∈ l'`
+eventually includes `Ioc u v` as both `u` and `v` tend to `l`. Let `μ` be a measure finite at `l'`.
+
+Suppose that `f : α → E` has a finite limit at `l' ⊓ μ.ae`. Then `f` is interval integrable on
+`u..v` provided that both `u` and `v` tend to `l`.
+
+Typeclass instances allow Lean to find `l'` based on `l` but not vice versa, so
+`apply tendsto.eventually_interval_integrable_ae` will generate goals `filter α` and
+`tendsto_Ixx_class Ioc ?m_1 l'`. -/
 lemma filter.tendsto.eventually_interval_integrable_ae {f : α → E} {μ : measure α}
   {l l' : filter α} [tendsto_Ixx_class Ioc l l'] [is_measurably_generated l']
   (hμ : μ.finite_at_filter l') {c : E} (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c))
-  {u v : β → α} {lb : filter β} (hu : tendsto u lb l) (hv : tendsto v lb l) :
-  ∀ᶠ t in lb, interval_integrable f μ (u t) (v t) :=
+  {u v : β → α} {lt : filter β} (hu : tendsto u lt l) (hv : tendsto v lt l) :
+  ∀ᶠ t in lt, interval_integrable f μ (u t) (v t) :=
 have _ := (hf.integrable_at_filter_ae hμ).eventually,
 ((hu.Ioc hv).eventually this).and $ (hv.Ioc hu).eventually this
 
--- TODO: rewrite docstring
-/-- If `f : α → E` has a finite limit at a measurably generated interval generated filter `l`
-and `μ` is a measure finite at this filter, then `f` is interval integrable with respect
-to `μ` on `u..v` as both `u` and `v` tend to `l`. -/
+/-- Let `l'` be a measurably generated filter; let `l` be a of filter such that each `s ∈ l'`
+eventually includes `Ioc u v` as both `u` and `v` tend to `l`. Let `μ` be a measure finite at `l'`.
+
+Suppose that `f : α → E` has a finite limit at `l`. Then `f` is interval integrable on `u..v`
+provided that both `u` and `v` tend to `l`.
+
+Typeclass instances allow Lean to find `l'` based on `l` but not vice versa, so
+`apply tendsto.eventually_interval_integrable_ae` will generate goals `filter α` and
+`tendsto_Ixx_class Ioc ?m_1 l'`. -/
 lemma filter.tendsto.eventually_interval_integrable {f : α → E} {μ : measure α}
   {l l' : filter α} [tendsto_Ixx_class Ioc l l'] [is_measurably_generated l']
   (hμ : μ.finite_at_filter l') {c : E} (hf : tendsto f l' (𝓝 c))
-  {u v : β → α} {lb : filter β} (hu : tendsto u lb l) (hv : tendsto v lb l) :
-  ∀ᶠ t in lb, interval_integrable f μ (u t) (v t) :=
+  {u v : β → α} {lt : filter β} (hu : tendsto u lt l) (hv : tendsto v lt l) :
+  ∀ᶠ t in lt, interval_integrable f μ (u t) (v t) :=
 (tendsto_le_left (inf_le_left : l' ⊓ μ.ae ≤ l') hf).eventually_interval_integrable_ae hμ hu hv
 
 /-!
 ### Interval integral: definition and basic properties
+
+In this section we define `∫ x in a..b, f x ∂μ` as `∫ x in Ioc a b, f x ∂μ - ∫ x in Ioc b a, f x ∂μ`
+and prove some basic properties.
 -/
 
 variables [second_countable_topology E] [complete_space E] [normed_space ℝ E]
@@ -230,7 +243,7 @@ by simp only [integral_const', real.volume_Ioc, ennreal.to_real_of_real', ← ne
   max_zero_sub_eq_self]
 
 /-!
-### Additivity in intervals
+### Integral is an additive function of the interval
 
 In this section we prove that `∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ = ∫ x in a..c, f x ∂μ`
 as well as a few other identities trivially equivalent to this one.
@@ -313,11 +326,11 @@ end
 ### Fundamental theorem of calculus, part 1, for any measure
 
 In this section we prove a few lemmas that can be seen as versions of FTC-1 for interval integral
-w.r.t. any measure. Many theorems are formulated for any measurably generated interval generated
-filter `l` such that `pure b ≤ l ≤ 𝓝 b`. In the most interesting case `α = ℝ`, there are only four
-filters with these properties: `pure b`, `𝓝[Ici b] b`, `𝓝[Iic b] b`, and `𝓝 b`. For `pure b` most
-of these theorems are trivial; we use `filter` versions to avoid repeating the same arguments for
-the other three filters.
+w.r.t. any measure. Many theorems are formulated for one or two pairs of filter related by
+`FTC_filter a l l'`. This typeclass has exactly four instances: `(a, pure a, ⊥)`,
+`(a, 𝓝[Ici a] a, 𝓝[Ioi a] a)`, `(a, 𝓝[Iic a] a, 𝓝[Iic a] a)`, and `(a, 𝓝 a, 𝓝 a)`.
+We use this approach to avoid repeating arguments in many very similar cases.
+Lean can automatically find both `a` and `l'` based on `l`.
 
 The most general theorem `measure_integral_sub_linear_is_o_of_tendsto_ae` says
 that `∫ x in u t..v t, f x ∂μ = ∫ x in u t..v t, c ∂μ + o(∫ x in u t..v t, 1 ∂μ)` provided that both
@@ -339,10 +352,9 @@ to `c` as `x` tends to `l ⊓ μ.ae` then
 as `u` and `v` tend to `l`.
 -/
 
-/-- An auxiliary typeclass for the Fundamental theorem of calculus, part 1. FTC-1 states that
-`∫ x in a..b, f x` is differentiable both in `a` and `b` provided that `f` is (almost surely)
-continuous at the endpoints.  For each endpoint it makes sense to take the usual limit,
-a one-sided limit, or freeze this endpoint. -/
+/-- An auxiliary typeclass for the Fundamental theorem of calculus, part 1. There are four
+instances: `(a, pure a, ⊥)`, `(a, 𝓝[Ici a], 𝓝[Ioi a])`, `(a, 𝓝[Iic a], 𝓝[Iic a])`, and
+`(a, 𝓝 a, 𝓝 a)`. -/
 class FTC_filter {β : Type*} [linear_order β] [measurable_space β] [topological_space β]
   (a : out_param β) (outer : filter β) (inner : out_param $ filter β)
   extends tendsto_Ixx_class Ioc outer inner : Prop :=
@@ -389,10 +401,15 @@ variables {f : α → E} {a b : α} {c ca cb : E} {l l' la la' lb lb' : filter �
   {μ : measure α} {u v ua va ub vb : β → α}
 
 /-- Fundamental theorem of calculus-1, local version for any measure.
-If `f` has a finite limit `c` at `l ⊓ μ.ae`, where `l` is a measurably generated interval
-generated filter (e.g., `𝓝 a`, `𝓝[Ici a] a`, `𝓝[Iic a] a`, or `at_top`) and `μ` is a measure
-finite at `l`, then `∫ x in u..v, f x ∂μ = ∫ x in u..v, c ∂μ + o(∫ x in u..v, 1 ∂μ)` as both
+Let filters `l` and `l'` be related by `tendsto_Ixx_class Ioc`.
+If `f` has a finite limit `c` at `l' ⊓ μ.ae`, where `μ` is a measure
+finite at `l'`, then `∫ x in u..v, f x ∂μ = ∫ x in u..v, c ∂μ + o(∫ x in u..v, 1 ∂μ)` as both
 `u` and `v` tend to `l`.
+
+See also `measure_integral_sub_linear_is_o_of_tendsto_ae` for a version assuming
+`[FTC_filter a l l']` and `[locally_finite_measure μ]`. If `l` is one of `𝓝[Ici a] a`,
+`𝓝[Iic a] a`, `𝓝 a`, then it's easier to apply the non-primed version.
+The primed version also works, e.g., for `l = l' = at_top`.
 
 We use integrals of constants instead of measures because this way it is easier to formulate
 a statement that works in both cases `u ≤ v` and `v ≤ u`. -/
@@ -413,6 +430,16 @@ begin
   all_goals { intro t, cases le_total (u t) (v t) with huv huv; simp [huv] }
 end
 
+/-- Fundamental theorem of calculus-1, local version for any measure.
+Let filters `l` and `l'` be related by `tendsto_Ixx_class Ioc`.
+If `f` has a finite limit `c` at `l ⊓ μ.ae`, where `μ` is a measure
+finite at `l`, then `∫ x in u..v, f x ∂μ = μ (Ioc u v) • c + o(μ(Ioc u v))` as both
+`u` and `v` tend to `l` so that `u ≤ v`.
+
+See also `measure_integral_sub_linear_is_o_of_tendsto_ae_of_le` for a version assuming
+`[FTC_filter a l l']` and `[locally_finite_measure μ]`. If `l` is one of `𝓝[Ici a] a`,
+`𝓝[Iic a] a`, `𝓝 a`, then it's easier to apply the non-primed version.
+The primed version also works, e.g., for `l = l' = at_top`. -/
 lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_le'
   [is_measurably_generated l'] [tendsto_Ixx_class Ioc l l']
   (hfm : measurable f) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c)) (hl : μ.finite_at_filter l')
@@ -423,6 +450,16 @@ lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_le'
   (huv.mono $ λ x hx, by simp [integral_const', hx])
   (huv.mono $ λ x hx, by simp [integral_const', hx])
 
+/-- Fundamental theorem of calculus-1, local version for any measure.
+Let filters `l` and `l'` be related by `tendsto_Ixx_class Ioc`.
+If `f` has a finite limit `c` at `l ⊓ μ.ae`, where `μ` is a measure
+finite at `l`, then `∫ x in u..v, f x ∂μ = -μ (Ioc v u) • c + o(μ(Ioc v u))` as both
+`u` and `v` tend to `l` so that `v ≤ u`.
+
+See also `measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge` for a version assuming
+`[FTC_filter a l l']` and `[locally_finite_measure μ]`. If `l` is one of `𝓝[Ici a] a`,
+`𝓝[Iic a] a`, `𝓝 a`, then it's easier to apply the non-primed version.
+The primed version also works, e.g., for `l = l' = at_top`. -/
 lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge'
   [is_measurably_generated l'] [tendsto_Ixx_class Ioc l l']
   (hfm : measurable f) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c)) (hl : μ.finite_at_filter l')
@@ -442,12 +479,29 @@ include a
 
 local attribute [instance] FTC_filter.meas_gen
 
+/-- Fundamental theorem of calculus-1, local version for any measure.
+Let filters `l` and `l'` be related by `[FTC_filter a l l']`; let `μ` be a locally finite measure.
+If `f` has a finite limit `c` at `l' ⊓ μ.ae`, then
+`∫ x in u..v, f x ∂μ = ∫ x in u..v, c ∂μ + o(∫ x in u..v, 1 ∂μ)` as both `u` and `v` tend to `l`.
+
+See also `measure_integral_sub_linear_is_o_of_tendsto_ae'` for a version that also works, e.g., for
+`l = l' = at_top`.
+
+We use integrals of constants instead of measures because this way it is easier to formulate
+a statement that works in both cases `u ≤ v` and `v ≤ u`. -/
 lemma measure_integral_sub_linear_is_o_of_tendsto_ae (hfm : measurable f)
   (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c)) (hu : tendsto u lt l) (hv : tendsto v lt l) :
   is_o (λ t, ∫ x in u t..v t, f x ∂μ - ∫ x in u t..v t, c ∂μ)
     (λ t, ∫ x in u t..v t, (1:ℝ) ∂μ) lt :=
 measure_integral_sub_linear_is_o_of_tendsto_ae' hfm hf (FTC_filter.finite_at_inner l) hu hv
 
+/-- Fundamental theorem of calculus-1, local version for any measure.
+Let filters `l` and `l'` be related by `[FTC_filter a l l']`; let `μ` be a locally finite measure.
+If `f` has a finite limit `c` at `l' ⊓ μ.ae`, then
+`∫ x in u..v, f x ∂μ = μ (Ioc u v) • c + o(μ(Ioc u v))` as both `u` and `v` tend to `l`.
+
+See also `measure_integral_sub_linear_is_o_of_tendsto_ae_of_le'` for a version that also works,
+e.g., for `l = l' = at_top`. -/
 lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_le
   (hfm : measurable f) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c))
   (hu : tendsto u lt l) (hv : tendsto v lt l) (huv : u ≤ᶠ[lt] v) :
@@ -455,6 +509,13 @@ lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_le
     (λ t, (μ $ Ioc (u t) (v t)).to_real) lt :=
 measure_integral_sub_linear_is_o_of_tendsto_ae_of_le' hfm hf (FTC_filter.finite_at_inner l) hu hv huv
 
+/-- Fundamental theorem of calculus-1, local version for any measure.
+Let filters `l` and `l'` be related by `[FTC_filter a l l']`; let `μ` be a locally finite measure.
+If `f` has a finite limit `c` at `l' ⊓ μ.ae`, then
+`∫ x in u..v, f x ∂μ = -μ (Ioc v u) • c + o(μ(Ioc v u))` as both `u` and `v` tend to `l`.
+
+See also `measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge'` for a version that also works,
+e.g., for `l = l' = at_top`. -/
 lemma measure_integral_sub_linear_is_o_of_tendsto_ae_of_ge
   (hfm : measurable f) (hf : tendsto f (l' ⊓ μ.ae) (𝓝 c))
   (hu : tendsto u lt l) (hv : tendsto v lt l) (huv : v ≤ᶠ[lt] u) :
@@ -466,24 +527,24 @@ end
 
 variables [order_topology α] [borel_space α]
 
-/-- Fundamental theorem of calculus-1, strict derivative in both limits for any measure.
-Let `f` be a measurable function integrable on `a..b`.
-Let `la`, `pure a ≤ la ≤ 𝓝 a`, be a measurably generated interval generated filter such that
-`μ` is finite at `la` and `f x` has a finite limit `ca` almost surely at `la`.
-Let `lb`, `pure b ≤ lb ≤ 𝓝 b`, be a measurably generated interval generated filter such that
-`μ` is finite at `lb` and `f x` has a finite limit `cb` almost surely at `lb`.
-Then
-`∫ x in va t..vb t, f x ∂μ - ∫ x in ua t..ub t, f x ∂μ =
-  ∫ x in ub t..vb t, cb ∂μ - ∫ x in ua t..va t, ca ∂μ +
-    o(∥∫ x in ua t..va t, (1:ℝ) ∂μ∥ + ∥∫ x in ub t..vb t, (1:ℝ) ∂μ∥)`
+local attribute [instance] FTC_filter.meas_gen
+
+variables [FTC_filter a la la'] [FTC_filter b lb lb'] [locally_finite_measure μ]
+
+/-- Fundamental theorem of calculus-1, strict derivative in both limits for a locally finite
+measure.
+
+Let `f` be a measurable function integrable on `a..b`. Let `(la, la')` be a pair of `FTC_filter`s
+around `a`; let `(lb, lb')` be a pair of `FTC_filter`s around `b`. Suppose that `f` has finite
+limits `ca` and `cb` at `la' ⊓ μ.ae` and `lb' ⊓ μ.ae`, respectively.
+Then `∫ x in va..vb, f x ∂μ - ∫ x in ua..ub, f x ∂μ =
+  ∫ x in ub..vb, cb ∂μ - ∫ x in ua..va, ca ∂μ +
+    o(∥∫ x in ua..va, (1:ℝ) ∂μ∥ + ∥∫ x in ub..vb, (1:ℝ) ∂μ∥)`
 as `ua` and `va` tend to `la` while `ub` and `vb` tend to `lb`.
- -/
-lemma measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae'
-  [tendsto_Ixx_class Ioc la la'] [is_measurably_generated la']
-  [tendsto_Ixx_class Ioc lb lb'] [is_measurably_generated lb']
+-/
+lemma measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae
   (hfm : measurable f) (hab : interval_integrable f μ a b)
-  (ha_lim : tendsto f (la' ⊓ μ.ae) (𝓝 ca)) (ha_fin : μ.finite_at_filter la') (ha_le : pure a ≤ la)
-  (hb_lim : tendsto f (lb' ⊓ μ.ae) (𝓝 cb)) (hb_fin : μ.finite_at_filter lb') (hb_le : pure b ≤ lb)
+  (ha_lim : tendsto f (la' ⊓ μ.ae) (𝓝 ca)) (hb_lim : tendsto f (lb' ⊓ μ.ae) (𝓝 cb))
   (hua : tendsto ua lt la) (hva : tendsto va lt la)
   (hub : tendsto ub lt lb) (hvb : tendsto vb lt lb) :
   is_o (λ t, (∫ x in va t..vb t, f x ∂μ) - (∫ x in ua t..ub t, f x ∂μ) -
@@ -491,17 +552,19 @@ lemma measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae'
     (λ t, ∥∫ x in ua t..va t, (1:ℝ) ∂μ∥ + ∥∫ x in ub t..vb t, (1:ℝ) ∂μ∥) lt :=
 begin
   refine
-    ((measure_integral_sub_linear_is_o_of_tendsto_ae' hfm ha_lim ha_fin hua hva).neg_left.add_add
-    (measure_integral_sub_linear_is_o_of_tendsto_ae' hfm hb_lim hb_fin hub hvb)).congr'
+    ((measure_integral_sub_linear_is_o_of_tendsto_ae hfm ha_lim hua hva).neg_left.add_add
+    (measure_integral_sub_linear_is_o_of_tendsto_ae hfm hb_lim hub hvb)).congr'
       _ (eventually_eq.refl _ _),
   have A : ∀ᶠ t in lt, interval_integrable f μ (ua t) (va t) :=
-    ha_lim.eventually_interval_integrable_ae ha_fin hua hva,
+    ha_lim.eventually_interval_integrable_ae (FTC_filter.finite_at_inner la) hua hva,
   have A' : ∀ᶠ t in lt, interval_integrable f μ a (ua t) :=
-    ha_lim.eventually_interval_integrable_ae ha_fin (tendsto_le_right ha_le tendsto_const_pure) hua,
+    ha_lim.eventually_interval_integrable_ae (FTC_filter.finite_at_inner la)
+      (tendsto_le_right FTC_filter.pure_le tendsto_const_pure) hua,
   have B : ∀ᶠ t in lt, interval_integrable f μ (ub t) (vb t) :=
-    hb_lim.eventually_interval_integrable_ae hb_fin hub hvb,
+    hb_lim.eventually_interval_integrable_ae (FTC_filter.finite_at_inner lb) hub hvb,
   have B' : ∀ᶠ t in lt, interval_integrable f μ b (ub t) :=
-    hb_lim.eventually_interval_integrable_ae hb_fin (tendsto_le_right hb_le tendsto_const_pure) hub,
+    hb_lim.eventually_interval_integrable_ae (FTC_filter.finite_at_inner lb)
+      (tendsto_le_right FTC_filter.pure_le tendsto_const_pure) hub,
   filter_upwards [A, A', B, B'], simp only [mem_set_of_eq],
   intros t ua_va a_ua ub_vb b_ub,
   rw [← integral_interval_sub_interval_comm' hfm],
@@ -509,67 +572,41 @@ begin
   exacts [ub_vb, ua_va, b_ub.symm.trans $ hab.symm.trans a_ua]
 end
 
-/-- Fundamental theorem of calculus-1 for any measure.
-Let f` be a measurable function integrable on `a..b`. Let `l` be one of `pure b`, `𝓝[Iic b] b`,
-`𝓝[Ici b] b`, or `𝓝 b`. Suppose that `f x` has a finite limit `c` as `x` tends to `l ⊓ μ.ae`.
-Then `∫ x in a..v, f x ∂μ - ∫ x in a..u, f x ∂μ = ∫ x in u..v, c ∂μ + o(∫ x in u..v, 1 ∂μ)`
-as `u` and `v` tend to `l`.
+/-- Fundamental theorem of calculus-1, strict derivative in right endpoint for a locally finite
+measure.
 
-We use `pure b ≤ l ≤ 𝓝 b` together with two typeclasses as a fancy way to say
-"let `l` be one of `pure b`, `𝓝[Iic b] b`, `𝓝[Ici b] b`, or `𝓝 b`". -/
-lemma measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae_right'
-  [tendsto_Ixx_class Ioc lb lb'] [is_measurably_generated lb']
-  (hfm : measurable f) (hab : interval_integrable f μ a b)
-  (hf : tendsto f (lb' ⊓ μ.ae) (𝓝 c)) (hl : μ.finite_at_filter lb') (h_le : pure b ≤ lb)
-  (hu : tendsto u lt lb) (hv : tendsto v lt lb) :
-  is_o (λ t, ∫ x in a..v t, f x ∂μ - ∫ x in a..u t, f x ∂μ - ∫ x in u t..v t, c ∂μ)
-    (λ t, ∫ x in u t..v t, (1:ℝ) ∂μ) lt :=
-by simpa using measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae'
-  hfm hab (flip tendsto_le_left (tendsto_bot : tendsto _ ⊥ (𝓝 0)) inf_le_left)
-  μ.finite_at_bot (le_refl _) hf hl h_le tendsto_const_pure tendsto_const_pure hu hv
+Let `f` be a measurable function integrable on `a..b`. Let `(lb, lb')` be a pair of `FTC_filter`s
+around `b`. Suppose that `f` has a finite limit `c` at `lb' ⊓ μ.ae`.
 
-lemma measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae_left'
-  [tendsto_Ixx_class Ioc la la'] [is_measurably_generated la']
-  {a b} (hfm : measurable f) (hab : interval_integrable f μ a b)
-  (hf : tendsto f (la' ⊓ μ.ae) (𝓝 c)) (hl : μ.finite_at_filter la') (h_le : pure a ≤ la)
-  (hu : tendsto u lt la) (hv : tendsto v lt la) :
-  is_o (λ t, ∫ x in v t..b, f x ∂μ - ∫ x in u t..b, f x ∂μ + ∫ x in u t..v t, c ∂μ)
-    (λ t, ∫ x in u t..v t, (1:ℝ) ∂μ) lt :=
-by simpa using measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae'
-  hfm hab hf hl h_le (flip tendsto_le_left (tendsto_bot : tendsto _ ⊥ (𝓝 0)) inf_le_left)
-  μ.finite_at_bot (le_refl _) hu hv tendsto_const_pure tendsto_const_pure
-
-variables [FTC_filter a la la'] [FTC_filter b lb lb'] [locally_finite_measure μ]
-
-local attribute [instance] FTC_filter.meas_gen
-
-lemma measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae
-  (hfm : measurable f) (hab : interval_integrable f μ a b)
-  (ha : tendsto f (la' ⊓ μ.ae) (𝓝 ca)) (hb : tendsto f (lb' ⊓ μ.ae) (𝓝 cb))
-  (hua : tendsto ua lt la) (hva : tendsto va lt la)
-  (hub : tendsto ub lt lb) (hvb : tendsto vb lt lb) :
-  is_o (λ t, (∫ x in va t..vb t, f x ∂μ) - (∫ x in ua t..ub t, f x ∂μ) -
-    (∫ x in ub t..vb t, cb ∂μ - ∫ x in ua t..va t, ca ∂μ))
-    (λ t, ∥∫ x in ua t..va t, (1:ℝ) ∂μ∥ + ∥∫ x in ub t..vb t, (1:ℝ) ∂μ∥) lt :=
-measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae' hfm hab ha
-  (FTC_filter.finite_at_inner la) FTC_filter.pure_le hb (FTC_filter.finite_at_inner lb)
-  FTC_filter.pure_le hua hva hub hvb
-
+Then `∫ x in a..v, f x ∂μ - ∫ x in a..u, f x ∂μ = ∫ x in u..v, c ∂μ + o(∫ x in u..v, (1:ℝ) ∂μ)`
+as `u` and `v` tend to `lb`.
+-/
 lemma measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae_right
   (hfm : measurable f) (hab : interval_integrable f μ a b)
   (hf : tendsto f (lb' ⊓ μ.ae) (𝓝 c)) (hu : tendsto u lt lb) (hv : tendsto v lt lb) :
   is_o (λ t, ∫ x in a..v t, f x ∂μ - ∫ x in a..u t, f x ∂μ - ∫ x in u t..v t, c ∂μ)
     (λ t, ∫ x in u t..v t, (1:ℝ) ∂μ) lt :=
-measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae_right' hfm hab hf
-  (FTC_filter.finite_at_inner lb) FTC_filter.pure_le hu hv
+by simpa using measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae
+  hfm hab (flip tendsto_le_left (tendsto_bot : tendsto _ ⊥ (𝓝 0)) inf_le_left)
+  hf (tendsto_const_pure : tendsto _ _ (pure a)) tendsto_const_pure hu hv
 
+/-- Fundamental theorem of calculus-1, strict derivative in right endpoint for a locally finite
+measure.
+
+Let `f` be a measurable function integrable on `a..b`. Let `(la, la')` be a pair of `FTC_filter`s
+around `a`. Suppose that `f` has a finite limit `c` at `la' ⊓ μ.ae`.
+
+Then `∫ x in v..b, f x ∂μ - ∫ x in u..b, f x ∂μ = -∫ x in u..v, c ∂μ + o(∫ x in u..v, (1:ℝ) ∂μ)`
+as `u` and `v` tend to `la`.
+-/
 lemma measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae_left
   (hfm : measurable f) (hab : interval_integrable f μ a b)
   (hf : tendsto f (la' ⊓ μ.ae) (𝓝 c)) (hu : tendsto u lt la) (hv : tendsto v lt la) :
   is_o (λ t, ∫ x in v t..b, f x ∂μ - ∫ x in u t..b, f x ∂μ + ∫ x in u t..v t, c ∂μ)
     (λ t, ∫ x in u t..v t, (1:ℝ) ∂μ) lt :=
-measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae_left' hfm hab hf
-  (FTC_filter.finite_at_inner la) FTC_filter.pure_le hu hv
+by simpa using measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae
+  hfm hab hf (flip tendsto_le_left (tendsto_bot : tendsto _ ⊥ (𝓝 0)) inf_le_left)
+  hu hv (tendsto_const_pure : tendsto _ _ (pure b)) tendsto_const_pure
 
 end
 
@@ -577,8 +614,8 @@ end
 ### Fundamental theorem of calculus-1 for Lebesgue measure
 
 In this section we restate theorems from the previous section for Lebesgue measure.
-In particular, we prove that `∫ x in a..u, f x` is strictly differentiable in `u`
-at `b` provided that `f` is integrable on `a..b` and is continuous at `b`.
+In particular, we prove that `∫ x in u..v, f x` is strictly differentiable in `(u, v)`
+at `(a, b)` provided that `f` is integrable on `a..b` and is continuous at `a` and `b`.
 -/
 
 variables {f : ℝ → E} {c ca cb : E} {l l' la la' lb lb' : filter ℝ} {lt : filter β}

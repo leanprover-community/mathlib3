@@ -47,9 +47,9 @@ add_decl_doc has_Sup.Sup
 add_decl_doc has_Inf.Inf
 
 /-- Indexed supremum -/
-def supr [has_Sup α] (s : ι → α) : α := Sup (range s)
+def supr [has_Sup α] {ι} (s : ι → α) : α := Sup (range s)
 /-- Indexed infimum -/
-def infi [has_Inf α] (s : ι → α) : α := Inf (range s)
+def infi [has_Inf α] {ι} (s : ι → α) : α := Inf (range s)
 
 @[priority 50] instance has_Inf_to_nonempty (α) [has_Inf α] : nonempty α := ⟨Inf ∅⟩
 @[priority 50] instance has_Sup_to_nonempty (α) [has_Sup α] : nonempty α := ⟨Sup ∅⟩
@@ -268,7 +268,7 @@ Inf_lt_iff.trans exists_range_iff
 
 end complete_linear_order
 
-/- 
+/-
 ### supr & infi
 -/
 

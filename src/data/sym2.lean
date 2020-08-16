@@ -343,10 +343,11 @@ quot.rec (λ x h', pair_other a x) (begin
   clear h z,
   intros x y h,
   ext hy,
-  have h' : ∀ {c e h}, @eq.rec _ ⟦x⟧ (λ s, a ∈ s → α) (λ _, pair_other a x) c e h = pair_other a x,
-  { intros _ e _; subst e },
-  apply h'.trans, clear h',
-
+  convert_to pair_other a x = _,
+  { have h' : ∀ {c e h}, @eq.rec _ ⟦x⟧ (λ s, a ∈ s → α)
+      (λ _, pair_other a x) c e h = pair_other a x,
+    { intros _ e _, subst e },
+    apply h', },
   have h' := (rel_bool_spec x y).mpr h,
   cases x with x₁ x₂, cases y with y₁ y₂,
   cases mem_iff.mp hy with hy'; subst a; dsimp [rel_bool] at h';

@@ -476,7 +476,7 @@ begin
      }
 end -/
 
-/-- The square root of a real number -/
+/-- The square root of a real number. This returns 0 for negative input. -/
 @[pp_nodot] noncomputable def sqrt (x : ℝ) : ℝ :=
 classical.some (sqrt_exists (le_max_left 0 x))
 /-quotient.lift_on x

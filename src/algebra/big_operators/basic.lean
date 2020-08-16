@@ -708,7 +708,7 @@ haveI := classical.dec_eq β; exact
 finset.strong_induction_on s
   (λ s ih g h₁ h₂ h₃ h₄,
     s.eq_empty_or_nonempty.elim (λ hs, hs.symm ▸ rfl)
-      (λ ⟨x, hx⟩,
+      (λ ⟨x, hx⟩, by clear_; exact
       have hmem : ∀ y ∈ (s.erase x).erase (g x hx), y ∈ s,
         from λ y hy, (mem_of_mem_erase (mem_of_mem_erase hy)),
       have g_inj : ∀ {x hx y hy}, g x hx = g y hy → x = y,

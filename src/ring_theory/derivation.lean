@@ -55,7 +55,7 @@ instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
 @[simp] lemma to_fun_eq_coe : D.to_fun = ⇑D := rfl
 
 @[simp, norm_cast]
-lemma coe_linear_map (f : derivation R A M) :
+lemma coe_fn_coe (f : derivation R A M) :
   ⇑(f : A →ₗ[R] M) = f := rfl
 
 lemma coe_injective (H : ⇑D1 = D2) : D1 = D2 :=
@@ -87,7 +87,7 @@ instance : inhabited (derivation R A M) := ⟨0⟩
 
 instance : add_comm_monoid (derivation R A M) :=
 { add := λ D1 D2, ⟨D1 + D2, λ a b, by { simp only [leibniz, linear_map.add_apply,
-    linear_map.to_fun_eq_coe, coe_linear_map, smul_add], cc }⟩,
+    linear_map.to_fun_eq_coe, coe_fn_coe, smul_add], cc }⟩,
   add_assoc := λ D E F, ext $ λ a, add_assoc _ _ _,
   zero_add := λ D, ext $ λ a, zero_add _,
   add_zero := λ D, ext $ λ a, add_zero _,
@@ -99,7 +99,7 @@ instance : add_comm_monoid (derivation R A M) :=
 @[priority 100]
 instance derivation.Rsemimodule : semimodule R (derivation R A M) :=
 { smul := λ r D, ⟨r • D, λ a b, by simp only [linear_map.smul_apply, leibniz,
-    linear_map.to_fun_eq_coe, smul_algebra_smul_comm, coe_linear_map, smul_add, add_comm],⟩,
+    linear_map.to_fun_eq_coe, smul_algebra_smul_comm, coe_fn_coe, smul_add, add_comm],⟩,
   mul_smul := λ a1 a2 D, ext $ λ b, mul_smul _ _ _,
   one_smul := λ D, ext $ λ b, one_smul _ _,
   smul_add := λ a D1 D2, ext $ λ b, smul_add _ _ _,
@@ -125,7 +125,7 @@ instance : semimodule A (derivation R A M) :=
 @[simp] lemma smul_apply : (a • D) b = a • D b := rfl
 
 instance : is_scalar_tower R A (derivation R A M) :=
-⟨ λ x y z, ext (λ a, smul_assoc _ _ _) ⟩
+⟨λ x y z, ext (λ a, smul_assoc _ _ _)⟩
 
 end
 
@@ -144,7 +144,7 @@ variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
 instance : add_comm_group (derivation R A M) :=
 { neg := λ D, ⟨-D, λ a b, by simp only [linear_map.neg_apply, smul_neg, neg_add_rev, leibniz,
-    linear_map.to_fun_eq_coe, coe_linear_map, add_comm]⟩,
+    linear_map.to_fun_eq_coe, coe_fn_coe, add_comm]⟩,
   add_left_neg := λ D, ext $ λ a, add_left_neg _,
   ..derivation.add_comm_monoid }
 
@@ -161,7 +161,7 @@ open ring_commutator
 /-- The commutator of derivations is again a derivation. -/
 def commutator (D1 D2 : derivation R A A) : derivation R A A :=
 ⟨⁅D1, D2⁆, λ a b, by {simp only [commutator, map_add, id.smul_eq_mul, linear_map.mul_app,
-  leibniz, linear_map.to_fun_eq_coe, coe_linear_map, linear_map.sub_apply], ring }⟩
+  leibniz, linear_map.to_fun_eq_coe, coe_fn_coe, linear_map.sub_apply], ring }⟩
 
 instance : has_bracket (derivation R A A) := ⟨derivation.commutator⟩
 
@@ -195,7 +195,7 @@ variables {M : Type*} [add_cancel_comm_monoid M] [semimodule A M] [semimodule R 
 variables {N : Type*} [add_cancel_comm_monoid N] [semimodule A N] [semimodule R N]
 variables [is_scalar_tower R A M] [is_scalar_tower R A N]
 
-/-- The composition of a derivation and a linear map is a derivation. -/
+/-- The composition of a linear map and a derivation is a derivation. -/
 def comp_der (f : M →ₗ[A] N) (D : derivation R A M) : derivation R A N :=
 { to_fun := λ a, f (D a),
   map_add' := λ a1 a2, by rw [D.map_add, f.map_add],

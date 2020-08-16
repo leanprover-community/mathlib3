@@ -408,6 +408,10 @@ discrete_valuation_ring.of_has_unit_mul_pow_irreducible_factorization
 ⟨p, irreducible_p, λ x hx, ⟨x.valuation.nat_abs, unit_coeff hx,
   by rw [mul_comm, ← unit_coeff_spec hx]⟩⟩
 
+lemma ideal_eq_span_pow_p {s : ideal ℤ_[p]} (hs : s ≠ ⊥) :
+  ∃ n : ℕ, s = ideal.span {p ^ n} :=
+discrete_valuation_ring.ideal_eq_span_pow_irreducible hs irreducible_p
+
 end padic_int
 
 namespace padic_norm_z

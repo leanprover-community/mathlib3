@@ -505,10 +505,10 @@ mul_div_cancel' _ two_ne_zero'
 
 /-- The real definition of `sinh`-/
 lemma sinh_eq (x : ℝ) : sinh x = (exp x - exp (-x)) / 2 :=
-by simp only [sinh, complex.sinh, complex.div_re, complex.exp_of_real_re, complex.one_re,
+by {simp only [sinh, complex.sinh, complex.div_re, complex.exp_of_real_re, complex.one_re,
   bit0_zero, add_zero, complex.sub_re, euclidean_domain.zero_div, complex.bit0_re,
-  complex.one_im, complex.bit0_im, mul_zero, ← complex.of_real_neg, complex.norm_sq];
-  ring
+  complex.one_im, complex.bit0_im, mul_zero, ← complex.of_real_neg, complex.norm_sq],
+  ring}
 
 @[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
 
@@ -534,10 +534,10 @@ end
 
 /-- The real definition of `cosh`-/
 lemma cosh_eq (x : ℝ) : cosh x = (exp x + exp (-x)) / 2 :=
-by simp only [cosh, complex.cosh, complex.div_re, complex.exp_of_real_re, complex.one_re,
+by {simp only [cosh, complex.cosh, complex.div_re, complex.exp_of_real_re, complex.one_re,
   bit0_zero, add_zero, complex.add_re, euclidean_domain.zero_div, complex.bit0_re,
-  complex.one_im, complex.bit0_im, mul_zero, ← complex.of_real_neg, complex.norm_sq];
-  ring
+  complex.one_im, complex.bit0_im, mul_zero, ← complex.of_real_neg, complex.norm_sq],
+  ring}
 
 @[simp] lemma cosh_zero : cosh 0 = 1 := by simp [cosh]
 

@@ -126,14 +126,6 @@ instance : semimodule A (derivation R A M) :=
 
 instance : is_scalar_tower R A (derivation R A M) :=
 ⟨ λ x y z, ext (λ a, smul_assoc _ _ _) ⟩
-/-- The composition of a derivation and a linear map is a derivation. -/
-def comp {N : Type*} [add_cancel_comm_monoid N] [semimodule A N] [semimodule R N]
-  [is_scalar_tower R A N]
-  (D : derivation R A M) (f : M →ₗ[A] N) : derivation R A N :=
-{ to_fun := λ a, f (D a),
-  map_add' := λ a1 a2, by rw [D.map_add, f.map_add],
-  map_smul' := λ r a, by rw [map_smul, compatible_map_smul],
-  leibniz' := λ a b, by simp only [leibniz, linear_map.map_smul, linear_map.map_add, add_comm] }
 
 end
 
@@ -158,9 +150,9 @@ instance : add_comm_group (derivation R A M) :=
 
 end
 
-/-! # Lie structures -/
+section lie_structures
 
-section
+/-! # Lie structures -/
 
 variables (D : derivation R A A) {D1 D2 : derivation R A A} (r : R) (a b : A)
 
@@ -187,8 +179,32 @@ instance : lie_algebra R (derivation R A A) :=
 { lie_smul := λ r d e, by { ext a, simp only [commutator_apply, map_smul, smul_sub, Rsmul_apply]},
   ..derivation.Rsemimodule }
 
-end
+end lie_structures
 
 end
 
 end derivation
+
+section comp_der
+
+namespace linear_map
+
+variables {R : Type*} [comm_semiring R]
+variables {A : Type*} [comm_semiring A] [algebra R A]
+variables {M : Type*} [add_cancel_comm_monoid M] [semimodule A M] [semimodule R M]
+variables {N : Type*} [add_cancel_comm_monoid N] [semimodule A N] [semimodule R N]
+variables [is_scalar_tower R A M] [is_scalar_tower R A N]
+
+/-- The composition of a derivation and a linear map is a derivation. -/
+def comp_der (f : M →ₗ[A] N) (D : derivation R A M) : derivation R A N :=
+{ to_fun := λ a, f (D a),
+  map_add' := λ a1 a2, by rw [D.map_add, f.map_add],
+  map_smul' := λ r a, by rw [derivation.map_smul, compatible_map_smul],
+  leibniz' := λ a b, by simp only [derivation.leibniz, linear_map.map_smul, linear_map.map_add, add_comm] }
+
+@[simp] lemma comp_der_apply (f : M →ₗ[A] N) (D : derivation R A M) (a : A) :
+  f.comp_der D a = f (D a) := rfl
+
+end linear_map
+
+end comp_der

@@ -93,7 +93,7 @@ variable (f)
 
 /-- Convert an injective left order continuous function to an order embeddings. -/
 def to_le_embedding (hf : left_ord_continuous f) (h : injective f) :
-  ((≤) : α → α → Prop) ↪r ((≤) : β → β → Prop) :=
+  α ↪≤ β :=
 ⟨⟨f, h⟩, λ x y, (hf.le_iff h).symm⟩
 
 /-- Convert an injective left order continuous function to an order embeddings. -/

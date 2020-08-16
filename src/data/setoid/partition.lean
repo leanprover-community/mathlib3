@@ -176,7 +176,7 @@ variables (α)
 
 /-- The order-preserving bijection between equivalence relations and partitions of sets. -/
 def partition.rel_iso :
-  ((≤) : setoid α → setoid α → Prop) ≃r (@setoid.partition.partial_order α).le :=
+  setoid α ≃≤ subtype (@is_partition α) :=
 { to_fun := λ r, ⟨r.classes, empty_not_mem_classes, classes_eqv_classes⟩,
   inv_fun := λ x, mk_classes x.1 x.2.2,
   left_inv := mk_classes_classes,

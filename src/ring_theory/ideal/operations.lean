@@ -714,8 +714,7 @@ include hf
 open function
 
 /-- Special case of the correspondence theorem for isomorphic rings -/
-def rel_iso_of_bijective :
-  ((≤) : ideal S → ideal S → Prop) ≃r ((≤) : ideal R → ideal R → Prop):=
+def rel_iso_of_bijective : ideal S ≃≤ ideal R :=
 { to_fun := comap f,
   inv_fun := map f,
   left_inv := (rel_iso_of_surjective f hf.right).left_inv,

@@ -20,9 +20,9 @@ inverse, arsinh.
 ## Main Results
 
 - `sinh_injective`: The proof that `sinh` is injective
-- `sinm_surjective`: The proof that `sinm` is surjective
-- `sinm_bijective`: The proof `sinm` is bijective
-- `arsinh`: The inverse function of `sinm`
+- `sinm_surjective`: The proof that `sinh` is surjective
+- `sinm_bijective`: The proof `sinh` is bijective
+- `arsinh`: The inverse function of `sinh`
 
 ## Tags
 

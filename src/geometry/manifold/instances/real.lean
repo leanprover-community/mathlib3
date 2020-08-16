@@ -3,7 +3,7 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import geometry.manifold.smooth_manifold_with_corners
+import geometry.manifold.algebra.smooth_functions
 import linear_algebra.finite_dimensional
 import analysis.normed_space.real_inner_product
 
@@ -379,3 +379,15 @@ instance : charted_space (euclidean_half_space 1) (Icc (0 : ℝ) 1) := by apply_
 instance : smooth_manifold_with_corners (𝓡∂ 1) (Icc (0 : ℝ) 1) := by apply_instance
 
 end
+
+/-! ## Structures over real numbers and real functions -/
+
+variables {E : Type*} [normed_group E] [normed_space ℝ E]
+{H : Type*} [topological_space H] {I : model_with_corners ℝ E H}
+{N : Type*} [topological_space N] [charted_space H N] [smooth_manifold_with_corners I N]
+
+instance reals_lie_group : lie_add_group (model_with_corners_self ℝ ℝ) ℝ := by apply_instance
+
+instance smooth_real_maps_ring : ring C∞(I, N) := by apply_instance
+
+instance smooth_real_maps_algebra : algebra ℝ C∞(I, N) := by apply_instance

@@ -111,8 +111,7 @@ variable [normalization_domain α]
 
 local attribute [instance] associated.setoid
 
-/-- Given a `normalization_domain α`, `out b`
-  something to the unique normalized element `a` such that `associates.mk a = b`  -/
+/-- Given a `normalization_domain α`, `out b` is the unique normalized element `a` such that `associates.mk a = b`  -/
 protected def out : associates α → α :=
 quotient.lift (normalize : α → α) $ λ a b ⟨u, hu⟩, hu ▸
 normalize_eq_normalize ⟨_, rfl⟩ (units.mul_right_dvd.2 $ dvd_refl a)

@@ -238,6 +238,17 @@ theorem by_contradiction {p} : (¬p → false) → p := decidable.by_contradicti
 -- alias by_contradiction ← by_contra
 theorem by_contra {p} : (¬p → false) → p := decidable.by_contradiction
 
+/--
+In most of mathlib, we use the law of excluded middle (LEM) and the axiom of choice (AC) freely.
+The `decidable` namespace contains versions of lemmas from the root namespace that explicitly
+attempt to avoid the axiom of choice, usually by adding decidability assumptions on the inputs.
+
+You can check if a lemma uses the axiom of choice by using `#print axioms foo` and seeing if
+`classical.choice` appears in the list.
+-/
+library_note "decidable namespace"
+
+-- See Note [decidable namespace]
 protected theorem decidable.not_not [decidable a] : ¬¬a ↔ a :=
 iff.intro decidable.by_contradiction not_not_intro
 
@@ -245,11 +256,13 @@ iff.intro decidable.by_contradiction not_not_intro
 
 theorem of_not_not : ¬¬a → a := by_contra
 
+-- See Note [decidable namespace]
 protected theorem decidable.of_not_imp [decidable a] (h : ¬ (a → b)) : a :=
 decidable.by_contradiction (not_not_of_not_imp h)
 
 theorem of_not_imp : ¬ (a → b) → a := decidable.of_not_imp
 
+-- See Note [decidable namespace]
 protected theorem decidable.not_imp_symm [decidable a] (h : ¬a → b) (hb : ¬b) : a :=
 decidable.by_contradiction $ hb ∘ h
 
@@ -257,6 +270,7 @@ theorem not.decidable_imp_symm [decidable a] : (¬a → b) → ¬b → a := deci
 
 theorem not.imp_symm : (¬a → b) → ¬b → a := not.decidable_imp_symm
 
+-- See Note [decidable namespace]
 protected theorem decidable.not_imp_comm [decidable a] [decidable b] : (¬a → b) ↔ (¬b → a) :=
 ⟨not.decidable_imp_symm, not.decidable_imp_symm⟩
 
@@ -327,16 +341,19 @@ theorem or_imp_distrib : (a ∨ b → c) ↔ (a → c) ∧ (b → c) :=
 ⟨assume h, ⟨assume ha, h (or.inl ha), assume hb, h (or.inr hb)⟩,
   assume ⟨ha, hb⟩, or.rec ha hb⟩
 
+-- See Note [decidable namespace]
 protected theorem decidable.or_iff_not_imp_left [decidable a] : a ∨ b ↔ (¬ a → b) :=
 ⟨or.resolve_left, λ h, dite _ or.inl (or.inr ∘ h)⟩
 
 theorem or_iff_not_imp_left : a ∨ b ↔ (¬ a → b) := decidable.or_iff_not_imp_left
 
+-- See Note [decidable namespace]
 protected theorem decidable.or_iff_not_imp_right [decidable b] : a ∨ b ↔ (¬ b → a) :=
 or.comm.trans decidable.or_iff_not_imp_left
 
 theorem or_iff_not_imp_right : a ∨ b ↔ (¬ b → a) := decidable.or_iff_not_imp_right
 
+-- See Note [decidable namespace]
 protected theorem decidable.not_imp_not [decidable a] : (¬ a → ¬ b) ↔ (b → a) :=
 ⟨assume h hb, decidable.by_contradiction $ assume na, h na hb, mt⟩
 
@@ -384,21 +401,25 @@ theorem iff_false_left (ha : ¬a) : (a ↔ b) ↔ ¬b :=
 theorem iff_false_right (ha : ¬a) : (b ↔ a) ↔ ¬b :=
 iff.comm.trans (iff_false_left ha)
 
+-- See Note [decidable namespace]
 protected theorem decidable.not_or_of_imp [decidable a] (h : a → b) : ¬ a ∨ b :=
 if ha : a then or.inr (h ha) else or.inl ha
 
 theorem not_or_of_imp : (a → b) → ¬ a ∨ b := decidable.not_or_of_imp
 
+-- See Note [decidable namespace]
 protected theorem decidable.imp_iff_not_or [decidable a] : (a → b) ↔ (¬ a ∨ b) :=
 ⟨decidable.not_or_of_imp, or.neg_resolve_left⟩
 
 theorem imp_iff_not_or : (a → b) ↔ (¬ a ∨ b) := decidable.imp_iff_not_or
 
+-- See Note [decidable namespace]
 protected theorem decidable.imp_or_distrib [decidable a] : (a → b ∨ c) ↔ (a → b) ∨ (a → c) :=
 by simp [decidable.imp_iff_not_or, or.comm, or.left_comm]
 
 theorem imp_or_distrib : (a → b ∨ c) ↔ (a → b) ∨ (a → c) := decidable.imp_or_distrib
 
+-- See Note [decidable namespace]
 protected theorem decidable.imp_or_distrib' [decidable b] : (a → b ∨ c) ↔ (a → b) ∨ (a → c) :=
 by by_cases b; simp [h, or_iff_right_of_imp ((∘) false.elim)]
 
@@ -407,6 +428,7 @@ theorem imp_or_distrib' : (a → b ∨ c) ↔ (a → b) ∨ (a → c) := decidab
 theorem not_imp_of_and_not : a ∧ ¬ b → ¬ (a → b)
 | ⟨ha, hb⟩ h := hb $ h ha
 
+-- See Note [decidable namespace]
 protected theorem decidable.not_imp [decidable a] : ¬(a → b) ↔ a ∧ ¬b :=
 ⟨λ h, ⟨decidable.of_not_imp h, not_of_not_imp h⟩, not_imp_of_and_not⟩
 
@@ -416,6 +438,7 @@ theorem not_imp : ¬(a → b) ↔ a ∧ ¬b := decidable.not_imp
 lemma imp_imp_imp (h₀ : c → a) (h₁ : b → d) : (a → b) → (c → d) :=
 assume (h₂ : a → b), h₁ ∘ h₂ ∘ h₀
 
+-- See Note [decidable namespace]
 protected theorem decidable.peirce (a b : Prop) [decidable a] : ((a → b) → a) → a :=
 if ha : a then λ h, ha else λ h, h ha.elim
 
@@ -423,27 +446,32 @@ theorem peirce (a b : Prop) : ((a → b) → a) → a := decidable.peirce _ _
 
 theorem peirce' {a : Prop} (H : ∀ b : Prop, (a → b) → a) : a := H _ id
 
+-- See Note [decidable namespace]
 protected theorem decidable.not_iff_not [decidable a] [decidable b] : (¬ a ↔ ¬ b) ↔ (a ↔ b) :=
 by rw [@iff_def (¬ a), @iff_def' a]; exact and_congr decidable.not_imp_not decidable.not_imp_not
 
 theorem not_iff_not : (¬ a ↔ ¬ b) ↔ (a ↔ b) := decidable.not_iff_not
 
+-- See Note [decidable namespace]
 protected theorem decidable.not_iff_comm [decidable a] [decidable b] : (¬ a ↔ b) ↔ (¬ b ↔ a) :=
 by rw [@iff_def (¬ a), @iff_def (¬ b)]; exact and_congr decidable.not_imp_comm imp_not_comm
 
 theorem not_iff_comm : (¬ a ↔ b) ↔ (¬ b ↔ a) := decidable.not_iff_comm
 
+-- See Note [decidable namespace]
 protected theorem decidable.not_iff [decidable b] : ¬ (a ↔ b) ↔ (¬ a ↔ b) :=
 by split; intro h; [split, skip]; intro h'; [by_contra, intro, skip];
    try { refine h _; simp [*] }; rw [h', not_iff_self] at h; exact h
 
 theorem not_iff : ¬ (a ↔ b) ↔ (¬ a ↔ b) := decidable.not_iff
 
+-- See Note [decidable namespace]
 protected theorem decidable.iff_not_comm [decidable a] [decidable b] : (a ↔ ¬ b) ↔ (b ↔ ¬ a) :=
 by rw [@iff_def a, @iff_def b]; exact and_congr imp_not_comm decidable.not_imp_comm
 
 theorem iff_not_comm : (a ↔ ¬ b) ↔ (b ↔ ¬ a) := decidable.iff_not_comm
 
+-- See Note [decidable namespace]
 protected theorem decidable.iff_iff_and_or_not_and_not [decidable b] : (a ↔ b) ↔ (a ∧ b) ∨ (¬ a ∧ ¬ b) :=
 by { split; intro h,
      { rw h; by_cases b; [left,right]; split; assumption },
@@ -462,6 +490,7 @@ end
 lemma iff_iff_not_or_and_or_not : (a ↔ b) ↔ ((¬a ∨ b) ∧ (a ∨ ¬b)) :=
 decidable.iff_iff_not_or_and_or_not
 
+-- See Note [decidable namespace]
 protected theorem decidable.not_and_not_right [decidable b] : ¬(a ∧ ¬b) ↔ (a → b) :=
 ⟨λ h ha, h.decidable_imp_symm $ and.intro ha, λ h ⟨ha, hb⟩, hb $ h ha⟩
 
@@ -490,9 +519,11 @@ def decidable_of_bool : ∀ (b : bool) (h : b ↔ a), decidable a
 theorem not_and_of_not_or_not (h : ¬ a ∨ ¬ b) : ¬ (a ∧ b)
 | ⟨ha, hb⟩ := or.elim h (absurd ha) (absurd hb)
 
+-- See Note [decidable namespace]
 protected theorem decidable.not_and_distrib [decidable a] : ¬ (a ∧ b) ↔ ¬a ∨ ¬b :=
 ⟨λ h, if ha : a then or.inr (λ hb, h ⟨ha, hb⟩) else or.inl ha, not_and_of_not_or_not⟩
 
+-- See Note [decidable namespace]
 protected theorem decidable.not_and_distrib' [decidable b] : ¬ (a ∧ b) ↔ ¬a ∨ ¬b :=
 ⟨λ h, if hb : b then or.inl (λ ha, h ⟨ha, hb⟩) else or.inr hb, not_and_of_not_or_not⟩
 
@@ -507,11 +538,13 @@ theorem not_or_distrib : ¬ (a ∨ b) ↔ ¬ a ∧ ¬ b :=
 ⟨λ h, ⟨λ ha, h (or.inl ha), λ hb, h (or.inr hb)⟩,
  λ ⟨h₁, h₂⟩ h, or.elim h h₁ h₂⟩
 
+-- See Note [decidable namespace]
 protected theorem decidable.or_iff_not_and_not [decidable a] [decidable b] : a ∨ b ↔ ¬ (¬a ∧ ¬b) :=
 by rw [← not_or_distrib, decidable.not_not]
 
 theorem or_iff_not_and_not : a ∨ b ↔ ¬ (¬a ∧ ¬b) := decidable.or_iff_not_and_not
 
+-- See Note [decidable namespace]
 protected theorem decidable.and_iff_not_or_not [decidable a] [decidable b] : a ∧ b ↔ ¬ (¬ a ∨ ¬ b) :=
 by rw [← decidable.not_and_distrib, decidable.not_not]
 
@@ -620,19 +653,22 @@ exists_imp_distrib
 theorem not_forall_of_exists_not : (∃ x, ¬ p x) → ¬ ∀ x, p x
 | ⟨x, hn⟩ h := hn (h x)
 
-protected theorem decidable.not_forall {p : α → Prop} [decidable (∃ x, ¬ p x)] [∀ x, decidable (p x)] :
-  (¬ ∀ x, p x) ↔ ∃ x, ¬ p x :=
+-- See Note [decidable namespace]
+protected theorem decidable.not_forall {p : α → Prop}
+  [decidable (∃ x, ¬ p x)] [∀ x, decidable (p x)] : (¬ ∀ x, p x) ↔ ∃ x, ¬ p x :=
 ⟨not.decidable_imp_symm $ λ nx x, nx.decidable_imp_symm $ λ h, ⟨x, h⟩,
  not_forall_of_exists_not⟩
 
 @[simp] theorem not_forall {p : α → Prop} : (¬ ∀ x, p x) ↔ ∃ x, ¬ p x := decidable.not_forall
 
+-- See Note [decidable namespace]
 protected theorem decidable.not_forall_not [decidable (∃ x, p x)] :
   (¬ ∀ x, ¬ p x) ↔ ∃ x, p x :=
 (@decidable.not_iff_comm _ _ _ (decidable_of_iff (¬ ∃ x, p x) not_exists)).1 not_exists
 
 theorem not_forall_not : (¬ ∀ x, ¬ p x) ↔ ∃ x, p x := decidable.not_forall_not
 
+-- See Note [decidable namespace]
 protected theorem decidable.not_exists_not [∀ x, decidable (p x)] : (¬ ∃ x, ¬ p x) ↔ ∀ x, p x :=
 by simp [decidable.not_not]
 
@@ -710,6 +746,7 @@ theorem exists_comm {p : α → β → Prop} : (∃ a b, p a b) ↔ ∃ b a, p a
 theorem forall_or_of_or_forall (h : b ∨ ∀x, p x) (x) : b ∨ p x :=
 h.imp_right $ λ h₂, h₂ x
 
+-- See Note [decidable namespace]
 protected theorem decidable.forall_or_distrib_left {q : Prop} {p : α → Prop} [decidable q] :
   (∀x, q ∨ p x) ↔ q ∨ (∀x, p x) :=
 ⟨λ h, if hq : q then or.inl hq else or.inr $ λ x, (h x).resolve_left hq,
@@ -718,6 +755,7 @@ protected theorem decidable.forall_or_distrib_left {q : Prop} {p : α → Prop} 
 theorem forall_or_distrib_left {q : Prop} {p : α → Prop} :
   (∀x, q ∨ p x) ↔ q ∨ (∀x, p x) := decidable.forall_or_distrib_left
 
+-- See Note [decidable namespace]
 protected theorem decidable.forall_or_distrib_right {q : Prop} {p : α → Prop} [decidable q] :
   (∀x, p x ∨ q) ↔ (∀x, p x) ∨ q :=
 by simp [or_comm, decidable.forall_or_distrib_left]
@@ -912,6 +950,7 @@ bex_imp_distrib
 theorem not_ball_of_bex_not : (∃ x h, ¬ P x h) → ¬ ∀ x h, P x h
 | ⟨x, h, hp⟩ al := hp $ al x h
 
+-- See Note [decidable namespace]
 protected theorem decidable.not_ball [decidable (∃ x h, ¬ P x h)] [∀ x h, decidable (P x h)] :
   (¬ ∀ x h, P x h) ↔ (∃ x h, ¬ P x h) :=
 ⟨not.decidable_imp_symm $ λ nx x h, nx.decidable_imp_symm $ λ h', ⟨x, h, h'⟩,

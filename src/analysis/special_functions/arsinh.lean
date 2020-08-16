@@ -71,6 +71,30 @@ begin
   apply sqrt_nonneg,
 end
 
+/-- `arsinh` is the right inverse of `sinh`-/
+lemma arsinh_sinh (x : ℝ) : sinh (arsinh x) = x :=
+begin
+  rw sinh_eq,
+  unfold arsinh,
+  rw ←log_inv,
+  rw [exp_log, exp_log],
+  { rw [← one_mul ((x + sqrt (1 + x ^ 2))⁻¹), ←division_def, aux_lemma],
+    ring },
+  { rw [← one_mul ((x + sqrt (1 + x ^ 2))⁻¹), ←division_def, aux_lemma],
+    ring,
+    rw [neg_add_eq_sub, sub_pos],
+    have H : x^2 < sqrt (x ^ 2 + 1)^2,
+    { rw sqr_sqrt,
+      linarith,
+      have F : 0 ≤ x^2 := by apply pow_two_nonneg,
+      linarith },
+    exact b_lt_sqrt_b_sq_add_one x,
+  },
+  { have H := b_lt_sqrt_b_sq_add_one (-x),
+    rw [neg_square, add_comm (x^2)] at H,
+    linarith },
+end
+
 /-- `sinh` is surjective, `∀ b, ∃ a, sinh a = b`. In this case, we use `a = arsinh b` -/
 lemma sinh_surjective : function.surjective sinh := function.left_inverse.surjective arsinh_sinh
 
@@ -101,28 +125,4 @@ begin
   { rw [← sinh_eq, sqrt_one_add_sinh_sq, cosh_eq, sinh_eq],
     ring,
     exact exp_pos x },
-end
-
-/-- `arsinh` is the right inverse of `sinh`-/
-lemma arsinh_sinh (x : ℝ) : sinh (arsinh x) = x :=
-begin
-  rw sinh_eq,
-  unfold arsinh,
-  rw ←log_inv,
-  rw [exp_log, exp_log],
-  { rw [← one_mul ((x + sqrt (1 + x ^ 2))⁻¹), ←division_def, aux_lemma],
-    ring },
-  { rw [← one_mul ((x + sqrt (1 + x ^ 2))⁻¹), ←division_def, aux_lemma],
-    ring,
-    rw [neg_add_eq_sub, sub_pos],
-    have H : x^2 < sqrt (x ^ 2 + 1)^2,
-    { rw sqr_sqrt,
-      linarith,
-      have F : 0 ≤ x^2 := by apply pow_two_nonneg,
-      linarith },
-    exact b_lt_sqrt_b_sq_add_one x,
-  },
-  { have H := b_lt_sqrt_b_sq_add_one (-x),
-    rw [neg_square, add_comm (x^2)] at H,
-    linarith },
 end

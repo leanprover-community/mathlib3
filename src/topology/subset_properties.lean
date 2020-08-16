@@ -187,7 +187,7 @@ begin
     from (hZc i₀).elim_finite_subfamily_closed Z'
       (assume i, is_closed_inter (hZcl i) (hZcl i₀)) (by rw [H, inter_empty]),
   obtain ⟨i₁, hi₁⟩ : ∃ i₁ : ι, Z i₁ ⊆ Z i₀ ∧ ∀ i ∈ t, Z i₁ ⊆ Z' i,
-  { rcases directed.finset_le hι hZd t with ⟨i, hi⟩,
+  { rcases directed.finset_le hZd t with ⟨i, hi⟩,
     rcases hZd i i₀ with ⟨i₁, hi₁, hi₁₀⟩,
     use [i₁, hi₁₀],
     intros j hj,

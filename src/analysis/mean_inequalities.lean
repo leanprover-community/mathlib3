@@ -427,7 +427,7 @@ begin
     simp [this] },
   push_neg at H,
   by_cases H' : (∑ i in s, (f i)^p) ^ (1/p) = ⊤ ∨ (∑ i in s, (g i)^q) ^ (1/q) = ⊤,
-  { cases H'; simp [H', -one_div_eq_inv, H] },
+  { cases H'; simp [H', -one_div, H] },
   replace H' : (∀ i ∈ s, f i ≠ ⊤) ∧ (∀ i ∈ s, g i ≠ ⊤),
     by simpa [ennreal.rpow_eq_top_iff, asymm hpq.pos, asymm hpq.symm.pos, hpq.pos, hpq.symm.pos,
               ennreal.sum_eq_top_iff, not_or_distrib] using H',
@@ -447,7 +447,7 @@ theorem Lp_add_le (hp : 1 ≤ p) :
   (∑ i in s, (f i + g i) ^ p)^(1/p) ≤ (∑ i in s, (f i)^p) ^ (1/p) + (∑ i in s, (g i)^p) ^ (1/p) :=
 begin
   by_cases H' : (∑ i in s, (f i)^p) ^ (1/p) = ⊤ ∨ (∑ i in s, (g i)^p) ^ (1/p) = ⊤,
-  { cases H'; simp [H', -one_div_eq_inv] },
+  { cases H'; simp [H', -one_div] },
   have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,
   replace H' : (∀ i ∈ s, f i ≠ ⊤) ∧ (∀ i ∈ s, g i ≠ ⊤),
     by simpa [ennreal.rpow_eq_top_iff, asymm pos, pos, ennreal.sum_eq_top_iff,

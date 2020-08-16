@@ -205,10 +205,10 @@ section
 open mul_action quotient_group
 
 @[simp] lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
-(to_units α c).inv_smul_smul x
+(to_units c).inv_smul_smul x
 
 @[simp] lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
-(to_units α c).smul_inv_smul x
+(to_units c).smul_inv_smul x
 
 lemma inv_smul_eq_iff {a : α} {x y : β} : a⁻¹ • x = y ↔ x = a • y :=
 begin

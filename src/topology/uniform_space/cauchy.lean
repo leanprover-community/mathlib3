@@ -20,7 +20,7 @@ variables {α : Type u} {β : Type v} [uniform_space α]
   `s ∈ f` such that `s × s ⊆ r`. This is a generalization of Cauchy
   sequences, because if `a : ℕ → α` then the filter of sets containing
   cofinitely many of the `a n` is Cauchy iff `a` is a Cauchy sequence. -/
-def cauchy (f : filter α) := ne_bot f ∧ filter.prod f f ≤ (𝓤 α)
+def cauchy (f : filter α) := ne_bot f ∧ f ×ᶠ f ≤ (𝓤 α)
 
 /-- A set `s` is called *complete*, if any Cauchy filter `f` such that `s ∈ f`
 has a limit in `s` (formally, it satisfies `f ≤ 𝓝 x` for some `x ∈ s`). -/
@@ -42,11 +42,11 @@ lemma cauchy_iff {f : filter α} :
   by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id]
 
 lemma cauchy_map_iff {l : filter β} {f : β → α} :
-  cauchy (l.map f) ↔ (ne_bot l ∧ tendsto (λp:β×β, (f p.1, f p.2)) (l.prod l) (𝓤 α)) :=
+  cauchy (l.map f) ↔ (ne_bot l ∧ tendsto (λp:β×β, (f p.1, f p.2)) (l ×ᶠ l) (𝓤 α)) :=
 by rw [cauchy, map_ne_bot_iff, prod_map_map_eq, tendsto]
 
 lemma cauchy_map_iff' {l : filter β} [hl : ne_bot l] {f : β → α} :
-  cauchy (l.map f) ↔ tendsto (λp:β×β, (f p.1, f p.2)) (l.prod l) (𝓤 α) :=
+  cauchy (l.map f) ↔ tendsto (λp:β×β, (f p.1, f p.2)) (l ×ᶠ l) (𝓤 α) :=
 cauchy_map_iff.trans $ and_iff_right hl
 
 lemma cauchy.mono {f g : filter α} [hg : ne_bot g] (h_c : cauchy f) (h_le : g ≤ f) : cauchy g :=
@@ -57,7 +57,7 @@ h_c.mono h_le
 
 lemma cauchy_nhds {a : α} : cauchy (𝓝 a) :=
 ⟨nhds_ne_bot,
-  calc filter.prod (𝓝 a) (𝓝 a) =
+  calc 𝓝 a ×ᶠ 𝓝 a =
     (𝓤 α).lift (λs:set (α×α), (𝓤 α).lift' (λt:set(α×α),
       set.prod {y : α | (y, a) ∈ s} {y : α | (a, y) ∈ t})) : nhds_nhds_eq_uniformity_uniformity_prod
     ... ≤ (𝓤 α).lift' (λs:set (α×α), comp_rel s s) :
@@ -96,7 +96,7 @@ lemma le_nhds_of_cauchy_adhp {f : filter α} {x : α} (hf : cauchy f)
 le_nhds_of_cauchy_adhp_aux
 begin
   assume s hs,
-  obtain ⟨t, t_mem, ht⟩ : ∃ (t : set α) (h : t ∈ f), t.prod t ⊆ s,
+  obtain ⟨t, t_mem, ht⟩ : ∃ t ∈ f, set.prod t t ⊆ s,
     from (cauchy_iff.1 hf).2 s hs,
   use [t, t_mem, ht],
   exact (forall_sets_nonempty_iff_ne_bot.2 adhs _
@@ -110,8 +110,7 @@ lemma le_nhds_iff_adhp_of_cauchy {f : filter α} {x : α} (hf : cauchy f) :
 lemma cauchy.map [uniform_space β] {f : filter α} {m : α → β}
   (hf : cauchy f) (hm : uniform_continuous m) : cauchy (map m f) :=
 ⟨hf.1.map _,
-  calc filter.prod (map m f) (map m f) =
-          map (λp:α×α, (m p.1, m p.2)) (filter.prod f f) : filter.prod_map_map_eq
+  calc map m f ×ᶠ map m f = map (λp:α×α, (m p.1, m p.2)) (f ×ᶠ f) : filter.prod_map_map_eq
     ... ≤ map (λp:α×α, (m p.1, m p.2)) (𝓤 α) : map_mono hf.right
     ... ≤ 𝓤 β : hm⟩
 
@@ -119,8 +118,7 @@ lemma cauchy.comap [uniform_space β] {f : filter β} {m : α → β}
   (hf : cauchy f) (hm : comap (λp:α×α, (m p.1, m p.2)) (𝓤 β) ≤ 𝓤 α)
   [ne_bot (comap m f)] : cauchy (comap m f) :=
 ⟨‹_›,
-  calc filter.prod (comap m f) (comap m f) =
-          comap (λp:α×α, (m p.1, m p.2)) (filter.prod f f) : filter.prod_comap_comap_eq
+  calc comap m f ×ᶠ comap m f = comap (λp:α×α, (m p.1, m p.2)) (f ×ᶠ f) : filter.prod_comap_comap_eq
     ... ≤ comap (λp:α×α, (m p.1, m p.2)) (𝓤 β) : comap_mono hf.right
     ... ≤ 𝓤 α : hm⟩
 
@@ -216,7 +214,7 @@ begin
 end
 
 lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :
-  cauchy f → cauchy g → cauchy (filter.prod f g)
+  cauchy f → cauchy g → cauchy (f ×ᶠ g)
 | ⟨f_proper, hf⟩ ⟨g_proper, hg⟩ := ⟨filter.prod_ne_bot.2 ⟨f_proper, g_proper⟩,
   let p_α := λp:(α×β)×(α×β), (p.1.1, p.2.1), p_β := λp:(α×β)×(α×β), (p.1.2, p.2.2) in
   suffices (f.prod f).comap p_α ⊓ (g.prod g).comap p_β ≤ (𝓤 α).comap p_α ⊓ (𝓤 β).comap p_β,
@@ -360,7 +358,7 @@ lemma cauchy_of_totally_bounded_of_ultrafilter {s : set α} {f : filter α}
   have set.prod {x | (x,y) ∈ t'} {x | (x,y) ∈ t'} ⊆ comp_rel t' t',
     from assume ⟨x₁, x₂⟩ ⟨(h₁ : (x₁, y) ∈ t'), (h₂ : (x₂, y) ∈ t')⟩,
       ⟨y, h₁, ht'_symm h₂⟩,
-  (filter.prod f f).sets_of_superset (prod_mem_prod hif hif) (subset.trans this ht'_t)⟩
+  (f ×ᶠ f).sets_of_superset (prod_mem_prod hif hif) (subset.trans this ht'_t)⟩
 
 lemma totally_bounded_iff_filter {s : set α} :
   totally_bounded s ↔ (∀f, ne_bot f → f ≤ 𝓟 s → ∃c ≤ f, cauchy c) :=

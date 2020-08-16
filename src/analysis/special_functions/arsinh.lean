@@ -26,7 +26,7 @@ inverse, arsinh.
 
 ## Tags
 
-arsinh, sinh injective, sinh bijective, sinh surjective
+arsinh, arcsinh, argsinh, asinh, sinh injective, sinh bijective, sinh surjective
 -/
 
 

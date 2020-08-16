@@ -331,6 +331,12 @@ lemma sum_centroid_weights_eq_one_of_card_ne_zero [char_zero k] (h : card s ≠ 
 by simp [h]
 
 /-- In the characteristic zero case, the weights in the centroid sum
+to 1 if the set is nonempty. -/
+lemma sum_centroid_weights_eq_one_of_nonempty [char_zero k] (h : s.nonempty) :
+  ∑ i in s, s.centroid_weights k i = 1 :=
+s.sum_centroid_weights_eq_one_of_card_ne_zero k (ne_of_gt (card_pos.2 h))
+
+/-- In the characteristic zero case, the weights in the centroid sum
 to 1 if the number of points is `n + 1`. -/
 lemma sum_centroid_weights_eq_one_of_card_eq_add_one [char_zero k] {n : ℕ}
   (h : card s = n + 1) : ∑ i in s, s.centroid_weights k i = 1 :=
@@ -527,6 +533,12 @@ span if the number of points is not zero. -/
 lemma centroid_mem_affine_span_of_card_ne_zero [char_zero k] {s : finset ι} (p : ι → P)
   (h : finset.card s ≠ 0) : s.centroid k p ∈ affine_span k (set.range p) :=
 affine_combination_mem_affine_span (s.sum_centroid_weights_eq_one_of_card_ne_zero k h) p
+
+/-- In the characteristic zero case, the centroid lies in the affine
+span if the set is nonempty. -/
+lemma centroid_mem_affine_span_of_nonempty [char_zero k] {s : finset ι} (p : ι → P)
+  (h : s.nonempty) : s.centroid k p ∈ affine_span k (set.range p) :=
+affine_combination_mem_affine_span (s.sum_centroid_weights_eq_one_of_nonempty k h) p
 
 /-- In the characteristic zero case, the centroid lies in the affine
 span if the number of points is `n + 1`. -/

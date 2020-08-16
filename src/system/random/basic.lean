@@ -93,14 +93,6 @@ right by 31 bits -/
 def shift_31_left : ℕ :=
 by apply_normed 2^31
 
-namespace stream
-
-/-- Use a state monad to generate a stream through corecursion -/
-def corec_state {σ α} (cmd : state σ α) (s : σ) : stream α :=
-stream.corec prod.fst (cmd.run ∘ prod.snd) (cmd.run s)
-
-end stream
-
 namespace rand
 
 open stream
@@ -253,19 +245,6 @@ instance : random bool :=
   random_r := λ g _inst x y p, bool.fit_in_Icc _ _ p <$> (@bool.get_random g _inst) }
 
 open nat (succ one_add mod_eq_of_lt zero_lt_succ add_one succ_le_succ)
-
-namespace stream
-
-variable {α : Type u}
-
-open list (length) stream (approx)
-
-lemma length_approx :
-  ∀ (s : stream α) (n : ℕ), length (approx n s) = n
-| s 0 := rfl
-| s (succ n) := by simp [approx,length,one_add,length_approx]
-
-end stream
 
 variables {g : Type} [random_gen g]
 

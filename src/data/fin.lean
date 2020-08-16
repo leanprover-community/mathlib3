@@ -294,7 +294,7 @@ by cases a; refl
 @[simp] lemma sub_nat_val (i : fin (n + m)) (h : m ≤ i.val) : (i.sub_nat m h).val = i.val - m :=
 rfl
 
-@[simp] lemma add_nat_val (i : fin (n + m)) (h : m ≤ i.val) : (i.add_nat m).val = i.val + m :=
+@[simp] lemma add_nat_val (i : fin (n + m)) : (i.add_nat m).val = i.val + m :=
 rfl
 
 @[simp] lemma cast_succ_inj {a b : fin n} : a.cast_succ = b.cast_succ ↔ a = b :=
@@ -812,9 +812,10 @@ mem_find_iff.2 ⟨hi, λ j hj, le_of_eq $ h i j hi hj⟩
 
 end find
 
+@[simp]
 lemma val_of_nat_eq_mod (m n : ℕ) :
-  (@fin.of_nat m n).val = n % succ m :=
-rfl
+  ((n : fin (succ m)) : ℕ) = n % succ m :=
+by rw [← of_nat_eq_coe]; refl
 
 @[simp] lemma val_of_nat_eq_mod' (m n : ℕ) [I : fact (0 < m)] :
   (@fin.of_nat' _ I n).val = n % m :=

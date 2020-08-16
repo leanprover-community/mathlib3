@@ -507,7 +507,7 @@ instance decidable_zero : decidable_pred (eq (0 : Π₀ i, β i)) :=
 lemma support_subset_iff {s : set ι} {f : Π₀ i, β i} :
   ↑f.support ⊆ s ↔ (∀i∉s, f i = 0) :=
 by simp [set.subset_def];
-   exact forall_congr (assume i, @not_imp_comm _ _ (classical.dec _) (classical.dec _))
+   exact forall_congr (assume i, not_imp_comm)
 
 lemma support_single_ne_zero {i : ι} {b : β i} (hb : b ≠ 0) : (single i b).support = {i} :=
 begin

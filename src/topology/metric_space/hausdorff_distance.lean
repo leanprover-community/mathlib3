@@ -548,7 +548,7 @@ by simp [Hausdorff_dist_comm]
 
 /-- Bounding the Hausdorff distance by bounding the distance of any point
 in each set to the other set -/
-lemma Hausdorff_dist_le_of_inf_dist {r : ℝ} (hr : r ≥ 0)
+lemma Hausdorff_dist_le_of_inf_dist {r : ℝ} (hr : 0 ≤ r)
   (H1 : ∀x ∈ s, inf_dist x t ≤ r) (H2 : ∀x ∈ t, inf_dist x s ≤ r) :
   Hausdorff_dist s t ≤ r :=
 begin

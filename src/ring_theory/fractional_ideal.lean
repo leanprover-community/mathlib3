@@ -122,7 +122,7 @@ begin
 end
 
 instance coe_to_fractional_ideal : has_coe (ideal R) (fractional_ideal f) :=
-⟨ λ I, ⟨↑I, fractional_of_subset_one _ $ λ x ⟨y, hy, h⟩,
+⟨ λ I, ⟨f.coe_submodule I, fractional_of_subset_one _ $ λ x ⟨y, hy, h⟩,
   submodule.mem_span_singleton.2 ⟨y, by rw ←h; exact mul_one _⟩⟩ ⟩
 
 @[simp]
@@ -471,8 +471,9 @@ lemma inv_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
   I⁻¹ = ⟨(1 : fractional_ideal g) / I, fractional_div_of_nonzero h⟩ :=
 div_nonzero h
 
+-- set_option pp.all true
 lemma coe_inv_of_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
-  (↑(I⁻¹) : submodule R g.codomain) = (1 : ideal R) / I :=
+  (↑(I⁻¹) : submodule R g.codomain) = g.coe_submodule 1 / I :=
 by { rw inv_nonzero h, refl }
 
 @[simp] lemma div_one {I : fractional_ideal g} : I / 1 = I :=

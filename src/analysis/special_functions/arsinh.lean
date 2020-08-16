@@ -90,7 +90,7 @@ begin
     have H : b^2 < sqrt (b ^ 2 + 1)^2,
     { rw sqr_sqrt,
       linarith,
-      have F : 0 ≤ b^2 := by {apply pow_two_nonneg},
+      have F : 0 ≤ b^2 := by apply pow_two_nonneg,
       linarith },
     exact b_lt_sqrt_b_sq_add_one b,
   },

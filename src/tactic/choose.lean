@@ -35,13 +35,22 @@ meta def mk_sometimes (u : level) (α nonemp p : expr) :
   else (val, spec)
 
 /-- Changes `(h : ∀xs, ∃a:α, p a) ⊢ g` to `(d : ∀xs, a) (s : ∀xs, p (d xs)) ⊢ g` and
-`(h : ∀xs, p xs ∧ q xs) ⊢ g` to `(d : ∀xs, p xs) (s : ∀xs, q xs) ⊢ g`
-`choose1` returns the second local constant it introduces.
+`(h : ∀xs, p xs ∧ q xs) ⊢ g` to `(d : ∀xs, p xs) (s : ∀xs, q xs) ⊢ g`.
+`choose1` returns a pair of the second local constant it introduces,
+and the error result (see below).
 
 If `nondep` is true and `α` is inhabited, then it will remove the dependency of `d` on
 all propositional assumptions in `xs`. For example if `ys` are propositions then
-`(h : ∀xs ys, ∃a:α, p a) ⊢ g` becomes `(d : ∀xs, a) (s : ∀xs ys, p (d xs)) ⊢ g`. -/
-meta def choose1 (nondep : bool) (h : expr) (data : name) (spec : name) : tactic expr := do
+`(h : ∀xs ys, ∃a:α, p a) ⊢ g` becomes `(d : ∀xs, a) (s : ∀xs ys, p (d xs)) ⊢ g`.
+
+The second value returned by `choose1` is the result of nondep elimination:
+* `none`: nondep elimination was not attempted or was not applicable
+* `some none`: nondep elimination was successful
+* `some (some α)`: nondep elimination was unsuccessful
+  because we could not find a `nonempty α` instance
+-/
+meta def choose1 (nondep : bool) (h : expr) (data : name) (spec : name) :
+  tactic (expr × option (option expr)) := do
   t ← infer_type h,
   (ctxt, t) ← mk_local_pis_whnf t,
   t ← whnf t transparency.all,
@@ -49,12 +58,12 @@ meta def choose1 (nondep : bool) (h : expr) (data : name) (spec : name) : tactic
   | `(@Exists %%α %%p) := do
     α_t ← infer_type α,
     expr.sort u ← whnf α_t transparency.all,
-    (ctxt', nonemp) ← (do
-        guard nondep,
-        nonemp ← mk_instance (expr.const ``nonempty [u] α),
-        ctxt' ← ctxt.mfilter (λ e, bnot <$> is_proof e),
-        pure (ctxt', some nonemp)) <|>
-      pure (ctxt, none),
+    (ne_fail, nonemp) ← if nondep then do
+      let ne := expr.const ``nonempty [u] α,
+      nonemp ← try_core (mk_instance ne),
+      pure (some (option.guard (λ _, nonemp.is_none) ne), nonemp)
+    else pure (none, none),
+    ctxt' ← if nonemp.is_some then ctxt.mfilter (λ e, bnot <$> is_proof e) else pure ctxt,
     value ← mk_local_def data (α.pis ctxt'),
     t' ← head_beta (p.app (value.mk_app ctxt')),
     spec ← mk_local_def spec (t'.pis ctxt),
@@ -64,28 +73,46 @@ meta def choose1 (nondep : bool) (h : expr) (data : name) (spec : name) : tactic
     dependent_pose_core [(value, value_proof.lambdas ctxt'), (spec, spec_proof.lambdas ctxt)],
     try (tactic.clear h),
     intro1,
-    intro1
+    e ← intro1,
+    pure (e, ne_fail)
   | `(%%p ∧ %%q) := do
     mk_app ``and.elim_left [h.mk_app ctxt] >>= lambdas ctxt >>= note data none,
     hq ← mk_app ``and.elim_right [h.mk_app ctxt] >>= lambdas ctxt >>= note spec none,
     try (tactic.clear h),
-    pure hq
+    pure (hq, none)
   | _ := fail "expected a term of the shape `∀xs, ∃a, p xs a` or `∀xs, p xs ∧ q xs`"
   end
 
 /-- Changes `(h : ∀xs, ∃as, p as ∧ q as) ⊢ g` to a list of functions `as`,
 and a final hypothesis on `p as` and `q as`. If `nondep` is true then the functions will
-be made to not depend on propositional arguments, when possible. -/
-meta def choose (nondep : bool) : expr → list name → tactic unit
-| h [] := fail "expect list of variables"
-| h [n] := do
+be made to not depend on propositional arguments, when possible.
+
+The last argument is an internal recursion variable, indicating whether nondep elimination
+has been useful so far. The tactic fails if `nondep` is true, and nondep elimination is
+attempted at least once, and it fails every time it is attempted, in which case it returns
+an error complaining about the first attempt.
+-/
+meta def choose (nondep : bool) : expr → list name →
+  opt_param (option (option expr)) none → tactic unit
+| h [] _ := fail "expect list of variables"
+| h [n] (some (some ne)) := do
+  g ← mk_meta_var ne, set_goals [g], -- make a reasonable error state
+  fail "choose: failed to synthesize nonempty instance"
+| h [n] _ := do
   cnt ← revert h,
   intro n,
   intron (cnt - 1),
   return ()
-| h (n::ns) := do
-  v ← get_unused_name >>= choose1 nondep h n,
-  choose v ns
+| h (n::ns) ne_fail₁ := do
+  (v, ne_fail₂) ← get_unused_name >>= choose1 nondep h n,
+  trace (ne_fail₁, ne_fail₂),
+  choose v ns $
+    match ne_fail₁, ne_fail₂ with
+    | none, _ := ne_fail₂
+    | some none, _ := some none
+    | _, some none := some none
+    | _, _ := ne_fail₁
+    end
 
 namespace interactive
 setup_tactic_parser

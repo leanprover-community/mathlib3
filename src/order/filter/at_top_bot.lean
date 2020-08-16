@@ -267,6 +267,10 @@ lemma tendsto_at_top_add_nonneg_right (hf : tendsto f l at_top) (hg : ∀ x, 0 �
   tendsto (λ x, f x + g x) l at_top :=
 tendsto_at_top_add_nonneg_right' hf (eventually_of_forall hg)
 
+lemma tendsto_at_top_add (hf : tendsto f l at_top) (hg : tendsto g l at_top) :
+  tendsto (λ x, f x + g x) l at_top :=
+tendsto_at_top_add_nonneg_left' ((tendsto_at_top (λ (a : α), f a) l).mp hf 0) hg
+
 end ordered_add_comm_monoid
 
 section ordered_cancel_add_comm_monoid

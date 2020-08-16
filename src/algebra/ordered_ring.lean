@@ -356,7 +356,7 @@ instance linear_ordered_semiring.to_nontrivial {α : Type*} [linear_ordered_semi
   nontrivial α :=
 { exists_pair_ne := ⟨0, 1, ne_of_lt zero_lt_one⟩ }
 
-/-- TODO This theorem ought to be written in the context of `nontrivial` linearly ordered (additive)
+/- TODO This theorem ought to be written in the context of `nontrivial` linearly ordered (additive)
 commutative monoids rather than linearly ordered rings; however, the former concept does not
 currently exist in mathlib. -/
 instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
@@ -626,7 +626,7 @@ match lt_trichotomy 0 a with
   end
 end
 
-/-- TODO This theorem ought to be written in the context of `nontrivial` linearly ordered (additive)
+/- TODO This theorem ought to be written in the context of `nontrivial` linearly ordered (additive)
 commutative groups rather than linearly ordered rings; however, the former concept does not
 currently exist in mathlib. -/
 instance linear_ordered_ring.to_no_bot_order : no_bot_order α :=

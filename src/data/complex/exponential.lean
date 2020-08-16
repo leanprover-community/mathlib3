@@ -629,7 +629,7 @@ lemma cosh_sub_sinh : cosh x - sinh x = exp (-x) :=
 by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_sub,
        two_cosh, two_sinh, add_sub_sub_cancel, two_mul]
 
-lemma cosh_sq_sub_sinh_sq : cosh x ^ 2 - sinh x ^ 2 = 1 :=
+lemma _sub_sinh_sq : cosh x ^ 2 - sinh x ^ 2 = 1 :=
 by rw [sq_sub_sq, cosh_add_sinh, cosh_sub_sinh, ← exp_add, add_neg_self, exp_zero]
 
 @[simp] lemma sin_zero : sin 0 = 0 := by simp [sin]
@@ -738,6 +738,20 @@ lemma sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 :=
 eq.trans
   (by rw [cosh_mul_I, sinh_mul_I, mul_pow, I_sq, mul_neg_one, sub_neg_eq_add, add_comm])
   (cosh_sq_sub_sinh_sq (x * I))
+
+/-- A real version of `complex.cosh_sq_sub_sinh_sq`-/
+lemma real.cosh_sq_sub_sinh_sq (x : ℝ) : cosh x ^ 2 - sinh x ^ 2 = 1 :=
+begin
+  rw [sinh, cosh],
+  have := complex.cosh_sq_sub_sinh_sq x,
+  apply_fun complex.re at this,
+  rw [pow_two, pow_two] at this,
+  change (⟨_, _⟩ : ℂ).re - (⟨_, _⟩ : ℂ).re = 1 at this,
+  rw [complex.cosh_of_real_im x, complex.sinh_of_real_im x] at this,
+  norm_num at this,
+  rwa [pow_two, pow_two],
+end
+
 
 lemma cos_two_mul' : cos (2 * x) = cos x ^ 2 - sin x ^ 2 :=
 by rw [two_mul, cos_add, ← pow_two, ← pow_two]

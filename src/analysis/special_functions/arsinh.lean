@@ -102,19 +102,6 @@ end
 lemma sinh_bijective : function.bijective sinh :=
 ⟨sinh_injective, sinh_surjective⟩
 
-/-- A real version of `complex.cosh_sq_sub_sinh_sq`-/
-lemma real.cosh_sq_sub_sinh_sq (x : ℝ) : cosh x ^ 2 - sinh x ^ 2 = 1 :=
-begin
-  rw [sinh, cosh],
-  have := complex.cosh_sq_sub_sinh_sq x,
-  apply_fun complex.re at this,
-  rw [pow_two, pow_two] at this,
-  change (⟨_, _⟩ : ℂ).re - (⟨_, _⟩ : ℂ).re = 1 at this,
-  rw [complex.cosh_of_real_im x, complex.sinh_of_real_im x] at this,
-  norm_num at this,
-  rwa [pow_two, pow_two],
-end
-
 /-- A rearrangment and `sqrt` of `real.cosh_sq_sub_sinh_sq` -/
 lemma sqrt_one_add_sinh_sq (x : ℝ): sqrt (1 + sinh x ^ 2) = cosh x :=
 begin

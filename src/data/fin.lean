@@ -390,7 +390,7 @@ cast_le_injective (le_add_right n 1)
   p.succ_above i = i.cast_succ :=
 by { rw [fin.succ_above], split_ifs, refl }
 
-@[simp] lemma succ_above_zero (i : fin n) : succ_above 0 i = i.succ := rfl
+lemma succ_above_zero (i : fin n) : succ_above 0 i = i.succ := rfl
 
 @[simp] lemma succ_above_above (p : fin (n + 1)) (i : fin n) (h : p.val ≤ i.val) :
   p.succ_above i = i.succ :=

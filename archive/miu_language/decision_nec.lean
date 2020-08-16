@@ -27,7 +27,7 @@ open miu_atom nat list
 /-!
 ### Numerical condition on the `I` count
 
-Suppose `st : miustr`. Then `count I st` is the number of `I`s in `st. We'll show, if
+Suppose `st : miustr`. Then `count I st` is the number of `I`s in `st`. We'll show, if
 `derivable st`, then `count I st` must be 1 or 2 modulo 3. To do this, it suffices to show that if
 the `en : miustr` is derived from `st`, then `count I en` moudulo 3 is either equal to or is twice
 `count I st`, modulo 3.

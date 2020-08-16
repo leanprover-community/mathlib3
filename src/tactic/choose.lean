@@ -105,7 +105,6 @@ meta def choose (nondep : bool) : expr → list name →
   return ()
 | h (n::ns) ne_fail₁ := do
   (v, ne_fail₂) ← get_unused_name >>= choose1 nondep h n,
-  trace (ne_fail₁, ne_fail₂),
   choose v ns $
     match ne_fail₁, ne_fail₂ with
     | none, _ := ne_fail₂

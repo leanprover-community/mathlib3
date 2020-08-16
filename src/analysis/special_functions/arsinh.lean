@@ -30,7 +30,7 @@ arsinh, sinh injective, sinh bijective, sinh surjective
 -/
 
 
-/-- `arsinh` is defined using a logarithm-/
+/-- `arsinh` is defined using a logarithm, `arsinh x = log (x + sqrt(1 + x^2))` -/
 def arsinh (x : ℝ) := log (x + sqrt(1 + x^2))
 
 /-- `sinh` is injective, `∀ a b, sinh a = sinh b → a = b` -/

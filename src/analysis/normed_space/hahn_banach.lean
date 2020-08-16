@@ -13,7 +13,10 @@ import analysis.convex.cone
 In this file we prove a version of Hahn-Banach theorem for continuous linear
 functions on normed spaces over ℝ and ℂ.
 
-We also prove a standard corollary, needed for the isometric inclusion in the double dual.
+In order to state and prove its corrolaries uniformly, we also introduce the
+`has_exists_extension_norm_eq` class, and provide instances for ℝ and ℂ.
+
+We also prove a standard corollary, needed for `inclusion_in_double_dual_isometry`.
 
 ## TODO
 
@@ -23,9 +26,14 @@ Prove more corollaries
 
 universes u v
 
-/-- Hahn-Banach theorem for continuous linear functions. -/
+/--
+A field where the Hahn-Banach theorem for continuous linear functions holds. This allows stating
+theorems that depend on it uniformly over such fields.
+
+In particular, this is satisfied by ℝ and ℂ.
+-/
 class has_exists_extension_norm_eq (𝕜 : Type v)
-  [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜] : Prop :=
+  [nondiscrete_normed_field 𝕜] : Prop :=
 (exists_extension_norm_eq :
   ∀ (E : Type u)
   [normed_group E] [normed_space 𝕜 E]
@@ -33,19 +41,25 @@ class has_exists_extension_norm_eq (𝕜 : Type v)
   (f : p →L[𝕜] 𝕜),
   ∃ g : E →L[𝕜] 𝕜, (∀ x : p, g x = f x) ∧ ∥g∥ = ∥f∥)
 
-/-- The norm of `x` as an element of 𝕜 -/
+/--
+The norm of `x` as an element of 𝕜 (an algebra over ℝ). This is needed in particular to state
+equalities of the form `g x = norm' 𝕜 x`.
+
+For the concrete cases of ℝ and ℂ, this is just ∥x∥ and ↑∥x∥, respectively.
+-/
 noncomputable def norm' (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
   {E : Type*} [normed_group E] (x : E) : 𝕜 :=
-  algebra_map ℝ 𝕜 ∥x∥
+algebra_map ℝ 𝕜 ∥x∥
+
+lemma norm'_def (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
+  {E : Type*} [normed_group E] (x : E) :
+  norm' 𝕜 x = (algebra_map ℝ 𝕜 ∥x∥) := rfl
 
 lemma norm_norm'
   (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
   (A : Type*) [normed_group A]
   (x : A) : ∥norm' 𝕜 x∥ = ∥x∥ :=
-begin
-  unfold norm',
-  rw [norm_algebra_map_eq, norm_norm],
-end
+by rw [norm'_def, norm_algebra_map_eq, norm_norm]
 
 section basic
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
@@ -172,8 +186,7 @@ begin
   { obtain ⟨y, hy⟩ := exists_ne (0 : E),
     obtain ⟨g, hg⟩ : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g y = norm' 𝕜 y := exists_dual_vector y hy,
     refine ⟨g, hg.left, _⟩,
-    unfold norm',
-    rw [hx, norm_zero, ring_hom.map_zero, continuous_linear_map.map_zero] },
+    rw [norm'_def, hx, norm_zero, ring_hom.map_zero, continuous_linear_map.map_zero] },
   { exact exists_dual_vector x hx }
 end
 

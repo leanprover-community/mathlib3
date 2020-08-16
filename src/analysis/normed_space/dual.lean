@@ -61,7 +61,7 @@ end general
 
 universes u v
 
-variables {𝕜 : Type v} [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜] [has_exists_extension_norm_eq.{u v} 𝕜]
+variables {𝕜 : Type v} [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜] [has_exists_extension_norm_eq.{u} 𝕜]
 variables {E : Type u} [normed_group E] [normed_space 𝕜 E]
 
 /-- If one controls the norm of every `f x`, then one controls the norm of `x`.

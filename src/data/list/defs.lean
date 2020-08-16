@@ -93,7 +93,6 @@ def to_array (l : list α) : array l.length α :=
 def modify_nth (f : α → α) : ℕ → list α → list α :=
 modify_nth_tail (modify_head f)
 
-
 /-- `insert_nth n a l` inserts `a` into the list `l` after the first `n` elements of `l`
  `insert_nth 2 1 [1, 2, 3, 4] = [1, 2, 1, 3, 4]`-/
 def insert_nth (n : ℕ) (a : α) : list α → list α := modify_nth_tail (list.cons a) n

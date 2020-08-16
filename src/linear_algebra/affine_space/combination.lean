@@ -302,16 +302,15 @@ variables (k : Type*) {V : Type*} {P : Type*} [division_ring k] [add_comm_group 
 variables [affine_space V P] {ι : Type*} (s : finset ι)
 
 /-- The weights for the centroid of some points. -/
-@[nolint unused_arguments]
-def centroid_weights (i : ι) := (finset.card s : k) ⁻¹
+def centroid_weights : ι → k := function.const ι (card s : k) ⁻¹
 
 /-- `centroid_weights` at any point. -/
-@[simp] lemma centroid_weights_apply (i : ι) : s.centroid_weights k i = (finset.card s : k) ⁻¹ :=
+@[simp] lemma centroid_weights_apply (i : ι) : s.centroid_weights k i = (card s : k) ⁻¹ :=
 rfl
 
 /-- `centroid_weights` equals a constant function. -/
 lemma centroid_weights_eq_const :
-  s.centroid_weights k = function.const ι ((finset.card s : k) ⁻¹) :=
+  s.centroid_weights k = function.const ι ((card s : k) ⁻¹) :=
 rfl
 
 variables {k}
@@ -520,10 +519,12 @@ variables {k : Type*} {V : Type*} {P : Type*} [division_ring k] [add_comm_group 
 variables [affine_space V P] {ι : Type*}
 include V
 
+open set finset
+
 /-- The centroid lies in the affine span if the number of points,
 converted to `k`, is not zero. -/
 lemma centroid_mem_affine_span_of_cast_card_ne_zero {s : finset ι} (p : ι → P)
-  (h : (finset.card s : k) ≠ 0) : s.centroid k p ∈ affine_span k (set.range p) :=
+  (h : (card s : k) ≠ 0) : s.centroid k p ∈ affine_span k (range p) :=
 affine_combination_mem_affine_span (s.sum_centroid_weights_eq_one_of_cast_card_ne_zero h) p
 
 variables (k)
@@ -531,19 +532,19 @@ variables (k)
 /-- In the characteristic zero case, the centroid lies in the affine
 span if the number of points is not zero. -/
 lemma centroid_mem_affine_span_of_card_ne_zero [char_zero k] {s : finset ι} (p : ι → P)
-  (h : finset.card s ≠ 0) : s.centroid k p ∈ affine_span k (set.range p) :=
+  (h : card s ≠ 0) : s.centroid k p ∈ affine_span k (range p) :=
 affine_combination_mem_affine_span (s.sum_centroid_weights_eq_one_of_card_ne_zero k h) p
 
 /-- In the characteristic zero case, the centroid lies in the affine
 span if the set is nonempty. -/
 lemma centroid_mem_affine_span_of_nonempty [char_zero k] {s : finset ι} (p : ι → P)
-  (h : s.nonempty) : s.centroid k p ∈ affine_span k (set.range p) :=
+  (h : s.nonempty) : s.centroid k p ∈ affine_span k (range p) :=
 affine_combination_mem_affine_span (s.sum_centroid_weights_eq_one_of_nonempty k h) p
 
 /-- In the characteristic zero case, the centroid lies in the affine
 span if the number of points is `n + 1`. -/
 lemma centroid_mem_affine_span_of_card_eq_add_one [char_zero k] {s : finset ι} (p : ι → P)
-  {n : ℕ} (h : finset.card s = n + 1) : s.centroid k p ∈ affine_span k (set.range p) :=
+  {n : ℕ} (h : card s = n + 1) : s.centroid k p ∈ affine_span k (range p) :=
 affine_combination_mem_affine_span (s.sum_centroid_weights_eq_one_of_card_eq_add_one k h) p
 
 end division_ring

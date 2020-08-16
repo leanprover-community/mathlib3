@@ -144,35 +144,44 @@ mk_binders' (match_with_depth (pure ∘ match_pi) n) (λ _ _ t, mk_meta_var t) e
 /--
 Like `mk_local_pis` but the input expression is reduced to weak head normal form
 (with transparency `md`) each time before we check whether it is a Π type.
+`unfold_ginductive` controls whether constructors of generalised inductive types
+are unfolded.
 -/
-meta def mk_local_pis_whnf (e : expr) (md := semireducible) :
-  tactic (list expr × expr) :=
-mk_binders' (λ _ e, match_pi <$> whnf e md) mk_local' e
+meta def mk_local_pis_whnf (e : expr) (md := semireducible)
+  (unfold_ginductive := tt) : tactic (list expr × expr) :=
+mk_binders' (λ _ e, match_pi <$> whnf e md unfold_ginductive) mk_local' e
 
 /--
 Like `mk_meta_pis` but the input expression is reduced to weak head normal form
 (with transparency `md`) each time before we check whether it is a Π type.
+`unfold_ginductive` controls whether constructors of generalised inductive types
+are unfolded.
 -/
-meta def mk_meta_pis_whnf (e : expr) (md := semireducible) :
-  tactic (list expr × expr) :=
-mk_binders' (λ _ e, match_pi <$> whnf e md) (λ _ _ t, mk_meta_var t) e
+meta def mk_meta_pis_whnf (e : expr) (md := semireducible)
+  (unfold_ginductive := tt) : tactic (list expr × expr) :=
+mk_binders' (λ _ e, match_pi <$> whnf e md unfold_ginductive)
+  (λ _ _ t, mk_meta_var t) e
 
 /--
 Like `mk_local_pisn` but the input expression is reduced to weak head normal
 form (with transparency `md`) each time before we check whether it is a Π type.
+`unfold_ginductive` controls whether constructors of generalised inductive types
+are unfolded.
 -/
-meta def mk_local_pisn_whnf (e : expr) (n : ℕ) (md := semireducible) :
-  tactic (list expr × expr) :=
-mk_binders' (match_with_depth (λ e, match_pi <$> whnf e md) n)
+meta def mk_local_pisn_whnf (e : expr) (n : ℕ) (md := semireducible)
+  (unfold_ginductive := tt) : tactic (list expr × expr) :=
+mk_binders' (match_with_depth (λ e, match_pi <$> whnf e md unfold_ginductive) n)
   mk_local' e
 
 /--
 Like `mk_meta_pisn` but the input expression is reduced to weak head normal
 form (with transparency `md`) each time before we check whether it is a Π type.
+`unfold_ginductive` controls whether constructors of generalised inductive types
+are unfolded.
 -/
-meta def mk_meta_pisn_whnf (e : expr) (n : ℕ) (md := semireducible) :
-  tactic (list expr × expr) :=
-mk_binders' (match_with_depth (λ e, match_pi <$> whnf e md) n)
+meta def mk_meta_pisn_whnf (e : expr) (n : ℕ) (md := semireducible)
+  (unfold_ginductive := tt) : tactic (list expr × expr) :=
+mk_binders' (match_with_depth (λ e, match_pi <$> whnf e md unfold_ginductive) n)
   (λ _ _ t, mk_meta_var t) e
 
 /--
@@ -230,38 +239,44 @@ mk_binders' (match_with_depth (pure ∘ match_lam) n) (λ _ _ t, mk_meta_var t) 
 /--
 Like `mk_local_lambdas` but the input expression is reduced to weak head normal
 form (with transparency `md`) each time before we check whether it start with a
-lambda binder.
+lambda binder. `unfold_ginductive` controls whether constructors of generalised
+inductive types are unfolded.
 -/
-meta def mk_local_lambdas_whnf (e : expr) (md := semireducible) :
-  tactic (list expr × expr) :=
-mk_binders' (λ _ e, match_lam <$> whnf e md) mk_local' e
+meta def mk_local_lambdas_whnf (e : expr) (md := semireducible)
+  (unfold_ginductive := tt) : tactic (list expr × expr) :=
+mk_binders' (λ _ e, match_lam <$> whnf e md unfold_ginductive) mk_local' e
 
 /--
 Like `mk_meta_lambdas` but the input expression is reduced to weak head normal
 form (with transparency `md`) each time before we check whether it start with a
-lambda binder.
+lambda binder. `unfold_ginductive` controls whether constructors of generalised
+inductive types are unfolded.
 -/
-meta def mk_meta_lambdas_whnf (e : expr) (md := semireducible) :
-  tactic (list expr × expr) :=
-mk_binders' (λ _ e, match_lam <$> whnf e md) (λ _ _ t, mk_meta_var t) e
+meta def mk_meta_lambdas_whnf (e : expr) (md := semireducible)
+  (unfold_ginductive := tt) : tactic (list expr × expr) :=
+mk_binders' (λ _ e, match_lam <$> whnf e md unfold_ginductive)
+  (λ _ _ t, mk_meta_var t) e
 
 /--
 Like `mk_local_lambdasn` but the input expression is reduced to weak head normal
 form (with transparency `md`) each time before we check whether it start with a
-lambda binder.
+lambda binder. `unfold_ginductive` controls whether constructors of generalised
+inductive types are unfolded.
 -/
-meta def mk_local_lambdasn_whnf (e : expr) (n : ℕ) (md := semireducible) :
-  tactic (list expr × expr) :=
-mk_binders' (match_with_depth (λ e, match_lam <$> whnf e md) n) mk_local' e
+meta def mk_local_lambdasn_whnf (e : expr) (n : ℕ) (md := semireducible)
+  (unfold_ginductive := tt) : tactic (list expr × expr) :=
+mk_binders' (match_with_depth (λ e, match_lam <$> whnf e md unfold_ginductive) n)
+  mk_local' e
 
 /--
 Like `mk_meta_lambdasn` but the input expression is reduced to weak head normal
 form (with transparency `md`) each time before we check whether it start with a
-lambda binder.
+lambda binder. `unfold_ginductive` controls whether constructors of generalised
+inductive types are unfolded.
 -/
-meta def mk_meta_lambdasn_whnf (e : expr) (n : ℕ) (md := semireducible) :
-  tactic (list expr × expr) :=
-mk_binders' (match_with_depth (λ e, match_lam <$> whnf e md) n)
+meta def mk_meta_lambdasn_whnf (e : expr) (n : ℕ) (md := semireducible)
+  (unfold_ginductive := tt) : tactic (list expr × expr) :=
+mk_binders' (match_with_depth (λ e, match_lam <$> whnf e md unfold_ginductive) n)
   (λ _ _ t, mk_meta_var t) e
 
 end tactic

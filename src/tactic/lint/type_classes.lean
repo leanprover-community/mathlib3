@@ -274,7 +274,8 @@ do tt ← is_prop d.type | return none,
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
 
 /-- Checks whether a declaration is `Prop`-valued and takes a `decidable* _` hypothesis that is unused
-elsewhere in the type. In this case, that hypothesis can be replaced with `classical` in the proof. -/
+elsewhere in the type. In this case, that hypothesis can be replaced with `classical` in the proof.
+Theorems in the `decidable` namespace are exempt from the check. -/
 private meta def decidable_classical (d : declaration) : tactic (option string) :=
 do tt ← is_prop d.type | return none,
    ff ← pure $ (`decidable).is_prefix_of d.to_name | return none,

@@ -60,22 +60,22 @@ end
   In this definition, we register additionally that this function is an initial segment,
   i.e., it is order preserving and its range is an initial segment of the ordinals.
   For the basic function version, see `aleph_idx`.
-  For an upgraded version stating that the range is everything, see `aleph_idx.order_iso`. -/
+  For an upgraded version stating that the range is everything, see `aleph_idx.rel_iso`. -/
 def aleph_idx.initial_seg : @initial_seg cardinal ordinal (<) (<) :=
-@order_embedding.collapse cardinal ordinal (<) (<) _ cardinal.ord.order_embedding
+@rel_embedding.collapse cardinal ordinal (<) (<) _ cardinal.ord.rel_embedding
 
 /-- The `aleph'` index function, which gives the ordinal index of a cardinal.
   (The `aleph'` part is because unlike `aleph` this counts also the
   finite stages. So `aleph_idx n = n`, `aleph_idx ω = ω`,
   `aleph_idx ℵ₁ = ω + 1` and so on.)
-  For an upgraded version stating that the range is everything, see `aleph_idx.order_iso`. -/
+  For an upgraded version stating that the range is everything, see `aleph_idx.rel_iso`. -/
 def aleph_idx : cardinal → ordinal := aleph_idx.initial_seg
 
 @[simp] theorem aleph_idx.initial_seg_coe :
   (aleph_idx.initial_seg : cardinal → ordinal) = aleph_idx := rfl
 
 @[simp] theorem aleph_idx_lt {a b} : aleph_idx a < aleph_idx b ↔ a < b :=
-aleph_idx.initial_seg.to_order_embedding.ord.symm
+aleph_idx.initial_seg.to_rel_embedding.map_rel_iff.symm
 
 @[simp] theorem aleph_idx_le {a b} : aleph_idx a ≤ aleph_idx b ↔ a ≤ b :=
 by rw [← not_lt, ← not_lt, aleph_idx_lt]
@@ -90,8 +90,8 @@ aleph_idx.initial_seg.init _ _
   In this version, we register additionally that this function is an order isomorphism
   between cardinals and ordinals.
   For the basic function version, see `aleph_idx`. -/
-def aleph_idx.order_iso : @order_iso cardinal.{u} ordinal.{u} (<) (<) :=
-@order_iso.of_surjective cardinal.{u} ordinal.{u} (<) (<) aleph_idx.initial_seg.{u} $
+def aleph_idx.rel_iso : @rel_iso cardinal.{u} ordinal.{u} (<) (<) :=
+@rel_iso.of_surjective cardinal.{u} ordinal.{u} (<) (<) aleph_idx.initial_seg.{u} $
 (initial_seg.eq_or_principal aleph_idx.initial_seg.{u}).resolve_right $
 λ ⟨o, e⟩, begin
   have : ∀ c, aleph_idx c < o := λ c, (e _).2 ⟨_, rfl⟩,
@@ -104,11 +104,11 @@ def aleph_idx.order_iso : @order_iso cardinal.{u} ordinal.{u} (<) (<) :=
       (ordinal.enum r _ (h (succ s))),
 end
 
-@[simp] theorem aleph_idx.order_iso_coe :
-  (aleph_idx.order_iso : cardinal → ordinal) = aleph_idx := rfl
+@[simp] theorem aleph_idx.rel_iso_coe :
+  (aleph_idx.rel_iso : cardinal → ordinal) = aleph_idx := rfl
 
 @[simp] theorem type_cardinal : @ordinal.type cardinal (<) _ = ordinal.univ.{u (u+1)} :=
-by rw ordinal.univ_id; exact quotient.sound ⟨aleph_idx.order_iso⟩
+by rw ordinal.univ_id; exact quotient.sound ⟨aleph_idx.rel_iso⟩
 
 @[simp] theorem mk_cardinal : mk cardinal = univ.{u (u+1)} :=
 by simpa only [card_type, card_univ] using congr_arg card type_cardinal
@@ -119,27 +119,27 @@ by simpa only [card_type, card_univ] using congr_arg card type_cardinal
   In this version, we register additionally that this function is an order isomorphism
   between ordinals and cardinals.
   For the basic function version, see `aleph'`. -/
-def aleph'.order_iso := cardinal.aleph_idx.order_iso.symm
+def aleph'.rel_iso := cardinal.aleph_idx.rel_iso.symm
 
 /-- The `aleph'` function gives the cardinals listed by their ordinal
   index, and is the inverse of `aleph_idx`.
   `aleph' n = n`, `aleph' ω = ω`, `aleph' (ω + 1) = ℵ₁`, etc. -/
-def aleph' : ordinal → cardinal := aleph'.order_iso
+def aleph' : ordinal → cardinal := aleph'.rel_iso
 
-@[simp] theorem aleph'.order_iso_coe :
-  (aleph'.order_iso : ordinal → cardinal) = aleph' := rfl
+@[simp] theorem aleph'.rel_iso_coe :
+  (aleph'.rel_iso : ordinal → cardinal) = aleph' := rfl
 
 @[simp] theorem aleph'_lt {o₁ o₂ : ordinal.{u}} : aleph' o₁ < aleph' o₂ ↔ o₁ < o₂ :=
-aleph'.order_iso.ord.symm
+aleph'.rel_iso.map_rel_iff.symm
 
 @[simp] theorem aleph'_le {o₁ o₂ : ordinal.{u}} : aleph' o₁ ≤ aleph' o₂ ↔ o₁ ≤ o₂ :=
 le_iff_le_iff_lt_iff_lt.2 aleph'_lt
 
 @[simp] theorem aleph'_aleph_idx (c : cardinal.{u}) : aleph' c.aleph_idx = c :=
-cardinal.aleph_idx.order_iso.to_equiv.symm_apply_apply c
+cardinal.aleph_idx.rel_iso.to_equiv.symm_apply_apply c
 
 @[simp] theorem aleph_idx_aleph' (o : ordinal.{u}) : (aleph' o).aleph_idx = o :=
-cardinal.aleph_idx.order_iso.to_equiv.apply_symm_apply o
+cardinal.aleph_idx.rel_iso.to_equiv.apply_symm_apply o
 
 @[simp] theorem aleph'_zero : aleph' 0 = 0 :=
 by rw [← le_zero, ← aleph'_aleph_idx 0, aleph'_le];
@@ -237,7 +237,7 @@ begin
     ⟨λ p:α×α, (typein (<) (g p), p), λ p q, congr_arg prod.snd⟩,
   let s := f ⁻¹'o (prod.lex (<) (prod.lex (<) (<))),
   -- this is a well order on `α × α`.
-  haveI : is_well_order _ s := (order_embedding.preimage _ _).is_well_order,
+  haveI : is_well_order _ s := (rel_embedding.preimage _ _).is_well_order,
   /- it suffices to show that this well order is smaller than `r`
      if it were larger, then `r` would be a strict prefix of `s`. It would be contained in
     `β × β` for some `β` of cardinality `< c`. By the inductive assumption, this set has the

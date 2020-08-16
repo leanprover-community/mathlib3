@@ -715,12 +715,12 @@ end
 
 /-- If `S` is the localization of `R` at a submonoid, the ordering of ideals of `S` is
 embedded in the ordering of ideals of `R`. -/
-def le_order_embedding :
-  ((≤) : ideal S → ideal S → Prop) ≼o
+def le_rel_embedding :
+  ((≤) : ideal S → ideal S → Prop) ↪r
   ((≤) : ideal R → ideal R → Prop) :=
 { to_fun := λ J, ideal.comap f.to_map J,
   inj'   := function.left_inverse.injective f.map_comap,
-  ord'   := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
+  map_rel_iff'   := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
     f.map_comap J₁ ▸ f.map_comap J₂ ▸ ideal.map_mono hJ⟩ }
 
 end ideals

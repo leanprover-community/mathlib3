@@ -1299,20 +1299,20 @@ apply_nolint fixed_points.prev_fixed doc_blame
 -- order/lexicographic.lean
 apply_nolint lex doc_blame
 
--- order/order_iso.lean
-apply_nolint order_embedding has_inhabited_instance
-apply_nolint order_embedding.lt_embedding_of_le_embedding doc_blame
-apply_nolint order_embedding.refl doc_blame
-apply_nolint order_embedding.trans doc_blame
-apply_nolint order_iso has_inhabited_instance
-apply_nolint order_iso.prod_lex_congr doc_blame
-apply_nolint order_iso.sum_lex_congr doc_blame
-apply_nolint subrel.order_embedding doc_blame
+-- order/rel_iso.lean
+apply_nolint rel_embedding has_inhabited_instance
+apply_nolint rel_embedding.lt_embedding_of_le_embedding doc_blame
+apply_nolint rel_embedding.refl doc_blame
+apply_nolint rel_embedding.trans doc_blame
+apply_nolint rel_iso has_inhabited_instance
+apply_nolint rel_iso.prod_lex_congr doc_blame
+apply_nolint rel_iso.sum_lex_congr doc_blame
+apply_nolint subrel.rel_embedding doc_blame
 
 -- order/order_iso_nat.lean
-apply_nolint order_embedding.nat_gt doc_blame ge_or_gt
-apply_nolint order_embedding.nat_lt doc_blame
-apply_nolint order_embedding.well_founded_iff_no_descending_seq ge_or_gt
+apply_nolint rel_embedding.nat_gt doc_blame ge_or_gt
+apply_nolint rel_embedding.nat_lt doc_blame
+apply_nolint rel_embedding.well_founded_iff_no_descending_seq ge_or_gt
 
 -- order/pilex.lean
 apply_nolint pi.lex doc_blame
@@ -1338,8 +1338,8 @@ apply_nolint free_ring.map doc_blame
 apply_nolint free_ring.of doc_blame
 
 -- ring_theory/ideal/operations.lean
-apply_nolint ideal.le_order_embedding_of_surjective doc_blame
-apply_nolint ideal.lt_order_embedding_of_surjective doc_blame
+apply_nolint ideal.le_rel_embedding_of_surjective doc_blame
+apply_nolint ideal.lt_rel_embedding_of_surjective doc_blame
 apply_nolint ideal.map doc_blame
 apply_nolint ideal.quotient_inf_to_pi_quotient doc_blame
 apply_nolint submodule.annihilator doc_blame

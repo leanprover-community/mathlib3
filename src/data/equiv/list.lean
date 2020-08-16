@@ -56,7 +56,7 @@ end list
 section finset
 variables [encodable α]
 
-private def enle : α → α → Prop := encode ⁻¹'r (≤)
+private def enle : α → α → Prop := encode ⁻¹'o (≤)
 
 private lemma enle.is_linear_order : is_linear_order α enle :=
 (rel_embedding.preimage ⟨encode, encode_injective⟩ (≤)).is_linear_order
@@ -119,7 +119,7 @@ def fintype_pi (α : Type*) (π : α → Type*) [decidable_eq α] [fintype α] [
 
 /-- The elements of a `fintype` as a sorted list. -/
 def sorted_univ (α) [fintype α] [encodable α] : list α :=
-finset.univ.sort (encodable.encode' α ⁻¹'r (≤))
+finset.univ.sort (encodable.encode' α ⁻¹'o (≤))
 
 theorem mem_sorted_univ {α} [fintype α] [encodable α] (x : α) : x ∈ sorted_univ α :=
 (finset.mem_sort _).2 (finset.mem_univ _)

@@ -83,19 +83,11 @@ by { haveI this := partial_order.ext H,
   (assuming `f` is injective). -/
 @[simp] def order.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) := s (f x) (f y)
 
-infix ` ⁻¹'r `:80 := order.preimage
-
-/-- Given `[has_le β]` and a function `f : α → β`,
-  the preimage order on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
-  It is the unique order on `α` making `f` an `order_embedding`
-  (assuming `f` is injective). -/
-@[simp] def order.preimage {α β} [has_le β] (f : α → β) := f ⁻¹'r (≤)
-
-postfix `⁻¹'r (≤)`:80 := order.preimage
+infix ` ⁻¹'o `:80 := order.preimage
 
 /-- The preimage of a decidable order is decidable. -/
 instance order.preimage.decidable {α β} (f : α → β) (s : β → β → Prop) [H : decidable_rel s] :
-  decidable_rel (f ⁻¹'r s) :=
+  decidable_rel (f ⁻¹'o s) :=
 λ x y, H _ _
 
 section monotone

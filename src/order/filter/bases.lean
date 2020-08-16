@@ -380,7 +380,7 @@ begin
 end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_on (s ⁻¹'r (≥)) S)
+lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_on (s ⁻¹'o (≥)) S)
   (ne : S.nonempty) :
   (⨅ i ∈ S, 𝓟 (s i)).has_basis (λ i, i ∈ S) s :=
 ⟨begin

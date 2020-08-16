@@ -592,7 +592,7 @@ by simp only [infi_sets_eq h, mem_Union]
 
 @[nolint ge_or_gt] -- Intentional use of `≥`
 lemma binfi_sets_eq {f : β → filter α} {s : set β}
-  (h : directed_on (f ⁻¹'r (≥)) s) (ne : s.nonempty) :
+  (h : directed_on (f ⁻¹'o (≥)) s) (ne : s.nonempty) :
   (⨅ i∈s, f i).sets = (⋃ i ∈ s, (f i).sets) :=
 by haveI := ne.to_subtype;
 calc (⨅ i ∈ s, f i).sets  = (⨅ t : {t // t ∈ s}, (f t.val)).sets : by rw [infi_subtype]; refl
@@ -601,7 +601,7 @@ calc (⨅ i ∈ s, f i).sets  = (⨅ t : {t // t ∈ s}, (f t.val)).sets : by rw
 
 @[nolint ge_or_gt] -- Intentional use of `≥`
 lemma mem_binfi {f : β → filter α} {s : set β}
-  (h : directed_on (f ⁻¹'r (≥)) s) (ne : s.nonempty) {t : set α} :
+  (h : directed_on (f ⁻¹'o (≥)) s) (ne : s.nonempty) {t : set α} :
   t ∈ (⨅ i∈s, f i) ↔ ∃ i ∈ s, t ∈ f i :=
 by simp only [binfi_sets_eq h ne, mem_bUnion_iff]
 
@@ -1713,7 +1713,7 @@ le_antisymm
     by simp only [filter.le_principal_iff] at this; assumption)
 
 lemma map_binfi_eq {ι : Type w} {f : ι → filter α} {m : α → β} {p : ι → Prop}
-  (h : directed_on (f ⁻¹'r (≥)) {x | p x}) (ne : ∃i, p i) :
+  (h : directed_on (f ⁻¹'o (≥)) {x | p x}) (ne : ∃i, p i) :
   map m (⨅i (h : p i), f i) = (⨅i (h: p i), map m (f i)) :=
 begin
   haveI := nonempty_subtype.2 ne,

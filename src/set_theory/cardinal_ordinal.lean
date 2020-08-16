@@ -235,7 +235,7 @@ begin
   let g : α × α → α := λ p, max p.1 p.2,
   let f : α × α ↪ ordinal × (α × α) :=
     ⟨λ p:α×α, (typein (<) (g p), p), λ p q, congr_arg prod.snd⟩,
-  let s := f ⁻¹'r (prod.lex (<) (prod.lex (<) (<))),
+  let s := f ⁻¹'o (prod.lex (<) (prod.lex (<) (<))),
   -- this is a well order on `α × α`.
   haveI : is_well_order _ s := (rel_embedding.preimage _ _).is_well_order,
   /- it suffices to show that this well order is smaller than `r`

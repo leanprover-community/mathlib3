@@ -435,7 +435,7 @@ def embedding_to_cardinal : σ ↪ cardinal.{u} := classical.choice nonempty_emb
 
 /-- Any type can be endowed with a well order, obtained by pulling back the well order over
 cardinals by some embedding. -/
-def well_ordering_rel : σ → σ → Prop := embedding_to_cardinal ⁻¹'r (<)
+def well_ordering_rel : σ → σ → Prop := embedding_to_cardinal ⁻¹'o (<)
 
 instance well_ordering_rel.is_well_order : is_well_order σ well_ordering_rel :=
 (rel_embedding.preimage _ _).is_well_order
@@ -760,14 +760,14 @@ quotient.sound ⟨⟨punit_equiv_punit, λ _ _, iff.rfl⟩⟩
   see `lift.initial_seg`. -/
 def lift (o : ordinal.{u}) : ordinal.{max u v} :=
 quotient.lift_on o (λ ⟨α, r, wo⟩,
-  @type _ _ (@rel_embedding.is_well_order _ _ (@equiv.ulift.{v} α ⁻¹'r r) r
+  @type _ _ (@rel_embedding.is_well_order _ _ (@equiv.ulift.{v} α ⁻¹'o r) r
     (rel_iso.preimage equiv.ulift.{v} r) wo)) $
 λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨f⟩,
 quot.sound ⟨(rel_iso.preimage equiv.ulift r).trans $
   f.trans (rel_iso.preimage equiv.ulift s).symm⟩
 
 theorem lift_type {α} (r : α → α → Prop) [is_well_order α r] :
-  ∃ wo', lift (type r) = @type _ (@equiv.ulift.{v} α ⁻¹'r r) wo' :=
+  ∃ wo', lift (type r) = @type _ (@equiv.ulift.{v} α ⁻¹'o r) wo' :=
 ⟨_, rfl⟩
 
 theorem lift_umax : lift.{u (max u v)} = lift.{u v} :=
@@ -803,9 +803,9 @@ quotient.eq.trans
 
 theorem lift_type_lt {α : Type u} {β : Type v} {r s} [is_well_order α r] [is_well_order β s] :
   lift.{u (max v w)} (type r) < lift.{v (max u w)} (type s) ↔ nonempty (r ≺i s) :=
-by haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{(max v w)} α ⁻¹'r r)
+by haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{(max v w)} α ⁻¹'o r)
      r (rel_iso.preimage equiv.ulift.{(max v w)} r) _;
-   haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{(max u w)} β ⁻¹'r s)
+   haveI := @rel_embedding.is_well_order _ _ (@equiv.ulift.{(max u w)} β ⁻¹'o s)
      s (rel_iso.preimage equiv.ulift.{(max u w)} s) _; exact
 ⟨λ ⟨f⟩, ⟨(f.equiv_lt (rel_iso.preimage equiv.ulift r).symm).lt_le
     (initial_seg.of_iso (rel_iso.preimage equiv.ulift s))⟩,
@@ -848,7 +848,7 @@ quotient.induction_on c (λ α, induction_on b $ λ β s _ e', begin
       ← cardinal.lift_umax.{u v}, lift_mk_eq.{u (max u v) (max u v)}] at e',
   cases e' with f,
   have g := rel_iso.preimage f s,
-  haveI := (g : ⇑f ⁻¹'r s ↪r s).is_well_order,
+  haveI := (g : ⇑f ⁻¹'o s ↪r s).is_well_order,
   have := lift_type_eq.{u (max u v) (max u v)}.2 ⟨g⟩,
   rw [lift_id, lift_umax.{u v}] at this,
   exact ⟨_, this⟩
@@ -1122,8 +1122,8 @@ begin
   from λ α β h, le_antisymm (this h) (this (setoid.symm h)),
   intros α β h, cases h with f, refine ordinal.le_min.2 (λ i, _),
   haveI := @rel_embedding.is_well_order _ _
-    (f ⁻¹'r i.1) _ ↑(rel_iso.preimage f i.1) i.2,
-  rw ← show type (f ⁻¹'r i.1) = ⟦⟨β, i.1, i.2⟩⟧, from
+    (f ⁻¹'o i.1) _ ↑(rel_iso.preimage f i.1) i.2,
+  rw ← show type (f ⁻¹'o i.1) = ⟦⟨β, i.1, i.2⟩⟧, from
     quot.sound ⟨rel_iso.preimage f i.1⟩,
   exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
 end

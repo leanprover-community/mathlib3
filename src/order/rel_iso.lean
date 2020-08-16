@@ -38,11 +38,11 @@ infix ` ↪≤ `:25 := order_embedding
 
 /-- the induced relation on a subtype is an embedding under the natural inclusion. -/
 definition subtype.rel_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) :
-((subtype.val : subtype p → X) ⁻¹'r r) ↪r r :=
+((subtype.val : subtype p → X) ⁻¹'o r) ↪r r :=
 ⟨⟨subtype.val,subtype.val_injective⟩,by intros;refl⟩
 
 theorem preimage_equivalence {α β} (f : α → β) {s : β → β → Prop}
-  (hs : equivalence s) : equivalence (f ⁻¹'r s) :=
+  (hs : equivalence s) : equivalence (f ⁻¹'o s) :=
 ⟨λ a, hs.1 _, λ a b h, hs.2.1 h, λ a b c h₁ h₂, hs.2.2 h₁ h₂⟩
 
 namespace rel_embedding
@@ -79,9 +79,9 @@ def rsymm (f : r ↪r s) : swap r ↪r swap s :=
 
 /-- If `f` is injective, then it is a relation embedding from the
   preimage relation of `s` to `s`. -/
-def preimage (f : α ↪ β) (s : β → β → Prop) : f ⁻¹'r s ↪r s := ⟨f, λ a b, iff.rfl⟩
+def preimage (f : α ↪ β) (s : β → β → Prop) : f ⁻¹'o s ↪r s := ⟨f, λ a b, iff.rfl⟩
 
-theorem eq_preimage (f : r ↪r s) : r = f ⁻¹'r s :=
+theorem eq_preimage (f : r ↪r s) : r = f ⁻¹'o s :=
 by { ext a b, exact f.map_rel_iff }
 
 protected theorem is_irrefl : ∀ (f : r ↪r s) [is_irrefl β s], is_irrefl α r
@@ -262,7 +262,7 @@ protected lemma injective (e : r ≃r s) : injective e := e.to_equiv.injective
 protected lemma surjective (e : r ≃r s) : surjective e := e.to_equiv.surjective
 
 /-- Any equivalence lifts to a relation isomorphism between `s` and its preimage. -/
-protected def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'r s ≃r s := ⟨f, λ a b, iff.rfl⟩
+protected def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'o s ≃r s := ⟨f, λ a b, iff.rfl⟩
 
 /-- A surjective relation embedding is a relation isomorphism. -/
 noncomputable def of_surjective (f : r ↪r s) (H : surjective f) : r ≃r s :=
@@ -323,7 +323,7 @@ def set_coe_embedding {α : Type*} (p : set α) : p ↪ α := ⟨subtype.val, @s
 
 /-- `subrel r p` is the inherited relation on a subset. -/
 def subrel (r : α → α → Prop) (p : set α) : p → p → Prop :=
-@subtype.val _ p ⁻¹'r r
+@subtype.val _ p ⁻¹'o r
 
 @[simp] theorem subrel_val (r : α → α → Prop) (p : set α)
   {a b} : subrel r p a b ↔ r a.1 b.1 := iff.rfl

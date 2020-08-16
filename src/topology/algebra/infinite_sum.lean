@@ -50,7 +50,7 @@ def has_sum (f : β → α) (a : α) : Prop := tendsto (λs:finset β, ∑ b in 
 def summable (f : β → α) : Prop := ∃a, has_sum f a
 
 /-- `∑' i, f i` is the sum of `f` it exists, or 0 otherwise -/
-def tsum (f : β → α) := if h : summable f then classical.some h else 0
+def tsum {β} (f : β → α) := if h : summable f then classical.some h else 0
 
 notation `∑'` binders `, ` r:(scoped f, tsum f) := r
 
@@ -717,7 +717,7 @@ begin
     { simp only [(finset.sum_sdiff ht₁).symm, (finset.sum_sdiff ht₂).symm,
         add_sub_add_right_eq_sub] },
     simp only [this],
-    exact hde _ _ (h _ finset.sdiff_disjoint) (h _ finset.sdiff_disjoint) }
+    exact hde _ (h _ finset.sdiff_disjoint) _ (h _ finset.sdiff_disjoint) }
 end
 
 variable [complete_space α]

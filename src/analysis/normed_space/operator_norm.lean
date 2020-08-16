@@ -252,8 +252,8 @@ theorem le_op_norm : ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
 classical.by_cases
   (λ heq : x = 0, by { rw heq, simp })
   (λ hne, have hlt : 0 < ∥x∥, from norm_pos_iff.2 hne,
-    le_mul_of_div_le hlt ((le_Inf _ bounds_nonempty bounds_bdd_below).2
-    (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (by { rw mul_comm, apply hc }))))
+    (div_le_iff hlt).mp ((le_Inf _ bounds_nonempty bounds_bdd_below).2
+    (λ c ⟨_, hc⟩, (div_le_iff hlt).mpr $ by { apply hc })))
 
 theorem le_op_norm_of_le {c : ℝ} {x} (h : ∥x∥ ≤ c) : ∥f x∥ ≤ ∥f∥ * c :=
 le_trans (f.le_op_norm x) (mul_le_mul_of_nonneg_left h f.op_norm_nonneg)
@@ -264,9 +264,7 @@ lipschitz_with.of_dist_le_mul $ λ x y,
   by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }
 
 lemma ratio_le_op_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
-(or.elim (lt_or_eq_of_le (norm_nonneg _))
-  (λ hlt, div_le_of_le_mul hlt (by { rw mul_comm, apply le_op_norm }))
-  (λ heq, by { rw [←heq, div_zero], apply op_norm_nonneg }))
+div_le_iff_of_nonneg_of_le (norm_nonneg _) f.op_norm_nonneg (le_op_norm _ _)
 
 /-- The image of the unit ball under a continuous linear map is bounded. -/
 lemma unit_le_op_norm : ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=

@@ -62,6 +62,6 @@ lemma append_reverse (l : list α) : palindrome (l ++ reverse l) :=
 by { apply of_reverse_eq, rw [reverse_append, reverse_reverse] }
 
 instance [decidable_eq α] (l : list α) : decidable (palindrome l) :=
-decidable_of_iff _ iff_reverse_eq.symm
+decidable_of_iff' _ iff_reverse_eq
 
 end palindrome

@@ -76,7 +76,7 @@ lemma degree_eq_iff_nat_degree_eq {p : polynomial R} {n : ℕ} (hp : p ≠ 0) :
   p.degree = n ↔ p.nat_degree = n :=
 by rw [degree_eq_nat_degree hp, with_bot.coe_eq_coe]
 
-lemma degree_eq_iff_nat_degree_eq_of_pos {p : polynomial R} {n : ℕ} (hn : n > 0) :
+lemma degree_eq_iff_nat_degree_eq_of_pos {p : polynomial R} {n : ℕ} (hn : 0 < n) :
   p.degree = n ↔ p.nat_degree = n :=
 begin
   split,

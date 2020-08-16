@@ -50,7 +50,7 @@ begin
   exact H,
   { intros fx,
     rw sub_eq_zero at fx,
-    have fx_sq : x^2 = (sqrt (1 + x ^ 2)) ^ 2 := by { rw fx.symm },
+    have fx_sq : x^2 = (sqrt (1 + x ^ 2)) ^ 2 := by rw fx.symm,
     rw sqr_sqrt at fx_sq,
     { linarith },
     { have G : 0 ≤ x^2 := by {apply pow_two_nonneg},
@@ -64,7 +64,7 @@ begin
   rw sqrt_lt,
   linarith,
   apply pow_two_nonneg,
-  have F : 0 ≤ b^2 := by { apply pow_two_nonneg },
+  have F : 0 ≤ b^2 := by apply pow_two_nonneg,
   { linarith },
   rw not_le at hb,
   apply lt_of_lt_of_le hb,
@@ -72,29 +72,7 @@ begin
 end
 
 /-- `sinh` is surjective, `∀ b, ∃ a, sinh a = b`. In this case, we use `a = arsinh b` -/
-lemma sinh_surjective : function.surjective sinh :=
-begin
-  intro b,
-  use (arsinh b),
-  rw sinh_eq,
-  unfold arsinh,
-  rw ←log_inv,
-  rw [exp_log, exp_log],
-  { rw [← one_mul ((b + sqrt (1 + b ^ 2))⁻¹), ←division_def, aux_lemma],
-    ring },
-  { rw [← one_mul ((b + sqrt (1 + b ^ 2))⁻¹), ←division_def, aux_lemma],
-    ring,
-    rw [neg_add_eq_sub, sub_pos],
-    have H : b^2 < sqrt (b ^ 2 + 1)^2,
-    { rw sqr_sqrt,
-      linarith,
-      have F : 0 ≤ b^2 := by apply pow_two_nonneg,
-      linarith },
-    exact b_lt_sqrt_b_sq_add_one b },
-  { have H := b_lt_sqrt_b_sq_add_one (-b),
-    rw [neg_square, add_comm (b^2)] at H,
-    linarith },
-end
+lemma sinh_surjective : function.surjective sinh := function.left_inverse.surjective arsinh_sinh
 
 /-- `sinh` is bijective, both injective and surjective-/
 lemma sinh_bijective : function.bijective sinh :=

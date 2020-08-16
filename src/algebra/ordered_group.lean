@@ -436,7 +436,15 @@ coe_lt_coe
 @[simp] lemma top_add [ordered_add_comm_monoid α] {a : with_top α} : ⊤ + a = ⊤ := rfl
 
 lemma add_eq_top [ordered_add_comm_monoid α] (a b : with_top α) : a + b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
-by cases a; cases b; simp [none_eq_top, some_eq_coe, coe_add.symm]
+begin
+  cases a;
+  cases b,
+  { simp [none_eq_top] },
+  { simp [none_eq_top] },
+  { simp [none_eq_top] },
+  { simp only [some_eq_coe, coe_add.symm, coe_ne_top, iff_false, or_self], exact not_false },
+end
+  -- simp [(with_top.coe_add).symm, none_eq_top, some_eq_coe], sorry}
 
 lemma add_lt_top [ordered_add_comm_monoid α] (a b : with_top α) : a + b < ⊤ ↔ a < ⊤ ∧ b < ⊤ :=
 by simp [lt_top_iff_ne_top, add_eq_top, not_or_distrib]

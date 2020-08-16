@@ -444,6 +444,15 @@ meta def get_app_fn_args_whnf (e : expr) (md := semireducible) :
   tactic (expr × list expr) :=
 get_app_fn_args_whnf_aux md [] e
 
+/--
+`get_app_fn_whnf e md` is like `expr.get_app_fn e` but `e` is normalised as
+necessary (with transparency `md`).
+-/
+meta def get_app_fn_whnf : expr → opt_param transparency semireducible → tactic expr
+| e md := do
+  (expr.app f _) ← whnf e md | pure e,
+  get_app_fn_whnf f md
+
 /-- `pis loc_consts f` is used to create a pi expression whose body is `f`.
 `loc_consts` should be a list of local constants. The function will abstract these local
 constants from `f` and bind them with pi binders.

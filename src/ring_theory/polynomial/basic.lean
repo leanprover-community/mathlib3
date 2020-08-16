@@ -186,12 +186,9 @@ begin
   split,
   { intros hf,
     apply submodule.span_induction hf,
-    { intros f hf,
-      rw set.mem_image at hf,
-      cases hf with x hx,
-      rw ← hx.right,
-      intro n,
-      rw coeff_C,
+    { intros f hf n,
+      cases (set.mem_image _ _ _).mp hf with x hx,
+      rw [← hx.right, coeff_C],
       by_cases (n = 0),
       { simpa [h] using hx.left },
       { simp [h] } },
@@ -207,6 +204,58 @@ begin
     rw mul_comm,
     exact (map C I : ideal (polynomial R)).smul_mem _ (mem_map_of_mem (hf n)) }
 end
+
+lemma quotient_map_C_eq_zero {I : ideal R} :
+  ∀ a ∈ I, ((quotient.mk (map C I : ideal (polynomial R))).comp C) a = 0 :=
+begin
+  intros a ha,
+  rw [ring_hom.comp_apply, quotient.eq_zero_iff_mem],
+  exact mem_map_of_mem ha,
+end
+
+lemma eval₂_C_mk_eq_zero {I : ideal R} :
+  ∀ f ∈ (map C I : ideal (polynomial R)), eval₂_ring_hom (C.comp (quotient.mk I)) X f = 0 :=
+begin
+  intros a ha,
+  rw ← sum_monomial_eq a,
+  dsimp,
+  erw eval₂_sum,
+  refine finset.sum_eq_zero (λ n hn, _),
+  dsimp,
+  rw eval₂_monomial,
+  refine mul_eq_zero_of_left (polynomial.ext (λ m, _)) (X ^ n),
+  erw coeff_C,
+  by_cases h : m = 0,
+  { simpa [h] using quotient.eq_zero_iff_mem.2 ((mem_map_C_iff.1 ha) n) },
+  { simp [h] }
+end
+
+noncomputable def polynomial_quotient_equiv_quotient_polynomial {I : ideal R} :
+  polynomial (I.quotient) ≃+* (map C I : ideal (polynomial R)).quotient :=
+{ to_fun := eval₂_ring_hom
+    (quotient.lift I ((quotient.mk (map C I : ideal (polynomial R))).comp C) quotient_map_C_eq_zero)
+    ((quotient.mk (map C I : ideal (polynomial R)) X)),
+  inv_fun := quotient.lift (map C I : ideal (polynomial R))
+    (eval₂_ring_hom (C.comp (quotient.mk I)) X) eval₂_C_mk_eq_zero,
+  map_mul' := λ f g, by simp,
+  map_add' := λ f g, by simp,
+  left_inv := by {
+    intro f,
+    apply polynomial.induction_on' f,
+    { simp_intros p q hp hq,
+      rw [hp, hq] },
+    { rintros n ⟨x⟩,
+      simp [monomial_eq_smul_X, C_mul'] }
+  },
+  right_inv := by {
+    rintro ⟨f⟩,
+    apply polynomial.induction_on' f,
+    { simp_intros p q hp hq,
+      rw [hp, hq] },
+    { intros n a,
+      simp [monomial_eq_smul_X, ← C_mul' a (X ^ n)] },
+  },
+}
 
 /-- Transport an ideal of `R[X]` to an `R`-submodule of `R[X]`. -/
 def of_polynomial (I : ideal (polynomial R)) : submodule R (polynomial R) :=

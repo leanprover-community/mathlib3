@@ -43,7 +43,7 @@ theorem prime.one_lt {p : ℕ} : prime p → 1 < p := prime.two_le
 instance prime.one_lt' (p : ℕ) [hp : _root_.fact p.prime] : _root_.fact (1 < p) := hp.one_lt
 
 lemma prime.ne_one {p : ℕ} (hp : p.prime) : p ≠ 1 :=
-ne.symm $ (ne_of_lt hp.one_lt)
+ne.symm $ ne_of_lt hp.one_lt
 
 theorem prime_def_lt {p : ℕ} : prime p ↔ 2 ≤ p ∧ ∀ m < p, m ∣ p → m = 1 :=
 and_congr_right $ λ p2, forall_congr $ λ m,

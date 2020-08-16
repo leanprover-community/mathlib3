@@ -797,28 +797,33 @@ begin
   cc
 end
 
-lemma mem_perms_of_list_of_mem : ∀ {l : list α} {f : perm α} (h : ∀ x, f x ≠ x → x ∈ l), f ∈ perms_of_list l
-| []     f h := list.mem_singleton.2 $ equiv.ext $ λ x, by simp [imp_false, *] at *
-| (a::l) f h :=
-if hfa : f a = a
-then
-  mem_append_left _ $ mem_perms_of_list_of_mem
-    (λ x hx, mem_of_ne_of_mem (λ h, by rw h at hx; exact hx hfa) (h x hx))
-else
-have hfa' : f (f a) ≠ f a, from mt (λ h, f.injective h) hfa,
-have ∀ (x : α), (swap a (f a) * f) x ≠ x → x ∈ l,
-  from λ x hx, have hxa : x ≠ a, from λ h, by simpa [h, mul_apply] using hx,
-    have hfxa : f x ≠ f a, from mt (λ h, f.injective h) hxa,
-    list.mem_of_ne_of_mem hxa
-      (h x (λ h, by simp [h, mul_apply, swap_apply_def] at hx; split_ifs at hx; cc)),
-suffices f ∈ perms_of_list l ∨ ∃ (b : α), b ∈ l ∧ ∃ g : perm α, g ∈ perms_of_list l ∧ swap a b * g = f,
-  by simpa [perms_of_list],
-(@or_iff_not_imp_left _ _ (classical.prop_decidable _)).2
-  (λ hfl, ⟨f a,
-    if hffa : f (f a) = a then mem_of_ne_of_mem hfa (h _ (mt (λ h, f.injective h) hfa))
-      else this _ $ by simp [mul_apply, swap_apply_def]; split_ifs; cc,
-    ⟨swap a (f a) * f, mem_perms_of_list_of_mem this,
-      by rw [← mul_assoc, mul_def (swap a (f a)) (swap a (f a)), swap_swap, ← equiv.perm.one_def, one_mul]⟩⟩)
+lemma mem_perms_of_list_of_mem {l : list α} {f : perm α}
+  (h : ∀ x, f x ≠ x → x ∈ l) : f ∈ perms_of_list l :=
+begin
+  induction l with a l IH generalizing f h,
+  { exact list.mem_singleton.2 (equiv.ext $ λ x, decidable.by_contradiction $ h _) },
+  by_cases hfa : f a = a,
+  { refine mem_append_left _ (IH (λ x hx, mem_of_ne_of_mem _ (h x hx))),
+    rintro rfl, exact hx hfa },
+  { have hfa' : f (f a) ≠ f a := mt (λ h, f.injective h) hfa,
+    have : ∀ (x : α), (swap a (f a) * f) x ≠ x → x ∈ l,
+    { intros x hx,
+      have hxa : x ≠ a,
+      { rintro rfl, apply hx, simp only [mul_apply, swap_apply_right] },
+      refine list.mem_of_ne_of_mem hxa (h x (λ h, _)),
+      simp only [h, mul_apply, swap_apply_def, mul_apply, ne.def, apply_eq_iff_eq] at hx;
+      split_ifs at hx, exacts [hxa (h.symm.trans h_1), hx h] },
+    suffices : f ∈ perms_of_list l ∨ ∃ (b ∈ l) (g ∈ perms_of_list l), swap a b * g = f,
+    { simpa only [perms_of_list, exists_prop, list.mem_map, mem_append, list.mem_bind] },
+    refine or_iff_not_imp_left.2 (λ hfl, ⟨f a, _, swap a (f a) * f, IH this, _⟩),
+    { by_cases hffa : f (f a) = a,
+      { exact mem_of_ne_of_mem hfa (h _ (mt (λ h, f.injective h) hfa)) },
+      { apply this,
+        simp only [mul_apply, swap_apply_def, mul_apply, ne.def, apply_eq_iff_eq],
+        split_ifs; cc } },
+    { rw [← mul_assoc, mul_def (swap a (f a)) (swap a (f a)),
+          swap_swap, ← equiv.perm.one_def, one_mul] } }
+end
 
 lemma mem_of_mem_perms_of_list : ∀ {l : list α} {f : perm α}, f ∈ perms_of_list l → ∀ {x}, f x ≠ x → x ∈ l
 | []     f h := have f = 1 := by simpa [perms_of_list] using h, by rw this; simp

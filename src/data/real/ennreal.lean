@@ -419,7 +419,9 @@ begin
   cases a; cases b; cases c;
     simp [none_eq_top, some_eq_coe, mul_top, top_mul, -coe_mul,
       -with_zero.coe_mul, with_zero.coe_mul.symm, coe_mul.symm,
-      nnreal.mul_eq_mul_left] {contextual := tt}
+      -with_one.coe_mul,
+      (with_one.coe_mul _ _).symm,
+      nnreal.mul_eq_mul_left] {contextual := tt},
 end
 
 lemma mul_eq_mul_right : c ≠ 0 → c ≠ ∞ → (a * c = b * c ↔ a = b) :=
@@ -427,10 +429,17 @@ mul_comm c a ▸ mul_comm c b ▸ mul_eq_mul_left
 
 lemma mul_le_mul_left : a ≠ 0 → a ≠ ⊤ → (a * b ≤ a * c ↔ b ≤ c) :=
 begin
-  cases a; cases b; cases c;
-    simp [none_eq_top, some_eq_coe, mul_top, top_mul, -coe_mul, coe_mul.symm,
-    -with_zero.coe_mul, with_zero.coe_mul.symm] {contextual := tt},
-  assume h, exact mul_le_mul_left (zero_lt_iff_ne_zero.2 h)
+  cases a; cases b; cases c,
+  { simp },
+  { simp },
+  { simp },
+  { simp },
+  { simp {contextual := tt} },
+  { simp [mul_top] {contextual := tt} },
+  { simp [mul_top] {contextual := tt} },
+  { simp only [coe_mul.symm, forall_prop_of_true, ne.def, some_eq_coe, not_false_iff,
+    coe_ne_top, coe_le_coe, coe_eq_zero],
+    assume h, exact mul_le_mul_left (zero_lt_iff_ne_zero.2 h) },
 end
 
 lemma mul_le_mul_right : c ≠ 0 → c ≠ ∞ → (a * c ≤ b * c ↔ a ≤ b) :=
@@ -876,9 +885,16 @@ by { contrapose! h, exact ennreal.div_le_of_le_mul h }
 
 lemma inv_le_iff_le_mul : (b = ⊤ → a ≠ 0) → (a = ⊤ → b ≠ 0) → (a⁻¹ ≤ b ↔ 1 ≤ a * b) :=
 begin
-  cases a; cases b; simp [none_eq_top, some_eq_coe, mul_top, top_mul] {contextual := tt},
-  by_cases a = 0; simp [*, -coe_mul, coe_mul.symm, -with_zero.coe_mul, with_zero.coe_mul.symm,
-    -coe_inv, (coe_inv _).symm, -with_zero.coe_inv, (with_zero.coe_inv _).symm, nnreal.inv_le]
+  cases a;
+  cases b,
+  { simp },
+  { simp [top_mul] {contextual := tt} },
+  { simp [mul_top] {contextual := tt} },
+  { by_cases h : a = 0,
+    { simp [h] },
+    { simp only [forall_prop_of_true, forall_prop_of_false, some_eq_coe, not_false_iff, coe_ne_top],
+      norm_cast,
+      simp [h] } }
 end
 
 @[simp] lemma le_inv_iff_mul_le : a ≤ b⁻¹ ↔ a * b ≤ 1 :=

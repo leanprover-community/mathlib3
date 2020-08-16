@@ -6,7 +6,7 @@ Authors: Chris Hughes
 import data.nat.choose
 import ring_theory.multiplicity
 import data.nat.modeq
-import algebra.gcd_domain
+import algebra.gcd_monoid
 
 /-!
 

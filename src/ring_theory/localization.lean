@@ -927,8 +927,8 @@ protected lemma to_map_ne_zero_of_mem_non_zero_divisors {M : submonoid A} (f : l
   (hM : M ≤ non_zero_divisors A) (x : non_zero_divisors A) : f.to_map x ≠ 0 :=
 map_ne_zero_of_mem_non_zero_divisors (f.injective_to_map hM)
 
-/-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of `R - {0}`
-is an integral domain. -/
+/-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
+non-zero elements is an integral domain. -/
 def integral_domain_of_le_non_zero_divisors {M : submonoid A} (f : localization_map M S)
   (hM : M ≤ non_zero_divisors A) : integral_domain S :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
@@ -946,6 +946,7 @@ def integral_domain_of_le_non_zero_divisors {M : submonoid A} (f : localization_
   exists_pair_ne := ⟨f.to_map 0, f.to_map 1, λ h, zero_ne_one (f.injective_to_map hM h)⟩,
   ..(infer_instance : comm_ring S) }
 
+/-- The localization at of an integral domain to a set of non-zero elements is an integral domain -/
 def integral_domain_localization {M : submonoid A} (hM : M ≤ non_zero_divisors A) :
   integral_domain (localization M) :=
 (localization.of M).integral_domain_of_le_non_zero_divisors hM

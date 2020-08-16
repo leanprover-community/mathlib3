@@ -974,7 +974,7 @@ lemma mul_def {a b : with_top α} :
 begin
   rcases a with _ | a,
   { refl },
-  { rw mul_def,simp [with_zero.coe_mul, h], refl },
+  { rw mul_def, simp [with_zero.coe_mul, h], refl },
 end
 
 @[simp] lemma top_mul {a : with_top α} (h : a ≠ 0) : ⊤ * a = ⊤ :=

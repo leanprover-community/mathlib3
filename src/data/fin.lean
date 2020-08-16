@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek
 -/
 import data.nat.cast
+import logic.embedding
 /-!
 # The finite type with `n` elements
 
@@ -799,3 +800,9 @@ mem_find_iff.2 ⟨hi, λ j hj, le_of_eq $ h i j hi hj⟩
 end find
 
 end fin
+
+-- Once lean#359 is fixed (making `fin n` a subtype), this can go away
+-- as a duplicate of `function.embedding.subtype`.
+/-- Embedding of `fin n` into `ℕ`. -/
+def function.embedding.fin (n : ℕ) : fin n ↪ ℕ :=
+⟨coe, fin.val_injective⟩

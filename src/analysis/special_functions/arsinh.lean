@@ -36,7 +36,7 @@ def arsinh (x : ℝ) := log (x + sqrt(1 + x^2))
 /-- `sinh` is injective, `∀ a b, sinh a = sinh b → a = b` -/
 lemma sinh_injective : function.injective sinh := sinh_strict_mono.injective
 
-private lemma aux_lemma (x : ℝ) : 1/(sqrt (x + (1 + x^2)) = - x + sqrt (1 + x^2) :=
+private lemma aux_lemma (x : ℝ) : 1 / (x + sqrt(1 + x^2)) = - x + sqrt(1 + x^2) :=
 begin
   have H : (x - sqrt (1 + x^2))/((x - sqrt (1 + x^2)) * (x + sqrt (1 + x^2))) = -x + sqrt (1 + x^2),
   { have G : (x - sqrt (1 + x^2)) * (x + sqrt (1 + x^2)) = -1,

@@ -217,10 +217,10 @@ infer_type fn >>= get_expl_pi_arity
 /--
 Auxiliary function for `get_app_fn_args_whnf`.
 -/
-private meta def get_app_fn_args_whnf_aux (md : transparency) :
-  list expr → expr → tactic (expr × list expr) :=
+private meta def get_app_fn_args_whnf_aux (md : transparency)
+  (unfold_ginductive : bool) : list expr → expr → tactic (expr × list expr) :=
 λ args e, do
-  (expr.app t u) ← whnf e md | pure (e, args),
+  (expr.app t u) ← whnf e md unfold_ginductive | pure (e, args),
   get_app_fn_args_whnf_aux (u :: args) t
 
 /--
@@ -231,17 +231,18 @@ is normalised as necessary; for example:
 get_app_fn_args_whnf `(let f := g x in f y) = (`(g), [`(x), `(y)])
 ```
 -/
-meta def get_app_fn_args_whnf (e : expr) (md := semireducible) :
-  tactic (expr × list expr) :=
-get_app_fn_args_whnf_aux md [] e
+meta def get_app_fn_args_whnf (e : expr) (md := semireducible)
+  (unfold_ginductive := tt) : tactic (expr × list expr) :=
+get_app_fn_args_whnf_aux md unfold_ginductive [] e
 
 /--
-`get_app_fn_whnf e md` is like `expr.get_app_fn e` but `e` is normalised as
-necessary (with transparency `md`).
+`get_app_fn_whnf e md unfold_ginductive` is like `expr.get_app_fn e` but `e` is
+normalised as necessary (with transparency `md`). `unfold_ginductive` controls
+whether constructors of generalised inductive types are unfolded.
 -/
-meta def get_app_fn_whnf : expr → opt_param transparency semireducible → tactic expr
-| e md := do
-  (expr.app f _) ← whnf e md | pure e,
+meta def get_app_fn_whnf : expr → opt_param _ semireducible → opt_param _ tt → tactic expr
+| e md unfold_ginductive := do
+  (expr.app f _) ← whnf e md unfold_ginductive | pure e,
   get_app_fn_whnf f md
 
 /-- `pis loc_consts f` is used to create a pi expression whose body is `f`.

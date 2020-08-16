@@ -54,6 +54,9 @@ option.cases_on
 instance [has_mul α] : has_mul (with_one α) :=
 { mul := option.lift_or_get (*) }
 
+@[simp, to_additive]
+lemma coe_mul [has_mul α] (a b : α) : ((a * b : α) : with_one α) = a * b := rfl
+
 @[to_additive]
 instance [semigroup α] : monoid (with_one α) :=
 { mul_assoc := (option.lift_or_get_assoc _).1,

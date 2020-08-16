@@ -331,8 +331,13 @@ instance has_zero_object_of_has_terminal_object
 
 
 section image
+variable [has_zero_morphisms C]
 
-variables [has_zero_morphisms C] [has_zero_object C]
+lemma image_ι_comp_eq_zero {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [has_image f]
+  [epi (factor_thru_image f)] (h : f ≫ g = 0) : image.ι f ≫ g = 0 :=
+zero_of_epi_comp (factor_thru_image f) $ by simp [h]
+
+variables [has_zero_object C]
 local attribute [instance] has_zero_object.has_zero
 
 /--

@@ -59,6 +59,17 @@ by have := f.w; tidy
 def mk {X Y : T} (f : Y ⟶ X) : over X :=
 { left := Y, hom := f }
 
+/-- We can set up a coercion from arrows with codomain `X` to `over X`. This most likely should not
+    be a global instance, but it is sometimes useful. -/
+def coe_from_hom {X Y : T} : has_coe (Y ⟶ X) (over X) :=
+{ coe := mk }
+
+section
+local attribute [instance] coe_from_hom
+
+@[simp] lemma coe_hom {X Y : T} (f : Y ⟶ X) : (f : over X).hom = f := rfl
+end
+
 /-- To give a morphism in the over category, it suffices to give an arrow fitting in a commutative
     triangle. -/
 @[simps]

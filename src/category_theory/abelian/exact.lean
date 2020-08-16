@@ -34,8 +34,7 @@ begin
     exact ⟨h.1, kernel_comp_cokernel f g⟩ },
   { refine λ h, ⟨h.1, _⟩,
     suffices hl :
-      is_limit (kernel_fork.of_ι (image.ι f) ((epi_iff_cancel_zero (factor_thru_image f)).1
-        (by apply_instance) _ (image.ι f ≫ g) (by simp [h.1]))),
+      is_limit (kernel_fork.of_ι (image.ι f) (image_ι_comp_eq_zero h.1)),
     { have : image_to_kernel_map f g h.1 =
         (is_limit.cone_point_unique_up_to_iso hl (limit.is_limit _)).hom,
       { ext, simp },
@@ -62,9 +61,8 @@ begin
 end
 
 /-- If `(f, g)` is exact, then `image.ι f` is a kernel of `g`. -/
-def is_limit_image [h : exact f g] : is_limit (kernel_fork.of_ι (image.ι f)
-  ((epi_iff_cancel_zero (factor_thru_image f)).1 (by apply_instance) _ (image.ι f ≫ g)
-  (by simp [h.1]))) :=
+def is_limit_image [h : exact f g] :
+  is_limit (kernel_fork.of_ι (image.ι f) (image_ι_comp_eq_zero h.1)) :=
 begin
   rw exact_iff at h,
   refine is_limit.of_ι _ _ _ _ _,

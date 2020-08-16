@@ -78,16 +78,9 @@ universes v u
 
 namespace category_theory.abelian
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
-/-- An arrow with codomain `P` can be taken to be a `over P` -/
-def coe_over {P Q : C} : has_coe (Q ⟶ P) (over P) :=
-{ coe := over.mk }
-
-local attribute [instance] coe_over
-
-@[simp] lemma coe_hom {P Q : C} (f : P ⟶ Q) : (f : over Q).hom = f := rfl
+local attribute [instance] over.coe_from_hom
 
 /-- This is just composition of morphisms in `C`. -/
 def app {P Q : C} (f : P ⟶ Q) (a : over P) : over Q :=
@@ -178,7 +171,7 @@ rfl
     with each morphism. Sadly, this is not a definitional equality, but at least it is
     true. -/
 theorem comp_apply {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) (a : P) : (f ≫ g) a = g (f a) :=
-quotient.induction_on a $ λ x, quotient.sound $ by { unfold app, rw [←category.assoc, coe_hom] }
+quotient.induction_on a $ λ x, quotient.sound $ by { unfold app, rw [←category.assoc, over.coe_hom] }
 
 /-- Composition of functions on pseudoelements is composition of morphisms. -/
 theorem comp_comp {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) : g ∘ f = f ≫ g :=
@@ -198,7 +191,7 @@ local attribute [instance] has_binary_biproducts.of_has_binary_products
 lemma pseudo_zero_aux {P : C} (Q : C) (f : over P) : f ≈ (0 : Q ⟶ P) ↔ f.hom = 0 :=
 ⟨λ ⟨R, p, q, ep, eq, comm⟩, by exactI zero_of_epi_comp p (by simp [comm]),
   λ hf, ⟨biprod f.1 Q, biprod.fst, biprod.snd, by apply_instance, by apply_instance,
-    by rw [hf, coe_hom, has_zero_morphisms.comp_zero, has_zero_morphisms.comp_zero]⟩⟩
+    by rw [hf, over.coe_hom, has_zero_morphisms.comp_zero, has_zero_morphisms.comp_zero]⟩⟩
 
 end
 
@@ -264,7 +257,7 @@ local attribute [instance] has_pullbacks
 theorem pseudo_surjective_of_epi {P Q : C} (f : P ⟶ Q) [epi f] : function.surjective f :=
 λ qbar, quotient.induction_on qbar $ λ q, ⟨((pullback.fst : pullback f q.hom ⟶ P) : over P),
   quotient.sound $ ⟨pullback f q.hom, 𝟙 (pullback f q.hom), pullback.snd, by apply_instance,
-    by apply_instance, by rw [category.id_comp, ←pullback.condition, app_hom, coe_hom]⟩⟩
+    by apply_instance, by rw [category.id_comp, ←pullback.condition, app_hom, over.coe_hom]⟩⟩
 
 end
 
@@ -320,7 +313,7 @@ theorem pseudo_exact_of_exact {P Q R : C} {f : P ⟶ Q} {g : Q ⟶ R} [exact f g
 end
 
 lemma comp_zero {P Q R : C} (f : Q ⟶ R) (a : P ⟶ Q) : a ≫ f = 0 → f a = 0 :=
-λ h, by simp [over_coe_def, pseudo_apply_bar, coe_hom, h]
+λ h, by simp [over_coe_def, pseudo_apply_bar, over.coe_hom, h]
 
 section
 local attribute [instance] preadditive.has_equalizers_of_has_kernels
@@ -390,10 +383,7 @@ match quotient.exact h with ⟨R, p, q, ep, eq, comm⟩ :=
         -- Can we prevent quotient.sound from giving us this weird `coe_b` thingy?
         change app g (a'' : over P) ≈ app g a,
 
-        refine ⟨R, 𝟙 R, p, by apply_instance, ep, _⟩,
-
-        rw [app_hom, app_hom, coe_hom, category.id_comp, sub_comp, category.assoc, sub_eq_add_neg,
-          add_right_eq_self, neg_eq_zero, category.assoc, this, has_zero_morphisms.comp_zero]
+        exact ⟨R, 𝟙 R, p, by apply_instance, ep, by simp [sub_eq_add_neg, this]⟩
       end⟩⟩
 end
 

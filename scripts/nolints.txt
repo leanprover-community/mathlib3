@@ -2110,3 +2110,4 @@ apply_nolint uniform_space.completion.map₂ doc_blame
 
 -- topology/uniform_space/uniform_embedding.lean
 apply_nolint uniform_embedding doc_blame
+apply_nolint uniform_inducing doc_blame

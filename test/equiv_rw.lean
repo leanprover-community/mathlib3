@@ -333,3 +333,24 @@ begin
   exact (1 : β) = e (1 : α)
 end :=
 rfl
+
+example
+  {α : Type} {β : Type}
+  (m : α → α → α)
+  (e : α ≃ β) :
+  β → β → β :=
+begin
+  equiv_rw e at m,
+  exact m,
+end
+
+-- This used to fail because metavariables were getting stuck!
+example
+  {α : Type} {β : Type 2}
+  (m : α → α → α)
+  (e : α ≃ β) :
+  β → β → β :=
+begin
+  equiv_rw e at m,
+  exact m,
+end

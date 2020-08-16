@@ -304,7 +304,8 @@ by refine_struct { to_fun := add_equiv.to_equiv }; intros; refl
 end add_aut
 
 /-- A group is isomorphic to its group of units. -/
-def to_units (G) [group G] : G ≃* units G :=
+@[to_additive to_add_units "An additive group is isomorphic to its group of additive units"]
+def to_units {G} [group G] : G ≃* units G :=
 { to_fun := λ x, ⟨x, x⁻¹, mul_inv_self _, inv_mul_self _⟩,
   inv_fun := coe,
   left_inv := λ x, rfl,
@@ -323,6 +324,36 @@ def map_equiv (h : M ≃* N) : units M ≃* units N :=
   right_inv := λ u, ext $ h.right_inv u,
   .. map h.to_monoid_hom }
 
+/-- Left multiplication by a unit of a monoid is a permutation of the underlying type. -/
+@[to_additive "Left addition of an additive unit is a permutation of the underlying type."]
+def mul_left (u : units M) : equiv.perm M :=
+{ to_fun    := λx, u * x,
+  inv_fun   := λx, ↑u⁻¹ * x,
+  left_inv  := u.inv_mul_cancel_left,
+  right_inv := u.mul_inv_cancel_left }
+
+@[simp, to_additive]
+lemma coe_mul_left (u : units M) : ⇑u.mul_left = (*) u := rfl
+
+@[simp, to_additive]
+lemma mul_left_symm (u : units M) : u.mul_left.symm = u⁻¹.mul_left :=
+equiv.ext $ λ x, rfl
+
+/-- Right multiplication by a unit of a monoid is a permutation of the underlying type. -/
+@[to_additive "Right addition of an additive unit is a permutation of the underlying type."]
+def mul_right (u : units M) : equiv.perm M :=
+{ to_fun    := λx, x * u,
+  inv_fun   := λx, x * ↑u⁻¹,
+  left_inv  := λ x, mul_inv_cancel_right x u,
+  right_inv := λ x, inv_mul_cancel_right x u }
+
+@[simp, to_additive]
+lemma coe_mul_right (u : units M) : ⇑u.mul_right = λ x : M, x * u := rfl
+
+@[simp, to_additive]
+lemma mul_right_symm (u : units M) : u.mul_right.symm = u⁻¹.mul_right :=
+equiv.ext $ λ x, rfl
+
 end units
 
 namespace equiv
@@ -332,11 +363,7 @@ variables [group G]
 
 /-- Left multiplication in a `group` is a permutation of the underlying type. -/
 @[to_additive "Left addition in an `add_group` is a permutation of the underlying type."]
-protected def mul_left (a : G) : perm G :=
-{ to_fun    := λx, a * x,
-  inv_fun   := λx, a⁻¹ * x,
-  left_inv  := assume x, show a⁻¹ * (a * x) = x, from inv_mul_cancel_left a x,
-  right_inv := assume x, show a * (a⁻¹ * x) = x, from mul_inv_cancel_left a x }
+protected def mul_left (a : G) : perm G := (to_units a).mul_left
 
 @[simp, to_additive]
 lemma coe_mul_left (a : G) : ⇑(equiv.mul_left a) = (*) a := rfl
@@ -347,11 +374,7 @@ ext $ λ x, rfl
 
 /-- Right multiplication in a `group` is a permutation of the underlying type. -/
 @[to_additive "Right addition in an `add_group` is a permutation of the underlying type."]
-protected def mul_right (a : G) : perm G :=
-{ to_fun    := λx, x * a,
-  inv_fun   := λx, x * a⁻¹,
-  left_inv  := assume x, show (x * a) * a⁻¹ = x, from mul_inv_cancel_right x a,
-  right_inv := assume x, show (x * a⁻¹) * a = x, from inv_mul_cancel_right x a }
+protected def mul_right (a : G) : perm G := (to_units a).mul_right
 
 @[simp, to_additive]
 lemma coe_mul_right (a : G) : ⇑(equiv.mul_right a) = λ x, x * a := rfl

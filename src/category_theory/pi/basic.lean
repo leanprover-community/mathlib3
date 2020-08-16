@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
 import category_theory.natural_isomorphism
+import category_theory.eq_to_hom
 
 /-!
 # Categories of indexed families of objects.
@@ -15,14 +16,14 @@ We define the pointwise category structure on indexed families of objects in a c
 
 namespace category_theory
 
-universes v₁ v₂ u₁ u₂
+universes w₀ w₁ w₂ v₁ v₂ u₁ u₂
 
-variables {I : Type v₁} (C : I → Type u₁) [∀ i, category.{v₁} (C i)]
+variables {I : Type w₀} (C : I → Type u₁) [∀ i, category.{v₁} (C i)]
 
 /--
 `pi C` gives the cartesian product of an indexed family of categories.
 -/
-instance pi : category.{v₁} (Π i, C i) :=
+instance pi : category.{max w₀ v₁} (Π i, C i) :=
 { hom := λ X Y, Π i, X i ⟶ Y i,
   id := λ X i, 𝟙 (X i),
   comp := λ X Y Z f g i, f i ≫ g i }
@@ -42,7 +43,7 @@ def eval (i : I) : (Π i, C i) ⥤ C i :=
   map := λ f g α, α i, }
 
 section
-variables {J : Type v₁}
+variables {J : Type w₁}
 
 /--
 Pull back an `I`-indexed family of objects to an `J`-indexed family, along a function `J → I`.
@@ -52,12 +53,28 @@ def comap (h : J → I) : (Π i, C i) ⥤ (Π j, C (h j)) :=
 { obj := λ f i, f (h i),
   map := λ f g α i, α (h i), }
 
-/-
-One could add some natural isomorphisms here, for:
-* `comap h ≅ comap h'` when `h = h'`
-* `comap (id I) ≅ 𝟭 (Π i, C i)`
-* `comap (h ∘ h') ≅ comap h ⋙ comap h'`
+variables (I)
+/--
+The natural isomorphism between
+pulling back a grading along the identity function,
+and the identity functor. -/
+@[simps]
+def comap_id : comap C (id : I → I) ≅ 𝟭 (Π i, C i) :=
+{ hom := { app := λ X, 𝟙 X },
+  inv := { app := λ X, 𝟙 X } }.
+
+variables {I}
+variables {K : Type w₂}
+
+/--
+The natural isomorphism comparing between
+pulling back along two successive functions, and
+pulling back along their composition
 -/
+@[simps]
+def comap_comp (f : K → J) (g : J → I) : comap C g ⋙ comap (C ∘ g) f ≅ comap C (g ∘ f) :=
+{ hom := { app := λ X b, 𝟙 (X (g (f b))) },
+  inv := { app := λ X b, 𝟙 (X (g (f b))) } }
 
 /-- The natural isomorphism between pulling back then evaluating, and just evaluating. -/
 @[simps {rhs_md := semireducible}]
@@ -67,7 +84,7 @@ nat_iso.of_components (λ f, iso.refl _) (by tidy)
 end
 
 section
-variables {J : Type v₁} {D : J → Type u₁} [∀ j, category.{v₁} (D j)]
+variables {J : Type w₀} {D : J → Type u₁} [∀ j, category.{v₁} (D j)]
 
 instance sum_elim_category : Π (s : I ⊕ J), category.{v₁} (sum.elim C D s)
 | (sum.inl i) := by { dsimp, apply_instance, }

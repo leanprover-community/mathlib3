@@ -719,10 +719,20 @@ begin
   { exact λ a x i hi, ⟨i, smul_mem _ a hi⟩ },
 end
 
-lemma mem_supr_of_mem {ι : Sort*} {b : M} (p : ι → submodule R M) (i : ι) (h : b ∈ p i) :
+lemma mem_sup_left {S T : submodule R M} : ∀ {x : M}, x ∈ S → x ∈ S ⊔ T :=
+show S ≤ S ⊔ T, from le_sup_left
+
+lemma mem_sup_right {S T : submodule R M} : ∀ {x : M}, x ∈ T → x ∈ S ⊔ T :=
+show T ≤ S ⊔ T, from le_sup_right
+
+lemma mem_supr_of_mem {ι : Sort*} {b : M} {p : ι → submodule R M} (i : ι) (h : b ∈ p i) :
   b ∈ (⨆i, p i) :=
 have p i ≤ (⨆i, p i) := le_supr p i,
 @this b h
+
+lemma mem_Sup_of_mem {S : set (submodule R M)} {s : submodule R M}
+  (hs : s ∈ S) : ∀ {x : M}, x ∈ s → x ∈ Sup S :=
+show s ≤ Sup S, from le_Sup hs
 
 @[simp] theorem mem_supr_of_directed {ι} [nonempty ι]
   (S : ι → submodule R M) (H : directed (≤) S) {x} :
@@ -829,7 +839,7 @@ lemma supr_eq_span {ι : Sort w} (p : ι → submodule R M) :
   (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
 le_antisymm
   (supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
-  (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem _ i hm)
+  (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem i hm)
 
 lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) :
   span R {m} ≤ p ↔ m ∈ p :=
@@ -1421,29 +1431,29 @@ lemma disjoint_iff_comap_eq_bot {p q : submodule R M} :
 by rw [eq_bot_iff, ← map_le_map_iff' p.ker_subtype, map_bot, map_comap_subtype, disjoint]
 
 /-- If `N ⊆ M` then submodules of `N` are the same as submodules of `M` contained in `N` -/
-def map_subtype.order_iso :
-  ((≤) : submodule R p → submodule R p → Prop) ≃o
+def map_subtype.rel_iso :
+  ((≤) : submodule R p → submodule R p → Prop) ≃r
   ((≤) : {p' : submodule R M // p' ≤ p} → {p' : submodule R M // p' ≤ p} → Prop) :=
 { to_fun    := λ p', ⟨map p.subtype p', map_subtype_le p _⟩,
   inv_fun   := λ q, comap p.subtype q,
   left_inv  := λ p', comap_map_eq_self $ by simp,
   right_inv := λ ⟨q, hq⟩, subtype.ext_val $ by simp [map_comap_subtype p, inf_of_le_right hq],
-  ord'      := λ p₁ p₂, (map_le_map_iff' (ker_subtype p)).symm }
+  map_rel_iff'      := λ p₁ p₂, (map_le_map_iff' (ker_subtype p)).symm }
 
 /-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
 submodules of `M`. -/
-def map_subtype.le_order_embedding :
-  ((≤) : submodule R p → submodule R p → Prop) ≼o ((≤) : submodule R M → submodule R M → Prop) :=
-(order_iso.to_order_embedding $ map_subtype.order_iso p).trans (subtype.order_embedding _ _)
+def map_subtype.le_rel_embedding :
+  ((≤) : submodule R p → submodule R p → Prop) ↪r ((≤) : submodule R M → submodule R M → Prop) :=
+(rel_iso.to_rel_embedding $ map_subtype.rel_iso p).trans (subtype.rel_embedding _ _)
 
 @[simp] lemma map_subtype_embedding_eq (p' : submodule R p) :
-  map_subtype.le_order_embedding p p' = map p.subtype p' := rfl
+  map_subtype.le_rel_embedding p p' = map p.subtype p' := rfl
 
 /-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
 submodules of `M`. -/
-def map_subtype.lt_order_embedding :
-  ((<) : submodule R p → submodule R p → Prop) ≼o ((<) : submodule R M → submodule R M → Prop) :=
-(map_subtype.le_order_embedding p).lt_embedding_of_le_embedding
+def map_subtype.lt_rel_embedding :
+  ((<) : submodule R p → submodule R p → Prop) ↪r ((<) : submodule R M → submodule R M → Prop) :=
+(map_subtype.le_rel_embedding p).lt_embedding_of_le_embedding
 
 
 /-- The map from a module `M` to the quotient of `M` by a submodule `p` as a linear map. -/
@@ -1517,39 +1527,44 @@ by rw [ker_liftq, le_antisymm h h', mkq_map_self]
 
 /-- The correspondence theorem for modules: there is an order isomorphism between submodules of the
 quotient of `M` by `p`, and submodules of `M` larger than `p`. -/
-def comap_mkq.order_iso :
-  ((≤) : submodule R p.quotient → submodule R p.quotient → Prop) ≃o
+def comap_mkq.rel_iso :
+  ((≤) : submodule R p.quotient → submodule R p.quotient → Prop) ≃r
   ((≤) : {p' : submodule R M // p ≤ p'} → {p' : submodule R M // p ≤ p'} → Prop) :=
 { to_fun    := λ p', ⟨comap p.mkq p', le_comap_mkq p _⟩,
   inv_fun   := λ q, map p.mkq q,
   left_inv  := λ p', map_comap_eq_self $ by simp,
   right_inv := λ ⟨q, hq⟩, subtype.ext_val $ by simpa [comap_map_mkq p],
-  ord'      := λ p₁ p₂, (comap_le_comap_iff $ range_mkq _).symm }
+  map_rel_iff'      := λ p₁ p₂, (comap_le_comap_iff $ range_mkq _).symm }
 
 /-- The ordering on submodules of the quotient of `M` by `p` embeds into the ordering on submodules
 of `M`. -/
-def comap_mkq.le_order_embedding :
-  ((≤) : submodule R p.quotient → submodule R p.quotient → Prop) ≼o ((≤) : submodule R M → submodule R M → Prop) :=
-(order_iso.to_order_embedding $ comap_mkq.order_iso p).trans (subtype.order_embedding _ _)
+def comap_mkq.le_rel_embedding :
+  ((≤) : submodule R p.quotient → submodule R p.quotient → Prop) ↪r ((≤) : submodule R M → submodule R M → Prop) :=
+(rel_iso.to_rel_embedding $ comap_mkq.rel_iso p).trans (subtype.rel_embedding _ _)
 
 @[simp] lemma comap_mkq_embedding_eq (p' : submodule R p.quotient) :
-  comap_mkq.le_order_embedding p p' = comap p.mkq p' := rfl
+  comap_mkq.le_rel_embedding p p' = comap p.mkq p' := rfl
 
 /-- The ordering on submodules of the quotient of `M` by `p` embeds into the ordering on submodules
 of `M`. -/
-def comap_mkq.lt_order_embedding :
-  ((<) : submodule R p.quotient → submodule R p.quotient → Prop) ≼o ((<) : submodule R M → submodule R M → Prop) :=
-(comap_mkq.le_order_embedding p).lt_embedding_of_le_embedding
+def comap_mkq.lt_rel_embedding :
+  ((<) : submodule R p.quotient → submodule R p.quotient → Prop) ↪r ((<) : submodule R M → submodule R M → Prop) :=
+(comap_mkq.le_rel_embedding p).lt_embedding_of_le_embedding
 
 end ring
 
 end submodule
 
 namespace linear_map
-variables [ring R] [add_comm_group M] [add_comm_group M₂] [module R M] [module R M₂]
+variables [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
+variables [module R M] [module R M₂] [module R M₃]
 
 lemma range_mkq_comp (f : M →ₗ[R] M₂) : f.range.mkq.comp f = 0 :=
 linear_map.ext $ λ x, by { simp, use x }
+
+lemma ker_le_range_iff {f : M →ₗ[R] M₂} {g : M₂ →ₗ[R] M₃} :
+  g.ker ≤ f.range ↔ f.range.mkq.comp g.ker.subtype = 0 :=
+by rw [←range_le_ker_iff, submodule.ker_mkq, submodule.range_subtype]
 
 /-- A monomorphism is injective. -/
 lemma ker_eq_bot_of_cancel {f : M →ₗ[R] M₂}
@@ -2089,7 +2104,7 @@ begin
 end
 
 /-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`, the
-set of maps $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \}$ is a submodule of `Hom(M, M₂)`. -/
+set of maps $\\{f ∈ Hom(M, M₂) | f(p) ⊆ q \\}$ is a submodule of `Hom(M, M₂)`. -/
 def compatible_maps : submodule R (M →ₗ[R] M₂) :=
 { carrier   := {f | p ≤ comap f q},
   zero_mem' := by { change p ≤ comap 0 q, rw comap_zero, refine le_top, },
@@ -2098,7 +2113,7 @@ def compatible_maps : submodule R (M →ₗ[R] M₂) :=
   smul_mem' := λ c f h, le_trans h (comap_le_comap_smul q f c), }
 
 /-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`, the
-natural map $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \} \to Hom(M/p, M₂/q)$ is linear. -/
+natural map $\\{f ∈ Hom(M, M₂) | f(p) ⊆ q \\} \to Hom(M/p, M₂/q)$ is linear. -/
 def mapq_linear : compatible_maps p q →ₗ[R] p.quotient →ₗ[R] q.quotient :=
 { to_fun    := λ f, mapq _ _ f.val f.property,
   map_add'  := λ x y, by { ext m', apply quotient.induction_on' m', intros m, refl, },
@@ -2349,7 +2364,7 @@ begin
     assume hiI,
     rw [std_basis_same],
     exact hb _ ((hu trivial).resolve_left hiI) },
-  exact sum_mem _ (assume i hiI, mem_supr_of_mem _ i $ mem_supr_of_mem _ hiI $
+  exact sum_mem _ (assume i hiI, mem_supr_of_mem i $ mem_supr_of_mem hiI $
     (std_basis R φ i).mem_range_self (b i))
 end
 

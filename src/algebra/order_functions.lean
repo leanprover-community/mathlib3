@@ -181,17 +181,17 @@ calc  abs a
     ≤ b : by { apply abs_le_of_le_of_neg_le; assumption }
 ... ≤ abs b : le_abs_self _
 
-lemma min_le_add_of_nonneg_right {a b : α} (hb : b ≥ 0) : min a b ≤ a + b :=
+lemma min_le_add_of_nonneg_right {a b : α} (hb : 0 ≤ b) : min a b ≤ a + b :=
 calc
   min a b ≤ a     : by apply min_le_left
       ... ≤ a + b : le_add_of_nonneg_right hb
 
-lemma min_le_add_of_nonneg_left {a b : α} (ha : a ≥ 0) : min a b ≤ a + b :=
+lemma min_le_add_of_nonneg_left {a b : α} (ha : 0 ≤ a) : min a b ≤ a + b :=
 calc
   min a b ≤ b     : by apply min_le_right
       ... ≤ a + b : le_add_of_nonneg_left ha
 
-lemma max_le_add_of_nonneg {a b : α} (ha : a ≥ 0) (hb : b ≥ 0) : max a b ≤ a + b :=
+lemma max_le_add_of_nonneg {a b : α} (ha : 0 ≤ a) (hb : 0 ≤ b) : max a b ≤ a + b :=
 max_le_iff.2 (by split; simpa)
 
 lemma max_zero_sub_eq_self (a : α) : max a 0 - max (-a) 0 = a :=

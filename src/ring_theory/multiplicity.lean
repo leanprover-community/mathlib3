@@ -22,13 +22,13 @@ nat.find_min' _ ((h _) (nat.find_spec hq))
 /-- `multiplicity a b` returns the largest natural number `n` such that
   `a ^ n ∣ b`, as an `enat` or natural with infinity. If `∀ n, a ^ n ∣ b`,
   then it returns `⊤`-/
-def multiplicity [comm_semiring α] [decidable_rel ((∣) : α → α → Prop)] (a b : α) : enat :=
+def multiplicity [comm_monoid α] [decidable_rel ((∣) : α → α → Prop)] (a b : α) : enat :=
 ⟨∃ n : ℕ, ¬a ^ (n + 1) ∣ b, λ h, nat.find h⟩
 
 namespace multiplicity
 
-section comm_semiring
-variables [comm_semiring α]
+section comm_monoid
+variables [comm_monoid α]
 
 @[reducible] def finite (a b : α) : Prop := ∃ n : ℕ, ¬a ^ (n + 1) ∣ b
 
@@ -55,9 +55,6 @@ lemma not_finite_iff_forall {a b : α} : (¬ finite a b) ↔ ∀ n : ℕ, a ^ n 
 lemma not_unit_of_finite {a b : α} (h : finite a b) : ¬is_unit a :=
 let ⟨n, hn⟩ := h in mt (is_unit_iff_forall_dvd.1 ∘ is_unit_pow (n + 1)) $
 λ h, hn (h b)
-
-lemma ne_zero_of_finite {a b : α} (h : finite a b) : b ≠ 0 :=
-let ⟨n, hn⟩ := h in λ hb, by simpa [hb] using hn
 
 lemma finite_of_finite_mul_left {a b c : α} : finite a (b * c) → finite a c :=
 λ ⟨n, hn⟩, ⟨n, λ h, hn (dvd.trans h (by simp [_root_.mul_pow]))⟩
@@ -119,9 +116,6 @@ lemma eq_top_iff {a b : α} :
   (λ n, by_contradiction (not_exists.1 (eq_none_iff'.1 h) n : _)),
    λ h, eq_none_iff.2 (λ n ⟨⟨_, h₁⟩, _⟩, h₁ (h _))⟩
 
-@[simp] protected lemma zero (a : α) : multiplicity a 0 = ⊤ :=
-roption.eq_none_iff.2 (λ n ⟨⟨k, hk⟩, _⟩, hk (dvd_zero _))
-
 lemma one_right {a : α} (ha : ¬is_unit a) : multiplicity a 1 = 0 :=
 eq_some_iff.2 ⟨dvd_refl _, mt is_unit_iff_dvd_one.2 $ by simpa⟩
 
@@ -151,14 +145,6 @@ lemma multiplicity_le_multiplicity_iff {a b c d : α} : multiplicity a b ≤ mul
     have ∀ n : ℕ, c ^ n ∣ d, from λ n, h n (not_finite_iff_forall.1 hab _),
     by rw [eq_top_iff_not_finite.2 hab, eq_top_iff_not_finite.2
       (not_finite_iff_forall.2 this)]⟩
-
-lemma min_le_multiplicity_add {p a b : α} :
-  min (multiplicity p a) (multiplicity p b) ≤ multiplicity p (a + b) :=
-(le_total (multiplicity p a) (multiplicity p b)).elim
-  (λ h, by rw [min_eq_left h, multiplicity_le_multiplicity_iff];
-    exact λ n hn, dvd_add hn (multiplicity_le_multiplicity_iff.1 h n hn))
-  (λ h, by rw [min_eq_right h, multiplicity_le_multiplicity_iff];
-    exact λ n hn, dvd_add (multiplicity_le_multiplicity_iff.1 h n hn) hn)
 
 lemma dvd_of_multiplicity_pos {a b : α} (h : (0 : enat) < multiplicity a b) : a ∣ b :=
 by rw [← _root_.pow_one a]; exact pow_dvd_of_le_multiplicity (enat.pos_iff_one_le.1 h)
@@ -198,6 +184,34 @@ instance decidable_nat : decidable_rel (λ a b : ℕ, (multiplicity a b).dom) :=
 
 instance decidable_int : decidable_rel (λ a b : ℤ, (multiplicity a b).dom) :=
 λ a b, decidable_of_iff _ finite_int_iff.symm
+
+end comm_monoid
+
+section comm_monoid_with_zero
+
+variable [comm_monoid_with_zero α]
+
+lemma ne_zero_of_finite {a b : α} (h : finite a b) : b ≠ 0 :=
+let ⟨n, hn⟩ := h in λ hb, by simpa [hb] using hn
+
+variable [decidable_rel ((∣) : α → α → Prop)]
+
+@[simp] protected lemma zero (a : α) : multiplicity a 0 = ⊤ :=
+roption.eq_none_iff.2 (λ n ⟨⟨k, hk⟩, _⟩, hk (dvd_zero _))
+
+end comm_monoid_with_zero
+
+section comm_semiring
+
+variables [comm_semiring α] [decidable_rel ((∣) : α → α → Prop)]
+
+lemma min_le_multiplicity_add {p a b : α} :
+  min (multiplicity p a) (multiplicity p b) ≤ multiplicity p (a + b) :=
+(le_total (multiplicity p a) (multiplicity p b)).elim
+  (λ h, by rw [min_eq_left h, multiplicity_le_multiplicity_iff];
+    exact λ n hn, dvd_add hn (multiplicity_le_multiplicity_iff.1 h n hn))
+  (λ h, by rw [min_eq_right h, multiplicity_le_multiplicity_iff];
+    exact λ n hn, dvd_add (multiplicity_le_multiplicity_iff.1 h n hn) hn)
 
 end comm_semiring
 
@@ -241,9 +255,9 @@ end
 
 end comm_ring
 
-section integral_domain
+section comm_cancel_monoid_with_zero
 
-variables [integral_domain α]
+variables [comm_cancel_monoid_with_zero α]
 
 lemma finite_mul_aux {p : α} (hp : prime p) : ∀ {n m : ℕ} {a b : α},
   ¬p ^ (n + 1) ∣ a → ¬p ^ (m + 1) ∣ b → ¬p ^ (n + m + 1) ∣ a * b
@@ -323,8 +337,7 @@ have hdiv : p ^ (get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
 have hsucc : ¬p ^ ((get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
     get (multiplicity p b) ((finite_mul_iff hp).1 h).2) + 1) ∣ a * b,
   from λ h, not_or (is_greatest' _ (lt_succ_self _)) (is_greatest' _ (lt_succ_self _))
-    (succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul hp (by convert hdiva)
-      (by convert hdivb) h),
+    (by exact succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul hp hdiva hdivb h),
 by rw [← enat.coe_inj, enat.coe_get, eq_some_iff];
   exact ⟨hdiv, hsucc⟩
 
@@ -373,7 +386,7 @@ lemma multiplicity_pow_self_of_prime {p : α} (hp : prime p) (n : ℕ) :
 multiplicity_pow_self hp.ne_zero hp.not_unit n
 
 
-end integral_domain
+end comm_cancel_monoid_with_zero
 
 end multiplicity
 

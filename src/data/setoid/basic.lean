@@ -317,7 +317,7 @@ open quotient
 
 /-- Given an equivalence relation r on α, the order-preserving bijection between the set of
     equivalence relations containing r and the equivalence relations on the quotient of α by r. -/
-def correspondence (r : setoid α) : ((≤) : {s // r ≤ s} → {s // r ≤ s} → Prop) ≃o
+def correspondence (r : setoid α) : ((≤) : {s // r ≤ s} → {s // r ≤ s} → Prop) ≃r
   ((≤) : setoid (quotient r) → setoid (quotient r) → Prop) :=
 { to_fun := λ s, map_of_surjective s.1 quotient.mk ((ker_mk_eq r).symm ▸ s.2) exists_rep,
   inv_fun := λ s, ⟨comap quotient.mk s, λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw eq_rel.2 h⟩,
@@ -329,7 +329,7 @@ def correspondence (r : setoid α) : ((≤) : {s // r ≤ s} → {s // r ≤ s} 
       λ x y h, show s.rel ⟦x⟧ ⟦y⟧, by rw (@eq_rel _ r x y).2 ((ker_mk_eq r) ▸ h) in
     ext' $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
       quotient.induction_on₂ x y $ λ w z h, ⟨w, z, rfl, rfl, h⟩⟩,
-  ord' := λ s t, ⟨λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩,
+  map_rel_iff' := λ s t, ⟨λ h x y hs, let ⟨a, b, hx, hy, Hs⟩ := hs in ⟨a, b, hx, hy, h Hs⟩,
     λ h x y hs, let ⟨a, b, hx, hy, ht⟩ := h ⟨x, y, rfl, rfl, hs⟩ in
       t.1.trans' (t.1.symm' $ t.2 $ eq_rel.1 hx) $ t.1.trans' ht $ t.2 $ eq_rel.1 hy⟩ }
 

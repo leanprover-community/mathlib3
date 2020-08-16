@@ -7,7 +7,7 @@ Theory of unique factorization domains.
 
 @TODO: setup the complete lattice structure on `factor_set`.
 -/
-import algebra.gcd_domain
+import algebra.gcd_monoid
 import ring_theory.integral_domain
 
 variables {α : Type*}
@@ -270,10 +270,10 @@ theorem prod_le_prod_iff_le {p q : multiset (associates α)}
   p.prod ≤ q.prod ↔ p ≤ q :=
 iff.intro
   begin
-    rintros ⟨⟨c⟩, eq⟩,
+    rintros ⟨⟨c⟩, eqc⟩,
     have : c ≠ 0, from (mt mk_eq_zero.2 $
       assume (hc : quot.mk setoid.r c = 0),
-      have (0 : associates α) ∈ q, from prod_eq_zero_iff.1 $ eq ▸ hc.symm ▸ mul_zero _,
+      have (0 : associates α) ∈ q, from prod_eq_zero_iff.1 $ eqc.symm ▸ hc.symm ▸ mul_zero _,
       not_irreducible_zero ((irreducible_mk_iff 0).1 $ hq _ this)),
     have : associates.mk (factors c).prod = quot.mk setoid.r c,
       from mk_eq_mk_iff_associated.2 (factors_prod this),
@@ -435,11 +435,11 @@ end associates
 section
 open associates unique_factorization_domain
 
-/-- `to_gcd_domain` constructs a GCD domain out of a unique factorization domain over a normalization
-domain. -/
-def unique_factorization_domain.to_gcd_domain
-  (α : Type*) [normalization_domain α] [unique_factorization_domain α] [decidable_eq (associates α)] :
-  gcd_domain α :=
+/-- `to_gcd_monoid` constructs a GCD monoid out of a normalization on a
+  unique factorization domain. -/
+def unique_factorization_domain.to_gcd_monoid
+  (α : Type*) [integral_domain α] [unique_factorization_domain α] [normalization_monoid α]
+  [decidable_eq (associates α)] : gcd_monoid α :=
 { gcd := λa b, (associates.mk a ⊓ associates.mk b).out,
   lcm := λa b, (associates.mk a ⊔ associates.mk b).out,
   gcd_dvd_left := assume a b, (out_dvd_iff a (associates.mk a ⊓ associates.mk b)).2 $ inf_le_left,
@@ -453,7 +453,7 @@ def unique_factorization_domain.to_gcd_domain
       normalize (a * b),
     by rw [← out_mk, ← out_mul, mul_comm, sup_mul_inf]; refl,
   normalize_gcd := assume a b, by convert normalize_out _,
-  .. ‹normalization_domain α› }
+  .. ‹normalization_monoid α› }
 
 end
 
@@ -481,7 +481,7 @@ begin
     exact is_unit_iff_forall_dvd.mp
       (no_factors_of_no_prime_factors ha @no_factors (dvd_refl a) (dvd_zero a)) _ },
   { rintros _ ⟨x, rfl⟩ _ a_dvd_bx,
-    apply dvd_mul_unit_iff.mp a_dvd_bx },
+    apply units.dvd_mul_right.mp a_dvd_bx },
   { intros c p hc hp ih no_factors a_dvd_bpc,
     apply ih (λ q dvd_a dvd_c hq, no_factors dvd_a (dvd_mul_of_dvd_right dvd_c _) hq),
     rw mul_left_comm at a_dvd_bpc,

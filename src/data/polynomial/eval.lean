@@ -447,6 +447,28 @@ lemma map_prod {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
   (∏ i in s, g i).map f = ∏ i in s, (g i).map f :=
 eq.symm $ prod_hom _ _
 
+lemma map_sum {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
+  (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
+eq.symm $ sum_hom _ _
+
+lemma support_map_subset (p : polynomial R) : (map f p).support ⊆ p.support :=
+begin
+  intros x,
+  simp only [mem_support_iff],
+  contrapose!,
+  change p.coeff x = 0 → (map f p).coeff x = 0,
+  rw coeff_map,
+  intro hx,
+  rw hx,
+  exact ring_hom.map_zero f,
+end
+
+lemma map_comp (p q : polynomial R) : map f (p.comp q) = (map f p).comp (map f q) :=
+polynomial.induction_on p
+  (by simp)
+  (by simp {contextual := tt})
+  (by simp [pow_succ', ← mul_assoc, polynomial.comp] {contextual := tt})
+
 end map
 
 end comm_semiring

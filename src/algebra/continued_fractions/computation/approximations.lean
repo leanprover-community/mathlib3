@@ -77,12 +77,11 @@ begin
     ∧ int_fract_pair.of ifp_n.fr⁻¹ = ifp_succ_n, from
       succ_nth_stream_eq_some_iff.elim_left succ_nth_stream_eq,
   change 1 ≤ ⌊ifp_n.fr⁻¹⌋,
-  suffices : 1 ≤ ifp_n.fr⁻¹, by { rw_mod_cast [le_floor], assumption },
-  suffices : 1 * ifp_n.fr ≤ 1, by
-  { rw inv_eq_one_div,
-    have : 0 < ifp_n.fr, from
+  suffices : 1 ≤ ifp_n.fr⁻¹, { rw_mod_cast [le_floor], assumption },
+  suffices : ifp_n.fr ≤ 1,
+  { have h : 0 < ifp_n.fr :=
       lt_of_le_of_ne (nth_stream_fr_nonneg nth_stream_eq) stream_nth_fr_ne_zero.symm,
-    solve_by_elim [le_div_of_mul_le], },
+    apply one_le_inv h this },
   simp [(le_of_lt (nth_stream_fr_lt_one nth_stream_eq))]
 end
 

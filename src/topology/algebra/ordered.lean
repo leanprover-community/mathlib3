@@ -1981,8 +1981,8 @@ let ⟨c, (h : ∀ᶠ a in f, a ≤ c), hcb⟩ := exists_lt_of_cInf_lt h l in
 mem_sets_of_superset h $ assume a hac, lt_of_le_of_lt hac hcb
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem gt_mem_sets_of_Liminf_gt : ∀ {f : filter α} {b}, f.is_bounded (≥) → f.Liminf > b →
-  ∀ᶠ a in f, a > b :=
+theorem gt_mem_sets_of_Liminf_gt : ∀ {f : filter α} {b}, f.is_bounded (≥) → b < f.Liminf →
+  ∀ᶠ a in f, b < a :=
 @lt_mem_sets_of_Limsup_lt (order_dual α) _
 
 variables [topological_space α] [order_topology α]

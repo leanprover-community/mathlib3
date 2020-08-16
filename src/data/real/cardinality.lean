@@ -74,7 +74,7 @@ begin
     apply lt_of_le_of_lt (cantor_function_le (le_of_lt h1) h3 hf_max),
     apply lt_of_lt_of_le _ (cantor_function_le (le_of_lt h1) h3 hg_min),
     have : c / (1 - c) < 1,
-    { rw [div_lt_one_iff_lt, lt_sub_iff_add_lt],
+    { rw [div_lt_one, lt_sub_iff_add_lt],
       { convert add_lt_add h2 h2, norm_num },
       rwa sub_pos },
     convert this,

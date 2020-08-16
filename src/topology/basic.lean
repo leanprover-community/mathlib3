@@ -556,7 +556,7 @@ all_mem_nhds_filter _ _ (λ s t, id) _
 
 theorem rtendsto'_nhds {r : rel β α} {l : filter β} {a : α} :
   rtendsto' r l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → r.preimage s ∈ l) :=
-by { rw [rtendsto'_def], apply all_mem_nhds_filter, apply order.preimage_mono }
+by { rw [rtendsto'_def], apply all_mem_nhds_filter, apply rel.preimage_mono }
 
 theorem ptendsto_nhds {f : β →. α} {l : filter β} {a : α} :
   ptendsto f l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → f.core s ∈ l) :=

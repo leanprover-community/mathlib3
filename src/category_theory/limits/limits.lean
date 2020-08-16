@@ -40,6 +40,7 @@ instance subsingleton {t : cone F} : subsingleton (is_limit t) :=
 /- Repackaging the definition in terms of cone morphisms. -/
 
 /-- The universal morphism from any other cone to a limit cone. -/
+@[simps]
 def lift_cone_morphism {t : cone F} (h : is_limit t) (s : cone F) : s ⟶ t :=
 { hom := h.lift s }
 
@@ -78,6 +79,14 @@ def hom_is_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) (f : s ⟶ t) : 
 -- We may later want to prove the coherence of these isomorphisms.
 def cone_point_unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s.X ≅ t.X :=
 (cones.forget F).map_iso (unique_up_to_iso P Q)
+
+@[simp, reassoc] lemma cone_point_unique_up_to_iso_hom_comp {s t : cone F} (P : is_limit s)
+  (Q : is_limit t) (j : J) : (cone_point_unique_up_to_iso P Q).hom ≫ t.π.app j = s.π.app j :=
+(unique_up_to_iso P Q).hom.w _
+
+@[simp, reassoc] lemma cone_point_unique_up_to_iso_inv_comp {s t : cone F} (P : is_limit s)
+  (Q : is_limit t) (j : J) : (cone_point_unique_up_to_iso P Q).inv ≫ s.π.app j = t.π.app j :=
+(unique_up_to_iso P Q).inv.w _
 
 /-- Transport evidence that a cone is a limit cone across an isomorphism of cones. -/
 def of_iso_limit {r t : cone F} (P : is_limit r) (i : r ≅ t) : is_limit t :=
@@ -384,6 +393,7 @@ instance subsingleton {t : cocone F} : subsingleton (is_colimit t) :=
 /- Repackaging the definition in terms of cone morphisms. -/
 
 /-- The universal morphism from a colimit cocone to any other cone. -/
+@[simps]
 def desc_cocone_morphism {t : cocone F} (h : is_colimit t) (s : cocone F) : t ⟶ s :=
 { hom := h.desc s }
 
@@ -422,6 +432,14 @@ def hom_is_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) (f : s ⟶
 -- We may later want to prove the coherence of these isomorphisms.
 def cocone_point_unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s.X ≅ t.X :=
 (cocones.forget F).map_iso (unique_up_to_iso P Q)
+
+@[simp, reassoc] lemma comp_cocone_point_unique_up_to_iso_hom {s t : cocone F} (P : is_colimit s)
+  (Q : is_colimit t) (j : J) : s.ι.app j ≫ (cocone_point_unique_up_to_iso P Q).hom = t.ι.app j :=
+(unique_up_to_iso P Q).hom.w _
+
+@[simp, reassoc] lemma comp_cocone_point_unique_up_to_iso_inv {s t : cocone F} (P : is_colimit s)
+  (Q : is_colimit t) (j : J) : t.ι.app j ≫ (cocone_point_unique_up_to_iso P Q).inv = s.ι.app j :=
+(unique_up_to_iso P Q).inv.w _
 
 /-- Transport evidence that a cocone is a colimit cocone across an isomorphism of cocones. -/
 def of_iso_colimit {r t : cocone F} (P : is_colimit r) (i : r ≅ t) : is_colimit t :=
@@ -755,6 +773,16 @@ def limit.cone_morphism {F : J ⥤ C} [has_limit F] (c : cone F) :
 lemma limit.cone_morphism_π {F : J ⥤ C} [has_limit F] (c : cone F) (j : J) :
   (limit.cone_morphism c).hom ≫ limit.π F j = c.π.app j :=
 by simp
+
+@[simp, reassoc] lemma limit.cone_point_unique_up_to_iso_hom_comp {F : J ⥤ C} [has_limit F]
+  {c : cone F} (hc : is_limit c) (j : J) :
+  (is_limit.cone_point_unique_up_to_iso hc (limit.is_limit _)).hom ≫ limit.π F j = c.π.app j :=
+is_limit.cone_point_unique_up_to_iso_hom_comp _ _ _
+
+@[simp, reassoc] lemma limit.cone_point_unique_up_to_iso_inv_comp {F : J ⥤ C} [has_limit F]
+  {c : cone F} (hc : is_limit c) (j : J) :
+  (is_limit.cone_point_unique_up_to_iso (limit.is_limit _) hc).inv ≫ limit.π F j = c.π.app j :=
+is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _
 
 @[ext] lemma limit.hom_ext {F : J ⥤ C} [has_limit F] {X : C} {f f' : X ⟶ limit F}
   (w : ∀ j, f ≫ limit.π F j = f' ≫ limit.π F j) : f = f' :=
@@ -1106,6 +1134,16 @@ def colimit.cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) :
 lemma colimit.ι_cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) (j : J) :
   colimit.ι F j ≫ (colimit.cocone_morphism c).hom = c.ι.app j :=
 by simp
+
+@[simp, reassoc] lemma colimit.comp_cocone_point_unique_up_to_iso_hom {F : J ⥤ C} [has_colimit F]
+  {c : cocone F} (hc : is_colimit c) (j : J) :
+  colimit.ι F j ≫ (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _) hc).hom = c.ι.app j :=
+is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _
+
+@[simp, reassoc] lemma colimit.comp_cocone_point_unique_up_to_iso_inv {F : J ⥤ C} [has_colimit F]
+  {c : cocone F} (hc : is_colimit c) (j : J) :
+  colimit.ι F j ≫ (is_colimit.cocone_point_unique_up_to_iso hc (colimit.is_colimit _)).inv = c.ι.app j :=
+is_colimit.comp_cocone_point_unique_up_to_iso_inv _ _ _
 
 @[ext] lemma colimit.hom_ext {F : J ⥤ C} [has_colimit F] {X : C} {f f' : colimit F ⟶ X}
   (w : ∀ j, colimit.ι F j ≫ f = colimit.ι F j ≫ f') : f = f' :=

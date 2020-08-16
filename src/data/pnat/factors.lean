@@ -210,7 +210,7 @@ theorem factor_multiset_prod (v : prime_multiset) :
 begin
   apply prime_multiset.coe_nat_injective,
   rw [v.prod.coe_nat_factor_multiset, prime_multiset.coe_prod],
-  rcases v with l,
+  rcases v with ⟨l⟩,
   unfold_coes,
   dsimp [prime_multiset.to_nat_multiset],
   rw [multiset.coe_prod],

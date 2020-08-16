@@ -38,7 +38,7 @@ and consequences are derived.
 * `basis_sets` : all sets of a filter form a basis;
 * `has_basis.inf`, `has_basis.inf_principal`, `has_basis.prod`, `has_basis.prod_self`,
   `has_basis.map`, `has_basis.comap` : combinators to construct filters of `l ⊓ l'`,
-  `l ⊓ 𝓟 t`, `l.prod l'`, `l.prod l`, `l.map f`, `l.comap f` respectively;
+  `l ⊓ 𝓟 t`, `l ×ᶠ l'`, `l ×ᶠ l`, `l.map f`, `l.comap f` respectively;
 * `has_basis.le_iff`, `has_basis.ge_iff`, has_basis.le_basis_iff` : restate `l ≤ l'` in terms
   of bases.
 * `has_basis.tendsto_right_iff`, `has_basis.tendsto_left_iff`, `has_basis.tendsto_iff` : restate
@@ -416,7 +416,7 @@ lemma comap_has_basis (f : α → β) (l : filter β) :
 ⟨λ t, mem_comap_sets⟩
 
 lemma has_basis.prod_self (hl : l.has_basis p s) :
-  (l.prod l).has_basis p (λ i, (s i).prod (s i)) :=
+  (l ×ᶠ l).has_basis p (λ i, (s i).prod (s i)) :=
 ⟨begin
   intro t,
   apply mem_prod_iff.trans,
@@ -427,6 +427,9 @@ lemma has_basis.prod_self (hl : l.has_basis p s) :
   { rintros ⟨i, hi, H⟩,
     exact ⟨s i, hl.mem_of_mem hi, s i, hl.mem_of_mem hi, H⟩ }
 end⟩
+
+lemma mem_prod_self_iff {s} : s ∈ l ×ᶠ l ↔ ∃ t ∈ l, set.prod t t ⊆ s :=
+l.basis_sets.prod_self.mem_iff
 
 lemma has_basis.exists_iff (hl : l.has_basis p s) {P : set α → Prop}
   (mono : ∀ ⦃s t⦄, s ⊆ t → P t → P s) :
@@ -503,14 +506,14 @@ lemma tendsto.basis_both (H : tendsto f la lb) (hla : la.has_basis pa sa)
 (hla.tendsto_iff hlb).1 H
 
 lemma has_basis.prod (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
-  (la.prod lb).has_basis (λ i : ι × ι', pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
+  (la ×ᶠ lb).has_basis (λ i : ι × ι', pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
 (hla.comap prod.fst).inf (hlb.comap prod.snd)
 
 lemma has_basis.prod' {la : filter α} {lb : filter β} {ι : Type*} {p : ι → Prop}
   {sa : ι → set α} {sb : ι → set β}
   (hla : la.has_basis p sa) (hlb : lb.has_basis p sb)
   (h_dir : ∀ {i j}, p i → p j → ∃ k, p k ∧ sa k ⊆ sa i ∧ sb k ⊆ sb j) :
-  (la.prod lb).has_basis p (λ i, (sa i).prod (sb i)) :=
+  (la ×ᶠ lb).has_basis p (λ i, (sa i).prod (sb i)) :=
 ⟨begin
   intros t,
   rw mem_prod_iff,

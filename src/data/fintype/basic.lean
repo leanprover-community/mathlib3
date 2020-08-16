@@ -45,8 +45,17 @@ instance : order_top (finset α) :=
   le_top := subset_univ,
   .. finset.partial_order }
 
-instance [decidable_eq α] : bounded_distrib_lattice (finset α) :=
-{ .. finset.distrib_lattice, .. finset.semilattice_inf_bot, .. finset.order_top }
+instance [decidable_eq α] : boolean_algebra (finset α) :=
+{ compl := λ s, univ \ s,
+  sdiff_eq := λ s t, by simp [ext_iff],
+  inf_compl_le_bot := λ s x hx, by simpa using hx,
+  top_le_sup_compl := λ s x hx, by simp,
+  ..finset.distrib_lattice,
+  ..finset.semilattice_inf_bot,
+  ..finset.order_top,
+  ..finset.has_sdiff }
+
+lemma compl_eq_univ_sdiff [decidable_eq α] (s : finset α) : sᶜ = univ \ s := rfl
 
 theorem eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s :=
 by simp [ext_iff]
@@ -258,9 +267,17 @@ end set
 lemma finset.card_univ [fintype α] : (finset.univ : finset α).card = fintype.card α :=
 rfl
 
+lemma finset.card_le_univ [fintype α] (s : finset α) :
+  s.card ≤ fintype.card α :=
+card_le_of_subset (subset_univ s)
+
 lemma finset.card_univ_diff [decidable_eq α] [fintype α] (s : finset α) :
   (finset.univ \ s).card = fintype.card α - s.card :=
 finset.card_sdiff (subset_univ s)
+
+lemma finset.card_compl [decidable_eq α] [fintype α] (s : finset α) :
+  sᶜ.card = fintype.card α - s.card :=
+finset.card_univ_diff s
 
 instance (n : ℕ) : fintype (fin n) :=
 ⟨finset.fin_range n, finset.mem_fin_range⟩
@@ -397,7 +414,6 @@ instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕
 
 lemma fintype.card_le_of_injective [fintype α] [fintype β] (f : α → β)
   (hf : function.injective f) : fintype.card α ≤ fintype.card β :=
-by haveI := classical.prop_decidable; exact
 finset.card_le_card_of_inj_on f (λ _ _, finset.mem_univ _) (λ _ _ _ _ h, hf h)
 
 lemma fintype.card_eq_one_iff [fintype α] : fintype.card α = 1 ↔ (∃ x : α, ∀ y, y = x) :=

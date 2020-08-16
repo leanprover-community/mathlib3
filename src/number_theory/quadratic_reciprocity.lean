@@ -131,7 +131,7 @@ begin
     rw [Ico.mem, ← nat.succ_sub hp, nat.succ_sub_one],
     split,
     { apply nat.pos_of_ne_zero, rw ← @val_zero p,
-      assume h, apply units.coe_ne_zero a (val_injective p h) },
+      assume h, apply units.ne_zero a (val_injective p h) },
     { exact val_lt _ } },
   { intros a ha, simp only [cast_id, nat_cast_val], },
   { intros _ _ _ _ h, rw units.ext_iff, exact val_injective p h },

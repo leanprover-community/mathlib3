@@ -16,11 +16,11 @@ between finite-dimensional vector spaces and matrices indexed by
 the respective bases.
 
 Some results are proved about the linear map corresponding to a
-diagonal matrix (range, ker and rank).
+diagonal matrix (`range`, `ker` and `rank`).
 
 ## Main definitions
 
-to_lin, to_matrix, linear_equiv_matrix
+`to_lin`, `to_matrix`, `linear_equiv_matrix`
 
 ## Tags
 
@@ -42,8 +42,8 @@ variables {R : Type v} [comm_ring R]
 instance [decidable_eq m] [decidable_eq n] (R) [fintype R] : fintype (matrix m n R) :=
 by unfold matrix; apply_instance
 
-/-- Evaluation of matrices gives a linear map from matrix m n R to
-linear maps (n → R) →ₗ[R] (m → R). -/
+/-- Evaluation of matrices gives a linear map from `matrix m n R` to
+linear maps `(n → R) →ₗ[R] (m → R)`. -/
 def eval : (matrix m n R) →ₗ[R] ((n → R) →ₗ[R] (m → R)) :=
 begin
   refine linear_map.mk₂ R mul_vec _ _ _ _,
@@ -66,8 +66,8 @@ begin
     refl }
 end
 
-/-- Evaluation of matrices gives a map from matrix m n R to
-linear maps (n → R) →ₗ[R] (m → R). -/
+/-- Evaluation of matrices gives a map from `matrix m n R` to
+linear maps `(n → R) →ₗ[R] (m → R)`. -/
 def to_lin : matrix m n R → (n → R) →ₗ[R] (m → R) := eval.to_fun
 
 theorem to_lin_of_equiv {p q : Type*} [fintype p] [fintype q] (e₁ : m ≃ p) (e₂ : n ≃ q)
@@ -110,7 +110,7 @@ namespace linear_map
 
 variables {R : Type v} [comm_ring R]
 
-/-- The linear map from linear maps (n → R) →ₗ[R] (m → R) to matrix m n R. -/
+/-- The linear map from linear maps `(n → R) →ₗ[R] (m → R)` to `matrix m n R`. -/
 def to_matrixₗ [decidable_eq n] : ((n → R) →ₗ[R] (m → R)) →ₗ[R] matrix m n R :=
 begin
   refine linear_map.mk (λ f i j, f (λ n, ite (j = n) 1 0) i) _ _,
@@ -118,7 +118,7 @@ begin
   { assume f g, simp only [smul_apply], refl }
 end
 
-/-- The map from linear maps (n → R) →ₗ[R] (m → R) to matrix m n R. -/
+/-- The map from linear maps `(n → R) →ₗ[R] (m → R)` to `matrix m n R`. -/
 def to_matrix [decidable_eq n] : ((n → R) →ₗ[R] (m → R)) → matrix m n R := to_matrixₗ.to_fun
 
 @[simp] lemma to_matrix_id [decidable_eq n] :
@@ -141,7 +141,7 @@ variables {R : Type v} [comm_ring R] [decidable_eq n]
 
 open finsupp matrix linear_map
 
-/-- to_lin is the left inverse of to_matrix. -/
+/-- `to_lin` is the left inverse of `to_matrix`. -/
 lemma to_matrix_to_lin {f : (n → R) →ₗ[R] (m → R)} :
   to_lin (to_matrix f) = f :=
 begin
@@ -165,7 +165,7 @@ begin
   { assume hi, exact false.elim (hi $ finset.mem_univ i) }
 end
 
-/-- to_lin is the right inverse of to_matrix. -/
+/-- `to_lin` is the right inverse of `to_matrix`. -/
 lemma to_lin_to_matrix {M : matrix m n R} : to_matrix (to_lin M) = M :=
 begin
   ext,
@@ -180,7 +180,7 @@ begin
   exact if_pos rfl
 end
 
-/-- Linear maps (n → R) →ₗ[R] (m → R) are linearly equivalent to matrix  m n R. -/
+/-- Linear maps `(n → R) →ₗ[R] (m → R)` are linearly equivalent to `matrix m n R`. -/
 def linear_equiv_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n R :=
 { to_fun := to_matrix,
   inv_fun := to_lin,
@@ -192,8 +192,8 @@ def linear_equiv_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n 
 @[simp] lemma linear_equiv_matrix'_apply (f : (n → R) →ₗ[R] (m → R)) :
   linear_equiv_matrix' f = to_matrix f := rfl
 
-/-- Given a basis of two modules M₁ and M₂ over a commutative ring R, we get a linear equivalence
-between linear maps M₁ →ₗ M₂ and matrices over R indexed by the bases. -/
+/-- Given a basis of two modules `M₁` and `M₂` over a commutative ring `R`, we get a linear
+equivalence between linear maps `M₁ →ₗ M₂` and matrices over `R` indexed by the bases. -/
 def linear_equiv_matrix {ι κ M₁ M₂ : Type*}
   [add_comm_group M₁] [module R M₁]
   [add_comm_group M₂] [module R M₂]

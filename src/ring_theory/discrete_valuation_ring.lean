@@ -92,9 +92,6 @@ end⟩
 
 variable (R)
 
-
-
-
 /-- an integral domain is a DVR iff it's a PID with a unique non-zero prime ideal -/
 theorem iff_PID_with_one_nonzero_prime (R : Type u) [integral_domain R] :
   discrete_valuation_ring R ↔ is_principal_ideal_ring R ∧ ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P :=
@@ -292,7 +289,7 @@ An integral domain in which there is a unit `p`
 such that every nonzero element is associated to a power of `p`
 is a discrete valuation ring.
 -/
-def of_has_unit_mul_pow_irreducible_factorization {R : Type u} [integral_domain R]
+lemma of_has_unit_mul_pow_irreducible_factorization {R : Type u} [integral_domain R]
   (hR : has_unit_mul_pow_irreducible_factorization R) :
   discrete_valuation_ring R :=
 begin

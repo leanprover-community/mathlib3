@@ -46,7 +46,7 @@ all propositional assumptions in `xs`. For example if `ys` are propositions then
 The second value returned by `choose1` is the result of nondep elimination:
 * `none`: nondep elimination was not attempted or was not applicable
 * `some none`: nondep elimination was successful
-* `some (some α)`: nondep elimination was unsuccessful
+* ``some (some `(nonempty α))``: nondep elimination was unsuccessful
   because we could not find a `nonempty α` instance
 -/
 meta def choose1 (nondep : bool) (h : expr) (data : name) (spec : name) :

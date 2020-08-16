@@ -30,8 +30,8 @@ Let R be an integral domain, assumed to be a principal ideal ring and a local ri
 
 ## Implementation notes
 
-It's a theorem that an element of a DVR is a uniformiser if and only if it's irreducible.
-We do not hence define `uniformiser` at all, because we can use `irreducible` instead.
+It's a theorem that an element of a DVR is a uniformizer if and only if it's irreducible.
+We do not hence define `uniformizer` at all, because we can use `irreducible` instead.
 
 
 ## Tags
@@ -63,9 +63,9 @@ variable {R}
 
 open principal_ideal_ring
 
-/-- An element of a DVR is irreducible iff it is a uniformiser, that is, generates the
+/-- An element of a DVR is irreducible iff it is a uniformizer, that is, generates the
   maximal ideal of R -/
-theorem irreducible_iff_uniformiser (ϖ : R) :
+theorem irreducible_iff_uniformizer (ϖ : R) :
   irreducible ϖ ↔ maximal_ideal R = ideal.span {ϖ} :=
 ⟨λ hϖ, (eq_maximal_ideal (is_maximal_of_irreducible hϖ)).symm,
 begin
@@ -92,10 +92,8 @@ end⟩
 
 variable (R)
 
-/-- Uniformisers exist in a DVR -/
-theorem exists_irreducible : ∃ ϖ : R, irreducible ϖ :=
-by {simp_rw [irreducible_iff_uniformiser],
-    exact (is_principal_ideal_ring.principal $ maximal_ideal R).principal}
+
+
 
 /-- an integral domain is a DVR iff it's a PID with a unique non-zero prime ideal -/
 theorem iff_PID_with_one_nonzero_prime (R : Type u) [integral_domain R] :
@@ -118,7 +116,7 @@ begin
         simp },
       erw span_singleton_prime hq at hQ2,
       replace hQ2 := irreducible_of_prime hQ2,
-      rw irreducible_iff_uniformiser at hQ2,
+      rw irreducible_iff_uniformizer at hQ2,
       exact hQ2.symm } },
   { rintro ⟨RPID, Punique⟩,
     haveI : local_ring R := local_of_unique_nonzero_prime R Punique,
@@ -131,7 +129,7 @@ end
 lemma associated_of_irreducible {a b : R} (ha : irreducible a) (hb : irreducible b) :
   associated a b :=
 begin
-  rw irreducible_iff_uniformiser at ha hb,
+  rw irreducible_iff_uniformizer at ha hb,
   rw [←span_singleton_eq_span_singleton, ←ha, hb],
 end
 
@@ -301,6 +299,47 @@ begin
   letI : unique_factorization_domain R := hR.UFD,
   apply of_UFD_of_unique_irreducible _ hR.unique_irreducible,
   unfreezingI { obtain ⟨p, hp, H⟩ := hR, exact ⟨p, hp⟩, },
+end
+
+section
+
+variables [integral_domain R] [discrete_valuation_ring R]
+
+variable {R}
+
+lemma associated_pow_irreducible {x : R} (hx : x ≠ 0) {ϖ : R} (hirr : irreducible ϖ) :
+  ∃ (n : ℕ), associated x (ϖ ^ n) :=
+begin
+  have : unique_factorization_domain R := principal_ideal_ring.to_unique_factorization_domain,
+  unfreezingI { use (unique_factorization_domain.factors x).card },
+  have H := unique_factorization_domain.factors_prod hx,
+  rw ← associates.mk_eq_mk_iff_associated at H ⊢,
+  rw [← H, ← associates.prod_mk, associates.mk_pow, ← multiset.prod_repeat],
+  congr' 1,
+  rw multiset.eq_repeat,
+  simp only [true_and, and_imp, multiset.card_map, eq_self_iff_true,
+             multiset.mem_map, exists_imp_distrib],
+  rintros _ _ _ rfl,
+  rw associates.mk_eq_mk_iff_associated,
+  refine associated_of_irreducible _ _ hirr,
+  apply unique_factorization_domain.irreducible_factors hx,
+  assumption
+end
+
+open submodule.is_principal
+
+lemma ideal_eq_span_pow_irreducible {s : ideal R} (hs : s ≠ ⊥) {ϖ : R} (hirr : irreducible ϖ) :
+  ∃ n : ℕ, s = ideal.span {ϖ ^ n} :=
+begin
+  have gen_ne_zero : generator s ≠ 0,
+  { rw [ne.def, ← eq_bot_iff_generator_eq_zero], assumption },
+  rcases associated_pow_irreducible gen_ne_zero hirr with ⟨n, u, hnu⟩,
+  use n,
+  have : span _ = _ := span_singleton_generator s,
+  rw [← this, ← hnu, span_singleton_eq_span_singleton],
+  use u
+end
+
 end
 
 end discrete_valuation_ring

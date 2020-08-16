@@ -717,7 +717,7 @@ begin
     { simp only [(finset.sum_sdiff ht₁).symm, (finset.sum_sdiff ht₂).symm,
         add_sub_add_right_eq_sub] },
     simp only [this],
-    exact hde _ _ (h _ finset.sdiff_disjoint) (h _ finset.sdiff_disjoint) }
+    exact hde _ (h _ finset.sdiff_disjoint) _ (h _ finset.sdiff_disjoint) }
 end
 
 variable [complete_space α]

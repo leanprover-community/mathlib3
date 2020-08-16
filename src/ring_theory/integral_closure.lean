@@ -31,14 +31,14 @@ by rw [alg_hom.map_sub, aeval_def, aeval_def, eval₂_X, eval₂_C, sub_self]⟩
 theorem is_integral_alg_hom (f : A →ₐ[R] B) {x : A} (hx : is_integral R x) : is_integral R (f x) :=
 let ⟨p, hp, hpx⟩ := hx in ⟨p, hp, by rw [aeval_alg_hom_apply, hpx, f.map_zero]⟩
 
-theorem is_integral_of_is_algebra_tower [algebra A B] [is_algebra_tower R A B]
+theorem is_integral_of_is_scalar_tower [algebra A B] [is_scalar_tower R A B]
   (x : B) (hx : is_integral R x) : is_integral A x :=
 let ⟨p, hp, hpx⟩ := hx in
-⟨p.map $ algebra_map R A, monic_map _ hp, by rw [← is_algebra_tower.aeval_apply, hpx]⟩
+⟨p.map $ algebra_map R A, monic_map _ hp, by rw [← is_scalar_tower.aeval_apply, hpx]⟩
 
 theorem is_integral_of_subring {x : A} (T : set R) [is_subring T]
   (hx : is_integral T x) : is_integral R x :=
-is_integral_of_is_algebra_tower x hx
+is_integral_of_is_scalar_tower x hx
 
 theorem is_integral_iff_is_integral_closure_finite {r : A} :
   is_integral R r ↔ ∃ s : set R, s.finite ∧ is_integral (ring.closure s) r :=
@@ -46,7 +46,7 @@ begin
   split; intro hr,
   { rcases hr with ⟨p, hmp, hpr⟩,
     refine ⟨_, set.finite_mem_finset _, p.restriction, subtype.eq hmp, _⟩,
-    erw [is_algebra_tower.aeval_apply _ R, map_restriction, hpr] },
+    erw [is_scalar_tower.aeval_apply _ R, map_restriction, hpr] },
   rcases hr with ⟨s, hs, hsr⟩,
   exact is_integral_of_subring _ hsr
 end
@@ -272,7 +272,7 @@ begin
     convert hq using 1; symmetry; apply eval_map },
 end
 
-variables [algebra R A] [is_algebra_tower R A B]
+variables [algebra R A] [is_scalar_tower R A B]
 
 /-- If A is an R-algebra all of whose elements are integral over R,
 and x is an element of an A-algebra that is integral over A, then x is integral over R.-/
@@ -285,7 +285,7 @@ begin
   refine fg_trans (fg_adjoin_of_finite (finset.finite_to_set _) (λ x hx, _)) _,
   { rw [finset.mem_coe, finsupp.mem_frange] at hx, rcases hx with ⟨_, i, rfl⟩,
     show is_integral R ((p.map $ algebra_map A B).coeff i), rw coeff_map,
-    convert is_integral_alg_hom (is_algebra_tower.to_alg_hom R A B) (A_int _) },
+    convert is_integral_alg_hom (is_scalar_tower.to_alg_hom R A B) (A_int _) },
   { apply fg_adjoin_singleton_of_integral,
     exact is_integral_trans_aux _ pmonic hp }
 end
@@ -296,6 +296,34 @@ then all elements of B are integral over R.-/
 lemma algebra.is_integral_trans (A_int : ∀ x : A, is_integral R x)(B_int : ∀ x:B, is_integral A x) :
   ∀ x:B, is_integral R x :=
 λ x, is_integral_trans A_int x (B_int x)
+
+lemma is_integral_of_surjective (h : function.surjective (algebra_map R A)) :
+  ∀ x : A, is_integral R x :=
+λ x, (h x).rec_on (λ y hy, (hy ▸ is_integral_algebra_map : is_integral R x))
+
+/-- If `R → A → B` is an algebra tower with `A → B` injective,
+then if the entire tower is an integral extension so is `R → A` -/
+lemma is_integral_tower_bot_of_is_integral (H : function.injective (algebra_map A B))
+  {x : A} (h : is_integral R (algebra_map A B x)) : is_integral R x :=
+begin
+  rcases h with ⟨p, ⟨hp, hp'⟩⟩,
+  refine ⟨p, ⟨hp, _⟩⟩,
+  rw [aeval_def, is_scalar_tower.algebra_map_eq R A B, ← eval₂_map,
+      eval₂_hom, ← ring_hom.map_zero (algebra_map A B)] at hp',
+  rw [aeval_def, eval₂_eq_eval_map],
+  exact H hp',
+end
+
+/-- If `R → A → B` is an algebra tower,
+then if the entire tower is an integral extension so is `A → B` -/
+lemma is_integral_tower_top_of_is_integral {x : B} (h : is_integral R x) : is_integral A x :=
+begin
+  rcases h with ⟨p, ⟨hp, hp'⟩⟩,
+  refine ⟨p.map (algebra_map R A), ⟨monic_map (algebra_map R A) hp, _⟩⟩,
+  rw [aeval_def, is_scalar_tower.algebra_map_eq R A B, ← eval₂_map] at hp',
+  rw [aeval_def],
+  exact hp',
+end
 
 end algebra
 

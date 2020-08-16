@@ -202,6 +202,7 @@ namespace associated
 @[trans] protected theorem trans [monoid α] : ∀{x y z : α}, x ~ᵤ y → y ~ᵤ z → x ~ᵤ z
 | x _ _ ⟨u, rfl⟩ ⟨v, rfl⟩ := ⟨u * v, by rw [units.coe_mul, mul_assoc]⟩
 
+/-- The setoid of the relation `x ~ᵤ y` iff there is a unit `u` such that `x * u = y` -/
 protected def setoid (α : Type*) [monoid α] : setoid α :=
 { r := associated, iseqv := ⟨associated.refl, λa b, associated.symm, λa b c, associated.trans⟩ }
 
@@ -324,12 +325,16 @@ lemma associated_mul_right_cancel [comm_cancel_monoid_with_zero α] {a b c d : �
   a * b ~ᵤ c * d → b ~ᵤ d → b ≠ 0 → a ~ᵤ c :=
 by rw [mul_comm a, mul_comm c]; exact associated_mul_left_cancel
 
+/-- The quotient of a monoid by the `associated` relation. Two elements `x` and `y`
+  are associated iff there is a unit `u` such that `x * u = y`. `associates α`
+  forms a monoid. -/
 def associates (α : Type*) [monoid α] : Type* :=
 quotient (associated.setoid α)
 
 namespace associates
 open associated
 
+/-- The canonical quotient map from a monoid `α` into the `associates` of `α` -/
 protected def mk {α : Type*} [monoid α] (a : α) : associates α :=
 ⟦ a ⟧
 
@@ -412,8 +417,14 @@ multiset.induction_on p
   (by simp)
   (by simp [mul_eq_one_iff, or_imp_distrib, forall_and_distrib] {contextual := tt})
 
-theorem coe_unit_eq_one : ∀u:units (associates α), (u : associates α) = 1
-| ⟨u, v, huv, hvu⟩ := by rw [mul_eq_one_iff] at huv; exact huv.1
+theorem units_eq_one (u : units (associates α)) : u = 1 :=
+units.ext (mul_eq_one_iff.1 u.val_inv).1
+
+instance unique_units : unique (units (associates α)) :=
+{ default := 1, uniq := associates.units_eq_one }
+
+theorem coe_unit_eq_one (u : units (associates α)): (u : associates α) = 1 :=
+by simp
 
 theorem is_unit_iff_eq_one (a : associates α) : is_unit a ↔ a = 1 :=
 iff.intro
@@ -488,6 +499,9 @@ assume ⟨c, hc⟩, ⟨associates.mk c, by simp [hc]; refl⟩
 theorem mk_le_mk_iff_dvd_iff {a b : α} : associates.mk a ≤ associates.mk b ↔ a ∣ b :=
 iff.intro dvd_of_mk_le_mk mk_le_mk_of_dvd
 
+/-- The relation `prime` on associates is very similar to the familiar definition
+  from a `comm_ring`. A `prime` `p` is not equal to `1` or `0` and if `p ∣ a * b`,
+  then `p ∣ a` or `p ∣ b` -/
 def prime (p : associates α) : Prop := p ≠ 0 ∧ p ≠ 1 ∧ (∀a b, p ≤ a * b → p ≤ a ∨ p ≤ b)
 
 lemma prime.ne_zero {p : associates α} (hp : prime p) : p ≠ 0 :=

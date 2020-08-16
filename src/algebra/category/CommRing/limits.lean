@@ -21,6 +21,8 @@ open category_theory.limits
 
 universe u
 
+noncomputable theory
+
 namespace SemiRing
 
 variables {J : Type u} [small_category J]
@@ -40,7 +42,10 @@ def sections_subsemiring (F : J ⥤ SemiRing) :
 
 instance limit_semiring (F : J ⥤ SemiRing) :
   semiring (limit (F ⋙ forget SemiRing)) :=
-(sections_subsemiring F).to_semiring
+begin
+  haveI : semiring ((F ⋙ forget SemiRing).sections) := (sections_subsemiring F).to_semiring,
+  transport using (types.limit_equiv_sections (F ⋙ forget SemiRing)).symm,
+end
 
 /-- `limit.π (F ⋙ forget SemiRing) j` as a `ring_hom`. -/
 def limit_π_ring_hom (F : J ⥤ SemiRing) (j) :
@@ -58,22 +63,36 @@ namespace has_limits
 Construction of a limit cone in `SemiRing`.
 (Internal use only; use the limits API.)
 -/
-def limit (F : J ⥤ SemiRing) : cone F :=
+def limit_cone (F : J ⥤ SemiRing) : cone F :=
 { X := SemiRing.of (limit (F ⋙ forget _)),
   π :=
   { app := limit_π_ring_hom F,
     naturality' := λ j j' f,
       ring_hom.coe_inj ((limit.cone (F ⋙ forget _)).π.naturality f) } }
 
+@[simps]
+def forget_map_cone_limit_cone_iso (F : J ⥤ SemiRing) :
+  (forget SemiRing).map_cone (limit_cone F) ≅ limit.cone (F ⋙ forget SemiRing) :=
+{ hom := { hom := 𝟙 _, },
+  inv := { hom := 𝟙 _, } }
+
+def is_limit_forget_map_cone_limit_cone (F : J ⥤ SemiRing) :
+  is_limit ((forget SemiRing).map_cone (limit_cone F)) :=
+is_limit.of_iso_limit (limit.is_limit _) (forget_map_cone_limit_cone_iso F).symm
+
 /--
 Witness that the limit cone in `SemiRing` is a limit cone.
 (Internal use only; use the limits API.)
 -/
-def limit_is_limit (F : J ⥤ SemiRing) : is_limit (limit F) :=
+def limit_cone_is_limit (F : J ⥤ SemiRing) : is_limit (limit_cone F) :=
 begin
   refine is_limit.of_faithful
-    (forget SemiRing) (limit.is_limit _)
-    (λ s, ⟨_, _, _, _, _⟩) (λ s, rfl); tidy
+    (forget SemiRing) (is_limit_forget_map_cone_limit_cone F)
+    (λ s, ⟨_, _, _, _, _⟩) (λ s, rfl),
+  sorry,
+  sorry,
+  sorry,
+  sorry,
 end
 
 end has_limits
@@ -83,16 +102,16 @@ open has_limits
 /-- The category of rings has all limits. -/
 instance has_limits : has_limits SemiRing :=
 { has_limits_of_shape := λ J 𝒥,
-  { has_limit := λ F, by exactI
-    { cone     := limit F,
-      is_limit := limit_is_limit F } } }
+  { has_limit := λ F, by exactI has_limit.mk
+    { cone     := limit_cone F,
+      is_limit := limit_cone_is_limit F } } }
 
 /--
 An auxiliary declaration to speed up typechecking.
 -/
 def forget₂_AddCommMon_preserves_limits_aux (F : J ⥤ SemiRing) :
   is_limit ((forget₂ SemiRing AddCommMon).map_cone (limit.cone F)) :=
-  limit.is_limit (F ⋙ forget₂ SemiRing AddCommMon)
+  sorry
 
 /--
 The forgetful functor from semirings to additive commutative monoids preserves all limits.
@@ -108,7 +127,7 @@ An auxiliary declaration to speed up typechecking.
 -/
 def forget₂_Mon_preserves_limits_aux (F : J ⥤ SemiRing) :
   is_limit ((forget₂ SemiRing Mon).map_cone (limit.cone F)) :=
-  limit.is_limit (F ⋙ forget₂ SemiRing Mon)
+  sorry
 
 /--
 The forgetful functor from semirings to monoids preserves all limits.
@@ -127,7 +146,7 @@ instance forget_preserves_limits : preserves_limits (forget SemiRing) :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F,
     by exactI preserves_limit_of_preserves_limit_cone
-      (limit.is_limit F) (limit.is_limit (F ⋙ forget _)) } }
+      (limit_cone_is_limit F) (is_limit_forget_map_cone_limit_cone F) } }
 
 end SemiRing
 

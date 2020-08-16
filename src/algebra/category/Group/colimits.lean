@@ -287,7 +287,7 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
 
 instance has_colimits_AddCommGroup : has_colimits AddCommGroup :=
 { has_colimits_of_shape := λ J 𝒥,
-  { has_colimit := λ F, by exactI
+  { has_colimit := λ F, by exactI has_colimit.mk
     { cocone := colimit_cocone F,
       is_colimit := colimit_is_colimit F } } }
 

@@ -45,7 +45,7 @@ def types_has_terminal : has_terminal (Type u) :=
 
 /-- The category of types has `pempty` as an initial object. -/
 def types_has_initial : has_initial (Type u) :=
-{ has_colimit := λ F,
+{ has_colimit := λ F, has_colimit.mk
   { cocone :=
     { X := pempty,
       ι := by tidy, },
@@ -79,7 +79,7 @@ The category of types has `X ⊕ Y`,
 as the binary coproduct of `X` and `Y`.
 -/
 def types_has_binary_coproducts : has_binary_coproducts (Type u) :=
-{ has_colimit := λ F,
+{ has_colimit := λ F, has_colimit.mk
   { cocone :=
     { X := F.obj left ⊕ F.obj right,
       ι :=
@@ -115,7 +115,7 @@ def types_has_products : has_products (Type u) := λ J,
 The category of types has `Σ j, f j` as the coproduct of a type family `f : J → Type`.
 -/
 def types_has_coproducts : has_coproducts (Type u) := λ J,
-{ has_colimit := λ F,
+{ has_colimit := λ F, has_colimit.mk
   { cocone :=
     { X := Σ j, F.obj j,
       ι :=

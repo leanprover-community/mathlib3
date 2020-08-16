@@ -31,6 +31,8 @@ rather than the confusing `C.homology i`.
 
 universes v u
 
+noncomputable theory
+
 open category_theory
 open category_theory.limits
 

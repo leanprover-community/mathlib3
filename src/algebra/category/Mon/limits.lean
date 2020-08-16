@@ -198,6 +198,13 @@ instance has_limits : has_limits CommMon :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ CommMon Mon) } }
 
+@[to_additive]
+def limit_iso_CommMon_of_limit_forget (F : J ⥤ CommMon) :
+  limit F ≅ CommMon.of (limit (F ⋙ forget CommMon)) :=
+is_limit.cone_point_unique_up_to_iso
+  (limit.is_limit F)
+  (lifted_limit_is_limit (limit.is_limit (F ⋙ forget₂ CommMon Mon)))
+
 /--
 The forgetful functor from commutative monoids to monoids preserves all limits.
 (That is, the underlying monoid could have been computed instead as limits in the category of monoids.)

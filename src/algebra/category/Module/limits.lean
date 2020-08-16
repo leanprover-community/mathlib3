@@ -18,6 +18,8 @@ open category_theory.limits
 
 universe u
 
+noncomputable theory
+
 namespace Module
 
 variables {R : Type u} [ring R]
@@ -45,18 +47,23 @@ def sections_submodule (F : J ⥤ Module R) :
   end,
   ..(AddGroup.sections_add_subgroup (F ⋙ forget₂ (Module R) AddCommGroup ⋙ forget₂ AddCommGroup AddGroup)) }
 
+instance sections_add_comm_group (F : J ⥤ Module R) : add_comm_group ((F ⋙ forget (Module R)).sections) :=
+(by apply_instance : add_comm_group (sections_submodule F))
+
 instance limit_add_comm_group (F : J ⥤ Module R) :
   add_comm_group (limit (F ⋙ forget (Module R))) :=
 begin
-  change add_comm_group (sections_submodule F),
-  apply_instance,
+  haveI := Module.sections_add_comm_group F,
+  transport using (types.limit_equiv_sections (F ⋙ forget (Module R))).symm,
 end
 
+-- FIXME stuck on #3824
 instance limit_module (F : J ⥤ Module R) :
   module R (limit (F ⋙ forget (Module R))) :=
 begin
-  change module R (sections_submodule F),
-  apply_instance,
+  haveI : module R ((F ⋙ forget (Module R)).sections) :=
+    (by apply_instance : module R (sections_submodule F)),
+  transport using (types.limit_equiv_sections (F ⋙ forget (Module R))).symm,
 end
 
 /-- `limit.π (F ⋙ forget Ring) j` as a `ring_hom`. -/

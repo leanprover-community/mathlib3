@@ -19,6 +19,8 @@ open category_theory.limits
 
 universe u
 
+noncomputable theory
+
 namespace Algebra
 
 variables {R : Type u} [comm_ring R]
@@ -40,19 +42,23 @@ def sections_subalgebra (F : J ⥤ Algebra R) :
 { carrier := SemiRing.sections_subsemiring (F ⋙ forget₂ (Algebra R) Ring ⋙ forget₂ Ring SemiRing),
   algebra_map_mem' := λ r j j' f, (F.map f).commutes r, }
 
+instance sections_ring (F : J ⥤ Algebra R) : ring ((F ⋙ forget (Algebra R)).sections) :=
+(by apply_instance : ring (sections_subalgebra F))
 
-instance limit_semiring (F : J ⥤ Algebra R) :
+instance limit_ring (F : J ⥤ Algebra R) :
   ring (limit (F ⋙ forget (Algebra R))) :=
 begin
-  change ring (sections_subalgebra F),
-  apply_instance,
+  haveI := Algebra.sections_ring F,
+  transport using (types.limit_equiv_sections (F ⋙ forget (Algebra R))).symm,
 end
 
 instance limit_algebra (F : J ⥤ Algebra R) :
   algebra R (limit (F ⋙ forget (Algebra R))) :=
 begin
-  change algebra R (sections_subalgebra F),
-  apply_instance,
+  haveI : algebra R ((F ⋙ forget (Algebra R)).sections) :=
+    (by apply_instance : algebra R (sections_subalgebra F)),
+  transport using (types.limit_equiv_sections (F ⋙ forget (Algebra R))).symm,
+  -- FIXME failed badly!
 end
 
 /-- `limit.π (F ⋙ forget (Algebra R)) j` as a `alg_hom`. -/

@@ -204,11 +204,11 @@ lemma one_div (x : with_zero α) : 1 / x = x⁻¹ := one_mul _
 
 @[simp] lemma mul_right_inv : ∀  (x : with_zero α) (h : x ≠ 0), x * x⁻¹ = 1
 | 0       h := false.elim $ h rfl
-| (a : α) h := by simp only [←with_zero.coe_inv, ←with_zero.coe_mul, coe_one, _root_.mul_right_inv]
+| (a : α) h := by {norm_cast, simp [coe_one]}
 
 @[simp] lemma mul_left_inv : ∀  (x : with_zero α) (h : x ≠ 0), x⁻¹ * x = 1
 | 0       h := false.elim $ h rfl
-| (a : α) h := by simp only [←with_zero.coe_inv, ←with_zero.coe_mul, _root_.mul_left_inv, coe_one]
+| (a : α) h := by {norm_cast, simp [coe_one]}
 
 @[simp] lemma mul_inv_rev : ∀ (x y : with_zero α), (x * y)⁻¹ = y⁻¹ * x⁻¹
 | 0       0       := rfl

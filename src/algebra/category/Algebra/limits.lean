@@ -45,20 +45,42 @@ def sections_subalgebra (F : J ⥤ Algebra R) :
 instance sections_ring (F : J ⥤ Algebra R) : ring ((F ⋙ forget (Algebra R)).sections) :=
 (by apply_instance : ring (sections_subalgebra F))
 
+-- TODO move these:
+universes u₁ u₂
+def transport_ring {α : Type u₁} {β : Type u₂} [ring α] (e : α ≃ β) : ring β :=
+by transport using e
+
+def transport_ring_equiv {α : Type u₁} {β : Type u₂} [ring α] (e : α ≃ β) :
+  by { letI := transport_ring e, exact α ≃+* β } :=
+begin
+  letI := transport_ring e,
+  exact
+  ({ map_mul' := λ x y, by { apply e.injective, simp, refl, },
+     map_add' := λ x y, by { apply e.injective, simp, refl, },
+    .. e.symm } : β ≃+* α).symm
+end
+
 instance limit_ring (F : J ⥤ Algebra R) :
   ring (limit (F ⋙ forget (Algebra R))) :=
-begin
-  haveI := Algebra.sections_ring F,
-  transport using (types.limit_equiv_sections (F ⋙ forget (Algebra R))).symm,
-end
+transport_ring (types.limit_equiv_sections (F ⋙ forget (Algebra R))).symm
+
+def limit_ring_equiv (F : J ⥤ Algebra R) :
+  ((F ⋙ forget (Algebra R)).sections) ≃+* limit (F ⋙ forget (Algebra R)) :=
+transport_ring_equiv (types.limit_equiv_sections (F ⋙ forget (Algebra R))).symm
+
+-- WIP:
 
 instance limit_algebra (F : J ⥤ Algebra R) :
   algebra R (limit (F ⋙ forget (Algebra R))) :=
 begin
   haveI : algebra R ((F ⋙ forget (Algebra R)).sections) :=
     (by apply_instance : algebra R (sections_subalgebra F)),
-  transport using (types.limit_equiv_sections (F ⋙ forget (Algebra R))).symm,
-  -- FIXME failed badly!
+  let m := algebra_map R ((F ⋙ forget (Algebra R)).sections),
+  let e := (types.limit_equiv_sections (F ⋙ forget (Algebra R))).symm,
+  let e' : _ ≃+* _ := limit_ring_equiv F,
+  fapply ring_hom.to_algebra',
+  exact (e'.to_ring_hom).comp m,
+  sorry
 end
 
 /-- `limit.π (F ⋙ forget (Algebra R)) j` as a `alg_hom`. -/

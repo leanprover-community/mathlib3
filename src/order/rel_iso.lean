@@ -30,11 +30,17 @@ structure rel_embedding {α β : Type*} (r : α → α → Prop) (s : β → β 
 
 infix ` ↪r `:25 := rel_embedding
 
-/-- An order embedding is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) ≤ (f b)`. -/
-abbreviation order_embedding (α β : Type*) [has_le α] [has_le β] :=
+/-- A `le_embedding` is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) ≤ (f b)`. -/
+abbreviation le_embedding (α β : Type*) [has_le α] [has_le β] :=
 @rel_embedding α β (≤) (≤)
 
-infix ` ↪≤ `:25 := order_embedding
+infix ` ↪≤ `:25 := le_embedding
+
+/-- A `lt_embedding` is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) < (f b)`. -/
+abbreviation lt_embedding (α β : Type*) [has_lt α] [has_lt β] :=
+@rel_embedding α β (<) (<)
+
+infix ` ↪< `:25 := lt_embedding
 
 /-- the induced relation on a subtype is an embedding under the natural inclusion. -/
 definition subtype.rel_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) :
@@ -153,19 +159,22 @@ end
 @[simp] theorem of_monotone_coe [is_trichotomous α r] [is_asymm β s] (f : α → β) (H) :
   (@of_monotone _ _ r s _ _ f H : α → β) = f := rfl
 
-/-- lt is preserved by order embeddings of preorders -/
-def lt_embedding_of_order_embedding [preorder α] [preorder β] (f : α ↪≤ β) :
-(has_lt.lt : α → α → Prop) ↪r (has_lt.lt : β → β → Prop) :=
+/-- lt is preserved by `lt_embedding`s of preorders -/
+def lt_embedding_of_le_embedding [preorder α] [preorder β] (f : α ↪≤ β) : α ↪< β :=
 { map_rel_iff' := by intros; simp [lt_iff_le_not_le,f.map_rel_iff], .. f }
+
+/-- le is preserved by `lt_embedding`s of partial orders -/
+def le_embedding_of_lt_embedding [partial_order α] [partial_order β] (f : α ↪< β) : α ↪≤ β :=
+{ map_rel_iff' := by { intros, simp [le_iff_lt_or_eq,f.map_rel_iff, f.injective] }, .. f }
 
 end rel_embedding
 
 /-- The inclusion map `fin n → ℕ` is a relation embedding. -/
-def fin.val.rel_embedding (n) : @rel_embedding (fin n) ℕ (<) (<) :=
+def fin.val.rel_embedding (n) : (fin n) ↪< ℕ :=
 ⟨⟨fin.val, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩
 
 /-- The inclusion map `fin m → fin n` is a relation embedding. -/
-def fin_fin.rel_embedding {m n} (h : m ≤ n) : @rel_embedding (fin m) (fin n) (<) (<) :=
+def fin_fin.rel_embedding {m n} (h : m ≤ n) : (fin m) ↪< (fin n) :=
 ⟨⟨λ ⟨x, h'⟩, ⟨x, lt_of_lt_of_le h' h⟩,
   λ ⟨a, _⟩ ⟨b, _⟩ h, by congr; injection h⟩,
   by intros; cases a; cases b; refl⟩
@@ -180,9 +189,9 @@ structure rel_iso {α β : Type*} (r : α → α → Prop) (s : β → β → Pr
 infix ` ≃r `:25 := rel_iso
 
 /-- An order isomorphism is an equivalence that is also an order embedding. -/
-abbreviation order_iso (α β : Type*) [has_le α] [has_le β] := @rel_iso α β (≤) (≤)
+abbreviation le_iso (α β : Type*) [has_le α] [has_le β] := @rel_iso α β (≤) (≤)
 
-infix ` ≃≤ `:25 := order_iso
+infix ` ≃≤ `:25 := le_iso
 
 namespace rel_iso
 
@@ -351,7 +360,7 @@ def rel_embedding.cod_restrict (p : set β) (f : r ↪r s) (H : ∀ a, f a ∈ p
 
 section lattice_isos
 
-lemma order_iso.map_bot [order_bot α] [order_bot β]
+lemma le_iso.map_bot [order_bot α] [order_bot β]
   (f : α ≃≤ β) :
   f ⊥ = ⊥ :=
 by { rw [eq_bot_iff, ← f.apply_symm_apply ⊥, ← f.map_rel_iff], apply bot_le, }

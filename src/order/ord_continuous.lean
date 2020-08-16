@@ -97,8 +97,7 @@ def to_le_embedding (hf : left_ord_continuous f) (h : injective f) :
 ⟨⟨f, h⟩, λ x y, (hf.le_iff h).symm⟩
 
 /-- Convert an injective left order continuous function to an order embeddings. -/
-def to_lt_embedding (hf : left_ord_continuous f) (h : injective f) :
-  ((<) : α → α → Prop) ↪r ((<) : β → β → Prop) :=
+def to_lt_embedding (hf : left_ord_continuous f) (h : injective f) : α ↪< β :=
 ⟨⟨f, h⟩, λ x y, (hf.lt_iff h).symm⟩
 
 variable {f}
@@ -194,13 +193,12 @@ hf.order_dual.lt_iff h
 
 variable (f)
 
-/-- Convert an injective left order continuous function to an order embeddings. -/
+/-- Convert an injective left order continuous function to a `le_embedding`. -/
 def to_le_embedding (hf : right_ord_continuous f) (h : injective f) : α ↪≤ β :=
 ⟨⟨f, h⟩, λ x y, (hf.le_iff h).symm⟩
 
-/-- Convert an injective left order continuous function to an order embeddings. -/
-def to_lt_embedding (hf : right_ord_continuous f) (h : injective f) :
-  ((<) : α → α → Prop) ↪r ((<) : β → β → Prop) :=
+/-- Convert an injective left order continuous function to a `lt_embedding`. -/
+def to_lt_embedding (hf : right_ord_continuous f) (h : injective f) : α ↪< β :=
 ⟨⟨f, h⟩, λ x y, (hf.lt_iff h).symm⟩
 
 variable {f}
@@ -248,7 +246,7 @@ end conditionally_complete_lattice
 
 end right_ord_continuous
 
-namespace order_iso
+namespace le_iso
 
 section preorder
 
@@ -262,8 +260,8 @@ protected lemma left_ord_continuous : left_ord_continuous e :=
     mem_image_of_mem _ hx'⟩
 
 protected lemma right_ord_continuous : right_ord_continuous e :=
-@order_iso.left_ord_continuous (order_dual α) (order_dual β) _ _ e.rsymm
+@le_iso.left_ord_continuous (order_dual α) (order_dual β) _ _ e.rsymm
 
 end preorder
 
-end order_iso
+end le_iso

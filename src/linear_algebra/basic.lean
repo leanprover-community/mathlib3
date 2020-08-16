@@ -1450,9 +1450,8 @@ def map_subtype.le_embedding :
 
 /-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
 submodules of `M`. -/
-def map_subtype.lt_embedding :
-  ((<) : submodule R p → submodule R p → Prop) ↪r ((<) : submodule R M → submodule R M → Prop) :=
-(map_subtype.le_embedding p).lt_embedding_of_order_embedding
+def map_subtype.lt_embedding : submodule R p ↪< submodule R M :=
+(map_subtype.le_embedding p).lt_embedding_of_le_embedding
 
 
 /-- The map from a module `M` to the quotient of `M` by a submodule `p` as a linear map. -/
@@ -1546,8 +1545,8 @@ def comap_mkq.le_embedding :
 /-- The ordering on submodules of the quotient of `M` by `p` embeds into the ordering on submodules
 of `M`. -/
 def comap_mkq.lt_embedding :
-  ((<) : submodule R p.quotient → submodule R p.quotient → Prop) ↪r ((<) : submodule R M → submodule R M → Prop) :=
-(comap_mkq.le_embedding p).lt_embedding_of_order_embedding
+  submodule R p.quotient ↪< submodule R M :=
+(comap_mkq.le_embedding p).lt_embedding_of_le_embedding
 
 end ring
 

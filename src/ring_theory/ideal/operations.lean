@@ -661,13 +661,11 @@ def rel_iso_of_surjective :
   map_rel_iff' := λ I1 I2, ⟨comap_mono, λ H, map_comap_of_surjective f hf I1 ▸
     map_comap_of_surjective f hf I2 ▸ map_mono H⟩ }
 
-def le_embedding_of_surjective :
-  ideal S ↪≤ ideal R :=
+def le_embedding_of_surjective : ideal S ↪≤ ideal R :=
 (rel_iso_of_surjective f hf).to_rel_embedding.trans (subtype.rel_embedding _ _)
 
-def lt_embedding_of_surjective :
-  ((<) : ideal S → ideal S → Prop) ↪r ((<) : ideal R → ideal R → Prop) :=
-(le_embedding_of_surjective f hf).lt_embedding_of_order_embedding
+def lt_embedding_of_surjective : ideal S ↪< ideal R :=
+(le_embedding_of_surjective f hf).lt_embedding_of_le_embedding
 
 theorem map_eq_top_or_is_maximal_of_surjective (H : is_maximal I) :
   (map f I) = ⊤ ∨ is_maximal (map f I) :=

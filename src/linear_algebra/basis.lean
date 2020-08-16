@@ -387,7 +387,7 @@ by rw sUnion_eq_Union; exact
 linear_independent_Union_of_directed hs.directed_coe (by simpa using h)
 
 lemma linear_independent_bUnion_of_directed {η} {s : set η} {t : η → set M}
-  (hs : directed_on (t ⁻¹'o (⊆)) s) (h : ∀a∈s, linear_independent R (λ x, x : t a → M)) :
+  (hs : directed_on (t ⁻¹'r (⊆)) s) (h : ∀a∈s, linear_independent R (λ x, x : t a → M)) :
   linear_independent R (λ x, x : (⋃a∈s, t a) → M) :=
 by rw bUnion_eq_Union; exact
 linear_independent_Union_of_directed (directed_comp.2 $ hs.directed_coe) (by simpa using h)

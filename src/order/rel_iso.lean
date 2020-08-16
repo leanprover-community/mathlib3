@@ -30,13 +30,19 @@ structure rel_embedding {α β : Type*} (r : α → α → Prop) (s : β → β 
 
 infix ` ↪r `:25 := rel_embedding
 
+/-- An order embedding is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) ≤ (f b)`. -/
+abbreviation order_embedding (α β : Type*) [has_le α] [has_le β] :=
+@rel_embedding α β (≤) (≤)
+
+infix ` ↪≤ `:25 := order_embedding
+
 /-- the induced relation on a subtype is an embedding under the natural inclusion. -/
 definition subtype.rel_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) :
-((subtype.val : subtype p → X) ⁻¹'o r) ↪r r :=
+((subtype.val : subtype p → X) ⁻¹'r r) ↪r r :=
 ⟨⟨subtype.val,subtype.val_injective⟩,by intros;refl⟩
 
 theorem preimage_equivalence {α β} (f : α → β) {s : β → β → Prop}
-  (hs : equivalence s) : equivalence (f ⁻¹'o s) :=
+  (hs : equivalence s) : equivalence (f ⁻¹'r s) :=
 ⟨λ a, hs.1 _, λ a b h, hs.2.1 h, λ a b c h₁ h₂, hs.2.2 h₁ h₂⟩
 
 namespace rel_embedding
@@ -67,15 +73,15 @@ theorem coe_fn_inj : ∀ ⦃e₁ e₂ : r ↪r s⦄, (e₁ : α → β) = e₂ �
 
 @[simp] theorem trans_apply (f : r ↪r s) (g : s ↪r t) (a : α) : (f.trans g) a = g (f a) := rfl
 
-/-- An relation embedding is also an relation embedding between dual relations. -/
+/-- a relation embedding is also a relation embedding between dual relations. -/
 def rsymm (f : r ↪r s) : swap r ↪r swap s :=
 ⟨f.to_embedding, λ a b, f.map_rel_iff⟩
 
-/-- If `f` is injective, then it is an relation embedding from the
+/-- If `f` is injective, then it is a relation embedding from the
   preimage relation of `s` to `s`. -/
-def preimage (f : α ↪ β) (s : β → β → Prop) : f ⁻¹'o s ↪r s := ⟨f, λ a b, iff.rfl⟩
+def preimage (f : α ↪ β) (s : β → β → Prop) : f ⁻¹'r s ↪r s := ⟨f, λ a b, iff.rfl⟩
 
-theorem eq_preimage (f : r ↪r s) : r = f ⁻¹'o s :=
+theorem eq_preimage (f : r ↪r s) : r = f ⁻¹'r s :=
 by { ext a b, exact f.map_rel_iff }
 
 protected theorem is_irrefl : ∀ (f : r ↪r s) [is_irrefl β s], is_irrefl α r
@@ -131,7 +137,7 @@ protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_we
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order'}
 
 /-- It suffices to prove `f` is monotone between strict relations
-  to show it is an relation embedding. -/
+  to show it is a relation embedding. -/
 def of_monotone [is_trichotomous α r] [is_asymm β s] (f : α → β)
   (H : ∀ a b, r a b → s (f a) (f b)) : r ↪r s :=
 begin
@@ -147,19 +153,18 @@ end
 @[simp] theorem of_monotone_coe [is_trichotomous α r] [is_asymm β s] (f : α → β) (H) :
   (@of_monotone _ _ r s _ _ f H : α → β) = f := rfl
 
--- If le is preserved by an relation embedding of preorders, then lt is too
-def lt_embedding_of_le_embedding [preorder α] [preorder β]
-  (f : ((≤) : α → α → Prop) ↪r ((≤) : β → β → Prop)) :
+/-- lt is preserved by order embeddings of preorders -/
+def lt_embedding_of_order_embedding [preorder α] [preorder β] (f : α ↪≤ β) :
 (has_lt.lt : α → α → Prop) ↪r (has_lt.lt : β → β → Prop) :=
 { map_rel_iff' := by intros; simp [lt_iff_le_not_le,f.map_rel_iff], .. f }
 
 end rel_embedding
 
-/-- The inclusion map `fin n → ℕ` is an relation embedding. -/
+/-- The inclusion map `fin n → ℕ` is a relation embedding. -/
 def fin.val.rel_embedding (n) : @rel_embedding (fin n) ℕ (<) (<) :=
 ⟨⟨fin.val, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩
 
-/-- The inclusion map `fin m → fin n` is an relation embedding. -/
+/-- The inclusion map `fin m → fin n` is a relation embedding. -/
 def fin_fin.rel_embedding {m n} (h : m ≤ n) : @rel_embedding (fin m) (fin n) (<) (<) :=
 ⟨⟨λ ⟨x, h'⟩, ⟨x, lt_of_lt_of_le h' h⟩,
   λ ⟨a, _⟩ ⟨b, _⟩ h, by congr; injection h⟩,
@@ -168,11 +173,16 @@ def fin_fin.rel_embedding {m n} (h : m ≤ n) : @rel_embedding (fin m) (fin n) (
 instance fin.lt.is_well_order (n) : is_well_order (fin n) (<) :=
 (fin.val.rel_embedding _).is_well_order
 
-/-- A relation isomorphism is an equivalence that is also an relation embedding. -/
+/-- A relation isomorphism is an equivalence that is also a relation embedding. -/
 structure rel_iso {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ≃ β :=
 (map_rel_iff' : ∀ {a b}, r a b ↔ s (to_equiv a) (to_equiv b))
 
 infix ` ≃r `:25 := rel_iso
+
+/-- An order isomorphism is an equivalence that is also an order embedding. -/
+abbreviation order_iso (α β : Type*) [has_le α] [has_le β] := @rel_iso α β (≤) (≤)
+
+infix ` ≃≤ `:25 := order_iso
 
 namespace rel_iso
 
@@ -252,7 +262,7 @@ protected lemma injective (e : r ≃r s) : injective e := e.to_equiv.injective
 protected lemma surjective (e : r ≃r s) : surjective e := e.to_equiv.surjective
 
 /-- Any equivalence lifts to a relation isomorphism between `s` and its preimage. -/
-protected def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'o s ≃r s := ⟨f, λ a b, iff.rfl⟩
+protected def preimage (f : α ≃ β) (s : β → β → Prop) : f ⁻¹'r s ≃r s := ⟨f, λ a b, iff.rfl⟩
 
 /-- A surjective relation embedding is a relation isomorphism. -/
 noncomputable def of_surjective (f : r ↪r s) (H : surjective f) : r ≃r s :=
@@ -313,7 +323,7 @@ def set_coe_embedding {α : Type*} (p : set α) : p ↪ α := ⟨subtype.val, @s
 
 /-- `subrel r p` is the inherited relation on a subset. -/
 def subrel (r : α → α → Prop) (p : set α) : p → p → Prop :=
-@subtype.val _ p ⁻¹'o r
+@subtype.val _ p ⁻¹'r r
 
 @[simp] theorem subrel_val (r : α → α → Prop) (p : set α)
   {a b} : subrel r p a b ↔ r a.1 b.1 := iff.rfl
@@ -332,7 +342,7 @@ rel_embedding.is_well_order (subrel.rel_embedding r p)
 
 end subrel
 
-/-- Restrict the codomain of an relation embedding -/
+/-- Restrict the codomain of a relation embedding -/
 def rel_embedding.cod_restrict (p : set β) (f : r ↪r s) (H : ∀ a, f a ∈ p) : r ↪r subrel s p :=
 ⟨f.to_embedding.cod_restrict p H, f.map_rel_iff'⟩
 
@@ -341,25 +351,25 @@ def rel_embedding.cod_restrict (p : set β) (f : r ↪r s) (H : ∀ a, f a ∈ p
 
 section lattice_isos
 
-lemma rel_iso.map_bot [order_bot α] [order_bot β]
-  (f : ((≤) : α → α → Prop) ≃r ((≤) : β → β → Prop)) :
+lemma order_iso.map_bot [order_bot α] [order_bot β]
+  (f : α ≃≤ β) :
   f ⊥ = ⊥ :=
 by { rw [eq_bot_iff, ← f.apply_symm_apply ⊥, ← f.map_rel_iff], apply bot_le, }
 
 lemma rel_iso.map_top [order_top α] [order_top β]
-  (f : ((≤) : α → α → Prop) ≃r ((≤) : β → β → Prop)) :
+  (f : α ≃≤ β) :
   f ⊤ = ⊤ :=
 by { rw [eq_top_iff, ← f.apply_symm_apply ⊤, ← f.map_rel_iff], apply le_top, }
 
 variables {a₁ a₂ : α}
 
 lemma rel_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β]
-  (f : ((≤) : α → α → Prop) ↪r ((≤) : β → β → Prop)) :
+  (f : α ↪≤ β) :
   f (a₁ ⊓ a₂) ≤ f a₁ ⊓ f a₂ :=
 by simp [← f.map_rel_iff]
 
 lemma rel_iso.map_inf [semilattice_inf α] [semilattice_inf β]
-  (f : ((≤) : α → α → Prop) ≃r ((≤) : β → β → Prop)) :
+  (f : α ≃≤ β) :
   f (a₁ ⊓ a₂) = f a₁ ⊓ f a₂ :=
 begin
   apply le_antisymm, { apply f.to_rel_embedding.map_inf_le },
@@ -368,13 +378,13 @@ begin
 end
 
 lemma rel_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]
-  (f : ((≤) : α → α → Prop) ↪r ((≤) : β → β → Prop)) :
+  (f : α ↪≤ β) :
   f a₁ ⊔ f a₂ ≤ f (a₁ ⊔ a₂) :=
 by simp [← f.map_rel_iff]
 
 
 lemma rel_iso.map_sup [semilattice_sup α] [semilattice_sup β]
-  (f : ((≤) : α → α → Prop) ≃r ((≤) : β → β → Prop)) :
+  (f : α ≃≤ β) :
   f (a₁ ⊔ a₂) = f a₁ ⊔ f a₂ :=
 begin
   apply le_antisymm, swap, { apply f.to_rel_embedding.le_map_sup },

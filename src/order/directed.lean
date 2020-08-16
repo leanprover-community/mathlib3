@@ -27,8 +27,8 @@ by simp [directed, directed_on]; refine ball_congr (λ x hx, by simp; refl)
 alias directed_on_iff_directed ↔ directed_on.directed_coe _
 
 theorem directed_on_image {s} {f : β → α} :
-  directed_on r (f '' s) ↔ directed_on (f ⁻¹'o r) s :=
-by simp only [directed_on, set.ball_image_iff, set.bex_image_iff, order.preimage]
+  directed_on r (f '' s) ↔ directed_on (f ⁻¹'r r) s :=
+by simp only [directed_on, set.ball_image_iff, set.bex_image_iff, rel.preimage]
 
 theorem directed_on.mono {s : set α} (h : directed_on r s)
   {r' : α → α → Prop} (H : ∀ {a b}, r a b → r' a b) :
@@ -36,7 +36,7 @@ theorem directed_on.mono {s : set α} (h : directed_on r s)
 λ x hx y hy, let ⟨z, zs, xz, yz⟩ := h x hx y hy in ⟨z, zs, H xz, H yz⟩
 
 theorem directed_comp {ι} {f : ι → β} {g : β → α} :
-  directed r (g ∘ f) ↔ directed (g ⁻¹'o r) f := iff.rfl
+  directed r (g ∘ f) ↔ directed (g ⁻¹'r r) f := iff.rfl
 
 theorem directed.mono {s : α → α → Prop} {ι} {f : ι → α}
   (H : ∀ a b, r a b → s a b) (h : directed r f) : directed s f :=

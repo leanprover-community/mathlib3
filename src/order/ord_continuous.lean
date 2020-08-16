@@ -92,22 +92,22 @@ by simp only [lt_iff_le_not_le, hf.le_iff h]
 variable (f)
 
 /-- Convert an injective left order continuous function to an order embeddings. -/
-def to_le_rel_embedding (hf : left_ord_continuous f) (h : injective f) :
+def to_le_embedding (hf : left_ord_continuous f) (h : injective f) :
   ((≤) : α → α → Prop) ↪r ((≤) : β → β → Prop) :=
 ⟨⟨f, h⟩, λ x y, (hf.le_iff h).symm⟩
 
 /-- Convert an injective left order continuous function to an order embeddings. -/
-def to_lt_rel_embedding (hf : left_ord_continuous f) (h : injective f) :
+def to_lt_embedding (hf : left_ord_continuous f) (h : injective f) :
   ((<) : α → α → Prop) ↪r ((<) : β → β → Prop) :=
 ⟨⟨f, h⟩, λ x y, (hf.lt_iff h).symm⟩
 
 variable {f}
 
-@[simp] lemma coe_to_le_rel_embedding (hf : left_ord_continuous f) (h : injective f) :
-  ⇑(hf.to_le_rel_embedding f h) = f := rfl
+@[simp] lemma coe_to_le_embedding (hf : left_ord_continuous f) (h : injective f) :
+  ⇑(hf.to_le_embedding f h) = f := rfl
 
-@[simp] lemma coe_to_lt_rel_embedding (hf : left_ord_continuous f) (h : injective f) :
-  ⇑(hf.to_lt_rel_embedding f h) = f := rfl
+@[simp] lemma coe_to_lt_embedding (hf : left_ord_continuous f) (h : injective f) :
+  ⇑(hf.to_lt_embedding f h) = f := rfl
 
 end semilattice_sup
 
@@ -195,22 +195,21 @@ hf.order_dual.lt_iff h
 variable (f)
 
 /-- Convert an injective left order continuous function to an order embeddings. -/
-def to_le_rel_embedding (hf : right_ord_continuous f) (h : injective f) :
-  ((≤) : α → α → Prop) ↪r ((≤) : β → β → Prop) :=
+def to_le_embedding (hf : right_ord_continuous f) (h : injective f) : α ↪≤ β :=
 ⟨⟨f, h⟩, λ x y, (hf.le_iff h).symm⟩
 
 /-- Convert an injective left order continuous function to an order embeddings. -/
-def to_lt_rel_embedding (hf : right_ord_continuous f) (h : injective f) :
+def to_lt_embedding (hf : right_ord_continuous f) (h : injective f) :
   ((<) : α → α → Prop) ↪r ((<) : β → β → Prop) :=
 ⟨⟨f, h⟩, λ x y, (hf.lt_iff h).symm⟩
 
 variable {f}
 
-@[simp] lemma coe_to_le_rel_embedding (hf : right_ord_continuous f) (h : injective f) :
-  ⇑(hf.to_le_rel_embedding f h) = f := rfl
+@[simp] lemma coe_to_le_embedding (hf : right_ord_continuous f) (h : injective f) :
+  ⇑(hf.to_le_embedding f h) = f := rfl
 
-@[simp] lemma coe_to_lt_rel_embedding (hf : right_ord_continuous f) (h : injective f) :
-  ⇑(hf.to_lt_rel_embedding f h) = f := rfl
+@[simp] lemma coe_to_lt_embedding (hf : right_ord_continuous f) (h : injective f) :
+  ⇑(hf.to_lt_embedding f h) = f := rfl
 
 end semilattice_inf
 
@@ -253,7 +252,7 @@ namespace rel_iso
 
 section preorder
 
-variables [preorder α] [preorder β] (e : ((≤) : α → α → Prop) ≃r ((≤) : β → β → Prop))
+variables [preorder α] [preorder β] (e : α ≃≤ β)
   {s : set α} {x : α}
 
 protected lemma left_ord_continuous : left_ord_continuous e :=

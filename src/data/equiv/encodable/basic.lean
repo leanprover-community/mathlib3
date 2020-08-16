@@ -357,11 +357,11 @@ There is a total ordering on the elements of an encodable type, induced by the m
 def encode' (α) [encodable α] : α ↪ nat :=
 ⟨encodable.encode, encodable.encode_injective⟩
 
-instance {α} [encodable α] : is_trans _ (encode' α ⁻¹'o (≤)) :=
+instance {α} [encodable α] : is_trans _ (encode' α ⁻¹'≤) :=
 (rel_embedding.preimage _ _).is_trans
-instance {α} [encodable α] : is_antisymm _ (encodable.encode' α ⁻¹'o (≤)) :=
+instance {α} [encodable α] : is_antisymm _ (encodable.encode' α ⁻¹'≤) :=
 (rel_embedding.preimage _ _).is_antisymm
-instance {α} [encodable α] : is_total _ (encodable.encode' α ⁻¹'o (≤)) :=
+instance {α} [encodable α] : is_total _ (encodable.encode' α ⁻¹'≤) :=
 (rel_embedding.preimage _ _).is_total
 
 end encodable

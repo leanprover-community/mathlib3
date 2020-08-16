@@ -385,7 +385,7 @@ theorem is_noetherian_of_submodule_of_noetherian (R M) [ring R] [add_comm_group 
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
   convert rel_embedding.well_founded (rel_embedding.rsymm
-    (submodule.map_subtype.lt_rel_embedding N)) h
+    (submodule.map_subtype.lt_embedding N)) h
 end
 
 theorem is_noetherian_of_quotient_of_noetherian (R) [ring R] (M) [add_comm_group M] [module R M]
@@ -393,7 +393,7 @@ theorem is_noetherian_of_quotient_of_noetherian (R) [ring R] (M) [add_comm_group
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
   convert rel_embedding.well_founded (rel_embedding.rsymm
-    (submodule.comap_mkq.lt_rel_embedding N)) h
+    (submodule.comap_mkq.lt_embedding N)) h
 end
 
 theorem is_noetherian_of_fg_of_noetherian {R M} [ring R] [add_comm_group M] [module R M]
@@ -440,7 +440,7 @@ begin
   unfold is_noetherian_ring at H ⊢,
   rw is_noetherian_iff_well_founded at H ⊢,
   convert rel_embedding.well_founded (rel_embedding.rsymm
-    (ideal.lt_rel_embedding_of_surjective f hf)) H
+    (ideal.lt_embedding_of_surjective f hf)) H
 end
 
 instance is_noetherian_ring_range {R} [comm_ring R] {S} [comm_ring S] (f : R →+* S)

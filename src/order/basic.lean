@@ -23,7 +23,7 @@ open function
 
 ### Transfering orders
 
-- `order.preimage`, `preorder.lift`: transfer a (pre)order on `β` to an order on `α`
+- `rel.preimage`, `preorder.lift`: transfer a (pre)order on `β` to an order on `α`
   using a function `f : α → β`.
 - `partial_order.lift`, `linear_order.lift`, `decidable_linear_order.lift`:
   transfer a partial (resp., linear, decidable linear) order on `β` to a partial
@@ -77,17 +77,25 @@ theorem linear_order.ext {α} {A B : linear_order α}
 by { haveI this := partial_order.ext H,
      casesI A, casesI B, injection this, congr' }
 
-/-- Given an order `R` on `β` and a function `f : α → β`,
-  the preimage order on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
-  It is the unique order on `α` making `f` an order embedding
+/-- Given a relation `R` on `β` and a function `f : α → β`,
+  the preimage relation on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
+  It is the unique relation on `α` making `f` a `rel_embedding`
   (assuming `f` is injective). -/
-@[simp] def order.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) := s (f x) (f y)
+@[simp] def rel.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) := s (f x) (f y)
 
-infix ` ⁻¹'o `:80 := order.preimage
+infix ` ⁻¹'r `:80 := rel.preimage
+
+/-- Given `[has_le β]` and a function `f : α → β`,
+  the preimage order on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
+  It is the unique order on `α` making `f` an `order_embedding`
+  (assuming `f` is injective). -/
+@[simp] def order.preimage {α β} [has_le β] (f : α → β) := f ⁻¹'r (≤)
+
+postfix `⁻¹'≤`:80 := order.preimage
 
 /-- The preimage of a decidable order is decidable. -/
-instance order.preimage.decidable {α β} (f : α → β) (s : β → β → Prop) [H : decidable_rel s] :
-  decidable_rel (f ⁻¹'o s) :=
+instance rel.preimage.decidable {α β} (f : α → β) (s : β → β → Prop) [H : decidable_rel s] :
+  decidable_rel (f ⁻¹'r s) :=
 λ x y, H _ _
 
 section monotone

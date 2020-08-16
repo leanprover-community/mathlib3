@@ -651,8 +651,7 @@ lemma le_map_of_comap_le_of_surjective : comap f K ≤ I → K ≤ map f I :=
 
 /-- Correspondence theorem -/
 def rel_iso_of_surjective :
-  ((≤) : ideal S → ideal S → Prop) ≃r
-  ((≤) : { p : ideal R // comap f ⊥ ≤ p } → { p : ideal R // comap f ⊥ ≤ p } → Prop) :=
+  ideal S ≃≤ { p : ideal R // comap f ⊥ ≤ p } :=
 { to_fun := λ J, ⟨comap f J, comap_mono bot_le⟩,
   inv_fun := λ I, map f I.1,
   left_inv := λ J, map_comap_of_surjective f hf J,
@@ -662,13 +661,13 @@ def rel_iso_of_surjective :
   map_rel_iff' := λ I1 I2, ⟨comap_mono, λ H, map_comap_of_surjective f hf I1 ▸
     map_comap_of_surjective f hf I2 ▸ map_mono H⟩ }
 
-def le_rel_embedding_of_surjective :
-  ((≤) : ideal S → ideal S → Prop) ↪r ((≤) : ideal R → ideal R → Prop) :=
+def le_embedding_of_surjective :
+  ideal S ↪≤ ideal R :=
 (rel_iso_of_surjective f hf).to_rel_embedding.trans (subtype.rel_embedding _ _)
 
-def lt_rel_embedding_of_surjective :
+def lt_embedding_of_surjective :
   ((<) : ideal S → ideal S → Prop) ↪r ((<) : ideal R → ideal R → Prop) :=
-(le_rel_embedding_of_surjective f hf).lt_embedding_of_le_embedding
+(le_embedding_of_surjective f hf).lt_embedding_of_order_embedding
 
 theorem map_eq_top_or_is_maximal_of_surjective (H : is_maximal I) :
   (map f I) = ⊤ ∨ is_maximal (map f I) :=

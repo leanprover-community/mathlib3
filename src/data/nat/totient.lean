@@ -10,7 +10,7 @@ open_locale big_operators
 
 namespace nat
 
-/-- Euler's totient function. This counts the number of positive integers less than `n` which is
+/-- Euler's totient function. This counts the number of positive integers less than `n` which are
 coprime with `n`. -/
 def totient (n : ℕ) : ℕ := ((range n).filter (nat.coprime n)).card
 

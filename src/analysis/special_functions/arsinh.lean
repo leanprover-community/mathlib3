@@ -52,10 +52,10 @@ begin
   exact H,
   { intros fx,
     rw sub_eq_zero at fx,
-    have fx_sq : x^2 = (sqrt (1 + x ^ 2)) ^ 2 := by { rw fx.symm },
+    have fx_sq : x^2 = (sqrt (1 + x ^ 2)) ^ 2 := by rw fx.symm,
     rw sqr_sqrt at fx_sq,
     linarith,
-    have G : 0 ≤ x^2 := by {apply pow_two_nonneg},
+    have G : 0 ≤ x^2 := by apply pow_two_nonneg,
     linarith }
 end
 
@@ -66,7 +66,7 @@ begin
   rw sqrt_lt,
   linarith,
   apply pow_two_nonneg,
-  have F : 0 ≤ b^2 := by { apply pow_two_nonneg },
+  have F : 0 ≤ b^2 := by apply pow_two_nonneg,
   linarith,
   rw not_le at hb,
   apply lt_of_lt_of_le hb,
@@ -119,7 +119,7 @@ end
 lemma sqrt_one_add_sinh_sq (x : ℝ): sqrt (1 + sinh x ^ 2) = cosh x :=
 begin
   have H := real.cosh_sq_sub_sinh_sq x,
-  have G : cosh x ^ 2 - sinh x ^ 2 + sinh x ^ 2 = 1 + sinh x ^ 2 := by {rw H},
+  have G : cosh x ^ 2 - sinh x ^ 2 + sinh x ^ 2 = 1 + sinh x ^ 2 := by rw H,
   ring at G,
   rw add_comm at G,
   rw [G.symm, sqrt_sqr],
@@ -155,7 +155,7 @@ begin
     have H : x^2 < sqrt (x ^ 2 + 1)^2,
     { rw sqr_sqrt,
       linarith,
-      have F : 0 ≤ x^2 := by {apply pow_two_nonneg},
+      have F : 0 ≤ x^2 := by apply pow_two_nonneg,
       linarith },
     exact b_lt_sqrt_b_sq_add_one x,
   },

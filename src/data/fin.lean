@@ -806,3 +806,8 @@ end fin
 /-- Embedding of `fin n` into `ℕ`. -/
 def function.embedding.fin (n : ℕ) : fin n ↪ ℕ :=
 ⟨coe, fin.val_injective⟩
+
+-- Once lean#359 is fixed (making `fin n` a subtype), this can go away
+-- as a duplicate of `function.embedding.coe_subtype`.
+/-- `function.embedding.fin` coerced to a function. -/
+@[simp] lemma function.embedding.coe_fin (n : ℕ) : ⇑(function.embedding.fin n) = coe := rfl

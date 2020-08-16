@@ -533,7 +533,7 @@ begin
 end
 
 /-- The real definition of `cosh`-/
-lemma cosh_def (x : ℝ) : cosh x = (exp x + exp (-x)) / 2 :=
+lemma cosh_eq (x : ℝ) : cosh x = (exp x + exp (-x)) / 2 :=
 by simp only [cosh, complex.cosh, complex.div_re, complex.exp_of_real_re, complex.one_re,
   bit0_zero, add_zero, complex.add_re, euclidean_domain.zero_div, complex.bit0_re,
   complex.one_im, complex.bit0_im, mul_zero, ← complex.of_real_neg, complex.norm_sq];
@@ -546,7 +546,7 @@ by simp [add_comm, cosh, exp_neg]
 
 /-- `real.cosh` is positive-/
 lemma cosh_pos (x : ℝ) : 0 < real.cosh x :=
-(cosh_def x).symm ▸ half_pos (add_pos (exp_pos x) (exp_pos (-x)))
+(cosh_eq x).symm ▸ half_pos (add_pos (exp_pos x) (exp_pos (-x)))
 
 private lemma cosh_add_aux {a b c d : ℂ} :
   (a + b) * (c + d) + (a - b) * (c - d) = 2 * (a * c + b * d) := by ring

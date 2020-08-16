@@ -78,7 +78,7 @@ lemma sinh_surjective : function.surjective sinh :=
 begin
   intro b,
   use (arsinh b),
-  rw sinh_def,
+  rw sinh_eq,
   unfold arsinh,
   rw ←log_inv,
   rw [exp_log, exp_log],
@@ -130,12 +130,12 @@ end
 lemma sinh_arsinh (x : ℝ) : arsinh (sinh x) = x :=
 begin
   unfold arsinh,
-  rw sinh_def,
+  rw sinh_eq,
   apply exp_injective,
   rw exp_log,
-  { rw [← sinh_def, sqrt_one_add_sinh_sq, cosh_def, sinh_def],
+  { rw [← sinh_eq, sqrt_one_add_sinh_sq, cosh_eq, sinh_eq],
     ring },
-  { rw [← sinh_def, sqrt_one_add_sinh_sq, cosh_def, sinh_def],
+  { rw [← sinh_eq, sqrt_one_add_sinh_sq, cosh_eq, sinh_eq],
     ring,
     exact exp_pos x },
 end
@@ -143,7 +143,7 @@ end
 /-- `arsinh` is the right inverse of `sinh`-/
 lemma arsinh_sinh (x : ℝ) : sinh (arsinh x) = x :=
 begin
-  rw sinh_def,
+  rw sinh_eq,
   unfold arsinh,
   rw ←log_inv,
   rw [exp_log, exp_log],

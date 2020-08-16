@@ -267,7 +267,7 @@ A unique factorization domain with at least one irreducible element
 in which all irreducible elements are associated
 is a discrete valuation ring.
 -/
-def of_ufd_of_unique_irreducible {R : Type u} [integral_domain R] [unique_factorization_domain R]
+lemma of_ufd_of_unique_irreducible {R : Type u} [integral_domain R] [unique_factorization_domain R]
   (h₁ : ∃ p : R, irreducible p)
   (h₂ : ∀ ⦃p q : R⦄, irreducible p → irreducible q → associated p q) :
   discrete_valuation_ring R :=

@@ -99,7 +99,7 @@ instance : add_comm_monoid (derivation R A M) :=
 @[priority 100]
 instance derivation.Rsemimodule : semimodule R (derivation R A M) :=
 { smul := λ r D, ⟨r • D, λ a b, by simp only [linear_map.smul_apply, leibniz,
-    linear_map.to_fun_eq_coe, algebra_compatible_smul_comm, coe_linear_map, smul_add, add_comm],⟩,
+    linear_map.to_fun_eq_coe, smul_algebra_smul_comm, coe_linear_map, smul_add, add_comm],⟩,
   mul_smul := λ a1 a2 D, ext $ λ b, mul_smul _ _ _,
   one_smul := λ D, ext $ λ b, one_smul _ _,
   smul_add := λ a D1 D2, ext $ λ b, smul_add _ _ _,
@@ -113,7 +113,7 @@ instance derivation.Rsemimodule : semimodule R (derivation R A M) :=
 instance : semimodule A (derivation R A M) :=
 { smul := λ a D, ⟨⟨λ b, a • D b,
     λ a1 a2, by rw [D.map_add, smul_add],
-    λ a1 a2, by rw [D.map_smul, algebra_compatible_smul_comm]⟩,
+    λ a1 a2, by rw [D.map_smul, smul_algebra_smul_comm]⟩,
     λ b c, by { dsimp, simp only [smul_add, leibniz, smul_comm, add_comm] }⟩,
   mul_smul := λ a1 a2 D, ext $ λ b, mul_smul _ _ _,
   one_smul := λ D, ext $ λ b, one_smul A _,
@@ -199,7 +199,7 @@ variables [is_scalar_tower R A M] [is_scalar_tower R A N]
 def comp_der (f : M →ₗ[A] N) (D : derivation R A M) : derivation R A N :=
 { to_fun := λ a, f (D a),
   map_add' := λ a1 a2, by rw [D.map_add, f.map_add],
-  map_smul' := λ r a, by rw [derivation.map_smul, compatible_map_smul],
+  map_smul' := λ r a, by rw [derivation.map_smul, map_smul_eq_smul_map],
   leibniz' := λ a b, by simp only [derivation.leibniz, linear_map.map_smul, linear_map.map_add, add_comm] }
 
 @[simp] lemma comp_der_apply (f : M →ₗ[A] N) (D : derivation R A M) (a : A) :

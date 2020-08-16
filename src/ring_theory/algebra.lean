@@ -1132,26 +1132,17 @@ by rw [←(one_smul A m), ←smul_assoc, algebra.smul_def, mul_one, one_smul]
 
 variable {A}
 
-@[simp] lemma compatible_map_smul (f : M →ₗ[A] N) (r : R) (m : M) :
+lemma smul_algebra_smul_comm (r : R) (a : A) (m : M) : a • r • m = r • a • m :=
+by rw [algebra_compatible_smul A r (a • m), smul_smul, algebra.commutes, mul_smul, ←algebra_compatible_smul]
+
+@[simp] lemma map_smul_eq_smul_map (f : M →ₗ[A] N) (r : R) (m : M) :
   f (r • m) = r • f m :=
 by rw [algebra_compatible_smul A r m, linear_map.map_smul, ←algebra_compatible_smul A r (f m)]
 
 instance : has_coe (M →ₗ[A] N) (M →ₗ[R] N) :=
-⟨λ f, ⟨f.to_fun, λ x y, f.map_add' x y, λ r n, compatible_map_smul _ _ _⟩⟩
+⟨λ f, ⟨f.to_fun, λ x y, f.map_add' x y, λ r n, map_smul_eq_smul_map _ _ _⟩⟩
 
 end is_scalar_tower
-
-section is_scalar_tower_commutative
-
-variables {R : Type*} [comm_semiring R]
-variables {A : Type*} [comm_semiring A] [algebra R A]
-variables {M : Type*} [add_comm_monoid M] [semimodule A M] [semimodule R M] [is_scalar_tower R A M]
-variables {N : Type*} [add_comm_monoid N] [semimodule A N] [semimodule R N] [is_scalar_tower R A N]
-
-lemma smul_algebra_smul_comm (r : R) (a : A) (m : M) : a • r • m = r • a • m :=
-by rw [algebra_compatible_smul A r m, algebra_compatible_smul A r (a • m), ←mul_smul, mul_comm, mul_smul]
-
-end is_scalar_tower_commutative
 
 section restrict_scalars
 /- In this section, we describe restriction of scalars: if `S` is an algebra over `R`, then
@@ -1200,6 +1191,9 @@ instance semimodule.restrict_scalars.module_orig (R : Type*) (S : Type*) [semiri
 
 instance : semimodule R (semimodule.restrict_scalars R S E) :=
 (semimodule.restrict_scalars' R S E : semimodule R E)
+
+lemma semimodule.restrict_scalars_smul_def (c : R) (x : semimodule.restrict_scalars R S E) :
+  c • x = ((algebra_map R S c) • x : E) := rfl
 
 /--
 `module.restrict_scalars R S S` is `R`-linearly equivalent to the original algebra `S`.
@@ -1310,8 +1304,7 @@ instance linear_map.has_scalar_extend_scalars :
 { smul := λ r f,
   { to_fun := λ v, r • f v,
     map_add' := by simp [smul_add],
-    map_smul' := λ c x, by { rw [linear_map.map_smul, algebra_compatible_smul S c (r • f x),
-      smul_smul, algebra.commutes, mul_smul], refl }}}
+    map_smul' := λ c x, by rw [linear_map.map_smul, smul_algebra_smul_comm] }}
 
 /-- The set of `R`-linear maps is an `S`-module-/
 instance linear_map.module_extend_scalars :

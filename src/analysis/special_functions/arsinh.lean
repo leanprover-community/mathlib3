@@ -59,7 +59,7 @@ begin
     linarith }
 end
 
-private lemma b_lt_sqrt_b_sq_add_one (b : ℝ) : b < sqrt(b^2 + 1) :=
+private lemma b_lt_sqrt_b_sq_add_one (b : ℝ) : b < sqrt (b^2 + 1) :=
 begin
   by_cases hb : 0 ≤ b,
   conv { to_lhs, rw ← sqrt_sqr hb },

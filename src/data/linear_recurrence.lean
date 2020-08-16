@@ -6,10 +6,33 @@ Authors: Anatole Dedecker
 import data.polynomial.ring_division
 import linear_algebra.dimension
 import algebra.polynomial.big_operators
+import tactic
 
 /-!
 # Linear recurrence
 
+Informally, a "linear recurrence" is an assertion of the form
+`∀ n : ℕ, u (n + d) = a 0 * u n + a 1 * u (n+1) + ... + a (d-1) * u (n+d-1)`,
+where `u` is a sequence, `d` is the **order** of the recurrence and the `a i`
+are its **coefficients**.
+
+In this file, we define `linear_recurrence d a` to represent such a relation,
+and we call a sequence `u` which verifies it a **solution** of the linear recurrence.
+
+We prove a few basic lemmas about this concept, such as :
+
+* the space of solutions is a submodule of `(ℕ → α)` (i.e a vector space if `α`
+  is a field)
+* the function that maps a solution `u` to its first `d` terms builds a `linear_equiv`
+  between the solution space and `fin d → α`, aka `α ^ d`. As a consequence, two
+  solutions are equal if and only if their first `d` terms are equals.
+* a geometric sequence `q ^ n` is solution iff `q` is a root of a particular polynomial,
+  which we call the **auxiliary polynomial** of the recurrence
+
+Of course, although we can inductively generate solutions (cf `mk_sol`), the
+interesting part would be to determinate closed-forms for the solutions.
+This is currently **not implemented**, as we are waiting for definition and
+properties of eigenvalues and eigenvectors.
 
 -/
 
@@ -93,7 +116,7 @@ lemma is_sol_iff_mem_sol_space (u : ℕ → α) :
 
 /-- The function that maps a solution `u` of `E` to its first
   `E.order` terms as a `linear_equiv`. -/
-def sol_space_linear_equiv_init_space :
+def to_init :
   E.sol_space ≃ₗ[α] (fin E.order → α) :=
 { to_fun := λ u x, (u : ℕ → α) x,
   map_add' := λ u v, by ext; simp; norm_cast,
@@ -101,6 +124,23 @@ def sol_space_linear_equiv_init_space :
   inv_fun := λ u, ⟨E.mk_sol u, E.is_sol_mk_sol u⟩,
   left_inv := λ u, by ext n; symmetry; apply E.eq_mk_of_is_sol_of_eq_init u.2; intros k; refl,
   right_inv := λ u, function.funext_iff.mpr (λ n, E.mk_sol_eq_init u n) }
+
+/-- Two solutions are equal iff they are equal on `range E.order`. -/
+lemma sol_eq_of_eq_init (u v : ℕ → α) (hu : E.is_solution u) (hv : E.is_solution v) :
+  u = v ↔ set.eq_on u v ↑(range E.order) :=
+begin
+  refine iff.intro (λ h x hx, h ▸ rfl) _,
+  intro h,
+  set u' : ↥(E.sol_space) := ⟨u, hu⟩,
+  set v' : ↥(E.sol_space) := ⟨v, hv⟩,
+  change u'.val = v'.val,
+  suffices h' : u' = v', from h' ▸ rfl,
+  rw [← E.to_init.to_equiv.apply_eq_iff_eq, linear_equiv.coe_to_equiv],
+  unfold_coes,
+  simp only [linear_recurrence.to_init],
+  ext x,
+  exact_mod_cast h (mem_range.mpr x.2)
+end
 
 /-! `E.tuple_succ` maps `![s₀, s₁, ..., sₙ]` to `![s₁, ..., sₙ, ∑ (E.coeffs i) * sᵢ]`,
   where `n := E.order`. This operation is quite useful for determining closed-form
@@ -134,7 +174,7 @@ variables {α : Type*} [field α] (E : linear_recurrence α)
 /-- The dimension of `E.sol_space` is `E.order`. -/
 lemma sol_space_dim :
   vector_space.dim α E.sol_space = E.order :=
-@dim_fin_fun α _ E.order ▸ E.sol_space_linear_equiv_init_space.dim_eq
+@dim_fin_fun α _ E.order ▸ E.to_init.dim_eq
 
 end field
 

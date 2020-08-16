@@ -92,6 +92,11 @@ end⟩
 
 variable (R)
 
+/-- Uniformisers exist in a DVR -/
+theorem exists_irreducible : ∃ ϖ : R, irreducible ϖ :=
+by {simp_rw [irreducible_iff_uniformizer],
+    exact (is_principal_ideal_ring.principal $ maximal_ideal R).principal}
+
 /-- an integral domain is a DVR iff it's a PID with a unique non-zero prime ideal -/
 theorem iff_PID_with_one_nonzero_prime (R : Type u) [integral_domain R] :
   discrete_valuation_ring R ↔ is_principal_ideal_ring R ∧ ∃! P : ideal R, P ≠ ⊥ ∧ is_prime P :=

@@ -6,7 +6,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.ring_division
 import data.polynomial.derivative
-import algebra.gcd_domain
+import algebra.gcd_monoid
 
 /-!
 # Theory of univariate polynomials
@@ -234,7 +234,7 @@ begin
   { simp }
 end
 
-instance : normalization_domain (polynomial R) :=
+instance : normalization_monoid (polynomial R) :=
 { norm_unit := λ p, if hp0 : p = 0 then 1
     else ⟨C p.leading_coeff⁻¹, C p.leading_coeff,
       by rw [← C_mul, inv_mul_cancel, C_1];
@@ -258,8 +258,7 @@ instance : normalization_domain (polynomial R) :=
       rw [← nat_degree_eq_of_degree_eq_some hu, leading_coeff,
         coeff_inv_units],
       simp
-    end,
-  ..polynomial.integral_domain }
+    end, }
 
 lemma monic_normalize (hp0 : p ≠ 0) : monic (normalize p) :=
 show leading_coeff (p * ↑(dite _ _ _)) = 1,
@@ -270,14 +269,13 @@ show ↑(dite _ _ _) = C p.leading_coeff⁻¹, by rw dif_neg hp; refl
 
 theorem map_dvd_map' [field k] (f : R →+* k) {x y : polynomial R} : x.map f ∣ y.map f ↔ x ∣ y :=
 if H : x = 0 then by rw [H, map_zero, zero_dvd_iff, zero_dvd_iff, map_eq_zero]
-else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff (polynomial R), normalize, normalize,
+else by rw [← normalize_dvd_iff, ← @normalize_dvd_iff (polynomial R),
+    normalize_apply, normalize_apply,
     coe_norm_unit H, coe_norm_unit (mt (map_eq_zero _).1 H),
     leading_coeff_map, ← f.map_inv, ← map_C, ← map_mul,
     map_dvd_map _ f.injective (monic_mul_leading_coeff_inv H)]
 
-@[simp] lemma degree_normalize : degree (normalize p) = degree p :=
-if hp0 : p = 0 then by simp [hp0]
-else by rw [normalize, degree_mul, degree_eq_zero_of_is_unit (is_unit_unit _), add_zero]
+lemma degree_normalize : degree (normalize p) = degree p := by simp
 
 lemma prime_of_degree_eq_one (hp1 : degree p = 1) : prime p :=
 have prime (normalize p),

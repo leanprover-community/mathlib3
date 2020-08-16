@@ -460,6 +460,17 @@ lemma tendsto_pow_mul_exp_neg_at_top_nhds_0 (n : ℕ) : tendsto (λx, x^n * exp 
 (tendsto_inv_at_top_zero.comp (tendsto_exp_div_pow_at_top n)).congr $ λx,
   by rw [function.comp_app, inv_eq_one_div, div_div_eq_mul_div, one_mul, div_eq_mul_inv, exp_neg]
 
+/-- The real logarithm function tends to `+∞` at `+∞`. -/
+lemma tendsto_log_at_top : tendsto log at_top at_top :=
+begin
+  rw tendsto_at_top_at_top,
+  intro b,
+  use exp b,
+  intros a hab,
+  rw [← exp_le_exp, exp_log_eq_abs (ne_of_gt $ lt_of_lt_of_le (exp_pos b) hab)],
+  exact le_trans hab (le_abs_self a)
+end
+
 open_locale big_operators
 
 /-- A crude lemma estimating the difference between `log (1-x)` and its Taylor series at `0`,

@@ -1,4 +1,4 @@
-import tactic.interactive
+import tactic.choose
 
 /- choice -/
 example (h : ∀n m : ℕ, n < m → ∃i j, m = n + i ∨ m + j = n) : true :=

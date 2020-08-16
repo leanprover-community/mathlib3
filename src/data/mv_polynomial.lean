@@ -402,6 +402,18 @@ begin
     intro H, rw [_root_.add_eq_zero_iff] at H, exact one_ne_zero H.2 }
 end
 
+lemma eq_zero_iff {p : mv_polynomial σ α} :
+  p = 0 ↔ ∀ d, coeff d p = 0 :=
+by { rw ext_iff, simp only [coeff_zero], }
+
+lemma ne_zero_iff {p : mv_polynomial σ α} :
+  p ≠ 0 ↔ ∃ d, coeff d p ≠ 0 :=
+by { rw [ne.def, eq_zero_iff], push_neg, }
+
+lemma exists_coeff_ne_zero {p : mv_polynomial σ α} (h : p ≠ 0) :
+  ∃ d, coeff d p ≠ 0 :=
+ne_zero_iff.mp h
+
 end coeff
 
 section as_sum
@@ -903,6 +915,17 @@ begin
     ... ≤ ∑ s, d s         : finset.sum_le_sum (λ s _, h s)
     ... ≤ d.sum (λ i e, e) : by { rw [finsupp.sum_fintype], intros, refl }
     ... ≤ f.total_degree   : finset.le_sup hd,
+end
+
+lemma coeff_eq_zero_of_total_degree_lt {f : mv_polynomial σ α} {d : σ →₀ ℕ}
+  (h : f.total_degree < ∑ i in d.support, d i) :
+  coeff d f = 0 :=
+begin
+  classical,
+  rw [total_degree, finset.sup_lt_iff] at h,
+  { specialize h d, rw mem_support_iff at h,
+    refine not_not.mp (mt h _), exact lt_irrefl _, },
+  { exact lt_of_le_of_lt (nat.zero_le _) h, }
 end
 
 end total_degree

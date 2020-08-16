@@ -48,6 +48,11 @@ inductive data type `derivable` designed so that `derviable x` represents the no
 nonrecursive constructor for `derivable`. This mirrors the translation of Peano's axiom '0 is a
 natural number' into the nonrecursive constructor `zero` of the inductive type `nat`.
 
+## References
+
+* [Jeremy Avigad, Leonardo de Moura and Soonho Kong, _Theorem Proving in Lean_][avigad_moura_kong-2017]
+* [Douglas R Hofstadter, _Gödel, Escher, Bach_][Hofstadter-1979]
+
 ## Tags
 
 miu, derivable strings

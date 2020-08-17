@@ -111,7 +111,7 @@ begin
   exact le_of_lt (cosh_pos x),
 end
 
-/-- `arsinh` is a left inverse of `sinh` -/
+/-- `arsinh` is the left inverse of `sinh` -/
 lemma sinh_arsinh (x : ℝ) : arsinh (sinh x) = x :=
 begin
   unfold arsinh,

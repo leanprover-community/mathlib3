@@ -862,7 +862,7 @@ of_real_inj.1 $ by simpa using cos_square x
 lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
 eq_sub_iff_add_eq.2 $ sin_sq_add_cos_sq _
 
-/-- The real definition of `sinh`-/
+/-- The definition of `sinh` in terms of `exp` -/
 lemma sinh_eq (x : ℝ) : sinh x = (exp x - exp (-x)) / 2 :=
 by {simp only [sinh, complex.sinh, complex.div_re, complex.exp_of_real_re, complex.one_re,
   bit0_zero, add_zero, complex.sub_re, euclidean_domain.zero_div, complex.bit0_re,
@@ -877,7 +877,7 @@ by simp [sinh, exp_neg, (neg_div _ _).symm, add_mul]
 lemma sinh_add : sinh (x + y) = sinh x * cosh y + cosh x * sinh y :=
 by rw ← of_real_inj; simp [sinh_add]
 
-/-- The real definition of `cosh`-/
+/-- The definition of `cosh` in terms of `exp`. -/
 lemma cosh_eq (x : ℝ) : cosh x = (exp x + exp (-x)) / 2 :=
 by {simp only [cosh, complex.cosh, complex.div_re, complex.exp_of_real_re, complex.one_re,
   bit0_zero, add_zero, complex.add_re, euclidean_domain.zero_div, complex.bit0_re,
@@ -968,7 +968,7 @@ by rw [← exp_zero, exp_lt_exp]
 lemma exp_lt_one_iff {x : ℝ} : exp x < 1 ↔ x < 0 :=
 by rw [← exp_zero, exp_lt_exp]
 
-/-- `real.cosh` is positive-/
+/-- `real.cosh` is always positive -/
 lemma cosh_pos (x : ℝ) : 0 < real.cosh x :=
 (cosh_eq x).symm ▸ half_pos (add_pos (exp_pos x) (exp_pos (-x)))
 

@@ -360,7 +360,7 @@ begin
   { simp [a.is_lt, eq_iff_veq, add_def, nat.mod_eq_of_lt] }
 end
 
-@[simp] lemma lt_succ : a.cast_succ < a.succ :=
+lemma lt_succ : a.cast_succ < a.succ :=
 by { rw [cast_succ, lt_iff_val_lt_val, cast_add_val, succ_val], exact lt_add_one a.val }
 
 @[simp] lemma pred_one {n : ℕ} : fin.pred (1 : fin (n + 2)) (ne.symm (ne_of_lt zero_lt_one)) = 0 := rfl

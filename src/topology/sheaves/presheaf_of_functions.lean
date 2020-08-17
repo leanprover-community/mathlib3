@@ -34,6 +34,39 @@ namespace Top
 
 variables (X : Top.{v})
 
+/--
+The presheaf of dependently typed functions on `X`, with fibres given by a type family `f`.
+There is no requirement that the functions are continuous, here.
+-/
+@[simps]
+def presheaf_to_Types (f : X → Type v) : X.presheaf (Type v) :=
+{ obj := λ U, Π x : (unop U), f x,
+  map := λ U V i g, λ (x : unop V), g (i.unop x) }
+
+/--
+The presheaf of functions on `X` with values in a type `T`.
+There is no requirement that the functions are continuous, here.
+-/
+-- We don't just define this in terms of `presheaf_to_Types`,
+-- as it's helpful later to see (at a syntactic level) that `(presheaf_to_Type X T).obj U`
+-- is a non-dependent function.
+-- We don't use `@[simps]` to generate the projection lemmas here,
+-- as it turns out to be useful to have `presheaf_to_Type_map`
+-- written as an equality of functions (rather than being applied to some argument).
+def presheaf_to_Type (T : Type v) : X.presheaf (Type v) :=
+{ obj := λ U, (unop U) → T,
+  map := λ U V i g, g ∘ i.unop }
+
+@[simp] lemma presheaf_to_Type_obj
+  {T : Type v} {U : (opens X)ᵒᵖ} :
+  (presheaf_to_Type X T).obj U = ((unop U) → T) :=
+rfl
+
+@[simp] lemma presheaf_to_Type_map
+  {T : Type v} {U V : (opens X)ᵒᵖ} {i : U ⟶ V} {f} :
+  (presheaf_to_Type X T).map i f = f ∘ i.unop :=
+rfl
+
 /-- The presheaf of continuous functions on `X` with values in fixed target topological space `T`. -/
 def presheaf_to_Top (T : Top.{v}) : X.presheaf (Type v) :=
 (opens.to_Top X).op ⋙ (yoneda.obj T)

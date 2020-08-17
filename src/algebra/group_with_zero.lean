@@ -212,6 +212,12 @@ element, and `0` is left and right absorbing. -/
 @[protect_proj]
 class comm_monoid_with_zero (M₀ : Type*) extends comm_monoid M₀, monoid_with_zero M₀.
 
+/-- A type `M` is a `comm_cancel_monoid_with_zero` if it is a commutative monoid with zero element,
+ `0` is left and right absorbing,
+  and left/right multiplication by a non-zero element is injective. -/
+@[protect_proj] class comm_cancel_monoid_with_zero (M₀ : Type*) extends
+  comm_monoid_with_zero M₀, cancel_monoid_with_zero M₀.
+
 /-- A type `G₀` is a “group with zero” if it is a monoid with zero element (distinct from `1`)
 such that every nonzero element is invertible.
 The type is required to come with an “inverse” function, and the inverse of `0` must be `0`.
@@ -272,6 +278,8 @@ variables [monoid_with_zero M₀]
 
 namespace units
 
+/-- An element of the unit group of a nonzero monoid with zero represented as an element
+    of the monoid is nonzero. -/
 @[simp] lemma ne_zero [nontrivial M₀] (u : units M₀) :
   (u : M₀) ≠ 0 :=
 left_ne_zero_of_mul_eq_one u.mul_inv
@@ -335,6 +343,15 @@ end monoid_with_zero
 section cancel_monoid_with_zero
 
 variables [cancel_monoid_with_zero M₀] {a b c : M₀}
+
+section prio
+set_option default_priority 10 -- see Note [default priority]
+
+instance comm_cancel_monoid_with_zero.no_zero_divisors : no_zero_divisors M₀ :=
+⟨λ a b ab0, by { by_cases a = 0, { left, exact h }, right,
+  apply cancel_monoid_with_zero.mul_left_cancel_of_ne_zero h, rw [ab0, mul_zero], }⟩
+
+end prio
 
 lemma mul_left_cancel' (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
 cancel_monoid_with_zero.mul_left_cancel_of_ne_zero ha h
@@ -582,7 +599,7 @@ end
 
 @[simp] lemma div_one (a : G₀) : a / 1 = a := by simp [div_eq_mul_inv]
 
-lemma one_div (a : G₀) : 1 / a = a⁻¹ := one_mul _
+@[simp] lemma one_div (a : G₀) : 1 / a = a⁻¹ := one_mul _
 
 @[simp] lemma zero_div (a : G₀) : 0 / a = 0 := zero_mul _
 
@@ -630,7 +647,7 @@ by simpa only [one_div] using eq_inv_of_mul_left_eq_one h
 @[simp] lemma one_div_div (a b : G₀) : 1 / (a / b) = b / a :=
 by rw [one_div, div_eq_mul_inv, mul_inv_rev', inv_inv', div_eq_mul_inv]
 
-@[simp] lemma one_div_one_div (a : G₀) : 1 / (1 / a) = a :=
+lemma one_div_one_div (a : G₀) : 1 / (1 / a) = a :=
 by simp
 
 lemma eq_of_one_div_eq_one_div {a b : G₀} (h : 1 / a = 1 / b) : a = b :=
@@ -711,6 +728,14 @@ end group_with_zero
 
 section comm_group_with_zero -- comm
 variables [comm_group_with_zero G₀] {a b c : G₀}
+
+section prio
+set_option default_priority 10 -- see Note [default priority]
+
+instance comm_group_with_zero.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero G₀ :=
+{ ..group_with_zero.cancel_monoid_with_zero, ..comm_group_with_zero.to_comm_monoid_with_zero G₀ }
+
+end prio
 
 /-- Pullback a `comm_group_with_zero` class along an injective function. -/
 protected def function.injective.comm_group_with_zero [has_zero G₀'] [has_mul G₀'] [has_one G₀']

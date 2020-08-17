@@ -75,9 +75,16 @@ finite_dimensional.proper ℂ E
 attribute [instance, priority 900] complex.finite_dimensional.proper
 
 /-- A complex normed vector space is also a real normed vector space. -/
+@[priority 900]
 instance normed_space.restrict_scalars_real (E : Type*) [normed_group E] [normed_space ℂ E] :
-  normed_space ℝ E := normed_space.restrict_scalars ℝ ℂ
-attribute [instance, priority 900] complex.normed_space.restrict_scalars_real
+  normed_space ℝ E := normed_space.restrict_scalars' ℝ ℂ E
+
+/-- The space of continuous linear maps over `ℝ`, from a real vector space to a complex vector
+space, is a normed vector space over `ℂ`. -/
+instance continuous_linear_map.real_smul_complex (E : Type*) [normed_group E] [normed_space ℝ E]
+  (F : Type*) [normed_group F] [normed_space ℂ F] :
+  normed_space ℂ (E →L[ℝ] F) :=
+continuous_linear_map.normed_space_extend_scalars
 
 /-- Linear map version of the real part function, from `ℂ` to `ℝ`. -/
 def linear_map.re : ℂ →ₗ[ℝ] ℝ :=

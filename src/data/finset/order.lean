@@ -4,7 +4,7 @@ universes u v w
 variables {α : Type u}
 
 theorem directed.finset_le {r : α → α → Prop} [is_trans α r]
-  {ι} (hι : nonempty ι) {f : ι → α} (D : directed r f) (s : finset ι) :
+  {ι} [hι : nonempty ι] {f : ι → α} (D : directed r f) (s : finset ι) :
   ∃ z, ∀ i ∈ s, r (f i) (f z) :=
 show ∃ z, ∀ i ∈ s.1, r (f i) (f z), from
 multiset.induction_on s.1 (let ⟨z⟩ := hι in ⟨z, λ _, false.elim⟩) $
@@ -15,4 +15,4 @@ multiset.induction_on s.1 (let ⟨z⟩ := hι in ⟨z, λ _, false.elim⟩) $
 
 theorem finset.exists_le {α : Type u} [nonempty α] [directed_order α] (s : finset α) :
   ∃ M, ∀ i ∈ s, i ≤ M :=
-directed.finset_le (by apply_instance) directed_order.directed s
+directed.finset_le directed_order.directed s

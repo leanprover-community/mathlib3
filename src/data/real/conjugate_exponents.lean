@@ -65,7 +65,7 @@ ne_of_gt (h.one_div_pos)
 lemma conj_eq : q = p/(p-1) :=
 begin
   have := h.inv_add_inv_conj,
-  rw [← eq_sub_iff_add_eq', one_div_eq_inv, inv_eq_iff] at this,
+  rw [← eq_sub_iff_add_eq', one_div, inv_eq_iff] at this,
   field_simp [← this, h.ne_zero]
 end
 
@@ -78,7 +78,7 @@ lemma mul_eq_add : p * q = p + q :=
 by simpa only [sub_mul, sub_eq_iff_eq_add, one_mul] using h.sub_one_mul_conj
 
 @[symm] protected lemma symm : q.is_conjugate_exponent p :=
-{ one_lt := by { rw [h.conj_eq], exact one_lt_div_of_lt _ h.sub_one_pos (sub_one_lt p) },
+{ one_lt := by { rw [h.conj_eq], exact (one_lt_div h.sub_one_pos).mpr (sub_one_lt p) },
   inv_add_inv_conj := by simpa [add_comm] using h.inv_add_inv_conj }
 
 end is_conjugate_exponent

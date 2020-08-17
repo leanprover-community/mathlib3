@@ -407,6 +407,22 @@ lemma exists_of_lt {p p' : submodule R M} : p < p' → ∃ x ∈ p', x ∉ p := 
 lemma lt_iff_le_and_exists : p < p' ↔ p ≤ p' ∧ ∃ x ∈ p', x ∉ p :=
 by rw [lt_iff_le_not_le, not_le_iff_exists]
 
+lemma nonzero_mem_of_neq_bot (I : ideal R') (gt_bot : ⊥ < I) : ∃ a : I, a ≠ 0 :=
+begin
+  have h := (submodule.lt_iff_le_and_exists.1 gt_bot).2, tidy,
+end
+
+lemma lt_add_nonmem (I : submodule R M) (a ∉ I) : I < I + submodule.span R {a} :=
+begin
+  split,
+  suffices : I ≤ I ⊔ submodule.span R {a}, assumption, exact le_sup_left,
+  have h1 : ∀{x y z : submodule R M}, x ⊔ y ≤ z → x ≤ z → y ≤ z, simp only [sup_le_iff], tauto,
+  intro h2, have ile : I ≤ I := by exact le_refl I,
+  have h3 := h1 h2 ile,
+  have : a ∈ submodule.span R {a}, exact submodule.mem_span_singleton_self a,
+  tidy,
+end
+
 /-- If two submodules `p` and `p'` satisfy `p ⊆ p'`, then `of_le p p'` is the linear map version of
 this inclusion. -/
 def of_le (h : p ≤ p') : p →ₗ[R] p' :=

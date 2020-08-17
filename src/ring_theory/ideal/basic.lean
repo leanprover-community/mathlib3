@@ -165,21 +165,9 @@ theorem span_singleton_prime {p : α} (hp : p ≠ 0) :
 by simp [is_prime, prime, span_singleton_eq_top, hp, mem_span_singleton]
 
 -- maybe we could change the variable name
-lemma lt_add_nonmem [integral_domain α] (I : ideal α) (a ∉ I) : I < I + ideal.span{a} :=
+lemma lt_add_nonmem [comm_ring α] (I : ideal α) (a ∉ I) : I < I + ideal.span{a} :=
 begin
-  have blah : ∀ (x y : ideal R), x ≤ x ⊔ y,
-  { intros x y, simp only [le_sup_left],},
-  split, exact blah I (ideal.span{a}),
-  have blah2 : ∀ (x y z : ideal R),  x ⊔ y ≤ z → x ≤ z → y ≤ z,
-  { intros x y z, simp only [sup_le_iff], tauto,},
-  have h : I ≤ I, exact le_refl I,
-  rw ideal.add_eq_sup,
-  intro bad,
-  have h1 := blah2 I (ideal.span{a}) I bad h,
-  have h2 : a ∈ ideal.span{a},
-  { rw ideal.mem_span_singleton', use 1, rw one_mul,},
-  have : ∀ (x ∈ ideal.span{a}), x ∈ I, simpa only [],
-  exact H (this a h2),
+  apply submodule.lt_add_nonmem, assumption,
 end
 
 --
@@ -202,6 +190,29 @@ begin
   },
 end
 
+--name could be improved
+lemma ideal_mul_eq_zero {I J : ideal R} : (I * J = ⊥) ↔ I = ⊥ ∨ J = ⊥ :=
+begin
+  have hJ : inhabited J, by exact submodule.inhabited J,
+  have j := inhabited.default J, clear hJ,
+  split, swap,
+  { intros,
+    cases a,
+    {rw [← ideal.mul_bot J, a, ideal.mul_comm],},
+    {rw [← ideal.mul_bot I, a, ideal.mul_comm],},
+  },
+  intro hij,
+  by_cases J = ⊥,
+  right, exact h,
+  left,
+  rw submodule.eq_bot_iff,
+  intros i hi,
+  rcases J.ne_bot_iff.1 h with ⟨ j', hj, ne0⟩,
+  rw submodule.eq_bot_iff at hij,
+  specialize hij (i * j'),
+  have := eq_zero_or_eq_zero_of_mul_eq_zero ( hij (ideal.mul_mem_mul hi hj)),
+  cases this, assumption, exfalso, exact ne0 this,
+end
 
 /-- An ideal is maximal if it is maximal in the collection of proper ideals. -/
 @[class] def is_maximal (I : ideal α) : Prop :=

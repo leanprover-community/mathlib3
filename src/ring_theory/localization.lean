@@ -891,6 +891,59 @@ lemma map_mem_non_zero_divisors {B : Type*} [integral_domain B] {g : A →+* B}
 λ z hz, eq_zero_of_ne_zero_of_mul_eq_zero
   (map_ne_zero_of_mem_non_zero_divisors hg) hz
 
+/-- The localization of an integral domain at a submonoid not containing 0 is an integral domain
+-/
+--universes seem sketchy here
+theorem local_id_is_id [integral_domain R] (S : submonoid R) (zero_non_mem : ((0 : R) ∉  S)) {f : localization_map S (localization S)} :
+  is_integral_domain (localization S) :=
+begin
+  split,
+    {
+      use [f.to_fun 1, f.to_fun 0],
+      intro one_eq_zero,
+      have h2 := (localization_map.eq_iff_exists f).1 one_eq_zero,
+      cases h2 with c h2,
+      rw [zero_mul, one_mul] at h2,
+      rw ← h2 at zero_non_mem,
+      exact zero_non_mem c.property },
+    { exact mul_comm },
+    {
+      intros x y mul_eq_zero,
+      cases f.surj' x with a akey,
+      cases f.surj' y with b bkey,
+      have h1 : x * (f.to_fun( a.snd)) * y * (f.to_fun(b.snd))= 0,
+      { rw [mul_assoc x, ← mul_comm y, ← mul_assoc, mul_eq_zero], simp },
+      rw [akey, mul_assoc, bkey, ← f.map_mul', ← f.map_zero'] at h1,
+      rw f.eq_iff_exists' at h1,
+      cases h1 with c h1,
+      rw [zero_mul, mul_comm] at h1,
+      have h2 := eq_zero_or_eq_zero_of_mul_eq_zero h1,
+      cases h2 with c_eq_zero h2,
+      { exfalso,
+        rw ← c_eq_zero at zero_non_mem,
+        exact zero_non_mem c.property },
+      replace h2 := eq_zero_or_eq_zero_of_mul_eq_zero h2,
+      cases h2 with a_eq_zero b_eq_zero,
+      { left, rw a_eq_zero at akey,
+        exact localization_map.eq_zero_of_fst_eq_zero f akey rfl },
+      { right, rw b_eq_zero at bkey,
+        exact localization_map.eq_zero_of_fst_eq_zero f bkey rfl },
+    },
+end
+
+/--
+The localization of an integral domain at a prime ideal gives an integral domain.
+-/
+instance integral_domain_of_local_at_prime [integral_domain R] (P : ideal R) (hp_prime : P.is_prime) :
+  integral_domain (localization.at_prime P) :=
+begin
+  have zero_non_mem : (0 : R) ∉ P.prime_compl,
+  { have := ideal.zero_mem P, simpa },
+  have h1 := local_id_is_id R P.prime_compl zero_non_mem,
+  exact is_integral_domain.to_integrazerol_domain (localization.at_prime P) h1,
+  exact localization.of (ideal.prime_compl P),
+end
+
 variables (K : Type*)
 
 /-- Localization map from an integral domain `R` to its field of fractions. -/

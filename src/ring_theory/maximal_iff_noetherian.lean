@@ -20,7 +20,7 @@ For integral domains…
 `nonzero_mem_of_gt_bot` is whenever I ≠ ⊥, there exists a nonzero element of I
 `ideal_mul_eq_zero` is that whenever I * J = ⊥, either I = ⊥ or J = ⊥.
 -/
-
+/-
 theorem local_id_is_id' (S : submonoid R) (zero_non_mem : ((0 : R) ∉  S)) {f : localization_map S (localization S)} :
   is_integral_domain (localization S) :=
 begin
@@ -164,3 +164,4 @@ begin
     exact rel_embedding.nat_gt (coe ∘ f) (λ n, classical.some_spec (h'' $ f n)),
   },
 end
+-/

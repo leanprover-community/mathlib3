@@ -55,7 +55,7 @@ have hl : ∀ (n : ℕ), n ≥ m → f n > a - l •ℕ ε := nat.find_spec h,
 have hl0 : l ≠ 0 := λ hl0, not_lt_of_ge (ham m (le_refl _))
   (lt_of_lt_of_le (by have := hl m (le_refl m); simpa [hl0] using this) (le_abs_self (f m))),
 begin
-  cases classical.not_forall.1
+  cases not_forall.1
     (nat.find_min h (nat.pred_lt hl0)) with i hi,
   rw [not_imp, not_lt] at hi,
   existsi i,
@@ -237,7 +237,6 @@ finset.induction_on s (by simp [abv_zero abv])
   (λ a s has ih, by rw [sum_insert has, sum_insert has];
     exact le_trans (abv_add abv _ _) (add_le_add_left ih _))
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma cauchy_product {a b : ℕ → β}
   (ha : is_cau_seq abs (λ m, ∑ n in range m, abv (a n)))
   (hb : is_cau_seq abv (λ m, ∑ n in range m, b n)) (ε : α) (ε0 : 0 < ε) :

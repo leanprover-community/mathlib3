@@ -62,8 +62,10 @@ results relating to finite-dimensional subspaces of affine spaces, see
 ## Implementation notes
 
 `out_param` is used to make `V` an implicit argument (deduced from
-`P`) in most cases.  As for modules, `k` is an explicit argument
-rather than implied by `P` or `V`.
+`P`) in most cases; `include V` is needed in many cases for `V`, and
+type classes using it, to be added as implicit arguments to
+individual lemmas.  As for modules, `k` is an explicit argument rather
+than implied by `P` or `V`.
 
 This file only provides purely algebraic definitions and results.
 Those depending on analysis or topology are defined elsewhere; see

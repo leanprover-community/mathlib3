@@ -22,8 +22,8 @@ attribute [sugar]
   ge gt mul_add add_mul
   one_mul mul_one
   mul_comm sub_eq_add_neg
-  classical.imp_iff_not_or
-  classical.iff_iff_not_or_and_or_not
+  imp_iff_not_or
+  iff_iff_not_or_and_or_not
 
 meta def desugar := `[try {simp only with sugar}]
 

@@ -28,9 +28,7 @@ lt_of_mul_lt_mul_right h3 nhc
 
 @[mono]
 lemma mul_mono_nonpos {x y z : α} [linear_ordered_ring α]
-  (h' : 0 ≥ z)
-  (h : y ≤ x)
-: x * z ≤ y * z :=
+  (h' : z ≤ 0) (h : y ≤ x) : x * z ≤ y * z :=
 begin
   classical,
   by_contradiction h'',

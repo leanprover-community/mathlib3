@@ -72,7 +72,7 @@ at_top_basis.forall_nonempty_iff_ne_bot.1 $ λ a _, nonempty_Ici
 lemma at_bot_ne_bot [nonempty α] [semilattice_inf α] : ne_bot (at_bot : filter α) :=
 @at_top_ne_bot (order_dual α) _ _
 
-@[simp, nolint ge_or_gt]
+@[simp]
 lemma mem_at_top_sets [nonempty α] [semilattice_sup α] {s : set α} :
   s ∈ (at_top : filter α) ↔ ∃a:α, ∀b≥a, b ∈ s :=
 at_top_basis.mem_iff.trans $ exists_congr $ λ _, exists_const _
@@ -82,7 +82,7 @@ lemma mem_at_bot_sets [nonempty α] [semilattice_inf α] {s : set α} :
   s ∈ (at_bot : filter α) ↔ ∃a:α, ∀b≤a, b ∈ s :=
 @mem_at_top_sets (order_dual α) _ _ _
 
-@[simp, nolint ge_or_gt]
+@[simp]
 lemma eventually_at_top [semilattice_sup α] [nonempty α] {p : α → Prop} :
   (∀ᶠ x in at_top, p x) ↔ (∃ a, ∀ b ≥ a, p b) :=
 mem_at_top_sets
@@ -129,7 +129,6 @@ lemma tendsto_at_bot_pure [order_bot α] (f : α → β) :
   tendsto f at_bot (pure $ f ⊥) :=
 @tendsto_at_top_pure (order_dual α) _ _ _
 
-@[nolint ge_or_gt]
 lemma eventually.exists_forall_of_at_top [semilattice_sup α] [nonempty α] {p : α → Prop}
   (h : ∀ᶠ x in at_top, p x) : ∃ a, ∀ b ≥ a, p b :=
 eventually_at_top.mp h
@@ -138,7 +137,6 @@ lemma eventually.exists_forall_of_at_bot [semilattice_inf α] [nonempty α] {p :
   (h : ∀ᶠ x in at_bot, p x) : ∃ a, ∀ b ≤ a, p b :=
 eventually_at_bot.mp h
 
-@[nolint ge_or_gt]
 lemma frequently_at_top [semilattice_sup α] [nonempty α] {p : α → Prop} :
   (∃ᶠ x in at_top, p x) ↔ (∀ a, ∃ b ≥ a, p b) :=
 by simp only [filter.frequently, eventually_at_top, not_exists, not_forall, not_not]
@@ -147,7 +145,6 @@ lemma frequently_at_bot [semilattice_inf α] [nonempty α] {p : α → Prop} :
   (∃ᶠ x in at_bot, p x) ↔ (∀ a, ∃ b ≤ a, p b) :=
 @frequently_at_top (order_dual α) _ _ _
 
-@[nolint ge_or_gt]
 lemma frequently_at_top' [semilattice_sup α] [nonempty α] [no_top_order α] {p : α → Prop} :
   (∃ᶠ x in at_top, p x) ↔ (∀ a, ∃ b > a, p b) :=
 begin
@@ -164,7 +161,6 @@ lemma frequently_at_bot' [semilattice_inf α] [nonempty α] [no_bot_order α] {p
   (∃ᶠ x in at_bot, p x) ↔ (∀ a, ∃ b < a, p b) :=
 @frequently_at_top' (order_dual α) _ _ _ _
 
-@[nolint ge_or_gt]
 lemma frequently.forall_exists_of_at_top [semilattice_sup α] [nonempty α] {p : α → Prop}
   (h : ∃ᶠ x in at_top, p x) : ∀ a, ∃ b ≥ a, p b :=
 frequently_at_top.mp h
@@ -210,7 +206,6 @@ lemma tendsto_at_bot_mono [preorder β] {l : filter α} {f g : α → β} (h : �
 ### Sequences
 -/
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma inf_map_at_top_ne_bot_iff [semilattice_sup α] [nonempty α] {F : filter β} {u : α → β} :
   ne_bot (F ⊓ (map u at_top)) ↔ ∀ U ∈ F, ∀ N, ∃ n ≥ N, u n ∈ U :=
 by simp_rw [inf_ne_bot_iff_frequently_left, frequently_map, frequently_at_top]; refl
@@ -238,7 +233,6 @@ lemma extraction_of_eventually_at_top {P : ℕ → Prop} (h : ∀ᶠ n in at_top
   ∃ φ : ℕ → ℕ, strict_mono φ ∧ ∀ n, P (φ n) :=
 extraction_of_frequently_at_top h.frequently
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma exists_le_of_tendsto_at_top [semilattice_sup α] [preorder β] {u : α → β}
   (h : tendsto u at_top at_top) : ∀ a b, ∃ a' ≥ a, b ≤ u a' :=
 begin
@@ -255,7 +249,6 @@ lemma exists_ge_of_tendsto_at_bot [semilattice_sup α] [preorder β] {u : α →
   (h : tendsto u at_top at_bot) : ∀ a b, ∃ a' ≥ a, u a' ≤ b :=
 @exists_le_of_tendsto_at_top _ (order_dual β) _ _ _ h
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma exists_lt_of_tendsto_at_top [semilattice_sup α] [preorder β] [no_top_order β]
   {u : α → β} (h : tendsto u at_top at_top) : ∀ a b, ∃ a' ≥ a, b < u a' :=
 begin
@@ -274,7 +267,6 @@ lemma exists_gt_of_tendsto_at_bot [semilattice_sup α] [preorder β] [no_bot_ord
 If `u` is a sequence which is unbounded above,
 then after any point, it reaches a value strictly greater than all previous values.
 -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma high_scores [linear_order β] [no_top_order β] {u : ℕ → β}
   (hu : tendsto u at_top at_top) : ∀ N, ∃ n ≥ N, ∀ k < n, u k < u n :=
 begin
@@ -504,7 +496,6 @@ end ordered_group
 
 open_locale filter
 
-@[nolint ge_or_gt]
 lemma tendsto_at_top' [nonempty α] [semilattice_sup α] (f : α → β) (l : filter β) :
   tendsto f at_top l ↔ (∀s ∈ l, ∃a, ∀b≥a, f b ∈ s) :=
 by simp only [tendsto_def, mem_at_top_sets]; refl
@@ -513,7 +504,6 @@ lemma tendsto_at_bot' [nonempty α] [semilattice_inf α] (f : α → β) (l : fi
   tendsto f at_bot l ↔ (∀s ∈ l, ∃a, ∀b≤a, f b ∈ s) :=
 @tendsto_at_top' (order_dual α) _ _ _ _ _
 
-@[nolint ge_or_gt]
 theorem tendsto_at_top_principal [nonempty β] [semilattice_sup β] {f : β → α} {s : set α} :
   tendsto f at_top (𝓟 s) ↔ ∃N, ∀n≥N, f n ∈ s :=
 by rw [tendsto_iff_comap, comap_principal, le_principal_iff, mem_at_top_sets]; refl

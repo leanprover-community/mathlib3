@@ -9,6 +9,7 @@ import order.category.Preorder
 
 open category_theory
 
+/-- The category of partially ordered types. -/
 def PartialOrder := bundled partial_order
 
 namespace PartialOrder
@@ -17,7 +18,7 @@ instance : bundled_hom.parent_projection @partial_order.to_preorder := ⟨⟩
 
 attribute [derive [has_coe_to_sort, large_category, concrete_category]] PartialOrder
 
-/-- Construct a bundled Ring from the underlying type and typeclass. -/
+/-- Construct a bundled PartialOrder from the underlying type and typeclass. -/
 def of (α : Type*) [partial_order α] : PartialOrder := bundled.of α
 
 instance : inhabited PartialOrder := ⟨of punit⟩

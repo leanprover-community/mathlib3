@@ -18,6 +18,7 @@ open category_theory
 
 set_option old_structure_cmd true
 
+/-- A typeclass for nonempty finite linear orders. -/
 class nonempty_fin_lin_ord (α : Type*) extends fintype α, decidable_linear_order α, order_bot α, order_top α.
 
 instance punit.nonempty_fin_lin_ord : nonempty_fin_lin_ord punit :=
@@ -50,6 +51,7 @@ instance ulift.nonempty_fin_lin_ord (α : Type u) [nonempty_fin_lin_ord α] :
   .. linear_order.lift equiv.ulift (equiv.injective _),
   .. ulift.fintype _ }
 
+/-- The category of nonempty finite linear orders. -/
 def NonemptyFinLinOrd := bundled nonempty_fin_lin_ord
 
 namespace NonemptyFinLinOrd
@@ -60,7 +62,7 @@ instance : bundled_hom.parent_projection
 
 attribute [derive [has_coe_to_sort, large_category, concrete_category]] NonemptyFinLinOrd
 
-/-- Construct a bundled Ring from the underlying type and typeclass. -/
+/-- Construct a bundled NonemptyFinLinOrd from the underlying type and typeclass. -/
 def of (α : Type*) [nonempty_fin_lin_ord α] : NonemptyFinLinOrd := bundled.of α
 
 instance : inhabited NonemptyFinLinOrd := ⟨of punit⟩

@@ -35,6 +35,8 @@ by { ext, rw h }
 def id : preorder_hom α α :=
 ⟨id, monotone_id⟩
 
+instance : inhabited (preorder_hom α α) := ⟨id⟩
+
 @[simp] lemma coe_id : (@id α _ : α → α) = id := rfl
 
 @[simp] lemma id_apply (a : α) : (id a) = a := rfl

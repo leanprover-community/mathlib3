@@ -666,7 +666,7 @@ begin
 end
 
 lemma map_at_bot_eq_of_gc [semilattice_inf α] [semilattice_inf β] {f : α → β} (g : β → α) (b' : β)
-  (hf : monotone f) (gc : ∀a, ∀b≤b', f a ≥ b ↔ a ≥ g b) (hgi : ∀b≤b', b ≥ f (g b)) :
+  (hf : monotone f) (gc : ∀a, ∀b≤b', b ≤ f a ↔ g b ≤ a) (hgi : ∀b≤b', f (g b) ≤ b) :
   map f at_bot = at_bot :=
 @map_at_top_eq_of_gc (order_dual α) (order_dual β) _ _ _ _ _ hf.order_dual gc hgi
 

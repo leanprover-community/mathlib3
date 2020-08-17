@@ -106,8 +106,7 @@ lemma sqrt_one_add_sinh_sq (x : ℝ): sqrt (1 + sinh x ^ 2) = cosh x :=
 begin
   have H := real.cosh_sq_sub_sinh_sq x,
   have G : cosh x ^ 2 - sinh x ^ 2 + sinh x ^ 2 = 1 + sinh x ^ 2 := by rw H,
-  ring at G,
-  rw add_comm at G,
+  rw sub_add_cancel at G,
   rw [G.symm, sqrt_sqr],
   exact le_of_lt (cosh_pos x),
 end

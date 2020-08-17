@@ -47,27 +47,16 @@ calc  b
 ... < sqrt (1 + b ^ 2) : (sqrt_lt (pow_two_nonneg _) (add_nonneg zero_le_one (pow_two_nonneg _))).2
   (lt_one_add _)
 
-/-- `arsinh` is the right inverse of `sinh`. -/
+private lemma add_sqrt_one_add_pow_two_pos (b : ℝ) : 0 < b + sqrt (1 + b ^ 2) :=
+by { rw [← neg_neg b, ← sub_eq_neg_add, sub_pos, pow_two, neg_mul_neg, ← pow_two],
+  exact b_lt_sqrt_b_one_add_sq (-b) }
+
+/-- `arsinh` is the right inverse of `sinh`-/
 lemma arsinh_sinh (x : ℝ) : sinh (arsinh x) = x :=
-begin
-  rw sinh_eq,
-  unfold arsinh,
-  rw [←log_inv, exp_log, exp_log],
-  { rw [← one_mul ((x + sqrt (1 + x ^ 2))⁻¹), ←division_def, aux_lemma],
-    ring },
-  { rw [← one_mul ((x + sqrt (1 + x ^ 2))⁻¹), ←division_def, aux_lemma],
-    ring,
-    rw [neg_add_eq_sub, sub_pos],
-    have H : x^2 < sqrt (x ^ 2 + 1)^2,
-    { rw sqr_sqrt,
-      linarith,
-      have F : 0 ≤ x^2 := by apply pow_two_nonneg,
-      linarith },
-    exact b_lt_sqrt_b_sq_add_one x },
-  { have H := b_lt_sqrt_b_sq_add_one (-x),
-    rw [neg_square, add_comm (x^2)] at H,
-    linarith },
-end
+by rw [sinh_eq, arsinh, ← log_inv, exp_log (add_sqrt_one_add_pow_two_pos x),
+      exp_log (inv_pos.2 (add_sqrt_one_add_pow_two_pos x)),
+      inv_eq_one_div, aux_lemma x, sub_eq_add_neg, neg_add, neg_neg, ← sub_eq_add_neg,
+      add_add_sub_cancel, add_self_div_two]
 
 /-- `sinh` is surjective, `∀ b, ∃ a, sinh a = b`. In this case, we use `a = arsinh b` -/
 lemma sinh_surjective : function.surjective sinh := function.left_inverse.surjective arsinh_sinh

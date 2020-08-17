@@ -153,3 +153,30 @@ begin
   { exact λ a b, a = ff ∨ b = tt },
   all_goals {apply_instance <|> exact dec_trivial}
 end
+
+namespace bool
+
+def to_nat (b : bool) : ℕ :=
+cond b 1 0
+
+def of_nat (n : ℕ) : bool :=
+to_bool (n ≠ 0)
+
+lemma of_nat_le_of_nat {n m : ℕ} (h : n ≤ m) : of_nat n ≤ of_nat m :=
+begin
+  simp [of_nat];
+    cases nat.decidable_eq n 0;
+    cases nat.decidable_eq m 0;
+    simp only [to_bool],
+  { subst m, have h := le_antisymm h (nat.zero_le _),
+    contradiction },
+  { left, refl }
+end
+
+lemma to_nat_le_to_nat {b₀ b₁ : bool} (h : b₀ ≤ b₁) : to_nat b₀ ≤ to_nat b₁ :=
+by cases h; subst h; [cases b₁, cases b₀]; simp [to_nat,nat.zero_le]
+
+lemma of_nat_to_nat (b : bool) : of_nat (to_nat b) = b :=
+by cases b; simp only [of_nat,to_nat]; exact dec_trivial
+
+end bool

@@ -35,8 +35,9 @@ universe polymorphism functor
 
 universes u₀ u₁ v₀ v₁ v₂ w w₀ w₁
 
-/-- Given a universe polymorphic functor `M.{u}`, this class helps move from
-`M.{u}` to `M.{v}` and back -/
+/-- Given a universe polymorphic type family `M.{u} : Type u₁ → Type
+u₂`, this class convert between instantiations, from
+`M.{u} : Type u₁ → Type u₂` to `M.{v} : Type v₁ → Type v₂` and back -/
 class uliftable (f : Type u₀ → Type u₁) (g : Type v₀ → Type v₁) :=
 (congr [] {α β} : α ≃ β → f α ≃ g β)
 

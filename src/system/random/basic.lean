@@ -59,6 +59,7 @@ universes u v w
 /-- A monad to generate random objects using the generator type `g` -/
 @[reducible]
 def rand_g (g : Type) (α : Type u) : Type u := state (ulift.{u} g) α
+
 /-- A monad to generate random objects using the generator type `std_gen` -/
 @[reducible]
 def rand := rand_g std_gen
@@ -222,216 +223,34 @@ end random
 
 end tactic
 
-namespace bool
-
-/-- Make `i` into an element of the interval `x .. y` if feasible.
-Otherwise return `x`, which is the only element of `x .. y` in that case.  -/
-def fit_in_Icc (x y : bool) (p : x ≤ y) (i : bool) : x .. y :=
-if hx : x ≤ i ∧ i ≤ y
-then ⟨ i, hx ⟩
-else ⟨ x , le_refl x , p ⟩
-
-open ulift (hiding inhabited)
-variables {g : Type} [random_gen g]
-
-/-- Generate a random boolean value. -/
-protected def get_random : rand_g g bool :=
-⟨ prod.map id up ∘ @rand_bool g _ ∘ down ⟩
-
-end bool
-
-instance : random bool :=
-{ random   := λ g, @bool.get_random _,
-  random_r := λ g _inst x y p, bool.fit_in_Icc _ _ p <$> (@bool.get_random g _inst) }
-
 open nat (succ one_add mod_eq_of_lt zero_lt_succ add_one succ_le_succ)
 
 variables {g : Type} [random_gen g]
 
-/-- generate a random bit vector of length `n` -/
-def bitvec.random (n : ℕ) : rand_g g (bitvec n) := do
-bs ← rand.random_series bool,
-pure ⟨bs.take n, bs.length_take _⟩
-
-section fit_in_Icc
-
-parameters {i' n : ℕ}
-parameters {x y : bitvec n}
-
-parameters P' : x.to_nat ≤ y.to_nat
-include P'
-
-local infix ^ := nat.pow
-
-lemma bitvec.interval_fits_in_word_size :
-  x.to_nat + i' % (1 + (y.to_nat - x.to_nat)) < 2^n :=
-begin
-  let x' := x.to_nat,
-  let y' := y.to_nat,
-  apply @lt_of_lt_of_le _ _ _ (x' + (y' - x' + 1)),
-  { apply add_lt_add_left, simp only [add_comm _ 1],
-    apply nat.mod_lt,
-    simp [add_comm 1,zero_lt_succ], },
-  { rw [← add_assoc,← nat.add_sub_assoc P',nat.add_sub_cancel_left,add_one],
-    clear P' i',
-    cases y with y Hy,
-    unfold bitvec.to_nat vector.to_list subtype.val bitvec.bits_to_nat,
-    rw [← reverse_reverse y, foldl_reverse,← Hy,← length_reverse],
-    generalize : reverse y = z,
-    clear x' x y' Hy y n,
-    induction z with x xs,
-    { rw [list.length,list.foldr,nat.pow] },
-    { simp [foldr,length,one_add,pow_succ,flip,bitvec.add_lsb,add_comm _ 1],
-      transitivity succ
-       (foldr (λ (b : bool) (a : ℕ), a + a + cond b 1 0) 0 xs +
-          foldr (λ (b : bool) (a : ℕ), a + a + cond b 1 0) 0 xs + 1),
-      { apply succ_le_succ, apply add_le_add_left,
-        cases x, apply nat.zero_le, refl, },
-      { simp! only,
-        rw [← nat.succ_eq_add_one,← nat.succ_add,← nat.add_succ],
-        rw [mul_comm _ 2,← two_mul],
-        apply nat.mul_le_mul_left,
-        simpa [flip,bitvec.add_lsb] using z_ih, } }, },
-end
-end fit_in_Icc
-
 open nat
-
-/-- Use `i` to generate an element of the interval `x .. y` -/
-protected def bitvec.fit_in_Icc {n : ℕ} (x y : bitvec n) (P : x ≤ y)
-  (i : bitvec n) :
-  (x .. y) :=
-let x' := x.to_nat,
-    y' := y.to_nat,
-    i' := i.to_nat,
-    r := i' % (y' - x' + 1) + x' in
-have Hx : x ≤ bitvec.of_nat n r,
-  begin
-    dsimp [r],
-    simp only [bitvec.le_def,bitvec.to_nat_of_nat,add_comm _ x',add_comm _ 1],
-    rw [mod_eq_of_lt],
-    { apply nat.le_add_right },
-    dsimp [x', y', i'],
-    apply bitvec.interval_fits_in_word_size,
-    apply P
-  end,
-have Hy : bitvec.of_nat n r ≤ y,
-  begin
-    dsimp [r],
-    rw [bitvec.le_def,bitvec.to_nat_of_nat,mod_eq_of_lt],
-    transitivity (y' - x') + x',
-    { apply add_le_add_right,
-      apply le_of_lt_succ,
-      rw ← add_one,
-      apply mod_lt,
-      rw add_one, apply zero_lt_succ },
-    { transitivity x' + (y' - x'),
-      apply le_of_eq, ac_refl,
-      rw [← nat.add_sub_assoc P,nat.add_sub_cancel_left], },
-    simp only [add_comm _ x',add_comm _ 1],
-    apply bitvec.interval_fits_in_word_size P,
-  end,
-⟨ bitvec.of_nat _ r , Hx , Hy ⟩
-
-instance random_bitvec (n : ℕ) : random (bitvec n) :=
-{ random := λ _ inst, @bitvec.random _ inst n,
-  random_r := λ _ inst x y p, bitvec.fit_in_Icc _ _ p <$> @bitvec.random _ inst n }
-
-open nat
-
-/-- `word_size n` gives us the number of bits required to represent `n` -/
-def word_size (x : ℕ) : ℕ :=
-log 2 x + 1
-
-local infix ^ := nat.pow
 
 namespace fin
-section fin
-parameters {n : ℕ} [fact (0 < n)]
-
-/-- `random_aux m k` generates `m` words worth of random numbers and combines them
-with `k` by concatenating their digits. -/
-protected def random_aux : ℕ → ℕ → rand_g g (fin n)
-| 0 k := return $ fin.of_nat' k
-| (succ n) k :=
-do x ← rand_g.next,
-   random_aux n $ x + (k * shift_31_left)
+variables {n : ℕ} [fact (0 < n)]
 
 /-- generate a `fin` randomly -/
 protected def random : rand_g g (fin n) :=
-let m := word_size n / 31 + 1 in
-random_aux m 0
-
-section fit_in_Icc
-
-parameters {i' r k : ℕ}
-parameters {y : fin k}
-
-parameters {x' : ℕ}
-
-parameters P' : x' ≤ y.val
-include P'
-
-lemma interval_fits_in_word_size : x' + i' % (1 + (y.val - x')) < k :=
-begin
-  apply @lt_of_lt_of_le _ _ _ (x' + (y.val - x' + 1)),
-  { apply add_lt_add_left, simp only [add_comm 1],
-    apply nat.mod_lt, apply zero_lt_succ },
-  { rw [← add_assoc,← nat.add_sub_assoc P',nat.add_sub_cancel_left,add_one],
-    apply y.is_lt }
-end
-
-end fit_in_Icc
-
-/-- Use `i` to generate an element of the interval `x .. y` -/
-protected def fit_in_Icc {n : ℕ} (x y : fin n) (P : x ≤ y)
-  (i : fin n) : (x .. y) :=
-let x' := x.val,
-    i' := i.val,
-    r := i' % (y.val - x' + 1) + x' in
-have P' : x.val ≤ y.val,
-  by { rw ← le_def, apply P },
-by haveI : fact (0 < n) :=  lt_of_le_of_lt (nat.zero_le x.val) x.is_lt; exact
-have Hx : x ≤ fin.of_nat' r,
-  begin
-    dsimp [r],
-    simp only [fin.le_def,fin.val_of_nat_eq_mod',add_comm _ x',add_comm _ 1],
-    rw [mod_eq_of_lt],
-    { apply nat.le_add_right },
-    apply fin.interval_fits_in_word_size,
-    dsimp [x'],
-    rw ← fin.le_def, apply P
-  end,
-have Hy : fin.of_nat' r ≤ y,
-  begin
-    dsimp [r],
-    rw [fin.le_def,fin.val_of_nat_eq_mod',mod_eq_of_lt],
-    transitivity (y.val - x') + x',
-    { apply add_le_add_right,
-      apply le_of_lt_succ,
-      rw add_one,
-      apply mod_lt,
-      apply zero_lt_succ },
-    { transitivity x' + (y.val - x'),
-      apply le_of_eq, ac_refl,
-      rw [← nat.add_sub_assoc P',nat.add_sub_cancel_left], },
-    simp only [add_comm _ x',add_comm _ 1],
-    apply fin.interval_fits_in_word_size P',
-  end,
-⟨ fin.of_nat' r , Hx , Hy ⟩
-
-/-- generate an element of the interval `x .. y` -/
-protected def random_r (x y : fin n) (p : x ≤ y) : rand_g g (x .. y) :=
-fin.fit_in_Icc _ _ p <$> fin.random
+⟨ λ ⟨g⟩, prod.map of_nat' up $ rand_nat g 0 n ⟩
 
 end fin
-end fin
-
-instance fin_random (n : ℕ) [fact (0 < n)] : random (fin n) :=
-{ random := λ g, @fin.random _ _ g,
-  random_r := λ x y p, @fin.random_r n _ x y p }
 
 open nat
+
+instance nat_bounded_random : bounded_random ℕ :=
+{ random_r := λ g inst x y hxy,
+  do z ← @fin.random g inst (succ $ y - x) _,
+     pure ⟨z.val + x, nat.le_add_left _ _,
+       by rw ← nat.le_sub_right_iff_add_le hxy; apply le_of_succ_le_succ z.is_lt⟩ }
+
+instance fin_random (n : ℕ) [fact (0 < n)] : random (fin n) :=
+{ random := λ g inst, @fin.random g inst _ _,
+  random_r := λ g inst (x y : fin n) p,
+    do ⟨r, h, h'⟩ ← @rand.random_r ℕ g inst _ _ x.val y.val p,
+       pure ⟨⟨r,lt_of_le_of_lt h' y.is_lt⟩, h, h'⟩ }
 
 /-- A shortcut for creating a `random (fin n)` instance from
 a proof that `0 < n` rather than on matching on `fin (succ n)`  -/
@@ -439,8 +258,38 @@ def random_fin_of_pos : ∀ {n : ℕ} (h : 0 < n), random (fin n)
 | (succ n) _ := fin_random _
 | 0 h := false.elim (not_lt_zero _ h)
 
-instance nat_bounded_random : bounded_random ℕ :=
-{ random_r := λ g inst x y hxy,
-  do z ← @random.random (fin $ succ $ y - x) _ _ g inst,
-     pure ⟨z.val + x, nat.le_add_left _ _,
-       by rw ← nat.le_sub_right_iff_add_le hxy; apply le_of_succ_le_succ z.is_lt⟩ }
+lemma bool_of_nat_mem_Icc_of_mem_Icc_to_nat (x y : bool) (n : ℕ) :
+  n ∈ (x.to_nat .. y.to_nat) → bool.of_nat n ∈ (x .. y) :=
+begin
+  simp only [and_imp, set.mem_Icc], intros h₀ h₁,
+  split;
+    [ have h₂ := bool.of_nat_le_of_nat h₀, have h₂ := bool.of_nat_le_of_nat h₁ ];
+    rw bool.of_nat_to_nat at h₂; exact h₂,
+end
+
+instance : random bool :=
+{ random   := λ g inst, (bool.of_nat ∘ subtype.val) <$> @bounded_random.random_r ℕ _ _ g inst 0 1 (nat.zero_le _),
+  random_r := λ g _inst x y p, subtype.map bool.of_nat (bool_of_nat_mem_Icc_of_mem_Icc_to_nat x y) <$> @bounded_random.random_r ℕ _ _ g _inst x.to_nat y.to_nat (bool.to_nat_le_to_nat p) }
+
+open_locale fin_fact
+
+/-- generate a random bit vector of length `n` -/
+def bitvec.random (n : ℕ) : rand_g g (bitvec n) :=
+bitvec.of_fin <$> rand.random (fin $ 2^n)
+
+/-- generate a random bit vector of length `n` -/
+def bitvec.random_r {n : ℕ} (x y : bitvec n) (h : x ≤ y) : rand_g g (x .. y) :=
+have h' : ∀ (a : fin (2 ^ n)), a ∈ (x.to_fin .. y.to_fin) → bitvec.of_fin a ∈ (x .. y),
+begin
+  simp only [and_imp, set.mem_Icc], intros z h₀ h₁,
+  replace h₀ := bitvec.of_fin_le_of_fin_of_le h₀,
+  replace h₁ := bitvec.of_fin_le_of_fin_of_le h₁,
+  rw bitvec.of_fin_to_fin at h₀ h₁, split; assumption,
+end,
+subtype.map bitvec.of_fin h' <$> rand.random_r x.to_fin y.to_fin (bitvec.to_fin_le_to_fin_of_le h)
+
+open nat
+
+instance random_bitvec (n : ℕ) : random (bitvec n) :=
+{ random := λ _ inst, @bitvec.random _ inst n,
+  random_r := λ _ inst x y p, @bitvec.random_r _ inst _ _ _ p }

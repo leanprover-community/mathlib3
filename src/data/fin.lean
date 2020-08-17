@@ -65,14 +65,21 @@ open fin nat function
 def fin_zero_elim {α : fin 0 → Sort u} (x : fin 0) : α x := x.elim0
 
 lemma fact.succ.pos {n} : fact (0 < succ n) := zero_lt_succ _
+
 lemma fact.bit0.pos {n} [h : fact (0 < n)] : fact (0 < bit0 n) :=
 nat.zero_lt_bit0 $ ne_of_gt h
+
 lemma fact.bit1.pos {n} : fact (0 < bit1 n) :=
 nat.zero_lt_bit1 _
+
+lemma fact.pow.pos {p n : ℕ} [h : fact $ 0 < p] : fact (0 < p ^ n) :=
+pow_pos h _
+
 
 localized "attribute [instance] fact.succ.pos" in fin_fact
 localized "attribute [instance] fact.bit0.pos" in fin_fact
 localized "attribute [instance] fact.bit1.pos" in fin_fact
+localized "attribute [instance] fact.pow.pos" in fin_fact
 
 namespace fin
 variables {n m : ℕ} {a b : fin n}

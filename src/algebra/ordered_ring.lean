@@ -29,16 +29,16 @@ ordered_semiring.mul_lt_mul_of_pos_right a b c h₁ h₂
 
 lemma mul_le_mul_of_nonneg_left (h₁ : a ≤ b) (h₂ : 0 ≤ c) : c * a ≤ c * b :=
 begin
-  cases classical.em (b ≤ a), { simp [le_antisymm h h₁] },
-  cases classical.em (c ≤ 0), { simp [le_antisymm h_1 h₂] },
-  exact (mul_lt_mul_of_pos_left (lt_of_le_not_le h₁ h) (lt_of_le_not_le h₂ h_1)).le,
+  cases classical.em (b ≤ a), { simp [h.antisymm h₁] },
+  cases classical.em (c ≤ 0), { simp [h_1.antisymm h₂] },
+  exact (mul_lt_mul_of_pos_left (h₁.lt_of_not_le h) (h₂.lt_of_not_le h_1)).le,
 end
 
 lemma mul_le_mul_of_nonneg_right (h₁ : a ≤ b) (h₂ : 0 ≤ c) : a * c ≤ b * c :=
 begin
-  cases classical.em (b ≤ a), { simp [le_antisymm h h₁] },
-  cases classical.em (c ≤ 0), { simp [le_antisymm h_1 h₂] },
-  exact (mul_lt_mul_of_pos_right (lt_of_le_not_le h₁ h) (lt_of_le_not_le h₂ h_1)).le,
+  cases classical.em (b ≤ a), { simp [h.antisymm h₁] },
+  cases classical.em (c ≤ 0), { simp [h_1.antisymm h₂] },
+  exact (mul_lt_mul_of_pos_right (h₁.lt_of_not_le h) (h₂.lt_of_not_le h_1)).le,
 end
 
 -- TODO: there are four variations, depending on which variables we assume to be nonneg
@@ -102,7 +102,7 @@ lemma zero_lt_one : 0 < (1:α) :=
 linear_ordered_semiring.zero_lt_one
 
 lemma zero_le_one : 0 ≤ (1:α) :=
-le_of_lt zero_lt_one
+zero_lt_one.le
 
 lemma two_pos : 0 < (2:α) := add_pos zero_lt_one zero_lt_one
 
@@ -114,7 +114,7 @@ calc (2:α) = 1+1 : one_add_one_eq_two
      ...   > 1+0 : add_lt_add_left zero_lt_one _
      ...   = 1   : add_zero 1
 
-lemma one_le_two : 1 ≤ (2:α) := le_of_lt one_lt_two
+lemma one_le_two : 1 ≤ (2:α) := one_lt_two.le
 
 lemma four_pos : 0 < (4:α) := add_pos two_pos two_pos
 
@@ -122,67 +122,55 @@ lemma lt_of_mul_lt_mul_left (h : c * a < c * b) (hc : 0 ≤ c) : a < b :=
 lt_of_not_ge
   (assume h1 : b ≤ a,
    have h2 : c * b ≤ c * a, from mul_le_mul_of_nonneg_left h1 hc,
-   not_lt_of_ge h2.not_lt h)
+   h2.not_lt h)
 
 lemma lt_of_mul_lt_mul_right (h : a * c < b * c) (hc : 0 ≤ c) : a < b :=
 lt_of_not_ge
   (assume h1 : b ≤ a,
    have h2 : b * c ≤ a * c, from mul_le_mul_of_nonneg_right h1 hc,
-   not_lt_of_ge h2 h)
+   h2.not_lt h)
 
 lemma le_of_mul_le_mul_left (h : c * a ≤ c * b) (hc : 0 < c) : a ≤ b :=
 le_of_not_gt
   (assume h1 : b < a,
    have h2 : c * b < c * a, from mul_lt_mul_of_pos_left h1 hc,
-   not_le_of_gt h2 h)
+   h2.not_le h)
 
 lemma le_of_mul_le_mul_right (h : a * c ≤ b * c) (hc : 0 < c) : a ≤ b :=
 le_of_not_gt
   (assume h1 : b < a,
    have h2 : b * c < a * c, from mul_lt_mul_of_pos_right h1 hc,
-   not_le_of_gt h2 h)
+   h2.not_le h)
 
 lemma pos_of_mul_pos_left (h : 0 < a * b) (h1 : 0 ≤ a) : 0 < b :=
 lt_of_not_ge
   (assume h2 : b ≤ 0,
    have h3 : a * b ≤ 0, from mul_nonpos_of_nonneg_of_nonpos h1 h2,
-   not_lt_of_ge h3 h)
+   h3.not_lt h)
 
 lemma pos_of_mul_pos_right (h : 0 < a * b) (h1 : 0 ≤ b) : 0 < a :=
 lt_of_not_ge
   (assume h2 : a ≤ 0,
    have h3 : a * b ≤ 0, from mul_nonpos_of_nonpos_of_nonneg h2 h1,
-   not_lt_of_ge h3 h)
+   h3.not_lt h)
 
 lemma nonneg_of_mul_nonneg_left (h : 0 ≤ a * b) (h1 : 0 < a) : 0 ≤ b :=
-le_of_not_gt
-  (assume h2 : b < 0,
-   not_le_of_gt (mul_neg_of_pos_of_neg h1 h2) h)
+le_of_not_gt (assume h2 : b < 0, (mul_neg_of_pos_of_neg h1 h2).not_le h)
 
 lemma nonneg_of_mul_nonneg_right (h : 0 ≤ a * b) (h1 : 0 < b) : 0 ≤ a :=
-le_of_not_gt
-  (assume h2 : a < 0,
-   not_le_of_gt (mul_neg_of_neg_of_pos h2 h1) h)
+le_of_not_gt (assume h2 : a < 0, (mul_neg_of_neg_of_pos h2 h1).not_le h)
 
 lemma neg_of_mul_neg_left (h : a * b < 0) (h1 : 0 ≤ a) : b < 0 :=
-lt_of_not_ge
-  (assume h2 : b ≥ 0,
-   not_lt_of_ge (mul_nonneg h1 h2) h)
+lt_of_not_ge (assume h2 : b ≥ 0, (mul_nonneg h1 h2).not_lt h)
 
 lemma neg_of_mul_neg_right (h : a * b < 0) (h1 : 0 ≤ b) : a < 0 :=
-lt_of_not_ge
-  (assume h2 : a ≥ 0,
-   not_lt_of_ge (mul_nonneg h2 h1) h)
+lt_of_not_ge (assume h2 : a ≥ 0, (mul_nonneg h2 h1).not_lt h)
 
 lemma nonpos_of_mul_nonpos_left (h : a * b ≤ 0) (h1 : 0 < a) : b ≤ 0 :=
-le_of_not_gt
-  (assume h2 : b > 0,
-   not_le_of_gt (mul_pos h1 h2) h)
+le_of_not_gt (assume h2 : b > 0, (mul_pos h1 h2).not_le h)
 
 lemma nonpos_of_mul_nonpos_right (h : a * b ≤ 0) (h1 : 0 < b) : a ≤ 0 :=
-le_of_not_gt
-  (assume h2 : a > 0,
-   not_le_of_gt (mul_pos h2 h1) h)
+le_of_not_gt (assume h2 : a > 0, (mul_pos h2 h1).not_le h)
 
 /-- `0 < 2`: an alternative version of `two_pos` that only assumes `linear_ordered_semiring`. -/
 lemma zero_lt_two : (0:α) < 2 :=
@@ -272,7 +260,7 @@ suffices 1 * b ≤ a * b, by rwa one_mul at this,
 mul_le_mul_of_nonneg_right h hb
 
 theorem mul_nonneg_iff_right_nonneg_of_pos (h : 0 < a) : 0 ≤ b * a ↔ 0 ≤ b :=
-⟨assume : 0 ≤ b * a, nonneg_of_mul_nonneg_right this h, assume : 0 ≤ b, mul_nonneg this $ le_of_lt h⟩
+⟨assume : 0 ≤ b * a, nonneg_of_mul_nonneg_right this h, assume : 0 ≤ b, mul_nonneg this h.le⟩
 
 lemma bit1_pos (h : 0 ≤ a) : 0 < bit1 a :=
 lt_add_of_le_of_pos (add_nonneg h h) zero_lt_one
@@ -287,14 +275,14 @@ lemma lt_one_add (a : α) : a < 1 + a :=
 by { rw [add_comm], apply lt_add_one }
 
 lemma one_lt_mul (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
-(one_mul (1 : α)) ▸ mul_lt_mul' ha hb zero_le_one (lt_of_lt_of_le zero_lt_one ha)
+(one_mul (1 : α)) ▸ mul_lt_mul' ha hb zero_le_one (zero_lt_one.trans_le ha)
 
 lemma mul_le_one (ha : a ≤ 1) (hb' : 0 ≤ b) (hb : b ≤ 1) : a * b ≤ 1 :=
 begin rw ← one_mul (1 : α), apply mul_le_mul; {assumption <|> apply zero_le_one} end
 
 lemma one_lt_mul_of_le_of_lt (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
 calc 1 = 1 * 1 : by rw one_mul
-... < a * b : mul_lt_mul' ha hb zero_le_one (lt_of_lt_of_le zero_lt_one ha)
+... < a * b : mul_lt_mul' ha hb zero_le_one ( zero_lt_one ha)
 
 lemma one_lt_mul_of_lt_of_le (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
 calc 1 = 1 * 1 : by rw one_mul
@@ -317,32 +305,32 @@ calc a * b ≤ b : mul_le_of_le_one_left hb0 ha
 ... < 1 : hb
 
 lemma mul_le_iff_le_one_left (hb : 0 < b) : a * b ≤ b ↔ a ≤ 1 :=
-⟨ λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_left hb).2 (not_lt_of_ge h)),
-  λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_left hb).1 (not_lt_of_ge h)) ⟩
+⟨ λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_left hb).2 h.not_lt),
+  λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_left hb).1 h.not_lt) ⟩
 
 lemma mul_lt_iff_lt_one_left (hb : 0 < b) : a * b < b ↔ a < 1 :=
-⟨ λ h, lt_of_not_ge (mt (le_mul_iff_one_le_left hb).2 (not_le_of_gt h)),
-  λ h, lt_of_not_ge (mt (le_mul_iff_one_le_left hb).1 (not_le_of_gt h)) ⟩
+⟨ λ h, lt_of_not_ge (mt (le_mul_iff_one_le_left hb).2 h.not_le),
+  λ h, lt_of_not_ge (mt (le_mul_iff_one_le_left hb).1 h.not_le) ⟩
 
 lemma mul_le_iff_le_one_right (hb : 0 < b) : b * a ≤ b ↔ a ≤ 1 :=
-⟨ λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_right hb).2 (not_lt_of_ge h)),
-  λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_right hb).1 (not_lt_of_ge h)) ⟩
+⟨ λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_right hb).2 h.not_lt),
+  λ h, le_of_not_lt (mt (lt_mul_iff_one_lt_right hb).1 h.not_lt) ⟩
 
 lemma mul_lt_iff_lt_one_right (hb : 0 < b) : b * a < b ↔ a < 1 :=
-⟨ λ h, lt_of_not_ge (mt (le_mul_iff_one_le_right hb).2 (not_le_of_gt h)),
-  λ h, lt_of_not_ge (mt (le_mul_iff_one_le_right hb).1 (not_le_of_gt h)) ⟩
+⟨ λ h, lt_of_not_ge (mt (le_mul_iff_one_le_right hb).2 h.not_le),
+  λ h, lt_of_not_ge (mt (le_mul_iff_one_le_right hb).1 h.not_le) ⟩
 
 lemma nonpos_of_mul_nonneg_left (h : 0 ≤ a * b) (hb : b < 0) : a ≤ 0 :=
-le_of_not_gt (λ ha, absurd h (not_le_of_gt (mul_neg_of_pos_of_neg ha hb)))
+le_of_not_gt (λ ha, absurd h (mul_neg_of_pos_of_neg ha hb).not_le)
 
 lemma nonpos_of_mul_nonneg_right (h : 0 ≤ a * b) (ha : a < 0) : b ≤ 0 :=
-le_of_not_gt (λ hb, absurd h (not_le_of_gt (mul_neg_of_neg_of_pos ha hb)))
+le_of_not_gt (λ hb, absurd h (mul_neg_of_neg_of_pos ha hb).not_le)
 
 lemma neg_of_mul_pos_left (h : 0 < a * b) (hb : b ≤ 0) : a < 0 :=
-lt_of_not_ge (λ ha, absurd h (not_lt_of_ge (mul_nonpos_of_nonneg_of_nonpos ha hb)))
+lt_of_not_ge (λ ha, absurd h (mul_nonpos_of_nonneg_of_nonpos ha hb).not_lt)
 
 lemma neg_of_mul_pos_right (h : 0 < a * b) (ha : a ≤ 0) : b < 0 :=
-lt_of_not_ge (λ hb, absurd h (not_lt_of_ge (mul_nonpos_of_nonpos_of_nonneg ha hb)))
+lt_of_not_ge (λ hb, absurd h (mul_nonpos_of_nonpos_of_nonneg ha hb).not_lt)
 
 instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
   no_top_order α :=
@@ -388,12 +376,12 @@ lemma strict_mono.const_mul (hf : strict_mono f) (ha : 0 < a) :
 lemma strict_mono.mul_monotone (hf : strict_mono f) (hg : monotone g) (hf0 : ∀ x, 0 ≤ f x)
   (hg0 : ∀ x, 0 < g x) :
   strict_mono (λ x, f x * g x) :=
-λ x y h, mul_lt_mul (hf h) (hg $ le_of_lt h) (hg0 x) (hf0 y)
+λ x y h, mul_lt_mul (hf h) (hg h.le) (hg0 x) (hf0 y)
 
 lemma monotone.mul_strict_mono (hf : monotone f) (hg : strict_mono g) (hf0 : ∀ x, 0 < f x)
   (hg0 : ∀ x, 0 ≤ g x) :
   strict_mono (λ x, f x * g x) :=
-λ x y h, mul_lt_mul' (hf $ le_of_lt h) (hg h) (hg0 x) (hf0 y)
+λ x y h, mul_lt_mul' (hf h.le) (hg h) (hg0 x) (hf0 y)
 
 lemma strict_mono.mul (hf : strict_mono f) (hg : strict_mono g) (hf0 : ∀ x, 0 ≤ f x)
   (hg0 : ∀ x, 0 ≤ g x) :
@@ -431,7 +419,7 @@ lemma ordered_ring.mul_nonneg (a b : α) (h₁ : 0 ≤ a) (h₂ : 0 ≤ b) : 0 �
 begin
   cases classical.em (a ≤ 0), { simp [le_antisymm h h₁] },
   cases classical.em (b ≤ 0), { simp [le_antisymm h_1 h₂] },
-  exact (le_not_le_of_lt (ordered_ring.mul_pos a b (lt_of_le_not_le h₁ h) (lt_of_le_not_le h₂ h_1))).left,
+  exact (le_not_le_of_lt (ordered_ring.mul_pos a b (h₁.lt_of_not_le h) (h₂.lt_of_not_le h_1))).left,
 end
 
 lemma ordered_ring.mul_le_mul_of_nonneg_left (h₁ : a ≤ b) (h₂ : 0 ≤ c) : c * a ≤ c * b :=
@@ -573,10 +561,10 @@ have h' : a * c ≤ b * c, from calc
      a * c ≤ b : h
        ... = b * 1 : by rewrite mul_one
        ... ≤ b * c : mul_le_mul_of_nonneg_left hc hb,
-le_of_mul_le_mul_right h' (lt_of_lt_of_le zero_lt_one hc)
+le_of_mul_le_mul_right h' (zero_lt_one.trans_le hc)
 
 lemma nonneg_le_nonneg_of_squares_le {a b : α} (hb : 0 ≤ b) (h : a * a ≤ b * b) : a ≤ b :=
-le_of_not_gt (λhab, not_le_of_gt (mul_self_lt_mul_self hb hab) h)
+le_of_not_gt (λhab, (mul_self_lt_mul_self hb hab).not_le h)
 
 lemma mul_self_le_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a ≤ b ↔ a * a ≤ b * b :=
 ⟨mul_self_le_mul_self h1, nonneg_le_nonneg_of_squares_le h2⟩
@@ -648,16 +636,16 @@ begin
 end
 
 lemma nonneg_of_mul_nonpos_left {a b : α} (h : a * b ≤ 0) (hb : b < 0) : 0 ≤ a :=
-le_of_not_gt (λ ha, absurd h (not_le_of_gt (mul_pos_of_neg_of_neg ha hb)))
+le_of_not_gt (λ ha, absurd h (mul_pos_of_neg_of_neg ha hb).not_le)
 
 lemma nonneg_of_mul_nonpos_right {a b : α} (h : a * b ≤ 0) (ha : a < 0) : 0 ≤ b :=
-le_of_not_gt (λ hb, absurd h (not_le_of_gt (mul_pos_of_neg_of_neg ha hb)))
+le_of_not_gt (λ hb, absurd h (mul_pos_of_neg_of_neg ha hb).not_le)
 
 lemma pos_of_mul_neg_left {a b : α} (h : a * b < 0) (hb : b ≤ 0) : 0 < a :=
-lt_of_not_ge (λ ha, absurd h (not_lt_of_ge (mul_nonneg_of_nonpos_of_nonpos ha hb)))
+lt_of_not_ge (λ ha, absurd h (mul_nonneg_of_nonpos_of_nonpos ha hb).not_lt)
 
 lemma pos_of_mul_neg_right {a b : α} (h : a * b < 0) (ha : a ≤ 0) : 0 < b :=
-lt_of_not_ge (λ hb, absurd h (not_lt_of_ge (mul_nonneg_of_nonpos_of_nonpos ha hb)))
+lt_of_not_ge (λ hb, absurd h (mul_nonneg_of_nonpos_of_nonpos ha hb).not_lt)
 
 /- The sum of two squares is zero iff both elements are zero. -/
 lemma mul_self_add_mul_self_eq_zero {x y : α} : x * x + y * y = 0 ↔ x = 0 ∧ y = 0 :=
@@ -755,7 +743,7 @@ lemma sub_lt_of_abs_sub_lt_left (h : abs (a - b) < c) : b - c < a :=
 if hz : 0 ≤ a - b then
    (calc
       a ≥ b     : le_of_sub_nonneg hz
-    ... > b - c : sub_lt_self _ (lt_of_le_of_lt (abs_nonneg _) h))
+    ... > b - c : sub_lt_self _ ((abs_nonneg _).trans_lt h))
 else
   have habs : b - a < c, by rwa [abs_of_neg (lt_of_not_ge hz), neg_sub] at h,
   have habs' : b < c + a, from lt_add_of_sub_right_lt habs,
@@ -915,7 +903,7 @@ begin
 end
 
 /-- A version of `zero_lt_one : 0 < 1` for a `canonically_ordered_comm_semiring`. -/
-lemma zero_lt_one : (0:α) < 1 := lt_of_le_of_ne (zero_le 1) zero_ne_one
+lemma zero_lt_one : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_one
 
 lemma mul_pos : 0 < a * b ↔ (0 < a) ∧ (0 < b) :=
 by simp only [zero_lt_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]

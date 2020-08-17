@@ -11,11 +11,13 @@ import analysis.normed_space.hahn_banach
 In this file we define the topological dual of a normed space, and the bounded linear map from
 a normed space into its double dual.
 
-We also prove that, for base field the real numbers, this map is an isometry.  (TODO:  the same for
-the complex numbers.)
+We also prove that, for base field such as the real or the complex numbers, this map is an isometry.
+More generically, this is proved for any field in the class `has_exists_extension_norm_eq`, i.e.,
+satisfying the Hahn-Banach theorem.
 -/
 
 noncomputable theory
+universes u v
 
 namespace normed_space
 
@@ -59,14 +61,15 @@ linear_map.mk_continuous
 
 end general
 
-universes u v
+section bidual_isometry
 
-variables {𝕜 : Type v} [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜] [has_exists_extension_norm_eq.{u} 𝕜]
-variables {E : Type u} [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 : Type v} [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
+[has_exists_extension_norm_eq.{u} 𝕜]
+{E : Type u} [normed_group E] [normed_space 𝕜 E]
 
 /-- If one controls the norm of every `f x`, then one controls the norm of `x`.
     Compare `continuous_linear_map.op_norm_le_bound`. -/
-lemma norm_le_dual_bound (x : E) {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ (f: dual 𝕜 E), ∥f x∥ ≤ M * ∥f∥) :
+lemma norm_le_dual_bound (x : E) {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ (f : dual 𝕜 E), ∥f x∥ ≤ M * ∥f∥) :
   ∥x∥ ≤ M :=
 begin
   classical,
@@ -89,5 +92,7 @@ begin
     rintros c ⟨hc1, hc2⟩,
     exact norm_le_dual_bound x hc1 hc2 },
 end
+
+end bidual_isometry
 
 end normed_space

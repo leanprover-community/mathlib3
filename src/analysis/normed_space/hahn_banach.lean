@@ -11,16 +11,15 @@ import analysis.convex.cone
 # Hahn-Banach theorem
 
 In this file we prove a version of Hahn-Banach theorem for continuous linear
-functions on normed spaces over ℝ and ℂ.
+functions on normed spaces over `ℝ` and `ℂ`.
 
-In order to state and prove its corrolaries uniformly, we also introduce the
-`has_exists_extension_norm_eq` class, and provide instances for ℝ and ℂ.
+In order to state and prove its corollaries uniformly, we introduce a typeclass
+`has_exists_extension_norm_eq` for a field, requiring that a strong version of the
+Hahn-Banach theorem holds over this field, and provide instances for `ℝ` and `ℂ`.
 
-We also prove a standard corollary, needed for `inclusion_in_double_dual_isometry`.
-
-## TODO
-
-Prove more corollaries
+In this setting, `exists_dual_vector` states that, for any nonzero `x`, there exists a continuous
+linear form `g` of norm `1` with `g x = ∥x∥` (where the norm has to be interpreted as an element
+of `𝕜`).
 
 -/
 
@@ -30,10 +29,9 @@ universes u v
 A field where the Hahn-Banach theorem for continuous linear functions holds. This allows stating
 theorems that depend on it uniformly over such fields.
 
-In particular, this is satisfied by ℝ and ℂ.
+In particular, this is satisfied by `ℝ` and `ℂ`.
 -/
-class has_exists_extension_norm_eq (𝕜 : Type v)
-  [nondiscrete_normed_field 𝕜] : Prop :=
+class has_exists_extension_norm_eq (𝕜 : Type v) [nondiscrete_normed_field 𝕜] : Prop :=
 (exists_extension_norm_eq :
   ∀ (E : Type u)
   [normed_group E] [normed_space 𝕜 E]
@@ -42,10 +40,10 @@ class has_exists_extension_norm_eq (𝕜 : Type v)
   ∃ g : E →L[𝕜] 𝕜, (∀ x : p, g x = f x) ∧ ∥g∥ = ∥f∥)
 
 /--
-The norm of `x` as an element of 𝕜 (an algebra over ℝ). This is needed in particular to state
-equalities of the form `g x = norm' 𝕜 x`.
+The norm of `x` as an element of `𝕜` (a normed algebra over `ℝ`). This is needed in particular to
+state equalities of the form `g x = norm' 𝕜 x` when `g` is a linear function.
 
-For the concrete cases of ℝ and ℂ, this is just ∥x∥ and ↑∥x∥, respectively.
+For the concrete cases of `ℝ` and `ℂ`, this is just `∥x∥` and `↑∥x∥`, respectively.
 -/
 noncomputable def norm' (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
   {E : Type*} [normed_group E] (x : E) : 𝕜 :=
@@ -61,10 +59,10 @@ lemma norm_norm'
   (x : A) : ∥norm' 𝕜 x∥ = ∥x∥ :=
 by rw [norm'_def, norm_algebra_map_eq, norm_norm]
 
-section basic
+section real
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
 
-/-- Hahn-Banach theorem for continuous linear functions over ℝ. -/
+/-- Hahn-Banach theorem for continuous linear functions over `ℝ`. -/
 theorem exists_extension_norm_eq (p : subspace ℝ E) (f : p →L[ℝ] ℝ) :
   ∃ g : E →L[ℝ] ℝ, (∀ x : p, g x = f x) ∧ ∥g∥ = ∥f∥ :=
 begin
@@ -87,15 +85,15 @@ end
 instance real_has_exists_extension_norm_eq : has_exists_extension_norm_eq ℝ :=
 ⟨by { intros, apply exists_extension_norm_eq }⟩
 
-end basic
+end real
 
 section complex
 variables {F : Type*} [normed_group F] [normed_space ℂ F]
 
 -- Inlining the following two definitions causes a type mismatch between
 -- subspace ℝ (module.restrict_scalars ℝ ℂ F) and subspace ℂ F.
-/-- Restrict a ℂ-subspace to an ℝ-subspace. -/
-noncomputable def restrict_scalars (p: subspace ℂ F) : subspace ℝ F := p.restrict_scalars ℝ ℂ F
+/-- Restrict a `ℂ`-subspace to an `ℝ`-subspace. -/
+noncomputable def restrict_scalars (p : subspace ℂ F) : subspace ℝ F := p.restrict_scalars ℝ ℂ F
 
 private lemma apply_real (p : subspace ℂ F) (f' : p →L[ℝ] ℝ) :
   ∃ g : F →L[ℝ] ℝ, (∀ x : restrict_scalars p, g x = f' x) ∧ ∥g∥ = ∥f'∥ :=
@@ -103,7 +101,7 @@ private lemma apply_real (p : subspace ℂ F) (f' : p →L[ℝ] ℝ) :
 
 open complex
 
-/-- Hahn-Banach theorem for continuous linear functions over ℂ. -/
+/-- Hahn-Banach theorem for continuous linear functions over `ℂ`. -/
 theorem complex.exists_extension_norm_eq (p : subspace ℂ F) (f : p →L[ℂ] ℂ) :
   ∃ g : F →L[ℂ] ℂ, (∀ x : p, g x = f x) ∧ ∥g∥ = ∥f∥ :=
 begin
@@ -150,13 +148,6 @@ variables {E : Type u} [normed_group E] [normed_space 𝕜 E]
 open continuous_linear_equiv
 open_locale classical
 
-lemma coord_self' (x : E) (h : x ≠ 0) :
-  (norm' 𝕜 x • coord 𝕜 x h) ⟨x, submodule.mem_span_singleton_self x⟩ = norm' 𝕜 x :=
-calc (norm' 𝕜 x • coord 𝕜 x h) ⟨x, submodule.mem_span_singleton_self x⟩
-    = norm' 𝕜 x • (linear_equiv.coord 𝕜 E x h) ⟨x, submodule.mem_span_singleton_self x⟩ : rfl
-... = norm' 𝕜 x • 1 : by rw linear_equiv.coord_self 𝕜 E x h
-... = norm' 𝕜 x : mul_one _
-
 lemma coord_norm' (x : E) (h : x ≠ 0) : ∥norm' 𝕜 x • coord 𝕜 x h∥ = 1 :=
 by rw [norm_smul, norm_norm', coord_norm, mul_inv_cancel (mt norm_eq_zero.mp h)]
 
@@ -164,7 +155,7 @@ variables [has_exists_extension_norm_eq.{u} 𝕜]
 open submodule
 
 /-- Corollary of Hahn-Banach.  Given a nonzero element `x` of a normed space, there exists an
-    element of the dual space, of norm 1, whose value on `x` is `∥x∥`. -/
+    element of the dual space, of norm `1`, whose value on `x` is `∥x∥`. -/
 theorem exists_dual_vector (x : E) (h : x ≠ 0) : ∃ g : E →L[𝕜] 𝕜, ∥g∥ = 1 ∧ g x = norm' 𝕜 x :=
 begin
   let p : submodule 𝕜 E := span 𝕜 {x},
@@ -174,7 +165,7 @@ begin
   { rw [hg.2, coord_norm'] },
   { calc g x = g (⟨x, mem_span_singleton_self x⟩ : span 𝕜 {x}) : by rw coe_mk
     ... = (norm' 𝕜 x • coord 𝕜 x h) (⟨x, mem_span_singleton_self x⟩ : span 𝕜 {x}) : by rw ← hg.1
-    ... = norm' 𝕜 x : coord_self' _ _ }
+    ... = norm' 𝕜 x : by simp [coord_self] }
 end
 
 /-- Variant of the above theorem, eliminating the hypothesis that `x` be nonzero, and choosing

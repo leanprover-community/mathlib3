@@ -508,10 +508,6 @@ mul_div_cancel' _ two_ne_zero'
 @[simp] lemma sinh_neg : sinh (-x) = -sinh x :=
 by simp [sinh, exp_neg, (neg_div _ _).symm, add_mul]
 
-/-- `sinh` is strictly monotone-/
-lemma sinh_strict_mono : strict_mono sinh :=
-strict_mono_of_deriv_pos differentiable_sinh (by rw [real.deriv_sinh]; exact cosh_pos)
-
 private lemma sinh_add_aux {a b c d : ℂ} :
   (a - b) * (c + d) + (a + b) * (c - d) = 2 * (a * c - b * d) := by ring
 
@@ -529,10 +525,6 @@ end
 
 @[simp] lemma cosh_neg : cosh (-x) = cosh x :=
 by simp [add_comm, cosh, exp_neg]
-
-/-- `real.cosh` is positive-/
-lemma cosh_pos (x : ℝ) : 0 < real.cosh x :=
-(cosh_eq x).symm ▸ half_pos (add_pos (exp_pos x) (exp_pos (-x)))
 
 private lemma cosh_add_aux {a b c d : ℂ} :
   (a + b) * (c + d) + (a - b) * (c - d) = 2 * (a * c + b * d) := by ring
@@ -617,19 +609,6 @@ by rw [← mul_right_inj' (@two_ne_zero' ℂ _ _ _), mul_sub,
 
 lemma cosh_sq_sub_sinh_sq : cosh x ^ 2 - sinh x ^ 2 = 1 :=
 by rw [sq_sub_sq, cosh_add_sinh, cosh_sub_sinh, ← exp_add, add_neg_self, exp_zero]
-
-/-- A real version of `complex.cosh_sq_sub_sinh_sq`-/
-lemma real.cosh_sq_sub_sinh_sq (x : ℝ) : cosh x ^ 2 - sinh x ^ 2 = 1 :=
-begin
-  rw [sinh, cosh],
-  have := complex.cosh_sq_sub_sinh_sq x,
-  apply_fun complex.re at this,
-  rw [pow_two, pow_two] at this,
-  change (⟨_, _⟩ : ℂ).re - (⟨_, _⟩ : ℂ).re = 1 at this,
-  rw [complex.cosh_of_real_im x, complex.sinh_of_real_im x] at this,
-  norm_num at this,
-  rwa [pow_two, pow_two],
-end
 
 @[simp] lemma sin_zero : sin 0 = 0 := by simp [sin]
 
@@ -919,6 +898,17 @@ by simp [sub_eq_add_neg, sinh_add, sinh_neg, cosh_neg]
 lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
 by simp [sub_eq_add_neg, cosh_add, sinh_neg, cosh_neg]
 
+/-- A real version of `complex.cosh_sq_sub_sinh_sq`-/
+lemma real.cosh_sq_sub_sinh_sq (x : ℝ) : cosh x ^ 2 - sinh x ^ 2 = 1 :=
+begin
+  rw [sinh, cosh],
+  have := congr_arg complex.re (complex.cosh_sq_sub_sinh_sq x),
+  rw [pow_two, pow_two] at this,
+  change (⟨_, _⟩ : ℂ).re - (⟨_, _⟩ : ℂ).re = 1 at this,
+  rw [complex.cosh_of_real_im x, complex.sinh_of_real_im x, mul_zero, sub_zero, sub_zero] at this,
+  rwa [pow_two, pow_two],
+end
+
 lemma tanh_eq_sinh_div_cosh : tanh x = sinh x / cosh x :=
 of_real_inj.1 $ by simp [tanh_eq_sinh_div_cosh]
 
@@ -978,6 +968,10 @@ by rw [← exp_zero, exp_lt_exp]
 
 lemma exp_lt_one_iff {x : ℝ} : exp x < 1 ↔ x < 0 :=
 by rw [← exp_zero, exp_lt_exp]
+
+/-- `real.cosh` is positive-/
+lemma cosh_pos (x : ℝ) : 0 < real.cosh x :=
+(cosh_eq x).symm ▸ half_pos (add_pos (exp_pos x) (exp_pos (-x)))
 
 end real
 

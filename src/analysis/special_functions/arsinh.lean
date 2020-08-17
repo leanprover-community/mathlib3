@@ -6,7 +6,6 @@ Authors: James Arthur, Chris Hughes, Shing Tak Lam.
 import analysis.special_functions.trigonometric
 
 open real
-local attribute [pp_nodot] real.log
 noncomputable theory
 
 /-!
@@ -18,8 +17,8 @@ inverse, arsinh.
 ## Main Results
 
 - `sinh_injective`: The proof that `sinh` is injective
-- `sinm_surjective`: The proof that `sinh` is surjective
-- `sinm_bijective`: The proof `sinh` is bijective
+- `sinh_surjective`: The proof that `sinh` is surjective
+- `sinh_bijective`: The proof `sinh` is bijective
 - `arsinh`: The inverse function of `sinh`
 
 ## Tags
@@ -107,9 +106,8 @@ lemma sqrt_one_add_sinh_sq (x : ℝ): sqrt (1 + sinh x ^ 2) = cosh x :=
 begin
   have H := real.cosh_sq_sub_sinh_sq x,
   have G : cosh x ^ 2 - sinh x ^ 2 + sinh x ^ 2 = 1 + sinh x ^ 2 := by rw H,
-  ring at G,
-  rw add_comm at G,
-  rw [G.symm, sqrt_sqr],
+  rw sub_add_cancel at G,
+  rw [←G, sqrt_sqr],
   exact le_of_lt (cosh_pos x),
 end
 

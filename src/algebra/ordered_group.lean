@@ -477,7 +477,6 @@ iff.intro
 lemma zero_lt_iff_ne_zero : 0 < a ↔ a ≠ 0 :=
 iff.intro ne_of_gt $ assume hne, lt_of_le_of_ne (zero_le _) hne.symm
 
-@[nolint ge_or_gt]
 lemma exists_pos_add_of_lt (h : a < b) : ∃ c > 0, a + c = b :=
 begin
   obtain ⟨c, hc⟩ := le_iff_exists_add.1 (le_of_lt h),

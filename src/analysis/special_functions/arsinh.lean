@@ -33,27 +33,12 @@ def arsinh (x : ℝ) := log (x + sqrt(1 + x^2))
 /-- `sinh` is injective, `∀ a b, sinh a = sinh b → a = b` -/
 lemma sinh_injective : function.injective sinh := sinh_strict_mono.injective
 
-private lemma aux_lemma (x : ℝ) : 1 / (x + sqrt(1 + x^2)) = - x + sqrt(1 + x^2) :=
+private lemma aux_lemma (x : ℝ) : 1 / (x + sqrt (1 + x^2)) = -x + sqrt (1 + x^2) :=
 begin
-  have H : (x - sqrt (1 + x^2))/((x - sqrt (1 + x^2)) * (x + sqrt (1 + x^2))) = -x + sqrt (1 + x^2),
-  { have G : (x - sqrt (1 + x^2)) * (x + sqrt (1 + x^2)) = -1,
-    { ring,
-      rw sqr_sqrt,
-      { ring },
-      { linarith [pow_two_nonneg x]} },
-    rw G,
-    ring },
-  rw [division_def, mul_inv', ←mul_assoc, mul_comm (x - sqrt (1 + x ^ 2)), inv_mul_cancel] at H,
-  rw one_mul at H,
-  rw [division_def, one_mul],
-  exact H,
-  { intros fx,
-    rw sub_eq_zero at fx,
-    have fx_sq : x^2 = (sqrt (1 + x ^ 2)) ^ 2 := by rw fx.symm,
-    rw sqr_sqrt at fx_sq,
-    { linarith },
-    { have G : 0 ≤ x^2 := by {apply pow_two_nonneg},
-    linarith }}
+  refine (eq_one_div_of_mul_eq_one _).symm,
+  have : 0 ≤ 1 + x ^ 2 := add_nonneg zero_le_one (pow_two_nonneg x),
+  rw [add_comm, ← sub_eq_neg_add, ← mul_self_sub_mul_self,
+      mul_self_sqrt this, pow_two, add_sub_cancel]
 end
 
 private lemma b_lt_sqrt_b_sq_add_one (b : ℝ) : b < sqrt (b^2 + 1) :=

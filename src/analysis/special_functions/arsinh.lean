@@ -88,14 +88,4 @@ end
 
 /-- `arsinh` is the left inverse of `sinh` -/
 lemma sinh_arsinh (x : ℝ) : arsinh (sinh x) = x :=
-begin
-  unfold arsinh,
-  rw sinh_eq,
-  apply exp_injective,
-  rw exp_log,
-  { rw [← sinh_eq, sqrt_one_add_sinh_sq, cosh_eq, sinh_eq],
-    ring },
-  { rw [← sinh_eq, sqrt_one_add_sinh_sq, cosh_eq, sinh_eq],
-    ring,
-    exact exp_pos x },
-end
+function.right_inverse_of_injective_of_left_inverse sinh_injective arsinh_sinh x

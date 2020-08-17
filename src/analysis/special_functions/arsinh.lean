@@ -107,7 +107,7 @@ begin
   have H := real.cosh_sq_sub_sinh_sq x,
   have G : cosh x ^ 2 - sinh x ^ 2 + sinh x ^ 2 = 1 + sinh x ^ 2 := by rw H,
   rw sub_add_cancel at G,
-  rw [G.symm, sqrt_sqr],
+  rw [←G, sqrt_sqr],
   exact le_of_lt (cosh_pos x),
 end
 

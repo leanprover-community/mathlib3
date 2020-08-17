@@ -757,13 +757,16 @@ def lin_coe : R →ₗ[R] f.codomain :=
   map_add'  := f.to_map.map_add,
   map_smul' := f.to_map.map_mul }
 
+/-- Map from ideals of `R` to submodules of `S` induced by `f`. -/
+-- This was previously a `has_coe` instance, but if `f.codomain = R` then this will loop.
+-- It could be a `has_coe_t` instance, but we keep it explicit here to avoid slowing down
+-- the rest of the library.
+def coe_submodule (I : ideal R) : submodule R f.codomain := submodule.map f.lin_coe I
+
 variables {f}
 
-instance coe_submodules : has_coe (ideal R) (submodule R f.codomain) :=
-⟨λ I, submodule.map f.lin_coe I⟩
-
-lemma mem_coe (I : ideal R) {x : S} :
-  x ∈ (I : submodule R f.codomain) ↔ ∃ y : R, y ∈ I ∧ f.to_map y = x :=
+lemma mem_coe_submodule (I : ideal R) {x : S} :
+  x ∈ f.coe_submodule I ↔ ∃ y : R, y ∈ I ∧ f.to_map y = x :=
 iff.rfl
 
 @[simp] lemma lin_coe_apply {x} : f.lin_coe x = f.to_map x := rfl

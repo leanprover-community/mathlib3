@@ -13,11 +13,11 @@ import tactic
 
 Informally, a "linear recurrence" is an assertion of the form
 `∀ n : ℕ, u (n + d) = a 0 * u n + a 1 * u (n+1) + ... + a (d-1) * u (n+d-1)`,
-where `u` is a sequence, `d` is the **order** of the recurrence and the `a i`
-are its **coefficients**.
+where `u` is a sequence, `d` is the *order* of the recurrence and the `a i`
+are its *coefficients*.
 
 In this file, we define `linear_recurrence d a` to represent such a relation,
-and we call a sequence `u` which verifies it a **solution** of the linear recurrence.
+and we call a sequence `u` which verifies it a *solution* of the linear recurrence.
 
 We prove a few basic lemmas about this concept, such as :
 
@@ -27,11 +27,11 @@ We prove a few basic lemmas about this concept, such as :
   between the solution space and `fin d → α`, aka `α ^ d`. As a consequence, two
   solutions are equal if and only if their first `d` terms are equals.
 * a geometric sequence `q ^ n` is solution iff `q` is a root of a particular polynomial,
-  which we call the **auxiliary polynomial** of the recurrence
+  which we call the *characteristic polynomial* of the recurrence
 
 Of course, although we can inductively generate solutions (cf `mk_sol`), the
 interesting part would be to determinate closed-forms for the solutions.
-This is currently **not implemented**, as we are waiting for definition and
+This is currently *not implemented*, as we are waiting for definition and
 properties of eigenvalues and eigenvectors.
 
 -/
@@ -44,7 +44,7 @@ open_locale big_operators
   order `n` and `n` coefficients. -/
 structure linear_recurrence (α : Type*) [comm_semiring α] := (order : ℕ) (coeffs : fin order → α)
 
-instance truc (α : Type*) [comm_semiring α] : inhabited (linear_recurrence α) :=
+instance (α : Type*) [comm_semiring α] : inhabited (linear_recurrence α) :=
 ⟨⟨0, default _⟩⟩
 
 namespace linear_recurrence
@@ -56,7 +56,7 @@ variables {α : Type*} [comm_semiring α] (E : linear_recurrence α)
 /-- We say that a sequence `u` is solution of `linear_recurrence order coeffs` when we have
   `u (n + order) = ∑ i : fin order, coeffs i * u (n + i)` for any `n`. -/
 def is_solution (u : ℕ → α) :=
-  ∀ n, u (n + E.order) = (∑ i, E.coeffs i * u (n + i))
+  ∀ n, u (n + E.order) = ∑ i, E.coeffs i * u (n + i)
 
 /-- A solution of a `linear_recurrence` which satisfies certain initial conditions.
   We will prove this is the only such solution. -/
@@ -66,13 +66,11 @@ def mk_sol (init : fin E.order → α) : ℕ → α
     E.coeffs k * mk_sol (n - E.order + k)
 
 /-- `E.mk_sol` indeed gives solutions to `E`. -/
-lemma is_sol_mk_sol (init : fin E.order → α) :
-  E.is_solution (E.mk_sol init) :=
+lemma is_sol_mk_sol (init : fin E.order → α) : E.is_solution (E.mk_sol init) :=
   λ n, by rw mk_sol; simp
 
 /-- `E.mk_sol init`'s first `E.order` terms are `init`. -/
-lemma mk_sol_eq_init (init : fin E.order → α) :
-  ∀ n : fin E.order, E.mk_sol init n = init n :=
+lemma mk_sol_eq_init (init : fin E.order → α) : ∀ n : fin E.order, E.mk_sol init n = init n :=
   λ n, by rw mk_sol; simp [fin.coe_eq_val, n.2]
 
 /-- If `u` is a solution to `E` and `init` designates its first `E.order` values,
@@ -83,9 +81,7 @@ lemma eq_mk_of_is_sol_of_eq_init {u : ℕ → α} {init : fin E.order → α}
 | n := if h' : n < E.order
   then by rw mk_sol; simp only [h', dif_pos]; exact_mod_cast heq ⟨n, h'⟩
   else begin
-    rw mk_sol,
-    rw ← nat.sub_add_cancel (le_of_not_lt h'),
-    rw h (n-E.order),
+    rw [mk_sol, ← nat.sub_add_cancel (le_of_not_lt h'), h (n-E.order)],
     simp [h'],
     congr',
     ext k,
@@ -97,10 +93,8 @@ lemma eq_mk_of_is_sol_of_eq_init {u : ℕ → α} {init : fin E.order → α}
   then `u = E.mk_sol init`. This proves that `E.mk_sol init` is the only solution
   of `E` whose first `E.order` values are given by `init`. -/
 lemma eq_mk_of_is_sol_of_eq_init' {u : ℕ → α} {init : fin E.order → α}
-  (h : E.is_solution u) (heq : ∀ n : fin E.order, u n = init n) :
-  u = E.mk_sol init := funext (E.eq_mk_of_is_sol_of_eq_init h heq)
-
-example : semimodule α (ℕ → α) := by apply_instance
+  (h : E.is_solution u) (heq : ∀ n : fin E.order, u n = init n) : u = E.mk_sol init :=
+  funext (E.eq_mk_of_is_sol_of_eq_init h heq)
 
 /-- The space of solutions of `E`, as a `submodule` over `α` of the semimodule `ℕ → α`. -/
 def sol_space : submodule α (ℕ → α) :=
@@ -111,16 +105,16 @@ def sol_space : submodule α (ℕ → α) :=
 
 /-- Defining property of the solution space : `u` is a solution
   iff it belongs to the solution space. -/
-lemma is_sol_iff_mem_sol_space (u : ℕ → α) :
-  E.is_solution u ↔ u ∈ E.sol_space := by refl
+lemma is_sol_iff_mem_sol_space (u : ℕ → α) : E.is_solution u ↔ u ∈ E.sol_space :=
+  iff.rfl
 
 /-- The function that maps a solution `u` of `E` to its first
   `E.order` terms as a `linear_equiv`. -/
 def to_init :
   E.sol_space ≃ₗ[α] (fin E.order → α) :=
 { to_fun := λ u x, (u : ℕ → α) x,
-  map_add' := λ u v, by ext; simp; norm_cast,
-  map_smul' := λ a u, by ext; simp,
+  map_add' := λ u v, by { ext, simp },
+  map_smul' := λ a u, by { ext, simp },
   inv_fun := λ u, ⟨E.mk_sol u, E.is_sol_mk_sol u⟩,
   left_inv := λ u, by ext n; symmetry; apply E.eq_mk_of_is_sol_of_eq_init u.2; intros k; refl,
   right_inv := λ u, function.funext_iff.mpr (λ n, E.mk_sol_eq_init u n) }
@@ -136,8 +130,6 @@ begin
   change u'.val = v'.val,
   suffices h' : u' = v', from h' ▸ rfl,
   rw [← E.to_init.to_equiv.apply_eq_iff_eq, linear_equiv.coe_to_equiv],
-  unfold_coes,
-  simp only [linear_recurrence.to_init],
   ext x,
   exact_mod_cast h (mem_range.mpr x.2)
 end
@@ -153,16 +145,13 @@ def tuple_succ : (fin E.order → α) →ₗ[α] (fin E.order → α) :=
   map_add' := λ x y,
     begin
       ext i,
-      by_cases h : i.1 + 1 < E.order,
-      { simp [h] },
-      { simp [h, mul_add, sum_add_distrib] }
+      split_ifs ; simp [h, mul_add, sum_add_distrib],
     end,
   map_smul' := λ x y,
     begin
       ext i,
-      by_cases h : i.1 + 1 < E.order,
-      { simp [h] },
-      { simp [h, mul_sum], congr, ext, ac_refl }
+      split_ifs ; simp [h, mul_sum],
+      exact sum_congr rfl (λ x _, by ac_refl),
     end }
 
 end comm_semiring
@@ -172,8 +161,7 @@ section field
 variables {α : Type*} [field α] (E : linear_recurrence α)
 
 /-- The dimension of `E.sol_space` is `E.order`. -/
-lemma sol_space_dim :
-  vector_space.dim α E.sol_space = E.order :=
+lemma sol_space_dim : vector_space.dim α E.sol_space = E.order :=
 @dim_fin_fun α _ E.order ▸ E.to_init.dim_eq
 
 end field
@@ -182,30 +170,23 @@ section comm_ring
 
 variables {α : Type*} [comm_ring α] (E : linear_recurrence α)
 
-/-- The auxiliary polynomial of `E` is `X ^ E.order - ∑ i : fin E.order, (E.coeffs i) * X ^ i`. -/
-def aux_poly : polynomial α :=
+/-- The characteristic polynomial of `E` is `X ^ E.order - ∑ i : fin E.order, (E.coeffs i) * X ^ i`. -/
+def char_poly : polynomial α :=
   polynomial.monomial E.order 1 - (∑ i : fin E.order, polynomial.monomial i (E.coeffs i))
 
 /-- The geometric sequence `q^n` is a solution of `E` iff
-  `q` is a root of `E`'s auxiliary polynomial. -/
-lemma geom_sol_iff_root_aux_poly (q : α) :
-  E.is_solution (λ n, q^n) ↔ E.aux_poly.is_root q :=
+  `q` is a root of `E`'s characteristic polynomial. -/
+lemma geom_sol_iff_root_aux_poly (q : α) : E.is_solution (λ n, q^n) ↔ E.char_poly.is_root q :=
 begin
-  rw [aux_poly, polynomial.is_root.def, polynomial.eval],
+  rw [char_poly, polynomial.is_root.def, polynomial.eval],
   simp only [polynomial.eval₂_finset_sum, one_mul,
               ring_hom.id_apply, polynomial.eval₂_monomial, polynomial.eval₂_sub],
   split,
   { intro h,
-    specialize h 0,
-    simp only [zero_add] at h,
-    rwa ← sub_eq_zero_iff_eq at h },
+    simpa [sub_eq_zero_iff_eq] using h 0 },
   { intros h n,
-    rw sub_eq_zero_iff_eq at h,
-    simp only [pow_add],
-    rw [h, mul_sum],
-    congr,
-    ext,
-    ring }
+    simp only [pow_add, sub_eq_zero_iff_eq.mp h, mul_sum],
+    exact sum_congr rfl (λ _ _, by ring) }
 end
 
 end comm_ring

@@ -8,7 +8,17 @@ import category_theory.abelian.pseudoelements
 /-!
 # The four lemma
 
-We prove the "mono" version of the four lemma in an arbitrary abelian category.
+Consider the following commutative diagram with exact rows in an abelian category:
+
+A ---f--> B ---g--> C ---h--> D
+|         |         |         |
+α         β         γ         δ
+|         |         |         |
+v         v         v         v
+A' --f'-> B' --g'-> C' --h'-> D'
+
+We prove the "mono" version of the four lemma: if α is an epimorphism and β and δ are monomorphisms,
+then γ is a monomorphism.
 
 ## Future work
 
@@ -29,17 +39,6 @@ local attribute [instance] preadditive.has_equalizers_of_has_kernels
 local attribute [instance] object_to_sort hom_to_fun
 
 section four
-
-/-
-
-A ---f--> B ---g--> C ---h--> D
-|         |         |         |
-α         β         γ         δ
-|         |         |         |
-v         v         v         v
-A' --f'-> B' --g'-> C' --h'-> D'
-
--/
 
 variables {A B C D A' B' C' D' : V}
 variables {f : A ⟶ B} {g : B ⟶ C} {h : C ⟶ D}

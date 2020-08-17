@@ -9,18 +9,19 @@ import category_theory.over
 /-!
 # Pseudoelements in abelian categories
 
-A *pseudoelement* of an object `X` in an abelian category `C` is an equivalence
-class of arrows ending in `X`. While the construction shows that pseudoelements are actually
-subobjects of `X` rather than "elements", it is possible to chase these pseudoelements through
-commutative diagrams in an abelian category to prove exactness properties. This is done using
-some "diagram-chasing metatheorems" proved in this file. In many cases, a proof in the category
-of abelian groups can more or less directly be converted into a proof using pseudoelements.
+A *pseudoelement* of an object `X` in an abelian category `C` is an equivalence class of arrows
+ending in `X`, where two arrows are considered equivalent if we can find two epimorphisms with a
+common domain making a commutative square with the two arrows. While the construction shows that
+pseudoelements are actually subobjects of `X` rather than "elements", it is possible to chase these
+pseudoelements through commutative diagrams in an abelian category to prove exactness properties.
+This is done using some "diagram-chasing metatheorems" proved in this file. In many cases, a proof
+in the category of abelian groups can more or less directly be converted into a proof using
+pseudoelements.
 
-A classical application of pseudoelements are diagram lemmas like the four lemma or the snake
-lemma.
+A classic application of pseudoelements are diagram lemmas like the four lemma or the snake lemma.
 
 Pseudoelements are in some ways weaker than actual elements in a concrete category. The most
-important limitation is that there is no existensionality principle: If `f g : X ⟶ Y`, then
+important limitation is that there is no extensionality principle: If `f g : X ⟶ Y`, then
 `∀ x ∈ X, f x = g x` does not necessarily imply that `f = g` (however, if `f = 0` or `g = 0`,
 it does). A corollary of this is that we can not define arrows in abelian categories by dictating
 their action on pseudoelements. Thus, a usual style of proofs in abelian categories is this:
@@ -28,7 +29,7 @@ First, we construct some morphism using universal properties, and then we use di
 of pseudoelements to verify that is has some desirable property such as exactness.
 
 It should be noted that the Freyd-Mitchell embedding theorem gives a vastly stronger notion of
-pseudoelement (in particular one that gives existensionality). However, this theorem is quite
+pseudoelement (in particular one that gives extensionality). However, this theorem is quite
 difficult to prove and probably out of reach for a formal proof for the time being.
 
 ## Main results
@@ -122,42 +123,42 @@ lemma pseudo_equal_equiv {P : C} : equivalence (pseudo_equal P) :=
 ⟨pseudo_equal_refl, pseudo_equal_symm, pseudo_equal_trans⟩
 
 /-- The arrows with codomain `P` equipped with the equivalence relation of being pseudo-equal. -/
-def pseudoelements.setoid (P : C) : setoid (over P) :=
+def pseudoelement.setoid (P : C) : setoid (over P) :=
 { r := pseudo_equal P,
   iseqv := pseudo_equal_equiv }
 
-local attribute [instance] pseudoelements.setoid
+local attribute [instance] pseudoelement.setoid
 
 /-- A `pseudoelement` of `P` is just an equivalence class of arrows ending in `P` by being
     pseudo-equal. -/
-def pseudoelements (P : C) : Type (max u v) := quotient (pseudoelements.setoid P)
+def pseudoelement (P : C) : Type (max u v) := quotient (pseudoelement.setoid P)
 
 namespace pseudoelements
 
 /-- A coercion from an object of an abelian category to its pseudoelements. -/
 def object_to_sort : has_coe_to_sort C :=
 { S := Type (max u v),
-  coe := λ P, pseudoelements P }
+  coe := λ P, pseudoelement P }
 
 local attribute [instance] object_to_sort
 
 /-- A coercion from an arrow with codomain `P` to its associated pseudoelement. -/
-def over_to_sort {P : C} : has_coe (over P) (pseudoelements P) :=
+def over_to_sort {P : C} : has_coe (over P) (pseudoelement P) :=
 ⟨quot.mk (pseudo_equal P)⟩
 
 local attribute [instance] over_to_sort
 
-lemma over_coe_def {P Q : C} (a : Q ⟶ P) : (a : pseudoelements P) = ⟦a⟧ := rfl
+lemma over_coe_def {P Q : C} (a : Q ⟶ P) : (a : pseudoelement P) = ⟦a⟧ := rfl
 
 /-- If two elements are pseudo-equal, then their composition with a morphism is, too. -/
 lemma pseudo_apply_aux {P Q : C} (f : P ⟶ Q) (a b : over P) :
-  a ≈ b → ⟦app f a⟧ = ⟦app f b⟧ :=
-λ ⟨R, p, q, ep, eq, comm⟩, quotient.sound ⟨R, p, q, ep, eq,
-  show p ≫ a.hom ≫ f = q ≫ b.hom ≫ f, by rw [←category.assoc, comm, category.assoc]⟩
+  a ≈ b → app f a ≈ app f b :=
+λ ⟨R, p, q, ep, eq, comm⟩,
+  ⟨R, p, q, ep, eq, show p ≫ a.hom ≫ f = q ≫ b.hom ≫ f, by rw reassoc_of comm⟩
 
 /-- A morphism `f` induces a function `pseudo_apply f` on pseudoelements. -/
 def pseudo_apply {P Q : C} (f : P ⟶ Q) : P → Q :=
-quotient.lift (λ (g : over P), ⟦app f g⟧) (pseudo_apply_aux f)
+quotient.map (λ (g : over P), app f g) (pseudo_apply_aux f)
 
 /-- A coercion from morphisms to functions on pseudoelements -/
 def hom_to_fun {P Q : C} : has_coe_to_fun (P ⟶ Q) := ⟨_, pseudo_apply⟩
@@ -203,10 +204,10 @@ quotient.sound $ (pseudo_zero_aux R _).2 rfl
 def pseudo_zero {P : C} : P := ⟦(0 : P ⟶ P)⟧
 
 instance {P : C} : has_zero P := ⟨pseudo_zero⟩
-instance {P : C} : inhabited (pseudoelements P) := ⟨0⟩
+instance {P : C} : inhabited (pseudoelement P) := ⟨0⟩
 
-lemma pseudo_zero_def {P : C} : (0 : pseudoelements P) = ⟦(0 : P ⟶ P)⟧ := rfl
-@[simp] lemma zero_eq_zero {P Q : C} : ⟦((0 : Q ⟶ P) : over P)⟧ = (0 : pseudoelements P) :=
+lemma pseudo_zero_def {P : C} : (0 : pseudoelement P) = ⟦(0 : P ⟶ P)⟧ := rfl
+@[simp] lemma zero_eq_zero {P Q : C} : ⟦((0 : Q ⟶ P) : over P)⟧ = (0 : pseudoelement P) :=
 zero_eq_zero'
 
 /-- The pseudoelement induced by an arrow is zero precisely when that arrow is zero -/

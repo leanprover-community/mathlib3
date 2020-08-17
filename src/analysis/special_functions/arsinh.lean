@@ -81,7 +81,7 @@ end
 /-- `sinh` is surjective, `∀ b, ∃ a, sinh a = b`. In this case, we use `a = arsinh b` -/
 lemma sinh_surjective : function.surjective sinh := function.left_inverse.surjective arsinh_sinh
 
-/-- `sinh` is bijective, both injective and surjective-/
+/-- `sinh` is bijective, both injective and surjective. -/
 lemma sinh_bijective : function.bijective sinh :=
 ⟨sinh_injective, sinh_surjective⟩
 

@@ -717,7 +717,14 @@ The names in `instances` are the projections from `struct_n` to the structures t
 The names in `fields` are the standard fields of `struct_n`. -/
 meta def subobject_names (struct_n : name) : tactic (list name × list name) :=
 do env ← get_env,
-   [c] ← pure $ env.constructors_of struct_n | fail "too many constructors",
+   c ← match env.constructors_of struct_n with
+       | [c] := pure c
+       | [] :=
+         if env.is_inductive struct_n
+           then fail format!"{struct_n} does not have constructors"
+           else fail format!"{struct_n} is not an inductive type"
+       | _ := fail "too many constructors"
+       end,
    vs  ← var_names <$> (mk_const c >>= infer_type),
    fields ← env.structure_fields struct_n,
    return $ fields.partition (λ fn, ↑("_" ++ fn.to_string) ∈ vs)
@@ -732,7 +739,9 @@ open functor function
 
 /-- `expanded_field_list struct_n` produces a list of the names of the fields of the structure
 named `struct_n`. These are returned as pairs of names `(prefix, name)`, where the full name
-of the projection is `prefix.name`. -/
+of the projection is `prefix.name`.
+
+`struct_n` cannot be a synonym for a `structure`, it must be itself a `structure` -/
 meta def expanded_field_list (struct_n : name) : tactic (list $ name × name) :=
 dlist.to_list <$> expanded_field_list' struct_n
 

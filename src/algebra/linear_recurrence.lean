@@ -6,7 +6,6 @@ Authors: Anatole Dedecker
 import data.polynomial.ring_division
 import linear_algebra.dimension
 import algebra.polynomial.big_operators
-import tactic
 
 /-!
 # Linear recurrence

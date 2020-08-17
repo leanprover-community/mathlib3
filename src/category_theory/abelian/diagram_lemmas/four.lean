@@ -38,7 +38,7 @@ variables {V : Type u} [category.{v} V] [abelian V]
 local attribute [instance] preadditive.has_equalizers_of_has_kernels
 local attribute [instance] object_to_sort hom_to_fun
 
-section four
+namespace category_theory.abelian
 
 variables {A B C D A' B' C' D' : V}
 variables {f : A ⟶ B} {g : B ⟶ C} {h : C ⟶ D}
@@ -83,4 +83,4 @@ mono_of_zero_of_map_zero _ $ λ c hc,
          ... = g (f a) : by rw this
          ... = 0       : pseudo_exact_of_exact.1 _
 
-end four
+end category_theory.abelian

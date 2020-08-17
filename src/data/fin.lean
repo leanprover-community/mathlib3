@@ -319,8 +319,6 @@ lemma cast_succ_lt_last (a : fin n) : cast_succ a < last n := lt_iff_val_lt_val.
 lemma zero_lt_last : (0 : fin (n + 2)) < last (n + 1) :=
 by simp [lt_iff_val_lt_val]
 
-lemma pred_one_add (i : fin (n + 1)) (h : i.val < n + 1) : pred (i + 1) _ = cast_lt i := sorry
-
 lemma coe_nat_eq_last (n) : (n : fin (n + 1)) = fin.last n :=
 by { rw [←fin.of_nat_eq_coe, fin.of_nat, fin.last], simp only [nat.mod_eq_of_lt n.lt_succ_self] }
 
@@ -365,6 +363,10 @@ lemma lt_succ : a.cast_succ < a.succ :=
 by { rw [cast_succ, lt_iff_val_lt_val, cast_add_val, succ_val], exact lt_add_one a.val }
 
 @[simp] lemma pred_one {n : ℕ} : fin.pred (1 : fin (n + 2)) (ne.symm (ne_of_lt zero_lt_one)) = 0 := rfl
+
+lemma pred_one_add (i : fin (n + 2)) (h : i.val < n + 1) :
+  pred (i + 1) (ne_of_gt (zero_lt_not_last_add_one _ (lt_iff_val_lt_val.mpr h))) = cast_lt i h :=
+by simp [eq_iff_veq, succ_pred_eq_of_pos, h, add_def, mod_eq_of_lt]
 
 /-- `min n m` as an element of `fin (m + 1)` -/
 def clamp (n m : ℕ) : fin (m + 1) := fin.of_nat $ min n m

@@ -46,7 +46,7 @@ local attribute [instance] has_limit_cospan_of_has_limit_pair_of_has_limit_paral
 def has_pullbacks_of_has_binary_products_of_has_equalizers
   (C : Type u) [𝒞 : category.{v} C] [has_binary_products C] [has_equalizers C] :
   has_pullbacks C :=
-has_pullbacks_of_has_limit_cospan C
+{ has_limit := λ F, has_limit_of_iso (diagram_iso_cospan F).symm }
 
 end
 

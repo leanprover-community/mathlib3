@@ -3,7 +3,8 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.concrete_category
+import category_theory.concrete_category.bundled_hom
+import category_theory.concrete_category.reflects_isomorphisms
 import algebra.punit_instances
 
 /-!
@@ -182,3 +183,30 @@ def mul_equiv_iso_CommMon_iso {X Y : Type u} [comm_monoid X] [comm_monoid Y] :
   (X ≃* Y) ≅ (CommMon.of X ≅ CommMon.of Y) :=
 { hom := λ e, e.to_CommMon_iso,
   inv := λ i, i.CommMon_iso_to_mul_equiv, }
+
+@[to_additive]
+instance Mon.forget_reflects_isos : reflects_isomorphisms (forget Mon.{u}) :=
+{ reflects := λ X Y f _,
+  begin
+    resetI,
+    let i := as_iso ((forget Mon).map f),
+    let e : X ≃* Y := { ..f, ..i.to_equiv },
+    exact { ..e.to_Mon_iso },
+  end }
+
+@[to_additive]
+instance CommMon.forget_reflects_isos : reflects_isomorphisms (forget CommMon.{u}) :=
+{ reflects := λ X Y f _,
+  begin
+    resetI,
+    let i := as_iso ((forget CommMon).map f),
+    let e : X ≃* Y := { ..f, ..i.to_equiv },
+    exact { ..e.to_CommMon_iso },
+  end }
+
+/-!
+Once we've shown that the forgetful functors to type reflect isomorphisms,
+we automatically obtain that the `forget₂` functors between our concrete categories
+reflect isomorphisms.
+-/
+example : reflects_isomorphisms (forget₂ CommMon Mon) := by apply_instance

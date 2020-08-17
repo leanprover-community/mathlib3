@@ -55,10 +55,10 @@ jobs:
         if: always() && github.repository == 'leanprover-community/mathlib'
         run: |
           archive_name="$(git rev-parse HEAD).tar.gz"
-          tar czf "$archive_name" src
+          find src/ -name "*.olean" | tar czf "$archive_name" -T -
           azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false
           archive_name="$(git rev-parse HEAD).tar.xz"
-          tar cJf "$archive_name" src
+          find src/ -name "*.olean" | tar cJf "$archive_name" -T -
           azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false
 
       - name: setup precompiled zip file

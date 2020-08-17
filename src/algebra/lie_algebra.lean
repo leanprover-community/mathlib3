@@ -60,28 +60,14 @@ namespace ring_commutator
 variables {A : Type v} [ring A]
 
 /--
-The ring commutator captures the extent to which a ring is commutative. It is identically zero
-exactly when the ring is commutative.
+The bracket operation for rings is the ring commutator, which captures the extent to which a ring is
+commutative. It is identically zero exactly when the ring is commutative.
 -/
-def commutator (x y : A) := x*y - y*x
+@[priority 100]
+instance : has_bracket A :=
+{ bracket := λ x y, x*y - y*x }
 
-local notation `⁅`x`,` y`⁆` := commutator x y
-
-@[simp] lemma add_left (x y z : A) :
-  ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆ :=
-by simp [commutator, right_distrib, left_distrib, sub_eq_add_neg, add_comm, add_left_comm]
-
-@[simp] lemma add_right (x y z : A) :
-  ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆ :=
-by simp [commutator, right_distrib, left_distrib, sub_eq_add_neg, add_comm, add_left_comm]
-
-@[simp] lemma alternate (x : A) :
-  ⁅x, x⁆ = 0 :=
-by simp [commutator]
-
-lemma jacobi (x y z : A) :
-  ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0 :=
-by { unfold commutator, noncomm_ring, }
+lemma commutator (x y : A) : ⁅x, y⁆ = x*y - y*x := rfl
 
 end ring_commutator
 
@@ -146,14 +132,14 @@ end
 /--
 An associative ring gives rise to a Lie ring by taking the bracket to be the ring commutator.
 -/
-def lie_ring.of_associative_ring (A : Type v) [ring A] : lie_ring A :=
-{ bracket  := ring_commutator.commutator,
-  add_lie  := ring_commutator.add_left,
-  lie_add  := ring_commutator.add_right,
-  lie_self := ring_commutator.alternate,
-  jacobi   := ring_commutator.jacobi }
-
-local attribute [instance] lie_ring.of_associative_ring
+@[priority 100]
+instance lie_ring.of_associative_ring (A : Type v) [ring A] : lie_ring A :=
+{ add_lie  := by simp only [ring_commutator.commutator, right_distrib, left_distrib, sub_eq_add_neg,
+    add_comm, add_left_comm, forall_const, eq_self_iff_true, neg_add_rev],
+  lie_add  := by simp only [ring_commutator.commutator, right_distrib, left_distrib, sub_eq_add_neg,
+    add_comm, add_left_comm, forall_const, eq_self_iff_true, neg_add_rev],
+  lie_self := by simp only [ring_commutator.commutator, forall_const, sub_self],
+  jacobi   := λ x y z, by { repeat {rw ring_commutator.commutator}, noncomm_ring, } }
 
 lemma lie_ring.of_associative_ring_bracket (A : Type v) [ring A] (x y : A) :
   ⁅x, y⁆ = x*y - y*x := rfl
@@ -315,13 +301,14 @@ end equiv
 
 namespace direct_sum
 open dfinsupp
+open_locale direct_sum
 
 variables {R : Type u} [comm_ring R]
 variables {ι : Type v} [decidable_eq ι] {L : ι → Type w}
 variables [Π i, lie_ring (L i)] [Π i, lie_algebra R (L i)]
 
 /-- The direct sum of Lie rings carries a natural Lie ring structure. -/
-instance : lie_ring (direct_sum ι L) := {
+instance : lie_ring (⨁ i, L i) := {
   bracket  := zip_with (λ i, λ x y, ⁅x, y⁆) (λ i, lie_zero 0),
   add_lie  := λ x y z, by { ext, simp only [zip_with_apply, add_apply, add_lie], },
   lie_add  := λ x y z, by { ext, simp only [zip_with_apply, add_apply, lie_add], },
@@ -329,11 +316,11 @@ instance : lie_ring (direct_sum ι L) := {
   jacobi   := λ x y z, by { ext, simp only [zip_with_apply, add_apply, lie_ring.jacobi, zero_apply], },
   ..(infer_instance : add_comm_group _) }
 
-@[simp] lemma bracket_apply {x y : direct_sum ι L} {i : ι} :
+@[simp] lemma bracket_apply {x y : (⨁ i, L i)} {i : ι} :
   ⁅x, y⁆ i = ⁅x i, y i⁆ := zip_with_apply
 
 /-- The direct sum of Lie algebras carries a natural Lie algebra structure. -/
-instance : lie_algebra R (direct_sum ι L) :=
+instance : lie_algebra R (⨁ i, L i) :=
 { lie_smul := λ c x y, by { ext, simp only [zip_with_apply, smul_apply, bracket_apply, lie_smul], },
   ..(infer_instance : module R _) }
 
@@ -344,17 +331,15 @@ variables {R : Type u} {L : Type v} [comm_ring R] [lie_ring L] [lie_algebra R L]
 /--
 An associative algebra gives rise to a Lie algebra by taking the bracket to be the ring commutator.
 -/
-def of_associative_algebra (A : Type v) [ring A] [algebra R A] :
-  @lie_algebra R A _ (lie_ring.of_associative_ring _) :=
+@[priority 100]
+instance lie_algebra.of_associative_algebra {A : Type v} [ring A] [algebra R A] :
+  lie_algebra R A :=
 { lie_smul := λ t x y,
     by rw [lie_ring.of_associative_ring_bracket, lie_ring.of_associative_ring_bracket,
            algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_sub], }
 
 instance (M : Type v) [add_comm_group M] [module R M] : lie_ring (module.End R M) :=
 lie_ring.of_associative_ring _
-
-local attribute [instance] lie_ring.of_associative_ring
-local attribute [instance] lie_algebra.of_associative_algebra
 
 /-- The map `of_associative_algebra` associating a Lie algebra to an associative algebra is
 functorial. -/
@@ -374,12 +359,8 @@ def of_associative_algebra_hom {R : Type u} {A : Type v} {B : Type w}
 
 /--
 An important class of Lie algebras are those arising from the associative algebra structure on
-module endomorphisms.
+module endomorphisms. We state a lemma and give a definition concerning them.
 -/
-instance of_endomorphism_algebra (M : Type v) [add_comm_group M] [module R M] :
-  lie_algebra R (module.End R M) :=
-of_associative_algebra (module.End R M)
-
 lemma endo_algebra_bracket (M : Type v) [add_comm_group M] [module R M] (f g : module.End R M) :
   ⁅f, g⁆ = f.comp g - g.comp f := rfl
 
@@ -458,9 +439,6 @@ by { cases L₁', cases L₂', simp only [], ext x, exact h x, }
 lemma lie_subalgebra.ext_iff (L₁' L₂' : lie_subalgebra R L) : L₁' = L₂' ↔ ∀ x, x ∈ L₁' ↔ x ∈ L₂' :=
 ⟨λ h x, by rw h, lie_subalgebra.ext R L L₁' L₂'⟩
 
-local attribute [instance] lie_ring.of_associative_ring
-local attribute [instance] lie_algebra.of_associative_algebra
-
 /-- A subalgebra of an associative algebra is a Lie subalgebra of the associated Lie algebra. -/
 def lie_subalgebra_of_subalgebra (A : Type v) [ring A] [algebra R A]
   (A' : subalgebra R A) : lie_subalgebra R A :=
@@ -502,7 +480,7 @@ def lie_subalgebra.map (f : L →ₗ⁅R⁆ L₂) (L' : lie_subalgebra R L) : li
 
 @[simp] lemma lie_subalgebra.mem_map_submodule (e : L ≃ₗ⁅R⁆ L₂) (L' : lie_subalgebra R L) (x : L₂) :
   x ∈ L'.map (e : L →ₗ⁅R⁆ L₂) ↔ x ∈ (L' : submodule R L).map (e : L →ₗ[R] L₂) :=
-by refl
+iff.rfl
 
 end lie_subalgebra
 
@@ -763,25 +741,35 @@ def lie_conj : module.End R M₁ ≃ₗ⁅R⁆ module.End R M₂ :=
 
 end linear_equiv
 
+namespace alg_equiv
+
+variables {R : Type u} {A₁ : Type v} {A₂ : Type w}
+variables [comm_ring R] [ring A₁] [ring A₂] [algebra R A₁] [algebra R A₂]
+variables (e : A₁ ≃ₐ[R] A₂)
+
+/-- An equivalence of associative algebras is an equivalence of associated Lie algebras. -/
+def to_lie_equiv : A₁ ≃ₗ⁅R⁆ A₂ :=
+{ to_fun  := e.to_fun,
+  map_lie := λ x y, by simp [lie_ring.of_associative_ring_bracket],
+  ..e.to_linear_equiv }
+
+@[simp] lemma to_lie_equiv_apply (x : A₁) : e.to_lie_equiv x = e x := rfl
+
+@[simp] lemma to_lie_equiv_symm_apply (x : A₂) : e.to_lie_equiv.symm x = e.symm x := rfl
+
+end alg_equiv
+
 section matrices
 open_locale matrix
 
 variables {R : Type u} [comm_ring R]
-variables {n : Type w} [fintype n] [decidable_eq n]
+variables {n : Type w} [decidable_eq n] [fintype n]
 
-/-- An important class of Lie rings are those arising from the associative algebra structure on
-square matrices over a commutative ring. -/
-def matrix.lie_ring : lie_ring (matrix n n R) :=
-lie_ring.of_associative_ring (matrix n n R)
+/-! ### Matrices
 
-local attribute [instance] matrix.lie_ring
-
-/-- An important class of Lie algebras are those arising from the associative algebra structure on
-square matrices over a commutative ring. -/
-def matrix.lie_algebra : lie_algebra R (matrix n n R) :=
-lie_algebra.of_associative_algebra (matrix n n R)
-
-local attribute [instance] matrix.lie_algebra
+An important class of Lie algebras are those arising from the associative algebra structure on
+square matrices over a commutative ring.
+-/
 
 /-- The natural equivalence between linear endomorphisms of finite free modules and square matrices
 is compatible with the Lie algebra structures. -/
@@ -816,18 +804,18 @@ by simp [linear_equiv.symm_conj_apply, matrix.lie_conj, matrix.comp_to_matrix_mu
 
 /-- For square matrices, the natural map that reindexes a matrix's rows and columns with equivalent
 types is an equivalence of Lie algebras. -/
-def matrix.reindex_lie_equiv {m : Type w₁} [fintype m] [decidable_eq m]
+def matrix.reindex_lie_equiv {m : Type w₁} [decidable_eq m] [fintype m]
   (e : n ≃ m) : matrix n n R ≃ₗ⁅R⁆ matrix m m R :=
 { map_lie := λ M N, by simp only [lie_ring.of_associative_ring_bracket, matrix.reindex_mul,
     matrix.mul_eq_mul, linear_equiv.map_sub, linear_equiv.to_fun_apply],
 ..(matrix.reindex_linear_equiv e e) }
 
-@[simp] lemma matrix.reindex_lie_equiv_apply {m : Type w₁} [fintype m] [decidable_eq m]
+@[simp] lemma matrix.reindex_lie_equiv_apply {m : Type w₁} [decidable_eq m] [fintype m]
   (e : n ≃ m) (M : matrix n n R) :
   matrix.reindex_lie_equiv e M = λ i j, M (e.symm i) (e.symm j) :=
 rfl
 
-@[simp] lemma matrix.reindex_lie_equiv_symm_apply {m : Type w₁} [fintype m] [decidable_eq m]
+@[simp] lemma matrix.reindex_lie_equiv_symm_apply {m : Type w₁} [decidable_eq m] [fintype m]
   (e : n ≃ m) (M : matrix m m R) :
   (matrix.reindex_lie_equiv e).symm M = λ i j, M (e i) (e j) :=
 rfl
@@ -884,11 +872,8 @@ end skew_adjoint_endomorphisms
 section skew_adjoint_matrices
 open_locale matrix
 
-variables {R : Type u} {n : Type w} [comm_ring R] [fintype n] [decidable_eq n]
+variables {R : Type u} {n : Type w} [comm_ring R] [decidable_eq n] [fintype n]
 variables (J : matrix n n R)
-
-local attribute [instance] matrix.lie_ring
-local attribute [instance] matrix.lie_algebra
 
 lemma matrix.lie_transpose (A B : matrix n n R) : ⁅A, B⁆ᵀ = ⁅Bᵀ, Aᵀ⁆ :=
 show (A * B - B * A)ᵀ = (Bᵀ * Aᵀ - Aᵀ * Bᵀ), by simp
@@ -909,6 +894,10 @@ end
 def skew_adjoint_matrices_lie_subalgebra : lie_subalgebra R (matrix n n R) :=
 { lie_mem := J.is_skew_adjoint_bracket, ..(skew_adjoint_matrices_submodule J) }
 
+@[simp] lemma mem_skew_adjoint_matrices_lie_subalgebra (A : matrix n n R) :
+  A ∈ skew_adjoint_matrices_lie_subalgebra J ↔ A ∈ skew_adjoint_matrices_submodule J :=
+iff.rfl
+
 /-- An invertible matrix `P` gives a Lie algebra equivalence between those endomorphisms that are
 skew-adjoint with respect to a square matrix `J` and those with respect to `PᵀJP`. -/
 noncomputable def skew_adjoint_matrices_lie_subalgebra_equiv (P : matrix n n R) (h : is_unit P) :
@@ -927,5 +916,35 @@ lemma skew_adjoint_matrices_lie_subalgebra_equiv_apply
   (P : matrix n n R) (h : is_unit P) (A : skew_adjoint_matrices_lie_subalgebra J) :
   ↑(skew_adjoint_matrices_lie_subalgebra_equiv J P h A) = P⁻¹ ⬝ ↑A ⬝ P :=
 by simp [skew_adjoint_matrices_lie_subalgebra_equiv]
+
+/-- An equivalence of matrix algebras commuting with the transpose endomorphisms restricts to an
+equivalence of Lie algebras of skew-adjoint matrices. -/
+def skew_adjoint_matrices_lie_subalgebra_equiv_transpose {m : Type w} [decidable_eq m] [fintype m]
+  (e : matrix n n R ≃ₐ[R] matrix m m R) (h : ∀ A, (e A)ᵀ = e (Aᵀ)) :
+  skew_adjoint_matrices_lie_subalgebra J ≃ₗ⁅R⁆ skew_adjoint_matrices_lie_subalgebra (e J) :=
+lie_algebra.equiv.of_subalgebras _ _ e.to_lie_equiv
+begin
+  ext A,
+  suffices : J.is_skew_adjoint (e.symm A) ↔ (e J).is_skew_adjoint A, by simpa [this],
+  simp [matrix.is_skew_adjoint, matrix.is_adjoint_pair, ← matrix.mul_eq_mul,
+    ← h, ← function.injective.eq_iff e.injective],
+end
+
+@[simp] lemma skew_adjoint_matrices_lie_subalgebra_equiv_transpose_apply
+  {m : Type w} [decidable_eq m] [fintype m]
+  (e : matrix n n R ≃ₐ[R] matrix m m R) (h : ∀ A, (e A)ᵀ = e (Aᵀ))
+  (A : skew_adjoint_matrices_lie_subalgebra J) :
+  (skew_adjoint_matrices_lie_subalgebra_equiv_transpose J e h A : matrix m m R) = e A :=
+rfl
+
+lemma mem_skew_adjoint_matrices_lie_subalgebra_unit_smul (u : units R) (J A : matrix n n R) :
+  A ∈ skew_adjoint_matrices_lie_subalgebra ((u : R) • J) ↔ A ∈ skew_adjoint_matrices_lie_subalgebra J :=
+begin
+  change A ∈ skew_adjoint_matrices_submodule ((u : R) • J) ↔  A ∈ skew_adjoint_matrices_submodule J,
+  simp only [mem_skew_adjoint_matrices_submodule, matrix.is_skew_adjoint, matrix.is_adjoint_pair],
+  split; intros h,
+  { simpa using congr_arg (λ B, (↑u⁻¹ : R) • B) h, },
+  { simp [h], },
+end
 
 end skew_adjoint_matrices

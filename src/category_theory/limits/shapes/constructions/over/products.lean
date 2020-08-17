@@ -98,7 +98,7 @@ def has_over_limit_discrete_of_wide_pullback_limit {B : C} {J : Type v} (F : dis
   [has_limit (wide_pullback_diagram_of_diagram_over B F)] :
   has_limit F :=
 { cone := _,
-  is_limit := is_limit.of_cone_equiv
+  is_limit := is_limit.of_right_adjoint
     (cones_equiv B F).functor (limit.is_limit (wide_pullback_diagram_of_diagram_over B F)) }
 
 /-- Given a wide pullback in `C`, construct a product in `C/B`. -/
@@ -109,17 +109,17 @@ def over_product_of_wide_pullback {J : Type v} [has_limits_of_shape (wide_pullba
 /-- Given a pullback in `C`, construct a binary product in `C/B`. -/
 def over_binary_product_of_pullback [has_pullbacks C] {B : C} :
   has_binary_products (over B) :=
-{ has_limits_of_shape := over_product_of_wide_pullback }
+over_product_of_wide_pullback
 
 /-- Given all wide pullbacks in `C`, construct products in `C/B`. -/
 def over_products_of_wide_pullbacks [has_wide_pullbacks C] {B : C} :
   has_products (over B) :=
-{ has_limits_of_shape := λ J, over_product_of_wide_pullback }
+λ J, over_product_of_wide_pullback
 
 /-- Given all finite wide pullbacks in `C`, construct finite products in `C/B`. -/
 def over_finite_products_of_finite_wide_pullbacks [has_finite_wide_pullbacks C] {B : C} :
   has_finite_products (over B) :=
-{ has_limits_of_shape := λ J 𝒥₁ 𝒥₂, by exactI over_product_of_wide_pullback }
+λ J 𝒥₁ 𝒥₂, by exactI over_product_of_wide_pullback
 
 end construct_products
 
@@ -130,21 +130,20 @@ way we want to define terminal objects.
 `over_product_of_wide_pullback` above.)
 -/
 def over_has_terminal (B : C) : has_terminal (over B) :=
-{ has_limits_of_shape :=
-  { has_limit := λ F,
-    { cone :=
-      { X := over.mk (𝟙 _),
-        π := { app := λ p, pempty.elim p } },
-      is_limit :=
-        { lift := λ s, over.hom_mk _,
-          fac' := λ _ j, j.elim,
-          uniq' := λ s m _,
-            begin
-              ext,
-              rw over.hom_mk_left,
-              have := m.w,
-              dsimp at this,
-              rwa [category.comp_id, category.comp_id] at this
-            end } } } }
+{ has_limit := λ F,
+  { cone :=
+    { X := over.mk (𝟙 _),
+      π := { app := λ p, pempty.elim p } },
+    is_limit :=
+      { lift := λ s, over.hom_mk _,
+        fac' := λ _ j, j.elim,
+        uniq' := λ s m _,
+          begin
+            ext,
+            rw over.hom_mk_left,
+            have := m.w,
+            dsimp at this,
+            rwa [category.comp_id, category.comp_id] at this
+          end } } }
 
 end category_theory.over

@@ -8,7 +8,7 @@ Topology on lists and vectors.
 import topology.constructions
 
 open topological_space set filter
-open_locale topological_space
+open_locale topological_space filter
 
 variables {α : Type*} {β : Type*}
 
@@ -59,7 +59,7 @@ namespace list
 variables [topological_space α] [topological_space β]
 
 lemma tendsto_cons' {a : α} {l : list α} :
-  tendsto (λp:α×list α, list.cons p.1 p.2) ((𝓝 a).prod (𝓝 l)) (𝓝 (a :: l)) :=
+  tendsto (λp:α×list α, list.cons p.1 p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (a :: l)) :=
 by rw [nhds_cons, tendsto, map_prod]; exact le_refl _
 
 lemma tendsto_cons {α : Type*} {f : α → β} {g : α → list β}
@@ -68,8 +68,8 @@ lemma tendsto_cons {α : Type*} {f : α → β} {g : α → list β}
 tendsto_cons'.comp (tendsto.prod_mk hf hg)
 
 lemma tendsto_cons_iff {β : Type*} {f : list α → β} {b : _root_.filter β} {a : α} {l : list α} :
-  tendsto f (𝓝 (a :: l)) b ↔ tendsto (λp:α×list α, f (p.1 :: p.2)) ((𝓝 a).prod (𝓝 l)) b :=
-have 𝓝 (a :: l) = ((𝓝 a).prod (𝓝 l)).map (λp:α×list α, (p.1 :: p.2)),
+  tendsto f (𝓝 (a :: l)) b ↔ tendsto (λp:α×list α, f (p.1 :: p.2)) (𝓝 a ×ᶠ 𝓝 l) b :=
+have 𝓝 (a :: l) = (𝓝 a ×ᶠ 𝓝 l).map (λp:α×list α, (p.1 :: p.2)),
 begin
   simp only
     [nhds_cons, filter.prod_eq, (filter.map_def _ _).symm, (filter.seq_eq_filter_seq _ _).symm],
@@ -79,7 +79,7 @@ by rw [this, filter.tendsto_map'_iff]
 
 lemma tendsto_nhds {β : Type*} {f : list α → β} {r : list α → _root_.filter β}
   (h_nil : tendsto f (pure []) (r []))
-  (h_cons : ∀l a, tendsto f (𝓝 l) (r l) → tendsto (λp:α×list α, f (p.1 :: p.2)) ((𝓝 a).prod (𝓝 l)) (r (a::l))) :
+  (h_cons : ∀l a, tendsto f (𝓝 l) (r l) → tendsto (λp:α×list α, f (p.1 :: p.2)) (𝓝 a ×ᶠ 𝓝 l) (r (a::l))) :
   ∀l, tendsto f (𝓝 l) (r l)
 | []     := by rwa [nhds_nil]
 | (a::l) := by rw [tendsto_cons_iff]; exact h_cons l a (tendsto_nhds l)
@@ -97,15 +97,15 @@ begin
 end
 
 lemma tendsto_insert_nth' {a : α} : ∀{n : ℕ} {l : list α},
-  tendsto (λp:α×list α, insert_nth n p.1 p.2) ((𝓝 a).prod (𝓝 l)) (𝓝 (insert_nth n a l))
+  tendsto (λp:α×list α, insert_nth n p.1 p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (insert_nth n a l))
 | 0     l  := tendsto_cons'
 | (n+1) [] :=
   suffices tendsto (λa, []) (𝓝 a) (𝓝 ([] : list α)),
     by simpa [nhds_nil, tendsto, map_prod, (∘), insert_nth],
   tendsto_const_nhds
 | (n+1) (a'::l) :=
-  have (𝓝 a).prod (𝓝 (a' :: l)) =
-    ((𝓝 a).prod ((𝓝 a').prod (𝓝 l))).map (λp:α×α×list α, (p.1, p.2.1 :: p.2.2)),
+  have 𝓝 a ×ᶠ 𝓝 (a' :: l) =
+    (𝓝 a ×ᶠ (𝓝 a' ×ᶠ 𝓝 l)).map (λp:α×α×list α, (p.1, p.2.1 :: p.2.2)),
   begin
     simp only
       [nhds_cons, filter.prod_eq, (filter.map_def _ _).symm, (filter.seq_eq_filter_seq _ _).symm],
@@ -150,14 +150,14 @@ instance (n : ℕ) [topological_space α] : topological_space (vector α n) :=
 by unfold vector; apply_instance
 
 lemma tendsto_cons [topological_space α] {n : ℕ} {a : α} {l : vector α n}:
-  tendsto (λp:α×vector α n, vector.cons p.1 p.2) ((𝓝 a).prod (𝓝 l)) (𝓝 (a :: l)) :=
+  tendsto (λp:α×vector α n, vector.cons p.1 p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (a :: l)) :=
 by { simp [tendsto_subtype_rng, ←subtype.val_eq_coe, cons_val],
   exact tendsto_cons tendsto_fst (tendsto.comp continuous_at_subtype_coe tendsto_snd) }
 
 lemma tendsto_insert_nth
   [topological_space α] {n : ℕ} {i : fin (n+1)} {a:α} :
   ∀{l:vector α n}, tendsto (λp:α×vector α n, insert_nth p.1 i p.2)
-    ((𝓝 a).prod (𝓝 l)) (𝓝 (insert_nth a i l))
+    (𝓝 a ×ᶠ 𝓝 l) (𝓝 (insert_nth a i l))
 | ⟨l, hl⟩ :=
 begin
   rw [insert_nth, tendsto_subtype_rng],

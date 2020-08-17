@@ -82,6 +82,10 @@ lemma is_bounded_sup [is_trans α r] (hr : ∀b₁ b₂, ∃b, r b₁ b ∧ r b�
 lemma is_bounded.mono (h : f ≤ g) : is_bounded r g → is_bounded r f
 | ⟨b, hb⟩ := ⟨b, h hb⟩
 
+lemma is_bounded_under.mono {f g : filter β} {u : β → α} (h : f ≤ g) :
+  g.is_bounded_under r u → f.is_bounded_under r u :=
+λ hg, hg.mono (map_mono h)
+
 lemma is_bounded.is_bounded_under {q : β → β → Prop} {u : α → β}
   (hf : ∀a₀ a₁, r a₀ a₁ → q (u a₀) (u a₁)) : f.is_bounded r → f.is_bounded_under q u
 | ⟨b, h⟩ := ⟨u b, show ∀ᶠ x in f, q (u x) (u b), from h.mono (λ x, hf x b)⟩

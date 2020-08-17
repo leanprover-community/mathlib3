@@ -89,7 +89,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace C) :=
   id_comp' := λ X Y f,
   begin
     ext1, swap,
-    { dsimp, simp only [id_comp] },
+    { dsimp, simp only [id_comp] },  -- See note [dsimp, simp].
     { ext U, op_induction, cases U,
       dsimp,
       simp only [comp_id, id_comp, map_id, presheaf.pushforward, presheaf.pushforward.comp_inv_app],

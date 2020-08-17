@@ -7,7 +7,7 @@ Theory of topological monoids.
 -/
 import topology.continuous_on
 import group_theory.submonoid.basic
-import deprecated.submonoid
+import algebra.group.prod
 
 open classical set filter topological_space
 open_locale classical topological_space big_operators
@@ -127,9 +127,9 @@ section
 variables [topological_space α] [comm_monoid α]
 
 @[to_additive]
-lemma is_submonoid.mem_nhds_one (β : set α) [is_submonoid β] (oβ : is_open β) :
-  β ∈ 𝓝 (1 : α) :=
-mem_nhds_sets_iff.2 ⟨β, (by refl), oβ, is_submonoid.one_mem⟩
+lemma submonoid.mem_nhds_one (β : submonoid α) (oβ : is_open (β : set α)) :
+  (β : set α) ∈ 𝓝 (1 : α) :=
+mem_nhds_sets_iff.2 ⟨β, (by refl), oβ, β.one_mem⟩
 
 variable [has_continuous_mul α]
 

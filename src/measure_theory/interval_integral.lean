@@ -335,25 +335,28 @@ that are equal to the first and last “real” instances: `(a, 𝓝[{a}] a, ⊥
 `(a, 𝓝[univ] a, 𝓝[univ] a)`.  We use this approach to avoid repeating arguments in many very similar
 cases.  Lean can automatically find both `a` and `l'` based on `l`.
 
-The most general theorem `measure_integral_sub_linear_is_o_of_tendsto_ae` says
-that `∫ x in u t..v t, f x ∂μ = ∫ x in u t..v t, c ∂μ + o(∫ x in u t..v t, 1 ∂μ)` provided that both
-`u` and `v` tend to a measurably generated interval generated filter `l` (e.g., `𝓝 a`, `𝓝[Ici a] a`,
-`𝓝[Iic a] a`, or `at_top`) such that `μ` is finite at this filter, and `f x` tends to `c` as `x`
-tends to `l ⊓ μ.ae`.
+The most general theorem `measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae` can be seen
+as a generalization of lemma `integral_has_strict_fderiv_at` below which states strict
+differentiability of `∫ x in u..v, f x` in `(u, v)` at `(a, b)` for a measurable function `f` that
+is integrable on `a..b` and is continuous at `a` and `b`. The lemma is generalized in three
+directions: first, `measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae` deals with any
+locally finite measure `μ`; second, it works for one-sided limits/derivatives; third, it assumes
+only that `f` has finite limits almost surely at `a` and `b`.
+
+Namely, let `f` be a measurable function integrable on `a..b`. Let `(la, la')` be a pair of
+`FTC_filter`s around `a`; let `(lb, lb')` be a pair of `FTC_filter`s around `b`. Suppose that `f`
+has finite limits `ca` and `cb` at `la' ⊓ μ.ae` and `lb' ⊓ μ.ae`, respectively.  Then
+`∫ x in va..vb, f x ∂μ - ∫ x in ua..ub, f x ∂μ = ∫ x in ub..vb, cb ∂μ - ∫ x in ua..va, ca ∂μ +
+  o(∥∫ x in ua..va, (1:ℝ) ∂μ∥ + ∥∫ x in ub..vb, (1:ℝ) ∂μ∥)`
+as `ua` and `va` tend to `la` while `ub` and `vb` tend to `lb`.
 
 This theorem is formulated with integral of constants instead of measures in the right hand sides
 for two reasons: first, this way we avoid `min`/`max` in the statements; second, often it is
 possible to write better `simp` lemmas for these integrals, see `integral_const` and
 `integral_const_of_cdf`.
 
-We apply this theorem to prove lemma `measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae`
-which corresponds to the `has_strict_deriv_at` version of FTC-1. If `f` is a measurable function
-integrable on `a..b` and `l`, `pure b ≤ l ≤ 𝓝 b`, is a measurably generated interval generated
-filter (e.g., `𝓝 b`, `𝓝[Ici b] b`, or `𝓝[Iic b] b`) such that `μ` is finite at `l` and `f x` tends
-to `c` as `x` tends to `l ⊓ μ.ae` then
-`∫ x in a..v, f x ∂μ - ∫ x in a..u, f x ∂μ = ∫ x in u..v, c ∂μ + o(∫ x in u..v, 1 ∂μ)`
-as `u` and `v` tend to `l`.
--/
+In the next subsection we apply this theorem to prove various theorems about differentiability
+of the integral w.r.t. Lebesgue measure. -/
 
 /-- An auxiliary typeclass for the Fundamental theorem of calculus, part 1. There are four
 instances: `(a, pure a, ⊥)`, `(a, 𝓝[Ici a], 𝓝[Ioi a])`, `(a, 𝓝[Iic a], 𝓝[Iic a])`, and

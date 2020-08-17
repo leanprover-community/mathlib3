@@ -94,7 +94,7 @@ begin
         ... = ∥y∥/2 : by { rw [inv_mul_cancel, one_mul],  simp [norm_eq_zero, hd] }
         ... = (1/2) * ∥y∥ : by ring,
       rw ← dist_eq_norm at J,
-      have 𝕜 : ∥d⁻¹ • x∥ ≤ (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ := calc
+      have K : ∥d⁻¹ • x∥ ≤ (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ := calc
         ∥d⁻¹ • x∥ = ∥d∥⁻¹ * ∥x₁ - x₂∥ : by rw [norm_smul, normed_field.norm_inv]
         ... ≤ ((ε / 2)⁻¹ * ∥c∥ * ∥y∥) * (n + n) : begin
             refine mul_le_mul dinv _ (norm_nonneg _) _,
@@ -103,7 +103,7 @@ begin
               exact inv_nonneg.2 (le_of_lt (half_pos εpos)) }
           end
         ... = (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ : by ring,
-      exact ⟨d⁻¹ • x, J, 𝕜⟩ } },
+      exact ⟨d⁻¹ • x, J, K⟩ } },
 end
 
 variable [complete_space E]
@@ -158,7 +158,7 @@ begin
     ... = 2 * C * ∥y∥ + 0 : by rw [add_zero, mul_assoc]
     ... ≤ 2 * C * ∥y∥ + ∥y∥ : add_le_add (le_refl _) (norm_nonneg _)
     ... = (2 * C + 1) * ∥y∥ : by ring,
-  have fsumeq : ∀n:ℕ, f(∑ i in finset.range n, u i) = y - (h^[n]) y,
+  have fsumeq : ∀n:ℕ, f (∑ i in finset.range n, u i) = y - (h^[n]) y,
   { assume n,
     induction n with n IH,
     { simp [f.map_zero] },
@@ -227,6 +227,7 @@ def to_continuous_linear_equiv_of_continuous (e : E ≃ₗ[𝕜] F) (h : continu
 { continuous_to_fun := h,
   continuous_inv_fun := e.continuous_symm h,
   ..e }
+
 @[simp] lemma coe_fn_to_continuous_linear_equiv_of_continuous (e : E ≃ₗ[𝕜] F) (h : continuous e) :
   ⇑(e.to_continuous_linear_equiv_of_continuous h) = e := rfl
 

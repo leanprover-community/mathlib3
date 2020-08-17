@@ -235,19 +235,6 @@ conditions under which  `count I ys = length ys`.
 
 
 /--
-If the `count I` of `ys : miustr` equals its length, then `ys` consists entirely of `I`s
--/
-lemma eq_of_count_I_eq_length  {ys : miustr} (h : count I ys = length ys) :
-  ys = repeat I (count I ys) :=
-begin
-  have h₂ : repeat I (count I ys) <+ ys := le_count_iff_repeat_sublist.mp (le_refl _),
-  have h₃ : length (repeat I (count I ys)) = length ys,
-  { rwa length_repeat, },
-  exact (eq_of_sublist_of_length_eq h₂ h₃).symm,
-end
-
-
-/--
 If an `miustr` has a zero `count U` and contains no `M`, then its `count I` is its length.
 -/
 lemma count_I_eq_length_of_count_U_zero_and_neg_mem {ys : miustr} (hu : count U ys = 0)
@@ -276,14 +263,14 @@ begin
   rcases (exists_cons_of_ne_nil this) with ⟨y,ys,rfl⟩,
   rw head at mhead,
   rw mhead at *,
-  suffices  : ∃ c, ys = repeat I c ∧ (c % 3 = 1 ∨ c % 3 = 2),
+  suffices  : ∃ c, repeat I c = ys ∧ (c % 3 = 1 ∨ c % 3 = 2),
   { rcases this with ⟨c, hysr, hc⟩,
-    rw hysr,
+    rw ←hysr,
     exact der_repeat_I_of_mod3 c hc, },
   simp only [count] at *,
   use (count I ys),
   split,
-  { apply eq_of_count_I_eq_length,
+  { apply repeat_count_eq_of_count_eq_length,
     apply count_I_eq_length_of_count_U_zero_and_neg_mem,
     { exact hu, },
     exact nmtail, },

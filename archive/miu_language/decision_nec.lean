@@ -124,21 +124,6 @@ We'll show, for each `i` from 1 to 4, that if `en` follows by Rule `i` from `st`
 -/
 
 
-lemma tail_append_singleton_of_ne_nil {a : miu_atom} {as : miustr} (h₁ : as ≠ nil) :
-  tail (as ++ [a]) = tail as ++ [a] :=
-begin
-  induction as with x xs hxs,
-  { contradiction, },
-  rw [tail,cons_append,tail],
-end
-
-lemma exists_cons_of_ne_nil {as : miustr} (h : as ≠ nil) : ∃ c cs, as = c :: cs :=
-begin
-  induction as with x xs hxs,
-  { contradiction, },
-  use [x,xs],
-end
-
 lemma goodm_of_rule1 (xs : miustr) (h₁ : derivable (xs ++ [I])) (h₂ : goodm (xs ++ [I]))
   : goodm (xs ++ [I,U]) :=
 begin

@@ -81,9 +81,11 @@ namespace sym2
 lemma eq_swap {a b : α} : ⟦(a, b)⟧ = ⟦(b, a)⟧ :=
 by { rw quotient.eq, apply rel.swap }
 
-lemma congr_right (a b c : α) : ⟦(a, b)⟧ = ⟦(a, c)⟧ ↔ b = c :=
+lemma congr_right {a b c : α} : ⟦(a, b)⟧ = ⟦(a, c)⟧ ↔ b = c :=
 by { split; intro h, { rw quotient.eq at h, cases h; refl }, rw h }
 
+lemma congr_left {a b c : α} : ⟦(b, a)⟧ = ⟦(c, a)⟧ ↔ b = c :=
+by { split; intro h, { rw quotient.eq at h, cases h; refl }, rw h }
 
 /--
 The functor `sym2` is functorial, and this function constructs the induced maps.
@@ -158,7 +160,7 @@ lemma mem_other_spec {a : α} {z : sym2 α} (h : a ∈ z) :
   ⟦(a, h.other)⟧ = z := by erw ← classical.some_spec h
 
 lemma other_eq_mem_other {a : α} {z : sym2 α} (h : vmem a z) (h' : a ∈ z) :
-  h.other = mem.other h' := by rw [← congr_right a, ← vmem_other_spec h, mem_other_spec]
+  h.other = mem.other h' := by rw [←congr_right, ←vmem_other_spec h, mem_other_spec]
 
 lemma eq_iff {x y z w : α} :
   ⟦(x, y)⟧ = ⟦(z, w)⟧ ↔ (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
@@ -172,6 +174,16 @@ end
 { mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
   mpr := by { rintro ⟨_⟩; subst a, { apply mk_has_mem }, apply mk_has_mem_right } }
 
+lemma mem_other_mem {a : α} {z : sym2 α} (h : a ∈ z) :
+  h.other ∈ z :=
+begin
+  have hs := mem_other_spec h,
+  induction z, cases z with x y,
+  apply mem_iff.mpr,
+  cases eq_iff.mp hs with hs hs; cc,
+  refl,
+end
+
 lemma elems_iff_eq {x y : α} {z : sym2 α} (hne : x ≠ y) :
   x ∈ z ∧ y ∈ z ↔ z = ⟦(x, y)⟧ :=
 begin
@@ -182,6 +194,21 @@ begin
     cases mem_iff.mp hx with hx hx; cases mem_iff.mp hy with hy hy; cc,
     refl },
   { rintro rfl, simp },
+end
+
+@[ext]
+lemma sym2_ext (z z' : sym2 α) (h : ∀ x, x ∈ z ↔ x ∈ z') : z = z' :=
+begin
+  induction z, induction z',
+  cases z with x y, cases z' with x' y',
+  change ∀ w, w ∈ ⟦(x, y)⟧ ↔ w ∈ ⟦(x', y')⟧ at h,
+  simp only [mem_iff] at h,
+  apply eq_iff.mpr,
+  have hx := h x, have hy := h y, have hx' := h x', have hy' := h y',
+  simp only [true_iff, true_or, eq_self_iff_true, iff_true, or_true] at hx hy hx' hy',
+  cases hx; subst x; cases hy; subst y; cases hx'; try { subst x' }; cases hy'; try { subst y' }; cc,
+  refl,
+  refl,
 end
 
 end membership
@@ -218,7 +245,7 @@ Symmetric relations define a set on `sym2 α` by taking all those pairs
 of elements that are related.
 -/
 def from_rel (sym : symmetric r) : set (sym2 α) :=
-λ z, quotient.rec_on z (λ z, r z.1 z.2) (by { rintros _ _ ⟨_,_⟩, tidy })
+{z | quotient.rec_on z (λ z, r z.1 z.2) (by { rintros _ _ ⟨_,_⟩, tidy })}
 
 @[simp]
 lemma from_rel_proj_prop {sym : symmetric r} {z : α × α} :
@@ -332,6 +359,9 @@ Given `[decidable_eq α]` and `[fintype α]`, the following instance gives `fint
 instance (α : Type*) [decidable_eq α] : decidable_rel (sym2.rel α) :=
 λ x y, decidable_of_bool (rel_bool x y) (rel_bool_spec x y)
 
+/--
+A function that gives the other element of a pair given one of the elements.  Used in `mem.other'`.
+-/
 private def pair_other [decidable_eq α] (a : α) (z : α × α) : α := if a = z.1 then z.2 else z.1
 
 /--
@@ -373,7 +403,24 @@ end
 
 @[simp]
 lemma other_eq_other' [decidable_eq α] {a : α} {z : sym2 α} (h : a ∈ z) : h.other = h.other' :=
-by rw [←congr_right a, mem_other_spec' h, mem_other_spec]
+by rw [←congr_right, mem_other_spec' h, mem_other_spec]
+
+lemma mem_other_mem' [decidable_eq α] {a : α} {z : sym2 α} (h : a ∈ z) :
+  h.other' ∈ z :=
+by { rw ←other_eq_other', exact mem_other_mem h }
+
+lemma other_invol' [decidable_eq α] {a : α} {z : sym2 α} (ha : a ∈ z) (hb : ha.other' ∈ z):
+  hb.other' = a :=
+begin
+  induction z, cases z with x y,
+  dsimp [mem.other', quot.rec, pair_other] at hb,
+  split_ifs at hb; dsimp [mem.other', quot.rec, pair_other],
+  simp only [h, if_true, eq_self_iff_true],
+  split_ifs, assumption, refl,
+  simp only [h, if_false, if_true, eq_self_iff_true],
+  cases mem_iff.mp ha; cc,
+  refl,
+end
 
 end decidable
 

@@ -22,7 +22,6 @@ structure preorder_hom (α β : Type*) [preorder α] [preorder β] :=
 namespace preorder_hom
 variables {α β γ : Type*} [preorder α] [preorder β] [preorder γ]
 
-@[simps]
 instance : has_coe_to_fun (preorder_hom α β) :=
 { F := λ f, α → β,
   coe := preorder_hom.to_fun }
@@ -34,6 +33,7 @@ lemma coe_inj (f g : preorder_hom α β) (h : (f : α → β) = g) : f = g :=
 by { ext, rw h }
 
 /-- The identity function as bundled monotone function. -/
+@[simps]
 def id : preorder_hom α α :=
 ⟨id, monotone_id⟩
 

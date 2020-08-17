@@ -891,11 +891,10 @@ lemma map_mem_non_zero_divisors {B : Type*} [integral_domain B] {g : A →+* B}
 λ z hz, eq_zero_of_ne_zero_of_mul_eq_zero
   (map_ne_zero_of_mem_non_zero_divisors hg) hz
 
-/-- The localization of an integral domain at a submonoid not containing 0 is an integral domain
+/-- Any nontrivial localization of an integral domain is an integral domain
 -/
---universes seem sketchy here
-theorem local_id_is_id [integral_domain R] (S : submonoid R) (zero_non_mem : ((0 : R) ∉  S)) {f : localization_map S (localization S)} :
-  is_integral_domain (localization S) :=
+theorem local_id_is_id {R' : Type*} [integral_domain R'] (T : submonoid R') (zero_non_mem : ((0 : R') ∉  T)) {f : localization_map T (localization T)} :
+  is_integral_domain (localization T) :=
 begin
   split,
     {
@@ -934,16 +933,16 @@ end
 /--
 The localization of an integral domain at a prime ideal gives an integral domain.
 -/
-instance integral_domain_of_local_at_prime [integral_domain R] (P : ideal R) (hp_prime : P.is_prime) :
+instance integral_domain_of_local_at_prime {R : Type*} [integral_domain R] (P : ideal R) (hp_prime : P.is_prime) :
   integral_domain (localization.at_prime P) :=
 begin
   have zero_non_mem : (0 : R) ∉ P.prime_compl,
   { have := ideal.zero_mem P, simpa },
-  have h1 := local_id_is_id R P.prime_compl zero_non_mem,
-  exact is_integral_domain.to_integrazerol_domain (localization.at_prime P) h1,
+  have h0 := P.prime_compl,
+  have h1 := local_id_is_id P.prime_compl zero_non_mem,
+  exact is_integral_domain.to_integral_domain (localization.at_prime P) h1,
   exact localization.of (ideal.prime_compl P),
 end
-
 variables (K : Type*)
 
 /-- Localization map from an integral domain `R` to its field of fractions. -/

@@ -360,10 +360,11 @@ begin
     by dsimp [gt]; simp only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
 end
 
+--in order to use the apply_instance, this line is needed
+open_locale classical
 /-- A module is Noetherian iff every nonempty set of submodules has a maximal submodule among them
-{R M} [ring R] [add_comm_group M] [module R M]
 -/
-theorem set_has_maximal_iff_noetherian {R M} [ring R] [add_comm_group X] [module R M] : (∀(a : set $ submodule R M), a.nonempty → ∃ (M' ∈ a), ∀ (I ∈ a), M' ≤ I → I=M') ↔ is_noetherian R M :=
+theorem set_has_maximal_iff_noetherian {R M} [ring R] [add_comm_group M] [module R M] : (∀(a : set $ submodule R M), a.nonempty → ∃ (M' ∈ a), ∀ (I ∈ a), M' ≤ I → I=M') ↔ is_noetherian R M :=
 begin
   split; intro h,
   { split,
@@ -384,7 +385,7 @@ begin
       { suffices : (↑Mgen : set M) ∪ {x} ⊆ I, { convert submodule.span_mono this, simp },
         have : (↑Mgen : set M) ⊆ M', { convert submodule.subset_span, cc },
         apply set.union_subset, { exact set.subset.trans this hMI }, { simp [hxI] } },
-      { rw submodule.fg_def, use (↑Mgen ∪ {x}), split, { split, apply_instance,}, refl } },
+      { rw submodule.fg_def, use (↑Mgen ∪ {x}), split, { split, apply_instance}, refl } },
     split,
     { rw ← hMgen, convert submodule.span_mono _, simp },
     { contrapose! hxM, rw ← hxM, apply submodule.subset_span, exact (↑Mgen : set M).mem_union_right rfl,} },

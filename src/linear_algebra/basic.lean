@@ -407,11 +407,6 @@ lemma exists_of_lt {p p' : submodule R M} : p < p' → ∃ x ∈ p', x ∉ p := 
 lemma lt_iff_le_and_exists : p < p' ↔ p ≤ p' ∧ ∃ x ∈ p', x ∉ p :=
 by rw [lt_iff_le_not_le, not_le_iff_exists]
 
-lemma nonzero_mem_of_neq_bot (I : submodule R M) (gt_bot : ⊥ < I) : ∃ a : I, a ≠ 0 :=
-begin
-  have h := (submodule.lt_iff_le_and_exists.1 gt_bot).2, tidy,
-end
-
 /-- If two submodules `p` and `p'` satisfy `p ⊆ p'`, then `of_le p p'` is the linear map version of
 this inclusion. -/
 def of_le (h : p ≤ p') : p →ₗ[R] p' :=
@@ -452,6 +447,11 @@ protected lemma eq_bot_iff (p : submodule R M) : p = ⊥ ↔ ∀ x ∈ p, x = (0
 
 protected lemma ne_bot_iff (p : submodule R M) : p ≠ ⊥ ↔ ∃ x ∈ p, x ≠ (0 : M) :=
 by { haveI := classical.prop_decidable, simp_rw [ne.def, p.eq_bot_iff, not_forall] }
+
+lemma nonzero_mem_of_gt_bot (I : submodule R M) (gt_bot : ⊥ < I) : ∃ a : I, a ≠ 0 :=
+begin
+  have h := (submodule.lt_iff_le_and_exists.1 gt_bot).2, tidy,
+end
 
 /-- The universal set is the top element of the lattice of submodules. -/
 instance : has_top (submodule R M) :=
@@ -896,8 +896,6 @@ begin
   refine mem_sup.2 ⟨(x, y), ⟨hx, hy⟩, (x', y'), ⟨hx', hy'⟩, rfl⟩
 end
 
-end add_comm_monoid
-
 lemma lt_add_nonmem (I : submodule R M) (a ∉ I) : I < I + submodule.span R {a} :=
 begin
   split,
@@ -908,6 +906,9 @@ begin
   have : a ∈ submodule.span R {a}, exact submodule.mem_span_singleton_self a,
   tidy,
 end
+
+end add_comm_monoid
+
 
 variables [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
 variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]

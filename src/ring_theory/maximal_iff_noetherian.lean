@@ -6,8 +6,11 @@ open_locale classical
 variables (R : Type u) [integral_domain R] (R' : Type u) [comm_ring R']
 
 /-
-`local_id_is_id` and the other lemmas probably belong in
-`ring_theory/integral_domains` or whatever
+`local_id_is_id` and `local_at_prime_of_id_is_id` have been moved to `localization` (latter has been renamed)
+`lt_add_nonmem` has an analogous statement in `linear_algebra.basic`, and the ideal statement is in `ideal.basic`
+`zero_prime` is in `ideal.basic` and `nonzero_mem_of_gt_bot` is as well
+`ideal_mul_eq_zero` is located in `ideal.operations`, but could probably be in a better place
+`set_has_maximal_iff_noetherian` is in `noetherian`, might want to revise so that the `open_locale classical` is elsewhere (or use `classical.blah`)
 
 For integral domains…
 `local_id_is_id` asserts that for any submodule `S` that does not contain `0` induces an `integral_domain` on an `integral_domain`.
@@ -18,7 +21,7 @@ For integral domains…
 `ideal_mul_eq_zero` is that whenever I * J = ⊥, either I = ⊥ or J = ⊥.
 -/
 
-theorem local_id_is_id (S : submonoid R) (zero_non_mem : ((0 : R) ∉  S)) {f : localization_map S (localization S)} :
+theorem local_id_is_id' (S : submonoid R) (zero_non_mem : ((0 : R) ∉  S)) {f : localization_map S (localization S)} :
   is_integral_domain (localization S) :=
 begin
   split,
@@ -55,17 +58,17 @@ begin
         exact localization_map.eq_zero_of_fst_eq_zero f bkey rfl },
     },
 end
-
-instance local_at_prime_of_id_is_id (P : ideal R) (hp_prime : P.is_prime) :
+/-
+instance local_at_prime_of_id_is_id' (P : ideal R) (hp_prime : P.is_prime) :
   integral_domain (localization.at_prime P) :=
 begin
   have zero_non_mem : (0 : R) ∉ P.prime_compl,
   { have := ideal.zero_mem P, simpa },
   have h1 := local_id_is_id R P.prime_compl zero_non_mem,
   exact is_integral_domain.to_integral_domain (localization.at_prime P) h1,
-  exact localization.of (ideal.prime_compl P),
+  --exact localization.of (ideal.prime_compl P),
 end
-
+-/
 lemma lt_add_nonmem (I : ideal R') (a ∉ I) : I < I+ideal.span{a} :=
 begin
   have blah : ∀ (x y : ideal R'), x ≤ x ⊔ y,
@@ -116,7 +119,7 @@ begin
   cases this, assumption, exfalso, exact ne0 this,
 end
 
-theorem set_has_maximal_iff_noetherian {X : Type u} [add_comm_group X] [module R' X] : (∀(a : set $ submodule R' X), a.nonempty → ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I=M) ↔ is_noetherian R' X :=
+theorem set_has_maximal_iff_noetherian' {X : Type u} [add_comm_group X] [module R' X] : (∀(a : set $ submodule R' X), a.nonempty → ∃ (M ∈ a), ∀ (I ∈ a), M ≤ I → I=M) ↔ is_noetherian R' X :=
 begin
   split; intro h,
   { split,

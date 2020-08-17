@@ -170,50 +170,6 @@ begin
   apply submodule.lt_add_nonmem, assumption,
 end
 
---
-lemma zero_prime [integral_domain R] : (⊥ : ideal R).is_prime :=
-begin
-  split,
-  {
-    intro,
-    have h1 := (ideal.eq_top_iff_one) (⊥ : ideal R) ,
-    rw h1 at a,
-    have : 1 = (0 : R), tauto,
-    simpa,
-  },
-  {
-    intros,
-    have h1 : x * y = 0, tauto,
-    have x_or_y0 : x = 0 ∨ y = 0,
-    exact zero_eq_mul.mp (eq.symm h1),
-    tauto,
-  },
-end
-
---name could be improved
-lemma ideal_mul_eq_zero {I J : ideal R} : (I * J = ⊥) ↔ I = ⊥ ∨ J = ⊥ :=
-begin
-  have hJ : inhabited J, by exact submodule.inhabited J,
-  have j := inhabited.default J, clear hJ,
-  split, swap,
-  { intros,
-    cases a,
-    {rw [← ideal.mul_bot J, a, ideal.mul_comm],},
-    {rw [← ideal.mul_bot I, a, ideal.mul_comm],},
-  },
-  intro hij,
-  by_cases J = ⊥,
-  right, exact h,
-  left,
-  rw submodule.eq_bot_iff,
-  intros i hi,
-  rcases J.ne_bot_iff.1 h with ⟨ j', hj, ne0⟩,
-  rw submodule.eq_bot_iff at hij,
-  specialize hij (i * j'),
-  have := eq_zero_or_eq_zero_of_mul_eq_zero ( hij (ideal.mul_mem_mul hi hj)),
-  cases this, assumption, exfalso, exact ne0 this,
-end
-
 /-- An ideal is maximal if it is maximal in the collection of proper ideals. -/
 @[class] def is_maximal (I : ideal α) : Prop :=
 I ≠ ⊤ ∧ ∀ J, I < J → J = ⊤
@@ -523,6 +479,26 @@ end
 end pi
 
 end ideal
+
+--Move this somewhere better
+lemma zero_prime [integral_domain α] : (⊥ : ideal α).is_prime :=
+begin
+  split,
+  {
+    intro,
+    have h1 := (ideal.eq_top_iff_one) (⊥ : ideal α),
+    rw h1 at a,
+    have : 1 = (0 : α), tauto,
+    simpa,
+  },
+  {
+    intros,
+    have h1 : x * y = 0, tauto,
+    have x_or_y0 : x = 0 ∨ y = 0,
+    exact zero_eq_mul.mp (eq.symm h1),
+    tauto,
+  },
+end
 
 /-- The set of non-invertible elements of a monoid. -/
 def nonunits (α : Type u) [monoid α] : set α := { a | ¬is_unit a }

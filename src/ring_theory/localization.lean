@@ -789,31 +789,31 @@ end
 
 /-- If `S` is the localization of `R` at a submonoid, the ordering of ideals of `S` is
 embedded in the ordering of ideals of `R`. -/
-def le_order_embedding :
-  ((≤) : ideal S → ideal S → Prop) ≼o
+def le_rel_embedding :
+  ((≤) : ideal S → ideal S → Prop) ↪r
   ((≤) : ideal R → ideal R → Prop) :=
 { to_fun := λ J, ideal.comap f.to_map J,
   inj'   := function.left_inverse.injective f.map_comap,
-  ord'   := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
+  map_rel_iff'   := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
     f.map_comap J₁ ▸ f.map_comap J₂ ▸ ideal.map_mono hJ⟩ }
 
 /-- If `R` is a ring, then prime ideals in the localization at `M`
 correspond to prime ideals in the original ring `R` that are disjoint from `M`.
 This gives the particular case for an ideal and its comap,
-see `le_order_iso_of_prime` for the more general order isomorphism -/
+see `le_rel_iso_of_prime` for the more general relation isomorphism -/
 lemma is_prime_iff_is_prime_disjoint (J : ideal S) :
   J.is_prime ↔ (ideal.comap f.to_map J).is_prime ∧ disjoint (M : set R) ↑(ideal.comap f.to_map J) :=
 begin
   split,
   { refine λ h, ⟨⟨_, _⟩, λ m hm, h.1 (ideal.eq_top_of_is_unit_mem _ hm.2 (map_units f ⟨m, hm.left⟩))⟩,
     { refine λ hJ, h.left _,
-      rw [eq_top_iff, (le_order_embedding f).ord],
+      rw [eq_top_iff, (le_rel_embedding f).map_rel_iff],
       exact le_of_eq hJ.symm },
     { intros x y hxy,
       rw [ideal.mem_comap, ring_hom.map_mul] at hxy,
       exact h.right hxy } },
   { refine λ h, ⟨λ hJ, h.left.left (eq_top_iff.2 _), _⟩,
-    { rwa [eq_top_iff, (le_order_embedding f).ord] at hJ },
+    { rwa [eq_top_iff, (le_rel_embedding f).map_rel_iff] at hJ },
     { intros x y hxy,
       obtain ⟨a, s, ha⟩ := mk'_surjective f x,
       obtain ⟨b, t, hb⟩ := mk'_surjective f y,
@@ -827,22 +827,22 @@ end
 /-- If `R` is a ring, then prime ideals in the localization at `M`
 correspond to prime ideals in the original ring `R` that are disjoint from `M`.
 This gives the particular case for an ideal and its map,
-see `le_order_iso_of_prime` for the more general order isomorphism, and the reverse implication -/
+see `le_rel_iso_of_prime` for the more general relation isomorphism, and the reverse implication -/
 lemma is_prime_of_is_prime_disjoint (I : ideal R) :
   I.is_prime ∧ disjoint (M : set R) ↑I → (ideal.map f.to_map I).is_prime :=
 λ h, by rwa [is_prime_iff_is_prime_disjoint f, comap_map_of_is_prime_disjoint f I h.1 h.2]
 
 /-- If `R` is a ring, then prime ideals in the localization at `M`
 correspond to prime ideals in the original ring `R` that are disjoint from `M` -/
-def le_order_iso_of_prime (f : localization_map M S) :
-  ((≤) : {p : ideal S // p.is_prime} → {p : ideal S // p.is_prime} → Prop) ≃o
+def le_rel_iso_of_prime (f : localization_map M S) :
+  ((≤) : {p : ideal S // p.is_prime} → {p : ideal S // p.is_prime} → Prop) ≃r
   ((≤) : {p : ideal R // p.is_prime ∧ disjoint (M : set R) ↑p}
             → {p : ideal R // p.is_prime ∧ disjoint (M : set R) ↑p} → Prop) :=
 { to_fun := λ p, ⟨ideal.comap f.to_map p.1, (is_prime_iff_is_prime_disjoint f p.1).1 p.2⟩,
   inv_fun := λ p, ⟨ideal.map f.to_map p.1, (is_prime_of_is_prime_disjoint f p.1) p.2⟩,
   left_inv := λ J, subtype.eq (map_comap f J),
   right_inv := λ I, subtype.eq (comap_map_of_is_prime_disjoint f I.1 I.2.1 I.2.2),
-  ord' := λ I I', ⟨λ h x hx, h hx, λ h, (show I.val ≤ I'.val,
+  map_rel_iff' := λ I I', ⟨λ h x hx, h hx, λ h, (show I.val ≤ I'.val,
     from (map_comap f I.val) ▸ (map_comap f I'.val) ▸ (ideal.map_mono h))⟩ }
 
 end ideals

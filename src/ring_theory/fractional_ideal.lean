@@ -448,7 +448,7 @@ begin
     intro y'_eq_zero,
     have : g.to_map aJ * y = 0 := by rw [←hy', y'_eq_zero, g.to_map.map_zero],
     obtain aJ_zero | y_zero := mul_eq_zero.mp this,
-    { have : aJ = 0 := g.to_map.injective_iff.1 g.injective_to_map _ aJ_zero,
+    { have : aJ = 0 := g.to_map.injective_iff.1 g.injective _ aJ_zero,
       have : aJ ≠ 0 := mem_non_zero_divisors_iff_ne_zero.mp haJ,
       contradiction },
     { exact not_mem_zero (mem_zero_iff.mpr y_zero) } },

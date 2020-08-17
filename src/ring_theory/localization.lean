@@ -912,7 +912,7 @@ begin
   { rw h },
 end
 
-lemma injective_to_map (f : localization_map M S) (hM : M ≤ non_zero_divisors R) :
+lemma injective (f : localization_map M S) (hM : M ≤ non_zero_divisors R) :
   injective f.to_map :=
 begin
   rw ring_hom.injective_iff f.to_map,
@@ -925,7 +925,7 @@ end
 
 protected lemma to_map_ne_zero_of_mem_non_zero_divisors {M : submonoid A} (f : localization_map M S)
   (hM : M ≤ non_zero_divisors A) (x : non_zero_divisors A) : f.to_map x ≠ 0 :=
-map_ne_zero_of_mem_non_zero_divisors (f.injective_to_map hM)
+map_ne_zero_of_mem_non_zero_divisors (f.injective hM)
 
 /-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
 non-zero elements is an integral domain. -/
@@ -943,7 +943,7 @@ def integral_domain_of_le_non_zero_divisors {M : submonoid A} (f : localization_
       { exact or.inl (f.eq_zero_of_fst_eq_zero hx H) },
       { exact or.inr (f.eq_zero_of_fst_eq_zero hy H) },
     end,
-  exists_pair_ne := ⟨f.to_map 0, f.to_map 1, λ h, zero_ne_one (f.injective_to_map hM h)⟩,
+  exists_pair_ne := ⟨f.to_map 0, f.to_map 1, λ h, zero_ne_one (f.injective hM h)⟩,
   ..(infer_instance : comm_ring S) }
 
 /-- The localization at of an integral domain to a set of non-zero elements is an integral domain -/
@@ -965,9 +965,9 @@ lemma to_map_eq_zero_iff [comm_ring K] (φ : fraction_map R K) {x : R} :
   φ.to_map x = 0 ↔ x = 0 :=
 φ.to_map_eq_zero_iff (le_of_eq rfl)
 
-protected theorem injective_to_map [comm_ring K] (φ : fraction_map R K) :
+protected theorem injective [comm_ring K] (φ : fraction_map R K) :
   function.injective φ.to_map :=
-φ.injective_to_map (le_of_eq rfl)
+φ.injective (le_of_eq rfl)
 
 protected lemma to_map_ne_zero_of_mem_non_zero_divisors [comm_ring K] (φ : fraction_map A K)
   (x : non_zero_divisors A) : φ.to_map x ≠ 0 :=

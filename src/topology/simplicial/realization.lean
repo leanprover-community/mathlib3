@@ -71,14 +71,12 @@ lemma standard_simplex_has_realization (n : NonemptyFinLinOrd) :
       ext1, ext1 m, dsimp [singular],
       ext1 i, change unop m ⟶ n at i,
       ext1 x,
-      sorry,
-      -- dsimp [g],
-      -- have := congr_fun (f.naturality i.op).symm (𝟙 n),
-      -- replace := congr_arg continuous_map.to_fun this,
-      -- replace := congr_fun this x,
-      -- dsimp [standard_simplex, singular, singular_standard_simplex] at this,
-      -- rw [category.comp_id] at this,
-      -- exact this,
+      have := congr_fun (f.naturality i.op).symm (𝟙 n),
+      replace := congr_arg continuous_map.to_fun this,
+      replace := congr_fun this x,
+      dsimp [standard_simplex, singular, singular_standard_simplex] at this,
+      rw [category.comp_id] at this,
+      exact this,
     end } }
 
 open simplex_category opposite
@@ -163,6 +161,7 @@ colim.map (realization_obj_functor_comp_hom f) ≫ colimit.pre _ _
 
 /-- The geometric realization of a simplicial type.
 This functor is left adjoint to `Top.singular`. -/
+-- TODO: Use Kan extensions
 @[simps]
 def realization : sType.{u} ⥤ Top.{u} :=
 { obj := realization_obj,

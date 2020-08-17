@@ -17,7 +17,7 @@ Since graphs are terms, the basic interface is that a term `G` is a
 simple graph if there is an instance `[simple_graph G]`.
 
 To construct a simple graph from a specific relation, one uses
-`simple_graph.from_adj_rel`.
+`simple_graph_on`.
 
 There is a basic API for locally finite graphs and for graphs with
 finitely many vertices.
@@ -65,6 +65,21 @@ class simple_graph {α : Type u} (G : α) :=
 (symm [] : symmetric adj . obviously)
 (loopless [] : irreflexive adj . obviously)
 
+/--
+Basic constructor for a simple graph, using a symmetric irreflexive relation.
+-/
+structure simple_graph_on (V : Type u) :=
+(rel : V → V → Prop)
+(symm : symmetric rel . obviously)
+(irrefl : irreflexive rel . obviously)
+
+instance simple_graph_on.simple_graph (V : Type u) (G : simple_graph_on V) : simple_graph G :=
+{ V := V,
+  adj := G.rel,
+  symm := G.symm,
+  loopless := G.irrefl }
+
+
 namespace simple_graph
 
 /--
@@ -74,20 +89,6 @@ This is `simple_graph.adj` but with an explicit `G`.  It is used for situations 
 abbreviation adj_rel {α : Type u} (G : α) [simple_graph G] (v w : V G) := adj v w
 
 local infix ` ~ ` := adj
-
-/--
-Basic constructor for a simple graph, using a symmetric irreflexive relation.
--/
-structure from_adj_rel (V : Type u) :=
-(rel : V → V → Prop)
-(symm : symmetric rel . obviously)
-(irrefl : irreflexive rel . obviously)
-
-instance (V : Type u) (G : from_adj_rel V) : simple_graph G :=
-{ V := V,
-  adj := G.rel,
-  symm := G.symm,
-  loopless := G.irrefl }
 
 variables {α : Type u} {G : α} [simple_graph G]
 
@@ -475,10 +476,10 @@ section complete_graphs
 /--
 The complete graph on a type `α` is the simple graph with all pairs of distinct vertices adjacent.
 -/
-def complete_graph (α : Type u) : from_adj_rel α :=
+def complete_graph (α : Type u) : simple_graph_on α :=
 { rel := ne }
 
-instance from_rel_inhabited (α : Type u) : inhabited (from_adj_rel α) :=
+instance from_rel_inhabited (α : Type u) : inhabited (simple_graph_on α) :=
 ⟨complete_graph α⟩
 
 variables (α : Type u) [decidable_eq α]

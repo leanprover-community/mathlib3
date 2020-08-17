@@ -28,7 +28,7 @@ arsinh, arcsinh, argsinh, asinh, sinh injective, sinh bijective, sinh surjective
 
 
 /-- `arsinh` is defined using a logarithm, `arsinh x = log (x + sqrt(1 + x^2))` -/
-def arsinh (x : ℝ) := log (x + sqrt(1 + x^2))
+def arsinh (x : ℝ) := log (x + sqrt (1 + x^2))
 
 /-- `sinh` is injective, `∀ a b, sinh a = sinh b → a = b` -/
 lemma sinh_injective : function.injective sinh := sinh_strict_mono.injective

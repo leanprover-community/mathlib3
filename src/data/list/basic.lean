@@ -49,6 +49,9 @@ assume l₁ l₂, assume Pe, tail_eq_of_cons_eq Pe
 theorem cons_inj (a : α) {l l' : list α} : a::l = a::l' ↔ l = l' :=
 ⟨λ e, cons_injective e, congr_arg _⟩
 
+theorem exists_cons_of_ne_nil {l : list α} (h : l ≠ nil) : ∃ b L, l = b :: L :=
+by { induction l with c l',  contradiction,  use [c,l'], }
+
 /-! ### mem -/
 
 theorem mem_singleton_self (a : α) : a ∈ [a] := mem_cons_self _ _
@@ -711,6 +714,10 @@ theorem mem_of_mem_head' {x : α} : ∀ {l : list α}, x ∈ l.head' → x ∈ l
 @[simp] theorem head_append [inhabited α] (t : list α) {s : list α} (h : s ≠ []) :
   head (s ++ t) = head s :=
 by {induction s, contradiction, refl}
+
+theorem tail_append_singleton_of_ne_nil {a : α} {l : list α} (h : l ≠ nil) :
+  tail (l ++ [a]) = tail l ++ [a] :=
+by { induction l,  contradiction, rw [tail,cons_append,tail], }
 
 theorem cons_head'_tail : ∀ {l : list α} {a : α} (h : a ∈ head' l), a :: tail l = l
 | [] a h := by contradiction
@@ -2730,6 +2737,11 @@ theorem le_count_iff_repeat_sublist {a : α} {l : list α} {n : ℕ} :
     ⟨by simp only [count, countp_eq_length_filter], λ b m, (of_mem_filter m).symm⟩,
   by rw ← this; apply filter_sublist,
  λ h, by simpa only [count_repeat] using count_le_of_sublist a h⟩
+
+theorem repeat_count_eq_of_count_eq_length  {a : α} {l : list α} (h : count a l = length l)  :
+  repeat a (count a l) = l :=
+eq_of_sublist_of_length_eq (le_count_iff_repeat_sublist.mp (le_refl (count a l)))
+    (eq.trans (length_repeat a (count a l)) h)
 
 @[simp] theorem count_filter {p} [decidable_pred p]
   {a} {l : list α} (h : p a) : count a (filter p l) = count a l :=

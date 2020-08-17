@@ -392,8 +392,7 @@ lemma continuous_at.integral_sub_linear_is_o_ae
   {μ : measure α} [locally_finite_measure μ] {a : α}
   {f : α → E} (ha : continuous_at f a) (hfm : measurable f) :
   is_o (λ s, ∫ x in s, f x ∂μ - (μ s).to_real • f a) (λ s, (μ s).to_real) ((𝓝 a).lift' powerset) :=
-(tendsto_le_left (@inf_le_left _ _ (𝓝 a) μ.ae) ha).integral_sub_linear_is_o_ae hfm
-  (μ.finite_at_nhds a)
+(ha.mono_left inf_le_left).integral_sub_linear_is_o_ae hfm (μ.finite_at_nhds a)
 
 /-
 namespace integrable

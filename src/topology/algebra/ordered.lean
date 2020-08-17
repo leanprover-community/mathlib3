@@ -1518,7 +1518,7 @@ lemma map_Sup_of_continuous_at_of_monotone' {f : α → β} {s : set α} (Cf : c
   f (Sup s) = Sup (f '' s) :=
 --This is a particular case of the more general is_lub_of_is_lub_of_tendsto
 (is_lub_of_is_lub_of_tendsto (λ x hx y hy xy, Mf xy) (is_lub_Sup _) hs $
-  tendsto_le_left inf_le_left Cf).Sup_eq.symm
+  Cf.mono_left inf_le_left).Sup_eq.symm
 
 /-- A monotone function `s` sending `bot` to `bot` and continuous at the supremum of a set sends
 this supremum to the supremum of the image of this set. -/
@@ -1607,7 +1607,7 @@ lemma map_cSup_of_continuous_at_of_monotone {f : α → β} {s : set α} (Cf : c
 begin
   refine ((is_lub_cSup (ne.image f) (Mf.map_bdd_above H)).unique _).symm,
   refine is_lub_of_is_lub_of_tendsto (λx hx y hy xy, Mf xy) (is_lub_cSup ne H) ne _,
-  exact tendsto_le_left inf_le_left Cf
+  exact Cf.mono_left inf_le_left
 end
 
 /-- If a monotone function is continuous at the indexed supremum of a bounded function on

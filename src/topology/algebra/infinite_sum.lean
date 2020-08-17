@@ -105,7 +105,7 @@ by rw [← set.indicator_range_comp, subtype.range_coe,
 has_sum_subtype_iff_of_support_subset $ set.subset.refl _
 
 lemma has_sum_fintype [fintype β] (f : β → α) : has_sum f (∑ b, f b) :=
-order_top.tendsto_at_top _
+order_top.tendsto_at_top_nhds _
 
 protected lemma finset.has_sum (s : finset β) (f : β → α) :
   has_sum (f ∘ coe : (↑s : set β) → α) (∑ b in s, f b) :=

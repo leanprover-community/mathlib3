@@ -1,5 +1,6 @@
 /-
-2020. No rights reserved. https://unlicense.org/
+Copyright (c) 2020 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
@@ -16,28 +17,15 @@ structure witt_package :=
 (structure_prop  : ∀ {idx : Type} (Φ : mv_polynomial idx ℤ) (n : enum),
                     aeval (λ k, (witt_structure Φ k)) (witt_polynomial n) =
                     aeval (λ i, (rename_hom (λ k, (i,k)) (witt_polynomial n))) Φ)
-(loc : Type)
-[loc_comm_ring : comm_ring loc]
-[algebra       : algebra ℤ loc]
-(inj           : function.injective (algebra_map ℤ loc))
-(equiv         :
-begin
-  let aux1 : _ := _, let aux2 : _ := _, let aux3 : _ := _,
-  refine @alg_equiv loc (mv_polynomial enum loc) (mv_polynomial enum loc)
-    aux1 aux2 aux2 aux3 aux3,
-  swap 3, apply_instance,
-  swap, apply_instance,
-  convert @mv_polynomial.algebra loc enum aux1,
-end)
--- (compat        :
--- begin
---   refine (equiv : mv_polynomial enum loc →ₐ[loc] mv_polynomial enum loc) = _,
---   refine aeval _,
---   intro n,
---   refine mv_polynomial.map_hom _ (witt_polynomial n),
---   refine @algebra_map ℤ loc (by apply_instance) (by apply_instance) (algebra)
--- --                   aeval (λ n, mv_polynomial.map_hom (algebra_map ℤ loc) (witt_polynomial n))
--- end)
+(S       : set ℤ)
+(equiv'  : Π (R : Type) [comm_ring R] (h : ∀ k ∈ S, invertible (k : R)),
+            (mv_polynomial enum R) ≃ₐ[R] (mv_polynomial enum R))
+(compat' : Π (R : Type) [comm_ring R] (h : ∀ k ∈ S, invertible (k : R)),
+            (equiv' R h : mv_polynomial enum R →ₐ[R] mv_polynomial enum R) = _)
+                  -- @aeval _ R _
+                  --   (λ n, mv_polynomial.map_hom (algebra_map ℤ R) (witt_polynomial n))
+                  --   _ _ _
+
 
 namespace witt_package
 

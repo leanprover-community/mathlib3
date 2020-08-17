@@ -5,7 +5,7 @@ Authors: Kenny Lau, Johan Commelin
 -/
 import data.equiv.functor
 import data.mv_polynomial
-import ring_theory.ideal_operations
+import ring_theory.ideal.operations
 import ring_theory.free_ring
 
 noncomputable theory
@@ -44,9 +44,9 @@ section lift
 
 variables {β : Type v} [comm_ring β] (f : α → β)
 
-/-- Lift a map `α → R` to a ring homomorphism `free_comm_ring α → R`.
+/-- Lift a map `α → R` to a additive group homomorphism `free_comm_ring α → R`.
 For a version producing a bundled homomorphism, see `lift_hom`. -/
-def lift : free_comm_ring α → β :=
+def lift : free_comm_ring α →+ β :=
 free_abelian_group.lift $ λ s, (s.map f).prod
 
 @[simp] lemma lift_zero : lift f 0 = 0 := rfl
@@ -86,19 +86,20 @@ end
 We don't use it as the canonical form because Lean fails to coerce it to a function. -/
 def lift_hom : free_comm_ring α →+* β := ⟨lift f, lift_one f, lift_mul f, lift_zero f, lift_add f⟩
 
-instance : is_ring_hom (lift f) := (lift_hom f).is_ring_hom
-
 @[simp] lemma coe_lift_hom : ⇑(lift_hom f : free_comm_ring α →+* β) = lift f := rfl
 
 @[simp] lemma lift_pow (x) (n : ℕ) : lift f (x ^ n) = lift f x ^ n :=
 (lift_hom f).map_pow _ _
 
-@[simp] lemma lift_comp_of (f : free_comm_ring α → β) [is_ring_hom f] : lift (f ∘ of) = f :=
+@[simp] lemma lift_comp_of (f : free_comm_ring α → β) [is_ring_hom f] : (lift (f ∘ of) : free_comm_ring α → β) = f :=
 funext $ λ x, free_comm_ring.induction_on x
   (by rw [lift_neg, lift_one, is_ring_hom.map_neg f, is_ring_hom.map_one f])
   (lift_of _)
   (λ x y ihx ihy, by rw [lift_add, is_ring_hom.map_add f, ihx, ihy])
   (λ x y ihx ihy, by rw [lift_mul, is_ring_hom.map_mul f, ihx, ihy])
+
+@[simp] lemma lift_hom_comp_of (f : free_comm_ring α →+* β) : lift_hom (f ∘ of) = f :=
+ring_hom.ext $ λ x, congr_fun (lift_comp_of f) x
 
 end lift
 
@@ -156,8 +157,8 @@ int.induction_on i is_supported_zero
 
 end is_supported
 
-def restriction (s : set α) [decidable_pred s] (x : free_comm_ring α) : free_comm_ring s :=
-lift (λ p, if H : p ∈ s then of ⟨p, H⟩ else 0) x
+def restriction (s : set α) [decidable_pred s] : free_comm_ring α →+* free_comm_ring s :=
+lift_hom (λ p, if H : p ∈ s then of ⟨p, H⟩  else 0)
 
 section restriction
 variables (s : set α) [decidable_pred s] (x y : free_comm_ring α)
@@ -219,16 +220,13 @@ namespace free_ring
 open function
 variable (α)
 
-def to_free_comm_ring {α} : free_ring α → free_comm_ring α :=
-free_ring.lift free_comm_ring.of
-
-instance to_free_comm_ring.is_ring_hom : is_ring_hom (@to_free_comm_ring α) :=
-free_ring.is_ring_hom free_comm_ring.of
+def to_free_comm_ring {α} : free_ring α →+* free_comm_ring α :=
+free_ring.lift_hom free_comm_ring.of
 
 instance : has_coe (free_ring α) (free_comm_ring α) := ⟨to_free_comm_ring⟩
 
 instance coe.is_ring_hom : is_ring_hom (coe : free_ring α → free_comm_ring α) :=
-free_ring.to_free_comm_ring.is_ring_hom _
+free_ring.to_free_comm_ring.is_ring_hom
 
 @[simp, norm_cast] protected lemma coe_zero : ↑(0 : free_ring α) = (0 : free_comm_ring α) := rfl
 @[simp, norm_cast] protected lemma coe_one : ↑(1 : free_ring α) = (1 : free_comm_ring α) := rfl
@@ -261,22 +259,9 @@ end
 lemma coe_eq :
   (coe : free_ring α → free_comm_ring α) =
   @functor.map free_abelian_group _ _ _ (λ (l : list α), (l : multiset α)) :=
-begin
-  funext,
-  apply @free_abelian_group.lift.ext _ _ _
-    (coe : free_ring α → free_comm_ring α) _ _ (free_abelian_group.lift.is_add_group_hom _),
-  intros x,
-  change free_ring.lift free_comm_ring.of (free_abelian_group.of x) = _,
-  change _ = free_abelian_group.of (↑x),
-  induction x with hd tl ih, {refl},
-  simp only [*, free_ring.lift, free_comm_ring.of, free_abelian_group.of, free_abelian_group.lift,
-    free_group.of, free_group.to_group, free_group.to_group.aux,
-    mul_one, free_group.quot_lift_mk, abelianization.lift.of, bool.cond_tt, list.prod_cons,
-    cond, list.prod_nil, list.map] at *,
-  refl
-end
-
-variables
+funext $ λ x, free_abelian_group.lift.unique _ _ $ λ L,
+by { simp_rw [free_abelian_group.lift.of, (∘)], exact list.rec_on L rfl
+(λ hd tl ih, by { rw [list.map_cons, list.prod_cons, ih], refl }) }
 
 -- FIXME This was in `deprecated.ring`, but only used here.
 -- It would be good to inline it into the next construction.

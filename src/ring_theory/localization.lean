@@ -6,7 +6,7 @@ Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston
 
 import data.equiv.ring
 import tactic.ring_exp
-import ring_theory.ideal_operations
+import ring_theory.ideal.operations
 import group_theory.monoid_localization
 import ring_theory.algebraic
 import ring_theory.integral_closure
@@ -672,7 +672,7 @@ local_of_nonunits_ideal
     intros x y hx hy hu,
     cases is_unit_iff_exists_inv.1 hu with z hxyz,
     have : ∀ {r s}, f.mk' r s ∈ nonunits S → r ∈ I, from
-      λ r s, (@not_imp_comm _ _ (classical.dec _) (classical.dec _)).1
+      λ r s, not_imp_comm.1
         (λ nr, is_unit_iff_exists_inv.2 ⟨f.mk' s ⟨r, nr⟩, f.mk'_mul_mk'_eq_one' _ _ nr⟩),
     rcases f.mk'_surjective x with ⟨rx, sx, hrx⟩,
     rcases f.mk'_surjective y with ⟨ry, sy, hry⟩,
@@ -715,12 +715,12 @@ end
 
 /-- If `S` is the localization of `R` at a submonoid, the ordering of ideals of `S` is
 embedded in the ordering of ideals of `R`. -/
-def le_order_embedding :
-  ((≤) : ideal S → ideal S → Prop) ≼o
+def le_rel_embedding :
+  ((≤) : ideal S → ideal S → Prop) ↪r
   ((≤) : ideal R → ideal R → Prop) :=
 { to_fun := λ J, ideal.comap f.to_map J,
   inj'   := function.left_inverse.injective f.map_comap,
-  ord'   := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
+  map_rel_iff'   := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
     f.map_comap J₁ ▸ f.map_comap J₂ ▸ ideal.map_mono hJ⟩ }
 
 end ideals
@@ -757,13 +757,16 @@ def lin_coe : R →ₗ[R] f.codomain :=
   map_add'  := f.to_map.map_add,
   map_smul' := f.to_map.map_mul }
 
+/-- Map from ideals of `R` to submodules of `S` induced by `f`. -/
+-- This was previously a `has_coe` instance, but if `f.codomain = R` then this will loop.
+-- It could be a `has_coe_t` instance, but we keep it explicit here to avoid slowing down
+-- the rest of the library.
+def coe_submodule (I : ideal R) : submodule R f.codomain := submodule.map f.lin_coe I
+
 variables {f}
 
-instance coe_submodules : has_coe (ideal R) (submodule R f.codomain) :=
-⟨λ I, submodule.map f.lin_coe I⟩
-
-lemma mem_coe (I : ideal R) {x : S} :
-  x ∈ (I : submodule R f.codomain) ↔ ∃ y : R, y ∈ I ∧ f.to_map y = x :=
+lemma mem_coe_submodule (I : ideal R) {x : S} :
+  x ∈ f.coe_submodule I ↔ ∃ y : R, y ∈ I ∧ f.to_map y = x :=
 iff.rfl
 
 @[simp] lemma lin_coe_apply {x} : f.lin_coe x = f.to_map x := rfl
@@ -837,9 +840,9 @@ let ⟨b, hb⟩ := integer_normalization_map_to_map p in
 trans (eval₂_map f.to_map g x).symm (by rw [hb, eval₂_smul, hx, smul_zero])
 
 lemma integer_normalization_aeval_eq_zero [algebra R R'] [algebra f.codomain R']
-  [is_algebra_tower R f.codomain R'] (p : polynomial f.codomain)
+  [is_scalar_tower R f.codomain R'] (p : polynomial f.codomain)
   {x : R'} (hx : aeval x p = 0) : aeval x (integer_normalization p) = 0 :=
-by rw [aeval_def, is_algebra_tower.algebra_map_eq R f.codomain R', algebra_map_eq,
+by rw [aeval_def, is_scalar_tower.algebra_map_eq R f.codomain R', algebra_map_eq,
     integer_normalization_eval₂_eq_zero _ _ hx]
 
 end integer_normalization
@@ -1058,14 +1061,14 @@ begin
 end
 
 /-- A field is algebraic over the ring `A` iff it is algebraic over the field of fractions of `A`. -/
-lemma comap_is_algebraic_iff [algebra A L] [algebra f.codomain L] [is_algebra_tower A f.codomain L] :
+lemma comap_is_algebraic_iff [algebra A L] [algebra f.codomain L] [is_scalar_tower A f.codomain L] :
   algebra.is_algebraic A L ↔ algebra.is_algebraic f.codomain L :=
 begin
   split; intros h x; obtain ⟨p, hp, px⟩ := h x,
   { refine ⟨p.map f.to_map, λ h, hp (polynomial.ext (λ i, _)), _⟩,
   { have : f.to_map (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
     exact f.to_map_eq_zero_iff.mpr this },
-  { rwa [is_algebra_tower.aeval_apply _ f.codomain, algebra_map_eq] at px } },
+  { rwa [is_scalar_tower.aeval_apply _ f.codomain, algebra_map_eq] at px } },
   { exact ⟨integer_normalization p,
            mt f.integer_normalization_eq_zero_iff.mp hp,
            integer_normalization_aeval_eq_zero p px⟩ },
@@ -1165,12 +1168,12 @@ def fraction_map_of_algebraic [algebra A L] (alg : is_algebraic A L)
 /-- If the field `L` is a finite extension of the fraction field of the integral domain `A`,
 the integral closure of `A` in `L` has fraction field `L`. -/
 def fraction_map_of_finite_extension [algebra A L] [algebra f.codomain L]
-  [is_algebra_tower A f.codomain L] [finite_dimensional f.codomain L] :
+  [is_scalar_tower A f.codomain L] [finite_dimensional f.codomain L] :
   fraction_map (integral_closure A L) L :=
 fraction_map_of_algebraic
   (f.comap_is_algebraic_iff.mpr is_algebraic_of_finite)
   (λ x hx, f.to_map_eq_zero_iff.mpr ((algebra_map f.codomain L).map_eq_zero.mp $
-    (is_algebra_tower.algebra_map_apply _ _ _ _).symm.trans hx))
+    (is_scalar_tower.algebra_map_apply _ _ _ _).symm.trans hx))
 
 end integral_closure
 

@@ -369,7 +369,7 @@ begin
     have hdW := dim_span li,
     rw set.range_restrict at hdW,
     convert hdW,
-    rw [cardinal.mk_image_eq ((dual_pair_e_ε _).is_basis.injective zero_ne_one), cardinal.fintype_card] },
+    rw [cardinal.mk_image_eq (dual_pair_e_ε _).is_basis.injective, cardinal.fintype_card] },
   rw ← findim_eq_dim ℝ at ⊢ dim_le dim_add dimW,
   rw [← findim_eq_dim ℝ, ← findim_eq_dim ℝ] at dim_add,
   norm_cast at ⊢ dim_le dim_add dimW,

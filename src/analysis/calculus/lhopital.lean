@@ -58,13 +58,11 @@ begin
     exact hg' y (sub x hx hyx) hy },
   have : ∀ x ∈ Ioo a b, ∃ c ∈ Ioo a x, (f x) * (g' c) = (g x) * (f' c),
   { intros x hx,
-    obtain ⟨c, hca, hcb⟩ : ∃ (c : ℝ) (H : c ∈ Ioo a x), (f x) * g' c = (g x) * f' c,
-    { rw [← sub_zero (f x), ← sub_zero (g x)],
-      exact exists_ratio_has_deriv_at_eq_ratio_slope' g g' hx.1 f f'
-        (λ y hy, hgg' y $ sub x hx hy) (λ y hy, hff' y $ sub x hx hy) hga hfa
-        (tendsto_nhds_within_of_tendsto_nhds (hgg' x hx).continuous_at.tendsto)
-        (tendsto_nhds_within_of_tendsto_nhds (hff' x hx).continuous_at.tendsto) },
-    exact ⟨c, hca, hcb⟩ },
+    rw [← sub_zero (f x), ← sub_zero (g x)],
+    exact exists_ratio_has_deriv_at_eq_ratio_slope' g g' hx.1 f f'
+      (λ y hy, hgg' y $ sub x hx hy) (λ y hy, hff' y $ sub x hx hy) hga hfa
+      (tendsto_nhds_within_of_tendsto_nhds (hgg' x hx).continuous_at.tendsto)
+      (tendsto_nhds_within_of_tendsto_nhds (hff' x hx).continuous_at.tendsto) },
   choose! c hc using this,
   have : ∀ x ∈ Ioo a b, ((λ x', (f' x') / (g' x')) ∘ c) x = f x / g x,
   { intros x hx,
@@ -103,7 +101,6 @@ begin
   { rw [← hga, ← nhds_within_Ioo_eq_nhds_within_Ioi hab],
     exact ((hcg a $ left_mem_Ico.mpr hab).mono Ioo_subset_Ico_self).tendsto },
 end
-
 
 theorem lhopital_zero_left_on_Ioo
   (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hgg' : ∀ x ∈ Ioo a b, has_deriv_at g (g' x) x)

@@ -859,19 +859,16 @@ begin
     exact mem_map_of_mem (Inf_le_of_le hJ.left (le_of_eq rfl) hx.left) },
   { intros y hy,
     cases hf y with x hx,
-    rw ← hx,
-    refine mem_map_of_mem _,
+    refine hx ▸ (mem_map_of_mem _),
     rw Inf_eq_infi at ⊢ hy,
     simp at ⊢ hy,
     intros J hJ,
     cases (mem_map_iff_of_surjective f hf).1 (hy (map f J) J hJ rfl) with x' hx',
     have : x - x' ∈ J,
     { apply h J hJ,
-      rw [ring_hom.mem_ker, ring_hom.map_sub, hx, hx'.right],
-      exact sub_self y },
-    have : x - x' + x' ∈ J := J.add_mem this hx'.left,
-    ring at this,
-    exact this }
+      rw [ring_hom.mem_ker, ring_hom.map_sub, hx, hx'.right, sub_self y], },
+    convert J.add_mem this hx'.left,
+    ring, }
 end
 
 theorem map_is_prime_of_surjective {f : R →+* S} (hf : function.surjective f) {I : ideal R}

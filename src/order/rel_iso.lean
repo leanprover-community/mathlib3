@@ -35,13 +35,7 @@ infix ` ↪r `:25 := rel_embedding
 abbreviation order_embedding (α β : Type*) [has_le α] [has_le β] :=
 @rel_embedding α β (≤) (≤)
 
-infix ` ↪≤ `:25 := order_embedding
-
-/-- A `lt_embedding` is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) < (f b)`. -/
-abbreviation lt_embedding (α β : Type*) [has_lt α] [has_lt β] :=
-@rel_embedding α β (<) (<)
-
-infix ` ↪< `:25 := lt_embedding
+infix ` ↪o `:25 := order_embedding
 
 /-- the induced relation on a subtype is an embedding under the natural inclusion. -/
 definition subtype.rel_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) :
@@ -127,7 +121,8 @@ protected theorem is_strict_order : ∀ (f : r ↪r s) [is_strict_order β s], i
 protected theorem is_trichotomous : ∀ (f : r ↪r s) [is_trichotomous β s], is_trichotomous α r
 | ⟨f, o⟩ ⟨H⟩ := ⟨λ a b, (or_congr o (or_congr f.inj'.eq_iff.symm o)).2 (H _ _)⟩
 
-protected theorem is_strict_total_order' : ∀ (f : r ↪r s) [is_strict_total_order' β s], is_strict_total_order' α r
+protected theorem is_strict_total_order' :
+  ∀ (f : r ↪r s) [is_strict_total_order' β s], is_strict_total_order' α r
 | f H := by exactI {..f.is_trichotomous, ..f.is_strict_order}
 
 protected theorem acc (f : r ↪r s) (a : α) : acc s (f a) → acc r a :=
@@ -160,46 +155,49 @@ end
 @[simp] theorem of_monotone_coe [is_trichotomous α r] [is_asymm β s] (f : α → β) (H) :
   (@of_monotone _ _ r s _ _ f H : α → β) = f := rfl
 
-/-- lt is preserved by `lt_embedding`s of preorders -/
-def lt_embedding_of_le_embedding [preorder α] [preorder β] (f : α ↪≤ β) : α ↪< β :=
-{ map_rel_iff' := by intros; simp [lt_iff_le_not_le,f.map_rel_iff], .. f }
-
-/-- le is preserved by `lt_embedding`s of partial orders -/
-def le_embedding_of_lt_embedding [partial_order α] [partial_order β] (f : α ↪< β) : α ↪≤ β :=
+/-- Embeddings of partial orders that preserve  -/
+def order_embedding_of_lt_embedding [partial_order α] [partial_order β]
+  (f : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop)) :
+  α ↪o β :=
 { map_rel_iff' := by { intros, simp [le_iff_lt_or_eq,f.map_rel_iff, f.injective] }, .. f }
 
 end rel_embedding
 
 namespace order_embedding
 
-variables [preorder α] [preorder β] (f : α ↪≤ β)
+variables [preorder α] [preorder β] (f : α ↪o β)
+
+/-- lt is preserved by order embeddings of preorders -/
+def lt_embedding : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop) :=
+{ map_rel_iff' := by intros; simp [lt_iff_le_not_le,f.map_rel_iff], .. f }
 
 theorem map_le_iff : ∀ {a b}, a ≤ b ↔ (f a) ≤ (f b) := f.map_rel_iff'
 
-theorem map_lt_iff : ∀ {a b}, a < b ↔ (f a) < (f b) := f.lt_embedding_of_le_embedding.map_rel_iff'
+theorem map_lt_iff : ∀ {a b}, a < b ↔ (f a) < (f b) :=
+f.lt_embedding.map_rel_iff'
 
 protected theorem acc (a : α) : acc (<) (f a) → acc (<) a :=
-f.lt_embedding_of_le_embedding.acc a
+f.lt_embedding.acc a
 
 protected theorem well_founded :
   well_founded ((<) : β → β → Prop) → well_founded ((<) : α → α → Prop) :=
-f.lt_embedding_of_le_embedding.well_founded
+f.lt_embedding.well_founded
 
 protected theorem is_well_order [is_well_order β (<)] : is_well_order α (<) :=
-f.lt_embedding_of_le_embedding.is_well_order
+f.lt_embedding.is_well_order
 
 /-- An order embedding is also an order embedding between dual orders. -/
-def osymm : order_dual α ↪≤ order_dual β :=
+def osymm : order_dual α ↪o order_dual β :=
 ⟨f.to_embedding, λ a b, f.map_rel_iff⟩
 
 end order_embedding
 
 /-- The inclusion map `fin n → ℕ` is a relation embedding. -/
-def fin.val.rel_embedding (n) : (fin n) ↪≤ ℕ :=
+def fin.val.rel_embedding (n) : (fin n) ↪o ℕ :=
 ⟨⟨fin.val, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩
 
 /-- The inclusion map `fin m → fin n` is an order embedding. -/
-def fin_fin.rel_embedding {m n} (h : m ≤ n) : (fin m) ↪≤ (fin n) :=
+def fin_fin.rel_embedding {m n} (h : m ≤ n) : (fin m) ↪o (fin n) :=
 ⟨⟨λ ⟨x, h'⟩, ⟨x, lt_of_lt_of_le h' h⟩,
   λ ⟨a, _⟩ ⟨b, _⟩ h, by congr; injection h⟩,
   by intros; cases a; cases b; refl⟩
@@ -215,9 +213,9 @@ structure rel_iso {α β : Type*} (r : α → α → Prop) (s : β → β → Pr
 infix ` ≃r `:25 := rel_iso
 
 /-- An order isomorphism is an equivalence that is also an order embedding. -/
-abbreviation le_iso (α β : Type*) [has_le α] [has_le β] := @rel_iso α β (≤) (≤)
+abbreviation order_iso (α β : Type*) [has_le α] [has_le β] := @rel_iso α β (≤) (≤)
 
-infix ` ≃≤ `:25 := le_iso
+infix ` ≃o `:25 := order_iso
 
 namespace rel_iso
 
@@ -384,31 +382,31 @@ def rel_embedding.cod_restrict (p : set β) (f : r ↪r s) (H : ∀ a, f a ∈ p
 @[simp] theorem rel_embedding.cod_restrict_apply (p) (f : r ↪r s) (H a) :
   rel_embedding.cod_restrict p f H a = ⟨f a, H a⟩ := rfl
 
-  /-- a relation embedding is also a relation embedding between dual relations. -/
-def le_iso.osymm [preorder α] [preorder β] (f : order_dual α ≃≤ order_dual β) :
-  order_dual α ≃≤ order_dual β := ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
+  /-- An order isomorphism is also an order isomorphism between dual orders. -/
+def order_iso.osymm [preorder α] [preorder β] (f : α ≃o β) :
+  order_dual α ≃o order_dual β := ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
 
 section lattice_isos
 
-lemma le_iso.map_bot [order_bot α] [order_bot β]
-  (f : α ≃≤ β) :
+lemma order_iso.map_bot [order_bot α] [order_bot β]
+  (f : α ≃o β) :
   f ⊥ = ⊥ :=
 by { rw [eq_bot_iff, ← f.apply_symm_apply ⊥, ← f.map_rel_iff], apply bot_le, }
 
 lemma rel_iso.map_top [order_top α] [order_top β]
-  (f : α ≃≤ β) :
+  (f : α ≃o β) :
   f ⊤ = ⊤ :=
 by { rw [eq_top_iff, ← f.apply_symm_apply ⊤, ← f.map_rel_iff], apply le_top, }
 
 variables {a₁ a₂ : α}
 
 lemma rel_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β]
-  (f : α ↪≤ β) :
+  (f : α ↪o β) :
   f (a₁ ⊓ a₂) ≤ f a₁ ⊓ f a₂ :=
 by simp [← f.map_rel_iff]
 
 lemma rel_iso.map_inf [semilattice_inf α] [semilattice_inf β]
-  (f : α ≃≤ β) :
+  (f : α ≃o β) :
   f (a₁ ⊓ a₂) = f a₁ ⊓ f a₂ :=
 begin
   apply le_antisymm, { apply f.to_rel_embedding.map_inf_le },
@@ -417,13 +415,13 @@ begin
 end
 
 lemma rel_embedding.le_map_sup [semilattice_sup α] [semilattice_sup β]
-  (f : α ↪≤ β) :
+  (f : α ↪o β) :
   f a₁ ⊔ f a₂ ≤ f (a₁ ⊔ a₂) :=
 by simp [← f.map_rel_iff]
 
 
 lemma rel_iso.map_sup [semilattice_sup α] [semilattice_sup β]
-  (f : α ≃≤ β) :
+  (f : α ≃o β) :
   f (a₁ ⊔ a₂) = f a₁ ⊔ f a₂ :=
 begin
   apply le_antisymm, swap, { apply f.to_rel_embedding.le_map_sup },

@@ -1432,7 +1432,7 @@ by rw [eq_bot_iff, ← map_le_map_iff' p.ker_subtype, map_bot, map_comap_subtype
 
 /-- If `N ⊆ M` then submodules of `N` are the same as submodules of `M` contained in `N` -/
 def map_subtype.rel_iso :
-  submodule R p ≃≤ {p' : submodule R M // p' ≤ p} :=
+  submodule R p ≃o {p' : submodule R M // p' ≤ p} :=
 { to_fun    := λ p', ⟨map p.subtype p', map_subtype_le p _⟩,
   inv_fun   := λ q, comap p.subtype q,
   left_inv  := λ p', comap_map_eq_self $ by simp,
@@ -1441,17 +1441,12 @@ def map_subtype.rel_iso :
 
 /-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
 submodules of `M`. -/
-def map_subtype.le_embedding :
-  submodule R p ↪≤ submodule R M :=
+def map_subtype.order_embedding :
+  submodule R p ↪o submodule R M :=
 (rel_iso.to_rel_embedding $ map_subtype.rel_iso p).trans (subtype.rel_embedding _ _)
 
 @[simp] lemma map_subtype_embedding_eq (p' : submodule R p) :
-  map_subtype.le_embedding p p' = map p.subtype p' := rfl
-
-/-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
-submodules of `M`. -/
-def map_subtype.lt_embedding : submodule R p ↪< submodule R M :=
-(map_subtype.le_embedding p).lt_embedding_of_le_embedding
+  map_subtype.order_embedding p p' = map p.subtype p' := rfl
 
 
 /-- The map from a module `M` to the quotient of `M` by a submodule `p` as a linear map. -/
@@ -1526,7 +1521,7 @@ by rw [ker_liftq, le_antisymm h h', mkq_map_self]
 /-- The correspondence theorem for modules: there is an order isomorphism between submodules of the
 quotient of `M` by `p`, and submodules of `M` larger than `p`. -/
 def comap_mkq.rel_iso :
-  submodule R p.quotient ≃≤ {p' : submodule R M // p ≤ p'} :=
+  submodule R p.quotient ≃o {p' : submodule R M // p ≤ p'} :=
 { to_fun    := λ p', ⟨comap p.mkq p', le_comap_mkq p _⟩,
   inv_fun   := λ q, map p.mkq q,
   left_inv  := λ p', map_comap_eq_self $ by simp,
@@ -1535,18 +1530,12 @@ def comap_mkq.rel_iso :
 
 /-- The ordering on submodules of the quotient of `M` by `p` embeds into the ordering on submodules
 of `M`. -/
-def comap_mkq.le_embedding :
-  submodule R p.quotient ↪≤ submodule R M :=
+def comap_mkq.order_embedding :
+  submodule R p.quotient ↪o submodule R M :=
 (rel_iso.to_rel_embedding $ comap_mkq.rel_iso p).trans (subtype.rel_embedding _ _)
 
 @[simp] lemma comap_mkq_embedding_eq (p' : submodule R p.quotient) :
-  comap_mkq.le_embedding p p' = comap p.mkq p' := rfl
-
-/-- The ordering on submodules of the quotient of `M` by `p` embeds into the ordering on submodules
-of `M`. -/
-def comap_mkq.lt_embedding :
-  submodule R p.quotient ↪< submodule R M :=
-(comap_mkq.le_embedding p).lt_embedding_of_le_embedding
+  comap_mkq.order_embedding p p' = comap p.mkq p' := rfl
 
 end ring
 

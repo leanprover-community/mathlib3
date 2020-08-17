@@ -375,8 +375,7 @@ begin
     rw submodule.fg_def,
     contrapose! max,
     have : ∃ x ∈ I, x ∉ M',
-    {
-      have := max ↑Mgen (finset.finite_to_set Mgen),
+    { have := max ↑Mgen (finset.finite_to_set Mgen),
       contrapose! this,
       rw hMgen, ext, tauto },
     rcases this with ⟨x, hxI, hxM⟩,
@@ -397,11 +396,9 @@ begin
     apply h,
     constructor,
     have h' : ∀ (M' : submodule R M), M' ∈ A → (∃ (I : submodule R M), I ∈ A ∧ M' < I),
-    {
-      intros m mina,
+    { intros m mina,
       rcases hyp m mina with ⟨I, iina, mlei, mneqi⟩,
-      use I, split, exact iina, split, exact mlei, intro ilem, apply mneqi, exact le_antisymm ilem mlei,
-    },
+      use I, split, exact iina, split, exact mlei, intro ilem, apply mneqi, exact le_antisymm ilem mlei, },
     have h'' : ∀ M' : A, ∃ I : A, (M' : submodule R M) < I,
     { rintros ⟨M', M_in⟩,
       rcases h' M' M_in with ⟨I, I_in, hMI⟩,

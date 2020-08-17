@@ -482,20 +482,14 @@ end ideal
 lemma zero_prime [integral_domain α] : (⊥ : ideal α).is_prime :=
 begin
   split,
-  {
-    intro,
+  { intro,
     have h1 := (ideal.eq_top_iff_one) (⊥ : ideal α),
-    rw h1 at a,
-    have : 1 = (0 : α), tauto,
-    simpa,
-  },
-  {
-    intros,
+    rw h1 at a, have : 1 = (0 : α), tauto, simpa },
+  { intros,
     have h1 : x * y = 0, tauto,
     have x_or_y0 : x = 0 ∨ y = 0,
     exact zero_eq_mul.mp (eq.symm h1),
-    tauto,
-  },
+    tauto },
 end
 
 /-- The set of non-invertible elements of a monoid. -/

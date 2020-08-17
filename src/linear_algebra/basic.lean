@@ -909,7 +909,6 @@ end
 
 end add_comm_monoid
 
-
 variables [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
 variables [semimodule R M] [semimodule R M₂] [semimodule R M₃]
 variables (p p' : submodule R M) (q q' : submodule R M₂)

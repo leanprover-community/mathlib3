@@ -75,8 +75,7 @@ lemma arsinh_sinh (x : ℝ) : sinh (arsinh x) = x :=
 begin
   rw sinh_eq,
   unfold arsinh,
-  rw ←log_inv,
-  rw [exp_log, exp_log],
+  rw [←log_inv, exp_log, exp_log],
   { rw [← one_mul ((x + sqrt (1 + x ^ 2))⁻¹), ←division_def, aux_lemma],
     ring },
   { rw [← one_mul ((x + sqrt (1 + x ^ 2))⁻¹), ←division_def, aux_lemma],

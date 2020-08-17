@@ -1220,9 +1220,7 @@ begin
   obtain ⟨C', hC'⟩ : ∃ C', C' < C := no_bot C,
   refine tendsto_at_top_add_left_of_le' _ C' _ hg,
   rw tendsto_order at hf,
-  refine (hf.1 C' hC').mp (eventually_of_forall _),
-  intros x hx,
-  exact le_of_lt hx
+  exact (hf.1 C' hC').mp (eventually_of_forall λ x hx, le_of_lt hx)
 end
 
 /-- In a linearly ordered ring with the induced topology, if `f` tends to `at_top` and `g` tends to

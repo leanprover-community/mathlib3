@@ -216,6 +216,12 @@ is_glb_univ.Inf_eq
 @[simp] theorem Inf_insert {a : α} {s : set α} : Inf (insert a s) = a ⊓ Inf s :=
 ((is_glb_Inf s).insert a).Inf_eq
 
+theorem Sup_le_Sup' (h : s ⊆ (insert ⊥ t)) : Sup s ≤ Sup t :=
+le_trans (Sup_le_Sup h) (le_of_eq (trans Sup_insert bot_sup_eq))
+
+theorem Inf_le_Inf' (h : s ⊆ (insert ⊤ t)) : Inf t ≤ Inf s :=
+le_trans (le_of_eq (trans top_inf_eq.symm Inf_insert.symm)) (Inf_le_Inf h)
+
 -- We will generalize this to conditionally complete lattices in `cSup_singleton`.
 theorem Sup_singleton {a : α} : Sup {a} = a :=
 is_lub_singleton.Sup_eq

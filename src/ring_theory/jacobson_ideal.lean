@@ -135,21 +135,15 @@ begin
   intro h,
   rw [ideal.jacobson, ideal.jacobson],
   have : ∀ J ∈ {J : ideal R | I ≤ J ∧ J.is_maximal}, f.ker ≤ J := λ J hJ, le_trans h hJ.left,
-  refine trans (map_Inf hf this) (le_antisymm _ _);
-  rw le_Inf_iff,
-  { intros J hJ,
+  refine trans (map_Inf hf this) (le_antisymm _ _),
+  { refine Inf_le_Inf (λ J hJ, ⟨comap f J, ⟨⟨le_comap_of_map_le hJ.1, _⟩, map_comap_of_surjective f hf J⟩⟩),
     haveI : J.is_maximal := hJ.right,
-    exact Inf_le ⟨comap f J, ⟨⟨le_trans le_comap_map (comap_mono hJ.left),
-      comap_is_maximal_of_surjective _ hf⟩, map_comap_of_surjective _ hf J⟩⟩ },
-  { intros j hj,
-    have : Inf { J : ideal S | map f I ≤ J ∧ J.is_maximal }
-      = Inf (insert ⊤ { J : ideal S | map f I ≤ J ∧ J.is_maximal }),
-    by rw [Inf_insert, top_inf_eq],
-    refine le_trans (le_of_eq this) (Inf_le _),
-    cases hj with J hJ,
+    exact comap_is_maximal_of_surjective f hf },
+  { refine Inf_le_Inf' (λ j hj, hj.rec_on (λ J hJ, _)),
+    rw ← hJ.2,
     cases map_eq_top_or_is_maximal_of_surjective f hf hJ.left.right with htop hmax,
-    { exact or.inl (hJ.right ▸ htop) },
-    { exact or.inr (hJ.right ▸ ⟨map_mono hJ.left.left, hmax⟩) } }
+    { exact htop.symm ▸ set.mem_insert ⊤ _ },
+    { exact set.mem_insert_of_mem ⊤ ⟨map_mono hJ.1.1, hmax⟩ } },
 end
 
 theorem comap_jacobson_of_surjective {f : R →+* S} (hf : function.surjective f) {K : ideal S} :
@@ -157,24 +151,15 @@ theorem comap_jacobson_of_surjective {f : R →+* S} (hf : function.surjective f
 begin
   rw [ideal.jacobson, ideal.jacobson],
   refine le_antisymm _ _,
-  { refine le_Inf (λ J hJ x hx, _),
-    rw [mem_comap, mem_Inf] at hx,
+  { refine le_trans (comap_mono (le_of_eq (trans top_inf_eq.symm Inf_insert.symm))) _,
+    rw [comap_Inf', Inf_eq_infi],
+    refine infi_le_infi_of_subset (λ J hJ, _),
+    have : comap f (map f J) = J := trans (comap_map_of_surjective f hf J)
+      (le_antisymm (sup_le_iff.2 ⟨le_of_eq rfl, le_trans (comap_mono bot_le) hJ.left⟩) le_sup_left),
     cases map_eq_top_or_is_maximal_of_surjective _ hf hJ.right with htop hmax,
-    { replace htop := congr_arg (comap f) htop,
-      rw [comap_map_of_surjective _ hf, comap_top] at htop,
-      convert submodule.mem_top,
-      rw [eq_top_iff, ← htop, sup_le_iff],
-      exact ⟨le_of_eq rfl, le_trans (comap_mono bot_le) hJ.left⟩ },
-    { replace hx := @hx (map f J)
-        ⟨le_trans (le_of_eq (map_comap_of_surjective _ hf K).symm) (map_mono hJ.left), hmax⟩,
-      rw mem_map_iff_of_surjective _ hf at hx,
-      cases hx with x' hx',
-      have : x - x' ∈ J,
-      { apply hJ.left,
-        rw [mem_comap, ring_hom.map_sub, hx'.right, sub_self],
-        exact K.zero_mem },
-      convert J.add_mem this hx'.left,
-      ring } },
+    { refine ⟨⊤, ⟨set.mem_insert ⊤ _, htop ▸ this⟩⟩ },
+    { refine ⟨map f J, ⟨set.mem_insert_of_mem _
+        ⟨le_map_of_comap_le_of_surjective f hf hJ.1, hmax⟩, this⟩⟩ } },
   { rw comap_Inf,
     refine le_infi_iff.2 (λ J, (le_infi_iff.2 (λ hJ, _))),
     haveI : J.is_maximal := hJ.right,

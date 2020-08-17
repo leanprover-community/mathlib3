@@ -17,10 +17,10 @@ In a real vector space, we define the following objects and properties.
 
 * `segment x y` is the closed segment joining `x` and `y`.
 * A set `s` is `convex` if for any two points `x y ∈ s` it includes `segment x y`;
-* A function `f` is `convex_on` a set `s` if `s` is itself a convex set, and for any two points
-  `x y ∈ s` the segment joining `(x, f x)` to `(y, f y)` is (non-strictly) above the graph of `f`;
-  equivalently, `convex_on f s` means that the epigraph `{p : E × ℝ | p.1 ∈ s ∧ f p.1 ≤ p.2}`
-  is a convex set;
+* A function `f : E → β` is `convex_on` a set `s` if `s` is itself a convex set, and for any two
+  points `x y ∈ s` the segment joining `(x, f x)` to `(y, f y)` is (non-strictly) above the graph
+  of `f`; equivalently, `convex_on f s` means that the epigraph
+  `{p : E × β | p.1 ∈ s ∧ f p.1 ≤ p.2}` is a convex set;
 * Center mass of a finite set of points with prescribed weights.
 * Convex hull of a set `s` is the minimal convex set that includes `s`.
 * Standard simplex `std_simplex ι [fintype ι]` is the intersection of the positive quadrant with
@@ -28,6 +28,9 @@ In a real vector space, we define the following objects and properties.
 
 We also provide various equivalent versions of the definitions above, prove that some specific sets
 are convex, and prove Jensen's inequality.
+
+Note: To define convexity for functions `f : E → β`, we need `β` to be an ordered vector space,
+defined using the instance `ordered_semimodule ℝ β`.
 
 ## Notations
 
@@ -579,6 +582,10 @@ begin
     ... = a • (c • f x) + b • (c • f y) : by simp only [smul_add, smul_comm]
 end
 
+/--
+A convex function on a segment is upper-bounded by the max of its endpoints.
+Note: This cannot be generalized to E → β because it needs a linear order.
+-/
 lemma convex_on.le_on_segment' {f : E → ℝ} {x y : E} {a b : ℝ}
   (hf : convex_on s f) (hx : x ∈ s) (hy : y ∈ s) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
   f (a • x + b • y) ≤ max (f x) (f y) :=
@@ -588,6 +595,10 @@ calc
     add_le_add (mul_le_mul_of_nonneg_left (le_max_left _ _) ha) (mul_le_mul_of_nonneg_left (le_max_right _ _) hb)
   ... ≤ max (f x) (f y) : by rw [←add_mul, hab, one_mul]
 
+/--
+A convex function on a segment is upper-bounded by the max of its endpoints.
+Note: This cannot be generalized to E → β because it needs a linear order.
+-/
 lemma convex_on.le_on_segment {f : E → ℝ} (hf : convex_on s f) {x y z : E}
   (hx : x ∈ s) (hy : y ∈ s) (hz : z ∈ [x, y]) :
   f z ≤ max (f x) (f y) :=

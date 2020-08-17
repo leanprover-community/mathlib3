@@ -8,8 +8,6 @@ import algebra.category.Module.monoidal
 
 /-! # The simplicial complex associated with a simplicial module -/
 
-noncomputable theory
-
 universe variables u
 
 open category_theory

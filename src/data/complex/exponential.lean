@@ -877,7 +877,7 @@ by simp [sinh, exp_neg, (neg_div _ _).symm, add_mul]
 lemma sinh_add : sinh (x + y) = sinh x * cosh y + cosh x * sinh y :=
 by rw ← of_real_inj; simp [sinh_add]
 
-/-- The real definition of `cosh`-/
+/-- The definition of `cosh` in terms of `exp`. -/
 lemma cosh_eq (x : ℝ) : cosh x = (exp x + exp (-x)) / 2 :=
 by {simp only [cosh, complex.cosh, complex.div_re, complex.exp_of_real_re, complex.one_re,
   bit0_zero, add_zero, complex.add_re, euclidean_domain.zero_div, complex.bit0_re,

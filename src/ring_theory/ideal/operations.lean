@@ -695,11 +695,10 @@ begin
     rw [comap_top, comap_map_of_surjective _ hf, eq_top_iff] at this,
     rw eq_top_iff,
     exact le_trans this (sup_le (le_of_eq rfl) (le_trans (comap_mono (bot_le)) (le_of_lt hJ))) },
-  refine H.right (map f J) (lt_of_le_of_ne _ _),
-  { exact le_map_of_comap_le_of_surjective _ hf (le_of_lt hJ) },
-  { refine λ h, ne_of_lt hJ (trans (congr_arg (comap f) h) _),
-    rw [comap_map_of_surjective _ hf, sup_eq_left],
-    exact le_trans (comap_mono bot_le) (le_of_lt hJ) }
+  refine H.right (map f J) (lt_of_le_of_ne (le_map_of_comap_le_of_surjective _ hf (le_of_lt hJ))
+    (λ h, ne_of_lt hJ (trans (congr_arg (comap f) h) _))),
+  rw [comap_map_of_surjective _ hf, sup_eq_left],
+  exact le_trans (comap_mono bot_le) (le_of_lt hJ)
 end
 
 end surjective
@@ -878,15 +877,12 @@ begin
   { replace h := congr_arg (comap f) h,
     rw [comap_map_of_surjective _ hf, comap_top] at h,
     exact h ▸ sup_le (le_of_eq rfl) hk },
-  { intro hxy,
-    cases hf x with a ha,
-    cases hf y with b hb,
+  { refine λ hxy, (hf x).rec_on (λ a ha, (hf y).rec_on (λ b hb, _)),
     rw [← ha, ← hb, ← ring_hom.map_mul, mem_map_iff_of_surjective _ hf] at hxy,
     rcases hxy with ⟨c, hc, hc'⟩,
     rw [← sub_eq_zero, ← ring_hom.map_sub] at hc',
-    specialize hk (hc' : c - a * b ∈ f.ker),
     have : a * b ∈ I,
-    { convert I.sub_mem hc hk,
+    { convert I.sub_mem hc (hk (hc' : c - a * b ∈ f.ker)),
       ring },
     cases H.right this,
     { exact or.inl (ha ▸ mem_map_of_mem h) },
@@ -900,8 +896,7 @@ begin
   rw [radical_eq_Inf, radical_eq_Inf],
   have : ∀ J ∈ {J : ideal R | I ≤ J ∧ J.is_prime}, f.ker ≤ J := λ J hJ, le_trans h hJ.left,
   convert map_Inf hf this,
-  ext j,
-  split,
+  refine funext (λ j, propext ⟨_, _⟩),
   { rintros ⟨hj, hj'⟩,
     haveI : j.is_prime := hj',
     exact ⟨comap f j, ⟨⟨map_le_iff_le_comap.1 hj, comap_is_prime f j⟩,

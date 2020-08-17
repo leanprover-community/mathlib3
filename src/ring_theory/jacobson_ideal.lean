@@ -157,8 +157,7 @@ theorem comap_jacobson_of_surjective {f : R →+* S} (hf : function.surjective f
 begin
   rw [ideal.jacobson, ideal.jacobson],
   refine le_antisymm _ _,
-  { rw le_Inf_iff,
-    intros J hJ x hx,
+  { refine le_Inf (λ J hJ x hx, _),
     rw [mem_comap, mem_Inf] at hx,
     cases map_eq_top_or_is_maximal_of_surjective _ hf hJ.right with htop hmax,
     { replace htop := congr_arg (comap f) htop,

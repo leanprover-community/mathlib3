@@ -44,7 +44,7 @@ notation `C∞(` I `, ` M `)` := smooth_map I (model_with_corners_self ℝ ℝ) 
 
 namespace times_cont_mdiff_map
 
-variables {I} {I'} {M} {M'}
+variables {I} {I'} {M} {M'} {n}
 
 instance : has_coe_to_fun C[n](I, M; I', M') := ⟨_, times_cont_mdiff_map.to_fun⟩
 instance : has_coe C[n](I, M; I', M') C(M, M') :=
@@ -68,6 +68,9 @@ def id : C[n](I, M; I, M) := ⟨id, times_cont_mdiff_id⟩
 def comp (f : C[n](I', M'; I'', M'')) (g : C[n](I, M; I', M')) : C[n](I, M; I'', M'') :=
 { to_fun := λ a, f (g a),
   times_cont_mdiff_to_fun := f.times_cont_mdiff_to_fun.comp g.times_cont_mdiff_to_fun, }
+
+@[simp] lemma comp_apply (f : C[n](I', M'; I'', M'')) (g : C[n](I, M; I', M')) (x : M) :
+  f.comp g x = f (g x) := rfl
 
 instance [inhabited M'] : inhabited C[n](I, M; I', M') :=
 ⟨⟨λ _, default _, times_cont_mdiff_const⟩⟩

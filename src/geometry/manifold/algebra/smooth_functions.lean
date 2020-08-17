@@ -23,6 +23,9 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {N : Type*} [topological_space N] [charted_space H N] [smooth_manifold_with_corners I N]
+{E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']
+{H'' : Type*} [topological_space H''] {I'' : model_with_corners 𝕜 E'' H''}
+{N' : Type*} [topological_space N'] [charted_space H'' N'] [smooth_manifold_with_corners I'' N']
 
 namespace smooth_map
 
@@ -31,6 +34,17 @@ instance has_mul {G : Type*} [has_mul G] [topological_space G] [has_continuous_m
   [charted_space H' G] [smooth_manifold_with_corners I' G] [has_smooth_mul I' G] :
   has_mul C∞(I, N; I', G) :=
 ⟨λ f g, ⟨f * g, smooth_mul.comp (f.smooth.prod_mk g.smooth)⟩⟩
+
+@[simp, to_additive] lemma mul_apply {G : Type*} [has_mul G] [topological_space G]
+  [has_continuous_mul G] [charted_space H' G] [smooth_manifold_with_corners I' G]
+  [has_smooth_mul I' G] (f g : C∞(I, N; I', G)) (x : N) :
+(f * g) x = f x * g x := rfl
+
+@[simp, to_additive] lemma mul_comp {G : Type*} [has_mul G] [topological_space G]
+  [has_continuous_mul G] [charted_space H' G] [smooth_manifold_with_corners I' G]
+  [has_smooth_mul I' G] (f g : C∞(I'', N'; I', G)) (h : C∞(I, N; I'', N')) (x : N) :
+(f * g).comp h = (f.comp h) * (g.comp h) :=
+by ext; simp only [comp_apply, mul_apply]
 
 @[to_additive]
 instance {G : Type*} [monoid G] [topological_space G]
@@ -82,6 +96,10 @@ instance smooth_map_group {G : Type*} [group G] [topological_space G] [topologic
 { inv := λ f, ⟨λ x, (f x)⁻¹, smooth_inv.comp f.smooth⟩,
   mul_left_inv := λ a, by ext; exact mul_left_inv _,
   ..smooth_map_monoid }
+
+@[simp] lemma smooth_map.sub_apply {G : Type*} [add_group G] [topological_space G] [topological_add_group G]
+  [charted_space H' G] [smooth_manifold_with_corners I' G] [lie_add_group I' G] (f g : C∞(I, N; I', G))
+  (x : N) : (f - g) x = f x - g x := rfl
 
 @[to_additive]
 instance smooth_map_comm_group {G : Type*} [comm_group G] [topological_space G]

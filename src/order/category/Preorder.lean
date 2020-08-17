@@ -42,14 +42,12 @@ instance : inhabited (preorder_hom α α) := ⟨id⟩
 @[simp] lemma coe_id : (@id α _ : α → α) = id := rfl
 
 /-- The composition of two bundled monotone functions. -/
+@[simps]
 def comp (g : preorder_hom β γ) (f : preorder_hom α β) : preorder_hom α γ :=
 ⟨g ∘ f, g.monotone.comp f.monotone⟩
 
 @[simp] lemma coe_comp (g : preorder_hom β γ) (f : preorder_hom α β) :
   (g.comp f : α → γ) = g ∘ f := rfl
-
-@[simp] lemma comp_apply (g : preorder_hom β γ) (f : preorder_hom α β) (a : α) :
-  g.comp f a = g (f a) := rfl
 
 @[simp] lemma comp_id (f : preorder_hom α β) : f.comp id = f :=
 by { ext, refl }

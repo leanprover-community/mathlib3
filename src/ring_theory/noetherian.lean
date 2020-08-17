@@ -384,7 +384,7 @@ theorem is_noetherian_of_submodule_of_noetherian (R M) [ring R] [add_comm_group 
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
-  convert order_embedding.well_founded (submodule.map_subtype.le_embedding N).rsymm h
+  convert order_embedding.well_founded (submodule.map_subtype.le_embedding N).osymm h
 end
 
 theorem is_noetherian_of_quotient_of_noetherian (R) [ring R] (M) [add_comm_group M] [module R M]

@@ -260,7 +260,7 @@ protected lemma left_ord_continuous : left_ord_continuous e :=
     mem_image_of_mem _ hx'⟩
 
 protected lemma right_ord_continuous : right_ord_continuous e :=
-@le_iso.left_ord_continuous (order_dual α) (order_dual β) _ _ e.rsymm
+le_iso.left_ord_continuous e.osymm
 
 end preorder
 

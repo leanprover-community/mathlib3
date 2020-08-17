@@ -188,6 +188,10 @@ f.lt_embedding_of_le_embedding.well_founded
 protected theorem is_well_order [is_well_order β (<)] : is_well_order α (<) :=
 f.lt_embedding_of_le_embedding.is_well_order
 
+/-- a relation embedding is also a relation embedding between dual relations. -/
+def osymm : order_dual α ↪≤ order_dual β :=
+⟨f.to_embedding, λ a b, f.map_rel_iff⟩
+
 end order_embedding
 
 /-- The inclusion map `fin n → ℕ` is a relation embedding. -/

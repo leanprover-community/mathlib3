@@ -63,10 +63,12 @@ end lt
 end has_lt
 
 namespace ge
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma le [has_le α] {x y : α} (h : x ≥ y) : y ≤ x := h
 end ge
 
 namespace gt
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma lt [has_lt α] {x y : α} (h : x > y) : y < x := h
 end gt
 

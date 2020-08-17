@@ -217,3 +217,20 @@ theorem is_noetherian_ring_closure (s : set R) (hs : s.finite) :
   is_noetherian_ring (ring.closure s) :=
 show is_noetherian_ring (subalgebra_of_subring (ring.closure s)), from
 algebra.adjoin_int s ▸ is_noetherian_ring_of_fg (subalgebra.fg_def.2 ⟨s, hs, rfl⟩)
+
+namespace algebra
+
+theorem adjoin_algebra_map' {R : Type u} {S : Type v} {A : Type w}
+[comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] (s : set S) :
+adjoin R (algebra_map S (comap R S A) '' s) = subalgebra.map (adjoin R s) (to_comap R S A) :=
+le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
+(subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
+
+theorem adjoin_algebra_map (R : Type u) (S : Type v) (A : Type w)
+[comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] [algebra R A]
+[is_scalar_tower R S A] (s : set S) :
+adjoin R (algebra_map S A '' s) = subalgebra.map (adjoin R s) (is_scalar_tower.to_alg_hom R S A) :=
+le_antisymm (adjoin_le $ set.image_subset_iff.2 $ λ y hy, ⟨y, subset_adjoin hy, rfl⟩)
+(subalgebra.map_le.2 $ adjoin_le $ λ y hy, subset_adjoin ⟨y, hy, rfl⟩)
+
+end algebra

@@ -26,7 +26,7 @@ extends local_equiv M M' :=
 (times_cont_mdiff_to_fun      : times_cont_mdiff_on I I' n to_fun source)
 (times_cont_mdiff_inv_fun     : times_cont_mdiff_on I' I n inv_fun target)
 
-@[reducible] def local_diffeomorph (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H')
+abbreviation local_diffeomorph (I : model_with_corners 𝕜 E H) (I' : model_with_corners 𝕜 E' H')
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 (M' : Type*) [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M'] :=
 local_times_diffeomorph I I' M M' ⊤
@@ -44,6 +44,19 @@ def times_diffeomorph.to_local_times_diffeomorph
   times_cont_mdiff_to_fun  := by { erw times_cont_mdiff_on_univ, exact e.times_cont_mdiff_to_fun },
   times_cont_mdiff_inv_fun := by { erw times_cont_mdiff_on_univ, exact e.times_cont_mdiff_inv_fun },
   ..e.to_equiv.to_local_equiv }
+
+def local_times_diffeomorph.to_local_homeomorph
+{I : model_with_corners 𝕜 E H} {I' : model_with_corners 𝕜 E' H'}
+{M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+{M' : Type*} [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
+{n : with_top ℕ}
+(e : local_times_diffeomorph I I' M M' n) :
+  local_homeomorph M M' :=
+{ open_source        := by {dsimp only [], exact e.open_source },
+  open_target        := by {dsimp only [], exact e.open_target },
+  continuous_to_fun  := by {dsimp only [], exact e.times_cont_mdiff_to_fun.continuous_on },
+  continuous_inv_fun := by {dsimp only [], exact e.times_cont_mdiff_inv_fun.continuous_on },
+  ..e.to_local_equiv }
 
 namespace local_times_diffeomorph
 

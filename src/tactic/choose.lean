@@ -65,11 +65,8 @@ meta def choose1 (nondep : bool) (h : expr) (data : name) (spec : name) :
         set_goals [m],
         ctxt.mmap' (λ e, do
           b ← is_proof e,
-          monad.unlessb b $ do
-            h ← get_unused_name,
-            v ← mk_app ``nonempty.intro [e],
-            t ← infer_type v,
-            tactic.assertv h t v $> ()),
+          monad.unlessb b $ 
+            (mk_app ``nonempty.intro [e] >>= note_anon none) $> ()),
         unfreeze_local_instances >> apply_instance,
         instantiate_mvars m)),
       pure (some (option.guard (λ _, nonemp.is_none) ne), nonemp)

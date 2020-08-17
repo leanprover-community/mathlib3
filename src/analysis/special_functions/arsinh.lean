@@ -6,7 +6,6 @@ Authors: James Arthur, Chris Hughes, Shing Tak Lam.
 import analysis.special_functions.trigonometric
 
 open real
-local attribute [pp_nodot] real.log
 noncomputable theory
 
 /-!

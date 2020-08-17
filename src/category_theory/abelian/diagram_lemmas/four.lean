@@ -48,7 +48,18 @@ variables [exact f g] [exact g h] [exact f' g']
 variables (comm₁ : α ≫ f' = f ≫ β) (comm₂ : β ≫ g' = g ≫ γ) (comm₃ : γ ≫ h' = h ≫ δ)
 include comm₁ comm₂ comm₃
 
-/-- The four lemma, mono version -/
+/-- The four lemma, mono version. For names of objects and morphisms, consider the following
+    diagram:
+
+```
+A ---f--> B ---g--> C ---h--> D
+|         |         |         |
+α         β         γ         δ
+|         |         |         |
+v         v         v         v
+A' --f'-> B' --g'-> C' --h'-> D'
+```
+-/
 lemma mono_of_epi_of_mono_of_mono (hα : epi α) (hβ : mono β) (hδ : mono δ) : mono γ :=
 mono_of_zero_of_map_zero _ $ λ c hc,
   have h c = 0, from

@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import logic.embedding
 import order.rel_classes
+import data.fin
 
 open function
 
@@ -30,11 +31,11 @@ structure rel_embedding {α β : Type*} (r : α → α → Prop) (s : β → β 
 
 infix ` ↪r `:25 := rel_embedding
 
-/-- A `le_embedding` is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) ≤ (f b)`. -/
-abbreviation le_embedding (α β : Type*) [has_le α] [has_le β] :=
+/-- An order embedding is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) ≤ (f b)`. -/
+abbreviation order_embedding (α β : Type*) [has_le α] [has_le β] :=
 @rel_embedding α β (≤) (≤)
 
-infix ` ↪≤ `:25 := le_embedding
+infix ` ↪≤ `:25 := order_embedding
 
 /-- A `lt_embedding` is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) < (f b)`. -/
 abbreviation lt_embedding (α β : Type*) [has_lt α] [has_lt β] :=
@@ -169,18 +170,39 @@ def le_embedding_of_lt_embedding [partial_order α] [partial_order β] (f : α �
 
 end rel_embedding
 
+namespace order_embedding
+
+variables [preorder α] [preorder β] (f : α ↪≤ β)
+
+theorem map_le_iff : ∀ {a b}, a ≤ b ↔ (f a) ≤ (f b) := f.map_rel_iff'
+
+theorem map_lt_iff : ∀ {a b}, a < b ↔ (f a) < (f b) := f.lt_embedding_of_le_embedding.map_rel_iff'
+
+protected theorem acc (a : α) : acc (<) (f a) → acc (<) a :=
+f.lt_embedding_of_le_embedding.acc a
+
+protected theorem well_founded :
+  well_founded ((<) : β → β → Prop) → well_founded ((<) : α → α → Prop) :=
+f.lt_embedding_of_le_embedding.well_founded
+
+protected theorem is_well_order [is_well_order β (<)] : is_well_order α (<) :=
+f.lt_embedding_of_le_embedding.is_well_order
+
+end order_embedding
+
 /-- The inclusion map `fin n → ℕ` is a relation embedding. -/
-def fin.val.rel_embedding (n) : (fin n) ↪< ℕ :=
+def fin.val.rel_embedding (n) : (fin n) ↪≤ ℕ :=
 ⟨⟨fin.val, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩
 
-/-- The inclusion map `fin m → fin n` is a relation embedding. -/
-def fin_fin.rel_embedding {m n} (h : m ≤ n) : (fin m) ↪< (fin n) :=
+/-- The inclusion map `fin m → fin n` is an order embedding. -/
+def fin_fin.rel_embedding {m n} (h : m ≤ n) : (fin m) ↪≤ (fin n) :=
 ⟨⟨λ ⟨x, h'⟩, ⟨x, lt_of_lt_of_le h' h⟩,
   λ ⟨a, _⟩ ⟨b, _⟩ h, by congr; injection h⟩,
   by intros; cases a; cases b; refl⟩
 
+/-- The ordering on `fin n` is a well order. -/
 instance fin.lt.is_well_order (n) : is_well_order (fin n) (<) :=
-(fin.val.rel_embedding _).is_well_order
+(fin.val.rel_embedding n).is_well_order
 
 /-- A relation isomorphism is an equivalence that is also a relation embedding. -/
 structure rel_iso {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ≃ β :=

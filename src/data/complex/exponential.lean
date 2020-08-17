@@ -864,10 +864,8 @@ eq_sub_iff_add_eq.2 $ sin_sq_add_cos_sq _
 
 /-- The definition of `sinh` in terms of `exp` -/
 lemma sinh_eq (x : ℝ) : sinh x = (exp x - exp (-x)) / 2 :=
-by {simp only [sinh, complex.sinh, complex.div_re, complex.exp_of_real_re, complex.one_re,
-  bit0_zero, add_zero, complex.sub_re, euclidean_domain.zero_div, complex.bit0_re,
-  complex.one_im, complex.bit0_im, mul_zero, ← complex.of_real_neg, complex.norm_sq],
-  ring}
+eq_div_of_mul_eq two_ne_zero $ by rw [sinh, exp, exp, complex.of_real_neg, complex.sinh, mul_two,
+    ← complex.add_re, ← mul_two, div_mul_cancel _ (two_ne_zero' : (2 : ℂ) ≠ 0), complex.sub_re]
 
 @[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
 

@@ -672,7 +672,7 @@ local_of_nonunits_ideal
     intros x y hx hy hu,
     cases is_unit_iff_exists_inv.1 hu with z hxyz,
     have : ∀ {r s}, f.mk' r s ∈ nonunits S → r ∈ I, from
-      λ r s, (@not_imp_comm _ _ (classical.dec _) (classical.dec _)).1
+      λ r s, not_imp_comm.1
         (λ nr, is_unit_iff_exists_inv.2 ⟨f.mk' s ⟨r, nr⟩, f.mk'_mul_mk'_eq_one' _ _ nr⟩),
     rcases f.mk'_surjective x with ⟨rx, sx, hrx⟩,
     rcases f.mk'_surjective y with ⟨ry, sy, hry⟩,

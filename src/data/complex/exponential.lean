@@ -55,7 +55,7 @@ have hl : ∀ (n : ℕ), n ≥ m → f n > a - l •ℕ ε := nat.find_spec h,
 have hl0 : l ≠ 0 := λ hl0, not_lt_of_ge (ham m (le_refl _))
   (lt_of_lt_of_le (by have := hl m (le_refl m); simpa [hl0] using this) (le_abs_self (f m))),
 begin
-  cases classical.not_forall.1
+  cases not_forall.1
     (nat.find_min h (nat.pred_lt hl0)) with i hi,
   rw [not_imp, not_lt] at hi,
   existsi i,

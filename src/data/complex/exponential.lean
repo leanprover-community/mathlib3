@@ -899,7 +899,7 @@ lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
 by simp [sub_eq_add_neg, cosh_add, sinh_neg, cosh_neg]
 
 /-- A real version of `complex.cosh_sq_sub_sinh_sq`-/
-lemma real.cosh_sq_sub_sinh_sq (x : ℝ) : cosh x ^ 2 - sinh x ^ 2 = 1 :=
+lemma cosh_sq_sub_sinh_sq (x : ℝ) : cosh x ^ 2 - sinh x ^ 2 = 1 :=
 begin
   rw [sinh, cosh],
   have := congr_arg complex.re (complex.cosh_sq_sub_sinh_sq x),

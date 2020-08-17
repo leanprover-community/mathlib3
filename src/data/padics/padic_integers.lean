@@ -285,6 +285,22 @@ def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
 
 instance : algebra ℤ_[p] ℚ_[p] := (coe.ring_hom : ℤ_[p] →+* ℚ_[p]).to_algebra
 
+instance : char_zero ℤ_[p] := sorry
+
+@[simp, norm_cast] lemma coe_int_eq (z1 z2 : ℤ) : (z1 : ℤ_[p]) = z2 ↔ z1 = z2 :=
+suffices (z1 : ℚ_[p]) = z2 ↔ z1 = z2, from iff.trans (by norm_cast) this,
+by norm_cast
+
+lemma z_dense (x : ℤ_[p]) : ∀ (ε : ℝ), ε > 0 → (∃ (k : ℤ), dist x ↑k < ε) :=
+sorry
+
+lemma dense_embedding : dense_embedding (coe : ℤ → ℤ_[p]) :=
+dense_embedding.mk' _ continuous_of_discrete_topology
+  (begin intro x, rw mem_closure_range_iff, apply z_dense end)
+  (λ x y, by exact_mod_cast id)
+  (begin  end )
+
+
 end padic_int
 
 namespace padic_norm_z

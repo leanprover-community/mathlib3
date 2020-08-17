@@ -765,16 +765,14 @@ begin
     f.mk'_spec r s ▸ @ideal.mul_mem_right _ _ J (f.mk' r s) (f.to_map s) hJ)),
 end
 
-theorem comap_map_of_is_prime_disjoint (I : ideal R) (hI : I.is_prime) (hM : disjoint (M : set R) I) :
-  ideal.comap f.to_map (ideal.map f.to_map I) = I :=
+theorem comap_map_of_is_prime_disjoint (I : ideal R) (hI : I.is_prime)
+  (hM : disjoint (M : set R) I) : ideal.comap f.to_map (ideal.map f.to_map I) = I :=
 begin
-  refine le_antisymm _ ideal.le_comap_map,
-  intros a ha,
+  refine le_antisymm (λ a ha, _) ideal.le_comap_map,
   rw [ideal.mem_comap, mem_map_to_map_iff] at ha,
   obtain ⟨⟨b, s⟩, h⟩ := ha,
   have : f.to_map (a * ↑s - b) = 0 := by simpa [sub_eq_zero] using h,
-  rw ← f.to_map.map_zero at this,
-  rw eq_iff_exists f at this,
+  rw [← f.to_map.map_zero, eq_iff_exists] at this,
   obtain ⟨c, hc⟩ := this,
   have : a * s ∈ I,
   { rw zero_mul at hc,
@@ -807,18 +805,15 @@ lemma is_prime_iff_is_prime_disjoint (J : ideal S) :
   J.is_prime ↔ (ideal.comap f.to_map J).is_prime ∧ disjoint (M : set R) ↑(ideal.comap f.to_map J) :=
 begin
   split,
-  { refine λ h, ⟨_, λ m hm, h.1 (ideal.eq_top_of_is_unit_mem _ hm.2 (map_units f ⟨m, hm.left⟩))⟩,
-    split,
+  { refine λ h, ⟨⟨_, _⟩, λ m hm, h.1 (ideal.eq_top_of_is_unit_mem _ hm.2 (map_units f ⟨m, hm.left⟩))⟩,
     { refine λ hJ, h.left _,
       rw [eq_top_iff, (le_order_embedding f).ord],
       exact le_of_eq hJ.symm },
     { intros x y hxy,
       rw [ideal.mem_comap, ring_hom.map_mul] at hxy,
       exact h.right hxy } },
-  { intro h,
-    split,
-    { refine λ hJ, h.left.left (eq_top_iff.2 _),
-      rwa [eq_top_iff, (le_order_embedding f).ord] at hJ },
+  { refine λ h, ⟨λ hJ, h.left.left (eq_top_iff.2 _), _⟩,
+    { rwa [eq_top_iff, (le_order_embedding f).ord] at hJ },
     { intros x y hxy,
       obtain ⟨a, s, ha⟩ := mk'_surjective f x,
       obtain ⟨b, t, hb⟩ := mk'_surjective f y,

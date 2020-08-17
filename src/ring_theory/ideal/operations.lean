@@ -687,7 +687,7 @@ begin
     { exact λ h, hJ.right (le_map_of_comap_le_of_surjective f hf (le_of_eq h.symm)) } }
 end
 
-theorem comap_is_maximal_of_surjective (H : is_maximal K) : is_maximal (comap f K) :=
+theorem comap_is_maximal_of_surjective [H : is_maximal K] : is_maximal (comap f K) :=
 begin
   refine ⟨comap_ne_top _ H.left, λ J hJ, _⟩,
   suffices : map f J = ⊤,
@@ -874,58 +874,44 @@ begin
     exact this }
 end
 
-theorem map_is_prime_of_surjective {f : R →+* S} (hf : function.surjective f) {I : ideal R} (H : is_prime I) :
-  ring_hom.ker f ≤ I → is_prime (map f I) :=
+theorem map_is_prime_of_surjective {f : R →+* S} (hf : function.surjective f) {I : ideal R}
+  [H : is_prime I] : ring_hom.ker f ≤ I → is_prime (map f I) :=
 begin
-  refine λ hk, ⟨_, λ x y, _⟩,
-  { intro h,
-    refine H.left (eq_top_iff.2 _),
-    replace h := congr_arg (comap f) h,
+  refine λ hk, ⟨λ h, H.left (eq_top_iff.2 _), λ x y, _⟩,
+  { replace h := congr_arg (comap f) h,
     rw [comap_map_of_surjective _ hf, comap_top] at h,
-    rw ← h,
-    exact sup_le (le_of_eq rfl) hk },
+    exact h ▸ sup_le (le_of_eq rfl) hk },
   { intro hxy,
     cases hf x with a ha,
     cases hf y with b hb,
-    rw [← ha, ← hb, ← ring_hom.map_mul] at hxy,
-    rw mem_map_iff_of_surjective _ hf at hxy,
+    rw [← ha, ← hb, ← ring_hom.map_mul, mem_map_iff_of_surjective _ hf] at hxy,
     rcases hxy with ⟨c, hc, hc'⟩,
     rw [← sub_eq_zero, ← ring_hom.map_sub] at hc',
-    have : c - a * b ∈ f.ker := hc',
-    specialize hk this,
+    specialize hk (hc' : c - a * b ∈ f.ker),
     have : a * b ∈ I,
-    { have := I.sub_mem hc hk,
-      rwa [← sub_add, sub_self, zero_add] at this },
+    { convert I.sub_mem hc hk,
+      ring },
     cases H.right this,
-    { left,
-      rw ← ha,
-      exact mem_map_of_mem h },
-    { right,
-      rw ← hb,
-      exact mem_map_of_mem h } }
+    { exact or.inl (ha ▸ mem_map_of_mem h) },
+    { exact or.inr (hb ▸ mem_map_of_mem h) } }
 end
 
-theorem map_radical {f : R →+* S} (hf : function.surjective f) {I : ideal R} :
+theorem map_radical_of_surjective {f : R →+* S} (hf : function.surjective f) {I : ideal R} :
   ring_hom.ker f ≤ I → map f (I.radical) = (map f I).radical :=
 begin
   intro h,
   rw [radical_eq_Inf, radical_eq_Inf],
-  refine trans (map_Inf hf (λ J hJ, le_trans h hJ.left)) (le_antisymm _ _);
-  rw le_Inf_iff,
-  { intros J hJ,
-    refine Inf_le _,
-    rw set.mem_image,
-    use comap f J,
-    haveI : is_prime J := hJ.right,
-    refine ⟨⟨le_trans le_comap_map (comap_mono hJ.left), comap_is_prime _ J⟩,
-      map_comap_of_surjective _ hf J⟩ },
-  { intros j hj,
-    refine Inf_le _,
-    rw set.mem_image at hj,
-    cases hj with J hJ,
-    rw ← hJ.right,
-    refine ⟨map_mono hJ.left.left, map_is_prime_of_surjective hf hJ.left.right _⟩,
-    refine le_trans h hJ.left.left }
+  have : ∀ J ∈ {J : ideal R | I ≤ J ∧ J.is_prime}, f.ker ≤ J := λ J hJ, le_trans h hJ.left,
+  convert map_Inf hf this,
+  ext j,
+  split,
+  { rintros ⟨hj, hj'⟩,
+    haveI : j.is_prime := hj',
+    exact ⟨comap f j, ⟨⟨map_le_iff_le_comap.1 hj, comap_is_prime f j⟩,
+      map_comap_of_surjective f hf j⟩⟩ },
+  { rintro ⟨J, ⟨hJ, hJ'⟩⟩,
+    haveI : J.is_prime := hJ.right,
+    refine ⟨hJ' ▸ map_mono hJ.left, hJ' ▸ map_is_prime_of_surjective hf (le_trans h hJ.left)⟩ },
 end
 
 end ideal

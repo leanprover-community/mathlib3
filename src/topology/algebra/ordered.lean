@@ -1211,7 +1211,7 @@ variables {l : filter β} {f g : β → α}
 (additive) commutative groups rather than linearly ordered rings; however, the former concept does
 not currently exist in mathlib. -/
 
-/-- In a linearly ordered ring with the induced topology, if `f` tends to `C` and `g` tends to
+/-- In a linearly ordered ring with the order topology, if `f` tends to `C` and `g` tends to
 `at_top` then `f + g` tends to `at_top`. -/
 lemma tendsto_at_top_add_tendsto_left
   {C : α} (hf : tendsto f l (nhds C)) (hg : tendsto g l at_top) :
@@ -1220,10 +1220,10 @@ begin
   obtain ⟨C', hC'⟩ : ∃ C', C' < C := no_bot C,
   refine tendsto_at_top_add_left_of_le' _ C' _ hg,
   rw tendsto_order at hf,
-  exact (hf.1 C' hC').mp (eventually_of_forall λ x hx, le_of_lt hx)
+  exact (hf.1 C' hC').mp (eventually_of_forall (λ x hx, le_of_lt hx))
 end
 
-/-- In a linearly ordered ring with the induced topology, if `f` tends to `at_top` and `g` tends to
+/-- In a linearly ordered ring with the order topology, if `f` tends to `at_top` and `g` tends to
 `C` then `f + g` tends to `at_top`. -/
 lemma tendsto_at_top_add_tendsto_right
   {C : α} (hf : tendsto f l at_top) (hg : tendsto g l (nhds C)) :

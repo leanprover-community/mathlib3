@@ -436,6 +436,11 @@ variables (R)
 @[simp] lemma mem_bot : x ∈ (⊥ : submodule R M) ↔ x = 0 := mem_singleton_iff
 end
 
+lemma nonzero_mem_of_gt_bot (I : submodule R M) (gt_bot : ⊥ < I) : ∃ a : I, a ≠ 0 :=
+begin
+  have h := (submodule.lt_iff_le_and_exists.1 gt_bot).2, tidy,
+end
+
 instance : order_bot (submodule R M) :=
 { bot := ⊥,
   bot_le := λ p x, by simp {contextual := tt},
@@ -447,11 +452,6 @@ protected lemma eq_bot_iff (p : submodule R M) : p = ⊥ ↔ ∀ x ∈ p, x = (0
 
 protected lemma ne_bot_iff (p : submodule R M) : p ≠ ⊥ ↔ ∃ x ∈ p, x ≠ (0 : M) :=
 by { haveI := classical.prop_decidable, simp_rw [ne.def, p.eq_bot_iff, not_forall] }
-
-lemma nonzero_mem_of_gt_bot (I : submodule R M) (gt_bot : ⊥ < I) : ∃ a : I, a ≠ 0 :=
-begin
-  have h := (submodule.lt_iff_le_and_exists.1 gt_bot).2, tidy,
-end
 
 /-- The universal set is the top element of the lattice of submodules. -/
 instance : has_top (submodule R M) :=
@@ -850,6 +850,17 @@ lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) :
   span R {m} ≤ p ↔ m ∈ p :=
 by rw [span_le, singleton_subset_iff, mem_coe]
 
+lemma lt_add_nonmem (I : submodule R M) (a ∉ I) : I < I + submodule.span R {a} :=
+begin
+  split,
+  suffices : I ≤ I ⊔ submodule.span R {a}, assumption, exact le_sup_left,
+  have h1 : ∀{x y z : submodule R M}, x ⊔ y ≤ z → x ≤ z → y ≤ z, simp only [sup_le_iff], tauto,
+  intro h2, have ile : I ≤ I := by exact le_refl I,
+  have h3 := h1 h2 ile,
+  have : a ∈ submodule.span R {a}, exact submodule.mem_span_singleton_self a,
+  tidy,
+end
+
 lemma mem_supr {ι : Sort w} (p : ι → submodule R M) {m : M} :
   (m ∈ ⨆ i, p i) ↔ (∀ N, (∀ i, p i ≤ N) → m ∈ N) :=
 begin
@@ -894,17 +905,6 @@ begin
   rcases mem_sup.1 hxx with ⟨x, hx, x', hx', rfl⟩,
   rcases mem_sup.1 hyy with ⟨y, hy, y', hy', rfl⟩,
   refine mem_sup.2 ⟨(x, y), ⟨hx, hy⟩, (x', y'), ⟨hx', hy'⟩, rfl⟩
-end
-
-lemma lt_add_nonmem (I : submodule R M) (a ∉ I) : I < I + submodule.span R {a} :=
-begin
-  split,
-  suffices : I ≤ I ⊔ submodule.span R {a}, assumption, exact le_sup_left,
-  have h1 : ∀{x y z : submodule R M}, x ⊔ y ≤ z → x ≤ z → y ≤ z, simp only [sup_le_iff], tauto,
-  intro h2, have ile : I ≤ I := by exact le_refl I,
-  have h3 := h1 h2 ile,
-  have : a ∈ submodule.span R {a}, exact submodule.mem_span_singleton_self a,
-  tidy,
 end
 
 end add_comm_monoid

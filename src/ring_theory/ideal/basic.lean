@@ -138,6 +138,10 @@ end
 lemma span_singleton_mul_left_unit {a : α} (h2 : is_unit a) (x : α) :
   span ({a * x} : set α) = span {x} := by rw [mul_comm, span_singleton_mul_right_unit h2]
 
+-- probably redundant
+lemma lt_add_nonmem (I : ideal α) (a ∉ I) : I < I + ideal.span{a} :=
+by {exact submodule.lt_add_nonmem I a H,}
+
 /-- An ideal `P` of a ring `R` is prime if `P ≠ R` and `xy ∈ P → x ∈ P ∨ y ∈ P` -/
 @[class] def is_prime (I : ideal α) : Prop :=
 I ≠ ⊤ ∧ ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I
@@ -163,12 +167,6 @@ theorem zero_ne_one_of_proper {I : ideal α} (h : I ≠ ⊤) : (0:α) ≠ 1 :=
 theorem span_singleton_prime {p : α} (hp : p ≠ 0) :
   is_prime (span ({p} : set α)) ↔ prime p :=
 by simp [is_prime, prime, span_singleton_eq_top, hp, mem_span_singleton]
-
--- maybe we could change the variable name
-lemma lt_add_nonmem (I : ideal α) (a ∉ I) : I < I + ideal.span{a} :=
-begin
-  apply submodule.lt_add_nonmem, assumption,
-end
 
 /-- An ideal is maximal if it is maximal in the collection of proper ideals. -/
 @[class] def is_maximal (I : ideal α) : Prop :=

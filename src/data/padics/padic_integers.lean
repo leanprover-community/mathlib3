@@ -268,7 +268,7 @@ begin
   { simp [hx] },
   have h : (1 : ℝ) < p := by exact_mod_cast nat.prime.one_lt ‹_›,
   rw [← neg_nonpos, ← (fpow_strict_mono h).le_iff_le],
-  show ↑p ^ -valuation x ≤ ↑p ^ 0,
+  show (p : ℝ) ^ -valuation x ≤ p ^ 0,
   rw [← norm_eq_pow_val hx],
   simpa using x.property,
 end

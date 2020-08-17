@@ -503,13 +503,6 @@ mul_div_cancel' _ two_ne_zero'
 lemma two_cosh : 2 * cosh x = exp x + exp (-x) :=
 mul_div_cancel' _ two_ne_zero'
 
-/-- The real definition of `sinh`-/
-lemma sinh_eq (x : ℝ) : sinh x = (exp x - exp (-x)) / 2 :=
-by {simp only [sinh, complex.sinh, complex.div_re, complex.exp_of_real_re, complex.one_re,
-  bit0_zero, add_zero, complex.sub_re, euclidean_domain.zero_div, complex.bit0_re,
-  complex.one_im, complex.bit0_im, mul_zero, ← complex.of_real_neg, complex.norm_sq],
-  ring}
-
 @[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
 
 @[simp] lemma sinh_neg : sinh (-x) = -sinh x :=
@@ -531,13 +524,6 @@ begin
       mul_left_comm, two_cosh, ← mul_assoc, two_cosh],
   exact sinh_add_aux
 end
-
-/-- The real definition of `cosh`-/
-lemma cosh_eq (x : ℝ) : cosh x = (exp x + exp (-x)) / 2 :=
-by {simp only [cosh, complex.cosh, complex.div_re, complex.exp_of_real_re, complex.one_re,
-  bit0_zero, add_zero, complex.add_re, euclidean_domain.zero_div, complex.bit0_re,
-  complex.one_im, complex.bit0_im, mul_zero, ← complex.of_real_neg, complex.norm_sq],
-  ring}
 
 @[simp] lemma cosh_zero : cosh 0 = 1 := by simp [cosh]
 
@@ -897,6 +883,13 @@ of_real_inj.1 $ by simpa using cos_square x
 lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
 eq_sub_iff_add_eq.2 $ sin_sq_add_cos_sq _
 
+/-- The real definition of `sinh`-/
+lemma sinh_eq (x : ℝ) : sinh x = (exp x - exp (-x)) / 2 :=
+by {simp only [sinh, complex.sinh, complex.div_re, complex.exp_of_real_re, complex.one_re,
+  bit0_zero, add_zero, complex.sub_re, euclidean_domain.zero_div, complex.bit0_re,
+  complex.one_im, complex.bit0_im, mul_zero, ← complex.of_real_neg, complex.norm_sq],
+  ring}
+
 @[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
 
 @[simp] lemma sinh_neg : sinh (-x) = -sinh x :=
@@ -904,6 +897,13 @@ by simp [sinh, exp_neg, (neg_div _ _).symm, add_mul]
 
 lemma sinh_add : sinh (x + y) = sinh x * cosh y + cosh x * sinh y :=
 by rw ← of_real_inj; simp [sinh_add]
+
+/-- The real definition of `cosh`-/
+lemma cosh_eq (x : ℝ) : cosh x = (exp x + exp (-x)) / 2 :=
+by {simp only [cosh, complex.cosh, complex.div_re, complex.exp_of_real_re, complex.one_re,
+  bit0_zero, add_zero, complex.add_re, euclidean_domain.zero_div, complex.bit0_re,
+  complex.one_im, complex.bit0_im, mul_zero, ← complex.of_real_neg, complex.norm_sq],
+  ring}
 
 @[simp] lemma cosh_zero : cosh 0 = 1 := by simp [cosh]
 

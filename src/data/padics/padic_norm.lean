@@ -491,9 +491,45 @@ The p-adic norm of 1 is 1.
 @[simp] protected lemma one : padic_norm p 1 = 1 := by simp [padic_norm]
 
 /--
-The image of `padic_norm p` is {0} ∪ {p^(-n) | n ∈ ℤ}.
+The p-adic norm of `p` is `1/p` if `p > 1`.
+
+See also `padic_norm.padic_norm_p_of_prime` for a version that assumes `p` is prime.
 -/
-protected theorem image {q : ℚ} (hq : q ≠ 0) : ∃ n : ℤ, padic_norm p q = p ^ (-n) :=
+lemma padic_norm_p {p : ℕ} (hp : 1 < p) : padic_norm p p = 1 / p :=
+by simp [padic_norm, (show p ≠ 0, by linarith), padic_val_rat.padic_val_rat_self hp]
+
+/--
+The p-adic norm of `p` is `1/p` if `p` is prime.
+
+See also `padic_norm.padic_norm_p` for a version that assumes `1 < p`.
+-/
+@[simp] lemma padic_norm_p_of_prime (p : ℕ) [fact p.prime] : padic_norm p p = 1 / p :=
+padic_norm_p $ nat.prime.one_lt ‹_›
+
+/--
+The p-adic norm of `p` is less than 1 if `1 < p`.
+
+See also `padic_norm.padic_norm_p_lt_one_of_prime` for a version assuming `prime p`.
+-/
+lemma padic_norm_p_lt_one {p : ℕ} (hp : 1 < p) : padic_norm p p < 1 :=
+begin
+  rw [padic_norm_p hp, div_lt_iff, one_mul],
+  { exact_mod_cast hp },
+  { exact_mod_cast zero_lt_one.trans hp },
+end
+
+/--
+The p-adic norm of `p` is less than 1 if `p` is prime.
+
+See also `padic_norm.padic_norm_p_lt_one` for a version assuming `1 < p`.
+-/
+lemma padic_norm_p_lt_one_of_prime (p : ℕ) [fact p.prime] : padic_norm p p < 1 :=
+padic_norm_p_lt_one $ nat.prime.one_lt ‹_›
+
+/--
+`padic_norm p q` takes discrete values `p ^ -z` for `z : ℤ`.
+-/
+protected theorem values_discrete {q : ℚ} (hq : q ≠ 0) : ∃ z : ℤ, padic_norm p q = p ^ (-z) :=
 ⟨ (padic_val_rat p q), by simp [padic_norm, hq] ⟩
 
 variable [hp : fact p.prime]

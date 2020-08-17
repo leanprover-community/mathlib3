@@ -46,3 +46,13 @@ begin
   guard_hyp h' := ∀ (i : ℕ), f i < i + i,
   trivial,
 end
+
+-- test choose with nonempty instances
+universe u
+example {α : Type u} (p : α → Prop) (h : ∀ i : α, p i → ∃ j : α × α, p j.1) : true :=
+begin
+  choose! f h using h,
+  guard_hyp f := α → α × α,
+  guard_hyp h := ∀ (i : α), p i → p (f i).1,
+  trivial,
+end

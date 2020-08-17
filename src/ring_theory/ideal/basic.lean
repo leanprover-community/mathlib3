@@ -165,7 +165,7 @@ theorem span_singleton_prime {p : α} (hp : p ≠ 0) :
 by simp [is_prime, prime, span_singleton_eq_top, hp, mem_span_singleton]
 
 -- maybe we could change the variable name
-lemma lt_add_nonmem [comm_ring α] (I : ideal α) (a ∉ I) : I < I + ideal.span{a} :=
+lemma lt_add_nonmem (I : ideal α) (a ∉ I) : I < I + ideal.span{a} :=
 begin
   apply submodule.lt_add_nonmem, assumption,
 end

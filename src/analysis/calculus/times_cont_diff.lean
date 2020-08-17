@@ -323,7 +323,7 @@ begin
     by exact H.congr A (A x hx),
   rw continuous_linear_equiv.comp_has_fderiv_within_at_iff',
   have : ((0 : ℕ) : with_top ℕ) < n :=
-    lt_of_lt_of_le (with_top.coe_lt_coe.2 zero_lt_one) hn,
+    lt_of_lt_of_le (with_top.coe_lt_coe.2 nat.zero_lt_one) hn,
   convert h.fderiv_within _ this x hx,
   ext y v,
   change (p x 1) (snoc 0 y) = (p x 1) (cons y v),

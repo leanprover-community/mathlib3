@@ -5,10 +5,12 @@ Authors: Markus Himmel
 -/
 import algebra.category.Module.kernels
 import algebra.category.Module.limits
-import category_theory.abelian.basic
+import category_theory.abelian.exact
 
 /-!
 # The category of left R-modules is abelian.
+
+Additionally, two linear maps are exact in the categorical sense iff `range f = ker g`.
 -/
 
 open category_theory
@@ -64,14 +66,24 @@ def normal_epi (hf : epi f) : normal_epi f :=
             (linear_map.quot_ker_equiv_range f)) (linear_equiv.of_top _ (range_eq_top_of_epi _)))) $
       by { ext, refl } }
 
-local attribute [instance] has_equalizers_of_has_finite_limits
-
 /-- The category of R-modules is abelian. -/
 instance : abelian (Module R) :=
-{ has_finite_products := by apply_instance,
+{ has_finite_products := by { dsimp [has_finite_products], apply_instance },
   has_kernels := by apply_instance,
   has_cokernels := has_cokernels_Module,
   normal_mono := λ X Y, normal_mono,
   normal_epi := λ X Y, normal_epi }
+
+variables {O : Module R} (g : N ⟶ O)
+
+open linear_map
+local attribute [instance] preadditive.has_equalizers_of_has_kernels
+
+theorem exact_iff : exact f g ↔ f.range = g.ker :=
+begin
+  rw abelian.exact_iff' f g (kernel_is_limit _) (cokernel_is_colimit _),
+  exact ⟨λ h, le_antisymm (range_le_ker_iff.2 h.1) (ker_le_range_iff.2 h.2),
+    λ h, ⟨range_le_ker_iff.1 $ le_of_eq h, ker_le_range_iff.1 $ le_of_eq h.symm⟩⟩
+end
 
 end Module

@@ -12,7 +12,7 @@ import topology.algebra.monoid
 import topology.homeomorph
 
 open classical set filter topological_space
-open_locale classical topological_space
+open_locale classical topological_space filter
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -139,14 +139,14 @@ end
 
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv [topological_group α] {s : set α} (hs : s ∈ 𝓝 (1 : α)) :
-  ∃ V ∈ 𝓝 (1 : α), ∀ v w ∈ V, v * w⁻¹ ∈ s :=
+  ∃ V ∈ 𝓝 (1 : α), ∀ (v ∈ V) (w ∈ V), v * w⁻¹ ∈ s :=
 begin
-  have : tendsto (λa:α×α, a.1 * (a.2)⁻¹) ((𝓝 (1:α)).prod (𝓝 (1:α))) (𝓝 1),
+  have : tendsto (λa:α×α, a.1 * (a.2)⁻¹) (𝓝 (1:α) ×ᶠ 𝓝 (1:α)) (𝓝 1),
   { simpa using (@tendsto_fst α α (𝓝 1) (𝓝 1)).mul tendsto_snd.inv },
-  have : ((λa:α×α, a.1 * (a.2)⁻¹) ⁻¹' s) ∈ (𝓝 (1:α)).prod (𝓝 (1:α)) :=
+  have : ((λa:α×α, a.1 * (a.2)⁻¹) ⁻¹' s) ∈ 𝓝 (1:α) ×ᶠ 𝓝 (1:α) :=
     this (by simpa using hs),
-  rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
-  exact ⟨V₁ ∩ V₂, inter_mem_sets H₁ H₂, assume v w ⟨hv, _⟩ ⟨_, hw⟩, @H (v, w) ⟨hv, hw⟩⟩
+  rcases mem_prod_self_iff.1 this with ⟨V, H, H'⟩,
+  exact ⟨V, H, prod_subset_iff.1 H'⟩
 end
 
 @[to_additive exists_nhds_quarter]
@@ -283,7 +283,7 @@ non-commutative groups too.
 class add_group_with_zero_nhd (α : Type u) extends add_comm_group α :=
 (Z [] : filter α)
 (zero_Z : pure 0 ≤ Z)
-(sub_Z : tendsto (λp:α×α, p.1 - p.2) (Z.prod Z) Z)
+(sub_Z : tendsto (λp:α×α, p.1 - p.2) (Z ×ᶠ Z) Z)
 end prio
 
 namespace add_group_with_zero_nhd
@@ -304,16 +304,16 @@ have tendsto (λa:α, 0 - a) (Z α) (Z α), from
   sub_Z.comp (tendsto.prod_mk this tendsto_id),
 by simpa
 
-lemma add_Z : tendsto (λp:α×α, p.1 + p.2) ((Z α).prod (Z α)) (Z α) :=
-suffices tendsto (λp:α×α, p.1 - -p.2) ((Z α).prod (Z α)) (Z α),
+lemma add_Z : tendsto (λp:α×α, p.1 + p.2) (Z α ×ᶠ Z α) (Z α) :=
+suffices tendsto (λp:α×α, p.1 - -p.2) (Z α ×ᶠ Z α) (Z α),
   by simpa [sub_eq_add_neg],
 sub_Z.comp (tendsto.prod_mk tendsto_fst (neg_Z.comp tendsto_snd))
 
-lemma exists_Z_half {s : set α} (hs : s ∈ Z α) : ∃ V ∈ Z α, ∀ v w ∈ V, v + w ∈ s :=
+lemma exists_Z_half {s : set α} (hs : s ∈ Z α) : ∃ V ∈ Z α, ∀ (v ∈ V) (w ∈ V), v + w ∈ s :=
 begin
-  have : ((λa:α×α, a.1 + a.2) ⁻¹' s) ∈ (Z α).prod (Z α) := add_Z (by simpa using hs),
-  rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
-  exact ⟨V₁ ∩ V₂, inter_mem_sets H₁ H₂, assume v w ⟨hv, _⟩ ⟨_, hw⟩, @H (v, w) ⟨hv, hw⟩⟩
+  have : ((λa:α×α, a.1 + a.2) ⁻¹' s) ∈ Z α ×ᶠ Z α := add_Z (by simpa using hs),
+  rcases mem_prod_self_iff.1 this with ⟨V, H, H'⟩,
+  exact ⟨V, H, prod_subset_iff.1 H'⟩
 end
 
 lemma nhds_eq (a : α) : 𝓝 a = map (λx, x + a) (Z α) :=
@@ -326,10 +326,10 @@ topological_space.nhds_mk_of_nhds _ _
     begin
       refine ⟨(λx:α, x + b) '' t, image_mem_map ht, _, _⟩,
       { refine set.image_subset_iff.2 (assume b hbt, _),
-        simpa using eqt 0 b t0 hbt },
+        simpa using eqt 0 t0 b hbt },
       { rintros _ ⟨c, hb, rfl⟩,
         refine (Z α).sets_of_superset ht (assume x hxt, _),
-        simpa [add_assoc] using eqt _ _ hxt hb }
+        simpa [add_assoc] using eqt _ hxt _ hb }
     end)
 
 lemma nhds_zero_eq_Z : 𝓝 0 = Z α := by simp [nhds_eq]; exact filter.map_id
@@ -340,7 +340,7 @@ instance : has_continuous_add α :=
   begin
     rw [continuous_at, nhds_prod_eq, nhds_eq, nhds_eq, nhds_eq, filter.prod_map_map_eq,
       tendsto_map'_iff],
-    suffices :  tendsto ((λx:α, (a + b) + x) ∘ (λp:α×α,p.1 + p.2)) (filter.prod (Z α) (Z α))
+    suffices :  tendsto ((λx:α, (a + b) + x) ∘ (λp:α×α,p.1 + p.2)) (Z α ×ᶠ Z α)
       (map (λx:α, (a + b) + x) (Z α)),
     { simpa [(∘), add_comm, add_left_comm] },
     exact tendsto_map.comp add_Z

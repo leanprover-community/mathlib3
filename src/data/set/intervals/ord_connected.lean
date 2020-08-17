@@ -86,6 +86,10 @@ ord_connected_Ioi.inter ord_connected_Iic
 lemma ord_connected_Ioo {a b : α} : ord_connected (Ioo a b) :=
 ord_connected_Ioi.inter ord_connected_Iio
 
+lemma ord_connected_singleton {α : Type*} [partial_order α] {a : α} :
+  ord_connected ({a} : set α) :=
+by { rw ← Icc_self, exact ord_connected_Icc }
+
 lemma ord_connected_empty : ord_connected (∅ : set α) := λ x, false.elim
 
 lemma ord_connected_univ : ord_connected (univ : set α) := λ _ _ _ _, subset_univ _

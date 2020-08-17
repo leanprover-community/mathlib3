@@ -654,7 +654,7 @@ calc (𝓝 x).lift g = (𝓤 α).lift (λs:set (α×α), g {y | (x, y) ∈ s}) :
   ... = _ : by simp [image_swap_eq_preimage_swap]
 
 lemma nhds_nhds_eq_uniformity_uniformity_prod {a b : α} :
-  filter.prod (𝓝 a) (𝓝 b) =
+  𝓝 a ×ᶠ 𝓝 b =
   (𝓤 α).lift (λs:set (α×α), (𝓤 α).lift' (λt:set (α×α),
     set.prod {y : α | (y, a) ∈ s} {y : α | (b, y) ∈ t})) :=
 begin
@@ -1149,7 +1149,7 @@ inf_uniformity
 
 lemma uniformity_prod_eq_prod [uniform_space α] [uniform_space β] :
   𝓤 (α×β) =
-    map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) (filter.prod (𝓤 α) (𝓤 β)) :=
+    map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) (𝓤 α ×ᶠ 𝓤 β) :=
 have map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) =
   comap (λp:(α×β)×(α×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))),
   from funext $ assume f, map_eq_comap_of_inverse

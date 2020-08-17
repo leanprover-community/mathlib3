@@ -250,18 +250,17 @@ section unique_diff
 
 This section is devoted to properties of the predicates `unique_diff_within_at` and `unique_diff_on`. -/
 
-@[simp] lemma unique_diff_on.unique_diff_within_at {s : set E} {x} (hs : unique_diff_on 𝕜 s)
-  (h : x ∈ s) :
+lemma unique_diff_on.unique_diff_within_at {s : set E} {x} (hs : unique_diff_on 𝕜 s) (h : x ∈ s) :
   unique_diff_within_at 𝕜 s x :=
 hs x h
 
 lemma unique_diff_within_at_univ : unique_diff_within_at 𝕜 univ x :=
 by { rw [unique_diff_within_at, tangent_cone_univ], simp }
 
-@[simp] lemma unique_diff_on_univ : unique_diff_on 𝕜 (univ : set E) :=
+lemma unique_diff_on_univ : unique_diff_on 𝕜 (univ : set E) :=
 λx hx, unique_diff_within_at_univ
 
-@[simp] lemma unique_diff_on_empty : unique_diff_on 𝕜 (∅ : set E) :=
+lemma unique_diff_on_empty : unique_diff_on 𝕜 (∅ : set E) :=
 λ x hx, hx.elim
 
 lemma unique_diff_within_at.mono_nhds (h : unique_diff_within_at 𝕜 s x)
@@ -313,7 +312,7 @@ lemma is_open.unique_diff_on (hs : is_open s) : unique_diff_on 𝕜 s :=
 
 /-- The product of two sets of unique differentiability at points `x` and `y` has unique
 differentiability at `(x, y)`. -/
-@[simp] lemma unique_diff_within_at.prod {t : set F} {y : F}
+lemma unique_diff_within_at.prod {t : set F} {y : F}
   (hs : unique_diff_within_at 𝕜 s x) (ht : unique_diff_within_at 𝕜 t y) :
   unique_diff_within_at 𝕜 (set.prod s t) (x, y) :=
 begin
@@ -328,7 +327,7 @@ begin
 end
 
 /-- The product of two sets of unique differentiability is a set of unique differentiability. -/
-@[simp] lemma unique_diff_on.prod {t : set F} (hs : unique_diff_on 𝕜 s) (ht : unique_diff_on 𝕜 t) :
+lemma unique_diff_on.prod {t : set F} (hs : unique_diff_on 𝕜 s) (ht : unique_diff_on 𝕜 t) :
   unique_diff_on 𝕜 (set.prod s t) :=
 λ ⟨x, y⟩ h, unique_diff_within_at.prod (hs x h.1) (ht y h.2)
 
@@ -349,38 +348,36 @@ begin
   exact mem_tangent_cone_of_segment_subset (conv.segment_subset xs zs)
 end
 
-@[simp] lemma unique_diff_on_Ici (a : ℝ) : unique_diff_on ℝ (Ici a) :=
+lemma unique_diff_on_Ici (a : ℝ) : unique_diff_on ℝ (Ici a) :=
 unique_diff_on_convex (convex_Ici a) $ by simp only [interior_Ici, nonempty_Ioi]
 
-@[simp] lemma unique_diff_on_Iic (a : ℝ) : unique_diff_on ℝ (Iic a) :=
+lemma unique_diff_on_Iic (a : ℝ) : unique_diff_on ℝ (Iic a) :=
 unique_diff_on_convex (convex_Iic a) $ by simp only [interior_Iic, nonempty_Iio]
 
-@[simp] lemma unique_diff_on_Ioi (a : ℝ) : unique_diff_on ℝ (Ioi a) :=
+lemma unique_diff_on_Ioi (a : ℝ) : unique_diff_on ℝ (Ioi a) :=
 is_open_Ioi.unique_diff_on
 
-@[simp] lemma unique_diff_on_Iio (a : ℝ) : unique_diff_on ℝ (Iio a) :=
+lemma unique_diff_on_Iio (a : ℝ) : unique_diff_on ℝ (Iio a) :=
 is_open_Iio.unique_diff_on
 
-@[simp] lemma unique_diff_on_Icc {a b : ℝ} (hab : a ≠ b) : unique_diff_on ℝ (Icc a b) :=
-(lt_or_gt_of_ne hab).elim
-  (λ hab, unique_diff_on_convex (convex_Icc a b) $ by simp only [interior_Icc, nonempty_Ioo, hab])
-  (λ hab, by simp only [Icc_eq_empty hab, unique_diff_on_empty])
+lemma unique_diff_on_Icc {a b : ℝ} (hab : a < b) : unique_diff_on ℝ (Icc a b) :=
+unique_diff_on_convex (convex_Icc a b) $ by simp only [interior_Icc, nonempty_Ioo, hab]
 
-@[simp] lemma unique_diff_on_Ico (a b : ℝ) : unique_diff_on ℝ (Ico a b) :=
+lemma unique_diff_on_Ico (a b : ℝ) : unique_diff_on ℝ (Ico a b) :=
 if hab : a < b
 then unique_diff_on_convex (convex_Ico a b) $ by simp only [interior_Ico, nonempty_Ioo, hab]
 else by simp only [Ico_eq_empty (le_of_not_lt hab), unique_diff_on_empty]
 
-@[simp] lemma unique_diff_on_Ioc (a b : ℝ) : unique_diff_on ℝ (Ioc a b) :=
+lemma unique_diff_on_Ioc (a b : ℝ) : unique_diff_on ℝ (Ioc a b) :=
 if hab : a < b
 then unique_diff_on_convex (convex_Ioc a b) $ by simp only [interior_Ioc, nonempty_Ioo, hab]
 else by simp only [Ioc_eq_empty (le_of_not_lt hab), unique_diff_on_empty]
 
-@[simp] lemma unique_diff_on_Ioo (a b : ℝ) : unique_diff_on ℝ (Ioo a b) :=
+lemma unique_diff_on_Ioo (a b : ℝ) : unique_diff_on ℝ (Ioo a b) :=
 is_open_Ioo.unique_diff_on
 
 /-- The real interval `[0, 1]` is a set of unique differentiability. -/
-@[simp] lemma unique_diff_on_Icc_zero_one : unique_diff_on ℝ (Icc (0:ℝ) 1) :=
-by simp
+lemma unique_diff_on_Icc_zero_one : unique_diff_on ℝ (Icc (0:ℝ) 1) :=
+unique_diff_on_Icc zero_lt_one
 
 end unique_diff

@@ -247,6 +247,15 @@ instance comp_reflects_colimit [reflects_colimit K F] [reflects_colimit (K ⋙ F
   reflects_colimit K (F ⋙ G) :=
 ⟨λ c h, reflects_colimit.reflects (reflects_colimit.reflects h)⟩
 
+def preserves_of_reflects_of_preserves [preserves_limit K (F ⋙ G)]
+  [reflects_limit (K ⋙ F) G] : preserves_limit K F :=
+⟨λ c h,
+ begin
+  apply @reflects_limit.reflects _ _ _ _ _ _ _ G,
+  change limits.is_limit ((F ⋙ G).map_cone c),
+  exact preserves_limit.preserves h
+ end⟩
+
 end
 
 variable (F : C ⥤ D)

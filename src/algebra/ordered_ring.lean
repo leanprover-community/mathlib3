@@ -282,7 +282,7 @@ begin rw ← one_mul (1 : α), apply mul_le_mul; {assumption <|> apply zero_le_o
 
 lemma one_lt_mul_of_le_of_lt (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
 calc 1 = 1 * 1 : by rw one_mul
-... < a * b : mul_lt_mul' ha hb zero_le_one ( zero_lt_one ha)
+... < a * b : mul_lt_mul' ha hb zero_le_one (zero_lt_one.trans_le ha)
 
 lemma one_lt_mul_of_lt_of_le (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
 calc 1 = 1 * 1 : by rw one_mul

@@ -263,9 +263,6 @@ end
 @[simp] lemma pred_one_add (n : ℕ) : pred (1 + n) = n :=
 by rw [add_comm, add_one, pred_succ]
 
-lemma succ_pred_eq_of_ne_zero (n : ℕ) (h : n ≠ 0) : n.pred.succ = n :=
-succ_pred_eq_of_pos (nat.pos_of_ne_zero h)
-
 theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 :=
 ⟨ne_of_gt, nat.pos_of_ne_zero⟩
 

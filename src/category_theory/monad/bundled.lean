@@ -30,7 +30,7 @@ structure Monad :=
 (str : monad func . tactic.apply_instance)
 
 /-- Bundled comonads -/
-structure CoMonad :=
+structure Comonad :=
 (func : C ⥤ C)
 (str : comonad func . tactic.apply_instance)
 
@@ -88,25 +88,25 @@ end
 
 end Monad
 
-namespace CoMonad
+namespace Comonad
 
 /-- The terminal comonad. TODO: Prove it's terminal. -/
-def terminal : CoMonad C := { func := 𝟭 _ }
+def terminal : Comonad C := { func := 𝟭 _ }
 
 variable {C}
 
-instance : inhabited (CoMonad C) := ⟨terminal C⟩
+instance : inhabited (Comonad C) := ⟨terminal C⟩
 
-instance {M : CoMonad C} : comonad M.func := M.str
+instance {M : Comonad C} : comonad M.func := M.str
 
 /-- Morphisms of bundled comonads. -/
-def hom (M N : CoMonad C) := comonad_hom M.func N.func
+def hom (M N : Comonad C) := comonad_hom M.func N.func
 
 namespace hom
-instance {M : CoMonad C} : inhabited (hom M M) := ⟨comonad_hom.ident _⟩
+instance {M : Comonad C} : inhabited (hom M M) := ⟨comonad_hom.ident _⟩
 end hom
 
-instance : category (CoMonad C) :=
+instance : category (Comonad C) :=
 { hom := hom,
   id := λ _, comonad_hom.ident _,
   comp := λ _ _ _, comonad_hom.comp,
@@ -115,15 +115,15 @@ instance : category (CoMonad C) :=
   assoc' := λ _ _ _ _, by apply comonad_hom.comp_assoc }
 
 /-- The forgetful functor from `CoMonad C` to `C ⥤ C`. -/
-def forget : CoMonad C ⥤ (C ⥤ C) :=
+def forget : Comonad C ⥤ (C ⥤ C) :=
 { obj := func,
   map := λ _ _ f, f.to_nat_trans }
 
 @[simp]
-lemma comp_to_nat_trans {M N L : CoMonad C} (f : M ⟶ N) (g : N ⟶ L) :
+lemma comp_to_nat_trans {M N L : Comonad C} (f : M ⟶ N) (g : N ⟶ L) :
   (f ≫ g).to_nat_trans = nat_trans.vcomp f.to_nat_trans g.to_nat_trans := rfl
 
-theorem hext (M N : CoMonad C) : M.func = N.func → (ε_ M.func) == (ε_ N.func) →
+theorem hext (M N : Comonad C) : M.func = N.func → (ε_ M.func) == (ε_ N.func) →
   (δ_ M.func) == (δ_ N.func) → M = N :=
 begin
   intros h1 h2 h3,
@@ -136,9 +136,9 @@ begin
   repeat {apply eq_of_heq, assumption}
 end
 
-@[simp] lemma coassoc_func_app {M : CoMonad C} {X : C} :
+@[simp] lemma coassoc_func_app {M : Comonad C} {X : C} :
   (δ_ M.func).app X ≫ M.func.map ((δ_ M.func).app X) =
   (δ_ M.func).app X ≫ (δ_ M.func).app (M.func.obj X) := by apply comonad.coassoc
 
-end CoMonad
+end Comonad
 end category_theory

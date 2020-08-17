@@ -2459,7 +2459,7 @@ variables [conditionally_complete_linear_order β] [order_topology β]
 `at_bot` `at_bot`, then it is a homeomorphism. -/
 noncomputable def homeomorph_of_strict_mono_continuous
   {f : α → β} (h_mono : strict_mono f) (h_cont : continuous f) (h_top : tendsto f at_top at_top)
-  (h_bot : tendsto f at_bot at_bot) (a : α) :
+  (h_bot : tendsto f at_bot at_bot) :
   homeomorph α β :=
 homeomorph_of_strict_mono_surjective h_mono (surjective_of_continuous h_cont h_top h_bot)
 

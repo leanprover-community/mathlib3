@@ -55,7 +55,7 @@ have hl : ∀ (n : ℕ), n ≥ m → f n > a - l •ℕ ε := nat.find_spec h,
 have hl0 : l ≠ 0 := λ hl0, not_lt_of_ge (ham m (le_refl _))
   (lt_of_lt_of_le (by have := hl m (le_refl m); simpa [hl0] using this) (le_abs_self (f m))),
 begin
-  cases classical.not_forall.1
+  cases not_forall.1
     (nat.find_min h (nat.pred_lt hl0)) with i hi,
   rw [not_imp, not_lt] at hi,
   existsi i,
@@ -137,7 +137,7 @@ begin
   refine @is_cau_of_mono_bounded _ _ _ _ ((1 : α) / (1 - abv x)) 0 _ _,
   { assume n hn,
     rw abs_of_nonneg,
-    refine div_le_div_of_pos_of_le (sub_pos.2 hx1)
+    refine div_le_div_of_le (le_of_lt $ sub_pos.2 hx1)
       (sub_le_self _ (abv_pow abv x n ▸ abv_nonneg _ _)),
     refine div_nonneg (sub_nonneg.2 _) (sub_nonneg.2 $ le_of_lt hx1),
     clear hn,
@@ -146,7 +146,7 @@ begin
     { rw [pow_succ, ← one_mul (1 : α)],
       refine mul_le_mul (le_of_lt hx1) ih (abv_pow abv x n ▸ abv_nonneg _ _) (by norm_num) } },
   { assume n hn,
-    refine div_le_div_of_pos_of_le (sub_pos.2 hx1) (sub_le_sub_left _ _),
+    refine div_le_div_of_le (le_of_lt $ sub_pos.2 hx1) (sub_le_sub_left _ _),
     rw [← one_mul (_ ^ n), pow_succ],
     exact mul_le_mul_of_nonneg_right (le_of_lt hx1) (pow_nonneg (abv_nonneg _ _) _) }
 end
@@ -237,7 +237,6 @@ finset.induction_on s (by simp [abv_zero abv])
   (λ a s has ih, by rw [sum_insert has, sum_insert has];
     exact le_trans (abv_add abv _ _) (add_le_add_left ih _))
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma cauchy_product {a b : ℕ → β}
   (ha : is_cau_seq abs (λ m, ∑ n in range m, abv (a n)))
   (hb : is_cau_seq abv (λ m, ∑ n in range m, b n)) (ε : α) (ε0 : 0 < ε) :
@@ -1129,7 +1128,7 @@ calc 0 < x - x ^ 3 / 6 - abs' x ^ 4 * (5 / 96) :
     (by rwa [_root_.abs_of_nonneg (le_of_lt hx0)]))).2
 
 lemma sin_pos_of_pos_of_le_two {x : ℝ} (hx0 : 0 < x) (hx : x ≤ 2) : 0 < sin x :=
-have x / 2 ≤ 1, from div_le_of_le_mul (by norm_num) (by simpa),
+have x / 2 ≤ 1, from (div_le_iff (by norm_num)).mpr (by simpa),
 calc 0 < 2 * sin (x / 2) * cos (x / 2) :
   mul_pos (mul_pos (by norm_num) (sin_pos_of_pos_of_le_one (half_pos hx0) this))
     (cos_pos_of_le_one (by rwa [_root_.abs_of_nonneg (le_of_lt (half_pos hx0))]))

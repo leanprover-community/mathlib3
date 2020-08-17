@@ -35,7 +35,6 @@ variables [topological_space α] [topological_space β]
 
 /-- A sequence converges in the sence of topological spaces iff the associated statement for filter
 holds. -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma topological_space.seq_tendsto_iff {x : ℕ → α} {limit : α} :
   tendsto x at_top (𝓝 limit) ↔
     ∀ U : set α, limit ∈ U → is_open U → ∃ N, ∀ n ≥ N, (x n) ∈ U :=
@@ -386,7 +385,6 @@ tendsto_subseq_of_frequently_bounded hs $ frequently_of_forall hu
 lemma metric.compact_space_iff_seq_compact_space : compact_space β ↔ seq_compact_space β :=
 uniform_space.compact_space_iff_seq_compact_space emetric.uniformity_has_countable_basis
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma seq_compact.lebesgue_number_lemma_of_metric
   {ι : Type*} {c : ι → set β} (hs : is_seq_compact s)
   (hc₁ : ∀ i, is_open (c i)) (hc₂ : s ⊆ ⋃ i, c i) :

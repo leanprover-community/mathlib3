@@ -1408,8 +1408,7 @@ else
 lemma tan_arg {x : ℂ} : real.tan (arg x) = x.im / x.re :=
 begin
   by_cases h : x = 0,
-  { simp only [h, euclidean_domain.zero_div,
-    complex.zero_im, complex.arg_zero, real.tan_zero, complex.zero_re] },
+  { simp only [h, zero_div, complex.zero_im, complex.arg_zero, real.tan_zero, complex.zero_re] },
   rw [real.tan_eq_sin_div_cos, sin_arg, cos_arg h,
       div_div_div_cancel_right _ (mt abs_eq_zero.1 h)]
 end

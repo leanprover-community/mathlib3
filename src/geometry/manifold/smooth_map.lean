@@ -38,9 +38,9 @@ def smooth_map := times_cont_mdiff_map I I' M M' ⊤
 notation `C[` n `](` I `, ` M `; ` I' `, ` M' `)` := times_cont_mdiff_map I I' M M' n
 notation `C[` n `](` I `, ` M `; ` k `)` := times_cont_mdiff_map I (model_with_corners_self k k) M k n
 notation `C[` n `](` I `, ` M `)` := times_cont_mdiff_map I (model_with_corners_self ℝ ℝ) M ℝ n
-notation `C∞(` I `, ` M `; ` I' `, ` M' `)` := smooth_map I I' M M'
-notation `C∞(` I `, ` M `; ` k `)` := smooth_map I (model_with_corners_self k k) M k
-notation `C∞(` I `, ` M `)` := smooth_map I (model_with_corners_self ℝ ℝ) M ℝ
+notation `C∞(` I `, ` M `; ` I' `, ` M' `)` := times_cont_mdiff_map I I' M M' ⊤
+notation `C∞(` I `, ` M `; ` k `)` := times_cont_mdiff_map I (model_with_corners_self k k) M k ⊤
+notation `C∞(` I `, ` M `)` := times_cont_mdiff_map I (model_with_corners_self ℝ ℝ) M ℝ ⊤
 
 namespace times_cont_mdiff_map
 
@@ -54,6 +54,9 @@ variables {f g : C[n](I, M; I', M')}
 
 protected lemma times_cont_mdiff (f : C[n](I, M; I', M')) :
   times_cont_mdiff I I' n f := f.times_cont_mdiff_to_fun
+
+protected lemma smooth (f : C∞(I, M; I', M')) :
+  smooth I I' f := f.times_cont_mdiff_to_fun
 
 lemma coe_inj ⦃f g : C[n](I, M; I', M')⦄ (h : (f : M → M') = g) : f = g :=
 by cases f; cases g; cases h; refl
@@ -76,3 +79,12 @@ instance [inhabited M'] : inhabited C[n](I, M; I', M') :=
 def const (y : M') : C[n](I, M; I', M') := ⟨λ x, y, times_cont_mdiff_const⟩
 
 end times_cont_mdiff_map
+
+namespace smooth_map
+
+variables {I} {I'} {M} {M'}
+
+/-- Constant map as a smooth map -/
+def const (y : M') : C∞(I, M; I', M') := ⟨λ x, y, smooth_const⟩
+
+end smooth_map

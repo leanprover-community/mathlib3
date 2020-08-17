@@ -56,20 +56,16 @@ begin
     obtain ⟨y, hyx, hy⟩ : ∃ c ∈ Ioo a x, g' c = 0,
       from exists_has_deriv_at_eq_zero' hx.1 hga this (λ y hy, hgg' y $ sub x hx hy),
     exact hg' y (sub x hx hyx) hy },
-  /- The proof would be significantly more complex if we used `∀ x ∈ Ioo a b, ∃ c, ...`, because
-    `choose c hc using this` would give `c : Π x, x ∈ Ioo a b → ℝ` instead of `c : ℝ → ℝ`. -/
-  have : ∀ x, ∃ c, ∀ (h : x ∈ Ioo a b), (c ∈ Ioo a x ∧ (f x) * (g' c) = (g x) * (f' c)),
-  { intro x,
-    refine classical.by_cases _ (λ hx : ¬x ∈ Ioo a b, ⟨0, hx.elim⟩),
-    intros hx,
+  have : ∀ x ∈ Ioo a b, ∃ c ∈ Ioo a x, (f x) * (g' c) = (g x) * (f' c),
+  { intros x hx,
     obtain ⟨c, hca, hcb⟩ : ∃ (c : ℝ) (H : c ∈ Ioo a x), (f x) * g' c = (g x) * f' c,
     { rw [← sub_zero (f x), ← sub_zero (g x)],
       exact exists_ratio_has_deriv_at_eq_ratio_slope' g g' hx.1 f f'
         (λ y hy, hgg' y $ sub x hx hy) (λ y hy, hff' y $ sub x hx hy) hga hfa
         (tendsto_nhds_within_of_tendsto_nhds (hgg' x hx).continuous_at.tendsto)
         (tendsto_nhds_within_of_tendsto_nhds (hff' x hx).continuous_at.tendsto) },
-    exact ⟨c, λ _, ⟨hca, hcb⟩⟩ },
-  choose c hc using this,
+    exact ⟨c, hca, hcb⟩ },
+  choose! c hc using this,
   have : ∀ x ∈ Ioo a b, ((λ x', (f' x') / (g' x')) ∘ c) x = f x / g x,
   { intros x hx,
     rcases hc x hx with ⟨h₁, h₂⟩,

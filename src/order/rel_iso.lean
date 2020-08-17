@@ -188,7 +188,7 @@ f.lt_embedding_of_le_embedding.well_founded
 protected theorem is_well_order [is_well_order β (<)] : is_well_order α (<) :=
 f.lt_embedding_of_le_embedding.is_well_order
 
-/-- a relation embedding is also a relation embedding between dual relations. -/
+/-- An order embedding is also an order embedding between dual orders. -/
 def osymm : order_dual α ↪≤ order_dual β :=
 ⟨f.to_embedding, λ a b, f.map_rel_iff⟩
 
@@ -383,6 +383,10 @@ def rel_embedding.cod_restrict (p : set β) (f : r ↪r s) (H : ∀ a, f a ∈ p
 
 @[simp] theorem rel_embedding.cod_restrict_apply (p) (f : r ↪r s) (H a) :
   rel_embedding.cod_restrict p f H a = ⟨f a, H a⟩ := rfl
+
+  /-- a relation embedding is also a relation embedding between dual relations. -/
+def le_iso.osymm [preorder α] [preorder β] (f : order_dual α ≃≤ order_dual β) :
+  order_dual α ≃≤ order_dual β := ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
 
 section lattice_isos
 

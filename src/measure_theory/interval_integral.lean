@@ -943,6 +943,8 @@ lemma integral_has_fderiv_within_at (hfm : measurable f) (hfi : interval_integra
 integral_has_fderiv_within_at_of_tendsto_ae hfm hfi (ha.mono_left inf_le_left)
   (hb.mono_left inf_le_left)
 
+/-- An auxiliary tactic closing goals `unique_diff_within_at ℝ s a` where
+`s ∈ {Iic a, Ici a, univ}`. -/
 meta def unique_diff_within_at_Ici_Iic_univ : tactic unit :=
 `[apply_rules [unique_diff_on.unique_diff_within_at, unique_diff_on_Ici, unique_diff_on_Iic,
   left_mem_Ici, right_mem_Iic, unique_diff_within_at_univ]]

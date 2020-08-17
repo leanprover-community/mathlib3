@@ -41,19 +41,11 @@ begin
       mul_self_sqrt this, pow_two, add_sub_cancel]
 end
 
-private lemma b_lt_sqrt_b_sq_add_one (b : ℝ) : b < sqrt (b^2 + 1) :=
-begin
-  by_cases hb : 0 ≤ b,
-  conv { to_lhs, rw ← sqrt_sqr hb },
-  rw sqrt_lt,
-  linarith,
-  apply pow_two_nonneg,
-  have F : 0 ≤ b^2 := by apply pow_two_nonneg,
-  { linarith },
-  rw not_le at hb,
-  apply lt_of_lt_of_le hb,
-  apply sqrt_nonneg,
-end
+private lemma b_lt_sqrt_b_one_add_sq (b : ℝ) : b < sqrt (1 + b ^ 2) :=
+calc  b
+    ≤ sqrt (b ^ 2)     : le_sqrt_of_sqr_le $ le_refl _
+... < sqrt (1 + b ^ 2) : (sqrt_lt (pow_two_nonneg _) (add_nonneg zero_le_one (pow_two_nonneg _))).2
+  (lt_one_add _)
 
 /-- `arsinh` is the right inverse of `sinh`. -/
 lemma arsinh_sinh (x : ℝ) : sinh (arsinh x) = x :=

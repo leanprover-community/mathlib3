@@ -196,7 +196,7 @@ begin
     { exact λ f g hf hg n, by simp [I.add_mem (hf n) (hg n)] },
     { refine λ f g hg n, _,
       rw [smul_eq_mul, coeff_mul],
-      refine I.sum_mem (λ c hc, I.smul_mem (f.coeff c.fst) (hg c.snd)) } },
+      exact I.sum_mem (λ c hc, I.smul_mem (f.coeff c.fst) (hg c.snd)) } },
   { intros hf,
     rw ← sum_monomial_eq f,
     refine (map C I : ideal (polynomial R)).sum_mem (λ n hn, _),
@@ -219,10 +219,10 @@ begin
   intros a ha,
   rw ← sum_monomial_eq a,
   dsimp,
-  erw eval₂_sum,
+  rw eval₂_sum (C.comp (quotient.mk I)) a monomial X,
   refine finset.sum_eq_zero (λ n hn, _),
   dsimp,
-  rw eval₂_monomial,
+  rw eval₂_monomial (C.comp (quotient.mk I)) X,
   refine mul_eq_zero_of_left (polynomial.ext (λ m, _)) (X ^ n),
   erw coeff_C,
   by_cases h : m = 0,
@@ -230,7 +230,10 @@ begin
   { simp [h] }
 end
 
-noncomputable def polynomial_quotient_equiv_quotient_polynomial {I : ideal R} :
+/-- If `I` is an ideal of `R`, then the ring polynomials over the quotient ring `I.quotient` is
+isomorphic to the quotient of `polynomial R` by the ideal `map C I`,
+where `map C I` contains exactly the polynomials whose coefficients all lie in `I` -/
+def polynomial_quotient_equiv_quotient_polynomial {I : ideal R} :
   polynomial (I.quotient) ≃+* (map C I : ideal (polynomial R)).quotient :=
 { to_fun := eval₂_ring_hom
     (quotient.lift I ((quotient.mk (map C I : ideal (polynomial R))).comp C) quotient_map_C_eq_zero)

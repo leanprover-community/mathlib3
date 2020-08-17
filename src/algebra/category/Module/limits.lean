@@ -57,13 +57,13 @@ begin
   transport using (types.limit_equiv_sections (F ⋙ forget (Module R))).symm,
 end
 
--- FIXME stuck on #3824
 instance limit_module (F : J ⥤ Module R) :
   module R (limit (F ⋙ forget (Module R))) :=
 begin
   haveI : module R ((F ⋙ forget (Module R)).sections) :=
     (by apply_instance : module R (sections_submodule F)),
-  transport using (types.limit_equiv_sections (F ⋙ forget (Module R))).symm,
+  let e := (types.limit_equiv_sections (F ⋙ forget (Module R))).symm,
+  refine_struct { .. },
 end
 
 /-- `limit.π (F ⋙ forget Ring) j` as a `ring_hom`. -/

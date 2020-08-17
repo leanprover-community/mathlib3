@@ -55,7 +55,7 @@ begin
   apply sqrt_nonneg,
 end
 
-/-- `arsinh` is the right inverse of `sinh`-/
+/-- `arsinh` is the right inverse of `sinh`. -/
 lemma arsinh_sinh (x : ℝ) : sinh (arsinh x) = x :=
 begin
   rw sinh_eq,

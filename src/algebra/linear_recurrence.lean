@@ -175,7 +175,7 @@ def char_poly : polynomial α :=
 
 /-- The geometric sequence `q^n` is a solution of `E` iff
   `q` is a root of `E`'s characteristic polynomial. -/
-lemma geom_sol_iff_root_aux_poly (q : α) : E.is_solution (λ n, q^n) ↔ E.char_poly.is_root q :=
+lemma geom_sol_iff_root_char_poly (q : α) : E.is_solution (λ n, q^n) ↔ E.char_poly.is_root q :=
 begin
   rw [char_poly, polynomial.is_root.def, polynomial.eval],
   simp only [polynomial.eval₂_finset_sum, one_mul,

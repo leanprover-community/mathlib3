@@ -21,11 +21,10 @@ structure witt_package :=
 (equiv'  : Π (R : Type) [comm_ring R] (h : ∀ k ∈ S, invertible (k : R)),
             by exactI (mv_polynomial enum R) ≃ₐ[R] (mv_polynomial enum R))
 (compat' : Π (R : Type) [comm_ring R] (h : ∀ k ∈ S, invertible (k : R)),
-            (equiv' R h : mv_polynomial enum R →ₐ[R] mv_polynomial enum R) =
+            by exactI (equiv' R h : mv_polynomial enum R →ₐ[R] mv_polynomial enum R) =
               @aeval _ R _
                 (λ n, mv_polynomial.map_hom (algebra_map ℤ R) (witt_polynomial n))
                 _ _ _)
-
 
 namespace witt_package
 

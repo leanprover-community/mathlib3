@@ -11,7 +11,6 @@ import topology.continuous_map
 # Smooth bundled map
 
 In this file we define the type `smooth_map` of smooth bundled maps.
-
 -/
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]

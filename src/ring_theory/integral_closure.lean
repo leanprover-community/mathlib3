@@ -3,7 +3,7 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import ring_theory.algebra_tower
+import ring_theory.adjoin
 
 /-!
 # Integral closure of a subring.

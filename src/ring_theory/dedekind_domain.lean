@@ -2,7 +2,7 @@ import linear_algebra.finite_dimensional
 import order.zorn
 import ring_theory.fractional_ideal
 import ring_theory.polynomial.rational_root
-import ring_theory.ideal_over
+import ring_theory.ideal.over
 import set_theory.cardinal
 import tactic
 

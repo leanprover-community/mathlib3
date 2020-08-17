@@ -814,6 +814,15 @@ ext $ λ x, by rw [← mem_to_submodule, ← mem_to_submodule, h]
 theorem to_submodule_inj {S U : subalgebra R A} : (S : submodule R A) = U ↔ S = U :=
 ⟨to_submodule_injective, congr_arg _⟩
 
+instance (S : subalgebra R A) : semimodule S (S : submodule R A) :=
+{ smul := λ x y, ⟨x * y, S.mul_mem x.2 y.2⟩,
+  add_smul := λ x y z, show _ = (⟨x * z + y * z, _⟩ : S), by simp only [add_mul, submodule.coe_add],
+  smul_add := λ x y z, show _ = (⟨x * y + x * z, _⟩ : S), by simp only [mul_add, submodule.coe_add],
+  mul_smul := λ x y z, by simp only [mul_assoc, subsemiring.coe_mul, subtype.coe_mk],
+  one_smul := λ x, by simp only [one_mul, subsemiring.coe_one, submodule.eta],
+  smul_zero := λ x, by simp only [mul_zero, submodule.mk_eq_zero, submodule.coe_zero],
+  zero_smul := λ x, by simp only [zero_mul, submodule.mk_eq_zero, submodule.coe_zero] }
+
 instance : partial_order (subalgebra R A) :=
 { le := λ S T, (S : set A) ⊆ (T : set A),
   le_refl := λ S, set.subset.refl S,
@@ -853,6 +862,9 @@ set.image_subset_iff
 instance integral_domain {R A : Type*} [comm_ring R] [integral_domain A] [algebra R A]
   (S : subalgebra R A) : integral_domain S :=
 @subring.domain A _ S _
+
+lemma exists_of_lt {S T : subalgebra R A} (h : S < T) : ∃ x ∈ T, x ∉ S :=
+let ⟨x, hxT, hxS⟩ := submodule.exists_of_lt h in ⟨x, hxT, hxS⟩
 
 end subalgebra
 
@@ -1141,6 +1153,26 @@ by rw [algebra_compatible_smul A r m, linear_map.map_smul, ←algebra_compatible
 
 instance : has_coe (M →ₗ[A] N) (M →ₗ[R] N) :=
 ⟨λ f, ⟨f.to_fun, λ x y, f.map_add' x y, λ r n, map_smul_eq_smul_map _ _ _⟩⟩
+
+/-- If we have a scalar tower R/A/M, an `A`-submodule of `M` is also an `R`-submodule. -/
+def submodule.scalar_tower_map (p : submodule A M) : submodule R M :=
+{ carrier := p.carrier,
+  zero_mem' := p.zero_mem,
+  smul_mem' := λ c e h, (algebra_compatible_smul A c e).symm ▸ p.smul_mem _ h,
+  add_mem' := λ x y hx hy, p.add_mem hx hy, }
+
+/-- `submodule.scalar_tower_map` is an order embedding of submodules. -/
+def submodule.scalar_tower_le_embedding :
+  ((≤) : submodule A M → submodule A M → Prop) ↪r ((≤) : submodule R M → submodule R M → Prop) :=
+{ to_fun := submodule.scalar_tower_map,
+  inj' := λ p q h, submodule.coe_injective
+      (show p.scalar_tower_map.carrier = q.scalar_tower_map.carrier, by rw h),
+  map_rel_iff' := λ p q, iff.rfl }
+
+/-- `submodule.scalar_tower_map` is an order embedding of submodules. -/
+def submodule.scalar_tower_lt_embedding :
+  ((<) : submodule A M → submodule A M → Prop) ↪r ((<) : submodule R M → submodule R M → Prop) :=
+submodule.scalar_tower_le_embedding.lt_embedding_of_le_embedding
 
 end is_scalar_tower
 

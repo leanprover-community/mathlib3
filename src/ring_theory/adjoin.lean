@@ -197,6 +197,16 @@ theorem fg_def {S : subalgebra R A} : S.fg ↔ ∃ t : set A, set.finite t ∧ a
 theorem fg_bot : (⊥ : subalgebra R A).fg :=
 ⟨∅, algebra.adjoin_empty R A⟩
 
+theorem fg_of_fg_to_submodule {S : subalgebra R A} : (S : submodule R A).fg → S.fg :=
+λ ⟨t, ht⟩, ⟨t, le_antisymm
+  (algebra.adjoin_le (λ x hx, show x ∈ (S : submodule R A), from ht ▸ subset_span hx))
+  (λ x (hx : x ∈ (S : submodule R A)), span_le.mpr
+    (λ x hx, algebra.subset_adjoin hx)
+    (show x ∈ span R ↑t, by { rw ht, exact hx }))⟩
+
+theorem fg_of_noetherian [is_noetherian R A] (S : subalgebra R A) : S.fg :=
+fg_of_fg_to_submodule (is_noetherian.noetherian S)
+
 end subalgebra
 
 variables {R : Type u} {A : Type v} {B : Type w}

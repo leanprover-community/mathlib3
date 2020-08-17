@@ -84,6 +84,15 @@ variables (K L : Type*) [field K] [field L] [algebra K L]
 
 namespace is_simple_extension
 
+variables {R S}
+
+lemma iff_exists_eq_aeval :
+  is_simple_extension R S ↔ ∃ x : S, ∀ y : S, ∃ f : polynomial R, aeval x f = y :=
+by simpa only [is_simple_extension, algebra.adjoin_singleton_eq_range, subalgebra.ext_iff,
+               algebra.mem_top, iff_true] using iff.rfl
+
+variables (R S)
+
 /- A primitive element for `S / R` is an `x : S` such that `L = K(x)`. -/
 noncomputable def primitive_element [simple : is_simple_extension R S] : S :=
 classical.some simple
@@ -108,6 +117,66 @@ begin
     by simpa [algebra.adjoin_singleton_eq_range] using mem_adjoin_primitive_element R S x,
   exact ⟨f, hf.symm⟩
 end
+
+@[simp] lemma coe_aeval {S} [comm_ring S] [algebra R S] (A : subalgebra R S) (f : polynomial R) (y : A) :
+  (aeval y f : S) = aeval (y : S) f :=
+alg_hom_eval₂_algebra_map f A.val y
+
+lemma is_simple_subalgebra_iff {S} [comm_ring S] [algebra R S] (A : subalgebra R S) :
+  is_simple_extension R A ↔ ∃ x ∈ A, algebra.adjoin R {x} = A :=
+⟨λ ⟨⟨x, mem⟩, hx⟩, ⟨x, mem, le_antisymm
+  (algebra.adjoin_le (set.singleton_subset_iff.mpr mem))
+  (λ y hy, begin
+    have : subtype.mk y hy ∈ (⊤ : subalgebra R A) := algebra.mem_top,
+    rw ← hx at this,
+    rw algebra.adjoin_singleton_eq_range at this ⊢,
+    obtain ⟨f, hf⟩ := this,
+    use f,
+    rw [subtype.ext_iff, subtype.coe_mk, coe_aeval] at hf,
+    exact hf
+  end)⟩,
+ λ ⟨x, mem, hx⟩, ⟨⟨x, mem⟩, eq_top_iff.mpr (λ ⟨y, (hy : y ∈ A)⟩ _, begin
+    rw [coe_coe, submodule.mem_coe, subalgebra.mem_to_submodule, algebra.adjoin_singleton_eq_range],
+    rw [← hx, algebra.adjoin_singleton_eq_range] at hy,
+    obtain ⟨f, hf⟩ := hy,
+    use f,
+    rw [subtype.ext_iff, coe_aeval, subtype.coe_mk],
+    exact hf
+  end)⟩⟩
+
+lemma is_simple_of_bot_eq_top (h : (⊥ : subalgebra R S) = ⊤) : is_simple_extension R S :=
+⟨0, trans (eq_bot_iff.mpr (algebra.adjoin_le (by simpa using subalgebra.zero_mem ⊥))) h⟩
+
+instance is_simple_bot : is_simple_extension R (⊥ : subalgebra R S) :=
+begin
+  refine is_simple_of_bot_eq_top _ _ (eq_top_iff.mpr _),
+  rintros ⟨x, hx⟩ _,
+  obtain ⟨y, rfl⟩ := algebra.mem_bot.mp hx,
+  refine algebra.mem_bot.mpr ⟨y, _⟩,
+  ext,
+  refl
+end
+
+end is_simple_extension
+
+open is_simple_extension
+
+instance finite_field.is_simple_extension [fintype L] :
+  is_simple_extension K L :=
+begin
+  obtain ⟨x, hx⟩ := is_cyclic.exists_generator (units L),
+  simp_rw ← mem_powers_iff_mem_gpowers at hx,
+  refine iff_exists_eq_aeval.mpr ⟨x, λ y, _⟩,
+  by_cases hy : y = 0,
+  { rw hy,
+    exact ⟨0, eval₂_zero _ _⟩ },
+  obtain ⟨y, rfl⟩ : is_unit y := is_unit.mk0 y hy,
+  obtain ⟨n, rfl⟩ := hx y,
+  use X^n,
+  rw [alg_hom.map_pow, aeval_X, units.coe_pow]
+end
+
+namespace is_simple_extension
 
 section is_algebraic
 
@@ -177,19 +246,118 @@ begin
   ... ≤ i : with_bot.some_le_some.mpr (le_of_not_gt hi),
 end
 
-lemma power_basis_is_basis :
-  is_basis K (power_basis alg) :=
+lemma power_basis_is_basis : is_basis K (power_basis alg) :=
 ⟨linear_independent_power_basis alg, eq_top_iff.mpr (λ x _, mem_span_power_basis alg x)⟩
 
 lemma findim_eq_simple_degree : findim K L = simple_degree alg :=
 trans (findim_eq_card_basis (power_basis_is_basis alg)) (fintype.card_fin _)
 
+end is_algebraic
+
+section finite_dimensional
+
+@[simp] lemma adjoin_insert_adjoin (x : L) (s : set L) :
+  algebra.adjoin K (insert x (algebra.adjoin K s : set L)) = algebra.adjoin K (insert x s) :=
+begin
+  refine le_antisymm (algebra.adjoin_le (set.insert_subset.mpr ⟨_, _⟩)) (algebra.adjoin_mono _),
+  { exact algebra.subset_adjoin (set.mem_insert _ _) },
+  { exact algebra.adjoin_mono (set.subset_insert _ _) },
+  { exact set.insert_subset_insert algebra.subset_adjoin }
+end
+
+/-- Induction principle for finite dimensional fields: adjoin extra elements until finished. -/
+lemma induction_on_adjoin [fd : finite_dimensional K L] {P : subalgebra K L → Prop}
+  (base : P ⊥) (ih : ∀ (F : subalgebra K L) (x : L), P F → P (algebra.adjoin K (insert x F)))
+  (F : subalgebra K L) : P F :=
+begin
+  haveI := classical.prop_decidable,
+  obtain ⟨t, rfl⟩ : F.fg := F.fg_of_noetherian,
+  refine finset.induction_on t _ _,
+  { simpa [P'_pos] using base },
+  intros x t hxt h,
+  convert ih _ x h using 1,
+  rw [finset.coe_insert, adjoin_insert_adjoin],
+end
+
+lemma is_simple_of_extension_eq (x y : L) (a₁ a₂ : K) (ne : a₁ ≠ a₂)
+  (extension_eq : algebra.adjoin K {x + a₁ • y} = algebra.adjoin K ({x + a₂ • y} : set L)) :
+  is_simple_extension K (algebra.adjoin K ({x, y} : set L)) :=
+begin
+  rw is_simple_subalgebra_iff,
+  have z_mem : x + a₁ • y ∈ algebra.adjoin K {x, y},
+  { exact subalgebra.add_mem _
+    (algebra.subset_adjoin (set.mem_insert _ _))
+    (subalgebra.smul_mem _ (algebra.subset_adjoin (set.subset_insert _ _ (set.mem_singleton _))) _) },
+  have y_mem : y ∈ algebra.adjoin K {x + a₁ • y},
+  { rw [← subalgebra.mem_to_submodule, ← submodule.smul_mem_iff _ (sub_ne_zero.mpr ne)],
+    have : (a₁ - a₂) • y = (x + a₁ • y) - (x + a₂ • y) := by { rw sub_smul, ring },
+    rw this,
+    refine submodule.sub_mem _ (algebra.subset_adjoin (set.mem_singleton _)) _,
+    rw extension_eq,
+    exact algebra.subset_adjoin (set.mem_singleton _) },
+  refine ⟨x + (a₁ : K) • y, z_mem,
+    le_antisymm (algebra.adjoin_le (set.singleton_subset_iff.mpr z_mem))
+      (algebra.adjoin_le (set.insert_subset.mpr ⟨_, set.singleton_subset_iff.mpr y_mem⟩))⟩,
+  conv_lhs { rw ← add_sub_cancel x (a₁ • y) },
+  refine submodule.sub_mem _ (algebra.subset_adjoin (set.mem_singleton _)) _,
+  exact submodule.smul_mem _ _ y_mem
+end
+
+lemma is_simple_of_finite_intermediates_aux [finite_dimensional K L] (fin : fintype (subalgebra K L)) :
+  Π (F : subalgebra K L) (inf : infinite F), is_simple_extension K F :=
+begin
+  refine induction_on_adjoin _ _ _ _,
+  { intros, exact is_simple_extension.is_simple_bot _ _ },
+  rintros F x ih inf,
+  obtain hF := ih sorry,
+  rw [is_simple_subalgebra_iff] at hF,
+  obtain ⟨y, hy, hF⟩ := hF,
+  rw [← hF, adjoin_insert_adjoin],
+  set zs := { (x + (a : K) • y) | a : units K },
+  set Fs := { (algebra.adjoin K ({z} : set L)) | z : zs },
+  set f : zs → Fs := λ z, ⟨_, z, rfl⟩ with f_def,
+  haveI inf_zs : infinite zs := sorry,
+  haveI fin_Fs : fintype Fs := sorry,
+  obtain ⟨⟨_, ⟨a₁, rfl⟩⟩, hz⟩ := classical.not_forall.mp (not_injective_infinite_fintype f),
+  obtain ⟨⟨_, ⟨a₂, rfl⟩⟩, hz⟩ := classical.not_forall.mp hz,
+  obtain ⟨Fz₁_eq_Fz₂, z₁_ne_z₂⟩ := classical.not_imp.mp hz,
+  refine is_simple_of_extension_eq K L x y a₁ a₂
+    (λ h, z₁_ne_z₂ (by rw [subtype.ext_iff, subtype.coe_mk, subtype.coe_mk, h])) _,
+  simpa only [f_def, subtype.ext_iff, subtype.coe_mk] using Fz₁_eq_Fz₂
+end
+
+/-- Artin's primitive element theorem: if `L / K` is a finite extension
+with finitely many intermediate fields `L / F / K`, then `L / K` is a simple extension. -/
+lemma is_simple_of_finite_intermediates [finite_dimensional K L]
+  (fin : fintype (subalgebra K L)) :
+  is_simple_extension K L :=
+begin
+  by_cases h : nonempty (fintype L),
+  { haveI : fintype L := h.some,
+    apply finite_field.is_simple_extension },
+  exact is_simple_of_finite_intermediates_aux (not_nonempty_fintype.mp h) fin rfl
+end
+
+/-- The primitive element theorem: if `L / K` is a separable finite extension,
+it is a simple extension. -/
+instance is_simple_of_is_separable [is_separable K L] [finite_dimensional K L] :
+  is_simple_extension K L :=
+begin
+  by_cases h : cardinal.mk L < cardinal.omega,
+  { haveI : fintype L := (cardinal.lt_omega_iff_fintype.mp h).some,
+    apply finite_field.is_simple_extension },
+end
+
 /-- The primitive element theorem: if `K / F` is a finite extension,
 it is separable iff there is a single `x : K` such that `K = F(x)`. -/
-theorem separable_iff_exists_adjoin_eq :
-is_separable F K ↔ ∃ x : K, (algebra.adjoin F {x} : subalgebra F K) = ⊤ :=
-⟨_, _⟩
+theorem separable_iff_simple :
+  is_separable K L ↔ is_simple_extension K L :=
+begin
+  by_cases h : cardinal.mk L < cardinal.omega,
+  { haveI : fintype L := (cardinal.lt_omega_iff_fintype.mp h).some,
+    simp [finite_field.is_simple_extension, finite_field.is_separable] }
+end
 
-end is_algebraic
+end finite_dimensional
 
 end is_simple_extension

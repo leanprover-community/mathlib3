@@ -3,9 +3,10 @@ Copyright (c) 2018 Mario Carneiro and Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Buzzard
 -/
-import ring_theory.ideal.operations
 import linear_algebra.basis
 import order.order_iso_nat
+import ring_theory.algebra_tower
+import ring_theory.ideal.operations
 
 /-!
 # Noetherian rings and modules
@@ -389,37 +390,22 @@ begin
   exact order_embedding.well_founded (submodule.map_subtype.order_embedding N).osymm h,
 end
 
--- TODO: move me!
-/-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
-submodules of `M`. -/
-def submodule.restrict_scalars.le_order_embedding
-  (R S M) [comm_ring R] [ring S] [add_comm_group M] [algebra R S] [module S M] :
-  ((≤) : submodule S M → submodule S M → Prop) ≼o ((≤) : submodule R (module.restrict_scalars R S M) → submodule _ M → Prop) :=
-{ to_fun := submodule.restrict_scalars R,
-  ord' := λ p q, iff.rfl,
-  inj' := λ p q eq, ext (λ x, show x ∈ (restrict_scalars R p).carrier ↔ x ∈ (restrict_scalars R q).carrier, by rw eq) }
-
-/-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
-submodules of `M`. -/
-def submodule.restrict_scalars.lt_order_embedding
-  (R S M) [comm_ring R] [ring S] [add_comm_group M] [algebra R S] [module S M] :
-  ((<) : submodule S M → submodule S M → Prop) ≼o ((<) : submodule R (module.restrict_scalars R S M) → submodule _ M → Prop) :=
-(submodule.restrict_scalars.le_order_embedding R S M).lt_embedding_of_le_embedding
-
-theorem is_noetherian_of_is_noetherian_restrict_scalars (R) {S M} [comm_ring R] [ring S]
-  [add_comm_group M] [algebra R S] [module S M]
-  (h : is_noetherian R (module.restrict_scalars R S M)) : is_noetherian S M :=
+theorem is_noetherian_of_is_scalar_tower (R) {S M} [comm_ring R] [ring S]
+  [add_comm_group M] [algebra R S] [module S M] [module R M] [is_scalar_tower R S M]
+  (h : is_noetherian R M) : is_noetherian S M :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
-  exact order_embedding.well_founded (order_embedding.rsymm
-    (submodule.restrict_scalars.lt_order_embedding R S M)) h
+  exact rel_embedding.well_founded (rel_embedding.rsymm submodule.scalar_tower_lt_embedding) h
 end
 
+-- TODO: why doesn't this work?
 lemma is_noetherian_ring_of_is_noetherian_coe_submodule (R) {S} [comm_ring R] [ring S] [algebra R S]
   (N : subalgebra R S) (h : is_noetherian R (N : submodule R S)) : is_noetherian_ring N :=
-is_noetherian_of_is_noetherian_restrict_scalars R (@@is_noetherian_of_linear_equiv _ _ _ _ _
-  ((algebra.restrict_scalars_equiv R N).symm)
-  h)
+begin
+  apply is_noetherian_of_is_scalar_tower R h,
+  { apply_instance },
+  exact is_scalar_tower.subalgebra_to_submodule R N,
+end
 
 theorem is_noetherian_of_quotient_of_noetherian (R) [ring R] (M) [add_comm_group M] [module R M]
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N.quotient :=

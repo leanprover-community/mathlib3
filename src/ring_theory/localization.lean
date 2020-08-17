@@ -902,7 +902,7 @@ by rw [ring_hom.map_mul, map_eq]
 lemma is_noetherian_ring (h : is_noetherian_ring R) : is_noetherian_ring f.codomain :=
 begin
   rw [is_noetherian_ring, is_noetherian_iff_well_founded] at h ⊢,
-  refine order_embedding.well_founded (order_embedding.rsymm f.lt_order_embedding) h
+  exact rel_embedding.well_founded (rel_embedding.rsymm f.lt_rel_embedding) h
 end
 
 section integer_normalization

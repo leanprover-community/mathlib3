@@ -103,6 +103,9 @@ def restrict_base (f : A →ₐ[S] B) : A →ₐ[R] B :=
 instance right : is_scalar_tower R S S :=
 of_algebra_map_eq $ λ x, rfl
 
+instance subalgebra_to_submodule (N : subalgebra R A) : is_scalar_tower R N (N : submodule R A) :=
+⟨λ x y z, by simp only [smul_eq_mul, algebra.smul_mul_assoc]⟩
+
 instance nat : is_scalar_tower ℕ S A :=
 of_algebra_map_eq $ λ x, ((algebra_map S A).map_nat_cast x).symm
 

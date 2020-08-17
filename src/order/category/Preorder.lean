@@ -22,9 +22,10 @@ structure preorder_hom (α β : Type*) [preorder α] [preorder β] :=
 namespace preorder_hom
 variables {α β γ : Type*} [preorder α] [preorder β] [preorder γ]
 
+@[simps]
 instance : has_coe_to_fun (preorder_hom α β) :=
 { F := λ f, α → β,
-  coe := λ f, f.to_fun }
+  coe := preorder_hom.to_fun }
 
 @[ext] lemma ext (f g : preorder_hom α β) (h : ∀ a, f a = g a) : f = g :=
 by { cases f, cases g, congr, funext, exact h _ }
@@ -39,8 +40,6 @@ def id : preorder_hom α α :=
 instance : inhabited (preorder_hom α α) := ⟨id⟩
 
 @[simp] lemma coe_id : (@id α _ : α → α) = id := rfl
-
-@[simp] lemma id_apply (a : α) : (id a) = a := rfl
 
 /-- The composition of two bundled monotone functions. -/
 def comp (g : preorder_hom β γ) (f : preorder_hom α β) : preorder_hom α γ :=

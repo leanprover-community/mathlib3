@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.category.Module.basic
 import algebra.category.Group.limits
+import data.equiv.transfer_instance
 
 /-!
 # The category of R-modules has all limits
@@ -62,8 +63,7 @@ instance limit_module (F : J ⥤ Module R) :
 begin
   haveI : module R ((F ⋙ forget (Module R)).sections) :=
     (by apply_instance : module R (sections_submodule F)),
-  let e := (types.limit_equiv_sections (F ⋙ forget (Module R))).symm,
-  refine_struct { .. },
+  exact equiv.semimodule R (types.limit_equiv_sections (F ⋙ forget (Module R))),
 end
 
 /-- `limit.π (F ⋙ forget Ring) j` as a `ring_hom`. -/

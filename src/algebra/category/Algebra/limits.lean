@@ -45,43 +45,24 @@ def sections_subalgebra (F : J ⥤ Algebra R) :
 instance sections_ring (F : J ⥤ Algebra R) : ring ((F ⋙ forget (Algebra R)).sections) :=
 (by apply_instance : ring (sections_subalgebra F))
 
--- TODO move these:
-universes u₁ u₂
-def transport_ring {α : Type u₁} {β : Type u₂} [ring α] (e : α ≃ β) : ring β :=
-by transport using e
-
-def transport_ring_equiv {α : Type u₁} {β : Type u₂} [ring α] (e : α ≃ β) :
-  by { letI := transport_ring e, exact α ≃+* β } :=
-begin
-  letI := transport_ring e,
-  exact
-  ({ map_mul' := λ x y, by { apply e.injective, simp, refl, },
-     map_add' := λ x y, by { apply e.injective, simp, refl, },
-    .. e.symm } : β ≃+* α).symm
-end
+instance sections_algebra (F : J ⥤ Algebra R) : algebra R ((F ⋙ forget (Algebra R)).sections) :=
+(by apply_instance : algebra R (sections_subalgebra F))
 
 instance limit_ring (F : J ⥤ Algebra R) :
   ring (limit (F ⋙ forget (Algebra R))) :=
-transport_ring (types.limit_equiv_sections (F ⋙ forget (Algebra R))).symm
+equiv.ring (types.limit_equiv_sections (F ⋙ forget (Algebra R)))
 
 def limit_ring_equiv (F : J ⥤ Algebra R) :
-  ((F ⋙ forget (Algebra R)).sections) ≃+* limit (F ⋙ forget (Algebra R)) :=
-transport_ring_equiv (types.limit_equiv_sections (F ⋙ forget (Algebra R))).symm
-
--- WIP:
+  limit (F ⋙ forget (Algebra R)) ≃+* ((F ⋙ forget (Algebra R)).sections) :=
+equiv.ring_equiv (types.limit_equiv_sections (F ⋙ forget (Algebra R)))
 
 instance limit_algebra (F : J ⥤ Algebra R) :
   algebra R (limit (F ⋙ forget (Algebra R))) :=
-begin
-  haveI : algebra R ((F ⋙ forget (Algebra R)).sections) :=
-    (by apply_instance : algebra R (sections_subalgebra F)),
-  let m := algebra_map R ((F ⋙ forget (Algebra R)).sections),
-  let e := (types.limit_equiv_sections (F ⋙ forget (Algebra R))).symm,
-  let e' : _ ≃+* _ := limit_ring_equiv F,
-  fapply ring_hom.to_algebra',
-  exact (e'.to_ring_hom).comp m,
-  sorry
-end
+equiv.algebra R (types.limit_equiv_sections (F ⋙ forget (Algebra R)))
+
+def limit_alg_equiv (F : J ⥤ Algebra R) :
+  limit (F ⋙ forget (Algebra R)) ≃ₐ[R] ((F ⋙ forget (Algebra R)).sections) :=
+equiv.alg_equiv R (types.limit_equiv_sections (F ⋙ forget (Algebra R)))
 
 /-- `limit.π (F ⋙ forget (Algebra R)) j` as a `alg_hom`. -/
 def limit_π_alg_hom (F : J ⥤ Algebra R) (j) :

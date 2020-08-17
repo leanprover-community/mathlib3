@@ -17,8 +17,8 @@ inverse, arsinh.
 ## Main Results
 
 - `sinh_injective`: The proof that `sinh` is injective
-- `sinm_surjective`: The proof that `sinh` is surjective
-- `sinm_bijective`: The proof `sinh` is bijective
+- `sinh_surjective`: The proof that `sinh` is surjective
+- `sinh_bijective`: The proof `sinh` is bijective
 - `arsinh`: The inverse function of `sinh`
 
 ## Tags

@@ -227,8 +227,8 @@ mk_binders (λ _ e, pure e.match_pi) mk_local'
 local constants. Returns the new local constants and the remainder of `e`.
 This is `tactic.mk_local_pis` but for λ binders rather than Π binders.
 -/
-meta def mk_local_lambdas : expr → tactic (list expr × expr) := mk_binders' (λ _
-e, pure e.match_lam) mk_local'
+meta def mk_local_lambdas : expr → tactic (list expr × expr) :=
+mk_binders' (λ _ e, pure e.match_lam) mk_local'
 
 /--
 `mk_meta_lambdas e` instantiates all leading λ binders of `e` with fresh

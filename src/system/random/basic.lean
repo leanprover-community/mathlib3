@@ -226,10 +226,10 @@ namespace bool
 
 /-- Make `i` into an element of the interval `x .. y` if feasible.
 Otherwise return `x`, which is the only element of `x .. y` in that case.  -/
-def fit_in_Icc (x y : bool) (p : x ≤ y) (i : bool) : x .. y := do
-  if hx : x ≤ i ∧ i ≤ y
-  then ⟨ i, hx ⟩
-  else ⟨ x , le_refl x , p ⟩
+def fit_in_Icc (x y : bool) (p : x ≤ y) (i : bool) : x .. y :=
+if hx : x ≤ i ∧ i ≤ y
+then ⟨ i, hx ⟩
+else ⟨ x , le_refl x , p ⟩
 
 open ulift (hiding inhabited)
 variables {g : Type} [random_gen g]

@@ -362,7 +362,7 @@ end
 open_locale classical
 /-- A module is Noetherian iff every nonempty set of submodules has a maximal submodule among them
 -/
-theorem set_has_maximal_iff_noetherian {R M} [ring R] [add_comm_group M] [module R M] : (∀(a : set $ submodule R M), a.nonempty → ∃ (M' ∈ a), ∀ (I ∈ a), M' ≤ I → I=M') ↔ is_noetherian R M :=
+theorem set_has_maximal_iff_noetherian {R M} [ring R] [add_comm_group M] [module R M] : (∀(a : set $ submodule R M), a.nonempty → ∃ (M' ∈ a), ∀ (I ∈ a), M' ≤ I → I = M') ↔ is_noetherian R M :=
 begin
   split; intro h,
   { split,
@@ -388,21 +388,16 @@ begin
     { contrapose! hxM, rw ← hxM, apply submodule.subset_span, exact (↑Mgen : set M).mem_union_right rfl,} },
   { rintros A ⟨a, ha⟩,
     rw is_noetherian_iff_well_founded at h,
-    rw rel_embedding.well_founded_iff_no_descending_seq at h,
-    by_contra hyp,
-    push_neg at hyp,
-    apply h,
-    constructor,
-    have h' : ∀ (M' : submodule R M), M' ∈ A → (∃ (I : submodule R M), I ∈ A ∧ M' < I),
-    { intros m mina,
-      rcases hyp m mina with ⟨I, iina, mlei, mneqi⟩,
-      use I, split, exact iina, split, exact mlei, intro ilem, apply mneqi, exact le_antisymm ilem mlei, },
-    have h'' : ∀ M' : A, ∃ I : A, (M' : submodule R M) < I,
-    { rintros ⟨M', M_in⟩,
-      rcases h' M' M_in with ⟨I, I_in, hMI⟩,
-      exact ⟨⟨I, I_in⟩, hMI⟩ },
-    let f : ℕ → A := λ n, nat.rec_on n ⟨a, ha⟩ (λ n M', classical.some (h'' M')),
-    exact rel_embedding.nat_gt (coe ∘ f) (λ n, classical.some_spec (h'' $ f n)),
+    have h1 : ∀{I J : submodule R M}, (I ≤ J → J = I) ↔ ¬(I < J),
+    { intros I J,
+      split,
+      { intros I_le I_lt, cases I_lt, have := I_le I_lt_left, rw this at *, simpa only [],},
+      {intros, contrapose! a_1, split, assumption, contrapose! a_1,  exact le_antisymm a_1 a_2 } },
+    suffices : ∃ (M' : submodule R M) (H : M' ∈ A), ∀ (I : submodule R M), I ∈ A → ¬ M' < I,
+    rcases this with ⟨M, hm, mkey ⟩,
+    use [M, hm], intro I, have h2 := mkey I, rwa h1,
+    have ha' : A.nonempty, exact nonempty_of_mem ha,
+    exact well_founded.has_min h A ha',
   },
 end
 

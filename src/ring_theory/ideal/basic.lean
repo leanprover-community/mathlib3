@@ -138,10 +138,6 @@ end
 lemma span_singleton_mul_left_unit {a : α} (h2 : is_unit a) (x : α) :
   span ({a * x} : set α) = span {x} := by rw [mul_comm, span_singleton_mul_right_unit h2]
 
--- probably redundant
-lemma lt_add_nonmem (I : ideal α) (a ∉ I) : I < I + ideal.span{a} :=
-by {exact submodule.lt_add_nonmem I a H,}
-
 /-- An ideal `P` of a ring `R` is prime if `P ≠ R` and `xy ∈ P → x ∈ P ∨ y ∈ P` -/
 @[class] def is_prime (I : ideal α) : Prop :=
 I ≠ ⊤ ∧ ∀ {x y : α}, x * y ∈ I → x ∈ I ∨ y ∈ I

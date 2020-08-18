@@ -217,8 +217,8 @@ rfl
 instance step.algebra (n) : algebra k (step k n) :=
 (to_step_of_le k 0 n n.zero_le).to_algebra
 
-instance step.algebra_tower (n) : is_algebra_tower k (step k n) (step k (n + 1)) :=
-is_algebra_tower.of_algebra_map_eq $ λ z,
+instance step.scalar_tower (n) : is_scalar_tower k (step k n) (step k (n + 1)) :=
+is_scalar_tower.of_algebra_map_eq $ λ z,
   @nat.le_rec_on_succ (step k) 0 n n.zero_le (n + 1).zero_le (λ n, to_step_succ k n) z
 
 theorem step.is_integral (n) : ∀ z : step k n, is_integral k z :=

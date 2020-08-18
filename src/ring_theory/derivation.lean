@@ -55,7 +55,11 @@ instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
 @[simp] lemma to_fun_eq_coe : D.to_fun = ⇑D := rfl
 
 @[simp, norm_cast]
+<<<<<<< HEAD
 lemma coe_linear_map (f : derivation R A M) :
+=======
+lemma coe_fn_coe (f : derivation R A M) :
+>>>>>>> diffeomorph
   ⇑(f : A →ₗ[R] M) = f := rfl
 
 lemma coe_injective (H : ⇑D1 = D2) : D1 = D2 :=
@@ -73,7 +77,11 @@ coe_injective $ funext H
 begin
   have h : D 1 = D (1 * 1) := by rw mul_one,
   rw [leibniz D 1 1, one_smul] at h,
+<<<<<<< HEAD
   exact eq_zero_left_cancel h,
+=======
+  exact eq_zero_of_left_cancel_add_self h,
+>>>>>>> diffeomorph
 end
 
 @[simp] lemma map_algebra_map : D (algebra_map R A r) = 0 :=
@@ -87,7 +95,11 @@ instance : inhabited (derivation R A M) := ⟨0⟩
 
 instance : add_comm_monoid (derivation R A M) :=
 { add := λ D1 D2, ⟨D1 + D2, λ a b, by { simp only [leibniz, linear_map.add_apply,
+<<<<<<< HEAD
     linear_map.to_fun_eq_coe, coe_linear_map, smul_add], cc }⟩,
+=======
+    linear_map.to_fun_eq_coe, coe_fn_coe, smul_add], cc }⟩,
+>>>>>>> diffeomorph
   add_assoc := λ D E F, ext $ λ a, add_assoc _ _ _,
   zero_add := λ D, ext $ λ a, zero_add _,
   add_zero := λ D, ext $ λ a, add_zero _,
@@ -99,7 +111,11 @@ instance : add_comm_monoid (derivation R A M) :=
 @[priority 100]
 instance derivation.Rsemimodule : semimodule R (derivation R A M) :=
 { smul := λ r D, ⟨r • D, λ a b, by simp only [linear_map.smul_apply, leibniz,
+<<<<<<< HEAD
     linear_map.to_fun_eq_coe, algebra_compatible_smul_comm, coe_linear_map, smul_add, add_comm],⟩,
+=======
+    linear_map.to_fun_eq_coe, smul_algebra_smul_comm, coe_fn_coe, smul_add, add_comm],⟩,
+>>>>>>> diffeomorph
   mul_smul := λ a1 a2 D, ext $ λ b, mul_smul _ _ _,
   one_smul := λ D, ext $ λ b, one_smul _ _,
   smul_add := λ a D1 D2, ext $ λ b, smul_add _ _ _,
@@ -113,7 +129,11 @@ instance derivation.Rsemimodule : semimodule R (derivation R A M) :=
 instance : semimodule A (derivation R A M) :=
 { smul := λ a D, ⟨⟨λ b, a • D b,
     λ a1 a2, by rw [D.map_add, smul_add],
+<<<<<<< HEAD
     λ a1 a2, by rw [D.map_smul, algebra_compatible_smul_comm]⟩,
+=======
+    λ a1 a2, by rw [D.map_smul, smul_algebra_smul_comm]⟩,
+>>>>>>> diffeomorph
     λ b c, by { dsimp, simp only [smul_add, leibniz, smul_comm, add_comm] }⟩,
   mul_smul := λ a1 a2 D, ext $ λ b, mul_smul _ _ _,
   one_smul := λ D, ext $ λ b, one_smul A _,
@@ -125,6 +145,7 @@ instance : semimodule A (derivation R A M) :=
 @[simp] lemma smul_apply : (a • D) b = a • D b := rfl
 
 instance : is_scalar_tower R A (derivation R A M) :=
+<<<<<<< HEAD
 ⟨ λ x y z, ext (λ a, smul_assoc _ _ _) ⟩
 /-- The composition of a derivation and a linear map is a derivation. -/
 def comp {N : Type*} [add_cancel_comm_monoid N] [semimodule A N] [semimodule R N]
@@ -134,6 +155,9 @@ def comp {N : Type*} [add_cancel_comm_monoid N] [semimodule A N] [semimodule R N
   map_add' := λ a1 a2, by rw [D.map_add, f.map_add],
   map_smul' := λ r a, by rw [map_smul, compatible_map_smul],
   leibniz' := λ a b, by simp only [leibniz, linear_map.map_smul, linear_map.map_add, add_comm] }
+=======
+⟨λ x y z, ext (λ a, smul_assoc _ _ _)⟩
+>>>>>>> diffeomorph
 
 end
 
@@ -152,15 +176,25 @@ variables (D : derivation R A M) {D1 D2 : derivation R A M} (r : R) (a b : A)
 
 instance : add_comm_group (derivation R A M) :=
 { neg := λ D, ⟨-D, λ a b, by simp only [linear_map.neg_apply, smul_neg, neg_add_rev, leibniz,
+<<<<<<< HEAD
     linear_map.to_fun_eq_coe, coe_linear_map, add_comm]⟩,
+=======
+    linear_map.to_fun_eq_coe, coe_fn_coe, add_comm]⟩,
+>>>>>>> diffeomorph
   add_left_neg := λ D, ext $ λ a, add_left_neg _,
   ..derivation.add_comm_monoid }
 
 end
 
+<<<<<<< HEAD
 /-! # Lie structures -/
 
 section
+=======
+section lie_structures
+
+/-! # Lie structures -/
+>>>>>>> diffeomorph
 
 variables (D : derivation R A A) {D1 D2 : derivation R A A} (r : R) (a b : A)
 
@@ -169,7 +203,11 @@ open ring_commutator
 /-- The commutator of derivations is again a derivation. -/
 def commutator (D1 D2 : derivation R A A) : derivation R A A :=
 ⟨⁅D1, D2⁆, λ a b, by {simp only [commutator, map_add, id.smul_eq_mul, linear_map.mul_app,
+<<<<<<< HEAD
   leibniz, linear_map.to_fun_eq_coe, coe_linear_map, linear_map.sub_apply], ring }⟩
+=======
+  leibniz, linear_map.to_fun_eq_coe, coe_fn_coe, linear_map.sub_apply], ring }⟩
+>>>>>>> diffeomorph
 
 instance : has_bracket (derivation R A A) := ⟨derivation.commutator⟩
 
@@ -187,8 +225,39 @@ instance : lie_algebra R (derivation R A A) :=
 { lie_smul := λ r d e, by { ext a, simp only [commutator_apply, map_smul, smul_sub, Rsmul_apply]},
   ..derivation.Rsemimodule }
 
+<<<<<<< HEAD
 end
+=======
+end lie_structures
+>>>>>>> diffeomorph
 
 end
 
 end derivation
+<<<<<<< HEAD
+=======
+
+section comp_der
+
+namespace linear_map
+
+variables {R : Type*} [comm_semiring R]
+variables {A : Type*} [comm_semiring A] [algebra R A]
+variables {M : Type*} [add_cancel_comm_monoid M] [semimodule A M] [semimodule R M]
+variables {N : Type*} [add_cancel_comm_monoid N] [semimodule A N] [semimodule R N]
+variables [is_scalar_tower R A M] [is_scalar_tower R A N]
+
+/-- The composition of a linear map and a derivation is a derivation. -/
+def comp_der (f : M →ₗ[A] N) (D : derivation R A M) : derivation R A N :=
+{ to_fun := λ a, f (D a),
+  map_add' := λ a1 a2, by rw [D.map_add, f.map_add],
+  map_smul' := λ r a, by rw [derivation.map_smul, map_smul_eq_smul_map],
+  leibniz' := λ a b, by simp only [derivation.leibniz, linear_map.map_smul, linear_map.map_add, add_comm] }
+
+@[simp] lemma comp_der_apply (f : M →ₗ[A] N) (D : derivation R A M) (a : A) :
+  f.comp_der D a = f (D a) := rfl
+
+end linear_map
+
+end comp_der
+>>>>>>> diffeomorph

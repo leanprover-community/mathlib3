@@ -55,6 +55,9 @@ variables {f g : C[n](I, M; I', M')}
 protected lemma times_cont_mdiff (f : C[n](I, M; I', M')) :
   times_cont_mdiff I I' n f := f.times_cont_mdiff_to_fun
 
+protected lemma smooth (f : C∞(I, M; I', M')) :
+  smooth I I' f := f.times_cont_mdiff_to_fun
+
 lemma coe_inj ⦃f g : C[n](I, M; I', M')⦄ (h : (f : M → M') = g) : f = g :=
 by cases f; cases g; cases h; refl
 
@@ -79,3 +82,12 @@ instance [inhabited M'] : inhabited C[n](I, M; I', M') :=
 def const (y : M') : C[n](I, M; I', M') := ⟨λ x, y, times_cont_mdiff_const⟩
 
 end times_cont_mdiff_map
+
+namespace smooth_map
+
+variables {I} {I'} {M} {M'}
+
+/-- Constant map as a smooth map -/
+def const (y : M') : C∞(I, M; I', M') := ⟨λ x, y, smooth_const⟩
+
+end smooth_map

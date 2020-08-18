@@ -414,21 +414,40 @@ lemma ideal_eq_span_pow_p {s : ideal ℤ_[p]} (hs : s ≠ ⊥) :
   ∃ n : ℕ, s = ideal.span {p ^ n} :=
 discrete_valuation_ring.ideal_eq_span_pow_irreducible hs irreducible_p
 
-instance : char_zero ℤ_[p] := sorry
-
 @[simp, norm_cast] lemma coe_int_eq (z1 z2 : ℤ) : (z1 : ℤ_[p]) = z2 ↔ z1 = z2 :=
 suffices (z1 : ℚ_[p]) = z2 ↔ z1 = z2, from iff.trans (by norm_cast) this,
 by norm_cast
 
 lemma exists_mem_range_of_norm_rat_le_one (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
-  ∃ n ∈ finset.range p, ∥(r - n : ℚ_[p])∥ < 1 :=
+  ∃ n ∈ finset.range p, ∥(⟨r,h⟩ - n : ℤ_[p])∥ < 1 :=
 begin
   let n := r.num * gcd_b p r.denom,
   use (int.nat_mod n p),
   split,
   { rw finset.mem_range,
     sorry },
-  {
+  { by_cases aux : (⟨r,h⟩ - (n.nat_mod p) : ℤ_[p]) = 0,
+    { rw [aux, norm_zero], exact zero_lt_one, },
+    suffices : ↑p ∣ (⟨r,h⟩ - (n.nat_mod p) : ℤ_[p]),
+    { rcases this with ⟨x, hx⟩,
+      calc ∥(⟨r,h⟩ - (n.nat_mod p) : ℤ_[p])∥
+          = ∥(p : ℤ_[p])∥ * ∥x∥ : by rw [hx, padic_norm_z.mul]
+      ... ≤ ∥(p : ℤ_[p])∥ * 1   : mul_le_mul (le_refl _) x.2 (norm_nonneg _) (norm_nonneg _)
+      ... < 1 : _,
+      { rw [mul_one, padic_norm_z.norm_p],
+        apply inv_lt_one,
+        exact_mod_cast nat.prime.one_lt ‹_› }, },
+    have hrd : is_unit (r.denom : ℤ_[p]),
+    { sorry },
+    rw ← hrd.dvd_mul_right,
+    suffices : ↑p ∣ r.num - (n.nat_mod p) * r.denom,
+    { convert (int.cast_ring_hom ℤ_[p]).map_dvd this,
+      simp only [sub_mul, int.cast_coe_nat, ring_hom.eq_int_cast, int.cast_mul,
+        sub_left_inj, int.cast_sub],
+      apply subtype.coe_injective,
+      simp only [coe_mul, subtype.coe_mk, coe_coe],
+      rw_mod_cast @rat.mul_denom_eq_num r,
+      sorry },
     sorry }
 end
 

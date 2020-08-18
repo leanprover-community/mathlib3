@@ -60,7 +60,6 @@ begin
     exact derivable.r2 hk, },
 end
 
-
 /-!
 ## Converting `I`s to `U`s
 
@@ -96,14 +95,12 @@ begin
     simp only [append_nil, append_assoc,h], },
 end
 
-
 /-!
 In fine-tuning my application of `simp`, I issued the following commend to determine which lemmas
 `simp` uses.
 
 `set_option trace.simplify.rewrite true`
 -/
-
 
 /--
 We may replace several consecutive occurrences of  `"III"` with the same number of `"U"`s.
@@ -129,7 +126,6 @@ begin
     simp only [cons_append, ←repeat_add],
     convert h₂, },
 end
-
 
 /-!
 ### Arithmetic
@@ -189,7 +185,6 @@ begin
   rw [cons_append, ←repeat_add, nat.sub_add_cancel (one_le_pow' m 1)],
 end
 
-
 /--
 `der_repeat_I_of_mod3` states that `M::y` is `derivable` if `y` is any `miustr` consisiting just of
 `I`s, where `count I y` is 1 or 2 modulo 3.
@@ -242,7 +237,6 @@ begin
   exact der_of_der_append_repeat_U_even hw₃,
 end
 
-
 /-!
 ### `decstr` is a sufficient condition
 
@@ -254,7 +248,6 @@ The proof proceeds by induction on the `count U` of `en`.
 We tackle first the base case of the induction. This requires auxiliary results giving
 conditions under which  `count I ys = length ys`.
 -/
-
 
 /--
 If an `miustr` has a zero `count U` and contains no `M`, then its `count I` is its length.
@@ -297,8 +290,6 @@ begin
     exact count_I_eq_length_of_count_U_zero_and_neg_mem hu nmtail, },
 end
 
-
-
 /-!
 Before continuing to the proof of the induction step, we need other auxiliary results that
 relate to `count U`.
@@ -314,11 +305,9 @@ begin
     { left, refl, }, }, -- case `z = U`
 end
 
-
 lemma eq_append_cons_U_of_count_U_pos {k : ℕ} {zs : miustr} (h : count U zs = succ k) :
 ∃ (as bs : miustr), (zs = as ++ U :: bs) :=
 mem_split (mem_of_count_U_eq_succ h)
-
 
 /--
 `ind_hyp_suf` is the inductive step of the sufficiency result.
@@ -346,7 +335,6 @@ begin
   { simp only [count, countp, cons_append, if_false, countp_append, if_pos],
     rw [add_right_comm, add_mod_right], exact hic, },
 end
-
 
 /--
 `der_of_decstr` states that `derivable en` follows from `decstr en`.
@@ -377,7 +365,6 @@ Finally, we have the main result, namely that `derivable` is a decidable predica
 instance : decidable_pred derivable :=
 λ en, decidable_of_iff _ ⟨der_of_decstr, decstr_of_der⟩
 
-
 /-!
 By decidability, we can automatically determine whether any given `miustr` is `derivable`.
 -/
@@ -387,7 +374,5 @@ dec_trivial
 
 example : derivable "MUIUIUIIIIIUUUIUII" :=
 dec_trivial
-
-
 
 end miu

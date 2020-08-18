@@ -59,7 +59,6 @@ miu, derivable strings
 
 -/
 
-
 namespace miu
 
 /-!
@@ -97,7 +96,6 @@ def miu_atom.repr : miu_atom → string
 | M := "M"
 | I := "I"
 | U := "U"
-
 
 /--
 Using `miu_atom.repr`, we prove that ``miu_atom` is an instance of `has_repr`.
@@ -138,7 +136,6 @@ def lchar_to_miustr : (list char) → miustr
 instance string_coe_miustr : has_coe string miustr :=
 ⟨λ st, lchar_to_miustr st.data ⟩
 
-
 /-!
 ### Derivability
 -/
@@ -154,7 +151,6 @@ inductive derivable : miustr → Prop
 | r2 {x} : derivable (M :: x) → derivable (M :: x ++ x)
 | r3 {x y} : derivable (x ++ [I, I, I] ++ y) → derivable (x ++ U :: y)
 | r4 {x y} : derivable (x ++ [U, U] ++ y) → derivable (x ++ y)
-
 
 /-!
 ### Rule usage examples
@@ -183,7 +179,6 @@ begin
   change ("MIMIMIIM" : miustr) with [M,I,M,I,M] ++ [I,I,M],
   exact derivable.r4 h, -- Rule 4
 end
-
 
 /-!
 ### Derivability examples

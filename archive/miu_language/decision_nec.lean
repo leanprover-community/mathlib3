@@ -33,7 +33,6 @@ the `en : miustr` is derived from `st`, then `count I en` moudulo 3 is either eq
 `count I st`, modulo 3.
 -/
 
-
 /--
 Given `st en : miustr`, the relation `count_equiv_or_equiv_two_mul_mod3 st en` holds if `st` and
 `en` either have equal `count I`, modulo 3, or `count I en` is twice `count I st`, modulo 3.
@@ -48,7 +47,6 @@ or.inl rfl
 
 example : count_equiv_or_equiv_two_mul_mod3 "IUIM" "MI" :=
 or.inr rfl
-
 
 /--
 If `a` is 1 or 2 mod 3 and if `b` is `a` or twice `a` mod 3, then `b` is 1 or 2 mod 3.
@@ -93,14 +91,12 @@ begin
     contradiction,
 end
 
-
 /-!
 ### Condition on `M`
 
 That solves the MU puzzle, but we'll proceed by demonstrating the other necessary condition for a
 string to be derivable, namely that the string must start with an M and contain no M in its tail.
 -/
-
 
 /--
 `goodm xs` holds if `xs : miustr` begins with `M` and has no `M` in its tail.
@@ -138,7 +134,6 @@ begin
     { exact append_ne_nil_of_ne_nil_left _ _ this, }, },
 end
 
-
 lemma goodm_of_rule2 (xs : miustr) (h₁ : derivable (M :: xs))
   (h₂ : goodm (M :: xs)) : goodm (M :: xs ++ xs) :=
 begin
@@ -165,7 +160,6 @@ begin
     exact nmtail, },
 end
 
-
 /-!
  The proof of the next lemma is identical, on the tactic level, to the previous proof.
 -/
@@ -183,7 +177,6 @@ begin
     simp only [cons_append, tail, mem_append, mem_cons_iff, false_or, mem_nil_iff, or_false] at *,
     exact nmtail, },
 end
-
 
 /--
 Any derivable string must begin with `M` and have no `M` in its tail.

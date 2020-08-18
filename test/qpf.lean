@@ -143,8 +143,7 @@ begin
   existsi [bool,ff,ff,λ a : unit, tt,λ a : unit, ff], split,
   { apply quot.sound, simp [foo.R,qpf.abs,qpf._match_1], },
   { simp! only [set.range,set.ext_iff], simp,
-    intro h, specialize (h tt), simp at h,
-    apply h () }
+    exact λ h, h () }
 end
 
 /-- intuitive consequence of original definition of `supp`. -/

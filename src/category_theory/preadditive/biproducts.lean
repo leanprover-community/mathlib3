@@ -250,7 +250,7 @@ lemma biprod.column_nonzero_of_iso {W X Y Z : C}
 begin
   classical,
   by_contradiction,
-  rw [not_or_distrib, not_or_distrib, classical.not_not, classical.not_not] at a,
+  rw [not_or_distrib, not_or_distrib, not_not, not_not] at a,
   rcases a with ⟨nz, a₁, a₂⟩,
   set x := biprod.inl ≫ f ≫ inv f ≫ biprod.fst,
   have h₁ : x = 𝟙 W, by simp [x],
@@ -307,7 +307,7 @@ begin
   have t := biproduct.column_nonzero_of_iso'.{v} s f,
   classical,
   by_contradiction,
-  simp only [classical.not_exists_not] at a,
+  simp only [not_exists_not] at a,
   exact nz (t a)
 end
 

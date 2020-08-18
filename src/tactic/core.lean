@@ -424,6 +424,12 @@ meta def retrieve {α} (tac : tactic α) : tactic α :=
  (λ a s', result.success a s)
  result.exception
 
+/-- Runs a tactic for a result, reverting the state after completion or error. -/
+meta def retrieve' {α} (tac : tactic α) : tactic α :=
+λ s, result.cases_on (tac s)
+ (λ a s', result.success a s)
+ (λ msg pos s', result.exception msg pos s)
+
 /-- Repeat a tactic at least once, calling it recursively on all subgoals,
 until it fails. This tactic fails if the first invocation fails. -/
 meta def repeat1 (t : tactic unit) : tactic unit := t; repeat t
@@ -717,7 +723,14 @@ The names in `instances` are the projections from `struct_n` to the structures t
 The names in `fields` are the standard fields of `struct_n`. -/
 meta def subobject_names (struct_n : name) : tactic (list name × list name) :=
 do env ← get_env,
-   [c] ← pure $ env.constructors_of struct_n | fail "too many constructors",
+   c ← match env.constructors_of struct_n with
+       | [c] := pure c
+       | [] :=
+         if env.is_inductive struct_n
+           then fail format!"{struct_n} does not have constructors"
+           else fail format!"{struct_n} is not an inductive type"
+       | _ := fail "too many constructors"
+       end,
    vs  ← var_names <$> (mk_const c >>= infer_type),
    fields ← env.structure_fields struct_n,
    return $ fields.partition (λ fn, ↑("_" ++ fn.to_string) ∈ vs)
@@ -732,7 +745,9 @@ open functor function
 
 /-- `expanded_field_list struct_n` produces a list of the names of the fields of the structure
 named `struct_n`. These are returned as pairs of names `(prefix, name)`, where the full name
-of the projection is `prefix.name`. -/
+of the projection is `prefix.name`.
+
+`struct_n` cannot be a synonym for a `structure`, it must be itself a `structure` -/
 meta def expanded_field_list (struct_n : name) : tactic (list $ name × name) :=
 dlist.to_list <$> expanded_field_list' struct_n
 
@@ -1147,9 +1162,9 @@ of the previous local constants. `l` is a list of local constants and their valu
 meta def dependent_pose_core (l : list (expr × expr)) : tactic unit := do
   let lc := l.map prod.fst,
   let lm := l.map (λ⟨l, v⟩, (l.local_uniq_name, v)),
-  t ← target,
-  new_goal ← mk_meta_var (t.pis lc),
   old::other_goals ← get_goals,
+  t ← infer_type old,
+  new_goal ← mk_meta_var (t.pis lc),
   set_goals (old :: new_goal :: other_goals),
   exact ((new_goal.mk_app lc).instantiate_locals lm),
   return ()

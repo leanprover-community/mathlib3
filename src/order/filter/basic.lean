@@ -590,7 +590,6 @@ lemma mem_infi {f : ι → filter α} (h : directed (≥) f) [nonempty ι] (s) :
   s ∈ infi f ↔ ∃ i, s ∈ f i :=
 by simp only [infi_sets_eq h, mem_Union]
 
-@[nolint ge_or_gt] -- Intentional use of `≥`
 lemma binfi_sets_eq {f : β → filter α} {s : set β}
   (h : directed_on (f ⁻¹'o (≥)) s) (ne : s.nonempty) :
   (⨅ i∈s, f i).sets = (⋃ i ∈ s, (f i).sets) :=
@@ -599,7 +598,6 @@ calc (⨅ i ∈ s, f i).sets  = (⨅ t : {t // t ∈ s}, (f t.val)).sets : by rw
   ... = (⨆ t : {t // t ∈ s}, (f t.val).sets) : infi_sets_eq h.directed_coe
   ... = (⨆ t ∈ s, (f t).sets) : by rw [supr_subtype]; refl
 
-@[nolint ge_or_gt] -- Intentional use of `≥`
 lemma mem_binfi {f : β → filter α} {s : set β}
   (h : directed_on (f ⁻¹'o (≥)) s) (ne : s.nonempty) {t : set α} :
   t ∈ (⨅ i∈s, f i) ↔ ∃ i ∈ s, t ∈ f i :=

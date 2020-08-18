@@ -70,9 +70,6 @@ variables [fintype n] [fintype l] [fintype p] [fintype q]
 variables [decidable_eq n] [decidable_eq p] [decidable_eq q] [decidable_eq l]
 variables [comm_ring R]
 
-local attribute [instance] matrix.lie_ring
-local attribute [instance] matrix.lie_algebra
-
 @[simp] lemma matrix_trace_commutator_zero (X Y : matrix n n R) : matrix.trace n R R ⁅X, Y⁆ = 0 :=
 begin
   change matrix.trace n R R (X ⬝ Y - Y ⬝ X) = 0,

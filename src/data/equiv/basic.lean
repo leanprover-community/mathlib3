@@ -1265,7 +1265,6 @@ def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid 
 
 section swap
 variable [decidable_eq α]
-open decidable
 
 /-- A helper function for `equiv.swap`. -/
 def swap_core (a b r : α) : α :=

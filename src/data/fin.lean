@@ -14,7 +14,7 @@ This file expands on the development in the core library.
 
 ### Induction principles
 
-* `fin_zero.elim` : Elimination principle for the empty set `fin 0`, generalizes `fin.elim0`.
+* `fin_zero_elim` : Elimination principle for the empty set `fin 0`, generalizes `fin.elim0`.
 * `fin.succ_rec` : Define `C n i` by induction on  `i : fin n` interpreted
   as `(0 : fin (n - i)).succ.succ…`. This function has two arguments: `H0 n` defines
   `0`-th element `C (n+1) 0` of an `(n+1)`-tuple, and `Hs n i` defines `(i+1)`-st element
@@ -218,7 +218,7 @@ lemma mk_succ_pos (i : ℕ) (h : i < n) : (0 : fin (n + 1)) < ⟨i.succ, add_lt_
 by { rw [lt_iff_val_lt_val, val_zero], exact nat.succ_pos i }
 
 lemma one_lt_succ_succ (a : fin n) : (1 : fin (n + 2)) < a.succ.succ :=
-by { cases n, { exact fin.elim0 a }, { rw [←succ_zero_eq_one, succ_lt_succ_iff], exact succ_pos a } }
+by { cases n, { exact fin_zero_elim a }, { rw [←succ_zero_eq_one, succ_lt_succ_iff], exact succ_pos a } }
 
 lemma succ_succ_ne_one : fin.succ (fin.succ a) ≠ 1 := ne_of_gt (one_lt_succ_succ a)
 
@@ -361,7 +361,7 @@ end
 @[simp] lemma coe_succ_eq_succ : a.cast_succ + 1 = a.succ :=
 begin
   cases n,
-  { exact fin.elim0 a },
+  { exact fin_zero_elim a },
   { simp [a.is_lt, eq_iff_veq, add_def, nat.mod_eq_of_lt] }
 end
 
@@ -807,7 +807,7 @@ end
 /-- `find p` does not return `none` if and only if `p i` holds at some index `i`. -/
 lemma is_some_find_iff : Π {n : ℕ} {p : fin n → Prop} [decidable_pred p],
   by exactI (find p).is_some ↔ ∃ i, p i
-| 0     p _ := iff_of_false (λ h, bool.no_confusion h) (λ ⟨i, _⟩, fin.elim0 i)
+| 0     p _ := iff_of_false (λ h, bool.no_confusion h) (λ ⟨i, _⟩, fin_zero_elim i)
 | (n+1) p _ := ⟨λ h, begin
   rw [option.is_some_iff_exists] at h,
   cases h with i hi,

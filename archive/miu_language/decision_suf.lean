@@ -89,11 +89,11 @@ begin
   { revert h,
     simp only [list.repeat, zero_mul, append_nil, imp_self], },
   { apply hk,
-    simp only [succ_mul,repeat_add] at h,
+    simp only [succ_mul, repeat_add] at h,
     change repeat U 2 with [U,U] at h,
     rw ←(append_nil (z ++ repeat U (k*2) )),
     apply derivable.r4,
-    simp only [append_nil,append_assoc,h], },
+    simp only [append_nil, append_assoc,h], },
 end
 
 
@@ -115,18 +115,18 @@ lemma der_cons_repeat_I_repeat_U_append_of_der_cons_repeat_I_append (c k : ℕ)
 begin
   revert xs,
   induction k with a ha,
-  { simp only [list.repeat,mul_zero,add_zero,append_nil, forall_true_iff,imp_self],},
+  { simp only [list.repeat, mul_zero, add_zero, append_nil, forall_true_iff, imp_self],},
   { intro xs,
     specialize ha (U::xs),
     intro h₂,
-    simp only [succ_eq_add_one,repeat_add], -- We massage the goal
-    rw [←append_assoc,←cons_append],        -- into a form amenable
+    simp only [succ_eq_add_one, repeat_add], -- We massage the goal
+    rw [←append_assoc, ←cons_append],        -- into a form amenable
     change repeat U 1 with [U],             -- to the application of
-    rw [append_assoc,singleton_append],     -- ha.
+    rw [append_assoc, singleton_append],     -- ha.
     apply ha,
     apply derivable.r3,
     change [I,I,I] with repeat I 3,
-    simp only [cons_append,←repeat_add],
+    simp only [cons_append, ←repeat_add],
     convert h₂, },
 end
 
@@ -146,7 +146,7 @@ lemma add_mod2 (a : ℕ) : ∃ t, a + a % 2 = t*2 :=
 begin
   simp only [mul_comm _ 2], -- write `t*2` as `2*t`
   apply dvd_of_mod_eq_zero, -- it suffices to prove `(a + a % 2) % 2 = 0`
-  rw [add_mod,mod_mod,←two_mul,mul_mod_right],
+  rw [add_mod, mod_mod, ←two_mul, mul_mod_right],
 end
 
 private lemma le_pow2_and_pow2_eq_mod3' (c : ℕ) (x : ℕ) (h : c = 1 ∨ c = 2) :
@@ -163,7 +163,7 @@ begin
     { split,
       { rw [mul_succ, ←add_assoc,nat.pow_add],
         change 2^2 with (1+3), rw [mul_add (2^g) 1 3, mul_one],
-        linarith [hkg,one_le_two_pow g], },
+        linarith [hkg, one_le_two_pow g], },
       { rw [nat.pow_add,←mul_one c],
         exact modeq.modeq_mul hgmod rfl, }, }, },
 end
@@ -201,8 +201,8 @@ begin
   cases (le_pow2_and_pow2_eq_mod3 c h) with m hm, -- `2^m` will be  the number of `I`s in `M::w`
   have hw₂ : derivable (M::(repeat I (2^m)) ++ repeat U ((2^m -c)/3 % 2)),
   { cases mod_two_eq_zero_or_one ((2^m -c)/3) with h_zero h_one,
-    { simp only [der_cons_repeat m,append_nil,list.repeat,h_zero], }, -- `(2^m - c)/3 ≡ 0 [MOD 2]`
-    { rw [h_one,←repeat_pow_minus_append, append_assoc], -- case `(2^m - c)/3 ≡ 1 [MOD 2]`
+    { simp only [der_cons_repeat m, append_nil,list.repeat, h_zero], }, -- `(2^m - c)/3 ≡ 0 [MOD 2]`
+    { rw [h_one, ←repeat_pow_minus_append, append_assoc], -- case `(2^m - c)/3 ≡ 1 [MOD 2]`
       apply derivable.r1,
       rw repeat_pow_minus_append,
       exact (der_cons_repeat m), }, },
@@ -225,8 +225,8 @@ begin
   cases (le_pow2_and_pow2_eq_mod3 c h) with m hm, -- `2^m` will be  the number of `I`s in `M::w`
   have hw₂ : derivable (M::(repeat I (2^m)) ++ repeat U ((2^m -c)/3 % 2)),
   { cases mod_two_eq_zero_or_one ((2^m -c)/3) with h_zero h_one,
-    { simp only [der_cons_repeat m,append_nil,list.repeat,h_zero], }, -- `(2^m - c)/3 ≡ 0 [MOD 2]`
-    { rw [h_one,←repeat_pow_minus_append, append_assoc], -- case `(2^m - c)/3 ≡ 1 [MOD 2]`
+    { simp only [der_cons_repeat m, append_nil, list.repeat,h_zero], }, -- `(2^m - c)/3 ≡ 0 [MOD 2]`
+    { rw [h_one, ←repeat_pow_minus_append, append_assoc], -- case `(2^m - c)/3 ≡ 1 [MOD 2]`
       apply derivable.r1,
       rw repeat_pow_minus_append,
       exact (der_cons_repeat m), }, },
@@ -266,11 +266,11 @@ begin
   { refl, },
   { cases x,
     { exfalso, exact hm (mem_cons_self M xs), }, -- case `x = M` gives a contradiction.
-    { rw [count_cons, if_pos (rfl),length,succ_eq_add_one,succ_inj'], -- case `x = I`
+    { rw [count_cons, if_pos (rfl), length, succ_eq_add_one, succ_inj'], -- case `x = I`
       apply hxs,
       { simpa only [count], },
       { simp only [mem_cons_iff,false_or] at hm, exact hm, }, },
-    { exfalso, simp only [count,countp_cons_of_pos] at hu,  -- case `x = U` gives a contradiction.
+    { exfalso, simp only [count, countp_cons_of_pos] at hu,  -- case `x = U` gives a contradiction.
       exact succ_ne_zero _ hu, }, },
 end
 
@@ -281,7 +281,7 @@ lemma base_case_suf (en : miustr) (h : decstr en) (hu : count U en = 0) : deriva
 begin
   rcases h with ⟨⟨mhead, nmtail⟩, hi ⟩,
   have : en ≠ nil,
-  { intro k, simp only [k,count, countp, if_false, zero_mod, zero_ne_one, false_or] at hi,
+  { intro k, simp only [k, count, countp, if_false, zero_mod, zero_ne_one, false_or] at hi,
     contradiction, },
   rcases (exists_cons_of_ne_nil this) with ⟨y,ys,rfl⟩,
   rw head at mhead,
@@ -310,7 +310,7 @@ begin
   { simp only [mem_cons_iff],
     cases z,
       repeat -- cases `z = M` and `z=I`
-      { right, apply hzs, simp only [count,countp,if_false] at h, rw ←h, refl, },
+      { right, apply hzs, simp only [count, countp, if_false] at h, rw ←h, refl, },
       { left, refl, }, }, -- case `z = U`
 end
 
@@ -329,7 +329,7 @@ lemma ind_hyp_suf (k : ℕ) (ys : miustr) (hu : count U ys = succ k) (hdec : dec
 begin
   rcases hdec with ⟨⟨mhead,nmtail⟩, hic⟩,
   have : ys ≠ nil,
-  { intro k, simp only [k,count,countp,zero_mod,false_or,zero_ne_one] at hic, contradiction, },
+  { intro k, simp only [k ,count, countp, zero_mod, false_or, zero_ne_one] at hic, contradiction, },
   rcases (exists_cons_of_ne_nil this) with ⟨z,zs,rfl⟩,
   rw head at mhead,
   rw mhead at *,
@@ -341,10 +341,10 @@ begin
   apply and.intro rfl (and.intro (succ.inj hu) _),
   split,
   { apply and.intro rfl,
-    simp only [tail,mem_append,mem_cons_iff,false_or,not_mem_nil,or_false] at *,
+    simp only [tail, mem_append, mem_cons_iff, false_or, not_mem_nil, or_false] at *,
     exact nmtail, },
   { simp only [count, countp, cons_append, if_false, countp_append, if_pos],
-    rw [add_right_comm,add_mod_right], exact hic, },
+    rw [add_right_comm, add_mod_right], exact hic, },
 end
 
 
@@ -361,7 +361,7 @@ begin
   induction n with k hk,
   { exact base_case_suf, },
   { intros ys hdec hus,
-    rcases ind_hyp_suf k ys hus hdec with ⟨as,bs,hyab,habuc,hdecab⟩,
+    rcases ind_hyp_suf k ys hus hdec with ⟨as, bs, hyab, habuc, hdecab⟩,
     have h₂ : derivable (M::as ++ [I,I,I] ++ bs) := hk hdecab habuc,
     rw hyab,
     exact derivable.r3 h₂, },

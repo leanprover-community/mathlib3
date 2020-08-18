@@ -77,8 +77,8 @@ begin
     { left, simp only [count_append], refl, },
     { right, simp only [count, countp, count_append, if_false,two_mul], },
     { left, simp only [count, count_append, countp, if_false, if_pos],
-      rw [add_right_comm,add_mod_right], },
-    { left, simp only [count,countp,countp_append,if_false,add_zero], },
+      rw [add_right_comm, add_mod_right], },
+    { left, simp only [count ,countp, countp_append, if_false, add_zero], },
 end
 
 /--
@@ -116,7 +116,7 @@ lemma goodmi : goodm [M,I] :=
 begin
   split,
   { refl },
-  { rw [tail,mem_singleton], trivial },
+  { rw [tail ,mem_singleton], trivial },
 end
 
 /-!
@@ -129,12 +129,12 @@ lemma goodm_of_rule1 (xs : miustr) (h₁ : derivable (xs ++ [I])) (h₂ : goodm 
 begin
   cases h₂ with mhead nmtail,
   have : xs ≠ nil,
-  { intro h, rw h at *, rw [nil_append,head] at mhead, contradiction, },
+  { intro h, rw h at *, rw [nil_append, head] at mhead, contradiction, },
   split,
   { rwa [head_append] at *; exact this, },
   { change [I,U] with [I] ++ [U],
-    rw [←append_assoc,tail_append_singleton_of_ne_nil],
-    { simp only [mem_append,nmtail,false_or,mem_singleton,not_false_iff], },
+    rw [←append_assoc, tail_append_singleton_of_ne_nil],
+    { simp only [mem_append, nmtail, false_or, mem_singleton, not_false_iff], },
     { exact append_ne_nil_of_ne_nil_left _ _ this, }, },
 end
 
@@ -161,7 +161,7 @@ begin
   { revert mhead, simp only [append_assoc,head_append _ k], exact id, },
   { contrapose! nmtail,
     rcases (exists_cons_of_ne_nil k) with ⟨x,xs,rfl⟩,
-    simp only [cons_append, tail,mem_append,mem_cons_iff,false_or,mem_nil_iff,or_false] at *,
+    simp only [cons_append, tail, mem_append, mem_cons_iff, false_or, mem_nil_iff, or_false] at *,
     exact nmtail, },
 end
 
@@ -180,7 +180,7 @@ begin
   { revert mhead, simp only [append_assoc,head_append _ k], exact id, },
   { contrapose! nmtail,
     rcases (exists_cons_of_ne_nil k) with ⟨x,xs,rfl⟩,
-    simp only [cons_append, tail,mem_append,mem_cons_iff,false_or,mem_nil_iff,or_false] at *,
+    simp only [cons_append, tail, mem_append, mem_cons_iff, false_or, mem_nil_iff, or_false] at *,
     exact nmtail, },
 end
 

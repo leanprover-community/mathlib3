@@ -14,7 +14,8 @@ In this file we prove the tower law for arbitrary extensions and finite extensio
 Suppose `L` is a field extension of `K` and `K` is a field extension of `F`.
 Then `[L:F] = [L:K] [K:F]` where `[E₁:E₂]` means the `E₂`-dimension of `E₁`.
 
-In fact we generalize it to algebras, where `L` is not necessarily a field, but just a `K`-algebra.
+In fact we generalize it to vector spaces, where `L` is not necessarily a field,
+but just a vector space over `K`.
 
 ## Implementation notes
 

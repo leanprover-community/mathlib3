@@ -105,7 +105,7 @@ let ⟨s, hs, ms⟩ := show ∃s∈sets, ∀a∈sets, s ⊆ a → a = s, from
 let ⟨i, e⟩ := show ∃ i, ∀ y, ∃ x ∈ s, (x : ∀ i, β i) i = y, from
   classical.by_contradiction $ λ h,
   have h : ∀ i, ∃ y, ∀ x ∈ s, (x : ∀ i, β i) i ≠ y,
-    by simpa only [not_exists, classical.not_forall] using h,
+    by simpa only [not_exists, not_forall] using h,
   let ⟨f, hf⟩ := axiom_of_choice h in
   have f ∈ s, from
     have insert f s ∈ sets := λ x hx y hy, begin

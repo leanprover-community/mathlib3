@@ -391,7 +391,8 @@ end
 
 lemma total_comap_domain
  (f : α → α') (l : α' →₀ R) (hf : set.inj_on f (f ⁻¹' ↑l.support)) :
- finsupp.total α M R v (finsupp.comap_domain f l hf) = (l.support.preimage hf).sum (λ i, (l (f i)) • (v i)) :=
+ finsupp.total α M R v (finsupp.comap_domain f l hf) =
+   (l.support.preimage f hf).sum (λ i, (l (f i)) • (v i)) :=
 by rw finsupp.total_apply; refl
 
 end total

@@ -68,7 +68,7 @@ lemma degree_eq_bot : degree p = ⊥ ↔ p = 0 :=
 
 lemma degree_eq_nat_degree (hp : p ≠ 0) : degree p = (nat_degree p : with_bot ℕ) :=
 let ⟨n, hn⟩ :=
-  classical.not_forall.1 (mt option.eq_none_iff_forall_not_mem.2 (mt degree_eq_bot.1 hp)) in
+  not_forall.1 (mt option.eq_none_iff_forall_not_mem.2 (mt degree_eq_bot.1 hp)) in
 have hn : degree p = some n := not_not.1 hn,
 by rw [nat_degree, hn]; refl
 

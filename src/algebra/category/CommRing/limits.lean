@@ -83,6 +83,19 @@ def is_limit_forget_map_cone_limit_cone (F : J ⥤ SemiRing) :
   is_limit ((forget SemiRing).map_cone (limit_cone F)) :=
 is_limit.of_iso_limit (limit.is_limit _) (forget_map_cone_limit_cone_iso F).symm
 
+lemma foo
+  (F : J ⥤ SemiRing) (s : cone F)
+  (x y : (s.X))
+  (j : J) :
+
+    (limit_π_ring_hom F j)
+        (limit.lift (F ⋙ forget SemiRing) ((forget SemiRing).map_cone s) x) =
+         (s.π.app j) x :=
+begin
+  dsimp [limit_π_ring_hom],
+  simp,
+end
+
 -- FIXME
 /--
 Witness that the limit cone in `SemiRing` is a limit cone.
@@ -93,11 +106,30 @@ begin
   refine is_limit.of_faithful
     (forget SemiRing) (is_limit_forget_map_cone_limit_cone F)
     (λ s, ⟨_, _, _, _, _⟩) (λ s, rfl),
-  { ext, squeeze_simp, rw ←limit_π_ring_hom_apply, simp, },
-  sorry, sorry, sorry,
-  -- { intros, ext, squeeze_simp, rw ←limit_π_ring_hom_apply, simp, sorry, },
-  -- { ext, squeeze_simp, rw ←limit_π_ring_hom_apply, simp, },
-  -- { intros, ext, squeeze_simp, rw ←limit_π_ring_hom_apply, simp, sorry, },
+  { ext,
+    simp only [forget_map_eq_coe, forget_map_cone_limit_cone_iso_inv_hom, iso.symm_hom,
+      limit.is_limit_lift, function.comp_app, is_limit.lift_cone_morphism_hom, ring_hom.map_one,
+      types.lift_π_apply, types_id_apply, functor.map_cone_π],
+    rw ←limit_π_ring_hom_apply,
+    simp, },
+  { intros, ext,
+    simp only [forget_map_eq_coe, forget_map_cone_limit_cone_iso_inv_hom, iso.symm_hom,
+      limit.is_limit_lift, function.comp_app, is_limit.lift_cone_morphism_hom, types.lift_π_apply,
+      types_id_apply, ring_hom.map_mul, functor.map_cone_π],
+    rw ←limit_π_ring_hom_apply,
+    simp [limit_π_ring_hom], },
+  { ext,
+    simp only [forget_map_eq_coe, forget_map_cone_limit_cone_iso_inv_hom, iso.symm_hom,
+      limit.is_limit_lift, ring_hom.map_zero, function.comp_app, is_limit.lift_cone_morphism_hom,
+      types.lift_π_apply, types_id_apply, functor.map_cone_π],
+    rw ←limit_π_ring_hom_apply,
+    simp, },
+  { intros, ext,
+    simp only [forget_map_eq_coe, forget_map_cone_limit_cone_iso_inv_hom, ring_hom.map_add,
+      iso.symm_hom, limit.is_limit_lift, function.comp_app, is_limit.lift_cone_morphism_hom,
+      types.lift_π_apply, types_id_apply, functor.map_cone_π],
+    rw ←limit_π_ring_hom_apply,
+    simp [limit_π_ring_hom], },
 end
 
 end has_limits
@@ -121,52 +153,58 @@ def forget₂_AddCommMon_limit_iso_AddCommMon_of_limit_forget (F : J ⥤ SemiRin
   (forget₂ SemiRing AddCommMon).obj (limit F) ≅ AddCommMon.of (limit (F ⋙ forget SemiRing)) :=
 (forget₂ SemiRing AddCommMon).map_iso (limit_iso_SemiRing_of_limit_forget F)
 
--- FIXME
-/--
-An auxiliary declaration to speed up typechecking.
--/
-def forget₂_AddCommMon_preserves_limits_aux (F : J ⥤ SemiRing) :
+def is_limit_forget₂_AddCommMon_map_cone_limit_cone (F : J ⥤ SemiRing) :
   is_limit ((forget₂ SemiRing AddCommMon).map_cone (limit.cone F)) :=
 is_limit.of_iso_limit (limit.is_limit _) $ cones.ext
-begin
-  refine AddCommMon.limit_iso_AddCommMon_of_limit_forget _ ≪≫ _,
-  exact (forget₂_AddCommMon_limit_iso_AddCommMon_of_limit_forget _).symm,
-end
+(AddCommMon.limit_iso_AddCommMon_of_limit_forget _ ≪≫
+  (forget₂_AddCommMon_limit_iso_AddCommMon_of_limit_forget _).symm)
 (λ j,
 begin
-  simp [forget₂_AddCommMon_limit_iso_AddCommMon_of_limit_forget, limit_iso_SemiRing_of_limit_forget, AddCommMon.limit_iso_AddCommMon_of_limit_forget, is_limit.cone_point_unique_up_to_iso],
-  dsimp,
-  erw [←category_theory.functor.map_comp],
-  simp,
-  -- grah, why doesn't this unfold:
-  dsimp [AddCommMon.limit_iso_AddCommMon_of_limit_forget],
+  simp only [forget₂_AddCommMon_limit_iso_AddCommMon_of_limit_forget,
+    limit_iso_SemiRing_of_limit_forget, is_limit.cone_point_unique_up_to_iso,
+    functor.map_iso_inv, is_limit.unique_up_to_iso_inv, iso.symm_hom, limit.is_limit_lift,
+    limit.cone_π, cones.forget_map, is_limit.lift_cone_morphism_hom, iso.trans_hom, category.assoc,
+     functor.map_cone_π],
+  erw [←category_theory.functor.map_comp, limit.lift_π, is_limit.fac],
+  refl,
 end)
 
 /--
 The forgetful functor from semirings to additive commutative monoids preserves all limits.
 -/
 instance forget₂_AddCommMon_preserves_limits : preserves_limits (forget₂ SemiRing AddCommMon) :=
-{ preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F,
-    by exactI preserves_limit_of_preserves_limit_cone
-      (limit.is_limit F) (forget₂_AddCommMon_preserves_limits_aux F) } }
+{ preserves_limits_of_shape := λ J 𝒥, by exactI
+  { preserves_limit := λ F, preserves_limit_of_preserves_limit_cone
+    (limit.is_limit F) (is_limit_forget₂_AddCommMon_map_cone_limit_cone F) } }
 
-/--
-An auxiliary declaration to speed up typechecking.
--/
-def forget₂_Mon_preserves_limits_aux (F : J ⥤ SemiRing) :
+def forget₂_Mon_limit_iso_Mon_of_limit_forget (F : J ⥤ SemiRing) :
+  (forget₂ SemiRing Mon).obj (limit F) ≅ Mon.of (limit (F ⋙ forget SemiRing)) :=
+(forget₂ SemiRing Mon).map_iso (limit_iso_SemiRing_of_limit_forget F)
+
+def is_limit_forget₂_Mon_map_cone_limit_cone (F : J ⥤ SemiRing) :
   is_limit ((forget₂ SemiRing Mon).map_cone (limit.cone F)) :=
-  sorry
+is_limit.of_iso_limit (limit.is_limit _) $ cones.ext
+(Mon.limit_iso_Mon_of_limit_forget _ ≪≫
+  (forget₂_Mon_limit_iso_Mon_of_limit_forget _).symm)
+(λ j,
+begin
+  simp only [forget₂_Mon_limit_iso_Mon_of_limit_forget,
+    limit_iso_SemiRing_of_limit_forget, is_limit.cone_point_unique_up_to_iso,
+    functor.map_iso_inv, is_limit.unique_up_to_iso_inv, iso.symm_hom, limit.is_limit_lift,
+    limit.cone_π, cones.forget_map, is_limit.lift_cone_morphism_hom, iso.trans_hom, category.assoc,
+     functor.map_cone_π],
+  erw [←category_theory.functor.map_comp, limit.lift_π, is_limit.fac],
+  refl,
+end)
 
 /--
 The forgetful functor from semirings to monoids preserves all limits.
 -/
 instance forget₂_Mon_preserves_limits :
   preserves_limits (forget₂ SemiRing Mon) :=
-{ preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F,
-    by exactI preserves_limit_of_preserves_limit_cone
-      (limit.is_limit F) (forget₂_Mon_preserves_limits_aux F) } }
+{ preserves_limits_of_shape := λ J 𝒥, by exactI
+  { preserves_limit := λ F,  preserves_limit_of_preserves_limit_cone
+    (limit.is_limit F) (is_limit_forget₂_Mon_map_cone_limit_cone F) } }
 
 /--
 The forgetful functor from semirings to types preserves all limits.
@@ -196,8 +234,7 @@ begin
   transport using (types.limit_equiv_sections (F ⋙ forget CommSemiRing)).symm,
 end
 
--- FIXME why is this so slow? (works, but times out)
-@[simps]
+-- FIXME Applying `@[simps]` here causes a timeout. (However it doesn't seem to be necessary.)
 def lifted_cone (F : J ⥤ CommSemiRing) : cone F :=
 { X := CommSemiRing.of (limit (F ⋙ forget CommSemiRing)),
   π :=
@@ -233,7 +270,34 @@ is_limit.cone_point_unique_up_to_iso
   (limit.is_limit F)
   (lifted_limit_is_limit (limit.is_limit (F ⋙ forget₂ CommSemiRing SemiRing)))
 
--- TODO forget₂_CommMon_preserves_limits is missing?
+def forget₂_CommMon_limit_iso_CommMon_of_limit_forget (F : J ⥤ CommSemiRing) :
+  (forget₂ CommSemiRing CommMon).obj (limit F) ≅ CommMon.of (limit (F ⋙ forget CommSemiRing)) :=
+(forget₂ CommSemiRing CommMon).map_iso (limit_iso_CommSemiRing_of_limit_forget F)
+
+def is_limit_forget₂_CommMon_map_cone_limit_cone (F : J ⥤ CommSemiRing) :
+  is_limit ((forget₂ CommSemiRing CommMon).map_cone (limit.cone F)) :=
+is_limit.of_iso_limit (limit.is_limit _) $ cones.ext
+(CommMon.limit_iso_CommMon_of_limit_forget _ ≪≫
+  (forget₂_CommMon_limit_iso_CommMon_of_limit_forget _).symm)
+(λ j,
+begin
+  simp only [forget₂_CommMon_limit_iso_CommMon_of_limit_forget,
+    limit_iso_CommSemiRing_of_limit_forget, is_limit.cone_point_unique_up_to_iso,
+    functor.map_iso_inv, is_limit.unique_up_to_iso_inv, iso.symm_hom, limit.is_limit_lift,
+    limit.cone_π, cones.forget_map, is_limit.lift_cone_morphism_hom, iso.trans_hom, category.assoc,
+     functor.map_cone_π],
+  erw [←category_theory.functor.map_comp, limit.lift_π, is_limit.fac],
+  refl,
+end)
+
+/--
+The forgetful functor from commutative semirings to commutative monoids preserves all limits.
+-/
+instance forget₂_CommMon_preserves_limits :
+  preserves_limits (forget₂ CommSemiRing CommMon) :=
+{ preserves_limits_of_shape := λ J 𝒥, by exactI
+  { preserves_limit := λ F, preserves_limit_of_preserves_limit_cone
+    (limit.is_limit F) (is_limit_forget₂_CommMon_map_cone_limit_cone F) } }
 
 /--
 The forgetful functor from rings to semirings preserves all limits.
@@ -284,7 +348,6 @@ begin
   transport using (types.limit_equiv_sections (F ⋙ forget Ring)).symm,
 end
 
-@[simps]
 def lifted_cone (F : J ⥤ Ring) : cone F :=
 { X := Ring.of (limit (F ⋙ forget Ring)),
   π :=
@@ -327,21 +390,34 @@ instance forget₂_SemiRing_preserves_limits : preserves_limits (forget₂ Ring 
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ F, by apply_instance } }
 
-/--
-An auxiliary declaration to speed up typechecking.
--/
-def forget₂_AddCommGroup_preserves_limits_aux (F : J ⥤ Ring) :
+def forget₂_AddCommGroup_limit_iso_AddCommGroup_of_limit_forget (F : J ⥤ Ring) :
+  (forget₂ Ring AddCommGroup).obj (limit F) ≅ AddCommGroup.of (limit (F ⋙ forget Ring)) :=
+(forget₂ Ring AddCommGroup).map_iso (limit_iso_Ring_of_limit_forget F)
+
+def is_limit_forget₂_AddCommGroup_map_cone_limit_cone (F : J ⥤ Ring) :
   is_limit ((forget₂ Ring AddCommGroup).map_cone (limit.cone F)) :=
-  limit.is_limit (F ⋙ forget₂ Ring AddCommGroup)
+is_limit.of_iso_limit (limit.is_limit _) $ cones.ext
+(AddCommGroup.limit_iso_AddCommGroup_of_limit_forget _ ≪≫
+  (forget₂_AddCommGroup_limit_iso_AddCommGroup_of_limit_forget _).symm)
+(λ j,
+begin
+  simp only [forget₂_AddCommGroup_limit_iso_AddCommGroup_of_limit_forget,
+    limit_iso_Ring_of_limit_forget, is_limit.cone_point_unique_up_to_iso,
+    functor.map_iso_inv, is_limit.unique_up_to_iso_inv, iso.symm_hom, limit.is_limit_lift,
+    limit.cone_π, cones.forget_map, is_limit.lift_cone_morphism_hom, iso.trans_hom, category.assoc,
+     functor.map_cone_π],
+  erw [←category_theory.functor.map_comp, limit.lift_π, is_limit.fac],
+  refl,
+end)
 
 /--
 The forgetful functor from rings to additive commutative groups preserves all limits.
 -/
-instance forget₂_AddCommGroup_preserves_limits : preserves_limits (forget₂ Ring AddCommGroup) :=
-{ preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F,
-    by exactI preserves_limit_of_preserves_limit_cone
-      (limit.is_limit F) (forget₂_AddCommGroup_preserves_limits_aux F) } }
+instance forget₂_AddCommGroup_preserves_limits :
+  preserves_limits (forget₂ Ring AddCommGroup) :=
+{ preserves_limits_of_shape := λ J 𝒥, by exactI
+  { preserves_limit := λ F, preserves_limit_of_preserves_limit_cone
+    (limit.is_limit F) (is_limit_forget₂_AddCommGroup_map_cone_limit_cone F) } }
 
 /--
 The forgetful functor from rings to types preserves all limits. (That is, the underlying
@@ -371,8 +447,6 @@ begin
   transport using (types.limit_equiv_sections (F ⋙ forget CommRing)).symm,
 end
 
-
-@[simps]
 def lifted_cone (F : J ⥤ CommRing) : cone F :=
 { X := CommRing.of (limit (F ⋙ forget CommRing)),
   π :=
@@ -380,10 +454,9 @@ def lifted_cone (F : J ⥤ CommRing) : cone F :=
     naturality' := (SemiRing.has_limits.limit_cone (F ⋙ forget₂ _ Ring ⋙ forget₂ _ SemiRing)).π.naturality, } }
 
 def is_limit_forget₂_map_cone_lifted_cone (F : J ⥤ CommRing) :
-  is_limit ((forget₂ CommRing Ring ⋙ forget₂ Ring SemiRing).map_cone (lifted_cone F)) :=
-is_limit.of_iso_limit (limit.is_limit _) $ cones.ext (SemiRing.limit_iso_SemiRing_of_limit_forget _) $
+  is_limit ((forget₂ CommRing Ring).map_cone (lifted_cone F)) :=
+is_limit.of_iso_limit (limit.is_limit _) $ cones.ext (Ring.limit_iso_Ring_of_limit_forget _) $
   λ j, by erw is_limit.fac
-
 
 /--
 We show that the forgetful functor `CommRing ⥤ Ring` creates limits.

@@ -171,7 +171,7 @@ instance has_limits : has_limits CommGroup :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ CommGroup Group) } }
 
-@[to_additive]
+@[to_additive AddCommGroup.limit_iso_AddCommGroup_of_limit_forget]
 def limit_iso_CommGroup_of_limit_forget (F : J ⥤ CommGroup) :
   limit F ≅ CommGroup.of (limit (F ⋙ forget CommGroup)) :=
 is_limit.cone_point_unique_up_to_iso

@@ -27,10 +27,10 @@ arsinh, arcsinh, argsinh, asinh, sinh injective, sinh bijective, sinh surjective
 -/
 
 
-/-- `arsinh` is defined using a logarithm, `arsinh x = log (x + sqrt(1 + x^2))` -/
+/-- `arsinh` is defined using a logarithm, `arsinh x = log (x + sqrt(1 + x^2))`. -/
 def arsinh (x : ℝ) := log (x + sqrt (1 + x^2))
 
-/-- `sinh` is injective, `∀ a b, sinh a = sinh b → a = b` -/
+/-- `sinh` is injective, `∀ a b, sinh a = sinh b → a = b`. -/
 lemma sinh_injective : function.injective sinh := sinh_strict_mono.injective
 
 private lemma aux_lemma (x : ℝ) : 1 / (x + sqrt (1 + x ^ 2)) = -x + sqrt (1 + x ^ 2) :=
@@ -51,21 +51,21 @@ private lemma add_sqrt_one_add_pow_two_pos (b : ℝ) : 0 < b + sqrt (1 + b ^ 2) 
 by { rw [← neg_neg b, ← sub_eq_neg_add, sub_pos, pow_two, neg_mul_neg, ← pow_two],
   exact b_lt_sqrt_b_one_add_sq (-b) }
 
-/-- `arsinh` is the right inverse of `sinh`-/
+/-- `arsinh` is the right inverse of `sinh`. -/
 lemma arsinh_sinh (x : ℝ) : sinh (arsinh x) = x :=
 by rw [sinh_eq, arsinh, ← log_inv, exp_log (add_sqrt_one_add_pow_two_pos x),
       exp_log (inv_pos.2 (add_sqrt_one_add_pow_two_pos x)),
       inv_eq_one_div, aux_lemma x, sub_eq_add_neg, neg_add, neg_neg, ← sub_eq_add_neg,
       add_add_sub_cancel, add_self_div_two]
 
-/-- `sinh` is surjective, `∀ b, ∃ a, sinh a = b`. In this case, we use `a = arsinh b` -/
+/-- `sinh` is surjective, `∀ b, ∃ a, sinh a = b`. In this case, we use `a = arsinh b`. -/
 lemma sinh_surjective : function.surjective sinh := function.left_inverse.surjective arsinh_sinh
 
 /-- `sinh` is bijective, both injective and surjective. -/
 lemma sinh_bijective : function.bijective sinh :=
 ⟨sinh_injective, sinh_surjective⟩
 
-/-- A rearrangment and `sqrt` of `real.cosh_sq_sub_sinh_sq` -/
+/-- A rearrangment and `sqrt` of `real.cosh_sq_sub_sinh_sq`. -/
 lemma sqrt_one_add_sinh_sq (x : ℝ): sqrt (1 + sinh x ^ 2) = cosh x :=
 begin
   have H := real.cosh_sq_sub_sinh_sq x,
@@ -75,6 +75,6 @@ begin
   exact le_of_lt (cosh_pos x),
 end
 
-/-- `arsinh` is the left inverse of `sinh` -/
+/-- `arsinh` is the left inverse of `sinh`. -/
 lemma sinh_arsinh (x : ℝ) : arsinh (sinh x) = x :=
 function.right_inverse_of_injective_of_left_inverse sinh_injective arsinh_sinh x

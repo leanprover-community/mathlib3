@@ -862,7 +862,7 @@ of_real_inj.1 $ by simpa using cos_square x
 lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
 eq_sub_iff_add_eq.2 $ sin_sq_add_cos_sq _
 
-/-- The definition of `sinh` in terms of `exp` -/
+/-- The definition of `sinh` in terms of `exp`. -/
 lemma sinh_eq (x : ℝ) : sinh x = (exp x - exp (-x)) / 2 :=
 eq_div_of_mul_eq two_ne_zero $ by rw [sinh, exp, exp, complex.of_real_neg, complex.sinh, mul_two,
     ← complex.add_re, ← mul_two, div_mul_cancel _ (two_ne_zero' : (2 : ℂ) ≠ 0), complex.sub_re]

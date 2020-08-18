@@ -597,6 +597,22 @@ def to_zmod : ℤ_[p] →+* zmod p :=
     convert this using 2,
     ring,
   end }
+.
+
+noncomputable def foobar : ℕ → ℤ_[p] → ℕ
+| 0     x := 0
+| (n+1) x :=
+let y := x - (to_zmod x).val in
+if hy : y = 0 then
+  (to_zmod x).val
+else
+  let u := unit_coeff hy in
+  -- have x = (to_zmod x).val + p * (u : ℤ_[p]) * p ^ (y.valuation - 1).nat_abs,
+  -- by sorry,
+  (to_zmod x).val + p * foobar n (u * (p ^ (y.valuation - 1).nat_abs))
+
+-- def to_zmod_pow (n : ℕ) : ℤ_[p] →+* zmod (p ^ n) :=
+-- _
 
 end padic_int
 

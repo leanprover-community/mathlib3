@@ -536,7 +536,7 @@ begin
   { rw show ((m - n : ℤ) : ℤ_[p]) = (↑m - x) + (x - n), { push_cast, ring },
     apply lt_of_le_of_lt (padic_norm_z.nonarchimedean _ _),
     apply max_lt hm hn },
-  rw [give_better_name, ← int.modeq.modeq_iff_dvd, int.modeq, eq_comm] at this,
+  rw [norm_int_lt_one_iff_dvd, ← int.modeq.modeq_iff_dvd, int.modeq, eq_comm] at this,
   rw [int.mod_eq_of_lt, int.mod_eq_of_lt] at this;
   { simpa },
 end
@@ -550,7 +550,7 @@ begin
   { rw show ((m - n : ℤ) : ℤ_[p]) = (↑m - x) + (x - n), { push_cast, ring },
     apply lt_of_le_of_lt (padic_norm_z.nonarchimedean _ _),
     apply max_lt hm hn },
-  rw [give_better_name, ← zmod.int_coe_zmod_eq_zero_iff_dvd] at this,
+  rw [norm_int_lt_one_iff_dvd, ← zmod.int_coe_zmod_eq_zero_iff_dvd] at this,
   simpa [sub_eq_zero],
 end
 
@@ -586,8 +586,7 @@ def to_zmod : ℤ_[p] →+* zmod p :=
     convert this using 2,
     abel,
     congr,
-    simp,
-    rw add_comm,
+    simp [add_comm],
   end,
   map_mul' :=
   begin
@@ -620,28 +619,7 @@ def to_zmod : ℤ_[p] →+* zmod p :=
   end,
 }
 
--- lemma z_dense (x : ℤ_[p]) : ∀ (ε : ℝ), 0 < ε → (∃ (k : ℤ), dist x ↑k < ε) :=
--- begin
---   intros ε hε,
---   obtain ⟨r, hr⟩ := rat_dense (x : ℚ_[p]) hε,
---   -- let k : ℤ := r.num,
---   -- use k,
---   -- rw dist_eq_norm,
---   -- apply lt_of_le_of_lt _ hr,
---   -- rw show ∥x - k∥ = ∥(x - r : ℚ_[p]) + (r - k)∥,
---   -- { rw padic_norm_z, congr' 1, ring, simp [cast_eq_of_rat], sorry },
---   -- apply le_trans (padic_norm_e.nonarchimedean _ _),
---   -- rw max_le_iff,
---   -- refine ⟨le_refl _, _⟩,
--- end
 
--- lemma dense_embedding : dense_embedding (coe : ℤ → ℤ_[p]) :=
--- dense_embedding.mk' _ continuous_of_discrete_topology
---   (begin intro x, rw mem_closure_range_iff, apply z_dense end)
---   (λ x y, by exact_mod_cast id)
---   (begin  end )
-
- -/
 end padic_int
 
 namespace padic_norm_z

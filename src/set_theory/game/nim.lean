@@ -25,7 +25,7 @@ using_well_founded {dec_tac := tactic.assumption}
 
 namespace nim
 
-@[simp] lemma nim_def (O : ordinal) : nim O = pgame.mk
+lemma nim_def (O : ordinal) : nim O = pgame.mk
 					O.out.α O.out.α
 					(λ O₂, nim (ordinal.typein O.out.r O₂))
 					(λ O₂, nim (ordinal.typein O.out.r O₂)) :=

@@ -29,7 +29,7 @@ using_well_founded {dec_tac := pgame_wf_tac}
 
 @[instance] lemma zero_impartial : impartial 0 := by tidy
 
-@[simp] lemma impartial_def {G : pgame} : G.impartial ↔ G ≈ -G ∧ (∀ i, impartial (G.move_left i)) ∧ (∀ j, impartial (G.move_right j)) :=
+lemma impartial_def {G : pgame} : G.impartial ↔ G ≈ -G ∧ (∀ i, impartial (G.move_left i)) ∧ (∀ j, impartial (G.move_right j)) :=
 begin
 	split,
 	{	intro hi,
@@ -115,38 +115,6 @@ end
 
 lemma impartial_add_self (G : pgame) [G.impartial] : (G + G).p_position :=
 p_position_is_zero.2 $ equiv_trans (add_congr G.impartial_neg_equiv_self G.equiv_refl) add_left_neg_equiv
-
-/-- A different way of viewing equivalence. -/
-def additive_equiv (G H : pgame) [G.impartial] [H.impartial] : Prop :=
-	∀ (F : pgame) [F.impartial], (G + F).p_position ↔ (H + F).p_position
-
-lemma additive_equiv_equiv_equiv (G H : pgame) [hG : G.impartial] [hH : H.impartial] : G.additive_equiv H ↔ G ≈ H :=
-begin
-	split,
-	{ intro heq,
-		cases G.impartial_position_cases with hGp hGn,
-		{ specialize heq 0,
-			rw [p_position_of_equiv_iff G.add_zero_equiv, p_position_of_equiv_iff H.add_zero_equiv, p_position_is_zero, p_position_is_zero] at heq,
-			rw p_position_is_zero at hGp,
-			exact equiv_trans hGp (heq.1 hGp).symm },
-		{ split,
-			{ rw le_iff_sub_nonneg,
-				specialize heq (-G),
-				rw [p_position_of_equiv_iff add_comm_equiv, p_position_of_equiv_iff add_left_neg_equiv] at heq,
-				exact (heq.1 zero_p_postition).2 },
-			{ rw le_iff_sub_nonneg,
-				specialize heq (-H),
-				nth_rewrite 1 p_position_of_equiv_iff add_comm_equiv at heq,
-				rw p_position_of_equiv_iff add_left_neg_equiv at heq,
-				exact (heq.2 zero_p_postition).2 } } },
-	{ intros heq F hf,
-		rw [p_position_is_zero, p_position_is_zero],
-		split,
-		{ intro hGF,
-			exact equiv_trans (add_congr heq.symm $ equiv_refl _) hGF },
-		{ intro hHF,
-			exact equiv_trans (add_congr heq $ equiv_refl _) hHF } }
-end
 
 lemma equiv_iff_sum_p_position (G H : pgame) [G.impartial] [H.impartial] : G ≈ H ↔ (G + H).p_position :=
 begin

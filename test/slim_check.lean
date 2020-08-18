@@ -25,9 +25,9 @@ if h : 0 < p
   then iterated_primality_test_aux p h 10
   else pure ff
 
-/-- `find_prime_aux p h n` generates `n` candidate prime numbers,
-tests each and 20 of their successors with `iterated_primality_test`
-and return the first one that can pass the primality test. -/
+/-- `find_prime_aux p h n` generates a candidate prime number, tests
+it as well as the 19 odd numbers following it. If none of them is
+(probably) prime, try again `n-1` times. -/
 def find_prime_aux (p : ℕ) (h : 1 ≤ p / 2) : ℕ → rand (option ℕ)
 | 0 := pure none
 | (n+1) := do

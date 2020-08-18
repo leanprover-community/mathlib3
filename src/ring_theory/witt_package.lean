@@ -11,6 +11,16 @@ import tactic
 noncomputable theory
 open mv_polynomial
 
+def witt_package.equiv'' (enum : Type) (S : submonoid ℤ) :=
+(mv_polynomial enum (localization S)) ≃ₐ[(localization S)] (mv_polynomial enum (localization S))
+
+def witt_package.compat'' (enum : Type) (S : submonoid ℤ) (witt_polynomial : enum → mv_polynomial enum ℤ)
+  (equiv' : witt_package.equiv'' enum S) : Prop :=
+alg_equiv.to_fun equiv' =
+              @aeval _ (localization S) _
+                (λ n, mv_polynomial.map_hom (algebra_map ℤ (localization S)) (witt_polynomial n))
+                _ _ _
+
 structure witt_package :=
 (enum : Type)
 (witt_polynomial : enum → mv_polynomial enum ℤ)
@@ -19,11 +29,8 @@ structure witt_package :=
                     aeval (λ k, (witt_structure Φ k)) (witt_polynomial n) =
                     aeval (λ i, (rename_hom (λ k, (i,k)) (witt_polynomial n))) Φ)
 (S       : submonoid ℤ)
-(equiv'  : by exactI (mv_polynomial enum (localization S)) ≃ₐ[(localization S)] (mv_polynomial enum (localization S)))
-(compat' : by exactI (equiv' : mv_polynomial enum (localization S) →ₐ[(localization S)] mv_polynomial enum (localization S)) =
-              @aeval _ (localization S) _
-                (λ n, mv_polynomial.map_hom (algebra_map ℤ (localization S)) (witt_polynomial n))
-                _ _ _)
+(equiv'  : witt_package.equiv'' enum S)
+(compat' : witt_package.compat'' enum S witt_polynomial equiv')
 
 namespace witt_package
 
@@ -269,6 +276,7 @@ section ring_axioms
 /-! ## Verification of the ring axioms -/
 
 variable (R)
+#exit
 
 noncomputable def comm_ring_aux₁ : comm_ring (𝕎 (mv_polynomial R W.loc)) :=
 function.injective.comm_ring (W.ghost_map)

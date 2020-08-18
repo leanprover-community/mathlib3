@@ -94,9 +94,10 @@ begin
     (forget SemiRing) (is_limit_forget_map_cone_limit_cone F)
     (λ s, ⟨_, _, _, _, _⟩) (λ s, rfl),
   { ext, squeeze_simp, rw ←limit_π_ring_hom_apply, simp, },
-  { intros, ext, squeeze_simp, rw ←limit_π_ring_hom_apply, simp, sorry, },
-  { ext, squeeze_simp, rw ←limit_π_ring_hom_apply, simp, },
-  { intros, ext, squeeze_simp, rw ←limit_π_ring_hom_apply, simp, sorry, },
+  sorry, sorry, sorry,
+  -- { intros, ext, squeeze_simp, rw ←limit_π_ring_hom_apply, simp, sorry, },
+  -- { ext, squeeze_simp, rw ←limit_π_ring_hom_apply, simp, },
+  -- { intros, ext, squeeze_simp, rw ←limit_π_ring_hom_apply, simp, sorry, },
 end
 
 end has_limits
@@ -195,7 +196,7 @@ begin
   transport using (types.limit_equiv_sections (F ⋙ forget CommSemiRing)).symm,
 end
 
-
+-- FIXME why is this so slow? (works, but times out)
 @[simps]
 def lifted_cone (F : J ⥤ CommSemiRing) : cone F :=
 { X := CommSemiRing.of (limit (F ⋙ forget CommSemiRing)),

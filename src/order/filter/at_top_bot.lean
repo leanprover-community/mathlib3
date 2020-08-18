@@ -50,10 +50,6 @@ lemma at_top_basis [nonempty α] [semilattice_sup α] :
   (@at_top α _).has_basis (λ _, true) Ici :=
 has_basis_infi_principal (directed_of_sup $ λ a b, Ici_subset_Ici.2)
 
-lemma at_bot_basis {α : Type*} [nonempty α] [semilattice_inf α] :
-  (@at_bot α _).has_basis (λ _, true) Iic :=
-has_basis_infi_principal (directed_of_inf $ λ a b, Iic_subset_Iic.2)
-
 lemma at_top_basis' [semilattice_sup α] (a : α) :
   (@at_top α _).has_basis (λ x, a ≤ x) Ici :=
 ⟨λ t, (@at_top_basis α ⟨a⟩ _).mem_iff.trans

@@ -427,6 +427,59 @@ lemma int.to_nat_of_neg : ∀ {z : ℤ}, ¬ 0 ≤ z → z.to_nat = 0
 | (-[1+n]) _ := rfl
 | (int.of_nat n) h := (h $ int.of_nat_nonneg n).elim
 
+lemma give_better_name (k : ℤ) : ∥(k : ℤ_[p])∥ < 1 ↔ ↑p ∣ k :=
+begin
+  split,
+  { intro h,
+    contrapose! h,
+    apply le_of_eq,
+    rw eq_comm,
+    calc ∥(k : ℤ_[p])∥ = ∥((k : ℚ) : ℚ_[p])∥ : by { rw [padic_norm_z], norm_cast }
+    ... = padic_norm p k : padic_norm_e.eq_padic_norm _
+    ... = 1 : _,
+    rw padic_norm,
+    split_ifs with H,
+    { exfalso, apply h, norm_cast at H, rw H, simp only [dvd_zero] },
+    norm_cast at H,
+    norm_cast,
+    convert fpow_zero _,
+    simp only [neg_eq_zero],
+    rw padic_val_rat.padic_val_rat_of_int _ (nat.prime.ne_one ‹_›) H,
+    norm_cast,
+    rw [← enat.coe_inj, enat.coe_get, enat.coe_zero],
+    apply multiplicity.multiplicity_eq_zero_of_not_dvd h, },
+  { rintro ⟨x, rfl⟩,
+    push_cast,
+    rw padic_norm_z.mul,
+    calc _ ≤ ∥(p : ℤ_[p])∥ * 1 : mul_le_mul (le_refl _) (x : ℤ_[p]).2 (norm_nonneg _) (norm_nonneg _)
+    ... < 1 : _,
+    { rw [mul_one, padic_norm_z.norm_p],
+      apply inv_lt_one,
+      exact_mod_cast nat.prime.one_lt ‹_› }, },
+end
+
+lemma is_unit_denom (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) : is_unit (r.denom : ℤ_[p]) :=
+begin
+  rw is_unit_iff,
+  apply le_antisymm (r.denom : ℤ_[p]).2,
+  rw [← not_lt, val_eq_coe, coe_coe],
+  intro oops,
+  have help : ∥(r * r.denom : ℚ_[p])∥ = ∥(r.num : ℚ_[p])∥,
+  { rw_mod_cast @rat.mul_denom_eq_num r, refl, },
+  rw padic_norm_e.mul at help,
+  have key : ∥(r.num : ℚ_[p])∥ < 1,
+  { calc _ = _ : help.symm
+    ... < 1 * 1 : _
+    ... = 1 : mul_one 1,
+    apply mul_lt_mul' h oops (norm_nonneg _) zero_lt_one, },
+  have oolala : ↑p ∣ r.num ∧ (p : ℤ) ∣ r.denom,
+  { simp only [← give_better_name, ← padic_norm_z.padic_norm_e_of_padic_int],
+    norm_cast, exact ⟨key, oops⟩ },
+  suffices boom : p ∣ 1,
+  { exact nat.prime.not_dvd_one ‹_› boom },
+  rwa [← r.cop.gcd_eq_one, nat.dvd_gcd_iff, ← int.coe_nat_dvd_left, ← int.coe_nat_dvd],
+end
+
 lemma exists_mem_range_of_norm_rat_le_one (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
   ∃ n ∈ finset.range p, ∥(⟨r,h⟩ - n : ℤ_[p])∥ < 1 :=
 begin
@@ -451,11 +504,7 @@ begin
       { rw [mul_one, padic_norm_z.norm_p],
         apply inv_lt_one,
         exact_mod_cast nat.prime.one_lt ‹_› }, },
-    have hrd : is_unit (r.denom : ℤ_[p]),
-    { rw is_unit_iff,
-      have help := @rat.mul_denom_eq_num r,
-      sorry },
-    rw ← hrd.dvd_mul_right,
+    rw ← (is_unit_denom r h).dvd_mul_right,
     suffices : ↑p ∣ r.num - (n.nat_mod p) * r.denom,
     { convert (int.cast_ring_hom ℤ_[p]).map_dvd this,
       simp only [sub_mul, int.cast_coe_nat, ring_hom.eq_int_cast, int.cast_mul,

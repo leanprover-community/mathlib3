@@ -485,7 +485,7 @@ A version of `fin.succ_rec` taking `i : fin n` as the first argument. -/
   (Hs : Π n i, C n i → C (succ n) i.succ) : C n i :=
 i.succ_rec H0 Hs
 
-@[simp] theorem succ_rec_on_zeoo {C : ∀ n, fin n → Sort*} {H0 Hs} (n) :
+@[simp] theorem succ_rec_on_zero {C : ∀ n, fin n → Sort*} {H0 Hs} (n) :
   @fin.succ_rec_on (succ n) 0 C H0 Hs = H0 n :=
 rfl
 

@@ -84,7 +84,7 @@ variables {C : Type u} [category.{v} C]
 local attribute [instance] over.coe_from_hom
 
 /-- This is just composition of morphisms in `C`. Another way to express this would be
-    `(over.map f).obj a`, but our definition has nicer definitional properties -/
+    `(over.map f).obj a`, but our definition has nicer definitional properties. -/
 def app {P Q : C} (f : P ⟶ Q) (a : over P) : over Q :=
 a.hom ≫ f
 

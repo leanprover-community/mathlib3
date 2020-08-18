@@ -233,7 +233,7 @@ by cases j; simp [fin.pred]
 @[simp] lemma pred_succ (i : fin n) {h : i.succ ≠ 0} : i.succ.pred h = i :=
 by cases i; refl
 
-@[simp] lemma pred_mk_succ (i : ℕ) {h : i < n + 1} :
+@[simp] lemma pred_mk_succ (i : ℕ) (h : i < n + 1) :
   (⟨i.succ, add_lt_add_right h 1⟩ : fin (n + 2)).pred (ne_of_vne (ne_of_gt (zero_lt_mk_succ i h))) = ⟨i, h⟩ :=
 by simp only [eq_iff_veq, pred_val, nat.pred_succ]
 

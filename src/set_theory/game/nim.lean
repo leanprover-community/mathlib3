@@ -154,7 +154,7 @@ begin
 	classical,
 	by_contra h,
 	rw nonmoves at h,
-	simp only [not_exists, not_forall, set.mem_set_of_eq, classical.not_not] at h,
+	simp only [not_exists, not_forall, set.mem_set_of_eq, not_not] at h,
 
 	have hle : cardinal.univ.{u (u+1)} ≤ cardinal.lift.{u (u+1)} (cardinal.mk α),
 	{	split,

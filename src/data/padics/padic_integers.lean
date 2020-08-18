@@ -12,23 +12,30 @@ import ring_theory.discrete_valuation_ring
 /-!
 # p-adic integers
 
-This file defines the p-adic integers ℤ_p as the subtype of ℚ_p with norm ≤ 1. We show that ℤ_p is a
-complete nonarchimedean normed local ring.
+This file defines the p-adic integers `ℤ_p` as the subtype of `ℚ_p` with norm `≤ 1`.
+We show that `ℤ_p`
+* is complete
+* is nonarchimedean
+* is a normed ring
+* is a local ring
+* is a discrete valuation ring
+* has a ring hom to `ℤ/pℤ`
 
 ## Important definitions
 
 * `padic_int` : the type of p-adic numbers
+* `to_zmod`: ring hom to `ℤ/pℤ`
 
 ## Notation
 
-We introduce the notation ℤ_[p] for the p-adic integers.
+We introduce the notation `ℤ_[p]` for the p-adic integers.
 
 ## Implementation notes
 
 Much, but not all, of this file assumes that `p` is prime. This assumption is inferred automatically
-by taking (prime p) as a type class argument.
+by taking `[fact (nat.prime p)] as a type class argument.
 
-Coercions into ℤ_p are set up to work with the `norm_cast` tactic.
+Coercions into `ℤ_p` are set up to work with the `norm_cast` tactic.
 
 ## References
 

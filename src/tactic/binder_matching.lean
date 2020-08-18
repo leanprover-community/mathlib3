@@ -63,7 +63,7 @@ namespace tactic
 open expr
 
 /-- Auxiliary function for `mk_binders`. -/
-@[inline] private meta def mk_binders_aux {α}
+private meta def mk_binders_aux {α}
   (match_binder : ℕ → expr → tactic (option (name × binder_info × expr × expr)))
   (binder_replacement : name → binder_info → expr → tactic expr)
   (result : ℕ → name → binder_info → expr → expr → tactic (option α)) :
@@ -121,7 +121,7 @@ mk_binders match_binder binder_replacement
 Auxiliary function which is used by the `mk_{local,meta}_{pis,lambdas}n` family
 of functions. It implements the "match exactly `max_depth` binders" logic.
 -/
-@[inline] private meta def match_with_depth {α}
+private meta def match_with_depth {α}
   (match_binder : expr → tactic (option α))
   (max_depth : ℕ) (current_depth : ℕ) (e : expr) : tactic (option α) :=
   if current_depth ≥ max_depth then none else do

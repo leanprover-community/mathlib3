@@ -480,10 +480,50 @@ begin
   rwa [← r.cop.gcd_eq_one, nat.dvd_gcd_iff, ← int.coe_nat_dvd_left, ← int.coe_nat_dvd],
 end
 
+@[simp] lemma zmod.coe_to_nat (p : ℕ) :
+  ∀ (z : ℤ) (h : 0 ≤ z), (z.to_nat : zmod p) = z
+| (n : ℕ) h := by simp only [int.cast_coe_nat, int.to_nat_coe_nat]
+| -[1+n]  h := false.elim h
+
+@[simp] lemma zmod.coe_int_mod (p : ℕ) (z : ℤ) :
+  ((z % p : ℤ) : zmod p) = z :=
+begin
+  rw int.mod_def,
+  simp only [int.cast_coe_nat, zmod.cast_self, int.cast_mul, zero_mul, sub_zero, int.cast_sub],
+end
+
+@[simp] lemma zmod.coe_nat_mod (p : ℕ) (h : p ≠ 0) (z : ℤ) : (z.nat_mod p : zmod p) = z :=
+begin
+  show ↑(int.to_nat _) = _,
+  rw [zmod.coe_to_nat, zmod.coe_int_mod],
+  { apply int.mod_nonneg, exact_mod_cast h }
+end
+
+lemma hopla_hop (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
+  let n : ℤ := r.num * r.denom.gcd_a p
+  in ¬(⟨r, h⟩ - (n.nat_mod p) : ℤ_[p]) = 0 →
+     ↑p ∣ r.num - (n.nat_mod p) * ↑(r.denom) :=
+begin
+  intros n aux,
+  rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
+  simp only [int.cast_coe_nat, zmod.coe_nat_mod p (nat.prime.ne_zero ‹_›), int.cast_mul, int.cast_sub],
+  have := congr_arg (coe : ℤ → zmod p) (gcd_eq_gcd_ab r.denom p),
+  simp only [int.cast_coe_nat, add_zero, int.cast_add, zmod.cast_self, int.cast_mul, zero_mul] at this,
+  rw [mul_right_comm, mul_assoc, ← this],
+  suffices help : r.denom.coprime p,
+  { rw help.gcd_eq_one, simp only [mul_one, cast_one, sub_self], },
+  apply coprime.symm,
+  apply (coprime_or_dvd_of_prime ‹_› _).resolve_right,
+  rw [← int.coe_nat_dvd, ← give_better_name, not_lt],
+  apply ge_of_eq,
+  rw ← is_unit_iff,
+  exact is_unit_denom r h,
+end
+
 lemma exists_mem_range_of_norm_rat_le_one (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
   ∃ n ∈ finset.range p, ∥(⟨r,h⟩ - n : ℤ_[p])∥ < 1 :=
 begin
-  let n := r.num * gcd_b p r.denom,
+  let n := r.num * gcd_a r.denom p,
   use (int.nat_mod n p),
   split,
   { rw finset.mem_range,
@@ -512,7 +552,7 @@ begin
       apply subtype.coe_injective,
       simp only [coe_mul, subtype.coe_mk, coe_coe],
       rw_mod_cast @rat.mul_denom_eq_num r, refl },
-    sorry }
+    apply hopla_hop r h aux, }
 end
 
 lemma exists_mem_range (x : ℤ_[p]) :

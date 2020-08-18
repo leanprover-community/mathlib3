@@ -87,6 +87,8 @@ begin
   rw [nat_degree_mul h2.1 h2.2], exact nat.le_add_right _ _
 end
 
+local attribute [reducible] with_zero
+
 lemma exists_finset_roots : ∀ {p : polynomial R} (hp : p ≠ 0),
   ∃ s : finset R, (s.card : with_bot ℕ) ≤ degree p ∧ ∀ x, x ∈ s ↔ is_root p x
 | p := λ hp, by haveI := classical.prop_decidable (∃ x, is_root p x); exact

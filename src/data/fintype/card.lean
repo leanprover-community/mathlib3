@@ -95,7 +95,7 @@ theorem fin.prod_univ_cast_succ [comm_monoid β] {n:ℕ} (f : fin n.succ → β)
 begin
   rw [fin.univ_cast_succ, prod_insert, prod_image, mul_comm],
   { intros x _ y _ hxy, exact fin.cast_succ_inj.mp hxy },
-  { simpa using fin.cast_succ_ne_last }
+  { simp [ne_of_lt, fin.cast_succ_lt_last] }
 end
 
 theorem fin.sum_univ_cast_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) :

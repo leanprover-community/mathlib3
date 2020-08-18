@@ -52,7 +52,7 @@ by { rw [← neg_neg b, ← sub_eq_neg_add, sub_pos, pow_two, neg_mul_neg, ← p
   exact b_lt_sqrt_b_one_add_sq (-b) }
 
 /-- `arsinh` is the right inverse of `sinh`. -/
-lemma arsinh_sinh (x : ℝ) : sinh (arsinh x) = x :=
+lemma sinh_arsinh (x : ℝ) : sinh (arsinh x) = x :=
 by rw [sinh_eq, arsinh, ← log_inv, exp_log (add_sqrt_one_add_pow_two_pos x),
       exp_log (inv_pos.2 (add_sqrt_one_add_pow_two_pos x)),
       inv_eq_one_div, aux_lemma x, sub_eq_add_neg, neg_add, neg_neg, ← sub_eq_add_neg,
@@ -76,5 +76,5 @@ begin
 end
 
 /-- `arsinh` is the left inverse of `sinh`. -/
-lemma sinh_arsinh (x : ℝ) : arsinh (sinh x) = x :=
+lemma arsinh_sinh (x : ℝ) : arsinh (sinh x) = x :=
 function.right_inverse_of_injective_of_left_inverse sinh_injective arsinh_sinh x

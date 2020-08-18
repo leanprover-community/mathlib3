@@ -67,7 +67,7 @@ equiv.alg_equiv R (types.limit_equiv_sections (F ⋙ forget (Algebra R)))
 /-- `limit.π (F ⋙ forget (Algebra R)) j` as a `alg_hom`. -/
 def limit_π_alg_hom (F : J ⥤ Algebra R) (j) :
   limit (F ⋙ forget (Algebra R)) →ₐ[R] (F ⋙ forget (Algebra R)).obj j :=
-{ commutes' := λ r, rfl,
+{ commutes' := λ r, begin simp, erw types.limit_equiv_sections_symm_apply, refl, end,
   ..SemiRing.limit_π_ring_hom (F ⋙ forget₂ (Algebra R) Ring ⋙ forget₂ Ring SemiRing) j }
 
 namespace has_limits

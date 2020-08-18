@@ -208,11 +208,9 @@ end
 
 variables {s : set E} (hs : convex s) {x : E}
 
-@[nolint ge_or_gt]
 lemma mem_to_cone : x ∈ hs.to_cone s ↔ ∃ (c > 0) (y ∈ s), (c : ℝ) • y = x :=
 by simp only [to_cone, convex_cone.mem_mk, mem_Union, mem_smul_set, eq_comm, exists_prop]
 
-@[nolint ge_or_gt]
 lemma mem_to_cone' : x ∈ hs.to_cone s ↔ ∃ c > 0, (c : ℝ) • x ∈ s :=
 begin
   refine hs.mem_to_cone.trans ⟨_, _⟩,
@@ -331,7 +329,6 @@ begin
         mul_inv_cancel (ne_of_gt hr), one_mul] at this } }
 end
 
-@[nolint ge_or_gt]
 theorem exists_top (p : linear_pmap ℝ E ℝ)
   (hp_nonneg : ∀ x : p.domain, (x : E) ∈ s → 0 ≤ p x)
   (hp_dense : ∀ y, ∃ x : p.domain, (x : E) + y ∈ s) :

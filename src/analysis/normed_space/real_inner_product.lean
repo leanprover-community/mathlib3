@@ -449,7 +449,7 @@ begin
   by_cases h : 0 = abs (∥x∥ * ∥y∥),
   { rw [←h, div_zero],
     norm_num },
-  { apply div_le_of_le_mul (lt_of_le_of_ne (ge_iff_le.mp (abs_nonneg (∥x∥ * ∥y∥))) h),
+  { rw div_le_iff' (lt_of_le_of_ne (ge_iff_le.mp (abs_nonneg (∥x∥ * ∥y∥))) h),
     convert abs_inner_le_norm x y using 1,
     rw [abs_mul, abs_of_nonneg (norm_nonneg x), abs_of_nonneg (norm_nonneg y), mul_one] }
 end

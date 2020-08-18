@@ -112,7 +112,7 @@ do
   temp_e ← note temp_nm none prf_ex,
   dsimp_hyp temp_e s to_unfold {},
   /- We case on the existential. We use `rcases` because `eq_nm` could be `rfl`. -/
-  rcases none (pexpr.of_expr temp_e) [[rcases_patt.one new_nm, rcases_patt.one eq_nm]],
+  rcases none (pexpr.of_expr temp_e) $ rcases_patt.tuple ([new_nm, eq_nm].map rcases_patt.one),
   /- If the lifted variable is not a local constant, try to rewrite it away using the new equality-/
   when (¬ e.is_local_constant) (get_local eq_nm >>=
     λ e, interactive.rw ⟨[⟨⟨0, 0⟩, tt, (pexpr.of_expr e)⟩], none⟩ interactive.loc.wildcard),

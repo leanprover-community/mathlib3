@@ -669,6 +669,17 @@ begin
     refine infi_le_of_le _ (infi_le_of_le h2f $ infi_le _ hf) }
 end
 
+lemma induced_outer_measure_preimage (f : α ≃ α) (Pm : ∀ (s : set α), P (f ⁻¹' s) ↔ P s)
+  (mm : ∀ (s : set α) (hs : P s), m (f ⁻¹' s) ((Pm _).mpr hs) = m s hs)
+  {A : set α} : induced_outer_measure m P0 m0 (f ⁻¹' A) = induced_outer_measure m P0 m0 A :=
+begin
+  simp only [induced_outer_measure_eq_infi _ msU m_mono], symmetry,
+  refine infi_congr (preimage f) f.injective.preimage_surjective _, intro s,
+  refine infi_congr_Prop (Pm s) _, intro hs,
+  refine infi_congr_Prop f.surjective.preimage_subset_preimage_iff _,
+  intro h2s, exact mm s hs
+end
+
 lemma induced_outer_measure_exists_set {s : set α}
   (hs : induced_outer_measure m P0 m0 s < ⊤) {ε : nnreal} (hε : 0 < ε) :
   ∃ (t : set α) (ht : P t), s ⊆ t ∧
@@ -753,40 +764,25 @@ def trim : outer_measure α :=
 induced_outer_measure (λ s _, m s) is_measurable.empty m.empty
 
 theorem le_trim : m ≤ m.trim :=
-λ s, le_infi $ λ f, le_infi $ λ hs,
-le_trans (m.mono hs) $ le_trans (m.Union_nat f) $
-ennreal.tsum_le_tsum $ λ i, le_infi $ λ hf, le_refl _
+le_of_function.mpr $ λ s, le_infi $ λ _, le_refl _
 
 theorem trim_eq {s : set α} (hs : is_measurable s) : m.trim s = m s :=
-le_antisymm (le_trans (of_function_le _) (infi_le _ hs)) (le_trim _ _)
+induced_outer_measure_eq' is_measurable.Union (λ f hf, m.Union_nat f) (λ _ _ _ _ h, m.mono h) hs
 
 theorem trim_congr {m₁ m₂ : outer_measure α}
   (H : ∀ {s : set α}, is_measurable s → m₁ s = m₂ s) :
   m₁.trim = m₂.trim :=
-by unfold trim; congr; funext s hs; exact H hs
+by { unfold trim, congr, funext s hs, exact H hs }
 
 theorem trim_le_trim {m₁ m₂ : outer_measure α} (H : m₁ ≤ m₂) : m₁.trim ≤ m₂.trim :=
-λ s, infi_le_infi $ λ f, infi_le_infi $ λ hs,
-ennreal.tsum_le_tsum $ λ b, infi_le_infi $ λ hf, H _
+λ s, binfi_le_binfi $ λ f hs, ennreal.tsum_le_tsum $ λ b, infi_le_infi $ λ hf, H _
 
-theorem le_trim_iff {m₁ m₂ : outer_measure α} : m₁ ≤ m₂.trim ↔
-  ∀ s, is_measurable s → m₁ s ≤ m₂ s :=
+theorem le_trim_iff {m₁ m₂ : outer_measure α} : m₁ ≤ m₂.trim ↔ ∀ s, is_measurable s → m₁ s ≤ m₂ s :=
 le_of_function.trans $ forall_congr $ λ s, le_infi_iff
 
 theorem trim_eq_infi (s : set α) : m.trim s = ⨅ t (st : s ⊆ t) (ht : is_measurable t), m t :=
-begin
-  refine le_antisymm
-    (le_infi $ λ t, le_infi $ λ st, le_infi $ λ ht, _)
-    (le_infi $ λ f, le_infi $ λ hf, _),
-  { rw ← trim_eq m ht, exact (trim m).mono st },
-  { by_cases h : ∀i, is_measurable (f i),
-    { refine infi_le_of_le _ (infi_le_of_le hf $
-        infi_le_of_le (is_measurable.Union h) _),
-      rw congr_arg tsum _, {exact m.Union_nat _},
-      funext i, exact extend_eq _ (h i) },
-    { cases not_forall.1 h with i hi,
-      exact le_trans (le_infi $ λ h, hi.elim h) (ennreal.le_tsum i) } }
-end
+by { simp only [infi_comm] {single_pass := tt}, exact induced_outer_measure_eq_infi
+    is_measurable.Union (λ f _, m.Union_nat f) (λ _ _ _ _ h, m.mono h) s }
 
 theorem trim_eq_infi' (s : set α) : m.trim s = ⨅ t : {t // s ⊆ t ∧ is_measurable t}, m t :=
 by simp [infi_subtype, infi_and, trim_eq_infi]
@@ -801,8 +797,8 @@ ext $ λ s, le_antisymm
   (zero_le _)
 
 theorem trim_add (m₁ m₂ : outer_measure α) : (m₁ + m₂).trim = m₁.trim + m₂.trim :=
-ext $ λ s, begin
-  simp only [trim_eq_infi', add_apply],
+begin
+  ext1 s, simp only [trim_eq_infi', add_apply],
   rw ennreal.infi_add_infi,
   rintro ⟨t₁, st₁, ht₁⟩ ⟨t₂, st₂, ht₂⟩,
   exact ⟨⟨_, subset_inter_iff.2 ⟨st₁, st₂⟩, ht₁.inter ht₂⟩,

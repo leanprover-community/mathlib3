@@ -36,8 +36,8 @@ section field
 open cardinal
 
 variables (F : Type u) (K : Type v) (A : Type w)
-variables [field F] [field K] [ring A]
-variables [algebra F K] [algebra K A] [algebra F A] [is_scalar_tower F K A]
+variables [field F] [field K] [add_comm_group A]
+variables [algebra F K] [vector_space K A] [vector_space F A] [is_scalar_tower F K A]
 
 /-- Tower law: if `A` is a `K`-algebra and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/

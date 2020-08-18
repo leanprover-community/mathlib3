@@ -1185,9 +1185,19 @@ s.circumcenter_circumradius_unique_dist_eq.1.1
 
 /-- All points have distance from the circumcenter equal to the
 circumradius. -/
-lemma dist_circumcenter_eq_circumradius {n : ℕ} (s : simplex ℝ P n) :
+@[simp] lemma dist_circumcenter_eq_circumradius {n : ℕ} (s : simplex ℝ P n) :
   ∀ i, dist (s.points i) s.circumcenter = s.circumradius :=
 s.circumcenter_circumradius_unique_dist_eq.1.2
+
+/-- All points have distance to the circumcenter equal to the
+circumradius. -/
+@[simp] lemma dist_circumcenter_eq_circumradius' {n : ℕ} (s : simplex ℝ P n) :
+  ∀ i, dist s.circumcenter (s.points i) = s.circumradius :=
+begin
+  intro i,
+  rw dist_comm,
+  exact dist_circumcenter_eq_circumradius _ _
+end
 
 /-- Given a point in the affine span from which all the points are
 equidistant, that point is the circumcenter. -/

@@ -599,90 +599,10 @@ def to_zmod : ℤ_[p] →+* zmod p :=
   end }
 .
 
-noncomputable def foobar : ℕ → ℤ_[p] → ℕ
-| 0     x := 0
-| (n+1) x :=
-let y := x - (to_zmod x).val in
-if hy : y = 0 then
-  (to_zmod x).val
-else
-  let u := unit_coeff hy in
-  -- have x = (to_zmod x).val + p * (u : ℤ_[p]) * p ^ (y.valuation - 1).nat_abs,
-  -- by sorry,
-  (to_zmod x).val + p * foobar n (u * (p ^ (y.valuation - 1).nat_abs))
-
--- def to_zmod_pow (n : ℕ) : ℤ_[p] →+* zmod (p ^ n) :=
--- _
-
-lemma foobar_lt (n : ℕ) : ∀ (x : ℤ_[p]), foobar n x < p ^ n :=
+def to_zmod_spec (z : ℤ_[p]) : ∥(z - to_zmod z)∥ < 1 :=
+have _, from classical.some_spec (exists_mem_range z),
 begin
-  induction n with n ih,
-  { simp [foobar], },
-  intro x,
-  dsimp only [foobar],
-  have aux : p ≤ p ^ (n + 1),
-  { conv_lhs { rw ← one_mul p },
-    rw nat.pow_succ,
-    apply nat.mul_le_mul_right,
-    apply nat.pow_pos (nat.prime.pos ‹_›) _, },
-  split_ifs with h,
-  { refine lt_of_lt_of_le (zmod.val_lt _) aux, },
-  { calc _ < p + p * (nat.pred (p ^ n)) : _
-    ... = p ^ (n + 1) : _,
-    { apply lt_of_succ_le,
-      rw [nat.succ_eq_add_one, add_right_comm],
-      refine add_le_add (zmod.val_lt _) _,
-      apply nat.mul_le_mul_left,
-      apply le_of_succ_le_succ,
-      rw succ_pred_eq_of_pos (nat.pow_pos (nat.prime.pos ‹_›) _),
-      apply ih, },
-    { rw [nat.pred_eq_sub_one, nat.mul_sub_left_distrib, mul_one, mul_comm, ← nat.pow_succ],
-      exact add_sub_of_le aux } }
-end
-
--- lemma foobar_p_mul (n : ℕ) : ∀ (x : ℤ_[p]), foobar (n+1) (p * x) = foobar n x :=
--- begin
---   induction n with n ih,
---   { dsimp [foobar], intro x, split_ifs;
---     simp only [ring_hom.map_nat_cast, zmod.cast_self, zmod.val_zero, zero_mul, mul_zero, ring_hom.map_mul], },
---   intro x,
---   show dite _ _ _ = _,
---   split_ifs with h h',
---   { dsimp [foobar],
---     simp at h, cases h,
---     { contrapose! h, exact nat.prime.ne_zero ‹_› },
---     { subst x,
---       -- why so slow? and squeeze_simp doesn't work...
---       -- simp,
---       sorry
---        } },
---   { simp only [ring_hom.map_nat_cast, zmod.cast_self, zmod.val_zero, cast_eq_zero, zero_mul, sub_zero, cast_zero, ring_hom.map_mul,
---  mul_eq_zero] at h h',
---     push_neg at h, },
---   {  }
--- end
-
-lemma ind_step (n : ℕ) (x : ℤ_[p]) (ih : ↑p^n ∣ x - foobar n x) : ↑p^(n+1) ∣ x - foobar (n+1) x :=
-begin
-  dsimp only [foobar],
-  split_ifs with h,
-  { rw h, apply dvd_zero },
-  { have := unit_coeff_spec h,
-    have p_dvd : ↑p ∣ x - (to_zmod x).val,
-    { sorry },
-    {
-      push_cast, rw sub_add_eq_sub_sub,
-    rw [pow_succ], apply dvd_add,
-    sorry, sorry
-    } }
-end
-
-lemma foobar_spec (n : ℕ) (x : ℤ_[p]) : x - foobar n x ∈ (ideal.span {p^n} : ideal ℤ_[p]) :=
-begin
-  induction n with n ih,
-  { simp [foobar] },
-  { rw [ideal.mem_span_singleton] at *,
-    apply ind_step _ _ ih }
+  sorry
 end
 
 noncomputable def quux : ℕ → ℤ_[p] → ℕ
@@ -697,10 +617,34 @@ else
   -- by sorry,
   quux n x + p ^ n * (to_zmod ((u : ℤ_[p]) * (p ^ (y.valuation - n).nat_abs))).val
 
+
+
 @[simp] lemma aux (n : ℕ) (c : ℤ_[p]) :
   (↑p ^ n * c).valuation - n = c.valuation :=
 begin
   sorry
+end
+
+@[simp] lemma aux2 (n : ℕ) (c : ℤ_[p]) :
+  (↑p ^ n * c).valuation = n + c.valuation :=
+begin
+  sorry
+end
+
+lemma f2 (z : ℤ_[p]) : ↑p ∣ z - to_zmod z :=
+begin
+  by_cases hz : z = 0,
+  { simp [hz] },
+  have := unit_coeff_spec hz,
+  rw this,
+  simp only [ring_hom.map_nat_cast, zmod.cast_self, ring_hom.map_pow, ring_hom.map_mul],
+  by_cases hzv : z.valuation.nat_abs = 0,
+  { simp [hzv], apply p_dvd_of_norm_lt_one, apply to_zmod_spec },
+  {rw _root_.zero_pow,
+  { simp only [is_unit_unit, is_unit.dvd_mul_left, sub_zero, zmod.cast_zero, mul_zero],
+    apply dvd_pow,
+    {refl}, {assumption} },
+  {exact nat.pos_of_ne_zero hzv}}
 end
 
 lemma quux_spec (n : ℕ) : ∀ (x : ℤ_[p]), x - quux n x ∈ (ideal.span {p^n} : ideal ℤ_[p]) :=
@@ -715,17 +659,27 @@ begin
     { push_cast, rw sub_add_eq_sub_sub,
       have := unit_coeff_spec h,
       obtain ⟨c, hc⟩ := ih x,
+      conv_rhs {congr, rw this},
       simp only [hc],
       simp only [ring_hom.map_nat_cast, zmod.cast_self, ring_hom.map_pow, ring_hom.map_mul, zmod.nat_cast_val],
-      simp only [aux],
+      rw aux,
       by_cases hc0 : c.valuation.nat_abs = 0,
-      { rw hc0, simp only [mul_one, pow_zero],
-        sorry },
-      { rw _root_.zero_pow (nat.pos_of_ne_zero hc0),
-        simp only [sub_zero, zmod.cast_zero, mul_zero],
-        sorry }
-       } }
+      { rw [hc0, _root_.pow_zero, mul_one, aux2, int.nat_abs_add_nonneg],
+        { simp only [hc0, int.nat_abs_of_nat, add_zero],
+          rw [mul_comm, ←mul_sub, pow_succ, mul_comm, mul_dvd_mul_iff_left],
+          { apply f2 },
+          apply pow_ne_zero, exact_mod_cast nat.prime.ne_zero ‹_› },
+        {simp},
+        {apply valuation_nonneg }   },
+      rw [_root_.zero_pow],
+     { simp,
+      rw int.nat_abs_add_nonneg,
+     { apply _root_.pow_dvd_pow, norm_cast, omega },
+     { exact_mod_cast nat.zero_le _ },
+     { apply valuation_nonneg } },
+    omega } }
 end
+
 
 end padic_int
 

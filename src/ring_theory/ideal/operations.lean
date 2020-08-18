@@ -859,7 +859,7 @@ end
 
 end ideal
 
-lemma ideal_mul_eq_zero (R : Type* )[integral_domain R] {I J : ideal R} : (I * J = ⊥) ↔ I = ⊥ ∨ J = ⊥ :=
+lemma ideal_mul_eq_bot (R : Type*) [integral_domain R] {I J : ideal R} : (I * J = ⊥) ↔ I = ⊥ ∨ J = ⊥ :=
 begin
   have hJ : inhabited J, by exact submodule.inhabited J,
   have j := inhabited.default J, clear hJ,

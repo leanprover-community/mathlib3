@@ -479,7 +479,7 @@ end pi
 end ideal
 
 --Move this somewhere better
-lemma zero_prime [integral_domain α] : (⊥ : ideal α).is_prime :=
+lemma bot_prime [integral_domain α] : (⊥ : ideal α).is_prime :=
 begin
   split,
   { intro,

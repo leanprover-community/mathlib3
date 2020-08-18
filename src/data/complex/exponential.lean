@@ -877,10 +877,8 @@ by rw ← of_real_inj; simp [sinh_add]
 
 /-- The definition of `cosh` in terms of `exp`. -/
 lemma cosh_eq (x : ℝ) : cosh x = (exp x + exp (-x)) / 2 :=
-by { simp only [cosh, complex.cosh, complex.div_re, complex.exp_of_real_re, complex.one_re,
-  bit0_zero, add_zero, complex.add_re, euclidean_domain.zero_div, complex.bit0_re,
-  complex.one_im, complex.bit0_im, mul_zero, ← complex.of_real_neg, complex.norm_sq],
-  ring }
+eq_div_of_mul_eq two_ne_zero $ by rw [cosh, exp, exp, complex.of_real_neg, complex.cosh, mul_two,
+    ← complex.add_re, ← mul_two, div_mul_cancel _ (two_ne_zero' : (2 : ℂ) ≠ 0), complex.add_re]
 
 @[simp] lemma cosh_zero : cosh 0 = 1 := by simp [cosh]
 

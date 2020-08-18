@@ -42,8 +42,66 @@ class exact {A B C : V} (f : A ⟶ B) (g : B ⟶ C) : Prop :=
 (epi : epi (image_to_kernel_map f g w))
 
 attribute [instance] exact.epi
+attribute [simp, reassoc] exact.w
 
 section
+variables {A B C D : V} {f : A ⟶ B} {g : B ⟶ C} {h : C ⟶ D}
+
+lemma exact_epi_comp [exact g h] [epi f] : exact (f ≫ g) h :=
+begin
+  refine ⟨by simp, _⟩,
+  let mf : mono_factorisation (f ≫ g) :=
+  { I := _,
+    m := image.ι g,
+    m_mono := by apply_instance,
+    e := f ≫ factor_thru_image g,
+    fac' := by simp },
+  have : image_to_kernel_map (f ≫ g) h (by simp) = image.lift mf ≫ image_to_kernel_map g h exact.w,
+  { ext, simp },
+  rw this,
+  suffices : epi (image.lift mf),
+  { exactI epi_comp _ _ },
+  haveI : epi (f ≫ factor_thru_image g) := epi_comp _ _,
+  apply epi_of_epi_fac (image.fac_lift mf)
+end
+
+lemma exact_comp_mono [exact f g] [mono h] : exact f (g ≫ h) :=
+begin
+  refine ⟨by simp, _⟩,
+  letI : is_iso (kernel.lift (g ≫ h) (kernel.ι g) (by simp)) :=
+  { inv := kernel.lift g (kernel.ι (g ≫ h)) (by simp [←cancel_mono h]) },
+  have : image_to_kernel_map f (g ≫ h) (by simp) = image_to_kernel_map f g exact.w ≫
+    kernel.lift (g ≫ h) (kernel.ι g) (by simp),
+  { ext, simp },
+  rw this,
+  exact epi_comp _ _
+end
+
+lemma exact_kernel : exact (kernel.ι f) f :=
+begin
+  refine ⟨kernel.condition _, _⟩,
+  letI : is_iso (image_to_kernel_map (kernel.ι f) f (kernel.condition f)) :=
+  { inv := factor_thru_image (kernel.ι f),
+    hom_inv_id' := by simp [←cancel_mono (image.ι (kernel.ι f))] },
+  apply_instance
+end
+
+lemma exact_zero_iff_mono : exact (0 : A ⟶ B) g ↔ mono g :=
+begin
+  split,
+  { introI,
+
+  }
+end
+
+lemma exact_cokernel [has_cokernel f] : exact f (cokernel.π f) :=
+begin
+
+end
+
+end
+
+section has_cokernels
 variables [has_cokernels V] {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
 
 @[simp, reassoc] lemma kernel_comp_cokernel [exact f g] : kernel.ι g ≫ cokernel.π f = 0 :=
@@ -59,5 +117,6 @@ by rw [←kernel.lift_ι _ _ hι, ←cokernel.π_desc _ _ hπ, category.assoc, k
   (t : cokernel_cofork f) : fork.ι s ≫ cofork.π t = 0 :=
 comp_eq_zero_of_exact f g (kernel_fork.condition s) (cokernel_cofork.condition t)
 
-end
+end has_cokernels
+
 end category_theory

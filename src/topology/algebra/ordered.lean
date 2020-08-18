@@ -1221,6 +1221,18 @@ begin
   exact (hf.1 C' hC').mp (eventually_of_forall (λ x hx, le_of_lt hx))
 end
 
+/-- In a linearly ordered ring with the order topology, if `f` tends to `C` and `g` tends to
+`at_bot` then `f + g` tends to `at_bot`. -/
+lemma tendsto_at_bot_add_tendsto_left
+  {C : α} (hf : tendsto f l (nhds C)) (hg : tendsto g l at_bot) :
+  tendsto (λ x, f x + g x) l at_bot :=
+begin
+  obtain ⟨C', hC'⟩ : ∃ C', C < C' := no_top C,
+  refine tendsto_at_bot_add_left_of_ge' _ C' _ hg,
+  rw tendsto_order at hf,
+  exact (hf.2 C' hC').mp (eventually_of_forall (λ x hx, le_of_lt hx))
+end
+
 /-- In a linearly ordered ring with the order topology, if `f` tends to `at_top` and `g` tends to
 `C` then `f + g` tends to `at_top`. -/
 lemma tendsto_at_top_add_tendsto_right
@@ -1228,6 +1240,17 @@ lemma tendsto_at_top_add_tendsto_right
   tendsto (λ x, f x + g x) l at_top :=
 begin
   convert tendsto_at_top_add_tendsto_left hg hf,
+  ext,
+  exact add_comm _ _,
+end
+
+/-- In a linearly ordered ring with the order topology, if `f` tends to `at_bot` and `g` tends to
+`C` then `f + g` tends to `at_bot`. -/
+lemma tendsto_at_bot_add_tendsto_right
+  {C : α} (hf : tendsto f l at_bot) (hg : tendsto g l (nhds C)) :
+  tendsto (λ x, f x + g x) l at_bot :=
+begin
+  convert tendsto_at_bot_add_tendsto_left hg hf,
   ext,
   exact add_comm _ _,
 end

@@ -614,8 +614,33 @@ else
 -- def to_zmod_pow (n : ℕ) : ℤ_[p] →+* zmod (p ^ n) :=
 -- _
 
+lemma foobar_lt (n : ℕ) : ∀ (x : ℤ_[p]), foobar n x < p ^ n :=
+begin
+  induction n with n ih,
+  { simp [foobar], },
+  intro x,
+  dsimp only [foobar],
+  have aux : p ≤ p ^ (n + 1),
+  { conv_lhs { rw ← one_mul p },
+    rw nat.pow_succ,
+    apply nat.mul_le_mul_right,
+    apply nat.pow_pos (nat.prime.pos ‹_›) _, },
+  split_ifs with h,
+  { refine lt_of_lt_of_le (zmod.val_lt _) aux, },
+  { calc _ < p + p * (nat.pred (p ^ n)) : _
+    ... = p ^ (n + 1) : _,
+    { apply lt_of_succ_le,
+      rw [nat.succ_eq_add_one, add_right_comm],
+      refine add_le_add (zmod.val_lt _) _,
+      apply nat.mul_le_mul_left,
+      apply le_of_succ_le_succ,
+      rw succ_pred_eq_of_pos (nat.pow_pos (nat.prime.pos ‹_›) _),
+      apply ih, },
+    { rw [nat.pred_eq_sub_one, nat.mul_sub_left_distrib, mul_one, mul_comm, ← nat.pow_succ],
+      exact add_sub_of_le aux } }
+end
 
-lemma ind_hyp (n : ℕ) (x : ℤ_[p]) (ih : ↑p^n ∣ x - foobar n x) : ↑p^(n+1) ∣ x - foobar (n+1) x :=
+lemma ind_step (n : ℕ) (x : ℤ_[p]) (ih : ↑p^n ∣ x - foobar n x) : ↑p^(n+1) ∣ x - foobar (n+1) x :=
 begin
   dsimp only [foobar],
   split_ifs with h,
@@ -623,8 +648,10 @@ begin
   { have := unit_coeff_spec h,
     have p_dvd : ↑p ∣ x - (to_zmod x).val,
     { sorry },
-    {  push_cast, rw sub_add_eq_sub_sub,
+    {
+      push_cast, rw sub_add_eq_sub_sub,
     rw [pow_succ], apply dvd_add,
+    sorry, sorry
     } }
 end
 
@@ -633,7 +660,7 @@ begin
   induction n with n ih,
   { simp [foobar] },
   { rw [ideal.mem_span_singleton] at *,
-    apply ind_hyp _ _ ih }
+    apply ind_step _ _ ih }
 end
 
 end padic_int

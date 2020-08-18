@@ -674,7 +674,7 @@ begin
         by { assume E, apply h', rw [← E, cast_succ_cast_lt] },
       simp [h', this, snoc, h] } },
   { rw eq_last_of_not_lt h,
-    simp [ne.symm (cast_succ_ne_last i)] }
+    simp [ne.symm (ne_of_lt (cast_succ_lt_last i))] }
 end
 
 /-- Adding an element at the beginning of a tuple and then updating it amounts to adding it
@@ -705,7 +705,7 @@ end
 
 /-- Updating the last element of a tuple does not change the beginning. -/
 @[simp] lemma init_update_last : init (update q (last n) z) = init q :=
-by { ext j, simp [init, cast_succ_ne_last] }
+by { ext j, simp [init, ne_of_lt, cast_succ_lt_last] }
 
 /-- Updating an element and taking the beginning commute. -/
 @[simp] lemma init_update_cast_succ :

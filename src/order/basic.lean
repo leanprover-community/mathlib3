@@ -421,7 +421,7 @@ le_antisymm (le_of_forall_ge_of_dense h₂) h₁
 
 lemma dense_or_discrete [linear_order α] (a₁ a₂ : α) :
   (∃a, a₁ < a ∧ a < a₂) ∨ ((∀a>a₁, a₂ ≤ a) ∧ (∀a<a₂, a ≤ a₁)) :=
-classical.or_iff_not_imp_left.2 $ assume h,
+or_iff_not_imp_left.2 $ assume h,
   ⟨assume a ha₁, le_of_not_gt $ assume ha₂, h ⟨a, ha₁, ha₂⟩,
     assume a ha₂, le_of_not_gt $ assume ha₁, h ⟨a, ha₁, ha₂⟩⟩
 

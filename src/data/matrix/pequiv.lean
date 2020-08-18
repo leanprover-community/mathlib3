@@ -101,7 +101,7 @@ begin
   assume f g,
   refine not_imp_not.1 _,
   simp only [matrix.ext_iff.symm, to_matrix, pequiv.ext_iff,
-    classical.not_forall, exists_imp_distrib],
+    not_forall, exists_imp_distrib],
   assume i hi,
   use i,
   cases hf : f i with fi,

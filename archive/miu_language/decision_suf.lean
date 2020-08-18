@@ -309,9 +309,9 @@ begin
   { exfalso, rw count at h, contradiction, },
   { simp only [mem_cons_iff],
     cases z,
-      repeat -- cases `z = M` and `z=I`
-      { right, apply hzs, simp only [count, countp, if_false] at h, rw ←h, refl, },
-      { left, refl, }, }, -- case `z = U`
+    repeat -- cases `z = M` and `z=I`
+    { right, apply hzs, simp only [count, countp, if_false] at h, rw ←h, refl, },
+    { left, refl, }, }, -- case `z = U`
 end
 
 

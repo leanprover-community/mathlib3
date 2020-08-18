@@ -461,14 +461,16 @@ begin
 end
 
 /-- An auxiliary lemma used in `exists_mem_range_of_norm_rat_lt_one`. -/
-private lemma exists_mem_range_aux (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
-  ↑p ∣ r.num - r.num * r.denom.gcd_a p * ↑(r.denom) :=
+private lemma exists_mem_range_aux' (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
+  ↑p ∣ r.num - r.num * r.denom.gcd_a p % p * ↑(r.denom) :=
 begin
   rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
   simp only [int.cast_coe_nat, zmod.coe_nat_mod p (nat.prime.ne_zero ‹_›), int.cast_mul, int.cast_sub],
   have := congr_arg (coe : ℤ → zmod p) (gcd_eq_gcd_ab r.denom p),
   simp only [int.cast_coe_nat, add_zero, int.cast_add, zmod.cast_self, int.cast_mul, zero_mul] at this,
-  rw [mul_right_comm, mul_assoc, ← this],
+  -- rw [mul_right_comm, mul_assoc, ← this],
+  push_cast,
+  rw [mul_right_comm, mul_assoc, ←this],
   suffices help : r.denom.coprime p,
   { rw help.gcd_eq_one, simp only [mul_one, cast_one, sub_self], },
   apply coprime.symm,
@@ -479,12 +481,27 @@ begin
   exact is_unit_denom r h,
 end
 
-lemma exists_mem_range_of_norm_rat_le_one (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
-  ∃ n : ℤ, ∥(⟨r,h⟩ - n : ℤ_[p])∥ < 1 :=
+section
+variables (r : ℚ)
+variable (p)
+def mod_part : ℤ :=
+(r.num * gcd_a r.denom p) % p
+
+variable {p}
+lemma mod_part_lt_p : mod_part p r < p :=
 begin
-  let n := r.num * gcd_a r.denom p,
-  use n,
-  by_cases aux : (⟨r,h⟩ - n : ℤ_[p]) = 0,
+  convert int.mod_lt _ _,
+  { simp },
+  { exact_mod_cast nat.prime.ne_zero ‹_› }
+end
+
+lemma mod_part_nonneg : 0 ≤  mod_part p r :=
+int.mod_nonneg _ $ by exact_mod_cast nat.prime.ne_zero ‹_›
+
+
+lemma norm_sub_mod_part (h : ∥(r : ℚ_[p])∥ ≤ 1) : ∥(⟨r,h⟩ - mod_part p r : ℤ_[p])∥ < 1 :=
+begin
+  let n := mod_part p r,  by_cases aux : (⟨r,h⟩ - n : ℤ_[p]) = 0,
   { rw [aux, norm_zero], exact zero_lt_one, },
   suffices : ↑p ∣ (⟨r,h⟩ - n : ℤ_[p]),
   { rcases this with ⟨x, hx⟩,
@@ -503,25 +520,18 @@ begin
     apply subtype.coe_injective,
     simp only [coe_mul, subtype.coe_mk, coe_coe],
     rw_mod_cast @rat.mul_denom_eq_num r, refl },
-  apply exists_mem_range_aux r h,
+  dsimp [n, mod_part],
+  apply exists_mem_range_aux' r h,
 end
 
-lemma exists_mem_range (x : ℤ_[p]) :
-  ∃ n : ℤ, ∥(x - n : ℤ_[p])∥ < 1 :=
-begin
-  obtain ⟨r, hr⟩ := rat_dense (x : ℚ_[p]) zero_lt_one,
-  have H : ∥(r : ℚ_[p])∥ ≤ 1,
-  { rw norm_sub_rev at hr,
-    rw show (r : ℚ_[p]) = (r - x) + x, by ring,
-    apply le_trans (padic_norm_e.nonarchimedean _ _),
-    apply max_le (le_of_lt hr) x.2, },
-  obtain ⟨n, hn⟩ := exists_mem_range_of_norm_rat_le_one r H,
-  use n,
-  simp only [padic_norm_z, coe_sub, subtype.coe_mk, coe_coe_int] at hn ⊢,
-  rw show (x - n : ℚ_[p]) = (x - r) + (r - n), by ring,
-  apply lt_of_le_of_lt (padic_norm_e.nonarchimedean _ _),
-  apply max_lt hr hn,
+
+lemma exists_mem_range_of_norm_rat_le_one (h : ∥(r : ℚ_[p])∥ ≤ 1) :
+  ∃ n : ℤ, 0 ≤ n ∧ n < p ∧ ∥(⟨r,h⟩ - n : ℤ_[p])∥ < 1 :=
+⟨mod_part p r, mod_part_nonneg _, mod_part_lt_p _, norm_sub_mod_part _ h⟩
+
 end
+
+section
 
 lemma exists_mem_range_congr (x : ℤ_[p]) (m n : ℤ)
   (hm : ∥x - m∥ < 1) (hn : ∥x - n∥ < 1) :
@@ -536,26 +546,58 @@ begin
   simpa [sub_eq_zero],
 end
 
+variable (x : ℤ_[p])
+lemma exists_mem_range :
+  ∃ n : ℤ, 0 ≤ n ∧ n < p ∧ ∥(x - n : ℤ_[p])∥ < 1 :=
+begin
+  obtain ⟨r, hr⟩ := rat_dense (x : ℚ_[p]) zero_lt_one,
+  have H : ∥(r : ℚ_[p])∥ ≤ 1,
+  { rw norm_sub_rev at hr,
+    rw show (r : ℚ_[p]) = (r - x) + x, by ring,
+    apply le_trans (padic_norm_e.nonarchimedean _ _),
+    apply max_le (le_of_lt hr) x.2, },
+  obtain ⟨n, hzn, hnp, hn⟩ := exists_mem_range_of_norm_rat_le_one r H,
+  use [n, hzn, hnp],
+  simp only [padic_norm_z, coe_sub, subtype.coe_mk, coe_coe_int] at hn ⊢,
+  rw show (x - n : ℚ_[p]) = (x - r) + (r - n), by ring,
+  apply lt_of_le_of_lt (padic_norm_e.nonarchimedean _ _),
+  apply max_lt hr hn,
+end
+
+def zmod_repr : ℤ :=
+classical.some (exists_mem_range x)
+
+lemma zmod_repr_spec : 0 ≤ zmod_repr x ∧ zmod_repr x < p ∧ ∥(x - zmod_repr x : ℤ_[p])∥ < 1 :=
+classical.some_spec (exists_mem_range x)
+
+lemma zmod_repr_nonneg : 0 ≤ zmod_repr x := (zmod_repr_spec _).1
+
+lemma zmod_repr_lt_p : zmod_repr x < p := (zmod_repr_spec _).2.1
+
+lemma norm_sub_zmod_repr : ∥(x - zmod_repr x : ℤ_[p])∥ < 1 := (zmod_repr_spec _).2.2
+
+end
+
 def to_zmod : ℤ_[p] →+* zmod p :=
-{ to_fun := λ x, ((classical.some (exists_mem_range x) : ℤ) : zmod p),
+{ to_fun := λ x, ((zmod_repr x : ℤ) : zmod p),
   map_zero' :=
   begin
-    have h0 := classical.some_spec (exists_mem_range (0 : ℤ_[p])),
+    have h0 := norm_sub_zmod_repr 0,
     rw exists_mem_range_congr _ _ 0 h0; simp only [norm_zero, int.cast_zero, sub_zero],
     exact zero_lt_one,
   end,
   map_one' :=
   begin
-    have h1 := classical.some_spec (exists_mem_range (1 : ℤ_[p])),
+    have h1 := norm_sub_zmod_repr 1,
     rw exists_mem_range_congr _ _ 1 h1; simp only [norm_zero, int.cast_one, sub_self],
     exact zero_lt_one,
   end,
   map_add' :=
   begin
     intros x y,
-    have hx := classical.some_spec (exists_mem_range x),
-    have hy := classical.some_spec (exists_mem_range y),
-    have hxy := classical.some_spec (exists_mem_range (x + y)),
+    have hx := norm_sub_zmod_repr x,
+    have hy := norm_sub_zmod_repr y,
+    have hxy := norm_sub_zmod_repr (x + y),
     rw ← int.cast_add,
     rw exists_mem_range_congr (x + y) _ _ hxy,
     let X : ℤ := classical.some (exists_mem_range x),
@@ -571,13 +613,13 @@ def to_zmod : ℤ_[p] →+* zmod p :=
   map_mul' :=
   begin
     intros x y,
-    have hx := classical.some_spec (exists_mem_range x),
-    have hy := classical.some_spec (exists_mem_range y),
-    have hxy := classical.some_spec (exists_mem_range (x * y)),
+    have hx := norm_sub_zmod_repr x,
+    have hy := norm_sub_zmod_repr y,
+    have hxy := norm_sub_zmod_repr (x * y),
     rw ← int.cast_mul,
     rw exists_mem_range_congr (x * y) _ _ hxy,
-    let X : ℤ := classical.some (exists_mem_range x),
-    let Y : ℤ := classical.some (exists_mem_range y),
+    let X : ℤ := zmod_repr x,
+    let Y : ℤ := zmod_repr y,
     show ∥x * y - ↑(X * Y)∥ < 1,
     change ∥x - X∥ < 1 at hx,
     change ∥y - Y∥ < 1 at hy,
@@ -597,12 +639,21 @@ def to_zmod : ℤ_[p] →+* zmod p :=
     convert this using 2,
     ring,
   end }
-.
+
 
 def to_zmod_spec (z : ℤ_[p]) : ∥(z - to_zmod z)∥ < 1 :=
-have _, from classical.some_spec (exists_mem_range z),
 begin
-  sorry
+  convert norm_sub_zmod_repr z using 3,
+  dsimp [to_zmod],
+  have z_lt := zmod_repr_lt_p z,
+  lift z.zmod_repr to ℕ  using zmod_repr_nonneg z with n,
+  have : ∃ p' : ℕ, p = p' + 1 := ⟨p - 1, _⟩,
+  { unfreezingI {rcases this with ⟨p', rfl⟩},
+    change ↑(zmod.val n) = _,
+    simp [zmod.val_cast_nat],
+    rw mod_eq_of_lt,
+    assumption_mod_cast },
+  { have : 1 < p, from nat.prime.one_lt ‹_›, omega }
 end
 
 noncomputable def quux : ℕ → ℤ_[p] → ℕ
@@ -639,7 +690,8 @@ begin
   rw this,
   simp only [ring_hom.map_nat_cast, zmod.cast_self, ring_hom.map_pow, ring_hom.map_mul],
   by_cases hzv : z.valuation.nat_abs = 0,
-  { simp [hzv], apply p_dvd_of_norm_lt_one, apply to_zmod_spec },
+  { simp [hzv],
+    have := discrete_valuation_ring.unit_mul_pow_congr_unit (@irreducible_p p _), },
   {rw _root_.zero_pow,
   { simp only [is_unit_unit, is_unit.dvd_mul_left, sub_zero, zmod.cast_zero, mul_zero],
     apply dvd_pow,

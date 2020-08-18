@@ -137,6 +137,11 @@ instance : char_zero ℤ_[p] :=
   λ m n h, cast_injective $
   show (m:ℚ_[p]) = n, by { rw subtype.ext_iff at h, norm_cast at h, exact h } }
 
+
+@[simp, norm_cast] lemma coe_int_eq (z1 z2 : ℤ) : (z1 : ℤ_[p]) = z2 ↔ z1 = z2 :=
+suffices (z1 : ℚ_[p]) = z2 ↔ z1 = z2, from iff.trans (by norm_cast) this,
+by norm_cast
+
 end padic_int
 
 section instances
@@ -218,6 +223,9 @@ by_contradiction $ λ hne,
   not_lt_of_ge (by rw padic_norm_z.add_eq_max_of_ne hne; apply le_max_left) h
 
 @[simp] lemma padic_norm_e_of_padic_int (z : ℤ_[p]) : ∥(↑z : ℚ_[p])∥ = ∥z∥ :=
+by simp [padic_norm_z]
+
+lemma padic_norm_z_of_int (z : ℤ) : ∥(z : ℤ_[p])∥ = ∥(z : ℚ_[p])∥ :=
 by simp [padic_norm_z]
 
 @[simp] lemma padic_norm_z_eq_padic_norm_e {q : ℚ_[p]} (hq : ∥q∥ ≤ 1) :
@@ -419,51 +427,16 @@ lemma ideal_eq_span_pow_p {s : ideal ℤ_[p]} (hs : s ≠ ⊥) :
   ∃ n : ℕ, s = ideal.span {p ^ n} :=
 discrete_valuation_ring.ideal_eq_span_pow_irreducible hs irreducible_p
 
-@[simp, norm_cast] lemma coe_int_eq (z1 z2 : ℤ) : (z1 : ℤ_[p]) = z2 ↔ z1 = z2 :=
-suffices (z1 : ℚ_[p]) = z2 ↔ z1 = z2, from iff.trans (by norm_cast) this,
-by norm_cast
-
-lemma int.to_nat_of_neg : ∀ {z : ℤ}, ¬ 0 ≤ z → z.to_nat = 0
-| (-[1+n]) _ := rfl
-| (int.of_nat n) h := (h $ int.of_nat_nonneg n).elim
-
-lemma give_better_name (k : ℤ) : ∥(k : ℤ_[p])∥ < 1 ↔ ↑p ∣ k :=
-begin
-  split,
-  { intro h,
-    contrapose! h,
-    apply le_of_eq,
-    rw eq_comm,
-    calc ∥(k : ℤ_[p])∥ = ∥((k : ℚ) : ℚ_[p])∥ : by { rw [padic_norm_z], norm_cast }
-    ... = padic_norm p k : padic_norm_e.eq_padic_norm _
-    ... = 1 : _,
-    rw padic_norm,
-    split_ifs with H,
-    { exfalso, apply h, norm_cast at H, rw H, simp only [dvd_zero] },
-    norm_cast at H,
-    norm_cast,
-    convert fpow_zero _,
-    simp only [neg_eq_zero],
-    rw padic_val_rat.padic_val_rat_of_int _ (nat.prime.ne_one ‹_›) H,
-    norm_cast,
-    rw [← enat.coe_inj, enat.coe_get, enat.coe_zero],
-    apply multiplicity.multiplicity_eq_zero_of_not_dvd h, },
-  { rintro ⟨x, rfl⟩,
-    push_cast,
-    rw padic_norm_z.mul,
-    calc _ ≤ ∥(p : ℤ_[p])∥ * 1 : mul_le_mul (le_refl _) (x : ℤ_[p]).2 (norm_nonneg _) (norm_nonneg _)
-    ... < 1 : _,
-    { rw [mul_one, padic_norm_z.norm_p],
-      apply inv_lt_one,
-      exact_mod_cast nat.prime.one_lt ‹_› }, },
-end
+lemma norm_int_lt_one_iff_dvd (k : ℤ) : ∥(k : ℤ_[p])∥ < 1 ↔ ↑p ∣ k :=
+suffices ∥(k : ℚ_[p])∥ < 1 ↔ ↑p ∣ k, by rwa padic_norm_z.padic_norm_z_of_int,
+padic_norm_e.norm_int_lt_one_iff_dvd k
 
 lemma is_unit_denom (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) : is_unit (r.denom : ℤ_[p]) :=
 begin
   rw is_unit_iff,
   apply le_antisymm (r.denom : ℤ_[p]).2,
   rw [← not_lt, val_eq_coe, coe_coe],
-  intro oops,
+  intro norm_denon_lt,
   have help : ∥(r * r.denom : ℚ_[p])∥ = ∥(r.num : ℚ_[p])∥,
   { rw_mod_cast @rat.mul_denom_eq_num r, refl, },
   rw padic_norm_e.mul at help,
@@ -471,35 +444,17 @@ begin
   { calc _ = _ : help.symm
     ... < 1 * 1 : _
     ... = 1 : mul_one 1,
-    apply mul_lt_mul' h oops (norm_nonneg _) zero_lt_one, },
+    apply mul_lt_mul' h norm_denon_lt (norm_nonneg _) zero_lt_one, },
   have oolala : ↑p ∣ r.num ∧ (p : ℤ) ∣ r.denom,
-  { simp only [← give_better_name, ← padic_norm_z.padic_norm_e_of_padic_int],
-    norm_cast, exact ⟨key, oops⟩ },
+  { simp only [← norm_int_lt_one_iff_dvd, ← padic_norm_z.padic_norm_e_of_padic_int],
+    norm_cast, exact ⟨key, norm_denon_lt⟩ },
   suffices boom : p ∣ 1,
   { exact nat.prime.not_dvd_one ‹_› boom },
   rwa [← r.cop.gcd_eq_one, nat.dvd_gcd_iff, ← int.coe_nat_dvd_left, ← int.coe_nat_dvd],
 end
 
-@[simp] lemma zmod.coe_to_nat (p : ℕ) :
-  ∀ (z : ℤ) (h : 0 ≤ z), (z.to_nat : zmod p) = z
-| (n : ℕ) h := by simp only [int.cast_coe_nat, int.to_nat_coe_nat]
-| -[1+n]  h := false.elim h
-
-@[simp] lemma zmod.coe_int_mod (p : ℕ) (z : ℤ) :
-  ((z % p : ℤ) : zmod p) = z :=
-begin
-  rw int.mod_def,
-  simp only [int.cast_coe_nat, zmod.cast_self, int.cast_mul, zero_mul, sub_zero, int.cast_sub],
-end
-
-@[simp] lemma zmod.coe_nat_mod (p : ℕ) (h : p ≠ 0) (z : ℤ) : (z.nat_mod p : zmod p) = z :=
-begin
-  show ↑(int.to_nat _) = _,
-  rw [zmod.coe_to_nat, zmod.coe_int_mod],
-  { apply int.mod_nonneg, exact_mod_cast h }
-end
-
-lemma hopla_hop (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
+/-- An auxiliary lemma used in `exists_mem_range_of_norm_rat_lt_one`. -/
+private lemma exists_mem_range_aux (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
   let n : ℤ := r.num * r.denom.gcd_a p
   in ¬(⟨r, h⟩ - (n.nat_mod p) : ℤ_[p]) = 0 →
      ↑p ∣ r.num - (n.nat_mod p) * ↑(r.denom) :=
@@ -514,7 +469,7 @@ begin
   { rw help.gcd_eq_one, simp only [mul_one, cast_one, sub_self], },
   apply coprime.symm,
   apply (coprime_or_dvd_of_prime ‹_› _).resolve_right,
-  rw [← int.coe_nat_dvd, ← give_better_name, not_lt],
+  rw [← int.coe_nat_dvd, ← norm_int_lt_one_iff_dvd, not_lt],
   apply ge_of_eq,
   rw ← is_unit_iff,
   exact is_unit_denom r h,
@@ -530,9 +485,9 @@ begin
     unfold int.nat_mod,
     by_cases h : 0 ≤ n % p,
     { zify, rw int.to_nat_of_nonneg h, convert int.mod_lt _ _,
-      simp,
-      exact_mod_cast nat.prime.ne_zero ‹_› },
-    { zify, rw int.to_nat_of_neg h, exact_mod_cast nat.prime.pos ‹_› } },
+      { simp },
+      { exact_mod_cast nat.prime.ne_zero ‹_› } },
+    { zify, rw int.to_nat_zero_of_neg (lt_of_not_ge h), exact_mod_cast nat.prime.pos ‹_› } },
   { by_cases aux : (⟨r,h⟩ - (n.nat_mod p) : ℤ_[p]) = 0,
     { rw [aux, norm_zero], exact zero_lt_one, },
     suffices : ↑p ∣ (⟨r,h⟩ - (n.nat_mod p) : ℤ_[p]),
@@ -552,7 +507,7 @@ begin
       apply subtype.coe_injective,
       simp only [coe_mul, subtype.coe_mk, coe_coe],
       rw_mod_cast @rat.mul_denom_eq_num r, refl },
-    apply hopla_hop r h aux, }
+    apply exists_mem_range_aux r h aux, }
 end
 
 lemma exists_mem_range (x : ℤ_[p]) :
@@ -572,7 +527,7 @@ begin
   apply max_lt hr yes,
 end
 
-lemma z_dense (x : ℤ_[p]) : ∀ (ε : ℝ), 0 < ε → (∃ (k : ℤ), dist x ↑k < ε) :=
+/- lemma z_dense (x : ℤ_[p]) : ∀ (ε : ℝ), 0 < ε → (∃ (k : ℤ), dist x ↑k < ε) :=
 begin
   intros ε hε,
   obtain ⟨r, hr⟩ := rat_dense (x : ℚ_[p]) hε,
@@ -593,7 +548,7 @@ dense_embedding.mk' _ continuous_of_discrete_topology
   (λ x y, by exact_mod_cast id)
   (begin  end )
 
-
+ -/
 end padic_int
 
 namespace padic_norm_z

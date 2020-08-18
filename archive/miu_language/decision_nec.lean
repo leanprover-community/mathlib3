@@ -58,9 +58,9 @@ lemma mod3_eq_1_or_mod3_eq_2 {a b : ℕ} (h1 : a % 3 = 1 ∨ a % 3 = 2)
 begin
   cases h2,
   { rw h2, exact h1, },
-  cases h1,
-  { right, simpa [h2,mul_mod,h1], },
-  left, simpa [h2,mul_mod,h1],
+  { cases h1,
+    { right, simpa [h2,mul_mod,h1], },
+    { left, simpa [h2,mul_mod,h1], }, },
 end
 
 /--
@@ -74,10 +74,11 @@ begin
   induction h,
   { left, apply mod_def, },
     any_goals {apply mod3_eq_1_or_mod3_eq_2 h_ih},
-  { left, simp only [count_append], refl, },
-  { right, simp [count,count_append], ring, },
-  { left, simp [count_append,count I,refl], ring, },
-    left, simp [count_append,count I,refl],
+    { left, simp only [count_append], refl, },
+    { right, simp only [count, countp, count_append, if_false,two_mul], },
+    { left, simp only [count, count_append, countp, if_false, if_pos],
+      rw [add_right_comm,add_mod_right], },
+    { left, simp only [count,countp,countp_append,if_false,add_zero], },
 end
 
 /--
@@ -115,14 +116,13 @@ lemma goodmi : goodm [M,I] :=
 begin
   split,
   { refl },
-  rw [tail,mem_singleton], trivial
+  { rw [tail,mem_singleton], trivial },
 end
 
 /-!
 We'll show, for each `i` from 1 to 4, that if `en` follows by Rule `i` from `st` and if
 `goodm st` holds, then so does `goodm en`.
 -/
-
 
 lemma goodm_of_rule1 (xs : miustr) (h₁ : derivable (xs ++ [I])) (h₂ : goodm (xs ++ [I]))
   : goodm (xs ++ [I,U]) :=
@@ -132,10 +132,10 @@ begin
   { intro h, rw h at *, rw [nil_append,head] at mhead, contradiction, },
   split,
   { rwa [head_append] at *; exact this, },
-  change [I,U] with [I] ++ [U],
-  rw [←append_assoc,tail_append_singleton_of_ne_nil],
-  { simp [mem_append,nmtail], },
-  exact append_ne_nil_of_ne_nil_left _ _ this,
+  { change [I,U] with [I] ++ [U],
+    rw [←append_assoc,tail_append_singleton_of_ne_nil],
+    { simp only [mem_append,nmtail,false_or,mem_singleton,not_false_iff], },
+    { exact append_ne_nil_of_ne_nil_left _ _ this, }, },
 end
 
 
@@ -144,11 +144,11 @@ lemma goodm_of_rule2 (xs : miustr) (h₁ : derivable (M :: xs))
 begin
   split,
   { refl, },
-  cases h₂ with mhead mtail,
-  contrapose! mtail,
-  rw cons_append at mtail,
-  rw tail at *,
-  exact (or_self _).mp (mem_append.mp mtail),
+  { cases h₂ with mhead mtail,
+    contrapose! mtail,
+    rw cons_append at mtail,
+    rw tail at *,
+    exact (or_self _).mp (mem_append.mp mtail), },
 end
 
 lemma goodm_of_rule3  (as bs : miustr) (h₁ : derivable (as ++ [I,I,I] ++ bs))
@@ -156,15 +156,13 @@ lemma goodm_of_rule3  (as bs : miustr) (h₁ : derivable (as ++ [I,I,I] ++ bs))
 begin
   cases h₂ with mhead nmtail,
   have k : as ≠ nil ,
-    { intro h, rw h at mhead, rw [nil_append] at mhead, contradiction, },
+  { intro h, rw h at mhead, rw [nil_append] at mhead, contradiction, },
   split,
-  { rw [append_assoc,head_append] at *,
-    { rw head_append, { exact mhead, },
-      exact k,},
-    exact k, },
-  contrapose! nmtail,
-  rcases (exists_cons_of_ne_nil k) with ⟨x,xs,rfl⟩,
-  simp [cons_append, tail,mem_append] at *, exact nmtail,
+  { revert mhead, simp only [append_assoc,head_append _ k], exact id, },
+  { contrapose! nmtail,
+    rcases (exists_cons_of_ne_nil k) with ⟨x,xs,rfl⟩,
+    simp only [cons_append, tail,mem_append,mem_cons_iff,false_or,mem_nil_iff,or_false] at *,
+    exact nmtail, },
 end
 
 
@@ -177,15 +175,13 @@ lemma goodm_of_rule4  (as bs : miustr) (h₁ : derivable (as ++ [U,U] ++ bs))
 begin
   cases h₂ with mhead nmtail,
   have k : as ≠ nil ,
-    { intro h, rw h at mhead, rw [nil_append] at mhead, contradiction, },
+  { intro h, rw h at mhead, rw [nil_append] at mhead, contradiction, },
   split,
-  { rw [append_assoc,head_append] at *,
-    { rw head_append, { exact mhead, },
-      exact k,},
-    exact k, },
-  contrapose! nmtail,
-  rcases (exists_cons_of_ne_nil k) with ⟨x,xs,rfl⟩,
-  simp [cons_append, tail,mem_append] at *, exact nmtail,
+  { revert mhead, simp only [append_assoc,head_append _ k], exact id, },
+  { contrapose! nmtail,
+    rcases (exists_cons_of_ne_nil k) with ⟨x,xs,rfl⟩,
+    simp only [cons_append, tail,mem_append,mem_cons_iff,false_or,mem_nil_iff,or_false] at *,
+    exact nmtail, },
 end
 
 
@@ -198,10 +194,10 @@ begin
   intro h,
   induction h,
   { exact goodmi, },
-  apply goodm_of_rule1; assumption,
-  apply goodm_of_rule2; assumption,
-  apply goodm_of_rule3; assumption,
-  apply goodm_of_rule4; assumption,
+  { apply goodm_of_rule1; assumption, },
+  { apply goodm_of_rule2; assumption, },
+  { apply goodm_of_rule3; assumption, },
+  { apply goodm_of_rule4; assumption, },
 end
 
 /-!
@@ -225,7 +221,7 @@ begin
   intro h,
   split,
   { exact goodm_of_derivable en h, },
-  exact count_equiv_one_or_two_mod3_of_derivable en h
+  { exact count_equiv_one_or_two_mod3_of_derivable en h, },
 end
 
 end miu

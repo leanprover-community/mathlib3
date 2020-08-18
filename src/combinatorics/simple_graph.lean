@@ -79,6 +79,15 @@ instance simple_graph_on.simple_graph (V : Type u) (G : simple_graph_on V) : sim
   symm := G.symm,
   loopless := G.irrefl }
 
+/--
+TODO remove this.  It's only here to demonstrate an interesting but probably unreasonable instance.
+-/
+instance from_rel (V : Type u) (r : V → V → Prop) [hs : fact (symmetric r)] [hi : fact (irreflexive r)] :
+  simple_graph r :=
+{ V := V,
+  adj := r,
+  symm := hs,
+  loopless := hi }
 
 namespace simple_graph
 
@@ -305,6 +314,7 @@ such that each endpoint of an edge is contained in the vertex set.
 
 Subgraphs implement the `simple_graph` class.  They also form a bounded lattice.
 -/
+@[ext]
 structure subgraph :=
 (V' : set (V G))
 (E' : set (sym2 (V G)))
@@ -318,7 +328,28 @@ instance subgraph.simple_graph (G' : subgraph G) : simple_graph G' :=
   symm := λ v w h, by rwa sym2.eq_swap,
   loopless := λ ⟨v, _⟩ h, loopless G v (sym2.from_rel_prop.mp (G'.edge_sub h)) }
 
+namespace subgraph
+
 variable {G}
+
+/--
+Given a subgraph, replace the vertex and edge sets with equal sets.
+The resulting subgraph is equal (see `copy_eq`).
+-/
+def copy (G' : subgraph G)
+(V'' : set (V G)) (hV : V'' = G'.V')
+(E'' : set (sym2 (V G))) (hE : E'' = G'.E') :
+  subgraph G :=
+{ V' := V'',
+  E' := E'',
+  edge_sub := hE.symm ▸ G'.edge_sub,
+  has_verts := hE.symm ▸ hV.symm ▸ G'.has_verts }
+
+lemma copy_eq (G' : subgraph G)
+(V'' : set (V G)) (hV : V'' = G'.V')
+(E'' : set (sym2 (V G))) (hE : E'' = G'.E') :
+  G'.copy V'' hV E'' hE = G' :=
+subgraph.ext _ _ hV hE
 
 /--
 The relation that one subgraph is a subgraph of another.
@@ -420,14 +451,27 @@ def induced (V' : set (V G)) : subgraph G :=
   has_verts := λ e ⟨he, h⟩ v hv, h v hv, }
 
 /--
-Map each vertex of a subgraph to the graph's vertex type.
+Map the vertex set of a subgraph to a super-subgraph
 -/
-def subgraph_vert_emb (G' : subgraph G) : V G' ↪ V G :=
+def mapV {G' G'' : subgraph G} (h : G' ≤ G'') : V G' ↪ V G'' :=
+⟨λ v, ⟨v.1, h.1 v.2⟩, by tidy⟩
+
+/--
+Map each vertex of a subgraph to the underlying graph's vertex type.
+-/
+def toV (G' : subgraph G) : V G' ↪ V G :=
 function.embedding.subtype _
 
 /--
+Give the vertex as an element of the subgraph's vertex type.
+-/
+@[reducible]
+def in_subgraph {G' : subgraph G} (v : V G) (h : v ∈ G'.V') : V G' :=
+⟨v, h⟩
+
+/--
 A characterization of the neighbor set of a subgraph as a subset of the neighbor set of the graph.
-TODO fix API so it's not `v.val` for the vertex as a vertex in `V G`.
+TODO use in_subgraph rather than subtype.val
 -/
 def subgraph_neighbor_set_in_graph (G' : subgraph G) (v : V G') :
   neighbor_set v ≃ {w : neighbor_set v.val | ⟦(v.val, w.val)⟧ ∈ G'.E'} :=
@@ -450,20 +494,19 @@ def subgraph_neighbor_set_in_graph (G' : subgraph G) (v : V G') :
   right_inv := λ w, by simp }
 
 instance subgraph_finite_at
-{G' : subgraph G} [decidable_pred G'.E'] (v : V G') [fintype (neighbor_set v.val)] :
-  fintype (neighbor_set v) :=
-fintype.of_equiv _ (subgraph_neighbor_set_in_graph G' v).symm
+{G' : subgraph G} [decidable_pred G'.E'] (v : V G) (h : v ∈ G'.V') [fintype (neighbor_set v)] :
+  fintype (neighbor_set (in_subgraph v h)) :=
+fintype.of_equiv _ (subgraph_neighbor_set_in_graph G' (in_subgraph v h)).symm
 
-/--
-TODO: fix API so vertex in `V G` is not referred to as `v.val`
--/
 lemma subgraph_degree_le
-{G' : subgraph G} [decidable_pred G'.E'] (v : V G') [fintype (neighbor_set v.val)] :
-  degree v ≤ degree v.val :=
+{G' : subgraph G} [decidable_pred G'.E'] (v : V G) (h : v ∈ G'.V') [fintype (neighbor_set v)] :
+  degree (in_subgraph v h) ≤ degree v :=
 begin
-  dunfold degree,
+  dsimp [degree],
   sorry,
 end
+
+end subgraph
 
 end subgraphs
 

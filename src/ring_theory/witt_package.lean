@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 
 import ring_theory.witt_vector_preps
+import ring_theory.localization
 import tactic
 
 noncomputable theory
@@ -17,13 +18,11 @@ structure witt_package :=
 (structure_prop  : ∀ {idx : Type} (Φ : mv_polynomial idx ℤ) (n : enum),
                     aeval (λ k, (witt_structure Φ k)) (witt_polynomial n) =
                     aeval (λ i, (rename_hom (λ k, (i,k)) (witt_polynomial n))) Φ)
-(S       : set ℤ)
-(equiv'  : Π (R : Type) [comm_ring R] (h : ∀ k ∈ S, invertible (k : R)),
-            by exactI (mv_polynomial enum R) ≃ₐ[R] (mv_polynomial enum R))
-(compat' : Π (R : Type) [comm_ring R] (h : ∀ k ∈ S, invertible (k : R)),
-            by exactI (equiv' R h : mv_polynomial enum R →ₐ[R] mv_polynomial enum R) =
-              @aeval _ R _
-                (λ n, mv_polynomial.map_hom (algebra_map ℤ R) (witt_polynomial n))
+(S       : submonoid ℤ)
+(equiv'  : by exactI (mv_polynomial enum (localization S)) ≃ₐ[(localization S)] (mv_polynomial enum (localization S)))
+(compat' : by exactI (equiv' : mv_polynomial enum (localization S) →ₐ[(localization S)] mv_polynomial enum (localization S)) =
+              @aeval _ (localization S) _
+                (λ n, mv_polynomial.map_hom (algebra_map ℤ (localization S)) (witt_polynomial n))
                 _ _ _)
 
 namespace witt_package
@@ -31,7 +30,16 @@ namespace witt_package
 variables (W : witt_package) (R : Type*) (S : Type*)
 variables [comm_ring R] [comm_ring S]
 
-attribute [instance] loc_comm_ring algebra
+def equiv (h : ∀ k ∈ W.S, invertible (k : R)) :
+  mv_polynomial W.enum R ≃ₐ[R] (mv_polynomial W.enum R) :=
+_
+
+lemma compat (h : ∀ k ∈ W.S, invertible (k : R)) :
+  (W.equiv R h : mv_polynomial W.enum R →ₐ[R] mv_polynomial W.enum R) =
+              @aeval _ R _
+                (λ n, mv_polynomial.map_hom (algebra_map ℤ R) (witt_polynomial n))
+                _ _ _ :=
+_
 
 /-- The ring of Witt vectors (depending on a “Witt package” `W`). -/
 def witt_vector (R : Type*) := W.enum → R
@@ -235,9 +243,9 @@ begin
 end
 .
 
-noncomputable def ghost_map_equiv :
-  𝕎 W.loc ≃ (W.enum → W.loc) :=
-mv_polynomial.comap_equiv (W.equiv)
+noncomputable def ghost_map_equiv (f : localization_map W.S R) :
+  𝕎 R ≃ (W.enum → R) :=
+mv_polynomial.comap_equiv (W.equiv' R (λ k hk, _))
 
 lemma ghost_map_eq :
   (W.ghost_map : 𝕎 W.loc → W.enum → W.loc) = W.ghost_map_equiv :=

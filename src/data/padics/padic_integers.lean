@@ -418,6 +418,10 @@ discrete_valuation_ring.ideal_eq_span_pow_irreducible hs irreducible_p
 suffices (z1 : ℚ_[p]) = z2 ↔ z1 = z2, from iff.trans (by norm_cast) this,
 by norm_cast
 
+lemma int.to_nat_of_neg : ∀ {z : ℤ}, ¬ 0 ≤ z → z.to_nat = 0
+| (-[1+n]) _ := rfl
+| (int.of_nat n) h := (h $ int.of_nat_nonneg n).elim
+
 lemma exists_mem_range_of_norm_rat_le_one (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
   ∃ n ∈ finset.range p, ∥(⟨r,h⟩ - n : ℤ_[p])∥ < 1 :=
 begin
@@ -425,7 +429,12 @@ begin
   use (int.nat_mod n p),
   split,
   { rw finset.mem_range,
-    sorry },
+    unfold int.nat_mod,
+    by_cases h : 0 ≤ n % p,
+    { zify, rw int.to_nat_of_nonneg h, convert int.mod_lt _ _,
+      simp,
+      exact_mod_cast nat.prime.ne_zero ‹_› },
+    { zify, rw int.to_nat_of_neg h, exact_mod_cast nat.prime.pos ‹_› } },
   { by_cases aux : (⟨r,h⟩ - (n.nat_mod p) : ℤ_[p]) = 0,
     { rw [aux, norm_zero], exact zero_lt_one, },
     suffices : ↑p ∣ (⟨r,h⟩ - (n.nat_mod p) : ℤ_[p]),
@@ -438,7 +447,9 @@ begin
         apply inv_lt_one,
         exact_mod_cast nat.prime.one_lt ‹_› }, },
     have hrd : is_unit (r.denom : ℤ_[p]),
-    { sorry },
+    { rw is_unit_iff,
+      have help := @rat.mul_denom_eq_num r,
+      sorry },
     rw ← hrd.dvd_mul_right,
     suffices : ↑p ∣ r.num - (n.nat_mod p) * r.denom,
     { convert (int.cast_ring_hom ℤ_[p]).map_dvd this,

@@ -110,7 +110,7 @@ variables [preorder α] [random α]
 
 export random (random)
 
-/-- re-export `random.random` -/
+/- Generate a random value of type `α`. -/
 def random : rand_g g α :=
 random.random α g
 
@@ -123,11 +123,11 @@ end random
 
 variables {α}
 
-/-- re-export `bounded_random.random_r` -/
+/-- Generate a random value between `x` and `y` inclusive. -/
 def random_r [preorder α] [bounded_random α] (x y : α) (h : x ≤ y) : rand_g g (x .. y) :=
 bounded_random.random_r g x y h
 
-/-- generate an infinite series of random values of type `α` between `x` and `y` -/
+/-- generate an infinite series of random values of type `α` between `x` and `y` inclusive. -/
 def random_series_r [preorder α] [bounded_random α] (x y : α) (h : x ≤ y) : rand_g g (stream (x .. y)) :=
 do gen ← uliftable.up (split g),
    pure $ corec_state (bounded_random.random_r g x y h) gen
@@ -196,11 +196,11 @@ variables {α : Type u}
 section bounded_random
 variables [preorder α] [bounded_random α]
 
-/-- use `random_r` in the `tactic` monad -/
+/-- Generate a random value between `x` and `y` inclusive. -/
 meta def random_r (x y : α) (h : x ≤ y) : tactic (x .. y) :=
 run_rand (rand.random_r x y h)
 
-/-- use `random_series_r` in the `tactic` monad -/
+/-- Generate an infinite series of random values of type `α` between `x` and `y` inclusive. -/
 meta def random_series_r (x y : α) (h : x ≤ y) : tactic (stream $ x .. y) :=
 run_rand (rand.random_series_r x y h)
 
@@ -210,11 +210,11 @@ section random
 
 variables [preorder α] [random α]
 
-/-- use `random` in the `tactic` monad -/
+/-- randomly generate a value of type α -/
 meta def random : tactic α :=
 run_rand (rand.random α)
 
-/-- use `random_series` in the `tactic` monad -/
+ /-- randomly generate an infinite series of value of type α -/
 meta def random_series : tactic (stream α) :=
 run_rand (rand.random_series α)
 
@@ -224,8 +224,8 @@ end tactic
 
 namespace bool
 
-/-- Make `i` into an element of the interval `x .. y` if feasible
-and return an arbitrary element of `x .. y` otherwise -/
+/-- Make `i` into an element of the interval `x .. y` if feasible.
+Otherwise return `x`, which is the only element of `x .. y` in that case.  -/
 def fit_in_Icc (x y : bool) (p : x ≤ y) (i : bool) : x .. y := do
   if hx : x ≤ i ∧ i ≤ y
   then ⟨ i, hx ⟩
@@ -234,7 +234,7 @@ def fit_in_Icc (x y : bool) (p : x ≤ y) (i : bool) : x .. y := do
 open ulift (hiding inhabited)
 variables {g : Type} [random_gen g]
 
-/-- generate a randomly generated boolean value -/
+/-- Generate a random boolean value. -/
 protected def get_random : rand_g g bool :=
 ⟨ prod.map id up ∘ @rand_bool g _ ∘ down ⟩
 
@@ -349,8 +349,8 @@ namespace fin
 section fin
 parameters {n : ℕ} [fact (0 < n)]
 
-/-- `random_aux m k` `m` words worth of random numbers and combine them
-with `k` -/
+/-- `random_aux m k` generates `m` words worth of random numbers and combines them
+with `k` by concatenating their digits. -/
 protected def random_aux : ℕ → ℕ → rand_g g (fin n)
 | 0 k := return $ fin.of_nat' k
 | (succ n) k :=

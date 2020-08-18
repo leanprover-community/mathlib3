@@ -3,12 +3,11 @@ Copyright (c) 2020 Kevin Buzzard. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
+
 import data.set.finite
 import algebra.big_operators
 import data.support
 import data.finsupp
-
-
 
 /-!
 # Noncomputable finiteness
@@ -21,11 +20,18 @@ as Sylow's theorems.
 
 ## Main definitions
 
-Variables here: `(α : Type u)`, `(s : set α)`, `(M : Type v) [add_comm_monoid M]`
+Variables:
+
+`(α : Type u)`
+`(s : set α)`
+`(M : Type v) [add_comm_monoid M]`
+`(f : α → M)`
+
+Definitions in this file:
 
 * `univ' α : finset α` : α as a finset if α is finite, and the empty finset otherwise
 
-* `finsum (f : α → M) : M` : the sum of `f x` as `x` ranges over the support of `f`, if it's finite.
+* `finsum f : M` : the sum of `f x` as `x` ranges over the support of `f`, if it's finite.
    Zero otherwise.
 
 * `finsum_in s f : M` : the sum of `f x` as `x` ranges over the elements of `s` for which `f x ≠ 0`,
@@ -38,6 +44,7 @@ Variables here: `(α : Type u)`, `(s : set α)`, `(M : Type v) [add_comm_monoid 
 TODO
 
 ## Tags
+
 finsum, finsum_in, fincard, univ', finiteness
 -/
 
@@ -75,13 +82,12 @@ variables {α : Type u} {M : Type v} [add_comm_monoid M]
 noncomputable def finsum (f : α → M) : M :=
 if h : (function.support f).finite then finset.sum (h.to_finset) f else 0
 
-def finsum_def (f : α → M) :
-  finsum f = if h : (function.support f).finite then finset.sum (h.to_finset) f else 0 := rfl
-
-
 /-- Sum of `f x` for `x ∈ s`, where `s : set α` is finite. Zero if s is infinite.  -/
 noncomputable def finsum_in (s : set α) (f : α → M) : M :=
 finsum (λ x, if x ∈ s then f x else 0)
+
+def finsum_def (f : α → M) :
+  finsum f = if h : (function.support f).finite then finset.sum (h.to_finset) f else 0 := rfl
 
 -- **TODO** function.support doesn't import data.finsupp and vice versa
 -- so this lemma can't go in either place

@@ -245,7 +245,7 @@ begin
 end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma exists_ge_of_tendsto_at_bot [semilattice_sup α] [preorder β] {u : α → β}
+lemma exists_le_of_tendsto_at_bot [semilattice_sup α] [preorder β] {u : α → β}
   (h : tendsto u at_top at_bot) : ∀ a b, ∃ a' ≥ a, u a' ≤ b :=
 @exists_le_of_tendsto_at_top _ (order_dual β) _ _ _ h
 
@@ -259,7 +259,7 @@ begin
 end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma exists_gt_of_tendsto_at_bot [semilattice_sup α] [preorder β] [no_bot_order β]
+lemma exists_lt_of_tendsto_at_bot [semilattice_sup α] [preorder β] [no_bot_order β]
   {u : α → β} (h : tendsto u at_top at_bot) : ∀ a b, ∃ a' ≥ a, u a' < b :=
 @exists_lt_of_tendsto_at_top _ (order_dual β) _ _ _ _ h
 

@@ -712,36 +712,36 @@ begin
     { exact_mod_cast hz }},
 end
 
-lemma not_dvd_denom_of_norm_le_one {q : ℚ} (hq : padic_norm p q ≤ 1) :
-  ¬ p ∣ q.denom :=
-begin
-end
+-- lemma not_dvd_denom_of_norm_le_one {q : ℚ} (hq : padic_norm p q ≤ 1) :
+--   ¬ p ∣ q.denom :=
+-- begin
+-- end
 
-lemma exists_int_sub_norm_le {q : ℚ} (hq : padic_norm p q ≤ 1) (i : ℕ) :
-  ∃ z : ℤ, padic_norm p (q - z) ≤ p^(-i : ℤ) :=
-begin
-  have p_not_dvd_denom : ¬ p ∣ q.denom, from not_dvd_denom_of_norm_le_one _ hq,
-  obtain ⟨m, l, hml⟩ : ∃ m l : ℤ, m*q.denom + l * p^i = 1 := sorry,
-  use q.num * m,
-  conv in q {rw [←@rat.num_denom q, rat.mk_eq_div]},
-  push_cast,
-  have : (q.denom : ℚ) ≠ 0, {exact_mod_cast q.denom_ne_zero},
-  calc _ = padic_norm p ((q.num / q.denom) * (1 - m * q.denom)) : _
-     ... = padic_norm p (q.num / q.denom) * padic_norm p (1 - m * q.denom) : _
-     ... ≤ padic_norm p (1 - m * q.denom) : _
-     ... = padic_norm p (l * p^i) : _
-     ... ≤ _ : _,
-  { congr, field_simp [this], ring },
-  { apply padic_norm.mul },
-  { apply mul_le_of_le_one_left (padic_norm.nonneg _ _),
-    convert hq,
-    conv_rhs {rw [←@rat.num_denom q, rat.mk_eq_div]}, simp },
-  { rw [← rat.coe_int_inj] at hml, change _ = (1 : ℚ) at hml, rw ← hml, norm_cast, ring, },
-  { convert le_of_dvd _ _,
-    { norm_cast },
-    { assumption },
-    { apply dvd_mul_left } }
-end
+-- lemma exists_int_sub_norm_le {q : ℚ} (hq : padic_norm p q ≤ 1) (i : ℕ) :
+--   ∃ z : ℤ, padic_norm p (q - z) ≤ p^(-i : ℤ) :=
+-- begin
+--   have p_not_dvd_denom : ¬ p ∣ q.denom, from not_dvd_denom_of_norm_le_one _ hq,
+--   obtain ⟨m, l, hml⟩ : ∃ m l : ℤ, m*q.denom + l * p^i = 1 := sorry,
+--   use q.num * m,
+--   conv in q {rw [←@rat.num_denom q, rat.mk_eq_div]},
+--   push_cast,
+--   have : (q.denom : ℚ) ≠ 0, {exact_mod_cast q.denom_ne_zero},
+--   calc _ = padic_norm p ((q.num / q.denom) * (1 - m * q.denom)) : _
+--      ... = padic_norm p (q.num / q.denom) * padic_norm p (1 - m * q.denom) : _
+--      ... ≤ padic_norm p (1 - m * q.denom) : _
+--      ... = padic_norm p (l * p^i) : _
+--      ... ≤ _ : _,
+--   { congr, field_simp [this], ring },
+--   { apply padic_norm.mul },
+--   { apply mul_le_of_le_one_left (padic_norm.nonneg _ _),
+--     convert hq,
+--     conv_rhs {rw [←@rat.num_denom q, rat.mk_eq_div]}, simp },
+--   { rw [← rat.coe_int_inj] at hml, change _ = (1 : ℚ) at hml, rw ← hml, norm_cast, ring, },
+--   { convert le_of_dvd _ _,
+--     { norm_cast },
+--     { assumption },
+--     { apply dvd_mul_left } }
+-- end
 
 end padic_norm
 end padic_norm

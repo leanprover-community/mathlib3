@@ -572,26 +572,119 @@ begin
   apply max_lt hr yes,
 end
 
-lemma z_dense (x : ℤ_[p]) : ∀ (ε : ℝ), 0 < ε → (∃ (k : ℤ), dist x ↑k < ε) :=
+lemma exists_mem_range_congr (x : ℤ_[p]) (m n : ℕ) (hmp : m < p) (hnp : n < p)
+  (hm : ∥x - m∥ < 1) (hn : ∥x - n∥ < 1) :
+  m = n :=
 begin
-  intros ε hε,
-  obtain ⟨r, hr⟩ := rat_dense (x : ℚ_[p]) hε,
-  -- let k : ℤ := r.num,
-  -- use k,
-  -- rw dist_eq_norm,
-  -- apply lt_of_le_of_lt _ hr,
-  -- rw show ∥x - k∥ = ∥(x - r : ℚ_[p]) + (r - k)∥,
-  -- { rw padic_norm_z, congr' 1, ring, simp [cast_eq_of_rat], sorry },
-  -- apply le_trans (padic_norm_e.nonarchimedean _ _),
-  -- rw max_le_iff,
-  -- refine ⟨le_refl _, _⟩,
+  rw norm_sub_rev at hm,
+  have : ∥((m - n : ℤ) : ℤ_[p])∥ < 1,
+  { rw show ((m - n : ℤ) : ℤ_[p]) = (↑m - x) + (x - n), { push_cast, ring },
+    apply lt_of_le_of_lt (padic_norm_z.nonarchimedean _ _),
+    apply max_lt hm hn },
+  rw [give_better_name, ← int.modeq.modeq_iff_dvd, int.modeq, eq_comm] at this,
+  rw [int.mod_eq_of_lt, int.mod_eq_of_lt] at this;
+  { simpa },
 end
 
-lemma dense_embedding : dense_embedding (coe : ℤ → ℤ_[p]) :=
-dense_embedding.mk' _ continuous_of_discrete_topology
-  (begin intro x, rw mem_closure_range_iff, apply z_dense end)
-  (λ x y, by exact_mod_cast id)
-  (begin  end )
+lemma exists_mem_range_congr' (x : ℤ_[p]) (m n : ℕ)
+  (hm : ∥x - m∥ < 1) (hn : ∥x - n∥ < 1) :
+  (m : zmod p) = n :=
+begin
+  rw norm_sub_rev at hm,
+  have : ∥((m - n : ℤ) : ℤ_[p])∥ < 1,
+  { rw show ((m - n : ℤ) : ℤ_[p]) = (↑m - x) + (x - n), { push_cast, ring },
+    apply lt_of_le_of_lt (padic_norm_z.nonarchimedean _ _),
+    apply max_lt hm hn },
+  rw [give_better_name, ← zmod.int_coe_zmod_eq_zero_iff_dvd] at this,
+  simpa [sub_eq_zero],
+end
+
+def to_zmod : ℤ_[p] →+* zmod p :=
+{ to_fun := λ x, ((classical.some (exists_mem_range x) : ℕ) : zmod p),
+  map_zero' :=
+  begin
+    obtain ⟨hcp, hc⟩ := classical.some_spec (exists_mem_range (0 : ℤ_[p])),
+    rw finset.mem_range at hcp,
+    rw exists_mem_range_congr _ _ 0 hcp _ hc,
+    { simp only [cast_zero], },
+    { simp only [norm_zero, sub_zero, cast_zero], exact zero_lt_one },
+    { exact nat.prime.pos ‹_› },
+  end,
+  map_one' :=
+  begin
+    obtain ⟨hcp, hc⟩ := classical.some_spec (exists_mem_range (1 : ℤ_[p])),
+    rw finset.mem_range at hcp,
+    rw exists_mem_range_congr _ _ 1 hcp _ hc,
+    { simp only [cast_one], },
+    { simp only [norm_zero, sub_self, cast_one], exact zero_lt_one },
+    { exact nat.prime.one_lt ‹_› },
+  end,
+  map_add' :=
+  begin
+    intros x y,
+    obtain ⟨hxp, hx⟩ := classical.some_spec (exists_mem_range x),
+    obtain ⟨hyp, hy⟩ := classical.some_spec (exists_mem_range y),
+    obtain ⟨hxyp, hxy⟩ := classical.some_spec (exists_mem_range (x + y)),
+    rw ← nat.cast_add,
+    rw exists_mem_range_congr' (x + y) _ _ hxy,
+    have := lt_of_le_of_lt (padic_norm_z.nonarchimedean _ _) (max_lt hx hy),
+    convert this using 2,
+    abel,
+    congr,
+    simp,
+    rw add_comm,
+  end,
+  map_mul' :=
+  begin
+    intros x y,
+    obtain ⟨hxp, hx⟩ := classical.some_spec (exists_mem_range x),
+    obtain ⟨hyp, hy⟩ := classical.some_spec (exists_mem_range y),
+    obtain ⟨hxyp, hxy⟩ := classical.some_spec (exists_mem_range (x * y)),
+    rw ← nat.cast_mul,
+    rw exists_mem_range_congr' (x * y) _ _ hxy,
+    let X : ℕ := classical.some (exists_mem_range x),
+    let Y : ℕ := classical.some (exists_mem_range y),
+    show ∥x * y - ↑(X * Y)∥ < 1,
+    change ∥x - X∥ < 1 at hx,
+    change ∥y - Y∥ < 1 at hy,
+    simp only [padic_norm_z, coe_sub, coe_mul, cast_mul, finset.mem_range, coe_coe] at *,
+    have key1 : ∥(x : ℚ_[p])∥ * ∥(y - Y : ℚ_[p])∥ < 1,
+    { rw mul_comm,
+      apply lt_of_le_of_lt _ hy,
+      calc _ ≤ _ : mul_le_mul (le_refl _) x.2 (norm_nonneg _) (norm_nonneg _)
+      ... = ∥(y - Y : ℚ_[p])∥ : mul_one _, },
+    have key2 : ∥(x - X : ℚ_[p])∥ * ∥(Y : ℚ_[p])∥ < 1,
+    { apply lt_of_le_of_lt _ hx,
+      calc _ ≤ _ : mul_le_mul (le_refl _) _ (norm_nonneg _) (norm_nonneg _)
+      ... = ∥(x - X : ℚ_[p])∥ : mul_one _,
+      convert (Y : ℤ_[p]).2, simp only [val_eq_coe, coe_coe], },
+    rw ← padic_norm_e.mul at key1 key2,
+    have := lt_of_le_of_lt (padic_norm_e.nonarchimedean _ _) (max_lt key1 key2),
+    convert this using 2,
+    ring,
+  end,
+}
+
+-- lemma z_dense (x : ℤ_[p]) : ∀ (ε : ℝ), 0 < ε → (∃ (k : ℤ), dist x ↑k < ε) :=
+-- begin
+--   intros ε hε,
+--   obtain ⟨r, hr⟩ := rat_dense (x : ℚ_[p]) hε,
+--   -- let k : ℤ := r.num,
+--   -- use k,
+--   -- rw dist_eq_norm,
+--   -- apply lt_of_le_of_lt _ hr,
+--   -- rw show ∥x - k∥ = ∥(x - r : ℚ_[p]) + (r - k)∥,
+--   -- { rw padic_norm_z, congr' 1, ring, simp [cast_eq_of_rat], sorry },
+--   -- apply le_trans (padic_norm_e.nonarchimedean _ _),
+--   -- rw max_le_iff,
+--   -- refine ⟨le_refl _, _⟩,
+-- end
+
+-- lemma dense_embedding : dense_embedding (coe : ℤ → ℤ_[p]) :=
+-- dense_embedding.mk' _ continuous_of_discrete_topology
+--   (begin intro x, rw mem_closure_range_iff, apply z_dense end)
+--   (λ x y, by exact_mod_cast id)
+--   (begin  end )
 
 
 end padic_int

@@ -217,6 +217,9 @@ lemma succ_ne_zero {n} : ∀ k : fin n, fin.succ k ≠ 0
 lemma succ_succ_ne_one : fin.succ (fin.succ a) ≠ 1 :=
 by { intro h, rw [←succ_zero_eq_one, succ_inj] at h, exact (fin.succ_ne_zero a) h }
 
+lemma zero_lt_mk_succ (i : ℕ) (h : i < n) : (0 : fin (n + 1)) < ⟨i.succ, add_lt_add_right h 1⟩ :=
+by { rw [lt_iff_val_lt_val, val_zero], exact nat.succ_pos i }
+
 lemma one_lt_succ_succ (a : fin n) : (1 : fin (n + 2)) < a.succ.succ :=
 by { cases n, { exact fin.elim0 a }, { rw [←succ_zero_eq_one, succ_lt_succ_iff], exact zero_lt_succ a } }
 
@@ -229,6 +232,10 @@ by cases j; simp [fin.pred]
 
 @[simp] lemma pred_succ (i : fin n) {h : i.succ ≠ 0} : i.succ.pred h = i :=
 by cases i; refl
+
+@[simp] lemma pred_mk_succ (i : ℕ) {h : i < n + 1} :
+  (⟨i.succ, add_lt_add_right h 1⟩ : fin (n + 2)).pred (ne_of_vne (ne_of_gt (zero_lt_mk_succ i h))) = ⟨i, h⟩ :=
+by squeeze_simp [eq_iff_veq, succ_pred_eq_of_pos, h, mod_eq_of_lt]
 
 @[simp] lemma pred_inj :
   ∀ {a b : fin (n + 1)} {ha : a ≠ 0} {hb : b ≠ 0}, a.pred ha = b.pred hb ↔ a = b

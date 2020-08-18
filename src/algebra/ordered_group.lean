@@ -252,9 +252,11 @@ lemma zero_le [partial_order α] (a : with_zero α) : 0 ≤ a := order_bot.bot_l
 
 lemma zero_lt_coe [partial_order α] (a : α) : (0 : with_zero α) < a := with_bot.bot_lt_coe a
 
-@[simp, norm_cast] lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_zero α) < b ↔ a < b := with_bot.coe_lt_coe
+@[simp, norm_cast] lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_zero α) < b ↔ a < b :=
+with_bot.coe_lt_coe
 
-@[simp, norm_cast] lemma coe_le_coe [partial_order α] {a b : α} : (a : with_zero α) ≤ b ↔ a ≤ b := with_bot.coe_le_coe
+@[simp, norm_cast] lemma coe_le_coe [partial_order α] {a b : α} : (a : with_zero α) ≤ b ↔ a ≤ b :=
+with_bot.coe_le_coe
 
 instance [lattice α] : lattice (with_zero α) := with_bot.lattice
 
@@ -1947,3 +1949,4 @@ instance [ordered_comm_group α] : ordered_add_comm_group (additive α) :=
   ..additive.ordered_add_comm_monoid }
 
 end type_tags
+#lint

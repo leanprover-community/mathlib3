@@ -16,7 +16,7 @@ universes u v
 This file contains the defition for nim for any ordinal `O`. In the game of `nim O₁` both players
 may move to `nim O₂` for any `O₂ < O₁`.
 We also define a Grundy number for an impartial game `G` and prove the Sprague-Grundy theorem, that
-`G` is equivalent to `nim (Gundy_value G)`.
+`G` is equivalent to `nim (Grundy_value G)`.
 -/
 
 open pgame

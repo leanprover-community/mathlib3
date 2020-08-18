@@ -142,9 +142,10 @@ begin
   simp only [qpf.is_uniform, foo, qpf.foo, set.image_univ, not_forall, not_imp],
   existsi [bool,ff,ff,λ a : unit, tt,λ a : unit, ff], split,
   { apply quot.sound, simp [foo.R,qpf.abs,qpf._match_1], },
-  { simp! only [set.range,set.ext_iff], simp,
-    intro h, specialize (h tt), simp at h,
-    apply h () }
+  { simp! only [set.range, set.ext_iff],
+    simp only [not_exists, false_iff, bool.forall_bool, eq_self_iff_true, exists_false, not_true,
+      and_self, set.mem_set_of_eq, iff_false],
+    exact λ h, h () }
 end
 
 /-- intuitive consequence of original definition of `supp`. -/

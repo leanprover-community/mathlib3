@@ -29,6 +29,7 @@ a unit and 0 if not.  The other major results of this file (notably `inverse_add
 -/
 
 noncomputable theory
+open_locale topological_space
 variables {R : Type*} [normed_ring R] [complete_space R]
 
 namespace units
@@ -85,10 +86,13 @@ begin
     simp }
 end
 
+lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
+mem_nhds_sets is_open (by { rw [set.mem_set_of_eq], exact is_unit_unit x })
+
 end units
 
 namespace normed_ring
-open_locale classical topological_space big_operators
+open_locale classical big_operators
 open asymptotics filter metric finset ring
 
 lemma inverse_one_sub (t : R) (h : ∥t∥ < 1) : inverse (1 - t) = ↑(units.one_sub t h)⁻¹ :=

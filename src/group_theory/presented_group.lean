@@ -13,7 +13,7 @@ variables {α : Type}
 /-- Given a set of relations, rels, over a type α, presented_group constructs the group with
 generators α and relations rels as a quotient of free_group α.-/
 def presented_group (rels : set (free_group α)) : Type :=
-quotient_group.quotient $ group.normal_closure rels
+quotient_group.quotient $ subgroup.normal_closure rels
 
 namespace presented_group
 
@@ -39,21 +39,21 @@ local notation `F` := free_group.to_group f
 
 variable (h : ∀ r ∈ rels, F r = 1)
 
-lemma closure_rels_subset_ker : group.normal_closure rels ⊆ is_group_hom.ker F :=
-group.normal_closure_subset (λ x w, (is_group_hom.mem_ker F).2 (h x w))
+-- FIXME why is apply_instance needed here? surely this should be a [] argument in `subgroup.normal_closure_le_normal`
+lemma closure_rels_subset_ker : subgroup.normal_closure rels ≤ monoid_hom.ker F :=
+subgroup.normal_closure_le_normal (by apply_instance) (λ x w, monoid_hom.mem_ker.2 (h x w))
 
-lemma to_group_eq_one_of_mem_closure : ∀ x ∈ group.normal_closure rels, F x = 1 :=
-λ x w, (is_group_hom.mem_ker F).1  ((closure_rels_subset_ker h) w)
+lemma to_group_eq_one_of_mem_closure : ∀ x ∈ subgroup.normal_closure rels, F x = 1 :=
+λ x w, monoid_hom.mem_ker.1 $ closure_rels_subset_ker h w
 
 /-- The extension of a map f : α → β that satisfies the given relations to a group homomorphism
 from presented_group rels → β. -/
-def to_group : presented_group rels → β :=
-quotient_group.lift (group.normal_closure rels) F (to_group_eq_one_of_mem_closure h)
-
-instance to_group.is_group_hom : is_group_hom (to_group h) :=
-quotient_group.is_group_hom_quotient_lift _ _ _
+def to_group : presented_group rels →* β :=
+quotient_group.lift (subgroup.normal_closure rels) (monoid_hom.of F) (to_group_eq_one_of_mem_closure h)
 
 @[simp] lemma to_group.of {x : α} : to_group h (of x) = f x := free_group.to_group.of
+
+-- FIXME remove the next three, they're now unnecessary
 
 @[simp] lemma to_group.mul {x y} : to_group h (x * y) = to_group h x * to_group h y :=
 is_mul_hom.map_mul _ _ _
@@ -64,11 +64,10 @@ is_group_hom.map_one _
 @[simp] lemma to_group.inv {x}: to_group h x⁻¹ = (to_group h x)⁻¹ :=
 is_group_hom.map_inv _ _
 
-theorem to_group.unique (g : presented_group rels → β) [is_group_hom g]
+theorem to_group.unique (g : presented_group rels →* β)
   (hg : ∀ x : α, g (of x) = f x) : ∀ {x}, g x = to_group h x :=
-have is_group_hom (λ x, g (quotient_group.mk x)) := is_group_hom.comp _ _, by exactI
 λ x, quotient_group.induction_on x
-    (λ _, free_group.to_group.unique (λ (x : free_group α), g (quotient_group.mk x)) hg)
+    (λ _, free_group.to_group.unique (g.comp (quotient_group.mk' _)) hg)
 
 end to_group
 end presented_group

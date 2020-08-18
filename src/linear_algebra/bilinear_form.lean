@@ -311,8 +311,8 @@ def matrix.to_bilin_formₗ : matrix n n R →ₗ[R] bilin_form R (n → R) :=
     bilin_smul_left := λ a x y, by simp,
     bilin_add_right := λ x y z, by simp [matrix.mul_add],
     bilin_smul_right := λ a x y, by simp },
-  map_add' := λ f g, by { ext, simp [add_apply, matrix.mul_add, matrix.add_mul] },
-  map_smul' := λ f g, by { ext, simp [smul_apply] } }
+  map_add' := λ f g, by { ext, simp [bilin_form.add_apply, matrix.mul_add, matrix.add_mul] },
+  map_smul' := λ f g, by { ext, simp [bilin_form.smul_apply] } }
 
 /-- The map from `matrix n n R` to bilinear forms on `n → R`. -/
 def matrix.to_bilin_form : matrix n n R → bilin_form R (n → R) :=
@@ -345,7 +345,7 @@ lemma bilin_form.to_matrix_comp (B : bilin_form R (n → R)) (l r : (o → R) �
   (B.comp l r).to_matrix = l.to_matrixᵀ ⬝ B.to_matrix ⬝ r.to_matrix :=
 begin
   ext i j,
-  simp only [to_matrix_apply, comp_apply, mul_val, sum_mul],
+  simp only [to_matrix_apply, comp_apply, mul_apply, sum_mul],
   have sum_smul_eq : Π (f : (o → R) →ₗ[R] (n → R)) (i : o),
     f (λ n, ite (n = i) 1 0) = ∑ k, f.to_matrix k i • λ n, ite (n = k) (1 : R) 0,
   { intros f i,
@@ -387,7 +387,7 @@ end
 
 @[simp] lemma to_bilin_form_to_matrix (M : matrix n n R) :
   M.to_bilin_form.to_matrix = M :=
-by { ext, simp [bilin_form.to_matrix_apply, matrix.to_bilin_form_apply, mul_val], }
+by { ext, simp [bilin_form.to_matrix_apply, matrix.to_bilin_form_apply, mul_apply], }
 
 /-- Bilinear forms are linearly equivalent to matrices. -/
 def bilin_form_equiv_matrix : bilin_form R (n → R) ≃ₗ[R] matrix n n R :=

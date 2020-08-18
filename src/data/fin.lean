@@ -5,6 +5,7 @@ Authors: Robert Y. Lewis, Keeley Hoek
 -/
 import data.nat.cast
 import tactic.localized
+import logic.embedding
 /-!
 # The finite type with `n` elements
 
@@ -829,3 +830,14 @@ by rw [← of_nat_eq_coe]; refl
 rfl
 
 end fin
+
+-- Once lean#359 is fixed (making `fin n` a subtype), this can go away
+-- as a duplicate of `function.embedding.subtype`.
+/-- Embedding of `fin n` into `ℕ`. -/
+def function.embedding.fin (n : ℕ) : fin n ↪ ℕ :=
+⟨coe, fin.val_injective⟩
+
+-- Once lean#359 is fixed (making `fin n` a subtype), this can go away
+-- as a duplicate of `function.embedding.coe_subtype`.
+/-- `function.embedding.fin` coerced to a function. -/
+@[simp] lemma function.embedding.coe_fin (n : ℕ) : ⇑(function.embedding.fin n) = coe := rfl

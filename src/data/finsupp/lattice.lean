@@ -88,29 +88,29 @@ begin
 end
 
 /-- The lattice of `finsupp`s to `ℕ` is order-isomorphic to that of `multiset`s.  -/
-def order_iso_multiset :
-  (has_le.le : (α →₀ ℕ) → (α →₀ ℕ) → Prop) ≃o (has_le.le : (multiset α) → (multiset α) → Prop) :=
+def rel_iso_multiset :
+  (has_le.le : (α →₀ ℕ) → (α →₀ ℕ) → Prop) ≃r (has_le.le : (multiset α) → (multiset α) → Prop) :=
 ⟨finsupp.equiv_multiset, begin
   intros a b, unfold finsupp.equiv_multiset, dsimp,
   rw multiset.le_iff_count, simp only [finsupp.count_to_multiset], refl
 end ⟩
 
-@[simp] lemma order_iso_multiset_apply {f : α →₀ ℕ} : order_iso_multiset f = f.to_multiset := rfl
+@[simp] lemma rel_iso_multiset_apply {f : α →₀ ℕ} : rel_iso_multiset f = f.to_multiset := rfl
 
-@[simp] lemma order_iso_multiset_symm_apply {s : multiset α} :
-  order_iso_multiset.symm s = s.to_finsupp :=
-by { conv_rhs { rw ← (order_iso.apply_symm_apply order_iso_multiset) s}, simp }
+@[simp] lemma rel_iso_multiset_symm_apply {s : multiset α} :
+  rel_iso_multiset.symm s = s.to_finsupp :=
+by { conv_rhs { rw ← (rel_iso.apply_symm_apply rel_iso_multiset) s}, simp }
 
 variable [partial_order β]
 
 /-- The order on `finsupp`s over a partial order embeds into the order on functions -/
-def order_embedding_to_fun :
-  (has_le.le : (α →₀ β) → (α →₀ β) → Prop) ≼o (has_le.le : (α → β) → (α → β) → Prop) :=
+def rel_embedding_to_fun :
+  (has_le.le : (α →₀ β) → (α →₀ β) → Prop) ↪r (has_le.le : (α → β) → (α → β) → Prop) :=
 ⟨⟨λ (f : α →₀ β) (a : α), f a,  λ f g h, finsupp.ext (λ a, by { dsimp at h, rw h,} )⟩,
   λ a b, le_def⟩
 
-@[simp] lemma order_embedding_to_fun_apply {f : α →₀ β} {a : α} :
-  order_embedding_to_fun f a = f a := rfl
+@[simp] lemma rel_embedding_to_fun_apply {f : α →₀ β} {a : α} :
+  rel_embedding_to_fun f a = f a := rfl
 
 lemma monotone_to_fun : monotone (finsupp.to_fun : (α →₀ β) → (α → β)) := λ f g h a, le_def.1 h a
 

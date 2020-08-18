@@ -550,6 +550,11 @@ theorem is_O.add : is_O f₁ g l → is_O f₂ g l → is_O (λ x, f₁ x + f₂
 theorem is_o.add (h₁ : is_o f₁ g l) (h₂ : is_o f₂ g l) : is_o (λ x, f₁ x + f₂ x) g l :=
 λ c cpos, ((h₁ $ half_pos cpos).add (h₂ $ half_pos cpos)).congr_const (add_halves c)
 
+theorem is_o.add_add {g₁ g₂ : α → F'} (h₁ : is_o f₁ g₁ l) (h₂ : is_o f₂ g₂ l) :
+  is_o (λ x, f₁ x + f₂ x) (λ x, ∥g₁ x∥ + ∥g₂ x∥) l :=
+by refine (h₁.trans_le $ λ x, _).add (h₂.trans_le _);
+  simp [real.norm_eq_abs, abs_of_nonneg, add_nonneg]
+
 theorem is_O.add_is_o (h₁ : is_O f₁ g l) (h₂ : is_o f₂ g l) : is_O (λ x, f₁ x + f₂ x) g l :=
 h₁.add h₂.is_O
 
@@ -1076,7 +1081,7 @@ theorem is_O_with.right_le_sub_of_lt_1 {f₁ f₂ : α → E'} (h : is_O_with c 
 mem_sets_of_superset h $ λ x hx,
 begin
   simp only [mem_set_of_eq] at hx ⊢,
-  rw [mul_comm, one_div_eq_inv, ← div_eq_mul_inv, le_div_iff, mul_sub, mul_one, mul_comm],
+  rw [mul_comm, one_div, ← div_eq_mul_inv, le_div_iff, mul_sub, mul_one, mul_comm],
   { exact le_trans (sub_le_sub_left hx _) (norm_sub_norm_le _ _) },
   { exact sub_pos.2 hc }
 end

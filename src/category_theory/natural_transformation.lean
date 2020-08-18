@@ -36,6 +36,9 @@ restate_axiom nat_trans.naturality'
 -- components of natural transfomations moving earlier.
 attribute [simp, reassoc] nat_trans.naturality
 
+lemma congr_app {F G : C ⥤ D} {α β : nat_trans F G} (h : α = β) (X : C) : α.app X = β.app X :=
+congr_fun (congr_arg nat_trans.app h) X
+
 namespace nat_trans
 
 /-- `nat_trans.id F` is the identity natural transformation on a functor `F`. -/

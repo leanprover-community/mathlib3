@@ -99,6 +99,11 @@ instance : has_one ℤ_[p] :=
 | 0 := rfl
 | (k+1) := by simp [coe_coe]
 
+
+@[simp, norm_cast] lemma coe_coe_int : ∀ (z : ℤ), ((z : ℤ_[p]) : ℚ_[p]) = z
+| (int.of_nat n) := by simp
+| -[1+n] := by simp
+
 @[simp, norm_cast] lemma coe_zero : ((0 : ℤ_[p]) : ℚ_[p]) = 0 := rfl
 
 instance : ring ℤ_[p] :=
@@ -457,8 +462,7 @@ begin
         sub_left_inj, int.cast_sub],
       apply subtype.coe_injective,
       simp only [coe_mul, subtype.coe_mk, coe_coe],
-      rw_mod_cast @rat.mul_denom_eq_num r,
-      sorry },
+      rw_mod_cast @rat.mul_denom_eq_num r, refl },
     sorry }
 end
 

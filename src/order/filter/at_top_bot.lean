@@ -632,7 +632,7 @@ lemma function.injective.map_at_top_finset_prod_eq [comm_monoid α] {g : γ → 
   map (λ s, ∏ i in s, f (g i)) at_top = map (λ s, ∏ i in s, f i) at_top :=
 begin
   apply le_antisymm; refine map_at_top_finset_prod_le_of_prod_eq (λ s, _),
-  { refine ⟨s.preimage (hg.inj_on _), λ t ht, _⟩,
+  { refine ⟨s.preimage g (hg.inj_on _), λ t ht, _⟩,
     refine ⟨t.image g ∪ s, finset.subset_union_right _ _, _⟩,
     rw [← finset.prod_image (hg.inj_on _)],
     refine (prod_subset (subset_union_left _ _) _).symm,

@@ -83,7 +83,8 @@ variables {C : Type u} [category.{v} C]
 
 local attribute [instance] over.coe_from_hom
 
-/-- This is just composition of morphisms in `C`. -/
+/-- This is just composition of morphisms in `C`. Another way to express this would be
+    `(over.map f).obj a`, but our definition has nicer definitional properties -/
 def app {P Q : C} (f : P ⟶ Q) (a : over P) : over Q :=
 a.hom ≫ f
 
@@ -119,13 +120,9 @@ end
 
 end
 
-lemma pseudo_equal_equiv {P : C} : equivalence (pseudo_equal P) :=
-⟨pseudo_equal_refl, pseudo_equal_symm, pseudo_equal_trans⟩
-
 /-- The arrows with codomain `P` equipped with the equivalence relation of being pseudo-equal. -/
 def pseudoelement.setoid (P : C) : setoid (over P) :=
-{ r := pseudo_equal P,
-  iseqv := pseudo_equal_equiv }
+⟨_, ⟨pseudo_equal_refl, pseudo_equal_symm, pseudo_equal_trans⟩⟩
 
 local attribute [instance] pseudoelement.setoid
 
@@ -133,7 +130,7 @@ local attribute [instance] pseudoelement.setoid
     pseudo-equal. -/
 def pseudoelement (P : C) : Type (max u v) := quotient (pseudoelement.setoid P)
 
-namespace pseudoelements
+namespace pseudoelement
 
 /-- A coercion from an object of an abelian category to its pseudoelements. -/
 def object_to_sort : has_coe_to_sort C :=
@@ -165,7 +162,7 @@ def hom_to_fun {P Q : C} : has_coe_to_fun (P ⟶ Q) := ⟨_, pseudo_apply⟩
 
 local attribute [instance] hom_to_fun
 
-lemma pseudo_apply_bar {P Q : C} (f : P ⟶ Q) (a : over P) : f ⟦a⟧ = ⟦a.hom ≫ f⟧ :=
+lemma pseudo_apply_mk {P Q : C} (f : P ⟶ Q) (a : over P) : f ⟦a⟧ = ⟦a.hom ≫ f⟧ :=
 rfl
 
 /-- Applying a pseudoelement to a composition of morphisms is the same as composing
@@ -217,22 +214,23 @@ by { rw ←pseudo_zero_aux P a, exact quotient.eq }
 end zero
 
 /-- Morphisms map the zero pseudoelement to the zero pseudoelement -/
-theorem apply_zero {P Q : C} (f : P ⟶ Q) : f 0 = 0 :=
-by { rw [pseudo_zero_def, pseudo_apply_bar], simp  }
+@[simp] theorem apply_zero {P Q : C} (f : P ⟶ Q) : f 0 = 0 :=
+by { rw [pseudo_zero_def, pseudo_apply_mk], simp  }
 
 /-- The zero morphism maps every pseudoelement to 0. -/
-theorem zero_apply {P : C} (Q : C) (a : P) : (0 : P ⟶ Q) a = 0 :=
+@[simp] theorem zero_apply {P : C} (Q : C) (a : P) : (0 : P ⟶ Q) a = 0 :=
 quotient.induction_on a $ λ a',
-  by { rw [pseudo_zero_def, pseudo_apply_bar], simp }
+  by { rw [pseudo_zero_def, pseudo_apply_mk], simp }
 
 /-- An extensionality lemma for being the zero arrow. -/
 @[ext] theorem zero_morphism_ext {P Q : C} (f : P ⟶ Q) : (∀ a, f a = 0) → f = 0 :=
-λ h, by { rw ←category.id_comp f,
-  apply (pseudo_zero_iff ((𝟙 P ≫ f) : over Q)).1,
-  exact h (𝟙 P) }
+λ h, by { rw ←category.id_comp f, exact (pseudo_zero_iff ((𝟙 P ≫ f) : over Q)).1 (h (𝟙 P)) }
 
-theorem zero_iff {P Q : C} (f : P ⟶ Q) : f = 0 ↔ ∀ a, f a = 0 :=
-⟨λ h a, by { rw h, exact zero_apply _ _ }, zero_morphism_ext _⟩
+@[ext] theorem zero_morphism_ext' {P Q : C} (f : P ⟶ Q) : (∀ a, f a = 0) → 0 = f :=
+eq.symm ∘ zero_morphism_ext f
+
+theorem eq_zero_iff {P Q : C} (f : P ⟶ Q) : f = 0 ↔ ∀ a, f a = 0 :=
+⟨λ h a, by simp [h], zero_morphism_ext _⟩
 
 /-- A monomorphism is injective on pseudoelements. -/
 theorem pseudo_injective_of_mono {P Q : C} (f : P ⟶ Q) [mono f] : function.injective f :=
@@ -313,8 +311,8 @@ theorem pseudo_exact_of_exact {P Q R : C} {f : P ⟶ Q} {g : Q ⟶ R} [exact f g
 
 end
 
-lemma comp_zero {P Q R : C} (f : Q ⟶ R) (a : P ⟶ Q) : a ≫ f = 0 → f a = 0 :=
-λ h, by simp [over_coe_def, pseudo_apply_bar, over.coe_hom, h]
+lemma apply_eq_zero_of_comp_eq_zero {P Q R : C} (f : Q ⟶ R) (a : P ⟶ Q) : a ≫ f = 0 → f a = 0 :=
+λ h, by simp [over_coe_def, pseudo_apply_mk, over.coe_hom, h]
 
 section
 local attribute [instance] preadditive.has_equalizers_of_has_kernels
@@ -326,7 +324,7 @@ theorem exact_of_pseudo_exact {P Q R : C} (f : P ⟶ Q) (g : Q ⟶ R) :
 λ ⟨h₁, h₂⟩, (abelian.exact_iff _ _).2 ⟨zero_morphism_ext _ $ λ a, by rw [comp_apply, h₁ a],
 begin
   -- If we apply g to the pseudoelement induced by its kernel, we get 0 (of course!).
-  have : g (kernel.ι g) = 0 := comp_zero _ _ (kernel.condition _),
+  have : g (kernel.ι g) = 0 := apply_eq_zero_of_comp_eq_zero _ _ (kernel.condition _),
 
   -- By pseudo-exactness, we get a preimage.
   obtain ⟨a', ha⟩ := h₂ _ this,
@@ -407,5 +405,5 @@ begin
     quotient.sound ⟨Z, 𝟙 Z, b, by apply_instance, eb, by rwa category.id_comp⟩⟩⟩
 end
 
-end pseudoelements
+end pseudoelement
 end category_theory.abelian

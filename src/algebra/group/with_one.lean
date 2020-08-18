@@ -55,7 +55,7 @@ option.cases_on
 instance [has_mul α] : has_mul (with_one α) :=
 { mul := option.lift_or_get (*) }
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_mul [has_mul α] (a b : α) : ((a * b : α) : with_one α) = a * b := rfl
 
 @[to_additive]
@@ -313,3 +313,4 @@ instance [semiring α] : semiring (with_zero α) :=
 end semiring
 
 end with_zero
+#lint

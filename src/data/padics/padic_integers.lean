@@ -640,6 +640,28 @@ begin
       exact add_sub_of_le aux } }
 end
 
+-- lemma foobar_p_mul (n : ℕ) : ∀ (x : ℤ_[p]), foobar (n+1) (p * x) = foobar n x :=
+-- begin
+--   induction n with n ih,
+--   { dsimp [foobar], intro x, split_ifs;
+--     simp only [ring_hom.map_nat_cast, zmod.cast_self, zmod.val_zero, zero_mul, mul_zero, ring_hom.map_mul], },
+--   intro x,
+--   show dite _ _ _ = _,
+--   split_ifs with h h',
+--   { dsimp [foobar],
+--     simp at h, cases h,
+--     { contrapose! h, exact nat.prime.ne_zero ‹_› },
+--     { subst x,
+--       -- why so slow? and squeeze_simp doesn't work...
+--       -- simp,
+--       sorry
+--        } },
+--   { simp only [ring_hom.map_nat_cast, zmod.cast_self, zmod.val_zero, cast_eq_zero, zero_mul, sub_zero, cast_zero, ring_hom.map_mul,
+--  mul_eq_zero] at h h',
+--     push_neg at h, },
+--   {  }
+-- end
+
 lemma ind_step (n : ℕ) (x : ℤ_[p]) (ih : ↑p^n ∣ x - foobar n x) : ↑p^(n+1) ∣ x - foobar (n+1) x :=
 begin
   dsimp only [foobar],
@@ -661,6 +683,48 @@ begin
   { simp [foobar] },
   { rw [ideal.mem_span_singleton] at *,
     apply ind_step _ _ ih }
+end
+
+noncomputable def quux : ℕ → ℤ_[p] → ℕ
+| 0     x := 0
+| (n+1) x :=
+let y := x - quux n x in
+if hy : y = 0 then
+  quux n x
+else
+  let u := unit_coeff hy in
+  -- have x = quux n x + p ^ n * (u : ℤ_[p]) * p ^ (y.valuation - n).nat_abs,
+  -- by sorry,
+  quux n x + p ^ n * (to_zmod ((u : ℤ_[p]) * (p ^ (y.valuation - n).nat_abs))).val
+
+@[simp] lemma aux (n : ℕ) (c : ℤ_[p]) :
+  (↑p ^ n * c).valuation - n = c.valuation :=
+begin
+  sorry
+end
+
+lemma quux_spec (n : ℕ) : ∀ (x : ℤ_[p]), x - quux n x ∈ (ideal.span {p^n} : ideal ℤ_[p]) :=
+begin
+  simp only [ideal.mem_span_singleton],
+  induction n with n ih,
+  { simp only [is_unit_one, is_unit.dvd, pow_zero, forall_true_iff], },
+  { intro x,
+    dsimp only [quux],
+    split_ifs with h,
+    { rw h, apply dvd_zero },
+    { push_cast, rw sub_add_eq_sub_sub,
+      have := unit_coeff_spec h,
+      obtain ⟨c, hc⟩ := ih x,
+      simp only [hc],
+      simp only [ring_hom.map_nat_cast, zmod.cast_self, ring_hom.map_pow, ring_hom.map_mul, zmod.nat_cast_val],
+      simp only [aux],
+      by_cases hc0 : c.valuation.nat_abs = 0,
+      { rw hc0, simp only [mul_one, pow_zero],
+        sorry },
+      { rw _root_.zero_pow (nat.pos_of_ne_zero hc0),
+        simp only [sub_zero, zmod.cast_zero, mul_zero],
+        sorry }
+       } }
 end
 
 end padic_int

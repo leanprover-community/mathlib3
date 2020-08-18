@@ -405,6 +405,14 @@ begin
     simpa [lt_irrefl, nat.lt_succ_self, eq.symm] using h
 end
 
+lemma succ_above_pos (p : fin (n + 2)) (i : fin (n + 1)) (h : 0 < i) : 0 < p.succ_above i :=
+begin
+  by_cases H : i.val < p.val,
+  { simpa [succ_above_below, H, lt_iff_val_lt_val] using h },
+  { push_neg at H,
+    simp [succ_above_above, H, lt_iff_val_lt_val], },
+end
+
 @[simp] lemma succ_above_descend :
   ∀(p i : fin (n+1)) (h : i ≠ p), p.succ_above (p.pred_above i h) = i
 | ⟨p, hp⟩ ⟨0,   hi⟩ h := fin.eq_of_veq $ by simp [succ_above, pred_above]; split_ifs; simp * at *

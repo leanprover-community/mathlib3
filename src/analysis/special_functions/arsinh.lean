@@ -59,7 +59,7 @@ by rw [sinh_eq, arsinh, ← log_inv, exp_log (add_sqrt_one_add_pow_two_pos x),
       add_add_sub_cancel, add_self_div_two]
 
 /-- `sinh` is surjective, `∀ b, ∃ a, sinh a = b`. In this case, we use `a = arsinh b`. -/
-lemma sinh_surjective : function.surjective sinh := function.left_inverse.surjective arsinh_sinh
+lemma sinh_surjective : function.surjective sinh := function.left_inverse.surjective sinh_arsinh
 
 /-- `sinh` is bijective, both injective and surjective. -/
 lemma sinh_bijective : function.bijective sinh :=
@@ -77,4 +77,4 @@ end
 
 /-- `arsinh` is the left inverse of `sinh`. -/
 lemma arsinh_sinh (x : ℝ) : arsinh (sinh x) = x :=
-function.right_inverse_of_injective_of_left_inverse sinh_injective arsinh_sinh x
+function.right_inverse_of_injective_of_left_inverse sinh_injective sinh_arsinh x

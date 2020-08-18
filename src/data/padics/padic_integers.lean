@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Mario Carneiro
 -/
 import data.int.modeq
+import data.zmod.basic
+import linear_algebra.adic_completion
 import data.padics.padic_numbers
 
 /-!
@@ -291,8 +293,39 @@ instance : char_zero ℤ_[p] := sorry
 suffices (z1 : ℚ_[p]) = z2 ↔ z1 = z2, from iff.trans (by norm_cast) this,
 by norm_cast
 
-lemma z_dense (x : ℤ_[p]) : ∀ (ε : ℝ), ε > 0 → (∃ (k : ℤ), dist x ↑k < ε) :=
-sorry
+lemma exists_mem_range_of_norm_rat_le_one (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
+  ∃ n ∈ finset.range p, ∥(r - n : ℚ_[p])∥ < 1 :=
+begin
+  let n := r.num * gcd_b p r.denom,
+  use (int.nat_mod n p),
+  split,
+  { rw finset.mem_range,
+    sorry },
+  {
+    sorry }
+end
+
+lemma exists_mem_range (x : ℤ_[p]) :
+  ∃ n ∈ finset.range p, ∥(x - n : ℤ_[p])∥ < 1 :=
+begin
+  obtain ⟨r, hr⟩ := rat_dense (x : ℚ_[p]) zero_lt_one,
+
+end
+
+lemma z_dense (x : ℤ_[p]) : ∀ (ε : ℝ), 0 < ε → (∃ (k : ℤ), dist x ↑k < ε) :=
+begin
+  intros ε hε,
+  obtain ⟨r, hr⟩ := rat_dense (x : ℚ_[p]) hε,
+  -- let k : ℤ := r.num,
+  -- use k,
+  -- rw dist_eq_norm,
+  -- apply lt_of_le_of_lt _ hr,
+  -- rw show ∥x - k∥ = ∥(x - r : ℚ_[p]) + (r - k)∥,
+  -- { rw padic_norm_z, congr' 1, ring, simp [cast_eq_of_rat], sorry },
+  -- apply le_trans (padic_norm_e.nonarchimedean _ _),
+  -- rw max_le_iff,
+  -- refine ⟨le_refl _, _⟩,
+end
 
 lemma dense_embedding : dense_embedding (coe : ℤ → ℤ_[p]) :=
 dense_embedding.mk' _ continuous_of_discrete_topology

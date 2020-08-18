@@ -65,7 +65,7 @@ meta def choose1 (nondep : bool) (h : expr) (data : name) (spec : name) :
         set_goals [m],
         ctxt.mmap' (λ e, do
           b ← is_proof e,
-          monad.unlessb b $ 
+          monad.unlessb b $
             (mk_app ``nonempty.intro [e] >>= note_anon none) $> ()),
         unfreeze_local_instances >> apply_instance,
         instantiate_mvars m)),
@@ -133,7 +133,7 @@ into context a function `a : X → Y → A`, `b : X → Y → B` and two assumpt
 
 `choose! a b h h' using hyp` does the same, except that it will remove dependency of
 the functions on propositional arguments if possible. For example if `Y` is a proposition
-and `A` and `B` are inhabited in the above example then we will instead get
+and `A` and `B` are nonempty in the above example then we will instead get
 `a : X → A`, `b : X → B`, and the assumptions
 `h : ∀ (x : X) (y : Y), P x y (a x) (b x)` and
 `h' : ∀ (x : X) (y : Y), Q x y (a x) (b x)`.

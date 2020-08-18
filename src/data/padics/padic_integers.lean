@@ -559,7 +559,17 @@ lemma exists_mem_range (x : ℤ_[p]) :
   ∃ n ∈ finset.range p, ∥(x - n : ℤ_[p])∥ < 1 :=
 begin
   obtain ⟨r, hr⟩ := rat_dense (x : ℚ_[p]) zero_lt_one,
-
+  have H : ∥(r : ℚ_[p])∥ ≤ 1,
+  { rw norm_sub_rev at hr,
+    rw show (r : ℚ_[p]) = (r - x) + x, by ring,
+    apply le_trans (padic_norm_e.nonarchimedean _ _),
+    apply max_le (le_of_lt hr) x.2, },
+  obtain ⟨n, hn, yes⟩ := exists_mem_range_of_norm_rat_le_one r H,
+  use [n, hn],
+  simp only [padic_norm_z, coe_sub, subtype.coe_mk, coe_coe] at yes ⊢,
+  rw show (x - n : ℚ_[p]) = (x - r) + (r - n), by ring,
+  apply lt_of_le_of_lt (padic_norm_e.nonarchimedean _ _),
+  apply max_lt hr yes,
 end
 
 lemma z_dense (x : ℤ_[p]) : ∀ (ε : ℝ), 0 < ε → (∃ (k : ℤ), dist x ↑k < ε) :=

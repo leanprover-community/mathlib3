@@ -951,7 +951,7 @@ the preimage of `l.support`, `comap_domain f l hf` is the finitely supported fun
 from `α₁` to `γ` given by composing `l` with `f`. -/
 def comap_domain {α₁ α₂ γ : Type*} [has_zero γ]
   (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.inj_on f (f ⁻¹' ↑l.support)) : α₁ →₀ γ :=
-{ support := l.support.preimage hf,
+{ support := l.support.preimage f hf,
   to_fun := (λ a, l (f a)),
   mem_support_to_fun :=
     begin

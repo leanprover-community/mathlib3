@@ -266,7 +266,7 @@ include hp
 
 /-- The opposite of `expand`: sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`. -/
 noncomputable def contract (f : polynomial F) : polynomial F :=
-⟨@finset.preimage ℕ ℕ (*p) f.support $ λ _ _ _ _, (nat.mul_left_inj hp.pos).1,
+⟨f.support.preimage (*p) $ λ _ _ _ _, (nat.mul_left_inj hp.pos).1,
 λ n, f.coeff (n * p),
 λ n, by { rw [finset.mem_preimage, finsupp.mem_support_iff], refl }⟩
 

@@ -29,7 +29,7 @@ The "epi" four lemma and the five lemma, which is then an easy corollary.
 four lemma, diagram lemma, diagram chase
 -/
 open category_theory
-open category_theory.abelian.pseudoelements
+open category_theory.abelian.pseudoelement
 
 universes v u
 

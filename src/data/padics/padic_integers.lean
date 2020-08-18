@@ -614,6 +614,28 @@ else
 -- def to_zmod_pow (n : ℕ) : ℤ_[p] →+* zmod (p ^ n) :=
 -- _
 
+
+lemma ind_hyp (n : ℕ) (x : ℤ_[p]) (ih : ↑p^n ∣ x - foobar n x) : ↑p^(n+1) ∣ x - foobar (n+1) x :=
+begin
+  dsimp only [foobar],
+  split_ifs with h,
+  { rw h, apply dvd_zero },
+  { have := unit_coeff_spec h,
+    have p_dvd : ↑p ∣ x - (to_zmod x).val,
+    { sorry },
+    {  push_cast, rw sub_add_eq_sub_sub,
+    rw [pow_succ], apply dvd_add,
+    } }
+end
+
+lemma foobar_spec (n : ℕ) (x : ℤ_[p]) : x - foobar n x ∈ (ideal.span {p^n} : ideal ℤ_[p]) :=
+begin
+  induction n with n ih,
+  { simp [foobar] },
+  { rw [ideal.mem_span_singleton] at *,
+    apply ind_hyp _ _ ih }
+end
+
 end padic_int
 
 namespace padic_norm_z

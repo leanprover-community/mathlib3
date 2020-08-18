@@ -650,7 +650,7 @@ def composition_as_set_equiv (n : ℕ) : composition_as_set n ≃ finset (fin (n
       { exact c.zero_mem },
       { exact c.last_mem },
       { convert hj1, rwa fin.ext_iff } },
-    { simp only [classical.or_iff_not_imp_left],
+    { simp only [or_iff_not_imp_left],
       assume i_mem i_ne_zero i_ne_last,
       simp [fin.ext_iff] at i_ne_zero i_ne_last,
       refine ⟨⟨i.val - 1, _⟩, _, _⟩,

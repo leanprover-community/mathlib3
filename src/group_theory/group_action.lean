@@ -103,7 +103,7 @@ class is_scalar_tower : Prop :=
 
 variables {R M N}
 
-lemma smul_assoc [is_scalar_tower R M N] (x : R) (y : M) (z : N) :
+@[simp] lemma smul_assoc [is_scalar_tower R M N] (x : R) (y : M) (z : N) :
   (x • y) • z = x • y • z := is_scalar_tower.smul_assoc x y z
 
 end compatible_scalar

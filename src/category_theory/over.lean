@@ -59,6 +59,17 @@ by have := f.w; tidy
 def mk {X Y : T} (f : Y ⟶ X) : over X :=
 { left := Y, hom := f }
 
+/-- We can set up a coercion from arrows with codomain `X` to `over X`. This most likely should not
+    be a global instance, but it is sometimes useful. -/
+def coe_from_hom {X Y : T} : has_coe (Y ⟶ X) (over X) :=
+{ coe := mk }
+
+section
+local attribute [instance] coe_from_hom
+
+@[simp] lemma coe_hom {X Y : T} (f : Y ⟶ X) : (f : over X).hom = f := rfl
+end
+
 /-- To give a morphism in the over category, it suffices to give an arrow fitting in a commutative
     triangle. -/
 @[simps]
@@ -95,6 +106,15 @@ variables {Y : T} {f : X ⟶ Y} {U V : over X} {g : U ⟶ V}
 @[simp] lemma map_obj_left : ((map f).obj U).left = U.left := rfl
 @[simp] lemma map_obj_hom  : ((map f).obj U).hom  = U.hom ≫ f := rfl
 @[simp] lemma map_map_left : ((map f).map g).left = g.left := rfl
+
+/-- Mapping by the identity morphism is just the identity functor. -/
+def map_id : map (𝟙 Y) ≅ 𝟭 _ :=
+nat_iso.of_components (λ X, iso_mk (iso.refl _) (by tidy)) (by tidy)
+
+/-- Mapping by the composite morphism `f ≫ g` is the same as mapping by `f` then by `g`. -/
+def map_comp {Y Z : T} (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map f ⋙ map g :=
+nat_iso.of_components (λ X, iso_mk (iso.refl _) (by tidy)) (by tidy)
+
 end
 
 instance forget_reflects_iso : reflects_isomorphisms (forget : over X ⥤ T) :=
@@ -224,6 +244,15 @@ variables {Y : T} {f : X ⟶ Y} {U V : under Y} {g : U ⟶ V}
 @[simp] lemma map_obj_right : ((map f).obj U).right = U.right := rfl
 @[simp] lemma map_obj_hom   : ((map f).obj U).hom   = f ≫ U.hom := rfl
 @[simp] lemma map_map_right : ((map f).map g).right = g.right := rfl
+
+/-- Mapping by the identity morphism is just the identity functor. -/
+def map_id : map (𝟙 Y) ≅ 𝟭 _ :=
+nat_iso.of_components (λ X, iso_mk (iso.refl _) (by tidy)) (by tidy)
+
+/-- Mapping by the composite morphism `f ≫ g` is the same as mapping by `f` then by `g`. -/
+def map_comp {Y Z : T} (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map g ⋙ map f :=
+nat_iso.of_components (λ X, iso_mk (iso.refl _) (by tidy)) (by tidy)
+
 end
 
 section

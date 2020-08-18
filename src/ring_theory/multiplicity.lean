@@ -49,8 +49,8 @@ begin
 end
 
 lemma not_finite_iff_forall {a b : α} : (¬ finite a b) ↔ ∀ n : ℕ, a ^ n ∣ b :=
-⟨λ h n, nat.cases_on n (one_dvd _) (by simpa [finite, classical.not_not] using h),
-  by simp [finite, multiplicity, classical.not_not]; tauto⟩
+⟨λ h n, nat.cases_on n (one_dvd _) (by simpa [finite, not_not] using h),
+  by simp [finite, multiplicity, not_not]; tauto⟩
 
 lemma not_unit_of_finite {a b : α} (h : finite a b) : ¬is_unit a :=
 let ⟨n, hn⟩ := h in mt (is_unit_iff_forall_dvd.1 ∘ is_unit_pow (n + 1)) $

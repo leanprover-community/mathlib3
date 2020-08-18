@@ -68,10 +68,10 @@ lemma not_ff : ¬ ff := by simp
 theorem dichotomy (b : bool) : b = ff ∨ b = tt :=
 by cases b; simp
 
-theorem forall_bool {p : bool → Prop} : (∀ b, p b) ↔ p ff ∧ p tt :=
+@[simp] theorem forall_bool {p : bool → Prop} : (∀ b, p b) ↔ p ff ∧ p tt :=
 ⟨λ h, by simp [h], λ ⟨h₁, h₂⟩ b, by cases b; assumption⟩
 
-theorem exists_bool {p : bool → Prop} : (∃ b, p b) ↔ p ff ∨ p tt :=
+@[simp] theorem exists_bool {p : bool → Prop} : (∃ b, p b) ↔ p ff ∨ p tt :=
 ⟨λ ⟨b, h⟩, by cases b; [exact or.inl h, exact or.inr h],
  λ h, by cases h; exact ⟨_, h⟩⟩
 

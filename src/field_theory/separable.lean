@@ -266,7 +266,7 @@ include hp
 
 /-- The opposite of `expand`: sends `∑ aₙ xⁿᵖ` to `∑ aₙ xⁿ`. -/
 noncomputable def contract (f : polynomial F) : polynomial F :=
-⟨@finset.preimage ℕ ℕ (*p) f.support $ λ _ _ _ _, (nat.mul_left_inj hp.pos).1,
+⟨f.support.preimage (*p) $ λ _ _ _ _, (nat.mul_left_inj hp.pos).1,
 λ n, f.coeff (n * p),
 λ n, by { rw [finset.mem_preimage, finsupp.mem_support_iff], refl }⟩
 
@@ -332,7 +332,7 @@ end
 theorem is_unit_or_eq_zero_of_separable_expand {f : polynomial F} (n : ℕ)
   (hf : (expand F (p ^ n) f).separable) : is_unit f ∨ n = 0 :=
 begin
-  rw classical.or_iff_not_imp_right, intro hn,
+  rw or_iff_not_imp_right, intro hn,
   have hf2 : (expand F (p ^ n) f).derivative = 0,
   { by rw [derivative_expand, nat.cast_pow, char_p.cast_eq_zero,
       zero_pow (nat.pos_of_ne_zero hn), zero_mul, mul_zero] },

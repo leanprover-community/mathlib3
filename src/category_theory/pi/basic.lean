@@ -18,7 +18,7 @@ namespace category_theory
 
 universes w₀ w₁ w₂ v₁ v₂ u₁ u₂
 
-variables {I : Type w₀} (C : I → Type u₁) [∀ i, category.{v₁} (C i)]
+variables {I : Type w₀} (C : I → Type u₁) [Π i, category.{v₁} (C i)]
 
 /--
 `pi C` gives the cartesian product of an indexed family of categories.
@@ -27,6 +27,16 @@ instance pi : category.{max w₀ v₁} (Π i, C i) :=
 { hom := λ X Y, Π i, X i ⟶ Y i,
   id := λ X i, 𝟙 (X i),
   comp := λ X Y Z f g i, f i ≫ g i }
+
+/--
+This provides some assistance to typeclass search in a common situation,
+which otherwise fails. (Without this `category_theory.pi.has_limit_of_has_limit_comp_eval` fails.)
+-/
+abbreviation pi' {I : Type v₁} (C : I → Type u₁) [Π i, category.{v₁} (C i)] :
+  category.{v₁} (Π i, C i) :=
+category_theory.pi C
+
+attribute [instance] pi'
 
 namespace pi
 
@@ -84,7 +94,7 @@ nat_iso.of_components (λ f, iso.refl _) (by tidy)
 end
 
 section
-variables {J : Type w₀} {D : J → Type u₁} [∀ j, category.{v₁} (D j)]
+variables {J : Type w₀} {D : J → Type u₁} [Π j, category.{v₁} (D j)]
 
 instance sum_elim_category : Π (s : I ⊕ J), category.{v₁} (sum.elim C D s)
 | (sum.inl i) := by { dsimp, apply_instance, }

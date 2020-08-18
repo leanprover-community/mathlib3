@@ -455,11 +455,8 @@ end
 
 /-- An auxiliary lemma used in `exists_mem_range_of_norm_rat_lt_one`. -/
 private lemma exists_mem_range_aux (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
-  let n : ℤ := r.num * r.denom.gcd_a p
-  in ¬(⟨r, h⟩ - (n.nat_mod p) : ℤ_[p]) = 0 →
-     ↑p ∣ r.num - (n.nat_mod p) * ↑(r.denom) :=
+  ↑p ∣ r.num - r.num * r.denom.gcd_a p * ↑(r.denom) :=
 begin
-  intros n aux,
   rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
   simp only [int.cast_coe_nat, zmod.coe_nat_mod p (nat.prime.ne_zero ‹_›), int.cast_mul, int.cast_sub],
   have := congr_arg (coe : ℤ → zmod p) (gcd_eq_gcd_ab r.denom p),
@@ -476,42 +473,34 @@ begin
 end
 
 lemma exists_mem_range_of_norm_rat_le_one (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
-  ∃ n ∈ finset.range p, ∥(⟨r,h⟩ - n : ℤ_[p])∥ < 1 :=
+  ∃ n : ℤ, ∥(⟨r,h⟩ - n : ℤ_[p])∥ < 1 :=
 begin
   let n := r.num * gcd_a r.denom p,
-  use (int.nat_mod n p),
-  split,
-  { rw finset.mem_range,
-    unfold int.nat_mod,
-    by_cases h : 0 ≤ n % p,
-    { zify, rw int.to_nat_of_nonneg h, convert int.mod_lt _ _,
-      { simp },
-      { exact_mod_cast nat.prime.ne_zero ‹_› } },
-    { zify, rw int.to_nat_zero_of_neg (lt_of_not_ge h), exact_mod_cast nat.prime.pos ‹_› } },
-  { by_cases aux : (⟨r,h⟩ - (n.nat_mod p) : ℤ_[p]) = 0,
-    { rw [aux, norm_zero], exact zero_lt_one, },
-    suffices : ↑p ∣ (⟨r,h⟩ - (n.nat_mod p) : ℤ_[p]),
-    { rcases this with ⟨x, hx⟩,
-      calc ∥(⟨r,h⟩ - (n.nat_mod p) : ℤ_[p])∥
-          = ∥(p : ℤ_[p])∥ * ∥x∥ : by rw [hx, padic_norm_z.mul]
-      ... ≤ ∥(p : ℤ_[p])∥ * 1   : mul_le_mul (le_refl _) x.2 (norm_nonneg _) (norm_nonneg _)
-      ... < 1 : _,
-      { rw [mul_one, padic_norm_z.norm_p],
-        apply inv_lt_one,
-        exact_mod_cast nat.prime.one_lt ‹_› }, },
-    rw ← (is_unit_denom r h).dvd_mul_right,
-    suffices : ↑p ∣ r.num - (n.nat_mod p) * r.denom,
-    { convert (int.cast_ring_hom ℤ_[p]).map_dvd this,
-      simp only [sub_mul, int.cast_coe_nat, ring_hom.eq_int_cast, int.cast_mul,
-        sub_left_inj, int.cast_sub],
-      apply subtype.coe_injective,
-      simp only [coe_mul, subtype.coe_mk, coe_coe],
-      rw_mod_cast @rat.mul_denom_eq_num r, refl },
-    apply exists_mem_range_aux r h aux, }
+  use n,
+  by_cases aux : (⟨r,h⟩ - n : ℤ_[p]) = 0,
+  { rw [aux, norm_zero], exact zero_lt_one, },
+  suffices : ↑p ∣ (⟨r,h⟩ - n : ℤ_[p]),
+  { rcases this with ⟨x, hx⟩,
+    calc ∥(⟨r,h⟩ - n : ℤ_[p])∥
+        = ∥(p : ℤ_[p])∥ * ∥x∥ : by rw [hx, padic_norm_z.mul]
+    ... ≤ ∥(p : ℤ_[p])∥ * 1   : mul_le_mul (le_refl _) x.2 (norm_nonneg _) (norm_nonneg _)
+    ... < 1 : _,
+    { rw [mul_one, padic_norm_z.norm_p],
+      apply inv_lt_one,
+      exact_mod_cast nat.prime.one_lt ‹_› }, },
+  rw ← (is_unit_denom r h).dvd_mul_right,
+  suffices : ↑p ∣ r.num - n * r.denom,
+  { convert (int.cast_ring_hom ℤ_[p]).map_dvd this,
+    simp only [sub_mul, int.cast_coe_nat, ring_hom.eq_int_cast, int.cast_mul,
+      sub_left_inj, int.cast_sub],
+    apply subtype.coe_injective,
+    simp only [coe_mul, subtype.coe_mk, coe_coe],
+    rw_mod_cast @rat.mul_denom_eq_num r, refl },
+  apply exists_mem_range_aux r h,
 end
 
 lemma exists_mem_range (x : ℤ_[p]) :
-  ∃ n ∈ finset.range p, ∥(x - n : ℤ_[p])∥ < 1 :=
+  ∃ n : ℤ, ∥(x - n : ℤ_[p])∥ < 1 :=
 begin
   obtain ⟨r, hr⟩ := rat_dense (x : ℚ_[p]) zero_lt_one,
   have H : ∥(r : ℚ_[p])∥ ≤ 1,
@@ -519,29 +508,15 @@ begin
     rw show (r : ℚ_[p]) = (r - x) + x, by ring,
     apply le_trans (padic_norm_e.nonarchimedean _ _),
     apply max_le (le_of_lt hr) x.2, },
-  obtain ⟨n, hn, yes⟩ := exists_mem_range_of_norm_rat_le_one r H,
-  use [n, hn],
-  simp only [padic_norm_z, coe_sub, subtype.coe_mk, coe_coe] at yes ⊢,
+  obtain ⟨n, hn⟩ := exists_mem_range_of_norm_rat_le_one r H,
+  use n,
+  simp only [padic_norm_z, coe_sub, subtype.coe_mk, coe_coe_int] at hn ⊢,
   rw show (x - n : ℚ_[p]) = (x - r) + (r - n), by ring,
   apply lt_of_le_of_lt (padic_norm_e.nonarchimedean _ _),
-  apply max_lt hr yes,
+  apply max_lt hr hn,
 end
 
-lemma exists_mem_range_congr (x : ℤ_[p]) (m n : ℕ) (hmp : m < p) (hnp : n < p)
-  (hm : ∥x - m∥ < 1) (hn : ∥x - n∥ < 1) :
-  m = n :=
-begin
-  rw norm_sub_rev at hm,
-  have : ∥((m - n : ℤ) : ℤ_[p])∥ < 1,
-  { rw show ((m - n : ℤ) : ℤ_[p]) = (↑m - x) + (x - n), { push_cast, ring },
-    apply lt_of_le_of_lt (padic_norm_z.nonarchimedean _ _),
-    apply max_lt hm hn },
-  rw [norm_int_lt_one_iff_dvd, ← int.modeq.modeq_iff_dvd, int.modeq, eq_comm] at this,
-  rw [int.mod_eq_of_lt, int.mod_eq_of_lt] at this;
-  { simpa },
-end
-
-lemma exists_mem_range_congr' (x : ℤ_[p]) (m n : ℕ)
+lemma exists_mem_range_congr (x : ℤ_[p]) (m n : ℤ)
   (hm : ∥x - m∥ < 1) (hn : ∥x - n∥ < 1) :
   (m : zmod p) = n :=
 begin
@@ -555,53 +530,51 @@ begin
 end
 
 def to_zmod : ℤ_[p] →+* zmod p :=
-{ to_fun := λ x, ((classical.some (exists_mem_range x) : ℕ) : zmod p),
+{ to_fun := λ x, ((classical.some (exists_mem_range x) : ℤ) : zmod p),
   map_zero' :=
   begin
-    obtain ⟨hcp, hc⟩ := classical.some_spec (exists_mem_range (0 : ℤ_[p])),
-    rw finset.mem_range at hcp,
-    rw exists_mem_range_congr _ _ 0 hcp _ hc,
-    { simp only [cast_zero], },
-    { simp only [norm_zero, sub_zero, cast_zero], exact zero_lt_one },
-    { exact nat.prime.pos ‹_› },
+    have h0 := classical.some_spec (exists_mem_range (0 : ℤ_[p])),
+    rw exists_mem_range_congr _ _ 0 h0; simp only [norm_zero, int.cast_zero, sub_zero],
+    exact zero_lt_one,
   end,
   map_one' :=
   begin
-    obtain ⟨hcp, hc⟩ := classical.some_spec (exists_mem_range (1 : ℤ_[p])),
-    rw finset.mem_range at hcp,
-    rw exists_mem_range_congr _ _ 1 hcp _ hc,
-    { simp only [cast_one], },
-    { simp only [norm_zero, sub_self, cast_one], exact zero_lt_one },
-    { exact nat.prime.one_lt ‹_› },
+    have h1 := classical.some_spec (exists_mem_range (1 : ℤ_[p])),
+    rw exists_mem_range_congr _ _ 1 h1; simp only [norm_zero, int.cast_one, sub_self],
+    exact zero_lt_one,
   end,
   map_add' :=
   begin
     intros x y,
-    obtain ⟨hxp, hx⟩ := classical.some_spec (exists_mem_range x),
-    obtain ⟨hyp, hy⟩ := classical.some_spec (exists_mem_range y),
-    obtain ⟨hxyp, hxy⟩ := classical.some_spec (exists_mem_range (x + y)),
-    rw ← nat.cast_add,
-    rw exists_mem_range_congr' (x + y) _ _ hxy,
+    have hx := classical.some_spec (exists_mem_range x),
+    have hy := classical.some_spec (exists_mem_range y),
+    have hxy := classical.some_spec (exists_mem_range (x + y)),
+    rw ← int.cast_add,
+    rw exists_mem_range_congr (x + y) _ _ hxy,
+    let X : ℤ := classical.some (exists_mem_range x),
+    let Y : ℤ := classical.some (exists_mem_range y),
+    show ∥x + y - ↑(X + Y)∥ < 1,
+    change ∥x - X∥ < 1 at hx,
+    change ∥y - Y∥ < 1 at hy,
     have := lt_of_le_of_lt (padic_norm_z.nonarchimedean _ _) (max_lt hx hy),
     convert this using 2,
-    abel,
-    congr,
-    simp [add_comm],
+    simp only [int.cast_add],
+    ring,
   end,
   map_mul' :=
   begin
     intros x y,
-    obtain ⟨hxp, hx⟩ := classical.some_spec (exists_mem_range x),
-    obtain ⟨hyp, hy⟩ := classical.some_spec (exists_mem_range y),
-    obtain ⟨hxyp, hxy⟩ := classical.some_spec (exists_mem_range (x * y)),
-    rw ← nat.cast_mul,
-    rw exists_mem_range_congr' (x * y) _ _ hxy,
-    let X : ℕ := classical.some (exists_mem_range x),
-    let Y : ℕ := classical.some (exists_mem_range y),
+    have hx := classical.some_spec (exists_mem_range x),
+    have hy := classical.some_spec (exists_mem_range y),
+    have hxy := classical.some_spec (exists_mem_range (x * y)),
+    rw ← int.cast_mul,
+    rw exists_mem_range_congr (x * y) _ _ hxy,
+    let X : ℤ := classical.some (exists_mem_range x),
+    let Y : ℤ := classical.some (exists_mem_range y),
     show ∥x * y - ↑(X * Y)∥ < 1,
     change ∥x - X∥ < 1 at hx,
     change ∥y - Y∥ < 1 at hy,
-    simp only [padic_norm_z, coe_sub, coe_mul, cast_mul, finset.mem_range, coe_coe] at *,
+    simp only [padic_norm_z, coe_sub, coe_mul, int.cast_mul, finset.mem_range, coe_coe_int] at *,
     have key1 : ∥(x : ℚ_[p])∥ * ∥(y - Y : ℚ_[p])∥ < 1,
     { rw mul_comm,
       apply lt_of_le_of_lt _ hy,
@@ -611,14 +584,12 @@ def to_zmod : ℤ_[p] →+* zmod p :=
     { apply lt_of_le_of_lt _ hx,
       calc _ ≤ _ : mul_le_mul (le_refl _) _ (norm_nonneg _) (norm_nonneg _)
       ... = ∥(x - X : ℚ_[p])∥ : mul_one _,
-      convert (Y : ℤ_[p]).2, simp only [val_eq_coe, coe_coe], },
+      convert (Y : ℤ_[p]).2, simp only [val_eq_coe, coe_coe_int], },
     rw ← padic_norm_e.mul at key1 key2,
     have := lt_of_le_of_lt (padic_norm_e.nonarchimedean _ _) (max_lt key1 key2),
     convert this using 2,
     ring,
-  end,
-}
-
+  end }
 
 end padic_int
 

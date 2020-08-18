@@ -235,7 +235,7 @@ by cases i; refl
 
 @[simp] lemma pred_mk_succ (i : ℕ) {h : i < n + 1} :
   (⟨i.succ, add_lt_add_right h 1⟩ : fin (n + 2)).pred (ne_of_vne (ne_of_gt (zero_lt_mk_succ i h))) = ⟨i, h⟩ :=
-by squeeze_simp [eq_iff_veq, succ_pred_eq_of_pos, h, mod_eq_of_lt]
+by simp only [eq_iff_veq, pred_val, nat.pred_succ]
 
 @[simp] lemma pred_inj :
   ∀ {a b : fin (n + 1)} {ha : a ≠ 0} {hb : b ≠ 0}, a.pred ha = b.pred hb ↔ a = b

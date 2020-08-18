@@ -371,7 +371,7 @@ by { rw [cast_succ, lt_iff_val_lt_val, cast_add_val, succ_val], exact lt_add_one
 
 @[simp] lemma pred_one {n : ℕ} : fin.pred (1 : fin (n + 2)) (ne.symm (ne_of_lt zero_lt_one)) = 0 := rfl
 
-lemma pred_one_add (i : fin (n + 2)) (h : i.val < n + 1) :
+lemma pred_add_one (i : fin (n + 2)) (h : i.val < n + 1) :
   pred (i + 1) (ne_of_gt (zero_lt_not_last_add_one _ (lt_iff_val_lt_val.mpr h))) = cast_lt i h :=
 by simp [eq_iff_veq, succ_pred_eq_of_pos, h, add_def, mod_eq_of_lt]
 

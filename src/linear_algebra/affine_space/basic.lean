@@ -297,12 +297,7 @@ vsub_mem_vector_span k hp1 hp2
 subspace if and only if the vector is in the direction. -/
 lemma vadd_mem_iff_mem_direction {s : affine_subspace k P} (v : V) {p : P} (hp : p ∈ s) :
   v +ᵥ p ∈ s ↔ v ∈ s.direction :=
-begin
-  split,
-  { intro h,
-    simpa using vsub_mem_direction h hp },
-  { exact λ h, vadd_mem_of_mem_direction h hp }
-end
+⟨λ h, by simpa using vsub_mem_direction h hp, λ h, vadd_mem_of_mem_direction h hp⟩
 
 /-- Given a point in an affine subspace, the set of vectors in its
 direction equals the set of vectors subtracting that point on the

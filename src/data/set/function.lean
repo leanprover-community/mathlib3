@@ -268,6 +268,14 @@ lemma surj_on.image_eq_of_maps_to (h₁ : surj_on f s t) (h₂ : maps_to f s t) 
   f '' s = t :=
 eq_of_subset_of_subset h₂.image_subset h₁
 
+lemma surj_on_of_surjective (h_surj : surjective f) (h_pre : f ⁻¹' t ⊆ s) : surj_on f s t :=
+begin
+  intros p hp,
+  obtain ⟨x, hx⟩ := h_surj p,
+  rw ← hx at hp,
+  exact ⟨x, h_pre hp, hx⟩
+end
+
 /-! ### Bijectivity -/
 
 /-- `f` is bijective from `s` to `t` if `f` is injective on `s` and `f '' s = t`. -/

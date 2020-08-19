@@ -1212,7 +1212,7 @@ not currently exist in mathlib. -/
 /-- In a linearly ordered ring with the order topology, if `f` tends to `C` and `g` tends to
 `at_top` then `f + g` tends to `at_top`. -/
 lemma tendsto_at_top_add_tendsto_left
-  {C : α} (hf : tendsto f l (nhds C)) (hg : tendsto g l at_top) :
+  {C : α} (hf : tendsto f l (𝓝 C)) (hg : tendsto g l at_top) :
   tendsto (λ x, f x + g x) l at_top :=
 begin
   obtain ⟨C', hC'⟩ : ∃ C', C' < C := no_bot C,

@@ -726,6 +726,50 @@ begin
         exact hc0, } } }
 end
 
+lemma quux_zero (n : ℕ) : quux n (0 : ℤ_[p]) = 0 :=
+begin
+  induction n with n ih,
+  { simp [quux] },
+  { simp [quux, ih] }
+end
+
+
+-- probably useless attempts at ring hom lemmas
+
+lemma quux_one (n : ℕ) : (quux (n+1) (1 : ℤ_[p]) : zmod (p^(n+1))) = 1 :=
+begin
+  induction n with n ih,
+  { simp [quux],  }
+end
+
+lemma cast_nat_one (n : ℕ) : ((1 : ℕ) : zmod n) = 1 := by simp
+
+
+lemma quux_one (n : ℕ) : (quux (n+1) (1 : ℤ_[p]) : zmod (p^(n+1))) = 1 :=
+begin
+  have := quux_spec (n+1) (1 : ℤ_[p]),
+  rw [ideal.mem_span_singleton, ←dvd_neg, neg_sub] at this,
+  norm_cast at this,
+  convert cast_nat_one _,
+end
+
+lemma quux_add (n : ℕ) (z1 z2 : ℤ_[p]) : quux n (z1 + z2) = quux n z1 + quux n z2 :=
+begin
+  induction n with n ih,
+  { simp [quux] },
+  { simp [quux],
+    split_ifs,
+    { apply ih },
+    { rw [_root_.zero_pow], simp [ih], sorry },
+    { rw [_root_.zero_pow], simp [ih], sorry },
+    { rw [_root_.zero_pow, _root_.zero_pow], simp [ih], sorry, sorry },
+    { rw [_root_.zero_pow], simp [ih], sorry },
+    { rw [_root_.zero_pow, _root_.zero_pow], simp [ih], sorry, sorry },
+    { rw [_root_.zero_pow, _root_.zero_pow], simp [ih], sorry, sorry },
+    { rw [_root_.zero_pow, _root_.zero_pow, _root_.zero_pow], simp [ih], sorry, sorry, sorry },
+      }
+end
+
 end padic_int
 
 namespace padic_norm_z

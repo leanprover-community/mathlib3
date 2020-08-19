@@ -436,7 +436,7 @@ variables (R)
 @[simp] lemma mem_bot : x ∈ (⊥ : submodule R M) ↔ x = 0 := mem_singleton_iff
 end
 
-lemma nonzero_mem_of_gt_bot (I : submodule R M) (gt_bot : ⊥ < I) : ∃ a : I, a ≠ 0 :=
+lemma nonzero_mem_of_gt_bot {I : submodule R M} (gt_bot : ⊥ < I) : ∃ a : I, a ≠ 0 :=
 begin
   have h := (submodule.lt_iff_le_and_exists.1 gt_bot).2, tidy,
 end
@@ -850,7 +850,7 @@ lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) :
   span R {m} ≤ p ↔ m ∈ p :=
 by rw [span_le, singleton_subset_iff, mem_coe]
 
-lemma lt_add_nonmem (I : submodule R M) (a ∉ I) : I < I + submodule.span R {a} :=
+lemma lt_add_nonmem {I : submodule R M} (a ∉ I) : I < I + submodule.span R {a} :=
 begin
   split,
   suffices : I ≤ I ⊔ submodule.span R {a}, assumption, exact le_sup_left,

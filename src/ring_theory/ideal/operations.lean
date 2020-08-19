@@ -859,7 +859,7 @@ end
 
 end ideal
 
-lemma ideal_mul_eq_bot (R : Type*) [integral_domain R] {I J : ideal R} : (I * J = ⊥) ↔ I = ⊥ ∨ J = ⊥ :=
+lemma ideal_mul_eq_bot {R : Type*} [integral_domain R] {I J : ideal R} : (I * J = ⊥) ↔ I = ⊥ ∨ J = ⊥ :=
 begin
   have hJ : inhabited J, by exact submodule.inhabited J,
   have j := inhabited.default J, clear hJ,
@@ -873,10 +873,10 @@ begin
   left,
   rw submodule.eq_bot_iff,
   intros i hi,
-  rcases J.ne_bot_iff.1 h with ⟨ j', hj, ne0⟩,
+  rcases J.ne_bot_iff.1 h with ⟨j', hj, ne0⟩,
   rw submodule.eq_bot_iff at hij,
   specialize hij (i * j'),
-  cases eq_zero_or_eq_zero_of_mul_eq_zero ( hij (ideal.mul_mem_mul hi hj)),
+  cases eq_zero_or_eq_zero_of_mul_eq_zero (hij $ ideal.mul_mem_mul hi hj),
   assumption, simpa only [],
 end
 

@@ -79,7 +79,7 @@ namespace has_limits
 Construction of a limit cone in `Algebra R`.
 (Internal use only; use the limits API.)
 -/
-def limit (F : J ⥤ Algebra R) : cone F :=
+def limit_cone (F : J ⥤ Algebra R) : cone F :=
 { X := Algebra.of R (limit (F ⋙ forget _)),
   π :=
   { app := limit_π_alg_hom F,
@@ -90,7 +90,7 @@ def limit (F : J ⥤ Algebra R) : cone F :=
 Witness that the limit cone in `Algebra R` is a limit cone.
 (Internal use only; use the limits API.)
 -/
-def limit_is_limit (F : J ⥤ Algebra R) : is_limit (limit F) :=
+def limit_cone_is_limit (F : J ⥤ Algebra R) : is_limit (limit_cone F) :=
 begin
   refine is_limit.of_faithful
     (forget (Algebra R)) (limit.is_limit _)
@@ -108,10 +108,16 @@ open has_limits
 
 /-- The category of R-algebras has all limits. -/
 instance has_limits : has_limits (Algebra R) :=
-{ has_limits_of_shape := λ J 𝒥,
-  { has_limit := λ F, by exactI
-    { cone     := limit F,
-      is_limit := limit_is_limit F } } }
+{ has_limits_of_shape := λ J 𝒥, by exactI
+  { has_limit := λ F, has_limit.mk
+    { cone     := limit_cone F,
+      is_limit := limit_cone_is_limit F } } }
+
+def limit_iso_Algebra_of_limit_forget (F : J ⥤ Algebra R) :
+  limit F ≅ Algebra.of R (limit (F ⋙ forget (Algebra R))) :=
+is_limit.cone_point_unique_up_to_iso
+  (limit.is_limit F)
+  (limit_cone_is_limit F)
 
 /--
 The forgetful functor from R-algebras to rings preserves all limits.

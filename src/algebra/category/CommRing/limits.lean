@@ -83,20 +83,6 @@ def is_limit_forget_map_cone_limit_cone (F : J ⥤ SemiRing) :
   is_limit ((forget SemiRing).map_cone (limit_cone F)) :=
 is_limit.of_iso_limit (limit.is_limit _) (forget_map_cone_limit_cone_iso F).symm
 
-lemma foo
-  (F : J ⥤ SemiRing) (s : cone F)
-  (x y : (s.X))
-  (j : J) :
-
-    (limit_π_ring_hom F j)
-        (limit.lift (F ⋙ forget SemiRing) ((forget SemiRing).map_cone s) x) =
-         (s.π.app j) x :=
-begin
-  dsimp [limit_π_ring_hom],
-  simp,
-end
-
--- FIXME
 /--
 Witness that the limit cone in `SemiRing` is a limit cone.
 (Internal use only; use the limits API.)
@@ -138,8 +124,8 @@ open has_limits
 
 /-- The category of rings has all limits. -/
 instance has_limits : has_limits SemiRing :=
-{ has_limits_of_shape := λ J 𝒥,
-  { has_limit := λ F, by exactI has_limit.mk
+{ has_limits_of_shape := λ J 𝒥, by exactI
+  { has_limit := λ F, has_limit.mk
     { cone     := limit_cone F,
       is_limit := limit_cone_is_limit F } } }
 

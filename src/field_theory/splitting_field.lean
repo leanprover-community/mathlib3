@@ -117,6 +117,15 @@ begin
   rw [finset.prod_insert hat, splits_mul_iff i ht.1 (finset.prod_ne_zero_iff.2 ht.2), ih ht.2]
 end
 
+lemma degree_eq_one_of_irreducible_of_splits {p : polynomial β}
+  (h_nz : p ≠ 0) (hp : irreducible p) (hp_splits: splits (ring_hom.id β) p):
+  p.degree = 1 :=
+begin
+  rcases hp_splits,
+  { contradiction },
+  { apply hp_splits hp, simp }
+end
+
 lemma exists_root_of_splits {f : polynomial α} (hs : splits i f) (hf0 : degree f ≠ 0) :
   ∃ x, eval₂ i x f = 0 :=
 if hf0 : f = 0 then ⟨37, by simp [hf0]⟩

@@ -637,6 +637,9 @@ by simp [le_antisymm_iff]
 @[simp, norm_cast, priority 900] theorem nat_succ (n : ℕ) : (n.succ : cardinal) = succ n :=
 le_antisymm (add_one_le_succ _) (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _)
 
+@[simp, norm_cast]
+lemma nat_add (m n : ℕ) : ((m + n : ℕ) : cardinal) = (m + n : cardinal) := nat.cast_add _ _
+
 @[simp] theorem succ_zero : succ 0 = 1 :=
 by norm_cast
 
@@ -714,6 +717,20 @@ end
 lemma add_lt_omega_iff {a b : cardinal} : a + b < omega ↔ a < omega ∧ b < omega :=
 ⟨λ h, ⟨lt_of_le_of_lt (le_add_right _ _) h, lt_of_le_of_lt (le_add_left _ _) h⟩,
   λ⟨h1, h2⟩, add_lt_omega h1 h2⟩
+
+lemma exists_nat_of_add_eq_nat {a b : cardinal} {n : ℕ} (h : a + b = n) :
+  ∃ k l : ℕ, a = k ∧ b = l :=
+begin
+  rcases (@cardinal.lt_omega a).1 _ with ⟨k, hk⟩,
+  rcases (@cardinal.lt_omega b).1 _ with ⟨l, hl⟩,
+  { use k, use l, cc },
+  { refine ((@cardinal.add_lt_omega_iff a b).1 _).2,
+    rw h,
+    apply cardinal.nat_lt_omega },
+  { refine ((@cardinal.add_lt_omega_iff a b).1 _).1,
+    rw h,
+    apply cardinal.nat_lt_omega },
+end
 
 theorem mul_lt_omega {a b : cardinal} (ha : a < omega) (hb : b < omega) : a * b < omega :=
 match a, b, lt_omega.1 ha, lt_omega.1 hb with
@@ -835,6 +852,13 @@ quotient.sound ⟨equiv.bool_equiv_punit_sum_punit⟩
 
 @[simp] theorem mk_option {α : Type u} : mk (option α) = mk α + 1 :=
 quotient.sound ⟨equiv.option_equiv_sum_punit α⟩
+
+theorem mk_zero_iff_empty_set (s : set α) : cardinal.mk s = 0 ↔ s = ∅ :=
+begin
+  rw [←set.not_nonempty_iff_eq_empty, iff_not_comm, set.nonempty,
+    ←nonempty_subtype, ←ne_zero_iff_nonempty],
+  refl,
+end
 
 theorem mk_list_eq_sum_pow (α : Type u) : mk (list α) = sum (λ n : ℕ, (mk α)^(n:cardinal.{u})) :=
 calc  mk (list α)

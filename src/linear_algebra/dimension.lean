@@ -144,6 +144,26 @@ linear_equiv.dim_eq (linear_equiv.of_top _ rfl)
 lemma dim_of_field (K : Type*) [field K] : dim K K = 1 :=
 by rw [←cardinal.lift_inj, ← (@is_basis_singleton_one punit K _ _).mk_eq_dim, cardinal.mk_punit]
 
+lemma submodule.bot_of_dim_zero (p : submodule K V) (h_dim : dim K p = 0) : p = ⊥ :=
+begin
+  haveI : decidable_eq V := classical.dec_eq V,
+  obtain ⟨b, hb⟩ : ∃b : set p, is_basis K (λ i : b, i.val) := @exists_is_basis K p _ _ _,
+  rw ←le_bot_iff,
+  intros x hx,
+  have : (⟨x, (submodule.mem_coe p).1 hx⟩ : p) = (0 : p),
+  { rw ←@mem_bot K p _ _ _,
+    rw [← @span_empty K p _ _ _, ←(@set.range_eq_empty p b (λ (i : b), i.val)).2, hb.2],
+    apply mem_top,
+    unfold_coes,
+    rw [nonempty_subtype],
+    push_neg,
+    rw [←set.eq_empty_iff_forall_not_mem, ←cardinal.mk_zero_iff_empty_set],
+    rwa cardinal.lift_inj.1 hb.mk_eq_dim },
+  rw [mem_bot],
+  rw <-coe_eq_zero at this,
+  apply this,
+end
+
 lemma dim_span {v : ι → V} (hv : linear_independent K v) :
   dim K ↥(span K (range v)) = cardinal.mk (range v) :=
 by rw [←cardinal.lift_inj, ← (is_basis_span hv).mk_eq_dim,
@@ -264,6 +284,38 @@ lemma dim_le_of_submodule (s t : submodule K V) (h : s ≤ t) : dim K s ≤ dim 
 dim_le_of_injective (of_le h) $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
   subtype.eq $ show x = y, from subtype.ext_iff_val.1 eq
 
+lemma linear_independent.le_lift_dim {v : ι → V} (hv : linear_independent K v) :
+  cardinal.lift.{w u'} (cardinal.mk ι) ≤ cardinal.lift.{u' w} (dim K V) :=
+calc
+  cardinal.lift.{w u'} (cardinal.mk ι)
+      = cardinal.lift.{u' w} (cardinal.mk (range v)) :
+          by rw ←cardinal.mk_range_eq_of_injective (linear_independent.injective hv)
+  ... = cardinal.lift.{u' w} (dim K (span K (range v))) :
+          by rw ←dim_span hv
+  ... ≤ cardinal.lift.{u' w} (dim K (⊤ : submodule K V)) :
+          cardinal.lift_le.2 (dim_le_of_submodule (submodule.span K (set.range v)) ⊤ le_top)
+  ... ≤ cardinal.lift.{u' w} (dim K V) :
+          by rw dim_top
+
+lemma linear_independent_le_dim
+  {v : ι → V} (hv : linear_independent K v) :
+  cardinal.lift.{w u'} (cardinal.mk ι) ≤ cardinal.lift.{u' w} (dim K V) :=
+calc
+  cardinal.lift.{w u'} (cardinal.mk ι) = cardinal.lift.{u' w} (cardinal.mk (set.range v)) :
+     (cardinal.mk_range_eq_of_injective (linear_independent.injective hv)).symm
+  ... = cardinal.lift.{u' w} (dim K (submodule.span K (set.range v))) : by rw (dim_span hv).symm
+  ... ≤ cardinal.lift.{u' w} (dim K V) : cardinal.lift_le.2 (dim_submodule_le (submodule.span K _))
+
+lemma powers_linear_dependent_of_dim_finite
+  (f : V →ₗ[K] V) (h_dim : dim K V < cardinal.omega) (v : V) :
+  ¬ linear_independent K (λ n : ℕ, (f ^ n) v) :=
+begin
+  intro hw,
+  apply not_lt_of_le _ h_dim,
+  rw [← cardinal.lift_id (dim K V), cardinal.lift_umax.{u' 0}],
+  apply linear_independent_le_dim hw
+end
+
 section
 variables [add_comm_group V₃] [vector_space K V₃]
 variables [add_comm_group V₄] [vector_space K V₄]
@@ -368,9 +420,18 @@ begin
   exact (h $ bot_unique $ assume s hs, (submodule.mem_bot K).2 $ this s hs)
 end
 
-lemma exists_mem_ne_zero_of_dim_pos {s : submodule K V} (h : 0 < vector_space.dim K s) :
+lemma submodule.exists_mem_ne_zero_of_dim_pos {s : submodule K V} (h : 0 < vector_space.dim K s) :
   ∃ b : V, b ∈ s ∧ b ≠ 0 :=
 exists_mem_ne_zero_of_ne_bot $ assume eq, by rw [eq, dim_bot] at h; exact lt_irrefl _ h
+
+lemma exists_mem_ne_zero_of_dim_pos (h_dim : 0 < dim K V) : ∃ x : V, x ≠ 0 :=
+begin
+  obtain ⟨b, _, _⟩ : (∃ b : V, b ∈ (⊤ : submodule K V) ∧ b ≠ 0),
+  { apply submodule.exists_mem_ne_zero_of_dim_pos,
+    rw dim_top,
+    apply h_dim },
+  use b
+end
 
 lemma exists_is_basis_fintype (h : dim K V < cardinal.omega) :
   ∃ s : (set V), (is_basis K (subtype.val : s → V)) ∧ nonempty (fintype s) :=

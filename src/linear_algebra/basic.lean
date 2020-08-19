@@ -128,6 +128,17 @@ ext $ assume b, rfl
   p.subtype.comp (cod_restrict p f h) = f :=
 ext $ assume b, rfl
 
+/-- Restrict the domain and the codomain of a linear map simultaneously. -/
+def restrict
+  (f : M →ₗ[R] M₂) (p : submodule R M) (q : submodule R M₂) (hf : ∀ x ∈ p, f x ∈ q) :
+  p →ₗ[R] q :=
+{ to_fun := λ x, ⟨f x, hf x.1 x.2⟩,
+  map_add' := begin intros, apply set_coe.ext, simp end,
+  map_smul' := begin intros, apply set_coe.ext, simp end }
+
+lemma restrict_apply (f : M →ₗ[R] M₂) (p : submodule R M) (q : submodule R M₂) (hf : ∀ x ∈ p, f x ∈ q) (x : p) :
+  f.restrict p q hf x = ⟨f x, hf x.1 x.2⟩ := rfl
+
 /-- If a function `g` is a left and right inverse of a linear map `f`, then `g` is linear itself. -/
 def inverse (g : M₂ → M) (h₁ : left_inverse g f) (h₂ : right_inverse g f) : M₂ →ₗ[R] M :=
 by dsimp [left_inverse, function.right_inverse] at h₁ h₂; exact

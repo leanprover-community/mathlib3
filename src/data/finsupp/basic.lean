@@ -241,6 +241,21 @@ rfl
   (on_finset s f hf).support ⊆ s :=
 filter_subset _
 
+lemma on_finset_mem_support
+  (s : finset α) (f : α → β) (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) :
+  ∀ a : α, a ∈ (finsupp.on_finset s f hf).support ↔ f a ≠ 0 :=
+by { intro, rw [finsupp.mem_support_iff, finsupp.on_finset_apply] }
+
+lemma on_finset_support
+  (s : finset α) (f : α → β) (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) :
+  (finsupp.on_finset s f hf).support = s.filter (λ a, f a ≠ 0) :=
+begin
+  ext a,
+  rw [on_finset_mem_support, finset.mem_filter],
+  specialize hf a,
+  finish
+end
+
 end on_finset
 
 /-! ### Declarations about `map_range` -/

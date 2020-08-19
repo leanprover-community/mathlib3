@@ -142,6 +142,16 @@ by rw [mul_comm, pow_mul]
 theorem mul_nsmul (a : A) (m n : ℕ) : m * n •ℕ a = m •ℕ (n •ℕ a) :=
 @pow_mul' (multiplicative A) _ a m n
 
+theorem pow_mul_pow_sub (a : M) {m n : ℕ} (h : m ≤ n) : a ^ m * a ^ (n - m) = a ^ n :=
+by rw [←pow_add, nat.add_sub_cancel' h]
+theorem nsmul_add_sub_nsmul (a : A) {m n : ℕ} (h : m ≤ n) : (m •ℕ a) + ((n - m) •ℕ a) = n •ℕ a :=
+@pow_mul_pow_sub (multiplicative A) _ _ _ _ h
+
+theorem pow_sub_mul_pow (a : M) {m n : ℕ} (h : m ≤ n) : a ^ (n - m) * a ^ m = a ^ n :=
+by rw [←pow_add, nat.sub_add_cancel h]
+theorem sub_nsmul_nsmul_add (a : A) {m n : ℕ} (h : m ≤ n) : ((n - m) •ℕ a) + (m •ℕ a) = n •ℕ a :=
+@pow_sub_mul_pow (multiplicative A) _ _ _ _ h
+
 @[simp] theorem nsmul_one [has_one A] : ∀ n : ℕ, n •ℕ (1 : A) = n :=
 add_monoid_hom.eq_nat_cast
   ⟨λ n, n •ℕ (1 : A), zero_nsmul _, λ _ _, add_nsmul _ _ _⟩

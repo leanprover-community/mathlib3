@@ -217,6 +217,24 @@ variables {R A}
 
 end semiring
 
+section ring
+variables [comm_ring R] [comm_ring S] [ring A] [algebra R A]
+
+lemma mul_sub_algebra_map_commutes (x : A) (r : R) :
+  x * (x - algebra_map R A r) = (x - algebra_map R A r) * x :=
+by rw [mul_sub, ←commutes, sub_mul]
+
+lemma mul_sub_algebra_map_pow_commutes (x : A) (r : R) (n : ℕ) :
+  x * (x - algebra_map R A r) ^ n = (x - algebra_map R A r) ^ n * x :=
+begin
+  induction n with n ih,
+  { simp },
+  { rw [pow_succ, ←mul_assoc, mul_sub_algebra_map_commutes,
+      mul_assoc, ih, ←mul_assoc], }
+end
+
+end ring
+
 end algebra
 
 instance module.endomorphism_algebra (R : Type u) (M : Type v)
@@ -228,6 +246,19 @@ instance module.endomorphism_algebra (R : Type u) (M : Type v)
   map_mul' := λ r₁ r₂, by { ext x, simp [mul_smul] },
   commutes' := by { intros, ext, simp },
   smul_def' := by { intros, ext, simp } }
+
+lemma module.endomorphism_algebra_map_apply (R : Type u) (M : Type v)
+  [comm_ring R] [add_comm_group M] [module R M] (a : R) :
+  (algebra_map R (M →ₗ[R] M)) a = a • linear_map.id := rfl
+
+lemma module.endomorphism_algebra_map_apply2 (R : Type u) (M : Type v)
+  [comm_ring R] [add_comm_group M] [module R M] (a : R) (m : M) :
+  (algebra_map R (M →ₗ[R] M)) a m = a • m := rfl
+
+lemma module.endomorphism_algebra_map_ker (K : Type u) (V : Type v)
+  [field K] [add_comm_group V] [vector_space K V] (a : K) (ha : a ≠ 0) :
+  ((algebra_map K (V →ₗ[K] V)) a).ker = ⊥ :=
+linear_map.ker_smul _ _ ha
 
 instance matrix_algebra (n : Type u) (R : Type v)
   [decidable_eq n] [fintype n] [comm_semiring R] : algebra R (matrix n n R) :=

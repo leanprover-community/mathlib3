@@ -9,8 +9,8 @@ Main result: Hilbert basis theorem, that if a ring is noetherian then so is its 
 -/
 import algebra.char_p
 import data.mv_polynomial
-import data.polynomial.ring_division
-import ring_theory.noetherian
+import data.polynomial.field_division
+import ring_theory.principal_ideal_domain
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -173,7 +173,7 @@ def of_subring (p : polynomial T) : polynomial R :=
 
 end polynomial
 
-variables {R : Type u} {σ : Type v} [comm_ring R]
+variables {R : Type u} {σ : Type v} {M : Type w} [comm_ring R] [add_comm_group M] [module R M]
 
 namespace ideal
 open polynomial
@@ -424,6 +424,17 @@ exists_irreducible_of_degree_pos $ by { contrapose! hf, exact nat_degree_le_of_d
 theorem exists_irreducible_of_nat_degree_ne_zero {R : Type u} [integral_domain R] [is_noetherian_ring R]
   {f : polynomial R} (hf : f.nat_degree ≠ 0) : ∃ g, irreducible g ∧ g ∣ f :=
 exists_irreducible_of_nat_degree_pos $ nat.pos_of_ne_zero hf
+
+lemma linear_independent_powers_iff_eval₂
+  (f : M →ₗ[R] M) (v : M) :
+  linear_independent R (λ n : ℕ, (f ^ n) v)
+    ↔ ∀ (p : polynomial R), polynomial.eval₂ (algebra_map _ _) f p v = 0 → p = 0 :=
+begin
+  rw linear_independent_iff,
+  simp only [finsupp.total_apply],
+  simp only [eval₂_endomorphism_algebra_map],
+  refl
+end
 
 end polynomial
 

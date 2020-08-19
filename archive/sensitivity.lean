@@ -355,7 +355,7 @@ begin
   let img := (g m).range,
   suffices : 0 < dim (W ⊓ img),
   { simp only [exists_prop],
-    exact_mod_cast exists_mem_ne_zero_of_dim_pos this },
+    exact_mod_cast submodule.exists_mem_ne_zero_of_dim_pos this },
   have dim_le : dim (W ⊔ img) ≤ 2^(m + 1),
   { convert ← dim_submodule_le (W ⊔ img),
     apply dim_V },

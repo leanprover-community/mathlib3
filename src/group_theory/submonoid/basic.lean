@@ -339,6 +339,24 @@ lemma closure_Union {ι} (s : ι → set M) : closure (⋃ i, s i) = ⨆ i, clos
 
 end submonoid
 
+section is_unit
+
+/-- The submonoid consisting of the units of a ring -/
+def is_unit.submonoid (R : Type*) [ring R] : submonoid R := {
+  carrier := set_of is_unit,
+  one_mem' := by simp only [is_unit_one, set.mem_set_of_eq],
+  mul_mem' := by { intros a b ha hb, rw set.mem_set_of_eq at *, exact is_unit.mul ha hb }
+}
+
+lemma is_unit.mem_submonoid_iff {R : Type*} [ring R] (a : R) :
+  a ∈ (is_unit.submonoid R) ↔ is_unit a :=
+begin
+  change a ∈ set_of is_unit ↔ is_unit a,
+  rw set.mem_set_of_eq
+end
+
+end is_unit
+
 namespace monoid_hom
 
 variables {N : Type*} {P : Type*} [monoid N] [monoid P] (S : submonoid M)

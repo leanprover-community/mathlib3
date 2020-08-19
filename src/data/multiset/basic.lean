@@ -247,6 +247,23 @@ theorem subset_zero {s : multiset α} : s ⊆ 0 ↔ s = 0 :=
 
 end subset
 
+section to_list
+
+/-- Produces a list of the elements in the multiset using choice. -/
+@[reducible] noncomputable def to_list {α : Type*} (s : multiset α) :=
+classical.some (quotient.exists_rep s)
+
+@[simp] lemma to_list_zero {α : Type*} : (multiset.to_list 0 : list α) = [] :=
+  (multiset.coe_eq_zero _).1 (classical.some_spec (quotient.exists_rep multiset.zero))
+
+lemma coe_to_list {α : Type*} (s : multiset α) : (s.to_list : multiset α) = s :=
+classical.some_spec (quotient.exists_rep _)
+
+lemma mem_to_list {α : Type*} (a : α) (s : multiset α) : a ∈ s.to_list ↔ a ∈ s :=
+by rw [←multiset.mem_coe, multiset.coe_to_list]
+
+end to_list
+
 /- multiset order -/
 
 /-- `s ≤ t` means that `s` is a sublist of `t` (up to permutation).
@@ -796,6 +813,13 @@ theorem prod_ne_zero {R : Type*} [integral_domain R] {m : multiset R} :
   (∀ x ∈ m, (x : _) ≠ 0) → m.prod ≠ 0 :=
 multiset.induction_on m (λ _, one_ne_zero) $ λ hd tl ih H,
   by { rw forall_mem_cons at H, rw prod_cons, exact mul_ne_zero H.1 (ih H.2) }
+
+lemma prod_eq_zero {α : Type*} [comm_semiring α] {s : multiset α} (h : (0 : α) ∈ s) :
+  multiset.prod s = 0 :=
+begin
+  rcases multiset.exists_cons_of_mem h with ⟨s', hs'⟩,
+  simp [hs', multiset.prod_cons]
+end
 
 @[to_additive]
 lemma prod_hom [comm_monoid α] [comm_monoid β] (s : multiset α) (f : α → β) [is_monoid_hom f] :

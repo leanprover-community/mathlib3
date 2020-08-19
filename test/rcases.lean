@@ -20,9 +20,8 @@ end
 
 example (x : α × β × γ) : true :=
 begin
-  rcases x with ⟨a, ⟨b, c⟩⟩,
+  rcases x with ⟨a, ⟨-, c⟩⟩,
   { guard_hyp a := α,
-    guard_hyp b := β,
     guard_hyp c := γ,
     trivial }
 end
@@ -62,11 +61,10 @@ end
 
 example : true :=
 begin
-  obtain ⟨n : ℕ, h : n = n, f : true⟩ : ∃ n : ℕ, n = n ∧ true,
+  obtain ⟨n : ℕ, h : n = n, -⟩ : ∃ n : ℕ, n = n ∧ true,
   { existsi 0, simp },
   guard_hyp n := ℕ,
   guard_hyp h := n = n,
-  guard_hyp f := true,
   trivial
 end
 

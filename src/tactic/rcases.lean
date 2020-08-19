@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.dlist
 import tactic.core
+import tactic.clear
 
 /-!
 
@@ -22,6 +23,7 @@ the input expression). An `rcases` pattern has the following grammar:
 * A name like `x`, which names the active hypothesis as `x`.
 * A blank `_`, which does nothing (letting the automatic naming system used by `cases` name the
   hypothesis).
+* A hyphen `-`, which clears the active hypothesis and any dependents.
 * The keyword `rfl`, which expects the hypothesis to be `h : a = b`, and calls `subst` on the
   hypothesis (which has the effect of replacing `b` with `a` everywhere or vice versa).
 * A type ascription `p : ty`, which sets the type of the hypothesis to `ty` and then matches it
@@ -92,6 +94,7 @@ An `rcases` pattern can be one of the following, in a nested combination:
 
 * A name like `foo`
 * The special keyword `rfl` (for pattern matching on equality using `subst`)
+* A hyphen `-`, which clears the active hypothesis and any dependents.
 * A type ascription like `pat : ty` (parentheses are optional)
 * A tuple constructor like `⟨p1, p2, p3⟩`
 * An alternation / variant pattern `p1 | p2 | p3`
@@ -108,6 +111,7 @@ type with 3 constructors,  `p1 | (p2 | p3)` will act like `p1 | (p2 | p3) | _` i
 -/
 meta inductive rcases_patt : Type
 | one : name → rcases_patt
+| clear : rcases_patt
 | typed : rcases_patt → pexpr → rcases_patt
 | tuple : listΠ rcases_patt → rcases_patt
 | alts : listΣ rcases_patt → rcases_patt
@@ -191,6 +195,7 @@ meta def alts₁ : listΣ (listΠ rcases_patt) → rcases_patt
 
 meta instance has_reflect : has_reflect rcases_patt
 | (one n) := `(_)
+| clear := `(_)
 | (typed l e) :=
   (`(typed).subst (has_reflect l)).subst (reflect e)
 | (tuple l) := `(λ l, tuple l).subst $
@@ -203,6 +208,7 @@ printed at high precedence, i.e. it will have parentheses around it if it is not
 or atomic name. -/
 protected meta def format : ∀ bracket : bool, rcases_patt → tactic _root_.format
 | _ (one n) := pure $ to_fmt n
+| _ clear := pure "-"
 | _ (tuple []) := pure "⟨⟩"
 | _ (tuple ls) := do
   fs ← ls.mmap $ format ff,
@@ -298,6 +304,10 @@ with rcases_core : rcases_patt → expr → tactic goals
 -- If the pattern is any other name, we already bound the name in the
 -- top-level `cases` tactic, so there is no more work to do for it.
 | (rcases_patt.one _) _ := get_goals
+| rcases_patt.clear e := do
+  (t, e) ← get_local_and_type e,
+  tactic.clear' tt [e],
+  get_goals
 | (rcases_patt.typed p ty) e := do
   (t, e) ← get_local_and_type e,
   ty ← i_to_expr_no_subgoals ``(%%ty : Sort*),
@@ -404,6 +414,8 @@ meta def rcases_patt.merge : rcases_patt → rcases_patt → rcases_patt
 | (rcases_patt.one `rfl) (rcases_patt.one `rfl) := rcases_patt.one `rfl
 | (rcases_patt.one `_) p := p
 | p (rcases_patt.one `_) := p
+| rcases_patt.clear p := p
+| p rcases_patt.clear := p
 | (rcases_patt.one n) _ := rcases_patt.one n
 
 /--
@@ -519,6 +531,7 @@ with rcases_patt_parse : bool → parser rcases_patt
 | tt := with_desc "patt_hi" $
   (brackets "(" ")" (rcases_patt_parse ff)) <|>
   (rcases_patt.tuple <$> brackets "⟨" "⟩" (sep_by (tk ",") (rcases_patt_parse ff))) <|>
+  (tk "-" $> rcases_patt.clear) <|>
   (rcases_patt.one <$> ident_)
 | ff := with_desc "patt" $ do
   pat ← rcases_patt.alts' <$> rcases_patt_parse_list,
@@ -575,6 +588,7 @@ the input expression). An `rcases` pattern has the following grammar:
 * A name like `x`, which names the active hypothesis as `x`.
 * A blank `_`, which does nothing (letting the automatic naming system used by `cases` name the
   hypothesis).
+* A hyphen `-`, which clears the active hypothesis and any dependents.
 * The keyword `rfl`, which expects the hypothesis to be `h : a = b`, and calls `subst` on the
   hypothesis (which has the effect of replacing `b` with `a` everywhere or vice versa).
 * A type ascription `p : ty`, which sets the type of the hypothesis to `ty` and then matches it

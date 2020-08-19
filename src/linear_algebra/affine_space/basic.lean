@@ -293,6 +293,12 @@ lemma vsub_mem_direction {s : affine_subspace k P} {p1 p2 : P} (hp1 : p1 ∈ s) 
   (p1 -ᵥ p2) ∈ s.direction :=
 vsub_mem_vector_span k hp1 hp2
 
+/-- Adding a vector to a point in a subspace produces a point in the
+subspace if and only if the vector is in the direction. -/
+lemma vadd_mem_iff_mem_direction {s : affine_subspace k P} (v : V) {p : P} (hp : p ∈ s) :
+  v +ᵥ p ∈ s ↔ v ∈ s.direction :=
+⟨λ h, by simpa using vsub_mem_direction h hp, λ h, vadd_mem_of_mem_direction h hp⟩
+
 /-- Given a point in an affine subspace, the set of vectors in its
 direction equals the set of vectors subtracting that point on the
 right. -/
@@ -684,6 +690,22 @@ begin
     (Inf_le_Inf (λ p hp, set.subset.trans (vsub_set_mono (set.inter_subset_left _ _)) hp))
     (Inf_le_Inf (λ p hp, set.subset.trans (vsub_set_mono (set.inter_subset_right _ _)) hp))
 end
+
+/-- If two affine subspaces have a point in common, the direction of
+their inf equals the inf of their directions. -/
+lemma direction_inf_of_mem {s₁ s₂ : affine_subspace k P} {p : P} (h₁ : p ∈ s₁) (h₂ : p ∈ s₂) :
+  (s₁ ⊓ s₂).direction = s₁.direction ⊓ s₂.direction :=
+begin
+  ext v,
+  rw [submodule.mem_inf, ←vadd_mem_iff_mem_direction v h₁, ←vadd_mem_iff_mem_direction v h₂,
+      ←vadd_mem_iff_mem_direction v ((mem_inf_iff p s₁ s₂).2 ⟨h₁, h₂⟩), mem_inf_iff]
+end
+
+/-- If two affine subspaces have a point in their inf, the direction
+of their inf equals the inf of their directions. -/
+lemma direction_inf_of_mem_inf {s₁ s₂ : affine_subspace k P} {p : P} (h : p ∈ s₁ ⊓ s₂) :
+  (s₁ ⊓ s₂).direction = s₁.direction ⊓ s₂.direction :=
+direction_inf_of_mem ((mem_inf_iff p s₁ s₂).1 h).1 ((mem_inf_iff p s₁ s₂).1 h).2
 
 /-- If one affine subspace is less than or equal to another, the same
 applies to their directions. -/

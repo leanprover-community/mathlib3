@@ -13,7 +13,7 @@ universe u
 # Basic deinitions about impartial (pre-)games
 
 We will define an impartial game, one in which left and right can make exactly the same moves.
-Our definition differs slightly by saying that the game is always equivilent to its negitve,
+Our definition differs slightly by saying that the game is always equivalent to its negative,
 no matter what moves are played. This allows for games such as poker-nim to be classifed as
 impartial.
 -/

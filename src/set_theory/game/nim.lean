@@ -13,9 +13,9 @@ universes u v
 /-!
 # Nim and the Sprague-Grundy theorem
 
-This file contains the defition for nim for any ordinal `O`. In the game of `nim O₁` both players
+This file contains the definition for nim for any ordinal `O`. In the game of `nim O₁` both players
 may move to `nim O₂` for any `O₂ < O₁`.
-We also define a Grundy number for an impartial game `G` and prove the Sprague-Grundy theorem, that
+We also define a Grundy value for an impartial game `G` and prove the Sprague-Grundy theorem, that
 `G` is equivalent to `nim (Grundy_value G)`.
 -/
 
@@ -23,9 +23,8 @@ open pgame
 
 local infix ` ≈ ` := equiv
 
-/-- The defineition of nim, nim O is the game where each player can move to nim O' where O' < O
-    If O is finite then this game can be veiwed as a pile of stones where each player can take a
-  positie number of stones from it on their turn -/
+/-- The definition of single-heap nim, which can be viewed as a pile of stones where each player can
+ take a positive number of stones from it on their turn. -/
 noncomputable def nim : ordinal → pgame
 | O₁ := ⟨ O₁.out.α, O₁.out.α,
   λ O₂, have hwf : (ordinal.typein O₁.out.r O₂) < O₁,
@@ -163,7 +162,7 @@ end
 
 /-- This definition will be used in the proof of the Sprague-Grundy theorem. It takes a function
   from some type to ordinals and returns a nonempty set of ordinals with empty intersection with
-  the image of the function. It is guarantied that the smallest ordinal not in the image will be
+  the image of the function. It is guaranteed that the smallest ordinal not in the image will be
   in the set, i.e. we can use this to find the mex -/
 def nonmoves {α : Type u} (M : α → ordinal.{u}) : set ordinal.{u} :=
 	{ O : ordinal | ¬ ∃ a : α, M a = O }

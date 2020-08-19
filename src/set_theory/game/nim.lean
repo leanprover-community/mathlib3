@@ -45,7 +45,7 @@ begin
   nth_rewrite_rhs 0 ← ordinal.type_out O₁, exact ordinal.typein_lt_type _ _
 end
 
-@[instance] lemma nim_impartial : ∀ (O : ordinal), impartial (nim O)
+lemma nim_impartial : ∀ (O : ordinal), impartial (nim O)
 | O :=
 begin
   rw [impartial_def, nim_def, neg_def],
@@ -55,18 +55,22 @@ begin
     split,
     { intro i,
       let hwf : (ordinal.typein O.out.r i) < O := nim_wf_lemma i,
-      exact or.inl ⟨ i, (@impartial_neg_equiv_self (nim (ordinal.typein O.out.r i)) (nim_impartial (ordinal.typein O.out.r i))).1 ⟩ },
+      left,
+			exact ⟨ i, (impartial_neg_equiv_self $ nim_impartial $ ordinal.typein O.out.r i).1 ⟩ },
     { intro j,
       let hwf : (ordinal.typein O.out.r j) < O := nim_wf_lemma j,
-      exact or.inr ⟨ j, (@impartial_neg_equiv_self (nim (ordinal.typein O.out.r j)) (nim_impartial (ordinal.typein O.out.r j))).1 ⟩ } },
+      right,
+			exact ⟨ j, (impartial_neg_equiv_self $ nim_impartial $ ordinal.typein O.out.r j).1 ⟩ } },
   { rw pgame.le_def,
     split,
     { intro i,
       let hwf : (ordinal.typein O.out.r i) < O := nim_wf_lemma i,
-      exact or.inl ⟨ i, (@impartial_neg_equiv_self (nim (ordinal.typein O.out.r i)) (nim_impartial (ordinal.typein O.out.r i))).2 ⟩ },
+      left,
+			exact ⟨ i, (impartial_neg_equiv_self $ nim_impartial $ ordinal.typein O.out.r i).2 ⟩ },
     { intro j,
       let hwf : (ordinal.typein O.out.r j) < O := nim_wf_lemma j,
-      exact or.inr  ⟨ j, (@impartial_neg_equiv_self (nim (ordinal.typein O.out.r j)) (nim_impartial (ordinal.typein O.out.r j))).2 ⟩ } },
+      right,
+			exact ⟨ j, (impartial_neg_equiv_self $ nim_impartial $ ordinal.typein O.out.r j).2 ⟩ } },
   split,
   { intro i,
     let hwf : (ordinal.typein O.out.r i) < O := nim_wf_lemma i,
@@ -120,19 +124,20 @@ begin
     wlog h : O₁ ≤ O₂ using [O₁ O₂, O₂ O₁],
     exact ordinal.le_total O₁ O₂,
     { have h : O₁ < O₂ := lt_of_le_of_ne h hneq,
-      rw ←no_good_left_moves_iff_p_position at hp,
+      rw ←(no_good_left_moves_iff_p_position $ impartial_add (nim_impartial O₁) (nim_impartial O₂))
+				at hp,
       equiv_rw left_moves_add (nim O₁) (nim O₂) at hp,
       rw nim_def O₂ at hp,
       specialize hp (sum.inr (ordinal.principal_seg_out h).top),
       rw [id, add_move_left_inr, move_left_mk, ordinal.typein_top, ordinal.type_out] at hp,
       cases hp,
-      have hcontra := (impartial_add_self (nim O₁)).1,
+      have hcontra := (impartial_add_self $ nim_impartial O₁).1,
       rw ←pgame.not_lt at hcontra,
       contradiction },
     exact this (λ h, hneq h.symm) (p_position_of_equiv add_comm_equiv hp) },
   { intro h,
     rw h,
-    exact impartial_add_self (nim O₂) }
+    exact impartial_add_self (nim_impartial O₂) }
 end
 
 lemma nim_sum_n_position_iff_neq (O₁ O₂ : ordinal) : (nim O₁ + nim O₂).n_position ↔ O₁ ≠ O₂ :=
@@ -147,7 +152,7 @@ begin
   { contrapose,
     intro hnp,
     rw [not_not, ←nim_sum_p_position_iff_eq],
-    cases impartial_position_cases (nim O₁ + nim O₂),
+    cases impartial_position_cases (impartial_add (nim_impartial O₁) (nim_impartial O₂)),
     assumption,
     contradiction }
 end
@@ -156,7 +161,8 @@ end
   from some type to ordinals and returns a nonempty set of ordinals with empty intersection with
   the image of the function. It is guarantied that the smallest ordinal not in the image will be
   in the set, i.e. we can use this to find the mex -/
-def nonmoves {α : Type u} (M : α → ordinal.{u}) : set ordinal.{u} := { O : ordinal | ¬ ∃ a : α, M a = O }
+def nonmoves {α : Type u} (M : α → ordinal.{u}) : set ordinal.{u} :=
+	{ O : ordinal | ¬ ∃ a : α, M a = O }
 
 lemma nonmoves_nonempty {α : Type u} (M : α → ordinal.{u}) : ∃ O : ordinal, O ∈ nonmoves M :=
 begin
@@ -188,52 +194,65 @@ begin
 end
 
 /-- The Grundy value of an impartial game, the ordinal which corresponds to the game of nim that the game is equivalent to -/
-noncomputable def Grundy_value : Π (G : pgame.{u}) [G.impartial], ordinal.{u}
+noncomputable def Grundy_value : Π {G : pgame.{u}}, G.impartial → ordinal.{u}
 | G :=
-begin
-  introI,
-  exact ordinal.omin (nonmoves (λ i, Grundy_value (G.move_left i))) (nonmoves_nonempty (λ i, Grundy_value (G.move_left i))),
-end
+	λ hG, ordinal.omin (nonmoves (λ i, Grundy_value $ impartial_move_left_impartial hG i))
+		nonmoves_nonempty (λ i, Grundy_value $ impartial_move_left_impartial hG i))
 using_well_founded {dec_tac := pgame_wf_tac}
 
-lemma Grundy_value_def (G : pgame) [G.impartial] : Grundy_value G = ordinal.omin (nonmoves (λ i, Grundy_value (G.move_left i))) (nonmoves_nonempty (λ i, Grundy_value (G.move_left i))) :=
+lemma Grundy_value_def {G : pgame} (hG : G.impartial) :
+Grundy_value hG = ordinal.omin (nonmoves (λ i, (Grundy_value $ impartial_move_left_impartial hG i)))
+		              (nonmoves_nonempty (λ i, Grundy_value (impartial_move_left_impartial hG i))) :=
 begin
   rw Grundy_value,
   refl
 end
 
 /-- The Sprague-Grundy theorem which states that every impartial game is equivalent to a game of nim, namely the game of nim corresponding to the games Grundy value -/
-theorem Sprague_Grundy : ∀ (G : pgame.{u}) [_h : G.impartial], G ≈ nim (@Grundy_value G _h)
+theorem Sprague_Grundy : ∀ {G : pgame.{u}} (hG : G.impartial), G ≈ nim (Grundy_value hG)
 | G :=
 begin
   classical,
-  introI,
-  rw [equiv_iff_sum_p_position, ←no_good_left_moves_iff_p_position],
+  intro hG,
+  rw [equiv_iff_sum_p_position hG (nim_impartial _),
+		←no_good_left_moves_iff_p_position (impartial_add hG (nim_impartial _))],
   intro i,
-  equiv_rw left_moves_add G (nim $ Grundy_value G) at i,
+  equiv_rw left_moves_add G (nim $ Grundy_value hG) at i,
   cases i with i₁ i₂,
   { rw add_move_left_inl,
-    apply n_position_of_equiv (add_congr (Sprague_Grundy $ G.move_left i₁).symm (equiv_refl _)),
+    apply n_position_of_equiv,
+    exact (add_congr (Sprague_Grundy $ impartial_move_left_impartial hG i₁).symm (equiv_refl _)),
     rw nim_sum_n_position_iff_neq,
     intro heq,
     have heq := symm heq,
-    rw Grundy_value_def G at heq,
-    have h := ordinal.omin_mem (nonmoves (λ (i : G.left_moves), Grundy_value (G.move_left i))) (nonmoves_nonempty _),
+    rw Grundy_value_def hG at heq,
+    have h := ordinal.omin_mem
+      (nonmoves (λ (i : G.left_moves), Grundy_value (impartial_move_left_impartial hG i)))
+      (nonmoves_nonempty _),
     rw heq at h,
-    have hcontra : ∃ (i' : G.left_moves), (λ (i'' : G.left_moves), Grundy_value (G.move_left i'')) i' = Grundy_value (G.move_left i₁) := ⟨ i₁, rfl ⟩,
+    have hcontra : ∃ (i' : G.left_moves),
+      (λ (i'' : G.left_moves), Grundy_value $ impartial_move_left_impartial hG i'') i' =
+        Grundy_value (impartial_move_left_impartial hG i₁) :=
+      ⟨ i₁, rfl ⟩,
     contradiction },
   { rw [add_move_left_inr, ←good_left_move_iff_n_position],
     revert i₂,
     rw nim_def,
     intro i₂,
 
-    have h' : ∃ i : G.left_moves, (Grundy_value $ G.move_left i) = ordinal.typein (quotient.out $ Grundy_value G).r i₂,
-    { have hlt : ordinal.typein (quotient.out $ Grundy_value G).r i₂ < ordinal.type (quotient.out $ Grundy_value G).r := ordinal.typein_lt_type _ _,
+    have h' : ∃ i : G.left_moves, (Grundy_value $ impartial_move_left_impartial hG i) =
+      ordinal.typein (quotient.out $ Grundy_value hG).r i₂,
+    { have hlt : ordinal.typein (quotient.out $ Grundy_value hG).r i₂ <
+        ordinal.type (quotient.out $ Grundy_value hG).r :=
+        ordinal.typein_lt_type _ _,
       rw ordinal.type_out at hlt,
       revert i₂ hlt,
       rw Grundy_value_def,
       intros i₂ hlt,
-      have hnotin : ordinal.typein (quotient.out (ordinal.omin (nonmoves (λ (i : G.left_moves), Grundy_value (G.move_left i))) _)).r i₂ ∉ (nonmoves (λ (i : G.left_moves), Grundy_value (G.move_left i))),
+      have hnotin :
+        ordinal.typein (quotient.out (ordinal.omin
+        (nonmoves (λ i, Grundy_value (impartial_move_left_impartial hG i))) _)).r i₂ ∉
+        (nonmoves (λ (i : G.left_moves), Grundy_value (impartial_move_left_impartial hG i))),
       { intro hin,
         have hge := ordinal.omin_le hin,
         have hcontra := (le_not_le_of_lt hlt).2,
@@ -247,7 +266,7 @@ begin
     apply p_position_of_equiv,
     apply add_congr,
     symmetry,
-    exact Sprague_Grundy (G.move_left i),
+    exact Sprague_Grundy (impartial_move_left_impartial hG i),
     refl,
     rw hi,
     exact impartial_add_self _ }

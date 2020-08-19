@@ -646,13 +646,12 @@ def to_zmod : ℤ_[p] →+* zmod p :=
     ring,
   end }
 
-
 def to_zmod_spec (z : ℤ_[p]) : ∥(z - to_zmod z)∥ < 1 :=
 begin
   convert norm_sub_zmod_repr z using 3,
   dsimp [to_zmod],
   have z_lt := zmod_repr_lt_p z,
-  lift z.zmod_repr to ℕ  using zmod_repr_nonneg z with n,
+  lift z.zmod_repr to ℕ using zmod_repr_nonneg z with n,
   have : ∃ p' : ℕ, p = p' + 1 := ⟨p - 1, _⟩,
   { unfreezingI {rcases this with ⟨p', rfl⟩},
     change ↑(zmod.val n) = _,
@@ -670,12 +669,9 @@ if hy : y = 0 then
   quux n x
 else
   let u := unit_coeff hy in
-  -- have x = quux n x + p ^ n * (u : ℤ_[p]) * p ^ (y.valuation - n).nat_abs,
-  -- by sorry,
   quux n x + p ^ n * (to_zmod ((u : ℤ_[p]) * (p ^ (y.valuation - n).nat_abs))).val
 
-
-@[simp] lemma aux2 (n : ℕ) (c : ℤ_[p]) (hc : c ≠ 0) :
+@[simp] lemma valuation_p_pow_mul (n : ℕ) (c : ℤ_[p]) (hc : c ≠ 0) :
   (↑p ^ n * c).valuation = n + c.valuation :=
 begin
   have : ∥↑p ^ n * c∥ = ∥(p ^ n : ℤ_[p])∥ * ∥c∥,
@@ -691,33 +687,6 @@ begin
   { exact_mod_cast nat.prime.ne_one ‹_› },
   { exact_mod_cast nat.prime.ne_zero ‹_› },
 end
-
-@[simp] lemma aux (n : ℕ) (c : ℤ_[p]) (hc : c ≠ 0) :
-  (↑p ^ n * c).valuation - n = c.valuation :=
-begin
-  rw aux2 n c hc,
-  simp only [add_sub_cancel'],
-end
-
--- lemma f2 (z : ℤ_[p]) : ↑p ∣ z - to_zmod z :=
--- begin
-
---   have := to_zmod_spec z,
---   suggest,
---   by_cases hz : z = 0,
---   { simp [hz] },
---   have := unit_coeff_spec hz,
---   rw this,
---   simp only [ring_hom.map_nat_cast, zmod.cast_self, ring_hom.map_pow, ring_hom.map_mul],
---   by_cases hzv : z.valuation.nat_abs = 0,
---   { simp [hzv],
---     have := discrete_valuation_ring.unit_mul_pow_congr_unit (@irreducible_p p _), },
---   {rw _root_.zero_pow,
---   { simp only [is_unit_unit, is_unit.dvd_mul_left, sub_zero, zmod.cast_zero, mul_zero],
---     apply dvd_pow,
---     {refl}, {assumption} },
---   {exact nat.pos_of_ne_zero hzv}}
--- end
 
 lemma quux_spec (n : ℕ) : ∀ (x : ℤ_[p]), x - quux n x ∈ (ideal.span {p^n} : ideal ℤ_[p]) :=
 begin
@@ -736,7 +705,7 @@ begin
       conv_rhs { congr, simp only [hc], },
       rw show (x - ↑(quux n x)).valuation = (↑p ^ n * c).valuation,
       { rw hc },
-      rw [aux _ _ hc', pow_succ', ← mul_sub],
+      rw [valuation_p_pow_mul _ _ hc', add_sub_cancel', pow_succ', ← mul_sub],
       apply mul_dvd_mul_left,
       by_cases hc0 : c.valuation.nat_abs = 0,
       { simp only [hc0, mul_one, pow_zero],

@@ -175,9 +175,8 @@ instance forget₂_AddCommGroup_preserves_limits : preserves_limits (forget₂ (
 The forgetful functor from R-modules to types preserves all limits.
 -/
 instance forget_preserves_limits : preserves_limits (forget (Module R)) :=
-{ preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F,
-    by exactI preserves_limit_of_preserves_limit_cone
-      (limit_cone_is_limit F) (is_limit_forget_map_cone_limit_cone F) } }
+{ preserves_limits_of_shape := λ J 𝒥, by exactI
+  { preserves_limit := λ F, preserves_limit_of_preserves_limit_cone
+    (limit_cone_is_limit F) (is_limit_forget_map_cone_limit_cone F) } }
 
 end Module

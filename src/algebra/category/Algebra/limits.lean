@@ -193,35 +193,6 @@ instance forget₂_Ring_preserves_limits : preserves_limits (forget₂ (Algebra 
     by exactI preserves_limit_of_preserves_limit_cone
       (limit.is_limit F) (is_limit_forget₂_Ring_map_cone_limit_cone F) } }
 
-def forget₂_Module_limit_iso_Module_of_limit_forget (F : J ⥤ Algebra R) :
-  (forget₂ (Algebra R) (Module R)).obj (limit F) ≅ Module.of R (limit (F ⋙ forget (Algebra R))) :=
-(forget₂ (Algebra R) (Module R)).map_iso (limit_iso_Algebra_of_limit_forget F)
-
-def is_limit_forget₂_Module_map_cone_limit_cone (F : J ⥤ Algebra R) :
-  is_limit ((forget₂ (Algebra R) (Module R)).map_cone (limit.cone F)) :=
-is_limit.of_iso_limit (limit.is_limit _) $ cones.ext
-(Module.limit_iso_Module_of_limit_forget (F ⋙ forget₂ (Algebra R) (Module R)) ≪≫
-  begin sorry end  ≪≫
-  (forget₂_Module_limit_iso_Module_of_limit_forget F).symm)
-(λ j,
-begin
-  -- simp only [forget₂_Ring_limit_iso_Ring_of_limit_forget,
-  --   limit_iso_Algebra_of_limit_forget, is_limit.cone_point_unique_up_to_iso,
-  --   functor.map_iso_inv, is_limit.unique_up_to_iso_inv, iso.symm_hom, limit.is_limit_lift,
-  --   limit.cone_π, cones.forget_map, is_limit.lift_cone_morphism_hom, iso.trans_hom, category.assoc,
-  --    functor.map_cone_π],
-  -- erw [←category_theory.functor.map_comp, limit.lift_π, is_limit.fac],
-  -- refl,
-end)
-
-/--
-The forgetful functor from R-algebras to R-modules preserves all limits.
--/
-instance forget₂_Module_preserves_limits : preserves_limits (forget₂ (Algebra R) (Module R)) :=
-{ preserves_limits_of_shape := λ J 𝒥, by exactI
-  { preserves_limit := λ F, preserves_limit_of_preserves_limit_cone
-    (limit.is_limit F) (is_limit_forget₂_Module_map_cone_limit_cone F) } }
-
 /--
 The forgetful functor from R-algebras to types preserves all limits.
 -/

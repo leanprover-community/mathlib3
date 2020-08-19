@@ -24,4 +24,6 @@ def of (α : Type*) [linear_order α] : LinearOrder := bundled.of α
 
 instance : inhabited LinearOrder := ⟨of punit⟩
 
+instance (α : LinearOrder) : linear_order α := α.str
+
 end LinearOrder

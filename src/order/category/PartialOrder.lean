@@ -24,4 +24,6 @@ def of (α : Type*) [partial_order α] : PartialOrder := bundled.of α
 
 instance : inhabited PartialOrder := ⟨of punit⟩
 
+instance (α : PartialOrder) : partial_order α := α.str
+
 end PartialOrder

@@ -30,10 +30,12 @@ class nonempty_fin_lin_ord (α : Type*) extends fintype α, decidable_linear_ord
 end prio
 
 instance punit.nonempty_fin_lin_ord : nonempty_fin_lin_ord punit :=
-by { refine_struct
-{ .. punit.decidable_linear_ordered_cancel_add_comm_monoid,
-  .. punit.fintype };
-{ intros, exact punit.star <|> exact dec_trivial }, }
+begin
+  refine_struct
+  { .. punit.decidable_linear_ordered_cancel_add_comm_monoid,
+    .. punit.fintype };
+  { intros, exact punit.star <|> exact dec_trivial }
+end
 
 section
 open_locale classical

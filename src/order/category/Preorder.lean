@@ -69,4 +69,6 @@ def of (α : Type*) [preorder α] : Preorder := bundled.of α
 
 instance : inhabited Preorder := ⟨of punit⟩
 
+instance (α : Preorder) : preorder α := α.str
+
 end Preorder

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
 import set_theory.game.winner
+import tactic.nth_rewrite.default
 import tactic
 
 universe u

@@ -11,17 +11,20 @@ import algebra.homology.image_to_kernel_map
 In a category with zero morphisms, images, and equalizers we say that `f : A ⟶ B` and `g : B ⟶ C`
 are exact if `f ≫ g = 0` and the natural map `image f ⟶ kernel g` is an epimorphism.
 
+This is a relatively weak notion of exactness, and reasoning about exactness in this very general
+setting is not very useful, for example because without further assumptions several "reasonable"
+definitions of exactness are not equivalent. There are several nicer settings in which exact
+sequences can be studied. At the moment, mathlib only knows one: abelian categories. Consequently,
+many interesting results about exact sequences are found in `category_theory/abelian/exact.lean`.
+
 # Main results
 * Suppose that cokernels exist and that `f` and `g` are exact. If `s` is any kernel fork over `g`
   and `t` is any cokernel cofork over `f`, then `fork.ι s ≫ cofork.π t = 0`.
-
-See also `category_theory/abelian/exact.lean` for results that only hold in abelian categories.
 
 # Future work
 * Short exact sequences, split exact sequences, the splitting lemma (maybe only for abelian
   categories?)
 * Two adjacent maps in a chain complex are exact iff the homology vanishes
-* Composing with isomorphisms retains exactness, and similar constructions
 
 -/
 
@@ -86,13 +89,15 @@ begin
   apply_instance
 end
 
-lemma exact_zero_iff_mono : exact (0 : A ⟶ B) g ↔ mono g :=
+lemma kernel_ι_eq_zero_of_exact_zero_left [exact (0 : A ⟶ B) g] : kernel.ι g = 0 :=
 begin
-  split,
-  { introI,
-
-  }
+  rw [←cancel_epi (image_to_kernel_map (0 : A ⟶ B) g exact.w),
+    ←cancel_epi (factor_thru_image (0 : A ⟶ B))],
+  simp
 end
+
+lemma exact_zero_left_of_mono [has_zero_object V] [mono g] : exact (0 : A ⟶ B) g :=
+⟨by simp, image_to_kernel_map_epi_of_zero_of_mono _⟩
 
 lemma exact_cokernel [has_cokernel f] : exact f (cokernel.π f) :=
 begin

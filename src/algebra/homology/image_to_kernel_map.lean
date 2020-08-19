@@ -59,16 +59,16 @@ local attribute [instance] has_zero_object.has_zero
 `image_to_kernel_map` for `A --0--> B --g--> C`, where `[mono g]` is an epi
 (i.e. the sequence is exact at `B`).
 -/
-lemma image_to_kernel_map_epi_of_zero_of_mono [mono g] [has_zero_object V] {w} :
-  epi (image_to_kernel_map (0 : A ⟶ B) g w) :=
+lemma image_to_kernel_map_epi_of_zero_of_mono [mono g] [has_zero_object V] :
+  epi (image_to_kernel_map (0 : A ⟶ B) g (by simp)) :=
 epi_of_target_iso_zero _ (kernel.of_mono g)
 
 /--
 `image_to_kernel_map` for `A --f--> B --0--> C`, where `[epi g]` is an epi
 (i.e. the sequence is exact at `B`).
 -/
-lemma image_to_kernel_map_epi_of_epi_of_zero [epi f] {w} :
-  epi (image_to_kernel_map f (0 : B ⟶ C) w) :=
+lemma image_to_kernel_map_epi_of_epi_of_zero [epi f] :
+  epi (image_to_kernel_map f (0 : B ⟶ C) (by simp)) :=
 begin
   simp only [image_to_kernel_map_zero_right],
   haveI := epi_image_of_epi f,

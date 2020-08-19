@@ -238,17 +238,17 @@ def direction_of_nonempty {s : affine_subspace k P} (h : (s : set P).nonempty) :
   end,
   add_mem' := begin
     intros a b ha hb,
-    rcases ha with ⟨p1, hp1, p2, hp2, ha⟩,
-    rcases hb with ⟨p3, hp3, p4, hp4, hb⟩,
-    rw [ha, hb, ←vadd_vsub_assoc],
+    rcases ha with ⟨p1, p2, hp1, hp2, rfl⟩,
+    rcases hb with ⟨p3, p4, hp3, hp4, rfl⟩,
+    rw [←vadd_vsub_assoc],
     refine vsub_mem_vsub_set _ hp4,
     convert s.smul_vsub_vadd_mem 1 p1 p2 p3 hp1 hp2 hp3,
     rw one_smul
   end,
   smul_mem' := begin
     intros c v hv,
-    rcases hv with ⟨p1, hp1, p2, hp2, hv⟩,
-    rw [hv, ←vadd_vsub (c • (p1 -ᵥ p2)) p2],
+    rcases hv with ⟨p1, p2, hp1, hp2, rfl⟩,
+    rw [←vadd_vsub (c • (p1 -ᵥ p2)) p2],
     refine vsub_mem_vsub_set _ hp2,
     exact s.smul_vsub_vadd_mem c p1 p2 p2 hp1 hp2 hp2
   end }
@@ -271,7 +271,8 @@ lemma mem_direction_iff_eq_vsub {s : affine_subspace k P} (h : (s : set P).nonem
   v ∈ s.direction ↔ ∃ p1 ∈ s, ∃ p2 ∈ s, v = p1 -ᵥ p2 :=
 begin
   rw [←submodule.mem_coe, coe_direction_eq_vsub_set h],
-  exact iff.rfl
+  exact ⟨λ ⟨p1, p2, hp1, hp2, hv⟩, ⟨p1, hp1, p2, hp2, hv.symm⟩,
+         λ ⟨p1, hp1, p2, hp2, hv⟩, ⟨p1, p2, hp1, hp2, hv.symm⟩⟩
 end
 
 /-- Adding a vector in the direction to a point in the subspace
@@ -296,27 +297,27 @@ vsub_mem_vector_span k hp1 hp2
 direction equals the set of vectors subtracting that point on the
 right. -/
 lemma coe_direction_eq_vsub_set_right {s : affine_subspace k P} {p : P} (hp : p ∈ s) :
-  (s.direction : set V) = {v | ∃ p2 ∈ s, v = p2 -ᵥ p} :=
+  (s.direction : set V) = (-ᵥ p) '' s :=
 begin
   rw coe_direction_eq_vsub_set ⟨p, hp⟩,
   refine le_antisymm _ _,
-  { rintros v ⟨p1, hp1, p2, hp2, hv⟩,
-    exact ⟨v +ᵥ p,
-           vadd_mem_of_mem_direction (hv.symm ▸ vsub_mem_direction hp1 hp2) hp,
-           (vadd_vsub _ _).symm⟩ },
-  { rintros v ⟨p2, hp2, hv⟩,
-    exact ⟨p2, hp2, p, hp, hv⟩ }
+  { rintros v ⟨p1, p2, hp1, hp2, rfl⟩,
+    exact ⟨p1 -ᵥ p2 +ᵥ p,
+           vadd_mem_of_mem_direction (vsub_mem_direction hp1 hp2) hp,
+           (vadd_vsub _ _)⟩ },
+  { rintros v ⟨p2, hp2, rfl⟩,
+    exact ⟨p2, p, hp2, hp, rfl⟩ }
 end
 
 /-- Given a point in an affine subspace, the set of vectors in its
 direction equals the set of vectors subtracting that point on the
 left. -/
 lemma coe_direction_eq_vsub_set_left {s : affine_subspace k P} {p : P} (hp : p ∈ s) :
-  (s.direction : set V) = {v | ∃ p2 ∈ s, v = p -ᵥ p2} :=
+  (s.direction : set V) = (-ᵥ) p '' s :=
 begin
   ext v,
   rw [submodule.mem_coe, ←submodule.neg_mem_iff, ←submodule.mem_coe,
-      coe_direction_eq_vsub_set_right hp, set.mem_set_of_eq, set.mem_set_of_eq],
+      coe_direction_eq_vsub_set_right hp, set.mem_image_iff_bex, set.mem_image_iff_bex],
   conv_lhs { congr, funext, rw [←neg_vsub_eq_vsub_rev, neg_inj] }
 end
 
@@ -326,7 +327,7 @@ lemma mem_direction_iff_eq_vsub_right {s : affine_subspace k P} {p : P} (hp : p 
   v ∈ s.direction ↔ ∃ p2 ∈ s, v = p2 -ᵥ p :=
 begin
   rw [←submodule.mem_coe, coe_direction_eq_vsub_set_right hp],
-  exact iff.rfl
+  exact ⟨λ ⟨p2, hp2, hv⟩, ⟨p2, hp2, hv.symm⟩, λ ⟨p2, hp2, hv⟩, ⟨p2, hp2, hv.symm⟩⟩
 end
 
 /-- Given a point in an affine subspace, a vector is in its direction
@@ -335,7 +336,7 @@ lemma mem_direction_iff_eq_vsub_left {s : affine_subspace k P} {p : P} (hp : p �
   v ∈ s.direction ↔ ∃ p2 ∈ s, v = p -ᵥ p2 :=
 begin
   rw [←submodule.mem_coe, coe_direction_eq_vsub_set_left hp],
-  exact iff.rfl
+  exact ⟨λ ⟨p2, hp2, hv⟩, ⟨p2, hp2, hv.symm⟩, λ ⟨p2, hp2, hv⟩, ⟨p2, hp2, hv.symm⟩⟩
 end
 
 /-- Given a point in an affine subspace, a result of subtracting that
@@ -481,8 +482,8 @@ lemma direction_affine_span (s : set P) : (affine_span k s).direction = vector_s
 begin
   apply le_antisymm,
   { refine submodule.span_le.2 _,
-    rintros v ⟨p1, ⟨p2, hp2, v1, hv1, hp1⟩, p3, ⟨p4, hp4, v2, hv2, hp3⟩, hv⟩,
-    rw [hv, hp1, hp3, vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, submodule.mem_coe],
+    rintros v ⟨p1, p3, ⟨p2, hp2, v1, hv1, hp1⟩, ⟨p4, hp4, v2, hv2, hp3⟩, rfl⟩,
+    rw [hp1, hp3, vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, submodule.mem_coe],
     exact (vector_span k s).sub_mem ((vector_span k s).add_mem hv1
       (vsub_mem_vector_span k hp2 hp4)) hv2 },
   { exact submodule.span_mono (vsub_set_mono (subset_span_points k s)) }
@@ -793,54 +794,46 @@ include V
 /-- The `vector_span` is the span of the pairwise subtractions with a
 given point on the left. -/
 lemma vector_span_eq_span_vsub_set_left {s : set P} {p : P} (hp : p ∈ s) :
-  vector_span k s = submodule.span k {v | ∃ p2 ∈ s, v = p -ᵥ p2} :=
+  vector_span k s = submodule.span k ((-ᵥ) p '' s) :=
 begin
   rw vector_span_def,
   refine le_antisymm _ (submodule.span_mono _),
   { rw submodule.span_le,
-    rintros v ⟨p1, hp1, p2, hp2, hv⟩,
+    rintros v ⟨p1, p2, hp1, hp2, hv⟩,
     rw ←vsub_sub_vsub_cancel_left p1 p2 p at hv,
-    rw [hv, submodule.mem_coe, submodule.mem_span],
+    rw [←hv, submodule.mem_coe, submodule.mem_span],
     exact λ m hm, submodule.sub_mem _ (hm ⟨p2, hp2, rfl⟩) (hm ⟨p1, hp1, rfl⟩) },
   { rintros v ⟨p2, hp2, hv⟩,
-    exact ⟨p, hp, p2, hp2, hv⟩ }
+    exact ⟨p, p2, hp, hp2, hv⟩ }
 end
 
 /-- The `vector_span` is the span of the pairwise subtractions with a
 given point on the right. -/
 lemma vector_span_eq_span_vsub_set_right {s : set P} {p : P} (hp : p ∈ s) :
-  vector_span k s = submodule.span k {v | ∃ p2 ∈ s, v = p2 -ᵥ p} :=
+  vector_span k s = submodule.span k ((-ᵥ p) '' s) :=
 begin
   rw vector_span_def,
   refine le_antisymm _ (submodule.span_mono _),
   { rw submodule.span_le,
-    rintros v ⟨p1, hp1, p2, hp2, hv⟩,
+    rintros v ⟨p1, p2, hp1, hp2, hv⟩,
     rw ←vsub_sub_vsub_cancel_right p1 p2 p at hv,
-    rw [hv, submodule.mem_coe, submodule.mem_span],
+    rw [←hv, submodule.mem_coe, submodule.mem_span],
     exact λ m hm, submodule.sub_mem _ (hm ⟨p1, hp1, rfl⟩) (hm ⟨p2, hp2, rfl⟩) },
   { rintros v ⟨p2, hp2, hv⟩,
-    exact ⟨p2, hp2, p, hp, hv⟩ }
+    exact ⟨p2, p, hp2, hp, hv⟩ }
 end
 
 /-- The `vector_span` of an indexed family is the span of the pairwise
 subtractions with a given point on the left. -/
 lemma vector_span_range_eq_span_range_vsub_left (p : ι → P) (i0 : ι) :
   vector_span k (set.range p) = submodule.span k (set.range (λ (i : ι), p i0 -ᵥ p i)) :=
-begin
-  simp_rw [vector_span_eq_span_vsub_set_left k (set.mem_range_self i0), set.exists_range_iff],
-  conv_lhs { congr, congr, funext, conv { congr, funext, rw eq_comm } },
-  refl
-end
+by rw [vector_span_eq_span_vsub_set_left k (set.mem_range_self i0), ←set.range_comp]
 
 /-- The `vector_span` of an indexed family is the span of the pairwise
 subtractions with a given point on the right. -/
 lemma vector_span_range_eq_span_range_vsub_right (p : ι → P) (i0 : ι) :
   vector_span k (set.range p) = submodule.span k (set.range (λ (i : ι), p i -ᵥ p i0)) :=
-begin
-  simp_rw [vector_span_eq_span_vsub_set_right k (set.mem_range_self i0), set.exists_range_iff],
-  conv_lhs { congr, congr, funext, conv { congr, funext, rw eq_comm } },
-  refl
-end
+by rw [vector_span_eq_span_vsub_set_right k (set.mem_range_self i0), ←set.range_comp]
 
 /-- The affine span of a set is nonempty if and only if that set
 is. -/

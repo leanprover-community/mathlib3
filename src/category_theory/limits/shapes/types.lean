@@ -179,6 +179,6 @@ by ext
 @[simp] lemma sigma_desc {J : Type u} {f : J → Type u} {W : Type u} {g : Π j, f j ⟶ W} {p : Σ j, f j} :
   (sigma.desc g) p = g p.1 p.2 := rfl
 @[simp] lemma sigma_map {J : Type u} {f g : J → Type u} {h : Π j, f j ⟶ g j} :
-  sigma.map h = λ (k : Σ j, f j), (⟨k.1, h k.1 (k.2)⟩ : Σ j, g j) := rfl
+  limits.sigma.map h = λ (k : Σ j, f j), (⟨k.1, h k.1 (k.2)⟩ : Σ j, g j) := rfl
 
 end category_theory.limits.types

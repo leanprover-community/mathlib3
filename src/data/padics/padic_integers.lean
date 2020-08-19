@@ -438,6 +438,12 @@ lemma norm_int_lt_one_iff_dvd (k : ℤ) : ∥(k : ℤ_[p])∥ < 1 ↔ ↑p ∣ k
 suffices ∥(k : ℚ_[p])∥ < 1 ↔ ↑p ∣ k, by rwa padic_norm_z.padic_norm_z_of_int,
 padic_norm_e.norm_int_lt_one_iff_dvd k
 
+lemma norm_lt_one_iff_dvd (x : ℤ_[p]) : ∥x∥ < 1 ↔ ↑p ∣ x :=
+begin
+  rw [← mem_nonunits, ← local_ring.mem_maximal_ideal, maximal_ideal_eq_span_p,
+      ideal.mem_span_singleton],
+end
+
 lemma is_unit_denom (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) : is_unit (r.denom : ℤ_[p]) :=
 begin
   rw is_unit_iff,
@@ -669,35 +675,49 @@ else
   quux n x + p ^ n * (to_zmod ((u : ℤ_[p]) * (p ^ (y.valuation - n).nat_abs))).val
 
 
-
-@[simp] lemma aux (n : ℕ) (c : ℤ_[p]) :
-  (↑p ^ n * c).valuation - n = c.valuation :=
-begin
-  sorry
-end
-
-@[simp] lemma aux2 (n : ℕ) (c : ℤ_[p]) :
+@[simp] lemma aux2 (n : ℕ) (c : ℤ_[p]) (hc : c ≠ 0) :
   (↑p ^ n * c).valuation = n + c.valuation :=
 begin
-  sorry
+  have : ∥↑p ^ n * c∥ = ∥(p ^ n : ℤ_[p])∥ * ∥c∥,
+  { exact padic_norm_z.mul _ _ },
+  have aux : ↑p ^ n * c ≠ 0,
+  { contrapose! hc, rw mul_eq_zero at hc, cases hc,
+    { refine (nat.prime.ne_zero ‹_› _).elim,
+      exact_mod_cast (pow_eq_zero hc) },
+    { exact hc } },
+  rwa [norm_eq_pow_val aux, padic_norm_z.norm_p_pow, norm_eq_pow_val hc,
+      ← fpow_add, ← neg_add, fpow_inj, neg_inj] at this,
+  { exact_mod_cast nat.prime.pos ‹_› },
+  { exact_mod_cast nat.prime.ne_one ‹_› },
+  { exact_mod_cast nat.prime.ne_zero ‹_› },
 end
 
-lemma f2 (z : ℤ_[p]) : ↑p ∣ z - to_zmod z :=
+@[simp] lemma aux (n : ℕ) (c : ℤ_[p]) (hc : c ≠ 0) :
+  (↑p ^ n * c).valuation - n = c.valuation :=
 begin
-  by_cases hz : z = 0,
-  { simp [hz] },
-  have := unit_coeff_spec hz,
-  rw this,
-  simp only [ring_hom.map_nat_cast, zmod.cast_self, ring_hom.map_pow, ring_hom.map_mul],
-  by_cases hzv : z.valuation.nat_abs = 0,
-  { simp [hzv],
-    have := discrete_valuation_ring.unit_mul_pow_congr_unit (@irreducible_p p _), },
-  {rw _root_.zero_pow,
-  { simp only [is_unit_unit, is_unit.dvd_mul_left, sub_zero, zmod.cast_zero, mul_zero],
-    apply dvd_pow,
-    {refl}, {assumption} },
-  {exact nat.pos_of_ne_zero hzv}}
+  rw aux2 n c hc,
+  simp only [add_sub_cancel'],
 end
+
+-- lemma f2 (z : ℤ_[p]) : ↑p ∣ z - to_zmod z :=
+-- begin
+
+--   have := to_zmod_spec z,
+--   suggest,
+--   by_cases hz : z = 0,
+--   { simp [hz] },
+--   have := unit_coeff_spec hz,
+--   rw this,
+--   simp only [ring_hom.map_nat_cast, zmod.cast_self, ring_hom.map_pow, ring_hom.map_mul],
+--   by_cases hzv : z.valuation.nat_abs = 0,
+--   { simp [hzv],
+--     have := discrete_valuation_ring.unit_mul_pow_congr_unit (@irreducible_p p _), },
+--   {rw _root_.zero_pow,
+--   { simp only [is_unit_unit, is_unit.dvd_mul_left, sub_zero, zmod.cast_zero, mul_zero],
+--     apply dvd_pow,
+--     {refl}, {assumption} },
+--   {exact nat.pos_of_ne_zero hzv}}
+-- end
 
 lemma quux_spec (n : ℕ) : ∀ (x : ℤ_[p]), x - quux n x ∈ (ideal.span {p^n} : ideal ℤ_[p]) :=
 begin
@@ -709,29 +729,33 @@ begin
     split_ifs with h,
     { rw h, apply dvd_zero },
     { push_cast, rw sub_add_eq_sub_sub,
-      have := unit_coeff_spec h,
       obtain ⟨c, hc⟩ := ih x,
-      conv_rhs {congr, rw this},
-      simp only [hc],
       simp only [ring_hom.map_nat_cast, zmod.cast_self, ring_hom.map_pow, ring_hom.map_mul, zmod.nat_cast_val],
-      rw aux,
+      have hc' : c ≠ 0,
+      { rintro rfl, simp only [mul_zero] at hc, contradiction },
+      conv_rhs { congr, simp only [hc], },
+      rw show (x - ↑(quux n x)).valuation = (↑p ^ n * c).valuation,
+      { rw hc },
+      rw [aux _ _ hc', pow_succ', ← mul_sub],
+      apply mul_dvd_mul_left,
       by_cases hc0 : c.valuation.nat_abs = 0,
-      { rw [hc0, _root_.pow_zero, mul_one, aux2, int.nat_abs_add_nonneg],
-        { simp only [hc0, int.nat_abs_of_nat, add_zero],
-          rw [mul_comm, ←mul_sub, pow_succ, mul_comm, mul_dvd_mul_iff_left],
-          { apply f2 },
-          apply pow_ne_zero, exact_mod_cast nat.prime.ne_zero ‹_› },
-        {simp},
-        {apply valuation_nonneg }   },
-      rw [_root_.zero_pow],
-     { simp,
-      rw int.nat_abs_add_nonneg,
-     { apply _root_.pow_dvd_pow, norm_cast, omega },
-     { exact_mod_cast nat.zero_le _ },
-     { apply valuation_nonneg } },
-    omega } }
+      { simp only [hc0, mul_one, pow_zero],
+        rw [mul_comm, unit_coeff_spec h] at hc,
+        have hcu : is_unit c,
+        { rw int.nat_abs_eq_zero at hc0,
+          rw [is_unit_iff, norm_eq_pow_val hc', hc0, neg_zero, fpow_zero], },
+        rcases hcu with ⟨c, rfl⟩,
+        obtain rfl := discrete_valuation_ring.unit_mul_pow_congr_unit _ _ _ _ _ hc,
+        swap, { exact irreducible_p },
+        rw ← norm_lt_one_iff_dvd,
+        apply to_zmod_spec, },
+      { rw [_root_.zero_pow (nat.pos_of_ne_zero hc0)],
+        simp only [sub_zero, zmod.cast_zero, mul_zero],
+        rw unit_coeff_spec hc',
+        apply dvd_mul_of_dvd_right,
+        apply dvd_pow (dvd_refl _),
+        exact hc0, } } }
 end
-
 
 end padic_int
 

@@ -31,15 +31,15 @@ def left_wins (G : pgame) : Prop := 0 < G ∧ 0 ≤ G
 /-- The right player can always win -/
 def right_wins (G : pgame) : Prop := G ≤ 0 ∧ G < 0
 
-theorem zero_p_postition : first_loses 0 := by tidy
-theorem one_l_postition : left_wins 1 :=
+theorem zero_first_loses : first_loses 0 := by tidy
+theorem one_left_wins : left_wins 1 :=
 begin
     split,
     rw lt_def_le,
     tidy
 end
-theorem star_n_postition : first_wins star := ⟨ zero_lt_star, star_lt_zero ⟩
-theorem omega_l_postition : left_wins omega :=
+theorem star_first_wins : first_wins star := ⟨ zero_lt_star, star_lt_zero ⟩
+theorem omega_left_wins : left_wins omega :=
 begin
   split,
     rw lt_def_le,
@@ -48,7 +48,7 @@ begin
   tidy
 end
 
-lemma position_cases (G : pgame) : G.left_wins ∨ G.right_wins ∨ G.first_loses ∨ G.first_wins :=
+lemma winner_cases (G : pgame) : G.left_wins ∨ G.right_wins ∨ G.first_loses ∨ G.first_wins :=
 begin
   classical,
   by_cases hpos : 0 < G;

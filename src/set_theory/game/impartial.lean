@@ -3,7 +3,7 @@ Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
-import set_theory.game.position
+import set_theory.game.winner
 import tactic
 
 universe u
@@ -99,9 +99,9 @@ begin
 end
 using_well_founded {dec_tac := pgame_wf_tac}
 
-lemma impartial_position_cases {G : pgame} (hG : G.impartial) : G.first_loses ∨ G.first_wins :=
+lemma impartial_winner_cases {G : pgame} (hG : G.impartial) : G.first_loses ∨ G.first_wins :=
 begin
-  rcases G.position_cases with hl | hr | hp | hn,
+  rcases G.winner_cases with hl | hr | hp | hn,
   { cases hl with hpos hnonneg,
     rw ←not_lt at hnonneg,
     have hneg := lt_of_lt_of_equiv hpos (impartial_neg_equiv_self hG),

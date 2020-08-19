@@ -152,7 +152,7 @@ begin
   { contrapose,
     intro hnp,
     rw [not_not, ←nim_sum_first_loses_iff_eq],
-    cases impartial_position_cases (impartial_add (nim_impartial O₁) (nim_impartial O₂)),
+    cases impartial_winner_cases (impartial_add (nim_impartial O₁) (nim_impartial O₂)),
     assumption,
     contradiction }
 end

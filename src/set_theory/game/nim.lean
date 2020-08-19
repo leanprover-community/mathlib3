@@ -271,7 +271,7 @@ begin
     exact Sprague_Grundy (impartial_move_left_impartial hG i),
     refl,
     rw hi,
-    exact impartial_add_self _ }
+    exact impartial_add_self (nim_impartial _) }
 end
 using_well_founded {dec_tac := pgame_wf_tac}
 

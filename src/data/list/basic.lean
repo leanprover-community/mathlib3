@@ -1334,22 +1334,6 @@ by induction l; [refl, simp only [*, concat_eq_append, cons_append, map, map_app
 theorem map_id' {f : α → α} (h : ∀ x, f x = x) (l : list α) : map f l = l :=
 by induction l; [refl, simp only [*, map]]; split; refl
 
-@[simp] theorem foldl_map (g : β → γ) (f : α → γ → α) (a : α) (l : list β) :
-  foldl f a (map g l) = foldl (λx y, f x (g y)) a l :=
-by revert a; induction l; intros; [refl, simp only [*, map, foldl]]
-
-@[simp] theorem foldr_map (g : β → γ) (f : γ → α → α) (a : α) (l : list β) :
-  foldr f a (map g l) = foldr (f ∘ g) a l :=
-by revert a; induction l; intros; [refl, simp only [*, map, foldr]]
-
-theorem foldl_hom (l : list γ) (f : α → β) (op : α → γ → α) (op' : β → γ → β) (a : α)
-  (h : ∀a x, f (op a x) = op' (f a) x) : foldl op' (f a) l = f (foldl op a l) :=
-eq.symm $ by { revert a, induction l; intros; [refl, simp only [*, foldl]] }
-
-theorem foldr_hom (l : list γ) (f : α → β) (op : γ → α → α) (op' : γ → β → β) (a : α)
-  (h : ∀x a, f (op x a) = op' x (f a)) : foldr op' (f a) l = f (foldr op a l) :=
-by { revert a, induction l; intros; [refl, simp only [*, foldr]] }
-
 theorem eq_nil_of_map_eq_nil {f : α → β} {l : list α} (h : map f l = nil) : l = nil :=
 eq_nil_of_length_eq_zero $ by rw [← length_map f l, h]; refl
 
@@ -1668,6 +1652,22 @@ by rw reverse_reverse l at t; rwa t
 
 @[simp] theorem reverse_foldl {l : list α} : reverse (foldl (λ t h, h :: t) [] l) = l :=
 by rw ←foldr_reverse; simp
+
+@[simp] theorem foldl_map (g : β → γ) (f : α → γ → α) (a : α) (l : list β) :
+  foldl f a (map g l) = foldl (λx y, f x (g y)) a l :=
+by revert a; induction l; intros; [refl, simp only [*, map, foldl]]
+
+@[simp] theorem foldr_map (g : β → γ) (f : γ → α → α) (a : α) (l : list β) :
+  foldr f a (map g l) = foldr (f ∘ g) a l :=
+by revert a; induction l; intros; [refl, simp only [*, map, foldr]]
+
+theorem foldl_hom (l : list γ) (f : α → β) (op : α → γ → α) (op' : β → γ → β) (a : α)
+  (h : ∀a x, f (op a x) = op' (f a) x) : foldl op' (f a) l = f (foldl op a l) :=
+eq.symm $ by { revert a, induction l; intros; [refl, simp only [*, foldl]] }
+
+theorem foldr_hom (l : list γ) (f : α → β) (op : γ → α → α) (op' : γ → β → β) (a : α)
+  (h : ∀x a, f (op x a) = op' x (f a)) : foldr op' (f a) l = f (foldr op a l) :=
+by { revert a, induction l; intros; [refl, simp only [*, foldr]] }
 
 /- scanl -/
 

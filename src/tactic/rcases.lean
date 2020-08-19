@@ -304,9 +304,8 @@ with rcases_core : rcases_patt → expr → tactic goals
 -- If the pattern is any other name, we already bound the name in the
 -- top-level `cases` tactic, so there is no more work to do for it.
 | (rcases_patt.one _) _ := get_goals
-| rcases_patt.clear e := do
-  (t, e) ← get_local_and_type e,
-  tactic.clear' tt [e],
+| rcases_patt.clear e :=
+  try (do (t, e) ← get_local_and_type e, tactic.clear' tt [e]) >>
   get_goals
 | (rcases_patt.typed p ty) e := do
   (t, e) ← get_local_and_type e,

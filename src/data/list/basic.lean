@@ -1685,6 +1685,17 @@ theorem foldr_hom (l : list γ) (f : α → β) (op : γ → α → α) (op' : �
   (h : ∀x a, f (op x a) = op' x (f a)) : foldr op' (f a) l = f (foldr op a l) :=
 by { revert a, induction l; intros; [refl, simp only [*, foldr]] }
 
+lemma injective_foldl_comp {α : Type*} {l : list (α → α)} {f : α → α}
+  (hl : ∀ f ∈ l, function.injective f) (hf : function.injective f):
+  function.injective (@list.foldl (α → α) (α → α) function.comp f l) :=
+begin
+  induction l generalizing f,
+  { exact hf },
+  { apply l_ih (λ _ h, hl _ (list.mem_cons_of_mem _ h)),
+    apply function.injective.comp hf,
+    apply hl _ (list.mem_cons_self _ _) }
+end
+
 /- scanl -/
 
 lemma length_scanl {β : Type*} {f : α → β → α} :

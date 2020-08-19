@@ -197,7 +197,7 @@ end
 noncomputable def Grundy_value : Π {G : pgame.{u}}, G.impartial → ordinal.{u}
 | G :=
 	λ hG, ordinal.omin (nonmoves (λ i, Grundy_value $ impartial_move_left_impartial hG i))
-		nonmoves_nonempty (λ i, Grundy_value $ impartial_move_left_impartial hG i))
+		(nonmoves_nonempty (λ i, Grundy_value (impartial_move_left_impartial hG i)))
 using_well_founded {dec_tac := pgame_wf_tac}
 
 lemma Grundy_value_def {G : pgame} (hG : G.impartial) :

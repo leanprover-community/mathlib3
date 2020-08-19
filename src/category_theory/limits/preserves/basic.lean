@@ -34,8 +34,6 @@ with the above definition of "preserves limits".
 
 open category_theory
 
-noncomputable theory
-
 namespace category_theory.limits
 
 universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation

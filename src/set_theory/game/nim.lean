@@ -28,16 +28,20 @@ local infix ` ≈ ` := equiv
   positie number of stones from it on their turn -/
 noncomputable def nim : ordinal → pgame
 | O₁ := ⟨ O₁.out.α, O₁.out.α,
-          λ O₂, have hwf : (ordinal.typein O₁.out.r O₂) < O₁, from begin nth_rewrite_rhs 0 ←ordinal.type_out O₁, exact ordinal.typein_lt_type _ _ end, nim (ordinal.typein O₁.out.r O₂),
-          λ O₂, have hwf : (ordinal.typein O₁.out.r O₂) < O₁, from begin nth_rewrite_rhs 0 ←ordinal.type_out O₁, exact ordinal.typein_lt_type _ _ end, nim (ordinal.typein O₁.out.r O₂)⟩
+  λ O₂, have hwf : (ordinal.typein O₁.out.r O₂) < O₁,
+    from begin nth_rewrite_rhs 0 ←ordinal.type_out O₁, exact ordinal.typein_lt_type _ _ end,
+    nim (ordinal.typein O₁.out.r O₂),
+  λ O₂, have hwf : (ordinal.typein O₁.out.r O₂) < O₁,
+    from begin nth_rewrite_rhs 0 ←ordinal.type_out O₁, exact ordinal.typein_lt_type _ _ end,
+    nim (ordinal.typein O₁.out.r O₂)⟩
 using_well_founded {dec_tac := tactic.assumption}
 
 namespace nim
 
 lemma nim_def (O : ordinal) : nim O = pgame.mk
-          O.out.α O.out.α
-          (λ O₂, nim (ordinal.typein O.out.r O₂))
-          (λ O₂, nim (ordinal.typein O.out.r O₂)) :=
+  O.out.α O.out.α
+  (λ O₂, nim (ordinal.typein O.out.r O₂))
+  (λ O₂, nim (ordinal.typein O.out.r O₂)) :=
 by rw nim
 
 lemma nim_wf_lemma {O₁ : ordinal} (O₂ : O₁.out.α) : (ordinal.typein O₁.out.r O₂) < O₁ :=
@@ -193,7 +197,8 @@ begin
   contradiction
 end
 
-/-- The Grundy value of an impartial game, the ordinal which corresponds to the game of nim that the game is equivalent to -/
+/-- The Grundy value of an impartial game, the ordinal which corresponds to the game of nim that the
+ game is equivalent to -/
 noncomputable def Grundy_value : Π {G : pgame.{u}}, G.impartial → ordinal.{u}
 | G :=
 	λ hG, ordinal.omin (nonmoves (λ i, Grundy_value $ impartial_move_left_impartial hG i))
@@ -202,13 +207,14 @@ using_well_founded {dec_tac := pgame_wf_tac}
 
 lemma Grundy_value_def {G : pgame} (hG : G.impartial) :
 Grundy_value hG = ordinal.omin (nonmoves (λ i, (Grundy_value $ impartial_move_left_impartial hG i)))
-		              (nonmoves_nonempty (λ i, Grundy_value (impartial_move_left_impartial hG i))) :=
+  (nonmoves_nonempty (λ i, Grundy_value (impartial_move_left_impartial hG i))) :=
 begin
   rw Grundy_value,
   refl
 end
 
-/-- The Sprague-Grundy theorem which states that every impartial game is equivalent to a game of nim, namely the game of nim corresponding to the games Grundy value -/
+/-- The Sprague-Grundy theorem which states that every impartial game is equivalent to a game of
+ nim, namely the game of nim corresponding to the games Grundy value -/
 theorem Sprague_Grundy : ∀ {G : pgame.{u}} (hG : G.impartial), G ≈ nim (Grundy_value hG)
 | G :=
 begin

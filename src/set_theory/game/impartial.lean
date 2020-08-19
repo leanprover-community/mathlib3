@@ -118,7 +118,8 @@ begin
 end
 
 lemma impartial_add_self {G : pgame} (hG : G.impartial) : (G + G).first_loses :=
-first_loses_is_zero.2 $ equiv_trans (add_congr (impartial_neg_equiv_self hG) G.equiv_refl) add_left_neg_equiv
+  first_loses_is_zero.2 $ equiv_trans (add_congr (impartial_neg_equiv_self hG) G.equiv_refl)
+  add_left_neg_equiv
 
 lemma equiv_iff_sum_first_loses {G H : pgame} (hG : G.impartial) (hH : H.impartial) :
   G ≈ H ↔ (G + H).first_loses :=

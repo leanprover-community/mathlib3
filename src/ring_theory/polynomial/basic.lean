@@ -242,22 +242,22 @@ def polynomial_quotient_equiv_quotient_polynomial {I : ideal R} :
     (eval₂_ring_hom (C.comp (quotient.mk I)) X) eval₂_C_mk_eq_zero,
   map_mul' := λ f g, by simp,
   map_add' := λ f g, by simp,
-  left_inv := by {
+  left_inv := begin
     intro f,
     apply polynomial.induction_on' f,
     { simp_intros p q hp hq,
       rw [hp, hq] },
     { rintros n ⟨x⟩,
       simp [monomial_eq_smul_X, C_mul'] }
-  },
-  right_inv := by {
+  end,
+  right_inv := begin
     rintro ⟨f⟩,
     apply polynomial.induction_on' f,
     { simp_intros p q hp hq,
       rw [hp, hq] },
     { intros n a,
       simp [monomial_eq_smul_X, ← C_mul' a (X ^ n)] },
-  },
+  end,
 }
 
 /-- Transport an ideal of `R[X]` to an `R`-submodule of `R[X]`. -/

@@ -392,6 +392,9 @@ by { rw [fin.succ_above], split_ifs, refl }
 
 @[simp] lemma succ_above_zero (i : fin n) : succ_above 0 i = i.succ := rfl
 
+@[simp] lemma succ_above_last (i : fin n) : succ_above (fin.last n) i = i.cast_succ :=
+by simp only [succ_above, i.is_lt, if_true, last_val]
+
 lemma succ_above_above (p : fin (n + 1)) (i : fin n) (h : p.val ≤ i.val) :
   p.succ_above i = i.succ :=
 by { rw [fin.succ_above], split_ifs with H, { exfalso, exact nat.lt_le_antisymm H h }, refl }

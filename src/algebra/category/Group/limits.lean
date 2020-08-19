@@ -56,7 +56,7 @@ instance limit_group (F : J ⥤ Group) :
   group (limit (F ⋙ forget Group)) :=
 begin
   haveI : group ((F ⋙ forget Group).sections) := (sections_subgroup F).to_group,
-  transport using (types.limit_equiv_sections (F ⋙ forget Group)).symm,
+  exact equiv.group (types.limit_equiv_sections (F ⋙ forget Group)),
 end
 
 @[simps, to_additive]
@@ -87,7 +87,7 @@ creates_limit_of_reflects_iso (λ c' t,
     (λ s, _) (λ s, rfl) })
 
 /-- The category of groups has all limits. -/
-@[to_additive AddGroup.has_limits]
+@[irreducible, to_additive AddGroup.has_limits]
 instance has_limits : has_limits Group :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ Group Mon) } }
@@ -135,7 +135,7 @@ begin
   haveI : comm_group ((F ⋙ forget CommGroup).sections) :=
     @subgroup.to_comm_group (Π j, F.obj j) _
       (Group.sections_subgroup (F ⋙ forget₂ CommGroup Group)),
-  transport using (types.limit_equiv_sections (F ⋙ forget CommGroup)).symm,
+  exact equiv.comm_group (types.limit_equiv_sections (F ⋙ forget CommGroup)),
 end
 
 @[simps, to_additive]
@@ -166,7 +166,7 @@ creates_limit_of_reflects_iso (λ c' t,
     (λ s, _) (λ s, rfl) })
 
 /-- The category of commutative groups has all limits. -/
-@[to_additive AddCommGroup.has_limits]
+@[irreducible, to_additive AddCommGroup.has_limits]
 instance has_limits : has_limits CommGroup :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ CommGroup Group) } }
@@ -199,9 +199,9 @@ in the category of commutative monoids.)
 -/
 @[to_additive AddCommGroup.forget₂_AddCommMon_preserves_limits]
 instance forget₂_CommMon_preserves_limits : preserves_limits (forget₂ CommGroup CommMon) :=
-{ preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F, by exactI
-      preserves_of_reflects_of_preserves (forget₂ CommGroup CommMon) (forget₂ CommMon Mon) } }
+{ preserves_limits_of_shape := λ J 𝒥, by exactI
+  { preserves_limit := λ F,
+    preserves_of_reflects_of_preserves (forget₂ CommGroup CommMon) (forget₂ CommMon Mon) } }
 
 /--
 The forgetful functor from commutative groups to types preserves all limits. (That is, the underlying

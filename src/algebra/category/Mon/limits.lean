@@ -8,6 +8,7 @@ import algebra.category.Mon.basic
 import category_theory.limits.types
 import category_theory.limits.creates
 import data.equiv.transfer_instance
+import tactic.transport
 
 /-!
 # The category of (commutative) (additive) monoids has all limits
@@ -122,7 +123,7 @@ end has_limits
 open has_limits
 
 /-- The category of monoids has all limits. -/
-@[to_additive AddMon.has_limits]
+@[irreducible, to_additive AddMon.has_limits]
 instance has_limits : has_limits Mon :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F,
@@ -162,7 +163,7 @@ begin
   haveI : comm_monoid ((F ⋙ forget CommMon).sections) :=
     @submonoid.to_comm_monoid (Π j, F.obj j) _
       (Mon.sections_submonoid (F ⋙ forget₂ CommMon Mon)),
-  transport using (types.limit_equiv_sections (F ⋙ forget CommMon)).symm,
+  exact equiv.comm_monoid (types.limit_equiv_sections (F ⋙ forget CommMon)),
 end
 
 @[simps, to_additive]
@@ -193,7 +194,7 @@ creates_limit_of_reflects_iso (λ c' t,
     (λ s, _) (λ s, rfl) })
 
 /-- The category of commutative monoids has all limits. -/
-@[to_additive AddCommMon.has_limits]
+@[irreducible, to_additive AddCommMon.has_limits]
 instance has_limits : has_limits CommMon :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ CommMon Mon) } }

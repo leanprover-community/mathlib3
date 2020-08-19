@@ -44,7 +44,7 @@ instance limit_semiring (F : J ⥤ SemiRing) :
   semiring (limit (F ⋙ forget SemiRing)) :=
 begin
   haveI : semiring ((F ⋙ forget SemiRing).sections) := (sections_subsemiring F).to_semiring,
-  transport using (types.limit_equiv_sections (F ⋙ forget SemiRing)).symm,
+  exact equiv.semiring (types.limit_equiv_sections (F ⋙ forget SemiRing)),
 end
 
 /-- `limit.π (F ⋙ forget SemiRing) j` as a `ring_hom`. -/
@@ -123,6 +123,7 @@ end has_limits
 open has_limits
 
 /-- The category of rings has all limits. -/
+@[irreducible]
 instance has_limits : has_limits SemiRing :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F,
@@ -151,7 +152,7 @@ begin
     functor.map_iso_inv, is_limit.unique_up_to_iso_inv, iso.symm_hom, limit.is_limit_lift,
     limit.cone_π, cones.forget_map, is_limit.lift_cone_morphism_hom, iso.trans_hom, category.assoc,
      functor.map_cone_π],
-  erw [←category_theory.functor.map_comp, limit.lift_π, is_limit.fac],
+  erw [←category_theory.functor.map_comp, limit.lift_π],
   refl,
 end)
 
@@ -217,7 +218,7 @@ begin
   haveI : comm_semiring ((F ⋙ forget CommSemiRing).sections) :=
     @subsemiring.to_comm_semiring (Π j, F.obj j) _
       (SemiRing.sections_subsemiring (F ⋙ forget₂ CommSemiRing SemiRing)),
-  transport using (types.limit_equiv_sections (F ⋙ forget CommSemiRing)).symm,
+  exact equiv.comm_semiring (types.limit_equiv_sections (F ⋙ forget CommSemiRing)),
 end
 
 -- FIXME Applying `@[simps]` here causes a timeout. (However it doesn't seem to be necessary.)
@@ -245,7 +246,8 @@ creates_limit_of_reflects_iso (λ c' t,
   makes_limit := is_limit.of_faithful (forget₂ CommSemiRing SemiRing) (is_limit_forget₂_map_cone_lifted_cone F)
     (λ s, _) (λ s, rfl) })
 
-/-- The category of rings has all limits. -/
+/-- The category of commutative semirings has all limits. -/
+@[irreducible]
 instance has_limits : has_limits CommSemiRing :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ CommSemiRing SemiRing) } }
@@ -331,7 +333,7 @@ begin
   haveI : ring ((F ⋙ forget Ring).sections) :=
     @subtype.ring ((Π (j : J), (F ⋙ forget _).obj j)) (by apply_instance) _
       (by convert (Ring.sections_subring F)),
-  transport using (types.limit_equiv_sections (F ⋙ forget Ring)).symm,
+  exact equiv.ring (types.limit_equiv_sections (F ⋙ forget Ring)),
 end
 
 def lifted_cone (F : J ⥤ Ring) : cone F :=
@@ -359,6 +361,7 @@ creates_limit_of_reflects_iso (λ c' t,
     (λ s, _) (λ s, rfl) })
 
 /-- The category of rings has all limits. -/
+@[irreducible]
 instance has_limits : has_limits Ring :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ Ring SemiRing) } }
@@ -430,7 +433,7 @@ begin
   haveI : comm_ring ((F ⋙ forget CommRing).sections) :=
     @subtype.comm_ring ((Π (j : J), (F ⋙ forget _).obj j)) (by apply_instance) _
       (by convert (Ring.sections_subring (F ⋙ forget₂ CommRing Ring))),
-  transport using (types.limit_equiv_sections (F ⋙ forget CommRing)).symm,
+  exact equiv.comm_ring (types.limit_equiv_sections (F ⋙ forget CommRing)),
 end
 
 def lifted_cone (F : J ⥤ CommRing) : cone F :=
@@ -458,6 +461,7 @@ creates_limit_of_reflects_iso (λ c' t,
     (λ s, _) (λ s, rfl) })
 
 /-- The category of commutative rings has all limits. -/
+@[irreducible]
 instance has_limits : has_limits CommRing :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ CommRing Ring) } }

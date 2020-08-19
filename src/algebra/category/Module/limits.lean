@@ -55,7 +55,7 @@ instance limit_add_comm_group (F : J ⥤ Module R) :
   add_comm_group (limit (F ⋙ forget (Module R))) :=
 begin
   haveI := Module.sections_add_comm_group F,
-  transport using (types.limit_equiv_sections (F ⋙ forget (Module R))).symm,
+  exact equiv.add_comm_group (types.limit_equiv_sections (F ⋙ forget (Module R))),
 end
 
 instance limit_module (F : J ⥤ Module R) :
@@ -130,6 +130,7 @@ end has_limits
 open has_limits
 
 /-- The category of R-modules has all limits. -/
+@[irreducible]
 instance has_limits : has_limits (Module R) :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F,

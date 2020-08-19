@@ -170,7 +170,7 @@ begin
     (hc.norm.tendsto.mono_left inf_le_left)
 end
 
-@[simp] lemma differentiable_at_tan {x : ℂ} : differentiable_at ℂ tan x ↔ cos x ≠ 0:=
+@[simp] lemma differentiable_at_tan {x : ℂ} : differentiable_at ℂ tan x ↔ cos x ≠ 0 :=
 ⟨λ h, continuous_at_tan.1 h.continuous_at, λ h, (has_deriv_at_tan h).differentiable_at⟩
 
 @[simp] lemma deriv_tan (x : ℂ) : deriv tan x = 1 / (cos x)^2 :=

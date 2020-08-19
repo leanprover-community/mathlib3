@@ -9,7 +9,7 @@ import data.set.intervals
 /-!
 # Extended non-negative reals
 
-We define `ennreal = ℝ≥0∞ := with_no ℝ≥0` to be the type of extended nonnegative real numbers,
+We define `ennreal = ℝ≥0∞ := with_top ℝ≥0` to be the type of extended nonnegative real numbers,
 i.e., the interval `[0, +∞]`. This type is used as the codomain of a `measure_theory.measure`,
 and of the extended distance `edist` in a `emetric_space`.
 In this file we define some algebraic operations and a linear order on `ℝ≥0∞`

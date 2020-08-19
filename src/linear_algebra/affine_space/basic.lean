@@ -823,6 +823,52 @@ begin
     exact ⟨p2, p, hp2, hp, hv⟩ }
 end
 
+/-- The `vector_span` is the span of the pairwise subtractions with a
+given point on the left, excluding the subtraction of that point from
+itself. -/
+lemma vector_span_eq_span_vsub_set_left_ne {s : set P} {p : P} (hp : p ∈ s) :
+  vector_span k s = submodule.span k ((-ᵥ) p '' (s \ {p})) :=
+begin
+  conv_lhs { rw [vector_span_eq_span_vsub_set_left k hp, ←set.insert_eq_of_mem hp,
+                 ←set.insert_diff_singleton, set.image_insert_eq] },
+  simp [submodule.span_insert_eq_span]
+end
+
+/-- The `vector_span` is the span of the pairwise subtractions with a
+given point on the right, excluding the subtraction of that point from
+itself. -/
+lemma vector_span_eq_span_vsub_set_right_ne {s : set P} {p : P} (hp : p ∈ s) :
+  vector_span k s = submodule.span k ((-ᵥ p) '' (s \ {p})) :=
+begin
+  conv_lhs { rw [vector_span_eq_span_vsub_set_right k hp, ←set.insert_eq_of_mem hp,
+                 ←set.insert_diff_singleton, set.image_insert_eq] },
+  simp [submodule.span_insert_eq_span]
+end
+
+/-- The `vector_span` of the image of a function is the span of the
+pairwise subtractions with a given point on the left, excluding the
+subtraction of that point from itself. -/
+lemma vector_span_image_eq_span_vsub_set_left_ne (p : ι → P) {s : set ι} {i : ι} (hi : i ∈ s) :
+  vector_span k (p '' s) = submodule.span k ((-ᵥ) (p i) '' (p '' (s \ {i}))) :=
+begin
+  conv_lhs { rw [vector_span_eq_span_vsub_set_left k (set.mem_image_of_mem p hi),
+                 ←set.insert_eq_of_mem hi, ←set.insert_diff_singleton, set.image_insert_eq,
+                 set.image_insert_eq] },
+  simp [submodule.span_insert_eq_span]
+end
+
+/-- The `vector_span` of the image of a function is the span of the
+pairwise subtractions with a given point on the right, excluding the
+subtraction of that point from itself. -/
+lemma vector_span_image_eq_span_vsub_set_right_ne (p : ι → P) {s : set ι} {i : ι} (hi : i ∈ s) :
+  vector_span k (p '' s) = submodule.span k ((-ᵥ (p i)) '' (p '' (s \ {i}))) :=
+begin
+  conv_lhs { rw [vector_span_eq_span_vsub_set_right k (set.mem_image_of_mem p hi),
+                 ←set.insert_eq_of_mem hi, ←set.insert_diff_singleton, set.image_insert_eq,
+                 set.image_insert_eq] },
+  simp [submodule.span_insert_eq_span]
+end
+
 /-- The `vector_span` of an indexed family is the span of the pairwise
 subtractions with a given point on the left. -/
 lemma vector_span_range_eq_span_range_vsub_left (p : ι → P) (i0 : ι) :

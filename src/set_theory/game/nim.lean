@@ -235,7 +235,9 @@ begin
         Grundy_value (impartial_move_left_impartial hG i₁) :=
       ⟨ i₁, rfl ⟩,
     contradiction },
-  { rw [add_move_left_inr, ←good_left_move_iff_n_position],
+  { rw [add_move_left_inr,
+    ←good_left_move_iff_n_position
+      (impartial_add hG $ impartial_move_left_impartial (nim_impartial _) _)],
     revert i₂,
     rw nim_def,
     intro i₂,

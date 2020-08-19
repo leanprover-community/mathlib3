@@ -1661,6 +1661,22 @@ by revert a; induction l; intros; [refl, simp only [*, map, foldl]]
   foldr f a (map g l) = foldr (f ∘ g) a l :=
 by revert a; induction l; intros; [refl, simp only [*, map, foldr]]
 
+theorem foldl_map' {α β: Type u} (g : α → β) (f : α → α → α) (f' : β → β → β)
+  (a : α) (l : list α) (h : ∀ x y, f' (g x) (g y) = g (f x y)) :
+  list.foldl f' (g a) (l.map g) = g (list.foldl f a l) :=
+begin
+  induction l generalizing a,
+  { simp }, { simp [l_ih, h] }
+end
+
+theorem foldr_map' {α β: Type u} (g : α → β) (f : α → α → α) (f' : β → β → β)
+  (a : α) (l : list α) (h : ∀ x y, f' (g x) (g y) = g (f x y)) :
+  list.foldr f' (g a) (l.map g) = g (list.foldr f a l) :=
+begin
+  induction l generalizing a,
+  { simp }, { simp [l_ih, h] }
+end
+
 theorem foldl_hom (l : list γ) (f : α → β) (op : α → γ → α) (op' : β → γ → β) (a : α)
   (h : ∀a x, f (op a x) = op' (f a) x) : foldl op' (f a) l = f (foldl op a l) :=
 eq.symm $ by { revert a, induction l; intros; [refl, simp only [*, foldl]] }

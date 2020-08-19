@@ -8,7 +8,7 @@ import set_theory.pgame
 /-!
 # Basic definitions about who has a winning stratergy
 
-We define `G.p_position`, `G.n_position`, `G.l_position` and `G.r_position`
+We define `G.first_loses`, `G.first_wins`, `G.left_wins` and `G.right_wins`
 for a pgame `G`, which means the second, first, left and right players
 have a winning stratergy respectivly.
 These are defined by inequalities which can be unfolded with, `pgame.lt_def`
@@ -20,26 +20,26 @@ namespace pgame
 local infix ` ≈ ` := equiv
 
 /-- The player who goes first loses -/
-def p_position (G : pgame) : Prop := G ≤ 0 ∧ 0 ≤ G
+def first_loses (G : pgame) : Prop := G ≤ 0 ∧ 0 ≤ G
 
 /-- The player who goes first wins -/
-def n_position (G : pgame) : Prop := 0 < G ∧ G < 0
+def first_wins (G : pgame) : Prop := 0 < G ∧ G < 0
 
 /-- The left player can always win -/
-def l_position (G : pgame) : Prop := 0 < G ∧ 0 ≤ G
+def left_wins (G : pgame) : Prop := 0 < G ∧ 0 ≤ G
 
 /-- The right player can always win -/
-def r_position (G : pgame) : Prop := G ≤ 0 ∧ G < 0
+def right_wins (G : pgame) : Prop := G ≤ 0 ∧ G < 0
 
-theorem zero_p_postition : p_position 0 := by tidy
-theorem one_l_postition : l_position 1 :=
+theorem zero_p_postition : first_loses 0 := by tidy
+theorem one_l_postition : left_wins 1 :=
 begin
     split,
     rw lt_def_le,
     tidy
 end
-theorem star_n_postition : n_position star := ⟨ zero_lt_star, star_lt_zero ⟩
-theorem omega_l_postition : l_position omega :=
+theorem star_n_postition : first_wins star := ⟨ zero_lt_star, star_lt_zero ⟩
+theorem omega_l_postition : left_wins omega :=
 begin
   split,
     rw lt_def_le,
@@ -48,7 +48,7 @@ begin
   tidy
 end
 
-lemma position_cases (G : pgame) : G.l_position ∨ G.r_position ∨ G.p_position ∨ G.n_position :=
+lemma position_cases (G : pgame) : G.left_wins ∨ G.right_wins ∨ G.first_loses ∨ G.first_wins :=
 begin
   classical,
   by_cases hpos : 0 < G;
@@ -61,24 +61,24 @@ begin
     try { right, right, right, exact ⟨ hpos, hneg ⟩ } }
 end
 
-lemma p_position_is_zero {G : pgame} : G.p_position ↔ G ≈ 0 := by refl
+lemma first_loses_is_zero {G : pgame} : G.first_loses ↔ G ≈ 0 := by refl
 
-lemma p_position_of_equiv {G H : pgame} (h : G ≈ H) : G.p_position → H.p_position :=
+lemma first_loses_of_equiv {G H : pgame} (h : G ≈ H) : G.first_loses → H.first_loses :=
 λ hGp, ⟨ le_of_equiv_of_le h.symm hGp.1, le_of_le_of_equiv hGp.2 h ⟩
-lemma n_position_of_equiv {G H : pgame} (h : G ≈ H) : G.n_position → H.n_position :=
+lemma first_wins_of_equiv {G H : pgame} (h : G ≈ H) : G.first_wins → H.first_wins :=
 λ hGn, ⟨ lt_of_lt_of_equiv hGn.1 h, lt_of_equiv_of_lt h.symm hGn.2 ⟩
-lemma l_position_of_equiv {G H : pgame} (h : G ≈ H) : G.l_position → H.l_position :=
+lemma left_wins_of_equiv {G H : pgame} (h : G ≈ H) : G.left_wins → H.left_wins :=
 λ hGl, ⟨ lt_of_lt_of_equiv hGl.1 h, le_of_le_of_equiv hGl.2 h ⟩
-lemma r_position_of_equiv {G H : pgame} (h : G ≈ H) : G.r_position → H.r_position :=
+lemma right_wins_of_equiv {G H : pgame} (h : G ≈ H) : G.right_wins → H.right_wins :=
 λ hGr, ⟨ le_of_equiv_of_le h.symm hGr.1, lt_of_equiv_of_lt h.symm hGr.2 ⟩
 
-lemma p_position_of_equiv_iff {G H : pgame} (h : G ≈ H) : G.p_position ↔ H.p_position :=
-⟨ p_position_of_equiv h, p_position_of_equiv h.symm ⟩
-lemma n_position_of_equiv_iff {G H : pgame} (h : G ≈ H) : G.n_position ↔ H.n_position :=
-⟨ n_position_of_equiv h, n_position_of_equiv h.symm ⟩
-lemma l_position_of_equiv_iff {G H : pgame} (h : G ≈ H) : G.l_position ↔ H.l_position :=
-⟨ l_position_of_equiv h, l_position_of_equiv h.symm ⟩
-lemma r_position_of_equiv_iff {G H : pgame} (h : G ≈ H) : G.r_position ↔ H.r_position :=
-⟨ r_position_of_equiv h, r_position_of_equiv h.symm ⟩
+lemma first_loses_of_equiv_iff {G H : pgame} (h : G ≈ H) : G.first_loses ↔ H.first_loses :=
+⟨ first_loses_of_equiv h, first_loses_of_equiv h.symm ⟩
+lemma first_wins_of_equiv_iff {G H : pgame} (h : G ≈ H) : G.first_wins ↔ H.first_wins :=
+⟨ first_wins_of_equiv h, first_wins_of_equiv h.symm ⟩
+lemma left_wins_of_equiv_iff {G H : pgame} (h : G ≈ H) : G.left_wins ↔ H.left_wins :=
+⟨ left_wins_of_equiv h, left_wins_of_equiv h.symm ⟩
+lemma right_wins_of_equiv_iff {G H : pgame} (h : G ≈ H) : G.right_wins ↔ H.right_wins :=
+⟨ right_wins_of_equiv h, right_wins_of_equiv h.symm ⟩
 
 end pgame

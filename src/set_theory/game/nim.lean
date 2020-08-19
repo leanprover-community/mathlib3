@@ -83,7 +83,7 @@ begin
 end
 using_well_founded {dec_tac := tactic.assumption}
 
-lemma nim_zero_p_position : (nim (0:ordinal)).p_position :=
+lemma nim_zero_first_loses : (nim (0:ordinal)).first_loses :=
 begin
   rw nim_def,
   split;
@@ -100,7 +100,7 @@ begin
   try { exact pempty.elim i }
 end
 
-lemma nim_non_zero_n_position (O : ordinal) (hO : O ≠ 0) : (nim O).n_position :=
+lemma nim_non_zero_first_wins (O : ordinal) (hO : O ≠ 0) : (nim O).first_wins :=
 begin
   rw nim_def,
   rw ←ordinal.pos_iff_ne_zero at hO,
@@ -109,14 +109,14 @@ begin
   { left,
     use (ordinal.principal_seg_out hO).top,
     rw [move_left_mk, ordinal.typein_top, ordinal.type_out],
-    exact nim_zero_p_position.2 },
+    exact nim_zero_first_loses.2 },
   { right,
     use (ordinal.principal_seg_out hO).top,
     rw [move_right_mk, ordinal.typein_top, ordinal.type_out],
-    exact nim_zero_p_position.1 }
+    exact nim_zero_first_loses.1 }
 end
 
-lemma nim_sum_p_position_iff_eq (O₁ O₂ : ordinal) : (nim O₁ + nim O₂).p_position ↔ O₁ = O₂ :=
+lemma nim_sum_first_loses_iff_eq (O₁ O₂ : ordinal) : (nim O₁ + nim O₂).first_loses ↔ O₁ = O₂ :=
 begin
   split,
   { contrapose,
@@ -124,7 +124,7 @@ begin
     wlog h : O₁ ≤ O₂ using [O₁ O₂, O₂ O₁],
     exact ordinal.le_total O₁ O₂,
     { have h : O₁ < O₂ := lt_of_le_of_ne h hneq,
-      rw ←(no_good_left_moves_iff_p_position $ impartial_add (nim_impartial O₁) (nim_impartial O₂))
+      rw ←(no_good_left_moves_iff_first_loses $ impartial_add (nim_impartial O₁) (nim_impartial O₂))
 				at hp,
       equiv_rw left_moves_add (nim O₁) (nim O₂) at hp,
       rw nim_def O₂ at hp,
@@ -134,24 +134,24 @@ begin
       have hcontra := (impartial_add_self $ nim_impartial O₁).1,
       rw ←pgame.not_lt at hcontra,
       contradiction },
-    exact this (λ h, hneq h.symm) (p_position_of_equiv add_comm_equiv hp) },
+    exact this (λ h, hneq h.symm) (first_loses_of_equiv add_comm_equiv hp) },
   { intro h,
     rw h,
     exact impartial_add_self (nim_impartial O₂) }
 end
 
-lemma nim_sum_n_position_iff_neq (O₁ O₂ : ordinal) : (nim O₁ + nim O₂).n_position ↔ O₁ ≠ O₂ :=
+lemma nim_sum_first_wins_iff_neq (O₁ O₂ : ordinal) : (nim O₁ + nim O₂).first_wins ↔ O₁ ≠ O₂ :=
 begin
   split,
   { intros hn heq,
     cases hn,
-    rw ←nim_sum_p_position_iff_eq at heq,
+    rw ←nim_sum_first_loses_iff_eq at heq,
     cases heq with h,
     rw ←pgame.not_lt at h,
     contradiction },
   { contrapose,
     intro hnp,
-    rw [not_not, ←nim_sum_p_position_iff_eq],
+    rw [not_not, ←nim_sum_first_loses_iff_eq],
     cases impartial_position_cases (impartial_add (nim_impartial O₁) (nim_impartial O₂)),
     assumption,
     contradiction }
@@ -214,15 +214,15 @@ theorem Sprague_Grundy : ∀ {G : pgame.{u}} (hG : G.impartial), G ≈ nim (Grun
 begin
   classical,
   intro hG,
-  rw [equiv_iff_sum_p_position hG (nim_impartial _),
-		←no_good_left_moves_iff_p_position (impartial_add hG (nim_impartial _))],
+  rw [equiv_iff_sum_first_loses hG (nim_impartial _),
+		←no_good_left_moves_iff_first_loses (impartial_add hG (nim_impartial _))],
   intro i,
   equiv_rw left_moves_add G (nim $ Grundy_value hG) at i,
   cases i with i₁ i₂,
   { rw add_move_left_inl,
-    apply n_position_of_equiv,
+    apply first_wins_of_equiv,
     exact (add_congr (Sprague_Grundy $ impartial_move_left_impartial hG i₁).symm (equiv_refl _)),
-    rw nim_sum_n_position_iff_neq,
+    rw nim_sum_first_wins_iff_neq,
     intro heq,
     have heq := symm heq,
     rw Grundy_value_def hG at heq,
@@ -236,7 +236,7 @@ begin
       ⟨ i₁, rfl ⟩,
     contradiction },
   { rw [add_move_left_inr,
-    ←good_left_move_iff_n_position
+    ←good_left_move_iff_first_wins
       (impartial_add hG $ impartial_move_left_impartial (nim_impartial _) _)],
     revert i₂,
     rw nim_def,
@@ -265,7 +265,7 @@ begin
     cases h' with i hi,
     use (left_moves_add _ _).symm (sum.inl i),
     rw [add_move_left_inl, move_left_mk],
-    apply p_position_of_equiv,
+    apply first_loses_of_equiv,
     apply add_congr,
     symmetry,
     exact Sprague_Grundy (impartial_move_left_impartial hG i),

@@ -100,7 +100,7 @@ begin
 end
 using_well_founded {dec_tac := pgame_wf_tac}
 
-lemma impartial_position_cases {G : pgame} (hG : G.impartial) : G.p_position ∨ G.n_position :=
+lemma impartial_position_cases {G : pgame} (hG : G.impartial) : G.first_loses ∨ G.first_wins :=
 begin
   rcases G.position_cases with hl | hr | hp | hn,
   { cases hl with hpos hnonneg,
@@ -117,15 +117,15 @@ begin
   { right, assumption }
 end
 
-lemma impartial_add_self {G : pgame} (hG : G.impartial) : (G + G).p_position :=
-p_position_is_zero.2 $ equiv_trans (add_congr (impartial_neg_equiv_self hG) G.equiv_refl) add_left_neg_equiv
+lemma impartial_add_self {G : pgame} (hG : G.impartial) : (G + G).first_loses :=
+first_loses_is_zero.2 $ equiv_trans (add_congr (impartial_neg_equiv_self hG) G.equiv_refl) add_left_neg_equiv
 
-lemma equiv_iff_sum_p_position {G H : pgame} (hG : G.impartial) (hH : H.impartial) :
-  G ≈ H ↔ (G + H).p_position :=
+lemma equiv_iff_sum_first_loses {G H : pgame} (hG : G.impartial) (hH : H.impartial) :
+  G ≈ H ↔ (G + H).first_loses :=
 begin
   split,
   { intro heq,
-    exact p_position_of_equiv (add_congr (equiv_refl _) heq) (impartial_add_self hG) },
+    exact first_loses_of_equiv (add_congr (equiv_refl _) heq) (impartial_add_self hG) },
   { intro hGHp,
     split,
     { rw le_iff_sub_nonneg,
@@ -137,7 +137,7 @@ begin
         (le_of_le_of_equiv (le_refl _) $ add_congr (equiv_refl _) (impartial_neg_equiv_self hH)) } }
 end
 
-lemma impartial_p_position_symm {G : pgame} (hG : G.impartial) : G.p_position ↔ G ≤ 0 :=
+lemma impartial_first_loses_symm {G : pgame} (hG : G.impartial) : G.first_loses ↔ G ≤ 0 :=
 begin
   use and.left,
   { intro hneg,
@@ -145,7 +145,7 @@ begin
     exact zero_le_iff_neg_le_zero.2 (le_of_equiv_of_le (impartial_neg_equiv_self hG).symm hneg) }
 end
 
-lemma impartial_n_position_symm {G : pgame} (hG : G.impartial) : G.n_position ↔ G < 0 :=
+lemma impartial_first_wins_symm {G : pgame} (hG : G.impartial) : G.first_wins ↔ G < 0 :=
 begin
   use and.right,
   { intro hneg,
@@ -156,7 +156,7 @@ begin
     exact hneg }
 end
 
-lemma impartial_p_position_symm' {G : pgame} (hG : G.impartial) : G.p_position ↔ 0 ≤ G :=
+lemma impartial_first_loses_symm' {G : pgame} (hG : G.impartial) : G.first_loses ↔ 0 ≤ G :=
 begin
   use and.right,
   { intro hpos,
@@ -164,7 +164,7 @@ begin
     exact hpos }
 end
 
-lemma impartial_n_position_symm' {G : pgame} (hG : G.impartial) : G.n_position ↔ 0 < G :=
+lemma impartial_first_wins_symm' {G : pgame} (hG : G.impartial) : G.first_wins ↔ 0 < G :=
 begin
   use and.left,
   { intro hpos,
@@ -174,12 +174,12 @@ begin
     exact lt_of_lt_of_equiv hpos (impartial_neg_equiv_self hG) }
 end
 
-lemma no_good_left_moves_iff_p_position {G : pgame} (hG : G.impartial) :
-  (∀ (i : G.left_moves), (G.move_left i).n_position) ↔ G.p_position :=
+lemma no_good_left_moves_iff_first_loses {G : pgame} (hG : G.impartial) :
+  (∀ (i : G.left_moves), (G.move_left i).first_wins) ↔ G.first_loses :=
 begin
   split,
   { intro hbad,
-    rw [impartial_p_position_symm hG, le_def_lt],
+    rw [impartial_first_loses_symm hG, le_def_lt],
     split,
     { intro i,
       specialize hbad i,
@@ -187,16 +187,16 @@ begin
     { intro j,
       exact pempty.elim j } },
   { intros hp i,
-    rw impartial_n_position_symm (impartial_move_left_impartial hG _),
-    exact (le_def_lt.1 $ (impartial_p_position_symm hG).1 hp).1 i }
+    rw impartial_first_wins_symm (impartial_move_left_impartial hG _),
+    exact (le_def_lt.1 $ (impartial_first_loses_symm hG).1 hp).1 i }
 end
 
-lemma no_good_right_moves_iff_p_position {G : pgame} (hG : G.impartial) :
-  (∀ (j : G.right_moves), (G.move_right j).n_position) ↔ G.p_position :=
+lemma no_good_right_moves_iff_first_loses {G : pgame} (hG : G.impartial) :
+  (∀ (j : G.right_moves), (G.move_right j).first_wins) ↔ G.first_loses :=
 begin
   split,
   { intro hbad,
-    rw [impartial_p_position_symm' hG, le_def_lt],
+    rw [impartial_first_loses_symm' hG, le_def_lt],
     split,
     { intro i,
       exact pempty.elim i },
@@ -204,34 +204,34 @@ begin
       specialize hbad j,
       exact hbad.1 } },
   { intros hp j,
-    rw impartial_n_position_symm' (impartial_move_right_impartial hG _),
-    exact ((le_def_lt.1 $ (impartial_p_position_symm' hG).1 hp).2 j) }
+    rw impartial_first_wins_symm' (impartial_move_right_impartial hG _),
+    exact ((le_def_lt.1 $ (impartial_first_loses_symm' hG).1 hp).2 j) }
 end
 
-lemma good_left_move_iff_n_position {G : pgame} (hG : G.impartial) :
-  (∃ (i : G.left_moves), (G.move_left i).p_position) ↔ G.n_position :=
+lemma good_left_move_iff_first_wins {G : pgame} (hG : G.impartial) :
+  (∃ (i : G.left_moves), (G.move_left i).first_loses) ↔ G.first_wins :=
 begin
   split,
   { rintro ⟨ i, hi ⟩,
-    exact (impartial_n_position_symm' hG).2 (lt_def_le.2 $ or.inl ⟨ i, hi.2 ⟩) },
+    exact (impartial_first_wins_symm' hG).2 (lt_def_le.2 $ or.inl ⟨ i, hi.2 ⟩) },
   { intro hn,
-    rw [impartial_n_position_symm' hG, lt_def_le] at hn,
+    rw [impartial_first_wins_symm' hG, lt_def_le] at hn,
     rcases hn with ⟨ i, hi ⟩ | ⟨ j, _ ⟩,
-    { exact ⟨ i, (impartial_p_position_symm' $ impartial_move_left_impartial hG _).2 hi ⟩ },
+    { exact ⟨ i, (impartial_first_loses_symm' $ impartial_move_left_impartial hG _).2 hi ⟩ },
     { exact pempty.elim j } }
 end
 
-lemma good_right_move_iff_n_position {G : pgame} (hG : G.impartial) :
-  (∃ j : G.right_moves, (G.move_right j).p_position) ↔ G.n_position :=
+lemma good_right_move_iff_first_wins {G : pgame} (hG : G.impartial) :
+  (∃ j : G.right_moves, (G.move_right j).first_loses) ↔ G.first_wins :=
 begin
   split,
   { rintro ⟨ j, hj ⟩,
-    exact (impartial_n_position_symm hG).2 (lt_def_le.2 $ or.inr ⟨ j, hj.1 ⟩) },
+    exact (impartial_first_wins_symm hG).2 (lt_def_le.2 $ or.inr ⟨ j, hj.1 ⟩) },
   { intro hn,
-    rw [impartial_n_position_symm hG, lt_def_le] at hn,
+    rw [impartial_first_wins_symm hG, lt_def_le] at hn,
     rcases hn with ⟨ i, _ ⟩ | ⟨ j, hj ⟩,
     { exact pempty.elim i },
-    { exact ⟨ j, (impartial_p_position_symm $ impartial_move_right_impartial hG _).2 hj ⟩ } }
+    { exact ⟨ j, (impartial_first_loses_symm $ impartial_move_right_impartial hG _).2 hj ⟩ } }
 end
 
 end pgame

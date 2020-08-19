@@ -1185,6 +1185,101 @@ end num_denom
 
 end fraction_map
 
+section algebra
+
+section is_integral
+variables {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
+variables [algebra R S]
+
+def algebra_map_submonoid {R : Type*} [comm_ring R] (S : Type*) [comm_ring S] [algebra R S]
+  (M : submonoid R) : submonoid S :=
+{ carrier := algebra_map R S '' M,
+  one_mem' := ⟨1, ⟨M.one_mem, (algebra_map R S).map_one⟩⟩,
+  mul_mem' := λ x y hx hy, hx.rec_on (λ a ha, hy.rec_on (λ b hb,
+    (⟨a * b, ⟨M.mul_mem ha.1 hb.1, by simp [ha.2, hb.2]⟩⟩ : x * y ∈ algebra_map R S '' M))) }
+
+lemma mem_algebra_map_submonoid : ∀ x : M, (algebra_map R S x) ∈ algebra_map_submonoid S M :=
+λ x, ⟨x.1, ⟨x.2, rfl⟩⟩
+
+noncomputable def localization_algebra (M : submonoid R) (f : localization_map M Rₘ)
+  (g : localization_map (algebra_map_submonoid S M) Sₘ) : algebra Rₘ Sₘ :=
+(f.map (mem_algebra_map_submonoid R) g).to_algebra
+
+variables (f : localization_map M Rₘ)
+variables (g : localization_map (algebra_map_submonoid S M) Sₘ)
+
+open polynomial
+
+-- lemma is_monic_coeff_sum {p : polynomial R} (hp : monic p) (cf : ℕ → R → S)
+--   (hcf : cf 1 p.nat_degree = 1) : monic (p.sum (λ n a, monomial n (cf n a))) :=
+-- begin
+--   rw [← sum_monomial_eq p, monic, leading_coeff] at hp,
+--   rw [monic, leading_coeff],
+--   simp,
+-- end
+
+/-- If `R → S` is an integral extension, `M` is a submonoid or `R`,
+`Rₘ` is the localization of `R` at `M`,
+and `Sₘ` is the localization of `S` at the image of `M` under the extension map,
+then the induced map `Rₘ → Sₘ` is also an integral extension -/
+theorem is_integral_localization (H : ∀ x : S, is_integral R x)
+  : ∀ x : Sₘ, @is_integral Rₘ _ _ _ (localization_algebra R M f g) x :=
+begin
+  intros x,
+  rcases g.surj x with ⟨⟨s, u⟩, hx⟩,
+  simp at hx,
+  rcases H s with ⟨p, ⟨hp, hap⟩⟩,
+  let hu := u.2,
+  erw set.mem_image at hu,
+  cases hu with u' hu',
+  have : is_unit (f.to_map u') := localization_map.map_units f ⟨u', hu'.1⟩,
+  rw is_unit_iff_exists_inv at this,
+  rcases this with ⟨v, hv⟩,
+  let m := p.nat_degree,
+  let p' : polynomial (polynomial Rₘ) := p.map (C.comp f.to_map),
+  let q : polynomial Rₘ := eval ((C v) * X) p',
+  use p.sum (λ n a, monomial n ((f.to_map a) * v ^ (p.nat_degree - n))),
+  -- use (C ((f.to_map u') ^ p.nat_degree)) * (eval ((C v) * X) (p.map (C.comp f.to_map))),
+  -- let p' : polynomial Rₘ := eval₂ _ _ p,
+  -- let p' : polynomial Rₘ := p.sum (λ n a, monomial n (a * u' ^ (m - n))),
+  refine ⟨_, _⟩,
+  { by_cases h0 : 1 = (0 : Rₘ),
+    { sorry },
+    {
+      have : (p.sum (λ n a, monomial n ((f.to_map a) * v ^ (p.nat_degree - n)))).nat_degree = p.nat_degree, {
+        sorry,
+      },
+      refine monic_of_degree_le p.nat_degree _ _,
+      {
+        sorry,
+      },
+      {
+        rw coeff_sum,
+        sorry,
+      }
+    }
+
+  }, sorry,
+  -- { by_cases h0 : 1 = (0 : Rₘ),
+  --   { sorry },
+  --   {
+  --     have : (eval ((C v) * X) (p.map (C.comp f.to_map))).nat_degree = p.nat_degree, {
+  --       sorry,
+  --     },
+  --     have : (eval ((C v) * X) (p.map (C.comp f.to_map))).leading_coeff = v ^ p.nat_degree, {
+  --       rw [leading_coeff, this],
+  --     },
+  --     rw [monic, leading_coeff_mul' _],
+  --     rw [leading_coeff_C, this, ← mul_pow _ _ p.nat_degree, hv, one_pow],
+  --     rw [leading_coeff_C, this, ← mul_pow _ _ p.nat_degree, hv, one_pow],
+  --     exact h0,
+  --   }
+
+  -- }
+end
+
+end is_integral
+
 namespace integral_closure
 
 variables {L : Type*} [field K] [field L] {f : fraction_map A K}
@@ -1217,6 +1312,8 @@ fraction_map_of_algebraic
     (is_scalar_tower.algebra_map_apply _ _ _ _).symm.trans hx))
 
 end integral_closure
+
+end algebra
 
 variables (A)
 

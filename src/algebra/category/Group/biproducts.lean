@@ -21,7 +21,7 @@ universe u
 
 namespace AddCommGroup
 
-instance has_binary_product (G H : AddCommGroup.{u}) : has_binary_product G H :=
+def binary_product_limit_data (G H : AddCommGroup.{u}) : limit_data (pair G H) :=
 { cone :=
   { X := AddCommGroup.of (G × H),
     π := { app := λ j, walking_pair.cases_on j (add_monoid_hom.fst G H) (add_monoid_hom.snd G H) }},
@@ -33,12 +33,17 @@ instance has_binary_product (G H : AddCommGroup.{u}) : has_binary_product G H :=
       ext; [rw ← w walking_pair.left, rw ← w walking_pair.right]; refl,
     end, } }
 
+
+instance has_binary_product (G H : AddCommGroup.{u}) : has_binary_product G H :=
+has_limit.mk (binary_product_limit_data G H)
+
 instance (G H : AddCommGroup.{u}) : has_binary_biproduct G H :=
 has_binary_biproduct.of_has_binary_product _ _
 
--- We verify that the underlying type of the biproduct we've just defined is definitionally
+-- We verify that the biproduct we've just defined is isomorphic to
 -- the cartesian product of the underlying types:
-example (G H : AddCommGroup.{u}) : ((G ⊞ H : AddCommGroup) : Type u) = (G × H) := rfl
+def biprod_iso_prod (G H : AddCommGroup.{u}) : (G ⊞ H : AddCommGroup) ≅ AddCommGroup.of (G × H) :=
+is_limit.cone_point_unique_up_to_iso sorry (binary_product_limit_data G H).is_limit
 
 -- Furthermore, our biproduct will automatically function as a coproduct.
 example (G H : AddCommGroup.{u}) : has_colimit (pair G H) := by apply_instance
@@ -60,6 +65,7 @@ def lift (s : cone F) :
 @[simp] lemma lift_apply (s : cone F) (x : s.X) (j : J) : (lift F s) x j = s.π.app j x := rfl
 
 instance has_limit_discrete : has_limit F :=
+has_limit.mk
 { cone :=
   { X := AddCommGroup.of (Π j, F.obj j),
     π := discrete.nat_trans (λ j, add_monoid_hom.apply (λ j, F.obj j) j), },
@@ -87,11 +93,12 @@ has_biproduct.of_has_product _
 
 -- We verify that the underlying type of the biproduct we've just defined is definitionally
 -- the dependent function type:
-example (f : J → AddCommGroup.{u}) : ((⨁ f : AddCommGroup) : Type u) = (Π j, f j) := rfl
+def biproduct_iso_pi (f : J → AddCommGroup.{u}) : (⨁ f : AddCommGroup) = AddCommGroup.of (Π j, f j) :=
+sorry
 
 end
 
 instance : has_finite_biproducts AddCommGroup :=
-⟨λ J _ _, { has_biproduct := λ f, by exactI infer_instance }⟩
+⟨λ J _ _, by exactI { has_biproduct := λ f, by apply_instance }⟩
 
 end AddCommGroup

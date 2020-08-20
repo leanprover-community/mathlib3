@@ -50,7 +50,7 @@ finsum, finsum_in, fincard, univ', finiteness
 
 open_locale classical
 
-universes u v
+universes u v w
 
 /-! # finset.univ' -- noncomputable univ (empty set if infinite) -/
 
@@ -70,7 +70,7 @@ by convert (dif_pos (nonempty.intro h))
 lemma univ'_eq_empty (h : ¬ nonempty (fintype α)) : univ' α = ∅ :=
 dif_neg h
 
-lemma mem_univ' [h : fintype α] (x : α) : x ∈ univ' α :=
+@[simp] lemma mem_univ' [h : fintype α] (x : α) : x ∈ univ' α :=
 (@univ'_eq_univ _ h).symm ▸ mem_univ _
 
 end finset
@@ -195,7 +195,16 @@ begin
   congr, ext, simp
 end
 
-variables {f : α → M} {a : α} {s : set α}
+lemma finsum_in_eq (f : α → M) (s : set α)
+  (hf : (s ∩ function.support f).finite) : finsum_in (s ∩ function.support f) f = finsum_in s f :=
+begin
+  rw [finsum_in_eq_finset_sum f s hf, finsum_in_eq_finset_sum f (s ∩ function.support f) _],
+    { rw [set.finite.to_finset, set.finite.to_finset],
+      refine finset.sum_congr _ (λ _ _, rfl);
+      simp_rw [set.inter_assoc, set.inter_self], assumption, congr }
+end
+
+variables {f g : α → M} {a b : α} {s t : set α}
 
 /-- The sum on an empty set over any function is zero. -/
 @[simp] lemma finsum_in_empty : finsum_in ∅ f = 0 :=
@@ -206,7 +215,7 @@ end
 
 /-- Given `a` and element not in the set `s`, the sum on `insert a s` over the function `f` equals
   the `f a` plus the sum on `s` over `f`. -/
-@[simp] lemma finsum_in_insert (h : a ∉ s) (hs : s.finite) :
+@[simp] lemma finsum_in_insert (f : α → M) (h : a ∉ s) (hs : s.finite) :
   finsum_in (insert a s) f = f a + finsum_in s f :=
 begin
   rw [finsum_in_eq_finset_sum''' f (set.finite.insert a hs), finsum_in_eq_finset_sum''' f hs,
@@ -215,15 +224,44 @@ begin
     { rw set.mem_to_finset, exact h }
 end
 
+-- ↓ this should go in data.set.basic probably
+lemma set.insert_inter_of_not_mem (s₁ s₂ : set α) (a : α) (h : a ∉ s₂) :
+  insert a s₁ ∩ s₂ = s₁ ∩ s₂ :=
+by { ext, rw [set.mem_inter_iff, set.mem_insert_iff], split; finish }
+
+/-- A more general version of `finsum_in_insert` that requires `s ∩ function.support f` instead of
+  `s` to be finite. -/
+@[simp] lemma finsum_in_insert' (f : α → M) (h : a ∉ s) (hs : (s ∩ function.support f).finite) :
+  finsum_in (insert a s) f = f a + finsum_in s f :=
+begin
+  by_cases ha : a ∈ function.support f,
+    { have := finsum_in_insert f
+        (show a ∉ s ∩ function.support f, by exact λ h', h h'.1) hs,
+      rw [finsum_in_eq _ _ hs] at this,
+      rw [← this, ← finsum_in_eq f (insert a s)
+          (by { rw [← set.insert_eq_of_mem ha, ← set.insert_inter], exact set.finite.insert _ hs })],
+      congr, rw [set.insert_inter, set.insert_eq_of_mem ha] },
+    { rw [← finsum_in_eq _ _ (show (insert a s ∩ function.support f).finite,
+        by exact (set.insert_inter_of_not_mem s (function.support f) a ha).symm ▸ hs),
+          set.insert_inter_of_not_mem s (function.support f) a ha,
+          finsum_in_eq _ _ hs, function.nmem_support.1 ha, zero_add] }
+end
+
+/-- A more general version of `finsum_in_insert_of_eq_zero_if_not_mem` that requires
+  `s ∩ function.support f` instead of `s` to be finite. -/
+lemma finsum_in_insert_of_eq_zero_if_not_mem' (h : a ∉ s → f a = 0)
+  (hs : (s ∩ function.support f).finite) : finsum_in (insert a s) f = finsum_in s f :=
+begin
+  by_cases hm : a ∈ s,
+    { simp_rw set.insert_eq_of_mem hm },
+    { rw [finsum_in_insert' f hm hs, h hm, zero_add] }
+end
+
 /-- If `f a = 0` for all `a ∉ s`, then the sum on `insert a s` over the function `f` equals the sum
   on `s` over `f`. -/
 lemma finsum_in_insert_of_eq_zero_if_not_mem (h : a ∉ s → f a = 0) (hs : s.finite) :
   finsum_in (insert a s) f = finsum_in s f :=
-begin
-  by_cases hm : a ∈ s,
-    { simp_rw set.insert_eq_of_mem hm },
-    { rw [finsum_in_insert hm hs, h hm, zero_add] }
-end
+finsum_in_insert_of_eq_zero_if_not_mem' h (set.finite.subset hs (set.inter_subset_left _ _))
 
 /-- If `f a = 0`, then the sum on `insert a s` over the function `f` equals the sum on `s` over `f`.
   -/
@@ -231,11 +269,25 @@ end
   finsum_in (insert a s) f = finsum_in s f :=
 finsum_in_insert_of_eq_zero_if_not_mem (λ _, h) hs
 
+/-- A more general version of `finsum_insert_zero` that requires `s ∩ function.support f` instead of
+  `s` to be finite. -/
+@[simp] lemma finsum_insert_zero' (h : f a = 0) (hs : (s ∩ function.support f).finite) :
+  finsum_in (insert a s) f = finsum_in s f :=
+finsum_in_insert_of_eq_zero_if_not_mem' (λ _, h) hs
+
 /-- The sum on a singleton `{a}` over the function `f` is `f a`. -/
 @[simp] lemma finsum_singleton : finsum_in {a} f = f a :=
 begin
   rw [finsum_in_eq_finset_sum''' f (set.finite_singleton a), set.finite.to_finset,
       ← @finset.sum_singleton _ _ a f _],
+  congr, ext, simp
+end
+
+/-- The sum on the set of two unique elements `{a, b}` over the function `f` equals `f a + f b`. -/
+@[simp] lemma finsum_pair (h : a ≠ b) : finsum_in {a, b} f = f a + f b :=
+begin
+  rw [finsum_in_eq_finset_sum''' f (show set.finite {a, b}, by simp),
+      set.finite.to_finset, ← finset.sum_pair h],
   congr, ext, simp
 end
 

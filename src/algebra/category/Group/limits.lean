@@ -77,10 +77,18 @@ creates_limit_of_reflects_iso (λ c' t,
   makes_limit := is_limit.of_faithful (forget₂ Group Mon) (Mon.has_limits.limit_cone_is_limit _)
     (λ s, _) (λ s, rfl) })
 
+/--
+A choice of limit cone for a functor into `Group`.
+(Generally, you'll just want to use `limit F`.)
+-/
 @[to_additive]
 def limit_cone (F : J ⥤ Group) : cone F :=
 lift_limit (limit.is_limit (F ⋙ (forget₂ Group Mon)))
 
+/--
+The chosen cone is a limit cone.
+(Generally, you'll just want to use `limit.cone F`.)
+-/
 @[to_additive]
 def limit_cone_is_limit (F : J ⥤ Group) : is_limit (limit_cone F) :=
 lifted_limit_is_limit _
@@ -144,10 +152,18 @@ creates_limit_of_reflects_iso (λ c' t,
   makes_limit := is_limit.of_faithful (forget₂ _ Group ⋙ forget₂ _ Mon) (Mon.has_limits.limit_cone_is_limit _)
     (λ s, _) (λ s, rfl) })
 
+/--
+A choice of limit cone for a functor into `CommGroup`.
+(Generally, you'll just want to use `limit F`.)
+-/
 @[to_additive]
 def limit_cone (F : J ⥤ CommGroup) : cone F :=
 lift_limit (limit.is_limit (F ⋙ (forget₂ CommGroup Group)))
 
+/--
+The chosen cone is a limit cone.
+(Generally, you'll just want to use `limit.cone F`.)
+-/
 @[to_additive]
 def limit_cone_is_limit (F : J ⥤ CommGroup) : is_limit (limit_cone F) :=
 lifted_limit_is_limit _

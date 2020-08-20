@@ -83,6 +83,7 @@ end has_limits
 open has_limits
 
 /-- The category of rings has all limits. -/
+@[irreducible]
 instance has_limits : has_limits SemiRing :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit.mk
@@ -161,13 +162,22 @@ creates_limit_of_reflects_iso (λ c' t,
     (SemiRing.has_limits.limit_cone_is_limit _)
     (λ s, _) (λ s, rfl) })
 
+/--
+A choice of limit cone for a functor into `CommSemiRing`.
+(Generally, you'll just want to use `limit F`.)
+-/
 def limit_cone (F : J ⥤ CommSemiRing) : cone F :=
 lift_limit (limit.is_limit (F ⋙ (forget₂ CommSemiRing SemiRing)))
 
+/--
+The chosen cone is a limit cone.
+(Generally, you'll just want to use `limit.cone F`.)
+-/
 def limit_cone_is_limit (F : J ⥤ CommSemiRing) : is_limit (limit_cone F) :=
 lifted_limit_is_limit _
 
 /-- The category of rings has all limits. -/
+@[irreducible]
 instance has_limits : has_limits CommSemiRing :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ CommSemiRing SemiRing) } }
@@ -237,13 +247,22 @@ creates_limit_of_reflects_iso (λ c' t,
     (SemiRing.has_limits.limit_cone_is_limit _)
     (λ s, _) (λ s, rfl) })
 
+/--
+A choice of limit cone for a functor into `Ring`.
+(Generally, you'll just want to use `limit F`.)
+-/
 def limit_cone (F : J ⥤ Ring) : cone F :=
 lift_limit (limit.is_limit (F ⋙ (forget₂ Ring SemiRing)))
 
+/--
+The chosen cone is a limit cone.
+(Generally, you'll just want to use `limit.cone F`.)
+-/
 def limit_cone_is_limit (F : J ⥤ Ring) : is_limit (limit_cone F) :=
 lifted_limit_is_limit _
 
 /-- The category of rings has all limits. -/
+@[irreducible]
 instance has_limits : has_limits Ring :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ Ring SemiRing) } }
@@ -319,9 +338,17 @@ creates_limit_of_reflects_iso (λ c' t,
   makes_limit := is_limit.of_faithful (forget₂ CommRing Ring) (Ring.limit_cone_is_limit _)
     (λ s, _) (λ s, rfl) })
 
+/--
+A choice of limit cone for a functor into `CommRing`.
+(Generally, you'll just want to use `limit F`.)
+-/
 def limit_cone (F : J ⥤ CommRing) : cone F :=
 lift_limit (limit.is_limit (F ⋙ (forget₂ CommRing Ring)))
 
+/--
+The chosen cone is a limit cone.
+(Generally, you'll just want to use `limit.cone F`.)
+-/
 def limit_cone_is_limit (F : J ⥤ CommRing) : is_limit (limit_cone F) :=
 lifted_limit_is_limit _
 

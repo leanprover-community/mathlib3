@@ -117,8 +117,7 @@ begin
   rw sum_sum_index; try { assumption },
   apply sum_congr rfl, assume j hj, dsimp only,
   rw [sum_single_index, is_semiring_hom.map_mul f, pow_add],
-  { rw [mul_assoc, ←mul_assoc _ (x ^ i), ← hf _ (x ^ i)],
-    rw [mul_assoc, mul_assoc] },
+  { rw [mul_assoc, ←mul_assoc _ (x ^ i), ← hf _ (x ^ i), mul_assoc, mul_assoc] },
   { apply f_zero }
  end
 

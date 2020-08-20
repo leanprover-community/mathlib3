@@ -86,8 +86,8 @@ annotations in reported types.
 local notation `listΣ` := list_Sigma
 local notation `listΠ` := list_Pi
 
-/-- A list of metavariables representing subgoals. -/
-@[reducible] meta def goals := list expr
+/-- A metavariable representing a subgoal, together with a list of local constants to clear. -/
+@[reducible] meta def uncleared_goal := list expr × expr
 
 /--
 An `rcases` pattern can be one of the following, in a nested combination:
@@ -296,17 +296,17 @@ private meta def get_local_and_type (e : expr) : tactic (expr × expr) :=
   `⟨a | b, ⟨c, d⟩⟩` performs the `⟨c, d⟩` match twice, once on the `a` branch and once on `b`.
 -/
 meta mutual def rcases_core, rcases.continue
-with rcases_core : rcases_patt → expr → tactic goals
+with rcases_core : rcases_patt → expr → tactic (list uncleared_goal)
 | (rcases_patt.one `rfl) e := do
   (t, e) ← get_local_and_type e,
   subst e,
-  get_goals
+  list.map (prod.mk []) <$> get_goals
 -- If the pattern is any other name, we already bound the name in the
 -- top-level `cases` tactic, so there is no more work to do for it.
-| (rcases_patt.one _) _ := get_goals
-| rcases_patt.clear e :=
-  try (do (t, e) ← get_local_and_type e, tactic.clear' tt [e]) >>
-  get_goals
+| (rcases_patt.one _) _ := list.map (prod.mk []) <$> get_goals
+| rcases_patt.clear e := do
+  m ← try_core (get_local_and_type e),
+  list.map (prod.mk $ m.elim [] (λ ⟨_, e⟩, [e])) <$> get_goals
 | (rcases_patt.typed p ty) e := do
   (t, e) ← get_local_and_type e,
   ty ← i_to_expr_no_subgoals ``(%%ty : Sort*),
@@ -344,15 +344,27 @@ with rcases_core : rcases_patt → expr → tactic goals
   -- as some constructors may be impossible for type reasons. (See its
   -- documentation.) Match up the new goals with our remaining work
   -- by constructor name.
-  list.join <$> (align (λ (a : name × _) (b : _ × name × _), a.1 = b.2.1) r (gs.zip l)).mmap
-    (λ⟨⟨_, ps⟩, g, _, hs, _⟩,
-      set_goals [g] >> rcases.continue (ps.zip hs))
+  let ls := align (λ (a : name × _) (b : _ × name × _), a.1 = b.2.1) r (gs.zip l),
+  list.join <$> ls.mmap (λ⟨⟨_, ps⟩, g, _, hs, _⟩, set_goals [g] >> rcases.continue (ps.zip hs))
 
-with rcases.continue : listΠ (rcases_patt × expr) → tactic goals
-| [] := get_goals
+with rcases.continue : listΠ (rcases_patt × expr) → tactic (list uncleared_goal)
+| [] := list.map (prod.mk []) <$> get_goals
 | ((pat, e) :: pes) := do
   gs ← rcases_core pat e,
-  list.join <$> gs.mmap (λ g, set_goals [g] >> rcases.continue pes)
+  list.join <$> gs.mmap (λ ⟨cs, g⟩, do
+    set_goals [g],
+    ugs ← rcases.continue pes,
+    pure $ ugs.map $ λ ⟨cs', gs⟩, (cs ++ cs', gs))
+
+meta def clear_goals (ugs : list uncleared_goal) : tactic unit := do
+  gs ← ugs.mmap (λ ⟨cs, g⟩, do
+    set_goals [g],
+    cs ← cs.mfoldr (λ c cs,
+      (do (_, c) ← get_local_and_type c, pure (c :: cs)) <|> pure cs) [],
+    clear' tt cs,
+    [g] ← get_goals,
+    pure g),
+  set_goals gs
 
 /-- `rcases h e pat` performs case distinction on `e` using `pat` to
 name the arising new variables and assumptions. If `h` is `some` name,
@@ -371,7 +383,7 @@ meta def rcases (h : option name) (p : pexpr) (pat : rcases_patt) : tactic unit 
     | none := i_to_expr p
     end,
   if e.is_local_constant then
-    focus1 (rcases_core pat e >>= set_goals)
+    focus1 (rcases_core pat e >>= clear_goals)
   else do
     x ← pat.name.elim mk_fresh_name pure,
     n ← revert_kdependencies e semireducible,
@@ -381,7 +393,7 @@ meta def rcases (h : option name) (p : pexpr) (pat : rcases_patt) : tactic unit 
       get_local x >>= tactic.revert,
       pure ()),
     h ← tactic.intro1,
-    focus1 (rcases_core pat h >>= set_goals)
+    focus1 (rcases_core pat h >>= clear_goals)
 
 /-- `rintro pat₁ pat₂ ... patₙ` introduces `n` arguments, then pattern matches on the `patᵢ` using
 the same syntax as `rcases`. -/
@@ -389,7 +401,7 @@ meta def rintro (ids : listΠ rcases_patt) : tactic unit :=
 do l ← ids.mmap (λ id, do
     e ← intro $ id.name.get_or_else `_,
     pure (id, e)),
-  focus1 (rcases.continue l >>= set_goals)
+  focus1 (rcases.continue l >>= clear_goals)
 
 /-- Like `zip_with`, but if the lists don't match in length, the excess elements will be put at the
 end of the result. -/
@@ -433,7 +445,7 @@ meta def rcases_patt.merge : rcases_patt → rcases_patt → rcases_patt
   `depth` and recording the successful cases. It returns `ps`, and the list of generated subgoals.
 -/
 meta mutual def rcases_hint_core, rcases_hint.process_constructors, rcases_hint.continue
-with rcases_hint_core : ℕ → expr → tactic (rcases_patt × goals)
+with rcases_hint_core : ℕ → expr → tactic (rcases_patt × list expr)
 | depth e := do
   (t, e) ← get_local_and_type e,
   t ← whnf t,
@@ -452,7 +464,7 @@ with rcases_hint_core : ℕ → expr → tactic (rcases_patt × goals)
 
 with rcases_hint.process_constructors : ℕ → listΣ name →
   list (expr × name × listΠ expr × list (name × expr)) →
-  tactic (listΣ (listΠ rcases_patt) × goals)
+  tactic (listΣ (listΠ rcases_patt) × list expr)
 | depth [] _  := pure ([], [])
 | depth cs [] := pure (cs.map (λ _, []), [])
 | depth (c::cs) ((g, c', hs, _) :: l) :=
@@ -464,11 +476,11 @@ with rcases_hint.process_constructors : ℕ → listΣ name →
     (ps, gs') ← rcases_hint.process_constructors depth cs l,
     pure (p :: ps, gs ++ gs')
 
-with rcases_hint.continue : ℕ → listΠ expr → tactic (listΠ rcases_patt × goals)
+with rcases_hint.continue : ℕ → listΠ expr → tactic (listΠ rcases_patt × list expr)
 | depth [] := prod.mk [] <$> get_goals
 | depth (e :: es) := do
   (p, gs) ← rcases_hint_core depth e,
-  (ps, gs') ← gs.mfoldl (λ (r : listΠ rcases_patt × goals) g,
+  (ps, gs') ← gs.mfoldl (λ (r : listΠ rcases_patt × list expr) g,
     do (ps, gs') ← set_goals [g] >> rcases_hint.continue depth es,
       pure (merge_list rcases_patt.merge r.1 ps, r.2 ++ gs')) ([], []),
   pure (p :: ps, gs')
@@ -518,6 +530,7 @@ setup_tactic_parser
 * `rcases_patt_parse_list` will parse an alternation list, `patt_med`, one or more `patt`
   patterns separated by `|`. It does not parse a `:` at the end, so that `a | b : ty` parses as
   `(a | b) : ty` where `a | b` is the `patt_med` part.
+* `rcases_patt_parse_list_rest a` parses an alternation list after the initial pattern, `| b | c`.
 
 ```lean
 patt ::= patt_med (":" expr)?
@@ -525,7 +538,7 @@ patt_med ::= (patt_hi "|")* patt_hi
 patt_hi ::= id | "rfl" | "_" | "⟨" (patt ",")* patt "⟩" | "(" patt ")"
 ```
 -/
-meta mutual def rcases_patt_parse, rcases_patt_parse_list
+meta mutual def rcases_patt_parse, rcases_patt_parse_list, rcases_patt_parse_list_rest
 with rcases_patt_parse : bool → parser rcases_patt
 | tt := with_desc "patt_hi" $
   (brackets "(" ")" (rcases_patt_parse ff)) <|>
@@ -537,10 +550,14 @@ with rcases_patt_parse : bool → parser rcases_patt
   (tk ":" *> pat.typed <$> texpr) <|> pure pat
 
 with rcases_patt_parse_list : parser (listΣ rcases_patt)
-| x := (with_desc "patt_med" $ do
-  pat ← rcases_patt_parse tt,
+| x := (with_desc "patt_med" $ rcases_patt_parse tt >>= rcases_patt_parse_list_rest) x
+
+with rcases_patt_parse_list_rest : rcases_patt → parser (listΣ rcases_patt)
+| pat :=
   (tk "|" *> list.cons pat <$> rcases_patt_parse_list) <|>
-  pure [pat]) x
+  -- hack to support `-|-` patterns, because `|-` is a token
+  (tk "|-" *> list.cons pat <$> rcases_patt_parse_list_rest rcases_patt.clear) <|>
+  pure [pat]
 
 /-- Parse the optional depth argument `(: n)?` of `rcases?` and `rintro?`, with default depth 5. -/
 meta def rcases_parse_depth : parser nat :=

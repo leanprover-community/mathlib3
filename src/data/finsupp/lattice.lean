@@ -89,7 +89,7 @@ end
 
 /-- The lattice of `finsupp`s to `ℕ` is order-isomorphic to that of `multiset`s.  -/
 def order_iso_multiset :
-  (α →₀ ℕ) ≃o (multiset α) :=
+  (α →₀ ℕ) ≃o multiset α :=
 ⟨finsupp.equiv_multiset, begin
   intros a b, unfold finsupp.equiv_multiset, dsimp,
   rw multiset.le_iff_count, simp only [finsupp.count_to_multiset], refl

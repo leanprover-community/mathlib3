@@ -31,7 +31,8 @@ structure rel_embedding {α β : Type*} (r : α → α → Prop) (s : β → β 
 
 infix ` ↪r `:25 := rel_embedding
 
-/-- An order embedding is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) ≤ (f b)`. -/
+/-- An order embedding is an embedding `f : α ↪ β` such that `a ≤ b ↔ (f a) ≤ (f b)`.
+This definition is an abbreviation of `rel_embedding (≤) (≤)`. -/
 abbreviation order_embedding (α β : Type*) [has_le α] [has_le β] :=
 @rel_embedding α β (≤) (≤)
 
@@ -171,6 +172,8 @@ variables [preorder α] [preorder β] (f : α ↪o β)
 def lt_embedding : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop) :=
 { map_rel_iff' := by intros; simp [lt_iff_le_not_le,f.map_rel_iff], .. f }
 
+@[simp] lemma lt_embedding_apply (x : α) : f.lt_embedding x = f x := rfl
+
 theorem map_le_iff : ∀ {a b}, a ≤ b ↔ (f a) ≤ (f b) := f.map_rel_iff'
 
 theorem map_lt_iff : ∀ {a b}, a < b ↔ (f a) < (f b) :=
@@ -212,7 +215,8 @@ structure rel_iso {α β : Type*} (r : α → α → Prop) (s : β → β → Pr
 
 infix ` ≃r `:25 := rel_iso
 
-/-- An order isomorphism is an equivalence that is also an order embedding. -/
+/-- An order isomorphism is an equivalence such that `a ≤ b ↔ (f a) ≤ (f b)`.
+This definition is an abbreviation of `rel_iso (≤) (≤)`. -/
 abbreviation order_iso (α β : Type*) [has_le α] [has_le β] := @rel_iso α β (≤) (≤)
 
 infix ` ≃o `:25 := order_iso

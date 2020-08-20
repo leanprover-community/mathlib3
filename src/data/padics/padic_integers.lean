@@ -573,8 +573,7 @@ end
 
 section
 
--- rename these?
-lemma appr_congr_aux (n : ℕ) (x : ℤ_[p]) (a b : ℤ)
+lemma zmod_congr_of_sub_mem_span_aux (n : ℕ) (x : ℤ_[p]) (a b : ℤ)
   (ha : x - a ∈ (ideal.span {p ^ n} : ideal ℤ_[p]))
   (hb : x - b ∈ (ideal.span {p ^ n} : ideal ℤ_[p])) :
   (a : zmod (p ^ n)) = b :=
@@ -588,18 +587,18 @@ begin
       ← sub_eq_add_neg, ← int.cast_sub, pow_p_dvd_int_iff] at this,
 end
 
-lemma appr_congr (n : ℕ) (x : ℤ_[p]) (a b : ℕ)
+lemma zmod_congr_of_sub_mem_span (n : ℕ) (x : ℤ_[p]) (a b : ℕ)
   (ha : x - a ∈ (ideal.span {p ^ n} : ideal ℤ_[p]))
   (hb : x - b ∈ (ideal.span {p ^ n} : ideal ℤ_[p])) :
   (a : zmod (p ^ n)) = b :=
-appr_congr_aux n x a b ha hb
+zmod_congr_of_sub_mem_span_aux n x a b ha hb
 
-lemma exists_mem_range_congr (x : ℤ_[p]) (m n : ℕ)
+lemma zmod_congr_of_sub_mem_max_ideal (x : ℤ_[p]) (m n : ℕ)
   (hm : x - m ∈ maximal_ideal ℤ_[p]) (hn : x - n ∈ maximal_ideal ℤ_[p]) :
   (m : zmod p) = n :=
 begin
   rw maximal_ideal_eq_span_p at hm hn,
-  have := appr_congr_aux 1 x m n,
+  have := zmod_congr_of_sub_mem_span_aux 1 x m n,
   simp only [_root_.pow_one] at this,
   specialize this hm hn,
   apply_fun zmod.cast_hom (show p ∣ p ^ 1, by rw nat.pow_one) (zmod p) at this,
@@ -607,8 +606,7 @@ begin
 end
 
 variable (x : ℤ_[p])
-lemma exists_mem_range :
-  ∃ n : ℕ, n < p ∧ (x - n ∈ maximal_ideal ℤ_[p]) :=
+lemma exists_mem_range : ∃ n : ℕ, n < p ∧ (x - n ∈ maximal_ideal ℤ_[p]) :=
 begin
   simp only [maximal_ideal_eq_span_p, ideal.mem_span_singleton, ← norm_lt_one_iff_dvd],
   obtain ⟨r, hr⟩ := rat_dense (x : ℚ_[p]) zero_lt_one,
@@ -692,7 +690,7 @@ with the equality `to_zmod x = (zmod_repr x : zmod p)`.
 def to_zmod : ℤ_[p] →+* zmod p :=
 to_zmod_hom p zmod_repr
   (by { rw ←maximal_ideal_eq_span_p, exact sub_zmod_repr_mem })
-  (by { rw ←maximal_ideal_eq_span_p, exact exists_mem_range_congr } )
+  (by { rw ←maximal_ideal_eq_span_p, exact zmod_congr_of_sub_mem_max_ideal } )
 
 lemma to_zmod_spec (z : ℤ_[p]) : z - to_zmod z ∈ maximal_ideal ℤ_[p] :=
 begin
@@ -718,7 +716,7 @@ begin
   { intro h,
     rw ← sub_zero x at h,
     dsimp [to_zmod, to_zmod_hom],
-    convert exists_mem_range_congr x _ 0 _ h,
+    convert zmod_congr_of_sub_mem_max_ideal x _ 0 _ h,
     apply sub_zmod_repr_mem, }
 end
 
@@ -796,7 +794,8 @@ end
 def to_zmod_pow (n : ℕ) : ℤ_[p] →+* zmod (p ^ n) :=
 to_zmod_hom (p^n) (λ x, appr x n)
   (by { intros, convert appr_spec n _ using 1, simp })
-  (by { intros x a b ha hb, apply appr_congr n x a b; [simpa using ha, simpa using hb] })
+  (by { intros x a b ha hb,
+        apply zmod_congr_of_sub_mem_span n x a b; [simpa using ha, simpa using hb] })
 
 lemma ker_to_zmod_pow (n : ℕ) : (to_zmod_pow n : ℤ_[p] →+* zmod (p ^ n)).ker = ideal.span {p ^ n} :=
 begin
@@ -812,7 +811,7 @@ begin
   { intro h,
     rw ← sub_zero x at h,
     dsimp [to_zmod_pow, to_zmod_hom],
-    rw [appr_congr n x _ 0 _ h, cast_zero],
+    rw [zmod_congr_of_sub_mem_span n x _ 0 _ h, cast_zero],
     apply appr_spec, }
 end
 

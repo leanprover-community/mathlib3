@@ -328,7 +328,7 @@ end
 ### Fundamental theorem of calculus, part 1, for any measure
 
 In this section we prove a few lemmas that can be seen as versions of FTC-1 for interval integral
-w.r.t. any measure. Many theorems are formulated for one or two pairs of filter related by
+w.r.t. any measure. Many theorems are formulated for one or two pairs of filters related by
 `FTC_filter a l l'`. This typeclass has exactly four “real” instances: `(a, pure a, ⊥)`,
 `(a, 𝓝[Ici a] a, 𝓝[Ioi a] a)`, `(a, 𝓝[Iic a] a, 𝓝[Iic a] a)`, `(a, 𝓝 a, 𝓝 a)`, and two instances
 that are equal to the first and last “real” instances: `(a, 𝓝[{a}] a, ⊥)` and

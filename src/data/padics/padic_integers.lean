@@ -694,7 +694,7 @@ to_zmod_hom p zmod_repr
   (by { rw ←maximal_ideal_eq_span_p, exact sub_zmod_repr_mem })
   (by { rw ←maximal_ideal_eq_span_p, exact exists_mem_range_congr } )
 
-def to_zmod_spec (z : ℤ_[p]) : z - to_zmod z ∈ maximal_ideal ℤ_[p] :=
+lemma to_zmod_spec (z : ℤ_[p]) : z - to_zmod z ∈ maximal_ideal ℤ_[p] :=
 begin
   convert sub_zmod_repr_mem z using 2,
   dsimp [to_zmod, to_zmod_hom],

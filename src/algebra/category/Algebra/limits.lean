@@ -146,4 +146,3 @@ instance forget_preserves_limits : preserves_limits (forget (Algebra R)) :=
     (limit_cone_is_limit F) (types.limit_cone_is_limit (F ⋙ forget _)) } }
 
 end Algebra
-#lint

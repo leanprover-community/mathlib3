@@ -464,14 +464,11 @@ theorem exists_list_of_mem_closure {s : set R} {x : R} (h : x ∈ closure s) :
 (λ x hx, match x, submonoid.exists_list_of_mem_closure hx with
     | _, ⟨L, h1, rfl⟩ := ⟨[L], list.forall_mem_singleton.2 (λ r hr, or.inl (h1 r hr)), zero_add _⟩
     end)
-
 ⟨[], list.forall_mem_nil _, rfl⟩
-
 (λ r1 r2 ih1 ih2, match r1, r2, ih1, ih2 with
     | _, _, ⟨L1, h1, rfl⟩, ⟨L2, h2, rfl⟩ := ⟨L1 ++ L2, list.forall_mem_append.2 ⟨h1, h2⟩,
       by rw [list.map_append, list.sum_append]⟩
   end)
-
 (λ b ih, match b, ih with
     | _, ⟨L1, h1, rfl⟩ := ⟨L1.map (list.cons (-1)),
       λ L2 h2, match L2, list.mem_map.1 h2 with

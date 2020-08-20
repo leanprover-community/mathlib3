@@ -455,8 +455,7 @@ theorem rel_sup_add [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
 begin
   convert rel_supr_tsum m m0 R m_supr (λ b, cond b s₁ s₂),
   { simp only [supr_bool_eq, cond] },
-  { rw tsum_fintype, simp only [finset.sum_insert, not_false_iff, fintype.univ_bool,
-      finset.mem_singleton, cond, finset.sum_singleton] }
+  { rw [tsum_fintype, fintype.sum_bool, cond, cond] }
 end
 
 end encodable

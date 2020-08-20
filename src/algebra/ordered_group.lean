@@ -72,13 +72,13 @@ lemma mul_le_mul_three {a b c d e f : α} (h₁ : a ≤ d) (h₂ : b ≤ e) (h�
       a * b * c ≤ d * e * f :=
 mul_le_mul' (mul_le_mul' h₁ h₂) h₃
 
-@[to_additive]
-lemma le_mul_of_one_le_right (h : 1 ≤ b) : a ≤ a * b :=
+@[to_additive le_add_of_nonneg_right]
+lemma le_mul_of_one_le_right' (h : 1 ≤ b) : a ≤ a * b :=
 have a * 1 ≤ a * b, from mul_le_mul_left' h _,
 by rwa mul_one at this
 
-@[to_additive]
-lemma le_mul_of_one_le_left (h : 1 ≤ b) : a ≤ b * a :=
+@[to_additive le_add_of_nonneg_left]
+lemma le_mul_of_one_le_left' (h : 1 ≤ b) : a ≤ b * a :=
 have 1 * a ≤ b * a, from mul_le_mul_right' h a,
 by rwa one_mul at this
 
@@ -102,11 +102,11 @@ le_mul_of_one_le_of_le ha hb
 
 @[to_additive add_pos_of_pos_of_nonneg]
 lemma one_lt_mul_of_lt_of_le' (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
-lt_of_lt_of_le ha $ le_mul_of_one_le_right hb
+lt_of_lt_of_le ha $ le_mul_of_one_le_right' hb
 
 @[to_additive add_pos_of_nonneg_of_pos]
 lemma one_lt_mul_of_le_of_lt' (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
-lt_of_lt_of_le hb $ le_mul_of_one_le_left ha
+lt_of_lt_of_le hb $ le_mul_of_one_le_left' ha
 
 @[to_additive add_pos]
 lemma one_lt_mul' (ha : 1 < a) (hb : 1 < b) : 1 < a * b :=
@@ -138,11 +138,11 @@ mul_lt_one_of_le_one_of_lt_one' (le_of_lt ha) hb
 
 @[to_additive]
 lemma lt_mul_of_one_le_of_lt' (ha : 1 ≤ a) (hbc : b < c) : b < a * c :=
-lt_of_lt_of_le hbc $ le_mul_of_one_le_left ha
+lt_of_lt_of_le hbc $ le_mul_of_one_le_left' ha
 
 @[to_additive]
 lemma lt_mul_of_lt_of_one_le' (hbc : b < c) (ha : 1 ≤ a) : b < c * a :=
-lt_of_lt_of_le hbc $ le_mul_of_one_le_right ha
+lt_of_lt_of_le hbc $ le_mul_of_one_le_right' ha
 
 @[to_additive]
 lemma lt_mul_of_one_lt_of_lt' (ha : 1 < a) (hbc : b < c) : b < a * c :=
@@ -609,13 +609,13 @@ lt_of_le_of_lt (mul_le_mul_right' h₁ _) (mul_lt_mul_left' h₂ b)
 lemma mul_lt_mul_of_lt_of_le (h₁ : a < b) (h₂ : c ≤ d) : a * c < b * d :=
 lt_of_lt_of_le (mul_lt_mul_right' h₁ c) (mul_le_mul_left' h₂ _)
 
-@[to_additive]
-lemma lt_mul_of_one_lt_right (a : α) {b : α} (h : 1 < b) : a < a * b :=
+@[to_additive lt_add_of_pos_right]
+lemma lt_mul_of_one_lt_right' (a : α) {b : α} (h : 1 < b) : a < a * b :=
 have a * 1 < a * b, from mul_lt_mul_left' h a,
 by rwa [mul_one] at this
 
-@[to_additive]
-lemma lt_mul_of_one_lt_left (a : α) {b : α} (h : 1 < b) : a < b * a :=
+@[to_additive lt_add_of_pos_left]
+lemma lt_mul_of_one_lt_left' (a : α) {b : α} (h : 1 < b) : a < b * a :=
 have 1 * a < b * a, from mul_lt_mul_right' h a,
 by rwa [one_mul] at this
 

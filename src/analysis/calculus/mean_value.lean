@@ -83,7 +83,7 @@ lemma image_le_of_liminf_slope_right_lt_deriv_boundary' {f f' : ℝ → ℝ} {a 
   (hf : continuous_on f (Icc a b))
   -- `hf'` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ f' x`
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (f z - f x) < r)
+    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r)
   {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : continuous_on B (Icc a b))
   (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
   (bound : ∀ x ∈ Ico a b, f x = B x → f' x < B' x) :
@@ -100,17 +100,17 @@ begin
   change f x ≤ B x at hxB,
   cases lt_or_eq_of_le hxB with hxB hxB,
   { -- If `f x < B x`, then all we need is continuity of both sides
-    apply @nonempty_of_mem_sets _ (nhds_within x (Ioi x)),
+    apply @nonempty_of_mem_sets _ (𝓝[Ioi x] x),
     refine inter_mem_sets _ (Ioc_mem_nhds_within_Ioi ⟨le_refl x, hy⟩),
-    have : ∀ᶠ x in nhds_within x (Icc a b), f x < B x,
+    have : ∀ᶠ x in 𝓝[Icc a b] x, f x < B x,
       from A x (Ico_subset_Icc_self xab)
         (mem_nhds_sets (is_open_lt continuous_fst continuous_snd) hxB),
-    have : ∀ᶠ x in nhds_within x (Ioi x), f x < B x,
+    have : ∀ᶠ x in 𝓝[Ioi x] x, f x < B x,
       from nhds_within_le_of_mem (Icc_mem_nhds_within_Ioi xab) this,
     refine mem_sets_of_superset this (set_of_subset_set_of.2 $ λ y, le_of_lt) },
   { rcases dense (bound x xab hxB) with ⟨r, hfr, hrB⟩,
     specialize hf' x xab r hfr,
-    have HB : ∀ᶠ z in nhds_within x (Ioi x), r < (z - x)⁻¹ * (B z - B x),
+    have HB : ∀ᶠ z in 𝓝[Ioi x] x, r < (z - x)⁻¹ * (B z - B x),
       from (has_deriv_within_at_iff_tendsto_slope' $ lt_irrefl x).1 (hB' x xab)
         (mem_nhds_sets is_open_Ioi hrB),
     obtain ⟨z, ⟨hfz, hzB⟩, hz⟩ :
@@ -137,7 +137,7 @@ lemma image_le_of_liminf_slope_right_lt_deriv_boundary {f f' : ℝ → ℝ} {a b
   (hf : continuous_on f (Icc a b))
   -- `hf'` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ f' x`
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (f z - f x) < r)
+    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r)
   {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : ∀ x, has_deriv_at B (B' x) x)
   (bound : ∀ x ∈ Ico a b, f x = B x → f' x < B' x) :
   ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
@@ -160,7 +160,7 @@ lemma image_le_of_liminf_slope_right_le_deriv_boundary {f : ℝ → ℝ} {a b : 
   (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
   -- `bound` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ B' x`
   (bound : ∀ x ∈ Ico a b, ∀ r, B' x < r →
-    ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (f z - f x) < r) :
+    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r) :
   ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
 begin
   have Hr : ∀ x ∈ Icc a b, ∀ r ∈ Ioi (0:ℝ), f x ≤ B x + r * (x - a),
@@ -258,7 +258,7 @@ lemma image_norm_le_of_liminf_right_slope_norm_lt_deriv_boundary {E : Type*} [no
   {f : ℝ → E} {f' : ℝ → ℝ} (hf : continuous_on f (Icc a b))
   -- `hf'` actually says `liminf ∥z - x∥⁻¹ * (∥f z∥ - ∥f x∥) ≤ f' x`
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r)
+    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r)
   {B B' : ℝ → ℝ} (ha : ∥f a∥ ≤ B a) (hB : continuous_on B (Icc a b))
   (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
   (bound : ∀ x ∈ Ico a b, ∥f x∥ = B x → f' x < B' x) :
@@ -573,7 +573,37 @@ begin
   exact ⟨c, cmem, sub_eq_zero.1 hc⟩
 end
 
-omit hgc hgg'
+omit hfc hgc
+
+/-- Cauchy's Mean Value Theorem, extended `has_deriv_at` version. -/
+lemma exists_ratio_has_deriv_at_eq_ratio_slope' {lfa lga lfb lgb : ℝ}
+  (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hgg' : ∀ x ∈ Ioo a b, has_deriv_at g (g' x) x)
+  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 lfa)) (hga : tendsto g (𝓝[Ioi a] a) (𝓝 lga))
+  (hfb : tendsto f (𝓝[Iio b] b) (𝓝 lfb)) (hgb : tendsto g (𝓝[Iio b] b) (𝓝 lgb)) :
+  ∃ c ∈ Ioo a b, (lgb - lga) * (f' c) = (lfb - lfa) * (g' c) :=
+begin
+  let h := λ x, (lgb - lga) * f x - (lfb - lfa) * g x,
+  have hha : tendsto h (𝓝[Ioi a] a) (𝓝 $ lgb * lfa - lfb * lga),
+  { have : tendsto h (𝓝[Ioi a] a)(𝓝 $ (lgb - lga) * lfa - (lfb - lfa) * lga) :=
+      (tendsto_const_nhds.mul hfa).sub (tendsto_const_nhds.mul hga),
+    convert this using 2,
+    ring },
+  have hhb : tendsto h (𝓝[Iio b] b) (𝓝 $ lgb * lfa - lfb * lga),
+  { have : tendsto h (𝓝[Iio b] b)(𝓝 $ (lgb - lga) * lfb - (lfb - lfa) * lgb) :=
+      (tendsto_const_nhds.mul hfb).sub (tendsto_const_nhds.mul hgb),
+    convert this using 2,
+    ring },
+  let h' := λ x, (lgb - lga) * f' x - (lfb - lfa) * g' x,
+  have hhh' : ∀ x ∈ Ioo a b, has_deriv_at h (h' x) x,
+  { intros x hx,
+    exact ((hff' x hx).const_mul _ ).sub (((hgg' x hx)).const_mul _) },
+  rcases exists_has_deriv_at_eq_zero' hab hha hhb hhh' with ⟨c, cmem, hc⟩,
+  exact ⟨c, cmem, sub_eq_zero.1 hc⟩
+end
+
+include hfc
+
+omit hgg'
 
 /-- Lagrange's Mean Value Theorem, `has_deriv_at` version -/
 lemma exists_has_deriv_at_eq_slope : ∃ c ∈ Ioo a b, f' c = (f b - f a) / (b - a) :=
@@ -594,6 +624,19 @@ lemma exists_ratio_deriv_eq_ratio_slope :
 exists_ratio_has_deriv_at_eq_ratio_slope f (deriv f) hab hfc
   (λ x hx, ((hfd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
   g (deriv g) hgc (λ x hx, ((hgd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
+
+omit hfc
+
+/-- Cauchy's Mean Value Theorem, extended `deriv` version. -/
+lemma exists_ratio_deriv_eq_ratio_slope' {lfa lga lfb lgb : ℝ}
+  (hdf : differentiable_on ℝ f $ Ioo a b) (hdg : differentiable_on ℝ g $ Ioo a b)
+  (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 lfa)) (hga : tendsto g (𝓝[Ioi a] a) (𝓝 lga))
+  (hfb : tendsto f (𝓝[Iio b] b) (𝓝 lfb)) (hgb : tendsto g (𝓝[Iio b] b) (𝓝 lgb)) :
+  ∃ c ∈ Ioo a b, (lgb - lga) * (deriv f c) = (lfb - lfa) * (deriv g c) :=
+exists_ratio_has_deriv_at_eq_ratio_slope' _ _ hab _ _
+  (λ x hx, ((hdf x hx).differentiable_at $ Ioo_mem_nhds hx.1 hx.2).has_deriv_at)
+  (λ x hx, ((hdg x hx).differentiable_at $ Ioo_mem_nhds hx.1 hx.2).has_deriv_at)
+  hfa hga hfb hgb
 
 /-- Lagrange's Mean Value Theorem, `deriv` version. -/
 lemma exists_deriv_eq_slope : ∃ c ∈ Ioo a b, deriv f c = (f b - f a) / (b - a) :=

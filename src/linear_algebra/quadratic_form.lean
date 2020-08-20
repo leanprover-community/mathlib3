@@ -447,7 +447,7 @@ namespace quadratic_form
 
 variables {n : Type w} [fintype n]
 variables [decidable_eq n] [invertible (2 : R₁)]
-variables {m : Type w} [fintype m] [decidable_eq m]
+variables {m : Type w} [decidable_eq m] [fintype m]
 open_locale matrix
 
 @[simp]

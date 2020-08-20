@@ -68,7 +68,7 @@ lemma normalize_eq_one {x : α} : normalize x = 1 ↔ is_unit x :=
 
 theorem norm_unit_mul_norm_unit (a : α) : norm_unit (a * norm_unit a) = 1 :=
 classical.by_cases (assume : a = 0, by simp only [this, norm_unit_zero, zero_mul]) $
-  assume h, by rw [norm_unit_mul h (units.coe_ne_zero _), norm_unit_coe_units, mul_inv_eq_one]
+  assume h, by rw [norm_unit_mul h (units.ne_zero _), norm_unit_coe_units, mul_inv_eq_one]
 
 theorem normalize_idem (x : α) : normalize (normalize x) = normalize x :=
 by rw [normalize, normalize, norm_unit_mul_norm_unit, units.coe_one, mul_one]
@@ -79,14 +79,14 @@ begin
   rcases associated_of_dvd_dvd hab hba with ⟨u, rfl⟩,
   refine classical.by_cases (by rintro rfl; simp only [zero_mul]) (assume ha : a ≠ 0, _),
   suffices : a * ↑(norm_unit a) = a * ↑u * ↑(norm_unit a) * ↑u⁻¹,
-    by simpa only [normalize, mul_assoc, norm_unit_mul ha u.coe_ne_zero, norm_unit_coe_units],
+    by simpa only [normalize, mul_assoc, norm_unit_mul ha u.ne_zero, norm_unit_coe_units],
   calc a * ↑(norm_unit a) = a * ↑(norm_unit a) * ↑u * ↑u⁻¹:
       (units.mul_inv_cancel_right _ _).symm
     ... = a * ↑u * ↑(norm_unit a) * ↑u⁻¹ : by rw mul_right_comm a
 end
 
 lemma normalize_eq_normalize_iff {x y : α} : normalize x = normalize y ↔ x ∣ y ∧ y ∣ x :=
-⟨λ h, ⟨dvd_mul_unit_iff.1 ⟨_, h.symm⟩, dvd_mul_unit_iff.1 ⟨_, h⟩⟩,
+⟨λ h, ⟨units.dvd_mul_right.1 ⟨_, h.symm⟩, units.dvd_mul_right.1 ⟨_, h⟩⟩,
 λ ⟨hxy, hyx⟩, normalize_eq_normalize hxy hyx⟩
 
 theorem dvd_antisymm_of_normalize_eq {a b : α}
@@ -95,10 +95,10 @@ theorem dvd_antisymm_of_normalize_eq {a b : α}
 ha ▸ hb ▸ normalize_eq_normalize hab hba
 
 @[simp] lemma dvd_normalize_iff {a b : α} : a ∣ normalize b ↔ a ∣ b :=
-dvd_mul_unit_iff
+units.dvd_mul_right
 
 @[simp] lemma normalize_dvd_iff {a b : α} : normalize a ∣ b ↔ a ∣ b :=
-mul_unit_dvd_iff
+units.mul_right_dvd
 
 end normalization_domain
 
@@ -109,7 +109,7 @@ local attribute [instance] associated.setoid
 
 protected def out : associates α → α :=
 quotient.lift (normalize : α → α) $ λ a b ⟨u, hu⟩, hu ▸
-normalize_eq_normalize ⟨_, rfl⟩ (mul_unit_dvd_iff.2 $ dvd_refl a)
+normalize_eq_normalize ⟨_, rfl⟩ (units.mul_right_dvd.2 $ dvd_refl a)
 
 lemma out_mk (a : α) : (associates.mk a).out = normalize a := rfl
 
@@ -282,7 +282,7 @@ iff.intro
   (assume h : lcm a b = 0,
     have normalize (a * b) = 0,
       by rw [← gcd_mul_lcm _ _, h, mul_zero],
-    by simpa only [normalize_eq_zero, mul_eq_zero, units.coe_ne_zero, or_false])
+    by simpa only [normalize_eq_zero, mul_eq_zero, units.ne_zero, or_false])
   (by rintro (rfl | rfl); [apply lcm_zero_left, apply lcm_zero_right])
 
 @[simp] lemma normalize_lcm (a b : α) : normalize (lcm a b) = lcm a b :=
@@ -319,7 +319,7 @@ theorem lcm_dvd_lcm {a b c d : α} (hab : a ∣ b) (hcd : c ∣ d) : lcm a c ∣
 lcm_dvd (dvd.trans hab (dvd_lcm_left _ _)) (dvd.trans hcd (dvd_lcm_right _ _))
 
 @[simp] theorem lcm_units_coe_left (u : units α) (a : α) : lcm ↑u a = normalize a :=
-lcm_eq_normalize (lcm_dvd (units.coe_dvd _ _) (dvd_refl _)) (dvd_lcm_right _ _)
+lcm_eq_normalize (lcm_dvd units.coe_dvd (dvd_refl _)) (dvd_lcm_right _ _)
 
 @[simp] theorem lcm_units_coe_right (a : α) (u : units α) : lcm a ↑u = normalize a :=
 (lcm_comm a u).trans $ lcm_units_coe_left _ _

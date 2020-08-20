@@ -243,7 +243,7 @@ include hnsol
 private lemma T_pos : T > 0 :=
 begin
   rw T_def,
-  exact div_pos_of_pos_of_pos (norm_pos_iff.2 hnsol) (deriv_sq_norm_pos hnorm)
+  exact div_pos (norm_pos_iff.2 hnsol) (deriv_sq_norm_pos hnorm)
 end
 
 private lemma newton_seq_succ_dist_weak (n : ℕ) :
@@ -368,7 +368,7 @@ tendsto_nhds_unique newton_seq_dist_tendsto' newton_seq_dist_tendsto
 private lemma soln_dist_to_a_lt_deriv : ∥soln - a∥ < ∥F.derivative.eval a∥ :=
 begin
   rw soln_dist_to_a,
-  apply div_lt_of_mul_lt_of_pos,
+  apply div_lt_of_pos_of_lt_mul,
   { apply deriv_norm_pos; assumption },
   { rwa _root_.pow_two at hnorm }
 end

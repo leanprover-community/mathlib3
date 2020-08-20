@@ -120,8 +120,8 @@ def comap_equiv {β γ : Type w} (e : β ≃ γ) :
 { functor := comap C (e.symm : γ → β),
   inverse := comap C (e : β → γ),
   counit_iso := (comap_comp C _ _).trans (comap_eq C (by { ext, simp } )),
-  unit_iso := (comap_eq C (by { ext, simp} )).trans (comap_comp _ _ _).symm,
-  functor_unit_iso_comp' := λ X, begin ext b, dsimp, simp, end, }
+  unit_iso := (comap_eq C (by { ext, simp } )).trans (comap_comp _ _ _).symm,
+  functor_unit_iso_comp' := λ X, by { ext b, dsimp, simp, }, }  -- See note [dsimp, simp].
 
 end
 

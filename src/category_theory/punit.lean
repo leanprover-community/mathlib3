@@ -55,7 +55,7 @@ def equiv : (discrete punit ⥤ C) ≌ C :=
   begin
     refine nat_iso.of_components iso.refl _,
     intros X Y f,
-    dsimp, simp,
+    dsimp, simp,  -- See note [dsimp, simp].
   end }
 
 end functor

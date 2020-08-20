@@ -5,7 +5,7 @@ Authors: Kenny Lau
 -/
 
 import linear_algebra.smodeq
-import ring_theory.ideal_operations
+import ring_theory.ideal.operations
 
 /-!
 # Completion of a module with respect to an ideal.

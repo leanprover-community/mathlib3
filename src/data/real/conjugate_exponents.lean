@@ -54,7 +54,7 @@ lemma sub_one_ne_zero : p - 1 ≠ 0 :=
 ne_of_gt h.sub_one_pos
 
 lemma one_div_pos : 0 < 1/p :=
-one_div_pos_of_pos h.pos
+one_div_pos.2 h.pos
 
 lemma one_div_nonneg : 0 ≤ 1/p :=
 le_of_lt h.one_div_pos
@@ -65,7 +65,7 @@ ne_of_gt (h.one_div_pos)
 lemma conj_eq : q = p/(p-1) :=
 begin
   have := h.inv_add_inv_conj,
-  rw [← eq_sub_iff_add_eq', one_div_eq_inv, inv_eq_iff] at this,
+  rw [← eq_sub_iff_add_eq', one_div, inv_eq_iff] at this,
   field_simp [← this, h.ne_zero]
 end
 

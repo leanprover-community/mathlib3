@@ -246,14 +246,14 @@ have ne_bot (comap m g), from comap_ne_bot $ assume t ht,
   let ⟨t', ht', ht_mem⟩ := (mem_lift_sets $ monotone_lift' monotone_const mp₀).mp ht in
   let ⟨t'', ht'', ht'_sub⟩ := (mem_lift'_sets mp₁).mp ht_mem in
   let ⟨x, (hx : x ∈ t'')⟩ := hf.left.nonempty_of_mem ht'' in
-  have h₀ : ne_bot (nhds_within x (range m)),
+  have h₀ : ne_bot (𝓝[range m] x),
     from dense.nhds_within_ne_bot x,
-  have h₁ : {y | (x, y) ∈ t'} ∈ 𝓝 x ⊓ 𝓟 (range m),
+  have h₁ : {y | (x, y) ∈ t'} ∈ 𝓝[range m] x,
     from @mem_inf_sets_of_left α (𝓝 x) (𝓟 (range m)) _ $ mem_nhds_left x ht',
-  have h₂ : range m ∈ 𝓝 x ⊓ 𝓟 (range m),
+  have h₂ : range m ∈ 𝓝[range m] x,
     from @mem_inf_sets_of_right α (𝓝 x) (𝓟 (range m)) _ $ subset.refl _,
-  have {y | (x, y) ∈ t'} ∩ range m ∈ 𝓝 x ⊓ 𝓟 (range m),
-    from @inter_mem_sets α (𝓝 x ⊓ 𝓟 (range m)) _ _ h₁ h₂,
+  have {y | (x, y) ∈ t'} ∩ range m ∈ 𝓝[range m] x,
+    from @inter_mem_sets α (𝓝[range m] x) _ _ h₁ h₂,
   let ⟨y, xyt', b, b_eq⟩ := h₀.nonempty_of_mem this in
   ⟨b, b_eq.symm ▸ ht'_sub ⟨x, hx, xyt'⟩⟩,
 

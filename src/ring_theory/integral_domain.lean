@@ -42,7 +42,7 @@ instance [fintype R] : is_cyclic (units R) :=
 is_cyclic_of_subgroup_integral_domain (units.coe_hom R) $ units.ext
 
 /-- Every finite integral domain is a field. -/
-def field_of_integral_domain [fintype R] [decidable_eq R] : field R :=
+def field_of_integral_domain [decidable_eq R] [fintype R] : field R :=
 { inv := λ a, if h : a = 0 then 0
     else fintype.bij_inv (show function.bijective (* a),
       from fintype.injective_iff_bijective.1 $ λ _ _, mul_right_cancel' h) 1,

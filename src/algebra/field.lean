@@ -32,8 +32,6 @@ instance division_ring.to_group_with_zero :
 { .. ‹division_ring α›,
   .. (infer_instance : semiring α) }
 
-@[simp] lemma one_div_eq_inv (a : α) : 1 / a = a⁻¹ := one_mul a⁻¹
-
 @[field_simps] lemma inv_eq_one_div (a : α) : a⁻¹ = 1 / a := by simp
 
 local attribute [simp]

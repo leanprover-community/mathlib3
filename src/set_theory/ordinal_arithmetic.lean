@@ -781,24 +781,10 @@ begin
   rcases h with h|⟨rfl, h⟩, exact add_is_limit a h, simpa only [add_zero]
 end
 
-/-- Divisibility is defined by right multiplication:
-  `a ∣ b` if there exists `c` such that `b = a * c`. -/
-instance : has_dvd ordinal := ⟨λ a b, ∃ c, b = a * c⟩
-
-theorem dvd_def {a b : ordinal} : a ∣ b ↔ ∃ c, b = a * c := iff.rfl
-
-theorem dvd_mul (a b : ordinal) : a ∣ a * b := ⟨_, rfl⟩
-
-theorem dvd_trans : ∀ {a b c : ordinal}, a ∣ b → b ∣ c → a ∣ c
-| a _ _ ⟨b, rfl⟩ ⟨c, rfl⟩ := ⟨b * c, mul_assoc _ _ _⟩
-
-theorem dvd_mul_of_dvd {a b : ordinal} (c) (h : a ∣ b) : a ∣ b * c :=
-dvd_trans h (dvd_mul _ _)
-
 theorem dvd_add_iff : ∀ {a b c : ordinal}, a ∣ b → (a ∣ b + c ↔ a ∣ c)
 | a _ c ⟨b, rfl⟩ :=
  ⟨λ ⟨d, e⟩, ⟨d - b, by rw [mul_sub, ← e, add_sub_cancel]⟩,
-  λ ⟨d, e⟩, by rw [e, ← mul_add]; apply dvd_mul⟩
+  λ ⟨d, e⟩, by { rw [e, ← mul_add], apply dvd_mul_right }⟩
 
 theorem dvd_add {a b c : ordinal} (h₁ : a ∣ b) : a ∣ c → a ∣ b + c :=
 (dvd_add_iff h₁).2
@@ -1093,7 +1079,7 @@ end
 
 theorem power_dvd_power (a) {b c : ordinal}
   (h : b ≤ c) : a ^ b ∣ a ^ c :=
-by rw [← add_sub_cancel_of_le h, power_add]; apply dvd_mul
+by { rw [← add_sub_cancel_of_le h, power_add], apply dvd_mul_right }
 
 theorem power_dvd_power_iff {a b c : ordinal}
   (a1 : 1 < a) : a ^ b ∣ a ^ c ↔ b ≤ c :=

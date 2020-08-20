@@ -7,6 +7,7 @@ import algebra.group.prod
 import algebra.group.type_tags
 import algebra.group.pi
 import data.equiv.basic
+import data.set.finite
 
 /-!
 # Torsors of additive group actions
@@ -217,6 +218,12 @@ by rw [←add_right_inj (p2 -ᵥ p1 : G), vsub_add_vsub_cancel, ←neg_vsub_eq_v
   (p1 -ᵥ p3 : G) - (p2 -ᵥ p3) = (p1 -ᵥ p2) :=
 by rw [←vsub_vadd_eq_vsub_sub, vsub_vadd]
 
+/-- Convert between an equality with adding a group element to a point
+and an equality of a subtraction of two points with a group
+element. -/
+lemma eq_vadd_iff_vsub_eq (p1 : P) (g : G) (p2 : P) : p1 = g +ᵥ p2 ↔ p1 -ᵥ p2 = g :=
+⟨λ h, h.symm ▸ vadd_vsub _ _ _, λ h, h ▸ (vsub_vadd _ _ _).symm⟩
+
 /-- The pairwise differences of a set of points. -/
 def vsub_set (s : set P) : set G := {g | ∃ x ∈ s, ∃ y ∈ s, g = x -ᵥ y}
 
@@ -238,6 +245,17 @@ begin
     rw set.mem_singleton_iff at hp1 hp2,
     simp [hp1, hp2] },
   { exact λ h, h.symm ▸ ⟨p, set.mem_singleton p, p, set.mem_singleton p, (vsub_self G p).symm⟩ }
+end
+
+/-- `vsub_set` of a finite set is finite. -/
+lemma vsub_set_finite_of_finite {s : set P} (h : set.finite s) : set.finite (vsub_set G s) :=
+begin
+  have hi : vsub_set G s = set.image2 vsub s s,
+  { ext,
+    exact ⟨λ ⟨p1, hp1, p2, hp2, hg⟩, ⟨p1, p2, hp1, hp2, hg.symm⟩,
+           λ ⟨p1, p2, hp1, hp2, hg⟩, ⟨p1, hp1, p2, hp2, hg.symm⟩⟩ },
+  rw hi,
+  exact set.finite.image2 _ h h
 end
 
 /-- Each pairwise difference is in the `vsub_set`. -/

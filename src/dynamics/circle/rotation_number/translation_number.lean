@@ -128,7 +128,7 @@ ext_iff
 `multiplicative ℝ` to `units circle_deg1_lift`, so the translation by `x` is
 `translation (multiplicative.of_add x)`. -/
 def translate : multiplicative ℝ →* units circle_deg1_lift :=
-by refine (units.map _).comp (to_units $ multiplicative ℝ).to_monoid_hom; exact
+by refine (units.map _).comp to_units.to_monoid_hom; exact
 { to_fun := λ x, ⟨λ y, x.to_add + y, λ y₁ y₂ h, add_le_add_left h _, λ y, (add_assoc _ _ _).symm⟩,
   map_one' := ext $ zero_add,
   map_mul' := λ x y, ext $ add_assoc _ _ }

@@ -437,7 +437,7 @@ by rw [nsmul_eq_mul', nsmul_eq_mul', mul_assoc]
 theorem mul_nsmul_assoc [semiring R] (a b : R) (n : ℕ) : n •ℕ (a * b) = n •ℕ a * b :=
 by rw [nsmul_eq_mul, nsmul_eq_mul, mul_assoc]
 
-lemma zero_pow [semiring R] : ∀ {n : ℕ}, 0 < n → (0 : R) ^ n = 0
+lemma zero_pow [monoid_with_zero R] : ∀ {n : ℕ}, 0 < n → (0 : R) ^ n = 0
 | (n+1) _ := zero_mul _
 
 @[simp, norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
@@ -465,10 +465,10 @@ theorem neg_one_pow_eq_or [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n 
   (λ h, by rw [pow_succ, h, neg_one_mul, neg_neg])
   (λ h, by rw [pow_succ, h, mul_one])
 
-lemma pow_dvd_pow [comm_semiring R] (a : R) {m n : ℕ} (h : m ≤ n) :
+lemma pow_dvd_pow [monoid R] (a : R) {m n : ℕ} (h : m ≤ n) :
   a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_sub_cancel' h]⟩
 
-theorem pow_dvd_pow_of_dvd [comm_semiring R] {a b : R} (h : a ∣ b) : ∀ n : ℕ, a ^ n ∣ b ^ n
+theorem pow_dvd_pow_of_dvd [comm_monoid R] {a b : R} (h : a ∣ b) : ∀ n : ℕ, a ^ n ∣ b ^ n
 | 0     := dvd_refl _
 | (n+1) := mul_dvd_mul h (pow_dvd_pow_of_dvd n)
 
@@ -524,7 +524,7 @@ by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [pow_two]
 theorem sq_sub_sq [comm_ring R] (a b : R) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
 by rw [pow_two, pow_two, mul_self_sub_mul_self]
 
-theorem pow_eq_zero [domain R] {x : R} {n : ℕ} (H : x^n = 0) : x = 0 :=
+theorem pow_eq_zero [monoid_with_zero R] [no_zero_divisors R] {x : R} {n : ℕ} (H : x^n = 0) : x = 0 :=
 begin
   induction n with n ih,
   { rw pow_zero at H,
@@ -532,7 +532,8 @@ begin
   exact or.cases_on (mul_eq_zero.1 H) id ih
 end
 
-@[field_simps] theorem pow_ne_zero [domain R] {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
+@[field_simps] theorem pow_ne_zero [monoid_with_zero R] [no_zero_divisors R]
+  {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
 
 theorem nsmul_nonneg [ordered_add_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n •ℕ a
@@ -919,6 +920,33 @@ theorem self_cast_int_mul_cast_int_mul : commute ((m : R) * a) (n * a) :=
 (commute.refl a).cast_int_mul_cast_int_mul m n
 
 end commute
+
+section multiplicative
+
+open multiplicative
+
+@[simp] lemma nat.to_add_pow (a : multiplicative ℕ) (b : ℕ) : to_add (a ^ b) = to_add a * b :=
+begin
+  induction b with b ih,
+  { erw [pow_zero, to_add_one, mul_zero] },
+  { simp [*, pow_succ, add_comm, nat.mul_succ] }
+end
+
+@[simp] lemma nat.of_add_mul (a b : ℕ) : of_add (a * b) = of_add a ^ b :=
+(nat.to_add_pow _ _).symm
+
+@[simp] lemma int.to_add_pow (a : multiplicative ℤ) (b : ℕ) : to_add (a ^ b) = to_add a * b :=
+by induction b; simp [*, mul_add, pow_succ, add_comm]
+
+@[simp] lemma int.to_add_gpow (a : multiplicative ℤ) (b : ℤ) : to_add (a ^ b) = to_add a * b :=
+int.induction_on b (by simp)
+  (by simp [gpow_add, mul_add] {contextual := tt})
+  (by simp [gpow_add, mul_add, sub_eq_add_neg] {contextual := tt})
+
+@[simp] lemma int.of_add_mul (a b : ℤ) : of_add (a * b) = of_add a ^ b :=
+(int.to_add_gpow _ _).symm
+
+end multiplicative
 
 namespace units
 

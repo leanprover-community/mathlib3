@@ -437,6 +437,51 @@ instance (x : V) : finite_dimensional K (submodule.span K ({x} : set V)) := by {
 
 end finite_dimensional
 
+section zero_dim
+
+open vector_space finite_dimensional
+
+lemma finite_dimensional_of_dim_eq_zero (h : vector_space.dim K V = 0) : finite_dimensional K V :=
+by rw [finite_dimensional_iff_dim_lt_omega, h]; exact cardinal.omega_pos
+
+lemma findim_eq_zero_of_dim_eq_zero [finite_dimensional K V] (h : vector_space.dim K V = 0) :
+  findim K V = 0 :=
+begin
+  convert findim_eq_dim K V,
+  rw h, norm_cast
+end
+
+variables (K V)
+
+lemma finite_dimensional_bot : finite_dimensional K (⊥ : submodule K V) :=
+finite_dimensional_of_dim_eq_zero $ by simp
+
+lemma findim_bot : findim K (⊥ : submodule K V) = 0 :=
+begin
+  haveI := finite_dimensional_bot K V,
+  convert findim_eq_dim K (⊥ : submodule K V),
+  rw dim_bot, norm_cast
+end
+
+variables {K V}
+
+lemma bot_eq_top_of_dim_eq_zero (h : vector_space.dim K V = 0) : (⊥ : submodule K V) = ⊤ :=
+begin
+  haveI := finite_dimensional_of_dim_eq_zero h,
+  apply eq_top_of_findim_eq,
+  rw [findim_bot, findim_eq_zero_of_dim_eq_zero h]
+end
+
+@[simp] theorem dim_eq_zero {S : submodule K V} : dim K S = 0 ↔ S = ⊥ :=
+⟨λ h, (submodule.eq_bot_iff _).2 $ λ x hx, congr_arg subtype.val $
+  ((submodule.eq_bot_iff _).1 $ eq.symm $ bot_eq_top_of_dim_eq_zero h) ⟨x, hx⟩ submodule.mem_top,
+λ h, by rw [h, dim_bot]⟩
+
+@[simp] theorem findim_eq_zero {S : submodule K V} [finite_dimensional K S] : findim K S = 0 ↔ S = ⊥ :=
+by rw [← dim_eq_zero, ← findim_eq_dim, ← @nat.cast_zero cardinal, cardinal.nat_cast_inj]
+
+end zero_dim
+
 namespace submodule
 open finite_dimensional
 
@@ -571,51 +616,6 @@ theorem findim_range_add_findim_ker [finite_dimensional K V] (f : V →ₗ[K] V�
 by { rw [← f.quot_ker_equiv_range.findim_eq], exact submodule.findim_quotient_add_findim _ }
 
 end linear_map
-
-section zero_dim
-
-open vector_space finite_dimensional
-
-lemma finite_dimensional_of_dim_eq_zero (h : vector_space.dim K V = 0) : finite_dimensional K V :=
-by rw [finite_dimensional_iff_dim_lt_omega, h]; exact cardinal.omega_pos
-
-lemma findim_eq_zero_of_dim_eq_zero [finite_dimensional K V] (h : vector_space.dim K V = 0) :
-  findim K V = 0 :=
-begin
-  convert findim_eq_dim K V,
-  rw h, norm_cast
-end
-
-variables (K V)
-
-lemma finite_dimensional_bot : finite_dimensional K (⊥ : submodule K V) :=
-finite_dimensional_of_dim_eq_zero $ by simp
-
-lemma findim_bot : findim K (⊥ : submodule K V) = 0 :=
-begin
-  haveI := finite_dimensional_bot K V,
-  convert findim_eq_dim K (⊥ : submodule K V),
-  rw dim_bot, norm_cast
-end
-
-variables {K V}
-
-lemma bot_eq_top_of_dim_eq_zero (h : vector_space.dim K V = 0) : (⊥ : submodule K V) = ⊤ :=
-begin
-  haveI := finite_dimensional_of_dim_eq_zero h,
-  apply eq_top_of_findim_eq,
-  rw [findim_bot, findim_eq_zero_of_dim_eq_zero h]
-end
-
-@[simp] theorem dim_eq_zero {S : submodule K V} : dim K S = 0 ↔ S = ⊥ :=
-⟨λ h, (submodule.eq_bot_iff _).2 $ λ x hx, congr_arg subtype.val $
-  ((submodule.eq_bot_iff _).1 $ eq.symm $ bot_eq_top_of_dim_eq_zero h) ⟨x, hx⟩ submodule.mem_top,
-λ h, by rw [h, dim_bot]⟩
-
-@[simp] theorem findim_eq_zero {S : submodule K V} [finite_dimensional K S] : findim K S = 0 ↔ S = ⊥ :=
-by rw [← dim_eq_zero, ← findim_eq_dim, ← @nat.cast_zero cardinal, cardinal.nat_cast_inj]
-
-end zero_dim
 
 open vector_space finite_dimensional
 

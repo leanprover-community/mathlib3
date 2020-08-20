@@ -108,10 +108,9 @@ types could have been computed instead as limits in the category of types.)
 -/
 @[to_additive]
 instance forget_preserves_limits : preserves_limits (forget Mon) :=
-{ preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F,
-    by exactI preserves_limit_of_preserves_limit_cone
-      (limit_cone_is_limit F) (types.limit_cone_is_limit (F ⋙ forget _)) } }
+{ preserves_limits_of_shape := λ J 𝒥, by exactI
+  { preserves_limit := λ F, preserves_limit_of_preserves_limit_cone
+    (limit_cone_is_limit F) (types.limit_cone_is_limit (F ⋙ forget _)) } }
 
 end Mon
 

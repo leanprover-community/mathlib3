@@ -155,6 +155,15 @@ begin
     exact ⟨⟨k, hk⟩, mem_univ _, rfl⟩ }
 end
 
+@[to_additive]
+lemma finset.univ_prod_eq_range_prod [comm_monoid β] {n : ℕ} {c : fin n → β} :
+  ∏ i, c i = ∏ i in finset.range n, if h : i < n then c ⟨i, h⟩ else 1 :=
+begin
+  rw [finset.range_prod_eq_univ_prod, finset.prod_congr rfl],
+  rintros ⟨i, hi⟩ _,
+  simp only [fin.coe_eq_val, hi, dif_pos]
+end
+
 /-- Taking a product over `univ.pi t` is the same as taking the product over `fintype.pi_finset t`.
   `univ.pi t` and `fintype.pi_finset t` are essentially the same `finset`, but differ
   in the type of their element, `univ.pi t` is a `finset (Π a ∈ univ, t a)` and

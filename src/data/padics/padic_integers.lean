@@ -247,20 +247,26 @@ by { convert padic_norm_e.norm_p_pow n, simp, }
 
 end padic_norm_z
 
-private lemma mul_lt_one {α} [decidable_linear_ordered_comm_ring α] {a b : α} (hbz : 0 < b)
-  (ha : a < 1) (hb : b < 1) : a * b < 1 :=
-suffices a*b < 1*1, by simpa,
-mul_lt_mul ha (le_of_lt hb) hbz zero_le_one
-
-private lemma mul_lt_one_of_le_of_lt {α} [decidable_linear_ordered_comm_ring α] {a b : α} (ha : a ≤ 1)
-  (hbz : 0 ≤ b) (hb : b < 1) : a * b < 1 :=
-if hb' : b = 0 then by simpa [hb'] using zero_lt_one
-else if ha' : a = 1 then by simpa [ha']
-else mul_lt_one (lt_of_le_of_ne hbz (ne.symm hb')) (lt_of_le_of_ne ha ha') hb
-
 namespace padic_int
 
 variables {p : ℕ} [fact p.prime]
+
+lemma pow_p_dvd_int_iff (n : ℕ) (a : ℤ) : (p ^ n : ℤ_[p]) ∣ a ↔ ↑p ^ n ∣ a :=
+begin
+  split,
+  { intro h,
+    cases h with w hw,
+    have := congr_arg has_norm.norm hw,
+    simp only [padic_norm_z.padic_norm_z_of_int, padic_norm_z.norm_p_pow, padic_norm_z.mul,
+               fpow_neg, fpow_coe_nat] at this,
+    rw_mod_cast [padic_norm_e.norm_int_lt_pow_iff_dvd, this],
+    simp only [fpow_neg, fpow_coe_nat, nat.cast_pow],
+    convert mul_le_of_le_one_right _ _ using 1,
+     { apply inv_nonneg.mpr, apply pow_nonneg, exact_mod_cast le_of_lt (nat.prime.pos ‹_›) },
+     { apply padic_norm_z.le_one } },
+  { intro h,
+    simpa only [ring_hom.map_pow] using (int.cast_ring_hom ℤ_[p]).map_dvd h, }
+end
 
 /-! ### Valuation on `ℤ_[p]` -/
 
@@ -325,7 +331,7 @@ lt_of_le_of_lt (padic_norm_z.nonarchimedean _ _) (max_lt hz1 hz2)
 
 lemma norm_lt_one_mul {z1 z2 : ℤ_[p]} (hz2 : ∥z2∥ < 1) : ∥z1 * z2∥ < 1 :=
 calc  ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ : by simp
-           ... < 1 : mul_lt_one_of_le_of_lt (padic_norm_z.le_one _) (norm_nonneg _) hz2
+           ... < 1 :  mul_lt_one_of_nonneg_of_lt_one_right (padic_norm_z.le_one _) (norm_nonneg _) hz2
 
 @[simp] lemma mem_nonunits {z : ℤ_[p]} : z ∈ nonunits ℤ_[p] ↔ ∥z∥ < 1 :=
 by rw lt_iff_le_and_ne; simp [padic_norm_z.le_one z, nonunits, is_unit_iff]
@@ -661,15 +667,17 @@ begin
   { have : 1 < p, from nat.prime.one_lt ‹_›, omega }
 end
 
-noncomputable def quux : ℕ → ℤ_[p] → ℕ
+/-- `nth_appr n x` gives a value `v : ℕ` such that `↑v : ℤ_p` are equivalent up to `p^n`.
+See `nth_appr_spec`. -/
+noncomputable def nth_appr : ℕ → ℤ_[p] → ℕ
 | 0     x := 0
 | (n+1) x :=
-let y := x - quux n x in
+let y := x - nth_appr n x in
 if hy : y = 0 then
-  quux n x
+  nth_appr n x
 else
   let u := unit_coeff hy in
-  quux n x + p ^ n * (to_zmod ((u : ℤ_[p]) * (p ^ (y.valuation - n).nat_abs))).val
+  nth_appr n x + p ^ n * (to_zmod ((u : ℤ_[p]) * (p ^ (y.valuation - n).nat_abs))).val
 
 @[simp] lemma valuation_p_pow_mul (n : ℕ) (c : ℤ_[p]) (hc : c ≠ 0) :
   (↑p ^ n * c).valuation = n + c.valuation :=
@@ -688,13 +696,13 @@ begin
   { exact_mod_cast nat.prime.ne_zero ‹_› },
 end
 
-lemma quux_spec (n : ℕ) : ∀ (x : ℤ_[p]), x - quux n x ∈ (ideal.span {p^n} : ideal ℤ_[p]) :=
+lemma nth_appr_spec (n : ℕ) : ∀ (x : ℤ_[p]), x - nth_appr n x ∈ (ideal.span {p^n} : ideal ℤ_[p]) :=
 begin
   simp only [ideal.mem_span_singleton],
   induction n with n ih,
   { simp only [is_unit_one, is_unit.dvd, pow_zero, forall_true_iff], },
   { intro x,
-    dsimp only [quux],
+    dsimp only [nth_appr],
     split_ifs with h,
     { rw h, apply dvd_zero },
     { push_cast, rw sub_add_eq_sub_sub,
@@ -703,7 +711,7 @@ begin
       have hc' : c ≠ 0,
       { rintro rfl, simp only [mul_zero] at hc, contradiction },
       conv_rhs { congr, simp only [hc], },
-      rw show (x - ↑(quux n x)).valuation = (↑p ^ n * c).valuation,
+      rw show (x - ↑(nth_appr n x)).valuation = (↑p ^ n * c).valuation,
       { rw hc },
       rw [valuation_p_pow_mul _ _ hc', add_sub_cancel', pow_succ', ← mul_sub],
       apply mul_dvd_mul_left,
@@ -726,24 +734,7 @@ begin
         exact hc0, } } }
 end
 
-lemma foobar (n : ℕ) (a : ℤ) : (p ^ n : ℤ_[p]) ∣ a ↔ ↑p ^ n ∣ a :=
-begin
-  split,
-  { intro h,
-    cases h with w hw,
-    have := congr_arg has_norm.norm hw,
-    simp only [padic_norm_z.padic_norm_z_of_int, padic_norm_z.norm_p_pow, padic_norm_z.mul,
-               fpow_neg, fpow_coe_nat] at this,
-    rw_mod_cast [padic_norm_e.norm_int_lt_pow_iff_dvd, this],
-    simp only [fpow_neg, fpow_coe_nat, nat.cast_pow],
-    convert mul_le_of_le_one_right _ _ using 1,
-     { apply inv_nonneg.mpr, apply pow_nonneg, exact_mod_cast le_of_lt (nat.prime.pos ‹_›) },
-     { apply padic_norm_z.le_one } },
-  { intro h,
-    simpa only [ring_hom.map_pow] using (int.cast_ring_hom ℤ_[p]).map_dvd h, }
-end
-
-lemma quux_congr_aux (n : ℕ) (x : ℤ_[p]) (a b : ℤ)
+lemma nth_appr_congr_aux (n : ℕ) (x : ℤ_[p]) (a b : ℤ)
   (ha : x - a ∈ (ideal.span {p ^ n} : ideal ℤ_[p]))
   (hb : x - b ∈ (ideal.span {p ^ n} : ideal ℤ_[p])) :
   (a : zmod (p ^ n)) = b :=
@@ -754,45 +745,46 @@ begin
   rw [← dvd_neg, neg_sub] at ha,
   have := dvd_add ha hb,
   rwa [sub_eq_add_neg, sub_eq_add_neg, add_assoc, neg_add_cancel_left,
-      ← sub_eq_add_neg, ← int.cast_sub, foobar] at this,
+      ← sub_eq_add_neg, ← int.cast_sub, pow_p_dvd_int_iff] at this,
 end
 
-lemma quux_congr (n : ℕ) (x : ℤ_[p]) (a b : ℕ)
+lemma nth_appr_congr (n : ℕ) (x : ℤ_[p]) (a b : ℕ)
   (ha : x - a ∈ (ideal.span {p ^ n} : ideal ℤ_[p]))
   (hb : x - b ∈ (ideal.span {p ^ n} : ideal ℤ_[p])) :
   (a : zmod (p ^ n)) = b :=
-quux_congr_aux n x a b ha hb
+nth_appr_congr_aux n x a b ha hb
 
+/-- A ring hom from `ℤ_[p]` to `zmod (p^n)`, with underlying function `padic_int.nth_appr n`. -/
 def to_zmod_pow (n : ℕ) : ℤ_[p] →+* zmod (p ^ n) :=
-{ to_fun := λ x, quux n x,
+{ to_fun := λ x, nth_appr n x,
   map_zero' :=
   begin
-    rw [quux_congr n (0 : ℤ_[p]) _ 0, cast_zero],
-    { exact quux_spec n _ },
+    rw [nth_appr_congr n (0 : ℤ_[p]) _ 0, cast_zero],
+    { exact nth_appr_spec n _ },
     { simp only [sub_zero, cast_zero, submodule.zero_mem], }
   end,
   map_one' :=
   begin
-    rw [quux_congr n (1 : ℤ_[p]) _ 1, cast_one],
-    { exact quux_spec n _ },
+    rw [nth_appr_congr n (1 : ℤ_[p]) _ 1, cast_one],
+    { exact nth_appr_spec n _ },
     { simp only [sub_self, cast_one, submodule.zero_mem], }
   end,
   map_add' :=
   begin
     intros x y,
-    rw [quux_congr n (x + y) _ (quux n x + quux n y), cast_add],
-    { exact quux_spec n _ },
-    { convert ideal.add_mem _ (quux_spec n x) (quux_spec n y),
+    rw [nth_appr_congr n (x + y) _ (nth_appr n x + nth_appr n y), cast_add],
+    { exact nth_appr_spec n _ },
+    { convert ideal.add_mem _ (nth_appr_spec n x) (nth_appr_spec n y),
       rw cast_add, ring, }
   end,
   map_mul' :=
   begin
     intros x y,
-    rw [quux_congr n (x * y) _ (quux n x * quux n y), cast_mul],
-    { exact quux_spec n _ },
+    rw [nth_appr_congr n (x * y) _ (nth_appr n x * nth_appr n y), cast_mul],
+    { exact nth_appr_spec n _ },
     { let I : ideal ℤ_[p] := ideal.span {p ^ n},
-      have A : x * (y - quux n y) ∈ I := I.mul_mem_left (quux_spec _ _),
-      have B : (x - quux n x) * (quux n y) ∈ I := I.mul_mem_right (quux_spec _ _),
+      have A : x * (y - nth_appr n y) ∈ I := I.mul_mem_left (nth_appr_spec _ _),
+      have B : (x - nth_appr n x) * (nth_appr n y) ∈ I := I.mul_mem_right (nth_appr_spec _ _),
       convert I.add_mem A B,
       rw cast_mul, ring, }
   end, }

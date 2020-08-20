@@ -151,7 +151,7 @@ creates_limit_of_reflects_iso (λ c' t,
 A choice of limit cone for a functor into `CommMon`.
 (Generally, you'll just want to use `limit F`.)
 -/
-@[to_additive]
+@[to_additive "A choice of limit cone for a functor into `CommMon`. (Generally, you'll just want to use `limit F`.)"]
 def limit_cone (F : J ⥤ CommMon) : cone F :=
 lift_limit (limit.is_limit (F ⋙ (forget₂ CommMon Mon)))
 
@@ -159,7 +159,7 @@ lift_limit (limit.is_limit (F ⋙ (forget₂ CommMon Mon)))
 The chosen cone is a limit cone.
 (Generally, you'll just want to use `limit.cone F`.)
 -/
-@[to_additive]
+@[to_additive "The chosen cone is a limit cone. (Generally, you'll just want to use `limit.cone F`.)"]
 def limit_cone_is_limit (F : J ⥤ CommMon) : is_limit (limit_cone F) :=
 lifted_limit_is_limit _
 

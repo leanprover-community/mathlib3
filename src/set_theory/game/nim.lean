@@ -45,7 +45,8 @@ by rw nim
 
 lemma nim_wf_lemma {O₁ : ordinal} (O₂ : O₁.out.α) : (ordinal.typein O₁.out.r O₂) < O₁ :=
 begin
-  nth_rewrite_rhs 0 ← ordinal.type_out O₁, exact ordinal.typein_lt_type _ _
+  nth_rewrite_rhs 0 ← ordinal.type_out O₁,
+  exact ordinal.typein_lt_type _ _
 end
 
 lemma nim_impartial : ∀ (O : ordinal), impartial (nim O)
@@ -59,21 +60,21 @@ begin
     { intro i,
       let hwf : (ordinal.typein O.out.r i) < O := nim_wf_lemma i,
       left,
-			exact ⟨ i, (impartial_neg_equiv_self $ nim_impartial $ ordinal.typein O.out.r i).1 ⟩ },
+      exact ⟨ i, (impartial_neg_equiv_self $ nim_impartial $ ordinal.typein O.out.r i).1 ⟩ },
     { intro j,
       let hwf : (ordinal.typein O.out.r j) < O := nim_wf_lemma j,
       right,
-			exact ⟨ j, (impartial_neg_equiv_self $ nim_impartial $ ordinal.typein O.out.r j).1 ⟩ } },
+      exact ⟨ j, (impartial_neg_equiv_self $ nim_impartial $ ordinal.typein O.out.r j).1 ⟩ } },
   { rw pgame.le_def,
     split,
     { intro i,
       let hwf : (ordinal.typein O.out.r i) < O := nim_wf_lemma i,
       left,
-			exact ⟨ i, (impartial_neg_equiv_self $ nim_impartial $ ordinal.typein O.out.r i).2 ⟩ },
+      exact ⟨ i, (impartial_neg_equiv_self $ nim_impartial $ ordinal.typein O.out.r i).2 ⟩ },
     { intro j,
       let hwf : (ordinal.typein O.out.r j) < O := nim_wf_lemma j,
       right,
-			exact ⟨ j, (impartial_neg_equiv_self $ nim_impartial $ ordinal.typein O.out.r j).2 ⟩ } },
+      exact ⟨ j, (impartial_neg_equiv_self $ nim_impartial $ ordinal.typein O.out.r j).2 ⟩ } },
   split,
   { intro i,
     let hwf : (ordinal.typein O.out.r i) < O := nim_wf_lemma i,
@@ -96,10 +97,10 @@ begin
   try {rw left_moves_mk at i};
   try {rw right_moves_mk at i};
   try { have h := ordinal.typein_lt_type (quotient.out (0:ordinal)).r i,
-        rw ordinal.type_out at h,
-        have hcontra := ordinal.zero_le (ordinal.typein (quotient.out (0:ordinal)).r i),
-        have h := not_le_of_lt h,
-        contradiction };
+    rw ordinal.type_out at h,
+    have hcontra := ordinal.zero_le (ordinal.typein (quotient.out (0:ordinal)).r i),
+    have h := not_le_of_lt h,
+    contradiction };
   try { exact pempty.elim i }
 end
 
@@ -128,7 +129,7 @@ begin
     exact ordinal.le_total O₁ O₂,
     { have h : O₁ < O₂ := lt_of_le_of_ne h hneq,
       rw ←(no_good_left_moves_iff_first_loses $ impartial_add (nim_impartial O₁) (nim_impartial O₂))
-				at hp,
+        at hp,
       equiv_rw left_moves_add (nim O₁) (nim O₂) at hp,
       rw nim_def O₂ at hp,
       specialize hp (sum.inr (ordinal.principal_seg_out h).top),
@@ -163,9 +164,9 @@ end
 /-- This definition will be used in the proof of the Sprague-Grundy theorem. It takes a function
   from some type to ordinals and returns a nonempty set of ordinals with empty intersection with
   the image of the function. It is guaranteed that the smallest ordinal not in the image will be
-  in the set, i.e. we can use this to find the mex -/
+  in the set, i.e. we can use this to find the mex. -/
 def nonmoves {α : Type u} (M : α → ordinal.{u}) : set ordinal.{u} :=
-	{ O : ordinal | ¬ ∃ a : α, M a = O }
+  { O : ordinal | ¬ ∃ a : α, M a = O }
 
 lemma nonmoves_nonempty {α : Type u} (M : α → ordinal.{u}) : ∃ O : ordinal, O ∈ nonmoves M :=
 begin
@@ -200,8 +201,8 @@ end
  game is equivalent to -/
 noncomputable def Grundy_value : Π {G : pgame.{u}}, G.impartial → ordinal.{u}
 | G :=
-	λ hG, ordinal.omin (nonmoves (λ i, Grundy_value $ impartial_move_left_impartial hG i))
-		(nonmoves_nonempty (λ i, Grundy_value (impartial_move_left_impartial hG i)))
+  λ hG, ordinal.omin (nonmoves (λ i, Grundy_value $ impartial_move_left_impartial hG i))
+    (nonmoves_nonempty (λ i, Grundy_value (impartial_move_left_impartial hG i)))
 using_well_founded {dec_tac := pgame_wf_tac}
 
 lemma Grundy_value_def {G : pgame} (hG : G.impartial) :
@@ -220,7 +221,7 @@ begin
   classical,
   intro hG,
   rw [equiv_iff_sum_first_loses hG (nim_impartial _),
-		←no_good_left_moves_iff_first_loses (impartial_add hG (nim_impartial _))],
+    ←no_good_left_moves_iff_first_loses (impartial_add hG (nim_impartial _))],
   intro i,
   equiv_rw left_moves_add G (nim $ Grundy_value hG) at i,
   cases i with i₁ i₂,

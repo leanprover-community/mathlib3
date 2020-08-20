@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Robert Y. Lewis, Mario Carneiro
+Authors: Robert Y. Lewis, Mario Carneiro, Johan Commelin
 -/
 import data.int.modeq
 import data.zmod.basic
@@ -19,12 +19,13 @@ We show that `ℤ_p`
 * is a normed ring
 * is a local ring
 * is a discrete valuation ring
-* has a ring hom to `ℤ/pℤ`
+* has a ring hom to `ℤ/p^nℤ` for each `n`
 
 ## Important definitions
 
 * `padic_int` : the type of p-adic numbers
 * `to_zmod`: ring hom to `ℤ/pℤ`
+* `to_zmod_pow` : ring hom to `ℤ/p^nℤ`
 
 ## Notation
 
@@ -472,7 +473,7 @@ begin
   rwa [← r.cop.gcd_eq_one, nat.dvd_gcd_iff, ← int.coe_nat_dvd_left, ← int.coe_nat_dvd],
 end
 
-/-- An auxiliary lemma used in `exists_mem_range_of_norm_rat_lt_one`. -/
+/-- An auxiliary lemma used in `norm_sub_mod_part`. -/
 private lemma exists_mem_range_aux' (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
   ↑p ∣ r.num - r.num * r.denom.gcd_a p % p * ↑(r.denom) :=
 begin

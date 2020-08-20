@@ -9,7 +9,7 @@ import data.set.function
 /-!
 # Strictly monotone, surjective functions are surjective on intervals
 
-A strictly monotone, surjective function sends any interval in the range to the interval with
+A strictly monotone, surjective function sends any interval in the domain to the interval with
 corresponding endpoints in the range.  This is expressed in this file using `set.surj_on`, and
 provided for all permutations of interval endpoints.
 -/

@@ -179,7 +179,7 @@ Note that we do not assume a priori that `D` actually has any limits.
 class reflects_limit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (reflects : Π {c : cone K}, is_limit (F.map_cone c) → is_limit c)
 /--
-A functor `F : C ⥤ D` reflects limits for `K : J ⥤ C` if
+A functor `F : C ⥤ D` reflects colimits for `K : J ⥤ C` if
 whenever the image of a cocone over `K` under `F` is a colimit cocone in `D`,
 the cocone was already a colimit cocone in `C`.
 Note that we do not assume a priori that `D` actually has any colimits.
@@ -196,7 +196,7 @@ Note that we do not assume a priori that `D` actually has any limits.
 class reflects_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (reflects_limit : Π {K : J ⥤ C}, reflects_limit K F)
 /--
-A functor `F : C ⥤ D` reflects limits of shape `J` if
+A functor `F : C ⥤ D` reflects colimits of shape `J` if
 whenever the image of a cocone over some `K : J ⥤ C` under `F` is a colimit cocone in `D`,
 the cocone was already a colimit cocone in `C`.
 Note that we do not assume a priori that `D` actually has any colimits.

@@ -81,7 +81,8 @@ section finsum
 
 variables {α : Type u} {M : Type v} [add_comm_monoid M]
 
-/-- Sum of `f x` as `x` ranges over the elements of the support of `f`, if it's finite. Zero otherwise. -/
+/-- Sum of `f x` as `x` ranges over the elements of the support of `f`, if it's finite. Zero
+  otherwise. -/
 noncomputable def finsum (f : α → M) : M :=
 if h : (function.support f).finite then finset.sum (h.to_finset) f else 0
 
@@ -89,8 +90,11 @@ if h : (function.support f).finite then finset.sum (h.to_finset) f else 0
 noncomputable def finsum_in (s : set α) (f : α → M) : M :=
 finsum (λ x, if x ∈ s then f x else 0)
 
-def finsum_def (f : α → M) :
+lemma finsum_def (f : α → M) :
   finsum f = if h : (function.support f).finite then finset.sum (h.to_finset) f else 0 := rfl
+
+lemma finsum_in_def (s : set α) (f : α → M) :
+  finsum_in s f = finsum (λ x, if x ∈ s then f x else 0) := rfl
 
 -- **TODO** function.support doesn't import data.finsupp and vice versa
 -- so this lemma can't go in either place
@@ -108,6 +112,7 @@ by { rw function.support_eq_support, exact f.support.finite_to_set }
 @[simp] lemma support_finite.to_finset (f : α →₀ β) : (support_finite f).to_finset = f.support :=
 finset.ext $ λ x, by {simp, refl}
 
+/-- The natural `finsupp` induced by the function `f` given it has finite support. -/
 noncomputable def of_support_finite
   {f : α → β} (hf : (function.support f).finite) : α →₀ β :=
 { support := hf.to_finset,
@@ -141,6 +146,36 @@ begin
   refine finset.sum_subset (λ _ _, finset.mem_univ' _) (λ _ _ hx, _),
     rw set.finite.mem_to_finset at hx,
     exact function.nmem_support.1 (λ h, hx h),
+end
+
+lemma finsum_in_eq_finset_sum {f : α → M} (s : set α)
+  (hf : (s ∩ function.support f).finite) :
+  finsum_in s f = hf.to_finset.sum f :=
+begin
+  rw [finsum_in_def, finsum_eq_finset_sum],
+    { apply finset.sum_congr,
+      { ext, rw [set.finite.mem_to_finset, set.finite.mem_to_finset, set.mem_inter_iff,
+                 function.mem_support, function.mem_support],
+        split; finish },
+      { finish } },
+    { refine set.finite.subset hf (λ x hx, set.mem_inter _ _);
+      rw function.mem_support at *; finish }
+end .
+
+lemma finsum_in_eq_finset_sum' {f : α → M} (s : set α)
+  (hf : (function.support f).finite) :
+  finsum_in s f = (finset.filter (∈ s) hf.to_finset).sum f :=
+begin
+  rw finsum_in_eq_finset_sum s (set.finite.subset hf (set.inter_subset_right _ _)),
+  congr, ext; finish
+end
+
+lemma finsum_in_eq_finset_sum'' [fintype α] (f : α → M) (s : set α):
+  finsum_in s f = s.to_finset.sum f :=
+begin
+  rw finsum_in_eq_finset_sum' s (set.finite.of_fintype _),
+  conv_rhs { rw ← finset.sum_filter_ne_zero },
+  exact finset.sum_congr (by ext; finish) (λ _ _, rfl),
 end
 
 end finsum

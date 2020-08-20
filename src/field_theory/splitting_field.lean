@@ -15,22 +15,25 @@ import linear_algebra.finite_dimensional
 noncomputable theory
 open_locale classical big_operators
 
-universes u v w
+universes u u' v v' w w'
 
-variables {α : Type u} {β : Type v} {γ : Type w}
+variables {R : Type u} {S : Type v} {T : Type w}
+variables {α : Type u'} {β : Type v'} {γ : Type w'}
 
 namespace polynomial
 
+variables [semiring R] [semiring S] [semiring T]
 variables [field α] [field β] [field γ]
+
 open polynomial
 
 section splits
 
-variables (i : α →+* β)
+variables (i' : R →+* S) (i : α →+* β)
 
 /-- a polynomial `splits` iff it is zero or all of its irreducible factors have `degree` 1 -/
-def splits (f : polynomial α) : Prop :=
-f = 0 ∨ ∀ {g : polynomial β}, irreducible g → g ∣ f.map i → degree g = 1
+def splits (f : polynomial R) : Prop :=
+f = 0 ∨ ∀ {g : polynomial S}, irreducible g → g ∣ f.map i' → degree g = 1
 
 @[simp] lemma splits_zero : splits i (0 : polynomial α) := or.inl rfl
 

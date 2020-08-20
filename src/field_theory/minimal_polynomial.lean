@@ -114,6 +114,15 @@ begin
     simpa using hp }
 end
 
+/-- If we have a tower `R / K / F`, the minimal polynomial for `x : R` over `K`
+divides the minimal polynomial for `x` over `F`. -/
+lemma dvd_minimal_polynomial_map {K : Type*} [field K] [algebra α K] [algebra K β]
+  [is_scalar_tower α K β] (hxS : is_integral K x) :
+  minimal_polynomial hxS ∣ (minimal_polynomial hx).map (algebra_map α K) :=
+minimal_polynomial.dvd hxS
+  (by simpa [polynomial.aeval, eval₂_map, ← is_scalar_tower.algebra_map_eq]
+      using minimal_polynomial.aeval hx)
+
 variables [nontrivial β]
 
 /--The degree of a minimal polynomial is nonzero.-/

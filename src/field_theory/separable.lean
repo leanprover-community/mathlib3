@@ -396,6 +396,17 @@ open_locale big_operators
 
 variables {i : F →+* K}
 
+lemma roots_prod {s : finset F} :
+  ∏ a in s, (X - C a : polynomial F) ≠ 0 → roots (∏ a in s, (X - C a : polynomial F)) = s :=
+begin
+  apply finset.induction_on s,
+  { intro _,
+    rw [prod_empty, roots_one] },
+  intros a s not_mem ih ne_zero,
+  rw prod_insert not_mem at ⊢ ne_zero,
+  rw [roots_mul ne_zero, roots_X_sub_C, finset.insert_eq, ih (right_ne_zero_of_mul ne_zero)]
+end
+
 lemma not_unit_X_sub_C (a : F) : ¬ is_unit (X - C a) :=
 λ h, have one_eq_zero : (1 : with_bot ℕ) = 0, by simpa using degree_eq_zero_of_is_unit h,
 one_ne_zero (option.some_injective _ one_eq_zero)
@@ -484,6 +495,26 @@ variables (F K : Type*) [field F] [field K] [algebra F K]
 the minimal polynomial of every `x : K` exists and is separable. -/
 @[class] def is_separable : Prop :=
 ∀ x : K, ∃ H : is_integral F x, (minimal_polynomial H).separable
+
+section
+variables {K} [h : is_separable F K]
+include h
+
+lemma is_separable.is_integral (x : K) : is_integral F x :=
+let ⟨H, _⟩ := h x in H
+
+lemma is_separable.is_algebraic (x : K) : is_algebraic F x :=
+let ⟨int, _⟩ := h x in int.is_algebraic F
+
+/-- Given that `K` is separable over `F`, give the minimal polynomial of `x : K` over `F`. -/
+noncomputable def is_separable.minimal_polynomial (x : K) : polynomial F :=
+minimal_polynomial (is_separable.is_integral F x)
+
+lemma is_separable.minimal_polynomial_separable (x : K) :
+  (is_separable.minimal_polynomial F x).separable :=
+let ⟨_, s⟩ := (h x) in s
+
+end
 
 /-- An algebraic field extension of characteristic zero is separable. -/
 instance is_separable_of_char_zero [char_zero F] [alg : algebra.is_algebraic F K] :

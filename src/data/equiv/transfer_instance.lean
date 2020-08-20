@@ -53,6 +53,7 @@ protected def has_inv [has_inv β] : has_inv α := ⟨λ x, e.symm (e x)⁻¹⟩
 @[to_additive]
 lemma inv_def [has_inv β] (x : α) : @has_inv.inv _ (equiv.has_inv e) x = e.symm (e x)⁻¹ := rfl
 
+/-- Transfer `has_scalar` across an `equiv` -/
 protected def has_scalar {R : Type*} [has_scalar R β] : has_scalar R α  :=
 ⟨λ r x, e.symm (r • (e x))⟩
 lemma smul_def {R : Type*} [has_scalar R β] (r : R) (x : α) :
@@ -79,7 +80,7 @@ end
 @[simp, to_additive] lemma mul_equiv_apply (e : α ≃ β) [has_mul β] (a : α) :
   (mul_equiv e) a = e a := rfl
 
-@[simp, to_additive] lemma mul_equiv_symm_apply (e : α ≃ β) [has_mul β] (b : β) :
+@[to_additive] lemma mul_equiv_symm_apply (e : α ≃ β) [has_mul β] (b : β) :
   by { letI := equiv.has_mul e, exact (mul_equiv e).symm b = e.symm b } :=
 begin
   intros, refl,
@@ -103,7 +104,7 @@ end
 @[simp] lemma ring_equiv_apply (e : α ≃ β) [has_add β] [has_mul β] (a : α) :
   (ring_equiv e) a = e a := rfl
 
-@[simp] lemma ring_equiv_symm_apply (e : α ≃ β) [has_add β] [has_mul β] (b : β) :
+lemma ring_equiv_symm_apply (e : α ≃ β) [has_add β] [has_mul β] (b : β) :
   begin
     letI := equiv.has_add e,
     letI := equiv.has_mul e,

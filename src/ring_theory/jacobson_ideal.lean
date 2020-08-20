@@ -97,7 +97,7 @@ theorem mem_jacobson_iff {I : ideal R} {x : R} :
         neg_mul_eq_neg_mul_symm, neg_mul_eq_mul_neg, mul_comm x y]; exact M.mul_mem_right hy)
     (him hz)⟩
 
-/-- An ideal equals its jacobson radical iff it is the intersection of a set of maximal ideal.
+/-- An ideal equals its Jacobson radical iff it is the intersection of a set of maximal ideals.
 Allowing the set to include ⊤ is equivalent, and is included only to simplify some proofs. -/
 theorem eq_jacobson_iff_Inf_maximal {I : ideal R} :
   I.jacobson = I ↔ ∃ M : set (ideal R), (∀ J ∈ M, is_maximal J ∨ J = ⊤) ∧ I = Inf M :=
@@ -112,7 +112,7 @@ begin
   { exact is_top.symm ▸ submodule.mem_top }
 end
 
-/-- An ideal `I` equals its jacobson radical if and only if every element outside `I`
+/-- An ideal `I` equals its Jacobson radical if and only if every element outside `I`
 also lies outside of a maximal ideal containing `I`. -/
 lemma eq_jacobson_iff_not_mem {I : ideal R} :
   I.jacobson = I ↔ ∀ x ∉ I, ∃ M : ideal R, (I ≤ M ∧ M.is_maximal) ∧ x ∉ M :=
@@ -133,7 +133,7 @@ theorem map_jacobson_of_surjective {f : R →+* S} (hf : function.surjective f) 
   ring_hom.ker f ≤ I → map f (I.jacobson) = (map f I).jacobson :=
 begin
   intro h,
-  rw [ideal.jacobson, ideal.jacobson],
+  unfold ideal.jacobson,
   have : ∀ J ∈ {J : ideal R | I ≤ J ∧ J.is_maximal}, f.ker ≤ J := λ J hJ, le_trans h hJ.left,
   refine trans (map_Inf hf this) (le_antisymm _ _),
   { refine Inf_le_Inf (λ J hJ, ⟨comap f J, ⟨⟨le_comap_of_map_le hJ.1, _⟩, map_comap_of_surjective f hf J⟩⟩),
@@ -149,7 +149,7 @@ end
 theorem comap_jacobson_of_surjective {f : R →+* S} (hf : function.surjective f) {K : ideal S} :
   comap f (K.jacobson) = (comap f K).jacobson :=
 begin
-  rw [ideal.jacobson, ideal.jacobson],
+  unfold ideal.jacobson,
   refine le_antisymm _ _,
   { refine le_trans (comap_mono (le_of_eq (trans top_inf_eq.symm Inf_insert.symm))) _,
     rw [comap_Inf', Inf_eq_infi],
@@ -166,9 +166,9 @@ begin
     refine Inf_le ⟨comap_mono hJ.left, comap_is_maximal_of_surjective _ hf⟩ }
 end
 
-/-- An ideal `I` of `R` is equal to its jacobson radical if and only if
-the jacobson radical of the quotient ring `R/I` is the zero ideal -/
-theorem jacobson_eq_iff_jacobson_bot_eq {I : ideal R} :
+/-- An ideal `I` of `R` is equal to its Jacobson radical if and only if
+the Jacobson radical of the quotient ring `R/I` is the zero ideal -/
+theorem jacobson_eq_iff_jacobson_quotient_eq_bot {I : ideal R} :
   I.jacobson = I ↔ jacobson (⊥ : ideal (I.quotient)) = ⊥ :=
 begin
   have hf : function.surjective (quotient.mk I) := submodule.quotient.mk_surjective I,
@@ -183,9 +183,9 @@ begin
     simpa using h }
 end
 
-/-- The standard radical and jacobson radical of an ideal `I` of `R` are equal if and only if
-the nilradical and jacobson radical of the quotient ring `R/I` coincide -/
-theorem radical_eq_jacobson_iff_radical_bot_eq_jacobson_bot {I : ideal R} :
+/-- The standard radical and Jacobson radical of an ideal `I` of `R` are equal if and only if
+the nilradical and Jacobson radical of the quotient ring `R/I` coincide -/
+theorem radical_eq_jacobson_iff_radical_quotient_eq_jacobson_bot {I : ideal R} :
   I.radical = I.jacobson ↔ radical (⊥ : ideal (I.quotient)) = jacobson ⊥ :=
 begin
   have hf : function.surjective (quotient.mk I) := submodule.quotient.mk_surjective I,

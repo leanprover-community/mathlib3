@@ -720,27 +720,25 @@ In practice, this ideal differs only in that the carrier set is defined explicit
 This definition is only meant to be used in proving `mem_map_to_map_iff`,
 and any proof that needs to refer to the explicit carrier set should use that theorem. -/
 private def to_map_ideal (I : ideal R) : ideal S :=
-{carrier := { z : S | ∃ x : I × M, z * (f.to_map x.2) = f.to_map x.1},
+private def to_map_ideal (I : ideal R) : ideal S :=
+{ carrier := { z : S | ∃ x : I × M, z * (f.to_map x.2) = f.to_map x.1},
   zero_mem' := ⟨⟨0, 1⟩, by simp⟩,
-  add_mem' := by {
-    intros a b ha hb,
-    obtain ⟨b', hb⟩ := hb,
-    obtain ⟨a', ha⟩ := ha,
+  add_mem' := begin
+    rintros a b ⟨a', ha⟩ ⟨b', hb⟩,
     use ⟨a'.2 * b'.1 + b'.2 * a'.1, I.add_mem (I.smul_mem _ b'.1.2) (I.smul_mem _ a'.1.2)⟩,
     use a'.2 * b'.2,
-    simp,
+    simp only [ring_hom.map_add, submodule.coe_mk, submonoid.coe_mul, ring_hom.map_mul],
     rw [add_mul, ← mul_assoc a, ha, mul_comm (f.to_map a'.2) (f.to_map b'.2), ← mul_assoc b, hb],
-    ring, },
-  smul_mem' := by {
-    intros c x hx,
-    obtain ⟨x', hx⟩ := hx,
+    ring
+  end,
+  smul_mem' := begin
+    rintros c x ⟨x', hx⟩,
     obtain ⟨c', hc⟩ := localization_map.surj f c,
     use ⟨c'.1 * x'.1, I.smul_mem c'.1 x'.1.2⟩,
     use c'.2 * x'.2,
-    simp,
-    rw [← hx, ← hc],
-    ring, }
-  }
+    simp only [←hx, ←hc, smul_eq_mul, submodule.coe_mk, submonoid.coe_mul, ring_hom.map_mul],
+    ring
+  end }
 
 theorem mem_map_to_map_iff {I : ideal R} {z} :
   z ∈ ideal.map f.to_map I ↔ ∃ x : I × M, z * (f.to_map x.2) = f.to_map x.1 :=

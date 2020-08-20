@@ -436,9 +436,10 @@ variables (R)
 @[simp] lemma mem_bot : x ∈ (⊥ : submodule R M) ↔ x = 0 := mem_singleton_iff
 end
 
-lemma nonzero_mem_of_gt_bot {I : submodule R M} (gt_bot : ⊥ < I) : ∃ a : I, a ≠ 0 :=
+lemma nonzero_mem_of_bot_lt {I : submodule R M} (bot_lt : ⊥ < I) : ∃ a : I, a ≠ 0 :=
 begin
-  have h := (submodule.lt_iff_le_and_exists.1 gt_bot).2, tidy,
+  have h := (submodule.lt_iff_le_and_exists.1 bot_lt).2,
+  tidy,
 end
 
 instance : order_bot (submodule R M) :=

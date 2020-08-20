@@ -301,12 +301,11 @@ theorem not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p.nonempty) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
 let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
 
-theorem has_min' [partial_order α] : (well_founded (gt : α → α → Prop)) →
-  (∀(a : set α), a.nonempty → ∃ (M' ∈ a), ∀ (I ∈ a), M' ≤ I → I = M') :=
-by  { exact λ wf a ha, ⟨well_founded.min wf a ha, well_founded.min_mem _ _ _,
-      λ I hI hminI, (lt_or_eq_of_le hminI).elim
-        (λ h, (well_founded.not_lt_min wf _ _ hI h).elim)
-        eq.symm⟩ }
+theorem has_min' [partial_order α] (wf : well_founded (gt : α → α → Prop))
+  (p : set α) (hp : p.nonempty) : ∃ m ∈ p, ∀ x ∈ p, m ≤ x → x = m :=
+⟨min wf p hp,
+ min_mem _ _ _,
+ λ I hI hminI, eq.symm ((lt_or_eq_of_le hminI).resolve_left (not_lt_min wf _ _ hI))⟩
 
 open set
 /-- The supremum of a bounded, well-founded order -/

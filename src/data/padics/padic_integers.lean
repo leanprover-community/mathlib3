@@ -49,7 +49,7 @@ Coercions into `ℤ_p` are set up to work with the `norm_cast` tactic.
 p-adic, p adic, padic, p-adic integer
 -/
 
-open nat padic metric
+open nat padic metric local_ring
 noncomputable theory
 open_locale classical
 
@@ -573,23 +573,44 @@ end
 
 section
 
+-- rename these?
+lemma appr_congr_aux (n : ℕ) (x : ℤ_[p]) (a b : ℤ)
+  (ha : x - a ∈ (ideal.span {p ^ n} : ideal ℤ_[p]))
+  (hb : x - b ∈ (ideal.span {p ^ n} : ideal ℤ_[p])) :
+  (a : zmod (p ^ n)) = b :=
+begin
+  rw [ideal.mem_span_singleton] at ha hb,
+  rw [← sub_eq_zero, ← int.cast_sub,
+      zmod.int_coe_zmod_eq_zero_iff_dvd, int.coe_nat_pow],
+  rw [← dvd_neg, neg_sub] at ha,
+  have := dvd_add ha hb,
+  rwa [sub_eq_add_neg, sub_eq_add_neg, add_assoc, neg_add_cancel_left,
+      ← sub_eq_add_neg, ← int.cast_sub, pow_p_dvd_int_iff] at this,
+end
+
+lemma appr_congr (n : ℕ) (x : ℤ_[p]) (a b : ℕ)
+  (ha : x - a ∈ (ideal.span {p ^ n} : ideal ℤ_[p]))
+  (hb : x - b ∈ (ideal.span {p ^ n} : ideal ℤ_[p])) :
+  (a : zmod (p ^ n)) = b :=
+appr_congr_aux n x a b ha hb
+
 lemma exists_mem_range_congr (x : ℤ_[p]) (m n : ℤ)
-  (hm : ∥x - m∥ < 1) (hn : ∥x - n∥ < 1) :
+  (hm : x - m ∈ maximal_ideal ℤ_[p]) (hn : x - n ∈ maximal_ideal ℤ_[p]) :
   (m : zmod p) = n :=
 begin
-  rw norm_sub_rev at hm,
-  have : ∥((m - n : ℤ) : ℤ_[p])∥ < 1,
-  { rw show ((m - n : ℤ) : ℤ_[p]) = (↑m - x) + (x - n), { push_cast, ring },
-    apply lt_of_le_of_lt (padic_norm_z.nonarchimedean _ _),
-    apply max_lt hm hn },
-  rw [norm_int_lt_one_iff_dvd, ← zmod.int_coe_zmod_eq_zero_iff_dvd] at this,
-  simpa [sub_eq_zero],
+  rw maximal_ideal_eq_span_p at hm hn,
+  have := appr_congr_aux 1 x m n,
+  simp only [_root_.pow_one] at this,
+  specialize this hm hn,
+  apply_fun zmod.cast_hom (show p ∣ p ^ 1, by rw nat.pow_one) (zmod p) at this,
+  simpa only [ring_hom.map_int_cast],
 end
 
 variable (x : ℤ_[p])
 lemma exists_mem_range :
-  ∃ n : ℤ, 0 ≤ n ∧ n < p ∧ ∥(x - n : ℤ_[p])∥ < 1 :=
+  ∃ n : ℤ, 0 ≤ n ∧ n < p ∧ (x - n ∈ maximal_ideal ℤ_[p]) :=
 begin
+  simp only [maximal_ideal_eq_span_p, ideal.mem_span_singleton, ← norm_lt_one_iff_dvd],
   obtain ⟨r, hr⟩ := rat_dense (x : ℚ_[p]) zero_lt_one,
   have H : ∥(r : ℚ_[p])∥ ≤ 1,
   { rw norm_sub_rev at hr,
@@ -611,14 +632,14 @@ satisfying `∥(x - zmod_repr x : ℤ_[p])∥ < 1`.
 def zmod_repr : ℤ :=
 classical.some (exists_mem_range x)
 
-lemma zmod_repr_spec : 0 ≤ zmod_repr x ∧ zmod_repr x < p ∧ ∥(x - zmod_repr x : ℤ_[p])∥ < 1 :=
+lemma zmod_repr_spec : 0 ≤ zmod_repr x ∧ zmod_repr x < p ∧ (x - zmod_repr x ∈ maximal_ideal ℤ_[p]) :=
 classical.some_spec (exists_mem_range x)
 
 lemma zmod_repr_nonneg : 0 ≤ zmod_repr x := (zmod_repr_spec _).1
 
 lemma zmod_repr_lt_p : zmod_repr x < p := (zmod_repr_spec _).2.1
 
-lemma norm_sub_zmod_repr : ∥(x - zmod_repr x : ℤ_[p])∥ < 1 := (zmod_repr_spec _).2.2
+lemma sub_zmod_repr_mem : (x - zmod_repr x ∈ maximal_ideal ℤ_[p]) := (zmod_repr_spec _).2.2
 
 end
 
@@ -630,67 +651,39 @@ def to_zmod : ℤ_[p] →+* zmod p :=
 { to_fun := λ x, ((zmod_repr x : ℤ) : zmod p),
   map_zero' :=
   begin
-    have h0 := norm_sub_zmod_repr 0,
-    rw exists_mem_range_congr _ _ 0 h0; simp only [norm_zero, int.cast_zero, sub_zero],
-    exact zero_lt_one,
+    rw [exists_mem_range_congr (0 : ℤ_[p]) _ 0, int.cast_zero],
+    { exact sub_zmod_repr_mem _ },
+    { simp only [sub_zero, int.cast_zero, submodule.zero_mem], }
   end,
   map_one' :=
   begin
-    have h1 := norm_sub_zmod_repr 1,
-    rw exists_mem_range_congr _ _ 1 h1; simp only [norm_zero, int.cast_one, sub_self],
-    exact zero_lt_one,
+    rw [exists_mem_range_congr (1 : ℤ_[p]) _ 1, int.cast_one],
+    { exact sub_zmod_repr_mem _ },
+    { simp only [sub_self, int.cast_one, submodule.zero_mem], }
   end,
   map_add' :=
   begin
     intros x y,
-    have hx := norm_sub_zmod_repr x,
-    have hy := norm_sub_zmod_repr y,
-    have hxy := norm_sub_zmod_repr (x + y),
-    rw ← int.cast_add,
-    rw exists_mem_range_congr (x + y) _ _ hxy,
-    let X : ℤ := classical.some (exists_mem_range x),
-    let Y : ℤ := classical.some (exists_mem_range y),
-    show ∥x + y - ↑(X + Y)∥ < 1,
-    change ∥x - X∥ < 1 at hx,
-    change ∥y - Y∥ < 1 at hy,
-    have := lt_of_le_of_lt (padic_norm_z.nonarchimedean _ _) (max_lt hx hy),
-    convert this using 2,
-    simp only [int.cast_add],
-    ring,
+    rw [exists_mem_range_congr (x + y) _ (zmod_repr x + zmod_repr y), int.cast_add],
+    { exact sub_zmod_repr_mem _ },
+    { convert ideal.add_mem _ (sub_zmod_repr_mem x) (sub_zmod_repr_mem y),
+      rw int.cast_add, ring, }
   end,
   map_mul' :=
   begin
     intros x y,
-    have hx := norm_sub_zmod_repr x,
-    have hy := norm_sub_zmod_repr y,
-    have hxy := norm_sub_zmod_repr (x * y),
-    rw ← int.cast_mul,
-    rw exists_mem_range_congr (x * y) _ _ hxy,
-    let X : ℤ := zmod_repr x,
-    let Y : ℤ := zmod_repr y,
-    show ∥x * y - ↑(X * Y)∥ < 1,
-    change ∥x - X∥ < 1 at hx,
-    change ∥y - Y∥ < 1 at hy,
-    simp only [padic_norm_z, coe_sub, coe_mul, int.cast_mul, finset.mem_range, coe_coe_int] at *,
-    have key1 : ∥(x : ℚ_[p])∥ * ∥(y - Y : ℚ_[p])∥ < 1,
-    { rw mul_comm,
-      apply lt_of_le_of_lt _ hy,
-      calc _ ≤ _ : mul_le_mul (le_refl _) x.2 (norm_nonneg _) (norm_nonneg _)
-      ... = ∥(y - Y : ℚ_[p])∥ : mul_one _, },
-    have key2 : ∥(x - X : ℚ_[p])∥ * ∥(Y : ℚ_[p])∥ < 1,
-    { apply lt_of_le_of_lt _ hx,
-      calc _ ≤ _ : mul_le_mul (le_refl _) _ (norm_nonneg _) (norm_nonneg _)
-      ... = ∥(x - X : ℚ_[p])∥ : mul_one _,
-      convert (Y : ℤ_[p]).2, simp only [val_eq_coe, coe_coe_int], },
-    rw ← padic_norm_e.mul at key1 key2,
-    have := lt_of_le_of_lt (padic_norm_e.nonarchimedean _ _) (max_lt key1 key2),
-    convert this using 2,
-    ring,
-  end }
+    rw [exists_mem_range_congr (x * y) _ (zmod_repr x * zmod_repr y), int.cast_mul],
+    { exact sub_zmod_repr_mem _ },
+    { let I : ideal ℤ_[p] := local_ring.maximal_ideal ℤ_[p],
+      have A : x * (y - zmod_repr y) ∈ I := I.mul_mem_left (sub_zmod_repr_mem _),
+      have B : (x - zmod_repr x) * (zmod_repr y) ∈ I := I.mul_mem_right (sub_zmod_repr_mem _),
+      convert I.add_mem A B,
+      rw int.cast_mul, ring, }
+  end, }
 
-lemma to_zmod_spec (z : ℤ_[p]) : ∥(z - to_zmod z)∥ < 1 :=
+def to_zmod_spec (z : ℤ_[p]) : z - to_zmod z ∈ maximal_ideal ℤ_[p] :=
 begin
-  convert norm_sub_zmod_repr z using 3,
+  convert sub_zmod_repr_mem z using 2,
   dsimp [to_zmod],
   have z_lt := zmod_repr_lt_p z,
   lift z.zmod_repr to ℕ using zmod_repr_nonneg z with n,
@@ -743,7 +736,7 @@ begin
         rcases hcu with ⟨c, rfl⟩,
         obtain rfl := discrete_valuation_ring.unit_mul_pow_congr_unit _ _ _ _ _ hc,
         swap, { exact irreducible_p },
-        rw ← norm_lt_one_iff_dvd,
+        rw [← ideal.mem_span_singleton, ← maximal_ideal_eq_span_p],
         apply to_zmod_spec, },
       { rw [_root_.zero_pow (nat.pos_of_ne_zero hc0)],
         simp only [sub_zero, zmod.cast_zero, mul_zero],
@@ -752,26 +745,6 @@ begin
         apply dvd_pow (dvd_refl _),
         exact hc0, } } }
 end
-
-lemma appr_congr_aux (n : ℕ) (x : ℤ_[p]) (a b : ℤ)
-  (ha : x - a ∈ (ideal.span {p ^ n} : ideal ℤ_[p]))
-  (hb : x - b ∈ (ideal.span {p ^ n} : ideal ℤ_[p])) :
-  (a : zmod (p ^ n)) = b :=
-begin
-  rw [ideal.mem_span_singleton] at ha hb,
-  rw [← sub_eq_zero, ← int.cast_sub,
-      zmod.int_coe_zmod_eq_zero_iff_dvd, int.coe_nat_pow],
-  rw [← dvd_neg, neg_sub] at ha,
-  have := dvd_add ha hb,
-  rwa [sub_eq_add_neg, sub_eq_add_neg, add_assoc, neg_add_cancel_left,
-      ← sub_eq_add_neg, ← int.cast_sub, pow_p_dvd_int_iff] at this,
-end
-
-lemma appr_congr (n : ℕ) (x : ℤ_[p]) (a b : ℕ)
-  (ha : x - a ∈ (ideal.span {p ^ n} : ideal ℤ_[p]))
-  (hb : x - b ∈ (ideal.span {p ^ n} : ideal ℤ_[p])) :
-  (a : zmod (p ^ n)) = b :=
-appr_congr_aux n x a b ha hb
 
 /-- A ring hom from `ℤ_[p]` to `zmod (p^n)`, with underlying function `padic_int.appr n`. -/
 def to_zmod_pow (n : ℕ) : ℤ_[p] →+* zmod (p ^ n) :=

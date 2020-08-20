@@ -449,7 +449,7 @@ begin
   by_cases h : 0 = abs (∥x∥ * ∥y∥),
   { rw [←h, div_zero],
     norm_num },
-  { apply div_le_of_le_mul (lt_of_le_of_ne (ge_iff_le.mp (abs_nonneg (∥x∥ * ∥y∥))) h),
+  { rw div_le_iff' (lt_of_le_of_ne (ge_iff_le.mp (abs_nonneg (∥x∥ * ∥y∥))) h),
     convert abs_inner_le_norm x y using 1,
     rw [abs_mul, abs_of_nonneg (norm_nonneg x), abs_of_nonneg (norm_nonneg y), mul_one] }
 end
@@ -1043,9 +1043,39 @@ begin
   exact λ x hx ho, inner_self_eq_zero.1 (ho x hx)
 end
 
+variables (α)
+
+/-- `submodule.orthogonal` gives a `galois_connection` between
+`submodule ℝ α` and its `order_dual`. -/
+lemma submodule.orthogonal_gc :
+  @galois_connection (submodule ℝ α) (order_dual $ submodule ℝ α) _ _
+    submodule.orthogonal submodule.orthogonal :=
+λ K₁ K₂, ⟨λ h v hv u hu, submodule.inner_left_of_mem_orthogonal hv (h hu),
+          λ h v hv u hu, submodule.inner_left_of_mem_orthogonal hv (h hu)⟩
+
+variables {α}
+
 /-- `K` is contained in `K.orthogonal.orthogonal`. -/
 lemma submodule.le_orthogonal_orthogonal (K : submodule ℝ α) : K ≤ K.orthogonal.orthogonal :=
-λ u hu v hv, submodule.inner_left_of_mem_orthogonal hu hv
+(submodule.orthogonal_gc α).le_u_l _
+
+/-- The inf of two orthogonal subspaces equals the subspace orthogonal
+to the sup. -/
+lemma submodule.inf_orthogonal (K₁ K₂ : submodule ℝ α) :
+  K₁.orthogonal ⊓ K₂.orthogonal = (K₁ ⊔ K₂).orthogonal :=
+(submodule.orthogonal_gc α).l_sup.symm
+
+/-- The inf of an indexed family of orthogonal subspaces equals the
+subspace orthogonal to the sup. -/
+lemma submodule.infi_orthogonal {ι : Type*} (K : ι → submodule ℝ α) :
+  (⨅ i, (K i).orthogonal) = (supr K).orthogonal :=
+(submodule.orthogonal_gc α).l_supr.symm
+
+/-- The inf of a set of orthogonal subspaces equals the subspace
+orthogonal to the sup. -/
+lemma submodule.Inf_orthogonal (s : set $ submodule ℝ α) :
+  (⨅ K ∈ s, submodule.orthogonal K) = (Sup s).orthogonal :=
+(submodule.orthogonal_gc α).l_Sup.symm
 
 /-- If `K` is complete, `K` and `K.orthogonal` span the whole
 space. -/

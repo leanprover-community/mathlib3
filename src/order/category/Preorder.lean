@@ -1,5 +1,6 @@
 /-
-Copyleft 2020 Johan Commelin. No rights reserved.
+Copyright (c) 2020 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
@@ -32,17 +33,18 @@ lemma coe_inj (f g : preorder_hom α β) (h : (f : α → β) = g) : f = g :=
 by { ext, rw h }
 
 /-- The identity function as bundled monotone function. -/
-@[simps] def id : preorder_hom α α :=
+@[simps]
+def id : preorder_hom α α :=
 ⟨id, monotone_id⟩
+
+instance : inhabited (preorder_hom α α) := ⟨id⟩
 
 @[simp] lemma coe_id : (@id α _ : α → α) = id := rfl
 
 /-- The composition of two bundled monotone functions. -/
-@[simps] def comp (g : preorder_hom β γ) (f : preorder_hom α β) : preorder_hom α γ :=
+@[simps]
+def comp (g : preorder_hom β γ) (f : preorder_hom α β) : preorder_hom α γ :=
 ⟨g ∘ f, g.monotone.comp f.monotone⟩
-
-@[simp] lemma coe_comp (g : preorder_hom β γ) (f : preorder_hom α β) :
-  (g.comp f : α → γ) = g ∘ f := rfl
 
 @[simp] lemma comp_id (f : preorder_hom α β) : f.comp id = f :=
 by { ext, refl }
@@ -66,5 +68,7 @@ attribute [derive [has_coe_to_sort, large_category, concrete_category]] Preorder
 def of (α : Type*) [preorder α] : Preorder := bundled.of α
 
 instance : inhabited Preorder := ⟨of punit⟩
+
+instance (α : Preorder) : preorder α := α.str
 
 end Preorder

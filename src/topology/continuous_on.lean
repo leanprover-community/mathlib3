@@ -256,6 +256,11 @@ lemma filter.eventually_eq.eq_of_nhds_within {s : set α} {f g : α → β} {a :
   (h : f =ᶠ[𝓝[s] a] g) (hmem : a ∈ s) : f a = g a :=
 h.self_of_nhds_within hmem
 
+lemma eventually_nhds_within_of_eventually_nhds {α : Type*} [topological_space α]
+  {s : set α} {a : α} {p : α → Prop} (h : ∀ᶠ x in 𝓝 a, p x) :
+  ∀ᶠ x in 𝓝[s] a, p x :=
+mem_nhds_within_of_mem_nhds h
+
 /-
 nhds_within and subtypes
 -/
@@ -665,7 +670,7 @@ lemma continuous_within_at_of_not_mem_closure {f : α → β} {s : set α} {x : 
   x ∉ closure s → continuous_within_at f s x :=
 begin
   intros hx,
-  rw [mem_closure_iff_nhds_within_ne_bot, ne_bot, classical.not_not] at hx,
+  rw [mem_closure_iff_nhds_within_ne_bot, ne_bot, not_not] at hx,
   rw [continuous_within_at, hx],
   exact tendsto_bot,
 end

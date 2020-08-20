@@ -274,9 +274,11 @@ do tt ← is_prop d.type | return none,
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
 
 /-- Checks whether a declaration is `Prop`-valued and takes a `decidable* _` hypothesis that is unused
-elsewhere in the type. In this case, that hypothesis can be replaced with `classical` in the proof. -/
+elsewhere in the type. In this case, that hypothesis can be replaced with `classical` in the proof.
+Theorems in the `decidable` namespace are exempt from the check. -/
 private meta def decidable_classical (d : declaration) : tactic (option string) :=
 do tt ← is_prop d.type | return none,
+   ff ← pure $ (`decidable).is_prefix_of d.to_name | return none,
    (binders, _) ← get_pi_binders_dep d.type,
    let deceq_binders := binders.filter $ λ pr, pr.2.type.is_app_of `decidable_eq
      ∨ pr.2.type.is_app_of `decidable_pred ∨ pr.2.type.is_app_of `decidable_rel
@@ -296,12 +298,7 @@ do tt ← is_prop d.type | return none,
 /- The file `logic/basic.lean` emphasizes the differences between what holds under classical
 and non-classical logic. It makes little sense to make all these lemmas classical, so we add them
 to the list of lemmas which are not checked by the linter `decidable_classical`. -/
-attribute [nolint decidable_classical] dec_em by_contradiction not_not of_not_not of_not_imp
-not.imp_symm not_imp_comm or_iff_not_imp_left or_iff_not_imp_right not_imp_not not_or_of_imp
-imp_iff_not_or imp_or_distrib imp_or_distrib' not_imp peirce not_iff_not not_iff_comm not_iff
-iff_not_comm iff_iff_and_or_not_and_not not_and_not_right not_and_distrib not_and_distrib'
-or_iff_not_and_not and_iff_not_or_not not_forall not_forall_not forall_or_distrib_left
-forall_or_distrib_right not_ball
+attribute [nolint decidable_classical] dec_em not.decidable_imp_symm
 
 private meta def has_coe_to_fun_linter (d : declaration) : tactic (option string) :=
 retrieve $ do

@@ -47,9 +47,9 @@ add_decl_doc has_Sup.Sup
 add_decl_doc has_Inf.Inf
 
 /-- Indexed supremum -/
-def supr [has_Sup α] (s : ι → α) : α := Sup (range s)
+def supr [has_Sup α] {ι} (s : ι → α) : α := Sup (range s)
 /-- Indexed infimum -/
-def infi [has_Inf α] (s : ι → α) : α := Inf (range s)
+def infi [has_Inf α] {ι} (s : ι → α) : α := Inf (range s)
 
 @[priority 50] instance has_Inf_to_nonempty (α) [has_Inf α] : nonempty α := ⟨Inf ∅⟩
 @[priority 50] instance has_Sup_to_nonempty (α) [has_Sup α] : nonempty α := ⟨Sup ∅⟩
@@ -256,7 +256,6 @@ iff.intro
     let ⟨a, ha, h⟩ := h _ h' in
     lt_irrefl a $ lt_of_le_of_lt (le_Sup ha) h)
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma Inf_eq_bot : Inf s = ⊥ ↔ (∀b>⊥, ∃a∈s, a < b) :=
 @Sup_eq_top (order_dual α) _ _
 
@@ -268,7 +267,7 @@ Inf_lt_iff.trans exists_range_iff
 
 end complete_linear_order
 
-/- 
+/-
 ### supr & infi
 -/
 
@@ -829,7 +828,6 @@ variables [complete_linear_order α]
 lemma supr_eq_top (f : ι → α) : supr f = ⊤ ↔ (∀b<⊤, ∃i, b < f i) :=
 by simp only [← Sup_range, Sup_eq_top, set.exists_range_iff]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma infi_eq_bot (f : ι → α) : infi f = ⊥ ↔ (∀b>⊥, ∃i, f i < b) :=
 by simp only [← Inf_range, Inf_eq_bot, set.exists_range_iff]
 

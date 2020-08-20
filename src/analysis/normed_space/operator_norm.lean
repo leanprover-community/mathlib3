@@ -252,8 +252,8 @@ theorem le_op_norm : ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
 classical.by_cases
   (λ heq : x = 0, by { rw heq, simp })
   (λ hne, have hlt : 0 < ∥x∥, from norm_pos_iff.2 hne,
-    le_mul_of_div_le hlt ((le_Inf _ bounds_nonempty bounds_bdd_below).2
-    (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (by { rw mul_comm, apply hc }))))
+    (div_le_iff hlt).mp ((le_Inf _ bounds_nonempty bounds_bdd_below).2
+    (λ c ⟨_, hc⟩, (div_le_iff hlt).mpr $ by { apply hc })))
 
 theorem le_op_norm_of_le {c : ℝ} {x} (h : ∥x∥ ≤ c) : ∥f x∥ ≤ ∥f∥ * c :=
 le_trans (f.le_op_norm x) (mul_le_mul_of_nonneg_left h f.op_norm_nonneg)
@@ -264,9 +264,7 @@ lipschitz_with.of_dist_le_mul $ λ x y,
   by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }
 
 lemma ratio_le_op_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
-(or.elim (lt_or_eq_of_le (norm_nonneg _))
-  (λ hlt, div_le_of_le_mul hlt (by { rw mul_comm, apply le_op_norm }))
-  (λ heq, by { rw [←heq, div_zero], apply op_norm_nonneg }))
+div_le_iff_of_nonneg_of_le (norm_nonneg _) f.op_norm_nonneg (le_op_norm _ _)
 
 /-- The image of the unit ball under a continuous linear map is bounded. -/
 lemma unit_le_op_norm : ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
@@ -649,13 +647,13 @@ variables {𝕜' : Type*} [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 /-- `𝕜`-linear continuous function induced by a `𝕜'`-linear continuous function when `𝕜'` is a
 normed algebra over `𝕜`. -/
 def restrict_scalars (f : E' →L[𝕜'] F') :
-  (module.restrict_scalars 𝕜 𝕜' E') →L[𝕜] (module.restrict_scalars 𝕜 𝕜' F') :=
+  (semimodule.restrict_scalars 𝕜 𝕜' E') →L[𝕜] (semimodule.restrict_scalars 𝕜 𝕜' F') :=
 { cont := f.cont,
   ..linear_map.restrict_scalars 𝕜 (f.to_linear_map) }
 
 @[simp, norm_cast] lemma restrict_scalars_coe_eq_coe (f : E' →L[𝕜'] F') :
   (f.restrict_scalars 𝕜 :
-    (module.restrict_scalars 𝕜 𝕜' E') →ₗ[𝕜] (module.restrict_scalars 𝕜 𝕜' F')) =
+    (semimodule.restrict_scalars 𝕜 𝕜' E') →ₗ[𝕜] (semimodule.restrict_scalars 𝕜 𝕜' F')) =
   (f : E' →ₗ[𝕜'] F').restrict_scalars 𝕜 := rfl
 
 @[simp, norm_cast squash] lemma restrict_scalars_coe_eq_coe' (f : E' →L[𝕜'] F') :
@@ -668,7 +666,7 @@ section extend_scalars
 variables {𝕜' : Type*} [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 {F' : Type*} [normed_group F'] [normed_space 𝕜' F']
 
-instance has_scalar_extend_scalars : has_scalar 𝕜' (E →L[𝕜] (module.restrict_scalars 𝕜 𝕜' F')) :=
+instance has_scalar_extend_scalars : has_scalar 𝕜' (E →L[𝕜] (semimodule.restrict_scalars 𝕜 𝕜' F')) :=
 { smul := λ c f, (c • f.to_linear_map).mk_continuous (∥c∥ * ∥f∥)
 begin
   assume x,
@@ -677,7 +675,7 @@ begin
   ... = ∥c∥ * ∥f∥ * ∥x∥ : (mul_assoc _ _ _).symm
 end }
 
-instance module_extend_scalars : module 𝕜' (E →L[𝕜] (module.restrict_scalars 𝕜 𝕜' F')) :=
+instance module_extend_scalars : module 𝕜' (E →L[𝕜] (semimodule.restrict_scalars 𝕜 𝕜' F')) :=
 { smul_zero := λ _, ext $ λ _, smul_zero _,
   zero_smul := λ _, ext $ λ _, zero_smul _ _,
   one_smul  := λ _, ext $ λ _, one_smul _ _,
@@ -685,19 +683,19 @@ instance module_extend_scalars : module 𝕜' (E →L[𝕜] (module.restrict_sca
   add_smul  := λ _ _ _, ext $ λ _, add_smul _ _ _,
   smul_add  := λ _ _ _, ext $ λ _, smul_add _ _ _ }
 
-instance normed_space_extend_scalars : normed_space 𝕜' (E →L[𝕜] (module.restrict_scalars 𝕜 𝕜' F')) :=
+instance normed_space_extend_scalars : normed_space 𝕜' (E →L[𝕜] (semimodule.restrict_scalars 𝕜 𝕜' F')) :=
 { norm_smul_le := λ c f,
     linear_map.mk_continuous_norm_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _ }
 
 /-- When `f` is a continuous linear map taking values in `S`, then `λb, f b • x` is a
 continuous linear map. -/
-def smul_algebra_right (f : E →L[𝕜] 𝕜') (x : module.restrict_scalars 𝕜 𝕜' F') :
-  E →L[𝕜] (module.restrict_scalars 𝕜 𝕜' F') :=
+def smul_algebra_right (f : E →L[𝕜] 𝕜') (x : semimodule.restrict_scalars 𝕜 𝕜' F') :
+  E →L[𝕜] (semimodule.restrict_scalars 𝕜 𝕜' F') :=
 { cont := by continuity!,
   .. smul_algebra_right f.to_linear_map x }
 
 @[simp] theorem smul_algebra_right_apply
-  (f : E →L[𝕜] 𝕜') (x : module.restrict_scalars 𝕜 𝕜' F') (c : E) :
+  (f : E →L[𝕜] 𝕜') (x : semimodule.restrict_scalars 𝕜 𝕜' F') (c : E) :
   smul_algebra_right f x c = f c • x := rfl
 
 end extend_scalars
@@ -827,6 +825,10 @@ begin
     have : (coord 𝕜 x h) y = (to_span_nonzero_singleton 𝕜 x h).symm y := rfl,
     rw this, apply homothety_inverse, exact hx, exact to_span_nonzero_singleton_homothety 𝕜 x h, }
 end
+
+lemma coord_self (x : E) (h : x ≠ 0) :
+  (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : submodule.span 𝕜 ({x} : set E)) = 1 :=
+linear_equiv.coord_self 𝕜 E x h
 
 variable (E)
 

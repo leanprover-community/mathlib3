@@ -30,10 +30,11 @@ namespace tactic
 `new_g` to rearrange the dependent goals to either drop them, push them to the end of the list
 or leave them in place. The `bool` values in `gs` indicates whether the goal is dependent or not. -/
 def reorder_goals {α} (gs : list (bool × α)) : new_goals → list α
-| new_goals.non_dep_first := (gs.filter $ coe ∘ bnot ∘ prod.fst).reverse.map prod.snd ++
-  (gs.filter $ coe ∘ prod.fst).reverse.map prod.snd
-| new_goals.non_dep_only := (gs.reverse.filter (coe ∘ bnot ∘ prod.fst)).map prod.snd
-| new_goals.all := gs.reverse.map prod.snd
+| new_goals.non_dep_first :=
+  let ⟨dep,non_dep⟩ := gs.partition (coe ∘ prod.fst) in
+  non_dep.map prod.snd ++ dep.map prod.snd
+| new_goals.non_dep_only := (gs.filter (coe ∘ bnot ∘ prod.fst)).map prod.snd
+| new_goals.all := gs.map prod.snd
 
 private meta def has_opt_auto_param_inst_for_apply (ms : list (name × expr)) : tactic bool :=
 ms.mfoldl
@@ -61,7 +62,7 @@ focus1 (do {
      unify t tgt,
      exact e,
      gs' ← get_goals,
-     let r := reorder_goals gs cfg.new_goals,
+     let r := reorder_goals gs.reverse cfg.new_goals,
      set_goals (gs' ++ r.map prod.snd),
      return r }) <|>
 do (expr.pi n bi d b) ← infer_type e >>= whnf | apply_core e cfg,

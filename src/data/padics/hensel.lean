@@ -111,7 +111,7 @@ calc T = ∥F.eval a∥ / ∥((F.derivative.eval a)^2 : ℚ_[p])∥ : normed_fie
    ... = ∥F.eval a∥ / ∥(F.derivative.eval a)∥^2 : by simp [pow, monoid.pow]
 
 private lemma T_lt_one : T < 1 :=
-let h := (div_lt_one_iff_lt deriv_sq_norm_pos).2 hnorm in
+let h := (div_lt_one deriv_sq_norm_pos).2 hnorm in
 by rw T_def; apply h
 
 private lemma T_pow {n : ℕ} (hn : n > 0) : T ^ n < 1 :=
@@ -367,10 +367,9 @@ tendsto_nhds_unique newton_seq_dist_tendsto' newton_seq_dist_tendsto
 
 private lemma soln_dist_to_a_lt_deriv : ∥soln - a∥ < ∥F.derivative.eval a∥ :=
 begin
-  rw soln_dist_to_a,
-  apply div_lt_of_pos_of_lt_mul,
-  { apply deriv_norm_pos; assumption },
-  { rwa _root_.pow_two at hnorm }
+  rw [soln_dist_to_a, div_lt_iff],
+  { rwa _root_.pow_two at hnorm },
+  { apply deriv_norm_pos, assumption }
 end
 
 private lemma eval_soln : F.eval soln = 0 :=

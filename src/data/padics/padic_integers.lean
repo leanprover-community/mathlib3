@@ -431,7 +431,7 @@ lemma p_nonnunit : (p : ℤ_[p]) ∈ nonunits ℤ_[p] :=
 have (p : ℝ)⁻¹ < 1, from inv_lt_one $ by exact_mod_cast nat.prime.one_lt ‹_›,
 by simp [this]
 
-lemma maximal_ideal_eq_span_p : local_ring.maximal_ideal ℤ_[p] = ideal.span {p} :=
+lemma maximal_ideal_eq_span_p : maximal_ideal ℤ_[p] = ideal.span {p} :=
 begin
   apply le_antisymm,
   { intros x hx,
@@ -675,7 +675,7 @@ def to_zmod : ℤ_[p] →+* zmod p :=
     intros x y,
     rw [exists_mem_range_congr (x * y) _ (zmod_repr x * zmod_repr y), int.cast_mul],
     { exact sub_zmod_repr_mem _ },
-    { let I : ideal ℤ_[p] := local_ring.maximal_ideal ℤ_[p],
+    { let I : ideal ℤ_[p] := maximal_ideal ℤ_[p],
       have A : x * (y - zmod_repr y) ∈ I := I.mul_mem_left (sub_zmod_repr_mem _),
       have B : (x - zmod_repr x) * (zmod_repr y) ∈ I := I.mul_mem_right (sub_zmod_repr_mem _),
       convert I.add_mem A B,
@@ -697,6 +697,20 @@ begin
   { have : 1 < p, from nat.prime.one_lt ‹_›, omega }
 end
 
+lemma ker_to_zmod : (to_zmod : ℤ_[p] →+* zmod p).ker = maximal_ideal ℤ_[p] :=
+begin
+  ext x,
+  rw ring_hom.mem_ker,
+  split,
+  { intro h,
+    simpa only [h, zmod.cast_zero, sub_zero] using to_zmod_spec x, },
+  { intro h,
+    rw ← sub_zero x at h,
+    dsimp [to_zmod],
+    rw [exists_mem_range_congr x _ 0 _ h, int.cast_zero],
+    apply sub_zmod_repr_mem, }
+end
+
 /-- `appr n x` gives a value `v : ℕ` such that `↑v : ℤ_p` are equivalent up to `p^n`.
 See `appr_spec`. -/
 noncomputable def appr : ℤ_[p] → ℕ → ℕ
@@ -708,6 +722,26 @@ if hy : y = 0 then
 else
   let u := unit_coeff hy in
   appr x n + p ^ n * (to_zmod ((u : ℤ_[p]) * (p ^ (y.valuation - n).nat_abs))).val
+
+lemma appr_lt (x : ℤ_[p]) (n : ℕ) : x.appr n < p ^ n :=
+begin
+  induction n with n ih generalizing x,
+  { simp only [appr, succ_pos', nat.pow_zero], },
+  simp only [appr, ring_hom.map_nat_cast, zmod.cast_self, ring_hom.map_pow, int.nat_abs, ring_hom.map_mul],
+  have hp : p ^ n < p ^ (n + 1),
+  { simp [← nat.pow_eq_pow],
+    apply pow_lt_pow (nat.prime.one_lt ‹_›) (lt_add_one n), },
+  split_ifs,
+  { apply lt_trans (ih _) hp, },
+  { calc _ < p ^ n + p ^ n * (p - 1) : _
+    ... = p ^ (n + 1) : _,
+    { apply add_lt_add_of_lt_of_le (ih _),
+      apply nat.mul_le_mul_left,
+      apply le_pred_of_lt,
+      apply zmod.val_lt, },
+    { rw [nat.mul_sub_left_distrib, mul_one, ← nat.pow_succ],
+      apply nat.add_sub_cancel' (le_of_lt hp), } }
+end
 
 lemma appr_spec (n : ℕ) : ∀ (x : ℤ_[p]), x - appr x n ∈ (ideal.span {p^n} : ideal ℤ_[p]) :=
 begin
@@ -781,6 +815,24 @@ end
       convert I.add_mem A B,
       rw cast_mul, ring, }
   end, }
+
+lemma ker_to_zmod_pow (n : ℕ) : (to_zmod_pow n : ℤ_[p] →+* zmod (p ^ n)).ker = ideal.span {p ^ n} :=
+begin
+  ext x,
+  rw ring_hom.mem_ker,
+  split,
+  { intro h,
+    suffices : x.appr n = 0,
+    { convert appr_spec n x, simp only [this, sub_zero, cast_zero], },
+    dsimp [to_zmod_pow] at h,
+    rw zmod.nat_coe_zmod_eq_zero_iff_dvd at h,
+    apply eq_zero_of_dvd_of_lt h (appr_lt _ _),  },
+  { intro h,
+    rw ← sub_zero x at h,
+    dsimp [to_zmod_pow],
+    rw [appr_congr n x _ 0 _ h, cast_zero],
+    apply appr_spec, }
+end
 
 end padic_int
 

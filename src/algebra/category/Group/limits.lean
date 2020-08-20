@@ -26,9 +26,9 @@ universe u
 
 noncomputable theory
 
-namespace Group
-
 variables {J : Type u} [small_category J]
+
+namespace Group
 
 @[to_additive]
 instance group_obj (F : J ⥤ Group) (j) :
@@ -120,8 +120,6 @@ instance forget_preserves_limits : preserves_limits (forget Group) :=
 end Group
 
 namespace CommGroup
-
-variables {J : Type u} [small_category J]
 
 @[to_additive]
 instance comm_group_obj (F : J ⥤ CommGroup) (j) :
@@ -216,6 +214,14 @@ end CommGroup
 
 namespace AddCommGroup
 
+-- PROJECT:
+-- it would be nice if this were available just by virtue of `forget AddCommGroup`
+-- preserving limits.
+@[simp]
+lemma lift_π_apply (F : J ⥤ AddCommGroup) (s : cone F) (j : J) (x : s.X) :
+  limit.π F j (limit.lift F s x) = s.π.app j x :=
+congr_fun (congr_arg (λ f : s.X ⟶ F.obj j, (f : s.X → F.obj j)) (limit.lift_π s j)) x
+
 /--
 The categorical kernel of a morphism in `AddCommGroup`
 agrees with the usual group-theoretical kernel.
@@ -229,35 +235,41 @@ def kernel_iso_ker {G H : AddCommGroup} (f : G ⟶ H) :
       change (kernel.ι f) g ∈ f.ker,
       simp [add_monoid_hom.mem_ker],
     end⟩,
-    map_zero' := rfl,
-    map_add' := λ g g', rfl, },
+    map_zero' := by { ext, simp, },
+    map_add' := λ g g', by { ext, simp, }, },
   inv := kernel.lift f (add_subgroup.subtype f.ker) (by tidy),
-  hom_inv_id' := by { apply equalizer.hom_ext _, simp, refl, },
+  hom_inv_id' := by { apply equalizer.hom_ext _, ext, simp, },
   inv_hom_id' :=
   begin
     apply AddCommGroup.ext,
     simp only [add_monoid_hom.coe_mk, coe_id, coe_comp],
     rintro ⟨x, mem⟩,
-    simp, refl,
+    simp,
   end, }.
 
 @[simp]
 lemma kernel_iso_ker_hom_comp_subtype {G H : AddCommGroup} (f : G ⟶ H) :
-  (kernel_iso_ker f).hom ≫ add_subgroup.subtype f.ker = kernel.ι f := rfl
+  (kernel_iso_ker f).hom ≫ add_subgroup.subtype f.ker = kernel.ι f :=
+begin
+  ext,
+  simp [kernel_iso_ker],
+end
 
 @[simp]
 lemma kernel_iso_ker_inv_comp_ι {G H : AddCommGroup} (f : G ⟶ H) :
-  (kernel_iso_ker f).inv ≫ kernel.ι f = add_subgroup.subtype f.ker := rfl
+  (kernel_iso_ker f).inv ≫ kernel.ι f = add_subgroup.subtype f.ker :=
+begin
+  ext,
+  simp [kernel_iso_ker],
+end
 
 /--
 The categorical kernel inclusion for `f : G ⟶ H`, as an object over `G`,
 agrees with the `subtype` map.
 -/
-@[simps]
+@[simps {rhs_md:=semireducible}]
 def kernel_iso_ker_over {G H : AddCommGroup.{u}} (f : G ⟶ H) :
   over.mk (kernel.ι f) ≅ @over.mk _ _ G (AddCommGroup.of f.ker) (add_subgroup.subtype f.ker) :=
--- TODO this would be cleaner if we made a `over.iso_mk`.
-{ hom := over.hom_mk (kernel_iso_ker f).hom (by simp),
-  inv := over.hom_mk (kernel_iso_ker f).inv (by simp), }.
+over.iso_mk (kernel_iso_ker f) (by simp)
 
 end AddCommGroup

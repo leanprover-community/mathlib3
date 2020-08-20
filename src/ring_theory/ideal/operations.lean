@@ -811,6 +811,8 @@ by rw [ker, ideal.mem_comap, submodule.mem_bot]
 
 lemma ker_eq : ((ker f) : set R) = is_add_group_hom.ker f := rfl
 
+lemma ker_eq_comap_bot (f : R →+* S) : f.ker = ideal.comap f ⊥ := rfl
+
 lemma injective_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
 by rw [submodule.ext'_iff, ker_eq]; exact is_add_group_hom.injective_iff_trivial_ker f
 
@@ -840,9 +842,6 @@ by rw [ring_hom.ker, eq_bot_iff, map_le_iff_le_comap]
 
 @[simp] lemma mk_ker {I : ideal R} : (quotient.mk I).ker = I :=
 by ext; rw [ring_hom.ker, mem_comap, submodule.mem_bot, quotient.eq_zero_iff_mem]
-
-lemma ker_eq_comap_bot (f : R →+* S) : f.ker = comap f ⊥ :=
-by ext; rw [ring_hom.mem_ker, mem_comap, submodule.mem_bot]
 
 lemma ker_le_comap {K : ideal S} (f : R →+* S) : f.ker ≤ comap f K :=
 λ x hx, mem_comap.2 (((ring_hom.mem_ker f).1 hx).symm ▸ K.zero_mem)
@@ -887,7 +886,7 @@ begin
     exact (H.right this).imp (λ h, ha ▸ mem_map_of_mem h) (λ h, hb ▸ mem_map_of_mem h) }
 end
 
-theorem map_radical_of_surjective {f : R →+* S} (hf : function.surjective f) {I : ideal R} :
+theorem map_radical_of_surjective {f : R →+* S} (hf : function.surjective f) {I : ideal R}
   (h : ring_hom.ker f ≤ I) : map f (I.radical) = (map f I).radical :=
 begin
   rw [radical_eq_Inf, radical_eq_Inf],

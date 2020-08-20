@@ -179,7 +179,7 @@ begin
     simpa using h },
   { intro h,
     replace h := congr_arg (comap (quotient.mk I)) h,
-    rw [comap_jacobson_of_surjective hf, ← ker_eq_comap_bot (quotient.mk I)] at h,
+    rw [comap_jacobson_of_surjective hf, ← (quotient.mk I).ker_eq_comap_bot] at h,
     simpa using h }
 end
 
@@ -197,7 +197,7 @@ begin
     simpa using this },
   { intro h,
     have := congr_arg (comap (quotient.mk I)) h,
-    rw [comap_radical, comap_jacobson_of_surjective hf, ← ker_eq_comap_bot (quotient.mk I)] at this,
+    rw [comap_radical, comap_jacobson_of_surjective hf, ← (quotient.mk I).ker_eq_comap_bot] at this,
     simpa using this }
 end
 

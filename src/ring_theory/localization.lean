@@ -720,7 +720,6 @@ In practice, this ideal differs only in that the carrier set is defined explicit
 This definition is only meant to be used in proving `mem_map_to_map_iff`,
 and any proof that needs to refer to the explicit carrier set should use that theorem. -/
 private def to_map_ideal (I : ideal R) : ideal S :=
-private def to_map_ideal (I : ideal R) : ideal S :=
 { carrier := { z : S | ∃ x : I × M, z * (f.to_map x.2) = f.to_map x.1},
   zero_mem' := ⟨⟨0, 1⟩, by simp⟩,
   add_mem' := begin
@@ -749,7 +748,7 @@ begin
     obtain ⟨y, hy⟩ := hz,
     use ⟨⟨⟨y, hy.left⟩, 1⟩, by simp [hy.right]⟩ },
   { rintros ⟨⟨a, s⟩, h⟩,
-    rw [ideal.mem_iff_mul_unit_mem _ (map_units f s), mul_comm],
+    rw [← ideal.unit_mul_mem_iff_mem _ (map_units f s), mul_comm],
     exact h.symm ▸ ideal.mem_map_of_mem a.2 }
 end
 

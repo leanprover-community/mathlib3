@@ -17,7 +17,6 @@ notation `transcendental` x := ¬(is_algebraic ℤ x)
 -/
 
 def liouville_number (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ, b > 1 ∧ 0 < abs(x - a / b) ∧ abs(x - a / b) < 1/b^n
-def irrational' (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
 
 -- x ↦ |f(x)| is continuous
 theorem abs_f_eval_around_α_continuous (f : ℝ[X]) (α : ℝ) : continuous_on (λ x : ℝ, (abs (f.eval x))) (set.Icc (α-1) (α+1)) :=

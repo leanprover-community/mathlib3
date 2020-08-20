@@ -1,11 +1,14 @@
 import ring_theory.algebraic
 import analysis.transcendental.e_transcendental_lemmas
+import analysis.transcendental.small_lemmas
 
 noncomputable theory
 open small_lemmas e_transcendental_lemmas
 open_locale classical
 open_locale big_operators
 notation α`[X]` := polynomial α
+
+-- #check irrational'
 
 def e : ℝ := real.exp 1
 
@@ -1242,8 +1245,6 @@ begin
 
   exact e_transcendental alg_e,
 end
-
-def irrational' (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
 
 theorem zero_algebraic : is_algebraic ℤ (0 : ℝ) :=
 begin

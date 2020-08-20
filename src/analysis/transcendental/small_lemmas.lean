@@ -265,4 +265,6 @@ begin
   norm_cast, exact bot_le,
 end
 
+def irrational' (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
+
 end small_lemmas

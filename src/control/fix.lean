@@ -20,9 +20,9 @@ class has_fix (α : Type*) :=
 
 open omega_complete_partial_order
 
-/--  -/
+/-- Laws for fixed point operator -/
 class lawful_fix (α : Type*) [has_fix α] [omega_complete_partial_order α] :=
-(fix_eq : ∀ {f : α → α}, continuous' f → has_fix.fix f = f (has_fix.fix f))
+(fix_eq : ∀ {f : α →𝒄 α}, has_fix.fix f = f (has_fix.fix f))
 
 namespace roption
 
@@ -146,14 +146,14 @@ end
 
 lemma le_f_of_mem_approx {x} (hx : x ∈ approx_chain hf) : x ≤ f x :=
 begin
-  revert hx, simp [approx_chain,stream.mem_def],
+  revert hx, simp [(∈)],
   intros i hx, subst x,
   apply approx_mono' hf
 end
 
 lemma f_mem_approx_chain {x} (hx : x ∈ approx_chain hf) : f x ∈ approx_chain hf :=
 begin
-  revert hx, simp [approx_chain,stream.mem_def],
+  revert hx, simp [(∈)],
   intros i hx, subst hx, exact ⟨i.succ,rfl⟩
 end
 
@@ -180,13 +180,13 @@ begin
   { intro x, cases min_fix hf x with i hx,
     transitivity' approx f i.succ x,
     { transitivity', apply hx, apply approx_mono' hf },
-    apply le_ωSup _ _ _, dsimp [approx],
+    apply le_ωSup_of_mem _ _ _, dsimp [approx],
     rw chain.mem_map_iff,
     refine ⟨approx f i.succ,_,rfl⟩,
     apply approx_mem_approx_chain },
   { apply ωSup_le _ _ _,
     simp [mem_map_iff,approx_chain,stream.mem_def],
-    intros y x, revert y, simp, apply max_fix hf },
+    intros y x, apply max_fix hf },
 end
 
 @[main_declaration]
@@ -195,7 +195,7 @@ begin
   rw fix_eq_ωSup hf,
   apply ωSup_le _ _ _,
   simp [approx_chain,stream.mem_def,stream.nth],
-  intros y i, revert y, simp,
+  intros i,
   induction i, dsimp [fix.approx], apply' bot_le,
   transitivity' f X, apply hf i_ih,
   apply hX

@@ -140,14 +140,12 @@ end relation
 lemma is_cobounded_le_of_bot [order_bot α] {f : filter α} : f.is_cobounded (≤) :=
 ⟨⊥, assume a h, bot_le⟩
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma is_cobounded_ge_of_top [order_top α] {f : filter α} : f.is_cobounded (≥) :=
 ⟨⊤, assume a h, le_top⟩
 
 lemma is_bounded_le_of_top [order_top α] {f : filter α} : f.is_bounded (≤) :=
 ⟨⊤, eventually_of_forall $ λ _, le_top⟩
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma is_bounded_ge_of_bot [order_bot α] {f : filter α} : f.is_bounded (≥) :=
 ⟨⊥, eventually_of_forall $ λ _, bot_le⟩
 
@@ -157,7 +155,6 @@ lemma is_bounded_under_sup [semilattice_sup α] {f : filter β} {u v : β → α
   ⟨bu ⊔ bv, show ∀ᶠ x in f, u x ⊔ v x ≤ bu ⊔ bv,
     by filter_upwards [hu, hv] assume x, sup_le_sup⟩
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma is_bounded_under_inf [semilattice_inf α] {f : filter β} {u v : β → α} :
   f.is_bounded_under (≥) u → f.is_bounded_under (≥) v → f.is_bounded_under (≥) (λa, u a ⊓ v a)
 | ⟨bu, (hu : ∀ᶠ x in f, u x ≥ bu)⟩ ⟨bv, (hv : ∀ᶠ x in f, v x ≥ bv)⟩ :=
@@ -330,7 +327,6 @@ theorem limsup_eq_infi_supr {f : filter β} {u : β → α} : f.limsup u = ⨅ s
 (f.basis_sets.map u).Limsup_eq_infi_Sup.trans $
   by simp only [Sup_image, id]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma limsup_eq_infi_supr_of_nat {u : ℕ → α} : limsup at_top u = ⨅n:ℕ, ⨆i≥n, u i :=
 (at_top_basis.map u).Limsup_eq_infi_Sup.trans $
   by simp only [Sup_image, infi_const]; refl
@@ -343,7 +339,6 @@ of the supremum of the function over `s` -/
 theorem liminf_eq_supr_infi {f : filter β} {u : β → α} : f.liminf u = ⨆ s ∈ f, ⨅ a ∈ s, u a :=
 @limsup_eq_infi_supr (order_dual α) β _ _ _
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma liminf_eq_supr_infi_of_nat {u : ℕ → α} : liminf at_top u = ⨆n:ℕ, ⨅i≥n, u i :=
 @limsup_eq_infi_supr_of_nat (order_dual α) _ u
 

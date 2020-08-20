@@ -68,7 +68,7 @@ lemma degree_eq_bot : degree p = ⊥ ↔ p = 0 :=
 
 lemma degree_eq_nat_degree (hp : p ≠ 0) : degree p = (nat_degree p : with_bot ℕ) :=
 let ⟨n, hn⟩ :=
-  classical.not_forall.1 (mt option.eq_none_iff_forall_not_mem.2 (mt degree_eq_bot.1 hp)) in
+  not_forall.1 (mt option.eq_none_iff_forall_not_mem.2 (mt degree_eq_bot.1 hp)) in
 have hn : degree p = some n := not_not.1 hn,
 by rw [nat_degree, hn]; refl
 
@@ -76,7 +76,7 @@ lemma degree_eq_iff_nat_degree_eq {p : polynomial R} {n : ℕ} (hp : p ≠ 0) :
   p.degree = n ↔ p.nat_degree = n :=
 by rw [degree_eq_nat_degree hp, with_bot.coe_eq_coe]
 
-lemma degree_eq_iff_nat_degree_eq_of_pos {p : polynomial R} {n : ℕ} (hn : n > 0) :
+lemma degree_eq_iff_nat_degree_eq_of_pos {p : polynomial R} {n : ℕ} (hn : 0 < n) :
   p.degree = n ↔ p.nat_degree = n :=
 begin
   split,

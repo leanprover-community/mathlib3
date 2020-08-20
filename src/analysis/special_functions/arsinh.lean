@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Arthur, Chris Hughes, Shing Tak Lam
 -/
 import analysis.special_functions.trigonometric
-
-open real
 noncomputable theory
 
 /-!
@@ -26,9 +24,10 @@ inverse, arsinh.
 arsinh, arcsinh, argsinh, asinh, sinh injective, sinh bijective, sinh surjective
 -/
 
+namespace real
 
 /-- `arsinh` is defined using a logarithm, `arsinh x = log (x + sqrt(1 + x^2))`. -/
-def arsinh (x : ℝ) := log (x + sqrt (1 + x^2))
+@[pp_nodot] def arsinh (x : ℝ) := log (x + sqrt (1 + x^2))
 
 /-- `sinh` is injective, `∀ a b, sinh a = sinh b → a = b`. -/
 lemma sinh_injective : function.injective sinh := sinh_strict_mono.injective
@@ -78,3 +77,5 @@ end
 /-- `arsinh` is the left inverse of `sinh`. -/
 lemma arsinh_sinh (x : ℝ) : arsinh (sinh x) = x :=
 function.right_inverse_of_injective_of_left_inverse sinh_injective sinh_arsinh x
+
+end real

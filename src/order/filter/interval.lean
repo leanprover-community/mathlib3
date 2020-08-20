@@ -16,7 +16,9 @@ below `Ixx` is one of `Icc`, `Ico`, `Ioc`, and `Ioo`. We define `filter.tendsto_
 to be a typeclass representing this property.
 
 The instances provide the best `l₂` for a given `l₁`. In many cases `l₁ = l₂` but sometimes we can
-drop an endpoint from an interval: e.g., we prove `tendsto_Ixx_class Ico (Iic a) (Iio a)`.
+drop an endpoint from an interval: e.g., we prove `tendsto_Ixx_class Ico (𝓟 $ Iic a) (𝓟 $ Iio a)`,
+i.e., if `u₁ n` and `u₂ n` belong eventually to `Iic a`, then the interval `Ico (u₁ n) (u₂ n)` is
+eventually included in `Iio a`.
 
 The next table shows “output” filters `l₂` for different values of `Ixx` and `l₁`. The instances
 that need topology are defined in `topology/algebra/ordered`.
@@ -49,10 +51,14 @@ variables [preorder α]
 namespace filter
 
 /-- A pair of filters `l₁`, `l₂` has `tendsto_Ixx_class Ixx` property if `Ixx a b` tends to
-`l₂.lift' powerset` as `a` and `b` tend to `l₁`. In all instances `Ixx` is one of `Icc`,
-`Ico`, `Ioc`, or `Ioo`. The instances provide the best `l₂` for a given `l₁`. In many cases `l₁ = l₂`
-but sometimes we can drop an endpoint from an interval: e.g., we prove
-`tendsto_Ixx_class Ico (Iic a) (Iio a)`. -/
+`l₂.lift' powerset` as `a` and `b` tend to `l₁`. In all instances `Ixx` is one of `Icc`, `Ico`,
+`Ioc`, or `Ioo`. The instances provide the best `l₂` for a given `l₁`. In many cases `l₁ = l₂` but
+sometimes we can drop an endpoint from an interval: e.g., we prove `tendsto_Ixx_class Ico (𝓟 $ Iic
+a) (𝓟 Iio a)`, i.e., if `u₁ n` and `u₂ n` belong eventually to `Iic a`, then the interval `Ico (u₁
+n) (u₂ n)` is eventually included in `Iio a`.
+
+We mark `l₂` as an `out_param` so that Lean can automatically find an appropriate `l₂` based on
+`Ixx` and `l₁`. This way, e.g., `tendsto.Ico h₁ h₂` works without specifying explicitly `l₂`. -/
 class tendsto_Ixx_class (Ixx : α → α → set α) (l₁ : filter α) (l₂ : out_param $ filter α) : Prop :=
 (tendsto_Ixx : tendsto (λ p : α × α, Ixx p.1 p.2) (l₁ ×ᶠ l₁) (l₂.lift' powerset))
 

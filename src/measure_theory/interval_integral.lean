@@ -328,7 +328,7 @@ end
 ### Fundamental theorem of calculus, part 1, for any measure
 
 In this section we prove a few lemmas that can be seen as versions of FTC-1 for interval integral
-w.r.t. any measure. Many theorems are formulated for one or two pairs of filter related by
+w.r.t. any measure. Many theorems are formulated for one or two pairs of filters related by
 `FTC_filter a l l'`. This typeclass has exactly four “real” instances: `(a, pure a, ⊥)`,
 `(a, 𝓝[Ici a] a, 𝓝[Ioi a] a)`, `(a, 𝓝[Iic a] a, 𝓝[Iic a] a)`, `(a, 𝓝 a, 𝓝 a)`, and two instances
 that are equal to the first and last “real” instances: `(a, 𝓝[{a}] a, ⊥)` and
@@ -368,6 +368,9 @@ class FTC_filter {β : Type*} [linear_order β] [measurable_space β] [topologic
 (le_nhds : inner ≤ 𝓝 a)
 [meas_gen : is_measurably_generated inner]
 
+/- The `dangerous_instance` linter doesn't take `out_param`s into account, so it thinks that
+`FTC_filter.to_tendsto_Ixx_class` is dangerous. Disable this linter using `nolint`.
+-/
 attribute [nolint dangerous_instance] FTC_filter.to_tendsto_Ixx_class
 
 namespace FTC_filter
@@ -897,7 +900,7 @@ lemma deriv_integral_left (hfm : measurable f) (hfi : interval_integrable f volu
 #### One-sided derivatives
 -/
 
-/-- Let `f` be a measurable function integable on `a..b`. The function `(u, v) ↦ ∫ x in u..v, f x`
+/-- Let `f` be a measurable function integrable on `a..b`. The function `(u, v) ↦ ∫ x in u..v, f x`
 has derivative `(u, v) ↦ v • cb - u • ca` within `s × t` at `(a, b)`, where
 `s ∈ {Iic a, {a}, Ici a, univ}` and `t ∈ {Iic b, {b}, Ici b, univ}` provided that `f` tends to `ca`
 and `cb` almost surely at the filters `la` and `lb` from the following table.
@@ -925,7 +928,7 @@ begin
   { exact is_O_fst_prod.norm_left.add is_O_snd_prod.norm_left }
 end
 
-/-- Let `f` be a measurable function integable on `a..b`. The function `(u, v) ↦ ∫ x in u..v, f x`
+/-- Let `f` be a measurable function integrable on `a..b`. The function `(u, v) ↦ ∫ x in u..v, f x`
 has derivative `(u, v) ↦ v • f b - u • f a` within `s × t` at `(a, b)`, where
 `s ∈ {Iic a, {a}, Ici a, univ}` and `t ∈ {Iic b, {b}, Ici b, univ}` provided that `f` tends to
 `f a` and `f b` at the filters `la` and `lb` from the following table. In most cases this assumption
@@ -952,7 +955,7 @@ meta def unique_diff_within_at_Ici_Iic_univ : tactic unit :=
 `[apply_rules [unique_diff_on.unique_diff_within_at, unique_diff_on_Ici, unique_diff_on_Iic,
   left_mem_Ici, right_mem_Iic, unique_diff_within_at_univ]]
 
-/-- Let `f` be a measurable function integable on `a..b`. Choose `s ∈ {Iic a, Ici a, univ}`
+/-- Let `f` be a measurable function integrable on `a..b`. Choose `s ∈ {Iic a, Ici a, univ}`
 and `t ∈ {Iic b, Ici b, univ}`. Suppose that `f` tends to `ca` and `cb` almost surely at the filters
 `la` and `lb` from the table below. Then `fderiv_within ℝ (λ p, ∫ x in p.1..p.2, f x) (s.prod t)`
 is equal to `(u, v) ↦ u • cb - v • ca`.

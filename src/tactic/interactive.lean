@@ -1178,8 +1178,7 @@ add_tactic_doc
   decl_names := [`tactic.interactive.revert_after],
   tags       := ["context management", "goal management"] }
 
-/-- `revert_target_deps` reverts all local constants on which the target depends (recursively).
-  Returns the number of local constants that have been reverted. -/
+/-- Reverts all local constants on which the target depends (recursively). -/
 meta def revert_target_deps : tactic unit :=
 propagate_tags $ tactic.revert_target_deps >> skip
 

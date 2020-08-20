@@ -21,10 +21,9 @@ More generally, the symmetric square is the second symmetric power
 From the point of view that an unordered pair is equivalent to a
 multiset of cardinality two (see `sym2.equiv_multiset`), there is a
 `has_mem` instance `sym2.mem`, which is a `Prop`-valued membership
-test.  Given `a ∈ z` for `z : sym2 α`, it does not appear to be
-possible, in general, to *computably* give the other element in the
-pair.  For this, `sym2.vmem a z` is a `Type`-valued membership test
-that gives a way to obtain the other element with `sym2.vmem.other`.
+test.  Given `h : a ∈ z` for `z : sym2 α`, then `h.other` is the other
+element of the pair, defined using `classical.choice`.  If `α` has
+decidable equality, then `h.other'` computably gives the other element.
 
 Recall that an undirected graph (allowing self loops, but no multiple
 edges) is equivalent to a symmetric relation on the vertex type `α`.
@@ -118,38 +117,6 @@ lemma mk_has_mem (x y : α) : x ∈ ⟦(x, y)⟧ := ⟨y, rfl⟩
 lemma mk_has_mem_right (x y : α) : y ∈ ⟦(x, y)⟧ := by { rw eq_swap, apply mk_has_mem }
 
 /--
-This is a type-valued version of the membership predicate `mem` that contains the other
-element `y` of `z` such that `z = ⟦(x, y)⟧`.  It is a subsingleton already,
-so there is no need to apply `trunc` to the type.
--/
-@[nolint has_inhabited_instance]
-def vmem (x : α) (z : sym2 α) : Type u :=
-{y : α // z = ⟦(x, y)⟧}
-
-instance (x : α) (z : sym2 α) : subsingleton {y : α // z = ⟦(x, y)⟧} :=
-⟨by { rintros ⟨a, ha⟩ ⟨b, hb⟩, rw [ha, congr_right] at hb, tidy }⟩
-
-/--
-The `vmem` version of `mk_has_mem`.
--/
-def mk_has_vmem (x y : α) : vmem x ⟦(x, y)⟧ :=
-⟨y, rfl⟩
-
-instance {a : α} {z : sym2 α} : has_lift (vmem a z) (mem a z) := ⟨λ h, ⟨h.val, h.property⟩⟩
-
-/--
-Given an element of a term of the symmetric square (using `vmem`), retrieve the other element.
--/
-def vmem.other {a : α} {p : sym2 α} (h : vmem a p) : α := h.val
-
-/--
-The defining property of the other element is that it can be used to
-reconstruct the term of the symmetric square.
--/
-lemma vmem_other_spec {a : α} {z : sym2 α} (h : vmem a z) :
-  z = ⟦(a, h.other)⟧ := by { delta vmem.other, tidy }
-
-/--
 This is the `mem`-based version of `other`.
 -/
 noncomputable def mem.other {a : α} {z : sym2 α} (h : a ∈ z) : α :=
@@ -158,9 +125,6 @@ classical.some h
 @[simp]
 lemma mem_other_spec {a : α} {z : sym2 α} (h : a ∈ z) :
   ⟦(a, h.other)⟧ = z := by erw ← classical.some_spec h
-
-lemma other_eq_mem_other {a : α} {z : sym2 α} (h : vmem a z) (h' : a ∈ z) :
-  h.other = mem.other h' := by rw [←congr_right, ←vmem_other_spec h, mem_other_spec]
 
 lemma eq_iff {x y z w : α} :
   ⟦(x, y)⟧ = ⟦(z, w)⟧ ↔ (x = z ∧ y = w) ∨ (x = w ∧ y = z) :=
@@ -176,13 +140,7 @@ end
 
 lemma mem_other_mem {a : α} {z : sym2 α} (h : a ∈ z) :
   h.other ∈ z :=
-begin
-  have hs := mem_other_spec h,
-  induction z, cases z with x y,
-  apply mem_iff.mpr,
-  cases eq_iff.mp hs with hs hs; cc,
-  refl,
-end
+by { convert mk_has_mem_right a h.other, rw mem_other_spec h }
 
 lemma elems_iff_eq {x y : α} {z : sym2 α} (hne : x ≠ y) :
   x ∈ z ∧ y ∈ z ↔ z = ⟦(x, y)⟧ :=
@@ -224,6 +182,11 @@ A predicate for testing whether an element of `sym2 α` is on the diagonal.
 -/
 def is_diag (z : sym2 α) : Prop := z ∈ set.range (@diag α)
 
+@[simp]
+lemma diag_is_diag (a : α) : is_diag (diag a) :=
+by use a
+
+@[simp]
 lemma is_diag_iff_proj_eq (z : α × α) : is_diag ⟦z⟧ ↔ z.1 = z.2 :=
 begin
   cases z with a, split,
@@ -233,6 +196,15 @@ end
 
 instance is_diag.decidable_pred (α : Type u) [decidable_eq α] : decidable_pred (@is_diag α) :=
 by { intro z, induction z, { erw is_diag_iff_proj_eq, apply_instance }, apply subsingleton.elim }
+
+lemma mem_other_ne {a : α} {z : sym2 α} (hd : ¬is_diag z) (h : a ∈ z) : h.other ≠ a :=
+begin
+  intro hn, apply hd,
+  have h' := sym2.mem_other_spec h,
+  rw hn at h',
+  rw ←h',
+  simp,
+end
 
 section relations
 
@@ -260,6 +232,10 @@ lemma from_rel_irreflexive {sym : symmetric r} :
 { mp  := by { intros h z hr hd, induction z,
               erw is_diag_iff_proj_eq at hd, erw from_rel_proj_prop at hr, tidy },
   mpr := by { intros h x hr, rw ← @from_rel_prop _ _ sym at hr, exact h hr ⟨x, rfl⟩ }}
+
+lemma mem_from_rel_irrefl_other_ne {sym : symmetric r} (irrefl : irreflexive r)
+  {a : α} {z : sym2 α} (hz : z ∈ from_rel sym) (h : a ∈ z) : h.other ≠ a :=
+mem_other_ne (from_rel_irreflexive.mp irrefl hz) h
 
 instance from_rel.decidable_as_set (sym : symmetric r) [h : decidable_rel r] :
   decidable_pred (λ x, x ∈ sym2.from_rel sym) :=

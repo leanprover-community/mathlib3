@@ -68,14 +68,15 @@ class simple_graph {α : Type u} (G : α) :=
 /--
 Basic constructor for a simple graph, using a symmetric irreflexive relation.
 -/
+@[ext]
 structure simple_graph_on (V : Type u) :=
-(rel : V → V → Prop)
-(symm : symmetric rel . obviously)
-(irrefl : irreflexive rel . obviously)
+(adj : V → V → Prop)
+(symm : symmetric adj . obviously)
+(irrefl : irreflexive adj . obviously)
 
 instance simple_graph_on.simple_graph (V : Type u) (G : simple_graph_on V) : simple_graph G :=
 { V := V,
-  adj := G.rel,
+  adj := G.adj,
   symm := G.symm,
   loopless := G.irrefl }
 
@@ -88,6 +89,15 @@ instance from_rel (V : Type u) (r : V → V → Prop) [hs : fact (symmetric r)] 
   adj := r,
   symm := hs,
   loopless := hi }
+
+/--
+Construct the simple graph induced by the given relation.  It
+symmetrizes the relation and makes it irreflexive.
+-/
+def simple_graph_from_rel (V : Type u) (r : V → V → Prop) : simple_graph_on V :=
+{ adj := λ a b, (a ≠ b) ∧ (r a b ∨ r b a),
+  symm := by finish,
+  irrefl := by finish }
 
 namespace simple_graph
 
@@ -137,8 +147,8 @@ begin
     rwa edge_iff_adj at he, }
 end
 
-lemma edge_other_ne {e : sym2 (V G)} (he : e ∈ edge_set G) {v : V G} (h : v ∈ e) : v ≠ h.other :=
-by { rw [←sym2.mem_other_spec h] at he, exact ne_of_adj he }
+lemma edge_other_ne {e : sym2 (V G)} (he : e ∈ edge_set G) {v : V G} (h : v ∈ e) : h.other ≠ v :=
+sym2.mem_from_rel_irrefl_other_ne (loopless G) he h
 
 instance edge_set_fintype [decidable_eq (V G)] [fintype (V G)] [decidable_rel (adj_rel G)] :
   fintype (edge_set G) :=
@@ -167,7 +177,7 @@ end edge_finset
 
 @[simp] lemma irrefl {v : V G} : ¬(v ~ v) := loopless G v
 
-@[symm] lemma edge_symm (u v : V G) : u ~ v ↔ v ~ u := ⟨λ x, symm G x, λ x, symm G x⟩
+@[symm] lemma adj_symm (u v : V G) : u ~ v ↔ v ~ u := ⟨λ x, symm G x, λ x, symm G x⟩
 
 @[simp] lemma mem_neighbor_set (v w : V G) : w ∈ neighbor_set v ↔ v ~ w :=
 by tauto
@@ -185,7 +195,7 @@ begin
   simp only [incident_set, set.mem_sep_eq, set.mem_inter_eq, set.mem_singleton_iff],
   split,
   { intro h', rw ←sym2.mem_other_spec h,
-    exact (sym2.elems_iff_eq (edge_other_ne he h)).mp ⟨h'.1.2, h'.2.2⟩, },
+    exact (sym2.elems_iff_eq (edge_other_ne he h).symm).mp ⟨h'.1.2, h'.2.2⟩, },
   { rintro rfl, use [he, h, he], apply sym2.mem_other_mem, },
 end
 
@@ -520,7 +530,7 @@ section complete_graphs
 The complete graph on a type `α` is the simple graph with all pairs of distinct vertices adjacent.
 -/
 def complete_graph (α : Type u) : simple_graph_on α :=
-{ rel := ne }
+{ adj := ne }
 
 instance from_rel_inhabited (α : Type u) : inhabited (simple_graph_on α) :=
 ⟨complete_graph α⟩
@@ -528,7 +538,7 @@ instance from_rel_inhabited (α : Type u) : inhabited (simple_graph_on α) :=
 variables (α : Type u) [decidable_eq α]
 
 instance complete_graph_adj_decidable :
-  decidable_rel (complete_graph α).rel :=
+  decidable_rel (complete_graph α).adj :=
 by { dsimp [complete_graph], apply_instance }
 
 variables [fintype α]
@@ -546,6 +556,11 @@ lemma complete_graph_is_regular :
 by { intro v, simp }
 
 end complete_graphs
+
+section homomorphisms
+
+
+end homomorphisms
 
 section degree_sum
 

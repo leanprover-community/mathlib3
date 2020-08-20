@@ -112,6 +112,14 @@ begin
   { exact is_top.symm ▸ submodule.mem_top }
 end
 
+theorem eq_jacobson_iff_Inf_maximal' {I : ideal R} :
+  I.jacobson = I ↔ ∃ M : set (ideal R), (∀ (J ∈ M) (K : ideal R), J < K → K = ⊤) ∧ I = Inf M :=
+eq_jacobson_iff_Inf_maximal.trans
+  ⟨λ h, let ⟨M, hM⟩ := h in ⟨M, ⟨λ J hJ K hK, or.rec_on (hM.1 J hJ) (λ h, h.2 K hK)
+    (λ h, eq_top_iff.2 (le_of_lt (h ▸ hK))), hM.2⟩⟩,
+  λ h, let ⟨M, hM⟩ := h in ⟨M, ⟨λ J hJ, or.rec_on (classical.em (J = ⊤)) (λ h, or.inr h)
+    (λ h, or.inl ⟨h, hM.1 J hJ⟩), hM.2⟩⟩⟩
+
 /-- An ideal `I` equals its Jacobson radical if and only if every element outside `I`
 also lies outside of a maximal ideal containing `I`. -/
 lemma eq_jacobson_iff_not_mem {I : ideal R} :
@@ -139,7 +147,7 @@ begin
   { refine Inf_le_Inf (λ J hJ, ⟨comap f J, ⟨⟨le_comap_of_map_le hJ.1, _⟩, map_comap_of_surjective f hf J⟩⟩),
     haveI : J.is_maximal := hJ.right,
     exact comap_is_maximal_of_surjective f hf },
-  { refine Inf_le_Inf' (λ j hj, hj.rec_on (λ J hJ, _)),
+  { refine Inf_le_Inf_of_subset_insert_top (λ j hj, hj.rec_on (λ J hJ, _)),
     rw ← hJ.2,
     cases map_eq_top_or_is_maximal_of_surjective f hf hJ.left.right with htop hmax,
     { exact htop.symm ▸ set.mem_insert ⊤ _ },

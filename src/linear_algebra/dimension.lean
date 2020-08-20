@@ -22,7 +22,7 @@ import set_theory.cardinal_ordinal
 
 ## Implementation notes
 
-Many theorems in this file are not universe-generic wheen they relate dimensions
+Many theorems in this file are not universe-generic when they relate dimensions
 in different universes. They should be as general as they can be without
 inserting `lift`s. The types `V`, `V'`, ... all live in different universes,
 and `V₁`, `V₂`, ... all live in the same universe.

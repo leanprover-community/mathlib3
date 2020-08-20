@@ -95,7 +95,7 @@ end has_limits
 open has_limits
 
 /-- The category of monoids has all limits. -/
-@[to_additive]
+@[irreducible, to_additive]
 instance has_limits : has_limits Mon :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F,
@@ -164,7 +164,7 @@ def limit_cone_is_limit (F : J ⥤ CommMon) : is_limit (limit_cone F) :=
 lifted_limit_is_limit _
 
 /-- The category of commutative monoids has all limits. -/
-@[to_additive]
+@[irreducible, to_additive]
 instance has_limits : has_limits CommMon :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ CommMon Mon) } }

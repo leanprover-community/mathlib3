@@ -100,6 +100,7 @@ end has_limits
 open has_limits
 
 /-- The category of R-algebras has all limits. -/
+@[irreducible]
 instance has_limits : has_limits (Algebra R) :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F,
@@ -145,3 +146,4 @@ instance forget_preserves_limits : preserves_limits (forget (Algebra R)) :=
     (limit_cone_is_limit F) (types.limit_cone_is_limit (F ⋙ forget _)) } }
 
 end Algebra
+#lint

@@ -83,6 +83,7 @@ end has_limits
 open has_limits
 
 /-- The category of rings has all limits. -/
+@[irreducible]
 instance has_limits : has_limits SemiRing :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F,
@@ -176,6 +177,7 @@ def limit_cone_is_limit (F : J ⥤ CommSemiRing) : is_limit (limit_cone F) :=
 lifted_limit_is_limit _
 
 /-- The category of rings has all limits. -/
+@[irreducible]
 instance has_limits : has_limits CommSemiRing :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ CommSemiRing SemiRing) } }
@@ -260,6 +262,7 @@ def limit_cone_is_limit (F : J ⥤ Ring) : is_limit (limit_cone F) :=
 lifted_limit_is_limit _
 
 /-- The category of rings has all limits. -/
+@[irreducible]
 instance has_limits : has_limits Ring :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ Ring SemiRing) } }
@@ -350,6 +353,7 @@ def limit_cone_is_limit (F : J ⥤ CommRing) : is_limit (limit_cone F) :=
 lifted_limit_is_limit _
 
 /-- The category of commutative rings has all limits. -/
+@[irreducible]
 instance has_limits : has_limits CommRing :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ CommRing Ring) } }

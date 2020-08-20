@@ -131,11 +131,11 @@ begin
   simp
 end
 
-lemma finsum_eq_finsupp_sum' {f : α → M} (hf : (function.support f).finite) :
+lemma finsum_eq_finsupp_sum' (f : α → M) (hf : (function.support f).finite) :
   finsum f = finsupp.sum (finsupp.of_support_finite hf) (λ x m, m) :=
 by rw [← finsum_eq_finsupp_sum, finsupp.of_support_finite_def]
 
-lemma finsum_eq_finset_sum {f : α → M} (hf : (function.support f).finite) :
+lemma finsum_eq_finset_sum (f : α → M) (hf : (function.support f).finite) :
   finsum f = finset.sum hf.to_finset f :=
 by rw [finsum_def, dif_pos hf]
 
@@ -148,7 +148,7 @@ begin
     exact function.nmem_support.1 (λ h, hx h),
 end
 
-lemma finsum_in_eq_finset_sum {f : α → M} (s : set α)
+lemma finsum_in_eq_finset_sum (f : α → M) (s : set α)
   (hf : (s ∩ function.support f).finite) :
   finsum_in s f = hf.to_finset.sum f :=
 begin
@@ -162,20 +162,81 @@ begin
       rw function.mem_support at *; finish }
 end .
 
-lemma finsum_in_eq_finset_sum' {f : α → M} (s : set α)
+lemma finsum_in_eq_finset_sum' (f : α → M) (s : set α)
   (hf : (function.support f).finite) :
   finsum_in s f = (finset.filter (∈ s) hf.to_finset).sum f :=
 begin
-  rw finsum_in_eq_finset_sum s (set.finite.subset hf (set.inter_subset_right _ _)),
-  congr, ext; finish
+  rw finsum_in_eq_finset_sum f s (set.finite.subset hf (set.inter_subset_right _ _)),
+  congr, ext, finish
 end
 
 lemma finsum_in_eq_finset_sum'' [fintype α] (f : α → M) (s : set α):
   finsum_in s f = s.to_finset.sum f :=
 begin
-  rw finsum_in_eq_finset_sum' s (set.finite.of_fintype _),
+  rw finsum_in_eq_finset_sum' f s (set.finite.of_fintype _),
   conv_rhs { rw ← finset.sum_filter_ne_zero },
   exact finset.sum_congr (by ext; finish) (λ _ _, rfl),
+end
+
+lemma finsum_in_eq_finset_sum''' (f : α → M) {s : set α} (hs : s.finite) :
+  finsum_in s f = hs.to_finset.sum f :=
+begin
+  rw finsum_in_eq_finset_sum f s (set.finite.subset hs (set.inter_subset_left _ _)),
+  conv_rhs { rw ← finset.sum_filter_ne_zero },
+  refine finset.sum_congr _ (λ _ _, rfl),
+  ext, rw [set.finite.to_finset, set.finite.to_finset, finset.mem_filter, set.mem_to_finset,
+           set.mem_to_finset, set.mem_inter_iff, function.mem_support]
+end
+
+lemma finsum_in_eq_finset_sum'''' (f : α → M) (s : finset α) :
+  finsum_in ↑s f = s.sum f :=
+begin
+  rw [finsum_in_eq_finset_sum''' f (finset.finite_to_set s), set.finite.to_finset],
+  congr, ext, simp
+end
+
+variables {f : α → M} {a : α} {s : set α}
+
+/-- The sum on an empty set over any function is zero. -/
+@[simp] lemma finsum_in_empty : finsum_in ∅ f = 0 :=
+begin
+  rw [finsum_in_eq_finset_sum''' _ (set.finite_empty), ← @finset.sum_empty _ _ _ f],
+  congr, ext, simp
+end
+
+/-- Given `a` and element not in the set `s`, the sum on `insert a s` over the function `f` equals
+  the `f a` plus the sum on `s` over `f`. -/
+@[simp] lemma finsum_in_insert (h : a ∉ s) (hs : s.finite) :
+  finsum_in (insert a s) f = f a + finsum_in s f :=
+begin
+  rw [finsum_in_eq_finset_sum''' f (set.finite.insert a hs), finsum_in_eq_finset_sum''' f hs,
+      set.finite.to_finset, set.finite.to_finset, ← finset.sum_insert],
+    { congr, ext, simp },
+    { rw set.mem_to_finset, exact h }
+end
+
+/-- If `f a = 0` for all `a ∉ s`, then the sum on `insert a s` over the function `f` equals the sum
+  on `s` over `f`. -/
+lemma finsum_in_insert_of_eq_zero_if_not_mem (h : a ∉ s → f a = 0) (hs : s.finite) :
+  finsum_in (insert a s) f = finsum_in s f :=
+begin
+  by_cases hm : a ∈ s,
+    { simp_rw set.insert_eq_of_mem hm },
+    { rw [finsum_in_insert hm hs, h hm, zero_add] }
+end
+
+/-- If `f a = 0`, then the sum on `insert a s` over the function `f` equals the sum on `s` over `f`.
+  -/
+@[simp] lemma finsum_insert_zero (h : f a = 0) (hs : s.finite) :
+  finsum_in (insert a s) f = finsum_in s f :=
+finsum_in_insert_of_eq_zero_if_not_mem (λ _, h) hs
+
+/-- The sum on a singleton `{a}` over the function `f` is `f a`. -/
+@[simp] lemma finsum_singleton : finsum_in {a} f = f a :=
+begin
+  rw [finsum_in_eq_finset_sum''' f (set.finite_singleton a), set.finite.to_finset,
+      ← @finset.sum_singleton _ _ a f _],
+  congr, ext, simp
 end
 
 end finsum

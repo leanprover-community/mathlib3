@@ -451,6 +451,24 @@ begin
   { simpa [succ_above_above _ _ (le_of_not_lt H)] using succ_pos i },
 end
 
+lemma succ_above_inj_about_pivot {x : fin (n + 1)} :
+  x.succ_above a = x.succ_above b ↔ a = b :=
+begin
+  refine iff.intro _ (λ h, by rw h),
+  unfold succ_above,
+  intro h,
+  split_ifs at h with ha hb hb ha,
+  { exact cast_succ_inj.mp h },
+  { rw h at ha,
+    exact absurd (lt_of_le_of_lt (le_of_not_lt hb) (cast_succ_lt_succ _)) (asymm ha) },
+  { rw ←h at hb,
+    exact absurd (lt_of_le_of_lt (le_of_not_lt ha) (cast_succ_lt_succ _)) (asymm hb) },
+  { exact succ.inj h }
+end
+
+lemma succ_above_injective_about_pivot {x : fin (n + 1)} : injective (succ_above x) :=
+λ _ _ h, succ_above_inj_about_pivot.mp h
+
 /-- Embedding a `fin (n + 1)` into `fin n` and embedding it back around the same hole
 gives the starting `fin (n + 1)` -/
 @[simp] lemma succ_above_descend (p i : fin (n + 1)) (h : i ≠ p) :

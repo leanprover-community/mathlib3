@@ -24,7 +24,7 @@ in `α`
 
 ## Main results
 
-* `free_comm_ring` is unctorial in various ways.
+* `free_comm_ring` is functorial in various ways.
 
 * `free_comm_ring α` is isomorphic to a polynomial ring.
 

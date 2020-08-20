@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
 import order.bounds
+import data.set.intervals.image_preimage
 
 /-!
 # Intervals without endpoints ordering
@@ -113,7 +114,39 @@ open_locale interval
 
 section ordered_add_comm_group
 
-variables {α : Type u} [decidable_linear_ordered_add_comm_group α] {a b x y : α}
+variables {α : Type u} [decidable_linear_ordered_add_comm_group α] (a b c x y : α)
+
+@[simp] lemma preimage_const_add_interval : (λ x, a + x) ⁻¹' [b, c] = [b - a, c - a] :=
+by simp only [interval, preimage_const_add_Icc, min_sub_sub_right, max_sub_sub_right]
+
+@[simp] lemma preimage_add_const_interval : (λ x, x + a) ⁻¹' [b, c] = [b - a, c - a] :=
+by simpa only [add_comm] using preimage_const_add_interval a b c
+
+@[simp] lemma preimage_neg_interval : -([a, b]) = [-a, -b] :=
+by simp only [interval, preimage_neg_Icc, min_neg_neg, max_neg_neg]
+
+@[simp] lemma preimage_sub_const_interval : (λ x, x - a) ⁻¹' [b, c] = [b + a, c + a] :=
+by simp [sub_eq_add_neg]
+
+@[simp] lemma preimage_const_sub_interval : (λ x, a - x) ⁻¹' [b, c] = [a - b, a - c] :=
+by { rw [interval, interval, preimage_const_sub_Icc],
+  simp only [sub_eq_add_neg, min_add_add_left, max_add_add_left, min_neg_neg, max_neg_neg], }
+
+@[simp] lemma image_const_add_interval : (λ x, a + x) '' [b, c] = [a + b, a + c] :=
+by simp [add_comm]
+
+@[simp] lemma image_add_const_interval : (λ x, x + a) '' [b, c] = [b + a, c + a] :=
+by simp
+
+@[simp] lemma image_const_sub_interval : (λ x, a - x) '' [b, c] = [a - b, a - c] :=
+by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
+
+@[simp] lemma image_sub_const_interval : (λ x, x - a) '' [b, c] = [b - a, c - a] :=
+by simp [sub_eq_add_neg, add_comm]
+
+lemma image_neg_interval : has_neg.neg '' [a, b] = [-a, -b] := by simp
+
+variables {a b c x y}
 
 /-- If `[x, y]` is a subinterval of `[a, b]`, then the distance between `x` and `y`
 is less than or equal to that of `a` and `b` -/
@@ -135,5 +168,37 @@ lemma abs_sub_right_of_mem_interval (h : x ∈ [a, b]) : abs (b - x) ≤ abs (b 
 abs_sub_le_of_subinterval (interval_subset_interval_right h)
 
 end ordered_add_comm_group
+
+section discrete_linear_ordered_field
+
+variables {k : Type u} [discrete_linear_ordered_field k] {a : k}
+
+@[simp] lemma preimage_mul_const_interval (ha : a ≠ 0) (b c : k) :
+  (λ x, x * a) ⁻¹' [b, c] = [b / a, c / a] :=
+(lt_or_gt_of_ne ha).elim
+  (λ ha, by simp [interval, ha, ha.le, min_div_div_right_of_nonpos, max_div_div_right_of_nonpos])
+  (λ (ha : 0 < a), by simp [interval, ha, ha.le, min_div_div_right, max_div_div_right])
+
+@[simp] lemma preimage_const_mul_interval (ha : a ≠ 0) (b c : k) :
+  (λ x, a * x) ⁻¹' [b, c] = [b / a, c / a] :=
+by simp only [← preimage_mul_const_interval ha, mul_comm]
+
+@[simp] lemma preimage_div_const_interval (ha : a ≠ 0) (b c : k) :
+  (λ x, x / a) ⁻¹' [b, c] = [b * a, c * a] :=
+(preimage_mul_const_interval (inv_ne_zero ha) _ _).trans $ by simp [div_eq_mul_inv]
+
+@[simp] lemma image_mul_const_interval (a b c : k) : (λ x, x * a) '' [b, c] = [b * a, c * a] :=
+if ha : a = 0 then by simp [ha] else
+calc (λ x, x * a) '' [b, c] = (λ x, x / a) ⁻¹' [b, c] :
+  (units.mk0 a ha).mul_right.image_eq_preimage _
+... = [b * a, c * a] : preimage_div_const_interval ha _ _
+
+@[simp] lemma image_const_mul_interval (a b c : k) : (λ x, a * x) '' [b, c] = [a * b, a * c] :=
+by simpa only [mul_comm] using image_mul_const_interval a b c
+
+@[simp] lemma image_div_const_interval (a b c : k) : (λ x, x / a) '' [b, c] = [b / a, c / a] :=
+image_mul_const_interval _ _ _
+
+end discrete_linear_ordered_field
 
 end set

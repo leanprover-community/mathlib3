@@ -133,14 +133,14 @@ end
 lemma geom_gold_is_sol_fib_rec : fib_rec.is_solution (pow φ) :=
 begin
   rw [fib_rec.geom_sol_iff_root_char_poly, fib_rec_char_poly_eq],
-  simp [sub_eq_zero_iff_eq, gold_sq]
+  simp [sub_eq_zero_iff_eq]
 end
 
 /-- The geometric sequence `λ n, ψ^n` is a solution of `fib_rec`. -/
 lemma geom_gold_conj_is_sol_fib_rec : fib_rec.is_solution (pow ψ) :=
 begin
   rw [fib_rec.geom_sol_iff_root_char_poly, fib_rec_char_poly_eq],
-  simp [sub_eq_zero_iff_eq, gold_conj_sq]
+  simp [sub_eq_zero_iff_eq]
 end
 
 end fibrec

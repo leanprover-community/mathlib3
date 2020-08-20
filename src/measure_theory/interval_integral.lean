@@ -13,9 +13,64 @@ import analysis.calculus.deriv
 In this file we define `∫ x in a..b, f x ∂μ` to be `∫ x in Ioc a b, f x ∂μ` if `a ≤ b`
 and `-∫ x in Ioc b a, f x ∂μ` if `b ≤ a`. We prove a few simple properties and many versions
 of the first part of the
-[fundamental theorem of calculus](https://en.wikipedia.org/wiki/Fundamental_theorem_of_calculus):
-for strict differentiability, for usual differentiability, for one-sided derivatives, as well as
-differentiability in both endpoints.
+[fundamental theorem of calculus](https://en.wikipedia.org/wiki/Fundamental_theorem_of_calculus).
+Recall that it states that the function `(u, v) ↦ ∫ x in u..v, f x` has derivative
+`(δu, δv) ↦ δv • f b - δu • f a` at `(a, b)` provided that `f` is continuous at `a` and `b`. 
+
+## Main statements
+
+### FTC-1 for Lebesgue measure
+
+We prove several versions of FTC-1, all in the `interval_integral` namespace. Many of them follow
+the naming scheme `integral_has(_strict?)_(f?)deriv(_within?)_at(_of_tendsto_ae?)(_right|_left?)`.
+They formulate FTC in terms of `has(_strict?)_(f?)deriv(_within?)_at`.
+Let us explain the meaning of each part of the name:
+
+* `_strict` means that the theorem is about strict differentiability;
+* `f` means that the theorem is about differentiability in both endpoints; incompatible with
+  `_right|_left`;
+* `_within` means that the theorem is about one-sided derivatives, see below for details;
+* `_of_tendsto_ae` means that instead of continuity the theorem assumes that `f` has a finite limit
+  almost surely as `x` tends to `a` and/or `b`;
+* `_right` or `_left` mean that the theorem is about differentiability in the right (resp., left)
+  endpoint.
+
+We also reformulate these theorems in terms of `(f?)deriv(_within?)`. These theorems are named
+`(f?)deriv(_within?)_integral(_of_tendsto_ae?)(_right|_left?)` with the same meaning of parts of the
+name.
+
+### One-sided derivatives
+
+Theorem `integral_has_fderiv_within_at_of_tendsto_ae` states that `(u, v) ↦ ∫ x in u..v, f x` has a
+derivative `(δu, δv) ↦ δv • cb - δu • ca` within the set `s × t` at `(a, b)` provided that `f` tends
+to `ca` (resp., `cb`) almost surely at `la` (resp., `lb`), where possible values of `s`, `t`, and
+corresponding filters `la`, `lb` are given in the following table.
+
+| `s`     | `la`         | `t`     | `lb`         |
+| ------- | ----         | ---     | ----         |
+| `Iic a` | `𝓝[Iic a] a` | `Iic b` | `𝓝[Iic b] b` |
+| `Ici a` | `𝓝[Ioi a] a` | `Ici b` | `𝓝[Ioi b] b` |
+| `{a}`   | `⊥`          | `{b}`   | `⊥`          |
+| `univ`  | `𝓝 a`        | `univ`  | `𝓝 b`        |
+
+We use a typeclass `FTC_filter` to make Lean automatically find `la`/`lb` based on `s`/`t`. This way
+we can formulate one theorem instead of `16` (or `8` if we leave only non-trivial ones not covered
+by `integral_has_deriv_within_at_of_tendsto_ae_(left|right)` and
+`integral_has_fderiv_at_of_tendsto_ae`). Similarly,
+`integral_has_deriv_within_at_of_tendsto_ae_right` works for both one-sided derivatives using the
+same typeclass to find an appropriate filter.
+
+### FTC for a locally finite measure
+
+Before proving FTC for the Lebesgue measure, we prove a few statements that can be seen as FTC for
+any measure. The most general of them,
+`measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae`, states the following. Let `(la, la')`
+be an `FTC_filter` pair of filters around `a` (i.e., `FTC_filter a la la'`) and let `(lb, lb')` be
+an `FTC_filter` pair of filters around `b`. If `f` has finite limits `ca` and `cb` almost surely at
+`la'` and `lb'`, respectively, then
+`∫ x in va..vb, f x ∂μ - ∫ x in ua..ub, f x ∂μ = ∫ x in ub..vb, cb ∂μ - ∫ x in ua..va, ca ∂μ +
+  o(∥∫ x in ua..va, (1:ℝ) ∂μ∥ + ∥∫ x in ub..vb, (1:ℝ) ∂μ∥)` as `ua` and `va` tend to `la` while
+`ub` and `vb` tend to `lb`.
 
 ## Implementation notes
 
@@ -43,7 +98,30 @@ intervals with the same endpoints for two reasons:
   the difference $F_μ(b)-F_μ(a)$, where $F_μ(a)=μ(-∞, a]$ is the
   [cumulative distribution function](https://en.wikipedia.org/wiki/Cumulative_distribution_function)
   of `μ`.
--/
+
+### `FTC_filter` class
+
+As explained above, many theorems in this file rely on the typeclass
+`FTC_filter (a : α) (l l' : filter α)` to avoid code duplication. This typeclass combines four
+assumptions:
+
+- `pure a ≤ l`;
+- `l' ≤ 𝓝 a`;
+- `l'` has a basis of measurable sets;
+- if `u n` and `v n` tend to `l`, then for any `s ∈ l'`, `Ioc (u n) (v n)` is eventually included
+  in `s`.
+
+This typeclass has exactly four “real” instances: `(a, pure a, ⊥)`, `(a, 𝓝[Ici a] a, 𝓝[Ioi a] a)`,
+`(a, 𝓝[Iic a] a, 𝓝[Iic a] a)`, `(a, 𝓝 a, 𝓝 a)`, and two instances that are equal to the first and
+last “real” instances: `(a, 𝓝[{a}] a, ⊥)` and `(a, 𝓝[univ] a, 𝓝[univ] a)`. While the difference
+between `Ici a` and `Ioi a` doesn't matter for theorems about Lebesgue measure, it becomes important
+in the versions of FTC about any locally finite measure if this measure has an atom at one of the
+endpoints.
+
+## Tags
+
+integral, fundamental theorem of calculus
+ -/
 
 noncomputable theory
 open topological_space (second_countable_topology)
@@ -358,9 +436,10 @@ possible to write better `simp` lemmas for these integrals, see `integral_const`
 In the next subsection we apply this theorem to prove various theorems about differentiability
 of the integral w.r.t. Lebesgue measure. -/
 
-/-- An auxiliary typeclass for the Fundamental theorem of calculus, part 1. There are four
-instances: `(a, pure a, ⊥)`, `(a, 𝓝[Ici a], 𝓝[Ioi a])`, `(a, 𝓝[Iic a], 𝓝[Iic a])`, and
-`(a, 𝓝 a, 𝓝 a)`. -/
+/-- An auxiliary typeclass for the Fundamental theorem of calculus, part 1. It is used to formulate
+theorems that work simultaneously for left and right one-sided derivatives of `∫ x in u..v, f x`.
+There are four instances: `(a, pure a, ⊥)`, `(a, 𝓝[Ici a], 𝓝[Ioi a])`,
+`(a, 𝓝[Iic a], 𝓝[Iic a])`, and `(a, 𝓝 a, 𝓝 a)`. -/
 class FTC_filter {β : Type*} [linear_order β] [measurable_space β] [topological_space β]
   (a : out_param β) (outer : filter β) (inner : out_param $ filter β)
   extends tendsto_Ixx_class Ioc outer inner : Prop :=
@@ -796,7 +875,7 @@ lemma integral_has_strict_deriv_at_left (hfm : measurable f)
 by simpa only [← integral_symm] using (integral_has_strict_deriv_at_right hfm hfi.symm ha).neg
 
 /-!
-#### Unbounded differentiability
+#### Fréchet differentiability
 
 In this subsection we restate results from the previous subsection in terms of `has_fderiv_at`,
 `has_deriv_at`, `fderiv`, and `deriv`.

@@ -1240,7 +1240,7 @@ section has_le
 variables [has_le β] {l : filter α}
 
 /-- A function `f` is eventually less than or equal to a function `g` at a filter `l`. -/
-def eventually_le (l : filter α) (f g : α → β) : Prop := ∀ᶠ x in l, f  x ≤ g x
+def eventually_le (l : filter α) (f g : α → β) : Prop := ∀ᶠ x in l, f x ≤ g x
 
 notation f ` ≤ᶠ[`:50 l:50 `] `:0 g:50 := eventually_le l f g
 

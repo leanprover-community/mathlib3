@@ -61,7 +61,7 @@ begin
     apply add_congr,
     exact impartial_neg_equiv_self hG,
     exact impartial_neg_equiv_self hH },
-    split,
+  split,
   { intro i,
     equiv_rw pgame.left_moves_add G H at i,
     cases i with iG iH,
@@ -132,7 +132,7 @@ begin
     { rw le_iff_sub_nonneg,
       exact le_trans hGHp.2
         (le_trans add_comm_le $ le_of_le_of_equiv (le_refl _) $ add_congr (equiv_refl _)
-         (impartial_neg_equiv_self hG)) },
+        (impartial_neg_equiv_self hG)) },
     { rw le_iff_sub_nonneg,
       exact le_trans hGHp.2
         (le_of_le_of_equiv (le_refl _) $ add_congr (equiv_refl _) (impartial_neg_equiv_self hH)) } }

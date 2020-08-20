@@ -10,7 +10,7 @@ import set_theory.pgame
 
 We define `G.first_loses`, `G.first_wins`, `G.left_wins` and `G.right_wins` for a pgame `G`, which
 means the second, first, left and right players have a winning stratergy respectively.
-These are defined by inequalities which can be unfolded with, `pgame.lt_def` and `pgame.le_def`.
+These are defined by inequalities which can be unfolded with `pgame.lt_def` and `pgame.le_def`.
 -/
 
 namespace pgame

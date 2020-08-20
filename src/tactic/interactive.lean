@@ -1178,6 +1178,17 @@ add_tactic_doc
   decl_names := [`tactic.interactive.revert_after],
   tags       := ["context management", "goal management"] }
 
+/-- `revert_target_deps` reverts all local constants on which the target depends (recursively).
+  Returns the number of local constants that have been reverted. -/
+meta def revert_target_deps : tactic unit :=
+propagate_tags $ tactic.revert_target_deps >> skip
+
+add_tactic_doc
+{ name       := "revert_target_deps",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.revert_target_deps],
+  tags       := ["context management", "goal management"] }
+
 /-- `clear_value n₁ n₂ ...` clears the bodies of the local definitions `n₁, n₂ ...`, changing them
 into regular hypotheses. A hypothesis `n : α := t` is changed to `n : α`. -/
 meta def clear_value (ns : parse ident*) : tactic unit :=

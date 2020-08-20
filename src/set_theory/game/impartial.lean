@@ -5,7 +5,7 @@ Authors: Fox Thomson
 -/
 import set_theory.game.winner
 import tactic.nth_rewrite.default
-import tactic
+import tactic.basic
 
 universe u
 

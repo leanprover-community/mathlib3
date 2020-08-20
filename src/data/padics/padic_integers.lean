@@ -250,7 +250,8 @@ end padic_norm_z
 
 namespace padic_int
 
-variables {p : ℕ} [fact p.prime]
+variables {p : ℕ} [hp_prime : fact p.prime]
+include hp_prime
 
 lemma pow_p_dvd_int_iff (n : ℕ) (a : ℤ) : (p ^ n : ℤ_[p]) ∣ a ↔ ↑p ^ n ∣ a :=
 begin
@@ -514,8 +515,17 @@ end
 section
 variables (r : ℚ)
 variable (p)
+
+omit hp_prime
+/--
+`mod_part r p` is a value that satisfies
+`∥(r - mod_part p r : ℚ_[p])∥ < 1` when `∥(r : ℚ_[p])∥ ≤ 1`.
+See `padic_int.norm_sub_mod_part`.
+-/
 def mod_part : ℤ :=
 (r.num * gcd_a r.denom p) % p
+
+include hp_prime
 
 variable {p}
 lemma mod_part_lt_p : mod_part p r < p :=
@@ -594,6 +604,10 @@ begin
   apply max_lt hr hn,
 end
 
+/--
+`zmod_repr x` is a nonnegative integer smaller than `p`
+satisfying `∥(x - zmod_repr x : ℤ_[p])∥ < 1`.
+-/
 def zmod_repr : ℤ :=
 classical.some (exists_mem_range x)
 
@@ -608,6 +622,10 @@ lemma norm_sub_zmod_repr : ∥(x - zmod_repr x : ℤ_[p])∥ < 1 := (zmod_repr_s
 
 end
 
+/--
+`to_zmod` is a ring hom from `ℤ_[p]` to `zmod p`,
+with the equality `to_zmod x = (zmod_repr x : zmod p)`.
+-/
 def to_zmod : ℤ_[p] →+* zmod p :=
 { to_fun := λ x, ((zmod_repr x : ℤ) : zmod p),
   map_zero' :=
@@ -670,7 +688,7 @@ def to_zmod : ℤ_[p] →+* zmod p :=
     ring,
   end }
 
-def to_zmod_spec (z : ℤ_[p]) : ∥(z - to_zmod z)∥ < 1 :=
+lemma to_zmod_spec (z : ℤ_[p]) : ∥(z - to_zmod z)∥ < 1 :=
 begin
   convert norm_sub_zmod_repr z using 3,
   dsimp [to_zmod],

@@ -460,146 +460,15 @@ lemma mem_closure_iff {s : set R} {x} :
 
 theorem exists_list_of_mem_closure {s : set R} {x : R} (hx : x ∈ closure s) :
   (∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s ∨ y = (-1:R)) ∧ (L.map list.prod).sum = x) :=
-/- add_subgroup.closure_induction (mem_closure_iff.1 hx)
-(λ x hx, suffices ∃ t : list R, (∀ y ∈ t, y ∈ s ∨ y = (-1:R)) ∧ t.prod = x,
-from let ⟨t, ht1, ht2⟩ := this in ⟨ [t], λ H, by rw list.mem_singleton, λ g, by rw g, ht1,
-by rw [list.map_singleton, ht2, list.sum_singleton, eq_self_iff_true, and_true] ⟩
-submonoid.closure_induction hx
-      (λ x hx, ⟨ [x], λ y hy, by rw list.mem_singleton at hy,
-    by rw hy,
-    or.left hx,
-    by rw [<-mul_one x, list.prod_cons, list.prod_nil, mul_one] ⟩ )
-      ( ⟨[], list.forall_mem_nil _, rfl ⟩ )
-      ( λ x y ⟨t, ht1, ht2⟩ ⟨u, hu1, hu2⟩, ⟨ t ++ u, λ z hz, by rw list.mem_append at hz,
-      by cases hz, ht1 z hz, hu1 z hz, by rw [list.prod_append, ht2, hu2] ⟩ ) )
-( [], ⟨ λ t ht, by exfalso, list.not_mem_nil _ ht, list.sum_nil ⟩ )
-( λ x y ⟨L, HL1, HL2⟩ ⟨M, HM1, HM2⟩, ⟨[L ++ M], list.mem_append, and_true, eq_self_iff_true, λ t ht,
-    by simp only [list.mem_append] at ht,
-     by cases ht, HL1 t ht, HM1 t ht, rfl,
-    by rw [list.map_append, list.sum_append, HL2, HM2] ⟩ )
-( λ z ⟨L, HL1, HL2⟩, let M := list.map (list.cons (-1)) L,
- ⟨ [M], ⟨ begin rintros t ht,
-      simp at ht,
-      cases ht with a ht,
-      cases ht with ht1 ht2,
-      specialize HL1 a ht1,
-      rw <-ht2,
-      simp,
-      exact HL1, end,
-      list.map_map, (∘), list.prod_cons, neg_one_mul, begin rw <-neg_one_mul, rw <-HL2,
-  rw <-list.sum_map_mul_left,
-  simp, end ⟩  ⟩ )
--/
-
-
-begin
-apply add_subgroup.closure_induction (mem_closure_iff.1 hx),
-{
-  rintros x hx,
-  suffices f : ∃ t : list R, (∀ y ∈ t, y ∈ s ∨ y = (-1:R)) ∧ t.prod = x,
-  {
-    cases f with t ht,
-    cases ht with ht1 ht2,
-    use ([t] : list(list R)),
-    rw [list.map_singleton, ht2, list.sum_singleton, eq_self_iff_true, and_true],
-    rintros H,
-    rw list.mem_singleton,
-    rintros g,
-    rw g,
-    exact ht1,
-  },
-  apply submonoid.closure_induction hx,
-  {
-    rintros x hx,
-    use ([x]),
-    split,
-    { rintros y hy,
-    rw list.mem_singleton at hy,
-    rw hy,
-    left,
-    exact hx, },
-    rw [ <- mul_one x, list.prod_cons, list.prod_nil, mul_one],
-  },
-  {
-    use ([]),
-    split,
-    {
-      rintros y hy,
-      exfalso,
-      exact list.not_mem_nil _ hy,
-    },
-    {
-      exact list.prod_nil,
-    },
-  },
-  {
-    rintros x y ⟨t, ht1, ht2⟩ ⟨u, hu1, hu2⟩,
-    use t ++ u,
-    split,
-    {
-      rintros z hz,
-      rw list.mem_append at hz,
-      cases hz,
-      exact ht1 z hz,
-      exact hu1 z hz,
-    },
-    {
-      rw [list.prod_append, ht2, hu2],
-    },
-  },
-},
-{
-  use ([]),
-  split,
-  {
-    rintros t ht,
-    exfalso,
-    apply list.not_mem_nil t,
-    exact ht,
-  },
-  {
-    exact list.sum_nil,
-  },
-},
-{
-    rintros x y ⟨L, HL1, HL2⟩ ⟨M, HM1, HM2⟩,
-    use L ++ M,
-    rw [list.map_append, list.sum_append, HL2, HM2],
-    split,
-    {
-      rintros t ht,
-      simp only [list.mem_append] at ht,
-      cases ht,
-      exact HL1 t ht,
-      exact HM1 t ht,
-    },
-    refl,
-},
-{
-  rintros z ⟨L, HL1, HL2⟩,
-  let M := list.map (list.cons (-1)) L,
-  use (M),
-  split,
-  {
-    rintros t ht,
-    simp only [list.mem_map] at ht,
-    cases ht with a ht,
-    cases ht with ht1 ht2,
-    rw <-ht2,
-    rintros y hy,
-    rw list.mem_cons_iff at hy,
-    cases hy,
-    right,
-    exact hy,
-    apply HL1 a ht1,
-    exact hy,
-  },
-  rw [list.map_map, (∘)],
-  simp only [neg_mul_eq_neg_mul_symm, one_mul, list.prod_cons],
-  rw [<-neg_one_mul, <-HL2, <-list.sum_map_mul_left],
-  simp only [neg_mul_eq_neg_mul_symm, one_mul],
-},
-end
+add_subgroup.closure_induction (mem_closure_iff.1 hx)
+  (λ x hx, let ⟨l, hl, h⟩ :=submonoid.exists_list_of_mem_closure hx in ⟨[l], by simp [h];
+    clear_aux_decl; tauto!⟩)
+  ⟨[], by simp⟩
+  (λ x y ⟨l, hl1, hl2⟩ ⟨m, hm1, hm2⟩, ⟨l ++ m, λ t ht, (list.mem_append.1 ht).elim (hl1 t) (hm1 t),
+    by simp [hl2, hm2]⟩)
+  (λ x ⟨L, hL⟩, ⟨L.map (list.cons (-1)), list.forall_mem_map_iff.2 $ λ j hj, list.forall_mem_cons.2
+    ⟨or.inr rfl, hL.1 j hj⟩, hL.2 ▸ list.rec_on L (by simp)
+      (by simp [list.map_cons, add_comm] {contextual := tt})⟩)
 
 variable (R)
 /-- `closure` forms a Galois insertion with the coercion to set. -/

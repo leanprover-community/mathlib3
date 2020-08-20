@@ -356,7 +356,7 @@ lemma mem_closure_iff {s : set R} {x} :
   (zero_mem _)
   (λ _ _, add_mem _)⟩
 
-lemma mem_closure_iff_list {s : set R} {x} : x ∈ closure s ↔
+lemma mem_closure_iff_exists_list {s : set R} {x} : x ∈ closure s ↔
   ∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s) ∧ (L.map list.prod).sum = x :=
 ⟨λ hx, add_submonoid.closure_induction (mem_closure_iff.1 hx)
   (λ x hx, suffices ∃ t : list R, (∀ y ∈ t, y ∈ s) ∧ t.prod = x,

@@ -30,8 +30,8 @@ def limit_cone_is_limit (F : J ⥤ Type u) : is_limit (limit_cone F) :=
   uniq' := by { intros, ext x j, exact congr_fun (w j) x } }
 
 instance : has_limits (Type u) :=
-{ has_limits_of_shape := λ J 𝒥,
-  { has_limit := λ F, by exactI has_limit.mk
+{ has_limits_of_shape := λ J 𝒥, by exactI
+  { has_limit := λ F, has_limit.mk
     { cone := limit_cone F, is_limit := limit_cone_is_limit F } } }
 
 /--
@@ -55,8 +55,7 @@ begin
   simp,
 end
 
--- TODO: prove this for concrete categories where the forgetful functor preserves limits
-@[ext]
+-- PROJECT: prove this for concrete categories where the forgetful functor preserves limits
 lemma limit_ext (F : J ⥤ Type u) (x y : limit F) (w : ∀ j, limit.π F j x = limit.π F j y) :
   x = y :=
 begin
@@ -65,8 +64,9 @@ begin
   simp [w j],
 end
 
--- TODO: prove this for any concrete category?
--- TODO: what about all the other limits lemmas? automation?
+-- TODO: are there other limits lemmas that should have `_apply` versions?
+-- Can we generate these like with `@[reassoc]`?
+-- PROJECT: prove these for any concrete category where the forgetful functor preserves limits?
 @[simp]
 lemma lift_π_apply (F : J ⥤ Type u) (s : cone F) (j : J) (x : s.X) :
   limit.π F j (limit.lift F s x) = s.π.app j x :=
@@ -98,8 +98,8 @@ def colimit_cocone_is_colimit (F : J ⥤ Type u) : is_colimit (colimit_cocone F)
     (assume ⟨j, x⟩ ⟨j', x'⟩ ⟨f, hf⟩, by rw hf; exact (congr_fun (cocone.w s f) x).symm) }
 
 instance : has_colimits (Type u) :=
-{ has_colimits_of_shape := λ J 𝒥,
-  { has_colimit := λ F, by exactI has_colimit.mk
+{ has_colimits_of_shape := λ J 𝒥, by exactI
+  { has_colimit := λ F, has_colimit.mk
     { cocone := colimit_cocone F, is_colimit := colimit_cocone_is_colimit F } } }
 
 /--

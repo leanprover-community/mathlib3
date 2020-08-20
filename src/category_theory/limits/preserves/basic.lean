@@ -45,8 +45,16 @@ variables {D : Type u₂} [category.{v} D]
 
 variables {J : Type v} [small_category J] {K : J ⥤ C}
 
+/--
+A functor `F` preserves limits of shape `K` (written as `preserves_limit K F`)
+if `F` maps any limit cone over `K` to a limit cone.
+-/
 class preserves_limit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cone K}, is_limit c → is_limit (F.map_cone c))
+/--
+A functor `F` preserves colimits of shape `K` (written as `preserves_colimit K F`)
+if `F` maps any colimit cocone over `K` to a colimit cocone.
+-/
 class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cocone K}, is_colimit c → is_colimit (F.map_cocone c))
 
@@ -164,25 +172,54 @@ def preserves_colimit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K
     simp,
   end }
 
-/-
-A functor F : C → D reflects limits if whenever the image of a cone
-under F is a limit cone in D, the cone was already a limit cone in C.
-Note that again we do not assume a priori that D actually has any
-limits.
+/--
+A functor `F : C ⥤ D` reflects limits for `K : J ⥤ C` if
+whenever the image of a cone over `K` under `F` is a limit cone in `D`,
+the cone was already a limit cone in `C`.
+Note that we do not assume a priori that `D` actually has any limits.
 -/
-
 class reflects_limit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (reflects : Π {c : cone K}, is_limit (F.map_cone c) → is_limit c)
+/--
+A functor `F : C ⥤ D` reflects limits for `K : J ⥤ C` if
+whenever the image of a cocone over `K` under `F` is a colimit cocone in `D`,
+the cocone was already a colimit cocone in `C`.
+Note that we do not assume a priori that `D` actually has any colimits.
+-/
 class reflects_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (reflects : Π {c : cocone K}, is_colimit (F.map_cocone c) → is_colimit c)
 
+/--
+A functor `F : C ⥤ D` reflects limits of shape `J` if
+whenever the image of a cone over some `K : J ⥤ C` under `F` is a limit cone in `D`,
+the cone was already a limit cone in `C`.
+Note that we do not assume a priori that `D` actually has any limits.
+-/
 class reflects_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (reflects_limit : Π {K : J ⥤ C}, reflects_limit K F)
+/--
+A functor `F : C ⥤ D` reflects limits of shape `J` if
+whenever the image of a cocone over some `K : J ⥤ C` under `F` is a colimit cocone in `D`,
+the cocone was already a colimit cocone in `C`.
+Note that we do not assume a priori that `D` actually has any colimits.
+-/
 class reflects_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (reflects_colimit : Π {K : J ⥤ C}, reflects_colimit K F)
 
+/--
+A functor `F : C ⥤ D` reflects limits if
+whenever the image of a cone over some `K : J ⥤ C` under `F` is a limit cone in `D`,
+the cone was already a limit cone in `C`.
+Note that we do not assume a priori that `D` actually has any limits.
+-/
 class reflects_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (reflects_limits_of_shape : Π {J : Type v} {𝒥 : small_category J}, by exactI reflects_limits_of_shape J F)
+/--
+A functor `F : C ⥤ D` reflects colimits if
+whenever the image of a cocone over some `K : J ⥤ C` under `F` is a colimit cocone in `D`,
+the cocone was already a colimit cocone in `C`.
+Note that we do not assume a priori that `D` actually has any colimits.
+-/
 class reflects_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (reflects_colimits_of_shape : Π {J : Type v} {𝒥 : small_category J}, by exactI reflects_colimits_of_shape J F)
 
@@ -247,6 +284,8 @@ instance comp_reflects_colimit [reflects_colimit K F] [reflects_colimit (K ⋙ F
   reflects_colimit K (F ⋙ G) :=
 ⟨λ c h, reflects_colimit.reflects (reflects_colimit.reflects h)⟩
 
+/-- If `F ⋙ G` preserves limits for `K`, and `G` reflects limits for `K ⋙ F`,
+then `F` preserves limits for `K`. -/
 def preserves_of_reflects_of_preserves [preserves_limit K (F ⋙ G)]
   [reflects_limit (K ⋙ F) G] : preserves_limit K F :=
 ⟨λ c h,

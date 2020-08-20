@@ -8,6 +8,7 @@ import data.zmod.basic
 import linear_algebra.adic_completion
 import data.padics.padic_numbers
 import ring_theory.discrete_valuation_ring
+import tactic.find_unused
 
 /-!
 # p-adic integers
@@ -496,7 +497,7 @@ private lemma exists_mem_range_aux' (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
   ↑p ∣ r.num - r.num * r.denom.gcd_a p % p * ↑(r.denom) :=
 begin
   rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
-  simp only [int.cast_coe_nat, zmod.coe_nat_mod p (nat.prime.ne_zero ‹_›), int.cast_mul, int.cast_sub],
+  simp only [int.cast_coe_nat, zmod.cast_mod_nat p, int.cast_mul, int.cast_sub],
   have := congr_arg (coe : ℤ → zmod p) (gcd_eq_gcd_ab r.denom p),
   simp only [int.cast_coe_nat, add_zero, int.cast_add, zmod.cast_self, int.cast_mul, zero_mul] at this,
   -- rw [mul_right_comm, mul_assoc, ← this],
@@ -747,7 +748,7 @@ begin
 end
 
 /-- A ring hom from `ℤ_[p]` to `zmod (p^n)`, with underlying function `padic_int.appr n`. -/
-def to_zmod_pow (n : ℕ) : ℤ_[p] →+* zmod (p ^ n) :=
+@[main_declaration] def to_zmod_pow (n : ℕ) : ℤ_[p] →+* zmod (p ^ n) :=
 { to_fun := λ x, appr x n,
   map_zero' :=
   begin

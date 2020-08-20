@@ -392,7 +392,7 @@ begin
   rw [zmod.nat_coe_eq_nat_coe_iff, nat.modeq.modeq_zero_iff],
 end
 
-@[push_cast]
+@[push_cast, simp]
 lemma cast_mod_int (a : ℤ) (b : ℕ) : ((a % b : ℤ) : zmod b) = (a : zmod b) :=
 begin
   rw zmod.int_coe_eq_int_coe_iff,
@@ -403,18 +403,6 @@ end
   ∀ (z : ℤ) (h : 0 ≤ z), (z.to_nat : zmod p) = z
 | (n : ℕ) h := by simp only [int.cast_coe_nat, int.to_nat_coe_nat]
 | -[1+n]  h := false.elim h
-
-@[simp] lemma coe_int_mod (p : ℕ) (z : ℤ) :
-  ((z % p : ℤ) : zmod p) = z :=
-by simp only [int.mod_def, int.cast_coe_nat, zmod.cast_self, int.cast_mul, zero_mul,
-              sub_zero, int.cast_sub]
-
-@[simp] lemma coe_nat_mod (p : ℕ) (h : p ≠ 0) (z : ℤ) : (z.nat_mod p : zmod p) = z :=
-begin
-  show ↑(int.to_nat _) = _,
-  rw [zmod.coe_to_nat, zmod.coe_int_mod],
-  { apply int.mod_nonneg, exact_mod_cast h }
-end
 
 lemma val_injective (n : ℕ) [fact (0 < n)] :
   function.injective (zmod.val : zmod n → ℕ) :=

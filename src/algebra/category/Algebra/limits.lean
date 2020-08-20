@@ -19,8 +19,6 @@ open category_theory.limits
 
 universe u
 
-noncomputable theory
-
 namespace Algebra
 
 variables {R : Type u} [comm_ring R]

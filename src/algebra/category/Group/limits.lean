@@ -24,8 +24,6 @@ open category_theory.limits
 
 universe u
 
-noncomputable theory
-
 variables {J : Type u} [small_category J]
 
 namespace Group

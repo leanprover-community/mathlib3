@@ -18,8 +18,6 @@ open category_theory.limits
 
 universe u
 
-noncomputable theory
-
 namespace Module
 
 variables {R : Type u} [ring R]

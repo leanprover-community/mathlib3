@@ -21,8 +21,6 @@ open category_theory.limits
 
 universe u
 
-noncomputable theory
-
 namespace SemiRing
 
 variables {J : Type u} [small_category J]

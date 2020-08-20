@@ -13,8 +13,6 @@ open category_theory.limits
 
 universe u
 
-noncomputable theory
-
 namespace Top
 
 variables {J : Type u} [small_category J]

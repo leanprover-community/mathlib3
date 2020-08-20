@@ -458,9 +458,9 @@ lemma mem_closure_iff {s : set R} {x} :
  (λ x y hx hy, add_mem _ hx hy)
  ( λ x hx, neg_mem _ hx ) ⟩
 
-theorem exists_list_of_mem_closure {s : set R} {x : R} (hx : x ∈ closure s) :
+theorem exists_list_of_mem_closure {s : set R} {x : R} (h : x ∈ closure s) :
   (∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s ∨ y = (-1:R)) ∧ (L.map list.prod).sum = x) :=
-add_subgroup.closure_induction (mem_closure_iff.1 hx)
+add_subgroup.closure_induction (mem_closure_iff.1 h)
   (λ x hx, let ⟨l, hl, h⟩ :=submonoid.exists_list_of_mem_closure hx in ⟨[l], by simp [h];
     clear_aux_decl; tauto!⟩)
   ⟨[], by simp⟩

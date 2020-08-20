@@ -400,7 +400,7 @@ begin
 end
 
 @[simp] lemma coe_to_nat (p : ℕ) :
-  ∀ (z : ℤ) (h : 0 ≤ z), (z.to_nat : zmod p) = z
+  ∀ {z : ℤ} (h : 0 ≤ z), (z.to_nat : zmod p) = z
 | (n : ℕ) h := by simp only [int.cast_coe_nat, int.to_nat_coe_nat]
 | -[1+n]  h := false.elim h
 

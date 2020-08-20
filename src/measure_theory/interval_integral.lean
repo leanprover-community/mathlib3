@@ -605,7 +605,7 @@ by simpa using measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae
   hfm hab ((tendsto_bot : tendsto _ ⊥ (𝓝 0)).mono_left inf_le_left)
   hf (tendsto_const_pure : tendsto _ _ (pure a)) tendsto_const_pure hu hv
 
-/-- Fundamental theorem of calculus-1, strict derivative in right endpoint for a locally finite
+/-- Fundamental theorem of calculus-1, strict derivative in left endpoint for a locally finite
 measure.
 
 Let `f` be a measurable function integrable on `a..b`. Let `(la, la')` be a pair of `FTC_filter`s
@@ -646,7 +646,7 @@ we have no definition of `has_strict_(f)deriv_at_filter` in the library.
 
 /-- Fundamental theorem of calculus-1, local version. If `f` has a finite limit `c` almost surely at
 `l'`, where `(l, l')` is an `FTC_filter` pair around `a`, then
-`∫ x in u..v, f x ∂μ = (v - u) • c + o(v - u)` as both `u` and `v` tend to `l`. -/
+`∫ x in u..v, f x ∂μ = (v - u) • c + o (v - u)` as both `u` and `v` tend to `l`. -/
 lemma integral_sub_linear_is_o_of_tendsto_ae [FTC_filter a l l']
   (hfm : measurable f) (hf : tendsto f (l' ⊓ volume.ae) (𝓝 c))
   {u v : β → ℝ} (hu : tendsto u lt l) (hv : tendsto v lt l) :

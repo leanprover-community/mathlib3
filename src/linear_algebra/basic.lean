@@ -853,13 +853,12 @@ by rw [span_le, singleton_subset_iff, mem_coe]
 
 lemma lt_add_nonmem {I : submodule R M} (a ∉ I) : I < I + submodule.span R {a} :=
 begin
-  split,
-  suffices : I ≤ I ⊔ submodule.span R {a}, assumption, exact le_sup_left,
-  have h1 : ∀{x y z : submodule R M}, x ⊔ y ≤ z → x ≤ z → y ≤ z, simp only [sup_le_iff], tauto,
-  intro h2, have ile : I ≤ I := by exact le_refl I,
-  have h3 := h1 h2 ile,
-  have : a ∈ submodule.span R {a}, exact submodule.mem_span_singleton_self a,
-  tidy,
+  apply lt_iff_le_and_exists.mpr, split,
+  simp only [add_eq_sup, le_sup_left],
+  use a,
+  split, swap, assumption,
+  have : span R {a} ≤ I + span R{a}, exact le_sup_right,
+  exact this (@mem_span_singleton_self R _ _ _ _ a),
 end
 
 lemma mem_supr {ι : Sort w} (p : ι → submodule R M) {m : M} :

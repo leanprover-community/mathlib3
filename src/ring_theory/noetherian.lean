@@ -388,8 +388,7 @@ begin
     { contrapose! hxM, rw ← hxM, apply submodule.subset_span, exact (↑Mgen : set M).mem_union_right rfl,} },
   { intros A ha,
     rw is_noetherian_iff_well_founded at h,
-    exact well_founded.has_min' h A ha,
-  },
+    exact well_founded.well_founded_iff_has_max.1 h A ha },
 end
 
 

@@ -711,7 +711,7 @@ begin
     apply sub_zmod_repr_mem, }
 end
 
-/-- `appr n x` gives a value `v : ℕ` such that `↑v : ℤ_p` are equivalent up to `p^n`.
+/-- `appr n x` gives a value `v : ℕ` such that `x` and `↑v : ℤ_p` are equivalent up to `p^n`.
 See `appr_spec`. -/
 noncomputable def appr : ℤ_[p] → ℕ → ℕ
 | x 0     := 0

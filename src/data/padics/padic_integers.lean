@@ -730,9 +730,15 @@ lemma foobar (n : ℕ) (a : ℤ) : (p ^ n : ℤ_[p]) ∣ a ↔ ↑p ^ n ∣ a :=
 begin
   split,
   { intro h,
-    -- something dangerously close to this must be in the internals
-    -- of the definition of ℚ_[p]
-    sorry },
+    cases h with w hw,
+    have := congr_arg has_norm.norm hw,
+    simp only [padic_norm_z.padic_norm_z_of_int, padic_norm_z.norm_p_pow, padic_norm_z.mul,
+               fpow_neg, fpow_coe_nat] at this,
+    rw_mod_cast [padic_norm_e.norm_int_lt_pow_iff_dvd, this],
+    simp only [fpow_neg, fpow_coe_nat, nat.cast_pow],
+    convert mul_le_of_le_one_right _ _ using 1,
+     { apply inv_nonneg.mpr, apply pow_nonneg, exact_mod_cast le_of_lt (nat.prime.pos ‹_›) },
+     { apply padic_norm_z.le_one } },
   { intro h,
     simpa only [ring_hom.map_pow] using (int.cast_ring_hom ℤ_[p]).map_dvd h, }
 end
@@ -802,7 +808,7 @@ have hdvd : ↑(p^n) ∣ z2 - z1, from int.modeq.modeq_iff_dvd.1 hz,
 have (z2 - z1 : ℚ_[p]) = ↑(↑(z2 - z1) : ℚ), by norm_cast,
 begin
   rw [norm_sub_rev, this, padic_norm_e.eq_padic_norm],
-  exact_mod_cast padic_norm.le_of_dvd p hdvd
+  exact_mod_cast padic_norm.dvd_iff_norm_le.mp hdvd
 end
 
 end padic_norm_z

@@ -914,6 +914,14 @@ begin
       exact_mod_cast nat.prime.one_lt ‹_› }, },
 end
 
+lemma norm_int_lt_pow_iff_dvd (k : ℤ) (n : ℕ) : ↑(p^n) ∣ k ↔ ∥(k : ℚ_[p])∥ ≤ ((↑p)^(-n : ℤ)) :=
+begin
+  have : (p : ℝ) ^ (-n : ℤ) = ↑((p ^ (-n : ℤ) : ℚ)), {simp},
+  rw [show (k : ℚ_[p]) = ((k : ℚ) : ℚ_[p]), by norm_cast, eq_padic_norm, this],
+  norm_cast,
+  rw padic_norm.dvd_iff_norm_le,
+end
+
 lemma eq_of_norm_add_lt_right {p : ℕ} {hp : fact p.prime} {z1 z2 : ℚ_[p]}
   (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=
 by_contradiction $ λ hne,

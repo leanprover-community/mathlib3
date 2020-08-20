@@ -31,37 +31,37 @@ noncomputable theory
 localized "notation `φ` := golden_ratio" in real
 localized "notation `ψ` := golden_conj" in real
 
-/-- The negative inverse of the golden ratio is its conjugate. -/
-lemma neg_inv_gold : -φ⁻¹ = ψ :=
+/-- The inverse of the golden ratio is the opposite of its conjugate. -/
+@[simp] lemma inv_gold : φ⁻¹ = -ψ :=
 begin
   have : 1 + real.sqrt 5 ≠ 0,
     from ne_of_gt (add_pos (by norm_num) $ real.sqrt_pos.mpr (by norm_num)),
   field_simp,
   apply mul_left_cancel' this,
   rw mul_div_cancel' _ this,
-  rw ← sq_sub_sq,
+  rw [add_comm, ← sq_sub_sq],
   norm_num
 end
 
-lemma gold_mul_gold_conj : φ * ψ = -1 :=
+@[simp] lemma gold_mul_gold_conj : φ * ψ = -1 :=
 by {field_simp, rw ← sq_sub_sq, norm_num}
 
-lemma gold_add_gold_conj : φ + ψ = 1 := by {rw [golden_ratio, golden_conj], ring}
+@[simp] lemma gold_add_gold_conj : φ + ψ = 1 := by {rw [golden_ratio, golden_conj], ring}
 
 lemma one_sub_gold_conj : 1 - φ = ψ := by linarith [gold_add_gold_conj]
 
 lemma one_sub_gold : 1 - ψ = φ := by linarith [gold_add_gold_conj]
 
-lemma gold_sub_gold_conj : φ - ψ = real.sqrt 5 := by {rw [golden_ratio, golden_conj], ring}
+@[simp] lemma gold_sub_gold_conj : φ - ψ = real.sqrt 5 := by {rw [golden_ratio, golden_conj], ring}
 
-lemma gold_sq : φ^2 = φ + 1 :=
+@[simp] lemma gold_sq : φ^2 = φ + 1 :=
 begin
   rw [golden_ratio, ←sub_eq_zero],
   ring_exp,
   rw real.sqr_sqrt; norm_num,
 end
 
-lemma gold_conj_sq : ψ^2 = ψ + 1 :=
+@[simp] lemma gold_conj_sq : ψ^2 = ψ + 1 :=
 begin
   rw [golden_conj, ←sub_eq_zero],
   ring_exp,
@@ -146,7 +146,7 @@ end
 end fibrec
 
 /-- Binet's formula as a function equality. -/
-theorem binet' : (λ n, nat.fib n : ℕ → ℝ) = λ n, (φ^n - ψ^n) / real.sqrt 5 :=
+theorem real.coe_fib_eq' : (λ n, nat.fib n : ℕ → ℝ) = λ n, (φ^n - ψ^n) / real.sqrt 5 :=
 begin
   rw fib_rec.sol_eq_of_eq_init,
   { intros i hi,
@@ -161,9 +161,5 @@ begin
 end
 
 /-- Binet's formula as a dependent equality. -/
-theorem binet : ∀ n, (nat.fib n : ℝ) = (φ^n - ψ^n) / real.sqrt 5 :=
-begin
-  intro n,
-  change (λ n, nat.fib n : ℕ → ℝ) n = (λ n, (φ^n - ψ^n) / real.sqrt 5) n,
-  rw binet'
-end
+theorem real.coe_fib_eq : ∀ n, (nat.fib n : ℝ) = (φ^n - ψ^n) / real.sqrt 5 :=
+by rw [← function.funext_iff, real.coe_fib_eq']

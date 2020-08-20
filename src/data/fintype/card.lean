@@ -156,7 +156,7 @@ begin
 end
 
 @[to_additive]
-lemma finset.univ_prod_eq_range_prod [comm_monoid β] {n : ℕ} {c : fin n → β} :
+lemma finset.univ_prod_eq_range_prod [comm_monoid β] {n : ℕ} (c : fin n → β) :
   ∏ i, c i = ∏ i in finset.range n, if h : i < n then c ⟨i, h⟩ else 1 :=
 begin
   rw [finset.range_prod_eq_univ_prod, finset.prod_congr rfl],

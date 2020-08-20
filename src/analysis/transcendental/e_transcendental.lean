@@ -1243,7 +1243,7 @@ begin
   exact e_transcendental alg_e,
 end
 
-def irrational (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
+def irrational' (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
 
 theorem zero_algebraic : is_algebraic ℤ (0 : ℝ) :=
 begin
@@ -1256,14 +1256,14 @@ begin
   simp only [polynomial.aeval_X],
 end
 
-theorem transcendental_irrational {x : ℝ} (trans_x : transcendental x) : irrational x :=
+theorem transcendental_irrational {x : ℝ} (trans_x : transcendental x) : irrational' x :=
 begin
   by_cases (x = 0),
   rw h at trans_x, exfalso, exact trans_x zero_algebraic,
 
 
   by_contra rid,
-  unfold irrational at rid,
+  unfold irrational' at rid,
   simp only [gt_iff_lt, not_forall, ne.def, not_imp, not_not] at rid,
   rcases rid with ⟨a, b, hb, H⟩,
   set p : (ℤ[X]) := polynomial.C b * polynomial.X - polynomial.C a with hp,
@@ -1290,6 +1290,6 @@ begin
   exact trans_x x_alg,
 end
 
-theorem e_irrational : irrational e := transcendental_irrational e_transcendental
+theorem e_irrational : irrational' e := transcendental_irrational e_transcendental
 
-theorem e_pow_n_irrational (n : ℕ) (hn : n ≥ 1) : irrational (e ^ n) := transcendental_irrational (e_pow_transcendental n hn)
+theorem e_pow_n_irrational (n : ℕ) (hn : n ≥ 1) : irrational' (e ^ n) := transcendental_irrational (e_pow_transcendental n hn)

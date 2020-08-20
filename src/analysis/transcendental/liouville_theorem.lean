@@ -17,7 +17,7 @@ notation `transcendental` x := ¬(is_algebraic ℤ x)
 -/
 
 def liouville_number (x : ℝ) := ∀ n : ℕ, ∃ a b : ℤ, b > 1 ∧ 0 < abs(x - a / b) ∧ abs(x - a / b) < 1/b^n
-def irrational (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
+def irrational' (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
 
 -- x ↦ |f(x)| is continuous
 theorem abs_f_eval_around_α_continuous (f : ℝ[X]) (α : ℝ) : continuous_on (λ x : ℝ, (abs (f.eval x))) (set.Icc (α-1) (α+1)) :=
@@ -190,7 +190,7 @@ N.B. So neccessarily f has degree > 1, otherwise α is rational. But it doesn't 
      f to be an integer polynomial of degree > 1.
 -/
 
-lemma about_irrational_root (α : real) (hα : irrational α) (f : ℤ[X])
+lemma about_irrational_root (α : real) (hα : irrational' α) (f : ℤ[X])
   (f_deg : f.nat_degree > 1) (α_root : f_eval_on_ℝ f α = 0) :
   ∃ A : real, A > 0 ∧ ∀ a b : ℤ, b > 0 -> abs(α - a / b) > (A / b ^ (f.nat_degree)) :=
 begin
@@ -482,7 +482,7 @@ We then prove that all liouville numbers cannot be rational. Hence we can apply 
 transcendence.
 -/
 
-lemma liouville_numbers_irrational: ∀ (x : real), (liouville_number x) -> irrational x :=
+lemma liouville_numbers_irrational: ∀ (x : real), (liouville_number x) -> irrational' x :=
 begin
   intros x liouville_x a b hb rid, replace rid : x = ↑a / ↑b, linarith,                  -- Suppose x is a rational Liouville number: say x = a/b.
   -- rw liouville_number at liouville_x,
@@ -549,7 +549,7 @@ end
 theorem liouville_numbers_transcendental : ∀ x : ℝ, liouville_number x -> transcendental x :=
 begin
   intros x liouville_x,                                                                  -- Let $x$ be any Liouville's number,
-  have irr_x : irrational x, exact liouville_numbers_irrational x liouville_x,           -- Then by previous theorem, it is irrational.
+  have irr_x : irrational' x, exact liouville_numbers_irrational x liouville_x,           -- Then by previous theorem, it is irrational.
   intros rid, rw is_algebraic at rid,                                             -- assume x is algebraic over ℤ,
   choose f hf using rid,                                                          -- Let f be an integer polynomial who admitts x as a root.
   have f_deg : f.nat_degree > 1, {                                                -- Then f must have degree > 1, otherwise f have degree 0 or 1.                                                                         --
@@ -570,7 +570,7 @@ begin
         rwa rid, exfalso, exact h_1 h,
       },
 
-      rw f_eq at hf, simp only [alg_hom.map_add, polynomial.aeval_X, ne.def, polynomial.aeval_C, alg_hom.map_mul] at hf, rw irrational at irr_x,
+      rw f_eq at hf, simp only [alg_hom.map_add, polynomial.aeval_X, ne.def, polynomial.aeval_C, alg_hom.map_mul] at hf, rw irrational' at irr_x,
       by_cases ((f.coeff 1) > 0),
       {
         replace irr_x := irr_x (-(f.coeff 0)) (f.coeff 1) h, simp only [ne.def, int.cast_neg] at irr_x, rw neg_div at irr_x, rw sub_neg_eq_add at irr_x, rw add_comm at irr_x,

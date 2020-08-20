@@ -83,8 +83,7 @@ theorem ext (f g : monad_hom M N) :
 
 variable (M)
 /-- The identity natural transformations is a morphism of monads. -/
-def id : monad_hom M M :=
-{ ..𝟙 M }
+def id : monad_hom M M := { ..𝟙 M }
 variable {M}
 
 instance : inhabited (monad_hom M M) := ⟨id _⟩
@@ -112,8 +111,7 @@ theorem ext (f g : comonad_hom M N) :
 
 variable (M)
 /-- The identity natural transformations is a morphism of comonads. -/
-def id : comonad_hom M M :=
-{ ..𝟙 M }
+def id : comonad_hom M M := { ..𝟙 M }
 variable {M}
 
 instance : inhabited (comonad_hom M M) := ⟨id _⟩

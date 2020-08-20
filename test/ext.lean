@@ -9,11 +9,6 @@ import tactic.solve_by_elim
 import data.stream.basic
 import data.finset.basic
 
-@[ext] lemma unit.ext (x y : unit) : x = y :=
-begin
-  cases x, cases y, refl
-end
-
 example : subsingleton unit :=
 begin
   split, intros, ext

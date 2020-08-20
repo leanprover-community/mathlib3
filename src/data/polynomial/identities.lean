@@ -73,6 +73,7 @@ begin
   existsi f.sum (λ e a, a *((poly_binom_aux1 x y e a).val)),
   rw poly_binom_aux3,
   congr,
+  { rw [←eval_eq_sum], },
   { rw derivative_eval, symmetry,
     apply finsupp.sum_mul },
   { symmetry, apply finsupp.sum_mul }

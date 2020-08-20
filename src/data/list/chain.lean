@@ -234,6 +234,20 @@ begin
     },
 end
 
+/-- If `l₁ l₂` and `l₃` are lists and `l₁ ++ l₂` and `l₂ ++ l₃` both satisfy
+  `chain' R`, then so does `l₁ ++ l₂ ++ l₃` provided `l₂ ≠ []` -/
+lemma chain'.append_overlap : ∀ {l₁ l₂ l₃ : list α}
+  (h₁ : chain' R (l₁ ++ l₂)) (h₂ : chain' R (l₂ ++ l₃)) (hn : l₂ ≠ []),
+  chain' R (l₁ ++ l₂ ++ l₃)
+| [] l₂ l₃ h₁ h₂ hn := h₂
+| l₁ [] l₃ h₁ h₂ hn := (hn rfl).elim
+| [a] (b::l₂) l₃ h₁ h₂ hn := by { simp at *, tauto }
+| (a::b::l₁) (c::l₂) l₃ h₁ h₂ hn := begin
+  simp only [cons_append, chain'_cons] at h₁ h₂ ⊢,
+  simp only [← cons_append] at h₁ h₂ ⊢,
+  exact ⟨h₁.1, chain'.append_overlap h₁.2 h₂ (cons_ne_nil _ _)⟩
+end
+
 /--
 If `a` and `b` are related by the reflexive transitive closure of `r`,
 then there is a `r`-chain starting from `a` and ending on `b`.

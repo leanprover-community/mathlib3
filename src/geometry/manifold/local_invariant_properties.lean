@@ -228,7 +228,7 @@ begin
   repeat { simp only [hy] with mfld_simps },
 end
 
-lemma lift_prop_within_at_inter' (ht : t ∈ nhds_within x s) :
+lemma lift_prop_within_at_inter' (ht : t ∈ 𝓝[s] x) :
   lift_prop_within_at P g (s ∩ t) x ↔ lift_prop_within_at P g s x :=
 begin
   by_cases hcont : ¬ (continuous_within_at g s x),
@@ -328,16 +328,16 @@ lemma lift_prop_within_at_congr_iff (h₁ : ∀ y ∈ s, g' y = g y) (hx : g' x 
  λ h, hG.lift_prop_within_at_congr h h₁ hx⟩
 
 lemma lift_prop_within_at_congr_of_eventually_eq
-  (h : lift_prop_within_at P g s x) (h₁ : g' =ᶠ[nhds_within x s] g) (hx : g' x = g x) :
+  (h : lift_prop_within_at P g s x) (h₁ : g' =ᶠ[𝓝[s] x] g) (hx : g' x = g x) :
   lift_prop_within_at P g' s x :=
 begin
   rcases h₁.exists_mem with ⟨t, t_nhd, ht⟩,
   rw ← hG.lift_prop_within_at_inter' t_nhd at h ⊢,
-  exact hG.lift_prop_within_at_congr h (λ y hy, ht _ hy.2) hx
+  exact hG.lift_prop_within_at_congr h (λ y hy, ht hy.2) hx
 end
 
 lemma lift_prop_within_at_congr_iff_of_eventually_eq
-  (h₁ : g' =ᶠ[nhds_within x s] g) (hx : g' x = g x) :
+  (h₁ : g' =ᶠ[𝓝[s] x] g) (hx : g' x = g x) :
   lift_prop_within_at P g' s x ↔ lift_prop_within_at P g s x :=
 ⟨λ h, hG.lift_prop_within_at_congr_of_eventually_eq h h₁.symm hx.symm,
  λ h, hG.lift_prop_within_at_congr_of_eventually_eq h h₁ hx⟩
@@ -515,8 +515,8 @@ lemma is_local_structomorph_within_at_local_invariant_prop [closed_under_restric
       refine ⟨e.restr (interior u), _, _, _⟩,
       { exact closed_under_restriction' heG (is_open_interior) },
       { have : s ∩ u ∩ e.source = s ∩ (e.source ∩ u) := by mfld_set_tac,
-        simpa only [this, interior_interior, interior_eq_of_open hu] with mfld_simps using hef },
-      { simp only [*, interior_interior, interior_eq_of_open hu] with mfld_simps } }
+        simpa only [this, interior_interior, hu.interior_eq] with mfld_simps using hef },
+      { simp only [*, interior_interior, hu.interior_eq] with mfld_simps } }
   end,
   right_invariance := begin
     intros s x f e' he'G he'x h hx,

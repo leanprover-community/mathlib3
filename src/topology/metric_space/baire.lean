@@ -117,34 +117,32 @@ begin
   /- Translate the density assumption into two functions `center` and `radius` associating
   to any n, x, δ, δpos a center and a positive radius such that
   `closed_ball center radius` is included both in `f n` and in `closed_ball x δ`.
-  We can also require `radius ≤ (1/2)^(n+1), to ensure we get a Cauchy sequence later. -/
-  have : ∀n x δ, ∃y r, δ > 0 → (r > 0 ∧ r ≤ B (n+1) ∧ closed_ball y r ⊆ (closed_ball x δ) ∩ f n),
-  { assume n x δ,
-    by_cases δpos : δ > 0,
-    { have : x ∈ closure (f n) := by simpa only [(hd n).symm] using mem_univ x,
-      rcases emetric.mem_closure_iff.1 this (δ/2) (ennreal.half_pos δpos) with ⟨y, ys, xy⟩,
-      rw edist_comm at xy,
-      obtain ⟨r, rpos, hr⟩ : ∃ r > 0, closed_ball y r ⊆ f n :=
-        nhds_basis_closed_eball.mem_iff.1 (is_open_iff_mem_nhds.1 (ho n) y ys),
-      refine ⟨y, min (min (δ/2) r) (B (n+1)), λ_, ⟨_, _, λz hz, ⟨_, _⟩⟩⟩,
-      show 0 < min (min (δ / 2) r) (B (n+1)),
-        from lt_min (lt_min (ennreal.half_pos δpos) rpos) (Bpos (n+1)),
-      show min (min (δ / 2) r) (B (n+1)) ≤ B (n+1), from min_le_right _ _,
-      show z ∈ closed_ball x δ, from calc
-        edist z x ≤ edist z y + edist y x : edist_triangle _ _ _
-        ... ≤ (min (min (δ / 2) r) (B (n+1))) + (δ/2) : add_le_add hz (le_of_lt xy)
-        ... ≤ δ/2 + δ/2 : add_le_add (le_trans (min_le_left _ _) (min_le_left _ _)) (le_refl _)
-        ... = δ : ennreal.add_halves δ,
-      show z ∈ f n, from hr (calc
-        edist z y ≤ min (min (δ / 2) r) (B (n+1)) : hz
-        ... ≤ r : le_trans (min_le_left _ _) (min_le_right _ _)) },
-    { use [x, 0] }},
-  choose center radius H using this,
+  We can also require `radius ≤ (1/2)^(n+1)`, to ensure we get a Cauchy sequence later. -/
+  have : ∀n x δ, δ > 0 → ∃y r, r > 0 ∧ r ≤ B (n+1) ∧ closed_ball y r ⊆ (closed_ball x δ) ∩ f n,
+  { assume n x δ δpos,
+    have : x ∈ closure (f n) := by simpa only [(hd n).symm] using mem_univ x,
+    rcases emetric.mem_closure_iff.1 this (δ/2) (ennreal.half_pos δpos) with ⟨y, ys, xy⟩,
+    rw edist_comm at xy,
+    obtain ⟨r, rpos, hr⟩ : ∃ r > 0, closed_ball y r ⊆ f n :=
+      nhds_basis_closed_eball.mem_iff.1 (is_open_iff_mem_nhds.1 (ho n) y ys),
+    refine ⟨y, min (min (δ/2) r) (B (n+1)), _, _, λz hz, ⟨_, _⟩⟩,
+    show 0 < min (min (δ / 2) r) (B (n+1)),
+      from lt_min (lt_min (ennreal.half_pos δpos) rpos) (Bpos (n+1)),
+    show min (min (δ / 2) r) (B (n+1)) ≤ B (n+1), from min_le_right _ _,
+    show z ∈ closed_ball x δ, from calc
+      edist z x ≤ edist z y + edist y x : edist_triangle _ _ _
+      ... ≤ (min (min (δ / 2) r) (B (n+1))) + (δ/2) : add_le_add hz (le_of_lt xy)
+      ... ≤ δ/2 + δ/2 : add_le_add (le_trans (min_le_left _ _) (min_le_left _ _)) (le_refl _)
+      ... = δ : ennreal.add_halves δ,
+    show z ∈ f n, from hr (calc
+      edist z y ≤ min (min (δ / 2) r) (B (n+1)) : hz
+      ... ≤ r : le_trans (min_le_left _ _) (min_le_right _ _)) },
+  choose! center radius H using this,
 
   refine subset.antisymm (subset_univ _) (λx hx, _),
   refine (mem_closure_iff_nhds_basis nhds_basis_closed_eball).2 (λ ε εpos, _),
-  /- ε is positive. We have to find a point in the ball of radius ε around x belonging to all `f n`.
-  For this, we construct inductively a sequence `F n = (c n, r n)` such that the closed ball
+  /- `ε` is positive. We have to find a point in the ball of radius `ε` around `x` belonging to all
+  `f n`. For this, we construct inductively a sequence `F n = (c n, r n)` such that the closed ball
   `closed_ball (c n) (r n)` is included in the previous ball and in `f n`, and such that
   `r n` is small enough to ensure that `c n` is a Cauchy sequence. Then `c n` converges to a
   limit which belongs to all the `f n`. -/
@@ -338,7 +336,7 @@ begin
 end
 
 /-- Baire theorem: if countably many closed sets cover the whole space, then their interiors
-are dense. Formulated here with ⋃₀. -/
+are dense. Formulated here with `⋃₀`. -/
 theorem dense_sUnion_interior_of_closed {S : set (set α)} (hc : ∀s∈S, is_closed s)
   (hS : countable S) (hU : (⋃₀ S) = univ) : closure (⋃s∈S, interior s) = univ :=
 by rw sUnion_eq_bUnion at hU; exact dense_bUnion_interior_of_closed hc hS hU

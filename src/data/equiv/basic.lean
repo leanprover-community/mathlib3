@@ -17,6 +17,7 @@ universes u v w z
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
 
 /-- `α ≃ β` is the type of functions from `α → β` with a two-sided inverse. -/
+@[nolint inhabited]
 structure equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
@@ -261,12 +262,18 @@ def prop_equiv_punit {p : Prop} (h : p) : p ≃ punit :=
 def true_equiv_punit : true ≃ punit := prop_equiv_punit trivial
 
 /-- `ulift α` is equivalent to `α`. -/
-protected def ulift {α : Type u} : ulift α ≃ α :=
+protected def ulift {α : Type v} : ulift.{u} α ≃ α :=
 ⟨ulift.down, ulift.up, ulift.up_down, λ a, rfl⟩
+
+@[simp] lemma coe_ulift {α : Type v} : ⇑(@equiv.ulift.{u} α) = ulift.down := rfl
+@[simp] lemma coe_ulift_symm {α : Type v} : ⇑(@equiv.ulift.{u} α).symm = ulift.up := rfl
 
 /-- `plift α` is equivalent to `α`. -/
 protected def plift : plift α ≃ α :=
 ⟨plift.down, plift.up, plift.up_down, plift.down_up⟩
+
+@[simp] lemma coe_plift : ⇑(@equiv.plift α) = plift.down := rfl
+@[simp] lemma coe_plift_symm : ⇑(@equiv.plift α).symm = plift.up := rfl
 
 /-- equivalence of propositions is the same as iff -/
 def of_iff {P Q : Prop} (h : P ↔ Q) : P ≃ Q :=
@@ -1192,6 +1199,14 @@ equiv.set.image_of_inj_on f s (λ x y hx hy hxy, H hxy)
 @[simp] theorem image_apply {α β} (f : α → β) (s : set α) (H : injective f) (a h) :
   set.image f s H ⟨a, h⟩ = ⟨f a, mem_image_of_mem _ h⟩ := rfl
 
+lemma image_symm_preimage {α β} {f : α → β} (hf : injective f) (u s : set α) :
+  (λ x, (set.image f s hf).symm x : f '' s → α) ⁻¹' u = coe ⁻¹' (f '' u) :=
+begin
+  ext ⟨b, a, has, rfl⟩,
+  have : ∀(h : ∃a', a' ∈ s ∧ a' = a), classical.some h = a := λ h, (classical.some_spec h).2,
+  simp [equiv.set.image, equiv.set.image_of_inj_on, hf, this],
+end
+
 /-- If `f : α → β` is an injective function, then `α` is equivalent to the range of `f`. -/
 protected noncomputable def range {α β} (f : α → β) (H : injective f) :
   α ≃ range f :=
@@ -1250,7 +1265,6 @@ def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid 
 
 section swap
 variable [decidable_eq α]
-open decidable
 
 /-- A helper function for `equiv.swap`. -/
 def swap_core (a b r : α) : α :=

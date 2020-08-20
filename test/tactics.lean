@@ -528,6 +528,7 @@ begin
   success_if_fail_with_msg {clear_value k}
     "Cannot clear the body of k. The resulting goal is not type correct.",
   clear_value k f,
+  get_local `k, -- test that `k` is not renamed.
   exact unit.star
 end
 
@@ -539,4 +540,67 @@ begin
   exact unit.star
 end
 
+/-- test `clear_value` and the preservation of naming -/
+example : ∀ x y : ℤ, let z := x + y in x = z - y → x = y - z → true :=
+begin
+  introv h h,
+  guard_hyp x := ℤ,
+  guard_hyp y := ℤ,
+  guard_hyp z := ℤ,
+  guard_hyp h := x = y - z,
+  suffices : true, -- test the type of the second assumption named `h`
+  { clear h,
+    guard_hyp h := x = z - y,
+    assumption },
+  do { to_expr ```(z) >>= is_local_def },
+  clear_value z,
+  guard_hyp z := ℤ,
+  success_if_fail { do { to_expr ```(z) >>= is_local_def } },
+  guard_hyp h := x = y - z,
+  suffices : true,
+  { clear h,
+    guard_hyp h := x = z - y,
+    assumption },
+  trivial
+end
+
+/- Test whether generalize' always uses the exact name stated by the user, even if that name already
+  exists. -/
+example (n : Type) (k : ℕ) : k = 5 → unit :=
+begin
+  generalize' : 5 = n,
+  guard_target (k = n → unit),
+  intro, constructor
+end
+
+/- Test that `generalize'` works correctly with argument `h`, when the expression occurs in the
+  target -/
+example (n : Type) (k : ℕ) : k = 5 → unit :=
+begin
+  generalize' h : 5 = n,
+  guard_target (k = n → unit),
+  intro, constructor
+end
+
 end local_definitions
+
+section set_attribute
+
+open tactic
+
+@[user_attribute] meta def my_user_attribute : user_attribute unit bool :=
+{ name := `my_attr,
+  descr := "",
+  parser := return ff }
+
+run_cmd do nm ← get_user_attribute_name `library_note, guard $ nm = `library_note_attr
+run_cmd do nm ← get_user_attribute_name `higher_order, guard $ nm = `tactic.higher_order_attr
+run_cmd do success_if_fail $ get_user_attribute_name `zxy.xzy
+
+run_cmd set_attribute `norm `prod.map tt
+run_cmd success_if_fail $ set_attribute `higher_order `prod.map tt
+run_cmd success_if_fail $ set_attribute `my_attr `prod.map
+run_cmd success_if_fail $ set_attribute `norm `xyz.zxy
+run_cmd success_if_fail $ set_attribute `zxy.xyz `prod.map
+
+end set_attribute

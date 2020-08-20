@@ -279,11 +279,19 @@ theorem min'_le (x) (H2 : x ∈ s) : s.min' H ≤ x := min_le_of_mem H2 $ option
 
 theorem le_min' (x) (H2 : ∀ y ∈ s, x ≤ y) : x ≤ s.min' H := H2 _ $ min'_mem _ _
 
+/-- `{a}.min'` is `a`. -/
+@[simp] lemma min'_singleton (a : α) {h} : ({a} : finset α).min' h = a :=
+by simp [min']
+
 theorem max'_mem : s.max' H ∈ s := mem_of_max $ by simp [max']
 
 theorem le_max' (x) (H2 : x ∈ s) : x ≤ s.max' H := le_max_of_mem H2 $ option.get_mem _
 
 theorem max'_le (x) (H2 : ∀ y ∈ s, y ≤ x) : s.max' H ≤ x := H2 _ $ max'_mem _ _
+
+/-- `{a}.max'` is `a`. -/
+@[simp] lemma max'_singleton (a : α) {h} : ({a} : finset α).max' h = a :=
+by simp [max']
 
 theorem min'_lt_max' {i j} (H1 : i ∈ s) (H2 : j ∈ s) (H3 : i ≠ j) : s.min' H < s.max' H :=
 begin
@@ -352,38 +360,81 @@ end multiset
 
 
 section lattice
-variables {ι : Sort*} [complete_lattice α]
+variables {ι : Type*} {ι' : Sort*} [complete_lattice α]
 
+/-- Supremum of `s i`, `i : ι`, is equal to the supremum over `t : finset ι` of suprema
+`⨆ i ∈ t, s i`. This version assumes `ι` is a `Type*`. See `supr_eq_supr_finset'` for a version
+that works for `ι : Sort*`. -/
 lemma supr_eq_supr_finset (s : ι → α) :
-  (⨆i, s i) = (⨆t:finset (plift ι), ⨆i∈t, s (plift.down i)) :=
+  (⨆i, s i) = (⨆t:finset ι, ⨆i∈t, s i) :=
 begin
   classical,
   exact le_antisymm
-    (supr_le $ assume b, le_supr_of_le {plift.up b} $ le_supr_of_le (plift.up b) $ le_supr_of_le
+    (supr_le $ assume b, le_supr_of_le {b} $ le_supr_of_le b $ le_supr_of_le
       (by simp) $ le_refl _)
     (supr_le $ assume t, supr_le $ assume b, supr_le $ assume hb, le_supr _ _)
 end
 
+/-- Supremum of `s i`, `i : ι`, is equal to the supremum over `t : finset ι` of suprema
+`⨆ i ∈ t, s i`. This version works for `ι : Sort*`. See `supr_eq_supr_finset` for a version
+that assumes `ι : Type*` but has no `plift`s. -/
+lemma supr_eq_supr_finset' (s : ι' → α) :
+  (⨆i, s i) = (⨆t:finset (plift ι'), ⨆i∈t, s (plift.down i)) :=
+by rw [← supr_eq_supr_finset, ← equiv.plift.surjective.supr_comp]; refl
+
+/-- Infimum of `s i`, `i : ι`, is equal to the infimum over `t : finset ι` of infima
+`⨆ i ∈ t, s i`. This version assumes `ι` is a `Type*`. See `infi_eq_infi_finset'` for a version
+that works for `ι : Sort*`. -/
 lemma infi_eq_infi_finset (s : ι → α) :
-  (⨅i, s i) = (⨅t:finset (plift ι), ⨅i∈t, s (plift.down i)) :=
+  (⨅i, s i) = (⨅t:finset ι, ⨅i∈t, s i) :=
 @supr_eq_supr_finset (order_dual α) _ _ _
+
+/-- Infimum of `s i`, `i : ι`, is equal to the infimum over `t : finset ι` of infima
+`⨆ i ∈ t, s i`. This version works for `ι : Sort*`. See `infi_eq_infi_finset` for a version
+that assumes `ι : Type*` but has no `plift`s. -/
+lemma infi_eq_infi_finset' (s : ι' → α) :
+  (⨅i, s i) = (⨅t:finset (plift ι'), ⨅i∈t, s (plift.down i)) :=
+@supr_eq_supr_finset' (order_dual α) _ _ _
 
 end lattice
 
 namespace set
-variables {ι : Sort*}
+variables {ι : Type*} {ι' : Sort*}
 
+/-- Union of an indexed family of sets `s : ι → set α` is equal to the union of the unions
+of finite subfamilies. This version assumes `ι : Type*`. See also `Union_eq_Union_finset'` for
+a version that works for `ι : Sort*`. -/
 lemma Union_eq_Union_finset (s : ι → set α) :
-  (⋃i, s i) = (⋃t:finset (plift ι), ⋃i∈t, s (plift.down i)) :=
+  (⋃i, s i) = (⋃t:finset ι, ⋃i∈t, s i) :=
 supr_eq_supr_finset s
 
+/-- Union of an indexed family of sets `s : ι → set α` is equal to the union of the unions
+of finite subfamilies. This version works for `ι : Sort*`. See also `Union_eq_Union_finset` for
+a version that assumes `ι : Type*` but avoids `plift`s in the right hand side. -/
+lemma Union_eq_Union_finset' (s : ι' → set α) :
+  (⋃i, s i) = (⋃t:finset (plift ι'), ⋃i∈t, s (plift.down i)) :=
+supr_eq_supr_finset' s
+
+/-- Intersection of an indexed family of sets `s : ι → set α` is equal to the intersection of the
+intersections of finite subfamilies. This version assumes `ι : Type*`. See also
+`Inter_eq_Inter_finset'` for a version that works for `ι : Sort*`. -/
 lemma Inter_eq_Inter_finset (s : ι → set α) :
-  (⋂i, s i) = (⋂t:finset (plift ι), ⋂i∈t, s (plift.down i)) :=
+  (⋂i, s i) = (⋂t:finset ι, ⋂i∈t, s i) :=
 infi_eq_infi_finset s
+
+/-- Intersection of an indexed family of sets `s : ι → set α` is equal to the intersection of the
+intersections of finite subfamilies. This version works for `ι : Sort*`. See also
+`Inter_eq_Inter_finset` for a version that assumes `ι : Type*` but avoids `plift`s in the right
+hand side. -/
+lemma Inter_eq_Inter_finset' (s : ι' → set α) :
+  (⋂i, s i) = (⋂t:finset (plift ι'), ⋂i∈t, s (plift.down i)) :=
+infi_eq_infi_finset' s
 
 end set
 
 namespace finset
+
+open function
 
 /-! ### Interaction with big lattice/set operations -/
 
@@ -431,6 +482,17 @@ lemma infi_finset_image {f : γ → α} {g : α → β} {s : finset γ} :
   (⨅ x ∈ s.image f, g x) = (⨅ y ∈ s, g (f y)) :=
 by rw [← infi_coe, coe_image, infi_image, infi_coe]
 
+lemma supr_insert_update {x : α} {t : finset α} (f : α → β) {s : β} (hx : x ∉ t) :
+  (⨆ (i ∈ insert x t), function.update f x s i) = (s ⊔ ⨆ (i ∈ t), f i) :=
+begin
+  simp only [finset.supr_insert, update_same],
+  congr' 2, ext i, congr' 1, ext hi, apply update_noteq, rintro rfl, exact hx hi
+end
+
+lemma infi_insert_update {x : α} {t : finset α} (f : α → β) {s : β} (hx : x ∉ t) :
+  (⨅ (i ∈ insert x t), update f x s i) = (s ⊓ ⨅ (i ∈ t), f i) :=
+@supr_insert_update α (order_dual β) _ _ _ _ f _ hx
+
 end lattice
 
 @[simp] theorem bUnion_coe (s : finset α) (t : α → set β) :
@@ -476,5 +538,13 @@ supr_finset_image
 @[simp] lemma bInter_finset_image {f : γ → α} {g : α → set β} {s : finset γ} :
   (⋂ x ∈ s.image f, g x) = (⋂ y ∈ s, g (f y)) :=
 infi_finset_image
+
+lemma bUnion_insert_update {x : α} {t : finset α} (f : α → set β) {s : set β} (hx : x ∉ t) :
+  (⋃ (i ∈ insert x t), @update _ _ _ f x s i) = (s ∪ ⋃ (i ∈ t), f i) :=
+supr_insert_update f hx
+
+lemma bInter_insert_update {x : α} {t : finset α} (f : α → set β) {s : set β} (hx : x ∉ t) :
+  (⋂ (i ∈ insert x t), @update _ _ _ f x s i) = (s ∩ ⋂ (i ∈ t), f i) :=
+infi_insert_update f hx
 
 end finset

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek
 -/
 import data.nat.cast
+import logic.embedding
 /-!
 # The finite type with `n` elements
 
@@ -163,8 +164,14 @@ protected lemma heq_ext_iff {k l : ℕ} (h : k = l) {i : fin k} {j : fin l} :
   i == j ↔ i.val = j.val :=
 by { induction h, simp [fin.ext_iff] }
 
+instance {n : ℕ} : linear_order (fin n) :=
+{ le := (≤), lt := (<), ..linear_order.lift fin.val (@fin.eq_of_veq _) }
+
 instance {n : ℕ} : decidable_linear_order (fin n) :=
-decidable_linear_order.lift fin.val (@fin.eq_of_veq _)
+{ decidable_le := fin.decidable_le,
+  decidable_lt := fin.decidable_lt,
+  decidable_eq := fin.decidable_eq _,
+  ..fin.linear_order }
 
 lemma exists_iff {p : fin n → Prop} : (∃ i, p i) ↔ ∃ i h, p ⟨i, h⟩ :=
 ⟨λ h, exists.elim h (λ ⟨i, hi⟩ hpi, ⟨i, hi, hpi⟩),
@@ -563,7 +570,7 @@ begin
 end
 
 @[simp] lemma snoc_last : snoc p x (last n) = x :=
-by { simp [snoc], refl }
+by { simp [snoc] }
 
 /-- Updating a tuple and adding an element at the end commute. -/
 @[simp] lemma snoc_update : snoc (update p i y) x = update (snoc p x) i.cast_succ y :=
@@ -668,8 +675,7 @@ begin
   ext j,
   by_cases h : j.val < n,
   { have : j ≠ last n := ne_of_lt h,
-    simp [h, this, snoc, cast_succ_cast_lt],
-    refl },
+    simp [h, this, snoc, cast_succ_cast_lt] },
   { rw eq_last_of_not_lt h,
     simp }
 end
@@ -800,3 +806,14 @@ mem_find_iff.2 ⟨hi, λ j hj, le_of_eq $ h i j hi hj⟩
 end find
 
 end fin
+
+-- Once lean#359 is fixed (making `fin n` a subtype), this can go away
+-- as a duplicate of `function.embedding.subtype`.
+/-- Embedding of `fin n` into `ℕ`. -/
+def function.embedding.fin (n : ℕ) : fin n ↪ ℕ :=
+⟨coe, fin.val_injective⟩
+
+-- Once lean#359 is fixed (making `fin n` a subtype), this can go away
+-- as a duplicate of `function.embedding.coe_subtype`.
+/-- `function.embedding.fin` coerced to a function. -/
+@[simp] lemma function.embedding.coe_fin (n : ℕ) : ⇑(function.embedding.fin n) = coe := rfl

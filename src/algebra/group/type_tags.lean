@@ -174,3 +174,13 @@ def add_monoid_hom.to_multiplicative [add_monoid α] [add_monoid β] (f : α →
 /-- Reinterpret `f : α →* β` as `additive α →+ additive β`. -/
 def monoid_hom.to_additive [monoid α] [monoid β] (f : α →* β) : additive α →+ additive β :=
 ⟨f.1, f.2, f.3⟩
+
+/-- Reinterpret `f : additive α →+ β` as `α →* multiplicative β`. -/
+def add_monoid_hom.to_multiplicative' [monoid α] [add_monoid β] (f : additive α →+ β) :
+  α →* multiplicative β :=
+⟨f.1, f.2, f.3⟩
+
+/-- Reinterpret `f : α →* multiplicative β` as `additive α →+ β`. -/
+def monoid_hom.to_additive' [monoid α] [add_monoid β] (f : α →* multiplicative β) :
+  additive α →+ β :=
+⟨f.1, f.2, f.3⟩

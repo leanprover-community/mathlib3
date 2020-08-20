@@ -3,7 +3,8 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
-import algebra.ordered_group tactic.pi_instances
+import algebra.ordered_group
+import tactic.pi_instances
 /-!
 # Pi instances for groups and monoids
 
@@ -27,30 +28,30 @@ instance has_mul [∀ i, has_mul $ f i] : has_mul (Π i : I, f i) := ⟨λ f g i
 @[to_additive] instance has_inv [∀ i, has_inv $ f i] : has_inv (Π i : I, f i) := ⟨λ f i, (f i)⁻¹⟩
 @[simp, to_additive] lemma inv_apply [∀ i, has_inv $ f i] : x⁻¹ i = (x i)⁻¹ := rfl
 
-@[to_additive add_semigroup]
+@[to_additive]
 instance semigroup [∀ i, semigroup $ f i] : semigroup (Π i : I, f i) :=
 by refine_struct { mul := (*), .. }; tactic.pi_instance_derive_field
 
-@[to_additive add_comm_semigroup]
+@[to_additive]
 instance comm_semigroup [∀ i, comm_semigroup $ f i] : comm_semigroup (Π i : I, f i) :=
 by refine_struct { mul := (*), .. }; tactic.pi_instance_derive_field
 
-@[to_additive add_monoid]
+@[to_additive]
 instance monoid [∀ i, monoid $ f i] : monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
 
-@[to_additive add_comm_monoid]
+@[to_additive]
 instance comm_monoid [∀ i, comm_monoid $ f i] : comm_monoid (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), .. }; tactic.pi_instance_derive_field
 
-@[to_additive add_group]
+@[to_additive]
 instance group [∀ i, group $ f i] : group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, .. };
   tactic.pi_instance_derive_field
 
 @[simp] lemma sub_apply [∀ i, add_group $ f i] : (x - y) i = x i - y i := rfl
 
-@[to_additive add_comm_group]
+@[to_additive]
 instance comm_group [∀ i, comm_group $ f i] : comm_group (Π i : I, f i) :=
 by refine_struct { one := (1 : Π i, f i), mul := (*), inv := has_inv.inv, .. };
   tactic.pi_instance_derive_field
@@ -65,13 +66,13 @@ instance right_cancel_semigroup [∀ i, right_cancel_semigroup $ f i] :
   right_cancel_semigroup (Π i : I, f i) :=
 by refine_struct { mul := (*) }; tactic.pi_instance_derive_field
 
-@[to_additive ordered_cancel_add_comm_monoid]
+@[to_additive]
 instance ordered_cancel_comm_monoid [∀ i, ordered_cancel_comm_monoid $ f i] :
   ordered_cancel_comm_monoid (Π i : I, f i) :=
 by refine_struct { mul := (*), one := (1 : Π i, f i), le := (≤), lt := (<), .. pi.partial_order };
   tactic.pi_instance_derive_field
 
-@[to_additive ordered_add_comm_group]
+@[to_additive]
 instance ordered_comm_group [∀ i, ordered_comm_group $ f i] :
   ordered_comm_group (Π i : I, f i) :=
 { mul_le_mul_left := λ x y hxy c i, mul_le_mul_left' (hxy i) _,

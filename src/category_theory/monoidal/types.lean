@@ -8,7 +8,7 @@ import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.types
 
 /-!
-The category of types is a symmetric monoidal category.
+# The category of types is a symmetric monoidal category
 -/
 
 open category_theory

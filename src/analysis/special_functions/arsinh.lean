@@ -64,7 +64,7 @@ lemma sinh_surjective : function.surjective sinh := function.left_inverse.surjec
 lemma sinh_bijective : function.bijective sinh :=
 ⟨sinh_injective, sinh_surjective⟩
 
-/-- A rearrangment and `sqrt` of `real.cosh_sq_sub_sinh_sq`. -/
+/-- A rearrangement and `sqrt` of `real.cosh_sq_sub_sinh_sq`. -/
 lemma sqrt_one_add_sinh_sq (x : ℝ): sqrt (1 + sinh x ^ 2) = cosh x :=
 begin
   have H := real.cosh_sq_sub_sinh_sq x,

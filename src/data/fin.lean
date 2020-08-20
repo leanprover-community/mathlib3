@@ -390,10 +390,10 @@ lemma succ_above_below (p : fin (n + 1)) (i : fin n) (h : i.val < p.val) :
   p.succ_above i = i.cast_succ :=
 by { rw [fin.succ_above], split_ifs, refl }
 
-@[simp] lemma succ_above_zero (i : fin n) : succ_above 0 i = i.succ := rfl
+@[simp] lemma succ_above_zero : succ_above (0 : fin (n + 1)) = fin.succ := rfl
 
-@[simp] lemma succ_above_last (i : fin n) : succ_above (fin.last n) i = i.cast_succ :=
-by simp only [succ_above, i.is_lt, if_true, last_val]
+@[simp] lemma succ_above_last : succ_above (fin.last n) = cast_succ :=
+by { ext i, simp only [succ_above, i.is_lt, if_true, last_val] }
 
 lemma succ_above_above (p : fin (n + 1)) (i : fin n) (h : p.val ≤ i.val) :
   p.succ_above i = i.succ :=

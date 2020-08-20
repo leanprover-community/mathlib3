@@ -43,6 +43,7 @@ begin
   norm_num
 end
 
+/-- The opposite of the golden ratio is the inverse of its conjugate. -/
 @[simp] lemma inv_gold_conj : ψ⁻¹ = -φ :=
 begin
   rw [inv_eq_iff, ← neg_inv, neg_eq_iff_neg_eq],

@@ -55,10 +55,7 @@ end hom
 instance : category (Monad C) :=
 { hom := hom,
   id := λ _, monad_hom.id _,
-  comp := λ _ _ _, monad_hom.comp,
-  id_comp' := λ _ _, monad_hom.id_comp,
-  comp_id' := λ _ _, monad_hom.comp_id,
-  assoc' := λ _ _ _ _, monad_hom.assoc }
+  comp := λ _ _ _, monad_hom.comp }
 
 /-- The forgetful functor from `Monad C` to `C ⥤ C`. -/
 def forget : Monad C ⥤ (C ⥤ C) :=
@@ -109,10 +106,7 @@ end hom
 instance : category (Comonad C) :=
 { hom := hom,
   id := λ _, comonad_hom.id _,
-  comp := λ _ _ _, comonad_hom.comp,
-  id_comp' := λ _ _, comonad_hom.id_comp,
-  comp_id' := λ _ _, comonad_hom.comp_id,
-  assoc' := λ _ _ _ _, comonad_hom.assoc }
+  comp := λ _ _ _, comonad_hom.comp }
 
 /-- The forgetful functor from `CoMonad C` to `C ⥤ C`. -/
 def forget : Comonad C ⥤ (C ⥤ C) :=

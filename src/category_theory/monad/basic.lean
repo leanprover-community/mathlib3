@@ -97,7 +97,7 @@ by {ext, apply id_comp}
 @[simp] lemma comp_id (f : monad_hom M N) : f.comp (monad_hom.id N) = f :=
 by {ext, apply comp_id}
 /-- Note: `category_theory.monad.bundled` provides a category instance for bundled monads.-/
-lemma assoc (f : monad_hom M N) (g : monad_hom N L) (h : monad_hom L K) :
+@[simp] lemma assoc (f : monad_hom M N) (g : monad_hom N L) (h : monad_hom L K) :
   (f.comp g).comp h = f.comp (g.comp h) := by {ext, apply assoc}
 
 end monad_hom
@@ -125,7 +125,7 @@ by {ext, apply id_comp}
 @[simp] lemma comp_id (f : comonad_hom M N) : f.comp (comonad_hom.id N) = f :=
 by {ext, apply comp_id}
 /-- Note: `category_theory.monad.bundled` provides a category instance for bundled comonads.-/
-lemma assoc (f : comonad_hom M N) (g : comonad_hom N L) (h : comonad_hom L K) :
+@[simp] lemma assoc (f : comonad_hom M N) (g : comonad_hom N L) (h : comonad_hom L K) :
   (f.comp g).comp h = f.comp (g.comp h) := by {ext, apply assoc}
 
 end comonad_hom

@@ -156,9 +156,11 @@ end
 
 namespace bool
 
+/-- convert a `bool` to a `ℕ`, `false -> 0`, `true -> 1` -/
 def to_nat (b : bool) : ℕ :=
 cond b 1 0
 
+/-- convert a `ℕ` to a `bool`, `0 -> false`, everything else -> `true` -/
 def of_nat (n : ℕ) : bool :=
 to_bool (n ≠ 0)
 

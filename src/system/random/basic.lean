@@ -111,7 +111,7 @@ variables [preorder α] [random α]
 
 export random (random)
 
-/- Generate a random value of type `α`. -/
+/-- Generate a random value of type `α`. -/
 def random : rand_g g α :=
 random.random α g
 

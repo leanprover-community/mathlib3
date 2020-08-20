@@ -1729,7 +1729,7 @@ begin
   apply not_le_of_lt, apply lt_succ_self,
 end
 
-lemma pow_log_le_self (b x : ℕ) (hb : b > 1) (hx : 1 ≤ x) : b ^ log b x ≤ x :=
+lemma pow_log_le_self (b x : ℕ) (hb : 1 < b) (hx : 1 ≤ x) : b ^ log b x ≤ x :=
 by rw [pow_le_iff_le_log _ _ hb hx]
 
 end nat

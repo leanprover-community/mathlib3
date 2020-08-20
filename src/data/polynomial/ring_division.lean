@@ -195,6 +195,21 @@ begin
       multiset.to_finset_cons, finset.bind_insert, ih H.2]
 end
 
+lemma roots_finset_prod {ι : Type*} (f : ι → polynomial R) (s : finset ι) :
+  s.prod f ≠ 0 → (s.prod f).roots = s.bind (λ i, roots (f i)) :=
+begin
+  refine s.induction_on _ _,
+  { intros, exact roots_one },
+  intros i s hi ih ne_zero,
+  rw prod_insert hi at ⊢ ne_zero,
+  rw [roots_mul ne_zero, ih (right_ne_zero_of_mul ne_zero), bind_insert]
+end
+
+lemma roots_finset_prod_X_sub_C (s : finset R) :
+  (s.prod (λ a, X - C a)).roots = s :=
+(roots_finset_prod (λ a, X - C a) s (prod_ne_zero_iff.mpr (λ a _, X_sub_C_ne_zero a))).trans
+  (by simp_rw [roots_X_sub_C, bind_singleton_eq_self])
+
 lemma card_roots_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : R) :
   (roots ((X : polynomial R) ^ n - C a)).card ≤ n :=
 with_bot.coe_le_coe.1 $

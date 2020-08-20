@@ -451,6 +451,7 @@ begin
   { simpa [succ_above_above _ _ (le_of_not_lt H)] using succ_pos i },
 end
 
+/-- Given a fixed pivot `x : fin (n + 1)`, `x.succ_above` is injective -/
 lemma succ_above_inj_about_pivot {x : fin (n + 1)} :
   x.succ_above a = x.succ_above b ↔ a = b :=
 begin
@@ -466,6 +467,7 @@ begin
   { exact succ.inj h }
 end
 
+/-- Given a fixed pivot `x : fin (n + 1)`, `x.succ_above` is injective -/
 lemma succ_above_injective_about_pivot {x : fin (n + 1)} : injective (succ_above x) :=
 λ _ _ h, succ_above_inj_about_pivot.mp h
 

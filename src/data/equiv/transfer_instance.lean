@@ -105,11 +105,7 @@ end
   (ring_equiv e) a = e a := rfl
 
 lemma ring_equiv_symm_apply (e : α ≃ β) [has_add β] [has_mul β] (b : β) :
-  begin
-    letI := equiv.has_add e,
-    letI := equiv.has_mul e,
-    exact (ring_equiv e).symm b = e.symm b
-  end :=
+  by { letI := equiv.has_add e, letI := equiv.has_mul e, exact (ring_equiv e).symm b = e.symm b } :=
 begin
   intros, refl,
 end

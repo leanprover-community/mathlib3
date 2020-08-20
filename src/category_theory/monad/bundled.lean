@@ -49,16 +49,16 @@ instance {M : Monad C} : monad M.func := M.str
 def hom (M N : Monad C) := monad_hom M.func N.func
 
 namespace hom
-instance {M : Monad C} : inhabited (hom M M) := ⟨monad_hom.ident _⟩
+instance {M : Monad C} : inhabited (hom M M) := ⟨monad_hom.id _⟩
 end hom
 
 instance : category (Monad C) :=
 { hom := hom,
-  id := λ _, monad_hom.ident _,
+  id := λ _, monad_hom.id _,
   comp := λ _ _ _, monad_hom.comp,
-  id_comp' := λ _ _, by apply monad_hom.ident_comp,
-  comp_id' := λ _ _, by apply monad_hom.comp_ident,
-  assoc' := λ _ _ _ _, by apply monad_hom.comp_assoc }
+  id_comp' := λ _ _, monad_hom.id_comp,
+  comp_id' := λ _ _, monad_hom.comp_id,
+  assoc' := λ _ _ _ _, monad_hom.assoc }
 
 /-- The forgetful functor from `Monad C` to `C ⥤ C`. -/
 def forget : Monad C ⥤ (C ⥤ C) :=
@@ -103,16 +103,16 @@ instance {M : Comonad C} : comonad M.func := M.str
 def hom (M N : Comonad C) := comonad_hom M.func N.func
 
 namespace hom
-instance {M : Comonad C} : inhabited (hom M M) := ⟨comonad_hom.ident _⟩
+instance {M : Comonad C} : inhabited (hom M M) := ⟨comonad_hom.id _⟩
 end hom
 
 instance : category (Comonad C) :=
 { hom := hom,
-  id := λ _, comonad_hom.ident _,
+  id := λ _, comonad_hom.id _,
   comp := λ _ _ _, comonad_hom.comp,
-  id_comp' := λ _ _, by apply comonad_hom.ident_comp,
-  comp_id' := λ _ _, by apply comonad_hom.comp_ident,
-  assoc' := λ _ _ _ _, by apply comonad_hom.comp_assoc }
+  id_comp' := λ _ _, comonad_hom.id_comp,
+  comp_id' := λ _ _, comonad_hom.comp_id,
+  assoc' := λ _ _ _ _, comonad_hom.assoc }
 
 /-- The forgetful functor from `CoMonad C` to `C ⥤ C`. -/
 def forget : Comonad C ⥤ (C ⥤ C) :=

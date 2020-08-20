@@ -83,13 +83,11 @@ theorem ext (f g : monad_hom M N) :
 
 variable (M)
 /-- The identity natural transformations is a morphism of monads. -/
-def ident : monad_hom M M :=
-{ app_η' := by tidy,
-  app_μ' := by tidy,
-  ..𝟙 M }
+def id : monad_hom M M :=
+{ ..𝟙 M }
 variable {M}
 
-instance : inhabited (monad_hom M M) := ⟨ident _⟩
+instance : inhabited (monad_hom M M) := ⟨id _⟩
 
 /-- The composition of two morphisms of monads. -/
 def comp (f : monad_hom M N) (g : monad_hom N L) : monad_hom M L :=
@@ -97,12 +95,12 @@ def comp (f : monad_hom M N) (g : monad_hom N L) : monad_hom M L :=
   app_η' := λ X, by {rw ←assoc, simp [app_η']},
   app_μ' := λ X, by {rw ←assoc, simp [app_μ']} }
 
-@[simp] lemma ident_comp (f : monad_hom M N) : (monad_hom.ident M).comp f = f :=
+@[simp] lemma id_comp (f : monad_hom M N) : (monad_hom.id M).comp f = f :=
   by {ext, apply id_comp}
-@[simp] lemma comp_ident (f : monad_hom M N) : f.comp (monad_hom.ident N) = f :=
+@[simp] lemma comp_id (f : monad_hom M N) : f.comp (monad_hom.id N) = f :=
   by {ext, apply comp_id}
 /-- Note: `category_theory.monad.bundled` provides a category instance for bundled monads.-/
-lemma comp_assoc (f : monad_hom M N) (g : monad_hom N L) (h : monad_hom L K) :
+lemma assoc (f : monad_hom M N) (g : monad_hom N L) (h : monad_hom L K) :
   (f.comp g).comp h = f.comp (g.comp h) := by {ext, apply assoc}
 
 end monad_hom
@@ -116,13 +114,11 @@ theorem ext (f g : comonad_hom M N) :
 
 variable (M)
 /-- The identity natural transformations is a morphism of comonads. -/
-def ident : comonad_hom M M :=
-{ app_ε' := by tidy,
-  app_δ' := by tidy,
-  ..𝟙 M }
+def id : comonad_hom M M :=
+{ ..𝟙 M }
 variable {M}
 
-instance : inhabited (comonad_hom M M) := ⟨ident _⟩
+instance : inhabited (comonad_hom M M) := ⟨id _⟩
 
 /-- The composition of two morphisms of comonads. -/
 def comp (f : comonad_hom M N) (g : comonad_hom N L) : comonad_hom M L :=
@@ -130,12 +126,12 @@ def comp (f : comonad_hom M N) (g : comonad_hom N L) : comonad_hom M L :=
   app_ε' := λ X, by {rw assoc, simp [app_ε']},
   app_δ' := λ X, by {rw assoc, simp [app_δ']} }
 
-@[simp] lemma ident_comp (f : comonad_hom M N) : (comonad_hom.ident M).comp f = f :=
+@[simp] lemma id_comp (f : comonad_hom M N) : (comonad_hom.id M).comp f = f :=
   by {ext, apply id_comp}
-@[simp] lemma comp_ident (f : comonad_hom M N) : f.comp (comonad_hom.ident N) = f :=
+@[simp] lemma comp_id (f : comonad_hom M N) : f.comp (comonad_hom.id N) = f :=
   by {ext, apply comp_id}
 /-- Note: `category_theory.monad.bundled` provides a category instance for bundled comonads.-/
-lemma comp_assoc (f : comonad_hom M N) (g : comonad_hom N L) (h : comonad_hom L K) :
+lemma assoc (f : comonad_hom M N) (g : comonad_hom N L) (h : comonad_hom L K) :
   (f.comp g).comp h = f.comp (g.comp h) := by {ext, apply assoc}
 
 end comonad_hom

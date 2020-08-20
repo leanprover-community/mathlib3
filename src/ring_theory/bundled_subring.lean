@@ -15,7 +15,7 @@ whose terms correspond to subrings of `R`. This is the preferred way to talk
 about subrings in mathlib. Unbundled subrings (`s : set R` and `is_subring s`)
 are not in this file, and they will ultimately be deprecated.
 
-We prove that subrings are a complete lattice, that you can `map` (pushforward) and
+We prove that subrings are a complete lattice, and that you can `map` (pushforward) and
 `comap` (pull back) them along ring homomorphisms.
 
 We define the `closure` construction from `set R` to `subgroup R`, sending a subset of `R`

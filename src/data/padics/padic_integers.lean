@@ -491,15 +491,13 @@ begin
   rwa [← r.cop.gcd_eq_one, nat.dvd_gcd_iff, ← int.coe_nat_dvd_left, ← int.coe_nat_dvd],
 end
 
-/-- An auxiliary lemma used in `norm_sub_mod_part`. -/
-private lemma exists_mem_range_aux' (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
+private lemma norm_sub_mod_part_aux (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
   ↑p ∣ r.num - r.num * r.denom.gcd_a p % p * ↑(r.denom) :=
 begin
   rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
   simp only [int.cast_coe_nat, zmod.cast_mod_nat p, int.cast_mul, int.cast_sub],
   have := congr_arg (coe : ℤ → zmod p) (gcd_eq_gcd_ab r.denom p),
   simp only [int.cast_coe_nat, add_zero, int.cast_add, zmod.cast_self, int.cast_mul, zero_mul] at this,
-  -- rw [mul_right_comm, mul_assoc, ← this],
   push_cast,
   rw [mul_right_comm, mul_assoc, ←this],
   suffices help : r.denom.coprime p,
@@ -517,6 +515,7 @@ variables (r : ℚ)
 variable (p)
 
 omit hp_prime
+
 /--
 `mod_part r p` is a value that satisfies
 `∥(r - mod_part p r : ℚ_[p])∥ < 1` when `∥(r : ℚ_[p])∥ ≤ 1`.
@@ -535,7 +534,7 @@ begin
   { exact_mod_cast nat.prime.ne_zero ‹_› }
 end
 
-lemma mod_part_nonneg : 0 ≤  mod_part p r :=
+lemma mod_part_nonneg : 0 ≤ mod_part p r :=
 int.mod_nonneg _ $ by exact_mod_cast nat.prime.ne_zero ‹_›
 
 
@@ -561,7 +560,7 @@ begin
     simp only [coe_mul, subtype.coe_mk, coe_coe],
     rw_mod_cast @rat.mul_denom_eq_num r, refl },
   dsimp [n, mod_part],
-  apply exists_mem_range_aux' r h,
+  apply norm_sub_mod_part_aux r h,
 end
 
 

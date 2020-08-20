@@ -20,6 +20,10 @@ Let `R` be a commutative ring (or semiring) and aet `A` be an `R`-algebra.
 * `has_div (submodule R A)` : `I / J` is defined to be the a : A such that `a • J ⊆ I`
 
 It is proved that `submodule R A` is a semiring, and also an algebra over `set A`.
+
+## Tags
+
+multiplication of submodules, division of subodules, submodule semiring
 -/
 
 universes u v

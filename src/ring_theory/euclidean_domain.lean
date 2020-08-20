@@ -12,6 +12,10 @@ import ring_theory.ideal.basic
 Various about Euclidean domains are proved; all of them seem to be true
 more generally for principal ideal domains, so these lemmas should
 probably be reproved in more generality and this file perhaps removed?
+
+## Tags
+
+euclidean domain
 -/
 
 noncomputable theory

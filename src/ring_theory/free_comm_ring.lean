@@ -33,6 +33,10 @@ in `α`
 `free_comm_ring α` is implemented not using `mv_polynomial` but
 directly as the free abelian group on `multiset α`, the type
 of monomials in this free commutative ring.
+
+## Tags
+
+free commutative ring, free ring
 -/
 
 noncomputable theory

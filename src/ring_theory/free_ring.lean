@@ -21,6 +21,10 @@ The theory of the free ring over a type.
 
 `free_ring α` is implemented as the free abelian group over the free monoid on `α`.
 
+## Tags
+
+free ring
+
 -/
 
 universes u v

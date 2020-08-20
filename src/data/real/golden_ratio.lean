@@ -43,8 +43,17 @@ begin
   norm_num
 end
 
+@[simp] lemma inv_gold_conj : ψ⁻¹ = -φ :=
+begin
+  rw [inv_eq_iff, ← neg_inv, neg_eq_iff_neg_eq],
+  exact inv_gold.symm,
+end
+
 @[simp] lemma gold_mul_gold_conj : φ * ψ = -1 :=
 by {field_simp, rw ← sq_sub_sq, norm_num}
+
+@[simp] lemma gold_conj_mul_gold : ψ * φ = -1 :=
+by {rw mul_comm, exact gold_mul_gold_conj}
 
 @[simp] lemma gold_add_gold_conj : φ + ψ = 1 := by {rw [golden_ratio, golden_conj], ring}
 

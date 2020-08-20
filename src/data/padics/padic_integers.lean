@@ -726,49 +726,70 @@ begin
         exact hc0, } } }
 end
 
-lemma quux_zero (n : ℕ) : quux n (0 : ℤ_[p]) = 0 :=
+lemma foobar (n : ℕ) (a : ℤ) : (p ^ n : ℤ_[p]) ∣ a ↔ ↑p ^ n ∣ a :=
 begin
-  induction n with n ih,
-  { simp [quux] },
-  { simp [quux, ih] }
+  split,
+  { intro h,
+    -- something dangerously close to this must be in the internals
+    -- of the definition of ℚ_[p]
+    sorry },
+  { intro h,
+    simpa only [ring_hom.map_pow] using (int.cast_ring_hom ℤ_[p]).map_dvd h, }
 end
 
-
--- probably useless attempts at ring hom lemmas
-
-lemma quux_one (n : ℕ) : (quux (n+1) (1 : ℤ_[p]) : zmod (p^(n+1))) = 1 :=
+lemma quux_congr_aux (n : ℕ) (x : ℤ_[p]) (a b : ℤ)
+  (ha : x - a ∈ (ideal.span {p ^ n} : ideal ℤ_[p]))
+  (hb : x - b ∈ (ideal.span {p ^ n} : ideal ℤ_[p])) :
+  (a : zmod (p ^ n)) = b :=
 begin
-  induction n with n ih,
-  { simp [quux],  }
+  rw [ideal.mem_span_singleton] at ha hb,
+  rw [← sub_eq_zero, ← int.cast_sub,
+      zmod.int_coe_zmod_eq_zero_iff_dvd, int.coe_nat_pow],
+  rw [← dvd_neg, neg_sub] at ha,
+  have := dvd_add ha hb,
+  rwa [sub_eq_add_neg, sub_eq_add_neg, add_assoc, neg_add_cancel_left,
+      ← sub_eq_add_neg, ← int.cast_sub, foobar] at this,
 end
 
-lemma cast_nat_one (n : ℕ) : ((1 : ℕ) : zmod n) = 1 := by simp
+lemma quux_congr (n : ℕ) (x : ℤ_[p]) (a b : ℕ)
+  (ha : x - a ∈ (ideal.span {p ^ n} : ideal ℤ_[p]))
+  (hb : x - b ∈ (ideal.span {p ^ n} : ideal ℤ_[p])) :
+  (a : zmod (p ^ n)) = b :=
+quux_congr_aux n x a b ha hb
 
-
-lemma quux_one (n : ℕ) : (quux (n+1) (1 : ℤ_[p]) : zmod (p^(n+1))) = 1 :=
-begin
-  have := quux_spec (n+1) (1 : ℤ_[p]),
-  rw [ideal.mem_span_singleton, ←dvd_neg, neg_sub] at this,
-  norm_cast at this,
-  convert cast_nat_one _,
-end
-
-lemma quux_add (n : ℕ) (z1 z2 : ℤ_[p]) : quux n (z1 + z2) = quux n z1 + quux n z2 :=
-begin
-  induction n with n ih,
-  { simp [quux] },
-  { simp [quux],
-    split_ifs,
-    { apply ih },
-    { rw [_root_.zero_pow], simp [ih], sorry },
-    { rw [_root_.zero_pow], simp [ih], sorry },
-    { rw [_root_.zero_pow, _root_.zero_pow], simp [ih], sorry, sorry },
-    { rw [_root_.zero_pow], simp [ih], sorry },
-    { rw [_root_.zero_pow, _root_.zero_pow], simp [ih], sorry, sorry },
-    { rw [_root_.zero_pow, _root_.zero_pow], simp [ih], sorry, sorry },
-    { rw [_root_.zero_pow, _root_.zero_pow, _root_.zero_pow], simp [ih], sorry, sorry, sorry },
-      }
-end
+def to_zmod_pow (n : ℕ) : ℤ_[p] →+* zmod (p ^ n) :=
+{ to_fun := λ x, quux n x,
+  map_zero' :=
+  begin
+    rw [quux_congr n (0 : ℤ_[p]) _ 0, cast_zero],
+    { exact quux_spec n _ },
+    { simp only [sub_zero, cast_zero, submodule.zero_mem], }
+  end,
+  map_one' :=
+  begin
+    rw [quux_congr n (1 : ℤ_[p]) _ 1, cast_one],
+    { exact quux_spec n _ },
+    { simp only [sub_self, cast_one, submodule.zero_mem], }
+  end,
+  map_add' :=
+  begin
+    intros x y,
+    rw [quux_congr n (x + y) _ (quux n x + quux n y), cast_add],
+    { exact quux_spec n _ },
+    { convert ideal.add_mem _ (quux_spec n x) (quux_spec n y),
+      rw cast_add, ring, }
+  end,
+  map_mul' :=
+  begin
+    intros x y,
+    rw [quux_congr n (x * y) _ (quux n x * quux n y), cast_mul],
+    { exact quux_spec n _ },
+    { let I : ideal ℤ_[p] := ideal.span {p ^ n},
+      have A : x * (y - quux n y) ∈ I := I.mul_mem_left (quux_spec _ _),
+      have B : (x - quux n x) * (quux n y) ∈ I := I.mul_mem_right (quux_spec _ _),
+      convert I.add_mem A B,
+      rw cast_mul, ring, }
+  end, }
 
 end padic_int
 

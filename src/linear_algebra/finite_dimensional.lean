@@ -244,6 +244,17 @@ begin
   exact fintype_card_le_findim_of_linear_independent h,
 end
 
+lemma lt_omega_of_linear_independent {ι : Type w} [finite_dimensional K V]
+  {v : ι → V} (h : linear_independent K v) :
+  cardinal.mk ι < cardinal.omega :=
+begin
+  apply cardinal.lift_lt.1,
+  apply lt_of_le_of_lt,
+  apply linear_independent_le_dim h,
+  rw [←findim_eq_dim, cardinal.lift_omega, cardinal.lift_nat_cast],
+  apply cardinal.nat_lt_omega,
+end
+
 /-- A finite dimensional space has positive `findim` iff it has a nonzero element. -/
 lemma findim_pos_iff_exists_ne_zero [finite_dimensional K V] : 0 < findim K V ↔ ∃ x : V, x ≠ 0 :=
 iff.trans (by { rw ← findim_eq_dim, norm_cast }) (@dim_pos_iff_exists_ne_zero K V _ _ _)
@@ -528,6 +539,20 @@ begin
   exact key
 end
 
+lemma eq_top_of_disjoint [finite_dimensional K V] (s t : submodule K V)
+  (hdim : findim K s + findim K t = findim K V)
+  (hdisjoint : disjoint s t) : s ⊔ t = ⊤ :=
+begin
+  have h_findim_inf : findim K ↥(s ⊓ t) = 0,
+  { rw [disjoint, le_bot_iff] at hdisjoint,
+    rw [hdisjoint, findim_bot] },
+  apply eq_top_of_findim_eq,
+  rw ←hdim,
+  convert s.dim_sup_add_dim_inf_eq t,
+  rw h_findim_inf,
+  refl,
+end
+
 end submodule
 
 namespace linear_equiv
@@ -614,6 +639,60 @@ the dimension of the source space. -/
 theorem findim_range_add_findim_ker [finite_dimensional K V] (f : V →ₗ[K] V₂) :
   findim K f.range + findim K f.ker = findim K V :=
 by { rw [← f.quot_ker_equiv_range.findim_eq], exact submodule.findim_quotient_add_findim _ }
+
+end linear_map
+
+namespace linear_equiv
+open finite_dimensional
+variables [finite_dimensional K V]
+
+/-- The linear equivalence corresponging to an injective endomorphism. -/
+noncomputable def of_injective_endo (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) : V ≃ₗ[K] V :=
+(linear_equiv.of_injective f h_inj).trans (linear_equiv.of_top _ (linear_map.ker_eq_bot_iff_range_eq_top.1 h_inj))
+
+lemma of_injective_endo_to_fun (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) :
+  (of_injective_endo f h_inj).to_fun = f := rfl
+
+lemma of_injective_endo_right_inv (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) :
+  f * (of_injective_endo f h_inj).symm = 1 :=
+begin
+  ext,
+  simp only [linear_map.one_app, linear_map.mul_app],
+  change f ((of_injective_endo f h_inj).symm x) = x,
+  rw ← linear_equiv.inv_fun_apply (of_injective_endo f h_inj),
+  apply (of_injective_endo f h_inj).right_inv,
+end
+
+lemma of_injective_endo_left_inv (f : V →ₗ[K] V) (h_inj : f.ker = ⊥) :
+  ((of_injective_endo f h_inj).symm : V →ₗ[K] V) * f = 1 :=
+begin
+  ext,
+  simp only [linear_map.one_app, linear_map.mul_app],
+  change (of_injective_endo f h_inj).symm (f x) = x,
+  rw ← linear_equiv.inv_fun_apply (of_injective_endo f h_inj),
+  apply (of_injective_endo f h_inj).left_inv,
+end
+
+end linear_equiv
+
+namespace linear_map
+
+lemma is_unit_iff [finite_dimensional K V] (f : V →ₗ[K] V): is_unit f ↔ f.ker = ⊥ :=
+begin
+  split,
+  { intro h_is_unit,
+    rcases h_is_unit with ⟨u, hu⟩,
+    rw [←hu, linear_map.ker_eq_bot'],
+    intros x hx,
+    change (1 : V →ₗ[K] V) x = 0,
+    rw ← u.inv_val,
+    change u.inv (u x) = 0,
+    simp [hx] },
+  { intro h_inj,
+    use ⟨f, (linear_equiv.of_injective_endo f h_inj).symm.to_linear_map,
+      linear_equiv.of_injective_endo_right_inv f h_inj, linear_equiv.of_injective_endo_left_inv f h_inj⟩,
+    refl }
+end
 
 end linear_map
 

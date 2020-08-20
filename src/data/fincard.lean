@@ -70,6 +70,9 @@ by convert (dif_pos (nonempty.intro h))
 lemma univ'_eq_empty (h : ¬ nonempty (fintype α)) : univ' α = ∅ :=
 dif_neg h
 
+lemma mem_univ' [h : fintype α] (x : α) : x ∈ univ' α :=
+(@univ'_eq_univ _ h).symm ▸ mem_univ _
+
 end finset
 
 /-! # noncomputable finite sums -/
@@ -105,6 +108,15 @@ by { rw function.support_eq_support, exact f.support.finite_to_set }
 @[simp] lemma support_finite.to_finset (f : α →₀ β) : (support_finite f).to_finset = f.support :=
 finset.ext $ λ x, by {simp, refl}
 
+noncomputable def of_support_finite
+  {f : α → β} (hf : (function.support f).finite) : α →₀ β :=
+{ support := hf.to_finset,
+  to_fun := f,
+  mem_support_to_fun := λ _, set.finite.mem_to_finset }
+
+lemma of_support_finite_def {f : α → β} {hf : (function.support f).finite} :
+  (of_support_finite hf : α → β) = f := rfl
+
 end finsupp
 
 lemma finsum_eq_finsupp_sum (f : α →₀ M) : finsum f = finsupp.sum f (λ x m, m) :=
@@ -112,6 +124,23 @@ begin
   rw [finsum_def, dif_pos (finsupp.support_finite f)],
   congr',
   simp
+end
+
+lemma finsum_eq_finsupp_sum' {f : α → M} (hf : (function.support f).finite) :
+  finsum f = finsupp.sum (finsupp.of_support_finite hf) (λ x m, m) :=
+by rw [← finsum_eq_finsupp_sum, finsupp.of_support_finite_def]
+
+lemma finsum_eq_finset_sum {f : α → M} (hf : (function.support f).finite) :
+  finsum f = finset.sum hf.to_finset f :=
+by rw [finsum_def, dif_pos hf]
+
+lemma finsum_eq_finset_sum' [fintype α] (f : α → M) :
+  finsum f = (finset.univ' α).sum f :=
+begin
+  rw [finsum_def, dif_pos (set.finite.of_fintype (_ : set α))],
+  refine finset.sum_subset (λ _ _, finset.mem_univ' _) (λ _ _ hx, _),
+    rw set.finite.mem_to_finset at hx,
+    exact function.nmem_support.1 (λ h, hx h),
 end
 
 end finsum

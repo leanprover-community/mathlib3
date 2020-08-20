@@ -320,8 +320,9 @@ by simp [range]
 lemma map_range : f.range.map g = (g.comp f).range :=
 (⊤ : subring R).map_map g f
 
+-- TODO -- rename to `cod_restrict` when is_ring_hom is deprecated
 /-- Restrict the codomain of a ring homomorphism to a subring that includes the range. -/
-def cod_restrict {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S)
+def cod_restrict' {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S)
   (s : subring S) (h : ∀ x, f x ∈ s) : R →+* s :=
 { to_fun := λ x, ⟨f x, h x⟩,
   map_add' := λ x y, subtype.eq $ f.map_add x y,
@@ -602,7 +603,7 @@ def restrict (f : R →+* S) (s : subring R) : s →+* S := f.comp s.subtype
 
 /-- Restriction of a ring homomorphism to its range iterpreted as a subsemiring. -/
 def range_restrict (f : R →+* S) : R →+* f.range :=
-f.cod_restrict f.range $ λ x, ⟨x, subring.mem_top x, rfl⟩
+f.cod_restrict' f.range $ λ x, ⟨x, subring.mem_top x, rfl⟩
 
 @[simp] lemma coe_range_restrict (f : R →+* S) (x : R) : (f.range_restrict x : S) = f x := rfl
 
@@ -654,7 +655,7 @@ open ring_hom
 
 /-- The ring homomorphism associated to an inclusion of subrings. -/
 def inclusion {S T : subring R} (h : S ≤ T) : S →* T :=
-S.subtype.cod_restrict _ (λ x, h x.2)
+S.subtype.cod_restrict' _ (λ x, h x.2)
 
 @[simp] lemma range_subtype (s : subring R) : s.subtype.range = s :=
 ext' $ (coe_srange _).trans subtype.range_coe

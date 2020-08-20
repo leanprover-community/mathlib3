@@ -302,6 +302,23 @@ begin
   simpa using x.property,
 end
 
+@[simp] lemma valuation_p_pow_mul (n : ℕ) (c : ℤ_[p]) (hc : c ≠ 0) :
+  (↑p ^ n * c).valuation = n + c.valuation :=
+begin
+  have : ∥↑p ^ n * c∥ = ∥(p ^ n : ℤ_[p])∥ * ∥c∥,
+  { exact padic_norm_z.mul _ _ },
+  have aux : ↑p ^ n * c ≠ 0,
+  { contrapose! hc, rw mul_eq_zero at hc, cases hc,
+    { refine (nat.prime.ne_zero ‹_› _).elim,
+      exact_mod_cast (pow_eq_zero hc) },
+    { exact hc } },
+  rwa [norm_eq_pow_val aux, padic_norm_z.norm_p_pow, norm_eq_pow_val hc,
+      ← fpow_add, ← neg_add, fpow_inj, neg_inj] at this,
+  { exact_mod_cast nat.prime.pos ‹_› },
+  { exact_mod_cast nat.prime.ne_one ‹_› },
+  { exact_mod_cast nat.prime.ne_zero ‹_› },
+end
+
 /-! ### Units of `ℤ_[p]` -/
 
 local attribute [reducible] padic_int
@@ -668,42 +685,25 @@ begin
   { have : 1 < p, from nat.prime.one_lt ‹_›, omega }
 end
 
-/-- `nth_appr n x` gives a value `v : ℕ` such that `↑v : ℤ_p` are equivalent up to `p^n`.
-See `nth_appr_spec`. -/
-noncomputable def nth_appr : ℕ → ℤ_[p] → ℕ
-| 0     x := 0
-| (n+1) x :=
-let y := x - nth_appr n x in
+/-- `appr n x` gives a value `v : ℕ` such that `↑v : ℤ_p` are equivalent up to `p^n`.
+See `appr_spec`. -/
+noncomputable def appr : ℤ_[p] → ℕ → ℕ
+| x 0     := 0
+| x (n+1) :=
+let y := x - appr x n in
 if hy : y = 0 then
-  nth_appr n x
+  appr x n
 else
   let u := unit_coeff hy in
-  nth_appr n x + p ^ n * (to_zmod ((u : ℤ_[p]) * (p ^ (y.valuation - n).nat_abs))).val
+  appr x n + p ^ n * (to_zmod ((u : ℤ_[p]) * (p ^ (y.valuation - n).nat_abs))).val
 
-@[simp] lemma valuation_p_pow_mul (n : ℕ) (c : ℤ_[p]) (hc : c ≠ 0) :
-  (↑p ^ n * c).valuation = n + c.valuation :=
-begin
-  have : ∥↑p ^ n * c∥ = ∥(p ^ n : ℤ_[p])∥ * ∥c∥,
-  { exact padic_norm_z.mul _ _ },
-  have aux : ↑p ^ n * c ≠ 0,
-  { contrapose! hc, rw mul_eq_zero at hc, cases hc,
-    { refine (nat.prime.ne_zero ‹_› _).elim,
-      exact_mod_cast (pow_eq_zero hc) },
-    { exact hc } },
-  rwa [norm_eq_pow_val aux, padic_norm_z.norm_p_pow, norm_eq_pow_val hc,
-      ← fpow_add, ← neg_add, fpow_inj, neg_inj] at this,
-  { exact_mod_cast nat.prime.pos ‹_› },
-  { exact_mod_cast nat.prime.ne_one ‹_› },
-  { exact_mod_cast nat.prime.ne_zero ‹_› },
-end
-
-lemma nth_appr_spec (n : ℕ) : ∀ (x : ℤ_[p]), x - nth_appr n x ∈ (ideal.span {p^n} : ideal ℤ_[p]) :=
+lemma appr_spec (n : ℕ) : ∀ (x : ℤ_[p]), x - appr x n ∈ (ideal.span {p^n} : ideal ℤ_[p]) :=
 begin
   simp only [ideal.mem_span_singleton],
   induction n with n ih,
   { simp only [is_unit_one, is_unit.dvd, pow_zero, forall_true_iff], },
   { intro x,
-    dsimp only [nth_appr],
+    dsimp only [appr],
     split_ifs with h,
     { rw h, apply dvd_zero },
     { push_cast, rw sub_add_eq_sub_sub,
@@ -712,7 +712,7 @@ begin
       have hc' : c ≠ 0,
       { rintro rfl, simp only [mul_zero] at hc, contradiction },
       conv_rhs { congr, simp only [hc], },
-      rw show (x - ↑(nth_appr n x)).valuation = (↑p ^ n * c).valuation,
+      rw show (x - ↑(appr x n)).valuation = (↑p ^ n * c).valuation,
       { rw hc },
       rw [valuation_p_pow_mul _ _ hc', add_sub_cancel', pow_succ', ← mul_sub],
       apply mul_dvd_mul_left,
@@ -735,7 +735,7 @@ begin
         exact hc0, } } }
 end
 
-lemma nth_appr_congr_aux (n : ℕ) (x : ℤ_[p]) (a b : ℤ)
+lemma appr_congr_aux (n : ℕ) (x : ℤ_[p]) (a b : ℤ)
   (ha : x - a ∈ (ideal.span {p ^ n} : ideal ℤ_[p]))
   (hb : x - b ∈ (ideal.span {p ^ n} : ideal ℤ_[p])) :
   (a : zmod (p ^ n)) = b :=
@@ -749,43 +749,43 @@ begin
       ← sub_eq_add_neg, ← int.cast_sub, pow_p_dvd_int_iff] at this,
 end
 
-lemma nth_appr_congr (n : ℕ) (x : ℤ_[p]) (a b : ℕ)
+lemma appr_congr (n : ℕ) (x : ℤ_[p]) (a b : ℕ)
   (ha : x - a ∈ (ideal.span {p ^ n} : ideal ℤ_[p]))
   (hb : x - b ∈ (ideal.span {p ^ n} : ideal ℤ_[p])) :
   (a : zmod (p ^ n)) = b :=
-nth_appr_congr_aux n x a b ha hb
+appr_congr_aux n x a b ha hb
 
-/-- A ring hom from `ℤ_[p]` to `zmod (p^n)`, with underlying function `padic_int.nth_appr n`. -/
+/-- A ring hom from `ℤ_[p]` to `zmod (p^n)`, with underlying function `padic_int.appr n`. -/
 def to_zmod_pow (n : ℕ) : ℤ_[p] →+* zmod (p ^ n) :=
-{ to_fun := λ x, nth_appr n x,
+{ to_fun := λ x, appr x n,
   map_zero' :=
   begin
-    rw [nth_appr_congr n (0 : ℤ_[p]) _ 0, cast_zero],
-    { exact nth_appr_spec n _ },
+    rw [appr_congr n (0 : ℤ_[p]) _ 0, cast_zero],
+    { exact appr_spec n _ },
     { simp only [sub_zero, cast_zero, submodule.zero_mem], }
   end,
   map_one' :=
   begin
-    rw [nth_appr_congr n (1 : ℤ_[p]) _ 1, cast_one],
-    { exact nth_appr_spec n _ },
+    rw [appr_congr n (1 : ℤ_[p]) _ 1, cast_one],
+    { exact appr_spec n _ },
     { simp only [sub_self, cast_one, submodule.zero_mem], }
   end,
   map_add' :=
   begin
     intros x y,
-    rw [nth_appr_congr n (x + y) _ (nth_appr n x + nth_appr n y), cast_add],
-    { exact nth_appr_spec n _ },
-    { convert ideal.add_mem _ (nth_appr_spec n x) (nth_appr_spec n y),
+    rw [appr_congr n (x + y) _ (appr x n + appr y n), cast_add],
+    { exact appr_spec n _ },
+    { convert ideal.add_mem _ (appr_spec n x) (appr_spec n y),
       rw cast_add, ring, }
   end,
   map_mul' :=
   begin
     intros x y,
-    rw [nth_appr_congr n (x * y) _ (nth_appr n x * nth_appr n y), cast_mul],
-    { exact nth_appr_spec n _ },
+    rw [appr_congr n (x * y) _ (appr x n * appr y n), cast_mul],
+    { exact appr_spec n _ },
     { let I : ideal ℤ_[p] := ideal.span {p ^ n},
-      have A : x * (y - nth_appr n y) ∈ I := I.mul_mem_left (nth_appr_spec _ _),
-      have B : (x - nth_appr n x) * (nth_appr n y) ∈ I := I.mul_mem_right (nth_appr_spec _ _),
+      have A : x * (y - appr y n) ∈ I := I.mul_mem_left (appr_spec _ _),
+      have B : (x - appr x n) * (appr y n) ∈ I := I.mul_mem_right (appr_spec _ _),
       convert I.add_mem A B,
       rw cast_mul, ring, }
   end, }

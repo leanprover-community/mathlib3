@@ -286,6 +286,10 @@ by rw [nat_degree_one, nat_degree_mul hp0 hq0, eq_comm,
   degree (u : polynomial R) = 0 :=
 degree_eq_zero_of_is_unit ⟨u, rfl⟩
 
+lemma units_coeff_zero_smul (c : units (polynomial R)) (p : polynomial R) :
+  (c : polynomial R).coeff 0 • p = c * p :=
+by rw [←polynomial.C_mul', ←polynomial.eq_C_of_degree_eq_zero (degree_coe_units c)]
+
 @[simp] lemma nat_degree_coe_units (u : units (polynomial R)) :
   nat_degree (u : polynomial R) = 0 :=
 nat_degree_eq_of_degree_eq_some (degree_coe_units u)

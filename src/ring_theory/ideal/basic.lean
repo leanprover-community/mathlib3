@@ -204,6 +204,8 @@ end⟩
 instance is_maximal.is_prime' (I : ideal α) : ∀ [H : I.is_maximal], I.is_prime :=
 is_maximal.is_prime
 
+/-- Krull's theorem: if `I` is an ideal that is not the whole ring, then it is included in some
+    maximal ideal. -/
 theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
   ∃ M : ideal α, M.is_maximal ∧ I ≤ M :=
 begin
@@ -216,6 +218,10 @@ begin
       from (submodule.mem_Sup_of_directed ⟨I, IS⟩ cC.directed_on).1 ((eq_top_iff_one _).1 H),
     exact SC JS ((eq_top_iff_one _).2 J0) }
 end
+
+/-- Krull's theorem: a nontrivial ring has a maximal ideal. -/
+theorem exists_maximal [nontrivial α] : ∃ M : ideal α, M.is_maximal :=
+let ⟨I, ⟨hI, _⟩⟩ := exists_le_maximal (⊥ : ideal α) submodule.bot_ne_top in ⟨I, hI⟩
 
 /-- If P is not properly contained in any maximal ideal then it is not properly contained
   in any proper ideal -/
@@ -350,9 +356,28 @@ end quotient
 section lattice
 variables {R : Type u} [comm_ring R]
 
+lemma mem_sup_left {S T : ideal R} : ∀ {x : R}, x ∈ S → x ∈ S ⊔ T :=
+show S ≤ S ⊔ T, from le_sup_left
+
+lemma mem_sup_right {S T : ideal R} : ∀ {x : R}, x ∈ T → x ∈ S ⊔ T :=
+show T ≤ S ⊔ T, from le_sup_right
+
+lemma mem_supr_of_mem {ι : Type*} {S : ι → ideal R} (i : ι) :
+  ∀ {x : R}, x ∈ S i → x ∈ supr S :=
+show S i ≤ supr S, from le_supr _ _
+
+lemma mem_Sup_of_mem {S : set (ideal R)} {s : ideal R}
+  (hs : s ∈ S) : ∀ {x : R}, x ∈ s → x ∈ Sup S :=
+show s ≤ Sup S, from le_Sup hs
+
 theorem mem_Inf {s : set (ideal R)} {x : R} :
   x ∈ Inf s ↔ ∀ ⦃I⦄, I ∈ s → x ∈ I :=
 ⟨λ hx I his, hx I ⟨I, infi_pos his⟩, λ H I ⟨J, hij⟩, hij ▸ λ S ⟨hj, hS⟩, hS ▸ H hj⟩
+
+@[simp] lemma mem_inf {I J : ideal R} {x : R} : x ∈ I ⊓ J ↔ x ∈ I ∧ x ∈ J := iff.rfl
+
+@[simp] lemma mem_infi {ι : Type*} {I : ι → ideal R} {x : R} : x ∈ infi I ↔ ∀ i, x ∈ I i :=
+submodule.mem_infi _
 
 end lattice
 
@@ -360,7 +385,7 @@ end lattice
 lemma eq_bot_or_top {K : Type u} [field K] (I : ideal K) :
   I = ⊥ ∨ I = ⊤ :=
 begin
-  rw classical.or_iff_not_imp_right,
+  rw or_iff_not_imp_right,
   change _ ≠ _ → _,
   rw ideal.ne_top_iff_one,
   intro h1,
@@ -372,7 +397,7 @@ end
 
 lemma eq_bot_of_prime {K : Type u} [field K] (I : ideal K) [h : I.is_prime] :
   I = ⊥ :=
-classical.or_iff_not_imp_right.mp I.eq_bot_or_top h.1
+or_iff_not_imp_right.mp I.eq_bot_or_top h.1
 
 lemma bot_is_maximal {K : Type u} [field K] : is_maximal (⊥ : ideal K) :=
 ⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simp),

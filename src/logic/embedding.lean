@@ -167,6 +167,13 @@ section sigma
 
 variables {α α' : Type*} {β : α → Type*} {β' : α' → Type*}
 
+/-- `sigma.mk` as an `function.embedding`. -/
+def sigma_mk (a : α) : β a ↪ Σ x, β x :=
+⟨sigma.mk a, sigma_mk_injective⟩
+
+
+@[simp] lemma coe_sigma_mk (a : α) : (sigma_mk a : β a → Σ x, β x) = sigma.mk a := rfl
+
 /-- If `f : α ↪ α'` is an embedding and `g : Π a, β α ↪ β' (f α)` is a family
 of embeddings, then `sigma.map f g` is an embedding. -/
 def sigma_map (f : α ↪ α') (g : Π a, β a ↪ β' (f a)) :

@@ -28,8 +28,7 @@ theorem set.pairwise_on.on_injective {s : set α} {r : α → α → Prop} (hs :
 
 theorem pairwise_on_bool {r} (hr : symmetric r) {a b : α} :
   pairwise (r on (λ c, cond c a b)) ↔ r a b :=
-by simp [pairwise, bool.forall_bool, function.on_fun];
-   exact and_iff_right_of_imp (@hr _ _)
+by simpa [pairwise, function.on_fun] using @hr a b
 
 theorem pairwise_disjoint_on_bool [semilattice_inf_bot α] {a b : α} :
   pairwise (disjoint on (λ c, cond c a b)) ↔ disjoint a b :=

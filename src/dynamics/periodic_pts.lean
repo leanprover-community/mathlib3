@@ -164,23 +164,19 @@ lemma directed_pts_of_period_pnat (f : α → α) : directed (⊆) (λ n : ℕ+,
 λ m n, ⟨m * n, λ x hx, hx.mul_const n, λ x hx, hx.const_mul m⟩
 
 /-- The set of periodic points of a map `f : α → α`. -/
-@[nolint ge_or_gt]
 def periodic_pts (f : α → α) : set α := {x : α | ∃ n > 0, is_periodic_pt f n x}
 
 lemma mk_mem_periodic_pts (hn : 0 < n) (hx : is_periodic_pt f n x) :
   x ∈ periodic_pts f :=
 ⟨n, hn, hx⟩
 
-@[nolint ge_or_gt]
 lemma mem_periodic_pts : x ∈ periodic_pts f ↔ ∃ n > 0, is_periodic_pt f n x := iff.rfl
 
 variable (f)
 
-@[nolint ge_or_gt]
 lemma bUnion_pts_of_period : (⋃ n > 0, pts_of_period f n) = periodic_pts f :=
 set.ext $ λ x, by simp [mem_periodic_pts]
 
-@[nolint ge_or_gt]
 lemma Union_pnat_pts_of_period : (⋃ n : ℕ+, pts_of_period f n) = periodic_pts f :=
 supr_subtype.trans $ bUnion_pts_of_period f
 
@@ -222,7 +218,7 @@ minimal_period_pos_of_mem_periodic_pts $ mk_mem_periodic_pts hn hx
 
 lemma minimal_period_pos_iff_mem_periodic_pts :
   0 < minimal_period f x ↔ x ∈ periodic_pts f :=
-⟨classical.not_imp_not.1 $ λ h,
+⟨not_imp_not.1 $ λ h,
   by simp only [minimal_period, dif_neg h, lt_irrefl 0, not_false_iff],
   minimal_period_pos_of_mem_periodic_pts⟩
 

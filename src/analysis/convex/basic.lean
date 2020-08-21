@@ -486,29 +486,29 @@ def concave_on (s : set E) (f : E → β) : Prop :=
     a • f x + b • f y ≤ f (a • x + b • y)
 
 /-- A function f is concave iff -f is convex -/
-lemma concave_on_iff_neg_convex_on {γ : Type*} [ordered_add_comm_group γ] [ordered_semimodule ℝ γ]
-  (s : set E) (f : E → γ) : concave_on s f ↔ convex_on s (-f) :=
+@[simp] lemma neg_convex_on_iff {γ : Type*} [ordered_add_comm_group γ] [ordered_semimodule ℝ γ]
+  (s : set E) (f : E → γ) : convex_on s (-f) ↔ concave_on s f :=
 begin
   split,
   { rintros ⟨hconv, h⟩,
     refine ⟨hconv, _⟩,
     intros x y xs ys a b ha hb hab,
     specialize h xs ys ha hb hab,
-    simp [neg_apply, neg_le, add_comm, h] },
+    simp [neg_apply, neg_le, add_comm] at h,
+    exact h },
   { rintros ⟨hconv, h⟩,
     refine ⟨hconv, _⟩,
     intros x y xs ys a b ha hb hab,
     specialize h xs ys ha hb hab,
-    simp [neg_apply, neg_le, add_comm] at h,
-    exact h, }
+    simp [neg_apply, neg_le, add_comm, h] }
 end
 
 /-- A function f is concave iff -f is convex -/
-lemma convex_on_iff_neg_concave_on {γ : Type*} [ordered_add_comm_group γ] [ordered_semimodule ℝ γ]
-  (s : set E) (f : E → γ) : convex_on s f ↔ concave_on s (-f) :=
+@[simp] lemma neg_concave_on_iff {γ : Type*} [ordered_add_comm_group γ] [ordered_semimodule ℝ γ]
+  (s : set E) (f : E → γ) : concave_on s (-f) ↔ convex_on s f:=
 begin
   apply iff.symm,
-  convert concave_on_iff_neg_convex_on s (-f),
+  convert neg_convex_on_iff s (-f),
   exact (neg_neg f).symm,
 end
 
@@ -610,7 +610,7 @@ lemma concave_on_real_of_slope_mono_adjacent {s : set ℝ} (hs : convex s) {f : 
   (hf : ∀ {x y z : ℝ}, x ∈ s → z ∈ s → x < y → y < z →
     (f z - f y) / (z - y) ≤ (f y - f x) / (y - x)) : concave_on s f :=
 begin
-  rw [concave_on_iff_neg_convex_on],
+  rw [←neg_convex_on_iff],
   apply convex_on_real_of_slope_mono_adjacent hs,
   intros x y z xs zs xy yz,
   rw [←neg_le_neg_iff, ←neg_div, ←neg_div, neg_sub, neg_sub],

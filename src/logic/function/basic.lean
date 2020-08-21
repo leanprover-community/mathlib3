@@ -17,7 +17,7 @@ namespace function
 section
 variables {α : Sort u} {β : Sort v} {f : α → β}
 
-/-- Evaluation a function to an argument. Useful if you want to talk about the partially applied
+/-- Evaluate a function at an argument. Useful if you want to talk about the partially applied
   `function.eval x : (Π x, β x) → β x`. -/
 @[reducible] def eval {β : α → Sort*} (x : α) (f : Π x, β x) : β x := f x
 

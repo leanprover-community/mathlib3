@@ -301,9 +301,8 @@ variables {R ι M M' : Type*} [comm_ring R]
   [add_comm_group M'] [module R M']
   [decidable_eq ι] [fintype ι]
   {v : ι → M} {v' : ι → M'}
-  (hv : is_basis R v) (hv' : is_basis R v')
 
-lemma linear_equiv.is_unit_det (f : M ≃ₗ[R] M') {v : ι → M} {v' : ι → M'} (hv : is_basis R v) (hv' : is_basis R v') :
+lemma linear_equiv.is_unit_det (f : M ≃ₗ[R] M') (hv : is_basis R v) (hv' : is_basis R v') :
   is_unit (linear_equiv_matrix hv hv' f).det :=
 begin
   apply is_unit_det_of_left_inverse,
@@ -311,7 +310,7 @@ begin
 end
 
 /-- Builds a linear equivalence from a linear map whose determinant in some bases is a unit. -/
-def linear_equiv.of_is_unit_det {f : M →ₗ[R] M'} {v : ι → M} {v' : ι → M'} {hv : is_basis R v} {hv' : is_basis R v'}
+def linear_equiv.of_is_unit_det {f : M →ₗ[R] M'} {hv : is_basis R v} {hv' : is_basis R v'}
   (h : is_unit (linear_equiv_matrix hv hv' f).det) : M ≃ₗ[R] M' :=
 { to_fun := f,
   map_add' := f.map_add,

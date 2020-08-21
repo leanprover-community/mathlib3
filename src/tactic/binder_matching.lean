@@ -62,71 +62,76 @@ namespace tactic
 
 open expr
 
-/-- Auxiliary function for `mk_binders`. -/
-private meta def mk_binders_aux {α}
-  (match_binder : ℕ → expr → tactic (option (name × binder_info × expr × expr)))
-  (binder_replacement : name → binder_info → expr → tactic expr)
-  (result : ℕ → name → binder_info → expr → expr → tactic (option α)) :
-  ℕ → expr → tactic (list α × expr) :=
-λ depth e, do
-  some (name, bi, type, body) ← match_binder depth e | pure ([], e),
-  replacement ← binder_replacement name bi type,
-  oa ← result depth name bi type body,
-  (as, rest) ← mk_binders_aux (depth + 1) (body.instantiate_var replacement),
-  let as' := oa.elim as (λ a, a :: as),
-  pure (as', rest)
+/-
+`get_binder do_whnf pi_or_lambda e` matches `e` of the form `λ x, e'` or
+`Π x, e`. Returns information about the leading binder (its name, `binder_info`,
+type and body), or `none` if `e` does not start with a binder.
+
+If `do_whnf = some (md, unfold_ginductive)`, then `e` is weak head normalised
+with transparency `md` before matching on it. `unfold_ginductive` controls
+whether constructors of generalised inductive data types are unfolded during
+normalisation.
+
+If `pi_or_lambda` is `tt`, we match a leading Π binder; otherwise a leading λ
+binder.
+-/
+@[inline] meta def get_binder (do_whnf : option (transparency × bool))
+  (pi_or_lambda : bool) (e : expr) :
+  tactic (option (name × binder_info × expr × expr)) := do
+  e ← do_whnf.elim (pure e) (λ p, whnf e p.1 p.2),
+  pure $ if pi_or_lambda then match_pi e else match_lam e
+
+/-
+`mk_binder_replacement local_or_meta b` creates an expression that can be used
+to replace the binder `b`. If `local_or_meta` is true, we create a fresh local
+constant with `b`'s display name, `binder_info` and type; otherwise a fresh
+metavariable with `b`'s type.
+-/
+@[inline] meta def mk_binder_replacement (local_or_meta : bool) (b : binder) :
+  tactic expr :=
+if local_or_meta then mk_local' b.name b.info b.type else mk_meta_var b.type
 
 /--
-`mk_binders` implements the common functionality of functions like
-`get_pi_binders` and `mk_meta_pis`. It proceeds as follows:
+`mk_binders` is a generalisation of functions like `mk_local_pis`,
+`mk_meta_lambdas` etc. `mk_binders do_whnf pis_or_lamdas local_or_metas e`
+proceeds as follows:
 
-1. Match a pi or lambda binder using `match_binder`. `match_binder` should
-   return the name, binder_info, type and body of a leading binder.
-   Stop if this returns `none`.
-2. Use `binder_replacement` to constructs a replacement for this binder (in
-   our applications either a local constant or a metavariable) and instantiate
-   the bound variable with this replacement in the binder body.
-3. Use `result` to construct a result.
-4. Recurse into the binder body.
+- Match a leading λ or Π binder using `get_binder do_whnf pis_or_lambdas`.
+  See `get_binder` for details. Return `e` unchanged (and an empty list) if
+  `e` does not start with a λ/Π.
+- Construct a replacement for the bound variable using
+  `mk_binder_replacement locals_or_metas`. See `mk_binder_replacement` for
+  details. Replace the bound variable with this replacement in the binder body.
+- Recurse into the binder body.
 
-`mk_binders` returns the list of results and the rest of the expression (with
-previously bound variables instantiated with their replacements).
-
-`binder_replacement` and `result` receive the binder information returned by
-`match_binder`. `match_binder` and `result` also receive the current recursion
-depth.
-
-If `match_binder`, `binder_replacement` or `result` fail at any point, the whole
-tactic fails.
+Returns the constructed replacement expressions and `e` without its leading
+binders.
 -/
-meta def mk_binders {α}
-  (match_binder : ℕ → expr → tactic (option (name × binder_info × expr × expr)))
-  (binder_replacement : name → binder_info → expr → tactic expr)
-  (result : ℕ → name → binder_info → expr → expr → tactic (option α)) :
-  expr → tactic (list α × expr) :=
-mk_binders_aux match_binder binder_replacement result 0
-
-/--
-A special case of `mk_binders` which returns the binder replacements returned by
-`binder_replacement`.
--/
-@[inline] meta def mk_binders'
-  (match_binder : ℕ → expr → tactic (option (name × binder_info × expr × expr)))
-  (binder_replacement : name → binder_info → expr → tactic expr) :
+meta def mk_binders (do_whnf : option (transparency × bool))
+  (pis_or_lambdas : bool) (locals_or_metas : bool) :
   expr → tactic (list expr × expr) :=
-mk_binders match_binder binder_replacement
-  (λ _ name bi type _, some <$> binder_replacement name bi type)
+λ e, do
+  some (name, bi, type, body) ← get_binder do_whnf pis_or_lambdas e
+    | pure ([], e),
+  replacement ← mk_binder_replacement locals_or_metas ⟨name, bi, type⟩,
+  (rs, rest) ← mk_binders (body.instantiate_var replacement),
+  pure (replacement :: rs, rest)
 
-/--
-Auxiliary function which is used by the `mk_{local,meta}_{pis,lambdas}n` family
-of functions. It implements the "match exactly `max_depth` binders" logic.
+/-
+`mk_n_binders do_whnf pis_or_lambdas local_or_metas e n` is like
+`mk_binders do_whnf pis_or_lambdas local_or_metas e`, but it matches exactly `n`
+leading Π/λ binders of `e`. If `e` does not start with at least `n` Π/λ binders,
+(after normalisation, if `do_whnf` is given), the tactic fails.
 -/
-private meta def match_with_depth {α}
-  (match_binder : expr → tactic (option α))
-  (max_depth : ℕ) (current_depth : ℕ) (e : expr) : tactic (option α) :=
-  if current_depth ≥ max_depth then none else do
-    (some x) ← match_binder e | failed,
-    pure (some x)
+meta def mk_n_binders (do_whnf : option (transparency × bool))
+  (pis_or_lambdas : bool) (locals_or_metas : bool) :
+  expr → ℕ → tactic (list expr × expr)
+| e 0 := pure ([], e)
+| e (d + 1) := do
+  some (name, bi, type, body) ← get_binder do_whnf pis_or_lambdas e | failed,
+  replacement ← mk_binder_replacement locals_or_metas ⟨name, bi, type⟩,
+  (rs, rest) ← mk_n_binders (body.instantiate_var replacement) d,
+  pure (replacement :: rs, rest)
 
 /--
 `mk_meta_pis e` instantiates all leading Π binders of `e` with fresh
@@ -134,7 +139,7 @@ metavariables. Returns the metavariables and the remainder of `e`. This is
 `tactic.mk_local_pis` but with metavariables instead of local constants.
 -/
 meta def mk_meta_pis : expr → tactic (list expr × expr) :=
-mk_binders' (λ _ e, pure e.match_pi) (λ _ _ t, mk_meta_var t)
+mk_binders none tt ff
 
 /--
 `mk_local_pisn e n` instantiates the first `n` Π binders of `e` with fresh local
@@ -142,16 +147,16 @@ constants. Returns the local constants and the remainder of `e`. Fails if `e`
 does not start with at least `n` Π binders. This is `tactic.mk_local_pis` but
 limited to `n` binders.
 -/
-meta def mk_local_pisn (e : expr) (n : ℕ) : tactic (list expr × expr) :=
-mk_binders' (match_with_depth (pure ∘ match_pi) n) mk_local' e
+meta def mk_local_pisn : expr → ℕ → tactic (list expr × expr) :=
+mk_n_binders none tt tt
 
 /--
 `mk_meta_pisn e n` instantiates the first `n` Π binders of `e` with fresh
 metavariables. Returns the metavariables and the remainder of `e`. This is
 `mk_local_pisn` but with metavariables instead of local constants.
 -/
-meta def mk_meta_pisn (e : expr) (n : ℕ) : tactic (list expr × expr) :=
-mk_binders' (match_with_depth (pure ∘ match_pi) n) (λ _ _ t, mk_meta_var t) e
+meta def mk_meta_pisn : expr → ℕ → tactic (list expr × expr) :=
+mk_n_binders none tt ff
 
 /--
 `mk_local_pis_whnf e md unfold_ginductive` instantiates all leading Π binders of
@@ -162,7 +167,7 @@ This is `tactic.mk_local_pis` up to normalisation.
 -/
 meta def mk_local_pis_whnf (e : expr) (md := semireducible)
   (unfold_ginductive := tt) : tactic (list expr × expr) :=
-mk_binders' (λ _ e, match_pi <$> whnf e md unfold_ginductive) mk_local' e
+mk_binders (some (md, unfold_ginductive)) tt tt e
 
 /--
 `mk_meta_pis_whnf e md unfold_ginductive` instantiates all leading Π binders of
@@ -173,8 +178,7 @@ This is `mk_meta_pis` up to normalisation.
 -/
 meta def mk_meta_pis_whnf (e : expr) (md := semireducible)
   (unfold_ginductive := tt) : tactic (list expr × expr) :=
-mk_binders' (λ _ e, match_pi <$> whnf e md unfold_ginductive)
-  (λ _ _ t, mk_meta_var t) e
+mk_binders (some (md, unfold_ginductive)) tt ff e
 
 /--
 `mk_local_pisn_whnf e n md unfold_ginductive` instantiates the first `n` Π
@@ -185,8 +189,7 @@ during normalisation. This is `mk_local_pis_whnf` but restricted to `n` binders.
 -/
 meta def mk_local_pisn_whnf (e : expr) (n : ℕ) (md := semireducible)
   (unfold_ginductive := tt) : tactic (list expr × expr) :=
-mk_binders' (match_with_depth (λ e, match_pi <$> whnf e md unfold_ginductive) n)
-  mk_local' e
+mk_n_binders (some (md, unfold_ginductive)) tt tt e n
 
 /--
 `mk_meta_pisn_whnf e n md unfold_ginductive` instantiates the first `n` Π
@@ -197,8 +200,7 @@ during normalisation. This is `mk_meta_pis_whnf` but restricted to `n` binders.
 -/
 meta def mk_meta_pisn_whnf (e : expr) (n : ℕ) (md := semireducible)
   (unfold_ginductive := tt) : tactic (list expr × expr) :=
-mk_binders' (match_with_depth (λ e, match_pi <$> whnf e md unfold_ginductive) n)
-  (λ _ _ t, mk_meta_var t) e
+mk_n_binders (some (md, unfold_ginductive)) tt ff e n
 
 /--
 `get_pi_binders e` instantiates all leading Π binders of `e` with fresh local
@@ -206,9 +208,19 @@ constants. Returns the remainder of `e` and information about the binders that
 were instantiated (but not the new local constants). See also `expr.pi_binders`
 (which produces open terms).
 -/
-meta def get_pi_binders : expr → tactic (list binder × expr) :=
-mk_binders (λ _ e, pure e.match_pi) mk_local'
-  (λ _ name bi type _, pure $ some $ binder.mk name bi type)
+meta def get_pi_binders (e : expr) : tactic (list binder × expr) := do
+  (lcs, rest) ← mk_local_pis e,
+  pure (lcs.map to_binder, rest)
+
+/- Auxiliary function for `get_pi_binders_nondep`. -/
+meta def get_pi_binders_nondep_aux : ℕ → expr → tactic (list (ℕ × binder) × expr) :=
+λ i e, do
+  some (name, bi, type, body) ← get_binder none tt e | pure ([], e),
+  replacement ← mk_local' name bi type,
+  (rs, rest) ←
+    get_pi_binders_nondep_aux (i + 1) (body.instantiate_var replacement),
+  let rs' := if body.has_var then rs else (i, replacement.to_binder) :: rs,
+  pure (rs', rest)
 
 /--
 `get_pi_binders_nondep e` instantiates all leading Π binders of `e` with fresh
@@ -218,9 +230,7 @@ A nondependent binder is one that does not appear later in the expression.
 Also returns the index of each returned binder (starting at 0).
 -/
 meta def get_pi_binders_nondep : expr → tactic (list (ℕ × binder) × expr) :=
-mk_binders (λ _ e, pure e.match_pi) mk_local'
-  (λ depth name bi type body,
-    pure $ if body.has_var then none else some (depth, binder.mk name bi type))
+get_pi_binders_nondep_aux 0
 
 /--
 `mk_local_lambdas e` instantiates all leading λ binders of `e` with fresh
@@ -228,7 +238,7 @@ local constants. Returns the new local constants and the remainder of `e`.
 This is `tactic.mk_local_pis` but for λ binders rather than Π binders.
 -/
 meta def mk_local_lambdas : expr → tactic (list expr × expr) :=
-mk_binders' (λ _ e, pure e.match_lam) mk_local'
+mk_binders none ff tt
 
 /--
 `mk_meta_lambdas e` instantiates all leading λ binders of `e` with fresh
@@ -236,7 +246,7 @@ metavariables. Returns the new metavariables and the remainder of `e`. This is
 `mk_local_lambdas` but with metavariables instead of local constants.
 -/
 meta def mk_meta_lambdas : expr → tactic (list expr × expr) :=
-mk_binders' (λ _ e, pure e.match_lam) (λ _ _ t, mk_meta_var t)
+mk_binders none ff ff
 
 /--
 `mk_local_lambdasn e n` instantiates the first `n` λ binders of `e` with fresh
@@ -244,8 +254,8 @@ local constants. Returns the new local constants and the remainder of `e`. Fails
 if `e` does not start with at least `n` λ binders. This is `mk_local_lambdas`
 but restricted to the first `n` binders.
 -/
-meta def mk_local_lambdasn (e : expr) (n : ℕ) : tactic (list expr × expr) :=
-mk_binders' (match_with_depth (pure ∘ match_lam) n) mk_local' e
+meta def mk_local_lambdasn : expr → ℕ → tactic (list expr × expr) :=
+mk_n_binders none ff tt
 
 /--
 `mk_meta_lambdasn e n` instantiates the first `n` λ binders of `e` with fresh
@@ -253,8 +263,8 @@ metavariables. Returns the new metavariables and the remainder of `e`. Fails
 if `e` does not start with at least `n` λ binders. This is `mk_meta_lambdas`
 but restricted to the first `n` binders.
 -/
-meta def mk_meta_lambdasn (e : expr) (n : ℕ) : tactic (list expr × expr) :=
-mk_binders' (match_with_depth (pure ∘ match_lam) n) (λ _ _ t, mk_meta_var t) e
+meta def mk_meta_lambdasn : expr → ℕ → tactic (list expr × expr) :=
+mk_n_binders none ff ff
 
 /--
 `mk_local_lambdas_whnf e md unfold_ginductive` instantiates all leading λ
@@ -265,7 +275,7 @@ during normalisation. This is `mk_local_lambdas` up to normalisation.
 -/
 meta def mk_local_lambdas_whnf (e : expr) (md := semireducible)
   (unfold_ginductive := tt) : tactic (list expr × expr) :=
-mk_binders' (λ _ e, match_lam <$> whnf e md unfold_ginductive) mk_local' e
+mk_binders (some (md, unfold_ginductive)) ff tt e
 
 /--
 `mk_meta_lambdas_whnf e md unfold_ginductive` instantiates all leading λ binders
@@ -276,8 +286,7 @@ This is `mk_meta_lambdas` up to normalisation.
 -/
 meta def mk_meta_lambdas_whnf (e : expr) (md := semireducible)
   (unfold_ginductive := tt) : tactic (list expr × expr) :=
-mk_binders' (λ _ e, match_lam <$> whnf e md unfold_ginductive)
-  (λ _ _ t, mk_meta_var t) e
+mk_binders (some (md, unfold_ginductive)) ff ff e
 
 /--
 `mk_local_lambdasn_whnf e md unfold_ginductive` instantiates the first `n` λ
@@ -289,8 +298,7 @@ Fails if `e` does not start with `n` λ binders (after normalisation). This is
 -/
 meta def mk_local_lambdasn_whnf (e : expr) (n : ℕ) (md := semireducible)
   (unfold_ginductive := tt) : tactic (list expr × expr) :=
-mk_binders' (match_with_depth (λ e, match_lam <$> whnf e md unfold_ginductive) n)
-  mk_local' e
+mk_n_binders (some (md, unfold_ginductive)) ff tt e n
 
 /--
 `mk_meta_lambdasn_whnf e md unfold_ginductive` instantiates the first `n` λ
@@ -302,7 +310,6 @@ Fails if `e` does not start with `n` λ binders (after normalisation). This is
 -/
 meta def mk_meta_lambdasn_whnf (e : expr) (n : ℕ) (md := semireducible)
   (unfold_ginductive := tt) : tactic (list expr × expr) :=
-mk_binders' (match_with_depth (λ e, match_lam <$> whnf e md unfold_ginductive) n)
-  (λ _ _ t, mk_meta_var t) e
+mk_n_binders (some (md, unfold_ginductive)) ff ff e n
 
 end tactic

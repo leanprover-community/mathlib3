@@ -142,7 +142,7 @@ end
 
 /-- If `R` is a Jacobson ring, then maximal ideals in the localization at `y`
 correspond to maximal ideals in the original ring `R` that don't contain `y`.
-This gives the correspondence in the particular case of an ideal and its comap.
+This lemma gives the correspondence in the particular case of an ideal and its comap.
 See `le_rel_iso_of_maximal` for the more general relation isomorphism -/
 lemma is_maximal_iff_is_maximal_disjoint [H : is_jacobson R] (J : ideal S) :
   J.is_maximal ↔ (comap f.to_map J).is_maximal ∧ y ∉ ideal.comap f.to_map J :=
@@ -162,8 +162,8 @@ begin
     { rw [hJ, comap_map_of_is_prime_disjoint f I (is_maximal.is_prime hI.right)],
       rwa disjoint_closure_singleton_iff_not_mem (is_maximal.is_prime hI.right).radical},
     { have hI_p : (map f.to_map I).is_prime,
-      { refine is_prime_of_is_prime_disjoint f I ⟨is_maximal.is_prime hI.right, _⟩,
-        rwa disjoint_closure_singleton_iff_not_mem (is_maximal.is_prime hI.right).radical, },
+      { refine is_prime_of_is_prime_disjoint f I hI.right.is_prime _,
+        rwa disjoint_closure_singleton_iff_not_mem (is_maximal.is_prime hI.right).radical },
       have : J ≤ map f.to_map I := (map_comap f J) ▸ (map_mono hI.left),
       exact absurd (h.right _ (lt_of_le_of_ne this hJ)) hI_p.left } },
   { refine λ h, ⟨λ hJ, h.left.left (eq_top_iff.2 _), λ I hI, _⟩,
@@ -177,13 +177,16 @@ end
 
 /-- If `R` is a Jacobson ring, then maximal ideals in the localization at `y`
 correspond to maximal ideals in the original ring `R` that don't contain `y`.
-This gives the correspondence in the particular case of an ideal and its map.
+This lemma gives the correspondence in the particular case of an ideal and its map.
 See `le_rel_iso_of_maximal` for the more general statement, and the reverse of this implication -/
-lemma is_maximal_of_is_maximal_disjoint [is_jacobson R] (I : ideal R) :
-  I.is_maximal ∧ y ∉ I → (map f.to_map I).is_maximal :=
-λ h, by rwa [is_maximal_iff_is_maximal_disjoint f,
-  comap_map_of_is_prime_disjoint f I (is_maximal.is_prime h.1)
-  ((disjoint_closure_singleton_iff_not_mem (is_maximal.is_prime h.1).radical).2 h.2)]
+lemma is_maximal_of_is_maximal_disjoint [is_jacobson R] (I : ideal R) (hI : I.is_maximal)
+  (hy : y ∉ I) : (map f.to_map I).is_maximal :=
+begin
+  rw [is_maximal_iff_is_maximal_disjoint f,
+    comap_map_of_is_prime_disjoint f I (is_maximal.is_prime hI)
+    ((disjoint_closure_singleton_iff_not_mem (is_maximal.is_prime hI).radical).2 hy)],
+  exact ⟨hI, hy⟩
+end
 
 /-- If `R` is a Jacobson ring, then maximal ideals in the localization at `y`
 correspond to maximal ideals in the original ring `R` that don't contain `y` -/
@@ -191,7 +194,7 @@ def le_rel_iso_of_maximal [is_jacobson R] :
   ((≤) : {p : ideal S // p.is_maximal} → {p : ideal S // p.is_maximal} → Prop) ≃r
   ((≤) : {p : ideal R // p.is_maximal ∧ y ∉ p} → {p : ideal R // p.is_maximal ∧ y ∉ ↑p} → Prop) :=
 { to_fun := λ p, ⟨ideal.comap f.to_map p.1, (is_maximal_iff_is_maximal_disjoint f p.1).1 p.2⟩,
-  inv_fun := λ p, ⟨ideal.map f.to_map p.1, (is_maximal_of_is_maximal_disjoint f p.1) p.2⟩,
+  inv_fun := λ p, ⟨ideal.map f.to_map p.1, is_maximal_of_is_maximal_disjoint f p.1 p.2.1 p.2.2⟩,
   left_inv := λ J, subtype.eq (map_comap f J),
   right_inv := λ I, subtype.eq (comap_map_of_is_prime_disjoint f I.1 (is_maximal.is_prime I.2.1)
     ((disjoint_closure_singleton_iff_not_mem I.2.1.is_prime.radical).2 I.2.2)),
@@ -225,7 +228,7 @@ begin
   rw [ideal.jacobson, comap_Inf', Inf_eq_infi],
   refine infi_le_infi_of_subset (λ I hI, ⟨map f.to_map I, ⟨_, _⟩⟩),
   { exact ⟨le_trans (le_of_eq ((localization_map.map_comap f P').symm)) (map_mono hI.1),
-    is_maximal_of_is_maximal_disjoint f _ hI.2⟩ },
+    is_maximal_of_is_maximal_disjoint f _ hI.2.1 hI.2.2⟩ },
   { exact localization_map.comap_map_of_is_prime_disjoint f I (is_maximal.is_prime hI.2.1)
     ((disjoint_closure_singleton_iff_not_mem hI.2.1.is_prime.radical).2 hI.2.2) }
 end

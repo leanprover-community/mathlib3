@@ -137,6 +137,8 @@ by dsimp [left_inverse, function.right_inverse] at h₁ h₂; exact
 /-- The constant 0 map is linear. -/
 instance : has_zero (M →ₗ[R] M₂) := ⟨⟨λ _, 0, by simp, by simp⟩⟩
 
+instance : inhabited (M →ₗ[R] M₂) := ⟨0⟩
+
 @[simp] lemma zero_apply (x : M) : (0 : M →ₗ[R] M₂) x = 0 := rfl
 
 /-- The sum of two linear maps is linear. -/

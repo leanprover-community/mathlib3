@@ -263,8 +263,6 @@ instance : has_coe_to_fun (M →ₗ[R] M₂) := ⟨_, to_fun⟩
 def id : M →ₗ[R] M :=
 ⟨id, λ _ _, rfl, λ _ _, rfl⟩
 
-instance : inhabited (M →ₗ[R] M) := ⟨id⟩
-
 lemma id_apply (x : M) :
   @id R M _ _ _ x = x := rfl
 

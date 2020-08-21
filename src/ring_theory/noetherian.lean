@@ -358,39 +358,10 @@ begin
     by dsimp [gt]; simp only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
 end
 
---in order to use the apply_instance, this line is needed
-open_locale classical
-/-- A module is Noetherian iff every nonempty set of submodules has a maximal submodule among them
--/
-theorem set_has_maximal_iff_noetherian {R M} [ring R] [add_comm_group M] [module R M] : (∀(a : set $ submodule R M), a.nonempty → ∃ (M' ∈ a), ∀ (I ∈ a), M' ≤ I → I = M') ↔ is_noetherian R M :=
-begin
-  split; intro h,
-  { split,
-    intro I,
-    let S := {J | J ≤ I ∧ J.fg},
-    have h2 : S.nonempty, { use (⊥ : submodule R M), convert submodule.fg_bot, simp },
-    rcases h S h2 with ⟨ M', ⟨hMI, ⟨Mgen, hMgen⟩⟩, max⟩,
-    rw submodule.fg_def,
-    contrapose! max,
-    have : ∃ x ∈ I, x ∉ M',
-    { have := max ↑Mgen (finset.finite_to_set Mgen),
-      contrapose! this,
-      rw hMgen, ext, tauto },
-    rcases this with ⟨x, hxI, hxM⟩,
-    use submodule.span R (↑Mgen ∪ {x}), split,
-    { split,
-      { suffices : (↑Mgen : set M) ∪ {x} ⊆ I, { convert submodule.span_mono this, simp },
-        have : (↑Mgen : set M) ⊆ M', { convert submodule.subset_span, cc },
-        apply set.union_subset, { exact set.subset.trans this hMI }, { simp [hxI] } },
-      { rw submodule.fg_def, use (↑Mgen ∪ {x}), split, { split, apply_instance}, refl } },
-    split,
-    { rw ← hMgen, convert submodule.span_mono _, simp },
-    { contrapose! hxM, rw ← hxM, apply submodule.subset_span, exact (↑Mgen : set M).mem_union_right rfl,} },
-  { intros A ha,
-    rw is_noetherian_iff_well_founded at h,
-    exact well_founded.well_founded_iff_has_max.1 h A ha },
-end
-
+/-- A module is Noetherian iff every nonempty set of submodules has a maximal submodule among them. -/
+theorem set_has_maximal_iff_noetherian {R M} [ring R] [add_comm_group M] [module R M] :
+  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, M' ≤ I → I = M') ↔ is_noetherian R M :=
+by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_max]
 
 /--
 A ring is Noetherian if it is Noetherian as a module over itself,

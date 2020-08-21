@@ -87,7 +87,7 @@ to replace the binder `b`. If `local_or_meta` is true, we create a fresh local
 constant with `b`'s display name, `binder_info` and type; otherwise a fresh
 metavariable with `b`'s type.
 -/
-@[inline] meta def mk_binder_replacement (local_or_meta : bool) (b : binder) :
+meta def mk_binder_replacement (local_or_meta : bool) (b : binder) :
   tactic expr :=
 if local_or_meta then mk_local' b.name b.info b.type else mk_meta_var b.type
 

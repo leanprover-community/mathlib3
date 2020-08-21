@@ -14,8 +14,8 @@ universes u v
 
 namespace simple_graph
 
-variables {β : Type*} (G : β) [simple_graph G]
-variables [fintype (V G)] [decidable_rel (adj_rel G)]
+variables {β : Type*} [simple_graphs β] (G : β)
+variables [fintype (V G)] [decidable_rel (adj G)]
 variables (R : Type v) [semiring R]
 
 /-- The matrix $A$ such that $A i j = 1$ if $i$ and $j$ are adjacent, and otherwise $A i j = 0$-/

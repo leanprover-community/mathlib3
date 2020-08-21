@@ -14,27 +14,46 @@ import tactic
 # Simple graphs
 
 This module defines simple graphs as irreflexive symmetric relations.
-Since graphs are terms, the basic interface is that a term `G` is a
-simple graph if there is an instance `[simple_graph G]`.
+Since graphs are terms rather than types, the usual mathlib techniques
+for dealing with objects and subobjects in a uniform way is
+implemented a bit differently.
 
-To construct a simple graph from a specific relation, one uses
-`simple_graph_on`.
+The type of a simple graph on a given vertex type is `simple_graph V`,
+and a type `α` whose terms have an interpretation as a simple graph
+should define an instance `simple_graphs α`.
+
+Proofs that apply to graphs in general should avoid using `G : simple_graph V`
+directly, and instead one should prove statements about terms that have graph
+interpretations.  As a `variables` declaration, this would be
+```
+variables {α : Type*} [simple_graphs α] (G : α)
+```
+This typeclass defines a `to_simple_graph` function to obtain the term's simple
+graph.  One should use the accessor functions in the `accessor_functions`
+section.  For example, `adj G` refers to `(simple_graphs.to_simple_graph G).adj`.
+
+With this design in place, then for `G : α`, there is a type `subgraph G` whose
+terms consist of all the subgraphs of `G`.  This type forms a bounded lattice.
 
 There is a basic API for locally finite graphs and for graphs with
-finitely many vertices.
+finitely many vertices.  We take the convention that a graph is finite at
+a given vertex `v` if `[fintype (neighbor_set v)]`, and it has finitely many
+vertices if `[fintype (V G)]`.
 
 ## Main definitions
 
-* `simple_graph` is a class for terms that can be interpreted as
-  symmetric, irreflexive relations (i.e., simple graphs)
+* `simple_graph_on V` is the type for simple graphs on a given vertex type.
+  It forms a bounded lattice.
+
+* `simple_graphs` is a class for a type whose terms can be interpreted as
+  simple graphs.
+
+* `subgraph G` is a type of subgraphs of a given graph `G`.  It forms a bounded lattice
 
 * `neighbor_set` is the `set` of vertices adjacent to a given vertex
 
 * `neighbor_finset` is the `finset` of vertices adjacent to a given vertex,
    if `neighbor_set` is finite
-
-* `subgraph G` is a type of all subgraphs of the simple graph `G`.  The type
-  forms a bounded lattice.
 
 ## Implementation notes
 
@@ -53,21 +72,13 @@ open_locale big_operators
 universes u v
 
 /--
-A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
+Basic constructor for a simple graph, using a symmetric irreflexive relation.
 The relation describes which pairs of vertices are adjacent.
 There is exactly one edge for every pair of adjacent edges;
 see `simple_graph.edge_set` for the corresponding edge set.
 
-To construct a simple graph, use `simple_graph.from_rel`.
--/
-class simple_graph {α : Type u} (G : α) :=
-(V : Type v)
-(adj : V → V → Prop)
-(symm [] : symmetric adj . obviously)
-(loopless [] : irreflexive adj . obviously)
-
-/--
-Basic constructor for a simple graph, using a symmetric irreflexive relation.
+When proving statements about simple graphs in general, one should use the
+`simple_graphs` typeclass.
 -/
 @[ext]
 structure simple_graph_on (V : Type u) :=
@@ -75,21 +86,77 @@ structure simple_graph_on (V : Type u) :=
 (symm : symmetric adj . obviously)
 (loopless : irreflexive adj . obviously)
 
-instance simple_graph_on.simple_graph (V : Type u) (G : simple_graph_on V) : simple_graph G :=
-{ V := V,
-  adj := G.adj,
-  symm := G.symm,
-  loopless := G.loopless }
 
 /--
-TODO remove this.  It's only here to demonstrate an interesting but probably unreasonable instance.
+This typeclass gives a simple graph interpretation of every term of a given type.
+A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`,
+using the `simple_graph_on V` structure.
 -/
-instance from_rel (V : Type u) (r : V → V → Prop) [hs : fact (symmetric r)] [hi : fact (irreflexive r)] :
-  simple_graph r :=
-{ V := V,
-  adj := r,
-  symm := hs,
-  loopless := hi }
+class simple_graphs (α : Type u) :=
+(V : α → Type v)
+(to_simple_graph : Π (G : α), simple_graph_on (V G))
+
+/--
+Every `simple_graph_on` tautologically has an interpretation as a simple graph.
+-/
+@[simps]
+instance simple_graph_on.simple_graphs (V : Type u) : simple_graphs (simple_graph_on V) :=
+{ V := λ _, V,
+  to_simple_graph := id }
+
+section accessor_functions
+/-!
+## Accessor functions
+
+The way one talks about an arbitrary simple graph is by
+```
+variables {α : Type*} [simple_graphs α] (G : α)
+```
+That is, `α` is declared to be some "universe" of simple graph objects,
+and then `G` is a simple graph from it.
+
+To make the API simple to use, rather than needing to explicitly use
+`to_simple_graph`, we define some accessor functions that obtain the
+fields of the corresponding `simple_graph_on` object.  All definitions
+and theorems should refer to these accessor functions.
+-/
+
+namespace simple_graph
+variables {α : Type*} [simple_graphs α]
+
+/--
+Get the simple graph's vertex type.
+-/
+@[reducible]
+def V (G : α) := simple_graphs.V G
+
+/--
+The simple graph's adjacency relation.
+-/
+@[reducible]
+def adj (G : α) : V G → V G → Prop := (simple_graphs.to_simple_graph G).adj
+
+/--
+For an infix adjacency relation to work, it is useful to have this abbreviation for `adj`.
+-/
+abbreviation adj' {G : α} : V G → V G → Prop := adj G
+
+infix ` ~g ` : 40 := adj'
+
+/--
+The simple graph's axiom that the adjacency relation is symmetric.
+-/
+@[reducible]
+lemma symm (G : α) : symmetric (adj G) := (simple_graphs.to_simple_graph G).symm
+
+/--
+The simple graph's axiom that the adjacency relation is irreflexive.
+-/
+@[reducible]
+lemma loopless (G : α) : irreflexive (adj G) := (simple_graphs.to_simple_graph G).loopless
+
+end simple_graph
+end accessor_functions
 
 /--
 Construct the simple graph induced by the given relation.  It
@@ -100,20 +167,13 @@ def simple_graph_from_rel {V : Type u} (r : V → V → Prop) : simple_graph_on 
   symm := by finish,
   loopless := by finish }
 
+
 namespace simple_graph
 
-/--
-This is `simple_graph.adj` but with an explicit `G`.  It is used for situations such as `[decidable_rel (adj_rel G)]`.
--/
-@[reducible]
-abbreviation adj_rel {α : Type u} (G : α) [simple_graph G] (v w : V G) := adj v w
-
-infix ` ~g ` : 40 := adj
-
-variables {α : Type u} {G : α} [simple_graph G]
+variables {α : Type u} [simple_graphs α] {G : α}
 
 /-- `neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
-def neighbor_set (v : V G) : set (V G) := set_of (adj v)
+def neighbor_set (v : V G) : set (V G) := set_of (adj G v)
 
 lemma ne_of_adj {a b : V G} (hab : a ~g b) : a ≠ b :=
 by { rintro rfl, exact loopless G a hab }
@@ -151,13 +211,13 @@ end
 lemma edge_other_ne {e : sym2 (V G)} (he : e ∈ edge_set G) {v : V G} (h : v ∈ e) : h.other ≠ v :=
 sym2.mem_from_rel_irrefl_other_ne (loopless G) he h
 
-instance edge_set_fintype [decidable_eq (V G)] [fintype (V G)] [decidable_rel (adj_rel G)] :
+instance edge_set_fintype [decidable_eq (V G)] [fintype (V G)] [decidable_rel (adj G)] :
   fintype (edge_set G) :=
 by { dunfold edge_set, exact subtype.fintype _ }
 
 section edge_finset
 variable (G)
-variables [decidable_eq (V G)] [fintype (V G)] [decidable_rel (adj_rel G)]
+variables [decidable_eq (V G)] [fintype (V G)] [decidable_rel (adj G)]
 
 /--
 The `edge_set` of the graph as a `finset`.
@@ -306,11 +366,11 @@ section finite
 
 variables [fintype (V G)]
 
-instance neighbor_set_fintype [decidable_rel (adj_rel G)] (v : V G) : fintype (neighbor_set v) :=
+instance neighbor_set_fintype [decidable_rel (adj G)] (v : V G) : fintype (neighbor_set v) :=
 @subtype.fintype _ _ (by { simp_rw mem_neighbor_set, apply_instance }) _
 
-lemma neighbor_finset_eq_filter {v : V G} [decidable_rel (adj_rel G)] :
-  neighbor_finset v = univ.filter (adj v) :=
+lemma neighbor_finset_eq_filter {v : V G} [decidable_rel (adj G)] :
+  neighbor_finset v = univ.filter (adj G v) :=
 by { ext, simp }
 
 end finite
@@ -321,7 +381,7 @@ namespace simple_graph
 
 section maps
 
-variables {α α' : Type*} (G : α) [simple_graph G] (G' : α') [simple_graph G']
+variables {α α' : Type*} [simple_graphs α] [simple_graphs α'] (G : α) (G' : α')
 
 /--
 A graph homomorphism is a map on vertex sets that respects the adjacency relations.
@@ -384,7 +444,7 @@ def embedding_to_homomorphism (f : G ↪g G') : G →g G' :=
 A graph isomorphism is an equivalence on vertex sets that preserves the adjacency relations exactly.
 -/
 @[reducible]
-def isomorphism := rel_iso (adj_rel G) (adj_rel G')
+def isomorphism := rel_iso (adj G) (adj G')
 
 infix ` ≃g ` : 50 := isomorphism
 
@@ -410,7 +470,7 @@ section subgraphs
 ## Subgraphs of a graph
 -/
 
-variables {α : Type u} (G : α) [simple_graph G]
+variables {α : Type u} [simple_graphs α] (G : α)
 
 /--
 A subgraph of a graph is a subset of vertices and a subset of edges
@@ -440,11 +500,19 @@ namespace subgraph
 variable {G}
 
 @[simps]
-instance subgraph.simple_graph (G' : subgraph G) : simple_graph G' :=
-{ V := G'.V',
-  adj := λ v w, ⟦(↑v, ↑w)⟧ ∈ G'.E',
-  symm := λ v w h, by rwa sym2.eq_swap,
-  loopless := λ ⟨v, _⟩ h, loopless G v (sym2.from_rel_prop.mp (G'.edge_sub h)) }
+instance subgraph.simple_graph : simple_graphs (subgraph G) :=
+{ V := λ G', G'.V',
+  to_simple_graph := λ G',
+  { adj := λ v w, ⟦(↑v, ↑w)⟧ ∈ G'.E',
+    symm := λ v w h, by rwa sym2.eq_swap,
+    loopless := λ ⟨v, _⟩ h, loopless G v (sym2.from_rel_prop.mp (G'.edge_sub h)) } }
+
+instance has_lift.subgraph_V (G' : subgraph G) : has_lift (V G') (V G) :=
+{ lift := subtype.val }
+
+@[simp]
+lemma subgraph.adj_iff_in_E' (G' : subgraph G) (v w : V G') : v ~g w ↔ ⟦(↑v, ↑w)⟧ ∈ G'.E' :=
+by tidy
 
 /--
 Given a subgraph, replace the vertex set with an equal set.
@@ -560,8 +628,8 @@ def map {x y : subgraph G} (h : x ≤ y) : x ↪g y :=
 { to_fun := λ v, ⟨↑v, and.left h v.property⟩,
   inj' := λ v w h, subtype.ext (subtype.mk_eq_mk.mp h),
   map_adj' := λ v w hvw, begin
-    rw subgraph.simple_graph_adj, apply and.right h,
-    cases v, cases w, rwa subgraph.simple_graph_adj at hvw,
+    rw subgraph.adj_iff_in_E', apply and.right h,
+    cases v, cases w, rwa subgraph.adj_iff_in_E' at hvw,
   end }
 
 /--
@@ -571,7 +639,7 @@ def map_top (x : subgraph G) : x ↪g G :=
 { to_fun := λ v, ↑v,
   inj' := λ v w h, subtype.ext h,
   map_adj' := λ v w hvw, begin
-    cases v, cases w, rw subgraph.simple_graph_adj at hvw,
+    cases v, cases w, rw subgraph.adj_iff_in_E' at hvw,
     apply edge_iff_adj.mp (x.edge_sub hvw),
   end }
 
@@ -583,7 +651,7 @@ Give the vertex as an element of the subgraph's vertex type.
 -/
 @[reducible]
 def in_subgraph (G' : subgraph G) {v : V G} (h : v ∈ G'.V') : V G' :=
-⟨v, h⟩
+subtype.mk v h
 
 /--
 The induced subgraph of a graph is the graph with a specified vertex
@@ -604,9 +672,9 @@ def subgraph_neighbor_set_in_graph (G' : subgraph G) (v : V G') :
 { to_fun := λ w, ⟨⟨w.1.1, begin
       cases w with w1 w2,
       rw mem_neighbor_set,
-      rw [mem_neighbor_set, subgraph.simple_graph_adj] at w2,
+      rw [mem_neighbor_set, subgraph.adj_iff_in_E'] at w2,
       exact edge_iff_adj.mp (G'.edge_sub w2),
-    end⟩, by { cases w with w1 w2, rw [mem_neighbor_set, subgraph.simple_graph_adj] at w2, exact w2 }⟩,
+    end⟩, by { cases w with w1 w2, rw [mem_neighbor_set, subgraph.adj_iff_in_E'] at w2, exact w2 }⟩,
   inv_fun := λ w, ⟨⟨w.1, begin
       cases w with w1 w2,
       rw [set.mem_set_of_eq, sym2.eq_swap] at w2,
@@ -624,11 +692,11 @@ def subgraph_neighbor_set_in_supergraph {G' G'' : subgraph G} (h : G' ≤ G'') (
 { to_fun := λ w, ⟨⟨map h w.1, begin
       cases w with w1 w2,
       rw mem_neighbor_set,
-      rw [mem_neighbor_set, subgraph.simple_graph_adj] at w2,
+      rw [mem_neighbor_set, subgraph.adj_iff_in_E'] at w2,
       apply edge_iff_adj.mp,
-      simp only [subgraph.simple_graph_adj, edge_iff_adj],
+      simp only [subgraph.adj_iff_in_E', edge_iff_adj],
       apply h.2 w2,
-    end⟩, by { cases w with w1 w2, rw [mem_neighbor_set, subgraph.simple_graph_adj] at w2, exact w2 }⟩,
+    end⟩, by { cases w with w1 w2, rw [mem_neighbor_set, subgraph.adj_iff_in_E'] at w2, exact w2 }⟩,
   inv_fun := λ w, ⟨⟨w.1, begin
       cases w with w1 w2,
       rw [set.mem_set_of_eq, sym2.eq_swap] at w2,
@@ -650,7 +718,7 @@ instance finite_at
   fintype (neighbor_set (G'.in_subgraph h)) := sorry
 --fintype.of_equiv _ (subgraph_neighbor_set_in_graph G' (G'.in_subgraph h)).symm
 
-instance finite_at_subgraph {G' G'' : subgraph G} [decidable_pred G'.E'] [decidable_pred G''.E']
+def finite_at_subgraph {G' G'' : subgraph G} [decidable_pred G'.E'] [decidable_pred G''.E']
 (h : G' ≤ G'') (v : V G) (hv : v ∈ G'.V') [hf : fintype (neighbor_set (map h (G'.in_subgraph hv)))] :
   fintype (neighbor_set (G'.in_subgraph hv)) := sorry
 --fintype.of_equiv _ (subgraph_neighbor_set_in_supergraph h v).symm
@@ -660,7 +728,7 @@ instance finite_at_subgraph {G' G'' : subgraph G} [decidable_pred G'.E'] [decida
 This instance helps `subgraph.finite_at` get applied given a `fintype (V G)` instance.
 -/
 instance subgraph_of_finite
-{G' : subgraph G} [decidable_rel (adj_rel G)] [fintype (V G)] (v : V G') :
+{G' : subgraph G} [decidable_rel (adj G)] [fintype (V G)] (v : V G') :
   fintype (neighbor_set (G'.map_top v)) := sorry
 --by { cases v, simp, apply_instance, }
 
@@ -757,11 +825,11 @@ end simple_graph_on
 
 section graph_operations
 
-variables {α : Type u}
+variables {α : Type u} [simple_graphs α]
 
 def two_pt_quo {β : Type*} (v w : β) := @quot β (λ i j, i = j ∨ (i = v ∧ j = w) ∨ (i = w ∧ j = v))
 
-def contract_edge (G : α) [simple_graph G] {v w : V G} (h : v ~g w) : simple_graph_on (two_pt_quo v w) :=
+def contract_edge (G : α) {v w : V G} (h : v ~g w) : simple_graph_on (two_pt_quo v w) :=
 { adj := λ i j, sorry
 }
 
@@ -795,8 +863,8 @@ instance from_rel_inhabited (α : Type u) : inhabited (simple_graph_on α) :=
 variables (α : Type u) [decidable_eq α]
 
 instance complete_graph_adj_decidable :
-  decidable_rel (complete_graph α).adj :=
-by { dsimp [complete_graph], apply_instance }
+  decidable_rel (adj (complete_graph α)) :=
+by { dsimp [complete_graph, adj], apply_instance }
 
 variables [fintype α]
 
@@ -857,7 +925,7 @@ end examples
 
 section coloring
 
-variables {α : Type u} (G : α) [simple_graph G]
+variables {α : Type u} [simple_graphs α] (G : α)
 
 /--
 A graph G is β-colorable if there is an assignment of elements of β to
@@ -886,10 +954,16 @@ end coloring
 
 section connectivity
 
-variables {α : Type u} (G : α) [simple_graph G]
+variables {α : Type u} [simple_graphs α] (G : α)
 
 /-- Determines if two vertices are connected by a path -/
-def exists_path : V G → V G → Prop := eqv_gen (adj_rel G)
+def exists_path : V G → V G → Prop := λ v w, ∃ (n : ℕ) (f : path_graph n ↪g G), v = f 0 ∧ w = f n
+
+lemma exists_path_eq_eqv_gen : exists_path G = eqv_gen (adj G) :=
+begin
+  ext v w,
+  sorry,
+end
 
 /-- Quotient of the vertex type by connectivity -/
 def connected_components := quotient (eqv_gen.setoid (exists_path G))
@@ -907,7 +981,7 @@ end connectivity
 
 section degree_sum
 
-variables {α : Type u} (G : α) [simple_graph G] [fintype (V G)] [decidable_eq (V G)] [decidable_rel (adj_rel G)]
+variables {α : Type u} [simple_graphs α] (G : α) [fintype (V G)] [decidable_eq (V G)] [decidable_rel (adj G)]
 
 /--
 A dart is a vertex along with an incident edge.

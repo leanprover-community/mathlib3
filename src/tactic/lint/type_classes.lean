@@ -105,7 +105,7 @@ private meta def has_inhabited_instance (d : declaration) : tactic (option strin
 tt ← pure d.is_trusted | pure none,
 ff ← has_attribute' `reducible d.to_name | pure none,
 ff ← has_attribute' `class d.to_name | pure none,
-(_, ty) ← mk_local_pis d.type,
+(_, ty) ← open_pis d.type,
 ty ← whnf ty,
 if ty = `(Prop) then pure none else do
 `(Sort _) ← whnf ty | pure none,
@@ -155,7 +155,7 @@ private meta def incorrect_type_class_argument (d : declaration) : tactic (optio
   A local constant is allowed, because that could be a class when applied to the
   proper arguments. -/
   bad_arguments ← instance_arguments.mfilter (λ ⟨_, b⟩, do
-    (_, head) ← mk_local_pis b.type,
+    (_, head) ← open_pis b.type,
     if head.get_app_fn.is_local_constant then return ff else do
     bnot <$> is_class head),
   _ :: _ ← return bad_arguments | return none,
@@ -173,7 +173,7 @@ Some declarations have non-classes between [square brackets]" }
 arguments. -/
 private meta def dangerous_instance (d : declaration) : tactic (option string) := do
   tt ← is_instance d.to_name | return none,
-  (local_constants, target) ← mk_local_pis d.type,
+  (local_constants, target) ← open_pis d.type,
   let instance_arguments := local_constants.indexes_values $
     λ e : expr, e.local_binding_info = binder_info.inst_implicit,
   let bad_arguments := local_constants.indexes_values $ λ x,
@@ -198,7 +198,7 @@ private meta def dangerous_instance (d : declaration) : tactic (option string) :
   `Type`-valued sorts. -/
 meta def apply_to_fresh_variables (e : expr) : tactic expr := do
 t ← infer_type e,
-(xs, b) ← mk_local_pis t,
+(xs, b) ← open_pis t,
 xs.mmap' $ λ x, try $ do {
   u ← mk_meta_univ,
   tx ← infer_type x,

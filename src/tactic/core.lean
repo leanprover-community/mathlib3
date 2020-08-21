@@ -731,7 +731,7 @@ do env ← get_env,
 private meta def expanded_field_list' : name → tactic (dlist $ name × name) | struct_n :=
 do (so,fs) ← subobject_names struct_n,
    ts ← so.mmap (λ n, do
-     (_, e) ← mk_const (n.update_prefix struct_n) >>= infer_type >>= mk_local_pis,
+     (_, e) ← mk_const (n.update_prefix struct_n) >>= infer_type >>= open_pis,
      expanded_field_list' $ e.get_app_fn.const_name),
    return $ dlist.join ts ++ dlist.of_list (fs.map $ prod.mk struct_n)
 open functor function
@@ -1360,7 +1360,7 @@ do let cl := t.get_app_fn.const_name,
    env ← get_env,
    let fs := env.constructors_of cl,
    fs.mmap $ λ f,
-     do { (vs,_) ← mk_const f >>= infer_type >>= mk_local_pis,
+     do { (vs,_) ← mk_const f >>= infer_type >>= open_pis,
           let vs := vs.filter (λ v, v.is_default_local),
           vs ← vs.mmap (λ v,
             do v' ← get_unused_name v.local_pp_name,
@@ -1476,7 +1476,7 @@ meta def foo : expr → tactic unit := -- don't forget to erase `:=`!!
          | _ := fail "expecting one type"
          end,
      e ← whnf t,
-     (v :: _,_) ← mk_local_pis e | fail "expecting a Pi-type",
+     (v :: _,_) ← open_pis e | fail "expecting a Pi-type",
      t' ← infer_type v,
      fs ← mk_patterns t',
      t ← pp t,
@@ -1524,7 +1524,7 @@ sum.inr : ℕ → ℤ ⊕ ℕ
   descr := "Show the list of constructors of the expected type.",
   action := λ es,
   do t ← target >>= whnf,
-     (_,t) ← mk_local_pis t,
+     (_,t) ← open_pis t,
      let cl := t.get_app_fn.const_name,
      let args := t.get_app_args,
      env ← get_env,

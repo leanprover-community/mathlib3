@@ -52,7 +52,7 @@ The second value returned by `choose1` is the result of nondep elimination:
 meta def choose1 (nondep : bool) (h : expr) (data : name) (spec : name) :
   tactic (expr × option (option expr)) := do
   t ← infer_type h,
-  (ctxt, t) ← whnf t >>= mk_local_pis,
+  (ctxt, t) ← whnf t >>= open_pis,
   t ← whnf t transparency.all,
   match t with
   | `(@Exists %%α %%p) := do

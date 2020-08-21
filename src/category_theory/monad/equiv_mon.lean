@@ -44,8 +44,7 @@ variable (C)
 @[simps]
 def Monad_to_Mon : Monad C ⥤ Mon_ (C ⥤ C) :=
 { obj := to_Mon,
-  map := λ M N f,
-  { hom := f.to_nat_trans } }
+  map := λ _ _ f, { hom := f.to_nat_trans } }
 variable {C}
 
 /-- To every monoid object in `C ⥤ C` we associate a `Monad C`. -/
@@ -76,7 +75,7 @@ variable (C)
 @[simps]
 def Mon_to_Monad : Mon_ (C ⥤ C) ⥤ Monad C :=
 { obj := of_Mon,
-  map := λ M N f,
+  map := λ _ _ f,
   { app_η' := begin
       intro X,
       erw [←nat_trans.comp_app, f.one_hom],

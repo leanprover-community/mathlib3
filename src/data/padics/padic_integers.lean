@@ -264,7 +264,7 @@ begin
     rw_mod_cast [padic_norm_e.norm_int_lt_pow_iff_dvd, this],
     simp only [fpow_neg, fpow_coe_nat, nat.cast_pow],
     convert mul_le_of_le_one_right _ _ using 1,
-     { apply inv_nonneg.mpr, apply pow_nonneg, exact_mod_cast le_of_lt (nat.prime.pos ‹_›) },
+     { apply inv_nonneg.mpr, apply pow_nonneg, exact_mod_cast le_of_lt hp_prime.pos },
      { apply padic_norm_z.le_one } },
   { intro h,
     simpa only [ring_hom.map_pow] using (int.cast_ring_hom ℤ_[p]).map_dvd h, }
@@ -296,7 +296,7 @@ lemma valuation_nonneg (x : ℤ_[p]) : 0 ≤ x.valuation :=
 begin
   by_cases hx : x = 0,
   { simp [hx] },
-  have h : (1 : ℝ) < p := by exact_mod_cast nat.prime.one_lt ‹_›,
+  have h : (1 : ℝ) < p := by exact_mod_cast hp_prime.one_lt,
   rw [← neg_nonpos, ← (fpow_strict_mono h).le_iff_le],
   show (p : ℝ) ^ -valuation x ≤ p ^ 0,
   rw [← norm_eq_pow_val hx],
@@ -310,14 +310,14 @@ begin
   { exact padic_norm_z.mul _ _ },
   have aux : ↑p ^ n * c ≠ 0,
   { contrapose! hc, rw mul_eq_zero at hc, cases hc,
-    { refine (nat.prime.ne_zero ‹_› _).elim,
+    { refine (hp_prime.ne_zero _).elim,
       exact_mod_cast (pow_eq_zero hc) },
     { exact hc } },
   rwa [norm_eq_pow_val aux, padic_norm_z.norm_p_pow, norm_eq_pow_val hc,
       ← fpow_add, ← neg_add, fpow_inj, neg_inj] at this,
-  { exact_mod_cast nat.prime.pos ‹_› },
-  { exact_mod_cast nat.prime.ne_one ‹_› },
-  { exact_mod_cast nat.prime.ne_zero ‹_› },
+  { exact_mod_cast hp_prime.pos },
+  { exact_mod_cast hp_prime.ne_one },
+  { exact_mod_cast hp_prime.ne_zero },
 end
 
 /-! ### Units of `ℤ_[p]` -/
@@ -371,7 +371,7 @@ See `unit_coeff_spec`. -/
 def unit_coeff {x : ℤ_[p]} (hx : x ≠ 0) : units ℤ_[p] :=
 let u : ℚ_[p] := x*p^(-x.valuation) in
 have hu : ∥u∥ = 1,
-by simp [hx, nat.fpow_ne_zero_of_pos (by exact_mod_cast nat.prime.pos ‹_›) x.valuation,
+by simp [hx, nat.fpow_ne_zero_of_pos (by exact_mod_cast hp_prime.pos) x.valuation,
          norm_eq_pow_val, fpow_neg, inv_mul_cancel, -cast_eq_of_rat_of_nat],
 mk_units hu
 
@@ -386,7 +386,7 @@ begin
   have repr : (x : ℚ_[p]) = (unit_coeff hx) * p ^ x.valuation,
   { rw [unit_coeff_coe, mul_assoc, ← fpow_add],
     { simp },
-    { exact_mod_cast nat.prime.ne_zero ‹_› } },
+    { exact_mod_cast hp_prime.ne_zero } },
   convert repr using 2,
   rw [← fpow_coe_nat, int.nat_abs_of_nonneg (valuation_nonneg x)],
 end
@@ -427,7 +427,7 @@ begin
 end
 
 lemma p_nonnunit : (p : ℤ_[p]) ∈ nonunits ℤ_[p] :=
-have (p : ℝ)⁻¹ < 1, from inv_lt_one $ by exact_mod_cast nat.prime.one_lt ‹_›,
+have (p : ℝ)⁻¹ < 1, from inv_lt_one $ by exact_mod_cast hp_prime.one_lt,
 by simp [this]
 
 lemma maximal_ideal_eq_span_p : maximal_ideal ℤ_[p] = ideal.span {p} :=
@@ -444,7 +444,7 @@ lemma prime_p : prime (p : ℤ_[p]) :=
 begin
   rw [← ideal.span_singleton_prime, ← maximal_ideal_eq_span_p],
   { apply_instance },
-  { exact_mod_cast nat.prime.ne_zero ‹_› }
+  { exact_mod_cast hp_prime.ne_zero }
 end
 
 lemma irreducible_p : irreducible (p : ℤ_[p]) :=
@@ -486,8 +486,7 @@ begin
   have oolala : ↑p ∣ r.num ∧ (p : ℤ) ∣ r.denom,
   { simp only [← norm_int_lt_one_iff_dvd, ← padic_norm_z.padic_norm_e_of_padic_int],
     norm_cast, exact ⟨key, norm_denon_lt⟩ },
-  suffices boom : p ∣ 1,
-  { exact nat.prime.not_dvd_one ‹_› boom },
+  apply hp_prime.not_dvd_one,
   rwa [← r.cop.gcd_eq_one, nat.dvd_gcd_iff, ← int.coe_nat_dvd_left, ← int.coe_nat_dvd],
 end
 
@@ -531,12 +530,11 @@ lemma mod_part_lt_p : mod_part p r < p :=
 begin
   convert int.mod_lt _ _,
   { simp },
-  { exact_mod_cast nat.prime.ne_zero ‹_› }
+  { exact_mod_cast hp_prime.ne_zero }
 end
 
 lemma mod_part_nonneg : 0 ≤ mod_part p r :=
-int.mod_nonneg _ $ by exact_mod_cast nat.prime.ne_zero ‹_›
-
+int.mod_nonneg _ $ by exact_mod_cast hp_prime.ne_zero
 
 lemma norm_sub_mod_part (h : ∥(r : ℚ_[p])∥ ≤ 1) : ∥(⟨r,h⟩ - mod_part p r : ℤ_[p])∥ < 1 :=
 begin
@@ -550,7 +548,7 @@ begin
     ... < 1 : _,
     { rw [mul_one, padic_norm_z.norm_p],
       apply inv_lt_one,
-      exact_mod_cast nat.prime.one_lt ‹_› }, },
+      exact_mod_cast hp_prime.one_lt }, },
   rw ← (is_unit_denom r h).dvd_mul_right,
   suffices : ↑p ∣ r.num - n * r.denom,
   { convert (int.cast_ring_hom ℤ_[p]).map_dvd this,
@@ -702,7 +700,7 @@ begin
     simp [zmod.val_cast_nat],
     rw mod_eq_of_lt,
     assumption_mod_cast },
-  { have : 1 < p, from nat.prime.one_lt ‹_›, omega }
+  { have : 1 < p, from hp_prime.one_lt, omega }
 end
 
 lemma ker_to_zmod : (to_zmod : ℤ_[p] →+* zmod p).ker = maximal_ideal ℤ_[p] :=
@@ -738,8 +736,8 @@ begin
   simp only [appr, ring_hom.map_nat_cast, zmod.cast_self, ring_hom.map_pow, int.nat_abs, ring_hom.map_mul],
   have hp : p ^ n < p ^ (n + 1),
   { simp [← nat.pow_eq_pow],
-    apply pow_lt_pow (nat.prime.one_lt ‹_›) (lt_add_one n), },
-  split_ifs,
+    apply pow_lt_pow hp_prime.one_lt (lt_add_one n), },
+  split_ifs with h,
   { apply lt_trans (ih _) hp, },
   { calc _ < p ^ n + p ^ n * (p - 1) : _
     ... = p ^ (n + 1) : _,

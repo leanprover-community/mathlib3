@@ -93,18 +93,14 @@ variable {C}
 /-- Isomorphism of functors used in `Monad_Mon_equiv` -/
 @[simps]
 def of_to_mon_end_iso : Mon_to_Monad C ⋙ Monad_to_Mon C ≅ 𝟭 _ :=
-{ hom := { app := λ M, { hom := 𝟙 _ } },
-  inv := { app := λ M, { hom := 𝟙 _ } } }
+{ hom := { app := λ _, { hom := 𝟙 _ } },
+  inv := { app := λ _, { hom := 𝟙 _ } } }
 
 /-- Isomorphism of functors used in `Monad_Mon_equiv` -/
 @[simps]
 def to_of_mon_end_iso : Monad_to_Mon C ⋙ Mon_to_Monad C ≅ 𝟭 _ :=
-{ hom :=
-  { app := λ M,
-  { app := λ X, 𝟙 _ } },
-  inv :=
-  { app := λ M,
-  { app := λ X, 𝟙 _ } } }
+{ hom := { app := λ _, { app := λ _, 𝟙 _ } },
+  inv := { app := λ _, { app := λ _, 𝟙 _ } } }
 
 variable (C)
 /-- Oh, monads are just monoids in the category of endofunctors (equivalence of categories). -/

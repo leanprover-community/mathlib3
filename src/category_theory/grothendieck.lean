@@ -23,13 +23,15 @@ where morphisms consists again of `β : b ⟶ b'` and `φ : F ⟶ (F.map (op β)
 
 ## References
 
+See also `category_theory.functor.elements` for the category of elements of functor `F : C ⥤ Type`.
+
 https://ncatlab.org/nlab/show/Grothendieck+construction
 
 -/
 
 universe u
 
-open category_theory
+namespace category_theory
 
 variables {C D : Type*} [category C] [category D]
 variables (F : C ⥤ Cat)
@@ -71,8 +73,6 @@ def comp {X Y Z : grothendieck F} (f : hom X Y) (g : hom Y Z) : hom X Z :=
   eq_to_hom (by erw [functor.map_comp, functor.comp_obj]) ≫
     (F.map g.base).map f.fiber ≫ g.fiber, }
 
-end grothendieck
-
 instance : category (grothendieck F) :=
 { hom := λ X Y, grothendieck.hom X Y,
   id := λ X, grothendieck.id X,
@@ -99,8 +99,6 @@ instance : category (grothendieck F) :=
       refl, },
   end, }
 
-namespace grothendieck
-
 /-- The forgetful functor from `grothendieck F` to the source category. -/
 @[simps]
 def forget : grothendieck F ⥤ C :=
@@ -108,3 +106,5 @@ def forget : grothendieck F ⥤ C :=
   map := λ X Y f, f.1, }
 
 end grothendieck
+
+end category_theory

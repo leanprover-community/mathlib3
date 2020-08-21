@@ -471,6 +471,25 @@ lemma map_prod {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
   (∏ i in s, g i).map f = ∏ i in s, (g i).map f :=
 eq.symm $ prod_hom _ _
 
+/--
+Polynomial evaluation commutes with finset.prod
+-/
+lemma polynomial.eval_finset.prod {ι : Type*} [decidable_eq ι]
+  (s : finset ι) (p : ι → polynomial R) (x : R) :
+  polynomial.eval x (∏ j in s, p j) = ∏ j in s, polynomial.eval x (p j) :=
+begin
+  apply finset.induction_on s,
+    { repeat {rw finset.prod_empty}, rw polynomial.eval_one },
+    { intros j s hj hpj,
+      have h0 : ∏ i in insert j s, polynomial.eval x (p i) =
+            (polynomial.eval x (p j)) * ∏ i in s, polynomial.eval x (p i),
+      { apply finset.prod_insert hj },
+      rw [h0, ← hpj],
+      rw finset.prod_insert hj,
+      rw polynomial.eval_mul,
+    }, done
+end
+
 lemma map_sum {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
   (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
 eq.symm $ sum_hom _ _

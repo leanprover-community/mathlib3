@@ -160,15 +160,15 @@ end
   integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
 integrable_on_finite_union s.finite_to_set
 
-lemma integrable_on.add_meas (hμ : integrable_on f s μ) (hν : integrable_on f s ν) :
+lemma integrable_on.add_measure (hμ : integrable_on f s μ) (hν : integrable_on f s ν) :
   integrable_on f s (μ + ν) :=
 by { delta integrable_on, rw measure.restrict_add, exact hμ.integrable.add_measure hν }
 
-@[simp] lemma integrable_on_add_meas :
+@[simp] lemma integrable_on_add_measure :
   integrable_on f s (μ + ν) ↔ integrable_on f s μ ∧ integrable_on f s ν :=
 ⟨λ h, ⟨h.mono_measure (measure.le_add_right (le_refl _)),
   h.mono_measure (measure.le_add_left (le_refl _))⟩,
-  λ h, h.1.add_meas h.2⟩
+  λ h, h.1.add_measure h.2⟩
 
 lemma integrable_indicator_iff (hs : is_measurable s) :
   integrable (indicator s f) μ ↔ integrable_on f s μ :=

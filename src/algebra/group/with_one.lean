@@ -282,8 +282,7 @@ begin
   { refl },
   { refl },
   { apply option.some_inj.2,
-    apply mul_comm
-  }
+    apply mul_comm }
 end
 
 /-- if `G` is a `comm_group` then `with_zero G` is a `comm_group_with_zero`. -/

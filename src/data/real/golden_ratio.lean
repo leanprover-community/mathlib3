@@ -32,7 +32,7 @@ localized "notation `φ` := golden_ratio" in real
 localized "notation `ψ` := golden_conj" in real
 
 /-- The inverse of the golden ratio is the opposite of its conjugate. -/
-@[simp] lemma inv_gold : φ⁻¹ = -ψ :=
+lemma inv_gold : φ⁻¹ = -ψ :=
 begin
   have : 1 + real.sqrt 5 ≠ 0,
     from ne_of_gt (add_pos (by norm_num) $ real.sqrt_pos.mpr (by norm_num)),
@@ -44,7 +44,7 @@ begin
 end
 
 /-- The opposite of the golden ratio is the inverse of its conjugate. -/
-@[simp] lemma inv_gold_conj : ψ⁻¹ = -φ :=
+lemma inv_gold_conj : ψ⁻¹ = -φ :=
 begin
   rw [inv_eq_iff, ← neg_inv, neg_eq_iff_neg_eq],
   exact inv_gold.symm,
@@ -76,6 +76,30 @@ begin
   rw [golden_conj, ←sub_eq_zero],
   ring_exp,
   rw real.sqr_sqrt; norm_num,
+end
+
+lemma gold_pos : 0 < φ :=
+begin
+  rw golden_ratio,
+  linarith [real.sqrt_nonneg 5]
+end
+
+lemma gold_ne_zero : φ ≠ 0 := ne_of_gt gold_pos
+
+lemma one_lt_gold : 1 < φ :=
+begin
+  refine lt_of_mul_lt_mul_left _ (le_of_lt gold_pos),
+  simp [← pow_two, gold_pos, zero_lt_one]
+end
+
+lemma gold_conj_neg : ψ < 0 := by linarith [one_sub_gold_conj, one_lt_gold]
+
+lemma gold_conj_ne_zero : ψ ≠ 0 := ne_of_lt gold_conj_neg
+
+lemma neg_one_lt_gold_conj : -1 < ψ :=
+begin
+  rw [neg_lt, ← inv_gold],
+  exact inv_lt_one one_lt_gold,
 end
 
 /-!

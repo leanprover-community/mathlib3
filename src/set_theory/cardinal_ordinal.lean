@@ -62,7 +62,7 @@ end
   For the basic function version, see `aleph_idx`.
   For an upgraded version stating that the range is everything, see `aleph_idx.rel_iso`. -/
 def aleph_idx.initial_seg : @initial_seg cardinal ordinal (<) (<) :=
-@rel_embedding.collapse cardinal ordinal (<) (<) _ cardinal.ord.rel_embedding
+@rel_embedding.collapse cardinal ordinal (<) (<) _ cardinal.ord.order_embedding.lt_embedding
 
 /-- The `aleph'` index function, which gives the ordinal index of a cardinal.
   (The `aleph'` part is because unlike `aleph` this counts also the

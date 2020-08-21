@@ -214,8 +214,7 @@ def to_comm_ring {R} [comm_ring R] (s : subring R) : comm_ring s :=
 /-- The natural ring hom from a subring of ring `R` to `R`. -/
 def subtype (s : subring R) : s →+* R :=
 { to_fun := coe,
- .. s.to_submonoid.subtype, .. s.to_add_subgroup.subtype
-}
+ .. s.to_submonoid.subtype, .. s.to_add_subgroup.subtype }
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
 

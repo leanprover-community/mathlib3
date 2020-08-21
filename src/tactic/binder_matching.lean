@@ -62,7 +62,7 @@ namespace tactic
 
 open expr
 
-/-
+/--
 `get_binder do_whnf pi_or_lambda e` matches `e` of the form `λ x, e'` or
 `Π x, e`. Returns information about the leading binder (its name, `binder_info`,
 type and body), or `none` if `e` does not start with a binder.
@@ -81,7 +81,7 @@ binder.
   e ← do_whnf.elim (pure e) (λ p, whnf e p.1 p.2),
   pure $ if pi_or_lambda then match_pi e else match_lam e
 
-/-
+/--
 `mk_binder_replacement local_or_meta b` creates an expression that can be used
 to replace the binder `b`. If `local_or_meta` is true, we create a fresh local
 constant with `b`'s display name, `binder_info` and type; otherwise a fresh
@@ -117,7 +117,7 @@ meta def mk_binders (do_whnf : option (transparency × bool))
   (rs, rest) ← mk_binders (body.instantiate_var replacement),
   pure (replacement :: rs, rest)
 
-/-
+/--
 `mk_n_binders do_whnf pis_or_lambdas local_or_metas e n` is like
 `mk_binders do_whnf pis_or_lambdas local_or_metas e`, but it matches exactly `n`
 leading Π/λ binders of `e`. If `e` does not start with at least `n` Π/λ binders,
@@ -212,8 +212,9 @@ meta def get_pi_binders (e : expr) : tactic (list binder × expr) := do
   (lcs, rest) ← mk_local_pis e,
   pure (lcs.map to_binder, rest)
 
-/- Auxiliary function for `get_pi_binders_nondep`. -/
-meta def get_pi_binders_nondep_aux : ℕ → expr → tactic (list (ℕ × binder) × expr) :=
+/-- Auxiliary function for `get_pi_binders_nondep`. -/
+private meta def get_pi_binders_nondep_aux :
+  ℕ → expr → tactic (list (ℕ × binder) × expr) :=
 λ i e, do
   some (name, bi, type, body) ← get_binder none tt e | pure ([], e),
   replacement ← mk_local' name bi type,

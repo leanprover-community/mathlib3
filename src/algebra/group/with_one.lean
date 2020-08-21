@@ -249,8 +249,7 @@ instance : group_with_zero (with_zero α) :=
   mul_inv_cancel := with_zero.mul_inv_cancel,
   ..with_zero.monoid_with_zero,
   ..with_zero.has_inv,
-  ..with_zero.nontrivial
-}
+  ..with_zero.nontrivial }
 end group
 
 section comm_group

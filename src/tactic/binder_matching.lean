@@ -99,7 +99,7 @@ depth.
 If `match_binder`, `binder_replacement` or `result` fail at any point, the whole
 tactic fails.
 -/
-@[inline] meta def mk_binders {α}
+meta def mk_binders {α}
   (match_binder : ℕ → expr → tactic (option (name × binder_info × expr × expr)))
   (binder_replacement : name → binder_info → expr → tactic expr)
   (result : ℕ → name → binder_info → expr → expr → tactic (option α)) :

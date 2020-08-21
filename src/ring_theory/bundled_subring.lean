@@ -66,7 +66,7 @@ variables {R : Type u} {S : Type v} {T : Type w} [ring R] [ring S] [ring T]
 set_option old_structure_cmd true
 
 /-- `subring R` is the type of subrings of `R`. A subring of `R` is a subset `s` that is a multiplicative
-submonoid and an additive subgroup. Note in particular that it shares the same 0 and 1 as R -/
+submonoid and an additive subgroup. Note in particular that it shares the same 0 and 1 as R. -/
 structure subring (R : Type u) [ring R] extends submonoid R, add_subgroup R
 
 /-- Reinterpret a `subring` as a `submonoid`. -/

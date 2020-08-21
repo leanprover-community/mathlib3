@@ -957,7 +957,7 @@ def integral_domain_localization {M : submonoid A} (hM : M ≤ non_zero_divisors
 /--
 The localization of an integral domain at the complement of a prime ideal is an integral domain.
 -/
-instance integral_domain_of_local_at_prime {P : ideal A} [P.is_prime] :
+instance integral_domain_of_local_at_prime {P : ideal A} (hp : P.is_prime) :
   integral_domain (localization.at_prime P) :=
 integral_domain_localization (le_non_zero_divisors_of_domain (by simpa only [] using P.zero_mem))
 

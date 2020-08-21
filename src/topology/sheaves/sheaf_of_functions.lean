@@ -118,7 +118,7 @@ begin
     -- Now, we can just assert that `s₂` is the droid you are looking for.
     -- (We relying shamefacedly on Lean's unification understanding this,
     -- even though the type of the goal is still fairly messy. "It's obvious.")
-
+    -- FIXME this doesn't work any more, because we can't see through the definition of limits
     dsimp at s₂,
     convert s₂,
     simp [sheaf_condition.res],

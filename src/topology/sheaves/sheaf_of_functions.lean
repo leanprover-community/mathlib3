@@ -101,27 +101,31 @@ begin
     have s₀ := s.condition =≫ pi.π _ (j, i),
     simp only [sheaf_condition.left_res, sheaf_condition.right_res] at s₀,
     have s₁ := congr_fun s₀ f,
-    have s₂ := congr_fun s₁ ⟨x, _⟩,
+    have s₂ := congr_fun s₁ ⟨x, _⟩, clear s₀ s₁,
     -- Notice at this point we've spun after an additional goal:
-    -- that `x ∈ U j ⊓ U i` to begin with! We'll postpone that.
+    -- that `x ∈ U j ⊓ U i` to begin with! Let's get that out of the way.
+    swap,
+    { -- We knew `x ∈ U i` right from the start:
+      refine ⟨_, mem⟩,
+      dsimp,
 
-    -- In the meantime, we can just assert that `s₂` is the droid you are looking for.
+      -- Notice that when we introduced `j`, we just introduced it as some metavariable.
+      -- However at this point it's received a concrete value,
+      -- because Lean's unification has worked out that this `j` must have been the index
+      -- that we picked using choice back when constructing the lift.
+      -- From this, we can extract the evidence that `x ∈ U j`:
+      convert @classical.some_spec _ (λ i, x ∈ (U i : set X)) _, },
+    -- Now, we can just assert that `s₂` is the droid you are looking for.
     -- (We relying shamefacedly on Lean's unification understanding this,
     -- even though the type of the goal is still fairly messy. "It's obvious.")
-    simpa [presheaf_to_Type] using s₂,
-    clear s₀ s₁,
 
-    -- We still need to show `x ∈ U j ⊓ U i`.
-    -- We knew `x ∈ U i` right from the start:
-    refine ⟨_, mem⟩,
-    dsimp,
-
-    -- Notice that when we introduced `j`, we just introduced it as some metavariable.
-    -- However at this point it's received a concrete value,
-    -- because Lean's unification has worked out that this `j` must have been the index
-    -- that we picked using choice back when constructing the lift.
-    -- From this, we can extract the evidence that `x ∈ U j`:
-    convert @classical.some_spec _ (λ i, x ∈ (U i : set X)) _, },
+    dsimp at s₂,
+    convert s₂,
+    simp [sheaf_condition.res],
+    sorry,
+    sorry,
+    exact ⟨i, mem⟩,
+  },
   { -- On the home stretch now,
     -- we just need to check that the lift we picked was the only possible one.
 
@@ -140,7 +144,8 @@ begin
 
     -- Now it's just a matter of plugging in all the values;
     -- `j` gets solved for during unification.
-    convert congr_fun (congr_fun (w =≫ pi.π _ j) f) ⟨x, _⟩, }
+    convert congr_fun (congr_fun (w =≫ pi.π _ j) f) ⟨x, _⟩,
+    sorry, }
 end.
 
 -- We verify that the non-dependent version is an immediate consequence:

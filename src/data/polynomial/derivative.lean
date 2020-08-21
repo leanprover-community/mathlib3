@@ -94,9 +94,6 @@ instance : is_add_monoid_hom (derivative : polynomial R → polynomial R) :=
 @[simp] lemma derivative_smul (r : R) (p : polynomial R) : derivative (r • p) = r • derivative p :=
 by { ext, simp only [coeff_derivative, mul_assoc, coeff_smul], }
 
-lemma derivative_eval (p : polynomial R) (x : R) : p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
-by simp [derivative, eval_sum, eval_pow]
-
 end semiring
 
 section comm_semiring
@@ -150,6 +147,9 @@ polynomial.induction_on p
       derivative_mul, derivative_pow_succ, derivative_C, zero_mul, zero_add, derivative_X, mul_one,
       map_mul, map_C, map_mul, map_pow, map_add, map_nat_cast, map_one, map_X])
 
+lemma derivative_eval (p : polynomial R) (x : R) : p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
+by simp [derivative, eval_sum, eval_pow]
+
 /-- Chain rule for formal derivative of polynomials. -/
 theorem derivative_eval₂_C (p q : polynomial R) :
   (p.eval₂ C q).derivative = p.derivative.eval₂ C q * q.derivative :=
@@ -185,11 +185,18 @@ def derivative_lhom (R : Type*) [comm_ring R] : polynomial R →ₗ[R] polynomia
   map_smul' := λ r p, derivative_smul r p }
 
 @[simp] lemma derivative_coe_nat {n : ℕ} : derivative (n : polynomial R) = 0 :=
-derivative_C
+begin
+  rw ← C.map_nat_cast n,
+  exact derivative_C,
+end
 
 @[simp] lemma iterate_derivative_coe_nat_mul {n k : ℕ} {f : polynomial R} :
   derivative^[k] (n * f) = n * (derivative^[k] f) :=
-sorry
+begin
+  induction k with k ih generalizing f,
+  { simp [nat.iterate], },
+  { simp [nat.iterate, ih], }
+end
 
 end comm_semiring
 
@@ -198,7 +205,11 @@ variables [comm_ring R]
 
 @[simp] lemma iterate_derivative_sub {k : ℕ} {f g : polynomial R} :
   derivative^[k] (f - g) = (derivative^[k] f) - (derivative^[k] g) :=
-sorry
+begin
+  induction k with k ih generalizing f g,
+  { simp [nat.iterate], },
+  { simp [nat.iterate, ih], }
+end
 
 end comm_ring
 

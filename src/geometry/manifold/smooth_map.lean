@@ -38,9 +38,9 @@ def smooth_map := times_cont_mdiff_map I I' M M' ⊤
 notation `C[` n `](` I `, ` M `; ` I' `, ` M' `)` := times_cont_mdiff_map I I' M M' n
 notation `C[` n `](` I `, ` M `; ` k `)` := times_cont_mdiff_map I (model_with_corners_self k k) M k n
 notation `C[` n `](` I `, ` M `)` := times_cont_mdiff_map I (model_with_corners_self ℝ ℝ) M ℝ n
-notation `C∞(` I `, ` M `; ` I' `, ` M' `)` := times_cont_mdiff_map I I' M M' ∞
-notation `C∞(` I `, ` M `; ` k `)` := times_cont_mdiff_map I (model_with_corners_self k k) M k ∞
-notation `C∞(` I `, ` M `)` := times_cont_mdiff_map I (model_with_corners_self ℝ ℝ) M ℝ ∞
+notation `C∞(` I `, ` M `; ` I' `, ` M' `)` := times_cont_mdiff_map I I' M M' ⊤
+notation `C∞(` I `, ` M `; ` k `)` := times_cont_mdiff_map I (model_with_corners_self k k) M k ⊤
+notation `C∞(` I `, ` M `)` := times_cont_mdiff_map I (model_with_corners_self ℝ ℝ) M ℝ ⊤
 
 namespace times_cont_mdiff_map
 

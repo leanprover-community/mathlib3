@@ -40,11 +40,11 @@ instance has_mul {G : Type*} [has_mul G] [topological_space G] [has_continuous_m
   [has_smooth_mul I' G] (f g : C∞(I, N; I', G)) (x : N) :
 (f * g) x = f x * g x := rfl
 
-@[simp, to_additive] lemma mul_comp {G : Type*} [has_mul G] [topological_space G]
+@[to_additive] lemma mul_comp {G : Type*} [has_mul G] [topological_space G]
   [has_continuous_mul G] [charted_space H' G] [smooth_manifold_with_corners I' G]
   [has_smooth_mul I' G] (f g : C∞(I'', N'; I', G)) (h : C∞(I, N; I'', N')) (x : N) :
 (f * g).comp h = (f.comp h) * (g.comp h) :=
-by ext; simp only [comp_apply, mul_apply]
+by ext; simp only [times_cont_mdiff_map.comp_apply, mul_apply]
 
 @[to_additive]
 instance {G : Type*} [monoid G] [topological_space G]
@@ -167,6 +167,10 @@ semimodule.of_core $
   add_smul := λ c₁ c₂ f, by ext x; exact add_smul c₁ c₂ (f x),
   mul_smul := λ c₁ c₂ f, by ext x; exact mul_smul c₁ c₂ (f x),
   one_smul := λ f, by ext x; exact one_smul 𝕜 (f x), }
+
+@[simp] lemma smooth_map.smul_apply {V : Type*} [normed_group V] [normed_space 𝕜 V]
+  (k : 𝕜) (f : C∞(I, N; Isf(𝕜, V), V)) (x : N) :
+  (k • f) x = k • (f x) := rfl
 
 end semimodule_structure
 

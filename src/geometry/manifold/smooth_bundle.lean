@@ -1,4 +1,6 @@
 import geometry.manifold.local_diffeomorph
+import geometry.manifold.tangent_bundle_derivation
+import linear_algebra.dual
 
 noncomputable theory
 
@@ -19,6 +21,8 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 (proj : Z → B)
 
 variable (F)
+
+#check linear_map.trace_aux
 
 /--
 A structure extending local homeomorphisms, defining a local trivialization of a projection
@@ -176,6 +180,8 @@ section
 
 namespace vector_bundle
 
+section
+
 variables (𝕜 : Type*) {B : Type*} (F : Type*) {Z : Type*}
   [topological_space B] [topological_space Z] [normed_field 𝕜]
   [topological_space F] [add_comm_group F] [module 𝕜 F] [topological_module 𝕜 F] (proj : Z → B)
@@ -204,7 +210,65 @@ instance topological_vector_bundle_to_topological_bundle :
   has_coe (is_topological_vector_bundle 𝕜 F proj) (is_topological_fiber_bundle F proj) :=
 ⟨λ V, topological_vector_bundle.to_topological_fiber_bundle V⟩
 
+end
+
 end vector_bundle
+
+namespace vector_bundle_2
+
+section
+
+variables (𝕜 : Type*) {B : Type*} (E : B → Type*) (F : Type*)
+  [normed_field 𝕜] [topological_space B] [∀ x, add_comm_group (E x)] [∀ x, topological_space (E x)]
+  [∀ x, module 𝕜 (E x)] /- [∀ x, topological_vector_space 𝕜 (E x)] -/
+  [topological_space F] [add_comm_group F] [module 𝕜 F] /- [topological_module 𝕜 F] -/
+  [topological_space Σ x, E x]
+
+def proj : (Σ x, E x) → B := λ y : Σ x, E x, y.1
+
+notation V `ᵛ` 𝕜 := module.dual 𝕜 V
+
+@[reducible] def dual := (Σ x, (E x)ᵛ𝕜)
+
+instance {x : B} : has_coe (E x) (Σ x, E x) := ⟨λ y, (⟨x, y⟩ : (Σ x, E x))⟩
+
+structure vector_bundle_trivialization extends bundle_trivialization F (proj E) :=
+(linear : ∀ x ∈ base_set, is_linear_map 𝕜 (λ (y : (E x)), (to_fun y).2))
+
+variables (B)
+
+def is_topological_vector_bundle : Prop :=
+∀ x : (Σ x, E x), ∃ e : vector_bundle_trivialization 𝕜 E F, x ∈ e.source
+
+variables {𝕜} {F} {E} {B}
+
+def topological_vector_bundle.to_topological_fiber_bundle (V : is_topological_vector_bundle 𝕜 B E F)
+: is_topological_fiber_bundle F (proj E) :=
+λ x, by { cases V x with T h_T, exact ⟨T.to_bundle_trivialization, h_T⟩ }
+
+instance topological_vector_bundle.to_topological_bundle :
+  has_coe (is_topological_vector_bundle 𝕜 B E F) (is_topological_fiber_bundle F (proj E)) :=
+⟨λ V, topological_vector_bundle.to_topological_fiber_bundle V⟩
+
+end
+
+section
+
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+{E : Type*} [normed_group E] [normed_space 𝕜 E]
+{H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+{M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+[∀ (x : M), topological_space (point_derivation I x)] /- Can be removed for finite dimensional manifolds-/
+
+lemma tangent_bundle_derivation : is_topological_vector_bundle 𝕜 M (point_derivation I) E :=
+begin
+  intro v,
+  sorry,
+end
+
+end
+
+end vector_bundle_2
 
 end
 
@@ -257,7 +321,7 @@ end
 section
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
+{E : Type*} [normed_group E] [normed_space 𝕜 E] [finite_dimensional 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
@@ -270,8 +334,20 @@ begin
   sorry,
 end
 
+def F2 : Π x : M, {y : tangent_bundle_derivation I M // tangent_bundle_derivation.proj I M y = x} → point_derivation I x :=
+begin
+  intros x y,
+  let g := y.val.2,
+  let h : y.val.fst = x := y.prop,
+  rw h at g,
+  exact g,
+end
+
 def G : Π x : M, tangent_space I x → {y : tangent_bundle I M // tangent_bundle.proj I M y = x} :=
 sorry
+
+def G2 : Π x : M, point_derivation I x → {y : tangent_bundle_derivation I M // tangent_bundle_derivation.proj I M y = x} :=
+by { intros x v, use ⟨x, v⟩ }
 
 instance add_comm_group_fiber_tangent_bundle : ∀ (x : M), add_comm_group {y : tangent_bundle I M // tangent_bundle.proj I M y = x} :=
 λ x,

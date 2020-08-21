@@ -38,7 +38,7 @@ lemma Lb_apply_one (I : model_with_corners 𝕜 E H) {G : Type*} [topological_sp
 structure left_invariant_vector_field (I : model_with_corners 𝕜 E H)
   (G : Type*) [topological_space G] [charted_space H G] [smooth_manifold_with_corners I G]
   [group G] [topological_group G] [lie_group I G] extends vector_field_derivation I G :=
-(left_invariant' : ∀ f g, to_vector_field_derivation.eval g f = (fd (Lb I G g)) (1 : G) (to_vector_field_derivation.eval (1 : G)) f)
+(left_invariant' : ∀ g f, to_vector_field_derivation.eval g f = (fd (Lb I G g)) (1 : G) (to_vector_field_derivation.eval (1 : G)) f)
 
 variables {I : model_with_corners 𝕜 E H}
   {G : Type*} [topological_space G] [charted_space H G] [smooth_manifold_with_corners I G]

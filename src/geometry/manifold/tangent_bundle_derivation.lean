@@ -2,14 +2,24 @@ import geometry.manifold.algebra.smooth_functions
 import ring_theory.derivation
 import geometry.manifold.temporary_to_be_removed
 
+noncomputable theory
+
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-(M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
+{M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
 open_locale manifold
 
-def module_point_derivation (x : M) : module C∞(I, M; 𝕜) 𝕜 :=
+@[reducible] def smooth_map_at (x : M) := C∞(I, M; 𝕜)
+
+notation `C∞(` I `, `x`)` := smooth_map_at I x
+
+namespace smooth_map_at
+
+variables {I} {M}
+
+instance {x : M} : module C∞(I, x) 𝕜 :=
 { smul := λ f k, f x * k,
   one_smul := λ k, one_mul k,
   mul_smul := λ f g k, mul_assoc _ _ _,
@@ -18,50 +28,107 @@ def module_point_derivation (x : M) : module C∞(I, M; 𝕜) 𝕜 :=
   add_smul := λ f g k, add_mul _ _ _,
   zero_smul := λ f, zero_mul _ }
 
-def compatible_semimodule_tangent_space (x : M) :
-  @compatible_semimodule 𝕜 C∞(I, M; 𝕜) _ _ _ 𝕜 _ (module_point_derivation I M x) _ :=
-{ compatible_smul := λ h k, rfl, }
+@[simp] lemma smul_def (x : M) (k : 𝕜) (f : C∞(I, x)) :
+  f • k = (f x) • k := rfl
 
-@[reducible] def point_derivation (x : M) :=
-  @derivation 𝕜 C∞(I, M; 𝕜) _ _ _ 𝕜 _ (module_point_derivation I M x) _
-  (compatible_semimodule_tangent_space I M x)
+instance {x : M} :
+  is_scalar_tower 𝕜 C∞(I, x) 𝕜 :=
+{ smul_assoc := λ h f k, by simp only [smul_def, smooth_map.smul_apply, algebra.id.smul_eq_mul,
+    mul_assoc] }
 
-def tangent_bundle_derivation := Σ x : M, point_derivation I M x
+end smooth_map_at
+
+variables (I)
+
+@[reducible] def point_derivation (x : M) := derivation 𝕜 C∞(I, x) 𝕜
+
+variables (M)
+
+section
+
+open finite_dimensional classical
+
+variables [finite_dimensional 𝕜 E]
+
+@[reducible] def tangent_bundle_derivation := Σ x : M, point_derivation I x
+
+@[reducible] def tangent_bundle_derivation.proj : tangent_bundle_derivation I M → M := λ v, v.1
+
+section
+
+def dir_deriv (f : E → 𝕜) (a : E) (v : E) := deriv (λ t : 𝕜, f (a + t • v)) 0
+
+end
+
+open_locale big_operators
+
+namespace tangent_bundle_derivation
+
+def chart : (local_homeomorph M H) → (local_equiv (tangent_bundle_derivation I M) (model_prod H E)) :=
+λ e,
+{ to_fun := λ vₓ, ⟨e vₓ.1,
+    ∑ w : (↑(some (exists_is_basis_finset 𝕜 E)) : set E), (vₓ.2 (⟨λ x : M, ((some_spec
+    (exists_is_basis_finset 𝕜 E)).repr ∘ I ∘ e) x w, sorry⟩)) • (w : E)⟩,
+  inv_fun := λ ⟨x, v⟩, ⟨e.symm x, ⟨⟨λ f, dir_deriv (f ∘ e.symm ∘ I.symm) (I x) v,
+    sorry, sorry⟩, sorry⟩⟩,
+  source := (proj I M)⁻¹' e.source,
+  target := e.target.prod set.univ,
+  map_source' := λ x h, begin sorry end,
+  map_target' := λ y h, begin sorry end,
+  left_inv' := λ x h, begin sorry end,
+  right_inv' := λ y h, begin sorry end }
+
+def charted_space_core : charted_space_core (model_prod H E) (tangent_bundle_derivation I M) :=
+{ atlas := (chart I M)'' (atlas H M),
+  chart_at := λ x, (chart I M) (chart_at H (proj I M x)),
+  mem_chart_source := λ x, begin sorry end,
+  chart_mem_atlas := λ x, begin sorry end,
+  open_source := λ e f he hf, begin sorry end,
+  continuous_to_fun := λ e f he hf, begin sorry, end }
+
+instance : topological_space (tangent_bundle_derivation I M) :=
+(charted_space_core I M).to_topological_space
+
+instance : charted_space (model_prod H E) (tangent_bundle_derivation I M) :=
+(charted_space_core I M).to_charted_space
+
+instance : smooth_manifold_with_corners I.tangent (tangent_bundle_derivation I M) :=
+{ compatible := begin
+    rintros f g ⟨f1, ⟨f2, rfl⟩, f3, ⟨⟨f', hf', hf2⟩, rfl⟩, hf⟩ ⟨g1, ⟨g2, rfl⟩, g3, ⟨⟨g', hg', hg2⟩, rfl⟩, hg⟩,
+    dsimp at *,
+    simp only [set.mem_singleton_iff] at *,
+    induction hf2,
+    induction hg2,
+    have h := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) hf' hg',
+    sorry,
+  end }
+
+end tangent_bundle_derivation
 
 /-instance : has_add (tangent_bundle_derivation I M) :=
 { add := λ v w, sigma.mk v.1 (v.2 + w.2) }-/
 
 variables {I M}
 
-def tangent_space_inclusion {x : M} (v : point_derivation I M x) : tangent_bundle_derivation I M :=
+def tangent_space_inclusion {x : M} (v : point_derivation I x) : tangent_bundle_derivation I M :=
 sigma.mk x v
 
-/- Something weird is happening. Does not find the instance of smooth manifolds with corners.
-Moreover if I define it as a reducible def .eval does not work... It also takes very long time to
-typecheck -/
+end
 
 section
 
 namespace point_derivation
 
-variables {I} {M} {x y : M} {v w : point_derivation I M x} (f g : C∞(I, M; 𝕜)) (r : 𝕜)
+variables {I} {M} {x y : M} {v w : point_derivation I x} (f g : C∞(I, M; 𝕜)) (r : 𝕜)
 
-lemma coe_injective (h : ⇑v = w) : v = w :=
-@derivation.coe_injective 𝕜 _ C∞(I, M; 𝕜) _ _ 𝕜 _ (module_point_derivation I M x) _
-(compatible_semimodule_tangent_space I M x) v w h
+lemma coe_injective (h : ⇑v = w) : v = w := derivation.coe_injective h
 
-@[ext] theorem ext (h : ∀ f, v f = w f) : v = w :=
-coe_injective $ funext h
+@[ext] theorem ext (h : ∀ f, v f = w f) : v = w := coe_injective (funext h)
 
-variables {u : point_derivation I M y}
+variables {u : point_derivation I y}
 
 theorem hext (h1 : x = y) (h2 : ∀ f, v f = u f) : v == u :=
-begin
-  cases h1,
-  rw heq_iff_eq at *,
-  ext,
-  exact h2 f,
-end
+by { cases h1, rw heq_iff_eq, ext, exact h2 f }
 
 end point_derivation
 
@@ -157,7 +224,7 @@ instance : lie_algebra 𝕜 (vector_field_derivation I M) :=
 { lie_smul := λ X Y Z, by { ext1 f, simp only [commutator_apply, smul_apply, map_smul, smul_sub] },
   ..vector_field_derivation.kmodule, }
 
-def eval (X : vector_field_derivation I M) (x : M) : point_derivation I M x :=
+def eval (X : vector_field_derivation I M) (x : M) : point_derivation I x :=
 { to_fun := λ f, (X f) x,
   map_add' := λ f g, by { rw map_add, refl },
   map_smul' := λ f g, by { rw [map_smul, algebra.id.smul_eq_mul], refl },
@@ -182,15 +249,15 @@ variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M' : Type*} [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
 
-def fdifferential (f : C∞(I, M; I', M')) (x : M) (v : point_derivation I M x) : (point_derivation I' M' (f x)) :=
+def fdifferential (f : C∞(I, M; I', M')) (x : M) (v : point_derivation I x) : (point_derivation I' (f x)) :=
 { to_fun := λ g, v (g.comp f),
-  map_add' := λ g h, by { rw smooth_map.add_comp, },
-  map_smul' := λ k g, by { rw smooth_map.smul_comp, },
+  map_add' := λ g h, by { rw smooth_map.add_comp, sorry, sorry},
+  map_smul' := λ k g, by { sorry },
   leibniz' := λ f g, by {dsimp only [], sorry}, } /-TODO: change it so that it is a linear map -/
 
 localized "notation `fd` := fdifferential" in manifold
 
-lemma apply_fdifferential (f : C∞(I, M; I', M')) (x : M) (v : point_derivation I M x) (g : C∞(I', M'; 𝕜)) :
+lemma apply_fdifferential (f : C∞(I, M; I', M')) (x : M) (v : point_derivation I x) (g : C∞(I', M'; 𝕜)) :
   fd f x v g = v (g.comp f) := rfl
 
 variables {E'' : Type*} [normed_group E''] [normed_space 𝕜 E'']

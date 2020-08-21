@@ -212,7 +212,6 @@ meta def get_pi_binders (e : expr) : tactic (list binder × expr) := do
   (lcs, rest) ← mk_local_pis e,
   pure (lcs.map to_binder, rest)
 
-/-- Auxiliary function for `get_pi_binders_nondep`. -/
 private meta def get_pi_binders_nondep_aux :
   ℕ → expr → tactic (list (ℕ × binder) × expr) :=
 λ i e, do

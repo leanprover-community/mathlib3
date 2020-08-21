@@ -1539,6 +1539,15 @@ theorem preimage_singleton_eq_empty {f : α → β} {y : β} :
   f ⁻¹' {y} = ∅ ↔ y ∉ range f :=
 not_nonempty_iff_eq_empty.symm.trans $ not_congr preimage_singleton_nonempty
 
+@[simp] theorem range_sigma_mk {β : α → Type*} (a : α) :
+  range (sigma.mk a : β a → Σ a, β a) = sigma.fst ⁻¹' {a} :=
+begin
+  apply subset.antisymm,
+  { rintros _ ⟨b, rfl⟩, simp },
+  { rintros ⟨x, y⟩ (rfl|_),
+    exact mem_range_self y }
+end
+
 /-- Any map `f : ι → β` factors through a map `range_factorization f : ι → range f`. -/
 def range_factorization (f : ι → β) : ι → range f :=
 λ i, ⟨f i, mem_range_self i⟩

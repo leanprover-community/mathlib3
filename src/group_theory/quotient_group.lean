@@ -123,7 +123,7 @@ open function monoid_hom
 @[to_additive quotient_add_group.ker_lift "The induced map from the quotient by the kernel to the
 codomain."]
 def ker_lift : quotient (ker φ) →* H :=
-lift _ φ $ λ g, mem_ker.mp
+lift _ φ $ λ g, φ.mem_ker.mp
 
 @[simp, to_additive quotient_add_group.ker_lift_mk]
 lemma ker_lift_mk (g : G) : (ker_lift φ) g = φ g :=
@@ -147,7 +147,7 @@ show a⁻¹ * b ∈ ker φ, by rw [mem_ker,
 @[to_additive quotient_add_group.range_ker_lift "The induced map from the quotient by the kernel to
 the range."]
 def range_ker_lift : quotient (ker φ) →* φ.range :=
-lift _ (to_range φ) $ λ g hg, mem_ker.mp $ by rwa to_range_ker
+lift _ (to_range φ) $ λ g hg, (mem_ker _).mp $ by rwa to_range_ker
 
 @[to_additive quotient_add_group.range_ker_lift_injective]
 lemma range_ker_lift_injective : injective (range_ker_lift φ) :=

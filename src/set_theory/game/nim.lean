@@ -23,15 +23,23 @@ open pgame
 
 local infix ` ≈ ` := equiv
 
+/-- `ordinal.out` and `ordinal.type_out'` are required to make the definition of nim computable.
+ `ordinal.out` performs the same job as `quotient.out` but is specific to ordinals. -/
+def ordinal.out (o : ordinal) : Well_order :=
+⟨ o.out.α, λ x y, o.out.r x y, o.out.wo ⟩
+
+/-- This is the same as `ordinal.type_out` but defined to use `ordinal.out`. -/
+theorem ordinal.type_out' : ∀ (o : ordinal), ordinal.type (ordinal.out o).r = o := ordinal.type_out
+
 /-- The definition of single-heap nim, which can be viewed as a pile of stones where each player can
  take a positive number of stones from it on their turn. -/
-noncomputable def nim : ordinal → pgame
+def nim : ordinal → pgame
 | O₁ := ⟨ O₁.out.α, O₁.out.α,
   λ O₂, have hwf : (ordinal.typein O₁.out.r O₂) < O₁,
-    from begin nth_rewrite_rhs 0 ←ordinal.type_out O₁, exact ordinal.typein_lt_type _ _ end,
+    from begin nth_rewrite_rhs 0 ←ordinal.type_out' O₁, exact ordinal.typein_lt_type _ _ end,
     nim (ordinal.typein O₁.out.r O₂),
   λ O₂, have hwf : (ordinal.typein O₁.out.r O₂) < O₁,
-    from begin nth_rewrite_rhs 0 ←ordinal.type_out O₁, exact ordinal.typein_lt_type _ _ end,
+    from begin nth_rewrite_rhs 0 ←ordinal.type_out' O₁, exact ordinal.typein_lt_type _ _ end,
     nim (ordinal.typein O₁.out.r O₂)⟩
 using_well_founded {dec_tac := tactic.assumption}
 

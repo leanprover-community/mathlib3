@@ -128,6 +128,7 @@ def lift_func {D : Type u₂} [category.{v₂} D] {X Y : localize S} (F : C ⥤ 
   (λ _ _ _ _ _ f g, f ≫ g) _ _
 local attribute [reducible] lift_func
 
+
 /--
 Given a functor `F : C ⥤ D` and a proof that `F` maps every member of `S` to an isomorhpism,
 this provides a lift of `F` to a functor `localize S ⥤ D`.
@@ -140,21 +141,7 @@ def lift {D : Type u₂} [category.{v₂} D] (F : C ⥤ D)
   begin
     intros f g r,
     induction r,
-    { change F.map _ = F.map _ ≫ F.map _,
-      simp },
-    { change F.map _ ≫ _ = F.map _,
-      simp },
-    { change _ ≫ F.map _ = F.map _,
-      simp,},
-    { change F.map _ ≫ _ = _,
-      simp only [functor.map_id, category.id_comp] },
-    { change _ ≫ F.map _ = _,
-      simp only [functor.map_id, category.comp_id] },
-    { change (_ ≫ _) ≫ _ = _,
-      simp only [category.assoc] },
-    repeat { change lift_func _ _ _ ≫ lift_func _ _ _ = lift_func _ _ _ ≫ lift_func _ _ _,
-      dsimp only [],
-      rw r_ih },
+    tidy,
   end,
   map_id' := begin
     intros X,

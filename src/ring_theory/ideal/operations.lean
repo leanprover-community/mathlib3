@@ -907,7 +907,7 @@ noncomputable def lift_of_surjective
     rw [← g.map_one, ← sub_eq_zero, ← g.map_sub, ← g.mem_ker],
     apply hg,
     rw [f.mem_ker, f.map_sub, sub_eq_zero, f.map_one],
-    rw classical.some_spec (hf 1)
+    exact classical.some_spec (hf 1)
   end,
   map_mul' :=
   begin

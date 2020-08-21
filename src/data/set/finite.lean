@@ -602,17 +602,35 @@ lemma image_preimage_of_bij [decidable_eq β] (f : α → β) (s : finset β)
   image f (preimage s f hf.inj_on) = s :=
 finset.coe_inj.1 $ by simpa using hf.image_eq
 
+lemma sigma_preimage_mk {β : α → Type*} [decidable_eq α] (s : finset (Σ a, β a)) (t : finset α) :
+  t.sigma (λ a, s.preimage (sigma.mk a) $ sigma_mk_injective.inj_on _) = s.filter (λ a, a.1 ∈ t) :=
+by { ext x, simp [and_comm] }
+
+lemma sigma_preimage_mk_of_subset {β : α → Type*} [decidable_eq α] (s : finset (Σ a, β a))
+  {t : finset α} (ht : s.image sigma.fst ⊆ t) :
+  t.sigma (λ a, s.preimage (sigma.mk a) $ sigma_mk_injective.inj_on _) = s :=
+by rw [sigma_preimage_mk, filter_true_of_mem $ image_subset_iff.1 ht]
+
+lemma sigma_image_fst_preimage_mk {β : α → Type*} [decidable_eq α] (s : finset (Σ a, β a)) :
+  (s.image sigma.fst).sigma (λ a, s.preimage (sigma.mk a) $ sigma_mk_injective.inj_on _) = s :=
+s.sigma_preimage_mk_of_subset (subset.refl _)
+
 end preimage
+
+@[to_additive]
+lemma prod_preimage' [comm_monoid β] (f : α → γ) [decidable_pred $ λ x, x ∈ set.range f]
+  (s : finset γ) (hf : set.inj_on f (f ⁻¹' ↑s)) (g : γ → β) :
+  ∏ x in s.preimage f hf, g (f x) = ∏ x in s.filter (λ x, x ∈ set.range f), g x :=
+by haveI := classical.dec_eq γ;
+calc ∏ x in preimage s f hf, g (f x) = ∏ x in image f (preimage s f hf), g x :
+  eq.symm $ prod_image $ by simpa only [mem_preimage, inj_on] using hf
+  ... = ∏ x in s.filter (λ x, x ∈ set.range f), g x : by rw [image_preimage]
 
 @[to_additive]
 lemma prod_preimage [comm_monoid β] (f : α → γ) (s : finset γ)
   (hf : set.inj_on f (f ⁻¹' ↑s)) (g : γ → β) (hg : ∀ x ∈ s, x ∉ set.range f → g x = 1) :
   ∏ x in s.preimage f hf, g (f x) = ∏ x in s, g x :=
-by classical;
-calc ∏ x in preimage s f hf, g (f x) = ∏ x in image f (preimage s f hf), g x :
-  eq.symm $ prod_image $ by simpa only [mem_preimage, inj_on] using hf
-  ... = ∏ x in s.filter (λ x, x ∈ set.range f), g x : by rw [image_preimage]
-  ... = ∏ x in s, g x : prod_filter_of_ne $ λ x hxs hxg, not.imp_symm (hg x hxs) hxg
+by { classical, rw [prod_preimage', prod_filter_of_ne], exact λ x hx, not.imp_symm (hg x hx) }
 
 @[to_additive]
 lemma prod_preimage_of_bij [comm_monoid β] (f : α → γ) (s : finset γ)

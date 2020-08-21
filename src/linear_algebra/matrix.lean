@@ -198,7 +198,7 @@ variables {ι κ M₁ M₂ : Type*}
   [fintype ι] [decidable_eq ι] [fintype κ]
   {v₁ : ι → M₁} {v₂ : κ → M₂}
 
-/-- Given a basis of two modules `M₁` and `M₂` over a commutative ring `R`, we get a linear
+/-- Given bases of two modules `M₁` and `M₂` over a commutative ring `R`, we get a linear
 equivalence between linear maps `M₁ →ₗ M₂` and matrices over `R` indexed by the bases. -/
 def linear_equiv_matrix (hv₁ : is_basis R v₁) (hv₂ : is_basis R v₂) :
   (M₁ →ₗ[R] M₂) ≃ₗ[R] matrix κ ι R :=
@@ -232,7 +232,7 @@ end
 
 open_locale classical
 
-theorem linear_equiv_matrix_range  (hv₁ : is_basis R v₁) (hv₂ : is_basis R v₂) (f : M₁ →ₗ[R] M₂) (k i) :
+theorem linear_equiv_matrix_range (f : M₁ →ₗ[R] M₂) (k : κ) (i : ι) :
   linear_equiv_matrix hv₁.range hv₂.range f ⟨v₂ k, mem_range_self k⟩ ⟨v₁ i, mem_range_self i⟩ =
     linear_equiv_matrix hv₁ hv₂ f k i :=
 if H : (0 : R) = 1 then eq_of_zero_eq_one H _ _ else

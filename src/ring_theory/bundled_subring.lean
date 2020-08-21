@@ -130,7 +130,7 @@ variables (s : subring R)
 
 /-- Two subrings are equal if the underlying subsets are equal. -/
 theorem ext' ⦃s t : subring R⦄ (h : (s : set R) = t) : s = t :=
-by cases s; cases t; congr'
+by { cases s, cases t, congr' }
 
 /-- Two subrings are equal if and only if the underlying subsets are equal. -/
 protected theorem ext'_iff {s t : subring R}  : s = t ↔ (s : set R) = t :=

@@ -34,7 +34,7 @@ open set submodule
 open_locale big_operators
 
 universes u v w
-variables {l m n : Type u} [fintype l] [fintype m] [fintype n]
+variables {l m n : Type*} [fintype l] [fintype m] [fintype n]
 
 namespace matrix
 
@@ -357,14 +357,17 @@ variables {K : Type u} [field K] -- maybe try to relax the universe constraint
 
 open linear_map matrix
 
-lemma rank_vec_mul_vec (w : m → K) (v : n → K) :
+set_option pp.all true
+
+lemma rank_vec_mul_vec {m n : Type u} [fintype m] [fintype n]
+  (w : m → K) (v : n → K) :
   rank (vec_mul_vec w v).to_lin ≤ 1 :=
 begin
   rw [vec_mul_vec_eq, mul_to_lin],
   refine le_trans (rank_comp_le1 _ _) _,
   refine le_trans (rank_le_domain _) _,
-  rw [dim_fun', ← cardinal.fintype_card],
-  exact le_refl _
+  rw [dim_fun', ← cardinal.lift_eq_nat_iff.mpr (cardinal.fintype_card unit), cardinal.mk_unit],
+  exact le_of_eq (cardinal.lift_one)
 end
 
 lemma ker_diagonal_to_lin [decidable_eq m] (w : m → K) :
@@ -420,7 +423,7 @@ end finite_dimensional
 
 section reindexing
 
-variables {l' m' n' : Type w} [fintype l'] [fintype m'] [fintype n']
+variables {l' m' n' : Type*} [fintype l'] [fintype m'] [fintype n']
 variables {R : Type v}
 
 /-- The natural map that reindexes a matrix's rows and columns with equivalent types is an

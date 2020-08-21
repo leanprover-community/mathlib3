@@ -1824,6 +1824,10 @@ end
 lemma bind_singleton {f : α → β} : s.bind (λa, {f a}) = s.image f :=
 ext $ λ x, by simp only [mem_bind, mem_image, mem_singleton, eq_comm]
 
+@[simp] lemma bind_singleton_eq_self [decidable_eq α] :
+  s.bind (singleton : α → finset α) = s :=
+by { rw bind_singleton, exact image_id }
+
 lemma image_bind_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
   (s.image g).bind (λa, s.filter $ (λc, g c = a)) = s :=
 begin
@@ -1873,11 +1877,10 @@ theorem sigma_mono {s₁ s₂ : finset α} {t₁ t₂ : Πa, finset (σ a)}
   (H1 : s₁ ⊆ s₂) (H2 : ∀a, t₁ a ⊆ t₂ a) : s₁.sigma t₁ ⊆ s₂.sigma t₂ :=
 λ ⟨x, sx⟩ H, let ⟨H3, H4⟩ := mem_sigma.1 H in mem_sigma.2 ⟨H1 H3, H2 x H4⟩
 
-theorem sigma_eq_bind [decidable_eq α] [∀a, decidable_eq (σ a)] (s : finset α)
+theorem sigma_eq_bind [decidable_eq (Σ a, σ a)] (s : finset α)
   (t : Πa, finset (σ a)) :
-  s.sigma t = s.bind (λa, (t a).image $ λb, ⟨a, b⟩) :=
-ext $ λ ⟨x, y⟩, by simp only [mem_sigma, mem_bind, mem_image, exists_prop,
-  and.left_comm, exists_and_distrib_left, exists_eq_left, heq_iff_eq, exists_eq_right]
+  s.sigma t = s.bind (λa, (t a).map $ function.embedding.sigma_mk a) :=
+by { ext ⟨x, y⟩, simp [and.left_comm] }
 
 end sigma
 

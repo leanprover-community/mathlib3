@@ -125,8 +125,14 @@ theorem injective_of_partial_inv_right {α β} {f : α → β} {g} (H : is_parti
 theorem left_inverse.comp_eq_id {f : α → β} {g : β → α} (h : left_inverse f g) : f ∘ g = id :=
 funext h
 
+theorem left_inverse_iff_comp {f : α → β} {g : β → α} : left_inverse f g ↔ f ∘ g = id :=
+⟨left_inverse.comp_eq_id, congr_fun⟩
+
 theorem right_inverse.comp_eq_id {f : α → β} {g : β → α} (h : right_inverse f g) : g ∘ f = id :=
 funext h
+
+theorem right_inverse_iff_comp {f : α → β} {g : β → α} : right_inverse f g ↔ g ∘ f = id :=
+⟨right_inverse.comp_eq_id, congr_fun⟩
 
 theorem left_inverse.comp {γ} {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
   (hf : left_inverse f g) (hh : left_inverse h i) : left_inverse (h ∘ f) (g ∘ i) :=

@@ -253,3 +253,23 @@ def mul_equiv_perm {α : Type u} : Aut α ≃* equiv.perm α :=
 iso_perm.Group_iso_to_mul_equiv
 
 end category_theory.Aut
+
+@[to_additive]
+instance Group.forget_reflects_isos : reflects_isomorphisms (forget Group.{u}) :=
+{ reflects := λ X Y f _,
+  begin
+    resetI,
+    let i := as_iso ((forget Group).map f),
+    let e : X ≃* Y := { ..f, ..i.to_equiv },
+    exact { ..e.to_Group_iso },
+  end }
+
+@[to_additive]
+instance CommGroup.forget_reflects_isos : reflects_isomorphisms (forget CommGroup.{u}) :=
+{ reflects := λ X Y f _,
+  begin
+    resetI,
+    let i := as_iso ((forget CommGroup).map f),
+    let e : X ≃* Y := { ..f, ..i.to_equiv },
+    exact { ..e.to_CommGroup_iso },
+  end }

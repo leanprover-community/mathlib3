@@ -39,7 +39,7 @@ variables (R' : Type*) [ring R'] [mul_semiring_action M R']
 variables (S : Type*) [semiring S] [mul_semiring_action M S]
 variables (S' : Type*) [ring S'] [mul_semiring_action M S']
 variables (T : Type*) [semiring T] [mul_semiring_action M T]
-variables (G : Type*) [group G] (H : set G) [is_subgroup H]
+variables (G : Type*) [group G] (H : subgroup G)
 
 set_option old_structure_cmd true
 

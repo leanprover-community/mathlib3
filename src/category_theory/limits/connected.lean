@@ -5,7 +5,7 @@ Authors: Bhavik Mehta
 -/
 import category_theory.limits.shapes.pullbacks
 import category_theory.limits.shapes.equalizers
-import category_theory.limits.preserves
+import category_theory.limits.preserves.basic
 import category_theory.connected
 
 /-!

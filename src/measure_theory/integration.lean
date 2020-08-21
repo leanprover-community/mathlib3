@@ -184,6 +184,20 @@ lemma map_preimage_singleton (f : α →ₛ β) (g : β → γ) (c : γ) :
   (f.map g) ⁻¹' {c} = f ⁻¹' ↑(f.range.filter (λ b, g b = c)) :=
 map_preimage _ _ _
 
+/-- Composition of a `simple_fun` and a measurable function is a `simple_func`. -/
+def comp [measurable_space β] (f : β →ₛ γ) (g : α → β) (hgm : measurable g) : α →ₛ γ :=
+{ to_fun := f ∘ g,
+  finite_range' := f.finite_range.subset $ set.range_comp_subset_range _ _,
+  is_measurable_fiber' := λ z, hgm (f.is_measurable_fiber z) }
+
+@[simp] lemma coe_comp [measurable_space β] (f : β →ₛ γ) {g : α → β} (hgm : measurable g) :
+  ⇑(f.comp g hgm) = f ∘ g :=
+rfl
+
+lemma range_comp_subset_range [measurable_space β] (f : β →ₛ γ) {g : α → β} (hgm : measurable g) :
+  (f.comp g hgm).range ⊆ f.range :=
+finset.coe_subset.1 $ by simp only [coe_range, coe_comp, set.range_comp_subset_range]
+
 /-- If `f` is a simple function taking values in `β → γ` and `g` is another simple function
 with the same domain and codomain `β`, then `f.seq g = f a (g a)`. -/
 def seq (f : α →ₛ (β → γ)) (g : α →ₛ β) : α →ₛ γ := f.bind (λf, g.map f)
@@ -202,7 +216,7 @@ lemma pair_preimage (f : α →ₛ β) (g : α →ₛ γ) (s : set β) (t : set 
 /- A special form of `pair_preimage` -/
 lemma pair_preimage_singleton (f : α →ₛ β) (g : α →ₛ γ) (b : β) (c : γ) :
   (pair f g) ⁻¹' {(b, c)} = (f ⁻¹' {b}) ∩ (g ⁻¹' {c}) :=
-by { rw ← prod_singleton_singleton, exact pair_preimage _ _ _ _ }
+by { rw ← singleton_prod_singleton, exact pair_preimage _ _ _ _ }
 
 theorem bind_const (f : α →ₛ β) : f.bind (const α) = f := by ext; simp
 
@@ -640,9 +654,10 @@ begin
 end
 
 /-- If two simple functions are equal a.e., then their `lintegral`s are equal. -/
-lemma lintegral_congr {f g : α →ₛ ennreal} (h : ∀ᵐ a ∂ μ, f a = g a) :
+lemma lintegral_congr {f g : α →ₛ ennreal} (h : f =ᵐ[μ] g) :
   f.lintegral μ = g.lintegral μ :=
-lintegral_eq_of_measure_preimage $ λ y, measure_congr $ h.mono $ λ x hx, by simp [hx]
+lintegral_eq_of_measure_preimage $ λ y, measure_congr $
+  eventually.set_eq $ h.mono $ λ x hx, by simp [hx]
 
 lemma lintegral_map {β} [measurable_space β] {μ' : measure β} (f : α →ₛ ennreal) (g : β →ₛ ennreal)
   (m : α → β) (eq : ∀a:α, f a = g (m a)) (h : ∀s:set β, is_measurable s → μ' s = μ (m ⁻¹' s)) :
@@ -962,11 +977,11 @@ calc (∫⁻ a, f a + g a ∂μ) =
 
 lemma lintegral_zero : (∫⁻ a:α, 0 ∂μ) = 0 := by simp
 
-lemma lintegral_smul_meas (c : ennreal) (f : α → ennreal) :
+lemma lintegral_smul_measure (c : ennreal) (f : α → ennreal) :
   ∫⁻ a, f a ∂ (c • μ) = c * ∫⁻ a, f a ∂μ :=
 by simp only [lintegral, supr_subtype', simple_func.lintegral_smul, ennreal.mul_supr, smul_eq_mul]
 
-lemma lintegral_sum_meas {ι} (f : α → ennreal) (μ : ι → measure α) :
+lemma lintegral_sum_measure {ι} (f : α → ennreal) (μ : ι → measure α) :
   ∫⁻ a, f a ∂(measure.sum μ) = ∑' i, ∫⁻ a, f a ∂(μ i) :=
 begin
   simp only [lintegral, supr_subtype', simple_func.lintegral_sum, ennreal.tsum_eq_supr_sum],
@@ -981,11 +996,11 @@ begin
       (finset.sum_le_sum $ λ j hj, simple_func.lintegral_mono le_sup_right (le_refl _))⟩
 end
 
-lemma lintegral_add_meas (f : α → ennreal) (μ ν : measure α) :
+lemma lintegral_add_measure (f : α → ennreal) (μ ν : measure α) :
   ∫⁻ a, f a ∂ (μ + ν) = ∫⁻ a, f a ∂μ + ∫⁻ a, f a ∂ν :=
-by simpa [tsum_fintype] using lintegral_sum_meas f (λ b, cond b μ ν)
+by simpa [tsum_fintype] using lintegral_sum_measure f (λ b, cond b μ ν)
 
-@[simp] lemma lintegral_zero_meas (f : α → ennreal) : ∫⁻ a, f a ∂0 = 0 :=
+@[simp] lemma lintegral_zero_measure (f : α → ennreal) : ∫⁻ a, f a ∂0 = 0 :=
 bot_unique $ by simp [lintegral]
 
 lemma lintegral_finset_sum (s : finset β) {f : β → α → ennreal} (hf : ∀b, measurable (f b)) :
@@ -1337,12 +1352,12 @@ open measure
 lemma lintegral_Union [encodable β] {s : β → set α} (hm : ∀ i, is_measurable (s i))
   (hd : pairwise (disjoint on s)) (f : α → ennreal) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ = ∑' i, ∫⁻ a in s i, f a ∂μ :=
-by simp only [measure.restrict_Union hd hm, lintegral_sum_meas]
+by simp only [measure.restrict_Union hd hm, lintegral_sum_measure]
 
 lemma lintegral_Union_le [encodable β] (s : β → set α) (f : α → ennreal) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ ≤ ∑' i, ∫⁻ a in s i, f a ∂μ :=
 begin
-  rw [← lintegral_sum_meas],
+  rw [← lintegral_sum_measure],
   exact lintegral_mono' restrict_Union_le (le_refl _)
 end
 
@@ -1361,6 +1376,8 @@ lemma lintegral_dirac (a : α) {f : α → ennreal} (hf : measurable f) :
   ∫⁻ a, f a ∂(dirac a) = f a :=
 by simp [lintegral_congr_ae (eventually_eq_dirac hf)]
 
+/-- Given a measure `μ : measure α` and a function `f : α → ennreal`, `μ.with_density f` is the
+measure such that for a measurable set `s` we have `μ.with_density f s = ∫⁻ a in s, f a ∂μ`. -/
 def measure.with_density (μ : measure α) (f : α → ennreal) : measure α :=
 measure.of_measurable (λs hs, ∫⁻ a in s, f a ∂μ) (by simp) (λ s hs hd, lintegral_Union hs hd _)
 

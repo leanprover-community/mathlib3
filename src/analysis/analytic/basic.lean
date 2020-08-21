@@ -96,7 +96,7 @@ begin
   have A : ∀ n : ℕ , 0 < n →
     (r : ennreal) ≤ ((C + 1)^(1/(n : ℝ)) : nnreal) * (1 / (nnnorm (p n) ^ (1/(n:ℝ)) : nnreal)),
   { assume n npos,
-    simp only [one_div_eq_inv, mul_assoc, mul_one, eq.symm ennreal.mul_div_assoc],
+    simp only [one_div, mul_assoc, mul_one, eq.symm ennreal.mul_div_assoc],
     rw [ennreal.le_div_iff_mul_le _ _, ← nnreal.pow_nat_rpow_nat_inv r npos, ← ennreal.coe_mul,
         ennreal.coe_le_coe, ← nnreal.mul_rpow, mul_comm],
     { exact nnreal.rpow_le_rpow (le_trans (h n) (le_add_right (le_refl _))) (by simp) },
@@ -137,7 +137,7 @@ begin
     rw [nnreal.lt_inv_iff_mul_lt A, mul_comm] at B,
     have : (nnnorm (p n) ^ (1 / (n : ℝ)) * r) ^ n ≤ 1 :=
       pow_le_one n (zero_le (nnnorm (p n) ^ (1 / ↑n) * r)) (le_of_lt B),
-    rw [mul_pow, one_div_eq_inv, nnreal.rpow_nat_inv_pow_nat _ (lt_of_le_of_lt (zero_le _) hn)]
+    rw [mul_pow, one_div, nnreal.rpow_nat_inv_pow_nat _ (lt_of_le_of_lt (zero_le _) hn)]
       at this,
     exact le_trans this (le_max_right _ _) },
 end

@@ -13,6 +13,7 @@ set_option old_structure_cmd true
 universe u
 variables {α : Type u}
 
+/-- A `division_ring` is a `ring` with multiplicative inverses for nonzero elements -/
 @[protect_proj, ancestor ring has_inv]
 class division_ring (α : Type u) extends ring α, has_inv α, nontrivial α :=
 (mul_inv_cancel : ∀ {a : α}, a ≠ 0 → a * a⁻¹ = 1)
@@ -31,8 +32,6 @@ instance division_ring.to_group_with_zero :
   group_with_zero α :=
 { .. ‹division_ring α›,
   .. (infer_instance : semiring α) }
-
-@[simp] lemma one_div_eq_inv (a : α) : 1 / a = a⁻¹ := one_mul a⁻¹
 
 @[field_simps] lemma inv_eq_one_div (a : α) : a⁻¹ = 1 / a := by simp
 
@@ -110,6 +109,7 @@ instance division_ring.to_domain : domain α :=
 
 end division_ring
 
+/-- A `field` is a `comm_ring` with multiplicative inverses for nonzero elements -/
 @[protect_proj, ancestor division_ring comm_ring]
 class field (α : Type u) extends comm_ring α, has_inv α, nontrivial α :=
 (mul_inv_cancel : ∀ {a : α}, a ≠ 0 → a * a⁻¹ = 1)
@@ -174,17 +174,18 @@ namespace ring_hom
 
 section
 
-variables {R K : Type*} [semiring R] [field K] (f : R →+* K)
+variables {R K : Type*} [semiring R] [division_ring K] (f : R →+* K)
 
 @[simp] lemma map_units_inv (u : units R) :
   f ↑u⁻¹ = (f ↑u)⁻¹ :=
-monoid_hom.map_units_inv f.to_monoid_hom u
+(f : R →* K).map_units_inv u
 
 end
 
 section
 
-variables {β : Type*} [division_ring α] [division_ring β] (f : α →+* β) {x y : α}
+variables {β γ : Type*} [division_ring α] [semiring β] [nontrivial β] [division_ring γ]
+  (f : α →+* β) (g : α →+* γ) {x y : α}
 
 lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := (f : α →* β).map_ne_zero f.map_zero
 
@@ -192,9 +193,9 @@ lemma map_eq_zero : f x = 0 ↔ x = 0 := (f : α →* β).map_eq_zero f.map_zero
 
 variables (x y)
 
-lemma map_inv : f x⁻¹ = (f x)⁻¹ := (f : α →* β).map_inv' f.map_zero x
+lemma map_inv : g x⁻¹ = (g x)⁻¹ := (g : α →* γ).map_inv' g.map_zero x
 
-lemma map_div : f (x / y) = f x / f y := (f : α →* β).map_div f.map_zero x y
+lemma map_div : g (x / y) = g x / g y := (g : α →* γ).map_div g.map_zero x y
 
 protected lemma injective : function.injective f := f.injective_iff.2 $ λ x, f.map_eq_zero.1
 

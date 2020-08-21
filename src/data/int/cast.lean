@@ -151,7 +151,7 @@ by by_cases a ≤ b; simp [h, min]
 
 @[simp, norm_cast] theorem cast_max [decidable_linear_ordered_comm_ring α] {a b : ℤ} :
   (↑(max a b) : α) = max a b :=
-by by_cases a ≤ b; simp [h, max]
+by by_cases b ≤ a; simp [h, max]
 
 @[simp, norm_cast] theorem cast_abs [decidable_linear_ordered_comm_ring α] {q : ℤ} :
   ((abs q : ℤ) : α) = abs q :=

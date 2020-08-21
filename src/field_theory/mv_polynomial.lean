@@ -54,10 +54,9 @@ begin
   exact ⟨assume h n s hs, h s hs n, assume h s hs n, h n s hs⟩
 end
 
-lemma map_range_eq_map {β : Type*}
-  [comm_ring α] [comm_ring β] (p : mv_polynomial σ α)
+lemma map_range_eq_map {β : Type*} [comm_ring α] [comm_ring β] (p : mv_polynomial σ α)
   (f : α →+* β) :
-  finsupp.map_range f f.map_zero p = p.map f :=
+  finsupp.map_range f f.map_zero p = map f p :=
 begin
   rw [← finsupp.sum_single p, finsupp.sum],
   -- It's not great that we need to use an `erw` here,
@@ -119,7 +118,7 @@ begin
   rw [← finite_field.card_units, fintype.card_pos_iff],
   exact ⟨1⟩
 end,
-by simp only [indicator, (finset.univ.prod_hom (eval a)).symm, eval_sub,
+by simp only [indicator, (finset.univ.prod_hom (eval a)).symm, ring_hom.map_sub,
     is_ring_hom.map_one (eval a), is_monoid_hom.map_pow (eval a), eval_X, eval_C,
     sub_self, zero_pow this, sub_zero, finset.prod_const_one]
 
@@ -128,7 +127,7 @@ lemma eval_indicator_apply_eq_zero (a b : σ → α) (h : a ≠ b) :
 have ∃i, a i ≠ b i, by rwa [(≠), function.funext_iff, not_forall] at h,
 begin
   rcases this with ⟨i, hi⟩,
-  simp only [indicator, (finset.univ.prod_hom (eval a)).symm, eval_sub,
+  simp only [indicator, (finset.univ.prod_hom (eval a)).symm, ring_hom.map_sub,
     is_ring_hom.map_one (eval a), is_monoid_hom.map_pow (eval a), eval_X, eval_C,
     sub_self, finset.prod_eq_zero_iff],
   refine ⟨i, finset.mem_univ _, _⟩,
@@ -168,16 +167,13 @@ end
 section
 variables (α σ)
 def evalₗ : mv_polynomial σ α →ₗ[α] (σ → α) → α :=
-⟨ λp e, p.eval e,
-  assume p q, funext $ assume e, eval_add,
-  assume a p, funext $ assume e, by rw [smul_eq_C_mul, eval_mul, eval_C]; refl ⟩
+⟨ λp e, eval e p,
+  assume p q, (by { ext x, rw ring_hom.map_add, refl, }),
+  assume a p, funext $ assume e, by rw [smul_eq_C_mul, ring_hom.map_mul, eval_C]; refl ⟩
 end
 
-section
-
-lemma evalₗ_apply (p : mv_polynomial σ α) (e : σ → α) : evalₗ α σ p e = p.eval e :=
+lemma evalₗ_apply (p : mv_polynomial σ α) (e : σ → α) : evalₗ α σ p e = eval e p :=
 rfl
-end
 
 lemma map_restrict_dom_evalₗ : (restrict_degree σ α (fintype.card α - 1)).map (evalₗ α σ) = ⊤ :=
 begin
@@ -249,10 +245,10 @@ begin
 end
 
 lemma eq_zero_of_eval_eq_zero (p : mv_polynomial σ α)
-  (h : ∀v:σ → α, p.eval v = 0) (hp : p ∈ restrict_degree σ α (fintype.card α - 1)) :
+  (h : ∀v:σ → α, eval v p = 0) (hp : p ∈ restrict_degree σ α (fintype.card α - 1)) :
   p = 0 :=
 let p' : R σ α := ⟨p, hp⟩ in
-have p' ∈ (evalᵢ σ α).ker := by rw [mem_ker]; ext v; exact h v,
+have p' ∈ (evalᵢ σ α).ker := by { rw [mem_ker], ext v, exact h v },
 show p'.1 = (0 : R σ α).1,
 begin
   rw [ker_evalₗ, mem_bot] at this,

@@ -57,6 +57,7 @@ variables {R : Type u} {M : Type v}
 lemma continuous_smul : continuous (λp:R×M, p.1 • p.2) :=
 topological_semimodule.continuous_smul
 
+@[continuity]
 lemma continuous.smul {α : Type*} [topological_space α] {f : α → R} {g : α → M}
   (hf : continuous f) (hg : continuous g) : continuous (λp, f p • g p) :=
 continuous_smul.comp (hf.prod_mk hg)
@@ -117,14 +118,14 @@ lemma is_closed_map_smul_of_unit (a : units R) : is_closed_map (λ (x : M), (a :
 `⊤` is the only submodule of `M` with a nonempty interior.
 This is the case, e.g., if `R` is a nondiscrete normed field. -/
 lemma submodule.eq_top_of_nonempty_interior' [has_continuous_add M]
-  [ne_bot (nhds_within (0:R) {x | is_unit x})]
+  [ne_bot (𝓝[{x : R | is_unit x}] 0)]
   (s : submodule R M) (hs : (interior (s:set M)).nonempty) :
   s = ⊤ :=
 begin
   rcases hs with ⟨y, hy⟩,
   refine (submodule.eq_top_iff'.2 $ λ x, _),
   rw [mem_interior_iff_mem_nhds] at hy,
-  have : tendsto (λ c:R, y + c • x) (nhds_within 0 {x | is_unit x}) (𝓝 (y + (0:R) • x)),
+  have : tendsto (λ c:R, y + c • x) (𝓝[{x : R | is_unit x}] 0) (𝓝 (y + (0:R) • x)),
     from tendsto_const_nhds.add ((tendsto_nhds_within_of_tendsto_nhds tendsto_id).smul
       tendsto_const_nhds),
   rw [zero_smul, add_zero] at this,
@@ -214,11 +215,11 @@ protected lemma continuous (f : M →L[R] M₂) : continuous f := f.2
 theorem coe_injective : function.injective (coe : (M →L[R] M₂) → (M →ₗ[R] M₂)) :=
 by { intros f g H, cases f, cases g, congr' 1, exact H }
 
-theorem coe_injective' ⦃f g : M →L[R] M₂⦄ (H : (f : M → M₂) = g) : f = g :=
-coe_injective $ linear_map.coe_injective H
+theorem coe_inj ⦃f g : M →L[R] M₂⦄ (H : (f : M → M₂) = g) : f = g :=
+coe_injective $ linear_map.coe_inj H
 
 @[ext] theorem ext {f g : M →L[R] M₂} (h : ∀ x, f x = g x) : f = g :=
-coe_injective' $ funext h
+coe_inj $ funext h
 
 theorem ext_iff {f g : M →L[R] M₂} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, by rw h, by ext⟩

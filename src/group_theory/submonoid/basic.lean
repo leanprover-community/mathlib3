@@ -213,6 +213,8 @@ instance : has_Inf (submonoid M) :=
 @[simp, to_additive]
 lemma coe_Inf (S : set (submonoid M)) : ((Inf S : submonoid M) : set M) = ⋂ s ∈ S, ↑s := rfl
 
+attribute [norm_cast] coe_Inf add_submonoid.coe_Inf
+
 @[to_additive]
 lemma mem_Inf {S : set (submonoid M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
 
@@ -224,7 +226,7 @@ by simp only [infi, mem_Inf, set.forall_range_iff]
 lemma coe_infi {ι : Sort*} {S : ι → submonoid M} : (↑(⨅ i, S i) : set M) = ⋂ i, S i :=
 by simp only [infi, coe_Inf, set.bInter_range]
 
-attribute [norm_cast] coe_Inf coe_infi
+attribute [norm_cast] coe_infi add_submonoid.coe_infi
 
 /-- Submonoids of a monoid form a complete lattice. -/
 @[to_additive "The `add_submonoid`s of an `add_monoid` form a complete lattice."]

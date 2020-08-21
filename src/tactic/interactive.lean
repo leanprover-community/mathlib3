@@ -360,7 +360,7 @@ prod.map id list.reverse <$> (collect_struct' e).run []
 
 meta def refine_one (str : structure_instance_info) :
   tactic $ list (expr×structure_instance_info) :=
-do    tgt ← target,
+do    tgt ← target >>= whnf,
       let struct_n : name := tgt.get_app_fn.const_name,
       exp_fields ← expanded_field_list struct_n,
       let missing_f := exp_fields.filter (λ f, (f.2 : name) ∉ str.field_names),
@@ -667,40 +667,6 @@ add_tactic_doc
   decl_names := [`tactic.interactive.h_generalize],
   tags       := ["context management"] }
 
-/-- `choose a b h using hyp` takes an hypothesis `hyp` of the form
-`∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
-into context a function `a : X → Y → A`, `b : X → Y → B` and a proposition `h` stating
-`∀ (x : X) (y : Y), P x y (a x y) (b x y)`. It presumably also works with dependent versions.
-
-Example:
-
-```lean
-example (h : ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n) : true :=
-begin
-  choose i j h using h,
-  guard_hyp i := ℕ → ℕ → ℕ,
-  guard_hyp j := ℕ → ℕ → ℕ,
-  guard_hyp h := ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
-  trivial
-end
-```
--/
-meta def choose (first : parse ident) (names : parse ident*) (tgt : parse (tk "using" *> texpr)?) :
-  tactic unit := do
-tgt ← match tgt with
-  | none := get_local `this
-  | some e := tactic.i_to_expr_strict e
-  end,
-tactic.choose tgt (first :: names),
-try (interactive.simp none tt [simp_arg_type.expr ``(exists_prop)] [] (loc.ns $ some <$> names)),
-try (tactic.clear tgt)
-
-add_tactic_doc
-{ name       := "choose",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.choose],
-  tags       := ["classical logic"] }
-
 /--
 The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`
 where neither `n` nor `d` contains any division symbol, just using the simplifier (with a carefully
@@ -716,7 +682,7 @@ iterating the following steps:
 If the goal is an equality, this simpset will also clear the denominators, so that the proof
 can normally be concluded by an application of `ring` or `ring_exp`.
 
-`field_simp [hx, hy]` is a short form for `simp [-one_div_eq_inv, hx, hy] with field_simps`
+`field_simp [hx, hy]` is a short form for `simp [-one_div, hx, hy] with field_simps`
 
 Note that this naive algorithm will not try to detect common factors in denominators to reduce the
 complexity of the resulting expression. Instead, it relies on the ability of `ring` to handle
@@ -730,7 +696,7 @@ should be given explicitly. If your expression is not completely reduced by the 
 invocation, check the denominators of the resulting expression and provide proofs that they are
 nonzero to enable further progress.
 
-The invocation of `field_simp` removes the lemma `one_div_eq_inv` (which is marked as a simp lemma
+The invocation of `field_simp` removes the lemma `one_div` (which is marked as a simp lemma
 in core) from the simpset, as this lemma works against the algorithm explained above.
 
 For example,
@@ -752,7 +718,7 @@ meta def field_simp (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list)
   (locat : parse location) (cfg : simp_config_ext := {}) : tactic unit :=
 let attr_names := `field_simps :: attr_names,
-    hs := simp_arg_type.except `one_div_eq_inv :: hs in
+    hs := simp_arg_type.except `one_div :: hs in
 propagate_tags (simp_core cfg.to_simp_config cfg.discharger no_dflt hs attr_names locat)
 
 add_tactic_doc
@@ -1045,7 +1011,8 @@ do ls ← local_context,
    partition_vars' (name_set.of_list $ ls.map expr.local_uniq_name) ls [] []
 
 /--
-Format the current goal as a stand-alone example. Useful for testing tactic.
+Format the current goal as a stand-alone example. Useful for testing tactics
+or creating [minimal working examples](https://leanprover-community.github.io/mwe.html).
 
 * `extract_goal`: formats the statement as an `example` declaration
 * `extract_goal my_decl`: formats the statement as a `lemma` or `def` declaration
@@ -1153,7 +1120,7 @@ add_tactic_doc
 { name       := "extract_goal",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.extract_goal],
-  tags       := ["goal management", "proof extraction"] }
+  tags       := ["goal management", "proof extraction", "debugging"] }
 
 /--
 `inhabit α` tries to derive a `nonempty α` instance and then upgrades this
@@ -1214,7 +1181,7 @@ add_tactic_doc
 /-- `clear_value n₁ n₂ ...` clears the bodies of the local definitions `n₁, n₂ ...`, changing them
 into regular hypotheses. A hypothesis `n : α := t` is changed to `n : α`. -/
 meta def clear_value (ns : parse ident*) : tactic unit :=
-propagate_tags $ ns.reverse.mmap' $ λ n, get_local n >>= tactic.clear_value
+propagate_tags $ ns.reverse.mmap get_local >>= tactic.clear_value
 
 add_tactic_doc
 { name       := "clear_value",
@@ -1237,10 +1204,10 @@ propagate_tags $
 do let (p, x) := p,
    e ← i_to_expr p,
    some h ← pure h | tactic.generalize' e x >> skip,
+   -- `h` is given, the regular implementation of `generalize` works.
    tgt ← target,
-   -- if generalizing fails, fall back to not replacing anything
    tgt' ← do {
-     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize' e x >> target),
+     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize e x >> target),
      to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1))
    } <|> to_expr ``(Π x, %%e = x → %%tgt),
    t ← assert h tgt',

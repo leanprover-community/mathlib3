@@ -837,29 +837,27 @@ begin
     apply appr_spec, }
 end
 
--- -- depends on open PR
--- @[simp] lemma zmod_cast_comp_to_zmod_pow (m n : ℕ) (h : m ≤ n) :
---   (zmod.cast_hom (nat.pow_dvd_pow p h) (zmod (p ^ m))).comp (to_zmod_pow n) = to_zmod_pow m :=
--- begin
---   apply zmod.ring_hom_eq_of_ker_eq,
---   ext x,
---   rw [ring_hom.mem_ker, ring_hom.mem_ker],
---   simp only [function.comp_app, zmod.cast_hom_apply, ring_hom.coe_comp],
---   simp only [to_zmod_pow, to_zmod_hom, ring_hom.coe_mk],
---   rw [zmod.cast_nat_cast (nat.pow_dvd_pow p h),
---       zmod_congr_of_sub_mem_span m (x.appr n) (x.appr n) (x.appr m)],
---   { rw [sub_self], apply ideal.zero_mem _, },
---   { rw ideal.mem_span_singleton,
---     rcases dvd_appr_sub_appr x m n h with ⟨c, hc⟩,
---     use c,
---     rw [← nat.cast_sub (appr_mono _ h), hc, nat.cast_mul, nat.cast_pow], },
---   { apply_instance }
--- end
+@[simp] lemma zmod_cast_comp_to_zmod_pow (m n : ℕ) (h : m ≤ n) :
+  (zmod.cast_hom (nat.pow_dvd_pow p h) (zmod (p ^ m))).comp (to_zmod_pow n) = to_zmod_pow m :=
+begin
+  apply zmod.ring_hom_eq_of_ker_eq,
+  ext x,
+  rw [ring_hom.mem_ker, ring_hom.mem_ker],
+  simp only [function.comp_app, zmod.cast_hom_apply, ring_hom.coe_comp],
+  simp only [to_zmod_pow, to_zmod_hom, ring_hom.coe_mk],
+  rw [zmod.cast_nat_cast (nat.pow_dvd_pow p h),
+      zmod_congr_of_sub_mem_span m (x.appr n) (x.appr n) (x.appr m)],
+  { rw [sub_self], apply ideal.zero_mem _, },
+  { rw ideal.mem_span_singleton,
+    rcases dvd_appr_sub_appr x m n h with ⟨c, hc⟩,
+    use c,
+    rw [← nat.cast_sub (appr_mono _ h), hc, nat.cast_mul, nat.cast_pow], },
+  { apply_instance }
+end
 
--- -- depends on open PR
--- @[simp] lemma cast_to_zmod_pow (m n : ℕ) (h : m ≤ n) (x : ℤ_[p]) :
---   ↑(to_zmod_pow n x) = to_zmod_pow m x :=
--- by { rw ← zmod_cast_comp_to_zmod_pow _ _ h, refl }
+@[simp] lemma cast_to_zmod_pow (m n : ℕ) (h : m ≤ n) (x : ℤ_[p]) :
+  ↑(to_zmod_pow n x) = to_zmod_pow m x :=
+by { rw ← zmod_cast_comp_to_zmod_pow _ _ h, refl }
 
 end padic_int
 

@@ -90,7 +90,7 @@ instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 
 lemma mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
 
-lemma eq_mk_iff_val_eq {k : ℕ} {hk : k < n} : a = ⟨k, hk⟩ ↔ a.val = k :=
+lemma eq_mk_iff_coe_eq {k : ℕ} {hk : k < n} : a = ⟨k, hk⟩ ↔ (a : ℕ) = k :=
 fin.eq_iff_veq a ⟨k, hk⟩
 
 @[simp, norm_cast] lemma coe_mk {m n : ℕ} (h : m < n) : ((⟨m, h⟩ : fin n) : ℕ) = m := rfl
@@ -200,10 +200,10 @@ by cases a; cases b; exact eq_of_veq (nat.succ.inj (veq_of_eq p))
 @[simp] lemma succ_inj {a b : fin n} : a.succ = b.succ ↔ a = b :=
 ⟨λh, succ.inj h, λh, by rw h⟩
 
-lemma succ_le_succ_iff : a.succ ≤ b.succ ↔ a ≤ b :=
+@[simp] lemma succ_le_succ_iff : a.succ ≤ b.succ ↔ a ≤ b :=
 by { simp only [le_iff_val_le_val, succ_val], exact ⟨le_of_succ_le_succ, succ_le_succ⟩ }
 
-lemma succ_lt_succ_iff : a.succ < b.succ ↔ a < b :=
+@[simp] lemma succ_lt_succ_iff : a.succ < b.succ ↔ a < b :=
 by { simp only [lt_iff_val_lt_val, succ_val], exact ⟨lt_of_succ_lt_succ, succ_lt_succ⟩ }
 
 lemma succ_injective (n : ℕ) : injective (@fin.succ n) :=
@@ -370,9 +370,9 @@ by { rw [cast_succ, lt_iff_val_lt_val, cast_add_val, succ_val], exact lt_add_one
 
 @[simp] lemma pred_one {n : ℕ} : fin.pred (1 : fin (n + 2)) (ne.symm (ne_of_lt one_pos)) = 0 := rfl
 
-lemma pred_add_one (i : fin (n + 2)) (h : i.val < n + 1) :
+lemma pred_add_one (i : fin (n + 2)) (h : (i : ℕ) < n + 1) :
   pred (i + 1) (ne_of_gt (add_one_pos _ (lt_iff_val_lt_val.mpr h))) = cast_lt i h :=
-by simp [eq_iff_veq, succ_pred_eq_of_pos, h, add_def, mod_eq_of_lt]
+by { rw coe_eq_val at h, simp [eq_iff_veq, succ_pred_eq_of_pos, h, add_def, mod_eq_of_lt] }
 
 /-- `min n m` as an element of `fin (m + 1)` -/
 def clamp (n m : ℕ) : fin (m + 1) := fin.of_nat $ min n m
@@ -386,18 +386,18 @@ lemma cast_le_injective {n₁ n₂ : ℕ} (h : n₁ ≤ n₂) : injective (fin.c
 lemma cast_succ_injective (n : ℕ) : injective (@fin.cast_succ n) :=
 cast_le_injective (le_add_right n 1)
 
-lemma succ_above_below (p : fin (n + 1)) (i : fin n) (h : i.val < p.val) :
+lemma succ_above_below (p : fin (n + 1)) (i : fin n) (h : (i : ℕ) < p) :
   p.succ_above i = i.cast_succ :=
-by { rw [fin.succ_above], split_ifs, refl }
+by { rw [coe_eq_val, coe_eq_val] at h, rw [succ_above], exact if_pos h }
 
 @[simp] lemma succ_above_zero : succ_above (0 : fin (n + 1)) = fin.succ := rfl
 
 @[simp] lemma succ_above_last : succ_above (fin.last n) = cast_succ :=
 by { ext i, simp only [succ_above, i.is_lt, if_true, last_val] }
 
-lemma succ_above_above (p : fin (n + 1)) (i : fin n) (h : p.val ≤ i.val) :
+lemma succ_above_above (p : fin (n + 1)) (i : fin n) (h : (p : ℕ) ≤ i) :
   p.succ_above i = i.succ :=
-by { rw [fin.succ_above], split_ifs with H, { exfalso, exact nat.lt_le_antisymm H h }, refl }
+by { rw [coe_eq_val, coe_eq_val] at h, rw [succ_above], exact if_neg (not_lt_of_le h) }
 
 theorem succ_above_ne (p : fin (n+1)) (i : fin n) : p.succ_above i ≠ p :=
 begin

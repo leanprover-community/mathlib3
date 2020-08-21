@@ -749,6 +749,31 @@ begin
       apply nat.add_sub_cancel' (le_of_lt hp), } }
 end
 
+lemma appr_mono (x : ℤ_[p]) : monotone x.appr :=
+begin
+  apply monotone_of_monotone_nat,
+  intro n,
+  dsimp [appr],
+  split_ifs, { refl, },
+  apply nat.le_add_right,
+end
+
+lemma dvd_appr_sub_appr (x : ℤ_[p]) (m n : ℕ) (h : m ≤ n) :
+  p ^ m ∣ x.appr n - x.appr m :=
+begin
+  obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le h, clear h,
+  induction k with k ih,
+  { simp only [add_zero, nat.sub_self, dvd_zero], },
+  rw [nat.succ_eq_add_one, ← add_assoc],
+  dsimp [appr],
+  split_ifs with h,
+  { exact ih },
+  rw [add_comm, nat.add_sub_assoc (appr_mono _ (nat.le_add_right m k))],
+  apply dvd_add _ ih,
+  apply dvd_mul_of_dvd_left,
+  apply nat.pow_dvd_pow _ (nat.le_add_right m k),
+end
+
 lemma appr_spec (n : ℕ) : ∀ (x : ℤ_[p]), x - appr x n ∈ (ideal.span {p^n} : ideal ℤ_[p]) :=
 begin
   simp only [ideal.mem_span_singleton],
@@ -811,6 +836,30 @@ begin
     rw [zmod_congr_of_sub_mem_span n x _ 0 _ h, cast_zero],
     apply appr_spec, }
 end
+
+-- -- depends on open PR
+-- @[simp] lemma zmod_cast_comp_to_zmod_pow (m n : ℕ) (h : m ≤ n) :
+--   (zmod.cast_hom (nat.pow_dvd_pow p h) (zmod (p ^ m))).comp (to_zmod_pow n) = to_zmod_pow m :=
+-- begin
+--   apply zmod.ring_hom_eq_of_ker_eq,
+--   ext x,
+--   rw [ring_hom.mem_ker, ring_hom.mem_ker],
+--   simp only [function.comp_app, zmod.cast_hom_apply, ring_hom.coe_comp],
+--   simp only [to_zmod_pow, to_zmod_hom, ring_hom.coe_mk],
+--   rw [zmod.cast_nat_cast (nat.pow_dvd_pow p h),
+--       zmod_congr_of_sub_mem_span m (x.appr n) (x.appr n) (x.appr m)],
+--   { rw [sub_self], apply ideal.zero_mem _, },
+--   { rw ideal.mem_span_singleton,
+--     rcases dvd_appr_sub_appr x m n h with ⟨c, hc⟩,
+--     use c,
+--     rw [← nat.cast_sub (appr_mono _ h), hc, nat.cast_mul, nat.cast_pow], },
+--   { apply_instance }
+-- end
+
+-- -- depends on open PR
+-- @[simp] lemma cast_to_zmod_pow (m n : ℕ) (h : m ≤ n) (x : ℤ_[p]) :
+--   ↑(to_zmod_pow n x) = to_zmod_pow m x :=
+-- by { rw ← zmod_cast_comp_to_zmod_pow _ _ h, refl }
 
 end padic_int
 

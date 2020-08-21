@@ -1824,6 +1824,10 @@ end
 lemma bind_singleton {f : α → β} : s.bind (λa, {f a}) = s.image f :=
 ext $ λ x, by simp only [mem_bind, mem_image, mem_singleton, eq_comm]
 
+@[simp] lemma bind_singleton_eq_self [decidable_eq α] :
+  s.bind (singleton : α → finset α) = s :=
+by { rw bind_singleton, exact image_id }
+
 lemma image_bind_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
   (s.image g).bind (λa, s.filter $ (λc, g c = a)) = s :=
 begin

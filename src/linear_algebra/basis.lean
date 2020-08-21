@@ -69,12 +69,12 @@ open_locale classical big_operators
 universe u
 
 variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}
-          {M : Type*} {M' : Type*} {V : Type u} {V' : Type*}
+          {M : Type*} {M' M'' : Type*} {V : Type u} {V' : Type*}
 
 section module
 variables {v : ι → M}
-variables [ring R] [add_comm_group M] [add_comm_group M']
-variables [module R M] [module R M']
+variables [ring R] [add_comm_group M] [add_comm_group M'] [add_comm_group M'']
+variables [module R M] [module R M'] [module R M'']
 variables {a b : R} {x y : M}
 
 variables (R) (v)
@@ -868,6 +868,35 @@ def equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (f : M → M') (g : M' �
       (λ i hi, by simp [constr_basis, hi.symm]; rw [hi, hfg]),
     λ y, congr_arg (λ h:M' →ₗ[R] M', h y) this,
   ..hv.constr (f ∘ v) }
+
+@[simp] lemma equiv_of_is_basis_comp {ι'' : Type*} {v : ι → M} {v' : ι' → M'} {v'' : ι'' → M''}
+  (hv : is_basis R v) (hv' : is_basis R v') (hv'' : is_basis R v'')
+  (e : ι ≃ ι') (f : ι' ≃ ι'' ) :
+  (equiv_of_is_basis hv hv' e).trans (equiv_of_is_basis hv' hv'' f) =
+  equiv_of_is_basis hv hv'' (e.trans f) :=
+begin
+  apply linear_equiv.eq_of_linear_map_eq,
+  apply hv.ext,
+  intros i,
+  simp [equiv_of_is_basis]
+end
+
+@[simp] lemma equiv_of_is_basis_refl :
+  equiv_of_is_basis hv hv (equiv.refl ι) = linear_equiv.refl R M :=
+begin
+  apply linear_equiv.eq_of_linear_map_eq,
+  apply hv.ext,
+  intros i,
+  simp [equiv_of_is_basis]
+end
+
+lemma equiv_of_is_basis_trans_symm (e : ι ≃ ι') {v' : ι' → M'} (hv' : is_basis R v') :
+  (equiv_of_is_basis hv hv' e).trans (equiv_of_is_basis hv' hv e.symm) = linear_equiv.refl R M :=
+by simp
+
+lemma equiv_of_is_basis_symm_trans (e : ι ≃ ι') {v' : ι' → M'} (hv' : is_basis R v') :
+  (equiv_of_is_basis hv' hv e.symm).trans (equiv_of_is_basis hv hv' e) = linear_equiv.refl R M' :=
+by simp
 
 lemma is_basis_inl_union_inr {v : ι → M} {v' : ι' → M'}
   (hv : is_basis R v) (hv' : is_basis R v') :

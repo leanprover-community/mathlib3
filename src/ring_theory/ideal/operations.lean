@@ -875,3 +875,65 @@ instance semimodule_submodule : semimodule (ideal R) (submodule R M) :=
   smul_zero := smul_bot }
 
 end submodule
+
+namespace ring_hom
+variables {A B C : Type*} [comm_ring A] [comm_ring B] [comm_ring C]
+variables (f : A →+* B)
+
+/-- `lift_of_surjective f hf g hg` is the unique ring homomorphism `φ`
+
+* such that `φ.comp f = g` (`lift_of_surjective_comp`),
+* where `f : A →+* B` is surjective (`hf`),
+* and `g : B →+* C` satisfies `hg : f.ker ≤ g.ker`.
+
+See `lift_of_surjective_eq` for the uniqueness lemma.
+
+```
+   A .
+   |  \
+ f |   \ g
+   |    \
+   v     \⌟
+   B ----> C
+      ∃!φ
+```
+ -/
+noncomputable def lift_of_surjective
+  (hf : function.surjective f) (g : A →+* C) (hg : f.ker ≤ g.ker) :
+  B →+* C :=
+{ to_fun := λ b, g (classical.some (hf b)),
+  map_one' :=
+  begin
+    rw [← g.map_one, ← sub_eq_zero, ← g.map_sub, ← g.mem_ker],
+    apply hg,
+    rw [f.mem_ker, f.map_sub, sub_eq_zero, f.map_one],
+    exact classical.some_spec (hf 1)
+  end,
+  map_mul' :=
+  begin
+    intros x y,
+    rw [← g.map_mul, ← sub_eq_zero, ← g.map_sub, ← g.mem_ker],
+    apply hg,
+    rw [f.mem_ker, f.map_sub, sub_eq_zero, f.map_mul],
+    simp only [classical.some_spec (hf _)],
+  end,
+  .. add_monoid_hom.lift_of_surjective f.to_add_monoid_hom hf g.to_add_monoid_hom hg }
+
+@[simp] lemma lift_of_surjective_comp_apply
+  (hf : function.surjective f) (g : A →+* C) (hg : f.ker ≤ g.ker) (a : A) :
+  (f.lift_of_surjective hf g hg) (f a) = g a :=
+f.to_add_monoid_hom.lift_of_surjective_comp_apply hf g.to_add_monoid_hom hg a
+
+@[simp] lemma lift_of_surjective_comp (hf : function.surjective f) (g : A →+* C) (hg : f.ker ≤ g.ker) :
+  (f.lift_of_surjective hf g hg).comp f = g :=
+by { ext, simp only [comp_apply, lift_of_surjective_comp_apply] }
+
+lemma eq_lift_of_surjective (hf : function.surjective f) (g : A →+* C) (hg : f.ker ≤ g.ker)
+  (h : B →+* C) (hh : h.comp f = g) :
+  h = (f.lift_of_surjective hf g hg) :=
+begin
+  ext b, rcases hf b with ⟨a, rfl⟩,
+  simp only [← comp_apply, hh, f.lift_of_surjective_comp],
+end
+
+end ring_hom

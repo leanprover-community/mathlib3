@@ -153,7 +153,7 @@ def lift {D : Type u₂} [category.{v₂} D] (F : C ⥤ D)
 The composition of `lift F cond` with `ι S` is isomorphic to `F`.
 -/
 @[simps] def lift_comp_ι {D : Type u₂} [category.{v₂} D] {F : C ⥤ D}
-  (h : ∀ f ∈ S, is_iso $ F.map $ comma.hom f) : (ι S ⋙ lift F h) ≅ F :=
+  (cond : ∀ f ∈ S, is_iso $ F.map $ comma.hom f) : (ι S ⋙ lift F cond) ≅ F :=
 { hom := { app := λ _, 𝟙 _ },
   inv := { app := λ _, 𝟙 _ } }
 

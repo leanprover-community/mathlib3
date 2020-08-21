@@ -356,6 +356,8 @@ with rcases.continue : listΠ (rcases_patt × expr) → tactic (list uncleared_g
     ugs ← rcases.continue pes,
     pure $ ugs.map $ λ ⟨cs', gs⟩, (cs ++ cs', gs))
 
+/-- Given a list of `uncleared_goal`s, each of which is a goal metavariable and
+a list of variables to clear, actually perform the clear and set the goals with the result. -/
 meta def clear_goals (ugs : list uncleared_goal) : tactic unit := do
   gs ← ugs.mmap (λ ⟨cs, g⟩, do
     set_goals [g],

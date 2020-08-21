@@ -205,17 +205,17 @@ is_iso.of_iso $ (as_iso f) ≪≫ (as_iso h)
 @[simp] lemma iso.inv_inv (f : X ≅ Y) : inv (f.inv) = f.hom := rfl
 @[simp] lemma iso.inv_hom (f : X ≅ Y) : inv (f.hom) = f.inv := rfl
 
-lemma inv_comp_eq (α : X ⟶ Y) [is_iso α] {f : X ⟶ Z} {g : Y ⟶ Z} : inv α ≫ f = g ↔ f = α ≫ g :=
-⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
+lemma eq_is_iso_comp (α : X ⟶ Y) [is_iso α] {f : X ⟶ Z} {g : Y ⟶ Z} : f = α ≫ g ↔ inv α ≫ f = g :=
+⟨λ H, by simp [H], λ H, by simp [H.symm]⟩
 
-lemma eq_inv_comp (α : X ⟶ Y) [is_iso α] {f : X ⟶ Z} {g : Y ⟶ Z} : g = inv α ≫ f ↔ α ≫ g = f :=
-(inv_comp_eq (inv α)).symm
+lemma is_iso_comp_eq (α : X ⟶ Y) [is_iso α] {f : X ⟶ Z} {g : Y ⟶ Z} : α ≫ g = f ↔ g = inv α ≫ f :=
+(eq_is_iso_comp (inv α)).symm
 
-lemma comp_inv_eq (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : f ≫ (inv α) = g ↔ f = g ≫ α :=
-⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
+lemma eq_comp_is_iso (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : f = g ≫ α ↔ f ≫ (inv α) = g :=
+⟨λ H, by simp [H], λ H, by simp [H.symm]⟩
 
-lemma eq_comp_inv (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : g = f ≫ (inv α) ↔ g ≫ α = f :=
-(comp_inv_eq (inv α)).symm
+lemma comp_is_iso_eq (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : g ≫ α = f ↔ g = f ≫ (inv α) :=
+(eq_comp_is_iso (inv α)).symm
 
 @[priority 100] -- see Note [lower instance priority]
 instance epi_of_iso (f : X ⟶ Y) [is_iso f] : epi f  :=

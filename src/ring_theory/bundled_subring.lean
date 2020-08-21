@@ -18,7 +18,7 @@ are not in this file, and they will ultimately be deprecated.
 We prove that subrings are a complete lattice, and that you can `map` (pushforward) and
 `comap` (pull back) them along ring homomorphisms.
 
-We define the `closure` construction from `set R` to `subgroup R`, sending a subset of `R`
+We define the `closure` construction from `set R` to `subring R`, sending a subset of `R`
 to the subring it generates, and prove that it is a Galois insertion.
 
 ## Main definitions

@@ -41,7 +41,7 @@ Notation used here:
 
 * `map f A : subring B` : the image of a subring `A` along the ring homomorphism `f`.
 
-* `prod A B : subring (R × S)` : the product of subring
+* `prod A B : subring (R × S)` : the product of subrings
 
 * `f.range : subring B` : the range of the ring homomorphism `f`.
 

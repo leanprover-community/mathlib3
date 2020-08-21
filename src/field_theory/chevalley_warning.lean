@@ -40,7 +40,7 @@ universes u v
 open_locale big_operators
 
 section finite_field
-open mv_polynomial function finset finite_field
+open mv_polynomial function (hiding eval) finset finite_field
 
 variables {K : Type*} {σ : Type*} [fintype K] [field K] [fintype σ]
 local notation `q` := fintype.card K
@@ -99,7 +99,7 @@ theorem char_dvd_card_solutions_family (p : ℕ) [char_p K p]
   p ∣ fintype.card {x : σ → K // ∀ i ∈ s, eval x (f i) = 0} :=
 begin
   have hq : 0 < q - 1, { rw [← card_units, fintype.card_pos_iff], exact ⟨1⟩ },
-  let S : finset (σ → K) := { x ∈ univ | ∀ i ∈ s, eval x (f i) = 0 },
+  let S : finset (σ → K) := { x ∈ univ | ∀ i ∈ s, mv_polynomial.eval x (f i) = 0 },
   have hS : ∀ (x : σ → K), x ∈ S ↔ ∀ (i : ι), i ∈ s → eval x (f i) = 0,
   { intros x, simp only [S, true_and, sep_def, mem_filter, mem_univ], },
   /- The polynomial `F = ∏ i in s, (1 - (f i)^(q - 1))` has the nice property

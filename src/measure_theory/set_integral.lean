@@ -261,17 +261,17 @@ variables [measurable_space E] [borel_space E] [complete_space E] [second_counta
   [normed_space ℝ E]
 
 lemma integral_union (hst : disjoint s t) (hs : is_measurable s) (ht : is_measurable t)
-  (hfm : measurable f) (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
+  (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
   ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
-by simp only [integrable_on, measure.restrict_union hst hs ht, integral_add_measure hfm hfs hft]
+by simp only [integrable_on, measure.restrict_union hst hs ht, integral_add_measure hfs hft]
 
 lemma integral_empty : ∫ x in ∅, f x ∂μ = 0 := by rw [measure.restrict_empty, integral_zero_measure]
 
 lemma integral_univ : ∫ x in univ, f x ∂μ = ∫ x, f x ∂μ := by rw [measure.restrict_univ]
 
-lemma integral_add_compl (hs : is_measurable s) (hfm : measurable f) (hfi : integrable f μ) :
+lemma integral_add_compl (hs : is_measurable s) (hfi : integrable f μ) :
   ∫ x in s, f x ∂μ + ∫ x in sᶜ, f x ∂μ = ∫ x, f x ∂μ :=
-by rw [← integral_union (disjoint_compl s) hs hs.compl hfm hfi.integrable_on hfi.integrable_on,
+by rw [← integral_union (disjoint_compl s) hs hs.compl hfi.integrable_on hfi.integrable_on,
   union_compl_self, integral_univ]
 
 /-- For a measurable function `f` and a measurable set `s`, the integral of `indicator s f`
@@ -281,7 +281,7 @@ lemma integral_indicator (hfm : measurable f) (hs : is_measurable s) :
 have hfms : measurable (indicator s f) := hfm.indicator hs,
 if hfi : integrable_on f s μ then
 calc ∫ x, indicator s f x ∂μ = ∫ x in s, indicator s f x ∂μ + ∫ x in sᶜ, indicator s f x ∂μ :
-  (integral_add_compl hs hfms (hfi.indicator hs)).symm
+  (integral_add_compl hs (hfi.indicator hs)).symm
 ... = ∫ x in s, f x ∂μ + ∫ x in sᶜ, 0 ∂μ :
   congr_arg2 (+) (integral_congr_ae hfms hfm (indicator_ae_eq_restrict hs))
     (integral_congr_ae hfms measurable_const (indicator_ae_eq_restrict_compl hs))

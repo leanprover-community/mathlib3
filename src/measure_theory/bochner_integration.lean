@@ -1266,10 +1266,10 @@ calc ∥∫ x, f x ∂μ∥ ≤ ∫ x, C ∂μ : norm_integral_le_of_norm_le mea
 
 variable {ν : measure α}
 
-lemma integral_add_measure {f : α → E} (hfm : measurable f) (hμ : integrable f μ)
-  (hν : integrable f ν) :
+lemma integral_add_measure {f : α → E} (hμ : integrable f μ) (hν : integrable f ν) :
   ∫ x, f x ∂(μ + ν) = ∫ x, f x ∂μ + ∫ x, f x ∂ν :=
 begin
+  by_cases hfm : measurable f; [skip, by simp only [integral_non_measurable hfm, zero_add]],
   have hfi := hμ.add_measure hν,
   rcases simple_func_sequence_tendsto' hfm hfi with ⟨F, hFi, hFt⟩,
   have hFiμ : ∀ i, integrable (F i) μ := λ i, (hFi i).left_of_add_measure,

@@ -148,8 +148,8 @@ This is because `|f(a/b)|=|∑ λᵢ aⁱ/bⁱ| = (1/bⁿ) |∑ λᵢ aⁱ b^(n-
 - `ineq1` proves that if a/b is not a root of f then `∑ λᵢ aⁱ b^(n-i) ≠ 0`
 -/
 
-theorem abs_f_at_p_div_q_ge_1_div_q_pow_n (f : ℤ[X]) (f_deg : f.nat_degree > 1) (a b : ℤ) (b_non_zero : b > 0) (a_div_b_not_root : (f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ)) ≠ 0) :
-  @abs ℝ _ ((f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ))) ≥ 1/(b:ℝ)^f.nat_degree :=
+theorem abs_f_at_p_div_q_ge_1_div_q_pow_n (f : ℤ[X]) (f_deg : 1 < f.nat_degree) (a b : ℤ) (b_non_zero : 0 < b) (a_div_b_not_root : (f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ)) ≠ 0) :
+  1/(b:ℝ)^f.nat_degree ≤ @abs ℝ _ ((f.map ℤembℝ).eval ((a:ℝ)/(b:ℝ))) :=
 begin
   have eval1 := eval_f_a_div_b f f_deg a b b_non_zero a_div_b_not_root,               -- This is `f(a/b)=∑ λᵢ aⁱ/bⁱ`
   have cast1 := cast1 f f_deg a b b_non_zero a_div_b_not_root,                        -- This is not maths, but casting types
@@ -161,7 +161,6 @@ begin
   -/
   suffices ineq3 : abs (ℤembℝ (∑ (i : ℕ) in f.support, f.coeff i * a ^ i * b ^ (f.nat_degree - i))) ≥ 1,
   {
-    rw ge_iff_le,
     -- We are manipulating inequalities involving multiplication so we use mul_le_mul
     -- mul_le_mul (hac : a ≤ c) (hbd : b ≤ d) (nn_b : 0 ≤ b) (nn_c : 0 ≤ c) : a * b ≤ c * d
     -- Here mul_le_mul needs two things to be positive and the positivity is proved after the main point is proved.
@@ -190,8 +189,8 @@ N.B. So neccessarily f has degree > 1, otherwise α is rational. But it doesn't 
 -/
 
 lemma about_irrational_root (α : real) (hα : irrational' α) (f : ℤ[X])
-  (f_deg : f.nat_degree > 1) (α_root : f_eval_on_ℝ f α = 0) :
-  ∃ A : real, A > 0 ∧ ∀ a b : ℤ, b > 0 -> abs(α - a / b) > (A / b ^ (f.nat_degree)) :=
+  (f_deg : 1 < f.nat_degree) (α_root : f_eval_on_ℝ f α = 0) :
+  ∃ A : real, 0 < A ∧ ∀ a b : ℤ, 0 < b -> (A / b ^ (f.nat_degree)) < abs(α - a / b) :=
 begin
   have f_nonzero : f ≠ 0,                                                         -- f ∈ ℤ[T] is not zero
   {
@@ -381,7 +380,7 @@ begin
         apply mul_pos, norm_cast, exact pow_pos hb.1 f.nat_degree, rw abs_pos_iff, exact Df_x0_nonzero,
       },
       rw div_div_eq_div_mul, exact ineq4, have ineq5 := @div_nonneg ℝ _ 1 (↑b ^ f.nat_degree) _ _, exact ineq5, norm_cast,
-      exact bot_le, norm_cast, refine pow_nonneg (le_of_lt hb.1) f.nat_degree, rw [gt_iff_lt, abs_pos_iff], exact Df_x0_nonzero,
+      exact bot_le, norm_cast, refine pow_nonneg (le_of_lt hb.1) f.nat_degree, rw [abs_pos_iff], exact Df_x0_nonzero,
 
     have ineq2 : 1/(M*b^(f.nat_degree)) > A / (b^f.nat_degree),                   -- Also 1/(M*bⁿ) > A/bⁿ since A < B ≤ 1/M
     {
@@ -457,7 +456,7 @@ begin
         apply mul_pos, norm_cast, exact pow_pos hb.1 f.nat_degree, rw abs_pos_iff, exact Df_x0_nonzero,
       },
       rw div_div_eq_div_mul, exact ineq4, have ineq5 := @div_nonneg ℝ _ 1 (↑b ^ f.nat_degree) _ _, exact ineq5, norm_cast,
-      exact bot_le, norm_cast, refine pow_nonneg (le_of_lt hb.1) f.nat_degree, rw [gt_iff_lt, abs_pos_iff], exact Df_x0_nonzero,
+      exact bot_le, norm_cast, refine pow_nonneg (le_of_lt hb.1) f.nat_degree, rw [abs_pos_iff], exact Df_x0_nonzero,
     },
 
     have ineq2 : 1/(M*b^(f.nat_degree)) > A / (b^f.nat_degree),
@@ -602,7 +601,7 @@ begin
 
   choose A hA using about_irrational_root x irr_x f f_deg about_root,             -- So we can apply the lemma about irrational root:
   have A_pos := hA.1,                                                             -- There is an A > 0 such that for any integers a b with b > 0
-  have exists_r := pow_big_enough A A_pos,                           -- |x - a/b| > A/bⁿ where n is the degree of f.
+  have exists_r := pow_big_enough A,                           -- |x - a/b| > A/bⁿ where n is the degree of f.
   choose r hr using exists_r,                                                     -- Let r ∈ ℕ such tht 1/A ≤ 2^r (equivalently 1/2^r ≤ A)
   have hr' : 1/(2^r) ≤ A, rw [div_le_iff, mul_comm, <-div_le_iff], exact hr, exact A_pos, apply (pow_pos _), exact two_pos,
   generalize hm : r + f.nat_degree = m,                                           -- Let m := r + n
@@ -636,15 +635,17 @@ end
 - We use comparison test to prove the convergence of α;
 - Then we prove that α is indeed a Liouville number;
 - From previous theorem we easily conclude α is transcendental.
--/
 
--- function n ↦ 1/10^n!
+function n ↦ 1/10^n!
+-/
 def ten_pow_n_fact_inverse (n : ℕ) : ℝ := ((1:ℝ)/(10:ℝ))^n.fact
--- function n ↦ 1/10^n
+/--
+function n ↦ 1/10^n
+-/
 def ten_pow_n_inverse (n : ℕ) : ℝ := ((1:ℝ)/(10:ℝ))^n
 
 -- 1/10^{n!} is nonnegative.
-lemma ten_pow_n_fact_inverse_ge_0 (n : nat) : ten_pow_n_fact_inverse n ≥ 0 :=
+lemma ten_pow_n_fact_inverse_ge_0 (n : nat) : 0 ≤ ten_pow_n_fact_inverse n :=
 begin
     unfold ten_pow_n_fact_inverse,
     simp only [one_div, inv_nonneg, ge_iff_le, inv_pow'], have h := le_of_lt (@pow_pos _ _ (10:real) _ n.fact),
@@ -682,6 +683,9 @@ begin
   rw abs_of_pos, linarith, linarith,
 end
 
+/--
+∑ i, 1/10^i
+-/
 def β : ℝ := classical.some summable_ten_pow_n_inverse
 
 theorem β_eq :  (∑' (b : ℕ), ten_pow_n_inverse b) = (10 / 9:ℝ) :=
@@ -693,12 +697,15 @@ begin
 end
 
 -- Hence Σᵢ 1/10^i! exists by comparison test, call it α
+
 theorem summable_ten_pow_n_fact_inverse : summable ten_pow_n_fact_inverse :=
 begin
   exact @summable_of_nonneg_of_le _ ten_pow_n_inverse ten_pow_n_fact_inverse ten_pow_n_fact_inverse_ge_0 ten_pow_n_fact_inverse_le_ten_pow_n_inverse summable_ten_pow_n_inverse,
 end
 
--- define α to be Σᵢ 1/10^i!
+/--
+ define α to be Σᵢ 1/10^i!
+-/
 def α := ∑' n, ten_pow_n_fact_inverse n
 
 
@@ -743,7 +750,7 @@ begin
 end
 
 -- Since each summand in `α_k_rest k` is positive, the sum is positive.
-theorem α_k_rest_pos (k : ℕ) : (α_k_rest k) > 0 :=
+theorem α_k_rest_pos (k : ℕ) : 0 < (α_k_rest k) :=
 begin
   generalize hfunc : (λ n:ℕ, ten_pow_n_fact_inverse (n + (k + 1))) = fn,
   have ineq1 := sum_ge_term fn _ _,
@@ -780,11 +787,14 @@ end
 private lemma lemma_ineq3 (n:ℕ) : (∑' (i:ℕ), (1/10:ℝ)^i * (1/10:ℝ)^(n+1).fact) ≤ (2/10^n.succ.fact:ℝ) :=
 begin
   rw tsum_mul_right,                                                              -- We factor out 1/10^{(n+1)!}
-  have eq1 := β_eq, unfold ten_pow_n_inverse at eq1, rw eq1, rw div_pow, rw one_pow, field_simp, rw <-nat.fact_succ,
-  rw div_le_div_iff, norm_cast, conv_rhs {rw <-nat.mul_assoc},                     -- and use that what left is a geometric sum = 10/9
+  have eq1 := β_eq, unfold ten_pow_n_inverse at eq1, rw eq1, rw div_pow, rw one_pow, field_simp,
+  rw div_le_div_iff, norm_cast, conv_rhs {rw <-mul_assoc},                     -- and use that what left is a geometric sum = 10/9
+  norm_cast,
   have triv : 2 * 9 = 18 := by norm_num, rw triv,
-  apply nat.mul_le_mul, linarith, linarith,
-  apply mul_pos, linarith, apply pow_pos, linarith, apply pow_pos, linarith,
+  apply mul_le_mul, norm_cast, linarith, linarith,
+  exact bot_le, exact bot_le,
+  apply mul_pos, linarith,
+  apply pow_pos, linarith, apply pow_pos, linarith,
   have h := summable_ten_pow_n_inverse, have triv : ten_pow_n_inverse = (λ (b : ℕ), (1 / 10) ^ b) := rfl,
   rwa <-triv,
 end
@@ -895,5 +905,7 @@ begin
   },
 end
 
--- Then our general theory about Liouville number in particular applies to α giving us α transcendental
+-- Then our general theory about Liouville number in particular applies to α giving us α transcendental number
 theorem transcendental_α : transcendental α := liouville_numbers_transcendental α liouville_α
+
+-- #lint

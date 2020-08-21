@@ -42,12 +42,17 @@ begin
 exact finset.sum_congr rfl h,
 end
 
+/--
+The trivial embedding of ℤ into ℝ
+-/
 def ℤembℝ : ℤ →+* ℝ := algebra_map ℤ ℝ
 
 theorem ℤembℝ_inj : function.injective ℤembℝ := λ a b h, by {simp only [ring_hom.eq_int_cast, int.cast_inj] at h, exact h,}
 theorem ℤembℝ_zero : ℤembℝ 0 = 0 := by exact ℤembℝ.map_zero
 
-
+/--
+f_eval_on_ℝ p is to evaluate p as a real polynomial
+-/
 def f_eval_on_ℝ (f : polynomial ℤ) (α : ℝ) : ℝ := (f.map ℤembℝ).eval α
 
 theorem f_eval_on_ℝ_add (f g : polynomial ℤ) (t : ℝ) : f_eval_on_ℝ (f + g) t = (f_eval_on_ℝ f t) + (f_eval_on_ℝ g t) :=
@@ -98,13 +103,13 @@ begin
 end
 
 -- compute list of coeff of a polynomial
-def list_coeff (f : polynomial ℤ) : (finset ℤ) := f.support.image f.to_fun
+-- def list_coeff (f : polynomial ℤ) : (finset ℤ) := f.support.image f.to_fun
 
-lemma coeff_in_list_coeff (f : polynomial ℤ)  (n ∈ f.support): (f.coeff n) ∈ (list_coeff f) :=
-begin
-    rw [list_coeff, finset.mem_image], use n,
-    split, assumption, exact rfl,
-end
+-- lemma coeff_in_list_coeff (f : polynomial ℤ)  (n ∈ f.support): (f.coeff n) ∈ (list_coeff f) :=
+-- begin
+--     rw [list_coeff, finset.mem_image], use n,
+--     split, assumption, exact rfl,
+-- end
 
 lemma not_in_support_iff_coeff_zero {α : Type} [_inst_ : comm_semiring α] (f : polynomial α) (n : ℕ): (f.coeff n) = 0 ↔ n ∉ f.support :=
 begin
@@ -113,6 +118,9 @@ end
 
 
 -- f = 0 on an interval then f is zero (polynomial ℝ)
+/--
+n ↦ a + 1/(n+1)
+-/
 
 def function_ℕ_Icc (a : ℝ) : ℕ -> set.Icc (a-1) (a+1) := λ n,
 ⟨(n+1)⁻¹ + a,
@@ -131,7 +139,7 @@ begin
     rw [function_ℕ_Icc] at hmn, simp only [add_left_inj, inv_inj', subtype.mk_eq_mk, nat.cast_inj] at hmn, exact hmn,
 end
 
-theorem inf_set_cannot_be_subset_of_fin_set {a : Type} {inst : infinite a} (S : set a) (T : set a) (hS : infinite S) (hT : set.finite T) : ¬ (S.subset T) :=
+theorem inf_set_cannot_be_subset_of_fin_set {a : Type} (S : set a) (T : set a) (hS : infinite S) (hT : set.finite T) : ¬ (S.subset T) :=
 begin
     by_contra absurd,
     generalize hf : set.inclusion absurd = f,
@@ -157,10 +165,6 @@ begin
     have inf2 := @infinite.of_injective _ _ inf (set.inclusion absurd2) (set.inclusion_injective absurd2),
     have absurd3 := inf_set_cannot_be_subset_of_fin_set (set.Icc (a-1) (a+1)) (↑roots) inf _,
     exact absurd (false.rec (f = 0) (absurd3 absurd2)),
-    {
-        apply infinite.of_injective (λ n : ℕ, (n : ℝ)),
-        intros a b hab, simp only [nat.cast_inj] at hab, assumption,
-    },
     exact finset.finite_to_set roots,
 end
 
@@ -198,7 +202,6 @@ begin
     {
         have ineq := nat.cast_add_one_pos m, rw H2 at ineq, linarith,
     },
-    done
 end
 
 theorem prod_deg (s : ℕ) (f : ℕ -> polynomial ℤ) (hf : ∀ i ∈ finset.range s, f i ≠ 0) : (∏ i in finset.range s, f i).nat_degree = ∑ i in finset.range s, (f i).nat_degree :=
@@ -242,16 +245,16 @@ begin
 end
 
 -- power manipulation
-@[simp] theorem triv (r : ℝ) (hr : r ≠ 0) (n : ℕ) : r ^ n = r ^ (n : ℤ) := by norm_num
+lemma triv (r : ℝ) (n : ℕ) : r ^ n = r ^ (n : ℤ) := by norm_num
 
 -- inequality
-lemma a_ge_b_a_div_c_ge_b_div_c (a b c : ℝ) (hab : a ≥ b) (b_nonneg : b ≥ 0) (hc : c > 0) : a / c ≥ b / c :=
+lemma a_ge_b_a_div_c_ge_b_div_c (a b c : ℝ) (hab : b ≤ a) (b_nonneg : 0 ≤ b) (hc : 0 < c) : b/ c ≤ a / c :=
 begin
     apply div_le_div; linarith,
 end
 
 -- archmedian-like
-theorem pow_big_enough (A : ℝ) (A_pos : A > 0) : ∃ r : nat, 1/A ≤ 2 ^ r :=
+theorem pow_big_enough (A : ℝ) : ∃ r : nat, 1/A ≤ 2 ^ r :=
 begin
     have H := @pow_unbounded_of_one_lt ℝ _ _ (1/A) 2 _,
     choose n hn using H,
@@ -260,11 +263,17 @@ end
 
 lemma mul_eq_mul' (a b c d : ℝ) : a = c -> b = d -> a * b = c * d := λ h1 h2, by simp only [h1, h2]
 
-lemma nonneg_nat (i : ℕ) : (i : ℝ) ≥ 0 :=
-begin
-  norm_cast, exact bot_le,
-end
+-- lemma nonneg_nat (i : ℕ) : (i : ℝ) ≥ 0 :=
+-- begin
+--   norm_cast, exact bot_le,
+-- end
 
+/--
+a number x is irrational if there is for every integers a and b
+then x - a / b ≠ 0
+-/
 def irrational' (x : ℝ) := ∀ a b : ℤ, b > 0 -> x - a / b ≠ 0
 
 end small_lemmas
+
+-- #lint

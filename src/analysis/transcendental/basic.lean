@@ -39,11 +39,9 @@ begin
   refl,
 end
 
-example : ℕ[X] :=
-begin
-  exact 0,
-end
-
+/--
+multiply a rational number $a/b$ by an integer $m$ to get the integer (a*m)/b
+-/
 def rat_to_int_by_mul (r : ℚ) (m : ℕ) : ℤ := (r.num * m) / r.denom
 
 theorem rat_to_int_by_mul_eq (r : ℚ) (m : ℕ) (h : r.denom ∣ m) : ↑(rat_to_int_by_mul r m) = r * m :=
@@ -93,7 +91,7 @@ begin
   apply mul_neg_of_neg_of_pos h, norm_cast, exact nat.pos_of_ne_zero hm,
 end
 
-theorem rat_to_int_by_mul_ne_zero' (r : ℚ) (m : ℕ) (hr : r.denom ∣ m) (hm : m ≠ 0) (h : rat_to_int_by_mul r m ≠ 0) :
+theorem rat_to_int_by_mul_ne_zero' (r : ℚ) (m : ℕ) (h : rat_to_int_by_mul r m ≠ 0) :
   r ≠ 0 :=
 begin
   intro rid, rw rid at h,
@@ -102,6 +100,9 @@ begin
   exact h,
 end
 
+/--
+Given a polynomial $p∈ℚ[X]$, `coeffs_denom_prod p` is the product of the denominator of all coefficients
+-/
 def coeffs_denom_prod (p : ℚ[X]) : ℕ :=
   (finset.image (λ n, (p.coeff n).denom) p.support).prod id
 lemma coeffs_denom_prod_ne_zero (p : ℚ[X]) : coeffs_denom_prod p ≠ 0 :=
@@ -130,8 +131,10 @@ begin
   replace H : (0:ℚ).denom = 1, refl, rw H, exact one_dvd (coeffs_denom_prod p),
 end
 
--- #check finset.prod
 
+/--
+for any $p∈ℚ[X]$, we multiply $p$ by the product of denominator of its coefficients to get an integer polynomial
+-/
 def rat_poly_to_int_poly (p : ℚ[X]) : ℤ[X] :=
 {
   support := p.support,
@@ -149,14 +152,8 @@ def rat_poly_to_int_poly (p : ℚ[X]) : ℤ[X] :=
     },
     {
       intro h,
-      have H := rat_to_int_by_mul_ne_zero' _ _ _ _ h,
+      have H := rat_to_int_by_mul_ne_zero' _ _ h,
       exact (p.mem_support_to_fun n).2 H,
-
-      -- apply denom_dvd_coeffs_denom_prod,
-      by_cases (n ∈ p.support),
-      apply denom_dvd_coeffs_denom_prod,
-      apply denom_dvd_coeffs_denom_prod,
-      apply coeffs_denom_prod_ne_zero,
     }
   end,
 }
@@ -236,3 +233,5 @@ begin
   apply algebraic_over_Q_then_algebraic_over_Z _ h,
   apply algebraic_over_Z_then_algebraic_over_Q _ h,
 end
+
+-- #lint

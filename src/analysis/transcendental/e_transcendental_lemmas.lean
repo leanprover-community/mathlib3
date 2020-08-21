@@ -204,7 +204,7 @@ end
 For a polynomial $f$ then if $n>0$, we have $f^{(n)}=f^{(n-1)}\times f'$
 -/
 
-theorem poly_pow_deriv (f : ℤ[X]) (n : ℕ) (hn : n > 0) : (f ^ n).derivative = (polynomial.C (n:ℤ)) * (f ^ (n-1)) * f.derivative :=
+theorem poly_pow_deriv (f : ℤ[X]) (n : ℕ) (hn : 0 < n) : (f ^ n).derivative = (polynomial.C (n:ℤ)) * (f ^ (n-1)) * f.derivative :=
 begin
     induction n with n IH,
     exfalso, linarith,
@@ -254,7 +254,7 @@ end
 
 theorem ftc' (F f: ℝ -> ℝ) {hF : differentiable ℝ F}
 {F_deriv : deriv F = f} {hf : measurable f} {hf1 : continuous f}
-(a b : ℝ) (h : b ≥ a) :  (∫ x in a..b, f x) = F b - F a :=
+(a b : ℝ) (h : a ≤ b) :  (∫ x in a..b, f x) = F b - F a :=
 begin
   by_cases hab : (a = b),
   rw hab, simp only [interval_integral.integral_same, sub_self],
@@ -359,7 +359,7 @@ begin
   exact real.locally_finite_volume,
 end
 
-theorem ftc (f: ℝ -> ℝ) {hf : differentiable ℝ f} {hf2 : measurable (deriv f)} {hf3 : continuous (deriv f)} (a b : ℝ) (h : b ≥ a) :  (∫ x in a..b, (deriv f) x) = f b - f a :=
+theorem ftc (f: ℝ -> ℝ) {hf : differentiable ℝ f} {hf2 : measurable (deriv f)} {hf3 : continuous (deriv f)} (a b : ℝ) (h : a ≤ b) :  (∫ x in a..b, (deriv f) x) = f b - f a :=
 begin
   refine ftc' f (deriv f) a b h,
   simp only [], exact hf,
@@ -371,7 +371,7 @@ theorem integrate_by_part (f g : ℝ -> ℝ)
   {hf3 : measurable f} {hf4 : continuous (deriv f)}
   {hg : differentiable ℝ g} {hg2 : measurable (deriv g)}
   {hg3 : measurable g} {hg4 : continuous (deriv g)}
-  (a b : ℝ) (h : b ≥ a) :
+  (a b : ℝ) (h : a ≤ b) :
   (∫ x in a..b, (f x)*(deriv g x)) = (f b) * (g b) - (f a) * (g a) - (∫ x in a..b, (deriv f x) * (g x)) :=
 
 begin
@@ -489,8 +489,8 @@ $$
 \int_a^b f\le (b-a)c
 $$
 -/
-theorem integral_le_max_times_length (f : ℝ -> ℝ) {h1 : measurable f} (a b : ℝ) (h : b ≥ a) (c : ℝ)
-    (f_nonneg : ∀ x ∈ set.Icc a b, f x ≥ 0) (c_max : ∀ x ∈ set.Icc a b, f x ≤ c) :
+theorem integral_le_max_times_length (f : ℝ -> ℝ) {h1 : measurable f} (a b : ℝ) (h : a ≤ b) (c : ℝ)
+    (f_nonneg : ∀ x ∈ set.Icc a b, 0 ≤ f x) (c_max : ∀ x ∈ set.Icc a b, f x ≤ c) :
     (∫ x in a..b, f x) ≤ (b - a) * c :=
 begin
     have triv1 : (∫ x in a..b, f x) = ∥(∫ x in a..b, f x)∥,
@@ -569,15 +569,19 @@ We use integration by parts to prove
 
 The two different ways of representing $I(f,t)$ we give us upper bound and lower bound when we are using this on transcendence of $e$.
 -/
-def I (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : ℝ :=
+def I (f : ℤ[X]) (t : ℝ) : ℝ :=
     t.exp * (∑ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (deriv_n f i) 0)) - (∑ i in finset.range f.nat_degree.succ, (f_eval_on_ℝ (deriv_n f i) t))
 
-def II (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : ℝ := ∫ x in 0..t, real.exp(t - x) * (f_eval_on_ℝ f x)
+/--
+I equivalent definition
+\[I(f,t):=\int_0^t \exp(t-x)f(z)\mathrm{d}x\]
+-/
+def II (f : ℤ[X]) (t : ℝ) : ℝ := ∫ x in 0..t, real.exp(t - x) * (f_eval_on_ℝ f x)
 
 /-Theorem
 $I(0,t)$ is 0.
 -/
-theorem II_0 (t : ℝ) (ht : t ≥ 0) : II 0 t ht = 0 :=
+theorem II_0 (t : ℝ) (ht : 0 ≤ t) : II 0 t = 0 :=
 begin
     -- We are integrating $\exp(t-x)\times 0$
     rw II, unfold f_eval_on_ℝ,
@@ -590,8 +594,8 @@ end
 By integration by part we have:
 \[I(f, t) = e^tf(0)-f(t)+I(f',t)\]
 -/
-lemma II_integrate_by_part (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) :
-    (II f t ht) = (real.exp t) * (f_eval_on_ℝ f 0) - (f_eval_on_ℝ f t) + (II f.derivative t ht) :=
+lemma II_integrate_by_part (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) :
+    (II f t) = (real.exp t) * (f_eval_on_ℝ f 0) - (f_eval_on_ℝ f t) + (II f.derivative t) :=
 begin
     rw II,
     -- We have $$\int_0^t \exp(t-x)f(x)\mathrm{d}x=\int_0^t f(x)\frac{\mathrm{d}}{\mathrm{d}x}(-\exp(t-x))\mathrm{d}x$$
@@ -680,19 +684,19 @@ Combine the theorem above with induction we get for all $m\in\mathbb N$
 I(f,t)=e^t\sum_{i=0}^m f^{(i)}(0)-\sum_{i=0}^m f^{(i)}(t)
 \]
 -/
-lemma II_integrate_by_part_m (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) (m : ℕ) :
-    II f t ht = t.exp * (∑ i in finset.range (m+1), (f_eval_on_ℝ (deriv_n f i) 0)) - (∑ i in finset.range (m+1), f_eval_on_ℝ (deriv_n f i) t) + (II (deriv_n f (m+1)) t ht) :=
+lemma II_integrate_by_part_m (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) (m : ℕ) :
+    II f t = t.exp * (∑ i in finset.range (m+1), (f_eval_on_ℝ (deriv_n f i) 0)) - (∑ i in finset.range (m+1), f_eval_on_ℝ (deriv_n f i) t) + (II (deriv_n f (m+1)) t) :=
 begin
     induction m with m ih,
-    rw [deriv_n,II_integrate_by_part], simp only [function.iterate_one, finset.sum_singleton, finset.range_one], rw deriv_n, simp only [id.def, function.iterate_zero],
+    rw [deriv_n,II_integrate_by_part], simp only [function.iterate_one, finset.sum_singleton, finset.range_one], rw deriv_n, simpa only [id.def, function.iterate_zero],
 
     rw [ih, II_integrate_by_part],
     have triv : m.succ + 1 = (m+1).succ := by ring, rw triv, generalize hM : m + 1 = M,
     replace triv : t.exp * ∑ (i : ℕ) in finset.range M, f_eval_on_ℝ (deriv_n f i) 0 -
         ∑ (i : ℕ) in finset.range M, f_eval_on_ℝ (deriv_n f i) t +
-      (t.exp * f_eval_on_ℝ (deriv_n f M) 0 - f_eval_on_ℝ (deriv_n f M) t + II (deriv_n f M).derivative t ht)
+      (t.exp * f_eval_on_ℝ (deriv_n f M) 0 - f_eval_on_ℝ (deriv_n f M) t + II (deriv_n f M).derivative t)
       = t.exp * ((∑ (i : ℕ) in finset.range M, f_eval_on_ℝ (deriv_n f i) 0) + (f_eval_on_ℝ (deriv_n f M) 0))
-      - ((∑ (i : ℕ) in finset.range M, f_eval_on_ℝ (deriv_n f i) t) + f_eval_on_ℝ (deriv_n f M) t) + II (deriv_n f M).derivative t ht := by ring,
+      - ((∑ (i : ℕ) in finset.range M, f_eval_on_ℝ (deriv_n f i) t) + f_eval_on_ℝ (deriv_n f M) t) + II (deriv_n f M).derivative t := by ring,
     rw triv,
     replace triv : ∑ (i : ℕ) in finset.range M, f_eval_on_ℝ (deriv_n f i) 0 + f_eval_on_ℝ (deriv_n f M) 0 = ∑ (i : ℕ) in finset.range M.succ, f_eval_on_ℝ (deriv_n f i) 0,
         rw finset.sum_range_succ, ring,
@@ -705,31 +709,31 @@ begin
         conv_rhs {rw deriv_n}, rw function.iterate_succ',
         replace triv : (polynomial.derivative ∘ (polynomial.derivative^[M])) f = (polynomial.derivative (polynomial.derivative^[M] f)) := rfl,
         rw triv, rw <-deriv_n,
-    }, rw triv,
+    }, rwa triv,
 end
 
 /-Theorem
 So the using if $f$ has degree $n$, then $f^{(n+1)}$ is zero we have the two definition of $I(f,t)$ agrees.
 -/
-theorem II_eq_I (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : II f t ht = I f t ht :=
+theorem II_eq_I (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) : II f t = I f t :=
 begin
     have II_integrate_by_part_m := II_integrate_by_part_m f t ht f.nat_degree,
     have triv := deriv_too_much f, rw I,
-    rw [triv, II_0, add_zero] at II_integrate_by_part_m,
+    rw [triv, II_0, add_zero] at II_integrate_by_part_m;
     assumption,
 end
 
 /-Theorem
 \[\left|I(f,t)\right|\le \int_0^t \left|e^{t-x}f(x)\right|\mathrm{d}x\]
 -/
-lemma abs_II_le1 (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : abs (II f t ht) ≤ ∫ x in 0..t, abs ((t-x).exp * (f_eval_on_ℝ f x)) :=
+lemma abs_II_le1 (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) : abs (II f t) ≤ ∫ x in 0..t, abs ((t-x).exp * (f_eval_on_ℝ f x)) :=
 begin
     have triv : (∫ x in 0..t, abs ((t-x).exp * (f_eval_on_ℝ f x))) = ∫ x in 0..t, ∥(t-x).exp * (f_eval_on_ℝ f x)∥,
     {
         apply congr_arg, refl,
     }, rw triv,
 
-    replace triv : abs (II f t ht) = ∥ (∫ (x : ℝ) in 0..t, (t - x).exp * f_eval_on_ℝ f x) ∥,
+    replace triv : abs (II f t) = ∥ (∫ (x : ℝ) in 0..t, (t - x).exp * f_eval_on_ℝ f x) ∥,
     {
         rw real.norm_eq_abs,
         apply congr_arg,
@@ -838,7 +842,7 @@ end
 For any $x\in(0,t)$
 $|f(x)|\le \bar{f}(t)$
 -/
-lemma f_bar_ineq (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : ∀ x ∈ set.Icc 0 t, abs (f_eval_on_ℝ f x) ≤ f_eval_on_ℝ (f_bar f) t :=
+lemma f_bar_ineq (f : ℤ[X]) (t : ℝ) : ∀ x ∈ set.Icc 0 t, abs (f_eval_on_ℝ f x) ≤ f_eval_on_ℝ (f_bar f) t :=
 begin
     intros x hx,
     -- If we write $f(X)=a_0+a_1X+\cdots+a_nX^n$. Then $f(x)=a_0+a_1x+\cdots+a_nx^n$
@@ -953,7 +957,7 @@ begin
         },
         rw triv,
         -- We have $|f(x)|\le\bar{f}(t)$
-        have ineq1 := f_bar_ineq f t ht x hx,
+        have ineq1 := f_bar_ineq f t x hx,
         -- We have $e^{t-x}\le e^{t}$
         have ineq2 : (t - x).exp ≤ t.exp,
         {
@@ -966,7 +970,7 @@ end
 /-Theorem
 $$|I(f,t)|\le te^t\bar{f}(t)$$
 -/
-theorem abs_II_le2 (f : ℤ[X]) (t : ℝ) (ht : t ≥ 0) : abs (II f t ht) ≤ t * t.exp * (f_eval_on_ℝ (f_bar f) t) :=
+theorem abs_II_le2 (f : ℤ[X]) (t : ℝ) (ht : 0 ≤ t) : abs (II f t) ≤ t * t.exp * (f_eval_on_ℝ (f_bar f) t) :=
 begin
     -- combine `abs_II_le1` and previous lemma.
     have ineq1 := (abs_II_le1 f t ht),
@@ -975,3 +979,6 @@ begin
 end
 
 end e_transcendental_lemmas
+
+
+-- #lint

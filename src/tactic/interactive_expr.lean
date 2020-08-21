@@ -131,11 +131,37 @@ meta inductive action (γ : Type)
 | on_close_tooltip : action
 | copy : string → action
 
+
+meta def depth_m := state_t (nat × nat) tactic
+
+namespace depth_m
+  local attribute [reducible] depth_m
+  meta instance : monad depth_m := infer_instance
+  meta instance : monad_state (nat × nat) depth_m := infer_instance
+  meta instance : alternative depth_m := infer_instance
+  meta instance : has_monad_lift tactic depth_m := infer_instance
+  meta instance {α} : has_coe (tactic α) (depth_m α) := ⟨λ x, monad_lift x⟩
+  meta def get_indent : depth_m nat := prod.snd <$> get
+  meta def get_line_length : depth_m nat := prod.fst <$> get
+  meta def add_line_length : nat → depth_m unit
+  | n := modify $ prod.map (+ n) id
+  meta def reset_line_length : depth_m unit := do (_,i) ← get, put (i,i)
+  meta def with_indent  {α}: nat → depth_m α → depth_m α
+  | i2 t := do
+    (l, i) ← get,
+    put (i + i2, i + i2),
+    a ← t,
+    put (i, i),
+    pure a
+end depth_m
+
+def max_width := 20
+
 /--
 Renders a subexpression as a list of html elements.
 -/
 meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address : option expr.address) (select_address : option expr.address) :
-  subexpr → sf → tactic (list (html (action γ)))
+  subexpr → sf → depth_m (list (html (action γ)))
 | ⟨ce, current_address⟩ (sf.tag_expr ea e m) := do
   let new_address := current_address ++ ea,
   let select_attrs : list (attr (action γ)) := if some new_address = select_address then [className "highlight"] else [],
@@ -155,19 +181,24 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
   inner ← view (e,new_address) m,
   pure [h "span" as inner]
 | ca (sf.compose x y) := pure (++) <*> view ca x <*> view ca y
-| ca (sf.of_string s) := pure
-  [h "span" [
+| ca (sf.of_string s) := do
+  depth_m.add_line_length (s.length),
+  pure [h "span" [
     on_mouse_enter (λ _, action.on_mouse_enter ca),
     on_click (λ _, action.on_click ca),
     key s
   ] [html.of_string s]]
 | ca (sf.block i a) := do
-  inner ← view ca a,
-  pure [h "span" [cn "indent-code dib", style [("--indent-level", to_string i)]] inner]
+  ll ← depth_m.get_line_length,
+  if ll > max_width then do
+    inner ← depth_m.with_indent 2 $ view ca a,
+    pure [ h "div" [cn "pa2"] inner]
+  else do
+    inner ← view ca a,
+    pure inner
 | ca (sf.highlight c a) := do
   inner ← view ca a,
-  pure [h "span" [cn $ "highlight_" ++ c.to_string] inner]
-
+  pure [h "span" [cn $ c.to_string] inner]
 
 /-- Make an interactive expression. -/
 meta def mk {γ} (tooltip : tc subexpr γ) : tc expr γ :=
@@ -201,7 +232,7 @@ $ tc.mk_simple
     let m := m.elim_part_apps,
     let m := m.flatten,
     let m := m.tag_expr [] e, -- [hack] in pp.cpp I forgot to add an expr-boundary for the root expression.
-    v ← view tooltip_comp (prod.snd <$> ca) (prod.snd <$> sa) ⟨e, []⟩ m,
+    (v, _) ← state_t.run  (view tooltip_comp (prod.snd <$> ca) (prod.snd <$> sa) ⟨e, []⟩ m) (0,0),
     pure $
     [ h "span" [
           className "expr",

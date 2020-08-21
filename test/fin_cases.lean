@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import tactic.fin_cases
 import data.nat.prime
 import group_theory.perm.sign
+import data.finset.intervals
 
 example (f : ℕ → Prop) (p : fin 3) (h0 : f 0) (h1 : f 1) (h2 : f 2) : f p.val :=
 begin
@@ -13,6 +14,15 @@ begin
   simp, assumption,
   simp, assumption,
   simp, assumption,
+end
+
+example (f : ℕ → Prop) (p : fin 0) : f p.val :=
+by fin_cases *
+
+example (f : ℕ → Prop) (p : fin 1) (h : f 0) : f p.val :=
+begin
+  fin_cases p,
+  assumption
 end
 
 example (x2 : fin 2) (x3 : fin 3) (n : nat) (y : fin n) : x2.val * x3.val = x3.val * x2.val :=

@@ -3,7 +3,7 @@ Copyright (c) 2020 Patrick Stevens. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Stevens
 -/
-import tactic
+import tactic.ring_exp
 import data.nat.parity
 import data.nat.choose
 

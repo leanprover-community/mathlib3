@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 import data.equiv.list
+import logic.function.iterate
 
 /-!
 # The primitive recursive functions
@@ -102,7 +103,7 @@ theorem mul : primrec (unpaired (*)) :=
 
 theorem pow : primrec (unpaired (^)) :=
 (prec (const 1) (mul.comp (pair (right.comp right) left))).of_eq $
-λ p, by simp; induction p.unpair.2; simp [*, pow_succ]
+λ p, by simp; induction p.unpair.2; simp [*, nat.pow_succ]
 
 end primrec
 
@@ -580,7 +581,7 @@ theorem nat_le : primrec_rel ((≤) : ℕ → ℕ → Prop) :=
 end
 
 theorem nat_min : primrec₂ (@min ℕ _) := ite nat_le fst snd
-theorem nat_max : primrec₂ (@max ℕ _) := ite nat_le snd fst
+theorem nat_max : primrec₂ (@max ℕ _) := ite (nat_le.comp primrec.snd primrec.fst) fst snd
 
 theorem dom_bool (f : bool → α) : primrec f :=
 (cond primrec.id (const (f tt)) (const (f ff))).of_eq $

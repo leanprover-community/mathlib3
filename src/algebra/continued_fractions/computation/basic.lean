@@ -112,16 +112,15 @@ protected def of (v : K) : int_fract_pair K := ⟨⌊v⌋, fract v⟩
 Creates the stream of integer and fractional parts of a value `v` needed to obtain the continued
 fraction representation of `v` in `generalized_continued_fraction.of`. More precisely, given a value
 `v : K`, it recursively computes a stream of option `ℤ × K` pairs as follows:
-
-  `stream v 0 = some ⟨⌊v⌋, v - ⌊v⌋⟩`,
-  `stream v (n + 1) = some ⟨⌊frₙ⁻¹⌋, frₙ⁻¹ - ⌊frₙ⁻¹⌋⟩`, if `stream v n = some ⟨_, frₙ⟩` and `frₙ ≠ 0`.
-  `stream v (n + 1) = none`, otherwise.
+- `stream v 0 = some ⟨⌊v⌋, v - ⌊v⌋⟩`
+- `stream v (n + 1) = some ⟨⌊frₙ⁻¹⌋, frₙ⁻¹ - ⌊frₙ⁻¹⌋⟩`, if `stream v n = some ⟨_, frₙ⟩` and `frₙ ≠ 0`
+- `stream v (n + 1) = none`, otherwise
 
 For example, let `(v : ℚ) := 3.4`. The process goes as follows:
-  `stream v 0 = some ⟨⌊v⌋, v - ⌊v⌋⟩ = some ⟨3, 0.4⟩`,
-  `stream v 1 = some ⟨⌊0.4⁻¹⌋, 0.4⁻¹ - ⌊0.4⁻¹⌋⟩ = some ⟨⌊2.5⌋, 2.5 - ⌊2.5⌋⟩ = some ⟨2, 0.5⟩`,
-  `stream v 2 = some ⟨⌊0.5⁻¹⌋, 0.5⁻¹ - ⌊0.5⁻¹⌋⟩ = some ⟨⌊2⌋, 2 - ⌊2⌋⟩ = some ⟨2, 0⟩`
-  `stream v n = none`, for `n ≥ 3`.
+- `stream v 0 = some ⟨⌊v⌋, v - ⌊v⌋⟩ = some ⟨3, 0.4⟩`
+- `stream v 1 = some ⟨⌊0.4⁻¹⌋, 0.4⁻¹ - ⌊0.4⁻¹⌋⟩ = some ⟨⌊2.5⌋, 2.5 - ⌊2.5⌋⟩ = some ⟨2, 0.5⟩`
+- `stream v 2 = some ⟨⌊0.5⁻¹⌋, 0.5⁻¹ - ⌊0.5⁻¹⌋⟩ = some ⟨⌊2⌋, 2 - ⌊2⌋⟩ = some ⟨2, 0⟩`
+- `stream v n = none`, for `n ≥ 3`
 -/
 protected def stream (v : K) : stream $ option (int_fract_pair K)
 | 0 := some (int_fract_pair.of v)

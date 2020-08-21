@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.fintype.card
+import data.finset.sort
 import tactic.omega
 
 /-!
@@ -83,7 +84,7 @@ Composition, partition
 -/
 
 open list
-open_locale classical
+open_locale classical big_operators
 
 variable {n : ℕ}
 
@@ -132,7 +133,7 @@ def blocks_fun : fin c.length → ℕ := λ i, nth_le c.blocks i.1 i.2
 lemma of_fn_blocks_fun : of_fn c.blocks_fun = c.blocks :=
 of_fn_nth_le _
 
-lemma sum_blocks_fun : finset.univ.sum c.blocks_fun = n :=
+lemma sum_blocks_fun : ∑ i, c.blocks_fun i = n :=
 by conv_rhs { rw [← c.blocks_sum, ← of_fn_blocks_fun, sum_of_fn] }
 
 @[simp] lemma one_le_blocks {i : ℕ} (h : i ∈ c.blocks) : 1 ≤ i :=
@@ -256,7 +257,7 @@ def embedding (i : fin c.length) : fin (c.blocks_fun i) → fin n :=
   ... ≤ n :
     by { conv_rhs { rw ← c.size_up_to_length }, exact monotone_sum_take _ i.2 } ⟩
 
-lemma embedding_inj (i : fin c.length) : function.injective (c.embedding i) :=
+lemma embedding_injective (i : fin c.length) : function.injective (c.embedding i) :=
 λ a b hab, by simpa [embedding, fin.ext_iff] using hab
 
 /--
@@ -649,7 +650,7 @@ def composition_as_set_equiv (n : ℕ) : composition_as_set n ≃ finset (fin (n
       { exact c.zero_mem },
       { exact c.last_mem },
       { convert hj1, rwa fin.ext_iff } },
-    { simp only [classical.or_iff_not_imp_left],
+    { simp only [or_iff_not_imp_left],
       assume i_mem i_ne_zero i_ne_last,
       simp [fin.ext_iff] at i_ne_zero i_ne_last,
       refine ⟨⟨i.val - 1, _⟩, _, _⟩,

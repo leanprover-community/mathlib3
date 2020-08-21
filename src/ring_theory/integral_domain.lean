@@ -5,12 +5,24 @@ Authors: Johan Commelin, Chris Hughes
 -/
 
 import data.fintype.card
-import data.polynomial
+import data.polynomial.ring_division
 import group_theory.order_of_element
 import algebra.geom_sum
 
 /-!
 # Integral domains
+
+Assorted theorems about integral domains.
+
+## Main theorems
+
+* `is_cyclic_of_subgroup_integral_domain` : A finite subgroup of the units of an integral domain
+                                            is cyclic.
+* `field_of_integral_domain`              : A finite integral domain is a field.
+
+## Tags
+
+integral domain, finite integral domain, finite field
 -/
 
 section
@@ -42,10 +54,10 @@ instance [fintype R] : is_cyclic (units R) :=
 is_cyclic_of_subgroup_integral_domain (units.coe_hom R) $ units.ext
 
 /-- Every finite integral domain is a field. -/
-def field_of_integral_domain [fintype R] [decidable_eq R] : field R :=
+def field_of_integral_domain [decidable_eq R] [fintype R] : field R :=
 { inv := λ a, if h : a = 0 then 0
     else fintype.bij_inv (show function.bijective (* a),
-      from fintype.injective_iff_bijective.1 $ λ _ _, (domain.mul_left_inj h).1) 1,
+      from fintype.injective_iff_bijective.1 $ λ _ _, mul_right_cancel' h) 1,
   mul_inv_cancel := λ a ha, show a * dite _ _ _ = _, by rw [dif_neg ha, mul_comm];
     exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
   inv_zero := dif_pos rfl,
@@ -94,7 +106,7 @@ begin
     ext g,
     rw [monoid_hom.one_apply],
     cases hx ⟨f.to_hom_units g, g, rfl⟩ with n hn,
-    rwa [subtype.coe_ext, units.ext_iff, subtype.coe_mk, monoid_hom.coe_to_hom_units,
+    rwa [subtype.ext_iff, units.ext_iff, subtype.coe_mk, monoid_hom.coe_to_hom_units,
       is_submonoid.coe_pow, units.coe_pow, is_submonoid.coe_one, units.coe_one,
       _root_.one_pow, eq_comm] at hn, },
   replace hx1 : (x : R) - 1 ≠ 0,
@@ -129,7 +141,7 @@ begin
       (λ b hb, let ⟨n, hn⟩ := hx b in ⟨n % order_of x, mem_range.2 (nat.mod_lt _ (order_of_pos _)),
         by rw [← pow_eq_mod_order_of, hn]⟩)
   ... = 0 : _,
-  rw [← domain.mul_left_inj hx1, zero_mul, ← geom_series, geom_sum_mul, coe_coe],
+  rw [← mul_left_inj' hx1, zero_mul, ← geom_series, geom_sum_mul, coe_coe],
   norm_cast,
   rw [pow_order_of_eq_one, is_submonoid.coe_one, units.coe_one, sub_self],
 end
@@ -142,6 +154,16 @@ begin
   split_ifs with h h,
   { simp [h, card_univ] },
   { exact sum_hom_units_eq_zero f h }
+end
+
+lemma left_dvd_or_dvd_right_of_dvd_prime_mul {a : R} :
+  ∀ {b p : R}, prime p → a ∣ p * b → p ∣ a ∨ a ∣ b :=
+begin
+  rintros b p hp ⟨c, hc⟩,
+  rcases hp.2.2 a c (hc ▸ dvd_mul_right _ _) with h | ⟨x, rfl⟩,
+  { exact or.inl h },
+  { rw [mul_left_comm, mul_right_inj' hp.ne_zero] at hc,
+    exact or.inr (hc.symm ▸ dvd_mul_right _ _) }
 end
 
 end

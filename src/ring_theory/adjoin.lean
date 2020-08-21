@@ -10,45 +10,38 @@ import ring_theory.principal_ideal_domain
 
 universes u v w
 
-open submodule ring
+open submodule
 
 namespace algebra
 
 variables {R : Type u} {A : Type v}
-variables [comm_ring R] [comm_ring A]
+
+section semiring
+variables [comm_semiring R] [semiring A]
 variables [algebra R A] {s t : set A}
+open subsemiring
 
 theorem subset_adjoin : s ⊆ adjoin R s :=
 set.subset.trans (set.subset_union_right _ _) subset_closure
 
 theorem adjoin_le {S : subalgebra R A} (H : s ⊆ S) : adjoin R s ≤ S :=
-closure_subset $ set.union_subset S.3 H
+closure_le.2 $ set.union_subset S.range_le H
 
 theorem adjoin_le_iff {S : subalgebra R A} : adjoin R s ≤ S ↔ s ⊆ S:=
 ⟨set.subset.trans subset_adjoin, adjoin_le⟩
 
 theorem adjoin_mono (H : s ⊆ t) : adjoin R s ≤ adjoin R t :=
-closure_subset (set.subset.trans (set.union_subset_union_right _ H) subset_closure)
+closure_le.2 (set.subset.trans (set.union_subset_union_right _ H) subset_closure)
 
 variables (R A)
 @[simp] theorem adjoin_empty : adjoin R (∅ : set A) = ⊥ :=
 eq_bot_iff.2 $ adjoin_le $ set.empty_subset _
-variables {A}
 
-variables (s t)
-theorem adjoin_union : adjoin R (s ∪ t) = (adjoin R s).under (adjoin (adjoin R s) t) :=
-le_antisymm
-  (closure_mono $ set.union_subset
-    (set.range_subset_iff.2 $ λ r, or.inl ⟨algebra_map R (adjoin R s) r, rfl⟩)
-    (set.union_subset_union_left _ $ λ x hxs, ⟨⟨_, subset_adjoin hxs⟩, rfl⟩))
-  (closure_subset $ set.union_subset
-    (set.range_subset_iff.2 $ λ x, adjoin_mono (set.subset_union_left _ _) x.2)
-    (set.subset.trans (set.subset_union_right _ _) subset_adjoin))
-
+variables (R) {A} (s)
 theorem adjoin_eq_span : (adjoin R s : submodule R A) = span R (monoid.closure s) :=
 begin
   apply le_antisymm,
-  { intros r hr, rcases ring.exists_list_of_mem_closure hr with ⟨L, HL, rfl⟩, clear hr,
+  { intros r hr, rcases mem_closure_iff_exists_list.1 hr with ⟨L, HL, rfl⟩, clear hr,
     induction L with hd tl ih, { exact zero_mem _ },
     rw list.forall_mem_cons at HL,
     rw [list.map_cons, list.sum_cons],
@@ -60,33 +53,48 @@ begin
     induction hd with hd tl ih, { exact ⟨1, 1, is_submonoid.one_mem, one_smul _ _⟩ },
     rw list.forall_mem_cons at HL,
     rcases (ih HL.2) with ⟨z, r, hr, hzr⟩, rw [list.prod_cons, ← hzr],
-    rcases HL.1 with ⟨⟨hd, rfl⟩ | hs⟩ | rfl,
+    rcases HL.1 with ⟨hd, rfl⟩ | hs,
     { refine ⟨hd * z, r, hr, _⟩,
       rw [smul_def, smul_def, (algebra_map _ _).map_mul, _root_.mul_assoc] },
-    { refine ⟨z, hd * r, is_submonoid.mul_mem (monoid.subset_closure hs) hr, _⟩,
-      rw [smul_def, smul_def, mul_left_comm] },
-    { refine ⟨-z, r, hr, _⟩, rw [neg_smul, neg_one_mul] } },
+    { exact ⟨z, hd * r, is_submonoid.mul_mem (monoid.subset_closure hs) hr,
+        (mul_smul_comm _ _ _).symm⟩ } },
   exact span_le.2 (show monoid.closure s ⊆ adjoin R s, from monoid.closure_subset subset_adjoin)
 end
 
+end semiring
+
+section comm_semiring
+variables [comm_semiring R] [comm_semiring A]
+variables [algebra R A] {s t : set A}
+open subsemiring
+
+variables (R s t)
+theorem adjoin_union : adjoin R (s ∪ t) = (adjoin R s).under (adjoin (adjoin R s) t) :=
+le_antisymm
+  (closure_mono $ set.union_subset
+    (set.range_subset_iff.2 $ λ r, or.inl ⟨algebra_map R (adjoin R s) r, rfl⟩)
+    (set.union_subset_union_left _ $ λ x hxs, ⟨⟨_, subset_adjoin hxs⟩, rfl⟩))
+  (closure_le.2 $ set.union_subset
+    (set.range_subset_iff.2 $ λ x, adjoin_mono (set.subset_union_left _ _) x.2)
+    (set.subset.trans (set.subset_union_right _ _) subset_adjoin))
+
 theorem adjoin_eq_range :
-  adjoin R s = (mv_polynomial.aeval R A (coe : s → A)).range :=
+  adjoin R s = (mv_polynomial.aeval (coe : s → A)).range :=
 le_antisymm
   (adjoin_le $ λ x hx, ⟨mv_polynomial.X ⟨x, hx⟩, mv_polynomial.eval₂_X _ _ _⟩)
   (λ x ⟨p, hp⟩, hp ▸ mv_polynomial.induction_on p
-    (λ r, by rw [mv_polynomial.aeval_def, mv_polynomial.eval₂_C]; exact (adjoin R s).3 ⟨r, rfl⟩)
+    (λ r, by rw [mv_polynomial.aeval_def, mv_polynomial.eval₂_C]; exact (adjoin R s).2 r)
     (λ p q hp hq, by rw alg_hom.map_add; exact is_add_submonoid.add_mem hp hq)
-    (λ p ⟨n, hn⟩ hp, by rw [alg_hom.map_mul, mv_polynomial.aeval_def _ _ _ (mv_polynomial.X _),
+    (λ p ⟨n, hn⟩ hp, by rw [alg_hom.map_mul, mv_polynomial.aeval_def _ (mv_polynomial.X _),
       mv_polynomial.eval₂_X]; exact is_submonoid.mul_mem hp (subset_adjoin hn)))
 
-theorem adjoin_singleton_eq_range (x : A) :
-  adjoin R {x} = (polynomial.aeval R A x).range :=
+theorem adjoin_singleton_eq_range (x : A) : adjoin R {x} = (polynomial.aeval x).range :=
 le_antisymm
   (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, polynomial.eval₂_X _ _⟩)
   (λ y ⟨p, hp⟩, hp ▸ polynomial.induction_on p
-    (λ r, by rw [polynomial.aeval_def, polynomial.eval₂_C]; exact (adjoin R _).3 ⟨r, rfl⟩)
+    (λ r, by rw [polynomial.aeval_def, polynomial.eval₂_C]; exact (adjoin R _).2 r)
     (λ p q hp hq, by rw alg_hom.map_add; exact is_add_submonoid.add_mem hp hq)
-    (λ n r ih, by { rw [pow_succ', ← ring.mul_assoc, alg_hom.map_mul,
+    (λ n r ih, by { rw [pow_succ', ← mul_assoc, alg_hom.map_mul,
       polynomial.aeval_def _ polynomial.X, polynomial.eval₂_X],
       exact is_submonoid.mul_mem ih (subset_adjoin rfl) }))
 
@@ -94,18 +102,39 @@ theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t) : submodule R A) =
   (adjoin R s) * (adjoin R t) :=
 begin
   rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
-  congr' 1,
-  ext z,
-  rw monoid.mem_closure_union_iff,
-  split;
-  { rintro ⟨y, hys, z, hzt, rfl⟩, exact ⟨_, hys, _, hzt, rfl⟩ }
+  congr' 1, ext z, simp [monoid.mem_closure_union_iff, set.mem_mul],
 end
-variables {R s t}
 
-theorem adjoin_int (s : set R) : adjoin ℤ s = subalgebra_of_subring (ring.closure s) :=
+end comm_semiring
+
+section ring
+variables [comm_ring R] [ring A]
+variables [algebra R A] {s t : set A}
+variables {R s t}
+open ring
+
+theorem adjoin_int (s : set R) : adjoin ℤ s = subalgebra_of_subring (closure s) :=
 le_antisymm (adjoin_le subset_closure) (closure_subset subset_adjoin)
 
-local attribute [instance] set.pointwise_mul_semiring
+theorem mem_adjoin_iff {s : set A} {x : A} :
+  x ∈ adjoin R s ↔ x ∈ closure (set.range (algebra_map R A) ∪ s) :=
+⟨λ hx, subsemiring.closure_induction hx subset_closure is_add_submonoid.zero_mem
+  is_submonoid.one_mem (λ _ _, is_add_submonoid.add_mem) (λ _ _, is_submonoid.mul_mem),
+suffices closure (set.range ⇑(algebra_map R A) ∪ s) ⊆ adjoin R s, from @this x,
+closure_subset subsemiring.subset_closure⟩
+
+
+theorem adjoin_eq_ring_closure (s : set A) :
+  (adjoin R s : set A) = closure (set.range (algebra_map R A) ∪ s) :=
+set.ext $ λ x, mem_adjoin_iff
+
+end ring
+
+section comm_ring
+variables [comm_ring R] [comm_ring A]
+variables [algebra R A] {s t : set A}
+variables {R s t}
+open ring
 
 theorem fg_trans (h1 : (adjoin R s : submodule R A).fg)
   (h2 : (adjoin (adjoin R s) t : submodule (adjoin R s) A).fg) :
@@ -113,9 +142,9 @@ theorem fg_trans (h1 : (adjoin R s : submodule R A).fg)
 begin
   rcases fg_def.1 h1 with ⟨p, hp, hp'⟩,
   rcases fg_def.1 h2 with ⟨q, hq, hq'⟩,
-  refine fg_def.2 ⟨p * q, set.pointwise_mul_finite hp hq, le_antisymm _ _⟩,
+  refine fg_def.2 ⟨p * q, hp.mul hq, le_antisymm _ _⟩,
   { rw [span_le],
-    rintros _ ⟨x, hx, y, hy, rfl⟩,
+    rintros _ ⟨x, y, hx, hy, rfl⟩,
     change x * y ∈ _,
     refine is_submonoid.mul_mem _ _,
     { have : x ∈ (adjoin R s : submodule R A),
@@ -144,8 +173,10 @@ begin
     rw [←hl, finsupp.sum_mul],
     refine sum_mem _ _,
     intros t ht, change _ * _ ∈ _, rw smul_mul_assoc, refine smul_mem _ _ _,
-    exact subset_span ⟨t, hlp ht, z, hlq hz, rfl⟩ }
+    exact subset_span ⟨t, z, hlp ht, hlq hz, rfl⟩ }
 end
+
+end comm_ring
 
 end algebra
 

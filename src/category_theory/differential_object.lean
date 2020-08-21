@@ -25,7 +25,7 @@ namespace category_theory
 
 variables (C : Type u) [category.{v} C]
 
-variables [has_zero_morphisms.{v} C] [has_shift.{v} C]
+variables [has_zero_morphisms C] [has_shift C]
 
 /--
 A differential object in a category with zero morphisms and a shift is
@@ -49,7 +49,7 @@ namespace differential_object
 A morphism of differential objects is a morphism commuting with the differentials.
 -/
 @[ext, nolint has_inhabited_instance]
-structure hom (X Y : differential_object.{v} C) :=
+structure hom (X Y : differential_object C) :=
 (f : X.X ⟶ Y.X)
 (comm' : X.d ≫ f⟦1⟧' = f ≫ Y.d . obviously)
 
@@ -60,47 +60,47 @@ namespace hom
 
 /-- The identity morphism of a differential object. -/
 @[simps]
-def id (X : differential_object.{v} C) : hom X X :=
+def id (X : differential_object C) : hom X X :=
 { f := 𝟙 X.X }
 
 /-- The composition of morphisms of differential objects. -/
 @[simps]
-def comp {X Y Z : differential_object.{v} C} (f : hom X Y) (g : hom Y Z) : hom X Z :=
+def comp {X Y Z : differential_object C} (f : hom X Y) (g : hom Y Z) : hom X Z :=
 { f := f.f ≫ g.f, }
 
 end hom
 
-instance category_of_differential_objects : category.{v} (differential_object.{v} C) :=
+instance category_of_differential_objects : category (differential_object C) :=
 { hom := hom,
   id := hom.id,
   comp := λ X Y Z f g, hom.comp f g, }
 
 @[simp]
-lemma id_f (X : differential_object.{v} C) : ((𝟙 X) : X ⟶ X).f = 𝟙 (X.X) := rfl
+lemma id_f (X : differential_object C) : ((𝟙 X) : X ⟶ X).f = 𝟙 (X.X) := rfl
 
 @[simp]
-lemma comp_f {X Y Z : differential_object.{v} C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+lemma comp_f {X Y Z : differential_object C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).f = f.f ≫ g.f :=
 rfl
 
 variables (C)
 
 /-- The forgetful functor taking a differential object to its underlying object. -/
-def forget : (differential_object.{v} C) ⥤ C :=
+def forget : (differential_object C) ⥤ C :=
 { obj := λ X, X.X,
   map := λ X Y f, f.f, }
 
 instance forget_faithful : faithful (forget C) :=
 { }
 
-instance has_zero_morphisms : has_zero_morphisms.{v} (differential_object.{v} C) :=
+instance has_zero_morphisms : has_zero_morphisms (differential_object C) :=
 { has_zero := λ X Y,
   ⟨{ f := 0, }⟩}
 
 variables {C}
 
 @[simp]
-lemma zero_f (P Q : differential_object.{v} C) : (0 : P ⟶ Q).f = 0 := rfl
+lemma zero_f (P Q : differential_object C) : (0 : P ⟶ Q).f = 0 := rfl
 
 end differential_object
 
@@ -112,11 +112,11 @@ namespace differential_object
 
 variables (C : Type u) [category.{v} C]
 
-variables [has_zero_object.{v} C] [has_zero_morphisms.{v} C] [has_shift.{v} C]
+variables [has_zero_object C] [has_zero_morphisms C] [has_shift C]
 
 local attribute [instance] has_zero_object.has_zero
 
-instance has_zero_object : has_zero_object.{v} (differential_object.{v} C) :=
+instance has_zero_object : has_zero_object (differential_object C) :=
 { zero :=
   { X := (0 : C),
     d := 0, },
@@ -128,13 +128,13 @@ end differential_object
 namespace differential_object
 
 variables (C : Type (u+1)) [large_category C] [concrete_category C]
-  [has_zero_morphisms.{u} C] [has_shift.{u} C]
+  [has_zero_morphisms C] [has_shift C]
 
 instance concrete_category_of_differential_objects :
-  concrete_category (differential_object.{u} C) :=
+  concrete_category (differential_object C) :=
 { forget := forget C ⋙ category_theory.forget C }
 
-instance : has_forget₂ (differential_object.{u} C) C :=
+instance : has_forget₂ (differential_object C) C :=
 { forget₂ := forget C }
 
 end differential_object

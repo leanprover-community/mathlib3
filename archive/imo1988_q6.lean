@@ -190,7 +190,7 @@ begin
   simp only [nat.pow_two] at hk,
   apply constant_descent_vieta_jumping a b hk (λ x, k * x) (λ x, x*x - k) (λ x y, false);
   clear hk a b,
-  { -- We will now show that the fibres of the solution set are described by a quadratic equation.
+  { -- We will now show that the fibers of the solution set are described by a quadratic equation.
     intros x y, dsimp only,
     rw [← int.coe_nat_inj', ← sub_eq_zero],
     apply eq_iff_eq_cancel_right.2,
@@ -212,7 +212,7 @@ begin
     apply ne_of_lt,
     calc x*x + x*x = x*x * 2       : by rw mul_two
                ... ≤ x*x * k       : nat.mul_le_mul_left (x*x) k_lt_one
-               ... < (x*x + 1) * k : by apply mul_lt_mul; linarith },
+               ... < (x*x + 1) * k : by linarith },
   { -- Show the descent step.
     intros x y hx x_lt_y hxky h z h_root hV₁ hV₀,
     split,
@@ -249,7 +249,7 @@ begin
   simp only [nat.pow_two] at hk,
   apply constant_descent_vieta_jumping a b hk (λ x, k * x) (λ x, x*x + 1) (λ x y, x ≤ 1);
   clear hk a b,
-  { -- We will now show that the fibres of the solution set are described by a quadratic equation.
+  { -- We will now show that the fibers of the solution set are described by a quadratic equation.
     intros x y, dsimp only,
     rw [← int.coe_nat_inj', ← sub_eq_zero],
     apply eq_iff_eq_cancel_right.2,

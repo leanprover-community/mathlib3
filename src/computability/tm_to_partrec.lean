@@ -188,12 +188,13 @@ begin
   suffices : ∃ c : code, ∀ v : vector ℕ m,
     c.eval v.1 = subtype.val <$> vector.m_of_fn (λ i, g i v),
   { obtain ⟨cf, hf⟩ := hf, obtain ⟨cg, hg⟩ := this,
-    exact ⟨cf.comp cg, λ v, by simp [hg, hf, map_bind, seq_bind_eq, (∘)]; refl⟩ },
+    exact ⟨cf.comp cg, λ v,
+      by { simp [hg, hf, map_bind, seq_bind_eq, (∘), -subtype.val_eq_coe], refl }⟩ },
   clear hf f, induction n with n IH,
   { exact ⟨nil, λ v, by simp [vector.m_of_fn]; refl⟩ },
   { obtain ⟨cg, hg₁⟩ := hg 0, obtain ⟨cl, hl⟩ := IH (λ i, hg i.succ),
-    exact ⟨cons cg cl, λ v, by simp [vector.m_of_fn, hg₁, map_bind,
-      seq_bind_eq, bind_assoc, (∘), hl]; refl⟩ },
+    exact ⟨cons cg cl, λ v, by { simp [vector.m_of_fn, hg₁, map_bind,
+      seq_bind_eq, bind_assoc, (∘), hl, -subtype.val_eq_coe], refl }⟩ },
 end
 
 theorem exists_code {n} {f : vector ℕ n →. ℕ} (hf : nat.partrec' f) :
@@ -220,7 +221,7 @@ begin
       vector.cons_tail, vector.cons_head, pfun.coe_val, vector.tail_val],
     simp only [← roption.pure_eq_some] at hf hg ⊢,
     induction v.head with n IH; simp [prec, hf, bind_assoc, ← roption.map_eq_map,
-      ← bind_pure_comp_eq_map, show ∀ x, pure x = [x], from λ _, rfl],
+      ← bind_pure_comp_eq_map, show ∀ x, pure x = [x], from λ _, rfl, -subtype.val_eq_coe],
     suffices : ∀ a b, a + b = n →
       (n.succ :: 0 :: g (n :: nat.elim (f v.tail) (λ y IH, g (y::IH::v.tail)) n :: v.tail)
          :: v.val.tail : list ℕ) ∈
@@ -269,13 +270,13 @@ begin
         subst this, exact ⟨_, ⟨h, hm⟩, rfl⟩ },
       { simp only [list.head, exists_eq_left, roption.mem_some_iff,
           list.tail_cons, false_or] at this,
-        refine IH _ this (by simp [hf, h]) _ rfl (λ m h', _),
+        refine IH _ this (by simp [hf, h, -subtype.val_eq_coe]) _ rfl (λ m h', _),
         obtain h|rfl := nat.lt_succ_iff_lt_or_eq.1 h', exacts [hm _ h, h] } },
     { rintro ⟨n, ⟨hn, hm⟩, rfl⟩, refine ⟨n.succ :: v.1, _, rfl⟩,
       have : (n.succ :: v.1 : list ℕ) ∈ pfun.fix
         (λ v, (cf.eval v).bind $ λ y, roption.some $ if y.head = 0 then
           sum.inl (v.head.succ :: v.tail) else sum.inr (v.head.succ :: v.tail)) (n :: v.val) :=
-        pfun.mem_fix_iff.2 (or.inl (by simp [hf, hn])),
+        pfun.mem_fix_iff.2 (or.inl (by simp [hf, hn, -subtype.val_eq_coe])),
       generalize_hyp : (n.succ :: v.1 : list ℕ) = w at this ⊢, clear hn,
       induction n with n IH, {exact this},
       refine IH (λ m h', hm (nat.lt_succ_of_lt h')) (pfun.mem_fix_iff.2 (or.inr ⟨_, _, this⟩)),

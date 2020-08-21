@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 
 Natural homomorphism from the natural numbers into a monoid with one.
 -/
-import algebra.field
 import data.nat.cast
 import tactic.wlog
 
@@ -63,6 +62,16 @@ not_congr cast_eq_zero
 lemma cast_add_one_ne_zero (n : ℕ) : (n + 1 : α) ≠ 0 :=
 by exact_mod_cast n.succ_ne_zero
 
+@[simp, norm_cast]
+theorem cast_dvd_char_zero {α : Type*} [field α] [char_zero α] {m n : ℕ}
+  (n_dvd : n ∣ m) : ((m / n : ℕ) : α) = m / n :=
+begin
+  by_cases hn : n = 0,
+  { subst hn,
+    simp },
+  { exact cast_dvd n_dvd (cast_ne_zero.mpr hn), },
+end
+
 end nat
 
 @[field_simps] lemma two_ne_zero' {α : Type*} [add_monoid α] [has_one α] [char_zero α] : (2:α) ≠ 0 :=
@@ -70,7 +79,7 @@ have ((2:ℕ):α) ≠ 0, from nat.cast_ne_zero.2 dec_trivial,
 by rwa [nat.cast_succ, nat.cast_one] at this
 
 section
-variables {α : Type*} [domain α] [char_zero α]
+variables {α : Type*} [semiring α] [no_zero_divisors α] [char_zero α]
 
 lemma add_self_eq_zero {a : α} : a + a = 0 ↔ a = 0 :=
 by simp only [(two_mul a).symm, mul_eq_zero, two_ne_zero', false_or]

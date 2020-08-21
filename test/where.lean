@@ -1,4 +1,4 @@
-import data.multiset
+import data.multiset.basic
 import tactic.where
 
 -- First set up the testing framework...

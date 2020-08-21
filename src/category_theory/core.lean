@@ -13,6 +13,7 @@ universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.c
 
 /-- The core of a category C is the groupoid whose morphisms are all the
 isomorphisms of C. -/
+@[nolint has_inhabited_instance]
 def core (C : Type u₁) := C
 
 variables {C : Type u₁} [category.{v₁} C]
@@ -42,6 +43,10 @@ def functor_to_core (F : G ⥤ C) : G ⥤ core C :=
 { obj := λ X, F.obj X,
   map := λ X Y f, ⟨F.map f, F.map (inv f)⟩ }
 
+/--
+We can functorially associate to any functor from a groupoid to the core of a category `C`,
+a functor from the groupoid to `C`, simply by composing with the embedding `core C ⥤ C`.
+-/
 def forget_functor_to_core : (G ⥤ core C) ⥤ (G ⥤ C) := (whiskering_right _ _ _).obj inclusion
 end core
 

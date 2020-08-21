@@ -12,6 +12,12 @@ open opposite
 
 variables {C : Type u} [category.{v} C]
 
+/--
+An equality `X = Y` gives us a morphism `X ⟶ Y`.
+
+It is typically better to use this, rather than rewriting by the equality then using `𝟙 _`
+which usually leads to dependent type theory hell.
+-/
 def eq_to_hom {X Y : C} (p : X = Y) : X ⟶ Y := by rw p; exact 𝟙 _
 
 @[simp] lemma eq_to_hom_refl (X : C) (p : X = X) : eq_to_hom p = 𝟙 X := rfl
@@ -19,6 +25,12 @@ def eq_to_hom {X Y : C} (p : X = Y) : X ⟶ Y := by rw p; exact 𝟙 _
   eq_to_hom p ≫ eq_to_hom q = eq_to_hom (p.trans q) :=
 by cases p; cases q; simp
 
+/--
+An equality `X = Y` gives us a morphism `X ⟶ Y`.
+
+It is typically better to use this, rather than rewriting by the equality then using `iso.refl _`
+which usually leads to dependent type theory hell.
+-/
 def eq_to_iso {X Y : C} (p : X = Y) : X ≅ Y :=
 ⟨eq_to_hom p, eq_to_hom p.symm, by simp, by simp⟩
 
@@ -54,6 +66,18 @@ begin
   congr,
   funext X Y f,
   simpa using h_map X Y f
+end
+
+/-- Proving equality between functors using heterogeneous equality. -/
+lemma hext {F G : C ⥤ D} (h_obj : ∀ X, F.obj X = G.obj X)
+  (h_map : ∀ X Y (f : X ⟶ Y), F.map f == G.map f) : F = G :=
+begin
+  cases F with F_obj _ _ _, cases G with G_obj _ _ _,
+  have : F_obj = G_obj, by ext X; apply h_obj,
+  subst this,
+  congr,
+  funext X Y f,
+  exact eq_of_heq (h_map X Y f)
 end
 
 -- Using equalities between functors.

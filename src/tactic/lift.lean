@@ -112,7 +112,7 @@ do
   temp_e ← note temp_nm none prf_ex,
   dsimp_hyp temp_e s to_unfold {},
   /- We case on the existential. We use `rcases` because `eq_nm` could be `rfl`. -/
-  rcases none (pexpr.of_expr temp_e) [[rcases_patt.one new_nm, rcases_patt.one eq_nm]],
+  rcases none (pexpr.of_expr temp_e) $ rcases_patt.tuple ([new_nm, eq_nm].map rcases_patt.one),
   /- If the lifted variable is not a local constant, try to rewrite it away using the new equality-/
   when (¬ e.is_local_constant) (get_local eq_nm >>=
     λ e, interactive.rw ⟨[⟨⟨0, 0⟩, tt, (pexpr.of_expr e)⟩], none⟩ interactive.loc.wildcard),
@@ -163,6 +163,11 @@ Lift an expression to another type.
 * Given an instance `can_lift β γ`, it can also lift `α → β` to `α → γ`; more generally, given
   `β : Π a : α, Type*`, `γ : Π a : α, Type*`, and `[Π a : α, can_lift (β a) (γ a)]`, it automatically
   generates an instance `can_lift (Π a, β a) (Π a, γ a)`.
+
+`lift` is in some sense dual to the `zify` tactic. `lift (z : ℤ) to ℕ` will change the type of an
+integer `z` (in the supertype) to `ℕ` (the subtype), given a proof that `z ≥ 0`;
+propositions concerning `z` will still be over `ℤ`. `zify` changes propositions about `ℕ` (the
+subtype) to propositions about `ℤ` (the supertype), without changing the type of any variable.
 -/
 meta def lift (p : parse texpr) (t : parse to_texpr) (h : parse using_texpr)
   (n : parse with_ident_list) : tactic unit :=

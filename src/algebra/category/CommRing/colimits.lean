@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.category.CommRing.basic
+import category_theory.limits.limits
+import category_theory.limits.concrete_category
 
 /-!
 # The category of commutative rings has all colimits.
@@ -47,9 +49,9 @@ comm_ring.right_distrib : ∀ {α : Type u} [c : comm_ring α] (a b c_1 : α), (
 
 namespace CommRing.colimits
 /-!
-We build the colimit of a diagram in `Mon` by constructing the
-free monoid on the disjoint union of all the monoids in the diagram,
-then taking the quotient by the monoid laws within each monoid,
+We build the colimit of a diagram in `CommRing` by constructing the
+free commutative ring on the disjoint union of all the commutative rings in the diagram,
+then taking the quotient by the commutative ring laws within each commutative ring,
 and the identifications given by the morphisms in the diagram.
 -/
 
@@ -395,7 +397,6 @@ begin
 end
 
 /-- The ring homomorphism from the colimit commutative ring to the cone point of any other cocone. -/
-@[simps]
 def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
 { to_fun := desc_fun F s,
   map_one' := rfl,
@@ -422,7 +423,7 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
     refl
   end }.
 
-instance has_colimits_CommRing : has_colimits.{v} CommRing.{v} :=
+instance has_colimits_CommRing : has_colimits CommRing :=
 { has_colimits_of_shape := λ J 𝒥,
   { has_colimit := λ F, by exactI
     { cocone := colimit_cocone F,

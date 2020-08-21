@@ -20,9 +20,10 @@ open category_theory.equivalence
 /-- The forgetful functor from `ℤ` modules to `AddCommGroup` is full. -/
 instance : full (forget₂ (Module ℤ) AddCommGroup) :=
 { preimage := λ A B f,
+  -- TODO: why `add_monoid_hom.to_int_linear_map` doesn't work here?
   { to_fun := f,
-    add := λ x y, add_monoid_hom.map_add f x y,
-    smul := λ n x, by convert add_monoid_hom.map_int_module_smul f n x } }
+    map_add' := add_monoid_hom.map_add f,
+    map_smul' := λ n x, by convert add_monoid_hom.map_int_module_smul f n x } }
 
 /-- The forgetful functor from `ℤ` modules to `AddCommGroup` is essentially surjective. -/
 instance : ess_surj (forget₂ (Module ℤ) AddCommGroup) :=

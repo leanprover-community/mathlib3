@@ -3,6 +3,7 @@ Copyright (c) 2018 Rohan Mitta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudryashov
 -/
+import logic.function.iterate
 import topology.metric_space.basic
 import category_theory.endomorphism
 import category_theory.types
@@ -144,7 +145,7 @@ begin
   rintros ⟨a₁, b₁⟩ ⟨a₂, b₂⟩,
   simp only [function.uncurry, ennreal.coe_add, add_mul],
   apply le_trans (edist_triangle _ (f a₂ b₁) _),
-  exact add_le_add' (le_trans (hα _ _ _) $ ennreal.mul_left_mono $ le_max_left _ _)
+  exact add_le_add (le_trans (hα _ _ _) $ ennreal.mul_left_mono $ le_max_left _ _)
     (le_trans (hβ _ _ _) $ ennreal.mul_left_mono $ le_max_right _ _)
 end
 

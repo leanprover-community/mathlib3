@@ -12,7 +12,6 @@ Introduces notations
   `C ⥤ D` for the type of all functors from `C` to `D`.
     (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)
 -/
-import category_theory.category
 import tactic.reassoc_axiom
 
 namespace category_theory
@@ -53,7 +52,9 @@ protected def id : C ⥤ C :=
 { obj := λ X, X,
   map := λ _ _ f, f }
 
-notation `𝟭` := functor.id
+notation `𝟭` := functor.id -- Type this as `\sb1`
+
+instance : inhabited (C ⥤ C) := ⟨functor.id C⟩
 
 variable {C}
 
@@ -84,19 +85,6 @@ infixr ` ⋙ `:80 := comp
 -- Natural isomorphisms are also provided in `whiskering.lean`.
 protected lemma comp_id (F : C ⥤ D) : F ⋙ (𝟭 D) = F := by cases F; refl
 protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F := by cases F; refl
-
-end
-
-section
-variables (C : Type u₁) [category.{v₁} C]
-
-@[simp] def ulift_down : (ulift.{u₂} C) ⥤ C :=
-{ obj := λ X, X.down,
-  map := λ X Y f, f }
-
-@[simp] def ulift_up : C ⥤ (ulift.{u₂} C) :=
-{ obj := λ X, ⟨ X ⟩,
-  map := λ X Y f, f }
 
 end
 

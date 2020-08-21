@@ -150,7 +150,7 @@ let ⟨c, hc⟩ := h in hc.exists_nonneg
 /-! ### Congruence -/
 
 theorem is_O_with_congr {c₁ c₂} {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-  (hc : c₁ = c₂) (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+  (hc : c₁ = c₂) (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_O_with c₁ f₁ g₁ l ↔ is_O_with c₂ f₂ g₂ l :=
 begin
   subst c₂,
@@ -162,7 +162,7 @@ begin
 end
 
 theorem is_O_with.congr' {c₁ c₂} {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-  (hc : c₁ = c₂) (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+  (hc : c₁ = c₂) (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_O_with c₁ f₁ g₁ l → is_O_with c₂ f₂ g₂ l :=
 (is_O_with_congr hc hf hg).mp
 
@@ -184,12 +184,12 @@ theorem is_O_with.congr_const {c₁ c₂} {l : filter α} (hc : c₁ = c₂) :
 is_O_with.congr hc (λ _, rfl) (λ _, rfl)
 
 theorem is_O_congr {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-    (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+    (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_O f₁ g₁ l ↔ is_O f₂ g₂ l :=
 exists_congr $ λ c, is_O_with_congr rfl hf hg
 
 theorem is_O.congr' {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-  (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+    (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_O f₁ g₁ l → is_O f₂ g₂ l :=
 (is_O_congr hf hg).mp
 
@@ -207,12 +207,12 @@ theorem is_O.congr_right {g₁ g₂ : α → E} {l : filter α} (hg : ∀ x, g�
 is_O.congr (λ _, rfl) hg
 
 theorem is_o_congr {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-    (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+    (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_o f₁ g₁ l ↔ is_o f₂ g₂ l :=
 ball_congr (λ c hc, is_O_with_congr (eq.refl c) hf hg)
 
 theorem is_o.congr' {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-  (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
+    (hf : f₁ =ᶠ[l] f₂) (hg : g₁ =ᶠ[l] g₂) :
   is_o f₁ g₁ l → is_o f₂ g₂ l :=
 (is_o_congr hf hg).mp
 
@@ -324,6 +324,10 @@ theorem is_O_with.trans_le (hfg : is_O_with c f g l) (hgk : ∀ x, ∥g x∥ ≤
 theorem is_O.trans_le (hfg : is_O f g' l) (hgk : ∀ x, ∥g' x∥ ≤ ∥k x∥) :
   is_O f k l :=
 hfg.trans (is_O_of_le l hgk)
+
+theorem is_o.trans_le (hfg : is_o f g l) (hgk : ∀ x, ∥g x∥ ≤ ∥k x∥) :
+  is_o f k l :=
+hfg.trans_is_O_with (is_O_with_of_le _ hgk) zero_lt_one
 
 section bot
 
@@ -546,6 +550,11 @@ theorem is_O.add : is_O f₁ g l → is_O f₂ g l → is_O (λ x, f₁ x + f₂
 theorem is_o.add (h₁ : is_o f₁ g l) (h₂ : is_o f₂ g l) : is_o (λ x, f₁ x + f₂ x) g l :=
 λ c cpos, ((h₁ $ half_pos cpos).add (h₂ $ half_pos cpos)).congr_const (add_halves c)
 
+theorem is_o.add_add {g₁ g₂ : α → F'} (h₁ : is_o f₁ g₁ l) (h₂ : is_o f₂ g₂ l) :
+  is_o (λ x, f₁ x + f₂ x) (λ x, ∥g₁ x∥ + ∥g₂ x∥) l :=
+by refine (h₁.trans_le $ λ x, _).add (h₂.trans_le _);
+  simp [real.norm_eq_abs, abs_of_nonneg, add_nonneg]
+
 theorem is_O.add_is_o (h₁ : is_O f₁ g l) (h₂ : is_o f₂ g l) : is_O (λ x, f₁ x + f₂ x) g l :=
 h₁.add h₂.is_O
 
@@ -708,6 +717,10 @@ begin
   simp only [is_o, is_O_with, normed_field.norm_one, mul_one,
     metric.nhds_basis_closed_ball.tendsto_right_iff, metric.mem_closed_ball, dist_zero_right]
 end
+
+lemma is_o_id_const {c : F'} (hc : c ≠ 0) :
+  is_o (λ (x : E'), x) (λ x, c) (𝓝 0) :=
+(is_o_const_iff hc).mpr (continuous_id.tendsto 0)
 
 theorem is_O_const_of_tendsto {y : E'} (h : tendsto f' l (𝓝 y)) {c : F'} (hc : c ≠ 0) :
   is_O f' (λ x, c) l :=
@@ -1068,7 +1081,7 @@ theorem is_O_with.right_le_sub_of_lt_1 {f₁ f₂ : α → E'} (h : is_O_with c 
 mem_sets_of_superset h $ λ x hx,
 begin
   simp only [mem_set_of_eq] at hx ⊢,
-  rw [mul_comm, one_div_eq_inv, ← div_eq_mul_inv, le_div_iff, mul_sub, mul_one, mul_comm],
+  rw [mul_comm, one_div, ← div_eq_mul_inv, le_div_iff, mul_sub, mul_one, mul_comm],
   { exact le_trans (sub_le_sub_left hx _) (norm_sub_norm_le _ _) },
   { exact sub_pos.2 hc }
 end

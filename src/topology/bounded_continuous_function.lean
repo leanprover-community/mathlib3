@@ -148,8 +148,7 @@ begin
   /- F : α → β,  hF : ∀ (x : α), tendsto (λ (n : ℕ), f n x) at_top (𝓝 (F x))
   `F` is the desired limit function. Check that it is uniformly approximated by `f N` -/
   have fF_bdd : ∀x N, dist (f N x) (F x) ≤ b N :=
-    λ x N, le_of_tendsto (by simp)
-      (tendsto_const_nhds.dist (hF x))
+    λ x N, le_of_tendsto (tendsto_const_nhds.dist (hF x))
       (filter.eventually_at_top.2 ⟨N, λn hn, f_bdd x N n N (le_refl N) hn⟩),
   refine ⟨⟨F, _, _⟩, _⟩,
   { /- Check that `F` is continuous, as a uniform limit of continuous functions -/
@@ -158,7 +157,7 @@ begin
       refine ((tendsto_order.1 b_lim).2 ε ε0).mono (λ n hn x, _),
       rw dist_comm,
       exact lt_of_le_of_lt (fF_bdd x n) hn },
-    exact this.continuous (λN, (f N).2.1) at_top_ne_bot },
+    exact this.continuous (λN, (f N).2.1) },
   { /- Check that `F` is bounded -/
     rcases (f 0).2.2 with ⟨C, hC⟩,
     exact ⟨C + (b 0 + b 0), λ x y, calc
@@ -219,7 +218,7 @@ theorem arzela_ascoli₁ [compact_space β]
   (closed : is_closed A)
   (H : ∀ (x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε) :
-  compact A :=
+  is_compact A :=
 begin
   refine compact_of_totally_bounded_is_closed _ closed,
   refine totally_bounded_of_finite_discretization (λ ε ε0, _),
@@ -277,20 +276,20 @@ end
 
 /-- Second version, with pointwise equicontinuity and range in a compact subset -/
 theorem arzela_ascoli₂
-  (s : set β) (hs : compact s)
+  (s : set β) (hs : is_compact s)
   (A : set (α →ᵇ β))
   (closed : is_closed A)
   (in_s : ∀(f : α →ᵇ β) (x : α), f ∈ A → f x ∈ s)
   (H : ∀(x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε) :
-  compact A :=
+  is_compact A :=
 /- This version is deduced from the previous one by restricting to the compact type in the target,
 using compactness there and then lifting everything to the original space. -/
 begin
   have M : lipschitz_with 1 coe := lipschitz_with.subtype_coe s,
   let F : (α →ᵇ s) → α →ᵇ β := comp coe M,
   refine compact_of_is_closed_subset
-    ((_ : compact (F ⁻¹' A)).image (continuous_comp M)) closed (λ f hf, _),
+    ((_ : is_compact (F ⁻¹' A)).image (continuous_comp M)) closed (λ f hf, _),
   { haveI : compact_space s := compact_iff_compact_space.1 hs,
     refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp M) _ closed)
       (λ x ε ε0, bex.imp_right (λ U U_nhds hU y z hy hz f hf, _) (H x ε ε0)),
@@ -304,16 +303,16 @@ end
 /-- Third (main) version, with pointwise equicontinuity and range in a compact subset, but
 without closedness. The closure is then compact -/
 theorem arzela_ascoli
-  (s : set β) (hs : compact s)
+  (s : set β) (hs : is_compact s)
   (A : set (α →ᵇ β))
   (in_s : ∀(f : α →ᵇ β) (x : α), f ∈ A → f x ∈ s)
   (H : ∀(x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε) :
-  compact (closure A) :=
+  is_compact (closure A) :=
 /- This version is deduced from the previous one by checking that the closure of A, in
 addition to being closed, still satisfies the properties of compact range and equicontinuity -/
 arzela_ascoli₂ s hs (closure A) is_closed_closure
-  (λ f x hf, (mem_of_closed' (closed_of_compact _ hs)).2 $ λ ε ε0,
+  (λ f x hf, (mem_of_closed' hs.is_closed).2 $ λ ε ε0,
     let ⟨g, gA, dist_fg⟩ := metric.mem_closure_iff.1 hf ε ε0 in
     ⟨g x, in_s g x gA, lt_of_le_of_lt (dist_coe_le_dist _) dist_fg⟩)
   (λ x ε ε0, show ∃ U ∈ 𝓝 x,
@@ -336,7 +335,7 @@ lemma equicontinuous_of_continuity_modulus {α : Type u} [metric_space α]
   (b : ℝ → ℝ) (b_lim : tendsto b (𝓝 0) (𝓝 0))
   (A : set (α →ᵇ β))
   (H : ∀(x y:α) (f : α →ᵇ β), f ∈ A → dist (f x) (f y) ≤ b (dist x y))
-  (x:α) (ε : ℝ) (ε0 : ε > 0) : ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
+  (x:α) (ε : ℝ) (ε0 : 0 < ε) : ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε :=
 begin
   rcases tendsto_nhds_nhds.1 b_lim ε ε0 with ⟨δ, δ0, hδ⟩,
@@ -485,8 +484,8 @@ instance : has_scalar 𝕜 (α →ᵇ β) :=
 @[simp] lemma coe_smul (c : 𝕜) (f : α →ᵇ β) : ⇑(c • f) = λ x, c • (f x) := rfl
 lemma smul_apply (c : 𝕜) (f : α →ᵇ β) (x : α) : (c • f) x = c • f x := rfl
 
-instance : module 𝕜 (α →ᵇ β) :=
-module.of_core $
+instance : semimodule 𝕜 (α →ᵇ β) :=
+semimodule.of_core $
 { smul     := (•),
   smul_add := λ c f g, ext $ λ x, smul_add c (f x) (g x),
   add_smul := λ c₁ c₂ f, ext $ λ x, add_smul c₁ c₂ (f x),
@@ -551,7 +550,7 @@ instance : algebra 𝕜 (α →ᵇ γ) :=
 { to_ring_hom := C,
   commutes' := λ c f, ext $ λ x, algebra.commutes' _ _,
   smul_def' := λ c f, ext $ λ x, algebra.smul_def' _ _,
-  ..bounded_continuous_function.module,
+  ..bounded_continuous_function.semimodule,
   ..bounded_continuous_function.ring }
 
 instance [nonempty α] : normed_algebra 𝕜 (α →ᵇ γ) :=
@@ -577,7 +576,7 @@ instance has_scalar' : has_scalar (α →ᵇ 𝕜) (α →ᵇ β) :=
     (norm_nonneg _)) ⟩
 
 instance module' : module (α →ᵇ 𝕜) (α →ᵇ β) :=
-module.of_core $
+semimodule.of_core $
 { smul     := (•),
   smul_add := λ c f₁ f₂, ext $ λ x, smul_add _ _ _,
   add_smul := λ c₁ c₂ f, ext $ λ x, add_smul _ _ _,

@@ -63,8 +63,8 @@ have hF₁ : F.eval z' = f.eval z₀ - f.eval z₀ * (g.eval z₀).abs * δ ^ n 
       neg_mul_eq_neg_mul_symm, mul_one, div_eq_mul_inv];
     simp only [mul_comm, mul_left_comm, mul_assoc],
 have hδs : (g.eval z₀).abs * δ ^ n / (f.eval z₀).abs < 1,
-  by rw [div_eq_mul_inv, mul_right_comm, mul_comm, ← @inv_inv' _ _ (complex.abs _ * _), mul_inv',
-      inv_inv', ← div_eq_mul_inv, div_lt_iff hfg0, one_mul];
+  by rw [div_eq_mul_inv, mul_right_comm, mul_comm, ← @inv_inv' _ _ (complex.abs _ * _),
+      mul_inv_rev', inv_inv', ← div_eq_mul_inv, div_lt_iff hfg0, one_mul];
     calc δ ^ n ≤ δ ^ 1 : pow_le_pow_of_le_one (le_of_lt hδ0) hδ1 hn0
       ... = δ : pow_one _
       ... ≤ ((f.eval z₀).abs / (g.eval z₀).abs) / 2 : min_le_right _ _

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
 import tactic.basic
-import tactic.tidy
 
 /-!
 # Categories
@@ -29,16 +28,7 @@ universes v u
 
 namespace category_theory
 
-/-
-The propositional fields of `category` are annotated with the auto_param `obviously`,
-which is defined here as a
-[`replacer` tactic](https://leanprover-community.github.io/mathlib_docs/commands.html#def_replacer).
-We then immediately set up `obviously` to call `tidy`. Later, this can be replaced with more
-powerful tactics.
--/
-def_replacer obviously
-@[obviously] meta def obviously' := tactic.tidy
-
+/-- A 'notation typeclass' on the way to defining a category. -/
 class has_hom (obj : Type u) : Type (max u (v+1)) :=
 (hom : obj → obj → Type v)
 
@@ -46,6 +36,9 @@ infixr ` ⟶ `:10 := has_hom.hom -- type as \h
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
+
+/-- A preliminary structure on the way to defining a category,
+containing the data, but none of the axioms. -/
 class category_struct (obj : Type u)
 extends has_hom.{v} obj : Type (max u (v+1)) :=
 (id       : Π X : obj, hom X X)
@@ -117,14 +110,33 @@ by { convert w (𝟙 X), tidy }
 lemma id_of_comp_right_id (f : X ⟶ X) (w : ∀ {Y : C} (g : Y ⟶ X), g ≫ f = g) : f = 𝟙 X :=
 by { convert w (𝟙 X), tidy }
 
-class epi  (f : X ⟶ Y) : Prop :=
+lemma comp_dite {P : Prop} [decidable P]
+  {X Y Z : C} (f : X ⟶ Y) (g : P → (Y ⟶ Z)) (g' : ¬P → (Y ⟶ Z)) :
+  (f ≫ if h : P then g h else g' h) = (if h : P then f ≫ g h else f ≫ g' h) :=
+by { split_ifs; refl }
+
+lemma dite_comp {P : Prop} [decidable P]
+  {X Y Z : C} (f : P → (X ⟶ Y)) (f' : ¬P → (X ⟶ Y)) (g : Y ⟶ Z) :
+  (if h : P then f h else f' h) ≫ g = (if h : P then f h ≫ g else f' h ≫ g) :=
+by { split_ifs; refl }
+
+/--
+A morphism `f` is an epimorphism if it can be "cancelled" when precomposed:
+`f ≫ g = f ≫ h` implies `g = h`.
+-/
+class epi (f : X ⟶ Y) : Prop :=
 (left_cancellation : Π {Z : C} (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h), g = h)
+
+/--
+A morphism `f` is a monomorphism if it can be "cancelled" when postcomposed:
+`g ≫ f = h ≫ f` implies `g = h`.
+-/
 class mono (f : X ⟶ Y) : Prop :=
 (right_cancellation : Π {Z : C} (g h : Z ⟶ X) (w : g ≫ f = h ≫ f), g = h)
 
-instance (X : C) : epi.{v} (𝟙 X) :=
+instance (X : C) : epi (𝟙 X) :=
 ⟨λ Z g h w, by simpa using w⟩
-instance (X : C) : mono.{v} (𝟙 X) :=
+instance (X : C) : mono (𝟙 X) :=
 ⟨λ Z g h w, by simpa using w⟩
 
 lemma cancel_epi (f : X ⟶ Y) [epi f]  {g h : Y ⟶ Z} : (f ≫ g = f ≫ h) ↔ g = h :=
@@ -163,7 +175,7 @@ end
 
 lemma mono_of_mono_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [mono h] (w : f ≫ g = h) :
   mono f :=
-by { resetI, subst h, exact mono_of_mono f g, }
+by { substI h, exact mono_of_mono f g, }
 
 lemma epi_of_epi {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [epi (f ≫ g)] : epi g :=
 begin
@@ -176,7 +188,7 @@ end
 
 lemma epi_of_epi_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [epi h] (w : f ≫ g = h) :
   epi g :=
-by { resetI, subst h, exact epi_of_epi f g, }
+by substI h; exact epi_of_epi f g
 end
 
 section
@@ -198,6 +210,14 @@ end category_theory
 
 open category_theory
 
+/-!
+We now put a category instance on any preorder.
+
+Because we do not allow the morphisms of a category to live in `Prop`,
+unfortunately we need to use `plift` and `ulift` when defining the morphisms.
+
+As convenience functions, we provide `hom_of_le` and `le_of_hom` to wrap and unwrap inequalities.
+-/
 namespace preorder
 
 variables (α : Type u)
@@ -209,3 +229,50 @@ instance small_category [preorder α] : small_category α :=
   comp := λ X Y Z f g, ⟨ ⟨ le_trans _ _ _ f.down.down g.down.down ⟩ ⟩ }
 
 end preorder
+
+namespace category_theory
+
+variables {α : Type u} [preorder α]
+
+/--
+Express an inequality as a morphism in the corresponding preorder category.
+-/
+def hom_of_le {U V : α} (h : U ≤ V) : U ⟶ V := ulift.up (plift.up h)
+
+/--
+Extract the underlying inequality from a morphism in a preorder category.
+-/
+lemma le_of_hom {U V : α} (h : U ⟶ V) : U ≤ V := h.down.down
+
+end category_theory
+
+/--
+Many proofs in the category theory library use the `dsimp, simp` pattern,
+which typically isn't necessary elsewhere.
+
+One would usually hope that the same effect could be achieved simply with `simp`.
+
+The essential issue is that composition of morphisms involves dependent types.
+When you have a chain of morphisms being composed, say `f : X ⟶ Y` and `g : Y ⟶ Z`,
+then `simp` can operate succesfully on the morphisms
+(e.g. if `f` is the identity it can strip that off).
+
+However if we have an equality of objects, say `Y = Y'`,
+then `simp` can't operate because it would break the typing of the composition operations.
+We rarely have interesting equalities of objects
+(because that would be "evil" --- anything interesting should be expressed as an isomorphism
+and tracked explicitly),
+except of course that we have plenty of definitional equalities of objects.
+
+`dsimp` can apply these safely, even inside a composition.
+
+After `dsimp` has cleared up the object level, `simp` can resume work on the morphism level ---
+but without the `dsimp` step, because `simp` looks at expressions syntactically,
+the relevant lemmas might not fire.
+
+There's no bound on how many times you potentially could have to switch back and forth,
+if the `simp` introduced new objects we again need to `dsimp`.
+In practice this does occur, but only rarely, because `simp` tends to shorten chains of compositions
+(i.e. not introduce new objects at all).
+-/
+library_note "dsimp, simp"

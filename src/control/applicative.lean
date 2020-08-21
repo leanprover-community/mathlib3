@@ -126,11 +126,11 @@ instance {α} [has_one α] [has_mul α] : applicative (const α) :=
   seq := λ β γ f x, (f * x : α) }
 
 instance {α} [monoid α] : is_lawful_applicative (const α) :=
-by refine { .. }; intros; simp [mul_assoc]
+by refine { .. }; intros; simp [mul_assoc, (<$>), (<*>), pure]
 
 instance {α} [has_zero α] [has_add α] : applicative (add_const α) :=
 { pure := λ β x, (0 : α),
   seq := λ β γ f x, (f + x : α) }
 
 instance {α} [add_monoid α] : is_lawful_applicative (add_const α) :=
-by refine { .. }; intros; simp [add_assoc]
+by refine { .. }; intros; simp [add_assoc, (<$>), (<*>), pure]

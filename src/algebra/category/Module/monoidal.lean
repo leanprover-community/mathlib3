@@ -112,7 +112,7 @@ end monoidal_category
 
 open monoidal_category
 
-instance Module.monoidal_category : monoidal_category (Module.{u} R) :=
+instance Module.monoidal_category : monoidal_category (Module R) :=
 { -- data
   tensor_obj   := tensor_obj,
   tensor_hom   := @tensor_hom _ _,
@@ -135,7 +135,7 @@ instance : comm_ring ((𝟙_ (Module R) : Module R) : Type u) := (by apply_insta
 namespace monoidal_category
 
 @[simp]
-lemma left_unitor_hom {M : Module.{u} R} (r : R) (m : M) :
+lemma left_unitor_hom {M : Module R} (r : R) (m : M) :
   ((λ_ M).hom : 𝟙_ (Module R) ⊗ M ⟶ M) (r ⊗ₜ[R] m) = r • m :=
 tensor_product.lid_tmul m r
 

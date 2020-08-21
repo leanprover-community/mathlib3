@@ -3,12 +3,11 @@ Copyright (c) 2018 Reid Barton All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Scott Morrison, David Wärn
 -/
-import category_theory.category
 import category_theory.epi_mono
 
 namespace category_theory
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v v₂ u u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
@@ -50,12 +49,12 @@ section
 variables {C : Type u} [category.{v} C]
 
 /-- A category where every morphism `is_iso` is a groupoid. -/
-def groupoid.of_is_iso (all_is_iso : ∀ {X Y : C} (f : X ⟶ Y), is_iso.{v} f) : groupoid.{v} C :=
+def groupoid.of_is_iso (all_is_iso : ∀ {X Y : C} (f : X ⟶ Y), is_iso f) : groupoid.{v} C :=
 { inv := λ X Y f, (all_is_iso f).inv }
 
 /-- A category where every morphism has a `trunc` retraction is computably a groupoid. -/
 def groupoid.of_trunc_split_mono
-  (all_split_mono : ∀ {X Y : C} (f : X ⟶ Y), trunc (split_mono.{v} f)) :
+  (all_split_mono : ∀ {X Y : C} (f : X ⟶ Y), trunc (split_mono f)) :
   groupoid.{v} C :=
 begin
   apply groupoid.of_is_iso,

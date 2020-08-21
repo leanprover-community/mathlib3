@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import tactic.abel
 
 /-!
@@ -9,9 +14,9 @@ and its cousin `falling_factorial`.
 
 ## TODO
 There is lots more in this direction:
-* Pochhammer symbols
-* q-factorials, q-binomials
-
+* Pochhammer symbols.
+* q-factorials, q-binomials.
+* Defining Bernstein polynomials (e.g. as one way to prove Weierstrass' theorem).
 -/
 
 variables {R : Type*}
@@ -23,7 +28,7 @@ variables [semiring R]
 The rising factorial function: `rising_factorial x n = x * (x+1) * ... * (x + n - 1)`.
 
 It is also sometimes called the Pochhammer polynomial, or the upper factorial.
-Notations in the mathematics literature vary considerably.
+Notations in the mathematics literature vary extensively.
 -/
 def rising_factorial : R → ℕ → R
 | r 0 := 1
@@ -153,11 +158,9 @@ begin
       nat.falling_factorial_eq_mul_right, nat.sub_sub], }
 end
 
-
 end
 
 end
-
 
 section
 variables [comm_ring R]
@@ -223,6 +226,7 @@ variables {S : Type*}
 section
 variables [semiring R] [semiring S]
 
+@[simp]
 lemma map_rising_factorial (f : R →+* S) {r : R} {n : ℕ} :
   f (rising_factorial r n) = rising_factorial (f r) n :=
 begin
@@ -241,6 +245,7 @@ end
 section
 variables [ring R] [ring S]
 
+@[simp]
 lemma map_falling_factorial (f : R →+* S) {r : R} {n : ℕ} :
   f (falling_factorial r n) = falling_factorial (f r) n :=
 begin

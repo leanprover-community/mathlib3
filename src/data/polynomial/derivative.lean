@@ -185,7 +185,7 @@ def derivative_lhom (R : Type*) [comm_ring R] : polynomial R →ₗ[R] polynomia
   map_smul' := λ r p, derivative_smul r p }
 
 @[simp] lemma derivative_coe_nat {n : ℕ} : derivative (n : polynomial R) = 0 :=
-sorry
+derivative_C
 
 @[simp] lemma iterate_derivative_coe_nat_mul {n k : ℕ} {f : polynomial R} :
   derivative^[k] (n * f) = n * (derivative^[k] f) :=
@@ -208,13 +208,13 @@ variables [integral_domain R]
 lemma mem_support_derivative [char_zero R] (p : polynomial R) (n : ℕ) :
   n ∈ (derivative p).support ↔ n + 1 ∈ p.support :=
 begin
-rw finsupp.mem_support_iff, split; intro h,
-suffices h1 : p.coeff (n+1) ≠ 0, simp; tauto, contrapose! h,
-convert coeff_derivative _ _, simp [h],
-contrapose! h, simp,
-suffices : p.to_fun (n + 1) * (n + 1) = 0, simp only [mul_eq_zero] at this, cases this,
-{ exact this }, { norm_cast at this },
-erw ← h, symmetry, convert coeff_derivative _ _,
+  rw finsupp.mem_support_iff, split; intro h,
+  suffices h1 : p.coeff (n+1) ≠ 0, simp; tauto, contrapose! h,
+  convert coeff_derivative _ _, simp [h],
+  contrapose! h, simp,
+  suffices : p.to_fun (n + 1) * (n + 1) = 0, simp only [mul_eq_zero] at this, cases this,
+  { exact this }, { norm_cast at this },
+  erw ← h, symmetry, convert coeff_derivative _ _,
 end
 
 @[simp] lemma degree_derivative_eq [char_zero R] (p : polynomial R) (hp : 0 < nat_degree p) :

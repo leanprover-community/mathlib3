@@ -66,19 +66,6 @@ def forget : Monad C ⥤ (C ⥤ C) :=
 lemma comp_to_nat_trans {M N L : Monad C} (f : M ⟶ N) (g : N ⟶ L) :
   (f ≫ g).to_nat_trans = nat_trans.vcomp f.to_nat_trans g.to_nat_trans := rfl
 
-theorem hext (M N : Monad C) : M.func = N.func → (η_ M.func) == (η_ N.func) →
-  (μ_ M.func) == (μ_ N.func) → M = N :=
-begin
-  intros h1 h2 h3,
-  cases M, cases N,
-  dsimp only [] at h1,
-  subst h1,
-  congr,
-  cases M_str, cases N_str,
-  congr,
-  repeat {apply eq_of_heq, assumption}
-end
-
 @[simp] lemma assoc_func_app {M : Monad C} {X : C} :
   M.func.map ((μ_ M.func).app X) ≫ (μ_ M.func).app X =
   (μ_ M.func).app (M.func.obj X) ≫ (μ_ M.func).app X := by apply monad.assoc
@@ -116,19 +103,6 @@ def forget : Comonad C ⥤ (C ⥤ C) :=
 @[simp]
 lemma comp_to_nat_trans {M N L : Comonad C} (f : M ⟶ N) (g : N ⟶ L) :
   (f ≫ g).to_nat_trans = nat_trans.vcomp f.to_nat_trans g.to_nat_trans := rfl
-
-theorem hext (M N : Comonad C) : M.func = N.func → (ε_ M.func) == (ε_ N.func) →
-  (δ_ M.func) == (δ_ N.func) → M = N :=
-begin
-  intros h1 h2 h3,
-  cases M, cases N,
-  dsimp only [] at h1,
-  subst h1,
-  congr,
-  cases M_str, cases N_str,
-  congr,
-  repeat {apply eq_of_heq, assumption}
-end
 
 @[simp] lemma coassoc_func_app {M : Comonad C} {X : C} :
   (δ_ M.func).app X ≫ M.func.map ((δ_ M.func).app X) =

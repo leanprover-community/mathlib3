@@ -24,9 +24,16 @@ in `α`
 
 ## Main results
 
-* `free_comm_ring` is functorial in various ways.
+`free_comm_ring` has functorial properties (it is an adjoint to the forgetful functor).
+In this file we have:
 
-* `free_comm_ring α` is isomorphic to a polynomial ring.
+* `of : α → free_comm_ring α`
+* `lift_hom (f : α → R) : free_comm_ring α →+* R`
+* `map (f : α → β) : free_comm_ring α →+* free_comm_ring β`
+
+`free_comm_ring α` is isomorphic to a polynomial ring.
+
+* `free_comm_ring_equiv_mv_polynomial_int : free_comm_ring α ≃+* mv_polynomial α ℤ` :
 
 ## Implementation notes
 

@@ -168,6 +168,8 @@ into an automated theorem prover for first order logic. -/
 @[class]
 def fact (p : Prop) := p
 
+lemma fact.elim {p : Prop} (h : fact p) : p := h
+
 end miscellany
 
 /-!

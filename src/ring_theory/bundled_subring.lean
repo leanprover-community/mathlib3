@@ -37,8 +37,6 @@ Notation used here:
 * `subring.gi` : `closure : set M → subring M` and coercion `coe : subring M → set M`
   form a `galois_insertion`.
 
-* `closure s` : the minimal subring that includes the set `s`
-
 * `comap f B : subring A` : the preimage of a subring `B` along the ring homomorphism `f`
 
 * `map f A : subring B` : the image of a subring `A` along the ring homomorphism `f`.

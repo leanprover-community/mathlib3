@@ -470,6 +470,10 @@ rfl
   ⇑(c • μ) = c • μ :=
 rfl
 
+theorem smul_apply (c : ennreal) (μ : measure α) (s : set α) :
+  (c • μ) s = c * μ s :=
+rfl
+
 instance : semimodule ennreal (measure α) :=
 injective.semimodule ennreal ⟨to_outer_measure, zero_to_outer_measure, add_to_outer_measure⟩
   to_outer_measure_injective smul_to_outer_measure
@@ -959,6 +963,12 @@ begin
   congr',
   ext x, simp [and_comm]
 end
+
+lemma ae_smul_measure {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) (c : ennreal) : ∀ᵐ x ∂(c • μ), p x :=
+ae_iff.2 $ by rw [measure.smul_apply, ae_iff.1 h, mul_zero]
+
+lemma ae_add_measure_iff {p : α → Prop} {ν} : (∀ᵐ x ∂μ + ν, p x) ↔ (∀ᵐ x ∂μ, p x) ∧ ∀ᵐ x ∂ν, p x :=
+add_eq_zero_iff
 
 @[simp] lemma ae_restrict_eq {s : set α} (hs : is_measurable s):
   (μ.restrict s).ae = μ.ae ⊓ 𝓟 s :=

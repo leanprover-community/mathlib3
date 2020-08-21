@@ -125,18 +125,10 @@ apply_nolint category_theory.under.forget_limit_is_limit doc_blame
 apply_nolint category_theory.under.limit doc_blame
 
 -- category_theory/limits/preserves/basic.lean
-apply_nolint category_theory.limits.preserves_colimit doc_blame
 apply_nolint category_theory.limits.preserves_colimits doc_blame
 apply_nolint category_theory.limits.preserves_colimits_of_shape doc_blame
-apply_nolint category_theory.limits.preserves_limit doc_blame
 apply_nolint category_theory.limits.preserves_limits doc_blame
 apply_nolint category_theory.limits.preserves_limits_of_shape doc_blame
-apply_nolint category_theory.limits.reflects_colimit doc_blame
-apply_nolint category_theory.limits.reflects_colimits doc_blame
-apply_nolint category_theory.limits.reflects_colimits_of_shape doc_blame
-apply_nolint category_theory.limits.reflects_limit doc_blame
-apply_nolint category_theory.limits.reflects_limits doc_blame
-apply_nolint category_theory.limits.reflects_limits_of_shape doc_blame
 
 -- category_theory/limits/shapes/finite_limits.lean
 apply_nolint category_theory.limits.has_finite_colimits doc_blame

@@ -45,7 +45,7 @@ Notation used here:
 
 * `f.range : subring B` : the range of the ring homomorphism `f`.
 
-* `eq_locus f g : subring R` : given ring homomorphisms `f`, `g`,
+* `eq_locus f g : subring R` : given ring homomorphisms `f g : R →+* S`,
      the subring of `R` where `f x = g x`
 
 ## Implementation notes

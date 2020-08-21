@@ -243,9 +243,9 @@ lemma simple_func_sequence_tendsto' {μ : measure α} {f : α → β} (hfm : mea
 let ⟨F, hF⟩ := simple_func_sequence_tendsto hfm in
 let G : ℕ → α → ennreal := λn x, nndist (F n x) (f x) in
 let g : α → ennreal := λx, nnnorm (f x) + nnnorm (f x) + nnnorm (f x) in
-have hF_meas : ∀ n, measurable (G n) := λ n, measurable.comp measurable_coe $
+have hF_measure : ∀ n, measurable (G n) := λ n, measurable.comp measurable_coe $
   (F n).measurable.nndist hfm,
-have hg_meas : measurable g := measurable.comp measurable_coe $ measurable.add
+have hg_measure : measurable g := measurable.comp measurable_coe $ measurable.add
   (measurable.add hfm.nnnorm hfm.nnnorm) hfm.nnnorm,
 have h_bound : ∀ n, G n ≤ᵐ[μ] g := λ n, ae_of_all _ $ λ x, coe_le_coe.2 $
   calc
@@ -276,7 +276,7 @@ begin
        ... = ∫⁻ a, nnnorm (f a) ∂μ + ∫⁻ a, nnnorm (f a) ∂μ :
          lintegral_nnnorm_add hfm hfm
        ... < ⊤ : by simp only [add_lt_top, and_self]; exact hfi },
-  convert tendsto_lintegral_of_dominated_convergence g hF_meas h_bound h_finite h_lim,
+  convert tendsto_lintegral_of_dominated_convergence g hF_measure h_bound h_finite h_lim,
   simp only [lintegral_zero]
 end
 

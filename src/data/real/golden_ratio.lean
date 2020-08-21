@@ -148,7 +148,7 @@ lemma fib_rec_char_poly_eq {β : Type*} [comm_ring β] :
   fib_rec.char_poly = X^2 - (X + (1 : polynomial β)) :=
 begin
   rw [fib_rec, linear_recurrence.char_poly],
-  simp [finset.univ_sum_eq_range_sum, finset.sum_range_succ', monomial_eq_smul_X]
+  simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ', monomial_eq_smul_X]
 end
 
 end poly
@@ -160,7 +160,7 @@ begin
   intros n,
   simp only,
   rw [nat.fib_succ_succ, add_comm],
-  simp [finset.univ_sum_eq_range_sum, finset.sum_range_succ']
+  simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ']
 end
 
 /-- The geometric sequence `λ n, φ^n` is a solution of `fib_rec`. -/
@@ -190,8 +190,8 @@ begin
   { exact fib_is_sol_fib_rec },
   { ring,
     exact (@fib_rec ℝ _).sol_space.sub_mem
-              ((@fib_rec ℝ _).sol_space.smul_mem (real.sqrt 5)⁻¹ geom_gold_is_sol_fib_rec)
-              ((@fib_rec ℝ _).sol_space.smul_mem (real.sqrt 5)⁻¹ geom_gold_conj_is_sol_fib_rec) }
+            (submodule.smul_mem fib_rec.sol_space (real.sqrt 5)⁻¹ geom_gold_is_sol_fib_rec)
+            (submodule.smul_mem fib_rec.sol_space (real.sqrt 5)⁻¹ geom_gold_conj_is_sol_fib_rec) }
 end
 
 /-- Binet's formula as a dependent equality. -/

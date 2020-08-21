@@ -409,7 +409,7 @@ end
 
 lemma succ_above_pos (p : fin (n + 2)) (i : fin (n + 1)) (h : 0 < i) : 0 < p.succ_above i :=
 begin
-  by_cases H : i.val < p.val,
+  by_cases H : (i : ℕ) < p,
   { simpa [succ_above_below, H, lt_iff_val_lt_val] using h },
   { push_neg at H,
     simp [succ_above_above, H, lt_iff_val_lt_val], },

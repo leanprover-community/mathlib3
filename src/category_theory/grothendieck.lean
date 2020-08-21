@@ -36,6 +36,14 @@ namespace category_theory
 variables {C D : Type*} [category C] [category D]
 variables (F : C ⥤ Cat)
 
+/--
+The Grothendieck construction (often written as `∫ F` in mathematics) for a functor `F : C ⥤ Cat`
+gives a category whose
+* objects `X` consist of `X.base : C` and `X.fiber : F.obj base`
+* morphisms `f : X ⟶ Y` consist of
+  `base : X.base ⟶ Y.base` and
+  `f.fiber : (F.map base).obj X.fiber ⟶ Y.fiber`
+-/
 structure grothendieck :=
 (base : C)
 (fiber : F.obj base)
@@ -44,6 +52,10 @@ namespace grothendieck
 
 variables {F}
 
+/--
+A morphism in the Grothendieck category `F : C ⥤ Cat` consists of
+`base : X.base ⟶ Y.base` and `f.fiber : (F.map base).obj X.fiber ⟶ Y.fiber`.
+-/
 structure hom (X Y : grothendieck F) :=
 (base : X.base ⟶ Y.base)
 (fiber : (F.map base).obj X.fiber ⟶ Y.fiber)
@@ -61,11 +73,17 @@ begin
   simpa using w_fiber,
 end
 
+/--
+The identity morphism in the Grothendieck category.
+-/
 @[simps]
 def id (X : grothendieck F) : hom X X :=
 { base := 𝟙 X.base,
   fiber := eq_to_hom (by erw [category_theory.functor.map_id, functor.id_obj X.fiber]), }
 
+/--
+Composition of morphisms in the Grothendieck category.
+-/
 @[simps]
 def comp {X Y Z : grothendieck F} (f : hom X Y) (g : hom Y Z) : hom X Z :=
 { base := f.base ≫ g.base,

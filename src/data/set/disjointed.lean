@@ -32,7 +32,7 @@ by simpa [pairwise, function.on_fun] using @hr a b
 
 theorem pairwise_disjoint_on_bool [semilattice_inf_bot α] {a b : α} :
   pairwise (disjoint on (λ c, cond c a b)) ↔ disjoint a b :=
-pairwise_on_bool $ λ _ _, disjoint.symm
+pairwise_on_bool disjoint.symm
 
 theorem pairwise.pairwise_on {p : α → α → Prop} (h : pairwise p) (s : set α) : s.pairwise_on p :=
 λ x hx y hy, h x y

@@ -32,7 +32,7 @@ Notation used here:
 
 * `instance : complete_lattice (subring R)` : the complete lattice structure on the subrings.
 
-* `subring.closure` :  subring closure of a set, i.e., the smallest subring that includes the set.
+* `subring.closure` : subring closure of a set, i.e., the smallest subring that includes the set.
 
 * `subring.gi` : `closure : set M → subring M` and coercion `coe : subring M → set M`
   form a `galois_insertion`.

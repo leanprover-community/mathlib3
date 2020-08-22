@@ -14,7 +14,6 @@ import tactic.find_unused
 ## Main definitions
 
  * class `omega_complete_partial_order`
- * `continuous_hom`, bundled homomorphisms
  * `ite`, `map`, `bind`, `seq` as continuous morphisms
 
 ## Instances of `omega_complete_partial_order`
@@ -24,7 +23,6 @@ import tactic.find_unused
  * pi-types
  * product types
  * `monotone_hom`
- * `continuous_hom`
 
 ## References
 
@@ -47,6 +45,7 @@ preorder.lift preorder_hom.to_fun
 
 variables {β γ}
 
+/-- the constant function as a monotone function -/
 @[simps]
 def const (f : β) : α →ₘ β :=
 { to_fun := function.const _ f,
@@ -54,36 +53,43 @@ def const (f : β) : α →ₘ β :=
 
 variables {α} {α' : Type*} {β' : Type*} [preorder α'] [preorder β']
 
+/-- the diagonal function as a monotone function -/
 @[simps]
 def prod.diag : α →ₘ (α × α) :=
 { to_fun := λ x, (x,x),
   monotone := λ x y h, ⟨h,h⟩ }
 
+/-- the `prod.map` function as a monotone function -/
 @[simps]
 def prod.map (f : α →ₘ β) (f' : α' →ₘ β') : (α × α') →ₘ (β × β') :=
 { to_fun := prod.map f f',
   monotone := λ ⟨x,x'⟩ ⟨y,y'⟩ ⟨h,h'⟩, ⟨f.monotone h,f'.monotone h'⟩ }
 
+/-- the `prod.fst` projection as a monotone function -/
 @[simps]
 def prod.fst : (α × β) →ₘ α :=
 { to_fun := prod.fst,
   monotone := λ ⟨x,x'⟩ ⟨y,y'⟩ ⟨h,h'⟩, h }
 
+/-- the `prod.snd` projection as a monotone function -/
 @[simps]
 def prod.snd : (α × β) →ₘ β :=
 { to_fun := prod.snd,
   monotone := λ ⟨x,x'⟩ ⟨y,y'⟩ ⟨h,h'⟩, h' }
 
+/-- the `prod` constructor as a monotone function -/
 @[simps {rhs_md := semireducible}]
 def prod.zip (f : α →ₘ β) (g : α →ₘ γ) : α →ₘ (β × γ) :=
 (prod.map f g).comp prod.diag
 
+/-- the `if _ then _ else _` function as a monotone function -/
 @[simps]
 def ite (p : Prop) [h : decidable p] (f g : α →ₘ β) :
   α →ₘ β :=
 { to_fun := λ x, @ite _ h _ (f x) (g x),
   monotone := by intros x y h; dsimp; split_ifs; [apply f.monotone h, apply g.monotone h] }
 
+/-- `roption.bind` as a monotone function -/
 @[simps]
 def bind {β γ} (f : α →ₘ roption β) (g : α →ₘ (β → roption γ)) : α →ₘ roption γ :=
 { to_fun := λ x, f x >>= g x,
@@ -149,6 +155,7 @@ lemma map_comp : (c.map f).map g = c.map (g.comp f) := rfl
 lemma map_le_map {g : α →ₘ β} (h : f ≤ g) : c.map f ≤ c.map g :=
 λ i, by simp [mem_map_iff]; intros; existsi i; apply h
 
+/-- `chain.zip` pairs up the elements of two chains that have the same index -/
 @[simps {rhs_md := semireducible}]
 def zip (c₀ : chain α) (c₁ : chain β) : chain (α × β) :=
 preorder_hom.prod.zip c₀ c₁
@@ -176,6 +183,9 @@ namespace omega_complete_partial_order
 variables {α : Type u} {β : Type v} {γ : Type*}
 variables [omega_complete_partial_order α]
 
+/-- Transfer a `omega_complete_partial_order` on `β` to a `omega_complete_partial_order` on `α` using
+a strictly monotone function `f : β →ₘ α`, a definition of ωSup and a proof that `f` is continuous
+with regard to the provided `ωSup` and the ωCPO on `α`. -/
 @[reducible]
 protected def lift [partial_order β] (f : β →ₘ α)
   (ωSup₀ : chain β → β)
@@ -185,11 +195,11 @@ protected def lift [partial_order β] (f : β →ₘ α)
   ωSup_le := λ c x hx, h _ _ (by rw h'; apply ωSup_le; intro; apply f.monotone (hx i)),
   le_ωSup := λ c i, h _ _ (by rw h'; apply le_ωSup (c.map f)) }
 
-lemma le_ωSup_of_mem (c : chain α) : ∀ y ∈ c, y ≤ ωSup c :=
-by rintro y ⟨i,hy⟩; rw hy; apply le_ωSup
+-- @[main_declaration]
+-- lemma le_ωSup_of_mem (c : chain α) : ∀ y ∈ c, y ≤ ωSup c :=
+-- by rintro y ⟨i,hy⟩; rw hy; apply le_ωSup
 
-@[main_declaration]
-lemma le_ωSup_of_le {c : chain α} {x : α} {i} (h : x ≤ c i) : x ≤ ωSup c :=
+lemma le_ωSup_of_le {c : chain α} {x : α} (i : ℕ) (h : x ≤ c i) : x ≤ ωSup c :=
 le_trans h (le_ωSup c _)
 
 @[main_declaration]
@@ -201,7 +211,7 @@ classical.by_cases
       by simp only [not_forall] at this ⊢; assumption,
     let ⟨i, hx⟩ := this in
     have x ≤ c i, from (h i).resolve_left hx,
-    or.inr $ le_ωSup_of_le this)
+    or.inr $ le_ωSup_of_le _ this)
 
 @[main_declaration]
 lemma ωSup_le_ωSup_of_le {c₀ c₁ : chain α} (h : c₀ ≤ c₁) : ωSup c₀ ≤ ωSup c₁ :=
@@ -224,9 +234,11 @@ open chain
 variables [omega_complete_partial_order β]
 variables [omega_complete_partial_order γ]
 
+/-- a monotone function `f : α →ₘ β` is continuous if it distributes over ωSup -/
 def continuous (f : α →ₘ β) : Prop :=
 ∀ c : chain α, f (ωSup c) = ωSup (c.map f)
 
+/-- `continuous' f` asserts that `f` is both monotone and continuous -/
 def continuous' (f : α → β) : Prop :=
 ∃ hf : monotone f, continuous ⟨f,hf⟩
 
@@ -340,6 +352,8 @@ namespace pi
 
 variables {α : Type*} {β : α → Type*} {γ : Type*}
 
+/-- function application as a monotone function from function spaces to result,
+for a fixed arguments -/
 @[simps]
 def monotone_apply [∀a, partial_order (β a)] (a : α) : (Πa, β a) →ₘ β a  :=
 { to_fun := (λf:Πa, β a, f a),
@@ -352,7 +366,7 @@ set_option trace.simps.verbose true
 instance [∀a, omega_complete_partial_order (β a)] : omega_complete_partial_order (Πa, β a) :=
 { ωSup    := λc a, ωSup (c.map (monotone_apply a)),
   ωSup_le := assume c f hf a, ωSup_le _ _ $ by { rintro i, apply hf },
-  le_ωSup := assume c i x, le_ωSup_of_mem _ _ $ by { rw mem_map_iff, exact ⟨c i,⟨i,rfl⟩,rfl⟩ } }
+  le_ωSup := assume c i x, le_ωSup_of_le _ $ le_refl _ }
 
 namespace omega_complete_partial_order
 
@@ -384,6 +398,7 @@ variables [omega_complete_partial_order α]
 variables [omega_complete_partial_order β]
 variables [omega_complete_partial_order γ]
 
+/-- `ωSup` operator for product types -/
 @[simps]
 protected def ωSup (c : chain (α × β)) : α × β :=
 (ωSup (c.map preorder_hom.prod.fst), ωSup (c.map preorder_hom.prod.snd))
@@ -421,15 +436,19 @@ namespace preorder_hom
 instance : partial_order (α →ₘ β) :=
 partial_order.lift preorder_hom.to_fun $ by rintro ⟨⟩ ⟨⟩ h; congr; exact h
 
+/-- function application as a monotone function from monotone functions to result,
+for a fixed arguments -/
 @[simps]
 def monotone_apply (a : α) : (α →ₘ β) →ₘ β  :=
 { to_fun := (λf : α →ₘ β, f a),
   monotone := assume f g hfg, hfg a }
 
+/-- `preorder_hom.to_fun` as a monotone function from `α →ₘ β` to `α → β` -/
 def to_fun_hom : (α →ₘ β) →ₘ (α → β) :=
 { to_fun := λ f, f.to_fun,
   monotone := λ x y h, h }
 
+/-- `ωSup` operator for monotone functions -/
 @[simps]
 protected def ωSup (c : chain (α →ₘ β)) : α →ₘ β :=
 { to_fun := λ a, ωSup (c.map (monotone_apply a)),

@@ -12,6 +12,21 @@ import order.bounded_lattice
 import order.omega_complete_partial_order
 import tactic.apply
 
+/-!
+# Fixed point
+
+This module defines a generic `fix` operator for defining recursive
+computations that are not necessarily well-founded or productive.
+An instance is defined for `roption`. The proof of its laws relies
+on omega complete partial orders (ωCPO).
+
+## Main definition
+
+ * class `has_fix`
+ * class `lawful_fix`
+ * `roption.fix`
+-/
+
 universes u v
 
 open_locale classical
@@ -182,10 +197,8 @@ begin
   { intro x, cases min_fix f x with i hx,
     transitivity' approx f i.succ x,
     { transitivity', apply hx, apply approx_mono' f },
-    apply le_ωSup_of_mem _ _ _, dsimp [approx],
-    rw chain.mem_map_iff,
-    refine ⟨approx f i.succ,_,rfl⟩,
-    apply approx_mem_approx_chain },
+    apply' le_ωSup_of_le i.succ,
+    dsimp [approx], refl', },
   { apply ωSup_le _ _ _,
     simp [mem_map_iff,approx_chain,stream.mem_def],
     intros y x, apply max_fix f },
@@ -221,12 +234,14 @@ end roption
 
 namespace roption
 
-/-- Convert a function from and to `α` to a function from and to `unit → α` -/
+/-- Convert a function from and to `α` to a function from and to `unit → α`. Useful because
+the fixed point machinery for `roption` assumes functions with one argument -/
 def to_unit (f : α → α) (x : unit → α) (u : unit) : α := f (x u)
 
 instance : has_fix (roption α) :=
 ⟨ λ f, roption.fix (to_unit f) () ⟩
 
+/-- `to_unit` as a monotone function -/
 @[simps]
 def to_unit_mono (f : roption α →ₘ roption α) : (unit → roption α) →ₘ (unit → roption α) :=
 { to_fun := to_unit f,
@@ -260,11 +275,13 @@ section monotone
 
 variables (α β γ)
 
+/-- `sigma.curry` as a monotone function -/
 @[simps]
 def monotone_curry [∀ x y, preorder $ γ x y] : (Π x : Σ a, β a, γ x.1 x.2) →ₘ (Π a (b : β a), γ a b) :=
 { to_fun := curry,
   monotone := λ x y h a b, h ⟨a,b⟩ }
 
+/-- `sigma.uncurry` as a monotone function -/
 @[simps]
 def monotone_uncurry [∀ x y, preorder $ γ x y] : (Π a (b : β a), γ a b) →ₘ (Π x : Σ a, β a, γ x.1 x.2) :=
 { to_fun := uncurry,
@@ -274,10 +291,10 @@ variables [∀ x y, omega_complete_partial_order $ γ x y]
 
 open omega_complete_partial_order.chain
 
-def continuous_curry : continuous $ monotone_curry α β γ :=
+lemma continuous_curry : continuous $ monotone_curry α β γ :=
 λ c, by { ext x y, dsimp [curry,ωSup], rw [map_comp,map_comp], refl }
 
-def continuous_uncurry : continuous $ monotone_uncurry α β γ :=
+lemma continuous_uncurry : continuous $ monotone_uncurry α β γ :=
 λ c, by { ext x y, dsimp [uncurry,ωSup], rw [map_comp,map_comp], refl }
 
 end monotone
@@ -294,7 +311,7 @@ section curry
 variables {f : (Π x (y : β x), γ x y) →ₘ (Π x (y : β x), γ x y)}
 variables (hc : continuous f)
 
-def uncurry_cont : continuous $ (monotone_uncurry α β γ).comp $ f.comp $ monotone_curry α β γ :=
+lemma uncurry_curry_continuous : continuous $ (monotone_uncurry α β γ).comp $ f.comp $ monotone_curry α β γ :=
 continuous_comp _ _
   (continuous_comp _ _ (continuous_curry _ _ _) hc)
   (continuous_uncurry _ _ _)
@@ -303,6 +320,6 @@ end curry
 
 instance pi.lawful_fix' [has_fix $ Π x : sigma β, γ x.1 x.2] [lawful_fix $ Π x : sigma β, γ x.1 x.2] : lawful_fix (Π x y, γ x y) :=
 ⟨ λ f hc, by {
-  dsimp [fix], conv { to_lhs, erw [lawful_fix.fix_eq (uncurry_cont hc)] }, refl, } ⟩
+  dsimp [fix], conv { to_lhs, erw [lawful_fix.fix_eq (uncurry_curry_continuous hc)] }, refl, } ⟩
 
 end pi

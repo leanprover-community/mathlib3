@@ -29,6 +29,8 @@ set_option old_structure_cmd true
 structure continuous_hom extends preorder_hom α β :=
 (continuous' : continuous (preorder_hom.mk to_fun monotone))
 
+attribute [nolint doc_blame] continuous_hom.to_preorder_hom
+
 end old_struct
 
 infixr ` →𝒄 `:20 := continuous_hom
@@ -51,23 +53,28 @@ lemma continuous (F : α →𝒄 β) (C : chain α) :
   F (ωSup C) = ωSup (C.map F) :=
 continuous_hom.continuous' _ _
 
+/-- make a continuous function from bare a function, a continuous function and a proof that
+they are equal -/
 @[simps, reducible]
 def of_fun (f : α → β) (g : α →𝒄 β) (h : f = g) : α →𝒄 β :=
 { to_fun := f,
   monotone := by convert g.monotone,
   continuous' := by subst f; exact g.continuous' }
 
+/-- make a continuous function from a monotone function and a proof of continuity -/
 @[simps, reducible]
 def of_mono (f : α →ₘ β) (h : ∀ c : chain α, f (ωSup c) = ωSup (c.map f)) : α →𝒄 β :=
 { to_fun := f,
   monotone := f.monotone,
   continuous' := h }
 
+/-- identity continuous function -/
 @[simps { rhs_md := reducible }]
 def id : α →𝒄 α :=
 of_mono preorder_hom.id
   (by intro; rw [chain.map_id]; refl)
 
+/-- composition of continuous function -/
 @[simps { rhs_md := reducible }]
 def comp (f : β →𝒄 γ) (g : α →𝒄 β) : α →𝒄 γ :=
 of_mono (preorder_hom.comp (↑f) (↑g))
@@ -92,21 +99,30 @@ lemma comp_assoc (f : γ →𝒄 φ) (g : β →𝒄 γ) (h : α →𝒄 β) : f
 @[main_declaration, simp]
 lemma coe_apply (a : α) (f : α →𝒄 β) : (f : α →ₘ β) a = f a := rfl
 
+/-- `const` as a continuous function -/
 @[simps {rhs_md := reducible}]
 def const (f : β) : α →𝒄 β :=
 of_mono (preorder_hom.const _ f)
     begin
       intro c, apply le_antisymm,
-      { simp [function.const], apply le_ωSup_of_mem, simp [chain.mem_map_iff], exact ⟨ c 0, ⟨0, rfl⟩ ⟩ },
+      { simp [function.const], apply le_ωSup_of_le 0, refl },
       { apply ωSup_le, simp [chain.mem_map_iff],
         intros, refl },
     end
+
+instance [inhabited β] : inhabited (α →𝒄 β) :=
+⟨ const (default β) ⟩
 
 namespace prod
 
 variables {α' : Type*} {β' : Type*}
 variables [omega_complete_partial_order α'] [omega_complete_partial_order β']
 
+/-- application of continuous functions as a monotone function.
+it would make sense to make it a continuous function but
+we are currently proving constructing a `omega_complete_partial_order`
+instance for `α →𝒄 β`. We cannot use it as the domain or image of
+a continuous function before we do. -/
 @[simps]
 def apply : (α →𝒄 β) × α →ₘ β :=
 { to_fun := λ f, f.1 f.2,
@@ -114,6 +130,8 @@ def apply : (α →𝒄 β) × α →ₘ β :=
 
 end prod
 
+/-- conversion of a continuous function into a monotone function
+as a monotone function -/
 @[simps]
 def to_mono : (α →𝒄 β) →ₘ (α →ₘ β) :=
 { to_fun := λ f, f,
@@ -138,6 +156,7 @@ lemma forall_forall_merge' (c₀ : chain (α →𝒄 β)) (c₁ : chain α) (z :
   (∀ (j i : ℕ), (c₀ i) (c₁ j) ≤ z) ↔ ∀ (i : ℕ), (c₀ i) (c₁ i) ≤ z :=
 by rw [forall_swap,forall_forall_merge]
 
+/-- `ωSup` operator for continuous functions -/
 @[simps { rhs_md := reducible }]
 protected def ωSup (c : chain (α →𝒄 β)) : α →𝒄 β :=
 continuous_hom.of_mono (ωSup $ c.map to_mono)
@@ -153,7 +172,6 @@ instance : omega_complete_partial_order (α →𝒄 β) :=
 omega_complete_partial_order.lift continuous_hom.to_mono continuous_hom.ωSup
   (λ x y h, h) (λ c, rfl)
 
-@[simp]
 lemma ωSup_def (c : chain (α →𝒄 β)) (x : α) : ωSup c x = continuous_hom.ωSup c x := rfl
 
 @[main_declaration]
@@ -167,27 +185,32 @@ begin
              function.comp_app, prod.apply_to_fun, preorder_hom.comp_to_fun, ωSup_to_fun],
 end
 
+/-- `ite` as a continuous function -/
 @[main_declaration, simps { rhs_md := reducible }]
 def ite (p : Prop) [hp : decidable p] (f g : α →𝒄 β) : α →𝒄 β :=
 continuous_hom.of_mono (preorder_hom.ite p f g)
  (λ c, by { rw [preorder_hom.ite, ← preorder_hom.ite, ωSup_ite c (↑f) (↑g),← f.continuous,← g.continuous], refl })
 
+/-- flip the arguments on a continuous function -/
 @[simps]
 def flip {α : Type*} (f : α → (β →𝒄 γ)) : β →𝒄 (α → γ) :=
 { to_fun := λ x y, f y x,
   monotone := λ x y h a, (f a).monotone h,
   continuous' := by intro; ext; change f x _ = _; rw [(f x).continuous ]; refl, }
 
+/-- `roption.bind` as a continuous function -/
 @[main_declaration, simps { rhs_md := reducible }]
 noncomputable def bind {β γ : Type v} (f : α →𝒄 roption β) (g : α →𝒄 (β → roption γ)) : α →𝒄 roption γ :=
 of_mono (preorder_hom.bind (↑f) (↑g))
   (λ c, by rw [preorder_hom.bind, ← preorder_hom.bind, ωSup_bind, ← f.continuous, ← g.continuous]; refl)
 
+/-- `roption.map` as a continuous function -/
 @[main_declaration, simps {rhs_md := reducible}]
 noncomputable def map {β γ : Type v} (f : β → γ) (g : α →𝒄 roption β) : α →𝒄 roption γ :=
 of_fun (λ x, f <$> g x) (bind g (const (pure ∘ f)))
   (by ext; simp only [map_eq_bind_pure_comp, bind_to_fun, preorder_hom.bind_to_fun, const_to_fun, preorder_hom.const_to_fun, coe_apply])
 
+/-- `roption.seq` as a continuous function -/
 @[main_declaration, simps {rhs_md := reducible}]
 noncomputable def seq {β γ : Type v} (f : α →𝒄 roption (β → γ)) (g : α →𝒄 roption β) : α →𝒄 roption γ :=
 of_fun (λ x, f x <*> g x) (bind f $ (flip $ _root_.flip map g))

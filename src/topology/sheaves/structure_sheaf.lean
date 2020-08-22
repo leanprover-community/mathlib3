@@ -3,6 +3,7 @@ import ring_theory.localization
 import algebra.category.CommRing
 import topology.sheaves.local_predicate
 import topology.sheaves.forget
+import ring_theory.bundled_subring
 
 universe u
 
@@ -13,6 +14,7 @@ variables (R : Type u) [comm_ring R]
 open Top
 open topological_space
 open category_theory
+open opposite
 
 @[reducible]
 def stalks := λ (P : Top.of (prime_spectrum R)), localization.at_prime P.as_ideal
@@ -62,10 +64,51 @@ def locally_fraction_local : local_predicate (stalks R) :=
 def structure_sheaf_in_Type : sheaf (Type u) (Top.of (prime_spectrum R)) :=
 subsheaf_to_Types (locally_fraction_local R)
 
+def sections_subring (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
+  subring (Π x : unop U, stalks R x) :=
+{ carrier := { f | locally_fraction f },
+  zero_mem' :=
+  begin
+    intro x,
+    use unop U,
+    fsplit,
+    exact x.2,
+    use 𝟙 _,
+    use 0,
+    use 1,
+    intro y,
+    fsplit,
+    { rw ←ideal.ne_top_iff_one, exact y.1.as_ideal_is_prime.1, },
+    { simp, },
+  end,
+  add_mem' :=
+  begin
+    intros a b ha hb x,
+    rcases ha x with ⟨Va, ma, ia, ra, sa, wa⟩,
+    rcases hb x with ⟨Vb, mb, ib, rb, sb, wb⟩,
+    use Va ⊓ Vb,
+    fsplit, exact ⟨ma, mb⟩,
+    use opens.inf_le_left _ _ ≫ ia,
+    use ra * sb + rb * sa,
+    use sa * sb,
+    intro y,
+    rcases wa (opens.inf_le_left _ _ y) with ⟨nma, wa⟩,
+    rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
+    fsplit,
+    { sorry, },
+    { simp [add_mul],
+
+      erw ←wa, }
+  end,
+  neg_mem' := sorry,
+  one_mem' := sorry,
+  mul_mem' := sorry, }
+
 -- TODO: we need to prove that the stalk at `P` is `localization.at_prime P.as_ideal`
 
 instance blah (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
-  comm_ring ((structure_sheaf_in_Type R).presheaf.obj U) := sorry
+  comm_ring ((structure_sheaf_in_Type R).presheaf.obj U) :=
+(sections_subring R U).to_comm_ring
 
 @[simps]
 def structure_presheaf_in_CommRing : presheaf CommRing (Top.of (prime_spectrum R)) :=

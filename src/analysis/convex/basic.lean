@@ -506,11 +506,7 @@ end
 /-- A function f is concave iff -f is convex -/
 @[simp] lemma neg_concave_on_iff {γ : Type*} [ordered_add_comm_group γ] [ordered_semimodule ℝ γ]
   (s : set E) (f : E → γ) : concave_on s (-f) ↔ convex_on s f:=
-begin
-  apply iff.symm,
-  convert neg_convex_on_iff s (-f),
-  exact (neg_neg f).symm,
-end
+by rw [← neg_convex_on_iff s (-f), neg_neg f]
 
 lemma convex_on_id {s : set ℝ} (hs : convex s) : convex_on s id := ⟨hs, by { intros, refl }⟩
 

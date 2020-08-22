@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Shing Tak Lam
 -/
 import data.int.modeq
+import data.list.alternating_sum
 import tactic.interval_cases
 import tactic.linarith
 

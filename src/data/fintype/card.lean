@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 -/
 import data.fintype.basic
+import data.list.alternating_sum
 import algebra.big_operators.ring
 
 /-!

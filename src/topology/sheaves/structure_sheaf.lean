@@ -69,15 +69,7 @@ def sections_subring (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
 { carrier := { f | locally_fraction f },
   zero_mem' :=
   begin
-    intro x,
-    use unop U,
-    fsplit,
-    exact x.2,
-    use 𝟙 _,
-    use 0,
-    use 1,
-    intro y,
-    fsplit,
+    refine λ x, ⟨unop U, x.2, 𝟙 _, 0, 1, λ y, ⟨_, _⟩⟩,
     { rw ←ideal.ne_top_iff_one, exact y.1.as_ideal_is_prime.1, },
     { simp, },
   end,
@@ -95,16 +87,64 @@ def sections_subring (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
     rcases wa (opens.inf_le_left _ _ y) with ⟨nma, wa⟩,
     rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
     fsplit,
-    { sorry, },
+    { intro h,
+      rcases y.1.as_ideal_is_prime.mem_or_mem h with ma|mb,
+      exact nma ma,
+      exact nmb mb, },
     { simp only [add_mul, ring_hom.map_add, pi.add_apply, ring_hom.map_mul],
       erw [←wa, ←wb],
       simp only [mul_assoc],
       congr' 2,
       rw [mul_comm], refl, }
   end,
-  neg_mem' := sorry,
-  one_mem' := sorry,
-  mul_mem' := sorry, }
+  neg_mem' :=
+  begin
+    intros a ha x,
+    rcases ha x with ⟨Va, ma, ia, ra, sa, wa⟩,
+    use Va,
+    fsplit, exact ma,
+    use ia,
+    use -ra ,
+    use sa,
+    intro y,
+    rcases wa y with ⟨nma, wa⟩,
+    fsplit,
+    { exact nma, },
+    { simpa using wa, }
+  end,
+  one_mem' :=
+  begin
+    refine λ x, ⟨unop U, x.2, 𝟙 _, 1, 1, λ y, ⟨_, _⟩⟩,
+    { rw ←ideal.ne_top_iff_one, exact y.1.as_ideal_is_prime.1, },
+    { simp, },
+  end,
+  mul_mem' :=
+  begin
+    intros a b ha hb x,
+    rcases ha x with ⟨Va, ma, ia, ra, sa, wa⟩,
+    rcases hb x with ⟨Vb, mb, ib, rb, sb, wb⟩,
+    use Va ⊓ Vb,
+    fsplit, exact ⟨ma, mb⟩,
+    use opens.inf_le_left _ _ ≫ ia,
+    use ra * rb,
+    use sa * sb,
+    intro y,
+    rcases wa (opens.inf_le_left _ _ y) with ⟨nma, wa⟩,
+    rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
+    fsplit,
+    { intro h,
+      rcases y.1.as_ideal_is_prime.mem_or_mem h with ma|mb,
+      exact nma ma,
+      exact nmb mb, },
+    { simp only [pi.mul_apply, ring_hom.map_mul],
+      erw [←wa, ←wb],
+      simp only [mul_assoc],
+      congr' 1,
+      simp only [←mul_assoc],
+      congr' 1,
+      simp only [mul_comm],
+      refl, }
+  end }
 
 -- TODO: we need to prove that the stalk at `P` is `localization.at_prime P.as_ideal`
 

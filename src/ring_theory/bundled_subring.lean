@@ -126,12 +126,8 @@ set_coe.forall
 
 /-- A `subsemiring` containing -1 is a `subring`. -/
 def subsemiring.to_subring (s : subsemiring R) (hneg : (-1 : R) ∈ s) : subring R :=
-{  carrier := s,
-  zero_mem' := subsemiring.zero_mem s,
-  one_mem' := subsemiring.one_mem s,
-  add_mem' := λ x y, subsemiring.add_mem s,
-  mul_mem' := λ x y, subsemiring.mul_mem s,
-  neg_mem' := begin rintros x, rw <-neg_one_mul, apply subsemiring.mul_mem, exact hneg, end }
+{ neg_mem' := by { rintros x, rw <-neg_one_mul, apply subsemiring.mul_mem, exact hneg, } 
+..s.to_submonoid, ..s.to_add_submonoid }
 
 namespace subring
 

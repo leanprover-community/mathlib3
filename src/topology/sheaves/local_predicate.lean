@@ -58,6 +58,9 @@ def continuous_prelocal (T : Top.{v}) : prelocal_predicate (λ x : X, T) :=
 { pred := λ U f, continuous f,
   res := λ U V i f h, continuous.comp h (opens.open_embedding_of_le (le_of_hom i)).continuous, }
 
+/-- Satisfying the inhabited linter. -/
+instance (T : Top.{v}) : inhabited (prelocal_predicate _) := ⟨continuous_prelocal T⟩
+
 /--
 Given a topological space `X : Top` and a type family `T : X → Type`,
 a `P : local_predicate T` consists of:
@@ -72,6 +75,9 @@ a `P : local_predicate T` consists of:
 structure local_predicate extends prelocal_predicate T :=
 (locality : ∀ {U : opens X} (f : Π x : U, T x)
   (w : ∀ x : U, ∃ (V : opens X) (m : x.1 ∈ V) (i : V ⟶ U), pred (λ x : V, f (i x : U))), pred f)
+
+/-- Satisfying the inhabited linter. -/
+instance (T : Top.{v}) : inhabited (local_predicate _) := ⟨continuous_local T⟩
 
 /--
 Continuity is a "local" predicate on functions to a fixed topological space `T`.

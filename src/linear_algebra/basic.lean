@@ -851,7 +851,7 @@ lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) :
   span R {m} ≤ p ↔ m ∈ p :=
 by rw [span_le, singleton_subset_iff, mem_coe]
 
-lemma lt_add_nonmem {I : submodule R M} {a : M} : I < I + submodule.span R {a} ↔ a ∉ I :=
+lemma lt_add_iff_not_mem {I : submodule R M} {a : M} : I < I + span R {a} ↔ a ∉ I :=
 begin
   split,
   { intro h,

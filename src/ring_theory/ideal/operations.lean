@@ -339,7 +339,7 @@ begin
   exact le_trans (mul_le_inf) (inf_le_left)
 end
 
-lemma ideal_mul_eq_bot {R : Type*} [integral_domain R] {I J : ideal R} :
+lemma mul_eq_bot {R : Type*} [integral_domain R] {I J : ideal R} :
   I * J = ⊥ ↔ I = ⊥ ∨ J = ⊥ :=
 ⟨λ hij, or_iff_not_imp_left.mpr (λ I_ne_bot, J.eq_bot_iff.mpr (λ j hj,
   let ⟨i, hi, ne0⟩ := I.ne_bot_iff.mp I_ne_bot in

@@ -301,45 +301,42 @@ theorem not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p.nonempty) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
 let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
 
-theorem well_founded_iff_has_max [partial_order α] : (well_founded ((>) : α → α → Prop) ↔
-  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, m ≤ x → x = m) :=
+theorem well_founded_iff_has_max  {α} {r : α → α → Prop} : (well_founded r) ↔
+  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, ¬ r x m :=
 begin
   classical,
   split,
-  { intros wf p hp,
-    exact ⟨min wf p hp,
-           min_mem _ _ _,
-           λ I hI hminI, eq.symm ((lt_or_eq_of_le hminI).resolve_left (not_lt_min wf _ _ hI))⟩ },
-  { set counterexamples := { x : α | ¬ acc gt x},
-    intro exists_max,
-    fconstructor,
-    intro x,
-    by_contra hx,
-    obtain ⟨m, m_mem, hm⟩ := exists_max counterexamples ⟨x, hx⟩,
-    refine m_mem (acc.intro _ (λ y y_gt_m, _)),
-    by_contra hy,
-    exact ne_of_lt y_gt_m (hm y hy (le_of_lt y_gt_m)).symm }
+  exact has_min,
+  set counterexamples := { x : α | ¬ acc r x},
+  intro exists_max,
+  fconstructor,
+  intro x,
+  by_contra hx,
+  obtain ⟨m, m_mem, hm⟩ := exists_max counterexamples ⟨x, hx⟩,
+  refine m_mem (acc.intro _ ( λ y y_gt_m, _)),
+  by_contra hy,
+  exact hm y hy y_gt_m,
 end
 
-theorem well_founded_iff_has_min [partial_order α] : (well_founded (has_lt.lt : α → α → Prop)) ↔
-  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, x ≤ m → x = m :=
+lemma le_imp_eq_iff_not_gt {α} [partial_order α] {x y : α} : x ≤ y → y = x ↔ ¬ x < y :=
 begin
-  classical,
   split,
-  { intros wf p hp,
-    exact ⟨min wf p hp,
-           min_mem _ _ _,
-           λ I hI hminI, ((lt_or_eq_of_le hminI).resolve_left (not_lt_min wf _ _ hI))⟩ },
-  { set counterexamples := { x : α | ¬ acc has_lt.lt x},
-    intro exists_min,
-    fconstructor,
-    intro x,
-    by_contra hx,
-    obtain ⟨m, m_mem, hm⟩ := exists_min counterexamples ⟨x, hx⟩,
-    refine m_mem (acc.intro _ (λ y y_lt_m, _)),
-    by_contra hy,
-    exact ne_of_lt y_lt_m (hm y hy (le_of_lt y_lt_m)) },
+  { intros xle nge,
+    cases le_not_le_of_lt nge,
+    rw xle left at nge,
+    exact lt_irrefl x nge },
+  { intros ngt xle,
+  contrapose! ngt,
+  exact lt_of_le_of_ne xle (ne.symm ngt) }
 end
+
+theorem well_founded_iff_has_max' [partial_order α] : (well_founded ((>) : α → α → Prop) ↔
+  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, m ≤ x → x = m) :=
+by simp only [le_imp_eq_iff_not_gt, well_founded_iff_has_max]
+
+theorem well_founded_iff_has_min' [partial_order α] : (well_founded (has_lt.lt : α → α → Prop)) ↔
+  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, x ≤ m → x = m :=
+@well_founded_iff_has_max' (order_dual α) _
 
 open set
 /-- The supremum of a bounded, well-founded order -/

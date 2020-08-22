@@ -470,10 +470,8 @@ begin
     { intros j s hj hpj,
       have h0 : ∏ i in insert j s, eval x (p i) = (eval x (p j)) * ∏ i in s, eval x (p i),
       { apply finset.prod_insert hj },
-      rw [h0, ← hpj, finset.prod_insert hj, eval_mul],
-    }, done
+      rw [h0, ← hpj, finset.prod_insert hj, eval_mul] },
 end
-
 
 end eval
 

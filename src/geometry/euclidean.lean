@@ -1746,16 +1746,8 @@ planes. -/
 lemma altitude_eq_monge_plane (t : triangle ℝ P) {i₁ i₂ i₃ : fin 3} (h₁₂ : i₁ ≠ i₂)
   (h₁₃ : i₁ ≠ i₃) (h₂₃ : i₂ ≠ i₃) : t.altitude i₁ = t.monge_plane i₂ i₃ :=
 begin
-  have hu : (finset.univ : finset (fin 3)) = {i₁, i₂, i₃},
-  { refine (finset.eq_of_subset_of_card_le (finset.subset_univ _) _).symm,
-    simp [h₁₂, h₁₃, h₂₃] },
-  have hs : (finset.univ \ {i₂, i₃} : finset (fin 3)) = {i₁},
-  { rw [hu, finset.insert_sdiff_of_not_mem {i₂, i₃}],
-    { simp },
-    { simp [h₁₂, h₁₃] } },
-  have he : finset.univ.erase i₁ = {i₂, i₃},
-  { rw [hu, finset.erase_insert],
-    simp [h₁₂, h₁₃] },
+  have hs : (finset.univ \ {i₂, i₃} : finset (fin 3)) = {i₁}, { dec_trivial! },
+  have he : finset.univ.erase i₁ = {i₂, i₃}, { dec_trivial! },
   rw [monge_plane_def, altitude_def, direction_affine_span, hs, he, finset.centroid_singleton,
       finset.coe_insert, finset.coe_singleton,
       vector_span_image_eq_span_vsub_set_left_ne ℝ _ (set.mem_insert i₂ _)],
@@ -1766,15 +1758,7 @@ end
 lemma orthocenter_mem_altitude (t : triangle ℝ P) {i₁ : fin 3} :
   t.orthocenter ∈ t.altitude i₁ :=
 begin
-  let s₂₃ : finset (fin 3) := finset.univ.erase i₁,
-  obtain ⟨i₂, h₂⟩ :=
-    finset.card_pos.1 (show 0 < finset.card s₂₃, by simp [finset.card_erase_of_mem]),
-  have h₁₂ : i₁ ≠ i₂ := (finset.ne_of_mem_erase h₂).symm,
-  let s₃ : finset (fin 3) := s₂₃.erase i₂,
-  obtain ⟨i₃, h₃⟩ :=
-    finset.card_pos.1 (show 0 < finset.card s₃, by simp [finset.card_erase_of_mem, h₂]),
-  have h₂₃ : i₂ ≠ i₃ := (finset.ne_of_mem_erase h₃).symm,
-  have h₁₃ : i₁ ≠ i₃ := (finset.ne_of_mem_erase (finset.mem_of_mem_erase h₃)).symm,
+  obtain ⟨i₂, i₃, h₁₂, h₂₃, h₁₃⟩ : ∃ i₂ i₃, i₁ ≠ i₂ ∧ i₂ ≠ i₃ ∧ i₁ ≠ i₃, { dec_trivial! },
   rw [orthocenter_eq_monge_point, t.altitude_eq_monge_plane h₁₂ h₁₃ h₂₃],
   exact t.monge_point_mem_monge_plane h₂₃
 end
@@ -1784,29 +1768,16 @@ altitudes. -/
 lemma eq_orthocenter_of_forall_mem_altitude {t : triangle ℝ P} {i₁ i₂ : fin 3} {p : P}
   (h₁₂ : i₁ ≠ i₂) (h₁ : p ∈ t.altitude i₁) (h₂ : p ∈ t.altitude i₂) : p = t.orthocenter :=
 begin
-  let s₃ : finset (fin 3) := (finset.univ.erase i₁).erase i₂,
-  have hc₃ : finset.card s₃ = 1,
-  { simp [finset.card_erase_of_mem, finset.mem_erase_of_ne_of_mem, h₁₂.symm] },
-  obtain ⟨i₃, h₃⟩ := finset.card_pos.1 (show 0 < finset.card s₃, by simp [hc₃]),
-  have h₂₃ : i₂ ≠ i₃ := (finset.ne_of_mem_erase h₃).symm,
-  have h₁₃ : i₁ ≠ i₃ := (finset.ne_of_mem_erase (finset.mem_of_mem_erase h₃)).symm,
+  obtain ⟨i₃, h₂₃, h₁₃⟩ : ∃ i₃, i₂ ≠ i₃ ∧ i₁ ≠ i₃, { clear h₁ h₂, dec_trivial! },
   rw t.altitude_eq_monge_plane h₁₃ h₁₂ h₂₃.symm at h₁,
   rw t.altitude_eq_monge_plane h₂₃ h₁₂.symm h₁₃.symm at h₂,
   rw orthocenter_eq_monge_point,
   have ha : ∀ i, i₃ ≠ i → p ∈ t.monge_plane i₃ i,
   { intros i hi,
-    by_cases hi₂ : i = i₂,
-    { exact hi₂.symm ▸ h₁ },
-    { let s₁ : finset (fin 3) := (finset.univ.erase i₂).erase i₃,
-      have hc₁ : finset.card s₁ = 1,
-      { simp [finset.card_erase_of_mem, finset.mem_erase_of_ne_of_mem, h₂₃.symm] },
-      rw finset.card_eq_one at hc₁,
-      rcases hc₁ with ⟨i', hi'⟩,
-      have hi₁s₁ : i₁ ∈ s₁, { simp [finset.mem_erase_of_ne_of_mem, h₁₂, h₁₃] },
-      have his₁ : i ∈ s₁, { simp [finset.mem_erase_of_ne_of_mem, hi₂, hi.symm] },
-      rw [hi', finset.mem_singleton] at hi₁s₁ his₁,
-      rw [his₁, hi₁s₁.symm],
-      exact h₂ } },
+    have hi₁₂ : i₁ = i ∨ i₂ = i, { clear h₁ h₂, dec_trivial! },
+    cases hi₁₂,
+    { exact hi₁₂ ▸ h₂ },
+    { exact hi₁₂ ▸ h₁ } },
   exact eq_monge_point_of_forall_mem_monge_plane ha
 end
 

@@ -858,16 +858,18 @@ begin
     by_contra akey,
     have h1 : I + span R {a} ≤ I,
     { simp only [add_eq_sup, sup_le_iff],
-    split, exact le_refl I, exact (span_singleton_le_iff_mem a I).mpr akey, },
+      split,
+      { exact le_refl I, },
+      { exact (span_singleton_le_iff_mem a I).mpr akey, } },
     have h2 := gt_of_ge_of_gt h1 h,
     exact lt_irrefl I h2, },
   { intro h,
-  apply lt_iff_le_and_exists.mpr, split,
-  simp only [add_eq_sup, le_sup_left],
-  use a,
-  split, swap, assumption,
-  have : span R {a} ≤ I + span R{a}, exact le_sup_right,
-  exact this (@mem_span_singleton_self R _ _ _ _ a), }
+    apply lt_iff_le_and_exists.mpr, split,
+    simp only [add_eq_sup, le_sup_left],
+    use a,
+    split, swap, { assumption, },
+    { have : span R {a} ≤ I + span R{a} := le_sup_right,
+      exact this (@mem_span_singleton_self R _ _ _ _ a), },
 end
 
 lemma mem_supr {ι : Sort w} (p : ι → submodule R M) {m : M} :

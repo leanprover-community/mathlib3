@@ -306,16 +306,16 @@ theorem well_founded_iff_has_max  {α} {r : α → α → Prop} : (well_founded 
 begin
   classical,
   split,
-  exact has_min,
-  set counterexamples := { x : α | ¬ acc r x},
-  intro exists_max,
-  fconstructor,
-  intro x,
-  by_contra hx,
-  obtain ⟨m, m_mem, hm⟩ := exists_max counterexamples ⟨x, hx⟩,
-  refine m_mem (acc.intro _ ( λ y y_gt_m, _)),
-  by_contra hy,
-  exact hm y hy y_gt_m,
+  { exact has_min, },
+  { set counterexamples := { x : α | ¬ acc r x},
+    intro exists_max,
+    fconstructor,
+    intro x,
+    by_contra hx,
+    obtain ⟨m, m_mem, hm⟩ := exists_max counterexamples ⟨x, hx⟩,
+    refine m_mem (acc.intro _ ( λ y y_gt_m, _)),
+    by_contra hy,
+    exact hm y hy y_gt_m, },
 end
 
 lemma le_imp_eq_iff_not_gt {α} [partial_order α] {x y : α} : x ≤ y → y = x ↔ ¬ x < y :=
@@ -326,8 +326,8 @@ begin
     rw xle left at nge,
     exact lt_irrefl x nge },
   { intros ngt xle,
-  contrapose! ngt,
-  exact lt_of_le_of_ne xle (ne.symm ngt) }
+    contrapose! ngt,
+    exact lt_of_le_of_ne xle (ne.symm ngt) }
 end
 
 theorem well_founded_iff_has_max' [partial_order α] : (well_founded ((>) : α → α → Prop) ↔

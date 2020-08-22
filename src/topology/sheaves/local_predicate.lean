@@ -121,12 +121,7 @@ given by forgetting that the local predicate holds.
 -/
 def diagram_subtype {ι : Type v} (U : ι → opens X) :
   diagram (subpresheaf_to_Types P) U ⟶ diagram (presheaf_to_Types X T) U :=
-{ app :=
-  begin
-    rintro ⟨_|_⟩,
-    exact (pi.map (λ i f, f.1)),
-    exact (pi.map (λ p f, f.1)),
-  end,
+{ app := λ j, walking_parallel_pair.rec_on j (pi.map (λ i f, f.1)) (pi.map (λ p f, f.1)),
   naturality' := by rintro ⟨_|_⟩ ⟨_|_⟩ f; cases f; refl, }
 
 /--
@@ -144,25 +139,22 @@ begin
     -- to provide the lift.
     { let s' := (cones.postcompose (diagram_subtype P.to_prelocal_predicate U)).obj s,
       exact (to_Types X T U).lift s' f, },
-    -- Second, we need to do the actual work, proving this lift is continuous.
+    -- Second, we need to do the actual work, proving this lift satisfies the predicate.
     { dsimp,
-
-      -- We prove continuity by proving continuity at each point,
+      -- We work locally,
       apply P.locality,
       -- so that once we're at a particular point `x`, we can select some open set `x ∈ U i`.
       rintro ⟨x, mem⟩,
       change x ∈ (supr U).val at mem,
       simp at mem,
       choose i hi using mem,
-
       use U i,
       use hi,
       use (opens.le_supr U i),
-
       -- Now our goal is to show that the previously chosen lift,
-      -- when restricted to that `U i`, is a continuous function.
+      -- when restricted to that `U i`, satisfies the predicate.
       -- This follows from the factorisation condition,
-      -- and the fact that underlying presheaf is a presheaf of continuous functions.
+      -- and the fact that underlying presheaf is a presheaf of functions satisfying the predicate.
       let s' := (cones.postcompose (diagram_subtype P.to_prelocal_predicate U)).obj s,
       have fac_i := ((to_Types X T U).fac s' walking_parallel_pair.zero) =≫ pi.π _ i,
       simp only [sheaf_condition.res, limit.lift_π, cones.postcompose_obj_π,
@@ -171,11 +163,10 @@ begin
       have fac_i_f := congr_fun fac_i f,
       simp only [diagram_subtype, discrete.nat_trans_app, types_comp_apply,
         presheaf_to_Types_map, limit.map_π, subtype.val_eq_coe] at fac_i_f,
-
       erw fac_i_f,
       apply subtype.property, }, },
   { -- Proving the factorisation condition is straightforward:
-    -- we observe that checking equality of continuous functions reduces to
+    -- we observe that checking equality of functions satisfying a predicate reduces to
     -- checking equality of the underlying functions,
     -- and use the factorisation condition for the sheaf condition for functions.
     intros s,

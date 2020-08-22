@@ -124,9 +124,21 @@ protected lemma subring.forall {s : subring R} {p : s → Prop} :
   (∀ x : s, p x) ↔ ∀ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=
 set_coe.forall
 
+def subsemiring.to_subring (s : subsemiring R) (hneg : (-1 : R) ∈ s) : subring R :=
+{  carrier := s,
+  zero_mem' := subsemiring.zero_mem s,
+  one_mem' := subsemiring.one_mem s,
+  add_mem' := λ x y, subsemiring.add_mem s,
+  mul_mem' := λ x y, subsemiring.mul_mem s,
+  neg_mem' := begin rintros x, rw <-neg_one_mul, apply subsemiring.mul_mem, exact hneg, end }
+
 namespace subring
 
 variables (s : subring R)
+
+def to_subsemiring (s : subring R) : subsemiring R :=
+{  carrier := s,
+  ..s.to_submonoid, ..s.to_add_subgroup.to_add_submonoid }
 
 /-- Two subrings are equal if the underlying subsets are equal. -/
 theorem ext' ⦃s t : subring R⦄ (h : (s : set R) = t) : s = t :=

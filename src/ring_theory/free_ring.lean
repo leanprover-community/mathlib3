@@ -14,8 +14,8 @@ The theory of the free ring over a type.
 ## Main definitions
 
 * `free_ring α` : the free (not commutative in general) ring over a type.
-* `lift_hom (f : α → R) : the ring hom `free_ring α →+* R` induced by `f`.
-* `map_hom (f : α → β) : the ring hom `free_ring α →+* free_ring β` induced by `f`.
+* `lift_hom (f : α → R)` : the ring hom `free_ring α →+* R` induced by `f`.
+* `map_hom (f : α → β)` : the ring hom `free_ring α →+* free_ring β` induced by `f`.
 
 ## Implementation details
 

@@ -1472,16 +1472,14 @@ begin
   ext i,
   rw [pi.add_apply, pi.smul_apply, smul_eq_mul, pi.sub_apply],
   have hn1 : (n + 1 : ℝ) ≠ 0,
-  { norm_cast,
-    exact nat.succ_ne_zero _ },
+  { exact_mod_cast nat.succ_ne_zero _ },
   cases i;
     simp_rw [centroid_weights_with_circumcenter, circumcenter_weights_with_circumcenter,
              monge_point_weights_with_circumcenter];
     rw [nat.add_sub_assoc (dec_trivial : 1 ≤ 2), (dec_trivial : 2 - 1 = 1)],
   { rw [if_pos (finset.mem_univ _), sub_zero, add_zero, finset.card_fin],
     have hn3 : (n + 2 + 1 : ℝ) ≠ 0,
-    { norm_cast,
-      exact nat.succ_ne_zero _ },
+    { exact_mod_cast nat.succ_ne_zero _ },
     field_simp [hn1, hn3],
     ring },
   { field_simp [hn1],

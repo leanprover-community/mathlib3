@@ -474,7 +474,7 @@ eq.symm $ prod_hom _ _
 /--
 Polynomial evaluation commutes with finset.prod
 -/
-lemma eval_finset.prod {ι : Type*} (s : finset ι) (p : ι → polynomial R) (x : R) :
+lemma eval_prod {ι : Type*} (s : finset ι) (p : ι → polynomial R) (x : R) :
   polynomial.eval x (∏ j in s, p j) = ∏ j in s, polynomial.eval x (p j) :=
 begin
   classical,

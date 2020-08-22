@@ -1422,7 +1422,7 @@ def monge_point {n : ℕ} (s : simplex ℝ P n) : P :=
 and centroid. -/
 lemma monge_point_eq_smul_vsub_vadd_circumcenter {n : ℕ} (s : simplex ℝ P n) :
   s.monge_point = (((n + 1 : ℕ) : ℝ) / (((n - 1) : ℕ) : ℝ)) •
-    ((finset.univ : finset (fin (n + 1))).centroid ℝ s.points -ᵥ s.circumcenter : V) +ᵥ
+    ((finset.univ : finset (fin (n + 1))).centroid ℝ s.points -ᵥ s.circumcenter) +ᵥ
     s.circumcenter :=
 rfl
 

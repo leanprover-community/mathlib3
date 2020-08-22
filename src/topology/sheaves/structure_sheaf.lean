@@ -96,9 +96,11 @@ def sections_subring (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
     rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
     fsplit,
     { sorry, },
-    { simp [add_mul],
-
-      erw ←wa, }
+    { simp only [add_mul, ring_hom.map_add, pi.add_apply, ring_hom.map_mul],
+      erw [←wa, ←wb],
+      simp only [mul_assoc],
+      congr' 2,
+      rw [mul_comm], refl, }
   end,
   neg_mem' := sorry,
   one_mem' := sorry,

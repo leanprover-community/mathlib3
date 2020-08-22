@@ -17,10 +17,10 @@ in `α`
 
 ## Main definitions
 
-`free_comm_ring α`     : the free commutative ring on a type α
-`lift_hom (f : α → R)` : the ring hom `free_comm_ring α →+* R` induced by functoriality from `f`.
-`map (f : α → β)`      : the ring hom `free_comm_ring α →*+ free_comm_ring β` induced by
-                         functoriality from f.
+* `free_comm_ring α`     : the free commutative ring on a type α
+* `lift_hom (f : α → R)` : the ring hom `free_comm_ring α →+* R` induced by functoriality from `f`.
+* `map (f : α → β)`      : the ring hom `free_comm_ring α →*+ free_comm_ring β` induced by
+                           functoriality from f.
 
 ## Main results
 

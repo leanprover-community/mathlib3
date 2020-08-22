@@ -436,6 +436,12 @@ variables (R)
 @[simp] lemma mem_bot : x ∈ (⊥ : submodule R M) ↔ x = 0 := mem_singleton_iff
 end
 
+lemma nonzero_mem_of_bot_lt {I : submodule R M} (bot_lt : ⊥ < I) : ∃ a : I, a ≠ 0 :=
+begin
+  have h := (submodule.lt_iff_le_and_exists.1 bot_lt).2,
+  tidy,
+end
+
 instance : order_bot (submodule R M) :=
 { bot := ⊥,
   bot_le := λ p x, by simp {contextual := tt},
@@ -844,6 +850,16 @@ le_antisymm
 lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) :
   span R {m} ≤ p ↔ m ∈ p :=
 by rw [span_le, singleton_subset_iff, mem_coe]
+
+lemma lt_add_nonmem {I : submodule R M} (a ∉ I) : I < I + submodule.span R {a} :=
+begin
+  apply lt_iff_le_and_exists.mpr, split,
+  simp only [add_eq_sup, le_sup_left],
+  use a,
+  split, swap, assumption,
+  have : span R {a} ≤ I + span R{a}, exact le_sup_right,
+  exact this (@mem_span_singleton_self R _ _ _ _ a),
+end
 
 lemma mem_supr {ι : Sort w} (p : ι → submodule R M) {m : M} :
   (m ∈ ⨆ i, p i) ↔ (∀ N, (∀ i, p i ≤ N) → m ∈ N) :=

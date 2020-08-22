@@ -16,7 +16,7 @@ form a sub-R-algebra of A.
 
 Let `R` be a `comm_ring` and let `A` be an R-algebra.
 
-* `is_integral (x : A)   : `x` is integral over `R`, i.e., is a root of a monic polynomial with
+* `is_integral (x : A)`  : `x` is integral over `R`, i.e., is a root of a monic polynomial with
                            coefficients in `R`.
 * `integral_closure R A` : the integral closure of `R` in `A`, regarded as a sub-`R`-algebra of `A`.
 -/

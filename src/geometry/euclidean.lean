@@ -1381,9 +1381,7 @@ def circumcenter_weights_with_circumcenter (n : ℕ) : points_with_circumcenter_
   ∑ i, circumcenter_weights_with_circumcenter n i = 1 :=
 begin
   convert finset.sum_ite_eq' finset.univ circumcenter_index (function.const _ (1 : ℝ)),
-  { ext j,
-    cases j;
-      simp [circumcenter_weights_with_circumcenter] },
+  { ext ⟨j⟩ ; simp [circumcenter_weights_with_circumcenter] },
   { simp },
   { exact classical.dec_eq _ }
 end

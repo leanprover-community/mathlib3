@@ -93,6 +93,12 @@ def forget : SheafedSpace C ⥤ Top :=
 
 end
 
+def restrict {U : Top} (X : SheafedSpace C)
+  (f : U ⟶ (X : Top.{v})) (h : open_embedding f) : SheafedSpace C :=
+{ sheaf_condition := sorry,
+  ..X.to_PresheafedSpace.restrict f h }
+
+
 end SheafedSpace
 
 end algebraic_geometry

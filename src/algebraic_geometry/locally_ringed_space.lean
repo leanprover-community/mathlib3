@@ -9,7 +9,6 @@ import algebra.category.CommRing
 import algebraic_geometry.stalks
 import ring_theory.ideal.basic
 
-
 universes v u
 
 open category_theory
@@ -26,13 +25,28 @@ begin
   exact ⟨units.map f.to_monoid_hom u, rfl⟩,
 end
 
+-- move this
+instance is_local_ring_hom_id (A : Type*) [semiring A] : is_local_ring_hom (ring_hom.id A) :=
+{ map_nonunit := λ a, id }
+
+-- move this
+@[simp] lemma is_unit_map_iff {A B : Type*} [semiring A] [semiring B] (f : A →+* B)
+  [is_local_ring_hom f] (a) :
+  is_unit (f a) ↔ is_unit a :=
+⟨is_local_ring_hom.map_nonunit a, f.is_unit_map⟩
+
+-- move this
+instance is_local_ring_hom_comp {A B C : Type*} [semiring A] [semiring B] [semiring C]
+  (g : B →+* C) (f : A →+* B) [is_local_ring_hom g] [is_local_ring_hom f] :
+  is_local_ring_hom (g.comp f) :=
+{ map_nonunit :=
+  begin
+    intro a,
+    simp only [function.comp_app, ring_hom.coe_comp, is_unit_map_iff],
+    exact id
+  end }
+
 namespace algebraic_geometry
-
--- /-- A `RingedSpace` is a topological space equipped with a sheaf of commutative rings.
-
--- A morphism of ringed spaces is a morphism of ring-presheafed spaces. -/
--- @[derive category]
--- def RingedSpace := SheafedSpace CommRing
 
 /-- A `LocallyRingedSpace` is a topological space equipped with a sheaf of commutative rings
 such that all the stalks are local rings.
@@ -79,49 +93,33 @@ PresheafedSpace.stalk_map f.1 x
 instance {X Y : LocallyRingedSpace} (f : X ⟶ Y) (x : X) :
   is_local_ring_hom (stalk_map f x) := f.2 x
 
--- move this
-instance is_local_ring_hom_id (A : Type*) [semiring A] : is_local_ring_hom (ring_hom.id A) :=
-{ map_nonunit := λ a, id }
-
--- move this
-@[simp] lemma is_unit_map_iff {A B : Type*} [semiring A] [semiring B] (f : A →+* B)
-  [is_local_ring_hom f] (a) :
-  is_unit (f a) ↔ is_unit a :=
-⟨is_local_ring_hom.map_nonunit a, f.is_unit_map⟩
-
--- move this
-instance is_local_ring_hom_comp {A B C : Type*} [semiring A] [semiring B] [semiring C]
-  (g : B →+* C) (f : A →+* B) [is_local_ring_hom g] [is_local_ring_hom f] :
-  is_local_ring_hom (g.comp f) :=
-{ map_nonunit :=
-  begin
-    intro a,
-    simp only [function.comp_app, ring_hom.coe_comp, is_unit_map_iff],
-    exact id
-  end }
-
+/-- The identity morphism on a locally ringed space. -/
 @[simps]
 def id (X : LocallyRingedSpace) : hom X X :=
-⟨𝟙 _, λ x, by { erw PresheafedSpace.stalk_map.id, apply LocallyRingedSpace.is_local_ring_hom_id, }⟩
+⟨𝟙 _, λ x, by { erw PresheafedSpace.stalk_map.id, apply is_local_ring_hom_id, }⟩
 
+/-- Composition of morphisms of locally ringed spaces. -/
 @[simps]
 def comp {X Y Z : LocallyRingedSpace} (f : hom X Y) (g : hom Y Z) : hom X Z :=
 ⟨f.val ≫ g.val, λ x,
 begin
-  -- TODO yuck!
   erw PresheafedSpace.stalk_map.comp,
-  apply @LocallyRingedSpace.is_local_ring_hom_comp _ _ _ _ _ _ _ _ _ _,
-  exact f.2 _,
-  exact g.2 _,
+  exact @is_local_ring_hom_comp _ _ _ _ _ _ _ _ (f.2 _) (g.2 _),
 end⟩
 
+/-- The category of locally ringed spaces. -/
 instance : category LocallyRingedSpace :=
 { hom := hom,
   id := id,
   comp := λ X Y Z f g, comp f g,
   comp_id' := by { intros, ext1, simp, },
   id_comp' := by { intros, ext1, simp, },
-  assoc' := by { intros, ext1, simp, }, }
+  assoc' := by { intros, ext1, simp, }, }.
+
+def restrict {U : Top} (X : LocallyRingedSpace)
+  (f : U ⟶ X.to_Top) (h : open_embedding f) : LocallyRingedSpace :=
+{ local_ring := sorry,
+  .. X.to_SheafedSpace.restrict _ f h }
 
 end LocallyRingedSpace
 

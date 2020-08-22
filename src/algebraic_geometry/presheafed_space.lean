@@ -149,6 +149,11 @@ def forget : PresheafedSpace C ⥤ Top :=
 { obj := λ X, (X : Top.{v}),
   map := λ X Y f, f.base }
 
+def restrict {U : Top} (X : PresheafedSpace C)
+  (f : U ⟶ (X : Top.{v})) (h : open_embedding f) : PresheafedSpace C :=
+{ carrier := U,
+  presheaf := sorry, }
+
 end PresheafedSpace
 
 end algebraic_geometry

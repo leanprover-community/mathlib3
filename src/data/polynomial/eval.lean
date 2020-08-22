@@ -459,6 +459,21 @@ lemma root_mul_right_of_is_root {p : polynomial R} (q : polynomial R) :
 λ H, by rw [is_root, eval_mul, is_root.def.1 H, zero_mul]
 
 /--
+Polynomial evaluation commutes with finset.sum
+-/
+lemma eval_finset.sum {ι : Type*} (s : finset ι) (p : ι → polynomial R) (x : R) :
+  eval x (∑ j in s, p j) = ∑ j in s, eval x (p j) :=
+begin
+  classical,
+  apply finset.induction_on s,
+    { simp only [finset.sum_empty, eval_zero] },
+    { intros j s hj hpj,
+      have h0 : ∑ i in insert j s, eval x (p i) = (eval x (p j)) + ∑ i in s, eval x (p i),
+      { apply finset.sum_insert hj },
+      rw [h0, ← hpj, finset.sum_insert hj, eval_add] },
+end
+
+/--
 Polynomial evaluation commutes with finset.prod
 -/
 lemma eval_prod {ι : Type*} (s : finset ι) (p : ι → polynomial R) (x : R) :

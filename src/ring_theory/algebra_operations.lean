@@ -163,7 +163,7 @@ calc map f.to_linear_map (M * N)
 
 variables {M N P}
 
-/-- Sub-R-modules of an R-algebra form a semiring -/
+/-- Sub-R-modules of an R-algebra form a semiring. -/
 instance : semiring (submodule R A) :=
 { one_mul       := submodule.one_mul,
   mul_one       := submodule.mul_one,

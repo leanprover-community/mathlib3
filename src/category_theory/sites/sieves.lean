@@ -32,14 +32,19 @@ S.subs g Hf
 lemma arrow_ext : Π {R S : sieve X}, R.arrows = S.arrows → R = S
 | ⟨Ra, _⟩ ⟨Sa, _⟩ rfl := rfl
 
-@[ext] lemma ext_iff {R S : sieve X} : (∀ {Y} (f : Y ⟶ X), over.mk f ∈ R.arrows ↔ over.mk f ∈ S.arrows) → R = S :=
+@[ext] lemma ext {R S : sieve X}
+  (h : ∀ {Y} (f : Y ⟶ X), over.mk f ∈ R.arrows ↔ over.mk f ∈ S.arrows) :
+  R = S :=
 begin
-  intros,
   apply arrow_ext,
-  ext ⟨_, _, _⟩,
-  convert a x_hom;
+  ext ⟨_, _, f'⟩,
+  convert h f';
   apply subsingleton.elim,
 end
+
+lemma ext_iff {R S : sieve X} :
+  R = S ↔ (∀ {Y} (f : Y ⟶ X), over.mk f ∈ R.arrows ↔ over.mk f ∈ S.arrows) :=
+⟨λ h Y f, h ▸ iff.rfl, sieve.ext⟩
 
 open lattice
 
@@ -56,30 +61,17 @@ protected def Sup (𝒮 : set (sieve X)) : (sieve X) :=
 /-- The infimum of a collection of sieves: the intersection of them all. -/
 protected def Inf (𝒮 : set (sieve X)) : (sieve X) :=
 { arrows := ⋂ (S : {S // S ∈ 𝒮}), S.1.arrows,
-  subs :=
-  begin
-    rintros Y Z f g R _ ⟨⟨S, hS⟩, rfl⟩,
-    simp [R _ ⟨⟨S, hS⟩, rfl⟩],
-  end }
+  subs := by { rintros Y Z f g R _ ⟨⟨S, hS⟩, rfl⟩, simp [R _ ⟨⟨S, hS⟩, rfl⟩] } }
 
 /-- The union of two sieves is a sieve. -/
 protected def union (S R : sieve X) : sieve X :=
 { arrows := S.arrows ∪ R.arrows,
-  subs :=
-  begin
-    rintros Y Z f g (_ | _);
-    { simp [a] },
-  end }
+  subs := by { rintros Y Z f g (h | h); simp [h] } }
 
 /-- The intersection of two sieves is a sieve. -/
 protected def inter (S R : sieve X) : sieve X :=
 { arrows := S.arrows ∩ R.arrows,
-  subs :=
-  begin
-    rintros Y Z f g ⟨h₁, h₂⟩,
-    simp [h₁, h₂],
-  end
-}
+  subs := by { rintros Y Z f g ⟨h₁, h₂⟩; simp [h₁, h₂] } }
 
 /--
 Sieves on an object `X` form a complete lattice.
@@ -90,9 +82,9 @@ instance : complete_lattice (sieve X) :=
 { le           := λ S R, ∀ Y (f : Y ⟶ X), over.mk f ∈ S.arrows → over.mk f ∈ R.arrows,
   le_refl      := λ S f q, id,
   le_trans     := λ S₁ S₂ S₃ S₁₂ S₂₃ Y f h, S₂₃ _ _ (S₁₂ _ _ h),
-  le_antisymm  := begin intros S R p q, ext, refine ⟨p _ _, q _ _⟩ end,
+  le_antisymm  := begin intros S R p q, ext, exact ⟨p _ _, q _ _⟩ end,
   top          := { arrows := set.univ, subs := λ Y Z f g h, ⟨⟩ },
-  bot          := { arrows := ∅, subs := λ a aa Z g, false.elim },
+  bot          := { arrows := ∅, subs := λ _ _ _ _, false.elim },
   sup          := sieve.union,
   inf          := sieve.inter,
   Sup          := sieve.Sup,
@@ -142,17 +134,21 @@ iff.intro
         cases g, dsimp [over.mk],
         congr' 1, apply subsingleton.elim,
       rw ← this at *,
-      apply H,
-      apply generate_sets.basic hg,
+      exact H _ g.hom (generate_sets.basic hg),
     end )
-  (λ ss Y f hf, begin induction hf, apply ss hf_a, apply downward_closed, apply hf_ih end)
+  (λ ss Y f hf,
+    begin
+      induction hf,
+      case basic : f hf { exact ss hf },
+      case subs : Y Z f g hf₁ hf₂ { exact downward_closed S hf₂ _  }
+    end)
 
 /-- Show that there is a galois insertion (generate, .arrows). -/
 def gi_generate :
   @galois_insertion (set (over X)) (sieve X) (by apply_instance) _ generate sieve.arrows :=
-  { gc        := λ s f, sets_iff_generate,
-    choice    := λ 𝒢 f, generate 𝒢,
-    choice_eq := λ 𝒢 h, rfl,
+  { gc        := λ _ _, sets_iff_generate,
+    choice    := λ 𝒢 _, generate 𝒢,
+    choice_eq := λ _ _, rfl,
     le_l_u    := λ _ _ _, generate_sets.basic }
 
 /-- Given a morphism `h : Y ⟶ X`, send a sieve S on X to a sieve on Y
@@ -174,28 +170,21 @@ def comp (R : sieve Y) (f : Y ⟶ X) : sieve X :=
   subs :=
   begin
     rintros Z₁ Z₂ g h ⟨j, k, z⟩,
-    refine ⟨h ≫ j, _, _⟩,
-    simp [k],
-    simp [z],
+    exact ⟨h ≫ j, by simp [k], by simp [z]⟩,
   end }
 
 /-- Pullback is monotonic -/
 lemma pullback_le_map {S R : sieve X} (Hss : S ≤ R) (f : Y ⟶ X) : pullback S f ≤ pullback R f :=
-begin rintros Z H, apply Hss end
+λ Z H, Hss _ _
 
 lemma pullback_top {f : Y ⟶ X} : pullback ⊤ f = ⊤ :=
 top_unique (λ _ g, id)
 
 lemma pullback_comp {f : Y ⟶ X} {g : Z ⟶ Y} (S : sieve X) : S.pullback (g ≫ f) = (S.pullback f).pullback g :=
-begin
-  ext W h,
-  simp,
-end
+by simp [sieve.ext_iff]
+
 lemma pullback_inter {f : Y ⟶ X} (S R : sieve X) : (S ⊓ R).pullback f = S.pullback f ⊓ R.pullback f :=
-begin
-  ext Z g,
-  simp,
-end
+by simp [sieve.ext_iff]
 
 lemma le_pullback_comp {R : sieve Y} {f : Y ⟶ X} :
   R ≤ pullback (comp R f) f :=
@@ -203,15 +192,14 @@ begin rintros Z g b, refine ⟨_, _, rfl⟩, simpa end
 
 /-- If the identity arrow is in a sieve, the sieve is maximal. -/
 lemma id_mem_iff_eq_top : over.mk (𝟙 X) ∈ S.arrows ↔ S = ⊤ :=
-⟨begin
-  intro h,
-  rw eq_top_iff,
+⟨λ h, top_unique
+begin
   rintros Y f ⟨⟩,
   suffices : over.mk (f ≫ (𝟙 _)) ∈ S.arrows,
     simpa using this,
   apply downward_closed _ h,
 end,
-by { rintro rfl, trivial } ⟩
+λ h, h.symm ▸ trivial ⟩
 
 lemma pullback_eq_top_iff_mem (f : Y ⟶ X) : over.mk f ∈ S.arrows ↔ S.pullback f = ⊤ :=
 by rw [← id_mem_iff_eq_top, mem_pullback, category.id_comp]
@@ -222,6 +210,10 @@ def functor (S : sieve X) : Cᵒᵖ ⥤ Type v :=
 { obj := λ Y, {g : Y.unop ⟶ X // over.mk g ∈ S.arrows},
   map := λ Y Z f g, ⟨f.unop ≫ g.1, downward_closed _ g.2 _⟩ }
 
+/--
+If a sieve S is contained in a sieve T, then we have a morphism of presheaves on their induced
+presheaves.
+-/
 @[simps]
 def le_functor {S T : sieve X} (h : S ≤ T) : S.functor ⟶ T.functor :=
 { app := λ Y f, ⟨f.1, h _ _ f.2⟩ }.
@@ -233,10 +225,7 @@ def functor_inclusion (S : sieve X) : S.functor ⟶ yoneda.obj X :=
 
 lemma le_functor_comm {S T : sieve X} (h : S ≤ T) :
   le_functor h ≫ functor_inclusion _ = functor_inclusion _ :=
-begin
-  ext c t,
-  refl,
-end
+by { ext c t, refl }
 
 /-- The presheaf induced by a sieve is a subobject of the yoneda embedding. -/
 instance functor_inclusion_is_mono : mono (functor_inclusion S) :=

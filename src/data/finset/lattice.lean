@@ -531,11 +531,11 @@ infi_singleton a s
   (⋃ y ∈ s, f ⁻¹' {y}) = f ⁻¹' ↑s :=
 set.bUnion_preimage_singleton f ↑s
 
-lemma bUnion_option_to_finset (o : option α) (f : α → set β) :
+@[simp] lemma bUnion_option_to_finset (o : option α) (f : α → set β) :
   (⋃ x ∈ o.to_finset, f x) = ⋃ x ∈ o, f x :=
 supr_option_to_finset o f
 
-lemma bInter_option_to_finset (o : option α) (f : α → set β) :
+@[simp] lemma bInter_option_to_finset (o : option α) (f : α → set β) :
   (⋂ x ∈ o.to_finset, f x) = ⋂ x ∈ o, f x :=
 infi_option_to_finset o f
 
@@ -573,11 +573,11 @@ lemma bInter_insert_update {x : α} {t : finset α} (f : α → set β) {s : set
   (⋂ (i ∈ insert x t), @update _ _ _ f x s i) = (s ∩ ⋂ (i ∈ t), f i) :=
 infi_insert_update f hx
 
-lemma bUnion_bind (s : finset γ) (t : γ → finset α) (f : α → set β) :
+@[simp] lemma bUnion_bind (s : finset γ) (t : γ → finset α) (f : α → set β) :
   (⋃ y ∈ s.bind t, f y) = ⋃ (x ∈ s) (y ∈ t x), f y :=
 supr_bind s t f
 
-lemma bInter_bind (s : finset γ) (t : γ → finset α) (f : α → set β) :
+@[simp] lemma bInter_bind (s : finset γ) (t : γ → finset α) (f : α → set β) :
   (⋂ y ∈ s.bind t, f y) = ⋂ (x ∈ s) (y ∈ t x), f y :=
 infi_bind s t f
 

@@ -115,7 +115,7 @@ open Top.sheaf_condition
 
 /--
 The natural transformation
-from  the sheaf condition diagram for functions satisfying a local predicate
+from the sheaf condition diagram for functions satisfying a local predicate
 to the sheaf condition diagram for arbitrary functions,
 given by forgetting that the local predicate holds.
 -/
@@ -162,7 +162,7 @@ begin
       -- Now our goal is to show that the previously chosen lift,
       -- when restricted to that `U i`, is a continuous function.
       -- This follows from the factorisation condition,
-      -- and the fact that underlying presheaf is a presheaf of continuous functions.
+      -- and the fact that the underlying presheaf is a presheaf of continuous functions.
       let s' := (cones.postcompose (diagram_subtype P.to_prelocal_predicate U)).obj s,
       have fac_i := ((to_Types X T U).fac s' walking_parallel_pair.zero) =≫ pi.π _ i,
       simp only [sheaf_condition.res, limit.lift_π, cones.postcompose_obj_π,

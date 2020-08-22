@@ -217,7 +217,7 @@ end
 
 /--
 To construct an isomorphism between forks,
-it suffices to give an isomorphim between the cone points
+it suffices to give an isomorphism between the cone points
 and check that it commutes with the `ι` morphisms.
 -/
 def fork.ext {s t : fork f g} (i : s.X ≅ t.X) (w : s.ι = i.hom ≫ t.ι) : s ≅ t :=
@@ -231,7 +231,7 @@ end
 
 /--
 To construct an isomorphism between coforks,
-it suffices to give an isomorphim between the cocone points
+it suffices to give an isomorphism between the cocone points
 and check that it commutes with the `π` morphisms.
 -/
 def cofork.ext {s t : cofork f g} (i : s.X ≅ t.X) (w : s.π = t.π ≫ i.inv) : s ≅ t :=

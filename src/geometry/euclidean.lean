@@ -1449,8 +1449,7 @@ begin
   simp_rw [sum_points_with_circumcenter, monge_point_weights_with_circumcenter, finset.sum_const,
            finset.card_fin, nsmul_eq_mul],
   have hn1 : (n + 1 : ℝ) ≠ 0,
-  { norm_cast,
-    exact nat.succ_ne_zero _ },
+  { exact_mod_cast nat.succ_ne_zero _ },
   field_simp [hn1],
   ring
 end

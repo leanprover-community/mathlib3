@@ -479,15 +479,13 @@ lemma eval_prod {ι : Type*} (s : finset ι) (p : ι → polynomial R) (x : R) :
 begin
   classical,
   apply finset.induction_on s,
-    { repeat {rw finset.prod_empty}, rw polynomial.eval_one },
-    { intros j s hj hpj,
-      have h0 : ∏ i in insert j s, polynomial.eval x (p i) =
-            (polynomial.eval x (p j)) * ∏ i in s, polynomial.eval x (p i),
-      { apply finset.prod_insert hj },
-      rw [h0, ← hpj],
-      rw finset.prod_insert hj,
-      rw polynomial.eval_mul,
-    }, done
+  { simp only [finset.prod_empty, eval_one] },
+  { intros j s hj hpj,
+    have h0 : ∏ i in insert j s, eval x (p i) = (eval x (p j)) * ∏ i in s, eval x (p i),
+    { apply finset.prod_insert hj },
+    rw [h0, ← hpj],
+    rw finset.prod_insert hj,
+    rw eval_mul }
 end
 
 lemma map_sum {ι : Type*} (g : ι → polynomial R) (s : finset ι) :

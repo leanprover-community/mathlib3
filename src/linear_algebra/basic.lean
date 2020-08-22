@@ -867,7 +867,7 @@ begin
   use a,
   split, swap, assumption,
   have : span R {a} ≤ I + span R{a}, exact le_sup_right,
-  exact this (@mem_span_singleton_self R _ _ _ _ a), }
+  exact this (mem_span_singleton_self a), }
 end
 
 lemma mem_supr {ι : Sort w} (p : ι → submodule R M) {m : M} :

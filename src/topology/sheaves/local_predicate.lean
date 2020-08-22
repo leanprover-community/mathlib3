@@ -50,6 +50,7 @@ structure prelocal_predicate :=
 (pred : Π {U : opens X}, (Π x : U, T x) → Prop)
 (res : ∀ {U V : opens X} (i : U ⟶ V) (f : Π x : V, T x) (h : pred f), pred (λ x : U, f (i x)))
 
+variables (X)
 /--
 Continuity is a "prelocal" predicate on functions to a fixed topological space `T`.
 -/
@@ -59,7 +60,10 @@ def continuous_prelocal (T : Top.{v}) : prelocal_predicate (λ x : X, T) :=
   res := λ U V i f h, continuous.comp h (opens.open_embedding_of_le (le_of_hom i)).continuous, }
 
 /-- Satisfying the inhabited linter. -/
-instance (T : Top.{v}) : inhabited (prelocal_predicate _) := ⟨continuous_prelocal T⟩
+instance inhabited_prelocal_predicate (T : Top.{v}) : inhabited (prelocal_predicate (λ x : X, T)) :=
+⟨continuous_prelocal X T⟩
+
+variables {X}
 
 /--
 Given a topological space `X : Top` and a type family `T : X → Type`,
@@ -76,8 +80,7 @@ structure local_predicate extends prelocal_predicate T :=
 (locality : ∀ {U : opens X} (f : Π x : U, T x)
   (w : ∀ x : U, ∃ (V : opens X) (m : x.1 ∈ V) (i : V ⟶ U), pred (λ x : V, f (i x : U))), pred f)
 
-/-- Satisfying the inhabited linter. -/
-instance (T : Top.{v}) : inhabited (local_predicate _) := ⟨continuous_local T⟩
+variables (X)
 
 /--
 Continuity is a "local" predicate on functions to a fixed topological space `T`.
@@ -94,9 +97,13 @@ def continuous_local (T : Top.{v}) : local_predicate (λ x : X, T) :=
      specialize w ⟨x, m⟩,
      simpa using (opens.open_embedding_of_le (le_of_hom i)).continuous_at_iff.1 w,
    end,
-  ..continuous_prelocal T }
+  ..continuous_prelocal X T }
 
-variables {T}
+/-- Satisfying the inhabited linter. -/
+instance inhabited_local_predicate (T : Top.{v}) : inhabited (local_predicate _) :=
+⟨continuous_local X T⟩
+
+variables {X T}
 
 /--
 The subpresheaf of dependent functions on `X` satisfying the "pre-local" predicate `P`.
@@ -220,7 +227,7 @@ the presheaf of functions satisfying `continuous_prelocal` is just the same thin
 the presheaf of continuous functions.
 -/
 def subpresheaf_continuous_prelocal_iso_presheaf_to_Top (T : Top.{v}) :
-  subpresheaf_to_Types (continuous_prelocal T) ≅ presheaf_to_Top X T :=
+  subpresheaf_to_Types (continuous_prelocal X T) ≅ presheaf_to_Top X T :=
 nat_iso.of_components
   (λ X,
   { hom := by { rintro ⟨f, c⟩, exact ⟨f, c⟩, },
@@ -236,6 +243,6 @@ def sheaf_to_Top (T : Top.{v}) : sheaf (Type v) X :=
 { presheaf := presheaf_to_Top X T,
   sheaf_condition :=
     sheaf_condition_equiv_of_iso (subpresheaf_continuous_prelocal_iso_presheaf_to_Top T)
-      (subpresheaf_to_Types.sheaf_condition (continuous_local T)), }
+      (subpresheaf_to_Types.sheaf_condition (continuous_local X T)), }
 
 end Top

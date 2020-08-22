@@ -1679,8 +1679,7 @@ end
 
 /-- An altitude of a simplex is the line that passes through a vertex
 and is orthogonal to the opposite face. -/
-def altitude {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) :
-  affine_subspace ℝ P :=
+def altitude {n : ℕ} (s : simplex ℝ P (n + 1)) (i : fin (n + 2)) : affine_subspace ℝ P :=
 mk' (s.points i) (affine_span ℝ (s.points '' ↑(finset.univ.erase i))).direction.orthogonal ⊓
   affine_span ℝ (set.range s.points)
 

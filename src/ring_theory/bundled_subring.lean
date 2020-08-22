@@ -124,6 +124,7 @@ protected lemma subring.forall {s : subring R} {p : s → Prop} :
   (∀ x : s, p x) ↔ ∀ x ∈ s, p ⟨x, ‹x ∈ s›⟩ :=
 set_coe.forall
 
+/-- A `subsemiring` containing -1 is a `subring`. -/
 def subsemiring.to_subring (s : subsemiring R) (hneg : (-1 : R) ∈ s) : subring R :=
 {  carrier := s,
   zero_mem' := subsemiring.zero_mem s,
@@ -136,6 +137,7 @@ namespace subring
 
 variables (s : subring R)
 
+/-- A `subring` is a `subsemiring`. -/
 def to_subsemiring (s : subring R) : subsemiring R :=
 {  carrier := s,
   ..s.to_submonoid, ..s.to_add_subgroup.to_add_submonoid }

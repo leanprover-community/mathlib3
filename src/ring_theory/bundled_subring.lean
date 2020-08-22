@@ -85,8 +85,8 @@ instance : has_mem R (subring R) := ⟨λ m S, m ∈ (S:set R)⟩
 
 /-- Construct a `subring R` from a set `s`, a submonoid `sm`, and an additive
 subgroup `sa` such that `x ∈ s ↔ x ∈ sm ↔ x ∈ sa`. -/
-protected def mk' (s : set R) (sm : submonoid R) (hm : ↑sm = s)
-  (sa : add_subgroup R) (ha : ↑sa = s) :
+protected def mk' (s : set R) (sm : submonoid R) (sa : add_subgroup R)
+  (hm : ↑sm = s) (ha : ↑sa = s) :
   subring R :=
 { carrier := s,
   zero_mem' := ha ▸ sa.zero_mem,

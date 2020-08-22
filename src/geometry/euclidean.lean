@@ -1295,8 +1295,7 @@ def point_weights_with_circumcenter {n : ℕ} (i : fin (n + 1)) : points_with_ci
 begin
   convert finset.sum_ite_eq' finset.univ (point_index i) (function.const _ (1 : ℝ)),
   { ext j,
-    cases j;
-      simp [point_weights_with_circumcenter] },
+    cases j ; simp [point_weights_with_circumcenter] },
   { simp }
 end
 

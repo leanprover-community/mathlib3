@@ -1,8 +1,15 @@
+/-
+Copyright (c) 2020 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Simon Hudon
+-/
+
 import tactic.norm_num
 import tactic.linarith
 import tactic.omega
 import tactic.find_unused
-import data.pfun.fix
+import control.fix
+import order.category.ωCPO
 import data.nat.basic
 
 universes u_1 u_2
@@ -20,15 +27,13 @@ fix easy.intl
 
 -- automation coming soon
 theorem easy.cont : continuous' easy.intl :=
-pi.continuous_ext easy.intl
-  (λ (x : ℕ),
-     pi.continuous_ext (λ (g : ℕ → ℕ → roption ℕ), easy.intl g x)
-       (λ (x_1 : ℕ), id (cont_const' (pure x))))
+pi.omega_complete_partial_order.flip₂_continuous' easy.intl
+  (λ x, pi.omega_complete_partial_order.flip₂_continuous' _ (λ x_1, const_continuous' (pure x)))
 
 -- automation coming soon
 @[main_declaration]
 theorem easy.equations.eqn_1 (x y : ℕ) : easy x y = pure x :=
-by rw [easy, lawful_fix.fix_eq easy.cont]; refl
+by rw [easy, lawful_fix.fix_eq' easy.cont]; refl
 
 /-! division on natural numbers -/
 
@@ -43,24 +48,20 @@ fix div.intl
 
 -- automation coming soon
 theorem div.cont : continuous' div.intl :=
-pi.continuous_ext div.intl
+pi.omega_complete_partial_order.flip₂_continuous' div.intl
   (λ (x : ℕ),
-     pi.continuous_ext (λ (g : ℕ → ℕ → roption ℕ), div.intl g x)
+     pi.omega_complete_partial_order.flip₂_continuous' (λ (g : ℕ → ℕ → roption ℕ), div.intl g x)
        (λ (x_1 : ℕ),
-          id
-            (cont_ite' (λ (x_2 : ℕ → ℕ → roption ℕ), x_2 (x - x_1) x_1)
+            (continuous_hom.ite_continuous' (λ (x_2 : ℕ → ℕ → roption ℕ), x_2 (x - x_1) x_1)
                (λ (x_1 : ℕ → ℕ → roption ℕ), pure x)
-               ((λ (v_1 : ℕ),
-                   pi.continuous_congr (λ (v_1 : ℕ) (x_2 : ℕ → ℕ → roption ℕ), x_2 (x - x_1) v_1) v_1
-                     (pi.continuous_congr (λ (v : ℕ) (g : ℕ → ℕ → roption ℕ) (x : ℕ), g v x) (x - x_1)
-                        cont_id'))
-                  x_1)
-               (cont_const' (pure x)))))
+               (pi.omega_complete_partial_order.flip₁_continuous' (λ (v_1 : ℕ) (x_2 : ℕ → ℕ → roption ℕ), x_2 (x - x_1) v_1) _
+                 $ pi.omega_complete_partial_order.flip₁_continuous' (λ (v : ℕ) (g : ℕ → ℕ → roption ℕ) (x : ℕ), g v x) _ id_continuous')
+               (const_continuous' (pure x)))))
 
 -- automation coming soon
 @[main_declaration]
 theorem div.equations.eqn_1 (x y : ℕ) : div x y = if y ≤ x ∧ y > 0 then div (x - y) y else pure x :=
-by conv_lhs { rw [div, lawful_fix.fix_eq div.cont] }; refl
+by conv_lhs { rw [div, lawful_fix.fix_eq' div.cont] }; refl
 
 inductive tree (α : Type*)
 | nil {} : tree
@@ -69,7 +70,6 @@ inductive tree (α : Type*)
 open roption.examples.tree
 
 /-! `map` on a `tree` using monadic notation -/
-
 def tree_map.intl {α β : Type*} (f : α → β) (tree_map : tree α → roption (tree β)) : tree α → roption (tree β)
 | nil := pure nil
 | (node x t₀ t₁) :=
@@ -84,37 +84,36 @@ fix (tree_map.intl f)
 -- automation coming soon
 theorem tree_map.cont : ∀ {α : Type u_1} {β : Type u_2} (f : α → β), continuous' (tree_map.intl f) :=
 λ {α : Type u_1} {β : Type u_2} (f : α → β),
-  pi.continuous_ext (tree_map.intl f)
+  pi.omega_complete_partial_order.flip₂_continuous' (tree_map.intl f)
     (λ (x : tree α),
-       tree.cases_on x (id (cont_const' (pure nil)))
+       tree.cases_on x (id (const_continuous' (pure nil)))
          (λ (x_x : α) (x_a x_a_1 : tree α),
-            id
-              (cont_bind' (λ (x : tree α → roption (tree β)), x x_a)
+              (continuous_hom.bind_continuous' (λ (x : tree α → roption (tree β)), x x_a)
                  (λ (x : tree α → roption (tree β)) (tt₀ : tree β),
                     x x_a_1 >>= λ (tt₁ : tree β), pure (node (f x_x) tt₀ tt₁))
-                 (pi.continuous_congr (λ (v : tree α) (x : tree α → roption (tree β)), x v) x_a cont_id')
-                 (pi.continuous_ext
+                 (pi.omega_complete_partial_order.flip₁_continuous' (λ (v : tree α) (x : tree α → roption (tree β)), x v) x_a id_continuous')
+                 (pi.omega_complete_partial_order.flip₂_continuous'
                     (λ (x : tree α → roption (tree β)) (tt₀ : tree β),
                        x x_a_1 >>= λ (tt₁ : tree β), pure (node (f x_x) tt₀ tt₁))
                     (λ (x : tree β),
-                       cont_bind' (λ (x : tree α → roption (tree β)), x x_a_1)
+                       continuous_hom.bind_continuous' (λ (x : tree α → roption (tree β)), x x_a_1)
                          (λ (x_1 : tree α → roption (tree β)) (tt₁ : tree β), pure (node (f x_x) x tt₁))
-                         (pi.continuous_congr (λ (v : tree α) (x : tree α → roption (tree β)), x v) x_a_1
-                            cont_id')
-                         (pi.continuous_ext
+                         (pi.omega_complete_partial_order.flip₁_continuous' (λ (v : tree α) (x : tree α → roption (tree β)), x v) x_a_1
+                            id_continuous')
+                         (pi.omega_complete_partial_order.flip₂_continuous'
                             (λ (x_1 : tree α → roption (tree β)) (tt₁ : tree β), pure (node (f x_x) x tt₁))
-                            (λ (x_1 : tree β), cont_const' (pure (node (f x_x) x x_1)))))))))
+                            (λ (x_1 : tree β), const_continuous' (pure (node (f x_x) x x_1)))))))))
 
 -- automation coming soon
 @[main_declaration]
 theorem tree_map.equations.eqn_1 {α : Type u_1} {β : Type u_2} (f : α → β) : tree_map f nil = pure nil :=
-by rw [tree_map,lawful_fix.fix_eq (tree_map.cont f)]; refl
+by rw [tree_map,lawful_fix.fix_eq' (tree_map.cont f)]; refl
 
 -- automation coming soon
 @[main_declaration]
 theorem tree_map.equations.eqn_2 {α : Type u_1} {β : Type u_2} (f : α → β) (x : α) (t₀ t₁ : tree α) :
   tree_map f (node x t₀ t₁) = tree_map f t₀ >>= λ (tt₀ : tree β), tree_map f t₁ >>= λ (tt₁ : tree β), pure (node (f x) tt₀ tt₁) :=
-by conv_lhs { rw [tree_map,lawful_fix.fix_eq (tree_map.cont f)] }; refl
+by conv_lhs { rw [tree_map,lawful_fix.fix_eq' (tree_map.cont f)] }; refl
 
 /-! `map` on a `tree` using applicative notation -/
 
@@ -130,28 +129,27 @@ fix (tree_map'.intl f)
 -- automation coming soon
 theorem tree_map'.cont : ∀ {α : Type u_1} {β : Type u_2} (f : α → β), continuous' (tree_map'.intl f) :=
 λ {α : Type u_1} {β : Type u_2} (f : α → β),
-  pi.continuous_ext (tree_map'.intl f)
+  pi.omega_complete_partial_order.flip₂_continuous' (tree_map'.intl f)
     (λ (x : tree α),
-       tree.cases_on x (id (cont_const' (pure nil)))
+       tree.cases_on x (id (const_continuous' (pure nil)))
          (λ (x_x : α) (x_a x_a_1 : tree α),
-            id
-              (cont_seq' (λ (x : tree α → roption (tree β)), node (f x_x) <$> x x_a)
+              (continuous_hom.seq_continuous' (λ (x : tree α → roption (tree β)), node (f x_x) <$> x x_a)
                  (λ (x : tree α → roption (tree β)), x x_a_1)
-                 (cont_map' (node (f x_x)) (λ (x : tree α → roption (tree β)), x x_a)
-                    (pi.continuous_congr (λ (v : tree α) (x : tree α → roption (tree β)), x v) x_a cont_id'))
-                 (pi.continuous_congr (λ (v : tree α) (x : tree α → roption (tree β)), x v) x_a_1 cont_id'))))
+                 (continuous_hom.map_continuous' (node (f x_x)) (λ (x : tree α → roption (tree β)), x x_a)
+                    (pi.omega_complete_partial_order.flip₁_continuous' (λ (v : tree α) (x : tree α → roption (tree β)), x v) x_a id_continuous'))
+                 (pi.omega_complete_partial_order.flip₁_continuous' (λ (v : tree α) (x : tree α → roption (tree β)), x v) x_a_1 id_continuous'))))
 
 -- automation coming soon
 @[main_declaration]
 theorem tree_map'.equations.eqn_1 {α : Type u_1} {β : Type u_2} (f : α → β) :
   tree_map' f nil = pure nil :=
-by rw [tree_map',lawful_fix.fix_eq (tree_map'.cont f)]; refl
+by rw [tree_map',lawful_fix.fix_eq' (tree_map'.cont f)]; refl
 
 -- automation coming soon
 @[main_declaration]
 theorem tree_map'.equations.eqn_2 {α : Type u_1} {β : Type u_2} (f : α → β) (x : α) (t₀ t₁ : tree α) :
   tree_map' f (node x t₀ t₁) = node (f x) <$> tree_map' f t₀ <*> tree_map' f t₁ :=
-by conv_lhs { rw [tree_map',lawful_fix.fix_eq (tree_map'.cont f)] }; refl
+by conv_lhs { rw [tree_map',lawful_fix.fix_eq' (tree_map'.cont f)] }; refl
 
 /-! f91 is a function whose proof of termination cannot rely on the structural
 ordering of its arguments and does not use the usual well-founded order
@@ -168,20 +166,20 @@ def f91 : ℕ → roption ℕ := fix f91.intl
 
 -- automation coming soon
 lemma f91.cont : continuous' f91.intl :=
-pi.continuous_ext f91.intl
+pi.omega_complete_partial_order.flip₂_continuous' f91.intl
   (λ (x : ℕ),
      id
-       (cont_ite' (λ (x_1 : ℕ → roption ℕ), pure (x - 10)) (λ (x_1 : ℕ → roption ℕ), x_1 (x + 11) >>= x_1)
-          (cont_const' (pure (x - 10)))
-          (cont_bind' (λ (x_1 : ℕ → roption ℕ), x_1 (x + 11)) (λ (x : ℕ → roption ℕ), x)
-             (pi.continuous_congr (λ (v : ℕ) (x : ℕ → roption ℕ), x v) (x + 11) cont_id')
-             (pi.continuous_ext (λ (x : ℕ → roption ℕ), x)
-                (λ (x_1 : ℕ), pi.continuous_congr (λ (v : ℕ) (g : ℕ → roption ℕ), g v) x_1 cont_id')))))
+       (continuous_hom.ite_continuous' (λ (x_1 : ℕ → roption ℕ), pure (x - 10)) (λ (x_1 : ℕ → roption ℕ), x_1 (x + 11) >>= x_1)
+          (const_continuous' (pure (x - 10)))
+          (continuous_hom.bind_continuous' (λ (x_1 : ℕ → roption ℕ), x_1 (x + 11)) (λ (x : ℕ → roption ℕ), x)
+             (pi.omega_complete_partial_order.flip₁_continuous' (λ (v : ℕ) (x : ℕ → roption ℕ), x v) (x + 11) id_continuous')
+             (pi.omega_complete_partial_order.flip₂_continuous' (λ (x : ℕ → roption ℕ), x)
+                (λ (x_1 : ℕ), pi.omega_complete_partial_order.flip₁_continuous' (λ (v : ℕ) (g : ℕ → roption ℕ), g v) x_1 id_continuous')))))
 .
 -- automation coming soon
 @[main_declaration]
 theorem f91.equations.eqn_1 (n : ℕ) : f91 n = ite (n > 100) (pure (n - 10)) (f91 (n + 11) >>= f91) :=
-by conv_lhs { rw [f91, lawful_fix.fix_eq f91.cont] }; refl
+by conv_lhs { rw [f91, lawful_fix.fix_eq' f91.cont] }; refl
 
 lemma f91_spec (n : ℕ) : (∃ n', n < n' + 11 ∧ n' ∈ f91 n) :=
 begin
@@ -238,4 +236,13 @@ end
 
 end roption.examples
 
-#list_unused_decls ["src/data/pfun/fix.lean","src/order/omega_complete_partial_order.lean","src/data/nat/up.lean"]
+-- #list_unused_decls
+--   ["src/control/fix.lean",
+--    "src/order/omega_complete_partial_order.lean",
+--    "src/order/category/ωCPO.lean",
+--    "src/data/nat/up.lean"]
+
+-- -- print lingering `main_declaration` attributes
+-- run_cmd do
+--   xs ← attribute.get_instances `main_declaration,
+--   xs.mmap' $ λ d, trace!"#print {d}"

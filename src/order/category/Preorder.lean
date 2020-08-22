@@ -19,12 +19,17 @@ structure preorder_hom (α β : Type*) [preorder α] [preorder β] :=
 (to_fun   : α → β)
 (monotone : monotone to_fun)
 
+infixr ` →ₘ `:20 := preorder_hom
+
 namespace preorder_hom
-variables {α β γ : Type*} [preorder α] [preorder β] [preorder γ]
+variables {α : Type*} {β : Type*} {γ : Type*} [preorder α] [preorder β] [preorder γ]
 
 instance : has_coe_to_fun (preorder_hom α β) :=
 { F := λ f, α → β,
   coe := preorder_hom.to_fun }
+
+@[simp]
+lemma coe_fun_mk {f : α → β} (hf : _root_.monotone f) (x : α) : mk f hf x = f x := rfl
 
 @[ext] lemma ext (f g : preorder_hom α β) (h : ∀ a, f a = g a) : f = g :=
 by { cases f, cases g, congr, funext, exact h _ }

@@ -467,7 +467,7 @@ variables (K V)
 lemma finite_dimensional_bot : finite_dimensional K (⊥ : submodule K V) :=
 finite_dimensional_of_dim_eq_zero $ by simp
 
-lemma findim_bot : findim K (⊥ : submodule K V) = 0 :=
+@[simp] lemma findim_bot : findim K (⊥ : submodule K V) = 0 :=
 begin
   haveI := finite_dimensional_bot K V,
   convert findim_eq_dim K (⊥ : submodule K V),

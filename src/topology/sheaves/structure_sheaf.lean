@@ -20,7 +20,7 @@ def stalks := λ (P : Top.of (prime_spectrum R)), localization.at_prime P.as_ide
 variables {R}
 
 /--
-Quoth Hartshorne:
+Quoting Hartshorne:
 
 For an open set $$U ⊆ Spec A$$, we define $$𝒪(U)$$ to be the set of functions
 $$s : U → \bigsqcup_{𝔭 ∈ U} A_𝔭$$, such that $s(𝔭) ∈ A_𝔭$$ for each $$𝔭$$,
@@ -33,7 +33,7 @@ Now Hartshorne had the disadvantage of not knowing about dependent functions,
 so we replace his circumlocution about functions into a disjoint union with
 `Π x : U, stalks x`.
 -/
-def locally_quotient {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, stalks R x) : Prop :=
+def locally_fraction {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, stalks R x) : Prop :=
 ∀ x : U, ∃ (V) (m : x.1 ∈ V) (i : V ⟶ U),
   ∃ (r s : R), ∀ y : V,
   ¬ (s ∈ y.1.as_ideal) ∧
@@ -42,11 +42,11 @@ def locally_quotient {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, stal
 variables (R)
 
 /--
-We verify that `locally_quotient` is a `local_predicate`.
+We verify that `locally_fraction` is a `local_predicate`.
 This is purely formal, just shuffling around quantifiers.
 -/
-def locally_quotient_local : local_predicate (stalks R) :=
-{ pred := λ U f, locally_quotient f,
+def locally_fraction_local : local_predicate (stalks R) :=
+{ pred := λ U f, locally_fraction f,
   res := λ V U i f h x,
   begin
     rcases h (i x : U) with ⟨W, m, i, r, s, w⟩,
@@ -60,7 +60,7 @@ def locally_quotient_local : local_predicate (stalks R) :=
   end, }
 
 def structure_sheaf_in_Type : sheaf (Type u) (Top.of (prime_spectrum R)) :=
-subsheaf_to_Types (locally_quotient_local R)
+subsheaf_to_Types (locally_fraction_local R)
 
 -- TODO: we need to prove that the stalk at `P` is `localization.at_prime P.as_ideal`
 
@@ -76,7 +76,8 @@ def structure_presheaf_in_CommRing : presheaf CommRing (Top.of (prime_spectrum R
 Just some glue, verifying that that structure presheaf valued in `CommRing` agrees
 with the `Type` valued structure presheaf.
 -/
-def structure_presheaf_comp_forget : structure_presheaf_in_CommRing R ⋙ (forget CommRing) ≅ (structure_sheaf_in_Type R).presheaf :=
+def structure_presheaf_comp_forget :
+  structure_presheaf_in_CommRing R ⋙ (forget CommRing) ≅ (structure_sheaf_in_Type R).presheaf :=
 nat_iso.of_components
   (λ U, iso.refl _)
   (λ U V i, begin dsimp, simp, sorry, end)

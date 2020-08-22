@@ -1415,7 +1415,7 @@ show in subsequent lemmas that the point so defined lies in the Monge
 planes and is their unique point of intersection. -/
 def monge_point {n : ℕ} (s : simplex ℝ P n) : P :=
 (((n + 1 : ℕ) : ℝ) / (((n - 1) : ℕ) : ℝ)) •
-  ((finset.univ : finset (fin (n + 1))).centroid ℝ s.points -ᵥ s.circumcenter : V) +ᵥ
+  ((finset.univ : finset (fin (n + 1))).centroid ℝ s.points -ᵥ s.circumcenter) +ᵥ
   s.circumcenter
 
 /-- The position of the Monge point in relation to the circumcenter

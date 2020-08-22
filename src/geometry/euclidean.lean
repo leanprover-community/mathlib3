@@ -1503,17 +1503,17 @@ lemma monge_point_vsub_face_centroid_weights_with_circumcenter_eq_sub {n : ℕ}
   {i₁ i₂ : fin (n + 3)} (h : i₁ ≠ i₂) :
   monge_point_vsub_face_centroid_weights_with_circumcenter i₁ i₂ =
     monge_point_weights_with_circumcenter n -
-      centroid_weights_with_circumcenter (univ \ {i₁, i₂}) :=
+      centroid_weights_with_circumcenter ({i₁, i₂}ᶜ) :=
 begin
   ext i,
   cases i,
   { rw [pi.sub_apply, monge_point_weights_with_circumcenter, centroid_weights_with_circumcenter,
         monge_point_vsub_face_centroid_weights_with_circumcenter],
-    have hu : card (univ \ {i₁, i₂} : finset (fin (n + 3))) = n + 1,
-    { simp [card_univ_diff, fintype.card_fin, h] },
+    have hu : card ({i₁, i₂}ᶜ : finset (fin (n + 3))) = n + 1,
+    { simp [card_compl, fintype.card_fin, h] },
     rw hu,
     by_cases hi : i = i₁ ∨ i = i₂;
-      simp [hi] },
+      simp [compl_eq_univ_sdiff, hi] },
   { simp [monge_point_weights_with_circumcenter, centroid_weights_with_circumcenter,
           monge_point_vsub_face_centroid_weights_with_circumcenter] }
 end
@@ -1526,7 +1526,7 @@ begin
   rw monge_point_vsub_face_centroid_weights_with_circumcenter_eq_sub h,
   simp_rw [pi.sub_apply, sum_sub_distrib, sum_monge_point_weights_with_circumcenter],
   rw [sum_centroid_weights_with_circumcenter, sub_self],
-  simp [←card_pos, card_univ_diff, h]
+  simp [←card_pos, card_compl, h]
 end
 
 include V
@@ -1535,7 +1535,7 @@ include V
 n-dimensional face, in terms of `points_with_circumcenter`. -/
 lemma monge_point_vsub_face_centroid_eq_weighted_vsub_of_points_with_circumcenter {n : ℕ}
   (s : simplex ℝ P (n + 2)) {i₁ i₂ : fin (n + 3)} (h : i₁ ≠ i₂) :
-  s.monge_point -ᵥ (univ \ {i₁, i₂}).centroid ℝ s.points =
+  s.monge_point -ᵥ ({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points =
     (univ : finset (points_with_circumcenter_index (n + 2))).weighted_vsub
       s.points_with_circumcenter (monge_point_vsub_face_centroid_weights_with_circumcenter i₁ i₂) :=
 by simp_rw [monge_point_eq_affine_combination_of_points_with_circumcenter,
@@ -1548,7 +1548,7 @@ n-dimensional face, is orthogonal to the difference of the two
 vertices not in that face. -/
 lemma inner_monge_point_vsub_face_centroid_vsub {n : ℕ} (s : simplex ℝ P (n + 2))
   {i₁ i₂ : fin (n + 3)} (h : i₁ ≠ i₂) :
-  inner (s.monge_point -ᵥ (univ \ {i₁, i₂}).centroid ℝ s.points)
+  inner (s.monge_point -ᵥ ({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points)
         (s.points i₁ -ᵥ s.points i₂) = 0 :=
 begin
   simp_rw [monge_point_vsub_face_centroid_eq_weighted_vsub_of_points_with_circumcenter s h,
@@ -1587,12 +1587,12 @@ opposite edge (in 2 dimensions, this is the same as an altitude).
 This definition is only intended to be used when `i₁ ≠ i₂`. -/
 def monge_plane {n : ℕ} (s : simplex ℝ P (n + 2)) (i₁ i₂ : fin (n + 3)) :
   affine_subspace ℝ P :=
-mk' ((univ \ {i₁, i₂}).centroid ℝ s.points) (submodule.span ℝ {s.points i₁ -ᵥ s.points i₂}).orthogonal ⊓
+mk' (({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points) (submodule.span ℝ {s.points i₁ -ᵥ s.points i₂}).orthogonal ⊓
   affine_span ℝ (set.range s.points)
 
 /-- The definition of a Monge plane. -/
 lemma monge_plane_def {n : ℕ} (s : simplex ℝ P (n + 2)) (i₁ i₂ : fin (n + 3)) :
-  s.monge_plane i₁ i₂ = mk' ((univ \ {i₁, i₂}).centroid ℝ s.points)
+  s.monge_plane i₁ i₂ = mk' (({i₁, i₂}ᶜ : finset (fin (n + 3))).centroid ℝ s.points)
                             (submodule.span ℝ {s.points i₁ -ᵥ s.points i₂}).orthogonal ⊓
                           affine_span ℝ (set.range s.points) :=
 rfl
@@ -1728,7 +1728,7 @@ planes. -/
 lemma altitude_eq_monge_plane (t : triangle ℝ P) {i₁ i₂ i₃ : fin 3} (h₁₂ : i₁ ≠ i₂)
   (h₁₃ : i₁ ≠ i₃) (h₂₃ : i₂ ≠ i₃) : t.altitude i₁ = t.monge_plane i₂ i₃ :=
 begin
-  have hs : (univ \ {i₂, i₃} : finset (fin 3)) = {i₁}, { dec_trivial! },
+  have hs : ({i₂, i₃}ᶜ : finset (fin 3)) = {i₁}, { dec_trivial! },
   have he : univ.erase i₁ = {i₂, i₃}, { dec_trivial! },
   rw [monge_plane_def, altitude_def, direction_affine_span, hs, he, centroid_singleton,
       coe_insert, coe_singleton,

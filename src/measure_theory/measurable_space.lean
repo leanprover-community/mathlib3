@@ -109,7 +109,7 @@ by rwa ← h
 lemma is_measurable.bUnion_decode2 [encodable β] ⦃f : β → set α⦄ (h : ∀ b, is_measurable (f b))
   (n : ℕ) : is_measurable (⋃ b ∈ decode2 β n, f b) :=
 encodable.Union_decode2_cases is_measurable.empty h
-  
+
 lemma is_measurable.Union [encodable β] ⦃f : β → set α⦄ (h : ∀b, is_measurable (f b)) :
   is_measurable (⋃b, f b) :=
 begin

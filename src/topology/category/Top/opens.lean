@@ -83,9 +83,13 @@ lemma to_Top_map (X : Top.{u}) {U V : opens X} {f : U ⟶ V} {x} {h} :
   ((to_Top X).map f) ⟨x, h⟩ = ⟨x, (le_of_hom f) h⟩ :=
 rfl
 
-def inclusion {X : Top.{u}} (U : opens X) : (to_Top X).obj U ⟶ X := sorry
+@[simps]
+def inclusion {X : Top.{u}} (U : opens X) : (to_Top X).obj U ⟶ X :=
+{ to_fun := _,
+  continuous_to_fun := continuous_subtype_coe }
 
-def inclusion_open_embedding {X : Top.{u}} (U : opens X) : open_embedding (inclusion U) := sorry
+def inclusion_open_embedding {X : Top.{u}} (U : opens X) : open_embedding (inclusion U) :=
+is_open.open_embedding_subtype_coe U.2
 
 /-- `opens.map f` gives the functor from open sets in Y to open set in X,
     given by taking preimages under f. -/

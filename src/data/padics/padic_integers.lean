@@ -521,7 +521,9 @@ omit hp_prime
 see `padic_int.norm_sub_mod_part`.
 It is the unique non-negative integer that is `< p` with this property.
 
-See `padic_int.zmod_repr` for a version that takes values in `ℕ`. -/
+(Note that this definition assumes `r : ℚ`.
+See `padic_int.zmod_repr` for a version that takes values in `ℕ`
+and works for arbitrary `x : ℤ_[p]`.) -/
 def mod_part : ℤ :=
 (r.num * gcd_a r.denom p) % p
 

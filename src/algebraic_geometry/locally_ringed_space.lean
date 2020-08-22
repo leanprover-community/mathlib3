@@ -118,7 +118,14 @@ instance : category LocallyRingedSpace :=
 
 def restrict {U : Top} (X : LocallyRingedSpace)
   (f : U ⟶ X.to_Top) (h : open_embedding f) : LocallyRingedSpace :=
-{ local_ring := sorry,
+{ local_ring :=
+  begin
+    intro x,
+    dsimp at *,
+    -- need to show that the stalk of restriction
+    -- is iso to the stalk of the original
+    -- and then a lemma local_ring.equiv
+  end,
   .. X.to_SheafedSpace.restrict _ f h }
 
 end LocallyRingedSpace

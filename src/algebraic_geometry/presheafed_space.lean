@@ -149,10 +149,11 @@ def forget : PresheafedSpace C ⥤ Top :=
 { obj := λ X, (X : Top.{v}),
   map := λ X Y f, f.base }
 
+@[simps]
 def restrict {U : Top} (X : PresheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) : PresheafedSpace C :=
 { carrier := U,
-  presheaf := sorry, }
+  presheaf := h.is_open_map.functor.op ⋙ X.presheaf }
 
 end PresheafedSpace
 

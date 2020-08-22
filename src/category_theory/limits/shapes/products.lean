@@ -72,9 +72,15 @@ colimit.desc _ (cofan.mk p)
 abbreviation pi.map {f g : β → C} [has_products_of_shape β C]
   (p : Π b, f b ⟶ g b) : ∏ f ⟶ ∏ g :=
 lim.map (discrete.nat_trans p)
+abbreviation pi.map_iso {f g : β → C} [has_products_of_shape β C]
+  (p : Π b, f b ≅ g b) : ∏ f ≅ ∏ g :=
+lim.map_iso (discrete.nat_iso p)
 abbreviation sigma.map {f g : β → C} [has_coproducts_of_shape β C]
   (p : Π b, f b ⟶ g b) : ∐ f ⟶ ∐ g :=
 colim.map (discrete.nat_trans p)
+abbreviation sigma.map_iso {f g : β → C} [has_coproducts_of_shape β C]
+  (p : Π b, f b ≅ g b) : ∐ f ≅ ∐ g :=
+colim.map_iso (discrete.nat_iso p)
 
 variables (C)
 

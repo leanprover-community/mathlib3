@@ -1707,9 +1707,7 @@ Monge point. -/
 def orthocenter (t : triangle ℝ P) : P := t.monge_point
 
 /-- The orthocenter equals the Monge point. -/
-lemma orthocenter_eq_monge_point (t : triangle ℝ P) :
-  t.orthocenter = t.monge_point :=
-rfl
+lemma orthocenter_eq_monge_point (t : triangle ℝ P) : t.orthocenter = t.monge_point := rfl
 
 /-- The position of the orthocenter in relation to the circumcenter
 and centroid. -/

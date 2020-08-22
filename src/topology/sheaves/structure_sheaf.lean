@@ -10,6 +10,11 @@ import topology.sheaves.local_predicate
 import topology.sheaves.forget
 import ring_theory.bundled_subring
 
+/-!
+# The structure sheaf on `prime_spectrum R`.
+
+-/
+
 universe u
 
 noncomputable theory

@@ -492,12 +492,6 @@ instance linear_ordered_field.to_densely_ordered : densely_ordered α :=
   calc (a₁ + a₂) / 2 < (a₂ + a₂) / 2 : div_lt_div_of_lt two_pos (add_lt_add_right h _)
                  ... = a₂            : add_self_div_two a₂⟩ }
 
-instance linear_ordered_field.to_no_top_order : no_top_order α :=
-{ no_top := λ a, ⟨a + 1, lt_add_of_le_of_pos (le_refl a) zero_lt_one ⟩ }
-
-instance linear_ordered_field.to_no_bot_order : no_bot_order α :=
-{ no_bot := λ a, ⟨a + -1, add_lt_of_le_of_neg (le_refl _) neg_one_lt_zero ⟩ }
-
 lemma mul_self_inj_of_nonneg (a0 : 0 ≤ a) (b0 : 0 ≤ b) : a * a = b * b ↔ a = b :=
 mul_self_eq_mul_self_iff.trans $ or_iff_left_of_imp $
   λ h, by { subst a, have : b = 0 := le_antisymm (neg_nonneg.1 a0) b0, rw [this, neg_zero] }

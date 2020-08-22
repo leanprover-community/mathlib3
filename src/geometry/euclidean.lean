@@ -1398,10 +1398,7 @@ begin
   rw ←points_with_circumcenter_eq_circumcenter,
   symmetry,
   refine finset.affine_combination_of_eq_one_of_eq_zero _ _ _ (finset.mem_univ _) rfl _,
-  intros i hi hn,
-  cases i,
-  { refl },
-  { exact false.elim (hn rfl) }
+  rintros ⟨i⟩ hi hn ; tauto
 end
 
 /-- The Monge point of a simplex (in 2 or more dimensions) is a

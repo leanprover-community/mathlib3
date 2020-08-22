@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Chris Wong
 -/
-import algebra.group.defs
+import algebra.group.basic
 
 namespace list
 
@@ -24,14 +24,28 @@ variables {G : Type*} [comm_group G]
 @[simp, to_additive] lemma alternating_prod_nil :
   alternating_prod ([] : list G) = 1 := rfl
 
-@[simp, to_additive] lemma alternating_prod_singleton (g : G) :
+@[to_additive] lemma alternating_prod_singleton (g : G) :
   alternating_prod [g] = g := rfl
 
-@[simp, to_additive alternating_sum_cons_cons']
+@[to_additive alternating_sum_cons_cons']
 lemma alternating_prod_cons_cons (g h : G) (l : list G) :
   alternating_prod (g :: h :: l) = g * h⁻¹ * alternating_prod l := rfl
 
 lemma alternating_sum_cons_cons {G : Type*} [add_comm_group G] (g h : G) (l : list G) :
   alternating_sum (g :: h :: l) = g - h + alternating_sum l := rfl
+
+@[to_additive alternating_sum_cons']
+lemma alternating_prod_cons :
+  ∀ (g : G) (l : list G), alternating_prod (g :: l) = g * (alternating_prod l)⁻¹
+| g [] := by { rw [alternating_prod_nil, one_inv, mul_one], refl }
+| g (h :: l) :=
+by rw [alternating_prod_cons_cons, alternating_prod_cons h l, mul_inv, inv_inv, mul_assoc]
+
+-- Add the `@[simp]` separately so that it isn't picked up by `@[to_additive]`
+attribute [simp] alternating_prod_cons
+
+@[simp]
+lemma alternating_sum_cons {G : Type*} [add_comm_group G] :
+  ∀ (g : G) (l : list G), alternating_sum (g :: l) = g - alternating_sum l := alternating_sum_cons'
 
 end list

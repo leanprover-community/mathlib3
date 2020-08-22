@@ -360,7 +360,8 @@ instance : inhabited (subring R) := ⟨⊥⟩
 
 lemma coe_bot : ((⊥ : subring R) : set R) = set.range (coe : ℤ → R) := ring_hom.coe_range (int.cast_ring_hom R)
 
-lemma mem_bot {x : R} : x ∈ (⊥ : subring R) ↔ ∃ (n : ℤ), ↑n = x :=  ring_hom.mem_range
+lemma mem_bot {x : R} : x ∈ (⊥ : subring R) ↔ ∃ (n : ℤ), ↑n = x :=
+ring_hom.mem_range
 
 /-! # inf -/
 

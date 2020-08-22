@@ -125,18 +125,10 @@ apply_nolint category_theory.under.forget_limit_is_limit doc_blame
 apply_nolint category_theory.under.limit doc_blame
 
 -- category_theory/limits/preserves/basic.lean
-apply_nolint category_theory.limits.preserves_colimit doc_blame
 apply_nolint category_theory.limits.preserves_colimits doc_blame
 apply_nolint category_theory.limits.preserves_colimits_of_shape doc_blame
-apply_nolint category_theory.limits.preserves_limit doc_blame
 apply_nolint category_theory.limits.preserves_limits doc_blame
 apply_nolint category_theory.limits.preserves_limits_of_shape doc_blame
-apply_nolint category_theory.limits.reflects_colimit doc_blame
-apply_nolint category_theory.limits.reflects_colimits doc_blame
-apply_nolint category_theory.limits.reflects_colimits_of_shape doc_blame
-apply_nolint category_theory.limits.reflects_limit doc_blame
-apply_nolint category_theory.limits.reflects_limits doc_blame
-apply_nolint category_theory.limits.reflects_limits_of_shape doc_blame
 
 -- category_theory/limits/shapes/finite_limits.lean
 apply_nolint category_theory.limits.has_finite_colimits doc_blame
@@ -510,9 +502,6 @@ apply_nolint ring_equiv doc_blame has_inhabited_instance
 apply_nolint ring_equiv.to_add_equiv doc_blame
 apply_nolint ring_equiv.to_equiv doc_blame
 apply_nolint ring_equiv.to_mul_equiv doc_blame
-
--- data/fin.lean
-apply_nolint fin.add_nat_val unused_arguments
 
 -- data/fin2.lean
 apply_nolint fin2 has_inhabited_instance
@@ -1222,7 +1211,6 @@ apply_nolint pilex doc_blame
 
 -- order/rel_iso.lean
 apply_nolint rel_embedding has_inhabited_instance
-apply_nolint rel_embedding.lt_embedding_of_le_embedding doc_blame
 apply_nolint rel_embedding.refl doc_blame
 apply_nolint rel_embedding.trans doc_blame
 apply_nolint rel_iso has_inhabited_instance
@@ -1250,8 +1238,6 @@ apply_nolint free_ring.map doc_blame
 apply_nolint free_ring.of doc_blame
 
 -- ring_theory/ideal/operations.lean
-apply_nolint ideal.le_rel_embedding_of_surjective doc_blame
-apply_nolint ideal.lt_rel_embedding_of_surjective doc_blame
 apply_nolint ideal.map doc_blame
 apply_nolint ideal.quotient_inf_to_pi_quotient doc_blame
 apply_nolint submodule.annihilator doc_blame

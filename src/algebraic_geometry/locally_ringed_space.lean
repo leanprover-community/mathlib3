@@ -18,22 +18,27 @@ open topological_space
 open opposite
 open category_theory.category category_theory.functor
 
--- local attribute [tidy] tactic.op_induction'
-
 namespace algebraic_geometry
 
-/-- A `RingedSpace` is a topological space equipped with a sheaf of commutative rings.
+-- /-- A `RingedSpace` is a topological space equipped with a sheaf of commutative rings.
 
-A morphism of ringed spaces is a morphism of ring-presheafed spaces. -/
-@[derive category]
-def RingedSpace := SheafedSpace CommRing
+-- A morphism of ringed spaces is a morphism of ring-presheafed spaces. -/
+-- @[derive category]
+-- def RingedSpace := SheafedSpace CommRing
 
 /-- A `LocallyRingedSpace` is a topological space equipped with a sheaf of commutative rings
 such that all the stalks are local rings.
 
 A morphism of locally ringed spaces is a morphism of ringed spaces
  such that the morphims induced on stalks are local ring homomorphisms. -/
-structure LocallyRingedSpace extends (SheafedSpace CommRing) :=
-(local_ring : ∀ x : carrier, local_ring (𝒪.stalk x))
+def LocallyRingedSpace :=
+{X : SheafedSpace CommRing // ∀ x : X, local_ring (X.𝒪.stalk x)}
+
+namespace LocallyRingedSpace
+
+def hom (X Y : LocallyRingedSpace) : Type* :=
+{ f : X.1 ⟶ Y.1 // ∀ x, is_local_ring_hom (PresheafedSpace.stalk_map f x) }
+
+end LocallyRingedSpace
 
 end algebraic_geometry

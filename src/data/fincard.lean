@@ -204,7 +204,11 @@ begin
       simp_rw [set.inter_assoc, set.inter_self], assumption, congr }
 end
 
-variables {f g : α → M} {a b : α} {s t : set α}
+variables {β : Type w} {f g : α → M} {a b : α} {s t : set α}
+
+@[congr]
+lemma finsum_in_congr (h₀ : s = t) (h₁ : ∀ x ∈ t, f x = g x) : finsum_in s f = finsum_in t g :=
+h₀ ▸ by { rw [finsum_in_def, finsum_in_def], congr', ext x, split_ifs; finish }
 
 /-- The sum on an empty set over any function is zero. -/
 @[simp] lemma finsum_in_empty : finsum_in ∅ f = 0 :=
@@ -289,6 +293,61 @@ begin
   rw [finsum_in_eq_finset_sum''' f (show set.finite {a, b}, by simp),
       set.finite.to_finset, ← finset.sum_pair h],
   congr, ext, simp
+end
+
+-- finsum_const_zero follows from finsum_const so we will prove it after finsum_const
+
+/-- The sum on the image `g '' s` over the function `f` equals the sum on `s` over `f ∘ g` given `g`
+  is injective on `s`. -/
+lemma finsum_in_image {s : set β} {g : β → α} (hs : s.finite) (hg : set.inj_on g s) :
+  finsum_in (g '' s) f = finsum_in s (f ∘ g) :=
+begin
+  rw [finsum_in_eq_finset_sum''' (f ∘ g) hs, finsum_in_eq_finset_sum''' f (set.finite.image g hs),
+    ←finset.sum_image
+    (λ x hx y hy hxy, hg (set.finite.mem_to_finset.1 hx) (set.finite.mem_to_finset.1 hy) hxy)],
+  congr, ext, simp
+end
+
+lemma foo {s : set β} {g : β → α} :
+  (g '' s ∩ function.support f) = g '' (s ∩ function.support (f ∘ g)) :=
+begin
+  ext y, split; intro hy,
+    { rcases hy with ⟨⟨x, hx₀, rfl⟩, hy⟩,
+      exact ⟨x, ⟨hx₀, hy⟩, rfl⟩ },
+    { finish }
+end .
+
+lemma foo' {s : set β} {g : β → α} (hg : set.inj_on g s) :
+  (g '' s ∩ function.support f).finite ↔ (s ∩ function.support (f ∘ g)).finite :=
+begin
+  rw [foo, set.finite_image_iff],
+  exact set.inj_on.mono (set.inter_subset_left s _) hg
+end
+
+/-- A more general version of `finsum_in_image` that requires `s ∩ function.support f` instead of
+  `s` to be finite. -/
+lemma finsum_in_image' {s : set β} {g : β → α}
+  (hs : (g '' s ∩ function.support f).finite) (hg : set.inj_on g s) :
+  finsum_in (g '' s) f = finsum_in s (f ∘ g) :=
+begin
+  rw [finsum_in_eq_finset_sum _ _ hs, finsum_in_eq_finset_sum _ _ ((foo' hg).1 hs),
+     ← finsum_in_eq_finset_sum''', ← finsum_in_eq_finset_sum''',
+     ← (@finsum_in_image _ _ _ _ f (s ∩ function.support (f ∘ g)) g ((foo' hg).1 hs)
+      (set.inj_on.mono (set.inter_subset_left s _) hg))],
+    { congr, ext y, refine ⟨_, by finish⟩,
+      rintro ⟨⟨x, hx, rfl⟩, hy⟩,
+      exact ⟨x, ⟨hx, hy⟩, rfl⟩ },
+end .
+
+/-- The sum on `s : set α` over `f : α → M` equals the sum on `t : set β` over `g : β → M` if there
+  exists some function `e : α → β` that is bijective on `s` to `t` such that for all `x` in `s`,
+  `f x = (g ∘ e) x`. -/
+lemma finsum_in_eq_of_bij_on {s : set α} {t : set β} {f : α → M} {g : β → M}
+  (e : α → β) (he₀ : set.bij_on e s t) (he₁ : ∀ x ∈ s, f x = (g ∘ e) x)
+  (he₂ : (e '' s ∩ function.support g).finite) : finsum_in s f = finsum_in t g :=
+begin
+  rw [(set.bij_on.image_eq he₀).symm, finsum_in_image' he₂ he₀.2.1],
+  exact finsum_in_congr rfl he₁
 end
 
 end finsum

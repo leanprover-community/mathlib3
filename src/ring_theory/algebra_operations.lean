@@ -39,7 +39,7 @@ section ring
 variables {A : Type v} [semiring A] [algebra R A]
 variables (S T : set A) {M N P Q : submodule R A} {m n : A}
 
-/-- `1 : submodule R A` is the submodule R of A -/
+/-- `1 : submodule R A` is the submodule R of A. -/
 instance : has_one (submodule R A) :=
 ⟨submodule.map (of_id R A).to_linear_map (⊤ : submodule R R)⟩
 

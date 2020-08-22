@@ -95,7 +95,13 @@ def sections_subring (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
   zero_mem' :=
   begin
     refine λ x, ⟨unop U, x.2, 𝟙 _, 0, 1, λ y, ⟨_, _⟩⟩,
-    { rw ←ideal.ne_top_iff_one, exact y.1.as_ideal_is_prime.1, },
+    { rw ←ideal.ne_top_iff_one, exact y.1.is_prime.1, },
+    { simp, },
+  end,
+  one_mem' :=
+  begin
+    refine λ x, ⟨unop U, x.2, 𝟙 _, 1, 1, λ y, ⟨_, _⟩⟩,
+    { rw ←ideal.ne_top_iff_one, exact y.1.is_prime.1, },
     { simp, },
   end,
   add_mem' :=
@@ -103,19 +109,12 @@ def sections_subring (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
     intros a b ha hb x,
     rcases ha x with ⟨Va, ma, ia, ra, sa, wa⟩,
     rcases hb x with ⟨Vb, mb, ib, rb, sb, wb⟩,
-    use Va ⊓ Vb,
-    fsplit, exact ⟨ma, mb⟩,
-    use opens.inf_le_left _ _ ≫ ia,
-    use ra * sb + rb * sa,
-    use sa * sb,
+    refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * sb + rb * sa, sa * sb, _⟩,
     intro y,
     rcases wa (opens.inf_le_left _ _ y) with ⟨nma, wa⟩,
     rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
     fsplit,
-    { intro h,
-      rcases y.1.as_ideal_is_prime.mem_or_mem h with ma|mb,
-      exact nma ma,
-      exact nmb mb, },
+    { intro H, cases y.1.is_prime.mem_or_mem H; contradiction, },
     { simp only [add_mul, ring_hom.map_add, pi.add_apply, ring_hom.map_mul],
       erw [←wa, ←wb],
       simp only [mul_assoc],
@@ -125,53 +124,36 @@ def sections_subring (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
   neg_mem' :=
   begin
     intros a ha x,
-    rcases ha x with ⟨Va, ma, ia, ra, sa, wa⟩,
-    use Va,
-    fsplit, exact ma,
-    use ia,
-    use -ra ,
-    use sa,
+    rcases ha x with ⟨V, m, i, r, s, w⟩,
+    refine ⟨V, m, i, -r, s, _⟩,
     intro y,
-    rcases wa y with ⟨nma, wa⟩,
+    rcases w y with ⟨nm, w⟩,
     fsplit,
-    { exact nma, },
-    { simpa using wa, }
-  end,
-  one_mem' :=
-  begin
-    refine λ x, ⟨unop U, x.2, 𝟙 _, 1, 1, λ y, ⟨_, _⟩⟩,
-    { rw ←ideal.ne_top_iff_one, exact y.1.as_ideal_is_prime.1, },
-    { simp, },
+    { exact nm, },
+    { simp only [ring_hom.map_neg, pi.neg_apply],
+      erw [←w],
+      simp only [neg_mul_eq_neg_mul_symm], }
   end,
   mul_mem' :=
   begin
     intros a b ha hb x,
     rcases ha x with ⟨Va, ma, ia, ra, sa, wa⟩,
     rcases hb x with ⟨Vb, mb, ib, rb, sb, wb⟩,
-    use Va ⊓ Vb,
-    fsplit, exact ⟨ma, mb⟩,
-    use opens.inf_le_left _ _ ≫ ia,
-    use ra * rb,
-    use sa * sb,
+    refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * rb, sa * sb, _⟩,
     intro y,
     rcases wa (opens.inf_le_left _ _ y) with ⟨nma, wa⟩,
     rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
     fsplit,
-    { intro h,
-      rcases y.1.as_ideal_is_prime.mem_or_mem h with ma|mb,
-      exact nma ma,
-      exact nmb mb, },
+    { intro H, cases y.1.is_prime.mem_or_mem H; contradiction, },
     { simp only [pi.mul_apply, ring_hom.map_mul],
       erw [←wa, ←wb],
-      simp only [mul_assoc],
-      congr' 1,
-      simp only [←mul_assoc],
-      congr' 1,
-      simp only [mul_comm],
+      simp only [mul_left_comm, mul_assoc, mul_comm],
       refl, }
-  end }
+  end, }
 
-instance comm_ring_structure_sheaf_in_Type_obj (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
+-- TODO: we need to prove that the stalk at `P` is `localization.at_prime P.as_ideal`
+
+instance blah (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
   comm_ring ((structure_sheaf_in_Type R).presheaf.obj U) :=
 (sections_subring R U).to_comm_ring
 

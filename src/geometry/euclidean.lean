@@ -1510,8 +1510,7 @@ begin
   { rw [pi.sub_apply, monge_point_weights_with_circumcenter, centroid_weights_with_circumcenter,
         monge_point_vsub_face_centroid_weights_with_circumcenter],
     have hu : finset.card (finset.univ \ {i₁, i₂} : finset (fin (n + 3))) = n + 1,
-    { rw [finset.card_univ_diff, fintype.card_fin],
-      simp [h] },
+    { simp [finset.card_univ_diff, fintype.card_fin, h] },
     rw hu,
     by_cases hi : i = i₁ ∨ i = i₂;
       simp [hi] },

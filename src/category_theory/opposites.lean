@@ -105,9 +105,11 @@ protected definition unop (F : Cᵒᵖ ⥤ Dᵒᵖ) : C ⥤ D :=
 { obj := λ X, unop (F.obj (op X)),
   map := λ X Y f, (F.map f.op).unop }
 
+/-- The isomorphism between `F.op.unop` and `F`. -/
 def op_unop_iso (F : C ⥤ D) : F.op.unop ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
+/-- The isomorphism between `F.unop.op` and `F`. -/
 def unop_op_iso (F : Cᵒᵖ ⥤ Dᵒᵖ) : F.unop.op ≅ F :=
 nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
@@ -118,14 +120,14 @@ definition op_hom : (C ⥤ D)ᵒᵖ ⥤ (Cᵒᵖ ⥤ Dᵒᵖ) :=
 { obj := λ F, (unop F).op,
   map := λ F G α,
   { app := λ X, (α.unop.app (unop X)).op,
-    naturality' := λ X Y f, has_hom.hom.unop_inj $ eq.symm (α.unop.naturality f.unop) } }
+    naturality' := λ X Y f, has_hom.hom.unop_inj (α.unop.naturality f.unop).symm } }
 
 @[simps]
 definition op_inv : (Cᵒᵖ ⥤ Dᵒᵖ) ⥤ (C ⥤ D)ᵒᵖ :=
 { obj := λ F, op F.unop,
   map := λ F G α, has_hom.hom.op
   { app := λ X, (α.app (op X)).unop,
-    naturality' := λ X Y f, has_hom.hom.op_inj $ eq.symm (α.naturality f.op) } }
+    naturality' := λ X Y f, has_hom.hom.op_inj $ (α.naturality f.op).symm } }
 
 -- TODO show these form an equivalence
 

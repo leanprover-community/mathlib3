@@ -33,7 +33,7 @@ namespace algebraic_geometry
 
 /-- A `SheafedSpace C` is a topological space equipped with a sheaf of `C`s. -/
 structure SheafedSpace extends PresheafedSpace C :=
-(sheaf_condition : sheaf_condition 𝒪)
+(sheaf_condition : sheaf_condition presheaf)
 
 variables {C}
 
@@ -43,8 +43,9 @@ instance coe_carrier : has_coe (SheafedSpace C) Top :=
 { coe := λ X, X.carrier }
 
 @[simp] lemma as_coe (X : SheafedSpace C) : X.carrier = (X : Top.{v}) := rfl
-@[simp] lemma mk_coe (carrier) (𝒪) (h) : (({ carrier := carrier, 𝒪 := 𝒪, sheaf_condition := h } :
-  SheafedSpace.{v} C) : Top.{v}) = carrier := rfl
+@[simp] lemma mk_coe (carrier) (presheaf) (h) :
+  (({ carrier := carrier, presheaf := presheaf, sheaf_condition := h } : SheafedSpace.{v} C) : Top.{v}) = carrier :=
+rfl
 
 instance (X : SheafedSpace.{v} C) : topological_space X := X.carrier.str
 

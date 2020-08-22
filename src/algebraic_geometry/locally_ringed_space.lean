@@ -18,6 +18,14 @@ open topological_space
 open opposite
 open category_theory.category category_theory.functor
 
+--move this
+lemma ring_hom.is_unit_map {A B: Type*} [semiring A] [semiring B]
+  (f : A →+* B) {a : A} (h : is_unit a) : is_unit (f a) :=
+begin
+  rcases h with ⟨u, rfl⟩,
+  exact ⟨units.map f.to_monoid_hom u, rfl⟩,
+end
+
 namespace algebraic_geometry
 
 -- /-- A `RingedSpace` is a topological space equipped with a sheaf of commutative rings.
@@ -30,10 +38,9 @@ namespace algebraic_geometry
 such that all the stalks are local rings.
 
 A morphism of locally ringed spaces is a morphism of ringed spaces
- such that the morphims induced on stalks are local ring homomorphisms. -/
- @[derive has_coe_to_sort]
-def LocallyRingedSpace :=
-{X : SheafedSpace CommRing // ∀ x : X, local_ring (X.𝒪.stalk x)}
+such that the morphims induced on stalks are local ring homomorphisms. -/
+structure LocallyRingedSpace extends SheafedSpace CommRing :=
+(local_ring : ∀ x, local_ring (presheaf.stalk x))
 
 namespace LocallyRingedSpace
 
@@ -42,19 +49,32 @@ variables (X : LocallyRingedSpace)
 /-- The underlying topological space of a locally ringed space. -/
 def to_Top : Top := X.1.carrier
 
+instance : has_coe_to_sort LocallyRingedSpace :=
+{ S := Type u,
+  coe := λ X : LocallyRingedSpace, (X.to_Top : Type u), }
+
+-- PROJECT: how about a typeclass "has_structure_sheaf" to mediate the 𝒪 notation, rather
+-- than defining it over and over for PresheafedSpace, LRS, Scheme, etc.
+
 /-- The structure sheaf of a locally ringed space. -/
-def 𝒪 : sheaf CommRing X.to_Top := ⟨X.1.𝒪, X.1.sheaf_condition⟩
+def 𝒪 : sheaf CommRing X.to_Top := ⟨X.1.presheaf, X.1.sheaf_condition⟩
 
 /-- A morphism of locally ringed spaces is a morphism of ringed spaces
  such that the morphims induced on stalks are local ring homomorphisms. -/
 def hom (X Y : LocallyRingedSpace) : Type* :=
-{ f : X.1 ⟶ Y.1 // ∀ x, is_local_ring_hom (PresheafedSpace.stalk_map f x) }
+{ f : X.to_SheafedSpace ⟶ Y.to_SheafedSpace // ∀ x, is_local_ring_hom (PresheafedSpace.stalk_map f x) }
 
 instance : has_hom LocallyRingedSpace := ⟨hom⟩
 
+@[ext] lemma hom_ext {X Y : LocallyRingedSpace} (f g : hom X Y) (w : f.1 = g.1) : f = g :=
+subtype.eq w
+
+-- TODO define `sheaf.stalk` so we can write `X.𝒪.stalk` here?
+def stalk (X : LocallyRingedSpace) (x : X) := X.presheaf.stalk x
+
 def stalk_map {X Y : LocallyRingedSpace} (f : X ⟶ Y) (x : X) :
-  Y.𝒪.presheaf.stalk (f.1.1 x) ⟶ X.𝒪.presheaf.stalk x :=
-PresheafedSpace.stalk_map _ _
+  Y.stalk (f.1.1 x) ⟶ X.stalk x :=
+PresheafedSpace.stalk_map f.1 x
 
 instance {X Y : LocallyRingedSpace} (f : X ⟶ Y) (x : X) :
   is_local_ring_hom (stalk_map f x) := f.2 x
@@ -67,7 +87,7 @@ instance is_local_ring_hom_id (A : Type*) [semiring A] : is_local_ring_hom (ring
 @[simp] lemma is_unit_map_iff {A B : Type*} [semiring A] [semiring B] (f : A →+* B)
   [is_local_ring_hom f] (a) :
   is_unit (f a) ↔ is_unit a :=
-⟨is_local_ring_hom.map_nonunit a, sorry⟩
+⟨is_local_ring_hom.map_nonunit a, f.is_unit_map⟩
 
 -- move this
 instance is_local_ring_hom_comp {A B C : Type*} [semiring A] [semiring B] [semiring C]
@@ -80,15 +100,28 @@ instance is_local_ring_hom_comp {A B C : Type*} [semiring A] [semiring B] [semir
     exact id
   end }
 
+@[simps]
+def id (X : LocallyRingedSpace) : hom X X :=
+⟨𝟙 _, λ x, by { erw PresheafedSpace.stalk_map.id, apply LocallyRingedSpace.is_local_ring_hom_id, }⟩
+
+@[simps]
+def comp {X Y Z : LocallyRingedSpace} (f : hom X Y) (g : hom Y Z) : hom X Z :=
+⟨f.val ≫ g.val, λ x,
+begin
+  -- TODO yuck!
+  erw PresheafedSpace.stalk_map.comp,
+  apply @LocallyRingedSpace.is_local_ring_hom_comp _ _ _ _ _ _ _ _ _ _,
+  exact f.2 _,
+  exact g.2 _,
+end⟩
+
 instance : category LocallyRingedSpace :=
 { hom := hom,
-  id := λ X, ⟨𝟙 _, λ x,
-  by { sorry }⟩,
-  comp := λ X Y Z f g,
-  ⟨f.val ≫ g.val, _⟩,
-  id_comp' := _,
-  comp_id' := _,
-  assoc' := _ }
+  id := id,
+  comp := λ X Y Z f g, comp f g,
+  comp_id' := by { intros, ext1, simp, },
+  id_comp' := by { intros, ext1, simp, },
+  assoc' := by { intros, ext1, simp, }, }
 
 end LocallyRingedSpace
 

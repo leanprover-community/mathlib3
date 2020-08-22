@@ -32,7 +32,7 @@ namespace algebraic_geometry
 /-- A `PresheafedSpace C` is a topological space equipped with a presheaf of `C`s. -/
 structure PresheafedSpace :=
 (carrier : Top)
-(𝒪 : carrier.presheaf C)
+(presheaf : carrier.presheaf C)
 
 variables {C}
 
@@ -42,7 +42,7 @@ instance coe_carrier : has_coe (PresheafedSpace C) Top :=
 { coe := λ X, X.carrier }
 
 @[simp] lemma as_coe (X : PresheafedSpace C) : X.carrier = (X : Top.{v}) := rfl
-@[simp] lemma mk_coe (carrier) (𝒪) : (({ carrier := carrier, 𝒪 := 𝒪 } :
+@[simp] lemma mk_coe (carrier) (presheaf) : (({ carrier := carrier, presheaf := presheaf } :
   PresheafedSpace.{v} C) : Top.{v}) = carrier := rfl
 
 instance (X : PresheafedSpace.{v} C) : topological_space X := X.carrier.str
@@ -52,10 +52,11 @@ instance (X : PresheafedSpace.{v} C) : topological_space X := X.carrier.str
     from the presheaf on `Y` to the pushforward of the presheaf on `X` via `f`. -/
 structure hom (X Y : PresheafedSpace C) :=
 (base : (X : Top.{v}) ⟶ (Y : Top.{v}))
-(c : Y.𝒪 ⟶ base _* X.𝒪)
+(c : Y.presheaf ⟶ base _* X.presheaf)
 
 @[ext] lemma ext {X Y : PresheafedSpace C} (α β : hom X Y)
-  (w : α.base = β.base) (h : α.c ≫ (whisker_right (nat_trans.op (opens.map_iso _ _ w).inv) X.𝒪) = β.c) :
+  (w : α.base = β.base)
+  (h : α.c ≫ (whisker_right (nat_trans.op (opens.map_iso _ _ w).inv) X.presheaf) = β.c) :
   α = β :=
 begin
   cases α, cases β,
@@ -167,13 +168,13 @@ namespace functor
 /-- We can apply a functor `F : C ⥤ D` to the values of the presheaf in any `PresheafedSpace C`,
     giving a functor `PresheafedSpace C ⥤ PresheafedSpace D` -/
 def map_presheaf (F : C ⥤ D) : PresheafedSpace C ⥤ PresheafedSpace D :=
-{ obj := λ X, { carrier := X.carrier, 𝒪 := X.𝒪 ⋙ F },
+{ obj := λ X, { carrier := X.carrier, presheaf := X.presheaf ⋙ F },
   map := λ X Y f, { base := f.base, c := whisker_right f.c F }, }
 
 @[simp] lemma map_presheaf_obj_X (F : C ⥤ D) (X : PresheafedSpace C) :
   ((F.map_presheaf.obj X) : Top.{v}) = (X : Top.{v}) := rfl
-@[simp] lemma map_presheaf_obj_𝒪 (F : C ⥤ D) (X : PresheafedSpace C) :
-  (F.map_presheaf.obj X).𝒪 = X.𝒪 ⋙ F := rfl
+@[simp] lemma map_presheaf_obj_presheaf (F : C ⥤ D) (X : PresheafedSpace C) :
+  (F.map_presheaf.obj X).presheaf = X.presheaf ⋙ F := rfl
 @[simp] lemma map_presheaf_map_f (F : C ⥤ D) {X Y : PresheafedSpace C} (f : X ⟶ Y) :
   (F.map_presheaf.map f).base = f.base := rfl
 @[simp] lemma map_presheaf_map_c (F : C ⥤ D) {X Y : PresheafedSpace C} (f : X ⟶ Y) :
@@ -188,7 +189,7 @@ namespace nat_trans
 def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_presheaf :=
 { app := λ X,
   { base := 𝟙 _,
-    c := whisker_left X.𝒪 α ≫ ((functor.left_unitor _).inv) ≫
+    c := whisker_left X.presheaf α ≫ ((functor.left_unitor _).inv) ≫
            (whisker_right (nat_trans.op (opens.map_id X.carrier).hom) _) }, }
 
 -- TODO Assemble the last two constructions into a functor

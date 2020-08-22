@@ -151,9 +151,7 @@ def sections_subring (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
       refl, }
   end, }
 
--- TODO: we need to prove that the stalk at `P` is `localization.at_prime P.as_ideal`
-
-instance blah (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
+instance comm_ring_structure_sheaf_in_Type_obj (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
   comm_ring ((structure_sheaf_in_Type R).presheaf.obj U) :=
 (sections_subring R U).to_comm_ring
 

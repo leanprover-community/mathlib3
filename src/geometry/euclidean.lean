@@ -1492,8 +1492,7 @@ omit V
 
 /-- The weights for the Monge point of an (n+2)-simplex, minus the
 centroid of an n-dimensional face, in terms of
-`points_with_circumcenter`.  This definition is only valid when `i₁ ≠
-i₂`. -/
+`points_with_circumcenter`.  This definition is only valid when `i₁ ≠ i₂`. -/
 def monge_point_vsub_face_centroid_weights_with_circumcenter {n : ℕ} (i₁ i₂ : fin (n + 3)) :
   points_with_circumcenter_index (n + 2) → ℝ
 | (point_index i) := if i = i₁ ∨ i = i₂ then (((n + 1) : ℕ) : ℝ)⁻¹ else 0

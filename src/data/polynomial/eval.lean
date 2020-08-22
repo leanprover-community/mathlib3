@@ -462,7 +462,7 @@ lemma root_mul_right_of_is_root {p : polynomial R} (q : polynomial R) :
 Polynomial evaluation commutes with finset.prod
 -/
 lemma eval_prod {ι : Type*} (s : finset ι) (p : ι → polynomial R) (x : R) :
-  polynomial.eval x (∏ j in s, p j) = ∏ j in s, polynomial.eval x (p j) :=
+  eval x (∏ j in s, p j) = ∏ j in s, eval x (p j) :=
 begin
   classical,
   apply finset.induction_on s,

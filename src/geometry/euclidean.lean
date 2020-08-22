@@ -1526,8 +1526,7 @@ begin
   rw monge_point_vsub_face_centroid_weights_with_circumcenter_eq_sub h,
   simp_rw [pi.sub_apply, finset.sum_sub_distrib, sum_monge_point_weights_with_circumcenter],
   rw [sum_centroid_weights_with_circumcenter, sub_self],
-  rw [←finset.card_pos, finset.card_univ_diff],
-  simp [h]
+  simp [←finset.card_pos, finset.card_univ_diff, h]
 end
 
 include V

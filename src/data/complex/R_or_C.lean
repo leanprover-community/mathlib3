@@ -5,6 +5,7 @@ Authors: Frédéric Dupuis
 -/
 
 import analysis.normed_space.basic
+import analysis.complex.basic
 
 /-!
 # R_or_C: a typeclass for ℝ or ℂ
@@ -16,11 +17,6 @@ follows closely that of ℂ.
 -/
 
 open classical
-
---variables {K : Type*} [normed_field K] [algebra ℝ K] [has_coe ℝ K]
-
---#check (show has_coe ℝ K, by apply_instance)
-#check @has_coe.coe
 
 /--
 blah
@@ -52,23 +48,24 @@ class is_R_or_C (K : Type*) [normed_field K] [algebra ℝ K] [has_coe ℝ K] [de
 instance : has_coe ℝ ℝ := ⟨id⟩
 
 noncomputable instance : is_R_or_C ℝ :=
-{ re := ⟨id, by simp, by simp⟩,
-  im := ⟨0, by simp, by simp⟩,
-  conj := ⟨id, by simp, by simp, by simp, by simp⟩,
+{ re := ⟨id, by simp only [id.def], by simp only [forall_const, id.def, eq_self_iff_true]⟩,
+  im := ⟨0, by simp only [pi.zero_apply], by simp only [add_zero, forall_const, pi.zero_apply]⟩,
+  conj := ⟨id, by simp only [id.def], by simp only [forall_const, id.def, eq_self_iff_true],
+          by simp only [id.def], by simp only [forall_const, id.def, eq_self_iff_true]⟩,
   I := 0,
-  I_re_ax := by simp,
+  I_re_ax := by simp only [add_monoid_hom.map_zero],
   I_def_ax := or.intro_left _ rfl,
-  re_add_im_ax := λ z, by unfold_coes; simp,
-  smul_coe_mul_ax := λ z r, by unfold_coes; simp,
-  smul_re_ax := λ r z, by unfold_coes; simp,
-  smul_im_ax := λ r z, by unfold_coes; simp,
-  of_real_re_ax := λ r, by unfold_coes; simp,
-  of_real_im_ax := λ r, by unfold_coes; simp,
-  mul_re_ax := λ z w, by simp,
-  mul_im_ax := λ z w, by simp,
-  conj_re_ax := λ z, by simp,
-  conj_im_ax := λ z, by simp,
-  conj_I_ax := by simp,
+  re_add_im_ax := λ z, by unfold_coes; simp only [add_zero, id.def, mul_zero],
+  smul_coe_mul_ax := λ z r, by unfold_coes; simp only [algebra.id.smul_eq_mul, id.def],
+  smul_re_ax := λ r z, by unfold_coes; simp only [algebra.id.smul_eq_mul, id.def],
+  smul_im_ax := λ r z, by unfold_coes; simp only [pi.zero_apply, mul_zero],
+  of_real_re_ax := λ r, by unfold_coes; simp only [id.def],
+  of_real_im_ax := λ r, by unfold_coes; simp only [pi.zero_apply],
+  mul_re_ax := λ z w, by simp only [add_monoid_hom.coe_mk, id.def, pi.zero_apply, sub_zero, mul_zero],
+  mul_im_ax := λ z w, by simp only [add_zero, add_monoid_hom.coe_mk, zero_mul, pi.zero_apply, mul_zero],
+  conj_re_ax := λ z, by simp only [ring_hom.coe_mk, id.def],
+  conj_im_ax := λ z, by simp only [add_monoid_hom.coe_mk, pi.zero_apply, neg_zero],
+  conj_I_ax := by simp only [ring_hom.map_zero, neg_zero],
   eq_conj_iff_real_ax := λ z,
     begin
       dsimp,
@@ -76,13 +73,75 @@ noncomputable instance : is_R_or_C ℝ :=
       intro h,
       refine ⟨z, _⟩,
       unfold_coes,
-      simp,
+      simp only [id.def],
     end,
-  norm_sq_eq_def := λ z, by simp [pow_two, norm, ←abs_mul, abs_mul_self z],
-  mul_im_I_ax := λ z, by simp,
-  inv_def := sorry,
-  div_I_ax := λ z, by simp }
+  norm_sq_eq_def := λ z, by simp only [pow_two, norm, ←abs_mul, abs_mul_self z, add_zero, add_monoid_hom.coe_mk, id.def, pi.zero_apply, mul_zero],
+  mul_im_I_ax := λ z, by simp only [add_monoid_hom.coe_mk, pi.zero_apply, mul_zero],
+  inv_def :=
+    begin
+      intro z,
+      rcases lt_trichotomy z 0 with hlt|heq|hgt,
+      { unfold_coes,
+        have : z ≠ 0 := by linarith,
+        field_simp [norm, abs, max_eq_right_of_lt (show z < -z, by linarith), pow_two, mul_inv'],
+        calc
+          1 / z = 1 * (1 / z)           : (one_mul (1 / z)).symm
+            ... = (z / z) * (1 / z)     : congr_arg (λ x, x * (1 / z)) (div_self this).symm
+            ... = z / (z * z)           : by field_simp },
+      { simp [heq] },
+      { unfold_coes,
+        have : z ≠ 0 := by linarith,
+        field_simp [norm, abs, max_eq_left_of_lt (show -z < z, by linarith), pow_two, mul_inv'],
+        calc
+          1 / z = 1 * (1 / z)           : (one_mul (1 / z)).symm
+            ... = (z / z) * (1 / z)     : congr_arg (λ x, x * (1 / z)) (div_self this).symm
+            ... = z / (z * z)           : by field_simp },
+    end,
+  div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero]}
 
+noncomputable instance : is_R_or_C ℂ :=
+{ re := ⟨complex.re, complex.zero_re, complex.add_re⟩,
+  im := ⟨complex.im, complex.zero_im, complex.add_im⟩,
+  conj := ⟨complex.conj, complex.conj.map_one, complex.conj.map_mul, complex.conj.map_zero, complex.conj.map_add⟩,
+  I := complex.I,
+  I_re_ax := by simp only [add_monoid_hom.coe_mk, complex.I_re],
+  I_def_ax := by simp only [complex.I_mul_I, eq_self_iff_true, or_true],
+  re_add_im_ax := by simp only [forall_const, add_monoid_hom.coe_mk, complex.re_add_im, eq_self_iff_true],
+  smul_coe_mul_ax := λ z r, rfl,
+  smul_re_ax := λ r z, by simp [(show r • z = r * z, by refl)],
+  smul_im_ax := λ r z, by simp [(show r • z = r * z, by refl)],
+  of_real_re_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_re],
+  of_real_im_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_im],
+  mul_re_ax := λ z w, by simp only [complex.mul_re, add_monoid_hom.coe_mk],
+  mul_im_ax := λ z w, by simp only [add_monoid_hom.coe_mk, complex.mul_im],
+  conj_re_ax := λ z, by simp only [ring_hom.coe_mk, add_monoid_hom.coe_mk, complex.conj_re],
+  conj_im_ax := λ z, by simp only [ring_hom.coe_mk, complex.conj_im, add_monoid_hom.coe_mk],
+  conj_I_ax := by simp only [complex.conj_I, ring_hom.coe_mk],
+  eq_conj_iff_real_ax := λ z,
+    begin
+      split,
+      { simp,
+        intro h,
+        refine ⟨z.re,_⟩,
+        ext z,
+        { simp only [complex.of_real_re]},
+        { sorry } },
+      { rintros ⟨r,rfl⟩,
+        exact complex.conj_of_real r }
+    end,
+  norm_sq_eq_def := λ z, begin
+    sorry,
+  end,
+  mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im],
+  inv_def := λ z,
+    begin
+      dsimp,
+      convert complex.inv_def z,
+      rw [complex.norm_sq, complex.abs],
+      sorry,
+    end,
+  div_I_ax := complex.div_I,
+}
 
 namespace is_R_or_C
 
@@ -150,7 +209,6 @@ begin
   apply @of_real_inj K _ _ _ _ _ z 0
 end
 
-#check @is_R_or_C.ext_iff
 @[simp, norm_cast] lemma of_real_add (r s : ℝ) : ((r + s : ℝ) : K) = r + s :=
 begin
   apply (@is_R_or_C.ext_iff K _ _ _ _ _ ((r + s : ℝ) : K) (r + s)).mpr,
@@ -256,9 +314,9 @@ lemma norm_sq_sub (z w : K) : norm_sq (z - w) =
 by rw [sub_eq_add_neg, norm_sq_add]; simp [-mul_re, add_comm, add_left_comm, sub_eq_add_neg]
 
 @[simp] lemma inv_re (z : K) : re (z⁻¹) = re z / norm_sq z :=
-  by simp [inv_def, norm_sq_eq_def, norm_sq, division_def]
+  by simp [@is_R_or_C.inv_def K _ _ _ _ _, norm_sq_eq_def, norm_sq, division_def]
 @[simp] lemma inv_im (z : K) : im (z⁻¹) = im (-z) / norm_sq z :=
-  by simp [inv_def, norm_sq_eq_def, norm_sq, division_def]
+  by simp [@is_R_or_C.inv_def K _ _ _ _ _, norm_sq_eq_def, norm_sq, division_def]
 
 @[simp, norm_cast] lemma of_real_inv (r : ℝ) : ((r⁻¹ : ℝ) : K) = r⁻¹ :=
 ext_iff.2 $ begin
@@ -427,9 +485,6 @@ lemma abs_sub_le : ∀ a b c : K, abs (a - c) ≤ abs (a - b) + abs (b - c) := a
 lemma abs_abs_sub_le_abs_sub : ∀ z w : K, abs' (abs z - abs w) ≤ abs (z - w) :=
 abs_abv_sub_le_abv_sub abs
 
-lemma abs_le_abs_re_add_abs_im (z : K) : abs z ≤ abs' (re z) + abs' (im z) := sorry
---by simpa [re_add_im] using abs_add (re z) ((im z) * (I : K))
-
 lemma abs_re_div_abs_le_one (z : K) : abs' (re z / abs z) ≤ 1 :=
 if hz : z = 0 then by simp [hz, zero_le_one]
 else by { simp_rw [_root_.abs_div, abs_abs, div_le_iff (abs_pos.2 hz), one_mul, abs_re_le_abs] }
@@ -441,6 +496,31 @@ else by { simp_rw [_root_.abs_div, abs_abs, div_le_iff (abs_pos.2 hz), one_mul, 
 @[simp, norm_cast] lemma abs_cast_nat (n : ℕ) : abs (n : K) = n :=
 by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]
 
+lemma norm_sq_eq_abs (x : K) : norm_sq x = abs x ^ 2 :=
+by rw [abs, pow_two, real.mul_self_sqrt (norm_sq_nonneg _)]
 
+
+/-! ### Cauchy sequences -/
+
+theorem is_cau_seq_re (f : cau_seq K abs) : is_cau_seq abs' (λ n, re (f n)) :=
+λ ε ε0, (f.cauchy ε0).imp $ λ i H j ij,
+lt_of_le_of_lt (by simpa using abs_re_le_abs (f j - f i)) (H _ ij)
+
+theorem is_cau_seq_im (f : cau_seq K abs) : is_cau_seq abs' (λ n, im (f n)) :=
+λ ε ε0, (f.cauchy ε0).imp $ λ i H j ij,
+lt_of_le_of_lt (by simpa using abs_im_le_abs (f j - f i)) (H _ ij)
+
+/-- The real part of a K Cauchy sequence, as a real Cauchy sequence. -/
+noncomputable def cau_seq_re (f : cau_seq K abs) : cau_seq ℝ abs' :=
+⟨_, is_cau_seq_re f⟩
+
+/-- The imaginary part of a K Cauchy sequence, as a real Cauchy sequence. -/
+noncomputable def cau_seq_im (f : cau_seq K abs) : cau_seq ℝ abs' :=
+⟨_, is_cau_seq_im f⟩
+
+lemma is_cau_seq_abs {f : ℕ → K} (hf : is_cau_seq abs f) :
+  is_cau_seq abs' (abs ∘ f) :=
+λ ε ε0, let ⟨i, hi⟩ := hf ε ε0 in
+⟨i, λ j hj, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _) (hi j hj)⟩
 
 end is_R_or_C

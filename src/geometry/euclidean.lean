@@ -1623,8 +1623,7 @@ begin
       direction_mk', submodule.mem_orthogonal'],
   refine ⟨_, s.monge_point_mem_affine_span⟩,
   intros v hv,
-  rw submodule.mem_span_singleton at hv,
-  rcases hv with ⟨r, rfl⟩,
+  rcases submodule.mem_span_singleton.mp hv with ⟨r, rfl⟩,
   rw [inner_smul_right, s.inner_monge_point_vsub_face_centroid_vsub h, mul_zero]
 end
 

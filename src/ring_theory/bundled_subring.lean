@@ -77,6 +77,11 @@ add_decl_doc subring.to_add_subgroup
 
 namespace subring
 
+def to_submonoid (s : subring R) : submonoid R :=
+{
+  carrier := s.carrier,
+  ..s.to_subsemiring.to_submonoid, }
+
 instance : has_coe (subring R) (set R) := ⟨subring.carrier⟩
 
 instance : has_coe_to_sort (subring R) := ⟨Type*, λ S, S.carrier⟩
@@ -97,21 +102,21 @@ protected def mk' (s : set R) (sm : submonoid R) (sa : add_subgroup R)
 
 @[simp] lemma coe_mk' {s : set R} {sm : submonoid R} (hm : ↑sm = s)
   {sa : add_subgroup R} (ha : ↑sa = s) :
-  (subring.mk' s sm hm sa ha : set R) = s := rfl
+  (subring.mk' s sm sa hm ha : set R) = s := rfl
 
 @[simp] lemma mem_mk' {s : set R} {sm : submonoid R} (hm : ↑sm = s)
   {sa : add_subgroup R} (ha : ↑sa = s) {x : R} :
-  x ∈ subring.mk' s sm hm sa ha ↔ x ∈ s :=
+  x ∈ subring.mk' s sm sa hm ha ↔ x ∈ s :=
 iff.rfl
 
 @[simp] lemma mk'_to_submonoid {s : set R} {sm : submonoid R} (hm : ↑sm = s)
   {sa : add_subgroup R} (ha : ↑sa = s) :
-  (subring.mk' s sm hm sa ha).to_subsemiring.to_submonoid = sm :=
+  (subring.mk' s sm sa hm ha).to_submonoid = sm :=
 submonoid.ext' hm.symm
 
 @[simp] lemma mk'_to_add_subgroup {s : set R} {sm : submonoid R} (hm : ↑sm = s)
   {sa : add_subgroup R} (ha : ↑sa  =s) :
-  (subring.mk' s sm hm sa ha).to_add_subgroup = sa :=
+  (subring.mk' s sm sa hm ha).to_add_subgroup = sa :=
 add_subgroup.ext' ha.symm
 
 end subring
@@ -126,7 +131,7 @@ set_coe.forall
 
 /-- A `subsemiring` containing -1 is a `subring`. -/
 def subsemiring.to_subring (s : subsemiring R) (hneg : (-1 : R) ∈ s) : subring R :=
-{ neg_mem' := by { rintros x, rw <-neg_one_mul, apply subsemiring.mul_mem, exact hneg, } 
+{ neg_mem' := by { rintros x, rw <-neg_one_mul, apply subsemiring.mul_mem, exact hneg, }
 ..s.to_submonoid, ..s.to_add_submonoid }
 
 namespace subring
@@ -161,7 +166,7 @@ theorem neg_mem : ∀ {x : R}, x ∈ s → -x ∈ s := s.neg_mem'
 
 /-- Product of a list of elements in a subring is in the subring. -/
 lemma list_prod_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.prod ∈ s :=
-s.to_subsemiring.to_submonoid.list_prod_mem
+s.to_submonoid.list_prod_mem
 
 /-- Sum of a list of elements in a subring is in the subring. -/
 lemma list_sum_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.sum ∈ s :=
@@ -170,7 +175,7 @@ s.to_add_subgroup.list_sum_mem
 /-- Product of a multiset of elements in a subring of a `comm_ring` is in the subring. -/
 lemma multiset_prod_mem {R} [comm_ring R] (s : subring R) (m : multiset R) :
   (∀a ∈ m, a ∈ s) → m.prod ∈ s :=
-s.to_subsemiring.to_submonoid.multiset_prod_mem m
+s.to_submonoid.multiset_prod_mem m
 
 /-- Sum of a multiset of elements in an `subring` of a `ring` is
 in the `subring`. -/
@@ -183,7 +188,7 @@ s.to_add_subgroup.multiset_sum_mem m
 lemma prod_mem {R : Type*} [comm_ring R] (s : subring R)
   {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
   ∏ i in t, f i ∈ s :=
-s.to_subsemiring.to_submonoid.prod_mem h
+s.to_submonoid.prod_mem h
 
 /-- Sum of elements in a `subring` of a `ring` indexed by a `finset`
 is in the `subring`. -/
@@ -192,7 +197,7 @@ lemma sum_mem {R : Type*} [ring R] (s : subring R)
   ∑ i in t, f i ∈ s :=
 s.to_add_subgroup.sum_mem h
 
-lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_subsemiring.to_submonoid.pow_mem hx n
+lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
 
 lemma gsmul_mem {x : R} (hx : x ∈ s) (n : ℤ) :
   n •ℤ x ∈ s := s.to_add_subgroup.gsmul_mem hx n
@@ -204,7 +209,7 @@ by simp only [← gsmul_one, gsmul_mem, one_mem]
 instance to_ring : ring s :=
 { right_distrib := λ x y z, subtype.eq $ right_distrib x y z,
   left_distrib := λ x y z, subtype.eq $ left_distrib x y z,
-  .. s.to_subsemiring.to_submonoid.to_monoid, .. s.to_add_subgroup.to_add_comm_group }
+  .. s.to_submonoid.to_monoid, .. s.to_add_subgroup.to_add_comm_group }
 
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : R) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_neg (x : s) : (↑(-x) : R) = -↑x := rfl
@@ -219,7 +224,7 @@ def to_comm_ring {R} [comm_ring R] (s : subring R) : comm_ring s :=
 /-- The natural ring hom from a subring of ring `R` to `R`. -/
 def subtype (s : subring R) : s →+* R :=
 { to_fun := coe,
- .. s.to_subsemiring.to_submonoid.subtype, .. s.to_add_subgroup.subtype }
+ .. s.to_submonoid.subtype, .. s.to_add_subgroup.subtype }
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
 
@@ -241,8 +246,8 @@ lemma mem_coe {S : subring R} {m : R} : m ∈ (S : set R) ↔ m ∈ S := iff.rfl
 @[simp, norm_cast]
 lemma coe_coe (s : subring R) : ↥(s : set R) = s := rfl
 
-@[simp] lemma mem_to_submonoid {s : subring R} {x : R} : x ∈ s.to_subsemiring.to_submonoid ↔ x ∈ s := iff.rfl
-@[simp] lemma coe_to_submonoid (s : subring R) : (s.to_subsemiring.to_submonoid : set R) = s := rfl
+@[simp] lemma mem_to_submonoid {s : subring R} {x : R} : x ∈ s.to_submonoid ↔ x ∈ s := iff.rfl
+@[simp] lemma coe_to_submonoid (s : subring R) : (s.to_submonoid : set R) = s := rfl
 @[simp] lemma mem_to_add_subgroup {s : subring R} {x : R} :
   x ∈ s.to_add_subgroup ↔ x ∈ s := iff.rfl
 @[simp] lemma coe_to_add_subgroup (s : subring R) : (s.to_add_subgroup : set R) = s := rfl
@@ -263,7 +268,7 @@ instance : has_top (subring R) :=
 def comap {R : Type u} {S : Type v} [ring R] [ring S]
   (f : R →+* S) (s : subring S) : subring R :=
 { carrier := f ⁻¹' s.carrier,
- .. s.to_subsemiring.to_submonoid.comap (f : R →* S),
+ .. s.to_submonoid.comap (f : R →* S),
   .. s.to_add_subgroup.comap (f : R →+ S) }
 
 @[simp] lemma coe_comap (s : subring S) (f : R →+* S) : (s.comap f : set R) = f ⁻¹' s := rfl
@@ -281,7 +286,7 @@ rfl
 def map {R : Type u} {S : Type v} [ring R] [ring S]
   (f : R →+* S) (s : subring R) : subring S :=
   { carrier := f '' s.carrier,
-.. s.to_subsemiring.to_submonoid.map (f : R →* S),
+.. s.to_submonoid.map (f : R →* S),
 .. s.to_add_subgroup.map (f : R →+ S) }
 
 @[simp] lemma coe_map (f : R →+* S) (s : subring R) : (s.map f : set S) = f '' s := rfl
@@ -365,7 +370,7 @@ ring_hom.mem_range
 instance : has_inf (subring R) :=
 ⟨λ s t,
   { carrier := s ∩ t,
-    .. s.to_subsemiring.to_submonoid ⊓ t.to_subsemiring.to_submonoid,
+    .. s.to_submonoid ⊓ t.to_submonoid,
     .. s.to_add_subgroup ⊓ t.to_add_subgroup }⟩
 
 @[simp] lemma coe_inf (p p' : subring R) : ((p ⊓ p' : subring R) : set R) = p ∩ p' := rfl
@@ -373,16 +378,14 @@ instance : has_inf (subring R) :=
 @[simp] lemma mem_inf {p p' : subring R} {x : R} : x ∈ p ⊓ p' ↔ x ∈ p ∧ x ∈ p' := iff.rfl
 
 instance : has_Inf (subring R) :=
-⟨λ s, subring.mk' (⋂ t ∈ s, ↑t) (⨅ t ∈ s, (subring.to_subsemiring t).to_submonoid ) (by simp)
-  (⨅ t ∈ s, subring.to_add_subgroup t) (by simp)⟩
+⟨λ s, subring.mk' (⋂ t ∈ s, ↑t) (⨅ t ∈ s, subring.to_submonoid t ) (⨅ t ∈ s, subring.to_add_subgroup t) (by simp) (by simp)⟩
 
 @[simp, norm_cast] lemma coe_Inf (S : set (subring R)) :
   ((Inf S : subring R) : set R) = ⋂ s ∈ S, ↑s := rfl
 
 lemma mem_Inf {S : set (subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
 
-@[simp] lemma Inf_to_submonoid (s : set (subring R)) :
-  (Inf s).to_subsemiring.to_submonoid = ⨅ t ∈ s, subring.to_subsemiring.to_submonoid t := mk'_to_submonoid _ _
+@[simp] lemma Inf_to_submonoid (s : set (subring R)) : (Inf s).to_submonoid = ⨅ t ∈ s, subring.to_submonoid t := mk'_to_submonoid _ _
 
 @[simp] lemma Inf_to_add_subgroup (s : set (subring R)) :
   (Inf s).to_add_subgroup = ⨅ t ∈ s, subring.to_add_subgroup t := mk'_to_add_subgroup _ _
@@ -523,7 +526,7 @@ lemma comap_infi {ι : Sort*} (f : R →+* S) (s : ι → subring S) :
 as a subring of `R × S`. -/
 def prod (s : subring R) (t : subring S) : subring (R × S) :=
 { carrier := (s : set R).prod t,
-  .. s.to_subsemiring.to_submonoid.prod t.to_subsemiring.to_submonoid, .. s.to_add_subgroup.prod t.to_add_subgroup}
+  .. s.to_submonoid.prod t.to_submonoid, .. s.to_add_subgroup.prod t.to_add_subgroup}
 
 @[norm_cast]
 lemma coe_prod (s : subring R) (t : subring S) :
@@ -568,8 +571,9 @@ lemma mem_supr_of_directed {ι} [hι : nonempty ι] {S : ι → subring R} (hS :
 begin
   refine ⟨_, λ ⟨i, hi⟩, (le_def.1 $ le_supr S i) hi⟩,
   let U : subring R := subring.mk' (⋃ i, (S i : set R))
-    (⨆ i, (S i).to_subsemiring.to_submonoid) (submonoid.coe_supr_of_directed $ hS.mono_comp _ (λ _ _, id))
-    (⨆ i, (S i).to_add_subgroup) (add_subgroup.coe_supr_of_directed $ hS.mono_comp _ (λ _ _, id)),
+    (⨆ i, (S i).to_submonoid) (⨆ i, (S i).to_add_subgroup)
+    (submonoid.coe_supr_of_directed $ hS.mono_comp _ (λ _ _, id))
+    (add_subgroup.coe_supr_of_directed $ hS.mono_comp _ (λ _ _, id)),
   suffices : (⨆ i, S i) ≤ U, by simpa using @this x,
   exact supr_le (λ i x hx, set.mem_Union.2 ⟨i, hx⟩),
 end

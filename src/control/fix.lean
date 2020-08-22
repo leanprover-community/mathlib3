@@ -200,7 +200,7 @@ begin
     apply' le_ωSup_of_le i.succ,
     dsimp [approx], refl', },
   { apply ωSup_le _ _ _,
-    simp [mem_map_iff,approx_chain,stream.mem_def],
+    simp [mem_map_iff,approx_chain],
     intros y x, apply max_fix f },
 end
 
@@ -209,7 +209,7 @@ lemma fix_le {X : Π a, roption $ β a} (hX : f X ≤ X) : roption.fix f ≤ X :
 begin
   rw fix_eq_ωSup f,
   apply ωSup_le _ _ _,
-  simp [approx_chain,stream.mem_def,stream.nth],
+  simp [approx_chain,stream.nth],
   intros i,
   induction i, dsimp [fix.approx], apply' bot_le,
   transitivity' f X, apply f.monotone i_ih,

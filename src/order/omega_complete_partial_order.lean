@@ -27,7 +27,6 @@ import tactic.find_unused
 ## References
 
  * [G. Markowsky, *Chain-complete posets and directed sets with applications*, https://doi.org/10.1007/BF02485815][markowsky]
-
 -/
 
 universes u v

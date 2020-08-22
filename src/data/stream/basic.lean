@@ -14,12 +14,3 @@ attribute [ext] stream.ext
 
 instance {α} [inhabited α] : inhabited (stream α) :=
 ⟨stream.const (default _)⟩
-
-namespace stream
-
-variables {α : Type*}
-
-lemma mem_def (s : stream α) (x : α) :
-  x ∈ s ↔ ∃ i, x = s.nth i := iff.refl _
-
-end stream

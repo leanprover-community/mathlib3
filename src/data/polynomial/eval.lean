@@ -474,10 +474,10 @@ eq.symm $ prod_hom _ _
 /--
 Polynomial evaluation commutes with finset.prod
 -/
-lemma polynomial.eval_finset.prod {ι : Type*} [decidable_eq ι]
-  (s : finset ι) (p : ι → polynomial R) (x : R) :
+lemma eval_finset.prod {ι : Type*} (s : finset ι) (p : ι → polynomial R) (x : R) :
   polynomial.eval x (∏ j in s, p j) = ∏ j in s, polynomial.eval x (p j) :=
 begin
+  classical,
   apply finset.induction_on s,
     { repeat {rw finset.prod_empty}, rw polynomial.eval_one },
     { intros j s hj hpj,

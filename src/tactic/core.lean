@@ -471,6 +471,16 @@ meta def revert_after (e : expr) : tactic ℕ := do
   let l := l.drop pos.succ, -- all local hypotheses after `e`
   revert_lst l
 
+/-- `revert_target_deps` reverts all local constants on which the target depends (recursively).
+  Returns the number of local constants that have been reverted. -/
+meta def revert_target_deps : tactic ℕ :=
+do tgt ← target,
+   ctx ← local_context,
+   l ← ctx.mfilter (kdepends_on tgt),
+   n ← revert_lst l,
+   if l = [] then return n
+     else do m ← revert_target_deps, return (m + n)
+
 /-- `generalize' e n` generalizes the target with respect to `e`. It creates a new local constant
 with name `n` of the same type as `e` and replaces all occurrences of `e` by `n`.
 

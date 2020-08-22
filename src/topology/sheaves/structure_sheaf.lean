@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin, Scott Morrison
+-/
 import algebraic_geometry.prime_spectrum
 import ring_theory.localization
 import algebra.category.CommRing
@@ -16,16 +21,24 @@ open topological_space
 open category_theory
 open opposite
 
+/--
+The type family over `prime_spectrum R` consisting of the localization over each point.
+-/
 @[reducible]
-def stalks := λ (P : Top.of (prime_spectrum R)), localization.at_prime P.as_ideal
+def localizations := λ (P : Top.of (prime_spectrum R)), localization.at_prime P.as_ideal
 
 variables {R}
 
 /--
+We will define the structure sheaf as
+the subsheaf of all dependent functions in `Π x : U, localizations R x`
+consisting of those functions which can locally be expressed as a ratio of
+(the images in the localization of) elements of `R`.
+
 Quoting Hartshorne:
 
 For an open set $$U ⊆ Spec A$$, we define $$𝒪(U)$$ to be the set of functions
-$$s : U → \bigsqcup_{𝔭 ∈ U} A_𝔭$$, such that $s(𝔭) ∈ A_𝔭$$ for each $$𝔭$$,
+$$s : U → ⨆_{𝔭 ∈ U} A_𝔭$$, such that $s(𝔭) ∈ A_𝔭$$ for each $$𝔭$$,
 and such that $$s$$ is locally a quotient of elements of $$A$$:
 to be precise, we require that for each $$𝔭 ∈ U$$, there is a neighborhood $$V$$ of $$𝔭$$,
 contained in $$U$$, and elements $$a, f ∈ A$$, such that for each $$𝔮 ∈ V, f ∉ 𝔮$$,
@@ -35,7 +48,7 @@ Now Hartshorne had the disadvantage of not knowing about dependent functions,
 so we replace his circumlocution about functions into a disjoint union with
 `Π x : U, stalks x`.
 -/
-def locally_fraction {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, stalks R x) : Prop :=
+def locally_fraction {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, localizations R x) : Prop :=
 ∀ x : U, ∃ (V) (m : x.1 ∈ V) (i : V ⟶ U),
   ∃ (r s : R), ∀ y : V,
   ¬ (s ∈ y.1.as_ideal) ∧
@@ -47,7 +60,7 @@ variables (R)
 We verify that `locally_fraction` is a `local_predicate`.
 This is purely formal, just shuffling around quantifiers.
 -/
-def locally_fraction_local : local_predicate (stalks R) :=
+def locally_fraction_local : local_predicate (localizations R) :=
 { pred := λ U f, locally_fraction f,
   res := λ V U i f h x,
   begin
@@ -61,11 +74,18 @@ def locally_fraction_local : local_predicate (stalks R) :=
     exact ⟨V', m', i' ≫ i, r, s, h'⟩,
   end, }
 
+/--
+The structure sheaf (valued in `Type`, not yet `CommRing`) is the subsheaf consisting of
+functions satisfying `locally_fraction`.
+-/
 def structure_sheaf_in_Type : sheaf (Type u) (Top.of (prime_spectrum R)) :=
 subsheaf_to_Types (locally_fraction_local R)
 
+/--
+The functions satisfying `locally_fraction` form a subring.
+-/
 def sections_subring (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
-  subring (Π x : unop U, stalks R x) :=
+  subring (Π x : unop U, localizations R x) :=
 { carrier := { f | locally_fraction f },
   zero_mem' :=
   begin
@@ -146,29 +166,36 @@ def sections_subring (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
       refl, }
   end }
 
--- TODO: we need to prove that the stalk at `P` is `localization.at_prime P.as_ideal`
-
-instance blah (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
+instance comm_ring_structure_sheaf_in_Type_obj (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
   comm_ring ((structure_sheaf_in_Type R).presheaf.obj U) :=
 (sections_subring R U).to_comm_ring
 
+/--
+The structure presheaf, valued in `CommRing`, constructed by dressing up the `Type` valued
+structure presheaf.
+-/
 @[simps]
 def structure_presheaf_in_CommRing : presheaf CommRing (Top.of (prime_spectrum R)) :=
 { obj := λ U, CommRing.of ((structure_sheaf_in_Type R).presheaf.obj U),
-  map := λ U V i, sorry, }
+  map := λ U V i,
+  { to_fun := ((structure_sheaf_in_Type R).presheaf.map i),
+    map_zero' := rfl,
+    map_add' := λ x y, rfl,
+    map_one' := rfl,
+    map_mul' := λ x y, rfl, }, }
 
 /--
-Just some glue, verifying that that structure presheaf valued in `CommRing` agrees
+Some glue, verifying that that structure presheaf valued in `CommRing` agrees
 with the `Type` valued structure presheaf.
 -/
 def structure_presheaf_comp_forget :
   structure_presheaf_in_CommRing R ⋙ (forget CommRing) ≅ (structure_sheaf_in_Type R).presheaf :=
 nat_iso.of_components
   (λ U, iso.refl _)
-  (λ U V i, begin dsimp, simp, sorry, end)
+  (by tidy)
 
 /--
-The structure sheaf on $$Spec R$$.
+The structure sheaf on $$Spec R$$, valued in `CommRing`.
 -/
 def structure_sheaf : sheaf CommRing (Top.of (prime_spectrum R)) :=
 { presheaf := structure_presheaf_in_CommRing R,
@@ -177,3 +204,5 @@ def structure_sheaf : sheaf CommRing (Top.of (prime_spectrum R)) :=
     (sheaf_condition_equiv_sheaf_condition_comp _ _).symm
       (sheaf_condition_equiv_of_iso (structure_presheaf_comp_forget R).symm
         (structure_sheaf_in_Type R).sheaf_condition), }
+
+-- TODO: we need to prove that the stalk at `P` is `localization.at_prime P.as_ideal`

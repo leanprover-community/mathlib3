@@ -1285,8 +1285,7 @@ omit V
 
 /-- The weights for a single vertex of a simplex, in terms of
 `points_with_circumcenter`. -/
-def point_weights_with_circumcenter {n : ℕ} (i : fin (n + 1)) :
-  points_with_circumcenter_index n → ℝ
+def point_weights_with_circumcenter {n : ℕ} (i : fin (n + 1)) : points_with_circumcenter_index n → ℝ
 | (point_index j) := if j = i then 1 else 0
 | circumcenter_index := 0
 

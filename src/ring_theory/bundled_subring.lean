@@ -269,8 +269,7 @@ def comap {R : Type u} {S : Type v} [ring R] [ring S]
   (f : R →+* S) (s : subring S) : subring R :=
 { carrier := f ⁻¹' s.carrier,
  .. s.to_submonoid.comap (f : R →* S),
-  .. s.to_add_subgroup.comap (f : R →+ S)
-}
+  .. s.to_add_subgroup.comap (f : R →+ S) }
 
 @[simp] lemma coe_comap (s : subring S) (f : R →+* S) : (s.comap f : set R) = f ⁻¹' s := rfl
 

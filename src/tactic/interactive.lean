@@ -360,7 +360,7 @@ prod.map id list.reverse <$> (collect_struct' e).run []
 
 meta def refine_one (str : structure_instance_info) :
   tactic $ list (expr×structure_instance_info) :=
-do    tgt ← target,
+do    tgt ← target >>= whnf,
       let struct_n : name := tgt.get_app_fn.const_name,
       exp_fields ← expanded_field_list struct_n,
       let missing_f := exp_fields.filter (λ f, (f.2 : name) ∉ str.field_names),
@@ -666,53 +666,6 @@ add_tactic_doc
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.h_generalize],
   tags       := ["context management"] }
-
-/-- `choose a b h h' using hyp` takes an hypothesis `hyp` of the form
-`∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b ∧ Q x y a b` for some `P Q : X → Y → A → B → Prop` and outputs
-into context a function `a : X → Y → A`, `b : X → Y → B` and two assumptions:
-`h : ∀ (x : X) (y : Y), P x y (a x y) (b x y)` and `h' : ∀ (x : X) (y : Y), Q x y (a x y) (b x y)`.
-
-It presumably also works with dependent versions.
-
-Examples:
-
-```lean
-example (h : ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n) : true :=
-begin
-  choose i j h using h,
-  guard_hyp i := ℕ → ℕ → ℕ,
-  guard_hyp j := ℕ → ℕ → ℕ,
-  guard_hyp h := ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
-  trivial
-end
-```
-
-```lean
-example (h : ∀ i : ℕ, ∃ j, i < j ∧ j < i+i) : true :=
-begin
-  choose f h h' using h,
-  guard_hyp f := ℕ → ℕ,
-  guard_hyp h := ∀ (i : ℕ), i < f i,
-  guard_hyp h' := ∀ (i : ℕ), f i < i + i,
-  trivial,
-end
-```
--/
-meta def choose (first : parse ident) (names : parse ident*) (tgt : parse (tk "using" *> texpr)?) :
-  tactic unit := do
-tgt ← match tgt with
-  | none := get_local `this
-  | some e := tactic.i_to_expr_strict e
-  end,
-tactic.choose tgt (first :: names),
-try (interactive.simp none tt [simp_arg_type.expr ``(exists_prop)] [] (loc.ns $ some <$> names)),
-try (tactic.clear tgt)
-
-add_tactic_doc
-{ name       := "choose",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.choose],
-  tags       := ["classical logic"] }
 
 /--
 The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`
@@ -1223,6 +1176,16 @@ add_tactic_doc
 { name       := "revert_after",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.revert_after],
+  tags       := ["context management", "goal management"] }
+
+/-- Reverts all local constants on which the target depends (recursively). -/
+meta def revert_target_deps : tactic unit :=
+propagate_tags $ tactic.revert_target_deps >> skip
+
+add_tactic_doc
+{ name       := "revert_target_deps",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.revert_target_deps],
   tags       := ["context management", "goal management"] }
 
 /-- `clear_value n₁ n₂ ...` clears the bodies of the local definitions `n₁, n₂ ...`, changing them

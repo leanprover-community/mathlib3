@@ -116,7 +116,7 @@ lemma finite_supp (f : α →₀ β) : set.finite {a | f a ≠ 0} :=
 lemma support_subset_iff {s : set α} {f : α →₀ β} :
   ↑f.support ⊆ s ↔ (∀a∉s, f a = 0) :=
 by simp only [set.subset_def, mem_coe, mem_support_iff];
-   exact forall_congr (assume a, @not_imp_comm _ _ (classical.dec _) (classical.dec _))
+   exact forall_congr (assume a, not_imp_comm)
 
 /-- Given `fintype α`, `equiv_fun_on_fintype` is the `equiv` between `α →₀ β` and `α → β`.
   (All functions on a finite type are finitely supported.) -/
@@ -951,7 +951,7 @@ the preimage of `l.support`, `comap_domain f l hf` is the finitely supported fun
 from `α₁` to `γ` given by composing `l` with `f`. -/
 def comap_domain {α₁ α₂ γ : Type*} [has_zero γ]
   (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.inj_on f (f ⁻¹' ↑l.support)) : α₁ →₀ γ :=
-{ support := l.support.preimage hf,
+{ support := l.support.preimage f hf,
   to_fun := (λ a, l (f a)),
   mem_support_to_fun :=
     begin

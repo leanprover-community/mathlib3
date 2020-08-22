@@ -103,7 +103,7 @@ class is_scalar_tower : Prop :=
 
 variables {R M N}
 
-lemma smul_assoc [is_scalar_tower R M N] (x : R) (y : M) (z : N) :
+@[simp] lemma smul_assoc [is_scalar_tower R M N] (x : R) (y : M) (z : N) :
   (x • y) • z = x • y • z := is_scalar_tower.smul_assoc x y z
 
 end compatible_scalar
@@ -205,10 +205,10 @@ section
 open mul_action quotient_group
 
 @[simp] lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
-(to_units α c).inv_smul_smul x
+(to_units c).inv_smul_smul x
 
 @[simp] lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
-(to_units α c).smul_inv_smul x
+(to_units c).smul_inv_smul x
 
 lemma inv_smul_eq_iff {a : α} {x y : β} : a⁻¹ • x = y ↔ x = a • y :=
 begin

@@ -348,6 +348,10 @@ funext $ λ x, (has_deriv_at_cosh x).deriv
 lemma continuous_cosh : continuous cosh :=
 differentiable_cosh.continuous
 
+/-- `sinh` is strictly monotone. -/
+lemma sinh_strict_mono : strict_mono sinh :=
+strict_mono_of_deriv_pos differentiable_sinh (by { rw [real.deriv_sinh], exact cosh_pos })
+
 end real
 
 section
@@ -713,6 +717,9 @@ begin
     rw [hn, add_mul, one_mul, add_div, mul_assoc, mul_div_cancel_left _ (@two_ne_zero ℝ _),
         sub_add_eq_sub_sub_swap, sub_self, zero_sub, neg_mul_eq_neg_mul, int.cast_neg] }
 end
+
+theorem cos_ne_zero_iff {θ : ℝ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k + 1) * pi / 2 :=
+by rw [← not_exists, not_iff_not, cos_eq_zero_iff]
 
 lemma cos_eq_one_iff_of_lt_of_lt {x : ℝ} (hx₁ : -(2 * π) < x) (hx₂ : x < 2 * π) : cos x = 1 ↔ x = 0 :=
 ⟨λ h, let ⟨n, hn⟩ := (cos_eq_one_iff x).1 h in
@@ -1405,8 +1412,7 @@ else
 lemma tan_arg {x : ℂ} : real.tan (arg x) = x.im / x.re :=
 begin
   by_cases h : x = 0,
-  { simp only [h, euclidean_domain.zero_div,
-    complex.zero_im, complex.arg_zero, real.tan_zero, complex.zero_re] },
+  { simp only [h, zero_div, complex.zero_im, complex.arg_zero, real.tan_zero, complex.zero_re] },
   rw [real.tan_eq_sin_div_cos, sin_arg, cos_arg h,
       div_div_div_cancel_right _ (mt abs_eq_zero.1 h)]
 end

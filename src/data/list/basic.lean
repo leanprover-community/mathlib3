@@ -49,6 +49,9 @@ assume l₁ l₂, assume Pe, tail_eq_of_cons_eq Pe
 theorem cons_inj (a : α) {l l' : list α} : a::l = a::l' ↔ l = l' :=
 ⟨λ e, cons_injective e, congr_arg _⟩
 
+theorem exists_cons_of_ne_nil {l : list α} (h : l ≠ nil) : ∃ b L, l = b :: L :=
+by { induction l with c l',  contradiction,  use [c,l'], }
+
 /-! ### mem -/
 
 theorem mem_singleton_self (a : α) : a ∈ [a] := mem_cons_self _ _
@@ -712,6 +715,10 @@ theorem mem_of_mem_head' {x : α} : ∀ {l : list α}, x ∈ l.head' → x ∈ l
   head (s ++ t) = head s :=
 by {induction s, contradiction, refl}
 
+theorem tail_append_singleton_of_ne_nil {a : α} {l : list α} (h : l ≠ nil) :
+  tail (l ++ [a]) = tail l ++ [a] :=
+by { induction l,  contradiction, rw [tail,cons_append,tail], }
+
 theorem cons_head'_tail : ∀ {l : list α} {a : α} (h : a ∈ head' l), a :: tail l = l
 | [] a h := by contradiction
 | (b::l) a h := by { simp at h, simp [h] }
@@ -1262,7 +1269,7 @@ lemma remove_nth_insert_nth (n:ℕ) (l : list α) : (l.insert_nth n a).remove_nt
 by rw [remove_nth_eq_nth_tail, insert_nth, modify_nth_tail_modify_nth_tail_same];
 from modify_nth_tail_id _ _
 
-lemma insert_nth_remove_nth_of_ge : ∀n m as, n < length as → m ≥ n →
+lemma insert_nth_remove_nth_of_ge : ∀n m as, n < length as → n ≤ m →
   insert_nth m a (as.remove_nth n) = (as.insert_nth (m + 1) a).remove_nth n
 | 0     0     []      has _   := (lt_irrefl _ has).elim
 | 0     0     (a::as) has hmn := by simp [remove_nth, insert_nth]
@@ -1326,22 +1333,6 @@ by induction l; [refl, simp only [*, concat_eq_append, cons_append, map, map_app
 
 theorem map_id' {f : α → α} (h : ∀ x, f x = x) (l : list α) : map f l = l :=
 by induction l; [refl, simp only [*, map]]; split; refl
-
-@[simp] theorem foldl_map (g : β → γ) (f : α → γ → α) (a : α) (l : list β) :
-  foldl f a (map g l) = foldl (λx y, f x (g y)) a l :=
-by revert a; induction l; intros; [refl, simp only [*, map, foldl]]
-
-@[simp] theorem foldr_map (g : β → γ) (f : γ → α → α) (a : α) (l : list β) :
-  foldr f a (map g l) = foldr (f ∘ g) a l :=
-by revert a; induction l; intros; [refl, simp only [*, map, foldr]]
-
-theorem foldl_hom (l : list γ) (f : α → β) (op : α → γ → α) (op' : β → γ → β) (a : α)
-  (h : ∀a x, f (op a x) = op' (f a) x) : foldl op' (f a) l = f (foldl op a l) :=
-eq.symm $ by { revert a, induction l; intros; [refl, simp only [*, foldl]] }
-
-theorem foldr_hom (l : list γ) (f : α → β) (op : γ → α → α) (op' : γ → β → β) (a : α)
-  (h : ∀x a, f (op x a) = op' x (f a)) : foldr op' (f a) l = f (foldr op a l) :=
-by { revert a, induction l; intros; [refl, simp only [*, foldr]] }
 
 theorem eq_nil_of_map_eq_nil {f : α → β} {l : list α} (h : map f l = nil) : l = nil :=
 eq_nil_of_length_eq_zero $ by rw [← length_map f l, h]; refl
@@ -1661,6 +1652,49 @@ by rw reverse_reverse l at t; rwa t
 
 @[simp] theorem reverse_foldl {l : list α} : reverse (foldl (λ t h, h :: t) [] l) = l :=
 by rw ←foldr_reverse; simp
+
+@[simp] theorem foldl_map (g : β → γ) (f : α → γ → α) (a : α) (l : list β) :
+  foldl f a (map g l) = foldl (λx y, f x (g y)) a l :=
+by revert a; induction l; intros; [refl, simp only [*, map, foldl]]
+
+@[simp] theorem foldr_map (g : β → γ) (f : γ → α → α) (a : α) (l : list β) :
+  foldr f a (map g l) = foldr (f ∘ g) a l :=
+by revert a; induction l; intros; [refl, simp only [*, map, foldr]]
+
+theorem foldl_map' {α β: Type u} (g : α → β) (f : α → α → α) (f' : β → β → β)
+  (a : α) (l : list α) (h : ∀ x y, f' (g x) (g y) = g (f x y)) :
+  list.foldl f' (g a) (l.map g) = g (list.foldl f a l) :=
+begin
+  induction l generalizing a,
+  { simp }, { simp [l_ih, h] }
+end
+
+theorem foldr_map' {α β: Type u} (g : α → β) (f : α → α → α) (f' : β → β → β)
+  (a : α) (l : list α) (h : ∀ x y, f' (g x) (g y) = g (f x y)) :
+  list.foldr f' (g a) (l.map g) = g (list.foldr f a l) :=
+begin
+  induction l generalizing a,
+  { simp }, { simp [l_ih, h] }
+end
+
+theorem foldl_hom (l : list γ) (f : α → β) (op : α → γ → α) (op' : β → γ → β) (a : α)
+  (h : ∀a x, f (op a x) = op' (f a) x) : foldl op' (f a) l = f (foldl op a l) :=
+eq.symm $ by { revert a, induction l; intros; [refl, simp only [*, foldl]] }
+
+theorem foldr_hom (l : list γ) (f : α → β) (op : γ → α → α) (op' : γ → β → β) (a : α)
+  (h : ∀x a, f (op x a) = op' x (f a)) : foldr op' (f a) l = f (foldr op a l) :=
+by { revert a, induction l; intros; [refl, simp only [*, foldr]] }
+
+lemma injective_foldl_comp {α : Type*} {l : list (α → α)} {f : α → α}
+  (hl : ∀ f ∈ l, function.injective f) (hf : function.injective f):
+  function.injective (@list.foldl (α → α) (α → α) function.comp f l) :=
+begin
+  induction l generalizing f,
+  { exact hf },
+  { apply l_ih (λ _ h, hl _ (list.mem_cons_of_mem _ h)),
+    apply function.injective.comp hf,
+    apply hl _ (list.mem_cons_self _ _) }
+end
 
 /- scanl -/
 
@@ -2314,6 +2348,14 @@ decidable_of_iff _ any_iff_exists_prop
   with the same elements but in the type `{x // x ∈ l}`. -/
 def attach (l : list α) : list {x // x ∈ l} := pmap subtype.mk l (λ a, id)
 
+theorem sizeof_lt_sizeof_of_mem [has_sizeof α] {x : α} {l : list α} (hx : x ∈ l) :
+  sizeof x < sizeof l :=
+begin
+  induction l with h t ih; cases hx,
+  { rw hx, exact lt_add_of_lt_of_nonneg (lt_one_add _) (nat.zero_le _) },
+  { exact lt_add_of_pos_of_le (zero_lt_one_add _) (le_of_lt (ih hx)) }
+end
+
 theorem pmap_eq_map (p : α → Prop) (f : α → β) (l : list α) (H) :
   @pmap _ _ p (λ a _, f a) l H = map f l :=
 by induction l; [refl, simp only [*, pmap, map]]; split; refl
@@ -2722,6 +2764,11 @@ theorem le_count_iff_repeat_sublist {a : α} {l : list α} {n : ℕ} :
     ⟨by simp only [count, countp_eq_length_filter], λ b m, (of_mem_filter m).symm⟩,
   by rw ← this; apply filter_sublist,
  λ h, by simpa only [count_repeat] using count_le_of_sublist a h⟩
+
+theorem repeat_count_eq_of_count_eq_length  {a : α} {l : list α} (h : count a l = length l)  :
+  repeat a (count a l) = l :=
+eq_of_sublist_of_length_eq (le_count_iff_repeat_sublist.mp (le_refl (count a l)))
+    (eq.trans (length_repeat a (count a l)) h)
 
 @[simp] theorem count_filter {p} [decidable_pred p]
   {a} {l : list α} (h : p a) : count a (filter p l) = count a l :=

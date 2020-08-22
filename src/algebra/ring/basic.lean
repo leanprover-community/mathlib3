@@ -732,6 +732,9 @@ class integral_domain (α : Type u) extends comm_ring α, domain α
 section integral_domain
 variables [integral_domain α] {a b c d e : α}
 
+instance integral_domain.to_comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero α :=
+{ ..comm_semiring.to_comm_monoid_with_zero, ..domain.to_cancel_monoid_with_zero }
+
 /-- Pullback an `integral_domain` instance along an injective function. -/
 protected def function.injective.integral_domain [has_zero β] [has_one β] [has_add β]
   [has_mul β] [has_neg β] (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
@@ -746,11 +749,6 @@ by rw [← sub_eq_zero, mul_self_sub_mul_self, mul_eq_zero, or_comm, sub_eq_zero
 
 lemma mul_self_eq_one_iff {a : α} : a * a = 1 ↔ a = 1 ∨ a = -1 :=
 by rw [← mul_self_eq_mul_self_iff, one_mul]
-
-/-- Given two elements a, b of an integral domain and a nonzero element c, a*c divides b*c iff
-  a divides b. -/
-theorem mul_dvd_mul_iff_right (hc : c ≠ 0) : a * c ∣ b * c ↔ a ∣ b :=
-exists_congr $ λ d, by rw [mul_right_comm, mul_left_inj' hc]
 
 /-- In the unit group of an integral domain, a unit is its own inverse iff the unit is one or
   one's additive inverse. -/

@@ -171,7 +171,7 @@ variables {E : Type u₃} [category.{v₃} E]
     refine iso.trans _ f.counit_iso,
     exact iso_whisker_left f.inverse (iso_whisker_right e.counit_iso f.functor)
   end,
-  -- We wouldn't have need to give this proof if we'd used `equivalence.mk`,
+  -- We wouldn't have needed to give this proof if we'd used `equivalence.mk`,
   -- but we choose to avoid using that here, for the sake of good structure projection `simp` lemmas.
   functor_unit_iso_comp' := λ X,
   begin
@@ -385,11 +385,11 @@ end
 -- We should probably restate many of the lemmas about `equivalence` for `is_equivalence`,
 -- but these are the only ones I need for now.
 @[simp] lemma functor_unit_comp (E : C ⥤ D) [is_equivalence E] (Y) :
-  E.map (is_equivalence.unit_iso.hom.app Y) ≫ is_equivalence.counit_iso.hom.app (E.obj Y) = 𝟙 _ :=
-equivalence.functor_unit_comp (E.as_equivalence) Y
+  E.map (E.fun_inv_id.inv.app Y) ≫ E.inv_fun_id.hom.app (E.obj Y) = 𝟙 _ :=
+equivalence.functor_unit_comp E.as_equivalence Y
 
-@[simp] lemma counit_inv_functor_comp (E : C ⥤ D) [is_equivalence E] (Y) :
-  is_equivalence.counit_iso.inv.app (E.obj Y) ≫ E.map (is_equivalence.unit_iso.inv.app Y) = 𝟙 _ :=
+@[simp] lemma inv_fun_id_inv_comp (E : C ⥤ D) [is_equivalence E] (Y) :
+  E.inv_fun_id.inv.app (E.obj Y) ≫ E.map (E.fun_inv_id.hom.app Y) = 𝟙 _ :=
 eq_of_inv_eq_inv (functor_unit_comp _ _)
 
 end is_equivalence

@@ -88,7 +88,6 @@ game, and show, for example, that there is a relabelling between `x + (y + z)` a
 ## Future work
 * The theory of dominated and reversible positions, and unique normal form for short games.
 * Analysis of basic domineering positions.
-* Impartial games, nim, and the Sprague-Grundy theorem.
 * Hex.
 * Temperature.
 * The development of surreal numbers, based on this development of combinatorial games, is still
@@ -579,7 +578,7 @@ begin
   induction x,
   exact neg_neg.symm
 end
-@[simp] lemma move_left_right_moves_neg_symm {x : pgame} (i : right_moves x) :
+@[simp] lemma move_left_left_moves_neg_symm {x : pgame} (i : right_moves x) :
   move_left (-x) ((left_moves_neg x).symm i) = -(move_right x i) :=
 by { cases x, refl }
 @[simp] lemma move_left_right_moves_neg {x : pgame} (i : right_moves (-x)) :

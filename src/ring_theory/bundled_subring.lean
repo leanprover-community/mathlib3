@@ -287,8 +287,7 @@ def map {R : Type u} {S : Type v} [ring R] [ring S]
   (f : R →+* S) (s : subring R) : subring S :=
   { carrier := f '' s.carrier,
 .. s.to_submonoid.map (f : R →* S),
-.. s.to_add_subgroup.map (f : R →+ S)
-  }
+.. s.to_add_subgroup.map (f : R →+ S) }
 
 @[simp] lemma coe_map (f : R →+* S) (s : subring R) : (s.map f : set S) = f '' s := rfl
 

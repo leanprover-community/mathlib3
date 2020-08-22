@@ -340,6 +340,16 @@ begin
   exact le_supr_of_le i (measure_mono $ bUnion_subset hi)
 end
 
+lemma measure_bUnion_eq_supr {s : ι → set α} {t : set ι} (ht : countable t)
+  (h : ∀ i ∈ t, is_measurable (s i)) (hd : directed_on ((⊆) on s) t) :
+  μ (⋃ i ∈ t, s i) = ⨆ i ∈ t, μ (s i) :=
+begin
+  haveI := ht.to_encodable,
+  rw [bUnion_eq_Union, measure_Union_eq_supr (set_coe.forall'.1 h) hd.directed_coe,
+    supr_subtype'],
+  refl
+end
+
 lemma measure_Inter_eq_infi [encodable ι] {s : ι → set α}
   (h : ∀i, is_measurable (s i)) (hd : directed (⊇) s)
   (hfin : ∃i, μ (s i) < ⊤) :

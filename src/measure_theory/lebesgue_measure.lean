@@ -231,50 +231,41 @@ end measure_theory
 
 open measure_theory
 
-section volume
+namespace real
 
-open_locale interval
+open_locale topological_space
 
-theorem real.volume_val (s) : volume s = lebesgue_outer s := rfl
+theorem volume_val (s) : volume s = lebesgue_outer s := rfl
 
-instance real.no_atoms_volume : no_atoms_measure (volume : measure ℝ) :=
+instance no_atoms_volume : no_atoms_measure (volume : measure ℝ) :=
 ⟨lebesgue_outer_singleton⟩
 
-@[simp]
-lemma real.volume_Ico {a b : ℝ} : volume (Ico a b) = of_real (b - a) := lebesgue_outer_Ico a b
+@[simp] lemma volume_Ico {a b : ℝ} : volume (Ico a b) = of_real (b - a) := lebesgue_outer_Ico a b
 
-@[simp]
-lemma real.volume_Icc {a b : ℝ} : volume (Icc a b) = of_real (b - a) := lebesgue_outer_Icc a b
+@[simp] lemma volume_Icc {a b : ℝ} : volume (Icc a b) = of_real (b - a) := lebesgue_outer_Icc a b
 
-@[simp]
-lemma real.volume_Ioo {a b : ℝ} : volume (Ioo a b) = of_real (b - a) := lebesgue_outer_Ioo a b
+@[simp] lemma volume_Ioo {a b : ℝ} : volume (Ioo a b) = of_real (b - a) := lebesgue_outer_Ioo a b
 
-@[simp]
-lemma real.volume_Ioc {a b : ℝ} : volume (Ioc a b) = of_real (b - a) := lebesgue_outer_Ioc a b
+@[simp] lemma volume_Ioc {a b : ℝ} : volume (Ioc a b) = of_real (b - a) := lebesgue_outer_Ioc a b
 
-@[simp]
-lemma real.volume_singleton {a : ℝ} : volume ({a} : set ℝ) = 0 := lebesgue_outer_singleton a
+@[simp] lemma volume_singleton {a : ℝ} : volume ({a} : set ℝ) = 0 := lebesgue_outer_singleton a
 
-@[simp] lemma real.volume_interval {a b : ℝ} : volume [a, b] = of_real (abs (b - a)) :=
-begin
-  rw [interval, real.volume_Icc],
-  congr,
-  exact max_sub_min_eq_abs _ _
-end
+@[simp] lemma volume_interval {a b : ℝ} : volume (interval a b) = of_real (abs (b - a)) :=
+by rw [interval, volume_Icc, max_sub_min_eq_abs]
 
-instance real.locally_finite_volume : locally_finite_measure (volume : measure ℝ) :=
+instance locally_finite_volume : locally_finite_measure (volume : measure ℝ) :=
 ⟨λ x, ⟨Ioo (x - 1) (x + 1),
   mem_nhds_sets is_open_Ioo ⟨sub_lt_self _ zero_lt_one, lt_add_of_pos_right _ zero_lt_one⟩,
   by simp only [real.volume_Ioo, ennreal.of_real_lt_top]⟩⟩
 
-lemma real.map_volume_add_left (a : ℝ) : measure.map ((+) a) volume = volume :=
+lemma map_volume_add_left (a : ℝ) : measure.map ((+) a) volume = volume :=
 eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
   by simp [measure.map_apply (measurable_add_left a) is_measurable_Ioo, sub_sub_sub_cancel_right]
 
-lemma real.map_volume_add_right (a : ℝ) : measure.map (λ x, x + a) volume = volume :=
+lemma map_volume_add_right (a : ℝ) : measure.map (λ x, x + a) volume = volume :=
 by simpa only [add_comm] using real.map_volume_add_left a
 
-lemma real.smul_map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
+lemma smul_map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
   ennreal.of_real (abs a) • measure.map ((*) a) volume = volume :=
 begin
   refine (real.measure_ext_Ioo_rat $ λ p q, _).symm,
@@ -288,25 +279,25 @@ begin
       abs_of_pos h, mul_sub, mul_div_cancel' _ (ne_of_gt h)] }
 end
 
-lemma real.map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
+lemma map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
   measure.map ((*) a) volume = ennreal.of_real (abs a⁻¹) • volume :=
 by conv_rhs { rw [← real.smul_map_volume_mul_left h, smul_smul,
   ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, inv_mul_cancel h, abs_one, ennreal.of_real_one,
   one_smul] }
 
-lemma real.smul_map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
+lemma smul_map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
   ennreal.of_real (abs a) • measure.map (λ x, x * a) volume = volume :=
 by simpa only [mul_comm] using real.smul_map_volume_mul_left h
 
-lemma real.map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
+lemma map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
   measure.map (λ x, x * a) volume = ennreal.of_real (abs a⁻¹) • volume :=
 by simpa only [mul_comm] using real.map_volume_mul_left h
 
-@[simp] lemma real.map_volume_neg : measure.map has_neg.neg (volume : measure ℝ) = volume :=
+@[simp] lemma map_volume_neg : measure.map has_neg.neg (volume : measure ℝ) = volume :=
 eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
   by simp [measure.map_apply measurable_neg is_measurable_Ioo]
 
-end volume
+end real
 /-
 section vitali
 

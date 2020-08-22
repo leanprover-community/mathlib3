@@ -503,9 +503,6 @@ apply_nolint ring_equiv.to_add_equiv doc_blame
 apply_nolint ring_equiv.to_equiv doc_blame
 apply_nolint ring_equiv.to_mul_equiv doc_blame
 
--- data/fin.lean
-apply_nolint fin.add_nat_val unused_arguments
-
 -- data/fin2.lean
 apply_nolint fin2 has_inhabited_instance
 apply_nolint fin2.cases' doc_blame
@@ -1214,7 +1211,6 @@ apply_nolint pilex doc_blame
 
 -- order/rel_iso.lean
 apply_nolint rel_embedding has_inhabited_instance
-apply_nolint rel_embedding.lt_embedding_of_le_embedding doc_blame
 apply_nolint rel_embedding.refl doc_blame
 apply_nolint rel_embedding.trans doc_blame
 apply_nolint rel_iso has_inhabited_instance
@@ -1242,8 +1238,6 @@ apply_nolint free_ring.map doc_blame
 apply_nolint free_ring.of doc_blame
 
 -- ring_theory/ideal/operations.lean
-apply_nolint ideal.le_rel_embedding_of_surjective doc_blame
-apply_nolint ideal.lt_rel_embedding_of_surjective doc_blame
 apply_nolint ideal.map doc_blame
 apply_nolint ideal.quotient_inf_to_pi_quotient doc_blame
 apply_nolint submodule.annihilator doc_blame

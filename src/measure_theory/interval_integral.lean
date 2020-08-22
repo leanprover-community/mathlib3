@@ -322,9 +322,9 @@ lemma integral_const {a b : ℝ} (c : E) : (∫ (x : ℝ) in a..b, c) = (b - a) 
 by simp only [integral_const', real.volume_Ioc, ennreal.to_real_of_real', ← neg_sub b,
   max_zero_sub_eq_self]
 
-lemma integral_smul_measure {c : ennreal} (hfm : measurable f) (hc : c < ⊤) :
+lemma integral_smul_measure (c : ennreal) :
   ∫ x in a..b, f x ∂(c • μ) = c.to_real • ∫ x in a..b, f x ∂μ :=
-by simp only [interval_integral, measure.restrict_smul, integral_smul_measure hfm hc, smul_sub]
+by simp only [interval_integral, measure.restrict_smul, integral_smul_measure, smul_sub]
 
 lemma integral_comp_add_right (a b c : ℝ) (f : ℝ → E) (hfm : measurable f) :
   ∫ x in a..b, f (x + c) = ∫ x in a+c..b+c, f x :=
@@ -337,7 +337,7 @@ lemma integral_comp_mul_right {c : ℝ} (hc : 0 < c) (a b : ℝ) (f : ℝ → E)
   ∫ x in a..b, f (x * c) = c⁻¹ • ∫ x in a*c..b*c, f x :=
 begin
   conv_rhs { rw [← real.smul_map_volume_mul_right (ne_of_gt hc)] },
-  rw [integral_smul_measure hfm ennreal.of_real_lt_top],
+  rw [integral_smul_measure],
   simp only [interval_integral, set_integral_map is_measurable_Ioc hfm (measurable_mul_right _),
     hc, preimage_mul_const_Ioc, mul_div_cancel _ (ne_of_gt hc), abs_of_pos,
     ennreal.to_real_of_real (le_of_lt hc), inv_smul_smul' (ne_of_gt hc)]

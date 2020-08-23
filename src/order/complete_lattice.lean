@@ -195,10 +195,7 @@ theorem Inf_union {s t : set α} : Inf (s ∪ t) = Inf s ⊓ Inf t :=
 ((is_glb_Inf s).union (is_glb_Inf t)).Inf_eq
 
 theorem le_Inf_inter {s t : set α} : Inf s ⊔ Inf t ≤ Inf (s ∩ t) :=
-by finish
-/-
-le_Inf (assume a ⟨a_s, a_t⟩, sup_le (Inf_le a_s) (Inf_le a_t))
--/
+@Sup_inter_le (order_dual α) _ _ _
 
 @[simp] theorem Sup_empty : Sup ∅ = (⊥ : α) :=
 is_lub_empty.Sup_eq
@@ -239,9 +236,7 @@ iff.intro
   (assume h, top_unique $ le_Inf $ assume a ha, top_le_iff.2 $ h a ha)
 
 @[simp] theorem Sup_eq_bot : Sup s = ⊥ ↔ (∀a∈s, a = ⊥) :=
-iff.intro
-  (assume h a ha, bot_unique $ h ▸ le_Sup ha)
-  (assume h, bot_unique $ Sup_le $ assume a ha, le_bot_iff.2 $ h a ha)
+@Inf_eq_top (order_dual α) _ _
 
 end
 
@@ -263,11 +258,7 @@ iff.intro
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma Inf_eq_bot : Inf s = ⊥ ↔ (∀b>⊥, ∃a∈s, a < b) :=
-iff.intro
-  (assume (h : Inf s = ⊥) b (hb : ⊥ < b), by rwa [←h, Inf_lt_iff] at hb)
-  (assume h, bot_unique $ le_of_not_gt $ assume h',
-    let ⟨a, ha, h⟩ := h _ h' in
-    lt_irrefl a $ lt_of_lt_of_le h (Inf_le ha))
+@Sup_eq_top (order_dual α) _ _
 
 lemma lt_supr_iff {f : ι → α} : a < supr f ↔ (∃i, a < f i) :=
 lt_Sup_iff.trans exists_range_iff
@@ -277,7 +268,9 @@ Inf_lt_iff.trans exists_range_iff
 
 end complete_linear_order
 
-/- supr & infi -/
+/- 
+### supr & infi
+-/
 
 section
 variables [complete_lattice α] {s t : ι → α} {a b : α}
@@ -391,15 +384,6 @@ Inf_le ⟨i, rfl⟩
 @[ematch] theorem infi_le' (s : ι → α) (i : ι) : (: infi s ≤ s i :) :=
 Inf_le ⟨i, rfl⟩
 
-/- I wanted to see if this would help for infi_comm; it doesn't.
-@[ematch] theorem infi_le₂' (s : ι → ι₂ → α) (i : ι) (j : ι₂) : (: ⨅ i j, s i j :) ≤ (: s i j :) :=
-begin
-  transitivity,
-  apply (infi_le (λ i, ⨅ j, s i j) i),
-  apply infi_le
-end
--/
-
 theorem infi_le_of_le (i : ι) (h : s i ≤ a) : infi s ≤ a :=
 le_trans (infi_le _ i) h
 
@@ -431,9 +415,7 @@ le_infi $ infi_le _ ∘ h
 ⟨assume : a ≤ infi s, assume i, le_trans this (infi_le _ _), le_infi⟩
 
 theorem Inf_eq_infi {s : set α} : Inf s = (⨅a ∈ s, a) :=
-le_antisymm
-  (le_infi $ assume b, le_infi $ assume h, Inf_le h)
-  (le_Inf $ assume b h, infi_le_of_le b $ infi_le _ h)
+@Sup_eq_supr (order_dual α) _ _
 
 lemma monotone.map_infi_le [complete_lattice β] {f : α → β} (hf : monotone f) :
   f (infi s) ≤ (⨅ i, f (s i)) :=
@@ -442,8 +424,7 @@ le_infi $ λ i, hf $ infi_le _ _
 lemma monotone.map_infi2_le [complete_lattice β] {f : α → β} (hf : monotone f)
   {ι' : ι → Sort*} (s : Π i, ι' i → α) :
   f (⨅ i (h : ι' i), s i h) ≤ (⨅ i (h : ι' i), f (s i h)) :=
-calc f (⨅ i (h : ι' i), s i h) ≤ (⨅ i, f (⨅ h, s i h)) : hf.map_infi_le
-... ≤ (⨅ i h, f (s i h)) : infi_le_infi $ λ i, hf.map_infi_le
+@monotone.le_map_supr2 (order_dual α) (order_dual β) _ _ _ f hf.order_dual _ _
 
 lemma monotone.map_Inf_le [complete_lattice β] {s : set α} {f : α → β} (hf : monotone f) :
   f (Inf s) ≤ ⨅ a∈s, f a :=
@@ -465,7 +446,7 @@ lemma function.surjective.infi_comp {α : Type*} [has_Inf α] {f : ι → ι₂}
 
 lemma infi_congr {α : Type*} [has_Inf α] {f : ι → α} {g : ι₂ → α} (h : ι → ι₂)
   (h1 : function.surjective h) (h2 : ∀ x, g (h x) = f x) : (⨅ x, f x) = ⨅ y, g y :=
-by { convert h1.infi_comp g, exact (funext h2).symm }
+@supr_congr _ _ (order_dual α) _ _ _ h h1 h2
 
 @[congr] theorem infi_congr_Prop {α : Type*} [has_Inf α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀x, f₁ (pq.mpr x) = f₂ x) : infi f₁ = infi f₂ :=
@@ -477,23 +458,19 @@ by rw [infi, range_const, Inf_singleton]
 
 -- We will generalize this to conditionally complete lattices in `csupr_const`.
 theorem supr_const [nonempty ι] {a : α} : (⨆ b:ι, a) = a :=
-by rw [supr, range_const, Sup_singleton]
+@infi_const (order_dual α) _ _ _ _
 
 @[simp] lemma infi_top : (⨅i:ι, ⊤ : α) = ⊤ :=
 top_unique $ le_infi $ assume i, le_refl _
 
 @[simp] lemma supr_bot : (⨆i:ι, ⊥ : α) = ⊥ :=
-bot_unique $ supr_le $ assume i, le_refl _
+@infi_top (order_dual α) _ _
 
 @[simp] lemma infi_eq_top : infi s = ⊤ ↔ (∀i, s i = ⊤) :=
-iff.intro
-  (assume eq i, top_unique $ eq ▸ infi_le _ _)
-  (assume h, top_unique $ le_infi $ assume i, top_le_iff.2 $ h i)
+Inf_eq_top.trans forall_range_iff
 
 @[simp] lemma supr_eq_bot : supr s = ⊥ ↔ (∀i, s i = ⊥) :=
-iff.intro
-  (assume eq i, bot_unique $ eq ▸ le_supr _ _)
-  (assume h, bot_unique $ supr_le $ assume i, le_bot_iff.2 $ h i)
+Sup_eq_bot.trans forall_range_iff
 
 @[simp] lemma infi_pos {p : Prop} {f : p → α} (hp : p) : (⨅ h : p, f h) = f hp :=
 le_antisymm (infi_le _ _) (le_infi $ assume h, le_refl _)
@@ -513,15 +490,15 @@ by by_cases p; simp [h]
 
 lemma supr_eq_if {p : Prop} [decidable p] (a : α) :
   (⨆h:p, a) = (if p then a else ⊥) :=
-by rw [supr_eq_dif, dif_eq_if]
+supr_eq_dif (λ _, a)
 
 lemma infi_eq_dif {p : Prop} [decidable p] (a : p → α) :
   (⨅h:p, a h) = (if h : p then a h else ⊤) :=
-by by_cases p; simp [h]
+@supr_eq_dif (order_dual α) _ _ _ _
 
 lemma infi_eq_if {p : Prop} [decidable p] (a : α) :
   (⨅h:p, a) = (if p then a else ⊤) :=
-by rw [infi_eq_dif, dif_eq_if]
+infi_eq_dif (λ _, a)
 
 -- TODO: should this be @[simp]?
 theorem infi_comm {f : ι → ι₂ → α} : (⨅i, ⨅j, f i j) = (⨅j, ⨅i, f i j) :=
@@ -543,29 +520,27 @@ end
 
 -- TODO: should this be @[simp]?
 theorem supr_comm {f : ι → ι₂ → α} : (⨆i, ⨆j, f i j) = (⨆j, ⨆i, f i j) :=
-le_antisymm
-  (supr_le $ assume i, supr_le $ assume j, le_supr_of_le j $ le_supr _ i)
-  (supr_le $ assume j, supr_le $ assume i, le_supr_of_le i $ le_supr _ j)
+@infi_comm (order_dual α) _ _ _ _
 
-@[simp] theorem infi_infi_eq_left {b : β} {f : Πx:β, x = b → α} : (⨅x, ⨅h:x = b, f x h) = f b rfl :=
+@[simp] theorem infi_infi_eq_left {b : β} {f : Πx:β, x = b → α} :
+  (⨅x, ⨅h:x = b, f x h) = f b rfl :=
 le_antisymm
   (infi_le_of_le b $ infi_le _ rfl)
   (le_infi $ assume b', le_infi $ assume eq, match b', eq with ._, rfl := le_refl _ end)
 
-@[simp] theorem infi_infi_eq_right {b : β} {f : Πx:β, b = x → α} : (⨅x, ⨅h:b = x, f x h) = f b rfl :=
+@[simp] theorem infi_infi_eq_right {b : β} {f : Πx:β, b = x → α} :
+  (⨅x, ⨅h:b = x, f x h) = f b rfl :=
 le_antisymm
   (infi_le_of_le b $ infi_le _ rfl)
   (le_infi $ assume b', le_infi $ assume eq, match b', eq with ._, rfl := le_refl _ end)
 
-@[simp] theorem supr_supr_eq_left {b : β} {f : Πx:β, x = b → α} : (⨆x, ⨆h : x = b, f x h) = f b rfl :=
-le_antisymm
-  (supr_le $ assume b', supr_le $ assume eq, match b', eq with ._, rfl := le_refl _ end)
-  (le_supr_of_le b $ le_supr _ rfl)
+@[simp] theorem supr_supr_eq_left {b : β} {f : Πx:β, x = b → α} :
+  (⨆x, ⨆h : x = b, f x h) = f b rfl :=
+@infi_infi_eq_left (order_dual α) _ _ _ _
 
-@[simp] theorem supr_supr_eq_right {b : β} {f : Πx:β, b = x → α} : (⨆x, ⨆h : b = x, f x h) = f b rfl :=
-le_antisymm
-  (supr_le $ assume b', supr_le $ assume eq, match b', eq with ._, rfl := le_refl _ end)
-  (le_supr_of_le b $ le_supr _ rfl)
+@[simp] theorem supr_supr_eq_right {b : β} {f : Πx:β, b = x → α} :
+  (⨆x, ⨆h : b = x, f x h) = f b rfl :=
+@infi_infi_eq_right (order_dual α) _ _ _ _
 
 attribute [ematch] le_refl
 
@@ -628,15 +603,15 @@ le_antisymm (infi_le _ _) (le_infi $ assume ⟨⟩, le_refl _)
 @[simp] theorem supr_true {s : true → α} : supr s = s trivial :=
 le_antisymm (supr_le $ assume ⟨⟩, le_refl _) (le_supr _ _)
 
-@[simp] theorem infi_exists {p : ι → Prop} {f : Exists p → α} : (⨅ x, f x) = (⨅ i, ⨅ h:p i, f ⟨i, h⟩) :=
+@[simp] theorem infi_exists {p : ι → Prop} {f : Exists p → α} :
+  (⨅ x, f x) = (⨅ i, ⨅ h:p i, f ⟨i, h⟩) :=
 le_antisymm
   (le_infi $ assume i, le_infi $ assume : p i, infi_le _ _)
   (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
 
-@[simp] theorem supr_exists {p : ι → Prop} {f : Exists p → α} : (⨆ x, f x) = (⨆ i, ⨆ h:p i, f ⟨i, h⟩) :=
-le_antisymm
-  (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λh:p i, f ⟨i, h⟩) _)
-  (supr_le $ assume i, supr_le $ assume : p i, le_supr _ _)
+@[simp] theorem supr_exists {p : ι → Prop} {f : Exists p → α} :
+  (⨆ x, f x) = (⨆ i, ⨆ h:p i, f ⟨i, h⟩) :=
+@infi_exists (order_dual α) _ _ _ _
 
 theorem infi_and {p q : Prop} {s : p ∧ q → α} : infi s = (⨅ h₁ h₂, s ⟨h₁, h₂⟩) :=
 le_antisymm
@@ -649,9 +624,7 @@ lemma infi_and' {p q : Prop} {s : p → q → α} :
 by { symmetry, exact infi_and }
 
 theorem supr_and {p q : Prop} {s : p ∧ q → α} : supr s = (⨆ h₁ h₂, s ⟨h₁, h₂⟩) :=
-le_antisymm
-  (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λj, s ⟨i, j⟩) _)
-  (supr_le $ assume i, supr_le $ assume j, le_supr _ _)
+@infi_and (order_dual α) _ _ _ _
 
 /-- The symmetric case of `supr_and`, useful for rewriting into a supremum over a conjunction -/
 lemma supr_and' {p q : Prop} {s : p → q → α} :
@@ -671,14 +644,7 @@ le_antisymm
 
 theorem supr_or {p q : Prop} {s : p ∨ q → α} :
   (⨆ x, s x) = (⨆ i, s (or.inl i)) ⊔ (⨆ j, s (or.inr j)) :=
-le_antisymm
-  (supr_le $ assume s, match s with
-  | or.inl i := le_sup_left_of_le $ le_supr _ i
-  | or.inr j := le_sup_right_of_le $ le_supr _ j
-  end)
-  (sup_le
-    (supr_le_supr2 $ assume i, ⟨or.inl i, le_refl _⟩)
-    (supr_le_supr2 $ assume j, ⟨or.inr j, le_refl _⟩))
+@infi_or (order_dual α) _ _ _ _
 
 lemma Sup_range {α : Type*} [has_Sup α] {f : ι → α} : Sup (range f) = supr f := rfl
 
@@ -690,25 +656,17 @@ le_antisymm
   (supr_le $ assume i, le_supr_of_le (f i) $ le_supr (λp, g (f i)) (mem_range_self _))
 
 lemma infi_range {g : β → α} {f : ι → β} : (⨅b∈range f, g b) = (⨅i, g (f i)) :=
-le_antisymm
-  (le_infi $ assume i, infi_le_of_le (f i) $ infi_le (λp, g (f i)) (mem_range_self _))
-  (le_infi $ assume b, le_infi $ assume ⟨i, (h : f i = b)⟩, h ▸ infi_le _ i)
+@supr_range (order_dual α) _ _ _ _ _
 
 theorem Inf_image {s : set β} {f : β → α} : Inf (f '' s) = (⨅ a ∈ s, f a) :=
-calc Inf (set.image f s) = (⨅a, ⨅h : ∃b, b ∈ s ∧ f b = a, a) : Inf_eq_infi
-                     ... = (⨅a, ⨅b, ⨅h : f b = a ∧ b ∈ s, a) : by simp [and_comm]
-                     ... = (⨅a, ⨅b, ⨅h : a = f b, ⨅h : b ∈ s, a) : by simp [infi_and, eq_comm]
-                     ... = (⨅b, ⨅a, ⨅h : a = f b, ⨅h : b ∈ s, a) : by rw [infi_comm]
-                     ... = (⨅a∈s, f a) : congr_arg infi $ by funext x; rw [infi_infi_eq_left]
+by rw [← infi_subtype'', infi, range_comp, subtype.range_coe]
 
 theorem Sup_image {s : set β} {f : β → α} : Sup (f '' s) = (⨆ a ∈ s, f a) :=
-calc Sup (set.image f s) = (⨆a, ⨆h : ∃b, b ∈ s ∧ f b = a, a) : Sup_eq_supr
-                     ... = (⨆a, ⨆b, ⨆h : f b = a ∧ b ∈ s, a) : by simp [and_comm]
-                     ... = (⨆a, ⨆b, ⨆h : a = f b, ⨆h : b ∈ s, a) : by simp [supr_and, eq_comm]
-                     ... = (⨆b, ⨆a, ⨆h : a = f b, ⨆h : b ∈ s, a) : by rw [supr_comm]
-                     ... = (⨆a∈s, f a) : congr_arg supr $ by funext x; rw [supr_supr_eq_left]
+@Inf_image (order_dual α) _ _ _ _
 
-/- supr and infi under set constructions -/
+/-
+### supr and infi under set constructions
+-/
 
 theorem infi_emptyset {f : β → α} : (⨅ x ∈ (∅ : set β), f x) = ⊤ :=
 by simp
@@ -723,8 +681,7 @@ theorem supr_univ {f : β → α} : (⨆ x ∈ (univ : set β), f x) = (⨆ x, f
 by simp
 
 theorem infi_union {f : β → α} {s t : set β} : (⨅ x ∈ s ∪ t, f x) = (⨅x∈s, f x) ⊓ (⨅x∈t, f x) :=
-calc (⨅ x ∈ s ∪ t, f x) = (⨅ x, (⨅h : x∈s, f x) ⊓ (⨅h : x∈t, f x)) : congr_arg infi $ funext $ assume x, infi_or
-                    ... = (⨅x∈s, f x) ⊓ (⨅x∈t, f x) : infi_inf_eq
+by simp only [← infi_inf_eq, infi_or]
 
 lemma infi_split (f : β → α) (p : β → Prop) :
   (⨅ i, f i) = (⨅ i (h : p i), f i) ⊓ (⨅ i (h : ¬ p i), f i) :=
@@ -739,25 +696,26 @@ theorem infi_le_infi_of_subset {f : β → α} {s t : set β} (h : s ⊆ t) :
 by rw [(union_eq_self_of_subset_left h).symm, infi_union]; exact inf_le_left
 
 theorem supr_union {f : β → α} {s t : set β} : (⨆ x ∈ s ∪ t, f x) = (⨆x∈s, f x) ⊔ (⨆x∈t, f x) :=
-calc (⨆ x ∈ s ∪ t, f x) = (⨆ x, (⨆h : x∈s, f x) ⊔ (⨆h : x∈t, f x)) : congr_arg supr $ funext $ assume x, supr_or
-                    ... = (⨆x∈s, f x) ⊔ (⨆x∈t, f x) : supr_sup_eq
+@infi_union (order_dual α) _ _ _ _ _
 
 lemma supr_split (f : β → α) (p : β → Prop) :
   (⨆ i, f i) = (⨆ i (h : p i), f i) ⊔ (⨆ i (h : ¬ p i), f i) :=
-by simpa [classical.em] using @supr_union _ _ _ f {i | p i} {i | ¬ p i}
+@infi_split (order_dual α) _ _ _ _
 
 lemma supr_split_single (f : β → α) (i₀ : β) :
   (⨆ i, f i) = f i₀ ⊔ (⨆ i (h : i ≠ i₀), f i) :=
-by convert supr_split _ _; simp
+@infi_split_single (order_dual α) _ _ _ _
 
 theorem supr_le_supr_of_subset {f : β → α} {s t : set β} (h : s ⊆ t) :
   (⨆ x ∈ s, f x) ≤ (⨆ x ∈ t, f x) :=
-by rw [(union_eq_self_of_subset_left h).symm, supr_union]; exact le_sup_left
+@infi_le_infi_of_subset (order_dual α) _ _ _ _ _ h
 
-theorem infi_insert {f : β → α} {s : set β} {b : β} : (⨅ x ∈ insert b s, f x) = f b ⊓ (⨅x∈s, f x) :=
+theorem infi_insert {f : β → α} {s : set β} {b : β} :
+  (⨅ x ∈ insert b s, f x) = f b ⊓ (⨅x∈s, f x) :=
 eq.trans infi_union $ congr_arg (λx:α, x ⊓ (⨅x∈s, f x)) infi_infi_eq_left
 
-theorem supr_insert {f : β → α} {s : set β} {b : β} : (⨆ x ∈ insert b s, f x) = f b ⊔ (⨆x∈s, f x) :=
+theorem supr_insert {f : β → α} {s : set β} {b : β} :
+  (⨆ x ∈ insert b s, f x) = f b ⊔ (⨆x∈s, f x) :=
 eq.trans supr_union $ congr_arg (λx:α, x ⊔ (⨆x∈s, f x)) supr_supr_eq_left
 
 theorem infi_singleton {f : β → α} {b : β} : (⨅ x ∈ (singleton b : set β), f x) = f b :=
@@ -767,28 +725,22 @@ theorem infi_pair {f : β → α} {a b : β} : (⨅ x ∈ ({a, b} : set β), f x
 by rw [infi_insert, infi_singleton]
 
 theorem supr_singleton {f : β → α} {b : β} : (⨆ x ∈ (singleton b : set β), f x) = f b :=
-by simp
+@infi_singleton (order_dual α) _ _ _ _
 
 theorem supr_pair {f : β → α} {a b : β} : (⨆ x ∈ ({a, b} : set β), f x) = f a ⊔ f b :=
 by rw [supr_insert, supr_singleton]
 
 lemma infi_image {γ} {f : β → γ} {g : γ → α} {t : set β} :
   (⨅ c ∈ f '' t, g c) = (⨅ b ∈ t, g (f b)) :=
-le_antisymm
-  (le_infi $ assume b, le_infi $ assume hbt,
-    infi_le_of_le (f b) $ infi_le (λ_, g (f b)) (mem_image_of_mem f hbt))
-  (le_infi $ assume c, le_infi $ assume ⟨b, hbt, eq⟩,
-    eq ▸ infi_le_of_le b $ infi_le (λ_, g (f b)) hbt)
+by rw [← Inf_image, ← Inf_image, ← image_comp]
 
 lemma supr_image {γ} {f : β → γ} {g : γ → α} {t : set β} :
   (⨆ c ∈ f '' t, g c) = (⨆ b ∈ t, g (f b)) :=
-le_antisymm
-  (supr_le $ assume c, supr_le $ assume ⟨b, hbt, eq⟩,
-    eq ▸ le_supr_of_le b $ le_supr (λ_, g (f b)) hbt)
-  (supr_le $ assume b, supr_le $ assume hbt,
-    le_supr_of_le (f b) $ le_supr (λ_, g (f b)) (mem_image_of_mem f hbt))
+@infi_image (order_dual α) _ _ _ _ _ _
 
-/- supr and infi under Type -/
+/-!
+### `supr` and `infi` under `Type`
+-/
 
 theorem infi_of_empty' (h : ι → false) {s : ι → α} : infi s = ⊤ :=
 top_unique (le_infi $ assume i, (h i).elim)
@@ -820,17 +772,13 @@ le_antisymm
   (sup_le (le_supr _ _) (le_supr _ _))
 
 lemma infi_bool_eq {f : bool → α} : (⨅b:bool, f b) = f tt ⊓ f ff :=
-le_antisymm
-  (le_inf (infi_le _ _) (infi_le _ _))
-  (le_infi $ assume b, match b with tt := inf_le_left | ff := inf_le_right end)
+@supr_bool_eq (order_dual α) _ _
 
 lemma is_glb_binfi {s : set β} {f : β → α} : is_glb (f '' s) (⨅ x ∈ s, f x) :=
 by simpa only [range_comp, subtype.range_coe, infi_subtype'] using @is_glb_infi α s _ (f ∘ coe)
 
 theorem supr_subtype {p : ι → Prop} {f : subtype p → α} : (⨆ x, f x) = (⨆ i (h:p i), f ⟨i, h⟩) :=
-le_antisymm
-  (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λh:p i, f ⟨i, h⟩) _)
-  (supr_le $ assume i, supr_le $ assume : p i, le_supr _ _)
+@infi_subtype (order_dual α) _ _ _ _
 
 lemma supr_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
   (⨆ i (h : p i), f i h) = (⨆ x : subtype p, f x x.property) :=
@@ -848,9 +796,7 @@ le_antisymm
   (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
 
 theorem supr_sigma {p : β → Type*} {f : sigma p → α} : (⨆ x, f x) = (⨆ i (h:p i), f ⟨i, h⟩) :=
-le_antisymm
-  (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λh:p i, f ⟨i, h⟩) _)
-  (supr_le $ assume i, supr_le $ assume : p i, le_supr _ _)
+@infi_sigma (order_dual α) _ _ _ _
 
 theorem infi_prod {γ : Type*} {f : β × γ → α} : (⨅ x, f x) = (⨅ i j, f (i, j)) :=
 le_antisymm
@@ -858,9 +804,7 @@ le_antisymm
   (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
 
 theorem supr_prod {γ : Type*} {f : β × γ → α} : (⨆ x, f x) = (⨆ i j, f (i, j)) :=
-le_antisymm
-  (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λj, f ⟨i, j⟩) _)
-  (supr_le $ assume i, supr_le $ assume j, le_supr _ _)
+@infi_prod (order_dual α) _ _ _ _
 
 theorem infi_sum {γ : Type*} {f : β ⊕ γ → α} :
   (⨅ x, f x) = (⨅ i, f (sum.inl i)) ⊓ (⨅ j, f (sum.inr j)) :=
@@ -875,14 +819,7 @@ le_antisymm
 
 theorem supr_sum {γ : Type*} {f : β ⊕ γ → α} :
   (⨆ x, f x) = (⨆ i, f (sum.inl i)) ⊔ (⨆ j, f (sum.inr j)) :=
-le_antisymm
-  (supr_le $ assume s, match s with
-  | sum.inl i := le_sup_left_of_le $ le_supr _ i
-  | sum.inr j := le_sup_right_of_le $ le_supr _ j
-  end)
-  (sup_le
-    (supr_le_supr2 $ assume i, ⟨sum.inl i, le_refl _⟩)
-    (supr_le_supr2 $ assume j, ⟨sum.inr j, le_refl _⟩))
+@infi_sum (order_dual α) _ _ _ _
 
 end
 
@@ -898,7 +835,9 @@ by simp only [← Inf_range, Inf_eq_bot, set.exists_range_iff]
 
 end complete_linear_order
 
-/- Instances -/
+/-!
+### Instances
+-/
 
 instance complete_lattice_Prop : complete_lattice Prop :=
 { Sup    := λs, ∃a∈s, a,

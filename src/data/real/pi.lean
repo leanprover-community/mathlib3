@@ -63,7 +63,7 @@ begin
   refine le_trans _ hz, rw sqrt_two_add_series_succ, apply sqrt_two_add_series_monotone_left,
   have hb' : 0 < (b:ℝ) := nat.cast_pos.2 hb,
   have hd' : 0 < (d:ℝ) := nat.cast_pos.2 hd,
-  rw [sqrt_le_left (div_nonneg (nat.cast_nonneg _) hd'), div_pow,
+  rw [sqrt_le_left (div_nonneg c.cast_nonneg d.cast_nonneg), div_pow,
     add_div_eq_mul_add_div _ _ (ne_of_gt hb'), div_le_div_iff hb' (pow_pos hd' _)],
   exact_mod_cast h
 end
@@ -91,7 +91,7 @@ begin
   refine lt_of_lt_of_le (pi_lt_sqrt_two_add_series n) _,
   rw [← le_sub_iff_add_le, ← le_div_iff', sqrt_le_left, sub_le],
   { rwa [nat.cast_zero, zero_div] at h },
-  { exact div_nonneg (sub_nonneg.2 h₂) (pow_pos two_pos _) },
+  { exact div_nonneg (sub_nonneg.2 h₂) (pow_nonneg (le_of_lt two_pos) _) },
   { exact pow_pos two_pos _ }
 end
 

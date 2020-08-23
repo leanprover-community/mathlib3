@@ -1483,6 +1483,13 @@ begin
 end
 
 end image
+end finset
+
+theorem multiset.to_finset_map [decidable_eq α] [decidable_eq β] (f : α → β) (m : multiset α) :
+  (m.map f).to_finset = m.to_finset.image f :=
+finset.val_inj.1 (multiset.erase_dup_map_erase_dup_eq _ _).symm
+
+namespace finset
 
 /-! ### card -/
 section card

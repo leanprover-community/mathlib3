@@ -5,7 +5,8 @@ Author: Joseph Myers.
 -/
 import analysis.normed_space.real_inner_product
 import analysis.normed_space.add_torsor
-import linear_algebra.affine_space
+import linear_algebra.affine_space.finite_dimensional
+import linear_algebra.affine_space.independent
 import tactic.interval_cases
 
 noncomputable theory

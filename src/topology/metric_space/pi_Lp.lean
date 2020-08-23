@@ -107,7 +107,7 @@ have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,
     (∑ (i : ι), edist (f i) (h i) ^ p) ^ (1 / p) ≤
     (∑ (i : ι), (edist (f i) (g i) + edist (g i) (h i)) ^ p) ^ (1 / p) :
     begin
-      apply ennreal.rpow_le_rpow _ (div_nonneg zero_le_one pos),
+      apply ennreal.rpow_le_rpow _ (one_div_nonneg.2 $ le_of_lt pos),
       refine finset.sum_le_sum (λ i hi, _),
       exact ennreal.rpow_le_rpow (edist_triangle _ _ _) (le_trans zero_le_one hp)
     end
@@ -135,7 +135,7 @@ begin
     by simp [← ennreal.rpow_mul, cancel, -one_div_eq_inv]
   ... ≤ (∑ (i : ι), edist (x i) (y i) ^ p) ^ (1 / p) :
   begin
-    apply ennreal.rpow_le_rpow _ (div_nonneg zero_le_one pos),
+    apply ennreal.rpow_le_rpow _ (one_div_nonneg.2 $ le_of_lt pos),
     exact finset.single_le_sum (λ i hi, (bot_le : (0 : ennreal) ≤ _)) (finset.mem_univ i)
   end
 end
@@ -144,13 +144,14 @@ lemma antilipschitz_with_equiv :
   antilipschitz_with ((fintype.card ι : nnreal) ^ (1/p)) (pi_Lp.equiv p hp α) :=
 begin
   have pos : 0 < p := lt_of_lt_of_le zero_lt_one hp,
+  have nonneg : 0 ≤ 1 / p := one_div_nonneg.2 (le_of_lt pos),
   have cancel : p * (1/p) = 1 := mul_div_cancel' 1 (ne_of_gt pos),
   assume x y,
   simp [edist, -one_div_eq_inv],
   calc (∑ (i : ι), edist (x i) (y i) ^ p) ^ (1 / p) ≤
   (∑ (i : ι), edist (pi_Lp.equiv p hp α x) (pi_Lp.equiv p hp α y) ^ p) ^ (1 / p) :
   begin
-    apply ennreal.rpow_le_rpow _ (div_nonneg zero_le_one pos),
+    apply ennreal.rpow_le_rpow _ nonneg,
     apply finset.sum_le_sum (λ i hi, _),
     apply ennreal.rpow_le_rpow _ (le_of_lt pos),
     exact finset.le_sup (finset.mem_univ i)
@@ -159,10 +160,10 @@ begin
     edist (pi_Lp.equiv p hp α x) (pi_Lp.equiv p hp α y) :
   begin
     simp only [nsmul_eq_mul, finset.card_univ, ennreal.rpow_one, finset.sum_const,
-      ennreal.mul_rpow_of_nonneg _ _ (div_nonneg zero_le_one pos), ←ennreal.rpow_mul, cancel],
+      ennreal.mul_rpow_of_nonneg _ _ nonneg, ←ennreal.rpow_mul, cancel],
     have : (fintype.card ι : ennreal) = (fintype.card ι : nnreal) :=
       (ennreal.coe_nat (fintype.card ι)).symm,
-    rw [this, ennreal.coe_rpow_of_nonneg _ (div_nonneg zero_le_one pos)]
+    rw [this, ennreal.coe_rpow_of_nonneg _ nonneg]
   end
 end
 

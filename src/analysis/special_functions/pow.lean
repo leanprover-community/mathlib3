@@ -94,10 +94,10 @@ have h : -π < (log x * (↑n)⁻¹).im ∧ (log x * (↑n)⁻¹).im ≤ π,
             ... ≤ ((log x).im * 1) / n : le_div_of_mul_le (nat.cast_pos.2 hn)
               (mul_le_mul_of_nonpos_left (by rw ← nat.cast_one; exact nat.cast_le.2 hn) h)
             ... = (log x * (↑n)⁻¹).im : by simp [this],
-          this.symm ▸ le_trans (div_nonpos_of_nonpos_of_pos h (nat.cast_pos.2 hn))
+          this.symm ▸ le_trans (div_nonpos_of_nonpos_of_nonneg h n.cast_nonneg)
             (le_of_lt real.pi_pos)⟩)
     (λ h, ⟨this.symm ▸ lt_of_lt_of_le (neg_neg_of_pos real.pi_pos)
-            (div_nonneg h (nat.cast_pos.2 hn)),
+            (div_nonneg h n.cast_nonneg),
           calc (log x * (↑n)⁻¹).im = (1 * (log x).im) / n : by simp [this]
             ... ≤ (log x).im : (div_le_of_le_mul (nat.cast_pos.2 hn)
               (mul_le_mul_of_nonneg_right (by rw ← nat.cast_one; exact nat.cast_le.2 hn) h))

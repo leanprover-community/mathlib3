@@ -385,7 +385,7 @@ instance GH_space_metric_space : metric_space GH_space :=
            = ((λ (p : nonempty_compacts ℓ_infty_ℝ × nonempty_compacts ℓ_infty_ℝ),
                  Hausdorff_dist ((p.fst).val) ((p.snd).val)) ∘ prod.swap) '' (set.prod {a | ⟦a⟧ = x} {b | ⟦b⟧ = y}) :=
       by { congr, funext, simp, rw Hausdorff_dist_comm },
-    simp only [dist, A, image_comp, prod.swap, image_swap_prod],
+    simp only [dist, A, image_comp, image_swap_prod],
   end,
   eq_of_dist_eq_zero := λx y hxy, begin
     /- To show that two spaces at zero distance are isometric, we argue that the distance

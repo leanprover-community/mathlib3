@@ -218,7 +218,7 @@ end
 
 The outer Lebesgue measure is the completion of this measure. (TODO: proof this)
 -/
-instance : measure_space ℝ :=
+instance real.measure_space : measure_space ℝ :=
 ⟨{to_outer_measure := lebesgue_outer,
   m_Union := λ f hf, lebesgue_outer.Union_eq_of_caratheodory $
     λ i, borel_le_lebesgue_measurable _ (hf i),

@@ -91,6 +91,23 @@ by split_ifs; refl
 
 end
 
+section compatible_scalar
+
+variables (R M N : Type*) [has_scalar R M] [has_scalar M N] [has_scalar R N]
+
+/-- An instance of `is_scalar_tower R M N` states that the multiplicative
+action of `R` on `N` is determined by the multiplicative actions of `R` on `M`
+and `M` on `N`. -/
+class is_scalar_tower : Prop :=
+(smul_assoc : ∀ (x : R) (y : M) (z : N), (x • y) • z = x • (y • z))
+
+variables {R M N}
+
+lemma smul_assoc [is_scalar_tower R M N] (x : R) (y : M) (z : N) :
+  (x • y) • z = x • y • z := is_scalar_tower.smul_assoc x y z
+
+end compatible_scalar
+
 namespace mul_action
 
 variables (α) [monoid α]
@@ -102,6 +119,15 @@ def regular : mul_action α α :=
   mul_smul := λ a₁ a₂ a₃, mul_assoc _ _ _, }
 
 variables [mul_action α β]
+
+section regular
+
+local attribute [instance] regular
+
+instance is_scalar_tower.left : is_scalar_tower α α β :=
+⟨λ x y z, mul_smul x y z⟩
+
+end regular
 
 /-- The orbit of an element under an action. -/
 def orbit (b : β) := set.range (λ x : α, x • b)

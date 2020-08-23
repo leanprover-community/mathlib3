@@ -216,7 +216,7 @@ lemma pair_preimage (f : α →ₛ β) (g : α →ₛ γ) (s : set β) (t : set 
 /- A special form of `pair_preimage` -/
 lemma pair_preimage_singleton (f : α →ₛ β) (g : α →ₛ γ) (b : β) (c : γ) :
   (pair f g) ⁻¹' {(b, c)} = (f ⁻¹' {b}) ∩ (g ⁻¹' {c}) :=
-by { rw ← prod_singleton_singleton, exact pair_preimage _ _ _ _ }
+by { rw ← singleton_prod_singleton, exact pair_preimage _ _ _ _ }
 
 theorem bind_const (f : α →ₛ β) : f.bind (const α) = f := by ext; simp
 

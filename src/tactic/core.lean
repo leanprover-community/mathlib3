@@ -444,7 +444,7 @@ with name `n` of the same type as `e` and replaces all occurrences of `e` by `n`
 goal, in which case it just calls `assert`.
 In contrast to `generalize` it already introduces the generalized variable. -/
 meta def generalize' (e : expr) (n : name) : tactic expr :=
-(generalize e n >> intro1) <|> note n none e
+(generalize e n >> intro n) <|> note n none e
 
 /--
 `intron_no_renames n` calls `intro` `n` times, using the pretty-printing name
@@ -1641,7 +1641,6 @@ add_tactic_doc
   category                 := doc_category.attr,
   decl_names               := [``tactic.interactive_attr],
   tags                     := ["environment"] }
-
 
 /-- Attribute `needed` is used to mark declarations that are featured
 in the current file.  Then, the `#unneeded` command can be used to

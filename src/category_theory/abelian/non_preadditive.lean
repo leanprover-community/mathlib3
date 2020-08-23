@@ -271,7 +271,7 @@ section
 local attribute [instance] has_limit_parallel_pair
 
 /-- A `non_preadditive_abelian` category has all equalizers. -/
-@[priority 100] instance : has_equalizers C :=
+@[priority 100] instance has_equalizers : has_equalizers C :=
 has_equalizers_of_has_limit_parallel_pair _
 
 end
@@ -279,8 +279,8 @@ end
 section
 local attribute [instance] has_colimit_parallel_pair
 
-/-- A `non_preadditive_abelian` category as all coequalizers. -/
-@[priority 100] instance : has_coequalizers C :=
+/-- A `non_preadditive_abelian` category has all coequalizers. -/
+@[priority 100] instance has_coequalizers : has_coequalizers C :=
 has_coequalizers_of_has_colimit_parallel_pair _
 
 end

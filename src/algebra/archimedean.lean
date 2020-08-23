@@ -202,14 +202,12 @@ end
 
 theorem exists_nat_one_div_lt {ε : α} (hε : 0 < ε) : ∃ n : ℕ, 1 / (n + 1: α) < ε :=
 begin
-  cases archimedean_iff_nat_lt.1 (by apply_instance) (1/ε) with n hn,
-  existsi n,
-  apply div_lt_of_mul_lt_of_pos,
-  { simp, apply add_pos_of_nonneg_of_pos, apply nat.cast_nonneg, apply zero_lt_one },
-  { apply (div_lt_iff' hε).1,
-    transitivity,
-    { exact hn },
-    { simp [zero_lt_one] }}
+  cases exists_nat_gt (1/ε) with n hn,
+  use n,
+  rw [div_lt_iff, ← div_lt_iff' hε],
+  { apply hn.trans,
+    simp [zero_lt_one] },
+  { exact n.cast_add_one_pos }
 end
 
 theorem exists_pos_rat_lt {x : α} (x0 : 0 < x) : ∃ q : ℚ, 0 < q ∧ (q : α) < x :=

@@ -66,7 +66,7 @@ begin
   exact h₂ (h₁ hs)
 end
 
-/-- If `p : set α → Prop` is stable under restriction and union, and each point `x of a compact set `s` 
+/-- If `p : set α → Prop` is stable under restriction and union, and each point `x of a compact set `s`
   has a neighborhood `t` within `s` such that `p t`, then `p s` holds. -/
 @[elab_as_eliminator]
 lemma is_compact.induction_on {s : set α} (hs : is_compact s) {p : set α → Prop} (he : p ∅)
@@ -337,9 +337,9 @@ assume H n hn hp,
   let ⟨u, v, uo, vo, su, tv, p⟩ :=
     H (prod.swap ⁻¹' n)
       (continuous_swap n hn)
-      (by rwa [←image_subset_iff, prod.swap, image_swap_prod]) in
+      (by rwa [←image_subset_iff, image_swap_prod]) in
   ⟨v, u, vo, uo, tv, su,
-    by rwa [←image_subset_iff, prod.swap, image_swap_prod] at p⟩
+    by rwa [←image_subset_iff, image_swap_prod] at p⟩
 
 lemma nhds_contain_boxes.comm {s : set α} {t : set β} :
   nhds_contain_boxes s t ↔ nhds_contain_boxes t s :=

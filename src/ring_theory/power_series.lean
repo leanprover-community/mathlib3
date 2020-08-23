@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kenny Lau
 -/
 import data.mv_polynomial
-import ring_theory.ideal_operations
+import ring_theory.ideal.operations
 import ring_theory.multiplicity
 import tactic.linarith
 

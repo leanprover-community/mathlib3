@@ -5,7 +5,7 @@ Authors: Kenny Lau, Johan Commelin
 -/
 import data.equiv.functor
 import data.mv_polynomial
-import ring_theory.ideal_operations
+import ring_theory.ideal.operations
 import ring_theory.free_ring
 
 noncomputable theory

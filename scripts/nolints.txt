@@ -120,12 +120,6 @@ apply_nolint category_theory.Kleisli.comp_def unused_arguments
 apply_nolint category_theory.Kleisli.id_def unused_arguments
 apply_nolint category_theory.Kleisli.mk doc_blame has_inhabited_instance
 
--- category_theory/category/default.lean
-apply_nolint category_theory.category_struct doc_blame
-apply_nolint category_theory.epi doc_blame
-apply_nolint category_theory.has_hom doc_blame
-apply_nolint category_theory.mono doc_blame
-
 -- category_theory/endomorphism.lean
 apply_nolint category_theory.Aut doc_blame has_inhabited_instance
 apply_nolint category_theory.End has_inhabited_instance
@@ -206,7 +200,7 @@ apply_nolint category_theory.over.forget_colimit_is_colimit doc_blame
 apply_nolint category_theory.under.forget_limit_is_limit doc_blame
 apply_nolint category_theory.under.limit doc_blame
 
--- category_theory/limits/preserves.lean
+-- category_theory/limits/preserves/basic.lean
 apply_nolint category_theory.limits.preserves_colimit doc_blame
 apply_nolint category_theory.limits.preserves_colimits doc_blame
 apply_nolint category_theory.limits.preserves_colimits_of_shape doc_blame
@@ -224,17 +218,11 @@ apply_nolint category_theory.limits.reflects_limits_of_shape doc_blame
 apply_nolint category_theory.limits.has_finite_colimits doc_blame
 apply_nolint category_theory.limits.has_finite_limits doc_blame
 
--- category_theory/limits/shapes/finite_products.lean
-apply_nolint category_theory.limits.has_finite_coproducts doc_blame
-apply_nolint category_theory.limits.has_finite_products doc_blame
-
 -- category_theory/limits/shapes/products.lean
 apply_nolint category_theory.limits.cofan doc_blame
 apply_nolint category_theory.limits.cofan.mk doc_blame
 apply_nolint category_theory.limits.fan doc_blame
 apply_nolint category_theory.limits.fan.mk doc_blame
-apply_nolint category_theory.limits.has_coproducts doc_blame
-apply_nolint category_theory.limits.has_products doc_blame
 apply_nolint category_theory.limits.pi.lift doc_blame
 apply_nolint category_theory.limits.pi.map doc_blame
 apply_nolint category_theory.limits.pi.π doc_blame
@@ -1404,7 +1392,7 @@ apply_nolint free_ring.lift doc_blame
 apply_nolint free_ring.map doc_blame
 apply_nolint free_ring.of doc_blame
 
--- ring_theory/ideal_operations.lean
+-- ring_theory/ideal/operations.lean
 apply_nolint ideal.le_order_embedding_of_surjective doc_blame
 apply_nolint ideal.lt_order_embedding_of_surjective doc_blame
 apply_nolint ideal.map doc_blame
@@ -2081,10 +2069,7 @@ apply_nolint topological_space.open_nhds.inclusion_map_iso doc_blame
 apply_nolint topological_space.open_nhds.map doc_blame
 
 -- topology/category/Top/opens.lean
-apply_nolint topological_space.opens.map_comp doc_blame
-apply_nolint topological_space.opens.map_id doc_blame
 apply_nolint topological_space.opens.map_iso doc_blame
-apply_nolint topological_space.opens.to_Top doc_blame
 
 -- topology/category/TopCommRing.lean
 apply_nolint TopCommRing has_inhabited_instance

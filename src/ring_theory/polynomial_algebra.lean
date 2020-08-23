@@ -253,7 +253,7 @@ open matrix
 open_locale big_operators
 
 variables {R}
-variables {n : Type w} [fintype n] [decidable_eq n]
+variables {n : Type w} [decidable_eq n] [fintype n]
 
 /--
 The algebra isomorphism stating "matrices of polynomials are the same as polynomials of matrices".

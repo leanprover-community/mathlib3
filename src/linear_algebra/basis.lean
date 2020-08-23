@@ -69,12 +69,12 @@ open_locale classical big_operators
 universe u
 
 variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}
-          {M : Type*} {M' : Type*} {V : Type u} {V' : Type*}
+          {M : Type*} {M' M'' : Type*} {V : Type u} {V' : Type*}
 
 section module
 variables {v : ι → M}
-variables [ring R] [add_comm_group M] [add_comm_group M']
-variables [module R M] [module R M']
+variables [ring R] [add_comm_group M] [add_comm_group M'] [add_comm_group M'']
+variables [module R M] [module R M'] [module R M'']
 variables {a b : R} {x y : M}
 
 variables (R) (v)
@@ -114,7 +114,7 @@ theorem linear_dependent_iff : ¬ linear_independent R v ↔
   ∃ s : finset ι, ∃ g : ι → R, s.sum (λ i, g i • v i) = 0 ∧ (∃ i ∈ s, g i ≠ 0) :=
 begin
   rw linear_independent_iff',
-  simp only [exists_prop, classical.not_forall],
+  simp only [exists_prop, not_forall],
 end
 
 lemma linear_independent_empty_type (h : ¬ nonempty ι) : linear_independent R v :=
@@ -529,7 +529,7 @@ end, λ H, linear_independent_iff.2 $ λ l hl, begin
   { rw finsupp.mem_supported',
     intros j hj,
     have hij : j = i :=
-      classical.not_not.1
+      not_not.1
           (λ hij : j ≠ i, hj ((mem_diff _).2 ⟨mem_univ _, λ h, hij (eq_of_mem_singleton h)⟩)),
     simp [hij] },
   { simp [hl] }
@@ -868,6 +868,35 @@ def equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (f : M → M') (g : M' �
       (λ i hi, by simp [constr_basis, hi.symm]; rw [hi, hfg]),
     λ y, congr_arg (λ h:M' →ₗ[R] M', h y) this,
   ..hv.constr (f ∘ v) }
+
+@[simp] lemma equiv_of_is_basis_comp {ι'' : Type*} {v : ι → M} {v' : ι' → M'} {v'' : ι'' → M''}
+  (hv : is_basis R v) (hv' : is_basis R v') (hv'' : is_basis R v'')
+  (e : ι ≃ ι') (f : ι' ≃ ι'' ) :
+  (equiv_of_is_basis hv hv' e).trans (equiv_of_is_basis hv' hv'' f) =
+  equiv_of_is_basis hv hv'' (e.trans f) :=
+begin
+  apply linear_equiv.eq_of_linear_map_eq,
+  apply hv.ext,
+  intros i,
+  simp [equiv_of_is_basis]
+end
+
+@[simp] lemma equiv_of_is_basis_refl :
+  equiv_of_is_basis hv hv (equiv.refl ι) = linear_equiv.refl R M :=
+begin
+  apply linear_equiv.eq_of_linear_map_eq,
+  apply hv.ext,
+  intros i,
+  simp [equiv_of_is_basis]
+end
+
+lemma equiv_of_is_basis_trans_symm (e : ι ≃ ι') {v' : ι' → M'} (hv' : is_basis R v') :
+  (equiv_of_is_basis hv hv' e).trans (equiv_of_is_basis hv' hv e.symm) = linear_equiv.refl R M :=
+by simp
+
+lemma equiv_of_is_basis_symm_trans (e : ι ≃ ι') {v' : ι' → M'} (hv' : is_basis R v') :
+  (equiv_of_is_basis hv' hv e.symm).trans (equiv_of_is_basis hv hv' e) = linear_equiv.refl R M' :=
+by simp
 
 lemma is_basis_inl_union_inr {v : ι → M} {v' : ι' → M'}
   (hv : is_basis R v) (hv' : is_basis R v') :

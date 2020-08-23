@@ -118,6 +118,11 @@ lift (coe ∘ f) (λ x y, coe_inj.2 $ hf x y)
 
 end map
 
+attribute [irreducible] with_one
+
+@[simp, norm_cast, to_additive]
+lemma coe_mul [has_mul α] (a b : α) : ((a * b : α) : with_one α) = a * b := rfl
+
 end with_one
 
 namespace with_zero
@@ -247,8 +252,7 @@ instance : group_with_zero (with_zero α) :=
   mul_inv_cancel := with_zero.mul_inv_cancel,
   ..with_zero.monoid_with_zero,
   ..with_zero.has_inv,
-  ..with_zero.nontrivial
-}
+  ..with_zero.nontrivial }
 end group
 
 section comm_group
@@ -281,8 +285,7 @@ begin
   { refl },
   { refl },
   { apply option.some_inj.2,
-    apply mul_comm
-  }
+    apply mul_comm }
 end
 
 /-- if `G` is a `comm_group` then `with_zero G` is a `comm_group_with_zero`. -/
@@ -311,6 +314,8 @@ instance [semiring α] : semiring (with_zero α) :=
   ..with_zero.monoid_with_zero }
 
 end semiring
+
+attribute [irreducible] with_zero
 
 end with_zero
 #lint

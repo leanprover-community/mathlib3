@@ -256,7 +256,6 @@ iff.intro
     let ⟨a, ha, h⟩ := h _ h' in
     lt_irrefl a $ lt_of_le_of_lt (le_Sup ha) h)
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma Inf_eq_bot : Inf s = ⊥ ↔ (∀b>⊥, ∃a∈s, a < b) :=
 @Sup_eq_top (order_dual α) _ _
 
@@ -310,6 +309,9 @@ Sup_le $ assume b ⟨i, eq⟩, eq ▸ h i
 theorem bsupr_le {p : ι → Prop} {f : Π i (h : p i), α} (h : ∀ i hi, f i hi ≤ a) :
   (⨆ i (hi : p i), f i hi) ≤ a :=
 supr_le $ λ i, supr_le $ h i
+
+theorem bsupr_le_supr (p : ι → Prop) (f : ι → α) : (⨆ i (H : p i), f i) ≤ ⨆ i, f i :=
+bsupr_le (λ i hi, le_supr f i)
 
 theorem supr_le_supr (h : ∀i, s i ≤ t i) : supr s ≤ supr t :=
 supr_le $ assume i, le_supr_of_le i (h i)
@@ -397,6 +399,9 @@ le_Inf $ assume b ⟨i, eq⟩, eq ▸ h i
 theorem le_binfi {p : ι → Prop} {f : Π i (h : p i), α} (h : ∀ i hi, a ≤ f i hi) :
   a ≤ ⨅ i hi, f i hi :=
 le_infi $ λ i, le_infi $ h i
+
+theorem infi_le_binfi (p : ι → Prop) (f : ι → α) : (⨅ i, f i) ≤ ⨅ i (H : p i), f i :=
+le_binfi (λ i hi, infi_le f i)
 
 theorem infi_le_infi (h : ∀i, s i ≤ t i) : infi s ≤ infi t :=
 le_infi $ assume i, infi_le_of_le i (h i)
@@ -829,7 +834,6 @@ variables [complete_linear_order α]
 lemma supr_eq_top (f : ι → α) : supr f = ⊤ ↔ (∀b<⊤, ∃i, b < f i) :=
 by simp only [← Sup_range, Sup_eq_top, set.exists_range_iff]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma infi_eq_bot (f : ι → α) : infi f = ⊥ ↔ (∀b>⊥, ∃i, f i < b) :=
 by simp only [← Inf_range, Inf_eq_bot, set.exists_range_iff]
 

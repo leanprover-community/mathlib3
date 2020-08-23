@@ -65,18 +65,16 @@ universes u₁ u₂
 namespace lie_algebra
 open_locale matrix
 
-variables (n p q l : Type u₁) (R : Type u₂)
+variables (n p q l : Type*) (R : Type u₂)
 variables [fintype n] [fintype l] [fintype p] [fintype q]
 variables [decidable_eq n] [decidable_eq p] [decidable_eq q] [decidable_eq l]
 variables [comm_ring R]
 
-local attribute [instance] matrix.lie_ring
-local attribute [instance] matrix.lie_algebra
-
 @[simp] lemma matrix_trace_commutator_zero (X Y : matrix n n R) : matrix.trace n R R ⁅X, Y⁆ = 0 :=
 begin
-  change matrix.trace n R R (X ⬝ Y - Y ⬝ X) = 0,
-  simp only [matrix.trace_mul_comm, linear_map.map_sub, sub_self],
+  -- TODO: if we use matrix.mul here, we get a timeout
+  change matrix.trace n R R (X * Y - Y * X) = 0,
+  erw [linear_map.map_sub, matrix.trace_mul_comm, sub_self]
 end
 
 namespace special_linear
@@ -300,7 +298,7 @@ where sizes of the blocks are:
    [`l x 1` `l x l` `l x l`]  
    [`l x 1` `l x l` `l x l`]
 -/
-def JB := matrix.from_blocks ((2 : R) • 1 : matrix punit punit R) 0 0 (JD l R)
+def JB := matrix.from_blocks ((2 : R) • 1 : matrix unit unit R) 0 0 (JD l R)
 
 /-- The classical Lie algebra of type B as a Lie subalgebra of matrices associated to the matrix
 `JB`. -/
@@ -321,7 +319,7 @@ where sizes of the blocks are:
    [`l x 1` `l x l` `l x l`]  
    [`l x 1` `l x l` `l x l`]
 -/
-def PB := matrix.from_blocks (1 : matrix punit punit R) 0 0 (PD l R)
+def PB := matrix.from_blocks (1 : matrix unit unit R) 0 0 (PD l R)
 
 lemma PB_inv [invertible (2 : R)] : (PB l R) * (matrix.from_blocks 1 0 0 (PD l R)⁻¹) = 1 :=
 begin
@@ -341,8 +339,8 @@ by simp [PB, JB, JD_transform, matrix.from_blocks_transpose, matrix.from_blocks_
          matrix.from_blocks_smul]
 
 lemma indefinite_diagonal_assoc :
-  indefinite_diagonal ((punit : Type u₁) ⊕ l) l R =
-  matrix.reindex_lie_equiv (equiv.sum_assoc punit l l).symm
+  indefinite_diagonal (unit ⊕ l) l R =
+  matrix.reindex_lie_equiv (equiv.sum_assoc unit l l).symm
     (matrix.from_blocks 1 0 0 (indefinite_diagonal l l R)) :=
 begin
   ext i j,
@@ -353,12 +351,12 @@ end
 
 /-- An equivalence between two possible definitions of the classical Lie algebra of type B. -/
 noncomputable def type_B_equiv_so' [invertible (2 : R)] :
-  type_B l R ≃ₗ⁅R⁆ so' ((punit : Type u₁) ⊕ l) l R :=
+  type_B l R ≃ₗ⁅R⁆ so' (unit ⊕ l) l R :=
 begin
   apply (skew_adjoint_matrices_lie_subalgebra_equiv (JB l R) (PB l R) (is_unit_PB l R)).trans,
   symmetry,
   apply (skew_adjoint_matrices_lie_subalgebra_equiv_transpose
-    (indefinite_diagonal ((punit : Type u₁) ⊕ l) l R)
+    (indefinite_diagonal (unit ⊕ l) l R)
     (matrix.reindex_alg_equiv (equiv.sum_assoc punit l l)) (matrix.reindex_transpose _ _)).trans,
   apply lie_algebra.equiv.of_eq,
   ext A,

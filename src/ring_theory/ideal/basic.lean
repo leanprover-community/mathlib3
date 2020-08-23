@@ -204,6 +204,8 @@ end⟩
 instance is_maximal.is_prime' (I : ideal α) : ∀ [H : I.is_maximal], I.is_prime :=
 is_maximal.is_prime
 
+/-- Krull's theorem: if `I` is an ideal that is not the whole ring, then it is included in some
+    maximal ideal. -/
 theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
   ∃ M : ideal α, M.is_maximal ∧ I ≤ M :=
 begin
@@ -216,6 +218,10 @@ begin
       from (submodule.mem_Sup_of_directed ⟨I, IS⟩ cC.directed_on).1 ((eq_top_iff_one _).1 H),
     exact SC JS ((eq_top_iff_one _).2 J0) }
 end
+
+/-- Krull's theorem: a nontrivial ring has a maximal ideal. -/
+theorem exists_maximal [nontrivial α] : ∃ M : ideal α, M.is_maximal :=
+let ⟨I, ⟨hI, _⟩⟩ := exists_le_maximal (⊥ : ideal α) submodule.bot_ne_top in ⟨I, hI⟩
 
 /-- If P is not properly contained in any maximal ideal then it is not properly contained
   in any proper ideal -/
@@ -379,7 +385,7 @@ end lattice
 lemma eq_bot_or_top {K : Type u} [field K] (I : ideal K) :
   I = ⊥ ∨ I = ⊤ :=
 begin
-  rw classical.or_iff_not_imp_right,
+  rw or_iff_not_imp_right,
   change _ ≠ _ → _,
   rw ideal.ne_top_iff_one,
   intro h1,
@@ -391,7 +397,7 @@ end
 
 lemma eq_bot_of_prime {K : Type u} [field K] (I : ideal K) [h : I.is_prime] :
   I = ⊥ :=
-classical.or_iff_not_imp_right.mp I.eq_bot_or_top h.1
+or_iff_not_imp_right.mp I.eq_bot_or_top h.1
 
 lemma bot_is_maximal {K : Type u} [field K] : is_maximal (⊥ : ideal K) :=
 ⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simp),

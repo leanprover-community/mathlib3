@@ -63,8 +63,8 @@ end
 def limit_π_linear_map (F : J ⥤ Module R) (j) :
   limit (F ⋙ forget (Module R)) →ₗ[R] (F ⋙ forget (Module R)).obj j :=
 { to_fun := limit.π (F ⋙ forget (Module R)) j,
-  map_smul' := λ x y, by { simp only [types.types_limit_π], refl },
-  map_add' := λ x y, by { simp only [types.types_limit_π], refl } }
+  map_smul' := λ x y, rfl,
+  map_add' := λ x y, rfl }
 
 namespace has_limits
 -- The next two definitions are used in the construction of `has_limits (Module R)`.

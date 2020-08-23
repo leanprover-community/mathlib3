@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
 import data.dlist.basic
+import logic.function.basic
 import control.basic
 import meta.expr
 import meta.rb_map
@@ -423,6 +424,12 @@ meta def retrieve {α} (tac : tactic α) : tactic α :=
  (λ a s', result.success a s)
  result.exception
 
+/-- Runs a tactic for a result, reverting the state after completion or error. -/
+meta def retrieve' {α} (tac : tactic α) : tactic α :=
+λ s, result.cases_on (tac s)
+ (λ a s', result.success a s)
+ (λ msg pos s', result.exception msg pos s)
+
 /-- Repeat a tactic at least once, calling it recursively on all subgoals,
 until it fails. This tactic fails if the first invocation fails. -/
 meta def repeat1 (t : tactic unit) : tactic unit := t; repeat t
@@ -463,6 +470,16 @@ meta def revert_after (e : expr) : tactic ℕ := do
   [pos] ← return $ l.indexes_of e | pp e >>= λ s, fail format!"No such local constant {s}",
   let l := l.drop pos.succ, -- all local hypotheses after `e`
   revert_lst l
+
+/-- `revert_target_deps` reverts all local constants on which the target depends (recursively).
+  Returns the number of local constants that have been reverted. -/
+meta def revert_target_deps : tactic ℕ :=
+do tgt ← target,
+   ctx ← local_context,
+   l ← ctx.mfilter (kdepends_on tgt),
+   n ← revert_lst l,
+   if l = [] then return n
+     else do m ← revert_target_deps, return (m + n)
 
 /-- `generalize' e n` generalizes the target with respect to `e`. It creates a new local constant
 with name `n` of the same type as `e` and replaces all occurrences of `e` by `n`.
@@ -524,7 +541,7 @@ meta def revert_deps (e : expr) : tactic ℕ := do
 meta def is_local_def (e : expr) : tactic unit :=
 retrieve $ do revert e, expr.elet _ _ _ _ ← target, skip
 
-/-- like `split_on_p p xs`, `partition_local_deps_aux vs xs acc` searches for matches in `xs` 
+/-- like `split_on_p p xs`, `partition_local_deps_aux vs xs acc` searches for matches in `xs`
 (using membership to `vs` instead of a predicate) and breaks `xs` when matches are found.
 whereas `split_on_p p xs` removes the matches, `partition_local_deps_aux vs xs acc` includes
 them in the following partition. Also, `partition_local_deps_aux vs xs acc` discards the partition
@@ -716,7 +733,14 @@ The names in `instances` are the projections from `struct_n` to the structures t
 The names in `fields` are the standard fields of `struct_n`. -/
 meta def subobject_names (struct_n : name) : tactic (list name × list name) :=
 do env ← get_env,
-   [c] ← pure $ env.constructors_of struct_n | fail "too many constructors",
+   c ← match env.constructors_of struct_n with
+       | [c] := pure c
+       | [] :=
+         if env.is_inductive struct_n
+           then fail format!"{struct_n} does not have constructors"
+           else fail format!"{struct_n} is not an inductive type"
+       | _ := fail "too many constructors"
+       end,
    vs  ← var_names <$> (mk_const c >>= infer_type),
    fields ← env.structure_fields struct_n,
    return $ fields.partition (λ fn, ↑("_" ++ fn.to_string) ∈ vs)
@@ -731,7 +755,9 @@ open functor function
 
 /-- `expanded_field_list struct_n` produces a list of the names of the fields of the structure
 named `struct_n`. These are returned as pairs of names `(prefix, name)`, where the full name
-of the projection is `prefix.name`. -/
+of the projection is `prefix.name`.
+
+`struct_n` cannot be a synonym for a `structure`, it must be itself a `structure` -/
 meta def expanded_field_list (struct_n : name) : tactic (list $ name × name) :=
 dlist.to_list <$> expanded_field_list' struct_n
 
@@ -1146,9 +1172,9 @@ of the previous local constants. `l` is a list of local constants and their valu
 meta def dependent_pose_core (l : list (expr × expr)) : tactic unit := do
   let lc := l.map prod.fst,
   let lm := l.map (λ⟨l, v⟩, (l.local_uniq_name, v)),
-  t ← target,
-  new_goal ← mk_meta_var (t.pis lc),
   old::other_goals ← get_goals,
+  t ← infer_type old,
+  new_goal ← mk_meta_var (t.pis lc),
   set_goals (old :: new_goal :: other_goals),
   exact ((new_goal.mk_app lc).instantiate_locals lm),
   return ()
@@ -1156,51 +1182,10 @@ meta def dependent_pose_core (l : list (expr × expr)) : tactic unit := do
 /-- Like `mk_local_pis` but translating into weak head normal form before checking if it is a `Π`.
 -/
 meta def mk_local_pis_whnf (e : expr) (md := semireducible) : tactic (list expr × expr) := do
-(expr.pi n bi d b) ← whnf e md | return ([], e),
-p ← mk_local' n bi d,
-(ps, r) ← mk_local_pis (expr.instantiate_var b p),
-return ((p :: ps), r)
-
-/-- Changes `(h : ∀xs, ∃a:α, p a) ⊢ g` to `(d : ∀xs, a) (s : ∀xs, p (d xs) ⊢ g` and
- `(h : ∀xs, p xs ∧ q xs) ⊢ g` to `(d : ∀xs, p xs) (s : ∀xs, q xs) ⊢ g` 
- `choose1` returns the second local constant it introduces. -/
-meta def choose1 (h : expr) (data : name) (spec : name) : tactic expr := do
-  t ← infer_type h,
-  (ctxt, t) ← mk_local_pis_whnf t,
-  t ← whnf t transparency.all,
-  match t with
-  | `(@Exists %%α %%p) := do
-    α_t ← infer_type α,
-    expr.sort u ← whnf α_t transparency.all,
-    value ← mk_local_def data (α.pis ctxt),
-    t' ← head_beta (p.app (value.mk_app ctxt)),
-    spec ← mk_local_def spec (t'.pis ctxt),
-    dependent_pose_core [
-      (value, ((((expr.const `classical.some [u]).app α).app p).app (h.mk_app ctxt)).lambdas ctxt),
-      (spec, ((((expr.const `classical.some_spec [u]).app α).app p).app (h.mk_app ctxt)).lambdas ctxt)],
-    try (tactic.clear h),
-    intro1,
-    intro1
-  | `(%%p ∧ %%q) := do
-    mk_app ``and.elim_left [h.mk_app ctxt] >>= lambdas ctxt >>= note data none,
-    hq ← mk_app ``and.elim_right [h.mk_app ctxt] >>= lambdas ctxt >>= note spec none,
-    try (tactic.clear h),
-    pure hq
-  | _ := fail "expected a term of the shape `∀xs, ∃a, p xs a` or `∀xs, p xs ∧ q xs`"
-  end
-
-/-- Changes `(h : ∀xs, ∃as, p as ∧ q as) ⊢ g` to a list of functions `as`,
-and a final hypothesis on `p as` and `q as`. -/
-meta def choose : expr → list name → tactic unit
-| h [] := fail "expect list of variables"
-| h [n] := do
-  cnt ← revert h,
-  intro n,
-  intron (cnt - 1),
-  return ()
-| h (n::ns) := do
-  v ← get_unused_name >>= choose1 h n,
-  choose v ns
+  expr.pi n bi d b ← whnf e md | return ([], e),
+  p ← mk_local' n bi d,
+  (ps, r) ← mk_local_pis (expr.instantiate_var b p),
+  return ((p :: ps), r)
 
 /--
 Instantiates metavariables that appear in the current goal.

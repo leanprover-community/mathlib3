@@ -253,15 +253,15 @@ by rw prod_product
 lemma prod_sigma {σ : α → Type*}
   {s : finset α} {t : Πa, finset (σ a)} {f : sigma σ → β} :
   (∏ x in s.sigma t, f x) = ∏ a in s, ∏ s in (t a), f ⟨a, s⟩ :=
-by haveI := classical.dec_eq α; haveI := (λ a, classical.dec_eq (σ a)); exact
+by classical;
 calc (∏ x in s.sigma t, f x) =
-       ∏ x in s.bind (λa, (t a).image (λs, sigma.mk a s)), f x : by rw sigma_eq_bind
-  ... = ∏ a in s, ∏ x in (t a).image (λs, sigma.mk a s), f x :
-    prod_bind $ assume a₁ ha a₂ ha₂ h,
-    by simp only [disjoint_iff_ne, mem_image];
-    rintro ⟨_, _⟩ ⟨_, _, _⟩ ⟨_, _⟩ ⟨_, _, _⟩ ⟨_, _⟩; apply h; cc
+       ∏ x in s.bind (λa, (t a).map (function.embedding.sigma_mk a)), f x : by rw sigma_eq_bind
+  ... = ∏ a in s, ∏ x in (t a).map (function.embedding.sigma_mk a), f x :
+    prod_bind $ assume a₁ ha a₂ ha₂ h x hx,
+    by { simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.coe_sigma_mk] at hx,
+      rcases hx with ⟨⟨y, hy, rfl⟩, ⟨z, hz, hz'⟩⟩, cc }
   ... = ∏ a in s, ∏ s in t a, f ⟨a, s⟩ :
-    prod_congr rfl $ λ _ _, prod_image $ λ _ _ _ _ _, by cc
+    prod_congr rfl $ λ _ _, prod_map _ _ _
 
 @[to_additive]
 lemma prod_image' [decidable_eq α] {s : finset γ} {g : γ → α} (h : γ → β)

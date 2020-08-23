@@ -82,7 +82,7 @@ instance : complete_lattice (sieve X) :=
 { le           := λ S R, ∀ Y (f : Y ⟶ X), over.mk f ∈ S.arrows → over.mk f ∈ R.arrows,
   le_refl      := λ S f q, id,
   le_trans     := λ S₁ S₂ S₃ S₁₂ S₂₃ Y f h, S₂₃ _ _ (S₁₂ _ _ h),
-  le_antisymm  := begin intros S R p q, ext, exact ⟨p _ _, q _ _⟩ end,
+  le_antisymm  := λ S R p q, sieve.ext (λ Y f, ⟨p _ _, q _ _⟩),
   top          := { arrows := set.univ, subs := λ Y Z f g h, ⟨⟩ },
   bot          := { arrows := ∅, subs := λ _ _ _ _, false.elim },
   sup          := sieve.union,
@@ -95,12 +95,12 @@ instance : complete_lattice (sieve X) :=
   le_Inf       := begin rintros 𝒮 S hS Y f h q ⟨⟨T, hT⟩, rfl⟩, apply hS _ hT _ _ h end,
   le_sup_left  := λ _ _ _ _, or.inl,
   le_sup_right := λ _ _ _ _, or.inr,
-  sup_le       := begin rintros _ _ _ a b _ _ (q | q), apply a _ _ q, apply b _ _ q end,
+  sup_le       := λ _ _ _ a b _ _ hf, hf.elim (a _ _) (b _ _),
   inf_le_left  := λ _ _ _ _, and.left,
   inf_le_right := λ _ _ _ _, and.right,
-  le_inf       := begin intros _ _ _ p q _ _ z, exact ⟨p _ _ z, q _ _ z⟩,  end,
+  le_inf       := λ _ _ _ p q _ _ z, ⟨p _ _ z, q _ _ z⟩,
   le_top       := λ _ _ _ _, trivial,
-  bot_le       := by { rintros _ _ _ ⟨⟩ } }
+  bot_le       := λ _ _ _, false.elim }
 
 @[simp]
 lemma mem_inter {R S : sieve X} {Y} (f : Y ⟶ X) :
@@ -122,7 +122,7 @@ inductive generate_sets (𝒢 : set (over X)) : over X → Prop
 /-- Generate the smallest sieve containing the given set of arrows. -/
 def generate (𝒢 : set (over X)) : sieve X :=
 { arrows := generate_sets 𝒢,
-  subs   := λ Y Z f g t, generate_sets.subs _ t }
+  subs   := λ _ _ _, generate_sets.subs }
 
 open order lattice
 

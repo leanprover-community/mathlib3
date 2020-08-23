@@ -23,6 +23,7 @@ open category_theory
 open Top
 open topological_space
 open opposite
+open category_theory.limits
 open category_theory.category category_theory.functor
 
 variables (C : Type u) [category.{v} C] [limits.has_products C]
@@ -95,9 +96,14 @@ end
 
 def restrict {U : Top} (X : SheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) : SheafedSpace C :=
-{ sheaf_condition := sorry,
+{ sheaf_condition := λ ι 𝒰,
+  begin
+    dsimp at 𝒰, dsimp,
+    apply is_limit.of_iso_limit _ (sheaf_condition.fork.iso_of_open_embedding h 𝒰).symm,
+    apply (is_limit.postcompose_inv_equiv _ _).inv_fun,
+    apply X.sheaf_condition,
+  end,
   ..X.to_PresheafedSpace.restrict f h }
-
 
 end SheafedSpace
 

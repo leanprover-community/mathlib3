@@ -142,6 +142,24 @@ begin
   simp [res, diagram.iso_of_iso],
 end
 
+section open_embedding
+
+variables {V : Top.{v}} {j : V ⟶ X} (oe : open_embedding j)
+variables (𝒰 : ι → opens V)
+
+def cover.of_open_embedding : ι → opens X := (λ i, oe.is_open_map.functor.obj (𝒰 i))
+
+def diagram.iso_of_open_embedding :
+  diagram (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅ diagram F (cover.of_open_embedding oe 𝒰) :=
+sorry
+
+def fork.iso_of_open_embedding :
+  fork (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅
+    (cones.postcompose (diagram.iso_of_open_embedding oe 𝒰).inv).obj (fork F (cover.of_open_embedding oe 𝒰)) :=
+sorry
+
+end open_embedding
+
 end sheaf_condition
 
 /--

@@ -168,6 +168,30 @@ then have n / 2 < n, from div_lt_self h (by norm_num),
      tree.node <$> arby <*> tree.arby (n / 2) <*> tree.arby (n / 2)
 else pure tree.nil
 
+/-- apply `f` to combine every element of the first list with every element
+of the second list and interleave the resulting lists
+
+For instance `lseq prod.mk [1,2,3] [4,5,6]` results in
+
+```
+[(1, 4), (2, 4), (1, 5), (3, 4), (1, 6), (2, 5), (3, 5), (2, 6), (3, 6)]
+```
+
+The purpose is to that two lists of shrunken values in ascending order of size
+and produce a list of combined values in roughly ascending order of size too.
+
+If we add the samples instead with `lseq (+) [1,2,3] [1,2,3]`, we
+obtain:
+
+```
+[2, 3, 3, 4, 4, 4, 5, 5, 6]
+```
+ -/
+def lseq {α β γ} (f : α → β → γ) : lazy_list α → lazy_list β → lazy_list γ
+| lazy_list.nil xs := lazy_list.nil
+| (lazy_list.cons x xs) lazy_list.nil := lazy_list.nil
+| (lazy_list.cons x xs) ys := interleave (ys.map $ f x) (lseq (xs ()) ys)
+
 /-- implementation of `arbitrary (tree α)` -/
 def tree.shrink_with (shrink_a : α → lazy_list α) : tree α → lazy_list (tree α)
 | tree.nil := lazy_list.nil

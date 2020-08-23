@@ -101,11 +101,4 @@ def interleave_all {α} : list (lazy_list α) → lazy_list α
 | [] := lazy_list.nil
 | (x :: xs) := interleave x (interleave_all xs)
 
-/-- apply `f` to combine every element of the first list with every element
-of the second list and interleave the resulting lists -/
-def lseq {α β γ} (f : α → β → γ) : lazy_list α → lazy_list β → lazy_list γ
-| lazy_list.nil xs := lazy_list.nil
-| (lazy_list.cons x xs) lazy_list.nil := lazy_list.nil
-| (lazy_list.cons x xs) ys := interleave (ys.map $ f x) (lseq (xs ()) ys)
-
 end lazy_list

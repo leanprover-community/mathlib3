@@ -5,6 +5,8 @@ Authors: Scott Morrison, Shing Tak Lam
 -/
 import data.int.modeq
 import data.list.alternating_sum
+import data.list.palindrome
+import data.nat.parity
 import tactic.interval_cases
 import tactic.linarith
 
@@ -543,6 +545,20 @@ begin
   have t := dvd_iff_dvd_of_digits 11 10 (-1 : ℤ) (by norm_num) n,
   rw of_digits_neg_one at t,
   exact t,
+end
+
+lemma eleven_dvd_of_palindrome (n : ℕ) (p : palindrome (digits 10 n))
+  (h : (digits 10 n).length.even) : 11 ∣ n :=
+begin
+  let digits_z := (digits 10 n).map (λ n : ℕ, (n : ℤ)),
+  replace p : palindrome digits_z := p.map _,
+  replace h : digits_z.length.even := by { rw list.length_map, from h },
+  suffices : digits_z.alternating_sum = 0, { rw eleven_dvd_iff, exact ⟨0, this⟩ },
+  have t := list.alternating_sum_reverse digits_z,
+  rw [p.reverse_eq, pow_succ,
+      (nat.neg_one_pow_eq_one_iff_even (show (-1 : ℤ) ≠ 1, by norm_num)).mpr h,
+      mul_one, neg_one_gsmul] at t,
+  exact eq_zero_of_neg_eq t.symm
 end
 
 end nat

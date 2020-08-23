@@ -15,62 +15,40 @@ variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D
 
 namespace adjunction
 
-/-- The equivalence between arrows of the form `A ⟶ B` and `B.unop ⟶ A.unop`. Useful for building
-adjunctions.
-Note that this (definitionally) gives variants
-```
-def op_equiv' (A : C) (B : Cᵒᵖ) : (opposite.op A ⟶ B) ≃ (B.unop ⟶ A) :=
-op_equiv _ _
-
-def op_equiv'' (A : Cᵒᵖ) (B : C) : (A ⟶ opposite.op B) ≃ (B ⟶ A.unop) :=
-op_equiv _ _
-
-def op_equiv''' (A B : C) : (opposite.op A ⟶ opposite.op B) ≃ (B ⟶ A) :=
-op_equiv _ _
-```
--/
-def op_equiv (A B : Cᵒᵖ) : (A ⟶ B) ≃ (B.unop ⟶ A.unop) :=
-{ to_fun := λ f, f.unop,
-  inv_fun := λ g, g.op,
-  left_inv := λ _, rfl,
-  right_inv := λ _, rfl }
-
--- These two are made by hand rather than by simps because simps generates
--- `(op_equiv _ _).to_fun f = ...` rather than the coercion version.
-@[simp]
-lemma op_equiv_apply (A B : Cᵒᵖ) (f : A ⟶ B) : op_equiv _ _ f = f.unop :=
-rfl
-@[simp]
-lemma op_equiv_symm_apply (A B : Cᵒᵖ) (f : B.unop ⟶ A.unop) : (op_equiv _ _).symm f = f.op :=
-rfl
-
--- TODO: add the other variants of these; I only needed these two for now.
-def adjoint_of_op_adjoint (F : C ⥤ D) (G : D ⥤ C) (h : G.op ⊣ F.op) : F ⊣ G :=
+/-- If `G.op` is adjoint to `F.op` then `F` is adjoint to `G`. -/
+def adjoint_of_op_adjoint_op (F : C ⥤ D) (G : D ⥤ C) (h : G.op ⊣ F.op) : F ⊣ G :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
   ((h.hom_equiv (opposite.op Y) (opposite.op X)).trans (op_equiv _ _)).symm.trans (op_equiv _ _) }
 
-def adjoint_op (F : C ⥤ D) (G : Dᵒᵖ ⥤ Cᵒᵖ) (h : G ⊣ F.op) : F ⊣ G.unop :=
-adjoint_of_op_adjoint F G.unop (h.of_nat_iso_left G.op_unop_iso.symm)
+/-- If `G` is adjoint to `F.op` then `F` is adjoint to `G.unop`. -/
+def adjoint_unop_of_adjoint_op (F : C ⥤ D) (G : Dᵒᵖ ⥤ Cᵒᵖ) (h : G ⊣ F.op) : F ⊣ G.unop :=
+adjoint_of_op_adjoint_op F G.unop (h.of_nat_iso_left G.op_unop_iso.symm)
 
-def adjoint_op'' (F : Cᵒᵖ ⥤ Dᵒᵖ) (G : D ⥤ C) (h : G.op ⊣ F) : F.unop ⊣ G :=
-adjoint_of_op_adjoint _ _ (h.of_nat_iso_right F.op_unop_iso.symm)
+/-- If `G.op` is adjoint to `F` then `F.unop` is adjoint to `G`. -/
+def unop_adjoint_of_op_adjoint (F : Cᵒᵖ ⥤ Dᵒᵖ) (G : D ⥤ C) (h : G.op ⊣ F) : F.unop ⊣ G :=
+adjoint_of_op_adjoint_op _ _ (h.of_nat_iso_right F.op_unop_iso.symm)
 
-def adjoint_op' (F : Cᵒᵖ ⥤ Dᵒᵖ) (G : Dᵒᵖ ⥤ Cᵒᵖ) (h : G ⊣ F) : F.unop ⊣ G.unop :=
-adjoint_op F.unop G (h.of_nat_iso_right F.op_unop_iso.symm)
+/-- If `G` is adjoint to `F` then `F.unop` is adjoint to `G.unop`. -/
+def unop_adjoint_unop_of_adjoint (F : Cᵒᵖ ⥤ Dᵒᵖ) (G : Dᵒᵖ ⥤ Cᵒᵖ) (h : G ⊣ F) : F.unop ⊣ G.unop :=
+adjoint_unop_of_adjoint_op F.unop G (h.of_nat_iso_right F.op_unop_iso.symm)
 
-def op_adjoint_of_adjoint (F : C ⥤ D) (G : D ⥤ C) (h : G ⊣ F) : F.op ⊣ G.op :=
+/-- If `G` is adjoint to `F` then `F.op` is adjoint to `G.op`. -/
+def op_adjoint_op_of_adjoint (F : C ⥤ D) (G : D ⥤ C) (h : G ⊣ F) : F.op ⊣ G.op :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,
   (op_equiv _ Y).trans ((h.hom_equiv _ _).symm.trans (op_equiv X (opposite.op _)).symm) }
 
-def adjoint_unop (F : Cᵒᵖ ⥤ Dᵒᵖ) (G : D ⥤ C) (h : G ⊣ F.unop) : F ⊣ G.op :=
-(op_adjoint_of_adjoint F.unop _ h).of_nat_iso_left F.op_unop_iso
+/-- If `G` is adjoint to `F.unop` then `F` is adjoint to `G.op`. -/
+def adjoint_op_of_adjoint_unop (F : Cᵒᵖ ⥤ Dᵒᵖ) (G : D ⥤ C) (h : G ⊣ F.unop) : F ⊣ G.op :=
+(op_adjoint_op_of_adjoint F.unop _ h).of_nat_iso_left F.op_unop_iso
 
-def adjoint_unop' (F : C ⥤ D) (G : Dᵒᵖ ⥤ Cᵒᵖ) (h : G.unop ⊣ F) : F.op ⊣ G :=
-(op_adjoint_of_adjoint _ G.unop h).of_nat_iso_right G.op_unop_iso
+/-- If `G.unop` is adjoint to `F` then `F.op` is adjoint to `G`. -/
+def op_adjoint_of_unop_adjoint (F : C ⥤ D) (G : Dᵒᵖ ⥤ Cᵒᵖ) (h : G.unop ⊣ F) : F.op ⊣ G :=
+(op_adjoint_op_of_adjoint _ G.unop h).of_nat_iso_right G.op_unop_iso
 
-def adjoint_unop'' (F : Cᵒᵖ ⥤ Dᵒᵖ) (G : Dᵒᵖ ⥤ Cᵒᵖ) (h : G.unop ⊣ F.unop) : F ⊣ G :=
-(adjoint_unop _ _ h).of_nat_iso_right G.op_unop_iso
+/-- If `G.unop` is adjoint to `F.unop` then `F` is adjoint to `G`. -/
+def adjoint_of_unop_adjoint_unop (F : Cᵒᵖ ⥤ Dᵒᵖ) (G : Dᵒᵖ ⥤ Cᵒᵖ) (h : G.unop ⊣ F.unop) : F ⊣ G :=
+(adjoint_op_of_adjoint_unop _ _ h).of_nat_iso_right G.op_unop_iso
 
 end adjunction

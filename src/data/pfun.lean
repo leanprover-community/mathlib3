@@ -245,7 +245,8 @@ lemma assert_pos {p : Prop} {f : p → roption α} (h : p) :
   assert p f = f h :=
 begin
   dsimp [assert],
-  cases h' : f h, simp [h',h],
+  cases h' : f h,
+  simp only [h', h, true_and, iff_self, exists_prop_of_true, eq_iff_iff],
   apply function.hfunext,
   { simp only [h,h',exists_prop_of_true] },
   { cc }
@@ -254,8 +255,11 @@ end
 lemma assert_neg {p : Prop} {f : p → roption α} (h : ¬ p) :
   assert p f = none :=
 begin
-  dsimp [assert,none], congr, simp [h],
-  apply function.hfunext, simp [h], cc,
+  dsimp [assert,none], congr,
+  { simp only [h, not_false_iff, exists_prop_of_false] },
+  { apply function.hfunext,
+    { simp only [h, not_false_iff, exists_prop_of_false] },
+    cc },
 end
 
 theorem mem_bind {f : roption α} {g : α → roption β} :
@@ -325,9 +329,12 @@ lemma bind_le {α} (x : roption α) (f : α → roption β) (y : roption β) :
   x >>= f ≤ y ↔ (∀ a, a ∈ x → f a ≤ y) :=
 begin
   split; intro h,
-  { intros a h' b, replace h := h b, simp at h, apply h _ h' },
-  { intros b h', simp at h', rcases h' with ⟨a,h₀,h₁⟩,
-    apply h _ h₀ _ h₁ },
+  { intros a h' b, replace h := h b,
+    simp only [and_imp, exists_prop, bind_eq_bind, mem_bind_iff, exists_imp_distrib] at h,
+    apply h _ h' },
+  { intros b h',
+    simp only [exists_prop, bind_eq_bind, mem_bind_iff] at h',
+    rcases h' with ⟨a,h₀,h₁⟩, apply h _ h₀ _ h₁ },
 end
 
 instance : monad_fail roption :=

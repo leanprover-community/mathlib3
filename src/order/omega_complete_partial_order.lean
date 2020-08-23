@@ -11,6 +11,14 @@ import tactic.find_unused
 /-!
 # Omega Complete Partial Orders
 
+Complete partial order (ωCPO) are useful for the formalization
+of the semantics of programming languages. Its notion of supremum
+helps define the meaning of recursive procedures.
+
+It has a supremum operation on increasing sequences indexed by natural
+numbers (which we call `ωSup`). In this sense, it is strictly weaker than
+join semi-lattice as only ω-sized totally ordered sets have a supremum.
+
 ## Main definitions
 
  * class `omega_complete_partial_order`
@@ -27,6 +35,7 @@ import tactic.find_unused
 ## References
 
  * [G. Markowsky, *Chain-complete posets and directed sets with applications*, https://doi.org/10.1007/BF02485815][markowsky]
+ * [J. M. Cadiou and Zohar Manna, *Recursive definitions of partial functions and their computations.*, https://doi.org/10.1145/942580.807072][cadiou]
 -/
 
 universes u v
@@ -193,10 +202,6 @@ protected def lift [partial_order β] (f : β →ₘ α)
 { ωSup := ωSup₀,
   ωSup_le := λ c x hx, h _ _ (by rw h'; apply ωSup_le; intro; apply f.monotone (hx i)),
   le_ωSup := λ c i, h _ _ (by rw h'; apply le_ωSup (c.map f)) }
-
--- @[main_declaration]
--- lemma le_ωSup_of_mem (c : chain α) : ∀ y ∈ c, y ≤ ωSup c :=
--- by rintro y ⟨i,hy⟩; rw hy; apply le_ωSup
 
 lemma le_ωSup_of_le {c : chain α} {x : α} (i : ℕ) (h : x ≤ c i) : x ≤ ωSup c :=
 le_trans h (le_ωSup c _)

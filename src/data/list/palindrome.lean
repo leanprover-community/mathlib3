@@ -26,7 +26,7 @@ principle. Also provided are conversions to and from other equivalent definition
 palindrome, reverse, induction
 -/
 
-variables {α : Type*}
+variables {α β : Type*}
 
 /--
 `palindrome l` asserts that `l` is a palindrome. This is defined inductively:
@@ -60,6 +60,9 @@ iff.intro reverse_eq of_reverse_eq
 
 lemma append_reverse (l : list α) : palindrome (l ++ reverse l) :=
 by { apply of_reverse_eq, rw [reverse_append, reverse_reverse] }
+
+lemma map {l : list α} (f : α → β) (p : palindrome l) : palindrome (map f l) :=
+by { apply of_reverse_eq, rw [← map_reverse, p.reverse_eq] }
 
 instance [decidable_eq α] (l : list α) : decidable (palindrome l) :=
 decidable_of_iff' _ iff_reverse_eq

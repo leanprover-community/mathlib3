@@ -261,6 +261,8 @@ noncomputable instance : lawful_fix (roption α) :=
 
 end roption
 
+open sigma
+
 namespace pi
 
 instance roption.has_fix {β} : has_fix (α → roption β) :=

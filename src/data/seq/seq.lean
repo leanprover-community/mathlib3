@@ -91,7 +91,7 @@ lemma ge_stable (s : seq α) {aₙ : α} {n m : ℕ} (m_le_n : m ≤ n)
   ∃ (aₘ : α), s.nth m = some aₘ :=
 have s.nth n ≠ none, by simp [s_nth_eq_some],
 have s.nth m ≠ none, from mt (s.le_stable m_le_n) this,
-with_one.ne_one_iff_exists.elim_left this
+option.ne_none_iff_exists.1 this
 
 theorem not_mem_nil (a : α) : a ∉ @nil α :=
 λ ⟨n, (h : some a = none)⟩, by injection h

@@ -38,7 +38,7 @@ namespace slim_check
 /-- Result of trying to disprove `p` -/
 @[derive inhabited]
 inductive test_result (p : Prop)
-  /- succeed when we find another example satifying `p` -/
+  /- succeed when we find another example satisfying `p` -/
 | success : (psum unit p) → test_result
   /- give up when a well-formed example cannot be generated -/
 | gave_up {} : ℕ → test_result
@@ -69,8 +69,6 @@ def and_counter_example {p q : Prop} :
  | (gave_up n) (gave_up m) := gave_up $ n + m
  | (gave_up n) _ := gave_up n
  | _ (gave_up n) := gave_up n
- -- | (success Hp) Hpq := success (combine Hpq Hp)
- -- | (gave_up n) _ := gave_up n
 
 /-- If `q → p`, then `¬ p → ¬ q` which means that testing `p` can allow us
 to find counter-examples to `q` -/
@@ -244,16 +242,8 @@ instance subtype_var_testable {p : α → Prop} [has_to_string α] [arbitrary (s
          λ h ⟨x,h'⟩, h x h'⟩
         r ⟩
 
--- instance pi_testable [has_to_string α] [arbitrary α] [∀ x, testable (β x)]
--- : testable (Π x : α, β x) :=
--- var_testable α β
-
--- instance pi_testable' {p : α → Prop} [has_to_string α] [arbitrary (subtype p)] [∀ x, testable (β x)]
--- : testable (Π x : α, p x → β x) :=
--- subtype_var_testable α β
-
 @[priority 100]
-instance de_testable {p : Prop} [decidable p] : testable p :=
+instance decidable_testable {p : Prop} [decidable p] : testable p :=
 ⟨ λ min, return $ if h : p then success (psum.inr h) else failure h [] ⟩
 
 section io
@@ -276,7 +266,7 @@ match r with
  | (gave_up _) := retry n
 end
 
-/-- Count the number of time the test procedure gave up -/
+/-- Count the number of times the test procedure gave up -/
 def give_up (x : ℕ) : test_result p → test_result p
  | (success (psum.inl ())) := gave_up x
  | (success (psum.inr p))  := success (psum.inr p)

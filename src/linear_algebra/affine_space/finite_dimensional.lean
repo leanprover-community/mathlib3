@@ -54,8 +54,7 @@ lemma findim_vector_span_of_affine_independent [fintype ι] {p : ι → P}
 begin
   have hi' := affine_independent_set_of_affine_independent hi,
   have hc' : fintype.card (set.range p) = n + 1,
-  { rw set.card_range_of_injective (injective_of_affine_independent hi),
-    exact hc },
+  by rwa set.card_range_of_injective (injective_of_affine_independent hi),
   have hn : (set.range p).nonempty,
   { refine set.range_nonempty_iff_nonempty.2 (fintype.card_pos_iff.1 _),
     simp [hc] },

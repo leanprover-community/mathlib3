@@ -136,10 +136,10 @@ def fork.iso_of_iso (α : F ≅ G) :
   fork F U ≅ (cones.postcompose (diagram.iso_of_iso U α).inv).obj (fork G U) :=
 begin
   fapply fork.ext,
-  apply α.app,
-  ext,
-  dunfold fork.ι, -- Ugh, it is unpleasant that we need this.
-  simp [res, diagram.iso_of_iso],
+  { apply α.app, },
+  { ext,
+    dunfold fork.ι, -- Ugh, it is unpleasant that we need this.
+    simp [res, diagram.iso_of_iso], }
 end
 
 section open_embedding
@@ -192,24 +192,25 @@ def fork.iso_of_open_embedding :
     (cones.postcompose (diagram.iso_of_open_embedding oe 𝒰).inv).obj (fork F (cover.of_open_embedding oe 𝒰)) :=
 begin
   fapply fork.ext,
+  -- TODO golf
   { dsimp,
     apply F.map_iso,
     apply iso.op,
     dsimp [is_open_map.functor],
     fsplit,
     apply hom_of_le,
-    simp only [supr_s, supr_mk], sorry,
+    simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset], rw [set.image_Union],
     apply hom_of_le,
-    sorry,
+    simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset], rw [set.image_Union],
     exact dec_trivial,
     exact dec_trivial, },
-  ext,
-  dunfold fork.ι, -- Ugh, it is unpleasant that we need this.
-  simp [res, diagram.iso_of_open_embedding, is_open_map.functor],
-  dsimp,
-  simp,
-  rw [←F.map_comp],
-  refl,
+  { ext,
+    dunfold fork.ι, -- Ugh, it is unpleasant that we need this.
+    simp [res, diagram.iso_of_open_embedding, is_open_map.functor],
+    dsimp,
+    simp,
+    rw [←F.map_comp],
+    refl, },
 end
 
 end open_embedding

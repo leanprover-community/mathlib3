@@ -63,6 +63,7 @@ def mk_cone_morphism {t : cone F}
     congr_arg cone_morphism.hom this }
 
 /-- Limit cones on `F` are unique up to isomorphism. -/
+@[simps]
 def unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s ≅ t :=
 { hom := Q.lift_cone_morphism s,
   inv := P.lift_cone_morphism t,
@@ -416,6 +417,7 @@ def mk_cocone_morphism {t : cocone F}
     congr_arg cocone_morphism.hom this }
 
 /-- Colimit cocones on `F` are unique up to isomorphism. -/
+@[simps]
 def unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s ≅ t :=
 { hom := P.desc_cocone_morphism t,
   inv := Q.desc_cocone_morphism s,

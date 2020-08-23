@@ -113,22 +113,22 @@ integrable_const_iff.trans $ by rw [measure.restrict_apply_univ]
 
 lemma integrable_on.mono (h : integrable_on f t ν) (hs : s ⊆ t) (hμ : μ ≤ ν) :
   integrable_on f s μ :=
-h.mono_meas $ measure.restrict_mono hs hμ
+h.mono_measure $ measure.restrict_mono hs hμ
 
 lemma integrable_on.mono_set (h : integrable_on f t μ) (hst : s ⊆ t) :
   integrable_on f s μ :=
 h.mono hst (le_refl _)
 
-lemma integrable_on.mono_meas (h : integrable_on f s ν) (hμ : μ ≤ ν) :
+lemma integrable_on.mono_measure (h : integrable_on f s ν) (hμ : μ ≤ ν) :
   integrable_on f s μ :=
 h.mono (subset.refl _) hμ
 
 lemma integrable_on.mono_set_ae (h : integrable_on f t μ) (hst : s ≤ᵐ[μ] t) :
   integrable_on f s μ :=
-h.integrable.mono_meas $ restrict_mono_ae hst
+h.integrable.mono_measure $ restrict_mono_ae hst
 
 lemma integrable.integrable_on (h : integrable f μ) : integrable_on f s μ :=
-h.mono_meas $ measure.restrict_le_self
+h.mono_measure $ measure.restrict_le_self
 
 lemma integrable.integrable_on' (h : integrable f (μ.restrict s)) : integrable_on f s μ :=
 h
@@ -141,7 +141,7 @@ h.mono_set $ subset_union_right _ _
 
 lemma integrable_on.union (hs : integrable_on f s μ) (ht : integrable_on f t μ) :
   integrable_on f (s ∪ t) μ :=
-(hs.add_meas ht).mono_meas $ measure.restrict_union_le _ _
+(hs.add_measure ht).mono_measure $ measure.restrict_union_le _ _
 
 @[simp] lemma integrable_on_union :
   integrable_on f (s ∪ t) μ ↔ integrable_on f s μ ∧ integrable_on f t μ :=
@@ -160,15 +160,15 @@ end
   integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
 integrable_on_finite_union s.finite_to_set
 
-lemma integrable_on.add_meas (hμ : integrable_on f s μ) (hν : integrable_on f s ν) :
+lemma integrable_on.add_measure (hμ : integrable_on f s μ) (hν : integrable_on f s ν) :
   integrable_on f s (μ + ν) :=
-by { delta integrable_on, rw measure.restrict_add, exact hμ.integrable.add_meas hν }
+by { delta integrable_on, rw measure.restrict_add, exact hμ.integrable.add_measure hν }
 
-@[simp] lemma integrable_on_add_meas :
+@[simp] lemma integrable_on_add_measure :
   integrable_on f s (μ + ν) ↔ integrable_on f s μ ∧ integrable_on f s ν :=
-⟨λ h, ⟨h.mono_meas (measure.le_add_right (le_refl _)),
-  h.mono_meas (measure.le_add_left (le_refl _))⟩,
-  λ h, h.1.add_meas h.2⟩
+⟨λ h, ⟨h.mono_measure (measure.le_add_right (le_refl _)),
+  h.mono_measure (measure.le_add_left (le_refl _))⟩,
+  λ h, h.1.add_measure h.2⟩
 
 lemma integrable_indicator_iff (hs : is_measurable s) :
   integrable (indicator s f) μ ↔ integrable_on f s μ :=
@@ -213,7 +213,7 @@ begin
   refine ⟨_, λ h, h.filter_mono inf_le_left⟩,
   rintros ⟨s, ⟨t, ht, u, hu, hs⟩, hf⟩,
   refine ⟨t, ht, _⟩,
-  refine hf.integrable.mono_meas (λ v hv, _),
+  refine hf.integrable.mono_measure (λ v hv, _),
   simp only [measure.restrict_apply hv],
   refine measure_mono_ae (mem_sets_of_superset hu $ λ x hx, _),
   exact λ ⟨hv, ht⟩, ⟨hv, hs ⟨ht, hx⟩⟩
@@ -241,10 +241,10 @@ begin
 end
 
 lemma measure.finite_at_filter.integrable_at_filter_of_tendsto_ae
-  {l : filter α} [is_measurably_generated l] (hμ : μ.finite_at_filter (l ⊓ μ.ae)) {b}
+  {l : filter α} [is_measurably_generated l] (hμ : μ.finite_at_filter l) {b}
   (hf : tendsto f (l ⊓ μ.ae) (𝓝 b)) :
   integrable_at_filter f l μ :=
-(hμ.integrable_at_filter hf.norm.is_bounded_under_le).of_inf_ae
+(hμ.inf_of_left.integrable_at_filter hf.norm.is_bounded_under_le).of_inf_ae
 
 alias measure.finite_at_filter.integrable_at_filter_of_tendsto_ae ←
   filter.tendsto.integrable_at_filter_ae
@@ -261,17 +261,17 @@ variables [measurable_space E] [borel_space E] [complete_space E] [second_counta
   [normed_space ℝ E]
 
 lemma integral_union (hst : disjoint s t) (hs : is_measurable s) (ht : is_measurable t)
-  (hfm : measurable f) (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
+  (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
   ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
-by simp only [integrable_on, measure.restrict_union hst hs ht, integral_add_meas hfm hfs hft]
+by simp only [integrable_on, measure.restrict_union hst hs ht, integral_add_measure hfs hft]
 
-lemma integral_empty : ∫ x in ∅, f x ∂μ = 0 := by rw [measure.restrict_empty, integral_zero_meas]
+lemma integral_empty : ∫ x in ∅, f x ∂μ = 0 := by rw [measure.restrict_empty, integral_zero_measure]
 
 lemma integral_univ : ∫ x in univ, f x ∂μ = ∫ x, f x ∂μ := by rw [measure.restrict_univ]
 
-lemma integral_add_compl (hs : is_measurable s) (hfm : measurable f) (hfi : integrable f μ) :
+lemma integral_add_compl (hs : is_measurable s) (hfi : integrable f μ) :
   ∫ x in s, f x ∂μ + ∫ x in sᶜ, f x ∂μ = ∫ x, f x ∂μ :=
-by rw [← integral_union (disjoint_compl s) hs hs.compl hfm hfi.integrable_on hfi.integrable_on,
+by rw [← integral_union (disjoint_compl s) hs hs.compl hfi.integrable_on hfi.integrable_on,
   union_compl_self, integral_univ]
 
 /-- For a measurable function `f` and a measurable set `s`, the integral of `indicator s f`
@@ -281,7 +281,7 @@ lemma integral_indicator (hfm : measurable f) (hs : is_measurable s) :
 have hfms : measurable (indicator s f) := hfm.indicator hs,
 if hfi : integrable_on f s μ then
 calc ∫ x, indicator s f x ∂μ = ∫ x in s, indicator s f x ∂μ + ∫ x in sᶜ, indicator s f x ∂μ :
-  (integral_add_compl hs hfms (hfi.indicator hs)).symm
+  (integral_add_compl hs (hfi.indicator hs)).symm
 ... = ∫ x in s, f x ∂μ + ∫ x in sᶜ, 0 ∂μ :
   congr_arg2 (+) (integral_congr_ae hfms hfm (indicator_ae_eq_restrict hs))
     (integral_congr_ae hfms measurable_const (indicator_ae_eq_restrict_compl hs))
@@ -344,7 +344,7 @@ begin
   intros ε ε₀,
   have : ∀ᶠ s in l.lift' powerset, ∀ᶠ x in μ.ae, x ∈ s → f x ∈ closed_ball b ε :=
     eventually_lift'_powerset_eventually.2 (h.eventually $ closed_ball_mem_nhds _ ε₀),
-  refine hμ.eventually.mp ((h.integrable_at_filter_ae hμ.inf_of_left).eventually.mp (this.mono _)),
+  refine hμ.eventually.mp ((h.integrable_at_filter_ae hμ).eventually.mp (this.mono _)),
   simp only [mem_closed_ball, dist_eq_norm],
   intros s h_norm h_integrable hμs,
   rw [← set_integral_const, ← integral_sub hfm h_integrable measurable_const
@@ -392,8 +392,7 @@ lemma continuous_at.integral_sub_linear_is_o_ae
   {μ : measure α} [locally_finite_measure μ] {a : α}
   {f : α → E} (ha : continuous_at f a) (hfm : measurable f) :
   is_o (λ s, ∫ x in s, f x ∂μ - (μ s).to_real • f a) (λ s, (μ s).to_real) ((𝓝 a).lift' powerset) :=
-(tendsto_le_left (@inf_le_left _ _ (𝓝 a) μ.ae) ha).integral_sub_linear_is_o_ae hfm
-  (μ.finite_at_nhds a)
+(ha.mono_left inf_le_left).integral_sub_linear_is_o_ae hfm (μ.finite_at_nhds a)
 
 /-
 namespace integrable

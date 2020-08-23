@@ -1835,6 +1835,12 @@ instance [ordered_add_comm_group α] : ordered_add_comm_group (order_dual α) :=
   ..order_dual.ordered_add_comm_monoid,
   ..show add_comm_group α, by apply_instance }
 
+instance [decidable_linear_ordered_add_comm_group α] :
+  decidable_linear_ordered_add_comm_group (order_dual α) :=
+{ add_le_add_left := λ a b h c, @add_le_add_left α _ b a h _,
+  ..order_dual.decidable_linear_order α,
+  ..show add_comm_group α, by apply_instance }
+
 end order_dual
 
 section type_tags

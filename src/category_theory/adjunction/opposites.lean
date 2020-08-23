@@ -7,6 +7,16 @@ Authors: Bhavik Mehta
 import category_theory.adjunction.basic
 import category_theory.opposites
 
+/-!
+# Opposite adjunctions
+
+This file contains constructions to relate adjunctions of functors to adjunctions of their
+opposites.
+
+## Tags
+adjunction, opposite
+-/
+
 open category_theory
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation

@@ -86,6 +86,7 @@ instance adjoin.is_algebra : algebra F (adjoin F S) := {
   smul_def' := λ x y, rfl,
 }
 
+/-- F[S] is an F-submodule of E -/
 def adjoin_as_submodule : submodule F E := {
   carrier := adjoin F S,
   zero_mem' := is_add_submonoid.zero_mem,
@@ -98,6 +99,7 @@ def adjoin_as_submodule : submodule F E := {
   end
 }
 
+/-- proves an obvious linear equivalence (occasionally useful when working with dimension) -/
 definition adjoin_as_submodule_equiv : (adjoin F S) ≃ₗ[F] (adjoin_as_submodule F S) := {
   to_fun := λ x, x,
   map_add' := λ x y, rfl,

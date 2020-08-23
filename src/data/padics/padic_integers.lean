@@ -529,7 +529,6 @@ def mod_part : ℤ :=
 
 include hp_prime
 
-variable {p}
 lemma mod_part_lt_p : mod_part p r < p :=
 begin
   convert int.mod_lt _ _,
@@ -539,6 +538,8 @@ end
 
 lemma mod_part_nonneg : 0 ≤ mod_part p r :=
 int.mod_nonneg _ $ by exact_mod_cast hp_prime.ne_zero
+
+variable {p}
 
 lemma norm_sub_mod_part (h : ∥(r : ℚ_[p])∥ ≤ 1) : ∥(⟨r,h⟩ - mod_part p r : ℤ_[p])∥ < 1 :=
 begin
@@ -564,10 +565,6 @@ begin
   dsimp [n, mod_part],
   apply norm_sub_mod_part_aux r h,
 end
-
-lemma exists_mem_range_of_norm_rat_le_one (h : ∥(r : ℚ_[p])∥ ≤ 1) :
-  ∃ n : ℤ, 0 ≤ n ∧ n < p ∧ ∥(⟨r,h⟩ - n : ℤ_[p])∥ < 1 :=
-⟨mod_part p r, mod_part_nonneg _, mod_part_lt_p _, norm_sub_mod_part _ h⟩
 
 end
 
@@ -606,6 +603,7 @@ begin
 end
 
 variable (x : ℤ_[p])
+
 lemma exists_mem_range : ∃ n : ℕ, n < p ∧ (x - n ∈ maximal_ideal ℤ_[p]) :=
 begin
   simp only [maximal_ideal_eq_span_p, ideal.mem_span_singleton, ← norm_lt_one_iff_dvd],
@@ -615,8 +613,9 @@ begin
     rw show (r : ℚ_[p]) = (r - x) + x, by ring,
     apply le_trans (padic_norm_e.nonarchimedean _ _),
     apply max_le (le_of_lt hr) x.2 },
-  obtain ⟨n, hzn, hnp, hn⟩ := exists_mem_range_of_norm_rat_le_one r H,
-  lift n to ℕ using hzn,
+  have hnp := mod_part_lt_p p r,
+  have hn := norm_sub_mod_part r H,
+  lift mod_part p r to ℕ using mod_part_nonneg p r with n,
   use [n],
   split, {exact_mod_cast hnp},
   simp only [padic_norm_z, coe_sub, subtype.coe_mk, coe_coe] at hn ⊢,

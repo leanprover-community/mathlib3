@@ -412,24 +412,30 @@ namespace tactic
 
 open tactic expr
 
-meta def add_binder_name : expr → ℕ → option expr
-| (pi n bi d b) _ :=
-  let n := to_string n in
-  some $ const ``named_binder [] (const ``option.some [level.zero] (`(string) : expr) (reflect n : expr)) (pi n bi d b)
-| e@`(@Exists %%α %%(lam n bi d b)) _ :=
-  let n := to_string n in
-  some $ const ``named_binder [] (const ``option.some [level.zero] (`(string) : expr) (reflect n : expr)) e
-| e _ := none
+/-!
+## Decorations
 
+Instances of `testable` use `named_binder` as a decoration on
+propositions in order to access the name of bound variables, as in
+`named_binder (some "x") (forall x, x < y)`.  This helps the
+`testable` instances create useful error messages where variables
+are matched with values that falsify a given proposition.
+
+The following functions help support the gadget so that the user does
+not have to put them in themselves.
+-/
+
+/-- `add_existential_decorations p` adds `a `named_binder` annotation at the
+root of `p` if `p` is an existential quantification -/
 meta def add_existential_decorations : expr → expr
 | e@`(@Exists %%α %%(lam n bi d b)) :=
   let n := to_string n in
-  const ``named_binder [] (const ``option.some [level.zero] (`(string) : expr) (reflect n : expr)) e
+  const ``named_binder [] (const ``option.some [level.zero] (`(string) : expr) (`(n) : expr)) e
 | e := e
 
-@[reducible]
-def decorations_of (p : Prop) := Prop
-
+/-- Traverse the syntax of a proposition to find universal quantifiers
+and existential quantifiers and add `named_binder` annotations next to
+them. -/
 meta def add_decorations : expr → expr | e :=
 e.replace $ λ e _,
   match e with
@@ -439,6 +445,25 @@ e.replace $ λ e _,
   | e := none
   end
 
+/-- `decorations_of p` is used as a hint to `mk_decorations` to specify
+that the goal should be satisfied with a proposition equivalent to `p`
+with added annotations. -/
+@[reducible, nolint unused_arguments]
+def decorations_of (p : Prop) := Prop
+
+/-- In a goal of the shape `⊢ tactic.decorations_of p`, `mk_decoration` examines
+the syntax of `p` and add `named_binder` around universal quantifications and
+existential quantifications to improve error messages.
+
+This tool can be used in the declaration of a function as follows:
+
+```lean
+def foo (p : Prop) (p' : tactic.decorations_of p . mk_decorations) [testable p'] : ...
+```
+
+`p` is the parameter given by the user, `p'` is an equivalent proposition where
+the quantifiers are annotated with `named_binder`.
+-/
 meta def mk_decorations : tactic unit := do
 `(tactic.decorations_of %%p) ← target,
 exact $ add_decorations p

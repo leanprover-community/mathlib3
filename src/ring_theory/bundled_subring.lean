@@ -50,6 +50,9 @@ Notation used here:
 
 ## Implementation notes
 
+A subring is implemented as a subsemiring which is also an additive subgroup.
+The initial PR was as a submonoid which is also an additive subgroup.
+
 Lattice inclusion (e.g. `≤` and `⊓`) is used rather than set notation (`⊆` and `∩`), although
 `∈` is defined as membership of a subring's underlying set.
 
@@ -65,8 +68,9 @@ variables {R : Type u} {S : Type v} {T : Type w} [ring R] [ring S] [ring T]
 
 set_option old_structure_cmd true
 
-/-- `subring R` is the type of subrings of `R`. A subring of `R` is a subset `s` that is a multiplicative
-submonoid and an additive subgroup. Note in particular that it shares the same 0 and 1 as R. -/
+/-- `subring R` is the type of subrings of `R`. A subring of `R` is a subset `s` that is a
+  multiplicative submonoid and an additive subgroup. Note in particular that it shares the
+  same 0 and 1 as R. -/
 structure subring (R : Type u) [ring R] extends subsemiring R, add_subgroup R
 
 /-- Reinterpret a `subring` as a `subsemiring`. -/
@@ -77,10 +81,10 @@ add_decl_doc subring.to_add_subgroup
 
 namespace subring
 
+/-- The underlying submonoid of a subring. -/
 def to_submonoid (s : subring R) : submonoid R :=
-{
-  carrier := s.carrier,
-  ..s.to_subsemiring.to_submonoid, }
+{ carrier := s.carrier,
+  ..s.to_subsemiring.to_submonoid }
 
 instance : has_coe (subring R) (set R) := ⟨subring.carrier⟩
 

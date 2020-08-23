@@ -693,7 +693,13 @@ to_zmod_hom p zmod_repr
   (by { rw ←maximal_ideal_eq_span_p, exact sub_zmod_repr_mem })
   (by { rw ←maximal_ideal_eq_span_p, exact zmod_congr_of_sub_mem_max_ideal } )
 
-lemma to_zmod_spec (z : ℤ_[p]) : z - to_zmod z ∈ maximal_ideal ℤ_[p] :=
+/--
+The coercion from `zmod p` to `ℤ_[p]` is `zmod.has_coe_t`,
+which coerces `zmod p` into artibrary rings.
+This coercion needs to exist to allow coercing into a ring of characteristic `m` where `m ∣ p`.
+While this is not the case here we can still make use of the coercion.
+-/
+lemma to_zmod_spec (z : ℤ_[p]) : z - (to_zmod z : ℤ_[p]) ∈ maximal_ideal ℤ_[p] :=
 begin
   convert sub_zmod_repr_mem z using 2,
   dsimp [to_zmod, to_zmod_hom],

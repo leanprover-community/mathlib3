@@ -77,9 +77,9 @@ theorem linear_order.ext {α} {A B : linear_order α}
 by { haveI this := partial_order.ext H,
      casesI A, casesI B, injection this, congr' }
 
-/-- Given an order `R` on `β` and a function `f : α → β`,
-  the preimage order on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
-  It is the unique order on `α` making `f` an order embedding
+/-- Given a relation `R` on `β` and a function `f : α → β`,
+  the preimage relation on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
+  It is the unique relation on `α` making `f` a `rel_embedding`
   (assuming `f` is injective). -/
 @[simp] def order.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) := s (f x) (f y)
 
@@ -419,10 +419,9 @@ lemma eq_of_le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a�
   (h₁ : a₂ ≤ a₁) (h₂ : ∀a₃<a₁, a₃ ≤ a₂) : a₁ = a₂ :=
 le_antisymm (le_of_forall_ge_of_dense h₂) h₁
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma dense_or_discrete [linear_order α] (a₁ a₂ : α) :
   (∃a, a₁ < a ∧ a < a₂) ∨ ((∀a>a₁, a₂ ≤ a) ∧ (∀a<a₂, a ≤ a₁)) :=
-classical.or_iff_not_imp_left.2 $ assume h,
+or_iff_not_imp_left.2 $ assume h,
   ⟨assume a ha₁, le_of_not_gt $ assume ha₂, h ⟨a, ha₁, ha₂⟩,
     assume a ha₂, le_of_not_gt $ assume ha₁, h ⟨a, ha₁, ha₂⟩⟩
 

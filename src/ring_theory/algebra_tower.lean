@@ -29,6 +29,22 @@ variables (R : Type u) (S : Type v) (A : Type w) (B : Type u₁)
 
 namespace is_scalar_tower
 
+section semimodule
+
+variables [comm_semiring R] [semiring S] [add_comm_monoid A] [add_comm_monoid B]
+variables [algebra R S] [semimodule S A] [semimodule R A] [semimodule S B] [semimodule R B]
+variables [is_scalar_tower R S A] [is_scalar_tower R S B]
+
+variables {R} (S) {A}
+theorem algebra_map_smul (r : R) (x : A) : algebra_map R S r • x = r • x :=
+by rw [algebra.algebra_map_eq_smul_one, smul_assoc, one_smul]
+
+variables {R S A}
+theorem smul_left_comm (r : R) (s : S) (x : A) : r • s • x = s • r • x :=
+by rw [← smul_assoc, algebra.smul_def r s, algebra.commutes, mul_smul, algebra_map_smul]
+
+end semimodule
+
 section semiring
 variables [comm_semiring R] [comm_semiring S] [semiring A] [semiring B]
 variables [algebra R S] [algebra S A] [algebra R A] [algebra S B] [algebra R B]
@@ -48,15 +64,6 @@ ring_hom.ext $ λ x, by simp_rw [ring_hom.comp_apply, algebra.algebra_map_eq_smu
 
 theorem algebra_map_apply (x : R) : algebra_map R A x = algebra_map S A (algebra_map R S x) :=
 by rw [algebra_map_eq R S A, ring_hom.comp_apply]
-
-variables {R} (S) {A}
-theorem algebra_map_smul (r : R) (x : A) : algebra_map R S r • x = r • x :=
-by rw [algebra.algebra_map_eq_smul_one, smul_assoc, one_smul]
-
-variables {R S A}
-theorem smul_left_comm (r : R) (s : S) (x : A) : r • s • x = s • r • x :=
-by simp_rw [algebra.smul_def, ← mul_assoc, algebra_map_apply R S A,
-    ← (algebra_map S A).map_mul, mul_comm s]
 
 @[ext] lemma algebra.ext {S : Type u} {A : Type v} [comm_semiring S] [semiring A]
   (h1 h2 : algebra S A) (h : ∀ {r : S} {x : A}, (by haveI := h1; exact r • x) = r • x) : h1 = h2 :=
@@ -219,8 +226,8 @@ namespace submodule
 
 open is_scalar_tower
 
-variables [comm_semiring R] [comm_semiring S] [semiring A]
-variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
+variables [comm_semiring R] [semiring S] [add_comm_monoid A]
+variables [algebra R S] [semimodule S A] [semimodule R A] [is_scalar_tower R S A]
 
 variables (R) {S A}
 /-- Restricting the scalars of submodules in an algebra tower. -/
@@ -244,8 +251,8 @@ end submodule
 section semiring
 
 variables {R S A}
-variables [comm_semiring R] [comm_semiring S] [semiring A]
-variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
+variables [comm_semiring R] [semiring S] [add_comm_monoid A]
+variables [algebra R S] [semimodule S A] [semimodule R A] [is_scalar_tower R S A]
 
 namespace submodule
 
@@ -295,8 +302,8 @@ open_locale big_operators classical
 universes v₁ w₁
 
 variables {R S A}
-variables [comm_ring R] [comm_ring S] [ring A]
-variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
+variables [comm_ring R] [ring S] [add_comm_group A]
+variables [algebra R S] [module S A] [module R A] [is_scalar_tower R S A]
 
 theorem linear_independent_smul {ι : Type v₁} {b : ι → S} {κ : Type w₁} {c : κ → A}
   (hb : linear_independent R b) (hc : linear_independent S c) :

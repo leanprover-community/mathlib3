@@ -424,6 +424,12 @@ meta def retrieve {α} (tac : tactic α) : tactic α :=
  (λ a s', result.success a s)
  result.exception
 
+/-- Runs a tactic for a result, reverting the state after completion or error. -/
+meta def retrieve' {α} (tac : tactic α) : tactic α :=
+λ s, result.cases_on (tac s)
+ (λ a s', result.success a s)
+ (λ msg pos s', result.exception msg pos s)
+
 /-- Repeat a tactic at least once, calling it recursively on all subgoals,
 until it fails. This tactic fails if the first invocation fails. -/
 meta def repeat1 (t : tactic unit) : tactic unit := t; repeat t
@@ -464,6 +470,16 @@ meta def revert_after (e : expr) : tactic ℕ := do
   [pos] ← return $ l.indexes_of e | pp e >>= λ s, fail format!"No such local constant {s}",
   let l := l.drop pos.succ, -- all local hypotheses after `e`
   revert_lst l
+
+/-- `revert_target_deps` reverts all local constants on which the target depends (recursively).
+  Returns the number of local constants that have been reverted. -/
+meta def revert_target_deps : tactic ℕ :=
+do tgt ← target,
+   ctx ← local_context,
+   l ← ctx.mfilter (kdepends_on tgt),
+   n ← revert_lst l,
+   if l = [] then return n
+     else do m ← revert_target_deps, return (m + n)
 
 /-- `generalize' e n` generalizes the target with respect to `e`. It creates a new local constant
 with name `n` of the same type as `e` and replaces all occurrences of `e` by `n`.
@@ -1156,9 +1172,9 @@ of the previous local constants. `l` is a list of local constants and their valu
 meta def dependent_pose_core (l : list (expr × expr)) : tactic unit := do
   let lc := l.map prod.fst,
   let lm := l.map (λ⟨l, v⟩, (l.local_uniq_name, v)),
-  t ← target,
-  new_goal ← mk_meta_var (t.pis lc),
   old::other_goals ← get_goals,
+  t ← infer_type old,
+  new_goal ← mk_meta_var (t.pis lc),
   set_goals (old :: new_goal :: other_goals),
   exact ((new_goal.mk_app lc).instantiate_locals lm),
   return ()

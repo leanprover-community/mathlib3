@@ -1435,8 +1435,7 @@ by rw [eq_bot_iff, ← map_le_map_iff' p.ker_subtype, map_bot, map_comap_subtype
 
 /-- If `N ⊆ M` then submodules of `N` are the same as submodules of `M` contained in `N` -/
 def map_subtype.rel_iso :
-  ((≤) : submodule R p → submodule R p → Prop) ≃r
-  ((≤) : {p' : submodule R M // p' ≤ p} → {p' : submodule R M // p' ≤ p} → Prop) :=
+  submodule R p ≃o {p' : submodule R M // p' ≤ p} :=
 { to_fun    := λ p', ⟨map p.subtype p', map_subtype_le p _⟩,
   inv_fun   := λ q, comap p.subtype q,
   left_inv  := λ p', comap_map_eq_self $ by simp,
@@ -1445,18 +1444,12 @@ def map_subtype.rel_iso :
 
 /-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
 submodules of `M`. -/
-def map_subtype.le_rel_embedding :
-  ((≤) : submodule R p → submodule R p → Prop) ↪r ((≤) : submodule R M → submodule R M → Prop) :=
+def map_subtype.order_embedding :
+  submodule R p ↪o submodule R M :=
 (rel_iso.to_rel_embedding $ map_subtype.rel_iso p).trans (subtype.rel_embedding _ _)
 
 @[simp] lemma map_subtype_embedding_eq (p' : submodule R p) :
-  map_subtype.le_rel_embedding p p' = map p.subtype p' := rfl
-
-/-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
-submodules of `M`. -/
-def map_subtype.lt_rel_embedding :
-  ((<) : submodule R p → submodule R p → Prop) ↪r ((<) : submodule R M → submodule R M → Prop) :=
-(map_subtype.le_rel_embedding p).lt_embedding_of_le_embedding
+  map_subtype.order_embedding p p' = map p.subtype p' := rfl
 
 
 /-- The map from a module `M` to the quotient of `M` by a submodule `p` as a linear map. -/
@@ -1531,8 +1524,7 @@ by rw [ker_liftq, le_antisymm h h', mkq_map_self]
 /-- The correspondence theorem for modules: there is an order isomorphism between submodules of the
 quotient of `M` by `p`, and submodules of `M` larger than `p`. -/
 def comap_mkq.rel_iso :
-  ((≤) : submodule R p.quotient → submodule R p.quotient → Prop) ≃r
-  ((≤) : {p' : submodule R M // p ≤ p'} → {p' : submodule R M // p ≤ p'} → Prop) :=
+  submodule R p.quotient ≃o {p' : submodule R M // p ≤ p'} :=
 { to_fun    := λ p', ⟨comap p.mkq p', le_comap_mkq p _⟩,
   inv_fun   := λ q, map p.mkq q,
   left_inv  := λ p', map_comap_eq_self $ by simp,
@@ -1541,18 +1533,12 @@ def comap_mkq.rel_iso :
 
 /-- The ordering on submodules of the quotient of `M` by `p` embeds into the ordering on submodules
 of `M`. -/
-def comap_mkq.le_rel_embedding :
-  ((≤) : submodule R p.quotient → submodule R p.quotient → Prop) ↪r ((≤) : submodule R M → submodule R M → Prop) :=
+def comap_mkq.order_embedding :
+  submodule R p.quotient ↪o submodule R M :=
 (rel_iso.to_rel_embedding $ comap_mkq.rel_iso p).trans (subtype.rel_embedding _ _)
 
 @[simp] lemma comap_mkq_embedding_eq (p' : submodule R p.quotient) :
-  comap_mkq.le_rel_embedding p p' = comap p.mkq p' := rfl
-
-/-- The ordering on submodules of the quotient of `M` by `p` embeds into the ordering on submodules
-of `M`. -/
-def comap_mkq.lt_rel_embedding :
-  ((<) : submodule R p.quotient → submodule R p.quotient → Prop) ↪r ((<) : submodule R M → submodule R M → Prop) :=
-(comap_mkq.le_rel_embedding p).lt_embedding_of_le_embedding
+  comap_mkq.order_embedding p p' = comap p.mkq p' := rfl
 
 end ring
 
@@ -1632,6 +1618,7 @@ rfl
 
 lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
 λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
+
 end
 
 section
@@ -1648,6 +1635,16 @@ section
 variables {e e'}
 @[ext] lemma ext (h : ∀ x, e x = e' x) : e = e' :=
 to_equiv_injective (equiv.ext h)
+
+variables [semimodule R M] [semimodule R M₂]
+
+lemma eq_of_linear_map_eq {f f' : M ≃ₗ[R] M₂} (h : (f : M →ₗ[R] M₂) = f') : f = f' :=
+begin
+  ext x,
+  change (f : M →ₗ[R] M₂) x = (f' : M →ₗ[R] M₂) x,
+  rw h
+end
+
 end
 
 section
@@ -1693,6 +1690,23 @@ def to_add_equiv : M ≃+ M₂ := { .. e }
 lemma symm_apply_eq {x y} : e.symm x = y ↔ x = e y := e.to_equiv.symm_apply_eq
 
 lemma eq_symm_apply {x y} : y = e.symm x ↔ e y = x := e.to_equiv.eq_symm_apply
+
+@[simp] lemma trans_symm [semimodule R M] [semimodule R M₂] (f : M ≃ₗ[R] M₂) :
+  f.trans f.symm = linear_equiv.refl R M :=
+by { ext x, simp }
+
+@[simp] lemma symm_trans [semimodule R M] [semimodule R M₂] (f : M ≃ₗ[R] M₂) :
+  f.symm.trans f = linear_equiv.refl R M₂ :=
+by { ext x, simp }
+
+@[simp, norm_cast] lemma refl_to_linear_map [semimodule R M] :
+  (linear_equiv.refl R M : M →ₗ[R] M) = linear_map.id :=
+rfl
+
+@[simp, norm_cast]
+lemma comp_coe [semimodule R M] [semimodule R M₂] [semimodule R M₃] (f :  M ≃ₗ[R] M₂)
+  (f' :  M₂ ≃ₗ[R] M₃) : (f' : M₂ →ₗ[R] M₃).comp (f : M →ₗ[R] M₂) = (f.trans f' : M →ₗ[R] M₃) :=
+rfl
 
 @[simp] theorem map_add (a b : M) : e (a + b) = e a + e b := e.map_add' a b
 @[simp] theorem map_zero : e 0 = 0 := e.to_linear_map.map_zero

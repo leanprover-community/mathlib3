@@ -193,7 +193,8 @@ corresponding subspace of the `module k V`. -/
 structure affine_subspace (k : Type*) {V : Type*} (P : Type*) [ring k] [add_comm_group V]
     [module k V] [affine_space V P] :=
 (carrier : set P)
-(smul_vsub_vadd_mem : ∀ (c : k) (p1 p2 p3 ∈ carrier), c • (p1 -ᵥ p2 : V) +ᵥ p3 ∈ carrier)
+(smul_vsub_vadd_mem : ∀ (c : k) {p1 p2 p3 : P}, p1 ∈ carrier → p2 ∈ carrier → p3 ∈ carrier →
+  c • (p1 -ᵥ p2 : V) +ᵥ p3 ∈ carrier)
 
 namespace affine_subspace
 
@@ -242,7 +243,7 @@ def direction_of_nonempty {s : affine_subspace k P} (h : (s : set P).nonempty) :
     rcases hb with ⟨p3, p4, hp3, hp4, rfl⟩,
     rw [←vadd_vsub_assoc],
     refine vsub_mem_vsub_set _ hp4,
-    convert s.smul_vsub_vadd_mem 1 p1 p2 p3 hp1 hp2 hp3,
+    convert s.smul_vsub_vadd_mem 1 hp1 hp2 hp3,
     rw one_smul
   end,
   smul_mem' := begin
@@ -250,7 +251,7 @@ def direction_of_nonempty {s : affine_subspace k P} (h : (s : set P).nonempty) :
     rcases hv with ⟨p1, p2, hp1, hp2, rfl⟩,
     rw [←vadd_vsub (c • (p1 -ᵥ p2)) p2],
     refine vsub_mem_vsub_set _ hp2,
-    exact s.smul_vsub_vadd_mem c p1 p2 p2 hp1 hp2 hp2
+    exact s.smul_vsub_vadd_mem c hp1 hp2 hp2
   end }
 
 /-- `direction_of_nonempty` gives the same submodule as
@@ -283,7 +284,7 @@ begin
   rw mem_direction_iff_eq_vsub ⟨p, hp⟩ at hv,
   rcases hv with ⟨p1, hp1, p2, hp2, hv⟩,
   rw hv,
-  convert s.smul_vsub_vadd_mem 1 p1 p2 p hp1 hp2 hp,
+  convert s.smul_vsub_vadd_mem 1 hp1 hp2 hp,
   rw one_smul
 end
 
@@ -516,8 +517,8 @@ instance : complete_lattice (affine_subspace k P) :=
   sup_le := λ s1 s2 s3 hs1 hs2, span_points_subset_coe_of_subset_coe (set.union_subset hs1 hs2),
   inf := λ s1 s2, mk (s1 ∩ s2)
                      (λ c p1 p2 p3 hp1 hp2 hp3,
-                       ⟨s1.smul_vsub_vadd_mem c p1 p2 p3 hp1.1 hp2.1 hp3.1,
-                       s2.smul_vsub_vadd_mem c p1 p2 p3 hp1.2 hp2.2 hp3.2⟩),
+                       ⟨s1.smul_vsub_vadd_mem c hp1.1 hp2.1 hp3.1,
+                       s2.smul_vsub_vadd_mem c hp1.2 hp2.2 hp3.2⟩),
   inf_le_left := λ _ _, set.inter_subset_left _ _,
   inf_le_right := λ _ _, set.inter_subset_right _ _,
   le_inf := λ _ _ _, set.subset_inter,
@@ -530,9 +531,9 @@ instance : complete_lattice (affine_subspace k P) :=
   Sup := λ s, affine_span k (⋃ s' ∈ s, (s' : set P)),
   Inf := λ s, mk (⋂ s' ∈ s, (s' : set P))
                  (λ c p1 p2 p3 hp1 hp2 hp3, set.mem_bInter_iff.2 $ λ s2 hs2,
-                   s2.smul_vsub_vadd_mem c p1 p2 p3 (set.mem_bInter_iff.1 hp1 s2 hs2)
-                                                    (set.mem_bInter_iff.1 hp2 s2 hs2)
-                                                    (set.mem_bInter_iff.1 hp3 s2 hs2)),
+                   s2.smul_vsub_vadd_mem c (set.mem_bInter_iff.1 hp1 s2 hs2)
+                                           (set.mem_bInter_iff.1 hp2 s2 hs2)
+                                           (set.mem_bInter_iff.1 hp3 s2 hs2)),
   le_Sup := λ _ _ h, set.subset.trans (set.subset_bUnion_of_mem h) (subset_span_points k _),
   Sup_le := λ _ _ h, span_points_subset_coe_of_subset_coe (set.bUnion_subset h),
   Inf_le := λ _ _, set.bInter_subset_of_mem,

@@ -437,7 +437,7 @@ instance [preorder β] : preorder (germ l β) :=
 
 instance [partial_order β] : partial_order (germ l β) :=
 { le := (≤),
-  le_antisymm := λ f g, induction_on₂ f g $ λ f g h₁ h₂, (h₁.antisymm h₂).germ_eq,
+  le_antisymm := λ f g, induction_on₂ f g $ λ f g h₁ h₂, (eventually_le.antisymm h₁ h₂).germ_eq,
   .. germ.preorder }
 
 instance [has_bot β] : has_bot (germ l β) := ⟨↑(⊥:β)⟩

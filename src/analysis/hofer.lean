@@ -24,7 +24,6 @@ open filter finset
 
 local notation `d` := dist
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma hofer {X: Type*} [metric_space X] [complete_space X]
   (x : X) (ε : ℝ) (ε_pos : 0 < ε)
   {ϕ : X → ℝ} (cont : continuous ϕ) (nonneg : ∀ y, 0 ≤ ϕ y) :
@@ -38,22 +37,15 @@ begin
   { intros x' k,
     rw [div_mul_eq_mul_div, le_div_iff, mul_assoc, mul_le_mul_left ε_pos, mul_comm],
     exact pow_pos (by norm_num) k, },
-  -- Now let's pull the existential quantifiers in front
-  replace H : ∀ k : ℕ, ∀ x', ∃ y,
-    d x' x ≤ 2 * ε ∧ 2^k * ϕ x ≤ ϕ x' → d x' y ≤ ε/2^k ∧ 2 * ϕ x' < ϕ y,
+  -- Now let's specialize to `ε/2^k`
+  replace H : ∀ k : ℕ, ∀ x', d x' x ≤ 2 * ε ∧ 2^k * ϕ x ≤ ϕ x' → ∃ y, d x' y ≤ ε/2^k ∧ 2 * ϕ x' < ϕ y,
   { intros k x',
-    by_cases h' : d x' x ≤ 2 * ε ∧ 2^k * ϕ x ≤ ϕ x',
-    { contrapose H,
-      rw not_not,
-      use ε/2^k,
-      suffices : ∃ x', d x' x ≤ 2 * ε ∧ ε * ϕ x ≤ ε / 2 ^ k * ϕ x' ∧
-                       ∀ (y : X), d x' y ≤ ε / 2 ^ k → ϕ y ≤ 2 * ϕ x',
-      by simpa [ε_pos, two_pos, one_le_two],
-      use x',
-      simpa [h'.left, reformulation, h'.right, h'] using H },
-    { use x } },
+    push_neg at H,
+    simpa [reformulation] using
+      H (ε/2^k) (by simp [ε_pos, two_pos]) x' (by simp [ε_pos, two_pos, one_le_two]) },
   clear reformulation,
-  choose F hF using H,  -- Use the axiom of choice
+  haveI : nonempty X := ⟨x⟩,
+  choose! F hF using H,  -- Use the axiom of choice
   -- Now define u by induction starting at x, with u_{n+1} = F(n, u_n)
   let u : ℕ → X := λ n, nat.rec_on n x F,
   -- The properties of F translate to properties of u

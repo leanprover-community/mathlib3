@@ -11,6 +11,18 @@ import algebra.geom_sum
 
 /-!
 # Integral domains
+
+Assorted theorems about integral domains.
+
+## Main theorems
+
+* `is_cyclic_of_subgroup_integral_domain` : A finite subgroup of the units of an integral domain
+                                            is cyclic.
+* `field_of_integral_domain`              : A finite integral domain is a field.
+
+## Tags
+
+integral domain, finite integral domain, finite field
 -/
 
 section

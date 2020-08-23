@@ -69,7 +69,7 @@ v ∘ fin.succ
 
 end matrix_notation
 
-variables {m n o : ℕ} {m' n' o' : Type} [fintype m'] [fintype n'] [fintype o']
+variables {m n o : ℕ} {m' n' o' : Type*} [fintype m'] [fintype n'] [fintype o']
 
 lemma empty_eq (v : fin 0 → α) : v = ![] :=
 by { ext i, fin_cases i }
@@ -98,7 +98,7 @@ rfl
   vec_tail (vec_cons x u) = u :=
 by { ext, simp [vec_tail] }
 
-@[simp] lemma empty_val' {n' : Type} (j : n') :
+@[simp] lemma empty_val' {n' : Type*} (j : n') :
   (λ i, (![] : fin 0 → n' → α) i j) = ![] :=
 empty_eq _
 
@@ -283,7 +283,7 @@ variables [semiring α]
 
 @[simp] lemma smul_empty (x : α) (v : fin 0 → α) : x • v = ![] := empty_eq _
 
-@[simp] lemma smul_mat_empty {m' : Type} (x : α) (A : fin 0 → m' → α) : x • A = ![] := empty_eq _
+@[simp] lemma smul_mat_empty {m' : Type*} (x : α) (A : fin 0 → m' → α) : x • A = ![] := empty_eq _
 
 @[simp] lemma smul_cons (x y : α) (v : fin n → α) :
   x • vec_cons y v = vec_cons (x * y) (x • v) :=

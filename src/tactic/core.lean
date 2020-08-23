@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
 import data.dlist.basic
+import logic.function.basic
 import control.basic
 import meta.expr
 import meta.rb_map
 import data.bool
 import tactic.lean_core_docs
 import tactic.interactive_expr
+import system.io
 
 universe variable u
 
@@ -255,6 +257,32 @@ do e ← tactic.get_env,
              then s.insert d.to_name d else s),
    pure xs
 
+/-- `get_decls_from` returns a dictionary mapping names to their
+corresponding declarations.  Covers all declarations the files listed
+in `fs`, with the current file listed as `none`.
+
+The path of the file names is expected to be relative to
+the root of the project (i.e. the location of `leanpkg.toml` when it
+is present); e.g. `"src/tactic/core.lean"`
+
+Possible issue: `get_decls_from` uses `get_cwd`, the current working
+directory, which may not always point at the root of the project.
+It would work better if it searched for the root directory or,
+better yet, if Lean exposed its path information.
+-/
+meta def get_decls_from (fs : list (option string)) : tactic (name_map declaration) :=
+do root ← unsafe_run_io $ io.env.get_cwd,
+   let fs := fs.map (option.map $ λ path, root ++ "/" ++ path),
+   err ← unsafe_run_io $ (fs.filter_map id).mfilter $ (<$>) bnot ∘ io.fs.file_exists,
+   guard (err = []) <|> fail format!"File not found: {err}",
+   e ← tactic.get_env,
+   let xs := e.fold native.mk_rb_map
+     (λ d s,
+       let source := e.decl_olean d.to_name in
+       if source ∈ fs ∧ (source = none → e.in_current_file' d.to_name)
+       then s.insert d.to_name d else s),
+   pure xs
+
 /-- If `{nm}_{n}` doesn't exist in the environment, returns that, otherwise tries `{nm}_{n+1}` -/
 meta def get_unused_decl_name_aux (e : environment) (nm : name) : ℕ → tactic name | n :=
 let nm' := nm.append_suffix ("_" ++ to_string n) in
@@ -396,6 +424,12 @@ meta def retrieve {α} (tac : tactic α) : tactic α :=
  (λ a s', result.success a s)
  result.exception
 
+/-- Runs a tactic for a result, reverting the state after completion or error. -/
+meta def retrieve' {α} (tac : tactic α) : tactic α :=
+λ s, result.cases_on (tac s)
+ (λ a s', result.success a s)
+ (λ msg pos s', result.exception msg pos s)
+
 /-- Repeat a tactic at least once, calling it recursively on all subgoals,
 until it fails. This tactic fails if the first invocation fails. -/
 meta def repeat1 (t : tactic unit) : tactic unit := t; repeat t
@@ -436,6 +470,16 @@ meta def revert_after (e : expr) : tactic ℕ := do
   [pos] ← return $ l.indexes_of e | pp e >>= λ s, fail format!"No such local constant {s}",
   let l := l.drop pos.succ, -- all local hypotheses after `e`
   revert_lst l
+
+/-- `revert_target_deps` reverts all local constants on which the target depends (recursively).
+  Returns the number of local constants that have been reverted. -/
+meta def revert_target_deps : tactic ℕ :=
+do tgt ← target,
+   ctx ← local_context,
+   l ← ctx.mfilter (kdepends_on tgt),
+   n ← revert_lst l,
+   if l = [] then return n
+     else do m ← revert_target_deps, return (m + n)
 
 /-- `generalize' e n` generalizes the target with respect to `e`. It creates a new local constant
 with name `n` of the same type as `e` and replaces all occurrences of `e` by `n`.
@@ -497,17 +541,43 @@ meta def revert_deps (e : expr) : tactic ℕ := do
 meta def is_local_def (e : expr) : tactic unit :=
 retrieve $ do revert e, expr.elet _ _ _ _ ← target, skip
 
-/-- `clear_value e` clears the body of the local definition `e`, changing it into a regular
-hypothesis. A hypothesis `e : α := t` is changed to `e : α`.
+/-- like `split_on_p p xs`, `partition_local_deps_aux vs xs acc` searches for matches in `xs`
+(using membership to `vs` instead of a predicate) and breaks `xs` when matches are found.
+whereas `split_on_p p xs` removes the matches, `partition_local_deps_aux vs xs acc` includes
+them in the following partition. Also, `partition_local_deps_aux vs xs acc` discards the partition
+running up to the first match. -/
+private def partition_local_deps_aux {α} [decidable_eq α] (vs : list α) : list α → list α → list (list α)
+| [] acc := [acc.reverse]
+| (l :: ls) acc :=
+  if l ∈ vs then acc.reverse :: partition_local_deps_aux ls [l]
+  else partition_local_deps_aux ls (l :: acc)
+
+/-- `partition_local_deps vs`, with `vs` a list of local constants,
+reorders `vs` in the order they appear in the local context together
+with the variables that follow them. If local context is `[a,b,c,d,e,f]`,
+and that we call `partition_local_deps [d,b]`, we get `[[d,e,f], [b,c]]`.
+The head of each list is one of the variables given as a parameter. -/
+meta def partition_local_deps (vs : list expr) : tactic (list (list expr)) :=
+do ls ← local_context,
+   pure (partition_local_deps_aux vs ls []).tail.reverse
+
+/-- `clear_value [e₀, e₁, e₂, ...]` clears the body of the local definitions `e₀`, `e₁`, `e₂`, ... changing them into regular
+hypotheses. A hypothesis `e : α := t` is changed to `e : α`. The order of locals `e₀`, `e₁`, `e₂` does not
+matter as a permutation will be chosen so as to preserve type correctness.
 This tactic is called `clearbody` in Coq. -/
-meta def clear_value (e : expr) : tactic unit := do
-  n ← revert_after e,
-  is_local_def e <|>
-    pp e >>= λ s, fail format!"Cannot clear the body of {s}. It is not a local definition.",
-  let nm := e.local_pp_name,
-  (generalize' e nm >> clear e) <|>
-    fail format!"Cannot clear the body of {nm}. The resulting goal is not type correct.",
-  intron n
+meta def clear_value (vs : list expr) : tactic unit := do
+  ls ← partition_local_deps vs,
+  ls.mmap' $ λ vs, do
+  { revert_lst vs,
+    (expr.elet v t d b) ← target | fail format!"Cannot clear the body of {vs.head}. It is not a local definition.",
+    let e := expr.pi v binder_info.default t b,
+    type_check e <|> fail format!"Cannot clear the body of {vs.head}. The resulting goal is not type correct.",
+    g ← mk_meta_var e,
+    h ← note `h none g,
+    tactic.exact $ h d,
+    gs ← get_goals,
+    set_goals $ g :: gs },
+  ls.reverse.mmap' $ λ vs, intro_lst $ vs.map expr.local_pp_name
 
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
 `simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting
@@ -663,7 +733,14 @@ The names in `instances` are the projections from `struct_n` to the structures t
 The names in `fields` are the standard fields of `struct_n`. -/
 meta def subobject_names (struct_n : name) : tactic (list name × list name) :=
 do env ← get_env,
-   [c] ← pure $ env.constructors_of struct_n | fail "too many constructors",
+   c ← match env.constructors_of struct_n with
+       | [c] := pure c
+       | [] :=
+         if env.is_inductive struct_n
+           then fail format!"{struct_n} does not have constructors"
+           else fail format!"{struct_n} is not an inductive type"
+       | _ := fail "too many constructors"
+       end,
    vs  ← var_names <$> (mk_const c >>= infer_type),
    fields ← env.structure_fields struct_n,
    return $ fields.partition (λ fn, ↑("_" ++ fn.to_string) ∈ vs)
@@ -678,7 +755,9 @@ open functor function
 
 /-- `expanded_field_list struct_n` produces a list of the names of the fields of the structure
 named `struct_n`. These are returned as pairs of names `(prefix, name)`, where the full name
-of the projection is `prefix.name`. -/
+of the projection is `prefix.name`.
+
+`struct_n` cannot be a synonym for a `structure`, it must be itself a `structure` -/
 meta def expanded_field_list (struct_n : name) : tactic (list $ name × name) :=
 dlist.to_list <$> expanded_field_list' struct_n
 
@@ -1093,9 +1172,9 @@ of the previous local constants. `l` is a list of local constants and their valu
 meta def dependent_pose_core (l : list (expr × expr)) : tactic unit := do
   let lc := l.map prod.fst,
   let lm := l.map (λ⟨l, v⟩, (l.local_uniq_name, v)),
-  t ← target,
-  new_goal ← mk_meta_var (t.pis lc),
   old::other_goals ← get_goals,
+  t ← infer_type old,
+  new_goal ← mk_meta_var (t.pis lc),
   set_goals (old :: new_goal :: other_goals),
   exact ((new_goal.mk_app lc).instantiate_locals lm),
   return ()
@@ -1103,41 +1182,10 @@ meta def dependent_pose_core (l : list (expr × expr)) : tactic unit := do
 /-- Like `mk_local_pis` but translating into weak head normal form before checking if it is a `Π`.
 -/
 meta def mk_local_pis_whnf (e : expr) (md := semireducible) : tactic (list expr × expr) := do
-(expr.pi n bi d b) ← whnf e md | return ([], e),
-p ← mk_local' n bi d,
-(ps, r) ← mk_local_pis (expr.instantiate_var b p),
-return ((p :: ps), r)
-
-/-- Changes `(h : ∀xs, ∃a:α, p a) ⊢ g` to `(d : ∀xs, a) (s : ∀xs, p (d xs) ⊢ g`. -/
-meta def choose1 (h : expr) (data : name) (spec : name) : tactic expr := do
-  t ← infer_type h,
-  (ctxt, t) ← mk_local_pis_whnf t,
-  `(@Exists %%α %%p) ← whnf t transparency.all |
-    fail "expected a term of the shape ∀xs, ∃a, p xs a",
-  α_t ← infer_type α,
-  expr.sort u ← whnf α_t transparency.all,
-  value ← mk_local_def data (α.pis ctxt),
-  t' ← head_beta (p.app (value.mk_app ctxt)),
-  spec ← mk_local_def spec (t'.pis ctxt),
-  dependent_pose_core [
-    (value, ((((expr.const `classical.some [u]).app α).app p).app (h.mk_app ctxt)).lambdas ctxt),
-    (spec, ((((expr.const `classical.some_spec [u]).app α).app p).app (h.mk_app ctxt)).lambdas ctxt)],
-  try (tactic.clear h),
-  intro1,
-  intro1
-
-/-- Changes `(h : ∀xs, ∃as, p as) ⊢ g` to a list of functions `as`,
-and a final hypothesis on `p as`. -/
-meta def choose : expr → list name → tactic unit
-| h [] := fail "expect list of variables"
-| h [n] := do
-  cnt ← revert h,
-  intro n,
-  intron (cnt - 1),
-  return ()
-| h (n::ns) := do
-  v ← get_unused_name >>= choose1 h n,
-  choose v ns
+  expr.pi n bi d b ← whnf e md | return ([], e),
+  p ← mk_local' n bi d,
+  (ps, r) ← mk_local_pis (expr.instantiate_var b p),
+  return ((p :: ps), r)
 
 /--
 Instantiates metavariables that appear in the current goal.

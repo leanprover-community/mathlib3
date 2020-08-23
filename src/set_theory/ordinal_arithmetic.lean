@@ -63,9 +63,9 @@ namespace ordinal
 
 @[simp] theorem lift_add (a b) : lift (a + b) = lift a + lift b :=
 quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩,
-quotient.sound ⟨(order_iso.preimage equiv.ulift _).trans
- (order_iso.sum_lex_congr (order_iso.preimage equiv.ulift _)
-   (order_iso.preimage equiv.ulift _)).symm⟩
+quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
+ (rel_iso.sum_lex_congr (rel_iso.preimage equiv.ulift _)
+   (rel_iso.preimage equiv.ulift _)).symm⟩
 
 @[simp] theorem lift_succ (a) : lift (succ a) = succ (lift a) :=
 by unfold succ; simp only [lift_add, lift_one]
@@ -85,9 +85,9 @@ theorem add_le_add_iff_left (a) {b c : ordinal} : a + b ≤ a + c ↔ b ≤ c :=
   have fr : ∀ b, f (sum.inr b) = sum.inr (g b), from λ b, (this b).2,
   ⟨⟨⟨g, λ x y h, by injection f.inj'
     (by rw [fr, fr, h] : f (sum.inr x) = f (sum.inr y))⟩,
-    λ a b, by simpa only [sum.lex_inr_inr, fr, order_embedding.coe_fn_to_embedding,
-        initial_seg.coe_fn_to_order_embedding, function.embedding.coe_fn_mk]
-      using @order_embedding.ord _ _ _ _ f.to_order_embedding (sum.inr a) (sum.inr b)⟩,
+    λ a b, by simpa only [sum.lex_inr_inr, fr, rel_embedding.coe_fn_to_embedding,
+        initial_seg.coe_fn_to_rel_embedding, function.embedding.coe_fn_mk]
+      using @rel_embedding.map_rel_iff _ _ _ _ f.to_rel_embedding (sum.inr a) (sum.inr b)⟩,
     λ a b H, begin
       rcases f.init' (by rw fr; exact sum.lex_inr_inr.2 H) with ⟨a'|a', h⟩,
       { rw fl at h, cases h },
@@ -317,7 +317,7 @@ lemma type_subrel_lt (o : ordinal.{u}) :
 begin
   refine quotient.induction_on o _,
   rintro ⟨α, r, wo⟩, resetI, apply quotient.sound,
-  constructor, symmetry, refine (order_iso.preimage equiv.ulift r).trans (typein_iso r)
+  constructor, symmetry, refine (rel_iso.preimage equiv.ulift r).trans (typein_iso r)
 end
 
 lemma mk_initial_seg (o : ordinal.{u}) :
@@ -418,7 +418,7 @@ induction_on a (λ α r _, induction_on b $ λ β s _ h H l, begin
   have := H _ (h.2 _ (typein_lt_type s x)),
   rw [add_succ, succ_le] at this,
   refine lt_of_le_of_lt (type_le'.2
-    ⟨order_embedding.of_monotone (λ a, _) (λ a b, _)⟩) this,
+    ⟨rel_embedding.of_monotone (λ a, _) (λ a b, _)⟩) this,
   { rcases a with ⟨a | b, h⟩,
     { exact sum.inl a },
     { exact sum.inr ⟨b, by cases h; assumption⟩ } },
@@ -498,7 +498,7 @@ begin
   refine le_antisymm _ (le_add_left _ _),
   rw [omega, one_eq_lift_type_unit, ← lift_add, lift_le, type_add],
   have : is_well_order unit empty_relation := by apply_instance,
-  refine ⟨order_embedding.collapse (order_embedding.of_monotone _ _)⟩,
+  refine ⟨rel_embedding.collapse (rel_embedding.of_monotone _ _)⟩,
   { apply sum.rec, exact λ _, 0, exact nat.succ },
   { intros a b, cases a; cases b; intro H; cases H with _ _ H _ _ H;
     [cases H, exact nat.succ_pos _, exact nat.succ_lt_succ H] }
@@ -517,7 +517,7 @@ instance : monoid ordinal.{u} :=
       (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, ⟦⟨β × α, prod.lex s r, by exactI prod.lex.is_well_order⟩⟧
         : Well_order → Well_order → ordinal) $
     λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
-    quot.sound ⟨order_iso.prod_lex_congr g f⟩,
+    quot.sound ⟨rel_iso.prod_lex_congr g f⟩,
   one := 1,
   mul_assoc := λ a b c, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩,
     eq.symm $ quotient.sound ⟨⟨prod_assoc _ _ _, λ a b, begin
@@ -538,9 +538,9 @@ instance : monoid ordinal.{u} :=
 
 @[simp] theorem lift_mul (a b) : lift (a * b) = lift a * lift b :=
 quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩,
-quotient.sound ⟨(order_iso.preimage equiv.ulift _).trans
- (order_iso.prod_lex_congr (order_iso.preimage equiv.ulift _)
-   (order_iso.preimage equiv.ulift _)).symm⟩
+quotient.sound ⟨(rel_iso.preimage equiv.ulift _).trans
+ (rel_iso.prod_lex_congr (rel_iso.preimage equiv.ulift _)
+   (rel_iso.preimage equiv.ulift _)).symm⟩
 
 @[simp] theorem card_mul (a b) : card (a * b) = card a * card b :=
 quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩,
@@ -571,23 +571,23 @@ by simp only [mul_add, mul_one]
 theorem mul_le_mul_left {a b} (c : ordinal) : a ≤ b → c * a ≤ c * b :=
 quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
   resetI,
-  refine type_le'.2 ⟨order_embedding.of_monotone
+  refine type_le'.2 ⟨rel_embedding.of_monotone
     (λ a, (f a.1, a.2))
     (λ a b h, _)⟩, clear_,
   cases h with a₁ b₁ a₂ b₂ h' a b₁ b₂ h',
-  { exact prod.lex.left _ _ (f.to_order_embedding.ord.1 h') },
+  { exact prod.lex.left _ _ (f.to_rel_embedding.map_rel_iff.1 h') },
   { exact prod.lex.right _ h' }
 end
 
 theorem mul_le_mul_right {a b} (c : ordinal) : a ≤ b → a * c ≤ b * c :=
 quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
   resetI,
-  refine type_le'.2 ⟨order_embedding.of_monotone
+  refine type_le'.2 ⟨rel_embedding.of_monotone
     (λ a, (a.1, f a.2))
     (λ a b h, _)⟩,
   cases h with a₁ b₁ a₂ b₂ h' a b₁ b₂ h',
   { exact prod.lex.left _ _ h' },
-  { exact prod.lex.right _ (f.to_order_embedding.ord.1 h') }
+  { exact prod.lex.right _ (f.to_rel_embedding.map_rel_iff.1 h') }
 end
 
 theorem mul_le_mul {a b c d : ordinal} (h₁ : a ≤ c) (h₂ : b ≤ d) : a * b ≤ c * d :=
@@ -608,7 +608,7 @@ begin
   refine lt_of_le_of_lt _ this,
   refine (type_le'.2 _),
   constructor,
-  refine order_embedding.of_monotone (λ a, _) (λ a b, _),
+  refine rel_embedding.of_monotone (λ a, _) (λ a b, _),
   { rcases a with ⟨⟨b', a'⟩, h⟩,
     by_cases e : b = b',
     { refine sum.inr ⟨a', _⟩,
@@ -781,24 +781,10 @@ begin
   rcases h with h|⟨rfl, h⟩, exact add_is_limit a h, simpa only [add_zero]
 end
 
-/-- Divisibility is defined by right multiplication:
-  `a ∣ b` if there exists `c` such that `b = a * c`. -/
-instance : has_dvd ordinal := ⟨λ a b, ∃ c, b = a * c⟩
-
-theorem dvd_def {a b : ordinal} : a ∣ b ↔ ∃ c, b = a * c := iff.rfl
-
-theorem dvd_mul (a b : ordinal) : a ∣ a * b := ⟨_, rfl⟩
-
-theorem dvd_trans : ∀ {a b c : ordinal}, a ∣ b → b ∣ c → a ∣ c
-| a _ _ ⟨b, rfl⟩ ⟨c, rfl⟩ := ⟨b * c, mul_assoc _ _ _⟩
-
-theorem dvd_mul_of_dvd {a b : ordinal} (c) (h : a ∣ b) : a ∣ b * c :=
-dvd_trans h (dvd_mul _ _)
-
 theorem dvd_add_iff : ∀ {a b c : ordinal}, a ∣ b → (a ∣ b + c ↔ a ∣ c)
 | a _ c ⟨b, rfl⟩ :=
  ⟨λ ⟨d, e⟩, ⟨d - b, by rw [mul_sub, ← e, add_sub_cancel]⟩,
-  λ ⟨d, e⟩, by rw [e, ← mul_add]; apply dvd_mul⟩
+  λ ⟨d, e⟩, by { rw [e, ← mul_add], apply dvd_mul_right }⟩
 
 theorem dvd_add {a b c : ordinal} (h₁ : a ∣ b) : a ∣ c → a ∣ b + c :=
 (dvd_add_iff h₁).2
@@ -881,7 +867,7 @@ lemma sup_succ {ι} (f : ι → ordinal) : sup (λ i, succ (f i)) ≤ succ (sup 
 by { rw [ordinal.sup_le], intro i, rw ordinal.succ_le_succ, apply ordinal.le_sup }
 
 lemma unbounded_range_of_sup_ge {α β : Type u} (r : α → α → Prop) [is_well_order α r] (f : β → α)
-  (h : sup.{u u} (typein r ∘ f) ≥ type r) : unbounded r (range f) :=
+  (h : type r ≤ sup.{u u} (typein r ∘ f)) : unbounded r (range f) :=
 begin
   apply (not_bounded_iff _).mp, rintro ⟨x, hx⟩, apply not_lt_of_ge h,
   refine lt_of_le_of_lt _ (typein_lt_type r x), rw [sup_le], intro y,
@@ -1093,7 +1079,7 @@ end
 
 theorem power_dvd_power (a) {b c : ordinal}
   (h : b ≤ c) : a ^ b ∣ a ^ c :=
-by rw [← add_sub_cancel_of_le h, power_add]; apply dvd_mul
+by { rw [← add_sub_cancel_of_le h, power_add], apply dvd_mul_right }
 
 theorem power_dvd_power_iff {a b c : ordinal}
   (a1 : 1 < a) : a ^ b ∣ a ^ c ↔ b ≤ c :=
@@ -1512,7 +1498,7 @@ by rwa [← add_omega_power h₁, add_lt_add_iff_left]
 theorem add_absorp {a b c : ordinal} (h₁ : a < omega ^ b) (h₂ : omega ^ b ≤ c) : a + c = c :=
 by rw [← add_sub_cancel_of_le h₂, ← add_assoc, add_omega_power h₁]
 
-theorem add_absorp_iff {o : ordinal} (o0 : o > 0) : (∀ a < o, a + o = o) ↔ ∃ a, o = omega ^ a :=
+theorem add_absorp_iff {o : ordinal} (o0 : 0 < o) : (∀ a < o, a + o = o) ↔ ∃ a, o = omega ^ a :=
 ⟨λ H, ⟨log omega o, begin
   refine ((lt_or_eq_of_le (power_log_le _ o0))
     .resolve_left $ λ h, _).symm,

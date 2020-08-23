@@ -36,7 +36,7 @@ open matrix
 
 universes u v
 
-variables {k l m n : Type u}
+variables {k l m n : Type*}
 variables [fintype k] [fintype l] [fintype m] [fintype n]
 variables {α : Type v}
 
@@ -101,7 +101,7 @@ begin
   assume f g,
   refine not_imp_not.1 _,
   simp only [matrix.ext_iff.symm, to_matrix, pequiv.ext_iff,
-    classical.not_forall, exists_imp_distrib],
+    not_forall, exists_imp_distrib],
   assume i hi,
   use i,
   cases hf : f i with fi,

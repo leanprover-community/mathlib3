@@ -23,7 +23,7 @@ namespace category_theory.pi
 
 universes v₁ v₂ u₁ u₂
 
-variables {I : Type v₁} {C : I → Type u₁} [∀ i, category.{v₁} (C i)]
+variables {I : Type v₁} {C : I → Type u₁} [Π i, category.{v₁} (C i)]
 variables {J : Type v₁} [small_category J]
 variables {F : J ⥤ Π i, C i}
 

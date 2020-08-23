@@ -9,7 +9,7 @@ Haskell's `Cont`, `ContT` and `MonadCont`:
 -/
 import control.monad.writer
 
-universes u v w
+universes u v w u₀ u₁ v₀ v₁
 
 structure monad_cont.label (α : Type w) (m : Type u → Type v) (β : Type u) :=
 (apply : α → m β)
@@ -195,3 +195,13 @@ instance {ρ} [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (re
   call_cc_bind_left  := by { intros, simp [call_cc,reader_t.call_cc,call_cc_bind_left,
     reader_t.goto_mk_label], ext, refl },
   call_cc_dummy := by { intros, simp [call_cc,reader_t.call_cc,@call_cc_dummy m _], ext, refl } }
+
+/-- reduce the equivalence between two continuation passing monads to the equivalence between
+their underlying monad -/
+def cont_t.equiv {m₁ : Type u₀ → Type v₀} {m₂ : Type u₁ → Type v₁}
+  {α₁ r₁ : Type u₀} {α₂ r₂ : Type u₁} (F : m₁ r₁ ≃ m₂ r₂) (G : α₁ ≃ α₂) :
+  cont_t r₁ m₁ α₁ ≃ cont_t r₂ m₂ α₂ :=
+{ to_fun := λ f r, F $ f $ λ x, F.symm $ r $ G x,
+  inv_fun := λ f r, F.symm $ f $ λ x, F $ r $ G.symm x,
+  left_inv := λ f, by funext r; simp,
+  right_inv := λ f, by funext r; simp }

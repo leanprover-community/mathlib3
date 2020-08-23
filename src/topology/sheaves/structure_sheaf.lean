@@ -35,6 +35,30 @@ def localizations := λ (P : Top.of (prime_spectrum R)), localization.at_prime P
 variables {R}
 
 /--
+The predicate saying that a dependent function on an open `U` is realized on `U` as a fixed fraction
+`r / s` in each of the stalks (which are localizations at various prime ideals).
+-/
+def is_fraction {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, localizations R x) : Prop :=
+∃ (r s : R), ∀ x : U,
+  ¬ (s ∈ x.1.as_ideal) ∧ f x * (localization.of _).to_map s = (localization.of _).to_map r
+
+variables (R)
+
+/--
+The predicate `is_fraction` is "prelocal",
+in the sense that if it holds on `U` it holds on any open subset `V` of `U`.
+-/
+def is_fraction_prelocal : prelocal_predicate (localizations R) :=
+{ pred := λ U f, is_fraction f,
+  res := λ V U i f h,
+  begin
+    rcases h with ⟨r, s, w⟩,
+    refine ⟨r, s, λ x, w (i x)⟩,
+  end }
+
+variables {R}
+
+/--
 We will define the structure sheaf as
 the subsheaf of all dependent functions in `Π x : U, localizations R x`
 consisting of those functions which can locally be expressed as a ratio of
@@ -53,7 +77,8 @@ Now Hartshorne had the disadvantage of not knowing about dependent functions,
 so we replace his circumlocution about functions into a disjoint union with
 `Π x : U, stalks x`.
 -/
-def locally_fraction {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, localizations R x) : Prop :=
+def is_locally_fraction
+  {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, localizations R x) : Prop :=
 ∀ x : U, ∃ (V) (m : x.1 ∈ V) (i : V ⟶ U),
   ∃ (r s : R), ∀ y : V,
   ¬ (s ∈ y.1.as_ideal) ∧
@@ -62,36 +87,32 @@ def locally_fraction {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, loca
 variables (R)
 
 /--
-We verify that `locally_fraction` is a `local_predicate`.
-This is purely formal, just shuffling around quantifiers.
+Show that `is_locally_fraction_pred` is a "local predicate":
+in fact it is just the sheafification of the "prelocal predicate" `is_fraction`.
 -/
-def locally_fraction_local : local_predicate (localizations R) :=
-{ pred := λ U f, locally_fraction f,
-  res := λ V U i f h x,
-  begin
-    rcases h (i x : U) with ⟨W, m, i, r, s, w⟩,
-    exact ⟨V ⊓ W, ⟨x.2, m⟩, opens.inf_le_left V W, r, s, (λ y, w ⟨y.1, y.2.2⟩)⟩,
-  end,
-  locality := λ U f w x,
-  begin
-    rcases w x with ⟨V, m, i, h⟩, clear w,
-    rcases h ⟨x.1, m⟩ with ⟨V', m', i', r, s, h'⟩, clear h,
-    exact ⟨V', m', i' ≫ i, r, s, h'⟩,
-  end, }
+def is_locally_fraction_local : local_predicate (localizations R) :=
+(is_fraction_prelocal R).sheafify
+
+@[simp]
+lemma is_locally_fraction_local_pred
+  {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, localizations R x) :
+  (is_locally_fraction_local R).pred f = is_locally_fraction f :=
+rfl
+
 
 /--
 The structure sheaf (valued in `Type`, not yet `CommRing`) is the subsheaf consisting of
 functions satisfying `locally_fraction`.
 -/
 def structure_sheaf_in_Type : sheaf (Type u) (Top.of (prime_spectrum R)) :=
-subsheaf_to_Types (locally_fraction_local R)
+subsheaf_to_Types (is_locally_fraction_local R)
 
 /--
-The functions satisfying `locally_fraction` form a subring.
+The functions satisfying `is_locally_fraction` form a subring.
 -/
 def sections_subring (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
   subring (Π x : unop U, localizations R x) :=
-{ carrier := { f | locally_fraction f },
+{ carrier := { f | is_locally_fraction f },
   zero_mem' :=
   begin
     refine λ x, ⟨unop U, x.2, 𝟙 _, 0, 1, λ y, ⟨_, _⟩⟩,

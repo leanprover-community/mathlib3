@@ -117,6 +117,8 @@ instance : complete_lattice (sieve X) :=
   le_top       := λ _ _ _ _, trivial,
   bot_le       := λ _ _ _, false.elim }
 
+instance : inhabited (sieve X) := ⟨⊤⟩
+
 @[simp]
 lemma mem_Inf {Ss : set (sieve X)} {Y} (f : Y ⟶ X) :
   over.mk f ∈ (Inf Ss).arrows ↔ ∀ S ∈ Ss, over.mk f ∈ sieve.arrows S :=
@@ -140,7 +142,8 @@ iff.rfl
 @[simp]
 lemma mem_top (f : Y ⟶ X) : over.mk f ∈ (⊤ : sieve X).arrows := trivial
 
-inductive generate_sets (𝒢 : set (over X)) : over X → Prop
+/-- Take the downward-closure of a set of morphisms to `X`. -/
+inductive generate_sets (𝒢 : set (over X)) : set (over X)
 | basic : Π {f : over X}, f ∈ 𝒢 → generate_sets f
 | subs  : Π {Y Z} {f : Y ⟶ X} (g : Z ⟶ Y), generate_sets (over.mk f) → generate_sets (over.mk (g ≫ f))
 

@@ -193,37 +193,12 @@ ring is nontrivial. -/
 lemma injective_of_affine_independent [nontrivial k] {p : ι → P} (ha : affine_independent k p) :
   function.injective p :=
 begin
-  intros i₁ i₂ he,
-  rw affine_independent_iff_indicator_eq_of_affine_combination_eq k p at ha,
-  have hp : ({i₁} : finset ι).affine_combination p (function.const ι (1 : k)) =
-    ({i₂} : finset ι).affine_combination p (function.const ι (1 : k)),
-  { rw [({i₁} : finset ι).affine_combination_of_eq_one_of_eq_zero
-          (function.const ι (1 : k))
-          _
-          (finset.mem_singleton_self i₁)
-          rfl
-          (λ i hi hin, false.elim (hin (finset.mem_singleton.1 hi))),
-        ({i₂} : finset ι).affine_combination_of_eq_one_of_eq_zero
-          (function.const ι (1 : k))
-          _
-          (finset.mem_singleton_self i₂)
-          rfl
-          (λ i hi hin, false.elim (hin (finset.mem_singleton.1 hi)))],
-    exact he },
-  replace ha := ha {i₁} {i₂} (function.const ι 1) (function.const ι 1)
-    finset.sum_singleton finset.sum_singleton hp,
-  simp_rw finset.coe_singleton at ha,
-  have ha' : ({i₁} : set ι).indicator (function.const ι (1 : k)) i₁ =
-    ({i₂} : set ι).indicator (function.const ι (1 : k)) i₁,
-  { rw ha },
-  simp only [set.mem_singleton, set.indicator_of_mem] at ha',
-  change 1 = ({i₂} : set ι).indicator (function.const ι (1 : k)) i₁ at ha',
-  have haz : ({i₂} : set ι).indicator (function.const ι (1 : k)) i₁ ≠ 0,
-  { rw ←ha',
-    exact one_ne_zero },
-  have hm := set.mem_of_indicator_ne_zero haz,
-  rw set.mem_singleton_iff at hm,
-  exact hm
+  intros i j hij,
+  rw affine_independent_iff_linear_independent_vsub _ _ j at ha,
+  by_contra hij',
+  refine ha.ne_zero _,
+  exact ⟨i, hij'⟩,
+  exact vsub_eq_zero_iff_eq.mpr hij,
 end
 
 /-- If a family is affinely independent, so is any subfamily given by

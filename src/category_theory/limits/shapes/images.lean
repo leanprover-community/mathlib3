@@ -549,13 +549,9 @@ If `C` has strong epi mono factorisations, then the image is unique up to isomor
 `f` factors as a strong epi followed by a mono, this factorisation is essentially the image
 factorisation.
 -/
-@[simps]
 def unique_factorise (I' : C) (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e] [mono m] :
   I' ≅ image f :=
-{ hom := {strong_epi_mono_factorisation . I := I', m := m, e := e}.to_mono_is_image.lift _,
-  inv := image.lift {strong_epi_mono_factorisation . I := I', m := m, e := e}.to_mono_factorisation,
-  hom_inv_id' := by erw [← cancel_mono m, category.assoc, category.id_comp, image.lift_fac, is_image.lift_fac],
-  inv_hom_id' := by erw [← cancel_mono (image.ι f), category.id_comp, category.assoc, is_image.lift_fac, image.lift_fac] }
+is_image.iso_ext {strong_epi_mono_factorisation . I := I', m := m, e := e}.to_mono_is_image (image.is_image f)
 
 lemma unique_factorise_hom_comp_image (I' : C) (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e] [mono m] :
   (unique_factorise f I' e m comm).hom ≫ image.ι f = m :=

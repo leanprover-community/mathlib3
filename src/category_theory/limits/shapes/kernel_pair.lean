@@ -82,6 +82,10 @@ instance [mono f] : inhabited (is_kernel_pair f (𝟙 _) (𝟙 _)) := ⟨id_of_m
 
 variables {f a b}
 
+/--
+Given a pair of morphisms `p,q` to `X` which factor through `f`, they factor through any kernel
+pair of `f`.
+-/
 def lift' {S : C} (k : is_kernel_pair f a b) (p q : S ⟶ X) (w : p ≫ f = q ≫ f) :
   { t : S ⟶ R // t ≫ a = p ∧ t ≫ b = q } :=
 pullback_cone.is_limit.lift' k.is_limit _ _ w

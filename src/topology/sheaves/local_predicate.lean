@@ -123,6 +123,11 @@ def prelocal_predicate.sheafify {T : X → Type v} (P : prelocal_predicate T) : 
     exact ⟨V', m', i' ≫ i, p'⟩,
   end }
 
+lemma prelocal_predicate.sheafify_of {T : X → Type v} {P : prelocal_predicate T}
+  {U : opens X} {f : Π x : U, T x} (h : P.pred f) :
+  P.sheafify.pred f :=
+λ x, ⟨U, x.2, 𝟙 _, by { convert h, ext ⟨y, w⟩, refl, }⟩
+
 /--
 The subpresheaf of dependent functions on `X` satisfying the "pre-local" predicate `P`.
 -/
@@ -235,6 +240,7 @@ end subpresheaf_to_Types
 /--
 The subsheaf of the sheaf of all dependently typed functions satisfying the local predicate `P`.
 -/
+@[simps]
 def subsheaf_to_Types (P : local_predicate T) : sheaf (Type v) X :=
 { presheaf := subpresheaf_to_Types P.to_prelocal_predicate,
   sheaf_condition := subpresheaf_to_Types.sheaf_condition P }.

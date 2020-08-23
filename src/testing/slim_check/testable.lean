@@ -14,8 +14,109 @@ together with a proof that they invalidate the proposition.
 
 This is a port of the Haskell QuickCheck library.
 
+## How to get started
+
+A proposition can be tested by writing it out as:
+
+```lean
+#eval testable.check (∀ xs : list ℕ, (∃ x ∈ xs, x < 3) → (∀ y ∈ xs, y < 5))
+-- ===================
+-- Found problems!
+
+-- xs := [0, 5]
+-- x := 0
+-- y := 5
+-- -------------------
+
+#eval testable.check (∀ x : ℕ, 2 ∣ x → x < 100)
+-- ===================
+-- Found problems!
+
+-- x := 258
+-- -------------------
+
+#eval testable.check (∀ (α : Type) (xs ys : list α), xs ++ ys = ys ++ xs)
+-- ===================
+-- Found problems!
+
+-- α := ℤ
+-- xs := [-4]
+-- ys := [1]
+-- -------------------
+
+#eval testable.check (∀ x ∈ [1,2,3], x < 4)
+-- Success
+```
+
+`testable.check p` finds a `testable p` instance which lets us find
+data to test the proposition `p`.  For instance, `testable.check (∀ x
+: ℕ, 2 ∣ x → x < 100)` builds the `testable` instance step by step
+with:
+
+```
+testable (∀ x : ℕ, 2 ∣ x → x < 100) -: arbitrary ℕ, decidable (λ x, 2 ∣ x), testable (λ x, x < 100)
+testable (λ x, x < 100)              -: decidable (λ x, x < 100)
+```
+
+`arbitrary ℕ` lets us create random data of type `ℕ` in a way that
+helps find small counter-examples.  Next, the test of the proposition
+hinges on `2 ∣ 100` and `x < 100` to both be decidable. The
+implication between the two could be tested as a whole but it would be
+less informative. Indeed, we could generate a hundred odd numbers and
+the property would be shown to hold for each but the right conclusion
+is that we haven't found meaningful examples. Instead, when `2 ∣ x`
+does not hold, we reject the example (i.e.  we do not count it toward
+the 100 required positive examples) and we start over. Therefore, when
+`testable.check` prints `Success`, it means that a hundred even
+numbers were found to be less than 100.
+
+### Polymorphism
+
+The property `testable.check (∀ (α : Type) (xs ys : list α), xs ++ ys
+= ys ++ xs)` shows us that type-polymorphic properties can be
+tested. `α` is instantiated with `ℤ` first and then tested as normal
+monomorphic properties.
+
+### What do I do if I'm testing a property about my newly defined type?
+
+Let us consider a type made for a new formalization:
+
+```lean
+structure my_type :=
+(x y : ℕ)
+(h : x ≤ y)
+```
+
+How do we test a property about `my_type`? For instance, let us consider
+`testable.check $ ∀ a b : my_type, a.y ≤ b.x → a.x ≤ b.y`. Writing this
+property as is will give us an error because we do not have an instance
+of `arbitrary my_type`. We can define one as follows:
+
+```lean
+instance : arbitrary my_type :=
+{ arby := do
+  x ← arby ℕ,
+  xy_diff ← arby ℕ,
+  return { x := x, y := x + xy_diff, h := /- some proof -/ } }
+```
+
+We can see that the instance is very simple because our type is built
+up from other type that have `arbitrary` instances. `arbitrary` also
+has a `shrink` method but it is optional. We may want to implement one
+for ease of testing as:
+
+```lean
+/- ... -/
+  shrink := λ ⟨x,y,h⟩, (λ ⟨x,y⟩, { x := x, y := x + y, h := /- proof -/}) <$> shrink (x, y - x)
+}
+```
+
+Again, we take advantage of the fact that other types have useful
+`shrink` implementations, in this case `prod`.
+
 ## Main definitions
   * `testable` class
+  * `testable.check` a way to test a proposition using random examples
 
 ## Tags
 
@@ -123,6 +224,7 @@ instance and_testable (p q : Prop) [testable p] [testable q] :
    xq ← testable.run q min,
    pure $ and_counter_example xp xq ⟩
 
+@[priority 5000]
 instance imp_dec_testable {var} (p : Prop) [decidable p] (β : p → Prop)
   [∀ h, testable (β h)]
 : testable (named_binder var $ Π h, β h) :=

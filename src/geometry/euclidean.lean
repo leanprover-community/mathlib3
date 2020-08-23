@@ -1429,7 +1429,7 @@ rfl
 /-- The Monge point lies in the affine span. -/
 lemma monge_point_mem_affine_span {n : ℕ} (s : simplex ℝ P n) :
   s.monge_point ∈ affine_span ℝ (set.range s.points) :=
-smul_vsub_vadd_mem _ _ _ _ _
+smul_vsub_vadd_mem _ _
   (centroid_mem_affine_span_of_card_eq_add_one ℝ _ (card_fin (n + 1)))
   s.circumcenter_mem_affine_span
   s.circumcenter_mem_affine_span

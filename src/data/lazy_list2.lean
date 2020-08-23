@@ -94,7 +94,7 @@ def interleave {α} : lazy_list α → lazy_list α → lazy_list α
 | (lazy_list.cons x xs) (lazy_list.cons y ys) :=
   lazy_list.cons x (lazy_list.cons y (interleave (xs ()) (ys ())))
 
-/-- `interleave_all (xs::ys::zs::xss)` creates an empty list where elements of `xs`, `ys`
+/-- `interleave_all (xs::ys::zs::xss)` creates a list where elements of `xs`, `ys`
 and `zs` and the rest alternate. Every other element of the resulting list is taken from
 `xs`, every fourth is taken from `ys`, every eighth is taken from `zs` and so on   -/
 def interleave_all {α} : list (lazy_list α) → lazy_list α

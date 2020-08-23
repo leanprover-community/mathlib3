@@ -113,6 +113,7 @@ instance arbitrary_prod {β} [arbitrary α] [arbitrary β] : arbitrary (α × β
                pure (x,y) },
   shrink := λ x, lazy_list.lseq prod.mk (shrink x.1) (shrink x.2) }
 
+/-- shrinking function for sum types -/
 def sum.shrink {β} [arbitrary α] [arbitrary β] : α ⊕ β → lazy_list (α ⊕ β)
 | (sum.inr x) := (shrink x).map sum.inr
 | (sum.inl x) := (shrink x).map sum.inl
@@ -135,19 +136,20 @@ instance arbitrary_char : arbitrary char :=
 
 variables {α}
 
-def interleave {α} : lazy_list α → lazy_list α → lazy_list α
-| lazy_list.nil xs := xs
-| a@(lazy_list.cons x xs) lazy_list.nil := a
-| (lazy_list.cons x xs) (lazy_list.cons y ys) :=
-  lazy_list.cons x (lazy_list.cons y (interleave (xs ()) (ys ())))
+-- def interleave {α} : lazy_list α → lazy_list α → lazy_list α
+-- | lazy_list.nil xs := xs
+-- | a@(lazy_list.cons x xs) lazy_list.nil := a
+-- | (lazy_list.cons x xs) (lazy_list.cons y ys) :=
+--   lazy_list.cons x (lazy_list.cons y (interleave (xs ()) (ys ())))
 
-def interleave_all {α} : list (lazy_list α) → lazy_list α
-| [] := lazy_list.nil
-| (x :: xs) := interleave x (interleave_all xs)
+-- def interleave_all {α} : list (lazy_list α) → lazy_list α
+-- | [] := lazy_list.nil
+-- | (x :: xs) := interleave x (interleave_all xs)
 
-def interleave_all' {α} : list (lazy_list α) → lazy_list α :=
-lazy_list.init ∘ interleave_all
+open lazy_list
 
+/-- combine two `lazy_list` by computing their cartesian product and interleaving the result.
+The intention is to produce examples more or less in order of increasing size -/
 def lseq {α β γ} (f : α → β → γ) : lazy_list α → lazy_list β → lazy_list γ
 | lazy_list.nil xs := lazy_list.nil
 | a@(lazy_list.cons x xs) lazy_list.nil := lazy_list.nil
@@ -187,9 +189,12 @@ else pure tree.nil
 /-- implementation of `arbitrary (tree α)` -/
 def tree.shrink_with (shrink_a : α → lazy_list α) : tree α → lazy_list (tree α)
 | tree.nil := lazy_list.nil
-| (tree.node x t₀ t₁) := interleave_all' [(tree.shrink_with t₀).append (lazy_list.singleton t₀),
-                                          (tree.shrink_with t₁).append (lazy_list.singleton t₁),
-                                          lseq id (lseq tree.node (shrink_a x) (tree.shrink_with t₀)) (tree.shrink_with t₁) ]
+| (tree.node x t₀ t₁) :=
+-- here, we drop the last tree of the interleaved lists because it is assumed
+-- to be the full tree, i.e., not a shrunken tree.
+lazy_list.init $ interleave_all [(tree.shrink_with t₀).append (lazy_list.singleton t₀),
+                                 (tree.shrink_with t₁).append (lazy_list.singleton t₁),
+                                 lseq id (lseq tree.node (shrink_a x) (tree.shrink_with t₀)) (tree.shrink_with t₁) ]
 
 
 instance arbitrary_tree [arbitrary α] : arbitrary (tree α) :=

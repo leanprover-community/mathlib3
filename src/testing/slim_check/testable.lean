@@ -58,6 +58,7 @@ def combine {p q : Prop} : psum unit (p → q) → psum unit p → psum unit q
 | (psum.inr f) (psum.inr x) := psum.inr (f x)
 | _ _ := psum.inl ()
 
+/-- Combine the test result for properties `p` and `q` to create a test for the conjunction -/
 def and_counter_example {p q : Prop} :
   test_result p →
   test_result q →
@@ -82,6 +83,7 @@ def convert_counter_example {p q : Prop}
  | (success Hp) Hpq := success (combine Hpq Hp)
  | (gave_up n) _ := gave_up n
 
+/-- test `q` by testing `p` and proving the equivalence between the two -/
 def convert_counter_example' {p q : Prop}
   (h : p ↔ q) (r : test_result p) :
   test_result q :=
@@ -107,7 +109,8 @@ def add_var_to_counter_example {γ : Type v} [has_to_string γ]
   test_result q :=
 @add_to_counter_example (var ++ " := " ++ to_string x) _ _ h
 
-@[simp]
+/-- gadget used to introspect the name of bound variables -/
+@[simp, nolint unused_arguments]
 def named_binder (n : option string) (p : Prop) : Prop := p
 
 /-- Is the given test result a failure? -/
@@ -284,7 +287,8 @@ variable (p)
 
 variable [testable p]
 
-@[derive has_reflect]
+/-- configuration for testing a property -/
+@[derive [has_reflect, inhabited]]
 structure slim_check_cfg :=
 (num_inst : ℕ := 100) -- number of examples
 (max_size : ℕ := 100) -- final size argument

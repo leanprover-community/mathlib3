@@ -3,7 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Myers.
 -/
-import geometry.euclidean.basic
+import geometry.euclidean.circumcenter
 
 noncomputable theory
 open_locale big_operators

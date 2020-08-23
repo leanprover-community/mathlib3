@@ -28,10 +28,9 @@ sieve, pullback
 universes v u
 namespace category_theory
 
-/-
-For an object `X` of a category `C`, a `sieve X` is a set of morphisms to `X`
-which is closed under left-composition.
-In practice it seems easier to work with this if left-composition is stated by
+/--
+For an object `X` of a category `C`, a `sieve X` is a set of morphisms to `X` which is closed under
+left-composition. In practice it seems easier to work with this if left-composition is stated by
 quantifying over objects `Y` and arrows `Y ⟶ X` rather than quantifying over `over X`.
 -/
 structure sieve {C : Type u} [category.{v} C] (X : C) :=
@@ -117,7 +116,8 @@ instance : complete_lattice (sieve X) :=
   le_top       := λ _ _ _ _, trivial,
   bot_le       := λ _ _ _, false.elim }
 
-instance : inhabited (sieve X) := ⟨⊤⟩
+/-- The maximal sieve always exists. -/
+instance sieve_inhabited : inhabited (sieve X) := ⟨⊤⟩
 
 @[simp]
 lemma mem_Inf {Ss : set (sieve X)} {Y} (f : Y ⟶ X) :

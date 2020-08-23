@@ -549,3 +549,25 @@ noncomputable instance : is_R_or_C ℂ :=
 }
 
 end instances
+
+section cleanup_lemmas
+
+local notation `reR` := @is_R_or_C.re ℝ _ _ _ _ _
+local notation `imR` := @is_R_or_C.im ℝ _ _ _ _ _
+local notation `conjR` := @is_R_or_C.conj ℝ _ _ _ _ _
+local notation `IR` := @is_R_or_C.I ℝ _ _ _ _ _
+local notation `reC` := @is_R_or_C.re ℂ _ _ _ _ _
+local notation `imC` := @is_R_or_C.im ℂ _ _ _ _ _
+local notation `conjC` := @is_R_or_C.conj ℂ _ _ _ _ _
+local notation `IC` := @is_R_or_C.I ℂ _ _ _ _ _
+
+@[simp] lemma re_real {x : ℝ} : reR x = x := rfl
+@[simp] lemma im_real {x : ℝ} : imR x = 0 := rfl
+@[simp] lemma conj_real {x : ℝ} : conjR x = x := rfl
+@[simp] lemma I_real : IR = 0 := rfl
+@[simp] lemma re_complex {x : ℂ} : reC x = x.re := rfl
+@[simp] lemma im_complex {x : ℂ} : imC x = x.im := rfl
+@[simp] lemma conj_complex {x : ℂ} : conjC x = x.conj := rfl
+@[simp] lemma I_complex : IC = complex.I := rfl
+
+end cleanup_lemmas

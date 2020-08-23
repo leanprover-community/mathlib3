@@ -33,6 +33,22 @@ def stalk (X : PresheafedSpace C) (x : X) : C := X.presheaf.stalk x
 def stalk_map {X Y : PresheafedSpace C} (α : X ⟶ Y) (x : X) : Y.stalk (α.base x) ⟶ X.stalk x :=
 (stalk_functor C (α.base x)).map (α.c) ≫ X.presheaf.stalk_pushforward C α.base x
 
+section restrict
+
+def restrict_stalk_iso {U : Top} (X : PresheafedSpace C)
+  (f : U ⟶ (X : Top.{v})) (h : open_embedding f) (x : U) :
+  (X.restrict f h).stalk x ≅ X.stalk (f x) :=
+begin
+  dsimp only [stalk, Top.presheaf.stalk, stalk_functor],
+  dsimp [colim],
+  -- Is there a cheaper way to do this than cofinality?
+  sorry
+end
+
+-- TODO compatibility with germs?
+
+end restrict
+
 namespace stalk_map
 
 @[simp] lemma id (X : PresheafedSpace C) (x : X) : stalk_map (𝟙 X) x = 𝟙 (X.stalk x) :=

@@ -46,6 +46,10 @@ instance is_local_ring_hom_comp {A B C : Type*} [semiring A] [semiring B] [semir
     exact id
   end }
 
+-- move this
+lemma local_ring.of_ring_equiv {A B : Type*} [comm_ring A] [comm_ring B] (e : A ≃+* B) :
+  local_ring A ↔ local_ring B := sorry
+
 namespace algebraic_geometry
 
 /-- A `LocallyRingedSpace` is a topological space equipped with a sheaf of commutative rings
@@ -55,6 +59,8 @@ A morphism of locally ringed spaces is a morphism of ringed spaces
 such that the morphims induced on stalks are local ring homomorphisms. -/
 structure LocallyRingedSpace extends SheafedSpace CommRing :=
 (local_ring : ∀ x, local_ring (presheaf.stalk x))
+
+attribute [instance] LocallyRingedSpace.local_ring
 
 namespace LocallyRingedSpace
 
@@ -122,9 +128,11 @@ def restrict {U : Top} (X : LocallyRingedSpace)
   begin
     intro x,
     dsimp at *,
-    -- need to show that the stalk of restriction
-    -- is iso to the stalk of the original
-    -- and then a lemma local_ring.equiv
+    -- We show that the stalk of the restriction is isomorphic to the original stalk,
+    have := X.to_SheafedSpace.to_PresheafedSpace.restrict_stalk_iso f h x,
+    -- and then transfer `local_ring` across the ring equivalence.
+    apply (local_ring.of_ring_equiv (this.CommRing_iso_to_ring_equiv)).mpr,
+    apply X.local_ring,
   end,
   .. X.to_SheafedSpace.restrict _ f h }
 

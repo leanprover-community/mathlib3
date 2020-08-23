@@ -149,10 +149,6 @@ by ext _ ⟨ ⟩; exact h
 lemma value_eq  (i) (X : fam I) (x : X i) : Π {u : unit i i}, value i X x _ u = x
 | unit.rfl := rfl
 
-section subtype
-
-variables {F : fam I ⥤ fam J}
-
 /-- predicate over the values in type family `α` -/
 @[pp_nodot, derive inhabited]
 def Pred (α : fam I) : Sort* := ∀ i, α i → Prop
@@ -343,8 +339,6 @@ by apply sum.ext; simp
 def codiag : Π {α : fam I}, α ⊕' α ⟶ α
 | α i (_root_.sum.inl x) := x
 | α i (_root_.sum.inr x) := x
-
-end subtype
 
 open_locale fam
 

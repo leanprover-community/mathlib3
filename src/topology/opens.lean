@@ -93,6 +93,9 @@ begin
 end
 /- Inf -/ _ rfl
 
+lemma le_def {U V : opens α} : U ≤ V ↔ (U : set α) ≤ (V : set α) :=
+by refl
+
 @[simp] lemma mk_inf_mk {U V : set α} {hU : is_open U} {hV : is_open V} :
   (⟨U, hU⟩ ⊓ ⟨V, hV⟩ : opens α) = ⟨U ⊓ V, is_open_inter hU hV⟩ := rfl
 @[simp] lemma coe_inf {U V : opens α} : ((U ⊓ V : opens α) : set α) = (U : set α) ⊓ (V : set α) := rfl

@@ -350,7 +350,7 @@ lt_of_le_of_lt (padic_norm_z.nonarchimedean _ _) (max_lt hz1 hz2)
 
 lemma norm_lt_one_mul {z1 z2 : ℤ_[p]} (hz2 : ∥z2∥ < 1) : ∥z1 * z2∥ < 1 :=
 calc  ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ : by simp
-           ... < 1 :  mul_lt_one_of_nonneg_of_lt_one_right (padic_norm_z.le_one _) (norm_nonneg _) hz2
+           ... < 1 : mul_lt_one_of_nonneg_of_lt_one_right (padic_norm_z.le_one _) (norm_nonneg _) hz2
 
 @[simp] lemma mem_nonunits {z : ℤ_[p]} : z ∈ nonunits ℤ_[p] ↔ ∥z∥ < 1 :=
 by rw lt_iff_le_and_ne; simp [padic_norm_z.le_one z, nonunits, is_unit_iff]

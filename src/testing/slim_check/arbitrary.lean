@@ -6,6 +6,7 @@ Author(s): Simon Hudon
 import data.lazy_list
 import data.lazy_list2
 import data.tree
+import tactic.linarith
 import testing.slim_check.gen
 
 /-!
@@ -59,26 +60,6 @@ export arbitrary (arby shrink)
 
 open nat lazy_list
 
-/-- implementation of `arbitrary nat` -/
-def nat.shrink' : ℕ → list ℕ → list ℕ
-| n ls :=
-if h : n ≤ 0
-  then ls
-  else
-    have 1 * n / 2 < n,
-      from nat.div_lt_of_lt_mul (nat.mul_lt_mul_of_pos_right (by norm_num) (lt_of_not_ge h)),
-    have n / 2 < n, by simpa,
-    let m := n / 2 in
-    nat.shrink' m (m :: ls)
-
-/-- `nat.shrink n` creates a list of smaller natural numbers by successively
-dividing by 2. For example, `nat.shrink 100 = [0, 1, 3, 6, 12, 25, 50]` -/
-def nat.shrink (n : ℕ) : list ℕ :=
-nat.shrink' n []
-
-open gen
-
-
 /-- apply `f` to combine every element of the first list with every element
 of the second list and interleave the resulting lists
 
@@ -103,26 +84,47 @@ def arbitrary.lseq {α β γ} (f : α → β → γ) : lazy_list α → lazy_lis
 | (lazy_list.cons x xs) lazy_list.nil := lazy_list.nil
 | (lazy_list.cons x xs) ys := interleave (ys.map $ f x) (arbitrary.lseq (xs ()) ys)
 
+/-- implementation of `arbitrary nat` -/
+def nat.shrink' (k : ℕ) : ℕ → list ℕ → list ℕ
+| n ls :=
+if h : n ≤ 1
+  then ls.reverse
+  else
+    have 1 * n / 2 < n,
+      from nat.div_lt_of_lt_mul (nat.mul_lt_mul_of_pos_right (by norm_num) (by linarith)),
+    have n / 2 < n, by simpa,
+    let m := n / 2 in
+    nat.shrink' m ((k - m) :: ls)
+
+/-- `nat.shrink n` creates a list of smaller natural numbers by
+successively dividing by 2 and subtracting the difference from
+`n`. For example, `nat.shrink 100 = [50, 75, 88, 94, 97, 99]` -/
+def nat.shrink (n : ℕ) : list ℕ :=
+nat.shrink' n n []
+
+open gen
+
 instance arbitrary_nat : arbitrary ℕ :=
 { arby := sized $ λ sz, fin.val <$> choose_any (fin $ succ (sz^3)) <|>
                         fin.val <$> choose_any (fin $ succ sz),
   shrink := lazy_list.of_list ∘ nat.shrink }
 
 /-- implementation of `arbitrary int` -/
-def int.shrink' : ℕ → list ℤ → list ℤ
+def int.shrink' (k : ℕ) : ℕ → list ℤ → list ℤ
 | n ls :=
-if h : 0 < n
+if h : 1 < n
   then
-    have n / 2 < n, from div_lt_self h (by norm_num),
+    have n / 2 < n, from div_lt_self (by linarith) (by norm_num),
     let m := n / 2 in
-    int.shrink' m (m :: -↑m :: ls)
-  else ls
+    let m' := k - m in
+    int.shrink' m (m' :: -↑m' :: ls)
+  else ls.reverse
 
 /-- `int.shrink n` creates a list of integers by successively
-dividing by 2 and alternating the signs.
-For example, `nat.shrink 40 = [0, 0, 1, -1, 2, -2, 5, -5, 10, -10, 20, -20]` -/
+dividing by 2, subtracting the result from `n` and alternating the signs.
+For example, `int.shrink 40 = [-20, 20, -30, 30, -35, 35, -38, 38, -39, 39]` -/
 def int.shrink (i : ℤ) : list ℤ :=
-int.shrink' (int.nat_abs i) []
+int.shrink' (int.nat_abs i) (int.nat_abs i) []
 
 instance arbitrary_int : arbitrary ℤ :=
 { arby := sized $ λ sz,

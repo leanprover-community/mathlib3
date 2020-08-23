@@ -131,6 +131,7 @@ instance imp_dec_testable {var} (p : Prop) [decidable p] (β : p → Prop)
     then (λ r, convert_counter_example ($ h) r (psum.inr $ λ q _, q)) <$> testable.run (β h) min
     else return $ gave_up 1 ⟩
 
+@[priority 2000]
 instance all_types_testable (var : string) [testable (f ℤ)]
 : testable (named_binder (some var) $ Π x, f x) :=
 ⟨ λ min, do
@@ -148,6 +149,7 @@ def test_one (x : α) [testable (β x)] (var : option (string × string) := none
       end ⟩
 
 /-- testable instance for a property iterating over the element of a list -/
+@[priority 5000]
 instance test_forall_in_list (var : string) (var' : option string)
   [∀ x, testable (β x)] [has_to_string α] :
   Π xs : list α, testable (named_binder (some var) $ ∀ x, named_binder var' $ x ∈ xs → β x)
@@ -301,14 +303,51 @@ def testable.run_suite (cfg : slim_check_cfg := {}) : rand (test_result p) :=
 testable.run_suite_aux p cfg (success $ psum.inl ()) cfg.num_inst
 
 /-- Run a test suite for `p` in `io` -/
-def testable.check (cfg : slim_check_cfg := {}) : io (test_result p) :=
+def testable.check' (cfg : slim_check_cfg := {}) : io (test_result p) :=
 io.run_rand (testable.run_suite p cfg)
 
+namespace tactic
+
+open tactic expr
+
+meta def add_binder_name : expr → ℕ → option expr
+| (pi n bi d b) _ :=
+  let n := to_string n in
+  some $ const ``named_binder [] (const ``option.some [level.zero] (`(string) : expr) (reflect n : expr)) (pi n bi d b)
+| e@`(@Exists %%α %%(lam n bi d b)) _ :=
+  let n := to_string n in
+  some $ const ``named_binder [] (const ``option.some [level.zero] (`(string) : expr) (reflect n : expr)) e
+| e _ := none
+
+meta def add_existential_decorations : expr → expr
+| e@`(@Exists %%α %%(lam n bi d b)) :=
+  let n := to_string n in
+  const ``named_binder [] (const ``option.some [level.zero] (`(string) : expr) (reflect n : expr)) e
+| e := e
+
+@[reducible]
+def decorations_of (p : Prop) := Prop
+
+meta def add_decorations : expr → expr | e :=
+e.replace $ λ e _,
+  match e with
+  | (pi n bi d b) :=
+    let n := to_string n in
+    some $ const ``named_binder [] (const ``option.some [level.zero] (`(string) : expr) (reflect n : expr)) (pi n bi (add_existential_decorations d) (add_decorations b))
+  | e := none
+  end
+
+meta def mk_decorations : tactic unit := do
+`(tactic.decorations_of %%p) ← target,
+exact $ add_decorations p
+
+end tactic
+
 /-- Run a test suite for `p` and return true or false: should we believe that `p` holds? -/
-def testable.check' (cfg : slim_check_cfg := {}) : io bool := do
-x ← io.run_rand (testable.run_suite p cfg),
+def testable.check (p : Prop) (cfg : slim_check_cfg := {}) (p' : tactic.decorations_of p . tactic.mk_decorations) [testable p'] : io bool := do
+x ← io.run_rand (testable.run_suite p' cfg),
 match x with
- | (success _) := return tt
+ | (success _) := io.put_str_ln ("Success") >> return tt
  | (gave_up n) := io.put_str_ln ("Gave up " ++ repr n ++ " times") >> return ff
  | (failure _ xs) := do
    io.put_str_ln "\n===================",

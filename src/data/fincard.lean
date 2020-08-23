@@ -148,7 +148,7 @@ begin
     exact function.nmem_support.1 (λ h, hx h),
 end
 
-lemma finsum_in_eq_finset_sum (f : α → M) (s : set α)
+lemma finsum_in_eq_finset_sum (f : α → M) {s : set α}
   (hf : (s ∩ function.support f).finite) :
   finsum_in s f = hf.to_finset.sum f :=
 begin
@@ -166,7 +166,7 @@ lemma finsum_in_eq_finset_sum' (f : α → M) (s : set α)
   (hf : (function.support f).finite) :
   finsum_in s f = (finset.filter (∈ s) hf.to_finset).sum f :=
 begin
-  rw finsum_in_eq_finset_sum f s (set.finite.subset hf (set.inter_subset_right _ _)),
+  rw finsum_in_eq_finset_sum f (set.finite.subset hf (set.inter_subset_right _ _)),
   congr, ext, finish
 end
 
@@ -181,7 +181,7 @@ end
 lemma finsum_in_eq_finset_sum''' (f : α → M) {s : set α} (hs : s.finite) :
   finsum_in s f = hs.to_finset.sum f :=
 begin
-  rw finsum_in_eq_finset_sum f s (set.finite.subset hs (set.inter_subset_left _ _)),
+  rw finsum_in_eq_finset_sum f (set.finite.subset hs (set.inter_subset_left _ _)),
   conv_rhs { rw ← finset.sum_filter_ne_zero },
   refine finset.sum_congr _ (λ _ _, rfl),
   ext, rw [set.finite.to_finset, set.finite.to_finset, finset.mem_filter, set.mem_to_finset,
@@ -198,7 +198,7 @@ end
 lemma finsum_in_eq (f : α → M) (s : set α)
   (hf : (s ∩ function.support f).finite) : finsum_in (s ∩ function.support f) f = finsum_in s f :=
 begin
-  rw [finsum_in_eq_finset_sum f s hf, finsum_in_eq_finset_sum f (s ∩ function.support f) _],
+  rw [finsum_in_eq_finset_sum f hf, finsum_in_eq_finset_sum f _],
     { rw [set.finite.to_finset, set.finite.to_finset],
       refine finset.sum_congr _ (λ _ _, rfl);
       simp_rw [set.inter_assoc, set.inter_self], assumption, congr }
@@ -299,7 +299,7 @@ end
 
 /-- The sum on the image `g '' s` over the function `f` equals the sum on `s` over `f ∘ g` given `g`
   is injective on `s`. -/
-lemma finsum_in_image {s : set β} {g : β → α} (hs : s.finite) (hg : set.inj_on g s) :
+@[simp] lemma finsum_in_image {s : set β} {g : β → α} (hs : s.finite) (hg : set.inj_on g s) :
   finsum_in (g '' s) f = finsum_in s (f ∘ g) :=
 begin
   rw [finsum_in_eq_finset_sum''' (f ∘ g) hs, finsum_in_eq_finset_sum''' f (set.finite.image g hs),
@@ -308,7 +308,7 @@ begin
   congr, ext, simp
 end
 
-lemma foo {s : set β} {g : β → α} :
+lemma set.image_inter_support_eq {s : set β} {g : β → α} :
   (g '' s ∩ function.support f) = g '' (s ∩ function.support (f ∘ g)) :=
 begin
   ext y, split; intro hy,
@@ -317,22 +317,24 @@ begin
     { finish }
 end .
 
-lemma foo' {s : set β} {g : β → α} (hg : set.inj_on g s) :
+lemma set.image_inter_support_finite_iff {s : set β} {g : β → α} (hg : set.inj_on g s) :
   (g '' s ∩ function.support f).finite ↔ (s ∩ function.support (f ∘ g)).finite :=
 begin
-  rw [foo, set.finite_image_iff],
+  rw [set.image_inter_support_eq, set.finite_image_iff],
   exact set.inj_on.mono (set.inter_subset_left s _) hg
 end
 
 /-- A more general version of `finsum_in_image` that requires `s ∩ function.support f` instead of
   `s` to be finite. -/
-lemma finsum_in_image' {s : set β} {g : β → α}
+@[simp] lemma finsum_in_image' {s : set β} {g : β → α}
   (hs : (g '' s ∩ function.support f).finite) (hg : set.inj_on g s) :
   finsum_in (g '' s) f = finsum_in s (f ∘ g) :=
 begin
-  rw [finsum_in_eq_finset_sum _ _ hs, finsum_in_eq_finset_sum _ _ ((foo' hg).1 hs),
+  rw [finsum_in_eq_finset_sum _ hs, finsum_in_eq_finset_sum _
+        ((set.image_inter_support_finite_iff hg).1 hs),
      ← finsum_in_eq_finset_sum''', ← finsum_in_eq_finset_sum''',
-     ← (@finsum_in_image _ _ _ _ f (s ∩ function.support (f ∘ g)) g ((foo' hg).1 hs)
+     ← (@finsum_in_image _ _ _ _ f (s ∩ function.support (f ∘ g)) g
+        ((set.image_inter_support_finite_iff hg).1 hs)
       (set.inj_on.mono (set.inter_subset_left s _) hg))],
     { congr, ext y, refine ⟨_, by finish⟩,
       rintro ⟨⟨x, hx, rfl⟩, hy⟩,
@@ -348,6 +350,36 @@ lemma finsum_in_eq_of_bij_on {s : set α} {t : set β} {f : α → M} {g : β �
 begin
   rw [(set.bij_on.image_eq he₀).symm, finsum_in_image' he₂ he₀.2.1],
   exact finsum_in_congr rfl he₁
+end
+
+/-- Given finite sets `s` and `t`, the sum on `s ∪ t` over the function `f` plus the sum on `s ∩ t`
+  over `f` equals the sum on `s` over `f` plus the sum on `t` over `f`. -/
+@[simp] lemma finsum_in_union_inter (hs : s.finite) (ht : t.finite) :
+  finsum_in (s ∪ t) f + finsum_in (s ∩ t) f = finsum_in s f + finsum_in t f :=
+begin
+  rw [finsum_in_eq_finset_sum''' f hs, finsum_in_eq_finset_sum''' f ht,
+      finsum_in_eq_finset_sum''' f (set.finite.union hs ht),
+      finsum_in_eq_finset_sum''' f (set.finite.subset hs (set.inter_subset_left _ _)),
+      set.finite.to_finset],
+  convert finset.sum_union_inter; { { ext, split; finish } <|> apply_instance }
+end .
+
+/-- A more general version of `finsum_in_union_inter` that requires `s ∩ function.support f` and
+  `t ∩ function.support f` instead of `s` and `t` to be finite. -/
+@[simp] lemma finsum_in_union_inter'
+  (hs : (s ∩ function.support f).finite) (ht : (t ∩ function.support f).finite) :
+  finsum_in (s ∪ t) f + finsum_in (s ∩ t) f = finsum_in s f + finsum_in t f :=
+begin
+  rw [← finsum_in_eq f s hs, ← finsum_in_eq f t ht,
+      ← finsum_in_eq f (s ∪ t), ← finsum_in_eq f (s ∩ t),
+      ← finsum_in_union_inter hs ht, set.inter_distrib_right],
+  conv_rhs { congr, skip, congr,
+    rw [set.inter_assoc, ← set.inter_assoc _ t, set.inter_comm _ t,
+        set.inter_assoc, set.inter_self, ← set.inter_assoc] },
+    { rw [set.inter_assoc, set.inter_comm t _, ← set.inter_assoc],
+      exact (set.finite.subset hs (set.inter_subset_left _ _)) },
+    { rw [set.inter_distrib_right],
+      exact set.finite.union hs ht }
 end
 
 end finsum

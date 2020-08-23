@@ -122,9 +122,9 @@ lemma one_val {n : ℕ} : (1 : fin (n+1)).val = 1 % (n+1) := rfl
 
 @[simp] lemma val_zero' (n) : (0 : fin (n+1)).val = 0 := rfl
 
-@[simp] lemma mk_zero_eq_zero : (⟨0, nat.succ_pos'⟩ : fin (n + 1)) = 0 := rfl
+@[simp] lemma mk_zero : (⟨0, nat.succ_pos'⟩ : fin (n + 1)) = 0 := rfl
 
-@[simp] lemma mk_one_eq_one : (⟨1, nat.succ_lt_succ (nat.succ_pos n)⟩ : fin (n + 2)) = 1 := rfl
+@[simp] lemma mk_one : (⟨1, nat.succ_lt_succ (nat.succ_pos n)⟩ : fin (n + 2)) = 1 := rfl
 
 @[simp]
 lemma of_nat_eq_coe (n : ℕ) (a : ℕ) : (of_nat a : fin (n+1)) = a :=

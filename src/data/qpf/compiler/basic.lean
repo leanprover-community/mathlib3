@@ -36,8 +36,8 @@ instance {m : Type u → Type v} [applicative m] : applicative (reversed m) :=
 instance {m : Type u → Type v} [applicative m] [F : is_lawful_applicative m] : is_lawful_applicative (reversed m) :=
 { map_const_eq := λ α β, @map_const_eq m _ _ α β,
   pure_seq_eq_map := by intros; simp [(<*>),(<$>),pure,flip] with functor_norm,
-  map_pure := λ α β g x, @map_pure m _ _ _ _ g x,
-  seq_pure := by intros; simp [(<*>),(<$>),pure,flip] with functor_norm,
+  map_pure  := λ α β g x, @map_pure m _ _ _ _ g x,
+  seq_pure  := by intros; simp [(<*>),(<$>),pure,flip] with functor_norm,
   seq_assoc := by intros; simp [(<*>),(<$>),pure,flip] with functor_norm,
   .. F.to_is_lawful_functor }
 
@@ -392,7 +392,7 @@ do let trusted := func.decl.is_trusted,
        let e := (@expr.const tt func.decl.to_name (func.decl.univ_params.map level.param)).mk_app $ vs.map both,
        exact e },
    df ← instantiate_mvars df,
-   add_decl $ declaration.defn func.def_name func.decl.univ_params t df (reducibility_hints.regular 1 tt) trusted
+   emit_decl func.def_name $ declaration.defn func.def_name func.decl.univ_params t df (reducibility_hints.regular 1 tt) trusted
 
 meta def mk_live_vec (u : level) (vs : list expr) : tactic expr :=
 trace_scope $
@@ -422,7 +422,7 @@ do let decl := func.decl,
    trace_expr rhs,
    p ← mk_app `eq [lhs,rhs] >>= pis func.params,
    pr ← solve_async [] p $ intros >> reflexivity,
-   add_decl $ declaration.thm func.eqn_name decl.univ_params p pr
+   emit_decl func.def_name $ declaration.thm func.eqn_name decl.univ_params p pr
 
 meta def mk_internal_functor (n : name) : tactic internal_mvfunctor :=
 do d ← inductive_type.of_name n,
@@ -498,7 +498,7 @@ do let decl := func.decl,
            args' ← args.mmap (map_arg m),
            exact $ e.mk_app args' } },
    df ← instantiate_mvars df,
-   add_decl' $ declaration.defn func.map_name decl.univ_params map_t df (reducibility_hints.regular 1 tt) decl.is_trusted
+   emit_decl' func.def_name $ declaration.defn func.map_name decl.univ_params map_t df (reducibility_hints.regular 1 tt) decl.is_trusted
 open expr
 
 meta def mk_vecs {α} (l : level) (xs : list (α ⊕ fn_var)) : tactic (expr × expr × expr) :=
@@ -517,7 +517,7 @@ do params ← func.params'.mmap $ bitraverse (pure ∘ to_implicit_local_const) 
    let map := (@const tt func.map_name func.univ_params).mk_app func.dead_params v v' f x,
    t ← pis' [params.bind decls, [x]] F',
    df ← lambdas' [params.bind decls, [x]] map,
-   add_decl' $ mk_definition (func.induct.name <.> "map") func.induct.u_names t df
+   emit_decl' func.def_name $ mk_definition (func.induct.name <.> "map") func.induct.u_names t df
 
 meta def mk_mvfunctor_map_eqn (func : internal_mvfunctor) : tactic unit :=
 trace_scope $
@@ -559,14 +559,16 @@ do env ← get_env,
        pr ← solve_async [] eqn $ do
          { intros >> reflexivity },
        let n := func.map_name <.> ("_equation_" ++ to_string i),
-       d ← add_decl' $ declaration.thm n decl.univ_params eqn pr,
+       d ← emit_decl' func.def_name $ declaration.thm n decl.univ_params eqn pr,
        add_eqn_lemmas n,
        simp_attr.typevec.set n () tt,
        let n := func.induct.name <.> "map" <.> ("_equation_" ++ to_string i),
-       d ← add_decl' $ declaration.thm n decl.univ_params eqn' pr,
+       d ← emit_decl' func.def_name $ declaration.thm n decl.univ_params eqn' pr,
        add_eqn_lemmas n,
        simp_attr.typevec.set n () tt,
-       pure () }
+       pure () },
+   let n := func.induct.name <.> "map" <.> ("_equation_n"),
+   emit_decl func.def_name $ declaration.thm n decl.univ_params _ _
 
 meta def mk_mvfunctor_instance (func : internal_mvfunctor) : tactic unit :=
 trace_scope $
@@ -584,7 +586,7 @@ do map_d ← mk_mvfunctor_map func,
        to_expr ``( { mvfunctor . map := %%(map_d.mk_app vs) } ) >>= exact },
    df ← instantiate_mvars df,
    let inst_n := func.def_name <.> "mvfunctor",
-   add_decl $ declaration.defn inst_n func.decl.univ_params t df (reducibility_hints.regular 1 tt) func.decl.is_trusted,
+   emit_decl func.def_name $ declaration.defn inst_n func.decl.univ_params t df (reducibility_hints.regular 1 tt) func.decl.is_trusted,
    set_basic_attribute `instance inst_n,
    pure ()
 
@@ -671,7 +673,7 @@ do let n := decl.name,
         unify_app (const ``append1 [u]) [mv,v,c]) nil,
    df ← (instantiate_mvars vec >>= lambdas (dead ++ [hd_v]) : tactic _),
    let r := reducibility_hints.regular 1 tt,
-   add_decl' $ declaration.defn child_n func.decl.univ_params t df r tt,
+   emit_decl' func.def_name $ declaration.defn child_n func.decl.univ_params t df r tt,
    pure $ expr.const child_n $ func.induct.u_params
 
 meta def mk_pfunctor (func : internal_mvfunctor) : tactic unit :=
@@ -689,7 +691,7 @@ do d ← inductive_type.of_pfunctor func,
    let head_t := (@const tt (n <.> "head_t") func.decl.univ_levels).mk_app dead,
    let child_t := (@const tt (n <.> "child_t") func.decl.univ_levels).mk_app dead,
    df ← (mk_mapp ``mvpfunctor.mk [some $ reflect arity, head_t,child_t] >>= lambdas dead : tactic _),
-   add_decl $ mk_definition func.pfunctor_name func.decl.univ_params t df,
+   emit_decl func.def_name $ mk_definition func.pfunctor_name func.decl.univ_params t df,
    pure ()
 
 meta def mk_pfunc_constr (func : internal_mvfunctor) : tactic unit :=
@@ -760,7 +762,7 @@ do env ← get_env,
           let vs := func.params ++ args,
           r  ← pis vs r >>= instantiate_mvars,
           df ← instantiate_mvars df >>= lambdas vs,
-          add_decl $ mk_definition c' func.decl.univ_params r df,
+          emit_decl func.def_name $ mk_definition c' func.decl.univ_params r df,
           pure () },
    pure ()
 
@@ -871,7 +873,7 @@ do let u := fresh_univ func.induct.u_names,
    let vs := [func.params.map expr.to_implicit_local_const, C :: cases_t.map prod.snd],
    df ← instantiate_mvars df >>= lambdas' vs,
    t ← pis' (vs ++ [[n]]) (C n),
-   add_decl $ mk_definition (func.pfunctor_name <.> "rec") (u :: func.induct.u_names) t df,
+   emit_decl func.def_name $ mk_definition (func.pfunctor_name <.> "rec") (u :: func.induct.u_names) t df,
    pure ()
 
 meta def mk_pfunc_rec_eqns (func : internal_mvfunctor) : tactic unit :=
@@ -891,7 +893,7 @@ do let u := fresh_univ func.induct.u_names,
      df ← solve_async [] t $ do
      { intros, reflexivity },
      let n := cn.append_suffix "_rec",
-     add_decl $ declaration.thm n (u :: func.induct.u_names) t df,
+     emit_decl func.def_name $ declaration.thm n (u :: func.induct.u_names) t df,
      add_eqn_lemmas n,
      simp_attr.typevec.set n () tt }) func.induct.ctors fs,
    skip
@@ -921,7 +923,7 @@ do let n := func.live_params.length,
      done },
    t ← pis dead_params t,
    df ← instantiate_mvars df >>= lambdas dead_params,
-   add_decl $ mk_definition func.abs_name func.induct.u_names t df
+   emit_decl func.def_name $ mk_definition func.abs_name func.induct.u_names t df
 
 meta def mk_qpf_repr (func : internal_mvfunctor) : tactic unit :=
 do let n := func.live_params.length,
@@ -948,7 +950,7 @@ do let n := func.live_params.length,
      done },
    t ← pis dead_params t,
    df ← instantiate_mvars df >>= lambdas dead_params,
-   add_decl $ mk_definition func.repr_name func.induct.u_names t df
+   emit_decl func.def_name $ mk_definition func.repr_name func.induct.u_names t df
 
 open bitraversable
 
@@ -980,7 +982,7 @@ do params ← mmap_live' mk_fn_var func.params',
             done <|> reflexivity <|> (congr; ext [rcases_patt.many [[rcases_patt.one `_]]] none; reflexivity),
             done },
           let n := cn.append_suffix "_map",
-          add_decl $ declaration.thm n func.induct.u_names t df,
+          emit_decl func.def_name $ declaration.thm n func.induct.u_names t df,
           simp_attr.typevec.set n () tt },
    skip
 
@@ -1031,7 +1033,7 @@ do let n := func.live_params.length,
    df ← instantiate_mvars df >>= lambdas dead_params,
    mvqpf_t ← pis dead_params mvqpf_t,
    let inst_n := func.def_name <.> "mvqpf",
-   add_decl $ mk_definition inst_n func.induct.u_names mvqpf_t df,
+   emit_decl func.def_name $ mk_definition inst_n func.induct.u_names mvqpf_t df,
    set_basic_attribute `instance inst_n
 
 meta def mk_conj : list expr → expr
@@ -1098,7 +1100,7 @@ do let my_t := (@const tt func.induct.name func.induct.u_params).mk_app func.par
        done },
      t ← pis ((func.params ++ fs).map to_implicit_local_const) t,
      let n := c.name.append_suffix "_liftp",
-     add_decl $ declaration.thm n func.induct.u_names t df },
+     emit_decl func.def_name $ declaration.thm n func.induct.u_names t df },
    skip
 
 -- #check @typevec.liftr_def
@@ -1292,7 +1294,7 @@ do params ← func.params'.mmap_live' mk_pred_var,
    t ← pis' vs t,
    pr ← instantiate_mvars pr >>= lambdas' vs,
    let vars := pr.list_local_consts,
-   add_decl $ mk_definition (func.induct.name <.> "liftp_def") func.induct.u_names t pr,
+   emit_decl func.def_name $ mk_definition (func.induct.name <.> "liftp_def") func.induct.u_names t pr,
    skip
 
 meta def mk_liftp_eqns₁ (func : internal_mvfunctor) : tactic unit :=
@@ -1356,7 +1358,7 @@ do let F := (@const tt func.induct.name func.univ_params).mk_app func.params,
              skip },
         done },
    t ← pis' vs t,
-   add_decl $ declaration.thm (func.induct.name <.> "liftp_iff") func.induct.u_names t pr,
+   emit_decl func.def_name $ declaration.thm (func.induct.name <.> "liftp_iff") func.induct.u_names t pr,
    skip
 
 meta def mk_liftr_eqns₀ (func : internal_mvfunctor) : tactic unit :=
@@ -1401,7 +1403,7 @@ do params ← func.params'.mmap_live' mk_rel_var,
    t ← pis' vs t,
    pr ← instantiate_mvars pr >>= lambdas' vs,
    let vars := pr.list_local_consts,
-   add_decl $ mk_definition (func.induct.name <.> "liftr_def") func.induct.u_names t pr,
+   emit_decl func.def_name $ mk_definition (func.induct.name <.> "liftr_def") func.induct.u_names t pr,
    skip
 
 meta def mk_liftr_eqns₁ (func : internal_mvfunctor) : tactic unit :=
@@ -1470,7 +1472,7 @@ do let F := (@const tt func.induct.name func.univ_params).mk_app func.params,
              skip },
         done },
    t ← pis' vs t,
-   add_decl $ declaration.thm (func.induct.name <.> "liftr_iff") func.induct.u_names t pr,
+   emit_decl func.def_name $ declaration.thm (func.induct.name <.> "liftr_iff") func.induct.u_names t pr,
    skip
 
 -- meta def mk_liftr_defn (func : internal_mvfunctor) : tactic unit :=
@@ -1489,7 +1491,7 @@ do let F := (@const tt func.induct.name func.univ_params).mk_app func.params,
 --    liftr ← mk_mapp ``typevec.liftr' [`(n),F_intl,none,vec],
 --    t ← pis' vs `(Prop),
 --    df ← lambdas' vs $ liftr map_f x' y',
---    df ← add_decl' $ mk_definition (func.induct.name <.> "liftr") func.induct.u_names t df,
+--    df ← emit_decl _' $ mk_definition (func.induct.name <.> "liftr") func.induct.u_names t df,
 
 --    /- now generate equation -/
 --    defn ← mk_mapp ``typevec.liftr_def [`(n),F_intl,none,vec,map_f,none,x',y'],
@@ -1517,7 +1519,7 @@ do let F := (@const tt func.induct.name func.univ_params).mk_app func.params,
 --    t ← pis' vs t,
 --    pr ← instantiate_mvars pr >>= lambdas' vs,
 --    let vars := pr.list_local_consts,
---    add_decl $ mk_definition (func.induct.name <.> "liftr_def") func.induct.u_names t pr,
+--    emit_decl _ $ mk_definition (func.induct.name <.> "liftr_def") func.induct.u_names t pr,
 --    skip
 
 -- meta def mk_liftr_eqns (func : internal_mvfunctor) : tactic unit :=
@@ -1618,7 +1620,7 @@ do let F := (@const tt func.induct.name func.univ_params).mk_app func.params,
 --      t ← pis ((params.bind decls').map to_implicit_local_const) t,
 --      df ← instantiate_mvars df >>= lambdas (params.bind decls'),
 --      -- trace_state,
---      -- add_decl $ declaration.thm (c.name.append_suffix "_liftr") func.induct.u_names t (pure df),
+--      -- emit_decl _ $ declaration.thm (c.name.append_suffix "_liftr") func.induct.u_names t (pure df),
 --      skip },
 
 --    skip

@@ -804,6 +804,30 @@ do hs ← ns.mmap $ get_eqn_lemmas_for tt,
    (s,u) ← mk_simp_set tt [] (hs.map $ simp_arg_type.expr ∘ to_pexpr),
    ls.try_apply (λ h, () <$ simp_hyp s u h) (simp_target s u)
 
+meta def decl_kind : declaration → string
+| (declaration.defn a a_1 a_2 a_3 a_4 a_5) := "def"
+| (declaration.thm a a_1 a_2 a_3) := "theorem"
+| (declaration.cnst a a_1 a_2 a_3) := "constant"
+| (declaration.ax a a_1 a_2) := "axiom"
+
+declare_trace generated_decl
+
+meta def generated_attr : user_attribute (native.rb_lmap name name) name :=
+{ name := `generated,
+  parser := ident,
+  cache_cfg :=
+    { mk_cache := λ ls, ls.mfoldl (λ m d, do gen ← generated_attr.get_param d, pure $ m.insert gen d)
+                                  (native.rb_lmap.mk _ _),
+      dependencies := [] },
+  descr := "mark generated declarations and tag them with the declaration that generated them" }
+
+meta def emit_decl' (n : name) (d : declaration) : tactic expr :=
+do when_tracing `generated_decl $ trace!"[generated for {n}]\n  {decl_kind d} {d.to_name} : {d.type}",
+   add_decl' d
+
+meta def emit_decl (n : name) (d : declaration) : tactic unit :=
+emit_decl' n d >> pure ()
+
 end tactic
 
 namespace psigma

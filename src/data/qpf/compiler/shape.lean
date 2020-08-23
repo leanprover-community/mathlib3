@@ -43,12 +43,6 @@ do func' ← internalize_mvfunctor d,
    mk_internal_functor_eqn func,
    pure ({ hole := v .. func }, func')
 
-meta def decl_kind : declaration → string
-| (declaration.defn a a_1 a_2 a_3 a_4 a_5) := "defn"
-| (declaration.thm a a_1 a_2 a_3) := "thm"
-| (declaration.cnst a a_1 a_2 a_3) := "cnst"
-| (declaration.ax a a_1 a_2) := "ax"
-
 -- meta def mk_struct (n : name) (ls : list name)
 
 meta def mk_fixpoint (fix : name) (func d : internal_mvfunctor) : tactic unit :=
@@ -58,11 +52,11 @@ do let dead := func.dead_params,
    t ← infer_type df,
    let intl_n := func.decl.to_name.get_prefix <.> "internal",
    updateex_env $ λ env, pure $ env.add_namespace intl_n,
-   add_decl $ mk_definition intl_n func.induct.u_names t df,
+   emit_decl fix $ mk_definition intl_n func.induct.u_names t df,
    v ← mk_live_vec func.vec_lvl $ func.live_params.init,
    df ← lambdas d.params $ (@const tt intl_n func.induct.u_params).mk_app func.dead_params v,
    t  ← infer_type df,
-   add_decl $ mk_definition func.decl.to_name.get_prefix func.induct.u_names t df,
+   emit_decl fix $ mk_definition func.decl.to_name.get_prefix func.induct.u_names t df,
    pure ()
 
 meta def timetac' {α : Type*} (_ : string) (tac : thunk (tactic α)) : tactic α :=

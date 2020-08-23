@@ -10,10 +10,30 @@ import category_theory.yoneda
 import order.complete_lattice
 import data.set.lattice
 
+/-!
+# Theory of sieves
+
+- For an object `X` of a category `C`, a `sieve X` is a set of morphisms to `X`
+  which is closed under left-composition.
+- The complete lattice structure on sieves is given, as well as the Galois insertion
+  given by downward-closing.
+- A `sieve X` (functorially) induces a presheaf on `C` together with a monomorphism to
+  the yoneda embedding of `X`.
+
+## Tags
+
+sieve, pullback
+-/
+
 universes v u
 namespace category_theory
 
-/-- A sieve on X is a set of morphisms to X that is closed under left composition. -/
+/-
+For an object `X` of a category `C`, a `sieve X` is a set of morphisms to `X`
+which is closed under left-composition.
+In practice it seems easier to work with this if left-composition is stated by
+quantifying over objects `Y` and arrows `Y ⟶ X` rather than quantifying over `over X`.
+-/
 structure sieve {C : Type u} [category.{v} C] (X : C) :=
 (arrows : set (over X))
 (subs : ∀ {Y Z : C} {f : Y ⟶ X} (g : Z ⟶ Y), over.mk f ∈ arrows → over.mk (g ≫ f) ∈ arrows)
@@ -29,14 +49,14 @@ lemma downward_closed (S : sieve X) {f : Y ⟶ X} (Hf : over.mk f ∈ S.arrows) 
   over.mk (g ≫ f) ∈ S.arrows :=
 S.subs g Hf
 
-lemma arrow_ext : Π {R S : sieve X}, R.arrows = S.arrows → R = S
+lemma arrows_ext : Π {R S : sieve X}, R.arrows = S.arrows → R = S
 | ⟨Ra, _⟩ ⟨Sa, _⟩ rfl := rfl
 
 @[ext] lemma ext {R S : sieve X}
   (h : ∀ {Y} (f : Y ⟶ X), over.mk f ∈ R.arrows ↔ over.mk f ∈ S.arrows) :
   R = S :=
 begin
-  apply arrow_ext,
+  apply arrows_ext,
   ext ⟨_, _, f'⟩,
   convert h f';
   apply subsingleton.elim,
@@ -50,18 +70,13 @@ open lattice
 
 /-- The supremum of a collection of sieves: just the union of them all. -/
 protected def Sup (𝒮 : set (sieve X)) : (sieve X) :=
-{ arrows := ⋃ (S : {i // i ∈ 𝒮}), S.1.arrows,
-  subs :=
-  begin
-    rintros Y Z f g ⟨R, ⟨⟨S, hS⟩, rfl⟩, w⟩,
-    refine ⟨_, ⟨⟨S, hS⟩, rfl⟩, _⟩,
-    simp [w],
-  end }
+{ arrows := {f | ∃ S ∈ 𝒮, f ∈ sieve.arrows S},
+  subs := λ Y Z f g, by { rintro ⟨S, hS, hf⟩, exact ⟨S, hS, S.downward_closed hf _⟩ } }
 
 /-- The infimum of a collection of sieves: the intersection of them all. -/
 protected def Inf (𝒮 : set (sieve X)) : (sieve X) :=
-{ arrows := ⋂ (S : {S // S ∈ 𝒮}), S.1.arrows,
-  subs := by { rintros Y Z f g R _ ⟨⟨S, hS⟩, rfl⟩, simp [R _ ⟨⟨S, hS⟩, rfl⟩] } }
+{ arrows := {f | ∀ S ∈ 𝒮, f ∈ sieve.arrows S},
+  subs := λ Y Z f g hf S H, S.downward_closed (hf S H) g }
 
 /-- The union of two sieves is a sieve. -/
 protected def union (S R : sieve X) : sieve X :=
@@ -89,10 +104,10 @@ instance : complete_lattice (sieve X) :=
   inf          := sieve.inter,
   Sup          := sieve.Sup,
   Inf          := sieve.Inf,
-  le_Sup       := λ _ S hS _ _ h, ⟨_, ⟨⟨S, hS⟩, rfl⟩, h⟩,
-  Sup_le       := begin rintros 𝒮 S hS Y f ⟨_, ⟨⟨T, hT⟩, rfl⟩, q⟩, apply hS _ hT _ _ q end,
-  Inf_le       := λ _ S hS _ _ h, h _ ⟨⟨_, hS⟩, rfl⟩,
-  le_Inf       := begin rintros 𝒮 S hS Y f h q ⟨⟨T, hT⟩, rfl⟩, apply hS _ hT _ _ h end,
+  le_Sup       := λ 𝒮 S hS Y f hf, ⟨S, hS, hf⟩,
+  Sup_le       := λ ℰ S hS Y f, by { rintro ⟨R, hR, hf⟩, apply hS R hR _ _ hf },
+  Inf_le       := λ _ _ hS _ _ h, h _ hS,
+  le_Inf       := λ _ _ hS _ _ hf _ hR, hS _ hR _ _ hf,
   le_sup_left  := λ _ _ _ _, or.inl,
   le_sup_right := λ _ _ _ _, or.inr,
   sup_le       := λ _ _ _ a b _ _ hf, hf.elim (a _ _) (b _ _),
@@ -101,6 +116,16 @@ instance : complete_lattice (sieve X) :=
   le_inf       := λ _ _ _ p q _ _ z, ⟨p _ _ z, q _ _ z⟩,
   le_top       := λ _ _ _ _, trivial,
   bot_le       := λ _ _ _, false.elim }
+
+@[simp]
+lemma mem_Inf {Ss : set (sieve X)} {Y} (f : Y ⟶ X) :
+  over.mk f ∈ (Inf Ss).arrows ↔ ∀ S ∈ Ss, over.mk f ∈ sieve.arrows S :=
+iff.rfl
+
+@[simp]
+lemma mem_Sup {Ss : set (sieve X)} {Y} (f : Y ⟶ X) :
+  over.mk f ∈ (Sup Ss).arrows ↔ ∃ S ∈ Ss, over.mk f ∈ sieve.arrows S :=
+iff.rfl
 
 @[simp]
 lemma mem_inter {R S : sieve X} {Y} (f : Y ⟶ X) :

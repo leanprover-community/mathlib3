@@ -52,8 +52,8 @@ instance has_limits_of_shape_of_has_finite_limits
   has_limits_of_shape J C :=
 ‹has_finite_limits C› J
 
-@[priority 10]
-instance has_finite_limits_of_has_limits [has_limits C] : has_finite_limits C :=
+/-- If `C` has all limits, it has finite limits. -/
+def has_finite_limits_of_has_limits [has_limits C] : has_finite_limits C :=
 λ J 𝒥₁ 𝒥₂, infer_instance
 
 def has_finite_colimits : Type (max (v+1) u) :=
@@ -67,8 +67,8 @@ instance has_colimits_of_shape_of_has_finite_colimits
   has_colimits_of_shape J C :=
 ‹has_finite_colimits C› J
 
-@[priority 10]
-instance has_finite_colimits_of_has_colimits [has_colimits C] : has_finite_colimits C :=
+/-- If `C` has all colimits, it has finite colimits. -/
+def has_finite_colimits_of_has_colimits [has_colimits C] : has_finite_colimits C :=
 λ J 𝒥₁ 𝒥₂, infer_instance
 
 section

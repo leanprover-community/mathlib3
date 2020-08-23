@@ -30,8 +30,8 @@ instance has_limits_of_shape_discrete
   has_limits_of_shape (discrete J) C :=
 ‹has_finite_products C› J
 
-@[priority 10]
-instance [has_finite_limits C] : has_finite_products C :=
+/-- If `C` has finite limits then it has finite products. -/
+def has_finite_products_of_has_finite_limits [has_finite_limits C] : has_finite_products C :=
 λ J 𝒥₁ 𝒥₂, by exactI infer_instance
 
 /--
@@ -54,8 +54,8 @@ instance has_colimits_of_shape_discrete
   has_colimits_of_shape (discrete J) C :=
 ‹has_finite_coproducts C› J
 
-@[priority 10]
-instance [has_finite_colimits C] : has_finite_coproducts C :=
+/-- If `C` has finite colimits then it has finite coproducts. -/
+def has_finite_coproducts_of_has_finite_colimits [has_finite_colimits C] : has_finite_coproducts C :=
 λ J 𝒥₁ 𝒥₂, by exactI infer_instance
 
 /--

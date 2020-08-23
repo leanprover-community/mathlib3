@@ -159,7 +159,7 @@ begin
         split; finish },
       { finish } },
     { refine set.finite.subset hf (λ x hx, set.mem_inter _ _);
-      rw function.mem_support at *; finish }
+      rw function.mem_support at hx; finish }
 end .
 
 lemma finsum_in_eq_finset_sum' (f : α → M) (s : set α)
@@ -203,6 +203,9 @@ begin
       refine finset.sum_congr _ (λ _ _, rfl);
       simp_rw [set.inter_assoc, set.inter_self], assumption, congr }
 end
+
+lemma finsum_eq_finsum_in_univ (f : α → M) : finsum f = finsum_in set.univ f :=
+by { rw finsum_in_def, congr, funext, rw if_pos (set.mem_univ _) }
 
 variables {β : Type w} {f g : α → M} {a b : α} {s t : set α}
 
@@ -354,7 +357,7 @@ end
 
 /-- Given finite sets `s` and `t`, the sum on `s ∪ t` over the function `f` plus the sum on `s ∩ t`
   over `f` equals the sum on `s` over `f` plus the sum on `t` over `f`. -/
-@[simp] lemma finsum_in_union_inter (hs : s.finite) (ht : t.finite) :
+lemma finsum_in_union_inter (hs : s.finite) (ht : t.finite) :
   finsum_in (s ∪ t) f + finsum_in (s ∩ t) f = finsum_in s f + finsum_in t f :=
 begin
   rw [finsum_in_eq_finset_sum''' f hs, finsum_in_eq_finset_sum''' f ht,
@@ -366,7 +369,7 @@ end .
 
 /-- A more general version of `finsum_in_union_inter` that requires `s ∩ function.support f` and
   `t ∩ function.support f` instead of `s` and `t` to be finite. -/
-@[simp] lemma finsum_in_union_inter'
+lemma finsum_in_union_inter'
   (hs : (s ∩ function.support f).finite) (ht : (t ∩ function.support f).finite) :
   finsum_in (s ∪ t) f + finsum_in (s ∩ t) f = finsum_in s f + finsum_in t f :=
 begin
@@ -381,6 +384,85 @@ begin
     { rw [set.inter_distrib_right],
       exact set.finite.union hs ht }
 end
+
+/-- Given two finite disjoint sets `s` and `t`, the sum on `s ∪ t` over the function `f` equals the
+  sum on `s` over `f` plus the sum on `t` over `f`. -/
+lemma finsum_in_union (hs : s.finite) (ht : t.finite) (hst : disjoint s t) :
+  finsum_in (s ∪ t) f = finsum_in s f + finsum_in t f :=
+by rw [← finsum_in_union_inter hs ht,
+       show s ∩ t = ∅, by exact disjoint_iff.1 hst, finsum_in_empty, add_zero]
+
+/-- A more general version of `finsum_in_union` that requires `s ∩ function.support f` and
+  `t ∩ function.support f` instead of `s` and `t` to be finite. -/
+lemma finsum_in_union'
+  (hs : (s ∩ function.support f).finite) (ht : (t ∩ function.support f).finite)
+  (hst : disjoint s t) : finsum_in (s ∪ t) f = finsum_in s f + finsum_in t f :=
+by rw [← finsum_in_union_inter' hs ht,
+       show s ∩ t = ∅, by exact disjoint_iff.1 hst, finsum_in_empty, add_zero]
+
+/-- Given a finite set `t` and a subset `s` of `t`, the sum on `s` over the function `f` plus the
+  sum on `t \ s` over `f` equals the sum on `t` over `f`. -/
+lemma finsum_in_sdiff (ht : t.finite) (hst : s ⊆ t) :
+  finsum_in s f + finsum_in (t \ s) f = finsum_in t f :=
+begin
+  conv_rhs { rw ← set.union_diff_cancel hst },
+  exact (finsum_in_union (set.finite.subset ht hst)
+    (set.finite.subset ht $ set.diff_subset t s) set.disjoint_diff).symm
+end
+
+/-- A more general version of `finsum_in_sdiff` that requires `t ∩ function.support f` instead of
+  `t` to be finite. -/
+lemma finsum_in_sdiff' (ht : (t ∩ function.support f).finite)
+  (hst : s ⊆ t) : finsum_in s f + finsum_in (t \ s) f = finsum_in t f :=
+begin
+  conv_rhs { rw ← set.union_diff_cancel hst },
+  exact (finsum_in_union' (set.finite.subset ht (set.inter_subset_inter_left _ hst))
+    (set.finite.subset ht (set.inter_subset_inter (set.diff_subset t s) $ set.subset.refl _))
+      set.disjoint_diff).symm
+end
+
+lemma finsum_in_bind {s : set β} {t : β → set α} (hs : s.finite)
+  (ht : ∀ b, (t b).finite) (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) :
+  finsum_in (⋃ x ∈ s, t x) f = finsum_in s (λ x, finsum_in (t x) f) :=
+begin
+  rw finsum_in_eq_finset_sum''' _ hs,
+  rw finsum_in_eq_finset_sum''' f (set.finite.bUnion hs (λ i _, ht i)),
+  conv_rhs { congr, skip, funext, rw finsum_in_eq_finset_sum''' f (ht x) },
+  convert @finset.sum_bind _ _ _ f _ _ hs.to_finset (λ x, (ht x).to_finset)
+    (begin
+      intros x hx y hy hxy a ha,
+      specialize h x (set.finite.mem_to_finset.1 hx) y (set.finite.mem_to_finset.1 hy) hxy,
+      apply @h a, simpa using ha
+    end),
+  ext, rw [finset.mem_bind, set.finite.mem_to_finset, set.mem_bUnion_iff],
+  split; intro ha; rcases ha with ⟨x, hx₀, hx₁⟩,
+    exact ⟨x, set.finite.mem_to_finset.2 hx₀, set.finite.mem_to_finset.2 hx₁⟩,
+    exact ⟨x, set.finite.mem_to_finset.1 hx₀, set.finite.mem_to_finset.1 hx₁⟩
+end .
+
+lemma finsum_in_Union [fintype β] {t : β → set α}
+  (ht : ∀ b, (t b).finite) (h : ∀ x y, x ≠ y → disjoint (t x) (t y)) :
+  finsum_in (⋃ x : β, t x) f = finsum (λ x, finsum_in (t x) f) :=
+begin
+  rw finsum_eq_finsum_in_univ,
+  rw ← finsum_in_bind (set.finite.of_fintype _) ht (λ x _ y _, h x y),
+    { congr, funext y, simp only [set.Union_pos, set.mem_univ] },
+end
+
+-- ↓ probably a bad way of phrasing this
+lemma finsum_in_bUnion {s : set β} {t : Π (x : β), x ∈ s → set α}
+  (hs : s.finite) (ht : ∀ b (hb : b ∈ s), (t b hb).finite)
+  (h : ∀ x (hx : x ∈ s), ∀ y (hy : y ∈ s), x ≠ y → disjoint (t x hx) (t y hy)) :
+  finsum_in (⋃ x (hx : x ∈ s), t x hx) f =
+  finsum_in s (λ x, if hx : x ∈ s then finsum_in (t x hx) f else 0) :=
+begin sorry end
+
+lemma finsum_in_sUnion {t : set (set α)} (ht₀ : t.finite)
+  (ht₁ : ∀ (x : set α) (hs : x ∈ t), x.finite)
+  (h : ∀ x ∈ t, ∀ y ∈ t, x ≠ y → disjoint x y) :
+  finsum_in (⋃₀ t) f = finsum_in t (λ x, finsum_in x f) :=
+by rw [set.sUnion_eq_bUnion, finsum_in_bUnion ht₀ ht₁ (by simpa)];
+  exact finsum_in_congr rfl (λ x hx, dif_pos hx)
 
 end finsum
 

@@ -35,7 +35,7 @@ The stalk of a presheaf `F` at a point `x` is calculated as the colimit of the f
 nbhds x ⥤ opens F.X ⥤ C
 -/
 def stalk (ℱ : X.presheaf C) (x : X) : C :=
-(stalk_functor C x).obj ℱ -- -- colimit (nbhds_inclusion x ⋙ ℱ)
+(stalk_functor C x).obj ℱ -- -- colimit ((open_nhds.inclusion x).op ⋙ ℱ)
 
 @[simp] lemma stalk_functor_obj (ℱ : X.presheaf C) (x : X) : (stalk_functor C x).obj ℱ = ℱ.stalk x := rfl
 

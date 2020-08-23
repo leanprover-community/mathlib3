@@ -1,10 +1,11 @@
 /-
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl, Casper Putz
+Author: Johannes Hölzl, Patrick Massot, Casper Putz
 -/
 import linear_algebra.finite_dimensional
 import linear_algebra.nonsingular_inverse
+import linear_algebra.multilinear
 
 /-!
 # Linear maps and matrices
@@ -15,16 +16,34 @@ to matrices. This defines a linear equivalence between linear maps
 between finite-dimensional vector spaces and matrices indexed by
 the respective bases.
 
+It also defines the trace of a endomorphism, and the determinant of a family of vectors with
+respect to some basis.
+
 Some results are proved about the linear map corresponding to a
 diagonal matrix (`range`, `ker` and `rank`).
 
 ## Main definitions
 
-`to_lin`, `to_matrix`, `linear_equiv_matrix`
+In the list below, and in all this file, `R` is a commutative ring (semiring
+is sometimes enough), `M` and its variations are `R`-modules, `ι`, `κ`, `n` and `m` are finite
+types used for indexing.
+
+* `to_lin`: the `R`-linear map from `matrix m n R` to `R`-linear maps from `n → R` to `m → R`
+* `to_matrix`: the map in the other direction
+* `linear_equiv_matrix`: given bases `v₁ : ι → M₁` and `v₂ : κ → M₂`, the `R`-linear equivalence
+  from `M₁ →ₗ[R] M₂` to `matrix κ ι R`
+* `linear_equiv_matrix'`: the same thing but with `M₁ = n → R` and `M₂ = m → R`, using their
+  standard bases
+* `alg_equiv_matrix`: given a basis indexed by `n`, the `R`-algebra equivalence between
+  `R`-endomorphisms of `M` and `matrix n n R`
+* `matrix.trace`: the trace of a square matrix
+* `linear_map.trace`: the trace of a endomorphism
+* `is_basis.det`: the determinant of a family of vectors with respect to a basis, as a multilinear
+  map
 
 ## Tags
 
-linear_map, matrix, linear_equiv, diagonal
+linear_map, matrix, linear_equiv, diagonal, det, trace
 
 -/
 
@@ -294,8 +313,49 @@ end
 
 end comp
 
-section det
+end matrix
 
+section is_basis_to_matrix
+
+variables {ι ι' R M : Type*} [fintype ι] [decidable_eq ι]
+          [comm_ring R] [add_comm_group M] [module R M]
+
+open function matrix
+
+/-- From a basis `e : ι → M` and a family of vectors `v : ι → M`, make the matrix whose columns
+are the vectors `v i` written in the basis `e`. -/
+def is_basis.to_matrix {e : ι → M} (he : is_basis R e) (v : ι → M) : matrix ι ι R :=
+  linear_equiv_matrix he he (he.constr v)
+
+variables {e : ι → M} (he : is_basis R e) (v : ι → M) (i j : ι)
+
+lemma is_basis.to_matrix_apply : he.to_matrix v i j = he.repr (v j) i :=
+by simp [is_basis.to_matrix, linear_equiv_matrix_apply']
+
+@[simp] lemma is_basis.to_matrix_self : he.to_matrix e = 1 :=
+begin
+  rw is_basis.to_matrix,
+  ext i j,
+  simp [linear_equiv_matrix_apply, equiv_fun_basis, matrix.one_apply, finsupp.single, eq_comm]
+end
+
+lemma is_basis.to_matrix_update (x : M) :
+  he.to_matrix (function.update v i x) = matrix.update_column (he.to_matrix v) i (he.repr x) :=
+begin
+  ext j k,
+  rw [is_basis.to_matrix, linear_equiv_matrix_apply' he he (he.constr (update v i x)),
+      matrix.update_column_apply, constr_basis, he.to_matrix_apply],
+  split_ifs,
+  { rw [h, update_same i x v] },
+  { rw update_noteq h },
+end
+
+end is_basis_to_matrix
+
+open_locale matrix
+
+section det
+open matrix
 variables {R ι M M' : Type*} [comm_ring R]
   [add_comm_group M] [module R M]
   [add_comm_group M'] [module R M']
@@ -335,7 +395,42 @@ def linear_equiv.of_is_unit_det {f : M →ₗ[R] M'} {hv : is_basis R v} {hv' : 
     simp [h]
   end }
 
+variables {e : ι → M} (he : is_basis R e)
+
+/-- The determinant of a family of vectors with respect to some basis, as a multilinear map. -/
+def is_basis.det : multilinear_map R (λ i : ι, M) R :=
+{ to_fun := λ v, det (he.to_matrix v),
+  map_add' := begin
+    intros v i x y,
+    simp only [he.to_matrix_update, linear_map.map_add],
+    apply det_update_column_add
+  end,
+  map_smul' := begin
+    intros u i c x,
+    simp only [he.to_matrix_update, algebra.id.smul_eq_mul, map_smul_eq_smul_map],
+    apply det_update_column_smul
+  end }
+
+lemma is_basis.det_apply (v : ι → M) : he.det v = det (he.to_matrix v) := rfl
+
+lemma is_bases.det_self : he.det e = 1 :=
+by simp [he.det_apply]
+
+lemma is_basis.iff_det (v : ι → M) : is_basis R v ↔ is_unit (he.det v) :=
+begin
+  split,
+  { intro hv,
+    change is_unit (linear_equiv_matrix he he (equiv_of_is_basis he hv $ equiv.refl ι)).det,
+    apply linear_equiv.is_unit_det },
+  { intro h,
+    convert linear_equiv.is_basis he (linear_equiv.of_is_unit_det h),
+    ext i,
+    exact (constr_basis he).symm },
+end
+
 end det
+
+namespace matrix
 
 section trace
 

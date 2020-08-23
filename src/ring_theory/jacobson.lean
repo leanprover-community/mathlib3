@@ -167,7 +167,7 @@ begin
       have : J ≤ map f.to_map I := (map_comap f J) ▸ (map_mono hI.left),
       exact absurd (h.right _ (lt_of_le_of_ne this hJ)) hI_p.left } },
   { refine λ h, ⟨λ hJ, h.left.left (eq_top_iff.2 _), λ I hI, _⟩,
-    { rwa [eq_top_iff, (le_rel_embedding f).map_rel_iff] at hJ },
+    { rwa [eq_top_iff, (order_embedding f).map_rel_iff] at hJ },
     { have := congr_arg (map f.to_map) (h.left.right _ ⟨comap_mono (le_of_lt hI), _⟩),
       rwa [map_comap f I, map_top f.to_map] at this,
       refine λ hI', hI.right _,
@@ -190,9 +190,8 @@ end
 
 /-- If `R` is a Jacobson ring, then maximal ideals in the localization at `y`
 correspond to maximal ideals in the original ring `R` that don't contain `y` -/
-def le_rel_iso_of_maximal [is_jacobson R] :
-  ((≤) : {p : ideal S // p.is_maximal} → {p : ideal S // p.is_maximal} → Prop) ≃r
-  ((≤) : {p : ideal R // p.is_maximal ∧ y ∉ p} → {p : ideal R // p.is_maximal ∧ y ∉ ↑p} → Prop) :=
+def order_iso_of_maximal [is_jacobson R] :
+  {p : ideal S // p.is_maximal} ≃o {p : ideal R // p.is_maximal ∧ y ∉ p} :=
 { to_fun := λ p, ⟨ideal.comap f.to_map p.1, (is_maximal_iff_is_maximal_disjoint f p.1).1 p.2⟩,
   inv_fun := λ p, ⟨ideal.map f.to_map p.1, is_maximal_of_is_maximal_disjoint f p.1 p.2.1 p.2.2⟩,
   left_inv := λ J, subtype.eq (map_comap f J),

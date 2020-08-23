@@ -803,13 +803,13 @@ begin
   split,
   { refine λ h, ⟨⟨_, _⟩, λ m hm, h.1 (ideal.eq_top_of_is_unit_mem _ hm.2 (map_units f ⟨m, hm.left⟩))⟩,
     { refine λ hJ, h.left _,
-      rw [eq_top_iff, (le_rel_embedding f).map_rel_iff],
+      rw [eq_top_iff, (order_embedding f).map_rel_iff],
       exact le_of_eq hJ.symm },
     { intros x y hxy,
       rw [ideal.mem_comap, ring_hom.map_mul] at hxy,
       exact h.right hxy } },
   { refine λ h, ⟨λ hJ, h.left.left (eq_top_iff.2 _), _⟩,
-    { rwa [eq_top_iff, (le_rel_embedding f).map_rel_iff] at hJ },
+    { rwa [eq_top_iff, (order_embedding f).map_rel_iff] at hJ },
     { intros x y hxy,
       obtain ⟨a, s, ha⟩ := mk'_surjective f x,
       obtain ⟨b, t, hb⟩ := mk'_surjective f y,
@@ -833,10 +833,8 @@ end
 
 /-- If `R` is a ring, then prime ideals in the localization at `M`
 correspond to prime ideals in the original ring `R` that are disjoint from `M` -/
-def le_rel_iso_of_prime (f : localization_map M S) :
-  ((≤) : {p : ideal S // p.is_prime} → {p : ideal S // p.is_prime} → Prop) ≃r
-  ((≤) : {p : ideal R // p.is_prime ∧ disjoint (M : set R) ↑p}
-            → {p : ideal R // p.is_prime ∧ disjoint (M : set R) ↑p} → Prop) :=
+def order_iso_of_prime (f : localization_map M S) :
+  {p : ideal S // p.is_prime} ≃o {p : ideal R // p.is_prime ∧ disjoint (M : set R) ↑p} :=
 { to_fun := λ p, ⟨ideal.comap f.to_map p.1, (is_prime_iff_is_prime_disjoint f p.1).1 p.2⟩,
   inv_fun := λ p, ⟨ideal.map f.to_map p.1, is_prime_of_is_prime_disjoint f p.1 p.2.1 p.2.2⟩,
   left_inv := λ J, subtype.eq (map_comap f J),

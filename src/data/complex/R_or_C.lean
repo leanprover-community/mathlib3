@@ -19,15 +19,15 @@ follows closely that of ℂ.
 open classical
 
 /--
-blah
+This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
 -/
 class is_R_or_C (K : Type*) [normed_field K] [algebra ℝ K] [has_coe ℝ K] [decidable_eq K]:=
 (re : K →+ ℝ)
 (im : K →+ ℝ)
 (conj : K →+* K)
-(I : K)
+(I : K)       -- Meant to be set to 0 for ℝ
 (I_re_ax : re I = 0)
-(I_def_ax : I = 0 ∨ I * I = -1)
+(I_mul_I_ax : I = 0 ∨ I * I = -1)
 (re_add_im_ax : ∀ (z : K), (re z : K) + (im z) * I = z)
 (smul_coe_mul_ax : ∀ (z : K) (r : ℝ), r • z = (r : K) * z)
 (smul_re_ax : ∀ (r : ℝ) (z : K), re (r • z) = r * (re z))
@@ -45,103 +45,6 @@ class is_R_or_C (K : Type*) [normed_field K] [algebra ℝ K] [has_coe ℝ K] [de
 (inv_def : ∀ (z : K), z⁻¹ = conj z * ((∥z∥^2)⁻¹:ℝ))
 (div_I_ax : ∀ (z : K), z / I = -(z * I))
 
-instance : has_coe ℝ ℝ := ⟨id⟩
-
-noncomputable instance : is_R_or_C ℝ :=
-{ re := ⟨id, by simp only [id.def], by simp only [forall_const, id.def, eq_self_iff_true]⟩,
-  im := ⟨0, by simp only [pi.zero_apply], by simp only [add_zero, forall_const, pi.zero_apply]⟩,
-  conj := ⟨id, by simp only [id.def], by simp only [forall_const, id.def, eq_self_iff_true],
-          by simp only [id.def], by simp only [forall_const, id.def, eq_self_iff_true]⟩,
-  I := 0,
-  I_re_ax := by simp only [add_monoid_hom.map_zero],
-  I_def_ax := or.intro_left _ rfl,
-  re_add_im_ax := λ z, by unfold_coes; simp only [add_zero, id.def, mul_zero],
-  smul_coe_mul_ax := λ z r, by unfold_coes; simp only [algebra.id.smul_eq_mul, id.def],
-  smul_re_ax := λ r z, by unfold_coes; simp only [algebra.id.smul_eq_mul, id.def],
-  smul_im_ax := λ r z, by unfold_coes; simp only [pi.zero_apply, mul_zero],
-  of_real_re_ax := λ r, by unfold_coes; simp only [id.def],
-  of_real_im_ax := λ r, by unfold_coes; simp only [pi.zero_apply],
-  mul_re_ax := λ z w, by simp only [add_monoid_hom.coe_mk, id.def, pi.zero_apply, sub_zero, mul_zero],
-  mul_im_ax := λ z w, by simp only [add_zero, add_monoid_hom.coe_mk, zero_mul, pi.zero_apply, mul_zero],
-  conj_re_ax := λ z, by simp only [ring_hom.coe_mk, id.def],
-  conj_im_ax := λ z, by simp only [add_monoid_hom.coe_mk, pi.zero_apply, neg_zero],
-  conj_I_ax := by simp only [ring_hom.map_zero, neg_zero],
-  eq_conj_iff_real_ax := λ z,
-    begin
-      dsimp,
-      refine ⟨_, λ z, rfl⟩,
-      intro h,
-      refine ⟨z, _⟩,
-      unfold_coes,
-      simp only [id.def],
-    end,
-  norm_sq_eq_def := λ z, by simp only [pow_two, norm, ←abs_mul, abs_mul_self z, add_zero, add_monoid_hom.coe_mk, id.def, pi.zero_apply, mul_zero],
-  mul_im_I_ax := λ z, by simp only [add_monoid_hom.coe_mk, pi.zero_apply, mul_zero],
-  inv_def :=
-    begin
-      intro z,
-      rcases lt_trichotomy z 0 with hlt|heq|hgt,
-      { unfold_coes,
-        have : z ≠ 0 := by linarith,
-        field_simp [norm, abs, max_eq_right_of_lt (show z < -z, by linarith), pow_two, mul_inv'],
-        calc
-          1 / z = 1 * (1 / z)           : (one_mul (1 / z)).symm
-            ... = (z / z) * (1 / z)     : congr_arg (λ x, x * (1 / z)) (div_self this).symm
-            ... = z / (z * z)           : by field_simp },
-      { simp [heq] },
-      { unfold_coes,
-        have : z ≠ 0 := by linarith,
-        field_simp [norm, abs, max_eq_left_of_lt (show -z < z, by linarith), pow_two, mul_inv'],
-        calc
-          1 / z = 1 * (1 / z)           : (one_mul (1 / z)).symm
-            ... = (z / z) * (1 / z)     : congr_arg (λ x, x * (1 / z)) (div_self this).symm
-            ... = z / (z * z)           : by field_simp },
-    end,
-  div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero]}
-
-noncomputable instance : is_R_or_C ℂ :=
-{ re := ⟨complex.re, complex.zero_re, complex.add_re⟩,
-  im := ⟨complex.im, complex.zero_im, complex.add_im⟩,
-  conj := ⟨complex.conj, complex.conj.map_one, complex.conj.map_mul, complex.conj.map_zero, complex.conj.map_add⟩,
-  I := complex.I,
-  I_re_ax := by simp only [add_monoid_hom.coe_mk, complex.I_re],
-  I_def_ax := by simp only [complex.I_mul_I, eq_self_iff_true, or_true],
-  re_add_im_ax := by simp only [forall_const, add_monoid_hom.coe_mk, complex.re_add_im, eq_self_iff_true],
-  smul_coe_mul_ax := λ z r, rfl,
-  smul_re_ax := λ r z, by simp [(show r • z = r * z, by refl)],
-  smul_im_ax := λ r z, by simp [(show r • z = r * z, by refl)],
-  of_real_re_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_re],
-  of_real_im_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_im],
-  mul_re_ax := λ z w, by simp only [complex.mul_re, add_monoid_hom.coe_mk],
-  mul_im_ax := λ z w, by simp only [add_monoid_hom.coe_mk, complex.mul_im],
-  conj_re_ax := λ z, by simp only [ring_hom.coe_mk, add_monoid_hom.coe_mk, complex.conj_re],
-  conj_im_ax := λ z, by simp only [ring_hom.coe_mk, complex.conj_im, add_monoid_hom.coe_mk],
-  conj_I_ax := by simp only [complex.conj_I, ring_hom.coe_mk],
-  eq_conj_iff_real_ax := λ z,
-    begin
-      split,
-      { simp,
-        intro h,
-        refine ⟨z.re,_⟩,
-        ext z,
-        { simp only [complex.of_real_re]},
-        { sorry } },
-      { rintros ⟨r,rfl⟩,
-        exact complex.conj_of_real r }
-    end,
-  norm_sq_eq_def := λ z, begin
-    sorry,
-  end,
-  mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im],
-  inv_def := λ z,
-    begin
-      dsimp,
-      convert complex.inv_def z,
-      rw [complex.norm_sq, complex.abs],
-      sorry,
-    end,
-  div_I_ax := complex.div_I,
-}
 
 namespace is_R_or_C
 
@@ -157,7 +60,6 @@ lemma coe_alg : ∀ x : ℝ, (x : K) = x • (1 : K) :=
   is_R_or_C.mul_re_ax
 @[simp] lemma mul_im : ∀ z w : K, im (z * w) = re z * im w + im z * re w :=
   is_R_or_C.mul_im_ax
-@[simp] lemma I_re : re (I : K) = 0 := I_re_ax
 
 theorem ext_iff : ∀ {z w : K}, z = w ↔ re z = re w ∧ im z = im w :=
 begin
@@ -224,10 +126,22 @@ ext_iff.2 $ by simp [bit1]
 @[simp, norm_cast] lemma of_real_neg (r : ℝ) : ((-r : ℝ) : K) = -r := ext_iff.2 $ by simp
 @[simp, norm_cast] lemma of_real_mul (r s : ℝ) : ((r * s : ℝ) : K) = r * s := ext_iff.2 $ by simp
 
+lemma smul_re (r : ℝ) (z : K) : re ((r : K) * z) = r * (re z) := by simp only [of_real_im, zero_mul, of_real_re, sub_zero, mul_re]
+lemma smul_im (r : ℝ) (z : K) : im ((r : K) * z) = r * (im z) := by simp only [add_zero, of_real_im, zero_mul, of_real_re, mul_im]
+
+/-! ### The imaginary unit, `I` -/
+
+/-- The imaginary unit. -/
+@[simp] lemma I_re : re (I : K) = 0 := I_re_ax
+lemma I_mul_I : (I : K) = 0 ∨ (I : K) * I = -1 := I_mul_I_ax
+
 @[simp] lemma conj_re (z : K) : re (conj z) = re z := is_R_or_C.conj_re_ax z
 @[simp] lemma conj_im (z : K) : im (conj z) = -(im z) := is_R_or_C.conj_im_ax z
 @[simp] lemma conj_of_real (r : ℝ) : conj (r : K) = r :=
   (@is_R_or_C.ext_iff K _ _ _ _ _ (conj (r : K)) r).mpr $ by simp
+
+@[simp] lemma conj_bit0 (z : K) : conj (bit0 z) = bit0 (conj z) := ext_iff.2 $ by simp [bit0]
+@[simp] lemma conj_bit1 (z : K) : conj (bit1 z) = bit1 (conj z) := ext_iff.2 $ by simp [bit0]
 
 @[simp] lemma conj_neg_I : conj (-I) = (I : K) := ext_iff.2 $ by simp
 @[simp] lemma conj_conj (z : K) : conj (conj z) = z := ext_iff.2 $ by simp
@@ -247,6 +161,8 @@ eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
 
 /-- The norm squared function. -/
 def norm_sq (z : K) : ℝ := re z * re z + im z * im z
+
+lemma norm_sq_eq_def' (z : K) : norm_sq z = ∥z∥^2 := by rw [norm_sq_eq_def, norm_sq]
 
 @[simp] lemma norm_sq_of_real (r : ℝ) : ∥(r : K)∥^2 = r * r :=
 by simp [norm_sq_eq_def]
@@ -313,6 +229,8 @@ lemma norm_sq_sub (z w : K) : norm_sq (z - w) =
   norm_sq z + norm_sq w - 2 * re (z * conj w) :=
 by rw [sub_eq_add_neg, norm_sq_add]; simp [-mul_re, add_comm, add_left_comm, sub_eq_add_neg]
 
+/-! ### Inversion -/
+
 @[simp] lemma inv_re (z : K) : re (z⁻¹) = re z / norm_sq z :=
   by simp [@is_R_or_C.inv_def K _ _ _ _ _, norm_sq_eq_def, norm_sq, division_def]
 @[simp] lemma inv_im (z : K) : im (z⁻¹) = im (-z) / norm_sq z :=
@@ -326,6 +244,13 @@ ext_iff.2 $ begin
     rw [← div_div_eq_div_mul, div_self h, one_div] },
 end
 
+protected lemma inv_zero : (0⁻¹ : K) = 0 :=
+by rw [← of_real_zero, ← of_real_inv, inv_zero]
+
+protected theorem mul_inv_cancel {z : K} (h : z ≠ 0) : z * z⁻¹ = 1 :=
+by rw [inv_def, ←mul_assoc, mul_conj, ←of_real_mul, ←norm_sq_eq_def',
+      mul_inv_cancel (mt norm_sq_eq_zero.1 h), of_real_one]
+
 lemma div_re (z w : K) : re (z / w) = re z * re w / norm_sq w + im z * im w / norm_sq w :=
 by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg]
 lemma div_im (z w : K) : im (z / w) = im z * re w / norm_sq w - re z * im w / norm_sq w :=
@@ -337,16 +262,33 @@ by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm]
 @[simp, norm_cast] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : K) = (r : K) ^ n :=
 (@is_R_or_C.of_real K _ _ _ _ _).map_fpow r n
 
+lemma I_mul_I_of_nonzero : (I : K) ≠ 0 → (I : K) * I = -1 :=
+begin
+  rcases @I_mul_I_ax K _ _ _ _ _ with h₁|h₂,
+  { intro H,
+    exfalso,
+    exact H h₁ },
+  { exact λ H, h₂ }
+end
+
+@[simp] lemma div_I (z : K) : z / I = -(z * I) :=
+begin
+  by_cases h : (I : K) = 0,
+  { simp [h] },
+  { change (I : K) ≠ 0 at h,
+    refine (div_eq_iff_mul_eq h).2 _,
+    simp [mul_assoc, I_mul_I_of_nonzero h] }
+end
+
 @[simp] lemma inv_I : (I : K)⁻¹ = -I :=
 begin
-  rcases (@I_def_ax K _ _ _ _ _) with h₁|h₂,
+  rcases (@I_mul_I_ax K _ _ _ _ _) with h₁|h₂,
   { simp [h₁] },
   { by_cases h : (I : K) = 0,
     { simp [h] },
     { rw [inv_eq_one_div],
       field_simp [h, h₂] } }
 end
---by simp [inv_eq_one_div]
 
 @[simp] lemma norm_sq_inv (z : K) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
 if h : z = 0 then by simp [h] else
@@ -524,3 +466,86 @@ lemma is_cau_seq_abs {f : ℕ → K} (hf : is_cau_seq abs f) :
 ⟨i, λ j hj, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _) (hi j hj)⟩
 
 end is_R_or_C
+
+section instances
+
+instance : has_coe ℝ ℝ := ⟨id⟩
+
+noncomputable instance : is_R_or_C ℝ :=
+{ re := ⟨id, by simp only [id.def], by simp only [forall_const, id.def, eq_self_iff_true]⟩,
+  im := ⟨0, by simp only [pi.zero_apply], by simp only [add_zero, forall_const, pi.zero_apply]⟩,
+  conj := ⟨id, by simp only [id.def], by simp only [forall_const, id.def, eq_self_iff_true],
+          by simp only [id.def], by simp only [forall_const, id.def, eq_self_iff_true]⟩,
+  I := 0,
+  I_re_ax := by simp only [add_monoid_hom.map_zero],
+  I_mul_I_ax := or.intro_left _ rfl,
+  re_add_im_ax := λ z, by unfold_coes; simp only [add_zero, id.def, mul_zero],
+  smul_coe_mul_ax := λ z r, by unfold_coes; simp only [algebra.id.smul_eq_mul, id.def],
+  smul_re_ax := λ r z, by unfold_coes; simp only [algebra.id.smul_eq_mul, id.def],
+  smul_im_ax := λ r z, by unfold_coes; simp only [pi.zero_apply, mul_zero],
+  of_real_re_ax := λ r, by unfold_coes; simp only [id.def],
+  of_real_im_ax := λ r, by unfold_coes; simp only [pi.zero_apply],
+  mul_re_ax := λ z w, by simp only [add_monoid_hom.coe_mk, id.def, pi.zero_apply, sub_zero, mul_zero],
+  mul_im_ax := λ z w, by simp only [add_zero, add_monoid_hom.coe_mk, zero_mul, pi.zero_apply, mul_zero],
+  conj_re_ax := λ z, by simp only [ring_hom.coe_mk, id.def],
+  conj_im_ax := λ z, by simp only [add_monoid_hom.coe_mk, pi.zero_apply, neg_zero],
+  conj_I_ax := by simp only [ring_hom.map_zero, neg_zero],
+  eq_conj_iff_real_ax := λ z,
+    begin
+      dsimp,
+      refine ⟨_, λ z, rfl⟩,
+      intro h,
+      refine ⟨z, _⟩,
+      unfold_coes,
+      simp only [id.def],
+    end,
+  norm_sq_eq_def := λ z, by simp only [pow_two, norm, ←abs_mul, abs_mul_self z, add_zero, add_monoid_hom.coe_mk, id.def, pi.zero_apply, mul_zero],
+  mul_im_I_ax := λ z, by simp only [add_monoid_hom.coe_mk, pi.zero_apply, mul_zero],
+  inv_def :=
+    begin
+      intro z,
+      rcases lt_trichotomy z 0 with hlt|heq|hgt,
+      { unfold_coes,
+        have : z ≠ 0 := by linarith,
+        field_simp [norm, abs, max_eq_right_of_lt (show z < -z, by linarith), pow_two, mul_inv'],
+        calc
+          1 / z = 1 * (1 / z)           : (one_mul (1 / z)).symm
+            ... = (z / z) * (1 / z)     : congr_arg (λ x, x * (1 / z)) (div_self this).symm
+            ... = z / (z * z)           : by field_simp },
+      { simp [heq] },
+      { unfold_coes,
+        have : z ≠ 0 := by linarith,
+        field_simp [norm, abs, max_eq_left_of_lt (show -z < z, by linarith), pow_two, mul_inv'],
+        calc
+          1 / z = 1 * (1 / z)           : (one_mul (1 / z)).symm
+            ... = (z / z) * (1 / z)     : congr_arg (λ x, x * (1 / z)) (div_self this).symm
+            ... = z / (z * z)           : by field_simp },
+    end,
+  div_I_ax := λ z, by simp only [div_zero, mul_zero, neg_zero]}
+
+noncomputable instance : is_R_or_C ℂ :=
+{ re := ⟨complex.re, complex.zero_re, complex.add_re⟩,
+  im := ⟨complex.im, complex.zero_im, complex.add_im⟩,
+  conj := ⟨complex.conj, complex.conj.map_one, complex.conj.map_mul, complex.conj.map_zero, complex.conj.map_add⟩,
+  I := complex.I,
+  I_re_ax := by simp only [add_monoid_hom.coe_mk, complex.I_re],
+  I_mul_I_ax := by simp only [complex.I_mul_I, eq_self_iff_true, or_true],
+  re_add_im_ax := by simp only [forall_const, add_monoid_hom.coe_mk, complex.re_add_im, eq_self_iff_true],
+  smul_coe_mul_ax := λ z r, rfl,
+  smul_re_ax := λ r z, by simp [(show r • z = r * z, by refl)],
+  smul_im_ax := λ r z, by simp [(show r • z = r * z, by refl)],
+  of_real_re_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_re],
+  of_real_im_ax := λ r, by simp only [add_monoid_hom.coe_mk, complex.of_real_im],
+  mul_re_ax := λ z w, by simp only [complex.mul_re, add_monoid_hom.coe_mk],
+  mul_im_ax := λ z w, by simp only [add_monoid_hom.coe_mk, complex.mul_im],
+  conj_re_ax := λ z, by simp only [ring_hom.coe_mk, add_monoid_hom.coe_mk, complex.conj_re],
+  conj_im_ax := λ z, by simp only [ring_hom.coe_mk, complex.conj_im, add_monoid_hom.coe_mk],
+  conj_I_ax := by simp only [complex.conj_I, ring_hom.coe_mk],
+  eq_conj_iff_real_ax := λ z, complex.eq_conj_iff_real,
+  norm_sq_eq_def := λ z, by simp only [←complex.norm_sq_eq_abs, ←complex.norm_sq, add_monoid_hom.coe_mk, complex.norm_eq_abs],
+  mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im],
+  inv_def := λ z, by convert complex.inv_def z; exact (complex.norm_sq_eq_abs z).symm,
+  div_I_ax := complex.div_I,
+}
+
+end instances

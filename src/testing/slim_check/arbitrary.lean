@@ -57,7 +57,7 @@ class arbitrary :=
 
 export arbitrary (arby shrink)
 
-open nat
+open nat lazy_list
 
 /-- implementation of `arbitrary nat` -/
 def nat.shrink' : ℕ → list ℕ → list ℕ
@@ -71,11 +71,37 @@ if h : n ≤ 0
     let m := n / 2 in
     nat.shrink' m (m :: ls)
 
-/-- implementation of `arbitrary nat` -/
+/-- `nat.shrink n` creates a list of smaller natural numbers by successively
+dividing by 2. For example, `nat.shrink 100 = [0, 1, 3, 6, 12, 25, 50]` -/
 def nat.shrink (n : ℕ) : list ℕ :=
 nat.shrink' n []
 
 open gen
+
+
+/-- apply `f` to combine every element of the first list with every element
+of the second list and interleave the resulting lists
+
+For instance `lseq prod.mk [1,2,3] [4,5,6]` results in
+
+```
+[(1, 4), (2, 4), (1, 5), (3, 4), (1, 6), (2, 5), (3, 5), (2, 6), (3, 6)]
+```
+
+The purpose is to that two lists of shrunken values in ascending order of size
+and produce a list of combined values in roughly ascending order of size too.
+
+If we add the samples instead with `lseq (+) [1,2,3] [1,2,3]`, we
+obtain:
+
+```
+[2, 3, 3, 4, 4, 4, 5, 5, 6]
+```
+ -/
+def arbitrary.lseq {α β γ} (f : α → β → γ) : lazy_list α → lazy_list β → lazy_list γ
+| lazy_list.nil xs := lazy_list.nil
+| (lazy_list.cons x xs) lazy_list.nil := lazy_list.nil
+| (lazy_list.cons x xs) ys := interleave (ys.map $ f x) (arbitrary.lseq (xs ()) ys)
 
 instance arbitrary_nat : arbitrary ℕ :=
 { arby := sized $ λ sz, fin.val <$> choose_any (fin $ succ (sz^3)) <|>
@@ -92,7 +118,9 @@ if h : 0 < n
     int.shrink' m (m :: -↑m :: ls)
   else ls
 
-/-- implementation of `arbitrary int` -/
+/-- `int.shrink n` creates a list of integers by successively
+dividing by 2 and alternating the signs.
+For example, `nat.shrink 40 = [0, 0, 1, -1, 2, -2, 5, -5, 10, -10, 20, -20]` -/
 def int.shrink (i : ℤ) : list ℤ :=
 int.shrink' (int.nat_abs i) []
 
@@ -111,7 +139,7 @@ instance arbitrary_prod {β} [arbitrary α] [arbitrary β] : arbitrary (α × β
 { arby := do { ⟨x⟩ ← uliftable.up $ arby α,
                ⟨y⟩ ← uliftable.up $ arby β,
                pure (x,y) },
-  shrink := λ x, lazy_list.lseq prod.mk (shrink x.1) (shrink x.2) }
+  shrink := λ x, arbitrary.lseq prod.mk (shrink x.1) (shrink x.2) }
 
 /-- shrinking function for sum types -/
 def sum.shrink {β} [arbitrary α] [arbitrary β] : α ⊕ β → lazy_list (α ⊕ β)
@@ -135,16 +163,17 @@ instance arbitrary_char : arbitrary char :=
   shrink := λ _, lazy_list.nil }
 
 variables {α}
-open lazy_list
 
 /-- implementation of `arbitrary (list α)` -/
 def list.shrink' (shrink_a : α → lazy_list α) : list α → lazy_list (list α)
 | [] := lazy_list.nil
 | (x :: xs) :=
   let ys := list.shrink' xs in
-  interleave ys $ lseq (::) ((shrink_a x).append (lazy_list.singleton x)) (lazy_list.cons [] ys)
+  interleave ys $ arbitrary.lseq (::) ((shrink_a x).append (lazy_list.singleton x)) (lazy_list.cons [] ys)
 
-/-- implementation of `arbitrary (list α)` -/
+/-- `list.shrink_with shrink_f xs` shrinks `xs` by deleting various items of the list
+and shrinking others (using `shrink_f`). `lseq` is being used to interleave the
+resulting shrunken lists to put smaller lists earlier in the results -/
 def list.shrink_with (shrink_a : α → lazy_list α) (xs : list α) : lazy_list (list α) :=
 (list.shrink' shrink_a xs).init
 
@@ -168,31 +197,8 @@ then have n / 2 < n, from div_lt_self h (by norm_num),
      tree.node <$> arby <*> tree.arby (n / 2) <*> tree.arby (n / 2)
 else pure tree.nil
 
-/-- apply `f` to combine every element of the first list with every element
-of the second list and interleave the resulting lists
-
-For instance `lseq prod.mk [1,2,3] [4,5,6]` results in
-
-```
-[(1, 4), (2, 4), (1, 5), (3, 4), (1, 6), (2, 5), (3, 5), (2, 6), (3, 6)]
-```
-
-The purpose is to that two lists of shrunken values in ascending order of size
-and produce a list of combined values in roughly ascending order of size too.
-
-If we add the samples instead with `lseq (+) [1,2,3] [1,2,3]`, we
-obtain:
-
-```
-[2, 3, 3, 4, 4, 4, 5, 5, 6]
-```
- -/
-def lseq {α β γ} (f : α → β → γ) : lazy_list α → lazy_list β → lazy_list γ
-| lazy_list.nil xs := lazy_list.nil
-| (lazy_list.cons x xs) lazy_list.nil := lazy_list.nil
-| (lazy_list.cons x xs) ys := interleave (ys.map $ f x) (lseq (xs ()) ys)
-
-/-- implementation of `arbitrary (tree α)` -/
+/-- `tree.shrink_with shrink_f t` shrinks `xs` by using subtrees, shrinking them,
+shrinking the contents and recombining the results into bigger trees -/
 def tree.shrink_with (shrink_a : α → lazy_list α) : tree α → lazy_list (tree α)
 | tree.nil := lazy_list.nil
 | (tree.node x t₀ t₁) :=
@@ -200,8 +206,7 @@ def tree.shrink_with (shrink_a : α → lazy_list α) : tree α → lazy_list (t
 -- to be the full tree, i.e., not a shrunken tree.
 lazy_list.init $ interleave_all [(tree.shrink_with t₀).append (lazy_list.singleton t₀),
                                  (tree.shrink_with t₁).append (lazy_list.singleton t₁),
-                                 lseq id (lseq tree.node (shrink_a x) (tree.shrink_with t₀)) (tree.shrink_with t₁) ]
-
+                                 arbitrary.lseq id (arbitrary.lseq tree.node (shrink_a x) (tree.shrink_with t₀)) (tree.shrink_with t₁) ]
 
 instance arbitrary_tree [arbitrary α] : arbitrary (tree α) :=
 { arby := sized $ tree.arby (arby α),
@@ -210,10 +215,10 @@ instance arbitrary_tree [arbitrary α] : arbitrary (tree α) :=
 setup_tactic_parser
 
 /-- generate samples of a given type -/
-def print_samples (t : Type u) [arbitrary t] [has_to_string t] : io unit := do
+def print_samples (t : Type u) [arbitrary t] [has_repr t] : io unit := do
 xs ← io.run_rand $ uliftable.down $
   do { xs ← (list.range 10).mmap $ (arby t).run ∘ ulift.up,
-       pure ⟨xs.map to_string⟩ },
+       pure ⟨xs.map repr⟩ },
 xs.mmap' io.put_str_ln
 
 /--

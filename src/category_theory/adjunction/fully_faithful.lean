@@ -74,10 +74,13 @@ variables {D' : Type u₄} [category.{v₄} D']
 
 /--
 If `C` is a full subcategory of `C'` and `D` is a full subcategory of `D'`, then we can restrict
-an adjunction
+an adjunction `L' ⊣ R'` where `L' : C' ⥤ D'` and `R' : D' ⥤ C'` to `C` and `D`.
+The construction here is slightly more general, in that `C` is required only to have a full and
+faithful "inclusion" functor `iC : C ⥤ C'` (and similarly `iD : D ⥤ D'`) which commute (up to
+natural isomorphism) with the proposed restrictions.
 -/
-def restrict_adjunction (iC : C ⥤ C') (iD : D ⥤ D') {L' : C' ⥤ D'} {R' : D' ⥤ C'} (adj : L' ⊣ R')
-  {L : C ⥤ D} {R : D ⥤ C} (comm1 : iC ⋙ L' ≅ L ⋙ iD) (comm2 : iD ⋙ R' ≅ R ⋙ iC)
+def adjunction.restrict_fully_faithful (iC : C ⥤ C') (iD : D ⥤ D') {L' : C' ⥤ D'} {R' : D' ⥤ C'}
+  (adj : L' ⊣ R') {L : C ⥤ D} {R : D ⥤ C} (comm1 : iC ⋙ L' ≅ L ⋙ iD) (comm2 : iD ⋙ R' ≅ R ⋙ iC)
   [full iC] [faithful iC] [full iD] [faithful iD] :
   L ⊣ R :=
 adjunction.mk_of_hom_equiv

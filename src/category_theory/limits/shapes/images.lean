@@ -549,15 +549,15 @@ If `C` has strong epi mono factorisations, then the image is unique up to isomor
 `f` factors as a strong epi followed by a mono, this factorisation is essentially the image
 factorisation.
 -/
-def unique_factorise (I' : C) (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e] [mono m] :
+def image.iso_strong_epi_mono (I' : C) (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e] [mono m] :
   I' ≅ image f :=
 is_image.iso_ext {strong_epi_mono_factorisation . I := I', m := m, e := e}.to_mono_is_image (image.is_image f)
 
-lemma unique_factorise_hom_comp_image (I' : C) (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e] [mono m] :
+lemma image.iso_strong_epi_mono_hom_comp_ι (I' : C) (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e] [mono m] :
   (unique_factorise f I' e m comm).hom ≫ image.ι f = m :=
 is_image.lift_fac _ _
 
-lemma unique_factorise_inv_comp_mono (I' : C) (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e] [mono m] :
+lemma image.iso_strong_epi_mono_inv_comp_mono (I' : C) (e : X ⟶ I') (m : I' ⟶ Y) (comm : e ≫ m = f) [strong_epi e] [mono m] :
   (unique_factorise f I' e m comm).inv ≫ m = image.ι f :=
 image.lift_fac _
 

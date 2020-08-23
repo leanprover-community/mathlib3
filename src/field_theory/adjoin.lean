@@ -130,7 +130,7 @@ end
 lemma adjoin_subset' {T : set E} (HT : S ⊆ adjoin F T) : adjoin F S ⊆ adjoin F T :=
 adjoin_subset F S (adjoin.field_subset F T) HT
 
-lemma set_range_subset {T₁ T₂ : set E} [is_subfield T₁] [is_subfield T₂] {hyp : T₁ ⊆ T₂} :
+lemma set_range_subset {T₁ T₂ : set E} [is_subfield T₁] {hyp : T₁ ⊆ T₂} :
 set.range (algebra_map T₁ E) ⊆ T₂ :=
 begin
   intros x hx,

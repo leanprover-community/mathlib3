@@ -180,4 +180,14 @@ lemma faithful.div_faithful (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G
 instance full.comp [full F] [full G] : full (F ⋙ G) :=
 { preimage := λ _ _ f, F.preimage (G.preimage f) }
 
+/--
+Given a natural isomorphism between `F ⋙ H` and `G ⋙ H` for a fully faithful functor `H`, we
+can 'cancel' it to give a natural iso between `F` and `G`.
+-/
+def faithful_functor_right_cancel {F G : C ⥤ D} (H : D ⥤ E)
+  [full H] [faithful H] (comp_iso: F ⋙ H ≅ G ⋙ H) : F ≅ G :=
+nat_iso.of_components
+  (λ X, preimage_iso (comp_iso.app X))
+  (λ X Y f, H.map_injective (by simpa using comp_iso.hom.naturality f))
+
 end category_theory

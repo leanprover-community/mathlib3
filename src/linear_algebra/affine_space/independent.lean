@@ -188,6 +188,44 @@ end
 
 variables {k}
 
+/-- An affinely independent family is injective, if the underlying
+ring is nontrivial. -/
+lemma injective_of_affine_independent [nontrivial k] {p : ι → P} (ha : affine_independent k p) :
+  function.injective p :=
+begin
+  intros i₁ i₂ he,
+  rw affine_independent_iff_indicator_eq_of_affine_combination_eq k p at ha,
+  have hp : ({i₁} : finset ι).affine_combination p (function.const ι (1 : k)) =
+    ({i₂} : finset ι).affine_combination p (function.const ι (1 : k)),
+  { rw [({i₁} : finset ι).affine_combination_of_eq_one_of_eq_zero
+          (function.const ι (1 : k))
+          _
+          (finset.mem_singleton_self i₁)
+          rfl
+          (λ i hi hin, false.elim (hin (finset.mem_singleton.1 hi))),
+        ({i₂} : finset ι).affine_combination_of_eq_one_of_eq_zero
+          (function.const ι (1 : k))
+          _
+          (finset.mem_singleton_self i₂)
+          rfl
+          (λ i hi hin, false.elim (hin (finset.mem_singleton.1 hi)))],
+    exact he },
+  replace ha := ha {i₁} {i₂} (function.const ι 1) (function.const ι 1)
+    finset.sum_singleton finset.sum_singleton hp,
+  simp_rw finset.coe_singleton at ha,
+  have ha' : ({i₁} : set ι).indicator (function.const ι (1 : k)) i₁ =
+    ({i₂} : set ι).indicator (function.const ι (1 : k)) i₁,
+  { rw ha },
+  simp only [set.mem_singleton, set.indicator_of_mem] at ha',
+  change 1 = ({i₂} : set ι).indicator (function.const ι (1 : k)) i₁ at ha',
+  have haz : ({i₂} : set ι).indicator (function.const ι (1 : k)) i₁ ≠ 0,
+  { rw ←ha',
+    exact one_ne_zero },
+  have hm := set.mem_of_indicator_ne_zero haz,
+  rw set.mem_singleton_iff at hm,
+  exact hm
+end
+
 /-- If a family is affinely independent, so is any subfamily given by
 composition of an embedding into index type with the original
 family. -/
@@ -216,6 +254,19 @@ by a subtype of the index type. -/
 lemma affine_independent_subtype_of_affine_independent {p : ι → P}
     (ha : affine_independent k p) (s : set ι) : affine_independent k (λ i : s, p i) :=
 affine_independent_embedding_of_affine_independent (function.embedding.subtype _) ha
+
+/-- If an indexed family of points is affinely independent, so is the
+corresponding set of points. -/
+lemma affine_independent_set_of_affine_independent {p : ι → P} (ha : affine_independent k p) :
+  affine_independent k (λ x, x : set.range p → P) :=
+begin
+  let f : set.range p → ι := λ x, x.property.some,
+  have hf : ∀ x, p (f x) = x := λ x, x.property.some_spec,
+  let fe : set.range p ↪ ι := ⟨f, λ x₁ x₂ he, subtype.ext (hf x₁ ▸ hf x₂ ▸ he ▸ rfl)⟩,
+  convert affine_independent_embedding_of_affine_independent fe ha,
+  ext,
+  simp [hf]
+end
 
 /-- If a family is affinely independent, and the spans of points
 indexed by two subsets of the index type have a point in common, those

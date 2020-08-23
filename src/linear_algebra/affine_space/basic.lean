@@ -670,6 +670,20 @@ by rw [direction_eq_vector_span, bot_coe, vector_span_def, vsub_set_empty, submo
 
 variables {k V P}
 
+/-- A nonempty affine subspace is `⊤` if and only if its direction is
+`⊤`. -/
+@[simp] lemma direction_eq_top_iff_of_nonempty {s : affine_subspace k P}
+  (h : (s : set P).nonempty) : s.direction = ⊤ ↔ s = ⊤ :=
+begin
+  split,
+  { intro hd,
+    rw ←direction_top k V P at hd,
+    refine ext_of_direction_eq hd _,
+    simp [h] },
+  { rintro rfl,
+    simp }
+end
+
 /-- The inf of two affine subspaces, coerced to a set, is the
 intersection of the two sets of points. -/
 @[simp] lemma inf_coe (s1 s2 : affine_subspace k P) : ((s1 ⊓ s2) : set P) = s1 ∩ s2 :=

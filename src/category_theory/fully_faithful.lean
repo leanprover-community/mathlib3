@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.natural_isomorphism
+import data.equiv.basic
 
 universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
@@ -77,6 +78,20 @@ def is_iso_of_fully_faithful (f : X ⟶ Y) [is_iso (F.map f)] : is_iso f :=
 { inv := F.preimage (inv (F.map f)),
   hom_inv_id' := F.map_injective (by simp),
   inv_hom_id' := F.map_injective (by simp) }
+
+/-- If `F` is fully faithful, we have an equivalence of hom-sets `X ⟶ Y` and `F X ⟶ F Y`. -/
+def equiv_of_fully_faithful {X Y} : (X ⟶ Y) ≃ (F.obj X ⟶ F.obj Y) :=
+{ to_fun := λ f, F.map f,
+  inv_fun := λ f, F.preimage f,
+  left_inv := λ f, by simp,
+  right_inv := λ f, by simp }
+
+@[simp]
+lemma equiv_of_fully_faithful_apply {X Y : C} (f : X ⟶ Y) :
+  equiv_of_fully_faithful F f = F.map f := rfl
+@[simp]
+lemma equiv_of_fully_faithful_symm_apply {X Y} (f : F.obj X ⟶ F.obj Y) :
+  (equiv_of_fully_faithful F).symm f = F.preimage f := rfl
 
 end category_theory
 

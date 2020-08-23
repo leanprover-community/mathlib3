@@ -310,6 +310,9 @@ theorem bsupr_le {p : ι → Prop} {f : Π i (h : p i), α} (h : ∀ i hi, f i h
   (⨆ i (hi : p i), f i hi) ≤ a :=
 supr_le $ λ i, supr_le $ h i
 
+theorem bsupr_le_supr (p : ι → Prop) (f : ι → α) : (⨆ i (H : p i), f i) ≤ ⨆ i, f i :=
+bsupr_le (λ i hi, le_supr f i)
+
 theorem supr_le_supr (h : ∀i, s i ≤ t i) : supr s ≤ supr t :=
 supr_le $ assume i, le_supr_of_le i (h i)
 
@@ -396,6 +399,9 @@ le_Inf $ assume b ⟨i, eq⟩, eq ▸ h i
 theorem le_binfi {p : ι → Prop} {f : Π i (h : p i), α} (h : ∀ i hi, a ≤ f i hi) :
   a ≤ ⨅ i hi, f i hi :=
 le_infi $ λ i, le_infi $ h i
+
+theorem infi_le_binfi (p : ι → Prop) (f : ι → α) : (⨅ i, f i) ≤ ⨅ i (H : p i), f i :=
+le_binfi (λ i hi, infi_le f i)
 
 theorem infi_le_infi (h : ∀i, s i ≤ t i) : infi s ≤ infi t :=
 le_infi $ assume i, infi_le_of_le i (h i)

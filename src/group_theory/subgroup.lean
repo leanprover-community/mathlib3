@@ -942,7 +942,7 @@ such that `f x = 0`"]
 def ker (f : G →* N) := (⊥ : subgroup N).comap f
 
 @[to_additive]
-lemma mem_ker {f : G →* N} {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
+lemma mem_ker (f : G →* N) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 
 @[to_additive]
 lemma comap_ker (g : N →* P) (f : G →* N) : g.ker.comap f = (g.comp f).ker := rfl
@@ -992,6 +992,88 @@ le_antisymm
   (map_le_iff_le_comap.2 $ le_trans (closure_mono $ set.subset_preimage_image f s)
     (gclosure_preimage_le _ _))
   ((closure_le _).2 $ set.image_subset _ subset_closure)
+
+end monoid_hom
+
+namespace monoid_hom
+
+variables {G₁ G₂ G₃ : Type*} [group G₁] [group G₂] [group G₃]
+variables (f : G₁ →* G₂)
+
+/-- `lift_of_surjective f hf g hg` is the unique group homomorphism `φ`
+
+* such that `φ.comp f = g` (`lift_of_surjective_comp`),
+* where `f : G₁ →+* G₂` is surjective (`hf`),
+* and `g : G₂ →+* G₃` satisfies `hg : f.ker ≤ g.ker`.
+
+See `lift_of_surjective_eq` for the uniqueness lemma.
+
+```
+   G₁.
+   |  \
+ f |   \ g
+   |    \
+   v     \⌟
+   G₂----> G₃
+      ∃!φ
+```
+ -/
+@[to_additive "`lift_of_surjective f hf g hg` is the unique additive group homomorphism `φ`
+
+* such that `φ.comp f = g` (`lift_of_surjective_comp`),
+* where `f : G₁ →+* G₂` is surjective (`hf`),
+* and `g : G₂ →+* G₃` satisfies `hg : f.ker ≤ g.ker`.
+
+See `lift_of_surjective_eq` for the uniqueness lemma.
+
+```
+   G₁.
+   |  \\
+ f |   \\ g
+   |    \\
+   v     \\⌟
+   G₂----> G₃
+      ∃!φ
+```"]
+noncomputable def lift_of_surjective
+  (hf : function.surjective f) (g : G₁ →* G₃) (hg : f.ker ≤ g.ker) :
+  G₂ →* G₃ :=
+{ to_fun := λ b, g (classical.some (hf b)),
+  map_one' := hg (classical.some_spec (hf 1)),
+  map_mul' :=
+  begin
+    intros x y,
+    rw [← g.map_mul, ← mul_inv_eq_one, ← g.map_inv, ← g.map_mul, ← g.mem_ker],
+    apply hg,
+    rw [f.mem_ker, f.map_mul, f.map_inv, mul_inv_eq_one, f.map_mul],
+    simp only [classical.some_spec (hf _)],
+  end }
+
+@[simp, to_additive]
+lemma lift_of_surjective_comp_apply
+  (hf : function.surjective f) (g : G₁ →* G₃) (hg : f.ker ≤ g.ker) (x : G₁) :
+  (f.lift_of_surjective hf g hg) (f x) = g x :=
+begin
+  dsimp [lift_of_surjective],
+  rw [← mul_inv_eq_one, ← g.map_inv, ← g.map_mul, ← g.mem_ker],
+  apply hg,
+  rw [f.mem_ker, f.map_mul, f.map_inv, mul_inv_eq_one],
+  simp only [classical.some_spec (hf _)],
+end
+
+@[simp, to_additive]
+lemma lift_of_surjective_comp (hf : function.surjective f) (g : G₁ →* G₃) (hg : f.ker ≤ g.ker) :
+  (f.lift_of_surjective hf g hg).comp f = g :=
+by { ext, simp only [comp_apply, lift_of_surjective_comp_apply] }
+
+@[to_additive]
+lemma eq_lift_of_surjective (hf : function.surjective f) (g : G₁ →* G₃) (hg : f.ker ≤ g.ker)
+  (h : G₂ →* G₃) (hh : h.comp f = g) :
+  h = (f.lift_of_surjective hf g hg) :=
+begin
+  ext b, rcases hf b with ⟨a, rfl⟩,
+  simp only [← comp_apply, hh, f.lift_of_surjective_comp],
+end
 
 end monoid_hom
 

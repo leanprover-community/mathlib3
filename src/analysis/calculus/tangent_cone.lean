@@ -117,8 +117,7 @@ begin
   refine ⟨c, d, _, ctop, clim⟩,
   suffices : tendsto (λ n, x + d n) at_top (𝓝[t] x),
     from tendsto_principal.1 (tendsto_inf.1 this).2,
-  apply tendsto_le_right h,
-  refine tendsto_inf.2 ⟨_, tendsto_principal.2 ds⟩,
+  refine (tendsto_inf.2 ⟨_, tendsto_principal.2 ds⟩).mono_right h,
   simpa only [add_zero] using tendsto_const_nhds.add (tangent_cone_at.lim_zero at_top ctop clim)
 end
 
@@ -246,8 +245,14 @@ end
 end tangent_cone
 
 section unique_diff
-/- This section is devoted to properties of the predicates `unique_diff_within_at` and
-`unique_diff_on`. -/
+/-!
+### Properties of `unique_diff_within_at` and `unique_diff_on`
+
+This section is devoted to properties of the predicates `unique_diff_within_at` and `unique_diff_on`. -/
+
+lemma unique_diff_on.unique_diff_within_at {s : set E} {x} (hs : unique_diff_on 𝕜 s) (h : x ∈ s) :
+  unique_diff_within_at 𝕜 s x :=
+hs x h
 
 lemma unique_diff_within_at_univ : unique_diff_within_at 𝕜 univ x :=
 by { rw [unique_diff_within_at, tangent_cone_univ], simp }

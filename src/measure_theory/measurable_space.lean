@@ -1093,6 +1093,12 @@ variables [measurable_space α]
 class is_measurably_generated (f : filter α) : Prop :=
 (exists_measurable_subset : ∀ ⦃s⦄, s ∈ f → ∃ t ∈ f, is_measurable t ∧ t ⊆ s)
 
+instance is_measurably_generated_bot : is_measurably_generated (⊥ : filter α) :=
+⟨λ _ _, ⟨∅, mem_bot_sets, is_measurable.empty, empty_subset _⟩⟩
+
+instance is_measurably_generated_top : is_measurably_generated (⊤ : filter α) :=
+⟨λ s hs, ⟨univ, univ_mem_sets, is_measurable.univ, λ x _, hs x⟩⟩
+
 lemma eventually.exists_measurable_mem {f : filter α} [is_measurably_generated f]
   {p : α → Prop} (h : ∀ᶠ x in f, p x) :
   ∃ s ∈ f, is_measurable s ∧ ∀ x ∈ s, p x :=

@@ -105,6 +105,24 @@ instance inhabited_local_predicate (T : Top.{v}) : inhabited (local_predicate _)
 
 variables {X T}
 
+def prelocal_predicate.sheafify {T : X → Type v} (P : prelocal_predicate T) : local_predicate T :=
+{ pred := λ U f, ∀ x : U, ∃ (V : opens X) (m : x.1 ∈ V) (i : V ⟶ U), P.pred (λ x : V, f (i x : U)),
+  res := λ V U i f w x,
+  begin
+    specialize w (i x),
+    rcases w with ⟨V', m', i', p⟩,
+    refine ⟨V ⊓ V', ⟨x.2,m'⟩, opens.inf_le_left _ _, _⟩,
+    convert P.res (opens.inf_le_right V V') _ p,
+  end,
+  locality := λ U f w x,
+  begin
+    specialize w x,
+    rcases w with ⟨V, m, i, p⟩,
+    specialize p ⟨x.1, m⟩,
+    rcases p with ⟨V', m', i', p'⟩,
+    exact ⟨V', m', i' ≫ i, p'⟩,
+  end }
+
 /--
 The subpresheaf of dependent functions on `X` satisfying the "pre-local" predicate `P`.
 -/

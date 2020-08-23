@@ -135,7 +135,7 @@ lemma to_GH_space_eq_to_GH_space_iff_isometric {α : Type u} [metric_space α] [
 ⟨begin
   simp only [to_GH_space, quotient.eq],
   assume h,
-  rcases h with e,
+  rcases h with ⟨e⟩,
   have I : ((nonempty_compacts.Kuratowski_embedding α).val ≃ᵢ (nonempty_compacts.Kuratowski_embedding β).val)
           = ((range (Kuratowski_embedding α)) ≃ᵢ (range (Kuratowski_embedding β))),
     by { dunfold nonempty_compacts.Kuratowski_embedding, refl },
@@ -385,7 +385,7 @@ instance GH_space_metric_space : metric_space GH_space :=
            = ((λ (p : nonempty_compacts ℓ_infty_ℝ × nonempty_compacts ℓ_infty_ℝ),
                  Hausdorff_dist ((p.fst).val) ((p.snd).val)) ∘ prod.swap) '' (set.prod {a | ⟦a⟧ = x} {b | ⟦b⟧ = y}) :=
       by { congr, funext, simp, rw Hausdorff_dist_comm },
-    simp only [dist, A, image_comp, prod.swap, image_swap_prod],
+    simp only [dist, A, image_comp, image_swap_prod],
   end,
   eq_of_dist_eq_zero := λx y hxy, begin
     /- To show that two spaces at zero distance are isometric, we argue that the distance
@@ -409,7 +409,7 @@ instance GH_space_metric_space : metric_space GH_space :=
   end,
   dist_triangle := λx y z, begin
     /- To show the triangular inequality between `X`, `Y` and `Z`, realize an optimal coupling
-    between `X` and `Y` in a space `γ1`, and an optimal coupling between `Y`and `Z` in a space `γ2`.
+    between `X` and `Y` in a space `γ1`, and an optimal coupling between `Y` and `Z` in a space `γ2`.
     Then, glue these metric spaces along `Y`. We get a new space `γ` in which `X` and `Y` are
     optimally coupled, as well as `Y` and `Z`. Apply the triangle inequality for the Hausdorff
     distance in `γ` to conclude. -/
@@ -601,7 +601,7 @@ begin
   { assume p t ht,
     letI : fintype t := finite.fintype ht,
     rcases fintype.exists_equiv_fin t with ⟨n, hn⟩,
-    rcases hn with e,
+    rcases hn with ⟨e⟩,
     exact ⟨n, e, trivial⟩ },
   choose N e hne using this,
   -- cardinality of the nice finite subset `s p` of `p.rep`, called `N p`

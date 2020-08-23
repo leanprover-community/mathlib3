@@ -597,3 +597,15 @@ end nested_non_fully_applied
 
 /- fail if you add an attribute with a parameter. -/
 run_cmd success_if_fail $ simps_tac `foo.rfl { attrs := [`higher_order] }
+
+-- test that type classes which are props work
+class prop_class (n : ℕ) : Prop :=
+(has_true : true)
+
+instance has_prop_class (n : ℕ) : prop_class n := ⟨trivial⟩
+
+structure needs_prop_class (n : ℕ) [prop_class n] :=
+(t : true)
+
+@[simps] def test_prop_class : needs_prop_class 1 :=
+{ t := trivial }

@@ -35,6 +35,11 @@ attribute [continuity]
   continuous_id
   continuous_const
 
+-- As we will be using `apply_rules` with `md := semireducible`,
+-- we need another version of `continuous_id`.
+@[continuity] lemma continuous_id' {α : Type*} [topological_space α] : continuous (λ a : α, a) :=
+continuous_id
+
 namespace tactic
 
 /--
@@ -60,24 +65,28 @@ meta def apply_continuous.comp : tactic unit :=
   fail_if_success { exact continuous_id }]
 
 /-- List of tactics used by `continuity` internally. -/
-meta def continuity_tactics : list (tactic string) :=
+meta def continuity_tactics (md : transparency := reducible) : list (tactic string) :=
 [
-  `[apply_rules continuity]            >> pure "apply_rules continuity",
-  -- auto_cases,
-  intros1                              >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
-  tactic.interactive.apply_assumption  >> pure "apply_assumption",
-  apply_continuous.comp                >> pure "refine continuous.comp _ _"
+  intros1               >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
+  apply_rules [``(continuity)] 50 { md := md }
+                        >> pure "apply_rules continuity",
+  apply_continuous.comp >> pure "refine continuous.comp _ _"
 ]
 
 namespace interactive
+setup_tactic_parser
 
-/-- Solve goals of the form `continuous f`. -/
-meta def continuity (cfg : tidy.cfg := {}) : tactic unit :=
+/--
+Solve goals of the form `continuous f`.
+-/
+meta def continuity
+  (bang : parse $ optional (tk "!")) (cfg : tidy.cfg := {}) : tactic unit :=
 with_local_reducibility `continuous decl_reducibility.irreducible $
-tactic.tidy { tactics := continuity_tactics, ..cfg }
+let md := if bang.is_some then semireducible else reducible in
+tactic.tidy { tactics := continuity_tactics md, ..cfg }
 
 /-- Version of `continuity` for use with auto_param. -/
-meta def continuity' : tactic unit := continuity
+meta def continuity' : tactic unit := continuity none {}
 
 /--
 `continuity` solves goals of the form `continuous f` by applying lemmas tagged with the
@@ -91,6 +100,10 @@ by continuity
 ```
 will discharge the goal, generating a proof term like
 `((continuous.comp hg hf₁).max (continuous.comp hg hf₂)).add continuous_const`
+
+You can also use `continuity!`, which applies lemmas with `{ md := semireducible }`.
+The default behaviour is more conservative, and only unfolds `reducible` definitions
+when attempting to match lemmas with the goal.
 -/
 add_tactic_doc
 { name := "continuity / continuity'",

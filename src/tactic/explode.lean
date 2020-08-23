@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Author: Mario Carneiro, Minchao Wu
 -/
 import tactic.core
 /-!
@@ -94,10 +94,12 @@ with explode.core : expr → bool → nat → entries → tactic entries
   else do
     let en : entry := ⟨l, es.size, depth, status.intro, to_string n, []⟩,
     es' ← explode.core b' si (depth + 1) (es.add en),
-    deps' ← explode.append_dep filter es' b' [],
+    -- in case of a "have" clause, the b' here has an annotation
+    deps' ← explode.append_dep filter es' b'.erase_annotations [],
     deps' ← explode.append_dep filter es' l deps',
     return $ es'.add ⟨e, es'.size, depth, status.lam, "∀I", deps'⟩
-| e@(macro _ l) si depth es := explode.core l.head si depth es
+| e@(elet n t a b) si depth es := explode.core (reduce_lets e) si depth es
+| e@(macro n l) si depth es := explode.core l.head si depth es
 | e si depth es := filter e >>
   match get_app_fn_args e with
   | (const n _, args) :=
@@ -108,7 +110,8 @@ with explode.core : expr → bool → nat → entries → tactic entries
     return (es.add en)
   | (fn, args) := do
     es' ← explode.core fn ff depth es,
-    deps ← explode.append_dep filter es' fn [],
+    -- in case of a "have" clause, the fn here has an annotation
+    deps ← explode.append_dep filter es' fn.erase_annotations [],
     explode.args e args depth es' "∀E" deps
   end
 with explode.args : expr → list expr → nat → entries → string → list nat → tactic entries

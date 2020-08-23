@@ -110,20 +110,19 @@ begin
   exact D
 end
 
-lemma tangent_cone_mono_nhds (h : nhds_within x s ≤ nhds_within x t) :
+lemma tangent_cone_mono_nhds (h : 𝓝[s] x ≤ 𝓝[t] x) :
   tangent_cone_at 𝕜 s x ⊆ tangent_cone_at 𝕜 t x :=
 begin
   rintros y ⟨c, d, ds, ctop, clim⟩,
   refine ⟨c, d, _, ctop, clim⟩,
-  suffices : tendsto (λ n, x + d n) at_top (nhds_within x t),
+  suffices : tendsto (λ n, x + d n) at_top (𝓝[t] x),
     from tendsto_principal.1 (tendsto_inf.1 this).2,
-  apply tendsto_le_right h,
-  refine tendsto_inf.2 ⟨_, tendsto_principal.2 ds⟩,
+  refine (tendsto_inf.2 ⟨_, tendsto_principal.2 ds⟩).mono_right h,
   simpa only [add_zero] using tendsto_const_nhds.add (tangent_cone_at.lim_zero at_top ctop clim)
 end
 
-/-- Tangent cone of `s` at `x` depends only on `nhds_within x s`. -/
-lemma tangent_cone_congr (h : nhds_within x s = nhds_within x t) :
+/-- Tangent cone of `s` at `x` depends only on `𝓝[s] x`. -/
+lemma tangent_cone_congr (h : 𝓝[s] x = 𝓝[t] x) :
   tangent_cone_at 𝕜 s x = tangent_cone_at 𝕜 t x :=
 subset.antisymm
   (tangent_cone_mono_nhds $ le_of_eq h)
@@ -246,8 +245,14 @@ end
 end tangent_cone
 
 section unique_diff
-/- This section is devoted to properties of the predicates `unique_diff_within_at` and
-`unique_diff_on`. -/
+/-!
+### Properties of `unique_diff_within_at` and `unique_diff_on`
+
+This section is devoted to properties of the predicates `unique_diff_within_at` and `unique_diff_on`. -/
+
+lemma unique_diff_on.unique_diff_within_at {s : set E} {x} (hs : unique_diff_on 𝕜 s) (h : x ∈ s) :
+  unique_diff_within_at 𝕜 s x :=
+hs x h
 
 lemma unique_diff_within_at_univ : unique_diff_within_at 𝕜 univ x :=
 by { rw [unique_diff_within_at, tangent_cone_univ], simp }
@@ -259,7 +264,7 @@ lemma unique_diff_on_empty : unique_diff_on 𝕜 (∅ : set E) :=
 λ x hx, hx.elim
 
 lemma unique_diff_within_at.mono_nhds (h : unique_diff_within_at 𝕜 s x)
-  (st : nhds_within x s ≤ nhds_within x t) :
+  (st : 𝓝[s] x ≤ 𝓝[t] x) :
   unique_diff_within_at 𝕜 t x :=
 begin
   unfold unique_diff_within_at at *,
@@ -273,7 +278,7 @@ lemma unique_diff_within_at.mono (h : unique_diff_within_at 𝕜 s x) (st : s �
   unique_diff_within_at 𝕜 t x :=
 h.mono_nhds $ nhds_within_mono _ st
 
-lemma unique_diff_within_at_congr (st : nhds_within x s = nhds_within x t) :
+lemma unique_diff_within_at_congr (st : 𝓝[s] x = 𝓝[t] x) :
   unique_diff_within_at 𝕜 s x ↔ unique_diff_within_at 𝕜 t x :=
 ⟨λ h, h.mono_nhds $ le_of_eq st, λ h, h.mono_nhds $ le_of_eq st.symm⟩
 
@@ -285,11 +290,11 @@ lemma unique_diff_within_at.inter (hs : unique_diff_within_at 𝕜 s x) (ht : t 
   unique_diff_within_at 𝕜 (s ∩ t) x :=
 (unique_diff_within_at_inter ht).2 hs
 
-lemma unique_diff_within_at_inter' (ht : t ∈ nhds_within x s) :
+lemma unique_diff_within_at_inter' (ht : t ∈ 𝓝[s] x) :
   unique_diff_within_at 𝕜 (s ∩ t) x ↔ unique_diff_within_at 𝕜 s x :=
 unique_diff_within_at_congr $ (nhds_within_restrict'' _ ht).symm
 
-lemma unique_diff_within_at.inter' (hs : unique_diff_within_at 𝕜 s x) (ht : t ∈ nhds_within x s) :
+lemma unique_diff_within_at.inter' (hs : unique_diff_within_at 𝕜 s x) (ht : t ∈ 𝓝[s] x) :
   unique_diff_within_at 𝕜 (s ∩ t) x :=
 (unique_diff_within_at_inter' ht).2 hs
 

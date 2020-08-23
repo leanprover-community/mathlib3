@@ -34,11 +34,19 @@ instance : has_coe (opens α) (set α) := { coe := subtype.val }
 
 lemma val_eq_coe (U : opens α) : U.1 = ↑U := rfl
 
+/-- the coercion `opens α → set α` applied to a pair is the same as taking the first component -/
+lemma coe_mk {α : Type*} [topological_space α] {U : set α} {hU : is_open U} :
+  ↑(⟨U, hU⟩ : opens α) = U := rfl
+
 instance : has_subset (opens α) :=
 { subset := λ U V, (U : set α) ⊆ V }
 
 instance : has_mem α (opens α) :=
 { mem := λ a U, a ∈ (U : set α) }
+
+@[simp] lemma subset_coe {U V : opens α} : ((U : set α) ⊆ (V : set α)) = (U ⊆ V) := rfl
+
+@[simp] lemma mem_coe {x : α} {U : opens α} : (x ∈ (U : set α)) = (x ∈ U) := rfl
 
 @[ext] lemma ext {U V : opens α} (h : (U : set α) = V) : U = V := subtype.ext_iff.mpr h
 
@@ -73,9 +81,7 @@ complete_lattice.copy
 begin
   funext,
   apply subtype.ext_iff_val.mpr,
-  symmetry,
-  apply interior_eq_of_open,
-  exact (is_open_inter U.2 V.2),
+  exact (is_open_inter U.2 V.2).interior_eq.symm,
 end
 /- Sup -/ (λ Us, ⟨⋃₀ (coe '' Us), is_open_sUnion $ λ U hU,
 by { rcases hU with ⟨⟨V, hV⟩, h, h'⟩, dsimp at h', subst h', exact hV}⟩)
@@ -104,6 +110,22 @@ end
 
 lemma supr_def {ι} (s : ι → opens α) : (⨆ i, s i) = ⟨⋃ i, s i, is_open_Union $ λ i, (s i).2⟩ :=
 by { ext, simp only [supr, opens.Sup_s, sUnion_image, bUnion_range], refl }
+
+@[simp] lemma supr_s {ι} (s : ι → opens α) : ((⨆ i, s i : opens α) : set α) = ⋃ i, s i :=
+by simp [supr_def]
+
+theorem mem_supr {ι} {x : α} {s : ι → opens α} : x ∈ supr s ↔ ∃ i, x ∈ s i :=
+by { rw [←mem_coe], simp, }
+
+lemma open_embedding_of_le {U V : opens α} (i : U ≤ V) :
+  open_embedding (set.inclusion i) :=
+{ inj := set.inclusion_injective i,
+  induced := (@induced_compose _ _ _ _ (set.inclusion i) coe).symm,
+  open_range :=
+  begin
+    rw set.range_inclusion i,
+    exact continuous_subtype_val U.val U.property
+  end, }
 
 def is_basis (B : set (opens α)) : Prop := is_topological_basis ((coe : _ → set α) '' B)
 
@@ -195,9 +217,3 @@ instance open_nhds_of.inhabited {α : Type*} [topological_space α] (x : α) :
   inhabited (open_nhds_of x) := ⟨⟨set.univ, is_open_univ, set.mem_univ _⟩⟩
 
 end topological_space
-
-namespace continuous
-open topological_space
-
-
-end continuous

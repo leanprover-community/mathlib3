@@ -33,6 +33,8 @@ instance : has_coe_to_fun (C(α, β)) := ⟨_, continuous_map.to_fun⟩
 
 variables {α β} {f g : continuous_map α β}
 
+@[continuity] lemma coe_continuous : continuous (f : α → β) := f.continuous_to_fun
+
 @[ext] theorem ext (H : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext H
 

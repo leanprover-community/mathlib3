@@ -312,6 +312,62 @@ e.replace $ λ e d,
   | _ := none
   end
 
+/-- Match a variable. -/
+meta def match_var {elab} : expr elab → option ℕ
+| (var n) := some n
+| _ := none
+
+/-- Match a sort. -/
+meta def match_sort {elab} : expr elab → option level
+| (sort u) := some u
+| _ := none
+
+/-- Match a constant. -/
+meta def match_const {elab} : expr elab → option (name × list level)
+| (const n lvls) := some (n, lvls)
+| _ := none
+
+/-- Match a metavariable. -/
+meta def match_mvar {elab} : expr elab →
+  option (name × name × expr elab)
+| (mvar unique pretty type) := some (unique, pretty, type)
+| _ := none
+
+/-- Match a local constant. -/
+meta def match_local_const {elab} : expr elab →
+  option (name × name × binder_info × expr elab)
+| (local_const unique pretty bi type) := some (unique, pretty, bi, type)
+| _ := none
+
+/-- Match an application. -/
+meta def match_app {elab} : expr elab → option (expr elab × expr elab)
+| (app t u) := some (t, u)
+| _ := none
+
+/-- Match an abstraction. -/
+meta def match_lam {elab} : expr elab →
+  option (name × binder_info × expr elab × expr elab)
+| (lam var_name bi type body) := some (var_name, bi, type, body)
+| _ := none
+
+/-- Match a Π type. -/
+meta def match_pi {elab} : expr elab →
+  option (name × binder_info × expr elab × expr elab)
+| (pi var_name bi type body) := some (var_name, bi, type, body)
+| _ := none
+
+/-- Match a let. -/
+meta def match_elet {elab} : expr elab →
+  option (name × expr elab × expr elab × expr elab)
+| (elet var_name type assignment body) := some (var_name, type, assignment, body)
+| _ := none
+
+/-- Match a macro. -/
+meta def match_macro {elab} : expr elab →
+  option (macro_def × list (expr elab))
+| (macro df args) := some (df, args)
+| _ := none
+
 /-- Tests whether an expression is a meta-variable. -/
 meta def is_mvar : expr → bool
 | (mvar _ _ _) := tt
@@ -435,16 +491,6 @@ meta def dsimp (t : expr)
   tactic expr :=
 do (s, to_unfold) ← mk_simp_set no_defaults attr_names hs,
    s.dsimplify to_unfold t cfg
-
-/-- Auxilliary definition for `expr.pi_arity` -/
-meta def pi_arity_aux : ℕ → expr → ℕ
-| n (pi _ _ _ b) := pi_arity_aux (n + 1) b
-| n e            := n
-
-/-- The arity of a pi-type. Does not perform any reduction of the expression.
-  In one application this was ~30 times quicker than `tactic.get_pi_arity`. -/
-meta def pi_arity : expr → ℕ :=
-pi_arity_aux 0
 
 /-- Get the names of the bound variables by a sequence of pis or lambdas. -/
 meta def binding_names : expr → list name

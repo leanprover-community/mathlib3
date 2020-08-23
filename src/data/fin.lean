@@ -126,6 +126,23 @@ lemma one_val {n : ℕ} : (1 : fin (n+1)).val = 1 % (n+1) := rfl
 
 @[simp] lemma mk_one : (⟨1, nat.succ_lt_succ (nat.succ_pos n)⟩ : fin (n + 2)) = 1 := rfl
 
+section bit
+
+@[simp] lemma mk_bit0 {m n : ℕ} (h : bit0 m < n) :
+  (⟨bit0 m, h⟩ : fin n) = bit0 ⟨m, (nat.le_add_right m m).trans_lt h⟩ :=
+eq_of_veq (nat.mod_eq_of_lt h).symm
+
+@[simp] lemma mk_bit1 {m n : ℕ} (h : bit1 m < n + 1) :
+  (⟨bit1 m, h⟩ : fin (n + 1)) = bit1 ⟨m, (nat.le_add_right m m).trans_lt
+    ((m + m).lt_succ_self.trans h)⟩ :=
+begin
+  ext,
+  simp only [bit1, bit0] at h,
+  simp only [bit1, bit0, val_add, one_val, ←nat.add_mod, nat.mod_eq_of_lt h]
+end
+
+end bit
+
 @[simp]
 lemma of_nat_eq_coe (n : ℕ) (a : ℕ) : (of_nat a : fin (n+1)) = a :=
 begin

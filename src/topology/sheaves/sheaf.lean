@@ -147,16 +147,70 @@ section open_embedding
 variables {V : Top.{v}} {j : V ⟶ X} (oe : open_embedding j)
 variables (𝒰 : ι → opens V)
 
+@[simp]
 def cover.of_open_embedding : ι → opens X := (λ i, oe.is_open_map.functor.obj (𝒰 i))
+
+@[simp]
+def pi_opens.iso_of_open_embedding :
+  pi_opens (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅ pi_opens F (cover.of_open_embedding oe 𝒰) :=
+pi.map_iso (λ X, F.map_iso (iso.refl _))
+
+@[simp]
+def pi_inters.iso_of_open_embedding :
+  pi_inters (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅ pi_inters F (cover.of_open_embedding oe 𝒰) :=
+pi.map_iso (λ X, F.map_iso
+  begin
+    -- TODO golf
+    dsimp [is_open_map.functor],
+    apply iso.op,
+    fsplit,
+    apply hom_of_le,
+    simp [oe.to_embedding.inj, set.image_inter],
+    apply le_refl _,
+    apply hom_of_le,
+    simp [oe.to_embedding.inj, set.image_inter],
+    apply le_refl _,
+    exact dec_trivial,
+    exact dec_trivial,
+  end)
 
 def diagram.iso_of_open_embedding :
   diagram (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅ diagram F (cover.of_open_embedding oe 𝒰) :=
-sorry
+nat_iso.of_components
+  begin rintro ⟨⟩, exact pi_opens.iso_of_open_embedding oe 𝒰, exact pi_inters.iso_of_open_embedding oe 𝒰 end
+  begin
+    rintro ⟨⟩ ⟨⟩ ⟨⟩,
+    { simp, },
+    -- TODO golf
+    { ext, dsimp [left_res, is_open_map.functor], simp, dsimp, simp, rw [←F.map_comp], refl, },
+    { ext, dsimp [right_res, is_open_map.functor], simp, dsimp, simp, rw [←F.map_comp], refl, },
+    { simp, },
+  end.
 
 def fork.iso_of_open_embedding :
   fork (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅
     (cones.postcompose (diagram.iso_of_open_embedding oe 𝒰).inv).obj (fork F (cover.of_open_embedding oe 𝒰)) :=
-sorry
+begin
+  fapply fork.ext,
+  { dsimp,
+    apply F.map_iso,
+    apply iso.op,
+    dsimp [is_open_map.functor],
+    fsplit,
+    apply hom_of_le,
+    simp only [supr_s, supr_mk], sorry,
+    apply hom_of_le,
+    sorry,
+    exact dec_trivial,
+    exact dec_trivial, },
+  ext,
+  dunfold fork.ι, -- Ugh, it is unpleasant that we need this.
+  simp [res, diagram.iso_of_open_embedding, is_open_map.functor],
+  dsimp,
+  simp,
+  rw [←F.map_comp],
+  refl,
+end
 
 end open_embedding
 

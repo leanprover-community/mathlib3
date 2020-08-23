@@ -93,6 +93,10 @@ begin
 end
 /- Inf -/ _ rfl
 
+@[simp] lemma mk_inf_mk {U V : set α} {hU : is_open U} {hV : is_open V} :
+  (⟨U, hU⟩ ⊓ ⟨V, hV⟩ : opens α) = ⟨U ⊓ V, is_open_inter hU hV⟩ := rfl
+@[simp] lemma coe_inf {U V : opens α} : ((U ⊓ V : opens α) : set α) = (U : set α) ⊓ (V : set α) := rfl
+
 instance : has_inter (opens α) := ⟨λ U V, U ⊓ V⟩
 instance : has_union (opens α) := ⟨λ U V, U ⊔ V⟩
 instance : has_emptyc (opens α) := ⟨⊥⟩
@@ -110,6 +114,13 @@ end
 
 lemma supr_def {ι} (s : ι → opens α) : (⨆ i, s i) = ⟨⋃ i, s i, is_open_Union $ λ i, (s i).2⟩ :=
 by { ext, simp only [supr, opens.Sup_s, sUnion_image, bUnion_range], refl }
+
+@[simp] lemma supr_mk {ι} (s : ι → set α) (h : Π i, is_open (s i)) :
+  (⨆ i, ⟨s i, h i⟩ : opens α) = ⟨⨆ i, s i, is_open_Union h⟩ :=
+begin
+  rw supr_def,
+  simp,
+end
 
 @[simp] lemma supr_s {ι} (s : ι → opens α) : ((⨆ i, s i : opens α) : set α) = ⋃ i, s i :=
 by simp [supr_def]

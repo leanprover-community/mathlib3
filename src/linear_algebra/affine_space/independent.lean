@@ -197,8 +197,8 @@ begin
   rw affine_independent_iff_linear_independent_vsub _ _ j at ha,
   by_contra hij',
   refine ha.ne_zero _,
-  exact ⟨i, hij'⟩,
-  exact vsub_eq_zero_iff_eq.mpr hij,
+  { exact ⟨i, hij'⟩ },
+  { exact vsub_eq_zero_iff_eq.mpr hij },
 end
 
 /-- If a family is affinely independent, so is any subfamily given by

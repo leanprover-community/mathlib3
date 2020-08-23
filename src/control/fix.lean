@@ -62,7 +62,7 @@ def fix.approx : stream $ Π a, roption $ β a
 | (nat.succ i) := f (fix.approx i)
 
 /-- loop body for finding the fixed point of `f` -/
-def fix_aux {p : ℕ → Prop} (i : nat.up p) (g : Π j : nat.up p, j < i → Π a, roption $ β a) : Π a, roption $ β a :=
+def fix_aux {p : ℕ → Prop} (i : nat.up p) (g : Π j : nat.up p, i < j → Π a, roption $ β a) : Π a, roption $ β a :=
 f $ λ x : α,
 assert (¬p (i.val)) $ λ h : ¬ p (i.val),
 g (i.succ h) (nat.lt_succ_self _) x

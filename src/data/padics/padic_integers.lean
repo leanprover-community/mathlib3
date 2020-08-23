@@ -490,7 +490,7 @@ begin
   rwa [← r.cop.gcd_eq_one, nat.dvd_gcd_iff, ← int.coe_nat_dvd_left, ← int.coe_nat_dvd],
 end
 
-private lemma norm_sub_mod_part_aux (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
+lemma norm_sub_mod_part_aux (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
   ↑p ∣ r.num - r.num * r.denom.gcd_a p % p * ↑(r.denom) :=
 begin
   rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,

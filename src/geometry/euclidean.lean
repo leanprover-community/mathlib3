@@ -1726,8 +1726,8 @@ planes. -/
 lemma altitude_eq_monge_plane (t : triangle ℝ P) {i₁ i₂ i₃ : fin 3} (h₁₂ : i₁ ≠ i₂)
   (h₁₃ : i₁ ≠ i₃) (h₂₃ : i₂ ≠ i₃) : t.altitude i₁ = t.monge_plane i₂ i₃ :=
 begin
-  have hs : ({i₂, i₃}ᶜ : finset (fin 3)) = {i₁}, { dec_trivial! },
-  have he : univ.erase i₁ = {i₂, i₃}, { dec_trivial! },
+  have hs : ({i₂, i₃}ᶜ : finset (fin 3)) = {i₁}, by dec_trivial!,
+  have he : univ.erase i₁ = {i₂, i₃}, by dec_trivial!,
   rw [monge_plane_def, altitude_def, direction_affine_span, hs, he, centroid_singleton,
       coe_insert, coe_singleton,
       vector_span_image_eq_span_vsub_set_left_ne ℝ _ (set.mem_insert i₂ _)],
@@ -1738,7 +1738,7 @@ end
 lemma orthocenter_mem_altitude (t : triangle ℝ P) {i₁ : fin 3} :
   t.orthocenter ∈ t.altitude i₁ :=
 begin
-  obtain ⟨i₂, i₃, h₁₂, h₂₃, h₁₃⟩ : ∃ i₂ i₃, i₁ ≠ i₂ ∧ i₂ ≠ i₃ ∧ i₁ ≠ i₃, { dec_trivial! },
+  obtain ⟨i₂, i₃, h₁₂, h₂₃, h₁₃⟩ : ∃ i₂ i₃, i₁ ≠ i₂ ∧ i₂ ≠ i₃ ∧ i₁ ≠ i₃, by dec_trivial!,
   rw [orthocenter_eq_monge_point, t.altitude_eq_monge_plane h₁₂ h₁₃ h₂₃],
   exact t.monge_point_mem_monge_plane h₂₃
 end

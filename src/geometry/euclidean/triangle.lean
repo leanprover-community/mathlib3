@@ -40,7 +40,7 @@ unnecessarily.
 
 namespace inner_product_geometry
 /-!
-### Geometrical results on real inner product spaces
+### Geometrical results on triangles in real inner product spaces
 
 This section develops some results on (possibly degenerate) triangles
 in real inner product spaces, where those definitions and results can
@@ -283,7 +283,7 @@ end inner_product_geometry
 
 namespace euclidean_geometry
 /-!
-### Geometrical results on Euclidean affine spaces
+### Geometrical results on triangles in Euclidean affine spaces
 
 This section develops some geometrical definitions and results on
 (possible degenerate) triangles in Euclidean affine spaces.

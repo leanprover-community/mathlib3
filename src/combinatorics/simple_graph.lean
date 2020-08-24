@@ -86,6 +86,13 @@ def edge_set : set (sym2 V) := sym2.from_rel G.sym
 lemma mem_edge_set {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w :=
 by refl
 
+/--
+Two vertices are adjacent iff there is an edge between them.  The
+condition `v ≠ w` ensures they are different endpoints of the edge,
+which is necessary since when `v = w` the existential
+`∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e` is satisfied by every edge
+incident to `v`.
+-/
 lemma adj_iff_exists_edge {v w : V} :
   G.adj v w ↔ v ≠ w ∧ ∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e :=
 begin

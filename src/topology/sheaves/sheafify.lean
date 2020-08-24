@@ -29,7 +29,7 @@ The prelocal predicate on functions into the stalks, asserting that the function
 -/
 def is_germ : prelocal_predicate (λ x, F.stalk x) :=
 { pred := λ U f, ∃ (g : F.obj (op U)), ∀ x : U, f x = F.germ x g,
-  res := λ V U i f ⟨g, p⟩, ⟨F.map i.op g, λ x, (p (i x)).trans (F.germ_res _ _ _).symm⟩, }
+  res := λ V U i f ⟨g, p⟩, ⟨F.map i.op g, λ x, (p (i x)).trans (F.germ_res_apply _ _ _).symm⟩, }
 
 /--
 The local predicate on functions into the stalks,

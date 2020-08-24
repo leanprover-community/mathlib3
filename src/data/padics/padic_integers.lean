@@ -933,7 +933,14 @@ end
 lemma lim_seq_is_cau_seq (r : R): is_cau_seq (padic_norm p) (λ n, limit f r n) :=
 begin
   intros ε hε,
-  obtain ⟨k, hk⟩ : ∃ k : ℕ, (p ^ - (↑(k + 1 : ℕ) : ℤ) : ℚ) < ε := sorry,
+  obtain ⟨k, hk⟩ : ∃ k : ℕ, (p ^ - (↑(k + 1 : ℕ) : ℤ) : ℚ) < ε,
+  { obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
+    use k,
+    rw ← inv_lt_inv hε (_root_.fpow_pos_of_pos _ _),
+    { rw [fpow_neg, inv_inv'],
+      apply lt_of_lt_of_le hk,
+      sorry },
+    {  } },
   use k,
   intros j hj,
   refine lt_of_le_of_lt _ hk,

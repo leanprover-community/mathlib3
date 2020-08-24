@@ -268,4 +268,34 @@ protected definition unop (α : F.op ≅ G.op) : G ≅ F :=
 
 end nat_iso
 
+
+/-- The equivalence between arrows of the form `A ⟶ B` and `B.unop ⟶ A.unop`. Useful for building
+adjunctions.
+Note that this (definitionally) gives variants
+```
+def op_equiv' (A : C) (B : Cᵒᵖ) : (opposite.op A ⟶ B) ≃ (B.unop ⟶ A) :=
+op_equiv _ _
+
+def op_equiv'' (A : Cᵒᵖ) (B : C) : (A ⟶ opposite.op B) ≃ (B ⟶ A.unop) :=
+op_equiv _ _
+
+def op_equiv''' (A B : C) : (opposite.op A ⟶ opposite.op B) ≃ (B ⟶ A) :=
+op_equiv _ _
+```
+-/
+def op_equiv (A B : Cᵒᵖ) : (A ⟶ B) ≃ (B.unop ⟶ A.unop) :=
+{ to_fun := λ f, f.unop,
+  inv_fun := λ g, g.op,
+  left_inv := λ _, rfl,
+  right_inv := λ _, rfl }
+
+-- These two are made by hand rather than by simps because simps generates
+-- `(op_equiv _ _).to_fun f = ...` rather than the coercion version.
+@[simp]
+lemma op_equiv_apply (A B : Cᵒᵖ) (f : A ⟶ B) : op_equiv _ _ f = f.unop :=
+rfl
+@[simp]
+lemma op_equiv_symm_apply (A B : Cᵒᵖ) (f : B.unop ⟶ A.unop) : (op_equiv _ _).symm f = f.op :=
+rfl
+
 end category_theory

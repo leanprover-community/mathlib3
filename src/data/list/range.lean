@@ -36,7 +36,7 @@ theorem map_add_range' (a) : ∀ s n : ℕ, map ((+) a) (range' s n) = range' (a
 | s (n+1) := congr_arg (cons _) (map_add_range' (s+1) n)
 
 theorem map_sub_range' (a) :
-  ∀ (s n : ℕ) (h : a ≤ s), map (- a) (range' s n) = range' (s - a) n
+  ∀ (s n : ℕ) (h : a ≤ s), map (λ x, x - a) (range' s n) = range' (s - a) n
 | s 0     _ := rfl
 | s (n+1) h :=
 begin

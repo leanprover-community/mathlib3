@@ -196,7 +196,7 @@ le_antisymm (mk_real ▸ mk_set_le _) (mk_Iio_real a ▸ mk_le_mk_of_subset Iio_
 lemma mk_Ioo_real {a b : ℝ} (h : a < b) : #(Ioo a b) = 2 ^ omega.{0} :=
 begin
   refine le_antisymm (mk_real ▸ mk_set_le _) _,
-  have h1 : #((- a) '' Ioo a b) ≤ #(Ioo a b) := mk_image_le,
+  have h1 : #((λ x, x - a) '' Ioo a b) ≤ #(Ioo a b) := mk_image_le,
   refine le_trans _ h1,
   rw [image_sub_const_Ioo, sub_self],
   replace h := sub_pos_of_lt h,

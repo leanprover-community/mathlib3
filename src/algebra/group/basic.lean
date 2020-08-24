@@ -330,18 +330,18 @@ add_neg_eq_iff_eq_add
 theorem eq_iff_eq_of_sub_eq_sub (H : a - b = c - d) : a = b ↔ c = d :=
 by rw [← sub_eq_zero, H, sub_eq_zero]
 
-theorem left_inverse_sub_add_left (c : G) : function.left_inverse (- c) (+ c) :=
+theorem left_inverse_sub_add_left (c : G) : function.left_inverse (λ x, x - c) (+ c) :=
 assume x, add_sub_cancel x c
 
-theorem left_inverse_add_left_sub (c : G) : function.left_inverse (+ c) (- c) :=
+theorem left_inverse_add_left_sub (c : G) : function.left_inverse (+ c) (λ x, x - c) :=
 assume x, sub_add_cancel x c
 
 theorem left_inverse_add_right_neg_add (c : G) :
-  function.left_inverse ((+) c) ((+) - c) :=
+  function.left_inverse ((+) c) (λ x, - c + x) :=
 assume x, add_neg_cancel_left c x
 
 theorem left_inverse_neg_add_add_right (c : G) :
-  function.left_inverse ((+) - c) ((+) c) :=
+  function.left_inverse (λ x, - c + x) ((+) c) :=
 assume x, neg_add_cancel_left c x
 
 end add_group

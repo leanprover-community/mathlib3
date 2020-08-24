@@ -25,7 +25,7 @@ namespace Ico
 theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
 congr_arg coe $ list.Ico.map_add _ _ _
 
-theorem map_sub (n m k : ℕ) (h : k ≤ n) : (Ico n m).map (- k) = Ico (n - k) (m - k) :=
+theorem map_sub (n m k : ℕ) (h : k ≤ n) : (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
 congr_arg coe $ list.Ico.map_sub _ _ _ h
 
 theorem zero_bot (n : ℕ) : Ico 0 n = range n :=

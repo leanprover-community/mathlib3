@@ -164,7 +164,7 @@ by simpa only [nsmul_one, add_left_iterate] using function.commute.iterate_right
 lemma commute_add_nat (n : ℕ) : function.commute f (+ n) :=
 by simp only [add_comm _ (n:ℝ), f.commute_nat_add n]
 
-lemma commute_sub_nat (n : ℕ) : function.commute f (- n) :=
+lemma commute_sub_nat (n : ℕ) : function.commute f (λ x, x - n) :=
 (f.commute_add_nat n).inverses_right (equiv.add_right _).right_inv (equiv.add_right _).left_inv
 
 lemma commute_add_int : ∀ n : ℤ, function.commute f (+ n)
@@ -174,7 +174,7 @@ lemma commute_add_int : ∀ n : ℤ, function.commute f (+ n)
 lemma commute_int_add (n : ℤ) : function.commute f ((+) n) :=
 by simpa only [add_comm _ (n:ℝ)] using f.commute_add_int n
 
-lemma commute_sub_int (n : ℤ) : function.commute f (- n) :=
+lemma commute_sub_int (n : ℤ) : function.commute f (λ x, x - n) :=
 (f.commute_add_int n).inverses_right (equiv.add_right _).right_inv (equiv.add_right _).left_inv
 
 @[simp] lemma map_int_add (m : ℤ) (x : ℝ) : f (m + x) = m + f x :=

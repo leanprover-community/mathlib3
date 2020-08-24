@@ -10,12 +10,12 @@ import category_theory.limits.shapes.regular_mono
 /-!
 # Kernel pairs
 
-This file defines what it means for a parallel pair of morphisms `a,b : R ⟶ X` to be the kernel pair
+This file defines what it means for a parallel pair of morphisms `a b : R ⟶ X` to be the kernel pair
 for a morphism `f`.
 Some properties of kernel pairs are given, namely allowing one to transfer between
 the kernel pair of `f₁ ≫ f₂` to the kernel pair of `f₁`.
-It is also proved that If `f` is a coequalizer of some pair, and it is a kernel pair for `a,b` then
-it is a coequalizer of `a,b`.
+It is also proved that if `f` is a coequalizer of some pair, and `a`,`b` is a kernel pair for `f` then
+it is a coequalizer of `a`,`b`.
 
 ## Implementation
 
@@ -41,7 +41,7 @@ variables {C : Type u} [category.{v} C]
 variables {R X Y Z : C} (f : X ⟶ Y) (a b : R ⟶ X)
 
 /--
-`is_kernel_pair f a b` expresses that `a,b` is a kernel pair for `f`, i.e. `a ≫ f = b ≫ f`
+`is_kernel_pair f a b` expresses that `a`,`b` is a kernel pair for `f`, i.e. `a ≫ f = b ≫ f`
 and the square
   R → X
   ↓   ↓
@@ -57,7 +57,7 @@ attribute [reassoc] is_kernel_pair.comm
 
 namespace is_kernel_pair
 
-/-- The data expressing that `a,b` is a kernel pair is subsingleton. -/
+/-- The data expressing that `a`,`b` is a kernel pair is subsingleton. -/
 instance : subsingleton (is_kernel_pair f a b) :=
 ⟨λ P Q, begin
   cases P,
@@ -65,7 +65,7 @@ instance : subsingleton (is_kernel_pair f a b) :=
   congr,
 end⟩
 
-/-- If `f` is a monomorphism, then `𝟙 _, 𝟙 _`  is a kernel pair for `f`. -/
+/-- If `f` is a monomorphism, then `𝟙 _`, `𝟙 _`  is a kernel pair for `f`. -/
 def id_of_mono [mono f] : is_kernel_pair f (𝟙 _) (𝟙 _) :=
 { comm := rfl,
   is_limit :=
@@ -83,7 +83,7 @@ instance [mono f] : inhabited (is_kernel_pair f (𝟙 _) (𝟙 _)) := ⟨id_of_m
 variables {f a b}
 
 /--
-Given a pair of morphisms `p,q` to `X` which factor through `f`, they factor through any kernel
+Given a pair of morphisms `p`,`q` to `X` which factor through `f`, they factor through any kernel
 pair of `f`.
 -/
 def lift' {S : C} (k : is_kernel_pair f a b) (p q : S ⟶ X) (w : p ≫ f = q ≫ f) :

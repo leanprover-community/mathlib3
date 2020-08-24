@@ -422,7 +422,8 @@ begin
 end
 
 lemma finsum_in_bind {s : set β} {t : β → set α} (hs : s.finite)
-  (ht : ∀ b, (t b).finite) (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) :
+  (ht : ∀ b, (t b).finite) -- I would like to change this to ∀ b ∈ s, (t b).finite
+  (h : ∀ x ∈ s, ∀ y ∈ s, x ≠ y → disjoint (t x) (t y)) :
   finsum_in (⋃ x ∈ s, t x) f = finsum_in s (λ x, finsum_in (t x) f) :=
 begin
   rw finsum_in_eq_finset_sum''' _ hs,
@@ -455,7 +456,9 @@ lemma finsum_in_bUnion {s : set β} {t : Π (x : β), x ∈ s → set α}
   (h : ∀ x (hx : x ∈ s), ∀ y (hy : y ∈ s), x ≠ y → disjoint (t x hx) (t y hy)) :
   finsum_in (⋃ x (hx : x ∈ s), t x hx) f =
   finsum_in s (λ x, if hx : x ∈ s then finsum_in (t x hx) f else 0) :=
-begin sorry end
+begin
+  sorry
+end
 
 lemma finsum_in_sUnion {t : set (set α)} (ht₀ : t.finite)
   (ht₁ : ∀ (x : set α) (hs : x ∈ t), x.finite)
@@ -463,6 +466,39 @@ lemma finsum_in_sUnion {t : set (set α)} (ht₀ : t.finite)
   finsum_in (⋃₀ t) f = finsum_in t (λ x, finsum_in x f) :=
 by rw [set.sUnion_eq_bUnion, finsum_in_bUnion ht₀ ht₁ (by simpa)];
   exact finsum_in_congr rfl (λ x hx, dif_pos hx)
+
+-- lemma foo (p : set α → M) (hp : ∀ s : set α, p (s ∩ function.support f) = p s)
+--   (h : ∀ s : set α, s.finite → finsum_in s f = p s)
+--   (hs : (s ∩ function.support f).finite) : finsum_in s f = p s :=
+-- by rw [← finsum_in_eq _ _ hs, h _ hs]; exact hp s
+
+lemma finsum_in_add_distrib (hs : s.finite) :
+  finsum_in s (λ x, f x + g x) = finsum_in s f + finsum_in s g :=
+by iterate 3 { rw [finsum_in_eq_finset_sum''' _ hs, set.finite.to_finset] };
+  exact finset.sum_add_distrib
+
+lemma set.inter_support_add_finite
+  (hf : (s ∩ function.support f).finite) (hg : (s ∩ function.support g).finite) :
+  (s ∩ function.support (λ x, f x + g x)).finite :=
+set.finite.subset (by rw set.inter_distrib_left; exact set.finite.union hf hg)
+  (set.inter_subset_inter_right _ (function.support_add f g))
+
+lemma finsum_in_add_distrib'
+  (hf : (s ∩ function.support f).finite) (hg : (s ∩ function.support g).finite) :
+  finsum_in s (λ x, f x + g x) = finsum_in s f + finsum_in s g :=
+begin
+  sorry
+end
+
+lemma finsum_in_comm {s : set α} {t : set β}
+  (hs : s.finite) (ht : t.finite) (f : α → β → M) :
+  finsum_in s (λ x, finsum_in t (λ y, f x y)) = finsum_in t (λ y, finsum_in s (λ x, f x y)) :=
+begin
+  rw [finsum_in_eq_finset_sum''' _ hs, finsum_in_eq_finset_sum''' _ ht],
+  conv_lhs { congr, skip, funext, rw finsum_in_eq_finset_sum''' _ ht },
+  conv_rhs { congr, skip, funext, rw finsum_in_eq_finset_sum''' _ hs },
+  exact finset.sum_comm,
+end
 
 end finsum
 

@@ -859,6 +859,8 @@ end
   ↑(to_zmod_pow n x) = to_zmod_pow m x :=
 by { rw ← zmod_cast_comp_to_zmod_pow _ _ h, refl }
 
+
+
 end padic_int
 
 namespace padic_norm_z
@@ -874,3 +876,83 @@ begin
 end
 
 end padic_norm_z
+
+section
+variables {p : ℕ} [fact p.prime]
+open cau_seq padic_seq
+
+def int_lim_seq (seq : ℕ → ℤ) (h : is_cau_seq (padic_norm p) (λ n, seq n)) : ℤ_[p] :=
+⟨⟦⟨_, h⟩⟧,
+ show ↑(padic_seq.norm _) ≤ (1 : ℝ), begin
+   rw padic_seq.norm,
+   split_ifs with hne; norm_cast,
+   { exact zero_le_one },
+   { apply padic_norm.of_int }
+ end ⟩
+
+open padic_int
+variables {R : Type*} [comm_ring R] (f : Π k : ℕ, R →+* zmod (p^k))
+  (f_compat : ∀ k1 k2 (hk : k1 ≤ k2), (zmod.cast_hom (nat.pow_dvd_pow p hk) _) ∘ f k2 = f k1)
+
+
+-- starting at n = 1 allows lim_seq_one to be an equality instead of having to lift to an equivalence later
+-- I don't know if this will get us in trouble
+def limit (r : R) : ℕ → ℤ :=
+λ n, (f (n+1) r : zmod (p^(n+1))).val
+
+@[simp] lemma lim_seq_zero : limit f 0 = 0 :=
+by simp [limit]; refl
+
+@[simp] lemma lim_seq_one : limit f 1 = 1 :=
+begin
+  ext k,
+  have : fact (1 < p^(k+1)),
+  { apply nat.one_lt_pow _ _ (nat.succ_pos _),
+    exact nat.prime.one_lt ‹_› },
+  unfreezingI { simp [limit, zmod.val_one] },
+end
+
+lemma lim_seq_is_cau_seq (r : R): is_cau_seq (padic_norm p) (λ n, limit f r n) :=
+sorry
+
+def limit_seq (r : R) : padic_seq p := ⟨λ n, limit f r n, lim_seq_is_cau_seq f r⟩
+
+lemma limit_seq_add (r s : R) : limit_seq f (r + s) ≈ limit_seq f r + limit_seq f s :=
+sorry
+
+lemma limit_seq_mul (r s : R) : limit_seq f (r * s) ≈ limit_seq f r * limit_seq f s :=
+sorry
+
+def lim_fn (r : R) : ℤ_[p] :=
+int_lim_seq (limit f r) (lim_seq_is_cau_seq f r)
+
+lemma lim_fn_zero : lim_fn f 0 = 0 :=
+by simp [lim_fn]; refl
+
+lemma lim_fn_one : lim_fn f 1 = 1 :=
+by simp [lim_fn]; refl
+
+lemma lim_fn_add (r s : R) : lim_fn f (r + s) = lim_fn f r + lim_fn f s :=
+subtype.ext $ quot.sound $ limit_seq_add _ _ _
+
+lemma lim_fn_mul (r s : R) : lim_fn f (r * s) = lim_fn f r * lim_fn f s :=
+subtype.ext $ quot.sound $ limit_seq_mul _ _ _
+
+def lim_ring_hom : R →+* ℤ_[p] :=
+{ to_fun := lim_fn f,
+  map_one' := lim_fn_one f,
+  map_mul' := lim_fn_mul f,
+  map_zero' := lim_fn_zero f,
+  map_add' := lim_fn_add f }
+
+
+lemma foo : ∃ g : R →+* ℤ_[p], ∀ n, (to_zmod_pow n).comp g = f n :=
+⟨ lim_ring_hom f, sorry ⟩
+
+lemma foo_unique (g : R →+* ℤ_[p]) (hg : ∀ n, (to_zmod_pow n).comp g = f n) :
+  g = lim_ring_hom f :=
+begin
+  sorry
+end
+
+end

@@ -950,7 +950,11 @@ end
 
 lemma val_coe_aux (i j : ℕ) (h : i ≤ j) (x : zmod (p ^ j)) :
   (x.val : zmod (p ^ i)) = x :=
-sorry
+begin
+  haveI : fact (p ^ j > 0) := nat.pow_pos (nat.prime.pos ‹_›) _,
+  rw ← zmod.cast_val x,
+  simp,
+end
 
 
 variable {p}
@@ -989,12 +993,30 @@ begin
   unfreezingI
   { simp only [int.cast_coe_nat, int.cast_add, ring_hom.map_add, int.cast_sub, zmod.nat_cast_val] },
   rw [zmod.cast_add (show p ^ (n + 1) ∣ p ^ (j + 1), from _), sub_self],
-  apply_instance,
+  { apply_instance },
   { apply nat.pow_dvd_pow, linarith only [hj] },
 end
 
 lemma limit_seq_mul (r s : R) : limit_seq f_compat (r * s) ≈ limit_seq f_compat r * limit_seq f_compat s :=
-sorry
+begin
+  intros ε hε,
+  obtain ⟨n, hn⟩ := exists_aux p hε,
+  use n,
+  intros j hj,
+  dsimp [limit_seq],
+  apply lt_of_le_of_lt _ hn,
+  rw [← int.cast_mul, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le],
+  rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
+  dsimp [limit],
+  have : fact (p ^ (n + 1) > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ (j + 1) > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  have := val_coe_aux p n (j+1) (by linarith),
+  unfreezingI
+  { simp only [int.cast_coe_nat, int.cast_mul, int.cast_sub, ring_hom.map_mul, zmod.nat_cast_val] },
+  rw [zmod.cast_mul (show p ^ (n + 1) ∣ p ^ (j + 1), from _), sub_self],
+  { apply_instance },
+  { apply nat.pow_dvd_pow, linarith only [hj] },
+end
 
 def lim_fn (r : R) : ℤ_[p] :=
 int_lim_seq (limit f r) (lim_seq_is_cau_seq f_compat r)

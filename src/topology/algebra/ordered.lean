@@ -1217,7 +1217,7 @@ begin
   { obtain ⟨q, hq, hqs⟩ : ∃ q ∈ Ioi (f a), Ico (f a) q ⊆ s :=
       exists_Ico_subset_of_mem_nhds hs hfa_top,
     refine mem_sets_of_superset (mem_map.2 _) hqs,
-    have h_surj_on := surj_on_Ici_of_strict_mono_surjective h_mono h_surj a,
+    have h_surj_on := surj_on_Ici_of_monotone_surjective h_mono.monotone h_surj a,
     rcases h_surj_on (Ioi_subset_Ici_self hq) with ⟨x, hx, rfl⟩,
     rcases eq_or_lt_of_le hx with rfl|hax, { exact (lt_irrefl _ hq).elim },
     refine mem_sets_of_superset (Ico_mem_nhds_within_Ici (left_mem_Ico.2 hax)) _,

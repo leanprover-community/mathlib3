@@ -894,7 +894,6 @@ open padic_int
 variables {R : Type*} [comm_ring R] (f : Π k : ℕ, R →+* zmod (p^k))
   (f_compat : ∀ k1 k2 (hk : k1 ≤ k2), (zmod.cast_hom (nat.pow_dvd_pow p hk) _) ∘ f k2 = f k1)
 
-
 -- starting at n = 1 allows lim_seq_one to be an equality instead of having to lift to an equivalence later
 -- I don't know if this will get us in trouble
 def limit (r : R) : ℕ → ℤ :=
@@ -912,47 +911,88 @@ begin
   unfreezingI { simp [limit, zmod.val_one] },
 end
 
+variable {f}
+include f_compat
+
+lemma limit_sub_mem (r : R) (i j : ℕ) (h : i ≤ j) :
+  ↑p ^ (i + 1) ∣ limit f r j - limit f r i :=
+begin
+  specialize f_compat (i+1) (j+1) (succ_le_succ h),
+  rw [← int.coe_nat_pow, ← zmod.int_coe_zmod_eq_zero_iff_dvd],
+  rw [int.cast_sub],
+  dsimp [limit],
+  rw function.funext_iff at f_compat,
+  specialize f_compat r,
+  rw [function.comp_app] at f_compat,
+  rw ← f_compat,
+  have : fact (p ^ (i + 1) > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ (j + 1) > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  unfreezingI { simp },
+end
+
 lemma lim_seq_is_cau_seq (r : R): is_cau_seq (padic_norm p) (λ n, limit f r n) :=
-sorry
+begin
+  intros ε hε,
+  obtain ⟨k, hk⟩ : ∃ k : ℕ, (p ^ - (↑(k + 1 : ℕ) : ℤ) : ℚ) < ε := sorry,
+  use k,
+  intros j hj,
+  refine lt_of_le_of_lt _ hk,
+  norm_cast,
+  rw ← padic_norm.dvd_iff_norm_le,
+  exact_mod_cast limit_sub_mem f_compat r k j hj
+end
 
-def limit_seq (r : R) : padic_seq p := ⟨λ n, limit f r n, lim_seq_is_cau_seq f r⟩
+def limit_seq (r : R) : padic_seq p := ⟨λ n, limit f r n, lim_seq_is_cau_seq f_compat r⟩
 
-lemma limit_seq_add (r s : R) : limit_seq f (r + s) ≈ limit_seq f r + limit_seq f s :=
-sorry
+lemma limit_seq_add (r s : R) : limit_seq f_compat (r + s) ≈ limit_seq f_compat r + limit_seq f_compat s :=
+begin
+  intros ε hε,
+  existsi _,
+  intros j hj,
+  dsimp [limit_seq],
 
-lemma limit_seq_mul (r s : R) : limit_seq f (r * s) ≈ limit_seq f r * limit_seq f s :=
+end
+
+lemma limit_seq_mul (r s : R) : limit_seq f_compat (r * s) ≈ limit_seq f_compat r * limit_seq f_compat s :=
 sorry
 
 def lim_fn (r : R) : ℤ_[p] :=
-int_lim_seq (limit f r) (lim_seq_is_cau_seq f r)
+int_lim_seq (limit f r) (lim_seq_is_cau_seq f_compat r)
 
-lemma lim_fn_zero : lim_fn f 0 = 0 :=
+lemma lim_fn_zero : lim_fn f_compat 0 = 0 :=
 by simp [lim_fn]; refl
 
-lemma lim_fn_one : lim_fn f 1 = 1 :=
+lemma lim_fn_one : lim_fn f_compat 1 = 1 :=
 by simp [lim_fn]; refl
 
-lemma lim_fn_add (r s : R) : lim_fn f (r + s) = lim_fn f r + lim_fn f s :=
+lemma lim_fn_add (r s : R) : lim_fn f_compat (r + s) = lim_fn f_compat r + lim_fn f_compat s :=
 subtype.ext $ quot.sound $ limit_seq_add _ _ _
 
-lemma lim_fn_mul (r s : R) : lim_fn f (r * s) = lim_fn f r * lim_fn f s :=
+lemma lim_fn_mul (r s : R) : lim_fn f_compat (r * s) = lim_fn f_compat r * lim_fn f_compat s :=
 subtype.ext $ quot.sound $ limit_seq_mul _ _ _
 
 def lim_ring_hom : R →+* ℤ_[p] :=
-{ to_fun := lim_fn f,
-  map_one' := lim_fn_one f,
-  map_mul' := lim_fn_mul f,
-  map_zero' := lim_fn_zero f,
-  map_add' := lim_fn_add f }
+{ to_fun := lim_fn f_compat,
+  map_one' := lim_fn_one f_compat,
+  map_mul' := lim_fn_mul f_compat,
+  map_zero' := lim_fn_zero f_compat,
+  map_add' := lim_fn_add f_compat }
 
 
 lemma foo : ∃ g : R →+* ℤ_[p], ∀ n, (to_zmod_pow n).comp g = f n :=
-⟨ lim_ring_hom f, sorry ⟩
+⟨ lim_ring_hom f_compat, sorry ⟩
 
 lemma foo_unique (g : R →+* ℤ_[p]) (hg : ∀ n, (to_zmod_pow n).comp g = f n) :
-  g = lim_ring_hom f :=
+  g = lim_ring_hom f_compat :=
 begin
   sorry
+end
+
+example : complete_space (ℚ_[p]) :=
+begin
+
+  have : is_complete ℚ_[p] _ := padic.complete,
+  refine uniform_space.complete_of_cauchy_seq_tendsto _ _,
 end
 
 end

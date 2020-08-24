@@ -218,7 +218,7 @@ end subalgebra
 variables {R : Type u} {A : Type v} {B : Type w}
 variables [comm_ring R] [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
 
-/-- The image of a Noetherian R-algebra under an R-algebra map is a Noetherian ring -/
+/-- The image of a Noetherian R-algebra under an R-algebra map is a Noetherian ring. -/
 instance alg_hom.is_noetherian_ring_range (f : A →ₐ[R] B) [is_noetherian_ring A] :
   is_noetherian_ring f.range :=
 is_noetherian_ring_range f.to_ring_hom

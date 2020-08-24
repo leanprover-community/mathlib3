@@ -224,32 +224,6 @@ instance : limits.has_binary_products (fam I) :=
 instance : limits.has_binary_coproducts (fam I) :=
 ⟨ by apply_instance  ⟩
 
-/-- diagonal arrow of the binary product in the category `fam I` -/
-@[pp_nodot] def diag (α : fam I) : α ⟶ α ⨯ α :=
-limits.prod.lift (𝟙 _) (𝟙 _)
-
-@[reassoc]
-lemma diag_map {α β : fam I} (f : α ⟶ β) : diag α ≫ limits.prod.map f f = f ≫ diag β :=
-by ext; refl
-
-@[reassoc]
-lemma diag_map_fst_snd {α β : fam I} : diag (α ⨯ β) ≫ limits.prod.map limits.prod.fst limits.prod.snd = 𝟙 (α ⨯ β) :=
-by ext _ ⟨ ⟩; refl
-
-@[reassoc]
-lemma diag_map_comp {α β γ γ' : fam I} (f : α ⟶ β) (g : β ⟶ γ) (g' : β ⟶ γ') :
-  diag α ≫ limits.prod.map (f ≫ g) (f ≫ g') = f ≫ diag β ≫ limits.prod.map g g' :=
-by ext; refl
-
-@[reassoc]
-lemma diag_map_fst_snd_comp {α β γ γ' : fam I} (g : α ⟶ γ) (g' : β ⟶ γ') :
-  diag (α ⨯ β) ≫ limits.prod.map (limits.prod.fst ≫ g) (limits.prod.snd ≫ g') = limits.prod.map g g' :=
-by ext _ ⟨ ⟩; refl
-
-/-- co-diagonal arrow of the binary coproduct in the category `fam I` -/
-def codiag (α : fam I) : α ⨿ α ⟶ α :=
-limits.coprod.desc (𝟙 _) (𝟙 _)
-
 /-- Propositional equality between values as a `Pred` -/
 protected def eq (α : fam I) : Pred (α ⨯ α) :=
 λ i x, @limits.prod.fst (fam I) _ α α _ _ x = @limits.prod.snd (fam I) _ α α _ _ x
@@ -387,19 +361,19 @@ begin
 end
 
 lemma sound'' {f g : β ⟶ quot r} (f' g' : β ⟶ α)
-      (hh : diag β ≫ limits.prod.map f' g' ⊨ r)
+      (hh : limits.diag β ≫ limits.prod.map f' g' ⊨ r)
       (hh_f : f = f' ≫ quot.mk r)
       (hh_g : g = g' ≫ quot.mk r) :
   f = g :=
 by { ext i x; rw [hh_f,hh_g],
      apply _root_.quot.sound; cases hh with h h',
      replace h' := congr_arrow h' x,
-     simp [diag] at h',
+     simp at h',
      convert (h i x).property, convert h',
      ext ⟨ ⟩; refl }
 
 lemma sound' (f g : β ⟶ α)
-      (hh : diag β ≫ limits.prod.map f g ⊨ r) :
+      (hh : limits.diag β ≫ limits.prod.map f g ⊨ r) :
   f ≫ quot.mk r = g ≫ quot.mk r :=
 by apply sound'' f g hh rfl rfl
 
@@ -411,14 +385,6 @@ lemma out_mk (r : Pred (α ⨯ α)) : quot.out r ≫ quot.mk r = 𝟙 _ :=
 by ext; apply quot.out_eq
 
 open function
-
-@[simp, reassoc]
-lemma prod.diag_fst : diag α ≫ limits.prod.fst = 𝟙 α :=
-by ext; refl
-
-@[simp, reassoc]
-lemma prod.diag_snd : diag α ≫ limits.prod.snd = 𝟙 α :=
-by ext; refl
 
 /-- swap the components of a product -/
 def prod.swap : α ⨯ β ⟶ β ⨯ α :=
@@ -436,10 +402,6 @@ by simp [prod.swap]
 @[simp, reassoc]
 lemma prod.swap_snd : prod.swap ≫ limits.prod.snd = (limits.prod.fst : α ⨯ β ⟶ α) :=
 by simp [prod.swap]
-
-/-- reassociate the components of two nested products -/
-def prod.assoc : α ⨯ β ⨯ γ ⟶ α ⨯ (β ⨯ γ) :=
-diag _ ≫ limits.prod.map (limits.prod.fst ≫ limits.prod.fst) (diag _ ≫ limits.prod.map (limits.prod.fst ≫ limits.prod.snd) limits.prod.snd)
 
 /-!
 The following three definitions, `to_ab`, `to_bc` and `to_ac`,
@@ -462,7 +424,7 @@ def to_ac : α ⨯ β ⨯ γ ⟶ α ⨯ γ := limits.prod.map limits.prod.fst (�
 Definition of equivalence relations for predicates on products
 -/
 structure equiv (r : Pred (α ⨯ α)) : Prop :=
-(refl : diag α ⊨ r)
+(refl : limits.diag α ⊨ r)
 (symm : ∀ {i} (f : i ⟶ α ⨯ α), f ⊨ r → f ≫ prod.swap ⊨ r)
   /- `trans` encodes transitivity: forall all triple of variables `(a,b,c)`,
      (which we call `abc : unit i ⟶ α ⊗ α ⊗ α`),
@@ -477,7 +439,7 @@ begin
   cases h, intro j, refine ⟨_,_,_⟩,
   { intros x, cases h_refl,
     have := whisker_eq (value _ _ x) h_refl_h,
-    simp only [diag, ←limits.prod.lift_comp_comp, category.comp_id] at this,
+    simp only [←limits.prod.lift_comp_comp, category.comp_id] at this,
     rw this, existsi [value _ _ x ≫ h_refl_w], simp },
   { intros x y h,
     replace h_symm := h_symm _ h,

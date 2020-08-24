@@ -931,6 +931,7 @@ begin
 end
 
 omit f_compat
+variable (p)
 lemma exists_aux {ε : ℚ} (hε : ε > 0) :
   ∃ (k : ℕ), ↑p ^ -((k + 1 : ℕ) : ℤ) < ε :=
 begin
@@ -951,13 +952,16 @@ lemma val_coe_aux (i j : ℕ) (h : i ≤ j) (x : zmod (p ^ j)) :
   (x.val : zmod (p ^ i)) = x :=
 sorry
 
+
+variable {p}
+
 include f_compat
 
 lemma lim_seq_is_cau_seq (r : R): is_cau_seq (padic_norm p) (λ n, limit f r n) :=
 begin
   intros ε hε,
   obtain ⟨k, hk⟩ : ∃ k : ℕ, (p ^ - (↑(k + 1 : ℕ) : ℤ) : ℚ) < ε,
-  { exact exists_aux hε, },
+  { exact exists_aux _ hε, },
   use k,
   intros j hj,
   refine lt_of_le_of_lt _ hk,
@@ -971,8 +975,7 @@ def limit_seq (r : R) : padic_seq p := ⟨λ n, limit f r n, lim_seq_is_cau_seq 
 lemma limit_seq_add (r s : R) : limit_seq f_compat (r + s) ≈ limit_seq f_compat r + limit_seq f_compat s :=
 begin
   intros ε hε,
-  let n : ℕ := _,
-  have hn : (↑p ^ (-n : ℤ)) < ε := _,
+  obtain ⟨n, hn⟩ := exists_aux p hε,
   use n,
   intros j hj,
   dsimp [limit_seq],
@@ -980,15 +983,14 @@ begin
   rw [← int.cast_add, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le],
   rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
   dsimp [limit],
-  simp only [int.cast_coe_nat, int.cast_add, ring_hom.map_add, int.cast_sub],
-  simp [val_coe_aux n (j+1) (by linarith)],
-  rw [zmod.cast_add (show p ^ n ∣ p ^ (j + 1), from _), sub_self],
+  have : fact (p ^ (n + 1) > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ (j + 1) > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  have := val_coe_aux p n (j+1) (by linarith),
+  unfreezingI
+  { simp only [int.cast_coe_nat, int.cast_add, ring_hom.map_add, int.cast_sub, zmod.nat_cast_val] },
+  rw [zmod.cast_add (show p ^ (n + 1) ∣ p ^ (j + 1), from _), sub_self],
   apply_instance,
-  -- specialize f_compat n (j+1) (by linarith),
-  -- rw function.funext_iff at f_compat,
-  -- simp only [function.comp_app, zmod.cast_hom_apply] at f_compat,
-  -- have : fact (p ^ n > 0) := pow_pos (nat.prime.pos ‹_›) _,
-  -- simp only [int.cast_coe_nat, int.cast_add, ring_hom.map_add, int.cast_sub],
+  { apply nat.pow_dvd_pow, linarith only [hj] },
 end
 
 lemma limit_seq_mul (r s : R) : limit_seq f_compat (r * s) ≈ limit_seq f_compat r * limit_seq f_compat s :=

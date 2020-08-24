@@ -366,7 +366,7 @@ lemma cast_succ_fin_succ (n : ℕ) (j : fin n) :
   cast_succ (fin.succ j) = fin.succ (cast_succ j) :=
 by simp [fin.ext_iff]
 
-lemma cast_succ_lt_succ (i : fin (n + 1)) : i.cast_succ < i.succ :=
+lemma cast_succ_lt_succ (i : fin n) : i.cast_succ < i.succ :=
 by { rw [lt_iff_val_lt_val, cast_succ, cast_add_val, succ_val], exact lt_add_one _ }
 
 @[norm_cast, simp] lemma coe_eq_cast_succ : (a : fin (n + 1)) = a.cast_succ :=

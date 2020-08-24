@@ -63,6 +63,4 @@ run_cmd do
 /- this finds a random probably-prime number -/
 run_cmd do
   some p ← tactic.run_rand (find_prime 100000) | trace "no prime found, gave up",
-  if nat.prime p
-    then skip
-    else trace!"The number {p} fooled Fermat's test"
+  when (¬ nat.prime p) (trace!"The number {p} fooled Fermat's test")

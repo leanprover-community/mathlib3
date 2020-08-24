@@ -560,7 +560,7 @@ begin
 end
 
 /-- Orthogonal projection is idempotent. -/
-@[simp] lemma orthogonal_projection_orthgonal_projection {s : affine_subspace ℝ P}
+@[simp] lemma orthogonal_projection_orthogonal_projection {s : affine_subspace ℝ P}
   (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) {p : P} :
   orthogonal_projection hn hc (orthogonal_projection hn hc p) = orthogonal_projection hn hc p :=
 begin

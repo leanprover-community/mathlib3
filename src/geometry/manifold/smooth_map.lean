@@ -32,6 +32,12 @@ structure times_cont_mdiff_map :=
 (to_fun                   : M → M')
 (times_cont_mdiff_to_fun  : times_cont_mdiff I I' n to_fun)
 
+@[protect_proj]
+structure times_cont_mdiff_on_map :=
+(to_fun                   : M → M')
+(source                   : set M )
+(times_cont_mdiff_on_to_fun  : times_cont_mdiff_on I I' n to_fun source)
+
 /-- Bundled smooth maps. -/
 def smooth_map := times_cont_mdiff_map I I' M M' ⊤
 
@@ -41,6 +47,13 @@ notation `C[` n `](` I `, ` M `)` := times_cont_mdiff_map I (model_with_corners_
 notation `C∞(` I `, ` M `; ` I' `, ` M' `)` := times_cont_mdiff_map I I' M M' ⊤
 notation `C∞(` I `, ` M `; ` k `)` := times_cont_mdiff_map I (model_with_corners_self k k) M k ⊤
 notation `C∞(` I `, ` M `)` := times_cont_mdiff_map I (model_with_corners_self ℝ ℝ) M ℝ ⊤
+
+notation `Cₗ[` n `](` I `, ` M `; ` I' `, ` M' `)` := times_cont_mdiff_on_map I I' M M' n
+notation `Cₗ[` n `](` I `, ` M `; ` k `)` := times_cont_mdiff_on_map I (model_with_corners_self k k) M k n
+notation `Cₗ[` n `](` I `, ` M `)` := times_cont_mdiff_on_map I (model_with_corners_self ℝ ℝ) M ℝ n
+notation `Cₗ∞(` I `, ` M `; ` I' `, ` M' `)` := times_cont_mdiff_on_map I I' M M' ⊤
+notation `Cₗ∞(` I `, ` M `; ` k `)` := times_cont_mdiff_on_map I (model_with_corners_self k k) M k ⊤
+notation `Cₗ∞(` I `, ` M `)` := times_cont_mdiff_on_map I (model_with_corners_self ℝ ℝ) M ℝ ⊤
 
 namespace times_cont_mdiff_map
 
@@ -63,6 +76,8 @@ by cases f; cases g; cases h; refl
 
 @[ext] theorem ext (h : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext h
+
+@[simp] lemma to_fun_eq_coe : f.to_fun = ⇑f := rfl
 
 /-- The identity as a smooth map. -/
 def id : C[n](I, M; I, M) := ⟨id, times_cont_mdiff_id⟩
@@ -91,3 +106,21 @@ variables {I} {I'} {M} {M'}
 def const (y : M') : C∞(I, M; I', M') := ⟨λ x, y, smooth_const⟩
 
 end smooth_map
+
+namespace smooth_on_map
+
+instance : has_coe_to_fun Cₗ[n](I, M; I', M') := ⟨_, times_cont_mdiff_on_map.to_fun⟩
+
+protected lemma times_cont_mdiff_on (f : Cₗ[n](I, M; I', M')) :
+  times_cont_mdiff_on I I' n f f.source := f.times_cont_mdiff_on_to_fun
+
+protected lemma smooth (f : Cₗ∞(I, M; I', M')) :
+  smooth_on I I' f f.source := f.times_cont_mdiff_on_to_fun
+
+@[ext] theorem ext {f g : Cₗ[n](I, M; I', M')}
+  (h_src : f.source = g.source) (h : ∀ x, f x = g x) : f = g :=
+by cases f; cases g; congr'; exact funext h
+
+@[simp] lemma to_fun_eq_coe {f : Cₗ[n](I, M; I', M')} : f.to_fun = ⇑f := rfl
+
+end smooth_on_map

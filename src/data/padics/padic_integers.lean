@@ -694,9 +694,13 @@ to_zmod_hom p zmod_repr
   (by { rw ←maximal_ideal_eq_span_p, exact zmod_congr_of_sub_mem_max_ideal } )
 
 /--
+`z - (to_zmod z : ℤ_[p])` is contained in the maximal ideal of `ℤ_[p]`, for every `z : ℤ_[p]`.
+
 The coercion from `zmod p` to `ℤ_[p]` is `zmod.has_coe_t`,
 which coerces `zmod p` into artibrary rings.
-This coercion needs to exist to allow coercing into a ring of characteristic `m` where `m ∣ p`.
+This is unfortunate, but a consequence of the fact that we allow `zmod p`
+to coerce to rings of arbitrary characteristic, instead of only rings of characteristic `p`.
+This coercion is only a ring homomorphism if it coerces into a ring whose characteristic divides `p`.
 While this is not the case here we can still make use of the coercion.
 -/
 lemma to_zmod_spec (z : ℤ_[p]) : z - (to_zmod z : ℤ_[p]) ∈ maximal_ideal ℤ_[p] :=

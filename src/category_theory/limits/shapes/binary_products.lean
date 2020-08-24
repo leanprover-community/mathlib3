@@ -314,7 +314,7 @@ lemma prod.diag_fst {X : C} [has_limits_of_shape (discrete walking_pair) C] : di
 by simp
 
 @[simp, reassoc]
-lemma prod.diag_snd {X : C} [has_limits_of_shape (discrete walking_pair) C] : diag X ≫ prod.fst = 𝟙 X :=
+lemma prod.diag_snd {X : C} [has_limits_of_shape (discrete walking_pair) C] : diag X ≫ prod.snd = 𝟙 X :=
 by simp
 
 @[reassoc]

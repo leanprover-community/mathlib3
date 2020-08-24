@@ -36,6 +36,9 @@ def cone_comp_eval (c : cone F) (i : I) : cone (F ⋙ pi.eval C i) :=
   { app := λ j, c.π.app j i,
     naturality' := λ j j' f, congr_fun (c.π.naturality f) i, } }
 
+/--
+A cocone over `F : J ⥤ Π i, C i` has as its components cocones over each of the `F ⋙ pi.eval C i`.
+-/
 def cocone_comp_eval (c : cocone F) (i : I) : cocone (F ⋙ pi.eval C i) :=
 { X := c.X i,
   ι :=
@@ -51,6 +54,9 @@ def cone_of_cone_comp_eval (c : Π i, cone (F ⋙ pi.eval C i)) : cone F :=
   { app := λ j i, (c i).π.app j,
     naturality' := λ j j' f, by { ext i, exact (c i).π.naturality f, } } }
 
+/--
+Given a family of cocones over the `F ⋙ pi.eval C i`, we can assemble these together as a `cocone F`.
+-/
 def cocone_of_cocone_comp_eval (c : Π i, cocone (F ⋙ pi.eval C i)) : cocone F :=
 { X := λ i, (c i).X,
   ι :=
@@ -75,6 +81,10 @@ def cone_of_cone_eval_is_limit {c : Π i, cone (F ⋙ pi.eval C i)} (P : Π i, i
     exact (P i).uniq (cone_comp_eval s i) (m i) (λ j, congr_fun (w j) i)
   end }
 
+/--
+Given a family of colimit cocones over the `F ⋙ pi.eval C i`,
+assembling them together as a `cocone F` produces a colimit cocone.
+-/
 def cocone_of_cocone_eval_is_colimit {c : Π i, cocone (F ⋙ pi.eval C i)} (P : Π i, is_colimit (c i)) :
   is_colimit (cocone_of_cocone_comp_eval c) :=
 { desc := λ s i, (P i).desc (cocone_comp_eval s i),
@@ -108,6 +118,11 @@ section
 
 variables [∀ i, has_colimit (F ⋙ pi.eval C i)]
 
+/--
+If we have a functor `F : J ⥤ Π i, C i` into a category of indexed families,
+and we have chosen colimits for each of the `F ⋙ pi.eval C i`,
+there is a canonical choice of chosen colimit for `F`.
+-/
 def has_colimit_of_has_colimit_comp_eval : has_colimit F :=
 { cocone := cocone_of_cocone_comp_eval (λ i, colimit.cocone _),
   is_colimit := cocone_of_cocone_eval_is_colimit (λ i, colimit.is_colimit _), }

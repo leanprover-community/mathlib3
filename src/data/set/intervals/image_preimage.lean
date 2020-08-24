@@ -133,28 +133,28 @@ by simp [sub_eq_add_neg]
 ### Preimages under `x ↦ a - x`
 -/
 
-@[simp] lemma preimage_const_sub_Ici : ((-) a) ⁻¹' (Ici b) = Iic (a - b) :=
+@[simp] lemma preimage_const_sub_Ici : (λ x, a - x) ⁻¹' (Ici b) = Iic (a - b) :=
 ext $ λ x, le_sub
 
-@[simp] lemma preimage_const_sub_Iic : ((-) a) ⁻¹' (Iic b) = Ici (a - b) :=
+@[simp] lemma preimage_const_sub_Iic : (λ x, a - x) ⁻¹' (Iic b) = Ici (a - b) :=
 ext $ λ x, sub_le
 
-@[simp] lemma preimage_const_sub_Ioi : ((-) a) ⁻¹' (Ioi b) = Iio (a - b) :=
+@[simp] lemma preimage_const_sub_Ioi : (λ x, a - x) ⁻¹' (Ioi b) = Iio (a - b) :=
 ext $ λ x, lt_sub
 
-@[simp] lemma preimage_const_sub_Iio : ((-) a) ⁻¹' (Iio b) = Ioi (a - b) :=
+@[simp] lemma preimage_const_sub_Iio : (λ x, a - x) ⁻¹' (Iio b) = Ioi (a - b) :=
 ext $ λ x, sub_lt
 
-@[simp] lemma preimage_const_sub_Icc : ((-) a) ⁻¹' (Icc b c) = Icc (a - c) (a - b) :=
+@[simp] lemma preimage_const_sub_Icc : (λ x, a - x) ⁻¹' (Icc b c) = Icc (a - c) (a - b) :=
 by simp [← Ici_inter_Iic, inter_comm]
 
-@[simp] lemma preimage_const_sub_Ico : ((-) a) ⁻¹' (Ico b c) = Ioc (a - c) (a - b) :=
+@[simp] lemma preimage_const_sub_Ico : (λ x, a - x) ⁻¹' (Ico b c) = Ioc (a - c) (a - b) :=
 by simp [← Ioi_inter_Iic, ← Ici_inter_Iio, inter_comm]
 
-@[simp] lemma preimage_const_sub_Ioc : ((-) a) ⁻¹' (Ioc b c) = Ico (a - c) (a - b) :=
+@[simp] lemma preimage_const_sub_Ioc : (λ x, a - x) ⁻¹' (Ioc b c) = Ico (a - c) (a - b) :=
 by simp [← Ioi_inter_Iic, ← Ici_inter_Iio, inter_comm]
 
-@[simp] lemma preimage_const_sub_Ioo : ((-) a) ⁻¹' (Ioo b c) = Ioo (a - c) (a - b) :=
+@[simp] lemma preimage_const_sub_Ioo : (λ x, a - x) ⁻¹' (Ioo b c) = Ioo (a - c) (a - b) :=
 by simp [← Ioi_inter_Iio, inter_comm]
 
 /-!
@@ -223,28 +223,28 @@ lemma image_neg_Ioo : has_neg.neg '' (Ioo a b) = Ioo (-b) (-a) := by simp
 ### Images under `x ↦ a - x`
 -/
 
-@[simp] lemma image_const_sub_Ici : ((-) a) '' Ici b = Iic (a - b) :=
+@[simp] lemma image_const_sub_Ici : (λ x, a - x) '' Ici b = Iic (a - b) :=
 by simp [sub_eq_add_neg, image_comp ((+) a) (λ x, -x)]
 
-@[simp] lemma image_const_sub_Iic : ((-) a) '' Iic b = Ici (a - b) :=
+@[simp] lemma image_const_sub_Iic : (λ x, a - x) '' Iic b = Ici (a - b) :=
 by simp [sub_eq_add_neg, image_comp ((+) a) (λ x, -x)]
 
-@[simp] lemma image_const_sub_Ioi : ((-) a) '' Ioi b = Iio (a - b) :=
+@[simp] lemma image_const_sub_Ioi : (λ x, a - x) '' Ioi b = Iio (a - b) :=
 by simp [sub_eq_add_neg, image_comp ((+) a) (λ x, -x)]
 
-@[simp] lemma image_const_sub_Iio : ((-) a) '' Iio b = Ioi (a - b) :=
+@[simp] lemma image_const_sub_Iio : (λ x, a - x) '' Iio b = Ioi (a - b) :=
 by simp [sub_eq_add_neg, image_comp ((+) a) (λ x, -x)]
 
-@[simp] lemma image_const_sub_Icc : ((-) a) '' Icc b c = Icc (a - c) (a - b) :=
+@[simp] lemma image_const_sub_Icc : (λ x, a - x) '' Icc b c = Icc (a - c) (a - b) :=
 by simp [sub_eq_add_neg, image_comp ((+) a) (λ x, -x)]
 
-@[simp] lemma image_const_sub_Ico : ((-) a) '' Ico b c = Ioc (a - c) (a - b) :=
+@[simp] lemma image_const_sub_Ico : (λ x, a - x) '' Ico b c = Ioc (a - c) (a - b) :=
 by simp [sub_eq_add_neg, image_comp ((+) a) (λ x, -x)]
 
-@[simp] lemma image_const_sub_Ioc : ((-) a) '' Ioc b c = Ico (a - c) (a - b) :=
+@[simp] lemma image_const_sub_Ioc : (λ x, a - x) '' Ioc b c = Ico (a - c) (a - b) :=
 by simp [sub_eq_add_neg, image_comp ((+) a) (λ x, -x)]
 
-@[simp] lemma image_const_sub_Ioo : ((-) a) '' Ioo b c = Ioo (a - c) (a - b) :=
+@[simp] lemma image_const_sub_Ioo : (λ x, a - x) '' Ioo b c = Ioo (a - c) (a - b) :=
 by simp [sub_eq_add_neg, image_comp ((+) a) (λ x, -x)]
 
 /-!

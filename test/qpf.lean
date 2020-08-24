@@ -206,7 +206,7 @@ inductive vec_branch (α : Type) :  Π i, vec_shape α (λ (_x : ℕ), unit) i �
 
 def vec_shape.map (α : Type) (X Y : fam (empty ⊕ ℕ)) (f : X ⟶ Y) : Π i, vec_shape α (X ∘ sum.inr) i → vec_shape α (Y ∘ sum.inr) i
 | 0 vec_shape.nil := vec_shape.nil
-| (n+1) (vec_shape.cons x xs) := vec_shape.cons x (f xs)
+| (n+1) (vec_shape.cons x xs) := vec_shape.cons x (f _ xs)
 
 def vec_shape' (α : Type) : fam (empty ⊕ ℕ) ⥤ fam ℕ :=
 { obj := λ f, vec_shape α (f ∘ sum.inr),
@@ -293,13 +293,13 @@ inductive child_shape (f : empty ⊕ bool → Type) : Type
 
 def child_shape.map {X Y : fam $ empty ⊕ bool} (f : X ⟶ Y) : child_shape X → child_shape Y
 | child_shape.nil := child_shape.nil
-| (child_shape.cons t xs) := child_shape.cons (f t) (f xs)
+| (child_shape.cons t xs) := child_shape.cons (f _ t) (f _ xs)
 
 inductive tree_shape (α : Type) (f : empty ⊕ bool → Type) : Type
 | node : α → f (sum.inr ff) → tree_shape
 
 def tree_shape.map {α} {X Y : fam $ empty ⊕ bool} (f : X ⟶ Y) : tree_shape α X → tree_shape α Y
-| (tree_shape.node x xs) := tree_shape.node x (f xs)
+| (tree_shape.node x xs) := tree_shape.node x (f _ xs)
 
 def mut_shape (α : Type) (f : fam $ empty ⊕ bool) : fam bool :=
 pair (tree_shape α f) (child_shape f)
@@ -323,11 +323,11 @@ def mut_P (α : Type) : ipfunctor (empty ⊕ bool) bool :=
   B := mut_children' α }
 
 def mut_P.abs {α} : Π (X : fam (empty ⊕ bool)), ipfunctor.obj (mut_P α) X ⟶ (mut_shape' α).obj X
-| X tt := λ i, tree_shape.node i.1 $ i.2 $ mut_children'.child _
+| X tt := λ i, tree_shape.node i.1 $ i.2 _ $ mut_children'.child _
 | X ff := λ i,
   match i with
   | ⟨tt,f⟩ := child_shape.nil
-  | ⟨ff,f⟩ := child_shape.cons (f mut_children'.list_obj) (f mut_children'.list_tail)
+  | ⟨ff,f⟩ := child_shape.cons (f _ mut_children'.list_obj) (f _ mut_children'.list_tail)
   end
 
 def mut_P.repr {α} : Π (X : fam (empty ⊕ bool)), (mut_shape' α).obj X ⟶ ipfunctor.obj (mut_P α) X

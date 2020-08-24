@@ -98,7 +98,8 @@ each proves that some operations on functors preserves the QPF structure
 
 -/
 
-open_locale fam
+local infixr ` ⊗ `:20 := (⨯)
+local infixr ` ⊗' `:20 := category_theory.limits.prod.map
 
 /-- Indexed Quotient of Polynomial Functor -/
 class iqpf {I J : Type u} (F : fam I ⥤ fam J) :=
@@ -119,11 +120,11 @@ include q
 
 attribute [simp, reassoc] abs_map abs_repr
 
-theorem abs_repr' {α} {i} (x : F.obj α i) : abs F α (repr F α x) = x :=
-show (repr F α ≫ abs F α) x = x, by rw abs_repr; refl
+theorem abs_repr' {α} {i} (x : F.obj α i) : abs F α i (repr F α i x) = x :=
+show (repr F α ≫ abs F α) i x = x, by rw abs_repr; refl
 
-theorem abs_map' {α β : fam I} (f : α ⟶ β) {i} {x : (P F).obj α i} : abs F _ ((P F).map f x) = F.map f (abs F α x) :=
-show ((P F).map f ≫ abs F _) x = (abs F _ ≫ F.map f) x, by rw abs_map
+theorem abs_map' {α β : fam I} (f : α ⟶ β) {i} {x : (P F).obj α i} : abs F β i ((P F).map f i x) = F.map f i (abs F α i x) :=
+show ((P F).map f ≫ abs F _) i x = (abs F _ ≫ F.map f) i x, by rw abs_map
 
 /- Lifting predicates and relations -/
 
@@ -156,8 +157,8 @@ def abs_cases
    (h : ∀ a f, C $ pf.mk (P F) j ⟨a,f⟩ ≫ abs F α)
    (x : unit j ⟶ F.obj α) : C x :=
 begin
-  rcases h' : repr F α (x unit.rfl) with ⟨a,f⟩,
-  have : pf.mk _ _ (repr F α (x unit.rfl)) =
+  rcases h' : repr F α j (x j unit.rfl) with ⟨a,f⟩,
+  have : pf.mk _ _ (repr F α j (x j unit.rfl)) =
              x ≫ repr F α,
       { ext _ ⟨ ⟩ : 2, refl },
   rw h' at this, specialize h a f,
@@ -187,23 +188,21 @@ do
 end tactic
 
 theorem liftp_iff {α : fam I} (p : Π i, α i → Prop) {j} (x : unit j ⟶ F.obj α) :
-  liftp p x ↔ ∃ a f, x = pf.mk (P F) j ⟨a,f⟩ ≫ abs F α ∧ ∀ i a, p i (f a) :=
+  liftp p x ↔ ∃ a f, x = pf.mk (P F) j ⟨a,f⟩ ≫ abs F α ∧ f ⊨ p :=
 begin
   split,
   { rintros ⟨y, hy⟩,
     abs_cases y with a f,
     use [a,f ≫ fam.subtype.val], split,
     { simp [← pf.mk_map_eq,← hy], },
-    { intros i z, apply (f z).property }, },
+    { existsi f, refl }, },
   rintros f,
   choose a f hf using f,
   rcases hf with ⟨h,h'⟩,
-  let g : unit j ⟶ (P F).obj (fam.subtype p),
-  { rintros _ ⟨ ⟩,
-    refine ⟨a,_⟩, intros k b, refine ⟨f b,h' _ _⟩, },
+  choose f' h' using h',
+  let g : unit j ⟶ (P F).obj (fam.subtype p) := value _ _ ⟨a, f'⟩,
   have h : g ≫ (P F).map fam.subtype.val ≫ abs F _ = x,
-  { dsimp [g], ext _ ⟨ ⟩ : 2, simp [h],
-    erw [← abs_map',map_eq'], refl },
+  { dsimp [g], erw [map_eq_assoc, h, ← h'], refl },
   refine ⟨g ≫ abs F _, _⟩,
   rw [category_theory.category.assoc,← abs_map,h],
 end
@@ -213,91 +212,82 @@ theorem liftr_iff {α β : fam I} {j} (r : fam.Pred (α ⊗ β))
   liftr r x y ↔ ∃ a f₀ f₁,
     x = pf.mk (P F) j ⟨a, f₀⟩ ≫ abs F _ ∧
     y = pf.mk (P F) j ⟨a, f₁⟩ ≫ abs F _ ∧
-    ∀ i a, r i (f₀ a, f₁ a) :=
+    limits.prod.lift f₀ f₁ ⊨ r :=
 begin
   split,
   { rintros ⟨y, hy, hy'⟩,
     abs_cases y with a f,
     use [a,f ≫ fam.subtype.val ≫ fam.prod.fst,f ≫ fam.subtype.val ≫ fam.prod.snd], split,
-    { simp only [←pf.mk_map_eq, abs_map, ←hy, abs_repr_assoc, category.assoc], },
+    { simp only [←pf.mk_map_eq, abs_map, ←hy, abs_repr_assoc, category.assoc], refl },
     split,
-    { simp only [←pf.mk_map_eq, ←hy', abs_map, abs_repr_assoc, category.assoc] },
-    intros i j, convert (f j).property, simp [fam.prod.fst,fam.prod.snd,fam.subtype.val], },
+    { simp only [←pf.mk_map_eq, ←hy', abs_map, abs_repr_assoc, category.assoc], refl },
+    existsi f, ext1; simp only [limits.prod.lift_fst, category.assoc]; refl },
   rintros f,
   choose a f₀ f₁ hf using f,
-  rcases hf with ⟨hf₀,hf₁,hr⟩,
-  let g : unit j ⟶ (P F).obj (fam.subtype r),
-  { rintros i ⟨ ⟩,
-    refine ⟨a,_⟩, intros k b, refine ⟨(f₀ b,f₁ b),hr _ _⟩, },
+  rcases hf with ⟨hf₀,hf₁,f,hr⟩,
+  let g : unit j ⟶ (P F).obj (fam.subtype r) := value j _ ⟨a,f⟩,
   have h : g ≫ (P F).map (fam.subtype.val ≫ fam.prod.fst) ≫ abs F _ = x,
-  { dsimp [g], ext _ ⟨ ⟩ : 2, simp only [abs_map, functor.map_comp, fam.comp_app],
-    simp only [hf₀, fam.comp_app],
-    erw [← abs_map',← abs_map'], refl },
+  { dsimp [g], rw [map_eq_assoc, ← reassoc_of hr, fam.prod.fst, limits.prod.lift_fst, hf₀], refl },
   have h' : g ≫ (P F).map (fam.subtype.val ≫ fam.prod.snd) ≫ abs F _ = y,
-  { dsimp [g], ext _ ⟨ ⟩ : 2,
-    simp only [abs_map, functor.map_comp, fam.comp_app, hf₁, fam.comp_app],
-    erw [← abs_map',← abs_map'], refl },
+  { dsimp [g], rw [map_eq_assoc, ← reassoc_of hr, fam.prod.snd, limits.prod.lift_snd, hf₁], refl },
   -- clear_value g, -- put this back when naming issue is fixed in `clear_value`
   refine ⟨g ≫ abs F _, _⟩,
-  simp only [h.symm,h'.symm,ipfunctor.map_comp,abs_map,abs_map_assoc,
+  simp only [h.symm,h'.symm,ipfunctor.map_comp,abs_map,abs_map_assoc,fam.prod.fst,fam.prod.snd,
     category.assoc,and_self,eq_self_iff_true,category_theory.functor.map_comp],
 end
 
 theorem liftp_iff₀ {α : fam I} {X : fam J} (p : Π i, α i → Prop) (x : X ⟶ F.obj α) :
-  liftp p x ↔ ∀ j (y : X j), ∃ a f, x y = abs F α ⟨a,f⟩ ∧ ∀ i a, p i (f a) :=
+  liftp p x ↔ ∀ j (y : X j), ∃ a f, x j y = abs F α j ⟨a,f⟩ ∧ ∀ i a, p i (f i a) :=
 begin
   split,
-  { rintros ⟨y, hy⟩ j z, cases h : repr F _ (y z) with a f,
+  { rintros ⟨y, hy⟩ j z, cases h : repr F _ _ (y _ z) with a f,
     use [a,f ≫ fam.subtype.val], split,
     { rw [← ipfunctor.map_eq', ← h, abs_map', abs_repr', ← hy], reflexivity },
-    intros i j, apply (f j).property },
+    intros i j, apply (f _ j).property },
   rintros f,
-  choose a f hf using f,
-  let g : X ⟶ (P F).obj (fam.subtype p),
-  { intros i y, rcases hf i y with ⟨hf,hr⟩,
-    refine ⟨a i y,_⟩, intros k b, refine ⟨_,hr _ b⟩, },
+  choose a f hf hf' using f,
+  replace hf' : ∀ j y, f j y ⊨ p,
+  { intros, apply sat_intro, apply hf' },
+  choose g₀ h using hf',
+  let g : X ⟶ (P F).obj (fam.subtype p) := λ j y, ⟨a j y, g₀ j y⟩,
   have h : g ≫ (P F).map fam.subtype.val ≫ abs F _ = x,
-  { dsimp [g], ext : 2, simp,
-    rcases (hf x_1 x_2) with ⟨hf,hr⟩, simp [hf],
-    erw [← abs_map',map_eq'], refl },
+  { ext : 2, simp, dsimp [g],
+    erw [← abs_map',map_eq', ← h, ← hf], },
   refine ⟨g ≫ abs F _, _⟩,
   rw [category_theory.category.assoc,← abs_map,h],
 end
 
 theorem liftr_iff₀ {α β : fam I} {X : fam J} (r : fam.Pred (α ⊗ β))
   (x : X ⟶ F.obj α) (y : X ⟶ F.obj β) :
-  liftr r x y ↔ ∀ j (k : X j), ∃ a f₀ f₁, x k = abs F _ ⟨a, f₀⟩ ∧ y k = abs F _ ⟨a, f₁⟩ ∧ ∀ i a, r i (f₀ a, f₁ a) :=
+  liftr r x y ↔ ∀ j (k : X j), ∃ a f₀ f₁, x j k = abs F _ _ ⟨a, f₀⟩ ∧ y _ k = abs F _ _ ⟨a, f₁⟩ ∧ ∀ i a, r i (fam.prod.mk (f₀ _ a) (f₁ _ a)) :=
 begin
   split,
-  { rintros ⟨y, hy⟩ j z, cases h : repr F _ (y z) with a f,
+  { rintros ⟨y, hy⟩ j z, cases h : repr F _ _ (y _ z) with a f,
     use [a,f ≫ fam.subtype.val ≫ fam.prod.fst,f ≫ fam.subtype.val ≫ fam.prod.snd], split,
     { rw [← ipfunctor.map_eq', ← h, abs_map', abs_repr', ← hy.1], reflexivity },
     split,
     { rw [← ipfunctor.map_eq', ← h, abs_map', abs_repr', ← hy.2], reflexivity },
-    intros i j, convert (f j).property, simp [fam.prod.fst,fam.prod.snd,fam.subtype.val], },
+    apply sat_elim _ r, existsi f, ext _ _ ⟨ ⟩; refl, },
   rintros f,
-  choose a f₀ f₁ hf using f,
-  let g : X ⟶ (P F).obj (fam.subtype r),
-  { intros i y, rcases hf i y with ⟨hf,hf',hr⟩,
-    refine ⟨a _ y,_⟩, intros k b, refine ⟨_,hr _ b⟩, },
-  have h : g ≫ (P F).map (fam.subtype.val ≫ fam.prod.fst) ≫ abs F _ = x,
-  { dsimp [g], ext : 2, simp,
-    -- clear_value g, -- put this back when naming issue is fixed in `clear_value`
-    rcases (hf x_1 x_2) with ⟨hf,hf',hr⟩, simp [hf],
-    erw [← abs_map',← abs_map',map_eq'], refl },
-  have h' : g ≫ (P F).map (fam.subtype.val ≫ fam.prod.snd) ≫ abs F _ = y,
-  { dsimp [g], ext : 2, simp,
-    rcases (hf x_1 x_2) with ⟨hf,hf',hr⟩, simp [hf'],
-    erw [← abs_map',← abs_map',map_eq'], refl },
-  -- clear_value g, -- put this back when naming issue is fixed in `clear_value`
+  choose a f₀ f₁ hf₀ hf₁ hf using f,
+  replace hf : ∀ j y, limits.prod.lift (f₀ j y) (f₁ j y) ⊨ r,
+  { intros, apply sat_intro, intros, convert hf j y_1 i x_1 using 1, ext ⟨ ⟩; refl, },
+  choose g₀ h using hf,
+  let g : X ⟶ (P F).obj (fam.subtype r) := λ j y, ⟨a j y, g₀ j y⟩,
+  have h₀ : g ≫ (P F).map (fam.subtype.val ≫ fam.prod.fst) ≫ abs F _ = x,
+  { ext : 2, simp, dsimp [g],
+    erw [← abs_map',← abs_map', map_eq', ← h, limits.prod.lift_fst, hf₀] },
+  have h₁ : g ≫ (P F).map (fam.subtype.val ≫ fam.prod.snd) ≫ abs F _ = y,
+  { ext : 2, simp, dsimp [g],
+    erw [← abs_map',← abs_map', map_eq', ← h, limits.prod.lift_snd, hf₁] },
   refine ⟨g ≫ abs F _, _⟩,
-  simp only [h.symm,h'.symm,ipfunctor.map_comp,abs_map,abs_map_assoc,
+  simp only [← h₀, ← h₁,ipfunctor.map_comp,abs_map,abs_map_assoc,fam.prod.snd,fam.prod.fst,
     category.assoc,and_self,eq_self_iff_true,category_theory.functor.map_comp],
 end
 
 theorem liftr_iff₀' {α β : fam I} (r : fam.Pred (α ⊗ β))
   {i : J} (x : unit i ⟶ F.obj α) (y : unit i ⟶ F.obj β) :
-  liftr r x y ↔ ∃ a f₀ f₁, x = value i (q.P.obj _) ⟨a, f₀⟩ ≫ abs F _ ∧ y = value i (q.P.obj _) ⟨a, f₁⟩ ≫ abs F _ ∧ ∀ i a, r i (f₀ a, f₁ a) :=
+  liftr r x y ↔ ∃ a f₀ f₁, x = value i (q.P.obj _) ⟨a, f₀⟩ ≫ abs F _ ∧ y = value i (q.P.obj _) ⟨a, f₁⟩ ≫ abs F _ ∧ ∀ i a, r i (fam.prod.mk (f₀ _ a) (f₁ _ a)) :=
 begin
   rw liftr_iff₀, split,
   { intros h, rcases h _ unit.rfl with ⟨a,f₀,f₁,hx,hy,hf₀₁⟩, clear h,
@@ -318,13 +308,13 @@ begin
   { intros h a f haf,
     have : liftp (λ i u, u ∈ @f i '' univ) x,
     { rw liftp_iff, refine ⟨a, f, haf.symm, _⟩,
-      intros i u, exact mem_image_of_mem _ (mem_univ _) },
+      apply sat_intro, intros i u, exact mem_image_of_mem _ (mem_univ _) },
     exact h this },
   intros h p, rw liftp_iff,
   intro h,
   rcases h with ⟨a, f, xeq, h'⟩,
   rcases h a f xeq.symm with ⟨i, _, hi⟩,
-  { rw ←hi, apply h' },
+  { rw ←hi, apply sat_elim _ _ h' },
 end
 
 theorem supp_eq {α : fam I} {j} (x : unit j ⟶ F.obj α) (i) :
@@ -346,19 +336,19 @@ begin
     { ext _ ⟨ ⟩, rw xeq, },
     intros i' a' f' h'',
     rintro u ⟨j, h₂, hfi⟩,
-    have hh : u ∈ fam.supp x i', by rw ←hfi; apply h',
+    have hh : u ∈ fam.supp x i', by rw ←hfi; apply sat_elim _ _ h',
     refine (mem_supp x _ u).mp hh _ _ h'', },
   rintros ⟨a, f, xeq, h⟩ p, rw liftp_iff, split,
   { intro h,
     rcases h with ⟨a', f', xeq', h'⟩,
     intros i u usuppx,
     rcases (mem_supp x _ u).mp @usuppx a' f' _ with ⟨i, _, f'ieq⟩,
-    { rw ←f'ieq, apply h' },
+    { rw ←f'ieq, apply sat_elim _ _ h' },
     ext _ ⟨ ⟩, rw xeq',  },
   intro h',
   refine ⟨a, f, _, _⟩,
   { rw ← xeq, },
-  intros j y,
+  apply sat_intro, intros j y,
   apply h', rw mem_supp,
   intros a' f' xeq',
   apply h _ a' f' xeq',
@@ -400,11 +390,13 @@ begin
   abs_cases x, split,
   { rintros ⟨a', f', abseq, hf⟩ u,
     rw [supp_eq_of_is_uniform h, h _ _ _ _ abseq],
-    rintros b ⟨i, _, hi⟩, rw ←hi, apply hf },
+    rintros b ⟨i, _, hi⟩, rw ←hi, apply sat_elim _ _ hf },
   intro h',
-  refine ⟨a, f, rfl, λ _ i, h' _ _ _⟩,
+  refine ⟨a, f, rfl, _⟩,
+  apply sat_intro,
+  intros, apply h',
   rw supp_eq_of_is_uniform h,
-  exact ⟨i, mem_univ i, rfl⟩,
+  exact ⟨x, mem_univ x, rfl⟩,
 end
 
 theorem supp_map (h : q.is_uniform) {α β : fam I} (g : α ⟶ β) (i j) (x : unit j ⟶ F.obj α) :

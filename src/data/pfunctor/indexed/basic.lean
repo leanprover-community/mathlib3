@@ -31,13 +31,14 @@ guarantee that occurrences of `α` are positive.
 
 universes v v' u u'
 
-open_locale fam
+local infixr ` ⊗ `:20 := (⨯)
+local infixr ` ⊗' `:20 := category_theory.limits.prod.map
 
 /-- Polynomial functors between indexed type families -/
 structure ipfunctor (I J : Type u) :=
 (A : fam J) (B : Π j, A j → fam I)
 
-instance {I J} : inhabited (ipfunctor I J) := ⟨ ⟨ default _, default _ ⟩ ⟩
+instance {I J} : inhabited (ipfunctor I J) := ⟨ ⟨ λ _, default _, λ _ _ _, default _ ⟩ ⟩
 
 /-- specialized version of `ipfunctor` used for defining simple constructions -/
 @[derive inhabited]
@@ -72,8 +73,11 @@ category_theory.functor.map_comp _ _ _
 lemma map_comp_map {X Y Z : fam I} (f : X ⟶ Y) (g : Y ⟶ Z) : P.map f ≫ P.map g = P.map (f ≫ g) :=
 (category_theory.functor.map_comp _ _ _).symm
 
+@[simp]
+lemma apply_map {X Y : fam I} (f : X ⟶ Y) : P.apply.map f = P.map f := rfl
+
 theorem map_eq' {α β : fam I} (f : α ⟶ β) {j : J} (a : P.A j) (g : P.B j a ⟶ α) :
-  P.map f ⟨a, g⟩ = ⟨a, g ≫ f⟩ :=
+  P.map f _ ⟨a, g⟩ = ⟨a, g ≫ f⟩ :=
 rfl
 
 open fam set category_theory.functor
@@ -97,7 +101,7 @@ def Idx.idx {P : ipfunctor I J} {j : J} (x : Idx P j) : I := x.2.1
 /-- Lookup the part of `x` designed by index `j` or return an arbitrary value -/
 def obj.iget {i} [decidable_eq $ P.A i] {α : fam I} (x : P.obj α i) (k : P.Idx i) [inhabited $ α k.idx] : α k.idx :=
 if h : k.1 = x.1
-  then x.2 (cast (by rw [Idx.idx,← h]) $ k.2.2)
+  then x.2 _ (cast (by rw [Idx.idx,← h]) $ k.2.2)
   else default _
 
 end pfunc
@@ -115,15 +119,15 @@ variables {I J K : Type u} (P₂ : ipfunctor.{u} J K) (P₁ : ipfunctor.{u} I J)
 /-- Composition of polynomial functors. -/
 def comp : ipfunctor.{u} I K :=
 ⟨ λ i, Σ a₂ : P₂.1 i, P₂.2 _ a₂ ⟶ P₁.1,
-  λ k a₂a₁ i, Σ j (u : P₂.2 _ a₂a₁.1 j), P₁.2 _ (a₂a₁.2 u) i ⟩
+  λ k a₂a₁ i, Σ j (u : P₂.2 _ a₂a₁.1 j), P₁.2 _ (a₂a₁.2 _ u) i ⟩
 
 /-- Contructor for polynomial functor composition -/
 def comp.mk : Π (α : fam I), P₂.obj (P₁.obj α) ⟶ (comp P₂ P₁).obj α :=
-λ α k x, ⟨ ⟨x.1,x.2 ≫ λ j, sigma.fst⟩, λ i a₂a₁, (x.2 _).2 a₂a₁.2.2 ⟩
+λ α k x, ⟨ ⟨x.1,x.2 ≫ λ j, sigma.fst⟩, λ i a₂a₁, (x.2 _ _).2 _ a₂a₁.2.2 ⟩
 
 /-- Destructor for polynomial functor composition -/
 def comp.get : Π (α : fam I), (comp P₂ P₁).obj α ⟶ P₂.obj (P₁.obj α) :=
-λ α k x, ⟨ x.1.1, λ j a₂, ⟨x.1.2 a₂, λ i a₁, x.2 ⟨j, a₂, a₁⟩⟩ ⟩
+λ α k x, ⟨ x.1.1, λ j a₂, ⟨x.1.2 _ a₂, λ i a₁, x.2 _ ⟨j, a₂, a₁⟩⟩ ⟩
 
 @[simp, reassoc]
 lemma comp.mk_get : Π (α : fam I), comp.mk P₂ P₁ α ≫ comp.get P₂ P₁ α = 𝟙 _ :=
@@ -166,9 +170,9 @@ def obj_cases
    (h : ∀ a f, C $ value _ _ ⟨a,f⟩)
    (x : unit j ⟶ P.obj α) : C x :=
 begin
-  rcases h' : x unit.rfl with ⟨a,f⟩,
-  have : value _ _ (x unit.rfl) = x,
-      { ext _ ⟨ ⟩ : 2, refl },
+  rcases h' : x _ unit.rfl with ⟨a,f⟩,
+  have : value _ _ (x _ unit.rfl) = x,
+  { ext _ ⟨ ⟩ : 2, refl },
   rw h' at this, specialize h a f,
   simpa [this] using h
 end
@@ -180,10 +184,10 @@ begin
   { rintros ⟨y, hy⟩, revert y, refine obj_cases _, intros a f hy,
     rw [← ipfunctor.map, map_eq P] at hy,
     use [a, f ≫ fam.subtype.val, hy.symm],
-    intros, apply (f y).property },
+    intros, apply (f _ y).property },
   rintros ⟨a, f, xeq, pf⟩,
   let g : unit j ⟶ P.obj (subtype p),
-  { rintros _ ⟨ ⟩, refine ⟨a, λ i b, ⟨f b, pf _ _⟩⟩, },
+  { rintros _ ⟨ ⟩, refine ⟨a, λ i b, ⟨f _ b, pf _ _⟩⟩, },
   refine ⟨g, _⟩,
   ext _ ⟨ ⟩ : 2, rw xeq, refl,
 end
@@ -199,17 +203,17 @@ begin
 end
 
 theorem liftr_iff {α : fam I} (r : Pred (α ⊗ α)) {j} (x y : unit j ⟶ P.obj α) :
-  fam.liftr r x y ↔ ∃ a f₀ f₁, x = value _ _ ⟨a, f₀⟩ ∧ y = value _ _ ⟨a, f₁⟩ ∧ ∀ i j, r _ (@f₀ i j, @f₁ i j) :=
+  fam.liftr r x y ↔ ∃ a f₀ f₁, x = value _ _ ⟨a, f₀⟩ ∧ y = value _ _ ⟨a, f₁⟩ ∧ ∀ i j, r _ (fam.prod.mk (@f₀ i j) (@f₁ i j)) :=
 begin
   split,
   { rintros ⟨u, xeq, yeq⟩,
     revert u, refine obj_cases _, intros a f xeq yeq,
     rw [← ipfunctor.map, map_eq] at xeq yeq,
     use [a,f ≫ fam.subtype.val ≫ fam.prod.fst,f ≫ fam.subtype.val ≫ fam.prod.snd, xeq.symm, yeq.symm],
-    intros, convert (f j_1).property, ext; refl },
+    intros, convert (f _ j_1).property, ext ⟨ ⟩; refl },
   rintros ⟨a, f₀, f₁, xeq, yeq, h⟩,
   let g : unit j ⟶ P.obj (subtype r),
-  { rintros _ ⟨ ⟩, refine ⟨a, λ i b, ⟨(f₀ b, f₁ b), h _ _⟩⟩, },
+  { rintros _ ⟨ ⟩, refine ⟨a, λ i b, ⟨fam.prod.mk (f₀ _ b) (f₁ _ b), h _ _⟩⟩, },
   refine ⟨g, _⟩,
   split; ext _ ⟨ ⟩ : 2,
   { rw xeq, refl },
@@ -217,11 +221,11 @@ begin
 end
 
 theorem liftp_iff₀ {α : fam I} {X : fam J} (p : fam.Pred α) (x : X ⟶ P.obj α) :
-  liftp p x ↔ ∀ j (y : X j), ∃ a f, x y = ⟨a, f⟩ ∧ ∀ i a, p i (f a) :=
+  liftp p x ↔ ∀ j (y : X j), ∃ a f, x _ y = ⟨a, f⟩ ∧ ∀ i a, p i (f _ a) :=
 begin
   split,
-  { rintros ⟨y, hy⟩ j z, cases h : y z with a f,
-    refine ⟨a, λ i a, subtype.val (f a), _, λ i a, subtype.property (f a)⟩, --, λ i, (f i).property⟩,
+  { rintros ⟨y, hy⟩ j z, cases h : y _ z with a f,
+    refine ⟨a, λ i a, subtype.val (f _ a), _, λ i a, subtype.property (f _ a)⟩, --, λ i, (f i).property⟩,
     fold ipfunctor.map ipfunctor.obj at *,
     -- rw [← ipfunctor.map, ← ipfunctor.obj] at h,
     simp [hy.symm, (≫), h, map_eq'],
@@ -230,33 +234,35 @@ begin
   choose a f hv using hv,
   let F₀ := λ j k, a j k,
   let F₁ : Π j k, P.B j (F₀ j k) ⟶ α := λ j k, f j k,
-  have F₂ : ∀ j k, x k = ⟨F₀ j k,F₁ j k⟩ := λ j k, (hv j k).1,
-  have F₃ : ∀ j k i a, p i (F₁ j k a) := λ j k, (hv j k).2,
-  refine ⟨λ j x, ⟨F₀ j x,λ i y, ⟨F₁ j x y,F₃ j x i y⟩⟩,_⟩,
-  ext : 2, dsimp, rw F₂, refl
+  have F₂ : ∀ j k, x _ k = ⟨F₀ j k,F₁ j k⟩ := λ j k, (hv j k).1,
+  have F₃ : ∀ j k i a, p i (F₁ j k _ a) := λ j k, (hv j k).2,
+  refine ⟨λ j x, ⟨F₀ j x,λ i y, ⟨F₁ j x _ y,F₃ j x i y⟩⟩,_⟩,
+  ext : 2, rw F₂, refl
 end
 
+open category_theory
+
 theorem liftr_iff₀ {α β : fam I} (r : fam.Pred (α ⊗ β)) {X : fam J} (x : X ⟶ P.obj α) {y} :
-  liftr r x y ↔ ∀ j (z : X j), ∃ a f₀ f₁, x z = ⟨a, f₀⟩ ∧ y z = ⟨a, f₁⟩ ∧ ∀ i a, r i (f₀ a, f₁ a) :=
+  liftr r x y ↔ ∀ j (z : X j), ∃ a f₀ f₁, x _ z = ⟨a, f₀⟩ ∧ y _ z = ⟨a, f₁⟩ ∧ ∀ i a, r i (fam.prod.mk (f₀ _ a) (f₁ _ a)) :=
 begin
   split,
-  { rintros ⟨u, xeq, yeq⟩ j z, cases h : u z with a f,
+  { rintros ⟨u, xeq, yeq⟩ j z, cases h : u _ z with a f,
     -- use a, have := λ i (b : P.B j a i), (f b).val,
-    use [a, λ i b, (f b).val.fst, λ i b, (f b).val.snd],
-    split, { rw [←xeq, comp_app, h], refl },
-    split, { rw [←yeq, comp_app, h], refl },
-    intros i a, convert (f a).property, simp [fam.prod.fst,fam.prod.snd,fam.subtype.val] },
+    use [a, f ≫ fam.subtype.val ≫ limits.prod.fst, f ≫ fam.subtype.val ≫ limits.prod.snd],
+    split, { simp only [← xeq, pi.comp_apply, types_comp_apply, h, map_eq', apply_map], },
+    split, { simp only [← yeq, pi.comp_apply, types_comp_apply, h, map_eq', apply_map], },
+    intros i a, convert (f _ a).property, simp only [pi.comp_apply, types_comp_apply],
+    rw [← fam.prod.fst, ← fam.prod.snd, fam.prod.mk_fst_snd], refl },
   rintros hv, dsimp [liftr],
   choose a f₀ f₁ hv using hv,
   let F₀ := λ j k, a j k,
   let F₁ : Π j k, P.B j (F₀ j k) ⟶ α := λ j k, f₀ j k,
   let F₂ : Π j k, P.B j (F₀ j k) ⟶ β := λ j k, f₁ j k,
-  fold ipfunctor.map,
-  have F₃ : ∀ j k, x k = ⟨F₀ j k,F₁ j k⟩ := λ j k, (hv j k).1,
-  have F₄ : ∀ j k, y k = ⟨F₀ j k,F₂ j k⟩ := λ j k, (hv j k).2.1,
-  have F₅ : ∀ j k i a, r i (F₁ j k a, F₂ j k a) := λ j k, (hv j k).2.2,
+  have F₃ : ∀ j k, x _ k = ⟨F₀ j k,F₁ j k⟩ := λ j k, (hv j k).1,
+  have F₄ : ∀ j k, y _ k = ⟨F₀ j k,F₂ j k⟩ := λ j k, (hv j k).2.1,
+  have F₅ : ∀ j k i a, r i (fam.prod.mk (F₁ j k _ a) (F₂ j k _ a)) := λ j k, (hv j k).2.2,
   refine ⟨λ j x, ⟨F₀ j x,λ i y, _⟩,_⟩,
-  { refine ⟨(F₁ j x y,F₂ j x y),F₅ _ _ _ _⟩ },
+  { refine ⟨(fam.prod.mk (F₁ j x _ y) (F₂ j x _ y)), F₅ _ _ _ _⟩ },
   split; ext : 2; [rw F₃,rw F₄]; refl,
 end
 
@@ -265,7 +271,7 @@ theorem supp_eq {α : fam I} (j i) (a : P.A j) (f : P.B j a ⟶ α) :
 begin
   ext, simp only [fam.supp, image_univ, mem_range, mem_set_of_eq],
   split; intro h,
-  { apply @h (λ i x, ∃ (y : P.B j a i), f y = x),
+  { apply @h (λ i x, ∃ (y : P.B j a i), f _ y = x),
     rw liftp_iff', intros, refine ⟨_,rfl⟩ },
   { simp only [liftp_iff'], cases h, subst x,
     tauto }

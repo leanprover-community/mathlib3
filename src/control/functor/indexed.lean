@@ -11,7 +11,8 @@ import control.family
 
 universes u v w
 
-open_locale fam
+local infixr ` ⊗ `:20 := (⨯)
+local infixr ` ⊗' `:20 := category_theory.limits.prod.map
 
 namespace category_theory.functor.fam
 
@@ -52,8 +53,14 @@ def pred_last (α : fam I) {β : fam J} (p : Pred β) : Pred (α.append1 β)
 /-- `rel_last α r x y` says that `p` the last elements of `x y : α.append1 β` are related by `r` and all the other elements are equal. -/
 def rel_last (α : fam I) {β γ : fam J} (r : Pred $ β ⊗ γ) :
   Pred (α.append1 β ⊗ α.append1 γ)
-| (sum.inl i) := function.uncurry eq
-| (sum.inr i) := r _
+| (sum.inl i) := λ x,
+  let x₀ := (fam.prod.fst _ x),
+      x₁ := (fam.prod.snd _ x) in
+  fam.eq α i $ fam.prod.mk x₀ x₁
+| (sum.inr i) := λ x,
+  let x₀ := (fam.prod.fst _ x),
+      x₁ := (fam.prod.snd _ x) in
+  r i $ fam.prod.mk x₀ x₁
 
 end category_theory.functor.fam
 

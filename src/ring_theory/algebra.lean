@@ -1162,17 +1162,12 @@ def submodule.scalar_tower_map (p : submodule A M) : submodule R M :=
   add_mem' := λ x y hx hy, p.add_mem hx hy, }
 
 /-- `submodule.scalar_tower_map` is an order embedding of submodules. -/
-def submodule.scalar_tower_le_embedding :
-  ((≤) : submodule A M → submodule A M → Prop) ↪r ((≤) : submodule R M → submodule R M → Prop) :=
+def submodule.scalar_tower_order_embedding :
+  submodule A M ↪o submodule R M :=
 { to_fun := submodule.scalar_tower_map,
   inj' := λ p q h, submodule.coe_injective
       (show p.scalar_tower_map.carrier = q.scalar_tower_map.carrier, by rw h),
   map_rel_iff' := λ p q, iff.rfl }
-
-/-- `submodule.scalar_tower_map` is an order embedding of submodules. -/
-def submodule.scalar_tower_lt_embedding :
-  ((<) : submodule A M → submodule A M → Prop) ↪r ((<) : submodule R M → submodule R M → Prop) :=
-submodule.scalar_tower_le_embedding.lt_embedding_of_le_embedding
 
 end is_scalar_tower
 

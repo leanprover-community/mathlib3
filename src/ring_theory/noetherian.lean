@@ -395,7 +395,8 @@ theorem is_noetherian_of_is_scalar_tower (R) {S M} [comm_ring R] [ring S]
   (h : is_noetherian R M) : is_noetherian S M :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
-  exact rel_embedding.well_founded (rel_embedding.rsymm submodule.scalar_tower_lt_embedding) h
+  -- TODO: why doesn't `scalar_tower_order_embedding.osymm.well_founded` work?
+  exact rel_embedding.well_founded submodule.scalar_tower_order_embedding.lt_embedding.rsymm h
 end
 
 -- TODO: why doesn't this work?

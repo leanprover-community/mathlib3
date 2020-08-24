@@ -386,9 +386,9 @@ begin
       exact (algebra_map K L).injective ha
     end),
   haveI fin_Fs : fintype Fs := set.finite.fintype (set.finite.of_fintype _),
-  obtain ⟨⟨_, ⟨a₁, rfl⟩⟩, hz⟩ := classical.not_forall.mp (not_injective_infinite_fintype f),
-  obtain ⟨⟨_, ⟨a₂, rfl⟩⟩, hz⟩ := classical.not_forall.mp hz,
-  obtain ⟨Fz₁_eq_Fz₂, z₁_ne_z₂⟩ := classical.not_imp.mp hz,
+  obtain ⟨⟨_, ⟨a₁, rfl⟩⟩, hz⟩ := not_forall.mp (not_injective_infinite_fintype f),
+  obtain ⟨⟨_, ⟨a₂, rfl⟩⟩, hz⟩ := not_forall.mp hz,
+  obtain ⟨Fz₁_eq_Fz₂, z₁_ne_z₂⟩ := not_imp.mp hz,
 
   -- The field `K[z₁] = K[z₂]` contains both `x` and `y`, so it must be `K[x, y]`.
   refine is_simple_of_extension_eq K L x y a₁ a₂
@@ -428,13 +428,18 @@ attribute [irreducible] conjugates
 noncomputable def bad_cs : finset K :=
 ((conjugates K M x).bind (λ x', (conjugates K M y).image
   (λ y', (x' - algebra_map L _ x) / (algebra_map L _ y - y')))).preimage
+  _
   (λ x _ y _ h, (algebra_map K _).injective h)
 
 lemma zero_mem_bad_cs : (0 : K) ∈ bad_cs K M x y :=
 finset.mem_preimage.mpr (finset.mem_bind.mpr ⟨algebra_map _ _ x, mem_conjugates_self K M x,
   finset.mem_image.mpr ⟨algebra_map _ _ y, mem_conjugates_self K M y, by simp⟩⟩)
 
-variables [infinite K]
+@[simp] lemma algebra_map_mk (A : subalgebra R S) (x : S) (h : x ∈ A) : algebra_map A S ⟨x, h⟩ = x :=
+rfl
+
+variables [inf_K : infinite K]
+include inf_K
 
 noncomputable def c : K :=
 classical.some (infinite.exists_not_mem_finset (bad_cs K M x y))
@@ -484,9 +489,6 @@ subalgebra.mem_coe.mp (algebra.subset_adjoin (set.mem_singleton _))
 noncomputable def f_z : polynomial (algebra.adjoin K ({x + c K M x y • y} : set L)) :=
 ((is_separable.minimal_polynomial K x).map (algebra_map _ _)).comp
   (C (⟨x + c K M x y • y, z_mem' K M x y⟩ : algebra.adjoin K _) - c K M x y • X)
-
-@[simp] lemma algebra_map_mk (A : subalgebra R S) (x : S) (h : x ∈ A) : algebra_map A S ⟨x, h⟩ = x :=
-rfl
 
 lemma eval₂_f_z (f : algebra.adjoin K ({x + c K M x y • y} : set L) →+* R) (y' : R) :
   eval₂ f y' (f_z K M x y) =
@@ -544,8 +546,9 @@ begin
       ← is_scalar_tower.algebra_map_apply]
 end
 
-instance right_is_separable_of_is_scalar_tower (F : Type*) [field F] [algebra K F] [algebra F L]
-  [is_scalar_tower K F L] [is_separable K L] : is_separable F L :=
+omit inf_K
+lemma right_is_separable_of_is_scalar_tower (K L F : Type*) [field K] [field L] [field F]
+  [algebra K F] [algebra F L] [algebra K L] [is_scalar_tower K F L] [is_separable K L] : is_separable F L :=
 begin
   intro x,
   have Hx : is_integral F x := is_integral_tower_top_of_is_integral (is_separable.is_integral K x),
@@ -555,7 +558,10 @@ begin
     (minimal_polynomial.dvd_minimal_polynomial_map (is_separable.is_integral K x) Hx)
 end
 
-variables [is_separable K L]
+include inf_K
+instance adjoin.is_separable :
+  is_separable (algebra.adjoin K ({x + c K M x y • y} : set L)) L :=
+right_is_separable_of_is_scalar_tower K L (algebra.adjoin K ({x + c K M x y • y} : set L))
 
 noncomputable def minpoly_y :=
 is_separable.minimal_polynomial (algebra.adjoin K ({x + c K M x y • y} : set L)) y
@@ -581,13 +587,14 @@ splits_of_splits_of_dvd _
   (minpoly_y_dvd_g_z K M x y)
 omit splits
 
-
+omit inf_K
 lemma eval₂_eq_zero_of_dvd_of_eval₂_eq_zero {f : R →+* S} {p q : polynomial R} {x : S}
   (hpq : p ∣ q) (hxp : eval₂ f x p = 0) : eval₂ f x q = 0 :=
 begin
   rcases hpq with ⟨q, rfl⟩,
   rw [eval₂_mul, hxp, zero_mul]
 end
+include inf_K
 
 lemma roots_minpoly_y :
   roots ((minpoly_y K M x y).map ((algebra_map L M).comp
@@ -603,7 +610,7 @@ begin
 end
 
 include M splits
-lemma nat_degree_minpoly_y [is_separable K L] :
+lemma nat_degree_minpoly_y :
   nat_degree (minpoly_y K M x y) ≤ 1 :=
 begin
   erw [nat_degree_separable_eq_card_roots (is_separable.minimal_polynomial_separable _ _) (minpoly_y_splits K M x y splits),
@@ -611,14 +618,14 @@ begin
   exact finset.card_le_of_subset (roots_minpoly_y K M x y),
 end
 
-lemma degree_minpoly_y [is_separable K L] :
+lemma degree_minpoly_y :
   degree (minpoly_y K M x y) ≤ 1 :=
 begin
   erw degree_eq_nat_degree (minimal_polynomial.ne_zero _),
   apply with_bot.some_le_some.mpr,
   exact nat_degree_minpoly_y K M x y splits
 end
-omit M splits
+omit M splits inf_K
 
 -- TODO: good name!
 def splitting_field :=
@@ -646,8 +653,7 @@ end
 
 /-- The primitive element theorem: if `L / K` is a separable finite extension,
 it is a simple extension. -/
-instance is_simple_of_is_separable [is_separable K L] [finite_dimensional K L] :
-  is_simple_extension K L :=
+instance is_simple_of_is_separable : is_simple_extension K L :=
 begin
   by_cases h : nonempty (fintype L),
   { haveI : fintype L := h.some,

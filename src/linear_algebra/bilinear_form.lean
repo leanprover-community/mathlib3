@@ -654,10 +654,10 @@ def matrix.is_skew_adjoint := matrix.is_adjoint_pair J J A (-A)
 begin
   classical,
   rw bilin_form.is_adjoint_pair_iff_comp_left_eq_comp_right,
-  have h : ∀ (B B' : bilin_form R (n → R)), B = B' ↔ B.to_matrix = B'.to_matrix := λ B B', by {
-    split; intros h, { rw h, }, { rw [←to_matrix_to_bilin_form B, h, to_matrix_to_bilin_form B'], }, },
-  rw [h, J₂.to_bilin_form.to_matrix_comp_left A.to_lin, J.to_bilin_form.to_matrix_comp_right B.to_lin,
-      to_lin_to_matrix, to_lin_to_matrix, to_bilin_form_to_matrix, to_bilin_form_to_matrix],
+  have h : ∀ (B B' : bilin_form R (n → R)), B = B' ↔ B.to_matrix' = B'.to_matrix' := λ B B', by {
+    split; intros h, { rw h, }, { rw [←to_matrix'_to_bilin_form B, h, to_matrix'_to_bilin_form B'], }, },
+  rw [h, J₂.to_bilin_form.to_matrix'_comp_left A.to_lin, J.to_bilin_form.to_matrix'_comp_right B.to_lin,
+      to_lin_to_matrix, to_lin_to_matrix, to_bilin_form_to_matrix', to_bilin_form_to_matrix'],
   refl,
 end
 

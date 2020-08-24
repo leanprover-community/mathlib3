@@ -6,6 +6,7 @@ Author: Anne Baanen
 
 import linear_algebra.bilinear_form
 import linear_algebra.matrix
+import field_theory.simple_extension
 import ring_theory.algebra_tower
 
 /-!
@@ -35,7 +36,7 @@ universes u v w
 variables (R S T : Type*) [comm_ring R] [comm_ring S] [comm_ring T]
 variables [algebra R S] [algebra R T]
 variables (K L : Type*) [field K] [field L] [algebra K L]
-variables {ι : Type w} [fintype ι] {b : ι → S} (hb : is_basis R b) 
+variables {ι : Type w} [fintype ι] {b : ι → S} (hb : is_basis R b)
 
 open finite_dimensional
 open linear_map
@@ -104,7 +105,7 @@ lemma linear_equiv.map_sum {R : Type u} {M : Type v} {M₂ : Type w}
   (f : M ≃ₗ[R] M₂) {ι : Type u_1} {t : finset ι} {g : ι → M} :
   f (t.sum (λ (i : ι), g i)) = t.sum (λ (i : ι), f (g i)) := linear_map.map_sum f.to_linear_map
 
-lemma trace_comp_of_basis [algebra S T] [is_algebra_tower R S T]
+lemma trace_comp_of_basis [algebra S T] [is_scalar_tower R S T]
   {ι κ : Type*} [fintype ι] [fintype κ] [decidable_eq ι] [decidable_eq κ] {b : ι → S} {c : κ → T}
   (hb : is_basis R b) (hc : is_basis S c) (x : T) :
   trace R T x = trace R S (trace S T x) :=
@@ -138,6 +139,10 @@ lemma trace_form_is_sym : sym_bilin_form.is_sym (trace_form R S) :=
 lemma trace_form_to_matrix [decidable_eq ι] (i j) :
   bilin_form_equiv_matrix hb (trace_form R S) i j = trace R S (b i * b j) :=
 by rw [bilin_form_equiv_matrix_apply, trace_form_apply]
+
+lemma trace_form.nondegenerate [finite_dimensional K L] [is_separable K L] {x : L} : ∀ y, trace_form K L x y = 0 → x = 0 :=
+have b : is_basis K (@is_simple_extension.power_basis K L _ _ _ _ _ _) := is_simple_extension.power_basis_is_basis /- (algebra.is_algebraic_of_finite _) -/,
+λ y hxy, by simp at hxy
 
 end trace_form
 

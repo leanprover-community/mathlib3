@@ -21,8 +21,8 @@ namespace category_theory
 
 variables {C : Type u} [category_struct.{v} C]
 
-/-- Construct a category instance from a category_struct, using the fact that
-    hom spaces are subsingletons to prove the axioms. -/
-def sparse_category [∀ X Y : C, subsingleton (X ⟶ Y)] : category.{v} C := { }
+-- /-- Construct a category instance from a category_struct, using the fact that
+--     hom spaces are subsingletons to prove the axioms. -/
+-- def sparse_category [∀ X Y : C, subsingleton (X ⟶ Y)] : category.{v} C := { }
 
 end category_theory

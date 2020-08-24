@@ -73,10 +73,19 @@ meta def congr' (n : parse (with_desc "n" small_nat)?) :
 | none         := tactic.congr' n
 | (some ⟨p, m⟩) := focus1 (tactic.congr' n >> all_goals' (ext p m))
 
+/--
+Repeatedly and apply `congr'` and `ext`, using the the given patterns as arguments for `ext`.
+-/
+meta def rcongr : parse (rcases_patt_parse tt)* → tactic unit
+| ps := do
+  tactic.try (tactic.congr' none),
+  some qs ← try_core (tactic.ext ps none) | skip,
+  rcongr qs
+
 add_tactic_doc
 { name       := "congr'",
   category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.congr', `tactic.interactive.congr],
+  decl_names := [`tactic.interactive.congr', `tactic.interactive.congr, `tactic.interactive.rcongr],
   tags       := ["congruence"],
   inherit_description_from := `tactic.interactive.congr' }
 

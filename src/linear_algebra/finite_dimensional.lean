@@ -872,7 +872,7 @@ lemma finset_is_basis_of_span_eq_top_of_card_eq_findim {s : finset V}
   (span_eq : span K (↑s : set V) = ⊤) (card_eq : s.card = findim K V) :
   is_basis K (coe : (↑s : set V) → V) :=
 is_basis_of_span_eq_top_of_card_eq_findim
-  ((@subtype.range_coe_subtype _ (λ x, x ∈ s)).symm ▸ span_eq)
+  ((@subtype.range_coe_subtype _ (∈ s)).symm ▸ span_eq)
   (trans (fintype.card_coe _) card_eq)
 
 lemma set_is_basis_of_span_eq_top_of_card_eq_findim {s : set V} [fintype s]

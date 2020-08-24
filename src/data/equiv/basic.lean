@@ -1069,15 +1069,15 @@ protected def union' {α} {s t : set α}
   end }
 
 /-- If sets `s` and `t` are disjoint, then `s ∪ t` is equivalent to `s ⊕ t`. -/
-protected def union {α} {s t : set α} [decidable_pred (λ x, x ∈ s)] (H : s ∩ t ⊆ ∅) :
+protected def union {α} {s t : set α} [decidable_pred (∈ s)] (H : s ∩ t ⊆ ∅) :
   (s ∪ t : set α) ≃ s ⊕ t :=
-set.union' (λ x, x ∈ s) (λ _, id) (λ x xt xs, H ⟨xs, xt⟩)
+set.union' (∈ s) (λ _, id) (λ x xt xs, H ⟨xs, xt⟩)
 
-lemma union_apply_left {α} {s t : set α} [decidable_pred (λ x, x ∈ s)] (H : s ∩ t ⊆ ∅)
+lemma union_apply_left {α} {s t : set α} [decidable_pred (∈ s)] (H : s ∩ t ⊆ ∅)
   {a : (s ∪ t : set α)} (ha : ↑a ∈ s) : equiv.set.union H a = sum.inl ⟨a, ha⟩ :=
 dif_pos ha
 
-lemma union_apply_right {α} {s t : set α} [decidable_pred (λ x, x ∈ s)] (H : s ∩ t ⊆ ∅)
+lemma union_apply_right {α} {s t : set α} [decidable_pred (∈ s)] (H : s ∩ t ⊆ ∅)
   {a : (s ∪ t : set α)} (ha : ↑a ∈ t) : equiv.set.union H a = sum.inr ⟨a, ha⟩ :=
 dif_neg $ λ h, H ⟨h, ha⟩
 

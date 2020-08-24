@@ -201,7 +201,7 @@ def integral (μ : measure α) (f : α →ₛ F) : F :=
 ∑ x in f.range, (ennreal.to_real (μ (f ⁻¹' {x}))) • x
 
 lemma integral_eq_sum_filter (f : α →ₛ F) (μ) :
-  f.integral μ = ∑ x in f.range.filter (λ x, x ≠ 0), (ennreal.to_real (μ (f ⁻¹' {x}))) • x :=
+  f.integral μ = ∑ x in f.range.filter (≠ 0), (ennreal.to_real (μ (f ⁻¹' {x}))) • x :=
 eq.symm $ sum_filter_of_ne $ λ x _, mt $ λ h0, h0.symm ▸ smul_zero _
 
 /-- Calculate the integral of `g ∘ f : α →ₛ F`, where `f` is an integrable function from `α` to `E`

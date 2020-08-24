@@ -566,7 +566,7 @@ instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fin
 fintype.subtype (univ.filter p) (by simp)
 
 def set_fintype {α} [fintype α] (s : set α) [decidable_pred s] : fintype s :=
-subtype.fintype (λ x, x ∈ s)
+subtype.fintype (∈ s)
 
 namespace function.embedding
 

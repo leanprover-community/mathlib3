@@ -1538,7 +1538,7 @@ the type of finitely supported functions from `s`. -/
 def restrict_support_equiv (s : set α) (β : Type*) [add_comm_monoid β] :
   {f : α →₀ β // ↑f.support ⊆ s } ≃ (s →₀ β):=
 begin
-  refine ⟨λf, subtype_domain (λx, x ∈ s) f.1, λ f, ⟨f.map_domain subtype.val, _⟩, _, _⟩,
+  refine ⟨λf, subtype_domain (∈ s) f.1, λ f, ⟨f.map_domain subtype.val, _⟩, _, _⟩,
   { refine set.subset.trans (finset.coe_subset.2 map_domain_support) _,
     rw [finset.coe_image, set.image_subset_iff],
     exact assume x hx, x.2 },

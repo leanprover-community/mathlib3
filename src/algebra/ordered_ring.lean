@@ -366,10 +366,10 @@ lemma monotone.mul (hf : monotone f) (hg : monotone g) (hf0 : ∀ x, 0 ≤ f x) 
   monotone (λ x, f x * g x) :=
 λ x y h, mul_le_mul (hf h) (hg h) (hg0 x) (hf0 y)
 
-lemma strict_mono_mul_left_of_pos (ha : 0 < a) : strict_mono (λ x, a * x) :=
+lemma strict_mono_mul_left_of_pos (ha : 0 < a) : strict_mono ((*) a) :=
 assume b c b_lt_c, (mul_lt_mul_left ha).2 b_lt_c
 
-lemma strict_mono_mul_right_of_pos (ha : 0 < a) : strict_mono (λ x, x * a) :=
+lemma strict_mono_mul_right_of_pos (ha : 0 < a) : strict_mono (* a) :=
 assume b c b_lt_c, (mul_lt_mul_right ha).2 b_lt_c
 
 lemma strict_mono.mul_const (hf : strict_mono f) (ha : 0 < a) :

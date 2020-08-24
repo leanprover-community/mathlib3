@@ -27,10 +27,10 @@ section lsubtype_domain
 variables (s : set α)
 
 def lsubtype_domain : (α →₀ M) →ₗ[R] (s →₀ M) :=
-⟨subtype_domain (λx, x ∈ s), assume a b, subtype_domain_add, assume c a, ext $ assume a, rfl⟩
+⟨subtype_domain (∈ s), assume a b, subtype_domain_add, assume c a, ext $ assume a, rfl⟩
 
 lemma lsubtype_domain_apply (f : α →₀ M) :
-  (lsubtype_domain s : (α →₀ M) →ₗ[R] (s →₀ M)) f = subtype_domain (λx, x ∈ s) f := rfl
+  (lsubtype_domain s : (α →₀ M) →ₗ[R] (s →₀ M)) f = subtype_domain (∈ s) f := rfl
 
 end lsubtype_domain
 
@@ -174,7 +174,7 @@ theorem supported_Union {δ : Type*} (s : δ → set α) :
   supported M R (⋃ i, s i) = ⨆ i, supported M R (s i) :=
 begin
   refine le_antisymm _ (supr_le $ λ i, supported_mono $ set.subset_Union _ _),
-  haveI := classical.dec_pred (λ x, x ∈ (⋃ i, s i)),
+  haveI := classical.dec_pred (∈ ⋃ i, s i),
   suffices : ((submodule.subtype _).comp (restrict_dom M R (⋃ i, s i))).range ≤ ⨆ i, supported M R (s i),
   { rwa [linear_map.range_comp, range_restrict_dom, map_top, range_subtype] at this },
   rw [range_le_iff_comap, eq_top_iff],
@@ -270,7 +270,7 @@ begin
   rintro l ⟨h₁, h₂⟩,
   rw [mem_coe, mem_ker, lmap_domain_apply, map_domain] at h₂,
   simp, ext x,
-  haveI := classical.dec_pred (λ x, x ∈ s),
+  haveI := classical.dec_pred (∈ s),
   by_cases xs : x ∈ s,
   { have : finsupp.sum l (λ a, finsupp.single (f a)) (f x) = 0, {rw h₂, refl},
     rw [finsupp.sum_apply, finsupp.sum, finset.sum_eq_single x] at this,
@@ -358,7 +358,7 @@ begin
   { refine map_le_iff_le_comap.2 (λ z hz, _),
     have : ∀i, z i • v i ∈ span R (v '' s),
     { intro c,
-      haveI := classical.dec_pred (λ x, x ∈ s),
+      haveI := classical.dec_pred (∈ s),
       by_cases c ∈ s,
       { exact smul_mem _ _ (subset_span (set.mem_image_of_mem _ h)) },
       { simp [(finsupp.mem_supported' R _).1 hz _ h] } },
@@ -414,8 +414,8 @@ by simp [finsupp.dom_lcongr, equiv.to_linear_equiv, finsupp.dom_congr, map_domai
 noncomputable def congr {α' : Type*} (s : set α) (t : set α') (e : s ≃ t) :
   supported M R s ≃ₗ[R] supported M R t :=
 begin
-  haveI := classical.dec_pred (λ x, x ∈ s),
-  haveI := classical.dec_pred (λ x, x ∈ t),
+  haveI := classical.dec_pred (∈ s),
+  haveI := classical.dec_pred (∈ t),
   refine linear_equiv.trans (finsupp.supported_equiv_finsupp s)
       (linear_equiv.trans _ (finsupp.supported_equiv_finsupp t).symm),
   exact finsupp.dom_lcongr e

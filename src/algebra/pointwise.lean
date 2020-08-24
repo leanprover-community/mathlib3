@@ -157,11 +157,11 @@ lemma union_mul [has_mul α] : (s ∪ t) * u = (s * u) ∪ (t * u) := image2_uni
 lemma mul_union [has_mul α] : s * (t ∪ u) = (s * t) ∪ (s * u) := image2_union_right
 
 @[to_additive]
-lemma Union_mul_left_image [has_mul α] : (⋃ a ∈ s, (λ x, a * x) '' t) = s * t :=
+lemma Union_mul_left_image [has_mul α] : (⋃ a ∈ s, ((*) a) '' t) = s * t :=
 Union_image_left _
 
 @[to_additive]
-lemma Union_mul_right_image [has_mul α] : (⋃ a ∈ t, (λ x, x * a) '' s) = s * t :=
+lemma Union_mul_right_image [has_mul α] : (⋃ a ∈ t, (* a) '' s) = s * t :=
 Union_image_right _
 
 @[simp, to_additive]
@@ -238,7 +238,7 @@ instance has_scalar_set [has_scalar α β] : has_scalar α (set β) :=
 ⟨λ a, image (has_scalar.smul a)⟩
 
 @[simp]
-lemma image_smul [has_scalar α β] {t : set β} : (λ x, a • x) '' t = a • t := rfl
+lemma image_smul [has_scalar α β] {t : set β} : ((•) a) '' t = a • t := rfl
 
 lemma mem_smul_set [has_scalar α β] {t : set β} : x ∈ a • t ↔ ∃ y, y ∈ t ∧ a • y = x := iff.rfl
 

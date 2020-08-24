@@ -17,7 +17,7 @@ In this file we prove that the following functions are convex:
   is convex on $(-∞, +∞)$;
 * `convex_on_pow` : for a natural $n$, the function $f(x)=x^n$ is convex on $[0, +∞)$;
 * `convex_on_fpow` : for an integer $m$, the function $f(x)=x^m$ is convex on $(0, +∞)$.
-* `convex_on_rpow : ∀ p : ℝ, 1 ≤ p → convex_on (Ici 0) (λ x, x ^ p)`
+* `convex_on_rpow : ∀ p : ℝ, 1 ≤ p → convex_on (Ici 0) (^ p)`
 -/
 
 open real set

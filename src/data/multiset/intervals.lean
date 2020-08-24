@@ -25,7 +25,7 @@ namespace Ico
 theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
 congr_arg coe $ list.Ico.map_add _ _ _
 
-theorem map_sub (n m k : ℕ) (h : k ≤ n) : (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
+theorem map_sub (n m k : ℕ) (h : k ≤ n) : (Ico n m).map (- k) = Ico (n - k) (m - k) :=
 congr_arg coe $ list.Ico.map_sub _ _ _ h
 
 theorem zero_bot (n : ℕ) : Ico 0 n = range n :=
@@ -70,31 +70,31 @@ congr_arg coe $ list.Ico.pred_singleton h
 @[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
 list.Ico.not_mem_top
 
-lemma filter_lt_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, x < l) = Ico n m :=
+lemma filter_lt_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (< l) = Ico n m :=
 congr_arg coe $ list.Ico.filter_lt_of_top_le hml
 
-lemma filter_lt_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, x < l) = ∅ :=
+lemma filter_lt_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (< l) = ∅ :=
 congr_arg coe $ list.Ico.filter_lt_of_le_bot hln
 
-lemma filter_le_of_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x ≤ n) = {n} :=
+lemma filter_le_of_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (≤ n) = {n} :=
 congr_arg coe $ list.Ico.filter_le_of_bot hnm
 
-lemma filter_lt_of_ge {n m l : ℕ} (hlm : l ≤ m) : (Ico n m).filter (λ x, x < l) = Ico n l :=
+lemma filter_lt_of_ge {n m l : ℕ} (hlm : l ≤ m) : (Ico n m).filter (< l) = Ico n l :=
 congr_arg coe $ list.Ico.filter_lt_of_ge hlm
 
-@[simp] lemma filter_lt (n m l : ℕ) : (Ico n m).filter (λ x, x < l) = Ico n (min m l) :=
+@[simp] lemma filter_lt (n m l : ℕ) : (Ico n m).filter (< l) = Ico n (min m l) :=
 congr_arg coe $ list.Ico.filter_lt n m l
 
-lemma filter_le_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, l ≤ x) = Ico n m :=
+lemma filter_le_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter ((≤) l) = Ico n m :=
 congr_arg coe $ list.Ico.filter_le_of_le_bot hln
 
-lemma filter_le_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, l ≤ x) = ∅ :=
+lemma filter_le_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter ((≤) l) = ∅ :=
 congr_arg coe $ list.Ico.filter_le_of_top_le hml
 
-lemma filter_le_of_le {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, l ≤ x) = Ico l m :=
+lemma filter_le_of_le {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter ((≤) l) = Ico l m :=
 congr_arg coe $ list.Ico.filter_le_of_le hnl
 
-@[simp] lemma filter_le (n m l : ℕ) : (Ico n m).filter (λ x, l ≤ x) = Ico (max n l) m :=
+@[simp] lemma filter_le (n m l : ℕ) : (Ico n m).filter ((≤) l) = Ico (max n l) m :=
 congr_arg coe $ list.Ico.filter_le n m l
 
 end Ico

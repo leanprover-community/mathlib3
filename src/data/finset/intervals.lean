@@ -32,7 +32,7 @@ namespace Ico
 theorem image_add (n m k : ℕ) : (Ico n m).image ((+) k) = Ico (n + k) (m + k) :=
 by simp [image, multiset.Ico.map_add]
 
-theorem image_sub (n m k : ℕ) (h : k ≤ n) : (Ico n m).image (λ x, x - k) = Ico (n - k) (m - k) :=
+theorem image_sub (n m k : ℕ) (h : k ≤ n) : (Ico n m).image (- k) = Ico (n - k) (m - k) :=
 begin
   dsimp [image],
   rw [multiset.Ico.map_sub _ _ _ h, ←multiset.to_finset_eq],
@@ -114,31 +114,31 @@ eq_of_veq $ multiset.Ico.pred_singleton h
 @[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
 multiset.Ico.not_mem_top
 
-lemma filter_lt_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, x < l) = Ico n m :=
+lemma filter_lt_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (< l) = Ico n m :=
 eq_of_veq $ multiset.Ico.filter_lt_of_top_le hml
 
-lemma filter_lt_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, x < l) = ∅ :=
+lemma filter_lt_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (< l) = ∅ :=
 eq_of_veq $ multiset.Ico.filter_lt_of_le_bot hln
 
-lemma filter_Ico_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x ≤ n) = {n} :=
+lemma filter_Ico_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (≤ n) = {n} :=
 eq_of_veq $ multiset.Ico.filter_le_of_bot hnm
 
-lemma filter_lt_of_ge {n m l : ℕ} (hlm : l ≤ m) : (Ico n m).filter (λ x, x < l) = Ico n l :=
+lemma filter_lt_of_ge {n m l : ℕ} (hlm : l ≤ m) : (Ico n m).filter (< l) = Ico n l :=
 eq_of_veq $ multiset.Ico.filter_lt_of_ge hlm
 
-@[simp] lemma filter_lt (n m l : ℕ) : (Ico n m).filter (λ x, x < l) = Ico n (min m l) :=
+@[simp] lemma filter_lt (n m l : ℕ) : (Ico n m).filter (< l) = Ico n (min m l) :=
 eq_of_veq $ multiset.Ico.filter_lt n m l
 
-lemma filter_le_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, l ≤ x) = Ico n m :=
+lemma filter_le_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter ((≤) l) = Ico n m :=
 eq_of_veq $ multiset.Ico.filter_le_of_le_bot hln
 
-lemma filter_le_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, l ≤ x) = ∅ :=
+lemma filter_le_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter ((≤) l) = ∅ :=
 eq_of_veq $ multiset.Ico.filter_le_of_top_le hml
 
-lemma filter_le_of_le {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, l ≤ x) = Ico l m :=
+lemma filter_le_of_le {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter ((≤) l) = Ico l m :=
 eq_of_veq $ multiset.Ico.filter_le_of_le hnl
 
-@[simp] lemma filter_le (n m l : ℕ) : (Ico n m).filter (λ x, l ≤ x) = Ico (max n l) m :=
+@[simp] lemma filter_le (n m l : ℕ) : (Ico n m).filter ((≤) l) = Ico (max n l) m :=
 eq_of_veq $ multiset.Ico.filter_le n m l
 
 @[simp] lemma diff_left (l n m : ℕ) : (Ico n m) \ (Ico n l) = Ico (max n l) m :=

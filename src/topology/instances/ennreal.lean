@@ -284,13 +284,13 @@ protected lemma continuous_at_const_mul {a b : ennreal} (h : a ≠ ⊤ ∨ b ≠
 tendsto.const_mul tendsto_id h.symm
 
 protected lemma continuous_at_mul_const {a b : ennreal} (h : a ≠ ⊤ ∨ b ≠ 0) :
-  continuous_at (λ x, x * a) b :=
+  continuous_at (* a) b :=
 tendsto.mul_const tendsto_id h.symm
 
 protected lemma continuous_const_mul {a : ennreal} (ha : a ≠ ⊤) : continuous ((*) a) :=
 continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_const_mul (or.inl ha)
 
-protected lemma continuous_mul_const {a : ennreal} (ha : a ≠ ⊤) : continuous (λ x, x * a) :=
+protected lemma continuous_mul_const {a : ennreal} (ha : a ≠ ⊤) : continuous (* a) :=
 continuous_iff_continuous_at.2 $ λ x, ennreal.continuous_at_mul_const (or.inl ha)
 
 lemma infi_mul_left {ι} [nonempty ι] {f : ι → ennreal} {a : ennreal}

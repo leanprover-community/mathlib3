@@ -778,7 +778,7 @@ def orthogonal_projection {s : affine_subspace ℝ P} (hn : (s : set P).nonempty
 @[simp] lemma orthogonal_projection_fn_eq {s : affine_subspace ℝ P} (hn : (s : set P).nonempty)
   (hc : is_complete (s.direction : set V)) (p : P) :
   orthogonal_projection_fn hn hc p = orthogonal_projection hn hc p := rfl
-  
+
 /-- The intersection of the subspace and the orthogonal subspace
 through the given point is the `orthogonal_projection` of that point
 onto the subspace. -/
@@ -1103,7 +1103,7 @@ begin
     { have i := hne.some,
       let ι2 := {x // x ≠ i},
       have hc : fintype.card ι2 = m + 1,
-      { rw fintype.card_of_subtype (finset.univ.filter (λ x, x ≠ i)),
+      { rw fintype.card_of_subtype (finset.univ.filter (≠ i)),
         { rw finset.filter_not,
           simp_rw eq_comm,
           rw [finset.filter_eq, if_pos (finset.mem_univ _),
@@ -1304,7 +1304,7 @@ include V
 /-- A single vertex, in terms of `points_with_circumcenter`. -/
 lemma point_eq_affine_combination_of_points_with_circumcenter {n : ℕ} (s : simplex ℝ P n)
   (i : fin (n + 1)) :
-  s.points i = 
+  s.points i =
     (univ : finset (points_with_circumcenter_index n)).affine_combination
       s.points_with_circumcenter (point_weights_with_circumcenter i) :=
 begin

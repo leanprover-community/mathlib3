@@ -29,7 +29,7 @@ section semiring
 variables [semiring β]
 
 lemma sum_mul : (∑ x in s, f x) * b = ∑ x in s, f x * b :=
-(s.sum_hom (λ x, x * b)).symm
+(s.sum_hom (* b)).symm
 
 lemma mul_sum : b * (∑ x in s, f x) = ∑ x in s, b * f x :=
 (s.sum_hom _).symm

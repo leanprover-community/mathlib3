@@ -1689,7 +1689,7 @@ range_coe
 
 /-- We make this the simp lemma instead of `range_coe`. The reason is that if we write
   for `s : set α` the function `coe : s → α`, then the inferred implicit arguments of `coe` are
-  `coe α (λ x, x ∈ s)`. -/
+  `coe α (∈ s)`. -/
 @[simp] lemma range_coe_subtype {p : α → Prop} :
   range (coe : subtype p → α) = {x | p x} :=
 range_coe

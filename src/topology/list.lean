@@ -92,7 +92,7 @@ begin
   { exact tendsto_pure_pure _ _ },
   { assume l a ih,
     dsimp only [list.length],
-    refine tendsto.comp (tendsto_pure_pure (λx, x + 1) _) _,
+    refine tendsto.comp (tendsto_pure_pure (+ 1) _) _,
     refine tendsto.comp ih tendsto_snd }
 end
 

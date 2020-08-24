@@ -110,7 +110,7 @@ end take'
 
 /-- Get the longest initial segment of the list whose members all satisfy `p`.
 
-     take_while (λ x, x < 3) [0, 2, 5, 1] = [0, 2] -/
+     take_while (< 3) [0, 2, 5, 1] = [0, 2] -/
 def take_while (p : α → Prop) [decidable_pred p] : list α → list α
 | []     := []
 | (a::l) := if p a then a :: take_while l else []

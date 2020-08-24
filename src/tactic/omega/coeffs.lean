@@ -241,7 +241,7 @@ begin
 end
 
 @[simp] lemma val_between_map_mul {i : int} {as: list int} {l : nat} :
-  ∀ {m}, val_between v (list.map ((*) i) as) l m = i * val_between v as l m
+  ∀ {m}, val_between v (as.map ((*) i)) l m = i * val_between v as l m
 | 0     := by simp only [val_between, mul_zero, list.map]
 | (m+1) :=
   begin
@@ -279,14 +279,14 @@ lemma dvd_val {as : list int} {i : int} :
 
 @[simp] lemma val_between_map_div
   {as: list int} {i : int} {l : nat} (h1 : ∀ x ∈ as, i ∣ x) :
-  ∀ {m}, val_between v (list.map (λ x, x / i) as) l m = (val_between v as l m) / i
+  ∀ {m}, val_between v (as.map (/ i)) l m = (val_between v as l m) / i
 | 0     := by simp only [int.zero_div, val_between, list.map]
 | (m+1) :=
   begin
     unfold val_between,
     rw [@val_between_map_div m, int.add_div_of_dvd (dvd_val_between h1)],
     apply fun_mono_2 rfl,
-    { apply calc get (l + m) (list.map (λ (x : ℤ), x / i) as) * v (l + m)
+    { apply calc get (l + m) (as.map (λ (x : ℤ), x / i)) * v (l + m)
           = ((get (l + m) as) / i) * v (l + m) :
             begin
               apply fun_mono_2 _ rfl,
@@ -304,7 +304,7 @@ lemma dvd_val {as : list int} {i : int} :
   end
 
 @[simp] lemma val_map_div {as : list int} {i : int} :
-  (∀ x ∈ as, i ∣ x) → val v (list.map (λ x, x / i) as) = (val v as) / i :=
+  (∀ x ∈ as, i ∣ x) → val v (as.map (/ i)) = (val v as) / i :=
 by {intro h1, simpa only [val, list.length_map] using val_between_map_div h1}
 
 lemma val_between_eq_zero {is: list int} {l : nat} :
@@ -312,7 +312,7 @@ lemma val_between_eq_zero {is: list int} {l : nat} :
 | 0 h1 := rfl
 | (m+1) h1 :=
   begin
-    have h2 := @forall_val_of_forall_mem _ _ is (λ x, x = 0) rfl h1,
+    have h2 := @forall_val_of_forall_mem _ _ is (= 0) rfl h1,
     simpa only [val_between, h2 (l+m), zero_mul, add_zero]
       using @val_between_eq_zero m h1,
   end

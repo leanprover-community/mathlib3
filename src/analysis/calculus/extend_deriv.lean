@@ -101,7 +101,7 @@ its derivative also converges at `a`, then `f` is differentiable on the right at
 lemma has_deriv_at_interval_left_endpoint_of_tendsto_deriv {s : set ℝ} {e : E} {a : ℝ} {f : ℝ → E}
   (f_diff : differentiable_on ℝ f s) (f_lim : continuous_within_at f s a)
   (hs : s ∈ 𝓝[Ioi a] a)
-  (f_lim' : tendsto (λx, deriv f x) (𝓝[Ioi a] a) (𝓝 e)) :
+  (f_lim' : tendsto (deriv f) (𝓝[Ioi a] a) (𝓝 e)) :
   has_deriv_within_at f e (Ici a) a :=
 begin
   /- This is a specialization of `has_fderiv_at_boundary_of_tendsto_fderiv`. To be in the setting of
@@ -122,7 +122,7 @@ begin
     { rw h, exact f_lim.mono ts },
     { have : y ∈ s := sab ⟨lt_of_le_of_ne hy.1 (ne.symm h), hy.2⟩,
       exact (f_diff.continuous_on y this).mono ts } },
-  have t_diff' : tendsto (λx, fderiv ℝ f x) (𝓝[t] a) (𝓝 (smul_right 1 e)),
+  have t_diff' : tendsto (fderiv ℝ f) (𝓝[t] a) (𝓝 (smul_right 1 e)),
   { simp [deriv_fderiv.symm],
     refine tendsto.comp is_bounded_bilinear_map_smul_right.continuous_right.continuous_at _,
     exact tendsto_nhds_within_mono_left Ioo_subset_Ioi_self f_lim' },
@@ -138,7 +138,7 @@ its derivative also converges at `a`, then `f` is differentiable on the left at 
 lemma has_deriv_at_interval_right_endpoint_of_tendsto_deriv {s : set ℝ} {e : E} {a : ℝ} {f : ℝ → E}
   (f_diff : differentiable_on ℝ f s) (f_lim : continuous_within_at f s a)
   (hs : s ∈ 𝓝[Iio a] a)
-  (f_lim' : tendsto (λx, deriv f x) (𝓝[Iio a] a) (𝓝 e)) :
+  (f_lim' : tendsto (deriv f) (𝓝[Iio a] a) (𝓝 e)) :
   has_deriv_within_at f e (Iic a) a :=
 begin
   /- This is a specialization of `has_fderiv_at_boundary_of_differentiable`. To be in the setting of
@@ -159,7 +159,7 @@ begin
     { rw h, exact f_lim.mono ts },
     { have : y ∈ s := sab ⟨hy.1, lt_of_le_of_ne hy.2 h⟩,
       exact (f_diff.continuous_on y this).mono ts } },
-  have t_diff' : tendsto (λx, fderiv ℝ f x) (𝓝[t] a) (𝓝 (smul_right 1 e)),
+  have t_diff' : tendsto (fderiv ℝ f) (𝓝[t] a) (𝓝 (smul_right 1 e)),
   { simp [deriv_fderiv.symm],
     refine tendsto.comp is_bounded_bilinear_map_smul_right.continuous_right.continuous_at _,
     exact tendsto_nhds_within_mono_left Ioo_subset_Iio_self f_lim' },

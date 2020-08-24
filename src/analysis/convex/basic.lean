@@ -113,10 +113,10 @@ begin
   simp only [add_sub_add_left_eq_sub, add_assoc, add_right_inj]
 end
 
-lemma segment_translate_preimage (a b c : E) : (λ x, a + x) ⁻¹' [a + b, a + c] = [b, c] :=
+lemma segment_translate_preimage (a b c : E) : ((+) a) ⁻¹' [a + b, a + c] = [b, c] :=
 set.ext $ λ x, mem_segment_translate a
 
-lemma segment_translate_image (a b c: E) : (λx, a + x) '' [b, c] = [a + b, a + c] :=
+lemma segment_translate_image (a b c: E) : ((+) a) '' [b, c] = [a + b, a + c] :=
 segment_translate_preimage a b c ▸ image_preimage_eq $ add_left_surjective a
 
 /-! ### Convexity of sets -/
@@ -280,7 +280,7 @@ lemma convex.sub {t : set E}  (hs : convex s) (ht : convex t) :
   convex ((λx : E × E, x.1 - x.2) '' (s.prod t)) :=
 (hs.prod ht).is_linear_image is_linear_map.is_linear_map_sub
 
-lemma convex.translate (hs : convex s) (z : E) : convex ((λx, z + x) '' s) :=
+lemma convex.translate (hs : convex s) (z : E) : convex (((+) z) '' s) :=
 hs.affine_image $ affine_map.const ℝ E z +ᵥ affine_map.id ℝ E
 
 /-- The translation of a convex set is also convex -/

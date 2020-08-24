@@ -188,7 +188,7 @@ begin
   rcases h with ⟨k, hk⟩,
   rw [hk, nat.mul_div_cancel_left _ (nat.succ_pos (a*b))],
   simp only [nat.pow_two] at hk,
-  apply constant_descent_vieta_jumping a b hk (λ x, k * x) (λ x, x*x - k) (λ x y, false);
+  apply constant_descent_vieta_jumping a b hk ((*) k) (λ x, x*x - k) (λ x y, false);
   clear hk a b,
   { -- We will now show that the fibers of the solution set are described by a quadratic equation.
     intros x y, dsimp only,
@@ -247,7 +247,7 @@ begin
   rcases h with ⟨k, hk⟩,
   suffices : k = 3, { simp * at *, ring, },
   simp only [nat.pow_two] at hk,
-  apply constant_descent_vieta_jumping a b hk (λ x, k * x) (λ x, x*x + 1) (λ x y, x ≤ 1);
+  apply constant_descent_vieta_jumping a b hk ((*) k) (λ x, x*x + 1) (λ x y, x ≤ 1);
   clear hk a b,
   { -- We will now show that the fibers of the solution set are described by a quadratic equation.
     intros x y, dsimp only,

@@ -529,7 +529,7 @@ def infi_ker_proj_equiv {I J : set ι} [decidable_pred (λi, i ∈ I)]
   (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i)) ≃L[R] (Πi:I, φ i) :=
 ⟨ linear_map.infi_ker_proj_equiv R φ hd hu,
   continuous_pi (λ i, begin
-    have := @continuous_subtype_coe _ _ (λ x, x ∈ (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i))),
+    have := @continuous_subtype_coe _ _ (∈ (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i))),
     have := continuous.comp (by exact continuous_apply i) this,
     exact this
   end),

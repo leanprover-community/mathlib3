@@ -294,7 +294,7 @@ calc (∀ᶠ x in residual α, p x) ↔
 /-- A set is residual (comeagre) if and only if it includes a dense `Gδ` set. -/
 lemma mem_residual {s : set α} :
   s ∈ residual α ↔ ∃ t ⊆ s, is_Gδ t ∧ closure t = univ :=
-(@eventually_residual α _ _ (λ x, x ∈ s)).trans $ exists_congr $
+(@eventually_residual α _ _ (∈ s)).trans $ exists_congr $
 λ t, by rw [exists_prop, and_comm (t ⊆ s), subset_def, and_assoc]
 
 instance : countable_Inter_filter (residual α) :=

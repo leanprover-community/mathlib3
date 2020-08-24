@@ -56,7 +56,7 @@ by simp [Ico, nat.sub_eq_zero_of_le h]
 theorem map_add (n m k : ℕ) : (Ico n m).map ((+) k) = Ico (n + k) (m + k) :=
 by rw [Ico, Ico, map_add_range', nat.add_sub_add_right, add_comm n k]
 
-theorem map_sub (n m k : ℕ) (h₁ : k ≤ n) : (Ico n m).map (λ x, x - k) = Ico (n - k) (m - k) :=
+theorem map_sub (n m k : ℕ) (h₁ : k ≤ n) : (Ico n m).map (- k) = Ico (n - k) (m - k) :=
 begin
   by_cases h₂ : n < m,
   { rw [Ico, Ico],
@@ -118,13 +118,13 @@ end
 @[simp] theorem not_mem_top {n m : ℕ} : m ∉ Ico n m :=
 by simp; intros; refl
 
-lemma filter_lt_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, x < l) = Ico n m :=
+lemma filter_lt_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (< l) = Ico n m :=
 filter_eq_self.2 $ assume k hk, lt_of_lt_of_le (mem.1 hk).2 hml
 
-lemma filter_lt_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, x < l) = [] :=
+lemma filter_lt_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (< l) = [] :=
 filter_eq_nil.2 $ assume k hk, not_lt_of_le $ le_trans hln $ (mem.1 hk).1
 
-lemma filter_lt_of_ge {n m l : ℕ} (hlm : l ≤ m) : (Ico n m).filter (λ x, x < l) = Ico n l :=
+lemma filter_lt_of_ge {n m l : ℕ} (hlm : l ≤ m) : (Ico n m).filter (< l) = Ico n l :=
 begin
   cases le_total n l with hnl hln,
   { rw [← append_consecutive hnl hlm, filter_append,
@@ -132,20 +132,20 @@ begin
   { rw [eq_nil_of_le hln, filter_lt_of_le_bot hln] }
 end
 
-@[simp] lemma filter_lt (n m l : ℕ) : (Ico n m).filter (λ x, x < l) = Ico n (min m l) :=
+@[simp] lemma filter_lt (n m l : ℕ) : (Ico n m).filter (< l) = Ico n (min m l) :=
 begin
   cases le_total m l with hml hlm,
   { rw [min_eq_left hml, filter_lt_of_top_le hml] },
   { rw [min_eq_right hlm, filter_lt_of_ge hlm] }
 end
 
-lemma filter_le_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, l ≤ x) = Ico n m :=
+lemma filter_le_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter ((≤) l) = Ico n m :=
 filter_eq_self.2 $ assume k hk, le_trans hln (mem.1 hk).1
 
-lemma filter_le_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter (λ x, l ≤ x) = [] :=
+lemma filter_le_of_top_le {n m l : ℕ} (hml : m ≤ l) : (Ico n m).filter ((≤) l) = [] :=
 filter_eq_nil.2 $ assume k hk, not_le_of_gt (lt_of_lt_of_le (mem.1 hk).2 hml)
 
-lemma filter_le_of_le {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter (λ x, l ≤ x) = Ico l m :=
+lemma filter_le_of_le {n m l : ℕ} (hnl : n ≤ l) : (Ico n m).filter ((≤) l) = Ico l m :=
 begin
   cases le_total l m with hlm hml,
   { rw [← append_consecutive hnl hlm, filter_append,
@@ -153,20 +153,20 @@ begin
   { rw [eq_nil_of_le hml, filter_le_of_top_le hml] }
 end
 
-@[simp] lemma filter_le (n m l : ℕ) : (Ico n m).filter (λ x, l ≤ x) = Ico (_root_.max n l) m :=
+@[simp] lemma filter_le (n m l : ℕ) : (Ico n m).filter ((≤) l) = Ico (_root_.max n l) m :=
 begin
   cases le_total n l with hnl hln,
   { rw [max_eq_right hnl, filter_le_of_le hnl] },
   { rw [max_eq_left hln, filter_le_of_le_bot hln] }
 end
 
-lemma filter_lt_of_succ_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x < n + 1) = [n] :=
+lemma filter_lt_of_succ_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (< n + 1) = [n] :=
 begin
   have r : min m (n + 1) = n + 1 := (@inf_eq_right _ _ m (n + 1)).mpr hnm,
   simp [filter_lt n m (n + 1), r],
 end
 
-@[simp] lemma filter_le_of_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x ≤ n) = [n] :=
+@[simp] lemma filter_le_of_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (≤ n) = [n] :=
 begin
   rw ←filter_lt_of_succ_bot hnm,
   exact filter_congr (λ _ _, lt_succ_iff.symm),

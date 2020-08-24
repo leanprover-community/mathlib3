@@ -1182,10 +1182,10 @@ assume t, finset.induction_on t
         ⟨u, subset.trans hust $ union_subset_union (subset.refl _) (by simp [subset_insert]),
           hsu, by simp [eq, hb₂t', hb₁t, hb₁s']⟩)),
 begin
-  have eq : t.filter (λx, x ∈ s) ∪ t.filter (λx, x ∉ s) = t,
+  have eq : t.filter (∈ s) ∪ t.filter (∉ s) = t,
   { ext1 x,
     by_cases x ∈ s; simp * },
-  apply exists.elim (this (t.filter (λx, x ∉ s)) (t.filter (λx, x ∈ s))
+  apply exists.elim (this (t.filter (∉ s)) (t.filter (∈ s))
     (by simp [set.subset_def]) (by simp [set.ext_iff] {contextual := tt}) (by rwa [eq])),
   intros u h,
   exact ⟨u, subset.trans h.1 (by simp [subset_def, and_imp, or_imp_distrib] {contextual:=tt}),

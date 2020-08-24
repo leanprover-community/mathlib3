@@ -940,9 +940,9 @@ end
 
 lemma times_cont_diff_on_of_continuous_on_differentiable_on {n : with_top ℕ}
   (Hcont : ∀ (m : ℕ), (m : with_top ℕ) ≤ n →
-    continuous_on (λ x, iterated_fderiv_within 𝕜 m f s x) s)
+    continuous_on (iterated_fderiv_within 𝕜 m f s) s)
   (Hdiff : ∀ (m : ℕ), (m : with_top ℕ) < n →
-    differentiable_on 𝕜 (λ x, iterated_fderiv_within 𝕜 m f s x) s) :
+    differentiable_on 𝕜 (iterated_fderiv_within 𝕜 m f s) s) :
   times_cont_diff_on 𝕜 n f s :=
 begin
   assume x hx m hm,
@@ -981,9 +981,9 @@ lemma times_cont_diff_on_iff_continuous_on_differentiable_on {n : with_top ℕ}
   (hs : unique_diff_on 𝕜 s) :
   times_cont_diff_on 𝕜 n f s ↔
   (∀ (m : ℕ), (m : with_top ℕ) ≤ n →
-    continuous_on (λ x, iterated_fderiv_within 𝕜 m f s x) s)
+    continuous_on ((iterated_fderiv_within 𝕜 m f s)) s)
   ∧ (∀ (m : ℕ), (m : with_top ℕ) < n →
-    differentiable_on 𝕜 (λ x, iterated_fderiv_within 𝕜 m f s x) s) :=
+    differentiable_on 𝕜 ((iterated_fderiv_within 𝕜 m f s)) s) :=
 begin
   split,
   { assume h,
@@ -1056,7 +1056,7 @@ end
 
 lemma times_cont_diff_on.continuous_on_fderiv_within {n : with_top ℕ}
   (h : times_cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hn : 1 ≤ n) :
-  continuous_on (λ x, fderiv_within 𝕜 f s x) s :=
+  continuous_on (fderiv_within 𝕜 f s) s :=
 ((times_cont_diff_on_succ_iff_fderiv_within hs).1 (h.of_le hn)).2.continuous_on
 
 /-- If a function is at least `C^1`, its bundled derivative (mapping `(x, v)` to `Df(x) v`) is
@@ -1381,8 +1381,8 @@ end
 
 lemma times_cont_diff_iff_continuous_differentiable {n : with_top ℕ} :
   times_cont_diff 𝕜 n f ↔
-  (∀ (m : ℕ), (m : with_top ℕ) ≤ n → continuous (λ x, iterated_fderiv 𝕜 m f x))
-  ∧ (∀ (m : ℕ), (m : with_top ℕ) < n → differentiable 𝕜 (λ x, iterated_fderiv 𝕜 m f x)) :=
+  (∀ (m : ℕ), (m : with_top ℕ) ≤ n → continuous (iterated_fderiv 𝕜 m f))
+  ∧ (∀ (m : ℕ), (m : with_top ℕ) < n → differentiable 𝕜 (iterated_fderiv 𝕜 m f)) :=
 by simp [times_cont_diff_on_univ.symm, continuous_iff_continuous_on_univ,
     differentiable_on_univ.symm, iterated_fderiv_within_univ,
     times_cont_diff_on_iff_continuous_on_differentiable_on unique_diff_on_univ]
@@ -1415,7 +1415,7 @@ end
 
 lemma times_cont_diff.continuous_fderiv {n : with_top ℕ}
   (h : times_cont_diff 𝕜 n f) (hn : 1 ≤ n) :
-  continuous (λ x, fderiv 𝕜 f x) :=
+  continuous (fderiv 𝕜 f) :=
 ((times_cont_diff_succ_iff_fderiv).1 (h.of_le hn)).2.continuous
 
 /-- If a function is at least `C^1`, its bundled derivative (mapping `(x, v)` to `Df(x) v`) is
@@ -2129,7 +2129,7 @@ hf.add hg.neg
 
 lemma times_cont_diff_within_at.sum
   {ι : Type*} {f : ι → E → F} {s : finset ι} {n : with_top ℕ} {t : set E} {x : E}
-  (h : ∀ i ∈ s, times_cont_diff_within_at 𝕜 n (λ x, f i x) t x) :
+  (h : ∀ i ∈ s, times_cont_diff_within_at 𝕜 n (f i) t x) :
   times_cont_diff_within_at 𝕜 n (λ x, (∑ i in s, f i x)) t x :=
 begin
   classical,
@@ -2141,7 +2141,7 @@ end
 
 lemma times_cont_diff_at.sum
   {ι : Type*} {f : ι → E → F} {s : finset ι} {n : with_top ℕ} {x : E}
-  (h : ∀ i ∈ s, times_cont_diff_at 𝕜 n (λ x, f i x) x) :
+  (h : ∀ i ∈ s, times_cont_diff_at 𝕜 n (f i) x) :
   times_cont_diff_at 𝕜 n (λ x, (∑ i in s, f i x)) x :=
 begin
   rw [← times_cont_diff_within_at_univ] at *,
@@ -2150,13 +2150,13 @@ end
 
 lemma times_cont_diff_on.sum
   {ι : Type*} {f : ι → E → F} {s : finset ι} {n : with_top ℕ} {t : set E}
-  (h : ∀ i ∈ s, times_cont_diff_on 𝕜 n (λ x, f i x) t) :
+  (h : ∀ i ∈ s, times_cont_diff_on 𝕜 n (f i) t) :
   times_cont_diff_on 𝕜 n (λ x, (∑ i in s, f i x)) t :=
 λ x hx, times_cont_diff_within_at.sum (λ i hi, h i hi x hx)
 
 lemma times_cont_diff.sum
   {ι : Type*} {f : ι → E → F} {s : finset ι} {n : with_top ℕ}
-  (h : ∀ i ∈ s, times_cont_diff 𝕜 n (λ x, f i x)) :
+  (h : ∀ i ∈ s, times_cont_diff 𝕜 n (f i)) :
   times_cont_diff 𝕜 n (λ x, (∑ i in s, f i x)) :=
 begin
   simp [← times_cont_diff_on_univ] at *,

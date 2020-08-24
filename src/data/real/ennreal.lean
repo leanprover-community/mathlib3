@@ -406,7 +406,7 @@ canonically_ordered_semiring.mul_le_mul
 
 lemma mul_left_mono : monotone ((*) a) := λ b c, mul_le_mul (le_refl a)
 
-lemma mul_right_mono : monotone (λ x, x * a) := λ b c h, mul_le_mul h (le_refl a)
+lemma mul_right_mono : monotone (* a) := λ b c h, mul_le_mul h (le_refl a)
 
 lemma max_mul : max a b * c = max (a * c) (b * c) :=
 mul_right_mono.map_max
@@ -482,7 +482,7 @@ Inf_le_Inf $ assume e (h : b ≤ e + d),
 by rw [add_comm, add_sub_self h]
 
 lemma add_right_inj (h : a < ∞) : a + b = a + c ↔ b = c :=
-⟨λ e, by simpa [h] using congr_arg (λ x, x - a) e, congr_arg _⟩
+⟨λ e, by simpa [h] using congr_arg (- a) e, congr_arg _⟩
 
 lemma add_left_inj (h : a < ∞) : b + a = c + a ↔ b = c :=
 by rw [add_comm, add_comm c, add_right_inj h]

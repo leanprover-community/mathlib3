@@ -26,7 +26,7 @@ guard res.is_some
 by congr
 
 -- lemma is unproblematic
-example : @list.filter _ (λ x, x > 0) (λ _, classical.prop_decidable _) [1,2,3] = [1,2,3] :=
+example : @list.filter _ (> 0) (λ _, classical.prop_decidable _) [1,2,3] = [1,2,3] :=
 begin
   -- can rewrite once
   simp only [list.filter_congr_decidable],

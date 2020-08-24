@@ -112,9 +112,9 @@ but this is an equivalence when the set has unique derivatives, see
 `times_cont_diff_on_iff_continuous_on_differentiable_on_deriv`. -/
 lemma times_cont_diff_on_of_continuous_on_differentiable_on_deriv {n : with_top ℕ}
   (Hcont : ∀ (m : ℕ), (m : with_top ℕ) ≤ n →
-    continuous_on (λ x, iterated_deriv_within m f s x) s)
+    continuous_on (iterated_deriv_within m f s) s)
   (Hdiff : ∀ (m : ℕ), (m : with_top ℕ) < n →
-    differentiable_on 𝕜 (λ x, iterated_deriv_within m f s x) s) :
+    differentiable_on 𝕜 (iterated_deriv_within m f s) s) :
   times_cont_diff_on 𝕜 n f s :=
 begin
   apply times_cont_diff_on_of_continuous_on_differentiable_on,

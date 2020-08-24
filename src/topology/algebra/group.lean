@@ -96,11 +96,11 @@ protected def homeomorph.mul_left [topological_group α] (a : α) : α ≃ₜ α
   .. equiv.mul_left a }
 
 @[to_additive]
-lemma is_open_map_mul_left [topological_group α] (a : α) : is_open_map (λ x, a * x) :=
+lemma is_open_map_mul_left [topological_group α] (a : α) : is_open_map ((*) a) :=
 (homeomorph.mul_left a).is_open_map
 
 @[to_additive]
-lemma is_closed_map_mul_left [topological_group α] (a : α) : is_closed_map (λ x, a * x) :=
+lemma is_closed_map_mul_left [topological_group α] (a : α) : is_closed_map ((*) a) :=
 (homeomorph.mul_left a).is_closed_map
 
 @[to_additive]
@@ -112,11 +112,11 @@ protected def homeomorph.mul_right
   .. equiv.mul_right a }
 
 @[to_additive]
-lemma is_open_map_mul_right [topological_group α] (a : α) : is_open_map (λ x, x * a) :=
+lemma is_open_map_mul_right [topological_group α] (a : α) : is_open_map (* a) :=
 (homeomorph.mul_right a).is_open_map
 
 @[to_additive]
-lemma is_closed_map_mul_right [topological_group α] (a : α) : is_closed_map (λ x, x * a) :=
+lemma is_closed_map_mul_right [topological_group α] (a : α) : is_closed_map (* a) :=
 (homeomorph.mul_right a).is_closed_map
 
 @[to_additive]
@@ -293,7 +293,7 @@ local notation `Z` := add_group_with_zero_nhd.Z
 
 @[priority 100] -- see Note [lower instance priority]
 instance : topological_space α :=
-topological_space.mk_of_nhds $ λa, map (λx, x + a) (Z α)
+topological_space.mk_of_nhds $ λa, map (+ a) (Z α)
 
 variables {α}
 
@@ -316,9 +316,9 @@ begin
   exact ⟨V, H, prod_subset_iff.1 H'⟩
 end
 
-lemma nhds_eq (a : α) : 𝓝 a = map (λx, x + a) (Z α) :=
+lemma nhds_eq (a : α) : 𝓝 a = map (+ a) (Z α) :=
 topological_space.nhds_mk_of_nhds _ _
-  (assume a, calc pure a = map (λx, x + a) (pure 0) : by simp
+  (assume a, calc pure a = map (+ a) (pure 0) : by simp
     ... ≤ _ : map_mono zero_Z)
   (assume b s hs,
     let ⟨t, ht, eqt⟩ := exists_Z_half hs in

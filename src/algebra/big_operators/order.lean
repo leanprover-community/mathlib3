@@ -198,12 +198,12 @@ open_locale classical
 /- this is also true for a ordered commutative multiplicative monoid -/
 lemma prod_nonneg {s : finset α} {f : α → β}
   (h0 : ∀(x ∈ s), 0 ≤ f x) : 0 ≤ (∏ x in s, f x) :=
-prod_induction f (λ x, 0 ≤ x) (λ _ _ ha hb, mul_nonneg ha hb) zero_le_one h0
+prod_induction f ((≤) 0) (λ _ _ ha hb, mul_nonneg ha hb) zero_le_one h0
 
 
 /- this is also true for a ordered commutative multiplicative monoid -/
 lemma prod_pos {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 < f x) : 0 < (∏ x in s, f x) :=
-prod_induction f (λ x, 0 < x) (λ _ _ ha hb, mul_pos ha hb) zero_lt_one h0
+prod_induction f ((<) 0) (λ _ _ ha hb, mul_pos ha hb) zero_lt_one h0
 
 
 /- this is also true for a ordered commutative multiplicative monoid -/

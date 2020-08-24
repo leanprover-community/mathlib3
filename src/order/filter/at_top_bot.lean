@@ -51,7 +51,7 @@ lemma at_top_basis [nonempty α] [semilattice_sup α] :
 has_basis_infi_principal (directed_of_sup $ λ a b, Ici_subset_Ici.2)
 
 lemma at_top_basis' [semilattice_sup α] (a : α) :
-  (@at_top α _).has_basis (λ x, a ≤ x) Ici :=
+  (@at_top α _).has_basis ((≤) a) Ici :=
 ⟨λ t, (@at_top_basis α ⟨a⟩ _).mem_iff.trans
   ⟨λ ⟨x, _, hx⟩, ⟨x ⊔ a, le_sup_right, λ y hy, hx (le_trans le_sup_left hy)⟩,
     λ ⟨x, _, hx⟩, ⟨x, trivial, hx⟩⟩⟩
@@ -61,7 +61,7 @@ lemma at_bot_basis [nonempty α] [semilattice_inf α] :
 @at_top_basis (order_dual α) _ _
 
 lemma at_bot_basis' [semilattice_inf α] (a : α) :
-  (@at_bot α _).has_basis (λ x, x ≤ a) Iic :=
+  (@at_bot α _).has_basis (≤ a) Iic :=
 @at_top_basis' (order_dual α) _ _
 
 @[instance]

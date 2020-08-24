@@ -50,7 +50,7 @@ example {α} (x : α) : foo.rfl.to_fun = @id α := by { success_if_fail {simp}, 
 
 /- check some failures -/
 def bar1 : ℕ := 1 -- type is not a structure
-def bar2 : ℕ × ℤ := prod.map (λ x, x + 2) (λ y, y - 3) (3, 4) -- value is not a constructor
+def bar2 : ℕ × ℤ := prod.map (+ 2) (λ y, y - 3) (3, 4) -- value is not a constructor
 noncomputable def bar3 {α} : α ≃ α :=
 classical.choice ⟨foo.rfl⟩
 

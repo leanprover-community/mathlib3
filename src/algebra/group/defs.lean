@@ -166,7 +166,7 @@ lemma mul_right_cancel_iff : b * a = c * a ↔ b = c :=
 ⟨mul_right_cancel, congr_arg _⟩
 
 @[to_additive]
-theorem mul_left_injective (a : G) : function.injective (λ x, x * a) :=
+theorem mul_left_injective (a : G) : function.injective (* a) :=
 λ b c, mul_right_cancel
 
 @[simp, to_additive]

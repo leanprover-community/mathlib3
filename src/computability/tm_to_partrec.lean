@@ -797,7 +797,7 @@ def head (k : K') (q : Λ') : Λ' :=
 Λ'.move nat_end k rev $
 Λ'.push rev (λ _, some Γ'.cons) $
 Λ'.read $ λ s,
-(if s = some Γ'.Cons then id else Λ'.clear (λ x, x = Γ'.Cons) k) $
+(if s = some Γ'.Cons then id else Λ'.clear (= Γ'.Cons) k) $
 unrev q
 
 /-- The program that evaluates code `c` with continuation `k`. This expects an initial state where

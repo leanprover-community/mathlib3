@@ -12,12 +12,12 @@ variable {α : Type*}
 /-- The left coset `a*s` corresponding to an element `a : α` and a subset `s : set α` -/
 @[to_additive left_add_coset "The left coset `a+s` corresponding to an element `a : α`
 and a subset `s : set α`"]
-def left_coset [has_mul α] (a : α) (s : set α) : set α := (λ x, a * x) '' s
+def left_coset [has_mul α] (a : α) (s : set α) : set α := ((*) a) '' s
 
 /-- The right coset `s*a` corresponding to an element `a : α` and a subset `s : set α` -/
 @[to_additive right_add_coset "The right coset `s+a` corresponding to an element `a : α`
 and a subset `s : set α`"]
-def right_coset [has_mul α] (s : set α) (a : α) : set α := (λ x, x * a) '' s
+def right_coset [has_mul α] (s : set α) (a : α) : set α := (* a) '' s
 
 localized "infix ` *l `:70 := left_coset" in coset
 localized "infix ` +l `:70 := left_add_coset" in coset

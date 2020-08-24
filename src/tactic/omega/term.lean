@@ -32,7 +32,7 @@ namespace term
 | (b,as) := (i * b, as.map ((*) i))
 
 @[simp] def div (i : int) : term → term
-| (b,as) := (b/i, as.map (λ x, x / i))
+| (b,as) := (b/i, as.map (/ i))
 
 lemma val_neg {v : nat → int} {t : term} :
 (neg t).val v = -(t.val v) :=

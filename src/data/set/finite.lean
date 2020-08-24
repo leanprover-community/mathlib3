@@ -593,7 +593,7 @@ by classical; rw [map_eq_image, image_subset_iff_subset_preimage]
 
 lemma image_preimage [decidable_eq β] (f : α → β) (s : finset β) [Π x, decidable (x ∈ set.range f)]
   (hf : set.inj_on f (f ⁻¹' ↑s)) :
-  image f (preimage s f hf) = s.filter (λ x, x ∈ set.range f) :=
+  image f (preimage s f hf) = s.filter (∈ set.range f) :=
 finset.coe_inj.1 $ by simp only [coe_image, coe_preimage, coe_filter,
   set.image_preimage_eq_inter_range, set.sep_mem_eq]
 
@@ -618,13 +618,13 @@ s.sigma_preimage_mk_of_subset (subset.refl _)
 end preimage
 
 @[to_additive]
-lemma prod_preimage' [comm_monoid β] (f : α → γ) [decidable_pred $ λ x, x ∈ set.range f]
+lemma prod_preimage' [comm_monoid β] (f : α → γ) [decidable_pred (∈ set.range f)]
   (s : finset γ) (hf : set.inj_on f (f ⁻¹' ↑s)) (g : γ → β) :
-  ∏ x in s.preimage f hf, g (f x) = ∏ x in s.filter (λ x, x ∈ set.range f), g x :=
+  ∏ x in s.preimage f hf, g (f x) = ∏ x in s.filter (∈ set.range f), g x :=
 by haveI := classical.dec_eq γ;
 calc ∏ x in preimage s f hf, g (f x) = ∏ x in image f (preimage s f hf), g x :
   eq.symm $ prod_image $ by simpa only [mem_preimage, inj_on] using hf
-  ... = ∏ x in s.filter (λ x, x ∈ set.range f), g x : by rw [image_preimage]
+  ... = ∏ x in s.filter (∈ set.range f), g x : by rw [image_preimage]
 
 @[to_additive]
 lemma prod_preimage [comm_monoid β] (f : α → γ) (s : finset γ)

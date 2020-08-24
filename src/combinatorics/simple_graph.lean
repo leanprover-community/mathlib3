@@ -739,13 +739,29 @@ begin
   sorry,
 end
 
+instance finite_aux_thing {G' G'' : subgraph G} [decidable_pred G'.E'] [decidable_pred G''.E']
+  (h : G' ≤ G'') (v : V G) (hv : v ∈ G'.V') [fintype (neighbor_set (map h (G'.in_subgraph hv)))] :
+fintype ↥(neighbor_set (G'.in_subgraph hv)) :=
+begin
+  sorry,
+end
+
+
+lemma degree_le_aux
+{G' G'' : subgraph G} [decidable_pred G'.E'] [decidable_pred G''.E'] (h : G' ≤ G'')
+(v : V G) (hv : v ∈ G'.V') [fintype ↥(neighbor_set (G'.in_subgraph hv))]
+  [fintype (neighbor_set (map h (G'.in_subgraph hv)))] :
+  degree (G'.in_subgraph hv) ≤ degree (map h (G'.in_subgraph hv)) :=
+begin
+  unfold degree,
+  sorry,
+end
+
 lemma degree_le
 {G' G'' : subgraph G} [decidable_pred G'.E'] [decidable_pred G''.E'] (h : G' ≤ G'')
 (v : V G) (hv : v ∈ G'.V') [fintype (neighbor_set (map h (G'.in_subgraph hv)))] :
   degree (G'.in_subgraph hv) ≤ degree (map h (G'.in_subgraph hv)) :=
-begin
-  sorry,
-end
+@degree_le_aux _ _ _ G' G'' _ _ h v hv (subgraph.finite_aux_thing h v hv) _
 
 end subgraph
 

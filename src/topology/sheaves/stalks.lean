@@ -47,6 +47,34 @@ The germ at a point.
 def germ (F : X.presheaf C) {U : opens X} (x : U) : F.obj (op U) ⟶ stalk F x :=
 colimit.ι ((open_nhds.inclusion x.1).op ⋙ F) (op ⟨U, x.2⟩)
 
+/-- For a `Type` valued presheaf, every point in a stalk is a germ. -/
+lemma germ_exist (F : X.presheaf (Type v)) (x : X) (t : stalk F x) :
+  ∃ (U : opens X) (m : x ∈ U) (s : F.obj (op U)), F.germ ⟨x, m⟩ s = t :=
+begin
+  induction t,
+  { rcases t with ⟨U, s⟩,
+    refine ⟨(unop U).1, (unop U).2, s, _⟩,
+    apply quot.sound,
+    revert s,
+    rw [(show U = op (unop U), from rfl)],
+    generalize : unop U = V, clear U,
+    intro s,
+    cases V,
+    dsimp,
+    fsplit,
+    { exact (𝟙 _).op, },
+    { erw category_theory.functor.map_id, refl, }, },
+  { refl, },
+end
+
+lemma germ_eq (F : X.presheaf (Type v)) {U V : opens X} (x : X) (mU : x ∈ U) (mV : x ∈ V)
+  (s : F.obj (op U)) (t : F.obj (op V))
+  (h : germ F ⟨x, mU⟩ s = germ F ⟨x, mV⟩ t) :
+  ∃ (W : opens X) (m : x ∈ W) (iU : W ⟶ U) (iV : W ⟶ V), F.map iU.op s = F.map iV.op t :=
+begin
+  sorry,
+end
+
 @[simp] lemma germ_res (F : X.presheaf C) {U V : opens X} (i : U ⟶ V) (x : U) :
   F.map i.op ≫ germ F x = germ F (i x : V) :=
 let i' : (⟨U, x.2⟩ : open_nhds x.1) ⟶ ⟨V, (i x : V).2⟩ := i in

@@ -48,6 +48,7 @@ variables (R)
 The predicate `is_fraction` is "prelocal",
 in the sense that if it holds on `U` it holds on any open subset `V` of `U`.
 -/
+@[simps]
 def is_fraction_prelocal : prelocal_predicate (localizations R) :=
 { pred := λ U f, is_fraction f,
   res := λ V U i f h,
@@ -106,6 +107,94 @@ functions satisfying `locally_fraction`.
 -/
 def structure_sheaf_in_Type : sheaf (Type u) (Top.of (prime_spectrum R)) :=
 subsheaf_to_Types (is_locally_fraction_local R)
+
+open prime_spectrum
+
+lemma structure_sheaf_stalk_to_fiber_surjective (x : Top.of (prime_spectrum R)) :
+  function.surjective (stalk_to_fiber (is_locally_fraction_local R) x) :=
+begin
+  -- TODO golf!
+  apply stalk_to_fiber_surjective,
+  intro t,
+  obtain ⟨r, ⟨s, hs⟩, rfl⟩ := (localization.of _).mk'_surjective t,
+  use ⟨⟨basic_open s, basic_open_open⟩, hs⟩,
+  use λ y, (localization.of _).mk' r ⟨s, y.2⟩,
+  fsplit,
+  apply prelocal_predicate.sheafify_of,
+  dsimp [is_fraction],
+  refine ⟨r, s, _⟩,
+  intro y,
+  fsplit,
+  exact y.2,
+  apply localization_map.mk'_spec,
+  refl,
+end
+
+lemma structure_sheaf_stalk_to_fiber_injective (x : Top.of (prime_spectrum R)) :
+  function.injective (stalk_to_fiber (is_locally_fraction_local R) x) :=
+begin
+  apply stalk_to_fiber_injective,
+  intros U V fU hU fV hV e,
+  rcases hU ⟨x, U.2⟩ with ⟨U', mU, iU, ⟨a, b, wU⟩⟩,
+  rcases hV ⟨x, V.2⟩ with ⟨V', mV, iV, ⟨c, d, wV⟩⟩,
+
+  have wUx := (wU ⟨x, mU⟩).2,
+  dsimp at wUx,
+  have wVx := (wV ⟨x, mV⟩).2,
+  dsimp at wVx,
+  have e' := congr_arg (λ z, z * ((localization.of _).to_map (b * d))) e,
+  dsimp at e',
+  simp only [←mul_assoc, ring_hom.map_mul] at e',
+  rw [mul_right_comm (fV _)] at e',
+  erw [wUx, wVx] at e',
+  simp only [←ring_hom.map_mul] at e',
+  have := @localization_map.mk'_eq_iff_eq _ _ _ _ _ (localization.of (as_ideal x).prime_compl) a c ⟨b, (wU ⟨x, mU⟩).1⟩ ⟨d, (wV ⟨x, mV⟩).1⟩,
+  dsimp at this,
+  rw ←this at e',
+  rw localization_map.eq at e',
+  rcases e' with ⟨⟨h, hh⟩, e''⟩,
+  dsimp at e'',
+
+  let Wb : opens _ := ⟨basic_open b, basic_open_open⟩,
+  let Wd : opens _ := ⟨basic_open d, basic_open_open⟩,
+  let Wh : opens _ := ⟨basic_open h, basic_open_open⟩,
+  use ((Wb ⊓ Wd) ⊓ Wh) ⊓ (U' ⊓ V'),
+  refine ⟨⟨⟨(wU ⟨x, mU⟩).1, (wV ⟨x, mV⟩).1⟩, hh⟩, ⟨mU, mV⟩⟩,
+
+  refine ⟨_, _, _⟩,
+  change _ ⟶ U.val,
+  exact (opens.inf_le_right _ _) ≫ (opens.inf_le_left _ _) ≫ iU,
+  change _ ⟶ V.val,
+  exact (opens.inf_le_right _ _) ≫ (opens.inf_le_right _ _) ≫ iV,
+
+  intro w,
+
+  dsimp,
+  have wU' := (wU ⟨w.1, w.2.2.1⟩).2,
+  dsimp at wU',
+  have wV' := (wV ⟨w.1, w.2.2.2⟩).2,
+  dsimp at wV',
+  -- We need to prove `fU w = fV w`.
+  -- First we show that is suffices to prove `fU w * b * d * h = fV w * b * d * h`.
+  -- Then we calculate (at w) as follows:
+  --   fU w * b * d * h
+  --       = a * d * h        : wU'
+  --   ... = c * b * h        : e''
+  --   ... = fV w * d * b * h : wV'
+  have u : is_unit ((localization.of (as_ideal w.1).prime_compl).to_map (b * d * h)),
+  { simp only [ring_hom.map_mul],
+    apply is_unit.mul, apply is_unit.mul,
+    exact (localization.of (as_ideal w.1).prime_compl).map_units ⟨b, (wU ⟨w, w.2.2.1⟩).1⟩,
+    exact (localization.of (as_ideal w.1).prime_compl).map_units ⟨d, (wV ⟨w, w.2.2.2⟩).1⟩,
+    exact (localization.of (as_ideal w.1).prime_compl).map_units ⟨h, w.2.1.2⟩, },
+  apply (is_unit.mul_left_inj u).1,
+  conv_rhs { rw [mul_comm b d] },
+  simp only [ring_hom.map_mul, ←mul_assoc],
+  erw [wU', wV'],
+  dsimp,
+  simp only [←ring_hom.map_mul, ←mul_assoc],
+  rw e'',
+end
 
 /--
 The functions satisfying `is_locally_fraction` form a subring.

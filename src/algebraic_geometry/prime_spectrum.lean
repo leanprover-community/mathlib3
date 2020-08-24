@@ -379,4 +379,15 @@ begin
   simpa only [zero_locus_supr, hI] using hs
 end
 
+section basic_open
+
+/-- `basic_open r` is the open subset containing all prime ideals not containing `r`. -/
+def basic_open (r : R) : set (prime_spectrum R) :=
+{ x | r ∉ x.as_ideal }
+
+lemma basic_open_open {r : R} : is_open (basic_open r) :=
+sorry
+
+end basic_open
+
 end prime_spectrum

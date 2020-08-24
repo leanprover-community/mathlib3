@@ -263,10 +263,12 @@ f.to_localization_map.mk'_mul _ _ _ _
 lemma mk'_one (x) : f.mk' x (1 : M) = f.to_map x :=
 f.to_localization_map.mk'_one _
 
+@[simp]
 lemma mk'_spec (x) (y : M) :
   f.mk' x y * f.to_map y = f.to_map x :=
 f.to_localization_map.mk'_spec _ _
 
+@[simp]
 lemma mk'_spec' (x) (y : M) :
   f.to_map y * f.mk' x y = f.to_map x :=
 f.to_localization_map.mk'_spec' _ _

@@ -67,14 +67,6 @@ begin
   { refl, },
 end
 
-lemma germ_eq (F : X.presheaf (Type v)) {U V : opens X} (x : X) (mU : x ∈ U) (mV : x ∈ V)
-  (s : F.obj (op U)) (t : F.obj (op V))
-  (h : germ F ⟨x, mU⟩ s = germ F ⟨x, mV⟩ t) :
-  ∃ (W : opens X) (m : x ∈ W) (iU : W ⟶ U) (iV : W ⟶ V), F.map iU.op s = F.map iV.op t :=
-begin
-  sorry,
-end
-
 @[simp] lemma germ_res (F : X.presheaf C) {U V : opens X} (i : U ⟶ V) (x : U) :
   F.map i.op ≫ germ F x = germ F (i x : V) :=
 let i' : (⟨U, x.2⟩ : open_nhds x.1) ⟶ ⟨V, (i x : V).2⟩ := i in

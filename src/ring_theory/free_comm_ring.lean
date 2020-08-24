@@ -31,9 +31,10 @@ In this file we have:
 * `lift_hom (f : α → R) : free_comm_ring α →+* R`
 * `map (f : α → β) : free_comm_ring α →+* free_comm_ring β`
 
-`free_comm_ring α` is isomorphic to a polynomial ring.
-
 * `free_comm_ring_equiv_mv_polynomial_int : free_comm_ring α ≃+* mv_polynomial α ℤ` :
+    `free_comm_ring α` is isomorphic to a polynomial ring.
+
+
 
 ## Implementation notes
 

@@ -4,8 +4,9 @@ import analysis.special_functions.trigonometric
 /-!
 Tests for the #simp command.
 -/
+open tactic
 
-#simp 5 - 5
+run_cmd do e ← simp_cmd_internal ```(5 - 5), guard_expr_eq e := ```(0)
 
 section arith
 

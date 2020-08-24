@@ -386,7 +386,13 @@ def basic_open (r : R) : set (prime_spectrum R) :=
 { x | r ∉ x.as_ideal }
 
 lemma basic_open_open {r : R} : is_open (basic_open r) :=
-sorry
+begin
+  use {r},
+  ext x,
+  dsimp [zero_locus, basic_open],
+  rw [set.singleton_subset_iff, not_not],
+  exact iff.rfl
+end
 
 end basic_open
 

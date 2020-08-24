@@ -229,6 +229,19 @@ instance module.endomorphism_algebra (R : Type u) (M : Type v)
   commutes' := by { intros, ext, simp },
   smul_def' := by { intros, ext, simp } }
 
+lemma module.endomorphism_algebra_map_apply (R : Type u) (M : Type v)
+  [comm_ring R] [add_comm_group M] [module R M] (a : R) :
+  (algebra_map R (M →ₗ[R] M)) a = a • linear_map.id := rfl
+
+lemma module.endomorphism_algebra_map_apply2 (R : Type u) (M : Type v)
+  [comm_ring R] [add_comm_group M] [module R M] (a : R) (m : M) :
+  (algebra_map R (M →ₗ[R] M)) a m = a • m := rfl
+
+lemma module.endomorphism_algebra_map_ker (K : Type u) (V : Type v)
+  [field K] [add_comm_group V] [vector_space K V] (a : K) (ha : a ≠ 0) :
+  ((algebra_map K (V →ₗ[K] V)) a).ker = ⊥ :=
+linear_map.ker_smul _ _ ha
+
 instance matrix_algebra (n : Type u) (R : Type v)
   [decidable_eq n] [fintype n] [comm_semiring R] : algebra R (matrix n n R) :=
 { commutes' := by { intros, simp [matrix.scalar], },

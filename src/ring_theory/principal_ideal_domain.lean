@@ -175,6 +175,26 @@ begin
     (is_noetherian_ring.exists_factors a h)
 end
 
+/-- If a `ring_hom` maps all units and all factors of an element `a` into a submonoid `s`, then it
+also maps `a` into that submonoid. -/
+lemma ring_hom_factors_submonoid {R S : Type*}
+  [integral_domain R] [is_principal_ideal_ring R] [semiring S]
+  (f : R →+* S) (s : submonoid S) (a : R) (ha : a ≠ 0)
+  (h : ∀ b ∈ factors a, f b ∈ s) (hf: ∀ c : units R, f c ∈ s) :
+  f a ∈ s :=
+begin
+  rcases ((factors_spec a ha).2).symm with ⟨c, hc⟩,
+  rw [← hc],
+  simp only [ring_hom.map_mul],
+  apply submonoid.mul_mem _ _ (hf _),
+  rw [←multiset.coe_to_list (factors a), multiset.coe_prod, ring_hom.map_list_prod],
+  apply submonoid.list_prod_mem,
+  intros b hb,
+  rcases list.mem_map.1 hb with ⟨x, hx₁, hx₂⟩,
+  rw ←hx₂,
+  apply h _ ((multiset.mem_to_list _ _ ).1 hx₁),
+end
+
 /-- The unique factorization domain structure given by the principal ideal domain.
 
 This is not added as type class instance, since the `factors` might be computed in a different way.

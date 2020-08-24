@@ -395,6 +395,13 @@ lemma total_comap_domain
    (l.support.preimage f hf).sum (λ i, (l (f i)) • (v i)) :=
 by rw finsupp.total_apply; refl
 
+lemma total_on_finset
+  (s : finset α) (f : α → R) (g : α → M) (hf : ∀ a, f a ≠ 0 → a ∈ s):
+  finsupp.total α M R g (finsupp.on_finset s f hf) =
+    finset.sum (finset.filter (λ (a : α), f a ≠ 0) s) (λ (x : α), f x • g x) :=
+by simp only [finsupp.total_apply, finsupp.sum, finsupp.on_finset_apply, finsupp.on_finset_apply, ne.def,
+    finset.filter_congr_decidable, finsupp.on_finset_support]
+
 end total
 
 /-- An equivalence of domains induces a linear equivalence of finitely supported functions. -/

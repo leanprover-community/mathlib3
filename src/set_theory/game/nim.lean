@@ -169,6 +169,11 @@ begin
     contradiction }
 end
 
+lemma nim_equiv_iff_eq (O₁ O₂ : ordinal) : nim O₁ ≈ nim O₂ ↔ O₁ = O₂ :=
+⟨λ h, (nim_sum_first_loses_iff_eq _ _).1 $
+  by rw [first_loses_of_equiv_iff (add_congr h (equiv_refl _)), nim_sum_first_loses_iff_eq],
+ by { rintro rfl, refl }⟩
+
 /-- This definition will be used in the proof of the Sprague-Grundy theorem. It takes a function
   from some type to ordinals and returns a nonempty set of ordinals with empty intersection with
   the image of the function. It is guaranteed that the smallest ordinal not in the image will be
@@ -288,5 +293,13 @@ begin
     exact impartial_add_self (nim_impartial _) }
 end
 using_well_founded {dec_tac := pgame_wf_tac}
+
+lemma equiv_nim_iff_Grundy_value_eq {G : pgame.{u}} (hG : impartial G) (O : ordinal) :
+  G ≈ nim O ↔ Grundy_value hG = O :=
+⟨by { intro h, rw ←nim_equiv_iff_eq, exact equiv_trans (equiv_symm (Sprague_Grundy hG)) h },
+ by { rintro rfl, exact Sprague_Grundy hG }⟩
+
+lemma Grundy_value_nim (O : ordinal.{u}) : Grundy_value (nim_impartial O) = O :=
+by rw ←equiv_nim_iff_Grundy_value_eq
 
 end nim

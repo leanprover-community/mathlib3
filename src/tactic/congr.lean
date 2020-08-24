@@ -77,10 +77,13 @@ meta def congr' (n : parse (with_desc "n" small_nat)?) :
 Repeatedly and apply `congr'` and `ext`, using the the given patterns as arguments for `ext`.
 -/
 meta def rcongr : parse (rcases_patt_parse tt)* → tactic unit
-| ps := do
-  tactic.try (tactic.congr' none),
-  some qs ← try_core (tactic.ext ps none) | skip,
-  rcongr qs
+| ps := (do
+  t ← target,
+  qs ← try_core (tactic.ext ps none),
+  some () ← try_core (tactic.congr' none) | skip,
+  s ← target,
+  guard (¬ s =ₐ t),
+  rcongr (qs.lhoare ps)) <|> tactic.try (tactic.ext ps none)
 
 add_tactic_doc
 { name       := "congr'",

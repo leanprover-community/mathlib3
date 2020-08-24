@@ -83,7 +83,7 @@ The edges of G consist of the unordered pairs of vertices related by
 def edge_set : set (sym2 V) := sym2.from_rel G.sym
 
 @[simp]
-lemma edge_iff_adj {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w :=
+lemma mem_edge_set {v w : V} : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w :=
 by refl
 
 lemma adj_iff_exists_edge {v w : V} :
@@ -93,7 +93,7 @@ begin
   { rintro ⟨hne, e, he, hv⟩,
     rw sym2.elems_iff_eq hne at hv,
     subst e,
-    rwa edge_iff_adj at he, }
+    rwa mem_edge_set at he, }
 end
 
 lemma edge_other_ne {e : sym2 V} (he : e ∈ G.edge_set) {v : V} (h : v ∈ e) : h.other ≠ v :=

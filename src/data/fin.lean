@@ -362,6 +362,8 @@ end
 
 lemma one_pos : (0 : fin (n + 2)) < 1 := succ_pos 0
 
+lemma zero_ne_one : (0 : fin (n + 2)) ≠ 1 := ne_of_lt one_pos
+
 lemma cast_succ_fin_succ (n : ℕ) (j : fin n) :
   cast_succ (fin.succ j) = fin.succ (cast_succ j) :=
 by simp [fin.ext_iff]

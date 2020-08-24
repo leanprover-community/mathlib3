@@ -877,7 +877,7 @@ end
 
 end padic_norm_z
 
-section
+namespace padic_int
 variables {p : ℕ} [fact p.prime]
 open cau_seq padic_seq
 
@@ -914,7 +914,7 @@ end
 variable {f}
 include f_compat
 
-lemma limit_sub_mem (r : R) (i j : ℕ) (h : i ≤ j) :
+lemma pow_dvd_lift_sub (r : R) (i j : ℕ) (h : i ≤ j) :
   ↑p ^ (i + 1) ∣ limit f r j - limit f r i :=
 begin
   specialize f_compat (i+1) (j+1) (succ_le_succ h),
@@ -967,7 +967,7 @@ begin
   refine lt_of_le_of_lt _ hk,
   norm_cast,
   rw ← padic_norm.dvd_iff_norm_le,
-  exact_mod_cast limit_sub_mem f_compat r k j hj
+  exact_mod_cast pow_dvd_lift_sub f_compat r k j hj
 end
 
 def limit_seq (r : R) : padic_seq p := ⟨λ n, limit f r n, lim_seq_is_cau_seq f_compat r⟩
@@ -1011,19 +1011,27 @@ subtype.ext $ quot.sound $ limit_seq_add _ _ _
 lemma lim_fn_mul (r s : R) : lim_fn f_compat (r * s) = lim_fn f_compat r * lim_fn f_compat s :=
 subtype.ext $ quot.sound $ limit_seq_mul _ _ _
 
-def lim_ring_hom : R →+* ℤ_[p] :=
+def lift : R →+* ℤ_[p] :=
 { to_fun := lim_fn f_compat,
   map_one' := lim_fn_one f_compat,
   map_mul' := lim_fn_mul f_compat,
   map_zero' := lim_fn_zero f_compat,
   map_add' := lim_fn_add f_compat }
 
+lemma lift_spec (n : ℕ) : (to_zmod_pow n).comp (lift f_compat) = f n :=
+begin
+  ext r,
+  haveI : fact (0 < p ^ n) := nat.pow_pos (nat.prime.pos ‹_›) n,
+  rw [ring_hom.comp_apply, ← zmod.cast_val (f n r), ← (to_zmod_pow n).map_nat_cast],
+  rw [← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker],
+  rw [ker_to_zmod_pow],
+  rw [ideal.mem_span_singleton],
+  dsimp [lift, lim_fn, int_lim_seq, limit],
+  simp,
+end
 
-lemma foo : ∃ g : R →+* ℤ_[p], ∀ n, (to_zmod_pow n).comp g = f n :=
-⟨ lim_ring_hom f_compat, sorry ⟩
-
-lemma foo_unique (g : R →+* ℤ_[p]) (hg : ∀ n, (to_zmod_pow n).comp g = f n) :
-  g = lim_ring_hom f_compat :=
+lemma lift_unique (g : R →+* ℤ_[p]) (hg : ∀ n, (to_zmod_pow n).comp g = f n) :
+  g = lift f_compat :=
 begin
   sorry
 end
@@ -1035,4 +1043,4 @@ begin
   refine uniform_space.complete_of_cauchy_seq_tendsto _ _,
 end
 
-end
+end padic_int

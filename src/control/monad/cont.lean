@@ -170,7 +170,7 @@ instance {σ} [monad_cont m] : monad_cont (state_t σ m) :=
 instance {σ} [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (state_t σ m) :=
 { call_cc_bind_right := by { intros,
     simp [call_cc,state_t.call_cc,call_cc_bind_right,(>>=),state_t.bind], ext, dsimp,
-    congr with ⟨x₀,x₁⟩, refl },
+    congr' with ⟨x₀,x₁⟩, refl },
   call_cc_bind_left  := by { intros, simp [call_cc,state_t.call_cc,call_cc_bind_left,(>>=),
     state_t.bind,state_t.goto_mk_label], ext, refl },
   call_cc_dummy := by { intros, simp [call_cc,state_t.call_cc,call_cc_bind_right,(>>=),

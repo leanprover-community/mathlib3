@@ -977,7 +977,7 @@ begin
     by_cases hb : b = 0; simp [hb] },
   { suffices : (a : with_top α) * ⊤ = ⊤ ↔ a ≠ 0, by simpa,
     by_cases ha : a = 0; simp [ha] },
-  { norm_cast, simp, rintro ⟨⟩ }
+  { norm_cast, simp }
 end
 
 end mul_zero_class

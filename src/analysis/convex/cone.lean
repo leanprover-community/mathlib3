@@ -199,7 +199,7 @@ def flat (S : convex_cone E) := ∃ x ∈ S, x ≠ (0 : E) ∧ -x ∈ S
 def salient (S : convex_cone E) := ∀ x ∈ S, x ≠ (0 : E) → -x ∉ S
 
 lemma pointed_iff_not_blunt (S : convex_cone E) : pointed S ↔ ¬blunt S :=
-  ⟨λ h₁ h₂, by finish, λ h, by finish⟩
+  ⟨λ h₁ h₂, h₂ h₁, λ h, not_not.mp h⟩
 
 lemma salient_iff_not_flat (S : convex_cone E) : salient S ↔ ¬flat S :=
 begin

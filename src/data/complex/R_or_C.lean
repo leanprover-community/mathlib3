@@ -16,6 +16,8 @@ real and the complex case, such as inner products and Hilbert spaces. Its API
 follows closely that of ℂ.
 -/
 
+set_option default_priority 100 -- see Note [default priority]
+
 /--
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
 -/
@@ -71,9 +73,9 @@ theorem ext : ∀ {z w : K}, re z = re w → im z = im w → z = w :=
   λ z w hre him, is_R_or_C.ext_iff.mpr ⟨hre, him⟩
 
 
-@[simp] lemma zero_re : re (𝓚 0) = (0 : ℝ) := by rw [of_real_re]
+lemma zero_re : re (𝓚 0) = (0 : ℝ) := by simp only [of_real_re]
 @[simp] lemma zero_im : im (𝓚 0) = 0 := by rw [of_real_im]
-@[simp] lemma of_real_zero : 𝓚 0 = 0 := by rw [of_real_alg, zero_smul]
+lemma of_real_zero : 𝓚 0 = 0 := by rw [of_real_alg, zero_smul]
 
 @[simp] lemma of_real_one : 𝓚 1 = 1 := by rw [of_real_alg, one_smul]
 @[simp] lemma one_re : re (1 : K) = 1 := by rw [←of_real_one, of_real_re]

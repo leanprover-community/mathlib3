@@ -70,7 +70,7 @@ local attribute [tidy] tactic.case_bash
 instance subsingleton_hom (j j' : wide_pullback_shape J) : subsingleton (j ⟶ j') :=
 ⟨by tidy⟩
 
-instance category : small_category (wide_pullback_shape J) := sparse_category
+instance category : small_category (wide_pullback_shape J) := thin_category
 
 @[simp] lemma hom_id (X : wide_pullback_shape J) : hom.id X = 𝟙 X := rfl
 
@@ -127,7 +127,7 @@ local attribute [tidy] tactic.case_bash
 instance subsingleton_hom (j j' : wide_pushout_shape J) : subsingleton (j ⟶ j') :=
 ⟨by tidy⟩
 
-instance category : small_category (wide_pushout_shape J) := sparse_category
+instance category : small_category (wide_pushout_shape J) := thin_category
 
 @[simp] lemma hom_id (X : wide_pushout_shape J) : hom.id X = 𝟙 X := rfl
 

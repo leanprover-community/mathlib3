@@ -1021,6 +1021,9 @@ end
 def lim_fn (r : R) : ℤ_[p] :=
 int_lim_seq (limit f r) (lim_seq_is_cau_seq f_compat r)
 
+lemma lim_fn_spec (r : R) : ∀ ε : ℝ, 0 < ε → ∃ n : ℕ, ∥lim_fn f_compat r - limit f r n∥ < ε :=
+sorry
+
 lemma lim_fn_zero : lim_fn f_compat 0 = 0 :=
 by simp [lim_fn]; refl
 
@@ -1048,9 +1051,33 @@ begin
   rw [← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker],
   rw [ker_to_zmod_pow],
   rw [ideal.mem_span_singleton],
-  dsimp [lift, lim_fn, int_lim_seq, limit],
-  simp,
+  dsimp [lift],
+  obtain ⟨a, ha⟩ := lim_fn_spec f_compat r _ (show (0 : ℝ) < p ^ (-n : ℤ), from _),
+  suffices : ∥lim_fn f_compat r - ↑(((f n) r).val)∥ ≤ p^(-n : ℤ),
+  { sorry },
+  dsimp at ha,
+  rw sub_eq_sub_add_sub _ _ ↑(limit f r a),
+  transitivity,
+  {apply padic_norm_z.nonarchimedean,},
+  {apply max_le _ (le_of_lt ha),
+   dsimp [limit],
+   haveI : fact (0 < p ^ (a + 1)) := sorry,
+   haveI : fact (0 < p ^ n) := sorry,
+
+   by_cases ha : a + 1 ≤ n,
+   { rw ← f_compat _ _ ha,
+     simp,
+     sorry },
+
+     { push_neg at ha,
+       rw ← f_compat _ _ (le_of_lt ha),
+       simp,
+       sorry
+     } }
+
 end
+
+
 
 lemma lift_unique (g : R →+* ℤ_[p]) (hg : ∀ n, (to_zmod_pow n).comp g = f n) :
   g = lift f_compat :=

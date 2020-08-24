@@ -939,8 +939,10 @@ begin
     rw ← inv_lt_inv hε (_root_.fpow_pos_of_pos _ _),
     { rw [fpow_neg, inv_inv'],
       apply lt_of_lt_of_le hk,
+      rw fpow_coe_nat, -- norm_cast?
+      norm_cast,
       sorry },
-    {  } },
+    { exact_mod_cast nat.prime.pos ‹_› } },
   use k,
   intros j hj,
   refine lt_of_le_of_lt _ hk,

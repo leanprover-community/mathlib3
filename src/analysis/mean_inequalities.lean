@@ -435,16 +435,11 @@ begin
               (λ i, ennreal.to_nnreal (g i)) _ _ hpq),
   simp [← ennreal.coe_rpow_of_nonneg, le_of_lt (hpq.pos), le_of_lt (hpq.one_div_pos),
              le_of_lt (hpq.symm.pos), le_of_lt (hpq.symm.one_div_pos)] at this,
-  convert this using 1,
+  convert this using 1;
+  [skip, congr' 2];
+  [skip, skip, simp, skip, simp];
   { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi, -with_zero.coe_mul,
     with_top.coe_mul.symm] },
-  { congr' 2,
-    { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi, -with_zero.coe_mul,
-      with_top.coe_mul.symm] },
-    { simp },
-    { apply finset.sum_congr rfl (λ i hi, _), simp [H'.1 i hi, H'.2 i hi, -with_zero.coe_mul,
-      with_top.coe_mul.symm] },
-    { simp } }
 end
 
 /-- Minkowski inequality: the `L_p` seminorm of the sum of two vectors is less than or equal

@@ -8,6 +8,7 @@ import algebraic_geometry.sheafed_space
 import algebra.category.CommRing
 import algebraic_geometry.stalks
 import ring_theory.ideal.basic
+import data.equiv.transfer_instance
 
 universes v u
 
@@ -47,8 +48,31 @@ instance is_local_ring_hom_comp {A B C : Type*} [semiring A] [semiring B] [semir
   end }
 
 -- move this
+lemma local_ring.of_surjective {A B : Type*} [comm_ring A] [local_ring A] [comm_ring B] [nontrivial B]
+  (f : A →+* B) (hf : function.surjective f) :
+  local_ring B :=
+{ is_local :=
+  begin
+    intros b,
+    obtain ⟨a, rfl⟩ := hf b,
+    apply (local_ring.is_unit_or_is_unit_one_sub_self a).imp f.is_unit_map _,
+    rw [← f.map_one, ← f.map_sub],
+    apply f.is_unit_map,
+  end,
+  .. ‹nontrivial B› }
+
+-- move this
 lemma local_ring.of_ring_equiv {A B : Type*} [comm_ring A] [comm_ring B] (e : A ≃+* B) :
-  local_ring A ↔ local_ring B := sorry
+  local_ring A ↔ local_ring B :=
+begin
+  split,
+  { introI _inst,
+    haveI := e.symm.to_equiv.nontrivial,
+    refine @local_ring.of_surjective A B _ _ _ _ e e.to_equiv.surjective, },
+  { introI _inst,
+    haveI := e.to_equiv.nontrivial,
+    refine @local_ring.of_surjective B A _ _ _ _ e.symm e.symm.to_equiv.surjective, },
+end
 
 namespace algebraic_geometry
 

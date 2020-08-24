@@ -417,8 +417,8 @@ mul_left_mono.map_max
 lemma mul_eq_mul_left : a ≠ 0 → a ≠ ⊤ → (a * b = a * c ↔ b = c) :=
 begin
   cases a; cases b; cases c;
-  simp [none_eq_top, some_eq_coe, mul_top, top_mul, -coe_mul, coe_mul.symm,
-    nnreal.mul_eq_mul_left] {contextual := tt},
+    simp [none_eq_top, some_eq_coe, mul_top, top_mul, -coe_mul, coe_mul.symm,
+      nnreal.mul_eq_mul_left] {contextual := tt},
 end
 
 lemma mul_eq_mul_right : c ≠ 0 → c ≠ ∞ → (a * c = b * c ↔ a = b) :=

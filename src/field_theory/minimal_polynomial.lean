@@ -3,8 +3,8 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johan Commelin
 -/
-import ring_theory.integral_closure
 import data.polynomial.field_division
+import ring_theory.algebraic
 
 /-!
 # Minimal polynomials
@@ -54,6 +54,17 @@ it is the monic polynomial with smallest degree that has x as its root.-/
 lemma min {p : polynomial α} (pmonic : p.monic) (hp : polynomial.aeval x p = 0) :
   degree (minimal_polynomial hx) ≤ degree p :=
 le_of_not_lt $ well_founded.not_lt_min degree_lt_wf _ hx ⟨pmonic, hp⟩
+
+/-- If the minimal polynomial of `x` has the form `X + C x'`, then `x = - algebra_map _ _ x'`. -/
+lemma root_eq_algebra_map_of_eq_X_add_C
+  (h : minimal_polynomial hx = X + C ((minimal_polynomial hx).coeff 0)) :
+  x = - algebra_map _ _ (coeff (minimal_polynomial hx) 0) :=
+begin
+  rw [← sub_eq_zero, sub_eq_add_neg, neg_neg],
+  convert minimal_polynomial.aeval hx,
+  conv_rhs { rw h },
+  rw [aeval_def, eval₂_add, eval₂_X, eval₂_C]
+end
 
 end ring
 
@@ -144,6 +155,24 @@ assume H, degree_ne_zero hx $ degree_eq_zero_of_is_unit H
 /--The degree of a minimal polynomial is positive.-/
 lemma degree_pos : 0 < degree (minimal_polynomial hx) :=
 degree_pos_of_ne_zero_of_nonunit (ne_zero hx) (not_is_unit hx)
+
+lemma one_le_degree : 1 ≤ degree (minimal_polynomial hx) :=
+begin
+  have := degree_pos hx,
+  rw [degree_eq_nat_degree (ne_zero hx)] at ⊢ this,
+  exact with_bot.some_le_some.mpr (with_bot.some_lt_some.mp this)
+end
+
+lemma root_eq_algebra_map_of_degree_le_one (h : degree (minimal_polynomial hx) ≤ 1) :
+  x = - algebra_map _ _ (coeff (minimal_polynomial hx) 0) :=
+begin
+  have : (minimal_polynomial hx).coeff 1 = 1,
+  { convert monic hx,
+    rw nat_degree_eq_of_degree_eq_some (le_antisymm h (one_le_degree hx)) },
+  refine root_eq_algebra_map_of_eq_X_add_C _ _,
+  convert eq_X_add_C_of_degree_le_one h,
+  rw [this, C_mul', one_smul]
+end
 
 theorem unique' {p : polynomial α} (hp1 : _root_.irreducible p) (hp2 : polynomial.aeval x p = 0)
   (hp3 : p.monic) : p = minimal_polynomial hx :=

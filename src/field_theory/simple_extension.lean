@@ -269,13 +269,11 @@ le_antisymm
 
 @[simp] lemma adjoin_insert_adjoin (x : L) (s : set L) :
   algebra.adjoin K (insert x (algebra.adjoin K s : set L)) = algebra.adjoin K (insert x s) :=
-begin
-  refine le_antisymm (algebra.adjoin_le (set.insert_subset.mpr ⟨_, _⟩)) (algebra.adjoin_mono _),
-  { exact algebra.subset_adjoin (set.mem_insert _ _) },
-  { exact algebra.adjoin_mono (set.subset_insert _ _) },
-  { exact set.insert_subset_insert algebra.subset_adjoin }
-end
-
+le_antisymm
+  (algebra.adjoin_le (set.insert_subset.mpr
+    ⟨algebra.subset_adjoin (set.mem_insert _ _),
+     algebra.adjoin_mono (set.subset_insert _ _)⟩))
+  (algebra.adjoin_mono (set.insert_subset_insert algebra.subset_adjoin))
 
 /-- Induction principle for finite dimensional fields: adjoin extra elements until finished. -/
 lemma induction_on_adjoin [fd : finite_dimensional K L] {P : subalgebra K L → Prop}
@@ -402,102 +400,68 @@ end
 
 section is_separable
 
-variables [is_separable K L] [finite_dimensional K L] (x y : L)
+variables {L} [is_separable K L] [finite_dimensional K L]
+variables (M : Type*) [field M] [algebra K M] [algebra L M] [is_scalar_tower K L M]
+variables (x y : L)
+variables (splits : splits (algebra_map K M) (is_separable.minimal_polynomial K y))
 
--- TODO: good name!
-def splitting_field_x_y :=
-splitting_field
-  ((is_separable.minimal_polynomial K x * is_separable.minimal_polynomial K y).map (algebra_map K L))
+noncomputable def conjugates : finset M :=
+((is_separable.minimal_polynomial K x).map (algebra_map K M)).roots
 
-noncomputable instance : field (splitting_field_x_y K L x y) := splitting_field.field _
-
-noncomputable instance algebra_L : algebra L (splitting_field_x_y K L x y) :=
-splitting_field.algebra _
-
-noncomputable instance algebra_K : algebra K (splitting_field_x_y K L x y) :=
-ring_hom.to_algebra ((algebra_map L _).comp (algebra_map K L))
-
-instance K_L_splitting_field :
-  is_scalar_tower K L (splitting_field_x_y K L x y) :=
-is_scalar_tower.of_algebra_map_eq (λ x, rfl)
-
-lemma splitting_field_x_y_splits_left :
-  splits (algebra_map K (splitting_field_x_y K L x y)) (is_separable.minimal_polynomial K x) :=
+lemma mem_conjugates_of_eval_eq_zero (z : M)
+  (hz : eval₂ (algebra_map K M) z (is_separable.minimal_polynomial K x) = 0) :
+  z ∈ conjugates K M x :=
 begin
-  have := splitting_field.splits
-    ((is_separable.minimal_polynomial K x * is_separable.minimal_polynomial K y).map (algebra_map K L)),
-  rwa [splits_map_iff, splits_mul_iff] at this,
-  exact this.1,
-  apply minimal_polynomial.ne_zero,
-  apply minimal_polynomial.ne_zero
-end
-
-lemma splitting_field_x_y_splits_right :
-  splits (algebra_map K (splitting_field_x_y K L x y)) (is_separable.minimal_polynomial K y) :=
-begin
-  have := splitting_field.splits
-  ((is_separable.minimal_polynomial K x * is_separable.minimal_polynomial K y).map (algebra_map K L)),
-  rwa [splits_map_iff, splits_mul_iff] at this,
-  exact this.2,
-  apply minimal_polynomial.ne_zero,
-  apply minimal_polynomial.ne_zero
-end
-
-noncomputable def conjugates_x :=
-((is_separable.minimal_polynomial K x).map (algebra_map K (splitting_field_x_y K L x y))).roots
-
-lemma mem_conjugates_x_of_eval_eq_zero (z : splitting_field_x_y K L x y)
-  (hz : eval₂ (algebra_map K (splitting_field_x_y K L x y)) z (is_separable.minimal_polynomial K x) = 0) :
-  z ∈ conjugates_x K L x y :=
-begin
-  rwa [conjugates_x, mem_roots, is_root.def, eval_map],
+  rwa [conjugates, mem_roots, is_root.def, eval_map],
   exact map_ne_zero (minimal_polynomial.ne_zero _)
 end
 
-lemma x_mem_conjugates_x : (algebra_map _ _ x) ∈ conjugates_x K L x y :=
+lemma mem_conjugates_self : (algebra_map _ _ x) ∈ conjugates K M x :=
 begin
-  apply mem_conjugates_x_of_eval_eq_zero,
-  rw [is_scalar_tower.algebra_map_eq K L, ←hom_eval₂, (algebra_map L (splitting_field_x_y K L x y)).map_eq_zero],
+  apply mem_conjugates_of_eval_eq_zero,
+  rw [is_scalar_tower.algebra_map_eq K L, ←hom_eval₂, (algebra_map L M).map_eq_zero],
   apply minimal_polynomial.aeval
 end
 
-noncomputable def conjugates_y :=
-((is_separable.minimal_polynomial K y).map (algebra_map K (splitting_field_x_y K L x y))).roots
-
-lemma mem_conjugates_y_of_eval_eq_zero (z : splitting_field_x_y K L x y)
-  (hz : eval₂ (algebra_map K (splitting_field_x_y K L x y)) z (is_separable.minimal_polynomial K y) = 0) :
-  z ∈ conjugates_y K L x y :=
-begin
-  rwa [conjugates_y, mem_roots, is_root.def, eval_map],
-  exact map_ne_zero (minimal_polynomial.ne_zero _)
-end
+attribute [irreducible] conjugates
 
 noncomputable def bad_cs : finset K :=
-((conjugates_x K L x y).bind (λ x', (conjugates_y K L x y).image
+((conjugates K M x).bind (λ x', (conjugates K M y).image
   (λ y', (x' - algebra_map L _ x) / (algebra_map L _ y - y')))).preimage
   (λ x _ y _ h, (algebra_map K _).injective h)
+
+lemma zero_mem_bad_cs : (0 : K) ∈ bad_cs K M x y :=
+finset.mem_preimage.mpr (finset.mem_bind.mpr ⟨algebra_map _ _ x, mem_conjugates_self K M x,
+  finset.mem_image.mpr ⟨algebra_map _ _ y, mem_conjugates_self K M y, by simp⟩⟩)
 
 variables [infinite K]
 
 noncomputable def c : K :=
-classical.some (infinite.exists_not_mem_finset (bad_cs K L x y))
+classical.some (infinite.exists_not_mem_finset (bad_cs K M x y))
 
-lemma c_spec : c K L x y ∉ bad_cs K L x y :=
-classical.some_spec (infinite.exists_not_mem_finset (bad_cs K L x y))
+lemma c_spec : c K M x y ∉ bad_cs K M x y :=
+classical.some_spec (infinite.exists_not_mem_finset (bad_cs K M x y))
 
-lemma z_inj {x' y' : splitting_field_x_y K L x y}
-  (hx' : x' ∈ conjugates_x K L x y) (hy' : y' ∈ conjugates_y K L x y)
-  (h : x' + c K L x y • y' = algebra_map _ _ x + c K L x y • algebra_map _ _ y) :
+instance adjoin_field (x : L) : field (algebra.adjoin K ({x} : set L)) :=
+subalgebra.field_of_algebraic _ algebra.is_algebraic_of_finite
+
+lemma c_ne_zero : c K L x y ≠ 0 :=
+λ h, c_spec K L x y (by simpa [h] using zero_mem_bad_cs K L x y)
+
+lemma z_inj {x' y' : M}
+  (hx' : x' ∈ conjugates K M x) (hy' : y' ∈ conjugates K M y)
+  (h : x' + c K M x y • y' = algebra_map _ _ x + c K M x y • algebra_map _ _ y) :
   x' = algebra_map _ _ x ∧ y' = algebra_map _ _ y :=
 begin
-  have sub_eq : (x' - algebra_map _ _ x) + c K L x y • (y' - algebra_map _ _ y) = 0,
+  have sub_eq : (x' - algebra_map _ _ x) + c K M x y • (y' - algebra_map _ _ y) = 0,
   { refine trans _ (sub_eq_zero.mpr h),
     rw smul_sub,
     abel },
-  have c_spec := c_spec K L x y,
-  simp only [bad_cs, not_exists, exists_prop, not_and, finset.mem_preimage, finset.mem_bind, finset.mem_image] at c_spec,
+  have c_spec := c_spec K M x y,
+  simp only [bad_cs, not_exists, exists_prop, not_and, finset.mem_preimage,
+             finset.mem_bind, finset.mem_image] at c_spec,
   specialize c_spec x' hx' y' hy',
-  by_cases y'_eq : (algebra_map L (splitting_field_x_y K L x y)) y = y',
+  by_cases y'_eq : (algebra_map L M) y = y',
   { refine ⟨_, y'_eq.symm⟩,
     rw y'_eq at h,
     exact add_right_cancel h },
@@ -505,69 +469,80 @@ begin
   apply c_spec,
   have y'_sub_y_ne_zero := mt sub_eq_zero.mp y'_eq,
   apply div_eq_of_eq_mul y'_sub_y_ne_zero,
-  by_cases hc : c K L x y = 0,
-  { simpa [hc, y'_sub_y_ne_zero] using sub_eq },
   rw [← algebra.smul_def, ← sub_eq_zero, sub_eq_add_neg, ← smul_neg, neg_sub],
   exact sub_eq
 end
 
-lemma z_mem : x + c K L x y • y ∈ algebra.adjoin K ({x, y} : set L) :=
+lemma z_mem : x + c K M x y • y ∈ algebra.adjoin K ({x, y} : set L) :=
 subalgebra.add_mem _
   (algebra.subset_adjoin (set.mem_insert _ _))
   (subalgebra.smul_mem _ (algebra.subset_adjoin (set.subset_insert _ _ (set.mem_singleton _))) _)
 
-lemma z_mem' : x + c K L x y • y ∈ algebra.adjoin K ({x + c K L x y • y} : set L) :=
+lemma z_mem' : x + c K M x y • y ∈ algebra.adjoin K ({x + c K M x y • y} : set L) :=
 subalgebra.mem_coe.mp (algebra.subset_adjoin (set.mem_singleton _))
 
-noncomputable def f_z : polynomial (algebra.adjoin K ({x + c K L x y • y} : set L)) :=
+noncomputable def f_z : polynomial (algebra.adjoin K ({x + c K M x y • y} : set L)) :=
 ((is_separable.minimal_polynomial K x).map (algebra_map _ _)).comp
-  (C (⟨x + c K L x y • y, z_mem' K L x y⟩ : algebra.adjoin K _) - c K L x y • X)
+  (C (⟨x + c K M x y • y, z_mem' K M x y⟩ : algebra.adjoin K _) - c K M x y • X)
 
 @[simp] lemma algebra_map_mk (A : subalgebra R S) (x : S) (h : x ∈ A) : algebra_map A S ⟨x, h⟩ = x :=
 rfl
 
-lemma mem_conjugates_x_of_eval_f_z_eq_zero {y' : splitting_field_x_y K L x y}
-  (h : (f_z K L x y).eval₂ ((algebra_map _ (splitting_field_x_y K L x y)).comp (algebra_map _ L)) y' = 0) :
-  algebra_map _ _ (x + c K L x y • y) - c K L x y • y' ∈ conjugates_x K L x y :=
+lemma eval₂_f_z (f : algebra.adjoin K ({x + c K M x y • y} : set L) →+* R) (y' : R) :
+  eval₂ f y' (f_z K M x y) =
+    eval₂ (f.comp (algebra_map K _))
+      (f ⟨x + c K M x y • y, z_mem' K M x y⟩ - f (algebra_map _ _ (c K M x y)) * y')
+      (is_separable.minimal_polynomial K x) :=
 begin
-  apply mem_conjugates_x_of_eval_eq_zero,
-  rw [f_z, eval₂_comp, eval₂_map, ring_hom.comp_assoc,
-      ← is_scalar_tower.algebra_map_eq K (algebra.adjoin K {x + c K L x y • y})] at h,
+  rw [f_z, eval₂_comp, eval₂_map, eval₂_sub, eval₂_C, algebra.smul_def (c K M x y) X,
+      eval₂_mul, algebra_map_apply, eval₂_C, eval₂_X],
+end
+
+lemma aeval_f_z_y : aeval y (f_z K M x y) = 0 :=
+show eval₂ (algebra_map _ _) y (f_z K M x y) = 0,
+by { rw [eval₂_f_z, algebra_map_mk, ← is_scalar_tower.algebra_map_eq, ← algebra.smul_def,
+         is_scalar_tower.algebra_map_smul, add_sub_cancel],
+     apply minimal_polynomial.aeval }
+
+lemma mem_conjugates_x_of_root_f_z {y' : M}
+  (h : (f_z K M x y).eval₂ ((algebra_map _ M).comp (algebra_map _ L)) y' = 0) :
+  algebra_map _ _ (x + c K M x y • y) - c K M x y • y' ∈ conjugates K M x :=
+begin
+  apply mem_conjugates_of_eval_eq_zero,
+  rw eval₂_f_z at h,
   convert h,
-  rw [eval₂_sub, eval₂_C, algebra.smul_def _ X, eval₂_mul, polynomial.algebra_map_apply, eval₂_C,
-      eval₂_X, ring_hom.comp_apply, ring_hom.comp_apply, algebra_map_mk,
-      ← is_scalar_tower.algebra_map_apply K, ← is_scalar_tower.algebra_map_apply K,
-      ← algebra.smul_def],
+  { rw [ring_hom.comp_assoc, is_scalar_tower.algebra_map_eq K L M,
+        is_scalar_tower.algebra_map_eq K (algebra.adjoin K ({x + c K M x y • y} : set L)) L] },
+  { refine trans (algebra.smul_def _ _) _,
+    rw [← ring_hom.comp_apply, ring_hom.comp_assoc, is_scalar_tower.algebra_map_eq K L M,
+        is_scalar_tower.algebra_map_eq K (algebra.adjoin K ({x + c K M x y • y} : set L)) L] },
 end
 
-noncomputable def g_z : polynomial (algebra.adjoin K ({x + c K L x y • y} : set L)) :=
-(is_separable.minimal_polynomial K y).map (algebra_map K (algebra.adjoin K {x + c K L x y • y}))
+noncomputable def g_z : polynomial (algebra.adjoin K ({x + c K M x y • y} : set L)) :=
+(is_separable.minimal_polynomial K y).map (algebra_map K (algebra.adjoin K {x + c K M x y • y}))
 
-lemma mem_conjugates_y_of_eval_g_z_eq_zero {y' : splitting_field_x_y K L x y}
-  (h : (g_z K L x y).eval₂ ((algebra_map _ (splitting_field_x_y K L x y)).comp (algebra_map _ L)) y' = 0) :
-  y' ∈ conjugates_y K L x y :=
+lemma mem_conjugates_y_of_root_g_z {y' : M}
+  (h : (g_z K M x y).eval₂ ((algebra_map _ M).comp (algebra_map _ L)) y' = 0) :
+  y' ∈ conjugates K M y :=
 begin
-  apply mem_conjugates_y_of_eval_eq_zero,
-  rwa [g_z, eval₂_map] at h
+  apply mem_conjugates_of_eval_eq_zero,
+  rw [g_z, eval₂_map] at h,
+  convert h,
+  rw [ring_hom.comp_assoc, is_scalar_tower.algebra_map_eq K L M,
+      is_scalar_tower.algebra_map_eq K (algebra.adjoin K ({x + c K M x y • y} : set L)) L],
 end
 
-lemma eq_y_of_root_f_z_of_root_g_z {y' : (splitting_field_x_y K L x y)}
-  (hf : (f_z K L x y).eval₂ ((algebra_map _ (splitting_field_x_y K L x y)).comp (algebra_map _ L)) y' = 0)
-  (hg : (g_z K L x y).eval₂ ((algebra_map _ (splitting_field_x_y K L x y)).comp (algebra_map _ L)) y' = 0) :
-  y' = algebra_map L (splitting_field_x_y K L x y) y :=
+lemma eq_y_of_root_f_z_of_root_g_z {y' : M}
+  (hf : (f_z K M x y).eval₂ ((algebra_map _ M).comp (algebra_map _ L)) y' = 0)
+  (hg : (g_z K M x y).eval₂ ((algebra_map _ M).comp (algebra_map _ L)) y' = 0) :
+  y' = algebra_map L M y :=
 begin
-  have mem_x := mem_conjugates_x_of_eval_f_z_eq_zero K L x y hf,
-  have mem_y := mem_conjugates_y_of_eval_g_z_eq_zero K L x y hg,
-  refine (z_inj K L x y mem_x mem_y _).2,
+  have mem_x := mem_conjugates_x_of_root_f_z _ _ _ _ hf,
+  have mem_y := mem_conjugates_y_of_root_g_z _ _ _ _ hg,
+  refine (z_inj K M x y mem_x mem_y _).2,
   rw [sub_add_cancel, algebra.smul_def, ring_hom.map_add, algebra.smul_def, ring_hom.map_mul,
-  ← is_scalar_tower.algebra_map_apply]
+      ← is_scalar_tower.algebra_map_apply]
 end
-
-instance adjoin_field : field ↥(algebra.adjoin K ({x} : set L) : subalgebra K L) :=
-{ inv := _,
-  inv_zero := _,
-  mul_inv_cancel := _,
-  ..subring.domain ↑(algebra.adjoin K ({x} : set L) : subalgebra K L) }
 
 instance right_is_separable_of_is_scalar_tower (F : Type*) [field F] [algebra K F] [algebra F L]
   [is_scalar_tower K F L] [is_separable K L] : is_separable F L :=
@@ -580,25 +555,95 @@ begin
     (minimal_polynomial.dvd_minimal_polynomial_map (is_separable.is_integral K x) Hx)
 end
 
-lemma minpoly_y_splits [is_separable K L] :
-  (is_separable.minimal_polynomial (algebra.adjoin K ({x + c K L x y • y} : set L)) y).splits
-    ((algebra_map L (splitting_field_x_y K L x y)).comp
-      (algebra_map (algebra.adjoin K ({x + c K L x y • y} : set L)) L)) :=
+variables [is_separable K L]
+
+noncomputable def minpoly_y :=
+is_separable.minimal_polynomial (algebra.adjoin K ({x + c K M x y • y} : set L)) y
+
+lemma minpoly_y_dvd_f_z :
+  minpoly_y K M x y ∣ f_z K M x y :=
+minimal_polynomial.dvd _ (aeval_f_z_y K M x y)
+
+lemma minpoly_y_dvd_g_z :
+  minpoly_y K M x y ∣ g_z K M x y :=
+minimal_polynomial.dvd_minimal_polynomial_map (is_separable.is_integral K y) _
+
+include splits
+lemma minpoly_y_splits :
+  (minpoly_y K M x y).splits
+    ((algebra_map L M).comp
+      (algebra_map (algebra.adjoin K ({x + c K M x y • y} : set L)) L)) :=
 splits_of_splits_of_dvd _
   (map_ne_zero (minimal_polynomial.ne_zero _))
-  ((splits_map_iff _ _).mpr (by { rw [ring_hom.comp_assoc, ← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq], exact splitting_field_x_y_splits_right K L x y }))
-  (minimal_polynomial.dvd_minimal_polynomial_map (is_separable.is_integral K y) _)
+  ((splits_map_iff _ _).mpr (by { rw [ring_hom.comp_assoc, ← is_scalar_tower.algebra_map_eq,
+                                      ← is_scalar_tower.algebra_map_eq],
+                                  exact splits }))
+  (minpoly_y_dvd_g_z K M x y)
+omit splits
 
-local attribute [irreducible] splitting_field_x_y
 
-lemma degree_minpoly_y [is_separable K L] :
-  degree (is_separable.minimal_polynomial (algebra.adjoin K ({x + c K L x y • y} : set L)) y) ≤ 1 :=
+lemma eval₂_eq_zero_of_dvd_of_eval₂_eq_zero {f : R →+* S} {p q : polynomial R} {x : S}
+  (hpq : p ∣ q) (hxp : eval₂ f x p = 0) : eval₂ f x q = 0 :=
 begin
-  have : (is_separable.minimal_polynomial _ y).degree = (roots _).card := degree_separable_eq_card_roots (minimal_polynomial.ne_zero _) (is_separable.minimal_polynomial_separable _ _) (minpoly_y_splits K L x y),
-  rw [this, roots_map],
+  rcases hpq with ⟨q, rfl⟩,
+  rw [eval₂_mul, hxp, zero_mul]
 end
 
-/-
+lemma roots_minpoly_y :
+  roots ((minpoly_y K M x y).map ((algebra_map L M).comp
+      (algebra_map (algebra.adjoin K ({x + c K M x y • y} : set L)) L)))
+    ≤ ({algebra_map L M y} : finset M) :=
+begin
+  intros y' hy',
+  rw [mem_roots, is_root.def, eval_map] at hy',
+  refine finset.mem_singleton.mpr (eq_y_of_root_f_z_of_root_g_z K M x y _ _),
+  { exact eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _ (minpoly_y_dvd_f_z K M _ _) hy' },
+  { exact eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _ (minpoly_y_dvd_g_z K M _ _) hy' },
+  { exact map_ne_zero (minimal_polynomial.ne_zero _) },
+end
+
+include M splits
+lemma nat_degree_minpoly_y [is_separable K L] :
+  nat_degree (minpoly_y K M x y) ≤ 1 :=
+begin
+  erw [nat_degree_separable_eq_card_roots (is_separable.minimal_polynomial_separable _ _) (minpoly_y_splits K M x y splits),
+      ← finset.card_singleton _],
+  exact finset.card_le_of_subset (roots_minpoly_y K M x y),
+end
+
+lemma degree_minpoly_y [is_separable K L] :
+  degree (minpoly_y K M x y) ≤ 1 :=
+begin
+  erw degree_eq_nat_degree (minimal_polynomial.ne_zero _),
+  apply with_bot.some_le_some.mpr,
+  exact nat_degree_minpoly_y K M x y splits
+end
+omit M splits
+
+-- TODO: good name!
+def splitting_field :=
+splitting_field ((is_separable.minimal_polynomial K y).map (algebra_map K L))
+
+noncomputable instance : field (splitting_field K y) := splitting_field.field _
+
+noncomputable instance algebra_L : algebra L (splitting_field K y) :=
+splitting_field.algebra _
+
+noncomputable instance algebra_K : algebra K (splitting_field K y) :=
+ring_hom.to_algebra ((algebra_map L _).comp (algebra_map K L))
+
+instance K_L_splitting_field :
+  is_scalar_tower K L (splitting_field K y) :=
+is_scalar_tower.of_algebra_map_eq (λ x, rfl)
+
+lemma splitting_field_splits :
+  (is_separable.minimal_polynomial K y).splits (algebra_map K (splitting_field K y)) :=
+begin
+  have := splitting_field.splits
+    ((is_separable.minimal_polynomial K y).map (algebra_map K L)),
+  rwa splits_map_iff at this,
+end
+
 /-- The primitive element theorem: if `L / K` is a separable finite extension,
 it is a simple extension. -/
 instance is_simple_of_is_separable [is_separable K L] [finite_dimensional K L] :
@@ -613,20 +658,23 @@ begin
   intros x hx y,
   rw is_simple_subalgebra_iff,
 
-  have : degree (is_separable.minimal_polynomial (algebra.adjoin K {x + c K L x y • y}) y) ≤ 1,
-  { rw degree_separable_eq_card_roots _ _ _,
-    sorry },
+  use x + c K (splitting_field K y) x y • y,
+  use z_mem K _ x y,
 
-  have x_mem : x ∈ algebra.adjoin K {x + c K L x y • y},
-  { sorry },
-  have y_mem : y ∈ algebra.adjoin K {x + c K L x y • y},
-  { sorry },
-  exact ⟨x + c K L x y • y, z_mem, le_antisymm
-    (algebra.adjoin_le (set.singleton_subset_iff.mpr z_mem))
+  have y_mem : y ∈ algebra.adjoin K {x + c K (splitting_field K y) x y • y},
+  { have := degree_minpoly_y K _ x y (splitting_field_splits K y),
+    conv_lhs { rw minimal_polynomial.root_eq_algebra_map_of_degree_le_one _ this },
+    apply subalgebra.neg_mem,
+    exact ((minpoly_y K _ x y).coeff 0).2 },
+  have x_mem : x ∈ algebra.adjoin K {x + c K (splitting_field K y) x y • y},
+  { rw [← subalgebra.mem_to_submodule, ← submodule.add_mem_iff_left _ (submodule.smul_mem _ _ _)],
+    { exact z_mem' K _ x y },
+    { exact y_mem } },
+  exact le_antisymm
+    (algebra.adjoin_le (set.singleton_subset_iff.mpr (z_mem K _ x y)))
     (algebra.adjoin_le (set.insert_subset.mpr
-      ⟨subalgebra.mem_coe.mpr x_mem, set.singleton_subset_iff.mpr (subalgebra.mem_coe.mpr y_mem)⟩))⟩
+      ⟨subalgebra.mem_coe.mpr x_mem, set.singleton_subset_iff.mpr (subalgebra.mem_coe.mpr y_mem)⟩))
 end
--/
 
 end is_separable
 

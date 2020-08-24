@@ -138,6 +138,10 @@ alg_hom.ext_iff.1 (aeval_alg_hom f x) p
 @[simp] lemma coe_aeval_eq_eval (r : R) :
   (aeval r : polynomial R → R) = eval r := rfl
 
+lemma aeval_subalgebra_coe {S : subalgebra R A} {x : S} (p : polynomial R) :
+  aeval (x : A) p = aeval x p :=
+aeval_alg_hom_apply S.val _ _
+
 lemma coeff_zero_eq_aeval_zero (p : polynomial R) : p.coeff 0 = aeval 0 p :=
 by simp [coeff_zero_eq_eval_zero]
 

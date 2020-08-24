@@ -195,7 +195,6 @@ calc
   ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
   ... < ∥g∥ + r : by { apply add_lt_add_left, rw ← dist_eq_norm, exact H }
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
 metric.tendsto_nhds.trans $ by simp only [dist_zero_right]
@@ -287,7 +286,7 @@ lemma antilipschitz_with.add_lipschitz_with {α : Type*} [metric_space α] {Kf :
 begin
   refine antilipschitz_with.of_le_mul_dist (λ x y, _),
   rw [nnreal.coe_inv, ← div_eq_inv_mul],
-  apply le_div_of_mul_le (nnreal.coe_pos.2 $ nnreal.sub_pos.2 hK),
+  rw le_div_iff (nnreal.coe_pos.2 $ nnreal.sub_pos.2 hK),
   rw [mul_comm, nnreal.coe_sub (le_of_lt hK), sub_mul],
   calc ↑Kf⁻¹ * dist x y - Kg * dist x y ≤ dist (f x) (f y) - dist (g x) (g y) :
     sub_le_sub (hf.mul_le_dist x y) (hg.dist_le_mul x y)
@@ -456,7 +455,7 @@ begin
 end
 
 lemma units.norm_pos {α : Type*} [normed_ring α] [nontrivial α] (x : units α) : 0 < ∥(x:α)∥ :=
-norm_pos_iff.mpr (units.coe_ne_zero x)
+norm_pos_iff.mpr (units.ne_zero x)
 
 /-- In a normed ring, the left-multiplication `add_monoid_hom` is bounded. -/
 lemma mul_left_bound {α : Type*} [normed_ring α] (x : α) :
@@ -611,7 +610,7 @@ by rwa norm_fpow⟩
 
 @[instance]
 lemma punctured_nhds_ne_bot {α : Type*} [nondiscrete_normed_field α] (x : α) :
-  ne_bot (nhds_within x {x}ᶜ) :=
+  ne_bot (𝓝[{x}ᶜ] x) :=
 begin
   rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
   rintros ε ε0,
@@ -622,7 +621,7 @@ end
 
 @[instance]
 lemma nhds_within_is_unit_ne_bot {α : Type*} [nondiscrete_normed_field α] :
-  ne_bot (nhds_within (0:α) {x : α | is_unit x}) :=
+  ne_bot (𝓝[{x : α | is_unit x}] 0) :=
 by simpa only [is_unit_iff_ne_zero] using punctured_nhds_ne_bot (0:α)
 
 lemma tendsto_inv [normed_field α] {r : α} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
@@ -889,7 +888,7 @@ up in applications. -/
 lemma rescale_to_shell {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E} (hx : x ≠ 0) :
   ∃d:α, d ≠ 0 ∧ ∥d • x∥ ≤ ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
 begin
-  have xεpos : 0 < ∥x∥/ε := div_pos_of_pos_of_pos (norm_pos_iff.2 hx) εpos,
+  have xεpos : 0 < ∥x∥/ε := div_pos (norm_pos_iff.2 hx) εpos,
   rcases exists_int_pow_near xεpos hc with ⟨n, hn⟩,
   have cpos : 0 < ∥c∥ := lt_trans (zero_lt_one : (0 :ℝ) < 1) hc,
   have cnpos : 0 < ∥c^(n+1)∥ := by { rw norm_fpow, exact lt_trans xεpos hn.2 },
@@ -984,18 +983,29 @@ end normed_algebra
 section restrict_scalars
 
 variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-{E : Type*} [normed_group E] [normed_space 𝕜' E]
+(E : Type*) [normed_group E] [normed_space 𝕜' E]
 
 /-- `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
-normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred. -/
--- We could add a type synonym equipped with this as an instance,
--- as we've done for `module.restrict_scalars`.
-def normed_space.restrict_scalars : normed_space 𝕜 E :=
+normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred.
+
+The type synonym `semimodule.restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
+-/
+def normed_space.restrict_scalars' : normed_space 𝕜 E :=
 { norm_smul_le := λc x, le_of_eq $ begin
     change ∥(algebra_map 𝕜 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
     simp [norm_smul]
   end,
-  ..module.restrict_scalars' 𝕜 𝕜' E }
+  ..semimodule.restrict_scalars' 𝕜 𝕜' E }
+
+instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : normed_group E] :
+  normed_group (semimodule.restrict_scalars 𝕜 𝕜' E) := I
+
+instance semimodule.restrict_scalars.normed_space_orig {𝕜 : Type*} {𝕜' : Type*} {E : Type*}
+  [normed_field 𝕜'] [normed_group E] [I : normed_space 𝕜' E] :
+  normed_space 𝕜' (semimodule.restrict_scalars 𝕜 𝕜' E) := I
+
+instance : normed_space 𝕜 (semimodule.restrict_scalars 𝕜 𝕜' E) :=
+(normed_space.restrict_scalars' 𝕜 𝕜' E : normed_space 𝕜 E)
 
 end restrict_scalars
 
@@ -1019,7 +1029,6 @@ lemma has_sum_of_bounded_monoid_hom_of_summable
   has_sum (λ (b:ι), φ (f b)) (φ (∑'b, f b)) :=
 has_sum_of_bounded_monoid_hom_of_has_sum hf.has_sum C hφ
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → α} :
   cauchy_seq (λ s : finset ι, ∑ i in s, f i) ↔ ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
 begin
@@ -1033,7 +1042,6 @@ begin
     exact ht u hu }
 end
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma summable_iff_vanishing_norm [complete_space α] {f : ι → α} :
   summable f ↔ ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
 by rw [summable_iff_cauchy_seq_finset, cauchy_seq_finset_iff_vanishing_norm]

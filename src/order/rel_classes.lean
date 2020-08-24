@@ -50,48 +50,34 @@ protected theorem is_asymm.is_irrefl [is_asymm α r] : is_irrefl α r :=
 
 /- Convert algebraic structure style to explicit relation style typeclasses -/
 instance [preorder α] : is_refl α (≤) := ⟨le_refl⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_refl α (≥) := is_refl.swap _
 instance [preorder α] : is_trans α (≤) := ⟨@le_trans _ _⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_trans α (≥) := is_trans.swap _
 instance [preorder α] : is_preorder α (≤) := {}
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_preorder α (≥) := {}
 instance [preorder α] : is_irrefl α (<) := ⟨lt_irrefl⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_irrefl α (>) := is_irrefl.swap _
 instance [preorder α] : is_trans α (<) := ⟨@lt_trans _ _⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_trans α (>) := is_trans.swap _
 instance [preorder α] : is_asymm α (<) := ⟨@lt_asymm _ _⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_asymm α (>) := is_asymm.swap _
 instance [preorder α] : is_antisymm α (<) := is_asymm.is_antisymm _
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_antisymm α (>) := is_asymm.is_antisymm _
 instance [preorder α] : is_strict_order α (<) := {}
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_strict_order α (>) := {}
 instance preorder.is_total_preorder [preorder α] [is_total α (≤)] : is_total_preorder α (≤) := {}
 instance [partial_order α] : is_antisymm α (≤) := ⟨@le_antisymm _ _⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [partial_order α] : is_antisymm α (≥) := is_antisymm.swap _
 instance [partial_order α] : is_partial_order α (≤) := {}
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [partial_order α] : is_partial_order α (≥) := {}
 instance [linear_order α] : is_total α (≤) := ⟨le_total⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [linear_order α] : is_total α (≥) := is_total.swap _
 instance linear_order.is_total_preorder [linear_order α] : is_total_preorder α (≤) :=
   by apply_instance
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [linear_order α] : is_total_preorder α (≥) := {}
 instance [linear_order α] : is_linear_order α (≤) := {}
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [linear_order α] : is_linear_order α (≥) := {}
 instance [linear_order α] : is_trichotomous α (<) := ⟨lt_trichotomy⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [linear_order α] : is_trichotomous α (>) := is_trichotomous.swap _
 
 lemma trans_trichotomous_left [is_trans α r] [is_trichotomous α r] {a b c : α} :
@@ -299,7 +285,7 @@ namespace well_founded
 with respect to `r`. -/
 theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
   (s : set α) : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
-| ⟨a, ha⟩ := (acc.rec_on (H.apply a) $ λ x _ IH, classical.not_imp_not.1 $ λ hne hx, hne $
+| ⟨a, ha⟩ := (acc.rec_on (H.apply a) $ λ x _ IH, not_imp_not.1 $ λ hne hx, hne $
   ⟨x, hx, λ y hy hyx, hne $ IH y hyx hy⟩) ha
 
 /-- A minimal element of a nonempty set in a well-founded order -/

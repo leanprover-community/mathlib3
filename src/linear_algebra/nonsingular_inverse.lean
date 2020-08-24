@@ -45,7 +45,7 @@ matrix inverse, cramer, cramer's rule, adjugate
 
 namespace matrix
 universes u v
-variables {n : Type u} [fintype n] [decidable_eq n] {α : Type v}
+variables {n : Type u} [decidable_eq n] [fintype n] {α : Type v}
 open_locale matrix big_operators
 open equiv equiv.perm finset
 
@@ -74,7 +74,7 @@ begin
   have : Π {f : n → n} {i : n} (x : n → α),
     (∏ i' : n, (update_row A i x)ᵀ (f i') i')
     = (∏ i' : n, if i' = i then x (f i') else A i' (f i')),
-  { intros, congr, ext i', rw [transpose_val, update_row_val] },
+  { intros, congr, ext i', rw [transpose_apply, update_row_apply] },
   split,
   { intros x y,
     repeat { rw [cramer_map, ←det_transpose, det] },
@@ -171,13 +171,13 @@ def adjugate (A : matrix n n α) : matrix n n α := λ i, cramer α A (λ j, if 
 lemma adjugate_def (A : matrix n n α) :
   adjugate A = λ i, cramer α A (λ j, if i = j then 1 else 0) := rfl
 
-lemma adjugate_val (A : matrix n n α) (i j : n) :
+lemma adjugate_apply (A : matrix n n α) (i j : n) :
   adjugate A i j = (A.update_row j (λ j, if i = j then 1 else 0)).det := rfl
 
 lemma adjugate_transpose (A : matrix n n α) : (adjugate A)ᵀ = adjugate (Aᵀ) :=
 begin
   ext i j,
-  rw [transpose_val, adjugate_val, adjugate_val, update_row_transpose, det_transpose],
+  rw [transpose_apply, adjugate_apply, adjugate_apply, update_row_transpose, det_transpose],
   apply finset.sum_congr rfl,
   intros σ _,
   congr' 1,
@@ -186,7 +186,7 @@ begin
   { -- Everything except `(i , j)` (= `(σ j , j)`) is given by A, and the rest is a single `1`.
     congr; ext j',
     have := (@equiv.injective _ _ σ j j' : σ j = σ j' → j = j'),
-    rw [update_row_val, update_column_val],
+    rw [update_row_apply, update_column_apply],
     finish },
   { -- Otherwise, we need to show that there is a `0` somewhere in the product.
     have : (∏ j' : n, update_column A j (λ (i' : n), ite (i = i') 1 0) (σ j') j') = 0,
@@ -201,7 +201,7 @@ begin
     exact h ((symm_apply_eq σ).mp h'.symm) }
 end
 
-lemma mul_adjugate_val (A : matrix n n α) (i j k) :
+lemma mul_adjugate_apply (A : matrix n n α) (i j k) :
   A i k * adjugate A k j = cramer α A (λ j, if k = j then A i k else 0) j :=
 begin
   erw [←smul_eq_mul, ←pi.smul_apply, ←linear_map.map_smul],
@@ -212,11 +212,11 @@ end
 lemma mul_adjugate (A : matrix n n α) : A ⬝ adjugate A = A.det • 1 :=
 begin
   ext i j,
-  rw [mul_val, smul_val, one_val, mul_boole],
+  rw [mul_apply, smul_apply, one_apply, mul_boole],
   calc
     ∑ k : n, A i k * adjugate A k j
         = ∑ k : n, cramer α A (λ j, if k = j then A i k else 0) j
-      : by {congr, ext k, apply mul_adjugate_val A i j k}
+      : by {congr, ext k, apply mul_adjugate_apply A i j k}
     ... = cramer α A (λ j, ∑ k : n, if k = j then A i k else 0) j
       : sum_cramer_apply A univ (λ (j k : n), if k = j then A i k else 0) j
     ... = cramer α A (A i) j : by { rw [cramer_apply], congr, ext,
@@ -251,7 +251,7 @@ begin
   have i_eq_j : i = j := singleton_inj.mp (by rw [←univ_eq_i, univ_eq_j]),
   have perm_eq : (univ : finset (perm n)) = {1} :=
     univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
-  simp [adjugate_val, det, univ_eq_i, perm_eq, i_eq_j]
+  simp [adjugate_apply, det, univ_eq_i, perm_eq, i_eq_j]
 end
 
 @[simp] lemma adjugate_zero (h : 1 < fintype.card n) : adjugate (0 : matrix n n α) = 0 :=
@@ -380,6 +380,32 @@ begin
   { -- is_unit A.det → is_unit A
     exact is_unit_unit (A.nonsing_inv_unit h), },
 end
+
+lemma is_unit_det_of_left_inverse (B : matrix n n α) (h : B ⬝ A = 1) : is_unit A.det :=
+⟨{ val     := A.det,
+    inv     := B.det,
+    val_inv := by rw [mul_comm, ← det_mul, h, det_one],
+    inv_val := by rw [← det_mul, h, det_one],
+}, rfl⟩
+
+lemma is_unit_det_of_right_inverse (B : matrix n n α) (h : A ⬝ B = 1) : is_unit A.det :=
+⟨{ val     := A.det,
+    inv     := B.det,
+    val_inv := by rw [← det_mul, h, det_one],
+    inv_val := by rw [mul_comm, ← det_mul, h, det_one],
+}, rfl⟩
+
+lemma nonsing_inv_left_right (B : matrix n n α) (h : A ⬝ B = 1) : B ⬝ A = 1 :=
+begin
+  have h' : is_unit B.det := B.is_unit_det_of_left_inverse A h,
+  calc B ⬝ A = (B ⬝ A) ⬝ (B ⬝ B⁻¹) : by simp only [h', matrix.mul_one, mul_nonsing_inv]
+        ... = B ⬝ ((A ⬝ B) ⬝ B⁻¹) : by simp only [matrix.mul_assoc]
+        ... = B ⬝ B⁻¹ : by simp only [h, matrix.one_mul]
+        ... = 1 : mul_nonsing_inv B h',
+end
+
+lemma nonsing_inv_right_left (B : matrix n n α) (h : B ⬝ A = 1) : A ⬝ B = 1 :=
+B.nonsing_inv_left_right A h
 
 end inv
 end matrix

@@ -99,13 +99,13 @@ adjunction.mk_of_hom_equiv
     { f := T.map f ≫ Y.a,
       h' :=
       begin
-        dsimp, simp,
+        simp,
         conv { to_rhs, rw [←category.assoc, ←(μ_ T).naturality, category.assoc], erw algebra.assoc },
         refl,
       end },
     left_inv := λ f,
     begin
-      ext1, dsimp,
+      ext1,
       simp only [free_obj_a, functor.map_comp, algebra.hom.h, category.assoc],
       erw [←category.assoc, monad.right_unit, id_comp],
     end,
@@ -217,6 +217,7 @@ adjunction.mk_of_hom_equiv
       ext1, dsimp,
       rw [functor.map_comp, ← category.assoc, coalgebra.hom.h, assoc,
           cofree_obj_a, comonad.right_counit],
+      -- See note [dsimp, simp].
       dsimp, simp
     end
     }}

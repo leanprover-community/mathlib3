@@ -111,7 +111,7 @@ by simp [separated_space, id_rel_subset.2 separated_equiv.1, subset.antisymm_iff
 theorem separated_def' {α : Type u} [uniform_space α] :
   separated_space α ↔ ∀ x y, x ≠ y → ∃ r ∈ 𝓤 α, (x, y) ∉ r :=
 separated_def.trans $ forall_congr $ λ x, forall_congr $ λ y,
-by rw ← not_imp_not; simp [classical.not_forall]
+by rw ← not_imp_not; simp [not_forall]
 
 lemma id_rel_sub_separation_relation (α : Type*) [uniform_space α] : id_rel ⊆ 𝓢 α :=
 begin

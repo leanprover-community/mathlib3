@@ -138,7 +138,7 @@ ext (by simp)
 
 -- classical -- complete_boolean_algebra
 theorem compl_Inter (s : ι → set β) : (⋂ i, s i)ᶜ = (⋃ i, (s i)ᶜ) :=
-ext (λ x, by simp [classical.not_forall])
+ext (λ x, by simp [not_forall])
 
 -- classical -- complete_boolean_algebra
 theorem Union_eq_comp_Inter_comp (s : ι → set β) : (⋃ i, s i) = (⋂ i, (s i)ᶜ)ᶜ :=
@@ -183,7 +183,7 @@ by rw [Inter_inter_distrib, Inter_const]
 -- classical
 theorem union_Inter (s : set β) (t : ι → set β) :
   s ∪ (⋂ i, t i) = ⋂ i, s ∪ t i :=
-ext $ assume x, by simp [classical.forall_or_distrib_left]
+ext $ assume x, by simp [forall_or_distrib_left]
 
 theorem Union_diff (s : set β) (t : ι → set β) :
   (⋃ i, t i) \ s = ⋃ i, t i \ s :=
@@ -353,7 +353,7 @@ ext (λ x, by simp)
 
 -- classical -- complete_boolean_algebra
 theorem compl_bInter (s : set α) (t : α → set β) : (⋂ i ∈ s, t i)ᶜ = (⋃ i ∈ s, (t i)ᶜ) :=
-ext (λ x, by simp [classical.not_forall])
+ext (λ x, by simp [not_forall])
 
 theorem inter_bUnion (s : set α) (t : α → set β) (u : set β) :
   u ∩ (⋃ i ∈ s, t i) = ⋃ i ∈ s, u ∩ t i :=
@@ -551,11 +551,11 @@ instance : complete_boolean_algebra (set α) :=
   .. set.boolean_algebra, .. set.lattice_set }
 
 lemma sInter_union_sInter {S T : set (set α)} :
-  (⋂₀S) ∪ (⋂₀T) = (⋂p ∈ set.prod S T, (p : (set α) × (set α)).1 ∪ p.2) :=
+  (⋂₀S) ∪ (⋂₀T) = (⋂p ∈ S.prod T, (p : (set α) × (set α)).1 ∪ p.2) :=
 Inf_sup_Inf
 
 lemma sUnion_inter_sUnion {s t : set (set α)} :
-  (⋃₀s) ∩ (⋃₀t) = (⋃p ∈ set.prod s t, (p : (set α) × (set α )).1 ∩ p.2) :=
+  (⋃₀s) ∩ (⋃₀t) = (⋃p ∈ s.prod t, (p : (set α) × (set α )).1 ∩ p.2) :=
 Sup_inf_Sup
 
 /-- If `S` is a set of sets, and each `s ∈ S` can be represented as an intersection
@@ -940,7 +940,7 @@ lemma image_seq {f : β → γ} {s : set (α → β)} {t : set α} :
   f '' seq s t = seq ((∘) f '' s) t :=
 by rw [← singleton_seq, ← singleton_seq, seq_seq, image_singleton]
 
-lemma prod_eq_seq {s : set α} {t : set β} : set.prod s t = (prod.mk '' s).seq t :=
+lemma prod_eq_seq {s : set α} {t : set β} : s.prod t = (prod.mk '' s).seq t :=
 begin
   ext ⟨a, b⟩,
   split,
@@ -950,12 +950,12 @@ end
 
 lemma prod_image_seq_comm (s : set α) (t : set β) :
   (prod.mk '' s).seq t = seq ((λb a, (a, b)) '' t) s :=
-by rw [← prod_eq_seq, ← image_swap_prod, prod_eq_seq, image_seq, ← image_comp]
+by rw [← prod_eq_seq, ← image_swap_prod, prod_eq_seq, image_seq, ← image_comp, prod.swap]
 
 end seq
 
 theorem monotone_prod [preorder α] {f : α → set β} {g : α → set γ}
-  (hf : monotone f) (hg : monotone g) : monotone (λx, set.prod (f x) (g x)) :=
+  (hf : monotone f) (hg : monotone g) : monotone (λx, (f x).prod (g x)) :=
 assume a b h, prod_mono (hf h) (hg h)
 
 instance : monad set :=
@@ -1010,7 +1010,7 @@ theorem disjoint_iff_inter_eq_empty {s t : set α} : disjoint s t ↔ s ∩ t = 
 disjoint_iff
 
 lemma not_disjoint_iff {s t : set α} : ¬disjoint s t ↔ ∃x, x ∈ s ∧ x ∈ t :=
-classical.not_forall.trans $ exists_congr $ λ x, classical.not_not
+not_forall.trans $ exists_congr $ λ x, not_not
 
 lemma disjoint_left {s t : set α} : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
 show (∀ x, ¬(x ∈ s ∩ t)) ↔ _, from ⟨λ h a, not_and.1 $ h a, λ h a, not_and.2 $ h a⟩
@@ -1086,7 +1086,7 @@ end
 /- warning: classical -/
 lemma pairwise_disjoint.elim {s : set (set α)} (h : pairwise_disjoint s) {x y : set α}
   (hx : x ∈ s) (hy : y ∈ s) (z : α) (hzx : z ∈ x) (hzy : z ∈ y) : x = y :=
-classical.not_not.1 $ λ h', h x hx y hy h' ⟨hzx, hzy⟩
+not_not.1 $ λ h', h x hx y hy h' ⟨hzx, hzy⟩
 
 end set
 

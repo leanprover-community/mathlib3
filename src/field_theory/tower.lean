@@ -14,7 +14,8 @@ In this file we prove the tower law for arbitrary extensions and finite extensio
 Suppose `L` is a field extension of `K` and `K` is a field extension of `F`.
 Then `[L:F] = [L:K] [K:F]` where `[E₁:E₂]` means the `E₂`-dimension of `E₁`.
 
-In fact we generalize it to algebras, where `L` is not necessarily a field, but just a `K`-algebra.
+In fact we generalize it to vector spaces, where `L` is not necessarily a field,
+but just a vector space over `K`.
 
 ## Implementation notes
 
@@ -36,10 +37,10 @@ section field
 open cardinal
 
 variables (F : Type u) (K : Type v) (A : Type w)
-variables [field F] [field K] [ring A]
-variables [algebra F K] [algebra K A] [algebra F A] [is_algebra_tower F K A]
+variables [field F] [field K] [add_comm_group A]
+variables [algebra F K] [vector_space K A] [vector_space F A] [is_scalar_tower F K A]
 
-/-- Tower law: if `A` is a `K`-algebra and `K` is a field extension of `F` then
+/-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
 theorem dim_mul_dim' :
   (cardinal.lift.{v w} (vector_space.dim F K) *
@@ -51,10 +52,10 @@ by rw [← (vector_space.dim F K).lift_id, ← hb.mk_eq_dim,
     ← lift_umax.{w v}, ← (hb.smul hc).mk_eq_dim, mk_prod, lift_mul,
     lift_lift, lift_lift, lift_lift, lift_lift, lift_umax]
 
-/-- Tower law: if `A` is a `K`-algebra and `K` is a field extension of `F` then
+/-- Tower law: if `A` is a `K`-vector space and `K` is a field extension of `F` then
 `dim_F(A) = dim_F(K) * dim_K(A)`. -/
-theorem dim_mul_dim (F : Type u) (K A : Type v) [field F] [field K] [ring A]
-  [algebra F K] [algebra K A] [algebra F A] [is_algebra_tower F K A] :
+theorem dim_mul_dim (F : Type u) (K A : Type v) [field F] [field K] [add_comm_group A]
+  [algebra F K] [vector_space K A] [vector_space F A] [is_scalar_tower F K A] :
   vector_space.dim F K * vector_space.dim K A = vector_space.dim F A :=
 by convert dim_mul_dim' F K A; rw lift_id
 

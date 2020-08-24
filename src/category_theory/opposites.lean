@@ -95,63 +95,53 @@ variables {D : Type u₂} [category.{v₂} D]
 
 variables {C D}
 
+@[simps]
 protected definition op (F : C ⥤ D) : Cᵒᵖ ⥤ Dᵒᵖ :=
 { obj := λ X, op (F.obj (unop X)),
   map := λ X Y f, (F.map f.unop).op }
 
-@[simp] lemma op_obj (F : C ⥤ D) (X : Cᵒᵖ) : (F.op).obj X = op (F.obj (unop X)) := rfl
-@[simp] lemma op_map (F : C ⥤ D) {X Y : Cᵒᵖ} (f : X ⟶ Y) : (F.op).map f = (F.map f.unop).op := rfl
-
+@[simps]
 protected definition unop (F : Cᵒᵖ ⥤ Dᵒᵖ) : C ⥤ D :=
 { obj := λ X, unop (F.obj (op X)),
   map := λ X Y f, (F.map f.op).unop }
 
-@[simp] lemma unop_obj (F : Cᵒᵖ ⥤ Dᵒᵖ) (X : C) : (F.unop).obj X = unop (F.obj (op X)) := rfl
-@[simp] lemma unop_map (F : Cᵒᵖ ⥤ Dᵒᵖ) {X Y : C} (f : X ⟶ Y) : (F.unop).map f = (F.map f.op).unop := rfl
+/-- The isomorphism between `F.op.unop` and `F`. -/
+def op_unop_iso (F : C ⥤ D) : F.op.unop ≅ F :=
+nat_iso.of_components (λ X, iso.refl _) (by tidy)
+
+/-- The isomorphism between `F.unop.op` and `F`. -/
+def unop_op_iso (F : Cᵒᵖ ⥤ Dᵒᵖ) : F.unop.op ≅ F :=
+nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
 variables (C D)
 
+@[simps]
 definition op_hom : (C ⥤ D)ᵒᵖ ⥤ (Cᵒᵖ ⥤ Dᵒᵖ) :=
 { obj := λ F, (unop F).op,
   map := λ F G α,
   { app := λ X, (α.unop.app (unop X)).op,
-    naturality' := λ X Y f, has_hom.hom.unop_inj $ eq.symm (α.unop.naturality f.unop) } }
+    naturality' := λ X Y f, has_hom.hom.unop_inj (α.unop.naturality f.unop).symm } }
 
-@[simp] lemma op_hom.obj (F : (C ⥤ D)ᵒᵖ) : (op_hom C D).obj F = (unop F).op := rfl
-@[simp] lemma op_hom.map_app {F G : (C ⥤ D)ᵒᵖ} (α : F ⟶ G) (X : Cᵒᵖ) :
-  ((op_hom C D).map α).app X = (α.unop.app (unop X)).op := rfl
-
+@[simps]
 definition op_inv : (Cᵒᵖ ⥤ Dᵒᵖ) ⥤ (C ⥤ D)ᵒᵖ :=
 { obj := λ F, op F.unop,
   map := λ F G α, has_hom.hom.op
   { app := λ X, (α.app (op X)).unop,
-    naturality' := λ X Y f, has_hom.hom.op_inj $ eq.symm (α.naturality f.op) } }
-
-@[simp] lemma op_inv.obj (F : Cᵒᵖ ⥤ Dᵒᵖ) : (op_inv C D).obj F = op F.unop := rfl
-@[simp] lemma op_inv.map_app {F G : Cᵒᵖ ⥤ Dᵒᵖ} (α : F ⟶ G) (X : C) :
-  (((op_inv C D).map α).unop).app X = (α.app (op X)).unop := rfl
+    naturality' := λ X Y f, has_hom.hom.op_inj $ (α.naturality f.op).symm } }
 
 -- TODO show these form an equivalence
 
 variables {C D}
 
+@[simps]
 protected definition left_op (F : C ⥤ Dᵒᵖ) : Cᵒᵖ ⥤ D :=
 { obj := λ X, unop (F.obj (unop X)),
   map := λ X Y f, (F.map f.unop).unop }
 
-@[simp] lemma left_op_obj (F : C ⥤ Dᵒᵖ) (X : Cᵒᵖ) : (F.left_op).obj X = unop (F.obj (unop X)) := rfl
-@[simp] lemma left_op_map (F : C ⥤ Dᵒᵖ) {X Y : Cᵒᵖ} (f : X ⟶ Y) :
-  (F.left_op).map f = (F.map f.unop).unop :=
-rfl
-
+@[simps]
 protected definition right_op (F : Cᵒᵖ ⥤ D) : C ⥤ Dᵒᵖ :=
 { obj := λ X, op (F.obj (op X)),
   map := λ X Y f, (F.map f.op).op }
-
-@[simp] lemma right_op_obj (F : Cᵒᵖ ⥤ D) (X : C) : (F.right_op).obj X = op (F.obj (op X)) := rfl
-@[simp] lemma right_op_map (F : Cᵒᵖ ⥤ D) {X Y : C} (f : X ⟶ Y) :
-  (F.right_op).map f = (F.map f.op).op :=
-rfl
 
 -- TODO show these form an equivalence
 
@@ -277,5 +267,35 @@ protected definition unop (α : F.op ≅ G.op) : G ≅ F :=
 @[simp] lemma unop_inv (α : F.op ≅ G.op) : (nat_iso.unop α).inv = nat_trans.unop α.inv := rfl
 
 end nat_iso
+
+
+/-- The equivalence between arrows of the form `A ⟶ B` and `B.unop ⟶ A.unop`. Useful for building
+adjunctions.
+Note that this (definitionally) gives variants
+```
+def op_equiv' (A : C) (B : Cᵒᵖ) : (opposite.op A ⟶ B) ≃ (B.unop ⟶ A) :=
+op_equiv _ _
+
+def op_equiv'' (A : Cᵒᵖ) (B : C) : (A ⟶ opposite.op B) ≃ (B ⟶ A.unop) :=
+op_equiv _ _
+
+def op_equiv''' (A B : C) : (opposite.op A ⟶ opposite.op B) ≃ (B ⟶ A) :=
+op_equiv _ _
+```
+-/
+def op_equiv (A B : Cᵒᵖ) : (A ⟶ B) ≃ (B.unop ⟶ A.unop) :=
+{ to_fun := λ f, f.unop,
+  inv_fun := λ g, g.op,
+  left_inv := λ _, rfl,
+  right_inv := λ _, rfl }
+
+-- These two are made by hand rather than by simps because simps generates
+-- `(op_equiv _ _).to_fun f = ...` rather than the coercion version.
+@[simp]
+lemma op_equiv_apply (A B : Cᵒᵖ) (f : A ⟶ B) : op_equiv _ _ f = f.unop :=
+rfl
+@[simp]
+lemma op_equiv_symm_apply (A B : Cᵒᵖ) (f : B.unop ⟶ A.unop) : (op_equiv _ _).symm f = f.op :=
+rfl
 
 end category_theory

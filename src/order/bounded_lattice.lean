@@ -295,7 +295,7 @@ instance bounded_distrib_lattice_Prop : bounded_distrib_lattice Prop :=
   inf_le_left  := @and.left,
   inf_le_right := @and.right,
   le_inf       := assume a b c Hab Hac Ha, and.intro (Hab Ha) (Hac Ha),
-  le_sup_inf   := assume a b c H, classical.or_iff_not_imp_left.2 $
+  le_sup_inf   := assume a b c H, or_iff_not_imp_left.2 $
     λ Ha, ⟨H.1.resolve_left Ha, H.2.resolve_left Ha⟩,
 
   top          := true,
@@ -916,7 +916,7 @@ eq_bot_iff.symm
 theorem disjoint.comm {a b : α} : disjoint a b ↔ disjoint b a :=
 by rw [disjoint, disjoint, inf_comm]
 
-@[symm] theorem disjoint.symm {a b : α} : disjoint a b → disjoint b a :=
+@[symm] theorem disjoint.symm ⦃a b : α⦄ : disjoint a b → disjoint b a :=
 disjoint.comm.1
 
 @[simp] theorem disjoint_bot_left {a : α} : disjoint ⊥ a := disjoint_iff.2 bot_inf_eq

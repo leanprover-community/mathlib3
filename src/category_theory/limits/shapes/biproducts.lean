@@ -123,7 +123,7 @@ attribute [instance, priority 100] has_biproducts_of_shape.has_biproduct
 /-- `has_finite_biproducts C` represents a choice of biproduct for every family of objects in `C`
 indexed by a finite type with decidable equality. -/
 class has_finite_biproducts :=
-(has_biproducts_of_shape : Π (J : Type v) [fintype J] [decidable_eq J],
+(has_biproducts_of_shape : Π (J : Type v) [decidable_eq J] [fintype J],
   has_biproducts_of_shape J C)
 
 attribute [instance, priority 100] has_finite_biproducts.has_biproducts_of_shape
@@ -131,12 +131,12 @@ attribute [instance, priority 100] has_finite_biproducts.has_biproducts_of_shape
 @[priority 100]
 instance has_finite_products_of_has_finite_biproducts [has_finite_biproducts C] :
   has_finite_products C :=
-⟨λ J _ _, ⟨λ F, by exactI has_limit_of_iso discrete.nat_iso_functor.symm⟩⟩
+λ J _ _, ⟨λ F, by exactI has_limit_of_iso discrete.nat_iso_functor.symm⟩
 
 @[priority 100]
 instance has_finite_coproducts_of_has_finite_biproducts [has_finite_biproducts C] :
   has_finite_coproducts C :=
-⟨λ J _ _, ⟨λ F, by exactI has_colimit_of_iso discrete.nat_iso_functor⟩⟩
+λ J _ _, ⟨λ F, by exactI has_colimit_of_iso discrete.nat_iso_functor⟩
 
 variables {J C}
 
@@ -422,23 +422,13 @@ instance has_binary_biproduct.has_colimit_pair [has_binary_biproduct P Q] :
   is_colimit := has_binary_biproduct.is_colimit, }
 
 @[priority 100]
-instance has_limits_of_shape_walking_pair [has_binary_biproducts C] :
-  has_limits_of_shape (discrete walking_pair) C :=
-{ has_limit := λ F, has_limit_of_iso (diagram_iso_pair F).symm }
-@[priority 100]
-instance has_colimits_of_shape_walking_pair [has_binary_biproducts C] :
-  has_colimits_of_shape (discrete walking_pair) C :=
-{ has_colimit := λ F, has_colimit_of_iso (diagram_iso_pair F) }
-
-@[priority 100]
 instance has_binary_products_of_has_binary_biproducts [has_binary_biproducts C] :
   has_binary_products C :=
-⟨by apply_instance⟩
-
+{ has_limit := λ F, has_limit_of_iso (diagram_iso_pair F).symm }
 @[priority 100]
 instance has_binary_coproducts_of_has_binary_biproducts [has_binary_biproducts C] :
   has_binary_coproducts C :=
-⟨by apply_instance⟩
+{ has_colimit := λ F, has_colimit_of_iso (diagram_iso_pair F) }
 
 /--
 The isomorphism between the specified binary product and the specified binary coproduct for
@@ -637,7 +627,7 @@ namespace category_theory.limits
 
 section preadditive
 variables {C : Type u} [category.{v} C] [preadditive C]
-variables {J : Type v} [fintype J] [decidable_eq J]
+variables {J : Type v} [decidable_eq J] [fintype J]
 
 open category_theory.preadditive
 open_locale big_operators
@@ -663,6 +653,7 @@ def has_biproduct_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π
     fac' := λ s j,
     begin
       simp only [sum_comp, category.assoc, bicone.to_cone_π_app, b.ι_π, comp_dite],
+      -- See note [dsimp, simp].
       dsimp, simp,
     end },
   is_colimit :=

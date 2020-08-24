@@ -5,7 +5,7 @@ Authors: Johan Commelin, Kenny Lau
 -/
 
 import algebra.geom_sum
-import ring_theory.ideals
+import ring_theory.ideal.basic
 
 section
 

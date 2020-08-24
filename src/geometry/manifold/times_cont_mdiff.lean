@@ -445,7 +445,7 @@ lemma smooth.smooth_on (hf : smooth I I' f) :
   smooth_on I I' f s :=
 times_cont_mdiff.times_cont_mdiff_on hf
 
-lemma times_cont_mdiff_within_at_inter' (ht : t ∈ nhds_within x s) :
+lemma times_cont_mdiff_within_at_inter' (ht : t ∈ 𝓝[s] x) :
   times_cont_mdiff_within_at I I' n f (s ∩ t) x ↔ times_cont_mdiff_within_at I I' n f s x :=
 (times_cont_diff_within_at_local_invariant_prop I I' n).lift_prop_within_at_inter' ht
 
@@ -469,7 +469,7 @@ include Is I's
 a neighborhood of this point. -/
 lemma times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds {n : ℕ} :
   times_cont_mdiff_within_at I I' n f s x ↔
-  ∃ u ∈ nhds_within x (insert x s), times_cont_mdiff_on I I' n f u :=
+  ∃ u ∈ 𝓝[insert x s] x, times_cont_mdiff_on I I' n f u :=
 begin
   split,
   { assume h,
@@ -498,10 +498,10 @@ begin
       { simp only with mfld_simps },
       { apply h'o ⟨hy.1.2, h'⟩ } },
     refine ⟨v, _, _⟩,
-    show v ∈ nhds_within x (insert x s),
+    show v ∈ 𝓝[insert x s] x,
     { rw nhds_within_restrict _ xo o_open,
       refine filter.inter_mem_sets self_mem_nhds_within _,
-      suffices : u ∈ nhds_within (ext_chart_at I x x) ((ext_chart_at I x) '' (insert x s ∩ o)),
+      suffices : u ∈ 𝓝[(ext_chart_at I x) '' (insert x s ∩ o)] (ext_chart_at I x x),
         from (ext_chart_at_continuous_at I x).continuous_within_at.preimage_mem_nhds_within' this,
       apply nhds_within_mono _ _ u_nhds,
       rw image_subset_iff,
@@ -561,13 +561,13 @@ lemma times_cont_mdiff_within_at_congr (h₁ : ∀ y ∈ s, f₁ y = f y) (hx : 
 (times_cont_diff_within_at_local_invariant_prop I I' n).lift_prop_within_at_congr_iff h₁ hx
 
 lemma times_cont_mdiff_within_at.congr_of_eventually_eq
-  (h : times_cont_mdiff_within_at I I' n f s x) (h₁ : f₁ =ᶠ[nhds_within x s] f)
+  (h : times_cont_mdiff_within_at I I' n f s x) (h₁ : f₁ =ᶠ[𝓝[s] x] f)
   (hx : f₁ x = f x) : times_cont_mdiff_within_at I I' n f₁ s x :=
 (times_cont_diff_within_at_local_invariant_prop I I' n).lift_prop_within_at_congr_of_eventually_eq
   h h₁ hx
 
 lemma filter.eventually_eq.times_cont_mdiff_within_at_iff
-  (h₁ : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) :
+  (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) :
   times_cont_mdiff_within_at I I' n f₁ s x ↔ times_cont_mdiff_within_at I I' n f s x :=
 (times_cont_diff_within_at_local_invariant_prop I I' n)
   .lift_prop_within_at_congr_iff_of_eventually_eq h₁ hx
@@ -630,11 +630,11 @@ begin
       (ext_chart_at I x).symm ⁻¹' (f ⁻¹' (ext_chart_at I' (f x')).source),
   { have x'z : (ext_chart_at I x) x' = z, by simp only [x', hz.1, -ext_chart_at] with mfld_simps,
     have : continuous_within_at f s x' := hf.1 _ hz.2.1,
-    have : f ⁻¹' (ext_chart_at I' (f x')).source ∈ nhds_within x' s :=
+    have : f ⁻¹' (ext_chart_at I' (f x')).source ∈ 𝓝[s] x' :=
       this.preimage_mem_nhds_within
       (mem_nhds_sets (ext_chart_at_open_source I' (f x')) (mem_ext_chart_source I' (f x'))),
     have : (ext_chart_at I x).symm ⁻¹' (f ⁻¹' (ext_chart_at I' (f x')).source) ∈
-      nhds_within ((ext_chart_at I x) x') ((ext_chart_at I x).symm ⁻¹' s ∩ range I) :=
+      𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x') :=
       ext_chart_preimage_mem_nhds_within' _ _ x'_source this,
     rw x'z at this,
     exact mem_nhds_within.1 this },
@@ -684,7 +684,7 @@ begin
   rcases times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds.1 (hf.of_le hm) with ⟨u, u_nhds, hu⟩,
   apply times_cont_mdiff_within_at_iff_times_cont_mdiff_on_nhds.2 ⟨_, _, hv.comp' hu⟩,
   apply filter.inter_mem_sets u_nhds,
-  suffices h : v ∈ nhds_within (f x) (f '' s),
+  suffices h : v ∈ 𝓝[f '' s] (f x),
   { convert mem_nhds_within_insert (hf.continuous_within_at.preimage_mem_nhds_within' h),
     rw insert_eq_of_mem,
     apply mem_of_mem_nhds_within (mem_insert (f x) t) v_nhds },

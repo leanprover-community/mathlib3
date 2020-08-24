@@ -224,7 +224,7 @@ multilinear series are equal, then the values are also equal. -/
 lemma congr (p : formal_multilinear_series 𝕜 E F) {m n : ℕ} {v : fin m → E} {w : fin n → E}
   (h1 : m = n) (h2 : ∀ (i : ℕ) (him : i < m) (hin : i < n), v ⟨i, him⟩ = w ⟨i, hin⟩) :
   p m v = p n w :=
-by { cases h1, congr, ext ⟨i, hi⟩, exact h2 i hi hi }
+by { cases h1, congr' with ⟨i, hi⟩, exact h2 i hi hi }
 
 end formal_multilinear_series
 
@@ -328,8 +328,7 @@ begin
   ext y v,
   change (p x 1) (snoc 0 y) = (p x 1) (cons y v),
   unfold_coes,
-  congr,
-  ext i,
+  congr' with i,
   have : i = 0 := subsingleton.elim i 0,
   rw this,
   refl

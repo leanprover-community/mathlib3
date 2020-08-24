@@ -594,7 +594,7 @@ lemma extend_Union_nat
   {f : ℕ → set α} (hm : ∀i, P (f i))
   (mU : m (⋃i, f i) (PU hm) = (∑'i, m (f i) (hm i))) :
   extend m (⋃i, f i) = (∑'i, extend m (f i)) :=
-(extend_eq _ _).trans $ mU.trans $ by { congr, ext i, rw extend_eq }
+(extend_eq _ _).trans $ mU.trans $ by { congr' with i, rw extend_eq }
 
 section subadditive
 include PU msU

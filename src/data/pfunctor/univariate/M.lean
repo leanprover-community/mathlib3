@@ -278,7 +278,7 @@ lemma dest_mk (x : F.obj $ M F) :
 begin
   funext i,
   dsimp only [M.mk,dest],
-  cases x with x ch, congr, ext i,
+  cases x with x ch, congr' with i,
   cases h : ch i,
   simp  only [children,M.approx.s_mk,children',cast_eq],
   dsimp only [M.approx.s_mk,children'],
@@ -475,7 +475,7 @@ lemma corec_def {X} (f : X → F.obj X) (x₀ : X) :
   M.corec f x₀ = M.mk (M.corec f <$> f x₀)  :=
 begin
   dsimp only [M.corec,M.mk],
-  congr, ext n,
+  congr' with n,
   cases n with n,
   { dsimp only [s_corec,approx.s_mk], refl, },
   { dsimp only [s_corec,approx.s_mk], cases h : (f x₀),

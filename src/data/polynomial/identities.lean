@@ -100,7 +100,7 @@ begin
   rw ← finsupp.sum_sub,
   rw finsupp.sum_mul,
   delta finsupp.sum,
-  congr, ext i r, dsimp,
+  congr' with i r, dsimp,
   rw [mul_assoc, ←(pow_sub_pow_factor x y _).prop, mul_sub],
 end
 

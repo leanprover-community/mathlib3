@@ -661,10 +661,8 @@ begin
   rw [finset.weighted_vsub_apply, finset.weighted_vsub_apply,
       inner_sum_smul_sum_smul_of_sum_eq_zero _ h₁ _ h₂],
   simp_rw [vsub_sub_vsub_cancel_right],
-  congr,
-  ext i₁,
-  congr,
-  ext i₂,
+  congr' with i₁,
+  congr' with i₂,
   rw dist_eq_norm_vsub V (p₁ i₁) (p₂ i₂)
 end
 
@@ -778,7 +776,7 @@ def orthogonal_projection {s : affine_subspace ℝ P} (hn : (s : set P).nonempty
 @[simp] lemma orthogonal_projection_fn_eq {s : affine_subspace ℝ P} (hn : (s : set P).nonempty)
   (hc : is_complete (s.direction : set V)) (p : P) :
   orthogonal_projection_fn hn hc p = orthogonal_projection hn hc p := rfl
-  
+
 /-- The intersection of the subspace and the orthogonal subspace
 through the given point is the `orthogonal_projection` of that point
 onto the subspace. -/
@@ -1304,7 +1302,7 @@ include V
 /-- A single vertex, in terms of `points_with_circumcenter`. -/
 lemma point_eq_affine_combination_of_points_with_circumcenter {n : ℕ} (s : simplex ℝ P n)
   (i : fin (n + 1)) :
-  s.points i = 
+  s.points i =
     (univ : finset (points_with_circumcenter_index n)).affine_combination
       s.points_with_circumcenter (point_weights_with_circumcenter i) :=
 begin
@@ -1338,8 +1336,7 @@ begin
   simp_rw [sum_points_with_circumcenter, centroid_weights_with_circumcenter, add_zero,
            ←fs.sum_centroid_weights_eq_one_of_nonempty ℝ h,
            set.sum_indicator_subset _ fs.subset_univ],
-  congr,
-  ext i,
+  congr' with i,
   congr
 end
 
@@ -1363,8 +1360,7 @@ begin
              fs.subset_univ
              (λ i, zero_smul ℝ _),
            set.indicator_apply],
-  congr,
-  ext i,
+  congr' with i,
   congr
 end
 
@@ -1468,8 +1464,7 @@ begin
       circumcenter_eq_affine_combination_of_points_with_circumcenter,
       affine_combination_vsub, ←linear_map.map_smul,
       weighted_vsub_vadd_affine_combination],
-  congr,
-  ext i,
+  congr' with i,
   rw [pi.add_apply, pi.smul_apply, smul_eq_mul, pi.sub_apply],
   have hn1 : (n + 1 : ℝ) ≠ 0,
   { exact_mod_cast nat.succ_ne_zero _ },

@@ -365,14 +365,17 @@ attribute [ext] has_zero
 
 namespace tactic
 
+/-- Try to introduce as many arguments as possible, using the given patterns to destruct the
+  introduced variables. -/
 meta def try_intros : list rcases_patt → tactic (list rcases_patt)
-| [] := try intros $> []
+| []      := try intros $> []
 | (x::xs) :=
 do tgt ← target >>= whnf,
    if tgt.is_pi
      then rintro [x] >> try_intros xs
      else pure (x :: xs)
 
+/-- Apply one extensionality lemma, and destruct the arguments using the given patterns. -/
 meta def ext1 (xs : list rcases_patt) (cfg : apply_cfg := {}) : tactic (list rcases_patt) :=
 do subject ← target >>= get_ext_subject,
    m ← get_ext_lemmas,
@@ -383,6 +386,8 @@ do subject ← target >>= get_ext_subject,
      fail format!"no applicable extensionality rule found for {subject}",
    try_intros xs
 
+/-- Apply multiple extensionality lemmas, destructing the arguments using the given patterns.
+  `ext ps (some n)` applies at most `n` extensionality lemmas. -/
 meta def ext : list rcases_patt → option ℕ → tactic unit
 | _  (some 0) := skip
 | xs n        := focus1 $ do

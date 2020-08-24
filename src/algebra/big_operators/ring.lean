@@ -78,7 +78,7 @@ begin
     refine sum_congr rfl (λ g _, _),
     rw [attach_insert, prod_insert, prod_image],
     { simp only [pi.cons_same],
-      congr', ext ⟨v, hv⟩, congr',
+      congr' with ⟨v, hv⟩, congr',
       exact (pi.cons_ne (by rintro rfl; exact ha hv)).symm },
     { exact λ _ _ _ _, subtype.eq ∘ subtype.mk.inj },
     { simp only [mem_image], rintro ⟨⟨_, hm⟩, _, rfl⟩, exact ha hm } }

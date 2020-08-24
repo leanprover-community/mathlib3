@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 import topology.sheaves.sheaf_of_functions
+import topology.sheaves.stalks
 
 /-!
 # Functions satisfying a local predicate form a sheaf.
@@ -124,6 +125,33 @@ def prelocal_predicate.sheafify {T : X → Type v} (P : prelocal_predicate T) : 
   end }
 
 /--
+Given a `P : prelocal_predicate`, we can always construct a `local_predicate`
+by asking that the condition from `P` holds locally near every point.
+-/
+def prelocal_predicate.sheafify {T : X → Type v} (P : prelocal_predicate T) : local_predicate T :=
+{ pred := λ U f, ∀ x : U, ∃ (V : opens X) (m : x.1 ∈ V) (i : V ⟶ U), P.pred (λ x : V, f (i x : U)),
+  res := λ V U i f w x,
+  begin
+    specialize w (i x),
+    rcases w with ⟨V', m', i', p⟩,
+    refine ⟨V ⊓ V', ⟨x.2,m'⟩, opens.inf_le_left _ _, _⟩,
+    convert P.res (opens.inf_le_right V V') _ p,
+  end,
+  locality := λ U f w x,
+  begin
+    specialize w x,
+    rcases w with ⟨V, m, i, p⟩,
+    specialize p ⟨x.1, m⟩,
+    rcases p with ⟨V', m', i', p'⟩,
+    exact ⟨V', m', i' ≫ i, p'⟩,
+  end }
+
+lemma prelocal_predicate.sheafify_of {T : X → Type v} {P : prelocal_predicate T}
+  {U : opens X} {f : Π x : U, T x} (h : P.pred f) :
+  P.sheafify.pred f :=
+λ x, ⟨U, x.2, 𝟙 _, by { convert h, ext ⟨y, w⟩, refl, }⟩
+
+/--
 The subpresheaf of dependent functions on `X` satisfying the "pre-local" predicate `P`.
 -/
 @[simps]
@@ -235,9 +263,79 @@ end subpresheaf_to_Types
 /--
 The subsheaf of the sheaf of all dependently typed functions satisfying the local predicate `P`.
 -/
+@[simps]
 def subsheaf_to_Types (P : local_predicate T) : sheaf (Type v) X :=
 { presheaf := subpresheaf_to_Types P.to_prelocal_predicate,
   sheaf_condition := subpresheaf_to_Types.sheaf_condition P }.
+
+/--
+There is a canonical map from the stalk to the original fiber.
+-/
+def stalk_to_fiber (P : local_predicate T) (x : X) :
+  (subsheaf_to_Types P).presheaf.stalk x ⟶ T x :=
+begin
+  refine colimit.desc _
+    { X := T x, ι := { app := λ U f, _, naturality' := _ } },
+  { exact f.1 ⟨x, (unop U).2⟩, },
+  { tidy, }
+end
+
+@[simp] lemma stalk_to_fiber_germ (P : local_predicate T) (U : opens X) (x : U) (f) :
+  stalk_to_fiber P x ((subsheaf_to_Types P).presheaf.germ x f) = f.1 x :=
+begin
+  dsimp [presheaf.germ, stalk_to_fiber],
+  cases x,
+  simp,
+  refl,
+end
+
+/--
+The `stalk_to_fiber` map is surjective at `x` if
+every point in the fiber `T x` has an allowed section passing through it.
+-/
+lemma stalk_to_fiber_surjective (P : local_predicate T) (x : X)
+  (w : ∀ (t : T x), ∃ (U : open_nhds x) (f : Π y : U.1, T y) (h : P.pred f), f ⟨x, U.2⟩ = t) :
+  function.surjective (stalk_to_fiber P x) :=
+λ t,
+begin
+  rcases w t with ⟨U, f, h, rfl⟩,
+  fsplit,
+  { exact (subsheaf_to_Types P).presheaf.germ ⟨x, U.2⟩ ⟨f, h⟩, },
+  { exact stalk_to_fiber_germ _ _ _ ⟨f, h⟩, }
+end
+
+/--
+The `stalk_to_fiber` map is injective at `x` if any two allowed sections which agree at `x`
+agree on some neighborhood of `x`.
+-/
+lemma stalk_to_fiber_injective (P : local_predicate T) (x : X)
+  (w : ∀ (U V : open_nhds x) (fU : Π y : U.1, T y) (hU : P.pred fU)
+    (fV : Π y : V.1, T y) (hV : P.pred fV) (e : fU ⟨x, U.2⟩ = fV ⟨x, V.2⟩),
+    ∃ (W : open_nhds x) (iU : W ⟶ U) (iV : W ⟶ V), ∀ (w : W.1), fU (iU w : U.1) = fV (iV w : V.1)) :
+  function.injective (stalk_to_fiber P x) :=
+λ tU tV h,
+begin
+  -- We promise to provide all the ingredients of the proof later:
+  let Q :
+    ∃ (W : (open_nhds x)ᵒᵖ) (s : Π w : (unop W).1, T w) (hW : P.pred s),
+      tU = quot.mk _ ⟨W, ⟨s, hW⟩⟩ ∧ tV = quot.mk _ ⟨W, ⟨s, hW⟩⟩ := _,
+  { choose W s hW e using Q,
+    exact e.1.trans e.2.symm, },
+  -- Then use induction to pick particular representatives of `tU tV : stalk x`
+  induction tU,
+  induction tV,
+  { -- Decompose everything into its constituent parts:
+    dsimp,
+    rcases tU with ⟨U, ⟨fU, hU⟩⟩,
+    rcases tV with ⟨V, ⟨fV, hV⟩⟩,
+    specialize w (unop U) (unop V) fU hU fV hV h,
+    rcases w with ⟨W, iU, iV, w⟩,
+    -- and put it back together again in the correct order.
+    refine ⟨(op W), (λ w, fU (iU w : (unop U).1)), P.res _ _ hU, _⟩,
+    exact ⟨quot.sound ⟨iU.op, subtype.eq rfl⟩, quot.sound ⟨iV.op, subtype.eq (funext w)⟩⟩, },
+  { refl, }, -- proof irrelevance
+  { refl, }, -- proof irrelevance
+end
 
 /--
 Some repackaging:

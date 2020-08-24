@@ -195,7 +195,7 @@ def blunt (S : convex_cone E) := (0 : E) ∉ S
 /-- A convex cone is flat if it contains some nonzero vector x and its opposite -x -/
 def flat (S : convex_cone E) := ∃ x ∈ S, x ≠ (0 : E) ∧ -x ∈ S
 
-/-- A convex cone is salient if it doesn't include x and -x for some nonzero x -/
+/-- A convex cone is salient if it doesn't include x and -x for any nonzero x -/
 def salient (S : convex_cone E) := ∀ x ∈ S, x ≠ (0 : E) → -x ∉ S
 
 lemma pointed_iff_not_blunt (S : convex_cone E) : pointed S ↔ ¬blunt S :=

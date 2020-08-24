@@ -1947,4 +1947,3 @@ instance [ordered_comm_group α] : ordered_add_comm_group (additive α) :=
   ..additive.ordered_add_comm_monoid }
 
 end type_tags
-#lint

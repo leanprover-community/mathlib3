@@ -7,7 +7,7 @@ constant series {α} (f : ℕ → α) : α
 
 @[norm_cast] axiom coe_le (a b : ℕ) : (a : ℤ) ≤ b ↔ a ≤ b
 
-#eval do
+run_cmd do
 l ← norm_cast.make_guess ``coe_series,
 guard $ l = norm_cast.label.move
 

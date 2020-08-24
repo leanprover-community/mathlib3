@@ -46,26 +46,10 @@ meta def simp_arg_type.replace_subexprs : simp_arg_type → list (expr × expr) 
 
 setup_tactic_parser
 
-/--
-The basic usage is `#simp e`, where `e` is an expression,
-which will print the simplified form of `e`.
-
-You can specify additional simp lemmas as usual for example using
-`#simp [f, g] : e`, or `#simp with attr : e`.
-(The colon is optional, but helpful for the parser.)
-
-`#simp` understands local variables, so you can use them to
-introduce parameters.
--/
-@[user_command] meta def simp_cmd (_ : parse $ tk "#simp") : lean.parser unit :=
+/-- An internal version of `simp_cmd` that returns the result instead of tracing it. -/
+meta def simp_cmd_internal (e : pexpr) (no_dflt : bool := ff) (hs : list simp_arg_type := [])
+  (attr_names : list name := []) : parser expr :=
 do
-  no_dflt ← only_flag,
-  hs ← simp_arg_list,
-  attr_names ← with_ident_list,
-  o ← optional (tk ":"),
-  e ← types.texpr,
-
-  /- Retrieve the `pexpr`s parsed as part of the simp args, and collate them into a big list. -/
   let hs_es := list.join $ hs.map $ option.to_list ∘ simp_arg_type.to_pexpr,
 
   /- Synthesize a `tactic_state` including local variables as hypotheses under which `expr.simp`
@@ -99,7 +83,29 @@ do
     prod.fst <$> e.simp {} failed no_dflt attr_names hs
   } ts,
 
-  /- Trace the result. -/
+  /- Return the result, unless the expression is simplified to true -/
+  return simp_result
+
+/--
+The basic usage is `#simp e`, where `e` is an expression,
+which will print the simplified form of `e`.
+
+You can specify additional simp lemmas as usual for example using
+`#simp [f, g] : e`, or `#simp with attr : e`.
+(The colon is optional, but helpful for the parser.)
+
+`#simp` understands local variables, so you can use them to
+introduce parameters.
+-/
+@[user_command] meta def simp_cmd (_ : parse $ tk "#simp") : lean.parser unit :=
+do
+  no_dflt ← only_flag,
+  hs ← simp_arg_list,
+  attr_names ← with_ident_list,
+  optional (tk ":"),
+  e ← types.texpr,
+  simp_result ← simp_cmd_internal e no_dflt hs attr_names,
+  /- Trace the result, unless the expression is simplified to true -/
   trace simp_result
 
 add_tactic_doc

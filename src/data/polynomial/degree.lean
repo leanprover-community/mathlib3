@@ -122,6 +122,13 @@ else begin
   contrapose! h, apply map_injective f hf, simpa
 end
 
+lemma leading_coeff_map' (p : polynomial R) :
+  leading_coeff (p.map f) = f (leading_coeff p) :=
+begin
+  unfold leading_coeff,
+  rw [coeff_map, nat_degree_map' hf p],
+end
+
 end injective
 
 end degree

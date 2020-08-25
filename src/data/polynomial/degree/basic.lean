@@ -164,7 +164,7 @@ end
 by simp only [←C_eq_nat_cast, nat_degree_C]
 
 @[simp] lemma degree_monomial (n : ℕ) (ha : a ≠ 0) : degree (C a * X ^ n) = n :=
-by rw [← single_eq_C_mul_X, degree_monomial' n ha]
+by rw [← single_eq_C_mul_X, degree, monomial, support_single_ne_zero ha]; refl
 
 lemma degree_monomial_le (n : ℕ) (a : R) : degree (C a * X ^ n) ≤ n :=
 if h : a = 0 then by rw [h, C_0, zero_mul]; exact bot_le else le_of_eq (degree_monomial n h)
@@ -415,6 +415,18 @@ finset.induction_on s (by simp only [sum_empty, sup_empty, degree_zero, le_refl]
   calc degree (∑ i in insert a s, f i) ≤ max (degree (f a)) (degree (∑ i in s, f i)) :
     by rw sum_insert has; exact degree_add_le _ _
   ... ≤ _ : by rw [sup_insert, with_bot.sup_eq_max]; exact max_le_max (le_refl _) ih
+
+lemma finset_sum_monomial_degree {p : polynomial R} {f : ℕ → R} (hf : p.leading_coeff * f p.nat_degree ≠ 0) :
+  (∑ (i : ℕ) in p.support, monomial i ((p.coeff i) * (f i))).nat_degree = p.nat_degree :=
+begin
+  refine nat_degree_eq_of_degree_eq (le_antisymm (le_trans (degree_sum_le _ _) _) _),
+  { simp only [finset.sup_le_iff, finsupp.mem_support_iff],
+    refine λ b hb, _,
+    rw single_eq_C_mul_X,
+    exact le_trans (degree_C_mul_X_pow_le _ _) (le_degree_of_ne_zero hb) },
+  { refine degree_le_degree _,
+    rwa finset_sum_monomial_coeff p.nat_degree }
+end
 
 lemma degree_mul_le (p q : polynomial R) : degree (p * q) ≤ degree p + degree q :=
 calc degree (p * q) ≤ (p.support).sup (λi, degree (sum q (λj a, C (coeff p i * a) * X ^ (i + j)))) :

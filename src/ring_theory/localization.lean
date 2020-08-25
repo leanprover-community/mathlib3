@@ -1223,30 +1223,21 @@ theorem is_integral_localization_at_leading_coeff {x : S} (hM : M ≤ non_zero_d
 begin
   by_cases triv : (1 : Rₘ) = 0,
   { exact ⟨0, ⟨trans leading_coeff_zero triv.symm, eval₂_zero _ _⟩⟩ },
+  haveI : nontrivial Rₘ := nontrivial_of_ne 1 0 triv,
   obtain ⟨b, hb⟩ := is_unit_iff_exists_inv.mp
     (localization_map.map_units f ⟨witness.leading_coeff, hM'⟩),
   refine ⟨(witness.map f.to_map) * C b, ⟨_, _⟩⟩,
-  { rw [monic, leading_coeff_mul' _, leading_coeff_C b],
-    { convert hb,
-      unfold leading_coeff,
-      rw [coeff_map, nat_degree_map' (f.injective hM) witness],
-      refl },
-    { refine λ h, triv (trans hb.symm _),
-      rwa [leading_coeff_C b, leading_coeff, coeff_map,
-        nat_degree_map' (f.injective hM) witness] at h } } ,
-  { replace hw := hw.right,
-    rw aeval_def at hw ⊢,
-    rw eval₂_mul,
-    refine mul_eq_zero_of_left _ _,
-    rw eval₂_map,
-    erw localization_map.map_comp,
-    rw [eval₂_hom' (algebra_map R S) g.to_map x, hw, g.to_map.map_zero] }
+  { refine monic_mul_C_of_inv _,
+    rwa leading_coeff_map' (f.injective hM) },
+  { refine eval₂_mul_eq_zero_of_left _ _ _ _,
+    erw [eval₂_map, localization_map.map_comp, eval₂_hom' (algebra_map R S) g.to_map x],
+    exact trans (congr_arg g.to_map hw.right) g.to_map.map_zero }
 end
 
--- /-- If `R → S` is an integral extension, `M` is a submonoid or `R`,
--- `Rₘ` is the localization of `R` at `M`,
--- and `Sₘ` is the localization of `S` at the image of `M` under the extension map,
--- then the induced map `Rₘ → Sₘ` is also an integral extension -/
+/-- If `R → S` is an integral extension, `M` is a submonoid of `R`,
+`Rₘ` is the localization of `R` at `M`,
+and `Sₘ` is the localization of `S` at the image of `M` under the extension map,
+then the induced map `Rₘ → Sₘ` is also an integral extension -/
 theorem is_integral_localization (hM : M ≤ non_zero_divisors R) (H : ∀ x : S, is_integral R x)
   (x : Sₘ) : @is_integral Rₘ _ _ _ (localization_algebra M f g) x :=
 begin
@@ -1256,17 +1247,15 @@ begin
   { haveI : nontrivial R := nontrivial_of_ne 1 0 triv,
     obtain ⟨⟨s, ⟨u, hu⟩⟩, hx⟩ := g.surj x,
     obtain ⟨v, hv⟩ := hu,
-    obtain ⟨v', hv'⟩ := is_unit_iff_exists_inv.1 (f.map_units ⟨v, hv.1⟩),
-    refine @is_integral_mul_unit Rₘ _ _ _ (localization_algebra M f g) x (g.to_map u) v' _ _,
+    obtain ⟨v', hv'⟩ := is_unit_iff_exists_inv'.1 (f.map_units ⟨v, hv.1⟩),
+    refine @is_integral_of_is_integral_mul_unit Rₘ _ _ _
+      (localization_algebra M f g) x (g.to_map u) v' _ _,
     { replace hv' := congr_arg (@algebra_map Rₘ Sₘ _ _ (localization_algebra M f g)) hv',
-      rw [ring_hom.map_mul, ring_hom.map_one, mul_comm] at hv',
-      convert hv',
-      show g.to_map u = (f.map _ g) (f.to_map v),
-      rw [← ring_hom.comp_apply _ f.to_map, localization_map.map_comp, ← hv.2, ring_hom.comp_apply],
-      refl },
-    { erw hx,
-      obtain ⟨p, hp⟩ := H s,
-      refine is_integral_localization_at_leading_coeff f g hM p
+      rw [ring_hom.map_mul, ring_hom.map_one, ← ring_hom.comp_apply _ f.to_map] at hv',
+      erw localization_map.map_comp at hv',
+      exact hv.2 ▸ hv' },
+    { obtain ⟨p, hp⟩ := H s,
+      exact hx.symm ▸ is_integral_localization_at_leading_coeff f g hM p
         ⟨monic.ne_zero hp.1, hp.2⟩ (hp.1.symm ▸ M.one_mem) } }
 end
 

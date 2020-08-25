@@ -86,7 +86,7 @@ variables {α : Type u} {M : Type v} [add_comm_monoid M]
 noncomputable def finsum (f : α → M) : M :=
 if h : (function.support f).finite then finset.sum (h.to_finset) f else 0
 
-/-- Sum of `f x` for `x ∈ s`, where `s : set α` is finite. Zero if s is infinite.  -/
+/-- Sum of `f x` for `x ∈ s`, if `s ∩ f.support` is finite. Zero if it's infinite.  -/
 noncomputable def finsum_in (s : set α) (f : α → M) : M :=
 finsum (λ x, if x ∈ s then f x else 0)
 
@@ -486,6 +486,14 @@ set.finite.subset (by rw set.inter_distrib_left; exact set.finite.union hf hg)
 lemma finsum_in_add_distrib'
   (hf : (s ∩ function.support f).finite) (hg : (s ∩ function.support g).finite) :
   finsum_in s (λ x, f x + g x) = finsum_in s f + finsum_in s g :=
+begin
+  apply finsum_in_add_distrib,
+end
+
+-- this should be `f + g` not `λ x, f x + g x` but we probably need to import algebra.big_operators for this
+lemma finsum_add_distrib
+  (hf : (function.support f).finite) (hg : (function.support g).finite) :
+  finsum (λ x, f x + g x) = finsum f + finsum g :=
 begin
   sorry
 end

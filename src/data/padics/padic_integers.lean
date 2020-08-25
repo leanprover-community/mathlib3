@@ -1021,7 +1021,19 @@ int_lim_seq (limit f r) (lim_seq_is_cau_seq f_compat r)
 
 lemma lim_fn_spec (r : R) :
   ∀ ε : ℝ, 0 < ε → ∃ N : ℕ, ∀ n ≥ N, ∥lim_fn f_compat r - limit f r n∥ < ε :=
-sorry
+begin
+  intros ε hε,
+  obtain ⟨ε', hε'0, hε'⟩ : ∃ v : ℚ, (0 : ℝ) < v ∧ ↑v < ε := exists_rat_btwn hε,
+  norm_cast at hε'0,
+  obtain ⟨N, hN⟩ := padic_norm_e.defn (limit_seq f_compat r) hε'0,
+  use N,
+  intros n hn,
+  apply lt.trans _ hε',
+  change ↑(padic_norm_e _) < _,
+  norm_cast,
+  convert hN _ hn,
+  simp [limit, lim_fn, limit_seq, int_lim_seq],
+end
 
 lemma lim_fn_zero : lim_fn f_compat 0 = 0 :=
 by simp [lim_fn]; refl

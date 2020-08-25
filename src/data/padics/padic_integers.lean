@@ -894,30 +894,19 @@ open padic_int
 variables {R : Type*} [comm_ring R] (f : Π k : ℕ, R →+* zmod (p^k))
   (f_compat : ∀ k1 k2 (hk : k1 ≤ k2), (zmod.cast_hom (nat.pow_dvd_pow p hk) _) ∘ f k2 = f k1)
 
--- starting at n = 1 allows lim_seq_one to be an equality instead of having to lift to an equivalence later
--- I don't know if this will get us in trouble
 def limit (r : R) : ℕ → ℤ :=
-λ n, (f (n+1) r : zmod (p^(n+1))).val
+λ n, (f n r : zmod (p^n)).val
 
 @[simp] lemma lim_seq_zero : limit f 0 = 0 :=
 by simp [limit]; refl
-
-@[simp] lemma lim_seq_one : limit f 1 = 1 :=
-begin
-  ext k,
-  have : fact (1 < p^(k+1)),
-  { apply nat.one_lt_pow _ _ (nat.succ_pos _),
-    exact nat.prime.one_lt ‹_› },
-  unfreezingI { simp [limit, zmod.val_one] },
-end
 
 variable {f}
 include f_compat
 
 lemma pow_dvd_limit_sub (r : R) (i j : ℕ) (h : i ≤ j) :
-  ↑p ^ (i + 1) ∣ limit f r j - limit f r i :=
+  ↑p ^ (i) ∣ limit f r j - limit f r i :=
 begin
-  specialize f_compat (i+1) (j+1) (succ_le_succ h),
+  specialize f_compat (i) (j) h,
   rw [← int.coe_nat_pow, ← zmod.int_coe_zmod_eq_zero_iff_dvd],
   rw [int.cast_sub],
   dsimp [limit],
@@ -925,15 +914,15 @@ begin
   specialize f_compat r,
   rw [function.comp_app] at f_compat,
   rw ← f_compat,
-  have : fact (p ^ (i + 1) > 0) := pow_pos (nat.prime.pos ‹_›) _,
-  have : fact (p ^ (j + 1) > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ (i) > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ (j) > 0) := pow_pos (nat.prime.pos ‹_›) _,
   unfreezingI { simp only [zmod.cast_id, zmod.cast_hom_apply, sub_self, zmod.nat_cast_val], },
 end
 
 omit f_compat
 variable (p)
 lemma exists_aux {ε : ℚ} (hε : ε > 0) :
-  ∃ (k : ℕ), ↑p ^ -((k + 1 : ℕ) : ℤ) < ε :=
+  ∃ (k : ℕ), ↑p ^ -((k : ℕ) : ℤ) < ε :=
 begin
   obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
   use k,
@@ -941,8 +930,9 @@ begin
   { rw [fpow_neg, inv_inv', fpow_coe_nat],
     apply lt_of_lt_of_le hk,
     norm_cast,
-    suffices : k + 1 < p^(k+1),
-    { linarith },
+    -- suffices : k < p^(k+1),
+    -- { linarith },
+    apply le_of_lt,
     convert nat.lt_pow_self _ _ using 1,
     exact nat.prime.one_lt ‹_› },
   { exact_mod_cast nat.prime.pos ‹_› }
@@ -964,7 +954,7 @@ include f_compat
 lemma lim_seq_is_cau_seq (r : R): is_cau_seq (padic_norm p) (λ n, limit f r n) :=
 begin
   intros ε hε,
-  obtain ⟨k, hk⟩ : ∃ k : ℕ, (p ^ - (↑(k + 1 : ℕ) : ℤ) : ℚ) < ε,
+  obtain ⟨k, hk⟩ : ∃ k : ℕ, (p ^ - (↑(k : ℕ) : ℤ) : ℚ) < ε,
   { exact exists_aux _ hε, },
   use k,
   intros j hj,
@@ -975,6 +965,16 @@ begin
 end
 
 def limit_seq (r : R) : padic_seq p := ⟨λ n, limit f r n, lim_seq_is_cau_seq f_compat r⟩
+
+lemma limit_seq_one : limit_seq f_compat 1 ≈ 1 :=
+begin
+  intros ε hε,
+  change _ < _ at hε,
+  use 1,
+  intros j hj,
+  haveI : fact (1 < p^j) := nat.one_lt_pow _ _ (by linarith) (nat.prime.one_lt ‹_›),
+  simp [limit_seq, limit, zmod.val_one, hε],
+end
 
 lemma limit_seq_add (r s : R) : limit_seq f_compat (r + s) ≈ limit_seq f_compat r + limit_seq f_compat s :=
 begin
@@ -987,12 +987,11 @@ begin
   rw [← int.cast_add, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le],
   rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
   dsimp [limit],
-  have : fact (p ^ (n + 1) > 0) := pow_pos (nat.prime.pos ‹_›) _,
-  have : fact (p ^ (j + 1) > 0) := pow_pos (nat.prime.pos ‹_›) _,
-  have := val_coe_aux p n (j+1) (by linarith),
+  have : fact (p ^ (n ) > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ (j ) > 0) := pow_pos (nat.prime.pos ‹_›) _,
   unfreezingI
   { simp only [int.cast_coe_nat, int.cast_add, ring_hom.map_add, int.cast_sub, zmod.nat_cast_val] },
-  rw [zmod.cast_add (show p ^ (n + 1) ∣ p ^ (j + 1), from _), sub_self],
+  rw [zmod.cast_add (show p ^ (n ) ∣ p ^ (j ), from _), sub_self],
   { apply_instance },
   { apply nat.pow_dvd_pow, linarith only [hj] },
 end
@@ -1008,12 +1007,11 @@ begin
   rw [← int.cast_mul, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le],
   rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
   dsimp [limit],
-  have : fact (p ^ (n + 1) > 0) := pow_pos (nat.prime.pos ‹_›) _,
-  have : fact (p ^ (j + 1) > 0) := pow_pos (nat.prime.pos ‹_›) _,
-  have := val_coe_aux p n (j+1) (by linarith),
+  have : fact (p ^ (n ) > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ (j ) > 0) := pow_pos (nat.prime.pos ‹_›) _,
   unfreezingI
   { simp only [int.cast_coe_nat, int.cast_mul, int.cast_sub, ring_hom.map_mul, zmod.nat_cast_val] },
-  rw [zmod.cast_mul (show p ^ (n + 1) ∣ p ^ (j + 1), from _), sub_self],
+  rw [zmod.cast_mul (show p ^ (n ) ∣ p ^ (j ), from _), sub_self],
   { apply_instance },
   { apply nat.pow_dvd_pow, linarith only [hj] },
 end
@@ -1029,7 +1027,7 @@ lemma lim_fn_zero : lim_fn f_compat 0 = 0 :=
 by simp [lim_fn]; refl
 
 lemma lim_fn_one : lim_fn f_compat 1 = 1 :=
-by simp [lim_fn]; refl
+subtype.ext $ quot.sound $ limit_seq_one _ -- by simp [lim_fn]; refl
 
 lemma lim_fn_add (r s : R) : lim_fn f_compat (r + s) = lim_fn f_compat r + lim_fn f_compat s :=
 subtype.ext $ quot.sound $ limit_seq_add _ _ _
@@ -1067,13 +1065,9 @@ begin
   rw ideal.mem_span_singleton,
   rw show (p ^ n : ℤ_[p]) = (p ^ n : ℤ),
   { norm_cast },
-  -- squeeze_simp [limit] at this,
   convert (int.cast_ring_hom ℤ_[p]).map_dvd (dvd.trans _ this),
-  { simp only [limit, int.cast_coe_nat, ring_hom.eq_int_cast, cast_inj, sub_right_inj, int.cast_sub],
-    -- bitten by the off by one again
-    sorry
-     },
-  { sorry }
+  { simp only [limit, int.cast_coe_nat, ring_hom.eq_int_cast, cast_inj, sub_right_inj, int.cast_sub], },
+  { refl }
 end
 
 lemma lift_spec (n : ℕ) : (to_zmod_pow n).comp (lift f_compat) = f n :=
@@ -1084,32 +1078,6 @@ begin
   rw [← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker],
   rw [ker_to_zmod_pow],
   apply spec_foo,
-
-  -- rw [ideal.mem_span_singleton],
-  -- dsimp [lift],
-  -- obtain ⟨a, ha⟩ := lim_fn_spec f_compat r _ (show (0 : ℝ) < p ^ (-n : ℤ), from _),
-  -- suffices : ∥lim_fn f_compat r - ↑(((f n) r).val)∥ ≤ p^(-n : ℤ),
-  -- { sorry },
-  -- dsimp at ha,
-  -- rw sub_eq_sub_add_sub _ _ ↑(limit f r a),
-  -- transitivity,
-  -- {apply padic_norm_z.nonarchimedean,},
-  -- {apply max_le _ (le_of_lt ha),
-  --  dsimp [limit],
-  --  haveI : fact (0 < p ^ (a + 1)) := sorry,
-  --  haveI : fact (0 < p ^ n) := sorry,
-
-  --  by_cases ha : a + 1 ≤ n,
-  --  { rw ← f_compat _ _ ha,
-  --    simp,
-  --    sorry },
-
-  --    { push_neg at ha,
-  --      rw ← f_compat _ _ (le_of_lt ha),
-  --      simp,
-  --      sorry
-  --    } }
-
 end
 
 
@@ -1118,13 +1086,6 @@ lemma lift_unique (g : R →+* ℤ_[p]) (hg : ∀ n, (to_zmod_pow n).comp g = f 
   g = lift f_compat :=
 begin
   sorry
-end
-
-example : complete_space (ℚ_[p]) :=
-begin
-
-  have : is_complete ℚ_[p] _ := padic.complete,
-  refine uniform_space.complete_of_cauchy_seq_tendsto _ _,
 end
 
 end padic_int

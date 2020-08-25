@@ -269,6 +269,15 @@ lemma dim_le_of_submodule (s t : submodule K V) (h : s ≤ t) : dim K s ≤ dim 
 dim_le_of_injective (of_le h) $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
   subtype.eq $ show x = y, from subtype.ext_iff_val.1 eq
 
+lemma linear_independent_le_dim
+  {v : ι → V} (hv : linear_independent K v) :
+  cardinal.lift.{w v} (cardinal.mk ι) ≤ cardinal.lift.{v w} (dim K V) :=
+calc
+  cardinal.lift.{w v} (cardinal.mk ι) = cardinal.lift.{v w} (cardinal.mk (set.range v)) :
+     (cardinal.mk_range_eq_of_injective (linear_independent.injective hv)).symm
+  ... = cardinal.lift.{v w} (dim K (submodule.span K (set.range v))) : by rw (dim_span hv).symm
+  ... ≤ cardinal.lift.{v w} (dim K V) : cardinal.lift_le.2 (dim_submodule_le (submodule.span K _))
+
 section
 variables [add_comm_group V₂] [vector_space K V₂]
 variables [add_comm_group V₃] [vector_space K V₃]

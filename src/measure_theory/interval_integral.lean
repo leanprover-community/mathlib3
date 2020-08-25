@@ -335,8 +335,8 @@ section order_closed_topology
 
 variables [order_closed_topology α]
 
-lemma integral_add_adjacent_intervals_cancel (hfm : measurable f)
-  (hab : interval_integrable f μ a b) (hbc : interval_integrable f μ b c) :
+lemma integral_add_adjacent_intervals_cancel (hab : interval_integrable f μ a b)
+  (hbc : interval_integrable f μ b c) :
   ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ + ∫ x in c..a, f x ∂μ = 0 :=
 begin
   have hac := hab.trans hbc,
@@ -349,42 +349,41 @@ begin
     Ioc_disjoint_Ioc_same.symm, hab.1, hab.2, hbc.1, hbc.2, hac.1, hac.2] }
 end
 
-lemma integral_add_adjacent_intervals (hfm : measurable f) (hab : interval_integrable f μ a b)
+lemma integral_add_adjacent_intervals (hab : interval_integrable f μ a b)
   (hbc : interval_integrable f μ b c) :
   ∫ x in a..b, f x ∂μ + ∫ x in b..c, f x ∂μ = ∫ x in a..c, f x ∂μ :=
-by rw [← add_neg_eq_zero, ← integral_symm, integral_add_adjacent_intervals_cancel hfm hab hbc]
+by rw [← add_neg_eq_zero, ← integral_symm, integral_add_adjacent_intervals_cancel hab hbc]
 
-lemma integral_interval_sub_left (hfm : measurable f) (hab : interval_integrable f μ a b)
+lemma integral_interval_sub_left (hab : interval_integrable f μ a b)
   (hac : interval_integrable f μ a c) :
   ∫ x in a..b, f x ∂μ - ∫ x in a..c, f x ∂μ = ∫ x in c..b, f x ∂μ :=
-sub_eq_of_eq_add' $ eq.symm $ integral_add_adjacent_intervals hfm hac (hac.symm.trans hab)
+sub_eq_of_eq_add' $ eq.symm $ integral_add_adjacent_intervals hac (hac.symm.trans hab)
 
-lemma integral_interval_add_interval_comm (hfm : measurable f) (hab : interval_integrable f μ a b)
+lemma integral_interval_add_interval_comm (hab : interval_integrable f μ a b)
   (hcd : interval_integrable f μ c d) (hac : interval_integrable f μ a c) :
   ∫ x in a..b, f x ∂μ + ∫ x in c..d, f x ∂μ = ∫ x in a..d, f x ∂μ + ∫ x in c..b, f x ∂μ :=
-by rw [← integral_add_adjacent_intervals hfm hac hcd, add_assoc, add_left_comm,
-  integral_add_adjacent_intervals hfm hac (hac.symm.trans hab), add_comm]
+by rw [← integral_add_adjacent_intervals hac hcd, add_assoc, add_left_comm,
+  integral_add_adjacent_intervals hac (hac.symm.trans hab), add_comm]
 
-lemma integral_interval_sub_interval_comm (hfm : measurable f) (hab : interval_integrable f μ a b)
+lemma integral_interval_sub_interval_comm (hab : interval_integrable f μ a b)
   (hcd : interval_integrable f μ c d) (hac : interval_integrable f μ a c) :
   ∫ x in a..b, f x ∂μ - ∫ x in c..d, f x ∂μ = ∫ x in a..c, f x ∂μ - ∫ x in b..d, f x ∂μ :=
 by simp only [sub_eq_add_neg, ← integral_symm,
-  integral_interval_add_interval_comm hfm hab hcd.symm (hac.trans hcd)]
+  integral_interval_add_interval_comm hab hcd.symm (hac.trans hcd)]
 
-lemma integral_interval_sub_interval_comm' (hfm : measurable f) (hab : interval_integrable f μ a b)
+lemma integral_interval_sub_interval_comm' (hab : interval_integrable f μ a b)
   (hcd : interval_integrable f μ c d) (hac : interval_integrable f μ a c) :
   ∫ x in a..b, f x ∂μ - ∫ x in c..d, f x ∂μ = ∫ x in d..b, f x ∂μ - ∫ x in c..a, f x ∂μ :=
-by rw [integral_interval_sub_interval_comm hfm hab hcd hac, integral_symm b d, integral_symm a c,
+by rw [integral_interval_sub_interval_comm hab hcd hac, integral_symm b d, integral_symm a c,
   sub_neg_eq_add, sub_eq_neg_add]
 
-lemma integral_Iic_sub_Iic (hfm : measurable f) (ha : integrable_on f (Iic a) μ)
-  (hb : integrable_on f (Iic b) μ) :
+lemma integral_Iic_sub_Iic (ha : integrable_on f (Iic a) μ) (hb : integrable_on f (Iic b) μ) :
   ∫ x in Iic b, f x ∂μ - ∫ x in Iic a, f x ∂μ = ∫ x in a..b, f x ∂μ :=
 begin
   wlog hab : a ≤ b using [a b] tactic.skip,
   { rw [sub_eq_iff_eq_add', integral_of_le hab, ← integral_union (Iic_disjoint_Ioc (le_refl _)),
       Iic_union_Ioc_eq_Iic hab],
-    exacts [is_measurable_Iic, is_measurable_Ioc, hfm, ha, hb.mono_set (λ _, and.right)] },
+    exacts [is_measurable_Iic, is_measurable_Ioc, ha, hb.mono_set (λ _, and.right)] },
   { intros ha hb,
     rw [integral_symm, ← this hb ha, neg_sub] }
 end
@@ -394,7 +393,7 @@ lemma integral_const_of_cdf [finite_measure μ] (c : E) :
   ∫ x in a..b, c ∂μ = ((μ (Iic b)).to_real - (μ (Iic a)).to_real) • c :=
 begin
   simp only [sub_smul, ← set_integral_const],
-  refine (integral_Iic_sub_Iic measurable_const _ _).symm;
+  refine (integral_Iic_sub_Iic _ _).symm;
     simp only [integrable_on_const, measure_lt_top, or_true]
 end
 
@@ -661,7 +660,7 @@ begin
       (tendsto_const_pure.mono_right FTC_filter.pure_le) hub,
   filter_upwards [A, A', B, B'], simp only [mem_set_of_eq],
   intros t ua_va a_ua ub_vb b_ub,
-  rw [← integral_interval_sub_interval_comm' hfm],
+  rw [← integral_interval_sub_interval_comm'],
   { dsimp only [], abel },
   exacts [ub_vb, ua_va, b_ub.symm.trans $ hab.symm.trans a_ua]
 end

@@ -1024,6 +1024,10 @@ begin
     exact to_real_nonneg }
 end
 
+lemma integral_eq_zero_of_ae {f : α → E} (hf : f =ᵐ[μ] 0) : ∫ a, f a ∂μ = 0 :=
+if hfm : measurable f then by simp [integral_congr_ae hfm measurable_zero hf]
+else integral_non_measurable hfm
+
 /-- If `F i → f` in `L1`, then `∫ x, F i x ∂μ → ∫ x, f x∂μ`. -/
 lemma tendsto_integral_of_l1 {ι} (f : α → E) (hfm : measurable f) (hfi : integrable f μ)
   {F : ι → α → E} {l : filter ι} (hFm : ∀ᶠ i in l, measurable (F i))
@@ -1262,9 +1266,10 @@ calc ∥∫ x, f x ∂μ∥ ≤ ∫ x, C ∂μ : norm_integral_le_of_norm_le mea
 
 variable {ν : measure α}
 
-lemma integral_add_measure {f : α → E} (hfm : measurable f) (hμ : integrable f μ) (hν : integrable f ν) :
+lemma integral_add_measure {f : α → E} (hμ : integrable f μ) (hν : integrable f ν) :
   ∫ x, f x ∂(μ + ν) = ∫ x, f x ∂μ + ∫ x, f x ∂ν :=
 begin
+  by_cases hfm : measurable f; [skip, by simp only [integral_non_measurable hfm, zero_add]],
   have hfi := hμ.add_measure hν,
   rcases simple_func_sequence_tendsto' hfm hfi with ⟨F, hFi, hFt⟩,
   have hFiμ : ∀ i, integrable (F i) μ := λ i, (hFi i).left_of_add_measure,
@@ -1290,6 +1295,50 @@ end
 
 @[simp] lemma integral_zero_measure (f : α → E) : ∫ x, f x ∂0 = 0 :=
 norm_le_zero_iff.1 $ le_trans (norm_integral_le_lintegral_norm f) $ by simp
+
+@[simp] lemma integral_smul_measure (f : α → E) (c : ennreal) :
+  ∫ x, f x ∂(c • μ) = c.to_real • ∫ x, f x ∂μ :=
+begin
+  -- First we consider “degenerate” cases:
+  -- `f` is not measurable
+  by_cases hfm : measurable f, swap, { simp [integral_non_measurable hfm] },
+  -- `c = 0`
+  rcases (zero_le c).eq_or_lt with rfl|h0, { simp },
+  -- `c = ⊤`
+  rcases (le_top : c ≤ ⊤).eq_or_lt with rfl|hc,
+  { rw [ennreal.top_to_real, zero_smul],
+    by_cases hf : f =ᵐ[μ] 0,
+    { have : f =ᵐ[⊤ • μ] 0 := ae_smul_measure hf ⊤,
+      exact integral_eq_zero_of_ae this },
+    { apply integral_non_integrable,
+      rw [integrable, lintegral_smul_measure, top_mul, if_neg],
+      { apply lt_irrefl },
+      { rw [lintegral_eq_zero_iff hfm.ennnorm],
+        refine λ h, hf (h.mono $ λ x, _),
+        simp } } },
+  -- `f` is not integrable
+  by_cases hfi : integrable f μ, swap,
+  { rw [integral_non_integrable hfi, smul_zero],
+    refine integral_non_integrable (mt (λ h, _) hfi),
+    convert h.smul_measure (ennreal.inv_lt_top.2 h0),
+    rw [smul_smul, ennreal.inv_mul_cancel (ne_of_gt h0) (ne_of_lt hc), one_smul] },
+  -- Main case: `0 < c < ⊤`, `f` is measurable and integrable
+  rcases simple_func_sequence_tendsto' hfm hfi with ⟨F, hFi, hFt⟩,
+  have hFi' := λ n, (hFi n).smul_measure hc,
+  simp only [← edist_nndist] at hFt,
+  have hμ : tendsto (λ i, ∫ x, F i x ∂μ) at_top (𝓝 ∫ x, f x ∂μ) :=
+    tendsto_integral_of_l1 _ hfm hfi (eventually_of_forall $ λ i, (F i).measurable)
+      (eventually_of_forall hFi) hFt,
+  refine tendsto_nhds_unique _ (tendsto_const_nhds.smul hμ),
+  replace hFt := ennreal.tendsto.mul (tendsto_const_nhds : tendsto (λ _, c) _ _)
+    (or.inr ennreal.zero_ne_top) hFt (or.inr $ ne_of_lt hc),
+  simp only [mul_zero, ← lintegral_smul_measure] at hFt,
+  convert tendsto_integral_of_l1 _ hfm (hfi.smul_measure hc)
+    (eventually_of_forall $ λ i, (F i).measurable) (eventually_of_forall hFi') hFt,
+  ext1 n,
+  simp only [← (F n).integral_eq_integral, hFi, hFi', simple_func.integral,
+    measure.smul_apply, finset.smul_sum, smul_smul, ennreal.to_real_mul_to_real]
+end
 
 lemma integral_map_measure {β} [measurable_space β] {φ : α → β} (hφ : measurable φ)
   {f : β → E} (hfm : measurable f) :
@@ -1318,6 +1367,12 @@ begin
   rw [hy],
   simp
 end
+
+lemma integral_dirac (f : α → E) (a : α) (hfm : measurable f) :
+  ∫ x, f x ∂(measure.dirac a) = f a :=
+calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
+  integral_congr_ae hfm measurable_const $ eventually_eq_dirac hfm
+... = f a : by simp [measure.dirac_apply_of_mem]
 
 end properties
 

@@ -1769,7 +1769,7 @@ begin
     refine subset.trans _ h,
     have : f '' (V ∩ f ⁻¹' Z) ⊆ f '' (V ∩ W),
       from  image_subset _ (inter_subset_inter_right _ ‹_›),
-    rwa set.push_pull at this }
+    rwa image_inter_preimage at this }
 end
 
 protected lemma push_pull' (f : α → β) (F : filter α) (G : filter β) :

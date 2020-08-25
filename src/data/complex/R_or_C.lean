@@ -315,7 +315,8 @@ by rw [← of_real_rat_cast, of_real_im]
 
 /--
 ℝ and ℂ are both of characteristic zero.
-Note: This is not registered as an instance to having multiple instances on ℝ and ℂ.
+
+Note: This is not registered as an instance to avoid having multiple instances on ℝ and ℂ.
 -/
 def char_zero_R_or_C : char_zero K :=
 add_group.char_zero_of_inj_zero $ λ n h,

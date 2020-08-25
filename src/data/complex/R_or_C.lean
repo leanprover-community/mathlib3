@@ -10,7 +10,7 @@ import analysis.complex.basic
 /-!
 # `is_R_or_C`: a typeclass for ℝ or ℂ
 
-This file defines the typeclass is_R_or_C intended to have only two instances:
+This file defines the typeclass `is_R_or_C` intended to have only two instances:
 ℝ and ℂ. It is meant for definitions and theorems which hold for both the
 real and the complex case, such as inner products and Hilbert spaces. Its API
 follows closely that of ℂ.

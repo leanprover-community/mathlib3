@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
 import set_theory.game.impartial
-import set_theory.ordinal_arithmetic
-import set_theory.cardinal_ordinal
+import set_theory.ordinal
 import data.set
 import logic.basic
 
@@ -257,3 +256,4 @@ lemma Grundy_value_nim (O : ordinal.{u}) : Grundy_value (nim_impartial O) = O :=
 by rw ←equiv_nim_iff_Grundy_value_eq
 
 end nim
+#lint

@@ -1160,7 +1160,7 @@ theorem has_ftaylor_series_up_to_succ_iff_right {n : ℕ} :
   ∧ has_ftaylor_series_up_to n
     (λ x, continuous_multilinear_curry_fin1 𝕜 E F (p x 1)) (λ x, (p x).shift) :=
 by simp [has_ftaylor_series_up_to_on_succ_iff_right, has_ftaylor_series_up_to_on_univ_iff.symm,
-         -add_comm, -with_bot.coe_add]
+         -add_comm, -with_zero.coe_add]
 
 /-! ### Smooth functions at a point -/
 
@@ -1400,7 +1400,7 @@ theorem times_cont_diff_succ_iff_fderiv {n : ℕ} :
   differentiable 𝕜 f ∧ times_cont_diff 𝕜 n (λ y, fderiv 𝕜 f y) :=
 by simp [times_cont_diff_on_univ.symm, differentiable_on_univ.symm, fderiv_within_univ.symm,
          - fderiv_within_univ, times_cont_diff_on_succ_iff_fderiv_within unique_diff_on_univ,
-         -with_bot.coe_add, -add_comm]
+         -with_zero.coe_add, -add_comm]
 
 /-- A function is `C^∞` on a domain with unique derivatives if and only if it is differentiable
 there, and its derivative is `C^∞`. -/

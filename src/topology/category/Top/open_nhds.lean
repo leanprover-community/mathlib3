@@ -65,11 +65,11 @@ full_subcategory_inclusion _
 
 @[simp] lemma inclusion_obj (x : X) (U) (p) : (inclusion x).obj ⟨U,p⟩ = U := rfl
 
-lemma open_nhds_is_filtered (x : X) : is_filtered (open_nhds x)ᵒᵖ :=
+instance open_nhds_is_filtered (x : X) : is_filtered (open_nhds x)ᵒᵖ :=
 { nonempty := ⟨op ⊤⟩,
   cocone_objs := λ U V, ⟨op (unop U ⊓ unop V),
     (inf_le_left (unop U) (unop V)).op, (inf_le_right (unop U) (unop V)).op, trivial⟩ ,
-  cocone_maps := λ U V i j, begin end, }
+  cocone_maps := λ U V i j, ⟨V, 𝟙 V, rfl⟩, }
 
 def map (x : X) : open_nhds (f x) ⥤ open_nhds x :=
 { obj := λ U, ⟨(opens.map f).obj U.1, by tidy⟩,

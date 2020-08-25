@@ -72,7 +72,9 @@ lemma germ_eq (F : X.presheaf (Type v)) {U V : opens X} (x : X) (mU : x ∈ U) (
   (h : germ F ⟨x, mU⟩ s = germ F ⟨x, mV⟩ t) :
   ∃ (W : opens X) (m : x ∈ W) (iU : W ⟶ U) (iV : W ⟶ V), F.map iU.op s = F.map iV.op t :=
 begin
-  sorry,
+  erw types.filtered_colimit.colimit_eq_iff at h,
+  rcases h with ⟨W, iU, iV, e⟩,
+  exact ⟨(unop W).1, (unop W).2, iU.unop, iV.unop, e⟩,
 end
 
 @[simp] lemma germ_res (F : X.presheaf C) {U V : opens X} (i : U ⟶ V) (x : U) :

@@ -460,20 +460,22 @@ lemma succ_above_inj_about_pivot {x : fin (n + 1)} :
   x.succ_above a = x.succ_above b ↔ a = b :=
 begin
   refine iff.intro _ (λ h, by rw h),
-  unfold succ_above,
   intro h,
-  split_ifs at h with ha hb hb ha,
-  { exact cast_succ_inj.mp h },
-  { rw h at ha,
-    exact absurd (lt_of_le_of_lt (le_of_not_lt hb) (cast_succ_lt_succ _)) (asymm ha) },
-  { rw ←h at hb,
-    exact absurd (lt_of_le_of_lt (le_of_not_lt ha) (cast_succ_lt_succ _)) (asymm hb) },
-  { exact succ.inj h }
+  cases succ_above_lt_ge x a with ha ha;
+  cases succ_above_lt_ge x b with hb hb,
+  { simpa only [succ_above_below, ha, hb, cast_succ_inj] using h },
+  { simp only [succ_above_below, succ_above_above, ha, hb] at h,
+    rw h at ha,
+    exact absurd (lt_of_le_of_lt hb (cast_succ_lt_succ _)) (asymm ha) },
+  { simp only [succ_above_below, succ_above_above, ha, hb] at h,
+    rw ←h at hb,
+    exact absurd (lt_of_le_of_lt ha (cast_succ_lt_succ _)) (asymm hb) },
+  { simpa only [succ_above_above, ha, hb, succ_inj] using h },
 end
 
 /-- Given a fixed pivot `x : fin (n + 1)`, `x.succ_above` is injective -/
 lemma succ_above_injective_about_pivot {x : fin (n + 1)} : injective (succ_above x) :=
-λ _ _ h, succ_above_inj_about_pivot.mp h
+λ _ _, succ_above_inj_about_pivot.mp
 
 /-- Embedding a `fin (n + 1)` into `fin n` and embedding it back around the same hole
 gives the starting `fin (n + 1)` -/
@@ -502,6 +504,22 @@ begin
     { exact absurd h H },
     { simp [succ_above_above _ _ (le_of_not_lt H), pred_succ, dif_neg (asymm h)] } }
 end
+
+/-- `succ_above` is injective at the pivot -/
+lemma succ_above_inj_at_pivot {x y : fin (n + 1)} :
+  x.succ_above = y.succ_above ↔ x = y :=
+begin
+  refine iff.intro _ (λ h, by rw h),
+  contrapose!,
+  intros H h,
+  have key := congr_fun h (y.pred_above x H),
+  rw [succ_above_descend] at key,
+  exact absurd key (succ_above_ne x _)
+end
+
+/-- `succ_above` is injective at the pivot -/
+lemma succ_above_injective_at_pivot : injective (@succ_above n) :=
+λ _ _, succ_above_inj_at_pivot.mp
 
 /-- A function `f` on `fin n` is strictly monotone if and only if `f i < f (i+1)` for all `i`. -/
 lemma strict_mono_iff_lt_succ {α : Type*} [preorder α] {f : fin n → α} :

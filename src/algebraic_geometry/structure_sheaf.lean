@@ -300,4 +300,19 @@ def structure_sheaf : sheaf CommRing (Top.of (prime_spectrum R)) :=
       (sheaf_condition_equiv_of_iso (structure_presheaf_comp_forget R).symm
         (structure_sheaf_in_Type R).sheaf_condition), }
 
--- TODO: we need to prove that the stalk at `P` is `localization.at_prime P.as_ideal`
+def stalk_iso' (x : prime_spectrum R) :
+  (structure_sheaf_in_Type R).presheaf.stalk x ≅ localization.at_prime x.as_ideal :=
+(equiv.of_bijective _ ⟨structure_sheaf_stalk_to_fiber_injective R x, structure_sheaf_stalk_to_fiber_surjective R x⟩).to_iso
+
+-- TODO We need to improve this to an isomorphism of rings:
+
+def stalk_iso (x : prime_spectrum R) :
+  (structure_sheaf R).presheaf.stalk x ≅ CommRing.of (localization.at_prime x.as_ideal) :=
+sorry
+
+-- To achieve this, we first need to show that `stalk_to_fiber` is a ring hom,
+-- and for that, I think we may need that `forget CommRing` preserves filtered colimits.
+
+def stalk_to_fiber_ring_hom (x : prime_spectrum R) :
+  (structure_sheaf R).presheaf.stalk x ⟶ CommRing.of (localization.at_prime x.as_ideal) :=
+sorry

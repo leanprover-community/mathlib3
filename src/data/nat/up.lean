@@ -14,6 +14,10 @@ import data.nat.basic
 This allows us to prove `>` is well-founded when `∃ i, p i`. This helps implement
 searches on `ℕ`, starting at `0` and with an unknown upper-bound.
 
+It is similar to the well founded relation constructed to define `nat.find` with
+the difference that, in `nat.up p`, `p` does not need to be decidable. In fact,
+`nat.find` could be slightly altered to factor decidability out of its
+well founded relation and would then fulfill the same purpose as this file.
 -/
 
 namespace nat

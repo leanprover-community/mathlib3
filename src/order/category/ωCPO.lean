@@ -7,7 +7,29 @@ Author: Simon Hudon
 import order.omega_complete_partial_order
 import order.category.Preorder
 
-/-! # Category of types with a omega complete partial order -/
+/-! # Category of types with a omega complete partial order
+
+In this file, we bundle the class `omega_complete_partial_order` into a
+concrete category and prove that continuous functions also form
+a `omega_complete_partial_order`.
+
+## Main definitions
+
+ * `continuous_hom` (with notation →𝒄)
+   * an instance of `omega_complete_partial_order (α →𝒄 β)`
+ * `continuous_hom.of_fun`
+ * `continuous_hom.of_mono`
+ * continuous functions:
+   * `id`
+   * `ite`
+   * `const`
+   * `roption.bind`
+   * `roption.map`
+   * `roption.seq`
+ * `ωCPO`
+   * an instance of `category` and `concrete_category`
+
+ -/
 
 open category_theory
 
@@ -33,7 +55,7 @@ attribute [nolint doc_blame] continuous_hom.to_preorder_hom
 
 end old_struct
 
-infixr ` →𝒄 `:20 := continuous_hom
+infixr ` →𝒄 `:20 := continuous_hom -- Input: \r\MIc
 
 instance : has_coe_to_fun (α →𝒄 β) :=
 { F := λ _, α → β,
@@ -53,7 +75,7 @@ lemma continuous (F : α →𝒄 β) (C : chain α) :
   F (ωSup C) = ωSup (C.map F) :=
 continuous_hom.continuous' _ _
 
-/-- make a continuous function from bare a function, a continuous function and a proof that
+/-- make a continuous function from a bare function, a continuous function and a proof that
 they are equal -/
 @[simps, reducible]
 def of_fun (f : α → β) (g : α →𝒄 β) (h : f = g) : α →𝒄 β :=

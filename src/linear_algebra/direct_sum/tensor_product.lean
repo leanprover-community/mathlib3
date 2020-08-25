@@ -11,6 +11,7 @@ section ring
 namespace tensor_product
 
 open_locale tensor_product
+open_locale direct_sum
 open linear_map
 
 variables (R : Type*) [comm_ring R]
@@ -20,10 +21,10 @@ variables (M₁ : ι₁ → Type*) (M₂ : ι₂ → Type*)
 variables [Π i₁, add_comm_group (M₁ i₁)] [Π i₂, add_comm_group (M₂ i₂)]
 variables [Π i₁, module R (M₁ i₁)] [Π i₂, module R (M₂ i₂)]
 
-/-- The linear equivalence `(⊕ i₁, M₁ i₁) ⊗ (⊕ i₂, M₂ i₂) ≃ (⊕ i₁, ⊕ i₂, M₁ i₁ ⊗ M₂ i₂)`, i.e.
+/-- The linear equivalence `(⨁ i₁, M₁ i₁) ⊗ (⨁ i₂, M₂ i₂) ≃ (⨁ i₁, ⨁ i₂, M₁ i₁ ⊗ M₂ i₂)`, i.e.
 "tensor product distributes over direct sum". -/
 def direct_sum :
-  direct_sum ι₁ M₁ ⊗[R] direct_sum ι₂ M₂ ≃ₗ[R] direct_sum (ι₁ × ι₂) (λ i, M₁ i.1 ⊗[R] M₂ i.2) :=
+  (⨁ i₁, M₁ i₁) ⊗[R] (⨁ i₂, M₂ i₂) ≃ₗ[R] (⨁ (i : ι₁ × ι₂), M₁ i.1 ⊗[R] M₂ i.2) :=
 begin
   refine linear_equiv.of_linear
     (lift $ direct_sum.to_module R _ _ $ λ i₁, flip $ direct_sum.to_module R _ _ $ λ i₂,

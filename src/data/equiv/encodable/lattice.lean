@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Floris van Doorn
 -/
 import data.equiv.encodable.basic
-import data.finset
+import data.finset.basic
 import data.set.disjointed
 /-!
 # Lattice operations on encodable types

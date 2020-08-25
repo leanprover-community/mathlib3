@@ -204,8 +204,8 @@ lemma integral_eq_sum_filter (f : α →ₛ F) (μ) :
   f.integral μ = ∑ x in f.range.filter (λ x, x ≠ 0), (ennreal.to_real (μ (f ⁻¹' {x}))) • x :=
 eq.symm $ sum_filter_of_ne $ λ x _, mt $ λ h0, h0.symm ▸ smul_zero _
 
-/-- Calculate the integral of `g ∘ f : α →ₛ F`, where `f` is an integrable function from `α` to `β`
-    and `g` is a function from `β` to `F`. We require `g 0 = 0` so that `g ∘ f` is integrable. -/
+/-- Calculate the integral of `g ∘ f : α →ₛ F`, where `f` is an integrable function from `α` to `E`
+    and `g` is a function from `E` to `F`. We require `g 0 = 0` so that `g ∘ f` is integrable. -/
 lemma map_integral (f : α →ₛ E) (g : E → F) (hf : integrable f μ) (hg : g 0 = 0) :
   (f.map g).integral μ = ∑ x in f.range, (ennreal.to_real (μ (f ⁻¹' {x}))) • (g x) :=
 begin
@@ -558,12 +558,10 @@ variables (α E)
 lemma zero_to_simple_func : (0 : α →₁ₛ[μ] E).to_simple_func =ᵐ[μ] 0 :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (0 : α →₁ₛ[μ] E), l1.zero_to_fun α E],
-  assume a,
   simp only [mem_set_of_eq],
-  assume h,
+  assume a h,
   rw h,
-  assume h,
-  exact h
+  exact id
 end
 variables {α E}
 
@@ -1022,7 +1020,7 @@ begin
   by_cases hf : measurable f ∧ integrable f μ,
   { rw [integral_eq f hf.1 hf.2, ← l1.norm_of_fun_eq_lintegral_norm f hf.1 hf.2],
     exact l1.norm_integral_le _ },
-  { rw [integral_undef hf, _root_.norm_zero],
+  { rw [integral_undef hf, norm_zero],
     exact to_real_nonneg }
 end
 
@@ -1064,7 +1062,7 @@ begin
   refine squeeze_zero (λ n, norm_nonneg _) _ lintegral_norm_tendsto_zero,
   -- Show `∥∫ a, F n a - ∫ f∥ ≤ ∫ a, ∥F n a - f a∥` for all `n`
   { assume n,
-    have h₁ : integrable (F n) μ := integrable_of_integrable_bound bound_integrable (h_bound _),
+    have h₁ : integrable (F n) μ := bound_integrable.mono' (h_bound _),
     have h₂ : integrable f μ := integrable_of_dominated_convergence bound_integrable h_bound h_lim,
     rw ← integral_sub (F_measurable _) h₁ f_measurable h₂,
     exact norm_integral_le_lintegral_norm _ }
@@ -1152,8 +1150,7 @@ begin
         simp only [pi.zero_apply],
         assume a h,
         simp only [min_eq_right h, neg_zero, ennreal.of_real_zero] },
-      { refine measurable_of_real.comp
-          ((measurable.neg measurable_id).comp $ measurable.min hfm measurable_const) } },
+      { exact measurable_of_real.comp (measurable_id.neg.comp $ hfm.min measurable_const) } },
     have h_max : ∫⁻ a, ennreal.of_real (max (f a) 0) ∂μ = ∫⁻ a, ennreal.of_real (f a) ∂μ,
     { refine lintegral_congr_ae (hf.mono (λ a h, _)),
       rw [pi.zero_apply] at h,
@@ -1162,10 +1159,7 @@ begin
   { rw integral_non_integrable hfi,
     rw [integrable_iff_norm, lt_top_iff_ne_top, ne.def, not_not] at hfi,
     have : ∫⁻ (a : α), ennreal.of_real (f a) ∂μ = ∫⁻ a, (ennreal.of_real ∥f a∥) ∂μ,
-    { apply lintegral_congr_ae,
-      filter_upwards [hf],
-      simp only [mem_set_of_eq],
-      assume a h,
+    { refine lintegral_congr_ae (hf.mono $ assume a h, _),
       rw [real.norm_eq_abs, abs_of_nonneg h] },
     rw [this, hfi], refl }
 end
@@ -1189,6 +1183,18 @@ lemma integral_mono {f g : α → ℝ} (hfm : measurable f) (hfi : integrable f 
 le_of_sub_nonneg $ integral_sub hgm hgi hfm hfi ▸
   integral_nonneg_of_ae $ h.mono (λ a, sub_nonneg_of_le)
 
+lemma integral_mono_of_nonneg {f g : α → ℝ} (hf : 0 ≤ᵐ[μ] f) (hgm : measurable g)
+  (hgi : integrable g μ) (h : f ≤ᵐ[μ] g) :
+  ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=
+begin
+  by_cases hfm : measurable f,
+  { refine integral_mono hfm _ hgm hgi h,
+    refine (hgi.mono $ h.mp $ hf.mono $ λ x hf hfg, _),
+    simpa [real.norm_eq_abs, abs_of_nonneg hf, abs_of_nonneg (le_trans hf hfg)] },
+  { rw [integral_non_measurable hfm],
+    exact integral_nonneg_of_ae (hf.trans h) }
+end
+
 lemma norm_integral_le_integral_norm (f : α → E) : ∥(∫ a, f a ∂μ)∥ ≤ ∫ a, ∥f a∥ ∂μ :=
 have le_ae : ∀ᵐ a ∂μ, 0 ≤ ∥f a∥ := eventually_of_forall (λa, norm_nonneg _),
 classical.by_cases
@@ -1197,9 +1203,16 @@ classical.by_cases
     ... = ∫ a, ∥f a∥ ∂μ : (integral_eq_lintegral_of_nonneg_ae le_ae $ measurable.norm h).symm )
 ( λh : ¬measurable f,
   begin
-    rw [integral_non_measurable h, _root_.norm_zero],
+    rw [integral_non_measurable h, norm_zero],
     exact integral_nonneg_of_ae le_ae
   end )
+
+lemma norm_integral_le_of_norm_le {f : α → E} {g : α → ℝ}
+  (hgm : measurable g) (hgi : integrable g μ) (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ g x) :
+  ∥∫ x, f x ∂μ∥ ≤ ∫ x, g x ∂μ :=
+calc ∥∫ x, f x ∂μ∥ ≤ ∫ x, ∥f x∥ ∂μ : norm_integral_le_integral_norm f
+               ... ≤ ∫ x, g x ∂μ   :
+  integral_mono_of_nonneg (eventually_of_forall $ λ x, norm_nonneg _) hgm hgi h
 
 lemma integral_finset_sum {ι} (s : finset ι) {f : ι → α → E}
   (hfm : ∀ i, measurable (f i)) (hfi : ∀ i, integrable (f i) μ) :
@@ -1224,9 +1237,9 @@ end
 @[simp] lemma integral_const (c : E) : ∫ x : α, c ∂μ = (μ univ).to_real • c :=
 begin
   by_cases hμ : μ univ < ⊤,
-  { have : integrable (simple_func.const α c) μ := integrable_const.2 (or.inr hμ),
+  { haveI : finite_measure μ := ⟨hμ⟩,
     calc ∫ x : α, c ∂μ = (simple_func.const α c).integral μ :
-      ((simple_func.const α c).integral_eq_integral this).symm
+      ((simple_func.const α c).integral_eq_integral (integrable_const _)).symm
     ... = _ : _,
     rw [simple_func.integral],
     by_cases ha : nonempty α,
@@ -1235,17 +1248,24 @@ begin
   { by_cases hc : c = 0,
     { simp [hc] },
     { have : ¬integrable (λ x : α, c) μ,
-      { simp only [integrable_const, not_or_distrib],
+      { simp only [integrable_const_iff, not_or_distrib],
         exact ⟨hc, hμ⟩ },
       simp only [not_lt, top_le_iff] at hμ,
       simp [integral_non_integrable, *] } }
 end
 
+lemma norm_integral_le_of_norm_le_const [finite_measure μ] {f : α → E} {C : ℝ}
+  (h : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
+  ∥∫ x, f x ∂μ∥ ≤ C * (μ univ).to_real :=
+calc ∥∫ x, f x ∂μ∥ ≤ ∫ x, C ∂μ : norm_integral_le_of_norm_le measurable_const (integrable_const C) h
+               ... = C * (μ univ).to_real : by rw [integral_const, smul_eq_mul, mul_comm]
+
 variable {ν : measure α}
 
-lemma integral_add_meas {f : α → E} (hfm : measurable f) (hfi : integrable f (μ + ν)) :
+lemma integral_add_meas {f : α → E} (hfm : measurable f) (hμ : integrable f μ) (hν : integrable f ν) :
   ∫ x, f x ∂(μ + ν) = ∫ x, f x ∂μ + ∫ x, f x ∂ν :=
 begin
+  have hfi := hμ.add_meas hν,
   rcases simple_func_sequence_tendsto' hfm hfi with ⟨F, hFi, hFt⟩,
   have hFiμ : ∀ i, integrable (F i) μ := λ i, (hFi i).left_of_add_meas,
   have hFiν : ∀ i, integrable (F i) ν := λ i, (hFi i).right_of_add_meas,
@@ -1254,17 +1274,48 @@ begin
     tendsto_integral_of_l1 _ hfm hfi (eventually_of_forall $ λ i, (F i).measurable)
       (eventually_of_forall hFi) hFt,
   have hμ : tendsto (λ i, ∫ x, F i x ∂μ) at_top (𝓝 ∫ x, f x ∂μ),
-  { refine tendsto_integral_of_l1 _ hfm hfi.left_of_add_meas
-      (eventually_of_forall $ λ i, (F i).measurable) (eventually_of_forall hFiμ) _,
+  { refine tendsto_integral_of_l1 _ hfm hμ (eventually_of_forall $ λ i, (F i).measurable)
+      (eventually_of_forall hFiμ) _,
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hFt (λ _, zero_le _) _,
     exact λ i, lintegral_mono' (measure.le_add_right $ le_refl μ) (le_refl _) },
   have hν : tendsto (λ i, ∫ x, F i x ∂ν) at_top (𝓝 ∫ x, f x ∂ν),
-  { refine tendsto_integral_of_l1 _ hfm hfi.right_of_add_meas
-      (eventually_of_forall $ λ i, (F i).measurable) (eventually_of_forall hFiν) _,
+  { refine tendsto_integral_of_l1 _ hfm hν (eventually_of_forall $ λ i, (F i).measurable)
+      (eventually_of_forall hFiν) _,
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hFt (λ _, zero_le _) _,
     exact λ i, lintegral_mono' (measure.le_add_left $ le_refl ν) (le_refl _) },
   apply tendsto_nhds_unique hμν,
   simpa only [← simple_func.integral_eq_integral, *, simple_func.integral_add_meas] using hμ.add hν
+end
+
+@[simp] lemma integral_zero_meas (f : α → E) : ∫ x, f x ∂0 = 0 :=
+norm_le_zero_iff.1 $ le_trans (norm_integral_le_lintegral_norm f) $ by simp
+
+lemma integral_map_meas {β} [measurable_space β] {φ : α → β} (hφ : measurable φ)
+  {f : β → E} (hfm : measurable f) :
+  ∫ y, f y ∂(measure.map φ μ) = ∫ x, f (φ x) ∂μ :=
+begin
+  by_cases hfi : integrable f (measure.map φ μ), swap,
+  { rw [integral_non_integrable hfi, integral_non_integrable],
+    rwa [← integrable_map_meas hφ hfm] },
+  rcases simple_func_sequence_tendsto' hfm hfi with ⟨F, hFi, hFt⟩,
+  simp only [← edist_nndist] at hFt,
+  have hF : tendsto (λ i, ∫ x, F i x ∂(measure.map φ μ)) at_top (𝓝 ∫ x, f x ∂(measure.map φ μ)) :=
+    tendsto_integral_of_l1 _ hfm hfi (eventually_of_forall $ λ i, (F i).measurable)
+      (eventually_of_forall hFi) hFt,
+  refine tendsto_nhds_unique hF _, clear hF,
+  simp only [lintegral_map ((F _).measurable.edist hfm) hφ] at hFt,
+  have hFi' := hFi,
+  simp only [integrable_map_meas, hφ, hfm, (F _).measurable] at hfi hFi',
+  refine (tendsto_integral_of_l1 _ (hfm.comp hφ) hfi
+    (eventually_of_forall $ λ i, (F i).measurable.comp hφ)
+    (eventually_of_forall $ hFi') hFt).congr (λ n, _),
+  rw [← simple_func.integral_eq_integral _ (hFi n), ← simple_func.coe_comp _ hφ,
+    ← simple_func.integral_eq_integral ((F n).comp φ hφ) (hFi' n)],
+  simp only [simple_func.integral, measure.map_apply, *, simple_func.is_measurable_preimage],
+  refine finset.sum_subset ((F n).range_comp_subset_range _) (λ y _ hy, _),
+  rw [simple_func.mem_range, ← set.preimage_singleton_eq_empty] at hy,
+  rw [hy],
+  simp
 end
 
 end properties

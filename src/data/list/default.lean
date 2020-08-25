@@ -13,6 +13,7 @@ import data.list.forall2
 import data.list.func
 import data.list.intervals
 import data.list.min_max
+import data.list.indexes
 import data.list.nat_antidiagonal
 import data.list.nodup
 import data.list.of_fn

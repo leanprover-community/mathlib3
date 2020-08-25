@@ -130,8 +130,8 @@ structure model_with_corners (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   extends local_equiv H E :=
 (source_eq          : source = univ)
 (unique_diff'       : unique_diff_on 𝕜 (range to_fun))
-(continuous_to_fun  : continuous to_fun)
-(continuous_inv_fun : continuous inv_fun)
+(continuous_to_fun  : continuous to_fun . tactic.interactive.continuity')
+(continuous_inv_fun : continuous inv_fun . tactic.interactive.continuity')
 
 attribute [simp, mfld_simps] model_with_corners.source_eq
 
@@ -462,12 +462,12 @@ begin
   simp only at he he_symm he' he'_symm,
   split;
   simp only [local_equiv.prod_source, local_homeomorph.prod_to_local_equiv],
-  { have h3 := times_cont_diff_on.map_prod he he',
+  { have h3 := times_cont_diff_on.prod_map he he',
     rw [← model_with_corners.image I _, ← model_with_corners.image I' _,
     set.prod_image_image_eq] at h3,
     rw ← model_with_corners.image (I.prod I') _,
     exact h3, },
-  { have h3 := times_cont_diff_on.map_prod he_symm he'_symm,
+  { have h3 := times_cont_diff_on.prod_map he_symm he'_symm,
     rw [← model_with_corners.image I _, ← model_with_corners.image I' _,
     set.prod_image_image_eq] at h3,
     rw ← model_with_corners.image (I.prod I') _,
@@ -620,7 +620,7 @@ begin
 end
 
 lemma ext_chart_at_target_mem_nhds_within :
-  (ext_chart_at I x).target ∈ nhds_within ((ext_chart_at I x) x) (range I) :=
+  (ext_chart_at I x).target ∈ 𝓝[range I] ((ext_chart_at I x) x) :=
 begin
   rw [ext_chart_at, local_equiv.trans_target],
   simp only [function.comp_app, local_equiv.coe_trans, model_with_corners.target],
@@ -635,8 +635,8 @@ lemma ext_chart_at_coe_symm (p : E) :
   (ext_chart_at I x).symm p = ((chart_at H x).symm : H → M) (I.symm p) := rfl
 
 lemma nhds_within_ext_chart_target_eq :
-  nhds_within ((ext_chart_at I x) x) (ext_chart_at I x).target =
-  nhds_within ((ext_chart_at I x) x) (range I) :=
+  𝓝[(ext_chart_at I x).target] ((ext_chart_at I x) x) =
+  𝓝[range I] ((ext_chart_at I x) x) :=
 begin
   apply le_antisymm,
   { apply nhds_within_mono,
@@ -664,9 +664,9 @@ ext_chart_continuous_at_symm' I x (mem_ext_chart_source I x)
 /-- Technical lemma ensuring that the preimage under an extended chart of a neighborhood of a point
 in the source is a neighborhood of the preimage, within a set. -/
 lemma ext_chart_preimage_mem_nhds_within' {x' : M} (h : x' ∈ (ext_chart_at I x).source)
-  (ht : t ∈ nhds_within x' s) :
-  (ext_chart_at I x).symm ⁻¹' t ∈ nhds_within ((ext_chart_at I x) x')
-    ((ext_chart_at I x).symm ⁻¹' s ∩ range I) :=
+  (ht : t ∈ 𝓝[s] x') :
+  (ext_chart_at I x).symm ⁻¹' t ∈
+    𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x') :=
 begin
   apply (ext_chart_continuous_at_symm' I x h).continuous_within_at.tendsto_nhds_within_image,
   rw (ext_chart_at I x).left_inv h,
@@ -678,9 +678,9 @@ end
 
 /-- Technical lemma ensuring that the preimage under an extended chart of a neighborhood of the
 base point is a neighborhood of the preimage, within a set. -/
-lemma ext_chart_preimage_mem_nhds_within (ht : t ∈ nhds_within x s) :
-  (ext_chart_at I x).symm ⁻¹' t ∈ nhds_within ((ext_chart_at I x) x)
-    ((ext_chart_at I x).symm ⁻¹' s ∩ range I) :=
+lemma ext_chart_preimage_mem_nhds_within (ht : t ∈ 𝓝[s] x) :
+  (ext_chart_at I x).symm ⁻¹' t ∈
+    𝓝[(ext_chart_at I x).symm ⁻¹' s ∩ range I] ((ext_chart_at I x) x) :=
 ext_chart_preimage_mem_nhds_within' I x (mem_ext_chart_source I x) ht
 
 /-- Technical lemma ensuring that the preimage under an extended chart of a neighborhood of a point

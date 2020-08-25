@@ -58,8 +58,8 @@ lemma pi_cons_injective  {a : α} {b : δ a} {s : finset α} (hs : a ∉ s) :
 assume e₁ e₂ eq,
 @multiset.pi_cons_injective α _ δ a b s.1 hs _ _ $
   funext $ assume e, funext $ assume h,
-  have pi.cons s a b e₁ e (by simpa only [mem_cons, mem_insert] using h) =
-    pi.cons s a b e₂ e (by simpa only [mem_cons, mem_insert] using h),
+  have pi.cons s a b e₁ e (by simpa only [multiset.mem_cons, mem_insert] using h) =
+    pi.cons s a b e₂ e (by simpa only [multiset.mem_cons, mem_insert] using h),
   { rw [eq] },
   this
 

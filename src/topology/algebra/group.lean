@@ -12,7 +12,7 @@ import topology.algebra.monoid
 import topology.homeomorph
 
 open classical set filter topological_space
-open_locale classical topological_space
+open_locale classical topological_space filter
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -29,7 +29,7 @@ class topological_add_group (α : Type u) [topological_space α] [add_group α]
 
 /-- A topological group is a group in which the multiplication and inversion operations are
 continuous. -/
-@[to_additive topological_add_group]
+@[to_additive]
 class topological_group (α : Type*) [topological_space α] [group α]
   extends has_continuous_mul α : Prop :=
 (continuous_inv : continuous (λa:α, a⁻¹))
@@ -41,10 +41,12 @@ variables [topological_space α] [group α]
 lemma continuous_inv [topological_group α] : continuous (λx:α, x⁻¹) :=
 topological_group.continuous_inv
 
-@[to_additive]
+@[to_additive, continuity]
 lemma continuous.inv [topological_group α] [topological_space β] {f : β → α}
   (hf : continuous f) : continuous (λx, (f x)⁻¹) :=
 continuous_inv.comp hf
+
+attribute [continuity] continuous.neg
 
 @[to_additive]
 lemma continuous_on_inv [topological_group α] {s : set α} : continuous_on (λx:α, x⁻¹) s :=
@@ -80,7 +82,7 @@ lemma continuous_within_at.inv [topological_group α] [topological_space β] {f 
   continuous_within_at (λx, (f x)⁻¹) s x :=
 hf.inv
 
-@[to_additive topological_add_group]
+@[to_additive]
 instance [topological_group α] [topological_space β] [group β] [topological_group β] :
   topological_group (α × β) :=
 { continuous_inv := continuous_fst.inv.prod_mk continuous_snd.inv }
@@ -137,14 +139,14 @@ end
 
 @[to_additive exists_nhds_half_neg]
 lemma exists_nhds_split_inv [topological_group α] {s : set α} (hs : s ∈ 𝓝 (1 : α)) :
-  ∃ V ∈ 𝓝 (1 : α), ∀ v w ∈ V, v * w⁻¹ ∈ s :=
+  ∃ V ∈ 𝓝 (1 : α), ∀ (v ∈ V) (w ∈ V), v * w⁻¹ ∈ s :=
 begin
-  have : tendsto (λa:α×α, a.1 * (a.2)⁻¹) ((𝓝 (1:α)).prod (𝓝 (1:α))) (𝓝 1),
+  have : tendsto (λa:α×α, a.1 * (a.2)⁻¹) (𝓝 (1:α) ×ᶠ 𝓝 (1:α)) (𝓝 1),
   { simpa using (@tendsto_fst α α (𝓝 1) (𝓝 1)).mul tendsto_snd.inv },
-  have : ((λa:α×α, a.1 * (a.2)⁻¹) ⁻¹' s) ∈ (𝓝 (1:α)).prod (𝓝 (1:α)) :=
+  have : ((λa:α×α, a.1 * (a.2)⁻¹) ⁻¹' s) ∈ 𝓝 (1:α) ×ᶠ 𝓝 (1:α) :=
     this (by simpa using hs),
-  rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
-  exact ⟨V₁ ∩ V₂, inter_mem_sets H₁ H₂, assume v w ⟨hv, _⟩ ⟨_, hw⟩, @H (v, w) ⟨hv, hw⟩⟩
+  rcases mem_prod_self_iff.1 this with ⟨V, H, H'⟩,
+  exact ⟨V, H, prod_subset_iff.1 H'⟩
 end
 
 @[to_additive exists_nhds_quarter]
@@ -191,16 +193,16 @@ eq_of_nhds_eq_nhds $ λ x, by
 end topological_group
 
 section quotient_topological_group
-variables [topological_space α] [group α] [topological_group α] (N : set α) [normal_subgroup N]
+variables [topological_space α] [group α] [topological_group α] (N : subgroup α) (n : N.normal)
 
 @[to_additive]
-instance {α : Type u} [group α] [topological_space α] (N : set α) [normal_subgroup N] :
+instance {α : Type u} [group α] [topological_space α] (N : subgroup α) :
   topological_space (quotient_group.quotient N) :=
 by dunfold quotient_group.quotient; apply_instance
 
 open quotient_group
-@[to_additive quotient_add_group_saturate]
-lemma quotient_group_saturate {α : Type u} [group α] (N : set α) [normal_subgroup N] (s : set α) :
+@[to_additive]
+lemma quotient_group_saturate {α : Type u} [group α] (N : subgroup α) (s : set α) :
   (coe : α → quotient N) ⁻¹' ((coe : α → quotient N) '' s) = (⋃ x : N, (λ y, y*x.1) '' s) :=
 begin
   ext x,
@@ -208,7 +210,7 @@ begin
   split,
   { exact assume ⟨a, a_in, h⟩, ⟨⟨_, h⟩, a, a_in, mul_inv_cancel_left _ _⟩ },
   { exact assume ⟨⟨i, hi⟩, a, ha, eq⟩,
-      ⟨a, ha, by simp only [eq.symm, (mul_assoc _ _ _).symm, inv_mul_cancel_left, hi]⟩ }
+      ⟨a, ha, by { simp only [eq.symm, (mul_assoc _ _ _).symm, inv_mul_cancel_left], exact hi }⟩ }
 end
 
 @[to_additive]
@@ -222,8 +224,8 @@ begin
   exact is_open_map_mul_right n s s_op
 end
 
-@[to_additive topological_add_group_quotient]
-instance topological_group_quotient : topological_group (quotient N) :=
+@[to_additive]
+instance topological_group_quotient (n : N.normal) : topological_group (quotient N) :=
 { continuous_mul := begin
     have cont : continuous ((coe : α → quotient N) ∘ (λ (p : α × α), p.fst * p.snd)) :=
       continuous_quot_mk.comp continuous_mul,
@@ -250,7 +252,7 @@ end quotient_topological_group
 section topological_add_group
 variables [topological_space α] [add_group α]
 
-lemma continuous.sub [topological_add_group α] [topological_space β] {f : β → α} {g : β → α}
+@[continuity] lemma continuous.sub [topological_add_group α] [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λx, f x - g x) :=
 by simp [sub_eq_add_neg]; exact hf.add hg.neg
 
@@ -281,7 +283,7 @@ non-commutative groups too.
 class add_group_with_zero_nhd (α : Type u) extends add_comm_group α :=
 (Z [] : filter α)
 (zero_Z : pure 0 ≤ Z)
-(sub_Z : tendsto (λp:α×α, p.1 - p.2) (Z.prod Z) Z)
+(sub_Z : tendsto (λp:α×α, p.1 - p.2) (Z ×ᶠ Z) Z)
 end prio
 
 namespace add_group_with_zero_nhd
@@ -302,16 +304,16 @@ have tendsto (λa:α, 0 - a) (Z α) (Z α), from
   sub_Z.comp (tendsto.prod_mk this tendsto_id),
 by simpa
 
-lemma add_Z : tendsto (λp:α×α, p.1 + p.2) ((Z α).prod (Z α)) (Z α) :=
-suffices tendsto (λp:α×α, p.1 - -p.2) ((Z α).prod (Z α)) (Z α),
+lemma add_Z : tendsto (λp:α×α, p.1 + p.2) (Z α ×ᶠ Z α) (Z α) :=
+suffices tendsto (λp:α×α, p.1 - -p.2) (Z α ×ᶠ Z α) (Z α),
   by simpa [sub_eq_add_neg],
 sub_Z.comp (tendsto.prod_mk tendsto_fst (neg_Z.comp tendsto_snd))
 
-lemma exists_Z_half {s : set α} (hs : s ∈ Z α) : ∃ V ∈ Z α, ∀ v w ∈ V, v + w ∈ s :=
+lemma exists_Z_half {s : set α} (hs : s ∈ Z α) : ∃ V ∈ Z α, ∀ (v ∈ V) (w ∈ V), v + w ∈ s :=
 begin
-  have : ((λa:α×α, a.1 + a.2) ⁻¹' s) ∈ (Z α).prod (Z α) := add_Z (by simpa using hs),
-  rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
-  exact ⟨V₁ ∩ V₂, inter_mem_sets H₁ H₂, assume v w ⟨hv, _⟩ ⟨_, hw⟩, @H (v, w) ⟨hv, hw⟩⟩
+  have : ((λa:α×α, a.1 + a.2) ⁻¹' s) ∈ Z α ×ᶠ Z α := add_Z (by simpa using hs),
+  rcases mem_prod_self_iff.1 this with ⟨V, H, H'⟩,
+  exact ⟨V, H, prod_subset_iff.1 H'⟩
 end
 
 lemma nhds_eq (a : α) : 𝓝 a = map (λx, x + a) (Z α) :=
@@ -324,10 +326,10 @@ topological_space.nhds_mk_of_nhds _ _
     begin
       refine ⟨(λx:α, x + b) '' t, image_mem_map ht, _, _⟩,
       { refine set.image_subset_iff.2 (assume b hbt, _),
-        simpa using eqt 0 b t0 hbt },
+        simpa using eqt 0 t0 b hbt },
       { rintros _ ⟨c, hb, rfl⟩,
         refine (Z α).sets_of_superset ht (assume x hxt, _),
-        simpa [add_assoc] using eqt _ _ hxt hb }
+        simpa [add_assoc] using eqt _ hxt _ hb }
     end)
 
 lemma nhds_zero_eq_Z : 𝓝 0 = Z α := by simp [nhds_eq]; exact filter.map_id
@@ -338,7 +340,7 @@ instance : has_continuous_add α :=
   begin
     rw [continuous_at, nhds_prod_eq, nhds_eq, nhds_eq, nhds_eq, filter.prod_map_map_eq,
       tendsto_map'_iff],
-    suffices :  tendsto ((λx:α, (a + b) + x) ∘ (λp:α×α,p.1 + p.2)) (filter.prod (Z α) (Z α))
+    suffices :  tendsto ((λx:α, (a + b) + x) ∘ (λp:α×α,p.1 + p.2)) (Z α ×ᶠ Z α)
       (map (λx:α, (a + b) + x) (Z α)),
     { simpa [(∘), add_comm, add_left_comm] },
     exact tendsto_map.comp add_Z

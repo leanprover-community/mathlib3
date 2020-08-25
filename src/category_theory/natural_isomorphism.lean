@@ -60,6 +60,48 @@ instance inv_app_is_iso (α : F ≅ G) (X : C) : is_iso (α.inv.app X) :=
   hom_inv_id' := begin rw [←comp_app, iso.inv_hom_id, ←id_app] end,
   inv_hom_id' := begin rw [←comp_app, iso.hom_inv_id, ←id_app] end }
 
+section
+/-!
+Unfortunately we need a separate set of cancellation lemmas for components of natural isomorphisms,
+because the `simp` normal form is `α.hom.app X`, rather than `α.app.hom X`.
+
+(With the later, the morphism would be visibly part of an isomorphism, so general lemmas about
+isomorphisms would apply.)
+
+In the future, we should consider a redesign that changes this simp norm form,
+but for now it breaks too many proofs.
+-/
+
+variables (α : F ≅ G)
+
+@[simp] lemma cancel_nat_iso_hom_left {X : C} {Z : D} (g g' : G.obj X ⟶ Z) :
+  α.hom.app X ≫ g = α.hom.app X ≫ g' ↔ g = g' :=
+by simp only [cancel_epi]
+
+@[simp] lemma cancel_nat_iso_inv_left {X : C} {Z : D} (g g' : F.obj X ⟶ Z) :
+  α.inv.app X ≫ g = α.inv.app X ≫ g' ↔ g = g' :=
+by simp only [cancel_epi]
+
+@[simp] lemma cancel_nat_iso_hom_right {X : D} {Y : C} (f f' : X ⟶ F.obj Y) :
+  f ≫ α.hom.app Y = f' ≫ α.hom.app Y ↔ f = f' :=
+by simp only [cancel_mono]
+
+@[simp] lemma cancel_nat_iso_inv_right {X : D} {Y : C} (f f' : X ⟶ G.obj Y) :
+  f ≫ α.inv.app Y = f' ≫ α.inv.app Y ↔ f = f' :=
+by simp only [cancel_mono]
+
+@[simp] lemma cancel_nat_iso_hom_right_assoc {W X X' : D} {Y : C}
+  (f : W ⟶ X) (g : X ⟶ F.obj Y) (f' : W ⟶ X') (g' : X' ⟶ F.obj Y)  :
+  f ≫ g ≫ α.hom.app Y = f' ≫ g' ≫ α.hom.app Y ↔ f ≫ g = f' ≫ g' :=
+by simp only [←category.assoc, cancel_mono]
+
+@[simp] lemma cancel_nat_iso_inv_right_assoc {W X X' : D} {Y : C}
+  (f : W ⟶ X) (g : X ⟶ G.obj Y) (f' : W ⟶ X') (g' : X' ⟶ G.obj Y)  :
+  f ≫ g ≫ α.inv.app Y = f' ≫ g' ≫ α.inv.app Y ↔ f ≫ g = f' ≫ g' :=
+by simp only [←category.assoc, cancel_mono]
+
+end
+
 variables {X Y : C}
 lemma naturality_1 (α : F ≅ G) (f : X ⟶ Y) :
   (α.inv.app X) ≫ (F.map f) ≫ (α.hom.app Y) = G.map f :=

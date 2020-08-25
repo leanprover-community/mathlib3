@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury Kudryashov
 -/
 import algebra.group.type_tags
-import algebra.ring
+import algebra.group.units_hom
+import algebra.ring.basic
 
 /-!
 # Unbundled monoid and group homomorphisms (deprecated)
@@ -97,7 +98,7 @@ class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) extends 
 (map_zero [] : f 0 = 0)
 
 /-- Predicate for monoid homomorphisms (deprecated -- use the bundled `monoid_hom` version). -/
-@[to_additive is_add_monoid_hom]
+@[to_additive]
 class is_monoid_hom [monoid α] [monoid β] (f : α → β) extends is_mul_hom f : Prop :=
 (map_one [] : f 1 = 1)
 end prio
@@ -119,7 +120,7 @@ variables {mM mN mP}
 lemma coe_of (f : M → N) [is_monoid_hom f] : ⇑ (monoid_hom.of f) = f :=
 rfl
 
-@[to_additive is_add_monoid_hom]
+@[to_additive]
 instance (f : M →* N) : is_monoid_hom (f : M → N) :=
 { map_mul := f.map_mul,
   map_one := f.map_one }
@@ -177,11 +178,11 @@ set_option default_priority 100 -- see Note [default priority]
 class is_add_group_hom [add_group α] [add_group β] (f : α → β) extends is_add_hom f : Prop
 
 /-- Predicate for group homomorphisms (deprecated -- use bundled `monoid_hom`). -/
-@[to_additive is_add_group_hom]
+@[to_additive]
 class is_group_hom [group α] [group β] (f : α → β) extends is_mul_hom f : Prop
 end prio
 
-@[to_additive is_add_group_hom]
+@[to_additive]
 instance monoid_hom.is_group_hom {G H : Type*} {_ : group G} {_ : group H} (f : G →* H) :
   is_group_hom (f : G → H) :=
 { map_mul := f.map_mul }
@@ -198,7 +199,7 @@ variables [group α] [group β] (f : α → β) [is_group_hom f]
 open is_mul_hom (map_mul)
 
 /-- A group homomorphism is a monoid homomorphism. -/
-@[priority 100, to_additive to_is_add_monoid_hom] -- see Note [lower instance priority]
+@[priority 100, to_additive] -- see Note [lower instance priority]
 instance to_is_monoid_hom : is_monoid_hom f :=
 is_monoid_hom.of_mul f
 
@@ -244,8 +245,37 @@ lemma inv {α β} [group α] [comm_group β] (f : α → β) [is_group_hom f] :
 
 end is_group_hom
 
+
+namespace ring_hom
+/-!
+These instances look redundant, because `deprecated.ring` provides `is_ring_hom` for a `→+*`.
+Nevertheless these are harmless, and helpful for stripping out dependencies on `deprecated.ring`.
+-/
+variables {R : Type*} {S : Type*}
+
+section
+variables [semiring R] [semiring S]
+
+instance (f : R →+* S) : is_monoid_hom f :=
+{ map_one := f.map_one,
+  map_mul := f.map_mul }
+
+instance (f : R →+* S) : is_add_monoid_hom f :=
+{ map_zero := f.map_zero,
+  map_add := f.map_add }
+end
+
+section
+variables [ring R] [ring S]
+
+instance (f : R →+* S) : is_add_group_hom f :=
+{ map_add := f.map_add }
+end
+
+end ring_hom
+
 /-- Inversion is a group homomorphism if the group is commutative. -/
-@[instance, to_additive is_add_group_hom]
+@[instance, to_additive]
 lemma inv.is_group_hom [comm_group α] : is_group_hom (has_inv.inv : α → α) :=
 { map_mul := mul_inv }
 

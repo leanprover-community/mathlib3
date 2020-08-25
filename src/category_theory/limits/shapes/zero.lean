@@ -111,7 +111,7 @@ variables (D : Type u') [category.{v'} D]
 
 variables [has_zero_morphisms C] [has_zero_morphisms D]
 
-@[simp] lemma equivalence_preserves_zero_morphisms (F : C ≌ D) (X Y : C) :
+lemma equivalence_preserves_zero_morphisms (F : C ≌ D) (X Y : C) :
   F.functor.map (0 : X ⟶ Y) = (0 : F.functor.obj X ⟶ F.functor.obj Y) :=
 begin
   have t : F.functor.map (0 : X ⟶ Y) = F.functor.map (0 : X ⟶ Y) ≫ (0 : F.functor.obj Y ⟶ F.functor.obj Y),
@@ -121,6 +121,10 @@ begin
     rw [zero_comp, comp_zero, zero_comp], },
   exact t.trans (by simp)
 end
+
+@[simp] lemma is_equivalence_preserves_zero_morphisms (F : C ⥤ D) [is_equivalence F] (X Y : C) :
+  F.map (0 : X ⟶ Y) = 0 :=
+by rw [←functor.as_equivalence_functor F, equivalence_preserves_zero_morphisms]
 
 end
 
@@ -327,8 +331,13 @@ instance has_zero_object_of_has_terminal_object
 
 
 section image
+variable [has_zero_morphisms C]
 
-variables [has_zero_morphisms C] [has_zero_object C]
+lemma image_ι_comp_eq_zero {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [has_image f]
+  [epi (factor_thru_image f)] (h : f ≫ g = 0) : image.ι f ≫ g = 0 :=
+zero_of_epi_comp (factor_thru_image f) $ by simp [h]
+
+variables [has_zero_object C]
 local attribute [instance] has_zero_object.has_zero
 
 /--

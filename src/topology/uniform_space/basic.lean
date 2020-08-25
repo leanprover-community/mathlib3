@@ -654,7 +654,7 @@ calc (𝓝 x).lift g = (𝓤 α).lift (λs:set (α×α), g {y | (x, y) ∈ s}) :
   ... = _ : by simp [image_swap_eq_preimage_swap]
 
 lemma nhds_nhds_eq_uniformity_uniformity_prod {a b : α} :
-  filter.prod (𝓝 a) (𝓝 b) =
+  𝓝 a ×ᶠ 𝓝 b =
   (𝓤 α).lift (λs:set (α×α), (𝓤 α).lift' (λt:set (α×α),
     set.prod {y : α | (y, a) ∈ s} {y : α | (b, y) ∈ t})) :=
 begin
@@ -1068,10 +1068,11 @@ lemma to_topological_space_infi {ι : Sort*} {u : ι → uniform_space α} :
   (infi u).to_topological_space = ⨅i, (u i).to_topological_space :=
 begin
   by_cases h : nonempty ι,
-  {refine (eq_of_nhds_eq_nhds $ assume a, _),
+  { resetI,
+    refine (eq_of_nhds_eq_nhds $ assume a, _),
     rw [nhds_infi, nhds_eq_uniformity],
     change (infi u).uniformity.lift' (preimage $ prod.mk a) = _,
-    rw [infi_uniformity, lift'_infi h],
+    rw [infi_uniformity, lift'_infi],
     { simp only [nhds_eq_uniformity], refl },
     { exact assume a b, rfl } },
   { rw [infi_of_empty h, infi_of_empty h, to_topological_space_top] }
@@ -1148,7 +1149,7 @@ inf_uniformity
 
 lemma uniformity_prod_eq_prod [uniform_space α] [uniform_space β] :
   𝓤 (α×β) =
-    map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) (filter.prod (𝓤 α) (𝓤 β)) :=
+    map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) (𝓤 α ×ᶠ 𝓤 β) :=
 have map (λp:(α×α)×(β×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))) =
   comap (λp:(α×β)×(α×β), ((p.1.1, p.2.1), (p.1.2, p.2.2))),
   from funext $ assume f, map_eq_comap_of_inverse
@@ -1411,19 +1412,19 @@ theorem continuous_at_iff'_left [topological_space β] {f : β → α} {b : β} 
 by rw [continuous_at, tendsto_nhds_left]
 
 theorem continuous_within_at_iff'_right [topological_space β] {f : β → α} {b : β} {s : set β} :
-  continuous_within_at f s b ↔ tendsto (λ x, (f b, f x)) (nhds_within b s) (𝓤 α) :=
+  continuous_within_at f s b ↔ tendsto (λ x, (f b, f x)) (𝓝[s] b) (𝓤 α) :=
 by rw [continuous_within_at, tendsto_nhds_right]
 
 theorem continuous_within_at_iff'_left [topological_space β] {f : β → α} {b : β} {s : set β} :
-  continuous_within_at f s b ↔ tendsto (λ x, (f x, f b)) (nhds_within b s) (𝓤 α) :=
+  continuous_within_at f s b ↔ tendsto (λ x, (f x, f b)) (𝓝[s] b) (𝓤 α) :=
 by rw [continuous_within_at, tendsto_nhds_left]
 
 theorem continuous_on_iff'_right [topological_space β] {f : β → α} {s : set β} :
-  continuous_on f s ↔ ∀ b ∈ s, tendsto (λ x, (f b, f x)) (nhds_within b s) (𝓤 α) :=
+  continuous_on f s ↔ ∀ b ∈ s, tendsto (λ x, (f b, f x)) (𝓝[s] b) (𝓤 α) :=
 by simp [continuous_on, continuous_within_at_iff'_right]
 
 theorem continuous_on_iff'_left [topological_space β] {f : β → α} {s : set β} :
-  continuous_on f s ↔ ∀ b ∈ s, tendsto (λ x, (f x, f b)) (nhds_within b s) (𝓤 α) :=
+  continuous_on f s ↔ ∀ b ∈ s, tendsto (λ x, (f x, f b)) (𝓝[s] b) (𝓤 α) :=
 by simp [continuous_on, continuous_within_at_iff'_left]
 
 theorem continuous_iff'_right [topological_space β] {f : β → α} :

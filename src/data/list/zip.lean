@@ -67,6 +67,20 @@ theorem mem_zip {a b} : ∀ {l₁ : list α} {l₂ : list β},
 | (_::l₁) (_::l₂) (or.inl rfl) := ⟨or.inl rfl, or.inl rfl⟩
 | (a'::l₁) (b'::l₂) (or.inr h) := by split; simp only [mem_cons_iff, or_true, mem_zip h]
 
+theorem map_fst_zip : ∀ (l₁ : list α) (l₂ : list β),
+  l₁.length ≤ l₂.length →
+  map prod.fst (zip l₁ l₂) = l₁
+| [] bs _ := rfl
+| (a :: as) (b :: bs) h := by { simp at h, simp! * }
+| (a :: as) [] h := by { simp at h, contradiction }
+
+theorem map_snd_zip : ∀ (l₁ : list α) (l₂ : list β),
+  l₂.length ≤ l₁.length →
+  map prod.snd (zip l₁ l₂) = l₂
+| _ [] _ := by { rw zip_nil_right, refl }
+| [] (b :: bs) h := by { simp at h, contradiction }
+| (a :: as) (b :: bs) h := by { simp at h, simp! * }
+
 @[simp] theorem unzip_nil : unzip (@nil (α × β)) = ([], []) := rfl
 
 @[simp] theorem unzip_cons (a : α) (b : β) (l : list (α × β)) :

@@ -31,6 +31,7 @@ lemma nat_degree_comp_le : nat_degree (p.comp q) ≤ nat_degree p * nat_degree q
 if h0 : p.comp q = 0 then by rw [h0, nat_degree_zero]; exact nat.zero_le _
 else with_bot.coe_le_coe.1 $
   calc ↑(nat_degree (p.comp q)) = degree (p.comp q) : (degree_eq_nat_degree h0).symm
+  ... = _ : congr_arg degree comp_eq_sum_left
   ... ≤ _ : degree_sum_le _ _
   ... ≤ _ : sup_le (λ n hn,
     calc degree (C (coeff p n) * q ^ n)

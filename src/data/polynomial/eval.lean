@@ -5,6 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.induction
 import data.polynomial.degree.basic
+import deprecated.ring
 
 /-!
 # Theory of univariate polynomials
@@ -33,6 +34,8 @@ variables (f : R →+* S) (x : S)
   to the target and a value `x` for the variable in the target -/
 def eval₂ (p : polynomial R) : S :=
 p.sum (λ e a, f a * x ^ e)
+
+lemma eval₂_eq_sum {f : R →+* S} {x : S} : p.eval₂ f x = p.sum (λ e a, f a * x ^ e) := rfl
 
 @[simp] lemma eval₂_zero : (0 : polynomial R).eval₂ f x = 0 :=
 finsupp.sum_zero_index
@@ -114,7 +117,8 @@ variables (f : R →+* S) (x : S)
 @[simp] lemma eval₂_mul : (p * q).eval₂ f x = p.eval₂ f x * q.eval₂ f x :=
 begin
   dunfold eval₂,
-  rw [mul_def, finsupp.sum_mul _ p], simp only [finsupp.mul_sum _ q], rw [sum_sum_index],
+  rw [add_monoid_algebra.mul_def, finsupp.sum_mul _ p], simp only [finsupp.mul_sum _ q],
+  rw [sum_sum_index],
   { apply sum_congr rfl, assume i hi, dsimp only, rw [sum_sum_index],
     { apply sum_congr rfl, assume j hj, dsimp only,
       rw [sum_single_index, f.map_mul, pow_add],
@@ -144,6 +148,9 @@ variables {x : R}
 
 /-- `eval x p` is the evaluation of the polynomial `p` at `x` -/
 def eval : R → polynomial R → R := eval₂ (ring_hom.id _)
+
+lemma eval_eq_sum : p.eval x = sum p (λ e a, a * x ^ e) :=
+rfl
 
 @[simp] lemma eval_C : (C a).eval x = a := eval₂_C _ _
 
@@ -198,6 +205,9 @@ section comp
 
 /-- The composition of polynomials as a polynomial. -/
 def comp (p q : polynomial R) : polynomial R := p.eval₂ C q
+
+lemma comp_eq_sum_left : p.comp q = p.sum (λ e a, C a * q ^ e) :=
+rfl
 
 @[simp] lemma comp_X : p.comp X = p :=
 begin
@@ -291,6 +301,20 @@ end
 lemma map_injective (hf : function.injective f): function.injective (map f) :=
 λ p q h, ext $ λ m, hf $ by rw [← coeff_map f, ← coeff_map f, h]
 
+
+variables {f}
+
+lemma map_monic_eq_zero_iff (hp : p.monic) : p.map f = 0 ↔ ∀ x, f x = 0 :=
+⟨ λ hfp x, calc f x = f x * f p.leading_coeff : by simp [hp]
+                ... = f x * (p.map f).coeff p.nat_degree : by { congr, apply (coeff_map _ _).symm }
+                ... = 0 : by simp [hfp],
+  λ h, ext (λ n, trans (coeff_map f n) (h _)) ⟩
+
+lemma map_monic_ne_zero (hp : p.monic) [nontrivial S] : p.map f ≠ 0 :=
+λ h, f.map_one_ne_zero ((map_monic_eq_zero_iff hp).mp h _)
+
+variables (f)
+
 open is_semiring_hom
 
 -- If the rings were commutative, we could prove this just using `eval₂_mul`.
@@ -300,7 +324,8 @@ open is_semiring_hom
 begin
   dunfold map,
   dunfold eval₂,
-  rw [mul_def, finsupp.sum_mul _ p], simp only [finsupp.mul_sum _ q], rw [sum_sum_index],
+  rw [add_monoid_algebra.mul_def, finsupp.sum_mul _ p], simp only [finsupp.mul_sum _ q],
+  rw [sum_sum_index],
   { apply sum_congr rfl, assume i hi, dsimp only, rw [sum_sum_index],
     { apply sum_congr rfl, assume j hj, dsimp only,
       rw [sum_single_index, (C.comp f).map_mul, pow_add],
@@ -318,7 +343,10 @@ instance map.is_semiring_hom : is_semiring_hom (map f) :=
   map_add := λ _ _, eval₂_add _ _,
   map_mul := λ _ _, map_mul f, }
 
-@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := is_semiring_hom.map_pow (map f) _ _
+lemma map_list_prod (L : list (polynomial R)) : L.prod.map f = (L.map $ map f).prod :=
+eq.symm $ list.prod_hom _ _
+
+@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := is_monoid_hom.map_pow (map f) _ _
 
 lemma mem_map_range {p : polynomial S} :
   p ∈ set.range (map f) ↔ ∀ n, p.coeff n ∈ (set.range f) :=
@@ -350,6 +378,13 @@ eval₂_map f (ring_hom.id _) x
 
 end map
 
+/-!
+After having set up the basic theory of `eval₂`, `eval`, `comp`, and `map`,
+we make `eval₂` irreducible.
+
+Perhaps we can make the others irreducible too?
+-/
+attribute [irreducible] polynomial.eval₂
 
 section hom_eval₂
 -- TODO: Here we need commutativity in both `S` and `T`?
@@ -400,6 +435,41 @@ lemma root_mul_right_of_is_root {p : polynomial R} (q : polynomial R) :
 λ H, by rw [is_root, eval_mul, is_root.def.1 H, zero_mul]
 
 end eval
+
+section map
+
+variables [comm_semiring R] [comm_semiring S] (f : R →+* S)
+
+lemma map_multiset_prod (m : multiset (polynomial R)) : m.prod.map f = (m.map $ map f).prod :=
+eq.symm $ multiset.prod_hom _ _
+
+lemma map_prod {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
+  (∏ i in s, g i).map f = ∏ i in s, (g i).map f :=
+eq.symm $ prod_hom _ _
+
+lemma map_sum {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
+  (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
+eq.symm $ sum_hom _ _
+
+lemma support_map_subset (p : polynomial R) : (map f p).support ⊆ p.support :=
+begin
+  intros x,
+  simp only [mem_support_iff],
+  contrapose!,
+  change p.coeff x = 0 → (map f p).coeff x = 0,
+  rw coeff_map,
+  intro hx,
+  rw hx,
+  exact ring_hom.map_zero f,
+end
+
+lemma map_comp (p q : polynomial R) : map f (p.comp q) = (map f p).comp (map f q) :=
+polynomial.induction_on p
+  (by simp)
+  (by simp {contextual := tt})
+  (by simp [pow_succ', ← mul_assoc, polynomial.comp] {contextual := tt})
+
+end map
 
 end comm_semiring
 

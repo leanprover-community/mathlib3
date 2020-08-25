@@ -4,14 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 import data.pfunctor.univariate.basic
-import meta.coinductive_predicates
 
 /-!
 # M-types
 
 M types are potentially infinite tree-like structures. They are defined
 as the greatest fixpoint of a polynomial functor.
-
 -/
 
 universes u v w
@@ -592,86 +590,11 @@ end
 
 end bisim
 
-section coinduction
-
-variables F
-
-/-- generic bisimulation relation for M-types -/
-coinductive R : Π (s₁ s₂ : M F), Prop
-| intro {a} (s₁ s₂ : F.B a → M F) :
-   (∀ i, R (s₁ i) (s₂ i)) →
-   R (M.mk ⟨_,s₁⟩) (M.mk ⟨_,s₂⟩)
-
-attribute [nolint doc_blame] R.functional R
-
-open ulift
-
-lemma R_is_bisimulation : is_bisimulation (R F) :=
-begin
-  constructor; introv hr,
-  { suffices : (λ a b, head a = head b) (M.mk ⟨a, f⟩) (M.mk ⟨a', f'⟩),
-    { simp only [head_mk] at this, exact this },
-    refine R.cases_on _ hr _,
-    intros, simp only [head_mk] },
-  { suffices : (λ a b, ∀ i j, i == j → R F (children a i) (children b j)) (M.mk ⟨a, f⟩) (M.mk ⟨a, f'⟩),
-    { specialize this (cast (by rw head_mk) i) (cast (by rw head_mk) i) heq.rfl,
-      simp only [children_mk] at this, exact this, },
-    refine R.cases_on _ hr _,
-    introv h₂ h₃,
-    let k := cast (by rw head_mk) i_1,
-    have h₀ : (children (M.mk ⟨a_1, s₁⟩) i_1) = s₁ k := children_mk _ _,
-    have h₁ : (children (M.mk ⟨a_1, s₂⟩) j) = s₂ k,
-    { rw children_mk, congr, symmetry, apply eq_of_heq h₃ },
-    rw [h₀,h₁], apply h₂ },
-end
-
-variables {F}
-
-lemma coinduction {s₁ s₂ : M F}
-  (hh : R _ s₁ s₂) :
-  s₁ = s₂ :=
-begin
-  haveI := inhabited.mk s₁,
-  exact eq_of_bisim
-    (R F) (R_is_bisimulation F) _ _
-    hh
-end
-
-lemma coinduction' {s₁ s₂ : M F}
-  (hh : R _ s₁ s₂) :
-  s₁ = s₂ :=
-begin
-  have hh' := hh, revert hh',
-  apply R.cases_on F hh, clear hh s₁ s₂,
-  introv h₀ h₁,
-  rw coinduction h₁
-end
-
-end coinduction
-
 universes u' v'
 
 /-- corecursor for `M F` with swapped arguments -/
 def corec_on {X : Type*} (x₀ : X) (f : X → F.obj X) : M F :=
 M.corec f x₀
-
-end M
-
-end pfunctor
-
-namespace tactic.interactive
-open tactic (hiding coinduction) lean.parser interactive interactive.types
-
-/-- tactic for proving equality on `M F` through bisimulation -/
-meta def bisim (ids : parse $ types.with_ident_list) (g : parse $ optional (tk "generalizing" *> many ident)) : tactic unit :=
-do applyc ``pfunctor.M.coinduction,
-   coinduction ``pfunctor.M.R.corec_on ids g
-
-end tactic.interactive
-
-namespace pfunctor
-
-namespace M
 
 variables {P : pfunctor.{u}} {α : Type u}
 
@@ -686,14 +609,18 @@ lemma bisim (R : M P → M P → Prop)
       ∀ i, R (f i) (f' i)) :
   ∀ x y, R x y → x = y :=
 begin
-  intros,
-  bisim with x y ih generalizing x y,
-  rcases h _ _ ih with ⟨ a', f, f', h₀, h₁, h₂ ⟩, clear h,
-  existsi [a',f,f'], split,
-  { intro, existsi [f i,f' i,h₂ _,rfl], refl },
-  split,
-  { simp [← h₀,mk_dest] },
-  { rw [← h₁,mk_dest] },
+  introv h',
+  haveI := inhabited.mk x.head,
+  apply eq_of_bisim R _ _ _ h', clear h' x y,
+  split; introv ih;
+    rcases h _ _ ih with ⟨ a'', g, g', h₀, h₁, h₂ ⟩; clear h,
+  { replace h₀ := congr_arg sigma.fst h₀,
+    replace h₁ := congr_arg sigma.fst h₁,
+    simp only [dest_mk] at h₀ h₁,
+    rw [h₀,h₁], },
+  { simp only [dest_mk] at h₀ h₁,
+    cases h₀, cases h₁,
+    apply h₂, },
 end
 
 theorem bisim' {α : Type*} (Q : α → Prop) (u v : α → M P)

@@ -218,7 +218,6 @@ begin
 end
 
 /-- The monoid homomorphism from the colimit monoid to the cone point of any other cocone. -/
-@[simps]
 def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
 { to_fun := desc_fun F s,
   map_one' := rfl,

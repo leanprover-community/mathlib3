@@ -208,11 +208,9 @@ end
 
 variables {s : set E} (hs : convex s) {x : E}
 
-@[nolint ge_or_gt]
 lemma mem_to_cone : x ∈ hs.to_cone s ↔ ∃ (c > 0) (y ∈ s), (c : ℝ) • y = x :=
 by simp only [to_cone, convex_cone.mem_mk, mem_Union, mem_smul_set, eq_comm, exists_prop]
 
-@[nolint ge_or_gt]
 lemma mem_to_cone' : x ∈ hs.to_cone s ↔ ∃ c > 0, (c : ℝ) • x ∈ s :=
 begin
   refine hs.mem_to_cone.trans ⟨_, _⟩,
@@ -299,7 +297,7 @@ begin
     rwa [f.map_sub, sub_nonneg] at this },
   have hy' : y ≠ 0, from λ hy₀, hy (hy₀.symm ▸ zero_mem _),
   refine ⟨f.sup (linear_pmap.mk_span_singleton y (-c) hy') _, _, _⟩,
-  { refine linear_pmap.sup_h_of_disjoint _ _ (disjoint_span_singleton.2 _),
+  { refine linear_pmap.sup_h_of_disjoint _ _ (submodule.disjoint_span_singleton.2 _),
     exact (λ h, (hy h).elim) },
   { refine lt_iff_le_not_le.2 ⟨f.left_le_sup _ _, λ H, _⟩,
     replace H := linear_pmap.domain_mono.monotone H,
@@ -331,7 +329,6 @@ begin
         mul_inv_cancel (ne_of_gt hr), one_mul] at this } }
 end
 
-@[nolint ge_or_gt]
 theorem exists_top (p : linear_pmap ℝ E ℝ)
   (hp_nonneg : ∀ x : p.domain, (x : E) ∈ s → 0 ≤ p x)
   (hp_dense : ∀ y, ∃ x : p.domain, (x : E) + y ∈ s) :

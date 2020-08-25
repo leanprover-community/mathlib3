@@ -251,8 +251,17 @@ def to_equiv (i : X ≅ Y) : X ≃ Y :=
 
 end category_theory.iso
 
-
 universe u
+
+namespace category_theory
+
+noncomputable
+lemma is_iso_equiv_bijective {X Y : Type u} (f : X ⟶ Y) : is_iso f ≃ function.bijective f :=
+equiv_of_subsingleton_of_subsingleton
+  (λ i, ({ hom := f, .. i } : X ≅ Y).to_equiv.bijective)
+  (λ b, { .. (equiv.of_bijective f b).to_iso })
+
+end category_theory
 
 -- We prove `equiv_iso_iso` and then use that to sneakily construct `equiv_equiv_iso`.
 -- (In this order the proofs are handled by `obviously`.)

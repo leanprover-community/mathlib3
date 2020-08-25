@@ -6,6 +6,8 @@ Authors: Scott Morrison
 import algebra.category.CommRing.basic
 import category_theory.limits.limits
 import category_theory.limits.concrete_category
+import category_theory.limits.preserves.filtered
+import category_theory.limits.types
 
 /-!
 # The category of commutative rings has all colimits.
@@ -405,7 +407,7 @@ def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
   map_mul' := λ x y, by { induction x; induction y; refl }, }
 
 /-- Evidence that the proposed colimit is the colimit. -/
-def colimit_is_colimit : is_colimit (colimit_cocone F) :=
+def colimit_cocone_is_colimit : is_colimit (colimit_cocone F) :=
 { desc := λ s, desc_morphism F s,
   uniq' := λ s m w,
   begin
@@ -427,6 +429,87 @@ instance has_colimits_CommRing : has_colimits CommRing :=
 { has_colimits_of_shape := λ J 𝒥,
   { has_colimit := λ F, by exactI
     { cocone := colimit_cocone F,
-      is_colimit := colimit_is_colimit F } } }
+      is_colimit := colimit_cocone_is_colimit F } } }
+
+instance comm_ring_comp_forget (j : J) : comm_ring ((F ⋙ forget CommRing).obj j) :=
+by { change comm_ring (F.obj j), apply_instance, }
+
+lemma of_surjective [ℱ : is_filtered J] (t : colimit F) : ∃ (j : J) (x : F.obj j), quot.mk _ (of j x) = t :=
+begin
+  induction t,
+  induction t with j x t h t₁ t₂ h₁ h₂ t₁ t₂ h₁ h₂,
+  { use ⟨j, x, rfl⟩, },
+  { have j := ℱ.nonempty.some,
+    refine ⟨j, 0, _⟩,
+    apply quot.sound,
+    apply relation.zero _, },
+  { have j := ℱ.nonempty.some,
+    refine ⟨j, 1, _⟩,
+    apply quot.sound,
+    exact relation.one _, },
+  { rcases h with ⟨j, x, e⟩,
+    refine ⟨j, -x, _⟩,
+    dsimp [],
+    rw ←e,
+    apply quot.sound,
+    apply relation.neg _, },
+  { rcases h₁ with ⟨j₁, x₁, e₁⟩,
+    rcases h₂ with ⟨j₂, x₂, e₂⟩,
+    obtain ⟨j, i₁, i₂, -⟩ := is_filtered_or_empty.cocone_objs j₁ j₂,
+    refine ⟨j, (F ⋙ forget CommRing).map i₁ x₁ + (F ⋙ forget CommRing).map i₂ x₂, _⟩,
+    dsimp,
+    rw [←e₁, ←e₂],
+    apply quot.sound,
+    apply relation.trans,
+    apply relation.add,
+    apply relation.trans,
+    apply relation.add_1 _ _ _,
+    apply relation.map,
+    apply relation.add_2 _ _ _,
+    apply relation.map, },
+  { rcases h₁ with ⟨j₁, x₁, e₁⟩,
+    rcases h₂ with ⟨j₂, x₂, e₂⟩,
+    obtain ⟨j, i₁, i₂, -⟩ := is_filtered_or_empty.cocone_objs j₁ j₂,
+    refine ⟨j, (F ⋙ forget CommRing).map i₁ x₁ * (F ⋙ forget CommRing).map i₂ x₂, _⟩,
+    dsimp,
+    rw [←e₁, ←e₂],
+    apply quot.sound,
+    apply relation.trans,
+    apply relation.mul,
+    apply relation.trans,
+    apply relation.mul_1 _ _ _,
+    apply relation.map,
+    apply relation.mul_2 _ _ _,
+    apply relation.map, },
+  { refl, }
+end
+
+lemma filtered_exact [is_filtered J] {jx jy : J} {x : F.obj jx} {y : F.obj jy}
+  (w : quot.mk (relation F) (of jx x) = quot.mk _ (of jy y)) :
+  ∃ (j : J) (ix : jx ⟶ j) (iy : jy ⟶ j), F.map ix x = F.map iy y :=
+begin
+
+end
+
+noncomputable
+instance : preserves_filtered_colimits (forget CommRing) :=
+{ preserves_filtered_colimits := λ J 𝒥 ℱ, by exactI
+  { preserves_colimit := λ K,
+    preserves_colimit_of_is_iso (colimit_cocone_is_colimit K) (types.colimit_cocone_is_colimit _)
+    begin
+      apply (is_iso_equiv_bijective _).inv_fun,
+      split,
+      { -- injectivity
+        intros x y h,
+        obtain ⟨jx, x, rfl⟩ := types.jointly_surjective _ (types.colimit_cocone_is_colimit _) x,
+        obtain ⟨jy, y, rfl⟩ := types.jointly_surjective _ (types.colimit_cocone_is_colimit _) y,
+        obtain ⟨j, i₁, i₂, e⟩ := filtered_exact _ h,
+        rw [←cocone.w _ i₁, ←cocone.w _ i₂],
+        simp [e], },
+      { -- surjectivity
+        intro t,
+        obtain ⟨j, x, e⟩ := of_surjective _ t,
+        exact ⟨quot.mk _ ⟨j, x⟩, e⟩, }
+    end } }
 
 end CommRing.colimits

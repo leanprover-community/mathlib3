@@ -71,9 +71,9 @@ class preserves_colimits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) 
 (preserves_colimit : Π {K : J ⥤ C}, preserves_colimit K F)
 
 class preserves_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
-(preserves_limits_of_shape : Π {J : Type v} [𝒥 : small_category J], by exactI preserves_limits_of_shape J F)
+(preserves_limits_of_shape : Π {J : Type v} [small_category J], preserves_limits_of_shape J F)
 class preserves_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
-(preserves_colimits_of_shape : Π {J : Type v} [𝒥 : small_category J], by exactI preserves_colimits_of_shape J F)
+(preserves_colimits_of_shape : Π {J : Type v} [small_category J], preserves_colimits_of_shape J F)
 
 attribute [instance, priority 100] -- see Note [lower instance priority]
   preserves_limits_of_shape.preserves_limit preserves_limits.preserves_limits_of_shape
@@ -132,6 +132,24 @@ def preserves_limit_of_preserves_limit_cone {F : C ⥤ D} {t : cone K}
   (h : is_limit t) (hF : is_limit (F.map_cone t)) : preserves_limit K F :=
 ⟨λ t' h', is_limit.of_iso_limit hF (functor.map_iso _ (is_limit.unique_up_to_iso h h'))⟩
 
+/--
+Given a limit cone `t` for `K`, and a limit cone for `K ⋙ F`,
+if the universal map from `F.obj t.X` to the limit point for `K ⋙ F` is an isomorphism,
+then `F` preserves limits of `K`.
+-/
+def preserves_limit_of_is_iso {F : C ⥤ D}
+  {t : cone K} (h : is_limit t) {s : cone (K ⋙ F)} (hF : is_limit s)
+  (I : is_iso (hF.lift (F.map_cone t))) : preserves_limit K F :=
+preserves_limit_of_preserves_limit_cone h (is_limit.of_point_iso hF)
+
+/--
+As for `preserves_limit_of_is_iso`,
+but uses limit cones provided by `has_limit` instances.
+-/
+def preserves_limit_of_is_iso' {F : C ⥤ D} [has_limit K] [has_limit (K ⋙ F)]
+  (I : is_iso (limit.lift (K ⋙ F) (F.map_cone (limit.cone K)))) : preserves_limit K F :=
+preserves_limit_of_is_iso (limit.is_limit _) (limit.is_limit _) I
+
 /-- Transfer preservation of limits along a natural isomorphism in the shape. -/
 def preserves_limit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂) [preserves_limit K₁ F] :
   preserves_limit K₂ F :=
@@ -153,6 +171,24 @@ def preserves_limit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K�
 def preserves_colimit_of_preserves_colimit_cocone {F : C ⥤ D} {t : cocone K}
   (h : is_colimit t) (hF : is_colimit (F.map_cocone t)) : preserves_colimit K F :=
 ⟨λ t' h', is_colimit.of_iso_colimit hF (functor.map_iso _ (is_colimit.unique_up_to_iso h h'))⟩
+
+/--
+Given a colimit cocone `t` for `K`, and a colimit cocone for `K ⋙ F`,
+if the universal map from the colimit point for `K ⋙ F` to `F.obj t.X` is an isomorphism,
+then `F` preserves colimits of `K`.
+-/
+def preserves_colimit_of_is_iso {F : C ⥤ D}
+  {t : cocone K} (h : is_colimit t) {s : cocone (K ⋙ F)} (hF : is_colimit s)
+  (I : is_iso (hF.desc (F.map_cocone t))) : preserves_colimit K F :=
+preserves_colimit_of_preserves_colimit_cocone h (is_colimit.of_point_iso hF)
+
+/--
+As for `preserves_colimit_of_is_iso`,
+but uses colimit cocones provided by `has_colimit` instances.
+-/
+def preserves_colimit_of_is_iso' {F : C ⥤ D} [has_colimit K] [has_colimit (K ⋙ F)]
+  (I : is_iso (colimit.desc (K ⋙ F) (F.map_cocone (colimit.cocone K)))) : preserves_colimit K F :=
+preserves_colimit_of_is_iso (colimit.is_colimit _) (colimit.is_colimit _) I
 
 /-- Transfer preservation of colimits along a natural isomorphism in the shape. -/
 def preserves_colimit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K₂) [preserves_colimit K₁ F] :

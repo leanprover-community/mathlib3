@@ -123,6 +123,7 @@ lemma smul_im' : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
 
 /-- The imaginary unit. -/
 @[simp] lemma I_re : re (I : K) = 0 := I_re_ax
+@[simp] lemma I_im (z : K) : im z * im (I : K) = im z := mul_im_I_ax z
 lemma I_mul_I : (I : K) = 0 ∨ (I : K) * I = -1 := I_mul_I_ax
 
 @[simp] lemma conj_re (z : K) : re (conj z) = re z := is_R_or_C.conj_re_ax z
@@ -150,24 +151,16 @@ lemma eq_conj_iff_real {z : K} : conj z = z ↔ ∃ r : ℝ, z = (𝓚 r) :=
 begin
   split,
   { intro h,
-    use (re z),
-    have H := (re_add_im z).symm,
-    have conjH := congr_arg (λ x, conj x) H,
-    dsimp at conjH,
-    rw [h] at conjH,
-    simp only [conj_of_real, ring_hom.map_add, ring_hom.map_mul, conj_I_ax] at conjH,
-    have := calc
-      2 * z = z + z
-                    : two_mul z
-      ...   = z + (𝓚 (re z) + 𝓚 (im z) * -I)
-                    : congr_arg (λ x, z + x) conjH
-      ...   = (𝓚 (re z) + 𝓚 (im z) * I) + (𝓚 (re z) + 𝓚 (im z) * (-I))
-                    : add_right_cancel_iff.mpr H
-      ...   = 2 * (𝓚 (re z))
-                    : by ring,
-    refine mul_left_cancel' two_ne_zero this },
-  { rintros ⟨r, rfl⟩,
-    exact conj_of_real r }
+    suffices : im z = 0,
+    { use (re z),
+      rw ← add_zero (of_real _),
+      convert (re_add_im z).symm, simp [this] },
+    contrapose! h,
+    rw ← re_add_im z,
+    simp only [conj_of_real, ring_hom.map_add, ring_hom.map_mul, conj_I_ax],
+    rw [add_left_cancel_iff, ext_iff],
+    simpa [neg_eq_iff_add_eq_zero, add_self_eq_zero] },
+  { rintros ⟨r, rfl⟩, apply conj_of_real }
 end
 
 lemma eq_conj_iff_re {z : K} : conj z = z ↔ 𝓚 (re z) = z :=
@@ -189,15 +182,7 @@ lemma norm_sq_nonneg (z : K) : 0 ≤ norm_sq z :=
 add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)
 
 @[simp] lemma norm_sq_eq_zero {z : K} : norm_sq z = 0 ↔ z = 0 :=
-begin
-  rw [norm_sq, ←norm_sq_eq_def],
-  split,
-  { intro h,
-    rw [pow_two] at h,
-    exact norm_eq_zero.mp (mul_self_eq_zero.mp h) },
-  { rintro rfl,
-    simp[pow_two], }
-end
+by { rw [norm_sq, ←norm_sq_eq_def], simp [pow_two] }
 
 @[simp] lemma norm_sq_pos {z : K} : 0 < norm_sq z ↔ z ≠ 0 :=
 by rw [lt_iff_le_and_ne, ne, eq_comm]; simp [norm_sq_nonneg]
@@ -208,11 +193,11 @@ by simp [norm_sq]
 @[simp] lemma norm_sq_conj (z : K) : norm_sq (conj z) = norm_sq z := by simp [norm_sq]
 
 @[simp] lemma norm_sq_mul (z w : K) : norm_sq (z * w) = norm_sq z * norm_sq w :=
-  by simp [norm_sq, pow_two]; ring
+by simp [norm_sq, pow_two]; ring
 
-lemma norm_sq_add (z w : K) : norm_sq (z + w) =
-  norm_sq z + norm_sq w + 2 * (re (z * conj w)) :=
-  by simp [norm_sq, pow_two]; ring
+lemma norm_sq_add (z w : K) :
+  norm_sq (z + w) = norm_sq z + norm_sq w + 2 * (re (z * conj w)) :=
+by simp [norm_sq, pow_two]; ring
 
 lemma re_sq_le_norm_sq (z : K) : re z * re z ≤ norm_sq z :=
 le_add_of_nonneg_right (mul_self_nonneg _)
@@ -221,10 +206,10 @@ lemma im_sq_le_norm_sq (z : K) : im z * im z ≤ norm_sq z :=
 le_add_of_nonneg_left (mul_self_nonneg _)
 
 theorem mul_conj (z : K) : z * conj z = 𝓚 (norm_sq z) :=
-ext_iff.2 $ by simp [norm_sq, mul_comm, sub_eq_neg_add, add_comm]
+by simp [ext_iff, norm_sq, mul_comm, sub_eq_neg_add, add_comm]
 
 theorem add_conj (z : K) : z + conj z = 𝓚 (2 * re z) :=
-ext_iff.2 $ by simp [two_mul]
+by simp [ext_iff, two_mul]
 
 /-- The pseudo-coercion `of_real` as a `ring_hom`. -/
 def of_real_hom : ℝ →+* K := ⟨of_real, of_real_one, of_real_mul, of_real_zero, of_real_add⟩
@@ -234,30 +219,25 @@ def of_real_hom : ℝ →+* K := ⟨of_real, of_real_one, of_real_mul, of_real_z
 by induction n; simp [*, of_real_mul, pow_succ]
 
 theorem sub_conj (z : K) : z - conj z = 𝓚 (2 * im z) * I :=
-begin
-  refine ext_iff.2 _,
-  simp [two_mul, sub_eq_add_neg, add_mul, mul_im_I_ax],
-end
+by simp [ext_iff, two_mul, sub_eq_add_neg, add_mul, mul_im_I_ax]
 
 lemma norm_sq_sub (z w : K) : norm_sq (z - w) =
   norm_sq z + norm_sq w - 2 * re (z * conj w) :=
-by rw [sub_eq_add_neg, norm_sq_add]; simp [-mul_re, add_comm, add_left_comm, sub_eq_add_neg]
+by simp [-mul_re, norm_sq_add, add_comm, add_left_comm, sub_eq_add_neg]
 
 /-! ### Inversion -/
 
 lemma inv_def {z : K} : z⁻¹ = conj z * of_real ((∥z∥^2)⁻¹) := inv_def_ax z
 
 @[simp] lemma inv_re (z : K) : re (z⁻¹) = re z / norm_sq z :=
-  by simp [@is_R_or_C.inv_def K _ _ _ _, norm_sq_eq_def, norm_sq, division_def]
+  by simp [inv_def, norm_sq_eq_def, norm_sq, division_def]
 @[simp] lemma inv_im (z : K) : im (z⁻¹) = im (-z) / norm_sq z :=
-  by simp [@is_R_or_C.inv_def K _ _ _ _, norm_sq_eq_def, norm_sq, division_def]
+  by simp [inv_def, norm_sq_eq_def, norm_sq, division_def]
 
 @[simp] lemma of_real_inv (r : ℝ) : 𝓚 (r⁻¹) = (𝓚 r)⁻¹ :=
-ext_iff.2 $ begin
-  simp,
-  by_cases r = 0, { simp [h] },
-  { simp [norm_sq],
-    rw [← div_div_eq_div_mul, div_self h, one_div] },
+begin
+  rw ext_iff, by_cases r = 0, { simp [h] },
+  { simp; field_simp [h, norm_sq] },
 end
 
 protected lemma inv_zero : (0⁻¹ : K) = 0 :=
@@ -279,44 +259,28 @@ by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm]
 (@is_R_or_C.of_real_hom K _ _ _).map_fpow r n
 
 lemma I_mul_I_of_nonzero : (I : K) ≠ 0 → (I : K) * I = -1 :=
-begin
-  rcases @I_mul_I_ax K _ _ _ with h₁|h₂,
-  { intro H,
-    exfalso,
-    exact H h₁ },
-  { exact λ H, h₂ }
-end
+by { have := I_mul_I_ax, tauto }
 
 @[simp] lemma div_I (z : K) : z / I = -(z * I) :=
 begin
   by_cases h : (I : K) = 0,
   { simp [h] },
-  { change (I : K) ≠ 0 at h,
-    refine (div_eq_iff_mul_eq h).2 _,
-    simp [mul_assoc, I_mul_I_of_nonzero h] }
+  { field_simp [h], simp [mul_assoc, I_mul_I_of_nonzero h] }
 end
 
 @[simp] lemma inv_I : (I : K)⁻¹ = -I :=
-begin
-  rcases (@I_mul_I_ax K _ _ _) with h₁|h₂,
-  { simp [h₁] },
-  { by_cases h : (I : K) = 0,
-    { simp [h] },
-    { rw [inv_eq_one_div],
-      field_simp [h, h₂] } }
-end
+by { by_cases h : (I : K) = 0; { field_simp [h] } }
 
 @[simp] lemma norm_sq_inv (z : K) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
 begin
   by_cases z = 0,
   { simp [h] },
   { refine mul_right_cancel' (mt norm_sq_eq_zero.1 h) _,
-    rw [←norm_sq_mul],
-    simp [h, -norm_sq_mul] }
+    simp [h, ←norm_sq_mul], }
 end
 
 @[simp] lemma norm_sq_div (z w : K) : norm_sq (z / w) = norm_sq z / norm_sq w :=
-by rw [division_def, norm_sq_mul, norm_sq_inv]; refl
+by { rw [division_def, norm_sq_mul, norm_sq_inv], refl }
 
 /-! ### Cast lemmas -/
 
@@ -373,8 +337,7 @@ lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : absK (𝓚 r) = r :=
 (abs_of_real _).trans (abs_of_nonneg h)
 
 lemma abs_of_nat (n : ℕ) : absK n = n :=
-calc absK n = absK (𝓚 n) : by rw [of_real_nat_cast]
-  ... = _ : abs_of_nonneg (nat.cast_nonneg n)
+by { rw [← of_real_nat_cast], exact abs_of_nonneg (nat.cast_nonneg n) }
 
 lemma mul_self_abs (z : K) : abs z * abs z = norm_sq z :=
 real.mul_self_sqrt (norm_sq_nonneg _)

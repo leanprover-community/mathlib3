@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author(s): Simon Hudon
 -/
 
-import testing.slim_check.arbitrary
+import testing.slim_check.sampleable
 
 /-!
 # Testable Class
@@ -54,11 +54,11 @@ data to test the proposition `p`.  For instance, `testable.check (∀ x
 with:
 
 ```
-testable (∀ x : ℕ, 2 ∣ x → x < 100) -: arbitrary ℕ, decidable (λ x, 2 ∣ x), testable (λ x, x < 100)
+testable (∀ x : ℕ, 2 ∣ x → x < 100) -: sampleable ℕ, decidable (λ x, 2 ∣ x), testable (λ x, x < 100)
 testable (λ x, x < 100)              -: decidable (λ x, x < 100)
 ```
 
-`arbitrary ℕ` lets us create random data of type `ℕ` in a way that
+`sampleable ℕ` lets us create random data of type `ℕ` in a way that
 helps find small counter-examples.  Next, the test of the proposition
 hinges on `2 ∣ 100` and `x < 100` to both be decidable. The
 implication between the two could be tested as a whole but it would be
@@ -90,18 +90,18 @@ structure my_type :=
 How do we test a property about `my_type`? For instance, let us consider
 `testable.check $ ∀ a b : my_type, a.y ≤ b.x → a.x ≤ b.y`. Writing this
 property as is will give us an error because we do not have an instance
-of `arbitrary my_type`. We can define one as follows:
+of `sampleable my_type`. We can define one as follows:
 
 ```lean
-instance : arbitrary my_type :=
-{ arby := do
-  x ← arby ℕ,
-  xy_diff ← arby ℕ,
+instance : sampleable my_type :=
+{ sample := do
+  x ← sample ℕ,
+  xy_diff ← sample ℕ,
   return { x := x, y := x + xy_diff, h := /- some proof -/ } }
 ```
 
 We can see that the instance is very simple because our type is built
-up from other type that have `arbitrary` instances. `arbitrary` also
+up from other type that have `sampleable` instances. `sampleable` also
 has a `shrink` method but it is optional. We may want to implement one
 for ease of testing as:
 
@@ -311,13 +311,13 @@ instance exists_testable {p : Prop}
     x ← testable.run (named_binder var (∀ x, named_binder var' $ β x → p)) min,
     pure $ convert_counter_example' exists_imp_distrib.symm x ⟩
 
-/-- Test a universal property by choosing arbitrary examples to instantiate the
+/-- Test a universal property by choosing sampleable examples to instantiate the
 bound variable with -/
-instance var_testable [has_to_string α] [arbitrary α] [∀ x, testable (β x)]
+instance var_testable [has_to_string α] [sampleable α] [∀ x, testable (β x)]
   (var : option string)
 : testable (named_binder var $ Π x : α, β x) :=
 ⟨ λ min, do
-   uliftable.adapt_down (arby α) $
+   uliftable.adapt_down (sample α) $
    λ x, do
      r ← testable.run (β x) ff,
      uliftable.adapt_down (if is_failure r ∧ min then minimize _ _ x r (shrink x) else pure ⟨x,r⟩) $
@@ -335,7 +335,7 @@ instance unused_var_testable {β} [inhabited α] [testable β]
   pure $ convert_counter_example ($ default _) r (psum.inr $ λ x _, x) ⟩
 
 @[priority 2000]
-instance subtype_var_testable {p : α → Prop} [has_to_string α] [arbitrary (subtype p)]
+instance subtype_var_testable {p : α → Prop} [has_to_string α] [sampleable (subtype p)]
   [∀ x, testable (β x)]
   (var var' : option string)
 : testable (named_binder var $ Π x : α, named_binder var' $ p x → β x) :=

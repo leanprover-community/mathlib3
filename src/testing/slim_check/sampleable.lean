@@ -10,16 +10,16 @@ import tactic.linarith
 import testing.slim_check.gen
 
 /-!
-# Arbitrary Class
+# Sampleable Class
 
-This class permits the creation of arbitrary values of a given type
+This class permits the creation samples of a given type
 controlling the size of those values using the `gen` monad`. It also
 helps minimize examples by creating smaller versions of given values.
 
 When testing a proposition like `∀ n : ℕ, prime n → n ≤ 100`,
-`slim_check` requires that `ℕ` have an instance of `arbitrary` and for
+`slim_check` requires that `ℕ` have an instance of `sampleable` and for
 `prime n` to be decidable.  `slim_check` will then use the instance of
-`arbitrary` to generate small examples of ℕ and progressively increase
+`sampleable` to generate small examples of ℕ and progressively increase
 in size. For each example `n`, `prime n` is tested. If it is false,
 the example will be rejected (not a test success nor a failure) and
 `slim_check` will move on to other examples. If `prime n` is true, `n
@@ -28,11 +28,10 @@ n : ℕ, prime n → n ≤ 100` and the test fails. If `n ≤ 100` is true,
 the test passes and `slim_check` moves on to trying more examples.
 
 
-
 This is a port of the Haskell QuickCheck library.
 
 ## Main definitions
-  * `arbitrary` class
+  * `sampleable` class
 
 ## Tags
 
@@ -49,14 +48,14 @@ namespace slim_check
 
 variables (α : Type u)
 
-/-- `arbitrary α` provides ways of creating examples of type `α`,
+/-- `sampleable α` provides ways of creating examples of type `α`,
 and given such an example `x : α`, gives us a way to shrink it
 and find simpler examples.  -/
-class arbitrary :=
-(arby [] : gen α)
+class sampleable :=
+(sample [] : gen α)
 (shrink : α → lazy_list α)
 
-export arbitrary (arby shrink)
+export sampleable (sample shrink)
 
 open nat lazy_list
 
@@ -79,12 +78,12 @@ obtain:
 [2, 3, 3, 4, 4, 4, 5, 5, 6]
 ```
  -/
-def arbitrary.lseq {α β γ} (f : α → β → γ) : lazy_list α → lazy_list β → lazy_list γ
+def sampleable.lseq {α β γ} (f : α → β → γ) : lazy_list α → lazy_list β → lazy_list γ
 | lazy_list.nil xs := lazy_list.nil
 | (lazy_list.cons x xs) lazy_list.nil := lazy_list.nil
-| (lazy_list.cons x xs) ys := interleave (ys.map $ f x) (arbitrary.lseq (xs ()) ys)
+| (lazy_list.cons x xs) ys := interleave (ys.map $ f x) (sampleable.lseq (xs ()) ys)
 
-/-- implementation of `arbitrary nat` -/
+/-- implementation of `sampleable nat` -/
 def nat.shrink' (k : ℕ) : ℕ → list ℕ → list ℕ
 | n ls :=
 if h : n ≤ 1
@@ -104,12 +103,12 @@ nat.shrink' n n []
 
 open gen
 
-instance arbitrary_nat : arbitrary ℕ :=
-{ arby := sized $ λ sz, fin.val <$> choose_any (fin $ succ (sz^3)) <|>
-                        fin.val <$> choose_any (fin $ succ sz),
+instance sampleable_nat : sampleable ℕ :=
+{ sample := sized $ λ sz, fin.val <$> choose_any (fin $ succ (sz^3)) <|>
+                          fin.val <$> choose_any (fin $ succ sz),
   shrink := lazy_list.of_list ∘ nat.shrink }
 
-/-- implementation of `arbitrary int` -/
+/-- implementation of `sampleable int` -/
 def int.shrink' (k : ℕ) : ℕ → list ℤ → list ℤ
 | n ls :=
 if h : 1 < n
@@ -126,52 +125,52 @@ For example, `int.shrink 40 = [-20, 20, -30, 30, -35, 35, -38, 38, -39, 39]` -/
 def int.shrink (i : ℤ) : list ℤ :=
 int.shrink' (int.nat_abs i) (int.nat_abs i) []
 
-instance arbitrary_int : arbitrary ℤ :=
-{ arby := sized $ λ sz,
+instance sampleable_int : sampleable ℤ :=
+{ sample := sized $ λ sz,
        let k := sz^5 in
        (λ n : fin _, n.val - int.of_nat (k / 2) ) <$> choose_any (fin $ succ k),
   shrink := lazy_list.of_list ∘ int.shrink   }
 
-instance arbitrary_bool : arbitrary bool :=
-{ arby := do { x ← choose_any bool,
-               return x },
+instance sampleable_bool : sampleable bool :=
+{ sample := do { x ← choose_any bool,
+                 return x },
   shrink := λ _, lazy_list.nil }
 
-instance arbitrary_prod {β} [arbitrary α] [arbitrary β] : arbitrary (α × β) :=
-{ arby := do { ⟨x⟩ ← uliftable.up $ arby α,
-               ⟨y⟩ ← uliftable.up $ arby β,
-               pure (x,y) },
-  shrink := λ x, arbitrary.lseq prod.mk (shrink x.1) (shrink x.2) }
+instance sampleable_prod {β} [sampleable α] [sampleable β] : sampleable (α × β) :=
+{ sample := do { ⟨x⟩ ← uliftable.up $ sample α,
+                 ⟨y⟩ ← uliftable.up $ sample β,
+                 pure (x,y) },
+  shrink := λ x, sampleable.lseq prod.mk (shrink x.1) (shrink x.2) }
 
 /-- shrinking function for sum types -/
-def sum.shrink {β} [arbitrary α] [arbitrary β] : α ⊕ β → lazy_list (α ⊕ β)
+def sum.shrink {β} [sampleable α] [sampleable β] : α ⊕ β → lazy_list (α ⊕ β)
 | (sum.inr x) := (shrink x).map sum.inr
 | (sum.inl x) := (shrink x).map sum.inl
 
-instance arbitrary_sum {β} [arbitrary α] [arbitrary β] : arbitrary (α ⊕ β) :=
-{ arby := uliftable.up_map sum.inl (arby α) <|>
-               uliftable.up_map sum.inr (arby β),
+instance sampleable_sum {β} [sampleable α] [sampleable β] : sampleable (α ⊕ β) :=
+{ sample := uliftable.up_map sum.inl (sample α) <|>
+            uliftable.up_map sum.inr (sample β),
   shrink := sum.shrink _ }
 
-instance arbitrary_char : arbitrary char :=
-{ arby := do { x ← choose_nat 0 3 dec_trivial,
-               let str := " 0123abcABC:,;`\\/",
-               if x.val = 0 then do
-                 n ← arby ℕ,
-                 pure $ char.of_nat n
-               else do
-                 i ← choose_nat 0 (str.length - 1) dec_trivial,
-                 pure (str.mk_iterator.nextn i).curr },
+instance sampleable_char : sampleable char :=
+{ sample := do { x ← choose_nat 0 3 dec_trivial,
+                 let str := " 0123abcABC:,;`\\/",
+                 if x.val = 0 then do
+                   n ← sample ℕ,
+                   pure $ char.of_nat n
+                 else do
+                   i ← choose_nat 0 (str.length - 1) dec_trivial,
+                   pure (str.mk_iterator.nextn i).curr },
   shrink := λ _, lazy_list.nil }
 
 variables {α}
 
-/-- implementation of `arbitrary (list α)` -/
+/-- implementation of `sampleable (list α)` -/
 def list.shrink' (shrink_a : α → lazy_list α) : list α → lazy_list (list α)
 | [] := lazy_list.nil
 | (x :: xs) :=
   let ys := list.shrink' xs in
-  interleave ys $ arbitrary.lseq (::) ((shrink_a x).append (lazy_list.singleton x)) (lazy_list.cons [] ys)
+  interleave ys $ sampleable.lseq (::) ((shrink_a x).append (lazy_list.singleton x)) (lazy_list.cons [] ys)
 
 /-- `list.shrink_with shrink_f xs` shrinks `xs` by deleting various items of the list
 and shrinking others (using `shrink_f`). `lseq` is being used to interleave the
@@ -179,24 +178,24 @@ resulting shrunken lists to put smaller lists earlier in the results -/
 def list.shrink_with (shrink_a : α → lazy_list α) (xs : list α) : lazy_list (list α) :=
 (list.shrink' shrink_a xs).init
 
-instance arbitrary_list [arbitrary α] : arbitrary (list α) :=
-{ arby := list_of (arby α),
+instance sampleable_list [sampleable α] : sampleable (list α) :=
+{ sample := list_of (sample α),
   shrink := list.shrink_with shrink  }
 
-instance arbitrary_prop : arbitrary Prop :=
-{ arby := do { x ← choose_any bool,
+instance sampleable_prop : sampleable Prop :=
+{ sample := do { x ← choose_any bool,
                return ↑x },
   shrink := λ _, lazy_list.nil }
 
-instance arbitrary_string : arbitrary string :=
-{ arby := do { x ← list_of (arby char), pure x.as_string },
+instance sampleable_string : sampleable string :=
+{ sample := do { x ← list_of (sample char), pure x.as_string },
   shrink := λ s, (shrink s.to_list).map list.as_string }
 
-/-- implementation of `arbitrary (tree α)` -/
-def tree.arby (arby : gen α) : ℕ → gen (tree α) | n :=
+/-- implementation of `sampleable (tree α)` -/
+def tree.sample (sample : gen α) : ℕ → gen (tree α) | n :=
 if h : n > 0
 then have n / 2 < n, from div_lt_self h (by norm_num),
-     tree.node <$> arby <*> tree.arby (n / 2) <*> tree.arby (n / 2)
+     tree.node <$> sample <*> tree.sample (n / 2) <*> tree.sample (n / 2)
 else pure tree.nil
 
 /-- `tree.shrink_with shrink_f t` shrinks `xs` by using subtrees, shrinking them,
@@ -208,23 +207,23 @@ def tree.shrink_with (shrink_a : α → lazy_list α) : tree α → lazy_list (t
 -- to be the full tree, i.e., not a shrunken tree.
 lazy_list.init $ interleave_all [(tree.shrink_with t₀).append (lazy_list.singleton t₀),
                                  (tree.shrink_with t₁).append (lazy_list.singleton t₁),
-                                 arbitrary.lseq id (arbitrary.lseq tree.node (shrink_a x) (tree.shrink_with t₀)) (tree.shrink_with t₁) ]
+                                 sampleable.lseq id (sampleable.lseq tree.node (shrink_a x) (tree.shrink_with t₀)) (tree.shrink_with t₁) ]
 
-instance arbitrary_tree [arbitrary α] : arbitrary (tree α) :=
-{ arby := sized $ tree.arby (arby α),
+instance sampleable_tree [sampleable α] : sampleable (tree α) :=
+{ sample := sized $ tree.sample (sample α),
   shrink := tree.shrink_with shrink }
 
 setup_tactic_parser
 
 /-- generate samples of a given type -/
-def print_samples (t : Type u) [arbitrary t] [has_repr t] : io unit := do
+def print_samples (t : Type u) [sampleable t] [has_repr t] : io unit := do
 xs ← io.run_rand $ uliftable.down $
-  do { xs ← (list.range 10).mmap $ (arby t).run ∘ ulift.up,
+  do { xs ← (list.range 10).mmap $ (sample t).run ∘ ulift.up,
        pure ⟨xs.map repr⟩ },
 xs.mmap' io.put_str_ln
 
 /--
-`#sample my_type`, where `my_type` has an instance of `arbitrary`, prints ten random
+`#sample my_type`, where `my_type` has an instance of `sampleable`, prints ten random
 values of type `my_type` of using an increasing size parameter.
 
 ```lean
@@ -263,7 +262,7 @@ do e ← texpr,
    of_tactic $ do
      e ← tactic.i_to_expr e,
      print_samples ← tactic.mk_mapp ``print_samples [e,none,none],
-     arby ← tactic.eval_expr (io unit) print_samples,
-     tactic.unsafe_run_io arby
+     sample ← tactic.eval_expr (io unit) print_samples,
+     tactic.unsafe_run_io sample
 
 end slim_check

@@ -1187,49 +1187,53 @@ end fraction_map
 section algebra
 
 section is_integral
-variables {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
-variables [algebra R S]
+variables {R S} {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ] [algebra R S]
 
--- TODO: Should there be a more general monoid map of some kind?
-def algebra_map_submonoid {R : Type*} [comm_ring R] (S : Type*) [comm_ring S] [algebra R S]
-  (M : submonoid R) : submonoid S :=
-{ carrier := algebra_map R S '' M,
-  one_mem' := ⟨1, ⟨M.one_mem, (algebra_map R S).map_one⟩⟩,
-  mul_mem' := λ x y hx hy, hx.rec_on (λ a ha, hy.rec_on (λ b hb,
-    (⟨a * b, ⟨M.mul_mem ha.1 hb.1, by simp [ha.2, hb.2]⟩⟩ : x * y ∈ algebra_map R S '' M))) }
+/-- Explicit characterization of the submonoid map in the case of an algebra.
+`S` is made explicit to help with type inference -/
+def algebra_map_submonoid (S) [comm_ring S] [algebra R S]
+  (M : submonoid R) : (submonoid S) :=
+submonoid.map ↑(algebra_map R S) M
 
-lemma mem_algebra_map_submonoid (x : M) : (algebra_map R S x) ∈ algebra_map_submonoid S M :=
-⟨x.1, ⟨x.2, rfl⟩⟩
+lemma mem_algebra_map_submonoid_of_mem {M : submonoid R} (x : M) :
+  (algebra_map R S x) ∈ algebra_map_submonoid S M :=
+set.mem_image_of_mem (algebra_map R S) x.2
 
+-- TODO: could maybe generalize this to any commutative square where the left side has some kind of lifting operation
+/-- Definition of the natural algebra induced by the localization of an algebra.
+Given an algebra `R → S`, a submonoid `R` of `M`, and a localizaiton `Rₘ` for `M`,
+let `Sₘ` be the localization of `S` to the image of `M` under `algebra_map R S`.
+Then this is the natural algebra structure on `Rₘ → Sₘ`, such that the entire square commutes. -/
 noncomputable def localization_algebra (M : submonoid R) (f : localization_map M Rₘ)
   (g : localization_map (algebra_map_submonoid S M) Sₘ) : algebra Rₘ Sₘ :=
-(f.map (mem_algebra_map_submonoid R) g).to_algebra
+(f.map mem_algebra_map_submonoid_of_mem g).to_algebra
 
 variables (f : localization_map M Rₘ)
 variables (g : localization_map (algebra_map_submonoid S M) Sₘ)
 
 open polynomial
 
-/-- Given a witenss to an element being algebraic, localization to the leading coefficient makes it integral -/
 -- TODO: I'm not sure the best way to structure a statement that requires a particular witness
-theorem is_integral_localization_of_is_algebraic {x : S}
+/-- Given a particular witness to an element being algebraic over an algebra `R → S`,
+We can localize to a submonoid containing the leading coefficient to make it integral -/
+theorem is_integral_localization_at_leading_coeff {x : S} (hM : M ≤ non_zero_divisors R)
   (witness : polynomial R) (hw : witness ≠ 0 ∧ aeval x witness = 0)
-  (hM : witness.leading_coeff ∈ M) (hM' : M ≤ non_zero_divisors R) :
-  @is_integral Rₘ _ _ _ (localization_algebra R M f g) (g.to_map x) :=
+  (hM' : witness.leading_coeff ∈ M) :
+  @is_integral Rₘ _ _ _ (localization_algebra M f g) (g.to_map x) :=
 begin
   by_cases triv : (1 : Rₘ) = 0,
   { exact ⟨0, ⟨trans leading_coeff_zero triv.symm, eval₂_zero _ _⟩⟩ },
-  have : is_unit (f.to_map witness.leading_coeff) :=
-    localization_map.map_units f ⟨witness.leading_coeff, hM⟩,
-  obtain ⟨b, hb⟩ := is_unit_iff_exists_inv.mp this,
+  obtain ⟨b, hb⟩ := is_unit_iff_exists_inv.mp
+    (localization_map.map_units f ⟨witness.leading_coeff, hM'⟩),
   refine ⟨(witness.map f.to_map) * C b, ⟨_, _⟩⟩,
   { rw [monic, leading_coeff_mul' _, leading_coeff_C b],
-    convert hb,
-    unfold leading_coeff,
-    rw [coeff_map, nat_degree_map' (f.injective hM') witness],
+    { convert hb,
+      unfold leading_coeff,
+      rw [coeff_map, nat_degree_map' (f.injective hM) witness],
+      refl },
     { refine λ h, triv (trans hb.symm _),
       rwa [leading_coeff_C b, leading_coeff, coeff_map,
-        nat_degree_map' (f.injective hM') witness] at h } },
+        nat_degree_map' (f.injective hM) witness] at h } } ,
   { replace hw := hw.right,
     rw aeval_def at hw ⊢,
     rw eval₂_mul,
@@ -1244,9 +1248,8 @@ end
 -- and `Sₘ` is the localization of `S` at the image of `M` under the extension map,
 -- then the induced map `Rₘ → Sₘ` is also an integral extension -/
 theorem is_integral_localization (hM : M ≤ non_zero_divisors R) (H : ∀ x : S, is_integral R x)
-  : ∀ x : Sₘ, @is_integral Rₘ _ _ _ (localization_algebra R M f g) x :=
+  (x : Sₘ) : @is_integral Rₘ _ _ _ (localization_algebra M f g) x :=
 begin
-  intro x,
   by_cases triv : (1 : R) = 0,
   { have : (1 : Rₘ) = 0 := by convert congr_arg f.to_map triv; simp,
     exact ⟨0, ⟨trans leading_coeff_zero this.symm, eval₂_zero _ _⟩⟩ },
@@ -1254,16 +1257,17 @@ begin
     obtain ⟨⟨s, ⟨u, hu⟩⟩, hx⟩ := g.surj x,
     obtain ⟨v, hv⟩ := hu,
     obtain ⟨v', hv'⟩ := is_unit_iff_exists_inv.1 (f.map_units ⟨v, hv.1⟩),
-    refine @is_integral_mul_unit Rₘ _ _ _ (localization_algebra R M f g) x (g.to_map u) v' _ _,
-    { replace hv' := congr_arg (@algebra_map Rₘ Sₘ _ _ (localization_algebra R M f g)) hv',
+    refine @is_integral_mul_unit Rₘ _ _ _ (localization_algebra M f g) x (g.to_map u) v' _ _,
+    { replace hv' := congr_arg (@algebra_map Rₘ Sₘ _ _ (localization_algebra M f g)) hv',
       rw [ring_hom.map_mul, ring_hom.map_one, mul_comm] at hv',
       convert hv',
       show g.to_map u = (f.map _ g) (f.to_map v),
-      rw [← ring_hom.comp_apply _ f.to_map, localization_map.map_comp, ← hv.2, ring_hom.comp_apply] },
+      rw [← ring_hom.comp_apply _ f.to_map, localization_map.map_comp, ← hv.2, ring_hom.comp_apply],
+      refl },
     { erw hx,
       obtain ⟨p, hp⟩ := H s,
-      refine is_integral_localization_of_is_algebraic R f g p
-        ⟨monic.ne_zero hp.1, hp.2⟩ (hp.1.symm ▸ M.one_mem) hM } }
+      refine is_integral_localization_at_leading_coeff f g hM p
+        ⟨monic.ne_zero hp.1, hp.2⟩ (hp.1.symm ▸ M.one_mem) } }
 end
 
 end is_integral

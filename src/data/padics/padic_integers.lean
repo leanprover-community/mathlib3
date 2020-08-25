@@ -8,6 +8,7 @@ import data.zmod.basic
 import linear_algebra.adic_completion
 import data.padics.padic_numbers
 import ring_theory.discrete_valuation_ring
+import topology.metric_space.cau_seq_filter
 
 /-!
 # p-adic integers
@@ -723,6 +724,8 @@ end
 
 /-- `appr n x` gives a value `v : ℕ` such that `x` and `↑v : ℤ_p` are equivalent up to `p^n`.
 See `appr_spec`. -/
+-- TODO: prove that `x.appr` is a sequence that tends to `x`.
+-- Possibly relevant: summable_iff_vanishing_norm
 noncomputable def appr : ℤ_[p] → ℕ → ℕ
 | x 0     := 0
 | x (n+1) :=
@@ -896,7 +899,7 @@ def int_lim_seq (seq : ℕ → ℤ) (h : is_cau_seq (padic_norm p) (λ n, seq n)
 
 open padic_int
 variables {R : Type*} [comm_ring R] (f : Π k : ℕ, R →+* zmod (p^k))
-  (f_compat : ∀ k1 k2 (hk : k1 ≤ k2), (zmod.cast_hom (nat.pow_dvd_pow p hk) _) ∘ f k2 = f k1)
+  (f_compat : ∀ k1 k2 (hk : k1 ≤ k2), (zmod.cast_hom (nat.pow_dvd_pow p hk) _).comp (f k2) = f k1)
 
 def limit (r : R) : ℕ → ℤ :=
 λ n, (f n r : zmod (p^n)).val
@@ -914,10 +917,7 @@ begin
   rw [← int.coe_nat_pow, ← zmod.int_coe_zmod_eq_zero_iff_dvd],
   rw [int.cast_sub],
   dsimp [limit],
-  rw function.funext_iff at f_compat,
-  specialize f_compat r,
-  rw [function.comp_app] at f_compat,
-  rw ← f_compat,
+  rw [← f_compat, ring_hom.comp_apply],
   have : fact (p ^ (i) > 0) := pow_pos (nat.prime.pos ‹_›) _,
   have : fact (p ^ (j) > 0) := pow_pos (nat.prime.pos ‹_›) _,
   unfreezingI { simp only [zmod.cast_id, zmod.cast_hom_apply, sub_self, zmod.nat_cast_val], },
@@ -1094,34 +1094,61 @@ begin
   { refl }
 end
 
-example : ℤ_[p] →+* ℤ_[p] := lift _
-
-lemma aux
-  (z : ℤ_[p]) :
-  ∀ (k1 k2 : ℕ) (hk : k1 ≤ k2),
-    ⇑(@zmod.cast_hom (p ^ k2) (p ^ k1) (nat.pow_dvd_pow _ hk) (zmod (p ^ k1))
-             (@comm_ring.to_ring (zmod (p ^ k1)) (zmod.comm_ring (p ^ k1)))
-             _) ∘
-        ⇑(@to_zmod_pow p _inst_1 k2) =
-      ⇑(@to_zmod_pow p _inst_1 k1) :=
-begin
-  intros k1 k2 hk,
-  ext x, simp,
-  sorry
-end
-
 def lift_cau_seq (f : cau_seq ℚ (padic_norm p)) : cau_seq ℚ_[p] has_norm.norm :=
 ⟨λ n, f n, sorry⟩
 
 lemma compls_eq (f : cau_seq ℚ (padic_norm p)) : (⟦f⟧ : ℚ_[p]) = (lift_cau_seq f).lim :=
 sorry
 
+-- move this
+instance padic.complete_space : complete_space ℚ_[p] :=
+begin
+  apply_instance,
+end
+
+-- move this
+instance complete_space : complete_space ℤ_[p] :=
+begin
+  delta padic_int,
+  rw [complete_space_iff_is_complete_range uniform_embedding_subtype_coe,
+    subtype.range_coe_subtype],
+  have : is_complete (closed_ball (0 : ℚ_[p]) 1) := is_closed_ball.is_complete,
+  simpa [closed_ball],
+end
+
+lemma dense_range_nat_cast :
+  dense_range (nat.cast : ℕ → ℤ_[p]) :=
+begin
+  intro x,
+  rw mem_closure_range_iff,
+  intros ε hε,
+  let n : ℕ := sorry,
+  have hn : ↑p ^ (-n : ℤ) < ε, sorry,
+  use (x.appr n),
+  rw dist_eq_norm,
+  have := appr_spec n x,
+  -- should be easy now
+end
+
+lemma dense_range_int_cast :
+  dense_range (int.cast : ℤ → ℤ_[p]) :=
+begin
+  intro x,
+  rw mem_closure_range_iff,
+  intros ε hε,
+  let n : ℕ := sorry,
+  have hn : ↑p ^ (-n : ℤ) < ε, sorry,
+  -- I guess we could/should be able to use dense_range_nat_cast. Otherwise... repeat proof?
+end
+
 -- this is enough to finish what we need below.
 -- But I'm not sure it's stated right.
 -- this is a total mess...
-lemma lim_fn_eq (z : ℤ_[p]) : @lift p _ ℤ_[p] _ to_zmod_pow (aux z) z = z :=
+lemma lim_fn_eq (z : ℤ_[p]) : @lift p _ ℤ_[p] _ to_zmod_pow
+  zmod_cast_comp_to_zmod_pow z = z :=
 begin
-  have spec := @spec_foo p _ ℤ_[p] _ to_zmod_pow (aux z) z,
+  -- apply dense_range_int_cast.induction_on,
+  have spec := @spec_foo p _ ℤ_[p] _ to_zmod_pow zmod_cast_comp_to_zmod_pow z,
   let seq : ℕ →  ℚ := λ n, (to_zmod_pow n z).val,
   have seq_is_cauchy : is_cau_seq (padic_norm p) seq := sorry,
   let cs : cau_seq ℚ (padic_norm p) := ⟨seq, seq_is_cauchy⟩,

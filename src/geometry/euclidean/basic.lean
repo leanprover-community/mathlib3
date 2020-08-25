@@ -706,6 +706,11 @@ lemma reflection_apply {s : affine_subspace ℝ P} (hn : (s : set P).nonempty)
   reflection hn hc p = (orthogonal_projection hn hc p -ᵥ p) +ᵥ orthogonal_projection hn hc p :=
 rfl
 
+/-- Reflection is its own inverse. -/
+@[simp] lemma reflection_symm {s : affine_subspace ℝ P} (hn : (s : set P).nonempty)
+  (hc : is_complete (s.direction : set V)) : (reflection hn hc).symm = reflection hn hc :=
+rfl
+
 /-- Reflecting twice in the same subspace. -/
 @[simp] lemma reflection_reflection {s : affine_subspace ℝ P} (hn : (s : set P).nonempty)
   (hc : is_complete (s.direction : set V)) (p : P) : reflection hn hc (reflection hn hc p) = p :=
@@ -774,6 +779,5 @@ begin
   conv_lhs { rw ←hp₁ },
   exact (reflection hn hc).dist_eq _ _
 end
-
 
 end euclidean_geometry

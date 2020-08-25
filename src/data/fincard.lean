@@ -68,7 +68,7 @@ if h : s.finite then h.to_finset else ∅
 
 variable {α : Type u}
 
-/-- univ' α is finset.univ if α is a fintype. -/
+/-- `univ' α` is finset.univ if `α` is a fintype. -/
 lemma univ'_eq_univ [h : fintype α] : univ' α = univ :=
 by convert (dif_pos (nonempty.intro h))
 
@@ -213,14 +213,16 @@ begin
   congr, ext, simp
 end
 
-lemma finsum_in_eq (f : α → M) (s : set α)
-  (hf : (s ∩ function.support f).finite) : finsum_in (s ∩ function.support f) f = finsum_in s f :=
+lemma finsum_in_inter_support (f : α → M) (s : set α) :
+  finsum_in s f = finsum_in (s ∩ function.support f) f :=
 begin
-  rw [finsum_in_eq_finset_sum f hf, finsum_in_eq_finset_sum f _],
-    { rw [set.finite.to_finset, set.finite.to_finset],
-      refine finset.sum_congr _ (λ _ _, rfl);
-      simp_rw [set.inter_assoc, set.inter_self], assumption, congr }
-end
+  rw [finsum_in_def, finsum_in_def],
+  congr', ext x, split_ifs,
+  { refl },
+  { rw ←function.nmem_support, finish },
+  { finish },
+  { refl }
+end .
 
 lemma finsum_eq_finsum_in_univ (f : α → M) : finsum f = finsum_in set.univ f :=
 by { rw finsum_in_def, congr, funext, rw if_pos (set.mem_univ _) }
@@ -262,14 +264,12 @@ begin
   by_cases ha : a ∈ function.support f,
     { have := finsum_in_insert f
         (show a ∉ s ∩ function.support f, by exact λ h', h h'.1) hs,
-      rw [finsum_in_eq _ _ hs] at this,
-      rw [← this, ← finsum_in_eq f (insert a s)
-          (by { rw [← set.insert_eq_of_mem ha, ← set.insert_inter], exact set.finite.insert _ hs })],
+      rw [← finsum_in_inter_support] at this,
+      rw [← this, finsum_in_inter_support],
       congr, rw [set.insert_inter, set.insert_eq_of_mem ha] },
-    { rw [← finsum_in_eq _ _ (show (insert a s ∩ function.support f).finite,
-        by exact (set.insert_inter_of_not_mem s (function.support f) a ha).symm ▸ hs),
+    { rw [finsum_in_inter_support,
           set.insert_inter_of_not_mem s (function.support f) a ha,
-          finsum_in_eq _ _ hs, function.nmem_support.1 ha, zero_add] }
+         ← finsum_in_inter_support, function.nmem_support.1 ha, zero_add] }
 end
 
 /-- A more general version of `finsum_in_insert_of_eq_zero_if_not_mem` that requires
@@ -391,16 +391,12 @@ lemma finsum_in_union_inter'
   (hs : (s ∩ function.support f).finite) (ht : (t ∩ function.support f).finite) :
   finsum_in (s ∪ t) f + finsum_in (s ∩ t) f = finsum_in s f + finsum_in t f :=
 begin
-  rw [← finsum_in_eq f s hs, ← finsum_in_eq f t ht,
-      ← finsum_in_eq f (s ∪ t), ← finsum_in_eq f (s ∩ t),
+  rw [finsum_in_inter_support f s, finsum_in_inter_support f t,
+      finsum_in_inter_support f (s ∪ t), finsum_in_inter_support f (s ∩ t),
       ← finsum_in_union_inter hs ht, set.inter_distrib_right],
   conv_rhs { congr, skip, congr,
     rw [set.inter_assoc, ← set.inter_assoc _ t, set.inter_comm _ t,
-        set.inter_assoc, set.inter_self, ← set.inter_assoc] },
-    { rw [set.inter_assoc, set.inter_comm t _, ← set.inter_assoc],
-      exact (set.finite.subset hs (set.inter_subset_left _ _)) },
-    { rw [set.inter_distrib_right],
-      exact set.finite.union hs ht }
+        set.inter_assoc, set.inter_self, ← set.inter_assoc] }
 end
 
 /-- Given two finite disjoint sets `s` and `t`, the sum on `s ∪ t` over the function `f` equals the
@@ -500,24 +496,6 @@ lemma set.inter_support_add_finite
   (s ∩ function.support (λ x, f x + g x)).finite :=
 set.finite.subset (by rw set.inter_distrib_left; exact set.finite.union hf hg)
   (set.inter_subset_inter_right _ (function.support_add f g))
-
--- I want: if X is a finset, and I don't care if supp(f) and X are related,
--- then finset.sum X f = finsum_in X f
-
-lemma finsum_in_inter_support : finsum_in s f = finsum_in (s ∩ function.support f) f :=
-begin
-  rw finsum_in_def,
-  rw finsum_in_def,
-  congr',
-  ext x,
-  split_ifs,
-  { refl },
-  { rw ←function.nmem_support,
-    finish },
-  { finish },
-  { refl }
-end
-
 
 lemma finsum_in_add_distrib'
   (hf : (s ∩ function.support f).finite) (hg : (s ∩ function.support g).finite) :

@@ -99,11 +99,10 @@ ext_iff.2 $ by simp [bit0]
 @[simp] lemma of_real_bit1 (r : ℝ) : 𝓚 (bit1 r : ℝ) = bit1 (𝓚 r) :=
 ext_iff.2 $ by simp [bit1]
 
-lemma two_eq_of_real : (2 : K) = 𝓚 2 := by rw [bit0, ←of_real_one, ←of_real_add, bit0]
-
+/-- Note: This can be proven by norm_num once K is proven to be of characteristic zero below. -/
 lemma two_ne_zero : (2 : K) ≠ 0 :=
 begin
-  intro h, rw [two_eq_of_real, ←of_real_zero, of_real_inj] at h,
+  intro h, rw [(show (2 : K) = 𝓚 2, by norm_num), ←of_real_zero, of_real_inj] at h,
   linarith,
 end
 
@@ -552,8 +551,7 @@ noncomputable instance complex.is_R_or_C : is_R_or_C ℂ :=
   norm_sq_eq_def_ax := λ z, by simp only [←complex.norm_sq_eq_abs, ←complex.norm_sq, add_monoid_hom.coe_mk, complex.norm_eq_abs],
   mul_im_I_ax := λ z, by simp only [mul_one, add_monoid_hom.coe_mk, complex.I_im],
   inv_def_ax := λ z, by convert complex.inv_def z; exact (complex.norm_sq_eq_abs z).symm,
-  div_I_ax := complex.div_I,
-}
+  div_I_ax := complex.div_I }
 
 end instances
 

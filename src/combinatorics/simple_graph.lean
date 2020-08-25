@@ -523,7 +523,7 @@ end embedding
 A graph isomorphism is an equivalence on vertex sets that preserves the adjacency relations exactly.
 -/
 @[reducible]
-def isomorphism := rel_iso (adj G) (adj G')
+def isomorphism := rel_iso (@adj' _ _ G) (adj G')
 
 infix ` ≃g ` : 50 := isomorphism
 
@@ -618,9 +618,10 @@ NOTE: another definition could have been.
 ```
 structure subgraph :=
 (V' : set (V G))
-(adj' : V' → V' → Prop)
+(adj' : V → V → Prop)
+(edge_sub : ∀ {v w : V G}, adj' v w → v ∈ V')
 (symm' : symmetric adj')
-(sub_adj' : ∀ {v w : V G} (hv : v ∈ V') (hw : w ∈ V'), adj' ⟨v, hv⟩ ⟨w, hw⟩ → (v ~g w))
+(sub_adj' : ∀ {v w : V G}, adj' v w → v ~g w)
 ```
 It's not clear which is better!
 -/
@@ -1037,6 +1038,38 @@ A path graph on n+1 vertices, which has n edges.
 -/
 def path_graph (n : ℕ) : simple_graph_on (fin (n + 1)) :=
 simple_graph_from_rel (λ i j, (j = i - 1 ∧ i ≠ 0))
+
+/-- thinking of a `path_graph (n + m)` as being a path of length n
+followed by a path of length m, includes the first path. --/
+def path_graph.incl₁ (n m : ℕ) : path_graph n ↪g path_graph (n + m) :=
+{ to_fun := λ v, v,
+  inj' := sorry,
+  map_adj' := sorry }
+
+def path_graph.incl₂ (n m : ℕ) : path_graph m ↪g path_graph (n + m) :=
+{ to_fun := λ v, n + v,
+  inj' := sorry,
+  map_adj' := sorry }
+
+section walks
+variables {α : Type*} [simple_graphs α] (G : α)
+
+/-
+The composition of paths, following `pn` first and then `pm`.
+-/
+def walk_join {n m : ℕ} (pn : path_graph n →g G) (pm : path_graph m →g G) : path_graph (n+m) →g G :=
+{ to_fun := λ v, if h : ↑v < n
+                 then pn ⟨v, by linarith [h]⟩
+                 else pm (by { cases v with v hv, rw [nat.add_assoc, nat.add_comm] at hv,
+                               apply fin.sub_nat n ⟨v, hv⟩, dsimp at h, push_neg at h, exact h }),
+  map_adj' := begin
+    rintros ⟨v, hv⟩ ⟨w, hw⟩ h,
+    simp, --split_ifs,
+--    {apply pn.map_adj',   },
+    sorry,
+  end }
+
+end walks
 
 /--
 "Flip over" the elements of `fin (n + 1)`, reversing `0` and `n`.

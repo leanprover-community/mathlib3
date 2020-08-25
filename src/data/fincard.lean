@@ -56,10 +56,15 @@ universes u v w
 
 namespace finset
 
-/-- univ' α is the finset corresponding to all of α if α is finite, and the empty set otherwise.
+/-- `univ' α` is the finset corresponding to all of α if α is finite, and the empty set otherwise.
 Note that it is noncomputable -/
 noncomputable def univ' (α : Type u) : finset α :=
 if h : nonempty (fintype α) then (classical.choice h).elems else ∅
+
+/-- `set.to_finset s` is the finset corresponding to `s` if `s` is finite, and the empty set
+    otherwise -/
+noncomputable def set.to_finset {α : Type u} (s : set α) : finset α :=
+if h : s.finite then h.to_finset else ∅
 
 variable {α : Type u}
 
@@ -101,6 +106,19 @@ lemma finsum_in_def (s : set α) (f : α → M) :
 lemma function.support_eq_support {α : Type u} {β : Type v} [has_zero β] (f : α →₀ β) :
   function.support f = ↑(f.support) :=
 set.ext $ λ x, finsupp.mem_support_iff.symm
+
+lemma finsum_in_eq_finsum_in_of_subset (f : α → M) (s t : set α) (hst : s ⊆ t)
+  (hf : ∀ x : α, x ∈ t \ s → f x = 0) : finsum_in s f = finsum_in t f :=
+begin
+  rw [finsum_in_def, finsum_in_def],
+  congr',
+  ext x,
+  split_ifs,
+  { refl },
+  { exact false.elim (h_1 $ hst h) },
+  { exact (hf _ ⟨h_1, h⟩).symm},
+  { refl }
+end
 
 namespace finsupp
 
@@ -483,11 +501,52 @@ lemma set.inter_support_add_finite
 set.finite.subset (by rw set.inter_distrib_left; exact set.finite.union hf hg)
   (set.inter_subset_inter_right _ (function.support_add f g))
 
+-- I want: if X is a finset, and I don't care if supp(f) and X are related,
+-- then finset.sum X f = finsum_in X f
+
+lemma finsum_in_inter_support : finsum_in s f = finsum_in (s ∩ function.support f) f :=
+begin
+  rw finsum_in_def,
+  rw finsum_in_def,
+  congr',
+  ext x,
+  split_ifs,
+  { refl },
+  { rw ←function.nmem_support,
+    finish },
+  { finish },
+  { refl }
+end
+
+
 lemma finsum_in_add_distrib'
   (hf : (s ∩ function.support f).finite) (hg : (s ∩ function.support g).finite) :
   finsum_in s (λ x, f x + g x) = finsum_in s f + finsum_in s g :=
 begin
-  apply finsum_in_add_distrib,
+  convert @finset.sum_add_distrib _ _ ((hf.to_finset ∪ hg.to_finset).filter s) f g _,
+  { rw ←finsum_in_eq_finset_sum'''',
+    rw finsum_in_inter_support,
+    apply finsum_in_eq_finsum_in_of_subset,
+    { rintro x ⟨hx1, hx2⟩,
+      rw finset.mem_coe,
+      rw finset.mem_filter,
+      refine ⟨_, hx1⟩,
+      rw function.mem_support at hx2,
+      by_cases hf : f x = 0,
+      { apply finset.subset_union_right,
+        rw set.finite.mem_to_finset,
+        use hx1,
+        rw [hf, zero_add] at hx2,
+        rwa function.mem_support },
+      { apply finset.subset_union_left,
+        rw set.finite.mem_to_finset,
+        use hx1 } },
+    { rintros x ⟨_, hx⟩,
+      cases hx,
+      rw finset.coe_sdiff at hx,
+      sorry } },
+  { sorry },
+  { sorry }
 end
 
 -- this should be `f + g` not `λ x, f x + g x` but we probably need to import algebra.big_operators for this

@@ -66,7 +66,7 @@ begin
 end
 
 def lift : abelianization G →* A :=
-quotient_group.lift _ f (λ x h, monoid_hom.mem_ker.2 $ commutator_subset_ker _ h)
+quotient_group.lift _ f (λ x h, f.mem_ker.2 $ commutator_subset_ker _ h)
 
 @[simp] lemma lift.of (x : G) : lift f (of x) = f x :=
 rfl

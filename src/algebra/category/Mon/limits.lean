@@ -58,8 +58,8 @@ instance limit_monoid (F : J ⥤ Mon) :
 def limit_π_monoid_hom (F : J ⥤ Mon) (j) :
   limit (F ⋙ forget Mon) →* (F ⋙ forget Mon).obj j :=
 { to_fun := limit.π (F ⋙ forget Mon) j,
-  map_one' := by { simp only [types.types_limit_π], refl },
-  map_mul' := λ x y, by { simp only [types.types_limit_π], refl } }
+  map_one' := rfl,
+  map_mul' := λ x y, rfl }
 
 namespace has_limits
 -- The next two definitions are used in the construction of `has_limits Mon`.

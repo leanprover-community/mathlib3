@@ -152,7 +152,7 @@ lemma le_of_tendsto_of_tendsto {f g : β → α} {b : filter β} {a₁ a₂ : α
 have tendsto (λb, (f b, g b)) b (𝓝 (a₁, a₂)),
   by rw [nhds_prod_eq]; exact hf.prod_mk hg,
 show (a₁, a₂) ∈ {p:α×α | p.1 ≤ p.2},
-  from mem_of_closed_of_tendsto this t.is_closed_le' h
+  from t.is_closed_le'.mem_of_tendsto this h
 
 lemma le_of_tendsto_of_tendsto' {f g : β → α} {b : filter β} {a₁ a₂ : α} [ne_bot b]
   (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) (h : ∀ x, f x ≤ g x) :
@@ -615,46 +615,28 @@ lemma tendsto_order {f : β → α} {a : α} {x : filter β} :
   tendsto f x (𝓝 a) ↔ (∀ a' < a, ∀ᶠ b in x, a' < f b) ∧ (∀ a' > a, ∀ᶠ b in x, f b < a') :=
 by simp [nhds_eq_order a, tendsto_inf, tendsto_infi, tendsto_principal]
 
-instance nhds_is_interval_generated (a : α) : is_interval_generated (𝓝 a) :=
+instance tendsto_Icc_class_nhds (a : α) : tendsto_Ixx_class Icc (𝓝 a) (𝓝 a) :=
 begin
   simp only [nhds_eq_order, infi_subtype'],
   refine ((has_basis_infi_principal_finite _).inf
-    (has_basis_infi_principal_finite _)).is_interval_generated _,
-  refine λ s hs, (ord_connected_bInter $ λ _ _, _).inter (ord_connected_bInter $ λ _ _, _),
+    (has_basis_infi_principal_finite _)).tendsto_Ixx_class (λ s hs, _),
+  refine (ord_connected_bInter _).inter (ord_connected_bInter _); intros _ _,
   exacts [ord_connected_Ioi, ord_connected_Iio]
 end
 
-instance nhds_within_Ici_is_interval_generated (a b : α) :
-  is_interval_generated (nhds_within a (Ici b)) :=
-ord_connected_Ici.is_interval_generated_inf_principal
+instance tendsto_Ico_class_nhds (a : α) : tendsto_Ixx_class Ico (𝓝 a) (𝓝 a) :=
+tendsto_Ixx_class_of_subset (λ _ _, Ico_subset_Icc_self)
 
-instance nhds_within_Ioi_is_interval_generated (a b : α) :
-  is_interval_generated (nhds_within a (Ioi b)) :=
-ord_connected_Ioi.is_interval_generated_inf_principal
+instance tendsto_Ioc_class_nhds (a : α) : tendsto_Ixx_class Ioc (𝓝 a) (𝓝 a) :=
+tendsto_Ixx_class_of_subset (λ _ _, Ioc_subset_Icc_self)
 
-instance nhds_within_Iic_is_interval_generated (a b : α) :
-  is_interval_generated (nhds_within a (Iic b)) :=
-ord_connected_Iic.is_interval_generated_inf_principal
+instance tendsto_Ioo_class_nhds (a : α) : tendsto_Ixx_class Ioo (𝓝 a) (𝓝 a) :=
+tendsto_Ixx_class_of_subset (λ _ _, Ioo_subset_Icc_self)
 
-instance nhds_within_Iio_is_interval_generated (a b : α) :
-  is_interval_generated (nhds_within a (Iio b)) :=
-ord_connected_Iio.is_interval_generated_inf_principal
-
-instance nhds_within_Icc_is_interval_generated (a b c : α) :
-  is_interval_generated (nhds_within a (Icc b c)) :=
-ord_connected_Icc.is_interval_generated_inf_principal
-
-instance nhds_within_Ico_is_interval_generated (a b c : α) :
-  is_interval_generated (nhds_within a (Ico b c)) :=
-ord_connected_Ico.is_interval_generated_inf_principal
-
-instance nhds_within_Ioc_is_interval_generated (a b c : α) :
-  is_interval_generated (nhds_within a (Ioc b c)) :=
-ord_connected_Ioc.is_interval_generated_inf_principal
-
-instance nhds_within_Ioo_is_interval_generated (a b c : α) :
-  is_interval_generated (nhds_within a (Ioo b c)) :=
-ord_connected_Ioo.is_interval_generated_inf_principal
+instance tendsto_Ixx_nhds_within (a : α) {s t : set α} {Ixx}
+  [tendsto_Ixx_class Ixx (𝓝 a) (𝓝 a)] [tendsto_Ixx_class Ixx (𝓟 s) (𝓟 t)]:
+  tendsto_Ixx_class Ixx (𝓝[s] a) (𝓝[t] a) :=
+filter.tendsto_Ixx_class_inf
 
 /-- Also known as squeeze or sandwich theorem. This version assumes that inequalities hold
 eventually for the filter. -/
@@ -1201,6 +1183,62 @@ end
 
 end linear_order
 
+section linear_ordered_ring
+variables [topological_space α] [linear_ordered_ring α] [order_topology α]
+variables {l : filter β} {f g : β → α}
+
+/- TODO The theorems in this section ought to be written in the context of linearly ordered
+(additive) commutative groups rather than linearly ordered rings; however, the former concept does
+not currently exist in mathlib. -/
+
+/-- In a linearly ordered ring with the order topology, if `f` tends to `C` and `g` tends to
+`at_top` then `f + g` tends to `at_top`. -/
+lemma tendsto_at_top_add_tendsto_left
+  {C : α} (hf : tendsto f l (𝓝 C)) (hg : tendsto g l at_top) :
+  tendsto (λ x, f x + g x) l at_top :=
+begin
+  obtain ⟨C', hC'⟩ : ∃ C', C' < C := no_bot C,
+  refine tendsto_at_top_add_left_of_le' _ C' _ hg,
+  rw tendsto_order at hf,
+  exact (hf.1 C' hC').mp (eventually_of_forall (λ x hx, le_of_lt hx))
+end
+
+/-- In a linearly ordered ring with the order topology, if `f` tends to `C` and `g` tends to
+`at_bot` then `f + g` tends to `at_bot`. -/
+lemma tendsto_at_bot_add_tendsto_left
+  {C : α} (hf : tendsto f l (𝓝 C)) (hg : tendsto g l at_bot) :
+  tendsto (λ x, f x + g x) l at_bot :=
+begin
+  obtain ⟨C', hC'⟩ : ∃ C', C < C' := no_top C,
+  refine tendsto_at_bot_add_left_of_ge' _ C' _ hg,
+  rw tendsto_order at hf,
+  exact (hf.2 C' hC').mp (eventually_of_forall (λ x hx, le_of_lt hx))
+end
+
+/-- In a linearly ordered ring with the order topology, if `f` tends to `at_top` and `g` tends to
+`C` then `f + g` tends to `at_top`. -/
+lemma tendsto_at_top_add_tendsto_right
+  {C : α} (hf : tendsto f l at_top) (hg : tendsto g l (𝓝 C)) :
+  tendsto (λ x, f x + g x) l at_top :=
+begin
+  convert tendsto_at_top_add_tendsto_left hg hf,
+  ext,
+  exact add_comm _ _,
+end
+
+/-- In a linearly ordered ring with the order topology, if `f` tends to `at_bot` and `g` tends to
+`C` then `f + g` tends to `at_bot`. -/
+lemma tendsto_at_bot_add_tendsto_right
+  {C : α} (hf : tendsto f l at_bot) (hg : tendsto g l (𝓝 C)) :
+  tendsto (λ x, f x + g x) l at_bot :=
+begin
+  convert tendsto_at_bot_add_tendsto_left hg hf,
+  ext,
+  exact add_comm _ _,
+end
+
+end linear_ordered_ring
+
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
 (image_eq_preimage_of_inverse neg_neg neg_neg).symm
 
@@ -1534,7 +1572,7 @@ lemma map_Sup_of_continuous_at_of_monotone' {f : α → β} {s : set α} (Cf : c
   f (Sup s) = Sup (f '' s) :=
 --This is a particular case of the more general is_lub_of_is_lub_of_tendsto
 (is_lub_of_is_lub_of_tendsto (λ x hx y hy xy, Mf xy) (is_lub_Sup _) hs $
-  tendsto_le_left inf_le_left Cf).Sup_eq.symm
+  Cf.mono_left inf_le_left).Sup_eq.symm
 
 /-- A monotone function `s` sending `bot` to `bot` and continuous at the supremum of a set sends
 this supremum to the supremum of the image of this set. -/
@@ -1623,7 +1661,7 @@ lemma map_cSup_of_continuous_at_of_monotone {f : α → β} {s : set α} (Cf : c
 begin
   refine ((is_lub_cSup (ne.image f) (Mf.map_bdd_above H)).unique _).symm,
   refine is_lub_of_is_lub_of_tendsto (λx hx y hy xy, Mf xy) (is_lub_cSup ne H) ne _,
-  exact tendsto_le_left inf_le_left Cf
+  exact Cf.mono_left inf_le_left
 end
 
 /-- If a monotone function is continuous at the indexed supremum of a bounded function on

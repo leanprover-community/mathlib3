@@ -88,7 +88,6 @@ game, and show, for example, that there is a relabelling between `x + (y + z)` a
 ## Future work
 * The theory of dominated and reversible positions, and unique normal form for short games.
 * Analysis of basic domineering positions.
-* Impartial games, nim, and the Sprague-Grundy theorem.
 * Hex.
 * Temperature.
 * The development of surreal numbers, based on this development of combinatorial games, is still

@@ -99,7 +99,7 @@ ext_iff.2 $ by simp [bit0]
 @[simp] lemma of_real_bit1 (r : ℝ) : 𝓚 (bit1 r : ℝ) = bit1 (𝓚 r) :=
 ext_iff.2 $ by simp [bit1]
 
-/-- Note: This can be proven by norm_num once K is proven to be of characteristic zero below. -/
+/- Note: This can be proven by `norm_num` once K is proven to be of characteristic zero below. -/
 lemma two_ne_zero : (2 : K) ≠ 0 :=
 begin
   intro h, rw [(show (2 : K) = 𝓚 2, by norm_num), ←of_real_zero, of_real_inj] at h,

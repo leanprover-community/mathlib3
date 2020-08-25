@@ -279,10 +279,8 @@ begin
   { apply with_zero.zero_le },
   { exact false.elim (not_lt_of_le h (with_zero.zero_lt_coe a))},
   { apply with_zero.zero_le },
-  { change (c : with_zero α) * a ≤ c * b,
-    change (a : with_zero α) ≤ b at h,
-    rw with_zero.coe_le_coe at h,
-    norm_cast,
+  { simp_rw [some_eq_coe] at h ⊢,
+    norm_cast at h ⊢,
     exact mul_le_mul_left' h c }
 end
 
@@ -291,16 +289,15 @@ lemma lt_of_mul_lt_mul_left  {α : Type u}
   ∀ (a b c : with_zero α), a * b < a * c → b < c :=
 begin
   rintro (_ | a) (_ | b) (_ | c) h,
-  { exact false.elim (lt_irrefl none h)},
-  { exact false.elim (lt_irrefl none h)},
-  { exact false.elim (lt_irrefl none h)},
-  { exact false.elim (lt_irrefl none h)},
-  { exact false.elim (lt_irrefl none h)},
-  { exact with_zero.zero_lt_coe c},
-  { exact false.elim (not_le_of_lt h (with_zero.zero_le _))},
-  { change (a : with_zero α) * b < a * c at h,
-    change (b : with_zero α) < c,
-    norm_cast at ⊢ h,
+  { exact false.elim (lt_irrefl none h) },
+  { exact false.elim (lt_irrefl none h) },
+  { exact false.elim (lt_irrefl none h) },
+  { exact false.elim (lt_irrefl none h) },
+  { exact false.elim (lt_irrefl none h) },
+  { exact with_zero.zero_lt_coe c },
+  { exact false.elim (not_le_of_lt h (with_zero.zero_le _)) },
+  { simp_rw [some_eq_coe] at h ⊢,
+    norm_cast at h ⊢,
     apply lt_of_mul_lt_mul_left' h }
 end
 

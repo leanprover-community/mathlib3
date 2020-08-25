@@ -72,6 +72,8 @@ universes v₃ v₄ u₃ u₄
 variables {C' : Type u₃} [category.{v₃} C']
 variables {D' : Type u₄} [category.{v₄} D']
 
+-- TODO: This needs some lemmas describing the produced adjunction, probably in terms of `adj`,
+-- `iC` and `iD`.
 /--
 If `C` is a full subcategory of `C'` and `D` is a full subcategory of `D'`, then we can restrict
 an adjunction `L' ⊣ R'` where `L' : C' ⥤ D'` and `R' : D' ⥤ C'` to `C` and `D`.

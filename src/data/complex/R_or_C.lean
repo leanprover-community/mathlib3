@@ -49,7 +49,7 @@ variables {K : Type*} [normed_field K] [algebra ℝ K] [is_R_or_C K]
 local notation `𝓚` := @is_R_or_C.of_real K _ _ _
 
 lemma of_real_alg : ∀ x : ℝ, 𝓚 x = x • (1 : K) :=
-  λ x, by rw [←mul_one (𝓚 x), smul_coe_mul_ax]
+λ x, by rw [←mul_one (𝓚 x), smul_coe_mul_ax]
 
 @[simp] lemma re_add_im (z : K) : 𝓚 (re z) + 𝓚 (im z) * I = z := is_R_or_C.re_add_im_ax z
 @[simp] lemma of_real_re : ∀ r : ℝ, re (𝓚 r) = r := is_R_or_C.of_real_re_ax

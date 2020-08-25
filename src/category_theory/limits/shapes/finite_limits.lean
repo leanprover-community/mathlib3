@@ -63,6 +63,10 @@ instance has_colimits_of_shape_of_has_finite_colimits
   has_colimits_of_shape J C :=
 ‹has_finite_colimits C› J
 
+/-- If `C` has all colimits, it has finite colimits. -/
+def has_finite_colimits_of_has_colimits [has_colimits C] : has_finite_colimits C :=
+λ J 𝒥₁ 𝒥₂, infer_instance
+
 section
 
 open walking_parallel_pair walking_parallel_pair_hom

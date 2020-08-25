@@ -181,7 +181,7 @@ Note that we do not assume a priori that `D` actually has any limits.
 class reflects_limit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (reflects : Π {c : cone K}, is_limit (F.map_cone c) → is_limit c)
 /--
-A functor `F : C ⥤ D` reflects limits for `K : J ⥤ C` if
+A functor `F : C ⥤ D` reflects colimits for `K : J ⥤ C` if
 whenever the image of a cocone over `K` under `F` is a colimit cocone in `D`,
 the cocone was already a colimit cocone in `C`.
 Note that we do not assume a priori that `D` actually has any colimits.
@@ -198,7 +198,7 @@ Note that we do not assume a priori that `D` actually has any limits.
 class reflects_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (reflects_limit : Π {K : J ⥤ C}, reflects_limit K F)
 /--
-A functor `F : C ⥤ D` reflects limits of shape `J` if
+A functor `F : C ⥤ D` reflects colimits of shape `J` if
 whenever the image of a cocone over some `K : J ⥤ C` under `F` is a colimit cocone in `D`,
 the cocone was already a colimit cocone in `C`.
 Note that we do not assume a priori that `D` actually has any colimits.
@@ -286,7 +286,7 @@ instance comp_reflects_colimit [reflects_colimit K F] [reflects_colimit (K ⋙ F
 
 /-- If `F ⋙ G` preserves limits for `K`, and `G` reflects limits for `K ⋙ F`,
 then `F` preserves limits for `K`. -/
-def preserves_of_reflects_of_preserves [preserves_limit K (F ⋙ G)]
+def preserves_limit_of_reflects_of_preserves [preserves_limit K (F ⋙ G)]
   [reflects_limit (K ⋙ F) G] : preserves_limit K F :=
 ⟨λ c h,
  begin
@@ -294,6 +294,18 @@ def preserves_of_reflects_of_preserves [preserves_limit K (F ⋙ G)]
   change limits.is_limit ((F ⋙ G).map_cone c),
   exact preserves_limit.preserves h
  end⟩
+
+/-- If `F ⋙ G` preserves colimits for `K`, and `G` reflects colimits for `K ⋙ F`,
+then `F` preserves colimits for `K`. -/
+def preserves_colimit_of_reflects_of_preserves [preserves_colimit K (F ⋙ G)]
+  [reflects_colimit (K ⋙ F) G] : preserves_colimit K F :=
+⟨λ c h,
+ begin
+  apply @reflects_colimit.reflects _ _ _ _ _ _ _ G,
+  change limits.is_colimit ((F ⋙ G).map_cocone c),
+  exact preserves_colimit.preserves h
+ end⟩
+
 
 end
 

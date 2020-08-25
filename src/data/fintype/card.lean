@@ -84,8 +84,8 @@ theorem fin.prod_univ_succ_above [comm_monoid β] {n : ℕ} (f : fin (n + 1) →
   ∏ i, f i = f x * ∏ i : fin n, f (x.succ_above i) :=
 begin
   rw [fin.univ_succ_above, finset.prod_insert, finset.prod_image],
-  { intros x _ y _ hxy, exact fi(n + 1)_above_inj_about_pivot.mp hxy },
-  { simp [fi(n + 1)_above_ne] }
+  { intros x _ y _ hxy, exact fin.succ_above_inj_about_pivot.mp hxy },
+  { simp [fin.succ_above_ne] }
 end
 
 /-- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`

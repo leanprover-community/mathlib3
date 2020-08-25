@@ -89,7 +89,7 @@ begin
   { rw [fix.approx,well_founded.fix_eq,fix_aux],
     congr, ext : 1, rw assert_neg, refl,
     rw nat.zero_add at this,
-    simp *, exact this },
+    simpa only [not_not, subtype.val_eq_coe] },
   { rw [fix.approx,well_founded.fix_eq,fix_aux],
     congr, ext : 1,
     have hh : ¬(fix.approx f (z.val) x).dom,
@@ -128,7 +128,7 @@ end
 lemma mem_fix (a : α) (b : β a) : b ∈ roption.fix f a ↔ ∃ i, b ∈ approx f i a :=
 begin
   by_cases h₀ : ∃ (i : ℕ), (approx f i a).dom,
-  { simp [roption.fix_def f h₀],
+  { simp only [roption.fix_def f h₀],
     split; intro hh, exact ⟨_,hh⟩,
     have h₁ := nat.find_spec h₀,
     rw [dom_iff_mem] at h₁,
@@ -140,8 +140,8 @@ begin
     wlog : i ≤ j := le_total i j using [i j b y,j i y b],
     replace hh := approx_mono f case _ _ hh,
     apply roption.mem_unique h₁ hh },
-  { simp [fix_def' f h₀],
-    simp [dom_iff_mem] at h₀,
+  { simp only [fix_def' ⇑f h₀, not_exists, false_iff, not_mem_none],
+    simp only [dom_iff_mem, not_exists] at h₀,
     intro, apply h₀ }
 end
 
@@ -157,8 +157,9 @@ begin
     have hb' := max_fix f i _ _ hb,
     have hh := roption.mem_unique h' hb',
     subst hh, exact hb },
-  { simp at hh, existsi 0,
-    intros b' h', simp [mem_fix f] at h',
+  { simp only [not_exists] at hh, existsi 0,
+    intros b' h',
+    simp only [mem_fix f] at h',
     cases h' with i h',
     cases hh _ _ h' }
 end
@@ -200,7 +201,7 @@ begin
     apply' le_ωSup_of_le i.succ,
     dsimp [approx], refl', },
   { apply ωSup_le _ _ _,
-    simp [mem_map_iff,approx_chain],
+    simp only [fix.approx_chain, preorder_hom.coe_fun_mk],
     intros y x, apply max_fix f },
 end
 
@@ -209,7 +210,7 @@ lemma fix_le {X : Π a, roption $ β a} (hX : f X ≤ X) : roption.fix f ≤ X :
 begin
   rw fix_eq_ωSup f,
   apply ωSup_le _ _ _,
-  simp [approx_chain,stream.nth],
+  simp only [fix.approx_chain, preorder_hom.coe_fun_mk],
   intros i,
   induction i, dsimp [fix.approx], apply' bot_le,
   transitivity' f X, apply f.monotone i_ih,

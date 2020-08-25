@@ -127,8 +127,9 @@ def const (f : β) : α →𝒄 β :=
 of_mono (preorder_hom.const _ f)
     begin
       intro c, apply le_antisymm,
-      { simp [function.const], apply le_ωSup_of_le 0, refl },
-      { apply ωSup_le, simp [chain.mem_map_iff],
+      { simp only [function.const, preorder_hom.const_to_fun],
+        apply le_ωSup_of_le 0, refl },
+      { apply ωSup_le, simp only [preorder_hom.const_to_fun, chain.map_to_fun, function.comp_app],
         intros, refl },
     end
 

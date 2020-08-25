@@ -427,8 +427,8 @@ set_option default_priority 100 -- see Note [default priority]
 @[main_declaration]
 instance : omega_complete_partial_order α :=
 { ωSup    := λc, ⨆ i, c i,
-  ωSup_le := assume ⟨c, _⟩ s hs, by simp at ⊢ hs; intros i; apply hs i,
-  le_ωSup := assume ⟨c, _⟩ i, by simp at ⊢; apply le_supr_of_le i; refl }
+  ωSup_le := assume ⟨c, _⟩ s hs, by simp only [supr_le_iff, preorder_hom.coe_fun_mk] at ⊢ hs; intros i; apply hs i,
+  le_ωSup := assume ⟨c, _⟩ i, by simp only [preorder_hom.coe_fun_mk]; apply le_supr_of_le i; refl }
 
 end complete_lattice
 

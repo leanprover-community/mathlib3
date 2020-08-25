@@ -60,17 +60,11 @@ lemma of_real_alg : ∀ x : ℝ, 𝓚 x = x • (1 : K) :=
   is_R_or_C.mul_im_ax
 
 theorem ext_iff : ∀ {z w : K}, z = w ↔ re z = re w ∧ im z = im w :=
-begin
-  intros z w,
-  split,
-  { intro h,
-    simp [h] },
-  { rintro ⟨h₁,h₂⟩,
-    rw [←re_add_im z, ←re_add_im w, h₁, h₂] }
-end
+λ z w, { mp := by { rintro rfl, cc },
+         mpr := by { rintro ⟨h₁,h₂⟩, rw [←re_add_im z, ←re_add_im w, h₁, h₂] } }
 
 theorem ext : ∀ {z w : K}, re z = re w → im z = im w → z = w :=
-  λ z w hre him, is_R_or_C.ext_iff.mpr ⟨hre, him⟩
+by { simp_rw ext_iff, cc }
 
 
 lemma zero_re : re (𝓚 0) = (0 : ℝ) := by simp only [of_real_re]
@@ -82,15 +76,9 @@ lemma of_real_zero : 𝓚 0 = 0 := by rw [of_real_alg, zero_smul]
 @[simp] lemma one_im : im (1 : K) = 0 := by rw [←of_real_one, of_real_im]
 
 @[simp] theorem of_real_inj {z w : ℝ} : 𝓚 z = 𝓚 w ↔ z = w :=
-begin
-  split,
-  { intro h,
-    have := congr_arg re h,
-    simp only [of_real_re] at this,
-    exact this },
-  { intro h,
-    simp only [h] }
-end
+{ mp := λ h, by { convert congr_arg re h; simp only [of_real_re] },
+  mpr := λ h, by rw h }
+
 
 @[simp] lemma bit0_re (z : K) : re (bit0 z) = bit0 (re z) := by simp [bit0]
 @[simp] lemma bit1_re (z : K) : re (bit1 z) = bit1 (re z) :=
@@ -115,10 +103,8 @@ lemma two_eq_of_real : (2 : K) = 𝓚 2 := by rw [bit0, ←of_real_one, ←of_re
 
 lemma two_ne_zero : (2 : K) ≠ 0 :=
 begin
-  intro h,
-  apply (show (2 : ℝ) ≠ 0, by linarith),
-  rw [two_eq_of_real, ←of_real_zero] at h,
-  exact of_real_inj.mp h,
+  intro h, rw [two_eq_of_real, ←of_real_zero, of_real_inj] at h,
+  linarith,
 end
 
 @[simp] lemma of_real_neg (r : ℝ) : 𝓚 (-r : ℝ) = -(𝓚 r) := ext_iff.2 $ by simp
@@ -130,9 +116,9 @@ lemma smul_im (r : ℝ) (z : K) : im ((𝓚 r) * z) = r * (im z) :=
   by simp only [add_zero, of_real_im, zero_mul, of_real_re, mul_im]
 
 lemma smul_re' : ∀ (r : ℝ) (z : K), re (r • z) = r * (re z) :=
-  λ r z, by rw [smul_coe_mul_ax]; exact smul_re r z
+  λ r z, by { rw [smul_coe_mul_ax], apply smul_re }
 lemma smul_im' : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
-  λ r z, by rw [smul_coe_mul_ax]; exact smul_im r z
+  λ r z, by { rw [smul_coe_mul_ax], apply smul_im }
 
 /-! ### The imaginary unit, `I` -/
 
@@ -143,13 +129,15 @@ lemma I_mul_I : (I : K) = 0 ∨ (I : K) * I = -1 := I_mul_I_ax
 @[simp] lemma conj_re (z : K) : re (conj z) = re z := is_R_or_C.conj_re_ax z
 @[simp] lemma conj_im (z : K) : im (conj z) = -(im z) := is_R_or_C.conj_im_ax z
 @[simp] lemma conj_of_real (r : ℝ) : conj (𝓚 r) = (𝓚 r) :=
-  (@is_R_or_C.ext_iff K _ _ _ (conj (𝓚 r)) (𝓚 r)).mpr $ by simp
+by { rw ext_iff, simp only [of_real_im, conj_im, eq_self_iff_true, conj_re, and_self, neg_zero] }
 
-@[simp] lemma conj_bit0 (z : K) : conj (bit0 z) = bit0 (conj z) := ext_iff.2 $ by simp [bit0]
-@[simp] lemma conj_bit1 (z : K) : conj (bit1 z) = bit1 (conj z) := ext_iff.2 $ by simp [bit0]
 
-@[simp] lemma conj_neg_I : conj (-I) = (I : K) := ext_iff.2 $ by simp
-@[simp] lemma conj_conj (z : K) : conj (conj z) = z := ext_iff.2 $ by simp
+@[simp] lemma conj_bit0 (z : K) : conj (bit0 z) = bit0 (conj z) := by simp [bit0, ext_iff]
+@[simp] lemma conj_bit1 (z : K) : conj (bit1 z) = bit1 (conj z) := by simp [bit0, ext_iff]
+
+@[simp] lemma conj_neg_I : conj (-I) = (I : K) := by simp [ext_iff]
+
+@[simp] lemma conj_conj (z : K) : conj (conj z) = z := by simp [ext_iff]
 
 lemma conj_involutive : @function.involutive K is_R_or_C.conj := conj_conj
 lemma conj_bijective : @function.bijective K K is_R_or_C.conj := conj_involutive.bijective

@@ -1,138 +1,161 @@
--- /-
--- Copyright (c) 2020 Bhavik Mehta. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Bhavik Mehta
--- -/
--- import category_theory.isomorphism_classes
+/-
+Copyright (c) 2020 Bhavik Mehta. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Bhavik Mehta
+-/
+import category_theory.isomorphism_classes
+import category_theory.thin
 
--- /-!
--- # Skeleton of a category
+/-!
+# Skeleton of a category
 
--- Defines skeletal categories as categories in which any two isomorphic objects are equal.
--- -/
+Defines skeletal categories as categories in which any two isomorphic objects are equal.
+-/
 
--- universes v₁ v₂ v₃ u₁ u₂ u₃
+universes v₁ v₂ v₃ u₁ u₂ u₃
 
--- namespace category_theory
+namespace category_theory
 
--- open category
+open category
 
--- variables (C : Type u₁) [category.{v₁} C]
--- variables (D : Type u₂) [category.{v₂} D]
--- variables (E : Type u₃) [category.{v₃} E]
+variables (C : Type u₁) [category.{v₁} C]
+variables (D : Type u₂) [category.{v₂} D]
+variables (E : Type u₃) [category.{v₃} E]
 
--- /-- A category is skeletal if isomorphic objects are equal. -/
--- def skeletal : Prop := ∀ (X Y : C), is_isomorphic X Y → X = Y
+/-- A category is skeletal if isomorphic objects are equal. -/
+def skeletal : Prop := ∀ (X Y : C), is_isomorphic X Y → X = Y
 
--- variable (C)
+/--
+`is_skeleton_of C D F` says that `F : D ⥤ C` exhibits `D` as a skeletal full subcategory of `C`,
+in particular `F` is a (strong) equivalence and `D` is skeletal.
+-/
+structure is_skeleton_of (F : D ⥤ C) :=
+(skel : skeletal D)
+(eqv : is_equivalence F)
 
--- /--
--- `is_skeleton_of C D F` says that `F : D ⥤ C` exhibits `D` as a skeletal full subcategory of `C`,
--- in particular `F` is a (strong) equivalence and `D` is skeletal.
--- -/
--- structure is_skeleton_of (F : D ⥤ C) :=
--- (skel : skeletal D)
--- (eqv : is_equivalence F)
+local attribute [instance] is_isomorphic_setoid
 
--- local attribute [instance] is_isomorphic_setoid
+variables {C D}
+/-- If `C` is thin and skeletal, then any naturally isomorphic functors to `C` are equal. -/
+lemma functor.eq_of_iso {F₁ F₂ : D ⥤ C} [∀ X Y : C, subsingleton (X ⟶ Y)] (hC : skeletal C)
+  (hF : F₁ ≅ F₂) : F₁ = F₂ :=
+functor.ext (λ X, hC _ _ ⟨hF.app X⟩) (λ _ _ _, subsingleton.elim _ _)
 
--- def sparse_skeleton := quotient (is_isomorphic_setoid C)
+/--
+If `C` is thin and skeletal, `D ⥤ C` is skeletal.
+`category_theory.functor_thin` shows it is thin also.
+-/
+lemma functor_skeletal [∀ X Y : C, subsingleton (X ⟶ Y)] (hC : skeletal C) : skeletal (D ⥤ C) :=
+λ F₁ F₂ h, h.elim (functor.eq_of_iso hC)
+variables (C D)
 
+/--
+Construct the skeleton category by taking the quotient of objects. This construction gives a
+preorder with nice definitional properties, but is only really appropriate for thin categories.
+-/
+def thin_skeleton := quotient (is_isomorphic_setoid C)
 
--- namespace sparse_skeleton
+instance thin_skeleton.preorder : preorder (thin_skeleton C) :=
+{ le := quotient.lift₂ (λ X Y, nonempty (X ⟶ Y))
+  begin
+    rintros _ _ _ _ ⟨i₁⟩ ⟨i₂⟩,
+    exact propext ⟨nonempty.map (λ f, i₁.inv ≫ f ≫ i₂.hom), nonempty.map (λ f, i₁.hom ≫ f ≫ i₂.inv)⟩,
+  end,
+  le_refl :=
+  begin
+    refine quotient.ind (λ a, _),
+    exact ⟨𝟙 _⟩,
+  end,
+  le_trans := λ a b c, quotient.induction_on₃ a b c $ λ A B C, nonempty.map2 (≫) }
 
--- instance preorder : preorder (sparse_skeleton C) :=
--- { le :=
---   begin
---     refine quotient.lift₂ (λ X Y, nonempty (X ⟶ Y)) _,
---     rintros _ _ _ _ ⟨i₁⟩ ⟨i₂⟩,
---     apply propext ⟨_, _⟩,
---     { rintro ⟨f⟩,
---       refine ⟨i₁.inv ≫ f ≫ i₂.hom⟩ },
---     { rintro ⟨g⟩,
---       refine ⟨i₁.hom ≫ g ≫ i₂.inv⟩ },
---   end,
---   le_refl :=
---   begin
---     refine quotient.ind (λ a, _),
---     exact ⟨𝟙 _⟩,
---   end,
---   le_trans :=
---   begin
---     intros _ _ _,
---     apply quotient.induction_on₃ a b c,
---     rintros _ _ _ ⟨f⟩ ⟨g⟩,
---     refine ⟨f ≫ g⟩,
---   end }
+/-- The functor from a category to its thin skeleton. -/
+@[simps]
+def to_thin_skeleton : C ⥤ thin_skeleton C :=
+{ obj := quotient.mk,
+  map := λ X Y f, hom_of_le (nonempty.intro f) }
 
--- instance sparse {X Y : sparse_skeleton C} : subsingleton (X ⟶ Y) :=
--- ⟨by { rintros ⟨⟨f₁⟩⟩ ⟨⟨f₂⟩⟩, refl }⟩
+namespace thin_skeleton
 
--- instance subsingleton_iso {X Y : sparse_skeleton C} : subsingleton (X ≅ Y) :=
--- ⟨by { intros i₁ i₂, ext1, apply subsingleton.elim }⟩
+/-- The thin skeleton is thin. -/
+instance thin {X Y : thin_skeleton C} : subsingleton (X ⟶ Y) :=
+⟨by { rintros ⟨⟨f₁⟩⟩ ⟨⟨f₂⟩⟩, refl }⟩
 
--- variables {C} {D}
+variables {C} {D}
 
--- @[simps]
--- def map (F : C ⥤ D) : sparse_skeleton C ⥤ sparse_skeleton D :=
--- { obj := quotient.lift (quotient.mk ∘ F.obj) $
---     λ _ _ k, nonempty.elim k (quotient.sound ∘ nonempty.intro ∘ F.map_iso),
---   map := λ X Y, quotient.rec_on_subsingleton₂ X Y $
---            λ x y k, hom_of_le (nonempty.elim (le_of_hom k) (λ t, nonempty.intro (F.map t))) }
+@[simps]
+def map (F : C ⥤ D) : thin_skeleton C ⥤ thin_skeleton D :=
+{ obj := quotient.map F.obj $ λ X₁ X₂ ⟨hX⟩, ⟨F.map_iso hX⟩,
+  map := λ X Y, quotient.rec_on_subsingleton₂ X Y $
+           λ x y k, hom_of_le ((le_of_hom k).elim (λ t, ⟨F.map t⟩)) }
 
--- def map_comp (F : C ⥤ D) (G : D ⥤ E) : map (F ⋙ G) ≅ map F ⋙ map G :=
--- nat_iso.of_components (λ X, quotient.rec_on_subsingleton X (λ x, iso.refl _)) (by tidy)
+lemma name_me_pls (F : C ⥤ D) : F ⋙ to_thin_skeleton D = to_thin_skeleton C ⋙ map F := rfl
 
--- def map_id : map (𝟭 C) ≅ 𝟭 _ :=
--- nat_iso.of_components (λ X, quotient.rec_on_subsingleton X (λ x, iso.refl _)) (by tidy)
+def map_comp_iso (F : C ⥤ D) (G : D ⥤ E) : map (F ⋙ G) ≅ map F ⋙ map G :=
+nat_iso.of_components (λ X, quotient.rec_on_subsingleton X (λ x, iso.refl _)) (by tidy)
 
--- def map_func {F₁ F₂ : C ⥤ D} (k : F₁ ⟶ F₂) : map F₁ ⟶ map F₂ :=
--- { app := λ X, quotient.rec_on_subsingleton X (λ x, ⟨⟨⟨k.app x⟩⟩⟩) }
+def map_id_iso : map (𝟭 C) ≅ 𝟭 _ :=
+nat_iso.of_components (λ X, quotient.rec_on_subsingleton X (λ x, iso.refl _)) (by tidy)
 
--- def map_iso {F₁ F₂ : C ⥤ D} (h : F₁ ≅ F₂) : map F₁ ≅ map F₂ :=
--- { hom := map_func h.hom, inv := map_func h.inv }
+def map_nat_trans {F₁ F₂ : C ⥤ D} (k : F₁ ⟶ F₂) : map F₁ ⟶ map F₂ :=
+{ app := λ X, quotient.rec_on_subsingleton X (λ x, ⟨⟨⟨k.app x⟩⟩⟩) }
 
--- variables [∀ X Y : C, subsingleton (X ⟶ Y)]
+def map_iso_iso {F₁ F₂ : C ⥤ D} (h : F₁ ≅ F₂) : map F₁ ≅ map F₂ :=
+{ hom := map_nat_trans h.hom, inv := map_nat_trans h.inv }
 
--- def functor.eq_of_iso {F₁ F₂ : D ⥤ C} (hC : skeletal C) (hF : F₁ ≅ F₂) : F₁ = F₂ :=
--- functor.ext (λ X, hC _ _ ⟨hF.app X⟩) (λ _ _ _, subsingleton.elim _ _)
+variables (C) [∀ X Y : C, subsingleton (X ⟶ Y)]
 
--- lemma functor_skeletal (hC : skeletal C) : skeletal (D ⥤ C) :=
--- λ F₁ F₂ h, h.elim (functor.eq_of_iso hC)
+@[simps]
+noncomputable def from_thin_skeleton : thin_skeleton C ⥤ C :=
+{ obj := quotient.out,
+  map := λ x y, quotient.rec_on_subsingleton₂ x y $
+    λ X Y f,
+            (nonempty.some (quotient.mk_out X)).hom
+          ≫ (le_of_hom f).some
+          ≫ (nonempty.some (quotient.mk_out Y)).inv }
 
--- lemma functor_sparse (F₁ F₂ : D ⥤ C) : subsingleton (F₁ ⟶ F₂) :=
--- ⟨λ α β, nat_trans.ext α β (funext (λ _, subsingleton.elim _ _))⟩
+noncomputable instance from_thin_skeleton_equivalence : is_equivalence (from_thin_skeleton C) :=
+{ inverse := to_thin_skeleton C,
+  counit_iso := nat_iso.of_components (λ X, (nonempty.some (quotient.mk_out X))) (by tidy),
+  unit_iso :=
+    nat_iso.of_components
+      (λ x, quotient.rec_on_subsingleton x (λ X, eq_to_iso (quotient.sound ⟨(nonempty.some (quotient.mk_out X)).symm⟩)))
+      (by tidy) }
 
--- def iso_of_both_ways {X Y : C} (f : X ⟶ Y) (g : Y ⟶ X) : X ≅ Y :=
--- { hom := f, inv := g }
+variables {C}
 
--- lemma equiv_of_both_ways {X Y : C} (f : X ⟶ Y) (g : Y ⟶ X) : X ≈ Y :=
--- ⟨iso_of_both_ways f g⟩
+-- TODO: state the lemmas about what happens when you compose with `to_thin_skeleton`
+@[simps]
+def map₂ (F : E ⥤ D ⥤ C) :
+  thin_skeleton E ⥤ thin_skeleton D ⥤ thin_skeleton C :=
+{ obj := λ x,
+  { obj := λ y, quotient.map₂ (λ X Y, (F.obj X).obj Y)
+                (λ X₁ X₂ ⟨hX⟩ Y₁ Y₂ ⟨hY⟩, ⟨(F.obj X₁).map_iso hY ≪≫ (F.map_iso hX).app Y₂⟩) x y,
+    map := λ y₁ y₂, quotient.rec_on_subsingleton x $
+            λ X, quotient.rec_on_subsingleton₂ y₁ y₂ $
+              λ Y₁ Y₂ hY, hom_of_le ((le_of_hom hY).elim (λ g, ⟨(F.obj X).map g⟩)) },
+  map := λ x₁ x₂, quotient.rec_on_subsingleton₂ x₁ x₂ $
+           λ X₁ X₂ f,
+           { app := λ y, quotient.rec_on_subsingleton y
+              (λ Y, hom_of_le ((le_of_hom f).elim (λ f', ⟨(F.map f').app Y⟩))) } }
 
--- instance : partial_order (sparse_skeleton C) :=
--- { le_antisymm :=
---   begin
---     refine quotient.ind₂ _,
---     rintros _ _ ⟨f⟩ ⟨g⟩,
---     apply quotient.sound,
---     apply equiv_of_both_ways f g,
---   end,
---   ..category_theory.sparse_skeleton.preorder C }
+lemma equiv_of_both_ways {X Y : C} (f : X ⟶ Y) (g : Y ⟶ X) : X ≈ Y :=
+⟨iso_of_both_ways f g⟩
 
--- lemma skeletal : skeletal (sparse_skeleton C) :=
--- begin
---   intros X Y,
---   apply quotient.induction_on₂ X Y,
---   rintros _ _ ⟨⟨⟨⟨f⟩⟩⟩, ⟨⟨⟨g⟩⟩⟩, _, _⟩,
---   apply quotient.sound,
---   apply equiv_of_both_ways f g,
--- end
+instance : partial_order (thin_skeleton C) :=
+{ le_antisymm := quotient.ind₂
+  begin
+    rintros _ _ ⟨f⟩ ⟨g⟩,
+    apply quotient.sound (equiv_of_both_ways f g),
+  end,
+  ..category_theory.thin_skeleton.preorder C }
 
+lemma skeletal : skeletal (thin_skeleton C) :=
+λ X Y, quotient.induction_on₂ X Y $ λ x y h, h.elim $ λ i, le_antisymm (le_of_hom i.1) (le_of_hom i.2)
 
--- end sparse_skeleton
+noncomputable def thin_skeleton_is_skeleton : is_skeleton_of C (thin_skeleton C) (from_thin_skeleton C) :=
+{ skel := skeletal,
+  eqv := thin_skeleton.from_thin_skeleton_equivalence C }
 
--- def to_sparse_skeleton : C ⥤ sparse_skeleton C :=
--- { obj := quotient.mk,
---   map := λ X Y f, ⟨⟨⟨f⟩⟩⟩ }
+end thin_skeleton
 
--- end category_theory
+end category_theory

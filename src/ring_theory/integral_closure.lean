@@ -11,6 +11,7 @@ import ring_theory.algebra_tower
 universes u v w
 
 open_locale classical
+open_locale big_operators
 open polynomial submodule
 
 section
@@ -241,6 +242,52 @@ variables {R} {A}
 lemma integral_closure.is_integral (x : integral_closure R A) : is_integral R x :=
 let ⟨p, hpm, hpx⟩ := x.2 in ⟨p, hpm, subtype.eq $
 by rwa [subtype.val_eq_coe, ← subalgebra.val_apply, aeval_alg_hom_apply] at hpx⟩
+
+theorem is_integral_mul_unit {x y : A} {r : R} (hr : (algebra_map R A r) * y = 1)
+  (hx : is_integral R (x * y)) : (is_integral R x) :=
+begin
+  obtain ⟨p, hp⟩ := hx,
+  -- let p' : polynomial R := p.sum (λ n a, monomial n (a * r ^ (p.nat_degree - n))),
+  --use p.sum (λ n a, if n ≤ p.nat_degree then monomial n (a * r ^ (p.nat_degree - n)) else monomial n a),
+  let p' : polynomial R := ∑ (i : ℕ) in finset.range (p.nat_degree + 1),
+    monomial i ((p.coeff i) * r ^ (p.nat_degree - i)),
+  have hp' : ∀ (i : ℕ), p'.coeff i = p.coeff i * r ^ (p.nat_degree - i), {
+    sorry,
+  },
+  have hp'' : p'.nat_degree = p.nat_degree, {
+    sorry,
+  },
+  use p',
+  split,
+  { rw [monic, leading_coeff, hp'', hp', nat.sub_self, pow_zero, mul_one],
+    exact hp.1 },
+  { replace hp := hp.right,
+    -- rw as_sum p at hp,
+    suffices : (y ^ p.nat_degree) * (aeval x p') = 0,
+    { replace this := congr_arg (λ x, (algebra_map R A r) ^ p.nat_degree * x) this,
+      simp at this,
+      rwa [← mul_assoc, ← mul_pow, hr, one_pow, one_mul] at this },
+    rw [aeval_def, eval₂, sum_over_range] at ⊢ hp,
+    rw [finset.mul_sum, ← hp],
+    refine finset.sum_congr (by rw hp'') (λ n hn, _),
+    rw hp',
+    simp only [ring_hom.map_pow (algebra_map R A), ring_hom.map_mul (algebra_map R A)],
+    rw [← mul_assoc (y ^ p.nat_degree), mul_comm (y ^ p.nat_degree),
+        mul_comm x y, mul_pow y x n, ← mul_assoc _ (y ^ n) (x ^ n),
+        mul_assoc _ _ (y ^ p.nat_degree)],
+    congr,
+    suffices : (algebra_map R A r) ^ (p.nat_degree - n) * y ^ p.nat_degree * (algebra_map R A r) ^ n
+      = y ^ n * (algebra_map R A r) ^ n,
+    { replace this := congr_arg (* y ^ n) this,
+      simp at this,
+      iterate 2 {rw [mul_assoc _ _ (y ^ n), ← mul_pow _ y n, hr, one_pow n, mul_one] at this},
+      exact this },
+    rw [← mul_pow y _ n, mul_comm y, hr, mul_comm, ← mul_assoc, ← pow_add,
+      nat.add_sub_cancel' (nat.le_of_lt_succ (finset.mem_range.1 hn)),
+      ← mul_pow, hr, one_pow, one_pow],
+    -- TODO: Is it possible to inline these simps from the index lemmas somehow?
+    all_goals {simp [add_mul]} }
+end
 
 end
 

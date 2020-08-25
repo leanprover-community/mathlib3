@@ -1190,6 +1190,7 @@ section is_integral
 variables {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
 variables [algebra R S]
 
+-- TODO: Should there be a more general monoid map of some kind?
 def algebra_map_submonoid {R : Type*} [comm_ring R] (S : Type*) [comm_ring S] [algebra R S]
   (M : submonoid R) : submonoid S :=
 { carrier := algebra_map R S '' M,
@@ -1197,172 +1198,72 @@ def algebra_map_submonoid {R : Type*} [comm_ring R] (S : Type*) [comm_ring S] [a
   mul_mem' := λ x y hx hy, hx.rec_on (λ a ha, hy.rec_on (λ b hb,
     (⟨a * b, ⟨M.mul_mem ha.1 hb.1, by simp [ha.2, hb.2]⟩⟩ : x * y ∈ algebra_map R S '' M))) }
 
-lemma mem_algebra_map_submonoid : ∀ x : M, (algebra_map R S x) ∈ algebra_map_submonoid S M :=
-λ x, ⟨x.1, ⟨x.2, rfl⟩⟩
+lemma mem_algebra_map_submonoid (x : M) : (algebra_map R S x) ∈ algebra_map_submonoid S M :=
+⟨x.1, ⟨x.2, rfl⟩⟩
 
 noncomputable def localization_algebra (M : submonoid R) (f : localization_map M Rₘ)
   (g : localization_map (algebra_map_submonoid S M) Sₘ) : algebra Rₘ Sₘ :=
 (f.map (mem_algebra_map_submonoid R) g).to_algebra
-
-noncomputable def localization_algebra' (M : submonoid R) :
-  algebra (localization M) (localization (algebra_map_submonoid S M)) :=
-localization_algebra _ M (localization.of M) (localization.of (algebra_map_submonoid S M))
 
 variables (f : localization_map M Rₘ)
 variables (g : localization_map (algebra_map_submonoid S M) Sₘ)
 
 open polynomial
 
-/-- We can make an algebraic element integral by localizing to the leading coefficient of a witness -/
+/-- Given a witenss to an element being algebraic, localization to the leading coefficient makes it integral -/
 -- TODO: I'm not sure the best way to structure a statement that requires a particular witness
-theorem is_integral_localization_of_is_algebraic {x : S} (hx : is_algebraic R x)
+theorem is_integral_localization_of_is_algebraic {x : S}
   (witness : polynomial R) (hw : witness ≠ 0 ∧ aeval x witness = 0)
-  (f : localization_map (submonoid.closure {witness.leading_coeff} : submonoid R) Rₘ)
-  (g : localization_map (algebra_map_submonoid S ((submonoid.closure {witness.leading_coeff} : submonoid R))) Sₘ) :
-  @is_integral Rₘ _ _ _ (localization_algebra R ((submonoid.closure {witness.leading_coeff} : submonoid R)) f g) (g.to_map x) :=
+  (hM : witness.leading_coeff ∈ M) (hM' : M ≤ non_zero_divisors R) :
+  @is_integral Rₘ _ _ _ (localization_algebra R M f g) (g.to_map x) :=
 begin
+  by_cases triv : (1 : Rₘ) = 0,
+  { exact ⟨0, ⟨trans leading_coeff_zero triv.symm, eval₂_zero _ _⟩⟩ },
   have : is_unit (f.to_map witness.leading_coeff) :=
-    localization_map.map_units f ⟨witness.leading_coeff, submonoid.mem_closure_singleton_self⟩,
-  rw is_unit_iff_exists_inv at this,
-  cases this with b hb,
-  use (witness.map f.to_map) * C b,
-  split,
-  {
-    rw [monic, leading_coeff_mul' sorry, leading_coeff_C b],
+    localization_map.map_units f ⟨witness.leading_coeff, hM⟩,
+  obtain ⟨b, hb⟩ := is_unit_iff_exists_inv.mp this,
+  refine ⟨(witness.map f.to_map) * C b, ⟨_, _⟩⟩,
+  { rw [monic, leading_coeff_mul' _, leading_coeff_C b],
     convert hb,
     unfold leading_coeff,
-    rw coeff_map,
-    congr,
-    refine nat_degree_map' sorry witness,
-  },
-  {
-    replace hw := hw.right,
+    rw [coeff_map, nat_degree_map' (f.injective hM') witness],
+    { refine λ h, triv (trans hb.symm _),
+      rwa [leading_coeff_C b, leading_coeff, coeff_map,
+        nat_degree_map' (f.injective hM') witness] at h } },
+  { replace hw := hw.right,
     rw aeval_def at hw ⊢,
     rw eval₂_mul,
     refine mul_eq_zero_of_left _ _,
     rw eval₂_map,
     erw localization_map.map_comp,
-    rw [eval₂_hom' (algebra_map R S) g.to_map x, hw, g.to_map.map_zero],
-  }
+    rw [eval₂_hom' (algebra_map R S) g.to_map x, hw, g.to_map.map_zero] }
 end
 
-theorem exists_localization_is_integral {x : S} (hx : is_algebraic R x)
-  : ∃ (M : submonoid R) (f : localization_map M Rₘ)
-    (g : localization_map (algebra_map_submonoid S M) Sₘ),
-  @is_integral Rₘ _ _ _ (localization_algebra R M f g) (g.to_map x) :=
-begin
-  sorry,
-end
-
--- TODO: put these somewher better and clean hyps
-lemma poly_add_sum {R S : Type*} [comm_ring R] [comm_ring S]
-  {f g : polynomial R} (q : ℕ → R → S) (hq : ∀ n r r', q n (r + r') = q n r + q n r') :
-  (f + g).sum q = (f.sum q) + (g.sum q) :=
-begin
-  unfold finsupp.sum,
-  simp,
-  have : (f + g).support.sum (λ (x : ℕ), q x (f.to_fun x + g.to_fun x)) =
-    (f + g).support.sum (λ (x : ℕ), q x (f.to_fun x) + q x (g.to_fun x)), {
-    congr,
-    ext,
-    exact hq x (f.to_fun x) (g.to_fun x),
-  },
-  refine trans this _,
-  rw finset.sum_add_distrib,
-  sorry,
-end
-
-lemma leading_coeff_eval₂_monomial {R S : Type*} [comm_ring R] [comm_ring S]
-  (p : polynomial R) (n : ℕ) (ϕ : R →+* S) (s : S)
-  (ha : s ^ p.nat_degree ≠ 0) (hϕ : injective ϕ) (hn : n > 0) :
-  (eval₂ (C.comp ϕ) (monomial n s) p).leading_coeff = (s ^ p.nat_degree) * (ϕ p.leading_coeff) :=
-begin
-  have : (eval₂ (C.comp ϕ) (monomial n s) p).nat_degree = p.nat_degree ^ n, {
-    sorry,
-  },
-  unfold leading_coeff,
-  rw this,
-  rw eval₂,
-  rw coeff_sum,
-  simp,
-  apply finsupp.induction₂ p,
-  {
-    simp,
-    refl,
-  },
-  {
-    simp_intros a b f hf hb hab,
-    rw poly_add_sum _ sorry,
-    by_cases (degree f) < (degree (finsupp.single a b)),
-    {
-      have : nat_degree (f + finsupp.single a b) = nat_degree (finsupp.single a b), {
-        sorry,
-      },
-      rw this,
-      rw coeff_nat_degree_eq_zero_of_degree_lt h,
-      simp,
-      sorry,
-    },
-    {
-      cases lt_or_eq_of_le (le_of_not_lt h) with h h,
-      {
-        have : nat_degree (f + finsupp.single a b) = nat_degree f, {
-          sorry,
-        },
-        rw this,
-        rw coeff_nat_degree_eq_zero_of_degree_lt h,
-        simp,
-        convert hab,
-        suffices : 0 = (finsupp.single a b).sum (λ a b, ϕ b * (monomial n s ^ a).coeff (nat_degree f ^ n)),
-        {
-          exact this ▸ add_zero _,
-        },
-        rw finsupp.sum,
-
-        sorry,
-      },
-      {
-        sorry,
-      }
-    },
-  }
-  -- let t := finsupp.sum,
-end
-
-/-- If `R → S` is an integral extension, `M` is a submonoid or `R`,
-`Rₘ` is the localization of `R` at `M`,
-and `Sₘ` is the localization of `S` at the image of `M` under the extension map,
-then the induced map `Rₘ → Sₘ` is also an integral extension -/
-theorem is_integral_localization (H : ∀ x : S, is_integral R x)
+-- /-- If `R → S` is an integral extension, `M` is a submonoid or `R`,
+-- `Rₘ` is the localization of `R` at `M`,
+-- and `Sₘ` is the localization of `S` at the image of `M` under the extension map,
+-- then the induced map `Rₘ → Sₘ` is also an integral extension -/
+theorem is_integral_localization (hM : M ≤ non_zero_divisors R) (H : ∀ x : S, is_integral R x)
   : ∀ x : Sₘ, @is_integral Rₘ _ _ _ (localization_algebra R M f g) x :=
 begin
-  intros x,
-  rcases g.surj x with ⟨⟨s, u⟩, hx⟩,
-  simp at hx, -- x * u = s (x = s/u)
-  rcases H s with ⟨p, ⟨hp, hap⟩⟩,
-  unfold monic at hp,
-  let hu := u.2,
-  erw set.mem_image at hu,
-  cases hu with u' hu', -- u' is u before extension
-  have : is_unit (f.to_map u') := localization_map.map_units f ⟨u', hu'.1⟩,
-  rw is_unit_iff_exists_inv at this,
-  rcases this with ⟨v, hv⟩, -- x = s * v,
-  let m := p.nat_degree,
-  let p' : polynomial Rₘ := (eval₂ (C.comp f.to_map) (monomial 1 (f.to_map u')) p),
-  use (eval₂ (C.comp f.to_map) (monomial 1 (f.to_map u')) p) * (C (v ^ p.nat_degree)),
-  split,
-  {
-    rw [monic, leading_coeff_mul' sorry],
-    rw leading_coeff_eval₂_monomial _ 1 f.to_map _ sorry sorry sorry,
-    rw leading_coeff_C,
-    simp [hp],
-    rw ← mul_pow _ _ p.nat_degree,
-    rw hv,
-    rw one_pow p.nat_degree,
-  },
-  {
-    sorry,
-  }
+  intro x,
+  by_cases triv : (1 : R) = 0,
+  { have : (1 : Rₘ) = 0 := by convert congr_arg f.to_map triv; simp,
+    exact ⟨0, ⟨trans leading_coeff_zero this.symm, eval₂_zero _ _⟩⟩ },
+  { haveI : nontrivial R := nontrivial_of_ne 1 0 triv,
+    obtain ⟨⟨s, ⟨u, hu⟩⟩, hx⟩ := g.surj x,
+    obtain ⟨v, hv⟩ := hu,
+    obtain ⟨v', hv'⟩ := is_unit_iff_exists_inv.1 (f.map_units ⟨v, hv.1⟩),
+    refine @is_integral_mul_unit Rₘ _ _ _ (localization_algebra R M f g) x (g.to_map u) v' _ _,
+    { replace hv' := congr_arg (@algebra_map Rₘ Sₘ _ _ (localization_algebra R M f g)) hv',
+      rw [ring_hom.map_mul, ring_hom.map_one, mul_comm] at hv',
+      convert hv',
+      show g.to_map u = (f.map _ g) (f.to_map v),
+      rw [← ring_hom.comp_apply _ f.to_map, localization_map.map_comp, ← hv.2, ring_hom.comp_apply] },
+    { erw hx,
+      obtain ⟨p, hp⟩ := H s,
+      refine is_integral_localization_of_is_algebraic R f g p
+        ⟨monic.ne_zero hp.1, hp.2⟩ (hp.1.symm ▸ M.one_mem) hM } }
 end
 
 end is_integral

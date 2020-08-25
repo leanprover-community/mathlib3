@@ -349,12 +349,16 @@ by rw [← of_real_rat_cast, of_real_im]
 
 /-! ### Characteristic zero -/
 
-instance char_zero_R_or_C : char_zero K :=
+/--
+ℝ and ℂ are both of characteristic zero.
+Note: This is not registered as an instance to having multiple instances on ℝ and ℂ.
+-/
+def char_zero_R_or_C : char_zero K :=
 add_group.char_zero_of_inj_zero $ λ n h,
 by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
 theorem re_eq_add_conj (z : K) : 𝓚 (re z) = (z + conj z) / 2 :=
-by rw [add_conj]; simp; rw [mul_div_cancel_left (𝓚 (re z)) two_ne_zero']
+  by rw [add_conj]; simp; rw [mul_div_cancel_left (𝓚 (re z)) two_ne_zero]
 
 
 /-! ### Absolute value -/

@@ -374,6 +374,14 @@ lemma tendsto_at_bot_add_nonpos_right (hf : tendsto f l at_bot) (hg : ∀ x, g x
   tendsto (λ x, f x + g x) l at_bot :=
 @tendsto_at_top_add_nonneg_right _ (order_dual β) _ _ _ _ hf hg
 
+lemma tendsto_at_top_add (hf : tendsto f l at_top) (hg : tendsto g l at_top) :
+  tendsto (λ x, f x + g x) l at_top :=
+tendsto_at_top_add_nonneg_left' ((tendsto_at_top (λ (a : α), f a) l).mp hf 0) hg
+
+lemma tendsto_at_bot_add (hf : tendsto f l at_bot) (hg : tendsto g l at_bot) :
+  tendsto (λ x, f x + g x) l at_bot :=
+@tendsto_at_top_add _ (order_dual β) _ _ _ _ hf hg
+
 end ordered_add_comm_monoid
 
 section ordered_cancel_add_comm_monoid

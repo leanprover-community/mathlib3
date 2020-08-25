@@ -17,6 +17,12 @@ namespace function
 section
 variables {α : Sort u} {β : Sort v} {f : α → β}
 
+/-- Evaluate a function at an argument. Useful if you want to talk about the partially applied
+  `function.eval x : (Π x, β x) → β x`. -/
+@[reducible] def eval {β : α → Sort*} (x : α) (f : Π x, β x) : β x := f x
+
+@[simp] lemma eval_apply {β : α → Sort*} (x : α) (f : Π x, β x) : eval x f = f x := rfl
+
 lemma hfunext {α α': Sort u} {β : α → Sort v} {β' : α' → Sort v} {f : Πa, β a} {f' : Πa, β' a}
   (hα : α = α') (h : ∀a a', a == a' → f a == f' a') : f == f' :=
 begin

@@ -41,13 +41,14 @@ term of the symmetric square.
 symmetric square, unordered pairs, symmetric powers
 -/
 
+universe u
+variables {α : Type u}
 namespace sym2
-variables {α : Type*}
 
 /--
 This is the relation capturing the notion of pairs equivalent up to permutations.
 -/
-inductive rel (α : Type*) : (α × α) → (α × α) → Prop
+inductive rel (α : Type u) : (α × α) → (α × α) → Prop
 | refl (x y : α) : rel (x, y) (x, y)
 | swap (x y : α) : rel (x, y) (y, x)
 
@@ -61,7 +62,7 @@ by { intros a b, cases_matching* rel _ _ _; apply rel.refl <|> apply rel.swap }
 
 lemma rel.is_equivalence : equivalence (rel α) := by tidy; apply rel.trans; assumption
 
-instance rel.setoid (α : Type*) : setoid (α × α) := ⟨rel α, rel.is_equivalence⟩
+instance rel.setoid (α : Type u) : setoid (α × α) := ⟨rel α, rel.is_equivalence⟩
 
 end sym2
 
@@ -73,11 +74,9 @@ It is equivalent in a natural way to multisets of cardinality 2 (see
 `sym2.equiv_multiset`).
 -/
 @[reducible]
-def sym2 (α : Type*) := quotient (sym2.rel.setoid α)
+def sym2 (α : Type u) := quotient (sym2.rel.setoid α)
 
 namespace sym2
-universe u
-variables {α : Type u}
 
 lemma eq_swap {a b : α} : ⟦(a, b)⟧ = ⟦(b, a)⟧ :=
 by { rw quotient.eq, apply rel.swap }
@@ -114,6 +113,7 @@ def mem (x : α) (z : sym2 α) : Prop :=
 instance : has_mem α (sym2 α) := ⟨mem⟩
 
 lemma mk_has_mem (x y : α) : x ∈ ⟦(x, y)⟧ := ⟨y, rfl⟩
+lemma mk_has_mem_right (x y : α) : y ∈ ⟦(x, y)⟧ := by { rw eq_swap, apply mk_has_mem }
 
 /--
 This is a type-valued version of the membership predicate `mem` that contains the other
@@ -167,9 +167,21 @@ begin
   { cases h; rw [h.1, h.2], rw eq_swap }
 end
 
-lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
+@[simp] lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
 { mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
-  mpr := by { rintro ⟨_⟩; subst a, { apply mk_has_mem }, rw eq_swap, apply mk_has_mem } }
+  mpr := by { rintro ⟨_⟩; subst a, { apply mk_has_mem }, apply mk_has_mem_right } }
+
+lemma elems_iff_eq {x y : α} {z : sym2 α} (hne : x ≠ y) :
+  x ∈ z ∧ y ∈ z ↔ z = ⟦(x, y)⟧ :=
+begin
+  split,
+  { rintros ⟨hx, hy⟩,
+    induction z, cases z with z₁ z₂,
+    apply eq_iff.mpr,
+    cases mem_iff.mp hx with hx hx; cases mem_iff.mp hy with hy hy; cc,
+    refl },
+  { rintro rfl, simp },
+end
 
 end membership
 
@@ -220,6 +232,16 @@ lemma from_rel_irreflexive {sym : symmetric r} :
 { mp  := by { intros h z hr hd, induction z,
               erw is_diag_iff_proj_eq at hd, erw from_rel_proj_prop at hr, tidy },
   mpr := by { intros h x hr, rw ← @from_rel_prop _ _ sym at hr, exact h hr ⟨x, rfl⟩ }}
+
+instance from_rel.decidable_as_set (sym : symmetric r) [h : decidable_rel r] :
+  decidable_pred (λ x, x ∈ sym2.from_rel sym) :=
+λ (x : sym2 α), quotient.rec_on x
+  (λ x', by { simp_rw from_rel_proj_prop, apply_instance })
+  (by tidy)
+
+instance from_rel.decidable_pred (sym : symmetric r) [h : decidable_rel r] :
+  decidable_pred (sym2.from_rel sym) :=
+by { change decidable_pred (λ x, x ∈ sym2.from_rel sym), apply_instance }
 
 end relations
 
@@ -281,5 +303,34 @@ def equiv_multiset (α : Type*) : sym2 α ≃ {s : multiset α // s.card = 2} :=
 equiv_sym α
 
 end sym_equiv
+
+section fintype
+
+/--
+An algorithm for computing `sym2.rel`.
+-/
+def rel_bool [decidable_eq α] (x y : α × α) : bool :=
+if x.1 = y.1 then x.2 = y.2 else
+  if x.1 = y.2 then x.2 = y.1 else ff
+
+lemma rel_bool_spec [decidable_eq α] (x y : α × α) :
+  ↥(rel_bool x y) ↔ rel α x y :=
+begin
+  cases x with x₁ x₂, cases y with y₁ y₂,
+  dsimp [rel_bool], split_ifs;
+  simp only [false_iff, bool.coe_sort_ff, bool.of_to_bool_iff],
+  rotate 2, { contrapose! h, cases h; cc },
+  all_goals { subst x₁, split; intro h1,
+    { subst h1; apply sym2.rel.swap },
+    { cases h1; cc } }
+end
+
+/--
+Given `[decidable_eq α]` and `[fintype α]`, the following instance gives `fintype (sym2 α)`.
+-/
+instance (α : Type*) [decidable_eq α] : decidable_rel (sym2.rel α) :=
+λ x y, decidable_of_bool (rel_bool x y) (rel_bool_spec x y)
+
+end fintype
 
 end sym2

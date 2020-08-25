@@ -1183,6 +1183,62 @@ end
 
 end linear_order
 
+section linear_ordered_ring
+variables [topological_space α] [linear_ordered_ring α] [order_topology α]
+variables {l : filter β} {f g : β → α}
+
+/- TODO The theorems in this section ought to be written in the context of linearly ordered
+(additive) commutative groups rather than linearly ordered rings; however, the former concept does
+not currently exist in mathlib. -/
+
+/-- In a linearly ordered ring with the order topology, if `f` tends to `C` and `g` tends to
+`at_top` then `f + g` tends to `at_top`. -/
+lemma tendsto_at_top_add_tendsto_left
+  {C : α} (hf : tendsto f l (𝓝 C)) (hg : tendsto g l at_top) :
+  tendsto (λ x, f x + g x) l at_top :=
+begin
+  obtain ⟨C', hC'⟩ : ∃ C', C' < C := no_bot C,
+  refine tendsto_at_top_add_left_of_le' _ C' _ hg,
+  rw tendsto_order at hf,
+  exact (hf.1 C' hC').mp (eventually_of_forall (λ x hx, le_of_lt hx))
+end
+
+/-- In a linearly ordered ring with the order topology, if `f` tends to `C` and `g` tends to
+`at_bot` then `f + g` tends to `at_bot`. -/
+lemma tendsto_at_bot_add_tendsto_left
+  {C : α} (hf : tendsto f l (𝓝 C)) (hg : tendsto g l at_bot) :
+  tendsto (λ x, f x + g x) l at_bot :=
+begin
+  obtain ⟨C', hC'⟩ : ∃ C', C < C' := no_top C,
+  refine tendsto_at_bot_add_left_of_ge' _ C' _ hg,
+  rw tendsto_order at hf,
+  exact (hf.2 C' hC').mp (eventually_of_forall (λ x hx, le_of_lt hx))
+end
+
+/-- In a linearly ordered ring with the order topology, if `f` tends to `at_top` and `g` tends to
+`C` then `f + g` tends to `at_top`. -/
+lemma tendsto_at_top_add_tendsto_right
+  {C : α} (hf : tendsto f l at_top) (hg : tendsto g l (𝓝 C)) :
+  tendsto (λ x, f x + g x) l at_top :=
+begin
+  convert tendsto_at_top_add_tendsto_left hg hf,
+  ext,
+  exact add_comm _ _,
+end
+
+/-- In a linearly ordered ring with the order topology, if `f` tends to `at_bot` and `g` tends to
+`C` then `f + g` tends to `at_bot`. -/
+lemma tendsto_at_bot_add_tendsto_right
+  {C : α} (hf : tendsto f l at_bot) (hg : tendsto g l (𝓝 C)) :
+  tendsto (λ x, f x + g x) l at_bot :=
+begin
+  convert tendsto_at_bot_add_tendsto_left hg hf,
+  ext,
+  exact add_comm _ _,
+end
+
+end linear_ordered_ring
+
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
 (image_eq_preimage_of_inverse neg_neg neg_neg).symm
 

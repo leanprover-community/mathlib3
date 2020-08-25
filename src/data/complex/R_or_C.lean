@@ -8,7 +8,7 @@ import analysis.normed_space.basic
 import analysis.complex.basic
 
 /-!
-# R_or_C: a typeclass for ℝ or ℂ
+# `is_R_or_C`: a typeclass for ℝ or ℂ
 
 This file defines the typeclass is_R_or_C intended to have only two instances:
 ℝ and ℂ. It is meant for definitions and theorems which hold for both the

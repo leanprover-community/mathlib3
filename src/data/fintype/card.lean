@@ -74,34 +74,9 @@ end fintype
 
 open finset
 
-theorem fin.prod_univ_succ [comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
-  ∏ i, f i = f 0 * ∏ i : fin n, f i.succ :=
-begin
-  rw [fin.univ_succ, prod_insert, prod_image],
-  { intros x _ y _ hxy, exact fin.succ.inj hxy },
-  { simpa using fin.succ_ne_zero }
-end
-
-@[simp, to_additive] theorem fin.prod_univ_zero [comm_monoid β] (f : fin 0 → β) : ∏ i, f i = 1 := rfl
-
-theorem fin.sum_univ_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
-  ∑ i, f i = f 0 + ∑ i : fin n, f i.succ :=
-by apply @fin.prod_univ_succ (multiplicative β)
-
-attribute [to_additive] fin.prod_univ_succ
-
-theorem fin.prod_univ_cast_succ [comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
-  ∏ i, f i = (∏ i : fin n, f i.cast_succ) * f (fin.last n) :=
-begin
-  rw [fin.univ_cast_succ, prod_insert, prod_image, mul_comm],
-  { intros x _ y _ hxy, exact fin.cast_succ_inj.mp hxy },
-  { simp [ne_of_lt, fin.cast_succ_lt_last] }
-end
-
-theorem fin.sum_univ_cast_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
-  ∑ i, f i = ∑ i : fin n, f i.cast_succ + f (fin.last n) :=
-by apply @fin.prod_univ_cast_succ (multiplicative β)
-attribute [to_additive] fin.prod_univ_cast_succ
+/-- A product of a function `f : fin 0 → β` is `1` because `fin 0` is empty -/
+@[simp, to_additive "A sum of a function `f : fin 0 → β` is `0` because `fin 0` is empty"]
+theorem fin.prod_univ_zero [comm_monoid β] (f : fin 0 → β) : ∏ i, f i = 1 := rfl
 
 /-- A product of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
 is the product of the `f x`, for some `x : fin (n + 1)` times the remaining product -/

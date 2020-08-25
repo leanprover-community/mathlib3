@@ -171,6 +171,18 @@ end
 { mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
   mpr := by { rintro ⟨_⟩; subst a, { apply mk_has_mem }, apply mk_has_mem_right } }
 
+lemma elems_iff_eq {x y : α} {z : sym2 α} (hne : x ≠ y) :
+  x ∈ z ∧ y ∈ z ↔ z = ⟦(x, y)⟧ :=
+begin
+  split,
+  { rintros ⟨hx, hy⟩,
+    induction z, cases z with z₁ z₂,
+    apply eq_iff.mpr,
+    cases mem_iff.mp hx with hx hx; cases mem_iff.mp hy with hy hy; cc,
+    refl },
+  { rintro rfl, simp },
+end
+
 end membership
 
 /--
@@ -292,7 +304,7 @@ equiv_sym α
 
 end sym_equiv
 
-section finite
+section fintype
 
 /--
 An algorithm for computing `sym2.rel`.
@@ -319,6 +331,6 @@ Given `[decidable_eq α]` and `[fintype α]`, the following instance gives `fint
 instance (α : Type*) [decidable_eq α] : decidable_rel (sym2.rel α) :=
 λ x y, decidable_of_bool (rel_bool x y) (rel_bool_spec x y)
 
-end finite
+end fintype
 
 end sym2

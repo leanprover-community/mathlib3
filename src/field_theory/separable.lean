@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau.
 -/
 
+import algebra.polynomial.big_operators
 import field_theory.minimal_polynomial
+import field_theory.splitting_field
 
 /-!
 
@@ -65,6 +67,9 @@ end
 
 lemma separable.of_mul_right {f g : polynomial R} (h : (f * g).separable) : g.separable :=
 by { rw mul_comm at h, exact h.of_mul_left }
+
+lemma separable.of_dvd {f g : polynomial R} (hf : f.separable) (hfg : g ∣ f) : g.separable :=
+by { rcases hfg with ⟨f', rfl⟩, exact separable.of_mul_left hf }
 
 lemma separable.is_coprime {f g : polynomial R} (h : (f * g).separable) : is_coprime f g :=
 begin
@@ -227,6 +232,19 @@ lemma separable.injective_of_prod_X_sub_C [nontrivial R] {ι : Sort*} [fintype �
   (hfs : (∏ i, (X - C (f i))).separable) : function.injective f :=
 λ x y hfxy, hfs.inj_of_prod_X_sub_C (mem_univ _) (mem_univ _) hfxy
 
+lemma is_unit_of_self_mul_dvd_separable {p q : polynomial R}
+  (hp : p.separable) (hq : q * q ∣ p) : is_unit q :=
+begin
+  obtain ⟨p, rfl⟩ := hq,
+  apply is_coprime_self.mp,
+  have : is_coprime (q * (q * p)) (q * (q.derivative * p + q.derivative * p + q * p.derivative)),
+  { simp only [← mul_assoc, mul_add],
+    convert hp,
+    rw [derivative_mul, derivative_mul],
+    ring },
+  exact is_coprime.of_mul_right_left (is_coprime.of_mul_left_left this)
+end
+
 end comm_ring
 
 section integral_domain
@@ -370,6 +388,77 @@ lemma separable_prod_X_sub_C_iff' {ι : Sort*} {f : ι → F} {s : finset ι} :
 lemma separable_prod_X_sub_C_iff {ι : Sort*} [fintype ι] {f : ι → F} :
   (∏ i, (X - C (f i))).separable ↔ function.injective f :=
 separable_prod_X_sub_C_iff'.trans $ by simp_rw [mem_univ, true_implies_iff]
+
+section splits
+
+open_locale big_operators
+
+variables {i : F →+* K}
+
+lemma not_unit_X_sub_C (a : F) : ¬ is_unit (X - C a) :=
+λ h, have one_eq_zero : (1 : with_bot ℕ) = 0, by simpa using degree_eq_zero_of_is_unit h,
+one_ne_zero (option.some_injective _ one_eq_zero)
+
+lemma nodup_of_separable_prod {s : multiset F}
+  (hs : separable (multiset.map (λ a, X - C a) s).prod) : s.nodup :=
+begin
+  rw multiset.nodup_iff_ne_cons_cons,
+  rintros a t rfl,
+  refine not_unit_X_sub_C a (is_unit_of_self_mul_dvd_separable hs _),
+  simpa only [multiset.map_cons, multiset.prod_cons] using mul_dvd_mul_left _ (dvd_mul_right _ _)
+end
+
+lemma eq_prod_roots_of_separable {p : polynomial F} {i : F →+* K}
+  (hsep : separable p) (hsplit : splits i p) :
+  p.map i = C (i p.leading_coeff) * ∏ a in roots (p.map i), (X - C a : polynomial K) :=
+begin
+  by_cases p_eq_zero : p = 0,
+  { rw [p_eq_zero, map_zero, leading_coeff_zero, i.map_zero, C.map_zero, zero_mul] },
+
+  obtain ⟨s, hs⟩ := exists_multiset_of_splits i hsplit,
+  have map_ne_zero : p.map i ≠ 0 := map_ne_zero (p_eq_zero),
+  have prod_ne_zero : C (i p.leading_coeff) * (multiset.map (λ a, X - C a) s).prod ≠ 0 :=
+    by rwa hs at map_ne_zero,
+
+  have map_sep : separable (map i p) := (separable_map i).mpr hsep,
+  rw hs at map_sep,
+
+  have nodup_s : s.nodup := nodup_of_separable_prod (separable.of_mul_right map_sep),
+  have nodup_map_s : (s.map (λ a, X - C a)).nodup :=
+    multiset.nodup_map (λ a b h, C_inj.mp (sub_right_inj.mp h)) nodup_s,
+  have ne_zero_of_mem : ∀ (p : polynomial K), p ∈ s.map (λ a, X - C a) → p ≠ 0,
+  { intros p mem,
+    obtain ⟨a, _, rfl⟩ := multiset.mem_map.mp mem,
+    apply X_sub_C_ne_zero },
+  have map_bind_roots_eq : (s.map (λ a, X - C a)).bind (λ a, a.roots.val) = s,
+  { refine multiset.induction_on s (by rw [multiset.map_zero, multiset.zero_bind]) _,
+    intros a s ih,
+    rw [multiset.map_cons, multiset.cons_bind, ih, roots_X_sub_C, singleton_val,
+        multiset.cons_add, zero_add] },
+
+  rw [hs, finset.prod_eq_multiset_prod, roots_mul prod_ne_zero, roots_C, empty_union,
+      roots_multiset_prod _ ne_zero_of_mem, ← multiset.to_finset_eq nodup_map_s,
+      bind_val, map_bind_roots_eq, multiset.erase_dup_eq_self.mpr nodup_s],
+end
+
+lemma nat_degree_separable_eq_card_roots {p : polynomial F} {i : F →+* K}
+  (hsep : separable p) (hsplit : splits i p) : p.nat_degree = (p.map i).roots.card :=
+begin
+  by_cases p_eq_zero : p = 0,
+  { rw [p_eq_zero, nat_degree_zero, map_zero, roots_zero, card_empty] },
+  have map_ne_zero : p.map i ≠ 0 := map_ne_zero (p_eq_zero),
+  rw eq_prod_roots_of_separable hsep hsplit at map_ne_zero,
+
+  conv_lhs { rw [← nat_degree_map i, eq_prod_roots_of_separable hsep hsplit] },
+  simp [nat_degree_mul (left_ne_zero_of_mul map_ne_zero) (right_ne_zero_of_mul map_ne_zero),
+        nat_degree_prod (roots (p.map i)) (λ a, X - C a) (λ a _, X_sub_C_ne_zero a)]
+end
+
+lemma degree_separable_eq_card_roots {p : polynomial F} {i : F →+* K} (p_ne_zero : p ≠ 0)
+  (hsep : separable p) (hsplit : splits i p) : p.degree = (p.map i).roots.card :=
+by rw [degree_eq_nat_degree p_ne_zero, nat_degree_separable_eq_card_roots hsep hsplit]
+
+end splits
 
 end field
 

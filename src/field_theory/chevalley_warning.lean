@@ -40,7 +40,7 @@ universes u v
 open_locale big_operators
 
 section finite_field
-open mv_polynomial function finset finite_field
+open mv_polynomial function (hiding eval) finset finite_field
 
 variables {K : Type*} {σ : Type*} [fintype K] [field K] [fintype σ]
 local notation `q` := fintype.card K

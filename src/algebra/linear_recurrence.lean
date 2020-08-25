@@ -15,8 +15,9 @@ Informally, a "linear recurrence" is an assertion of the form
 where `u` is a sequence, `d` is the *order* of the recurrence and the `a i`
 are its *coefficients*.
 
-In this file, we define `linear_recurrence d a` to represent such a relation,
-and we call a sequence `u` which verifies it a *solution* of the linear recurrence.
+In this file, we define the structure `linear_recurrence` so that
+`linear_recurrence.mk d a` represents the above relation, and we call
+a sequence `u` which verifies it a *solution* of the linear recurrence.
 
 We prove a few basic lemmas about this concept, such as :
 

@@ -374,6 +374,14 @@ lemma tendsto_at_bot_add_nonpos_right (hf : tendsto f l at_bot) (hg : ∀ x, g x
   tendsto (λ x, f x + g x) l at_bot :=
 @tendsto_at_top_add_nonneg_right _ (order_dual β) _ _ _ _ hf hg
 
+lemma tendsto_at_top_add (hf : tendsto f l at_top) (hg : tendsto g l at_top) :
+  tendsto (λ x, f x + g x) l at_top :=
+tendsto_at_top_add_nonneg_left' ((tendsto_at_top (λ (a : α), f a) l).mp hf 0) hg
+
+lemma tendsto_at_bot_add (hf : tendsto f l at_bot) (hg : tendsto g l at_bot) :
+  tendsto (λ x, f x + g x) l at_bot :=
+@tendsto_at_top_add _ (order_dual β) _ _ _ _ hf hg
+
 end ordered_add_comm_monoid
 
 section ordered_cancel_add_comm_monoid
@@ -602,7 +610,7 @@ end
 
 /-- If `f` is a monotone sequence of `finset`s and each `x` belongs to one of `f n`, then
 `tendsto f at_top at_top`. -/
-lemma monotone.tendsto_at_top_finset [preorder β]
+lemma tendsto_at_top_finset_of_monotone [preorder β]
   {f : β → finset α} (h : monotone f) (h' : ∀ x : α, ∃ n, x ∈ f n) :
   tendsto f at_top at_top :=
 begin
@@ -613,10 +621,17 @@ begin
     (λ b' hb', le_trans (finset.singleton_subset_iff.2 hb) (h hb')),
 end
 
+alias tendsto_at_top_finset_of_monotone ← monotone.tendsto_at_top_finset
+
 lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : function.left_inverse j i) :
   tendsto (finset.image j) at_top at_top :=
-(finset.image_mono j).tendsto_at_top_at_top $ assume s,
-  ⟨s.image i, by simp only [finset.image_image, h.comp_eq_id, finset.image_id, le_refl]⟩
+(finset.image_mono j).tendsto_at_top_finset $ assume a,
+  ⟨{i a}, by simp only [finset.image_singleton, h a, finset.mem_singleton]⟩
+
+lemma tendsto_finset_preimage_at_top_at_top {f : α → β} (hf : function.injective f) :
+  tendsto (λ s : finset β, s.preimage f (hf.inj_on _)) at_top at_top :=
+(finset.monotone_preimage hf).tendsto_at_top_finset $
+  λ x, ⟨{f x}, finset.mem_preimage.2 $ finset.mem_singleton_self _⟩
 
 lemma prod_at_top_at_top_eq {β₁ β₂ : Type*} [semilattice_sup β₁] [semilattice_sup β₂] :
   (at_top : filter β₁) ×ᶠ (at_top : filter β₂) = (at_top : filter (β₁ × β₂)) :=
@@ -654,15 +669,12 @@ lemma map_at_top_eq_of_gc [semilattice_sup α] [semilattice_sup β] {f : α → 
   (hf : monotone f) (gc : ∀a, ∀b≥b', f a ≤ b ↔ a ≤ g b) (hgi : ∀b≥b', b ≤ f (g b)) :
   map f at_top = at_top :=
 begin
-  rw [@map_at_top_eq α _ ⟨g b'⟩],
   refine le_antisymm
-    (le_infi $ assume b, infi_le_of_le (g (b ⊔ b')) $ principal_mono.2 $ image_subset_iff.2 _)
-    (le_infi $ assume a, infi_le_of_le (f a ⊔ b') $ principal_mono.2 _),
-  { assume a ha, exact (le_trans le_sup_left $ le_trans (hgi _ le_sup_right) $ hf ha) },
-  { assume b hb,
-    have hb' : b' ≤ b := le_trans le_sup_right hb,
-    exact ⟨g b, (gc _ _ hb').1 (le_trans le_sup_left hb),
-      le_antisymm ((gc _ _ hb').2 (le_refl _)) (hgi _ hb')⟩ }
+    (hf.tendsto_at_top_at_top $ λ b, ⟨g (b ⊔ b'), le_sup_left.trans $ hgi _ le_sup_right⟩) _,
+  rw [@map_at_top_eq _ _ ⟨g b'⟩],
+  refine le_infi (λ a, infi_le_of_le (f a ⊔ b') $ principal_mono.2 $ λ b hb, _),
+  rw [mem_set_of_eq, sup_le_iff] at hb,
+  exact ⟨g b, (gc _ _ hb.2).1 hb.1, le_antisymm ((gc _ _ hb.2).2 (le_refl _)) (hgi _ hb.2)⟩
 end
 
 lemma map_at_bot_eq_of_gc [semilattice_inf α] [semilattice_inf β] {f : α → β} (g : β → α) (b' : β)

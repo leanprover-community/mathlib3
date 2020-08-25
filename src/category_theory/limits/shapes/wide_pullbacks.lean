@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.limits.limits
-import category_theory.sparse
+import category_theory.thin
 
 /-!
 # Wide pullbacks

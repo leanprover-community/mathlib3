@@ -143,6 +143,8 @@ abbreviation adj' {G : α} : V G → V G → Prop := adj G
 
 infix ` ~g ` : 40 := adj'
 
+@[simp] lemma adj_as_adj' {G : α} (v w : V G) : adj G v w ↔ v ~g w := by refl
+
 /--
 The simple graph's axiom that the adjacency relation is symmetric.
 -/
@@ -423,6 +425,19 @@ def map_neighbor_set (v : V G) : neighbor_set v → neighbor_set (f v) :=
   exact map_adj f h,
 end⟩
 
+variables {α'' : Type*} [simple_graphs α''] {G'' : α''}
+
+/--
+Composition of graph homomorphisms
+-/
+def comp (f' : G' →g G'') (f : G →g G') : G →g G'' :=
+{ to_fun := ⇑f' ∘ ⇑f,
+  map_adj' := by { intros v w h, repeat { rw function.comp_app }, exact f'.map_adj' (f.map_adj' h) } }
+
+infixr ` ∘ ` := comp
+
+@[simp] lemma comp_app (f' : G' →g G'') (f : G →g G') (v : V G) : (comp f' f) v = f' (f v) := rfl
+
 end homomorphism
 
 /--
@@ -488,6 +503,20 @@ def map_neighbor_set (v : V G) : neighbor_set v ↪ neighbor_set (f v) :=
     exact f.inj' h,
   end }
 
+variables {α'' : Type*} [simple_graphs α''] {G'' : α''}
+
+/--
+Composition of graph embeddings
+-/
+def comp (f' : G' ↪g G'') (f : G ↪g G') : G ↪g G'' :=
+{ to_fun := ⇑f' ∘ ⇑f,
+  inj' := by { intros v w h, exact f.inj' (f'.inj' h) },
+  map_adj' := by { intros v w h, repeat { rw function.comp_app }, exact f'.map_adj' (f.map_adj' h) } }
+
+infixr ` ∘ ` := comp
+
+@[simp] lemma comp_app (f' : G' ↪g G'') (f : G ↪g G') (v : V G) : (comp f' f) v = f' (f v) := rfl
+
 end embedding
 
 /--
@@ -532,6 +561,24 @@ def map_edge_set : edge_set G ≃ edge_set G' :=
     unfold_coes, dsimp [to_embedding, embedding.to_homomorphism],
     simp,
   end }
+
+variables {α'' : Type*} [simple_graphs α''] {G'' : α''}
+
+/--
+Composition of graph isomorphisms
+-/
+def comp (f' : G' ≃g G'') (f : G ≃g G') : G ≃g G'' :=
+{ to_fun := ⇑f' ∘ ⇑f,
+  inv_fun := ⇑f.symm ∘ ⇑f'.symm,
+  left_inv := by { intro v, simp },
+  right_inv := by { intro v, simp },
+  map_rel_iff' := by { intros v w, simp only [equiv.coe_fn_mk, function.comp_app, adj_as_adj'],
+                       repeat { rw function.comp_app },
+                       exact iff.trans (map_adj_iff f) (map_adj_iff f') } }
+
+infixr ` ∘ ` := comp
+
+@[simp] lemma comp_app (f' : G' ≃g G'') (f : G ≃g G') (v : V G) : (comp f' f) v = f' (f v) := rfl
 
 end isomorphism
 
@@ -992,6 +1039,44 @@ def path_graph (n : ℕ) : simple_graph_on (fin (n + 1)) :=
 simple_graph_from_rel (λ i j, (j = i - 1 ∧ i ≠ 0))
 
 /--
+"Flip over" the elements of `fin (n + 1)`, reversing `0` and `n`.
+-/
+def fin.flip (n : ℕ) : fin (n + 1) → fin (n + 1) := λ v, ((n - (v : ℕ) : ℕ) : fin (n + 1))
+lemma fin.flip.invol (n : ℕ) : function.involutive (fin.flip n) :=
+begin
+  intro v, dsimp [fin.flip],
+  rw fin.coe_coe_of_lt, swap, exact nat.sub_lt_succ n ↑v,
+  cases v,
+  convert_to ↑v_val = _, dsimp,
+  have h : n - (n - v_val) = v_val, { have : v_val ≤ n, linarith, omega, },
+  rw h, apply fin.val_injective, dsimp,
+  rwa fin.coe_val_of_lt,
+end
+
+/--
+A path graph is isomorphic to itself where the endpoints are swapped.
+-/
+def path_graph.invol (n : ℕ) : path_graph n ≃g path_graph n :=
+{ to_fun := fin.flip n,
+  inv_fun := fin.flip n,
+  left_inv := fin.flip.invol n,
+  right_inv := fin.flip.invol n,
+  map_rel_iff' := begin
+    intros v w, simp,
+    split, rintros ⟨h₁, h₂⟩,
+    cases h₂, rw h₂.1 at h₁ ⊢, dunfold fin.flip, sorry,
+  end }
+
+def path_graph.invol.prop₁ (n : ℕ) : (path_graph.invol n) 0 = n := by tidy
+def path_graph.invol.prop₂ (n : ℕ) : (path_graph.invol n) n = 0 :=
+begin
+  change fin.flip n n = 0,
+  dunfold fin.flip,
+  apply fin.val_injective, dsimp,
+  rw fin.coe_val_of_lt, rw fin.coe_coe_of_lt; linarith, omega,
+end
+
+/--
 A graph on `n` vertices with `n` edges in a cycle
 -/
 def cycle_graph (n : ℕ) (three_le : 3 ≤ n) : simple_graph_on (zmod n) :=
@@ -1095,25 +1180,77 @@ end coloring
 
 section connectivity
 
-variables {α : Type u} [simple_graphs α] (G : α)
-
-/-- Determines if two vertices are connected by a path -/
-def exists_path : V G → V G → Prop := λ v w, ∃ (n : ℕ) (f : path_graph n ↪g G), v = f 0 ∧ w = f n
+variables {α : Type u} [simple_graphs.{u v} α] (G : α)
 
 /--
-This is essentially the statement that if there is a walk from one vertex to another, then there is a path, too.
+A walk of length `n` in a graph between vertices `v` and `w` is a sequence of `n + 1` vertices,
+each related to the next by adjacency -- the `n` counts the edges along the way.
+We model a walk as a graph homomorphism from a length-`n` path graph.
 -/
-lemma exists_path_eq_eqv_gen : exists_path G = eqv_gen (adj G) :=
+def walk (n : ℕ) (v w : V G) : Type v := { f : path_graph n →g G | v = f 0 ∧ w = f n }
+
+/--
+Reverse a walk.
+-/
+def walk.symm {n : ℕ} {v w : V G} (p : walk G n v w) : walk G n w v :=
+⟨p.val ∘ ↑(path_graph.invol n), begin
+  simp, erw [path_graph.invol.prop₁ n, path_graph.invol.prop₂ n],
+  use [p.2.2, p.2.1],
+end⟩
+
+/--
+A path of length `n` in a graph between vertices `v` and `w` is a sequence of `n + 1` *distinct* vertices,
+each related to the next by adjacency -- the `n` counts the edges along the way.
+We model a path as a graph embedding from a length-`n` path graph.
+-/
+def path (n : ℕ) (v w : V G) : Type v := { f : path_graph n ↪g G | v = f 0 ∧ w = f n }
+
+/-- The relation that there exists a walk of any length between two vertices. -/
+def exists_walk : V G → V G → Prop := λ v w, ∃ (n : ℕ), nonempty (walk G n v w)
+
+/-- The relation that there exists a path of any length between two vertices. -/
+def exists_path : V G → V G → Prop := λ v w, ∃ (n : ℕ), nonempty (path G n v w)
+
+@[refl] lemma exists_walk.refl (v : V G) : exists_walk G v v :=
+by { use [0, λ _, v], tidy }
+
+@[symm] lemma exists_walk.symm ⦃v w : V G⦄ (hvw : exists_walk G v w) : exists_walk G w v :=
+by { rcases hvw with ⟨n, ⟨p⟩⟩, use [n, walk.symm G p], }
+
+@[trans] lemma exists_walk.trans ⦃u v w : V G⦄ (huv : exists_walk G u v) (hvw : exists_walk G v w) : exists_walk G u w :=
+begin
+  rcases huv with ⟨n, ⟨pu⟩⟩, rcases hvw with ⟨m, ⟨pv⟩⟩,
+  use n+m,
+  -- now need to concatenate walks  probably better to define path concatenation elsewhere and then use it here!
+  sorry
+end
+
+lemma exists_walk.is_equivalence : equivalence (exists_walk G) :=
+mk_equivalence _ (exists_walk.refl G) (exists_walk.symm G) (exists_walk.trans G)
+
+def exists_walk.setoid : setoid (V G) := setoid.mk _ (exists_walk.is_equivalence G)
+
+lemma exists_path_eq_exists_walk : exists_path G = exists_walk G :=
 begin
   ext v w,
   sorry,
 end
 
-/-- Quotient of the vertex type by connectivity -/
-def connected_components := quotient (eqv_gen.setoid (exists_path G))
+/--
+The equivalence relation generated by `adj G` is another way `exists_walk G` could be defined.
+-/
+lemma exists_walk_eq_eqv_gen : exists_walk G = eqv_gen (adj G) :=
+begin
+  sorry
+end
+
+/--
+Quotient of the vertex type by existence of walks.
+-/
+def connected_components := quotient (exists_walk.setoid G)
 
 /-- Determines if a graph is connected -/
-def is_connected : Prop := ∀ v w, exists_path G v w
+def is_connected : Prop := ∀ v w, exists_walk G v w
 
 /-- The graph does not contain a cycle -/
 def is_acyclic : Prop := ∀ (n : ℕ) (h : 3 ≤ n), (cycle_graph n h ↪g G) → false

@@ -103,6 +103,20 @@ theorem fin.sum_univ_cast_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → 
 by apply @fin.prod_univ_cast_succ (multiplicative β)
 attribute [to_additive] fin.prod_univ_cast_succ
 
+theorem fin.prod_univ_succ_above [comm_monoid β] {n:ℕ} (f : fin n.succ → β) (x : fin n.succ) :
+  ∏ i, f i = f x * ∏ i : fin n, f (x.succ_above i) :=
+begin
+  rw [fin.univ_succ_above, finset.prod_insert, finset.prod_image],
+  { intros x _ y _ hxy, exact fin.succ_above_inj_about_pivot.mp hxy },
+  { simp [fin.succ_above_ne] }
+end
+
+theorem fin.sum_univ_succ_above [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) (x : fin n.succ) :
+  ∑ i, f i = f x + ∑ i : fin n, f (x.succ_above i) :=
+by apply @fin.prod_univ_succ_above (multiplicative β)
+
+attribute [to_additive] fin.prod_univ_succ_above
+
 @[simp] theorem fintype.card_sigma {α : Type*} (β : α → Type*)
   [fintype α] [∀ a, fintype (β a)] :
   fintype.card (sigma β) = ∑ a, fintype.card (β a) :=

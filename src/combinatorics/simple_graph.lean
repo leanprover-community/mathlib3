@@ -403,6 +403,12 @@ variables {G} {G'} {f : G →g G'}
 def map_adj {v w : V G} : v ~g w → f v ~g f w :=
 by apply f.map_adj'
 
+def map_edge : edge_set G → edge_set G' :=
+λ e, ⟨sym2.map f e.val, begin
+  cases e, induction,
+end⟩
+
+
 end homomorphism
 
 /--
@@ -422,6 +428,16 @@ variables {G} {G'} {f : G ↪g G'}
 
 def map_adj {v w : V G} : v ~g w → f v ~g f w :=
 by apply f.map_adj'
+
+def map_edge : edge_set G → edge_set G' :=
+λ e, ⟨sym2.map f e.val, begin
+  cases e, simp,
+  induction e_val,
+  change ⟦e_val⟧ ∈ edge_set G at e_property,
+  change sym2.map f ⟦e_val⟧ ∈ edge_set G',
+  cases e_val,
+  simp at e_property,
+end⟩
 
 end embedding
 
@@ -463,6 +479,21 @@ def isomorphism_to_embedding (f : G ≃g G') : G ↪g G' :=
   map_adj' := λ v w h, (rel_iso.map_rel_iff f).mp h }
 
 end maps
+
+section examples
+
+/--
+The graph with no edges on a given vertex type.
+-/
+def empty_graph (V : Type u) : simple_graph_on V := { adj := λ i j, false }
+
+/--
+The complete graph on a type `α` is the simple graph with all pairs of distinct vertices adjacent.
+-/
+def complete_graph (α : Type u) : simple_graph_on α :=
+{ adj := ne }
+
+end examples
 
 section subgraphs
 
@@ -622,6 +653,23 @@ instance : bounded_lattice (subgraph G) :=
          exact ⟨set.inter_subset_right x.V' y.V', set.inter_subset_right x.E' y.E'⟩, } }
 
 /--
+The top of the `subgraph G` lattice is equivalent to the graph itself.
+-/
+def top_equiv_graph : (⊤ : subgraph G) ≃g G :=
+{ to_fun := λ v, ↑v,
+  inv_fun := λ v, ⟨v, by tidy⟩,
+  left_inv := by tidy,
+  right_inv := by tidy,
+  map_rel_iff' := by tidy }
+
+def bot_equiv_empty : (⊥ : subgraph G) ≃g empty_graph empty :=
+{ to_fun := λ v, false.elim v.property,
+  inv_fun := λ v, begin cases v, end,
+  left_inv := by tidy,
+  right_inv := by tidy,
+  map_rel_iff' := by tidy }
+
+/--
 Given two subgraphs, one a subgraph of the other, there is an induced embedding of the subgraphs as graphs.
 -/
 def map {x y : subgraph G} (h : x ≤ y) : x ↪g y :=
@@ -774,17 +822,6 @@ def inter (x y : simple_graph_on α) : simple_graph_on α :=
 { adj := λ (v w : α), x.adj v w ∧ y.adj v w,
   symm := λ v w h, ⟨x.symm h.1, y.symm h.2⟩,
   loopless := λ v h, x.loopless _ h.1 }
-
-/--
-The graph with no edges on a given vertex type.
--/
-def empty_graph (V : Type u) : simple_graph_on V := { adj := λ i j, false }
-
-/--
-The complete graph on a type `α` is the simple graph with all pairs of distinct vertices adjacent.
--/
-def complete_graph (α : Type u) : simple_graph_on α :=
-{ adj := ne }
 
 instance : bounded_lattice (simple_graph_on α) :=
 { le := is_spanning_subgraph,

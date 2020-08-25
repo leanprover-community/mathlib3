@@ -113,8 +113,8 @@ def mem (x : α) (z : sym2 α) : Prop :=
 
 instance : has_mem α (sym2 α) := ⟨mem⟩
 
-lemma mk_has_mem (x y : α) : x ∈ ⟦(x, y)⟧ := ⟨y, rfl⟩
-lemma mk_has_mem_right (x y : α) : y ∈ ⟦(x, y)⟧ := by { rw eq_swap, apply mk_has_mem }
+@[simp] lemma mk_has_mem (x y : α) : x ∈ ⟦(x, y)⟧ := ⟨y, rfl⟩
+@[simp] lemma mk_has_mem_right (x y : α) : y ∈ ⟦(x, y)⟧ := by { rw eq_swap, apply mk_has_mem }
 
 /--
 This is the `mem`-based version of `other`.
@@ -146,27 +146,25 @@ lemma elems_iff_eq {x y : α} {z : sym2 α} (hne : x ≠ y) :
   x ∈ z ∧ y ∈ z ↔ z = ⟦(x, y)⟧ :=
 begin
   split,
-  { rintros ⟨hx, hy⟩,
-    induction z, cases z with z₁ z₂,
-    apply eq_iff.mpr,
-    cases mem_iff.mp hx with hx hx; cases mem_iff.mp hy with hy hy; cc,
-    refl },
+  { refine quotient.rec_on_subsingleton z _,
+    rintros ⟨z₁, z₂⟩ ⟨hx, hy⟩,
+    rw eq_iff,
+    cases mem_iff.mp hx with hx hx; cases mem_iff.mp hy with hy hy; cc },
   { rintro rfl, simp },
 end
 
 @[ext]
 lemma sym2_ext (z z' : sym2 α) (h : ∀ x, x ∈ z ↔ x ∈ z') : z = z' :=
 begin
-  induction z, induction z',
-  cases z with x y, cases z' with x' y',
-  change ∀ w, w ∈ ⟦(x, y)⟧ ↔ w ∈ ⟦(x', y')⟧ at h,
+  refine quotient.rec_on_subsingleton z (λ w, _) h,
+  refine quotient.rec_on_subsingleton z' (λ w', _),
+  intro h,
+  cases w with x y, cases w' with x' y',
   simp only [mem_iff] at h,
   apply eq_iff.mpr,
   have hx := h x, have hy := h y, have hx' := h x', have hy' := h y',
   simp only [true_iff, true_or, eq_self_iff_true, iff_true, or_true] at hx hy hx' hy',
   cases hx; subst x; cases hy; subst y; cases hx'; try { subst x' }; cases hy'; try { subst y' }; cc,
-  refl,
-  refl,
 end
 
 end membership
@@ -195,7 +193,7 @@ begin
 end
 
 instance is_diag.decidable_pred (α : Type u) [decidable_eq α] : decidable_pred (@is_diag α) :=
-by { intro z, induction z, { erw is_diag_iff_proj_eq, apply_instance }, apply subsingleton.elim }
+by { refine λ z, quotient.rec_on_subsingleton z (λ a, _), erw is_diag_iff_proj_eq, apply_instance }
 
 lemma mem_other_ne {a : α} {z : sym2 α} (hd : ¬is_diag z) (h : a ∈ z) : h.other ≠ a :=
 begin
@@ -296,7 +294,7 @@ def sym2_equiv_sym' {α : Type*} : equiv (sym2 α) (sym' α 2) :=
 The symmetric square is equivalent to the second symmetric power.
 -/
 def equiv_sym (α : Type*) : sym2 α ≃ sym α 2 :=
-equiv.trans sym2_equiv_sym' (sym_equiv_sym' α 2).symm
+equiv.trans sym2_equiv_sym' sym_equiv_sym'.symm
 
 /--
 The symmetric square is equivalent to multisets of cardinality

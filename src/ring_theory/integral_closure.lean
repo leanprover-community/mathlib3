@@ -246,23 +246,42 @@ by rwa [subtype.val_eq_coe, ← subalgebra.val_apply, aeval_alg_hom_apply] at hp
 theorem is_integral_mul_unit {x y : A} {r : R} (hr : (algebra_map R A r) * y = 1)
   (hx : is_integral R (x * y)) : (is_integral R x) :=
 begin
+  by_cases triv : (1 : R) = 0,
+  { exact ⟨0, ⟨trans leading_coeff_zero triv.symm, eval₂_zero _ _⟩⟩ },
+  haveI : nontrivial R := nontrivial_of_ne 1 0 triv,
   obtain ⟨p, hp⟩ := hx,
-  -- let p' : polynomial R := p.sum (λ n a, monomial n (a * r ^ (p.nat_degree - n))),
-  --use p.sum (λ n a, if n ≤ p.nat_degree then monomial n (a * r ^ (p.nat_degree - n)) else monomial n a),
-  let p' : polynomial R := ∑ (i : ℕ) in finset.range (p.nat_degree + 1),
-    monomial i ((p.coeff i) * r ^ (p.nat_degree - i)),
-  have hp' : ∀ (i : ℕ), p'.coeff i = p.coeff i * r ^ (p.nat_degree - i), {
-    sorry,
-  },
-  have hp'' : p'.nat_degree = p.nat_degree, {
-    sorry,
-  },
+  let p' : polynomial R := ∑ (i : ℕ) in p.support, monomial i ((p.coeff i) * r ^ (p.nat_degree - i)),
+  have hp' : ∀ (i : ℕ), p'.coeff i = p.coeff i * r ^ (p.nat_degree - i),
+  { intro i,
+    rw finset_sum_coeff,
+    by_cases h : {i} ⊆ p.support,
+    { refine trans (finset.sum_subset h _).symm (by simp [coeff_monomial]),
+      intros x hx hx',
+      rw coeff_monomial,
+      refine if_neg (finset.not_mem_singleton.1 hx') },
+    { have : p.coeff i = 0, by simpa using h,
+      simp [this],
+      refine finset.sum_eq_zero (λ j hj, _),
+      rw coeff_monomial,
+      split_ifs with h,
+      { simp [h, this], },
+      { refl } } },
+  have hp'' : p'.nat_degree = p.nat_degree,
+  { refine nat_degree_eq_of_degree_eq (le_antisymm (le_trans (degree_sum_le _ _) _) _),
+    { simp only [finset.sup_le_iff, finsupp.mem_support_iff],
+      intros b hb,
+      rw single_eq_C_mul_X,
+      refine le_trans (degree_C_mul_X_pow_le _ _) _,
+      refine le_degree_of_ne_zero hb },
+    { refine degree_le_degree (λ h, triv _),
+      rw hp' p.nat_degree at h,
+      rw [monic, leading_coeff] at hp,
+      rwa [hp.1, one_mul, nat.sub_self p.nat_degree, pow_zero] at h } },
   use p',
   split,
   { rw [monic, leading_coeff, hp'', hp', nat.sub_self, pow_zero, mul_one],
     exact hp.1 },
   { replace hp := hp.right,
-    -- rw as_sum p at hp,
     suffices : (y ^ p.nat_degree) * (aeval x p') = 0,
     { replace this := congr_arg (λ x, (algebra_map R A r) ^ p.nat_degree * x) this,
       simp at this,
@@ -286,7 +305,7 @@ begin
       nat.add_sub_cancel' (nat.le_of_lt_succ (finset.mem_range.1 hn)),
       ← mul_pow, hr, one_pow, one_pow],
     -- TODO: Is it possible to inline these simps from the index lemmas somehow?
-    all_goals {simp [add_mul]} }
+    all_goals {simp [add_mul]} },
 end
 
 end

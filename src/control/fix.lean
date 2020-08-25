@@ -39,14 +39,20 @@ class has_fix (α : Type*) :=
 
 open omega_complete_partial_order
 
+section prio
+
+set_option default_priority 100  -- see Note [default priority]
+
 /-- Laws for fixed point operator -/
-class lawful_fix (α : Type*) [has_fix α] [omega_complete_partial_order α] :=
+class lawful_fix (α : Type*) [omega_complete_partial_order α] extends has_fix α :=
 (fix_eq : ∀ {f : α →ₘ α}, continuous f → has_fix.fix f = f (has_fix.fix f))
 
-lemma lawful_fix.fix_eq' {α} [omega_complete_partial_order α] [has_fix α] [lawful_fix α]
+lemma lawful_fix.fix_eq' {α} [omega_complete_partial_order α] [lawful_fix α]
   {f : α → α} (hf : continuous' f) :
   has_fix.fix f = f (has_fix.fix f) :=
 lawful_fix.fix_eq (continuous.to_bundled _ hf)
+
+end prio
 
 namespace roption
 
@@ -321,8 +327,8 @@ continuous_comp _ _
 
 end curry
 
-instance pi.lawful_fix' [has_fix $ Π x : sigma β, γ x.1 x.2] [lawful_fix $ Π x : sigma β, γ x.1 x.2] : lawful_fix (Π x y, γ x y) :=
-⟨ λ f hc, by {
-  dsimp [fix], conv { to_lhs, erw [lawful_fix.fix_eq (uncurry_curry_continuous hc)] }, refl, } ⟩
+instance pi.lawful_fix' [lawful_fix $ Π x : sigma β, γ x.1 x.2] : lawful_fix (Π x y, γ x y) :=
+{ fix_eq := λ f hc,
+  by { dsimp [fix], conv { to_lhs, erw [lawful_fix.fix_eq (uncurry_curry_continuous hc)] }, refl, } }
 
 end pi

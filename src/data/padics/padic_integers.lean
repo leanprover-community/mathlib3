@@ -261,7 +261,7 @@ begin
     have := congr_arg has_norm.norm hw,
     simp only [padic_norm_z.padic_norm_z_of_int, padic_norm_z.norm_p_pow, padic_norm_z.mul,
                fpow_neg, fpow_coe_nat] at this,
-    rw_mod_cast [padic_norm_e.norm_int_lt_pow_iff_dvd, this],
+    rw_mod_cast [← padic_norm_e.norm_int_lt_pow_iff_dvd, this],
     simp only [fpow_neg, fpow_coe_nat, nat.cast_pow],
     convert mul_le_of_le_one_right _ _ using 1,
      { apply inv_nonneg.mpr, apply pow_nonneg, exact_mod_cast le_of_lt hp_prime.pos },
@@ -462,6 +462,10 @@ discrete_valuation_ring.ideal_eq_span_pow_irreducible hs irreducible_p
 lemma norm_int_lt_one_iff_dvd (k : ℤ) : ∥(k : ℤ_[p])∥ < 1 ↔ ↑p ∣ k :=
 suffices ∥(k : ℚ_[p])∥ < 1 ↔ ↑p ∣ k, by rwa padic_norm_z.padic_norm_z_of_int,
 padic_norm_e.norm_int_lt_one_iff_dvd k
+
+lemma norm_int_lt_pow_iff_dvd {k : ℤ} {n : ℕ} : ∥(k : ℤ_[p])∥ ≤ ((↑p)^(-n : ℤ)) ↔ ↑(p^n) ∣ k :=
+suffices ∥(k : ℚ_[p])∥ ≤ ((↑p)^(-n : ℤ)) ↔ ↑(p^n) ∣ k, by rwa padic_norm_z.padic_norm_z_of_int,
+padic_norm_e.norm_int_lt_pow_iff_dvd _ _
 
 lemma norm_lt_one_iff_dvd (x : ℤ_[p]) : ∥x∥ < 1 ↔ ↑p ∣ x :=
 begin
@@ -1055,9 +1059,11 @@ def lift : R →+* ℤ_[p] :=
   map_add' := lim_fn_add f_compat }
 
 omit f_compat
+
 lemma dont_we_have_this (ε : ℝ) (n : ℕ) (h : ↑p ^ (-n : ℤ) ≤ ε) (x : ℤ_[p]) :
   ∥x∥ ≤ ε ↔ x ∈ (ideal.span {p ^ n} : ideal ℤ_[p]) :=
 sorry
+#check norm_int_lt_pow_iff_dvd
 
 lemma spec_foo (r : R) (n : ℕ) :
   (lift f_compat r - (f n r).val) ∈ (ideal.span {↑p ^ n} : ideal ℤ_[p]) :=

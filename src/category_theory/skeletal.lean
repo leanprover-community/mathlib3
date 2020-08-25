@@ -9,7 +9,15 @@ import category_theory.thin
 /-!
 # Skeleton of a category
 
-Defines skeletal categories as categories in which any two isomorphic objects are equal.
+Define skeletal categories as categories in which any two isomorphic objects are equal.
+
+Construct the skeleton of a thin category as a partial ordering, and (noncomputably) show it is
+a skeleton of the original category. The advantage of this special case being handled separately
+is that lemmas and definitions about orderings can be used directly, for example for the subobject
+lattice (TODO). In addition, some of the commutative diagrams about the functors commute
+definitionally on the nose which is convenient in practice.
+
+(TODO): Construct the skeleton of a general category using choice, and show it is a skeleton.
 -/
 
 universes v₁ v₂ v₃ u₁ u₂ u₃
@@ -20,7 +28,7 @@ open category
 
 variables (C : Type u₁) [category.{v₁} C]
 variables (D : Type u₂) [category.{v₂} D]
-variables (E : Type u₃) [category.{v₃} E]
+variables {E : Type u₃} [category.{v₃} E]
 
 /-- A category is skeletal if isomorphic objects are equal. -/
 def skeletal : Prop := ∀ (X Y : C), is_isomorphic X Y → X = Y
@@ -74,6 +82,10 @@ def to_thin_skeleton : C ⥤ thin_skeleton C :=
 { obj := quotient.mk,
   map := λ X Y f, hom_of_le (nonempty.intro f) }
 
+/-!
+The constructions here are intended to be used when the category `C` is thin, even though
+some of the statements can be shown without this assumption.
+-/
 namespace thin_skeleton
 
 /-- The thin skeleton is thin. -/
@@ -82,6 +94,7 @@ instance thin {X Y : thin_skeleton C} : subsingleton (X ⟶ Y) :=
 
 variables {C} {D}
 
+/-- A functor `C ⥤ D` computably lowers to a functor `thin_skeleton C ⥤ thin_skeleton D`. -/
 @[simps]
 def map (F : C ⥤ D) : thin_skeleton C ⥤ thin_skeleton D :=
 { obj := quotient.map F.obj $ λ X₁ X₂ ⟨hX⟩, ⟨F.map_iso hX⟩,
@@ -103,6 +116,8 @@ def map_iso_iso {F₁ F₂ : C ⥤ D} (h : F₁ ≅ F₂) : map F₁ ≅ map F�
 { hom := map_nat_trans h.hom, inv := map_nat_trans h.inv }
 
 variables (C) [∀ X Y : C, subsingleton (X ⟶ Y)]
+
+instance : faithful (to_thin_skeleton C) := {}
 
 @[simps]
 noncomputable def from_thin_skeleton : thin_skeleton C ⥤ C :=
@@ -151,6 +166,15 @@ instance : partial_order (thin_skeleton C) :=
 
 lemma skeletal : skeletal (thin_skeleton C) :=
 λ X Y, quotient.induction_on₂ X Y $ λ x y h, h.elim $ λ i, le_antisymm (le_of_hom i.1) (le_of_hom i.2)
+
+lemma map_comp_eq (F : E ⥤ D) (G : D ⥤ C) : map (F ⋙ G) = map F ⋙ map G :=
+functor.eq_of_iso skeletal (map_comp_iso _ _)
+
+lemma map_id_eq : map (𝟭 C) = 𝟭 (thin_skeleton C) :=
+functor.eq_of_iso skeletal map_id_iso
+
+lemma map_iso_eq {F₁ F₂ : D ⥤ C} (h : F₁ ≅ F₂) : map F₁ = map F₂ :=
+functor.eq_of_iso skeletal (map_iso_iso h)
 
 noncomputable def thin_skeleton_is_skeleton : is_skeleton_of C (thin_skeleton C) (from_thin_skeleton C) :=
 { skel := skeletal,

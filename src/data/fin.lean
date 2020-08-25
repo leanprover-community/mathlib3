@@ -237,7 +237,7 @@ by { rw [lt_iff_val_lt_val, val_zero], exact nat.succ_pos i }
 lemma one_lt_succ_succ (a : fin n) : (1 : fin (n + 2)) < a.succ.succ :=
 by { cases n, { exact fin_zero_elim a }, { rw [←succ_zero_eq_one, succ_lt_succ_iff], exact succ_pos a } }
 
-lemma succ_succ_ne_one : fin.succ (fin.succ a) ≠ 1 := ne_of_gt (one_lt_succ_succ a)
+lemma succ_succ_ne_one (a : fin n) : fin.succ (fin.succ a) ≠ 1 := ne_of_gt (one_lt_succ_succ a)
 
 @[simp] lemma pred_val (j : fin (n+1)) (h : j ≠ 0) : (j.pred h).val = j.val.pred :=
 by cases j; simp [fin.pred]

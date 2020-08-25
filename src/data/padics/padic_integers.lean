@@ -1060,10 +1060,6 @@ def lift : R →+* ℤ_[p] :=
 
 omit f_compat
 
-def limit_approx (z : ℤ_[p]) : ℕ → ℤ :=
-@limit p _ ℤ_[p] _ (to_zmod_pow) z
-#check @lim_fn
-
 lemma dont_we_have_this (ε : ℝ) (n : ℕ) (h : ↑p ^ (-n : ℤ) ≤ ε) (x : ℤ_[p]) :
   ∥x∥ ≤ ε ↔ x ∈ (ideal.span {p ^ n} : ideal ℤ_[p]) :=
 begin
@@ -1094,18 +1090,6 @@ begin
   { refl }
 end
 
-def lift_cau_seq (f : cau_seq ℚ (padic_norm p)) : cau_seq ℚ_[p] has_norm.norm :=
-⟨λ n, f n, sorry⟩
-
-lemma compls_eq (f : cau_seq ℚ (padic_norm p)) : (⟦f⟧ : ℚ_[p]) = (lift_cau_seq f).lim :=
-sorry
-
--- move this
-instance padic.complete_space : complete_space ℚ_[p] :=
-begin
-  apply_instance,
-end
-
 -- move this
 instance complete_space : complete_space ℤ_[p] :=
 begin
@@ -1134,58 +1118,29 @@ lemma dense_range_int_cast :
   dense_range (int.cast : ℤ → ℤ_[p]) :=
 begin
   intro x,
-  rw mem_closure_range_iff,
-  intros ε hε,
-  let n : ℕ := sorry,
-  have hn : ↑p ^ (-n : ℤ) < ε, sorry,
-  -- I guess we could/should be able to use dense_range_nat_cast. Otherwise... repeat proof?
+  apply dense_range_nat_cast.induction_on x,
+  { simp },
+  { intro a,
+    change (a.cast : ℤ_[p]) with (a : ℤ).cast,
+    refine set.mem_of_mem_of_subset _ (subset_closure),
+    exact set.mem_range_self _ }
 end
 
--- this is enough to finish what we need below.
--- But I'm not sure it's stated right.
--- this is a total mess...
 lemma lim_fn_eq (z : ℤ_[p]) : @lift p _ ℤ_[p] _ to_zmod_pow
   zmod_cast_comp_to_zmod_pow z = z :=
 begin
-  -- apply dense_range_int_cast.induction_on,
-  have spec := @spec_foo p _ ℤ_[p] _ to_zmod_pow zmod_cast_comp_to_zmod_pow z,
-  let seq : ℕ →  ℚ := λ n, (to_zmod_pow n z).val,
-  have seq_is_cauchy : is_cau_seq (padic_norm p) seq := sorry,
-  let cs : cau_seq ℚ (padic_norm p) := ⟨seq, seq_is_cauchy⟩,
-  have compl := compls_eq cs,
-  have lift_lim : (lift_cau_seq cs).lim = z := sorry,
-  cases z with q hq,
-  dsimp at lift_lim,
-  ext,
-  simp only [← lift_lim, ←compl, cs],
-  apply quotient.sound,
+  apply @dense_range.induction_on _ ℤ_[p] _ _ dense_range_int_cast
+    (λ z, @lift p _ ℤ_[p] _ to_zmod_pow zmod_cast_comp_to_zmod_pow z = z),
+  { rw is_closed_iff_nhds,
+    intros x hx,
+    show _ = x,
+    change ∀ u, _ → ∃ c, _ ∧ _ = _ at hx,
+    apply eq_of_forall_dist_le, -- down to some kind of continuity property
+    sorry },
+  { intro, change (a.cast : ℤ_[p]) with (a : ℤ_[p]), simp },
 
-  -- simp,
-  intros ε hε,
-  dsimp [seq],
-  obtain ⟨n, hn⟩ : ∃ n : ℕ, ↑p^(-n : ℤ) < ε := sorry,
-  use n,
-  intros j hj,
-
-
-  -- have const_equiv :
 end
 
--- begin
---   have spec := @spec_foo p _ ℤ_[p] _ to_zmod_pow (sorry) z,
---   ext,
---   rcases z with ⟨⟨q⟩, hq⟩,
---   apply quotient.sound,
---   intros ε hε,
---   obtain ⟨n, hn⟩ : ∃ n : ℕ, ↑p^(-n : ℤ) < ε := sorry,
---   use n,
---   intros j hj,
---   have : ↑p^(-j : ℤ) ≤ (ε : ℝ) := sorry,
---   have := dont_we_have_this ε j this,
---   have := (this _).mpr (spec _),
---   simp [lift] at this ⊢,
---   rw padic_norm_e.eq_padic_norm at this,
--- end
 
 lemma lift_spec (n : ℕ) : (to_zmod_pow n).comp (lift f_compat) = f n :=
 begin
@@ -1202,28 +1157,6 @@ lemma foo_ext (x y : ℤ_[p]) (h : ∀ n, to_zmod_pow n x = to_zmod_pow n y) :
 begin
   rw [← lim_fn_eq x, ← lim_fn_eq y],
   simp [lift, lim_fn, limit, h],
-
-  -- rcases x with ⟨x, hx⟩,
-  -- rcases y with ⟨y, hy⟩,
-  -- -- let x_seq := quotient.out x,
-  -- -- let y_seq := quotient.out y,
-  -- -- have x_seq_spec := quotient.out_eq x,
-  -- -- have y_seq_spec := quotient.out_eq y,
-  -- ext, dsimp,
-  -- revert hx hy,
-  -- apply quot.induction_on₂ x y,
-  -- intros x_seq y_seq h_x_seq h_y_seq hxyeq,
-  -- rw [← quotient.out_eq x, ← quotient.out_eq y],
-  -- apply quotient.sound,
-  -- dsimp [to_zmod_pow] at h,
-  -- intros ε hε,
-  -- dsimp [quotient.out, quot.out],
-  -- use 0, intros _ _,
-  -- convert hε,
-  -- convert padic_norm.zero _,
-  -- dsimp, rw sub_eq_zero,
-  -- -- need to turn x and y into cauchy sequences.
-  -- sorry
 end
 
 lemma lift_unique (g : R →+* ℤ_[p]) (hg : ∀ n, (to_zmod_pow n).comp g = f n) :

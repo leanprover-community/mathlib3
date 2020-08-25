@@ -329,7 +329,6 @@ theorem re_eq_add_conj (z : K) : 𝓚 (re z) = (z + conj z) / 2 :=
 /-! ### Absolute value -/
 
 /-- The complex absolute value function, defined as the square root of the norm squared. -/
-
 @[pp_nodot] noncomputable def abs (z : K) : ℝ := (norm_sq z).sqrt
 
 local notation `abs'` := _root_.abs

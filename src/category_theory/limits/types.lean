@@ -121,7 +121,7 @@ lemma ι_desc_apply (F : J ⥤ Type u) (s : cocone F) (j : J) (x : F.obj j) :
   colimit.desc F s (colimit.ι F j x) = s.ι.app j x :=
 congr_fun (colimit.ι_desc s j) x
 
-lemma jointly_surjective (F : J ⥤ Type u) {t : limits.cocone F} (h : limits.is_colimit t)
+lemma jointly_surjective (F : J ⥤ Type u) {t : cocone F} (h : is_colimit t)
   (x : t.X) : ∃ j y, t.ι.app j y = x :=
 begin
   suffices : (λ (x : t.X), ulift.up (∃ j y, t.ι.app j y = x)) = (λ _, ulift.up true),

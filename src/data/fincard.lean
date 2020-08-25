@@ -107,7 +107,7 @@ lemma function.support_eq_support {α : Type u} {β : Type v} [has_zero β] (f :
   function.support f = ↑(f.support) :=
 set.ext $ λ x, finsupp.mem_support_iff.symm
 
-lemma finsum_in_eq_finsum_in_of_subset (f : α → M) (s t : set α) (hst : s ⊆ t)
+lemma finsum_in_eq_finsum_in_of_subset (f : α → M) {s t : set α} (hst : s ⊆ t)
   (hf : ∀ x : α, x ∈ t \ s → f x = 0) : finsum_in s f = finsum_in t f :=
 begin
   rw [finsum_in_def, finsum_in_def],
@@ -541,20 +541,38 @@ begin
       { apply finset.subset_union_left,
         rw set.finite.mem_to_finset,
         use hx1 } },
-    { rintros x ⟨_, hx⟩,
-      cases hx,
-      rw finset.coe_sdiff at hx,
-      sorry } },
-  { sorry },
-  { sorry }
-end
+    { rintros x ⟨hxs, hx⟩,
+      rw [finset.mem_coe, finset.mem_filter] at hxs,
+      by_contra hfg,
+      apply hx,
+      use hxs.2 } },
+  { rw ←finsum_in_eq_finset_sum'''',
+    rw finsum_in_inter_support,
+    apply finsum_in_eq_finsum_in_of_subset,
+    { intro x,
+      finish },
+    { intro x,
+      finish } },
+  { rw ←finsum_in_eq_finset_sum'''',
+    rw finsum_in_inter_support,
+    apply finsum_in_eq_finsum_in_of_subset,
+    { intro x,
+      finish },
+    { intro x,
+      finish } },
+end.
 
 -- this should be `f + g` not `λ x, f x + g x` but we probably need to import algebra.big_operators for this
 lemma finsum_add_distrib
   (hf : (function.support f).finite) (hg : (function.support g).finite) :
   finsum (λ x, f x + g x) = finsum f + finsum g :=
 begin
-  sorry
+  rw finsum_eq_finsum_in_univ,
+  rw finsum_eq_finsum_in_univ,
+  rw finsum_eq_finsum_in_univ,
+  apply finsum_in_add_distrib',
+  { convert hf, simp },
+  { convert hg, simp }
 end
 
 lemma finsum_in_comm {s : set α} {t : set β}

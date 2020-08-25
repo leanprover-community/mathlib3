@@ -121,6 +121,26 @@ by apply @fin.prod_univ_succ_above (multiplicative β)
 
 attribute [to_additive] fin.prod_univ_succ_above
 
+theorem fin.prod_univ_succ [comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
+  ∏ i, f i = f 0 * ∏ i : fin n, f i.succ :=
+fin.prod_univ_succ_above f 0
+
+theorem fin.sum_univ_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
+  ∑ i, f i = f 0 + ∑ i : fin n, f i.succ :=
+fin.sum_univ_succ_above f 0
+
+attribute [to_additive] fin.prod_univ_succ
+
+theorem fin.prod_univ_cast_succ [comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
+  ∏ i, f i = (∏ i : fin n, f i.cast_succ) * f (fin.last n) :=
+by simpa [mul_comm] using fin.prod_univ_succ_above f (fin.last n)
+
+theorem fin.sum_univ_cast_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
+  ∑ i, f i = ∑ i : fin n, f i.cast_succ + f (fin.last n) :=
+by apply @fin.prod_univ_cast_succ (multiplicative β)
+
+attribute [to_additive] fin.prod_univ_cast_succ
+
 @[simp] theorem fintype.card_sigma {α : Type*} (β : α → Type*)
   [fintype α] [∀ a, fintype (β a)] :
   fintype.card (sigma β) = ∑ a, fintype.card (β a) :=

@@ -13,8 +13,8 @@ import linear_algebra.finsupp
 This file defines eigenspaces and eigenvalues.
 
 An eigenspace of a linear map `f` for a scalar `μ` is the kernel of the map `(f - μ • id)`.
-The elements of an eigenspace are eigenvectors `x`. They have the property `f x = μ • x`.
-If there are nonzero eigenvectors, the scalar `μ` is called an eigenvalue.
+The nonzero elements of an eigenspace are eigenvectors `x`. They have the property `f x = μ • x`.
+If there are eigenvectors for a scalar `μ`, the scalar `μ` is called an eigenvalue.
 
 ## Notations
 
@@ -44,6 +44,10 @@ local notation `am` := algebra_map α (β →ₗ[α] β)
     such that `f x = μ • x`. -/
 def eigenspace [field α] [vector_space α β] (f : β →ₗ[α] β) (μ : α) : submodule α β :=
 (f - am μ).ker
+
+/-- A nonzero element of an eigenspace is an eigenvector. -/
+def eigenvector [field α] [vector_space α β] (f : β →ₗ[α] β) (μ : α) (x : β) : Prop :=
+x ≠ 0 ∧ x ∈ eigenspace f μ
 
 /-- A scalar `μ` is an eigenvalue for a linear map `f` if there are nonzero vectors `x`
     such that `f x = μ • x`. -/
@@ -134,11 +138,11 @@ begin
     exact hq_nonunit ((linear_map.is_unit_iff (eval₂ am f q)).2 h_eval_ker) }
 end
 
-/-- Nonzero eigenvectors corresponding to distinct eigenvalues of a linear operator are
+/-- Eigenvectors corresponding to distinct eigenvalues of a linear operator are
     linearly independent (Axler's Proposition 2.2) -/
 lemma eigenvectors_linear_independent [field α] [vector_space α β]
-  (f : β →ₗ[α] β) (μs : set α) (xs : μs → β) (h_nonzero : ∀ μ : μs, xs μ ≠ 0)
-  (h_eigenvec : ∀ μ : μs, xs μ ∈ eigenspace f μ) :
+  (f : β →ₗ[α] β) (μs : set α) (xs : μs → β)
+  (h_eigenvec : ∀ μ : μs, eigenvector f μ (xs μ)) :
   linear_independent α xs :=
 begin
   classical,
@@ -169,7 +173,7 @@ begin
     have total_l' : (@linear_map.to_fun α (finsupp μs α) β _ _ _ _ _ (finsupp.total μs β α xs)) l' = 0,
     { let g := f - am μ₀,
       have h_gμ₀: g (l μ₀ • xs μ₀) = 0,
-        by rw [linear_map.map_smul, linear_map.sub_apply, mem_eigenspace_iff.1 (h_eigenvec _),
+        by rw [linear_map.map_smul, linear_map.sub_apply, mem_eigenspace_iff.1 (h_eigenvec _).2,
           module.endomorphism_algebra_map_apply2, sub_self, smul_zero],
       have h_useless_filter : finset.filter (λ (a : μs), l'_f a ≠ 0) l_support' = l_support',
       { rw finset.filter_congr _,
@@ -179,7 +183,7 @@ begin
       have bodies_eq : ∀ (μ : μs), l'_f μ • xs μ = g (l μ • xs μ),
       { intro μ,
         dsimp only [g, l'_f],
-        rw [linear_map.map_smul, linear_map.sub_apply, mem_eigenspace_iff.1 (h_eigenvec _),
+        rw [linear_map.map_smul, linear_map.sub_apply, mem_eigenspace_iff.1 (h_eigenvec _).2,
           module.endomorphism_algebra_map_apply2, ←sub_smul, smul_smul, mul_comm] },
       have := finsupp.total_on_finset _ l_support' l'_f xs _,
       unfold_coes at this,
@@ -227,7 +231,7 @@ begin
     { rw [finsupp.total_apply, finsupp.sum, h_l_support,
           finset.sum_insert hμ₀, h_sum_l_support'_eq_0, add_zero] at hl,
       by_contra h,
-      exact h_nonzero μ₀ ((smul_eq_zero.1 hl).resolve_left h) },
+      exact (h_eigenvec μ₀).1 ((smul_eq_zero.1 hl).resolve_left h) },
 
     show l = 0,
     { ext μ,

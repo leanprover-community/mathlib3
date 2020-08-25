@@ -914,7 +914,7 @@ end
 variable {f}
 include f_compat
 
-lemma pow_dvd_lift_sub (r : R) (i j : ℕ) (h : i ≤ j) :
+lemma pow_dvd_limit_sub (r : R) (i j : ℕ) (h : i ≤ j) :
   ↑p ^ (i + 1) ∣ limit f r j - limit f r i :=
 begin
   specialize f_compat (i+1) (j+1) (succ_le_succ h),
@@ -971,7 +971,7 @@ begin
   refine lt_of_le_of_lt _ hk,
   norm_cast,
   rw ← padic_norm.dvd_iff_norm_le,
-  exact_mod_cast pow_dvd_lift_sub f_compat r k j hj
+  exact_mod_cast pow_dvd_limit_sub f_compat r k j hj
 end
 
 def limit_seq (r : R) : padic_seq p := ⟨λ n, limit f r n, lim_seq_is_cau_seq f_compat r⟩
@@ -1021,7 +1021,8 @@ end
 def lim_fn (r : R) : ℤ_[p] :=
 int_lim_seq (limit f r) (lim_seq_is_cau_seq f_compat r)
 
-lemma lim_fn_spec (r : R) : ∀ ε : ℝ, 0 < ε → ∃ n : ℕ, ∥lim_fn f_compat r - limit f r n∥ < ε :=
+lemma lim_fn_spec (r : R) :
+  ∀ ε : ℝ, 0 < ε → ∃ N : ℕ, ∀ n ≥ N, ∥lim_fn f_compat r - limit f r n∥ < ε :=
 sorry
 
 lemma lim_fn_zero : lim_fn f_compat 0 = 0 :=
@@ -1043,6 +1044,38 @@ def lift : R →+* ℤ_[p] :=
   map_zero' := lim_fn_zero f_compat,
   map_add' := lim_fn_add f_compat }
 
+omit f_compat
+lemma dont_we_have_this (ε : ℝ) (n : ℕ) (h : ↑p ^ (-n : ℤ) ≤ ε) (x : ℤ_[p]) :
+  ∥x∥ ≤ ε ↔ x ∈ (ideal.span {p ^ n} : ideal ℤ_[p]) :=
+sorry
+
+lemma spec_foo (r : R) (n : ℕ) :
+  (lift f_compat r - (f n r).val) ∈ (ideal.span {↑p ^ n} : ideal ℤ_[p]) :=
+begin
+  obtain ⟨k, hk⟩ := lim_fn_spec f_compat r _ (show (0 : ℝ) < p ^ (-n : ℤ), from _),
+  swap,
+  { rw [fpow_neg, inv_pos, fpow_coe_nat],
+    apply _root_.pow_pos, exact_mod_cast nat.prime.pos ‹_› },
+  specialize hk (max n k) (le_max_right _ _),
+  have := le_of_lt hk,
+  rw dont_we_have_this _ n (le_refl _) at this,
+  dsimp at this,
+  dsimp [lift],
+  rw sub_eq_sub_add_sub (lim_fn f_compat r) _ ↑(limit f r (max n k)),
+  apply ideal.add_mem _ _ this,
+  have := pow_dvd_limit_sub f_compat r n (max n k) (le_max_left _ _),
+  rw ideal.mem_span_singleton,
+  rw show (p ^ n : ℤ_[p]) = (p ^ n : ℤ),
+  { norm_cast },
+  -- squeeze_simp [limit] at this,
+  convert (int.cast_ring_hom ℤ_[p]).map_dvd (dvd.trans _ this),
+  { simp only [limit, int.cast_coe_nat, ring_hom.eq_int_cast, cast_inj, sub_right_inj, int.cast_sub],
+    -- bitten by the off by one again
+    sorry
+     },
+  { sorry }
+end
+
 lemma lift_spec (n : ℕ) : (to_zmod_pow n).comp (lift f_compat) = f n :=
 begin
   ext r,
@@ -1050,30 +1083,32 @@ begin
   rw [ring_hom.comp_apply, ← zmod.cast_val (f n r), ← (to_zmod_pow n).map_nat_cast],
   rw [← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker],
   rw [ker_to_zmod_pow],
-  rw [ideal.mem_span_singleton],
-  dsimp [lift],
-  obtain ⟨a, ha⟩ := lim_fn_spec f_compat r _ (show (0 : ℝ) < p ^ (-n : ℤ), from _),
-  suffices : ∥lim_fn f_compat r - ↑(((f n) r).val)∥ ≤ p^(-n : ℤ),
-  { sorry },
-  dsimp at ha,
-  rw sub_eq_sub_add_sub _ _ ↑(limit f r a),
-  transitivity,
-  {apply padic_norm_z.nonarchimedean,},
-  {apply max_le _ (le_of_lt ha),
-   dsimp [limit],
-   haveI : fact (0 < p ^ (a + 1)) := sorry,
-   haveI : fact (0 < p ^ n) := sorry,
+  apply spec_foo,
 
-   by_cases ha : a + 1 ≤ n,
-   { rw ← f_compat _ _ ha,
-     simp,
-     sorry },
+  -- rw [ideal.mem_span_singleton],
+  -- dsimp [lift],
+  -- obtain ⟨a, ha⟩ := lim_fn_spec f_compat r _ (show (0 : ℝ) < p ^ (-n : ℤ), from _),
+  -- suffices : ∥lim_fn f_compat r - ↑(((f n) r).val)∥ ≤ p^(-n : ℤ),
+  -- { sorry },
+  -- dsimp at ha,
+  -- rw sub_eq_sub_add_sub _ _ ↑(limit f r a),
+  -- transitivity,
+  -- {apply padic_norm_z.nonarchimedean,},
+  -- {apply max_le _ (le_of_lt ha),
+  --  dsimp [limit],
+  --  haveI : fact (0 < p ^ (a + 1)) := sorry,
+  --  haveI : fact (0 < p ^ n) := sorry,
 
-     { push_neg at ha,
-       rw ← f_compat _ _ (le_of_lt ha),
-       simp,
-       sorry
-     } }
+  --  by_cases ha : a + 1 ≤ n,
+  --  { rw ← f_compat _ _ ha,
+  --    simp,
+  --    sorry },
+
+  --    { push_neg at ha,
+  --      rw ← f_compat _ _ (le_of_lt ha),
+  --      simp,
+  --      sorry
+  --    } }
 
 end
 

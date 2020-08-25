@@ -51,20 +51,13 @@ colimit.ι ((open_nhds.inclusion x.1).op ⋙ F) (op ⟨U, x.2⟩)
 lemma germ_exist (F : X.presheaf (Type v)) (x : X) (t : stalk F x) :
   ∃ (U : opens X) (m : x ∈ U) (s : F.obj (op U)), F.germ ⟨x, m⟩ s = t :=
 begin
-  induction t,
-  { rcases t with ⟨U, s⟩,
-    refine ⟨(unop U).1, (unop U).2, s, _⟩,
-    apply quot.sound,
-    revert s,
-    rw [(show U = op (unop U), from rfl)],
-    generalize : unop U = V, clear U,
-    intro s,
-    cases V,
-    dsimp,
-    fsplit,
-    { exact (𝟙 _).op, },
-    { erw category_theory.functor.map_id, refl, }, },
-  { refl, },
+  obtain ⟨U, s, e⟩ := types.jointly_surjective _ (colimit.is_colimit _) t,
+  revert s e,
+  rw [(show U = op (unop U), from rfl)],
+  generalize : unop U = V, clear U,
+  cases V with V m,
+  intros s e,
+  exact ⟨V, m, s, e⟩,
 end
 
 lemma germ_eq (F : X.presheaf (Type v)) {U V : opens X} (x : X) (mU : x ∈ U) (mV : x ∈ V)

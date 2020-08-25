@@ -30,8 +30,8 @@ namespace algebraic_geometry.PresheafedSpace
 
 def stalk (X : PresheafedSpace C) (x : X) : C := X.𝒪.stalk x
 
-def stalk_map {X Y : PresheafedSpace C} (α : X ⟶ Y) (x : X) : Y.stalk (α x) ⟶ X.stalk x :=
-(stalk_functor C (α x)).map (α.c) ≫ X.𝒪.stalk_pushforward C α x
+def stalk_map {X Y : PresheafedSpace C} (α : X ⟶ Y) (x : X) : Y.stalk (α.base x) ⟶ X.stalk x :=
+(stalk_functor C (α.base x)).map (α.c) ≫ X.𝒪.stalk_pushforward C α.base x
 
 namespace stalk_map
 
@@ -47,8 +47,8 @@ end
 -- TODO understand why this proof is still gross (i.e. requires using `erw`)
 @[simp] lemma comp {X Y Z : PresheafedSpace C} (α : X ⟶ Y) (β : Y ⟶ Z) (x : X) :
   stalk_map (α ≫ β) x =
-    (stalk_map β (α x) : Z.stalk (β (α x)) ⟶ Y.stalk (α x)) ≫
-    (stalk_map α x : Y.stalk (α x) ⟶ X.stalk x) :=
+    (stalk_map β (α.base x) : Z.stalk (β.base (α.base x)) ⟶ Y.stalk (α.base x)) ≫
+    (stalk_map α x : Y.stalk (α.base x) ⟶ X.stalk x) :=
 begin
   dsimp [stalk_map, stalk_functor, stalk_pushforward],
   ext U,

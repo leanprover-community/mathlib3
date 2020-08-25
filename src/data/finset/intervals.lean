@@ -120,6 +120,9 @@ eq_of_veq $ multiset.Ico.filter_lt_of_top_le hml
 lemma filter_lt_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, x < l) = ∅ :=
 eq_of_veq $ multiset.Ico.filter_lt_of_le_bot hln
 
+lemma filter_Ico_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x ≤ n) = {n} :=
+eq_of_veq $ multiset.Ico.filter_le_of_bot hnm
+
 lemma filter_lt_of_ge {n m l : ℕ} (hlm : l ≤ m) : (Ico n m).filter (λ x, x < l) = Ico n l :=
 eq_of_veq $ multiset.Ico.filter_lt_of_ge hlm
 

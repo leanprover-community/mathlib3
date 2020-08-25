@@ -1,6 +1,9 @@
 import tactic.alias
 import tactic.clear
+import tactic.choose
 import tactic.converter.apply_congr
+import tactic.dec_trivial
+import tactic.delta_instance
 import tactic.elide
 import tactic.explode
 import tactic.find
@@ -12,6 +15,7 @@ import tactic.lint
 import tactic.localized
 import tactic.mk_iff_of_inductive_prop
 import tactic.norm_cast
+import tactic.obviously
 import tactic.protected
 import tactic.push_neg
 import tactic.replacer

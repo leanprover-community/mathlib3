@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
 import order.basic
-import data.equiv.encodable
+import data.equiv.encodable.basic
 
 /-!
 # Order ideals, cofinal sets, and the Rasiowa–Sikorski lemma

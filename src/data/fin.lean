@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek
 -/
 import data.nat.cast
+import tactic.localized
+import logic.embedding
 /-!
 # The finite type with `n` elements
 
@@ -63,8 +65,28 @@ open fin nat function
 /-- Elimination principle for the empty set `fin 0`, dependent version. -/
 def fin_zero_elim {α : fin 0 → Sort u} (x : fin 0) : α x := x.elim0
 
+lemma fact.succ.pos {n} : fact (0 < succ n) := zero_lt_succ _
+
+lemma fact.bit0.pos {n} [h : fact (0 < n)] : fact (0 < bit0 n) :=
+nat.zero_lt_bit0 $ ne_of_gt h
+
+lemma fact.bit1.pos {n} : fact (0 < bit1 n) :=
+nat.zero_lt_bit1 _
+
+lemma fact.pow.pos {p n : ℕ} [h : fact $ 0 < p] : fact (0 < p ^ n) :=
+pow_pos h _
+
+
+localized "attribute [instance] fact.succ.pos" in fin_fact
+localized "attribute [instance] fact.bit0.pos" in fin_fact
+localized "attribute [instance] fact.bit1.pos" in fin_fact
+localized "attribute [instance] fact.pow.pos" in fin_fact
+
 namespace fin
 variables {n m : ℕ} {a b : fin n}
+
+/-- convert a `ℕ` to `fin n`, provided `n` is positive -/
+def of_nat' [h : fact (0 < n)] (i : ℕ) : fin n := ⟨i%n, mod_lt _ h⟩
 
 @[simp] protected lemma eta (a : fin n) (h : a.1 < n) : (⟨a.1, h⟩ : fin n) = a :=
 by cases a; refl
@@ -163,8 +185,14 @@ protected lemma heq_ext_iff {k l : ℕ} (h : k = l) {i : fin k} {j : fin l} :
   i == j ↔ i.val = j.val :=
 by { induction h, simp [fin.ext_iff] }
 
+instance {n : ℕ} : linear_order (fin n) :=
+{ le := (≤), lt := (<), ..linear_order.lift fin.val (@fin.eq_of_veq _) }
+
 instance {n : ℕ} : decidable_linear_order (fin n) :=
-decidable_linear_order.lift fin.val (@fin.eq_of_veq _)
+{ decidable_le := fin.decidable_le,
+  decidable_lt := fin.decidable_lt,
+  decidable_eq := fin.decidable_eq _,
+  ..fin.linear_order }
 
 lemma exists_iff {p : fin n → Prop} : (∃ i, p i) ↔ ∃ i h, p ⟨i, h⟩ :=
 ⟨λ h, exists.elim h (λ ⟨i, hi⟩ hpi, ⟨i, hi, hpi⟩),
@@ -280,7 +308,7 @@ by cases a; refl
 @[simp] lemma sub_nat_val (i : fin (n + m)) (h : m ≤ i.val) : (i.sub_nat m h).val = i.val - m :=
 rfl
 
-@[simp] lemma add_nat_val (i : fin (n + m)) (h : m ≤ i.val) : (i.add_nat m).val = i.val + m :=
+@[simp] lemma add_nat_val (i : fin (n + m)) : (i.add_nat m).val = i.val + m :=
 rfl
 
 @[simp] lemma cast_succ_inj {a b : fin n} : a.cast_succ = b.cast_succ ↔ a = b :=
@@ -563,7 +591,7 @@ begin
 end
 
 @[simp] lemma snoc_last : snoc p x (last n) = x :=
-by { simp [snoc], refl }
+by { simp [snoc] }
 
 /-- Updating a tuple and adding an element at the end commute. -/
 @[simp] lemma snoc_update : snoc (update p i y) x = update (snoc p x) i.cast_succ y :=
@@ -668,8 +696,7 @@ begin
   ext j,
   by_cases h : j.val < n,
   { have : j ≠ last n := ne_of_lt h,
-    simp [h, this, snoc, cast_succ_cast_lt],
-    refl },
+    simp [h, this, snoc, cast_succ_cast_lt] },
   { rw eq_last_of_not_lt h,
     simp }
 end
@@ -799,4 +826,24 @@ mem_find_iff.2 ⟨hi, λ j hj, le_of_eq $ h i j hi hj⟩
 
 end find
 
+@[simp]
+lemma val_of_nat_eq_mod (m n : ℕ) :
+  ((n : fin (succ m)) : ℕ) = n % succ m :=
+by rw [← of_nat_eq_coe]; refl
+
+@[simp] lemma val_of_nat_eq_mod' (m n : ℕ) [I : fact (0 < m)] :
+  (@fin.of_nat' _ I n).val = n % m :=
+rfl
+
 end fin
+
+-- Once lean#359 is fixed (making `fin n` a subtype), this can go away
+-- as a duplicate of `function.embedding.subtype`.
+/-- Embedding of `fin n` into `ℕ`. -/
+def function.embedding.fin (n : ℕ) : fin n ↪ ℕ :=
+⟨coe, fin.val_injective⟩
+
+-- Once lean#359 is fixed (making `fin n` a subtype), this can go away
+-- as a duplicate of `function.embedding.coe_subtype`.
+/-- `function.embedding.fin` coerced to a function. -/
+@[simp] lemma function.embedding.coe_fin (n : ℕ) : ⇑(function.embedding.fin n) = coe := rfl

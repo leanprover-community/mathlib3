@@ -369,7 +369,7 @@ begin
     have hdW := dim_span li,
     rw set.range_restrict at hdW,
     convert hdW,
-    rw [cardinal.mk_image_eq ((dual_pair_e_ε _).is_basis.injective zero_ne_one), cardinal.fintype_card] },
+    rw [cardinal.mk_image_eq (dual_pair_e_ε _).is_basis.injective, cardinal.fintype_card] },
   rw ← findim_eq_dim ℝ at ⊢ dim_le dim_add dimW,
   rw [← findim_eq_dim ℝ, ← findim_eq_dim ℝ] at dim_add,
   norm_cast at ⊢ dim_le dim_add dimW,
@@ -409,7 +409,7 @@ begin
     ... = ∑ p in (coeffs y).support, |coeffs y p| * ite (q.adjacent p) 1 0  : by simp only [abs_mul, f_matrix]
     ... = ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y p|     : by simp [finset.sum_filter]
     ... ≤ ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y q|     : finset.sum_le_sum (λ p _, H_max p)
-    ... = (finset.card ((coeffs y).support.filter (Q.adjacent q)): ℝ) * |coeffs y q| : by rw [← smul_eq_mul, ← finset.sum_const']
+    ... = (finset.card ((coeffs y).support.filter (Q.adjacent q)): ℝ) * |coeffs y q| : by rw [finset.sum_const, nsmul_eq_mul]
     ... = (finset.card ((coeffs y).support ∩ (Q.adjacent q).to_finset): ℝ) * |coeffs y q| : by {congr, ext, simp, refl}
     ... ≤ (finset.card ((H ∩ Q.adjacent q).to_finset )) * |ε q y| :
      (mul_le_mul_right H_q_pos).mpr (by {

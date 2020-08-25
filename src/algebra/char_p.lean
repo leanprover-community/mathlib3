@@ -7,7 +7,7 @@ Author: Kenny Lau, Joey van Langen, Casper Putz
 import data.fintype.basic
 import data.nat.choose
 import data.int.modeq
-import algebra.module
+import algebra.module.basic
 import algebra.iterate_hom
 
 /-!
@@ -53,16 +53,16 @@ by letI := classical.dec_eq α; exact
 classical.by_cases
   (assume H : ∀ p:ℕ, (p:α) = 0 → p = 0, ⟨0,
     ⟨λ x, by rw [zero_dvd_iff]; exact ⟨H x, by rintro rfl; refl⟩⟩⟩)
-  (λ H, ⟨nat.find (classical.not_forall.1 H), ⟨λ x,
+  (λ H, ⟨nat.find (not_forall.1 H), ⟨λ x,
     ⟨λ H1, nat.dvd_of_mod_eq_zero (by_contradiction $ λ H2,
-      nat.find_min (classical.not_forall.1 H)
+      nat.find_min (not_forall.1 H)
         (nat.mod_lt x $ nat.pos_of_ne_zero $ not_of_not_imp $
-          nat.find_spec (classical.not_forall.1 H))
-        (not_imp_of_and_not ⟨by rwa [← nat.mod_add_div x (nat.find (classical.not_forall.1 H)),
-          nat.cast_add, nat.cast_mul, of_not_not (not_not_of_not_imp $ nat.find_spec (classical.not_forall.1 H)),
+          nat.find_spec (not_forall.1 H))
+        (not_imp_of_and_not ⟨by rwa [← nat.mod_add_div x (nat.find (not_forall.1 H)),
+          nat.cast_add, nat.cast_mul, of_not_not (not_not_of_not_imp $ nat.find_spec (not_forall.1 H)),
           zero_mul, add_zero] at H1, H2⟩)),
     λ H1, by rw [← nat.mul_div_cancel' H1, nat.cast_mul,
-      of_not_not (not_not_of_not_imp $ nat.find_spec (classical.not_forall.1 H)), zero_mul]⟩⟩⟩)
+      of_not_not (not_not_of_not_imp $ nat.find_spec (not_forall.1 H)), zero_mul]⟩⟩⟩)
 
 theorem char_p.exists_unique (α : Type u) [semiring α] : ∃! p, char_p α p :=
 let ⟨c, H⟩ := char_p.exists α in ⟨c, H, λ y H2, char_p.eq α H2 H⟩
@@ -78,19 +78,27 @@ unfold ring_char; exact char_p.cast_eq_zero_iff α (ring_char α)
 theorem ring_char.eq (α : Type u) [semiring α] {p : ℕ} (C : char_p α p) : p = ring_char α :=
 (classical.some_spec (char_p.exists_unique α)).2 p C
 
+theorem add_pow_char_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] (x y : R) (h : commute x y):
+(x + y)^p = x^p + y^p :=
+begin
+  rw [commute.add_pow h, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
+  rw [nat.cast_one, mul_one, mul_one, add_right_inj],
+  convert finset.sum_eq_single 0 _ _, { simp },
+  swap, { intro h1, contrapose! h1, rw finset.mem_range, apply nat.prime.pos, assumption },
+  intros b h1 h2,
+  suffices : (p.choose b : R) = 0, { rw this, simp },
+  rw char_p.cast_eq_zero_iff R p,
+  apply nat.prime.dvd_choose_self, assumption', { omega },
+  rwa ← finset.mem_range
+end
+
 theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} (hp : nat.prime p)
   [char_p α p] (x y : α) : (x + y)^p = x^p + y^p :=
 begin
-  rw [add_pow, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
-  rw [nat.cast_one, mul_one, mul_one, add_right_inj],
-  transitivity,
-  { refine finset.sum_eq_single 0 _ _,
-    { intros b h1 h2,
-      have := nat.prime.dvd_choose_self (nat.pos_of_ne_zero h2) (finset.mem_range.1 h1) hp,
-      rw [← nat.div_mul_cancel this, nat.cast_mul, char_p.cast_eq_zero α p],
-      simp only [mul_zero] },
-    { intro H, exfalso, apply H, exact finset.mem_range.2 hp.pos } },
-  rw [pow_zero, nat.sub_zero, one_mul, nat.choose_zero_right, nat.cast_one, mul_one]
+  haveI : fact p.prime := hp,
+  apply add_pow_char_of_commute,
+  apply commute.all,
 end
 
 lemma eq_iff_modeq_int (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
@@ -206,7 +214,7 @@ assume hp : p = 1,
 have ( 1 : α) = 0, by simpa using (cast_eq_zero_iff α p 1).mpr (hp ▸ dvd_refl p),
 absurd this one_ne_zero
 
-theorem char_is_prime_of_ge_two (p : ℕ) [hc : char_p α p] (hp : p ≥ 2) : nat.prime p :=
+theorem char_is_prime_of_two_le (p : ℕ) [hc : char_p α p] (hp : 2 ≤ p) : nat.prime p :=
 suffices ∀d ∣ p, d = 1 ∨ d = p, from ⟨hp, this⟩,
 assume (d : ℕ) (hdvd : ∃ e, p = d * e),
 let ⟨e, hmul⟩ := hdvd in
@@ -228,7 +236,7 @@ theorem char_is_prime_or_zero (p : ℕ) [hc : char_p α p] : nat.prime p ∨ p =
 match p, hc with
 | 0,     _  := or.inr rfl
 | 1,     hc := absurd (eq.refl (1 : ℕ)) (@char_ne_one α _ (1 : ℕ) hc)
-| (m+2), hc := or.inl (@char_is_prime_of_ge_two α _ (m+2) hc (nat.le_add_left 2 m))
+| (m+2), hc := or.inl (@char_is_prime_of_two_le α _ (m+2) hc (nat.le_add_left 2 m))
 end
 
 lemma char_is_prime_of_pos (p : ℕ) [h : fact (0 < p)] [char_p α p] : fact p.prime :=

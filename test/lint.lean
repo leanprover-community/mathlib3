@@ -1,5 +1,5 @@
 import tactic.lint
-import algebra.ring
+import algebra.ring.basic
 
 def foo1 (n m : ℕ) : ℕ := n + 1
 def foo2 (n m : ℕ) : m = m := by refl
@@ -62,7 +62,7 @@ meta def linter.dummy_linter : linter :=
 def bar.foo : (if 3 = 3 then 1 else 2) = 1 := if_pos (by refl)
 
 run_cmd do
-  (_, s) ← lint tt tt [`linter.dummy_linter] tt,
+  (_, s) ← lint tt lint_verbosity.medium [`linter.dummy_linter] tt,
   guard $ "/- found something: -/\n#print foo.foo /- gotcha! -/\n".is_suffix_of s.to_string
 
 def incorrect_type_class_argument_test {α : Type} (x : α) [x = x] [decidable_eq α] [group α] :

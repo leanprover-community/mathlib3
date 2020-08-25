@@ -42,13 +42,14 @@ lemma compact_space_uniformity [compact_space α] [separated_space α] : 𝓤 α
 begin
   symmetry, refine le_antisymm nhds_le_uniformity _,
   by_contra H,
-  obtain ⟨V, hV, h⟩ : ∃ V : set (α × α), (∀ x : α, V ∈ 𝓝 (x, x)) ∧ 𝓤 α ⊓ 𝓟 Vᶜ ≠ ⊥,
+  obtain ⟨V, hV, h⟩ : ∃ V : set (α × α), (∀ x : α, V ∈ 𝓝 (x, x)) ∧ ne_bot (𝓤 α ⊓ 𝓟 Vᶜ),
   { rw le_iff_forall_inf_principal_compl at H,
     push_neg at H,
     simpa only [mem_supr_sets] using H },
   let F := 𝓤 α ⊓ 𝓟 Vᶜ,
+  haveI : ne_bot F := h,
   obtain ⟨⟨x, y⟩, hx⟩ : ∃ (p : α × α), cluster_pt p F :=
-    cluster_point_of_compact h,
+    cluster_point_of_compact F,
   have : cluster_pt (x, y) (𝓤 α) :=
     hx.of_inf_left,
   have hxy : x = y := eq_of_uniformity_inf_nhds this,
@@ -104,8 +105,9 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
     rw le_iff_forall_inf_principal_compl,
     intros V V_in,
     by_contra H,
+    haveI : ne_bot (F ⊓ 𝓟 Vᶜ) := H,
     -- Hence compactness would give us a cluster point (x, y) for F ⊓ 𝓟 Vᶜ
-    obtain ⟨⟨x, y⟩, hxy⟩ : ∃ (p : α × α), cluster_pt p (F ⊓ 𝓟 Vᶜ) := cluster_point_of_compact H,
+    obtain ⟨⟨x, y⟩, hxy⟩ : ∃ (p : α × α), cluster_pt p (F ⊓ 𝓟 Vᶜ) := cluster_point_of_compact _,
     -- In particular (x, y) is a cluster point of 𝓟 Vᶜ, hence is not in the interior of V,
     -- and a fortiori not in Δ, so x ≠ y
     have clV : cluster_pt (x, y) (𝓟 $ Vᶜ) := hxy.of_inf_right,
@@ -202,23 +204,17 @@ def uniform_space_of_compact_t2 {α : Type*} [topological_space α] [compact_spa
 continuous. -/
 lemma compact_space.uniform_continuous_of_continuous [compact_space α] [separated_space α]
   {f : α → β} (h : continuous f) : uniform_continuous f :=
-begin
-  calc
-  map (prod.map f f) (𝓤 α) = map (prod.map f f) (⨆ x, 𝓝 (x, x))  : by rw compact_space_uniformity
-                       ... =  ⨆ x, map (prod.map f f) (𝓝 (x, x)) : by rw map_supr
-                       ... ≤ ⨆ x, 𝓝 (f x, f x) : supr_le_supr (λ x, (h.prod_map h).continuous_at)
-                       ... ≤ ⨆ y, 𝓝 (y, y)     : _
-                       ... ≤ 𝓤 β                : nhds_le_uniformity,
-  rw ← supr_range,
-  simp only [and_imp, supr_le_iff, prod.forall, supr_exists, mem_range, prod.mk.inj_iff],
-  rintros _ _ ⟨y, rfl, rfl⟩,
-  exact le_supr (λ x, 𝓝 (x, x)) (f y),
-end
+calc
+map (prod.map f f) (𝓤 α) = map (prod.map f f) (⨆ x, 𝓝 (x, x))  : by rw compact_space_uniformity
+                     ... =  ⨆ x, map (prod.map f f) (𝓝 (x, x)) : by rw map_supr
+                     ... ≤ ⨆ x, 𝓝 (f x, f x)     : supr_le_supr (λ x, (h.prod_map h).continuous_at)
+                     ... ≤ ⨆ y, 𝓝 (y, y)         : supr_comp_le (λ y, 𝓝 (y, y)) f
+                     ... ≤ 𝓤 β                   : nhds_le_uniformity
 
 /-- Heine-Cantor: a continuous function on a compact separated set of a uniform space is
 uniformly continuous. -/
-lemma compact.uniform_continuous_on_of_continuous' {s : set α} {f : α → β}
-  (hs : compact s) (hs' : is_separated s) (hf : continuous_on f s) : uniform_continuous_on f s :=
+lemma is_compact.uniform_continuous_on_of_continuous' {s : set α} {f : α → β}
+  (hs : is_compact s) (hs' : is_separated s) (hf : continuous_on f s) : uniform_continuous_on f s :=
 begin
   rw uniform_continuous_on_iff_restrict,
   rw is_separated_iff_induced at hs',
@@ -230,6 +226,6 @@ end
 
 /-- Heine-Cantor: a continuous function on a compact set of a separated uniform space
 is uniformly continuous. -/
-lemma compact.uniform_continuous_on_of_continuous [separated_space α] {s : set α} {f : α → β}
-  (hs : compact s) (hf : continuous_on f s) : uniform_continuous_on f s :=
+lemma is_compact.uniform_continuous_on_of_continuous [separated_space α] {s : set α} {f : α → β}
+  (hs : is_compact s) (hf : continuous_on f s) : uniform_continuous_on f s :=
 hs.uniform_continuous_on_of_continuous' (is_separated_of_separated_space s) hf

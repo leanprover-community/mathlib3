@@ -37,6 +37,12 @@ instance has_decidable_eq [decidable_eq α] : decidable_eq (multiset α)
 | s₁ s₂ := quotient.rec_on_subsingleton₂ s₁ s₂ $ λ l₁ l₂,
   decidable_of_iff' _ quotient.eq
 
+/-- defines a size for a multiset by referring to the size of the underlying list -/
+protected def sizeof [has_sizeof α] (s : multiset α) : ℕ :=
+quot.lift_on s sizeof $ λ l₁ l₂, perm.sizeof_eq_sizeof
+
+instance has_sizeof [has_sizeof α] : has_sizeof (multiset α) := ⟨multiset.sizeof⟩
+
 /- empty multiset -/
 
 /-- `0 : multiset α` is the empty set -/
@@ -152,6 +158,10 @@ mem_cons.2 $ or.inr h
 
 @[simp] theorem mem_cons_self (a : α) (s : multiset α) : a ∈ a :: s :=
 mem_cons.2 (or.inl rfl)
+
+theorem forall_mem_cons {p : α → Prop} {a : α} {s : multiset α} :
+  (∀ x ∈ (a :: s), p x) ↔ p a ∧ ∀ x ∈ s, p x :=
+quotient.induction_on' s $ λ L, list.forall_mem_cons
 
 theorem exists_cons_of_mem {s : multiset α} {a : α} : a ∈ s → ∃ t, s = a :: t :=
 quot.induction_on s $ λ l (h : a ∈ l),
@@ -489,27 +499,6 @@ theorem repeat_subset_singleton : ∀ (a : α) n, repeat a n ⊆ a::0 := repeat_
 theorem repeat_le_coe {a : α} {n} {l : list α} : repeat a n ≤ l ↔ list.repeat a n <+ l :=
 ⟨λ ⟨l', p, s⟩, (perm_repeat.1 p) ▸ s, sublist.subperm⟩
 
-/- range -/
-
-/-- `range n` is the multiset lifted from the list `range n`,
-  that is, the set `{0, 1, ..., n-1}`. -/
-def range (n : ℕ) : multiset ℕ := range n
-
-@[simp] theorem range_zero : range 0 = 0 := rfl
-
-@[simp] theorem range_succ (n : ℕ) : range (succ n) = n :: range n :=
-by rw [range, range_concat, ← coe_add, add_comm]; refl
-
-@[simp] theorem card_range (n : ℕ) : card (range n) = n := length_range _
-
-theorem range_subset {m n : ℕ} : range m ⊆ range n ↔ m ≤ n := range_subset
-
-@[simp] theorem mem_range {m n : ℕ} : m ∈ range n ↔ m < n := mem_range
-
-@[simp] theorem not_mem_range_self {n : ℕ} : n ∉ range n := not_mem_range_self
-
-theorem self_mem_range_succ (n : ℕ) : n ∈ range (n + 1) := list.self_mem_range_succ n
-
 /- erase -/
 section erase
 variables [decidable_eq α] {s t : multiset α} {a b : α}
@@ -610,6 +599,10 @@ quot.sound $ reverse_perm _
 def map (f : α → β) (s : multiset α) : multiset β :=
 quot.lift_on s (λ l : list α, (l.map f : multiset β))
   (λ l₁ l₂ p, quot.sound (p.map f))
+
+theorem forall_mem_map_iff {f : α → β} {p : β → Prop} {s : multiset α} :
+  (∀ y ∈ s.map f, p y) ↔ (∀ x ∈ s, p (f x)) :=
+quotient.induction_on' s $ λ L, list.forall_mem_map_iff
 
 @[simp] theorem coe_map (f : α → β) (l : list α) : map f ↑l = l.map f := rfl
 
@@ -798,6 +791,11 @@ multiset.induction_on s (by simp) (assume a s ih, by simp [ih, mul_add])
 lemma sum_map_mul_right [semiring β] {b : β} {s : multiset α} {f : α → β} :
   sum (s.map (λa, f a * b)) = sum (s.map f) * b :=
 multiset.induction_on s (by simp) (assume a s ih, by simp [ih, add_mul])
+
+theorem prod_ne_zero {R : Type*} [integral_domain R] {m : multiset R} :
+  (∀ x ∈ m, (x : _) ≠ 0) → m.prod ≠ 0 :=
+multiset.induction_on m (λ _, one_ne_zero) $ λ hd tl ih H,
+  by { rw forall_mem_cons at H, rw prod_cons, exact mul_ne_zero H.1 (ih H.2) }
 
 @[to_additive]
 lemma prod_hom [comm_monoid α] [comm_monoid β] (s : multiset α) (f : α → β) [is_monoid_hom f] :
@@ -1032,6 +1030,10 @@ def attach (s : multiset α) : multiset {x // x ∈ s} := pmap subtype.mk s (λ 
 
 @[simp] theorem coe_attach (l : list α) :
  @eq (multiset {x // x ∈ l}) (@attach α l) l.attach := rfl
+
+theorem sizeof_lt_sizeof_of_mem [has_sizeof α] {x : α} {s : multiset α} (hx : x ∈ s) :
+  sizeof x < sizeof s := by
+{ induction s with l a b, exact list.sizeof_lt_sizeof_of_mem hx, refl }
 
 theorem pmap_eq_map (p : α → Prop) (f : α → β) (s : multiset α) :
   ∀ H, @pmap _ _ p (λ a _, f a) s H = map f s :=

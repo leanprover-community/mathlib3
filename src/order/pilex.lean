@@ -3,7 +3,9 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.pi_instances
+import algebra.group.pi
+import order.rel_classes
+import algebra.order_functions
 
 variables {ι : Type*} {β : ι → Type*} (r : ι → ι → Prop)
   (s : Π {i}, β i → β i → Prop)
@@ -71,7 +73,7 @@ protected def pilex.linear_order [linear_order ι] (wf : well_founded ((<) : ι 
 { le_total := λ x y, by classical; exact
     or_iff_not_imp_left.2 (λ hxy, begin
       have := not_or_distrib.1 hxy,
-      let i : ι := well_founded.min wf _ (classical.not_forall.1 (this.2 ∘ funext)),
+      let i : ι := well_founded.min wf _ (not_forall.1 (this.2 ∘ funext)),
       have hjiyx : ∀ j < i, y j = x j,
       { assume j,
         rw [eq_comm, ← not_imp_not],

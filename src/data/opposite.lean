@@ -41,7 +41,9 @@ notation α `ᵒᵖ`:std.prec.max_plus := opposite α
 namespace opposite
 
 variables {α}
+@[pp_nodot]
 def op : α → αᵒᵖ := id
+@[pp_nodot]
 def unop : αᵒᵖ → α := id
 
 lemma op_injective : function.injective (op : α → αᵒᵖ) := λ _ _, id

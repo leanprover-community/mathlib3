@@ -3,8 +3,6 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
 -/
-import tactic.basic
-import algebra.group.to_additive
 import algebra.group.defs
 import logic.function.basic
 
@@ -56,6 +54,30 @@ variables {M : Type u} [comm_monoid M] {x y z : M}
 left_inv_eq_right_inv (trans (mul_comm _ _) hy) hz
 
 end comm_monoid
+
+section left_cancel_monoid
+
+variables {M : Type u} [left_cancel_monoid M]
+
+@[to_additive] lemma eq_one_of_mul_self_left_cancel {a : M} (h : a * a = a) : a = 1 :=
+mul_left_cancel (show a * a = a * 1, by rwa mul_one)
+
+@[to_additive] lemma eq_one_of_left_cancel_mul_self {a : M} (h : a = a * a) : a = 1 :=
+mul_left_cancel (show a * a = a * 1, by rwa [mul_one, eq_comm])
+
+end left_cancel_monoid
+
+section right_cancel_monoid
+
+variables {M : Type u} [right_cancel_monoid M]
+
+@[to_additive] lemma eq_one_of_mul_self_right_cancel {a : M} (h : a * a = a) : a = 1 :=
+mul_right_cancel (show a * a = 1 * a, by rwa one_mul)
+
+@[to_additive] lemma eq_one_of_right_cancel_mul_self {a : M} (h : a = a * a) : a = 1 :=
+mul_right_cancel (show a * a = 1 * a, by rwa [one_mul, eq_comm])
+
+end right_cancel_monoid
 
 section group
 variables {G : Type u} [group G] {a b c : G}

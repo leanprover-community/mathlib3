@@ -568,7 +568,7 @@ def funs (x y : Set.{u}) : Set.{u} :=
 {f ∈ powerset (prod x y) | is_func x y f}
 
 @[simp] theorem mem_funs {x y f : Set.{u}} : f ∈ funs x y ↔ is_func x y f :=
-by simp [funs]; exact and_iff_right_of_imp and.left
+by simp [funs, is_func]
 
 -- TODO(Mario): Prove this computably
 noncomputable instance map_definable_aux (f : Set → Set) [H : definable 1 f] : definable 1 (λy, pair y (f y)) :=

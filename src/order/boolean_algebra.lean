@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 Type class hierarchy for Boolean algebras.
 -/
 import order.bounded_lattice
-import logic.function.basic
+
 set_option old_structure_cmd true
 
 universes u v

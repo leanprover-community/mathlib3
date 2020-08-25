@@ -69,7 +69,7 @@ protected lemma mul_le_mul [monoid α] {f₁ f₂ g₁ g₂ : filter α} (hf : f
   f₁ * g₁ ≤ f₂ * g₂ := assume _ ⟨s, t, hs, ht, hst⟩, ⟨s, t, hf hs, hg ht, hst⟩
 
 @[to_additive]
-lemma mul_ne_bot [monoid α] {f g : filter α} : f ≠ ⊥ → g ≠ ⊥ → f * g ≠ ⊥ :=
+lemma ne_bot.mul [monoid α] {f g : filter α} : ne_bot f → ne_bot g → ne_bot (f * g) :=
 begin
   simp only [forall_sets_nonempty_iff_ne_bot.symm],
   rintros hf hg s ⟨a, b, ha, hb, ab⟩,

@@ -97,7 +97,7 @@ meta def monotonicity.check (lm_n : name) : tactic mono_key :=
 do lm ← mk_const lm_n,
    lm_t ← infer_type lm,
    lm_t ← expr.dsimp lm_t { fail_if_unchanged := ff } tt [] [simp_arg_type.expr ``(monotone)],
-   (xs,h) ← mk_local_pis lm_t,
+   (xs,h) ← open_pis lm_t,
    mono_head_candidates 3 xs.reverse h
 
 meta instance : has_to_format mono_selection :=

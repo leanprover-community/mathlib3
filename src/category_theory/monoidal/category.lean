@@ -159,6 +159,14 @@ begin
   rw [right_unitor_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
 end
 
+@[simp]
+lemma right_unitor_conjugation {X Y : C} (f : X ⟶ Y) : (ρ_ X).inv ≫ (f ⊗ (𝟙 (𝟙_ C))) ≫ (ρ_ Y).hom = f :=
+by rw [right_unitor_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
+
+@[simp]
+lemma left_unitor_conjugation {X Y : C} (f : X ⟶ Y) : (λ_ X).inv ≫ ((𝟙 (𝟙_ C)) ⊗ f) ≫ (λ_ Y).hom = f :=
+by rw [left_unitor_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
+
 @[simp] lemma tensor_left_iff
   {X Y : C} (f g : X ⟶ Y) :
   ((𝟙 (𝟙_ C)) ⊗ f = (𝟙 (𝟙_ C)) ⊗ g) ↔ (f = g) :=
@@ -380,6 +388,7 @@ def tensor_unit_right : C ⥤ C :=
 -- as natural isomorphisms.
 
 /-- The associator as a natural isomorphism. -/
+@[simps {rhs_md := semireducible}]
 def associator_nat_iso :
   left_assoc_tensor C ≅ right_assoc_tensor C :=
 nat_iso.of_components
@@ -387,6 +396,7 @@ nat_iso.of_components
   (by { intros, apply monoidal_category.associator_naturality })
 
 /-- The left unitor as a natural isomorphism. -/
+@[simps {rhs_md := semireducible}]
 def left_unitor_nat_iso :
   tensor_unit_left C ≅ 𝟭 C :=
 nat_iso.of_components
@@ -394,6 +404,7 @@ nat_iso.of_components
   (by { intros, apply monoidal_category.left_unitor_naturality })
 
 /-- The right unitor as a natural isomorphism. -/
+@[simps {rhs_md := semireducible}]
 def right_unitor_nat_iso :
   tensor_unit_right C ≅ 𝟭 C :=
 nat_iso.of_components
@@ -432,6 +443,29 @@ rfl
 def tensor_right (X : C) : C ⥤ C :=
 { obj := λ Y, Y ⊗ X,
   map := λ Y Y' f, f ⊗ (𝟙 X), }
+
+variables (C)
+
+/--
+Tensoring on the right, as a functor from `C` into endofunctors of `C`.
+
+We later show this is a monoidal functor.
+-/
+@[simps]
+def tensoring_right : C ⥤ (C ⥤ C) :=
+{ obj := tensor_right,
+  map := λ X Y f,
+  { app := λ Z, (𝟙 Z) ⊗ f } }
+
+instance : faithful (tensoring_right C) :=
+{ map_injective' := λ X Y f g h,
+  begin
+    injections with h,
+    replace h := congr_fun h (𝟙_ C),
+    simpa using h,
+  end }
+
+variables {C}
 
 /--
 Tensoring on the right with `X ⊗ Y` is naturally isomorphic to

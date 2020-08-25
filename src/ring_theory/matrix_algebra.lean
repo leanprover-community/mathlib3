@@ -3,9 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.tidy
 import ring_theory.tensor_product
-import data.matrix.basic
 
 /-!
 We provide the `R`-algebra structure on `matrix n n A` when `A` is an `R`-algebra,
@@ -21,8 +19,8 @@ open tensor_product
 open algebra.tensor_product
 open matrix
 
-variables {R : Type u} [comm_ring R]
-variables {A : Type v} [ring A] [algebra R A]
+variables {R : Type u} [comm_semiring R]
+variables {A : Type v} [semiring A] [algebra R A]
 variables {n : Type w} [fintype n]
 
 section
@@ -30,15 +28,15 @@ variables [decidable_eq n]
 
 instance : algebra R (matrix n n A) :=
 { commutes' := λ r x,
-  begin ext, simp [matrix.scalar, matrix.mul_val, matrix.one_val, algebra.commutes], end,
+  begin ext, simp [matrix.scalar, matrix.mul_apply, matrix.one_apply, algebra.commutes], end,
   smul_def' := λ r x, begin ext, simp [matrix.scalar, algebra.smul_def'' r], end,
   ..((matrix.scalar n).comp (algebra_map R A)) }
 
-lemma algebra_map_matrix_val {r : R} {i j : n} :
+lemma algebra_map_matrix_apply {r : R} {i j : n} :
   algebra_map R (matrix n n A) r i j = if i = j then algebra_map R A r else 0 :=
 begin
   dsimp [algebra_map, algebra.to_ring_hom, matrix.scalar],
-  split_ifs with h; simp [h, matrix.one_val_ne],
+  split_ifs with h; simp [h, matrix.one_apply_ne],
 end
 end
 
@@ -64,7 +62,7 @@ def to_fun_right_linear (a : A) : matrix n n R →ₗ[R] matrix n n A :=
   begin
     dsimp only [to_fun],
     ext,
-    simp only [matrix.smul_val, pi.smul_apply, ring_hom.map_mul,
+    simp only [matrix.smul_apply, pi.smul_apply, ring_hom.map_mul,
       algebra.id.smul_eq_mul, ring_hom.map_mul],
     rw [algebra.smul_def r, ←_root_.mul_assoc, ←_root_.mul_assoc, algebra.commutes],
   end, }
@@ -101,14 +99,14 @@ begin
   dsimp,
   simp_rw [to_fun_right_linear],
   dsimp,
-  simp_rw [to_fun, matrix.mul_mul_left, matrix.smul_val, matrix.mul_val, ←_root_.mul_assoc _ a₂ _,
-    algebra.commutes, _root_.mul_assoc a₂ _ _, ←finset.mul_sum, ring_hom.map_sum, ring_hom.map_mul,
-    _root_.mul_assoc],
+  simp_rw [to_fun, matrix.mul_mul_left, matrix.smul_apply, matrix.mul_apply,
+    ←_root_.mul_assoc _ a₂ _, algebra.commutes, _root_.mul_assoc a₂ _ _, ←finset.mul_sum,
+    ring_hom.map_sum, ring_hom.map_mul, _root_.mul_assoc],
 end
 begin
   intros, ext,
-  simp only [to_fun_linear, to_fun_bilinear, to_fun_right_linear, to_fun, matrix.one_val,
-    algebra_map_matrix_val, lift.tmul, linear_map.coe_mk],
+  simp only [to_fun_linear, to_fun_bilinear, to_fun_right_linear, to_fun, matrix.one_apply,
+    algebra_map_matrix_apply, lift.tmul, linear_map.coe_mk],
   split_ifs; simp,
 end
 
@@ -145,7 +143,7 @@ begin
   dsimp [inv_fun],
   simp only [algebra.algebra_map_eq_smul_one, smul_tmul, ←tmul_sum, mul_boole],
   congr,
-  conv_rhs {rw matrix_eq_sum_elementary M},
+  conv_rhs {rw matrix_eq_sum_std_basis M},
   convert finset.sum_product, simp,
 end
 
@@ -153,12 +151,12 @@ lemma right_inv (M : matrix n n A) : (to_fun_alg_hom R A n) (inv_fun R A n M) = 
 begin
   simp only [inv_fun, alg_hom.map_sum, std_basis_matrix, apply_ite ⇑(algebra_map R A),
     mul_boole, to_fun_alg_hom_apply, ring_hom.map_zero, ring_hom.map_one],
-  convert finset.sum_product, apply matrix_eq_sum_elementary,
+  convert finset.sum_product, apply matrix_eq_sum_std_basis,
 end
 
 lemma left_inv (M : A ⊗[R] matrix n n R) : inv_fun R A n (to_fun_alg_hom R A n M) = M :=
 begin
-  apply tensor_product.induction_on _ _ M,
+  apply tensor_product.induction_on M,
   { simp, },
   { intros a m, simp, },
   { intros x y hx hy, simp [alg_hom.map_sum, hx, hy], },
@@ -192,7 +190,7 @@ open matrix_equiv_tensor
     ∑ (p : n × n), M p.1 p.2 ⊗ₜ (std_basis_matrix p.1 p.2 1) :=
 rfl
 
-@[simp] lemma matrix_equiv_tensor_apply_elementary (i j : n) (x : A):
+@[simp] lemma matrix_equiv_tensor_apply_std_basis (i j : n) (x : A):
   matrix_equiv_tensor R A n (std_basis_matrix i j x) =
     x ⊗ₜ (std_basis_matrix i j 1) :=
 begin

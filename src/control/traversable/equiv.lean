@@ -109,7 +109,8 @@ protected def is_lawful_traversable' [_i : traversable t']
          map f = equiv.map eqv f)
   (h₁ : ∀ {α β} (f : β),
          map_const f = (equiv.map eqv ∘ function.const α) f)
-  (h₂ : ∀ {F : Type u → Type u} [applicative F] [is_lawful_applicative F]
+  (h₂ : ∀ {F : Type u → Type u} [applicative F],
+        by exactI ∀ [is_lawful_applicative F]
           {α β} (f : α → F β),
          traverse f = equiv.traverse eqv f) :
   _root_.is_lawful_traversable t' :=

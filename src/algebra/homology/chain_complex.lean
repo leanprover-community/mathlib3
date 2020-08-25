@@ -28,25 +28,33 @@ universes v u
 open category_theory
 open category_theory.limits
 
-section
-variables (V : Type u) [𝒱 : category.{v} V]
-include 𝒱
-
+variables (V : Type u) [category.{v} V]
 variables [has_zero_morphisms V]
+
+section
+
+/--
+A `homological_complex V b` for `b : β` is a (co)chain complex graded by `β`,
+with differential in grading `b`.
+
+(We use the somewhat cumbersome `homological_complex` to avoid the name conflict with `ℂ`.)
+-/
+abbreviation homological_complex {β : Type} [add_comm_group β] (b : β) : Type (max v u) :=
+differential_object (graded_object_with_shift b V)
 
 /--
 A chain complex in `V` is "just" a differential `ℤ`-graded object in `V`,
 with differential graded `-1`.
 -/
 abbreviation chain_complex : Type (max v u) :=
-differential_object (graded_object_with_shift (-1 : ℤ) V)
+homological_complex V (-1 : ℤ)
 
 /--
 A cochain complex in `V` is "just" a differential `ℤ`-graded object in `V`,
 with differential graded `+1`.
 -/
 abbreviation cochain_complex : Type (max v u) :=
-differential_object (graded_object_with_shift (1 : ℤ) V)
+homological_complex V (1 : ℤ)
 
 -- The chain groups of a chain complex `C` are accessed as `C.X i`,
 -- and the differentials as `C.d i : C.X i ⟶ C.X (i-1)`.
@@ -54,15 +62,14 @@ example (C : chain_complex V) : C.X 5 ⟶ C.X 4 := C.d 5
 
 end
 
-namespace cochain_complex
-variables {V : Type u} [𝒱 : category.{v} V]
-include 𝒱
+namespace homological_complex
 
-variables [has_zero_morphisms V]
+variables {V}
+variables {β : Type} [add_comm_group β] {b : β}
 
 @[simp]
-lemma d_squared (C : cochain_complex V) (i : ℤ) :
-  C.d i ≫ C.d (i+1) = 0 :=
+lemma d_squared (C : homological_complex V b) (i : β) :
+  C.d i ≫ C.d (i+b) = 0 :=
 congr_fun (C.d_squared) i
 
 /--
@@ -71,70 +78,34 @@ picking out one component of the commutation relation.
 -/
 -- I haven't been able to get this to work with projection notation: `f.comm_at i`
 @[simp]
-lemma comm_at {C D : cochain_complex V} (f : C ⟶ D) (i : ℤ) :
-    C.d i ≫ f.f (i+1) = f.f i ≫ D.d i :=
+lemma comm_at {C D : homological_complex V b} (f : C ⟶ D) (i : β) :
+    C.d i ≫ f.f (i+b) = f.f i ≫ D.d i :=
 congr_fun f.comm i
 
 @[simp]
-lemma comm {C D : cochain_complex V} (f : C ⟶ D) : C.d ≫ f.f⟦1⟧' = f.f ≫ D.d := differential_object.hom.comm _
+lemma comm {C D : homological_complex V b} (f : C ⟶ D) : C.d ≫ f.f⟦1⟧' = f.f ≫ D.d :=
+differential_object.hom.comm _
+
+variables (V)
+
+/-- The forgetful functor from cochain complexes to graded objects, forgetting the differential. -/
+abbreviation forget : (homological_complex V b) ⥤ (graded_object β V) :=
+differential_object.forget _
+
+section
+local attribute [instance] has_zero_object.has_zero
+
+instance : inhabited (homological_complex (discrete punit) b) := ⟨0⟩
+end
+
+end homological_complex
+
+open homological_complex
 
 -- The components of a cochain map `f : C ⟶ D` are accessed as `f.f i`.
 example {C D : cochain_complex V} (f : C ⟶ D) : C.X 5 ⟶ D.X 5 := f.f 5
 example {C D : cochain_complex V} (f : C ⟶ D) : C.d ≫ f.f⟦1⟧' = f.f ≫ D.d := by simp
 example {C D : cochain_complex V} (f : C ⟶ D) : C.d 5 ≫ f.f 6 = f.f 5 ≫ D.d 5 := comm_at f 5
-
-variables (V)
-
-/-- The forgetful functor from cochain complexes to graded objects, forgetting the differential. -/
-abbreviation forget : (cochain_complex V) ⥤ (graded_object ℤ V) :=
-differential_object.forget _
-
-section
-omit 𝒱
-local attribute [instance] has_zero_object.has_zero
-
-instance : inhabited (cochain_complex (discrete punit)) := ⟨0⟩
-end
-
-end cochain_complex
-
-namespace chain_complex
-variables {V : Type u} [𝒱 : category.{v} V]
-include 𝒱
-
-variables [has_zero_morphisms V]
-
-@[simp]
-lemma d_squared (C : chain_complex V) (i : ℤ) :
-  C.d i ≫ C.d (i-1) = 0 :=
-congr_fun (C.d_squared) i
-
-/--
-A convenience lemma for morphisms of chain complexes,
-picking out one component of the commutation relation.
--/
-@[simp]
-lemma comm_at {C D : chain_complex V} (f : C ⟶ D) (i : ℤ) :
-    C.d i ≫ f.f (i-1) = f.f i ≫ D.d i :=
-congr_fun f.comm i
-
-@[simp]
-lemma comm {C D : chain_complex V} (f : C ⟶ D) : C.d ≫ f.f⟦1⟧' = f.f ≫ D.d := differential_object.hom.comm _
-
-variables (V)
-
-/-- The forgetful functor from chain complexes to graded objects, forgetting the differential. -/
-abbreviation forget : (chain_complex V) ⥤ (graded_object ℤ V) :=
-differential_object.forget _
-
-section
-omit 𝒱
-local attribute [instance] has_zero_object.has_zero
-
-instance : inhabited (chain_complex (discrete punit)) := ⟨0⟩
-end
-
-end chain_complex
 
 -- TODO when V is enriched in W, what do we need to ensure
 -- `chain_complex V` is also enriched in W?

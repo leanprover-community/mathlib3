@@ -17,6 +17,12 @@ namespace function
 section
 variables {α : Sort u} {β : Sort v} {f : α → β}
 
+/-- Evaluate a function at an argument. Useful if you want to talk about the partially applied
+  `function.eval x : (Π x, β x) → β x`. -/
+@[reducible] def eval {β : α → Sort*} (x : α) (f : Π x, β x) : β x := f x
+
+@[simp] lemma eval_apply {β : α → Sort*} (x : α) (f : Π x, β x) : eval x f = f x := rfl
+
 lemma hfunext {α α': Sort u} {β : α → Sort v} {β' : α' → Sort v} {f : Πa, β a} {f' : Πa, β' a}
   (hα : α = α') (h : ∀a a', a == a' → f a == f' a') : f == f' :=
 begin
@@ -125,8 +131,14 @@ theorem injective_of_partial_inv_right {α β} {f : α → β} {g} (H : is_parti
 theorem left_inverse.comp_eq_id {f : α → β} {g : β → α} (h : left_inverse f g) : f ∘ g = id :=
 funext h
 
+theorem left_inverse_iff_comp {f : α → β} {g : β → α} : left_inverse f g ↔ f ∘ g = id :=
+⟨left_inverse.comp_eq_id, congr_fun⟩
+
 theorem right_inverse.comp_eq_id {f : α → β} {g : β → α} (h : right_inverse f g) : g ∘ f = id :=
 funext h
+
+theorem right_inverse_iff_comp {f : α → β} {g : β → α} : right_inverse f g ↔ g ∘ f = id :=
+⟨right_inverse.comp_eq_id, congr_fun⟩
 
 theorem left_inverse.comp {γ} {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
   (hf : left_inverse f g) (hh : left_inverse h i) : left_inverse (h ∘ f) (g ∘ i) :=
@@ -195,10 +207,10 @@ theorem inv_fun_on_mem (h : ∃a∈s, f a = b) : inv_fun_on f s b ∈ s := (inv_
 
 theorem inv_fun_on_eq (h : ∃a∈s, f a = b) : f (inv_fun_on f s b) = b := (inv_fun_on_pos h).right
 
-theorem inv_fun_on_eq' (h : ∀ x y ∈ s, f x = f y → x = y) (ha : a ∈ s) :
+theorem inv_fun_on_eq' (h : ∀ (x ∈ s) (y ∈ s), f x = f y → x = y) (ha : a ∈ s) :
   inv_fun_on f s (f a) = a :=
 have ∃a'∈s, f a' = f a, from ⟨a, ha, rfl⟩,
-h _ _ (inv_fun_on_mem this) ha (inv_fun_on_eq this)
+h _ (inv_fun_on_mem this) _ ha (inv_fun_on_eq this)
 
 theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = classical.choice n :=
 by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]
@@ -394,6 +406,24 @@ lemma eq_iff (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ : f a₁ b₁ = f a�
 ⟨λ h, hf h, λ⟨h1, h2⟩, congr_arg2 f h1 h2⟩
 
 end injective2
+
+section sometimes
+local attribute [instance, priority 10] classical.prop_decidable
+
+/-- `sometimes f` evaluates to some value of `f`, if it exists. This function is especially
+interesting in the case where `α` is a proposition, in which case `f` is necessarily a
+constant function, so that `sometimes f = f a` for all `a`. -/
+noncomputable def sometimes {α β} [nonempty β] (f : α → β) : β :=
+if h : nonempty α then f (classical.choice h) else classical.choice ‹_›
+
+theorem sometimes_eq {p : Prop} {α} [nonempty α] (f : p → α) (a : p) : sometimes f = f a :=
+dif_pos ⟨a⟩
+
+theorem sometimes_spec {p : Prop} {α} [nonempty α]
+  (P : α → Prop) (f : p → α) (a : p) (h : P (f a)) : P (sometimes f) :=
+by rwa sometimes_eq
+
+end sometimes
 
 end function
 

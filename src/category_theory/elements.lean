@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.comma
 import category_theory.groupoid
+import category_theory.punit
 
 /-!
 # The category of elements

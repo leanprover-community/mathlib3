@@ -7,6 +7,7 @@ Author: Chris Hughes
 import data.int.modeq
 import algebra.char_p
 import data.nat.totient
+import ring_theory.ideal.operations
 
 /-!
 # Integers mod `n`
@@ -772,3 +773,17 @@ end
 instance zmod.subsingleton_ring_hom {n : ℕ} {R : Type*} [semiring R] :
   subsingleton ((zmod n) →+* R) :=
 ⟨ring_hom.ext_zmod⟩
+
+lemma zmod.ring_hom_surjective {R : Type*} [comm_ring R] {n : ℕ} (f : R →+* (zmod n)) :
+  function.surjective f :=
+begin
+  intros k,
+  rcases zmod.int_cast_surjective k with ⟨n, rfl⟩,
+  refine ⟨n, f.map_int_cast n⟩
+end
+
+lemma zmod.ring_hom_eq_of_ker_eq {R : Type*} [comm_ring R] {n : ℕ} (f g : R →+* (zmod n))
+  (h : f.ker = g.ker) : f = g :=
+by rw [← f.lift_of_surjective_comp (zmod.ring_hom_surjective f) g (le_of_eq h),
+      ring_hom.ext_zmod (f.lift_of_surjective _ _ _) (ring_hom.id _),
+      ring_hom.id_comp]

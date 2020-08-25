@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.pnat.basic
+import data.list.range
 import data.array.lemmas
 import algebra.group
 import data.sigma.basic

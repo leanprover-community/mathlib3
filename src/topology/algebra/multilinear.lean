@@ -67,6 +67,8 @@ variables [semiring R]
 instance : has_coe_to_fun (continuous_multilinear_map R M₁ M₂) :=
 ⟨_, λ f, f.to_multilinear_map.to_fun⟩
 
+@[continuity] lemma coe_continuous : continuous (f : (Π i, M₁ i) → M₂) := f.cont
+
 @[simp] lemma coe_coe : (f.to_multilinear_map : (Π i, M₁ i) → M₂) = f := rfl
 
 @[ext] theorem ext {f f' : continuous_multilinear_map R M₁ M₂} (H : ∀ x, f x = f' x) : f = f' :=
@@ -93,8 +95,8 @@ instance : inhabited (continuous_multilinear_map R M₁ M₂) := ⟨0⟩
 
 @[simp] lemma zero_apply (m : Πi, M₁ i) : (0 : continuous_multilinear_map R M₁ M₂) m = 0 := rfl
 
-section topological_add_monoid
-variable [topological_add_monoid M₂]
+section has_continuous_add
+variable [has_continuous_add M₂]
 
 instance : has_add (continuous_multilinear_map R M₁ M₂) :=
 ⟨λ f f', {cont := f.cont.add f'.cont, ..(f.to_multilinear_map + f'.to_multilinear_map)}⟩
@@ -113,7 +115,7 @@ begin
   { assume a s has H, rw finset.sum_insert has, simp [H, has] }
 end
 
-end topological_add_monoid
+end has_continuous_add
 
 /-- If `f` is a continuous multilinear map, then `f.to_continuous_linear_map m i` is the continuous
 linear map obtained by fixing all coordinates but `i` equal to those of `m`, and varying the

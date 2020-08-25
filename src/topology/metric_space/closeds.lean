@@ -133,7 +133,7 @@ begin
     use y,
     -- the limit point `y` will be the desired point, in `t0` and close to our initial point `x`.
     -- First, we check it belongs to `t0`.
-    have : y ∈ t0 := mem_Inter.2 (λk, mem_closure_of_tendsto (by simp) y_lim
+    have : y ∈ t0 := mem_Inter.2 (λk, mem_closure_of_tendsto y_lim
     begin
       simp only [exists_prop, set.mem_Union, filter.eventually_at_top, set.mem_preimage, set.preimage_Union],
       exact ⟨k, λ m hm, ⟨n+m, zero_add k ▸ add_le_add (zero_le n) hm, (z m).2⟩⟩
@@ -217,7 +217,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
   -- `F` is ε-dense
   { assume u _,
     rcases main u.val with ⟨t0, t0s, Dut0⟩,
-    have : is_closed t0 := (fs.subset t0s).compact.is_closed,
+    have : is_closed t0 := (fs.subset t0s).is_compact.is_closed,
     let t : closeds α := ⟨t0, this⟩,
     have : t ∈ F := t0s,
     have : edist u t < ε := lt_of_le_of_lt Dut0 δlt,
@@ -247,7 +247,7 @@ isometry.uniform_embedding $ λx y, rfl
 lemma nonempty_compacts.is_closed_in_closeds [complete_space α] :
   is_closed (range $ @nonempty_compacts.to_closeds α _ _) :=
 begin
-  have : range nonempty_compacts.to_closeds = {s : closeds α | s.val.nonempty ∧ compact s.val},
+  have : range nonempty_compacts.to_closeds = {s : closeds α | s.val.nonempty ∧ is_compact s.val},
     from range_inclusion _,
   rw this,
   refine is_closed_of_closure_subset (λs hs, ⟨_, _⟩),
@@ -366,7 +366,7 @@ begin
       have hc : c.nonempty,
         from nonempty_of_Hausdorff_edist_ne_top t.property.1 (ne_top_of_lt Dtc),
       -- let `d` be the version of `c` in the type `nonempty_compacts α`
-      let d : nonempty_compacts α := ⟨c, ⟨hc, ‹finite c›.compact⟩⟩,
+      let d : nonempty_compacts α := ⟨c, ⟨hc, ‹finite c›.is_compact⟩⟩,
       have : c ⊆ s,
       { assume x hx,
         rcases (mem_image _ _ _).1 hx.1 with ⟨y, ⟨ya, yx⟩⟩,

@@ -46,9 +46,11 @@ variables [monoid α]
   by change v = v' at e; subst v'; congr;
       simpa only [iv₂, vi₁, one_mul, mul_one] using mul_assoc i₂ v i₁
 
+@[norm_cast, to_additive] theorem eq_iff {a b : units α} :
+  (a : α) = b ↔ a = b := ext.eq_iff
+
 @[to_additive] theorem ext_iff {a b : units α} :
-  a = b ↔ (a : α) = b :=
-ext.eq_iff.symm
+  a = b ↔ (a : α) = b := eq_iff.symm
 
 @[to_additive] instance [decidable_eq α] : decidable_eq (units α) :=
 λ a b, decidable_of_iff' _ ext_iff
@@ -71,6 +73,9 @@ attribute [norm_cast] add_units.coe_add
 
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : units α) : α) = 1 := rfl
 attribute [norm_cast] add_units.coe_zero
+
+@[simp, norm_cast, to_additive] lemma coe_eq_one {a : units α} : (a : α) = 1 ↔ a = 1 :=
+by rw [←units.coe_one, eq_iff]
 
 @[to_additive] lemma val_coe : (↑a : α) = a.val := rfl
 

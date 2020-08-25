@@ -98,6 +98,14 @@ eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
 | (n+1) := (cast_add _ _).trans $
 show ((m * n : ℕ) : α) + m = m * (n + 1), by rw [cast_mul n, left_distrib, mul_one]
 
+@[simp] theorem cast_dvd {α : Type*} [field α] {m n : ℕ} (n_dvd : n ∣ m) (n_nonzero : (n:α) ≠ 0) : ((m / n : ℕ) : α) = m / n :=
+begin
+  rcases n_dvd with ⟨k, rfl⟩,
+  have : n ≠ 0, {rintro rfl, simpa using n_nonzero},
+  rw nat.mul_div_cancel_left _ (nat.pos_iff_ne_zero.2 this),
+  rw [nat.cast_mul, mul_div_cancel_left _ n_nonzero],
+end
+
 /-- `coe : ℕ → α` as a `ring_hom` -/
 def cast_ring_hom (α : Type*) [semiring α] : ℕ →+* α :=
 { to_fun := coe,
@@ -152,7 +160,7 @@ lemma inv_pos_of_nat {n : ℕ} : 0 < ((n : α) + 1)⁻¹ :=
 inv_pos.2 $ add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
 
 lemma one_div_pos_of_nat {n : ℕ} : 0 < 1 / ((n : α) + 1) :=
-by { rw one_div_eq_inv, exact inv_pos_of_nat }
+by { rw one_div, exact inv_pos_of_nat }
 
 lemma one_div_le_one_div {n m : ℕ} (h : n ≤ m) : 1 / ((m : α) + 1) ≤ 1 / ((n : α) + 1) :=
 by { refine one_div_le_one_div_of_le _ _, exact nat.cast_add_one_pos _, simpa }

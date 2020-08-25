@@ -5,6 +5,7 @@ Authors: Scott Morrison, Yury Kudryashov
 -/
 import category_theory.concrete_category.basic
 import category_theory.concrete_category.bundled
+import category_theory.fully_faithful
 
 /-!
 # Category instances for algebraic structures that use bundled homs.
@@ -127,10 +128,15 @@ instance bundled_hom_of_parent_projection (F : Π {α}, d α → c α) [parent_p
   bundled_hom (map_hom hom @F) :=
 map hom @F
 
-instance forget₂ (F : Π {α}, d α → c α) [parent_projection @F] : has_forget₂ (bundled d) (bundled c) :=
+instance forget₂ (F : Π {α}, d α → c α) [parent_projection @F] :
+  has_forget₂ (bundled d) (bundled c) :=
 { forget₂ :=
   { obj := λ X, ⟨X, F X.2⟩,
     map := λ X Y f, f } }
+
+instance forget₂_full (F : Π {α}, d α → c α) [parent_projection @F] :
+  full (forget₂ (bundled d) (bundled c)) :=
+{ preimage := λ X Y f, f }
 
 end bundled_hom
 

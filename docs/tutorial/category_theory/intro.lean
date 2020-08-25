@@ -142,7 +142,7 @@ example : F.map (𝟙 X) = 𝟙 (F.obj X) := F.map_id X
 -- and preserves compositions
 example : F.map (f ≫ g) = (F.map f) ≫ (F.map g) := F.map_comp f g
 
--- The identity functor is `𝟭`, currently apparently untypesettable in Lean!
+-- The identity functor is `𝟭`, which you can write as `\sb1`.
 example : C ⥤ C := 𝟭 C
 
 -- The identity functor is (definitionally) the identity on objects and morphisms:

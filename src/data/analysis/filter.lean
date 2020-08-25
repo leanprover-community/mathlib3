@@ -125,8 +125,7 @@ protected def map (m : α → β) {f : filter α} (F : f.realizer) : (map m f).r
   inf          := F.F.inf,
   inf_le_left  := λ a b, image_subset _ (F.F.inf_le_left _ _),
   inf_le_right := λ a b, image_subset _ (F.F.inf_le_right _ _) },
-filter_eq $ set.ext $ λ x, by simp [cfilter.to_filter]; rw F.mem_sets; exact
-exists_congr (λ s, image_subset_iff)⟩
+filter_eq $ set.ext $ λ x, by simp [cfilter.to_filter]; rw F.mem_sets; refl ⟩
 
 @[simp] theorem map_σ (m : α → β) {f : filter α} (F : f.realizer) : (F.map m).σ = F.σ := rfl
 @[simp] theorem map_F (m : α → β) {f : filter α} (F : f.realizer) (s) :

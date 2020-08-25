@@ -6,8 +6,9 @@ Authors: Johan Commelin
 Nonnegative real numbers.
 -/
 import algebra.linear_ordered_comm_group_with_zero
-import data.finset.lattice
+import algebra.big_operators.ring
 import data.real.basic
+import data.indicator_function
 
 noncomputable theory
 
@@ -26,7 +27,7 @@ instance : has_coe ℝ≥0 ℝ := ⟨subtype.val⟩
 
 instance : can_lift ℝ nnreal :=
 { coe := coe,
-  cond := λ r, r ≥ 0,
+  cond := λ r, 0 ≤ r,
   prf := λ x hx, ⟨⟨x, hx⟩, rfl⟩ }
 
 protected lemma eq {n m : ℝ≥0} : (n : ℝ) = (m : ℝ) → n = m := subtype.eq
@@ -99,6 +100,10 @@ instance : comm_group_with_zero ℝ≥0 :=
   .. (by apply_instance : has_inv ℝ≥0),
   .. (_ : comm_semiring ℝ≥0),
   .. (_ : semiring ℝ≥0) }
+
+@[simp, norm_cast] lemma coe_indicator {α} (s : set α) (f : α → ℝ≥0) (a : α) :
+  ((s.indicator f a : ℝ≥0) : ℝ) = s.indicator (λ x, f x) a :=
+(to_real_hom : ℝ≥0 →+ ℝ).map_indicator _ _ _
 
 @[simp, norm_cast] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
 @[norm_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
@@ -260,7 +265,7 @@ instance : archimedean nnreal :=
   let ⟨n, hr⟩ := archimedean.arch (x:ℝ) (pos_y : (0 : ℝ) < y) in
   ⟨n, show (x:ℝ) ≤ (n •ℕ y : nnreal), by simp [*, -nsmul_eq_mul, nsmul_coe]⟩ ⟩
 
-lemma le_of_forall_epsilon_le {a b : nnreal} (h : ∀ε, ε > 0 → a ≤ b + ε) : a ≤ b :=
+lemma le_of_forall_epsilon_le {a b : nnreal} (h : ∀ε, 0 < ε → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
 begin
   rcases le_iff_exists_add.1 (le_of_lt hxb) with ⟨ε, rfl⟩,
@@ -353,10 +358,10 @@ nnreal.coe_le_coe.1 $ max_le (add_le_add (le_max_left _ _) (le_max_left _ _)) nn
 lemma of_real_le_iff_le_coe {r : ℝ} {p : nnreal} : nnreal.of_real r ≤ p ↔ r ≤ ↑p :=
 nnreal.gi.gc r p
 
-lemma le_of_real_iff_coe_le {r : nnreal} {p : ℝ} (hp : p ≥ 0) : r ≤ nnreal.of_real p ↔ ↑r ≤ p :=
+lemma le_of_real_iff_coe_le {r : nnreal} {p : ℝ} (hp : 0 ≤ p) : r ≤ nnreal.of_real p ↔ ↑r ≤ p :=
 by rw [← nnreal.coe_le_coe, nnreal.coe_of_real p hp]
 
-lemma of_real_lt_iff_lt_coe {r : ℝ} {p : nnreal} (ha : r ≥ 0) : nnreal.of_real r < p ↔ r < ↑p :=
+lemma of_real_lt_iff_lt_coe {r : ℝ} {p : nnreal} (ha : 0 ≤ r) : nnreal.of_real r < p ↔ r < ↑p :=
 by rw [← nnreal.coe_lt_coe, nnreal.coe_of_real r ha]
 
 lemma lt_of_real_iff_coe_lt {r : nnreal} {p : ℝ} : r < nnreal.of_real p ↔ ↑r < p :=
@@ -589,7 +594,7 @@ by simpa using div_add_div b a one_ne_zero hc
   a / c + b = (a + b * c) / c :=
 by rwa [add_comm, add_div', add_comm]
 
-lemma one_div_eq_inv (a : ℝ≥0) : 1 / a = a⁻¹ :=
+lemma one_div (a : ℝ≥0) : 1 / a = a⁻¹ :=
 one_mul a⁻¹
 
 lemma one_div_div (a b : ℝ≥0) : 1 / (a / b) = b / a :=

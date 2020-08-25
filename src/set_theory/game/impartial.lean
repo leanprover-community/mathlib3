@@ -117,6 +117,18 @@ begin
   { right, assumption }
 end
 
+lemma impartial_not_first_wins {G : pgame} (hG : G.impartial) : ¬G.first_wins ↔ G.first_loses :=
+begin
+  cases impartial_winner_cases hG,
+  { have := not_first_wins_of_first_loses h,
+    tauto },
+  { have := not_first_loses_of_first_wins h,
+    tauto }
+end
+
+lemma impartial_not_first_loses {G : pgame} (hG : G.impartial) : ¬G.first_loses ↔ G.first_wins :=
+iff.symm $ iff_not_comm.1 $ iff.symm $ impartial_not_first_wins hG
+
 lemma impartial_add_self {G : pgame} (hG : G.impartial) : (G + G).first_loses :=
   first_loses_is_zero.2 $ equiv_trans (add_congr (impartial_neg_equiv_self hG) G.equiv_refl)
   add_left_neg_equiv

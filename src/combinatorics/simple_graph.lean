@@ -373,6 +373,10 @@ lemma neighbor_finset_eq_filter {v : V G} [decidable_rel (adj G)] :
   neighbor_finset v = univ.filter (adj G v) :=
 by { ext, simp }
 
+@[simp]
+lemma card_simple_graph_on_eq (α : Type u) (G : simple_graph_on α) [fintype α] :
+fintype.card (V G) = fintype.card α := rfl
+
 end finite
 
 end simple_graph
@@ -1069,9 +1073,22 @@ def complete_graph_coloring (V : Type u) : coloring (complete_graph V) V :=
 { color := id,
   valid := by tidy }
 
+lemma complete_graph_coloring_inj {V : Type u} [decidable_eq V] {β : Type v} (c : coloring (complete_graph V) β) :
+  function.injective c.color :=
+begin
+  intros v w h,
+  cases c with color valid,
+  dsimp at h,
+  by_contra,
+  apply valid a,
+  exact h,
+end
+
 lemma complete_graph_min_colors {n m : ℕ} (c : coloring (complete_graph (fin n)) (fin m)) : n ≤ m :=
 begin
-  sorry
+  have h := fintype.card_le_of_injective c.color (complete_graph_coloring_inj _),
+  simp only [fintype.card_fin, card_simple_graph_on_eq] at h,
+  exact h,
 end
 
 end coloring

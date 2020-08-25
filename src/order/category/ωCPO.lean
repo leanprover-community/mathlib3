@@ -109,16 +109,16 @@ by cases f; cases g; congr; ext; apply h
 protected lemma coe_inj (f g : α →𝒄 β) (h : (f : α → β) = g) : f = g :=
 continuous_hom.ext _ _ $ congr_fun h
 
-@[main_declaration, simp]
+@[simp]
 lemma comp_id (f : β →𝒄 γ) : f.comp id = f := by ext; refl
 
-@[main_declaration, simp]
+@[simp]
 lemma id_comp (f : β →𝒄 γ) : id.comp f = f := by ext; refl
 
-@[main_declaration, simp]
+@[simp]
 lemma comp_assoc (f : γ →𝒄 φ) (g : β →𝒄 γ) (h : α →𝒄 β) : f.comp (g.comp h) = (f.comp g).comp h := by ext; refl
 
-@[main_declaration, simp]
+@[simp]
 lemma coe_apply (a : α) (f : α →𝒄 β) : (f : α →ₘ β) a = f a := rfl
 
 /-- `const` as a continuous function -/
@@ -190,14 +190,13 @@ begin
              preorder_hom.omega_complete_partial_order_ωSup_to_fun, forall_forall_merge, forall_forall_merge', function.comp_app],
 end
 
-@[main_declaration, simps ωSup {rhs_md := reducible}]
+@[simps ωSup {rhs_md := reducible}]
 instance : omega_complete_partial_order (α →𝒄 β) :=
 omega_complete_partial_order.lift continuous_hom.to_mono continuous_hom.ωSup
   (λ x y h, h) (λ c, rfl)
 
 lemma ωSup_def (c : chain (α →𝒄 β)) (x : α) : ωSup c x = continuous_hom.ωSup c x := rfl
 
-@[main_declaration]
 lemma ωSup_ωSup (c₀ : chain (α →𝒄 β)) (c₁ : chain α) :
   ωSup c₀ (ωSup c₁) = ωSup (continuous_hom.prod.apply.comp $ c₀.zip c₁) :=
 begin
@@ -209,7 +208,7 @@ begin
 end
 
 /-- `ite` as a continuous function -/
-@[main_declaration, simps { rhs_md := reducible }]
+@[simps { rhs_md := reducible }]
 def ite (p : Prop) [hp : decidable p] (f g : α →𝒄 β) : α →𝒄 β :=
 continuous_hom.of_mono (preorder_hom.ite p f g)
  (λ c, by { rw [preorder_hom.ite, ← preorder_hom.ite, ωSup_ite c (↑f) (↑g),← f.continuous,← g.continuous], refl })
@@ -222,25 +221,24 @@ def flip {α : Type*} (f : α → (β →𝒄 γ)) : β →𝒄 (α → γ) :=
   continuous' := by intro; ext; change f x _ = _; rw [(f x).continuous ]; refl, }
 
 /-- `roption.bind` as a continuous function -/
-@[main_declaration, simps { rhs_md := reducible }]
+@[simps { rhs_md := reducible }]
 noncomputable def bind {β γ : Type v} (f : α →𝒄 roption β) (g : α →𝒄 (β → roption γ)) : α →𝒄 roption γ :=
 of_mono (preorder_hom.bind (↑f) (↑g))
   (λ c, by rw [preorder_hom.bind, ← preorder_hom.bind, ωSup_bind, ← f.continuous, ← g.continuous]; refl)
 
 /-- `roption.map` as a continuous function -/
-@[main_declaration, simps {rhs_md := reducible}]
+@[simps {rhs_md := reducible}]
 noncomputable def map {β γ : Type v} (f : β → γ) (g : α →𝒄 roption β) : α →𝒄 roption γ :=
 of_fun (λ x, f <$> g x) (bind g (const (pure ∘ f)))
   (by ext; simp only [map_eq_bind_pure_comp, bind_to_fun, preorder_hom.bind_to_fun, const_to_fun, preorder_hom.const_to_fun, coe_apply])
 
 /-- `roption.seq` as a continuous function -/
-@[main_declaration, simps {rhs_md := reducible}]
+@[simps {rhs_md := reducible}]
 noncomputable def seq {β γ : Type v} (f : α →𝒄 roption (β → γ)) (g : α →𝒄 roption β) : α →𝒄 roption γ :=
 of_fun (λ x, f x <*> g x) (bind f $ (flip $ _root_.flip map g))
   (by ext; simp only [seq_eq_bind_map, flip, roption.bind_eq_bind, map_to_fun, roption.mem_bind_iff, bind_to_fun,
                       preorder_hom.bind_to_fun, coe_apply, flip_to_fun]; refl)
 
-attribute [main_declaration] seq_to_fun map_to_fun bind_to_fun ite_to_fun
 
 end continuous_hom
 
@@ -253,7 +251,6 @@ namespace ωCPO
 
 open omega_complete_partial_order
 
-@[main_declaration]
 instance : bundled_hom @continuous_hom :=
 { to_fun := @continuous_hom.to_fun,
   id := @continuous_hom.id,
@@ -261,16 +258,12 @@ instance : bundled_hom @continuous_hom :=
   hom_ext := @continuous_hom.coe_inj }
 
 attribute [derive [has_coe_to_sort, large_category, concrete_category]] ωCPO
-attribute [main_declaration] ωCPO.has_coe_to_sort ωCPO.large_category ωCPO.concrete_category
 
 /-- Construct a bundled ωCPO from the underlying type and typeclass. -/
-@[main_declaration]
 def of (α : Type*) [omega_complete_partial_order α] : ωCPO := bundled.of α
 
-@[main_declaration]
 instance : inhabited ωCPO := ⟨of punit⟩
 
-@[main_declaration]
 instance (α : ωCPO) : omega_complete_partial_order α := α.str
 
 end ωCPO

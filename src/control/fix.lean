@@ -211,7 +211,6 @@ begin
     intros y x, apply max_fix f },
 end
 
-@[main_declaration]
 lemma fix_le {X : Π a, roption $ β a} (hX : f X ≤ X) : roption.fix f ≤ X :=
 begin
   rw fix_eq_ωSup f,
@@ -261,7 +260,6 @@ lemma fold_to_unit_mono (f : roption α →ₘ roption α) : to_unit f = to_unit
 lemma to_unit_cont (f : roption α →ₘ roption α) : Π hc : continuous f, continuous (to_unit_mono f)
 | hc := by { intro c, ext ⟨⟩ : 1, dsimp [to_unit,omega_complete_partial_order.ωSup], erw [hc,chain.map_comp], refl }
 
-@[main_declaration]
 noncomputable instance : lawful_fix (roption α) :=
 ⟨ λ f hc, by { dsimp [has_fix.fix],
               conv { to_lhs, rw [fold_to_unit_mono,roption.fix_eq (to_unit_cont f hc)] }, refl } ⟩

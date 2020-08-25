@@ -31,7 +31,6 @@ pi.omega_complete_partial_order.flip₂_continuous' easy.intl
   (λ x, pi.omega_complete_partial_order.flip₂_continuous' _ (λ x_1, const_continuous' (pure x)))
 
 -- automation coming soon
-@[main_declaration]
 theorem easy.equations.eqn_1 (x y : ℕ) : easy x y = pure x :=
 by rw [easy, lawful_fix.fix_eq' easy.cont]; refl
 
@@ -59,7 +58,6 @@ pi.omega_complete_partial_order.flip₂_continuous' div.intl
                (const_continuous' (pure x)))))
 
 -- automation coming soon
-@[main_declaration]
 theorem div.equations.eqn_1 (x y : ℕ) : div x y = if y ≤ x ∧ y > 0 then div (x - y) y else pure x :=
 by conv_lhs { rw [div, lawful_fix.fix_eq' div.cont] }; refl
 
@@ -105,12 +103,10 @@ theorem tree_map.cont : ∀ {α : Type u_1} {β : Type u_2} (f : α → β), con
                             (λ (x_1 : tree β), const_continuous' (pure (node (f x_x) x x_1)))))))))
 
 -- automation coming soon
-@[main_declaration]
 theorem tree_map.equations.eqn_1 {α : Type u_1} {β : Type u_2} (f : α → β) : tree_map f nil = pure nil :=
 by rw [tree_map,lawful_fix.fix_eq' (tree_map.cont f)]; refl
 
 -- automation coming soon
-@[main_declaration]
 theorem tree_map.equations.eqn_2 {α : Type u_1} {β : Type u_2} (f : α → β) (x : α) (t₀ t₁ : tree α) :
   tree_map f (node x t₀ t₁) = tree_map f t₀ >>= λ (tt₀ : tree β), tree_map f t₁ >>= λ (tt₁ : tree β), pure (node (f x) tt₀ tt₁) :=
 by conv_lhs { rw [tree_map,lawful_fix.fix_eq' (tree_map.cont f)] }; refl
@@ -140,13 +136,11 @@ theorem tree_map'.cont : ∀ {α : Type u_1} {β : Type u_2} (f : α → β), co
                  (pi.omega_complete_partial_order.flip₁_continuous' (λ (v : tree α) (x : tree α → roption (tree β)), x v) x_a_1 id_continuous'))))
 
 -- automation coming soon
-@[main_declaration]
 theorem tree_map'.equations.eqn_1 {α : Type u_1} {β : Type u_2} (f : α → β) :
   tree_map' f nil = pure nil :=
 by rw [tree_map',lawful_fix.fix_eq' (tree_map'.cont f)]; refl
 
 -- automation coming soon
-@[main_declaration]
 theorem tree_map'.equations.eqn_2 {α : Type u_1} {β : Type u_2} (f : α → β) (x : α) (t₀ t₁ : tree α) :
   tree_map' f (node x t₀ t₁) = node (f x) <$> tree_map' f t₀ <*> tree_map' f t₁ :=
 by conv_lhs { rw [tree_map',lawful_fix.fix_eq' (tree_map'.cont f)] }; refl
@@ -177,7 +171,6 @@ pi.omega_complete_partial_order.flip₂_continuous' f91.intl
                 (λ (x_1 : ℕ), pi.omega_complete_partial_order.flip₁_continuous' (λ (v : ℕ) (g : ℕ → roption ℕ), g v) x_1 id_continuous')))))
 .
 -- automation coming soon
-@[main_declaration]
 theorem f91.equations.eqn_1 (n : ℕ) : f91 n = ite (n > 100) (pure (n - 10)) (f91 (n + 11) >>= f91) :=
 by conv_lhs { rw [f91, lawful_fix.fix_eq' f91.cont] }; refl
 
@@ -206,7 +199,6 @@ def f91' (n : ℕ) : ℕ := (f91 n).get (f91_dom n)
 #eval f91' 109
 -- 99
 
-@[main_declaration]
 lemma f91_spec' (n : ℕ) : f91' n = if n > 100 then n - 10 else 91 :=
 begin
   suffices : (∃ n', n' ∈ f91 n ∧ n' = if n > 100 then n - 10 else 91),
@@ -235,14 +227,3 @@ begin
 end
 
 end roption.examples
-
--- #list_unused_decls
---   ["src/control/fix.lean",
---    "src/order/omega_complete_partial_order.lean",
---    "src/order/category/ωCPO.lean",
---    "src/data/nat/up.lean"]
-
--- -- print lingering `main_declaration` attributes
--- run_cmd do
---   xs ← attribute.get_instances `main_declaration,
---   xs.mmap' $ λ d, trace!"#print {d}"

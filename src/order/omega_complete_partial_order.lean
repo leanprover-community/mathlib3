@@ -125,7 +125,6 @@ variables [preorder α] [preorder β] [preorder γ]
 instance : has_coe_to_fun (chain α) :=
 @infer_instance (has_coe_to_fun $ ℕ →ₘ α) _
 
-@[main_declaration]
 instance [inhabited α] : inhabited (chain α) :=
 ⟨ ⟨ λ _, default _, λ _ _ _, le_refl _ ⟩ ⟩
 
@@ -210,7 +209,6 @@ protected def lift [partial_order β] (f : β →ₘ α)
 lemma le_ωSup_of_le {c : chain α} {x : α} (i : ℕ) (h : x ≤ c i) : x ≤ ωSup c :=
 le_trans h (le_ωSup c _)
 
-@[main_declaration]
 lemma ωSup_total {c : chain α} {x : α} (h : ∀ i, c i ≤ x ∨ x ≤ c i) : ωSup c ≤ x ∨ x ≤ ωSup c :=
 classical.by_cases
   (assume : ∀ i, c i ≤ x, or.inl (ωSup_le _ _ this))
@@ -221,13 +219,11 @@ classical.by_cases
     have x ≤ c i, from (h i).resolve_left hx,
     or.inr $ le_ωSup_of_le _ this)
 
-@[main_declaration]
 lemma ωSup_le_ωSup_of_le {c₀ c₁ : chain α} (h : c₀ ≤ c₁) : ωSup c₀ ≤ ωSup c₁ :=
 ωSup_le _ _ $
 λ i, Exists.rec_on (h i) $
 λ j h, le_trans h (le_ωSup _ _)
 
-@[main_declaration]
 lemma ωSup_le_iff (c : chain α) (x : α) : ωSup c ≤ x ↔ (∀ i, c i ≤ x) :=
 begin
   split; intros,
@@ -264,7 +260,6 @@ by rcases hf with ⟨h,h'⟩; exact h'
 
 variables (f : α →ₘ β) (g : β →ₘ γ)
 
-@[main_declaration]
 lemma continuous_id : continuous (@preorder_hom.id α _) :=
 by intro; rw c.map_id; refl
 
@@ -310,14 +305,12 @@ end
 protected noncomputable def ωSup (c : chain (roption α)) : roption α :=
 if h : ∃a, some a ∈ c then some (classical.some h) else none
 
-@[main_declaration]
 lemma ωSup_eq_some {c : chain (roption α)} {a : α} (h : some a ∈ c) : roption.ωSup c = some a :=
 have ∃a, some a ∈ c, from ⟨a, h⟩,
 have a' : some (classical.some this) ∈ c, from classical.some_spec this,
 calc roption.ωSup c = some (classical.some this) : dif_pos this
                 ... = some a : congr_arg _ (eq_of_chain a' h)
 
-@[main_declaration]
 lemma ωSup_eq_none {c : chain (roption α)} (h : ¬∃a, some a ∈ c) : roption.ωSup c = none :=
 dif_neg h
 
@@ -329,7 +322,6 @@ begin
   { rcases h with ⟨ ⟨ ⟩ ⟩ }
 end
 
-@[main_declaration]
 noncomputable instance omega_complete_partial_order : omega_complete_partial_order (roption α) :=
 { ωSup    := roption.ωSup,
   le_ωSup := λ c i, by { intros x hx, rw ← eq_some_iff at hx ⊢,
@@ -411,7 +403,7 @@ variables [omega_complete_partial_order γ]
 protected def ωSup (c : chain (α × β)) : α × β :=
 (ωSup (c.map preorder_hom.prod.fst), ωSup (c.map preorder_hom.prod.snd))
 
-@[main_declaration, simps ωSup_fst ωSup_snd {rhs_md := semireducible}]
+@[simps ωSup_fst ωSup_snd {rhs_md := semireducible}]
 instance : omega_complete_partial_order (α × β) :=
 { ωSup := prod.ωSup,
   ωSup_le := λ c ⟨x,x'⟩ h, ⟨ωSup_le _ _ $ λ i, (h i).1, ωSup_le _ _ $ λ i, (h i).2⟩,
@@ -424,7 +416,6 @@ variables (α : Type u) [complete_lattice α]
 
 set_option default_priority 100 -- see Note [default priority]
 
-@[main_declaration]
 instance : omega_complete_partial_order α :=
 { ωSup    := λc, ⨆ i, c i,
   ωSup_le := assume ⟨c, _⟩ s hs, by simp only [supr_le_iff, preorder_hom.coe_fun_mk] at ⊢ hs; intros i; apply hs i,
@@ -462,7 +453,7 @@ protected def ωSup (c : chain (α →ₘ β)) : α →ₘ β :=
 { to_fun := λ a, ωSup (c.map (monotone_apply a)),
   monotone := λ x y h, ωSup_le_ωSup_of_le (chain.map_le_map _ $ λ a, a.monotone h) }
 
-@[main_declaration, simps ωSup_to_fun {rhs_md := semireducible, simp_rhs := tt}]
+@[simps ωSup_to_fun {rhs_md := semireducible, simp_rhs := tt}]
 instance : omega_complete_partial_order (α →ₘ β) :=
 omega_complete_partial_order.lift preorder_hom.to_fun_hom preorder_hom.ωSup
   (λ x y h, h) (λ c, rfl)

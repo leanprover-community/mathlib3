@@ -428,27 +428,31 @@ lemma succ_above_above (p : fin (n + 1)) (i : fin n) (h : p ≤ i.cast_succ) :
   p.succ_above i = i.succ :=
 by { rw [succ_above], exact if_neg (not_lt_of_le h) }
 
+/-- Embedding `i : fin n` into `fin (n + 1)` is always about some hole `p` -/
+lemma succ_above_lt_ge (p : fin (n + 1)) (i : fin n) : i.cast_succ < p ∨ p ≤ i.cast_succ :=
+lt_or_ge (cast_succ i) p
+
+/-- Embedding `i : fin n` into `fin (n + 1)` is always about some hole `p` -/
+lemma succ_above_lt_gt (p : fin (n + 1)) (i : fin n) : i.cast_succ < p ∨ p < i.succ :=
+or.cases_on (succ_above_lt_ge p i)
+  (λ h, or.inl h) (λ h, or.inr (lt_of_le_of_lt h (cast_succ_lt_succ i)))
+
 /-- Embedding `i : fin n` into `fin (n + 1)` with a hole around `p : fin (n + 1)`
 never results in `p` itself -/
 theorem succ_above_ne (p : fin (n + 1)) (i : fin n) : p.succ_above i ≠ p :=
 begin
   intro eq,
   by_cases H : i.cast_succ < p,
-  { simpa [lt_irrefl, ←succ_above_below p i H, eq] using H },
-  { simpa [←succ_above_above p i (le_of_not_lt H), eq] using cast_succ_lt_succ i }
+  { simpa [lt_irrefl, ←succ_above_below _ _ H, eq] using H },
+  { simpa [←succ_above_above _ _ (le_of_not_lt H), eq] using cast_succ_lt_succ i }
 end
-
-/-- Embedding `i : fin n` into `fin (n + 1)` is always about some hole `p` -/
-lemma succ_above_lt_gt (p : fin (n + 1)) (i : fin n) : i.cast_succ < p ∨ p < i.succ :=
-or.cases_on (le_or_lt i.succ p) (λ h, or.inl (gt_of_ge_of_gt h (cast_succ_lt_succ i))) (λ h, or.inr h)
 
 /-- Embedding a positive `fin n`  results in a positive fin (n + 1)` -/
 lemma succ_above_pos (p : fin (n + 2)) (i : fin (n + 1)) (h : 0 < i) : 0 < p.succ_above i :=
 begin
   by_cases H : i.cast_succ < p,
-  { rw [succ_above_below p i H],
-    exact cast_succ_pos i h },
-  { simpa [succ_above_above _ _ (le_of_not_lt H)] using succ_pos i },
+  { simpa [succ_above_below _ _ H] using cast_succ_pos _ h },
+  { simpa [succ_above_above _ _ (le_of_not_lt H)] using succ_pos _ },
 end
 
 /-- Given a fixed pivot `x : fin (n + 1)`, `x.succ_above` is injective -/

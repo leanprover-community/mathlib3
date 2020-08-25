@@ -79,7 +79,7 @@ open finset
 theorem fin.prod_univ_zero [comm_monoid β] (f : fin 0 → β) : ∏ i, f i = 1 := rfl
 
 /-- A product of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
-is the product of the `f x`, for some `x : fin (n + 1)` times the remaining product -/
+is the product of `f x`, for some `x : fin (n + 1)` times the remaining product -/
 theorem fin.prod_univ_succ_above [comm_monoid β] {n:ℕ} (f : fin n.succ → β) (x : fin n.succ) :
   ∏ i, f i = f x * ∏ i : fin n, f (x.succ_above i) :=
 begin
@@ -89,7 +89,7 @@ begin
 end
 
 /-- A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
-is the sum of the `f x`, for some `x : fin (n + 1)` plus the remaining product -/
+is the sum of `f x`, for some `x : fin (n + 1)` plus the remaining product -/
 theorem fin.sum_univ_succ_above [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) (x : fin n.succ) :
   ∑ i, f i = f x + ∑ i : fin n, f (x.succ_above i) :=
 by apply @fin.prod_univ_succ_above (multiplicative β)

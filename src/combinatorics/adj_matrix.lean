@@ -18,8 +18,8 @@ namespace simple_graph
 
 variables (G : simple_graph α) (R) [decidable_rel G.adj]
 
-/-- `adjacency_matrix G R` is the matrix $A$ such that $A i j = (1 : R)$ if $i$ and $j$ are
-  adjacent in the simple graph `G`, and otherwise $A i j = 0$-/
+/-- `adj_matrix G R` is the matrix `A` such that `A i j = (1 : R)` if `i` and `j` are
+  adjacent in the simple graph `G`, and otherwise `A i j = 0`. -/
 def adj_matrix : matrix α α R
 | i j := if (G.adj i j) then 1 else 0
 

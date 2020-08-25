@@ -103,17 +103,9 @@ def map (F : C ⥤ D) : thin_skeleton C ⥤ thin_skeleton D :=
 
 lemma name_me_pls (F : C ⥤ D) : F ⋙ to_thin_skeleton D = to_thin_skeleton C ⋙ map F := rfl
 
-def map_comp_iso (F : C ⥤ D) (G : D ⥤ E) : map (F ⋙ G) ≅ map F ⋙ map G :=
-nat_iso.of_components (λ X, quotient.rec_on_subsingleton X (λ x, iso.refl _)) (by tidy)
-
-def map_id_iso : map (𝟭 C) ≅ 𝟭 _ :=
-nat_iso.of_components (λ X, quotient.rec_on_subsingleton X (λ x, iso.refl _)) (by tidy)
-
+/-- Given a natural transformation `F₁ ⟶ F₂`, induce a natural transformation `map F₁ ⟶ map F₂`.-/
 def map_nat_trans {F₁ F₂ : C ⥤ D} (k : F₁ ⟶ F₂) : map F₁ ⟶ map F₂ :=
 { app := λ X, quotient.rec_on_subsingleton X (λ x, ⟨⟨⟨k.app x⟩⟩⟩) }
-
-def map_iso_iso {F₁ F₂ : C ⥤ D} (h : F₁ ≅ F₂) : map F₁ ≅ map F₂ :=
-{ hom := map_nat_trans h.hom, inv := map_nat_trans h.inv }
 
 variables (C) [∀ X Y : C, subsingleton (X ⟶ Y)]
 
@@ -168,13 +160,15 @@ lemma skeletal : skeletal (thin_skeleton C) :=
 λ X Y, quotient.induction_on₂ X Y $ λ x y h, h.elim $ λ i, le_antisymm (le_of_hom i.1) (le_of_hom i.2)
 
 lemma map_comp_eq (F : E ⥤ D) (G : D ⥤ C) : map (F ⋙ G) = map F ⋙ map G :=
-functor.eq_of_iso skeletal (map_comp_iso _ _)
+functor.eq_of_iso skeletal $
+  nat_iso.of_components (λ X, quotient.rec_on_subsingleton X (λ x, iso.refl _)) (by tidy)
 
 lemma map_id_eq : map (𝟭 C) = 𝟭 (thin_skeleton C) :=
-functor.eq_of_iso skeletal map_id_iso
+functor.eq_of_iso skeletal $
+  nat_iso.of_components (λ X, quotient.rec_on_subsingleton X (λ x, iso.refl _)) (by tidy)
 
 lemma map_iso_eq {F₁ F₂ : D ⥤ C} (h : F₁ ≅ F₂) : map F₁ = map F₂ :=
-functor.eq_of_iso skeletal (map_iso_iso h)
+functor.eq_of_iso skeletal { hom := map_nat_trans h.hom, inv := map_nat_trans h.inv }
 
 noncomputable def thin_skeleton_is_skeleton : is_skeleton_of C (thin_skeleton C) (from_thin_skeleton C) :=
 { skel := skeletal,

@@ -1098,12 +1098,22 @@ begin
   apply spec_foo,
 end
 
-
+lemma foo_ext (x y : ℤ_[p]) (h : ∀ n, to_zmod_pow n x = to_zmod_pow n y) :
+  x = y :=
+begin
+  rcases x with ⟨x, hx⟩,
+  rcases y with ⟨y, hy⟩,
+  -- need to turn x and y into cauchy sequences.
+  sorry
+end
 
 lemma lift_unique (g : R →+* ℤ_[p]) (hg : ∀ n, (to_zmod_pow n).comp g = f n) :
   g = lift f_compat :=
 begin
-  sorry
+  ext1 r,
+  apply foo_ext,
+  intro n,
+  rw [← ring_hom.comp_apply, ← ring_hom.comp_apply, hg, lift_spec],
 end
 
 end padic_int

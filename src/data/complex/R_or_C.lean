@@ -141,7 +141,7 @@ by { rw ext_iff, simp only [of_real_im, conj_im, eq_self_iff_true, conj_re, and_
 lemma conj_involutive : @function.involutive K is_R_or_C.conj := conj_conj
 lemma conj_bijective : @function.bijective K K is_R_or_C.conj := conj_involutive.bijective
 
-lemma conj_inj {z w : K} : conj z = conj w ↔ z = w := conj_bijective.1.eq_iff
+lemma conj_inj (z w : K) : conj z = conj w ↔ z = w := conj_bijective.1.eq_iff
 
 @[simp] lemma conj_eq_zero {z : K} : conj z = 0 ↔ z = 0 :=
   by simpa using @conj_inj K _ _ _ z 0

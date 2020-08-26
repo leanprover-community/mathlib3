@@ -1411,96 +1411,70 @@ end connectivity
 
 section degree_sum
 
-variables {α : Type u} [simple_graphs α] (G : α) [fintype (V G)] [decidable_eq (V G)] [decidable_rel (adj G)]
+variables {α : Type u} [simple_graphs.{_ v} α] (G : α) [fintype (V G)] [decidable_eq (V G)] [decidable_rel (adj G)]
 
 /--
-A dart is a vertex along with an incident edge.
+A dart is an ordered pair of adjacent vertices, thought of as a little arrow from the
+first vertex along an edge. (It is `uncurry (adj G)` as a subtype.)
 -/
-def darts := Σ (v : V G), incident_set v
+def darts : Type v := {d : V G × V G // d.1 ~g d.2}
 
 /--
 Gives the dart's edge.
 -/
-def dart_to_edge : darts G → edge_set G := λ d, ⟨d.2.1, incident_set_subset d.1 d.2.2⟩
+def dart_to_edge : darts G → edge_set G := λ d, ⟨⟦d.val⟧, d.property⟩
 /--
-Gives the dart's vertex.
+Gives the dart's vertex.  This is the first vertex of the pair.
 -/
-def dart_to_vert : darts G → V G := λ d, d.1
+def dart_to_vert : darts G → V G := λ d, d.val.1
 /--
 Reverses the dart: the new vertex is the vertex across the edge.
 -/
-def dart_reverse : darts G → darts G := λ d, ⟨d.2.2.2.other', d.2.1, d.2.2.1, begin
-  rcases d with ⟨v, e, he, hv⟩,
-  rw ←(sym2.mem_other_spec' hv) at hv,
-  apply sym2.mem_other_mem',
-end⟩
+def dart_reverse : darts G → darts G := λ d, ⟨(d.val.2, d.val.1), symm G d.property⟩
 
 @[simp]
-lemma dart_to_edge_of_dart_reverse (d : darts G) : dart_to_edge G (dart_reverse G d) = dart_to_edge G d := rfl
+lemma dart_to_edge_of_dart_reverse (d : darts G) : dart_to_edge G (dart_reverse G d) = dart_to_edge G d :=
+by { rcases d with ⟨⟨x, y⟩, h⟩,
+     dsimp [dart_to_edge, dart_reverse], rw [subtype.mk_eq_mk, sym2.eq_swap] }
+
 
 lemma dart_reverse_invol : function.involutive (dart_reverse G) :=
-begin
-  rintro ⟨v, e, hd⟩,
-  dsimp [dart_reverse],
-  congr, delta dart_reverse._proof_2, delta dart_reverse._proof_1, dsimp only,
-  apply sym2.other_invol',
-  ext e, delta dart_reverse._proof_2, delta dart_reverse._proof_1, dsimp only,
-  rw sym2.other_invol',
-  apply proof_irrel_heq,
-end
+by { rintro ⟨⟨x, y⟩, h⟩, dsimp [dart_reverse], rw subtype.mk_eq_mk }
 
 lemma dart_reverse_no_fixedpoint (d : darts G) : d ≠ dart_reverse G d :=
 begin
-  intro h,
-  rcases d with ⟨v, e, he, hv⟩,
-  rw ←sym2.mem_other_spec' hv at he,
-  dsimp [dart_reverse] at h,
-  rw sigma.mk.inj_iff at h,
-  rw [←h.1, mem_edge_set] at he,
-  exact loopless G v he,
+  rcases d with ⟨⟨x, y⟩, h⟩,
+  dsimp [dart_reverse],
+  rw subtype.mk_eq_mk,
+  intro heq, rw prod.mk.inj_iff at heq,
+  rw [heq.1] at h,
+  exact loopless G _ h,
 end
 
 lemma dart_edge_preimage (d₁ d₂ : darts G) :
   dart_to_edge G d₁ = dart_to_edge G d₂ ↔ d₁ = d₂ ∨ d₁ = dart_reverse G d₂ :=
 begin
-  split,
-  { intro h,
-    rcases d₁ with ⟨v₁, e₁, he₁, hv₁⟩,
-    rcases d₂ with ⟨v₂, e₂, he₂, hv₂⟩,
-    simp only [dart_to_edge, subtype.mk_eq_mk] at h,
-    subst e₂,
-    by_cases h : v₁ = v₂, { left, subst v₂, },
-    have hh : hv₂.other' = v₁,
-    { have he' := eq.trans (sym2.mem_other_spec' hv₂) ((sym2.elems_iff_eq h).mp ⟨hv₁, hv₂⟩),
-      rw sym2.eq_iff at he',
-      cases he', exfalso, cc, cc, },
-    right, simp only [dart_reverse, sigma.mk.inj_iff],
-    split,
-    exact hh.symm,
-    delta dart_reverse._proof_2, dsimp,
-    congr,
-    { ext e', delta dart_reverse._proof_1, dsimp,
-      rw hh, },
-    exact hh.symm,
-    apply proof_irrel_heq, },
-  { intro h, cases h; subst d₁, simp, }
+  rcases d₁ with ⟨⟨x₁, y₁⟩, h₁⟩,
+  rcases d₂ with ⟨⟨x₂, y₂⟩, h₂⟩,
+  dsimp [dart_to_edge, dart_reverse],
+  repeat { rw subtype.mk_eq_mk },
+  repeat { rw prod.mk.inj_iff },
+  exact sym2.eq_iff,
 end
 
 instance : fintype (darts G) :=
 by { dunfold darts, apply_instance }
 
-lemma dart_to_edge_prop (e : edge_set G) (d : darts G) (h : dart_to_edge G d = e) : d.1 ∈ e.1 :=
+lemma dart_to_edge_prop (e : edge_set G) (d : darts G) (h : dart_to_edge G d = e) : dart_to_vert G d ∈ e.1 :=
 by tidy
 
 lemma dart_to_edge_surj : function.surjective (dart_to_edge G) :=
 begin
   rintro ⟨e, he⟩,
-  induction e,
-  cases e with v w,
-  use [v, ⟦(v, w)⟧],
-  exact (mem_incident_set v w).mpr (mem_edge_set.mp he),
-  dsimp [dart_to_edge], refl,
-  refl,
+  refine quotient.rec_on_subsingleton e (λ e he, _) he,
+  rcases e with ⟨x, y⟩,
+  rw mem_edge_set at he,
+  exact ⟨⟨(x, y), he⟩, rfl⟩,
 end
 
 lemma dart_to_edge_surj' : image (dart_to_edge G) univ = univ :=
@@ -1517,32 +1491,23 @@ begin
   let f := λ (x : darts G), dart_to_vert G (dart_reverse G x),
   let s := univ.filter (λ (x : darts G), dart_to_vert G x = v),
   have H : ∀ x ∈ s, ∀ y ∈ s, f x = f y → x = y, {
-    rintros ⟨v₁, e₁, he₁, hv₁⟩ hd₁ ⟨v₂, e₂, he₂, hv₂⟩ hd₂ heq,
+    rintros ⟨⟨x₁, y₁⟩, h₁⟩ hd₁ ⟨⟨x₂, y₂⟩, h₂⟩ hd₂ heq,
     dsimp [f, dart_reverse, dart_to_vert] at heq,
-    have aa₁ := sym2.mem_other_spec' hv₁,
-    have aa₂ := sym2.mem_other_spec' hv₂,
+    rw [subtype.mk_eq_mk, prod.mk.inj_iff],
     simp only [dart_to_vert, true_and, mem_filter, mem_univ] at hd₁ hd₂,
-    subst v₁, subst v₂,
-    congr, rw ←heq at aa₂,
-    exact eq.trans aa₁.symm aa₂,
+    subst x₁, subst x₂, subst y₂, simp,
   },
   rw ←card_image_of_inj_on H,
   congr,
   ext w,
-  simp,
+  simp only [mem_image, true_and, exists_prop, mem_filter, mem_univ, adj_as_adj'],
   split,
-  { rintros ⟨⟨v', e', he', hv'⟩, hd, hw⟩,
-    dsimp [dart_to_vert] at hd, subst v',
-    dsimp [f, dart_reverse, dart_to_vert] at hw,
-    have aa := sym2.mem_other_spec' hv',
-    rw hw at aa,
-    rwa [←aa, mem_edge_set] at he', },
+  { rintros ⟨⟨⟨x, y⟩, h⟩, hd, hw⟩,
+    dsimp [dart_to_vert] at hd, subst v,
+    dsimp [f, dart_reverse, dart_to_vert] at hw, subst w,
+    exact h, },
   { intro a,
-    use [v, ⟦(v, w)⟧], simpa,
-    dsimp [dart_to_vert, f, dart_reverse],
-    use rfl,
-    rw ←@sym2.congr_right _ v,
-    simp, }
+    use ⟨(v, w), a⟩, simp [dart_to_vert, f, dart_reverse], },
 end
 
 lemma dart_to_edge_two_to_one (e : edge_set G) : (univ.filter (λ x, dart_to_edge G x = e)).card = 2 :=
@@ -1577,7 +1542,7 @@ begin
     intros v _ hd,
     rcases (degree_pos_iff_exists_adj v).mp (nat.pos_of_ne_zero hd) with ⟨w, hw⟩,
     simp only [mem_image, mem_univ, exists_prop_of_true],
-    use [v, ⟦(v, w)⟧], simp [hw],
+    use ⟨(v, w), hw⟩,
     simp [dart_to_vert],
   end,
   rw ←key',

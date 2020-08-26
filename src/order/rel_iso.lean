@@ -13,6 +13,77 @@ universes u v w
 variables {α : Type*} {β : Type*} {γ : Type*}
   {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
 
+/-- A relation homomorphism with respect to a given pair of relations `r` and `s`
+is a function `f : α → β` such that `r a b → s (f a) (f b)`. -/
+structure rel_hom {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) :=
+(to_fun : α → β)
+(map_rel' : ∀ {a b}, r a b → s (to_fun a) (to_fun b))
+
+infix ` →r `:25 := rel_hom
+
+namespace rel_hom
+
+instance : has_coe_to_fun (r →r s) := ⟨λ _, α → β, λ o, o.to_fun⟩
+
+theorem map_rel (f : r →r s) : ∀ {a b}, r a b → s (f a) (f b) := f.map_rel'
+
+@[simp] theorem coe_fn_mk (f : α → β) (o) :
+  (@rel_hom.mk _ _ r s f o : α → β) = f := rfl
+
+@[simp] theorem coe_fn_to_fun (f : r →r s) : (f.to_fun : α → β) = f := rfl
+
+/-- The map `coe_fn : (r →r s) → (r → s)` is injective. We can't use `function.injective`
+here but mimic its signature by using `⦃e₁ e₂⦄`. -/
+theorem coe_fn_inj : ∀ ⦃e₁ e₂ : r →r s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
+| ⟨f₁, o₁⟩ ⟨f₂, o₂⟩ h := by { congr, exact h }
+
+/-- Identity map is a relation homomorphism. -/
+@[refl] protected def refl (r : α → α → Prop) : r →r r :=
+⟨id, λ a b, id⟩
+
+/-- Composition of two relation homomorphisms is a relation homomorphism. -/
+@[trans] protected def trans (f : r →r s) (g : s →r t) : r →r t :=
+⟨g.1 ∘ f.1, λ a b h, g.2 (f.2 h)⟩
+
+@[simp] theorem refl_apply (x : α) : rel_hom.refl r x = x := rfl
+
+@[simp] theorem trans_apply (f : r →r s) (g : s →r t) (a : α) : (f.trans g) a = g (f a) := rfl
+
+/-- a relation embedding is also a relation embedding between dual relations. -/
+def rsymm (f : r →r s) : swap r →r swap s :=
+⟨f.to_fun, λ a b, f.map_rel⟩
+
+/-- If `f` is injective, then it is a relation embedding from the
+  preimage relation of `s` to `s`. -/
+def preimage (f : α → β) (s : β → β → Prop) : f ⁻¹'o s →r s := ⟨f, λ a b, id⟩
+
+protected theorem is_irrefl : ∀ (f : r →r s) [is_irrefl β s], is_irrefl α r
+| ⟨f, o⟩ ⟨H⟩ := ⟨λ a h, H _ (o h)⟩
+
+protected theorem is_asymm : ∀ (f : r →r s) [is_asymm β s], is_asymm α r
+| ⟨f, o⟩ ⟨H⟩ := ⟨λ a b h₁ h₂, H _ _ (o h₁) (o h₂)⟩
+
+protected theorem acc (f : r →r s) (a : α) : acc s (f a) → acc r a :=
+begin
+  generalize h : f a = b, intro ac,
+  induction ac with _ H IH generalizing a, subst h,
+  exact ⟨_, λ a' h, IH (f a') (f.map_rel h) _ rfl⟩
+end
+
+protected theorem well_founded : ∀ (f : r →r s) (h : well_founded s), well_founded r
+| f ⟨H⟩ := ⟨λ a, f.acc _ (H _)⟩
+
+/-- It suffices to prove `f` is monotone between strict relations
+  to show it is a relation embedding. -/
+def of_monotone (f : α → β)
+  (H : ∀ a b, r a b → s (f a) (f b)) : r →r s :=
+⟨f, λ a b, H a b⟩
+
+@[simp] theorem of_monotone_coe (f : α → β) (H : ∀ a b, r a b → s (f a) (f b)) :
+  (of_monotone f H : α → β) = f := rfl
+
+end rel_hom
+
 /-- An increasing function is injective -/
 lemma injective_of_increasing (r : α → α → Prop) (s : β → β → Prop) [is_trichotomous α r]
   [is_irrefl β s] (f : α → β) (hf : ∀{x y}, r x y → s (f x) (f y)) : injective f :=
@@ -23,6 +94,11 @@ begin
   exact h,
   have := hf h, rw hxy at this, exfalso, exact irrefl_of s (f y) this
 end
+
+/-- An increasing function is injective -/
+lemma rel_hom.injective_of_increasing [is_trichotomous α r]
+  [is_irrefl β s] (f : r →r s) : injective f :=
+injective_of_increasing r s f (λ x y, f.map_rel)
 
 /-- A relation embedding with respect to a given pair of relations `r` and `s`
 is an embedding `f : α ↪ β` such that `r a b ↔ s (f a) (f b)`. -/
@@ -49,7 +125,18 @@ theorem preimage_equivalence {α β} (f : α → β) {s : β → β → Prop}
 
 namespace rel_embedding
 
+/-- A relation embedding is also a relation homomorphism -/
+def to_rel_hom (f : r ↪r s) : (r →r s) :=
+{ to_fun := f.to_embedding.to_fun,
+  map_rel' := λ x y, by { rw f.map_rel_iff', exact id, } }
+
+instance : has_coe (r ↪r s) (r →r s) := ⟨to_rel_hom⟩
+-- see Note [function coercion]
 instance : has_coe_to_fun (r ↪r s) := ⟨λ _, α → β, λ o, o.to_embedding⟩
+
+@[simp] lemma to_rel_hom_eq_coe (f : r ↪r s) : f.to_rel_hom = f := rfl
+
+@[simp] lemma coe_coe_fn (f : r ↪r s) : ((f : r →r s) : α → β) = f := rfl
 
 theorem injective (f : r ↪r s) : injective f := f.inj'
 
@@ -65,9 +152,11 @@ here but mimic its signature by using `⦃e₁ e₂⦄`. -/
 theorem coe_fn_inj : ∀ ⦃e₁ e₂ : r ↪r s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
 | ⟨⟨f₁, h₁⟩, o₁⟩ ⟨⟨f₂, h₂⟩, o₂⟩ h := by { congr, exact h }
 
+/-- Identity map is a relation embedding. -/
 @[refl] protected def refl (r : α → α → Prop) : r ↪r r :=
 ⟨embedding.refl _, λ a b, iff.rfl⟩
 
+/-- Composition of two relation embeddings is a relation embedding. -/
 @[trans] protected def trans (f : r ↪r s) (g : s ↪r t) : r ↪r t :=
 ⟨f.1.trans g.1, λ a b, by rw [f.2, g.2]; simp⟩
 
@@ -156,7 +245,7 @@ end
 @[simp] theorem of_monotone_coe [is_trichotomous α r] [is_asymm β s] (f : α → β) (H) :
   (@of_monotone _ _ r s _ _ f H : α → β) = f := rfl
 
-/-- Embeddings of partial orders that preserve  -/
+/-- Embeddings of partial orders that preserve `<` also preserve `≤`  -/
 def order_embedding_of_lt_embedding [partial_order α] [partial_order β]
   (f : ((<) : α → α → Prop) ↪r ((<) : β → β → Prop)) :
   α ↪o β :=
@@ -236,6 +325,8 @@ instance : has_coe_to_fun (r ≃r s) := ⟨λ _, α → β, λ f, f⟩
 @[simp] lemma to_rel_embedding_eq_coe (f : r ≃r s) : f.to_rel_embedding = f := rfl
 
 @[simp] lemma coe_coe_fn (f : r ≃r s) : ((f : r ↪r s) : α → β) = f := rfl
+
+@[simp] lemma coe_coe_coe_fn (f : r ≃r s) : (((f : r ↪r s) : r →r s) : α → β) = f := rfl
 
 theorem map_rel_iff (f : r ≃r s) : ∀ {a b}, r a b ↔ s (f a) (f b) := f.map_rel_iff'
 

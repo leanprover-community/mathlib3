@@ -206,4 +206,22 @@ by { intro v, simp }
 
 end finite
 
+section maps
+
+variables {W : Type*} (G) (H : simple_graph W)
+
+abbreviation hom := rel_hom G.adj H.adj
+
+infix ` →g ` : 50 := hom
+
+abbreviation embedding := rel_embedding G.adj H.adj
+
+infix ` ↪g ` : 50 := embedding
+
+abbreviation iso := rel_iso G.adj H.adj
+
+infix ` ≃g ` : 50 := iso
+
+end maps
+
 end simple_graph

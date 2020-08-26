@@ -1075,6 +1075,7 @@ def lift : R →+* ℤ_[p] :=
 
 omit f_compat
 
+-- move this
 lemma norm_le_pow_iff_mem_span_pow (x : ℤ_[p]) (n : ℕ) :
   ∥x∥ ≤ p ^ (-n : ℤ) ↔ x ∈ (ideal.span {p ^ n} : ideal ℤ_[p]) :=
 begin
@@ -1085,11 +1086,23 @@ begin
     norm_cast,
     exact nat.zero_le _ },
   rw [ideal.mem_span_singleton],
+  have aux : ∀ n : ℕ, 0 < (p ^ n : ℝ),
+  { apply _root_.pow_pos, exact_mod_cast nat.prime.pos ‹_› },
   split,
-  { sorry },
+  { rw norm_eq_pow_val hx,
+    rw [unit_coeff_spec hx] { occs := occurrences.pos [2] },
+    lift x.valuation to ℕ using x.valuation_nonneg with k hk,
+    simp only [int.nat_abs_of_nat, is_unit_unit, is_unit.dvd_mul_left, fpow_neg, fpow_coe_nat],
+    rw [inv_le_inv (aux _) (aux _)],
+    norm_cast,
+    have : p ^ n ≤ p ^ k ↔ n ≤ k := (pow_right_strict_mono (nat.prime.two_le ‹_›)).le_iff_le,
+    rw [this],
+    intro H,
+    obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le H,
+    simp only [nat.pow_add, cast_mul, dvd_mul_right], },
   { rintro ⟨c, rfl⟩,
     simp only [padic_norm_z.norm_p_pow, padic_norm_z.mul, fpow_neg, fpow_coe_nat],
-    have : 0 < (p ^ n : ℝ)⁻¹, sorry,
+    have : 0 < (p ^ n : ℝ)⁻¹, { rw inv_pos, apply aux },
     simpa [mul_one] using (_root_.mul_le_mul_left this).mpr c.2, },
 end
 

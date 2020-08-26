@@ -289,7 +289,20 @@ def add_var_to_counter_example {γ : Type v} [has_to_string γ]
   test_result q :=
 @add_to_counter_example (var ++ " := " ++ to_string x) _ _ h
 
-/-- gadget used to introspect the name of bound variables -/
+/-- gadget used to introspect the name of bound variables.
+
+It is used with the `testable` typeclass so that
+`testable (named_binder (some "x") (∀ x, p x))` can use the variable name
+of `x` in error messages displayed to the user. If we find that instantiating
+the above quantifier with 3 falsifies it, we can print:
+
+```
+==============
+Problem found!
+==============
+x := 3
+```
+ -/
 @[simp, nolint unused_arguments]
 def named_binder (n : option string) (p : Prop) : Prop := p
 
@@ -442,11 +455,8 @@ instance decidable_testable {p : Prop} [decidable p] : testable p :=
 
 section io
 
-variable (p : Prop)
-
 open nat
-
-variable {p}
+variable {p : Prop}
 
 /-- execute `cmd` and repeat every time the result is `gave_up` or at most
 `n` times -/

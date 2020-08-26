@@ -242,8 +242,8 @@ rfl
 filter_subset _
 
 lemma mem_support_on_finset
-  {s : finset α} {f : α → β} (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) :
-  ∀ a : α, a ∈ (finsupp.on_finset s f hf).support ↔ f a ≠ 0 :=
+  {s : finset α} {f : α → β} (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) {a : α} :
+  a ∈ (finsupp.on_finset s f hf).support ↔ f a ≠ 0 :=
 by simp [finsupp.mem_support_iff, finsupp.on_finset_apply]
 
 lemma support_on_finset

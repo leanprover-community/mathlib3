@@ -529,6 +529,8 @@ end
 @[simp] lemma pow_p_dvd_int_iff (n : ℕ) (a : ℤ) : (p ^ n : ℤ_[p]) ∣ a ↔ ↑p ^ n ∣ a :=
 by rw [← norm_int_le_pow_iff_dvd, norm_le_pow_iff_mem_span_pow, ideal.mem_span_singleton]
 
+end norm_le_iff
+
 section dvr
 /-! ### Discrete valuation ring -/
 
@@ -1043,7 +1045,6 @@ begin
   rw ← zmod.cast_val x,
   simp,
 end
-
 
 variable {p}
 

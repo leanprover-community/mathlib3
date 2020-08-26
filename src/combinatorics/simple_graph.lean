@@ -1585,4 +1585,33 @@ by { rw [←dart_card_sum_degrees, ←dart_card_twice_edges] }
 
 end degree_sum
 
+section bollobas
+
+variables {α : Type*} [simple_graphs α] -- [∀ G : α, decidable_rel (adj G)]
+open_locale classical
+
+/-!
+Some formalizations of statements from Bollobas, "Modern graph theory"
+-/
+
+def cycles (G : α) := Σ (n : {n : ℕ // 3 ≤ n}), cycle_graph n.1 n.2 ↪g G
+
+/--
+Veblen 1912 (theorem 1 in book)
+-/
+theorem edge_partition_cycles (G : α) [fintype (V G)] :
+  (∀ v : V G, degree v % 2 = 0) ↔ (∃ partition : set (cycles G),
+                                     ∀ (e : edge_set G), !∃ (c : cycles G), c ∈ partition ∧
+                                       e ∈ set.image (embedding.map_edge_set c.2) set.univ) :=
+sorry
+
+/--
+Mantel 1907 (theorem 2 in book)
+-/
+theorem has_triangle (G : α) [fintype (V G)] (h : (fintype.card (V G))^2 / 4 < (edge_finset G).card) :
+  nonempty (cycle_graph 3 (by linarith) ↪g G) :=
+sorry
+
+end bollobas
+
 end simple_graph

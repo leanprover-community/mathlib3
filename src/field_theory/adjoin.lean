@@ -78,24 +78,6 @@ begin
   exact adjoin.set_mem F S ⟨x,H hx⟩,
 end
 
-/-- proves an obvious linear equivalence (occasionally useful when working with dimension) -/
-definition adjoin_as_submodule_equiv : (adjoin F S) ≃ₗ[F] (adjoin F S) := {
-  to_fun := λ x, x,
-  map_add' := λ x y, rfl,
-  map_smul' :=
-  begin
-    intros x y,
-    ext1,
-    change _ = x • ↑y,
-    rw algebra.smul_def,
-    rw algebra.smul_def,
-    refl,
-  end,
-  inv_fun := λ x, x,
-  left_inv := λ x, rfl,
-  right_inv := λ x, rfl,
-}
-
 /-- If F ⊆ T and S ⊆ T then F[S] ⊆ F[T] -/
 lemma adjoin_subset {T : set E} [is_subfield T] (HF : set.range (algebra_map F E) ⊆ T)
 (HS : S ⊆ T) : (adjoin F S : set E) ⊆ T :=
@@ -127,26 +109,26 @@ T ⊆ adjoin F S :=
 lemma adjoin_twice (T : set E) : (adjoin (adjoin F S : set E) T : set E) = adjoin F (S ∪ T) :=
 begin
   apply set.eq_of_subset_of_subset,
-  apply adjoin_subset,
-  apply set_range_subset,
-  apply adjoin_subset,
-  apply adjoin.field_subset,
-  apply adjoin_contains_subset,
-  apply set.subset_union_left,
-  apply adjoin_contains_subset,
-  apply set.subset_union_right,
-  apply adjoin_subset,
-  transitivity (adjoin F S : set E),
-  apply adjoin.field_subset,
-  apply adjoin_subset,
-  apply adjoin_contains_field_subset,
-  apply adjoin.field_subset,
-  apply adjoin_contains_field_subset,
-  apply adjoin.set_subset,
-  apply set.union_subset,
-  apply adjoin_contains_field_subset,
-  apply adjoin.set_subset,
-  apply adjoin.set_subset,
+  { apply adjoin_subset,
+    { apply set_range_subset,
+      apply adjoin_subset,
+      { apply adjoin.field_subset },
+      { apply adjoin_contains_subset,
+        apply set.subset_union_left} },
+    { apply adjoin_contains_subset,
+      apply set.subset_union_right } },
+  { apply adjoin_subset,
+    { transitivity (adjoin F S : set E),
+      { apply adjoin.field_subset},
+      { apply adjoin_subset,
+        { apply adjoin_contains_field_subset,
+          apply adjoin.field_subset },
+        { apply adjoin_contains_field_subset,
+          apply adjoin.set_subset} } },
+    { apply set.union_subset,
+      { apply adjoin_contains_field_subset,
+        apply adjoin.set_subset },
+      { apply adjoin.set_subset } } }
 end
 
 lemma adjoin.composition :

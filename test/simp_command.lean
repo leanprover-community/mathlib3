@@ -23,7 +23,7 @@ attribute [test] f
 
 attribute [simp] f
 #simp f 3 = 3
-#simp only [f] f 3 = 3 + (3 - 3)
+#simp only [f, eq_self_iff_true] f 3 = 3 + (3 - 3)
 
 local attribute [simp] sub_self
 
@@ -31,8 +31,8 @@ variables (x : ℤ)
 
 #simp with test : (f x) = x
 #simp f x = x
-#simp only [f] f x = x + (x - x)
-#simp only [f, sub_self] f x = x + 0
+#simp only [f, eq_self_iff_true] f x = x + (x - x)
+#simp only [f, sub_self, eq_self_iff_true] f x = x + 0
 
 end arith
 
@@ -58,8 +58,8 @@ section func_hyp
 
 variables (f : ℕ → ℕ) (hf : f 3 = 0) (hg : 9 = 55)
 
-#simp only [hg] : 9 = 55
-#simp only [hf, add_zero] : 1 + f 3 = 1
+#simp only [hg, eq_self_iff_true] : 9 = 55
+#simp only [hf, add_zero, eq_self_iff_true] : 1 + f 3 = 1
 
 end func_hyp
 

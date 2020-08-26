@@ -13,7 +13,8 @@ example {κ ι : Type}
   (e : κ ≃ ι) (F : Π k, homeomorph (K k) (I (e k))) :
   continuous (λ (f : Π k, K k) (i : ι), F (e.symm i) (f (e.symm i))) :=
 by guard_proof_term { continuity }
-  continuous_pi (λ i, ((F (e.symm i)).continuous).comp (continuous_apply (e.symm i)))
+  @continuous_pi _ _ _ _ _ (λ (f : Π k, K k) i, (F (e.symm i)) (f (e.symm i)))
+    (λ (i : ι), ((F (e.symm i)).continuous).comp (continuous_apply (e.symm i)))
 
 open real
 

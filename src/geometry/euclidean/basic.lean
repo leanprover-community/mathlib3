@@ -661,8 +661,11 @@ calc dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) * dist (r1 • v +ᵥ p1) (r2 �
   : by { rw [dist_eq_norm_vsub V p1, abs_mul_abs_self, mul_assoc] }
 
 /-- Reflection in a nonempty affine subspace, whose direction is
-complete (generalization of both the common cases of reflection in a
-point and reflection in a codimension-one subspace). -/
+complete.  The word "reflection" is sometimes understood to mean
+specifically reflection in a codimension-one subspace, and sometimes
+more generally to cover operations such as reflection in a point.  The
+definition here, of reflection in an affine subspace, is a more
+general sense of the word that includes both those common cases. -/
 def reflection {s : affine_subspace ℝ P} (hn : (s : set P).nonempty)
   (hc : is_complete (s.direction : set V)) : P ≃ᵢ P :=
 { to_fun := λ p, (orthogonal_projection hn hc p -ᵥ p) +ᵥ orthogonal_projection hn hc p,

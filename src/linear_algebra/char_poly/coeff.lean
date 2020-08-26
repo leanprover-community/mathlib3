@@ -185,11 +185,11 @@ lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :
 char_poly (M ^ p) = char_poly M :=
 begin
   classical,
-  by_cases hn : nonempty n, letI := hn, inhabit n, apply char_poly_pow_card_of_inhabited,
+  by_cases hn : nonempty n, letI := hn, inhabit n, apply zmod.char_poly_pow_card_of_inhabited,
   swap, { congr, apply @subsingleton.elim _ (subsingleton_of_empty hn) _ _, },
 end
 
-lemma zmod.trace_pow_p {p:ℕ} [fact p.prime] (M : matrix n n (zmod p)) :
+lemma zmod.trace_pow_p {p:ℕ} [fact p.prime] [nonempty n] (M : matrix n n (zmod p)) :
 trace n (zmod p) (zmod p) (M ^ p) = (trace n (zmod p) (zmod p) M)^p :=
 by rw [trace_eq_neg_char_poly_coeff, trace_eq_neg_char_poly_coeff,
   zmod.char_poly_pow_card, zmod.pow_card_eq_self]

@@ -7,6 +7,7 @@ import algebra.big_operators.pi
 import algebra.module.pi
 import algebra.big_operators.ring
 import data.fintype.card
+import algebra.char_p
 
 /-!
 # Matrices
@@ -457,6 +458,10 @@ lemma scalar_apply_ne (a : α) (i j : n) (h : i ≠ j) :
   scalar n a i j = 0 :=
 by simp only [h, coe_scalar, one_apply_ne, ne.def, not_false_iff, smul_apply, mul_zero]
 
+lemma matrix.scalar_inj [inhabited n] {r s : α} : scalar n r = scalar n s ↔ r = s :=
+{ mp := λ h, by rw [← scalar_apply_eq r (arbitrary n), ← scalar_apply_eq s (arbitrary n), h],
+  mpr := by rintro rfl; refl }
+
 end scalar
 
 end semiring
@@ -615,6 +620,15 @@ end semiring
 section ring
 
 variables [ring α]
+
+instance matrix.char_p [decidable_eq n] [inhabited n] (p : ℕ) [char_p α p] :
+  char_p (matrix n n α) p :=
+{ cast_eq_zero_iff :=
+  begin
+    intro k, rw ← char_p.cast_eq_zero_iff α p k,
+    rw ← nat.cast_zero, rw ← (scalar n).map_nat_cast,
+    convert matrix.scalar_inj, simp, assumption,
+  end }
 
 lemma neg_vec_mul (v : m → α) (A : matrix m n α) : vec_mul (-v) A = - vec_mul v A :=
 by { ext, apply neg_dot_product }

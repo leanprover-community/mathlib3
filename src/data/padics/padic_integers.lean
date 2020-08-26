@@ -20,13 +20,12 @@ We show that `ℤ_p`
 * is a normed ring
 * is a local ring
 * is a discrete valuation ring
-* has a ring hom to `ℤ/p^nℤ` for each `n`
+
+The relation between `ℤ_[p]` and `zmod p` is established in another file.
 
 ## Important definitions
 
 * `padic_int` : the type of p-adic numbers
-* `to_zmod`: ring hom to `ℤ/pℤ`
-* `to_zmod_pow` : ring hom to `ℤ/p^nℤ`
 
 ## Notation
 

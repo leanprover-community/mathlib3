@@ -10,6 +10,11 @@ import data.padics.padic_integers
 
 # Relating `ℤ_[p]` to `zmod p`
 
+
+* has a ring hom to `ℤ/p^nℤ` for each `n`
+* `to_zmod`: ring hom to `ℤ/pℤ`
+* `to_zmod_pow` : ring hom to `ℤ/p^nℤ`
+
 -/
 
 noncomputable theory

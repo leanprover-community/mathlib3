@@ -1916,8 +1916,8 @@ lemma surjective_of_continuous {f : α → β} (hf : continuous f) (h_top : tend
 begin
   intros p,
   obtain ⟨b, hb⟩ : ∃ b, p ≤ f b,
-    rcases ((tendsto_at_top_at_top _).mp h_top) p with ⟨b, hb⟩,
-    exact ⟨b, hb b rfl.ge⟩,
+    { rcases ((tendsto_at_top_at_top _).mp h_top) p with ⟨b, hb⟩,
+      exact ⟨b, hb b rfl.ge⟩ },
   obtain ⟨a, hab, ha⟩ : ∃ a, a ≤ b ∧ f a ≤ p,
   { rcases ((tendsto_at_bot_at_bot _).mp h_bot) p with ⟨x, hx⟩,
     exact ⟨min x b, min_le_right x b, hx (min x b) (min_le_left x b)⟩ },

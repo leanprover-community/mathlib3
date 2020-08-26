@@ -198,7 +198,7 @@ adjoin.set_mem F {α} (⟨α,set.mem_singleton α⟩ : ({α} : set E))
 /-- generator of F(α) -/
 def adjoin_simple.gen : F[α] := ⟨α, adjoin_simple.element_mem F α⟩
 
-lemma adjoin_simple.gen_eq_alpha : algebra_map F[α] E (adjoin_simple.gen F α) = α := rfl
+lemma adjoin_simple.algebra_map_gen : algebra_map F[α] E (adjoin_simple.gen F α) = α := rfl
 
 lemma adjoin_simple_twice (β : E) : F[α][β] = adjoin F {α,β} :=
 adjoin_twice _ _ _

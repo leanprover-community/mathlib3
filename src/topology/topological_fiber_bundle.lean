@@ -287,7 +287,7 @@ by { dsimp [fiber], apply_instance }
 not marked as reducible, typeclass inference will not infer the wrong topology, and will use the
 instance `topological_fiber_bundle_core.to_topological_space` with the right topology. -/
 @[nolint unused_arguments]
-def total_space := B × F
+def total_space := Σ (x : B), Z.fiber x
 
 /-- The projection from the total space of a topological fiber bundle core, on its base. -/
 @[simp, mfld_simps] def proj : Z.total_space → B := λp, p.1

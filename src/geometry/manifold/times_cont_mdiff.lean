@@ -847,6 +847,26 @@ end vector_space
 
 section tangent_map
 
+
+-- include Is I's
+
+/- If a function is `C^n` on a domain with unique derivatives, then its bundled derivative
+is `C^m` when `m+1 ≤ n`. -/
+/-
+theorem times_cont_mdiff_on.times_cont_mdiff_on_tangent_map_within
+  {p : tangent_bundle I M}
+  (hf : times_cont_mdiff_within_at I I' n f s p.1) (hmn : m + 1 ≤ n) (hs : unique_mdiff_on I s) :
+  times_cont_mdiff_within_at I.tangent I'.tangent m (tangent_map_within I I' f s)
+  ((tangent_bundle.proj I M) ⁻¹' s) p :=
+begin
+  rw times_cont_mdiff_within_at_iff,
+  split,
+  sorry,
+end
+
+#exit
+-/
+
 /-- If a function is `C^n` with `1 ≤ n` on a domain with unique derivatives, then its bundled
 derivative is continuous. In this auxiliary lemma, we prove this fact when the source and target
 space are model spaces in models with corners. The general fact is proved in
@@ -861,19 +881,20 @@ begin
       ((ext_chart_at I p.fst) p.fst) : E →L[𝕜] E') p.snd)) (prod.fst ⁻¹' s),
   { have : ∀ (p : tangent_bundle I H), p ∈ tangent_bundle.proj I H ⁻¹' s →
       tangent_map_within I I' f s p =
-      (f p.fst, ((fderiv_within 𝕜 (written_in_ext_chart_at I I' p.fst f)
-      (I.symm ⁻¹' s ∩ range I) ((ext_chart_at I p.fst) p.fst)) : E →L[𝕜] E') p.snd),
+      ⟨f p.fst, ((fderiv_within 𝕜 (written_in_ext_chart_at I I' p.fst f)
+      (I.symm ⁻¹' s ∩ range I) ((ext_chart_at I p.fst) p.fst)) : E →L[𝕜] E') p.snd⟩,
     { rintros ⟨x, v⟩ hx,
       dsimp [tangent_map_within],
       ext, { refl },
-      dsimp,
+      simp only with mfld_simps,
       apply congr_fun,
       apply congr_arg,
       rw mdifferentiable_within_at.mfderiv_within (hf.mdifferentiable_on hn x hx),
       refl },
-    convert h.congr this,
-    exact tangent_bundle_model_space_topology_eq_prod H I,
-    exact tangent_bundle_model_space_topology_eq_prod H' I' },
+    sorry, },
+    -- convert h.congr this,
+    -- exact tangent_bundle_model_space_topology_eq_prod H I,
+    -- exact tangent_bundle_model_space_topology_eq_prod H' I' },
   suffices h : continuous_on (λ (p : H × E), (fderiv_within 𝕜 (I' ∘ f ∘ I.symm)
     (I.symm ⁻¹' s ∩ range I) (I p.fst) : E →L[𝕜] E') p.snd) (prod.fst ⁻¹' s),
   { dsimp [written_in_ext_chart_at, ext_chart_at],

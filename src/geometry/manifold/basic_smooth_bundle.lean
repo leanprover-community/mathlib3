@@ -517,9 +517,10 @@ topological_fiber_bundle_core.continuous_proj _
 lemma tangent_bundle_proj_open : is_open_map (tangent_bundle.proj I M) :=
 topological_fiber_bundle_core.is_open_map_proj _
 
-/-- In the tangent bundle to the model space, the charts are just the identity-/
+/-- In the tangent bundle to the model space, the charts are just the canonical identification
+between a product type and a sigma type, a.k.a. `equiv.sigma_equiv_prod`. -/
 @[simp, mfld_simps] lemma tangent_bundle_model_space_chart_at (p : tangent_bundle I H) :
-  (chart_at (model_prod H E) p).to_local_equiv = local_equiv.refl (model_prod H E) :=
+  (chart_at (model_prod H E) p).to_local_equiv = (equiv.sigma_equiv_prod H E).to_local_equiv :=
 begin
   have A : ∀ x_fst, fderiv_within 𝕜 (I ∘ I.symm) (range I) (I x_fst) = continuous_linear_map.id 𝕜 E,
   { assume x_fst,
@@ -529,31 +530,35 @@ begin
       exact model_with_corners.right_inv _ hy },
     rwa fderiv_within_id I.unique_diff_at_image at this },
   ext x : 1,
-  show (chart_at (model_prod H E) p : tangent_bundle I H → model_prod H E) x = (local_equiv.refl (model_prod H E)) x,
+  show (chart_at (model_prod H E) p : tangent_bundle I H → model_prod H E) x =
+    (equiv.sigma_equiv_prod H E) x,
   { cases x,
     simp only [chart_at, basic_smooth_bundle_core.chart, topological_fiber_bundle_core.local_triv,
       topological_fiber_bundle_core.local_triv', tangent_bundle_core, continuous_linear_map.coe_id',
       basic_smooth_bundle_core.to_topological_fiber_bundle_core, A] with mfld_simps },
-  show ∀ x, ((chart_at (model_prod H E) p).to_local_equiv).symm x = (local_equiv.refl (model_prod H E)).symm x,
+  show ∀ x, ((chart_at (model_prod H E) p).to_local_equiv).symm x =
+    (equiv.sigma_equiv_prod H E).symm x,
   { rintros ⟨x_fst, x_snd⟩,
     simp only [chart_at, basic_smooth_bundle_core.chart, topological_fiber_bundle_core.local_triv,
       topological_fiber_bundle_core.local_triv', tangent_bundle_core, A, continuous_linear_map.coe_id',
       basic_smooth_bundle_core.to_topological_fiber_bundle_core] with mfld_simps},
-  show ((chart_at (model_prod H E) p).to_local_equiv).source = (local_equiv.refl (model_prod H E)).source,
+  show ((chart_at (model_prod H E) p).to_local_equiv).source = univ,
     by simp only [chart_at] with mfld_simps,
 end
 
 @[simp, mfld_simps] lemma tangent_bundle_model_space_coe_chart_at (p : tangent_bundle I H) :
-  (chart_at (model_prod H E) p : tangent_bundle I H → model_prod H E) = id :=
-by { unfold_coes, simp only with mfld_simps }
+  (chart_at (model_prod H E) p : tangent_bundle I H → model_prod H E) = equiv.sigma_equiv_prod H E :=
+by { unfold_coes, simp only with mfld_simps, }
 
 @[simp, mfld_simps] lemma tangent_bundle_model_space_coe_chart_at_symm (p : tangent_bundle I H) :
-  ((chart_at (model_prod H E) p).symm : model_prod H E → tangent_bundle I H) = id :=
+  ((chart_at (model_prod H E) p).symm : model_prod H E → tangent_bundle I H) =
+  (equiv.sigma_equiv_prod H E).symm :=
 by { unfold_coes, simp only with mfld_simps, refl }
 
 variable (H)
-/-- In the tangent bundle to the model space, the topology is the product topology, i.e., the bundle
+/- In the tangent bundle to the model space, the topology is the product topology, i.e., the bundle
 is trivial -/
+/-
 lemma tangent_bundle_model_space_topology_eq_prod :
   tangent_bundle.topological_space I H = prod.topological_space :=
 begin
@@ -569,5 +574,6 @@ begin
   { assume ho,
     simpa only [] with mfld_simps using e'.continuous o ho }
 end
+-/
 
 end tangent_bundle

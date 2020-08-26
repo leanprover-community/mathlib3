@@ -1218,33 +1218,11 @@ apply_nolint rel_iso.prod_lex_congr doc_blame
 apply_nolint rel_iso.sum_lex_congr doc_blame
 apply_nolint subrel.rel_embedding doc_blame
 
--- ring_theory/free_comm_ring.lean
-apply_nolint free_comm_ring doc_blame
-apply_nolint free_comm_ring.is_supported doc_blame
-apply_nolint free_comm_ring.of doc_blame
-apply_nolint free_comm_ring.restriction doc_blame
-apply_nolint free_comm_ring_equiv_mv_polynomial_int doc_blame
-apply_nolint free_comm_ring_pempty_equiv_int doc_blame
-apply_nolint free_comm_ring_punit_equiv_polynomial_int doc_blame
-apply_nolint free_ring.subsingleton_equiv_free_comm_ring doc_blame
-apply_nolint free_ring.to_free_comm_ring doc_blame
-apply_nolint free_ring_pempty_equiv_int doc_blame
-apply_nolint free_ring_punit_equiv_polynomial_int doc_blame
-
--- ring_theory/free_ring.lean
-apply_nolint free_ring doc_blame
-apply_nolint free_ring.lift doc_blame
-apply_nolint free_ring.map doc_blame
-apply_nolint free_ring.of doc_blame
-
 -- ring_theory/ideal/operations.lean
 apply_nolint ideal.map doc_blame
 apply_nolint ideal.quotient_inf_to_pi_quotient doc_blame
 apply_nolint submodule.annihilator doc_blame
 apply_nolint submodule.colon doc_blame
-
--- ring_theory/integral_closure.lean
-apply_nolint integral_closure doc_blame
 
 -- ring_theory/maps.lean
 apply_nolint ring_invo.id doc_blame

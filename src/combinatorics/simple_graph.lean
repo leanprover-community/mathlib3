@@ -219,7 +219,7 @@ by { dunfold edge_set, exact subtype.fintype _ }
 
 section edge_finset
 variable (G)
-variables [decidable_eq (V G)] [fintype (V G)] [decidable_rel (adj G)]
+variables [fintype (edge_set G)]
 
 /--
 The `edge_set` of the graph as a `finset`.
@@ -378,6 +378,23 @@ by { ext, simp }
 @[simp]
 lemma card_simple_graph_on_eq (α : Type u) (G : simple_graph_on α) [fintype α] :
 fintype.card (V G) = fintype.card α := rfl
+
+/--
+The minimal degree of all vertices
+-/
+def min_deg (G : α) [fintype (V G)] [h : nonempty (V G)] [decidable_rel (adj G)]: ℕ :=
+finset.min' ((univ : finset (V G)).image (λ v, degree v)) (match h with
+| nonempty.intro v := begin use degree v, simp only [mem_image, mem_univ, exists_prop_of_true], use v, end
+end)
+
+/--
+The maximal degree of all vertices
+-/
+def max_deg (G : α) [fintype (V G)] [h : nonempty (V G)] [decidable_rel (adj G)]: ℕ :=
+finset.max' ((univ : finset (V G)).image (λ v, degree v)) (match h with
+| nonempty.intro v := begin use degree v, simp only [mem_image, mem_univ, exists_prop_of_true], use v, end
+end)
+
 
 end finite
 
@@ -579,6 +596,18 @@ def comp (f' : G' ≃g G'') (f : G ≃g G') : G ≃g G'' :=
 infixr ` ∘ ` := comp
 
 @[simp] lemma comp_app (f' : G' ≃g G'') (f : G ≃g G') (v : V G) : (comp f' f) v = f' (f v) := rfl
+
+
+lemma iso_has_eq_order [fintype (V G)] [fintype (V G')] (f : G ≃g G') : fintype.card (V G) = fintype.card (V G') :=
+by { convert (fintype.of_equiv_card f.to_equiv).symm }
+
+lemma iso_has_eq_size
+[fintype (edge_set G)] [fintype (edge_set G')] (f : G ≃g G') :
+  (edge_finset G).card = (edge_finset G').card :=
+begin
+  convert_to fintype.card (edge_set G) = fintype.card (edge_set G'); try { exact multiset.card_map subtype.val _ },
+  convert (fintype.of_equiv_card (isomorphism.map_edge_set f)).symm,
+end
 
 end isomorphism
 
@@ -881,13 +910,51 @@ lemma map_top_to_fun {x : subgraph G} (v : x.V') : x.map_top v = v.val := rfl
 /--
 The induced subgraph of a graph is the graph with a specified vertex
 set along with all the edges whose endpoints lie in the set.
+
+Note: `induced' V' = induced ⊤ V'`.  TODO decide whether to remove this function.
 -/
-def induced (V' : set (V G)) : subgraph G :=
+def induced' (V' : set (V G)) : subgraph G :=
 { V' := V',
   adj' := λ v w, v ∈ V' ∧ w ∈ V' ∧ v ~g w,
   adj_sub := λ v w ⟨hv, hw, he⟩, he,
   edge_vert := λ v w ⟨hv, hw, he⟩, hv,
   symm' := λ v w ⟨hv, hw, he⟩, ⟨hw, hv, symm G he⟩ }
+
+/--
+Given a subgraph `G'` and a vertex set `V'`, produces another subgraph on `V'` whose edges consist
+of all those edges in `G'` whose endpoints lie in `V'`.  Note that the vertex set
+might have vertices outside `V G'`.
+-/
+def induced (G' : subgraph G) (V' : set (V G)) : subgraph G :=
+{ V' := V',
+  adj' := λ v w, v ∈ V' ∧ w ∈ V' ∧ G'.adj' v w,
+  adj_sub := λ v w ⟨hv, hw, he⟩, G'.adj_sub he,
+  edge_vert := λ v w ⟨hv, hw, he⟩, hv,
+  symm' := λ v w ⟨hv, hw, he⟩, ⟨hw, hv, G'.symm' he⟩ }
+
+/--
+The subgraph obtained by deleting a set `W` of vertices along with all the incident edges.
+-/
+def delete (G' : subgraph G) (W : set (V G)) : subgraph G :=
+{ V' := {v : V G | v ∈ G'.V' ∧ v ∉ W},
+  adj' := λ v w, v ∉ W ∧ w ∉ W ∧ G'.adj' v w,
+  adj_sub := λ v w ⟨hv, hw, he⟩, G'.adj_sub he,
+  edge_vert := λ v w ⟨hv, hw, he⟩, ⟨G'.edge_vert he, hv⟩,
+  symm' := λ v w ⟨hv, hw, he⟩, ⟨hw, hv, G'.symm' he⟩ }
+
+/--
+The subgraph obtained by adding an edge between vertices a and b.  If `a = b`, then this
+results in the same subgraph.
+-/
+def join_verts (G' : subgraph G) {a b : V G} (hab : a ~g b) : subgraph G :=
+{ V' := G'.V' ∪ {a, b},
+  adj' := λ v w, (v = a ∧ w = b ∨ v = b ∧ w = a) ∨ G'.adj' v w,
+  adj_sub := λ v w h, begin
+    cases h, cases h; rwa [h.1, h.2], rwa adj_symm,
+    exact G'.adj_sub h,
+  end,
+  edge_vert := λ v w h, by { cases h, swap, left, exact G'.edge_vert h, tidy },
+  symm' := λ v w h, by { cases h, { left, tidy, }, { right, exact G'.symm' h, } } }
 
 /--
 A characterization of the neighbor set of a subgraph as a subset of the neighbor set of the graph.

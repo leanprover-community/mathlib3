@@ -34,7 +34,7 @@ This isn't quite the same as adjoining elements to rings, since the element migh
 variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (S : set E)
 
 /--
-Adjoining a set S ⊆ E to a field F
+`adjoin F S` extends a field `F` by adjoining a set `S ⊆ E`.
 -/
 def adjoin : set E := field.closure (set.range (algebra_map F E) ∪ S)
 

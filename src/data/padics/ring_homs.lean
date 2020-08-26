@@ -636,9 +636,8 @@ lemma lift_spec (n : ℕ) : (to_zmod_pow n).comp (lift f_compat) = f n :=
 begin
   ext r,
   haveI : fact (0 < p ^ n) := nat.pow_pos (nat.prime.pos ‹_›) n,
-  rw [ring_hom.comp_apply, ← zmod.cast_val (f n r), ← (to_zmod_pow n).map_nat_cast],
-  rw [← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker],
-  rw [ker_to_zmod_pow],
+  rw [ring_hom.comp_apply, ← zmod.cast_val (f n r), ← (to_zmod_pow n).map_nat_cast,
+      ← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker, ker_to_zmod_pow],
   apply lift_sub_val_mem_span,
 end
 

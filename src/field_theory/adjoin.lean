@@ -19,7 +19,7 @@ import data.zmod.basic
 
 In this file we introduce the notion of adjoining elements to fields.
 This isn't quite the same as adjoining elements to rings.
-For example, algebra.adjoin K {x} might not include x⁻¹
+For example, algebra.adjoin K {x} might not include x⁻¹.
 
 ## Main results
 
@@ -37,7 +37,16 @@ variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (S : set E)
 /--
 `adjoin F S` extends a field `F` by adjoining a set `S ⊆ E`.
 -/
-def adjoin : set E := field.closure (set.range (algebra_map F E) ∪ S)
+def adjoin : subalgebra F E := {
+  carrier := {
+    carrier := field.closure (set.range (algebra_map F E) ∪ S),
+    one_mem' := is_submonoid.one_mem,
+    mul_mem' := λ x y, is_submonoid.mul_mem,
+    zero_mem' := is_add_submonoid.zero_mem,
+    add_mem' := λ x y, is_add_submonoid.add_mem,
+  },
+  algebra_map_mem' := λ x, field.mem_closure (or.inl (set.mem_range.mpr ⟨x,rfl⟩)),
+}
 
 lemma adjoin.field_mem (x : F) : algebra_map F E x ∈ adjoin F S :=
 field.mem_closure (or.inl (set.mem_range_self x))
@@ -62,10 +71,10 @@ lemma adjoin.set_subset : S ⊆ adjoin F S :=
 instance adjoin.set_coe : has_coe_t S (adjoin F S) :=
 {coe := λ x, ⟨↑x, adjoin.set_mem F S x⟩}
 
-lemma adjoin.mono (T : set E) (h : S ⊆ T) : adjoin F S ⊆ adjoin F T :=
+lemma adjoin.mono (T : set E) (h : S ⊆ T) : (adjoin F S : set E) ⊆ adjoin F T :=
 field.closure_mono (set.union_subset (set.subset_union_left _ _) (set.subset_union_of_subset_right h _))
 
-instance adjoin.is_subfield : is_subfield (adjoin F S) := field.closure.is_subfield
+instance adjoin.is_subfield : is_subfield (adjoin F S : set E) := field.closure.is_subfield
 
 lemma adjoin_contains_field_as_subfield (F : set E) {HF : is_subfield F} : F ⊆ adjoin F S :=
 λ x hx, adjoin.field_mem F S ⟨x, hx⟩
@@ -76,32 +85,8 @@ begin
   exact adjoin.set_mem F S ⟨x,H hx⟩,
 end
 
-instance adjoin.is_algebra : algebra F (adjoin F S) := {
-  smul := λ x y, ⟨algebra_map F E x, adjoin.field_mem F S x⟩ * y,
-  to_fun := λ x, ⟨algebra_map F E x, adjoin.field_mem F S x⟩,
-  map_one' := by simp only [ring_hom.map_one];refl,
-  map_mul' := λ x y, by simp only [ring_hom.map_mul];refl,
-  map_zero' := by simp only [ring_hom.map_zero];refl,
-  map_add' := λ x y, by simp only [ring_hom.map_add];refl,
-  commutes' := λ x y, by rw mul_comm,
-  smul_def' := λ x y, rfl,
-}
-
-/-- F[S] is an F-submodule of E -/
-def adjoin_as_submodule : submodule F E := {
-  carrier := adjoin F S,
-  zero_mem' := is_add_submonoid.zero_mem,
-  add_mem' := λ a b, is_add_submonoid.add_mem,
-  smul_mem' :=
-  begin
-    intros a b hb,
-    rw algebra.smul_def,
-    exact is_submonoid.mul_mem (adjoin.field_mem F S a) hb,
-  end
-}
-
 /-- proves an obvious linear equivalence (occasionally useful when working with dimension) -/
-definition adjoin_as_submodule_equiv : (adjoin F S) ≃ₗ[F] (adjoin_as_submodule F S) := {
+definition adjoin_as_submodule_equiv : (adjoin F S) ≃ₗ[F] (adjoin F S) := {
   to_fun := λ x, x,
   map_add' := λ x y, rfl,
   map_smul' :=
@@ -120,7 +105,7 @@ definition adjoin_as_submodule_equiv : (adjoin F S) ≃ₗ[F] (adjoin_as_submodu
 
 /-- If F ⊆ T and S ⊆ T then F[S] ⊆ F[T] -/
 lemma adjoin_subset {T : set E} [is_subfield T] (HF : set.range (algebra_map F E) ⊆ T)
-(HS : S ⊆ T) : adjoin F S ⊆ T :=
+(HS : S ⊆ T) : (adjoin F S : set E) ⊆ T :=
 begin
   apply field.closure_subset,
   rw set.union_subset_iff,
@@ -128,7 +113,7 @@ begin
 end
 
 /-- If S ⊆ F[T] then F[S] ⊆ F[T] -/
-lemma adjoin_subset' {T : set E} (HT : S ⊆ adjoin F T) : adjoin F S ⊆ adjoin F T :=
+lemma adjoin_subset' {T : set E} (HT : S ⊆ adjoin F T) : (adjoin F S : set E) ⊆ adjoin F T :=
 adjoin_subset F S (adjoin.field_subset F T) HT
 
 lemma set_range_subset {T₁ T₂ : set E} [is_subfield T₁] {hyp : T₁ ⊆ T₂} :
@@ -146,7 +131,7 @@ T ⊆ adjoin F S :=
 λ x hx, adjoin.field_mem F S ⟨x,HT hx⟩
 
 /-- F[S][T] = F[S ∪ T] -/
-lemma adjoin_twice (T : set E) : adjoin (adjoin F S) T = adjoin F (S ∪ T) :=
+lemma adjoin_twice (T : set E) : (adjoin (adjoin F S : set E) T : set E) = adjoin F (S ∪ T) :=
 begin
   apply set.eq_of_subset_of_subset,
   apply adjoin_subset,
@@ -158,7 +143,7 @@ begin
   apply adjoin_contains_subset,
   apply set.subset_union_right,
   apply adjoin_subset,
-  transitivity adjoin F S,
+  transitivity (adjoin F S : set E),
   apply adjoin.field_subset,
   apply adjoin_subset,
   apply adjoin_contains_field_subset,
@@ -201,5 +186,5 @@ def adjoin_simple.gen : F[α] := ⟨α, mem_adjoin_simple_self F α⟩
 
 lemma adjoin_simple.algebra_map_gen : algebra_map F[α] E (adjoin_simple.gen F α) = α := rfl
 
-lemma adjoin_simple_adjoin_simple (β : E) : F[α][β] = adjoin F {α,β} :=
+lemma adjoin_simple_adjoin_simple (β : E) : ((F[α] : set E)[β] : set E) = adjoin F ({α,β} : set E) :=
 adjoin_twice _ _ _

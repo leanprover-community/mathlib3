@@ -159,19 +159,6 @@ end
 lemma adjoin.composition :
 (algebra_map F E) = (algebra_map (adjoin F S) E).comp (algebra_map F (adjoin F S)) := by ext;refl
 
-instance adjoin_algebra_tower : is_scalar_tower F (adjoin F S) E := {
-  smul_assoc :=
-  begin
-    intros x y z,
-    rw algebra.smul_def,
-    rw algebra.smul_def,
-    rw algebra.smul_def,
-    rw ring_hom.map_mul,
-    rw mul_assoc,
-    refl,
-  end
-}
-
 variables (α : E)
 
 --we're working on automatically getting notation for K[α,β,γ], but haven't quite figured it out yet

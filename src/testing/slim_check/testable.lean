@@ -283,8 +283,7 @@ def add_to_counter_example (x : string) {p q : Prop}
 /-- add some formatting to the information recorded by `add_to_counter_example` -/
 def add_var_to_counter_example {γ : Type v} [has_to_string γ]
   (var : string) (x : γ) {p q : Prop}
-  (h : q → p)
-: test_result p →
+  (h : q → p) : test_result p →
   opt_param (psum unit (p → q)) (psum.inl ()) →
   test_result q :=
 @add_to_counter_example (var ++ " := " ++ to_string x) _ _ h
@@ -320,8 +319,7 @@ instance and_testable (p q : Prop) [testable p] [testable q] :
 
 @[priority 5000]
 instance imp_dec_testable {var} (p : Prop) [decidable p] (β : p → Prop)
-  [∀ h, testable (β h)]
-: testable (named_binder var $ Π h, β h) :=
+  [∀ h, testable (β h)] : testable (named_binder var $ Π h, β h) :=
 ⟨ λ tracing min, do
     if h : p
     then (λ r, convert_counter_example ($ h) r (psum.inr $ λ q _, q)) <$> testable.run (β h) tracing min
@@ -329,8 +327,7 @@ instance imp_dec_testable {var} (p : Prop) [decidable p] (β : p → Prop)
     else return $ gave_up 1 ⟩
 
 @[priority 2000]
-instance all_types_testable (var : string) [testable (f ℤ)]
-: testable (named_binder (some var) $ Π x, f x) :=
+instance all_types_testable (var : string) [testable (f ℤ)] : testable (named_binder (some var) $ Π x, f x) :=
 ⟨ λ tracing min, do
     r ← testable.run (f ℤ) tracing min,
     return $ add_var_to_counter_example var "ℤ" ($ ℤ) r ⟩
@@ -381,8 +378,7 @@ instance test_forall_in_list (var : string) (var' : option string)
 /-- Test proposition `p` by randomly selecting one of the provided
 testable instances -/
 def combine_testable (p : Prop)
-  (t : list $ testable p) (h : 0 < t.length)
-: testable p :=
+  (t : list $ testable p) (h : 0 < t.length) : testable p :=
 ⟨ λ tracing min, have 0 < length (map (λ t, @testable.run _ t tracing min) t),
     by { rw [length_map], apply h },
   gen.one_of (list.map (λ t, @testable.run _ t tracing min) t) this ⟩
@@ -415,8 +411,7 @@ def trace_if_giveup {p α β} [has_to_string α] (tracing_enabled : bool) (var :
 /-- Test a universal property by creating a sample of the right type and instantiating the
 bound variable with it -/
 instance var_testable [has_to_string α] [sampleable α] [∀ x, testable (β x)]
-  (var : option string)
-: testable (named_binder var $ Π x : α, β x) :=
+  (var : option string) : testable (named_binder var $ Π x : α, β x) :=
 ⟨ λ tracing min, do
    uliftable.adapt_down (sample α) $
    λ x, do
@@ -431,17 +426,15 @@ instance var_testable [has_to_string α] [sampleable α] [∀ x, testable (β x)
 
 @[priority 3000]
 instance unused_var_testable {β} [inhabited α] [testable β]
-  (var : option string)
-: testable (named_binder var $ Π x : α, β) :=
+  (var : option string) : testable (named_binder var $ Π x : α, β) :=
 ⟨ λ tracing min, do
   r ← testable.run β tracing min,
   pure $ convert_counter_example ($ default _) r (psum.inr $ λ x _, x) ⟩
 
 @[priority 2000]
 instance subtype_var_testable {p : α → Prop} [has_to_string α] [sampleable (subtype p)]
-  [∀ x, testable (β x)]
-  (var var' : option string)
-: testable (named_binder var $ Π x : α, named_binder var' $ p x → β x) :=
+  [∀ x, testable (β x)] (var var' : option string) :
+  testable (named_binder var $ Π x : α, named_binder var' $ p x → β x) :=
 ⟨ λ tracing min,
    do r ← @testable.run (∀ x : subtype p, β x.val) (slim_check.var_testable _ _ var) tracing min,
       pure $ convert_counter_example'

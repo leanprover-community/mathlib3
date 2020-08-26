@@ -5,14 +5,7 @@ Authors: Thomas Browning and Patrick Lutz
 -/
 
 import field_theory.subfield
-import field_theory.separable
-import field_theory.tower
-import group_theory.subgroup
-import field_theory.minimal_polynomial
-import linear_algebra.dimension
 import linear_algebra.finite_dimensional
-import ring_theory.adjoin_root
-import data.zmod.basic
 
 /-!
 # Adjoining Elements to Fields
@@ -161,17 +154,29 @@ lemma adjoin.composition :
 
 variables (α : E)
 
---we're working on automatically getting notation for K[α,β,γ], but haven't quite figured it out yet
-notation K`[`:std.prec.max_plus β`]` := adjoin K (@singleton _ _ set.has_singleton β)
-notation K`[`:std.prec.max_plus β `,` γ`]` := adjoin K {β,γ}
+notation K`[`:std.prec.max_plus l:(foldr `, ` (h t, set.insert h t) ∅) `]` := adjoin K l
+
+--unfortunately this lemma is not definitionally true
+lemma adjoin_singleton : F[α] = adjoin F {α} :=
+begin
+  change adjoin F (insert α ∅) = adjoin F {α},
+  rw insert_emptyc_eq α,
+  exact set.is_lawful_singleton,
+end
 
 lemma mem_adjoin_simple_self : α ∈ F[α] :=
-adjoin.set_mem F {α} (⟨α,set.mem_singleton α⟩ : ({α} : set E))
+begin
+  rw adjoin_singleton,
+  exact adjoin.set_mem F {α} (⟨α,set.mem_singleton α⟩ : ({α} : set E)),
+end
 
 /-- generator of F(α) -/
 def adjoin_simple.gen : F[α] := ⟨α, mem_adjoin_simple_self F α⟩
 
 lemma adjoin_simple.algebra_map_gen : algebra_map F[α] E (adjoin_simple.gen F α) = α := rfl
 
-lemma adjoin_simple_adjoin_simple (β : E) : ((F[α] : set E)[β] : set E) = adjoin F ({α,β} : set E) :=
-adjoin_twice _ _ _
+lemma adjoin_simple_adjoin_simple (β : E) : F[α,β] = adjoin F {α,β} :=
+begin
+  change adjoin F (insert α (insert β ∅)) = adjoin F _,
+  simp only [insert_emptyc_eq],
+end

@@ -28,7 +28,7 @@ This isn't quite the same as adjoining elements to rings, since the element migh
 
 ## Notation
 
- - `F[α]` : Adjoin α to F.
+ - `F[α]` : Adjoin a single element α to F.
 -/
 
 variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (S : set E)

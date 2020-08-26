@@ -1604,7 +1604,8 @@ Some formalizations of statements from Bollobas, "Modern graph theory"
 -/
 
 /--
-Veblen 1912 (theorem 1 in book)
+Veblen 1912 (theorem 1 in book). Every vertex has even degree iff there is a
+partition of the graph into edge-disjoint cycles.
 -/
 theorem edge_partition_cycles (G : α) [fintype (V G)] :
   (∀ v : V G, degree v % 2 = 0) ↔ (∃ partition : set (subgraph G), (∀ G' ∈ partition, subgraph.is_cycle G') ∧
@@ -1613,7 +1614,8 @@ theorem edge_partition_cycles (G : α) [fintype (V G)] :
 sorry
 
 /--
-Mantel 1907 (theorem 2 in book)
+Mantel 1907 (theorem 2 in book). If a graph with n vertices and m edges satisfies
+floor(n^2 /4) < m, then it contains a triangle.
 -/
 theorem has_triangle (G : α) [fintype (V G)] (h : (fintype.card (V G))^2 / 4 < (edge_finset G).card) :
   nonempty (cycle_graph 3 (by linarith) ↪g G) :=

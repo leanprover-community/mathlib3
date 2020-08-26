@@ -8,10 +8,10 @@ import data.padics.padic_integers
 
 /-!
 
-# Relating `ℤ_[p]` to `zmod p`
+# Relating `ℤ_[p]` to `zmod (p ^ n)`
 
 In this file we establish connections between the `p`-adic integers $\mathbb{Z}_p$
-and the integers modulo `p` $\mathbb{Z}/p^n\mathbb{Z}$.
+and the integers modulo powers of `p`, $\mathbb{Z}/p^n\mathbb{Z}$.
 
 ## Main declarations
 
@@ -476,9 +476,10 @@ variables {R : Type*} [comm_ring R] (f : Π k : ℕ, R →+* zmod (p^k))
 omit hp_prime
 
 /--
-Given a family of ring homs `f : Π k : ℕ, R →+* zmod (p^k)`,
+Given a family of ring homs `f : Π n : ℕ, R →+* zmod (p ^ n)`,
 `nth_hom f r` is an integer-valued sequence
-whose `n`th value is `f n r`.
+whose `n`th value is the unique integer `k` such that `0 ≤ k < p ^ n`
+and `f n r = (k : zmod (p ^ n))`.
 -/
 def nth_hom (r : R) : ℕ → ℤ :=
 λ n, (f n r : zmod (p^n)).val
@@ -519,7 +520,7 @@ end
 /--
 `nth_hom_seq f_compat r` bundles `padic_int.nth_hom f r`
 as a Cauchy sequence of rationals with respect to the `p`-adic norm.
-The `n`th value of the sequence is `((f n r : ℤ) : ℚ)`.
+The `n`th value of the sequence is `((f n r).val : ℚ)`.
 -/
 def nth_hom_seq (r : R) : padic_seq p := ⟨λ n, nth_hom f r n, is_cau_seq_nth_hom f_compat r⟩
 
@@ -577,7 +578,7 @@ end
 
 /--
 `lim_nth_hom f_compat r` is the limit of a sequence `f` of compatible ring homs `R →+* zmod (p^k)`.
-This is itself a ring hom: see `paic_int.lift`.
+This is itself a ring hom: see `padic_int.lift`.
 -/
 def lim_nth_hom (r : R) : ℤ_[p] :=
 of_int_seq (nth_hom f r) (is_cau_seq_nth_hom f_compat r)
@@ -627,24 +628,16 @@ omit f_compat
 lemma lift_sub_val_mem_span (r : R) (n : ℕ) :
   (lift f_compat r - (f n r).val) ∈ (ideal.span {↑p ^ n} : ideal ℤ_[p]) :=
 begin
-  obtain ⟨k, hk⟩ := lim_nth_hom_spec f_compat r _ (show (0 : ℝ) < p ^ (-n : ℤ), from _),
-  swap,
-  { rw [fpow_neg, inv_pos, fpow_coe_nat],
-    apply _root_.pow_pos, exact_mod_cast nat.prime.pos ‹_› },
-  specialize hk (max n k) (le_max_right _ _),
-  have := le_of_lt hk,
+  obtain ⟨k, hk⟩ := lim_nth_hom_spec f_compat r _
+    (show (0 : ℝ) < p ^ (-n : ℤ), from nat.fpow_pos_of_pos hp_prime.pos _),
+  have := le_of_lt (hk (max n k) (le_max_right _ _)),
   rw norm_le_pow_iff_mem_span_pow at this,
-  dsimp at this,
   dsimp [lift],
   rw sub_eq_sub_add_sub (lim_nth_hom f_compat r) _ ↑(nth_hom f r (max n k)),
   apply ideal.add_mem _ _ this,
-  have := pow_dvd_nth_hom_sub f_compat r n (max n k) (le_max_left _ _),
-  rw ideal.mem_span_singleton,
-  rw show (p ^ n : ℤ_[p]) = (p ^ n : ℤ),
-  { norm_cast },
-  convert (int.cast_ring_hom ℤ_[p]).map_dvd (dvd.trans _ this),
-  { simp only [nth_hom, int.cast_coe_nat, ring_hom.eq_int_cast, cast_inj, sub_right_inj, int.cast_sub], },
-  { refl }
+  rw [ideal.mem_span_singleton],
+  simpa only [ring_hom.eq_int_cast, ring_hom.map_pow, int.cast_sub] using
+    (int.cast_ring_hom ℤ_[p]).map_dvd (pow_dvd_nth_hom_sub f_compat r n (max n k) (le_max_left _ _)),
 end
 
 /--

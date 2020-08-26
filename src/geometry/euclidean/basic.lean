@@ -520,10 +520,7 @@ rfl
 @[simp] lemma orthogonal_projection_fn_eq {s : affine_subspace ℝ P} (hn : (s : set P).nonempty)
   (hc : is_complete (s.direction : set V)) (p : P) :
   orthogonal_projection_fn hn hc p = orthogonal_projection s p :=
-begin
-  rw [orthogonal_projection_def, dif_pos (and.intro hn hc)],
-  refl
-end
+by { rw [orthogonal_projection_def, dif_pos (and.intro hn hc)], refl }
 
 @[simp] lemma orthogonal_projection_of_nonempty_of_complete_eq {s : affine_subspace ℝ P}
   (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) (p : P) :

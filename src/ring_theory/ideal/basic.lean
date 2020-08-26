@@ -333,6 +333,11 @@ instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
   .. quotient.comm_ring I,
   .. quotient.nontrivial hI.1 }
 
+lemma is_integral_domain_iff_prime (I : ideal α) : is_integral_domain I.quotient ↔ I.is_prime :=
+⟨ λ ⟨h1, h2, h3⟩, ⟨zero_ne_one_iff.1 $ @zero_ne_one _ _ ⟨h1⟩, λ x y h,
+    by { simp only [←eq_zero_iff_mem, (mk I).map_mul] at ⊢ h, exact h3 _ _ h}⟩,
+  λ h, by exactI integral_domain.to_is_integral_domain I.quotient⟩
+
 lemma exists_inv {I : ideal α} [hI : I.is_maximal] :
  ∀ {a : I.quotient}, a ≠ 0 → ∃ b : I.quotient, a * b = 1 :=
 begin

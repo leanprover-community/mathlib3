@@ -1467,7 +1467,8 @@ lemma support_smul {R:semiring γ} [add_comm_monoid β] [semimodule γ β] {b : 
 λ a, by simp only [smul_apply', mem_support_iff, ne.def]; exact mt (λ h, h.symm ▸ smul_zero _)
 
 section
-variables {α' : Type*} [has_zero δ] {p : α → Prop}
+
+variables {p : α → Prop}
 
 @[simp] lemma filter_smul {R : semiring γ} [add_comm_monoid β] [semimodule γ β]
   {b : γ} {v : α →₀ β} : (b • v).filter p = b • v.filter p :=
@@ -1499,6 +1500,16 @@ ext $ λ a', by by_cases a = a';
 @[simp] lemma smul_single' {R : semiring γ}
   (c : γ) (a : α) (b : γ) : c • finsupp.single a b = finsupp.single a (c * b) :=
 smul_single _ _ _
+
+lemma smul_single_one [semiring β] (a : α) (b : β) : b • single a 1 = single a b :=
+by rw [smul_single, smul_eq_mul, mul_one]
+
+/-- Two `R`-linear maps from `finsupp X R` which agree on `single x 1` agree everywhere. -/
+lemma hom_ext [semiring β] [add_comm_monoid γ] [semimodule β γ] (φ ψ : (α →₀ β) →ₗ[β] γ)
+  (h : ∀ a : α, φ (single a 1) = ψ (single a 1)) : φ = ψ :=
+linear_map.ext $ λ x, finsupp.induction x (by rw [φ.map_zero, ψ.map_zero]) $
+  λ _ _ _ _ _ hgh,
+  by rw [φ.map_add, ψ.map_add, hgh, ←smul_single_one, φ.map_smul, ψ.map_smul, h]
 
 end
 

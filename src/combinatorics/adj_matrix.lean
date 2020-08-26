@@ -80,7 +80,6 @@ lemma adj_matrix_mul_vec_const_apply {r : R} {v : α} :
   (G.adj_matrix R).mul_vec (function.const _ r) v = G.degree v * r :=
 by simp [degree]
 
-@[simp]
 lemma adj_matrix_mul_vec_const_apply_of_regular {d : ℕ} {r : R} (hd : G.is_regular_of_degree d)
   {v : α} :
   (G.adj_matrix R).mul_vec (function.const _ r) v = (d * r) :=

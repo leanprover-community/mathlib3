@@ -76,17 +76,6 @@ lemma map_add [add_monoid α] {β : Type w} [add_monoid β] (f : α →+ β)
   (M N : matrix m n α) : (M + N).map f = M.map f + N.map f :=
 by { ext, simp, }
 
-lemma matrix.map_sub [add_group α] {β : Type w} [add_group β] (f : α →+ β)
-  (M N : matrix m n α) : (M - N).map f = M.map f - N.map f :=
-by { ext, simp }
-
-def subsingleton_of_empty (hn : ¬ nonempty n) : subsingleton (matrix n n α) :=
-⟨λ M N, by { ext, contrapose! hn, use i }⟩
-
-@[simp]
-lemma eq_zero_of_empty [has_zero α] (hn : ¬ nonempty n) (M : matrix n n α) :
-M = 0 := @subsingleton.elim _ (subsingleton_of_empty hn) M 0
-
 end matrix
 
 /-- The `add_monoid_hom` between spaces of matrices induced by an `add_monoid_hom` between their

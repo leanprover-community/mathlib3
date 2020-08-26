@@ -7,6 +7,18 @@ import linear_algebra.matrix
 import data.rel
 import combinatorics.simple_graph
 
+/-!
+# Adjacency Matrices
+
+This module defines the adjacency matrix of a graph, and provides theorems connecting graph
+properties to computational properties of the matrix.
+
+## Main definitions
+
+* `adj_matrix` is the adjacency matrix of a `simple_graph` with coefficients in a given semiring
+
+-/
+
 open_locale big_operators matrix
 open finset matrix simple_graph
 

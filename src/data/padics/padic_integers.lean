@@ -392,6 +392,47 @@ begin
   rw [← fpow_coe_nat, int.nat_abs_of_nonneg (valuation_nonneg x)],
 end
 
+lemma norm_le_pow_iff_le_valuation (x : ℤ_[p]) (hx : x ≠ 0) (n : ℕ) :
+  ∥x∥ ≤ p ^ (-n : ℤ) ↔ ↑n ≤ x.valuation :=
+begin
+  rw norm_eq_pow_val hx,
+  lift x.valuation to ℕ using x.valuation_nonneg with k hk,
+  simp only [int.coe_nat_le, fpow_neg, fpow_coe_nat],
+  have aux : ∀ n : ℕ, 0 < (p ^ n : ℝ),
+  { apply _root_.pow_pos, exact_mod_cast nat.prime.pos ‹_› },
+  rw [inv_le_inv (aux _) (aux _)],
+  have : p ^ n ≤ p ^ k ↔ n ≤ k := (pow_right_strict_mono (nat.prime.two_le ‹_›)).le_iff_le,
+  rw [← this],
+  norm_cast,
+end
+
+lemma mem_span_pow_iff_le_valuation (x : ℤ_[p]) (hx : x ≠ 0) (n : ℕ) :
+  x ∈ (ideal.span {p ^ n} : ideal ℤ_[p]) ↔ ↑n ≤ x.valuation :=
+begin
+  rw [ideal.mem_span_singleton],
+  split,
+  { rintro ⟨c, rfl⟩,
+    suffices : c ≠ 0,
+    { rw [valuation_p_pow_mul _ _ this, le_add_iff_nonneg_right], apply valuation_nonneg, },
+    contrapose! hx, rw [hx, mul_zero], },
+  { rw [unit_coeff_spec hx] { occs := occurrences.pos [2] },
+    lift x.valuation to ℕ using x.valuation_nonneg with k hk,
+    simp only [int.nat_abs_of_nat, is_unit_unit, is_unit.dvd_mul_left, int.coe_nat_le],
+    intro H,
+    obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le H,
+    simp only [_root_.pow_add, dvd_mul_right], }
+end
+
+lemma norm_le_pow_iff_mem_span_pow (x : ℤ_[p]) (n : ℕ) :
+  ∥x∥ ≤ p ^ (-n : ℤ) ↔ x ∈ (ideal.span {p ^ n} : ideal ℤ_[p]) :=
+begin
+  by_cases hx : x = 0,
+  { subst hx,
+    simp only [norm_zero, fpow_neg, fpow_coe_nat, inv_nonneg, iff_true, submodule.zero_mem],
+    exact_mod_cast nat.zero_le _ },
+  rw [norm_le_pow_iff_le_valuation x hx, mem_span_pow_iff_le_valuation x hx],
+end
+
 instance : local_ring ℤ_[p] :=
 local_of_nonunits_ideal zero_ne_one $ λ x y, by simp; exact norm_lt_one_add
 
@@ -415,16 +456,28 @@ def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
   map_mul' := coe_mul,
   map_add' := coe_add }
 
-lemma p_dvd_of_norm_lt_one {x : ℤ_[p]} (hx : ∥x∥ < 1) : ↑p ∣ x :=
+lemma norm_le_pow_iff_norm_lt_pow_add_one (x : ℤ_[p]) (n : ℤ) :
+  ∥x∥ ≤ p ^ n ↔ ∥x∥ < p ^ (n + 1) :=
 begin
-  by_cases hx0 : x = 0, { simp only [hx0, dvd_zero] },
-  rw unit_coeff_spec hx0,
-  by_cases H : x.valuation.nat_abs = 0,
-  { rw [int.nat_abs_eq_zero] at H,
-    rw [norm_eq_pow_val hx0, H, neg_zero, fpow_zero] at hx,
-    exact (lt_irrefl _ hx).elim, },
-  { apply dvd_mul_of_dvd_right,
-    exact dvd_pow (dvd_refl _) H, }
+  have aux : ∀ n : ℤ, 0 < (p ^ n : ℝ),
+  { apply nat.fpow_pos_of_pos, exact nat.prime.pos ‹_› },
+  by_cases hx0 : x = 0, { simp [hx0, norm_zero, aux, le_of_lt (aux _)], },
+  rw norm_eq_pow_val hx0,
+  have h1p : 1 < (p : ℝ), { exact_mod_cast nat.prime.one_lt ‹_› },
+  have H := fpow_strict_mono h1p,
+  rw [H.le_iff_le, H.lt_iff_lt, int.lt_add_one_iff],
+end
+
+lemma norm_lt_pow_iff_norm_le_pow_sub_one (x : ℤ_[p]) (n : ℤ) :
+  ∥x∥ < p ^ n ↔ ∥x∥ ≤ p ^ (n - 1) :=
+by rw [norm_le_pow_iff_norm_lt_pow_add_one, sub_add_cancel]
+
+lemma norm_lt_one_iff_dvd (x : ℤ_[p]) : ∥x∥ < 1 ↔ ↑p ∣ x :=
+begin
+  have := norm_le_pow_iff_mem_span_pow x 1,
+  rw [ideal.mem_span_singleton, _root_.pow_one] at this,
+  rw [← this, norm_le_pow_iff_norm_lt_pow_add_one],
+  simp only [fpow_zero, int.coe_nat_zero, int.coe_nat_succ, add_left_neg, zero_add],
 end
 
 lemma p_nonnunit : (p : ℤ_[p]) ∈ nonunits ℤ_[p] :=
@@ -437,7 +490,7 @@ begin
   { intros x hx,
     rw ideal.mem_span_singleton,
     simp only [local_ring.mem_maximal_ideal, mem_nonunits] at hx,
-    exact p_dvd_of_norm_lt_one hx, },
+    rwa ← norm_lt_one_iff_dvd, },
   { rw [ideal.span_le, set.singleton_subset_iff], exact p_nonnunit }
 end
 
@@ -467,12 +520,6 @@ padic_norm_e.norm_int_lt_one_iff_dvd k
 lemma norm_int_lt_pow_iff_dvd {k : ℤ} {n : ℕ} : ∥(k : ℤ_[p])∥ ≤ ((↑p)^(-n : ℤ)) ↔ ↑p^n ∣ k :=
 suffices ∥(k : ℚ_[p])∥ ≤ ((↑p)^(-n : ℤ)) ↔ ↑(p^n) ∣ k, by simpa [padic_norm_z.padic_norm_z_of_int],
 padic_norm_e.norm_int_lt_pow_iff_dvd _ _
-
-lemma norm_lt_one_iff_dvd (x : ℤ_[p]) : ∥x∥ < 1 ↔ ↑p ∣ x :=
-begin
-  rw [← mem_nonunits, ← local_ring.mem_maximal_ideal, maximal_ideal_eq_span_p,
-      ideal.mem_span_singleton],
-end
 
 lemma is_unit_denom (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) : is_unit (r.denom : ℤ_[p]) :=
 begin
@@ -1076,34 +1123,47 @@ def lift : R →+* ℤ_[p] :=
 omit f_compat
 
 -- move this
+lemma norm_le_pow_iff_le_valuation (x : ℤ_[p]) (hx : x ≠ 0) (n : ℕ) :
+  ∥x∥ ≤ p ^ (-n : ℤ) ↔ ↑n ≤ x.valuation :=
+begin
+  rw norm_eq_pow_val hx,
+  lift x.valuation to ℕ using x.valuation_nonneg with k hk,
+  simp only [int.coe_nat_le, fpow_neg, fpow_coe_nat],
+  have aux : ∀ n : ℕ, 0 < (p ^ n : ℝ),
+  { apply _root_.pow_pos, exact_mod_cast nat.prime.pos ‹_› },
+  rw [inv_le_inv (aux _) (aux _)],
+  have : p ^ n ≤ p ^ k ↔ n ≤ k := (pow_right_strict_mono (nat.prime.two_le ‹_›)).le_iff_le,
+  rw [← this],
+  norm_cast,
+end
+
+-- move this
+lemma mem_span_pow_iff_le_valuation (x : ℤ_[p]) (hx : x ≠ 0) (n : ℕ) :
+  x ∈ (ideal.span {p ^ n} : ideal ℤ_[p]) ↔ ↑n ≤ x.valuation :=
+begin
+  rw [ideal.mem_span_singleton],
+  split,
+  { rintro ⟨c, rfl⟩,
+    suffices : c ≠ 0,
+    { rw [valuation_p_pow_mul _ _ this, le_add_iff_nonneg_right], apply valuation_nonneg, },
+    contrapose! hx, rw [hx, mul_zero], },
+  { rw [unit_coeff_spec hx] { occs := occurrences.pos [2] },
+    lift x.valuation to ℕ using x.valuation_nonneg with k hk,
+    simp only [int.nat_abs_of_nat, is_unit_unit, is_unit.dvd_mul_left, int.coe_nat_le],
+    intro H,
+    obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le H,
+    simp only [_root_.pow_add, dvd_mul_right], }
+end
+
+-- move this
 lemma norm_le_pow_iff_mem_span_pow (x : ℤ_[p]) (n : ℕ) :
   ∥x∥ ≤ p ^ (-n : ℤ) ↔ x ∈ (ideal.span {p ^ n} : ideal ℤ_[p]) :=
 begin
   by_cases hx : x = 0,
   { subst hx,
-    rw [norm_zero, fpow_neg, fpow_coe_nat, inv_nonneg],
-    simp only [iff_true, submodule.zero_mem],
-    norm_cast,
-    exact nat.zero_le _ },
-  rw [ideal.mem_span_singleton],
-  have aux : ∀ n : ℕ, 0 < (p ^ n : ℝ),
-  { apply _root_.pow_pos, exact_mod_cast nat.prime.pos ‹_› },
-  split,
-  { rw norm_eq_pow_val hx,
-    rw [unit_coeff_spec hx] { occs := occurrences.pos [2] },
-    lift x.valuation to ℕ using x.valuation_nonneg with k hk,
-    simp only [int.nat_abs_of_nat, is_unit_unit, is_unit.dvd_mul_left, fpow_neg, fpow_coe_nat],
-    rw [inv_le_inv (aux _) (aux _)],
-    norm_cast,
-    have : p ^ n ≤ p ^ k ↔ n ≤ k := (pow_right_strict_mono (nat.prime.two_le ‹_›)).le_iff_le,
-    rw [this],
-    intro H,
-    obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le H,
-    simp only [nat.pow_add, cast_mul, dvd_mul_right], },
-  { rintro ⟨c, rfl⟩,
-    simp only [padic_norm_z.norm_p_pow, padic_norm_z.mul, fpow_neg, fpow_coe_nat],
-    have : 0 < (p ^ n : ℝ)⁻¹, { rw inv_pos, apply aux },
-    simpa [mul_one] using (_root_.mul_le_mul_left this).mpr c.2, },
+    simp only [norm_zero, fpow_neg, fpow_coe_nat, inv_nonneg, iff_true, submodule.zero_mem],
+    exact_mod_cast nat.zero_le _ },
+  rw [norm_le_pow_iff_le_valuation x hx, mem_span_pow_iff_le_valuation x hx],
 end
 
 lemma spec_foo (r : R) (n : ℕ) :

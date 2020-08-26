@@ -59,6 +59,7 @@ def padic_int (p : ℕ) [fact p.prime] := {x : ℚ_[p] // ∥x∥ ≤ 1}
 notation `ℤ_[`p`]` := padic_int p
 
 namespace padic_int
+/-- ### Ring structure and coercion to `ℚ_[p]` -/
 variables {p : ℕ} [fact p.prime]
 
 instance : has_coe ℤ_[p] ℚ_[p] := ⟨subtype.val⟩
@@ -126,8 +127,16 @@ begin
   intros; ext; simp; ring
 end
 
-@[simp, norm_cast] lemma coe_sub : ∀ (z1 z2 : ℤ_[p]), (↑(z1 - z2) : ℚ_[p]) = ↑z1 - ↑z2
-| ⟨_, _⟩ ⟨_, _⟩ := rfl
+/-- The coercion from ℤ[p] to ℚ[p] as a ring homomorphism. -/
+def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
+{ to_fun := (coe : ℤ_[p] → ℚ_[p]),
+  map_zero' := rfl,
+  map_one' := rfl,
+  map_mul' := coe_mul,
+  map_add' := coe_add }
+
+@[simp, norm_cast] lemma coe_sub : ∀ (z1 z2 : ℤ_[p]), (↑(z1 - z2) : ℚ_[p]) = ↑z1 - ↑z2 :=
+coe.ring_hom.map_sub
 
 @[simp, norm_cast] lemma cast_pow (x : ℤ_[p]) : ∀ (n : ℕ), (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n
 | 0 := by simp
@@ -153,36 +162,56 @@ by norm_cast
 
 end padic_int
 
-section instances
-variables {p : ℕ} [fact p.prime]
+namespace padic_int
+/--
+### Instances
+
+We now show that `ℤ_[p]` is a
+* complete metric space
+* normed ring
+* integral domain
+-/
+
+variables (p : ℕ) [fact p.prime]
 
 instance : metric_space ℤ_[p] := subtype.metric_space
 
+instance complete_space : complete_space ℤ_[p] :=
+begin
+  delta padic_int,
+  rw [complete_space_iff_is_complete_range uniform_embedding_subtype_coe,
+    subtype.range_coe_subtype],
+  have : is_complete (closed_ball (0 : ℚ_[p]) 1) := is_closed_ball.is_complete,
+  simpa [closed_ball],
+end
+
 instance : has_norm ℤ_[p] := ⟨λ z, ∥(z : ℚ_[p])∥⟩
 
-lemma padic_norm_z {z : ℤ_[p]} : ∥z∥ = ∥(z : ℚ_[p])∥ := rfl
+variables {p}
+
+lemma norm_def {z : ℤ_[p]} : ∥z∥ = ∥(z : ℚ_[p])∥ := rfl
+
+variables (p)
 
 instance : normed_ring ℤ_[p] :=
 { dist_eq := λ ⟨_, _⟩ ⟨_, _⟩, rfl,
   norm_mul := λ ⟨_, _⟩ ⟨_, _⟩, norm_mul_le _ _ }
 
-instance padic_norm_z.is_absolute_value : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
+instance : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
 { abv_nonneg := norm_nonneg,
   abv_eq_zero := λ ⟨_, _⟩, by simp [norm_eq_zero],
   abv_add := λ ⟨_,_⟩ ⟨_, _⟩, norm_add_le _ _,
-  abv_mul := λ _ _, by simp [padic_norm_z] }
+  abv_mul := λ _ _, by simp only [norm_def, padic_norm_e.mul, padic_int.coe_mul]}
 
-protected lemma padic_int.pmul_comm : ∀ z1 z2 : ℤ_[p], z1*z2 = z2*z1
-| ⟨q1, h1⟩ ⟨q2, h2⟩ := show (⟨q1*q2, _⟩ : ℤ_[p]) = ⟨q2*q1, _⟩, by simp [mul_comm]
+variables {p}
 
-instance : comm_ring ℤ_[p] :=
-{ mul_comm := padic_int.pmul_comm,
-  ..padic_int.ring }
+protected lemma mul_comm : ∀ z1 z2 : ℤ_[p], z1*z2 = z2*z1
+| ⟨q1, h1⟩ ⟨q2, h2⟩ := show (⟨q1*q2, _⟩ : ℤ_[p]) = ⟨q2*q1, _⟩, by simp [_root_.mul_comm]
 
-protected lemma padic_int.zero_ne_one : (0 : ℤ_[p]) ≠ 1 :=
+protected lemma zero_ne_one : (0 : ℤ_[p]) ≠ 1 :=
 show (⟨(0 : ℚ_[p]), _⟩ : ℤ_[p]) ≠ ⟨(1 : ℚ_[p]), _⟩, from mt subtype.ext_iff_val.1 zero_ne_one
 
-protected lemma padic_int.eq_zero_or_eq_zero_of_mul_eq_zero :
+protected lemma eq_zero_or_eq_zero_of_mul_eq_zero :
           ∀ (a b : ℤ_[p]), a * b = 0 → a = 0 ∨ b = 0
 | ⟨a, ha⟩ ⟨b, hb⟩ := λ h : (⟨a * b, _⟩ : ℤ_[p]) = ⟨0, _⟩,
 have a * b = 0, from subtype.ext_iff_val.1 h,
@@ -190,54 +219,57 @@ have a * b = 0, from subtype.ext_iff_val.1 h,
   (λ h1, or.inl (by simp [h1]; refl))
   (λ h2, or.inr (by simp [h2]; refl))
 
+
+instance : comm_ring ℤ_[p] :=
+{ mul_comm := padic_int.mul_comm,
+  ..padic_int.ring }
+
 instance : integral_domain ℤ_[p] :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := padic_int.eq_zero_or_eq_zero_of_mul_eq_zero,
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y, padic_int.eq_zero_or_eq_zero_of_mul_eq_zero x y,
   exists_pair_ne := ⟨0, 1, padic_int.zero_ne_one⟩,
   ..padic_int.comm_ring }
 
-end instances
+end padic_int
 
-namespace padic_norm_z
-
+namespace padic_int
+/-- ### Norm -/
 variables {p : ℕ} [fact p.prime]
 
-lemma le_one : ∀ z : ℤ_[p], ∥z∥ ≤ 1
+lemma norm_le_one : ∀ z : ℤ_[p], ∥z∥ ≤ 1
 | ⟨_, h⟩ := h
 
-@[simp] lemma one : ∥(1 : ℤ_[p])∥ = 1 := by simp [norm, padic_norm_z]
+@[simp] lemma norm_one : ∥(1 : ℤ_[p])∥ = 1 := normed_field.norm_one
 
-@[simp] lemma mul (z1 z2 : ℤ_[p]) : ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ :=
-by simp [padic_norm_z]
+@[simp] lemma norm_mul (z1 z2 : ℤ_[p]) : ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ :=
+by simp [norm_def]
 
-@[simp] lemma pow (z : ℤ_[p]) : ∀ n : ℕ, ∥z^n∥ = ∥z∥^n
+@[simp] lemma norm_pow (z : ℤ_[p]) : ∀ n : ℕ, ∥z^n∥ = ∥z∥^n
 | 0 := by simp
-| (k+1) := show ∥z*z^k∥ = ∥z∥*∥z∥^k, by {rw mul, congr, apply pow}
+| (k+1) := show ∥z*z^k∥ = ∥z∥*∥z∥^k, by {rw norm_mul, congr, apply norm_pow}
 
 theorem nonarchimedean : ∀ (q r : ℤ_[p]), ∥q + r∥ ≤ max (∥q∥) (∥r∥)
 | ⟨_, _⟩ ⟨_, _⟩ := padic_norm_e.nonarchimedean _ _
 
-theorem add_eq_max_of_ne : ∀ {q r : ℤ_[p]}, ∥q∥ ≠ ∥r∥ → ∥q+r∥ = max (∥q∥) (∥r∥)
+theorem norm_add_eq_max_of_ne : ∀ {q r : ℤ_[p]}, ∥q∥ ≠ ∥r∥ → ∥q+r∥ = max (∥q∥) (∥r∥)
 | ⟨_, _⟩ ⟨_, _⟩ := padic_norm_e.add_eq_max_of_ne
 
-lemma norm_one : ∥(1 : ℤ_[p])∥ = 1 := normed_field.norm_one
-
-lemma eq_of_norm_add_lt_right {z1 z2 : ℤ_[p]}
+lemma norm_eq_of_norm_add_lt_right {z1 z2 : ℤ_[p]}
   (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=
 by_contradiction $ λ hne,
-  not_lt_of_ge (by rw padic_norm_z.add_eq_max_of_ne hne; apply le_max_right) h
+  not_lt_of_ge (by rw norm_add_eq_max_of_ne hne; apply le_max_right) h
 
-lemma eq_of_norm_add_lt_left {z1 z2 : ℤ_[p]}
+lemma norm_eq_of_norm_add_lt_left {z1 z2 : ℤ_[p]}
   (h : ∥z1 + z2∥ < ∥z1∥) : ∥z1∥ = ∥z2∥ :=
 by_contradiction $ λ hne,
-  not_lt_of_ge (by rw padic_norm_z.add_eq_max_of_ne hne; apply le_max_left) h
+  not_lt_of_ge (by rw norm_add_eq_max_of_ne hne; apply le_max_left) h
 
 @[simp] lemma padic_norm_e_of_padic_int (z : ℤ_[p]) : ∥(↑z : ℚ_[p])∥ = ∥z∥ :=
-by simp [padic_norm_z]
+by simp [norm_def]
 
-lemma padic_norm_z_of_int (z : ℤ) : ∥(z : ℤ_[p])∥ = ∥(z : ℚ_[p])∥ :=
-by simp [padic_norm_z]
+lemma norm_int_cast_eq_padic_norm (z : ℤ) : ∥(z : ℤ_[p])∥ = ∥(z : ℚ_[p])∥ :=
+by simp [norm_def]
 
-@[simp] lemma padic_norm_z_eq_padic_norm_e {q : ℚ_[p]} (hq : ∥q∥ ≤ 1) :
+@[simp] lemma norm_eq_padic_norm {q : ℚ_[p]} (hq : ∥q∥ ≤ 1) :
   @norm ℤ_[p] _ ⟨q, hq⟩ = ∥q∥ := rfl
 
 @[simp] lemma norm_p : ∥(p : ℤ_[p])∥ = p⁻¹ :=
@@ -247,29 +279,67 @@ show ∥((p : ℤ_[p]) : ℚ_[p])∥ = p⁻¹, by exact_mod_cast padic_norm_e.no
 show ∥((p^n : ℤ_[p]) : ℚ_[p])∥ = p^(-n:ℤ),
 by { convert padic_norm_e.norm_p_pow n, simp, }
 
-end padic_norm_z
+private def cau_seq_to_rat_cau_seq (f : cau_seq ℤ_[p] norm) :
+  cau_seq ℚ_[p] (λ a, ∥a∥) :=
+⟨ λ n, f n,
+  λ _ hε, by simpa [norm, norm_def] using f.cauchy hε ⟩
+
+variables (p)
+
+instance complete : cau_seq.is_complete ℤ_[p] norm :=
+⟨ λ f,
+  have hqn : ∥cau_seq.lim (cau_seq_to_rat_cau_seq f)∥ ≤ 1,
+    from padic_norm_e_lim_le zero_lt_one (λ _, norm_le_one _),
+  ⟨ ⟨_, hqn⟩,
+    λ ε, by simpa [norm, norm_def] using cau_seq.equiv_lim (cau_seq_to_rat_cau_seq f) ε⟩⟩
+
+end padic_int
 
 namespace padic_int
 
-variables {p : ℕ} [hp_prime : fact p.prime]
+variables (p : ℕ) [hp_prime : fact p.prime]
 include hp_prime
 
-lemma pow_p_dvd_int_iff (n : ℕ) (a : ℤ) : (p ^ n : ℤ_[p]) ∣ a ↔ ↑p ^ n ∣ a :=
+lemma exists_pow_neg_lt {ε : ℝ} (hε : ε > 0) :
+  ∃ (k : ℕ), ↑p ^ -((k : ℕ) : ℤ) < ε :=
 begin
-  split,
-  { intro h,
-    cases h with w hw,
-    have := congr_arg has_norm.norm hw,
-    simp only [padic_norm_z.padic_norm_z_of_int, padic_norm_z.norm_p_pow, padic_norm_z.mul,
-               fpow_neg, fpow_coe_nat] at this,
-    rw_mod_cast [← padic_norm_e.norm_int_lt_pow_iff_dvd, this],
-    simp only [fpow_neg, fpow_coe_nat, nat.cast_pow],
-    convert mul_le_of_le_one_right _ _ using 1,
-     { apply inv_nonneg.mpr, apply pow_nonneg, exact_mod_cast le_of_lt hp_prime.pos },
-     { apply padic_norm_z.le_one } },
-  { intro h,
-    simpa only [ring_hom.map_pow] using (int.cast_ring_hom ℤ_[p]).map_dvd h, }
+  obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
+  use k,
+  rw ← inv_lt_inv hε (_root_.fpow_pos_of_pos _ _),
+  { rw [fpow_neg, inv_inv', fpow_coe_nat],
+    apply lt_of_lt_of_le hk,
+    norm_cast,
+    apply le_of_lt,
+    convert nat.lt_pow_self _ _ using 1,
+    exact hp_prime.one_lt },
+  { exact_mod_cast hp_prime.pos }
 end
+
+-- can we golf this using exists_pow_neg_lt?
+lemma exists_pow_neg_lt_rat {ε : ℚ} (hε : ε > 0) :
+  ∃ (k : ℕ), ↑p ^ -((k : ℕ) : ℤ) < ε :=
+begin
+  obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
+  use k,
+  rw ← inv_lt_inv hε (_root_.fpow_pos_of_pos _ _),
+  { rw [fpow_neg, inv_inv', fpow_coe_nat],
+    apply lt_of_lt_of_le hk,
+    norm_cast,
+    apply le_of_lt,
+    convert nat.lt_pow_self _ _ using 1,
+    exact hp_prime.one_lt },
+  { exact_mod_cast hp_prime.pos }
+end
+
+variable {p}
+
+lemma norm_int_lt_one_iff_dvd (k : ℤ) : ∥(k : ℤ_[p])∥ < 1 ↔ ↑p ∣ k :=
+suffices ∥(k : ℚ_[p])∥ < 1 ↔ ↑p ∣ k, by rwa norm_int_cast_eq_padic_norm,
+padic_norm_e.norm_int_lt_one_iff_dvd k
+
+lemma norm_int_le_pow_iff_dvd {k : ℤ} {n : ℕ} : ∥(k : ℤ_[p])∥ ≤ ((↑p)^(-n : ℤ)) ↔ ↑p^n ∣ k :=
+suffices ∥(k : ℚ_[p])∥ ≤ ((↑p)^(-n : ℤ)) ↔ ↑(p^n) ∣ k, by simpa [norm_int_cast_eq_padic_norm],
+padic_norm_e.norm_int_le_pow_iff_dvd _ _
 
 /-! ### Valuation on `ℤ_[p]` -/
 
@@ -308,13 +378,13 @@ end
   (↑p ^ n * c).valuation = n + c.valuation :=
 begin
   have : ∥↑p ^ n * c∥ = ∥(p ^ n : ℤ_[p])∥ * ∥c∥,
-  { exact padic_norm_z.mul _ _ },
+  { exact norm_mul _ _ },
   have aux : ↑p ^ n * c ≠ 0,
   { contrapose! hc, rw mul_eq_zero at hc, cases hc,
     { refine (hp_prime.ne_zero _).elim,
       exact_mod_cast (pow_eq_zero hc) },
     { exact hc } },
-  rwa [norm_eq_pow_val aux, padic_norm_z.norm_p_pow, norm_eq_pow_val hc,
+  rwa [norm_eq_pow_val aux, norm_p_pow, norm_eq_pow_val hc,
       ← fpow_add, ← neg_add, fpow_inj, neg_inj] at this,
   { exact_mod_cast hp_prime.pos },
   { exact_mod_cast hp_prime.ne_one },
@@ -341,20 +411,20 @@ by rw [mul_comm, mul_inv hz]
 lemma is_unit_iff {z : ℤ_[p]} : is_unit z ↔ ∥z∥ = 1 :=
 ⟨λ h, begin
   rcases is_unit_iff_dvd_one.1 h with ⟨w, eq⟩,
-  refine le_antisymm (padic_norm_z.le_one _) _,
-  have := mul_le_mul_of_nonneg_left (padic_norm_z.le_one w) (norm_nonneg z),
-  rwa [mul_one, ← padic_norm_z.mul, ← eq, padic_norm_z.one] at this
+  refine le_antisymm (norm_le_one _) _,
+  have := mul_le_mul_of_nonneg_left (norm_le_one w) (norm_nonneg z),
+  rwa [mul_one, ← norm_mul, ← eq, norm_one] at this
 end, λ h, ⟨⟨z, z.inv, mul_inv h, inv_mul h⟩, rfl⟩⟩
 
 lemma norm_lt_one_add {z1 z2 : ℤ_[p]} (hz1 : ∥z1∥ < 1) (hz2 : ∥z2∥ < 1) : ∥z1 + z2∥ < 1 :=
-lt_of_le_of_lt (padic_norm_z.nonarchimedean _ _) (max_lt hz1 hz2)
+lt_of_le_of_lt (nonarchimedean _ _) (max_lt hz1 hz2)
 
 lemma norm_lt_one_mul {z1 z2 : ℤ_[p]} (hz2 : ∥z2∥ < 1) : ∥z1 * z2∥ < 1 :=
 calc  ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ : by simp
-           ... < 1 : mul_lt_one_of_nonneg_of_lt_one_right (padic_norm_z.le_one _) (norm_nonneg _) hz2
+           ... < 1 : mul_lt_one_of_nonneg_of_lt_one_right (norm_le_one _) (norm_nonneg _) hz2
 
 @[simp] lemma mem_nonunits {z : ℤ_[p]} : z ∈ nonunits ℤ_[p] ↔ ∥z∥ < 1 :=
-by rw lt_iff_le_and_ne; simp [padic_norm_z.le_one z, nonunits, is_unit_iff]
+by rw lt_iff_le_and_ne; simp [norm_le_one z, nonunits, is_unit_iff]
 
 /-- A `p`-adic number `u` with `∥u∥ = 1` is a unit of `ℤ_[p]`. -/
 def mk_units {u : ℚ_[p]} (h : ∥u∥ = 1) : units ℤ_[p] :=
@@ -433,29 +503,6 @@ begin
   rw [norm_le_pow_iff_le_valuation x hx, mem_span_pow_iff_le_valuation x hx],
 end
 
-instance : local_ring ℤ_[p] :=
-local_of_nonunits_ideal zero_ne_one $ λ x y, by simp; exact norm_lt_one_add
-
-private def cau_seq_to_rat_cau_seq (f : cau_seq ℤ_[p] norm) :
-  cau_seq ℚ_[p] (λ a, ∥a∥) :=
-⟨ λ n, f n,
-  λ _ hε, by simpa [norm, padic_norm_z] using f.cauchy hε ⟩
-
-instance complete : cau_seq.is_complete ℤ_[p] norm :=
-⟨ λ f,
-  have hqn : ∥cau_seq.lim (cau_seq_to_rat_cau_seq f)∥ ≤ 1,
-    from padic_norm_e_lim_le zero_lt_one (λ _, padic_norm_z.le_one _),
-  ⟨ ⟨_, hqn⟩,
-    λ ε, by simpa [norm, padic_norm_z] using cau_seq.equiv_lim (cau_seq_to_rat_cau_seq f) ε⟩⟩
-
-/-- The coercion from ℤ[p] to ℚ[p] as a ring homomorphism. -/
-def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
-{ to_fun := (coe : ℤ_[p] → ℚ_[p]),
-  map_zero' := rfl,
-  map_one' := rfl,
-  map_mul' := coe_mul,
-  map_add' := coe_add }
-
 lemma norm_le_pow_iff_norm_lt_pow_add_one (x : ℤ_[p]) (n : ℤ) :
   ∥x∥ ≤ p ^ n ↔ ∥x∥ < p ^ (n + 1) :=
 begin
@@ -479,6 +526,12 @@ begin
   rw [← this, norm_le_pow_iff_norm_lt_pow_add_one],
   simp only [fpow_zero, int.coe_nat_zero, int.coe_nat_succ, add_left_neg, zero_add],
 end
+
+@[simp] lemma pow_p_dvd_int_iff (n : ℕ) (a : ℤ) : (p ^ n : ℤ_[p]) ∣ a ↔ ↑p ^ n ∣ a :=
+by rw [← norm_int_le_pow_iff_dvd, norm_le_pow_iff_mem_span_pow, ideal.mem_span_singleton]
+
+instance : local_ring ℤ_[p] :=
+local_of_nonunits_ideal zero_ne_one $ λ x y, by simp; exact norm_lt_one_add
 
 lemma p_nonnunit : (p : ℤ_[p]) ∈ nonunits ℤ_[p] :=
 have (p : ℝ)⁻¹ < 1, from inv_lt_one $ by exact_mod_cast hp_prime.one_lt,
@@ -513,54 +566,6 @@ lemma ideal_eq_span_pow_p {s : ideal ℤ_[p]} (hs : s ≠ ⊥) :
   ∃ n : ℕ, s = ideal.span {p ^ n} :=
 discrete_valuation_ring.ideal_eq_span_pow_irreducible hs irreducible_p
 
-lemma norm_int_lt_one_iff_dvd (k : ℤ) : ∥(k : ℤ_[p])∥ < 1 ↔ ↑p ∣ k :=
-suffices ∥(k : ℚ_[p])∥ < 1 ↔ ↑p ∣ k, by rwa padic_norm_z.padic_norm_z_of_int,
-padic_norm_e.norm_int_lt_one_iff_dvd k
-
-lemma norm_int_lt_pow_iff_dvd {k : ℤ} {n : ℕ} : ∥(k : ℤ_[p])∥ ≤ ((↑p)^(-n : ℤ)) ↔ ↑p^n ∣ k :=
-suffices ∥(k : ℚ_[p])∥ ≤ ((↑p)^(-n : ℤ)) ↔ ↑(p^n) ∣ k, by simpa [padic_norm_z.padic_norm_z_of_int],
-padic_norm_e.norm_int_lt_pow_iff_dvd _ _
-
-lemma is_unit_denom (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) : is_unit (r.denom : ℤ_[p]) :=
-begin
-  rw is_unit_iff,
-  apply le_antisymm (r.denom : ℤ_[p]).2,
-  rw [← not_lt, val_eq_coe, coe_coe],
-  intro norm_denom_lt,
-  have hr : ∥(r * r.denom : ℚ_[p])∥ = ∥(r.num : ℚ_[p])∥,
-  { rw_mod_cast @rat.mul_denom_eq_num r, refl, },
-  rw padic_norm_e.mul at hr,
-  have key : ∥(r.num : ℚ_[p])∥ < 1,
-  { calc _ = _ : hr.symm
-    ... < 1 * 1 : _
-    ... = 1 : mul_one 1,
-    apply mul_lt_mul' h norm_denom_lt (norm_nonneg _) zero_lt_one, },
-  have : ↑p ∣ r.num ∧ (p : ℤ) ∣ r.denom,
-  { simp only [← norm_int_lt_one_iff_dvd, ← padic_norm_z.padic_norm_e_of_padic_int],
-    norm_cast, exact ⟨key, norm_denom_lt⟩ },
-  apply hp_prime.not_dvd_one,
-  rwa [← r.cop.gcd_eq_one, nat.dvd_gcd_iff, ← int.coe_nat_dvd_left, ← int.coe_nat_dvd],
-end
-
-lemma norm_sub_mod_part_aux (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
-  ↑p ∣ r.num - r.num * r.denom.gcd_a p % p * ↑(r.denom) :=
-begin
-  rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
-  simp only [int.cast_coe_nat, zmod.cast_mod_nat p, int.cast_mul, int.cast_sub],
-  have := congr_arg (coe : ℤ → zmod p) (gcd_eq_gcd_ab r.denom p),
-  simp only [int.cast_coe_nat, add_zero, int.cast_add, zmod.cast_self, int.cast_mul, zero_mul] at this,
-  push_cast,
-  rw [mul_right_comm, mul_assoc, ←this],
-  suffices rdcp : r.denom.coprime p,
-  { rw rdcp.gcd_eq_one, simp only [mul_one, cast_one, sub_self], },
-  apply coprime.symm,
-  apply (coprime_or_dvd_of_prime ‹_› _).resolve_right,
-  rw [← int.coe_nat_dvd, ← norm_int_lt_one_iff_dvd, not_lt],
-  apply ge_of_eq,
-  rw ← is_unit_iff,
-  exact is_unit_denom r h,
-end
-
 section
 variables (r : ℚ)
 variable (p)
@@ -592,20 +597,52 @@ end
 lemma mod_part_nonneg : 0 ≤ mod_part p r :=
 int.mod_nonneg _ $ by exact_mod_cast hp_prime.ne_zero
 
+lemma is_unit_denom (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) : is_unit (r.denom : ℤ_[p]) :=
+begin
+  rw is_unit_iff,
+  apply le_antisymm (r.denom : ℤ_[p]).2,
+  rw [← not_lt, val_eq_coe, coe_coe],
+  intro norm_denom_lt,
+  have hr : ∥(r * r.denom : ℚ_[p])∥ = ∥(r.num : ℚ_[p])∥,
+  { rw_mod_cast @rat.mul_denom_eq_num r, refl, },
+  rw padic_norm_e.mul at hr,
+  have key : ∥(r.num : ℚ_[p])∥ < 1,
+  { calc _ = _ : hr.symm
+    ... < 1 * 1 : _
+    ... = 1 : mul_one 1,
+    apply mul_lt_mul' h norm_denom_lt (norm_nonneg _) zero_lt_one, },
+  have : ↑p ∣ r.num ∧ (p : ℤ) ∣ r.denom,
+  { simp only [← norm_int_lt_one_iff_dvd, ← padic_norm_e_of_padic_int],
+    norm_cast, exact ⟨key, norm_denom_lt⟩ },
+  apply hp_prime.not_dvd_one,
+  rwa [← r.cop.gcd_eq_one, nat.dvd_gcd_iff, ← int.coe_nat_dvd_left, ← int.coe_nat_dvd],
+end
+
+lemma norm_sub_mod_part_aux (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
+  ↑p ∣ r.num - r.num * r.denom.gcd_a p % p * ↑(r.denom) :=
+begin
+  rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
+  simp only [int.cast_coe_nat, zmod.cast_mod_nat p, int.cast_mul, int.cast_sub],
+  have := congr_arg (coe : ℤ → zmod p) (gcd_eq_gcd_ab r.denom p),
+  simp only [int.cast_coe_nat, add_zero, int.cast_add, zmod.cast_self, int.cast_mul, zero_mul] at this,
+  push_cast,
+  rw [mul_right_comm, mul_assoc, ←this],
+  suffices rdcp : r.denom.coprime p,
+  { rw rdcp.gcd_eq_one, simp only [mul_one, cast_one, sub_self], },
+  apply coprime.symm,
+  apply (coprime_or_dvd_of_prime ‹_› _).resolve_right,
+  rw [← int.coe_nat_dvd, ← norm_int_lt_one_iff_dvd, not_lt],
+  apply ge_of_eq,
+  rw ← is_unit_iff,
+  exact is_unit_denom r h,
+end
+
 lemma norm_sub_mod_part (h : ∥(r : ℚ_[p])∥ ≤ 1) : ∥(⟨r,h⟩ - mod_part p r : ℤ_[p])∥ < 1 :=
 begin
-  let n := mod_part p r,  by_cases aux : (⟨r,h⟩ - n : ℤ_[p]) = 0,
+  let n := mod_part p r,
+  by_cases aux : (⟨r,h⟩ - n : ℤ_[p]) = 0,
   { rw [aux, norm_zero], exact zero_lt_one, },
-  suffices : ↑p ∣ (⟨r,h⟩ - n : ℤ_[p]),
-  { rcases this with ⟨x, hx⟩,
-    calc ∥(⟨r,h⟩ - n : ℤ_[p])∥
-        = ∥(p : ℤ_[p])∥ * ∥x∥ : by rw [hx, padic_norm_z.mul]
-    ... ≤ ∥(p : ℤ_[p])∥ * 1   : mul_le_mul (le_refl _) x.2 (norm_nonneg _) (norm_nonneg _)
-    ... < 1 : _,
-    { rw [mul_one, padic_norm_z.norm_p],
-      apply inv_lt_one,
-      exact_mod_cast hp_prime.one_lt }, },
-  rw ← (is_unit_denom r h).dvd_mul_right,
+  rw [norm_lt_one_iff_dvd, ← (is_unit_denom r h).dvd_mul_right],
   suffices : ↑p ∣ r.num - n * r.denom,
   { convert (int.cast_ring_hom ℤ_[p]).map_dvd this,
     simp only [sub_mul, int.cast_coe_nat, ring_hom.eq_int_cast, int.cast_mul,
@@ -671,7 +708,7 @@ begin
   lift n to ℕ using hzn,
   use [n],
   split, {exact_mod_cast hnp},
-  simp only [padic_norm_z, coe_sub, subtype.coe_mk, coe_coe] at hn ⊢,
+  simp only [norm_def, coe_sub, subtype.coe_mk, coe_coe] at hn ⊢,
   rw show (x - n : ℚ_[p]) = (x - r) + (r - n), by ring,
   apply lt_of_le_of_lt (padic_norm_e.nonarchimedean _ _),
   apply max_lt hr,
@@ -925,9 +962,35 @@ end
   ↑(to_zmod_pow n x) = to_zmod_pow m x :=
 by { rw ← zmod_cast_comp_to_zmod_pow _ _ h, refl }
 
+lemma dense_range_nat_cast :
+  dense_range (nat.cast : ℕ → ℤ_[p]) :=
+begin
+  intro x,
+  rw mem_closure_range_iff,
+  intros ε hε,
+  obtain ⟨n, hn⟩ := exists_pow_neg_lt p hε,
+  use (x.appr n),
+  rw dist_eq_norm,
+  apply lt_of_le_of_lt _ hn,
+  rw norm_le_pow_iff_mem_span_pow,
+  apply appr_spec,
+end
+
+lemma dense_range_int_cast :
+  dense_range (int.cast : ℤ → ℤ_[p]) :=
+begin
+  intro x,
+  apply dense_range_nat_cast.induction_on x,
+  { exact is_closed_closure, },
+  { intro a,
+    change (a.cast : ℤ_[p]) with (a : ℤ).cast,
+    apply subset_closure,
+    exact set.mem_range_self _ }
+end
+
 end padic_int
 
-namespace padic_norm_z
+namespace norm_def
 variables {p : ℕ} [fact p.prime]
 
 lemma padic_val_of_cong_pow_p {z1 z2 : ℤ} {n : ℕ} (hz : z1 ≡ z2 [ZMOD ↑(p^n)]) :
@@ -939,7 +1002,7 @@ begin
   exact_mod_cast padic_norm.dvd_iff_norm_le.mp hdvd
 end
 
-end padic_norm_z
+end norm_def
 
 namespace padic_int
 variables {p : ℕ} [fact p.prime]
@@ -983,37 +1046,6 @@ end
 omit f_compat
 variable (p)
 
-lemma exists_aux {ε : ℝ} (hε : ε > 0) :
-  ∃ (k : ℕ), ↑p ^ -((k : ℕ) : ℤ) < ε :=
-begin
-  obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
-  use k,
-  rw ← inv_lt_inv hε (_root_.fpow_pos_of_pos _ _),
-  { rw [fpow_neg, inv_inv', fpow_coe_nat],
-    apply lt_of_lt_of_le hk,
-    norm_cast,
-    apply le_of_lt,
-    convert nat.lt_pow_self _ _ using 1,
-    exact nat.prime.one_lt ‹_› },
-  { exact_mod_cast nat.prime.pos ‹_› }
-end
-
--- can we golf this using exists_aux?
-lemma exists_aux' {ε : ℚ} (hε : ε > 0) :
-  ∃ (k : ℕ), ↑p ^ -((k : ℕ) : ℤ) < ε :=
-begin
-  obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
-  use k,
-  rw ← inv_lt_inv hε (_root_.fpow_pos_of_pos _ _),
-  { rw [fpow_neg, inv_inv', fpow_coe_nat],
-    apply lt_of_lt_of_le hk,
-    norm_cast,
-    apply le_of_lt,
-    convert nat.lt_pow_self _ _ using 1,
-    exact nat.prime.one_lt ‹_› },
-  { exact_mod_cast nat.prime.pos ‹_› }
-end
-
 lemma val_coe_aux (i j : ℕ) (h : i ≤ j) (x : zmod (p ^ j)) :
   (x.val : zmod (p ^ i)) = x :=
 begin
@@ -1030,8 +1062,7 @@ include f_compat
 lemma lim_seq_is_cau_seq (r : R): is_cau_seq (padic_norm p) (λ n, limit f r n) :=
 begin
   intros ε hε,
-  obtain ⟨k, hk⟩ : ∃ k : ℕ, (p ^ - (↑(k : ℕ) : ℤ) : ℚ) < ε,
-  { exact exists_aux' _ hε, },
+  obtain ⟨k, hk⟩ : ∃ k : ℕ, (p ^ - (↑(k : ℕ) : ℤ) : ℚ) < ε := exists_pow_neg_lt_rat p hε,
   use k,
   intros j hj,
   refine lt_of_le_of_lt _ hk,
@@ -1055,7 +1086,7 @@ end
 lemma limit_seq_add (r s : R) : limit_seq f_compat (r + s) ≈ limit_seq f_compat r + limit_seq f_compat s :=
 begin
   intros ε hε,
-  obtain ⟨n, hn⟩ := exists_aux' p hε,
+  obtain ⟨n, hn⟩ := exists_pow_neg_lt_rat p hε,
   use n,
   intros j hj,
   dsimp [limit_seq],
@@ -1075,7 +1106,7 @@ end
 lemma limit_seq_mul (r s : R) : limit_seq f_compat (r * s) ≈ limit_seq f_compat r * limit_seq f_compat s :=
 begin
   intros ε hε,
-  obtain ⟨n, hn⟩ := exists_aux' p hε,
+  obtain ⟨n, hn⟩ := exists_pow_neg_lt_rat p hε,
   use n,
   intros j hj,
   dsimp [limit_seq],
@@ -1115,7 +1146,7 @@ lemma lim_fn_zero : lim_fn f_compat 0 = 0 :=
 by simp [lim_fn]; refl
 
 lemma lim_fn_one : lim_fn f_compat 1 = 1 :=
-subtype.ext $ quot.sound $ limit_seq_one _ -- by simp [lim_fn]; refl
+subtype.ext $ quot.sound $ limit_seq_one _
 
 lemma lim_fn_add (r s : R) : lim_fn f_compat (r + s) = lim_fn f_compat r + lim_fn f_compat s :=
 subtype.ext $ quot.sound $ limit_seq_add _ _ _
@@ -1123,6 +1154,7 @@ subtype.ext $ quot.sound $ limit_seq_add _ _ _
 lemma lim_fn_mul (r s : R) : lim_fn f_compat (r * s) = lim_fn f_compat r * lim_fn f_compat s :=
 subtype.ext $ quot.sound $ limit_seq_mul _ _ _
 
+-- TODO: generalize this to arbitrary complete discrete valuation rings
 def lift : R →+* ℤ_[p] :=
 { to_fun := lim_fn f_compat,
   map_one' := lim_fn_one f_compat,
@@ -1155,42 +1187,6 @@ begin
   { refl }
 end
 
--- move this
-instance complete_space : complete_space ℤ_[p] :=
-begin
-  delta padic_int,
-  rw [complete_space_iff_is_complete_range uniform_embedding_subtype_coe,
-    subtype.range_coe_subtype],
-  have : is_complete (closed_ball (0 : ℚ_[p]) 1) := is_closed_ball.is_complete,
-  simpa [closed_ball],
-end
-
-lemma dense_range_nat_cast :
-  dense_range (nat.cast : ℕ → ℤ_[p]) :=
-begin
-  intro x,
-  rw mem_closure_range_iff,
-  intros ε hε,
-  obtain ⟨n, hn⟩ := exists_aux p hε,
-  use (x.appr n),
-  rw dist_eq_norm,
-  apply lt_of_le_of_lt _ hn,
-  rw norm_le_pow_iff_mem_span_pow,
-  apply appr_spec,
-end
-
-lemma dense_range_int_cast :
-  dense_range (int.cast : ℤ → ℤ_[p]) :=
-begin
-  intro x,
-  apply dense_range_nat_cast.induction_on x,
-  { exact is_closed_closure, },
-  { intro a,
-    change (a.cast : ℤ_[p]) with (a : ℤ).cast,
-    apply subset_closure,
-    exact set.mem_range_self _ }
-end
-
 lemma lift_spec (n : ℕ) : (to_zmod_pow n).comp (lift f_compat) = f n :=
 begin
   ext r,
@@ -1207,7 +1203,7 @@ begin
   ext1 r,
   apply eq_of_forall_dist_le,
   intros ε hε,
-  obtain ⟨n, hn⟩ := exists_aux p hε,
+  obtain ⟨n, hn⟩ := exists_pow_neg_lt p hε,
   apply le_trans _ (le_of_lt hn),
   rw [dist_eq_norm, norm_le_pow_iff_mem_span_pow, ← ker_to_zmod_pow, ring_hom.mem_ker,
       ring_hom.map_sub, ← ring_hom.comp_apply, ← ring_hom.comp_apply, lift_spec, hg, sub_self],

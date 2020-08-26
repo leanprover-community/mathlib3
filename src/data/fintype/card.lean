@@ -143,7 +143,7 @@ lemma finset.prod_attach_univ [fintype α] [comm_monoid β] (f : {a : α // a �
 prod_bij (λ x _, x.1) (λ _ _, mem_univ _) (λ _ _ , by simp) (by simp) (λ b _, ⟨⟨b, mem_univ _⟩, by simp⟩)
 
 @[to_additive]
-lemma finset.range_prod_eq_univ_prod [comm_monoid β] (n : ℕ) (f : ℕ → β) :
+lemma finset.prod_range_eq_prod_fin [comm_monoid β] (n : ℕ) (f : ℕ → β) :
   ∏ k in range n, f k = ∏ k : fin n, f k :=
 begin
   symmetry,
@@ -153,6 +153,15 @@ begin
   { intros, rwa fin.eq_iff_veq },
   { intros k hk, rw mem_range at hk,
     exact ⟨⟨k, hk⟩, mem_univ _, rfl⟩ }
+end
+
+@[to_additive]
+lemma finset.prod_fin_eq_prod_range [comm_monoid β] {n : ℕ} (c : fin n → β) :
+  ∏ i, c i = ∏ i in finset.range n, if h : i < n then c ⟨i, h⟩ else 1 :=
+begin
+  rw [finset.prod_range_eq_prod_fin, finset.prod_congr rfl],
+  rintros ⟨i, hi⟩ _,
+  simp only [fin.coe_eq_val, hi, dif_pos]
 end
 
 /-- Taking a product over `univ.pi t` is the same as taking the product over `fintype.pi_finset t`.

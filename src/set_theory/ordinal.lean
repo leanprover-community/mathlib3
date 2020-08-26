@@ -1111,7 +1111,7 @@ namespace cardinal
 open ordinal
 
 /-- The ordinal corresponding to a cardinal `c` is the least ordinal
-  whose cardinal is `c`. For the order-embedding version, see `ord.rel_embedding`. -/
+  whose cardinal is `c`. For the order-embedding version, see `ord.order_embedding`. -/
 def ord (c : cardinal) : ordinal :=
 begin
   let ι := λ α, {r // is_well_order α r},
@@ -1212,11 +1212,12 @@ by { intros c c' h, rw [←card_ord c, ←card_ord c', h] }
 /-- The ordinal corresponding to a cardinal `c` is the least ordinal
   whose cardinal is `c`. This is the order-embedding version. For the regular function, see `ord`.
 -/
-def ord.rel_embedding : @rel_embedding cardinal ordinal (<) (<) :=
-rel_embedding.of_monotone cardinal.ord $ λ a b, cardinal.ord_lt_ord.2
+def ord.order_embedding : cardinal ↪o ordinal :=
+rel_embedding.order_embedding_of_lt_embedding
+  (rel_embedding.of_monotone cardinal.ord $ λ a b, cardinal.ord_lt_ord.2)
 
-@[simp] theorem ord.rel_embedding_coe :
-  (ord.rel_embedding : cardinal → ordinal) = ord := rfl
+@[simp] theorem ord.order_embedding_coe :
+  (ord.order_embedding : cardinal → ordinal) = ord := rfl
 
 /-- The cardinal `univ` is the cardinality of ordinal `univ`, or
   equivalently the cardinal of `ordinal.{u}`, or `cardinal.{u}`,

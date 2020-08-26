@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import algebra.ring.pi
 import algebra.category.CommRing.basic
 import algebra.category.Group.limits
-import ring_theory.subring
+import deprecated.subring
 import ring_theory.subsemiring
 
 /-!

@@ -74,7 +74,7 @@ begin
   have hVy : V ∈ 𝓝 y := mem_nhds_sets V_op hyV,
   have : V ∩ A ∈ (nhds_within y A),
     by simpa [inter_comm] using inter_mem_nhds_within _ hVy,
-  exact mem_of_closed_of_tendsto limy V'_closed (mem_sets_of_superset this hV)
+  exact V'_closed.mem_of_tendsto limy (mem_sets_of_superset this hV)
 end
 
 /-- If a function `f` to a regular space `Y` has a limit within a

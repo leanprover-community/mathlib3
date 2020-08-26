@@ -7,6 +7,7 @@ Author: Chris Hughes
 import data.int.modeq
 import algebra.char_p
 import data.nat.totient
+import ring_theory.ideal.operations
 
 /-!
 # Integers mod `n`
@@ -392,12 +393,17 @@ begin
   rw [zmod.nat_coe_eq_nat_coe_iff, nat.modeq.modeq_zero_iff],
 end
 
-@[push_cast]
+@[push_cast, simp]
 lemma cast_mod_int (a : ℤ) (b : ℕ) : ((a % b : ℤ) : zmod b) = (a : zmod b) :=
 begin
   rw zmod.int_coe_eq_int_coe_iff,
   apply int.modeq.mod_modeq,
 end
+
+@[simp] lemma coe_to_nat (p : ℕ) :
+  ∀ {z : ℤ} (h : 0 ≤ z), (z.to_nat : zmod p) = z
+| (n : ℕ) h := by simp only [int.cast_coe_nat, int.to_nat_coe_nat]
+| -[1+n]  h := false.elim h
 
 lemma val_injective (n : ℕ) [fact (0 < n)] :
   function.injective (zmod.val : zmod n → ℕ) :=
@@ -772,3 +778,17 @@ end
 instance zmod.subsingleton_ring_hom {n : ℕ} {R : Type*} [semiring R] :
   subsingleton ((zmod n) →+* R) :=
 ⟨ring_hom.ext_zmod⟩
+
+lemma zmod.ring_hom_surjective {R : Type*} [comm_ring R] {n : ℕ} (f : R →+* (zmod n)) :
+  function.surjective f :=
+begin
+  intros k,
+  rcases zmod.int_cast_surjective k with ⟨n, rfl⟩,
+  refine ⟨n, f.map_int_cast n⟩
+end
+
+lemma zmod.ring_hom_eq_of_ker_eq {R : Type*} [comm_ring R] {n : ℕ} (f g : R →+* (zmod n))
+  (h : f.ker = g.ker) : f = g :=
+by rw [← f.lift_of_surjective_comp (zmod.ring_hom_surjective f) g (le_of_eq h),
+      ring_hom.ext_zmod (f.lift_of_surjective _ _ _) (ring_hom.id _),
+      ring_hom.id_comp]

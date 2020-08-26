@@ -319,6 +319,12 @@ insert_eq_of_mem $ mem_singleton_self _
 theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ λ x, by simp only [mem_insert, or.left_comm]
 
+theorem insert_singleton_comm (a b : α) : ({a, b} : finset α) = {b, a} :=
+begin
+  ext,
+  simp [or.comm]
+end
+
 @[simp] theorem insert_idem (a : α) (s : finset α) : insert a (insert a s) = insert a s :=
 ext $ λ x, by simp only [mem_insert, or.assoc.symm, or_self]
 
@@ -1823,6 +1829,10 @@ end
 
 lemma bind_singleton {f : α → β} : s.bind (λa, {f a}) = s.image f :=
 ext $ λ x, by simp only [mem_bind, mem_image, mem_singleton, eq_comm]
+
+@[simp] lemma bind_singleton_eq_self [decidable_eq α] :
+  s.bind (singleton : α → finset α) = s :=
+by { rw bind_singleton, exact image_id }
 
 lemma image_bind_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
   (s.image g).bind (λa, s.filter $ (λc, g c = a)) = s :=

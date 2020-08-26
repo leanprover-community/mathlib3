@@ -87,6 +87,8 @@ begin
   rw [nat_degree_mul h2.1 h2.2], exact nat.le_add_right _ _
 end
 
+local attribute [reducible] with_zero
+
 lemma exists_finset_roots : ∀ {p : polynomial R} (hp : p ≠ 0),
   ∃ s : finset R, (s.card : with_bot ℕ) ≤ degree p ∧ ∀ x, x ∈ s ↔ is_root p x
 | p := λ hp, by haveI := classical.prop_decidable (∃ x, is_root p x); exact
@@ -194,6 +196,21 @@ begin
   rw [multiset.prod_cons, roots_mul (mul_ne_zero H.1 $ multiset.prod_ne_zero H.2),
       multiset.to_finset_cons, finset.bind_insert, ih H.2]
 end
+
+lemma roots_prod {ι : Type*} (f : ι → polynomial R) (s : finset ι) :
+  s.prod f ≠ 0 → (s.prod f).roots = s.bind (λ i, roots (f i)) :=
+begin
+  refine s.induction_on _ _,
+  { intros, exact roots_one },
+  intros i s hi ih ne_zero,
+  rw prod_insert hi at ⊢ ne_zero,
+  rw [roots_mul ne_zero, ih (right_ne_zero_of_mul ne_zero), bind_insert]
+end
+
+lemma roots_prod_X_sub_C (s : finset R) :
+  (s.prod (λ a, X - C a)).roots = s :=
+(roots_prod (λ a, X - C a) s (prod_ne_zero_iff.mpr (λ a _, X_sub_C_ne_zero a))).trans
+  (by simp_rw [roots_X_sub_C, bind_singleton_eq_self])
 
 lemma card_roots_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : R) :
   (roots ((X : polynomial R) ^ n - C a)).card ≤ n :=

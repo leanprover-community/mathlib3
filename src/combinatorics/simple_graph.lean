@@ -1231,6 +1231,15 @@ begin
   left, assumption, right, exact h_1.symm,
 end
 
+namespace subgraph
+variables {α : Type*} [simple_graphs α]
+
+def is_cycle {G : α} (G' : subgraph G) : Prop := nonempty (Σ n : {n // 3 ≤ n}, cycle_graph n.1 n.2 ↪g G)
+
+def cycles (G : α) : set (subgraph G) := { G' | is_cycle G' }
+
+end subgraph
+
 def complete_partite_graph {ι : Type u} (f : ι → Type v) : simple_graph_on (Σ i : ι, f i) :=
 { adj := λ v w, v.1 ≠ w.1 }
 
@@ -1594,15 +1603,13 @@ open_locale classical
 Some formalizations of statements from Bollobas, "Modern graph theory"
 -/
 
-def cycles (G : α) := Σ (n : {n : ℕ // 3 ≤ n}), cycle_graph n.1 n.2 ↪g G
-
 /--
 Veblen 1912 (theorem 1 in book)
 -/
 theorem edge_partition_cycles (G : α) [fintype (V G)] :
-  (∀ v : V G, degree v % 2 = 0) ↔ (∃ partition : set (cycles G),
-                                     ∀ (e : edge_set G), !∃ (c : cycles G), c ∈ partition ∧
-                                       e ∈ set.image (embedding.map_edge_set c.2) set.univ) :=
+  (∀ v : V G, degree v % 2 = 0) ↔ (∃ partition : set (subgraph G), (∀ G' ∈ partition, subgraph.is_cycle G') ∧
+                                     ∀ (e ∈ edge_set G), !∃ (c : subgraph G), c ∈ partition ∧
+                                       e ∈ c.edge_set') :=
 sorry
 
 /--

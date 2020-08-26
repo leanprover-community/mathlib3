@@ -148,7 +148,7 @@ inductive test_result (p : Prop)
 
 /-- `testable p` uses random examples to try to disprove `p` -/
 class testable (p : Prop) :=
-(run [] (minimize : bool) : gen (test_result p)) --
+(run [] (minimize : bool) : gen (test_result p))
 
 open list
 
@@ -192,8 +192,8 @@ convert_counter_example h.2 r (psum.inr h.1)
 we record that value using this function so that our counter-examples
 can be informative -/
 def add_to_counter_example (x : string) {p q : Prop}
-  (h : q → p)
-: test_result p →
+  (h : q → p) : 
+  test_result p →
   opt_param (psum unit (p → q)) (psum.inl ()) →
   test_result q
  | (failure Hce xs) _ := failure (mt h Hce) $ x :: xs
@@ -284,7 +284,7 @@ instance test_forall_in_list (var : string) (var' : option string)
     end ⟩
 
 /-- Test proposition `p` by randomly selecting one of the provided
-testable instance -/
+testable instances -/
 def combine_testable (p : Prop)
   (t : list $ testable p) (h : 0 < t.length)
 : testable p :=

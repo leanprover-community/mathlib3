@@ -38,20 +38,12 @@ universes u v
 /-- Monad to generate random examples to test properties with.
 It has a `nat` parameter so that the caller can decide on the
 size of the examples -/
-@[reducible]
+@[reducible, derive [monad, is_lawful_monad]]
 def gen (α : Type u) := reader_t (ulift ℕ) rand α
-
-instance : monad gen :=
-infer_instance_as $ monad $ reader_t (ulift ℕ) rand
-
-instance : is_lawful_monad gen :=
-infer_instance_as $ is_lawful_monad $ reader_t (ulift ℕ) rand
 
 variable (α : Type u)
 
 local infix ` .. `:41 := set.Icc
-
--- open rand (assumption_or_dec_trivial)
 
 /-- execute a `gen` inside the `io` monad using `i` as the example
 size and creating a fresh random number generator -/

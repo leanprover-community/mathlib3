@@ -35,6 +35,8 @@ random testing
 
 universes u v
 
+namespace slim_check
+
 /-- Monad to generate random examples to test properties with.
 It has a `nat` parameter so that the caller can decide on the
 size of the examples -/
@@ -113,3 +115,5 @@ n ← uliftable.up $ choose_any (fin xs.length),
 list.nth_le xs (down n).val (down n).is_lt
 
 end gen
+
+end slim_check

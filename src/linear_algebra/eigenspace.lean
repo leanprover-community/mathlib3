@@ -113,7 +113,7 @@ begin
     apply coeff_coe_units_zero_ne_zero c },
   obtain ⟨q, hq_factor, hq_nonunit⟩ : ∃ q, q ∈ factors p ∧ ¬ is_unit (eval₂ am f q),
   { simp only [←not_imp, (is_unit.mem_submonoid_iff _).symm],
-    apply not_forall.1 (λ h, h_eval_p_not_unit (ring_hom_factors_submonoid
+    apply not_forall.1 (λ h, h_eval_p_not_unit (ring_hom_mem_submonoid_of_factors_subset_of_units_subset
       (eval₂_ring_hom_noncomm am (λ x y, (algebra.commutes x y).symm) f)
       (is_unit.submonoid (module.End K V)) p h_p_ne_0 h h_eval_unit)) },
   have h_q_ne_0 : q ≠ 0 := ne_zero_of_mem_factors h_p_ne_0 hq_factor,

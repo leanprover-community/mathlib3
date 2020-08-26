@@ -600,17 +600,17 @@ instance : has_zero (𝕎 p R) :=
 
 variable {R}
 
-def Teichmuller (r : R) : 𝕎 p R
+def teichmuller (r : R) : 𝕎 p R
 | 0 := r
 | (n+1) := 0
 
-@[simp] lemma Teichmuller_zero : Teichmuller p (0:R) = 0 :=
+@[simp] lemma teichmuller_zero : teichmuller p (0:R) = 0 :=
 funext $ λ n, match n with | 0 := rfl | (n+1) := rfl end
 
 variable (R)
 
 instance : has_one (𝕎 p R) :=
-⟨Teichmuller p 1⟩
+⟨teichmuller p 1⟩
 
 section p_prime
 
@@ -638,13 +638,12 @@ end p_prime
 
 variable {R}
 
-@[simp] lemma Teichmuller_one : Teichmuller p (1:R) = 1 := rfl
+@[simp] lemma teichmuller_one : teichmuller p (1:R) = 1 := rfl
 
 variable {p}
 
 noncomputable def ghost_component (n : ℕ) (w : 𝕎 p R) : R :=
 aeval w (W_ R n)
-
 
 section map
 open function
@@ -708,31 +707,29 @@ end
 
 end map
 
-
 noncomputable def ghost_map : 𝕎 p R → (ℕ → R) := λ w n, ghost_component n w
 
 section p_prime
 
-variable [fact p.prime]
+variable [hp : fact p.prime]
+include hp
 
-@[simp] lemma ghost_map.zero : ghost_map (0 : 𝕎 p R) = 0 :=
-funext $ λ n,
+@[simp] lemma ghost_map_apply (x : 𝕎 p R) (n : ℕ) :
+  ghost_map x n = ghost_component n x := rfl
+
+@[simp] lemma ghost_component_zero (n : ℕ) :
+  ghost_component n (0 : 𝕎 p R) = 0 :=
 begin
-  delta ghost_map ghost_component,
-  rw [aeval_witt_polynomial, finset.sum_eq_zero],
-  { refl },
+  rw [ghost_component, aeval_witt_polynomial, finset.sum_eq_zero],
   intros i hi,
   convert mul_zero _,
   apply zero_pow _,
-  apply nat.pow_pos,
-  apply nat.prime.pos, assumption,
+  apply nat.pow_pos hp.pos,
 end
 
-@[simp] lemma ghost_map.one : ghost_map (1 : 𝕎 p R) = 1 :=
-funext $ λ n,
+@[simp] lemma ghost_component_one (n : ℕ) : ghost_component n (1 : 𝕎 p R) = 1 :=
 begin
-  delta ghost_map ghost_component,
-  rw [aeval_witt_polynomial],
+  rw [ghost_component, aeval_witt_polynomial],
   have : 0 ∈ range (n+1),
   { rw finset.mem_range, exact nat.succ_pos n },
   rw ← finset.insert_erase this,
@@ -742,7 +739,7 @@ begin
     rw finset.mem_erase at hi,
     suffices H : (1 : 𝕎 p R) i = 0,
     { rw [H, zero_pow, mul_zero], apply nat.pow_pos, exact nat.prime.pos ‹_› },
-    rw ← Teichmuller_one, cases hi with hi bla, revert hi,
+    rw ← teichmuller_one, cases hi with hi bla, revert hi,
     exact match i with
     | 0 := λ H, false.elim (H rfl)
     | (n+1) := λ H, rfl
@@ -753,11 +750,10 @@ end
 
 variable {R}
 
-@[simp] lemma ghost_map.add (x y : 𝕎 p R) :
-  ghost_map (x + y) = ghost_map x + ghost_map y :=
-funext $ λ n,
+@[simp] lemma ghost_component_add (n : ℕ) (x y : 𝕎 p R) :
+  ghost_component n (x + y) = ghost_component n x + ghost_component n y :=
 begin
-  delta ghost_map ghost_component,
+  delta ghost_component,
   have := congr_arg (λ (ψ : mv_polynomial (bool × ℕ) R), aeval (λ (bn : bool × ℕ), cond bn.1 (x bn.2) (y bn.2)) ψ) (witt_structure_prop p _ (X tt + X ff) n),
   convert this using 1; clear this,
   { delta witt_vectors.has_add witt_add,
@@ -770,11 +766,10 @@ begin
     refl }
 end
 
-@[simp] lemma ghost_map.mul (x y : 𝕎 p R) :
-  ghost_map (x * y) = ghost_map x * ghost_map y :=
-funext $ λ n,
+@[simp] lemma ghost_component_mul (n : ℕ) (x y : 𝕎 p R) :
+  ghost_component n (x * y) = ghost_component n x * ghost_component n y :=
 begin
-  delta ghost_map ghost_component,
+  delta ghost_component,
   have := congr_arg (λ (ψ : mv_polynomial (bool × ℕ) R), aeval (λ (bn : bool × ℕ), cond bn.1 (x bn.2) (y bn.2)) ψ) (witt_structure_prop p _ (X tt * X ff) n),
   convert this using 1; clear this,
   { delta witt_vectors.has_mul witt_mul,
@@ -787,11 +782,10 @@ begin
     refl },
 end
 
-@[simp] lemma ghost_map.neg (x : 𝕎 p R) :
-  ghost_map (-x) = - ghost_map x :=
-funext $ λ n,
+@[simp] lemma ghost_component_neg (n : ℕ) (x : 𝕎 p R) :
+  ghost_component n (-x) = - ghost_component n x :=
 begin
-  delta ghost_map ghost_component,
+  delta ghost_component,
   have := congr_arg (λ (ψ : mv_polynomial (unit × ℕ) R), aeval (λ (n : unit × ℕ), (x n.2)) ψ) (witt_structure_prop p _ (-X unit.star) n),
   convert this using 1; clear this,
   { delta witt_vectors.has_neg witt_neg,
@@ -800,9 +794,30 @@ begin
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     funext k,
     exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
-  { simp only [aeval_eq_eval₂_hom', ring_hom.map_neg, eval₂_hom_X', eval₂_hom_rename_hom],
-    refl },
+  { simp only [aeval_eq_eval₂_hom', ring_hom.map_neg, eval₂_hom_X', eval₂_hom_rename_hom], },
 end
+
+variables (R)
+
+@[simp] lemma ghost_map.zero : ghost_map (0 : 𝕎 p R) = 0 :=
+by { ext n, simp only [pi.zero_apply, ghost_map_apply, ghost_component_zero], }
+
+@[simp] lemma ghost_map.one : ghost_map (1 : 𝕎 p R) = 1 :=
+by { ext n, simp only [pi.one_apply, ghost_map_apply, ghost_component_one], }
+
+variable {R}
+
+@[simp] lemma ghost_map.add (x y : 𝕎 p R) :
+  ghost_map (x + y) = ghost_map x + ghost_map y :=
+by { ext n, simp only [ghost_component_add, pi.add_apply, ghost_map_apply], }
+
+@[simp] lemma ghost_map.mul (x y : 𝕎 p R) :
+  ghost_map (x * y) = ghost_map x * ghost_map y :=
+by { ext n, simp only [ghost_component_mul, pi.mul_apply, ghost_map_apply], }
+
+@[simp] lemma ghost_map.neg (x : 𝕎 p R) :
+  ghost_map (-x) = - ghost_map x :=
+by { ext n, simp only [ghost_component_neg, pi.neg_apply, ghost_map_apply], }
 
 end p_prime
 
@@ -847,7 +862,7 @@ include hp
 noncomputable def aux₁ : comm_ring (𝕎 p (mv_polynomial R ℚ)) :=
 function.injective.comm_ring (ghost_map)
   (ghost_map.bijective_of_invertible p (mv_polynomial R ℚ)).1
-  (ghost_map.zero) (ghost_map.one) (ghost_map.add) (ghost_map.mul) (ghost_map.neg)
+  (ghost_map.zero _) (ghost_map.one _) (ghost_map.add) (ghost_map.mul) (ghost_map.neg)
 
 local attribute [instance] aux₁
 
@@ -865,17 +880,17 @@ function.surjective.comm_ring
 
 omit hp
 
-/-- Teichmuller is a natural transformation -/
-@[simp] lemma map_Teichmuller (f : R →+* S) (r : R) :
-  map f (Teichmuller p r) = Teichmuller p (f r) :=
+/-- teichmuller is a natural transformation -/
+@[simp] lemma map_teichmuller (f : R →+* S) (r : R) :
+  map f (teichmuller p r) = teichmuller p (f r) :=
 by { ext n, cases n, { refl }, { exact f.map_zero } }
 
 include hp
 
-@[simp] lemma aeval_Teichmuller_witt_polynomial (r : R) (n : ℕ) :
-  aeval (Teichmuller p r) (W_ R n) = r ^ p ^ n :=
+@[simp] lemma ghost_component_teichmuller (r : R) (n : ℕ) :
+  ghost_component n (teichmuller p r) = r ^ p ^ n :=
 begin
-  rw aeval_witt_polynomial,
+  rw [ghost_component, aeval_witt_polynomial],
   rw [finset.sum_eq_single 0, pow_zero, one_mul, nat.sub_zero],
   { refl },
   { intros i hi h0,
@@ -885,30 +900,114 @@ begin
   { contrapose!, intro, rw finset.mem_range, exact nat.succ_pos n }
 end
 
-lemma Teichmuller_mul_aux₁ (x y : mv_polynomial R ℚ) :
-  Teichmuller p (x * y) = Teichmuller p x * Teichmuller p y :=
+lemma teichmuller_mul_aux₁ (x y : mv_polynomial R ℚ) :
+  teichmuller p (x * y) = teichmuller p x * teichmuller p y :=
 begin
   apply (ghost_map.bijective_of_invertible p (mv_polynomial R ℚ)).1,
   rw ghost_map.mul,
   ext1 n,
-  dsimp [ghost_map, ghost_component],
-  simp [mul_pow],
+  simp only [pi.mul_apply, ghost_map_apply, ghost_component_teichmuller, mul_pow],
 end
 
-lemma Teichmuller_mul_aux₂ (x y : mv_polynomial R ℤ) :
-  Teichmuller p (x * y) = Teichmuller p x * Teichmuller p y :=
+lemma teichmuller_mul_aux₂ (x y : mv_polynomial R ℤ) :
+  teichmuller p (x * y) = teichmuller p x * teichmuller p y :=
 begin
   apply map_injective (map_hom (int.cast_ring_hom ℚ)) (mv_polynomial.coe_int_rat_map_injective _),
-  { simp [Teichmuller_mul_aux₁], }
+  { simp only [teichmuller_mul_aux₁, map_teichmuller, map_mul, ring_hom.map_mul], }
 end
 
-@[simp] lemma Teichmuller_mul (x y : R) :
-  Teichmuller p (x * y) = Teichmuller p x * Teichmuller p y :=
+@[simp] lemma teichmuller_mul (x y : R) :
+  teichmuller p (x * y) = teichmuller p x * teichmuller p y :=
 begin
   rcases counit_surjective R x with ⟨x, rfl⟩,
   rcases counit_surjective R y with ⟨y, rfl⟩,
-  simp only [← map_Teichmuller, ← ring_hom.map_mul, Teichmuller_mul_aux₂, map_mul],
+  simp only [← map_teichmuller, ← ring_hom.map_mul, teichmuller_mul_aux₂, map_mul],
 end
+
+section verschiebung
+/-! ## The Verschiebung operator -/
+
+def verschiebung_fun : 𝕎 p R → 𝕎 p R
+| x 0     := 0
+| x (n+1) := x n
+
+/-- verschiebung is a natural transformation -/
+@[simp] lemma map_verschiebung_fun (f : R →+* S) (x : 𝕎 p R) :
+  map f (verschiebung_fun p R x) = verschiebung_fun p S (map f x) :=
+by ext ⟨-, -⟩; simp only [map, verschiebung_fun, ring_hom.map_zero, function.comp_app]
+
+@[simp] lemma ghost_component_zero_verschiebung_fun (x : 𝕎 p R) :
+  ghost_component 0 (verschiebung_fun p R x) = 0 :=
+by simp only [ghost_component, aeval_witt_polynomial, verschiebung_fun,
+    pow_one, finset.sum_singleton, finset.range_one, nat.pow_zero, mul_zero]
+
+@[simp] lemma ghost_component_verschiebung_fun (x : 𝕎 p R) (n : ℕ) :
+  ghost_component (n + 1) (verschiebung_fun p R x) = p * ghost_component n x :=
+begin
+  simp only [ghost_component, aeval_witt_polynomial],
+  rw [finset.sum_range_succ', verschiebung_fun, zero_pow (nat.pow_pos hp.pos _), mul_zero, add_zero,
+      finset.mul_sum, finset.sum_congr rfl],
+  rintro i -,
+  rw [pow_succ, mul_assoc, verschiebung_fun, nat.succ_sub_succ],
+end
+
+lemma verschiebung_add_aux₁ (x y : 𝕎 p (mv_polynomial R ℚ)) :
+  verschiebung_fun p _ (x + y) = verschiebung_fun p _ x + verschiebung_fun p _ y :=
+begin
+  apply (ghost_map.bijective_of_invertible p (mv_polynomial R ℚ)).1,
+  ext1 n,
+  rw ghost_map.add,
+  simp only [pi.add_apply],
+  cases n,
+  { simp only [add_zero, ghost_component_zero_verschiebung_fun, ghost_map_apply], },
+  { simp only [ghost_map_apply, ghost_component_verschiebung_fun, ghost_component_add, mul_add], }
+end
+
+lemma vershiebung_add_aux₂ (x y : 𝕎 p (mv_polynomial R ℤ)) :
+  verschiebung_fun p _ (x + y) = verschiebung_fun p _ x + verschiebung_fun p _ y :=
+begin
+  apply map_injective (map_hom (int.cast_ring_hom ℚ)) (mv_polynomial.coe_int_rat_map_injective _),
+  { simp only [verschiebung_add_aux₁, map_add, map_verschiebung_fun], }
+end
+
+noncomputable
+def verschiebung : 𝕎 p R →+ 𝕎 p R :=
+{ to_fun := verschiebung_fun p R,
+  map_zero' := by { ext n, cases n; refl, },
+  map_add' :=
+  begin
+    intros x y,
+    rcases map_surjective _ (counit_surjective R) x with ⟨x, rfl⟩,
+    rcases map_surjective _ (counit_surjective R) y with ⟨y, rfl⟩,
+    rw [← map_add],
+    iterate 3 { rw [← map_verschiebung_fun] },
+    rw [vershiebung_add_aux₂, map_add],
+  end }
+
+@[simp] lemma map_verschiebung (f : R →+* S) (x : 𝕎 p R) :
+  map f (verschiebung p R x) = verschiebung p S (map f x) :=
+map_verschiebung_fun _ _ _ _
+
+@[simp] lemma ghost_component_zero_verschiebung (x : 𝕎 p R) :
+  ghost_component 0 (verschiebung p R x) = 0 :=
+ghost_component_zero_verschiebung_fun _ _ _
+
+@[simp] lemma ghost_component_verschiebung (x : 𝕎 p R) (n : ℕ) :
+  ghost_component (n + 1) (verschiebung p R x) = p * ghost_component n x :=
+ghost_component_verschiebung_fun _ _ _ _
+
+end verschiebung
+
+-- section ideals
+-- /-! ## Ideals in the ring of Witt vectors -/
+
+-- lemma mem_span_pow_iff (x : 𝕎 p R) (n : ℕ) :
+--   x ∈ (ideal.span {p ^ n} : ideal (𝕎 p R)) ↔ ∀ i < n, ghost_component i x = 0 :=
+-- begin
+
+-- end
+
+-- end ideals
 
 end witt_vectors
 

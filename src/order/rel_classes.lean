@@ -301,7 +301,7 @@ theorem not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p.nonempty) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
 let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
 
-theorem well_founded_iff_has_max  {α} {r : α → α → Prop} : (well_founded r) ↔
+theorem well_founded_iff_has_min  {α} {r : α → α → Prop} : (well_founded r) ↔
   ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, ¬ r x m :=
 begin
   classical,
@@ -318,7 +318,7 @@ begin
     exact hm y hy y_gt_m, },
 end
 
-lemma le_imp_eq_iff_not_gt {α} [partial_order α] {x y : α} : x ≤ y → y = x ↔ ¬ x < y :=
+lemma eq_iff_not_lt_of_le {α} [partial_order α] {x y : α} : x ≤ y → y = x ↔ ¬ x < y :=
 begin
   split,
   { intros xle nge,

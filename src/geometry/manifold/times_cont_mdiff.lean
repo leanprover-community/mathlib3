@@ -879,7 +879,8 @@ begin
   suffices h : continuous_on (λ (p : H × E), (f p.fst,
     (fderiv_within 𝕜 (written_in_ext_chart_at I I' p.fst f) (I.symm ⁻¹' s ∩ range I)
       ((ext_chart_at I p.fst) p.fst) : E →L[𝕜] E') p.snd)) (prod.fst ⁻¹' s),
-  { have : ∀ (p : tangent_bundle I H), p ∈ tangent_bundle.proj I H ⁻¹' s →
+  { have A := (tangent_bundle_model_space_homeomorph H' I').symm.continuous.comp_continuous_on h,
+    have : ∀ (p : tangent_bundle I H), p ∈ tangent_bundle.proj I H ⁻¹' s →
       tangent_map_within I I' f s p =
       ⟨f p.fst, ((fderiv_within 𝕜 (written_in_ext_chart_at I I' p.fst f)
       (I.symm ⁻¹' s ∩ range I) ((ext_chart_at I p.fst) p.fst)) : E →L[𝕜] E') p.snd⟩,
@@ -891,6 +892,7 @@ begin
       apply congr_arg,
       rw mdifferentiable_within_at.mfderiv_within (hf.mdifferentiable_on hn x hx),
       refl },
+    convert A.congr this,
     sorry, },
     -- convert h.congr this,
     -- exact tangent_bundle_model_space_topology_eq_prod H I,

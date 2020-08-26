@@ -159,6 +159,19 @@ instance : char_zero ℤ_[p] :=
 suffices (z1 : ℚ_[p]) = z2 ↔ z1 = z2, from iff.trans (by norm_cast) this,
 by norm_cast
 
+/--
+A sequence of integers that is Cauchy with respect to the `p`-adic norm
+converges to a `p`-adic integer.
+-/
+def of_int_seq (seq : ℕ → ℤ) (h : is_cau_seq (padic_norm p) (λ n, seq n)) : ℤ_[p] :=
+⟨⟦⟨_, h⟩⟧,
+ show ↑(padic_seq.norm _) ≤ (1 : ℝ), begin
+   rw padic_seq.norm,
+   split_ifs with hne; norm_cast,
+   { exact zero_le_one },
+   { apply padic_norm.of_int }
+ end ⟩
+
 end padic_int
 
 namespace padic_int

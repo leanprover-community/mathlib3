@@ -451,58 +451,37 @@ section lift
 
 open cau_seq padic_seq
 
-def int_lim_seq (seq : ℕ → ℤ) (h : is_cau_seq (padic_norm p) (λ n, seq n)) : ℤ_[p] :=
-⟨⟦⟨_, h⟩⟧,
- show ↑(padic_seq.norm _) ≤ (1 : ℝ), begin
-   rw padic_seq.norm,
-   split_ifs with hne; norm_cast,
-   { exact zero_le_one },
-   { apply padic_norm.of_int }
- end ⟩
-
-open padic_int
 variables {R : Type*} [comm_ring R] (f : Π k : ℕ, R →+* zmod (p^k))
   (f_compat : ∀ k1 k2 (hk : k1 ≤ k2), (zmod.cast_hom (nat.pow_dvd_pow p hk) _).comp (f k2) = f k1)
 
-def limit (r : R) : ℕ → ℤ :=
+/--
+Given a family of ring homs `f : Π k : ℕ, R →+* zmod (p^k)`,
+`nth_hom f r` is an integer-valued sequence
+whose `n`th value is `f n r`.
+-/
+def nth_hom (r : R) : ℕ → ℤ :=
 λ n, (f n r : zmod (p^n)).val
 
-@[simp] lemma lim_seq_zero : limit f 0 = 0 :=
-by simp [limit]; refl
+@[simp] lemma nth_hom_zero : nth_hom f 0 = 0 :=
+by simp [nth_hom]; refl
 
 variable {f}
 include f_compat
 
-lemma pow_dvd_limit_sub (r : R) (i j : ℕ) (h : i ≤ j) :
-  ↑p ^ (i) ∣ limit f r j - limit f r i :=
+lemma pow_dvd_nth_hom_sub (r : R) (i j : ℕ) (h : i ≤ j) :
+  ↑p ^ i ∣ nth_hom f r j - nth_hom f r i :=
 begin
   specialize f_compat (i) (j) h,
   rw [← int.coe_nat_pow, ← zmod.int_coe_zmod_eq_zero_iff_dvd],
   rw [int.cast_sub],
-  dsimp [limit],
+  dsimp [nth_hom],
   rw [← f_compat, ring_hom.comp_apply],
   have : fact (p ^ (i) > 0) := pow_pos (nat.prime.pos ‹_›) _,
   have : fact (p ^ (j) > 0) := pow_pos (nat.prime.pos ‹_›) _,
   unfreezingI { simp only [zmod.cast_id, zmod.cast_hom_apply, sub_self, zmod.nat_cast_val], },
 end
 
-omit f_compat
-variable (p)
-
-lemma val_coe_aux (i j : ℕ) (h : i ≤ j) (x : zmod (p ^ j)) :
-  (x.val : zmod (p ^ i)) = x :=
-begin
-  haveI : fact (p ^ j > 0) := nat.pow_pos (nat.prime.pos ‹_›) _,
-  rw ← zmod.cast_val x,
-  simp,
-end
-
-
-variable {p}
-
-include f_compat
-
-lemma lim_seq_is_cau_seq (r : R): is_cau_seq (padic_norm p) (λ n, limit f r n) :=
+lemma is_cau_seq_nth_hom (r : R): is_cau_seq (padic_norm p) (λ n, nth_hom f r n) :=
 begin
   intros ε hε,
   obtain ⟨k, hk⟩ : ∃ k : ℕ, (p ^ - (↑(k : ℕ) : ℤ) : ℚ) < ε := exists_pow_neg_lt_rat p hε,
@@ -511,106 +490,121 @@ begin
   refine lt_of_le_of_lt _ hk,
   norm_cast,
   rw ← padic_norm.dvd_iff_norm_le,
-  exact_mod_cast pow_dvd_limit_sub f_compat r k j hj
+  exact_mod_cast pow_dvd_nth_hom_sub f_compat r k j hj
 end
 
-def limit_seq (r : R) : padic_seq p := ⟨λ n, limit f r n, lim_seq_is_cau_seq f_compat r⟩
+/--
+`nth_hom_seq f_compat r` bundles `padic_int.nth_hom f r`
+as a Cauchy sequence of rationals with respect to the `p`-adic norm.
+The `n`th value of the sequence is `((f n r : ℤ) : ℚ)`.
+-/
+def nth_hom_seq (r : R) : padic_seq p := ⟨λ n, nth_hom f r n, is_cau_seq_nth_hom f_compat r⟩
 
-lemma limit_seq_one : limit_seq f_compat 1 ≈ 1 :=
+lemma nth_hom_seq_one : nth_hom_seq f_compat 1 ≈ 1 :=
 begin
   intros ε hε,
   change _ < _ at hε,
   use 1,
   intros j hj,
   haveI : fact (1 < p^j) := nat.one_lt_pow _ _ (by linarith) (nat.prime.one_lt ‹_›),
-  simp [limit_seq, limit, zmod.val_one, hε],
+  simp [nth_hom_seq, nth_hom, zmod.val_one, hε],
 end
 
-lemma limit_seq_add (r s : R) : limit_seq f_compat (r + s) ≈ limit_seq f_compat r + limit_seq f_compat s :=
+lemma nth_hom_seq_add (r s : R) :
+  nth_hom_seq f_compat (r + s) ≈ nth_hom_seq f_compat r + nth_hom_seq f_compat s :=
 begin
   intros ε hε,
   obtain ⟨n, hn⟩ := exists_pow_neg_lt_rat p hε,
   use n,
   intros j hj,
-  dsimp [limit_seq],
+  dsimp [nth_hom_seq],
   apply lt_of_le_of_lt _ hn,
   rw [← int.cast_add, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le],
   rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
-  dsimp [limit],
-  have : fact (p ^ (n ) > 0) := pow_pos (nat.prime.pos ‹_›) _,
-  have : fact (p ^ (j ) > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  dsimp [nth_hom],
+  have : fact (p ^ n > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ j > 0) := pow_pos (nat.prime.pos ‹_›) _,
   unfreezingI
   { simp only [int.cast_coe_nat, int.cast_add, ring_hom.map_add, int.cast_sub, zmod.nat_cast_val] },
-  rw [zmod.cast_add (show p ^ (n ) ∣ p ^ (j ), from _), sub_self],
+  rw [zmod.cast_add (show p ^ n ∣ p ^ j, from _), sub_self],
   { apply_instance },
   { apply nat.pow_dvd_pow, linarith only [hj] },
 end
 
-lemma limit_seq_mul (r s : R) : limit_seq f_compat (r * s) ≈ limit_seq f_compat r * limit_seq f_compat s :=
+lemma nth_hom_seq_mul (r s : R) :
+  nth_hom_seq f_compat (r * s) ≈ nth_hom_seq f_compat r * nth_hom_seq f_compat s :=
 begin
   intros ε hε,
   obtain ⟨n, hn⟩ := exists_pow_neg_lt_rat p hε,
   use n,
   intros j hj,
-  dsimp [limit_seq],
+  dsimp [nth_hom_seq],
   apply lt_of_le_of_lt _ hn,
   rw [← int.cast_mul, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le],
   rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
-  dsimp [limit],
-  have : fact (p ^ (n ) > 0) := pow_pos (nat.prime.pos ‹_›) _,
-  have : fact (p ^ (j ) > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  dsimp [nth_hom],
+  have : fact (p ^ n > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ j > 0) := pow_pos (nat.prime.pos ‹_›) _,
   unfreezingI
   { simp only [int.cast_coe_nat, int.cast_mul, int.cast_sub, ring_hom.map_mul, zmod.nat_cast_val] },
-  rw [zmod.cast_mul (show p ^ (n ) ∣ p ^ (j ), from _), sub_self],
+  rw [zmod.cast_mul (show p ^ n ∣ p ^ j, from _), sub_self],
   { apply_instance },
   { apply nat.pow_dvd_pow, linarith only [hj] },
 end
 
-def lim_fn (r : R) : ℤ_[p] :=
-int_lim_seq (limit f r) (lim_seq_is_cau_seq f_compat r)
+/--
+`lim_nth_hom f_compat r` is the limit of a sequence `f` of compatible ring homs `R →+* zmod (p^k)`.
+This is itself a ring hom: see `paic_int.lift`.
+-/
+def lim_nth_hom (r : R) : ℤ_[p] :=
+of_int_seq (nth_hom f r) (is_cau_seq_nth_hom f_compat r)
 
-lemma lim_fn_spec (r : R) :
-  ∀ ε : ℝ, 0 < ε → ∃ N : ℕ, ∀ n ≥ N, ∥lim_fn f_compat r - limit f r n∥ < ε :=
+lemma lim_nth_hom_spec (r : R) :
+  ∀ ε : ℝ, 0 < ε → ∃ N : ℕ, ∀ n ≥ N, ∥lim_nth_hom f_compat r - nth_hom f r n∥ < ε :=
 begin
   intros ε hε,
   obtain ⟨ε', hε'0, hε'⟩ : ∃ v : ℚ, (0 : ℝ) < v ∧ ↑v < ε := exists_rat_btwn hε,
   norm_cast at hε'0,
-  obtain ⟨N, hN⟩ := padic_norm_e.defn (limit_seq f_compat r) hε'0,
+  obtain ⟨N, hN⟩ := padic_norm_e.defn (nth_hom_seq f_compat r) hε'0,
   use N,
   intros n hn,
   apply lt.trans _ hε',
   change ↑(padic_norm_e _) < _,
   norm_cast,
   convert hN _ hn,
-  simp [limit, lim_fn, limit_seq, int_lim_seq],
+  simp [nth_hom, lim_nth_hom, nth_hom_seq, of_int_seq],
 end
 
-lemma lim_fn_zero : lim_fn f_compat 0 = 0 :=
-by simp [lim_fn]; refl
+lemma lim_nth_hom_zero : lim_nth_hom f_compat 0 = 0 :=
+by simp [lim_nth_hom]; refl
 
-lemma lim_fn_one : lim_fn f_compat 1 = 1 :=
-subtype.ext $ quot.sound $ limit_seq_one _
+lemma lim_nth_hom_one : lim_nth_hom f_compat 1 = 1 :=
+subtype.ext $ quot.sound $ nth_hom_seq_one _
 
-lemma lim_fn_add (r s : R) : lim_fn f_compat (r + s) = lim_fn f_compat r + lim_fn f_compat s :=
-subtype.ext $ quot.sound $ limit_seq_add _ _ _
+lemma lim_nth_hom_add (r s : R) : lim_nth_hom f_compat (r + s) = lim_nth_hom f_compat r + lim_nth_hom f_compat s :=
+subtype.ext $ quot.sound $ nth_hom_seq_add _ _ _
 
-lemma lim_fn_mul (r s : R) : lim_fn f_compat (r * s) = lim_fn f_compat r * lim_fn f_compat s :=
-subtype.ext $ quot.sound $ limit_seq_mul _ _ _
+lemma lim_nth_hom_mul (r s : R) : lim_nth_hom f_compat (r * s) = lim_nth_hom f_compat r * lim_nth_hom f_compat s :=
+subtype.ext $ quot.sound $ nth_hom_seq_mul _ _ _
 
 -- TODO: generalize this to arbitrary complete discrete valuation rings
+/--
+`lift f_compat` is the limit of a sequence `f` of compatible ring homs `R →+* zmod (p^k)`,
+with the equality `lift f_compat r = `padic_int.lim_nth_hom f_compat r`.
+-/
 def lift : R →+* ℤ_[p] :=
-{ to_fun := lim_fn f_compat,
-  map_one' := lim_fn_one f_compat,
-  map_mul' := lim_fn_mul f_compat,
-  map_zero' := lim_fn_zero f_compat,
-  map_add' := lim_fn_add f_compat }
+{ to_fun := lim_nth_hom f_compat,
+  map_one' := lim_nth_hom_one f_compat,
+  map_mul' := lim_nth_hom_mul f_compat,
+  map_zero' := lim_nth_hom_zero f_compat,
+  map_add' := lim_nth_hom_add f_compat }
 
 omit f_compat
 
-lemma spec_foo (r : R) (n : ℕ) :
+lemma lift_sub_val_mem_span (r : R) (n : ℕ) :
   (lift f_compat r - (f n r).val) ∈ (ideal.span {↑p ^ n} : ideal ℤ_[p]) :=
 begin
-  obtain ⟨k, hk⟩ := lim_fn_spec f_compat r _ (show (0 : ℝ) < p ^ (-n : ℤ), from _),
+  obtain ⟨k, hk⟩ := lim_nth_hom_spec f_compat r _ (show (0 : ℝ) < p ^ (-n : ℤ), from _),
   swap,
   { rw [fpow_neg, inv_pos, fpow_coe_nat],
     apply _root_.pow_pos, exact_mod_cast nat.prime.pos ‹_› },
@@ -619,17 +613,21 @@ begin
   rw norm_le_pow_iff_mem_span_pow at this,
   dsimp at this,
   dsimp [lift],
-  rw sub_eq_sub_add_sub (lim_fn f_compat r) _ ↑(limit f r (max n k)),
+  rw sub_eq_sub_add_sub (lim_nth_hom f_compat r) _ ↑(nth_hom f r (max n k)),
   apply ideal.add_mem _ _ this,
-  have := pow_dvd_limit_sub f_compat r n (max n k) (le_max_left _ _),
+  have := pow_dvd_nth_hom_sub f_compat r n (max n k) (le_max_left _ _),
   rw ideal.mem_span_singleton,
   rw show (p ^ n : ℤ_[p]) = (p ^ n : ℤ),
   { norm_cast },
   convert (int.cast_ring_hom ℤ_[p]).map_dvd (dvd.trans _ this),
-  { simp only [limit, int.cast_coe_nat, ring_hom.eq_int_cast, cast_inj, sub_right_inj, int.cast_sub], },
+  { simp only [nth_hom, int.cast_coe_nat, ring_hom.eq_int_cast, cast_inj, sub_right_inj, int.cast_sub], },
   { refl }
 end
 
+/--
+One part of the universal property of `ℤ_[p]` as a projective limit.
+See also `padic_int.lift_unique`.
+-/
 lemma lift_spec (n : ℕ) : (to_zmod_pow n).comp (lift f_compat) = f n :=
 begin
   ext r,
@@ -637,9 +635,13 @@ begin
   rw [ring_hom.comp_apply, ← zmod.cast_val (f n r), ← (to_zmod_pow n).map_nat_cast],
   rw [← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker],
   rw [ker_to_zmod_pow],
-  apply spec_foo,
+  apply lift_sub_val_mem_span,
 end
 
+/--
+One part of the universal property of `ℤ_[p]` as a projective limit.
+See also `padic_int.lift_spec`.
+-/
 lemma lift_unique (g : R →+* ℤ_[p]) (hg : ∀ n, (to_zmod_pow n).comp g = f n) :
   lift f_compat = g :=
 begin
@@ -666,7 +668,7 @@ lemma ext_of_to_zmod_pow (x y : ℤ_[p]) (h : ∀ n, to_zmod_pow n x = to_zmod_p
   x = y :=
 begin
   rw [← lift_self x, ← lift_self y],
-  simp [lift, lim_fn, limit, h],
+  simp [lift, lim_nth_hom, nth_hom, h],
 end
 
 end padic_int

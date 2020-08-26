@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Aaron Anderson, Jalex Stark, Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Aaron Anderson, Jalex Stark, Kyle Miller.
+Author: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov
 -/
 import data.fintype.basic
 import data.sym2
@@ -618,9 +618,10 @@ NOTE: another definition could have been.
 ```
 structure subgraph :=
 (V' : set (V G))
-(adj' : V' → V' → Prop)
+(adj' : V → V → Prop)
+(edge_sub : ∀ {v w : V G}, adj' v w → v ∈ V')
 (symm' : symmetric adj')
-(sub_adj' : ∀ {v w : V G} (hv : v ∈ V') (hw : w ∈ V'), adj' ⟨v, hv⟩ ⟨w, hw⟩ → (v ~g w))
+(sub_adj' : ∀ {v w : V G}, adj' v w → v ~g w)
 ```
 It's not clear which is better!
 -/
@@ -1064,7 +1065,7 @@ def path_graph.invol (n : ℕ) : path_graph n ≃g path_graph n :=
   map_rel_iff' := begin
     intros v w, simp,
     split, rintros ⟨h₁, h₂⟩,
-    cases h₂, rw h₂.1 at h₁ ⊢, dunfold fin.flip, sorry,
+    cases h₂, rw h₂.1 at h₁ ⊢, dunfold fin.flip, sorry, sorry, sorry,
   end }
 
 def path_graph.invol.prop₁ (n : ℕ) : (path_graph.invol n) 0 = n := by tidy
@@ -1176,6 +1177,13 @@ begin
   exact h,
 end
 
+def coloring_equiv_complete_graph_hom (β : Type v) : coloring G β ≃ (G →g complete_graph β) :=
+{ to_fun := sorry, -- λ c, {to_fun := c.color}
+  inv_fun := sorry,
+  left_inv := sorry,
+  right_inv := sorry }
+
+
 end coloring
 
 section connectivity
@@ -1187,7 +1195,7 @@ A walk of length `n` in a graph between vertices `v` and `w` is a sequence of `n
 each related to the next by adjacency -- the `n` counts the edges along the way.
 We model a walk as a graph homomorphism from a length-`n` path graph.
 -/
-def walk (n : ℕ) (v w : V G) : Type v := { f : path_graph n →g G | v = f 0 ∧ w = f n }
+def walk (n : ℕ) (v w : V G) : Type v := { f : path_graph n →g G // v = f 0 ∧ w = f n }
 
 /--
 Reverse a walk.
@@ -1203,23 +1211,25 @@ A path of length `n` in a graph between vertices `v` and `w` is a sequence of `n
 each related to the next by adjacency -- the `n` counts the edges along the way.
 We model a path as a graph embedding from a length-`n` path graph.
 -/
-def path (n : ℕ) (v w : V G) : Type v := { f : path_graph n ↪g G | v = f 0 ∧ w = f n }
+def path (n : ℕ) (v w : V G) : Type v := { f : path_graph n ↪g G // v = f 0 ∧ w = f n }
 
 /-- The relation that there exists a walk of any length between two vertices. -/
-def exists_walk : V G → V G → Prop := λ v w, ∃ (n : ℕ), nonempty (walk G n v w)
+def exists_walk : V G → V G → Prop := λ v w, nonempty (Σ (n : ℕ), walk G n v w)
 
 /-- The relation that there exists a path of any length between two vertices. -/
-def exists_path : V G → V G → Prop := λ v w, ∃ (n : ℕ), nonempty (path G n v w)
+def exists_path : V G → V G → Prop := λ v w, nonempty (Σ (n : ℕ), path G n v w)
 
 @[refl] lemma exists_walk.refl (v : V G) : exists_walk G v v :=
 by { use [0, λ _, v], tidy }
 
 @[symm] lemma exists_walk.symm ⦃v w : V G⦄ (hvw : exists_walk G v w) : exists_walk G w v :=
-by { rcases hvw with ⟨n, ⟨p⟩⟩, use [n, walk.symm G p], }
+by { tactic.unfreeze_local_instances, cases hvw, rcases hvw with ⟨n, p⟩, use [n, walk.symm G p], }
 
 @[trans] lemma exists_walk.trans ⦃u v w : V G⦄ (huv : exists_walk G u v) (hvw : exists_walk G v w) : exists_walk G u w :=
 begin
-  rcases huv with ⟨n, ⟨pu⟩⟩, rcases hvw with ⟨m, ⟨pv⟩⟩,
+  tactic.unfreeze_local_instances, cases hvw, rcases hvw with ⟨m, pv⟩,
+  tactic.unfreeze_local_instances, cases huv, rcases huv with ⟨n, pu⟩,
+  --rcases huv with ⟨n, ⟨pu⟩⟩, rcases hvw with ⟨m, ⟨pv⟩⟩,
   use n+m,
   -- now need to concatenate walks  probably better to define path concatenation elsewhere and then use it here!
   sorry

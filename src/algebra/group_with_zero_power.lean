@@ -17,8 +17,8 @@ This generalises the integer power function on a division ring.
 | 0     h := absurd rfl h
 | (k+1) h := zero_mul _
 
-@[simp] lemma zero_pow_eq_zero [monoid_with_zero R] [nontrivial R] {n : ℕ} :
-  (0 : R) ^ n = 0 ↔ 0 < n :=
+@[simp] lemma zero_pow_eq_zero {M : Type*} [monoid_with_zero M] [nontrivial M] {n : ℕ} :
+  (0 : M) ^ n = 0 ↔ 0 < n :=
 begin
   split; intro h,
   { rw [nat.pos_iff_ne_zero], rintro rfl, simpa using h },

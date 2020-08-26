@@ -59,7 +59,7 @@ def padic_int (p : ℕ) [fact p.prime] := {x : ℚ_[p] // ∥x∥ ≤ 1}
 notation `ℤ_[`p`]` := padic_int p
 
 namespace padic_int
-/-- ### Ring structure and coercion to `ℚ_[p]` -/
+/-! ### Ring structure and coercion to `ℚ_[p]` -/
 variables {p : ℕ} [fact p.prime]
 
 instance : has_coe ℤ_[p] ℚ_[p] := ⟨subtype.val⟩
@@ -163,7 +163,7 @@ by norm_cast
 end padic_int
 
 namespace padic_int
-/--
+/-!
 ### Instances
 
 We now show that `ℤ_[p]` is a
@@ -232,7 +232,7 @@ instance : integral_domain ℤ_[p] :=
 end padic_int
 
 namespace padic_int
-/-- ### Norm -/
+/-! ### Norm -/
 variables {p : ℕ} [fact p.prime]
 
 lemma norm_le_one : ∀ z : ℤ_[p], ∥z∥ ≤ 1
@@ -391,6 +391,7 @@ begin
   { exact_mod_cast hp_prime.ne_zero },
 end
 
+section units
 /-! ### Units of `ℤ_[p]` -/
 
 local attribute [reducible] padic_int
@@ -462,6 +463,11 @@ begin
   rw [← fpow_coe_nat, int.nat_abs_of_nonneg (valuation_nonneg x)],
 end
 
+end units
+
+section norm_le_iff
+/-! ### Various characterizations of open unit balls -/
+
 lemma norm_le_pow_iff_le_valuation (x : ℤ_[p]) (hx : x ≠ 0) (n : ℕ) :
   ∥x∥ ≤ p ^ (-n : ℤ) ↔ ↑n ≤ x.valuation :=
 begin
@@ -530,6 +536,9 @@ end
 @[simp] lemma pow_p_dvd_int_iff (n : ℕ) (a : ℤ) : (p ^ n : ℤ_[p]) ∣ a ↔ ↑p ^ n ∣ a :=
 by rw [← norm_int_le_pow_iff_dvd, norm_le_pow_iff_mem_span_pow, ideal.mem_span_singleton]
 
+section dvr
+/-! ### Discrete valuation ring -/
+
 instance : local_ring ℤ_[p] :=
 local_of_nonunits_ideal zero_ne_one $ λ x y, by simp; exact norm_lt_one_add
 
@@ -566,9 +575,12 @@ lemma ideal_eq_span_pow_p {s : ideal ℤ_[p]} (hs : s ≠ ⊥) :
   ∃ n : ℕ, s = ideal.span {p ^ n} :=
 discrete_valuation_ring.ideal_eq_span_pow_irreducible hs irreducible_p
 
+end dvr
+
 section
-variables (r : ℚ)
-variable (p)
+/-! ### Ring homomorphisms to `zmod p` and `zmod (p ^ n)` -/
+
+variables (p) (r : ℚ)
 
 omit hp_prime
 
@@ -899,20 +911,20 @@ begin
       by_cases hc0 : c.valuation.nat_abs = 0,
       { simp only [hc0, mul_one, pow_zero],
         rw [mul_comm, unit_coeff_spec h] at hc,
-        have hcu : is_unit c,
+        suffices : c = unit_coeff h,
+        { rw [← this, ← ideal.mem_span_singleton, ← maximal_ideal_eq_span_p],
+          apply to_zmod_spec },
+        obtain ⟨c, rfl⟩ : is_unit c, -- TODO: write a can_lift instance for units
         { rw int.nat_abs_eq_zero at hc0,
           rw [is_unit_iff, norm_eq_pow_val hc', hc0, neg_zero, fpow_zero], },
-        rcases hcu with ⟨c, rfl⟩,
-        obtain rfl := discrete_valuation_ring.unit_mul_pow_congr_unit _ _ _ _ _ hc,
-        swap, { exact irreducible_p },
-        rw [← ideal.mem_span_singleton, ← maximal_ideal_eq_span_p],
-        apply to_zmod_spec, },
+        rw discrete_valuation_ring.unit_mul_pow_congr_unit _ _ _ _ _ hc,
+        exact irreducible_p },
       { rw [_root_.zero_pow (nat.pos_of_ne_zero hc0)],
         simp only [sub_zero, zmod.cast_zero, mul_zero],
         rw unit_coeff_spec hc',
         apply dvd_mul_of_dvd_right,
         apply dvd_pow (dvd_refl _),
-        exact hc0, } } }
+        exact hc0 } } }
 end
 
 /-- A ring hom from `ℤ_[p]` to `zmod (p^n)`, with underlying function `padic_int.appr n`. -/
@@ -988,24 +1000,9 @@ begin
     exact set.mem_range_self _ }
 end
 
-end padic_int
+section lift
+/-! ### Universal property as projective limit -/
 
-namespace norm_def
-variables {p : ℕ} [fact p.prime]
-
-lemma padic_val_of_cong_pow_p {z1 z2 : ℤ} {n : ℕ} (hz : z1 ≡ z2 [ZMOD ↑(p^n)]) :
-      ∥(z1 - z2 : ℚ_[p])∥ ≤ ↑(↑p ^ (-n : ℤ) : ℚ) :=
-have hdvd : ↑(p^n) ∣ z2 - z1, from int.modeq.modeq_iff_dvd.1 hz,
-have (z2 - z1 : ℚ_[p]) = ↑(↑(z2 - z1) : ℚ), by norm_cast,
-begin
-  rw [norm_sub_rev, this, padic_norm_e.eq_padic_norm],
-  exact_mod_cast padic_norm.dvd_iff_norm_le.mp hdvd
-end
-
-end norm_def
-
-namespace padic_int
-variables {p : ℕ} [fact p.prime]
 open cau_seq padic_seq
 
 def int_lim_seq (seq : ℕ → ℤ) (h : is_cau_seq (padic_norm p) (λ n, seq n)) : ℤ_[p] :=
@@ -1209,13 +1206,15 @@ begin
       ring_hom.map_sub, ← ring_hom.comp_apply, ← ring_hom.comp_apply, lift_spec, hg, sub_self],
 end
 
-@[symm] lemma lift_self (z : ℤ_[p]) : @lift p _ ℤ_[p] _ to_zmod_pow
+@[simp] lemma lift_self (z : ℤ_[p]) : @lift p _ ℤ_[p] _ to_zmod_pow
   zmod_cast_comp_to_zmod_pow z = z :=
 begin
   show _ = ring_hom.id _ z,
   rw @lift_unique p _ ℤ_[p] _ _ zmod_cast_comp_to_zmod_pow (ring_hom.id ℤ_[p]),
   intro, rw ring_hom.comp_id,
 end
+
+end lift
 
 lemma ext_of_to_zmod_pow (x y : ℤ_[p]) (h : ∀ n, to_zmod_pow n x = to_zmod_pow n y) :
   x = y :=

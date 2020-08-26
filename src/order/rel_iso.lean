@@ -15,6 +15,7 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 
 /-- A relation homomorphism with respect to a given pair of relations `r` and `s`
 is a function `f : α → β` such that `r a b → s (f a) (f b)`. -/
+@[nolint has_inhabited_instance]
 structure rel_hom {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) :=
 (to_fun : α → β)
 (map_rel' : ∀ {a b}, r a b → s (to_fun a) (to_fun b))

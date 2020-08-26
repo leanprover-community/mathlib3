@@ -1007,10 +1007,7 @@ rfl
 @[simp]
 lemma orthogonal_projection_fn_eq {K : submodule ℝ α} (h : is_complete (K : set α)) (v : α) :
   orthogonal_projection_fn h v = orthogonal_projection K v :=
-begin
-  rw [orthogonal_projection_def, dif_pos h],
-  refl
-end
+by { rw [orthogonal_projection_def, dif_pos h], refl }
 
 /-- The orthogonal projection is in the given subspace. -/
 lemma orthogonal_projection_mem {K : submodule ℝ α} (h : is_complete (K : set α)) (v : α) :

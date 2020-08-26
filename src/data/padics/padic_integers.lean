@@ -315,20 +315,13 @@ begin
   { exact_mod_cast hp_prime.pos }
 end
 
--- can we golf this using exists_pow_neg_lt?
 lemma exists_pow_neg_lt_rat {ε : ℚ} (hε : ε > 0) :
   ∃ (k : ℕ), ↑p ^ -((k : ℕ) : ℤ) < ε :=
 begin
-  obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
+  obtain ⟨k, hk⟩ := @exists_pow_neg_lt p _ ε (by exact_mod_cast hε),
   use k,
-  rw ← inv_lt_inv hε (_root_.fpow_pos_of_pos _ _),
-  { rw [fpow_neg, inv_inv', fpow_coe_nat],
-    apply lt_of_lt_of_le hk,
-    norm_cast,
-    apply le_of_lt,
-    convert nat.lt_pow_self _ _ using 1,
-    exact hp_prime.one_lt },
-  { exact_mod_cast hp_prime.pos }
+  rw (show (p : ℝ) = (p : ℚ), by simp) at hk,
+  exact_mod_cast hk
 end
 
 variable {p}

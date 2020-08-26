@@ -114,6 +114,78 @@ for ease of testing as:
 Again, we take advantage of the fact that other types have useful
 `shrink` implementations, in this case `prod`.
 
+### Optimizing the sampling
+
+Some properties are guarded by a proposition. For instance recall this
+example:
+
+```lean
+#eval testable.check (∀ x : ℕ, 2 ∣ x → x < 100)
+```
+
+When testing the above example, we generate a natural number, we check
+that it is even and test it if it is even or throw it away and start
+over otherwise. Statistically, we can expect half of our samples to be
+thrown away by such a filter. Sometimes, the filter is more
+restrictive. For instance we might need `x` to be a `prime`
+number. This would cause most of our samples to be discarded.
+
+We can help `slim_check` find good samples by providing specialized
+sampleable instances. Below, we show an instance for the subtype
+of even natural numbers. This means that, when producing
+a sample, it is forced to produce a proof that it is even.
+
+```lean
+instance {k : ℕ} [fact (0 < k)] : sampleable { x : ℕ // k ∣ x } :=
+{ sample := do { n ← sample ℕ, pure ⟨k*n, dvd_mul_right _ _⟩ },
+  shrink := λ ⟨x,h⟩, (λ y, ⟨k*y, dvd_mul_right _ _⟩) <$> shrink x }
+```
+
+Such instance will be preferred when testing a proposition of the shape
+`∀ x : T, p x → q`
+
+We can observe the effect by enabling tracing:
+
+```lean
+/- no specialized sampling -/
+#eval testable.check (∀ x : ℕ, 2 ∣ x → x < 100) { enable_tracing := tt }
+-- discard
+--  x := 1
+-- discard
+--  x := 41
+-- discard
+--  x := 3
+-- discard
+--  x := 5
+-- discard
+--  x := 5
+-- discard
+--  x := 197
+-- discard
+--  x := 469
+-- discard
+--  x := 9
+-- discard
+
+-- ===================
+-- Found problems!
+
+-- x := 552
+-- -------------------
+
+/- let us define a specialized sampling instance -/
+instance {k : ℕ} : sampleable { x : ℕ // k ∣ x } :=
+{ sample := do { n ← sample ℕ, pure ⟨k*n, dvd_mul_right _ _⟩ },
+  shrink := λ ⟨x,h⟩, (λ y, ⟨k*y, dvd_mul_right _ _⟩) <$> shrink x }
+
+#eval testable.check (∀ x : ℕ, 2 ∣ x → x < 100) { enable_tracing := tt }
+-- ===================
+-- Found problems!
+
+-- x := 358
+-- -------------------
+```
+
 ## Main definitions
   * `testable` class
   * `testable.check` a way to test a proposition using random examples
@@ -139,16 +211,25 @@ namespace slim_check
 /-- Result of trying to disprove `p` -/
 @[derive inhabited]
 inductive test_result (p : Prop)
-  /- succeed when we find another example satisfying `p` -/
+  /- succeed when we find another example satisfying `p`
+     In `success h`, `h` is an optional proof of the proposition.
+     Without the proof, all we know is that we found one example
+     where `p` holds. With a proof, the one test was sufficient to
+     prove that `p` holds and we do not need to keep finding examples. -/
 | success : (psum unit p) → test_result
-  /- give up when a well-formed example cannot be generated -/
+  /- give up when a well-formed example cannot be generated.
+     `gave_up n` tells us that `n` invalid examples were tried.
+     Above 100, we give up on the proposition and report that we
+     did not find a way to properly test it. -/
 | gave_up {} : ℕ → test_result
-  /- a counter-example to `p`; the strings specify values for the relevant variables -/
+  /- a counter-example to `p`; the strings specify values for the relevant variables.
+     `failure h vs` also carries a proof that `p` does not hold. This way, we can
+     guarantee no false positive. -/
 | failure : ¬ p → (list string) → test_result
 
 /-- `testable p` uses random examples to try to disprove `p` -/
 class testable (p : Prop) :=
-(run [] (minimize : bool) : gen (test_result p))
+(run [] (enable_tracing minimize : bool) : gen (test_result p))
 
 open list
 
@@ -192,7 +273,7 @@ convert_counter_example h.2 r (psum.inr h.1)
 we record that value using this function so that our counter-examples
 can be informative -/
 def add_to_counter_example (x : string) {p q : Prop}
-  (h : q → p) : 
+  (h : q → p) :
   test_result p →
   opt_param (psum unit (p → q)) (psum.inl ()) →
   test_result q
@@ -219,32 +300,33 @@ def is_failure {p} : test_result p → bool
 
 instance and_testable (p q : Prop) [testable p] [testable q] :
   testable (p ∧ q) :=
-⟨ λ min, do
-   xp ← testable.run p min,
-   xq ← testable.run q min,
+⟨ λ tracing min, do
+   xp ← testable.run p tracing min,
+   xq ← testable.run q tracing min,
    pure $ and_counter_example xp xq ⟩
 
 @[priority 5000]
 instance imp_dec_testable {var} (p : Prop) [decidable p] (β : p → Prop)
   [∀ h, testable (β h)]
 : testable (named_binder var $ Π h, β h) :=
-⟨ λ min, do
+⟨ λ tracing min, do
     if h : p
-    then (λ r, convert_counter_example ($ h) r (psum.inr $ λ q _, q)) <$> testable.run (β h) min
+    then (λ r, convert_counter_example ($ h) r (psum.inr $ λ q _, q)) <$> testable.run (β h) tracing min
+    else if tracing then  trace (sformat!"discard") $ return $ gave_up 1
     else return $ gave_up 1 ⟩
 
 @[priority 2000]
 instance all_types_testable (var : string) [testable (f ℤ)]
 : testable (named_binder (some var) $ Π x, f x) :=
-⟨ λ min, do
-    r ← testable.run (f ℤ) min,
+⟨ λ tracing min, do
+    r ← testable.run (f ℤ) tracing min,
     return $ add_var_to_counter_example var "ℤ" ($ ℤ) r ⟩
 
 /-- testable instance for universal properties; use the chosen example and
 instantiate the universal quantification with it -/
 def test_one (x : α) [testable (β x)] (var : option (string × string) := none) : testable (Π x, β x) :=
-⟨ λ min, do
-    r ← testable.run (β x) min,
+⟨ λ tracing min, do
+    r ← testable.run (β x) tracing min,
     return $ match var with
       | none := convert_counter_example ($ x) r
       | (some (v,x_str)) := add_var_to_counter_example v x_str ($ x) r
@@ -255,15 +337,15 @@ def test_one (x : α) [testable (β x)] (var : option (string × string) := none
 instance test_forall_in_list (var : string) (var' : option string)
   [∀ x, testable (β x)] [has_to_string α] :
   Π xs : list α, testable (named_binder (some var) $ ∀ x, named_binder var' $ x ∈ xs → β x)
-| [] := ⟨ λ min, return $ success $ psum.inr (by { introv x h, cases h} ) ⟩
+| [] := ⟨ λ tracing min, return $ success $ psum.inr (by { introv x h, cases h} ) ⟩
 | (x :: xs) :=
-⟨ λ min, do
-    r ← testable.run (β x) min,
+⟨ λ tracing min, do
+    r ← testable.run (β x) tracing min,
     match r with
      | failure _ _ := return $ add_var_to_counter_example var x
                                (by { intro h, apply h, left, refl }) r
      | success hp := do
-       rs ← @testable.run _ (test_forall_in_list xs) min,
+       rs ← @testable.run _ (test_forall_in_list xs) tracing min,
        return $ convert_counter_example
                                (by { intros h i h',
                                      apply h,
@@ -273,7 +355,7 @@ instance test_forall_in_list (var : string) (var' : option string)
                                 $ by { intros j h, simp only [ball_cons,named_binder],
                                        split ; assumption, } ) hp)
      | gave_up n := do
-       rs ← @testable.run _ (test_forall_in_list xs) min,
+       rs ← @testable.run _ (test_forall_in_list xs) tracing min,
        match rs with
         | (success _) := return $ gave_up n
         | (failure Hce xs) := return $ failure
@@ -288,16 +370,16 @@ testable instances -/
 def combine_testable (p : Prop)
   (t : list $ testable p) (h : 0 < t.length)
 : testable p :=
-⟨ λ min, have 0 < length (map (λ t, @testable.run _ t min) t),
+⟨ λ tracing min, have 0 < length (map (λ t, @testable.run _ t tracing min) t),
     by { rw [length_map], apply h },
-  gen.one_of (list.map (λ t, @testable.run _ t min) t) this ⟩
+  gen.one_of (list.map (λ t, @testable.run _ t tracing min) t) this ⟩
 
 /-- Once a property fails to hold on an example, look for smaller counter-examples
 to show the user -/
-def minimize [∀ x, testable (β x)] (x : α) (r : test_result (β x)) : lazy_list α → gen (Σ x, test_result (β x))
+def minimize [∀ x, testable (β x)] (x : α) (r : test_result (β x)) (tracing : bool) : lazy_list α → gen (Σ x, test_result (β x))
 | lazy_list.nil := pure ⟨x,r⟩
 | (lazy_list.cons x xs) := do
-  ⟨r⟩ ← uliftable.up $ testable.run (β x) tt,
+  ⟨r⟩ ← uliftable.up $ testable.run (β x) tracing tt,
      if is_failure r
        then pure ⟨x, convert_counter_example id r (psum.inl ())⟩
        else minimize $ xs ()
@@ -307,31 +389,39 @@ instance exists_testable {p : Prop}
   (var var' : option string)
   [testable (named_binder var (∀ x, named_binder var' $ β x → p))] :
   testable (named_binder var' (named_binder var (∃ x, β x) → p)) :=
-⟨ λ min, do
-    x ← testable.run (named_binder var (∀ x, named_binder var' $ β x → p)) min,
+⟨ λ tracing min, do
+    x ← testable.run (named_binder var (∀ x, named_binder var' $ β x → p)) tracing min,
     pure $ convert_counter_example' exists_imp_distrib.symm x ⟩
 
-/-- Test a universal property by choosing sampleable examples to instantiate the
-bound variable with -/
+def trace_if_giveup {p α β} [has_to_string α] (tracing_enabled : bool) (var : string) (val : α) : test_result p → thunk β → β
+| (test_result.gave_up _) :=
+  if tracing_enabled then trace (sformat!" {var} := {val}")
+  else ($ ())
+| _ := ($ ())
+
+/-- Test a universal property by creating a sample of the right type and instantiating the
+bound variable with it -/
 instance var_testable [has_to_string α] [sampleable α] [∀ x, testable (β x)]
   (var : option string)
 : testable (named_binder var $ Π x : α, β x) :=
-⟨ λ min, do
+⟨ λ tracing min, do
    uliftable.adapt_down (sample α) $
    λ x, do
-     r ← testable.run (β x) ff,
-     uliftable.adapt_down (if is_failure r ∧ min then minimize _ _ x r (shrink x) else pure ⟨x,r⟩) $
+     r ← testable.run (β x) tracing ff,
+     uliftable.adapt_down (if is_failure r ∧ min
+                          then minimize _ _ x r tracing (shrink x)
+                          else pure ⟨x,r⟩) $
      λ ⟨x,r⟩, return $ match var with
                       | none := add_to_counter_example (to_string x) ($ x) r
-                      | (some v) := add_var_to_counter_example v x ($ x) r
+                      | (some v) := trace_if_giveup tracing v x r (add_var_to_counter_example v x ($ x) r)
                       end⟩
 
 @[priority 3000]
 instance unused_var_testable {β} [inhabited α] [testable β]
   (var : option string)
 : testable (named_binder var $ Π x : α, β) :=
-⟨ λ min, do
-  r ← testable.run β min,
+⟨ λ tracing min, do
+  r ← testable.run β tracing min,
   pure $ convert_counter_example ($ default _) r (psum.inr $ λ x _, x) ⟩
 
 @[priority 2000]
@@ -339,8 +429,8 @@ instance subtype_var_testable {p : α → Prop} [has_to_string α] [sampleable (
   [∀ x, testable (β x)]
   (var var' : option string)
 : testable (named_binder var $ Π x : α, named_binder var' $ p x → β x) :=
-⟨ λ min,
-   do r ← @testable.run (∀ x : subtype p, β x.val) (slim_check.var_testable _ _ var) min,
+⟨ λ tracing min,
+   do r ← @testable.run (∀ x : subtype p, β x.val) (slim_check.var_testable _ _ var) tracing min,
       pure $ convert_counter_example'
         ⟨λ (h : ∀ x : subtype p, β x) x h', h ⟨x,h'⟩,
          λ h ⟨x,h'⟩, h x h'⟩
@@ -348,7 +438,7 @@ instance subtype_var_testable {p : α → Prop} [has_to_string α] [sampleable (
 
 @[priority 100]
 instance decidable_testable {p : Prop} [decidable p] : testable p :=
-⟨ λ min, return $ if h : p then success (psum.inr h) else failure h [] ⟩
+⟨ λ tracing min, return $ if h : p then success (psum.inr h) else failure h [] ⟩
 
 section io
 
@@ -386,13 +476,14 @@ variable [testable p]
 structure slim_check_cfg :=
 (num_inst : ℕ := 100) -- number of examples
 (max_size : ℕ := 100) -- final size argument
+(enable_tracing : bool := ff) -- enable the printing out of discarded samples
 
 /-- Try `n` times to find a counter-example for `p` -/
 def testable.run_suite_aux (cfg : slim_check_cfg) : test_result p → ℕ → rand (test_result p)
  | r 0 := return r
  | r (succ n) :=
 do let size := (cfg.num_inst - n - 1) * cfg.max_size / cfg.num_inst,
-   x ← retry ( (testable.run p tt).run ⟨ size ⟩) 10,
+   x ← retry ( (testable.run p cfg.enable_tracing tt).run ⟨ size ⟩) 10,
    match x with
     | (success (psum.inl ())) := testable.run_suite_aux r n
     | (success (psum.inr Hp)) := return $ success (psum.inr Hp)
@@ -488,3 +579,5 @@ end
 end io
 
 end slim_check
+
+open io slim_check

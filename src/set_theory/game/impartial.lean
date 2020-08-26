@@ -118,13 +118,7 @@ begin
 end
 
 lemma impartial_not_first_wins {G : pgame} (hG : G.impartial) : ¬G.first_wins ↔ G.first_loses :=
-begin
-  cases impartial_winner_cases hG,
-  { have := not_first_wins_of_first_loses h,
-    tauto },
-  { have := not_first_loses_of_first_wins h,
-    tauto }
-end
+by cases impartial_winner_cases hG; finish using [not_first_loses_of_first_wins]
 
 lemma impartial_not_first_loses {G : pgame} (hG : G.impartial) : ¬G.first_loses ↔ G.first_wins :=
 iff.symm $ iff_not_comm.1 $ iff.symm $ impartial_not_first_wins hG

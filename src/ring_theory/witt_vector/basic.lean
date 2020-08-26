@@ -12,7 +12,7 @@ import data.fintype.card
 import ring_theory.multiplicity
 import algebra.invertible
 import number_theory.quadratic_reciprocity
-import ring_theory.witt_vector_preps
+import ring_theory.witt_vector.witt_vector_preps
 import tactic
 import tactic.nth_rewrite
 

@@ -16,7 +16,7 @@ This file expands on the development in the core library.
 
 ### Induction principles
 
-* `fin_zero.elim` : Elimination principle for the empty set `fin 0`, generalizes `fin.elim0`.
+* `fin_zero_elim` : Elimination principle for the empty set `fin 0`, generalizes `fin.elim0`.
 * `fin.succ_rec` : Define `C n i` by induction on  `i : fin n` interpreted
   as `(0 : fin (n - i)).succ.succ…`. This function has two arguments: `H0 n` defines
   `0`-th element `C (n+1) 0` of an `(n+1)`-tuple, and `Hs n i` defines `(i+1)`-st element
@@ -101,6 +101,9 @@ lemma val_injective {n : ℕ} : injective (val : fin n → ℕ) := λ _ _, fin.e
 lemma eq_iff_veq (a b : fin n) : a = b ↔ a.1 = b.1 :=
 ⟨veq_of_eq, eq_of_veq⟩
 
+lemma ne_iff_vne (a b : fin n) : a ≠ b ↔ a.1 ≠ b.1 :=
+⟨vne_of_ne, ne_of_vne⟩
+
 @[simp] protected lemma mk.inj_iff {n a b : ℕ} {ha : a < n} {hb : b < n} :
   fin.mk a ha = fin.mk b hb ↔ a = b :=
 ⟨fin.mk.inj, λ h, by subst h⟩
@@ -108,6 +111,9 @@ lemma eq_iff_veq (a b : fin n) : a = b ↔ a.1 = b.1 :=
 instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 
 lemma mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
+
+lemma eq_mk_iff_coe_eq {k : ℕ} {hk : k < n} : a = ⟨k, hk⟩ ↔ (a : ℕ) = k :=
+fin.eq_iff_veq a ⟨k, hk⟩
 
 @[simp, norm_cast] lemma coe_mk {m n : ℕ} (h : m < n) : ((⟨m, h⟩ : fin n) : ℕ) = m := rfl
 
@@ -136,7 +142,28 @@ lemma val_mul {n : ℕ} :  ∀ a b : fin n, (a * b).val = (a.val * b.val) % n
 
 lemma one_val {n : ℕ} : (1 : fin (n+1)).val = 1 % (n+1) := rfl
 
-@[simp] lemma zero_val (n : ℕ) : (0 : fin (n+1)).val = 0 := rfl
+@[simp] lemma val_zero' (n) : (0 : fin (n+1)).val = 0 := rfl
+
+@[simp] lemma mk_zero : (⟨0, nat.succ_pos'⟩ : fin (n + 1)) = 0 := rfl
+
+@[simp] lemma mk_one : (⟨1, nat.succ_lt_succ (nat.succ_pos n)⟩ : fin (n + 2)) = 1 := rfl
+
+section bit
+
+@[simp] lemma mk_bit0 {m n : ℕ} (h : bit0 m < n) :
+  (⟨bit0 m, h⟩ : fin n) = bit0 ⟨m, (nat.le_add_right m m).trans_lt h⟩ :=
+eq_of_veq (nat.mod_eq_of_lt h).symm
+
+@[simp] lemma mk_bit1 {m n : ℕ} (h : bit1 m < n + 1) :
+  (⟨bit1 m, h⟩ : fin (n + 1)) = bit1 ⟨m, (nat.le_add_right m m).trans_lt
+    ((m + m).lt_succ_self.trans h)⟩ :=
+begin
+  ext,
+  simp only [bit1, bit0] at h,
+  simp only [bit1, bit0, val_add, one_val, ←nat.add_mod, nat.mod_eq_of_lt h]
+end
+
+end bit
 
 @[simp]
 lemma of_nat_eq_coe (n : ℕ) (a : ℕ) : (of_nat a : fin (n+1)) = a :=
@@ -201,14 +228,16 @@ lemma exists_iff {p : fin n → Prop} : (∃ i, p i) ↔ ∃ i h, p ⟨i, h⟩ :
 lemma forall_iff {p : fin n → Prop} : (∀ i, p i) ↔ ∀ i h, p ⟨i, h⟩ :=
 ⟨λ h i hi, h ⟨i, hi⟩, λ h ⟨i, hi⟩, h i hi⟩
 
-lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
-
 lemma lt_iff_val_lt_val : a < b ↔ a.val < b.val := iff.rfl
 
 lemma le_iff_val_le_val : a ≤ b ↔ a.val ≤ b.val := iff.rfl
 
+lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
+
 @[simp] lemma succ_val (j : fin n) : j.succ.val = j.val.succ :=
 by cases j; simp [fin.succ]
+
+lemma succ_pos (a : fin n) : (0 : fin (n + 1)) < a.succ := by simp [lt_iff_val_lt_val]
 
 protected theorem succ.inj (p : fin.succ a = fin.succ b) : a = b :=
 by cases a; cases b; exact eq_of_veq (nat.succ.inj (veq_of_eq p))
@@ -216,11 +245,27 @@ by cases a; cases b; exact eq_of_veq (nat.succ.inj (veq_of_eq p))
 @[simp] lemma succ_inj {a b : fin n} : a.succ = b.succ ↔ a = b :=
 ⟨λh, succ.inj h, λh, by rw h⟩
 
+@[simp] lemma succ_le_succ_iff : a.succ ≤ b.succ ↔ a ≤ b :=
+by { simp only [le_iff_val_le_val, succ_val], exact ⟨le_of_succ_le_succ, succ_le_succ⟩ }
+
+@[simp] lemma succ_lt_succ_iff : a.succ < b.succ ↔ a < b :=
+by { simp only [lt_iff_val_lt_val, succ_val], exact ⟨lt_of_succ_lt_succ, succ_lt_succ⟩ }
+
 lemma succ_injective (n : ℕ) : injective (@fin.succ n) :=
 λa b, succ.inj
 
 lemma succ_ne_zero {n} : ∀ k : fin n, fin.succ k ≠ 0
 | ⟨k, hk⟩ heq := nat.succ_ne_zero k $ (fin.ext_iff _ _).1 heq
+
+@[simp] lemma succ_zero_eq_one : fin.succ (0 : fin (n + 1)) = 1 := rfl
+
+lemma mk_succ_pos (i : ℕ) (h : i < n) : (0 : fin (n + 1)) < ⟨i.succ, add_lt_add_right h 1⟩ :=
+by { rw [lt_iff_val_lt_val, val_zero], exact nat.succ_pos i }
+
+lemma one_lt_succ_succ (a : fin n) : (1 : fin (n + 2)) < a.succ.succ :=
+by { cases n, { exact fin_zero_elim a }, { rw [←succ_zero_eq_one, succ_lt_succ_iff], exact succ_pos a } }
+
+lemma succ_succ_ne_one (a : fin n) : fin.succ (fin.succ a) ≠ 1 := ne_of_gt (one_lt_succ_succ a)
 
 @[simp] lemma pred_val (j : fin (n+1)) (h : j ≠ 0) : (j.pred h).val = j.val.pred :=
 by cases j; simp [fin.pred]
@@ -231,6 +276,10 @@ by cases j; simp [fin.pred]
 
 @[simp] lemma pred_succ (i : fin n) {h : i.succ ≠ 0} : i.succ.pred h = i :=
 by cases i; refl
+
+@[simp] lemma pred_mk_succ (i : ℕ) (h : i < n + 1) :
+  (⟨i.succ, add_lt_add_right h 1⟩ : fin (n + 2)).pred (ne_of_vne (ne_of_gt (mk_succ_pos i h))) = ⟨i, h⟩ :=
+by simp only [eq_iff_veq, pred_val, nat.pred_succ]
 
 @[simp] lemma pred_inj :
   ∀ {a b : fin (n + 1)} {ha : a ≠ 0} {hb : b ≠ 0}, a.pred ha = b.pred hb ↔ a = b
@@ -314,15 +363,63 @@ rfl
 @[simp] lemma cast_succ_inj {a b : fin n} : a.cast_succ = b.cast_succ ↔ a = b :=
 by simp [eq_iff_veq]
 
-lemma cast_succ_ne_last (a : fin n) : cast_succ a ≠ last n :=
-by simp [eq_iff_veq, ne_of_lt a.2]
+lemma cast_succ_lt_last (a : fin n) : cast_succ a < last n := lt_iff_val_lt_val.mpr a.is_lt
+
+@[simp] lemma cast_succ_zero : cast_succ (0 : fin (n + 1)) = 0 := rfl
+
+lemma last_pos : (0 : fin (n + 2)) < last (n + 1) :=
+by simp [lt_iff_val_lt_val]
+
+lemma coe_nat_eq_last (n) : (n : fin (n + 1)) = fin.last n :=
+by { rw [←fin.of_nat_eq_coe, fin.of_nat, fin.last], simp only [nat.mod_eq_of_lt n.lt_succ_self] }
+
+lemma le_coe_last (i : fin (n + 1)) : i ≤ n :=
+by { rw fin.coe_nat_eq_last, exact fin.le_last i }
 
 lemma eq_last_of_not_lt {i : fin (n+1)} (h : ¬ i.val < n) : i = last n :=
 le_antisymm (le_last i) (not_lt.1 h)
 
+lemma add_one_pos (i : fin (n + 1)) (h : i < fin.last n) : (0 : fin (n + 1)) < i + 1 :=
+begin
+  cases n,
+  { exact absurd h (nat.not_lt_zero _) },
+  { rw [lt_iff_val_lt_val, last_val, ←add_lt_add_iff_right 1] at h,
+    rw [lt_iff_val_lt_val, add_def, val_zero, val_one, nat.mod_eq_of_lt h],
+    exact nat.zero_lt_succ _ }
+end
+
+lemma one_pos : (0 : fin (n + 2)) < 1 := succ_pos 0
+
+lemma zero_ne_one : (0 : fin (n + 2)) ≠ 1 := ne_of_lt one_pos
+
 lemma cast_succ_fin_succ (n : ℕ) (j : fin n) :
   cast_succ (fin.succ j) = fin.succ (cast_succ j) :=
 by simp [fin.ext_iff]
+
+lemma cast_succ_lt_succ (i : fin n) : i.cast_succ < i.succ :=
+by { rw [lt_iff_val_lt_val, cast_succ, cast_add_val, succ_val], exact lt_add_one _ }
+
+@[norm_cast, simp] lemma coe_eq_cast_succ : (a : fin (n + 1)) = a.cast_succ :=
+begin
+  rw [cast_succ, cast_add, cast_le, cast_lt, eq_iff_veq],
+  exact coe_val_of_lt (nat.lt.step a.is_lt),
+end
+
+@[simp] lemma coe_succ_eq_succ : a.cast_succ + 1 = a.succ :=
+begin
+  cases n,
+  { exact fin_zero_elim a },
+  { simp [a.is_lt, eq_iff_veq, add_def, nat.mod_eq_of_lt] }
+end
+
+lemma lt_succ : a.cast_succ < a.succ :=
+by { rw [cast_succ, lt_iff_val_lt_val, cast_add_val, succ_val], exact lt_add_one a.val }
+
+@[simp] lemma pred_one {n : ℕ} : fin.pred (1 : fin (n + 2)) (ne.symm (ne_of_lt one_pos)) = 0 := rfl
+
+lemma pred_add_one (i : fin (n + 2)) (h : (i : ℕ) < n + 1) :
+  pred (i + 1) (ne_of_gt (add_one_pos _ (lt_iff_val_lt_val.mpr h))) = cast_lt i h :=
+by { rw coe_eq_val at h, simp [eq_iff_veq, succ_pred_eq_of_pos, h, add_def, mod_eq_of_lt] }
 
 /-- `min n m` as an element of `fin (m + 1)` -/
 def clamp (n m : ℕ) : fin (m + 1) := fin.of_nat $ min n m
@@ -336,12 +433,33 @@ lemma cast_le_injective {n₁ n₂ : ℕ} (h : n₁ ≤ n₂) : injective (fin.c
 lemma cast_succ_injective (n : ℕ) : injective (@fin.cast_succ n) :=
 cast_le_injective (le_add_right n 1)
 
+lemma succ_above_below (p : fin (n + 1)) (i : fin n) (h : (i : ℕ) < p) :
+  p.succ_above i = i.cast_succ :=
+by { rw [coe_eq_val, coe_eq_val] at h, rw [succ_above], exact if_pos h }
+
+@[simp] lemma succ_above_zero : succ_above (0 : fin (n + 1)) = fin.succ := rfl
+
+@[simp] lemma succ_above_last : succ_above (fin.last n) = cast_succ :=
+by { ext i, simp only [succ_above, i.is_lt, if_true, last_val] }
+
+lemma succ_above_above (p : fin (n + 1)) (i : fin n) (h : (p : ℕ) ≤ i) :
+  p.succ_above i = i.succ :=
+by { rw [coe_eq_val, coe_eq_val] at h, rw [succ_above], exact if_neg (not_lt_of_le h) }
+
 theorem succ_above_ne (p : fin (n+1)) (i : fin n) : p.succ_above i ≠ p :=
 begin
   assume eq,
   unfold fin.succ_above at eq,
   split_ifs at eq with h;
     simpa [lt_irrefl, nat.lt_succ_self, eq.symm] using h
+end
+
+lemma succ_above_pos (p : fin (n + 2)) (i : fin (n + 1)) (h : 0 < i) : 0 < p.succ_above i :=
+begin
+  by_cases H : (i : ℕ) < p,
+  { simpa [succ_above_below, H, lt_iff_val_lt_val] using h },
+  { push_neg at H,
+    simp [succ_above_above, H, lt_iff_val_lt_val], },
 end
 
 @[simp] lemma succ_above_descend :
@@ -620,7 +738,7 @@ begin
         by { assume E, apply h', rw [← E, cast_succ_cast_lt] },
       simp [h', this, snoc, h] } },
   { rw eq_last_of_not_lt h,
-    simp [ne.symm (cast_succ_ne_last i)] }
+    simp [ne.symm (ne_of_lt (cast_succ_lt_last i))] }
 end
 
 /-- Adding an element at the beginning of a tuple and then updating it amounts to adding it
@@ -651,7 +769,7 @@ end
 
 /-- Updating the last element of a tuple does not change the beginning. -/
 @[simp] lemma init_update_last : init (update q (last n) z) = init q :=
-by { ext j, simp [init, cast_succ_ne_last] }
+by { ext j, simp [init, ne_of_lt, cast_succ_lt_last] }
 
 /-- Updating an element and taking the beginning commute. -/
 @[simp] lemma init_update_cast_succ :
@@ -739,7 +857,7 @@ end
 /-- `find p` does not return `none` if and only if `p i` holds at some index `i`. -/
 lemma is_some_find_iff : Π {n : ℕ} {p : fin n → Prop} [decidable_pred p],
   by exactI (find p).is_some ↔ ∃ i, p i
-| 0     p _ := iff_of_false (λ h, bool.no_confusion h) (λ ⟨i, _⟩, fin.elim0 i)
+| 0     p _ := iff_of_false (λ h, bool.no_confusion h) (λ ⟨i, _⟩, fin_zero_elim i)
 | (n+1) p _ := ⟨λ h, begin
   rw [option.is_some_iff_exists] at h,
   cases h with i hi,

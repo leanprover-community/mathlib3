@@ -118,7 +118,7 @@ begin
 end
 
 lemma degree_eq_one_of_irreducible_of_splits {p : polynomial β}
-  (h_nz : p ≠ 0) (hp : irreducible p) (hp_splits: splits (ring_hom.id β) p):
+  (h_nz : p ≠ 0) (hp : irreducible p) (hp_splits : splits (ring_hom.id β) p) :
   p.degree = 1 :=
 begin
   rcases hp_splits,

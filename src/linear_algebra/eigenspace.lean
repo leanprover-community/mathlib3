@@ -18,7 +18,7 @@ If there are eigenvectors for a scalar `μ`, the scalar `μ` is called an eigenv
 
 ## Notations
 
-The expression `algebra_map α (β →ₗ[α] β)` appears very often, which is why we
+The expression `algebra_map K (End K V)` appears very often, which is why we
 use `am` as a local notation for it.
 
 ## References
@@ -36,36 +36,41 @@ universes u v w
 
 open vector_space principal_ideal_ring polynomial finite_dimensional
 
-variables {α : Type v} {β : Type w} [add_comm_group β]
+variables {K : Type v} {V : Type w} [add_comm_group V]
 
-local notation `am` := algebra_map α (β →ₗ[α] β)
+local notation `am` := algebra_map K (module.End K V)
 
 /-- The subspace `eigenspace f μ` for a linear map `f` and a scalar `μ` consists of all vectors `x`
     such that `f x = μ • x`. -/
-def eigenspace [field α] [vector_space α β] (f : β →ₗ[α] β) (μ : α) : submodule α β :=
+def eigenspace [comm_ring K] [module K V] (f : module.End K V) (μ : K) : submodule K V :=
 (f - am μ).ker
 
 /-- A nonzero element of an eigenspace is an eigenvector. -/
-def eigenvector [field α] [vector_space α β] (f : β →ₗ[α] β) (μ : α) (x : β) : Prop :=
+def eigenvector [comm_ring K] [module K V] (f : module.End K V) (μ : K) (x : V) : Prop :=
 x ≠ 0 ∧ x ∈ eigenspace f μ
 
 /-- A scalar `μ` is an eigenvalue for a linear map `f` if there are nonzero vectors `x`
     such that `f x = μ • x`. -/
-def eigenvalue [field α] [vector_space α β] (f : β →ₗ[α] β) (a : α) : Prop :=
-eigenspace f a ≠ ⊥.
+def eigenvalue [comm_ring K] [module K V] (f : module.End K V) (a : K) : Prop :=
+eigenspace f a ≠ ⊥
 
-lemma eigenspace_div [field α] [vector_space α β] (f : β →ₗ[α] β) (a b : α) (hb : b ≠ 0):
+lemma mem_eigenspace_iff [comm_ring K] [module K V]
+ {f : module.End K V} {μ : K} {x : V} : x ∈ eigenspace f μ ↔ f x = μ • x :=
+by rw [eigenspace, linear_map.mem_ker, linear_map.sub_apply, module.algebra_map_End_apply,
+   sub_eq_zero]
+
+lemma eigenspace_div [field K] [vector_space K V] (f : module.End K V) (a b : K) (hb : b ≠ 0) :
   eigenspace f (a / b) = (b • f - am a).ker :=
 calc
   eigenspace f (a / b) = eigenspace f (b⁻¹ * a) : by { dsimp [(/)], rw mul_comm }
-  ... = (f - (b⁻¹ * a) • linear_map.id).ker : by refl
+  ... = (f - (b⁻¹ * a) • linear_map.id).ker : rfl
   ... = (f - b⁻¹ • a • linear_map.id).ker : by rw smul_smul
-  ... = (f - b⁻¹ • am a).ker : by refl
+  ... = (f - b⁻¹ • am a).ker : rfl
   ... = (b • (f - b⁻¹ • am a)).ker : by rw linear_map.ker_smul _ b hb
   ... = (b • f - am a).ker : by rw [smul_sub, smul_inv_smul' hb]
 
-lemma eigenspace_eval₂_polynomial_degree_1 [field α] [vector_space α β]
-  (f : β →ₗ[α] β) (q : polynomial α) (hq : degree q = 1) :
+lemma eigenspace_eval₂_polynomial_degree_1 [field K] [vector_space K V]
+  (f : module.End K V) (q : polynomial K) (hq : degree q = 1) :
   eigenspace f (- q.coeff 0 / q.leading_coeff) = (eval₂ am f q).ker :=
 calc
   eigenspace f (- q.coeff 0 / q.leading_coeff) = (q.leading_coeff • f - am (- q.coeff 0)).ker
@@ -75,31 +80,16 @@ calc
   ... = (eval₂ am f q).ker
      : by { congr, apply (eq_X_add_C_of_degree_eq_one hq).symm }
 
-lemma mem_eigenspace_iff [field α] [vector_space α β]
- {f : β →ₗ[α] β} {μ : α} {x : β} : x ∈ eigenspace f μ ↔ f x = μ • x :=
-by rw [eigenspace, linear_map.mem_ker, linear_map.sub_apply, module.endomorphism_algebra_map_apply2,
-   sub_eq_zero]
-
-lemma ne_0_of_mem_factors {α : Type v} [field α] {p q : polynomial α}
-  (hp : p ≠ 0) (hq : q ∈ factors p) : q ≠ 0 :=
-begin
-  intro h_q_eq_0,
-  rw h_q_eq_0 at hq,
-  apply hp ((associated_zero_iff_eq_zero p).1 _),
-  rw ←multiset.prod_eq_zero hq,
-  apply (factors_spec p hp).2
-end
-
 /-- Every linear operator on a vector space over an algebraically closed field has
     an eigenvalue. (Axler's Theorem 2.1.) -/
 lemma exists_eigenvalue
-  [field α] [is_alg_closed α] [vector_space α β] [finite_dimensional α β]
-  (f : β →ₗ[α] β) (hex : ∃ v : β, v ≠ 0) :
-  ∃ (c : α), eigenvalue f c :=
+  [field K] [is_alg_closed K] [vector_space K V] [finite_dimensional K V]
+  (f : module.End K V) (hex : ∃ v : V, v ≠ 0) :
+  ∃ (c : K), eigenvalue f c :=
 begin
   classical,
-  obtain ⟨v, hv⟩ : ∃ v : β, v ≠ 0 := hex,
-  have h_lin_dep : ¬ linear_independent α (λ n : ℕ, (f ^ n) v),
+  obtain ⟨v, hv⟩ : ∃ v : V, v ≠ 0 := hex,
+  have h_lin_dep : ¬ linear_independent K (λ n : ℕ, (f ^ n) v),
   { intro h_lin_indep,
     have : cardinal.mk ℕ < cardinal.omega,
       by apply (lt_omega_of_linear_independent h_lin_indep),
@@ -109,29 +99,29 @@ begin
   obtain ⟨p, hp⟩ : ∃ p, ¬(eval₂ am f p v = 0 → p = 0),
   { exact not_forall.1 (λ h, h_lin_dep ((linear_independent_powers_iff_eval₂ f v).2 h)) },
   obtain ⟨h_eval_p, h_p_ne_0⟩ : eval₂ am f p v = 0 ∧ p ≠ 0 := not_imp.1 hp,
-  have h_eval_p_not_unit : eval₂_ring_hom_noncomm am _ f p ∉ is_unit.submonoid (β →ₗ[α] β),
+  have h_eval_p_not_unit : eval₂_ring_hom_noncomm am _ f p ∉ is_unit.submonoid (module.End K V),
   { rw [is_unit.mem_submonoid_iff, linear_map.is_unit_iff, linear_map.ker_eq_bot'],
     intro h,
     exact hv (h v h_eval_p) },
-  have h_eval_unit : ∀ (c : units (polynomial α)),
-      (eval₂_ring_hom_noncomm am _ f) ↑c ∈ is_unit.submonoid (β →ₗ[α] β),
+  have h_eval_unit : ∀ (c : units (polynomial K)),
+      (eval₂_ring_hom_noncomm am _ f) ↑c ∈ is_unit.submonoid (module.End K V),
   { intro c,
     rw polynomial.eq_C_of_degree_eq_zero (degree_coe_units c),
     simp only [eval₂_ring_hom_noncomm, ring_hom.of, ring_hom.coe_mk, eval₂_C],
     rw [is_unit.mem_submonoid_iff, linear_map.is_unit_iff],
-    apply module.endomorphism_algebra_map_ker,
+    apply module.ker_algebra_map_End,
     apply coeff_coe_units_zero_ne_zero c },
   obtain ⟨q, hq_factor, hq_nonunit⟩ : ∃ q, q ∈ factors p ∧ ¬ is_unit (eval₂ am f q),
   { simp only [←not_imp, (is_unit.mem_submonoid_iff _).symm],
     apply not_forall.1 (λ h, h_eval_p_not_unit (ring_hom_factors_submonoid
       (eval₂_ring_hom_noncomm am (λ x y, (algebra.commutes x y).symm) f)
-      (is_unit.submonoid (β →ₗ[α] β)) p h_p_ne_0 h h_eval_unit)) },
-  have h_q_ne_0 : q ≠ 0 := ne_0_of_mem_factors h_p_ne_0 hq_factor,
+      (is_unit.submonoid (module.End K V)) p h_p_ne_0 h h_eval_unit)) },
+  have h_q_ne_0 : q ≠ 0 := ne_zero_of_mem_factors h_p_ne_0 hq_factor,
   have h_deg_q : q.degree = 1 := is_alg_closed.degree_eq_one_of_irreducible _ h_q_ne_0
     ((factors_spec p h_p_ne_0).1 q hq_factor),
   have h_eigenspace: eigenspace f (-q.coeff 0 / q.leading_coeff) = (eval₂ am f q).ker,
     from eigenspace_eval₂_polynomial_degree_1 f q h_deg_q,
-  show ∃ (c : α), eigenvalue f c,
+  show ∃ (c : K), eigenvalue f c,
   { use -q.coeff 0 / q.leading_coeff,
     rw [eigenvalue, h_eigenspace],
     intro h_eval_ker,
@@ -140,10 +130,10 @@ end
 
 /-- Eigenvectors corresponding to distinct eigenvalues of a linear operator are
     linearly independent (Axler's Proposition 2.2) -/
-lemma eigenvectors_linear_independent [field α] [vector_space α β]
-  (f : β →ₗ[α] β) (μs : set α) (xs : μs → β)
+lemma eigenvectors_linear_independent [field K] [vector_space K V]
+  (f : module.End K V) (μs : set K) (xs : μs → V)
   (h_eigenvec : ∀ μ : μs, eigenvector f μ (xs μ)) :
-  linear_independent α xs :=
+  linear_independent K xs :=
 begin
   classical,
   rw linear_independent_iff,
@@ -169,12 +159,12 @@ begin
         have := finsupp.mem_support_iff.2 hlμ,
         rw [h_l_support, finset.mem_insert] at this,
         cc } },
-    let l' : μs →₀ α := finsupp.on_finset l_support' l'_f (λ μ, (h_l_support' μ).1),
-    have total_l' : (@linear_map.to_fun α (finsupp μs α) β _ _ _ _ _ (finsupp.total μs β α xs)) l' = 0,
+    let l' : μs →₀ K := finsupp.on_finset l_support' l'_f (λ μ, (h_l_support' μ).1),
+    have total_l' : (@linear_map.to_fun K (finsupp μs K) V _ _ _ _ _ (finsupp.total μs V K xs)) l' = 0,
     { let g := f - am μ₀,
       have h_gμ₀: g (l μ₀ • xs μ₀) = 0,
         by rw [linear_map.map_smul, linear_map.sub_apply, mem_eigenspace_iff.1 (h_eigenvec _).2,
-          module.endomorphism_algebra_map_apply2, sub_self, smul_zero],
+          module.algebra_map_End_apply, sub_self, smul_zero],
       have h_useless_filter : finset.filter (λ (a : μs), l'_f a ≠ 0) l_support' = l_support',
       { rw finset.filter_congr _,
         { apply finset.filter_true },
@@ -184,22 +174,17 @@ begin
       { intro μ,
         dsimp only [g, l'_f],
         rw [linear_map.map_smul, linear_map.sub_apply, mem_eigenspace_iff.1 (h_eigenvec _).2,
-          module.endomorphism_algebra_map_apply2, ←sub_smul, smul_smul, mul_comm] },
-      have := finsupp.total_on_finset _ l_support' l'_f xs _,
+          module.algebra_map_End_apply, ←sub_smul, smul_smul, mul_comm] },
+      have := finsupp.total_on_finset _ xs _,
       unfold_coes at this,
       rw [this, ←linear_map.map_zero g,
           ←congr_arg g hl, finsupp.total_apply, finsupp.sum, linear_map.map_sum, h_l_support,
           finset.sum_insert hμ₀, h_gμ₀, zero_add],
-      simp only [bodies_eq],
-      congr,
-      convert finset.filter_congr _,
-      { apply finset.filter_true.symm },
-      { apply_instance },
-      exact λ μ hμ, iff_of_true ((h_l_support' μ).2 hμ) true.intro, },
+      simp only [bodies_eq] },
     have h_l'_support_eq : l'.support = l_support',
     { dsimp only [l'],
       ext μ,
-      rw finsupp.on_finset_mem_support l_support' l'_f _ μ,
+      rw finsupp.mem_support_on_finset _ μ,
       by_cases h_cases: μ ∈ l_support',
       { refine iff_of_true _ h_cases,
         exact (h_l_support' μ).2 h_cases },

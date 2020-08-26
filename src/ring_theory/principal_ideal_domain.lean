@@ -175,6 +175,9 @@ begin
     (is_noetherian_ring.exists_factors a h)
 end
 
+lemma ne_zero_of_mem_factors {R : Type v} [integral_domain R] [is_principal_ideal_ring R] {a b : R}
+  (ha : a ≠ 0) (hb : b ∈ factors a) : b ≠ 0 := irreducible.ne_zero ((factors_spec a ha).1 b hb)
+
 /-- If a `ring_hom` maps all units and all factors of an element `a` into a submonoid `s`, then it
 also maps `a` into that submonoid. -/
 lemma ring_hom_factors_submonoid {R S : Type*}

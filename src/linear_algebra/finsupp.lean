@@ -396,11 +396,16 @@ lemma total_comap_domain
 by rw finsupp.total_apply; refl
 
 lemma total_on_finset
-  (s : finset α) (f : α → R) (g : α → M) (hf : ∀ a, f a ≠ 0 → a ∈ s):
+  {s : finset α} {f : α → R} (g : α → M) (hf : ∀ a, f a ≠ 0 → a ∈ s):
   finsupp.total α M R g (finsupp.on_finset s f hf) =
-    finset.sum (finset.filter (λ (a : α), f a ≠ 0) s) (λ (x : α), f x • g x) :=
-by simp only [finsupp.total_apply, finsupp.sum, finsupp.on_finset_apply, finsupp.on_finset_apply, ne.def,
-    finset.filter_congr_decidable, finsupp.on_finset_support]
+    finset.sum s (λ (x : α), f x • g x) :=
+begin
+  simp only [finsupp.total_apply, finsupp.sum, finsupp.on_finset_apply, finsupp.support_on_finset],
+  rw finset.sum_filter_of_ne,
+  intros x hx h,
+  contrapose! h,
+  simp [h],
+end
 
 end total
 

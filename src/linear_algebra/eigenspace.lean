@@ -184,7 +184,7 @@ begin
     have h_l'_support_eq : l'.support = l_support',
     { dsimp only [l'],
       ext μ,
-      rw finsupp.mem_support_on_finset _ μ,
+      rw finsupp.mem_support_on_finset _,
       by_cases h_cases: μ ∈ l_support',
       { refine iff_of_true _ h_cases,
         exact (h_l_support' μ).2 h_cases },

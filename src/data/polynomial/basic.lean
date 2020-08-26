@@ -80,6 +80,9 @@ end
 lemma X_pow_mul_assoc {n : ℕ} : (p * X^n) * q = (p * q) * X^n :=
 by rw [mul_assoc, X_pow_mul, ←mul_assoc]
 
+lemma commute_X (p : polynomial R) :
+  commute X p := by rw [commute, semiconj_by, X_mul]
+
 /-- coeff p n is the coefficient of X^n in p -/
 def coeff (p : polynomial R) := p.to_fun
 

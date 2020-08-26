@@ -93,11 +93,27 @@ begin
   rwa ← finset.mem_range
 end
 
+theorem sub_pow_char_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] (x y : R) (h : commute x y):
+(x - y)^p = x^p - y^p :=
+begin
+  rw [eq_sub_iff_add_eq, ← add_pow_char_of_commute], simp,
+  unfold commute, unfold semiconj_by, rw [sub_mul, mul_sub, h.eq],
+end
+
 theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} (hp : nat.prime p)
   [char_p α p] (x y : α) : (x + y)^p = x^p + y^p :=
 begin
   haveI : fact p.prime := hp,
   apply add_pow_char_of_commute,
+  apply commute.all,
+end
+
+theorem sub_pow_char (α : Type u) [comm_ring α] {p : ℕ} (hp : nat.prime p)
+  [char_p α p] (x y : α) : (x - y)^p = x^p - y^p :=
+begin
+  haveI : fact p.prime := hp,
+  apply sub_pow_char_of_commute,
   apply commute.all,
 end
 

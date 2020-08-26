@@ -8,6 +8,7 @@ import data.equiv.ring
 import data.zmod.basic
 import linear_algebra.basis
 import ring_theory.integral_domain
+import field_theory.separable
 
 /-!
 # Finite fields
@@ -115,6 +116,15 @@ lemma pow_card_sub_one_eq_one (a : K) (ha : a ≠ 0) :
 calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : units K) :
     by rw [units.coe_pow, units.coe_mk0]
   ... = 1 : by { classical, rw [← card_units, pow_card_eq_one], refl }
+
+lemma pow_card_eq_self (a : K) :
+  a ^ (fintype.card K) = a :=
+begin
+  have hp : fintype.card K > 0 := fintype.card_pos_iff.2 (by apply_instance),
+  by_cases a = 0, {rw h, apply zero_pow hp, },
+  rw [← nat.succ_pred_eq_of_pos hp, pow_succ, nat.pred_eq_sub_one,
+    pow_card_sub_one_eq_one a h, mul_one],
+end
 
 variable (K)
 
@@ -257,4 +267,18 @@ begin
   apply_fun (coe : units (zmod (n+1)) → zmod (n+1)) at this,
   simpa only [-zmod.pow_totient, nat.succ_eq_add_one, nat.cast_pow, units.coe_one,
     nat.cast_one, cast_unit_of_coprime, units.coe_pow],
+end
+
+/-- A variation on Fermat's little theorem. See `zmod.fermat_little` -/
+@[simp] lemma zmod.pow_card_eq_self {p : ℕ} [fact p.prime] (x : zmod p) : x ^ p = x :=
+by { have h := finite_field.pow_card_eq_self x, rw zmod.card p at h, rw h }
+
+open polynomial
+
+lemma zmod.expand_p {p : ℕ} [fact p.prime] (f : polynomial (zmod p)) :
+expand (zmod p) p f = f ^ p :=
+begin
+  apply f.induction_on', intros a b ha hb, rw add_pow_char, simp [ha, hb], assumption,
+  intros n a, rw polynomial.expand_monomial, repeat {rw single_eq_C_mul_X},
+  rw [mul_pow, ← C.map_pow, zmod.pow_card_eq_self a], ring_exp,
 end

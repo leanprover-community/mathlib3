@@ -130,7 +130,7 @@ pure $ ncoes - count_head_coes e
 Classifies a declaration of type `ty` as a `norm_cast` rule.
 -/
 meta def classify_type (ty : expr) : tactic label := do
-(_, ty) ← mk_local_pis ty,
+(_, ty) ← open_pis ty,
 (lhs, rhs) ← match ty with
   | `(%%lhs = %%rhs) := pure (lhs, rhs)
   | `(%%lhs ↔ %%rhs) := pure (lhs, rhs)

@@ -50,14 +50,9 @@ class ordered_semimodule (R β : Type*)
 (smul_lt_smul_of_pos : ∀ {a b : β}, ∀ {c : R}, a < b → 0 < c → c • a < c • b)
 (lt_of_smul_lt_smul_of_nonneg : ∀ {a b : β}, ∀ {c : R}, c • a < c • b → 0 ≤ c → a < b)
 
-variable {R : Type*}
+section ordered_semimodule
 
-instance linear_ordered_ring.to_ordered_semimodule [linear_ordered_ring R] :
-  ordered_semimodule R R :=
-{ smul_lt_smul_of_pos      := ordered_semiring.mul_lt_mul_of_pos_left,
-  lt_of_smul_lt_smul_of_nonneg  := λ _ _ _, lt_of_mul_lt_mul_left }
-
-variables {β : Type*} [ordered_semiring R] [ordered_add_comm_monoid β] [ordered_semimodule R β]
+variables {R β : Type*} [ordered_semiring R] [ordered_add_comm_monoid β] [ordered_semimodule R β]
   {a b : β} {c : R}
 
 lemma smul_lt_smul_of_pos : a < b → 0 < c → c • a < c • b := ordered_semimodule.smul_lt_smul_of_pos
@@ -71,3 +66,41 @@ begin
     { exact le_of_lt
         (smul_lt_smul_of_pos (lt_of_le_of_ne h₁ H₂) (lt_of_le_of_ne h₂ (ne.symm H₁))), } }
 end
+
+end ordered_semimodule
+
+section instances
+
+variables {R : Type*} [linear_ordered_ring R]
+
+instance linear_ordered_ring.to_ordered_semimodule : ordered_semimodule R R :=
+{ smul_lt_smul_of_pos      := ordered_semiring.mul_lt_mul_of_pos_left,
+  lt_of_smul_lt_smul_of_nonneg  := λ _ _ _, lt_of_mul_lt_mul_left }
+
+end instances
+
+section order_dual
+
+variables {R β : Type*}
+
+instance [semiring R] [ordered_add_comm_monoid β] [semimodule R β] : has_scalar R (order_dual β) :=
+{ smul := @has_scalar.smul R β _ }
+
+instance [semiring R] [ordered_add_comm_monoid β] [semimodule R β] : mul_action R (order_dual β) :=
+{ one_smul := @mul_action.one_smul R β _ _,
+  mul_smul := @mul_action.mul_smul R β _ _ }
+
+instance [semiring R] [ordered_add_comm_monoid β] [semimodule R β] : distrib_mul_action R (order_dual β) :=
+{ smul_add := @distrib_mul_action.smul_add R β _ _ _,
+  smul_zero := @distrib_mul_action.smul_zero R β _ _ _ }
+
+instance [semiring R] [ordered_add_comm_monoid β] [semimodule R β] : semimodule R (order_dual β) :=
+{ add_smul := @semimodule.add_smul R β _ _ _,
+  zero_smul := @semimodule.zero_smul R β _ _ _ }
+
+instance [ordered_semiring R] [ordered_add_comm_monoid β] [ordered_semimodule R β] :
+  ordered_semimodule R (order_dual β) :=
+{ smul_lt_smul_of_pos := λ a b, @ordered_semimodule.smul_lt_smul_of_pos R β _ _ _ b a,
+  lt_of_smul_lt_smul_of_nonneg := λ a b, @ordered_semimodule.lt_of_smul_lt_smul_of_nonneg R β _ _ _ b a }
+
+end order_dual

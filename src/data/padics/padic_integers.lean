@@ -351,7 +351,7 @@ lt_of_le_of_lt (padic_norm_z.nonarchimedean _ _) (max_lt hz1 hz2)
 
 lemma norm_lt_one_mul {z1 z2 : ℤ_[p]} (hz2 : ∥z2∥ < 1) : ∥z1 * z2∥ < 1 :=
 calc  ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ : by simp
-           ... < 1 :  mul_lt_one_of_nonneg_of_lt_one_right (padic_norm_z.le_one _) (norm_nonneg _) hz2
+           ... < 1 : mul_lt_one_of_nonneg_of_lt_one_right (padic_norm_z.le_one _) (norm_nonneg _) hz2
 
 @[simp] lemma mem_nonunits {z : ℤ_[p]} : z ∈ nonunits ℤ_[p] ↔ ∥z∥ < 1 :=
 by rw lt_iff_le_and_ne; simp [padic_norm_z.le_one z, nonunits, is_unit_iff]
@@ -526,23 +526,23 @@ begin
   rw is_unit_iff,
   apply le_antisymm (r.denom : ℤ_[p]).2,
   rw [← not_lt, val_eq_coe, coe_coe],
-  intro norm_denon_lt,
-  have help : ∥(r * r.denom : ℚ_[p])∥ = ∥(r.num : ℚ_[p])∥,
+  intro norm_denom_lt,
+  have hr : ∥(r * r.denom : ℚ_[p])∥ = ∥(r.num : ℚ_[p])∥,
   { rw_mod_cast @rat.mul_denom_eq_num r, refl, },
-  rw padic_norm_e.mul at help,
+  rw padic_norm_e.mul at hr,
   have key : ∥(r.num : ℚ_[p])∥ < 1,
-  { calc _ = _ : help.symm
+  { calc _ = _ : hr.symm
     ... < 1 * 1 : _
     ... = 1 : mul_one 1,
-    apply mul_lt_mul' h norm_denon_lt (norm_nonneg _) zero_lt_one, },
-  have oolala : ↑p ∣ r.num ∧ (p : ℤ) ∣ r.denom,
+    apply mul_lt_mul' h norm_denom_lt (norm_nonneg _) zero_lt_one, },
+  have : ↑p ∣ r.num ∧ (p : ℤ) ∣ r.denom,
   { simp only [← norm_int_lt_one_iff_dvd, ← padic_norm_z.padic_norm_e_of_padic_int],
-    norm_cast, exact ⟨key, norm_denon_lt⟩ },
+    norm_cast, exact ⟨key, norm_denom_lt⟩ },
   apply hp_prime.not_dvd_one,
   rwa [← r.cop.gcd_eq_one, nat.dvd_gcd_iff, ← int.coe_nat_dvd_left, ← int.coe_nat_dvd],
 end
 
-private lemma norm_sub_mod_part_aux (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
+lemma norm_sub_mod_part_aux (r : ℚ) (h : ∥(r : ℚ_[p])∥ ≤ 1) :
   ↑p ∣ r.num - r.num * r.denom.gcd_a p % p * ↑(r.denom) :=
 begin
   rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
@@ -551,8 +551,8 @@ begin
   simp only [int.cast_coe_nat, add_zero, int.cast_add, zmod.cast_self, int.cast_mul, zero_mul] at this,
   push_cast,
   rw [mul_right_comm, mul_assoc, ←this],
-  suffices help : r.denom.coprime p,
-  { rw help.gcd_eq_one, simp only [mul_one, cast_one, sub_self], },
+  suffices rdcp : r.denom.coprime p,
+  { rw rdcp.gcd_eq_one, simp only [mul_one, cast_one, sub_self], },
   apply coprime.symm,
   apply (coprime_or_dvd_of_prime ‹_› _).resolve_right,
   rw [← int.coe_nat_dvd, ← norm_int_lt_one_iff_dvd, not_lt],
@@ -568,10 +568,14 @@ variable (p)
 omit hp_prime
 
 /--
-`mod_part r p` is a value that satisfies
-`∥(r - mod_part p r : ℚ_[p])∥ < 1` when `∥(r : ℚ_[p])∥ ≤ 1`.
-See `padic_int.norm_sub_mod_part`.
--/
+`mod_part r p` is an integer that satisfies
+`∥(r - mod_part p r : ℚ_[p])∥ < 1` when `∥(r : ℚ_[p])∥ ≤ 1`,
+see `padic_int.norm_sub_mod_part`.
+It is the unique non-negative integer that is `< p` with this property.
+
+(Note that this definition assumes `r : ℚ`.
+See `padic_int.zmod_repr` for a version that takes values in `ℕ`
+and works for arbitrary `x : ℤ_[p]`.) -/
 def mod_part : ℤ :=
 (r.num * gcd_a r.denom p) % p
 
@@ -612,7 +616,6 @@ begin
   dsimp [n, mod_part],
   apply norm_sub_mod_part_aux r h,
 end
-
 
 lemma exists_mem_range_of_norm_rat_le_one (h : ∥(r : ℚ_[p])∥ ≤ 1) :
   ∃ n : ℤ, 0 ≤ n ∧ n < p ∧ ∥(⟨r,h⟩ - n : ℤ_[p])∥ < 1 :=
@@ -676,7 +679,7 @@ begin
 end
 
 /--
-`zmod_repr x` is a nonnegative integer smaller than `p`
+`zmod_repr x` is the unique natural number smaller than `p`
 satisfying `∥(x - zmod_repr x : ℤ_[p])∥ < 1`.
 -/
 def zmod_repr : ℕ :=
@@ -718,7 +721,8 @@ def to_zmod_hom (v : ℕ) (f : ℤ_[p] → ℕ) (f_spec : ∀ x, x - f x ∈ (id
     rw [f_congr (x + y) _ (f x + f y), cast_add],
     { exact f_spec _ },
     { convert ideal.add_mem _ (f_spec x) (f_spec y),
-      rw cast_add, ring, }
+      rw cast_add,
+      ring, }
   end,
   map_mul' :=
   begin
@@ -729,7 +733,8 @@ def to_zmod_hom (v : ℕ) (f : ℤ_[p] → ℕ) (f_spec : ∀ x, x - f x ∈ (id
       have A : x * (y - f y) ∈ I := I.mul_mem_left (f_spec _),
       have B : (x - f x) * (f y) ∈ I := I.mul_mem_right (f_spec _),
       convert I.add_mem A B,
-      rw cast_mul, ring, }
+      rw cast_mul,
+      ring, }
   end, }
 
 /--
@@ -741,18 +746,25 @@ to_zmod_hom p zmod_repr
   (by { rw ←maximal_ideal_eq_span_p, exact sub_zmod_repr_mem })
   (by { rw ←maximal_ideal_eq_span_p, exact zmod_congr_of_sub_mem_max_ideal } )
 
-lemma to_zmod_spec (z : ℤ_[p]) : z - to_zmod z ∈ maximal_ideal ℤ_[p] :=
+/--
+`z - (to_zmod z : ℤ_[p])` is contained in the maximal ideal of `ℤ_[p]`, for every `z : ℤ_[p]`.
+
+The coercion from `zmod p` to `ℤ_[p]` is `zmod.has_coe_t`,
+which coerces `zmod p` into artibrary rings.
+This is unfortunate, but a consequence of the fact that we allow `zmod p`
+to coerce to rings of arbitrary characteristic, instead of only rings of characteristic `p`.
+This coercion is only a ring homomorphism if it coerces into a ring whose characteristic divides `p`.
+While this is not the case here we can still make use of the coercion.
+-/
+lemma to_zmod_spec (z : ℤ_[p]) : z - (to_zmod z : ℤ_[p]) ∈ maximal_ideal ℤ_[p] :=
 begin
   convert sub_zmod_repr_mem z using 2,
   dsimp [to_zmod, to_zmod_hom],
-  have z_lt := zmod_repr_lt_p z,
-  have : ∃ p' : ℕ, p = p' + 1 := ⟨p - 1, _⟩,
-  { unfreezingI {rcases this with ⟨p', rfl⟩},
-    change ↑(zmod.val _) = _,
-    simp [zmod.val_cast_nat],
-    rw mod_eq_of_lt,
-    assumption_mod_cast },
-  { have : 1 < p, from hp_prime.one_lt, omega }
+  unfreezingI { rcases (exists_eq_add_of_lt (hp_prime.pos)) with ⟨p', rfl⟩ },
+  change ↑(zmod.val _) = _,
+  simp [zmod.val_cast_nat],
+  rw mod_eq_of_lt,
+  simpa only [zero_add] using zmod_repr_lt_p z,
 end
 
 lemma ker_to_zmod : (to_zmod : ℤ_[p] →+* zmod p).ker = maximal_ideal ℤ_[p] :=
@@ -769,7 +781,7 @@ begin
     apply sub_zmod_repr_mem, }
 end
 
-/-- `appr n x` gives a value `v : ℕ` such that `x` and `↑v : ℤ_p` are equivalent up to `p^n`.
+/-- `appr n x` gives a value `v : ℕ` such that `x` and `↑v : ℤ_p` are congruent mod `p^n`.
 See `appr_spec`. -/
 -- TODO: prove that `x.appr` is a sequence that tends to `x`.
 -- Possibly relevant: summable_iff_vanishing_norm
@@ -790,7 +802,7 @@ begin
   simp only [appr, ring_hom.map_nat_cast, zmod.cast_self, ring_hom.map_pow, int.nat_abs, ring_hom.map_mul],
   have hp : p ^ n < p ^ (n + 1),
   { simp [← nat.pow_eq_pow],
-    apply pow_lt_pow hp_prime.one_lt (lt_add_one n), },
+    apply pow_lt_pow hp_prime.one_lt (lt_add_one n) },
   split_ifs with h,
   { apply lt_trans (ih _) hp, },
   { calc _ < p ^ n + p ^ n * (p - 1) : _
@@ -798,9 +810,9 @@ begin
     { apply add_lt_add_of_lt_of_le (ih _),
       apply nat.mul_le_mul_left,
       apply le_pred_of_lt,
-      apply zmod.val_lt, },
+      apply zmod.val_lt },
     { rw [nat.mul_sub_left_distrib, mul_one, ← nat.pow_succ],
-      apply nat.add_sub_cancel' (le_of_lt hp), } }
+      apply nat.add_sub_cancel' (le_of_lt hp) } }
 end
 
 lemma appr_mono (x : ℤ_[p]) : monotone x.appr :=
@@ -912,8 +924,6 @@ end
 @[simp] lemma cast_to_zmod_pow (m n : ℕ) (h : m ≤ n) (x : ℤ_[p]) :
   ↑(to_zmod_pow n x) = to_zmod_pow m x :=
 by { rw ← zmod_cast_comp_to_zmod_pow _ _ h, refl }
-
-
 
 end padic_int
 
@@ -1121,50 +1131,6 @@ def lift : R →+* ℤ_[p] :=
   map_add' := lim_fn_add f_compat }
 
 omit f_compat
-
--- move this
-lemma norm_le_pow_iff_le_valuation (x : ℤ_[p]) (hx : x ≠ 0) (n : ℕ) :
-  ∥x∥ ≤ p ^ (-n : ℤ) ↔ ↑n ≤ x.valuation :=
-begin
-  rw norm_eq_pow_val hx,
-  lift x.valuation to ℕ using x.valuation_nonneg with k hk,
-  simp only [int.coe_nat_le, fpow_neg, fpow_coe_nat],
-  have aux : ∀ n : ℕ, 0 < (p ^ n : ℝ),
-  { apply _root_.pow_pos, exact_mod_cast nat.prime.pos ‹_› },
-  rw [inv_le_inv (aux _) (aux _)],
-  have : p ^ n ≤ p ^ k ↔ n ≤ k := (pow_right_strict_mono (nat.prime.two_le ‹_›)).le_iff_le,
-  rw [← this],
-  norm_cast,
-end
-
--- move this
-lemma mem_span_pow_iff_le_valuation (x : ℤ_[p]) (hx : x ≠ 0) (n : ℕ) :
-  x ∈ (ideal.span {p ^ n} : ideal ℤ_[p]) ↔ ↑n ≤ x.valuation :=
-begin
-  rw [ideal.mem_span_singleton],
-  split,
-  { rintro ⟨c, rfl⟩,
-    suffices : c ≠ 0,
-    { rw [valuation_p_pow_mul _ _ this, le_add_iff_nonneg_right], apply valuation_nonneg, },
-    contrapose! hx, rw [hx, mul_zero], },
-  { rw [unit_coeff_spec hx] { occs := occurrences.pos [2] },
-    lift x.valuation to ℕ using x.valuation_nonneg with k hk,
-    simp only [int.nat_abs_of_nat, is_unit_unit, is_unit.dvd_mul_left, int.coe_nat_le],
-    intro H,
-    obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le H,
-    simp only [_root_.pow_add, dvd_mul_right], }
-end
-
--- move this
-lemma norm_le_pow_iff_mem_span_pow (x : ℤ_[p]) (n : ℕ) :
-  ∥x∥ ≤ p ^ (-n : ℤ) ↔ x ∈ (ideal.span {p ^ n} : ideal ℤ_[p]) :=
-begin
-  by_cases hx : x = 0,
-  { subst hx,
-    simp only [norm_zero, fpow_neg, fpow_coe_nat, inv_nonneg, iff_true, submodule.zero_mem],
-    exact_mod_cast nat.zero_le _ },
-  rw [norm_le_pow_iff_le_valuation x hx, mem_span_pow_iff_le_valuation x hx],
-end
 
 lemma spec_foo (r : R) (n : ℕ) :
   (lift f_compat r - (f n r).val) ∈ (ideal.span {↑p ^ n} : ideal ℤ_[p]) :=

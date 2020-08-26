@@ -965,6 +965,9 @@ semimodule.of_core $ by refine {smul := (•), ..};
   repeat {rintro ⟨⟩ <|> intro}; simp [smul_add, add_smul, smul_smul,
     -mk_add, (mk_add p).symm, -mk_smul, (mk_smul p).symm]
 
+lemma mk_surjective : function.surjective (@mk _ _ _ _ _ p) :=
+by { rintros ⟨x⟩, exact ⟨x, rfl⟩ }
+
 lemma nontrivial_of_lt_top (h : p < ⊤) : nontrivial (p.quotient) :=
 begin
   obtain ⟨x, _, not_mem_s⟩ := exists_of_lt h,

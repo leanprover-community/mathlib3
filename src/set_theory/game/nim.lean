@@ -256,4 +256,3 @@ lemma Grundy_value_nim (O : ordinal.{u}) : Grundy_value (nim_impartial O) = O :=
 by rw ←equiv_nim_iff_Grundy_value_eq
 
 end nim
-#lint

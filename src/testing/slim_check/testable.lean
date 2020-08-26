@@ -402,7 +402,9 @@ instance exists_testable {p : Prop}
     x ← testable.run (named_binder var (∀ x, named_binder var' $ β x → p)) tracing min,
     pure $ convert_counter_example' exists_imp_distrib.symm x ⟩
 
-def trace_if_giveup {p α β} [has_to_string α] (tracing_enabled : bool) (var : string) (val : α) : test_result p → thunk β → β
+/-- trave the value of sampled variables if the sample is discarded -/
+def trace_if_giveup {p α β} [has_to_string α] (tracing_enabled : bool) (var : string) (val : α) :
+  test_result p → thunk β → β
 | (test_result.gave_up _) :=
   if tracing_enabled then trace (sformat!" {var} := {val}")
   else ($ ())
@@ -582,5 +584,3 @@ end
 end io
 
 end slim_check
-
-open io slim_check

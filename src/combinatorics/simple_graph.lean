@@ -210,14 +210,18 @@ section maps
 
 variables {W : Type*} (G) (H : simple_graph W)
 
+/-- A graph homomorphism maps adjacent vertices to adjacent vertices -/
 abbreviation hom := rel_hom G.adj H.adj
 
 infix ` →g ` : 50 := hom
 
+/-- A graph embedding is an embedding `f` such that for vertices `v w : V`,
+  `G.adj f(v) f(w) ↔ G.adj v w `-/
 abbreviation embedding := rel_embedding G.adj H.adj
 
 infix ` ↪g ` : 50 := embedding
 
+/-- A graph isomorphism is an equivalence that preserves adjacency-/
 abbreviation iso := rel_iso G.adj H.adj
 
 infix ` ≃g ` : 50 := iso

@@ -196,7 +196,7 @@ lemma mem_adjoin_simple_self : α ∈ F[α] :=
 adjoin.set_mem F {α} (⟨α,set.mem_singleton α⟩ : ({α} : set E))
 
 /-- generator of F(α) -/
-def adjoin_simple.gen : F[α] := ⟨α, adjoin_simple.element_mem F α⟩
+def adjoin_simple.gen : F[α] := ⟨α, mem_adjoin_simple_self F α⟩
 
 lemma adjoin_simple.algebra_map_gen : algebra_map F[α] E (adjoin_simple.gen F α) = α := rfl
 

@@ -63,7 +63,7 @@ variables {p : ℕ} [fact p.prime]
 
 instance : has_coe ℤ_[p] ℚ_[p] := ⟨subtype.val⟩
 
-@[ext] lemma ext {x y : ℤ_[p]} : (x : ℚ_[p]) = y → x = y := subtype.ext_iff_val.2
+lemma ext {x y : ℤ_[p]} : (x : ℚ_[p]) = y → x = y := subtype.ext_iff_val.2
 
 /-- Addition on ℤ_p is inherited from ℚ_p. -/
 instance : has_add ℤ_[p] :=
@@ -925,7 +925,8 @@ end
 
 omit f_compat
 variable (p)
-lemma exists_aux {ε : ℚ} (hε : ε > 0) :
+
+lemma exists_aux {ε : ℝ} (hε : ε > 0) :
   ∃ (k : ℕ), ↑p ^ -((k : ℕ) : ℤ) < ε :=
 begin
   obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
@@ -934,8 +935,22 @@ begin
   { rw [fpow_neg, inv_inv', fpow_coe_nat],
     apply lt_of_lt_of_le hk,
     norm_cast,
-    -- suffices : k < p^(k+1),
-    -- { linarith },
+    apply le_of_lt,
+    convert nat.lt_pow_self _ _ using 1,
+    exact nat.prime.one_lt ‹_› },
+  { exact_mod_cast nat.prime.pos ‹_› }
+end
+
+-- can we golf this using exists_aux?
+lemma exists_aux' {ε : ℚ} (hε : ε > 0) :
+  ∃ (k : ℕ), ↑p ^ -((k : ℕ) : ℤ) < ε :=
+begin
+  obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
+  use k,
+  rw ← inv_lt_inv hε (_root_.fpow_pos_of_pos _ _),
+  { rw [fpow_neg, inv_inv', fpow_coe_nat],
+    apply lt_of_lt_of_le hk,
+    norm_cast,
     apply le_of_lt,
     convert nat.lt_pow_self _ _ using 1,
     exact nat.prime.one_lt ‹_› },
@@ -959,7 +974,7 @@ lemma lim_seq_is_cau_seq (r : R): is_cau_seq (padic_norm p) (λ n, limit f r n) 
 begin
   intros ε hε,
   obtain ⟨k, hk⟩ : ∃ k : ℕ, (p ^ - (↑(k : ℕ) : ℤ) : ℚ) < ε,
-  { exact exists_aux _ hε, },
+  { exact exists_aux' _ hε, },
   use k,
   intros j hj,
   refine lt_of_le_of_lt _ hk,
@@ -983,7 +998,7 @@ end
 lemma limit_seq_add (r s : R) : limit_seq f_compat (r + s) ≈ limit_seq f_compat r + limit_seq f_compat s :=
 begin
   intros ε hε,
-  obtain ⟨n, hn⟩ := exists_aux p hε,
+  obtain ⟨n, hn⟩ := exists_aux' p hε,
   use n,
   intros j hj,
   dsimp [limit_seq],
@@ -1003,7 +1018,7 @@ end
 lemma limit_seq_mul (r s : R) : limit_seq f_compat (r * s) ≈ limit_seq f_compat r * limit_seq f_compat s :=
 begin
   intros ε hε,
-  obtain ⟨n, hn⟩ := exists_aux p hε,
+  obtain ⟨n, hn⟩ := exists_aux' p hε,
   use n,
   intros j hj,
   dsimp [limit_seq],
@@ -1060,12 +1075,23 @@ def lift : R →+* ℤ_[p] :=
 
 omit f_compat
 
-lemma dont_we_have_this (ε : ℝ) (n : ℕ) (h : ↑p ^ (-n : ℤ) ≤ ε) (x : ℤ_[p]) :
-  ∥x∥ ≤ ε ↔ x ∈ (ideal.span {p ^ n} : ideal ℤ_[p]) :=
+lemma norm_le_pow_iff_mem_span_pow (x : ℤ_[p]) (n : ℕ) :
+  ∥x∥ ≤ p ^ (-n : ℤ) ↔ x ∈ (ideal.span {p ^ n} : ideal ℤ_[p]) :=
 begin
+  by_cases hx : x = 0,
+  { subst hx,
+    rw [norm_zero, fpow_neg, fpow_coe_nat, inv_nonneg],
+    simp only [iff_true, submodule.zero_mem],
+    norm_cast,
+    exact nat.zero_le _ },
   rw [ideal.mem_span_singleton],
+  split,
+  { sorry },
+  { rintro ⟨c, rfl⟩,
+    simp only [padic_norm_z.norm_p_pow, padic_norm_z.mul, fpow_neg, fpow_coe_nat],
+    have : 0 < (p ^ n : ℝ)⁻¹, sorry,
+    simpa [mul_one] using (_root_.mul_le_mul_left this).mpr c.2, },
 end
-#check @norm_int_lt_pow_iff_dvd
 
 lemma spec_foo (r : R) (n : ℕ) :
   (lift f_compat r - (f n r).val) ∈ (ideal.span {↑p ^ n} : ideal ℤ_[p]) :=
@@ -1076,7 +1102,7 @@ begin
     apply _root_.pow_pos, exact_mod_cast nat.prime.pos ‹_› },
   specialize hk (max n k) (le_max_right _ _),
   have := le_of_lt hk,
-  rw dont_we_have_this _ n (le_refl _) at this,
+  rw norm_le_pow_iff_mem_span_pow at this,
   dsimp at this,
   dsimp [lift],
   rw sub_eq_sub_add_sub (lim_fn f_compat r) _ ↑(limit f r (max n k)),
@@ -1106,12 +1132,12 @@ begin
   intro x,
   rw mem_closure_range_iff,
   intros ε hε,
-  let n : ℕ := sorry,
-  have hn : ↑p ^ (-n : ℤ) < ε, sorry,
+  obtain ⟨n, hn⟩ := exists_aux p hε,
   use (x.appr n),
   rw dist_eq_norm,
-  have := appr_spec n x,
-  -- should be easy now
+  apply lt_of_le_of_lt _ hn,
+  rw norm_le_pow_iff_mem_span_pow,
+  apply appr_spec,
 end
 
 lemma dense_range_int_cast :
@@ -1119,28 +1145,12 @@ lemma dense_range_int_cast :
 begin
   intro x,
   apply dense_range_nat_cast.induction_on x,
-  { simp },
+  { exact is_closed_closure, },
   { intro a,
     change (a.cast : ℤ_[p]) with (a : ℤ).cast,
-    refine set.mem_of_mem_of_subset _ (subset_closure),
+    apply subset_closure,
     exact set.mem_range_self _ }
 end
-
-lemma lim_fn_eq (z : ℤ_[p]) : @lift p _ ℤ_[p] _ to_zmod_pow
-  zmod_cast_comp_to_zmod_pow z = z :=
-begin
-  apply @dense_range.induction_on _ ℤ_[p] _ _ dense_range_int_cast
-    (λ z, @lift p _ ℤ_[p] _ to_zmod_pow zmod_cast_comp_to_zmod_pow z = z),
-  { rw is_closed_iff_nhds,
-    intros x hx,
-    show _ = x,
-    change ∀ u, _ → ∃ c, _ ∧ _ = _ at hx,
-    apply eq_of_forall_dist_le, -- down to some kind of continuity property
-    sorry },
-  { intro, change (a.cast : ℤ_[p]) with (a : ℤ_[p]), simp },
-
-end
-
 
 lemma lift_spec (n : ℕ) : (to_zmod_pow n).comp (lift f_compat) = f n :=
 begin
@@ -1152,20 +1162,31 @@ begin
   apply spec_foo,
 end
 
-lemma foo_ext (x y : ℤ_[p]) (h : ∀ n, to_zmod_pow n x = to_zmod_pow n y) :
-  x = y :=
-begin
-  rw [← lim_fn_eq x, ← lim_fn_eq y],
-  simp [lift, lim_fn, limit, h],
-end
-
 lemma lift_unique (g : R →+* ℤ_[p]) (hg : ∀ n, (to_zmod_pow n).comp g = f n) :
-  g = lift f_compat :=
+  lift f_compat = g :=
 begin
   ext1 r,
-  apply foo_ext,
-  intro n,
-  rw [← ring_hom.comp_apply, ← ring_hom.comp_apply, hg, lift_spec],
+  apply eq_of_forall_dist_le,
+  intros ε hε,
+  obtain ⟨n, hn⟩ := exists_aux p hε,
+  apply le_trans _ (le_of_lt hn),
+  rw [dist_eq_norm, norm_le_pow_iff_mem_span_pow, ← ker_to_zmod_pow, ring_hom.mem_ker,
+      ring_hom.map_sub, ← ring_hom.comp_apply, ← ring_hom.comp_apply, lift_spec, hg, sub_self],
+end
+
+@[symm] lemma lift_self (z : ℤ_[p]) : @lift p _ ℤ_[p] _ to_zmod_pow
+  zmod_cast_comp_to_zmod_pow z = z :=
+begin
+  show _ = ring_hom.id _ z,
+  rw @lift_unique p _ ℤ_[p] _ _ zmod_cast_comp_to_zmod_pow (ring_hom.id ℤ_[p]),
+  intro, rw ring_hom.comp_id,
+end
+
+lemma ext_of_to_zmod_pow (x y : ℤ_[p]) (h : ∀ n, to_zmod_pow n x = to_zmod_pow n y) :
+  x = y :=
+begin
+  rw [← lift_self x, ← lift_self y],
+  simp [lift, lim_fn, limit, h],
 end
 
 end padic_int

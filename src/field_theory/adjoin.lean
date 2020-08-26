@@ -192,7 +192,7 @@ variables (α : E)
 notation K`[`:std.prec.max_plus β`]` := adjoin K (@singleton _ _ set.has_singleton β)
 notation K`[`:std.prec.max_plus β `,` γ`]` := adjoin K {β,γ}
 
-lemma adjoin_simple.element_mem : α ∈ F[α] :=
+lemma mem_adjoin_simple_self : α ∈ F[α] :=
 adjoin.set_mem F {α} (⟨α,set.mem_singleton α⟩ : ({α} : set E))
 
 /-- generator of F(α) -/

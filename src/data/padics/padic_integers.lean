@@ -1216,4 +1216,6 @@ begin
   simp [lift, lim_fn, limit, h],
 end
 
+end norm_le_iff
+
 end padic_int

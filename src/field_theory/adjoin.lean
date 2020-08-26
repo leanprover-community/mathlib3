@@ -18,7 +18,8 @@ import data.zmod.basic
 # Adjoining Elements to Fields
 
 In this file we introduce the notion of adjoining elements to fields.
-This isn't quite the same as adjoining elements to rings, since the element might not be algebraic.
+This isn't quite the same as adjoining elements to rings.
+For example, algebra.adjoin K {x} might not include x⁻¹
 
 ## Main results
 

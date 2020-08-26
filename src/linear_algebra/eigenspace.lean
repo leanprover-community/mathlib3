@@ -12,14 +12,18 @@ import linear_algebra.finsupp
 
 This file defines eigenspaces and eigenvalues.
 
-An eigenspace of a linear map `f` for a scalar `μ` is the kernel of the map `(f - μ • id)`.
-The nonzero elements of an eigenspace are eigenvectors `x`. They have the property `f x = μ • x`.
-If there are eigenvectors for a scalar `μ`, the scalar `μ` is called an eigenvalue.
+An eigenspace of a linear map `f` for a scalar `μ` is the kernel of the map `(f - μ • id)`. The
+nonzero elements of an eigenspace are eigenvectors `x`. They have the property `f x = μ • x`. If
+there are eigenvectors for a scalar `μ`, the scalar `μ` is called an eigenvalue.
+
+There is no consensus in the literature whether `0` is an eigenvector. Our definition of
+`eigenvector` permits only nonzero vectors. For an eigenvector `x` that may also be `0`, we write
+`x ∈ eigenspace f μ`.
 
 ## Notations
 
-The expression `algebra_map K (End K V)` appears very often, which is why we
-use `am` as a local notation for it.
+The expression `algebra_map K (End K V)` appears very often, which is why we use `am` as a local
+notation for it.
 
 ## References
 

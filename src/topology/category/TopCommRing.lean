@@ -45,6 +45,9 @@ noncomputable example : TopCommRing := TopCommRing.of ℚ
 noncomputable example : TopCommRing := TopCommRing.of ℝ
 noncomputable example : TopCommRing := TopCommRing.of ℂ
 
+@[simp] lemma coe_of (X : Type u) [comm_ring X] [topological_space X] [topological_ring X] :
+  (of X : Type u) = X := rfl
+
 instance forget_topological_space (R : TopCommRing) :
   topological_space ((forget TopCommRing).obj R) :=
 R.is_topological_space

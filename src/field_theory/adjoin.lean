@@ -200,5 +200,5 @@ def adjoin_simple.gen : F[α] := ⟨α, adjoin_simple.element_mem F α⟩
 
 lemma adjoin_simple.algebra_map_gen : algebra_map F[α] E (adjoin_simple.gen F α) = α := rfl
 
-lemma adjoin_simple_twice (β : E) : F[α][β] = adjoin F {α,β} :=
+lemma adjoin_simple_adjoin_simple (β : E) : F[α][β] = adjoin F {α,β} :=
 adjoin_twice _ _ _

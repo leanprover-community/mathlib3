@@ -454,6 +454,8 @@ open cau_seq padic_seq
 variables {R : Type*} [comm_ring R] (f : Π k : ℕ, R →+* zmod (p^k))
   (f_compat : ∀ k1 k2 (hk : k1 ≤ k2), (zmod.cast_hom (nat.pow_dvd_pow p hk) _).comp (f k2) = f k1)
 
+omit hp_prime
+
 /--
 Given a family of ring homs `f : Π k : ℕ, R →+* zmod (p^k)`,
 `nth_hom f r` is an integer-valued sequence
@@ -466,6 +468,8 @@ def nth_hom (r : R) : ℕ → ℤ :=
 by simp [nth_hom]; refl
 
 variable {f}
+
+include hp_prime
 include f_compat
 
 lemma pow_dvd_nth_hom_sub (r : R) (i j : ℕ) (h : i ≤ j) :

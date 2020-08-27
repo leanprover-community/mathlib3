@@ -78,7 +78,7 @@ obtain:
 [2, 3, 3, 4, 4, 4, 5, 5, 6]
 ```
  -/
-def sampleable.lseq {α β γ} (f : α → β → γ) : lazy_list α → lazy_list β → lazy_list γ
+def lazy_list.lseq {α β γ} (f : α → β → γ) : lazy_list α → lazy_list β → lazy_list γ
 | lazy_list.nil xs := lazy_list.nil
 | (lazy_list.cons x xs) lazy_list.nil := lazy_list.nil
 | (lazy_list.cons x xs) ys := interleave (ys.map $ f x) (sampleable.lseq (xs ()) ys)

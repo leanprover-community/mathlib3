@@ -120,6 +120,9 @@ fin.eq_iff_veq a ⟨k, hk⟩
 
 @[simp, norm_cast] lemma coe_mk {m n : ℕ} (h : m < n) : ((⟨m, h⟩ : fin n) : ℕ) = m := rfl
 
+@[simp] lemma mk_coe (i : fin n) : (⟨i, i.is_lt⟩ : fin n) = i :=
+by rw [ext_iff, coe_mk]
+
 lemma coe_eq_val (a : fin n) : (a : ℕ) = a.val := rfl
 
 @[simp] lemma val_eq_coe (a : fin n) : a.val = a := rfl

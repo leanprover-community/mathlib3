@@ -693,11 +693,6 @@ end expr
 
 namespace environment
 
-/-- Tests whether a name is declared in the current file. Fixes an error in `in_current_file`
-  which returns `tt` for the four names `quot, quot.mk, quot.lift, quot.ind` -/
-meta def in_current_file' (env : environment) (n : name) : bool :=
-env.in_current_file n && (n ∉ [``quot, ``quot.mk, ``quot.lift, ``quot.ind])
-
 /-- Tests whether `n` is a structure. -/
 meta def is_structure (env : environment) (n : name) : bool :=
 (env.structure_fields n).is_some
@@ -843,10 +838,10 @@ let decl := decl.update_type $ decl.type.apply_replacement_fun f in
 decl.update_value $ decl.value.apply_replacement_fun f
 
 /-- Checks whether the declaration is declared in the current file.
-  This is a simple wrapper around `environment.in_current_file'`
-  Use `environment.in_current_file'` instead if performance matters. -/
+  This is a simple wrapper around `environment.in_current_file`
+  Use `environment.in_current_file` instead if performance matters. -/
 meta def in_current_file (d : declaration) : tactic bool :=
-do e ← get_env, return $ e.in_current_file' d.to_name
+do e ← get_env, return $ e.in_current_file d.to_name
 
 /-- Checks whether a declaration is a theorem -/
 meta def is_theorem : declaration → bool

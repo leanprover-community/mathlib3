@@ -39,6 +39,10 @@ begin
   rcongr x y, guard_target (1 + y = y.succ), rw [nat.add_comm],
 end
 
+-- succeed when either `ext` or `congr` can close the goal
+example : () = () := by rcongr
+example : 0 = 0 := by rcongr
+
 
 end congr
 

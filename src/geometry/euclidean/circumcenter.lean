@@ -455,8 +455,7 @@ begin
   simp_rw [sum_points_with_circumcenter, centroid_weights_with_circumcenter, add_zero,
            ←fs.sum_centroid_weights_eq_one_of_nonempty ℝ h,
            set.sum_indicator_subset _ fs.subset_univ],
-  congr' with i,
-  congr
+  rcongr
 end
 
 include V
@@ -479,8 +478,7 @@ begin
              fs.subset_univ
              (λ i, zero_smul ℝ _),
            set.indicator_apply],
-  congr' with i,
-  congr
+  rcongr
 end
 
 omit V

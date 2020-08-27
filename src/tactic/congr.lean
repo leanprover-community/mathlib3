@@ -85,11 +85,9 @@ meta def rcongr : parse (rcases_patt_parse tt)* → tactic unit
 | ps := do
   t ← target,
   qs ← try_core (tactic.ext ps none),
-  some () ← try_core (do
-    tactic.congr' none,
-    s ← target,
-    guard (¬ s =ₐ t)) | skip,
-  rcongr (qs.lhoare ps)
+  some () ← try_core (tactic.congr' none >>
+    (done <|> do s ← target, guard $ ¬ s =ₐ t)) | skip,
+  done <|> rcongr (qs.lhoare ps)
 
 add_tactic_doc
 { name       := "congr'",

@@ -215,7 +215,9 @@ instance sampleable_tree [sampleable α] : sampleable (tree α) :=
 
 setup_tactic_parser
 
-/-- generate samples of a given type -/
+/--
+Print (at most) 10 samples of a given type to stdout for debugging.
+-/
 def print_samples (t : Type u) [sampleable t] [has_repr t] : io unit := do
 xs ← io.run_rand $ uliftable.down $
   do { xs ← (list.range 10).mmap $ (sample t).run ∘ ulift.up,

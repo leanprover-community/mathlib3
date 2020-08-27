@@ -342,11 +342,10 @@ end submonoid
 section is_unit
 
 /-- The submonoid consisting of the units of a monoid -/
-def is_unit.submonoid (M : Type*) [monoid M] : submonoid M := {
-  carrier := set_of is_unit,
+def is_unit.submonoid (M : Type*) [monoid M] : submonoid M :=
+{ carrier := set_of is_unit,
   one_mem' := by simp only [is_unit_one, set.mem_set_of_eq],
-  mul_mem' := by { intros a b ha hb, rw set.mem_set_of_eq at *, exact is_unit.mul ha hb }
-}
+  mul_mem' := by { intros a b ha hb, rw set.mem_set_of_eq at *, exact is_unit.mul ha hb } }
 
 lemma is_unit.mem_submonoid_iff {M : Type*} [monoid M] (a : M) :
   a ∈ is_unit.submonoid M ↔ is_unit a :=

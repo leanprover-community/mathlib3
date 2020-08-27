@@ -254,7 +254,7 @@ section to_list
 classical.some (quotient.exists_rep s)
 
 @[simp] lemma to_list_zero {α : Type*} : (multiset.to_list 0 : list α) = [] :=
-  (multiset.coe_eq_zero _).1 (classical.some_spec (quotient.exists_rep multiset.zero))
+(multiset.coe_eq_zero _).1 (classical.some_spec (quotient.exists_rep multiset.zero))
 
 lemma coe_to_list {α : Type*} (s : multiset α) : (s.to_list : multiset α) = s :=
 classical.some_spec (quotient.exists_rep _)

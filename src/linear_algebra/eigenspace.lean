@@ -38,6 +38,8 @@ eigenspace, eigenvector, eigenvalue, eigen
 
 universes u v w
 
+namespace module.End
+
 open vector_space principal_ideal_ring polynomial finite_dimensional
 
 variables {K : Type v} {V : Type w} [add_comm_group V]
@@ -50,12 +52,12 @@ def eigenspace [comm_ring K] [module K V] (f : module.End K V) (μ : K) : submod
 (f - am μ).ker
 
 /-- A nonzero element of an eigenspace is an eigenvector. -/
-def eigenvector [comm_ring K] [module K V] (f : module.End K V) (μ : K) (x : V) : Prop :=
+def has_eigenvector [comm_ring K] [module K V] (f : module.End K V) (μ : K) (x : V) : Prop :=
 x ≠ 0 ∧ x ∈ eigenspace f μ
 
 /-- A scalar `μ` is an eigenvalue for a linear map `f` if there are nonzero vectors `x`
     such that `f x = μ • x`. -/
-def eigenvalue [comm_ring K] [module K V] (f : module.End K V) (a : K) : Prop :=
+def has_eigenvalue [comm_ring K] [module K V] (f : module.End K V) (a : K) : Prop :=
 eigenspace f a ≠ ⊥
 
 lemma mem_eigenspace_iff [comm_ring K] [module K V]
@@ -87,12 +89,12 @@ calc
 /-- Every linear operator on a vector space over an algebraically closed field has
     an eigenvalue. (Axler's Theorem 2.1.) -/
 lemma exists_eigenvalue
-  [field K] [is_alg_closed K] [vector_space K V] [finite_dimensional K V]
-  (f : module.End K V) (hex : ∃ v : V, v ≠ 0) :
-  ∃ (c : K), eigenvalue f c :=
+  [field K] [is_alg_closed K] [vector_space K V] [finite_dimensional K V] [nontrivial V]
+  (f : module.End K V) :
+  ∃ (c : K), f.has_eigenvalue c :=
 begin
   classical,
-  obtain ⟨v, hv⟩ : ∃ v : V, v ≠ 0 := hex,
+  obtain ⟨v, hv⟩ : ∃ v : V, v ≠ 0 := exists_ne (0 : V),
   have h_lin_dep : ¬ linear_independent K (λ n : ℕ, (f ^ n) v),
   { intro h_lin_indep,
     have : cardinal.mk ℕ < cardinal.omega,
@@ -125,9 +127,9 @@ begin
     ((factors_spec p h_p_ne_0).1 q hq_factor),
   have h_eigenspace: eigenspace f (-q.coeff 0 / q.leading_coeff) = (eval₂ am f q).ker,
     from eigenspace_eval₂_polynomial_degree_1 f q h_deg_q,
-  show ∃ (c : K), eigenvalue f c,
+  show ∃ (c : K), f.has_eigenvalue c,
   { use -q.coeff 0 / q.leading_coeff,
-    rw [eigenvalue, h_eigenspace],
+    rw [has_eigenvalue, h_eigenspace],
     intro h_eval_ker,
     exact hq_nonunit ((linear_map.is_unit_iff (eval₂ am f q)).2 h_eval_ker) }
 end
@@ -136,7 +138,7 @@ end
     linearly independent (Axler's Proposition 2.2) -/
 lemma eigenvectors_linear_independent [field K] [vector_space K V]
   (f : module.End K V) (μs : set K) (xs : μs → V)
-  (h_eigenvec : ∀ μ : μs, eigenvector f μ (xs μ)) :
+  (h_eigenvec : ∀ μ : μs, f.has_eigenvector μ (xs μ)) :
   linear_independent K xs :=
 begin
   classical,
@@ -229,3 +231,5 @@ begin
         assumption },
       exact h_lμ_eq_0 μ h_cases } }
 end
+
+end module.End

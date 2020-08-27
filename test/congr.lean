@@ -39,6 +39,12 @@ begin
   rcongr x y, guard_target (1 + y = y.succ), rw [nat.add_comm],
 end
 
+example {ls : list ℕ} {f g : ℕ → ℕ} {h : ∀ x, f x = g x} :
+  ls.map (λ x, f x + 3) = ls.map (λ x, g x + 3)  :=
+begin
+  rcongr x, exact h x
+end
+
 -- succeed when either `ext` or `congr` can close the goal
 example : () = () := by rcongr
 example : 0 = 0 := by rcongr

@@ -15,50 +15,42 @@ noncomputable theory
 open finset simple_graph matrix
 
 universes u v
-variables {V : Type u} {R : Type v} [fintype V] [inhabited V] [semiring R]
+variables {V : Type u} {R : Type v} [semiring R]
 
 section friendship_def
 variables (G : simple_graph V)
 
 /--
-Given two vertices, a common friend is a vertex that is adjacent to both.
+This is the set of all vertices mutually adjacent to a pair of vertices.
 -/
-def is_friend (v w : V) : V → Prop := λ u, G.adj v u ∧ G.adj w u
-
-/--
-This is the set of all friends between two vertices.
-As characterized by `friends_eq_inter_neighbors`, it is the intersection
-of their respective neighbor sets.
--/
-def friends (v w : V) : finset V := univ.filter (is_friend G v w)
+def common_friends [fintype V] (v w : V) : finset V := G.neighbor_finset v ∩ G.neighbor_finset w
 
 /--
 This property of a graph is the hypothesis of the friendship theorem:
 every pair of vertices has exactly one common friend.
 -/
-def friendship : Prop := ∀ ⦃v w : V⦄, v ≠ w → (friends G v w).card = 1
+def friendship [fintype V] : Prop := ∀ ⦃v w : V⦄, v ≠ w → (common_friends G v w).card = 1
 
-def exists_politician : Prop := ∃ (v : V), ∀ (w : V), v = w ∨ G.adj v w
+/--
+A politician is a vertex that is adjacent to all other vertices.
+-/
+def exists_politician : Prop := ∃ (v : V), ∀ (w : V), v ≠ w → G.adj v w
 
-lemma mem_friends {v w : V} {a : V} :
-  a ∈ friends G v w ↔ is_friend G v w a :=
-by { dunfold friends, simp }
-
-lemma friends_eq_inter_neighbors {v w : V} :
-  friends G v w = G.neighbor_finset v ∩ G.neighbor_finset w :=
-by { ext, simp [friends, is_friend] }
+lemma mem_common_friends [fintype V] {v w : V} {a : V} :
+  a ∈ common_friends G v w ↔ G.adj v a ∧ G.adj w a :=
+by simp [common_friends]
 
 end friendship_def
 
-variables {G : simple_graph V} {d : ℕ} (hG : friendship G)
+variables [fintype V] [inhabited V] {G : simple_graph V} {d : ℕ} (hG : friendship G)
 include hG
 
 variables (R)
 theorem friendship_adj_sq_apply_of_ne {v w : V} (hvw : v ≠ w) :
   ((G.adj_matrix R) ^ 2) v w = 1 :=
 begin
-  rw [pow_two, ← nat.cast_one, ← hG hvw, friends_eq_inter_neighbors],
-  simp [neighbor_finset_eq_filter, finset.filter_filter, finset.filter_inter],
+  rw [pow_two, ← nat.cast_one, ← hG hvw],
+  simp [common_friends, neighbor_finset_eq_filter, finset.filter_filter, finset.filter_inter],
 end
 
 lemma friendship_adj_cube_apply_of_not_adj {v w : V} (non_adj : ¬ G.adj v w) :
@@ -107,8 +99,8 @@ begin
   apply degree_eq_of_not_adj hG,
   intro hcontra,
   rcases finset.card_eq_one.mp (hG hvw') with ⟨a, h⟩,
-  have hx : x ∈ friends G v w := (mem_friends G).mpr ⟨hvx, G.sym hxw⟩,
-  have hy : y ∈ friends G v w := (mem_friends G).mpr ⟨hvy, G.sym hcontra⟩,
+  have hx : x ∈ common_friends G v w := (mem_common_friends G).mpr ⟨hvx, G.sym hxw⟩,
+  have hy : y ∈ common_friends G v w := (mem_common_friends G).mpr ⟨hvy, G.sym hcontra⟩,
   rw [h, mem_singleton] at hx hy,
   apply hxy',
   rw [hy, hx],
@@ -224,7 +216,8 @@ begin
       { rw [nat.succ_sub_succ_eq_sub, nat.sub_zero] at h,
         linarith },
       subst n, } },
-  use arbitrary V, intro w, left,
+  use arbitrary V, intros w h,
+  exfalso, apply h,
   apply fintype.card_le_one_iff.mp this,
 end
 
@@ -249,12 +242,9 @@ lemma deg_two_friendship_has_pol (hd : G.is_regular_of_degree 2) :
   exists_politician G :=
 begin
   have v := arbitrary V,
-  use v, intro w,
-  by_cases hvw : v = w,
-  { left, exact hvw },
-  { right,
-    rw [← mem_neighbor_finset, deg_two_neighbor_finset_eq hG hd v, finset.mem_erase],
-    exact ⟨ne.symm hvw, finset.mem_univ _⟩, },
+  use v, intros w hvw,
+  rw [← mem_neighbor_finset, deg_two_neighbor_finset_eq hG hd v, finset.mem_erase],
+  exact ⟨ne.symm hvw, finset.mem_univ _⟩,
 end
 
 lemma deg_le_two_friendship_has_pol (hd : G.is_regular_of_degree d) (h : d ≤ 2) :
@@ -274,4 +264,3 @@ begin
   { refine npG (deg_le_two_friendship_has_pol hG dreg this) },
   { exact three_le_deg_friendship_contra hG dreg this },
 end
-#lint

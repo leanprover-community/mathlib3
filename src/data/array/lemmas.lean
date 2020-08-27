@@ -141,7 +141,7 @@ theorem to_list_nth_le (i : ℕ) (h h') : list.nth_le a.to_list i h' = a.read �
 to_list_nth_le_aux _ _ _ (λ k tl, absurd tl k.not_lt_zero)
 
 @[simp] theorem to_list_nth_le' (a : array n α) (i : fin n) (h') :
-  list.nth_le a.to_list i.1 h' = a.read i :=
+  list.nth_le a.to_list i h' = a.read i :=
 by cases i; apply to_list_nth_le
 
 theorem to_list_nth {i v} : list.nth a.to_list i = some v ↔ ∃ h, a.read ⟨i, h⟩ = v :=

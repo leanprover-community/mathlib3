@@ -107,9 +107,9 @@ begin
 end
 
 theorem friendship_reg_adj_sq (hd : G.is_regular_of_degree d) :
-  ((G.adj_matrix R) ^ 2) = λ v w, ite (v = w) d 1 :=
+  ((G.adj_matrix R) ^ 2) = λ v w, if v = w then d else 1 :=
 begin
-  ext, by_cases h : x = x_1,
+  ext v w, by_cases h : v = w,
   { cases h, rw [pow_two, mul_eq_mul, adj_matrix_mul_self_apply_self, hd], simp, },
   { rw [friendship_adj_sq_apply_of_ne R hG h, if_neg h], },
 end

@@ -27,12 +27,17 @@ namespace cone
 variables {J : Type u} [small_category J]
 
 /-- Naturality of a cone over functors to a concrete category. -/
-@[simp] lemma naturality_concrete {G : J ⥤ C} (s : cone G) {j j' : J} (f : j ⟶ j') (x : s.X) :
+@[simp] lemma w_apply {G : J ⥤ C} (s : cone G) {j j' : J} (f : j ⟶ j') (x : s.X) :
    (G.map f) ((s.π.app j) x) = (s.π.app j') x :=
 begin
-  convert congr_fun (congr_arg (λ k : s.X ⟶ G.obj j', (k : s.X → G.obj j')) (s.π.naturality f).symm) x;
-  { dsimp, simp [-cone.w] },
+  convert congr_fun (congr_arg (λ k : s.X ⟶ G.obj j', (k : s.X → G.obj j')) (s.w f)) x,
+  simp only [coe_comp],
 end
+
+@[simp]
+lemma w_forget_apply (F : J ⥤ C) (s : cone (F ⋙ forget C)) {j j' : J} (f : j ⟶ j') (x : s.X) :
+  F.map f (s.π.app j x) = s.π.app j' x :=
+congr_fun (s.w f : _) x
 
 end cone
 
@@ -41,12 +46,17 @@ namespace cocone
 variables {J : Type u} [small_category J]
 
 /-- Naturality of a cocone over functors into a concrete category. -/
-@[simp] lemma naturality_concrete {G : J ⥤ C} (s : cocone G) {j j' : J} (f : j ⟶ j') (x : G.obj j) :
+@[simp] lemma w_apply {G : J ⥤ C} (s : cocone G) {j j' : J} (f : j ⟶ j') (x : G.obj j) :
   (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=
 begin
-  convert congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x;
-  { dsimp, simp [-nat_trans.naturality, -cocone.w] },
+  convert congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.w f)) x,
+  simp only [coe_comp],
 end
+
+@[simp]
+lemma w_forget_apply (F : J ⥤ C) (s : cocone (F ⋙ forget C)) {j j' : J} (f : j ⟶ j') (x : F.obj j) :
+  s.ι.app j' (F.map f x) = (s.ι.app j x : s.X) :=
+congr_fun (s.w f : _) x
 
 end cocone
 

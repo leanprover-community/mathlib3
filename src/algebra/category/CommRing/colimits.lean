@@ -484,11 +484,77 @@ begin
   { refl, }
 end
 
-lemma filtered_exact [is_filtered J] {jx jy : J} {x : F.obj jx} {y : F.obj jy}
-  (w : quot.mk (relation F) (of jx x) = quot.mk _ (of jy y)) :
+open_locale classical
+
+noncomputable
+def support : prequotient F → finset J
+| (of j x) := {j}
+| zero := ∅
+| one := ∅
+| (neg x) := support x
+| (add x y) := support x ⊔ support y
+| (mul x y) := support x ⊔ support y
+.
+
+def is_support (t : colimit F) (s : finset J) :=
+∃ x : prequotient F, s = support F x ∧ t = quot.mk _ x
+
+lemma foo [is_filtered J] (t : colimit F) : ∃ j : J, is_support F t {j} :=
+begin
+  sorry,
+end
+
+-- lemma filtered_exact [is_filtered J] (F : J ⥤ CommRing.{v}) {jx jy : J} {x : F.obj jx} {y : F.obj jy}
+--   (w : quot.mk (relation F) (of jx x) = quot.mk _ (of jy y)) :
+--   ∃ (j : J) (ix : jx ⟶ j) (iy : jy ⟶ j), F.map ix x = F.map iy y :=
+-- sorry
+-- lemma filtered_exact' [is_filtered J] {a b : prequotient F} (w : relation F a b) :
+--   Π {jx jy : J} (x : F.obj jx) (y : F.obj jy),
+--   a = of jx x → b = of jy y →
+--   (∃ (j : J) (ix : jx ⟶ j) (iy : jy ⟶ j), F.map ix x = F.map iy y) :=
+-- begin
+--   induction w with w x y h ih x y z h k ih ik j j' f x,
+--   { rintros jx jy x y rfl ⟨-⟩,
+--     refine ⟨_, 𝟙 _, 𝟙_, _⟩, refl, },
+--   { sorry, },
+--   { rintros jx jy x y rfl rfl, },
+--   { rintros _ _ y z ⟨-⟩ ⟨-⟩,
+--     refine ⟨_, 𝟙 _, f, _⟩, simp, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+--   { rintros _ _ x y ⟨⟩ ⟨⟩, },
+-- end
+
+lemma filtered_exact [is_filtered J] (F : J ⥤ CommRing.{v}) {jx jy : J} {x : F.obj jx} {y : F.obj jy}
+  (w : quotient.mk (of jx x) = quotient.mk (of jy y)) :
   ∃ (j : J) (ix : jx ⟶ j) (iy : jy ⟶ j), F.map ix x = F.map iy y :=
 begin
-
+  -- cases quotient.exact w,
+  -- { apply filtered_exact' F (relation.refl _) _ _ rfl rfl, },
+  -- { let h := relation.symm _ _ ‹_›,
+  --   apply filtered_exact' F h _ _ rfl rfl, },
+  -- { let h := relation.trans _ _ _ ‹_› ‹_›,
+  --   apply filtered_exact' F h _ _ rfl rfl, },
+  -- { exact filtered_exact' F ‹_› ((F.map f) y) y rfl rfl, },
+  sorry,
 end
 
 noncomputable

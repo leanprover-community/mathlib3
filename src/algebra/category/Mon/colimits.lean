@@ -6,6 +6,8 @@ Authors: Scott Morrison
 import algebra.category.Mon.basic
 import category_theory.limits.limits
 import category_theory.limits.concrete_category
+import category_theory.limits.types
+import category_theory.limits.preserves.filtered
 
 /-!
 # The category of monoids has all colimits.
@@ -244,5 +246,160 @@ instance has_colimits_Mon : has_colimits Mon :=
   { has_colimit := λ F, by exactI
     { cocone := colimit_cocone F,
       is_colimit := colimit_cocone_is_colimit F } } }
+
+instance monoid_comp_forget (j : J) : monoid ((F ⋙ forget Mon).obj j) :=
+by { change monoid (F.obj j), apply_instance, }
+
+@[simps]
+def one_nat_trans : (F ⋙ forget Mon) ⋙ types.star ⟶ F ⋙ forget Mon :=
+{ app := λ j p, 1, }
+
+@[simps]
+def mul_nat_trans : (F ⋙ forget Mon) ⋙ types.diagonal ⟶ F ⋙ forget Mon :=
+{ app := λ j p, p.1 * p.2, }
+
+noncomputable
+def one_colimit [is_filtered J] (F : J ⥤ Mon) :
+  types.star.obj (limits.colimit (F ⋙ forget Mon)) ⟶ limits.colimit (F ⋙ forget Mon) :=
+(preserves_colimit_iso (F ⋙ forget Mon) types.star).hom ≫ colim.map (one_nat_trans F)
+
+noncomputable
+def mul_colimit [is_filtered J] (F : J ⥤ Mon) :
+  types.diagonal.obj (limits.colimit (F ⋙ forget Mon)) ⟶ limits.colimit (F ⋙ forget Mon) :=
+(preserves_colimit_iso (F ⋙ forget Mon) types.diagonal).hom ≫ colim.map (mul_nat_trans F)
+
+
+lemma desc_comp_star (F : J ⥤ Type v) (s) (x) :
+  ∃ j : J, colimit.desc (F ⋙ types.star) s x = s.ι.app j punit.star :=
+begin
+  obtain ⟨j, ⟨⟩, rfl⟩ := types.jointly_surjective _ (colimit.is_colimit _) x,
+  exact ⟨j, rfl⟩,
+end
+
+lemma desc_comp_star' [is_filtered J] (F : J ⥤ Type v) (s) (x) (j) :
+  colimit.desc (F ⋙ types.star) s x = s.ι.app j punit.star :=
+begin
+  obtain ⟨j', e⟩ := desc_comp_star F s x,
+  rw e, clear e,
+  rw [←s.w (is_filtered.left_to_sup j j'), ←s.w (is_filtered.right_to_sup j j')],
+  simp,
+end
+
+@[simp]
+lemma desc_comp_star'' [is_filtered J] (F : J ⥤ Type v) (s) (x) :
+  colimit.desc (F ⋙ types.star) s x = s.ι.app (is_filtered.nonempty.some) punit.star :=
+desc_comp_star' F s x _
+
+lemma inv_desc_comp_diagonal (F : J ⥤ Type v) (s : cocone F)
+  [is_iso (colimit.desc (F ⋙ types.diagonal) (types.diagonal.map_cocone s))]
+  {j₁ j₂ : J} (x₁ : F.obj j₁) (x₂ : F.obj j₂)
+  {j : J} (i₁ : j₁ ⟶ j) (i₂ : j₂ ⟶ j) :
+  inv (colimit.desc (F ⋙ types.diagonal) (types.diagonal.map_cocone s))
+    (s.ι.app j₁ x₁, s.ι.app j₂ x₂) = colimit.ι (F ⋙ types.diagonal) j (F.map i₁ x₁, F.map i₂ x₂) :=
+begin
+  sorry,
+end
+
+lemma inv_desc_comp_diagonal' (F : J ⥤ Type v) (s : cocone F)
+  [is_iso (colimit.desc (F ⋙ types.diagonal) (types.diagonal.map_cocone s))]
+  {j : J} (x₁ : F.obj j) (x₂ : F.obj j) :
+  inv (colimit.desc (F ⋙ types.diagonal) (types.diagonal.map_cocone s))
+    (s.ι.app j x₁, s.ι.app j x₂) = colimit.ι (F ⋙ types.diagonal) j (x₁, x₂) :=
+by simpa using inv_desc_comp_diagonal F s x₁ x₂ (𝟙 _) (𝟙 _)
+
+lemma inv_desc_comp_diagonal'' [is_filtered J] (F : J ⥤ Type v) (s : cocone F)
+  [is_iso (colimit.desc (F ⋙ types.diagonal) (types.diagonal.map_cocone s))]
+  {j₁ j₂ : J} (x₁ : F.obj j₁) (x₂ : F.obj j₂)  :
+  inv (colimit.desc (F ⋙ types.diagonal) (types.diagonal.map_cocone s))
+    (s.ι.app j₁ x₁, s.ι.app j₂ x₂) =
+    colimit.ι (F ⋙ types.diagonal) (is_filtered.sup j₁ j₂)
+      (F.map (is_filtered.left_to_sup j₁ j₂) x₁, F.map (is_filtered.right_to_sup j₁ j₂) x₂) :=
+inv_desc_comp_diagonal F s x₁ x₂ _ _
+
+@[simp]
+lemma inv_desc_comp_diagonal''' [is_filtered J] (F : J ⥤ Type v)
+  [is_iso (colimit.desc (F ⋙ types.diagonal) (types.diagonal.map_cocone (colimit.cocone F)))]
+  {j₁ j₂ : J} (x₁ : F.obj j₁) (x₂ : F.obj j₂)  :
+  inv (colimit.desc (F ⋙ types.diagonal) (types.diagonal.map_cocone (colimit.cocone F)))
+    (colimit.ι F j₁ x₁, colimit.ι F j₂ x₂) =
+    colimit.ι (F ⋙ types.diagonal) (is_filtered.sup j₁ j₂)
+      (F.map (is_filtered.left_to_sup j₁ j₂) x₁, F.map (is_filtered.right_to_sup j₁ j₂) x₂) :=
+inv_desc_comp_diagonal'' F (colimit.cocone F) _ _
+
+noncomputable
+instance [is_filtered J] : monoid (limits.colimit (F ⋙ forget Mon)) :=
+{ one := one_colimit F punit.star,
+  mul := λ x y, mul_colimit F (x, y),
+  one_mul := λ x,
+  begin
+    obtain ⟨j, x, rfl⟩ := types.jointly_surjective' _ x,
+    dsimp [(*), mul_colimit, one_colimit],
+    dsimp [preserves_colimit_iso, is_colimit.cocone_point_unique_up_to_iso],
+    dsimp [colim, colim_map, is_colimit.map],
+    simp,
+  end,
+  mul_one := sorry,
+  mul_assoc := λ x y z,
+  begin
+    obtain ⟨jx, x, rfl⟩ := types.jointly_surjective' _ x,
+    obtain ⟨jy, y, rfl⟩ := types.jointly_surjective' _ y,
+    obtain ⟨jz, z, rfl⟩ := types.jointly_surjective' _ z,
+    dsimp [(*), mul_colimit, one_colimit],
+    dsimp [preserves_colimit_iso, is_colimit.cocone_point_unique_up_to_iso],
+    dsimp [colim, colim_map, is_colimit.map],
+    simp [monoid_hom.map_mul],
+    rw [mul_assoc],
+    -- erw inv_desc_comp_diagonal'' (F ⋙ forget Mon),
+    -- erw inv_desc_comp_diagonal'' (F ⋙ forget Mon),
+    -- erw inv_desc_comp_diagonal'' (F ⋙ forget Mon),
+    -- erw inv_desc_comp_diagonal'' (F ⋙ forget Mon),
+    -- simp,
+    sorry,
+  end, }
+
+lemma foo [ℱ : is_filtered J] (K : J ⥤ Type v) (f : Π {j}, K.obj j → K.obj j → K.obj j) :
+  (types.colimit_cocone K).X → (types.colimit_cocone K).X → (types.colimit_cocone K).X :=
+begin
+  fapply @quot.lift _ _ ((types.colimit_cocone K).X → (types.colimit_cocone K).X),
+  rintro ⟨jx, x⟩,
+  fapply quot.lift,
+  rintro ⟨jy, y⟩,
+  { let j := is_filtered.sup jx jy,
+    let ix := is_filtered.left_to_sup jx jy,
+    let iy := is_filtered.right_to_sup jx jy,
+    refine quot.mk _ ⟨j, _⟩,
+    exact f (K.map ix x) (K.map iy y), },
+  rintro ⟨jy₁, y₁⟩,
+  rintro ⟨jy₂, y₂⟩,
+  intro h,
+  dsimp at h,
+  rcases h with ⟨j, i₁, i₂, e⟩,
+  simp,
+  apply quot.sound,
+  use j,
+  fsplit,
+  simp,
+end
+
+noncomputable
+instance [ℱ : is_filtered J] : monoid (types.colimit_cocone (F ⋙ forget Mon)).X :=
+{ one :=
+  begin
+    have j := ℱ.nonempty.some,
+    exact quot.mk _ ⟨j, 1⟩,
+  end,
+  mul := λ x y,
+  begin
+    induction x,
+    induction y,
+    rcases x with ⟨jx, x⟩,
+    rcases y with ⟨jy, y⟩,
+    choose j ix iy e using is_filtered_or_empty.cocone_objs jx jy,
+    refine quot.mk _ ⟨j, _⟩,
+    exact F.map ix x * F.map iy y,
+    simp,
+  end
+
+}
 
 end Mon.colimits

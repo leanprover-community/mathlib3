@@ -62,6 +62,30 @@ example [is_iso ↾f] : mono ↾f := by apply_instance
 example [is_iso ↾f] : ↾f ≫ inv ↾f = 𝟙 α := by simp
 end
 
+/--
+The constant functor `X ↦ *` in `Type v`.
+-/
+@[simps]
+def types.star : Type v ⥤ Type v :=
+{ obj := λ X, punit,
+  map := λ X Y f x, punit.star, }
+
+/--
+The diagonal functor `X ↦ X × X` in `Type v`.
+-/
+@[simps]
+def types.diagonal : Type v ⥤ Type v :=
+{ obj := λ X, X × X,
+  map := λ X Y f, λ p, (f p.1, f p.2), }
+
+/--
+The triple diagonal functor `X ↦ X × X × X` in `Type v`.
+-/
+@[simps]
+def types.triple_diagonal : Type v ⥤ Type v :=
+{ obj := λ X, X × X × X,
+  map := λ X Y f, λ p, (f p.1, f p.2.1, f p.2.2), }
+
 namespace functor
 variables {J : Type u} [category.{v} J]
 
@@ -256,7 +280,7 @@ universe u
 namespace category_theory
 
 noncomputable
-lemma is_iso_equiv_bijective {X Y : Type u} (f : X ⟶ Y) : is_iso f ≃ function.bijective f :=
+def is_iso_equiv_bijective {X Y : Type u} (f : X ⟶ Y) : is_iso f ≃ function.bijective f :=
 equiv_of_subsingleton_of_subsingleton
   (λ i, ({ hom := f, .. i } : X ≅ Y).to_equiv.bijective)
   (λ b, { .. (equiv.of_bijective f b).to_iso })

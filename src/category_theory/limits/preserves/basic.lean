@@ -56,14 +56,55 @@ if `F` maps any colimit cocone over `K` to a colimit cocone.
 class preserves_colimit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cocone K}, is_colimit c → is_colimit (F.map_cocone c))
 
+/-- A functor which preserves limits preserves limit points up to isomorphism. -/
+def preserves_limit_iso {K : J ⥤ C} {t : cone K} (P : is_limit t)
+  {F : C ⥤ D} {s : cone (K ⋙ F)} (Q : is_limit s) [preserves_limit K F] :
+  F.obj t.X ≅ s.X :=
+is_limit.cone_point_unique_up_to_iso (preserves_limit.preserves P) Q
+/-- A functor which preserves colimits preserves colimit points up to isomorphism. -/
+def preserves_colimit_iso {K : J ⥤ C} {t : cocone K} (P : is_colimit t)
+  {F : C ⥤ D} {s : cocone (K ⋙ F)} (Q : is_colimit s) [preserves_colimit K F] :
+  F.obj t.X ≅ s.X :=
+is_colimit.cocone_point_unique_up_to_iso (preserves_colimit.preserves P) Q
+
+@[simp]
+lemma preserves_limit_iso_hom_comp_π
+  {K : J ⥤ C} {t : cone K} (P : is_limit t)
+  {F : C ⥤ D} {s : cone (K ⋙ F)} (Q : is_limit s) [preserves_limit K F] (j : J) :
+  (preserves_limit_iso P Q).hom ≫ s.π.app j = F.map (t.π.app j) :=
+is_limit.cone_point_unique_up_to_iso_hom_comp (preserves_limit.preserves _) Q j
+
+@[simp]
+lemma preserves_limit_iso_hom_comp_π_apply
+  {K : J ⥤ C} {t : cone K} (P : is_limit t)
+  {F : C ⥤ Type v} {s : cone (K ⋙ F)} (Q : is_limit s) [preserves_limit K F] (j : J) (x) :
+  s.π.app j ((preserves_limit_iso P Q).hom x) = F.map (t.π.app j) x :=
+congr_fun (preserves_limit_iso_hom_comp_π P Q j) x
+
+@[simp]
+lemma map_ι_comp_preserves_colimit_iso_hom
+  {K : J ⥤ C} {t : cocone K} (P : is_colimit t)
+  {F : C ⥤ D} {s : cocone (K ⋙ F)} (Q : is_colimit s) [preserves_colimit K F] (j : J) :
+  F.map (t.ι.app j) ≫ (preserves_colimit_iso P Q).hom = s.ι.app j :=
+is_colimit.comp_cocone_point_unique_up_to_iso_hom (preserves_colimit.preserves _) Q j
+
+@[simp]
+lemma map_ι_comp_preserves_colimit_iso_hom_apply
+  {K : J ⥤ C} {t : cocone K} (P : is_colimit t)
+  {F : C ⥤ Type v} {s : cocone (K ⋙ F)} (Q : is_colimit s) [preserves_colimit K F] (j : J) (x) :
+  (preserves_colimit_iso P Q).hom (F.map (t.ι.app j) x) = s.ι.app j x :=
+congr_fun (map_ι_comp_preserves_colimit_iso_hom P Q j) x
+
 /-- A functor which preserves limits preserves chosen limits up to isomorphism. -/
-def preserves_limit_iso (K : J ⥤ C) [has_limit K] (F : C ⥤ D) [has_limit (K ⋙ F)] [preserves_limit K F] :
+abbreviation preserves_limit_iso'
+  (K : J ⥤ C) [has_limit K] (F : C ⥤ D) [has_limit (K ⋙ F)] [preserves_limit K F] :
   F.obj (limit K) ≅ limit (K ⋙ F) :=
-is_limit.cone_point_unique_up_to_iso (preserves_limit.preserves (limit.is_limit K)) (limit.is_limit (K ⋙ F))
+preserves_limit_iso (limit.is_limit K) (limit.is_limit (K ⋙ F))
 /-- A functor which preserves colimits preserves chosen colimits up to isomorphism. -/
-def preserves_colimit_iso (K : J ⥤ C) [has_colimit K] (F : C ⥤ D) [has_colimit (K ⋙ F)] [preserves_colimit K F] :
+abbreviation preserves_colimit_iso'
+  (K : J ⥤ C) [has_colimit K] (F : C ⥤ D) [has_colimit (K ⋙ F)] [preserves_colimit K F] :
   F.obj (colimit K) ≅ colimit (K ⋙ F) :=
-is_colimit.cocone_point_unique_up_to_iso (preserves_colimit.preserves (colimit.is_colimit K)) (colimit.is_colimit (K ⋙ F))
+preserves_colimit_iso (colimit.is_colimit K) (colimit.is_colimit (K ⋙ F))
 
 class preserves_limits_of_shape (J : Type v) [small_category J] (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves_limit : Π {K : J ⥤ C}, preserves_limit K F)
@@ -181,6 +222,49 @@ def preserves_colimit_of_is_iso {F : C ⥤ D}
   {t : cocone K} (h : is_colimit t) {s : cocone (K ⋙ F)} (hF : is_colimit s)
   (I : is_iso (hF.desc (F.map_cocone t))) : preserves_colimit K F :=
 preserves_colimit_of_preserves_colimit_cocone h (is_colimit.of_point_iso hF)
+
+def is_iso_of_preserves_colimit {F : C ⥤ D}
+  {t : cocone K} (h : is_colimit t) {s : cocone (K ⋙ F)} (hF : is_colimit s)
+  [P : preserves_colimit K F] : is_iso (hF.desc (F.map_cocone t)) :=
+{ inv := (preserves_colimit.preserves h).desc s,
+  hom_inv_id' :=
+  begin
+    apply is_colimit.hom_ext hF,
+    intro j,
+    dsimp,
+    simp only [functor.map_cocone_ι, limits.is_colimit.fac_assoc, category.comp_id],
+    exact (preserves_colimit.preserves h).fac s j,
+  end,
+  inv_hom_id' :=
+  begin
+    apply is_colimit.hom_ext (@preserves_colimit.preserves _ _ _ _ _ _ _ _ P _ h),
+    intro j,
+    dsimp,
+    simp only [category.comp_id],
+    erw [←category.assoc, (preserves_colimit.preserves h).fac s j, is_colimit.fac],
+    refl,
+  end }
+
+section
+variables (K)
+
+def is_iso_of_preserves_colimit' (F : C ⥤ D) [has_colimit K] [has_colimit (K ⋙ F)]
+  [P : preserves_colimit K F] :
+  is_iso (colimit.desc (K ⋙ F) (F.map_cocone (colimit.cocone K))) :=
+is_iso_of_preserves_colimit (colimit.is_colimit K) (colimit.is_colimit (K ⋙ F))
+
+end
+
+section
+local attribute [instance] is_iso_of_preserves_colimit'
+
+@[simp] lemma preserves_desc (F : C ⥤ D) [has_colimit K] [has_colimit (K ⋙ F)]
+  [P : preserves_colimit K F] :
+  (preserves_colimit.preserves (colimit.is_colimit K)).desc (colimit.cocone (K ⋙ F)) =
+    inv (colimit.desc (K ⋙ F) (F.map_cocone (colimit.cocone K))) :=
+rfl
+
+end
 
 /--
 As for `preserves_colimit_of_is_iso`,

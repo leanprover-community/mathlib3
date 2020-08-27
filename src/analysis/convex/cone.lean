@@ -314,13 +314,13 @@ variables (α : Type*) [ordered_add_comm_group α] [ordered_semimodule ℝ α]
 The positive cone is the convex cone formed by the set of nonnegative elements in an ordered
 semimodule.
 -/
-def positive_cone : convex_cone α :=
+def positive_cone : convex_cone M :=
 { carrier := {x | 0 ≤ x},
   smul_mem' :=
     begin
       intros c hc x hx,
       have := smul_le_smul_of_nonneg (show 0 ≤ x, by exact hx) (le_of_lt hc),
-      have h' : c • (0 : α) = 0,
+      have h' : c • (0 : M) = 0,
       { simp only [smul_zero] },
       rwa [h'] at this
     end,

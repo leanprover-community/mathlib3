@@ -140,7 +140,7 @@ instance sampleable_prod {β} [sampleable α] [sampleable β] : sampleable (α �
 { sample := do { ⟨x⟩ ← uliftable.up $ sample α,
                  ⟨y⟩ ← uliftable.up $ sample β,
                  pure (x,y) },
-  shrink := λ x, sampleable.lseq prod.mk (shrink x.1) (shrink x.2) }
+  shrink := λ x, lazy_list.lseq prod.mk (shrink x.1) (shrink x.2) }
 
 /-- shrinking function for sum types -/
 def sum.shrink {β} [sampleable α] [sampleable β] : α ⊕ β → lazy_list (α ⊕ β)
@@ -170,7 +170,7 @@ def list.shrink' (shrink_a : α → lazy_list α) : list α → lazy_list (list 
 | [] := lazy_list.nil
 | (x :: xs) :=
   let ys := list.shrink' xs in
-  interleave ys $ sampleable.lseq (::) ((shrink_a x).append (lazy_list.singleton x)) (lazy_list.cons [] ys)
+  interleave ys $ lazy_list.lseq (::) ((shrink_a x).append (lazy_list.singleton x)) (lazy_list.cons [] ys)
 
 /-- `list.shrink_with shrink_f xs` shrinks `xs` by deleting various items of the list
 and shrinking others (using `shrink_f`). `lseq` is being used to interleave the
@@ -207,7 +207,7 @@ def tree.shrink_with (shrink_a : α → lazy_list α) : tree α → lazy_list (t
 -- to be the full tree, i.e., not a shrunken tree.
 lazy_list.init $ interleave_all [(tree.shrink_with t₀).append (lazy_list.singleton t₀),
                                  (tree.shrink_with t₁).append (lazy_list.singleton t₁),
-                                 sampleable.lseq id (sampleable.lseq tree.node (shrink_a x) (tree.shrink_with t₀)) (tree.shrink_with t₁) ]
+                                 lazy_list.lseq id (lazy_list.lseq tree.node (shrink_a x) (tree.shrink_with t₀)) (tree.shrink_with t₁) ]
 
 instance sampleable_tree [sampleable α] : sampleable (tree α) :=
 { sample := sized $ tree.sample (sample α),

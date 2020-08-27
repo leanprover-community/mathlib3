@@ -37,111 +37,6 @@ universes u v w u₁
 
 namespace mv_polynomial
 
-open mv_polynomial finsupp
-
--- lemma eval₂_assoc'
---   {S : Type*} [comm_semiring S]
---   {T : Type*} [comm_semiring T]
---   {σ : Type*}
---   {τ : Type*}
---   (f : S →+* T)
---   (φ : σ → T) (q : τ → mv_polynomial σ S)
---   (p : mv_polynomial τ S) :
---   eval₂ f (λ t, eval₂ f φ (q t)) p = eval₂ f φ (eval₂ C q p) :=
--- show eval₂ f (λ t, eval₂_hom f φ (q t)) p = eval₂_hom f φ (eval₂ C q p),
--- by { rw eval₂_comp_left (eval₂_hom f φ), congr, ext, simp, }
-
-
--- noncomputable def map_hom
---   {S : Type*} [comm_semiring S]
---   {T : Type*} [comm_semiring T]
---   {σ : Type*}
---   (f : S →+* T) :
---   mv_polynomial σ S →+* mv_polynomial σ T :=
--- ring_hom.of (mv_polynomial.map f)
-
--- section
--- variables {σ : Type*} {R : Type*} {S : Type*} {T : Type*}
--- variables [comm_semiring R] [comm_semiring S] [comm_semiring T] (f : R →+* S)
-
--- @[simp] lemma map_hom_C (r : R) : map f (C r : mv_polynomial σ R) = C (f r) :=
--- map_C f r
-
--- @[simp] lemma map_hom_X (i : σ) : map_hom f (X i : mv_polynomial σ R) = X i :=
--- map_X f i
-
--- @[simp] lemma map_hom_rename {τ : Type*} (g : σ → τ) (p : mv_polynomial σ R) :
---   map_hom f (rename g p) = rename g (map_hom f p) :=
--- map_rename f g p
-
--- @[simp] lemma eval₂_hom_rename {τ : Type*} (g : τ → S) (h : σ → τ) (p : mv_polynomial σ R) :
---   eval₂ f g (rename h p) = eval₂ f (g ∘ h) p :=
--- eval₂_rename f h g p -- Achtung die Reihenfolge!
-
--- end
-
--- lemma map_eval₂'
---   {R : Type*} [comm_semiring R]
---   {S : Type*} [comm_semiring S]
---   {T : Type*} [comm_semiring T]
---   {σ : Type*}
---   (φ : S →+* T)
---   (f : R →+* S)
---   (g : σ → S)
---   (p : mv_polynomial σ R) :
---   φ (eval₂ f g p) = eval₂ (φ.comp f) (λ i, φ (g i)) p :=
--- begin
---   apply p.induction_on,
---   { intros, rw [eval₂_C, eval₂_C, ring_hom.coe_comp] },
---   { intros p₁ p₂ hp₁ hp₂, rw [eval₂_add, eval₂_add, ring_hom.map_add, hp₁, hp₂] },
---   { intros q n h, rw [eval₂_mul, eval₂_mul, ring_hom.map_mul, eval₂_X, eval₂_X, h] }
--- end
-
-
-section
-variables {σ : Type*} {R : Type*} {A : Type*} {B : Type*}
-   [comm_semiring R] [comm_semiring A] [comm_semiring B]
-
-
--- lemma aeval_eq_eval₂_hom' [algebra R A] (f : σ → A) (p : mv_polynomial σ R) :
---   aeval f p = eval₂_hom (algebra_map R A) f p := rfl
-
--- @[simp] lemma eval₂_hom_C (f : R →+* A) (g : σ → A) (r : R) :
---   eval₂_hom f g (C r) = f r := eval₂_C f g r
-
--- @[simp] lemma eval₂_hom_X' (f : R →+* A) (g : σ → A) (i : σ) :
---   eval₂_hom f g (X i) = g i := eval₂_X f g i
-
-@[simp] lemma comp_eval₂_hom (f : R →+* A) (g : σ → A) (φ : A →+* B) :
-  φ.comp (eval₂_hom f g) = (eval₂_hom (φ.comp f) (λ i, φ (g i))) :=
-begin
-  apply mv_polynomial.ring_hom_ext,
-  { intro r, rw [ring_hom.comp_apply, eval₂_hom_C, eval₂_hom_C, ring_hom.comp_apply] },
-  { intro i, rw [ring_hom.comp_apply, eval₂_hom_X', eval₂_hom_X'] }
-end
-
-@[simp] lemma map_eval₂_hom (f : R →+* A) (g : σ → A) (φ : A →+* B) (p : mv_polynomial σ R) :
-  φ (eval₂_hom f g p) = (eval₂_hom (φ.comp f) (λ i, φ (g i)) p) :=
-by { rw ← comp_eval₂_hom, refl }
-
-@[simp] lemma map_aeval [algebra R A]
-  (g : σ → A) (φ : A →+* B) (p : mv_polynomial σ R) :
-  φ (aeval g p) = (eval₂_hom (φ.comp (algebra_map R A)) (λ i, φ (g i)) p) :=
-by { rw ← comp_eval₂_hom, refl }
-
-@[simp] lemma eval_map (f : R →+* A) (g : σ → A) (p : mv_polynomial σ R) :
-  eval g (map f p) = eval₂ f g p :=
-by { apply mv_polynomial.induction_on p; { simp { contextual := tt } } }
-
-@[simp] lemma eval₂_map (f : R →+* A) (g : σ → B) (φ : A →+* B) (p : mv_polynomial σ R) :
-  eval₂ φ g (map f p) = eval₂ (φ.comp f) g p :=
-by { rw [← eval_map, ← eval_map, map_map], }
-
-@[simp] lemma eval₂_hom_map_hom (f : R →+* A) (g : σ → B) (φ : A →+* B) (p : mv_polynomial σ R) :
-  eval₂_hom φ g (map f p) = eval₂_hom (φ.comp f) g p :=
-eval₂_map f g φ p
-
-end
 
 open_locale big_operators
 
@@ -191,19 +86,6 @@ begin
 end
 
 end mv_polynomial
-
-section
-open multiplicity
-
-lemma coe_nat_dvd {R : Type*} [comm_semiring R] (m n : ℕ) (h : m ∣ n) :
-  (m : R) ∣ n :=
-ring_hom.map_dvd (nat.cast_ring_hom R) h
-
-lemma coe_int_dvd {R : Type*} [comm_ring R] (m n : ℤ) (h : m ∣ n) :
-  (m : R) ∣ n :=
-ring_hom.map_dvd (int.cast_ring_hom R) h
-
-end
 
 
 namespace invertible

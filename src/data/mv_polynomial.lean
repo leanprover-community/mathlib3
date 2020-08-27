@@ -539,6 +539,18 @@ end
 @[simp] lemma eval₂_hom_X' (f : α →+* β) (g : σ → β) (i : σ) :
   eval₂_hom f g (X i) = g i := eval₂_X f g i
 
+@[simp] lemma comp_eval₂_hom [comm_semiring γ] (f : α →+* β) (g : σ → β) (φ : β →+* γ) :
+  φ.comp (eval₂_hom f g) = (eval₂_hom (φ.comp f) (λ i, φ (g i))) :=
+begin
+  apply mv_polynomial.ring_hom_ext,
+  { intro r, rw [ring_hom.comp_apply, eval₂_hom_C, eval₂_hom_C, ring_hom.comp_apply] },
+  { intro i, rw [ring_hom.comp_apply, eval₂_hom_X', eval₂_hom_X'] }
+end
+
+@[simp] lemma map_eval₂_hom  [comm_semiring γ] (f : α →+* β) (g : σ → β) (φ : β →+* γ)
+  (p : mv_polynomial σ α) :
+  φ (eval₂_hom f g p) = (eval₂_hom (φ.comp f) (λ i, φ (g i)) p) :=
+by { rw ← comp_eval₂_hom, refl }
 
 section
 local attribute [instance, priority 10] is_semiring_hom.comp
@@ -706,6 +718,20 @@ begin
   intro m,
   exact hf (h m),
 end
+
+@[simp] lemma eval_map (f : α →+* β) (g : σ → β) (p : mv_polynomial σ α) :
+  eval g (map f p) = eval₂ f g p :=
+by { apply mv_polynomial.induction_on p; { simp { contextual := tt } } }
+
+@[simp] lemma eval₂_map [comm_semiring γ] (f : α →+* β) (g : σ → γ) (φ : β →+* γ)
+  (p : mv_polynomial σ α) :
+  eval₂ φ g (map f p) = eval₂ (φ.comp f) g p :=
+by { rw [← eval_map, ← eval_map, map_map], }
+
+@[simp] lemma eval₂_hom_map_hom [comm_semiring γ] (f : α →+* β) (g : σ → γ) (φ : β →+* γ)
+  (p : mv_polynomial σ α) :
+  eval₂_hom φ g (map f p) = eval₂_hom (φ.comp f) g p :=
+eval₂_map f g φ p
 
 end map
 
@@ -995,13 +1021,18 @@ begin
 end
 
 lemma comp_aeval {B : Type*} [comm_semiring B] [algebra R B]
-  (f : σ → A) (φ : A →ₐ[R] B) :
+  (φ : A →ₐ[R] B) :
   φ.comp (aeval f) = (aeval (λ i, φ (f i))) :=
 begin
   apply mv_polynomial.alg_hom_ext,
   intros i,
   rw [alg_hom.comp_apply, aeval_X, aeval_X],
 end
+
+@[simp] lemma map_aeval {B : Type*} [comm_semiring B]
+  (g : σ → A) (φ : A →+* B) (p : mv_polynomial σ R) :
+  φ (aeval g p) = (eval₂_hom (φ.comp (algebra_map R A)) (λ i, φ (g i)) p) :=
+by { rw ← comp_eval₂_hom, refl }
 
 end aeval
 

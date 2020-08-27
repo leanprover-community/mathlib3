@@ -39,7 +39,7 @@ which is isomorphic to the `p`-adic integers `ℤ_[p]`. -/
 def witt_vectors (p : ℕ) (R : Type*) := ℕ → R
 
 universes u v w u₁
-open mv_polynomial (hiding aeval) -- this hiding is a hack, because we setup notation below
+open mv_polynomial
 open set
 open finset (range)
 

@@ -15,7 +15,7 @@ properties to computational properties of the matrix.
 
 ## Main definitions
 
-* `adj_matrix` is the adjacency matrix of a `simple_graph` with coefficients in a given semiring
+* `adj_matrix` is the adjacency matrix of a `simple_graph` with coefficients in a given semiring.
 
 -/
 

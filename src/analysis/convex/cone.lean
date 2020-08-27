@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov
+Authors: Yury Kudryashov, Frédéric Dupuis
 -/
 import linear_algebra.linear_pmap
 import analysis.convex.basic
@@ -214,24 +214,14 @@ begin
     exact h }
 end
 
-/-- A blunt cone (where 0 ∉ S) is always salient. -/
+/-- A blunt cone (one not containing 0) is always salient. -/
 lemma salient_of_blunt (S : convex_cone E) : blunt S → salient S :=
 begin
   intro h₁,
   rw [salient_iff_not_flat],
   intro h₂,
   obtain ⟨x, xs, H₁, H₂⟩ := h₂,
-  have h_conv : _root_.convex (S : set E) := convex_cone.convex S,
-  have hkey : ((1 : ℝ)/2) • x + ((1 : ℝ)/2) • (-x) ∈ S := h_conv xs H₂
-    (show (0 : ℝ) ≤ (1/2), by linarith) (show (0 : ℝ) ≤ (1/2), by linarith) (by linarith),
-  have :=
-    calc
-      ((1 : ℝ)/2) • x + ((1 : ℝ)/2) • (-x)
-          = ((1 : ℝ)/2) • x + -((1 : ℝ)/2) • x  : by simp [smul_neg ((1 : ℝ)/2)]
-      ... = ((1 : ℝ)/2 + -((1 : ℝ)/2)) • x      : by rw [add_smul]
-      ... = (0 : ℝ) • x                         : by rw [show (1 : ℝ)/2 + -(1/2) = 0, by ring]
-      ... = (0 : E)                           : zero_smul ℝ x,
-  rw [this] at hkey,
+  have hkey : (0 : E) ∈ S := by rw [(show 0 = x + (-x), by simp)]; exact add_mem S xs H₂,
   exact h₁ hkey,
 end
 
@@ -308,7 +298,7 @@ def to_ordered_semimodule {α : Type*} [ordered_add_comm_group α] [semimodule �
 /-! ### Positive cone of an ordered semimodule -/
 section positive_cone
 
-variables (α : Type*) [ordered_add_comm_group α] [ordered_semimodule ℝ α]
+variables (M : Type*) [ordered_add_comm_group M] [ordered_semimodule ℝ M]
 
 /--
 The positive cone is the convex cone formed by the set of nonnegative elements in an ordered

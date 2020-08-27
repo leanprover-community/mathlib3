@@ -119,7 +119,7 @@ calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : units K
 lemma pow_card (a : K) : a ^ q = a :=
 begin
   have hp : fintype.card K > 0 := fintype.card_pos_iff.2 (by apply_instance),
-  by_cases a = 0, { rw h, apply zero_pow hp, },
+  by_cases h : a = 0, { rw h, apply zero_pow hp },
   rw [← nat.succ_pred_eq_of_pos hp, pow_succ, nat.pred_eq_sub_one,
     pow_card_sub_one_eq_one a h, mul_one],
 end
@@ -269,14 +269,16 @@ end
 
 /-- A variation on Fermat's little theorem. See `zmod.fermat_little` -/
 @[simp] lemma zmod.pow_card {p : ℕ} [fact p.prime] (x : zmod p) : x ^ p = x :=
-by { have h := finite_field.pow_card x, rw zmod.card p at h, rw h }
+by { have h := finite_field.pow_card x, rwa zmod.card p at h }
 
 open polynomial
 
 lemma zmod.expand_p {p : ℕ} [fact p.prime] (f : polynomial (zmod p)) :
   expand (zmod p) p f = f ^ p :=
 begin
-  apply f.induction_on', intros a b ha hb, rw add_pow_char, simp [ha, hb],
-  intros n a, rw polynomial.expand_monomial, repeat {rw single_eq_C_mul_X},
-  rw [mul_pow, ← C.map_pow, zmod.pow_card a], ring_exp,
+  refine f.induction_on' (λ a b ha hb, _) (λ n a, _),
+  { rw [alg_hom.map_add, add_pow_char, ha, hb] },
+  { rw [polynomial.expand_monomial, single_eq_C_mul_X, single_eq_C_mul_X,
+        mul_pow, ← C.map_pow, zmod.pow_card a],
+    ring_exp }
 end

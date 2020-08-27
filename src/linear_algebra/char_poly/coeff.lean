@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Aaron Anderson, Jalex Stark.
 -/
 
-import data.matrix.basic
+import data.matrix.char_p
 import linear_algebra.char_poly
 import linear_algebra.matrix
 import ring_theory.polynomial.basic
@@ -165,32 +165,28 @@ end
 
 variables {p : ℕ} [fact p.prime]
 
-lemma zmod.char_poly_pow_card_of_nonempty [nonempty n] (M : matrix n n (zmod p)) :
-  char_poly (M ^ p) = char_poly M :=
-begin
-  apply frobenius_inj (polynomial (zmod p)) p, repeat {rw frobenius_def},
-  rw ← zmod.expand_p,
-  unfold char_poly, rw [alg_hom.map_det, ← det_pow],
-  apply congr_arg det,
-  apply mat_poly_equiv.injective, swap, { apply_instance },
-  rw [← mat_poly_equiv.coe_alg_hom, alg_hom.map_pow, mat_poly_equiv.coe_alg_hom,
-        mat_poly_equiv_char_matrix, sub_pow_char_of_commute, ← C_pow],
-  swap, { apply polynomial.commute_X },
-  -- the following is a nasty case bash that should be abstracted as a lemma
-  -- (and maybe it can be proven more... algebraically?)
-  ext, rw [coeff_sub, coeff_C],
-  by_cases hij : i = j; simp [char_matrix, hij, coeff_X_pow]; simp only [coeff_C]; split_ifs; simp *,
-end
-
 lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :
   char_poly (M ^ p) = char_poly M :=
 begin
-  classical,
-  by_cases hn : nonempty n, letI := hn, apply zmod.char_poly_pow_card_of_nonempty,
-  swap, { congr, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
+  by_cases hn : nonempty n,
+  { letI := hn,
+    apply frobenius_inj (polynomial (zmod p)) p, repeat {rw frobenius_def},
+    rw ← zmod.expand_p,
+    unfold char_poly, rw [alg_hom.map_det, ← det_pow],
+    apply congr_arg det,
+    apply mat_poly_equiv.injective, swap, { apply_instance },
+    rw [← mat_poly_equiv.coe_alg_hom, alg_hom.map_pow, mat_poly_equiv.coe_alg_hom,
+          mat_poly_equiv_char_matrix, sub_pow_char_of_commute, ← C_pow],
+    swap, { apply polynomial.commute_X },
+    -- the following is a nasty case bash that should be abstracted as a lemma
+    -- (and maybe it can be proven more... algebraically?)
+    ext, rw [coeff_sub, coeff_C],
+    by_cases hij : i = j; simp [char_matrix, hij, coeff_X_pow];
+    simp only [coeff_C]; split_ifs; simp *, },
+  { congr, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
 end
 
 lemma zmod.trace_pow_p {p:ℕ} [fact p.prime] [nonempty n] (M : matrix n n (zmod p)) :
   trace n (zmod p) (zmod p) (M ^ p) = (trace n (zmod p) (zmod p) M)^p :=
 by rw [trace_eq_neg_char_poly_coeff, trace_eq_neg_char_poly_coeff,
-  zmod.char_poly_pow_card, zmod.pow_card]
+       zmod.char_poly_pow_card, zmod.pow_card]

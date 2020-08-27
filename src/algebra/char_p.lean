@@ -97,8 +97,8 @@ theorem sub_pow_char_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
   [char_p R p] (x y : R) (h : commute x y) :
   (x - y)^p = x^p - y^p :=
 begin
-  have h' : commute (x - y) y, rw [commute, semiconj_by, sub_mul, mul_sub, h.eq],
-  rw [eq_sub_iff_add_eq, ← add_pow_char_of_commute _ _ _ h'], simp, repeat {apply_instance},
+  rw [eq_sub_iff_add_eq, ← add_pow_char_of_commute _ _ _ (commute.sub_left h rfl)],
+  simp, repeat {apply_instance},
 end
 
 theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} [fact p.prime]

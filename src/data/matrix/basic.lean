@@ -457,8 +457,13 @@ lemma scalar_apply_ne (a : α) (i j : n) (h : i ≠ j) :
 by simp only [h, coe_scalar, one_apply_ne, ne.def, not_false_iff, smul_apply, mul_zero]
 
 lemma scalar_inj [nonempty n] {r s : α} : scalar n r = scalar n s ↔ r = s :=
-⟨λ h, by { inhabit n, rw [← scalar_apply_eq r (arbitrary n), ← scalar_apply_eq s (arbitrary n), h] },
-  by rintro rfl; refl⟩
+begin
+  split,
+  { intro h,
+    inhabit n,
+    rw [← scalar_apply_eq r (arbitrary n), ← scalar_apply_eq s (arbitrary n), h] },
+  { rintro rfl, refl }
+end
 
 end scalar
 

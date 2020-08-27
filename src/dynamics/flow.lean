@@ -44,315 +44,167 @@ end
 
 -- here begins the dynamical systems content.
 
-open set function
+open set function filter
 
 /-- a flow is a continuous action of a (topological, additive) monoid
     on a topological space. -/
-
--- this is probably not an ideal definition for generality reasons: we
--- usually also care about flows defined on some subset U ⊆ X × T, and
--- may want stronger/weaker hypotheses on e.g. differentiability. In
--- either case, though, it doesn't seem too difficult to introduce a
--- structure for e.g. a local flow and then refactor this in terms of
--- that. For the intended content of the remainder of this file this
--- definition seems adequate.
-
 structure flow
-  (M : Type*) [topological_space M] [add_monoid M] [has_continuous_add M]
+  (T : Type*) [topological_space T] [add_monoid T] [has_continuous_add T] 
   (X : Type*) [topological_space X] :=
-(to_fun    : X → M → X)
+(to_fun    : T → X → X)
 (cont'     : continuous ↿to_fun)
-(map_zero' : ∀ x, to_fun x 0 = x)
-(map_add'  : ∀ x t₁ t₂, to_fun (to_fun x t₁) t₂ = to_fun x (t₁ + t₂))
+(map_add'  : ∀ t₁ t₂ x, to_fun t₂ (to_fun t₁ x) = to_fun (t₁ + t₂) x)
+(map_zero' : ∀ x, to_fun 0 x = x)
 
 namespace flow
 
 section
 
 variables {X : Type*} [topological_space X]
-variables {M : Type*} [topological_space M] [add_monoid M] [has_continuous_add M]
+variables {T : Type*} [topological_space T] [add_monoid T] [has_continuous_add T]
 
-variables (ϕ : flow M X) (S : set X)
+variables (ϕ : flow T X)
 
-instance : has_coe_to_fun (flow M X) := ⟨λ _, _, flow.to_fun⟩
-instance has_uncurry_flow : has_uncurry (flow M X) (X × M) X := ⟨λ f p, f.to_fun p.1 p.2⟩
+instance : has_coe_to_fun (flow T X) := ⟨λ _,  _, flow.to_fun⟩
+instance has_uncurry_flow : has_uncurry (flow T X) (T × X) X :=
+⟨λ f p, f.to_fun p.1 p.2⟩
+
+@[ext]
+lemma ext : ∀ {ϕ₁ ϕ₂ : flow T X}, (∀ x t, ϕ₁ x t = ϕ₂ x t) → ϕ₁ = ϕ₂
+| ⟨f₁, _, _, _⟩ ⟨f₂, _, _, _⟩ h := by { congr, funext, apply h }
 
 @[continuity]
 lemma cont : continuous ↿ϕ := ϕ.cont'
 
 @[simp]
-lemma map_zero (x : X) : ϕ x 0 = x := ϕ.map_zero' _
+lemma map_add (t₁ t₂ : T) (x : X): ϕ t₂ (ϕ t₁ x) = ϕ (t₁ + t₂) x := ϕ.map_add' _ _ _
 
 @[simp]
-lemma map_add (x : X) (t₁ t₂ : M) : ϕ (ϕ x t₁) t₂ = ϕ x (t₁ + t₂) := ϕ.map_add' _ _ _
+lemma map_zero (x : X) : ϕ 0 x = x := ϕ.map_zero' _
 
-/-- two flows are the same if they are the same as functions. -/
-@[ext]
-lemma ext : ∀ {ϕ₁ ϕ₂ : flow M X}, (∀ x t, ϕ₁ x t = ϕ₂ x t) → ϕ₁ = ϕ₂
-| ⟨f₁, _, _, _⟩ ⟨f₂, _, _, _⟩ h := by { congr, funext, apply h }
+/-!
+### invariant sets and omega limits
+-/
 
-/-- a set is invariant if ϕ S t = S for all t. -/
-def invariant : Prop := ∀ (x ∈ S) t, ϕ x t ∈ S
+variable (S : set X)
 
-/-- equivalent definition of invariance of a set S in terms of the
-    image of S × M under ϕ :
-    S is invariant if ϕ S M ⊆ S. -/
-lemma invariant_iff_image2 : invariant ϕ S ↔ image2 ϕ S univ ⊆ S :=
-iff.intro
-  (λ h ϕxt ⟨_, _, hx, _, hϕxt⟩, hϕxt ▸ h _ hx _)
-  (λ h _ hx _, h ⟨_, _, hx, mem_univ _, rfl⟩)
+/-- a set S ⊆ X is invariant under a flow ϕ on X if ϕ x t ∈ ϕ for all
+    x ∈ S, t ∈ T. -/
+def invariant : Prop := ∀ (x ∈ S) t, ϕ t x ∈ S
 
-/-- equivalent definition of invariance of a set S in terms of the
-    image of S × M under ϕ :
-    S is invariant if ϕ S M = S. -/
-lemma invariant_iff_image2_eq : invariant ϕ S ↔ image2 ϕ S univ = S :=
+lemma invariant_of_image2_subset {S} (h : image2 ϕ univ S ⊆ S) : invariant ϕ S :=
+λ _ hx _, h ⟨_, _, mem_univ _, hx, rfl⟩
+
+lemma invariant_iff_image2_eq (S : set X) : invariant ϕ S ↔ image2 ϕ univ S = S :=
 iff.intro
   (λ h, subset.antisymm
-    (by rwa ←invariant_iff_image2)
-    (λ x hx, ⟨x, 0, hx, mem_univ _, ϕ.map_zero _⟩))
-  (λ h, (invariant_iff_image2 ϕ S).mpr $ h.symm ▸ subset.rfl)
+    (λ _ ⟨_, _, _, hx, htx⟩, htx ▸ h _ hx _)
+    (λ x hx, ⟨0, x, mem_univ _, hx, map_zero _ _⟩))
+  (λ h, invariant_of_image2_subset ϕ (h.symm ▸ subset.refl S))
 
-/-- a flow on X induces a flow on a ϕ-invariant set S ⊆ X. -/
-def restrict (h : invariant ϕ S) : flow M ↥S :=
-{ to_fun    := λ x t, ⟨ϕ x t,h _ x.property _⟩,
+/-- the induced flow on an invariant set S ⊆ X. -/
+def restrict (h : invariant ϕ S) : flow T ↥S :=
+{ to_fun    := λ t x, ⟨ϕ t x,h _ x.property _⟩,
   cont'     := continuous_subtype_mk _ $
-    show continuous (↿ϕ ∘ λ p : ↥S × M, (↑p.fst, p.snd)),
-    from ϕ.cont.comp (continuous.prod_map continuous_subtype_coe  continuous_id),
-  map_zero' := λ ⟨_, _⟩, subtype.ext (ϕ.map_zero _),
-  map_add'  := λ ⟨_, _⟩ _ _, subtype.ext (ϕ.map_add _ _ _) }
+    show continuous (↿ϕ ∘ λ p : T × ↥S, (p.fst, ↑p.snd)),
+    from ϕ.cont.comp (continuous.prod_map continuous_id continuous_subtype_coe),
+  map_zero' := λ _, subtype.ext (ϕ.map_zero _),
+  map_add'  := λ _ _ _, subtype.ext (ϕ.map_add _ _ _) }
 
-/-- the invariant sets under a flow form a boolean algebra. -/
+/-- the ω-limit of S ⊆ X w.r.t a filter f on T is the intersection of
+    all the closures of ϕ S u where u ∈ f.
 
--- TODO: fill out the rest of the fields. A lot of these term-proofs
--- look rather silly, since `le`/`inf` etc are defined only in terms
--- of the val part of the subtype and the other things obviously just
--- work™. Is there a tactic that's " ... and then try the
--- corresponding fields from `set.boolean_algebra`"?
-instance : bounded_lattice (subtype (invariant ϕ)) :=
-{
-  -- partial order
-  le           := λ S₁ S₂, (S₁ : set X) ⊆ S₂,
-  le_refl      := λ _, subset.rfl,
-  le_trans     := λ _ _ _, subset.trans,
-  le_antisymm  := λ _ _ h₁ h₂, subtype.ext (subset.antisymm h₁ h₂),
-  -- lattice
-  inf          := λ S₁ S₂, ⟨S₁ ∩ S₂, λ _ ⟨hx₁, hx₂⟩ _, ⟨S₁.prop _ hx₁ _, S₂.prop _ hx₂ _⟩⟩,
-  le_inf       := λ _ _ _ h₁ h₂, subset_inter h₁ h₂,
-  inf_le_left  := λ _ _, inter_subset_left _ _,
-  inf_le_right := λ _ _, inter_subset_right _ _,
-  sup          := λ S₁ S₂, ⟨S₁ ∪ S₂, λ x hx t, or.elim hx
-                    (λ h, subset_union_left  _ _ $ S₁.prop _ h _)
-                    (λ h, subset_union_right _ _ $ S₂.prop _ h _)⟩,
-  sup_le       := λ _ _ _ h₁ h₂, union_subset h₁ h₂,
-  le_sup_left  := λ _ _, subset_union_left _ _,
-  le_sup_right := λ _ _, subset_union_right _ _,
-  -- bounded
-  top          := ⟨univ, λ _ _ _, mem_univ _⟩,
-  le_top       := λ _, subset_univ _,
-  bot          := ⟨∅, λ x h _, false.elim $ mem_empty_eq x ▸ h⟩,
-  bot_le       := λ _, empty_subset _
-}
+    When T is ℕ or ℝ and f is `filter.at_top`, this coincides with the
+    usual definition; `omega_limit at_bot ϕ S` is the α-limit set. -/
+def omega_limit (f : filter T) (ϕ : flow T X) (S : set X) : set X :=
+⋂ u ∈ f, closure (image2 ϕ u S)
+local notation `ω` := omega_limit
+
+variables (f : filter T)
+
+lemma is_closed_omega_limit : is_closed (ω f ϕ S) :=
+is_closed_Inter $ λ _, is_closed_Inter $ λ _, is_closed_closure
+
+lemma omega_limit_mono {S₁ S₂} (h : S₁ ⊆ S₂) : ω f ϕ S₁ ⊆ ω f ϕ S₂ :=
+Inter_subset_Inter $ λ _, Inter_subset_Inter $ λ _, closure_mono $ image2_subset subset.rfl h
+
+lemma omega_limit_inter_subset {S₁ S₂} : ω f ϕ (S₁ ∩ S₂) ⊆ ω f ϕ S₁ ∩ ω f ϕ S₂ :=
+subset_inter
+  (omega_limit_mono _ _ (inter_subset_left  _ _))
+  (omega_limit_mono _ _ (inter_subset_right _ _))
+
+lemma union_omega_limit_subset {S₁ S₂} : ω f ϕ S₁ ∪ ω f ϕ S₂ ⊆ ω f ϕ (S₁ ∪ S₂) :=
+union_subset
+  (omega_limit_mono _ _ (subset_union_left  _ _))
+  (omega_limit_mono _ _ (subset_union_right _ _))
+
+lemma flow_image2_eq (I : set T) (t : T) : ϕ t '' image2 ϕ I S = image2 ϕ ((+ t) '' I) S :=
+by simp_rw [image_image2, map_add, image2_image_left]
+
+/-- the omega limit w.r.t a translation-invariant filter is invariant. -/
+lemma invariant_omega_limit (h : ∀ (t : T), tendsto (+ t) f f) :
+  invariant ϕ (ω f ϕ S) :=
+begin
+  rintro x hx t cϕu ⟨u, hcϕu⟩,
+  rw ←hcϕu,
+
+  calc ϕ t x ∈ ϕ t '' (⋂ u ∈ f, closure (image2 ϕ u S)) : mem_image_of_mem _ hx
+
+  ...        ⊆ ⋂ u ∈ f, ϕ t '' closure (image2 ϕ u S) :
+  subset.trans (image_Inter_subset _ _) (Inter_subset_Inter (λ _, image_Inter_subset _ _))
+
+  ...        ⊆ ⋂ u ∈ f, closure (ϕ t '' image2 ϕ u S) :
+  Inter_subset_Inter (λ _, Inter_subset_Inter (λ _,
+    image_closure_subset_closure_image (continuous_uncurry_left _ _ ϕ.cont)))
+
+  ...        ⊆ ⋂ u ∈ f, closure (image2 ϕ ((+ t) '' u) S) :
+  by simp_rw [flow_image2_eq, subset.rfl]
+
+  ...        ⊆ ⋂ u ∈ f, closure (image2 ϕ u S) :
+  begin
+    apply Inter_subset_Inter2, intro u,
+    use (+ t) ⁻¹' u,
+    apply Inter_subset_Inter2, intro hu,  
+    simp_rw tendsto_def at h, use h t _ hu,
+    exact closure_mono (image2_subset (image_preimage_subset _ _) subset.rfl)
+  end
+
+  ...        ⊆ ⋂ (hu : u ∈ f), closure (image2 ϕ u S) : Inter_subset _ _
+end
 
 end
 
 section
--- henceforth we require T to be a linearly ordered group in addition
--- to an a add_monoid, so that it is possible to make statements about
--- e.g. time-reversal and ω-limit sets. The expectation is that T is
--- usually either ℕ or ℝ.
---
--- `flow.invariant_iff` is the only lemma that actually makes use of
--- the fact that the order is total.
+
+-- henceforth we let T be a linearly ordered group in addition to a
+-- topological monoid, with the expectation that T is ℕ or ℝ. this
+-- allows us to speak of time-reversal of a flow, among other things.
 
 variables {X : Type*} [topological_space X]
 variables {T : Type*} [topological_space T]
-variables [decidable_linear_ordered_add_comm_group T] [topological_add_group T]
+[decidable_linear_ordered_add_comm_group T] [topological_add_group T]
 
-variables (ϕ : flow T X) (S : set X)
+variables (ϕ : flow T X)
 
-local notation `T₊` := Ici (0 : T)
-local notation `T₋` := Iic (0 : T)
-
-/-- time-reversal of a flow: ϕ.reverse x t = ϕ x (-t). -/
-def reverse : flow T X :=
-{ to_fun    := λ x t, ϕ x (-t),
-  cont'     := show continuous $ ↿ϕ ∘ λ p : X × T, (p.fst, -p.snd),
+instance : has_inv (flow T X) := ⟨λ ϕ, {
+  to_fun    := λ t x, ϕ (-t) x,
+  cont'     := show continuous $ ↿ϕ ∘ λ p : T × X, (-p.fst, p.snd),
                from ϕ.cont.comp (by continuity),
-  map_zero' := λ _, by rw [neg_zero, map_zero],
-  map_add'  := λ _ _ _, by rw [neg_add, map_add] }
+  map_add'  := λ _ _ _, by rw [map_add, neg_add],
+  map_zero' := λ _, by rw [neg_zero, map_zero]
+}⟩
 
-lemma reverse_def (x : X) (t : T) : ϕ.reverse x t = ϕ x (-t) := rfl
+lemma inv_def (t : T) (x : X): ϕ⁻¹ t x = ϕ (-t) x := rfl
 
-lemma reverse_image2 (I : set T) : image2 ϕ.reverse S I = image2 ϕ S ((λ t, -t) '' I) :=
-subset.antisymm
-  (λ _ ⟨_, _, hx, ht, hxt⟩, ⟨_, _, hx, ⟨_, ht, rfl⟩, by rw [←hxt, reverse_def]⟩)
-  (λ _ ⟨_, _, hx, ⟨_, ht', htt'⟩, hxt⟩, ⟨_, _, hx, ht', by rw [←hxt, reverse_def, ←htt']⟩)
+@[simp]
+lemma inv_inv : (ϕ⁻¹)⁻¹ = ϕ := ext $ λ _ _, by rw [inv_def, inv_def, neg_neg]
 
-/-- reversing a flow twice yields the original flow. -/
-@[simp] lemma reverse_twice : ϕ.reverse.reverse = ϕ :=
-ext (λ x t, show ϕ x (- -t) = ϕ x t, by rw neg_neg)
+variable (S : set X)
 
-/-! ### positively/negatively invariant sets -/
-
--- the nonnegativity hypothesis seems to force the for-all to look
--- like one of:
---
--- ∀ (x ∈ S) (t ≥ 0), ...
--- ∀ (x ∈ S) (t) (ht : 0 ≤ t), ...
--- ∀ x t, x ∈ S → 0 ≤ t → ...
--- ∀ {x t}, x ∈ S → 0 ≤ t → ...
---
--- none of these seem ideal. combing mathlib in an attempt to identify
--- an established convention led me to the beginning of
--- `data/set/lattice.lean`, where a comment reads:
---
---   QUESMION: can make the first argument in ∀ x ∈ a, ... implicit?
---
--- has there since been an answer to this question?
-
-/-- a set S is positively invariant under ϕ if ϕ x t ∈ S for all x ∈ S, t ≥ 0. -/
-def pos_invariant : Prop := ∀ (x ∈ S) (t) (ht : 0 ≤ t), ϕ x t ∈ S
-
-/-- a set S is negatively invariant under ϕ iff it is positively invariant under
-    time-reversed ϕ. -/
-def neg_invariant : Prop := pos_invariant ϕ.reverse S
-
--- some equivalent characterisations of positive & negative invariance.
---
--- there are a few slightly-different ways sources state these
--- definitions, and all of the equivalences here are entirely
--- straightforward. Most of the proofs amount to destructing the
--- hypotheses and putting them back together in a different order ---
--- which maybe suggests it would be excessive to have /all/ of them in
--- mathlib.
-
-lemma neg_invariant_iff_reverse : neg_invariant ϕ S ↔ pos_invariant ϕ.reverse S :=
-iff.rfl
-
-lemma neg_invariant_iff : neg_invariant ϕ S ↔ ∀ (x ∈ S) (t ≤ 0), ϕ x t ∈ S :=
-begin
-  rw neg_invariant_iff_reverse,
-  split,
-  all_goals { intros h _ hx _ ht },
-  { rw ←neg_nonneg at ht,
-    exact reverse_twice ϕ ▸ h _ hx _ ht },
-  { rw ←neg_nonpos at ht,
-    exact h _ hx _ ht },
-end
-
-/-- a set S is positively invariant under ϕ iff it is negatively invariant under
-    time-reversed ϕ. -/
-lemma pos_invariant_iff_reverse : pos_invariant ϕ S ↔ neg_invariant ϕ.reverse S :=
-by conv_lhs { rw [←reverse_twice ϕ, ←neg_invariant_iff_reverse] }
-
-/-- a set S is positively invariant under ϕ iff ϕ S M₊ ⊆ S. -/
-lemma pos_invariant_iff_image2 : pos_invariant ϕ S ↔ image2 ϕ S T₊ ⊆ S :=
-iff.intro
-  (λ h _ ⟨_, _, hx, ht, hxt⟩, hxt ▸ h _ hx _ ht)
-  (λ h _ hx _ ht, h ⟨_, _, hx, ht, rfl⟩)
-
-/-- a set S is positively invariant under ϕ iff ϕ S t ⊆ S for all nonnegative t. -/
-lemma pos_invariant_iff_image : pos_invariant ϕ S ↔ ∀ (t) (ht : 0 ≤ t), (λ x, ϕ x t) '' S ⊆ S :=
-iff.intro
-  (λ h _ ht _ ⟨_, hx, hxt⟩, hxt ▸ h _ hx _ ht)
-  (λ h _ hx _ ht, h _ ht ⟨_, hx, rfl⟩)
-
-/-- a set S is negatively invariant under ϕ iff ϕ S M₋ ⊆ S. -/
-lemma neg_invariant_iff_image2 : neg_invariant ϕ S ↔ image2 ϕ S T₋ ⊆ S :=
-by conv_rhs { rw [←reverse_twice ϕ, reverse_image2, image_neg_Iic, neg_zero,
-                  ←pos_invariant_iff_image2, ←neg_invariant_iff_reverse ] }
-
-/-- a set S is negatively invariant under ϕ iff ϕ S t ⊆ S for all nonnegative t. -/
-lemma neg_invariant_iff_image : neg_invariant ϕ S ↔ ∀ (t) (ht : 0 ≤ t), S ⊆ (λ x, ϕ x t) '' S :=
-begin
-  split,
-  { rintro h t ht x hx, use ϕ x (-t), split,
-    by { rw neg_invariant_iff at h, exact h _ hx _ (neg_nonpos.mpr ht) },
-    show ϕ (ϕ x (-t)) t = x, by rw [map_add, neg_add_self, map_zero] },
-  { intros h ϕxt hϕxt _ ht,
-    rw reverse_def,
-    rcases h _ ht hϕxt with ⟨_, hx, hxt⟩,
-    rwa [←hxt, map_add, add_neg_self, map_zero] }
-end
-
-/-- a set is invariant iff it is both positively and negatively invariant. -/
-lemma invariant_iff : invariant ϕ S ↔ neg_invariant ϕ S ∧ pos_invariant ϕ S :=
-by rw [invariant_iff_image2, neg_invariant_iff_image2, pos_invariant_iff_image2,
-       ←union_subset_iff, ←image2_union_right, Iic_union_Ici]
-
-/-- a set is invariant under ϕ iff it is invariant under the time-reversal of ϕ. -/
-lemma invariant_reverse : invariant ϕ S ↔ invariant ϕ.reverse S :=
-begin
-  unfold invariant,
-  simp_rw [reverse_def],
-  split,
-  { intros h x hx t, exact h _ hx _ },
-  { intros h x hx t, exact neg_neg t ▸ h _ hx (-t) }
-end
-
-/-! ### ω-limits of subsets -/
-
-/-- the ω-limit set of S under ϕ is the intersection of
-    the closures of all the forward orbits of S:
-    ω(ϕ, S) = ⋂ t, cl (ϕ S [t, ∞)). -/
-def omega_limit : set X := ⋂ t, closure (image2 ϕ S (Ici t))
-
-/-- the α-limit set of S under ϕ is its ω-limit set under the time
-    reversal of ϕ. -/
-def alpha_limit : set X := omega_limit ϕ.reverse S
-
-/-- the ω-limit set of S under ϕ are invariant under ϕ. -/
-lemma invariant_omega_limit : invariant ϕ (omega_limit ϕ S) :=
-begin
-  intros x hx t₁,
-  rintro cϕt₂ ⟨t₂, hcϕt₂⟩, rw ←hcϕt₂,
-
-  -- TODO : there is surely a more concise proof of this:
-  have l₁, from
-  calc ϕ x t₁ ∈ (λ x, ϕ x t₁) '' omega_limit ϕ S : mem_image_of_mem _ hx
-  ...         ⊆ ⋂ t, (λ x, ϕ x t₁) '' closure (image2 ϕ S (Ici t))
-  : image_Inter_subset _ _
-  ...         ⊆ (λ x, ϕ x t₁) '' closure (image2 ϕ S (Ici (t₂ - t₁)))
-  : by { intros x hx, rw mem_Inter at hx, apply hx }
-  ...         ⊆ closure ((λ x, ϕ x t₁) '' image2 ϕ S (Ici (t₂ - t₁)))
-  : image_closure_subset_closure_image (continuous_uncurry_right _ _ ϕ.cont),
-
-  -- ... and also this part feels like it has a version worth extracting as a lemma:
-  have l₂ : (λ x, ϕ x t₁) '' image2 ϕ S (Ici (t₂ - t₁)) ⊆ image2 ϕ S (Ici t₂), from
-  begin
-    rintro ϕxt₂ ⟨x₂, ⟨x₁, t, hx₁, ht, hx₂⟩, hϕxt₁⟩,
-    rw [←hϕxt₁, ←hx₂],
-    show ϕ (ϕ x₁ t) t₁ ∈ image2 ϕ S (Ici t₂),
-    rw ϕ.map_add,
-    have : t + t₁ ∈ Ici t₂, by { rw mem_Ici at ht, rw mem_Ici,
-                                 exact le_add_of_sub_right_le ht, },
-    exact ⟨_, _, hx₁, this, rfl⟩,
-  end,
-
-  exact (closure_mono l₂) l₁,
-end
-
-/-- the α-limit set of S under ϕ is invariant under ϕ. -/
-lemma invariant_alpha_limit : invariant ϕ (alpha_limit ϕ S) :=
-by { rw invariant_reverse, apply invariant_omega_limit }
-
-/-- ω-limit sets are closed. -/
-lemma is_closed_omega_limit : is_closed (omega_limit ϕ S) :=
-is_closed_Inter $ λ i, is_closed_closure
-
-lemma is_compact_omega_limit [compact_space X] : is_compact (omega_limit ϕ S) :=
-is_closed.compact (is_closed_omega_limit _ _)
-
--- miscellaneous properties of ω-limits:
-
-/-- for U ⊆ V ⊆ X, ω (ϕ, U) ⊆ ω (ϕ, V). -/
-lemma omega_limit_mono {U V : set X} (h : U ⊆ V) : omega_limit ϕ U ⊆ omega_limit ϕ V :=
-Inter_subset_Inter $ λ t, closure_mono $ image2_subset h subset.rfl
-
-/-! ### trapping regions, attractors, repellers -/
-
--- (work in progress.)
+local notation `ω₊` := omega_limit at_top
+local notation `ω₋` := omega_limit at_bot
 
 end
 
 end flow
+

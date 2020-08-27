@@ -109,7 +109,7 @@ lemma eq_iff_veq (a b : fin n) : a = b ↔ a.1 = b.1 :=
 lemma ne_iff_vne (a b : fin n) : a ≠ b ↔ a.1 ≠ b.1 :=
 ⟨vne_of_ne, ne_of_vne⟩
 
-@[simp] protected lemma mk.inj_iff {n a b : ℕ} {ha : a < n} {hb : b < n} :
+protected lemma mk.inj_iff {n a b : ℕ} {ha : a < n} {hb : b < n} :
   (⟨a, ha⟩ : fin n) = ⟨b, hb⟩ ↔ a = b :=
 ⟨subtype.mk.inj, λ h, by subst h⟩
 
@@ -190,7 +190,7 @@ end
 /-- Converting an in-range number to `fin (n + 1)` produces a result
 whose value is the original number.  -/
 lemma coe_val_of_lt {n : ℕ} {a : ℕ} (h : a < n + 1) :
-  ((a : fin (n + 1)) : ℕ) = a :=
+  ((a : fin (n + 1)).val) = a :=
 begin
   rw ←of_nat_eq_coe,
   exact nat.mod_eq_of_lt h
@@ -198,7 +198,7 @@ end
 
 /-- Converting the value of a `fin (n + 1)` to `fin (n + 1)` results
 in the same value.  -/
-@[simp] lemma coe_val_eq_self {n : ℕ} (a : fin (n + 1)) : (a.val : fin (n + 1)) = a :=
+lemma coe_val_eq_self {n : ℕ} (a : fin (n + 1)) : (a.val : fin (n + 1)) = a :=
 begin
   rw fin.eq_iff_veq,
   exact coe_val_of_lt a.property
@@ -958,23 +958,12 @@ mem_find_iff.2 ⟨hi, λ j hj, le_of_eq $ h i j hi hj⟩
 end find
 
 @[simp]
-lemma val_of_nat_eq_mod (m n : ℕ) :
+lemma coe_of_nat_eq_mod (m n : ℕ) :
   ((n : fin (succ m)) : ℕ) = n % succ m :=
 by rw [← of_nat_eq_coe]; refl
 
-@[simp] lemma val_of_nat_eq_mod' (m n : ℕ) [I : fact (0 < m)] :
-  (@fin.of_nat' _ I n).val = n % m :=
+@[simp] lemma coe_of_nat_eq_mod' (m n : ℕ) [I : fact (0 < m)] :
+  (@fin.of_nat' _ I n : ℕ) = n % m :=
 rfl
 
 end fin
-
--- Once lean#359 is fixed (making `fin n` a subtype), this can go away
--- as a duplicate of `function.embedding.subtype`.
-/-- Embedding of `fin n` into `ℕ`. -/
-def function.embedding.fin (n : ℕ) : fin n ↪ ℕ :=
-⟨coe, subtype.coe_injective⟩
-
--- Once lean#359 is fixed (making `fin n` a subtype), this can go away
--- as a duplicate of `function.embedding.coe_subtype`.
-/-- `function.embedding.fin` coerced to a function. -/
-@[simp] lemma function.embedding.coe_fin (n : ℕ) : ⇑(function.embedding.fin n) = coe := rfl

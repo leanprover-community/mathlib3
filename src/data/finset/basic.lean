@@ -2055,9 +2055,9 @@ def attach_fin (s : finset ℕ) {n : ℕ} (h : ∀ m ∈ s, m < n) : finset (fin
 ⟨s.1.pmap (λ a ha, ⟨a, ha⟩) h, multiset.nodup_pmap (λ _ _ _ _, fin.veq_of_eq) s.2⟩
 
 @[simp] lemma mem_attach_fin {n : ℕ} {s : finset ℕ} (h : ∀ m ∈ s, m < n) {a : fin n} :
-  a ∈ s.attach_fin h ↔ a.1 ∈ s :=
+  a ∈ s.attach_fin h ↔ (a : ℕ) ∈ s :=
 ⟨λ h, let ⟨b, hb₁, hb₂⟩ := multiset.mem_pmap.1 h in hb₂ ▸ hb₁,
-λ h, multiset.mem_pmap.2 ⟨a.1, h, fin.eta _ _⟩⟩
+λ h, multiset.mem_pmap.2 ⟨a, h, fin.eta _ _⟩⟩
 
 @[simp] lemma card_attach_fin {n : ℕ} (s : finset ℕ) (h : ∀ m ∈ s, m < n) :
   (s.attach_fin h).card = s.card := multiset.card_pmap _ _ _

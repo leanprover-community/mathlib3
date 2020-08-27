@@ -241,6 +241,10 @@ begin
   congr, ext, simp
 end
 
+/-- A set `s` is not empty if the sum on `s` is not equal to zero. -/
+lemma nonemtpy_of_finsum_in_ne_zero (h : finsum_in s f ≠ 0) : s ≠ ∅ :=
+λ h', h $ h'.symm ▸ finsum_in_empty
+
 /-- Given `a` and element not in the set `s`, the sum on `insert a s` over the function `f` equals
   the `f a` plus the sum on `s` over `f`. -/
 @[simp] lemma finsum_in_insert (f : α → M) (h : a ∉ s) (hs : s.finite) :
@@ -614,6 +618,40 @@ begin
   refine finsum_in_congr rfl (λ x ⟨hsx, hxp⟩, (if_pos hxp).symm),
   finish
 end .
+
+/-- The sum on any set over the zero function equals zero. -/
+lemma finsum_in_const_zero (s : set α) : finsum_in s (λ _, (0 : M)) = 0 :=
+begin
+  rw [finsum_in_def, finsum_def, dif_pos],
+    { simp },
+    { convert set.finite_empty, ext,
+      rw function.mem_support, finish }
+end
+
+/-- The sum on the set `s` over the function `f` equals zero if for all `x ∈ s, f x = 0`. -/
+lemma finsum_in_const_zero_fun (hf : ∀ x ∈ s, f x = 0) : finsum_in s f = 0 :=
+by { rw ← finsum_in_const_zero s, exact finsum_in_congr rfl hf }
+
+/-- If the sum on `s` over the function `f` is nonzero, then there is some `x ∈ s, f x ≠ 0`. -/
+lemma exists_ne_zero_of_finsum_in_ne_zero
+  (h : finsum_in s f ≠ 0) : ∃ x ∈ s, f x ≠ 0 :=
+begin
+  by_contra h', push_neg at h',
+  exact h (finsum_in_const_zero_fun h')
+end
+
+/-- To prove a property of a sum, it suffices to prove that the property is additive and holds on
+  summands. -/
+lemma finsum_in_induction (p : M → Prop) (hp₀ : p 0)
+  (hp₁ : ∀ x y, p x → p y → p (x + y)) (hp₂ : ∀ x ∈ s, p $ f x) :
+  p (finsum_in s f) :=
+begin
+  by_cases hs : (s ∩ function.support f).finite,
+    { rw [finsum_in_inter_support, finsum_in_eq_finset_sum''' _ hs, set.finite.to_finset],
+      refine finset.sum_induction _ p hp₁ hp₀ (λ x hx, hp₂ x _),
+      rw set.mem_to_finset at hx, exact hx.1 },
+    { exact (finsum_in_eq_zero_of_nfinite hs).symm ▸ hp₀ }
+end
 
 end finsum
 

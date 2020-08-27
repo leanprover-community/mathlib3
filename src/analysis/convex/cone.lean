@@ -222,7 +222,7 @@ begin
   intro h₂,
   obtain ⟨x, xs, H₁, H₂⟩ := h₂,
   have h_conv : _root_.convex (S : set E) := convex_cone.convex S,
-  have hkey : ((1 : ℝ)/2) • x + ((1:ℝ)/2) • (-x) ∈ S := h_conv xs H₂
+  have hkey : ((1 : ℝ)/2) • x + ((1 : ℝ)/2) • (-x) ∈ S := h_conv xs H₂
     (show (0 : ℝ) ≤ (1/2), by linarith) (show (0 : ℝ) ≤ (1/2), by linarith) (by linarith),
   have :=
     calc

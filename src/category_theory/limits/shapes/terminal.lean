@@ -16,7 +16,27 @@ open category_theory
 
 namespace category_theory.limits
 
-variables (C : Type u) [category.{v} C]
+variables {C : Type u} [category.{v} C]
+
+def as_empty_cone (X : C) : cone (functor.empty C) := { X := X, π := by tidy }
+def as_empty_cocone (X : C) : cocone (functor.empty C) := { X := X, ι := by tidy }
+
+abbreviation is_terminal (X : C) := is_limit (as_empty_cone X)
+abbreviation is_initial (X : C) := is_colimit (as_empty_cocone X)
+
+def is_terminal.from {X : C} (t : is_terminal X) (Y : C) : Y ⟶ X :=
+t.lift (as_empty_cone Y)
+
+lemma is_terminal.hom_ext {X Y : C} (t : is_terminal X) (f g : Y ⟶ X) : f = g :=
+t.hom_ext (by tidy)
+
+def is_initial.to {X : C} (t : is_initial X) (Y : C) : X ⟶ Y :=
+t.desc (as_empty_cocone Y)
+
+lemma is_initial.hom_ext {X Y : C} (t : is_initial X) (f g : X ⟶ Y) : f = g :=
+t.hom_ext (by tidy)
+
+variable (C)
 
 /--
 A category has a terminal object if it has a limit over the empty diagram.
@@ -48,6 +68,9 @@ notation `⊥_` C:20 := initial C
 section
 variables {C}
 
+def terminal_is_terminal [has_terminal C] : is_terminal (⊤_ C) := sorry
+def initial_is_initial [has_initial C] : is_initial (⊥_ C) := sorry
+
 /-- We can more explicitly show that a category has a terminal object by specifying the object,
 and showing there is a unique morphism to it from any other object. -/
 def has_terminal_of_unique (X : C) [h : Π Y : C, unique (Y ⟶ X)] : has_terminal C :=
@@ -64,10 +87,10 @@ def has_initial_of_unique (X : C) [h : Π Y : C, unique (X ⟶ Y)] : has_initial
 
 /-- The map from an object to the terminal object. -/
 abbreviation terminal.from [has_terminal C] (P : C) : P ⟶ ⊤_ C :=
-limit.lift (functor.empty C) { X := P, π := by tidy }.
+limit.lift (functor.empty C) (as_empty_cone P)
 /-- The map to an object from the initial object. -/
 abbreviation initial.to [has_initial C] (P : C) : ⊥_ C ⟶ P :=
-colimit.desc (functor.empty C) { X := P, ι := by tidy }.
+colimit.desc (functor.empty C) (as_empty_cocone P)
 
 instance unique_to_terminal [has_terminal C] (P : C) : unique (P ⟶ ⊤_ C) :=
 { default := terminal.from P,

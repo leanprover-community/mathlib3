@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import algebra.ring.pi
 import algebra.category.CommRing.basic
 import algebra.category.Group.limits
-import ring_theory.subring
+import deprecated.subring
 import ring_theory.subsemiring
 
 /-!
@@ -353,6 +353,7 @@ def limit_cone_is_limit (F : J ⥤ CommRing) : is_limit (limit_cone F) :=
 lifted_limit_is_limit _
 
 /-- The category of commutative rings has all limits. -/
+@[irreducible]
 instance has_limits : has_limits CommRing :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ CommRing Ring) } }

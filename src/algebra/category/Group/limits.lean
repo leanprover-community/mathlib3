@@ -270,6 +270,6 @@ agrees with the `subtype` map.
 @[simps {rhs_md:=semireducible}]
 def kernel_iso_ker_over {G H : AddCommGroup.{u}} (f : G ⟶ H) :
   over.mk (kernel.ι f) ≅ @over.mk _ _ G (AddCommGroup.of f.ker) (add_subgroup.subtype f.ker) :=
-over.iso_mk' (kernel_iso_ker f) (by simp)
+over.iso_mk (kernel_iso_ker f) (by simp)
 
 end AddCommGroup

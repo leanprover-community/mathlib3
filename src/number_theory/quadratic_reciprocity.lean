@@ -102,7 +102,7 @@ begin
     rw [_root_.fact, ← nat.mod_mul_left_mod _ 2, show 2 * 2 = 4, from rfl] at hp_odd,
     have hp : p % 4 < 4, from nat.mod_lt _ dec_trivial,
     revert hp hp_odd p_half_odd,
-    generalize : p % 4 = k, revert k, exact dec_trivial }
+    generalize : p % 4 = k, dec_trivial! }
 end
 
 lemma pow_div_two_eq_neg_one_or_one {a : zmod p} (ha : a ≠ 0) :
@@ -385,10 +385,7 @@ begin
   { simp only [if_pos, ha, _root_.zero_pow (nat.div_pos (hp.two_le) (succ_pos 1)), int.cast_zero] },
   cases hp.eq_two_or_odd with hp2 hp_odd,
   { substI p,
-    have : ∀ (a : zmod 2),
-      ((if a = 0 then 0 else if a ^ (2 / 2) = 1 then 1 else -1 : ℤ) : zmod 2) = a ^ (2 / 2),
-    by exact dec_trivial,
-    exact this a },
+    generalize : (a : (zmod 2)) = b, revert b, dec_trivial, },
   { change fact (p % 2 = 1) at hp_odd, resetI,
     rw if_neg ha,
     have : (-1 : zmod p) ≠ 1, from (ne_neg_self p one_ne_zero).symm,
@@ -497,10 +494,8 @@ begin
   resetI, rw _root_.fact at hp1,
   revert this hp1,
   erw [hpm4, hpm2],
-  generalize hm : p % 8 = m,
-  clear hm,
-  revert m,
-  exact dec_trivial
+  generalize hm : p % 8 = m, unfreezingI {clear_dependent p},
+  dec_trivial!,
 end
 
 lemma exists_pow_two_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) [hq1 : fact (q % 2 = 1)] :

@@ -9,13 +9,14 @@ import algebra.char_p
 # Matrices in prime characteristic
 -/
 
+open matrix
 variables {n : Type*} [fintype n] {R : Type*} [ring R]
 
 instance matrix.char_p [decidable_eq n] [nonempty n] (p : ℕ) [char_p R p] :
   char_p (matrix n n R) p :=
 { cast_eq_zero_iff :=
   begin
-    intro k, rw ← char_p.cast_eq_zero_iff α p k,
+    intro k, rw ← char_p.cast_eq_zero_iff R p k,
     rw ← nat.cast_zero, rw ← (scalar n).map_nat_cast,
-    convert matrix.scalar_inj, simp, assumption,
+    convert scalar_inj, simp, assumption,
   end }

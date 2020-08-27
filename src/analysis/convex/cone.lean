@@ -305,6 +305,7 @@ def to_ordered_semimodule {α : Type*} [ordered_add_comm_group α] [semimodule �
     end,
 }
 
+/-! ### Positive cone of an ordered semimodule -/
 section positive_cone
 
 variables (α : Type*) [ordered_add_comm_group α] [ordered_semimodule ℝ α]

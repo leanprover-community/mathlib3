@@ -16,7 +16,7 @@ to matrices. This defines a linear equivalence between linear maps
 between finite-dimensional vector spaces and matrices indexed by
 the respective bases.
 
-It also defines the trace of a endomorphism, and the determinant of a family of vectors with
+It also defines the trace of an endomorphism, and the determinant of a family of vectors with
 respect to some basis.
 
 Some results are proved about the linear map corresponding to a
@@ -37,7 +37,7 @@ types used for indexing.
 * `alg_equiv_matrix`: given a basis indexed by `n`, the `R`-algebra equivalence between
   `R`-endomorphisms of `M` and `matrix n n R`
 * `matrix.trace`: the trace of a square matrix
-* `linear_map.trace`: the trace of a endomorphism
+* `linear_map.trace`: the trace of an endomorphism
 * `is_basis.det`: the determinant of a family of vectors with respect to a basis, as a multilinear
   map
 
@@ -325,7 +325,7 @@ open function matrix
 /-- From a basis `e : ι → M` and a family of vectors `v : ι → M`, make the matrix whose columns
 are the vectors `v i` written in the basis `e`. -/
 def is_basis.to_matrix {e : ι → M} (he : is_basis R e) (v : ι → M) : matrix ι ι R :=
-  linear_equiv_matrix he he (he.constr v)
+linear_equiv_matrix he he (he.constr v)
 
 variables {e : ι → M} (he : is_basis R e) (v : ι → M) (i j : ι)
 
@@ -413,10 +413,10 @@ def is_basis.det : multilinear_map R (λ i : ι, M) R :=
 
 lemma is_basis.det_apply (v : ι → M) : he.det v = det (he.to_matrix v) := rfl
 
-lemma is_bases.det_self : he.det e = 1 :=
+lemma is_basis.det_self : he.det e = 1 :=
 by simp [he.det_apply]
 
-lemma is_basis.iff_det (v : ι → M) : is_basis R v ↔ is_unit (he.det v) :=
+lemma is_basis.iff_det {v : ι → M} : is_basis R v ↔ is_unit (he.det v) :=
 begin
   split,
   { intro hv,

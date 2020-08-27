@@ -826,6 +826,10 @@ begin
     rw this, apply homothety_inverse, exact hx, exact to_span_nonzero_singleton_homothety 𝕜 x h, }
 end
 
+lemma coord_self (x : E) (h : x ≠ 0) :
+  (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : submodule.span 𝕜 ({x} : set E)) = 1 :=
+linear_equiv.coord_self 𝕜 E x h
+
 variable (E)
 
 /-- The continuous linear equivalences from `E` to itself form a group under composition. -/

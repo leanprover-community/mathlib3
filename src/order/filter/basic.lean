@@ -590,7 +590,6 @@ lemma mem_infi {f : ι → filter α} (h : directed (≥) f) [nonempty ι] (s) :
   s ∈ infi f ↔ ∃ i, s ∈ f i :=
 by simp only [infi_sets_eq h, mem_Union]
 
-@[nolint ge_or_gt] -- Intentional use of `≥`
 lemma binfi_sets_eq {f : β → filter α} {s : set β}
   (h : directed_on (f ⁻¹'o (≥)) s) (ne : s.nonempty) :
   (⨅ i∈s, f i).sets = (⋃ i ∈ s, (f i).sets) :=
@@ -599,7 +598,6 @@ calc (⨅ i ∈ s, f i).sets  = (⨅ t : {t // t ∈ s}, (f t.val)).sets : by rw
   ... = (⨆ t : {t // t ∈ s}, (f t.val).sets) : infi_sets_eq h.directed_coe
   ... = (⨆ t ∈ s, (f t).sets) : by rw [supr_subtype]; refl
 
-@[nolint ge_or_gt] -- Intentional use of `≥`
 lemma mem_binfi {f : β → filter α} {s : set β}
   (h : directed_on (f ⁻¹'o (≥)) s) (ne : s.nonempty) {t : set α} :
   t ∈ (⨅ i∈s, f i) ↔ ∃ i ∈ s, t ∈ f i :=
@@ -1771,7 +1769,7 @@ begin
     refine subset.trans _ h,
     have : f '' (V ∩ f ⁻¹' Z) ⊆ f '' (V ∩ W),
       from  image_subset _ (inter_subset_inter_right _ ‹_›),
-    rwa set.push_pull at this }
+    rwa image_inter_preimage at this }
 end
 
 protected lemma push_pull' (f : α → β) (F : filter α) (G : filter β) :
@@ -1998,6 +1996,11 @@ lemma tendsto.eventually {f : α → β} {l₁ : filter α} {l₂ : filter β} {
   ∀ᶠ x in l₁, p (f x) :=
 hf h
 
+lemma tendsto.frequently {f : α → β} {l₁ : filter α} {l₂ : filter β} {p : β → Prop}
+  (hf : tendsto f l₁ l₂) (h : ∃ᶠ x in l₁, p (f x)) :
+  ∃ᶠ y in l₂, p y :=
+mt hf.eventually h
+
 @[simp] lemma tendsto_bot {f : α → β} {l : filter β} : tendsto f ⊥ l := by simp [tendsto]
 
 lemma tendsto_of_not_nonempty {f : α → β} {la : filter α} {lb : filter β} (h : ¬nonempty α) :
@@ -2043,13 +2046,13 @@ calc map (g ∘ f) x = map g (map f x) : by rw [map_map]
   ... ≤ map g y : map_mono hf
   ... ≤ z : hg
 
-lemma tendsto_le_left {f : α → β} {x y : filter α} {z : filter β}
-  (h : y ≤ x) : tendsto f x z → tendsto f y z :=
-le_trans (map_mono h)
+lemma tendsto.mono_left {f : α → β} {x y : filter α} {z : filter β}
+  (hx : tendsto f x z) (h : y ≤ x) : tendsto f y z :=
+le_trans (map_mono h) hx
 
-lemma tendsto_le_right {f : α → β} {x : filter α} {y z : filter β}
-  (h₁ : y ≤ z) (h₂ : tendsto f x y) : tendsto f x z :=
-le_trans h₂ h₁
+lemma tendsto.mono_right {f : α → β} {x : filter α} {y z : filter β}
+  (hy : tendsto f x y) (hz : y ≤ z) : tendsto f x z :=
+le_trans hy hz
 
 lemma tendsto.ne_bot {f : α → β} {x : filter α} {y : filter β} (h : tendsto f x y) [hx : ne_bot x] :
   ne_bot y :=
@@ -2112,9 +2115,9 @@ tendsto_inf.2 ⟨tendsto_inf_left h₁, tendsto_inf_right h₂⟩
   tendsto f x (⨅i, y i) ↔ ∀i, tendsto f x (y i) :=
 by simp only [tendsto, iff_self, le_infi_iff]
 
-lemma tendsto_infi' {f : α → β} {x : ι → filter α} {y : filter β} (i : ι) :
-  tendsto f (x i) y → tendsto f (⨅i, x i) y :=
-tendsto_le_left (infi_le _ _)
+lemma tendsto_infi' {f : α → β} {x : ι → filter α} {y : filter β} (i : ι) (hi : tendsto f (x i) y) :
+  tendsto f (⨅i, x i) y :=
+hi.mono_left $ infi_le _ _
 
 lemma tendsto_sup {f : α → β} {x₁ x₂ : filter α} {y : filter β} :
   tendsto f (x₁ ⊔ x₂) y ↔ tendsto f x₁ y ∧ tendsto f x₂ y :=

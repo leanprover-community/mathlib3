@@ -319,6 +319,12 @@ insert_eq_of_mem $ mem_singleton_self _
 theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ λ x, by simp only [mem_insert, or.left_comm]
 
+theorem insert_singleton_comm (a b : α) : ({a, b} : finset α) = {b, a} :=
+begin
+  ext,
+  simp [or.comm]
+end
+
 @[simp] theorem insert_idem (a : α) (s : finset α) : insert a (insert a s) = insert a s :=
 ext $ λ x, by simp only [mem_insert, or.assoc.symm, or_self]
 
@@ -720,7 +726,7 @@ by simp only [mem_inter, mem_sdiff]; rintro x ⟨h, _, hn⟩; exact hn h
 by ext; simp
 
 theorem sdiff_inter_distrib_right (s₁ s₂ s₃ : finset α) : s₁ \ (s₂ ∩ s₃) = (s₁ \ s₂) ∪ (s₁ \ s₃) :=
-by ext; simp only [and_or_distrib_left, mem_union, classical.not_and_distrib, mem_sdiff, mem_inter]
+by ext; simp only [and_or_distrib_left, mem_union, not_and_distrib, mem_sdiff, mem_inter]
 
 @[simp] theorem sdiff_inter_self_left (s₁ s₂ : finset α) : s₁ \ (s₁ ∩ s₂) = s₁ \ s₂ :=
 by simp only [sdiff_inter_distrib_right, sdiff_self, empty_union]
@@ -1003,7 +1009,7 @@ lemma subset_union_elim {s : finset α} {t₁ t₂ : set α} (h : ↑s ⊆ t₁ 
 begin
   classical,
   refine ⟨s.filter (∈ t₁), s.filter (∉ t₁), _, _ , _⟩,
-  { simp [filter_union_right, classical.or_not] },
+  { simp [filter_union_right, em] },
   { intro x, simp },
   { intro x, simp, intros hx hx₂, refine ⟨or.resolve_left (h hx) hx₂, hx₂⟩ }
 end
@@ -1824,6 +1830,10 @@ end
 lemma bind_singleton {f : α → β} : s.bind (λa, {f a}) = s.image f :=
 ext $ λ x, by simp only [mem_bind, mem_image, mem_singleton, eq_comm]
 
+@[simp] lemma bind_singleton_eq_self [decidable_eq α] :
+  s.bind (singleton : α → finset α) = s :=
+by { rw bind_singleton, exact image_id }
+
 lemma image_bind_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
   (s.image g).bind (λa, s.filter $ (λc, g c = a)) = s :=
 begin
@@ -1873,11 +1883,10 @@ theorem sigma_mono {s₁ s₂ : finset α} {t₁ t₂ : Πa, finset (σ a)}
   (H1 : s₁ ⊆ s₂) (H2 : ∀a, t₁ a ⊆ t₂ a) : s₁.sigma t₁ ⊆ s₂.sigma t₂ :=
 λ ⟨x, sx⟩ H, let ⟨H3, H4⟩ := mem_sigma.1 H in mem_sigma.2 ⟨H1 H3, H2 x H4⟩
 
-theorem sigma_eq_bind [decidable_eq α] [∀a, decidable_eq (σ a)] (s : finset α)
+theorem sigma_eq_bind [decidable_eq (Σ a, σ a)] (s : finset α)
   (t : Πa, finset (σ a)) :
-  s.sigma t = s.bind (λa, (t a).image $ λb, ⟨a, b⟩) :=
-ext $ λ ⟨x, y⟩, by simp only [mem_sigma, mem_bind, mem_image, exists_prop,
-  and.left_comm, exists_and_distrib_left, exists_eq_left, heq_iff_eq, exists_eq_right]
+  s.sigma t = s.bind (λa, (t a).map $ function.embedding.sigma_mk a) :=
+by { ext ⟨x, y⟩, simp [and.left_comm] }
 
 end sigma
 

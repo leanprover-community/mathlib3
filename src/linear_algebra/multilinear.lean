@@ -346,7 +346,7 @@ begin
         ⟨i₀, finset.mem_univ _, _⟩,
       have : {j₂} ⊆ A i₀, by simp [hj₂],
       simp only [B, finset.card_sdiff this, function.update_same, finset.card_singleton],
-      exact nat.pred_lt (ne_of_gt (lt_trans zero_lt_one hi₀)) },
+      exact nat.pred_lt (ne_of_gt (lt_trans nat.zero_lt_one hi₀)) },
     rw h at this,
     exact IH _ this B rfl },
   -- Express the inductive assumption for `C`

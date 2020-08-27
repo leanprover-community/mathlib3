@@ -192,7 +192,7 @@ by simp [add_smul, sub_eq_add_neg]
 theorem smul_eq_zero {R E : Type*} [division_ring R] [add_comm_group E] [module R E]
   {c : R} {x : E} :
   c • x = 0 ↔ c = 0 ∨ x = 0 :=
-⟨λ h, classical.or_iff_not_imp_left.2 $ λ hc, (units.mk0 c hc).smul_eq_zero.1 h,
+⟨λ h, or_iff_not_imp_left.2 $ λ hc, (units.mk0 c hc).smul_eq_zero.1 h,
   λ h, h.elim (λ hc, hc.symm ▸ zero_smul R x) (λ hx, hx.symm ▸ smul_zero c)⟩
 
 end module
@@ -263,8 +263,11 @@ instance : has_coe_to_fun (M →ₗ[R] M₂) := ⟨_, to_fun⟩
 def id : M →ₗ[R] M :=
 ⟨id, λ _ _, rfl, λ _ _, rfl⟩
 
-@[simp] lemma id_apply (x : M) :
+lemma id_apply (x : M) :
   @id R M _ _ _ x = x := rfl
+
+@[simp, norm_cast] lemma id_coe : ((linear_map.id : M →ₗ[R] M) : M → M) = _root_.id :=
+by { ext x, refl }
 
 end
 
@@ -330,6 +333,9 @@ variables (f : M₂ →ₗ[R] M₃) (g : M →ₗ[R] M₂)
 def comp : M →ₗ[R] M₃ := ⟨f ∘ g, by simp, by simp⟩
 
 @[simp] lemma comp_apply (x : M) : f.comp g x = f (g x) := rfl
+
+@[norm_cast]
+lemma comp_coe : (f : M₂ → M₃) ∘ (g : M → M₂) = f.comp g := rfl
 
 end
 

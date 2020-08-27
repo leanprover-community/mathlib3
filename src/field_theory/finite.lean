@@ -119,7 +119,7 @@ calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : units K
 lemma pow_card (a : K) : a ^ q = a :=
 begin
   have hp : fintype.card K > 0 := fintype.card_pos_iff.2 (by apply_instance),
-  by_cases a = 0, {rw h, apply zero_pow hp, },
+  by_cases a = 0, { rw h, apply zero_pow hp, },
   rw [← nat.succ_pred_eq_of_pos hp, pow_succ, nat.pred_eq_sub_one,
     pow_card_sub_one_eq_one a h, mul_one],
 end

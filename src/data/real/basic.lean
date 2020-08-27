@@ -382,6 +382,18 @@ have bdd_above {x | -x ∈ s} → bdd_below s, from
 have ¬ bdd_above {x | -x ∈ s}, from mt this hs,
 neg_eq_zero.2 $ Sup_of_not_bdd_above $ this
 
+lemma real.le_supr {ι : Type*} {f : ι → ℝ} {b : ℝ} (h : ∀ i, f i ≤ b) (i) : f i ≤ supr f :=
+real.le_Sup _ ⟨b, set.forall_range_iff.mpr h⟩ (set.mem_range_self i)
+
+lemma real.supr_le_ub {ι : Type*} [nonempty ι] {f : ι → ℝ} {b : ℝ} (h : ∀ i, f i ≤ b) : supr f ≤ b :=
+real.Sup_le_ub _ (by { inhabit ι, exact ⟨f $ default ι, set.mem_range_self _⟩ }) (set.forall_range_iff.mpr h)
+
+lemma real.infi_le {ι : Type*} {f : ι → ℝ} {b : ℝ} (h : ∀ i, b ≤ f i) (i) : infi f ≤ f i :=
+real.Inf_le _ ⟨b, set.forall_range_iff.mpr h⟩ (set.mem_range_self i)
+
+lemma real.lb_le_infi {ι : Type*} [nonempty ι] {f : ι → ℝ} {b : ℝ} (h : ∀ i, b ≤ f i) : b ≤ infi f :=
+real.lb_le_Inf _ (by { inhabit ι, exact ⟨f $ default ι, set.mem_range_self _⟩ }) (set.forall_range_iff.mpr h)
+
 theorem cau_seq_converges (f : cau_seq ℝ abs) : ∃ x, f ≈ const abs x :=
 begin
   let S := {x : ℝ | const abs x < f},

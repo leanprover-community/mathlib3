@@ -711,8 +711,9 @@ specifically reflection in a codimension-one subspace, and sometimes
 more generally to cover operations such as reflection in a point.  The
 definition here, of reflection in an affine subspace, is a more
 general sense of the word that includes both those common cases.  If
-the subspace is empty or not complete, this uses the identity map
-instead. -/
+the subspace is empty or not complete, `orthogonal_projection` is
+defined as the identity map, which results in `reflection` being the
+identity map in that case as well. -/
 def reflection (s : affine_subspace ℝ P) : P ≃ᵢ P :=
 { to_fun := λ p, (orthogonal_projection s p -ᵥ p) +ᵥ orthogonal_projection s p,
   inv_fun := λ p, (orthogonal_projection s p -ᵥ p) +ᵥ orthogonal_projection s p,

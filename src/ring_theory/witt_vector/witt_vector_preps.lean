@@ -48,18 +48,6 @@ lemma eval₂_assoc'
 show eval₂ f (λ t, eval₂_hom f φ (q t)) p = eval₂_hom f φ (eval₂ C q p),
 by { rw eval₂_comp_left (eval₂_hom f φ), congr, ext, simp, }
 
-noncomputable def rename_hom {σ : Type*} {τ : Type*} {R : Type*} [comm_semiring R] (f : σ → τ) :
-  mv_polynomial σ R →+* mv_polynomial τ R :=
-ring_hom.of (rename f)
-
-section
-variables {σ : Type*} {τ : Type*} {R : Type*} [comm_semiring R] (f : σ → τ)
-
-@[simp] lemma rename_hom_X (i : σ) :
-  rename_hom f (X i : mv_polynomial σ R) = X (f i) :=
-rename_X _ _
-
-end
 
 noncomputable def map_hom
   {S : Type*} [comm_semiring S]
@@ -79,21 +67,15 @@ map_C f r
 @[simp] lemma map_hom_X (i : σ) : map_hom f (X i : mv_polynomial σ R) = X i :=
 map_X f i
 
-@[simp] lemma map_hom_rename_hom {τ : Type*} (g : σ → τ) (p : mv_polynomial σ R) :
-  map_hom f (rename_hom g p) = rename_hom g (map_hom f p) :=
+@[simp] lemma map_hom_rename {τ : Type*} (g : σ → τ) (p : mv_polynomial σ R) :
+  map_hom f (rename g p) = rename g (map_hom f p) :=
 map_rename f g p
 
-@[simp] lemma eval₂_hom_rename_hom {τ : Type*} (g : τ → S) (h : σ → τ) (p : mv_polynomial σ R) :
-  eval₂_hom f g (rename_hom h p) = eval₂_hom f (g ∘ h) p :=
+@[simp] lemma eval₂_hom_rename {τ : Type*} (g : τ → S) (h : σ → τ) (p : mv_polynomial σ R) :
+  eval₂_hom f g (rename h p) = eval₂_hom f (g ∘ h) p :=
 eval₂_rename f h g p -- Achtung die Reihenfolge!
 
 end
-
--- already in mathlib
--- lemma eval₂_hom_congr {σ : Type*} {R : Type*} {S : Type*} [comm_semiring R] [comm_semiring S]
---   {f₁ f₂ : R →+* S} {g₁ g₂ : σ → S} {p₁ p₂ : mv_polynomial σ R} :
---   f₁ = f₂ → g₁ = g₂ → p₁ = p₂ →  eval₂_hom f₁ g₁ p₁ = eval₂_hom f₂ g₂ p₂ :=
--- by rintros rfl rfl rfl; refl
 
 lemma map_eval₂'
   {R : Type*} [comm_semiring R]
@@ -112,10 +94,6 @@ begin
   { intros q n h, rw [eval₂_mul, eval₂_mul, ring_hom.map_mul, eval₂_X, eval₂_X, h] }
 end
 
--- lemma aeval_eq_eval₂_hom {σ : Type*} {R : Type*} {A : Type*}
---    [comm_ring R] [comm_ring A] [algebra R A] (f : σ → A) :
---   (aeval f : mv_polynomial σ R →+* A) = eval₂_hom (algebra_map R A) f :=
--- rfl
 
 section
 variables {σ : Type*} {R : Type*} {A : Type*} {B : Type*}
@@ -378,24 +356,24 @@ variables (hfg : ∀ i, aeval g (f i) = X i) (hgf : ∀ i, aeval f (g i) = X i)
 
 noncomputable def structure_polynomial (Φ : mv_polynomial idx R) (t : τ) :
   mv_polynomial (idx × τ) R :=
-aeval (λ s : σ, (aeval (λ i, (rename_hom (λ t', (i,t')) (f s)))) Φ) (g t)
+aeval (λ s : σ, (aeval (λ i, (rename (λ t', (i,t')) (f s)))) Φ) (g t)
 
 include hfg
 
 theorem structure_polynomial_prop (Φ : mv_polynomial idx R) (s : σ) :
-  aeval (structure_polynomial f g Φ) (f s) = aeval (λ b, (rename_hom (λ i, (b,i)) (f s))) Φ :=
+  aeval (structure_polynomial f g Φ) (f s) = aeval (λ b, (rename (λ i, (b,i)) (f s))) Φ :=
 calc aeval (structure_polynomial f g Φ) (f s) =
-      aeval (λ s', aeval (λ b, (rename_hom (prod.mk b)) (f s')) Φ) (aeval g (f s)) :
+      aeval (λ s', aeval (λ b, (rename (prod.mk b)) (f s')) Φ) (aeval g (f s)) :
       by { conv_rhs { rw [aeval_eq_eval₂_hom', map_aeval] },
            apply eval₂_hom_congr _ rfl rfl,
            ext1 r, symmetry, apply eval₂_hom_C, }
-... = aeval (λ i, (rename_hom (λ t', (i,t')) (f s))) Φ : by rw [hfg, aeval_X]
+... = aeval (λ i, (rename (λ t', (i,t')) (f s))) Φ : by rw [hfg, aeval_X]
 
 include hgf
 
 theorem exists_unique (Φ : mv_polynomial idx R) :
   ∃! (φ : τ → mv_polynomial (idx × τ) R),
-    ∀ (s : σ), aeval φ (f s) = aeval (λ i, (rename_hom (λ t', (i,t')) (f s))) Φ :=
+    ∀ (s : σ), aeval φ (f s) = aeval (λ i, (rename (λ t', (i,t')) (f s))) Φ :=
 begin
   refine ⟨structure_polynomial f g Φ, structure_polynomial_prop _ _ hfg _, _⟩,
   { intros φ H,

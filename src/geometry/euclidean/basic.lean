@@ -471,24 +471,27 @@ subspace, whose direction is complete. The corresponding linear map
 (mapping a vector to the difference between the projections of two
 points whose difference is that vector) is the `orthogonal_projection`
 for real inner product spaces, onto the direction of the affine
-subspace being projected onto. -/
-def orthogonal_projection {s : affine_subspace ℝ P} (hn : (s : set P).nonempty)
-    (hc : is_complete (s.direction : set V)) : affine_map ℝ P P :=
+subspace being projected onto. For most purposes,
+`orthogonal_projection`, which removes the `nonempty` and
+`is_complete` hypotheses and is the identity map when either of those
+hypotheses fails, should be used instead. -/
+def orthogonal_projection_of_nonempty_of_complete {s : affine_subspace ℝ P}
+  (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) : affine_map ℝ P P :=
 { to_fun := orthogonal_projection_fn hn hc,
-  linear := orthogonal_projection hc,
+  linear := orthogonal_projection s.direction,
   map_vadd' := λ p v, begin
-    have hs : (orthogonal_projection hc) v +ᵥ orthogonal_projection_fn hn hc p ∈ s :=
+    have hs : (orthogonal_projection s.direction) v +ᵥ orthogonal_projection_fn hn hc p ∈ s :=
       vadd_mem_of_mem_direction (orthogonal_projection_mem hc _)
                                 (orthogonal_projection_fn_mem hn hc p),
-    have ho : (orthogonal_projection hc) v +ᵥ orthogonal_projection_fn hn hc p ∈
+    have ho : (orthogonal_projection s.direction) v +ᵥ orthogonal_projection_fn hn hc p ∈
       mk' (v +ᵥ p) s.direction.orthogonal,
     { rw [←vsub_right_mem_direction_iff_mem (self_mem_mk' _ _) _, direction_mk',
           vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_comm, add_sub_assoc],
       refine submodule.add_mem _ (orthogonal_projection_fn_vsub_mem_direction_orthogonal hn hc p) _,
       rw submodule.mem_orthogonal',
       intros w hw,
-      rw [←neg_sub, inner_neg_left, orthogonal_projection_inner_eq_zero hc _ w hw, neg_zero] },
-    have hm : (orthogonal_projection hc) v +ᵥ orthogonal_projection_fn hn hc p ∈
+      rw [←neg_sub, inner_neg_left, orthogonal_projection_inner_eq_zero _ _ w hw, neg_zero] },
+    have hm : (orthogonal_projection s.direction) v +ᵥ orthogonal_projection_fn hn hc p ∈
       ({orthogonal_projection_fn hn hc (v +ᵥ p)} : set P),
     { rw ←inter_eq_singleton_orthogonal_projection_fn hn hc (v +ᵥ p),
       exact set.mem_inter hs ho },
@@ -496,51 +499,83 @@ def orthogonal_projection {s : affine_subspace ℝ P} (hn : (s : set P).nonempty
     exact hm.symm
   end }
 
+/-- The orthogonal projection of a point onto an affine subspace,
+which is expected to be nonempty and complete.  The corresponding
+linear map (mapping a vector to the difference between the projections
+of two points whose difference is that vector) is the
+`orthogonal_projection` for real inner product spaces, onto the
+direction of the affine subspace being projected onto.  If the
+subspace is empty or not complete, this uses the identity map
+instead. -/
+def orthogonal_projection (s : affine_subspace ℝ P) : affine_map ℝ P P :=
+if h : (s : set P).nonempty ∧ is_complete (s.direction : set V) then
+  orthogonal_projection_of_nonempty_of_complete h.1 h.2 else affine_map.id ℝ P
+
+/-- The definition of `orthogonal_projection` using `if`. -/
+lemma orthogonal_projection_def (s : affine_subspace ℝ P) :
+  orthogonal_projection s = if h : (s : set P).nonempty ∧ is_complete (s.direction : set V) then
+    orthogonal_projection_of_nonempty_of_complete h.1 h.2 else affine_map.id ℝ P :=
+rfl
+
 @[simp] lemma orthogonal_projection_fn_eq {s : affine_subspace ℝ P} (hn : (s : set P).nonempty)
   (hc : is_complete (s.direction : set V)) (p : P) :
-  orthogonal_projection_fn hn hc p = orthogonal_projection hn hc p := rfl
-  
+  orthogonal_projection_fn hn hc p = orthogonal_projection s p :=
+by { rw [orthogonal_projection_def, dif_pos (and.intro hn hc)], refl }
+
+@[simp] lemma orthogonal_projection_of_nonempty_of_complete_eq {s : affine_subspace ℝ P}
+  (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) (p : P) :
+  orthogonal_projection_of_nonempty_of_complete hn hc p = orthogonal_projection s p :=
+by rw [orthogonal_projection_def, dif_pos (and.intro hn hc)]
+
 /-- The intersection of the subspace and the orthogonal subspace
 through the given point is the `orthogonal_projection` of that point
 onto the subspace. -/
 lemma inter_eq_singleton_orthogonal_projection {s : affine_subspace ℝ P}
     (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) (p : P) :
-  (s : set P) ∩ (mk' p s.direction.orthogonal) = {orthogonal_projection hn hc p} :=
-inter_eq_singleton_orthogonal_projection_fn hn hc p
+  (s : set P) ∩ (mk' p s.direction.orthogonal) = {orthogonal_projection s p} :=
+begin
+  rw ←orthogonal_projection_fn_eq hn hc,
+  exact inter_eq_singleton_orthogonal_projection_fn hn hc p
+end
 
 /-- The `orthogonal_projection` lies in the given subspace. -/
 lemma orthogonal_projection_mem {s : affine_subspace ℝ P} (hn : (s : set P).nonempty)
-    (hc : is_complete (s.direction : set V)) (p : P) : orthogonal_projection hn hc p ∈ s :=
-orthogonal_projection_fn_mem hn hc p
+    (hc : is_complete (s.direction : set V)) (p : P) : orthogonal_projection s p ∈ s :=
+begin
+  rw ←orthogonal_projection_fn_eq hn hc,
+  exact orthogonal_projection_fn_mem hn hc p
+end
 
 /-- The `orthogonal_projection` lies in the orthogonal subspace. -/
-lemma orthogonal_projection_mem_orthogonal {s : affine_subspace ℝ P}
-    (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) (p : P) :
-  orthogonal_projection hn hc p ∈ mk' p s.direction.orthogonal :=
-orthogonal_projection_fn_mem_orthogonal hn hc p
+lemma orthogonal_projection_mem_orthogonal (s : affine_subspace ℝ P) (p : P) :
+  orthogonal_projection s p ∈ mk' p s.direction.orthogonal :=
+begin
+  rw orthogonal_projection_def,
+  split_ifs,
+  { exact orthogonal_projection_fn_mem_orthogonal h.1 h.2 p },
+  { exact self_mem_mk' _ _ }
+end
 
 /-- Subtracting a point in the given subspace from the
 `orthogonal_projection` produces a result in the direction of the
 given subspace. -/
 lemma orthogonal_projection_vsub_mem_direction {s : affine_subspace ℝ P}
-    (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) {p1 : P} (p2 : P)
-    (hp1 : p1 ∈ s) :
-  orthogonal_projection hn hc p2 -ᵥ p1 ∈ s.direction :=
-vsub_mem_direction (orthogonal_projection_mem hn hc p2) hp1
+    (hc : is_complete (s.direction : set V)) {p1 : P} (p2 : P) (hp1 : p1 ∈ s) :
+  orthogonal_projection s p2 -ᵥ p1 ∈ s.direction :=
+vsub_mem_direction (orthogonal_projection_mem ⟨p1, hp1⟩ hc p2) hp1
 
 /-- Subtracting the `orthogonal_projection` from a point in the given
 subspace produces a result in the direction of the given subspace. -/
 lemma vsub_orthogonal_projection_mem_direction {s : affine_subspace ℝ P}
-    (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) {p1 : P} (p2 : P)
-    (hp1 : p1 ∈ s) :
-  p1 -ᵥ orthogonal_projection hn hc p2 ∈ s.direction :=
-vsub_mem_direction hp1 (orthogonal_projection_mem hn hc p2)
+    (hc : is_complete (s.direction : set V)) {p1 : P} (p2 : P) (hp1 : p1 ∈ s) :
+  p1 -ᵥ orthogonal_projection s p2 ∈ s.direction :=
+vsub_mem_direction hp1 (orthogonal_projection_mem ⟨p1, hp1⟩ hc p2)
 
 /-- A point equals its orthogonal projection if and only if it lies in
 the subspace. -/
 lemma orthogonal_projection_eq_self_iff {s : affine_subspace ℝ P}
     (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) {p : P} :
-  orthogonal_projection hn hc p = p ↔ p ∈ s :=
+  orthogonal_projection s p = p ↔ p ∈ s :=
 begin
   split,
   { exact λ h, h ▸ orthogonal_projection_mem hn hc p },
@@ -553,43 +588,46 @@ end
 /-- The distance to a point's orthogonal projection is 0 iff it lies in the subspace. -/
 lemma dist_orthogonal_projection_eq_zero_iff {s : affine_subspace ℝ P}
   (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) {p : P} :
-  dist p (orthogonal_projection hn hc p) = 0 ↔ p ∈ s :=
-by rw [dist_comm, dist_eq_zero, orthogonal_projection_eq_self_iff]
+  dist p (orthogonal_projection s p) = 0 ↔ p ∈ s :=
+by rw [dist_comm, dist_eq_zero, orthogonal_projection_eq_self_iff hn hc]
 
 /-- The distance between a point and its orthogonal projection is
 nonzero if it does not lie in the subspace. -/
 lemma dist_orthogonal_projection_ne_zero_of_not_mem {s : affine_subspace ℝ P}
     (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) {p : P} (hp : p ∉ s) :
-  dist p (orthogonal_projection hn hc p) ≠ 0 :=
+  dist p (orthogonal_projection s p) ≠ 0 :=
 mt (dist_orthogonal_projection_eq_zero_iff hn hc).mp hp
 
 /-- Subtracting `p` from its `orthogonal_projection` produces a result
 in the orthogonal direction. -/
-lemma orthogonal_projection_vsub_mem_direction_orthogonal {s : affine_subspace ℝ P}
-    (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) (p : P) :
-  orthogonal_projection hn hc p -ᵥ p ∈ s.direction.orthogonal :=
-orthogonal_projection_fn_vsub_mem_direction_orthogonal hn hc p
+lemma orthogonal_projection_vsub_mem_direction_orthogonal (s : affine_subspace ℝ P) (p : P) :
+  orthogonal_projection s p -ᵥ p ∈ s.direction.orthogonal :=
+begin
+  rw orthogonal_projection_def,
+  split_ifs,
+  { exact orthogonal_projection_fn_vsub_mem_direction_orthogonal h.1 h.2 p },
+  { simp }
+end
 
 /-- Subtracting the `orthogonal_projection` from `p` produces a result
 in the orthogonal direction. -/
-lemma vsub_orthogonal_projection_mem_direction_orthogonal {s : affine_subspace ℝ P}
-    (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) (p : P) :
-  p -ᵥ orthogonal_projection hn hc p ∈ s.direction.orthogonal :=
+lemma vsub_orthogonal_projection_mem_direction_orthogonal (s : affine_subspace ℝ P) (p : P) :
+  p -ᵥ orthogonal_projection s p ∈ s.direction.orthogonal :=
 direction_mk' p s.direction.orthogonal ▸
-  vsub_mem_direction (self_mem_mk' _ _) (orthogonal_projection_mem_orthogonal hn hc p)
+  vsub_mem_direction (self_mem_mk' _ _) (orthogonal_projection_mem_orthogonal s p)
 
 /-- Adding a vector to a point in the given subspace, then taking the
 orthogonal projection, produces the original point if the vector was
 in the orthogonal direction. -/
 lemma orthogonal_projection_vadd_eq_self {s : affine_subspace ℝ P}
-    (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) {p : P} (hp : p ∈ s)
-    {v : V} (hv : v ∈ s.direction.orthogonal) : orthogonal_projection hn hc (v +ᵥ p) = p :=
+    (hc : is_complete (s.direction : set V)) {p : P} (hp : p ∈ s) {v : V}
+    (hv : v ∈ s.direction.orthogonal) : orthogonal_projection s (v +ᵥ p) = p :=
 begin
-  have h := vsub_orthogonal_projection_mem_direction_orthogonal hn hc (v +ᵥ p),
+  have h := vsub_orthogonal_projection_mem_direction_orthogonal s (v +ᵥ p),
   rw [vadd_vsub_assoc, submodule.add_mem_iff_right _ hv] at h,
   refine (eq_of_vsub_eq_zero _).symm,
   refine submodule.disjoint_def.1 s.direction.orthogonal_disjoint _ _ h,
-  exact vsub_mem_direction hp (orthogonal_projection_mem hn hc (v +ᵥ p))
+  exact vsub_mem_direction hp (orthogonal_projection_mem ⟨p, hp⟩ hc (v +ᵥ p))
 end
 
 /-- Adding a vector to a point in the given subspace, then taking the
@@ -597,28 +635,30 @@ orthogonal projection, produces the original point if the vector is a
 multiple of the result of subtracting a point's orthogonal projection
 from that point. -/
 lemma orthogonal_projection_vadd_smul_vsub_orthogonal_projection {s : affine_subspace ℝ P}
-    (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) {p1 : P} (p2 : P)
-    (r : ℝ) (hp : p1 ∈ s) :
-  orthogonal_projection hn hc (r • (p2 -ᵥ orthogonal_projection hn hc p2 : V) +ᵥ p1) = p1 :=
-orthogonal_projection_vadd_eq_self hn hc hp
-  (submodule.smul_mem _ _ (vsub_orthogonal_projection_mem_direction_orthogonal hn hc _))
+    (hc : is_complete (s.direction : set V)) {p1 : P} (p2 : P) (r : ℝ) (hp : p1 ∈ s) :
+  orthogonal_projection s (r • (p2 -ᵥ orthogonal_projection s p2 : V) +ᵥ p1) = p1 :=
+orthogonal_projection_vadd_eq_self hc hp
+  (submodule.smul_mem _ _ (vsub_orthogonal_projection_mem_direction_orthogonal s _))
 
-/-- The square of the distance from a point in `s` to `p` equals the
+/-- The square of the distance from a point in `s` to `p2` equals the
 sum of the squares of the distances of the two points to the
 `orthogonal_projection`. -/
 lemma dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
-    {s : affine_subspace ℝ P} (hn : (s : set P).nonempty)
-    (hc : is_complete (s.direction : set V)) {p1 : P} (p2 : P) (hp1 : p1 ∈ s) :
+    {s : affine_subspace ℝ P} {p1 : P} (p2 : P) (hp1 : p1 ∈ s) :
   dist p1 p2 * dist p1 p2 =
-    dist p1 (orthogonal_projection hn hc p2) * dist p1 (orthogonal_projection hn hc p2) +
-    dist p2 (orthogonal_projection hn hc p2) * dist p2 (orthogonal_projection hn hc p2) :=
+    dist p1 (orthogonal_projection s p2) * dist p1 (orthogonal_projection s p2) +
+    dist p2 (orthogonal_projection s p2) * dist p2 (orthogonal_projection s p2) :=
 begin
   rw [metric_space.dist_comm p2 _, dist_eq_norm_vsub V p1 _, dist_eq_norm_vsub V p1 _,
-    dist_eq_norm_vsub V _ p2, ← vsub_add_vsub_cancel p1 (orthogonal_projection hn hc p2) p2,
+    dist_eq_norm_vsub V _ p2, ← vsub_add_vsub_cancel p1 (orthogonal_projection s p2) p2,
     norm_add_square_eq_norm_square_add_norm_square_iff_inner_eq_zero],
-  exact submodule.inner_right_of_mem_orthogonal
-    (vsub_orthogonal_projection_mem_direction hn hc p2 hp1)
-    (orthogonal_projection_vsub_mem_direction_orthogonal hn hc p2)
+  rw orthogonal_projection_def,
+  split_ifs,
+  { rw orthogonal_projection_of_nonempty_of_complete_eq,
+    exact submodule.inner_right_of_mem_orthogonal
+     (vsub_orthogonal_projection_mem_direction h.2 p2 hp1)
+     (orthogonal_projection_vsub_mem_direction_orthogonal s p2) },
+  { simp }
 end
 
 /-- The square of the distance between two points constructed by

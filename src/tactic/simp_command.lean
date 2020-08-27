@@ -46,7 +46,7 @@ meta def simp_arg_type.replace_subexprs : simp_arg_type → list (expr × expr) 
 
 setup_tactic_parser
 
-/- Turn of the messages if the result is exactly `true` with this option. -/
+/- Turn off the messages if the result is exactly `true` with this option. -/
 declare_trace silence_simp_if_true
 
 /--

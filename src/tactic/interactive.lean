@@ -477,7 +477,7 @@ We use this tactic for writing tests.
 meta def guard_hyp_strict (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
 do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_strict h p
 
-/-- Tests that there are `n` hypothesis in the current context. -/
+/-- Tests that there are `n` hypotheses in the current context. -/
 meta def guard_hyp_nums (n : ℕ) : tactic unit :=
 do k ← local_context,
    guard (n = k.length) <|> fail format!"{k.length} hypotheses found"

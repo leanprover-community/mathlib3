@@ -87,6 +87,16 @@ calc
   ... = (eval₂ am f q).ker
      : by { congr, apply (eq_X_add_C_of_degree_eq_one hq).symm }
 
+lemma ker_eval₂_ring_hom_noncomm_unit_polynomial [field K] [vector_space K V]
+  (f : End K V) (c : units (polynomial K)) :
+  ((eval₂_ring_hom_noncomm am (λ x y, (algebra.commutes x y).symm) f) ↑c).ker = ⊥ :=
+begin
+  rw polynomial.eq_C_of_degree_eq_zero (degree_coe_units c),
+  simp only [eval₂_ring_hom_noncomm, ring_hom.of, ring_hom.coe_mk, eval₂_C],
+  apply ker_algebra_map_End,
+  apply coeff_coe_units_zero_ne_zero c
+end
+
 /-- Every linear operator on a vector space over an algebraically closed field has
     an eigenvalue. (Axler's Theorem 2.1.) -/
 lemma exists_eigenvalue
@@ -95,7 +105,10 @@ lemma exists_eigenvalue
   ∃ (c : K), f.has_eigenvalue c :=
 begin
   classical,
+  -- Choose a nonzero vector `v`.
   obtain ⟨v, hv⟩ : ∃ v : V, v ≠ 0 := exists_ne (0 : V),
+  -- The infinitely many vectors v, f v, f (f v), ... cannot be linearly independent
+  -- because the vector space is finite dimensional.
   have h_lin_dep : ¬ linear_independent K (λ n : ℕ, (f ^ n) v),
   { intro h_lin_indep,
     have : cardinal.mk ℕ < cardinal.omega,
@@ -103,31 +116,31 @@ begin
     have := cardinal.lift_lt.2 this,
     rw [cardinal.omega, cardinal.lift_lift] at this,
     apply lt_irrefl _ this, },
-  obtain ⟨p, hp⟩ : ∃ p, ¬(eval₂ am f p v = 0 → p = 0),
-  { exact not_forall.1 (λ h, h_lin_dep ((linear_independent_powers_iff_eval₂ f v).2 h)) },
-  obtain ⟨h_eval_p, h_p_ne_0⟩ : eval₂ am f p v = 0 ∧ p ≠ 0 := not_imp.1 hp,
+  -- Therefore, there must be a nonzero polynomial `p` such that `p(f) v = 0`.
+  obtain ⟨p, h_eval_p, h_p_ne_0⟩ : ∃ p, eval₂ am f p v = 0 ∧ p ≠ 0,
+  { simp only [not_imp.symm],
+    exact not_forall.1 (λ h, h_lin_dep ((linear_independent_powers_iff_eval₂ f v).2 h)) },
+  -- Then `p(f)` is not invertible.
   have h_eval_p_not_unit : eval₂_ring_hom_noncomm am _ f p ∉ is_unit.submonoid (End K V),
   { rw [is_unit.mem_submonoid_iff, linear_map.is_unit_iff, linear_map.ker_eq_bot'],
     intro h,
     exact hv (h v h_eval_p) },
-  have h_eval_unit : ∀ (c : units (polynomial K)),
-      (eval₂_ring_hom_noncomm am _ f) ↑c ∈ is_unit.submonoid (End K V),
-  { intro c,
-    rw polynomial.eq_C_of_degree_eq_zero (degree_coe_units c),
-    simp only [eval₂_ring_hom_noncomm, ring_hom.of, ring_hom.coe_mk, eval₂_C],
-    rw [is_unit.mem_submonoid_iff, linear_map.is_unit_iff],
-    apply ker_algebra_map_End,
-    apply coeff_coe_units_zero_ne_zero c },
+  -- Hence, there must be a factor `q` of `p` such that `q(f)` is not invertible.
   obtain ⟨q, hq_factor, hq_nonunit⟩ : ∃ q, q ∈ factors p ∧ ¬ is_unit (eval₂ am f q),
   { simp only [←not_imp, (is_unit.mem_submonoid_iff _).symm],
     apply not_forall.1 (λ h, h_eval_p_not_unit (ring_hom_mem_submonoid_of_factors_subset_of_units_subset
       (eval₂_ring_hom_noncomm am (λ x y, (algebra.commutes x y).symm) f)
-      (is_unit.submonoid (End K V)) p h_p_ne_0 h h_eval_unit)) },
-  have h_q_ne_0 : q ≠ 0 := ne_zero_of_mem_factors h_p_ne_0 hq_factor,
-  have h_deg_q : q.degree = 1 := is_alg_closed.degree_eq_one_of_irreducible _ h_q_ne_0
+      (is_unit.submonoid (End K V)) p h_p_ne_0 h _)),
+    simp only [is_unit.mem_submonoid_iff, linear_map.is_unit_iff],
+    apply ker_eval₂_ring_hom_noncomm_unit_polynomial },
+  -- Since the field is algebraically closed, `q` has degree 1.
+  have h_deg_q : q.degree = 1 := is_alg_closed.degree_eq_one_of_irreducible _
+    (ne_zero_of_mem_factors h_p_ne_0 hq_factor)
     ((factors_spec p h_p_ne_0).1 q hq_factor),
+  -- Then the kernel of `q(f)` is an eigenspace.
   have h_eigenspace: eigenspace f (-q.coeff 0 / q.leading_coeff) = (eval₂ am f q).ker,
     from eigenspace_eval₂_polynomial_degree_1 f q h_deg_q,
+  -- Since `q(f)` is not invertible, the kernel is not `⊥`, and thus there exists an eigenvalue.
   show ∃ (c : K), f.has_eigenvalue c,
   { use -q.coeff 0 / q.leading_coeff,
     rw [has_eigenvalue, h_eigenspace],
@@ -135,19 +148,35 @@ begin
     exact hq_nonunit ((linear_map.is_unit_iff (eval₂ am f q)).2 h_eval_ker) }
 end
 
-/-- Eigenvectors corresponding to distinct eigenvalues of a linear operator are
-    linearly independent (Axler's Proposition 2.2) -/
+/-- Eigenvectors corresponding to distinct eigenvalues of a linear operator are linearly
+    independent. (Axler's Proposition 2.2)
+
+    We use the eigenvalues as indexing set to ensure that there is only one eigenvector for each
+    eigenvalue in the image of `xs`. -/
 lemma eigenvectors_linear_independent [field K] [vector_space K V]
   (f : End K V) (μs : set K) (xs : μs → V)
   (h_eigenvec : ∀ μ : μs, f.has_eigenvector μ (xs μ)) :
   linear_independent K xs :=
 begin
   classical,
-  rw linear_independent_iff,
+  -- We need to show that if a linear combination `l` of the eigenvectors `xs` is `0`, then all
+  -- its coefficients are zero.
+  suffices : ∀ l, finsupp.total μs V K xs l = 0 → l = 0,
+  { rw linear_independent_iff,
+    apply this },
   intros l hl,
+  -- We apply induction on the finite set of eigenvalues whose eigenvectors have nonzero
+  -- coefficients, i.e. on the support of `l`.
   induction h_l_support : l.support using finset.induction with μ₀ l_support' hμ₀ ih generalizing l,
+  -- If the support is empty, all coefficients are zero and we are done.
   { exact finsupp.support_eq_empty.1 h_l_support },
-  { let l'_f := (λ μ : μs, (↑μ - ↑μ₀) * l μ),
+  -- Now assume that the support of `l` contains at least one eigenvalue `μ₀`. We define a new
+  -- linear combination `l'` to apply the induction hypothesis on later. The linear combination `l'`
+  -- is derived from `l` by multiplying the coefficient of the eigenvector with eigenvalue `μ`
+  -- by `μ - μ₀`.
+  -- To get started, we define `l'` as a function `l'_f : μs → K` with potentially infinite support.
+  { let l'_f : μs → K := (λ μ : μs, (↑μ - ↑μ₀) * l μ),
+    -- The support of `l'_f` is the support of `l` without `μ₀`.
     have h_l_support' : ∀ (μ : μs), l'_f μ ≠ 0 ↔ μ ∈ l_support',
     { intros μ,
       dsimp only [l'_f],
@@ -166,7 +195,21 @@ begin
         have := finsupp.mem_support_iff.2 hlμ,
         rw [h_l_support, finset.mem_insert] at this,
         cc } },
+    -- Now we can define `l'_f` as an actual linear combination `l'` because we know that the
+    -- support is finite.
     let l' : μs →₀ K := finsupp.on_finset l_support' l'_f (λ μ, (h_l_support' μ).1),
+    -- We transfer the statement we have shown for `l'_f` to `l'`:
+    -- The support of `l'` is the support of `l` without `μ₀`.
+    have h_l'_support_eq : l'.support = l_support',
+    { dsimp only [l'],
+      ext μ,
+      rw finsupp.mem_support_on_finset _,
+      by_cases h_cases: μ ∈ l_support',
+      { refine iff_of_true _ h_cases,
+        exact (h_l_support' μ).2 h_cases },
+      { refine iff_of_false _ h_cases,
+        rwa not_iff_not.2 (h_l_support' μ) } },
+    -- The linear combination `l'` over `xs` adds up to `0`.
     have total_l' : (@linear_map.to_fun K (finsupp μs K) V _ _ _ _ _ (finsupp.total μs V K xs)) l' = 0,
     { let g := f - am μ₀,
       have h_gμ₀: g (l μ₀ • xs μ₀) = 0,
@@ -188,27 +231,19 @@ begin
           ←congr_arg g hl, finsupp.total_apply, finsupp.sum, linear_map.map_sum, h_l_support,
           finset.sum_insert hμ₀, h_gμ₀, zero_add],
       simp only [bodies_eq] },
-    have h_l'_support_eq : l'.support = l_support',
-    { dsimp only [l'],
-      ext μ,
-      rw finsupp.mem_support_on_finset _,
-      by_cases h_cases: μ ∈ l_support',
-      { refine iff_of_true _ h_cases,
-        exact (h_l_support' μ).2 h_cases },
-      { refine iff_of_false _ h_cases,
-        rwa not_iff_not.2 (h_l_support' μ) } },
+    -- Therefore, by the induction hypothesis, all coefficients in `l'` are zero.
     have l'_eq_0 : l' = 0 := ih l' total_l' h_l'_support_eq,
-
+    -- By the defintion of `l'`, this means that `(μ - μ₀) * l μ = 0` for all `μ`.
     have h_mul_eq_0 : ∀ μ : μs, (↑μ - ↑μ₀) * l μ = 0,
     { intro μ,
       calc (↑μ - ↑μ₀) * l μ = l' μ : rfl
       ... = 0 : by { rw [l'_eq_0], refl } },
-
+    -- Thus, the coefficients in `l` for all `μ ≠ μ₀` are `0`.
     have h_lμ_eq_0 : ∀ μ : μs, μ ≠ μ₀ → l μ = 0,
     { intros μ hμ,
       apply or_iff_not_imp_left.1 (mul_eq_zero.1 (h_mul_eq_0 μ)),
       rwa [sub_eq_zero, ←subtype.ext_iff] },
-
+    -- So if we sum over all these coefficients, we obtain `0`.
     have h_sum_l_support'_eq_0 : finset.sum l_support' (λ (μ : ↥μs), l μ • xs μ) = 0,
     { rw ←finset.sum_const_zero,
       apply finset.sum_congr rfl,
@@ -218,13 +253,14 @@ begin
       intro h,
       rw h at hμ,
       contradiction },
-
+    -- The only potentially nonzero coefficient in `l` is the one corresponding to `μ₀`. But since
+    -- the overall sum is `0` by assumption, this coefficient must also be `0`.
     have : l μ₀ = 0,
     { rw [finsupp.total_apply, finsupp.sum, h_l_support,
           finset.sum_insert hμ₀, h_sum_l_support'_eq_0, add_zero] at hl,
       by_contra h,
       exact (h_eigenvec μ₀).1 ((smul_eq_zero.1 hl).resolve_left h) },
-
+    -- Thus, all coefficients in `l` are `0`.
     show l = 0,
     { ext μ,
       by_cases h_cases : μ = μ₀,

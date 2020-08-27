@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Aaron Anderson, Jalex Stark.
 -/
 
+import data.matrix.basic
 import linear_algebra.char_poly
 import linear_algebra.matrix
 import ring_theory.polynomial.basic

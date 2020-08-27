@@ -7,7 +7,6 @@ import algebra.big_operators.pi
 import algebra.module.pi
 import algebra.big_operators.ring
 import data.fintype.card
-import algebra.char_p
 
 /-!
 # Matrices
@@ -619,15 +618,6 @@ end semiring
 section ring
 
 variables [ring α]
-
-instance matrix.char_p [decidable_eq n] [nonempty n] (p : ℕ) [char_p α p] :
-  char_p (matrix n n α) p :=
-{ cast_eq_zero_iff :=
-  begin
-    intro k, rw ← char_p.cast_eq_zero_iff α p k,
-    rw ← nat.cast_zero, rw ← (scalar n).map_nat_cast,
-    convert matrix.scalar_inj, simp, assumption,
-  end }
 
 lemma neg_vec_mul (v : m → α) (A : matrix m n α) : vec_mul (-v) A = - vec_mul v A :=
 by { ext, apply neg_dot_product }

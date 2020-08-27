@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Andreas Swerdlow
 -/
 
+import linear_algebra.dual
 import linear_algebra.matrix
 import linear_algebra.tensor_product
 import linear_algebra.nonsingular_inverse
@@ -173,6 +174,12 @@ by rw [B.to_linear_map.map_sum, linear_map.coe_fn_sum, finset.sum_apply]
 lemma map_sum_right {α} (B : bilin_form R₂ M) (t : finset α) (g : α → M) (v : M) :
   B v (∑ i in t, g i) = ∑ i in t, B v (g i) :=
 (B.to_linear_map v).map_sum
+
+@[simp]
+lemma injective_to_linear_map :
+  function.injective F.to_linear_map ↔ function.injective F :=
+⟨λ h x y hxy, h (linear_map.ext (congr_fun hxy)),
+ λ h x y hxy, h (funext (linear_map.ext_iff.mp hxy))⟩
 
 end
 
@@ -721,3 +728,69 @@ begin
 end
 
 end matrix_adjoints
+
+namespace bilin_form
+
+section nondegenerate
+
+variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+variables {K V : Type*} [field K] [add_comm_group V] [vector_space K V]
+
+/-- A bilinear form is nondegenerate if it has a trivial kernel:
+the only `x` such that `∀ y, B x y = 0` is `x = 0`. -/
+def nondegenerate (B : bilin_form R M) : Prop :=
+B.to_linear_map.ker = ⊥
+
+variables {B : bilin_form R M}
+
+lemma nondegenerate_iff_ker_eq_bot : nondegenerate B ↔ B.to_linear_map.ker = ⊥ :=
+iff.rfl
+
+lemma nondegenerate_iff_eq_zero : nondegenerate B ↔ ∀ x, (∀ y, B x y = 0) → x = 0 :=
+by { simp_rw [nondegenerate_iff_ker_eq_bot, linear_map.ker_eq_bot', linear_map.ext_iff], refl }
+
+lemma nondegenerate_iff_inj' : nondegenerate B ↔ function.injective B.to_linear_map :=
+by { rw [nondegenerate_iff_ker_eq_bot, linear_map.ker_eq_bot] }
+
+lemma nondegenerate_iff_inj : nondegenerate B ↔ function.injective B :=
+by { rw [nondegenerate_iff_inj', injective_to_linear_map] }
+
+/-- In a finite-dimensional vector space `V`, `B : bilin_form K V` is nondegenerate
+iff the map to the dual space `λ x, (B x : V →ₗ K)` is a bijection. -/
+lemma nondegenerate_iff_bij [finite_dimensional K V] {B : bilin_form K V} :
+  nondegenerate B ↔ function.bijective B.to_linear_map :=
+begin
+  refine nondegenerate_iff_inj'.trans (iff.symm _),
+  rw [function.bijective, and_iff_left_iff_imp],
+  exact (linear_map.injective_iff_surjective_of_findim_eq_findim (module.dual.findim_dual_eq).symm).mp
+end
+
+variables [finite_dimensional K V] {B' : bilin_form K V} (hB' : nondegenerate B')
+
+/-- If `B` is a nondegenerate bilinear form on a finite-dimensional vector space,
+evaluation in the first argument is a linear equivalence. -/
+noncomputable def to_linear_equiv : V ≃ₗ[K] module.dual K V :=
+{ ..B'.to_linear_map, ..equiv.of_bijective _ (nondegenerate_iff_bij.mp hB') }
+
+@[simp] lemma to_linear_equiv_apply (x : V) : to_linear_equiv hB' x = B'.to_linear_map x := rfl
+
+@[simp] lemma apply_to_linear_equiv_symm (f : module.dual K V) (x : V) :
+  B' ((to_linear_equiv hB').symm f) x = f x :=
+show (to_linear_equiv hB').symm.trans (to_linear_equiv hB') f x = linear_equiv.refl K _ f x,
+by rw linear_equiv.symm_trans
+
+variables {ι : Type*} [fintype ι] [decidable_eq ι] {b : ι → V} (hb : is_basis K b)
+
+/-- A basis of `V` such that `B (ortho_basis hB' hb i) (b j) = if i = j then 1 else 0`. -/
+noncomputable def ortho_basis [decidable_eq ι] : ι → V :=
+λ i, (to_linear_equiv hB').symm (hb.dual_basis i)
+
+lemma ortho_basis_is_basis : is_basis K (ortho_basis hB' hb) :=
+(to_linear_equiv hB').symm.is_basis (hb.dual_basis_is_basis)
+
+lemma apply_ortho_basis (i j : ι) : B' (ortho_basis hB' hb i) (b j) = if i = j then 1 else 0 :=
+by rw [ortho_basis, apply_to_linear_equiv_symm, is_basis.dual_basis, is_basis.to_dual_apply]
+
+end nondegenerate
+
+end bilin_form

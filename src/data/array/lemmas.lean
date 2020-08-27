@@ -52,7 +52,7 @@ theorem mem.def : v ∈ a ↔ ∃ i, a.read i = v :=
 iff.rfl
 
 theorem mem_rev_list_aux : ∀ {i} (h : i ≤ n),
-  (∃ (j : fin n), j.1 < i ∧ read a j = v) ↔ v ∈ a.iterate_aux (λ _, (::)) i h []
+  (∃ (j : fin n), (j : ℕ) < i ∧ read a j = v) ↔ v ∈ a.iterate_aux (λ _, (::)) i h []
 | 0     _ := ⟨λ ⟨i, n, _⟩, absurd n i.val.not_lt_zero, false.elim⟩
 | (i+1) h := let IH := mem_rev_list_aux (le_of_lt h) in
   ⟨λ ⟨j, ji1, e⟩, or.elim (lt_or_eq_of_le $ nat.le_of_succ_le_succ ji1)
@@ -153,13 +153,13 @@ begin
   { exact ⟨ll.symm ▸ h, to_list_nth_le _ _ _⟩ }
 end
 
-theorem write_to_list {i v} : (a.write i v).to_list = a.to_list.update_nth i.1 v :=
+theorem write_to_list {i v} : (a.write i v).to_list = a.to_list.update_nth i v :=
 list.ext_le (by simp) $ λ j h₁ h₂, begin
   have h₃ : j < n, {simpa using h₁},
   rw [to_list_nth_le _ h₃],
   refine let ⟨_, e⟩ := list.nth_eq_some.1 _ in e.symm,
-  by_cases ij : i.1 = j,
-  { subst j, rw [show fin.mk i.val h₃ = i, from fin.eq_of_veq rfl,
+  by_cases ij : (i : ℕ) = j,
+  { subst j, rw [show (⟨(i : ℕ), h₃⟩ : fin _) = i, from fin.eq_of_veq rfl,
       array.read_write, list.nth_update_nth_of_lt],
     simp [h₃] },
   { rw [list.nth_update_nth_ne _ _ ij, a.read_write_of_ne,

@@ -115,7 +115,7 @@ def cancel_right {f₁ : X ⟶ Y} {f₂ : Y ⟶ Z} (comm : a ≫ f₁ = b ≫ f�
 /--
 If `(a,b)` is a kernel pair for `f₁ ≫ f₂` and `f₂` is mono, then `(a,b)` is a kernel pair for
 just `f₁`.
-The converse of `sub''`.
+The converse of `comp_of_mono`.
 -/
 def cancel_right_of_mono {f₁ : X ⟶ Y} {f₂ : Y ⟶ Z} [mono f₂] (big_k : is_kernel_pair (f₁ ≫ f₂) a b) :
   is_kernel_pair f₁ a b :=
@@ -123,9 +123,9 @@ cancel_right (begin rw [← cancel_mono f₂, assoc, assoc, big_k.comm] end) big
 
 /--
 If `(a,b)` is a kernel pair for `f₁` and `f₂` is mono, then `(a,b)` is a kernel pair for `f₁ ≫ f₂`.
-The converse of `sub'`.
+The converse of `cancel_right_of_mono`.
 -/
-def comp {f₁ : X ⟶ Y} {f₂ : Y ⟶ Z} [mono f₂] (small_k : is_kernel_pair f₁ a b) :
+def comp_of_mono {f₁ : X ⟶ Y} {f₂ : Y ⟶ Z} [mono f₂] (small_k : is_kernel_pair f₁ a b) :
   is_kernel_pair (f₁ ≫ f₂) a b :=
 { comm := by rw [small_k.comm_assoc],
   is_limit := pullback_cone.is_limit_aux' _ $ λ s,

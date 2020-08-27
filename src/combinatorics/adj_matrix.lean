@@ -37,11 +37,12 @@ def adj_matrix : matrix α α R
 
 variable {R}
 
-theorem transpose_adj_matrix : (G.adj_matrix R)ᵀ = G.adj_matrix R :=
-by { ext, simp [adj_matrix, edge_symm] }
-
 @[simp]
 lemma adj_matrix_apply (v w : α) : G.adj_matrix R v w = if (G.adj v w) then 1 else 0 := rfl
+
+@[simp]
+theorem transpose_adj_matrix : (G.adj_matrix R)ᵀ = G.adj_matrix R :=
+by { ext, simp [edge_symm] }
 
 @[simp]
 lemma adj_matrix_dot_product (v : α) (vec : α → R) :

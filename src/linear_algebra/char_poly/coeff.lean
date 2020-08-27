@@ -169,7 +169,7 @@ lemma zmod.char_poly_pow_card_of_nonempty [nonempty n] (M : matrix n n (zmod p))
 begin
   apply frobenius_inj (polynomial (zmod p)) p, repeat {rw frobenius_def},
   rw ← zmod.expand_p,
-  unfold char_poly, rw alg_hom.map_det, rw ← det_pow,
+  unfold char_poly, rw [alg_hom.map_det, ← det_pow],
   apply congr_arg det,
   apply mat_poly_equiv.injective, swap, { apply_instance },
   rw [← mat_poly_equiv.coe_alg_hom, alg_hom.map_pow, mat_poly_equiv.coe_alg_hom,
@@ -186,10 +186,10 @@ lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :
 begin
   classical,
   by_cases hn : nonempty n, letI := hn, apply zmod.char_poly_pow_card_of_nonempty,
-  swap, { congr, apply @subsingleton.elim _ (subsingleton_of_empty hn) _ _, },
+  swap, { congr, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
 end
 
 lemma zmod.trace_pow_p {p:ℕ} [fact p.prime] [nonempty n] (M : matrix n n (zmod p)) :
   trace n (zmod p) (zmod p) (M ^ p) = (trace n (zmod p) (zmod p) M)^p :=
 by rw [trace_eq_neg_char_poly_coeff, trace_eq_neg_char_poly_coeff,
-  zmod.char_poly_pow_card, zmod.pow_card_eq_self]
+  zmod.char_poly_pow_card, zmod.pow_card]

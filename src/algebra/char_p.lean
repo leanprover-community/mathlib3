@@ -79,7 +79,7 @@ theorem ring_char.eq (α : Type u) [semiring α] {p : ℕ} (C : char_p α p) : p
 (classical.some_spec (char_p.exists_unique α)).2 p C
 
 theorem add_pow_char_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
-  [char_p R p] (x y : R) (h : commute x y):
+  [char_p R p] (x y : R) (h : commute x y) :
   (x + y)^p = x^p + y^p :=
 begin
   rw [commute.add_pow h, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],

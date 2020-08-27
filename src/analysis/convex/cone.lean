@@ -226,10 +226,10 @@ begin
     (show (0 : ℝ) ≤ (1/2), by linarith) (show (0 : ℝ) ≤ (1/2), by linarith) (by linarith),
   have :=
     calc
-      ((1 : ℝ)/2) • x + ((1:ℝ)/2) • (-x)
-          = ((1 : ℝ)/2) • x + -((1:ℝ)/2) • x  : by simp [smul_neg ((1:ℝ)/2)]
-      ... = ((1 : ℝ)/2 + -((1:ℝ)/2)) • x      : by rw [add_smul]
-      ... = (0 : ℝ) • x                       : by rw [show (1:ℝ)/2 + -(1/2) = 0, by ring]
+      ((1 : ℝ)/2) • x + ((1 : ℝ)/2) • (-x)
+          = ((1 : ℝ)/2) • x + -((1 : ℝ)/2) • x  : by simp [smul_neg ((1 : ℝ)/2)]
+      ... = ((1 : ℝ)/2 + -((1 : ℝ)/2)) • x      : by rw [add_smul]
+      ... = (0 : ℝ) • x                         : by rw [show (1 : ℝ)/2 + -(1/2) = 0, by ring]
       ... = (0 : E)                           : zero_smul ℝ x,
   rw [this] at hkey,
   exact h₁ hkey,

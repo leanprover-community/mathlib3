@@ -172,7 +172,7 @@ begin
   { letI := hn,
     apply frobenius_inj (polynomial (zmod p)) p, repeat {rw frobenius_def},
     rw ← zmod.expand_p,
-    unfold char_poly, rw [alg_hom.map_det, ← det_pow],
+    unfold char_poly, rw [alg_hom.map_det, ← is_monoid_hom.map_pow],
     apply congr_arg det,
     apply mat_poly_equiv.injective, swap, { apply_instance },
     rw [← mat_poly_equiv.coe_alg_hom, alg_hom.map_pow, mat_poly_equiv.coe_alg_hom,

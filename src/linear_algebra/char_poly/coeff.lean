@@ -171,7 +171,7 @@ begin
   by_cases hn : nonempty n,
   { letI := hn,
     apply frobenius_inj (polynomial (zmod p)) p, repeat {rw frobenius_def},
-    rw ← zmod.expand_p,
+    rw ← zmod.expand_card,
     unfold char_poly, rw [alg_hom.map_det, ← is_monoid_hom.map_pow],
     apply congr_arg det,
     apply mat_poly_equiv.injective, swap, { apply_instance },

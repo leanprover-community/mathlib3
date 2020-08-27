@@ -210,6 +210,25 @@ begin
     ... = 0 : by { rw [sum_pow_units K i, if_neg], exact hiq, }
 end
 
+variables {K}
+
+open polynomial
+
+lemma expand_card (f : polynomial K) :
+  expand K q f = f ^ q :=
+begin
+  refine f.induction_on' (λ a b ha hb, _) (λ n a, _),
+  { cases char_p.exists K with p hp, letI := hp,
+    rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩, letI : fact p.prime := hp,
+    dsimp at hn, rw hn at *,
+    rw [alg_hom.map_add, ha, hb], clear npos hn ha hb,
+    induction n, {simp},
+    rw [nat.succ_eq_add_one, nat.pow_succ, pow_mul, pow_mul, pow_mul, ← n_ih, add_pow_char], },
+  { rw [polynomial.expand_monomial, single_eq_C_mul_X, single_eq_C_mul_X,
+        mul_pow, ← C.map_pow, pow_card a],
+    ring_exp }
+end
+
 end finite_field
 
 namespace zmod
@@ -273,12 +292,6 @@ by { have h := finite_field.pow_card x, rwa zmod.card p at h }
 
 open polynomial
 
-lemma zmod.expand_p {p : ℕ} [fact p.prime] (f : polynomial (zmod p)) :
+lemma zmod.expand_card {p : ℕ} [fact p.prime] (f : polynomial (zmod p)) :
   expand (zmod p) p f = f ^ p :=
-begin
-  refine f.induction_on' (λ a b ha hb, _) (λ n a, _),
-  { rw [alg_hom.map_add, add_pow_char, ha, hb] },
-  { rw [polynomial.expand_monomial, single_eq_C_mul_X, single_eq_C_mul_X,
-        mul_pow, ← C.map_pow, zmod.pow_card a],
-    ring_exp }
-end
+by { have h := finite_field.expand_card f, rwa zmod.card p at h }

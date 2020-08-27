@@ -239,8 +239,7 @@ begin
       have hr : set.range p = insert (p i) (set.range (λ i2 : ι2, p i2)),
       { change _ = insert _ (set.range (λ i2 : {x | x ≠ i}, p i2)),
         rw [←set.image_eq_range, ←set.image_univ, ←set.image_insert_eq],
-        congr,
-        ext,
+        congr' with j,
         simp [classical.em] },
       change ∃! (cccr : P × ℝ), (_ ∧ ∀ i2, (λ q, dist q cccr.fst = cccr.snd) (p i2)),
       conv { congr, funext, conv { congr, skip, rw ←set.forall_range_iff } },
@@ -262,10 +261,7 @@ begin
       convert not_mem_affine_span_diff_of_affine_independent ha i set.univ,
       change set.range (λ i2 : {x | x ≠ i}, p i2) = _,
       rw ←set.image_eq_range,
-      congr,
-      ext,
-      simp,
-      refl } }
+      congr' with j, simp, refl } }
 end
 
 end euclidean_geometry

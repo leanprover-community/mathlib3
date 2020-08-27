@@ -205,7 +205,7 @@ lemma mul_adjugate_apply (A : matrix n n α) (i j k) :
   A i k * adjugate A k j = cramer α A (λ j, if k = j then A i k else 0) j :=
 begin
   erw [←smul_eq_mul, ←pi.smul_apply, ←linear_map.map_smul],
-  congr, ext,
+  congr' with l,
   rw [pi.smul_apply, smul_eq_mul, mul_boole],
 end
 
@@ -216,11 +216,11 @@ begin
   calc
     ∑ k : n, A i k * adjugate A k j
         = ∑ k : n, cramer α A (λ j, if k = j then A i k else 0) j
-      : by {congr' with k, apply mul_adjugate_apply A i j k}
+      : by { congr' with k, apply mul_adjugate_apply A i j k }
     ... = cramer α A (λ j, ∑ k : n, if k = j then A i k else 0) j
       : sum_cramer_apply A univ (λ (j k : n), if k = j then A i k else 0) j
-    ... = cramer α A (A i) j : by { rw [cramer_apply], congr, ext,
-      rw [sum_ite_eq' univ x (A i), if_pos (mem_univ _)] }
+    ... = cramer α A (A i) j : by { rw [cramer_apply], congr' with k,
+      rw [sum_ite_eq' univ k (A i), if_pos (mem_univ _)] }
     ... = if i = j then det A else 0 : by rw [cramer_column_self]
 end
 

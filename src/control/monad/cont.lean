@@ -115,7 +115,7 @@ instance {ε} [monad_cont m] : monad_cont (except_t ε m) :=
 
 instance {ε} [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (except_t ε m) :=
 { call_cc_bind_right := by { intros, simp [call_cc,except_t.call_cc,call_cc_bind_right], ext, dsimp,
-    congr, ext ⟨ ⟩; simp [except_t.bind_cont,@call_cc_dummy m _], },
+    congr' with ⟨ ⟩; simp [except_t.bind_cont,@call_cc_dummy m _], },
   call_cc_bind_left  := by { intros,
     simp [call_cc,except_t.call_cc,call_cc_bind_right,except_t.goto_mk_label,map_eq_bind_pure_comp,
       bind_assoc,@call_cc_bind_left m _], ext, refl },
@@ -136,7 +136,7 @@ instance [monad_cont m] : monad_cont (option_t m) :=
 
 instance [monad_cont m] [is_lawful_monad_cont m] : is_lawful_monad_cont (option_t m) :=
 { call_cc_bind_right := by { intros, simp [call_cc,option_t.call_cc,call_cc_bind_right], ext, dsimp,
-    congr, ext ⟨ ⟩; simp [option_t.bind_cont,@call_cc_dummy m _], },
+    congr' with ⟨ ⟩; simp [option_t.bind_cont,@call_cc_dummy m _], },
   call_cc_bind_left  := by { intros, simp [call_cc,option_t.call_cc,call_cc_bind_right,
     option_t.goto_mk_label,map_eq_bind_pure_comp,bind_assoc,@call_cc_bind_left m _], ext, refl },
   call_cc_dummy := by { intros, simp [call_cc,option_t.call_cc,@call_cc_dummy m _], ext, refl }, }

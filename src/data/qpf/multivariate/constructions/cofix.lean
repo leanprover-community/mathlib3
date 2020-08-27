@@ -448,12 +448,12 @@ theorem cofix.dest_corec' {α : typevec n} {β : Type u}
   cofix.dest (cofix.corec' g x) = append_fun id (sum.elim id (cofix.corec' g)) <$$> g x :=
 begin
   rw [cofix.corec',cofix.dest_corec], dsimp,
-  congr, ext (i|i); rw corec_roll; dsimp [cofix.corec'],
+  congr' with (i|i); rw corec_roll; dsimp [cofix.corec'],
   { mv_bisim i,
     rw [Ha,Hb,cofix.dest_corec], dsimp [(∘)],
     repeat { rw [mvfunctor.map_map,← append_fun_comp_id] },
     apply liftr_map_last', dsimp [(∘),R], intros, exact ⟨_,rfl,rfl⟩ },
-  { congr, ext, erw [append_fun_id_id], simp [mvfunctor.id_map] },
+  { congr' with y, erw [append_fun_id_id], simp [mvfunctor.id_map] },
 end
 
 theorem cofix.dest_corec₁ {α : typevec n} {β : Type u}

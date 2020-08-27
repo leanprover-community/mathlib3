@@ -382,9 +382,7 @@ begin
   rw [finset.weighted_vsub_apply, finset.weighted_vsub_apply,
       inner_sum_smul_sum_smul_of_sum_eq_zero _ h₁ _ h₂],
   simp_rw [vsub_sub_vsub_cancel_right],
-  congr' with i₁,
-  congr' with i₂,
-  rw dist_eq_norm_vsub V (p₁ i₁) (p₂ i₂)
+  rcongr i₁ i₂; rw dist_eq_norm_vsub V (p₁ i₁) (p₂ i₂)
 end
 
 /-- The distance between two points given with `affine_combination`,

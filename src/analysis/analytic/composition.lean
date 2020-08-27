@@ -836,10 +836,7 @@ begin
   rcases j with ⟨a', b'⟩,
   rintros ⟨h, h'⟩,
   have H : a = a', by { ext1, exact h },
-  induction H,
-  congr,
-  ext1,
-  exact h'
+  induction H, congr, ext1, exact h'
 end
 
 /-- Rewriting equality in the dependent type

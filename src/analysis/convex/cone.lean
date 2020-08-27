@@ -186,17 +186,19 @@ ext' $ preimage_comp.symm
 @[simp] lemma mem_comap {f : E →ₗ[ℝ] F} {S : convex_cone F} {x : E} :
   x ∈ S.comap f ↔ f x ∈ S := iff.rfl
 
-/-- A convex cone is pointed if it includes 0 -/
-def pointed (S : convex_cone E) := (0 : E) ∈ S
+/-! ### Convex cones with extra properties -/
 
-/-- A convex cone is blunt if it doesn't include 0 -/
-def blunt (S : convex_cone E) := (0 : E) ∉ S
+/-- A convex cone is pointed if it includes 0. -/
+def pointed (S : convex_cone E) : Prop := (0 : E) ∈ S
 
-/-- A convex cone is flat if it contains some nonzero vector x and its opposite -x -/
-def flat (S : convex_cone E) := ∃ x ∈ S, x ≠ (0 : E) ∧ -x ∈ S
+/-- A convex cone is blunt if it doesn't include 0. -/
+def blunt (S : convex_cone E) : Prop := (0 : E) ∉ S
 
-/-- A convex cone is salient if it doesn't include x and -x for any nonzero x -/
-def salient (S : convex_cone E) := ∀ x ∈ S, x ≠ (0 : E) → -x ∉ S
+/-- A convex cone is flat if it contains some nonzero vector `x` and its opposite `-x`. -/
+def flat (S : convex_cone E) : Prop := ∃ x ∈ S, x ≠ (0 : E) ∧ -x ∈ S
+
+/-- A convex cone is salient if it doesn't include `x` and `-x` for any nonzero `x`. -/
+def salient (S : convex_cone E) : Prop := ∀ x ∈ S, x ≠ (0 : E) → -x ∉ S
 
 lemma pointed_iff_not_blunt (S : convex_cone E) : pointed S ↔ ¬blunt S :=
   ⟨λ h₁ h₂, h₂ h₁, λ h, not_not.mp h⟩

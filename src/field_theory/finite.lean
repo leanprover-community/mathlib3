@@ -111,14 +111,12 @@ begin
       this, mul_one]
 end
 
-lemma pow_card_sub_one_eq_one (a : K) (ha : a ≠ 0) :
-  a ^ (fintype.card K - 1) = 1 :=
+lemma pow_card_sub_one_eq_one (a : K) (ha : a ≠ 0) : a ^ (q - 1) = 1 :=
 calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : units K) :
     by rw [units.coe_pow, units.coe_mk0]
   ... = 1 : by { classical, rw [← card_units, pow_card_eq_one], refl }
 
-lemma pow_card_eq_self (a : K) :
-  a ^ (fintype.card K) = a :=
+lemma pow_card (a : K) : a ^ q = a :=
 begin
   have hp : fintype.card K > 0 := fintype.card_pos_iff.2 (by apply_instance),
   by_cases a = 0, {rw h, apply zero_pow hp, },
@@ -270,15 +268,15 @@ begin
 end
 
 /-- A variation on Fermat's little theorem. See `zmod.fermat_little` -/
-@[simp] lemma zmod.pow_card_eq_self {p : ℕ} [fact p.prime] (x : zmod p) : x ^ p = x :=
-by { have h := finite_field.pow_card_eq_self x, rw zmod.card p at h, rw h }
+@[simp] lemma zmod.pow_card {p : ℕ} [fact p.prime] (x : zmod p) : x ^ p = x :=
+by { have h := finite_field.pow_card x, rw zmod.card p at h, rw h }
 
 open polynomial
 
 lemma zmod.expand_p {p : ℕ} [fact p.prime] (f : polynomial (zmod p)) :
-expand (zmod p) p f = f ^ p :=
+  expand (zmod p) p f = f ^ p :=
 begin
-  apply f.induction_on', intros a b ha hb, rw add_pow_char, simp [ha, hb], assumption,
+  apply f.induction_on', intros a b ha hb, rw add_pow_char, simp [ha, hb],
   intros n a, rw polynomial.expand_monomial, repeat {rw single_eq_C_mul_X},
-  rw [mul_pow, ← C.map_pow, zmod.pow_card_eq_self a], ring_exp,
+  rw [mul_pow, ← C.map_pow, zmod.pow_card a], ring_exp,
 end

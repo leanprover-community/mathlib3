@@ -80,7 +80,7 @@ theorem ring_char.eq (α : Type u) [semiring α] {p : ℕ} (C : char_p α p) : p
 
 theorem add_pow_char_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
   [char_p R p] (x y : R) (h : commute x y):
-(x + y)^p = x^p + y^p :=
+  (x + y)^p = x^p + y^p :=
 begin
   rw [commute.add_pow h, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
   rw [nat.cast_one, mul_one, mul_one, add_right_inj],
@@ -94,28 +94,20 @@ begin
 end
 
 theorem sub_pow_char_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
-  [char_p R p] (x y : R) (h : commute x y):
-(x - y)^p = x^p - y^p :=
+  [char_p R p] (x y : R) (h : commute x y) :
+  (x - y)^p = x^p - y^p :=
 begin
-  rw [eq_sub_iff_add_eq, ← add_pow_char_of_commute], simp,
-  unfold commute, unfold semiconj_by, rw [sub_mul, mul_sub, h.eq],
+  have h' : commute (x - y) y, rw [commute, semiconj_by, sub_mul, mul_sub, h.eq],
+  rw [eq_sub_iff_add_eq, ← add_pow_char_of_commute _ _ _ h'], simp, repeat {apply_instance},
 end
 
-theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} (hp : nat.prime p)
+theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} [fact p.prime]
   [char_p α p] (x y : α) : (x + y)^p = x^p + y^p :=
-begin
-  haveI : fact p.prime := hp,
-  apply add_pow_char_of_commute,
-  apply commute.all,
-end
+add_pow_char_of_commute _ _ _ (commute.all _ _)
 
-theorem sub_pow_char (α : Type u) [comm_ring α] {p : ℕ} (hp : nat.prime p)
+theorem sub_pow_char (α : Type u) [comm_ring α] {p : ℕ} [fact p.prime]
   [char_p α p] (x y : α) : (x - y)^p = x^p - y^p :=
-begin
-  haveI : fact p.prime := hp,
-  apply sub_pow_char_of_commute,
-  apply commute.all,
-end
+sub_pow_char_of_commute _ _ _ (commute.all _ _)
 
 lemma eq_iff_modeq_int (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = b ↔ a ≡ b [ZMOD p] :=
@@ -145,7 +137,7 @@ def frobenius : R →+* R :=
   map_one' := one_pow p,
   map_mul' := λ x y, mul_pow x y p,
   map_zero' := zero_pow (lt_trans zero_lt_one ‹nat.prime p›.one_lt),
-  map_add' := add_pow_char R ‹nat.prime p› }
+  map_add' := add_pow_char R }
 
 variable {R}
 

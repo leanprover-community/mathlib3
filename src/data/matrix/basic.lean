@@ -81,8 +81,11 @@ lemma map_sub [add_group α] {β : Type w} [add_group β] (f : α →+ β)
   (M N : matrix m n α) : (M - N).map f = M.map f - N.map f :=
 by { ext, simp }
 
-lemma subsingleton_of_empty (hn : ¬ nonempty n) : subsingleton (matrix n n α) :=
-⟨λ M N, by { ext, contrapose! hn, use i }⟩
+lemma subsingleton_of_empty_left (hm : ¬ nonempty m) : subsingleton (matrix m n α) :=
+⟨λ M N, by { ext, contrapose! hm, use i }⟩
+
+lemma subsingleton_of_empty_right (hn : ¬ nonempty n) : subsingleton (matrix m n α) :=
+⟨λ M N, by { ext, contrapose! hn, use j }⟩
 
 end matrix
 

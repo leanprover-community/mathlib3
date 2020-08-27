@@ -312,7 +312,7 @@ variables (α : Type*) [ordered_add_comm_group α] [ordered_semimodule ℝ α]
 
 /--
 The positive cone is the convex cone formed by the set of nonnegative elements in an ordered
-vector space.
+semimodule.
 -/
 def positive_cone : convex_cone α :=
 { carrier := {x | 0 ≤ x},

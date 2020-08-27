@@ -52,7 +52,7 @@ lemma arrows_ext : Π {R S : sieve X}, R.arrows = S.arrows → R = S
 | ⟨Ra, _⟩ ⟨Sa, _⟩ rfl := rfl
 
 @[ext] lemma ext {R S : sieve X}
-  (h : ∀ {Y} (f : Y ⟶ X), over.mk f ∈ R.arrows ↔ over.mk f ∈ S.arrows) :
+  (h : ∀ ⦃Y⦄ (f : Y ⟶ X), over.mk f ∈ R.arrows ↔ over.mk f ∈ S.arrows) :
   R = S :=
 begin
   apply arrows_ext,

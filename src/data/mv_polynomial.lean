@@ -533,6 +533,13 @@ lemma eval₂_hom_congr  {f₁ f₂ : α →+* β} {g₁ g₂ : σ → β} {p₁
 by rintros rfl rfl rfl; refl
 end
 
+@[simp] lemma eval₂_hom_C (f : α →+* β) (g : σ → β) (r : α) :
+  eval₂_hom f g (C r) = f r := eval₂_C f g r
+
+@[simp] lemma eval₂_hom_X' (f : α →+* β) (g : σ → β) (i : σ) :
+  eval₂_hom f g (X i) = g i := eval₂_X f g i
+
+
 section
 local attribute [instance, priority 10] is_semiring_hom.comp
 lemma eval₂_comp_left {γ} [comm_semiring γ]
@@ -968,6 +975,9 @@ def aeval : mv_polynomial σ R →ₐ[R] A :=
 
 theorem aeval_def (p : mv_polynomial σ R) : aeval f p = eval₂ (algebra_map R A) f p := rfl
 
+lemma aeval_eq_eval₂_hom (p : mv_polynomial σ R) :
+  aeval f p = eval₂_hom (algebra_map R A) f p := rfl
+
 @[simp] lemma aeval_X (s : σ) : aeval f (X s : mv_polynomial _ R) = f s := eval₂_X _ _ _
 
 @[simp] lemma aeval_C (r : R) : aeval f (C r) = algebra_map R A r := eval₂_C _ _ _
@@ -982,6 +992,15 @@ begin
     rw [φ.map_add, ih1, ih2, alg_hom.map_add] },
   { intros p j ih,
     rw [φ.map_mul, alg_hom.map_mul, aeval_X, ih] }
+end
+
+lemma comp_aeval {B : Type*} [comm_semiring B] [algebra R B]
+  (f : σ → A) (φ : A →ₐ[R] B) :
+  φ.comp (aeval f) = (aeval (λ i, φ (f i))) :=
+begin
+  apply mv_polynomial.alg_hom_ext,
+  intros i,
+  rw [alg_hom.comp_apply, aeval_X, aeval_X],
 end
 
 end aeval

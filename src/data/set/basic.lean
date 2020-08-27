@@ -1789,6 +1789,12 @@ by { ext, simp }
 @[simp] theorem univ_prod_univ : (@univ α).prod (@univ β) = univ :=
 by { ext ⟨x, y⟩, simp }
 
+lemma univ_prod {t : set β} : set.prod (univ : set α) t = prod.snd ⁻¹' t :=
+by simp [prod_eq]
+
+lemma prod_univ {s : set α} : set.prod s (univ : set β) = prod.fst ⁻¹' s :=
+by simp [prod_eq]
+
 @[simp] theorem singleton_prod {a : α} : set.prod {a} t = prod.mk a '' t :=
 by { ext ⟨x, y⟩, simp [and.left_comm, eq_comm] }
 
@@ -1807,12 +1813,10 @@ by { ext ⟨x, y⟩, simp [and_or_distrib_left] }
 theorem prod_inter_prod : s₁.prod t₁ ∩ s₂.prod t₂ = (s₁ ∩ s₂).prod (t₁ ∩ t₂) :=
 by { ext ⟨x, y⟩, simp [and_assoc, and.left_comm] }
 
-theorem insert_prod {a : α} {s : set α} {t : set β} :
-  (insert a s).prod t = (prod.mk a '' t) ∪ s.prod t :=
+theorem insert_prod {a : α} : (insert a s).prod t = (prod.mk a '' t) ∪ s.prod t :=
 by { ext ⟨x, y⟩, simp [image, iff_def, or_imp_distrib, imp.swap] {contextual := tt} }
 
-theorem prod_insert {b : β} {s : set α} {t : set β} :
-  s.prod (insert b t) = ((λa, (a, b)) '' s) ∪ s.prod t :=
+theorem prod_insert {b : β} : s.prod (insert b t) = ((λa, (a, b)) '' s) ∪ s.prod t :=
 by { ext ⟨x, y⟩, simp [image, iff_def, or_imp_distrib, imp.swap] {contextual := tt} }
 
 theorem prod_preimage_eq {f : γ → α} {g : δ → β} :
@@ -1823,6 +1827,22 @@ by { ext x, simp [h] }
 
 @[simp] lemma mk_preimage_prod_right {x : α} (h : x ∈ s) : prod.mk x ⁻¹' s.prod t = t :=
 by { ext y, simp [h] }
+
+@[simp] lemma mk_preimage_prod_left_eq_empty {y : β} (hy : y ∉ t) :
+  (λ x, (x, y)) ⁻¹' s.prod t = ∅ :=
+by { ext z, simp [hy] }
+
+@[simp] lemma mk_preimage_prod_right_eq_empty {x : α} (hx : x ∉ s) :
+  prod.mk x ⁻¹' s.prod t = ∅ :=
+by { ext z, simp [hx] }
+
+lemma mk_preimage_prod_left_eq_if {y : β} [decidable_pred (∈ t)] :
+  (λ x, (x, y)) ⁻¹' s.prod t = if y ∈ t then s else ∅ :=
+by { split_ifs; simp [h] }
+
+lemma mk_preimage_prod_right_eq_if {x : α} [decidable_pred (∈ s)] :
+  prod.mk x ⁻¹' s.prod t = if x ∈ s then t else ∅ :=
+by { split_ifs; simp [h] }
 
 theorem image_swap_eq_preimage_swap : image (@prod.swap α β) = preimage prod.swap :=
 image_eq_preimage_of_inverse prod.swap_left_inverse prod.swap_right_inverse
@@ -1859,7 +1879,7 @@ theorem nonempty.snd : (s.prod t).nonempty → t.nonempty
 theorem prod_nonempty_iff : (s.prod t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 ⟨λ h, ⟨h.fst, h.snd⟩, λ h, nonempty.prod h.1 h.2⟩
 
-theorem prod_eq_empty_iff {s : set α} {t : set β} :
+theorem prod_eq_empty_iff :
   s.prod t = ∅ ↔ (s = ∅ ∨ t = ∅) :=
 by simp only [not_nonempty_iff_eq_empty.symm, prod_nonempty_iff, not_and_distrib]
 

@@ -29,6 +29,9 @@ instance [nonempty α] : nontrivial (with_one α) := option.nontrivial
 @[to_additive]
 instance : has_coe_t α (with_one α) := ⟨some⟩
 
+@[to_additive]
+lemma some_eq_coe {a : α} : (some a : with_one α) = ↑a := rfl
+
 @[simp, to_additive]
 lemma one_ne_coe {a : α} : (1 : with_one α) ≠ a :=
 λ h, option.no_confusion h

@@ -2,11 +2,27 @@
 Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-Adjoining elements to form subalgebras.
 -/
 import ring_theory.polynomial
 import ring_theory.principal_ideal_domain
+
+/-!
+# Adjoining elements to form subalgebras
+
+This file develops the basic theory of subalgebras of an R-algebra generated
+by a set of elements. A basic interface for `adjoin` is set up, and various
+results about finitely-generated subalgebras and submodules are proved.
+
+## Definitions
+
+* `fg (S : subalgebra R A)` : A predicate saying that the subalgebra is finitely-generated
+as an A-algebra
+
+## Tags
+
+adjoin, algebra, finitely-generated algebra
+
+-/
 
 universes u v w
 
@@ -202,6 +218,7 @@ end subalgebra
 variables {R : Type u} {A : Type v} {B : Type w}
 variables [comm_ring R] [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
 
+/-- The image of a Noetherian R-algebra under an R-algebra map is a Noetherian ring. -/
 instance alg_hom.is_noetherian_ring_range (f : A →ₐ[R] B) [is_noetherian_ring A] :
   is_noetherian_ring f.range :=
 is_noetherian_ring_range f.to_ring_hom

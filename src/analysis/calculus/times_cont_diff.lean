@@ -323,7 +323,7 @@ begin
     by exact H.congr A (A x hx),
   rw continuous_linear_equiv.comp_has_fderiv_within_at_iff',
   have : ((0 : ℕ) : with_top ℕ) < n :=
-    lt_of_lt_of_le (with_top.coe_lt_coe.2 zero_lt_one) hn,
+    lt_of_lt_of_le (with_top.coe_lt_coe.2 nat.zero_lt_one) hn,
   convert h.fderiv_within _ this x hx,
   ext y v,
   change (p x 1) (snoc 0 y) = (p x 1) (cons y v),
@@ -1159,7 +1159,7 @@ theorem has_ftaylor_series_up_to_succ_iff_right {n : ℕ} :
   ∧ has_ftaylor_series_up_to n
     (λ x, continuous_multilinear_curry_fin1 𝕜 E F (p x 1)) (λ x, (p x).shift) :=
 by simp [has_ftaylor_series_up_to_on_succ_iff_right, has_ftaylor_series_up_to_on_univ_iff.symm,
-         -add_comm, -with_bot.coe_add]
+         -add_comm, -with_zero.coe_add]
 
 /-! ### Smooth functions at a point -/
 
@@ -1399,7 +1399,7 @@ theorem times_cont_diff_succ_iff_fderiv {n : ℕ} :
   differentiable 𝕜 f ∧ times_cont_diff 𝕜 n (λ y, fderiv 𝕜 f y) :=
 by simp [times_cont_diff_on_univ.symm, differentiable_on_univ.symm, fderiv_within_univ.symm,
          - fderiv_within_univ, times_cont_diff_on_succ_iff_fderiv_within unique_diff_on_univ,
-         -with_bot.coe_add, -add_comm]
+         -with_zero.coe_add, -add_comm]
 
 /-- A function is `C^∞` on a domain with unique derivatives if and only if it is differentiable
 there, and its derivative is `C^∞`. -/

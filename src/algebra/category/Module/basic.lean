@@ -51,7 +51,7 @@ def of (X : Type u) [add_comm_group X] [module R X] : Module R := ⟨X⟩
 instance : inhabited (Module R) := ⟨of R punit⟩
 
 @[simp]
-lemma of_apply (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
+lemma coe_of (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
 
 variables {R}
 
@@ -61,7 +61,7 @@ def of_self_iso (M : Module R) : Module.of R M ≅ M :=
 { hom := 𝟙 M, inv := 𝟙 M }
 
 instance : subsingleton (of R punit) :=
-by { rw of_apply R punit, apply_instance }
+by { rw coe_of R punit, apply_instance }
 
 instance : has_zero_object (Module R) :=
 { zero := of R punit,

@@ -6,6 +6,7 @@ Authors: Kenny Lau, Yury Kudryashov
 import data.matrix.basic
 import linear_algebra.tensor_product
 import ring_theory.subsemiring
+import deprecated.subring
 
 /-!
 # Algebra over Commutative Semiring (under category)

@@ -1193,7 +1193,7 @@ variables {R S} {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ] [algebra R
 `S` is made explicit to help with type inference -/
 def algebra_map_submonoid (S) [comm_ring S] [algebra R S]
   (M : submonoid R) : (submonoid S) :=
-submonoid.map ↑(algebra_map R S) M
+submonoid.map (algebra_map R S : R →* S) M
 
 lemma mem_algebra_map_submonoid_of_mem {M : submonoid R} (x : M) :
   (algebra_map R S x) ∈ algebra_map_submonoid S M :=

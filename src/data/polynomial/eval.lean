@@ -158,14 +158,14 @@ lemma eval₂_mul_eq_zero_of_left (q : polynomial R) (hp : p.eval₂ f x = 0) :
   (p * q).eval₂ f x = 0 :=
 begin
   rw eval₂_mul f x,
-  refine mul_eq_zero_of_left hp (q.eval₂ f x),
+  exact mul_eq_zero_of_left hp (q.eval₂ f x)
 end
 
 lemma eval₂_mul_eq_zero_of_right (hq : q.eval₂ f x = 0) (p : polynomial R) :
   (p * q).eval₂ f x = 0 :=
 begin
   rw eval₂_mul f x,
-  refine mul_eq_zero_of_right (p.eval₂ f x) hq,
+  exact mul_eq_zero_of_right (p.eval₂ f x) hq
 end
 
 instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f x) :=

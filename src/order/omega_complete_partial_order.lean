@@ -11,13 +11,14 @@ import tactic.find_unused
 /-!
 # Omega Complete Partial Orders
 
-The concept of a complete partial order (ωCPO) is useful for the
+An omega-complete partial order is a partial order with a supremum
+operation on increasing sequences indexed by natural numbers (which we
+call `ωSup`). In this sense, it is strictly weaker than join complete
+semi-lattices as only ω-sized totally ordered sets have a supremum.
+
+The concept of an omega-complete partial order (ωCPO) is useful for the
 formalization of the semantics of programming languages. Its notion of
 supremum helps define the meaning of recursive procedures.
-
-It has a supremum operation on increasing sequences indexed by natural
-numbers (which we call `ωSup`). In this sense, it is strictly weaker than
-join semi-lattice as only ω-sized totally ordered sets have a supremum.
 
 ## Main definitions
 
@@ -176,13 +177,10 @@ open omega_complete_partial_order
 section prio
 set_option default_priority 50 -- see Note [default priority]
 
-/-- Complete partial order (ωCPO) are useful for the formalization
-of the semantics of programming languages. Its notion of limit
-helps define the meaning of recursive procedures
-
-It has a supremum operation on increasing sequences indexed by natural
-numbers (which we call `ωSup`). In this sense, it is strictly weaker than
-join semi-lattice as only ω-sized totally ordered sets have a supremum. -/
+/-- An omega-complete partial order is a partial order with a supremum
+operation on increasing sequences indexed by natural numbers (which we
+call `ωSup`). In this sense, it is strictly weaker than join complete
+semi-lattices as only ω-sized totally ordered sets have a supremum. -/
 class omega_complete_partial_order (α : Type*) extends partial_order α :=
 (ωSup     : chain α → α)
 (le_ωSup  : ∀(c:chain α), ∀ i, c i ≤ ωSup c)

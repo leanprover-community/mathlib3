@@ -131,7 +131,7 @@ begin
   apply approx_mono' f
 end
 
-lemma mem_fix (a : α) (b : β a) : b ∈ roption.fix f a ↔ ∃ i, b ∈ approx f i a :=
+lemma mem_iff (a : α) (b : β a) : b ∈ roption.fix f a ↔ ∃ i, b ∈ approx f i a :=
 begin
   by_cases h₀ : ∃ (i : ℕ), (approx f i a).dom,
   { simp only [roption.fix_def f h₀],
@@ -151,21 +151,21 @@ begin
     intro, apply h₀ }
 end
 
-lemma max_fix (i : ℕ) : approx f i ≤ roption.fix f :=
+lemma approx_le_fix (i : ℕ) : approx f i ≤ roption.fix f :=
 assume a b hh,
-by { rw [mem_fix f], exact ⟨_,hh⟩ }
+by { rw [mem_iff f], exact ⟨_,hh⟩ }
 
-lemma min_fix (x : α) : ∃ i, roption.fix f x ≤ approx f i x :=
+lemma exists_fix_le_approx (x : α) : ∃ i, roption.fix f x ≤ approx f i x :=
 begin
   by_cases hh : ∃ i b, b ∈ approx f i x,
   { rcases hh with ⟨i,b,hb⟩, existsi i,
     intros b' h',
-    have hb' := max_fix f i _ _ hb,
+    have hb' := approx_le_fix f i _ _ hb,
     have hh := roption.mem_unique h' hb',
     subst hh, exact hb },
   { simp only [not_exists] at hh, existsi 0,
     intros b' h',
-    simp only [mem_fix f] at h',
+    simp only [mem_iff f] at h',
     cases h' with i h',
     cases hh _ _ h' }
 end
@@ -201,14 +201,14 @@ open nat.up omega_complete_partial_order
 lemma fix_eq_ωSup : roption.fix f = ωSup (approx_chain f) :=
 begin
   apply le_antisymm,
-  { intro x, cases min_fix f x with i hx,
+  { intro x, cases exists_fix_le_approx f x with i hx,
     transitivity' approx f i.succ x,
     { transitivity', apply hx, apply approx_mono' f },
     apply' le_ωSup_of_le i.succ,
     dsimp [approx], refl', },
   { apply ωSup_le _ _ _,
     simp only [fix.approx_chain, preorder_hom.coe_fun_mk],
-    intros y x, apply max_fix f },
+    intros y x, apply approx_le_fix f },
 end
 
 lemma fix_le {X : Π a, roption $ β a} (hX : f X ≤ X) : roption.fix f ≤ X :=

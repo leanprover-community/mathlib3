@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro, Shing Tak Lam
 -/
+import algebra.invertible
 import data.polynomial.eval
 import data.equiv.ring
 import data.equiv.fin
@@ -277,6 +278,10 @@ begin
              ... = g (C r)           : (g.commutes r).symm },
   { simpa only [hf] },
 end
+
+@[simp] lemma alg_hom_C (f : mv_polynomial σ α →ₐ[α] mv_polynomial σ α) (r : α) :
+  f (C r) = C r :=
+f.commutes r
 
 section coeff
 
@@ -1571,5 +1576,32 @@ lemma pderivative_C_mul {a : R} {f : mv_polynomial S R} {v : S} :
 by rw [pderivative_mul, pderivative_C, zero_mul, zero_add]
 
 end pderivative
+
+section invertible
+
+noncomputable instance invertible_C
+  (σ : Type*) {R : Type*} [comm_semiring R] (r : R) [invertible r] :
+  invertible (C r : mv_polynomial σ R) :=
+invertible.map ⟨C, C_1, λ x y, C_mul⟩ _
+
+-- name??
+noncomputable def invertible_rat_coe_nat (σ : Type*) (p : ℕ) [invertible (p : ℚ)] :
+  invertible (p : mv_polynomial σ ℚ) :=
+(mv_polynomial.invertible_C σ (p:ℚ)).copy p $ (C_eq_coe_nat p).symm
+
+end invertible
+
+section counit
+
+variables [comm_semiring α] [comm_semiring β] [algebra α β]
+variables (α β)
+
+noncomputable def counit : mv_polynomial β α →ₐ β :=
+aeval id
+
+lemma counit_surjective : function.surjective (mv_polynomial.counit α β) :=
+λ r, ⟨X r, eval₂_hom_X' _ _ _⟩
+
+end counit
 
 end mv_polynomial

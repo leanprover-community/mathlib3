@@ -62,7 +62,8 @@ begin
     { intro hi, rw [if_pos rfl], exact if_neg hi } }
 end
 
--- why the hack does ring_hom.ker not exist!!!
+-- Johan: why the hack does ring_hom.ker not exist!!!
+-- Rob: it does now, why do you ask here?
 
 lemma C_dvd_iff_map_hom_eq_zero {σ : Type*} {R : Type*} {S : Type*} [comm_ring R] [comm_ring S]
   (q : R →+* S) (hq : function.surjective q) (r : R) (hr : ∀ r' : R, q r' = 0 ↔ r ∣ r')
@@ -87,49 +88,6 @@ end
 
 end mv_polynomial
 
-
-namespace invertible
-variables {R : Type*} {S : Type*} [monoid R] [monoid S]
-
-def copy {r : R} (hr : invertible r) (s : R) (hs : s = r) : invertible s :=
-{ inv_of := ⅟r,
-  inv_of_mul_self := by rw [hs, inv_of_mul_self],
-  mul_inv_of_self := by rw [hs, mul_inv_of_self] }
-
-end invertible
-
-namespace mv_polynomial
-noncomputable instance invertible_C
-  (σ : Type*) {R : Type*} [comm_semiring R] (r : R) [invertible r] :
-  invertible (C r : mv_polynomial σ R) :=
-invertible.map ⟨C, C_1, λ x y, C_mul⟩ _
-
--- name??
-noncomputable def invertible_rat_coe_nat (σ : Type*) (p : ℕ) [invertible (p : ℚ)] :
-  invertible (p : mv_polynomial σ ℚ) :=
-(mv_polynomial.invertible_C σ (p:ℚ)).copy p $ (C_eq_coe_nat p).symm
-
-end mv_polynomial
-
-namespace mv_polynomial
-variables {σ : Type*} {R : Type*} [comm_semiring R]
-
-@[simp] lemma alg_hom_C (f : mv_polynomial σ R →ₐ[R] mv_polynomial σ R) (r : R) :
-  f (C r) = C r :=
-f.commutes r
-
-end mv_polynomial
-
-namespace mv_polynomial
-variables (R A : Type*) [comm_semiring R] [comm_semiring A] [algebra R A]
-
-noncomputable def counit : mv_polynomial A R →ₐ A :=
-aeval id
-
-lemma counit_surjective : function.surjective (mv_polynomial.counit R A) :=
-λ r, ⟨X r, eval₂_hom_X' _ _ _⟩
-
-end mv_polynomial
 
 namespace mv_polynomial
 variables {σ : Type*} {τ : Type*} {υ : Type*} {R : Type*} [comm_semiring R]

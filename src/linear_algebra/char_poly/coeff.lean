@@ -164,7 +164,7 @@ end
 
 variables {p : ℕ} [fact p.prime]
 
-lemma zmod.char_poly_pow_card_of_inhabited [inhabited n] (M : matrix n n (zmod p)) :
+lemma zmod.char_poly_pow_card_of_nonempty [nonempty n] (M : matrix n n (zmod p)) :
 char_poly (M ^ p) = char_poly M :=
 begin
   apply frobenius_inj (polynomial (zmod p)) p, repeat {rw frobenius_def},
@@ -185,7 +185,7 @@ lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :
 char_poly (M ^ p) = char_poly M :=
 begin
   classical,
-  by_cases hn : nonempty n, letI := hn, inhabit n, apply zmod.char_poly_pow_card_of_inhabited,
+  by_cases hn : nonempty n, letI := hn, apply zmod.char_poly_pow_card_of_nonempty,
   swap, { congr, apply @subsingleton.elim _ (subsingleton_of_empty hn) _ _, },
 end
 

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import ring_theory.algebra_tower
+import ring_theory.polynomial.scale_roots
 
 /-!
 # Integral closure of a subring.
@@ -246,33 +247,10 @@ by rwa [subtype.val_eq_coe, ← subalgebra.val_apply, aeval_alg_hom_apply] at hp
 theorem is_integral_of_is_integral_mul_unit {x y : A} {r : R} (hr : (algebra_map R A r) * y = 1)
   (hx : is_integral R (x * y)) : (is_integral R x) :=
 begin
-  by_cases triv : (1 : R) = 0,
-  { exact ⟨0, ⟨trans leading_coeff_zero triv.symm, eval₂_zero _ _⟩⟩ },
-  haveI : nontrivial R := nontrivial_of_ne 1 0 triv,
   obtain ⟨p, ⟨p_monic, hp⟩⟩ := hx,
-  let p' : polynomial R := ∑ (i : ℕ) in p.support, monomial i ((p.coeff i) * r ^ (p.nat_degree - i)),
-  have hp' : p'.nat_degree = p.nat_degree,
-  { refine finset_sum_monomial_degree (λ h, triv _),
-    rw [nat.sub_self, pow_zero r, mul_one] at h,
-    exact p_monic ▸ h },
-  refine ⟨p', ⟨_, _⟩⟩,
-  { rwa [monic, leading_coeff, hp', finset_sum_monomial_coeff, nat.sub_self, pow_zero, mul_one] },
-  -- TODO: A lot of this is just basic algebra, but `ring` can't solve it because only some elements are invertible
-  { have : is_unit (y ^ p.nat_degree) := is_unit_iff_exists_inv.2
-      ⟨(algebra_map R A r) ^ p.nat_degree, by rw [← mul_pow, mul_comm, hr, one_pow]⟩,
-    rw [aeval_def, eval₂, sum_over_range] at hp,
-    rw [← (is_unit.mul_right_eq_zero this), aeval_def, eval₂, sum_over_range, finset.mul_sum, ← hp],
-    refine finset.sum_congr (by rw hp') (λ n hn, _),
-    simp only [finset_sum_monomial_coeff, ring_hom.map_pow, ring_hom.map_mul],
-    rw [← mul_assoc (y ^ p.nat_degree), mul_comm (y ^ p.nat_degree), mul_comm x y, mul_pow y x n,
-        ← mul_assoc _ (y ^ n) (x ^ n), mul_assoc _ _ (y ^ p.nat_degree)],
-    congr,
-    have : is_unit ((algebra_map R A r) ^ n) := is_unit_iff_exists_inv.2
-      ⟨y ^ n, by rw [← mul_pow, hr, one_pow]⟩,
-    rw [← (is_unit.mul_left_inj this), ← mul_pow y _ n, mul_comm y, hr, mul_comm, ← mul_assoc,
-      ← pow_add, nat.add_sub_cancel' (nat.le_of_lt_succ (finset.mem_range.1 hn)),
-      ← mul_pow, hr, one_pow, one_pow],
-    all_goals {simp [add_mul]} },
+  refine ⟨scale_roots p r, ⟨(monic_scale_roots_iff r).2 p_monic, _⟩⟩,
+  convert scale_roots_aeval_eq_zero hp,
+  rw [mul_comm x y, ← mul_assoc, hr, one_mul],
 end
 
 end

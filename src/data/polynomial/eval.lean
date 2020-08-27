@@ -456,17 +456,9 @@ instance eval.is_semiring_hom : is_semiring_hom (eval x) := eval₂.is_semiring_
 
 @[simp] lemma eval_pow (n : ℕ) : (p ^ n).eval x = p.eval x ^ n := eval₂_pow _ _ _
 
-lemma eval₂_hom' [comm_semiring T] [comm_semiring S]
-  (f : R →+* S) (g : S →+* T) (x : S) : p.eval₂ (g.comp f) (g x) = g (p.eval₂ f x) :=
-polynomial.induction_on p
-  (by simp)
-  (by simp [f.map_add] {contextual := tt})
-  (by simp [f.map_mul, eval_pow,
-    f.map_pow, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
-
 lemma eval₂_hom [comm_semiring S] (f : R →+* S) (x : R) :
   p.eval₂ f (f x) = f (p.eval x) :=
-(ring_hom.comp_id f) ▸ eval₂_hom' (ring_hom.id R) f x
+(ring_hom.comp_id f) ▸ (hom_eval₂ p (ring_hom.id R) f x).symm
 
 lemma root_mul_left_of_is_root (p : polynomial R) {q : polynomial R} :
   is_root q a → is_root (p * q) a :=

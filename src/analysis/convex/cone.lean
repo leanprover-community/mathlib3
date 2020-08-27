@@ -327,7 +327,7 @@ def positive_cone : convex_cone M :=
   add_mem' := λ x hx y hy, add_nonneg (show 0 ≤ x, by exact hx) (show 0 ≤ y, by exact hy) }
 
 /-- The positive cone of an ordered vector space is always salient. -/
-lemma salient_of_positive_cone : salient (positive_cone α) :=
+lemma salient_of_positive_cone : salient (positive_cone M) :=
 begin
   intros x xs hx hx',
   have := calc

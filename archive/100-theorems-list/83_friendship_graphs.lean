@@ -181,7 +181,7 @@ end
 lemma tr_pow_p_mod_p {p:ℕ} [fact p.prime] (M : matrix V V (zmod p)) :
 trace V (zmod p) (zmod p) (M ^ p) = (trace V (zmod p) (zmod p) M)^p :=
 by rw [trace_eq_neg_char_poly_coeff, trace_eq_neg_char_poly_coeff,
-  char_poly_pow_p_char_p, frobenius_fixed]
+  zmod.char_poly_pow_card, zmod.pow_card_eq_self]
 
 -- this is the main proof
 lemma three_le_deg_friendship_contra

@@ -169,7 +169,7 @@ char_poly (M ^ p) = char_poly M :=
 begin
   apply frobenius_inj (polynomial (zmod p)) p, repeat {rw frobenius_def},
   rw ← zmod.expand_p,
-  unfold char_poly, rw alg_hom.map_det, rw ← det_pow, -- simp,
+  unfold char_poly, rw alg_hom.map_det, rw ← det_pow,
   apply congr_arg det,
   apply mat_poly_equiv.injective, swap, { apply_instance },
   rw [← mat_poly_equiv.coe_alg_hom, alg_hom.map_pow, mat_poly_equiv.coe_alg_hom,
@@ -178,7 +178,7 @@ begin
   -- the following is a nasty case bash that should be abstracted as a lemma
   -- (and maybe it can be proven more... algebraically?)
   ext, rw [coeff_sub, coeff_C],
-  by_cases hij : i = j; simp [char_matrix, hij]; simp only [coeff_C]; split_ifs; simp *,
+  by_cases hij : i = j; simp [char_matrix, hij, coeff_X_pow]; simp only [coeff_C]; split_ifs; simp *,
 end
 
 lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :

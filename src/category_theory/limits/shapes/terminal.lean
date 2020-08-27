@@ -18,23 +18,39 @@ namespace category_theory.limits
 
 variables {C : Type u} [category.{v} C]
 
+/-- Construct a cone for the empty diagram given an object. -/
 def as_empty_cone (X : C) : cone (functor.empty C) := { X := X, π := by tidy }
+/-- Construct a cocone for the empty diagram given an object. -/
 def as_empty_cocone (X : C) : cocone (functor.empty C) := { X := X, ι := by tidy }
 
+/-- `X` is terminal if the cone it induces on the empty diagram is limiting. -/
 abbreviation is_terminal (X : C) := is_limit (as_empty_cone X)
+/-- `X` is initial if the cocone it induces on the empty diagram is colimiting. -/
 abbreviation is_initial (X : C) := is_colimit (as_empty_cocone X)
 
+/-- Give the morphism to a terminal object from any other. -/
 def is_terminal.from {X : C} (t : is_terminal X) (Y : C) : Y ⟶ X :=
 t.lift (as_empty_cone Y)
 
+/-- Any two morphisms to a terminal object are equal. -/
 lemma is_terminal.hom_ext {X Y : C} (t : is_terminal X) (f g : Y ⟶ X) : f = g :=
 t.hom_ext (by tidy)
 
+/-- Give the morphism from an initial object to any other. -/
 def is_initial.to {X : C} (t : is_initial X) (Y : C) : X ⟶ Y :=
 t.desc (as_empty_cocone Y)
 
+/-- Any two morphisms from an initial object are equal. -/
 lemma is_initial.hom_ext {X Y : C} (t : is_initial X) (f g : X ⟶ Y) : f = g :=
 t.hom_ext (by tidy)
+
+/-- Any morphism from a terminal object is mono. -/
+def is_terminal.mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) : mono f :=
+⟨λ Z g h eq, t.hom_ext _ _⟩
+
+/-- Any morphism to an initial object is epi. -/
+def is_initial.epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) : epi f :=
+⟨λ Z g h eq, t.hom_ext _ _⟩
 
 variable (C)
 
@@ -68,9 +84,6 @@ notation `⊥_` C:20 := initial C
 section
 variables {C}
 
-def terminal_is_terminal [has_terminal C] : is_terminal (⊤_ C) := sorry
-def initial_is_initial [has_initial C] : is_initial (⊥_ C) := sorry
-
 /-- We can more explicitly show that a category has a terminal object by specifying the object,
 and showing there is a unique morphism to it from any other object. -/
 def has_terminal_of_unique (X : C) [h : Π Y : C, unique (Y ⟶ X)] : has_terminal C :=
@@ -99,6 +112,23 @@ instance unique_to_terminal [has_terminal C] (P : C) : unique (P ⟶ ⊤_ C) :=
 instance unique_from_initial [has_initial C] (P : C) : unique (⊥_ C ⟶ P) :=
 { default := initial.to P,
   uniq := λ m, by { apply colimit.hom_ext, rintro ⟨⟩ } }
+
+/-- The chosen terminal object is terminal. -/
+def terminal_is_terminal [has_terminal C] : is_terminal (⊤_ C) :=
+{ lift := λ s, terminal.from _ }
+
+/-- The chosen initial object is terminal. -/
+def initial_is_initial [has_initial C] : is_initial (⊥_ C) :=
+{ desc := λ s, initial.to _ }
+
+/-- Any morphism from a terminal object is mono. -/
+instance terminal.mono_from {Y : C} [has_terminal C] (f : ⊤_ C ⟶ Y) : mono f :=
+is_terminal.mono_from terminal_is_terminal _
+
+/-- Any morphism to an initial object is epi. -/
+instance initial.epi_to {Y : C} [has_initial C] (f : Y ⟶ ⊥_ C) : epi f :=
+is_initial.epi_to initial_is_initial _
+
 end
 
 end category_theory.limits

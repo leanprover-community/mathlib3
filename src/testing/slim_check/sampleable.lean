@@ -81,7 +81,7 @@ obtain:
 def lazy_list.lseq {α β γ} (f : α → β → γ) : lazy_list α → lazy_list β → lazy_list γ
 | lazy_list.nil xs := lazy_list.nil
 | (lazy_list.cons x xs) lazy_list.nil := lazy_list.nil
-| (lazy_list.cons x xs) ys := interleave (ys.map $ f x) (sampleable.lseq (xs ()) ys)
+| (lazy_list.cons x xs) ys := interleave (ys.map $ f x) (lazy_list.lseq (xs ()) ys)
 
 /-- implementation of `sampleable nat` -/
 def nat.shrink' (k : ℕ) : ℕ → list ℕ → list ℕ

@@ -31,7 +31,7 @@ variables (D : Type u₂) [category.{v₂} D]
 variables {E : Type u₃} [category.{v₃} E]
 
 /-- A category is skeletal if isomorphic objects are equal. -/
-def skeletal : Prop := ∀ (X Y : C), is_isomorphic X Y → X = Y
+def skeletal : Prop := ∀ ⦃X Y : C⦄, is_isomorphic X Y → X = Y
 
 /--
 `is_skeleton_of C D F` says that `F : D ⥤ C` exhibits `D` as a skeletal full subcategory of `C`,
@@ -47,7 +47,7 @@ variables {C D}
 /-- If `C` is thin and skeletal, then any naturally isomorphic functors to `C` are equal. -/
 lemma functor.eq_of_iso {F₁ F₂ : D ⥤ C} [∀ X Y : C, subsingleton (X ⟶ Y)] (hC : skeletal C)
   (hF : F₁ ≅ F₂) : F₁ = F₂ :=
-functor.ext (λ X, hC _ _ ⟨hF.app X⟩) (λ _ _ _, subsingleton.elim _ _)
+functor.ext (λ X, hC ⟨hF.app X⟩) (λ _ _ _, subsingleton.elim _ _)
 
 /--
 If `C` is thin and skeletal, `D ⥤ C` is skeletal.
@@ -101,7 +101,7 @@ def map (F : C ⥤ D) : thin_skeleton C ⥤ thin_skeleton D :=
   map := λ X Y, quotient.rec_on_subsingleton₂ X Y $
            λ x y k, hom_of_le ((le_of_hom k).elim (λ t, ⟨F.map t⟩)) }
 
-lemma name_me_pls (F : C ⥤ D) : F ⋙ to_thin_skeleton D = to_thin_skeleton C ⋙ map F := rfl
+lemma comp_to_thin_skeleton (F : C ⥤ D) : F ⋙ to_thin_skeleton D = to_thin_skeleton C ⋙ map F := rfl
 
 /-- Given a natural transformation `F₁ ⟶ F₂`, induce a natural transformation `map F₁ ⟶ map F₂`.-/
 def map_nat_trans {F₁ F₂ : C ⥤ D} (k : F₁ ⟶ F₂) : map F₁ ⟶ map F₂ :=

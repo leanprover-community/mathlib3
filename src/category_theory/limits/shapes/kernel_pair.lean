@@ -41,7 +41,7 @@ variables {C : Type u} [category.{v} C]
 variables {R X Y Z : C} (f : X ⟶ Y) (a b : R ⟶ X)
 
 /--
-`is_kernel_pair f a b` expresses that `a`,`b` is a kernel pair for `f`, i.e. `a ≫ f = b ≫ f`
+`is_kernel_pair f a b` expresses that `(a, b)` is a kernel pair for `f`, i.e. `a ≫ f = b ≫ f`
 and the square
   R → X
   ↓   ↓
@@ -57,7 +57,7 @@ attribute [reassoc] is_kernel_pair.comm
 
 namespace is_kernel_pair
 
-/-- The data expressing that `a`,`b` is a kernel pair is subsingleton. -/
+/-- The data expressing that `(a, b)` is a kernel pair is subsingleton. -/
 instance : subsingleton (is_kernel_pair f a b) :=
 ⟨λ P Q, begin
   cases P,
@@ -65,7 +65,7 @@ instance : subsingleton (is_kernel_pair f a b) :=
   congr,
 end⟩
 
-/-- If `f` is a monomorphism, then `𝟙 _`, `𝟙 _`  is a kernel pair for `f`. -/
+/-- If `f` is a monomorphism, then `(𝟙 _, 𝟙 _)`  is a kernel pair for `f`. -/
 def id_of_mono [mono f] : is_kernel_pair f (𝟙 _) (𝟙 _) :=
 { comm := rfl,
   is_limit :=
@@ -83,7 +83,7 @@ instance [mono f] : inhabited (is_kernel_pair f (𝟙 _) (𝟙 _)) := ⟨id_of_m
 variables {f a b}
 
 /--
-Given a pair of morphisms `p`,`q` to `X` which factor through `f`, they factor through any kernel
+Given a pair of morphisms `p`, `q` to `X` which factor through `f`, they factor through any kernel
 pair of `f`.
 -/
 def lift' {S : C} (k : is_kernel_pair f a b) (p q : S ⟶ X) (w : p ≫ f = q ≫ f) :
@@ -96,7 +96,7 @@ just `f₁`.
 That is, to show that `(a,b)` is a kernel pair for `f₁` it suffices to only show the square
 commutes, rather than to additionally show it's a pullback.
 -/
-def sub {f₁ : X ⟶ Y} {f₂ : Y ⟶ Z} (comm : a ≫ f₁ = b ≫ f₁) (big_k : is_kernel_pair (f₁ ≫ f₂) a b) :
+def cancel_right {f₁ : X ⟶ Y} {f₂ : Y ⟶ Z} (comm : a ≫ f₁ = b ≫ f₁) (big_k : is_kernel_pair (f₁ ≫ f₂) a b) :
   is_kernel_pair f₁ a b :=
 { comm := comm,
   is_limit := pullback_cone.is_limit_aux' _ $ λ s,
@@ -113,19 +113,19 @@ def sub {f₁ : X ⟶ Y} {f₂ : Y ⟶ Z} (comm : a ≫ f₁ = b ≫ f₁) (big_
   end }
 
 /--
-If `a,b` is a kernel pair for `f₁ ≫ f₂` and `f₂` is mono, then `a,b` is a kernel pair for
+If `(a,b)` is a kernel pair for `f₁ ≫ f₂` and `f₂` is mono, then `(a,b)` is a kernel pair for
 just `f₁`.
 The converse of `sub''`.
 -/
-def sub' {f₁ : X ⟶ Y} {f₂ : Y ⟶ Z} [mono f₂] (big_k : is_kernel_pair (f₁ ≫ f₂) a b) :
+def cancel_right_of_mono {f₁ : X ⟶ Y} {f₂ : Y ⟶ Z} [mono f₂] (big_k : is_kernel_pair (f₁ ≫ f₂) a b) :
   is_kernel_pair f₁ a b :=
-sub (begin rw [← cancel_mono f₂, assoc, assoc, big_k.comm] end) big_k
+cancel_right (begin rw [← cancel_mono f₂, assoc, assoc, big_k.comm] end) big_k
 
 /--
-If `a,b` is a kernel pair for `f₁` and `f₂` is mono, then `a,b` is a kernel pair for `f₁ ≫ f₂`.
+If `(a,b)` is a kernel pair for `f₁` and `f₂` is mono, then `(a,b)` is a kernel pair for `f₁ ≫ f₂`.
 The converse of `sub'`.
 -/
-def sub'' {f₁ : X ⟶ Y} {f₂ : Y ⟶ Z} [mono f₂] (small_k : is_kernel_pair f₁ a b) :
+def comp {f₁ : X ⟶ Y} {f₂ : Y ⟶ Z} [mono f₂] (small_k : is_kernel_pair f₁ a b) :
   is_kernel_pair (f₁ ≫ f₂) a b :=
 { comm := by rw [small_k.comm_assoc],
   is_limit := pullback_cone.is_limit_aux' _ $ λ s,
@@ -143,7 +143,7 @@ def sub'' {f₁ : X ⟶ Y} {f₂ : Y ⟶ Z} [mono f₂] (small_k : is_kernel_pai
   end }
 
 /--
-If `a,b` is the kernel pair of `f`, and `f` is a coequalizer morphism for some parallel pair, then
+If `(a,b)` is the kernel pair of `f`, and `f` is a coequalizer morphism for some parallel pair, then
 `f` is a coequalizer morphism of `a` and `b`.
 -/
 def to_coequalizer (k : is_kernel_pair f a b) [r : regular_epi f] :

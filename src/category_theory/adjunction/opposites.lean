@@ -1,10 +1,11 @@
 /-
 Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bhavik Mehta
+Authors: Bhavik Mehta, Thomas Read
 -/
 
 import category_theory.adjunction.basic
+import category_theory.yoneda
 import category_theory.opposites
 
 /-!
@@ -12,9 +13,10 @@ import category_theory.opposites
 
 This file contains constructions to relate adjunctions of functors to adjunctions of their
 opposites.
+These constructions are used to show uniqueness of adjoints (up to natural isomorphism).
 
 ## Tags
-adjunction, opposite
+adjunction, opposite, uniqueness
 -/
 
 open category_theory
@@ -60,5 +62,29 @@ def op_adjoint_of_unop_adjoint (F : C ⥤ D) (G : Dᵒᵖ ⥤ Cᵒᵖ) (h : G.un
 /-- If `G.unop` is adjoint to `F.unop` then `F` is adjoint to `G`. -/
 def adjoint_of_unop_adjoint_unop (F : Cᵒᵖ ⥤ Dᵒᵖ) (G : Dᵒᵖ ⥤ Cᵒᵖ) (h : G.unop ⊣ F.unop) : F ⊣ G :=
 (adjoint_op_of_adjoint_unop _ _ h).of_nat_iso_right G.op_unop_iso
+
+/--
+If `F` and `F'` are both adjoint to `G`, there is a natural isomorphism
+`F.op ⋙ coyoneda ≅ F'.op ⋙ coyoneda`.
+We use this in combination with `fully_faithful_cancel_right` to show left adjoints are unique.
+-/
+def left_adjoints_coyoneda_equiv {F F' : C ⥤ D} {G : D ⥤ C}
+  (adj1 : F ⊣ G) (adj2 : F' ⊣ G):
+  F.op ⋙ coyoneda ≅ F'.op ⋙ coyoneda :=
+nat_iso.of_components
+  (λ X, nat_iso.of_components
+    (λ Y, ((adj1.hom_equiv X.unop Y).trans (adj2.hom_equiv X.unop Y).symm).to_iso)
+    (by tidy))
+  (by tidy)
+
+/-- If `F` and `F'` are both left adjoint to `G`, then they are naturally isomorphic. -/
+def left_adjoint_uniq {F F' : C ⥤ D} {G : D ⥤ C}
+  (adj1 : F ⊣ G) (adj2 : F' ⊣ G) : F ≅ F' :=
+nat_iso.unop (fully_faithful_cancel_right _ (left_adjoints_coyoneda_equiv adj2 adj1))
+
+/-- If `G` and `G'` are both right adjoint to `F`, then they are naturally isomorphic. -/
+def right_adjoint_uniq {F : C ⥤ D} {G G' : D ⥤ C}
+  (adj1 : F ⊣ G) (adj2 : F ⊣ G') : G ≅ G' :=
+nat_iso.unop (left_adjoint_uniq (op_adjoint_op_of_adjoint _ F adj2) (op_adjoint_op_of_adjoint _ _ adj1))
 
 end adjunction

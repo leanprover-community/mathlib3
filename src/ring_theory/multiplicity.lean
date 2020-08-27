@@ -157,8 +157,7 @@ begin
     have ha : a ≠ 0, from λ ha, by simpa [ha] using h 1,
     by_contradiction (λ ha1 : a ≠ 1,
       have ha_gt_one : 1 < a, from
-        have ∀ a : ℕ, a ≤ 1 → a ≠ 0 → a ≠ 1 → false, from dec_trivial,
-        lt_of_not_ge (λ ha', this a ha' ha ha1),
+        lt_of_not_ge (λ ha', by { clear h, revert ha ha1, dec_trivial! }),
       not_lt_of_ge (le_of_dvd (nat.pos_of_ne_zero hb) (h b))
           (by simp only [nat.pow_eq_pow]; exact lt_pow_self ha_gt_one b))),
     λ h, by cases h; simp *⟩

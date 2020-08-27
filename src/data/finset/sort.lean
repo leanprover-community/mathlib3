@@ -199,7 +199,7 @@ end
 
 /-- Two parametrizations `mono_of_fin` of the same set take the same value on `i` and `j` if and
 only if `i = j`. Since they can be defined on a priori not defeq types `fin k` and `fin l` (although
-necessarily `k = l`), the conclusion is rather written `i.val = j.val`. -/
+necessarily `k = l`), the conclusion is rather written `(i : ℕ) = (j : ℕ)`. -/
 @[simp] lemma mono_of_fin_eq_mono_of_fin_iff
   {k l : ℕ} {s : finset α} {i : fin k} {j : fin l} {h : s.card = k} {h' : s.card = l} :
   s.mono_of_fin h i = s.mono_of_fin h' j ↔ (i : ℕ) = (j : ℕ) :=

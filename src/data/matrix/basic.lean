@@ -77,16 +77,12 @@ lemma map_add [add_monoid α] {β : Type w} [add_monoid β] (f : α →+ β)
   (M N : matrix m n α) : (M + N).map f = M.map f + N.map f :=
 by { ext, simp, }
 
-lemma matrix.map_sub [add_group α] {β : Type w} [add_group β] (f : α →+ β)
+lemma map_sub [add_group α] {β : Type w} [add_group β] (f : α →+ β)
   (M N : matrix m n α) : (M - N).map f = M.map f - N.map f :=
 by { ext, simp }
 
-def subsingleton_of_empty (hn : ¬ nonempty n) : subsingleton (matrix n n α) :=
+lemma subsingleton_of_empty (hn : ¬ nonempty n) : subsingleton (matrix n n α) :=
 ⟨λ M N, by { ext, contrapose! hn, use i }⟩
-
-@[simp]
-lemma eq_zero_of_empty [has_zero α] (hn : ¬ nonempty n) (M : matrix n n α) :
-M = 0 := @subsingleton.elim _ (subsingleton_of_empty hn) M 0
 
 end matrix
 
@@ -458,9 +454,9 @@ lemma scalar_apply_ne (a : α) (i j : n) (h : i ≠ j) :
   scalar n a i j = 0 :=
 by simp only [h, coe_scalar, one_apply_ne, ne.def, not_false_iff, smul_apply, mul_zero]
 
-lemma matrix.scalar_inj [inhabited n] {r s : α} : scalar n r = scalar n s ↔ r = s :=
-{ mp := λ h, by rw [← scalar_apply_eq r (arbitrary n), ← scalar_apply_eq s (arbitrary n), h],
-  mpr := by rintro rfl; refl }
+lemma scalar_inj [nonempty n] {r s : α} : scalar n r = scalar n s ↔ r = s :=
+⟨λ h, by { inhabit n, rw [← scalar_apply_eq r (arbitrary n), ← scalar_apply_eq s (arbitrary n), h] },
+  by rintro rfl; refl⟩
 
 end scalar
 
@@ -621,7 +617,7 @@ section ring
 
 variables [ring α]
 
-instance matrix.char_p [decidable_eq n] [inhabited n] (p : ℕ) [char_p α p] :
+instance matrix.char_p [decidable_eq n] [nonempty n] (p : ℕ) [char_p α p] :
   char_p (matrix n n α) p :=
 { cast_eq_zero_iff :=
   begin

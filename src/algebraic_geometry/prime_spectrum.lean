@@ -7,19 +7,6 @@ import topology.opens
 import ring_theory.ideal.operations
 import linear_algebra.finsupp
 
--- TODO fix and move
--- lemma local_of_ring_equiv {A B : Type*} [comm_ring A] [comm_ring B] (e : A ≃+* B) :
---   local_ring A ↔ local_ring B :=
--- begin
---   split,
---   { introI _inst,
---     haveI := e.symm.to_equiv.nontrivial,
---     refine @local_of_surjective A B _ _ _ _ e e.to_equiv.surjective, },
---   { introI _inst,
---     haveI := e.to_equiv.nontrivial,
---     refine @local_of_surjective B A _ _ _ _ e.symm e.symm.to_equiv.surjective, },
--- end
-
 /-!
 # Prime spectrum of a commutative ring
 

@@ -217,16 +217,16 @@ open polynomial
 lemma expand_card (f : polynomial K) :
   expand K q f = f ^ q :=
 begin
-  refine f.induction_on' (λ a b ha hb, _) (λ n a, _),
-  { cases char_p.exists K with p hp, letI := hp,
-    rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩, letI : fact p.prime := hp,
-    dsimp at hn, rw hn at *,
-    rw [alg_hom.map_add, ha, hb], clear npos hn ha hb,
-    induction n, {simp},
-    rw [nat.succ_eq_add_one, nat.pow_succ, pow_mul, pow_mul, pow_mul, ← n_ih, add_pow_char], },
-  { rw [polynomial.expand_monomial, single_eq_C_mul_X, single_eq_C_mul_X,
-        mul_pow, ← C.map_pow, pow_card a],
-    ring_exp }
+  cases char_p.exists K with p hp, letI := hp,
+  rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩, letI : fact p.prime := hp,
+  dsimp at hn, rw hn at *,
+  rw ← map_expand_pow_char,
+  have h : frobenius K p ^ n = ring_hom.id K,
+  { ext, conv_rhs {rw ← pow_card x}, rw hn, rw ring_hom.id_apply,
+    clear npos hn, induction n, {simp},
+    rw [pow_succ, ring_hom.mul_def, ring_hom.comp_apply, n_ih,
+        frobenius_def, ← pow_mul, nat.pow_succ] },
+  rw [h, map_id],
 end
 
 end finite_field

@@ -156,6 +156,10 @@ instance sampleable_sum {β} [sampleable α] [sampleable β] : sampleable (α �
             uliftable.up_map sum.inr (sample β),
   shrink := sum.shrink _ }
 
+/-- `sampleable_char` can be specialized into customized `sampleable char` instances.
+
+The resulting instance has `1 / length` chances of making an unrestricted choice of characters
+and it otherwise chooses a character from `characters` with uniform probabilities.  -/
 def sampleable_char (length : nat) (characters : string) : sampleable char :=
 { sample := do { x ← choose_nat 0 length dec_trivial,
                  if x.val = 0 then do

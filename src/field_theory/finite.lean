@@ -212,6 +212,14 @@ end
 
 variables {K}
 
+theorem frobenius_pow {p : ℕ} [fact p.prime] [char_p K p] {n : ℕ} (hcard : q = p^n) :
+  (frobenius K p) ^ n = 1 :=
+begin
+  ext, conv_rhs { rw [ring_hom.one_def, ring_hom.id_apply, ← pow_card x, hcard], }, clear hcard,
+  induction n, {simp},
+  rw [pow_succ, nat.pow_succ, pow_mul, ring_hom.mul_def, ring_hom.comp_apply, frobenius_def, n_ih]
+end
+
 open polynomial
 
 lemma expand_card (f : polynomial K) :
@@ -221,12 +229,7 @@ begin
   rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩, letI : fact p.prime := hp,
   dsimp at hn, rw hn at *,
   rw ← map_expand_pow_char,
-  have h : frobenius K p ^ n = ring_hom.id K,
-  { ext, conv_rhs {rw ← pow_card x}, rw hn, rw ring_hom.id_apply,
-    clear npos hn, induction n, {simp},
-    rw [pow_succ, ring_hom.mul_def, ring_hom.comp_apply, n_ih,
-        frobenius_def, ← pow_mul, nat.pow_succ] },
-  rw [h, map_id],
+  rw [frobenius_pow hn, ring_hom.one_def, map_id],
 end
 
 end finite_field

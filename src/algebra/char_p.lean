@@ -93,6 +93,15 @@ begin
   rwa ← finset.mem_range
 end
 
+theorem add_pow_char_pow_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] {n : ℕ} (x y : R) (h : commute x y) :
+  (x + y) ^ (p ^ n) = x ^ (p ^ n) + y ^ (p ^ n) :=
+begin
+  induction n, { simp, },
+  rw [nat.pow_succ, pow_mul, pow_mul, pow_mul, n_ih],
+  apply add_pow_char_of_commute, apply commute.pow_pow h,
+end
+
 theorem sub_pow_char_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
   [char_p R p] (x y : R) (h : commute x y) :
   (x - y)^p = x^p - y^p :=
@@ -101,13 +110,32 @@ begin
   simp, repeat {apply_instance},
 end
 
+theorem sub_pow_char_pow_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] {n : ℕ} (x y : R) (h : commute x y) :
+  (x - y) ^ (p ^ n) = x ^ (p ^ n) - y ^ (p ^ n) :=
+begin
+  induction n, { simp, },
+  rw [nat.pow_succ, pow_mul, pow_mul, pow_mul, n_ih],
+  apply sub_pow_char_of_commute, apply commute.pow_pow h,
+end
+
 theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} [fact p.prime]
   [char_p α p] (x y : α) : (x + y)^p = x^p + y^p :=
 add_pow_char_of_commute _ _ _ (commute.all _ _)
 
+theorem add_pow_char_pow (R : Type u) [comm_ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] {n : ℕ} (x y : R) :
+  (x + y) ^ (p ^ n) = x ^ (p ^ n) + y ^ (p ^ n) :=
+add_pow_char_pow_of_commute _ _ _ (commute.all _ _)
+
 theorem sub_pow_char (α : Type u) [comm_ring α] {p : ℕ} [fact p.prime]
   [char_p α p] (x y : α) : (x - y)^p = x^p - y^p :=
 sub_pow_char_of_commute _ _ _ (commute.all _ _)
+
+theorem sub_pow_char_pow (R : Type u) [comm_ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] {n : ℕ} (x y : R) :
+  (x - y) ^ (p ^ n) = x ^ (p ^ n) - y ^ (p ^ n) :=
+sub_pow_char_pow_of_commute _ _ _ (commute.all _ _)
 
 lemma eq_iff_modeq_int (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = b ↔ a ≡ b [ZMOD p] :=

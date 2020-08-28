@@ -42,7 +42,7 @@ def stalk (ℱ : X.presheaf C) (x : X) : C :=
   (stalk_functor C x).obj ℱ = ℱ.stalk x := rfl
 
 /--
-The germ at a point.
+The germ of a section of a presheaf over an open at a point of that open.
 -/
 def germ (F : X.presheaf C) {U : opens X} (x : U) : F.obj (op U) ⟶ stalk F x :=
 colimit.ι ((open_nhds.inclusion x.1).op ⋙ F) (op ⟨U, x.2⟩)
@@ -75,20 +75,11 @@ end
 let i' : (⟨U, x.2⟩ : open_nhds x.1) ⟶ ⟨V, (i x : V).2⟩ := i in
 colimit.w ((open_nhds.inclusion x.1).op ⋙ F) i'.op
 
-@[simp] lemma germ_res' (F : X.presheaf C) {U V : (opens X)ᵒᵖ} (i : V ⟶ U) (x : unop U)  :
-  F.map i ≫ germ F x = germ F (i.unop x : unop V) :=
-germ_res F i.unop x
-
 @[simp] lemma germ_res_apply (F : X.presheaf (Type v)) {U V : opens X} (i : U ⟶ V)
   (x : U) (f : F.obj (op V)) :
   germ F x (F.map i.op f) = germ F (i x : V) f :=
 let i' : (⟨U, x.2⟩ : open_nhds x.1) ⟶ ⟨V, (i x : V).2⟩ := i in
 congr_fun (colimit.w ((open_nhds.inclusion x.1).op ⋙ F) i'.op) f
-
-@[simp] lemma germ_res_apply' (F : X.presheaf (Type v)) {U V : (opens X)ᵒᵖ} (i : V ⟶ U)
-  (x : unop U) (f : F.obj V) :
-  germ F x (F.map i f) = germ F (i.unop x : unop V) f :=
-germ_res_apply F i.unop x f
 
 variables (C)
 

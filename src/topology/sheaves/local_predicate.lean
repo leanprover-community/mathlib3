@@ -23,7 +23,10 @@ This file abstracts this argument to work for
 any collection of dependent functions on a topological space
 satisfying a "local predicate".
 
+A sheaf constructed in this way has a natural map `stalk_to_fiber` from the stalks
+to the types in the ambient type family.
 
+We give conditions sufficient to show that this map is injective and/or surjective.
 -/
 
 universe v

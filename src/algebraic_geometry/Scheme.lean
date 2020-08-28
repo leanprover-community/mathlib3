@@ -19,6 +19,7 @@ A morphism is schemes is just a morphism of the underlying locally ringed spaces
 
 open topological_space
 open category_theory
+open Top
 
 namespace algebraic_geometry
 
@@ -59,6 +60,18 @@ Every `Scheme` is a `LocallyRingedSpace`.
 -- (This parent projection is apparently not automatically generated because
 -- we used the `extends X : LocallyRingedSpace` syntax.)
 def to_LocallyRingedSpace (S : Scheme) : LocallyRingedSpace := { ..S }
+
+/--
+The empty scheme, as `Spec 0`.
+-/
+noncomputable
+def empty : Scheme :=
+{ local_ring := λ x, false.elim (prime_spectrum.punit x),
+  local_affine := λ x, false.elim (prime_spectrum.punit x),
+  ..Spec.SheafedSpace (CommRing.of punit) }
+
+noncomputable
+instance : inhabited Scheme := ⟨empty⟩
 
 /--
 Schemes are a full subcategory of locally ringed spaces.

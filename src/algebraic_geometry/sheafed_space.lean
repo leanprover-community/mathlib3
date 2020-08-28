@@ -50,6 +50,10 @@ rfl
 
 instance (X : SheafedSpace.{v} C) : topological_space X := X.carrier.str
 
+instance (X : Top) : inhabited (SheafedSpace (discrete punit)) :=
+⟨{ sheaf_condition := sheaf_condition_punit _,
+  ..@PresheafedSpace.const (discrete punit) _ X punit.star }⟩
+
 instance : category (SheafedSpace C) :=
 show category (induced_category (PresheafedSpace C) SheafedSpace.to_PresheafedSpace),
 by apply_instance

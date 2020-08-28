@@ -47,6 +47,15 @@ instance coe_carrier : has_coe (PresheafedSpace C) Top :=
 
 instance (X : PresheafedSpace.{v} C) : topological_space X := X.carrier.str
 
+/-- The constant presheaf on `X` with value `Z`. -/
+def const (X : Top) (Z : C) : PresheafedSpace C :=
+{ carrier := X,
+  presheaf :=
+  { obj := λ U, Z,
+    map := λ U V f, 𝟙 Z, } }
+
+instance (X : Top) (Z : C) : inhabited (PresheafedSpace C) := ⟨const X Z⟩
+
 /-- A morphism between presheafed spaces `X` and `Y` consists of a continuous map
     `f` between the underlying topological spaces, and a (notice contravariant!) map
     from the presheaf on `Y` to the pushforward of the presheaf on `X` via `f`. -/

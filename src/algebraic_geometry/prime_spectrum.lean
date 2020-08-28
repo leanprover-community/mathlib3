@@ -6,6 +6,7 @@ Authors: Johan Commelin
 import topology.opens
 import ring_theory.ideal.operations
 import linear_algebra.finsupp
+import algebra.punit_instances
 
 /-!
 # Prime spectrum of a commutative ring
@@ -64,6 +65,16 @@ abbreviation as_ideal (x : prime_spectrum R) : ideal R := x.val
 
 instance is_prime (x : prime_spectrum R) :
   x.as_ideal.is_prime := x.2
+
+/--
+The prime spectrum of the zero ring is empty.
+-/
+lemma punit (x : prime_spectrum punit) : false :=
+begin
+  apply x.2.1,
+  ext ⟨⟩,
+  exact ⟨λ h, trivial, λ h, ideal.zero_mem x.1⟩,
+end
 
 @[ext] lemma ext {x y : prime_spectrum R} :
   x = y ↔ x.as_ideal = y.as_ideal :=

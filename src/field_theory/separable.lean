@@ -316,7 +316,7 @@ begin
     ring_exp }
 end
 
-theorem expand_pow_char (f : polynomial F) (n : ℕ) :
+theorem map_expand_pow_char (f : polynomial F) (n : ℕ) :
    map ((frobenius F p) ^ n) (expand F (p ^ n) f) = f ^ (p ^ n) :=
 begin
   induction n, {simp [ring_hom.one_def]},

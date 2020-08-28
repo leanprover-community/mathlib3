@@ -54,12 +54,10 @@ def diagram_comp_preserves_limits :
   sheaf_condition.diagram F U ⋙ G ≅ sheaf_condition.diagram (F ⋙ G) U :=
 begin
   fapply nat_iso.of_components,
-  intro j,
-  cases j,
+  rintro ⟨j⟩,
   exact (preserves_products_iso _ _),
   exact (preserves_products_iso _ _),
-  intros j j' f,
-  cases j; cases j'; cases f,
+  rintros ⟨⟩ ⟨⟩ ⟨⟩,
   { ext, simp, dsimp, simp, }, -- non-terminal `simp`, but `squeeze_simp` fails
   { ext,
     simp only [limit.lift_π, functor.comp_map, parallel_pair_map_left, fan.mk_π_app,

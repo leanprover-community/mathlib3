@@ -847,26 +847,6 @@ end vector_space
 
 section tangent_map
 
-
--- include Is I's
-
-/- If a function is `C^n` on a domain with unique derivatives, then its bundled derivative
-is `C^m` when `m+1 ≤ n`. -/
-/-
-theorem times_cont_mdiff_on.times_cont_mdiff_on_tangent_map_within
-  {p : tangent_bundle I M}
-  (hf : times_cont_mdiff_within_at I I' n f s p.1) (hmn : m + 1 ≤ n) (hs : unique_mdiff_on I s) :
-  times_cont_mdiff_within_at I.tangent I'.tangent m (tangent_map_within I I' f s)
-  ((tangent_bundle.proj I M) ⁻¹' s) p :=
-begin
-  rw times_cont_mdiff_within_at_iff,
-  split,
-  sorry,
-end
-
-#exit
--/
-
 /-- If a function is `C^n` with `1 ≤ n` on a domain with unique derivatives, then its bundled
 derivative is continuous. In this auxiliary lemma, we prove this fact when the source and target
 space are model spaces in models with corners. The general fact is proved in
@@ -1006,14 +986,15 @@ begin
      l^{-1}      f       r
   H --------> M ---> M' ---> H'
   ```
-  Then the derivative `D(r ∘ f ∘ l)` is smooth by a previous result. Consider the composition
+  Then the tangent map `T(r ∘ f ∘ l)` is smooth by a previous result. Consider the composition
   ```
-      Dl       D(r ∘ f ∘ l^{-1})        Dr^{-1}
-  TM -----> TH ------------------> TH' --------> TM'
+      Tl        T(r ∘ f ∘ l^{-1})         Tr^{-1}
+  TM -----> TH -------------------> TH' ---------> TM'
   ```
-  where `Dr^{-1}` and `Dl^{-1}` denote the charts on `TM` and `TM'` (they are smooth, by definition
-  of charts) and `ir` and `il` are charts of `TH` and `TH'`, also smooth. The composition of all
-  these maps is `Df`, and is therefore smooth as a composition of smooth maps.
+  where `Tr^{-1}` and `Tl` are the tangent maps of `r^{-1}` and `l`. Writing `Tl` and `Tr^{-1}` as
+  composition of charts (called `Dl` and `il` for `l` and `Dr` and `ir` in the proof below), it
+  follows that they are smooth. The composition of all these maps is `Tf`, and is therefore smooth
+  as a composition of smooth maps.
   -/
   have m_le_n : m ≤ n,
   { apply le_trans _ hmn,

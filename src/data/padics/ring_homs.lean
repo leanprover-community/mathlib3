@@ -675,11 +675,27 @@ end
 
 end lift
 
-lemma ext_of_to_zmod_pow (x y : ℤ_[p]) (h : ∀ n, to_zmod_pow n x = to_zmod_pow n y) :
-  x = y :=
+lemma ext_of_to_zmod_pow {x y : ℤ_[p]} :
+  (∀ n, to_zmod_pow n x = to_zmod_pow n y) ↔ x = y :=
 begin
-  rw [← lift_self x, ← lift_self y],
-  simp [lift, lim_nth_hom, nth_hom, h],
+  split,
+  { intro h,
+    rw [← lift_self x, ← lift_self y],
+    simp [lift, lim_nth_hom, nth_hom, h] },
+  { rintro rfl _, refl }
+end
+
+lemma to_zmod_pow_eq_iff_ext {R : Type*} [comm_ring R] {g g' : R →+* ℤ_[p]} :
+  (∀ n, (to_zmod_pow n).comp g = (to_zmod_pow n).comp g') ↔ g = g' :=
+begin
+  split,
+  { intro hg,
+    ext x : 1,
+    apply ext_of_to_zmod_pow.mp,
+    intro n,
+    show (to_zmod_pow n).comp g x = (to_zmod_pow n).comp g' x,
+    rw hg n },
+  { rintro rfl _, refl }
 end
 
 end padic_int

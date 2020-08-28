@@ -27,9 +27,11 @@ def of_subtype {p : α → Prop} [decidable_pred p] : perm (subtype p) →* perm
 { to_fun := λ f,
   ⟨λ x, if h : p x then f ⟨x, h⟩ else x, λ x, if h : p x then f⁻¹ ⟨x, h⟩ else x,
   λ x, have h : ∀ h : p x, p (f ⟨x, h⟩), from λ h, (f ⟨x, h⟩).2,
-    by simp only []; split_ifs at *; simp * at *,
+    by { simp only [], split_ifs at *;
+         simp only [perm.inv_apply_self, subtype.coe_eta, subtype.coe_mk, not_true, *] at * },
   λ x, have h : ∀ h : p x, p (f⁻¹ ⟨x, h⟩), from λ h, (f⁻¹ ⟨x, h⟩).2,
-    by simp only []; split_ifs at *; simp * at *⟩,
+    by { simp only [], split_ifs at *;
+         simp only [perm.apply_inv_self, subtype.coe_eta, subtype.coe_mk, not_true, *] at *}⟩,
   map_one' := begin ext, dsimp, split_ifs; refl, end,
   map_mul' := λ f g, equiv.ext $ λ x, begin
   by_cases h : p x,
@@ -105,7 +107,7 @@ lemma of_subtype_apply_of_not_mem {p : α → Prop} [decidable_pred p] (f : perm
 lemma mem_iff_of_subtype_apply_mem {p : α → Prop} [decidable_pred p] (f : perm (subtype p)) (x : α) :
   p x ↔ p ((of_subtype f : α → α) x) :=
 if h : p x then by dsimp [of_subtype]; simpa [h] using (f ⟨x, h⟩).2
-else by simp [h, of_subtype_apply_of_not_mem f h]
+else by squeeze_simp [h, of_subtype_apply_of_not_mem f h]
 
 @[simp] lemma subtype_perm_of_subtype {p : α → Prop} [decidable_pred p] (f : perm (subtype p)) :
   subtype_perm (of_subtype f) (mem_iff_of_subtype_apply_mem f) = f :=
@@ -149,7 +151,7 @@ lemma swap_mul_eq_mul_swap (f : perm α) (x y : α) : swap x y * f = f * swap (f
 equiv.ext $ λ z, begin
   simp only [perm.mul_apply, swap_apply_def],
   split_ifs;
-  simp [*, eq_inv_iff_eq] at * <|> cc
+  simp only [perm.apply_inv_self, *, eq_inv_iff_eq,eq_self_iff_true, not_true] at *
 end
 
 lemma mul_swap_eq_swap_mul (f : perm α) (x y : α) : f * swap x y = swap (f x) (f y) * f :=
@@ -176,7 +178,7 @@ let ⟨⟨x, hx⟩, ⟨y, hy⟩, hxy⟩ := h in
     rw [hxy.2, of_subtype],
     simp only [swap_apply_def, coe_fn_mk, swap_inv, subtype.mk_eq_mk, monoid_hom.coe_mk],
     split_ifs;
-    cc <|> simp * at *
+    cc <|> simp only [subtype.coe_mk] at *
   end⟩
 
 lemma ne_and_ne_of_swap_mul_apply_ne_self {f : perm α} {x y : α}
@@ -184,7 +186,7 @@ lemma ne_and_ne_of_swap_mul_apply_ne_self {f : perm α} {x y : α}
 begin
   simp only [swap_apply_def, mul_apply, injective.eq_iff f.injective] at *,
   by_cases h : f y = x,
-  { split; intro; simp * at * },
+  { split; intro; simp only [*, if_true, eq_self_iff_true, not_true, ne.def] at *},
   { split_ifs at hy; cc }
 end
 
@@ -196,9 +198,9 @@ finset.ext $ λ y,
     mem_erase.2 ⟨λ hyx, by simp [hyx, mul_apply, *] at *,
     mem_support.2 $ λ hfy,
       by simp only [mul_apply, swap_apply_def, hfy] at hy';
-      split_ifs at hy'; simp * at *⟩,
+      split_ifs at hy'; simp only [*, eq_self_iff_true, not_true, ne.def, apply_eq_iff_eq] at *⟩,
   λ hy, by simp only [mem_erase, mem_support, swap_apply_def, mul_apply] at *;
-    intro; split_ifs at *; simp * at *⟩
+    intro; split_ifs at *; simp only [*, eq_self_iff_true, not_true, ne.def] at *⟩
 
 lemma card_support_swap_mul [fintype α] {f : perm α} {x : α}
   (hx : f x ≠ x) : (swap x (f x) * f).support.card < f.support.card :=
@@ -240,7 +242,7 @@ quotient.rec_on_subsingleton (@univ α _).1
 begin
   cases trunc.out (trunc_swap_factors f) with l hl,
   induction l with g l ih generalizing f,
-  { simp [hl.1.symm] {contextual := tt} },
+  { simp only [hl.left.symm, list.prod_nil, forall_true_iff] {contextual := tt}},
   { assume h1 hmul_swap,
     rcases hl.2 g (by simp) with ⟨x, y, hxy⟩,
     rw [← hl.1, list.prod_cons, hxy.2],
@@ -488,7 +490,8 @@ quotient.induction_on₂ t s
     from let n := trunc.out (equiv_fin β) in
     by rw [← sign_aux_eq_sign_aux2 _ _ n (λ _ _, h₁ _),
         ← sign_aux_eq_sign_aux2 _ _ (e.trans n) (λ _ _, h₂ _)];
-      exact congr_arg sign_aux (equiv.ext (λ x, by simp)))
+      exact congr_arg sign_aux
+        (equiv.ext (λ x, by simp only [equiv.coe_trans, apply_eq_iff_eq, symm_trans_apply])))
   ht hs
 
 lemma sign_symm_trans_trans [decidable_eq β] [fintype β] (f : perm α)

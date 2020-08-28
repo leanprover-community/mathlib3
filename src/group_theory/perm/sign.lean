@@ -17,7 +17,8 @@ namespace equiv.perm
 
 def subtype_perm (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) : perm {x // p x} :=
 ⟨λ x, ⟨f x, (h _).1 x.2⟩, λ x, ⟨f⁻¹ x, (h (f⁻¹ x)).2 $ by simpa using x.2⟩,
-  λ _, by simp, λ _, by simp⟩
+  λ _, by simp only [perm.inv_apply_self, subtype.coe_eta, subtype.coe_mk],
+  λ _, by simp only [perm.apply_inv_self, subtype.coe_eta, subtype.coe_mk]⟩
 
 @[simp] lemma subtype_perm_one (p : α → Prop) (h : ∀ x, p x ↔ p ((1 : perm α) x)) : @subtype_perm α 1 p h = 1 :=
 equiv.ext $ λ ⟨_, _⟩, rfl
@@ -26,17 +27,18 @@ def of_subtype {p : α → Prop} [decidable_pred p] : perm (subtype p) →* perm
 { to_fun := λ f,
   ⟨λ x, if h : p x then f ⟨x, h⟩ else x, λ x, if h : p x then f⁻¹ ⟨x, h⟩ else x,
   λ x, have h : ∀ h : p x, p (f ⟨x, h⟩), from λ h, (f ⟨x, h⟩).2,
-    by simp; split_ifs at *; simp * at *,
+    by simp only []; split_ifs at *; simp * at *,
   λ x, have h : ∀ h : p x, p (f⁻¹ ⟨x, h⟩), from λ h, (f⁻¹ ⟨x, h⟩).2,
-    by simp; split_ifs at *; simp * at *⟩,
+    by simp only []; split_ifs at *; simp * at *⟩,
   map_one' := begin ext, dsimp, split_ifs; refl, end,
   map_mul' := λ f g, equiv.ext $ λ x, begin
   by_cases h : p x,
   { have h₁ : p (f (g ⟨x, h⟩)), from (f (g ⟨x, h⟩)).2,
     have h₂ : p (g ⟨x, h⟩), from (g ⟨x, h⟩).2,
-    simp [h, h₁, h₂] },
-  { simp [h] }
+    simp only [h, h₂, coe_fn_mk, perm.mul_apply, dif_pos, subtype.coe_eta] },
+  { simp only [h, coe_fn_mk, perm.mul_apply, dif_neg, not_false_iff] }
 end }
+
 
 lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y :=
 by conv {to_lhs, rw [← injective.eq_iff f.injective, apply_inv_self]}
@@ -49,7 +51,7 @@ every element is fixed either by `f`, or by `g`. -/
 def disjoint (f g : perm α) := ∀ x, f x = x ∨ g x = x
 
 @[symm] lemma disjoint.symm {f g : perm α} : disjoint f g → disjoint g f :=
-by simp [disjoint, or.comm]
+by simp only [disjoint, or.comm, imp_self]
 
 lemma disjoint_comm {f g : perm α} : disjoint f g ↔ disjoint g f :=
 ⟨disjoint.symm, disjoint.symm⟩
@@ -92,9 +94,9 @@ lemma of_subtype_subtype_perm {f : perm α} {p : α → Prop} [decidable_pred p]
 equiv.ext $ λ x, begin
   rw [of_subtype, subtype_perm],
   by_cases hx : p x,
-  { simp [hx] },
+  { simp only [hx, coe_fn_mk, dif_pos, monoid_hom.coe_mk, subtype.coe_mk]},
   { haveI := classical.prop_decidable,
-    simp [hx, not_not.1 (mt (h₂ x) hx)] }
+    simp only [hx, not_not.mp (mt (h₂ x) hx), coe_fn_mk, dif_neg, not_false_iff, monoid_hom.coe_mk] }
 end
 
 lemma of_subtype_apply_of_not_mem {p : α → Prop} [decidable_pred p] (f : perm (subtype p)) {x : α} (hx : ¬ p x) :
@@ -139,13 +141,13 @@ variable [decidable_eq α]
 def support [fintype α] (f : perm α) := univ.filter (λ x, f x ≠ x)
 
 @[simp] lemma mem_support [fintype α] {f : perm α} {x : α} : x ∈ f.support ↔ f x ≠ x :=
-by simp [support]
+by simp only [support, true_and, mem_filter, mem_univ]
 
 def is_swap (f : perm α) := ∃ x y, x ≠ y ∧ f = swap x y
 
 lemma swap_mul_eq_mul_swap (f : perm α) (x y : α) : swap x y * f = f * swap (f⁻¹ x) (f⁻¹ y) :=
 equiv.ext $ λ z, begin
-  simp [mul_apply, swap_apply_def],
+  simp only [perm.mul_apply, swap_apply_def],
   split_ifs;
   simp [*, eq_inv_iff_eq] at * <|> cc
 end
@@ -172,7 +174,7 @@ let ⟨⟨x, hx⟩, ⟨y, hy⟩, hxy⟩ := h in
 ⟨x, y, by simp at hxy; tauto,
   equiv.ext $ λ z, begin
     rw [hxy.2, of_subtype],
-    simp [swap_apply_def],
+    simp only [swap_apply_def, coe_fn_mk, swap_inv, subtype.mk_eq_mk, monoid_hom.coe_mk],
     split_ifs;
     cc <|> simp * at *
   end⟩
@@ -293,7 +295,7 @@ lemma sign_bij_aux_inj {n : ℕ} {f : perm (fin n)} : ∀ a b : Σ a : fin n, fi
   rw mem_fin_pairs_lt at *,
   have : ¬b₁ < b₂ := not_lt_of_ge (le_of_lt hb),
   split_ifs at h;
-  simp [*, injective.eq_iff f.injective, sigma.mk.inj_eq] at *
+  simp only [*, (equiv.injective f).eq_iff, eq_self_iff_true, and_self, heq_iff_eq] at *,
 end
 
 lemma sign_bij_aux_surj {n : ℕ} {f : perm (fin n)} : ∀ a ∈ fin_pairs_lt n,
@@ -620,7 +622,7 @@ lemma is_cycle_swap_mul_aux₂ : ∀ (n : ℤ) {b x : α} {f : perm α}
   have hb : (swap x (f⁻¹ x) * f⁻¹) (f⁻¹ b) ≠ f⁻¹ b,
     by rw [mul_apply, swap_apply_def];
       split_ifs;
-      simp [inv_eq_iff_eq, eq_inv_iff_eq] at *; cc,
+      simp only [inv_eq_iff_eq, perm.mul_apply, gpow_neg_succ_of_nat, ne.def, perm.apply_inv_self] at *; cc,
   let ⟨i, hi⟩ := is_cycle_swap_mul_aux₁ n hb
     (show (f⁻¹ ^ n) (f⁻¹ x) = f⁻¹ b, by
       rw [← gpow_coe_nat, ← h, ← mul_apply, ← mul_apply, ← mul_apply, gpow_neg_succ_of_nat, ← inv_pow, pow_succ', mul_assoc,

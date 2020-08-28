@@ -77,16 +77,16 @@ namespace interactive
 setup_tactic_parser
 
 /--
-Solve goals of the form `continuous f`.
+Solve goals of the form `continuous f`. `continuity?` reports back the tactic script it found.
 -/
 meta def continuity
-  (bang : parse $ optional (tk "!")) (cfg : tidy.cfg := {}) : tactic unit :=
+  (bang : parse $ optional (tk "!")) (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) : tactic unit :=
 with_local_reducibility `continuous decl_reducibility.irreducible $
 let md := if bang.is_some then semireducible else reducible in
-tactic.tidy { tactics := continuity_tactics md, ..cfg }
+tactic.tidy { tactics := continuity_tactics md, trace_result := trace.is_some, ..cfg }
 
 /-- Version of `continuity` for use with auto_param. -/
-meta def continuity' : tactic unit := continuity none {}
+meta def continuity' : tactic unit := continuity none none {}
 
 /--
 `continuity` solves goals of the form `continuous f` by applying lemmas tagged with the

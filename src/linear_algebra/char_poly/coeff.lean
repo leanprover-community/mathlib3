@@ -186,6 +186,30 @@ begin
   { congr, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
 end
 
+lemma finite_field.char_poly_pow_card {K : Type*} [field K] [fintype K] (M : matrix n n K) :
+  char_poly (M ^ (fintype.card K)) = char_poly M :=
+begin
+  by_cases hn : nonempty n,
+  { letI := hn,
+    cases char_p.exists K with p hp, letI := hp,
+  rcases finite_field.card K p with ⟨⟨k, kpos⟩, ⟨hp, hk⟩⟩, letI : fact p.prime := hp,
+  dsimp at hk, rw hk at *,
+    apply (frobenius_inj (polynomial K) p).iterate k, repeat {rw frobenius_def},
+    rw ← finite_field.expand_card,
+    unfold char_poly, rw [alg_hom.map_det, ← is_monoid_hom.map_pow],
+    apply congr_arg det,
+    apply mat_poly_equiv.injective, swap, { apply_instance },
+    rw [← mat_poly_equiv.coe_alg_hom, alg_hom.map_pow, mat_poly_equiv.coe_alg_hom,
+          mat_poly_equiv_char_matrix, sub_pow_char_of_commute, ← C_pow],
+    swap, { apply polynomial.commute_X },
+    -- the following is a nasty case bash that should be abstracted as a lemma
+    -- (and maybe it can be proven more... algebraically?)
+    ext, rw [coeff_sub, coeff_C],
+    by_cases hij : i = j; simp [char_matrix, hij, coeff_X_pow];
+    simp only [coeff_C]; split_ifs; simp *, },
+  { congr, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
+end
+
 lemma zmod.trace_pow_p {p:ℕ} [fact p.prime] [nonempty n] (M : matrix n n (zmod p)) :
   trace n (zmod p) (zmod p) (M ^ p) = (trace n (zmod p) (zmod p) M)^p :=
 by rw [trace_eq_neg_char_poly_coeff, trace_eq_neg_char_poly_coeff,

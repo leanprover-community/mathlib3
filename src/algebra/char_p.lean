@@ -143,6 +143,12 @@ variable {R}
 
 theorem frobenius_def : frobenius R p x = x ^ p := rfl
 
+theorem iterate_frobenius (n : ℕ) : (frobenius R p)^[n] x = x ^ p ^ n :=
+begin
+  induction n, {simp},
+  rw [function.iterate_succ', nat.pow_succ, pow_mul, function.comp_apply, frobenius_def, n_ih]
+end
+
 theorem frobenius_mul : frobenius R p (x * y) = frobenius R p x * frobenius R p y :=
 (frobenius R p).map_mul x y
 

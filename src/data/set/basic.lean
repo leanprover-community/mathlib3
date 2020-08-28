@@ -2048,11 +2048,16 @@ def inclusion {s t : set α} (h : s ⊆ t) : s → t :=
 λ x : s, (⟨x, h x.2⟩ : t)
 
 @[simp] lemma inclusion_self {s : set α} (x : s) :
-  inclusion (set.subset.refl _) x = x := by cases x; refl
+  inclusion (set.subset.refl _) x = x :=
+by { cases x, refl }
+
+@[simp] lemma inclusion_right {s t : set α} (h : s ⊆ t) (x : t) (m : (x : α) ∈ s) :
+  inclusion h ⟨x, m⟩ = x :=
+by { cases x, refl }
 
 @[simp] lemma inclusion_inclusion {s t u : set α} (hst : s ⊆ t) (htu : t ⊆ u)
   (x : s) : inclusion htu (inclusion hst x) = inclusion (set.subset.trans hst htu) x :=
-by cases x; refl
+by { cases x, refl }
 
 @[simp] lemma coe_inclusion {s t : set α} (h : s ⊆ t) (x : s) :
   (inclusion h x : α) = (x : α) := rfl

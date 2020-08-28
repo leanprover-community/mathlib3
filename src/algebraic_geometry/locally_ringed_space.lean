@@ -63,6 +63,10 @@ The stalk of a locally ringed space, just as a `CommRing`.
 -- TODO define `sheaf.stalk` so we can write `X.𝒪.stalk` here?
 def stalk (X : LocallyRingedSpace) (x : X) := X.presheaf.stalk x
 
+/--
+A morphism of locally ringed spaces `f : X ⟶ Y` induces
+a local ring homomorphism from `Y.stalk (f x)` to `X.stalk x` for any `x : X`.
+-/
 def stalk_map {X Y : LocallyRingedSpace} (f : X ⟶ Y) (x : X) :
   Y.stalk (f.1.1 x) ⟶ X.stalk x :=
 PresheafedSpace.stalk_map f.1 x

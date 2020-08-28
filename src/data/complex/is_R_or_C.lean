@@ -55,9 +55,9 @@ lemma of_real_alg : ∀ x : ℝ, 𝓚 x = x • (1 : K) :=
 @[simp] lemma of_real_re : ∀ r : ℝ, re (𝓚 r) = r := is_R_or_C.of_real_re_ax
 @[simp] lemma of_real_im : ∀ r : ℝ, im (𝓚 r) = 0 := is_R_or_C.of_real_im_ax
 @[simp] lemma mul_re : ∀ z w : K, re (z * w) = re z * re w - im z * im w :=
-  is_R_or_C.mul_re_ax
+is_R_or_C.mul_re_ax
 @[simp] lemma mul_im : ∀ z w : K, im (z * w) = re z * im w + im z * re w :=
-  is_R_or_C.mul_im_ax
+is_R_or_C.mul_im_ax
 
 theorem ext_iff : ∀ {z w : K}, z = w ↔ re z = re w ∧ im z = im w :=
 λ z w, { mp := by { rintro rfl, cc },
@@ -85,13 +85,13 @@ lemma of_real_zero : 𝓚 0 = 0 := by rw [of_real_alg, zero_smul]
 by simp only [bit1, add_monoid_hom.map_add, bit0_re, add_right_inj, one_re]
 @[simp] lemma bit0_im (z : K) : im (bit0 z) = bit0 (im z) := by simp [bit0]
 @[simp] lemma bit1_im (z : K) : im (bit1 z) = bit0 (im z) :=
-  by simp only [bit1, add_right_eq_self, add_monoid_hom.map_add, bit0_im, one_im]
+by simp only [bit1, add_right_eq_self, add_monoid_hom.map_add, bit0_im, one_im]
 
 @[simp] theorem of_real_eq_zero {z : ℝ} : 𝓚 z = 0 ↔ z = 0 :=
-  by rw [←of_real_zero]; exact of_real_inj
+by rw [←of_real_zero]; exact of_real_inj
 
 @[simp] lemma of_real_add (r s : ℝ) : 𝓚 (r + s) = 𝓚 r + 𝓚 s :=
-  by apply (@is_R_or_C.ext_iff K _ _ _ (𝓚 (r + s)) (𝓚 r + 𝓚 s)).mpr; simp
+by apply (@is_R_or_C.ext_iff K _ _ _ (𝓚 (r + s)) (𝓚 r + 𝓚 s)).mpr; simp
 
 @[simp] lemma of_real_bit0 (r : ℝ) : 𝓚 (bit0 r : ℝ) = bit0 (𝓚 r) :=
 ext_iff.2 $ by simp [bit0]
@@ -110,14 +110,14 @@ end
 @[simp] lemma of_real_mul (r s : ℝ) : 𝓚 (r * s : ℝ) = (𝓚 r) * (𝓚 s) := ext_iff.2 $ by simp
 
 lemma smul_re (r : ℝ) (z : K) : re ((𝓚 r) * z) = r * (re z) :=
-  by simp only [of_real_im, zero_mul, of_real_re, sub_zero, mul_re]
+by simp only [of_real_im, zero_mul, of_real_re, sub_zero, mul_re]
 lemma smul_im (r : ℝ) (z : K) : im ((𝓚 r) * z) = r * (im z) :=
-  by simp only [add_zero, of_real_im, zero_mul, of_real_re, mul_im]
+by simp only [add_zero, of_real_im, zero_mul, of_real_re, mul_im]
 
 lemma smul_re' : ∀ (r : ℝ) (z : K), re (r • z) = r * (re z) :=
-  λ r z, by { rw [smul_coe_mul_ax], apply smul_re }
+λ r z, by { rw [smul_coe_mul_ax], apply smul_re }
 lemma smul_im' : ∀ (r : ℝ) (z : K), im (r • z) = r * (im z) :=
-  λ r z, by { rw [smul_coe_mul_ax], apply smul_im }
+λ r z, by { rw [smul_coe_mul_ax], apply smul_im }
 
 /-! ### The imaginary unit, `I` -/
 
@@ -145,7 +145,7 @@ lemma conj_bijective : @function.bijective K K is_R_or_C.conj := conj_involutive
 lemma conj_inj (z w : K) : conj z = conj w ↔ z = w := conj_bijective.1.eq_iff
 
 @[simp] lemma conj_eq_zero {z : K} : conj z = 0 ↔ z = 0 :=
-  by simpa using @conj_inj K _ _ _ z 0
+by simpa using @conj_inj K _ _ _ z 0
 
 lemma eq_conj_iff_real {z : K} : conj z = z ↔ ∃ r : ℝ, z = (𝓚 r) :=
 begin
@@ -230,9 +230,9 @@ by simp [-mul_re, norm_sq_add, add_comm, add_left_comm, sub_eq_add_neg]
 lemma inv_def {z : K} : z⁻¹ = conj z * of_real ((∥z∥^2)⁻¹) := inv_def_ax z
 
 @[simp] lemma inv_re (z : K) : re (z⁻¹) = re z / norm_sq z :=
-  by simp [inv_def, norm_sq_eq_def, norm_sq, division_def]
+by simp [inv_def, norm_sq_eq_def, norm_sq, division_def]
 @[simp] lemma inv_im (z : K) : im (z⁻¹) = im (-z) / norm_sq z :=
-  by simp [inv_def, norm_sq_eq_def, norm_sq, division_def]
+by simp [inv_def, norm_sq_eq_def, norm_sq, division_def]
 
 @[simp] lemma of_real_inv (r : ℝ) : 𝓚 (r⁻¹) = (𝓚 r)⁻¹ :=
 begin
@@ -323,7 +323,7 @@ add_group.char_zero_of_inj_zero $ λ n h,
 by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
 theorem re_eq_add_conj (z : K) : 𝓚 (re z) = (z + conj z) / 2 :=
-  by rw [add_conj]; simp; rw [mul_div_cancel_left (𝓚 (re z)) two_ne_zero]
+by rw [add_conj]; simp; rw [mul_div_cancel_left (𝓚 (re z)) two_ne_zero]
 
 
 /-! ### Absolute value -/
@@ -500,7 +500,7 @@ noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
 noncomputable instance complex.is_R_or_C : is_R_or_C ℂ :=
 { re := ⟨complex.re, complex.zero_re, complex.add_re⟩,
   im := ⟨complex.im, complex.zero_im, complex.add_im⟩,
-  conj := complex.conj
+  conj := complex.conj,
   I := complex.I,
   of_real := coe,
   I_re_ax := by simp only [add_monoid_hom.coe_mk, complex.I_re],
@@ -548,7 +548,7 @@ local notation `norm_sqC` := @is_R_or_C.norm_sq ℂ _ _ _
 @[simp] lemma of_real_to_real {x : ℝ} : of_realR x = x := rfl
 @[simp] lemma norm_sq_to_real {x : ℝ} : norm_sqR x = x*x := by simp [is_R_or_C.norm_sq]
 @[simp] lemma abs_to_real {x : ℝ} : absR x = _root_.abs x :=
-  by simp [is_R_or_C.abs, abs, real.sqrt_mul_self_eq_abs]
+by simp [is_R_or_C.abs, abs, real.sqrt_mul_self_eq_abs]
 
 @[simp] lemma re_to_complex {x : ℂ} : reC x = x.re := rfl
 @[simp] lemma im_to_complex {x : ℂ} : imC x = x.im := rfl
@@ -556,9 +556,9 @@ local notation `norm_sqC` := @is_R_or_C.norm_sq ℂ _ _ _
 @[simp] lemma I_to_complex : IC = complex.I := rfl
 @[simp] lemma of_real_to_complex {x : ℝ} : of_realC x = x := rfl
 @[simp] lemma norm_sq_to_complex {x : ℂ} : norm_sqC x = complex.norm_sq x :=
-  by simp [is_R_or_C.norm_sq, complex.norm_sq]
+by simp [is_R_or_C.norm_sq, complex.norm_sq]
 @[simp] lemma abs_to_complex {x : ℂ} : absC x = complex.abs x :=
-  by simp [is_R_or_C.abs, complex.abs]
+by simp [is_R_or_C.abs, complex.abs]
 
 end cleanup_lemmas
 

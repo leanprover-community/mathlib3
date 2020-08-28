@@ -83,8 +83,7 @@ lemma eq_mk_of_is_sol_of_eq_init {u : ℕ → α} {init : fin E.order → α}
   else begin
     rw [mk_sol, ← nat.sub_add_cancel (le_of_not_lt h'), h (n-E.order)],
     simp [h'],
-    congr',
-    ext k,
+    congr' with k,
     exact have wf : n - E.order + k.1 < n, by have := k.2; omega,
       by rw eq_mk_of_is_sol_of_eq_init
   end

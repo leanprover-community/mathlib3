@@ -177,6 +177,10 @@ theorem span_singleton_prime {p : α} (hp : p ≠ 0) :
   is_prime (span ({p} : set α)) ↔ prime p :=
 by simp [is_prime, prime, span_singleton_eq_top, hp, mem_span_singleton]
 
+lemma bot_prime {R : Type*} [integral_domain R] : (⊥ : ideal R).is_prime :=
+⟨λ h, one_ne_zero (by rwa [ideal.eq_top_iff_one, submodule.mem_bot] at h),
+ λ x y h, mul_eq_zero.mp (by simpa only [submodule.mem_bot] using h)⟩
+
 /-- An ideal is maximal if it is maximal in the collection of proper ideals. -/
 @[class] def is_maximal (I : ideal α) : Prop :=
 I ≠ ⊤ ∧ ∀ J, I < J → J = ⊤
@@ -329,6 +333,11 @@ instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
   .. quotient.comm_ring I,
   .. quotient.nontrivial hI.1 }
 
+lemma is_integral_domain_iff_prime (I : ideal α) : is_integral_domain I.quotient ↔ I.is_prime :=
+⟨ λ ⟨h1, h2, h3⟩, ⟨zero_ne_one_iff.1 $ @zero_ne_one _ _ ⟨h1⟩, λ x y h,
+    by { simp only [←eq_zero_iff_mem, (mk I).map_mul] at ⊢ h, exact h3 _ _ h}⟩,
+  λ h, by exactI integral_domain.to_is_integral_domain I.quotient⟩
+
 lemma exists_inv {I : ideal α} [hI : I.is_maximal] :
  ∀ {a : I.quotient}, a ≠ 0 → ∃ b : I.quotient, a * b = 1 :=
 begin
@@ -449,7 +458,7 @@ begin
   all_goals { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ <|> rintro ⟨a⟩,
     simp only [(•), submodule.quotient.quot_mk_eq_mk, ideal.quotient.mk_eq_mk],
     change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
-    congr, ext, simp [mul_assoc, mul_add, add_mul] }
+    congr' with i, simp [mul_assoc, mul_add, add_mul] }
 end
 
 /-- `R^n/I^n` is isomorphic to `(R/I)^n` as an `R/I`-module. -/

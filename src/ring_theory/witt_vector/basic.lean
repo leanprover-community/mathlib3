@@ -709,14 +709,36 @@ begin
 end
 
 noncomputable def ghost_map_fun : 𝕎 p R → (ℕ → R) := λ w n, ghost_component n w
+#where
+
+end witt_vectors
+
+section tactic
+setup_tactic_parser
+open tactic
+meta def tactic.interactive.ghost_boo (poly fn: parse parser.pexpr) : tactic unit :=
+do to_expr ```(witt_structure_int_prop p (%%poly) n) >>= note `aux none >>=
+     apply_fun_to_hyp ```(aeval %%fn) none,
+`[convert aux using 1; clear aux,
+  simp only [aeval_eq_eval₂_hom, eval₂_hom_map_hom, map_eval₂_hom];
+  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl;
+  funext k;
+  exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl,
+  all_goals { simp only [aeval_eq_eval₂_hom, ring_hom.map_add, ring_hom.map_one, ring_hom.map_neg,
+                         ring_hom.map_mul, eval₂_hom_X'];
+              simp only [coe_eval₂_hom, eval₂_rename];
+              refl }]
+
+end tactic
+
+namespace witt_vectors
+local notation `𝕎` := witt_vectors -- type as `\bbW`
+
 
 section p_prime
 
-meta def ghost_boo : tactic unit :=
-`[simp only [aeval_eq_eval₂_hom, eval₂_hom_map_hom, map_eval₂_hom],
-  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-  funext k,
-  exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl]
+open finset mv_polynomial function set
+variables [comm_ring R] [comm_ring S] [comm_ring T]
 
 @[simp] lemma ghost_map_fun_apply (x : 𝕎 p R) (n : ℕ) :
   ghost_map_fun x n = ghost_component n x := rfl
@@ -726,60 +748,25 @@ include hp
 
 @[simp] lemma ghost_component_zero (n : ℕ) :
   ghost_component n (0 : 𝕎 p R) = 0 :=
-begin
-  have aux := witt_structure_int_prop p (0 : mv_polynomial empty ℤ) n,
-  apply_fun (aeval (λ (p : empty × ℕ), (p.1.elim : R))) at aux,
-  convert aux using 1; clear aux,
-  ghost_boo,
-end
+by ghost_boo (0 : mv_polynomial empty ℤ) (λ (p : empty × ℕ), (p.1.elim : R))
 
 @[simp] lemma ghost_component_one (n : ℕ) :
   ghost_component n (1 : 𝕎 p R) = 1 :=
-begin
-  have aux := witt_structure_int_prop p (1 : mv_polynomial empty ℤ) n,
-  apply_fun (aeval (λ (p : empty × ℕ), (p.1.elim : R))) at aux,
-  convert aux using 1; clear aux,
-  { ghost_boo },
-  { simp only [aeval_eq_eval₂_hom, ring_hom.map_one, eval₂_hom_X', eval₂_rename], }
-end
+by ghost_boo (1 : mv_polynomial empty ℤ) (λ (p : empty × ℕ), (p.1.elim : R))
 
 variable {R}
 
 @[simp] lemma ghost_component_add (n : ℕ) (x y : 𝕎 p R) :
   ghost_component n (x + y) = ghost_component n x + ghost_component n y :=
-begin
-  have aux := witt_structure_int_prop p (X tt + X ff) n,
-  apply_fun aeval (λ (bn : bool × ℕ), cond bn.1 (x bn.2) (y bn.2)) at aux,
-  convert aux using 1; clear aux,
-  { ghost_boo },
-  { simp only [aeval_eq_eval₂_hom, ring_hom.map_add, eval₂_hom_X'],
-    simp only [coe_eval₂_hom, eval₂_rename],
-    refl }
-end
+by ghost_boo (X tt + X ff) (λ (bn : bool × ℕ), cond bn.1 (x bn.2) (y bn.2))
 
 @[simp] lemma ghost_component_mul (n : ℕ) (x y : 𝕎 p R) :
   ghost_component n (x * y) = ghost_component n x * ghost_component n y :=
-begin
-  have aux := witt_structure_int_prop p (X tt * X ff) n,
-  apply_fun aeval (λ (bn : bool × ℕ), cond bn.1 (x bn.2) (y bn.2)) at aux,
-  convert aux using 1; clear aux,
-  { ghost_boo },
-  { simp only [aeval_eq_eval₂_hom, ring_hom.map_mul, eval₂_hom_X'],
-    simp only [coe_eval₂_hom, eval₂_rename],
-    refl }
-end
+by ghost_boo (X tt * X ff) (λ (bn : bool × ℕ), cond bn.1 (x bn.2) (y bn.2))
 
 @[simp] lemma ghost_component_neg (n : ℕ) (x : 𝕎 p R) :
   ghost_component n (-x) = - ghost_component n x :=
-begin
-  have aux := witt_structure_int_prop p (-X unit.star) n,
-  apply_fun aeval (λ (n : unit × ℕ), (x n.2)) at aux,
-  convert aux using 1; clear aux,
-  { ghost_boo },
-  { simp only [aeval_eq_eval₂_hom, ring_hom.map_neg, eval₂_hom_X'],
-    simp only [coe_eval₂_hom, eval₂_rename],
-    refl }
-end
+by ghost_boo (-X unit.star) (λ (n : unit × ℕ), (x n.2))
 
 variables (R)
 

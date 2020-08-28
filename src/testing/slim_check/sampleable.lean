@@ -10,7 +10,7 @@ import tactic.linarith
 import testing.slim_check.gen
 
 /-!
-# Sampleable Class
+# `sampleable` Class
 
 This class permits the creation samples of a given type
 controlling the size of those values using the `gen` monad`. It also
@@ -59,8 +59,8 @@ export sampleable (sample shrink)
 
 open nat lazy_list
 
-/-- apply `f` to combine every element of the first list with every element
-of the second list and interleave the resulting lists
+/-- Apply `f` to combine every element of the first list with every element
+of the second list and interleave the resulting lists.
 
 For instance `lseq prod.mk [1,2,3] [4,5,6]` results in
 
@@ -68,7 +68,7 @@ For instance `lseq prod.mk [1,2,3] [4,5,6]` results in
 [(1, 4), (2, 4), (1, 5), (3, 4), (1, 6), (2, 5), (3, 5), (2, 6), (3, 6)]
 ```
 
-The purpose is to that two lists of shrunken values in ascending order of size
+The purpose is to take two lists of shrunken values in ascending order of size
 and produce a list of combined values in roughly ascending order of size too.
 
 If we add the samples instead with `lseq (+) [1,2,3] [1,2,3]`, we
@@ -85,7 +85,7 @@ def lazy_list.lseq {α β γ} (f : α → β → γ) : lazy_list α → lazy_lis
 
 /-- `nat.shrink' k n` creates a list of smaller natural numbers by
 successively dividing `n` by 2 and subtracting the difference from
-`k`. For example, `nat.shrink 100 = [50, 75, 88, 94, 97, 99]` -/
+`k`. For example, `nat.shrink 100 = [50, 75, 88, 94, 97, 99]`. -/
 def nat.shrink' (k : ℕ) : ℕ → list ℕ → list ℕ
 | n ls :=
 if h : n ≤ 1
@@ -99,7 +99,7 @@ if h : n ≤ 1
 
 /-- `nat.shrink n` creates a list of smaller natural numbers by
 successively dividing by 2 and subtracting the difference from
-`n`. For example, `nat.shrink 100 = [50, 75, 88, 94, 97, 99]` -/
+`n`. For example, `nat.shrink 100 = [50, 75, 88, 94, 97, 99]`. -/
 def nat.shrink (n : ℕ) : list ℕ :=
 nat.shrink' n n []
 
@@ -112,7 +112,7 @@ instance sampleable_nat : sampleable ℕ :=
 
 /-- `int.shrink' k n` creates a list of integers by successively
 dividing `n` by 2, subtracting the result from `k` and alternating the signs.
-For example, `int.shrink 40 = [20, -20, 30, -30, 35, -35, 38, -38, 39, -39]` -/
+For example, `int.shrink 40 = [20, -20, 30, -30, 35, -35, 38, -38, 39, -39]`. -/
 def int.shrink' (k : ℕ) : ℕ → list ℤ → list ℤ
 | n ls :=
 if h : 1 < n
@@ -125,7 +125,7 @@ if h : 1 < n
 
 /-- `int.shrink n` creates a list of integers by successively
 dividing by 2, subtracting the result from `n` and alternating the signs.
-For example, `int.shrink 40 = [20, -20, 30, -30, 35, -35, 38, -38, 39, -39]` -/
+For example, `int.shrink 40 = [20, -20, 30, -30, 35, -35, 38, -38, 39, -39]`. -/
 def int.shrink (i : ℤ) : list ℤ :=
 int.shrink' (int.nat_abs i) (int.nat_abs i) []
 
@@ -180,7 +180,7 @@ def list.shrink' (shrink_a : α → lazy_list α) : list α → lazy_list (list 
 
 /-- `list.shrink_with shrink_f xs` shrinks `xs` by deleting various items of the list
 and shrinking others (using `shrink_f`). `lseq` is being used to interleave the
-resulting shrunken lists to put smaller lists earlier in the results -/
+resulting shrunken lists to put smaller lists earlier in the results. -/
 def list.shrink_with (shrink_a : α → lazy_list α) (xs : list α) : lazy_list (list α) :=
 (list.shrink' shrink_a xs).init
 
@@ -205,7 +205,7 @@ then have n / 2 < n, from div_lt_self h (by norm_num),
 else pure tree.nil
 
 /-- `tree.shrink_with shrink_f t` shrinks `xs` by using subtrees, shrinking them,
-shrinking the contents and recombining the results into bigger trees -/
+shrinking the contents and recombining the results into bigger trees. -/
 def tree.shrink_with (shrink_a : α → lazy_list α) : tree α → lazy_list (tree α)
 | tree.nil := lazy_list.nil
 | (tree.node x t₀ t₁) :=

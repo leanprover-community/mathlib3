@@ -7,7 +7,7 @@ Author(s): Simon Hudon
 import testing.slim_check.sampleable
 
 /-!
-# Testable Class
+# `testable` Class
 
 Testable propositions have a procedure that can generate counter-examples
 together with a proof that they invalidate the proposition.
@@ -60,12 +60,12 @@ testable (λ x, x < 100)              -: decidable (λ x, x < 100)
 
 `sampleable ℕ` lets us create random data of type `ℕ` in a way that
 helps find small counter-examples.  Next, the test of the proposition
-hinges on `2 ∣ 100` and `x < 100` to both be decidable. The
+hinges on `2 ∣ 100` and `x < 100` both being decidable. The
 implication between the two could be tested as a whole but it would be
 less informative. Indeed, we could generate a hundred odd numbers and
 the property would be shown to hold for each but the right conclusion
 is that we haven't found meaningful examples. Instead, when `2 ∣ x`
-does not hold, we reject the example (i.e.  we do not count it toward
+does not hold, we reject the example (i.e. we do not count it toward
 the 100 required positive examples) and we start over. Therefore, when
 `testable.check` prints `Success`, it means that a hundred even
 numbers were found to be less than 100.
@@ -116,7 +116,7 @@ Again, we take advantage of the fact that other types have useful
 
 ### Optimizing the sampling
 
-Some properties are guarded by a proposition. For instance recall this
+Some properties are guarded by a proposition. For instance, recall this
 example:
 
 ```lean
@@ -188,7 +188,7 @@ instance {k : ℕ} : sampleable { x : ℕ // k ∣ x } :=
 
 ## Main definitions
   * `testable` class
-  * `testable.check` a way to test a proposition using random examples
+  * `testable.check`: a way to test a proposition using random examples
 
 ## Tags
 
@@ -227,7 +227,7 @@ inductive test_result (p : Prop)
      guarantee no false positive. -/
 | failure : ¬ p → (list string) → test_result
 
-/-- `testable p` uses random examples to try to disprove `p` -/
+/-- `testable p` uses random examples to try to disprove `p`. -/
 class testable (p : Prop) :=
 (run [] (enable_tracing minimize : bool) : gen (test_result p))
 
@@ -240,7 +240,7 @@ def combine {p q : Prop} : psum unit (p → q) → psum unit p → psum unit q
 | (psum.inr f) (psum.inr x) := psum.inr (f x)
 | _ _ := psum.inl ()
 
-/-- Combine the test result for properties `p` and `q` to create a test for the conjunction -/
+/-- Combine the test result for properties `p` and `q` to create a test for the conjunction. -/
 def and_counter_example {p q : Prop} :
   test_result p →
   test_result q →
@@ -253,7 +253,7 @@ def and_counter_example {p q : Prop} :
 | _ (gave_up n) := gave_up n
 
 /-- If `q → p`, then `¬ p → ¬ q` which means that testing `p` can allow us
-to find counter-examples to `q` -/
+to find counter-examples to `q`. -/
 def convert_counter_example {p q : Prop}
   (h : q → p) :
   test_result p →
@@ -263,7 +263,7 @@ def convert_counter_example {p q : Prop}
 | (success Hp) Hpq := success (combine Hpq Hp)
 | (gave_up n) _ := gave_up n
 
-/-- test `q` by testing `p` and proving the equivalence between the two -/
+/-- Test `q` by testing `p` and proving the equivalence between the two. -/
 def convert_counter_example' {p q : Prop}
   (h : p ↔ q) (r : test_result p) :
   test_result q :=
@@ -271,7 +271,7 @@ convert_counter_example h.2 r (psum.inr h.1)
 
 /-- When we assign a value to a universally quantified variable,
 we record that value using this function so that our counter-examples
-can be informative -/
+can be informative. -/
 def add_to_counter_example (x : string) {p q : Prop}
   (h : q → p) :
   test_result p →
@@ -280,7 +280,7 @@ def add_to_counter_example (x : string) {p q : Prop}
 | (failure Hce xs) _ := failure (mt h Hce) $ x :: xs
 | r hpq := convert_counter_example h r hpq
 
-/-- add some formatting to the information recorded by `add_to_counter_example` -/
+/-- Add some formatting to the information recorded by `add_to_counter_example`. -/
 def add_var_to_counter_example {γ : Type v} [has_to_string γ]
   (var : string) (x : γ) {p q : Prop}
   (h : q → p) : test_result p →
@@ -288,7 +288,7 @@ def add_var_to_counter_example {γ : Type v} [has_to_string γ]
   test_result q :=
 @add_to_counter_example (var ++ " := " ++ to_string x) _ _ h
 
-/-- gadget used to introspect the name of bound variables.
+/-- Gadget used to introspect the name of bound variables.
 
 It is used with the `testable` typeclass so that
 `testable (named_binder (some "x") (∀ x, p x))` can use the variable name
@@ -377,7 +377,7 @@ instance test_forall_in_list (var : string) (var' : option string)
     end ⟩
 
 /-- Test proposition `p` by randomly selecting one of the provided
-testable instances -/
+testable instances. -/
 def combine_testable (p : Prop)
   (t : list $ testable p) (h : 0 < t.length) : testable p :=
 ⟨ λ tracing min, have 0 < length (map (λ t, @testable.run _ t tracing min) t),
@@ -385,7 +385,7 @@ def combine_testable (p : Prop)
   gen.one_of (list.map (λ t, @testable.run _ t tracing min) t) this ⟩
 
 /-- Once a property fails to hold on an example, look for smaller counter-examples
-to show the user -/
+to show the user. -/
 def minimize [∀ x, testable (β x)] (x : α) (r : test_result (β x)) (tracing : bool) : lazy_list α → gen (Σ x, test_result (β x))
 | lazy_list.nil := pure ⟨x,r⟩
 | (lazy_list.cons x xs) := do
@@ -403,7 +403,7 @@ instance exists_testable {p : Prop}
     x ← testable.run (named_binder var (∀ x, named_binder var' $ β x → p)) tracing min,
     pure $ convert_counter_example' exists_imp_distrib.symm x ⟩
 
-/-- trave the value of sampled variables if the sample is discarded -/
+/-- Trace the value of sampled variables if the sample is discarded. -/
 def trace_if_giveup {p α β} [has_to_string α] (tracing_enabled : bool) (var : string) (val : α) :
   test_result p → thunk β → β
 | (test_result.gave_up _) :=
@@ -412,7 +412,7 @@ def trace_if_giveup {p α β} [has_to_string α] (tracing_enabled : bool) (var :
 | _ := ($ ())
 
 /-- Test a universal property by creating a sample of the right type and instantiating the
-bound variable with it -/
+bound variable with it. -/
 instance var_testable [has_to_string α] [sampleable α] [∀ x, testable (β x)]
   (var : option string) : testable (named_binder var $ Π x : α, β x) :=
 ⟨ λ tracing min, do
@@ -454,8 +454,8 @@ section io
 open nat
 variable {p : Prop}
 
-/-- execute `cmd` and repeat every time the result is `gave_up` or at most
-`n` times -/
+/-- Execute `cmd` and repeat every time the result is `gave_up` (at most
+`n` times). -/
 def retry (cmd : rand (test_result p)) : ℕ → rand (test_result p)
 | 0 := return $ gave_up 1
 | (succ n) := do
@@ -466,7 +466,7 @@ match r with
 | (gave_up _) := retry n
 end
 
-/-- Count the number of times the test procedure gave up -/
+/-- Count the number of times the test procedure gave up. -/
 def give_up (x : ℕ) : test_result p → test_result p
 | (success (psum.inl ())) := gave_up x
 | (success (psum.inr p))  := success (psum.inr p)
@@ -484,7 +484,7 @@ structure slim_check_cfg :=
 (max_size : ℕ := 100) -- final size argument
 (enable_tracing : bool := ff) -- enable the printing out of discarded samples
 
-/-- Try `n` times to find a counter-example for `p` -/
+/-- Try `n` times to find a counter-example for `p`. -/
 def testable.run_suite_aux (cfg : slim_check_cfg) : test_result p → ℕ → rand (test_result p)
 | r 0 := return r
 | r (succ n) :=
@@ -497,11 +497,11 @@ do let size := (cfg.num_inst - n - 1) * cfg.max_size / cfg.num_inst,
    | (gave_up g) := testable.run_suite_aux (give_up g r) n
    end
 
-/-- Try to find a counter-example of `p` -/
+/-- Try to find a counter-example of `p`. -/
 def testable.run_suite (cfg : slim_check_cfg := {}) : rand (test_result p) :=
 testable.run_suite_aux p cfg (success $ psum.inl ()) cfg.num_inst
 
-/-- Run a test suite for `p` in `io` -/
+/-- Run a test suite for `p` in `io`. -/
 def testable.check' (cfg : slim_check_cfg := {}) : io (test_result p) :=
 io.run_rand (testable.run_suite p cfg)
 
@@ -523,7 +523,7 @@ not have to put them in themselves.
 -/
 
 /-- `add_existential_decorations p` adds `a `named_binder` annotation at the
-root of `p` if `p` is an existential quantification -/
+root of `p` if `p` is an existential quantification. -/
 meta def add_existential_decorations : expr → expr
 | e@`(@Exists %%α %%(lam n bi d b)) :=
   let n := to_string n in

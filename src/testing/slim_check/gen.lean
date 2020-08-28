@@ -9,7 +9,7 @@ import system.random
 import system.random.basic
 
 /-!
-# Gen Monad
+# `gen` Monad
 
 This monad is used to formulate randomized computations with a parameter
 to specify the desired size of the result.
@@ -39,7 +39,7 @@ namespace slim_check
 
 /-- Monad to generate random examples to test properties with.
 It has a `nat` parameter so that the caller can decide on the
-size of the examples -/
+size of the examples. -/
 @[reducible, derive [monad, is_lawful_monad]]
 def gen (α : Type u) := reader_t (ulift ℕ) rand α
 
@@ -47,8 +47,8 @@ variable (α : Type u)
 
 local infix ` .. `:41 := set.Icc
 
-/-- execute a `gen` inside the `io` monad using `i` as the example
-size and creating a fresh random number generator -/
+/-- Execute a `gen` inside the `io` monad using `i` as the example
+size and with a fresh random number generator. -/
 def io.run_gen {α} (x : gen α) (i : ℕ) : io α :=
 io.run_rand (x.run ⟨i⟩)
 
@@ -58,13 +58,13 @@ section rand
 
 variables [preorder α]
 
-/-- lift `random.random` to the `gen` monad -/
+/-- Lift `random.random` to the `gen` monad. -/
 def choose_any [random α] : gen α :=
 ⟨ λ _, rand.random α ⟩
 
 variables {α}
 
-/-- lift `random.random_r` to the `gen` monad -/
+/-- Lift `random.random_r` to the `gen` monad. -/
 def choose [bounded_random α] (x y : α) (p : x ≤ y) : gen (x .. y) :=
 ⟨ λ _, rand.random_r x y p ⟩
 
@@ -72,7 +72,7 @@ end rand
 
 open nat (hiding choose)
 
-/-- generate a `nat` example between `x` and `y` -/
+/-- Generate a `nat` example between `x` and `y`. -/
 def choose_nat (x y : ℕ) (p : x ≤ y) : gen (x .. y) :=
 choose x y p
 
@@ -94,13 +94,13 @@ continuation passing style. -/
 def sized (cmd : ℕ → gen α) : gen α :=
 ⟨ λ ⟨sz⟩, reader_t.run (cmd sz) ⟨sz⟩ ⟩
 
-/-- create `n` examples using `cmd` -/
+/-- Create `n` examples using `cmd`. -/
 def vector_of : ∀ (n : ℕ) (cmd : gen α), gen (vector α n)
 | 0 _ := return vector.nil
 | (succ n) cmd := vector.cons <$> cmd <*> vector_of n cmd
 
-/-- create a list of examples using `cmd`. The size is controlled
-by the size parameter of `gen` -/
+/-- Create a list of examples using `cmd`. The size is controlled
+by the size parameter of `gen`. -/
 def list_of (cmd : gen α) : gen (list α) :=
 sized $ λ sz, do
 do ⟨ n ⟩ ← uliftable.up $ choose_nat 0 (sz + 1) dec_trivial,
@@ -109,14 +109,14 @@ do ⟨ n ⟩ ← uliftable.up $ choose_nat 0 (sz + 1) dec_trivial,
 
 open ulift
 
-/-- given a list of example generators, choose one to create an example.
+/-- Given a list of example generators, choose one to create an example.
 This definition is needed for to provide a local `fact $ 0 < xs.length`
 instance to the type resolution system. -/
 def one_of_aux (xs : list (gen α)) (pos : fact $ 0 < xs.length) : gen α := do
 n ← uliftable.up $ choose_any (fin xs.length),
 list.nth_le xs (down n).val (down n).is_lt
 
-/-- given a list of example generators, choose one to create an example -/
+/-- Given a list of example generators, choose one to create an example. -/
 def one_of (xs : list (gen α)) (pos : 0 < xs.length) : gen α := do
 one_of_aux xs pos
 

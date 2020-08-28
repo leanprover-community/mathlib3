@@ -77,7 +77,7 @@ begin
 end
 
 /-- `init xs`, if `xs` non-empty, drops the last element of the list.
-Otherwise, return the empty list -/
+Otherwise, return the empty list. -/
 def init {α} : lazy_list α → lazy_list α
 | lazy_list.nil := lazy_list.nil
 | (lazy_list.cons x xs) :=
@@ -87,7 +87,7 @@ def init {α} : lazy_list α → lazy_list α
   | (lazy_list.cons _ _) := lazy_list.cons x (init xs')
   end
 
-/-- `interleave xs ys` creates a list where elements of `xs` and `ys` alternate -/
+/-- `interleave xs ys` creates a list where elements of `xs` and `ys` alternate. -/
 def interleave {α} : lazy_list α → lazy_list α → lazy_list α
 | lazy_list.nil xs := xs
 | a@(lazy_list.cons x xs) lazy_list.nil := a
@@ -96,7 +96,7 @@ def interleave {α} : lazy_list α → lazy_list α → lazy_list α
 
 /-- `interleave_all (xs::ys::zs::xss)` creates a list where elements of `xs`, `ys`
 and `zs` and the rest alternate. Every other element of the resulting list is taken from
-`xs`, every fourth is taken from `ys`, every eighth is taken from `zs` and so on   -/
+`xs`, every fourth is taken from `ys`, every eighth is taken from `zs` and so on. -/
 def interleave_all {α} : list (lazy_list α) → lazy_list α
 | [] := lazy_list.nil
 | (x :: xs) := interleave x (interleave_all xs)

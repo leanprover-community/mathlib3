@@ -25,6 +25,7 @@ For example, algebra.adjoin K {x} might not include x⁻¹.
  - `F[α]` : Adjoin a single element α to F.
 -/
 
+namespace field
 variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (S : set E)
 
 /--
@@ -41,25 +42,29 @@ def adjoin : subalgebra F E := {
   algebra_map_mem' := λ x, field.mem_closure (or.inl (set.mem_range.mpr ⟨x,rfl⟩)),
 }
 
-lemma adjoin.field_mem (x : F) : algebra_map F E x ∈ adjoin F S :=
+lemma adjoin.algebra_map_mem (x : F) : algebra_map F E x ∈ adjoin F S :=
 field.mem_closure (or.inl (set.mem_range_self x))
 
-lemma adjoin.field_subset : set.range (algebra_map F E) ⊆ adjoin F S :=
+lemma subset_adjoin_of_subset_left {F : set E} {HF : is_subfield F} {T : set E} (HT : T ⊆ F) :
+  T ⊆ adjoin F S :=
+λ x hx, adjoin.algebra_map_mem F S ⟨x, HT hx⟩
+
+lemma adjoin.range_algebra_map_subset : set.range (algebra_map F E) ⊆ adjoin F S :=
 begin
   intros x hx,
   cases hx with f hf,
-  rw ←hf,
-  exact adjoin.field_mem F S f,
+  rw ← hf,
+  exact adjoin.algebra_map_mem F S f,
 end
 
 instance adjoin.field_coe : has_coe_t F (adjoin F S) :=
-{coe := λ x, ⟨algebra_map F E x, adjoin.field_mem F S x⟩}
+{coe := λ x, ⟨algebra_map F E x, adjoin.algebra_map_mem F S x⟩}
 
 lemma adjoin.set_mem (x : S) : ↑x ∈ adjoin F S :=
 field.mem_closure (or.inr (subtype.mem x))
 
-lemma adjoin.set_subset : S ⊆ adjoin F S :=
-λ x hx, adjoin.set_mem F S ⟨x,hx⟩
+lemma subset_adjoin : S ⊆ adjoin F S :=
+λ x hx, adjoin.set_mem F S ⟨x, hx⟩
 
 instance adjoin.set_coe : has_coe_t S (adjoin F S) :=
 {coe := λ x, ⟨↑x, adjoin.set_mem F S x⟩}
@@ -70,29 +75,30 @@ field.closure_mono (set.union_subset (set.subset_union_left _ _) (set.subset_uni
 instance adjoin.is_subfield : is_subfield (adjoin F S : set E) := field.closure.is_subfield
 
 lemma adjoin_contains_field_as_subfield (F : set E) {HF : is_subfield F} : F ⊆ adjoin F S :=
-λ x hx, adjoin.field_mem F S ⟨x, hx⟩
+λ x hx, adjoin.algebra_map_mem F S ⟨x, hx⟩
 
-lemma adjoin_contains_subset {T : set E} {H : T ⊆ S} : T ⊆ adjoin F S :=
+lemma subset_adjoin_of_subset_right {T : set E} (H : T ⊆ S) : T ⊆ adjoin F S :=
 begin
   intros x hx,
   exact adjoin.set_mem F S ⟨x,H hx⟩,
 end
 
-/-- If F ⊆ T and S ⊆ T then F[S] ⊆ F[T] -/
-lemma adjoin_subset {T : set E} [is_subfield T] (HF : set.range (algebra_map F E) ⊆ T)
-(HS : S ⊆ T) : (adjoin F S : set E) ⊆ T :=
+/-- If `K` is a field with `F ⊆ K` and `S ⊆ K` then `adjoin F S ⊆ K`. -/
+lemma adjoin_subset_subfield {K : set E} [is_subfield K] (HF : set.range (algebra_map F E) ⊆ K)
+  (HS : S ⊆ K) : (adjoin F S : set E) ⊆ K :=
 begin
   apply field.closure_subset,
   rw set.union_subset_iff,
-  exact ⟨HF,HS⟩,
+  exact ⟨HF, HS⟩,
 end
 
-/-- If S ⊆ F[T] then F[S] ⊆ F[T] -/
-lemma adjoin_subset' {T : set E} (HT : S ⊆ adjoin F T) : (adjoin F S : set E) ⊆ adjoin F T :=
-adjoin_subset F S (adjoin.field_subset F T) HT
+/-- `S ⊆ adjoin F T` if and only if `adjoin F S ⊆ adjoin F T` -/
+lemma adjoin_subset_iff {T : set E} : S ⊆ adjoin F T ↔ (adjoin F S : set E) ⊆ adjoin F T :=
+⟨λ h, adjoin_subset_subfield F S (adjoin.range_algebra_map_subset F T) h,
+  λ h, set.subset.trans (subset_adjoin F S) h⟩
 
-lemma set_range_subset {T₁ T₂ : set E} [is_subfield T₁] {hyp : T₁ ⊆ T₂} :
-set.range (algebra_map T₁ E) ⊆ T₂ :=
+lemma set_range_subset {T₁ T₂ : set E} [is_subfield T₁] (hyp : T₁ ⊆ T₂) :
+  set.range (algebra_map T₁ E) ⊆ T₂ :=
 begin
   intros x hx,
   cases hx with f hf,
@@ -101,34 +107,26 @@ begin
   exact hyp ht,
 end
 
-lemma adjoin_contains_field_subset {F : set E} {HF : is_subfield F} {T : set E} {HT : T ⊆ F} :
-T ⊆ adjoin F S :=
-λ x hx, adjoin.field_mem F S ⟨x,HT hx⟩
+lemma subfield_subset_adjoin_self {F : set E} {HF : is_subfield F} {T : set E} {HT : T ⊆ F} :
+  T ⊆ adjoin F S :=
+λ x hx, adjoin.algebra_map_mem F S ⟨x,HT hx⟩
+
+lemma adjoin_subset_adjoin_iff {F' : Type*} [field F'] [algebra F' E]
+  {S S' : set E} : (adjoin F S : set E) ⊆ adjoin F' S' ↔
+  set.range (algebra_map F E) ⊆ adjoin F' S' ∧ S ⊆ adjoin F' S' :=
+⟨λ h, ⟨trans (adjoin.range_algebra_map_subset _ _) h, trans (subset_adjoin _ _) h⟩,
+  λ ⟨hF, hS⟩, field.closure_subset (set.union_subset hF hS)⟩
 
 /-- F[S][T] = F[S ∪ T] -/
-lemma adjoin_twice (T : set E) : (adjoin (adjoin F S : set E) T : set E) = adjoin F (S ∪ T) :=
+lemma adjoin_adjoin_left (T : set E) : (adjoin (adjoin F S : set E) T : set E) = adjoin F (S ∪ T) :=
 begin
-  apply set.eq_of_subset_of_subset,
-  { apply adjoin_subset,
-    { apply set_range_subset,
-      apply adjoin_subset,
-      { apply adjoin.field_subset },
-      { apply adjoin_contains_subset,
-        apply set.subset_union_left} },
-    { apply adjoin_contains_subset,
-      apply set.subset_union_right } },
-  { apply adjoin_subset,
-    { transitivity (adjoin F S : set E),
-      { apply adjoin.field_subset},
-      { apply adjoin_subset,
-        { apply adjoin_contains_field_subset,
-          apply adjoin.field_subset },
-        { apply adjoin_contains_field_subset,
-          apply adjoin.set_subset} } },
-    { apply set.union_subset,
-      { apply adjoin_contains_field_subset,
-        apply adjoin.set_subset },
-      { apply adjoin.set_subset } } }
+  apply set.eq_of_subset_of_subset; rw adjoin_subset_adjoin_iff; split,
+  { exact set_range_subset (adjoin.mono _ _ _ (set.subset_union_left _ _)) },
+  { exact subset_adjoin_of_subset_right _ _ (set.subset_union_right _ _) },
+  { exact subset_adjoin_of_subset_left _ (adjoin.range_algebra_map_subset _ _) },
+  { exact set.union_subset
+            (subset_adjoin_of_subset_left _ (subset_adjoin _ _))
+            (subset_adjoin _ _) },
 end
 
 lemma adjoin.composition :
@@ -162,3 +160,5 @@ begin
   change adjoin F (insert α (insert β ∅)) = adjoin F _,
   simp only [insert_emptyc_eq],
 end
+
+end field

@@ -55,7 +55,7 @@ show category (induced_category (PresheafedSpace C) SheafedSpace.to_PresheafedSp
 by apply_instance
 
 /-- Forgetting the sheaf condition is a functor from `SheafedSpace C` to `PresheafedSpace C`. -/
-def forget : (SheafedSpace C) ⥤ (PresheafedSpace C) :=
+def forget_to_PresheafedSpace : (SheafedSpace C) ⥤ (PresheafedSpace C) :=
 induced_functor _
 
 variables (C)

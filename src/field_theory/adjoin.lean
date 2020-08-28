@@ -58,14 +58,11 @@ end
 instance adjoin.field_coe : has_coe_t F (adjoin F S) :=
 {coe := λ x, ⟨algebra_map F E x, adjoin.algebra_map_mem F S x⟩}
 
-lemma adjoin.set_mem (x : S) : ↑x ∈ adjoin F S :=
-field.mem_closure (or.inr (subtype.mem x))
-
 lemma subset_adjoin : S ⊆ adjoin F S :=
-λ x hx, adjoin.set_mem F S ⟨x, hx⟩
+λ x hx, field.mem_closure (or.inr hx)
 
 instance adjoin.set_coe : has_coe_t S (adjoin F S) :=
-{coe := λ x, ⟨↑x, adjoin.set_mem F S x⟩}
+{coe := λ x, ⟨x,subset_adjoin F S (subtype.mem x)⟩}
 
 lemma adjoin.mono (T : set E) (h : S ⊆ T) : (adjoin F S : set E) ⊆ adjoin F T :=
 field.closure_mono (set.union_subset (set.subset_union_left _ _) (set.subset_union_of_subset_right h _))
@@ -78,7 +75,7 @@ lemma adjoin_contains_field_as_subfield (F : set E) {HF : is_subfield F} : F ⊆
 lemma subset_adjoin_of_subset_right {T : set E} (H : T ⊆ S) : T ⊆ adjoin F S :=
 begin
   intros x hx,
-  exact adjoin.set_mem F S ⟨x,H hx⟩,
+  exact subset_adjoin F S (H hx),
 end
 
 /-- If `K` is a field with `F ⊆ K` and `S ⊆ K` then `adjoin F S ⊆ K`. -/
@@ -142,7 +139,7 @@ end
 lemma mem_adjoin_simple_self : α ∈ F[α] :=
 begin
   rw adjoin_singleton,
-  exact adjoin.set_mem F {α} (⟨α,set.mem_singleton α⟩ : ({α} : set E)),
+  exact subset_adjoin F {α} (set.mem_singleton α),
 end
 
 /-- generator of F(α) -/

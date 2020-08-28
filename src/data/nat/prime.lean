@@ -89,9 +89,7 @@ decidable_of_iff' _ prime_def_lt'
 local attribute [instance] decidable_prime_1
 
 lemma prime.ne_zero {n : ℕ} (h : prime n) : n ≠ 0 :=
-assume hn : n = 0,
-have h2 : ¬ prime 0, from dec_trivial,
-h2 (hn ▸ h)
+by { rintro rfl, revert h, dec_trivial }
 
 theorem prime.pos {p : ℕ} (pp : prime p) : 0 < p :=
 lt_of_succ_lt pp.one_lt

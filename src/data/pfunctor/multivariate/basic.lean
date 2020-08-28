@@ -125,9 +125,9 @@ lemma comp.mk_get (x : (comp P Q).obj α) : comp.mk (comp.get x) = x :=
 begin
   cases x,
   dsimp [comp.get,comp.mk],
-  ext; intros, refl, refl,
-  congr, ext; intros; refl,
-  ext, congr, rcases x_1 with ⟨a,b,c⟩; refl,
+  ext : 2; intros, refl, refl,
+  congr, ext1; intros; refl,
+  ext : 2, congr, rcases x_1 with ⟨a,b,c⟩; refl
 end
 
 /-

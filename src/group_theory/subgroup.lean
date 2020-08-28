@@ -942,7 +942,7 @@ range_top_iff_surjective.2 hf
 
 /-- Restriction of a group hom to a subgroup of the codomain. -/
 @[to_additive "Restriction of an `add_group` hom to an `add_subgroup` of the codomain."]
-def cod_grestrict (f : G →* N) (S : subgroup N) (h : ∀ x, f x ∈ S) : G →* S :=
+def cod_restrict (f : G →* N) (S : subgroup N) (h : ∀ x, f x ∈ S) : G →* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
   map_one' := subtype.eq f.map_one,
   map_mul' := λ x y, subtype.eq (f.map_mul x y) }

@@ -332,6 +332,13 @@ lt_of_not_ge (λ ha, absurd h (mul_nonpos_of_nonneg_of_nonpos ha hb).not_lt)
 lemma neg_of_mul_pos_right (h : 0 < a * b) (ha : a ≤ 0) : b < 0 :=
 lt_of_not_ge (λ hb, absurd h (mul_nonpos_of_nonpos_of_nonneg ha hb).not_lt)
 
+instance linear_ordered_semiring.to_nontrivial {α : Type*} [linear_ordered_semiring α] :
+  nontrivial α :=
+{ exists_pair_ne := ⟨0, 1, ne_of_lt zero_lt_one⟩ }
+
+/- TODO This theorem ought to be written in the context of `nontrivial` linearly ordered (additive)
+commutative monoids rather than linearly ordered rings; however, the former concept does not
+currently exist in mathlib. -/
 instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
   no_top_order α :=
 ⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
@@ -599,6 +606,9 @@ match lt_trichotomy 0 a with
   end
 end
 
+/- TODO This theorem ought to be written in the context of `nontrivial` linearly ordered (additive)
+commutative groups rather than linearly ordered rings; however, the former concept does not
+currently exist in mathlib. -/
 instance linear_ordered_ring.to_no_bot_order : no_bot_order α :=
 ⟨assume a, ⟨a - 1, sub_lt_iff_lt_add.mpr $ lt_add_of_pos_right _ zero_lt_one⟩⟩
 
@@ -901,6 +911,12 @@ begin
   suffices : a * c ≤ a * c + (a * d + b * c + b * d), by simpa [mul_add, add_mul, _root_.add_assoc],
   exact (le_iff_exists_add _ _).2 ⟨_, rfl⟩
 end
+
+lemma mul_le_mul_left' {b c : α} (h : b ≤ c) (a : α) : a * b ≤ a * c :=
+mul_le_mul (le_refl a) h
+
+lemma mul_le_mul_right' {b c : α} (h : b ≤ c) (a : α) : b * a ≤ c * a :=
+mul_le_mul h (le_refl a)
 
 /-- A version of `zero_lt_one : 0 < 1` for a `canonically_ordered_comm_semiring`. -/
 lemma zero_lt_one : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_one

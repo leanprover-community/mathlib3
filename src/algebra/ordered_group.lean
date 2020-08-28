@@ -241,13 +241,72 @@ end units
 
 namespace with_zero
 
+local attribute [semireducible] with_zero
+
 instance [preorder α] : preorder (with_zero α) := with_bot.preorder
+
 instance [partial_order α] : partial_order (with_zero α) := with_bot.partial_order
+
 instance [partial_order α] : order_bot (with_zero α) := with_bot.order_bot
+
+lemma zero_le [partial_order α] (a : with_zero α) : 0 ≤ a := order_bot.bot_le a
+
+lemma zero_lt_coe [partial_order α] (a : α) : (0 : with_zero α) < a := with_bot.bot_lt_coe a
+
+@[simp, norm_cast] lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_zero α) < b ↔ a < b :=
+with_bot.coe_lt_coe
+
+@[simp, norm_cast] lemma coe_le_coe [partial_order α] {a b : α} : (a : with_zero α) ≤ b ↔ a ≤ b :=
+with_bot.coe_le_coe
+
 instance [lattice α] : lattice (with_zero α) := with_bot.lattice
+
 instance [linear_order α] : linear_order (with_zero α) := with_bot.linear_order
+
 instance [decidable_linear_order α] :
  decidable_linear_order (with_zero α) := with_bot.decidable_linear_order
+
+lemma mul_le_mul_left {α : Type u}
+  [ordered_comm_monoid α] :
+  ∀ (a b : with_zero α),
+    a ≤ b → ∀ (c : with_zero α), c * a ≤ c * b :=
+begin
+  rintro (_ | a) (_ | b) h (_ | c),
+  { apply with_zero.zero_le },
+  { apply with_zero.zero_le },
+  { apply with_zero.zero_le },
+  { apply with_zero.zero_le },
+  { apply with_zero.zero_le },
+  { exact false.elim (not_lt_of_le h (with_zero.zero_lt_coe a))},
+  { apply with_zero.zero_le },
+  { simp_rw [some_eq_coe] at h ⊢,
+    norm_cast at h ⊢,
+    exact mul_le_mul_left' h c }
+end
+
+lemma lt_of_mul_lt_mul_left  {α : Type u}
+  [ordered_comm_monoid α] :
+  ∀ (a b c : with_zero α), a * b < a * c → b < c :=
+begin
+  rintro (_ | a) (_ | b) (_ | c) h,
+  { exact false.elim (lt_irrefl none h) },
+  { exact false.elim (lt_irrefl none h) },
+  { exact false.elim (lt_irrefl none h) },
+  { exact false.elim (lt_irrefl none h) },
+  { exact false.elim (lt_irrefl none h) },
+  { exact with_zero.zero_lt_coe c },
+  { exact false.elim (not_le_of_lt h (with_zero.zero_le _)) },
+  { simp_rw [some_eq_coe] at h ⊢,
+    norm_cast at h ⊢,
+    apply lt_of_mul_lt_mul_left' h }
+end
+
+instance [ordered_comm_monoid α] : ordered_comm_monoid (with_zero α) :=
+{ mul_le_mul_left := with_zero.mul_le_mul_left,
+  lt_of_mul_lt_mul_left := with_zero.lt_of_mul_lt_mul_left,
+  ..with_zero.comm_monoid_with_zero,
+  ..with_zero.partial_order
+}
 
 /--
 If `0` is the least element in `α`, then `with_zero α` is an `ordered_add_comm_monoid`.
@@ -312,6 +371,8 @@ end has_one
 
 instance [has_add α] : has_add (with_top α) :=
 ⟨λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a + b))⟩
+
+local attribute [reducible] with_zero
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := (+),
@@ -378,7 +439,7 @@ coe_lt_coe
 @[simp] lemma top_add [ordered_add_comm_monoid α] {a : with_top α} : ⊤ + a = ⊤ := rfl
 
 lemma add_eq_top [ordered_add_comm_monoid α] (a b : with_top α) : a + b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
-by cases a; cases b; simp [none_eq_top, some_eq_coe, coe_add.symm]
+by {cases a; cases b; simp [none_eq_top, some_eq_coe, ←with_top.coe_add, ←with_zero.coe_add]}
 
 lemma add_lt_top [ordered_add_comm_monoid α] (a b : with_top α) : a + b < ⊤ ↔ a < ⊤ ∧ b < ⊤ :=
 by simp [lt_top_iff_ne_top, add_eq_top, not_or_distrib]
@@ -492,6 +553,8 @@ calc a = 0 + a : by simp
 lemma le_add_right (h : a ≤ b) : a ≤ b + c :=
 calc a = a + 0 : by simp
   ... ≤ b + c : add_le_add h (zero_le _)
+
+local attribute [semireducible] with_zero
 
 instance with_zero.canonically_ordered_add_monoid :
   canonically_ordered_add_monoid (with_zero α) :=
@@ -792,6 +855,8 @@ lemma with_top.add_lt_add_iff_left :
     { norm_cast, exact with_top.coe_lt_top _ },
     { norm_cast, exact add_lt_add_iff_left _ }
   end
+
+local attribute [reducible] with_zero
 
 lemma with_top.add_lt_add_iff_right
   {a b c : with_top α} : a < ⊤ → (c + a < b + a ↔ c < b) :=
@@ -1825,6 +1890,12 @@ instance [ordered_cancel_add_comm_monoid α] : ordered_cancel_add_comm_monoid (o
 instance [ordered_add_comm_group α] : ordered_add_comm_group (order_dual α) :=
 { add_left_neg := λ a : α, add_left_neg a,
   ..order_dual.ordered_add_comm_monoid,
+  ..show add_comm_group α, by apply_instance }
+
+instance [decidable_linear_ordered_add_comm_group α] :
+  decidable_linear_ordered_add_comm_group (order_dual α) :=
+{ add_le_add_left := λ a b h c, @add_le_add_left α _ b a h _,
+  ..order_dual.decidable_linear_order α,
   ..show add_comm_group α, by apply_instance }
 
 end order_dual

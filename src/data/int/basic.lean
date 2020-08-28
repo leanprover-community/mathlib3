@@ -930,6 +930,10 @@ theorem mem_to_nat' : ∀ (a : ℤ) (n : ℕ), n ∈ to_nat' a ↔ a = n
 | (m : ℕ) n := option.some_inj.trans coe_nat_inj'.symm
 | -[1+ m] n := by split; intro h; cases h
 
+lemma to_nat_zero_of_neg : ∀ {z : ℤ}, z < 0 → z.to_nat = 0
+| (-[1+n]) _ := rfl
+| (int.of_nat n) h := (not_le_of_gt h $ int.of_nat_nonneg n).elim
+
 /- units -/
 
 @[simp] theorem units_nat_abs (u : units ℤ) : nat_abs u = 1 :=

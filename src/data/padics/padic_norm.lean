@@ -693,23 +693,20 @@ instance : is_absolute_value (padic_norm p) :=
   abv_add := padic_norm.triangle_ineq p,
   abv_mul := padic_norm.mul p }
 
-/--
-If `p^n` divides an integer `z`, then the p-adic norm of `z` is at most `p^(-n)`.
--/
-lemma le_of_dvd {n : ℕ} {z : ℤ} (hd : ↑(p^n) ∣ z) : padic_norm p z ≤ ↑p ^ (-n : ℤ) :=
+variable {p}
+
+lemma dvd_iff_norm_le {n : ℕ} {z : ℤ} : ↑(p^n) ∣ z ↔ padic_norm p z ≤ ↑p ^ (-n : ℤ) :=
 begin
-  unfold padic_norm, split_ifs with hz hz,
-  { apply fpow_nonneg_of_nonneg,
-    exact_mod_cast le_of_lt hp.pos },
-  { apply fpow_le_of_le,
-    exact_mod_cast le_of_lt hp.one_lt,
-    apply neg_le_neg,
-    rw padic_val_rat_of_int _ hp.ne_one _,
+  unfold padic_norm, split_ifs with hz,
+  { norm_cast at hz,
+    have : 0 ≤ (p^n : ℚ), {apply pow_nonneg, exact_mod_cast le_of_lt hp.pos },
+    simp [hz, this] },
+  { rw [fpow_le_iff_le, neg_le_neg_iff, padic_val_rat_of_int _ hp.ne_one _],
     { norm_cast,
-      rw [← enat.coe_le_coe, enat.coe_get],
-      apply multiplicity.le_multiplicity_of_pow_dvd,
-      exact_mod_cast hd },
-    { exact_mod_cast hz }},
+      rw [← enat.coe_le_coe, enat.coe_get, ← multiplicity.pow_dvd_iff_le_multiplicity],
+      simp },
+    { exact_mod_cast hz },
+    { exact_mod_cast hp.one_lt } }
 end
 
 end padic_norm

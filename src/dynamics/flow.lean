@@ -78,7 +78,7 @@ namespace semigroup_flow
 variables {X : Type*} [topological_space X]
 variables {T : Type*} [topological_space T] [add_semigroup T] [has_continuous_add T]
 
-variables (ϕ : semigroup_flow T X)
+variables (f : filter T) (ϕ : semigroup_flow T X)
 
 instance : has_coe_to_fun (semigroup_flow T X) := ⟨_, semigroup_flow.to_fun⟩
 instance has_uncurry_semigroup_flow : has_uncurry (semigroup_flow T X) (T × X) X :=
@@ -117,12 +117,9 @@ def restrict (h : invariant ϕ S) : semigroup_flow T ↥S :=
 
     When T is ℕ or ℝ and f is `filter.at_top`, this coincides with the
     usual definition; `omega_limit at_bot ϕ S` is the α-limit set. -/
-def omega_limit (f : filter T) (ϕ : semigroup_flow T X) (S : set X) : set X :=
-⋂ u ∈ f, closure (image2 ϕ u S)
+def omega_limit : set X := ⋂ u ∈ f, closure (image2 ϕ u S)
 
 local notation `ω` := omega_limit
-
-variables (f : filter T)
 
 lemma is_closed_omega_limit : is_closed (ω f ϕ S) :=
 is_closed_Inter $ λ _, is_closed_Inter $ λ _, is_closed_closure
@@ -157,19 +154,14 @@ lemma invariant_omega_limit (h : ∀ (t : T), tendsto (+ t) f f) :
 begin
   rintro x hx t cϕu ⟨u, hcϕu⟩,
   rw ←hcϕu,
-
   calc ϕ t x ∈ ϕ t '' (⋂ u ∈ f, closure (image2 ϕ u S)) : mem_image_of_mem _ hx
-
   ...        ⊆ ⋂ u ∈ f, ϕ t '' closure (image2 ϕ u S) :
   subset.trans (image_Inter_subset _ _) (Inter_subset_Inter (λ _, image_Inter_subset _ _))
-
   ...        ⊆ ⋂ u ∈ f, closure (ϕ t '' image2 ϕ u S) :
   Inter_subset_Inter (λ _, Inter_subset_Inter (λ _,
     image_closure_subset_closure_image (continuous_uncurry_left _ _ ϕ.cont)))
-
   ...        ⊆ ⋂ u ∈ f, closure (image2 ϕ ((+ t) '' u) S) :
   by simp_rw [flow_image2_eq, subset.rfl]
-
   ...        ⊆ ⋂ u ∈ f, closure (image2 ϕ u S) :
   begin
     apply Inter_subset_Inter2, intro u,
@@ -178,9 +170,35 @@ begin
     simp_rw tendsto_def at h, use h t _ hu,
     exact closure_mono (image2_subset (image_preimage_subset _ _) subset.rfl)
   end
-
   ...        ⊆ ⋂ (hu : u ∈ f), closure (image2 ϕ u S) : Inter_subset _ _
 end
+
+-- a point x is in the ω-limit of S if the forward-images of S
+-- frequently intersect arbitrarily small neighbourhoods of x.
+--
+-- for T = ℕ and f = at_top, recover the "there exists sequences..."
+-- definition.
+lemma mem_omega_limit_iff_frequently (x : X) :
+  x ∈ ω f ϕ S ↔ ∀ v ∈ nhds x, ∃ᶠ t in f, (S ∩ ϕ t ⁻¹' v).nonempty :=
+begin
+  unfold omega_limit,
+  simp_rw frequently_iff,
+  split,
+  { intros h v hv u hu,
+    simp_rw mem_Inter at h,
+    have h₂, from mem_closure_iff_nhds.mp (h u hu) v hv,
+    rcases h₂ with ⟨ϕty, hyv, t, y, ht, hy, hϕty⟩,
+    exact ⟨t, ht, y, hy, show ϕ t y ∈ v, by rwa hϕty⟩ },
+  { rintro h c ⟨u, hc⟩,
+    rw [←hc, mem_Inter],
+    intro hu,
+    rw mem_closure_iff_nhds,
+    intros v hv,
+    rcases  h v hv hu with ⟨t, ht, y, hy, hϕty⟩,
+    exact ⟨ϕ t y, hϕty, t, y, ht, hy, rfl⟩ },
+end
+
+-- (work in progress.)
 
 end semigroup_flow
 
@@ -204,7 +222,7 @@ instance : has_coe_to_fun (flow T X) := ⟨_, λ ϕ, ϕ.to_semigroup_flow.to_fun
 
 instance has_uncurry_flow : has_uncurry (flow T X) (T × X) X := ⟨λ ϕ, ↿ϕ.to_semigroup_flow⟩
 
-variable (ϕ : flow T X)
+variables (f : filter T) (ϕ : flow T X)
 
 @[ext] lemma ext : ∀ {ϕ₁ ϕ₂ : flow T X}, (∀ x t, ϕ₁ x t = ϕ₂ x t) → ϕ₁ = ϕ₂
 | ⟨f₁, _⟩ ⟨f₂, _⟩ h := by { congr, apply semigroup_flow.ext, apply h }
@@ -230,11 +248,12 @@ variable (ϕ : flow T X)
 @[simp] lemma to_fun_eq_coe : ϕ.to_fun = ⇑ϕ := rfl
 @[simp] lemma coe_coe : ((ϕ : semigroup_flow T X) : T → X → X) = ϕ := rfl
 
-/-- a set is invariant under a flow ϕ if it is invariant under ϕ as a semigroup-flow. -/
-def invariant (S : set X) : Prop := (ϕ : semigroup_flow T X).invariant S
+variable (S : set X)
 
-lemma invariant_iff_image2_eq (S : set X) :
-  (ϕ : semigroup_flow T X).invariant S ↔ image2 ϕ univ S = S :=
+/-- a set is invariant under a flow ϕ if it is invariant under ϕ as a semigroup-flow. -/
+def invariant : Prop := (ϕ : semigroup_flow T X).invariant S
+
+lemma invariant_iff_image2_eq : ϕ.invariant S ↔ image2 ϕ univ S = S :=
 iff.intro
   (λ h, subset.antisymm
     (λ _ ⟨_, _, _, hx, htx⟩, htx ▸ h _ hx _)
@@ -242,14 +261,13 @@ iff.intro
   (λ h, invariant_of_image2_subset ϕ (h.symm ▸ subset.refl S))
 
 /-- the induced flow on an invariant set S ⊆ X. -/
-def restrict {S : set X} (h : (ϕ : semigroup_flow T X).invariant S) : flow T ↥S :=
+def restrict (h : ϕ.invariant S) : flow T ↥S :=
 { map_zero' := λ x, subtype.ext (map_zero _ _)
   .. ϕ.to_semigroup_flow.restrict _ h }
 
 /-- the ω-limit of S ⊆ X under a flow ϕ w.r.t. a filter f on T is the
     ω-limit of S under ϕ as a semigroup-flow w.r.t f. -/
-def omega_limit (f : filter T) (ϕ : flow T X) (S : set X) : set X :=
-semigroup_flow.omega_limit f ϕ S
+def omega_limit : set X := semigroup_flow.omega_limit f ϕ S
 
 lemma omega_limit_def (f : filter T) (ϕ : flow T X) (S : set X) :
   omega_limit f ϕ S = ⋂ u ∈ f, closure (image2 ϕ u S) :=
@@ -313,7 +331,10 @@ lemma image2_reverse_eq (I : set T) (S : set X):
   image2 ϕ.reverse I S = image2 ϕ (has_neg.neg '' I) S :=
 by simp_rw [image2_image_left, ←reverse_def']
 
--- the α-limit of ϕ is the ω-limit of the time-reversal of ϕ
+/-- the α-limit of ϕ is the ω-limit of the time-reversal of ϕ -/
+
+-- I think this amounts to proving tendsto_neg_at_bot_at_top.
+-- TODO : refactor to make this obvious.
 lemma omega_limit_at_top_reverse : ω₋ ϕ S = ω₊ ϕ.reverse S :=
 begin
   rw [omega_limit_def, omega_limit_def],

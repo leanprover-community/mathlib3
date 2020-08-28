@@ -42,7 +42,7 @@ random testing
   * https://hackage.haskell.org/package/QuickCheck
 
 -/
-universes u
+universes u v
 
 namespace slim_check
 
@@ -113,7 +113,7 @@ def sampleable.lift (α : Type u) {β : Type u} [sampleable α] (f : α → β) 
 { sample := f <$> sample α,
   shrink := λ x, f <$> shrink (g x) }
 
-instance sampleable_nat : sampleable ℕ :=
+instance nat.sampleable : sampleable ℕ :=
 { sample := sized $ λ sz, coe <$> choose_any (fin $ succ (sz^3)) <|>
                           coe <$> choose_any (fin $ succ sz),
   shrink := lazy_list.of_list ∘ nat.shrink }
@@ -147,20 +147,20 @@ For example, `int.shrink 40 = [20, -20, 30, -30, 35, -35, 38, -38, 39, -39]`. -/
 def int.shrink (i : ℤ) : list ℤ :=
 int.shrink' (int.nat_abs i) (int.nat_abs i) []
 
-instance sampleable_int : sampleable ℤ :=
+instance int.sampleable : sampleable ℤ :=
 { sample := sized $ λ sz,
        let k := sz^5 in
        (λ n : fin _, n.val - int.of_nat (k / 2) ) <$> choose_any (fin $ succ k),
   shrink := lazy_list.of_list ∘ int.shrink   }
 
-instance sampleable_bool : sampleable bool :=
+instance bool.sampleable : sampleable bool :=
 { sample := do { x ← choose_any bool,
                  return x },
   shrink := λ _, lazy_list.nil }
 
-instance sampleable_prod {β} [sampleable α] [sampleable β] : sampleable (α × β) :=
-{ sample := do { ⟨x⟩ ← uliftable.up $ sample α,
-                 ⟨y⟩ ← uliftable.up $ sample β,
+instance prod.sampleable {β : Type v} [sampleable α] [sampleable β] : sampleable (α × β) :=
+{ sample := do { ⟨x⟩ ← (uliftable.up $ sample α : gen (ulift.{max u v} α)),
+                 ⟨y⟩ ← (uliftable.up $ sample β : gen (ulift.{max u v} β)),
                  pure (x,y) },
   shrink := λ x, lazy_list.lseq prod.mk (shrink x.1) (shrink x.2) }
 
@@ -169,7 +169,7 @@ def sum.shrink {β} [sampleable α] [sampleable β] : α ⊕ β → lazy_list (�
 | (sum.inr x) := (shrink x).map sum.inr
 | (sum.inl x) := (shrink x).map sum.inl
 
-instance sampleable_sum {β} [sampleable α] [sampleable β] : sampleable (α ⊕ β) :=
+instance sum.sampleable {β} [sampleable α] [sampleable β] : sampleable (α ⊕ β) :=
 { sample := uliftable.up_map sum.inl (sample α) <|>
             uliftable.up_map sum.inr (sample β),
   shrink := sum.shrink _ }
@@ -191,7 +191,7 @@ def sampleable_char (length : nat) (characters : string) : sampleable char :=
                    pure (characters.mk_iterator.nextn i).curr },
   shrink := λ _, lazy_list.nil }
 
-instance : sampleable char :=
+instance char.sampleable : sampleable char :=
 sampleable_char 3 " 0123abcABC:,;`\\/"
 
 variables {α}
@@ -243,6 +243,62 @@ lazy_list.init $ interleave_all [(tree.shrink_with t₀).append (lazy_list.singl
 instance sampleable_tree [sampleable α] : sampleable (tree α) :=
 { sample := sized $ tree.sample (sample α),
   shrink := tree.shrink_with shrink }
+
+
+/-!
+## Subtype instances
+
+The following instances are meant to improve the testing of properties of the form
+`∀ i j, i ≤ j, ...`
+
+The naive way to test them is to choose two numbers `i` and `j` and check that
+the proper ordering is satisfied. Instead, the following instances make it
+so that `j` will be chosen with considerations to the required ordering
+constraints. The benefit is that we will not have to discard any choice
+of `j`.
+ -/
+
+instance slim_check.sampleable_nat_le {y} : slim_check.sampleable { x : ℕ // x ≤ y } :=
+{ sample :=
+         do { ⟨x,h⟩ ← slim_check.gen.choose_nat 0 y dec_trivial,
+              pure ⟨x, h.2⟩},
+  shrink := λ _, lazy_list.nil }
+
+instance slim_check.sampleable_nat_ge {x} : slim_check.sampleable { y : ℕ // x ≤ y } :=
+{ sample :=
+         do { (y : ℕ) ← slim_check.sampleable.sample ℕ,
+              pure ⟨x+y, by norm_num⟩ },
+  shrink := λ _, lazy_list.nil }
+
+instance slim_check.sampleable_nat_gt {x} : slim_check.sampleable { y : ℕ // x < y } :=
+{ sample :=
+         do { (y : ℕ) ← slim_check.sampleable.sample ℕ,
+              pure ⟨x+y+1, by linarith⟩ },
+  shrink := λ _, lazy_list.nil }
+
+instance slim_check.sampleable_int_lt {y} : slim_check.sampleable { x : ℤ // x < y } :=
+{ sample :=
+         do { x ← slim_check.sampleable.sample ℕ,
+              pure ⟨y - (x+1), sub_lt_self _ (by linarith)⟩},
+  shrink := λ _, lazy_list.nil }
+
+instance slim_check.sampleable_int_gt {x} : slim_check.sampleable { y : ℤ // x < y } :=
+{ sample :=
+         do { (y : ℕ) ← slim_check.sampleable.sample ℕ,
+              pure ⟨x+y+1, by linarith⟩ },
+  shrink := λ _, lazy_list.nil }
+
+instance slim_check.sampleable_le {y : α} [decidable_linear_ordered_add_comm_group α] [sampleable α] : slim_check.sampleable { x : α // x ≤ y } :=
+{ sample :=
+         do { x ← sample α,
+              pure ⟨y - abs x, sub_le_self _ (abs_nonneg _) ⟩ },
+  shrink := λ _, lazy_list.nil }
+
+instance slim_check.sampleable_ge {x : α} [decidable_linear_ordered_add_comm_group α] [sampleable α] : slim_check.sampleable { y : α // x ≤ y } :=
+{ sample :=
+         do { y ← sample α,
+              pure ⟨x + abs y, by norm_num [abs_nonneg]⟩ },
+  shrink := λ _, lazy_list.nil }
 
 setup_tactic_parser
 

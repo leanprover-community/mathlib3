@@ -146,6 +146,17 @@ instance {k : ℕ} : sampleable { x : ℕ // k ∣ x } :=
 -- -------------------
 ```
 
+Similarly, it is common to write properties of the form: `∀ i j, i ≤ j → ...`
+as the following example show:
+
+```lean
+#eval check (∀ i j k : ℕ, j < k → i - k < i - j)
+```
+
+Without subtype instances, the above property discards many samples
+because `j < k` does not hold. Fortunately, we have appropriate
+instance to choose `k` intelligently.
+
 ## Main definitions
   * `testable` class
   * `testable.check`: a way to test a proposition using random examples

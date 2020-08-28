@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton
 -/
 import category_theory.category
+import order.bounded_lattice
 
 /-!
 # Filtered categories
@@ -53,8 +54,20 @@ A category `is_filtered` if
 3. there exists some object.
 -/
 class is_filtered extends is_filtered_or_empty C : Prop :=
-(nonempty : nonempty C)
+[nonempty : nonempty C]
 
 end prio
+
+@[priority 100]
+instance is_filtered_or_empty_of_semilattice_sup
+  (α : Type u) [semilattice_sup α] : is_filtered_or_empty α :=
+{ cocone_objs := λ X Y, ⟨X ⊔ Y, hom_of_le le_sup_left, hom_of_le le_sup_right, trivial⟩,
+  cocone_maps := λ X Y f g, ⟨Y, 𝟙 _, (by ext)⟩, }
+
+@[priority 100]
+instance is_filtered_of_semilattice_sup_top
+  (α : Type u) [semilattice_sup_top α] : is_filtered α :=
+{ nonempty := ⟨⊤⟩,
+  ..category_theory.is_filtered_or_empty_of_semilattice_sup α }
 
 end category_theory

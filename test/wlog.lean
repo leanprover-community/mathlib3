@@ -79,7 +79,7 @@ begin
     guard_target q n m i,
     admit },
   { guard_hyp h : p i m,
-    guard_hyp this := q i m n,
+    guard_hyp this : q i m n,
     guard_target q n m i,
     admit },
   { guard_hyp h : p m i,

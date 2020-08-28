@@ -31,7 +31,7 @@ begin
   fin_cases x3,
   success_if_fail { fin_cases * },
   success_if_fail { fin_cases y },
-  all_goals { simp },
+  all_goals { refl },
 end
 
 open finset

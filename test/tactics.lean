@@ -546,7 +546,7 @@ begin
   introv h h,
   guard_hyp x : ℤ,
   guard_hyp y : ℤ,
-  guard_hyp z : ℤ,
+  guard_hyp z : ℤ := x + y,
   guard_hyp h : x = y - z,
   suffices : true, -- test the type of the second assumption named `h`
   { clear h,

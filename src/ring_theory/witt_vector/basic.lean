@@ -446,21 +446,28 @@ begin
      ... = _ : _,
 
   { clear IH aux aux₂ key,
-    simp [eval₂_hom_map_hom],
+  --  simp [map_aeval, map_eval₂_hom, aeval_eq_eval₂_hom, ring_hom.map_pow, eval₂_hom_map_hom,
+  --     eval₂_rename],
+    -- simp only [← map_hom_witt_polynomial p (int.cast_ring_hom ℚ)],
     -- simp only [map_aeval, map_eval₂_hom, aeval_eq_eval₂_hom, ring_hom.map_pow, --eval₂_hom_map_hom,
     --   eval₂_rename, ← map_hom_witt_polynomial p (int.cast_ring_hom ℚ)],
-    -- simp only [← map_hom_witt_polynomial p (int.cast_ring_hom ℚ)],
+    simp only [← map_hom_witt_polynomial p (int.cast_ring_hom ℚ), map_aeval, aeval_eq_eval₂_hom, eval₂_hom_map_hom, map_eval₂_hom],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     funext i,
-    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    funext k,
-    rw [map_rename, map_hom_X, rename_X] },
-  { simp only [map_aeval, map_eval₂_hom, aeval_eq_eval₂_hom, ring_hom.map_pow,
-      eval₂_hom_map_hom, witt_polynomial, int.nat_cast_eq_coe_nat],
-    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    funext i,
-    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    funext bi, rw map_hom_X }
+    simp  [ring_hom.map_pow, eval₂_hom_map_hom, map_eval₂_hom, comp_eval₂_hom],
+
+    -- simp [int.nat_cast_eq_coe_nat],
+    --  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+
+    -- funext k,
+    -- rw [map_rename, map_hom_X, rename_X]
+    },
+  -- { simp only [map_aeval, map_eval₂_hom, aeval_eq_eval₂_hom, ring_hom.map_pow,
+  --     eval₂_hom_map_hom, witt_polynomial, int.nat_cast_eq_coe_nat],
+  --   apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+  --   funext i,
+  --   apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+  --   funext bi, rw map_hom_X }
 end
 
 lemma map_hom_witt_structure_int (Φ : mv_polynomial idx ℤ) (n : ℕ) :
@@ -764,7 +771,7 @@ begin
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     funext k,
     exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
-  { simp only [aeval_eq_eval₂_hom, ring_hom.map_add, eval₂_X, eval₂_rename, coe_eval₂_hom],
+  { simp only [aeval_eq_eval₂_hom, eval₂_X, eval₂_rename, coe_eval₂_hom, eval₂_add],
     refl }
 end
 
@@ -780,7 +787,7 @@ begin
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     funext k,
     exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
-  { simp only [aeval_eq_eval₂_hom, ring_hom.map_mul, eval₂_hom_X', eval₂_rename],
+  { simp only [aeval_eq_eval₂_hom, eval₂_X, eval₂_rename, coe_eval₂_hom, eval₂_mul],
     refl },
 end
 
@@ -796,7 +803,7 @@ begin
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     funext k,
     exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
-  { simp only [aeval_eq_eval₂_hom, ring_hom.map_neg, eval₂_hom_X', eval₂_rename], },
+  { simp only [aeval_eq_eval₂_hom, eval₂_rename, coe_eval₂_hom, eval₂_neg, eval₂_X], },
 end
 
 variables (R)

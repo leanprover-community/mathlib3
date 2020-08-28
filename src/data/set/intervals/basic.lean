@@ -408,7 +408,24 @@ begin
   exact this hmem
 end
 
+lemma Ici_singleton_of_top {a : α} (h_top : ∀ x, x ≤ a) : Ici a = {a} :=
+begin
+  ext,
+  exact ⟨λ h, le_antisymm (h_top _) h, λ h, le_of_eq h.symm⟩,
+end
+
+lemma Iic_singleton_of_bot {a : α} (h_bot : ∀ x, a ≤ x) : Iic a = {a} :=
+@Ici_singleton_of_top (order_dual α) _ a h_bot
+
 end partial_order
+
+section order_top_or_bot
+variables {α : Type u}
+
+@[simp] lemma Ici_top [order_top α] : Ici (⊤ : α) = {⊤} := Ici_singleton_of_top (λ _, le_top)
+@[simp] lemma Ici_bot [order_bot α] : Iic (⊥ : α) = {⊥} := Iic_singleton_of_bot (λ _, bot_le)
+
+end order_top_or_bot
 
 section linear_order
 variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ : α}

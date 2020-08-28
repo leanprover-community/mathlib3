@@ -7,6 +7,18 @@ import ring_theory.algebra_tower
 
 /-!
 # Integral closure of a subring.
+
+If A is an R-algebra then `a : A` is integral over R if it is a root of a monic polynomial
+with coefficients in R. Enough theory is developed to prove that integral elements
+form a sub-R-algebra of A.
+
+## Main definitions
+
+Let `R` be a `comm_ring` and let `A` be an R-algebra.
+
+* `is_integral (x : A)`  : `x` is integral over `R`, i.e., is a root of a monic polynomial with
+                           coefficients in `R`.
+* `integral_closure R A` : the integral closure of `R` in `A`, regarded as a sub-`R`-algebra of `A`.
 -/
 universes u v w
 
@@ -222,6 +234,8 @@ is_integral_of_mem_closure hx hy (is_submonoid.mul_mem
   (ring.subset_closure (or.inl rfl)) (ring.subset_closure (or.inr rfl)))
 
 variables (R A)
+
+/-- The integral closure of R in an R-algebra A. -/
 def integral_closure : subalgebra R A :=
 { carrier :=
   { carrier := { r | is_integral R r },

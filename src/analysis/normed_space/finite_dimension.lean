@@ -74,7 +74,7 @@ all norms are equivalent in finite dimension.
 This statement is superceded by the fact that every linear map on a finite-dimensional space is
 continuous, in `linear_map.continuous_of_finite_dimensional`. -/
 lemma continuous_equiv_fun_basis {ι : Type v} [fintype ι] (ξ : ι → E) (hξ : is_basis 𝕜 ξ) :
-  continuous (is_basis.equiv_fun hξ) :=
+  continuous hξ.equiv_fun :=
 begin
   unfreezingI { induction hn : fintype.card ι with n IH generalizing ι E },
   { apply linear_map.continuous_of_bound _ 0 (λx, _),

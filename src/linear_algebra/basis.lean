@@ -989,11 +989,11 @@ linear_equiv.trans (module_equiv_finsupp h)
 
 /-- A module over a finite ring that admits a finite basis is finite. -/
 def module.fintype_of_fintype [fintype R] : fintype M :=
-fintype.of_equiv _ (h.equiv_fun).to_equiv.symm
+fintype.of_equiv _ h.equiv_fun.to_equiv.symm
 
 theorem module.card_fintype [fintype R] [fintype M] :
   card M = (card R) ^ (card ι) :=
-calc card M = card (ι → R)    : card_congr (h.equiv_fun).to_equiv
+calc card M = card (ι → R)    : card_congr h.equiv_fun.to_equiv
         ... = card R ^ card ι : card_fun
 
 /-- Given a basis `v` indexed by `ι`, the canonical linear equivalence between `ι → R` and `M` maps

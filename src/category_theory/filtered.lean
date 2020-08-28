@@ -54,7 +54,7 @@ A category `is_filtered` if
 3. there exists some object.
 -/
 class is_filtered extends is_filtered_or_empty C : Prop :=
-(nonempty : nonempty C)
+[nonempty : nonempty C]
 
 end prio
 

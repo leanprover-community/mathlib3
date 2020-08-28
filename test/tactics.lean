@@ -201,33 +201,6 @@ end
 
 end clear_aux_decl
 
-section congr
-
-example (c : Prop → Prop → Prop → Prop) (x x' y z z' : Prop)
-  (h₀ : x ↔ x')
-  (h₁ : z ↔ z') :
-  c x y z ↔ c x' y z' :=
-begin
-  congr',
-  { guard_target x = x', ext, assumption },
-  { guard_target z = z', ext, assumption },
-end
-
-end congr
-
-section convert_to
-
-example {a b c d : ℕ} (H : a = c) (H' : b = d) : a + b = d + c :=
-by {convert_to c + d = _ using 2, from H, from H', rw[add_comm]}
-
-example {a b c d : ℕ} (H : a = c) (H' : b = d) : a + b = d + c :=
-by {convert_to c + d = _ using 0, congr' 2, from H, from H', rw[add_comm]}
-
-example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ a + d + e + f + c + g + b :=
-by {ac_change a + d + e + f + c + g + b ≤ _, refl}
-
-end convert_to
-
 section swap
 
 example {α₁ α₂ α₃ : Type} : true :=

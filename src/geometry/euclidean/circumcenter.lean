@@ -236,8 +236,7 @@ begin
       have hr : set.range p = insert (p i) (set.range (λ i2 : ι2, p i2)),
       { change _ = insert _ (set.range (λ i2 : {x | x ≠ i}, p i2)),
         rw [←set.image_eq_range, ←set.image_univ, ←set.image_insert_eq],
-        congr,
-        ext,
+        congr' with j,
         simp [classical.em] },
       change ∃! (cccr : P × ℝ), (_ ∧ ∀ i2, (λ q, dist q cccr.fst = cccr.snd) (p i2)),
       conv { congr, funext, conv { congr, skip, rw ←set.forall_range_iff } },
@@ -258,10 +257,7 @@ begin
       convert not_mem_affine_span_diff_of_affine_independent ha i set.univ,
       change set.range (λ i2 : {x | x ≠ i}, p i2) = _,
       rw ←set.image_eq_range,
-      congr,
-      ext,
-      simp,
-      refl } }
+      congr' with j, simp, refl } }
 end
 
 end euclidean_geometry
@@ -421,7 +417,7 @@ include V
 /-- A single vertex, in terms of `points_with_circumcenter`. -/
 lemma point_eq_affine_combination_of_points_with_circumcenter {n : ℕ} (s : simplex ℝ P n)
   (i : fin (n + 1)) :
-  s.points i = 
+  s.points i =
     (univ : finset (points_with_circumcenter_index n)).affine_combination
       s.points_with_circumcenter (point_weights_with_circumcenter i) :=
 begin
@@ -455,9 +451,7 @@ begin
   simp_rw [sum_points_with_circumcenter, centroid_weights_with_circumcenter, add_zero,
            ←fs.sum_centroid_weights_eq_one_of_nonempty ℝ h,
            set.sum_indicator_subset _ fs.subset_univ],
-  congr,
-  ext i,
-  congr
+  rcongr
 end
 
 include V
@@ -480,9 +474,7 @@ begin
              fs.subset_univ
              (λ i, zero_smul ℝ _),
            set.indicator_apply],
-  congr,
-  ext i,
-  congr
+  rcongr
 end
 
 omit V

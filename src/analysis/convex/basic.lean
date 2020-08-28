@@ -871,7 +871,7 @@ lemma finset.center_mass_segment'
 begin
   rw [s.center_mass_eq_of_sum_1 _ hws, t.center_mass_eq_of_sum_1 _ hwt,
     smul_sum, smul_sum, ← finset.sum_sum_elim, finset.center_mass_eq_of_sum_1],
-  { congr, ext ⟨⟩; simp only [sum.elim_inl, sum.elim_inr, mul_smul] },
+  { congr' with ⟨⟩; simp only [sum.elim_inl, sum.elim_inr, mul_smul] },
   { rw [sum_sum_elim, ← mul_sum, ← mul_sum, hws, hwt, mul_one, mul_one, hab] }
 end
 
@@ -891,7 +891,7 @@ lemma finset.center_mass_ite_eq (hi : i ∈ t) :
 begin
   rw [finset.center_mass_eq_of_sum_1],
   transitivity ∑ j in t, if (i = j) then z i else 0,
-  { congr, ext i, split_ifs, exacts [h ▸ one_smul _ _, zero_smul _ _] },
+  { congr' with i, split_ifs, exacts [h ▸ one_smul _ _, zero_smul _ _] },
   { rw [sum_ite_eq, if_pos hi] },
   { rw [sum_ite_eq, if_pos hi] }
 end

@@ -1074,8 +1074,7 @@ begin
   rcases g with ⟨g, g_linear, g_add⟩,
   have : f = g := funext h,
   subst g,
-  congr',
-  ext v,
+  congr' with v,
   cases (add_torsor.nonempty : nonempty P1) with p,
   apply vadd_right_cancel (f p),
   erw [← f_add, ← g_add]

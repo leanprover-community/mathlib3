@@ -131,7 +131,7 @@ theorem to_matrix_of_equiv {p q : Type*} [decidable_eq n] [decidable_eq q] [fint
       (linear_map.fun_congr_left R R e₂)
       (linear_map.fun_congr_left R R e₁) f) i j :=
 show f (λ k : q, ite (e₂ j = k) 1 0) (e₁ i) = f (λ k : q, ite (j = e₂.symm k) 1 0) (e₁ i),
-by { congr' 1, ext, congr' 1, rw equiv.eq_symm_apply }
+by { rcongr, rw equiv.eq_symm_apply }
 
 end linear_map
 

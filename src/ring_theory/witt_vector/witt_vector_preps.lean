@@ -36,7 +36,24 @@ universes u v w u₁
 -- end alg_hom
 
 namespace mv_polynomial
+open finsupp
 
+variables (σ R A : Type*) [comm_ring R] [comm_ring A]
+
+@[simp] lemma aeval_zero [algebra R A] (p : mv_polynomial σ R) :
+  aeval (0 : σ → A) p = algebra_map _ _ (p.coeff 0) :=
+begin
+  apply mv_polynomial.induction_on p,
+  { simp only [aeval_C, forall_const, if_true, coeff_C, eq_self_iff_true] },
+  { intros, simp only [*, alg_hom.map_add, ring_hom.map_add, coeff_add] },
+  { intros,
+    simp only [coeff_mul_X', pi.zero_apply, ring_hom.map_zero, eq_self_iff_true,
+      mem_support_iff, not_true, aeval_X, if_false, ne.def, mul_zero, alg_hom.map_mul, zero_apply] }
+end
+
+@[simp] lemma aeval_zero' [algebra R A] (p : mv_polynomial σ R) :
+  aeval (λ _, 0 : σ → A) p = algebra_map _ _ (p.coeff 0) :=
+aeval_zero σ R A p
 
 open_locale big_operators
 

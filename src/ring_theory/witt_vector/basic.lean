@@ -593,6 +593,7 @@ namespace witt_vectors
 
 local notation `𝕎` := witt_vectors -- type as `\bbW`
 
+-- do we want to keep these two?
 instance : functor (𝕎 p) :=
 { map := λ α β f v, f ∘ v,
   map_const := λ α β a v, λ _, a }
@@ -602,29 +603,21 @@ instance : is_lawful_functor (𝕎 p) :=
   id_map := λ α v, rfl,
   comp_map := λ α β γ f g v, rfl }
 
-variable (R)
-
-instance : has_zero (𝕎 p R) :=
-⟨λ _, 0⟩
-
-variable {R}
-
-def teichmuller (r : R) : 𝕎 p R
-| 0 := r
-| (n+1) := 0
-
-@[simp] lemma teichmuller_zero : teichmuller p (0:R) = 0 :=
-funext $ λ n, match n with | 0 := rfl | (n+1) := rfl end
-
-variable (R)
-
-instance : has_one (𝕎 p R) :=
-⟨teichmuller p 1⟩
-
 section p_prime
+
+variable (R)
 
 variable [fact p.prime]
 
+/-- The polynomial used for defining the element `0` of the ring of Witt vectors. -/
+noncomputable def witt_zero : ℕ → mv_polynomial (empty × ℕ) ℤ :=
+witt_structure_int p 0
+
+/-- The polynomial used for defining the element `1` of the ring of Witt vectors. -/
+noncomputable def witt_one : ℕ → mv_polynomial (empty × ℕ) ℤ :=
+witt_structure_int p 1
+
+-- Do we want to use bool, or a custom inductive type with terms l(eft) and r(ight)?
 noncomputable def witt_add : ℕ → mv_polynomial (bool × ℕ) ℤ :=
 witt_structure_int p (X tt + X ff)
 
@@ -633,6 +626,12 @@ witt_structure_int p (X tt * X ff)
 
 noncomputable def witt_neg : ℕ → mv_polynomial (unit × ℕ) ℤ :=
 witt_structure_int p (-X unit.star)
+
+noncomputable instance : has_zero (𝕎 p R) :=
+⟨λ n, aeval (λ p : empty × ℕ, p.1.elim) (witt_zero p n)⟩
+
+noncomputable instance : has_one (𝕎 p R) :=
+⟨λ n, aeval (λ p : empty × ℕ, p.1.elim) (witt_one p n)⟩
 
 noncomputable instance : has_add (𝕎 p R) :=
 ⟨λ x y n, aeval (λ bn : bool × ℕ, cond bn.1 (x bn.2) (y bn.2)) (witt_add p n)⟩
@@ -645,116 +644,103 @@ noncomputable instance : has_neg (𝕎 p R) :=
 
 end p_prime
 
-variable {R}
-
-@[simp] lemma teichmuller_one : teichmuller p (1:R) = 1 := rfl
-
-variable {p}
-
-noncomputable def ghost_component (n : ℕ) (w : 𝕎 p R) : R :=
-aeval w (W_ R n)
+variables {p} {R}
 
 section map
 open function
 variables {α : Type*} {β : Type*}
 
+def map_fun (f : α → β) : 𝕎 p α → 𝕎 p β := λ x, f ∘ x
 
-def map (f : α → β) : 𝕎 p α → 𝕎 p β := λ w, f ∘ w
-
-lemma map_injective (f : α → β) (hf : injective f) :
-  injective (map f : 𝕎 p α → 𝕎 p β) :=
+lemma map_fun_injective (f : α → β) (hf : injective f) :
+  injective (map_fun f : 𝕎 p α → 𝕎 p β) :=
 λ x y h, funext $ λ n, hf $ by exact congr_fun h n
 
-lemma map_surjective (f : α → β) (hf : surjective f) :
-  surjective (map f : 𝕎 p α → 𝕎 p β) :=
+lemma map_fun_surjective (f : α → β) (hf : surjective f) :
+  surjective (map_fun f : 𝕎 p α → 𝕎 p β) :=
 λ x, ⟨λ n, classical.some $ hf $ x n,
-by { funext n, dsimp [map], rw classical.some_spec (hf (x n)) }⟩
+by { funext n, dsimp [map_fun], rw classical.some_spec (hf (x n)) }⟩
 
 variables (f : R →+* S)
 
-@[simp] lemma map_zero : map f (0 : 𝕎 p R) = 0 :=
-funext $ λ n, f.map_zero
-
-@[simp] lemma map_one : map f (1 : 𝕎 p R) = 1 :=
-funext $ λ n,
-match n with
-| 0     := f.map_one
-| (n+1) := f.map_zero
-end
+/-- Auxiliary tactic for showing that `witt_package.map` respects ring data. -/
+meta def witt_map : tactic unit :=
+`[funext n,
+  show f (aeval _ _) = aeval _ _,
+  rw map_aeval,
+  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+  funext p,
+  rcases p with ⟨⟨⟩, i⟩; refl]
 
 variable [fact p.prime]
 
-@[simp] lemma map_add (x y : 𝕎 p R) :
-  map f (x + y) = map f x + map f y :=
-begin
-  funext n,
-  show f (aeval _ _) = aeval _ _,
-  rw map_aeval,
-  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-  { funext bn, rcases bn with ⟨⟨⟩, i⟩; refl, }
-end
+@[simp] lemma map_fun_zero : map_fun f (0 : 𝕎 p R) = 0 :=
+by witt_map
 
-@[simp] lemma map_mul (x y : 𝕎 p R) :
-  map f (x * y) = map f x * map f y :=
-begin
-  funext n,
-  show f (aeval _ _) = aeval _ _,
-  rw map_aeval,
-  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-  { funext bn, rcases bn with ⟨⟨⟩, i⟩; refl, }
-end
+@[simp] lemma map_fun_one : map_fun f (1 : 𝕎 p R) = 1 :=
+by witt_map
 
-@[simp] lemma map_neg (x : 𝕎 p R) :
-  map f (-x) = -map f x :=
-begin
-  funext n,
-  show f (aeval _ _) = aeval _ _,
-  rw map_aeval,
-  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-  { funext bn, rcases bn with ⟨⟨⟩, i⟩; refl, }
-end
+@[simp] lemma map_fun_add (x y : 𝕎 p R) :
+  map_fun f (x + y) = map_fun f x + map_fun f y :=
+by witt_map
+
+@[simp] lemma map_fun_mul (x y : 𝕎 p R) :
+  map_fun f (x * y) = map_fun f x * map_fun f y :=
+by witt_map
+
+@[simp] lemma map_fun_neg (x : 𝕎 p R) :
+  map_fun f (-x) = -map_fun f x :=
+by witt_map
 
 end map
 
-noncomputable def ghost_map : 𝕎 p R → (ℕ → R) := λ w n, ghost_component n w
+noncomputable def ghost_component (n : ℕ) (x : 𝕎 p R) : R :=
+aeval x (W_ ℤ n)
+
+lemma ghost_component_apply (n : ℕ) (x : 𝕎 p R) :
+  ghost_component n x = aeval x (W_ ℤ n) := rfl
+
+lemma ghost_component_apply' (n : ℕ) (x : 𝕎 p R) :
+  ghost_component n x = aeval x (W_ R n) :=
+begin
+  simp only [ghost_component_apply, aeval_eq_eval₂_hom,
+    ← map_hom_witt_polynomial p (int.cast_ring_hom R), eval₂_hom_map_hom],
+  exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl,
+end
+
+noncomputable def ghost_map_fun : 𝕎 p R → (ℕ → R) := λ w n, ghost_component n w
 
 section p_prime
+
+meta def ghost_boo : tactic unit :=
+`[simp only [aeval_eq_eval₂_hom, eval₂_hom_map_hom, map_eval₂_hom],
+  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+  funext k,
+  exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl]
+
+@[simp] lemma ghost_map_fun_apply (x : 𝕎 p R) (n : ℕ) :
+  ghost_map_fun x n = ghost_component n x := rfl
 
 variable [hp : fact p.prime]
 include hp
 
-@[simp] lemma ghost_map_apply (x : 𝕎 p R) (n : ℕ) :
-  ghost_map x n = ghost_component n x := rfl
-
 @[simp] lemma ghost_component_zero (n : ℕ) :
   ghost_component n (0 : 𝕎 p R) = 0 :=
 begin
-  rw [ghost_component, aeval_witt_polynomial, finset.sum_eq_zero],
-  intros i hi,
-  convert mul_zero _,
-  apply zero_pow _,
-  apply nat.pow_pos hp.pos,
+  have aux := witt_structure_int_prop p (0 : mv_polynomial empty ℤ) n,
+  apply_fun (aeval (λ (p : empty × ℕ), (p.1.elim : R))) at aux,
+  convert aux using 1; clear aux,
+  ghost_boo,
 end
 
-@[simp] lemma ghost_component_one (n : ℕ) : ghost_component n (1 : 𝕎 p R) = 1 :=
+@[simp] lemma ghost_component_one (n : ℕ) :
+  ghost_component n (1 : 𝕎 p R) = 1 :=
 begin
-  rw [ghost_component, aeval_witt_polynomial],
-  have : 0 ∈ range (n+1),
-  { rw finset.mem_range, exact nat.succ_pos n },
-  rw ← finset.insert_erase this,
-  rw finset.sum_insert (finset.not_mem_erase 0 (range (n + 1))),
-  convert add_zero _,
-  { apply finset.sum_eq_zero, intros i hi,
-    rw finset.mem_erase at hi,
-    suffices H : (1 : 𝕎 p R) i = 0,
-    { rw [H, zero_pow, mul_zero], apply nat.pow_pos, exact nat.prime.pos ‹_› },
-    rw ← teichmuller_one, cases hi with hi bla, revert hi,
-    exact match i with
-    | 0 := λ H, false.elim (H rfl)
-    | (n+1) := λ H, rfl
-    end },
-  { dsimp, rw one_mul, symmetry,
-    apply one_pow }
+  have aux := witt_structure_int_prop p (1 : mv_polynomial empty ℤ) n,
+  apply_fun (aeval (λ (p : empty × ℕ), (p.1.elim : R))) at aux,
+  convert aux using 1; clear aux,
+  { ghost_boo },
+  { simp only [aeval_eq_eval₂_hom, ring_hom.map_one, eval₂_hom_X', eval₂_rename], }
 end
 
 variable {R}
@@ -762,91 +748,81 @@ variable {R}
 @[simp] lemma ghost_component_add (n : ℕ) (x y : 𝕎 p R) :
   ghost_component n (x + y) = ghost_component n x + ghost_component n y :=
 begin
-  delta ghost_component,
-  have := congr_arg (λ (ψ : mv_polynomial (bool × ℕ) R), aeval (λ (bn : bool × ℕ), cond bn.1 (x bn.2) (y bn.2)) ψ) (witt_structure_prop p _ (X tt + X ff) n),
-  convert this using 1; clear this,
-  { delta witt_vectors.has_add witt_add,
-    rw ← map_hom_witt_polynomial p (int.cast_ring_hom R),
-    simp only [aeval_eq_eval₂_hom, eval₂_hom_map_hom, map_eval₂_hom],
-    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    funext k,
-    exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
-  { simp only [aeval_eq_eval₂_hom, eval₂_X, eval₂_rename, coe_eval₂_hom, eval₂_add],
+  have aux := witt_structure_int_prop p (X tt + X ff) n,
+  apply_fun aeval (λ (bn : bool × ℕ), cond bn.1 (x bn.2) (y bn.2)) at aux,
+  convert aux using 1; clear aux,
+  { ghost_boo },
+  { simp only [aeval_eq_eval₂_hom, ring_hom.map_add, eval₂_hom_X'],
+    simp only [coe_eval₂_hom, eval₂_rename],
     refl }
 end
 
 @[simp] lemma ghost_component_mul (n : ℕ) (x y : 𝕎 p R) :
   ghost_component n (x * y) = ghost_component n x * ghost_component n y :=
 begin
-  delta ghost_component,
-  have := congr_arg (λ (ψ : mv_polynomial (bool × ℕ) R), aeval (λ (bn : bool × ℕ), cond bn.1 (x bn.2) (y bn.2)) ψ) (witt_structure_prop p _ (X tt * X ff) n),
-  convert this using 1; clear this,
-  { delta witt_vectors.has_mul witt_mul,
-    rw ← map_hom_witt_polynomial p (int.cast_ring_hom R),
-    simp only [aeval_eq_eval₂_hom, eval₂_hom_map_hom, map_eval₂_hom],
-    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    funext k,
-    exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
-  { simp only [aeval_eq_eval₂_hom, eval₂_X, eval₂_rename, coe_eval₂_hom, eval₂_mul],
-    refl },
+  have aux := witt_structure_int_prop p (X tt * X ff) n,
+  apply_fun aeval (λ (bn : bool × ℕ), cond bn.1 (x bn.2) (y bn.2)) at aux,
+  convert aux using 1; clear aux,
+  { ghost_boo },
+  { simp only [aeval_eq_eval₂_hom, ring_hom.map_mul, eval₂_hom_X'],
+    simp only [coe_eval₂_hom, eval₂_rename],
+    refl }
 end
 
 @[simp] lemma ghost_component_neg (n : ℕ) (x : 𝕎 p R) :
   ghost_component n (-x) = - ghost_component n x :=
 begin
-  delta ghost_component,
-  have := congr_arg (λ (ψ : mv_polynomial (unit × ℕ) R), aeval (λ (n : unit × ℕ), (x n.2)) ψ) (witt_structure_prop p _ (-X unit.star) n),
-  convert this using 1; clear this,
-  { delta witt_vectors.has_neg witt_neg,
-    rw ← map_hom_witt_polynomial p (int.cast_ring_hom R),
-    simp only [aeval_eq_eval₂_hom, eval₂_hom_map_hom, map_eval₂_hom],
-    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    funext k,
-    exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
-  { simp only [aeval_eq_eval₂_hom, eval₂_rename, coe_eval₂_hom, eval₂_neg, eval₂_X], },
+  have aux := witt_structure_int_prop p (-X unit.star) n,
+  apply_fun aeval (λ (n : unit × ℕ), (x n.2)) at aux,
+  convert aux using 1; clear aux,
+  { ghost_boo },
+  { simp only [aeval_eq_eval₂_hom, ring_hom.map_neg, eval₂_hom_X'],
+    simp only [coe_eval₂_hom, eval₂_rename],
+    refl }
 end
 
 variables (R)
 
-@[simp] lemma ghost_map.zero : ghost_map (0 : 𝕎 p R) = 0 :=
-by { ext n, simp only [pi.zero_apply, ghost_map_apply, ghost_component_zero], }
+@[simp] lemma ghost_map_fun.zero : ghost_map_fun (0 : 𝕎 p R) = 0 :=
+by { ext n, simp only [pi.zero_apply, ghost_map_fun_apply, ghost_component_zero], }
 
-@[simp] lemma ghost_map.one : ghost_map (1 : 𝕎 p R) = 1 :=
-by { ext n, simp only [pi.one_apply, ghost_map_apply, ghost_component_one], }
+@[simp] lemma ghost_map_fun.one : ghost_map_fun (1 : 𝕎 p R) = 1 :=
+by { ext n, simp only [pi.one_apply, ghost_map_fun_apply, ghost_component_one], }
 
 variable {R}
 
-@[simp] lemma ghost_map.add (x y : 𝕎 p R) :
-  ghost_map (x + y) = ghost_map x + ghost_map y :=
-by { ext n, simp only [ghost_component_add, pi.add_apply, ghost_map_apply], }
+@[simp] lemma ghost_map_fun.add (x y : 𝕎 p R) :
+  ghost_map_fun (x + y) = ghost_map_fun x + ghost_map_fun y :=
+by { ext n, simp only [ghost_component_add, pi.add_apply, ghost_map_fun_apply], }
 
-@[simp] lemma ghost_map.mul (x y : 𝕎 p R) :
-  ghost_map (x * y) = ghost_map x * ghost_map y :=
-by { ext n, simp only [ghost_component_mul, pi.mul_apply, ghost_map_apply], }
+@[simp] lemma ghost_map_fun.mul (x y : 𝕎 p R) :
+  ghost_map_fun (x * y) = ghost_map_fun x * ghost_map_fun y :=
+by { ext n, simp only [ghost_component_mul, pi.mul_apply, ghost_map_fun_apply], }
 
-@[simp] lemma ghost_map.neg (x : 𝕎 p R) :
-  ghost_map (-x) = - ghost_map x :=
-by { ext n, simp only [ghost_component_neg, pi.neg_apply, ghost_map_apply], }
+@[simp] lemma ghost_map_fun.neg (x : 𝕎 p R) :
+  ghost_map_fun (-x) = - ghost_map_fun x :=
+by { ext n, simp only [ghost_component_neg, pi.neg_apply, ghost_map_fun_apply], }
 
 end p_prime
 
 variables (p) (R)
 
-noncomputable def ghost_map.equiv_of_invertible [invertible (p : R)] :
+noncomputable def ghost_map_fun.equiv_of_invertible [invertible (p : R)] :
   𝕎 p R ≃ (ℕ → R) :=
 mv_polynomial.comap_equiv (witt.alg_equiv p R)
 
-lemma ghost_map_eq [invertible (p : R)] :
-  (ghost_map : 𝕎 p R → ℕ → R) = ghost_map.equiv_of_invertible p R :=
+lemma ghost_map_fun_eq [invertible (p : R)] :
+  (ghost_map_fun : 𝕎 p R → ℕ → R) = ghost_map_fun.equiv_of_invertible p R :=
 begin
   ext w n,
-  dsimp [ghost_map.equiv_of_invertible, witt.alg_equiv],
-  rw [aeval_X], refl,
+  rw [ghost_map_fun_apply, ghost_component_apply'],
+  dsimp [ghost_map_fun.equiv_of_invertible, witt.alg_equiv],
+  rw [aeval_X],
 end
 
-lemma ghost_map.bijective_of_invertible [invertible (p : R)] :
-  function.bijective (ghost_map : 𝕎 p R → ℕ → R) :=
-by { rw ghost_map_eq, exact (ghost_map.equiv_of_invertible p R).bijective }
+lemma ghost_map_fun.bijective_of_invertible [invertible (p : R)] :
+  function.bijective (ghost_map_fun : 𝕎 p R → ℕ → R) :=
+by { rw ghost_map_fun_eq, exact (ghost_map_fun.equiv_of_invertible p R).bijective }
 
 section
 open function
@@ -868,26 +844,182 @@ variable (R)
 variable [hp : fact p.prime]
 include hp
 
-noncomputable def aux₁ : comm_ring (𝕎 p (mv_polynomial R ℚ)) :=
-function.injective.comm_ring (ghost_map)
-  (ghost_map.bijective_of_invertible p (mv_polynomial R ℚ)).1
-  (ghost_map.zero _) (ghost_map.one _) (ghost_map.add) (ghost_map.mul) (ghost_map.neg)
+private noncomputable def comm_ring_aux₁ : comm_ring (𝕎 p (mv_polynomial R ℚ)) :=
+function.injective.comm_ring (ghost_map_fun)
+  (ghost_map_fun.bijective_of_invertible p (mv_polynomial R ℚ)).1
+  (ghost_map_fun.zero _) (ghost_map_fun.one _) (ghost_map_fun.add) (ghost_map_fun.mul) (ghost_map_fun.neg)
 
-local attribute [instance] aux₁
+local attribute [instance] comm_ring_aux₁
 
-noncomputable def aux₂ : comm_ring (𝕎 p (mv_polynomial R ℤ)) :=
-function.injective.comm_ring (map $ mv_polynomial.map (int.cast_ring_hom ℚ))
-  (map_injective _ $ mv_polynomial.coe_int_rat_map_injective _)
-  (map_zero _) (map_one _) (map_add _) (map_mul _) (map_neg _)
+private noncomputable def comm_ring_aux₂ : comm_ring (𝕎 p (mv_polynomial R ℤ)) :=
+function.injective.comm_ring (map_fun $ mv_polynomial.map (int.cast_ring_hom ℚ))
+  (map_fun_injective _ $ mv_polynomial.coe_int_rat_map_injective _)
+  (map_fun_zero _) (map_fun_one _) (map_fun_add _) (map_fun_mul _) (map_fun_neg _)
 
-local attribute [instance] aux₂
+local attribute [instance] comm_ring_aux₂
 
 noncomputable instance : comm_ring (𝕎 p R) :=
 function.surjective.comm_ring
-  (map $ mv_polynomial.counit _) (map_surjective _ $ counit_surjective _)
-  (map_zero _) (map_one _) (map_add _) (map_mul _) (map_neg _)
+  (map_fun $ mv_polynomial.counit _) (map_fun_surjective _ $ counit_surjective _)
+  (map_fun_zero _) (map_fun_one _) (map_fun_add _) (map_fun_mul _) (map_fun_neg _)
+
+variables {p R}
+
+section map
+open function
+
+noncomputable def map (f : R →+* S) : 𝕎 p R →+* 𝕎 p S :=
+{ to_fun := map_fun f,
+  map_zero' := map_fun_zero f,
+  map_one' := map_fun_one f,
+  map_add' := map_fun_add f,
+  map_mul' := map_fun_mul f }
+
+lemma map_injective (f : R →+* S) (hf : injective f) :
+  injective (map f : 𝕎 p R → 𝕎 p S) :=
+map_fun_injective f hf
+
+lemma map_surjective (f : R →+* S) (hf : surjective f) :
+  surjective (map f : 𝕎 p R → 𝕎 p S) :=
+map_fun_surjective f hf
+
+end map
+
+noncomputable def ghost_map : 𝕎 p R →+* ℕ → R :=
+{ to_fun := ghost_map_fun,
+  map_zero' := ghost_map_fun.zero R,
+  map_one' := ghost_map_fun.one R,
+  map_add' := ghost_map_fun.add,
+  map_mul' := ghost_map_fun.mul }
+
+@[simp] lemma ghost_map_apply (x : 𝕎 p R) (n : ℕ) :
+  ghost_map x n = ghost_component n x := rfl
+
+variables (p R)
+
+lemma ghost_map.bijective_of_invertible [invertible (p : R)] :
+  function.bijective (ghost_map : 𝕎 p R → ℕ → R) :=
+ghost_map_fun.bijective_of_invertible p R
+
+section witt_structure_simplifications
+
+-- move this up
+@[simp] lemma X_in_terms_of_W_coeff_zero [invertible (p : R)] (n : ℕ) :
+  (X_in_terms_of_W p R n).coeff 0 = 0 :=
+begin
+  apply nat.strong_induction_on n; clear n,
+  intros n IH,
+  rw [X_in_terms_of_W_eq, mul_comm, coeff_C_mul, coeff_sub, coeff_sum, finset.sum_eq_zero],
+  { simp only [coeff_zero_X, sub_zero, mul_zero] },
+  { intros,
+    rw [coeff_C_mul],
+    -- ouch, we don't know that `coeff 0` is a ring hom :sad:
+    sorry, }
+end
+
+-- move this up
+@[simp] lemma X_in_terms_of_W_zero [invertible (p : R)] :
+  X_in_terms_of_W p R 0 = X 0 :=
+by rw [X_in_terms_of_W_eq, finset.range_zero, finset.sum_empty, pow_zero, C_1, mul_one, sub_zero]
+
+@[simp] lemma witt_zero_eq_zero (n : ℕ) : witt_zero p n = 0 :=
+by simp only [witt_zero, witt_structure_int, witt_structure_rat, ring_hom.map_zero, aeval_zero',
+  alg_hom.map_zero, finsupp.map_range_zero, ring_hom.map_zero, X_in_terms_of_W_coeff_zero]
+
+@[simp] lemma witt_one_zero_eq_one : witt_one p 0 = 1 :=
+begin
+  simp only [witt_one, witt_structure_int, witt_structure_rat, alg_hom.map_one, ring_hom.map_one],
+  simp only [X_in_terms_of_W_zero, aeval_X],
+  -- FYI: this is an eq of polynomials in no variables...
+  sorry
+end
+
+@[simp] lemma witt_one_pos_eq_zero (n : ℕ) (hn : 0 < n) : witt_one p n = 0 :=
+begin
+  suffices : witt_structure_rat p (1 : mv_polynomial empty ℚ) n = 0,
+  { rw [witt_one, witt_structure_int, ring_hom.map_one, this, finsupp.map_range_zero], },
+  simp only [witt_structure_rat, alg_hom.map_one],
+  revert hn, apply nat.strong_induction_on n, clear n,
+  intros n IH hn,
+  rw X_in_terms_of_W_eq,
+  simp only [alg_hom.map_mul, alg_hom.map_sub, alg_hom.map_sum, alg_hom.map_pow, aeval_X, aeval_C],
+  rw [sub_mul, one_mul],
+  rw [finset.sum_eq_single 0],
+  { simp only [inv_of_eq_inv, one_mul, inv_pow', nat.sub_zero, ring_hom.map_one, pow_zero],
+    simp only [one_pow, one_mul, X_in_terms_of_W_zero, aeval_X, sub_self], },
+  { intros i hin hi0,
+    rw [finset.mem_range] at hin,
+    rw [IH _ hin (nat.pos_of_ne_zero hi0), zero_pow (nat.pow_pos hp.pos _), mul_zero], },
+  { rw finset.mem_range, intro, contradiction }
+end
+
+@[simp] lemma witt_add_zero : witt_add p 0 = X (tt,0) + X (ff,0) :=
+begin
+  suffices : witt_structure_rat p (X tt + X ff) 0 = X (tt,0) + X (ff,0),
+  { rw [witt_add, witt_structure_int, ring_hom.map_add, map_hom_X, map_hom_X, this],
+    rw [finsupp.map_range_add], }
+end
+
+end witt_structure_simplifications
+
+-- section support
+
+-- lemma witt_structure_int
+
+-- end support
+
+section coeff
+/-! ## Witt coefficients
+
+I don't know a name for this map in the literature. But coefficient seems ok.
+-/
 
 omit hp
+variables {p R}
+
+def coeff (n : ℕ) (x : 𝕎 p R) : R := x n
+
+include hp
+variables (p R)
+
+@[simp] lemma zero_coeff (n : ℕ) : (0 : 𝕎 p R).coeff n = 0 :=
+show (aeval _ (witt_zero p n) : R) = 0,
+by simp only [witt_zero_eq_zero, alg_hom.map_zero]
+
+@[simp] lemma one_coeff_zero : (1 : 𝕎 p R).coeff 0 = 1 :=
+show (aeval _ (witt_one p 0) : R) = 1,
+by simp only [witt_one_zero_eq_one, alg_hom.map_one]
+
+@[simp] lemma one_coeff_pos (n : ℕ) (hn : 0 < n) : coeff n (1 : 𝕎 p R) = 0 :=
+show (aeval _ (witt_one p n) : R) = 0,
+by simp only [hn, witt_one_pos_eq_zero, alg_hom.map_zero]
+
+end coeff
+
+section ideal
+
+noncomputable def ideal (n : ℕ) : ideal (𝕎 p R) :=
+{ carrier := {x | ∀ i < n, x.coeff i = 0},
+  zero_mem' := by { intros i hi, rw zero_coeff },
+  add_mem' := sorry,
+  smul_mem' := sorry }
+
+end ideal
+
+section teichmuller
+/-! ## Teichmüller lifts -/
+
+variable {R}
+
+def teichmuller_fun (r : R) : 𝕎 p R
+| 0 := r
+| (n+1) := 0
+
+@[simp] lemma teichmuller_fun_zero : teichmuller_fun p (0:R) = 0 :=
+funext $ λ n, match n with | 0 := rfl | (n+1) := rfl end
+
+
+@[simp] lemma teichmuller_one : teichmuller p (1:R) = 1 := rfl
 
 /-- teichmuller is a natural transformation -/
 @[simp] lemma map_teichmuller (f : R →+* S) (r : R) :
@@ -913,7 +1045,7 @@ lemma teichmuller_mul_aux₁ (x y : mv_polynomial R ℚ) :
   teichmuller p (x * y) = teichmuller p x * teichmuller p y :=
 begin
   apply (ghost_map.bijective_of_invertible p (mv_polynomial R ℚ)).1,
-  rw ghost_map.mul,
+  rw ring_hom.map_mul,
   ext1 n,
   simp only [pi.mul_apply, ghost_map_apply, ghost_component_teichmuller, mul_pow],
 end
@@ -932,6 +1064,8 @@ begin
   rcases counit_surjective R y with ⟨y, rfl⟩,
   simp only [← map_teichmuller, ← ring_hom.map_mul, teichmuller_mul_aux₂, map_mul],
 end
+
+end teichmuller
 
 section verschiebung
 /-! ## The Verschiebung operator -/
@@ -965,7 +1099,7 @@ lemma verschiebung_add_aux₁ (x y : 𝕎 p (mv_polynomial R ℚ)) :
 begin
   apply (ghost_map.bijective_of_invertible p (mv_polynomial R ℚ)).1,
   ext1 n,
-  rw ghost_map.add,
+  rw ring_hom.map_add,
   simp only [pi.add_apply],
   cases n,
   { simp only [add_zero, ghost_component_zero_verschiebung_fun, ghost_map_apply], },
@@ -978,6 +1112,8 @@ begin
   apply map_injective (mv_polynomial.map (int.cast_ring_hom ℚ)) (mv_polynomial.coe_int_rat_map_injective _),
   { simp only [verschiebung_add_aux₁, map_add, map_verschiebung_fun], }
 end
+
+variables {R}
 
 noncomputable
 def verschiebung : 𝕎 p R →+ 𝕎 p R :=
@@ -993,30 +1129,61 @@ def verschiebung : 𝕎 p R →+ 𝕎 p R :=
     rw [vershiebung_add_aux₂, map_add],
   end }
 
+/-- Verschiebung is a natural transformation. -/
 @[simp] lemma map_verschiebung (f : R →+* S) (x : 𝕎 p R) :
-  map f (verschiebung p R x) = verschiebung p S (map f x) :=
+  map f (verschiebung p x) = verschiebung p (map f x) :=
 map_verschiebung_fun _ _ _ _
 
 @[simp] lemma ghost_component_zero_verschiebung (x : 𝕎 p R) :
-  ghost_component 0 (verschiebung p R x) = 0 :=
+  ghost_component 0 (verschiebung p x) = 0 :=
 ghost_component_zero_verschiebung_fun _ _ _
 
 @[simp] lemma ghost_component_verschiebung (x : 𝕎 p R) (n : ℕ) :
-  ghost_component (n + 1) (verschiebung p R x) = p * ghost_component n x :=
+  ghost_component (n + 1) (verschiebung p x) = p * ghost_component n x :=
 ghost_component_verschiebung_fun _ _ _ _
 
-end verschiebung
+-- /-- Implementation detail -/
+-- private lemma verschiebung_one_aux₁ : verschiebung p (1 : 𝕎 p (mv_polynomial R ℚ)) = p :=
+-- begin
+--   apply (ghost_map.bijective_of_invertible p (mv_polynomial R ℚ)).1,
+--   ext1 n,
+--   rw ring_hom.map_nat_cast,
+--   cases n,
+--   { simp only [ghost_component_zero_verschiebung, nat.nat_zero_eq_zero, ghost_map_apply],
+--     /- oops, I got this wrong. -/
+--     sorry },
+--   { simp only [nat.succ_eq_add_one, ghost_component_verschiebung, ghost_component_one, mul_one, ghost_map_apply],
+--     show ↑p = ring_hom.apply (λ n : ℕ, mv_polynomial R ℚ) (n + 1) ↑p,
+--     rw ring_hom.map_nat_cast, }
+--   --  simp only [ghost_map_apply],
+-- end
 
--- section ideals
--- /-! ## Ideals in the ring of Witt vectors -/
-
--- lemma mem_span_pow_iff (x : 𝕎 p R) (n : ℕ) :
---   x ∈ (ideal.span {p ^ n} : ideal (𝕎 p R)) ↔ ∀ i < n, ghost_component i x = 0 :=
+-- @[simp] lemma verschiebung_one : verschiebung p (1 : 𝕎 p R) = p :=
 -- begin
 
 -- end
 
--- end ideals
+end verschiebung
+
+-- section frobenius
+
+
+
+-- noncomputable def frobenius_fun (x : 𝕎 p R) : 𝕎 p R :=
+-- λ n, aeval x (frobenius_poly p n)
+
+-- end frobenius
+
+section ideals
+/-! ## Ideals in the ring of Witt vectors -/
+
+lemma mem_span_pow_iff (x : 𝕎 p R) (n : ℕ) :
+  x ∈ (ideal.span {p ^ n} : ideal (𝕎 p R)) ↔ ∀ i < n, x i = 0 :=
+begin
+
+end
+
+end ideals
 
 end witt_vectors
 

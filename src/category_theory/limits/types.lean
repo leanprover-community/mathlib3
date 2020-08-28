@@ -153,6 +153,10 @@ where their images are equal.
 protected def r (x y : Σ j, F.obj j) : Prop :=
 ∃ k (f : x.1 ⟶ k) (g : y.1 ⟶ k), F.map f x.2 = F.map g y.2
 
+protected lemma r_ge (x y : Σ j, F.obj j) :
+  (∃ f : x.1 ⟶ y.1, y.2 = F.map f x.2) → filtered_colimit.r F x y :=
+λ ⟨f, hf⟩, ⟨y.1, f, 𝟙 y.1, by simp [hf]⟩
+
 variables (t : cocone F)
 local attribute [elab_simple] nat_trans.app
 
@@ -203,10 +207,6 @@ protected lemma r_equiv : equivalence (filtered_colimit.r F) :=
       ... = F.map (gl ≫ n) (F.map f' y.2) : by simp
       ... = F.map (gl ≫ n) (F.map g' z.2) : by rw h'
       ... = F.map (g' ≫ gl ≫ n) z.2       : by simp⟩⟩
-
-protected lemma r_ge (x y : Σ j, F.obj j) :
-  (∃ f : x.1 ⟶ y.1, y.2 = F.map f x.2) → filtered_colimit.r F x y :=
-λ ⟨f, hf⟩, ⟨y.1, f, 𝟙 y.1, by simp [hf]⟩
 
 protected lemma r_eq :
   filtered_colimit.r F = eqv_gen (λ x y, ∃ f : x.1 ⟶ y.1, y.2 = F.map f x.2) :=

@@ -6,6 +6,7 @@ Authors: Reid Barton
 import tactic.auto_cases
 import tactic.tidy
 import tactic.with_local_reducibility
+import tactic.show_term
 import topology.basic
 /-!
 # Tactics for topology
@@ -77,13 +78,15 @@ namespace interactive
 setup_tactic_parser
 
 /--
-Solve goals of the form `continuous f`. `continuity?` reports back the tactic script it found.
+Solve goals of the form `continuous f`. `continuity?` reports back the proof term it found.
 -/
 meta def continuity
   (bang : parse $ optional (tk "!")) (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) : tactic unit :=
 with_local_reducibility `continuous decl_reducibility.irreducible $
 let md := if bang.is_some then semireducible else reducible in
-tactic.tidy { tactics := continuity_tactics md, trace_result := trace.is_some, ..cfg }
+let continuity_core := tactic.tidy { tactics := continuity_tactics md, ..cfg } in
+let trace_fn := if trace.is_some then show_term else id in
+trace_fn continuity_core
 
 /-- Version of `continuity` for use with auto_param. -/
 meta def continuity' : tactic unit := continuity none none {}

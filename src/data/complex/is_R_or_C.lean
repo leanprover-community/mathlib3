@@ -269,7 +269,7 @@ begin
 end
 
 @[simp] lemma inv_I : (I : K)⁻¹ = -I :=
-by { by_cases h : (I : K) = 0; { field_simp [h] } }
+by { by_cases h : (I : K) = 0; field_simp [h] }
 
 @[simp] lemma norm_sq_inv (z : K) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
 begin

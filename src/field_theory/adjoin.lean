@@ -127,9 +127,6 @@ begin
             (subset_adjoin _ _) },
 end
 
-lemma adjoin.composition :
-(algebra_map F E) = (algebra_map (adjoin F S) E).comp (algebra_map F (adjoin F S)) := by ext;refl
-
 variables (α : E)
 
 notation K`[`:std.prec.max_plus l:(foldr `, ` (h t, set.insert h t) ∅) `]` := adjoin K l

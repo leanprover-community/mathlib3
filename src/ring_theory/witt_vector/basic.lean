@@ -1047,7 +1047,7 @@ def teichmuller_fun (r : R) : 𝕎 p R
 
 include hp
 
-@[simp] lemma ghost_component_teichmuller_fun (r : R) (n : ℕ) :
+private lemma ghost_component_teichmuller_fun (r : R) (n : ℕ) :
   ghost_component n (teichmuller_fun p r) = r ^ p ^ n :=
 begin
   rw [ghost_component, aeval_witt_polynomial],
@@ -1059,6 +1059,11 @@ begin
     { apply nat.pow_pos, apply nat.prime.pos, assumption } },
   { contrapose!, intro, rw finset.mem_range, exact nat.succ_pos n }
 end
+
+/-- teichmuller is a natural transformation -/
+private lemma map_teichmuller_fun (f : R →+* S) (r : R) :
+  map f (teichmuller_fun p r) = teichmuller_fun p (f r) :=
+by { ext n, cases n, { refl }, { exact f.map_zero } }
 
 private lemma teichmuller_mul_aux₁ (x y : mv_polynomial R ℚ) :
   teichmuller_fun p (x * y) = teichmuller_fun p x * teichmuller_fun p y :=
@@ -1072,11 +1077,12 @@ end
 private lemma teichmuller_mul_aux₂ (x y : mv_polynomial R ℤ) :
   teichmuller_fun p (x * y) = teichmuller_fun p x * teichmuller_fun p y :=
 begin
-  apply map_injective (mv_polynomial.map (int.cast_ring_hom ℚ)) (mv_polynomial.coe_int_rat_map_injective _),
-  { simp only [teichmuller_mul_aux₁, map_teichmuller, map_mul, ring_hom.map_mul], }
+  refine map_injective (mv_polynomial.map (int.cast_ring_hom ℚ))
+    (mv_polynomial.coe_int_rat_map_injective _) _,
+  simp only [teichmuller_mul_aux₁, map_teichmuller_fun, ring_hom.map_mul]
 end
 
-def teichmuller : R →* 𝕎 p R :=
+noncomputable def teichmuller : R →* 𝕎 p R :=
 { to_fun := teichmuller_fun p,
   map_one' :=
   begin
@@ -1087,8 +1093,9 @@ def teichmuller : R →* 𝕎 p R :=
   map_mul' :=
   begin
     intros x y,
-    ext ⟨⟩,
-    {  }
+  rcases counit_surjective R x with ⟨x, rfl⟩,
+  rcases counit_surjective R y with ⟨y, rfl⟩,
+  simp only [← map_teichmuller_fun, ← ring_hom.map_mul, teichmuller_mul_aux₂],
   end }
 
 @[simp] lemma teichmuller_zero : teichmuller p (0:R) = 0 :=
@@ -1097,28 +1104,18 @@ by ext ⟨⟩; { rw zero_coeff, refl }
 /-- teichmuller is a natural transformation -/
 @[simp] lemma map_teichmuller (f : R →+* S) (r : R) :
   map f (teichmuller p r) = teichmuller p (f r) :=
-by { ext n, cases n, { refl }, { exact f.map_zero } }
+map_teichmuller_fun _ _ _
 
 @[simp] lemma ghost_component_teichmuller (r : R) (n : ℕ) :
   ghost_component n (teichmuller p r) = r ^ p ^ n :=
-begin
-  rw [ghost_component, aeval_witt_polynomial],
-  rw [finset.sum_eq_single 0, pow_zero, one_mul, nat.sub_zero],
-  { refl },
-  { intros i hi h0,
-    convert mul_zero _, convert zero_pow _,
-    { cases i, { contradiction }, { refl } },
-    { apply nat.pow_pos, apply nat.prime.pos, assumption } },
-  { contrapose!, intro, rw finset.mem_range, exact nat.succ_pos n }
-end
+ghost_component_teichmuller_fun _ _ _
 
-@[simp] lemma teichmuller_mul (x y : R) :
-  teichmuller p (x * y) = teichmuller p x * teichmuller p y :=
-begin
-  rcases counit_surjective R x with ⟨x, rfl⟩,
-  rcases counit_surjective R y with ⟨y, rfl⟩,
-  simp only [← map_teichmuller, ← ring_hom.map_mul, teichmuller_mul_aux₂, map_mul],
-end
+@[simp] lemma teichmuller_coeff_zero (r : R) :
+  (teichmuller p r).coeff 0 = r := rfl
+
+@[simp] lemma teichmuller_coeff_pos (r : R) :
+  ∀ (n : ℕ) (hn : 0 < n), (teichmuller p r).coeff n = 0
+| (n+1) _ := rfl.
 
 end teichmuller
 

@@ -38,6 +38,7 @@ open Top
 
 namespace Top.sheaf_condition
 
+
 /--
 We show that the presheaf of functions to a type `T`
 (no continuity assumptions, just plain functions)
@@ -66,65 +67,84 @@ begin
     choose i hi using mem,
     -- We define out function to be the restriction of `f` to that `U i`, evaluated at `x`.
     exact ((s.ι ≫ pi.π _ i) f) ⟨x, hi⟩, },
-  { -- Now we need to verify that this lifted function restricts correctly to each set `U i`.
-    -- Of course, the difficulty is that at any given point `x ∈ U i`,
-    -- we may have used the axiom of choice to pick a differnt `j` with `x ∈ U j`
-    -- when defining the function.
-    -- This we'll need to use the fact that the restrictions are compatible.
-
-    -- Again, we begin with some `s`, a cone over the sheaf condition diagram.
-    intros s,
-    -- The goal at this point is fairly inscrutable,
-    -- but we know we're trying two functions are equal, so we call `ext` and see what we get:
-    ext i f ⟨x, mem⟩,
-    dsimp at mem,
-    -- We now have `i : ι`, a term `f : s.X`, and a point `x` with `mem : x ∈ U i`.
-
-    -- We clean up the goal a little,
-    simp only [exists_prop, set.mem_range, set.mem_image, exists_exists_eq_and, category.assoc],
-    simp only [limit.lift_π, types_comp_apply, fan.mk_π_app, presheaf_to_Type],
-    dsimp,
-    -- although you still need to be ambitious to read it.
-    -- The mathematical content, of course, is that the lifted function we constructed from `f`,
-    -- when restricted to `U i` and evaluated at `x`,
-    -- has the same value as `f` restricted to to `U i` and evaluated at `x`.
-
-    -- We have a slightly annoying issue at this point,
-    -- that we're not really sure which `j : ι` was used to define the lifted function
-    -- and this point `x`, because we used choice.
-    -- As a trick, we create a new metavariable `j` to represent this choice,
-    -- and later in the proof it will be solved by unification.
-    let j : ι := _,
-
-    -- Now, we assert that the two restrictions of `f` to `U i` and `U j` coincide on `U i ⊓ U j`,
-    -- and in particular coincide there after evaluating at `x`.
-    have s₀ := s.condition =≫ pi.π _ (j, i),
-    simp only [sheaf_condition.left_res, sheaf_condition.right_res] at s₀,
-    have s₁ := congr_fun s₀ f,
-    have s₂ := congr_fun s₁ ⟨x, _⟩, clear s₀ s₁,
-    -- Notice at this point we've spun after an additional goal:
-    -- that `x ∈ U j ⊓ U i` to begin with! Let's get that out of the way.
-    swap,
-    { -- We knew `x ∈ U i` right from the start:
-      refine ⟨_, mem⟩,
-      dsimp,
-
-      -- Notice that when we introduced `j`, we just introduced it as some metavariable.
-      -- However at this point it's received a concrete value,
-      -- because Lean's unification has worked out that this `j` must have been the index
-      -- that we picked using choice back when constructing the lift.
-      -- From this, we can extract the evidence that `x ∈ U j`:
-      convert @classical.some_spec _ (λ i, x ∈ (U i : set X)) _, },
-    -- Now, we can just assert that `s₂` is the droid you are looking for.
-    -- (We relying shamefacedly on Lean's unification understanding this,
-    -- even though the type of the goal is still fairly messy. "It's obvious.")
-    -- FIXME this doesn't work any more, because we can't see through the definition of limits
-    dsimp at s₂,
-    convert s₂,
-    simp [sheaf_condition.res],
+  {
     sorry,
-    sorry,
-    exact ⟨i, mem⟩,
+
+    -- -- Now we need to verify that this lifted function restricts correctly to each set `U i`.
+    -- -- Of course, the difficulty is that at any given point `x ∈ U i`,
+    -- -- we may have used the axiom of choice to pick a differnt `j` with `x ∈ U j`
+    -- -- when defining the function.
+    -- -- This we'll need to use the fact that the restrictions are compatible.
+
+    -- -- Again, we begin with some `s`, a cone over the sheaf condition diagram.
+    -- intros s,
+    -- -- The goal at this point is fairly inscrutable,
+    -- -- but we know we're trying two functions are equal, so we call `ext` and see what we get:
+    -- ext i f ⟨x, mem⟩,
+    -- dsimp at mem,
+    -- -- We now have `i : ι`, a term `f : s.X`, and a point `x` with `mem : x ∈ U i`.
+
+    -- -- We clean up the goal a little,
+    -- simp only [exists_prop, set.mem_range, set.mem_image, exists_exists_eq_and, category.assoc],
+    -- simp only [limit.lift_π, types_comp_apply, fan.mk_π_app, presheaf_to_Type],
+    -- dsimp,
+    -- -- although you still need to be ambitious to read it.
+    -- -- The mathematical content, of course, is that the lifted function we constructed from `f`,
+    -- -- when restricted to `U i` and evaluated at `x`,
+    -- -- has the same value as `f` restricted to to `U i` and evaluated at `x`.
+
+    -- -- We have a slightly annoying issue at this point,
+    -- -- that we're not really sure which `j : ι` was used to define the lifted function
+    -- -- and this point `x`, because we used choice.
+    -- -- As a trick, we create a new metavariable `j` to represent this choice,
+    -- -- and later in the proof it will be solved by unification.
+    -- let j : ι := _,
+
+    -- -- Now, we assert that the two restrictions of `f` to `U i` and `U j` coincide on `U i ⊓ U j`,
+    -- -- and in particular coincide there after evaluating at `x`.
+    -- have s₀ := s.condition =≫ pi.π _ (j, i),
+    -- simp only [sheaf_condition.left_res, sheaf_condition.right_res] at s₀,
+    -- have s₁ := congr_fun s₀ f,
+    -- have s₂ := congr_fun s₁ ⟨x, _⟩, clear s₀ s₁,
+    -- -- Notice at this point we've spun after an additional goal:
+    -- -- that `x ∈ U j ⊓ U i` to begin with! Let's get that out of the way.
+    -- swap,
+    -- { -- We knew `x ∈ U i` right from the start:
+    --   refine ⟨_, mem⟩,
+    --   dsimp,
+
+    --   -- Notice that when we introduced `j`, we just introduced it as some metavariable.
+    --   -- However at this point it's received a concrete value,
+    --   -- because Lean's unification has worked out that this `j` must have been the index
+    --   -- that we picked using choice back when constructing the lift.
+    --   -- From this, we can extract the evidence that `x ∈ U j`:
+    --   convert @classical.some_spec _ (λ i, x ∈ (U i : set X)) _, },
+    -- -- Now, we can just assert that `s₂` is the droid you are looking for.
+    -- -- (We relying shamefacedly on Lean's unification understanding this,
+    -- -- even though the type of the goal is still fairly messy. "It's obvious.")
+    -- -- FIXME this doesn't work any more, because we can't see through the definition of limits
+    -- dsimp at s₂,
+
+    -- -- TODO golf this
+
+    -- convert s₂,
+    -- swap 3,
+    -- exact ⟨i, mem⟩,
+
+    -- simp [sheaf_condition.res],
+    -- erw [types.lift_π_apply],
+    -- dsimp [presheaf_to_Types], -- why doesn't presheaf_to_Types_map work?
+    -- dsimp [types_comp],
+    -- dsimp [function.comp, sheaf_condition.pi_opens],
+    -- dsimp [inf_le_left_apply],
+    -- delta pi.π,
+    -- erw [types.lift_π_apply],
+    -- refl,
+
+    -- delta pi.π,
+    -- erw [types.lift_π_apply],
+    -- refl,
+
   },
   { -- On the home stretch now,
     -- we just need to check that the lift we picked was the only possible one.
@@ -140,12 +160,20 @@ begin
     -- We'll need the later,
     specialize w walking_parallel_pair.zero,
     -- because we're not sure which arbitrary `j : ι` we used to define our lift.
+
     let j : ι := _,
 
     -- Now it's just a matter of plugging in all the values;
     -- `j` gets solved for during unification.
     convert congr_fun (congr_fun (w =≫ pi.π _ j) f) ⟨x, _⟩,
-    sorry, }
+
+    -- TODO golf
+    simp [sheaf_condition.res],
+    dsimp [presheaf_to_Types],
+    delta pi.π, -- Can we avoid this?!?
+    erw [types.lift_π_apply],
+    simp,
+    refl, }
 end.
 
 -- We verify that the non-dependent version is an immediate consequence:
@@ -185,7 +213,20 @@ def forget_continuity (T : Top.{u}) {ι : Type u} (U : ι → opens X) :
     exact (pi.map (λ i f, f.to_fun)),
     exact (pi.map (λ p f, f.to_fun)),
   end,
-  naturality' := by rintro ⟨_|_⟩ ⟨_|_⟩ f; cases f; refl, }
+  naturality' :=
+  begin
+    rintro ⟨_|_⟩ ⟨_|_⟩ ⟨⟩,
+    refl,
+    { ext,
+    simp only [sheaf_condition.left_res, cones.postcompose_obj_π, discrete.nat_trans_app, function.comp_app, functor_to_types.comp,
+ limit.lift_map, types_comp_apply, presheaf_to_Type_map, parallel_pair_map_left, fan.mk_π_app, types.lift_π_apply,
+ has_hom.hom.unop_op],
+ delta pi.π,
+ simp [inf_le_left_apply, presheaf_to_Top],
+ refl, },
+    refl,
+    refl,
+  end, }
 
 /--
 The presheaf of continuous functions to a target topological space `T` satsifies the sheaf condition.

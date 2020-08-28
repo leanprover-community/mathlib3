@@ -82,7 +82,7 @@ lemma of_real_zero : 𝓚 0 = 0 := by rw [of_real_alg, zero_smul]
 
 @[simp] lemma bit0_re (z : K) : re (bit0 z) = bit0 (re z) := by simp [bit0]
 @[simp] lemma bit1_re (z : K) : re (bit1 z) = bit1 (re z) :=
-  by simp only [bit1, add_monoid_hom.map_add, bit0_re, add_right_inj, one_re]
+by simp only [bit1, add_monoid_hom.map_add, bit0_re, add_right_inj, one_re]
 @[simp] lemma bit0_im (z : K) : im (bit0 z) = bit0 (im z) := by simp [bit0]
 @[simp] lemma bit1_im (z : K) : im (bit1 z) = bit0 (im z) :=
   by simp only [bit1, add_right_eq_self, add_monoid_hom.map_add, bit0_im, one_im]

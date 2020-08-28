@@ -81,6 +81,13 @@ colimit.w ((open_nhds.inclusion x.1).op ⋙ F) i'.op
 let i' : (⟨U, x.2⟩ : open_nhds x.1) ⟶ ⟨V, (i x : V).2⟩ := i in
 congr_fun (colimit.w ((open_nhds.inclusion x.1).op ⋙ F) i'.op) f
 
+/-- A variant when the open sets are written in `(opens X)ᵒᵖ`. -/
+@[simp] lemma germ_res_apply' (F : X.presheaf (Type v)) {U V : (opens X)ᵒᵖ} (i : V ⟶ U)
+  (x : unop U) (f : F.obj V) :
+  germ F x (F.map i f) = germ F (i.unop x : unop V) f :=
+let i' : (⟨unop U, x.2⟩ : open_nhds x.1) ⟶ ⟨unop V, (i.unop x : unop V).2⟩ := i.unop in
+congr_fun (colimit.w ((open_nhds.inclusion x.1).op ⋙ F) i'.op) f
+
 variables (C)
 
 def stalk_pushforward (f : X ⟶ Y) (ℱ : X.presheaf C) (x : X) : (f _* ℱ).stalk (f x) ⟶ ℱ.stalk x :=

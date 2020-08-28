@@ -68,7 +68,8 @@ sending each section to its germs.
 (This forms the unit of the adjunction.)
 -/
 def to_sheafify : F ⟶ F.sheafify.presheaf :=
-{ app := λ U f, ⟨λ x, F.germ x f, prelocal_predicate.sheafify_of ⟨f, λ x, rfl⟩⟩, }
+{ app := λ U f, ⟨λ x, F.germ x f, prelocal_predicate.sheafify_of ⟨f, λ x, rfl⟩⟩,
+  naturality' := λ U U' f, by { ext x ⟨u, m⟩, apply germ_res_apply', }, }
 
 /--
 The natural morphism from the stalk of the sheafification to the original stalk.

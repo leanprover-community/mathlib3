@@ -22,21 +22,49 @@ namespace is_filtered
 
 variables {C} [is_filtered C]
 
+/--
+`sup j j'` is an arbitrary choice of object to the right of both `j` and `j'`,
+whose existence is ensured by `is_filtered`.
+-/
 noncomputable def sup (j j' : C) : C :=
 (is_filtered_or_empty.cocone_objs j j').some
 
-noncomputable def left_to_sup (j j' : C) : j ⟶ is_filtered.sup j j' :=
+/--
+`left_to_sup j j'` is an arbitrarily choice of morphism from `j` to `sup j j'`,
+whose existence is ensured by `is_filtered`.
+-/
+noncomputable def left_to_sup (j j' : C) : j ⟶ sup j j' :=
 (is_filtered_or_empty.cocone_objs j j').some_spec.some
 
-noncomputable def right_to_sup (j j' : C) : j' ⟶ is_filtered.sup j j' :=
+/--
+`right_to_sup j j'` is an arbitrarily choice of morphism from `j'` to `sup j j'`,
+whose existence is ensured by `is_filtered`.
+-/
+noncomputable def right_to_sup (j j' : C) : j' ⟶ sup j j' :=
 (is_filtered_or_empty.cocone_objs j j').some_spec.some_spec.some
 
+/--
+`coeq f f'`, for morphisms `f f' : j ⟶ j'`, is an arbitrary choice of object
+which admits a morphism `coeq_hom f f' : j' ⟶ coeq f f'` such that
+`coeq_condition : f ≫ coeq_hom f f' = f' ≫ coeq_hom f f'`.
+Its existence is ensured by `is_filtered`.
+-/
 noncomputable def coeq {j j' : C} (f f' : j ⟶ j') : C :=
 (is_filtered_or_empty.cocone_maps f f').some
 
+/--
+`coeq_hom f f'`, for morphisms `f f' : j ⟶ j'`, is an arbitrary choice of morphism
+`coeq_hom f f' : j' ⟶ coeq f f'` such that
+`coeq_condition : f ≫ coeq_hom f f' = f' ≫ coeq_hom f f'`.
+Its existence is ensured by `is_filtered`.
+-/
 noncomputable def coeq_hom {j j' : C} (f f' : j ⟶ j') : j' ⟶ coeq f f' :=
 (is_filtered_or_empty.cocone_maps f f').some_spec.some
 
+/--
+`coeq_condition f f'`, for morphisms `f f' : j ⟶ j'`, is the proof that
+`f ≫ coeq_hom f f' = f' ≫ coeq_hom f f'`.
+-/
 lemma coeq_condition {j j' : C} (f f' : j ⟶ j') : f ≫ coeq_hom f f' = f' ≫ coeq_hom f f' :=
 (is_filtered_or_empty.cocone_maps f f').some_spec.some_spec
 
@@ -47,20 +75,14 @@ variables {J : Type v} [small_category J] [fin_category J]
 lemma cocone_on_objs_aux (F : J ⥤ C) (s : finset J) : ∃ Z (f : ∀ j ∈ s, F.obj j ⟶ Z), true :=
 begin
   apply finset.induction_on s,
-  { use is_filtered.nonempty.some,
-    fsplit,
-    rintros j ⟨⟩,
-    trivial, },
+  { exact ⟨is_filtered.nonempty.some, by rintros j ⟨⟩, trivial⟩, },
   { rintros j s nm ⟨Z, f, -⟩,
-    use sup (F.obj j) Z,
-    fsplit,
-    rintros j' m,
-    simp at m,
+    refine ⟨sup (F.obj j) Z, _, trivial⟩,
+    intros j' m,
     by_cases h : j = j',
-    subst h,
-    apply left_to_sup,
-    exact f j' (by finish) ≫ right_to_sup _ _,
-    trivial, }
+    { subst h,
+      apply left_to_sup, },
+    { exact f j' (by finish) ≫ right_to_sup _ _, }, },
 end
 
 lemma cocone_on_objs (F : J ⥤ C) : ∃ Z (f : ∀ j : J, F.obj j ⟶ Z), true :=
@@ -69,19 +91,15 @@ begin
   exact ⟨Z, λ j, f j (by simp), trivial⟩,
 end
 
-lemma cocone_aux (F : J ⥤ C) (s : finset (Σ (j j' : J), j ⟶ j')) :
+lemma cocone_exists_aux (F : J ⥤ C) (s : finset (Σ (j j' : J), j ⟶ j')) :
   ∃ Z (f : ∀ j : J, F.obj j ⟶ Z),
     ∀ (j j' : J) (g : j ⟶ j'), (⟨j, j', g⟩ : Σ (j j' : J), j ⟶ j') ∈ s → F.map g ≫ f j' = f j :=
 begin
   apply finset.induction_on s,
   { obtain ⟨Z, f, -⟩ := cocone_on_objs F,
-    refine ⟨Z, f, _⟩,
-    rintros - - - ⟨⟩, },
+    exact ⟨Z, f, by rintros - - - ⟨⟩⟩, },
   { rintros ⟨j, j', g⟩ s nm ⟨Z, f, w⟩,
-    use coeq (F.map g ≫ f j') (f j),
-    fsplit,
-    rintro j'',
-    use f j'' ≫ coeq_hom _ _,
+    refine ⟨coeq (F.map g ≫ f j') (f j), λ j'', f j'' ≫ coeq_hom _ _, _⟩,
     intros i i' g' m,
     rw [←category.assoc],
     by_cases h : i = j ∧ i' = j',
@@ -93,15 +111,24 @@ begin
     { rw w _ _ g' (by finish), } },
 end
 
-lemma cocone (F : J ⥤ C) : ∃ (s : cocone F), true :=
+/--
+If we have `is_filtered C`, then for any functor `F : J ⥤ C` with `fin_category J`,
+there exists a cocone over `F`.
+-/
+lemma cocone_exists (F : J ⥤ C) : ∃ (s : cocone F), true :=
 begin
-  obtain ⟨Z, f, w⟩ := cocone_aux F (finset.univ),
+  obtain ⟨Z, f, w⟩ := cocone_exists_aux F (finset.univ),
   refine ⟨⟨Z, ⟨f, _⟩⟩, trivial⟩,
   intros j j' g,
   dsimp,
-  simp,
-  exact w _ _ g (by simp),
+  simpa using w _ _ g (by simp),
 end
+
+/--
+An arbitrarily chosen cocone over `F : J ⥤ C`, for `fin_category J` and `is_filtered C`.
+-/
+noncomputable def cocone (F : J ⥤ C) : cocone F :=
+(cocone_exists F).some
 
 /--
 Given a "bowtie" of morphisms

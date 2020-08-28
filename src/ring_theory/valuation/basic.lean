@@ -6,7 +6,7 @@ Authors: Kevin Buzzard, Johan Commelin, Patrick Massot
 
 import algebra.linear_ordered_comm_group_with_zero
 import algebra.group_power
-import ring_theory.ideal_operations
+import ring_theory.ideal.operations
 import ring_theory.subring
 import algebra.punit_instances
 
@@ -320,6 +320,10 @@ begin
   calc v a = v (a + s + -s) : by simp
        ... ≤ v (a + s)      : aux (a + s) (-s) (by rwa ←ideal.neg_mem_iff at h)
 end
+
+-- This causes a loop between `decidable_linear_order` and `linear_order`.
+-- see https://leanprover.zulipchat.com/#narrow/stream/144837-PR-reviews/topic/.233733.20algebraic.20closure
+local attribute [-instance] classical.DLO
 
 /-- If `hJ : J ⊆ supp v` then `on_quot_val hJ` is the induced function on R/J as a function.
 Note: it's just the function; the valuation is `on_quot hJ`. -/

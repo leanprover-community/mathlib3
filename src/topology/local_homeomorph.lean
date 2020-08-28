@@ -596,7 +596,7 @@ end
 homeomorphism if a neighborhood of the initial point is sent to the source of the local
 homeomorphism-/
 lemma continuous_within_at_iff_continuous_within_at_comp_left
-  {f : γ → α} {s : set γ} {x : γ} (hx : f x ∈ e.source) (h : f ⁻¹' e.source ∈ nhds_within x s) :
+  {f : γ → α} {s : set γ} {x : γ} (hx : f x ∈ e.source) (h : f ⁻¹' e.source ∈ 𝓝[s] x) :
   continuous_within_at f s x ↔ continuous_within_at (e ∘ f) s x :=
 begin
   rw [← continuous_within_at_inter' h, ← continuous_within_at_inter' h],
@@ -619,7 +619,7 @@ lemma continuous_at_iff_continuous_at_comp_left
   continuous_at f x ↔ continuous_at (e ∘ f) x :=
 begin
   have hx : f x ∈ e.source := (mem_of_nhds h : _),
-  have h' : f ⁻¹' e.source ∈ nhds_within x univ, by rwa nhds_within_univ,
+  have h' : f ⁻¹' e.source ∈ 𝓝[univ] x, by rwa nhds_within_univ,
   rw [← continuous_within_at_univ, ← continuous_within_at_univ,
       e.continuous_within_at_iff_continuous_within_at_comp_left hx h']
 end

@@ -198,7 +198,7 @@ end
 to `log |x|` for `x < 0`, and to `0` for `0`. We use this unconventional extension to
 `(-∞, 0]` as it gives the formula `log (x * y) = log x + log y` for all nonzero `x` and `y`, and
 the derivative of `log` is `1/x` away from `0`. -/
-noncomputable def log (x : ℝ) : ℝ :=
+@[pp_nodot] noncomputable def log (x : ℝ) : ℝ :=
 if hx : x ≠ 0 then classical.some (exists_exp_eq_of_pos (abs_pos_iff.mpr hx)) else 0
 
 lemma exp_log_eq_abs (hx : x ≠ 0) : exp (log x) = abs x :=
@@ -434,7 +434,7 @@ begin
       exp y = exp y * 1 : by simp
       ... ≤ exp y * (exp y / y)^n : begin
           apply mul_le_mul_of_nonneg_left (one_le_pow_of_one_le _ n) (le_of_lt (exp_pos _)),
-          apply one_le_div_of_le _ y_pos,
+          rw one_le_div y_pos,
           apply le_trans _ (add_one_le_exp_of_nonneg (le_of_lt y_pos)),
           exact le_add_of_le_of_nonneg (le_refl _) (zero_le_one)
         end
@@ -459,6 +459,17 @@ end
 lemma tendsto_pow_mul_exp_neg_at_top_nhds_0 (n : ℕ) : tendsto (λx, x^n * exp (-x)) at_top (𝓝 0) :=
 (tendsto_inv_at_top_zero.comp (tendsto_exp_div_pow_at_top n)).congr $ λx,
   by rw [function.comp_app, inv_eq_one_div, div_div_eq_mul_div, one_mul, div_eq_mul_inv, exp_neg]
+
+/-- The real logarithm function tends to `+∞` at `+∞`. -/
+lemma tendsto_log_at_top : tendsto log at_top at_top :=
+begin
+  rw tendsto_at_top_at_top,
+  intro b,
+  use exp b,
+  intros a hab,
+  rw [← exp_le_exp, exp_log_eq_abs (ne_of_gt $ lt_of_lt_of_le (exp_pos b) hab)],
+  exact le_trans hab (le_abs_self a)
+end
 
 open_locale big_operators
 

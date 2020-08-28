@@ -43,7 +43,7 @@ lemma dense_range.closure_range (h : dense_range f) : closure (range f) = univ :
 eq_univ_iff_forall.mpr h
 
 lemma dense_range.nhds_within_ne_bot (h : dense_range f) (x : β) :
-  ne_bot (nhds_within x (range f)) :=
+  ne_bot (𝓝[range f] x) :=
 mem_closure_iff_cluster_pt.1 (h x)
 
 lemma dense_range.comp (hg : dense_range g) (hf : dense_range f) (cg : continuous g) :
@@ -147,7 +147,7 @@ begin
 end
 
 protected lemma nhds_within_ne_bot (di : dense_inducing i) (b : β) :
-  ne_bot (nhds_within b (range i)) :=
+  ne_bot (𝓝[range i] b) :=
 di.dense.nhds_within_ne_bot b
 
 lemma comap_nhds_ne_bot (di : dense_inducing i) (b : β) : ne_bot (comap i (𝓝 b)) :=
@@ -216,7 +216,7 @@ begin
   { filter_upwards [inter_mem_sets V₁_in V₂_in], exact this },
   rintros x ⟨x_in₁, x_in₂⟩,
   have hV₂x : V₂ ∈ 𝓝 x := mem_nhds_sets V₂_op x_in₂,
-  apply mem_of_closed_of_tendsto x_in₁ V'_closed,
+  apply V'_closed.mem_of_tendsto x_in₁,
   use V₂,
   tauto,
 end

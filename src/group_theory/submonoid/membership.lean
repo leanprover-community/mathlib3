@@ -108,7 +108,23 @@ lemma coe_Sup_of_directed_on {S : set (submonoid M)} (Sne : S.nonempty) (hS : di
   (↑(Sup S) : set M) = ⋃ s ∈ S, ↑s :=
 set.ext $ λ x, by simp [mem_Sup_of_directed_on Sne hS]
 
-variables {N : Type*} [monoid N] {P : Type*} [monoid P]
+@[to_additive]
+lemma mem_sup_left {S T : submonoid M} : ∀ {x : M}, x ∈ S → x ∈ S ⊔ T :=
+show S ≤ S ⊔ T, from le_sup_left
+
+@[to_additive]
+lemma mem_sup_right {S T : submonoid M} : ∀ {x : M}, x ∈ T → x ∈ S ⊔ T :=
+show T ≤ S ⊔ T, from le_sup_right
+
+@[to_additive]
+lemma mem_supr_of_mem {ι : Type*} {S : ι → submonoid M} (i : ι) :
+  ∀ {x : M}, x ∈ S i → x ∈ supr S :=
+show S i ≤ supr S, from le_supr _ _
+
+@[to_additive]
+lemma mem_Sup_of_mem {S : set (submonoid M)} {s : submonoid M}
+  (hs : s ∈ S) : ∀ {x : M}, x ∈ s → x ∈ Sup S :=
+show s ≤ Sup S, from le_Sup hs
 
 end submonoid
 
@@ -139,6 +155,9 @@ closure_eq_of_le (set.singleton_subset_iff.2 ⟨multiplicative.of_add 1, trivial
     the element. -/
 lemma mem_closure_singleton {x y : M} : y ∈ closure ({x} : set M) ↔ ∃ n:ℕ, x^n=y :=
 by rw [closure_singleton_eq, mem_mrange]; refl
+
+lemma mem_closure_singleton_self {y : M} : y ∈ closure ({y} : set M) :=
+mem_closure_singleton.2 ⟨1, pow_one y⟩
 
 @[to_additive]
 lemma closure_eq_mrange (s : set M) : closure s = (free_monoid.lift (coe : s → M)).mrange :=

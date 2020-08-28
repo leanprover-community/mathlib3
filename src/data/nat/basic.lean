@@ -113,8 +113,13 @@ theorem le_mul_self : Π (n : ℕ), n ≤ n * n
 | 0     := le_refl _
 | (n+1) := let t := mul_le_mul_left (n+1) (succ_pos n) in by simp at t; exact t
 
-theorem eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : m > 0) (H : n * m = k * m) : n = k :=
+theorem eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m) : n = k :=
 by rw [mul_comm n m, mul_comm k m] at H; exact eq_of_mul_eq_mul_left Hm H
+
+instance nat.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero ℕ :=
+{ mul_left_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_left (nat.pos_of_ne_zero h1) h2,
+  mul_right_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
+  .. (infer_instance : comm_monoid_with_zero ℕ) }
 
 theorem one_add (n : ℕ) : 1 + n = succ n := by simp [add_comm]
 
@@ -719,6 +724,8 @@ end
 lemma sub_mod_eq_zero_of_mod_eq {a b c : ℕ} (h : a % c = b % c) : (a - b) % c = 0 :=
 by rw [←nat.mod_add_div a c, ←nat.mod_add_div b c, ←h, ←nat.sub_sub, nat.add_sub_cancel_left,
        ←nat.mul_sub_left_distrib, nat.mul_mod_right]
+
+@[simp] lemma one_mod (n : ℕ) : 1 % (n + 2) = 1 := nat.mod_eq_of_lt (add_lt_add_right n.succ_pos 1)
 
 lemma dvd_sub_mod (k : ℕ) : n ∣ (k - (k % n)) :=
 ⟨k / n, nat.sub_eq_of_eq_add (nat.mod_add_div k n).symm⟩
@@ -1673,5 +1680,56 @@ lemma decreasing_induction_succ_left {P : ℕ → Sort*} (h : ∀n, P (n+1) → 
   (decreasing_induction h mn hP : P m) = h m (decreasing_induction h smn hP) :=
 by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_trans,
          decreasing_induction_succ'] }
+
+/-- `log b n`, is the logarithm of natural number
+`n` in base `b`. It returns the largest `k:ℕ` such that `b^k ≤ n`, so if `b^k = n`, it returns exactly `k`. -/
+def log (b : ℕ) : ℕ → ℕ
+| n :=
+  if h : b ≤ n ∧ 1 < b then
+    have n / b < n,
+      from div_lt_self
+        (nat.lt_of_lt_of_le (lt_trans zero_lt_one h.2) h.1) h.2,
+    log (n / b) + 1
+  else 0
+
+lemma pow_le_iff_le_log (x y : ℕ) {b} (hb : 1 < b) (hy : 1 ≤ y) :
+  b^x ≤ y ↔ x ≤ log b y :=
+begin
+  induction y using nat.strong_induction_on with y ih
+    generalizing x,
+  rw [log], split_ifs,
+  { have h'' : 0 < b := lt_of_le_of_lt (zero_le _) hb,
+    cases h with h₀ h₁,
+    rw [← nat.sub_le_right_iff_le_add,← ih (y / b),
+          le_div_iff_mul_le _ _ h'',← nat.pow_succ],
+    { cases x; simp [h₀,hy] },
+    { apply div_lt_self; assumption },
+    { rwa [le_div_iff_mul_le _ _ h'',one_mul], } },
+  { replace h := lt_of_not_ge (not_and'.1 h hb),
+    split; intros h',
+    { have := lt_of_le_of_lt h' h,
+      apply le_of_succ_le_succ,
+      change x < 1, rw [← pow_lt_iff_lt_right hb,pow_one],
+      exact this },
+    { replace h' := le_antisymm h' (zero_le _),
+      rw [h',nat.pow_zero], exact hy} },
+end
+
+lemma log_pow (b x : ℕ) (hb : 1 < b) : log b (b ^ x) = x :=
+eq_of_forall_le_iff $ λ z,
+by { rwa [← pow_le_iff_le_log _ _ hb,pow_le_iff_le_right],
+     rw ← nat.pow_zero b, apply pow_le_pow_of_le_right,
+     apply lt_of_le_of_lt (zero_le _) hb, apply zero_le }
+
+lemma pow_succ_log_gt_self (b x : ℕ) (hb : 1 < b) (hy : 1 ≤ x) :
+  x < b ^ succ (log b x) :=
+begin
+  apply lt_of_not_ge,
+  rw [(≥),pow_le_iff_le_log _ _ hb hy],
+  apply not_le_of_lt, apply lt_succ_self,
+end
+
+lemma pow_log_le_self (b x : ℕ) (hb : 1 < b) (hx : 1 ≤ x) : b ^ log b x ≤ x :=
+by rw [pow_le_iff_le_log _ _ hb hx]
 
 end nat

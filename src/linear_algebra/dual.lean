@@ -184,6 +184,29 @@ end
 
 end is_basis
 
+namespace module.dual
+
+open is_basis module module.dual
+
+variables {K V : Type*} [field K] [add_comm_group V] [vector_space K V]
+
+instance [finite_dimensional K V] : finite_dimensional K (dual K V) :=
+begin
+  obtain ⟨s, hs⟩ := finite_dimensional.exists_is_basis_finset K V,
+  haveI : decidable_eq (↑s : set V) := classical.dec_eq _,
+  exact (to_dual_equiv hs).finite_dimensional
+end
+
+theorem findim_dual_eq [finite_dimensional K V] :
+finite_dimensional.findim K (dual K V) = finite_dimensional.findim K V :=
+begin
+  obtain ⟨s, hs⟩ := finite_dimensional.exists_is_basis_finset K V,
+  haveI : decidable_eq (↑s : set V) := classical.dec_eq _,
+  exact (to_dual_equiv hs).findim_eq.symm
+end
+
+end module.dual
+
 namespace vector_space
 
 universes u v

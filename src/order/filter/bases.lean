@@ -38,7 +38,7 @@ and consequences are derived.
 * `basis_sets` : all sets of a filter form a basis;
 * `has_basis.inf`, `has_basis.inf_principal`, `has_basis.prod`, `has_basis.prod_self`,
   `has_basis.map`, `has_basis.comap` : combinators to construct filters of `l ⊓ l'`,
-  `l ⊓ 𝓟 t`, `l.prod l'`, `l.prod l`, `l.map f`, `l.comap f` respectively;
+  `l ⊓ 𝓟 t`, `l ×ᶠ l'`, `l ×ᶠ l`, `l.map f`, `l.comap f` respectively;
 * `has_basis.le_iff`, `has_basis.ge_iff`, has_basis.le_basis_iff` : restate `l ≤ l'` in terms
   of bases.
 * `has_basis.tendsto_right_iff`, `has_basis.tendsto_left_iff`, `has_basis.tendsto_iff` : restate
@@ -244,6 +244,23 @@ by erw [(filter_basis.of_sets s).generate, ← (has_basis_generate s).filter_eq]
 lemma of_sets_filter_eq_generate (s : set (set α)) : (filter_basis.of_sets s).filter = generate s :=
 by rw [← (filter_basis.of_sets s).generate, generate_eq_generate_inter s] ; refl
 
+lemma has_basis.to_has_basis (hl : l.has_basis p s) (h : ∀ i, p i → ∃ i', p' i' ∧ s' i' ⊆ s i)
+  (h' : ∀ i', p' i' → ∃ i, p i ∧ s i ⊆ s' i') : l.has_basis p' s' :=
+begin
+  constructor,
+  intro t,
+  rw hl.mem_iff,
+  split,
+  { rintros ⟨i, pi, hi⟩,
+    rcases h i pi with ⟨i', pi', hi'⟩,
+    use [i', pi'],
+    tauto },
+  { rintros ⟨i', pi', hi'⟩,
+    rcases h' i' pi' with ⟨i, pi, hi⟩,
+    use [i, pi],
+    tauto },
+end
+
 lemma has_basis.eventually_iff (hl : l.has_basis p s) {q : α → Prop} :
   (∀ᶠ x in l, q x) ↔ ∃ i, p i ∧ ∀ ⦃x⦄, x ∈ s i → q x :=
 by simpa using hl.mem_iff
@@ -324,18 +341,10 @@ lemma has_basis_principal (t : set α) : (𝓟 t).has_basis (λ i : unit, true) 
 lemma has_basis.sup (hl : l.has_basis p s) (hl' : l'.has_basis p' s') :
   (l ⊔ l').has_basis (λ i : ι × ι', p i.1 ∧ p' i.2) (λ i, s i.1 ∪ s' i.2) :=
 ⟨begin
-  rintros t,
-  rw [mem_sup_sets, hl.mem_iff, hl'.mem_iff],
-  split,
-  { rintros ⟨⟨i, pi, hi⟩, ⟨i', pi', hi'⟩⟩,
-    use [(i, i'), pi, pi'],
-    finish },
-  { rintros ⟨⟨i, i'⟩, ⟨⟨pi, pi'⟩, h⟩⟩,
-    split,
-    { use [i, pi],
-      finish },
-    { use [i', pi'],
-      finish } }
+  intros t,
+  simp only [mem_sup_sets, hl.mem_iff, hl'.mem_iff, prod.exists, union_subset_iff, exists_prop,
+    and_assoc, exists_and_distrib_left],
+  simp only [← and_assoc, exists_and_distrib_right, and_comm]
 end⟩
 
 lemma has_basis.inf_principal (hl : l.has_basis p s) (s' : set α) :
@@ -351,7 +360,6 @@ lemma has_basis.eq_infi (h : l.has_basis (λ _, true) s) :
   l = ⨅ i, 𝓟 (s i) :=
 by simpa only [infi_true] using h.eq_binfi
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma has_basis_infi_principal {s : ι → set α} (h : directed (≥) s) [nonempty ι] :
   (⨅ i, 𝓟 (s i)).has_basis (λ _, true) s :=
 ⟨begin
@@ -360,7 +368,16 @@ lemma has_basis_infi_principal {s : ι → set α} (h : directed (≥) s) [nonem
   exact λ _ _, principal_mono.2
 end⟩
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
+/-- If `s : ι → set α` is an indexed family of sets, then finite intersections of `s i` form a basis
+of `⨅ i, 𝓟 (s i)`.  -/
+lemma has_basis_infi_principal_finite (s : ι → set α) :
+  (⨅ i, 𝓟 (s i)).has_basis (λ t : set ι, finite t) (λ t, ⋂ i ∈ t, s i) :=
+begin
+  refine ⟨λ U, (mem_infi_finite _).trans _⟩,
+  simp only [infi_principal_finset, mem_Union, mem_principal_sets, exists_prop,
+    exists_finite_iff_finset, finset.bInter_coe]
+end
+
 lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_on (s ⁻¹'o (≥)) S)
   (ne : S.nonempty) :
   (⨅ i ∈ S, 𝓟 (s i)).has_basis (λ i, i ∈ S) s :=
@@ -397,7 +414,7 @@ lemma comap_has_basis (f : α → β) (l : filter β) :
 ⟨λ t, mem_comap_sets⟩
 
 lemma has_basis.prod_self (hl : l.has_basis p s) :
-  (l.prod l).has_basis p (λ i, (s i).prod (s i)) :=
+  (l ×ᶠ l).has_basis p (λ i, (s i).prod (s i)) :=
 ⟨begin
   intro t,
   apply mem_prod_iff.trans,
@@ -408,6 +425,9 @@ lemma has_basis.prod_self (hl : l.has_basis p s) :
   { rintros ⟨i, hi, H⟩,
     exact ⟨s i, hl.mem_of_mem hi, s i, hl.mem_of_mem hi, H⟩ }
 end⟩
+
+lemma mem_prod_self_iff {s} : s ∈ l ×ᶠ l ↔ ∃ t ∈ l, set.prod t t ⊆ s :=
+l.basis_sets.prod_self.mem_iff
 
 lemma has_basis.exists_iff (hl : l.has_basis p s) {P : set α → Prop}
   (mono : ∀ ⦃s t⦄, s ⊆ t → P t → P s) :
@@ -484,14 +504,14 @@ lemma tendsto.basis_both (H : tendsto f la lb) (hla : la.has_basis pa sa)
 (hla.tendsto_iff hlb).1 H
 
 lemma has_basis.prod (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
-  (la.prod lb).has_basis (λ i : ι × ι', pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
+  (la ×ᶠ lb).has_basis (λ i : ι × ι', pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
 (hla.comap prod.fst).inf (hlb.comap prod.snd)
 
 lemma has_basis.prod' {la : filter α} {lb : filter β} {ι : Type*} {p : ι → Prop}
   {sa : ι → set α} {sb : ι → set β}
   (hla : la.has_basis p sa) (hlb : lb.has_basis p sb)
   (h_dir : ∀ {i j}, p i → p j → ∃ k, p k ∧ sa k ⊆ sa i ∧ sb k ⊆ sb j) :
-  (la.prod lb).has_basis p (λ i, (sa i).prod (sb i)) :=
+  (la ×ᶠ lb).has_basis p (λ i, (sa i).prod (sb i)) :=
 ⟨begin
   intros t,
   rw mem_prod_iff,

@@ -186,11 +186,11 @@ begin
   exact i.2.2.is_measurable.principal_is_measurably_generated
 end
 
-/-- If `s` is a measurable set, then `nhds_within a s` is a measurably generated filter for
+/-- If `s` is a measurable set, then `𝓝[s] a` is a measurably generated filter for
 each `a`. This cannot be an `instance` because it depends on a non-instance `hs : is_measurable s`.
 -/
 lemma is_measurable.nhds_within_is_measurably_generated {s : set α} (hs : is_measurable s) (a : α) :
-  (nhds_within a s).is_measurably_generated :=
+  (𝓝[s] a).is_measurably_generated :=
 by haveI := hs.principal_is_measurably_generated; exact filter.inf_is_measurably_generated _ _
 
 @[priority 100] -- see Note [lower instance priority]
@@ -204,6 +204,14 @@ variables [preorder α] [order_closed_topology α] {a b : α}
 lemma is_measurable_Ici : is_measurable (Ici a) := is_closed_Ici.is_measurable
 lemma is_measurable_Iic : is_measurable (Iic a) := is_closed_Iic.is_measurable
 lemma is_measurable_Icc : is_measurable (Icc a b) := is_closed_Icc.is_measurable
+
+instance nhds_within_Ici_is_measurably_generated :
+  (𝓝[Ici b] a).is_measurably_generated :=
+is_measurable_Ici.nhds_within_is_measurably_generated _
+
+instance nhds_within_Iic_is_measurably_generated :
+  (𝓝[Iic b] a).is_measurably_generated :=
+is_measurable_Iic.nhds_within_is_measurably_generated _
 
 instance at_top_is_measurably_generated : (filter.at_top : filter α).is_measurably_generated :=
 @filter.infi_is_measurably_generated _ _ _ _ $
@@ -223,6 +231,14 @@ lemma is_measurable_Ioi : is_measurable (Ioi a) := is_open_Ioi.is_measurable
 lemma is_measurable_Ioo : is_measurable (Ioo a b) := is_open_Ioo.is_measurable
 lemma is_measurable_Ioc : is_measurable (Ioc a b) := is_measurable_Ioi.inter is_measurable_Iic
 lemma is_measurable_Ico : is_measurable (Ico a b) := is_measurable_Ici.inter is_measurable_Iio
+
+instance nhds_within_Ioi_is_measurably_generated :
+  (𝓝[Ioi b] a).is_measurably_generated :=
+is_measurable_Ioi.nhds_within_is_measurably_generated _
+
+instance nhds_within_Iio_is_measurably_generated :
+  (𝓝[Iio b] a).is_measurably_generated :=
+is_measurable_Iio.nhds_within_is_measurably_generated _
 
 end order_closed_topology
 

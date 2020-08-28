@@ -34,7 +34,7 @@ by simp
 | ⟨i, x⟩ := rfl
 
 @[ext]
-lemma ext {x₀ x₁ : sigma β}
+lemma sigma.ext {x₀ x₁ : sigma β}
   (h₀ : x₀.1 = x₁.1)
   (h₁ : x₀.1 = x₁.1 → x₀.2 == x₁.2) :
   x₀ = x₁ :=
@@ -83,6 +83,12 @@ end sigma
 
 section psigma
 variables {α : Sort*} {β : α → Sort*}
+
+/-- Nondependent eliminator for `psigma`. -/
+def psigma.elim {γ} (f : ∀ a, β a → γ) (a : psigma β) : γ :=
+psigma.cases_on a f
+
+@[simp] theorem psigma.elim_val {γ} (f : ∀ a, β a → γ) (a b) : psigma.elim f ⟨a, b⟩ = f a b := rfl
 
 instance [inhabited α] [inhabited (β (default α))] : inhabited (psigma β) :=
 ⟨⟨default α, default (β (default α))⟩⟩

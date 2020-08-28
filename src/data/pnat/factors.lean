@@ -210,7 +210,7 @@ theorem factor_multiset_prod (v : prime_multiset) :
 begin
   apply prime_multiset.coe_nat_injective,
   rw [v.prod.coe_nat_factor_multiset, prime_multiset.coe_prod],
-  rcases v with l,
+  rcases v with ⟨l⟩,
   unfold_coes,
   dsimp [prime_multiset.to_nat_multiset],
   rw [multiset.coe_prod],
@@ -274,7 +274,7 @@ begin
   split,
   { intro h,
     rw [← prod_factor_multiset m, ← prod_factor_multiset m],
-    apply dvd_intro (n.factor_multiset - m.factor_multiset).prod,
+    apply dvd.intro (n.factor_multiset - m.factor_multiset).prod,
     rw [← prime_multiset.prod_add, prime_multiset.factor_multiset_prod,
         prime_multiset.add_sub_of_le h, prod_factor_multiset] },
   { intro  h,

@@ -107,7 +107,7 @@ has_fderiv_at_filter f (smul_right 1 f' : 𝕜 →L[𝕜] F) x L
 That is, `f x' = f x + (x' - x) • f' + o(x' - x)` where `x'` converges to `x` inside `s`.
 -/
 def has_deriv_within_at (f : 𝕜 → F) (f' : F) (s : set 𝕜) (x : 𝕜) :=
-has_deriv_at_filter f f' x (nhds_within x s)
+has_deriv_at_filter f f' x (𝓝[s] x)
 
 /--
 `f` has the derivative `f'` at the point `x`.
@@ -215,7 +215,7 @@ theorem has_deriv_at_filter_iff_tendsto :
 has_fderiv_at_filter_iff_tendsto
 
 theorem has_deriv_within_at_iff_tendsto : has_deriv_within_at f f' s x ↔
-  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) (nhds_within x s) (𝓝 0) :=
+  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) (𝓝[s] x) (𝓝 0) :=
 has_fderiv_at_filter_iff_tendsto
 
 theorem has_deriv_at_iff_tendsto : has_deriv_at f f' x ↔
@@ -244,7 +244,7 @@ end
 
 lemma has_deriv_within_at_iff_tendsto_slope {x : 𝕜} {s : set 𝕜} :
   has_deriv_within_at f f' s x ↔
-    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (nhds_within x (s \ {x})) (𝓝 f') :=
+    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (𝓝[s \ {x}] x) (𝓝 f') :=
 begin
   simp only [has_deriv_within_at, nhds_within, diff_eq, inf_assoc.symm, inf_principal.symm],
   exact has_deriv_at_filter_iff_tendsto_slope
@@ -252,7 +252,7 @@ end
 
 lemma has_deriv_within_at_iff_tendsto_slope' {x : 𝕜} {s : set 𝕜} (hs : x ∉ s) :
   has_deriv_within_at f f' s x ↔
-    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (nhds_within x s) (𝓝 f') :=
+    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (𝓝[s] x) (𝓝 f') :=
 begin
   convert ← has_deriv_within_at_iff_tendsto_slope,
   exact diff_singleton_eq_self hs
@@ -260,7 +260,7 @@ end
 
 lemma has_deriv_at_iff_tendsto_slope {x : 𝕜} :
   has_deriv_at f f' x ↔
-    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (nhds_within x {x}ᶜ) (𝓝 f') :=
+    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (𝓝[{x}ᶜ] x) (𝓝 f') :=
 has_deriv_at_filter_iff_tendsto_slope
 
 theorem has_deriv_at_iff_is_o_nhds_zero : has_deriv_at f f' x ↔
@@ -297,7 +297,7 @@ theorem has_deriv_at_unique
   (h₀ : has_deriv_at f f₀' x) (h₁ : has_deriv_at f f₁' x) : f₀' = f₁' :=
 smul_right_one_eq_iff.mp $ has_fderiv_at_unique h₀ h₁
 
-lemma has_deriv_within_at_inter' (h : t ∈ nhds_within x s) :
+lemma has_deriv_within_at_inter' (h : t ∈ 𝓝[s] x) :
   has_deriv_within_at f f' (s ∩ t) x ↔ has_deriv_within_at f f' s x :=
 has_fderiv_within_at_inter' h
 
@@ -313,7 +313,7 @@ begin
 end
 
 lemma has_deriv_within_at.nhds_within (h : has_deriv_within_at f f' s x)
-  (ht : s ∈ nhds_within x t) : has_deriv_within_at f f' t x :=
+  (ht : s ∈ 𝓝[t] x) : has_deriv_within_at f f' t x :=
 (has_deriv_within_at_inter' ht).1 (h.mono (inter_subset_right _ _))
 
 lemma has_deriv_within_at.has_deriv_at (h : has_deriv_within_at f f' s x) (hs : s ∈ 𝓝 x) :
@@ -386,7 +386,7 @@ lemma has_deriv_within_at.congr (h : has_deriv_within_at f f' s x) (hs : ∀x �
 h.congr_mono hs hx (subset.refl _)
 
 lemma has_deriv_within_at.congr_of_eventually_eq (h : has_deriv_within_at f f' s x)
-  (h₁ : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) : has_deriv_within_at f₁ f' s x :=
+  (h₁ : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) : has_deriv_within_at f₁ f' s x :=
 has_deriv_at_filter.congr_of_eventually_eq h h₁ hx
 
 lemma has_deriv_at.congr_of_eventually_eq (h : has_deriv_at f f' x)
@@ -394,7 +394,7 @@ lemma has_deriv_at.congr_of_eventually_eq (h : has_deriv_at f f' x)
 has_deriv_at_filter.congr_of_eventually_eq h h₁ (mem_of_nhds h₁ : _)
 
 lemma filter.eventually_eq.deriv_within_eq (hs : unique_diff_within_at 𝕜 s x)
-  (hL : f₁ =ᶠ[nhds_within x s] f) (hx : f₁ x = f x) :
+  (hL : f₁ =ᶠ[𝓝[s] x] f) (hx : f₁ x = f x) :
   deriv_within f₁ s x = deriv_within f s x :=
 by { unfold deriv_within, rw hL.fderiv_within_eq hs hx }
 
@@ -941,9 +941,8 @@ theorem has_deriv_within_at.scomp {t : set 𝕜}
   has_deriv_within_at (g ∘ h) (h' • g') s x :=
 begin
   apply has_deriv_at_filter.scomp _ (has_deriv_at_filter.mono hg _) hh,
-  calc map h (nhds_within x s)
-      ≤ nhds_within (h x) (h '' s) : hh.continuous_within_at.tendsto_nhds_within_image
-  ... ≤ nhds_within (h x) t        : nhds_within_mono _ (image_subset_iff.mpr hst)
+  calc map h (𝓝[s] x) ≤ 𝓝[h '' s] (h x) : hh.continuous_within_at.tendsto_nhds_within_image
+                  ... ≤ 𝓝[t] (h x)      : nhds_within_mono _ (image_subset_iff.mpr hst)
 end
 
 /-- The chain rule. -/
@@ -1631,7 +1630,7 @@ begin
   rcases lt_trichotomy m 0 with hm|hm|hm,
   { have := (has_strict_deriv_at_inv _).scomp _ (this (-m) (neg_pos.2 hm));
       [skip, exact fpow_ne_zero_of_ne_zero hx _],
-    simp only [(∘), fpow_neg, one_div_eq_inv, inv_inv', smul_eq_mul] at this,
+    simp only [(∘), fpow_neg, one_div, inv_inv', smul_eq_mul] at this,
     convert this using 1,
     rw [pow_two, mul_inv', inv_inv', int.cast_neg, ← neg_mul_eq_neg_mul, neg_mul_neg,
       ← fpow_add hx, mul_assoc, ← fpow_add hx], congr, abel },
@@ -1685,17 +1684,17 @@ section real
 variables {f : ℝ → ℝ} {f' : ℝ} {s : set ℝ} {x : ℝ} {r : ℝ}
 
 lemma has_deriv_within_at.limsup_slope_le (hf : has_deriv_within_at f f' s x) (hr : f' < r) :
-  ∀ᶠ z in nhds_within x (s \ {x}), (z - x)⁻¹ * (f z - f x) < r :=
+  ∀ᶠ z in 𝓝[s \ {x}] x, (z - x)⁻¹ * (f z - f x) < r :=
 has_deriv_within_at_iff_tendsto_slope.1 hf (mem_nhds_sets is_open_Iio hr)
 
 lemma has_deriv_within_at.limsup_slope_le' (hf : has_deriv_within_at f f' s x)
   (hs : x ∉ s) (hr : f' < r) :
-  ∀ᶠ z in nhds_within x s, (z - x)⁻¹ * (f z - f x) < r :=
+  ∀ᶠ z in 𝓝[s] x, (z - x)⁻¹ * (f z - f x) < r :=
 (has_deriv_within_at_iff_tendsto_slope' hs).1 hf (mem_nhds_sets is_open_Iio hr)
 
 lemma has_deriv_within_at.liminf_right_slope_le
   (hf : has_deriv_within_at f f' (Ioi x) x) (hr : f' < r) :
-  ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (f z - f x) < r :=
+  ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r :=
 (hf.limsup_slope_le' (lt_irrefl x) hr).frequently
 
 end real
@@ -1713,12 +1712,12 @@ In other words, the limit superior of this ratio as `z` tends to `x` along `s`
 is less than or equal to `∥f'∥`. -/
 lemma has_deriv_within_at.limsup_norm_slope_le
   (hf : has_deriv_within_at f f' s x) (hr : ∥f'∥ < r) :
-  ∀ᶠ z in nhds_within x s, ∥z - x∥⁻¹ * ∥f z - f x∥ < r :=
+  ∀ᶠ z in 𝓝[s] x, ∥z - x∥⁻¹ * ∥f z - f x∥ < r :=
 begin
   have hr₀ : 0 < r, from lt_of_le_of_lt (norm_nonneg f') hr,
-  have A : ∀ᶠ z in nhds_within x (s \ {x}), ∥(z - x)⁻¹ • (f z - f x)∥ ∈ Iio r,
+  have A : ∀ᶠ z in 𝓝[s \ {x}] x, ∥(z - x)⁻¹ • (f z - f x)∥ ∈ Iio r,
     from (has_deriv_within_at_iff_tendsto_slope.1 hf).norm (mem_nhds_sets is_open_Iio hr),
-  have B : ∀ᶠ z in nhds_within x {x}, ∥(z - x)⁻¹ • (f z - f x)∥ ∈ Iio r,
+  have B : ∀ᶠ z in 𝓝[{x}] x, ∥(z - x)⁻¹ • (f z - f x)∥ ∈ Iio r,
     from mem_sets_of_superset self_mem_nhds_within
       (singleton_subset_iff.2 $ by simp [hr₀]),
   have C := mem_sup_sets.2 ⟨A, B⟩,
@@ -1737,7 +1736,7 @@ This lemma is a weaker version of `has_deriv_within_at.limsup_norm_slope_le`
 where `∥f z∥ - ∥f x∥` is replaced by `∥f z - f x∥`. -/
 lemma has_deriv_within_at.limsup_slope_norm_le
   (hf : has_deriv_within_at f f' s x) (hr : ∥f'∥ < r) :
-  ∀ᶠ z in nhds_within x s, ∥z - x∥⁻¹ * (∥f z∥ - ∥f x∥) < r :=
+  ∀ᶠ z in 𝓝[s] x, ∥z - x∥⁻¹ * (∥f z∥ - ∥f x∥) < r :=
 begin
   apply (hf.limsup_norm_slope_le hr).mono,
   assume z hz,
@@ -1752,7 +1751,7 @@ is less than or equal to `∥f'∥`. See also `has_deriv_within_at.limsup_norm_s
 for a stronger version using limit superior and any set `s`. -/
 lemma has_deriv_within_at.liminf_right_norm_slope_le
   (hf : has_deriv_within_at f f' (Ioi x) x) (hr : ∥f'∥ < r) :
-  ∃ᶠ z in nhds_within x (Ioi x), ∥z - x∥⁻¹ * ∥f z - f x∥ < r :=
+  ∃ᶠ z in 𝓝[Ioi x] x, ∥z - x∥⁻¹ * ∥f z - f x∥ < r :=
 (hf.limsup_norm_slope_le hr).frequently
 
 /-- If `f` has derivative `f'` within `(x, +∞)` at `x`, then for any `r > ∥f'∥` the ratio
@@ -1768,7 +1767,7 @@ See also
   `∥f z - f x∥` instead of `∥f z∥ - ∥f x∥`. -/
 lemma has_deriv_within_at.liminf_right_slope_norm_le
   (hf : has_deriv_within_at f f' (Ioi x) x) (hr : ∥f'∥ < r) :
-  ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r :=
+  ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r :=
 begin
   have := (hf.limsup_slope_norm_le hr).frequently,
   refine this.mp (eventually.mono self_mem_nhds_within _),

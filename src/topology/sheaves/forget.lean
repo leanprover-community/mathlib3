@@ -160,7 +160,7 @@ begin
       have hd : is_limit d := preserves_limit.preserves (limit.is_limit _),
       -- Since both of these are limit cones
       -- (`c` by our hypothesis `S`, and `d` because `G` preserves limits),
-      -- we hope to be able to conclude that `f` is a isomorphism.
+      -- we hope to be able to conclude that `f` is an isomorphism.
       -- We say "not quite" above because `c` and `d` don't quite have the same shape:
       -- we need to postcompose by the natural isomorphism `diagram_comp_preserves_limits`
       -- introduced above.

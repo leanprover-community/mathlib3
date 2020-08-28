@@ -167,11 +167,6 @@ begin
   apply friendship_reg_adj_mul_J_mod_p hG dmod hd,
 end
 
-lemma tr_pow_p_mod_p {p:ℕ} [fact p.prime] (M : matrix V V (zmod p)) :
-  trace V (zmod p) (zmod p) (M ^ p) = (trace V (zmod p) (zmod p) M)^p :=
-by rw [trace_eq_neg_char_poly_coeff, trace_eq_neg_char_poly_coeff,
-       zmod.char_poly_pow_card, zmod.pow_card_eq_self]
-
 /--
 This is the main proof
 -/
@@ -190,7 +185,7 @@ begin
     simp only [add_left_eq_self, nat.cast_add, nat.cast_one], apply p_dvd_d_pred, },
   have Vmod := friendship_reg_card_mod_p hG dmod hd,
   -- now we reduce to a trace calculation
-  have := tr_pow_p_mod_p hG (G.adj_matrix (zmod p)),
+  have := zmod.trace_pow_card hG (G.adj_matrix (zmod p)),
   contrapose! this, clear this,
   -- the trace is 0 mod p when computed one way
   rw [trace_adj_matrix, zero_pow],

@@ -147,14 +147,23 @@ section open_embedding
 variables {V : Top.{v}} {j : V ⟶ X} (oe : open_embedding j)
 variables (𝒰 : ι → opens V)
 
+/--
+Push forward a cover along an open embedding.
+-/
 @[simp]
 def cover.of_open_embedding : ι → opens X := (λ i, oe.is_open_map.functor.obj (𝒰 i))
 
+/--
+The isomorphism between `pi_opens` corresponding to an open embedding.
+-/
 @[simp]
 def pi_opens.iso_of_open_embedding :
   pi_opens (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅ pi_opens F (cover.of_open_embedding oe 𝒰) :=
 pi.map_iso (λ X, F.map_iso (iso.refl _))
 
+/--
+The isomorphism between `pi_inters` corresponding to an open embedding.
+-/
 @[simp]
 def pi_inters.iso_of_open_embedding :
   pi_inters (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅ pi_inters F (cover.of_open_embedding oe 𝒰) :=
@@ -170,6 +179,7 @@ pi.map_iso (λ X, F.map_iso
         apply le_refl _, }), },
   end)
 
+/-- The isomorphism of sheaf condition diagrams corresponding to an open embedding. -/
 def diagram.iso_of_open_embedding :
   diagram (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅ diagram F (cover.of_open_embedding oe 𝒰) :=
 nat_iso.of_components
@@ -200,6 +210,14 @@ nat_iso.of_components
     { simp, },
   end.
 
+/--
+If `F : presheaf C X` is a presheaf, and `oe : U ⟶ X` is an open embedding,
+then the sheaf condition fork for a cover `𝒰` in `U` for the composition of `oe` and `F` is
+isomorphic to sheaf condition fork for `oe '' 𝒰`, precomposed with the isomorphism
+of indexing diagrams `diagram.iso_of_open_embedding`.
+
+We use this to show that the restriction of sheaf along an open embedding is still a sheaf.
+-/
 def fork.iso_of_open_embedding :
   fork (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅
     (cones.postcompose (diagram.iso_of_open_embedding oe 𝒰).inv).obj

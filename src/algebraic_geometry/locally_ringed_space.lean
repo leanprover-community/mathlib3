@@ -56,6 +56,10 @@ instance : has_hom LocallyRingedSpace := ⟨hom⟩
 @[ext] lemma hom_ext {X Y : LocallyRingedSpace} (f g : hom X Y) (w : f.1 = g.1) : f = g :=
 subtype.eq w
 
+/--
+The stalk of a locally ringed space, just as a `CommRing`.
+-/
+-- TODO perhaps we should make a bundled `LocalRing` and return one here?
 -- TODO define `sheaf.stalk` so we can write `X.𝒪.stalk` here?
 def stalk (X : LocallyRingedSpace) (x : X) := X.presheaf.stalk x
 

@@ -1147,11 +1147,11 @@ lemma mem_algebra_map_submonoid_of_mem {M : submonoid R} (x : M) :
   (algebra_map R S x) ∈ algebra_map_submonoid S M :=
 set.mem_image_of_mem (algebra_map R S) x.2
 
--- TODO: could maybe generalize this to any commutative square where the left side has some kind of lifting operation
 /-- Definition of the natural algebra induced by the localization of an algebra.
 Given an algebra `R → S`, a submonoid `R` of `M`, and a localizaiton `Rₘ` for `M`,
 let `Sₘ` be the localization of `S` to the image of `M` under `algebra_map R S`.
-Then this is the natural algebra structure on `Rₘ → Sₘ`, such that the entire square commutes. -/
+Then this is the natural algebra structure on `Rₘ → Sₘ`, such that the entire square commutes,
+where `localization_map.map_comp` gives the commutativity of the underlying maps -/
 noncomputable def localization_algebra (M : submonoid R) (f : localization_map M Rₘ)
   (g : localization_map (algebra_map_submonoid S M) Sₘ) : algebra Rₘ Sₘ :=
 (f.map mem_algebra_map_submonoid_of_mem g).to_algebra

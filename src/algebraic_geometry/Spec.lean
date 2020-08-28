@@ -9,10 +9,6 @@ def Spec.SheafedSpace (R : CommRing) : SheafedSpace CommRing :=
 { carrier := Top.of (prime_spectrum R),
   ..structure_sheaf R }
 
-def Spec.LocallyRingedSpace (R : CommRing) : LocallyRingedSpace :=
-{ local_ring := λ x,
-    (local_ring.of_ring_equiv (stalk_iso R x).symm.CommRing_iso_to_ring_equiv).mp
-      (by { dsimp, apply_instance, }),
-  ..Spec.SheafedSpace R }
+-- PROJECT: define `Spec.LocallyRingedSpace`. For more details see the PROJECT note in `Scheme.lean`.
 
 end algebraic_geometry

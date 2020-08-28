@@ -300,19 +300,38 @@ def structure_sheaf : sheaf CommRing (Top.of (prime_spectrum R)) :=
       (sheaf_condition_equiv_of_iso (structure_presheaf_comp_forget R).symm
         (structure_sheaf_in_Type R).sheaf_condition), }
 
-def stalk_iso' (x : prime_spectrum R) :
+/--
+The stalk at `x` is equivalent (just as a type) to the localization at `x`.
+-/
+def stalk_iso_Type (x : prime_spectrum R) :
   (structure_sheaf_in_Type R).presheaf.stalk x ≅ localization.at_prime x.as_ideal :=
 (equiv.of_bijective _ ⟨structure_sheaf_stalk_to_fiber_injective R x, structure_sheaf_stalk_to_fiber_surjective R x⟩).to_iso
 
--- TODO We need to improve this to an isomorphism of rings:
-
-def stalk_iso (x : prime_spectrum R) :
-  (structure_sheaf R).presheaf.stalk x ≅ CommRing.of (localization.at_prime x.as_ideal) :=
+-- PROJECT: Improve this to an isomorphism of rings.
+/-
+/--
+TODO: this should follow easily from `forget CommRing` preserving filtered colimits.
+-/
+def compare_stalks (x : prime_spectrum R) :
+  (forget CommRing).obj ((structure_sheaf R).presheaf.stalk x) ≅ (structure_sheaf_in_Type R).presheaf.stalk x :=
 sorry
 
--- To achieve this, we first need to show that `stalk_to_fiber` is a ring hom,
--- and for that, I think we may need that `forget CommRing` preserves filtered colimits.
-
+/--
+TODO:
+-/
 def stalk_to_fiber_ring_hom (x : prime_spectrum R) :
   (structure_sheaf R).presheaf.stalk x ⟶ CommRing.of (localization.at_prime x.as_ideal) :=
-sorry
+{ to_fun := (compare_stalks R x).hom ≫ stalk_to_fiber (is_locally_fraction_local R) x,
+  map_zero' := sorry,
+  map_add' := sorry,
+  map_one' := sorry,
+  map_mul' := sorry }
+
+/--
+The stalk at `x` is equivalent, as a commutative ring, to the localization at `x`.
+-/
+def stalk_iso (x : prime_spectrum R) :
+  (structure_sheaf R).presheaf.stalk x ≅ CommRing.of (localization.at_prime x.as_ideal) :=
+({ ..stalk_to_fiber_ring_hom R x,
+   ..(compare_stalks R x ≪≫ stalk_iso_Type R x).to_equiv } : _ ≃+* _).to_CommRing_iso
+-/

@@ -35,17 +35,21 @@ def stalk_map {X Y : PresheafedSpace C} (α : X ⟶ Y) (x : X) : Y.stalk (α.bas
 
 section restrict
 
+-- PROJECT: restriction preserves stalks.
+-- We'll want to define cofinal functors, show precomposing with a cofinal functor preserves colimits,
+-- and (easily) verify that "open neighbourhoods of x within U" is cofinal in "open neighbourhoods of x".
+/-
 def restrict_stalk_iso {U : Top} (X : PresheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) (x : U) :
   (X.restrict f h).stalk x ≅ X.stalk (f x) :=
 begin
   dsimp only [stalk, Top.presheaf.stalk, stalk_functor],
   dsimp [colim],
-  -- Is there a cheaper way to do this than cofinality?
   sorry
 end
 
--- TODO compatibility with germs?
+-- TODO `restrict_stalk_iso` is compatible with `germ`.
+-/
 
 end restrict
 

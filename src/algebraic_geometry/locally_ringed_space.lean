@@ -146,6 +146,9 @@ instance : category LocallyRingedSpace :=
   id_comp' := by { intros, ext1, simp, },
   assoc' := by { intros, ext1, simp, }, }.
 
+-- PROJECT: once we have `PresheafedSpace.restrict_stalk_iso`
+-- (that restriction doesn't change stalks) we can uncomment this.
+/-
 def restrict {U : Top} (X : LocallyRingedSpace)
   (f : U ⟶ X.to_Top) (h : open_embedding f) : LocallyRingedSpace :=
 { local_ring :=
@@ -159,6 +162,7 @@ def restrict {U : Top} (X : LocallyRingedSpace)
     apply X.local_ring,
   end,
   .. X.to_SheafedSpace.restrict _ f h }
+-/
 
 end LocallyRingedSpace
 

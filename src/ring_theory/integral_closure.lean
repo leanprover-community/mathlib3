@@ -244,8 +244,8 @@ lemma integral_closure.is_integral (x : integral_closure R A) : is_integral R x 
 let ⟨p, hpm, hpx⟩ := x.2 in ⟨p, hpm, subtype.eq $
 by rwa [subtype.val_eq_coe, ← subalgebra.val_apply, aeval_alg_hom_apply] at hpx⟩
 
-theorem is_integral_of_is_integral_mul_unit {x y : A} {r : R} (hr : (algebra_map R A r) * y = 1)
-  (hx : is_integral R (x * y)) : (is_integral R x) :=
+theorem is_integral_of_is_integral_mul_unit {x y : A} {r : R} (hr : algebra_map R A r * y = 1)
+  (hx : is_integral R (x * y)) : is_integral R x :=
 begin
   obtain ⟨p, ⟨p_monic, hp⟩⟩ := hx,
   refine ⟨scale_roots p r, ⟨(monic_scale_roots_iff r).2 p_monic, _⟩⟩,

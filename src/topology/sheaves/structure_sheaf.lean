@@ -8,7 +8,7 @@ import ring_theory.localization
 import algebra.category.CommRing
 import topology.sheaves.local_predicate
 import topology.sheaves.forget
-import ring_theory.bundled_subring
+import ring_theory.subring
 
 /-!
 # The structure sheaf on `prime_spectrum R`.

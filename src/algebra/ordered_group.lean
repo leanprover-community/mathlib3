@@ -244,12 +244,69 @@ namespace with_zero
 local attribute [semireducible] with_zero
 
 instance [preorder α] : preorder (with_zero α) := with_bot.preorder
+
 instance [partial_order α] : partial_order (with_zero α) := with_bot.partial_order
+
 instance [partial_order α] : order_bot (with_zero α) := with_bot.order_bot
+
+lemma zero_le [partial_order α] (a : with_zero α) : 0 ≤ a := order_bot.bot_le a
+
+lemma zero_lt_coe [partial_order α] (a : α) : (0 : with_zero α) < a := with_bot.bot_lt_coe a
+
+@[simp, norm_cast] lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_zero α) < b ↔ a < b :=
+with_bot.coe_lt_coe
+
+@[simp, norm_cast] lemma coe_le_coe [partial_order α] {a b : α} : (a : with_zero α) ≤ b ↔ a ≤ b :=
+with_bot.coe_le_coe
+
 instance [lattice α] : lattice (with_zero α) := with_bot.lattice
+
 instance [linear_order α] : linear_order (with_zero α) := with_bot.linear_order
+
 instance [decidable_linear_order α] :
  decidable_linear_order (with_zero α) := with_bot.decidable_linear_order
+
+lemma mul_le_mul_left {α : Type u}
+  [ordered_comm_monoid α] :
+  ∀ (a b : with_zero α),
+    a ≤ b → ∀ (c : with_zero α), c * a ≤ c * b :=
+begin
+  rintro (_ | a) (_ | b) h (_ | c),
+  { apply with_zero.zero_le },
+  { apply with_zero.zero_le },
+  { apply with_zero.zero_le },
+  { apply with_zero.zero_le },
+  { apply with_zero.zero_le },
+  { exact false.elim (not_lt_of_le h (with_zero.zero_lt_coe a))},
+  { apply with_zero.zero_le },
+  { simp_rw [some_eq_coe] at h ⊢,
+    norm_cast at h ⊢,
+    exact mul_le_mul_left' h c }
+end
+
+lemma lt_of_mul_lt_mul_left  {α : Type u}
+  [ordered_comm_monoid α] :
+  ∀ (a b c : with_zero α), a * b < a * c → b < c :=
+begin
+  rintro (_ | a) (_ | b) (_ | c) h,
+  { exact false.elim (lt_irrefl none h) },
+  { exact false.elim (lt_irrefl none h) },
+  { exact false.elim (lt_irrefl none h) },
+  { exact false.elim (lt_irrefl none h) },
+  { exact false.elim (lt_irrefl none h) },
+  { exact with_zero.zero_lt_coe c },
+  { exact false.elim (not_le_of_lt h (with_zero.zero_le _)) },
+  { simp_rw [some_eq_coe] at h ⊢,
+    norm_cast at h ⊢,
+    apply lt_of_mul_lt_mul_left' h }
+end
+
+instance [ordered_comm_monoid α] : ordered_comm_monoid (with_zero α) :=
+{ mul_le_mul_left := with_zero.mul_le_mul_left,
+  lt_of_mul_lt_mul_left := with_zero.lt_of_mul_lt_mul_left,
+  ..with_zero.comm_monoid_with_zero,
+  ..with_zero.partial_order
+}
 
 /--
 If `0` is the least element in `α`, then `with_zero α` is an `ordered_add_comm_monoid`.

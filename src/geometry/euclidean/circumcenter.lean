@@ -44,45 +44,42 @@ open affine_subspace
 
 /-- `p` is equidistant from two points in `s` if and only if its
 `orthogonal_projection` is. -/
-lemma dist_eq_iff_dist_orthogonal_projection_eq {s : affine_subspace ℝ P}
-    (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) {p1 p2 : P} (p3 : P)
+lemma dist_eq_iff_dist_orthogonal_projection_eq {s : affine_subspace ℝ P} {p1 p2 : P} (p3 : P)
     (hp1 : p1 ∈ s) (hp2 : p2 ∈ s) :
   dist p1 p3 = dist p2 p3 ↔
-    dist p1 (orthogonal_projection hn hc p3) = dist p2 (orthogonal_projection hn hc p3) :=
+    dist p1 (orthogonal_projection s p3) = dist p2 (orthogonal_projection s p3) :=
 begin
   rw [←mul_self_inj_of_nonneg dist_nonneg dist_nonneg,
       ←mul_self_inj_of_nonneg dist_nonneg dist_nonneg,
       dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
-        hn hc p3 hp1,
+        p3 hp1,
       dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
-        hn hc p3 hp2],
+        p3 hp2],
   simp
 end
 
 /-- `p` is equidistant from a set of points in `s` if and only if its
 `orthogonal_projection` is. -/
-lemma dist_set_eq_iff_dist_orthogonal_projection_eq {s : affine_subspace ℝ P}
-    (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) {ps : set P}
+lemma dist_set_eq_iff_dist_orthogonal_projection_eq {s : affine_subspace ℝ P} {ps : set P}
     (hps : ps ⊆ s) (p : P) :
   (set.pairwise_on ps (λ p1 p2, dist p1 p = dist p2 p) ↔
-    (set.pairwise_on ps (λ p1 p2, dist p1 (orthogonal_projection hn hc p) =
-      dist p2 (orthogonal_projection hn hc p)))) :=
+    (set.pairwise_on ps (λ p1 p2, dist p1 (orthogonal_projection s p) =
+      dist p2 (orthogonal_projection s p)))) :=
 ⟨λ h p1 hp1 p2 hp2 hne,
-  (dist_eq_iff_dist_orthogonal_projection_eq hn hc p (hps hp1) (hps hp2)).1 (h p1 hp1 p2 hp2 hne),
+  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).1 (h p1 hp1 p2 hp2 hne),
 λ h p1 hp1 p2 hp2 hne,
-  (dist_eq_iff_dist_orthogonal_projection_eq hn hc p (hps hp1) (hps hp2)).2 (h p1 hp1 p2 hp2 hne)⟩
+  (dist_eq_iff_dist_orthogonal_projection_eq p (hps hp1) (hps hp2)).2 (h p1 hp1 p2 hp2 hne)⟩
 
 /-- There exists `r` such that `p` has distance `r` from all the
 points of a set of points in `s` if and only if there exists (possibly
 different) `r` such that its `orthogonal_projection` has that distance
 from all the points in that set. -/
 lemma exists_dist_eq_iff_exists_dist_orthogonal_projection_eq {s : affine_subspace ℝ P}
-    (hn : (s : set P).nonempty) (hc : is_complete (s.direction : set V)) {ps : set P}
-    (hps : ps ⊆ s) (p : P) :
+    {ps : set P} (hps : ps ⊆ s) (p : P) :
   (∃ r, ∀ p1 ∈ ps, dist p1 p = r) ↔
-    ∃ r, ∀ p1 ∈ ps, dist p1 (orthogonal_projection hn hc p) = r :=
+    ∃ r, ∀ p1 ∈ ps, dist p1 (orthogonal_projection s p) = r :=
 begin
-  have h := dist_set_eq_iff_dist_orthogonal_projection_eq hn hc hps p,
+  have h := dist_set_eq_iff_dist_orthogonal_projection_eq hps p,
   simp_rw set.pairwise_on_eq_iff_exists_eq at h,
   exact h
 end
@@ -94,25 +91,25 @@ subspace whose direction is complete, such that there is a unique
 and a point `p` not in that subspace, there is a unique (circumcenter,
 circumradius) pair for the set with `p` added, in the span of the
 subspace with `p` added. -/
-lemma exists_unique_dist_eq_of_insert {s : affine_subspace ℝ P} (hn : (s : set P).nonempty)
+lemma exists_unique_dist_eq_of_insert {s : affine_subspace ℝ P}
     (hc : is_complete (s.direction : set V)) {ps : set P} (hnps : ps.nonempty) {p : P}
     (hps : ps ⊆ s) (hp : p ∉ s)
     (hu : ∃! cccr : (P × ℝ), cccr.fst ∈ s ∧ ∀ p1 ∈ ps, dist p1 cccr.fst = cccr.snd) :
   ∃! cccr₂ : (P × ℝ), cccr₂.fst ∈ affine_span ℝ (insert p (s : set P)) ∧
     ∀ p1 ∈ insert p ps, dist p1 cccr₂.fst = cccr₂.snd :=
 begin
+  have hn : (s : set P).nonempty := hnps.mono hps,
   rcases hu with ⟨⟨cc, cr⟩, ⟨hcc, hcr⟩, hcccru⟩,
   simp only [prod.fst, prod.snd] at hcc hcr hcccru,
-  let x := dist cc (orthogonal_projection hn hc p),
-  let y := dist p (orthogonal_projection hn hc p),
+  let x := dist cc (orthogonal_projection s p),
+  let y := dist p (orthogonal_projection s p),
   have hy0 : y ≠ 0 := dist_orthogonal_projection_ne_zero_of_not_mem hn hc hp,
   let ycc₂ := (x * x + y * y - cr * cr) / (2 * y),
-  let cc₂ := (ycc₂ / y) • (p -ᵥ orthogonal_projection hn hc p : V) +ᵥ cc,
+  let cc₂ := (ycc₂ / y) • (p -ᵥ orthogonal_projection s p : V) +ᵥ cc,
   let cr₂ := real.sqrt (cr * cr + ycc₂ * ycc₂),
   use (cc₂, cr₂),
   simp only [prod.fst, prod.snd],
-  have hpo :
-    p = (1 : ℝ) • (p -ᵥ orthogonal_projection hn hc p : V) +ᵥ orthogonal_projection hn hc p,
+  have hpo : p = (1 : ℝ) • (p -ᵥ orthogonal_projection s p : V) +ᵥ orthogonal_projection s p,
   { simp },
   split,
   { split,
@@ -129,13 +126,13 @@ begin
         rw [hpo,
             dist_square_smul_orthogonal_vadd_smul_orthogonal_vadd
               (orthogonal_projection_mem hn hc p) hcc _ _
-              (vsub_orthogonal_projection_mem_direction_orthogonal hn hc p),
+              (vsub_orthogonal_projection_mem_direction_orthogonal s p),
             ←dist_eq_norm_vsub V p, dist_comm _ cc],
         field_simp [hy0],
         ring },
       { rw [dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
-              hn hc _ (hps hp1),
-            orthogonal_projection_vadd_smul_vsub_orthogonal_projection hn hc _ _ hcc, hcr p1 hp1,
+              _ (hps hp1),
+            orthogonal_projection_vadd_smul_vsub_orthogonal_projection hc _ _ hcc, hcr p1 hp1,
             dist_eq_norm_vsub V cc₂ cc, vadd_vsub, norm_smul, ←dist_eq_norm_vsub V,
             real.norm_eq_abs, abs_div, abs_of_nonneg dist_nonneg, div_mul_cancel _ hy0,
             abs_mul_abs_self] } } },
@@ -145,8 +142,8 @@ begin
     rcases hcc₃ with ⟨t₃, cc₃', hcc₃', hcc₃⟩,
     have hcr₃' : ∃ r, ∀ p1 ∈ ps, dist p1 cc₃ = r :=
       ⟨cr₃, λ p1 hp1, hcr₃ p1 (set.mem_insert_of_mem _ hp1)⟩,
-    rw [exists_dist_eq_iff_exists_dist_orthogonal_projection_eq hn hc hps cc₃, hcc₃,
-        orthogonal_projection_vadd_smul_vsub_orthogonal_projection hn hc _ _ hcc₃'] at hcr₃',
+    rw [exists_dist_eq_iff_exists_dist_orthogonal_projection_eq hps cc₃, hcc₃,
+        orthogonal_projection_vadd_smul_vsub_orthogonal_projection hc _ _ hcc₃'] at hcr₃',
     cases hcr₃' with cr₃' hcr₃',
     have hu := hcccru (cc₃', cr₃'),
     simp only [prod.fst, prod.snd] at hu,
@@ -161,8 +158,8 @@ begin
           ←mul_self_inj_of_nonneg dist_nonneg (real.sqrt_nonneg _),
           real.mul_self_sqrt (add_nonneg (mul_self_nonneg _) (mul_self_nonneg _)),
           dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square
-            hn hc _ (hps hp0),
-          orthogonal_projection_vadd_smul_vsub_orthogonal_projection hn hc _ _ hcc₃', hcr p0 hp0,
+            _ (hps hp0),
+          orthogonal_projection_vadd_smul_vsub_orthogonal_projection hc _ _ hcc₃', hcr p0 hp0,
           dist_eq_norm_vsub V _ cc₃', vadd_vsub, norm_smul, ←dist_eq_norm_vsub V p,
           real.norm_eq_abs, ←mul_assoc, mul_comm _ (abs t₃), ←mul_assoc, abs_mul_abs_self],
       ring },
@@ -170,7 +167,7 @@ begin
     rw [hpo, hcc₃, hcr₃val, ←mul_self_inj_of_nonneg dist_nonneg (real.sqrt_nonneg _),
         dist_square_smul_orthogonal_vadd_smul_orthogonal_vadd
           (orthogonal_projection_mem hn hc p) hcc₃' _ _
-          (vsub_orthogonal_projection_mem_direction_orthogonal hn hc p),
+          (vsub_orthogonal_projection_mem_direction_orthogonal s p),
         dist_comm, ←dist_eq_norm_vsub V p,
         real.mul_self_sqrt (add_nonneg (mul_self_nonneg _) (mul_self_nonneg _))] at hcr₃,
     change x * x + _ * (y * y) = _ at hcr₃,
@@ -253,7 +250,6 @@ begin
       { rw [set.insert_eq, set.insert_eq, span_union, span_union, affine_span_coe] },
       rw hs,
       refine exists_unique_dist_eq_of_insert
-        ((affine_span_nonempty ℝ _).2 (set.range_nonempty _))
         (submodule.complete_of_finite_dimensional _)
         (set.range_nonempty _)
         (subset_span_points ℝ _)

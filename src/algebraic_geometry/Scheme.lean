@@ -1,5 +1,21 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import algebraic_geometry.locally_ringed_space
 import algebraic_geometry.Spec
+
+/-!
+# The category of schemes
+
+A scheme is a locally ringed space such that every point is contained in some open set
+where there is an isomorphism of presheaves between the restriction to that open set,
+and the structure sheaf of `Spec R`, for some commutative ring `R`.
+
+A morphism is schemes is just a morphism of the underlying locally ringed spaces.
+
+-/
 
 open topological_space
 open category_theory
@@ -28,6 +44,11 @@ structure Scheme extends X : LocallyRingedSpace :=
 
 namespace Scheme
 
+/--
+Every `Scheme` is a `LocallyRingedSpace`.
+-/
+-- (This parent projection is apparently not automatically generated because
+-- we used the `extends X : LocallyRingedSpace` syntax.)
 def to_LocallyRingedSpace (S : Scheme) : LocallyRingedSpace := { ..S }
 
 /--

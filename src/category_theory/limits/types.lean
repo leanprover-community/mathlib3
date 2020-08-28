@@ -143,6 +143,14 @@ namespace filtered_colimit
 variables [is_filtered_or_empty J]
 variables (F : J ⥤ Type u)
 
+/--
+An alternative relation on `Σ j, F.obj j`,
+which generates the same equivalence relation as we use to define the colimit in `Type` above,
+but that is more convenient when working with filtered colimits.
+
+Elements in `F.obj j` and `F.obj j'` are equivalent if there is some `k : J` to the right
+where their images are equal.
+-/
 protected def r (x y : Σ j, F.obj j) : Prop :=
 ∃ k (f : x.1 ⟶ k) (g : y.1 ⟶ k), F.map f x.2 = F.map g y.2
 

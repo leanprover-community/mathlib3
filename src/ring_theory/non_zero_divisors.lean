@@ -8,7 +8,7 @@ import group_theory.submonoid.basic
 
 section non_zero_divisors
 
-/-- The submonoid of non-zero-divisors of a `comm_ring` `R`. -/
+/-- The submonoid of non-zero-divisors of a `monoid_with_zero` `R`. -/
 def non_zero_divisors (R : Type*) [monoid_with_zero R] : submonoid R :=
 { carrier := {x | ∀ z, z * x = 0 → z = 0},
   one_mem' := λ z hz, by rwa mul_one at hz,

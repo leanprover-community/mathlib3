@@ -1,6 +1,7 @@
 import geometry.manifold.local_diffeomorph
 import geometry.manifold.tangent_bundle_derivation
 import linear_algebra.dual
+import data.equiv.transfer_instance
 
 noncomputable theory
 
@@ -21,8 +22,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 (proj : Z → B)
 
 variable (F)
-
-#check linear_map.trace_aux
 
 /--
 A structure extending local homeomorphisms, defining a local trivialization of a projection
@@ -233,7 +232,7 @@ notation V `ᵛ` 𝕜 := module.dual 𝕜 V
 instance {x : B} : has_coe (E x) (Σ x, E x) := ⟨λ y, (⟨x, y⟩ : (Σ x, E x))⟩
 
 structure vector_bundle_trivialization extends bundle_trivialization F (proj E) :=
-(linear : ∀ x ∈ base_set, is_linear_map 𝕜 (λ (y : (E x)), (to_fun y).2))
+(linear : ∀ x ∈ base_set, is_linear_map 𝕜 (λ y : (E x), (to_fun y).2))
 
 variables (B)
 
@@ -255,15 +254,85 @@ end
 section
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+{E : Type*} [normed_group E] [normed_space 𝕜 E] [finite_dimensional 𝕜 E]
+{H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-[∀ (x : M), topological_space (point_derivation I x)] /- Can be removed for finite dimensional manifolds-/
+[∀ (x : M), topological_space (point_derivation I x)] /- Must be removed -/
+
+def model_prod.fst {α : Type*} {β : Type*} (x : model_prod α β) : α := x.1
+def model_prod.snd {α : Type*} {β : Type*} (x : model_prod α β) : α := x.1
+
+def local_homeomorph.extend (e : local_homeomorph (tangent_bundle_derivation I M) (model_prod H E))
+  (h : ∀ v : tangent_bundle_derivation I M, (e ⟨v.1, 0⟩).1 = (e v).1)
+  (h' : ∀ y : M × E, (e.symm ((e ⟨y.1, 0⟩).1, y.2)).1 = (e.symm (e ⟨y.1, 0⟩)).1)
+  (h'' : ∀ x : M, (⟨x, 0⟩ : tangent_bundle_derivation I M) ∈ e.source) :
+  local_homeomorph (tangent_bundle_derivation I M) (M × E) :=
+{ to_fun := λ x, ⟨x.1, (e x).2⟩,
+  inv_fun := λ y, e.symm ⟨(e ⟨y.1, 0⟩).1, y.2⟩,
+  source := e.source,
+  target := λ y, (⟨(e ⟨y.1, 0⟩).1, y.2⟩ : model_prod H E) ∈ e.target/- ((tangent_bundle_derivation.proj)'' e.source).prod set.univ -/,
+  map_source' := λ v h1, by { rw [set.mem_def, h, prod.mk.eta], exact e.map_source h1 },
+  map_target' := λ v h1, e.map_target h1,
+  left_inv' := λ v h1, by { rw [h, prod.mk.eta], exact e.left_inv h1 },
+  right_inv' := λ y h1, by simp only [e.left_inv (h'' y.1), e.right_inv h1, h', prod.mk.eta],
+  open_source := e.open_source,
+  open_target := sorry,
+  continuous_to_fun := sorry,
+  continuous_inv_fun := sorry }
+
+def local_homeomorph.to_trivialization (e : local_homeomorph (tangent_bundle_derivation I M) (model_prod H E))
+  (h : ∀ v : tangent_bundle_derivation I M, (e ⟨v.1, 0⟩).1 = (e v).1)
+  (h' : ∀ y : M × E, (e.symm ((e ⟨y.1, 0⟩).1, y.2)).1 = (e.symm (e ⟨y.1, 0⟩)).1)
+  (h'' : ∀ x : M, (⟨x, 0⟩ : tangent_bundle_derivation I M) ∈ e.source) :
+  bundle_trivialization E (tangent_bundle_derivation.proj : _ → M) :=
+{ base_set := (tangent_bundle_derivation.proj)'' e.source,
+  open_base_set := sorry,
+  source_eq := sorry,
+  target_eq := sorry,
+  proj_to_fun := sorry,
+  ..(local_homeomorph.extend e h h' h'') }
+
+lemma eh (v w : tangent_bundle_derivation I M) :
+  ((chart_at (model_prod H E) v) ⟨w.1, 0⟩).1 = ((chart_at (model_prod H E) v) w).1 :=
+begin
+  sorry
+end
+
+lemma eh' (v : tangent_bundle_derivation I M) (y : M × E) :
+  ((chart_at (model_prod H E) v).symm (((chart_at (model_prod H E) v) ⟨y.1, 0⟩).1, y.2)).1 = ((chart_at (model_prod H E) v).symm ((chart_at (model_prod H E) v) ⟨y.1, 0⟩)).1 :=
+begin
+  sorry
+end
+
+lemma eh'' (v : tangent_bundle_derivation I M) :
+  ∀ x : M, (⟨x, 0⟩ : tangent_bundle_derivation I M) ∈ (chart_at (model_prod H E) v).source :=
+begin
+  sorry
+end
+
+lemma to_trivialization_apply (e : local_homeomorph (tangent_bundle_derivation I M) (model_prod H E))
+  (h : ∀ v : tangent_bundle_derivation I M, (e ⟨v.1, 0⟩).1 = (e v).1)
+  (h' : ∀ y : M × E, (e.symm ((e ⟨y.1, 0⟩).1, y.2)).1 = (e.symm (e ⟨y.1, 0⟩)).1)
+  (h'' : ∀ x : M, (⟨x, 0⟩ : tangent_bundle_derivation I M) ∈ e.source)
+  (y : tangent_bundle_derivation I M) :
+ local_homeomorph.to_trivialization e h h' h'' y = ⟨y.1, (e y).2⟩ := rfl
+
+ lemma to_trivialization_apply_source (e : local_homeomorph (tangent_bundle_derivation I M) (model_prod H E))
+  (h : ∀ v : tangent_bundle_derivation I M, (e ⟨v.1, 0⟩).1 = (e v).1)
+  (h' : ∀ y : M × E, (e.symm ((e ⟨y.1, 0⟩).1, y.2)).1 = (e.symm (e ⟨y.1, 0⟩)).1)
+  (h'' : ∀ x : M, (⟨x, 0⟩ : tangent_bundle_derivation I M) ∈ e.source) :
+ (local_homeomorph.to_trivialization e h h' h'').source = e.source := rfl
 
 lemma tangent_bundle_derivation : is_topological_vector_bundle 𝕜 M (point_derivation I) E :=
 begin
   intro v,
-  sorry,
+  use local_homeomorph.to_trivialization (chart_at (model_prod H E) v) (eh v) (eh' v) (eh'' v),
+  rintro x ⟨a, b, c⟩,
+  simp only [bundle_trivialization.coe_coe, local_homeomorph.to_fun_eq_coe],
+  simp only [to_trivialization_apply],
+  sorry, /- This should not be too hard. More work is needed though. -/
+  rw to_trivialization_apply_source,
+  exact charted_space_core.mem_chart_source tangent_bundle_derivation.charted_space_core v,
 end
 
 end
@@ -325,50 +394,62 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
-def F : Π x : M, {y : tangent_bundle I M // tangent_bundle.proj I M y = x} → tangent_space I x :=
-begin
-  intro x,
-  intro y,
-  have f := (tangent_bundle_core I M).to_topological_fiber_bundle_core.local_triv,
-  unfold tangent_space,
-  sorry,
+def asmaragnau :
+  Π x : M, equiv ({y : tangent_bundle I M // tangent_bundle.proj I M y = x}) (tangent_space I x) :=
+λ x,
+{ to_fun := λ y, y.val.2,
+  inv_fun := λ y, ⟨⟨x, y⟩, rfl⟩,
+  left_inv := λ z, by { simp only [subtype.val_eq_coe], ext, symmetry, exact z.prop, refl },
+  right_inv := λ z, by simp only }
+
+def F2 : Π x : M, {y : tangent_bundle_derivation I M // tangent_bundle_derivation.proj y = x} → point_derivation I x :=
+λ x y, by { let g := y.val.2, have h : y.val.fst = x := y.prop, rw h at g, exact g }
+
+def G2 : Π x : M, point_derivation I x → {y : tangent_bundle_derivation I M // tangent_bundle_derivation.proj y = x} :=
+λ x v, ⟨⟨x, v⟩, rfl⟩
+
+instance fiber_tangent_bundle.add_comm_group :
+  ∀ (x : M), add_comm_group {y : tangent_bundle I M // tangent_bundle.proj I M y = x} :=
+λ x, (asmaragnau x).add_comm_group
+
+section
+
+namespace equiv
+
+variables {α : Type*} {β : Type*} (γ : Type*) (e : α ≃ β)
+
+/-- Transfer `has_scalar` across an `equiv` -/
+protected def has_scalar [has_scalar γ β] : has_scalar γ α := ⟨λ x y, e.symm (x • e y)⟩
+
+lemma smul_def [has_scalar γ β] (r : γ) (y : α) :
+  @has_scalar.smul _ _ (equiv.has_scalar γ e) r y = e.symm (r • e y) := rfl
+
+protected def mul_action [monoid γ] [mul_action γ β] : mul_action γ α :=
+{ one_smul := λ a, by simp only [smul_def, symm_apply_apply, one_smul],
+  mul_smul := λ r s a, by simp only [smul_def, apply_symm_apply, apply_eq_iff_eq, mul_smul],
+  ..equiv.has_scalar γ e }
+
+protected def distrib_mul_action [monoid γ] [add_monoid β] [distrib_mul_action γ β] :
+  @distrib_mul_action γ α _ (equiv.add_monoid e) :=
+{ smul_add := λ r a b, by {simp only [smul_def], sorry },
+  smul_zero := λ r, by { simp only [smul_def], sorry },
+  ..equiv.mul_action γ e }
+
+protected def semimodule [semiring γ] [add_comm_monoid β] [semimodule γ β] :
+  @semimodule γ α _ (@equiv.add_comm_monoid _ _ e _) :=
+{ add_smul := λ r s a, by { simp only [smul_def], sorry },
+  zero_smul := λ a, by { simp only [smul_def], sorry },
+  smul_add := λ r a b, by {simp only [smul_def], sorry }, /- Cannot mangage to use the above def -/
+  smul_zero := λ r, by { simp only [smul_def], sorry },
+  ..equiv.mul_action γ e }
+
+end equiv
+
 end
 
-def F2 : Π x : M, {y : tangent_bundle_derivation I M // tangent_bundle_derivation.proj I M y = x} → point_derivation I x :=
-begin
-  intros x y,
-  let g := y.val.2,
-  let h : y.val.fst = x := y.prop,
-  rw h at g,
-  exact g,
-end
-
-def G : Π x : M, tangent_space I x → {y : tangent_bundle I M // tangent_bundle.proj I M y = x} :=
-sorry
-
-def G2 : Π x : M, point_derivation I x → {y : tangent_bundle_derivation I M // tangent_bundle_derivation.proj I M y = x} :=
-by { intros x v, use ⟨x, v⟩ }
-
-instance add_comm_group_fiber_tangent_bundle : ∀ (x : M), add_comm_group {y : tangent_bundle I M // tangent_bundle.proj I M y = x} :=
-λ x,
-{ add := λ a b, G x (F x a + F x b),
-  add_assoc := sorry,
-  zero := sorry,
-  zero_add := sorry,
-  add_zero := sorry,
-  neg := sorry,
-  add_left_neg := sorry,
-  add_comm := sorry, }
-
-instance vector_space_fiber_tangent_bundle : ∀ (x : M), module 𝕜 {y : tangent_bundle I M // tangent_bundle.proj I M y = x} :=
-λ x,
-{ smul := sorry,
-  smul_zero := sorry,
-  smul_add := sorry,
-  one_smul := sorry,
-  mul_smul := sorry,
-  add_smul := sorry,
-  zero_smul := sorry, }
+instance vector_space_fiber_tangent_bundle :
+  ∀ (x : M), module 𝕜 {y : tangent_bundle I M // tangent_bundle.proj I M y = x} :=
+λ x, equiv.semimodule 𝕜 (asmaragnau x)
 
 instance topological_vector_space_fiber_tangent_bundle : ∀ (x : M), topological_module 𝕜 {y : tangent_bundle I M // tangent_bundle.proj I M y = x} :=
 λ x,

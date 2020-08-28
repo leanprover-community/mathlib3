@@ -52,6 +52,8 @@ variables [finite_dimensional 𝕜 E]
 
 @[reducible] def tangent_bundle_derivation := Σ x : M, point_derivation I x
 
+variables {I} {M}
+
 @[reducible] def tangent_bundle_derivation.proj : tangent_bundle_derivation I M → M := λ v, v.1
 
 section
@@ -60,7 +62,7 @@ def dir_deriv (f : E → 𝕜) (a : E) (v : E) := deriv (λ t : 𝕜, f (a + t �
 
 end
 
-open_locale big_operators
+open_locale big_operators classical
 
 namespace tangent_bundle_derivation
 
@@ -71,7 +73,7 @@ def chart : (local_homeomorph M H) → (local_equiv (tangent_bundle_derivation I
     (exists_is_basis_finset 𝕜 E)).repr ∘ I ∘ e) x w, sorry⟩)) • (w : E)⟩,
   inv_fun := λ ⟨x, v⟩, ⟨e.symm x, ⟨⟨λ f, dir_deriv (f ∘ e.symm ∘ I.symm) (I x) v,
     sorry, sorry⟩, sorry⟩⟩,
-  source := (proj I M)⁻¹' e.source,
+  source := proj⁻¹' e.source,
   target := e.target.prod set.univ,
   map_source' := λ x h, begin sorry end,
   map_target' := λ y h, begin sorry end,
@@ -79,18 +81,18 @@ def chart : (local_homeomorph M H) → (local_equiv (tangent_bundle_derivation I
   right_inv' := λ y h, begin sorry end }
 
 def charted_space_core : charted_space_core (model_prod H E) (tangent_bundle_derivation I M) :=
-{ atlas := (chart I M)'' (atlas H M),
-  chart_at := λ x, (chart I M) (chart_at H (proj I M x)),
+{ atlas := (chart)'' (atlas H M),
+  chart_at := λ x, chart (chart_at H (proj x)),
   mem_chart_source := λ x, begin sorry end,
   chart_mem_atlas := λ x, begin sorry end,
   open_source := λ e f he hf, begin sorry end,
   continuous_to_fun := λ e f he hf, begin sorry, end }
 
 instance : topological_space (tangent_bundle_derivation I M) :=
-(charted_space_core I M).to_topological_space
+(charted_space_core).to_topological_space
 
 instance : charted_space (model_prod H E) (tangent_bundle_derivation I M) :=
-(charted_space_core I M).to_charted_space
+(charted_space_core).to_charted_space
 
 instance : smooth_manifold_with_corners I.tangent (tangent_bundle_derivation I M) :=
 { compatible := begin
@@ -102,6 +104,45 @@ instance : smooth_manifold_with_corners I.tangent (tangent_bundle_derivation I M
     have h := has_groupoid.compatible (times_cont_diff_groupoid ⊤ I) hf' hg',
     sorry,
   end }
+
+def inv_chart (e : local_homeomorph (tangent_bundle_derivation I M) (model_prod H E))
+  (h : ∀ v w : tangent_bundle_derivation I M, v.proj = w.proj ↔ (e v).1 = (e w).1)
+  (h2 : (prod.snd)'' e.target = set.univ) :
+  (local_homeomorph M H) :=
+{
+  to_fun := λ x, (e ⟨x, 0⟩).1,
+  inv_fun := λ x, (e.symm ⟨x, 0⟩).1,
+  source := (proj)'' e.source,
+  target := (prod.fst)'' e.target,
+  map_source' := λ x, by { rintro ⟨a, ha, hb⟩,
+    simp only [set.mem_image, exists_and_distrib_right, exists_eq_right, prod.exists],
+    use (e a).2,
+    have h' : (e ⟨x, 0⟩).fst = (e a).fst := by { apply (h _ _).1, symmetry, exact hb, },
+    rw [h', prod.mk.eta],
+    exact e.map_source ha },
+  map_target' := λ x, by {
+    intro h',
+    simp only [set.mem_image],
+    rcases h' with ⟨v, hv1, hv2⟩,
+    use (e.symm v),
+    have h1 := e.map_target hv1,
+    refine ⟨e.map_target hv1, _⟩,
+    have h3 : (⟨x, 0⟩ : H × E) ∈ e.target := by { by_contradiction,
+      have aa : prod.fst v ∈ (prod.fst)'' e.target := set.mem_image_of_mem prod.fst hv1,
+      rw hv2 at aa,
+      clear hv1 hv2 h,
+      sorry, },
+    have h4 : (e (e.symm v)).fst = (e (e.symm (⟨x, 0⟩ : H × E))).fst := by { rw e.right_inv hv1, rw e.right_inv h3, exact hv2 },
+    apply (h _ _).2,
+    exact h4,
+  },
+  left_inv' := sorry,
+  right_inv' := sorry,
+  open_source := sorry,
+  open_target := sorry,
+  continuous_to_fun := sorry,
+  continuous_inv_fun := sorry,
+}
 
 end tangent_bundle_derivation
 

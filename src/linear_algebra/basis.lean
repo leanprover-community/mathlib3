@@ -980,7 +980,7 @@ variables [fintype ι] (h : is_basis R v)
 
 /-- A module over `R` with a finite basis is linearly equivalent to functions from its basis to `R`.
 -/
-def is_basis.equiv_fun  : M ≃ₗ[R] (ι → R) :=
+def is_basis.equiv_fun : M ≃ₗ[R] (ι → R) :=
 linear_equiv.trans (module_equiv_finsupp h)
   { to_fun := finsupp.to_fun,
     map_add' := λ x y, by ext; exact finsupp.add_apply,

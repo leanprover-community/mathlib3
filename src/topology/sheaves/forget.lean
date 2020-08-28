@@ -54,12 +54,10 @@ def diagram_comp_preserves_limits :
   sheaf_condition.diagram F U ⋙ G ≅ sheaf_condition.diagram (F ⋙ G) U :=
 begin
   fapply nat_iso.of_components,
-  intro j,
-  cases j,
+  rintro ⟨j⟩,
   exact (preserves_products_iso _ _),
   exact (preserves_products_iso _ _),
-  intros j j' f,
-  cases j; cases j'; cases f,
+  rintros ⟨⟩ ⟨⟩ ⟨⟩,
   { ext, simp, dsimp, simp, }, -- non-terminal `simp`, but `squeeze_simp` fails
   { ext,
     simp only [limit.lift_π, functor.comp_map, parallel_pair_map_left, fan.mk_π_app,
@@ -92,10 +90,7 @@ begin
     ext,
     simp, -- non-terminal `simp`, but `squeeze_simp` fails
     dsimp,
-    simp only [limit.lift_π, fan.mk_π_app],
-    simp only [←G.map_comp],
-    simp only [limit.lift_π_assoc, fan.mk_π_app],
-  },
+    simp only [limit.lift_π, fan.mk_π_app, ←G.map_comp, limit.lift_π_assoc, fan.mk_π_app] }
 end)
 
 end sheaf_condition
@@ -127,11 +122,11 @@ Another useful example is the forgetful functor `TopCommRing ⥤ Top`.
 def sheaf_condition_equiv_sheaf_condition_comp :
   sheaf_condition F ≃ sheaf_condition (F ⋙ G) :=
 begin
-  fsplit,
+  apply equiv_of_subsingleton_of_subsingleton,
   { intros S ι U,
     -- We have that the sheaf condition fork for `F` is a limit fork,
     have t₁ := S U,
-    -- and since `G` preserves limits, the image under `G` of this fork is a limit fork to.
+    -- and since `G` preserves limits, the image under `G` of this fork is a limit fork too.
     have t₂ := @preserves_limit.preserves _ _ _ _ _ _ _ G _ _ t₁,
     -- As we established above, that image is just the sheaf condition fork
     -- for `F ⋙ G` postcomposed with some natural isomorphism,
@@ -180,9 +175,8 @@ begin
         dunfold fork.ι,
         ext1 j,
         dsimp,
-        simp only [category.assoc],
-        simp only [←functor.map_comp_assoc],
-        simp only [equalizer.lift_ι, map_lift_comp_preserves_products_iso_hom_assoc],
+        simp only [category.assoc, ←functor.map_comp_assoc, equalizer.lift_ι,
+          map_lift_comp_preserves_products_iso_hom_assoc],
         dsimp [res], simp,
       end,
       -- conclude that it is an isomorphism,
@@ -191,8 +185,6 @@ begin
       -- A cone morphism is an isomorphism exactly if the morphism between the cone points is,
       -- so we're done!
       exact { ..((cones.forget _).map_iso (as_iso f')) }, }, },
-  { intros S, apply subsingleton.elim, },
-  { intros S, apply subsingleton.elim, },
 end
 
 /-!

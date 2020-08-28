@@ -478,6 +478,10 @@ variable {M}
 def tangent_space (x : M) : Type* :=
 (tangent_bundle_core I M).to_topological_fiber_bundle_core.fiber x
 
+@[simp, mfld_simps] lemma tangent_bundle.proj_apply (x : M) (v : tangent_space I x) :
+  tangent_bundle.proj I M ⟨x, v⟩ = x :=
+rfl
+
 section tangent_bundle_instances
 
 /- In general, the definition of tangent_bundle and tangent_space are not reducible, so that type
@@ -578,5 +582,15 @@ def tangent_bundle_model_space_homeomorph : tangent_bundle I H ≃ₜ model_prod
     simpa only with mfld_simps using this,
   end,
   .. equiv.sigma_equiv_prod H E }
+
+@[simp, mfld_simps] lemma tangent_bundle_model_space_homeomorph_coe :
+  (tangent_bundle_model_space_homeomorph H I : tangent_bundle I H → model_prod H E)
+  = equiv.sigma_equiv_prod H E :=
+rfl
+
+@[simp, mfld_simps] lemma tangent_bundle_model_space_homeomorph_coe_symm :
+  ((tangent_bundle_model_space_homeomorph H I).symm : model_prod H E → tangent_bundle I H)
+  = (equiv.sigma_equiv_prod H E).symm :=
+rfl
 
 end tangent_bundle

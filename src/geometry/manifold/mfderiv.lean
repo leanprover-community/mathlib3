@@ -1034,7 +1034,8 @@ lemma mdifferentiable_of_mem_atlas (h : e ∈ atlas H M) : e.mdifferentiable I I
 lemma mdifferentiable_chart (x : M) : (chart_at H x).mdifferentiable I I :=
 mdifferentiable_of_mem_atlas _ (chart_mem_atlas _ _)
 
-/-- The derivative of the chart at a base point is the chart of the tangent bundle. -/
+/-- The derivative of the chart at a base point is the chart of the tangent bundle, composed with
+the identification between the tangent bundle of the model space and the product space. -/
 lemma tangent_map_chart {p q : tangent_bundle I M} (h : q.1 ∈ (chart_at H p.1).source) :
   tangent_map I I (chart_at H p.1) q =
   (equiv.sigma_equiv_prod _ _).symm
@@ -1047,7 +1048,8 @@ begin
 end
 
 /-- The derivative of the inverse of the chart at a base point is the inverse of the chart of the
-tangent bundle. -/
+tangent bundle, composed with the identification between the tangent bundle of the model space and
+the product space. -/
 lemma tangent_map_chart_symm {p : tangent_bundle I M} {q : tangent_bundle I H}
   (h : q.1 ∈ (chart_at H p.1).target) :
   tangent_map I I (chart_at H p.1).symm q =

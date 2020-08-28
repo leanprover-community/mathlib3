@@ -1,8 +1,8 @@
 -- Copyright (c) 2019 Reid Barton. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Reid Barton
-
-import category_theory.category
+import category_theory.fin_category
+import category_theory.limits.cones
 import tactic.slice
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -39,6 +39,69 @@ noncomputable def coeq_hom {j j' : C} (f f' : j ⟶ j') : j' ⟶ coeq f f' :=
 
 lemma coeq_condition {j j' : C} (f f' : j ⟶ j') : f ≫ coeq_hom f f' = f' ≫ coeq_hom f f' :=
 (is_filtered_or_empty.cocone_maps f f').some_spec.some_spec
+
+open category_theory.limits
+
+variables {J : Type v} [small_category J] [fin_category J]
+
+lemma cocone_on_objs_aux (F : J ⥤ C) (s : finset J) : ∃ Z (f : ∀ j ∈ s, F.obj j ⟶ Z), true :=
+begin
+  apply finset.induction_on s,
+  { use is_filtered.nonempty.some,
+    fsplit,
+    rintros j ⟨⟩,
+    trivial, },
+  { rintros j s nm ⟨Z, f, -⟩,
+    use sup (F.obj j) Z,
+    fsplit,
+    rintros j' m,
+    simp at m,
+    by_cases h : j = j',
+    subst h,
+    apply left_to_sup,
+    exact f j' (by finish) ≫ right_to_sup _ _,
+    trivial, }
+end
+
+lemma cocone_on_objs (F : J ⥤ C) : ∃ Z (f : ∀ j : J, F.obj j ⟶ Z), true :=
+begin
+  obtain ⟨Z, f, -⟩ := cocone_on_objs_aux F (finset.univ),
+  exact ⟨Z, λ j, f j (by simp), trivial⟩,
+end
+
+lemma cocone_aux (F : J ⥤ C) (s : finset (Σ (j j' : J), j ⟶ j')) :
+  ∃ Z (f : ∀ j : J, F.obj j ⟶ Z),
+    ∀ (j j' : J) (g : j ⟶ j'), (⟨j, j', g⟩ : Σ (j j' : J), j ⟶ j') ∈ s → F.map g ≫ f j' = f j :=
+begin
+  apply finset.induction_on s,
+  { obtain ⟨Z, f, -⟩ := cocone_on_objs F,
+    refine ⟨Z, f, _⟩,
+    rintros - - - ⟨⟩, },
+  { rintros ⟨j, j', g⟩ s nm ⟨Z, f, w⟩,
+    use coeq (F.map g ≫ f j') (f j),
+    fsplit,
+    rintro j'',
+    use f j'' ≫ coeq_hom _ _,
+    intros i i' g' m,
+    rw [←category.assoc],
+    by_cases h : i = j ∧ i' = j',
+    { rcases h with ⟨rfl, rfl⟩,
+      by_cases hg : g = g',
+      { subst hg,
+        apply coeq_condition, },
+      { rw w _ _ g' (by finish), }, },
+    { rw w _ _ g' (by finish), } },
+end
+
+lemma cocone (F : J ⥤ C) : ∃ (s : cocone F), true :=
+begin
+  obtain ⟨Z, f, w⟩ := cocone_aux F (finset.univ),
+  refine ⟨⟨Z, ⟨f, _⟩⟩, trivial⟩,
+  intros j j' g,
+  dsimp,
+  simp,
+  exact w _ _ g (by simp),
+end
 
 /--
 Given a "bowtie" of morphisms

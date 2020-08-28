@@ -47,6 +47,12 @@ lemma types_id_apply (X : Type u) (x : X) : ((𝟙 X) : X → X) x = x := rfl
 @[simp]
 lemma types_comp_apply {X Y Z : Type u} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) : (f ≫ g) x = g (f x) := rfl
 
+@[simp]
+lemma hom_inv_id_apply {X Y : Type u} (f : X ≅ Y) (x : X) : f.inv (f.hom x) = x :=
+congr_fun f.hom_inv_id x
+@[simp]
+lemma inv_hom_id_apply {X Y : Type u} (f : X ≅ Y) (y : Y) : f.hom (f.inv y) = y :=
+congr_fun f.inv_hom_id y
 
 /-- `as_hom f` helps Lean type check a function as a morphism in the category `Type`. -/
 -- Unfortunately without this wrapper we can't use `category_theory` idioms, such as `is_iso f`.
@@ -69,6 +75,14 @@ The constant functor `X ↦ *` in `Type v`.
 def types.star : Type v ⥤ Type v :=
 { obj := λ X, punit,
   map := λ X Y f x, punit.star, }
+
+/--
+The constant functor `X ↦ ulift Prop` in `Type v`.
+-/
+@[simps]
+def types.Prop : Type v ⥤ Type v :=
+{ obj := λ X, ulift Prop,
+  map := λ X Y f x, x, }
 
 /--
 The diagonal functor `X ↦ X × X` in `Type v`.

@@ -89,11 +89,28 @@ lemma map_ι_comp_preserves_colimit_iso_hom
 is_colimit.comp_cocone_point_unique_up_to_iso_hom (preserves_colimit.preserves _) Q j
 
 @[simp]
+lemma ι_comp_preserves_colimit_iso_inv
+  {K : J ⥤ C} {t : cocone K} (P : is_colimit t)
+  {F : C ⥤ D} {s : cocone (K ⋙ F)} (Q : is_colimit s) [preserves_colimit K F] (j : J) :
+  s.ι.app j ≫ (preserves_colimit_iso P Q).inv = F.map (t.ι.app j) :=
+begin
+  rw ←map_ι_comp_preserves_colimit_iso_hom P Q,
+  simp only [category.assoc, iso.hom_inv_id, category.comp_id],
+end
+
+@[simp]
 lemma map_ι_comp_preserves_colimit_iso_hom_apply
   {K : J ⥤ C} {t : cocone K} (P : is_colimit t)
   {F : C ⥤ Type v} {s : cocone (K ⋙ F)} (Q : is_colimit s) [preserves_colimit K F] (j : J) (x) :
   (preserves_colimit_iso P Q).hom (F.map (t.ι.app j) x) = s.ι.app j x :=
 congr_fun (map_ι_comp_preserves_colimit_iso_hom P Q j) x
+
+@[simp]
+lemma ι_comp_preserves_colimit_iso_inv_apply
+  {K : J ⥤ C} {t : cocone K} (P : is_colimit t)
+  {F : C ⥤ Type v} {s : cocone (K ⋙ F)} (Q : is_colimit s) [preserves_colimit K F] (j : J) (x) :
+  (preserves_colimit_iso P Q).inv (s.ι.app j x) = F.map (t.ι.app j) x :=
+congr_fun (ι_comp_preserves_colimit_iso_inv P Q j) x
 
 /-- A functor which preserves limits preserves chosen limits up to isomorphism. -/
 abbreviation preserves_limit_iso'
@@ -289,6 +306,13 @@ def preserves_colimit_of_iso {K₁ K₂ : J ⥤ C} (F : C ⥤ D) (h : K₁ ≅ K
     rw [← F.map_comp],
     simp,
   end }
+
+/-- Transfer preservation of colimits along a natural isomorphism. -/
+def preserves_colimit_of_iso_right {K : J ⥤ C} {F G : C ⥤ D} (h : F ≅ G) [preserves_colimit K F] :
+  preserves_colimit K G :=
+{ preserves := λ c t,
+  (limits.is_colimit.precompose_hom_equiv (iso_whisker_left K h : _) (functor.map_cocone G c))
+    ((preserves_colimit.preserves t).of_iso_colimit (limits.cocones.ext (h.app _) (by tidy))) }
 
 /--
 A functor `F : C ⥤ D` reflects limits for `K : J ⥤ C` if

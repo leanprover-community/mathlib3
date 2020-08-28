@@ -258,16 +258,38 @@ def one_nat_trans : (F ⋙ forget Mon) ⋙ types.star ⟶ F ⋙ forget Mon :=
 def mul_nat_trans : (F ⋙ forget Mon) ⋙ types.diagonal ⟶ F ⋙ forget Mon :=
 { app := λ j p, p.1 * p.2, }
 
+@[simps]
+def mul_one_nat_trans : (F ⋙ forget Mon) ⟶ (F ⋙ forget Mon) ⋙ types.Prop :=
+{ app := λ j p, ⟨p * 1 = p⟩, }
+
+@[simps]
+def mul_assoc_nat_trans : (F ⋙ forget Mon) ⋙ types.triple_diagonal ⟶ (F ⋙ forget Mon) ⋙ types.Prop :=
+{ app := λ j p, ⟨(p.1 * p.2.1) * p.2.2 = p.1 * (p.2.1 * p.2.2)⟩,
+  naturality' := λ j j' f,
+  begin
+    ext ⟨x,y,z⟩,
+    dsimp,
+    split,
+    { intro h, simp only [mul_assoc], },
+    { intro h, simp only [←(F.map f).map_mul, h], },
+  end }
+
 noncomputable
 def one_colimit [is_filtered J] (F : J ⥤ Mon) :
-  types.star.obj (limits.colimit (F ⋙ forget Mon)) ⟶ limits.colimit (F ⋙ forget Mon) :=
-(preserves_colimit_iso (F ⋙ forget Mon) types.star).hom ≫ colim.map (one_nat_trans F)
+  punit.{v+1} ⟶ limits.colimit (F ⋙ forget Mon) :=
+(preserves_colimit_iso' (F ⋙ forget Mon) types.star).hom ≫ colim.map (one_nat_trans F)
 
 noncomputable
 def mul_colimit [is_filtered J] (F : J ⥤ Mon) :
   types.diagonal.obj (limits.colimit (F ⋙ forget Mon)) ⟶ limits.colimit (F ⋙ forget Mon) :=
-(preserves_colimit_iso (F ⋙ forget Mon) types.diagonal).hom ≫ colim.map (mul_nat_trans F)
+(preserves_colimit_iso' (F ⋙ forget Mon) types.diagonal).hom ≫ colim.map (mul_nat_trans F)
 
+noncomputable
+def mul_assoc_colimit [is_filtered J] (F : J ⥤ Mon) :
+  types.triple_diagonal.obj (limits.colimit (F ⋙ forget Mon)) ⟶ ulift Prop :=
+(preserves_colimit_iso' (F ⋙ forget Mon) types.triple_diagonal).hom ≫
+  colim.map (mul_assoc_nat_trans F) ≫
+  (preserves_colimit_iso' (F ⋙ forget Mon) types.Prop).inv
 
 lemma desc_comp_star (F : J ⥤ Type v) (s) (x) :
   ∃ j : J, colimit.desc (F ⋙ types.star) s x = s.ι.app j punit.star :=
@@ -334,6 +356,7 @@ instance [is_filtered J] : monoid (limits.colimit (F ⋙ forget Mon)) :=
   begin
     obtain ⟨j, x, rfl⟩ := types.jointly_surjective' _ x,
     dsimp [(*), mul_colimit, one_colimit],
+    dunfold preserves_colimit_iso',
     dsimp [preserves_colimit_iso, is_colimit.cocone_point_unique_up_to_iso],
     dsimp [colim, colim_map, is_colimit.map],
     simp,
@@ -345,61 +368,13 @@ instance [is_filtered J] : monoid (limits.colimit (F ⋙ forget Mon)) :=
     obtain ⟨jy, y, rfl⟩ := types.jointly_surjective' _ y,
     obtain ⟨jz, z, rfl⟩ := types.jointly_surjective' _ z,
     dsimp [(*), mul_colimit, one_colimit],
+    dunfold preserves_colimit_iso',
     dsimp [preserves_colimit_iso, is_colimit.cocone_point_unique_up_to_iso],
     dsimp [colim, colim_map, is_colimit.map],
     simp [monoid_hom.map_mul],
     rw [mul_assoc],
-    -- erw inv_desc_comp_diagonal'' (F ⋙ forget Mon),
-    -- erw inv_desc_comp_diagonal'' (F ⋙ forget Mon),
-    -- erw inv_desc_comp_diagonal'' (F ⋙ forget Mon),
-    -- erw inv_desc_comp_diagonal'' (F ⋙ forget Mon),
-    -- simp,
+
     sorry,
   end, }
-
-lemma foo [ℱ : is_filtered J] (K : J ⥤ Type v) (f : Π {j}, K.obj j → K.obj j → K.obj j) :
-  (types.colimit_cocone K).X → (types.colimit_cocone K).X → (types.colimit_cocone K).X :=
-begin
-  fapply @quot.lift _ _ ((types.colimit_cocone K).X → (types.colimit_cocone K).X),
-  rintro ⟨jx, x⟩,
-  fapply quot.lift,
-  rintro ⟨jy, y⟩,
-  { let j := is_filtered.sup jx jy,
-    let ix := is_filtered.left_to_sup jx jy,
-    let iy := is_filtered.right_to_sup jx jy,
-    refine quot.mk _ ⟨j, _⟩,
-    exact f (K.map ix x) (K.map iy y), },
-  rintro ⟨jy₁, y₁⟩,
-  rintro ⟨jy₂, y₂⟩,
-  intro h,
-  dsimp at h,
-  rcases h with ⟨j, i₁, i₂, e⟩,
-  simp,
-  apply quot.sound,
-  use j,
-  fsplit,
-  simp,
-end
-
-noncomputable
-instance [ℱ : is_filtered J] : monoid (types.colimit_cocone (F ⋙ forget Mon)).X :=
-{ one :=
-  begin
-    have j := ℱ.nonempty.some,
-    exact quot.mk _ ⟨j, 1⟩,
-  end,
-  mul := λ x y,
-  begin
-    induction x,
-    induction y,
-    rcases x with ⟨jx, x⟩,
-    rcases y with ⟨jy, y⟩,
-    choose j ix iy e using is_filtered_or_empty.cocone_objs jx jy,
-    refine quot.mk _ ⟨j, _⟩,
-    exact F.map ix x * F.map iy y,
-    simp,
-  end
-
-}
 
 end Mon.colimits

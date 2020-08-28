@@ -22,7 +22,7 @@ For example, algebra.adjoin K {x} might not include x⁻¹.
 
 ## Notation
 
- - `F[α]` : Adjoin a single element α to F.
+ - `F[(α)]` : Adjoin a single element α to F.
 -/
 
 namespace field
@@ -92,13 +92,6 @@ lemma adjoin_subset_iff {T : set E} : S ⊆ adjoin F T ↔ (adjoin F S : set E) 
 ⟨λ h, adjoin_subset_subfield F S (adjoin.range_algebra_map_subset F T) h,
   λ h, set.subset.trans (subset_adjoin F S) h⟩
 
-lemma set_range_subset {T₁ T₂ : set E} [is_subring T₁] (hyp : T₁ ⊆ T₂) :
-  set.range (algebra_map T₁ E) ⊆ T₂ :=
-begin
-  rintros x ⟨⟨t, ht⟩, rfl⟩,
-  exact hyp ht,
-end
-
 lemma subfield_subset_adjoin_self {F : set E} {HF : is_subfield F} {T : set E} {HT : T ⊆ F} :
   T ⊆ adjoin F S :=
 λ x hx, adjoin.algebra_map_mem F S ⟨x,HT hx⟩
@@ -113,7 +106,7 @@ lemma adjoin_subset_adjoin_iff {F' : Type*} [field F'] [algebra F' E]
 lemma adjoin_adjoin_left (T : set E) : (adjoin (adjoin F S : set E) T : set E) = adjoin F (S ∪ T) :=
 begin
   apply set.eq_of_subset_of_subset; rw adjoin_subset_adjoin_iff; split,
-  { exact set_range_subset (adjoin.mono _ _ _ (set.subset_union_left _ _)) },
+  { exact algebra.set_range_subset (adjoin.mono _ _ _ (set.subset_union_left _ _)) },
   { exact subset_adjoin_of_subset_right _ _ (set.subset_union_right _ _) },
   { exact subset_adjoin_of_subset_left _ (adjoin.range_algebra_map_subset _ _) },
   { exact set.union_subset
@@ -139,7 +132,7 @@ begin
   exact subset_adjoin F {α} (set.mem_singleton α),
 end
 
-/-- generator of F(α) -/
+/-- generator of F[(α)] -/
 def adjoin_simple.gen : F[(α)] := ⟨α, mem_adjoin_simple_self F α⟩
 
 lemma adjoin_simple.algebra_map_gen : algebra_map F[(α)] E (adjoin_simple.gen F α) = α := rfl

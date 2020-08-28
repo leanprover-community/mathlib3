@@ -107,7 +107,7 @@ lemma of_subtype_apply_of_not_mem {p : α → Prop} [decidable_pred p] (f : perm
 lemma mem_iff_of_subtype_apply_mem {p : α → Prop} [decidable_pred p] (f : perm (subtype p)) (x : α) :
   p x ↔ p ((of_subtype f : α → α) x) :=
 if h : p x then by dsimp [of_subtype]; simpa [h] using (f ⟨x, h⟩).2
-else by squeeze_simp [h, of_subtype_apply_of_not_mem f h]
+else by simp [h, of_subtype_apply_of_not_mem f h]
 
 @[simp] lemma subtype_perm_of_subtype {p : α → Prop} [decidable_pred p] (f : perm (subtype p)) :
   subtype_perm (of_subtype f) (mem_iff_of_subtype_apply_mem f) = f :=
@@ -173,12 +173,12 @@ lemma swap_mul_eq_iff {i j : α} {σ : perm α} : swap i j * σ = σ ↔ i = j :
 lemma is_swap_of_subtype {p : α → Prop} [decidable_pred p]
   {f : perm (subtype p)} (h : is_swap f) : is_swap (of_subtype f) :=
 let ⟨⟨x, hx⟩, ⟨y, hy⟩, hxy⟩ := h in
-⟨x, y, by simp at hxy; tauto,
+⟨x, y, by simp only [ne.def] at hxy; tauto,
   equiv.ext $ λ z, begin
     rw [hxy.2, of_subtype],
     simp only [swap_apply_def, coe_fn_mk, swap_inv, subtype.mk_eq_mk, monoid_hom.coe_mk],
     split_ifs;
-    cc <|> simp only [subtype.coe_mk] at *
+    rw subtype.coe_mk <|> cc,
   end⟩
 
 lemma ne_and_ne_of_swap_mul_apply_ne_self {f : perm α} {x y : α}
@@ -349,7 +349,7 @@ begin
   rw mem_fin_pairs_lt at hab,
   by_cases h : g b < g a,
   { rw dif_pos h,
-    simp only [not_le_of_gt hab, mul_one, perm.inv_apply_self, if_false]; congr },
+    simp only [not_le_of_gt hab, mul_one, perm.inv_apply_self, if_false] },
   { rw [dif_neg h, inv_apply_self, inv_apply_self, if_pos (le_of_lt hab)],
     by_cases h₁ : f (g b) ≤ f (g a),
     { have : f (g b) ≠ f (g a),

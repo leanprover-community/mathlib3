@@ -1,5 +1,6 @@
 import tactic.trunc_cases
 import tactic.interactive
+import tactic.congr
 import data.quot
 
 example (t : trunc ℕ) : punit :=

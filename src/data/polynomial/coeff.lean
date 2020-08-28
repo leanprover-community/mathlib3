@@ -53,21 +53,6 @@ variable {R}
   coeff (∑ b in s, f b) n = ∑ b in s, coeff (f b) n :=
 (s.sum_hom (λ q : polynomial R, lcoeff R n q)).symm
 
-lemma finset_sum_monomial_coeff {p : polynomial R} {f : ℕ → R} (j : ℕ) :
-  (∑ (i : ℕ) in p.support, monomial i ((p.coeff i) * (f i))).coeff j = p.coeff j * f j :=
-begin
-  rw finset_sum_coeff,
-  by_cases h : {j} ⊆ p.support,
-  { refine trans (finset.sum_subset h (λ x hx hx', _)).symm (by simp [coeff_monomial]),
-    exact trans coeff_monomial (if_neg (finset.not_mem_singleton.1 hx')) },
-  { have : p.coeff j = 0, by simpa using h,
-    rw [this, zero_mul],
-    refine finset.sum_eq_zero (λ j hj, trans coeff_monomial _),
-    split_ifs with h,
-    { simp [h, this], },
-    { refl } },
-end
-
 lemma coeff_mul (p q : polynomial R) (n : ℕ) :
   coeff (p * q) n = ∑ x in nat.antidiagonal n, coeff p x.1 * coeff q x.2 :=
 have hite : ∀ a : ℕ × ℕ, ite (a.1 + a.2 = n) (coeff p (a.fst) * coeff q (a.snd)) 0 ≠ 0

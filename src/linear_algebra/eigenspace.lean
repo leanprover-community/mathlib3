@@ -47,7 +47,7 @@ variables {K : Type v} {V : Type w} [add_comm_group V]
 
 local notation `am` := algebra_map K (End K V)
 
-/-- The subspace `eigenspace f μ` for a linear map `f` and a scalar `μ` consists of all vectors `x`
+/-- The submodule `eigenspace f μ` for a linear map `f` and a scalar `μ` consists of all vectors `x`
     such that `f x = μ • x`. -/
 def eigenspace [comm_ring K] [module K V] (f : End K V) (μ : K) : submodule K V :=
 (f - am μ).ker

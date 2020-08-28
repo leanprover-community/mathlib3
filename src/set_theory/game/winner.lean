@@ -9,7 +9,7 @@ import set_theory.pgame
 # Basic definitions about who has a winning stratergy
 
 We define `G.first_loses`, `G.first_wins`, `G.left_wins` and `G.right_wins` for a pgame `G`, which
-means the second, first, left and right players have a winning stratergy respectively.
+means the second, first, left and right players have a winning strategy respectively.
 These are defined by inequalities which can be unfolded with `pgame.lt_def` and `pgame.le_def`.
 -/
 
@@ -78,5 +78,15 @@ lemma left_wins_of_equiv_iff {G H : pgame} (h : G ≈ H) : G.left_wins ↔ H.lef
 ⟨ left_wins_of_equiv h, left_wins_of_equiv h.symm ⟩
 lemma right_wins_of_equiv_iff {G H : pgame} (h : G ≈ H) : G.right_wins ↔ H.right_wins :=
 ⟨ right_wins_of_equiv h, right_wins_of_equiv h.symm ⟩
+
+lemma not_first_wins_of_first_loses {G : pgame} : G.first_loses → ¬G.first_wins :=
+begin
+  rw first_loses_is_zero,
+  rintros h ⟨h₀, -⟩,
+  exact lt_irrefl 0 (lt_of_lt_of_equiv h₀ h)
+end
+
+lemma not_first_loses_of_first_wins {G : pgame} : G.first_wins → ¬G.first_loses :=
+imp_not_comm.1 $ not_first_wins_of_first_loses
 
 end pgame

@@ -212,8 +212,7 @@ hp.eq_two_or_odd.elim
         rw [← nat.mod_mul_left_mod p 2 2, show 2 * 2 = 4, from rfl] at hp1,
         have := nat.mod_lt p (show 0 < 4, from dec_trivial),
         revert this hp3 hp1,
-        generalize hm : p % 4 = m, clear hm, revert m,
-        exact dec_trivial,
+        generalize : p % 4 = m, dec_trivial!,
       end,
     let ⟨k, hk⟩ := (zmod.exists_pow_two_eq_neg_one_iff_mod_four_ne_three p).2 $
       by rw hp41; exact dec_trivial in

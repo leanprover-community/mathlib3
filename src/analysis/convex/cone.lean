@@ -245,7 +245,8 @@ def to_partial_order (S : convex_cone E) (h₁ : pointed S) (h₂ : salient S) :
   ..to_preorder S h₁ }
 
 /-- A pointed and salient cone defines an `ordered_add_comm_group`. -/
-def to_ordered_add_comm_group (S : convex_cone E) (h₁ : pointed S) (h₂ : salient S) : ordered_add_comm_group E :=
+def to_ordered_add_comm_group (S : convex_cone E) (h₁ : pointed S) (h₂ : salient S) :
+  ordered_add_comm_group E :=
 { add_le_add_left :=
     begin
       intros a b hab c,

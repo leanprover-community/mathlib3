@@ -463,7 +463,7 @@ end is_R_or_C
 section instances
 
 noncomputable instance real.is_R_or_C : is_R_or_C ℝ :=
-{ re := ⟨id, by simp only [id.def], by simp only [forall_const, id.def, eq_self_iff_true]⟩,
+{ re := add_monoid_hom.id ℝ⟩,
   im := ⟨0, by simp only [pi.zero_apply], by simp only [add_zero, forall_const, pi.zero_apply]⟩,
   conj := ⟨id, by simp only [id.def], by simp only [forall_const, id.def, eq_self_iff_true],
           by simp only [id.def], by simp only [forall_const, id.def, eq_self_iff_true]⟩,

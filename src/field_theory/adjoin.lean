@@ -92,13 +92,10 @@ lemma adjoin_subset_iff {T : set E} : S ⊆ adjoin F T ↔ (adjoin F S : set E) 
 ⟨λ h, adjoin_subset_subfield F S (adjoin.range_algebra_map_subset F T) h,
   λ h, set.subset.trans (subset_adjoin F S) h⟩
 
-lemma set_range_subset {T₁ T₂ : set E} [is_subfield T₁] (hyp : T₁ ⊆ T₂) :
+lemma set_range_subset {T₁ T₂ : set E} [is_subring T₁] (hyp : T₁ ⊆ T₂) :
   set.range (algebra_map T₁ E) ⊆ T₂ :=
 begin
-  intros x hx,
-  cases hx with f hf,
-  rw ←hf,
-  cases f with t ht,
+  rintros x ⟨⟨t, ht⟩, rfl⟩,
   exact hyp ht,
 end
 

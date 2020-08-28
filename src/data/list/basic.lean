@@ -984,6 +984,15 @@ theorem nth_eq_some {l : list α} {n a} : nth l n = some a ↔ ∃ h, nth_le l n
     injection e with e; apply nth_le_mem⟩,
 λ ⟨h, e⟩, e ▸ nth_le_nth _⟩
 
+theorem nth_eq_none_iff : ∀ {l : list α} {n}, nth l n = none ↔ length l ≤ n :=
+begin
+  intros, split,
+  { intro h, by_contradiction h',
+    have h₂ : ∃ h, l.nth_le n h = l.nth_le n (lt_of_not_ge h') := ⟨lt_of_not_ge h', rfl⟩,
+    rw [← nth_eq_some, h] at h₂, cases h₂ },
+  { solve_by_elim [nth_len_le] },
+end
+
 theorem nth_of_mem {a} {l : list α} (h : a ∈ l) : ∃ n, nth l n = some a :=
 let ⟨n, h, e⟩ := nth_le_of_mem h in ⟨n, by rw [nth_le_nth, e]⟩
 
@@ -3884,5 +3893,17 @@ theorem sum_map_mul_right {α : Type*} [semiring α] {β : Type*} (L : list β)
   (f : β → α) (r : α) :
   (L.map (λ b, f b * r)).sum = (L.map f).sum * r :=
 sum_map_hom L f $ add_monoid_hom.mul_right r
+.
+universes u v
+.
+theorem mem_map_swap {α : Type u} {β : Type v} (x : α) (y : β) (xs : list (α × β)) :
+  (y, x) ∈ map prod.swap xs ↔ (x, y) ∈ xs :=
+begin
+  induction xs with x xs,
+  { simp only [not_mem_nil, map_nil] },
+  { cases x with a b,
+    simp only [mem_cons_iff, prod.mk.inj_iff, map, prod.swap_prod_mk, prod.exists, xs_ih],
+    tauto! },
+end
 
 end list

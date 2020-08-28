@@ -5,6 +5,7 @@ Author(s): Simon Hudon
 -/
 
 import testing.slim_check.sampleable
+import testing.slim_check.functions
 
 /-!
 # `testable` Class
@@ -280,12 +281,12 @@ def add_to_counter_example (x : string) {p q : Prop}
 | r hpq := convert_counter_example h r hpq
 
 /-- Add some formatting to the information recorded by `add_to_counter_example`. -/
-def add_var_to_counter_example {γ : Type v} [has_to_string γ]
+def add_var_to_counter_example {γ : Type v} [has_repr γ]
   (var : string) (x : γ) {p q : Prop}
   (h : q → p) : test_result p →
   opt_param (psum unit (p → q)) (psum.inl ()) →
   test_result q :=
-@add_to_counter_example (var ++ " := " ++ to_string x) _ _ h
+@add_to_counter_example (var ++ " := " ++ repr x) _ _ h
 
 /-- Gadget used to introspect the name of bound variables.
 
@@ -343,11 +344,18 @@ instance imp_dec_testable (p : Prop) [decidable p] (β : p → Prop)
     else if tracing then  trace "discard" $ return $ gave_up 1
     else return $ gave_up 1 ⟩
 
+def use_has_to_string (α : Type*) := α
+
+def use_has_to_string.mk {α} (x : α) : use_has_to_string α := x
+
+instance [has_to_string α] : has_repr (use_has_to_string α) :=
+⟨ @to_string α _ ⟩
+
 @[priority 2000]
 instance all_types_testable [testable (f ℤ)] : testable (named_binder var $ Π x, f x) :=
 ⟨ λ tracing min, do
     r ← testable.run (f ℤ) tracing min,
-    return $ add_var_to_counter_example var "ℤ" ($ ℤ) r ⟩
+    return $ add_var_to_counter_example var (use_has_to_string.mk "ℤ") ($ ℤ) r ⟩
 
 /-- Trace the value of sampled variables if the sample is discarded. -/
 def trace_if_giveup {p α β} [has_to_string α] (tracing_enabled : bool) (var : string) (val : α) :
@@ -359,9 +367,9 @@ def trace_if_giveup {p α β} [has_to_string α] (tracing_enabled : bool) (var :
 
 /-- testable instance for a property iterating over the element of a list -/
 @[priority 5000]
-instance test_forall_in_list
-  [∀ x, testable (β x)] [has_to_string α] :
-  Π xs : list α, testable (named_binder var $ ∀ x, named_binder var' $ x ∈ xs → β x)
+instance test_forall_in_list (var : string) (var' : option string)
+  [∀ x, testable (β x)] [has_repr α] :
+  Π xs : list α, testable (named_binder (some var) $ ∀ x, named_binder var' $ x ∈ xs → β x)
 | [] := ⟨ λ tracing min, return $ success $ psum.inr (by { introv x h, cases h} ) ⟩
 | (x :: xs) :=
 ⟨ λ tracing min, do
@@ -417,25 +425,29 @@ instance exists_testable (p : Prop)
     x ← testable.run (named_binder var (∀ x, named_binder var' $ β x → p)) tracing min,
     pure $ convert_counter_example' exists_imp_distrib.symm x ⟩
 
-@[priority 5000]
-instance exists_testable' (xs : list α) (p : Prop)
-  [testable (named_binder var (∀ x, named_binder "H" $ x ∈ xs → named_binder var' (β x → p)))] :
-  testable (named_binder var' (named_binder var (∃ x ∈ xs, β x) → p)) :=
-⟨ λ tracing min, do
-    x ← testable.run (named_binder var (∀ x, named_binder "H" $ x ∈ xs → named_binder var' (β x → p))) tracing min,
-    pure $ convert_counter_example' (by simp) x ⟩
+/-- trave the value of sampled variables if the sample is discarded -/
+def trace_if_giveup {p α β} [has_repr α] (tracing_enabled : bool) (var : string) (val : α) :
+  test_result p → thunk β → β
+| (test_result.gave_up _) :=
+  if tracing_enabled then trace (sformat!" {var} := {repr val}")
+  else ($ ())
+| _ := ($ ())
 
 /-- Test a universal property by creating a sample of the right type and instantiating the
-bound variable with it. -/
-instance var_testable [∀ x, testable (β x)] [has_to_string α] [sampleable α] : testable (named_binder var $ Π x : α, β x) :=
+bound variable with it -/
+instance var_testable [sampleable_ext α] [∀ x, testable (β x)]
+  (var : option string) : testable (named_binder var $ Π x : α, β x) :=
 ⟨ λ tracing min, do
-   uliftable.adapt_down (sample α) $
+   uliftable.adapt_down (sampleable_ext.sample α) $
    λ x, do
-     r ← testable.run (β x) tracing ff,
+     r ← testable.run (β (sampleable_ext.interp α x)) tracing ff,
      uliftable.adapt_down (if is_failure r ∧ min
-                          then minimize _ _ x r (shrink x)
+                          then minimize _ _ x r tracing (sampleable_ext.shrink x)
                           else pure ⟨x,r⟩) $
-     λ ⟨x,r⟩, return (trace_if_giveup tracing var x r $ add_var_to_counter_example var x ($ x) r) ⟩
+     λ ⟨x,r⟩, return $ match var with
+                       | none := add_to_counter_example (repr x) ($ sampleable_ext.interp α x) r
+                       | (some v) := trace_if_giveup tracing v x r (add_var_to_counter_example v x ($ sampleable_ext.interp α x) r)
+                       end⟩
 
 @[priority 3000]
 instance unused_var_testable (β) [inhabited α] [testable β] : testable (named_binder var $ Π x : α, β) :=
@@ -444,8 +456,8 @@ instance unused_var_testable (β) [inhabited α] [testable β] : testable (named
   pure $ convert_counter_example ($ default _) r (psum.inr $ λ x _, x) ⟩
 
 @[priority 2000]
-instance subtype_var_testable (p : α → Prop) [has_to_string α]
-  [∀ x, testable (β x)] [sampleable (subtype p)] :
+instance subtype_var_testable {p : α → Prop} [sampleable_ext (subtype p)]
+  [∀ x, testable (β x)] (var var' : option string) :
   testable (named_binder var $ Π x : α, named_binder var' $ p x → β x) :=
 ⟨ λ tracing min,
    do r ← @testable.run (∀ x : subtype p, β x.val) (slim_check.var_testable var _ _) tracing min,

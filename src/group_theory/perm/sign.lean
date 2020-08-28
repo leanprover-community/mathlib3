@@ -347,7 +347,7 @@ begin
   rw mem_fin_pairs_lt at hab,
   by_cases h : g b < g a,
   { rw dif_pos h,
-    simp [not_le_of_gt hab]; congr },
+    simp only [not_le_of_gt hab, mul_one, perm.inv_apply_self, if_false]; congr },
   { rw [dif_neg h, inv_apply_self, inv_apply_self, if_pos (le_of_lt hab)],
     by_cases h₁ : f (g b) ≤ f (g a),
     { have : f (g b) ≠ f (g a),
@@ -378,8 +378,9 @@ begin
   have : a₁ ≤ 1 → a₁ = 0 ∨ a₁ = 1, from nat.cases_on a₁ (λ _, or.inl rfl)
     (λ a₁, nat.cases_on a₁ (λ _, or.inr rfl) (λ _ h, absurd h dec_trivial)),
   split_ifs;
-  simp [*, lt_irrefl, -not_lt, not_le.symm, -not_le, le_refl, fin.lt_def, fin.le_def, nat.zero_le,
-    zero, one, iff.intro fin.veq_of_eq fin.eq_of_veq, nat.le_zero_iff] at *,
+  simp only [*, not_le.symm, iff.intro fin.veq_of_eq fin.eq_of_veq, nat.le_zero_iff,
+  eq_self_iff_true, not_true, fin.le_def, one, nat.zero_le, and_self, heq_iff_eq, mem_singleton,
+  forall_prop_of_true, or_self, le_refl] at *,
 end
 
 lemma sign_aux_swap : ∀ {n : ℕ} {x y : fin n} (hxy : x ≠ y),
@@ -415,7 +416,7 @@ by rw [this, one_def, equiv.trans_refl, equiv.symm_trans, ← one_def,
       by ext; simp [← equiv.symm_trans_swap_trans, mul_def],
     have hefx : e x ≠ e (f x), from mt (injective.eq_iff e.injective).1 hfx,
     rw [if_neg hfx, ← sign_aux_eq_sign_aux2 _ _ e hy, this, sign_aux_mul, sign_aux_swap hefx],
-    simp }
+    simp only [units.neg_neg, one_mul, units.neg_mul]}
 end
 
 def sign_aux3 [fintype α] (f : perm α) {s : multiset α} : (∀ x, x ∈ s) → units ℤ :=
@@ -580,8 +581,8 @@ lemma is_cycle_swap {x y : α} (hxy : x ≠ y) : is_cycle (swap x y) :=
 
 lemma is_cycle_inv {f : perm β} (hf : is_cycle f) : is_cycle (f⁻¹) :=
 let ⟨x, hx⟩ := hf in
-⟨x, by simp [eq_inv_iff_eq, inv_eq_iff_eq, *] at *; cc,
-  λ y hy, let ⟨i, hi⟩ := hx.2 y (by simp [eq_inv_iff_eq, inv_eq_iff_eq, *] at *; cc) in
+⟨x, by simp only [inv_eq_iff_eq, *, forall_prop_of_true, ne.def] at *; cc,
+  λ y hy, let ⟨i, hi⟩ := hx.2 y (by simp only [inv_eq_iff_eq, *, forall_prop_of_true, ne.def] at *; cc) in
     ⟨-i, by rwa [gpow_neg, inv_gpow, inv_inv]⟩⟩
 
 lemma exists_gpow_eq_of_is_cycle {f : perm β} (hf : is_cycle f) {x y : β}
@@ -679,7 +680,7 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
     have h : swap x (f x) * f = 1,
       begin
         rw eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1,
-        simp [mul_def, one_def]
+        simp only [perm.mul_def, perm.one_def, swap_apply_left, swap_swap]
       end,
     by rw [sign_mul, sign_swap hx.1.symm, h, sign_one,
         eq_swap_of_is_cycle_of_apply_apply_eq_self hf hx.1 h1, card_support_swap hx.1.symm]; refl
@@ -690,7 +691,8 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
     have wf : card (support (swap x (f x) * f)) < card (support f),
       from card_support_swap_mul hx.1,
     by rw [sign_mul, sign_swap hx.1.symm, sign_cycle (is_cycle_swap_mul hf hx.1 h1), ← h];
-      simp [pow_add]
+      simp only [pow_add, mul_one, units.neg_neg, one_mul, units.mul_neg, eq_self_iff_true,
+      pow_one, units.neg_mul_neg]
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.support.card)⟩]}
 
 end sign

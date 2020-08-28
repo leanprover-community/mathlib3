@@ -46,6 +46,8 @@ The type family over `prime_spectrum R` consisting of the localization over each
 -/
 def localizations := λ (P : Top.of (prime_spectrum R)), localization.at_prime P.as_ideal
 
+instance (x) : comm_ring (localizations R x) := by { dsimp [localizations], apply_instance }
+
 variables {R}
 
 /--
@@ -175,6 +177,8 @@ def sections_subring (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
   end, }
 
 end structure_sheaf
+
+open structure_sheaf
 
 /--
 The structure sheaf (valued in `Type`, not yet `CommRing`) is the subsheaf consisting of

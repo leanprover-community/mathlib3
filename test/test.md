@@ -12,3 +12,4 @@ Here are some guidelines for writing a test:
 Some tips to make a test silent:
 * Instead of `trace e`, write `guard (e = expected_expression)`.
 * If you write a tactic/command that normally produces output, consider adding an option that silences it. See for example the uses of `set_option trace.silence_library_search true` in the [library_search](library_search) folder.
+* Do not prove a lemma using `admit` or `sorry`. Instead make sure that the lemma is provable, and prove it by `assumption` or `trivial` or similar.

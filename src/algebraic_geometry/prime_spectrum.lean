@@ -7,6 +7,19 @@ import topology.opens
 import ring_theory.ideal.operations
 import linear_algebra.finsupp
 
+-- TODO fix and move
+-- lemma local_of_ring_equiv {A B : Type*} [comm_ring A] [comm_ring B] (e : A ≃+* B) :
+--   local_ring A ↔ local_ring B :=
+-- begin
+--   split,
+--   { introI _inst,
+--     haveI := e.symm.to_equiv.nontrivial,
+--     refine @local_of_surjective A B _ _ _ _ e e.to_equiv.surjective, },
+--   { introI _inst,
+--     haveI := e.to_equiv.nontrivial,
+--     refine @local_of_surjective B A _ _ _ _ e.symm e.symm.to_equiv.surjective, },
+-- end
+
 /-!
 # Prime spectrum of a commutative ring
 
@@ -14,8 +27,7 @@ The prime spectrum of a commutative ring is the type of all prime ideals.
 It is naturally endowed with a topology: the Zariski topology.
 
 (It is also naturally endowed with a sheaf of rings,
-but that sheaf is not constructed in this file.
-It should be contributed to mathlib in future work.)
+which is constructed in `algebraic_geometry.structure_sheaf`.)
 
 ## Main definitions
 

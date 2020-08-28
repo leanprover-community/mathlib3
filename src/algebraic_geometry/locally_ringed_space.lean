@@ -18,62 +18,6 @@ open topological_space
 open opposite
 open category_theory.category category_theory.functor
 
---move this
-lemma ring_hom.is_unit_map {A B: Type*} [semiring A] [semiring B]
-  (f : A →+* B) {a : A} (h : is_unit a) : is_unit (f a) :=
-begin
-  rcases h with ⟨u, rfl⟩,
-  exact ⟨units.map f.to_monoid_hom u, rfl⟩,
-end
-
--- move this
-instance is_local_ring_hom_id (A : Type*) [semiring A] : is_local_ring_hom (ring_hom.id A) :=
-{ map_nonunit := λ a, id }
-
--- move this
-@[simp] lemma is_unit_map_iff {A B : Type*} [semiring A] [semiring B] (f : A →+* B)
-  [is_local_ring_hom f] (a) :
-  is_unit (f a) ↔ is_unit a :=
-⟨is_local_ring_hom.map_nonunit a, f.is_unit_map⟩
-
--- move this
-instance is_local_ring_hom_comp {A B C : Type*} [semiring A] [semiring B] [semiring C]
-  (g : B →+* C) (f : A →+* B) [is_local_ring_hom g] [is_local_ring_hom f] :
-  is_local_ring_hom (g.comp f) :=
-{ map_nonunit :=
-  begin
-    intro a,
-    simp only [function.comp_app, ring_hom.coe_comp, is_unit_map_iff],
-    exact id
-  end }
-
--- move this
-lemma local_ring.of_surjective {A B : Type*} [comm_ring A] [local_ring A] [comm_ring B] [nontrivial B]
-  (f : A →+* B) (hf : function.surjective f) :
-  local_ring B :=
-{ is_local :=
-  begin
-    intros b,
-    obtain ⟨a, rfl⟩ := hf b,
-    apply (local_ring.is_unit_or_is_unit_one_sub_self a).imp f.is_unit_map _,
-    rw [← f.map_one, ← f.map_sub],
-    apply f.is_unit_map,
-  end,
-  .. ‹nontrivial B› }
-
--- move this
-lemma local_ring.of_ring_equiv {A B : Type*} [comm_ring A] [comm_ring B] (e : A ≃+* B) :
-  local_ring A ↔ local_ring B :=
-begin
-  split,
-  { introI _inst,
-    haveI := e.symm.to_equiv.nontrivial,
-    refine @local_ring.of_surjective A B _ _ _ _ e e.to_equiv.surjective, },
-  { introI _inst,
-    haveI := e.to_equiv.nontrivial,
-    refine @local_ring.of_surjective B A _ _ _ _ e.symm e.symm.to_equiv.surjective, },
-end
-
 namespace algebraic_geometry
 
 /-- A `LocallyRingedSpace` is a topological space equipped with a sheaf of commutative rings
@@ -158,7 +102,7 @@ def restrict {U : Top} (X : LocallyRingedSpace)
     -- We show that the stalk of the restriction is isomorphic to the original stalk,
     have := X.to_SheafedSpace.to_PresheafedSpace.restrict_stalk_iso f h x,
     -- and then transfer `local_ring` across the ring equivalence.
-    apply (local_ring.of_ring_equiv (this.CommRing_iso_to_ring_equiv)).mpr,
+    apply (local_of_ring_equiv (this.CommRing_iso_to_ring_equiv)).mpr,
     apply X.local_ring,
   end,
   .. X.to_SheafedSpace.restrict _ f h }

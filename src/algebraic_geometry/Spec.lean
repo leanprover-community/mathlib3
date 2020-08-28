@@ -20,6 +20,9 @@ noncomputable theory
 
 namespace algebraic_geometry
 
+/--
+Spec of a commutative ring, as a `SheafedSpace`.
+-/
 def Spec.SheafedSpace (R : CommRing) : SheafedSpace CommRing :=
 { carrier := Top.of (prime_spectrum R),
   ..structure_sheaf R }

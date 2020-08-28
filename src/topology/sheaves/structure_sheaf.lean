@@ -13,6 +13,17 @@ import ring_theory.subring
 /-!
 # The structure sheaf on `prime_spectrum R`.
 
+We define the structure sheaf on `Top.of (prime_spectrum R)`, for a commutative ring `R`.
+We define this as a subsheaf of the sheaf of dependent functions into the localizations,
+cut out by the condition that the function must be locally equal to a ratio of elements of `R`.
+
+Because the condition of "is equal to a fraction" passes to smaller open subsets,
+the subset of functions satisfying this condition is automatically a subpresheaf.
+Because the condition of "is locally equal to a fraction" is local,
+it is also a subsheaf.
+
+We also set up the ring structure, obtaining
+`structure_sheaf R : sheaf CommRing (Top.of (prime_spectrum R))`.
 -/
 
 universe u

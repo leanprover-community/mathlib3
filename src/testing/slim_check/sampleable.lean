@@ -83,7 +83,9 @@ def lazy_list.lseq {α β γ} (f : α → β → γ) : lazy_list α → lazy_lis
 | (lazy_list.cons x xs) lazy_list.nil := lazy_list.nil
 | (lazy_list.cons x xs) ys := interleave (ys.map $ f x) (lazy_list.lseq (xs ()) ys)
 
-/-- implementation of `sampleable nat` -/
+/-- `nat.shrink' k n` creates a list of smaller natural numbers by
+successively dividing `n` by 2 and subtracting the difference from
+`k`. For example, `nat.shrink 100 = [50, 75, 88, 94, 97, 99]` -/
 def nat.shrink' (k : ℕ) : ℕ → list ℕ → list ℕ
 | n ls :=
 if h : n ≤ 1
@@ -108,7 +110,9 @@ instance sampleable_nat : sampleable ℕ :=
                           fin.val <$> choose_any (fin $ succ sz),
   shrink := lazy_list.of_list ∘ nat.shrink }
 
-/-- implementation of `sampleable int` -/
+/-- `int.shrink' k n` creates a list of integers by successively
+dividing `n` by 2, subtracting the result from `k` and alternating the signs.
+For example, `int.shrink 40 = [20, -20, 30, -30, 35, -35, 38, -38, 39, -39]` -/
 def int.shrink' (k : ℕ) : ℕ → list ℤ → list ℤ
 | n ls :=
 if h : 1 < n
@@ -116,12 +120,12 @@ if h : 1 < n
     have n / 2 < n, from div_lt_self (by linarith) (by norm_num),
     let m := n / 2 in
     let m' := k - m in
-    int.shrink' m (m' :: -↑m' :: ls)
+    int.shrink' m (-↑m' :: m' :: ls)
   else ls.reverse
 
 /-- `int.shrink n` creates a list of integers by successively
 dividing by 2, subtracting the result from `n` and alternating the signs.
-For example, `int.shrink 40 = [-20, 20, -30, 30, -35, 35, -38, 38, -39, 39]` -/
+For example, `int.shrink 40 = [20, -20, 30, -30, 35, -35, 38, -38, 39, -39]` -/
 def int.shrink (i : ℤ) : list ℤ :=
 int.shrink' (int.nat_abs i) (int.nat_abs i) []
 
@@ -152,16 +156,18 @@ instance sampleable_sum {β} [sampleable α] [sampleable β] : sampleable (α �
             uliftable.up_map sum.inr (sample β),
   shrink := sum.shrink _ }
 
-instance sampleable_char : sampleable char :=
-{ sample := do { x ← choose_nat 0 3 dec_trivial,
-                 let str := " 0123abcABC:,;`\\/",
+def sampleable_char (length : nat) (characters : string) : sampleable char :=
+{ sample := do { x ← choose_nat 0 length dec_trivial,
                  if x.val = 0 then do
                    n ← sample ℕ,
                    pure $ char.of_nat n
                  else do
-                   i ← choose_nat 0 (str.length - 1) dec_trivial,
-                   pure (str.mk_iterator.nextn i).curr },
+                   i ← choose_nat 0 (characters.length - 1) dec_trivial,
+                   pure (characters.mk_iterator.nextn i).curr },
   shrink := λ _, lazy_list.nil }
+
+instance : sampleable char :=
+sampleable_char 3 " 0123abcABC:,;`\\/"
 
 variables {α}
 

@@ -109,10 +109,16 @@ do ⟨ n ⟩ ← uliftable.up $ choose_nat 0 (sz + 1) dec_trivial,
 
 open ulift
 
-/-- given a list of example generators, choose one to create an example -/
-def one_of (xs : list (gen α)) (pos : fact $ 0 < xs.length) : gen α := do
+/-- given a list of example generators, choose one to create an example.
+This definition is needed for to provide a local `fact $ 0 < xs.length`
+instance to the type resolution system. -/
+def one_of_aux (xs : list (gen α)) (pos : fact $ 0 < xs.length) : gen α := do
 n ← uliftable.up $ choose_any (fin xs.length),
 list.nth_le xs (down n).val (down n).is_lt
+
+/-- given a list of example generators, choose one to create an example -/
+def one_of (xs : list (gen α)) (pos : 0 < xs.length) : gen α := do
+one_of_aux xs pos
 
 end gen
 

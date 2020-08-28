@@ -327,7 +327,7 @@ begin
   exact lt_irrefl 0 this,
 end
 
-/-- The positive cone of an ordered vector space is always pointed. -/
+/-- The positive cone of an ordered semimodule is always pointed. -/
 lemma pointed_of_positive_cone : pointed (positive_cone M) := le_refl 0
 
 end positive_cone

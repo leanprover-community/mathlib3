@@ -31,16 +31,14 @@ variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (S : set E)
 /--
 `adjoin F S` extends a field `F` by adjoining a set `S ⊆ E`.
 -/
-def adjoin : subalgebra F E := {
-  carrier := {
-    carrier := field.closure (set.range (algebra_map F E) ∪ S),
+def adjoin : subalgebra F E :=
+{ carrier :=
+  { carrier := field.closure (set.range (algebra_map F E) ∪ S),
     one_mem' := is_submonoid.one_mem,
     mul_mem' := λ x y, is_submonoid.mul_mem,
     zero_mem' := is_add_submonoid.zero_mem,
-    add_mem' := λ x y, is_add_submonoid.add_mem,
-  },
-  algebra_map_mem' := λ x, field.mem_closure (or.inl (set.mem_range.mpr ⟨x,rfl⟩)),
-}
+    add_mem' := λ x y, is_add_submonoid.add_mem },
+  algebra_map_mem' := λ x, field.mem_closure (or.inl (set.mem_range.mpr ⟨x,rfl⟩)) }
 
 lemma adjoin.algebra_map_mem (x : F) : algebra_map F E x ∈ adjoin F S :=
 field.mem_closure (or.inl (set.mem_range_self x))

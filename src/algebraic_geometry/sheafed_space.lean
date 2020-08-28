@@ -94,6 +94,9 @@ def forget : SheafedSpace C ⥤ Top :=
 
 end
 
+/--
+The restriction of a sheafed space along an open embedding into the space.
+-/
 def restrict {U : Top} (X : SheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) : SheafedSpace C :=
 { sheaf_condition := λ ι 𝒰,

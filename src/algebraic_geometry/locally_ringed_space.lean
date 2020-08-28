@@ -71,6 +71,8 @@ instance {X Y : LocallyRingedSpace} (f : X ⟶ Y) (x : X) :
 def id (X : LocallyRingedSpace) : hom X X :=
 ⟨𝟙 _, λ x, by { erw PresheafedSpace.stalk_map.id, apply is_local_ring_hom_id, }⟩
 
+instance (X : LocallyRingedSpace) : inhabited (hom X X) := ⟨id X⟩
+
 /-- Composition of morphisms of locally ringed spaces. -/
 @[simps]
 def comp {X Y Z : LocallyRingedSpace} (f : hom X Y) (g : hom Y Z) : hom X Z :=

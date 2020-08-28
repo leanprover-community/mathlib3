@@ -149,6 +149,9 @@ def forget : PresheafedSpace C ⥤ Top :=
 { obj := λ X, (X : Top.{v}),
   map := λ X Y f, f.base }
 
+/--
+The restriction of a presheafed space along an open embedding into the space.
+-/
 @[simps]
 def restrict {U : Top} (X : PresheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) : PresheafedSpace C :=

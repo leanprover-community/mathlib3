@@ -44,7 +44,7 @@ open nat local_ring padic
 variables {p : ℕ} [hp_prime : fact (p.prime)]
 include hp_prime
 
-section
+section ring_homs
 /-! ### Ring homomorphisms to `zmod p` and `zmod (p ^ n)` -/
 variables (p) (r : ℚ)
 
@@ -135,10 +135,6 @@ lemma exists_mem_range_of_norm_rat_le_one (h : ∥(r : ℚ_[p])∥ ≤ 1) :
   ∃ n : ℤ, 0 ≤ n ∧ n < p ∧ ∥(⟨r,h⟩ - n : ℤ_[p])∥ < 1 :=
 ⟨mod_part p r, mod_part_nonneg _, mod_part_lt_p _, norm_sub_mod_part _ h⟩
 
-end
-
-section
-
 lemma zmod_congr_of_sub_mem_span_aux (n : ℕ) (x : ℤ_[p]) (a b : ℤ)
   (ha : x - a ∈ (ideal.span {p ^ n} : ideal ℤ_[p]))
   (hb : x - b ∈ (ideal.span {p ^ n} : ideal ℤ_[p])) :
@@ -205,8 +201,6 @@ classical.some_spec (exists_mem_range x)
 lemma zmod_repr_lt_p : zmod_repr x < p := (zmod_repr_spec _).1
 
 lemma sub_zmod_repr_mem : (x - zmod_repr x ∈ maximal_ideal ℤ_[p]) := (zmod_repr_spec _).2
-
-end
 
 /--
 `to_zmod_hom` is an auxiliary constructor for creating ring homs from `ℤ_[p]` to `zmod v`.
@@ -464,6 +458,8 @@ begin
     apply subset_closure,
     exact set.mem_range_self _ }
 end
+
+end ring_homs
 
 section lift
 /-! ### Universal property as projective limit -/

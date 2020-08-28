@@ -4,15 +4,26 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
 import algebraic_geometry.prime_spectrum
-import ring_theory.localization
 import algebra.category.CommRing
 import topology.sheaves.local_predicate
 import topology.sheaves.forget
+import ring_theory.localization
 import ring_theory.subring
 
 /-!
 # The structure sheaf on `prime_spectrum R`.
 
+We define the structure sheaf on `Top.of (prime_spectrum R)`, for a commutative ring `R`.
+We define this as a subsheaf of the sheaf of dependent functions into the localizations,
+cut out by the condition that the function must be locally equal to a ratio of elements of `R`.
+
+Because the condition "is equal to a fraction" passes to smaller open subsets,
+the subset of functions satisfying this condition is automatically a subpresheaf.
+Because the condition "is locally equal to a fraction" is local,
+it is also a subsheaf.
+
+We also set up the ring structure, obtaining
+`structure_sheaf R : sheaf CommRing (Top.of (prime_spectrum R))`.
 -/
 
 universe u
@@ -26,16 +37,21 @@ open topological_space
 open category_theory
 open opposite
 
+namespace algebraic_geometry
+
+namespace structure_sheaf
+
 /--
 The type family over `prime_spectrum R` consisting of the localization over each point.
 -/
-@[derive comm_ring, derive local_ring]
-def localizations (P : Top.of (prime_spectrum R)) := localization.at_prime P.as_ideal
+def localizations := λ (P : Top.of (prime_spectrum R)), localization.at_prime P.as_ideal
+
+instance (x) : comm_ring (localizations R x) := by { dsimp [localizations], apply_instance }
 
 variables {R}
 
 /--
-The predicate saying that a dependent function on an open `U` is realized on `U` as a fixed fraction
+The predicate saying that a dependent function on an open `U` is realised as a fixed fraction
 `r / s` in each of the stalks (which are localizations at various prime ideals).
 -/
 def is_fraction {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, localizations R x) : Prop :=
@@ -51,11 +67,7 @@ in the sense that if it holds on `U` it holds on any open subset `V` of `U`.
 @[simps]
 def is_fraction_prelocal : prelocal_predicate (localizations R) :=
 { pred := λ U f, is_fraction f,
-  res := λ V U i f h,
-  begin
-    rcases h with ⟨r, s, w⟩,
-    refine ⟨r, s, λ x, w (i x)⟩,
-  end }
+  res := by { rintro V U i f ⟨r, s, w⟩, exact ⟨r, s, λ x, w (i x)⟩ } }
 
 variables {R}
 
@@ -76,7 +88,7 @@ and $$s(𝔮) = a/f$$ in $$A_𝔮$$.
 
 Now Hartshorne had the disadvantage of not knowing about dependent functions,
 so we replace his circumlocution about functions into a disjoint union with
-`Π x : U, stalks x`.
+`Π x : U, localizations x`.
 -/
 def is_locally_fraction
   {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, localizations R x) : Prop :=
@@ -100,6 +112,74 @@ lemma is_locally_fraction_local_pred
   (is_locally_fraction_local R).pred f = is_locally_fraction f :=
 rfl
 
+/--
+The functions satisfying `is_locally_fraction` form a subring.
+-/
+def sections_subring (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
+  subring (Π x : unop U, localizations R x) :=
+{ carrier := { f | is_locally_fraction f },
+  zero_mem' :=
+  begin
+    refine λ x, ⟨unop U, x.2, 𝟙 _, 0, 1, λ y, ⟨_, _⟩⟩,
+    { rw ←ideal.ne_top_iff_one, exact y.1.is_prime.1, },
+    { simp, },
+  end,
+  one_mem' :=
+  begin
+    refine λ x, ⟨unop U, x.2, 𝟙 _, 1, 1, λ y, ⟨_, _⟩⟩,
+    { rw ←ideal.ne_top_iff_one, exact y.1.is_prime.1, },
+    { simp, },
+  end,
+  add_mem' :=
+  begin
+    intros a b ha hb x,
+    rcases ha x with ⟨Va, ma, ia, ra, sa, wa⟩,
+    rcases hb x with ⟨Vb, mb, ib, rb, sb, wb⟩,
+    refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * sb + rb * sa, sa * sb, _⟩,
+    intro y,
+    rcases wa (opens.inf_le_left _ _ y) with ⟨nma, wa⟩,
+    rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
+    fsplit,
+    { intro H, cases y.1.is_prime.mem_or_mem H; contradiction, },
+    { simp only [add_mul, ring_hom.map_add, pi.add_apply, ring_hom.map_mul],
+      erw [←wa, ←wb],
+      simp only [mul_assoc],
+      congr' 2,
+      rw [mul_comm], refl, }
+  end,
+  neg_mem' :=
+  begin
+    intros a ha x,
+    rcases ha x with ⟨V, m, i, r, s, w⟩,
+    refine ⟨V, m, i, -r, s, _⟩,
+    intro y,
+    rcases w y with ⟨nm, w⟩,
+    fsplit,
+    { exact nm, },
+    { simp only [ring_hom.map_neg, pi.neg_apply],
+      erw [←w],
+      simp only [neg_mul_eq_neg_mul_symm], }
+  end,
+  mul_mem' :=
+  begin
+    intros a b ha hb x,
+    rcases ha x with ⟨Va, ma, ia, ra, sa, wa⟩,
+    rcases hb x with ⟨Vb, mb, ib, rb, sb, wb⟩,
+    refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * rb, sa * sb, _⟩,
+    intro y,
+    rcases wa (opens.inf_le_left _ _ y) with ⟨nma, wa⟩,
+    rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
+    fsplit,
+    { intro H, cases y.1.is_prime.mem_or_mem H; contradiction, },
+    { simp only [pi.mul_apply, ring_hom.map_mul],
+      erw [←wa, ←wb],
+      simp only [mul_left_comm, mul_assoc, mul_comm],
+      refl, }
+  end, }
+
+end structure_sheaf
+
+open structure_sheaf
 
 /--
 The structure sheaf (valued in `Type`, not yet `CommRing`) is the subsheaf consisting of
@@ -107,6 +187,10 @@ functions satisfying `locally_fraction`.
 -/
 def structure_sheaf_in_Type : sheaf (Type u) (Top.of (prime_spectrum R)) :=
 subsheaf_to_Types (is_locally_fraction_local R)
+
+instance comm_ring_structure_sheaf_in_Type_obj (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
+  comm_ring ((structure_sheaf_in_Type R).presheaf.obj U) :=
+(sections_subring R U).to_comm_ring
 
 open prime_spectrum
 
@@ -196,74 +280,6 @@ begin
   rw e'',
 end
 
-/--
-The functions satisfying `is_locally_fraction` form a subring.
--/
-def sections_subring (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
-  subring (Π x : unop U, localizations R x) :=
-{ carrier := { f | is_locally_fraction f },
-  zero_mem' :=
-  begin
-    refine λ x, ⟨unop U, x.2, 𝟙 _, 0, 1, λ y, ⟨_, _⟩⟩,
-    { rw ←ideal.ne_top_iff_one, exact y.1.is_prime.1, },
-    { simp, },
-  end,
-  one_mem' :=
-  begin
-    refine λ x, ⟨unop U, x.2, 𝟙 _, 1, 1, λ y, ⟨_, _⟩⟩,
-    { rw ←ideal.ne_top_iff_one, exact y.1.is_prime.1, },
-    { simp, },
-  end,
-  add_mem' :=
-  begin
-    intros a b ha hb x,
-    rcases ha x with ⟨Va, ma, ia, ra, sa, wa⟩,
-    rcases hb x with ⟨Vb, mb, ib, rb, sb, wb⟩,
-    refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * sb + rb * sa, sa * sb, _⟩,
-    intro y,
-    rcases wa (opens.inf_le_left _ _ y) with ⟨nma, wa⟩,
-    rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
-    fsplit,
-    { intro H, cases y.1.is_prime.mem_or_mem H; contradiction, },
-    { simp only [add_mul, ring_hom.map_add, pi.add_apply, ring_hom.map_mul],
-      erw [←wa, ←wb],
-      simp only [mul_assoc],
-      congr' 2,
-      rw [mul_comm], refl, }
-  end,
-  neg_mem' :=
-  begin
-    intros a ha x,
-    rcases ha x with ⟨V, m, i, r, s, w⟩,
-    refine ⟨V, m, i, -r, s, _⟩,
-    intro y,
-    rcases w y with ⟨nm, w⟩,
-    fsplit,
-    { exact nm, },
-    { simp only [ring_hom.map_neg, pi.neg_apply],
-      erw [←w],
-      simp only [neg_mul_eq_neg_mul_symm], }
-  end,
-  mul_mem' :=
-  begin
-    intros a b ha hb x,
-    rcases ha x with ⟨Va, ma, ia, ra, sa, wa⟩,
-    rcases hb x with ⟨Vb, mb, ib, rb, sb, wb⟩,
-    refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * rb, sa * sb, _⟩,
-    intro y,
-    rcases wa (opens.inf_le_left _ _ y) with ⟨nma, wa⟩,
-    rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
-    fsplit,
-    { intro H, cases y.1.is_prime.mem_or_mem H; contradiction, },
-    { simp only [pi.mul_apply, ring_hom.map_mul],
-      erw [←wa, ←wb],
-      simp only [mul_left_comm, mul_assoc, mul_comm],
-      refl, }
-  end, }
-
-instance comm_ring_structure_sheaf_in_Type_obj (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
-  comm_ring ((structure_sheaf_in_Type R).presheaf.obj U) :=
-(sections_subring R U).to_comm_ring
 
 /--
 The structure presheaf, valued in `CommRing`, constructed by dressing up the `Type` valued
@@ -335,3 +351,5 @@ def stalk_iso (x : prime_spectrum R) :
 ({ ..stalk_to_fiber_ring_hom R x,
    ..(compare_stalks R x ≪≫ stalk_iso_Type R x).to_equiv } : _ ≃+* _).to_CommRing_iso
 -/
+
+end algebraic_geometry

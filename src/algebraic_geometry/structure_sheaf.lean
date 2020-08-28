@@ -44,9 +44,8 @@ namespace structure_sheaf
 /--
 The type family over `prime_spectrum R` consisting of the localization over each point.
 -/
-def localizations := λ (P : Top.of (prime_spectrum R)), localization.at_prime P.as_ideal
-
-instance (x) : comm_ring (localizations R x) := by { dsimp [localizations], apply_instance }
+@[derive comm_ring, derive local_ring]
+def localizations (P : Top.of (prime_spectrum R)) := localization.at_prime P.as_ideal
 
 variables {R}
 

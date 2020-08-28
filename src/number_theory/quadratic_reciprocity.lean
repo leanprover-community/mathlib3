@@ -34,22 +34,6 @@ namespace zmod
 
 variables (p q : ℕ) [fact p.prime] [fact q.prime]
 
-@[simp] lemma card_units : fintype.card (units (zmod p)) = p - 1 :=
-by rw [card_units, card]
-
-/-- Fermat's Little Theorem: for every unit `a` of `zmod p`, we have `a ^ (p - 1) = 1`. -/
-theorem fermat_little_units {p : ℕ} [fact p.prime] (a : units (zmod p)) :
-  a ^ (p - 1) = 1 :=
-by rw [← card_units p, pow_card_eq_one]
-
-/-- Fermat's Little Theorem: for all nonzero `a : zmod p`, we have `a ^ (p - 1) = 1`. -/
-theorem fermat_little {a : zmod p} (ha : a ≠ 0) : a ^ (p - 1) = 1 :=
-begin
-  have := fermat_little_units (units.mk0 a ha),
-  apply_fun (coe : units (zmod p) → zmod p) at this,
-  simpa,
-end
-
 /-- Euler's Criterion: A unit `x` of `zmod p` is a square if and only if `x ^ (p / 2) = 1`. -/
 lemma euler_criterion_units (x : units (zmod p)) :
   (∃ y : units (zmod p), y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
@@ -59,7 +43,7 @@ begin
   obtain ⟨g, hg⟩ := is_cyclic.exists_generator (units (zmod p)),
   obtain ⟨n, hn⟩ : x ∈ submonoid.powers g, { rw mem_powers_iff_mem_gpowers, apply hg },
   split,
-  { rintro ⟨y, rfl⟩, rw [← pow_mul, two_mul_odd_div_two hp_odd, fermat_little_units], },
+  { rintro ⟨y, rfl⟩, rw [← pow_mul, two_mul_odd_div_two hp_odd, units_pow_card_sub_one_eq_one], },
   { subst x, assume h,
     have key : 2 * (p / 2) ∣ n * (p / 2),
     { rw [← pow_mul] at h,
@@ -111,7 +95,7 @@ begin
   cases nat.prime.eq_two_or_odd ‹p.prime› with hp2 hp_odd,
   { substI p, revert a ha, exact dec_trivial },
   rw [← mul_self_eq_one_iff, ← _root_.pow_add, ← two_mul, two_mul_odd_div_two hp_odd],
-  exact fermat_little p ha
+  exact pow_card_sub_one_eq_one ha
 end
 
 /-- Wilson's Lemma: the product of `1`, ..., `p-1` is `-1` modulo `p`. -/

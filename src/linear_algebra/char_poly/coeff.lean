@@ -194,7 +194,11 @@ lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :
   char_poly (M ^ p) = char_poly M :=
 by { have h := finite_field.char_poly_pow_card M, rwa zmod.card at h, }
 
-lemma zmod.trace_pow_p {p:ℕ} [fact p.prime] [nonempty n] (M : matrix n n (zmod p)) :
-  trace n (zmod p) (zmod p) (M ^ p) = (trace n (zmod p) (zmod p) M)^p :=
+lemma finite_field.trace_pow_card {K : Type*} [field K] [fintype K] [nonempty n] (M : matrix n n K) :
+  trace n K K (M ^ (fintype.card K)) = (trace n K K M) ^ (fintype.card K) :=
 by rw [trace_eq_neg_char_poly_coeff, trace_eq_neg_char_poly_coeff,
-       zmod.char_poly_pow_card, zmod.pow_card]
+       finite_field.char_poly_pow_card, finite_field.pow_card]
+
+lemma zmod.trace_pow_card {p:ℕ} [fact p.prime] [nonempty n] (M : matrix n n (zmod p)) :
+  trace n (zmod p) (zmod p) (M ^ p) = (trace n (zmod p) (zmod p) M)^p :=
+by { have h := finite_field.trace_pow_card M, rwa zmod.card at h, }

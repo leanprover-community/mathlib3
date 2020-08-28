@@ -5,11 +5,14 @@ noncomputable theory
 
 namespace algebraic_geometry
 
-def Spec_as_LRS (R : CommRing) : LocallyRingedSpace :=
+def Spec.SheafedSpace (R : CommRing) : SheafedSpace CommRing :=
 { carrier := Top.of (prime_spectrum R),
-  local_ring := λ x,
+  ..structure_sheaf R }
+
+def Spec.LocallyRingedSpace (R : CommRing) : LocallyRingedSpace :=
+{ local_ring := λ x,
     (local_ring.of_ring_equiv (stalk_iso R x).symm.CommRing_iso_to_ring_equiv).mp
       (by { dsimp, apply_instance, }),
-  ..structure_sheaf R }
+  ..Spec.SheafedSpace R }
 
 end algebraic_geometry

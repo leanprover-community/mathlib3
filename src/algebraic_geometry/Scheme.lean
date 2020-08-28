@@ -7,6 +7,6 @@ namespace algebraic_geometry
 
 structure Scheme extends X : LocallyRingedSpace :=
 (local_affine : ∀ x : carrier, ∃ (U : opens carrier) (m : x ∈ U) (R : CommRing)
-  (i : X.restrict _ (opens.inclusion_open_embedding U) ≅ Spec_as_LRS R), true)
+  (i : X.restrict _ (opens.inclusion_open_embedding U) ≅ Spec.LocallyRingedSpace R), true)
 
 end algebraic_geometry

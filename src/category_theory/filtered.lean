@@ -58,11 +58,13 @@ class is_filtered extends is_filtered_or_empty C : Prop :=
 
 end prio
 
+@[priority 100]
 instance is_filtered_or_empty_of_semilattice_sup
   (α : Type u) [semilattice_sup α] : is_filtered_or_empty α :=
 { cocone_objs := λ X Y, ⟨X ⊔ Y, hom_of_le le_sup_left, hom_of_le le_sup_right, trivial⟩,
   cocone_maps := λ X Y f g, ⟨Y, 𝟙 _, (by ext)⟩, }
 
+@[priority 100]
 instance is_filtered_of_semilattice_sup_top
   (α : Type u) [semilattice_sup_top α] : is_filtered α :=
 { nonempty := ⟨⊤⟩,

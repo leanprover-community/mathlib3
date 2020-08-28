@@ -261,8 +261,8 @@ def to_ordered_add_comm_group (S : convex_cone E) (h₁ : pointed S) (h₂ : sal
 Constructs an ordered semimodule given an `ordered_add_comm_group`, a cone, and a proof that
 the order relation is the one defined by the cone.
 -/
-def to_ordered_semimodule {α : Type*} [ordered_add_comm_group α] [semimodule ℝ α]
-  (S : convex_cone α) (h : ∀ x y : α, x ≤ y ↔ y - x ∈ S) : ordered_semimodule ℝ α :=
+def to_ordered_semimodule {M : Type*} [ordered_add_comm_group M] [semimodule ℝ M]
+  (S : convex_cone M) (h : ∀ x y : M, x ≤ y ↔ y - x ∈ S) : ordered_semimodule ℝ M :=
 { smul_lt_smul_of_pos :=
     begin
       intros x y z xy hz,

@@ -102,9 +102,6 @@ instance : is_monoid_hom (det : matrix n n R → R) :=
 { map_one := det_one,
   map_mul := det_mul }
 
-lemma det_pow (k : ℕ) (M : matrix n n R) :
-  (M ^ k).det = (M.det) ^ k := by induction k; simp [pow_succ, *]
-
 /-- Transposing a matrix preserves the determinant. -/
 @[simp] lemma det_transpose (M : matrix n n R) : Mᵀ.det = M.det :=
 begin

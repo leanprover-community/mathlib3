@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Aaron Anderson, Jalex Stark.
 -/
 
+import data.matrix.char_p
 import linear_algebra.char_poly
 import linear_algebra.matrix
 import ring_theory.polynomial.basic
@@ -164,32 +165,40 @@ end
 
 variables {p : ℕ} [fact p.prime]
 
-lemma zmod.char_poly_pow_card_of_inhabited [inhabited n] (M : matrix n n (zmod p)) :
-char_poly (M ^ p) = char_poly M :=
+lemma finite_field.char_poly_pow_card {K : Type*} [field K] [fintype K] (M : matrix n n K) :
+  char_poly (M ^ (fintype.card K)) = char_poly M :=
 begin
-  apply frobenius_inj (polynomial (zmod p)) p, repeat {rw frobenius_def},
-  rw ← zmod.expand_p,
-  unfold char_poly, rw alg_hom.map_det, rw ← det_pow,
-  apply congr_arg det,
-  apply mat_poly_equiv.injective, swap, { apply_instance },
-  rw [← mat_poly_equiv.coe_alg_hom, alg_hom.map_pow, mat_poly_equiv.coe_alg_hom,
-        mat_poly_equiv_char_matrix, sub_pow_char_of_commute, ← C_pow],
-  swap, { apply polynomial.commute_X },
-  -- the following is a nasty case bash that should be abstracted as a lemma
-  -- (and maybe it can be proven more... algebraically?)
-  ext, rw [coeff_sub, coeff_C],
-  by_cases hij : i = j; simp [char_matrix, hij, coeff_X_pow]; simp only [coeff_C]; split_ifs; simp *,
+  by_cases hn : nonempty n,
+  { letI := hn,
+    cases char_p.exists K with p hp, letI := hp,
+  rcases finite_field.card K p with ⟨⟨k, kpos⟩, ⟨hp, hk⟩⟩, letI : fact p.prime := hp,
+  dsimp at hk, rw hk at *,
+    apply (frobenius_inj (polynomial K) p).iterate k,
+    repeat { rw iterate_frobenius, rw ← hk },
+    rw ← finite_field.expand_card,
+    unfold char_poly, rw [alg_hom.map_det, ← is_monoid_hom.map_pow],
+    apply congr_arg det,
+    apply mat_poly_equiv.injective, swap, { apply_instance },
+    rw [← mat_poly_equiv.coe_alg_hom, alg_hom.map_pow, mat_poly_equiv.coe_alg_hom,
+          mat_poly_equiv_char_matrix, hk, sub_pow_char_pow_of_commute, ← C_pow],
+    swap, { apply polynomial.commute_X },
+    -- the following is a nasty case bash that should be abstracted as a lemma
+    -- (and maybe it can be proven more... algebraically?)
+    ext, rw [coeff_sub, coeff_C],
+    by_cases hij : i = j; simp [char_matrix, hij, coeff_X_pow];
+    simp only [coeff_C]; split_ifs; simp *, },
+  { congr, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
 end
 
 lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :
-char_poly (M ^ p) = char_poly M :=
-begin
-  classical,
-  by_cases hn : nonempty n, letI := hn, inhabit n, apply zmod.char_poly_pow_card_of_inhabited,
-  swap, { congr, apply @subsingleton.elim _ (subsingleton_of_empty hn) _ _, },
-end
+  char_poly (M ^ p) = char_poly M :=
+by { have h := finite_field.char_poly_pow_card M, rwa zmod.card at h, }
 
-lemma zmod.trace_pow_p {p:ℕ} [fact p.prime] [nonempty n] (M : matrix n n (zmod p)) :
-trace n (zmod p) (zmod p) (M ^ p) = (trace n (zmod p) (zmod p) M)^p :=
+lemma finite_field.trace_pow_card {K : Type*} [field K] [fintype K] [nonempty n] (M : matrix n n K) :
+  trace n K K (M ^ (fintype.card K)) = (trace n K K M) ^ (fintype.card K) :=
 by rw [trace_eq_neg_char_poly_coeff, trace_eq_neg_char_poly_coeff,
-  zmod.char_poly_pow_card, zmod.pow_card_eq_self]
+       finite_field.char_poly_pow_card, finite_field.pow_card]
+
+lemma zmod.trace_pow_card {p:ℕ} [fact p.prime] [nonempty n] (M : matrix n n (zmod p)) :
+  trace n (zmod p) (zmod p) (M ^ p) = (trace n (zmod p) (zmod p) M)^p :=
+by { have h := finite_field.trace_pow_card M, rwa zmod.card at h, }

@@ -71,7 +71,10 @@ def empty : Scheme :=
   ..Spec.SheafedSpace (CommRing.of punit) }
 
 noncomputable
-instance : inhabited Scheme := ⟨empty⟩
+instance : has_emptyc Scheme := ⟨empty⟩
+
+noncomputable
+instance : inhabited Scheme := ⟨∅⟩
 
 /--
 Schemes are a full subcategory of locally ringed spaces.

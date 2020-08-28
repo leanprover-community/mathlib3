@@ -104,7 +104,7 @@ begin
         refine ⟨_, _, _⟩,
         { rw mem_powerset, apply subset_univ },
         -- It ends at `j` since `i < j`.
-        { convert @max_insert _ _ j t using 4,
+        { convert max_insert,
           rw [ht₁.2.1, option.lift_or_get_some_some, max_eq_left, with_top.some_eq_coe],
           apply le_of_lt ‹i < j› },
         -- To show it's increasing (i.e., `f` is monotone increasing on `t.insert j`), we do cases on

@@ -881,6 +881,126 @@ begin
     exact λ a b h h₁ h₂, h h₂ h₁ }
 end
 
+lemma perm.take_inter {α} [decidable_eq α] {xs ys : list α} (n : ℕ)
+  (h : xs ~ ys) (h' : ys.nodup) :
+  xs.take n ~ ys.inter (xs.take n) :=
+begin
+  simp only [list.inter] at *,
+  induction h generalizing n,
+  case list.perm.nil
+  { simp only [not_mem_nil, filter_false, take_nil] },
+  case list.perm.cons
+  { cases n; simp only [mem_cons_iff, true_or, eq_self_iff_true, filter_cons_of_pos, perm_cons, take, not_mem_nil,
+                        filter_false],
+    cases h' with h₁ h₂,
+    convert h_ih h'_a_1 n using 1,
+    apply filter_eq,
+    introv h, simp only [(h'_a x h).symm, false_or], },
+  case list.perm.swap
+  { rcases h' with ⟨_, _, h₁, h₂⟩,
+    rcases h'_a_2 with ⟨_, _, h₁, h₂⟩,
+    have := h'_a_1 _ (or.inl rfl),
+    cases n; simp only [mem_cons_iff, not_mem_nil, filter_false, take],
+    cases n; simp only [mem_cons_iff, false_or, true_or, filter, *, nat.nat_zero_eq_zero, if_true, not_mem_nil,
+                        eq_self_iff_true, or_false, if_false, perm_cons, take],
+    { rw filter_eq_nil.2, intros, solve_by_elim [ne.symm], },
+    { convert perm.swap _ _ _, rw filter_eq _ (∈ take n h_l),
+      { clear h'_a_1, induction n generalizing h_l; simp only [not_mem_nil, filter_false, take],
+        cases h_l; simp only [true_and, mem_cons_iff, true_or, eq_self_iff_true, filter_cons_of_pos, take,
+                              not_mem_nil, filter_false, take_nil],
+        cases h'_a_2_a_2,
+        rwa [filter_eq _ (∈ take n_n h_l_tl), n_ih],
+        { introv h, apply h'_a_2_a_1 _ (or.inr h), },
+        { introv h, simp only [(h'_a_2_a_2_a_1 x h).symm, false_or], }, },
+      { introv h, simp only [(h'_a_2_a_1 x h).symm, (h'_a_1 x (or.inr h)).symm, false_or], } } },
+  case list.perm.trans
+  { transitivity,
+    { apply h_ih_a, rwa h_a_1.nodup_iff },
+    { apply perm.filter _ h_a_1, } },
+end
+
+lemma perm.drop_inter {α} [decidable_eq α] {xs ys : list α} (n : ℕ)
+  (h : xs ~ ys) (h' : ys.nodup) :
+  xs.drop n ~ ys.inter (xs.drop n) :=
+begin
+  by_cases h'' : n ≤ xs.length,
+  { let n' := xs.length - n,
+    have h₀ : n = xs.length - n',
+    { dsimp [n'], rwa nat.sub_sub_self, } ,
+    have h₁ : n' ≤ xs.length,
+    { apply nat.sub_le_self },
+    have h₂ : xs.drop n = (xs.reverse.take n').reverse,
+    { rw [reverse_take _ h₁, h₀, reverse_reverse], },
+    rw [h₂],
+    apply (reverse_perm _).trans,
+    rw inter_reverse,
+    apply perm.take_inter _ _ h',
+    apply (reverse_perm _).trans; assumption, },
+  { have : drop n xs = [],
+    { apply eq_nil_of_length_eq_zero,
+      rw [length_drop, nat.sub_eq_zero_iff_le],
+      apply le_of_not_ge h'' },
+    simp [this, list.inter], }
+end
+
+lemma perm.slice_inter {α} [decidable_eq α] {xs ys : list α} (n m : ℕ)
+  (h : xs ~ ys) (h' : ys.nodup) :
+  list.slice n m xs ~ ys.inter (list.slice n m xs) :=
+begin
+  simp [list.inter] at *,
+  induction h generalizing n,
+  case list.perm.nil : n
+  { cases n; simp [list.slice], },
+  case list.perm.cons : h_x h_l₁ h_l₂ h h_ih n
+  { cases n; simp,
+    { apply perm.drop_inter _ (perm.cons _ h) h', },
+    { cases h' with _ _ h₀ h₁,
+      convert h_ih h₁ n using 1,
+      apply filter_eq,
+      introv h₂, simp [(h₀ _ h₂).symm] } },
+  case list.perm.swap : h_x h_y h_l n
+  { rcases n with (_ | n | n ); simp,
+    { apply perm.drop_inter _ _ h',
+      constructor },
+    cases m,
+    { simp, rw filter_eq_self.2,
+      { constructor },
+      tauto },
+    { simp,
+      cases h' with _ _ h₀ h₁, cases h₁ with _ _ h₁ h₂,
+      rw [filter, if_neg, filter, if_pos (or.inl rfl)],
+      { constructor, convert perm.drop_inter _ (perm.refl _) h₂ using 1,
+        rw [list.inter], apply filter_eq,
+        introv hx, simp [(h₁ _ hx).symm] },
+      { simp [not_or_distrib, h₀ _ (or.inl rfl)],
+        intros h, replace h := list.mem_drop_of_mem h,
+        apply h₀ _ (or.inr h) rfl, } },
+    { convert perm.swap _ _ _, rw filter_eq _ (∈ list.slice n m h_l),
+      { induction h_l with x xs' xs_ih generalizing n m,
+        { cases n; simp },
+        { have : (x :: h_x :: h_y :: xs').nodup,
+          { apply (perm.nodup_iff _).2 h',
+            transitivity, apply perm.swap,
+            constructor, constructor },
+          cases this with _ _ h₀ h₁,
+          cases n; simp,
+          { cases m; simp,
+            { rw filter_eq_self, tauto, },
+            { specialize xs_ih h₁ 0 m,
+              dsimp [list.slice] at xs_ih,
+              rwa [filter, if_neg],
+              intro h, replace h := list.mem_drop_of_mem h,
+              exact h₀ x (or.inr (or.inr h)) rfl } },
+          convert xs_ih h₁ n m using 1,
+          apply filter_eq, intros y h,
+          simp [(h₀ y (or.inr (or.inr h))).symm], } },
+      cases h' with _ _ h₀ h₁, cases h₁ with _ _ h₁ h₂,
+      introv h, simp [(h₀ _ (or.inr h)).symm, (h₁ _ h).symm], } },
+  case list.perm.trans : h_l₁ h_l₂ h_l₃ h₀ h₁ h_ih₀ h_ih₁ n
+  { transitivity, apply h_ih₀ (h₁.nodup_iff.2 h'),
+    apply perm.filter _ h₁ },
+end
+
 /- enumerating permutations -/
 
 section permutations

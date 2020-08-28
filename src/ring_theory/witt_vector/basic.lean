@@ -736,8 +736,9 @@ local notation `𝕎` := witt_vectors -- type as `\bbW`
 
 
 section p_prime
-
 open finset mv_polynomial function set
+
+variable {p}
 variables [comm_ring R] [comm_ring S] [comm_ring T]
 
 @[simp] lemma ghost_map_fun_apply (x : 𝕎 p R) (n : ℕ) :

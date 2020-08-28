@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
 import algebraic_geometry.prime_spectrum
-import ring_theory.localization
 import algebra.category.CommRing
 import topology.sheaves.local_predicate
 import topology.sheaves.forget
+import ring_theory.localization
 import ring_theory.subring
 
 /-!
@@ -17,9 +17,9 @@ We define the structure sheaf on `Top.of (prime_spectrum R)`, for a commutative 
 We define this as a subsheaf of the sheaf of dependent functions into the localizations,
 cut out by the condition that the function must be locally equal to a ratio of elements of `R`.
 
-Because the condition of "is equal to a fraction" passes to smaller open subsets,
+Because the condition "is equal to a fraction" passes to smaller open subsets,
 the subset of functions satisfying this condition is automatically a subpresheaf.
-Because the condition of "is locally equal to a fraction" is local,
+Because the condition "is locally equal to a fraction" is local,
 it is also a subsheaf.
 
 We also set up the ring structure, obtaining

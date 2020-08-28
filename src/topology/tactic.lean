@@ -107,6 +107,8 @@ will discharge the goal, generating a proof term like
 You can also use `continuity!`, which applies lemmas with `{ md := semireducible }`.
 The default behaviour is more conservative, and only unfolds `reducible` definitions
 when attempting to match lemmas with the goal.
+
+`continuity?` reports back the proof term it found.
 -/
 add_tactic_doc
 { name := "continuity / continuity'",

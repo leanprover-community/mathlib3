@@ -42,7 +42,7 @@ def stalk (ℱ : X.presheaf C) (x : X) : C :=
   (stalk_functor C x).obj ℱ = ℱ.stalk x := rfl
 
 /--
-The germ at a point.
+The germ of a section of a presheaf over an open at a point of that open.
 -/
 def germ (F : X.presheaf C) {U : opens X} (x : U) : F.obj (op U) ⟶ stalk F x :=
 colimit.ι ((open_nhds.inclusion x.1).op ⋙ F) (op ⟨U, x.2⟩)

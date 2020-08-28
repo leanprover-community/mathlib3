@@ -40,13 +40,12 @@ open opposite
 /--
 The type family over `prime_spectrum R` consisting of the localization over each point.
 -/
-@[reducible]
 def localizations := λ (P : Top.of (prime_spectrum R)), localization.at_prime P.as_ideal
 
 variables {R}
 
 /--
-The predicate saying that a dependent function on an open `U` is realized on `U` as a fixed fraction
+The predicate saying that a dependent function on an open `U` is realised as a fixed fraction
 `r / s` in each of the stalks (which are localizations at various prime ideals).
 -/
 def is_fraction {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, localizations R x) : Prop :=
@@ -61,11 +60,7 @@ in the sense that if it holds on `U` it holds on any open subset `V` of `U`.
 -/
 def is_fraction_prelocal : prelocal_predicate (localizations R) :=
 { pred := λ U f, is_fraction f,
-  res := λ V U i f h,
-  begin
-    rcases h with ⟨r, s, w⟩,
-    refine ⟨r, s, λ x, w (i x)⟩,
-  end }
+  res := by { rintro V U i f ⟨r, s, w⟩, exact ⟨r, s, λ x, w (i x)⟩ } }
 
 variables {R}
 

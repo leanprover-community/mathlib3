@@ -197,23 +197,16 @@ open prime_spectrum
 lemma structure_sheaf_stalk_to_fiber_surjective (x : Top.of (prime_spectrum R)) :
   function.surjective (stalk_to_fiber (is_locally_fraction_local R) x) :=
 begin
-  -- TODO golf!
   apply stalk_to_fiber_surjective,
   intro t,
   obtain ⟨r, ⟨s, hs⟩, rfl⟩ := (localization.of _).mk'_surjective t,
-  use ⟨⟨basic_open s, basic_open_open⟩, hs⟩,
-  use λ y, (localization.of _).mk' r ⟨s, y.2⟩,
-  fsplit,
-  apply prelocal_predicate.sheafify_of,
-  dsimp [is_fraction],
-  refine ⟨r, s, _⟩,
-  intro y,
-  fsplit,
-  exact y.2,
-  apply localization_map.mk'_spec,
-  refl,
+  exact ⟨⟨⟨basic_open s, basic_open_open⟩, hs⟩, λ y, (localization.of _).mk' r ⟨s, y.2⟩,
+    ⟨prelocal_predicate.sheafify_of ⟨r, s, λ y, ⟨y.2, localization_map.mk'_spec _ _ _⟩⟩, rfl⟩⟩,
 end
 
+/--
+This follows the argument in Hartshorne.
+-/
 lemma structure_sheaf_stalk_to_fiber_injective (x : Top.of (prime_spectrum R)) :
   function.injective (stalk_to_fiber (is_locally_fraction_local R) x) :=
 begin

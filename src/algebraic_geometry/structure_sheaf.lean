@@ -37,6 +37,10 @@ open topological_space
 open category_theory
 open opposite
 
+namespace algebraic_geometry
+
+namespace structure_sheaf
+
 /--
 The type family over `prime_spectrum R` consisting of the localization over each point.
 -/
@@ -81,7 +85,7 @@ and $$s(𝔮) = a/f$$ in $$A_𝔮$$.
 
 Now Hartshorne had the disadvantage of not knowing about dependent functions,
 so we replace his circumlocution about functions into a disjoint union with
-`Π x : U, stalks x`.
+`Π x : U, localizations x`.
 -/
 def is_locally_fraction
   {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, localizations R x) : Prop :=
@@ -104,14 +108,6 @@ lemma is_locally_fraction_local_pred
   {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, localizations R x) :
   (is_locally_fraction_local R).pred f = is_locally_fraction f :=
 rfl
-
-
-/--
-The structure sheaf (valued in `Type`, not yet `CommRing`) is the subsheaf consisting of
-functions satisfying `locally_fraction`.
--/
-def structure_sheaf_in_Type : sheaf (Type u) (Top.of (prime_spectrum R)) :=
-subsheaf_to_Types (is_locally_fraction_local R)
 
 /--
 The functions satisfying `is_locally_fraction` form a subring.
@@ -178,6 +174,15 @@ def sections_subring (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
       refl, }
   end, }
 
+end structure_sheaf
+
+/--
+The structure sheaf (valued in `Type`, not yet `CommRing`) is the subsheaf consisting of
+functions satisfying `locally_fraction`.
+-/
+def structure_sheaf_in_Type : sheaf (Type u) (Top.of (prime_spectrum R)) :=
+subsheaf_to_Types (is_locally_fraction_local R)
+
 instance comm_ring_structure_sheaf_in_Type_obj (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
   comm_ring ((structure_sheaf_in_Type R).presheaf.obj U) :=
 (sections_subring R U).to_comm_ring
@@ -218,3 +223,5 @@ def structure_sheaf : sheaf CommRing (Top.of (prime_spectrum R)) :=
         (structure_sheaf_in_Type R).sheaf_condition), }
 
 -- TODO: we need to prove that the stalk at `P` is `localization.at_prime P.as_ideal`
+
+end algebraic_geometry

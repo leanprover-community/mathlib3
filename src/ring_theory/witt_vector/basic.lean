@@ -470,7 +470,7 @@ begin
   --   funext bi, rw map_hom_X }
 end
 
-lemma map_hom_witt_structure_int (Φ : mv_polynomial idx ℤ) (n : ℕ) :
+@[simp] lemma map_witt_structure_int (Φ : mv_polynomial idx ℤ) (n : ℕ) :
   map (int.cast_ring_hom ℚ) (witt_structure_int p Φ n) =
     witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) n :=
 begin
@@ -543,7 +543,7 @@ begin
   { rw [map_aeval, aeval_eq_eval₂_hom,
         ← map_hom_witt_polynomial p (int.cast_ring_hom ℚ), eval₂_hom_map_hom],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    funext i, apply map_hom_witt_structure_int },
+    funext i, apply map_witt_structure_int },
   { rw [map_aeval, aeval_eq_eval₂_hom, eval₂_hom_map_hom],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     funext b, rw [map_rename, map_hom_witt_polynomial] }
@@ -558,7 +558,7 @@ begin
   { intros φ H,
     funext k,
     apply mv_polynomial.coe_int_rat_map_injective,
-    rw map_hom_witt_structure_int,
+    rw map_witt_structure_int,
     refine congr_fun _ k,
     have := (witt_structure_prop_exists_unique p (map (int.cast_ring_hom ℚ) Φ)),
     apply unique_of_exists_unique this,
@@ -923,22 +923,24 @@ end
 by rw [X_in_terms_of_W_eq, finset.range_zero, finset.sum_empty, pow_zero, C_1, mul_one, sub_zero]
 
 @[simp] lemma witt_zero_eq_zero (n : ℕ) : witt_zero p n = 0 :=
-by simp only [witt_zero, witt_structure_int, witt_structure_rat, ring_hom.map_zero, aeval_zero',
-  alg_hom.map_zero, finsupp.map_range_zero, ring_hom.map_zero, X_in_terms_of_W_coeff_zero]
+begin
+  apply mv_polynomial.coe_int_rat_map_injective,
+  simp only [witt_zero, witt_structure_rat, aeval_zero', alg_hom.map_zero, ring_hom.map_zero,
+    X_in_terms_of_W_coeff_zero, map_witt_structure_int]
+end
 
 @[simp] lemma witt_one_zero_eq_one : witt_one p 0 = 1 :=
 begin
-  simp only [witt_one, witt_structure_int, witt_structure_rat, alg_hom.map_one, ring_hom.map_one],
-  simp only [X_in_terms_of_W_zero, aeval_X],
-  -- FYI: this is an eq of polynomials in no variables...
-  sorry
+  apply mv_polynomial.coe_int_rat_map_injective,
+  simp only [witt_one, witt_structure_rat, alg_hom.map_one, ring_hom.map_one,
+    map_witt_structure_int, X_in_terms_of_W_zero, aeval_X]
 end
 
 @[simp] lemma witt_one_pos_eq_zero (n : ℕ) (hn : 0 < n) : witt_one p n = 0 :=
 begin
-  suffices : witt_structure_rat p (1 : mv_polynomial empty ℚ) n = 0,
-  { rw [witt_one, witt_structure_int, ring_hom.map_one, this, finsupp.map_range_zero], },
-  simp only [witt_structure_rat, alg_hom.map_one],
+  apply mv_polynomial.coe_int_rat_map_injective,
+  simp only [witt_one, witt_structure_rat, ring_hom.map_zero, alg_hom.map_one,
+    ring_hom.map_one, map_witt_structure_int],
   revert hn, apply nat.strong_induction_on n, clear n,
   intros n IH hn,
   rw X_in_terms_of_W_eq,
@@ -953,11 +955,30 @@ begin
   { rw finset.mem_range, intro, contradiction }
 end
 
+-- move this up
+@[simp] lemma witt_polynomial_zero : witt_polynomial p R 0 = X 0 :=
+by simp only [witt_polynomial, one_mul, C_pow, pow_one, finset.sum_singleton,
+  finset.range_one, nat.pow_zero, pow_zero]
+
 @[simp] lemma witt_add_zero : witt_add p 0 = X (tt,0) + X (ff,0) :=
 begin
-  suffices : witt_structure_rat p (X tt + X ff) 0 = X (tt,0) + X (ff,0),
-  { rw [witt_add, witt_structure_int, ring_hom.map_add, map_hom_X, map_hom_X, this],
-    rw [finsupp.map_range_add], }
+  apply mv_polynomial.coe_int_rat_map_injective,
+  simp only [witt_add, witt_structure_rat, alg_hom.map_add, ring_hom.map_add, rename_X,
+    X_in_terms_of_W_zero, aeval_X, map_X, witt_polynomial_zero, map_witt_structure_int]
+end
+
+@[simp] lemma witt_mul_zero : witt_mul p 0 = X (tt,0) * X (ff,0) :=
+begin
+  apply mv_polynomial.coe_int_rat_map_injective,
+  simp only [witt_mul, witt_structure_rat, alg_hom.map_mul, ring_hom.map_mul, rename_X,
+    X_in_terms_of_W_zero, aeval_X, map_X, witt_polynomial_zero, map_witt_structure_int]
+end
+
+@[simp] lemma witt_neg_zero : witt_neg p 0 = - X ((),0) :=
+begin
+  apply mv_polynomial.coe_int_rat_map_injective,
+  simp only [witt_neg, witt_structure_rat, alg_hom.map_neg, ring_hom.map_neg, rename_X,
+    X_in_terms_of_W_zero, aeval_X, map_X, witt_polynomial_zero, map_witt_structure_int]
 end
 
 end witt_structure_simplifications
@@ -978,6 +999,13 @@ omit hp
 variables {p R}
 
 def coeff (n : ℕ) (x : 𝕎 p R) : R := x n
+
+@[ext]
+lemma ext {x y : 𝕎 p R} (h : ∀ n, x.coeff n = y.coeff n) : x = y :=
+funext $ λ n, h n
+
+lemma ext_iff {x y : 𝕎 p R} : x = y ↔ ∀ n, x.coeff n = y.coeff n :=
+⟨λ h n, by rw h, ext⟩
 
 include hp
 variables (p R)
@@ -1011,22 +1039,65 @@ section teichmuller
 
 variable {R}
 
+omit hp
+
 def teichmuller_fun (r : R) : 𝕎 p R
 | 0 := r
 | (n+1) := 0
 
-@[simp] lemma teichmuller_fun_zero : teichmuller_fun p (0:R) = 0 :=
-funext $ λ n, match n with | 0 := rfl | (n+1) := rfl end
+include hp
 
+@[simp] lemma ghost_component_teichmuller_fun (r : R) (n : ℕ) :
+  ghost_component n (teichmuller_fun p r) = r ^ p ^ n :=
+begin
+  rw [ghost_component, aeval_witt_polynomial],
+  rw [finset.sum_eq_single 0, pow_zero, one_mul, nat.sub_zero],
+  { refl },
+  { intros i hi h0,
+    convert mul_zero _, convert zero_pow _,
+    { cases i, { contradiction }, { refl } },
+    { apply nat.pow_pos, apply nat.prime.pos, assumption } },
+  { contrapose!, intro, rw finset.mem_range, exact nat.succ_pos n }
+end
 
-@[simp] lemma teichmuller_one : teichmuller p (1:R) = 1 := rfl
+private lemma teichmuller_mul_aux₁ (x y : mv_polynomial R ℚ) :
+  teichmuller_fun p (x * y) = teichmuller_fun p x * teichmuller_fun p y :=
+begin
+  apply (ghost_map.bijective_of_invertible p (mv_polynomial R ℚ)).1,
+  rw ring_hom.map_mul,
+  ext1 n,
+  simp only [pi.mul_apply, ghost_map_apply, ghost_component_teichmuller_fun, mul_pow],
+end
+
+private lemma teichmuller_mul_aux₂ (x y : mv_polynomial R ℤ) :
+  teichmuller_fun p (x * y) = teichmuller_fun p x * teichmuller_fun p y :=
+begin
+  apply map_injective (mv_polynomial.map (int.cast_ring_hom ℚ)) (mv_polynomial.coe_int_rat_map_injective _),
+  { simp only [teichmuller_mul_aux₁, map_teichmuller, map_mul, ring_hom.map_mul], }
+end
+
+def teichmuller : R →* 𝕎 p R :=
+{ to_fun := teichmuller_fun p,
+  map_one' :=
+  begin
+    ext ⟨⟩,
+    { rw one_coeff_zero, refl },
+    { rw one_coeff_pos _ _ _ (nat.succ_pos n), refl }
+  end,
+  map_mul' :=
+  begin
+    intros x y,
+    ext ⟨⟩,
+    {  }
+  end }
+
+@[simp] lemma teichmuller_zero : teichmuller p (0:R) = 0 :=
+by ext ⟨⟩; { rw zero_coeff, refl }
 
 /-- teichmuller is a natural transformation -/
 @[simp] lemma map_teichmuller (f : R →+* S) (r : R) :
   map f (teichmuller p r) = teichmuller p (f r) :=
 by { ext n, cases n, { refl }, { exact f.map_zero } }
-
-include hp
 
 @[simp] lemma ghost_component_teichmuller (r : R) (n : ℕ) :
   ghost_component n (teichmuller p r) = r ^ p ^ n :=
@@ -1039,22 +1110,6 @@ begin
     { cases i, { contradiction }, { refl } },
     { apply nat.pow_pos, apply nat.prime.pos, assumption } },
   { contrapose!, intro, rw finset.mem_range, exact nat.succ_pos n }
-end
-
-lemma teichmuller_mul_aux₁ (x y : mv_polynomial R ℚ) :
-  teichmuller p (x * y) = teichmuller p x * teichmuller p y :=
-begin
-  apply (ghost_map.bijective_of_invertible p (mv_polynomial R ℚ)).1,
-  rw ring_hom.map_mul,
-  ext1 n,
-  simp only [pi.mul_apply, ghost_map_apply, ghost_component_teichmuller, mul_pow],
-end
-
-lemma teichmuller_mul_aux₂ (x y : mv_polynomial R ℤ) :
-  teichmuller p (x * y) = teichmuller p x * teichmuller p y :=
-begin
-  apply map_injective (mv_polynomial.map (int.cast_ring_hom ℚ)) (mv_polynomial.coe_int_rat_map_injective _),
-  { simp only [teichmuller_mul_aux₁, map_teichmuller, map_mul, ring_hom.map_mul], }
 end
 
 @[simp] lemma teichmuller_mul (x y : R) :

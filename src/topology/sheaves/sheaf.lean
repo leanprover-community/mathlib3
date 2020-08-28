@@ -160,56 +160,66 @@ def pi_inters.iso_of_open_embedding :
   pi_inters (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅ pi_inters F (cover.of_open_embedding oe 𝒰) :=
 pi.map_iso (λ X, F.map_iso
   begin
-    -- TODO golf
     dsimp [is_open_map.functor],
-    apply iso.op,
-    fsplit,
-    apply hom_of_le,
-    simp [oe.to_embedding.inj, set.image_inter],
-    apply le_refl _,
-    apply hom_of_le,
-    simp [oe.to_embedding.inj, set.image_inter],
-    apply le_refl _,
-    exact dec_trivial,
-    exact dec_trivial,
+    exact iso.op
+    { hom := hom_of_le (by
+      { simp only [oe.to_embedding.inj, set.image_inter],
+        apply le_refl _, }),
+      inv := hom_of_le (by
+      { simp only [oe.to_embedding.inj, set.image_inter],
+        apply le_refl _, }), },
   end)
 
 def diagram.iso_of_open_embedding :
   diagram (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅ diagram F (cover.of_open_embedding oe 𝒰) :=
 nat_iso.of_components
-  begin rintro ⟨⟩, exact pi_opens.iso_of_open_embedding oe 𝒰, exact pi_inters.iso_of_open_embedding oe 𝒰 end
+  begin
+    rintro ⟨⟩,
+    exact pi_opens.iso_of_open_embedding oe 𝒰,
+    exact pi_inters.iso_of_open_embedding oe 𝒰
+  end
   begin
     rintro ⟨⟩ ⟨⟩ ⟨⟩,
     { simp, },
-    -- TODO golf
-    { ext, dsimp [left_res, is_open_map.functor], simp, dsimp, simp, rw [←F.map_comp], refl, },
-    { ext, dsimp [right_res, is_open_map.functor], simp, dsimp, simp, rw [←F.map_comp], refl, },
+    { ext,
+      dsimp [left_res, is_open_map.functor],
+      simp only [limit.lift_π, cones.postcompose_obj_π, iso.op_hom, discrete.nat_iso_hom_app,
+        functor.map_iso_refl, functor.map_iso_hom, limit.map_π_assoc, limit.lift_map, fan.mk_π_app,
+        nat_trans.comp_app, category.assoc],
+      dsimp,
+      rw [category.id_comp, ←F.map_comp],
+      refl, },
+    { ext,
+      dsimp [right_res, is_open_map.functor],
+      simp only [limit.lift_π, cones.postcompose_obj_π, iso.op_hom, discrete.nat_iso_hom_app,
+        functor.map_iso_refl, functor.map_iso_hom, limit.map_π_assoc, limit.lift_map, fan.mk_π_app,
+        nat_trans.comp_app, category.assoc],
+      dsimp,
+      rw [category.id_comp, ←F.map_comp],
+      refl, },
     { simp, },
   end.
 
 def fork.iso_of_open_embedding :
   fork (oe.is_open_map.functor.op ⋙ F) 𝒰 ≅
-    (cones.postcompose (diagram.iso_of_open_embedding oe 𝒰).inv).obj (fork F (cover.of_open_embedding oe 𝒰)) :=
+    (cones.postcompose (diagram.iso_of_open_embedding oe 𝒰).inv).obj
+      (fork F (cover.of_open_embedding oe 𝒰)) :=
 begin
   fapply fork.ext,
-  -- TODO golf
-  { dsimp,
-    apply F.map_iso,
-    apply iso.op,
-    dsimp [is_open_map.functor],
-    fsplit,
-    apply hom_of_le,
-    simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset], rw [set.image_Union],
-    apply hom_of_le,
-    simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset], rw [set.image_Union],
-    exact dec_trivial,
-    exact dec_trivial, },
+  { dsimp [is_open_map.functor],
+    exact
+    F.map_iso (iso.op
+    { hom := hom_of_le (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]),
+      inv := hom_of_le (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset, set.image_Union]), }), },
   { ext,
     dunfold fork.ι, -- Ugh, it is unpleasant that we need this.
-    simp [res, diagram.iso_of_open_embedding, is_open_map.functor],
+    simp only [res, diagram.iso_of_open_embedding, discrete.nat_iso_inv_app, functor.map_iso_inv,
+      limit.lift_π, cones.postcompose_obj_π, functor.comp_map,
+      fork_π_app_walking_parallel_pair_zero, pi_opens.iso_of_open_embedding,
+      nat_iso.of_components.inv_app, functor.map_iso_refl, functor.op_map, limit.lift_map,
+      fan.mk_π_app, nat_trans.comp_app, has_hom.hom.unop_op, category.assoc],
     dsimp,
-    simp,
-    rw [←F.map_comp],
+    rw [category.comp_id, ←F.map_comp],
     refl, },
 end
 

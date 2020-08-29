@@ -80,6 +80,7 @@ instance ordered_comm_group [∀ i, ordered_comm_group $ f i] :
   ..pi.partial_order }
 
 section instance_lemmas
+open function
 
 variables {α β γ : Type*}
 

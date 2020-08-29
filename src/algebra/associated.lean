@@ -370,7 +370,7 @@ theorem one_eq_mk_one [monoid α] : (1 : associates α) = associates.mk 1 := rfl
 
 instance [monoid α] : has_bot (associates α) := ⟨1⟩
 
-lemma exists_of_associate [monoid α] (a : associates α) : ∃ (a0 : α), ⟦a0⟧ = a := quot.exists_rep a
+lemma exists_rep [monoid α] (a : associates α) : ∃ (a0 : α), ⟦a0⟧ = a := quot.exists_rep a
 
 section comm_monoid
 variable [comm_monoid α]
@@ -498,7 +498,7 @@ have (0 : α) ~ᵤ 1, from quotient.exact h,
 have (0 : α) = 1, from ((associated_zero_iff_eq_zero 1).1 this.symm).symm,
 zero_ne_one this⟩⟩
 
-lemma non_zero_associate {a : associates α} (h : a ≠ 0) : ∃(a0 : α), a0 ≠ 0 ∧ a = ⟦a0⟧ :=
+lemma exists_non_zero_rep {a : associates α} (h : a ≠ 0) : ∃(a0 : α), a0 ≠ 0 ∧ a = ⟦a0⟧ :=
 begin
   revert h,
   apply quotient.induction_on a,

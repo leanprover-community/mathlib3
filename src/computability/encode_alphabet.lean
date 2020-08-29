@@ -31,9 +31,11 @@ def section_Γ'_Γ₀₁ : Γ' → Γ₀₁
 | Γ'.bit1 := Γ₀₁.bit1
 | _ := arbitrary Γ₀₁
 
-lemma left_inverse_section_inclusion : function.left_inverse section_Γ'_Γ₀₁ inclusion_Γ₀₁_Γ' := begin intros x, cases x; trivial, end
+lemma left_inverse_section_inclusion : function.left_inverse section_Γ'_Γ₀₁ inclusion_Γ₀₁_Γ' :=
+λ x, Γ₀₁.cases_on x rfl rfl
 
-lemma inclusion_Γ₀₁_Γ'_injective : function.injective inclusion_Γ₀₁_Γ' := by tidy
+lemma inclusion_Γ₀₁_Γ'_injective : function.injective inclusion_Γ₀₁_Γ' :=
+function.has_left_inverse.injective (Exists.intro section_Γ'_Γ₀₁ left_inverse_section_inclusion)
 
 def encode_pos_num : pos_num → list Γ₀₁
 | pos_num.one := [Γ₀₁.bit1]
@@ -103,20 +105,18 @@ end
 def encoding_nat_Γ₀₁ : encoding ℕ :=
 { Γ := Γ₀₁,
   encode := encode_nat,
-  decode := λ n, option.some (decode_nat n),
-  encodek := begin funext, simp, exact encodek_nat x end }
+  decode := λ n, some (decode_nat n),
+  encodek := λ n, congr_arg _ (encodek_nat n) }
 
 def fin_encoding_nat_Γ₀₁ : fin_encoding ℕ := ⟨ encoding_nat_Γ₀₁, Γ₀₁.fintype ⟩
 
 def encoding_nat_Γ' : encoding ℕ :=
 { Γ := Γ',
-  encode := (list.map inclusion_Γ₀₁_Γ') ∘ encode_nat,
-  decode :=  option.some ∘ decode_nat ∘ (list.map section_Γ'_Γ₀₁),
-  encodek := begin --TODO: golf
-    funext,
-    simp,
-     have h : section_Γ'_Γ₀₁ ∘ inclusion_Γ₀₁_Γ' = id := begin funext, simp, exact left_inverse_section_inclusion x end,
-    simp [h],
+  encode := λ x, list.map inclusion_Γ₀₁_Γ' (encode_nat x),
+  decode := λ x, option.some (decode_nat (list.map section_Γ'_Γ₀₁ x)),
+  encodek := λ x, congr_arg _ begin
+    rw list.map_map,
+    rw list.map_id' left_inverse_section_inclusion,
     exact encodek_nat x,
   end }
 
@@ -152,7 +152,7 @@ def encoding_bool_Γ₀₁ : fin_encoding bool :=
 { Γ := Γ₀₁,
   encode := encode_bool,
   decode := λ x, some(decode_bool x),
-  encodek := λ x, congr_arg _ ( encodek_bool x ),
+  encodek := λ x, congr_arg _ (encodek_bool x),
   Γ_fin := Γ₀₁.fintype }
 
 end encoding

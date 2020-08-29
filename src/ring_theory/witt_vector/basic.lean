@@ -988,7 +988,7 @@ begin
       apply nat.pow_pos hp.pos },
     { apply pow_ne_zero, exact_mod_cast hp.ne_zero } },
   rw [witt_polynomial, vars_sum_of_disjoint],
-  { simp only [this, int.nat_cast_eq_coe_nat, finset.fold_union_empty_singleton], },
+  { simp only [this, int.nat_cast_eq_coe_nat, finset.bind_singleton_eq_self], },
   { simp only [this, int.nat_cast_eq_coe_nat],
     intros a b h,
     apply finset.singleton_disjoint.mpr,

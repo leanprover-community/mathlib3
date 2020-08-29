@@ -166,13 +166,15 @@ section sum
 variables {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R)
 
 lemma vars_sum_subset :
-  (∑ i in s, φ i).vars ⊆ finset.fold (∪) ∅ (λ i, (φ i).vars) s :=
+  (∑ i in s, φ i).vars ⊆ finset.bind s (λ i, (φ i).vars) :=
 begin
   sorry
 end
 
+#check finset.bind
+
 lemma vars_sum_of_disjoint (h : pairwise $ disjoint on (λ i, (φ i).vars)) :
-  (∑ i in s, φ i).vars = finset.fold (∪) ∅ (λ i, (φ i).vars) s :=
+  (∑ i in s, φ i).vars = finset.bind s (λ i, (φ i).vars) :=
 begin
   sorry
 end

@@ -149,4 +149,34 @@ by { rw [lxor_comm n m, lxor_comm n' m] at h, exact lxor_right_inj h }
 lemma lxor_eq_zero {n m : ℕ} : lxor n m = 0 ↔ n = m :=
 ⟨by { rw ←lxor_self m, exact lxor_left_inj  }, by { rintro rfl, exact lxor_self _ }⟩
 
+lemma lxor_trichotomy {a b c : ℕ} (h : nat.lxor a (nat.lxor b c) ≠ 0) :
+  nat.lxor b c < a ∨ nat.lxor a c < b ∨ nat.lxor a b < c :=
+begin
+  set v := nat.lxor a (nat.lxor b c) with hv,
+
+  -- The xor of any two of `a`, `b`, `c` is the xor of `v` and the third.
+  have hab : nat.lxor a b = nat.lxor c v,
+  { rw hv, conv_rhs { rw nat.lxor_comm, simp [nat.lxor_assoc] } },
+  have hac : nat.lxor a c = nat.lxor b v,
+  { rw hv,
+    conv_rhs { congr, skip, rw nat.lxor_comm },
+    rw [←nat.lxor_assoc, ←nat.lxor_assoc, nat.lxor_self, nat.zero_lxor, nat.lxor_comm] },
+  have hbc : nat.lxor b c = nat.lxor a v,
+  { simp [hv, ←nat.lxor_assoc] },
+
+  -- If `i` is the position of the most significant bit of `v`, then at least one of `a`, `b`, `c`
+  -- has a one bit at position `i`.
+  obtain ⟨i, ⟨hi, hi'⟩⟩ := nat.exists_most_significant_bit h,
+  have : nat.test_bit a i = tt ∨ nat.test_bit b i = tt ∨ nat.test_bit c i = tt,
+  { contrapose! hi,
+    simp only [eq_ff_eq_not_eq_tt, ne, nat.test_bit_lxor] at ⊢ hi,
+    rw [hi.1, hi.2.1, hi.2.2, bxor_ff, bxor_ff] },
+
+  -- If, say, `a` has a one bit at position `i`, then `a xor v` has a zero bit at position `i`, but
+  -- the same bits as a in positions greater than `j`, so `a xor v < a`.
+  rcases this with h|h|h;
+  [{ left, rw hbc }, { right, left, rw hac }, { right, right, rw hab }];
+  exact nat.lt_of_test_bit i (by simp [h, hi]) h (λ j hj, by simp [hi' _ hj])
+end
+
 end nat

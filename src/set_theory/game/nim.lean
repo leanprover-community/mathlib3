@@ -3,12 +3,9 @@ Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
+import data.nat.bitwise
 import set_theory.game.impartial
-import set_theory.ordinal
-import data.set
-import logic.basic
-
-universes u v
+import set_theory.ordinal_arithmetic
 
 /-!
 # Nim and the Sprague-Grundy theorem
@@ -20,7 +17,7 @@ We also define a Grundy value for an impartial game `G` and prove the Sprague-Gr
 
 ## Implementation details
 
-The pen-and-paper definition of nim defines the possible moves of `nim O` to be `{ O' | O' < O}`.
+The pen-and-paper definition of nim defines the possible moves of `nim O` to be `{ O' | O' < O }`.
 However, this definition does not work for us because it would make the type of nim
 `ordinal.{u} → pgame.{u + 1}`, which would make it impossible for us to state the Sprague-Grundy
 theorem, since that requires the type of `nim` to be `ordinal.{u} → pgame.{u}`. For this reason, we
@@ -28,6 +25,7 @@ instead use `O.out.α` for the possible moves, which makes proofs significantly 
 tedious, but avoids the universe bump.
 
 -/
+universes u
 
 /-- `ordinal.out` and `ordinal.type_out'` are required to make the definition of nim computable.
  `ordinal.out` performs the same job as `quotient.out` but is specific to ordinals. -/
@@ -97,6 +95,12 @@ begin
     simpa using nim_impartial (ordinal.typein O.out.r j) }
 end
 using_well_founded { dec_tac := tactic.assumption }
+
+lemma exists_ordinal_move_left_eq (O : ordinal) : ∀ i, ∃ O' < O, (nim O).move_left i = nim O' :=
+by { rw nim_def, exact λ i, ⟨ordinal.typein O.out.r i, ⟨nim_wf_lemma _, rfl⟩⟩ }
+
+lemma exists_move_left_eq (O : ordinal) : ∀ O' < O, ∃ i, (nim O).move_left i = nim O' :=
+by { rw nim_def, refine λ _ h, ⟨(ordinal.principal_seg_out h).top, by simp⟩ }
 
 lemma zero_first_loses : (nim (0 : ordinal)).first_loses :=
 begin
@@ -247,5 +251,98 @@ lemma equiv_nim_iff_grundy_value_eq {G : pgame.{u}} (hG : impartial G) (O : ordi
 
 lemma nim.grundy_value (O : ordinal.{u}) : grundy_value (nim O) = O :=
 by rw ←equiv_nim_iff_grundy_value_eq
+
+lemma equiv_iff_grundy_value_eq (G H : pgame) [G.impartial] [H.impartial] :
+  G ≈ H ↔ grundy_value G = grundy_value H :=
+(equiv_congr_left.1 (equiv_nim_grundy_value H) _).trans $ equiv_nim_iff_grundy_value_eq _ _
+
+lemma grundy_value_zero : grundy_value 0 = 0 :=
+by rw [(equiv_iff_grundy_value_eq 0 (nim 0)).1 (equiv_symm nim.zero_first_loses), nim.grundy_value]
+
+lemma equiv_zero_iff_Grundy_value {G : pgame.{u}} (hG : impartial G) : G ≈ 0 ↔ grundy_value G = 0 :=
+by rw [equiv_iff_grundy_value_eq, grundy_value_zero]
+
+lemma grundy_value_nim_add_nim (n m : ℕ) : grundy_value (nim n + nim m) = nat.lxor n m :=
+begin
+  induction n using nat.strong_induction_on with n hn generalizing m,
+  induction m using nat.strong_induction_on with m hm,
+  rw [grundy_value_def],
+
+  -- We want to show that `n xor m` is the smallest unreachable grundy value. We will do this in two
+  -- steps:
+  -- h₀: `n xor m` is not a reachable grundy number.
+  -- h₁: every grundy number strictly smaller than `n xor m` is reachable.
+
+  have h₀ : (nat.lxor n m : ordinal) ∈ nonmoves (λ i, grundy_value ((nim n + nim m).move_left i)),
+  { -- Two show that `n xor m` is unreachable, we show that every move produces a grundy number
+    -- different from `n xor m`.
+    simp only [nonmoves, not_exists, set.mem_set_of_eq],
+    equiv_rw left_moves_add _ _,
+
+    -- The move operates either on the left pile or on the right pile.
+    rintro (a|a),
+
+    all_goals
+    { -- One of the piles is reduced to `k` stones, with `k < n` or `k < m`.
+      obtain ⟨ok, ⟨hk, hk'⟩⟩ := nim.exists_ordinal_move_left_eq _ a,
+      obtain ⟨k, rfl⟩ := ordinal.lt_omega.1 (lt_trans hk (ordinal.nat_lt_omega _)),
+      replace hk := ordinal.nat_cast_lt.1 hk,
+
+      -- Thus, the problem is reduced to computing the grundy value of `nim n + nim k` or
+      -- `nim k + nim m`, both of which can be dealt with using an inductive hypothesis.
+      simp only [hk', add_move_left_inl, add_move_left_inr, id],
+      rw hn _ hk <|> rw hm _ hk,
+
+      -- But of course xor is injective, so if we change of one the arguments, we will not get the
+      -- same value again.
+      intro h,
+      rw ordinal.nat_cast_inj at h,
+      try { rw [nat.lxor_comm n k, nat.lxor_comm n m] at h },
+      exact (_root_.ne_of_lt hk (nat.lxor_left_inj h)) } },
+
+  have h₁ : ∀ (u : ordinal), u < nat.lxor n m →
+    u ∉ nonmoves (λ i, grundy_value ((nim n + nim m).move_left i)),
+  { -- Take any natural number `u` less than `n xor m`.
+    intros ou hu,
+    obtain ⟨u, rfl⟩ := ordinal.lt_omega.1 (lt_trans hu (ordinal.nat_lt_omega _)),
+    replace hu := ordinal.nat_cast_lt.1 hu,
+
+    -- Our goal is to produce a move that gives the grundy value u.
+    simp only [nonmoves, not_exists, not_not, set.mem_set_of_eq, not_forall],
+
+    -- By a lemma about xor, either `u xor m < n` or `u xor n < m`.
+    have : nat.lxor u (nat.lxor n m) ≠ 0,
+    { intro h, rw nat.lxor_eq_zero at h, linarith },
+    rcases nat.lxor_trichotomy this with h|h|h,
+    { linarith },
+
+    -- Therefore, we can play the corresponding move, and by the inductive hypothesis the new state
+    -- is `(u xor m) xor m = u` or `n xor (u xor n) = u` as required.
+    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq _ _ (ordinal.nat_cast_lt.2 h),
+      refine ⟨(left_moves_add _ _).symm (sum.inl i), _⟩,
+      simp only [hi, add_move_left_inl],
+      rw [hn _ h, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] },
+    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq _ _ (ordinal.nat_cast_lt.2 h),
+      refine ⟨(left_moves_add _ _).symm (sum.inr i), _⟩,
+      simp only [hi, add_move_left_inr],
+      rw [hm _ h, nat.lxor_comm, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] } },
+
+  -- We are done!
+  apply le_antisymm (ordinal.omin_le h₀),
+  contrapose! h₁,
+  exact ⟨_, ⟨h₁, ordinal.omin_mem _ _⟩⟩
+end
+
+lemma nim_add_nim_equiv {n m : ℕ} : nim n + nim m ≈ nim (nat.lxor n m) :=
+by rw [equiv_nim_iff_grundy_value_eq, grundy_value_nim_add_nim]
+
+lemma grundy_value_add (G H : pgame) [G.impartial] [H.impartial] {n m : ℕ} (hG : grundy_value G = n)
+  (hH : grundy_value H = m) : grundy_value (G + H) = nat.lxor n m :=
+begin
+  rw [←nim.grundy_value (nat.lxor n m), ←equiv_iff_grundy_value_eq],
+  refine equiv_trans _ nim_add_nim_equiv,
+  convert add_congr (equiv_nim_grundy_value G) (equiv_nim_grundy_value H);
+  simp only [hG, hH]
+end
 
 end pgame

@@ -293,7 +293,7 @@ open finite_field
 namespace zmod
 
 /-- A variation on Fermat's little theorem. See `zmod.pow_card_sub_one_eq_one` -/
-@[simp] lemma zmod.pow_card {p : ℕ} [fact p.prime] (x : zmod p) : x ^ p = x :=
+@[simp] lemma pow_card {p : ℕ} [fact p.prime] (x : zmod p) : x ^ p = x :=
 by { have h := finite_field.pow_card x, rwa zmod.card p at h }
 
 @[simp] lemma card_units (p : ℕ) [fact p.prime] : fintype.card (units (zmod p)) = p - 1 :=

@@ -11,7 +11,7 @@ import tactic
 /-!
 # Encodings
 
-This file contains the definition of a (finite) encoding, a map from a type to strings in an alphabet, used in defining computability by Turing machines. It also contains several examples
+This file contains the definition of a (finite) encoding, a map from a type to strings in an alphabet, used in defining computability by Turing machines. It also contains several examples:
 
 ## Examples
 
@@ -68,14 +68,13 @@ def encode_num : num → list Γ₀₁
 def encode_nat (n : ℕ) : list Γ₀₁ := encode_num n
 
 def decode_pos_num : list Γ₀₁ → pos_num
-| [Γ₀₁.bit1] := pos_num.one
+-- | [Γ₀₁.bit1] := pos_num.one
+-- | (Γ₀₁.bit0 :: l) := (pos_num.bit0 (decode_pos_num l))
+-- | (Γ₀₁.bit1 :: l) := (pos_num.bit1 (decode_pos_num l))
+-- | _ := pos_num.one
 | (Γ₀₁.bit0 :: l) := (pos_num.bit0 (decode_pos_num l))
-| (Γ₀₁.bit1 :: l) := (pos_num.bit1 (decode_pos_num l))
+| (Γ₀₁.bit1 :: l) := ite (l = []) pos_num.one (pos_num.bit1 (decode_pos_num l))
 | _ := pos_num.one
-
---| (Γ₀₁.bit0 :: l) := (pos_num.bit0 (decode_pos_num l))
---| (Γ₀₁.bit1 :: l) := ite (l = []) pos_num.one (pos_num.bit1 (decode_pos_num l))
---| _ := pos_num.one
 
 def decode_num : list Γ₀₁ → num
 | [] := num.zero
@@ -88,15 +87,11 @@ pos_num.cases_on n (list.cons_ne_nil _ _) (λ m, list.cons_ne_nil _ _) (λ m, li
 
 def encodek_pos_num : ∀ n, (decode_pos_num(encode_pos_num n) ) = n := begin
   intros n,
-  induction n with m hm m hm; unfold encode_pos_num decode_pos_num, {
-    have h := encode_pos_num_nonempty m,
-    cases (encode_pos_num m) with p ph, {
-      trivial,
-    },
-    unfold decode_pos_num,
-    rw hm,
-  },
-  rw hm,
+  induction n with m hm m hm; unfold encode_pos_num decode_pos_num,
+  { refl },
+  { rw hm,
+    exact if_neg (encode_pos_num_nonempty m) },
+  { exact congr_arg pos_num.bit0 hm }
 end
 
 def encodek_num : ∀ n, (decode_num(encode_num n) ) = n := begin

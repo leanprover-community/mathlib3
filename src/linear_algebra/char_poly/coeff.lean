@@ -190,7 +190,7 @@ begin
   { congr, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
 end
 
-lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :
+@[simp] lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :
   char_poly (M ^ p) = char_poly M :=
 by { have h := finite_field.char_poly_pow_card M, rwa zmod.card at h, }
 

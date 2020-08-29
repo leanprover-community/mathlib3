@@ -151,6 +151,10 @@ quotient.lift₂ (λ x y, ⟦f x y⟧) (λ x₁ y₁ x₂ y₂ h₁ h₂, quot.s
 
 end quotient
 
+lemma quot.eq {α : Type*} {r : α → α → Prop} {x y : α} :
+  quot.mk r x = quot.mk r y ↔ eqv_gen r x y :=
+⟨quot.exact r, quot.eqv_gen_sound⟩
+
 @[simp] theorem quotient.eq [r : setoid α] {x y : α} : ⟦x⟧ = ⟦y⟧ ↔ x ≈ y :=
 ⟨quotient.exact, quotient.sound⟩
 

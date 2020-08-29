@@ -386,8 +386,7 @@ variables {k V}
 begin
   cases s1,
   cases s2,
-  congr,
-  ext i,
+  congr' with i,
   exact h i
 end
 

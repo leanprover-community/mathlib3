@@ -63,7 +63,7 @@ namespace prime_spectrum
 as an ideal of that ring. -/
 abbreviation as_ideal (x : prime_spectrum R) : ideal R := x.val
 
-instance as_ideal.is_prime (x : prime_spectrum R) :
+instance is_prime (x : prime_spectrum R) :
   x.as_ideal.is_prime := x.2
 
 @[ext] lemma ext {x y : prime_spectrum R} :

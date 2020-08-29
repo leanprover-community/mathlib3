@@ -2,10 +2,29 @@
 Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-Multiplication and division of submodules of an algebra.
 -/
 import ring_theory.algebra
+
+/-!
+# Multiplication and division of submodules of an algebra.
+
+An interface for multiplication and division of sub-R-modules of an R-algebra A is developed.
+
+## Main definitions
+
+Let `R` be a commutative ring (or semiring) and aet `A` be an `R`-algebra.
+
+* `1 : submodule R A`       : the R-submodule R of the R-algebra A
+* `has_mul (submodule R A)` : multiplication of two sub-R-modules M and N of A is defined to be
+                              the smallest submodule containing all the products `m * n`.
+* `has_div (submodule R A)` : `I / J` is defined to be the submodule consisting of all `a : A` such that `a • J ⊆ I`
+
+It is proved that `submodule R A` is a semiring, and also an algebra over `set A`.
+
+## Tags
+
+multiplication of submodules, division of subodules, submodule semiring
+-/
 
 universes u v
 
@@ -20,6 +39,7 @@ section ring
 variables {A : Type v} [semiring A] [algebra R A]
 variables (S T : set A) {M N P Q : submodule R A} {m n : A}
 
+/-- `1 : submodule R A` is the submodule R of A. -/
 instance : has_one (submodule R A) :=
 ⟨submodule.map (of_id R A).to_linear_map (⊤ : submodule R R)⟩
 
@@ -39,6 +59,8 @@ end
 theorem one_le : (1 : submodule R A) ≤ P ↔ (1 : A) ∈ P :=
 by simpa only [one_eq_span, span_le, set.singleton_subset_iff]
 
+/-- Multiplication of sub-R-modules of an R-algebra A. The submodule `M * N` is the
+smallest R-submodule of `A` containing the elements `m * n` for `m ∈ M` and `n ∈ N`. -/
 instance : has_mul (submodule R A) :=
 ⟨λ M N, ⨆ s : M, N.map $ algebra.lmul R A s.1⟩
 
@@ -141,6 +163,7 @@ calc map f.to_linear_map (M * N)
 
 variables {M N P}
 
+/-- Sub-R-modules of an R-algebra form a semiring. -/
 instance : semiring (submodule R A) :=
 { one_mul       := submodule.one_mul,
   mul_one       := submodule.mul_one,
@@ -188,12 +211,14 @@ protected theorem mul_comm : M * N = N * M :=
 le_antisymm (mul_le.2 $ λ r hrm s hsn, mul_mem_mul_rev hsn hrm)
 (mul_le.2 $ λ r hrn s hsm, mul_mem_mul_rev hsm hrn)
 
+/-- Sub-R-modules of an R-algebra A form a semiring. -/
 instance : comm_semiring (submodule R A) :=
 { mul_comm := submodule.mul_comm,
   .. submodule.semiring }
 
 variables (R A)
 
+/-- R-submodules of the R-algebra A are a module over `set A`. -/
 instance semimodule_set : semimodule (set_semiring A) (submodule R A) :=
 { smul := λ s P, span R s * P,
   smul_add := λ _ _ _, mul_add _ _ _,

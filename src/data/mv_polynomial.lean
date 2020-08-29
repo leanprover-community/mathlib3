@@ -388,7 +388,7 @@ lemma coeff_mul_X' (m) (s : σ) (p : mv_polynomial σ α) :
 begin
   split_ifs with h h,
   { conv_rhs {rw ← coeff_mul_X _ s},
-    congr' 1, ext t,
+    congr' with  t,
     by_cases hj : s = t,
     { subst t, simp only [nat_sub_apply, add_apply, single_eq_same],
       refine (nat.sub_add_cancel $ nat.pos_of_ne_zero _).symm, rwa mem_support_iff at h },
@@ -550,7 +550,7 @@ lemma eval₂_assoc (q : γ → mv_polynomial σ α) (p : mv_polynomial γ α) :
   eval₂ f (λ t, eval₂ f g (q t)) p = eval₂ f g (eval₂ C q p) :=
 begin
   show _ = eval₂_hom f g (eval₂ C q p),
-  rw eval₂_comp_left (eval₂_hom f g), congr, ext a, simp,
+  rw eval₂_comp_left (eval₂_hom f g), congr' with a, simp,
 end
 
 end eval₂
@@ -592,7 +592,7 @@ theorem eval_assoc {τ}
 begin
   rw eval₂_comp_left (eval g),
   unfold eval, simp only [coe_eval₂_hom],
-  congr, ext a, simp
+  congr' with a, simp
 end
 
 end eval
@@ -1121,9 +1121,9 @@ lemma rename_eq (f : β → γ) (p : mv_polynomial β α) :
   rename f p = finsupp.map_domain (finsupp.map_domain f) p :=
 begin
   simp only [rename, eval₂_hom, eval₂, finsupp.map_domain, ring_hom.coe_of],
-  congr, ext s a : 2,
+  congr' with s a : 2,
   rw [← monomial, monomial_eq, finsupp.prod_sum_index],
-  congr, ext n i : 2,
+  congr' with n i : 2,
   rw [finsupp.prod_single_index],
   exact pow_zero _,
   exact assume a, pow_zero _,

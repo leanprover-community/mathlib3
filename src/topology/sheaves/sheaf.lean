@@ -102,6 +102,46 @@ lemma fork_π_app_walking_parallel_pair_zero :
 lemma fork_π_app_walking_parallel_pair_one :
   (fork F U).π.app walking_parallel_pair.one = res F U ≫ left_res F U := rfl
 
+variables {F} {G : presheaf C X}
+
+/-- Isomorphic presheaves have isomorphic `pi_opens` for any cover `U`. -/
+@[simp]
+def pi_opens.iso_of_iso (α : F ≅ G) : pi_opens F U ≅ pi_opens G U :=
+pi.map_iso (λ X, α.app _)
+
+/-- Isomorphic presheaves have isomorphic `pi_inters` for any cover `U`. -/
+@[simp]
+def pi_inters.iso_of_iso (α : F ≅ G) : pi_inters F U ≅ pi_inters G U :=
+pi.map_iso (λ X, α.app _)
+
+/-- Isomorphic presheaves have isomorphic sheaf condition diagrams. -/
+def diagram.iso_of_iso (α : F ≅ G) : diagram F U ≅ diagram G U :=
+nat_iso.of_components
+  begin rintro ⟨⟩, exact pi_opens.iso_of_iso U α, exact pi_inters.iso_of_iso U α end
+  begin
+    rintro ⟨⟩ ⟨⟩ ⟨⟩,
+    { simp, },
+    { ext, simp [left_res], },
+    { ext, simp [right_res], },
+    { simp, },
+  end.
+
+/--
+If `F G : presheaf C X` are isomorphic presheaves,
+then the `fork F U`, the canonical cone of the sheaf condition diagram for `F`,
+is isomorphic to `fork F G` postcomposed with the corresponding isomorphic between
+sheaf condition diagrams.
+-/
+def fork.iso_of_iso (α : F ≅ G) :
+  fork F U ≅ (cones.postcompose (diagram.iso_of_iso U α).inv).obj (fork G U) :=
+begin
+  fapply fork.ext,
+  apply α.app,
+  ext,
+  dunfold fork.ι, -- Ugh, it is unpleasant that we need this.
+  simp [res, diagram.iso_of_iso],
+end
+
 end sheaf_condition
 
 /--
@@ -127,6 +167,17 @@ def sheaf_condition_punit (F : presheaf (category_theory.discrete punit) X) :
 -- Let's construct a trivial example, to keep the inhabited linter happy.
 instance sheaf_condition_inhabited (F : presheaf (category_theory.discrete punit) X) :
   inhabited (sheaf_condition F) := ⟨sheaf_condition_punit F⟩
+
+/--
+Transfer the sheaf condition across an isomorphism of presheaves.
+-/
+def sheaf_condition_equiv_of_iso {F G : presheaf C X} (α : F ≅ G) :
+  sheaf_condition F ≃ sheaf_condition G :=
+equiv_of_subsingleton_of_subsingleton
+(λ c ι U, is_limit.of_iso_limit
+  ((is_limit.postcompose_inv_equiv _ _).symm (c U)) (sheaf_condition.fork.iso_of_iso U α.symm).symm)
+(λ c ι U, is_limit.of_iso_limit
+  ((is_limit.postcompose_inv_equiv _ _).symm (c U)) (sheaf_condition.fork.iso_of_iso U α).symm)
 
 variables (C X)
 

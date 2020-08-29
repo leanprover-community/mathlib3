@@ -919,8 +919,7 @@ begin
       refine supr_le_supr (assume n, _),
       rw [restrict_lintegral _ (h_meas n)],
       { refine le_of_eq (finset.sum_congr rfl $ assume r hr, _),
-        congr' 2,
-        ext a,
+        congr' 2 with a,
         refine and_congr_right _,
         simp {contextual := tt} }
     end

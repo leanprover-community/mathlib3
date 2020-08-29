@@ -92,7 +92,7 @@ theorem nodupkeys_join {L : list (list (sigma β))} :
 begin
   rw [nodupkeys_iff_pairwise, pairwise_join, pairwise_map],
   refine and_congr (ball_congr $ λ l h, by simp [nodupkeys_iff_pairwise]) _,
-  apply iff_of_eq, congr', ext l₁ l₂,
+  apply iff_of_eq, congr' with l₁ l₂,
   simp [keys, disjoint_iff_ne]
 end
 

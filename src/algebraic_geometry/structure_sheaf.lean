@@ -177,69 +177,6 @@ def sections_subring (U : (opens (Spec.Top R))ᵒᵖ) :
       refl, }
   end, }
 
-
-def sections_subring (U : (opens (Spec.Top R))ᵒᵖ) :
-  subring (Π x : unop U, localizations R x) :=
-{ carrier := { f | (is_locally_fraction R).pred f },
-  zero_mem' :=
-  begin
-    refine λ x, ⟨unop U, x.2, 𝟙 _, 0, 1, λ y, ⟨_, _⟩⟩,
-    { rw ←ideal.ne_top_iff_one, exact y.1.is_prime.1, },
-    { simp, },
-  end,
-  one_mem' :=
-  begin
-    refine λ x, ⟨unop U, x.2, 𝟙 _, 1, 1, λ y, ⟨_, _⟩⟩,
-    { rw ←ideal.ne_top_iff_one, exact y.1.is_prime.1, },
-    { simp, },
-  end,
-  add_mem' :=
-  begin
-    intros a b ha hb x,
-    rcases ha x with ⟨Va, ma, ia, ra, sa, wa⟩,
-    rcases hb x with ⟨Vb, mb, ib, rb, sb, wb⟩,
-    refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * sb + rb * sa, sa * sb, _⟩,
-    intro y,
-    rcases wa (opens.inf_le_left _ _ y) with ⟨nma, wa⟩,
-    rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
-    fsplit,
-    { intro H, cases y.1.is_prime.mem_or_mem H; contradiction, },
-    { simp only [add_mul, ring_hom.map_add, pi.add_apply, ring_hom.map_mul],
-      erw [←wa, ←wb],
-      simp only [mul_assoc],
-      congr' 2,
-      rw [mul_comm], refl, }
-  end,
-  neg_mem' :=
-  begin
-    intros a ha x,
-    rcases ha x with ⟨V, m, i, r, s, w⟩,
-    refine ⟨V, m, i, -r, s, _⟩,
-    intro y,
-    rcases w y with ⟨nm, w⟩,
-    fsplit,
-    { exact nm, },
-    { simp only [ring_hom.map_neg, pi.neg_apply],
-      erw [←w],
-      simp only [neg_mul_eq_neg_mul_symm], }
-  end,
-  mul_mem' :=
-  begin
-    intros a b ha hb x,
-    rcases ha x with ⟨Va, ma, ia, ra, sa, wa⟩,
-    rcases hb x with ⟨Vb, mb, ib, rb, sb, wb⟩,
-    refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * rb, sa * sb, _⟩,
-    intro y,
-    rcases wa (opens.inf_le_left _ _ y) with ⟨nma, wa⟩,
-    rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
-    fsplit,
-    { intro H, cases y.1.is_prime.mem_or_mem H; contradiction, },
-    { simp only [pi.mul_apply, ring_hom.map_mul],
-      erw [←wa, ←wb],
-      simp only [mul_left_comm, mul_assoc, mul_comm],
-      refl, }
-  end, }
-
 end structure_sheaf
 
 open structure_sheaf

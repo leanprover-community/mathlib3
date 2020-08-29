@@ -22,7 +22,7 @@ namespace pgame
 
 local infix ` ≈ ` := equiv
 
-/-- The definiton for a impartial game, defined using Conway induction -/
+/-- The definition for a impartial game, defined using Conway induction -/
 @[class] def impartial : pgame → Prop
 | G := G ≈ -G ∧ (∀ i, impartial (G.move_left i)) ∧ (∀ j, impartial (G.move_right j))
 using_well_founded { dec_tac := pgame_wf_tac }
@@ -62,12 +62,12 @@ begin
   { apply equiv_trans _ (equiv_of_relabelling (neg_add_relabelling G H)).symm,
     exact add_congr (neg_equiv_self _) (neg_equiv_self _) },
   split,
-  all_goals {
-    intro i,
+  all_goals
+  { intro i,
     equiv_rw pgame.left_moves_add G H at i <|> equiv_rw pgame.right_moves_add G H at i,
     cases i },
-  all_goals {
-    simp only [add_move_left_inl, add_move_right_inl, add_move_left_inr, add_move_right_inr],
+  all_goals
+  { simp only [add_move_left_inl, add_move_right_inl, add_move_left_inr, add_move_right_inr],
     exact impartial_add _ _ }
 end
 using_well_founded { dec_tac := pgame_wf_tac }
@@ -82,8 +82,8 @@ begin
     symmetry,
     exact neg_equiv_self G },
   split,
-  all_goals {
-    intro i,
+  all_goals
+  { intro i,
     equiv_rw G.left_moves_neg at i <|> equiv_rw G.right_moves_neg at i,
     simp only [move_left_left_moves_neg_symm, move_right_right_moves_neg_symm],
     exact impartial_neg _ }

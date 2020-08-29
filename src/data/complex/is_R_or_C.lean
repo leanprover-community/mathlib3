@@ -11,9 +11,14 @@ import analysis.complex.basic
 # `is_R_or_C`: a typeclass for ℝ or ℂ
 
 This file defines the typeclass `is_R_or_C` intended to have only two instances:
-ℝ and ℂ. It is meant for definitions and theorems which hold for both the
-real and the complex case, such as inner products and Hilbert spaces. Its API
-follows closely that of ℂ.
+ℝ and ℂ. It is meant for definitions and theorems which hold for both the real and the complex case,
+and in particular when the real case follows directly from the complex case by setting `re` to `id`,
+`im` to zero and so on. Its API follows closely that of ℂ.
+
+Possible applications include defining inner products and Hilbert spaces for both the real and
+complex case. One would produce the definitions and proof for an arbitrary field of this
+typeclass, which basically amounts to doing the complex case, and the two cases then fall out
+immediately from the two instances of the class.
 -/
 
 set_option default_priority 100 -- see Note [default priority]
@@ -21,7 +26,7 @@ set_option default_priority 100 -- see Note [default priority]
 /--
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
 -/
-class is_R_or_C (K : Type*) [normed_field K] [algebra ℝ K] :=
+class is_R_or_C (K : Type*) [nondiscrete_normed_field K] [algebra ℝ K] :=
 (re : K →+ ℝ)
 (im : K →+ ℝ)
 (conj : K →+* K)
@@ -45,7 +50,7 @@ class is_R_or_C (K : Type*) [normed_field K] [algebra ℝ K] :=
 
 namespace is_R_or_C
 
-variables {K : Type*} [normed_field K] [algebra ℝ K] [is_R_or_C K]
+variables {K : Type*} [nondiscrete_normed_field K] [algebra ℝ K] [is_R_or_C K]
 local notation `𝓚` := @is_R_or_C.of_real K _ _ _
 
 lemma of_real_alg : ∀ x : ℝ, 𝓚 x = x • (1 : K) :=

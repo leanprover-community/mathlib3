@@ -105,7 +105,7 @@ lemma adjoin_subset_adjoin_iff {F' : Type*} [field F'] [algebra F' E]
 ⟨λ h, ⟨trans (adjoin.range_algebra_map_subset _ _) h, trans (subset_adjoin _ _) h⟩,
   λ ⟨hF, hS⟩, field.closure_subset (set.union_subset hF hS)⟩
 
-/-- F[S][T] = F[S ∪ T] -/
+/-- `F[S][T] = F[S ∪ T]` -/
 lemma adjoin_adjoin_left (T : set E) : (adjoin (adjoin F S : set E) T : set E) = adjoin F (S ∪ T) :=
 begin
   apply set.eq_of_subset_of_subset; rw adjoin_subset_adjoin_iff; split,

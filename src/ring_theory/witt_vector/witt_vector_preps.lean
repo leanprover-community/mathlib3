@@ -220,30 +220,49 @@ lemma vars_monomial_single (i : σ) (e : ℕ) (r : R) (he : e ≠ 0) (hr : r ≠
   (monomial (finsupp.single i e) r).vars = {i} :=
 by rw [vars_monomial hr, finsupp.support_single_ne_zero he]
 
+lemma mem_vars (p : mv_polynomial σ R) (i : σ) :
+  i ∈ p.vars ↔ ∃ (d : σ →₀ ℕ) (H : d ∈ p.support), i ∈ d.support :=
+begin
+  sorry
+  -- `mem_support_not_mem_vars_zero` gives one direction (after a small massage)
+end
+
+lemma vars_eq_support_bind_support (p : mv_polynomial σ R) :
+  p.vars = p.support.bind finsupp.support :=
+by {ext i, rw [mem_vars, finset.mem_bind] }
+
 lemma eval₂_hom_eq_constant_coeff_of_vars (f : R →+* S) (g : σ → S)
   (p : mv_polynomial σ R) (hp : ∀ i ∈ p.vars, g i = 0) :
   eval₂_hom f g p = f (constant_coeff p) :=
 begin
-  -- I don't like this proof
-  -- revert hp,
-  -- generalize hps : p.vars = s,
-  -- revert hps,
-  -- apply mv_polynomial.induction_on' p,
-  -- { intros d r hs hg,
-  --   by_cases hr : r = 0,
-  --   { simp only [hr, monomial_zero, ring_hom.map_zero] },
-  --   { rw vars_monomial hr at hs,
-  --     rw [eval₂_hom_monomial, constant_coeff_monomial, finsupp.prod, hs],
-  --     split_ifs with h,
-  --     { -- TODO: `finsupp.prod_zero_index` is not in the default simp set
-  --       simp only [h, mul_one, finset.prod_const_one, finsupp.zero_apply, pow_zero], },
-  --     { subst hs,
-  --       rw [← finsupp.support_eq_empty, ← ne.def, ← finset.nonempty_iff_ne_empty] at h,
-  --       obtain ⟨i, hi⟩ := h,
-  --       rw [finset.prod_eq_zero hi, mul_zero, f.map_zero],
-  --       simp_rw [finsupp.mem_support_iff] at hi hg,
-  --       rw [hg i hi, zero_pow' _ hi], } } },
-  -- { intros φ ψ hφ hψ hs, sorry  }
+  conv_lhs { rw p.as_sum },
+  simp only [ring_hom.map_sum, eval₂_hom_monomial],
+  by_cases h0 : constant_coeff p = 0,
+  { rw [h0, f.map_zero, finset.sum_eq_zero],
+    intros d hd,
+    obtain ⟨i, hi⟩ : d.support.nonempty,
+    { rw [constant_coeff_eq, coeff, ← finsupp.not_mem_support_iff] at h0,
+      rw [finset.nonempty_iff_ne_empty, ne.def, finsupp.support_eq_empty],
+      rintro rfl, contradiction },
+    rw [finsupp.prod, finset.prod_eq_zero hi, mul_zero],
+    rw [hp, zero_pow (nat.pos_of_ne_zero $ finsupp.mem_support_iff.mp hi)],
+    rw [mem_vars],
+    exact ⟨d, hd, hi⟩ },
+  { rw [finset.sum_eq_single (0 : σ →₀ ℕ)],
+    { rw [finsupp.prod_zero_index, mul_one],
+      refl },
+    { intros d hd hd0,
+      -- the next 8 lines are verbatim the same as 15 lines up
+      obtain ⟨i, hi⟩ : d.support.nonempty,
+      { rw [constant_coeff_eq, coeff, ← finsupp.not_mem_support_iff] at h0,
+        rw [finset.nonempty_iff_ne_empty, ne.def, finsupp.support_eq_empty],
+        rintro rfl, contradiction },
+      rw [finsupp.prod, finset.prod_eq_zero hi, mul_zero],
+      rw [hp, zero_pow (nat.pos_of_ne_zero $ finsupp.mem_support_iff.mp hi)],
+      rw [mem_vars],
+      exact ⟨d, hd, hi⟩ },
+    { rw [constant_coeff_eq, coeff, ← ne.def, ← finsupp.mem_support_iff] at h0,
+      intro, contradiction } }
 end
 
 lemma aeval_eq_constant_coeff_of_vars [algebra R S] (g : σ → S)

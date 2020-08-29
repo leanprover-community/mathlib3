@@ -224,8 +224,9 @@ begin
     exact relation.eqv_gen_iff_of_equivalence (filtered_colimit.r_equiv F) }
 end
 
-lemma colimit_eq_iff {i j : J} {xi : F.obj i} {xj : F.obj j} :
-  colimit.ι F i xi = colimit.ι F j xj ↔ ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f xi = F.map g xj :=
+lemma colimit_eq_iff_aux {i j : J} {xi : F.obj i} {xj : F.obj j} :
+  (colimit_cocone F).ι.app i xi = (colimit_cocone F).ι.app j xj ↔
+    ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f xi = F.map g xj :=
 begin
   change quot.mk _ _ = quot.mk _ _ ↔ _,
   rw [quot.eq, ←filtered_colimit.r_eq],
@@ -235,13 +236,17 @@ end
 variables {t} (ht : is_colimit t)
 lemma is_colimit_eq_iff {i j : J} {xi : F.obj i} {xj : F.obj j} :
   t.ι.app i xi = t.ι.app j xj ↔ ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f xi = F.map g xj :=
-let t' := colimit.cocone F,
-    e : t' ≅ t := is_colimit.unique_up_to_iso (colimit.is_colimit F) ht,
+let t' := colimit_cocone F,
+    e : t' ≅ t := is_colimit.unique_up_to_iso (colimit_cocone_is_colimit F) ht,
     e' : t'.X ≅ t.X := (cocones.forget _).map_iso e in
 begin
-  refine iff.trans _ (colimit_eq_iff F),
+  refine iff.trans _ (colimit_eq_iff_aux F),
   convert equiv.apply_eq_iff_eq e'.to_equiv _ _; rw ←e.hom.w; refl
 end
+
+lemma colimit_eq_iff {i j : J} {xi : F.obj i} {xj : F.obj j} :
+  colimit.ι F i xi = colimit.ι F j xj ↔ ∃ k (f : i ⟶ k) (g : j ⟶ k), F.map f xi = F.map g xj :=
+is_colimit_eq_iff _ (colimit.is_colimit F)
 
 end filtered_colimit
 

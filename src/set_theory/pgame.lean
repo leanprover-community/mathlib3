@@ -5,6 +5,7 @@ Authors: Reid Barton, Mario Carneiro, Isabel Longbottom, Scott Morrison
 -/
 import logic.embedding
 import data.nat.cast
+import data.fin
 
 /-!
 # Combinatorial (pre-)games.
@@ -124,7 +125,7 @@ Construct a pre-game from list of pre-games describing the available moves for L
 -- `left_moves`, `right_moves`, `move_left` and `move_right` below.
 -- TODO define this at the level of games, as well, and perhaps also for finsets of games.
 def of_lists (L R : list pgame.{0}) : pgame.{0} :=
-pgame.mk (fin L.length) (fin R.length) (λ i, L.nth_le i.val i.is_lt) (λ j, R.nth_le j.val j.is_lt)
+pgame.mk (fin L.length) (fin R.length) (λ i, L.nth_le i i.is_lt) (λ j, R.nth_le j.val j.is_lt)
 
 /-- The indexing type for allowable moves by Left. -/
 def left_moves : pgame → Type u

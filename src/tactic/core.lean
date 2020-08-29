@@ -322,7 +322,7 @@ Covers all declarations from the current file. -/
 meta def local_decls : tactic (name_map declaration) :=
 do e ← tactic.get_env,
    let xs := e.fold native.mk_rb_map
-     (λ d s, if environment.in_current_file' e d.to_name
+     (λ d s, if environment.in_current_file e d.to_name
              then s.insert d.to_name d else s),
    pure xs
 
@@ -348,7 +348,7 @@ do root ← unsafe_run_io $ io.env.get_cwd,
    let xs := e.fold native.mk_rb_map
      (λ d s,
        let source := e.decl_olean d.to_name in
-       if source ∈ fs ∧ (source = none → e.in_current_file' d.to_name)
+       if source ∈ fs ∧ (source = none → e.in_current_file d.to_name)
        then s.insert d.to_name d else s),
    pure xs
 

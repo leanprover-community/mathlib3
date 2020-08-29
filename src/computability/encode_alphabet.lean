@@ -122,7 +122,20 @@ def encoding_nat_Γ' : encoding ℕ :=
 
 def fin_encoding_nat_Γ' : fin_encoding ℕ := ⟨ encoding_nat_Γ', Γ'.fintype ⟩
 
---TODO: unary encodings
+def unary_encode_nat : nat → list Γ₀₁ :=
+| 0 := []
+| (n+1) := Γ₀₁.bit1 :: (unary_encode_nat n)
+
+def unary_decode_nat : list Γ₀₁ → nat := list.length
+
+def unary_encodek_nat : ∀ n, unary_decode_nat (unary_encode_nat n) = n :=
+λ n, nat.rec rfl (λ (m : ℕ) (hm : unary_decode_nat (unary_encode_nat m) = m), (congr_arg nat.succ hm.symm).symm) n
+
+def unary_encoding_nat : encoding ℕ :=
+{ Γ := Γ₀₁,
+  encode := unary_encode_nat,
+  decode := λ n, some (unary_decode_nat n),
+  encodek := λ n, congr_arg _ (unary_encodek_nat n)}
 
 def encode_bool : bool → list Γ₀₁
 | ff := [Γ₀₁.bit0]

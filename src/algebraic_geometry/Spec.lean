@@ -27,6 +27,13 @@ def Spec.SheafedSpace (R : CommRing) : SheafedSpace CommRing :=
 { carrier := Top.of (prime_spectrum R),
   ..structure_sheaf R }
 
+/--
+Spec of a commutative ring, as a `PresheafedSpace`.
+-/
+def Spec.PresheafedSpace (R : CommRing) : PresheafedSpace CommRing :=
+(Spec.SheafedSpace R).to_PresheafedSpace
+
+
 -- PROJECT: define `Spec.LocallyRingedSpace`. For more details see the PROJECT note in `Scheme.lean`.
 
 end algebraic_geometry

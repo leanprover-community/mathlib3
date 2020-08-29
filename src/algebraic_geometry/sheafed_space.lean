@@ -64,12 +64,10 @@ by apply_instance
 def forget_to_PresheafedSpace : (SheafedSpace C) ⥤ (PresheafedSpace C) :=
 induced_functor _
 
-variables (C)
+variables {C}
 
 section
 local attribute [simp] id comp presheaf.pushforward
-
-variables {C}
 
 @[simp] lemma id_base (X : SheafedSpace C) :
   ((𝟙 X) : X ⟶ X).base = (𝟙 (X : Top.{v})) := rfl

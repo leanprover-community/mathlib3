@@ -138,7 +138,7 @@ begin
   fapply fork.ext,
   { apply α.app, },
   { ext,
-    dunfold fork.ι, -- Ugh, it is unpleasant that we need this.
+    dunfold fork.ι, -- Ugh, `simp` can't unfold abbreviations.
     simp [res, diagram.iso_of_iso], }
 end
 

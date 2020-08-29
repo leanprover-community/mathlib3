@@ -250,7 +250,7 @@ begin
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
-lemma equiv_nim_iff_grundy_value_eq {G : pgame.{u}} (hG : impartial G) (O : ordinal) :
+lemma equiv_nim_iff_grundy_value_eq (G : pgame) [G.impartial] (O : ordinal) :
   G ≈ nim O ↔ grundy_value G = O :=
 ⟨by { intro h, rw ←nim.equiv_iff_eq, exact equiv_trans (equiv_symm (equiv_nim_grundy_value G)) h },
  by { rintro rfl, exact equiv_nim_grundy_value G }⟩
@@ -265,7 +265,7 @@ lemma equiv_iff_grundy_value_eq (G H : pgame) [G.impartial] [H.impartial] :
 lemma grundy_value_zero : grundy_value 0 = 0 :=
 by rw [(equiv_iff_grundy_value_eq 0 (nim 0)).1 (equiv_symm nim.zero_first_loses), nim.grundy_value]
 
-lemma equiv_zero_iff_grundy_value {G : pgame.{u}} (hG : impartial G) : G ≈ 0 ↔ grundy_value G = 0 :=
+lemma equiv_zero_iff_grundy_value (G : pgame) [G.impartial] : G ≈ 0 ↔ grundy_value G = 0 :=
 by rw [equiv_iff_grundy_value_eq, grundy_value_zero]
 
 lemma grundy_value_nim_add_nim (n m : ℕ) : grundy_value (nim n + nim m) = nat.lxor n m :=

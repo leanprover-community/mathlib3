@@ -5,7 +5,7 @@ Authors: Johan Commelin, Scott Morrison
 -/
 import topology.sheaves.presheaf_of_functions
 import topology.sheaves.sheaf
-import category_theory.limits.types
+import category_theory.limits.shapes.types
 import topology.local_homeomorph
 
 /-!
@@ -37,6 +37,7 @@ variables (X : Top.{u})
 open Top
 
 namespace Top.sheaf_condition
+
 
 /--
 We show that the presheaf of functions to a type `T`
@@ -101,27 +102,21 @@ begin
     have s₀ := s.condition =≫ pi.π _ (j, i),
     simp only [sheaf_condition.left_res, sheaf_condition.right_res] at s₀,
     have s₁ := congr_fun s₀ f,
-    have s₂ := congr_fun s₁ ⟨x, _⟩,
+    have s₂ := congr_fun s₁ ⟨x, _⟩, clear s₀ s₁,
     -- Notice at this point we've spun after an additional goal:
-    -- that `x ∈ U j ⊓ U i` to begin with! We'll postpone that.
-
-    -- In the meantime, we can just assert that `s₂` is the droid you are looking for.
-    -- (We relying shamefacedly on Lean's unification understanding this,
-    -- even though the type of the goal is still fairly messy. "It's obvious.")
-    simpa [presheaf_to_Type] using s₂,
-    clear s₀ s₁,
-
-    -- We still need to show `x ∈ U j ⊓ U i`.
-    -- We knew `x ∈ U i` right from the start:
-    refine ⟨_, mem⟩,
-    dsimp,
-
-    -- Notice that when we introduced `j`, we just introduced it as some metavariable.
-    -- However at this point it's received a concrete value,
-    -- because Lean's unification has worked out that this `j` must have been the index
-    -- that we picked using choice back when constructing the lift.
-    -- From this, we can extract the evidence that `x ∈ U j`:
-    convert @classical.some_spec _ (λ i, x ∈ (U i : set X)) _, },
+    -- that `x ∈ U j ⊓ U i` to begin with! Let's get that out of the way.
+    swap,
+    { -- We knew `x ∈ U i` right from the start:
+      refine ⟨_, mem⟩,
+      -- Notice that when we introduced `j`, we just introduced it as some metavariable.
+      -- However at this point it's received a concrete value,
+      -- because Lean's unification has worked out that this `j` must have been the index
+      -- that we picked using choice back when constructing the lift.
+      -- From this, we can extract the evidence that `x ∈ U j`:
+      convert @classical.some_spec _ (λ i, x ∈ (U i : set X)) _, },
+    -- Now, we can just assert that `s₂` is the droid you are looking for,
+    -- and do a little patching up afterwards.
+    convert s₂, },
   { -- On the home stretch now,
     -- we just need to check that the lift we picked was the only possible one.
 
@@ -136,6 +131,7 @@ begin
     -- We'll need the later,
     specialize w walking_parallel_pair.zero,
     -- because we're not sure which arbitrary `j : ι` we used to define our lift.
+
     let j : ι := _,
 
     -- Now it's just a matter of plugging in all the values;
@@ -168,6 +164,5 @@ The sheaf of not-necessarily-continuous functions on `X` with values in a type `
 def sheaf_to_Type (T : Type u) : sheaf (Type u) X :=
 { presheaf := presheaf_to_Type X T,
   sheaf_condition := sheaf_condition.to_Type _ _, }
-
 
 end Top

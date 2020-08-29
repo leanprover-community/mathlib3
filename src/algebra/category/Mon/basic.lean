@@ -105,7 +105,7 @@ example (R : CommMon.{u}) : R ⟶ R :=
 { to_fun := λ x,
   begin
     match_target (R : Type u),
-    match_hyp x := (R : Type u),
+    match_hyp x : (R : Type u),
     exact x * x
   end ,
   map_one' := by simp,

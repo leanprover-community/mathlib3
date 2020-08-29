@@ -227,8 +227,7 @@ begin
   rw ← this,
   simp only [finset.sum_singleton, continuous_multilinear_map.sum_apply],
   change q c.length (p.apply_composition c v) = q 0 v',
-  congr,
-  ext i,
+  congr' with i,
   simp only [composition.ones_length] at i,
   exact fin_zero_elim i
 end
@@ -428,8 +427,7 @@ begin
   ... = (∑' (n : ℕ), (∑' (c : composition n), (Cq : ennreal) * a ^ n)) : ennreal.tsum_sigma' _
   ... = (∑' (n : ℕ), ↑(fintype.card (composition n)) * (Cq : ennreal) * a ^ n) :
     begin
-      congr' 1,
-      ext1 n,
+      congr' 1 with n : 1,
       rw [tsum_fintype, finset.sum_const, nsmul_eq_mul, finset.card_univ, mul_assoc]
     end
   ... ≤ (∑' (n : ℕ), (2 : ennreal) ^ n * (Cq : ennreal) * a ^ n) :
@@ -443,7 +441,7 @@ begin
       rw ← ennreal.coe_le_coe at this,
       exact this
     end
-  ... = (∑' (n : ℕ), (Cq : ennreal) * (2 * a) ^ n) : by { congr' 1, ext1 n, rw mul_pow, ring }
+  ... = (∑' (n : ℕ), (Cq : ennreal) * (2 * a) ^ n) : by { congr' 1 with n : 1, rw mul_pow, ring }
   ... = (Cq : ennreal) * (1 - 2 * a) ⁻¹ : by rw [ennreal.tsum_mul_left, ennreal.tsum_geometric]
   ... < ⊤ : by simp [lt_top_iff_ne_top, ennreal.mul_eq_top, two_a]
 end
@@ -838,10 +836,7 @@ begin
   rcases j with ⟨a', b'⟩,
   rintros ⟨h, h'⟩,
   have H : a = a', by { ext1, exact h },
-  induction H,
-  congr,
-  ext1,
-  exact h'
+  induction H, congr, ext1, exact h'
 end
 
 /-- Rewriting equality in the dependent type

@@ -38,10 +38,19 @@ variables (X : Top.{v})
 The presheaf of dependently typed functions on `X`, with fibres given by a type family `f`.
 There is no requirement that the functions are continuous, here.
 -/
-@[simps]
-def presheaf_to_Types (f : X → Type v) : X.presheaf (Type v) :=
-{ obj := λ U, Π x : (unop U), f x,
+def presheaf_to_Types (T : X → Type v) : X.presheaf (Type v) :=
+{ obj := λ U, Π x : (unop U), T x,
   map := λ U V i g, λ (x : unop V), g (i.unop x) }
+
+@[simp] lemma presheaf_to_Types_obj
+  {T : X → Type v} {U : (opens X)ᵒᵖ} :
+  (presheaf_to_Types X T).obj U = Π x : (unop U), T x :=
+rfl
+
+@[simp] lemma presheaf_to_Types_map
+  {T : X → Type v} {U V : (opens X)ᵒᵖ} {i : U ⟶ V} {f} :
+  (presheaf_to_Types X T).map i f = λ x, f (i.unop x) :=
+rfl
 
 /--
 The presheaf of functions on `X` with values in a type `T`.
@@ -70,6 +79,10 @@ rfl
 /-- The presheaf of continuous functions on `X` with values in fixed target topological space `T`. -/
 def presheaf_to_Top (T : Top.{v}) : X.presheaf (Type v) :=
 (opens.to_Top X).op ⋙ (yoneda.obj T)
+
+@[simp] lemma presheaf_to_Top_obj (T : Top.{v}) (U : (opens X)ᵒᵖ) :
+  (presheaf_to_Top X T).obj U = ((opens.to_Top X).obj (unop U) ⟶ T) :=
+rfl
 
 /-- The (bundled) commutative ring of continuous functions from a topological space
 to a topological commutative ring, with pointwise multiplication. -/

@@ -118,7 +118,7 @@ theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t) : submodule R A) =
   (adjoin R s) * (adjoin R t) :=
 begin
   rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
-  congr' 1, ext z, simp [monoid.mem_closure_union_iff, set.mem_mul],
+  congr' 1 with z, simp [monoid.mem_closure_union_iff, set.mem_mul],
 end
 
 end comm_semiring

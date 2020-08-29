@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Fox Thomson
+Authors: Fox Thomson, Markus Himmel
 -/
 import data.nat.bitwise
 import set_theory.game.impartial
@@ -13,7 +13,9 @@ import set_theory.ordinal_arithmetic
 This file contains the definition for nim for any ordinal `O`. In the game of `nim O₁` both players
 may move to `nim O₂` for any `O₂ < O₁`.
 We also define a Grundy value for an impartial game `G` and prove the Sprague-Grundy theorem, that
-`G` is equivalent to `nim (Grundy_value G)`.
+`G` is equivalent to `nim (grundy_value G)`.
+Finally, we compute the sum of finite Grundy numbers: if `G` and `H` have Grundy values `n` and `m`,
+where `n` and `m` are natural numbers, then `G + H` has the Grundy value `n xor m`.
 
 ## Implementation details
 
@@ -23,6 +25,10 @@ However, this definition does not work for us because it would make the type of 
 theorem, since that requires the type of `nim` to be `ordinal.{u} → pgame.{u}`. For this reason, we
 instead use `O.out.α` for the possible moves, which makes proofs significantly more messy and
 tedious, but avoids the universe bump.
+
+The lemma `nim_def` is somewhat prone to produce "motive is not type correct" errors. If you run
+into this problem, you may find the lemmas `exists_ordinal_move_left_eq` and `exists_move_left_eq`
+useful.
 
 -/
 universes u
@@ -259,7 +265,7 @@ lemma equiv_iff_grundy_value_eq (G H : pgame) [G.impartial] [H.impartial] :
 lemma grundy_value_zero : grundy_value 0 = 0 :=
 by rw [(equiv_iff_grundy_value_eq 0 (nim 0)).1 (equiv_symm nim.zero_first_loses), nim.grundy_value]
 
-lemma equiv_zero_iff_Grundy_value {G : pgame.{u}} (hG : impartial G) : G ≈ 0 ↔ grundy_value G = 0 :=
+lemma equiv_zero_iff_grundy_value {G : pgame.{u}} (hG : impartial G) : G ≈ 0 ↔ grundy_value G = 0 :=
 by rw [equiv_iff_grundy_value_eq, grundy_value_zero]
 
 lemma grundy_value_nim_add_nim (n m : ℕ) : grundy_value (nim n + nim m) = nat.lxor n m :=

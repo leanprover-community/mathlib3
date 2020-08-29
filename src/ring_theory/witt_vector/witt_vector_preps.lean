@@ -40,7 +40,7 @@ universes u v w u₁
 namespace mv_polynomial
 open finsupp
 
-variables (σ R A : Type*) [comm_ring R] [comm_ring A]
+variables (σ R A : Type*) [comm_semiring R] [comm_semiring A]
 
 @[simp] lemma aeval_zero [algebra R A] (p : mv_polynomial σ R) :
   aeval (0 : σ → A) p = algebra_map _ _ (p.coeff 0) :=
@@ -115,6 +115,21 @@ variables (p q : mv_polynomial σ R)
 open function
 open_locale classical big_operators
 
+section monomial
+
+lemma eval₂_hom_monomial (f : R →+* S) (g : σ → S) (d : σ →₀ ℕ) (r : R) :
+  eval₂_hom f g (monomial d r) = f r * d.prod (λ i k, g i ^ k) :=
+by simp only [monomial_eq, ring_hom.map_mul, eval₂_hom_C, finsupp.prod,
+  ring_hom.map_prod, ring_hom.map_pow, eval₂_hom_X']
+
+lemma aeval_monomial [algebra R S] (g : σ → S) (d : σ →₀ ℕ) (r : R) :
+  aeval g (monomial d r) = algebra_map _ _ r * d.prod (λ i k, g i ^ k) :=
+eval₂_hom_monomial _ _ _ _
+
+end monomial
+
+section vars
+
 lemma vars_add_subset :
   (p + q).vars ⊆ p.vars ∪ q.vars :=
 begin
@@ -150,6 +165,12 @@ sorry
 lemma vars_map_of_injective (hf : injective f) :
   (map f p).vars = p.vars :=
 sorry
+
+lemma vars_monomial_single (i : σ) (e : ℕ) (r : R) (he : e ≠ 0) (hr : r ≠ 0) :
+  (monomial (finsupp.single i e) r).vars = {i} :=
+by rw [vars_monomial hr, finsupp.support_single_ne_zero he]
+
+end vars
 
 end mv_polynomial
 

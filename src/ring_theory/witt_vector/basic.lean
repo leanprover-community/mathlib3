@@ -42,6 +42,7 @@ universes u v w u₁
 open mv_polynomial
 open set
 open finset (range)
+open finsupp (single)
 
 open_locale big_operators
 
@@ -63,7 +64,16 @@ It is defined as:
 
 `∑_{i ≤ n} p^i X_i^{p^{n-i}} ∈ R[X_0, X_1, X_2, …]`. -/
 noncomputable def witt_polynomial (n : ℕ) : mv_polynomial ℕ R :=
-∑ i in range (n+1), C (p^i : R) * X i ^ (p^(n-i))
+∑ i in range (n+1), monomial (single i (p ^ (n - i))) (p ^ i)
+
+lemma witt_polynomial_eq_sum_C_mul_X_pow (n : ℕ) :
+  witt_polynomial p R n = ∑ i in range (n+1), C (p ^ i : R) * X i ^ (p ^ (n - i)) :=
+begin
+  apply finset.sum_congr rfl,
+  rintro i -,
+  rw [monomial_eq, finsupp.prod_single_index],
+  rw pow_zero,
+end
 
 /-! We set up notation locally to this file, to keep statements short and comprehensible.
 This allows us to simply write `W n` or `W_ ℤ n`. -/
@@ -87,23 +97,14 @@ begin
   rw [witt_polynomial, ring_hom.map_sum],
   apply finset.sum_congr rfl,
   intros i hi,
-  rw [ring_hom.map_mul, map_C f, ring_hom.map_pow,
-      ring_hom.map_nat_cast, ring_hom.map_pow, ring_hom.map_pow, map_X],
+  rw [map_monomial, ring_hom.map_pow, ring_hom.map_nat_cast],
 end
-
--- no longer used...
-lemma map_witt_polynomial (f : R →+* S) (n : ℕ) :
-  map f (W n) = W n :=
-map_hom_witt_polynomial p f n
 
 variables (R)
 
 lemma aeval_witt_polynomial {A : Type*} [comm_ring A] [algebra R A] (f : ℕ → A) (n : ℕ) :
   aeval f (W_ R n) = ∑ i in range (n+1), p^i * (f i) ^ (p ^ (n-i)) :=
-by { -- clean this up
-  simp only [witt_polynomial, alg_hom.map_sum, aeval_C, ring_hom.map_nat_cast, alg_hom.map_pow,
-    C_pow, aeval_X, alg_hom.map_mul,
- ring_hom.map_nat_cast, alg_hom.map_pow, C_pow, aeval_X, alg_hom.map_mul, alg_hom.map_nat_cast], }
+by simp [witt_polynomial, alg_hom.map_sum, aeval_monomial, finsupp.prod_single_index]
 
 end
 
@@ -152,10 +153,14 @@ begin
   apply nat.strong_induction_on n,
   clear n, intros n H,
   rw [X_in_terms_of_W_eq],
-  simp only [alg_hom.map_mul, alg_hom.map_sub, alg_hom_C, from_W_to_X_basis_X p R n, alg_hom.map_sum],
-  rw [finset.sum_congr rfl, (_ : W_ R n - ∑ i in range n, C (p^i : R) * (X i)^p^(n-i) = C (p^n : R) * X n)],
-  { rw [mul_right_comm, ← C_mul, ← mul_pow, mul_inv_of_self, one_pow, C_1, one_mul] },
-  { simp [witt_polynomial, nat.sub_self, finset.sum_range_succ] },
+  rw [alg_hom.map_mul, alg_hom.map_sub, alg_hom_C, alg_hom.map_sum, from_W_to_X_basis_X],
+  -- simp only [from_W_to_X_basis_X p R n, alg_hom.map_sum],
+  have : W_ R n - ∑ i in range n, C (p ^ i : R) * (X i) ^ p ^ (n - i) = C (p ^ n : R) * X n,
+  by simp only [witt_polynomial_eq_sum_C_mul_X_pow, nat.sub_self, finset.sum_range_succ,
+    pow_one, add_sub_cancel, nat.pow_zero],
+  rw [finset.sum_congr rfl, this],
+  { -- this is really slow for some reason
+    rw [mul_right_comm, ← C_mul, ← mul_pow, mul_inv_of_self, one_pow, C_1, one_mul], },
   { intros i h,
     rw finset.mem_range at h,
     simp only [alg_hom.map_mul, alg_hom.map_pow, alg_hom_C, function.comp_app, H i h] },
@@ -178,13 +183,10 @@ by rw [X_in_terms_of_W_eq, mul_assoc, ← C_mul, ← mul_pow, inv_of_mul_self, o
 lemma from_X_to_W_basis_witt_polynomial [invertible (p : R)] (n : ℕ) :
   (from_X_to_W_basis p R) (W n) = X n :=
 begin
-  rw [witt_polynomial],
-  rw [alg_hom.map_sum],
-  simp only [alg_hom.map_pow, C_pow, alg_hom.map_mul],
-  simp only [from_X_to_W_basis_X, alg_hom_C],
-  rw [finset.sum_range_succ, nat.sub_self, nat.pow_zero, pow_one],
-  rw [mul_comm, ← C_pow],
-  rw X_in_terms_of_W_aux,
+  rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum],
+  simp only [alg_hom.map_pow, C_pow, alg_hom.map_mul, from_X_to_W_basis_X, alg_hom_C],
+  rw [finset.sum_range_succ, nat.sub_self, nat.pow_zero, pow_one,
+      mul_comm, ← C_pow, X_in_terms_of_W_aux],
   simp only [C_pow, sub_add_cancel],
 end
 
@@ -345,14 +347,13 @@ end
 @[simp] lemma witt_polynomial_zmod_self (n : ℕ) :
   W_ (zmod (p^(n+1))) (n + 1) = aeval (λ i, ((X i)^p)) (W_ (zmod (p^(n+1))) n) :=
 begin
-  delta witt_polynomial,
-  rw [finset.sum_range_succ, ← nat.cast_pow,
-      char_p.cast_eq_zero (zmod (p^(n+1))) (p^(n+1)),
+  simp only [witt_polynomial_eq_sum_C_mul_X_pow],
+  rw [finset.sum_range_succ, ← nat.cast_pow, char_p.cast_eq_zero (zmod (p^(n+1))) (p^(n+1)),
       C_0, zero_mul, zero_add],
   rw [alg_hom.map_sum, finset.sum_congr rfl],
   intros k hk,
-  rw [alg_hom.map_mul, alg_hom.map_pow, aeval_X, alg_hom_C],
-  rw [← pow_mul, mul_comm p, ← nat.pow_succ, nat.succ_eq_add_one],
+  rw [alg_hom.map_mul, alg_hom.map_pow, aeval_X, alg_hom_C, ← pow_mul,
+      mul_comm p, ← nat.pow_succ, nat.succ_eq_add_one],
   congr,
   rw finset.mem_range at hk,
   omega
@@ -979,11 +980,23 @@ begin
 end
 
 -- move this up?
+
 lemma witt_polynomial_vars (n : ℕ) :
   (witt_polynomial p ℤ n).vars = finset.range (n + 1) :=
 begin
+  have : ∀ i, (monomial (single i (p ^ (n - i))) (p ^ i : ℤ)).vars = {i},
+  { intro i,
+    rw vars_monomial_single,
+    { rw ← nat.pos_iff_ne_zero,
+      apply nat.pow_pos hp.pos },
+    { apply pow_ne_zero, exact_mod_cast hp.ne_zero } },
   rw [witt_polynomial, vars_sum_of_disjoint],
-  -- Ooh, I would love to use `vars_monomial` here.
+  { simp only [this, int.nat_cast_eq_coe_nat],
+    sorry },
+  { simp only [this, int.nat_cast_eq_coe_nat],
+    intros a b h,
+    apply finset.singleton_disjoint.mpr,
+    rwa finset.mem_singleton, },
 end
 
 

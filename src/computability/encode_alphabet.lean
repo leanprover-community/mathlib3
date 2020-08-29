@@ -13,8 +13,6 @@ structure encoding (α : Type) :=
 structure fin_encoding (α : Type) extends encoding α :=
 (Γ_fin : fintype Γ)
 
-#check fin_encoding
-
 @[derive [inhabited,decidable_eq]]
 inductive Γ₀₁
 | bit0 | bit1
@@ -111,18 +109,8 @@ end
 
 def encodek_nat : ∀ n, (decode_nat(encode_nat n) ) = n := begin
   intros n,
-  change decode_nat (encode_num n) = n,
-  have h :decode_num (encode_num n) = n :=
-  begin
-    change decode_num (encode_num n) = n,
-    exact encodek_num ↑n,
-  end,
-  unfold decode_nat,
-  have k : ∀ m : nat, m = ((m : num) : nat) := λ m, begin
-    exact (num.to_of_nat m).symm,
-  end,
-  conv_rhs {rw k n},
-  exact congr_arg coe h,
+  conv_rhs {rw ← num.to_of_nat n},
+  exact congr_arg coe (encodek_num ↑n),
 end
 
 def encoding_nat_Γ₀₁ : encoding ℕ :=

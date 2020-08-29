@@ -55,8 +55,6 @@ local infix ` ≈ ` := equiv
 
 namespace nim
 
-open pgame
-
 lemma nim_def (O : ordinal) : nim O = pgame.mk O.out.α O.out.α
   (λ O₂, nim (ordinal.typein O.out.r O₂))
   (λ O₂, nim (ordinal.typein O.out.r O₂)) :=

@@ -326,8 +326,7 @@ lemma cone_of_hom_fac {Y : C} (f : Y ⟶ X) :
 cone_of_hom h f = (limit_cone h).extend f :=
 begin
   dsimp [cone_of_hom, limit_cone, cone.extend],
-  congr,
-  ext j,
+  congr' with j,
   have t := congr_fun (h.hom.naturality f.op) (𝟙 X),
   dsimp at t,
   simp only [comp_id] at t,
@@ -369,8 +368,7 @@ def of_nat_iso {X : C} (h : yoneda.obj X ≅ F.cones) :
     rw ←hom_of_cone_of_hom h m,
     congr,
     rw cone_of_hom_fac,
-    dsimp, cases s, congr,
-    ext j, exact w j,
+    dsimp, cases s, congr' with j, exact w j,
   end }
 end
 
@@ -656,8 +654,7 @@ lemma cocone_of_hom_fac {Y : C} (f : X ⟶ Y) :
 cocone_of_hom h f = (colimit_cocone h).extend f :=
 begin
   dsimp [cocone_of_hom, colimit_cocone, cocone.extend],
-  congr,
-  ext j,
+  congr' with j,
   have t := congr_fun (h.hom.naturality f) (𝟙 X),
   dsimp at t,
   simp only [id_comp] at t,
@@ -699,8 +696,7 @@ def of_nat_iso {X : C} (h : coyoneda.obj (op X) ≅ F.cocones) :
     rw ←hom_of_cocone_of_hom h m,
     congr,
     rw cocone_of_hom_fac,
-    dsimp, cases s, congr,
-    ext j, exact w j,
+    dsimp, cases s, congr' with j, exact w j,
   end }
 end
 

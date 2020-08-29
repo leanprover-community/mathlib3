@@ -73,6 +73,10 @@ def decode_pos_num : list Γ₀₁ → pos_num
 | (Γ₀₁.bit1 :: l) := (pos_num.bit1 (decode_pos_num l))
 | _ := pos_num.one
 
+--| (Γ₀₁.bit0 :: l) := (pos_num.bit0 (decode_pos_num l))
+--| (Γ₀₁.bit1 :: l) := ite (l = []) pos_num.one (pos_num.bit1 (decode_pos_num l))
+--| _ := pos_num.one
+
 def decode_num : list Γ₀₁ → num
 | [] := num.zero
 | l := decode_pos_num l
@@ -80,32 +84,27 @@ def decode_num : list Γ₀₁ → num
 def decode_nat : list Γ₀₁ → nat := λ l, decode_num l
 
 def encode_pos_num_nonempty (n : pos_num) : (encode_pos_num n) ≠ [] :=
-begin
-  cases n with m,
-  exact list.cons_ne_nil Γ₀₁.bit1 list.nil,
-  exact list.cons_ne_nil Γ₀₁.bit1 (encode_pos_num m),
-  exact list.cons_ne_nil Γ₀₁.bit0 (encode_pos_num n),
-end
+pos_num.cases_on n (list.cons_ne_nil _ _) (λ m, list.cons_ne_nil _ _) (λ m, list.cons_ne_nil _ _)
 
 def encodek_pos_num : ∀ n, (decode_pos_num(encode_pos_num n) ) = n := begin
   intros n,
-  induction n with m hm m hm,
-  trivial,
-  change decode_pos_num ((Γ₀₁.bit1) :: encode_pos_num m) = m.bit1,
-  have h := encode_pos_num_nonempty m,
-  calc decode_pos_num (Γ₀₁.bit1 :: encode_pos_num m)
-    = pos_num.bit1 (decode_pos_num (encode_pos_num m)) : begin cases (encode_pos_num m), exfalso, trivial,trivial, end
-    ... = m.bit1 : by rw hm,
-  calc decode_pos_num (Γ₀₁.bit0 :: encode_pos_num m)
-    = pos_num.bit0 (decode_pos_num (encode_pos_num m)) :  by trivial
-    ... = m.bit0 : by rw hm,
+  induction n with m hm m hm; unfold encode_pos_num decode_pos_num, {
+    have h := encode_pos_num_nonempty m,
+    cases (encode_pos_num m) with p ph, {
+      trivial,
+    },
+    unfold decode_pos_num,
+    rw hm,
+  },
+  rw hm,
 end
 
 def encodek_num : ∀ n, (decode_num(encode_num n) ) = n := begin
   intros n,
-  cases n,
-  trivial,
-  change decode_num (encode_pos_num n) = num.pos n,
+  cases n, {
+    trivial,
+  },
+  unfold encode_num,
   have h : encode_pos_num n ≠ [] := encode_pos_num_nonempty n,
   have h' : decode_num (encode_pos_num n) = decode_pos_num (encode_pos_num n) := begin
     cases encode_pos_num n; trivial,
@@ -116,7 +115,7 @@ def encodek_num : ∀ n, (decode_num(encode_num n) ) = n := begin
 end
 
 def encodek_nat : ∀ n, (decode_nat(encode_nat n) ) = n := begin
-  intros n,
+  intro n,
   conv_rhs {rw ← num.to_of_nat n},
   exact congr_arg coe (encodek_num ↑n),
 end

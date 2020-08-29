@@ -219,7 +219,7 @@ by { dunfold edge_set, exact subtype.fintype _ }
 
 section edge_finset
 variable (G)
-variables [decidable_eq (V G)] [fintype (V G)] [decidable_rel (adj G)]
+variables [fintype (edge_set G)]
 
 /--
 The `edge_set` of the graph as a `finset`.
@@ -378,6 +378,23 @@ by { ext, simp }
 @[simp]
 lemma card_simple_graph_on_eq (α : Type u) (G : simple_graph_on α) [fintype α] :
 fintype.card (V G) = fintype.card α := rfl
+
+/--
+The minimal degree of all vertices
+-/
+def min_deg (G : α) [fintype (V G)] [h : nonempty (V G)] [decidable_rel (adj G)]: ℕ :=
+finset.min' ((univ : finset (V G)).image (λ v, degree v)) (match h with
+| nonempty.intro v := begin use degree v, simp only [mem_image, mem_univ, exists_prop_of_true], use v, end
+end)
+
+/--
+The maximal degree of all vertices
+-/
+def max_deg (G : α) [fintype (V G)] [h : nonempty (V G)] [decidable_rel (adj G)]: ℕ :=
+finset.max' ((univ : finset (V G)).image (λ v, degree v)) (match h with
+| nonempty.intro v := begin use degree v, simp only [mem_image, mem_univ, exists_prop_of_true], use v, end
+end)
+
 
 end finite
 
@@ -579,6 +596,18 @@ def comp (f' : G' ≃g G'') (f : G ≃g G') : G ≃g G'' :=
 infixr ` ∘ ` := comp
 
 @[simp] lemma comp_app (f' : G' ≃g G'') (f : G ≃g G') (v : V G) : (comp f' f) v = f' (f v) := rfl
+
+
+lemma iso_has_eq_order [fintype (V G)] [fintype (V G')] (f : G ≃g G') : fintype.card (V G) = fintype.card (V G') :=
+by { convert (fintype.of_equiv_card f.to_equiv).symm }
+
+lemma iso_has_eq_size
+[fintype (edge_set G)] [fintype (edge_set G')] (f : G ≃g G') :
+  (edge_finset G).card = (edge_finset G').card :=
+begin
+  convert_to fintype.card (edge_set G) = fintype.card (edge_set G'); try { exact multiset.card_map subtype.val _ },
+  convert (fintype.of_equiv_card (isomorphism.map_edge_set f)).symm,
+end
 
 end isomorphism
 
@@ -881,13 +910,51 @@ lemma map_top_to_fun {x : subgraph G} (v : x.V') : x.map_top v = v.val := rfl
 /--
 The induced subgraph of a graph is the graph with a specified vertex
 set along with all the edges whose endpoints lie in the set.
+
+Note: `induced' V' = induced ⊤ V'`.  TODO decide whether to remove this function.
 -/
-def induced (V' : set (V G)) : subgraph G :=
+def induced' (V' : set (V G)) : subgraph G :=
 { V' := V',
   adj' := λ v w, v ∈ V' ∧ w ∈ V' ∧ v ~g w,
   adj_sub := λ v w ⟨hv, hw, he⟩, he,
   edge_vert := λ v w ⟨hv, hw, he⟩, hv,
   symm' := λ v w ⟨hv, hw, he⟩, ⟨hw, hv, symm G he⟩ }
+
+/--
+Given a subgraph `G'` and a vertex set `V'`, produces another subgraph on `V'` whose edges consist
+of all those edges in `G'` whose endpoints lie in `V'`.  Note that the vertex set
+might have vertices outside `V G'`.
+-/
+def induced (G' : subgraph G) (V' : set (V G)) : subgraph G :=
+{ V' := V',
+  adj' := λ v w, v ∈ V' ∧ w ∈ V' ∧ G'.adj' v w,
+  adj_sub := λ v w ⟨hv, hw, he⟩, G'.adj_sub he,
+  edge_vert := λ v w ⟨hv, hw, he⟩, hv,
+  symm' := λ v w ⟨hv, hw, he⟩, ⟨hw, hv, G'.symm' he⟩ }
+
+/--
+The subgraph obtained by deleting a set `W` of vertices along with all the incident edges.
+-/
+def delete (G' : subgraph G) (W : set (V G)) : subgraph G :=
+{ V' := {v : V G | v ∈ G'.V' ∧ v ∉ W},
+  adj' := λ v w, v ∉ W ∧ w ∉ W ∧ G'.adj' v w,
+  adj_sub := λ v w ⟨hv, hw, he⟩, G'.adj_sub he,
+  edge_vert := λ v w ⟨hv, hw, he⟩, ⟨G'.edge_vert he, hv⟩,
+  symm' := λ v w ⟨hv, hw, he⟩, ⟨hw, hv, G'.symm' he⟩ }
+
+/--
+The subgraph obtained by adding an edge between vertices a and b.  If `a = b`, then this
+results in the same subgraph.
+-/
+def join_verts (G' : subgraph G) {a b : V G} (hab : a ~g b) : subgraph G :=
+{ V' := G'.V' ∪ {a, b},
+  adj' := λ v w, (v = a ∧ w = b ∨ v = b ∧ w = a) ∨ G'.adj' v w,
+  adj_sub := λ v w h, begin
+    cases h, cases h; rwa [h.1, h.2], rwa adj_symm,
+    exact G'.adj_sub h,
+  end,
+  edge_vert := λ v w h, by { cases h, swap, left, exact G'.edge_vert h, tidy },
+  symm' := λ v w h, by { cases h, { left, tidy, }, { right, exact G'.symm' h, } } }
 
 /--
 A characterization of the neighbor set of a subgraph as a subset of the neighbor set of the graph.
@@ -1164,6 +1231,15 @@ begin
   left, assumption, right, exact h_1.symm,
 end
 
+namespace subgraph
+variables {α : Type*} [simple_graphs α]
+
+def is_cycle {G : α} (G' : subgraph G) : Prop := nonempty (Σ n : {n // 3 ≤ n}, cycle_graph n.1 n.2 ↪g G)
+
+def cycles (G : α) : set (subgraph G) := { G' | is_cycle G' }
+
+end subgraph
+
 def complete_partite_graph {ι : Type u} (f : ι → Type v) : simple_graph_on (Σ i : ι, f i) :=
 { adj := λ v w, v.1 ≠ w.1 }
 
@@ -1344,96 +1420,70 @@ end connectivity
 
 section degree_sum
 
-variables {α : Type u} [simple_graphs α] (G : α) [fintype (V G)] [decidable_eq (V G)] [decidable_rel (adj G)]
+variables {α : Type u} [simple_graphs.{_ v} α] (G : α) [fintype (V G)] [decidable_eq (V G)] [decidable_rel (adj G)]
 
 /--
-A dart is a vertex along with an incident edge.
+A dart is an ordered pair of adjacent vertices, thought of as a little arrow from the
+first vertex along an edge. (It is `uncurry (adj G)` as a subtype.)
 -/
-def darts := Σ (v : V G), incident_set v
+def darts : Type v := {d : V G × V G // d.1 ~g d.2}
 
 /--
 Gives the dart's edge.
 -/
-def dart_to_edge : darts G → edge_set G := λ d, ⟨d.2.1, incident_set_subset d.1 d.2.2⟩
+def dart_to_edge : darts G → edge_set G := λ d, ⟨⟦d.val⟧, d.property⟩
 /--
-Gives the dart's vertex.
+Gives the dart's vertex.  This is the first vertex of the pair.
 -/
-def dart_to_vert : darts G → V G := λ d, d.1
+def dart_to_vert : darts G → V G := λ d, d.val.1
 /--
 Reverses the dart: the new vertex is the vertex across the edge.
 -/
-def dart_reverse : darts G → darts G := λ d, ⟨d.2.2.2.other', d.2.1, d.2.2.1, begin
-  rcases d with ⟨v, e, he, hv⟩,
-  rw ←(sym2.mem_other_spec' hv) at hv,
-  apply sym2.mem_other_mem',
-end⟩
+def dart_reverse : darts G → darts G := λ d, ⟨(d.val.2, d.val.1), symm G d.property⟩
 
 @[simp]
-lemma dart_to_edge_of_dart_reverse (d : darts G) : dart_to_edge G (dart_reverse G d) = dart_to_edge G d := rfl
+lemma dart_to_edge_of_dart_reverse (d : darts G) : dart_to_edge G (dart_reverse G d) = dart_to_edge G d :=
+by { rcases d with ⟨⟨x, y⟩, h⟩,
+     dsimp [dart_to_edge, dart_reverse], rw [subtype.mk_eq_mk, sym2.eq_swap] }
+
 
 lemma dart_reverse_invol : function.involutive (dart_reverse G) :=
-begin
-  rintro ⟨v, e, hd⟩,
-  dsimp [dart_reverse],
-  congr, delta dart_reverse._proof_2, delta dart_reverse._proof_1, dsimp only,
-  apply sym2.other_invol',
-  ext e, delta dart_reverse._proof_2, delta dart_reverse._proof_1, dsimp only,
-  rw sym2.other_invol',
-  apply proof_irrel_heq,
-end
+by { rintro ⟨⟨x, y⟩, h⟩, dsimp [dart_reverse], rw subtype.mk_eq_mk }
 
 lemma dart_reverse_no_fixedpoint (d : darts G) : d ≠ dart_reverse G d :=
 begin
-  intro h,
-  rcases d with ⟨v, e, he, hv⟩,
-  rw ←sym2.mem_other_spec' hv at he,
-  dsimp [dart_reverse] at h,
-  rw sigma.mk.inj_iff at h,
-  rw [←h.1, mem_edge_set] at he,
-  exact loopless G v he,
+  rcases d with ⟨⟨x, y⟩, h⟩,
+  dsimp [dart_reverse],
+  rw subtype.mk_eq_mk,
+  intro heq, rw prod.mk.inj_iff at heq,
+  rw [heq.1] at h,
+  exact loopless G _ h,
 end
 
 lemma dart_edge_preimage (d₁ d₂ : darts G) :
   dart_to_edge G d₁ = dart_to_edge G d₂ ↔ d₁ = d₂ ∨ d₁ = dart_reverse G d₂ :=
 begin
-  split,
-  { intro h,
-    rcases d₁ with ⟨v₁, e₁, he₁, hv₁⟩,
-    rcases d₂ with ⟨v₂, e₂, he₂, hv₂⟩,
-    simp only [dart_to_edge, subtype.mk_eq_mk] at h,
-    subst e₂,
-    by_cases h : v₁ = v₂, { left, subst v₂, },
-    have hh : hv₂.other' = v₁,
-    { have he' := eq.trans (sym2.mem_other_spec' hv₂) ((sym2.elems_iff_eq h).mp ⟨hv₁, hv₂⟩),
-      rw sym2.eq_iff at he',
-      cases he', exfalso, cc, cc, },
-    right, simp only [dart_reverse, sigma.mk.inj_iff],
-    split,
-    exact hh.symm,
-    delta dart_reverse._proof_2, dsimp,
-    congr,
-    { ext e', delta dart_reverse._proof_1, dsimp,
-      rw hh, },
-    exact hh.symm,
-    apply proof_irrel_heq, },
-  { intro h, cases h; subst d₁, simp, }
+  rcases d₁ with ⟨⟨x₁, y₁⟩, h₁⟩,
+  rcases d₂ with ⟨⟨x₂, y₂⟩, h₂⟩,
+  dsimp [dart_to_edge, dart_reverse],
+  repeat { rw subtype.mk_eq_mk },
+  repeat { rw prod.mk.inj_iff },
+  exact sym2.eq_iff,
 end
 
 instance : fintype (darts G) :=
 by { dunfold darts, apply_instance }
 
-lemma dart_to_edge_prop (e : edge_set G) (d : darts G) (h : dart_to_edge G d = e) : d.1 ∈ e.1 :=
+lemma dart_to_edge_prop (e : edge_set G) (d : darts G) (h : dart_to_edge G d = e) : dart_to_vert G d ∈ e.1 :=
 by tidy
 
 lemma dart_to_edge_surj : function.surjective (dart_to_edge G) :=
 begin
   rintro ⟨e, he⟩,
-  induction e,
-  cases e with v w,
-  use [v, ⟦(v, w)⟧],
-  exact (mem_incident_set v w).mpr (mem_edge_set.mp he),
-  dsimp [dart_to_edge], refl,
-  refl,
+  refine quotient.rec_on_subsingleton e (λ e he, _) he,
+  rcases e with ⟨x, y⟩,
+  rw mem_edge_set at he,
+  exact ⟨⟨(x, y), he⟩, rfl⟩,
 end
 
 lemma dart_to_edge_surj' : image (dart_to_edge G) univ = univ :=
@@ -1450,32 +1500,23 @@ begin
   let f := λ (x : darts G), dart_to_vert G (dart_reverse G x),
   let s := univ.filter (λ (x : darts G), dart_to_vert G x = v),
   have H : ∀ x ∈ s, ∀ y ∈ s, f x = f y → x = y, {
-    rintros ⟨v₁, e₁, he₁, hv₁⟩ hd₁ ⟨v₂, e₂, he₂, hv₂⟩ hd₂ heq,
+    rintros ⟨⟨x₁, y₁⟩, h₁⟩ hd₁ ⟨⟨x₂, y₂⟩, h₂⟩ hd₂ heq,
     dsimp [f, dart_reverse, dart_to_vert] at heq,
-    have aa₁ := sym2.mem_other_spec' hv₁,
-    have aa₂ := sym2.mem_other_spec' hv₂,
+    rw [subtype.mk_eq_mk, prod.mk.inj_iff],
     simp only [dart_to_vert, true_and, mem_filter, mem_univ] at hd₁ hd₂,
-    subst v₁, subst v₂,
-    congr, rw ←heq at aa₂,
-    exact eq.trans aa₁.symm aa₂,
+    subst x₁, subst x₂, subst y₂, simp,
   },
   rw ←card_image_of_inj_on H,
   congr,
   ext w,
-  simp,
+  simp only [mem_image, true_and, exists_prop, mem_filter, mem_univ, adj_as_adj'],
   split,
-  { rintros ⟨⟨v', e', he', hv'⟩, hd, hw⟩,
-    dsimp [dart_to_vert] at hd, subst v',
-    dsimp [f, dart_reverse, dart_to_vert] at hw,
-    have aa := sym2.mem_other_spec' hv',
-    rw hw at aa,
-    rwa [←aa, mem_edge_set] at he', },
+  { rintros ⟨⟨⟨x, y⟩, h⟩, hd, hw⟩,
+    dsimp [dart_to_vert] at hd, subst v,
+    dsimp [f, dart_reverse, dart_to_vert] at hw, subst w,
+    exact h, },
   { intro a,
-    use [v, ⟦(v, w)⟧], simpa,
-    dsimp [dart_to_vert, f, dart_reverse],
-    use rfl,
-    rw ←@sym2.congr_right _ v,
-    simp, }
+    use ⟨(v, w), a⟩, simp [dart_to_vert, f, dart_reverse], },
 end
 
 lemma dart_to_edge_two_to_one (e : edge_set G) : (univ.filter (λ x, dart_to_edge G x = e)).card = 2 :=
@@ -1510,7 +1551,7 @@ begin
     intros v _ hd,
     rcases (degree_pos_iff_exists_adj v).mp (nat.pos_of_ne_zero hd) with ⟨w, hw⟩,
     simp only [mem_image, mem_univ, exists_prop_of_true],
-    use [v, ⟦(v, w)⟧], simp [hw],
+    use ⟨(v, w), hw⟩,
     simp [dart_to_vert],
   end,
   rw ←key',
@@ -1526,5 +1567,34 @@ lemma degree_sum : ∑ v : V G, degree v = 2 * (edge_finset G).card :=
 by { rw [←dart_card_sum_degrees, ←dart_card_twice_edges] }
 
 end degree_sum
+
+section bollobas
+
+variables {α : Type*} [simple_graphs α] -- [∀ G : α, decidable_rel (adj G)]
+open_locale classical
+
+/-!
+Some formalizations of statements from Bollobas, "Modern graph theory"
+-/
+
+/--
+Veblen 1912 (theorem 1 in book). Every vertex has even degree iff there is a
+partition of the graph into edge-disjoint cycles.
+-/
+theorem edge_partition_cycles (G : α) [fintype (V G)] :
+  (∀ v : V G, degree v % 2 = 0) ↔ (∃ partition : set (subgraph G), (∀ G' ∈ partition, subgraph.is_cycle G') ∧
+                                     ∀ (e ∈ edge_set G), !∃ (c : subgraph G), c ∈ partition ∧
+                                       e ∈ c.edge_set') :=
+sorry
+
+/--
+Mantel 1907 (theorem 2 in book). If a graph with n vertices and m edges satisfies
+floor(n^2 /4) < m, then it contains a triangle.
+-/
+theorem has_triangle (G : α) [fintype (V G)] (h : (fintype.card (V G))^2 / 4 < (edge_finset G).card) :
+  nonempty (cycle_graph 3 (by linarith) ↪g G) :=
+sorry
+
+end bollobas
 
 end simple_graph

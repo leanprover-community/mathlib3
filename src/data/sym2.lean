@@ -402,4 +402,46 @@ end
 
 end decidable
 
+section finite
+
+/--
+Showing equivalence for the purpose of finding the cardinality of `sym2`.
+-/
+def sym2_fin_equiv_pairs_le {n : ℕ} : sym2 (fin n) ≃ {x : ℕ × ℕ // x.1 ≤ x.2 ∧ x.2 < n} :=
+{ to_fun := (λ e, quotient.rec_on e (λ e, ⟨(min ↑e.1 ↑e.2, max ↑e.1 ↑e.2), begin
+    rcases e with ⟨⟨x, hx⟩, ⟨y, hy⟩⟩,
+    dsimp, split, exact min_le_max, exact max_lt hx hy,
+  end⟩) (begin
+    rintros ⟨x₁, y₁⟩ ⟨x₂, y₂⟩ p, cases p,
+    work_on_goal 0 { refl },
+    induction e, work_on_goal 0 { cases e, dsimp at *, simp at *, fsplit, work_on_goal 0 { unfold_coes }, work_on_goal 1 { unfold_coes } }, work_on_goal 2 { refl },
+    rw min_comm, rw max_comm,
+  end)),
+  inv_fun := λ x, ⟦(⟨x.val.1, by { have h := x.2, linarith }⟩, ⟨x.val.2, by { have h := x.2, linarith }⟩)⟧,
+  left_inv := begin
+    intro e,
+    refine quotient.rec_on_subsingleton e (λ e, _),
+    rcases e with ⟨⟨x, hx⟩, ⟨y, hy⟩⟩, dsimp [quotient.mk],
+    apply eq_iff.mpr,
+    by_cases h' : x ≤ y,
+    { left, simp, exact ⟨min_eq_left h', max_eq_right h'⟩, },
+    { push_neg at h', have h'' : y ≤ x, linarith, right, simp, exact ⟨min_eq_right h'', max_eq_left h''⟩, },
+  end,
+  right_inv := begin
+    rintro ⟨⟨x, y⟩, h₁, h₂⟩,
+    dsimp [quotient.mk, quotient.rec_on, quot.rec_on, quot.rec] at *,
+    congr, exact min_eq_left h₁, exact max_eq_right h₁,
+  end }
+
+lemma card_eq [decidable_eq α] [fintype α] : fintype.card (sym2 α) = nat.choose (fintype.card α + 1) 2 :=
+begin
+  set n := fintype.card α with hn,
+  have key : fintype.card (sym2 (fin n)) = nat.choose (n + 1) 2, {
+    sorry
+  },
+  sorry,
+end
+
+end finite
+
 end sym2

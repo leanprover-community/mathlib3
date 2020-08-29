@@ -772,6 +772,33 @@ end fin_meas_supp
 
 end fin_meas_supp
 
+@[elab_as_eliminator]
+protected lemma induction {α γ} [measurable_space α] [add_monoid γ] {P : simple_func α γ → Prop}
+  (h_ind : ∀ c {s} (hs : is_measurable s),
+    P (simple_func.piecewise s hs (simple_func.const _ c) (simple_func.const _ 0)))
+  (h_sum : ∀ ⦃f g : simple_func α γ⦄, set.univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0} → P f → P g → P (f + g))
+  (f : simple_func α γ) : P f :=
+begin
+  generalize' h : f.range \ {0} = s,
+  rw [← finset.coe_inj, finset.coe_sdiff, finset.coe_singleton, simple_func.coe_range] at h,
+  revert s f h, refine finset.induction _ _,
+  { intros f hf, rw [finset.coe_empty, diff_eq_empty, range_subset_singleton] at hf,
+    convert h_ind 0 is_measurable.univ, ext x, simp [hf] },
+  { intros x s hxs ih f hf,
+    have mx := f.is_measurable_preimage {x},
+    let g := simple_func.piecewise (f ⁻¹' {x}) mx 0 f,
+    have Pg : P g,
+    { apply ih, simp only [g, simple_func.coe_piecewise, range_piecewise],
+      rw [image_compl_preimage, union_diff_distrib, diff_diff_comm, hf, finset.coe_insert,
+        insert_diff_self_of_not_mem, diff_eq_empty.mpr, set.empty_union],
+      { rw [set.image_subset_iff], convert set.subset_univ _,
+        exact preimage_const_of_mem (mem_singleton _) },
+      { rwa [finset.mem_coe] }},
+    convert h_sum _ Pg (h_ind x mx),
+    { ext1 y, by_cases hy : y ∈ f ⁻¹' {x}; [simpa [hy], simp [hy]] },
+    { rintro y -, by_cases hy : y ∈ f ⁻¹' {x}; simp [hy] }}
+end
+
 end simple_func
 
 section lintegral
@@ -1387,3 +1414,17 @@ measure.of_measurable_apply s hs
 end lintegral
 
 end measure_theory
+
+open measure_theory.simple_func
+lemma measurable.ennreal_induction {α} [measurable_space α] {P : (α → ennreal) → Prop}
+  (h_ind : ∀ (c : ennreal) ⦃s⦄, is_measurable s → P (indicator s (λ _, c)))
+  (h_sum : ∀ ⦃f g⦄, measurable f → measurable g → P f → P g → P (f + g))
+  (h_supr : ∀ ⦃f : ℕ → α → ennreal⦄ (hf : ∀n, measurable (f n)) (h_mono : monotone f)
+    (hP : ∀ n, P (f n)), P (λ x, ⨆ n, f n x))
+  ⦃f : α → ennreal⦄ (hf : measurable f) : P f :=
+begin
+  convert h_supr (λ n, (eapprox f n).measurable) (monotone_eapprox f) _,
+  { ext1 x, rw [supr_eapprox_apply f hf] },
+  { exact λ n, simple_func.induction (λ c s hs, h_ind c hs)
+      (λ f g _ hf hg, h_sum f.measurable g.measurable hf hg) (eapprox f n) }
+end

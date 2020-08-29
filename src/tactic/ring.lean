@@ -489,6 +489,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
     (e', p') ← eval_pow e₁' (e₂, k),
     p ← ic_lift $ λ ic, ic.mk_app ``subst_into_pow [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
     return (e', p)
+/-
   | some k, `(nat.has_pow) := do
     (e₁', p₁) ← eval e₁,
     (e', p') ← eval_pow e₁' (e₂, k),
@@ -496,6 +497,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
     p₄ ← lift $ mk_eq_symm $ `(nat.pow_eq_pow).mk_app [e₁, e₂],
     p ← lift $ mk_eq_trans p₄ p₃,
     return (e', p)
+--/
   | _, _ := eval_atom e
   end
 | e := match e.to_nat with

@@ -619,8 +619,9 @@ meta def prove_pow (a : expr) (na : ℚ) : instance_cache → expr → tactic (i
 
 end
 
+-- TODO: do we still need this?
 lemma from_nat_pow (a b c : ℕ) (h : @has_pow.pow _ _ monoid.has_pow a b = c) : a ^ b = c :=
-(nat.pow_eq_pow _ _).symm.trans h
+h
 
 /-- Evaluates expressions of the form `a ^ b`, `monoid.pow a b` or `nat.pow a b`. -/
 meta def eval_pow : expr → tactic (expr × expr)
@@ -629,20 +630,24 @@ meta def eval_pow : expr → tactic (expr × expr)
   c ← infer_type e₁ >>= mk_instance_cache,
   match m with
   | `(@monoid.has_pow %%_ %%_) := prod.snd <$> prove_pow e₁ n₁ c e₂
+/-
   | `(nat.has_pow) := do
     (_, c, p) ← prove_pow e₁ n₁ c e₂,
     return (c, `(from_nat_pow).mk_app [e₁, e₂, c, p])
+-/
   | _ := failed
   end
 | `(monoid.pow %%e₁ %%e₂) := do
   n₁ ← e₁.to_rat,
   c ← infer_type e₁ >>= mk_instance_cache,
   prod.snd <$> prove_pow e₁ n₁ c e₂
+/-
 | `(nat.pow %%e₁ %%e₂) := do
   n₁ ← e₁.to_rat,
   c ← mk_instance_cache `(ℕ),
   (_, c, p) ← prove_pow e₁ n₁ c e₂,
   return (c, `(from_nat_pow).mk_app [e₁, e₂, c, p])
+-/
 | _ := failed
 
 theorem nonneg_pos {α} [ordered_cancel_add_comm_monoid α] (a : α) : 0 < a → 0 ≤ a := le_of_lt

@@ -43,16 +43,16 @@ calc multiplicity m n = ↑(Ico 1 $ ((multiplicity m n).get (finite_nat_iff.2 �
   ⟨λ hi, begin
       simp only [Ico.mem, mem_filter, lt_succ_iff] at *,
       exact ⟨⟨hi.1, lt_of_le_of_lt hi.2 $
-        lt_of_lt_of_le (by rw [← enat.coe_lt_coe, enat.coe_get, multiplicity_lt_iff_neg_dvd,
-            nat.pow_eq_pow]; exact hmn)
+        lt_of_lt_of_le (by rw [← enat.coe_lt_coe, enat.coe_get,
+            multiplicity_lt_iff_neg_dvd]; exact hmn)
           hb⟩,
-        by rw [← nat.pow_eq_pow, pow_dvd_iff_le_multiplicity];
+        by rw [pow_dvd_iff_le_multiplicity];
           rw [← @enat.coe_le_coe i, enat.coe_get] at hi; exact hi.2⟩
     end,
   begin
     simp only [Ico.mem, mem_filter, lt_succ_iff, and_imp, true_and] { contextual := tt },
     assume h1i hib hmin,
-    rwa [← enat.coe_le_coe, enat.coe_get, ← pow_dvd_iff_le_multiplicity, nat.pow_eq_pow]
+    rwa [← enat.coe_le_coe, enat.coe_get, ← pow_dvd_iff_le_multiplicity]
   end⟩
 
 namespace prime
@@ -100,7 +100,7 @@ lemma multiplicity_fact {p : ℕ} (hp : p.prime) :
   This sum is expressed over the set `Ico 1 b` where `b` is any bound at least `n` -/
 lemma pow_dvd_fact_iff {p : ℕ} {n r b : ℕ} (hp : p.prime) (hbn : n ≤ b) :
    p ^ r ∣ fact n ↔ r ≤ ∑ i in Ico 1 b, n / p ^ i :=
-by rw [← enat.coe_le_coe, ← hp.multiplicity_fact hbn, ← pow_dvd_iff_le_multiplicity, nat.pow_eq_pow]
+by rw [← enat.coe_le_coe, ← hp.multiplicity_fact hbn, ← pow_dvd_iff_le_multiplicity]
 
 lemma multiplicity_choose_aux {p n b k : ℕ} (hp : p.prime) (hkn : k ≤ n) :
   ∑ i in finset.Ico 1 b, n / p ^ i =

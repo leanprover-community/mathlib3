@@ -33,8 +33,9 @@ namespace Top
 @[derive category]
 def presheaf (X : Top.{v}) := (opens X)ᵒᵖ ⥤ C
 
-namespace presheaf
 variables {C}
+
+namespace presheaf
 
 def pushforward {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) : Y.presheaf C :=
 (opens.map f).op ⋙ ℱ
@@ -44,6 +45,31 @@ infix ` _* `: 80 := pushforward
 def pushforward_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) :
   f _* ℱ ≅ g _* ℱ :=
 iso_whisker_right (nat_iso.op (opens.map_iso f g h).symm) ℱ
+
+@[simp] lemma pushforward_eq_hom_app {X Y : Top.{v}} {f g : X ⟶ Y} (h : f = g) (ℱ : X.presheaf C) (U) :
+  (pushforward_eq h ℱ).hom.app U = ℱ.map (begin dsimp [functor.op], apply has_hom.hom.op, apply eq_to_hom, rw h, end) :=
+rfl
+
+@[simp]
+lemma pushforward_eq_rfl {X Y : Top.{v}} (f : X ⟶ Y) (ℱ : X.presheaf C) (U) :
+  (pushforward_eq (rfl : f = f) ℱ).hom.app (op U) = 𝟙 _ :=
+begin
+  dsimp [pushforward_eq],
+  erw ℱ.map_id,
+  refl,
+end
+
+@[simp]
+lemma pushforward_eq_comp {X Y : Top.{v}} (f g h : X ⟶ Y) (e₁ : f = g) (e₂ : g = h) (ℱ : X.presheaf C) (U) :
+  (pushforward_eq e₁ ℱ).hom.app (op U) ≫ (pushforward_eq e₂ ℱ).hom.app (op U) =
+    (pushforward_eq (e₁.trans e₂) ℱ).hom.app (op U) :=
+begin
+  dsimp [pushforward_eq],
+  erw ←ℱ.map_comp,
+  congr,
+  simp,
+end
+
 lemma pushforward_eq_eq {X Y : Top.{v}} {f g : X ⟶ Y} (h₁ h₂ : f = g) (ℱ : X.presheaf C) :
   ℱ.pushforward_eq h₁ = ℱ.pushforward_eq h₂ :=
 rfl
@@ -82,6 +108,11 @@ begin
 end
 
 end pushforward
+
+@[simps]
+def pushforward_map {X Y : Top.{v}} (f : X ⟶ Y) {ℱ 𝒢 : X.presheaf C} (α : ℱ ⟶ 𝒢) : f _* ℱ ⟶ f _* 𝒢 :=
+{ app := λ U, α.app _,
+  naturality' := λ U V i, by { erw α.naturality, refl, } }
 
 end presheaf
 

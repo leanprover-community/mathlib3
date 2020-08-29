@@ -103,4 +103,8 @@ by ext; cases p; simp
   (eq_to_hom h : F ⟶ G).app X = eq_to_hom (functor.congr_obj h X) :=
 by subst h; refl
 
+lemma nat_trans.congr {F G : C ⥤ D} (α : F ⟶ G) {X Y : C} (h : X = Y) :
+  α.app X = F.map (eq_to_hom h) ≫ α.app Y ≫ G.map (eq_to_hom h.symm) :=
+by { rw [α.naturality_assoc], simp }
+
 end category_theory

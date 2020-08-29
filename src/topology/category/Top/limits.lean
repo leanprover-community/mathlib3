@@ -81,4 +81,15 @@ instance forget_preserves_colimits : preserves_colimits (forget : Top.{u} ⥤ Ty
     by exactI preserves_colimit_of_preserves_colimit_cocone
       (colimit_cocone_is_colimit F) (types.colimit_cocone_is_colimit (F ⋙ forget)) } }
 
+-- FIXME do this for concrete categories!
+@[simp]
+lemma colimit.ι_desc_apply (F : J ⥤ Top.{u}) (s : cocone F) (j : J) (x : F.obj j) :
+  colimit.desc F s (colimit.ι F j x) = s.ι.app j x :=
+congr_fun (congr_arg continuous_map.to_fun (colimit.ι_desc s j) : _) x
+
+@[simp]
+lemma colimit.w_apply (F : J ⥤ Top.{u}) {j j' : J} (f : j ⟶ j') (x : F.obj j) :
+  colimit.ι F j' (F.map f x) = colimit.ι F j x :=
+congr_fun (congr_arg continuous_map.to_fun (colimit.w F f) : _) x
+
 end Top

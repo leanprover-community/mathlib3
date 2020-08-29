@@ -414,6 +414,25 @@ section p_prime
 
 variable [fact p.prime]
 
+lemma xyzzy (n : ℕ) (i : idx) :
+  (map (int.cast_ring_hom ℚ))
+    ((eval₂_hom ((rename (prod.mk i)).comp (algebra_map.{0 0} ℤ (mv_polynomial ℕ ℤ)))
+      (λ (k : ℕ), (rename (prod.mk i)) (X k ^ p)))
+        (witt_polynomial p ℤ n)) =
+  (eval₂_hom (algebra_map ℚ (mv_polynomial (idx × ℕ) ℚ))
+    (λ (bi : idx × ℕ), X bi ^ p))
+    ((rename (prod.mk i)) (witt_polynomial p ℚ n)) :=
+begin
+  rw [map_eval₂_hom, eval₂_hom_rename,
+    ← map_hom_witt_polynomial p (int.cast_ring_hom ℚ), eval₂_hom_map_hom],
+  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+  funext k,
+  simp only [rename_X, map_X, ring_hom.map_pow],
+end
+
+-- TODO! map_eval₂_hom is the same as eval₂_comp_left modulo bundling;
+-- the names should probably reflect this.
+
 lemma blur' (Φ : mv_polynomial idx ℤ) (n : ℕ)
   (IH : ∀ m : ℕ, m < (n + 1) →
     map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) =
@@ -446,28 +465,18 @@ begin
      ... = _ : _,
 
   { clear IH aux aux₂ key,
-  --  simp [map_aeval, map_eval₂_hom, aeval_eq_eval₂_hom, ring_hom.map_pow, eval₂_hom_map_hom,
-  --     eval₂_rename],
-    -- simp only [← map_hom_witt_polynomial p (int.cast_ring_hom ℚ)],
-    -- simp only [map_aeval, map_eval₂_hom, aeval_eq_eval₂_hom, ring_hom.map_pow, --eval₂_hom_map_hom,
-    --   eval₂_rename, ← map_hom_witt_polynomial p (int.cast_ring_hom ℚ)],
-    simp only [← map_hom_witt_polynomial p (int.cast_ring_hom ℚ), map_aeval, aeval_eq_eval₂_hom, eval₂_hom_map_hom, map_eval₂_hom],
+    conv_rhs { rw [aeval_eq_eval₂_hom] },
+    simp only [map_aeval],
+    rw [eval₂_hom_map_hom],
+    refine eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext i,
+    apply xyzzy, },
+  { simp only [map_aeval, map_eval₂_hom, aeval_eq_eval₂_hom, ring_hom.map_pow,
+      eval₂_hom_map_hom, witt_polynomial, int.nat_cast_eq_coe_nat],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     funext i,
-    simp  [ring_hom.map_pow, eval₂_hom_map_hom, map_eval₂_hom, comp_eval₂_hom],
-
-    -- simp [int.nat_cast_eq_coe_nat],
-    --  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-
-    -- funext k,
-    -- rw [map_rename, map_hom_X, rename_X]
-    },
-  -- { simp only [map_aeval, map_eval₂_hom, aeval_eq_eval₂_hom, ring_hom.map_pow,
-  --     eval₂_hom_map_hom, witt_polynomial, int.nat_cast_eq_coe_nat],
-  --   apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-  --   funext i,
-  --   apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-  --   funext bi, rw map_hom_X }
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    funext bi, rw map_X }
 end
 
 @[simp] lemma map_witt_structure_int (Φ : mv_polynomial idx ℤ) (n : ℕ) :

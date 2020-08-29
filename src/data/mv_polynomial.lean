@@ -1239,6 +1239,9 @@ variables (k : γ → δ) (g : δ → β) (p : mv_polynomial γ α)
 lemma eval₂_rename : (rename k p).eval₂ f g = p.eval₂ f (g ∘ k) :=
 by apply mv_polynomial.induction_on p; { intros, simp [*] }
 
+lemma eval₂_hom_rename : eval₂_hom f g (rename k p) = eval₂_hom f (g ∘ k) p :=
+eval₂_rename _ _ _ _
+
 lemma rename_eval₂ (g : δ → mv_polynomial γ α) :
   rename k (p.eval₂ C (g ∘ k)) = (rename k p).eval₂ C (rename k ∘ g) :=
 by apply mv_polynomial.induction_on p; { intros, simp [*] }

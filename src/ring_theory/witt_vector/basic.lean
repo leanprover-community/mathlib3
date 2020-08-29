@@ -969,10 +969,12 @@ begin
     X_in_terms_of_W_zero, aeval_X, map_X, witt_polynomial_zero, map_witt_structure_int]
 end
 
+-- move this up?
 lemma witt_polynomial_vars (n : ℕ) :
-  (witt_polynomial p R n).vars = finset.range (n + 1) :=
+  (witt_polynomial p ℤ n).vars = finset.range (n + 1) :=
 begin
-  sorry
+  rw [witt_polynomial, vars_sum_of_disjoint],
+  -- Ooh, I would love to use `vars_monomial` here.
 end
 
 

@@ -6,6 +6,8 @@ import data.int.gcd
 import data.mv_polynomial
 import data.zmod.basic
 import data.fintype.card
+import data.finset.lattice
+import data.set.disjointed
 import ring_theory.multiplicity
 import algebra.invertible
 import number_theory.basic
@@ -102,6 +104,52 @@ begin
   { exact zmod.int_cast_surjective },
   { exact char_p.int_cast_eq_zero_iff (zmod n) n, }
 end
+
+end mv_polynomial
+
+namespace mv_polynomial
+variables {σ : Type*} {τ : Type*} {υ : Type*} {R S : Type*} [comm_semiring R] [comm_semiring S]
+variables (f : R →+* S)
+variables (p q : mv_polynomial σ R)
+
+open function
+open_locale classical big_operators
+
+lemma vars_add_subset :
+  (p + q).vars ⊆ p.vars ∪ q.vars :=
+begin
+  sorry
+end
+
+lemma vars_add_of_disjoint (h : disjoint p.vars q.vars) :
+  (p + q).vars = p.vars ∪ q.vars :=
+begin
+  sorry
+end
+
+section sum
+variables {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R)
+
+lemma vars_sum_subset :
+  (∑ i in s, φ i).vars ⊆ finset.fold (∪) ∅ (λ i, (φ i).vars) s :=
+begin
+  sorry
+end
+
+lemma vars_sum_of_disjoint (h : pairwise $ disjoint on (λ i, (φ i).vars)) :
+  (∑ i in s, φ i).vars = finset.fold (∪) ∅ (λ i, (φ i).vars) s :=
+begin
+  sorry
+end
+
+end sum
+
+lemma vars_map : (map f p).vars ⊆ p.vars :=
+sorry
+
+lemma vars_map_of_injective (hf : injective f) :
+  (map f p).vars = p.vars :=
+sorry
 
 end mv_polynomial
 

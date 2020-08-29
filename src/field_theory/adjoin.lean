@@ -135,7 +135,7 @@ begin
   exact subset_adjoin F {α} (set.mem_singleton α),
 end
 
-/-- generator of F[(α)] -/
+/-- generator of `F[(α)]` -/
 def adjoin_simple.gen : F[(α)] := ⟨α, mem_adjoin_simple_self F α⟩
 
 lemma adjoin_simple.algebra_map_gen : algebra_map F[(α)] E (adjoin_simple.gen F α) = α := rfl

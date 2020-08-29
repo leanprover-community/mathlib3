@@ -12,7 +12,7 @@ import linear_algebra.finite_dimensional
 
 In this file we introduce the notion of adjoining elements to fields.
 This isn't quite the same as adjoining elements to rings.
-For example, algebra.adjoin K {x} might not include x⁻¹.
+For example, `algebra.adjoin K {x}` might not include `x⁻¹`.
 
 ## Main results
 

@@ -165,14 +165,15 @@ end
 
 variables {p : ℕ} [fact p.prime]
 
-lemma finite_field.char_poly_pow_card {K : Type*} [field K] [fintype K] (M : matrix n n K) :
+@[simp] lemma finite_field.char_poly_pow_card {K : Type*} [field K] [fintype K] (M : matrix n n K) :
   char_poly (M ^ (fintype.card K)) = char_poly M :=
 begin
   by_cases hn : nonempty n,
   { letI := hn,
     cases char_p.exists K with p hp, letI := hp,
-  rcases finite_field.card K p with ⟨⟨k, kpos⟩, ⟨hp, hk⟩⟩, letI : fact p.prime := hp,
-  dsimp at hk, rw hk at *,
+    rcases finite_field.card K p with ⟨⟨k, kpos⟩, ⟨hp, hk⟩⟩,
+    letI : fact p.prime := hp,
+    dsimp at hk, rw hk at *,
     apply (frobenius_inj (polynomial K) p).iterate k,
     repeat { rw iterate_frobenius, rw ← hk },
     rw ← finite_field.expand_card,
@@ -190,7 +191,7 @@ begin
   { congr, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
 end
 
-lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :
+@[simp] lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :
   char_poly (M ^ p) = char_poly M :=
 by { have h := finite_field.char_poly_pow_card M, rwa zmod.card at h, }
 

@@ -69,6 +69,9 @@ field.closure_mono (set.union_subset (set.subset_union_left _ _) (set.subset_uni
 
 instance adjoin.is_subfield : is_subfield (adjoin F S : set E) := field.closure.is_subfield
 
+--Lean has trouble figuring this out on its own
+instance adjoin.is_field : field (adjoin F S) := @is_subfield.field E _ ((adjoin F S) : set E) _
+
 lemma adjoin_contains_field_as_subfield (F : set E) {HF : is_subfield F} : F ⊆ adjoin F S :=
 λ x hx, adjoin.algebra_map_mem F S ⟨x, hx⟩
 

@@ -19,7 +19,7 @@ where `n` and `m` are natural numbers, then `G + H` has the Grundy value `n xor 
 
 ## Implementation details
 
-The pen-and-paper definition of nim defines the possible moves of `nim O` to be `{ O' | O' < O }`.
+The pen-and-paper definition of nim defines the possible moves of `nim O` to be `{O' | O' < O}`.
 However, this definition does not work for us because it would make the type of nim
 `ordinal.{u} → pgame.{u + 1}`, which would make it impossible for us to state the Sprague-Grundy
 theorem, since that requires the type of `nim` to be `ordinal.{u} → pgame.{u}`. For this reason, we
@@ -106,7 +106,7 @@ lemma exists_ordinal_move_left_eq (O : ordinal) : ∀ i, ∃ O' < O, (nim O).mov
 by { rw nim_def, exact λ i, ⟨ordinal.typein O.out.r i, ⟨nim_wf_lemma _, rfl⟩⟩ }
 
 lemma exists_move_left_eq (O : ordinal) : ∀ O' < O, ∃ i, (nim O).move_left i = nim O' :=
-by { rw nim_def, refine λ _ h, ⟨(ordinal.principal_seg_out h).top, by simp⟩ }
+by { rw nim_def, exact λ _ h, ⟨(ordinal.principal_seg_out h).top, by simp⟩ }
 
 lemma zero_first_loses : (nim (0 : ordinal)).first_loses :=
 begin
@@ -274,13 +274,13 @@ begin
   induction m using nat.strong_induction_on with m hm,
   rw [grundy_value_def],
 
-  -- We want to show that `n xor m` is the smallest unreachable grundy value. We will do this in two
+  -- We want to show that `n xor m` is the smallest unreachable Grundy value. We will do this in two
   -- steps:
   -- h₀: `n xor m` is not a reachable grundy number.
   -- h₁: every grundy number strictly smaller than `n xor m` is reachable.
 
   have h₀ : (nat.lxor n m : ordinal) ∈ nonmoves (λ i, grundy_value ((nim n + nim m).move_left i)),
-  { -- Two show that `n xor m` is unreachable, we show that every move produces a grundy number
+  { -- To show that `n xor m` is unreachable, we show that every move produces a Grundy number
     -- different from `n xor m`.
     simp only [nonmoves, not_exists, set.mem_set_of_eq],
     equiv_rw left_moves_add _ _,

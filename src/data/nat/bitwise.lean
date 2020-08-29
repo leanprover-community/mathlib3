@@ -173,7 +173,7 @@ begin
     rw [hi.1, hi.2.1, hi.2.2, bxor_ff, bxor_ff] },
 
   -- If, say, `a` has a one bit at position `i`, then `a xor v` has a zero bit at position `i`, but
-  -- the same bits as a in positions greater than `j`, so `a xor v < a`.
+  -- the same bits as `a` in positions greater than `j`, so `a xor v < a`.
   rcases this with h|h|h;
   [{ left, rw hbc }, { right, left, rw hac }, { right, right, rw hab }];
   exact lt_of_test_bit i (by simp [h, hi]) h (λ j hj, by simp [hi' _ hj])

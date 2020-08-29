@@ -468,6 +468,7 @@ instance : canonically_ordered_add_monoid (multiset α) :=
   bot_le                := multiset.zero_le,
   ..multiset.ordered_cancel_add_comm_monoid }
 
+
 /- repeat -/
 
 /-- `repeat a n` is the multiset containing only `a` with multiplicity `n`. -/
@@ -612,6 +613,9 @@ quotient.induction_on' s $ λ L, list.forall_mem_map_iff
 quot.induction_on s $ λ l, rfl
 
 lemma map_singleton (f : α → β) (a : α) : ({a} : multiset α).map f = {f a} := rfl
+
+theorem map_repeat (f : α → β) (a : α) (k : ℕ) : (repeat a k).map f = repeat (f a) k := by
+{ induction k, simp, simpa }
 
 @[simp] theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
@@ -809,7 +813,7 @@ theorem prod_hom_rel [comm_monoid β] [comm_monoid γ] (s : multiset α) {r : β
 quotient.induction_on s $ λ l,
   by simp only [l.prod_hom_rel h₁ h₂, quot_mk_to_coe, coe_map, coe_prod]
 
-lemma dvd_prod [comm_semiring α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
+lemma dvd_prod [comm_monoid α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
 
 lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_add_comm_monoid β]

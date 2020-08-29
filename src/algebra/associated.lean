@@ -105,6 +105,16 @@ assume a s ih h,
   | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
   end
 
+/-- Two elements of a `comm_monoid_with_zero` are coprime if they don't have any prime factors in
+  common -/
+def coprime (a b : α) : Prop := ∀ (p : α), prime p → p ∣ a → ¬ p ∣ b
+
+lemma coprime_symm {a b : α} (h : coprime a b) : coprime b a :=
+begin
+  intros p h₁ hb ha,
+  exact h _ h₁ ha hb
+end
+
 end prime
 
 /-- `irreducible p` states that `p` is non-unit and only factors into units.
@@ -360,6 +370,8 @@ theorem one_eq_mk_one [monoid α] : (1 : associates α) = associates.mk 1 := rfl
 
 instance [monoid α] : has_bot (associates α) := ⟨1⟩
 
+lemma exists_of_associate [monoid α] (a : associates α) : ∃ (a0 : α), ⟦a0⟧ = a := quot.exists_rep a
+
 section comm_monoid
 variable [comm_monoid α]
 
@@ -486,6 +498,15 @@ have (0 : α) ~ᵤ 1, from quotient.exact h,
 have (0 : α) = 1, from ((associated_zero_iff_eq_zero 1).1 this.symm).symm,
 zero_ne_one this⟩⟩
 
+lemma non_zero_associate {a : associates α} (h : a ≠ 0) : ∃(a0 : α), a0 ≠ 0 ∧ a = ⟦a0⟧ :=
+begin
+  revert h,
+  apply quotient.induction_on a,
+  intros b nz, use b,
+  apply and.intro (mt (congr_arg quotient.mk) nz),
+  refl
+end
+
 theorem dvd_of_mk_le_mk {a b : α} : associates.mk a ≤ associates.mk b → a ∣ b
 | ⟨c', hc'⟩ := (quotient.induction_on c' $ assume c hc,
     let ⟨d, hd⟩ := (quotient.exact hc).symm in
@@ -540,6 +561,32 @@ begin
   apply forall_congr, assume a,
   apply forall_congr, assume b,
   rw [mk_mul_mk, mk_le_mk_iff_dvd_iff, mk_le_mk_iff_dvd_iff, mk_le_mk_iff_dvd_iff]
+end
+
+/-- Two associates of a `comm_monoid_with_zero` are coprime if they don't have any prime factors in
+  common -/
+def associates_coprime (a b : associates α) : Prop :=
+  ∀ (p : associates α), prime p → p ∣ a → ¬ p ∣ b
+
+lemma coprime_associated {a b : α} :
+  coprime a b ↔ associates_coprime (associates.mk a) (associates.mk b) :=
+begin
+  split,
+  { intros h p hp ha,
+    obtain ⟨p0, hp0⟩ := exists_of_associate p,
+    rw ← hp0 at *,
+    apply mt dvd_of_mk_le_mk,
+    exact h _ ((prime_mk p0).mp hp) (dvd_of_mk_le_mk ha) },
+  { intros h p hp ha,
+    apply mt mk_le_mk_of_dvd,
+    apply h _ ((prime_mk p).mpr hp)(mk_le_mk_of_dvd ha) }
+end
+
+lemma associates_coprime_symm {a b : associates α} (h : associates_coprime a b) :
+  associates_coprime b a :=
+begin
+  intros p h₁ hb ha,
+  exact h _ h₁ ha hb
 end
 
 end comm_monoid_with_zero

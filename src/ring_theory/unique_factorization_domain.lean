@@ -116,6 +116,8 @@ by haveI := classical.dec_eq α; exact
 
 end unique_factorization_domain
 
+/-- Definition of a UFD as an integral domain in which each non-zero element can be uniquely
+represented by a multisets of irreducible factors. Uniqueness is only up to associated elements. -/
 structure unique_irreducible_factorization (α : Type*) [integral_domain α] :=
 (factors : α → multiset α)
 (factors_prod : ∀{a : α}, a ≠ 0 → (factors a).prod ~ᵤ a)
@@ -144,6 +146,9 @@ have multiset.rel associated (p :: factors b) (factors a),
           (associated.symm (factors_prod hb0))),
 multiset.exists_mem_of_rel_of_mem this (by simp)
 
+/-- Go from unique factorization defined in terms of non-unique multisets of prime factors to the
+more traditional definition in terms of unique (up to association) multisets of irreducible factors.
+-/
 def of_unique_irreducible_factorization {α : Type*} [integral_domain α]
   (o : unique_irreducible_factorization α) : unique_factorization_domain α :=
 { prime_factors := by letI := classical.dec_eq α; exact λ a h p (hpa : p ∈ o.factors a),
@@ -221,6 +226,7 @@ lemma factor_set.sup_add_inf_eq_add [decidable_eq (associates α)] :
     exact multiset.union_add_inter _ _
   end
 
+/-- The product of the elements of a factor_set -/
 def factor_set.prod : factor_set α → associates α
 | none     := 0
 | (some s) := (s.map coe).prod
@@ -242,6 +248,16 @@ theorem prod_mono : ∀{a b : factor_set α}, a ≤ b → a.prod ≤ b.prod
 | none b h := have b = ⊤, from top_unique h, by rw [this, prod_top]; exact le_refl _
 | a none h := show a.prod ≤ (⊤ : factor_set α).prod, by simp; exact le_top
 | (some a) (some b) h := prod_le_prod $ multiset.map_le_map $ with_top.coe_le_coe.1 $ h
+
+/-- `count p s` is the multiplicity of `p` in the factor_set `s`. -/
+def count [decidable_eq (associates α)] (p : { a : associates α // irreducible a }) :
+  factor_set α → ℕ :=
+begin
+  intro s,
+  cases s with ss,
+    exact 0,
+    exact multiset.count p ss
+end
 
 variable [unique_factorization_domain α]
 
@@ -287,6 +303,7 @@ iff.intro
   end
   prod_le_prod
 
+/-- The multiset of associates of irreducible factors of a non-zero element. -/
 def factors' (a : α) (ha : a ≠ 0) : multiset { a : associates α // irreducible a } :=
 (factors a).pmap (λa ha, ⟨associates.mk a, (irreducible_mk_iff _).2 ha⟩)
   (irreducible_factors $ ha)
@@ -305,6 +322,7 @@ by simpa [(multiset.map_eq_map subtype.coe_injective).symm, rel_associated_iff_m
 variable [dec : decidable_eq (associates α)]
 include dec
 
+/-- The factor_set of irreducible factors of an element -/
 def factors (a : associates α) : factor_set α :=
 begin
   refine (if h : a = 0 then ⊤ else
@@ -430,6 +448,216 @@ begin
   rw [← prod_add, prod_factors, factors_mul, factor_set.sup_add_inf_eq_add]
 end
 
+lemma dvd_of_mem_factor {a : associates α} {p : {a : associates α // irreducible a }}
+  {l : multiset {a : associates α // irreducible a }} (h : factors a = some l) (hm : p ∈ l) :
+  p.1 ∣ a :=
+begin
+  rw [← associates.factors_prod a, h], erw prod_coe,
+  apply multiset.dvd_prod, apply multiset.mem_map.mpr,
+  use p, apply and.intro hm, refl
+end
+
+lemma dvd_of_mem_factors' {a : α} {p : {a : associates α // irreducible a }} {hz : a ≠ 0}
+  (hp : p ∈ factors' a hz) : p.1 ∣ associates.mk a := dvd_of_mem_factor (factors_mk _ hz) hp
+
+omit dec
+
+lemma mem_factors'_of_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) (hd : p ∣ a) :
+  (⟨associates.mk p, (irreducible_mk_iff _).2 hp⟩ : {a : associates α // irreducible a })
+  ∈ factors' a ha0 :=
+begin
+  obtain ⟨q, hq, hpq⟩ := exists_mem_factors_of_dvd ha0 hp hd,
+  apply multiset.mem_pmap.mpr, use q, use hq,
+  exact subtype.eq (eq.symm (mk_eq_mk_iff_associated.mpr hpq))
+end
+
+lemma associates_irreducible_iff_prime : ∀{p : associates α}, irreducible p ↔ p.prime :=
+associates.forall_associated.2 $ assume a,
+by rw [associates.irreducible_mk_iff, associates.prime_mk, irreducible_iff_prime]
+
+include dec
+
+lemma exists_prime_dvd_of_not_inf_one {a b : α}
+  (ha : a ≠ 0) (hb : b ≠ 0) (h : (associates.mk a) ⊓ (associates.mk b) ≠ 1)  :
+  ∃ (p : α), _root_.prime p ∧ p ∣ a ∧ p ∣ b :=
+begin
+  have hz : (factors (associates.mk a)) ⊓ (factors (associates.mk b)) ≠ 0,
+  { intro hf, revert h, apply not_not_intro,
+    change ((factors (associates.mk a)) ⊓ (factors (associates.mk b))).prod = 1,
+    rw ← multiset.prod_zero, apply congr_arg _ hf },
+  rw factors_mk a ha at hz, rw factors_mk b hb at hz,
+  rw ← with_top.coe_inf at hz,
+  cases (multiset.exists_mem_of_ne_zero ((mt with_top.coe_eq_coe.mpr) hz)) with p0 hp0,
+  rw multiset.inf_eq_inter at hp0,
+  have hp : ∃ p, associates.mk p = p0.val, { apply quot.exists_rep p0.val },
+  cases hp with p hp,
+  use p,
+  split,
+  { apply irreducible_iff_prime.mp, apply (irreducible_mk_iff p).mp,
+    rw hp, apply p0.2, simpa only [] },
+  split,
+  { apply dvd_of_mk_le_mk, rw hp, exact dvd_of_mem_factors' (multiset.mem_inter.mp hp0).left },
+  { apply dvd_of_mk_le_mk, rw hp, exact dvd_of_mem_factors' (multiset.mem_inter.mp hp0).right }
+end
+
+theorem coprime_iff_inf_one {a b : α} (ha0 : a ≠ 0) (hb0 : b ≠ 0)
+  : (associates.mk a) ⊓ (associates.mk b) = 1 ↔ coprime a b :=
+begin
+  split,
+  { intro hg, unfold coprime, intros p hp ha hb,
+    have hp1 : irreducible p, { apply irreducible_iff_prime.mpr hp },
+    have hp2 : irreducible (associates.mk p), { apply (irreducible_mk_iff _).2 hp1 },
+    have ha' : (⟨associates.mk p, hp2⟩ : {a : associates α // irreducible a })
+      ∈ factors' a ha0, exact mem_factors'_of_dvd ha0 hp1 ha,
+    have hb' : (⟨associates.mk p, hp2⟩ : {a : associates α // irreducible a })
+      ∈ factors' b hb0, exact mem_factors'_of_dvd hb0 hp1 hb,
+    revert hg,
+    change ((factors (associates.mk a)) ⊓ (factors (associates.mk b))).prod ≠ 1,
+    rw ← multiset.prod_zero, apply ne.elim, apply mt (@eq_of_prod_eq_prod _ _ _inst_2 _ 0),
+    rw factors_mk _ ha0, rw factors_mk _ hb0,
+    rw ← with_top.coe_inf, apply (mt with_top.coe_eq_coe.mp),
+    apply mt multiset.eq_zero_iff_forall_not_mem.mp, apply not_forall.mpr,
+    use ⟨associates.mk p, hp2⟩, apply not_not.mpr,
+    rw multiset.inf_eq_inter,
+    apply multiset.mem_inter.mpr
+      (and.intro (mem_factors'_of_dvd ha0 hp1 ha) (mem_factors'_of_dvd hb0 hp1 hb)) },
+  { intro hc,
+    by_contradiction hg,
+    obtain ⟨p, ⟨hp, ⟨hpa, hpb⟩⟩⟩ := exists_prime_dvd_of_not_inf_one ha0 hb0 hg,
+    apply absurd hpb (hc p hp hpa) }
+end
+
+theorem prime_pow_factors (p : associates α) (h₂ : irreducible p)
+ (k : ℕ) : factors (p ^ k) = some (multiset.repeat ⟨p, h₂⟩ k) :=
+begin
+  apply eq_of_prod_eq_prod, rw associates.factors_prod,
+  unfold factor_set.prod, rw multiset.map_repeat,
+  rw multiset.prod_repeat, refl
+end
+
+theorem dvd_prime_pow_iff_count_factors (m : associates α) (h₁ : m ≠ 0) (p : associates α)
+  (h₂ : irreducible p) (k : ℕ) : p ^ k ∣ m ↔ k ≤ count ⟨p, h₂⟩ m.factors :=
+begin
+  obtain ⟨a, nz, h⟩ := associates.exists_non_zero_rep h₁,
+  erw [h, (factors_mk a nz), ← with_top.some_eq_coe, multiset.le_count_iff_repeat_le],
+  split,
+  { intro h3,
+    apply with_top.coe_le_coe.1,
+    rw [← with_top.some_eq_coe, ← (prime_pow_factors p h₂), ← (factors_mk a nz)],
+    exact factors_le.2 h3 },
+  { intro h3,
+    apply factors_le.1,
+    erw [factors_mk a nz, prime_pow_factors p h₂],
+    exact with_top.coe_le_coe.2 h3 }
+end
+
+theorem count_product {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)
+  {p : { a : associates α // irreducible a }}
+  : count p a.factors + count p b.factors = count p (factors (a * b)) :=
+begin
+  obtain ⟨a0, nza, ha'⟩ := exists_non_zero_rep ha,
+  obtain ⟨b0, nzb, hb'⟩ := exists_non_zero_rep hb,
+  erw [factors_mul, ha', hb', factors_mk a0 nza, factors_mk b0 nzb],
+  rw [← factor_set.coe_add, ← with_top.some_eq_coe, ← with_top.some_eq_coe, ← with_top.some_eq_coe],
+  unfold count, rw multiset.count_add
+end
+
+theorem count_of_coprime (a : associates α) (ha : a ≠ 0) (b : associates α) (hb : b ≠ 0)
+  (p : { a : associates α // irreducible a }) (hab : associates_coprime a b)
+  : count p a.factors = 0 ∨ count p b.factors = 0 :=
+begin
+  cases nat.eq_zero_or_pos (count p a.factors) with hz h2, { exact or.inl hz },
+  have h3 : p.val ∣ a,
+  { rw ← (pow_one p.val), apply (dvd_prime_pow_iff_count_factors a ha p.val p.2 1).2,
+    simpa only [subtype.eta] },
+  apply or.intro_right,
+  cases nat.eq_zero_or_pos (count p b.factors) with hz h4, { exact hz },
+  have h5 : p.val ∣ b,
+  { rw ← (pow_one p.val),
+    apply (dvd_prime_pow_iff_count_factors b hb p.val p.2 1).2, simpa only [subtype.eta] },
+  unfold associates_coprime at hab,
+  have h5' : ¬ p.val ∣ b,
+  { apply hab p.val, apply associates_irreducible_iff_prime.mp p.2, exact h3 },
+  apply (absurd h5 h5')
+end
+
+theorem coprime_product (a : associates α) (ha : a ≠ 0) (b : associates α) (hb : b ≠ 0)
+  (p : { a : associates α // irreducible a }) (hab : associates_coprime a b)
+  : count p a.factors = 0 ∨ count p a.factors = count p (a * b).factors :=
+begin
+  cases count_of_coprime a ha b hb p hab with hz hb0, { tauto },
+  apply or.intro_right,
+  rw [← (count_product ha hb), hb0, add_zero]
+end
+
+theorem count_factors_of_coprime {a b : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
+  {p : { a : associates α // irreducible a }} (hab : associates_coprime a b) {k : ℕ}
+  : k ∣ count p (a * b).factors → k ∣ count p a.factors :=
+begin
+  intro habk,
+  cases coprime_product a ha b hb p hab with hz h,
+  { rw hz, exact dvd_zero k },
+  { rw h, exact habk }
+end
+
+lemma factor_one : factors (1 : associates α) = 0 :=
+begin
+  apply eq_of_prod_eq_prod,
+  rw associates.factors_prod,
+  exact multiset.prod_zero,
+end
+
+theorem pow_factors {a : associates α} {k : ℕ} : (a ^ k).factors = k •ℕ a.factors :=
+begin
+  induction k with n h,
+  { rw [zero_nsmul, pow_zero], exact factor_one },
+  { rw [pow_succ, succ_nsmul, factors_mul, h] }
+end
+
+lemma count_pow {a : associates α} (ha : a ≠ 0) (p : { a : associates α // irreducible a })
+  (k : ℕ) : count p (a ^ k).factors = k * count p a.factors :=
+begin
+  induction k with n h, { rw pow_zero, rw factor_one, rw zero_mul, refl },
+  { rw pow_succ, rw ← (count_product ha (pow_ne_zero' _ ha)), rw h,
+    change count p (factors a) + n * count p (factors a) = (n + 1) * count p (factors a),
+    ring }
+end
+
+theorem dvd_count_pow {a : associates α} (ha : a ≠ 0) (p : { a : associates α // irreducible a })
+  (k : ℕ) : k ∣ count p (a ^ k).factors := by { rw count_pow ha, apply dvd_mul_right }
+
+theorem is_pow_of_dvd_count {a : associates α} (ha : a ≠ 0) {k : ℕ}
+  (hp : ∀ (p : { a : associates α // irreducible a }), k ∣ count p a.factors) :
+  ∃ (b : associates α), a = b ^ k :=
+begin
+  obtain ⟨a0, hz, ha'⟩ := exists_non_zero_rep ha,
+  erw [ha', factors_mk a0 hz, ← with_top.some_eq_coe] at hp,
+  unfold count at hp,
+  generalize hs : factors' a0 hz = s, rw hs at hp,
+  obtain ⟨u, hu⟩ := multiset.exists_smul_of_dvd_count s hp,
+  use (u : factor_set α).prod,
+  apply eq_of_factors_eq_factors, erw pow_factors,
+  rw prod_factors, rw ha', erw factors_mk a0 hz, rw ← with_top.some_eq_coe, rw hs, rw hu,
+  exact with_bot.coe_nsmul u k
+end
+
+theorem is_pow_of_coprime {a b c : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
+  (hab : associates_coprime a b) {k : ℕ} (h : a * b = c ^ k) : ∃ (d : associates α), a = d ^ k :=
+begin
+  by_cases hk0 : k = 0,
+  { rw [hk0, pow_zero] at h,
+    apply exists.intro (1 : associates α),
+    rw [hk0, pow_zero],
+    apply (mul_eq_one_iff.1 h).1 },
+  { apply is_pow_of_dvd_count ha, intro p,
+    apply count_factors_of_coprime ha hb hab,
+    rw h, apply dvd_count_pow,
+    intro hc0,
+    have h2 : c ^ k = 0, { rw hc0, exact zero_pow' _ hk0 },
+    revert h2, rw ← h,
+    exact mul_ne_zero_iff.mpr (and.intro ha hb) }
+end
+
 end associates
 
 section
@@ -532,3 +760,40 @@ let ⟨b', a', c', no_factor, hb, ha⟩ := exists_reduced_factors b hb a
 in ⟨a', b', c', λ _ hpb hpa, no_factor hpa hpb, ha, hb⟩
 
 end unique_factorization_domain
+
+open unique_factorization_domain associated lattice associates
+
+variables [integral_domain α] [nontrivial α] [gcd_monoid α] [unique_factorization_domain α]
+local attribute [instance] associated.setoid
+
+lemma exists_prime_dvd_of_not_gcd_one {a b : α}
+  (h : gcd a b ≠ 1) (ha : a ≠ 0) : ∃ (p : α), prime p ∧ p ∣ a ∧ p ∣ b :=
+begin
+    have hz : gcd a b ≠ 0, { apply mt (gcd_eq_zero_iff a b).mp, tauto },
+    have hg : associated (factors (gcd a b)).prod (gcd a b),
+      { exact unique_factorization_domain.factors_prod hz },
+    have h : factors (gcd a b) ≠ 0,
+    { intro hz2, revert h, apply not_not_intro,
+      rw hz2 at hg, rw multiset.prod_zero at hg,
+      rw [← normalize_gcd, ← normalize_one, ← out_mk, ← out_mk], apply congr_arg,
+      exact mk_eq_mk_iff_associated.mpr hg.symm },
+    cases multiset.exists_mem_of_ne_zero h with p hp,
+    use p,
+    split,
+    { exact unique_factorization_domain.prime_factors hz p hp },
+    { exact (dvd_gcd_iff p a b).mp (dvd_trans (multiset.dvd_prod hp) (dvd_of_associated hg)) }
+end
+
+theorem coprime_iff_gcd_one {a b : α} (ha : a ≠ 0) : gcd a b = 1 ↔ coprime a b :=
+begin
+  split,
+  { intro hg, intros p hp ha hb,
+    have hpg : p ∣ gcd a b, { apply (dvd_gcd_iff p a b).mpr (and.intro ha hb) },
+    rw hg at hpg,
+    apply absurd (is_unit_of_dvd_one p hpg) (prime.not_unit hp) },
+  { haveI := classical.prop_decidable,
+    intro hc,
+    by_contradiction hg,
+    obtain ⟨p, ⟨hp, ⟨hpa, hpb⟩⟩⟩ := exists_prime_dvd_of_not_gcd_one hg ha,
+    apply absurd hpb (hc p hp hpa) }
+end

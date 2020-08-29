@@ -45,7 +45,7 @@ open opposite
 namespace algebraic_geometry
 
 /--
-`$$Spec R$$, just as a topological space.
+$Spec R$, just as a topological space.
 -/
 def Spec.Top : Top := Top.of (prime_spectrum R)
 
@@ -217,7 +217,7 @@ nat_iso.of_components
   (by tidy)
 
 /--
-The structure sheaf on $$Spec R$$, valued in `CommRing`.
+The structure sheaf on $Spec R$, valued in `CommRing`.
 
 This is provided as a bundled `SheafedSpace` as `Spec.SheafedSpace R` later.
 -/

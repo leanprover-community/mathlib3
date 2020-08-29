@@ -54,7 +54,7 @@ def const (X : Top) (Z : C) : PresheafedSpace C :=
   { obj := λ U, Z,
     map := λ U V f, 𝟙 Z, } }
 
-instance (X : Top) (Z : C) : inhabited (PresheafedSpace C) := ⟨const X Z⟩
+instance [inhabited C] : inhabited (PresheafedSpace C) := ⟨const (Top.of pempty) (default C)⟩
 
 /-- A morphism between presheafed spaces `X` and `Y` consists of a continuous map
     `f` between the underlying topological spaces, and a (notice contravariant!) map

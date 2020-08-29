@@ -165,7 +165,7 @@ end
 
 variables {p : ℕ} [fact p.prime]
 
-lemma finite_field.char_poly_pow_card {K : Type*} [field K] [fintype K] (M : matrix n n K) :
+@[simp] lemma finite_field.char_poly_pow_card {K : Type*} [field K] [fintype K] (M : matrix n n K) :
   char_poly (M ^ (fintype.card K)) = char_poly M :=
 begin
   by_cases hn : nonempty n,

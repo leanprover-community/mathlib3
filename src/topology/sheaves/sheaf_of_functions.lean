@@ -14,7 +14,11 @@ import topology.local_homeomorph
 We show that
 * `Top.sheaf_condition.to_Type`: not-necessarily-continuous functions into a type form a sheaf
 * `Top.sheaf_condition.to_Types`: in fact, these may be dependent functions into a type family
+
+For
 * `Top.sheaf_condition.to_Top`: continuous functions into a topological space form a sheaf
+please see `topology/sheaves/local_predicate.lean`, where we set up a general framework
+for constructing sub(pre)sheaves of the sheaf of dependent functions.
 
 ## Future work
 Obviously there's more to do:

@@ -122,7 +122,7 @@ def encoding_nat_Γ' : encoding ℕ :=
 
 def fin_encoding_nat_Γ' : fin_encoding ℕ := ⟨ encoding_nat_Γ', Γ'.fintype ⟩
 
-def unary_encode_nat : nat → list Γ₀₁ :=
+def unary_encode_nat : nat → list Γ₀₁
 | 0 := []
 | (n+1) := Γ₀₁.bit1 :: (unary_encode_nat n)
 

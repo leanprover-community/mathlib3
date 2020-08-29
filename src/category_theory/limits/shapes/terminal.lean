@@ -45,11 +45,11 @@ lemma is_initial.hom_ext {X Y : C} (t : is_initial X) (f g : X ⟶ Y) : f = g :=
 t.hom_ext (by tidy)
 
 /-- Any morphism from a terminal object is mono. -/
-def is_terminal.mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) : mono f :=
+lemma is_terminal.mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) : mono f :=
 ⟨λ Z g h eq, t.hom_ext _ _⟩
 
 /-- Any morphism to an initial object is epi. -/
-def is_initial.epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) : epi f :=
+lemma is_initial.epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) : epi f :=
 ⟨λ Z g h eq, t.hom_ext _ _⟩
 
 variable (C)

@@ -61,7 +61,9 @@ variables (C D)
 Construct the skeleton category by taking the quotient of objects. This construction gives a
 preorder with nice definitional properties, but is only really appropriate for thin categories.
 -/
-def thin_skeleton := quotient (is_isomorphic_setoid C)
+def thin_skeleton : Type u₁ := quotient (is_isomorphic_setoid C)
+
+instance [inhabited C] : inhabited (thin_skeleton C) := ⟨quotient.mk (default _)⟩
 
 instance thin_skeleton.preorder : preorder (thin_skeleton C) :=
 { le := quotient.lift₂ (λ X Y, nonempty (X ⟶ Y))
@@ -107,10 +109,28 @@ lemma comp_to_thin_skeleton (F : C ⥤ D) : F ⋙ to_thin_skeleton D = to_thin_s
 def map_nat_trans {F₁ F₂ : C ⥤ D} (k : F₁ ⟶ F₂) : map F₁ ⟶ map F₂ :=
 { app := λ X, quotient.rec_on_subsingleton X (λ x, ⟨⟨⟨k.app x⟩⟩⟩) }
 
+-- TODO: state the lemmas about what happens when you compose with `to_thin_skeleton`
+/-- A functor `C ⥤ D ⥤ E` computably lowers to a functor
+`thin_skeleton C ⥤ thin_skeleton D ⥤ thin_skeleton E` -/
+@[simps]
+def map₂ (F : C ⥤ D ⥤ E) :
+  thin_skeleton C ⥤ thin_skeleton D ⥤ thin_skeleton E :=
+{ obj := λ x,
+  { obj := λ y, quotient.map₂ (λ X Y, (F.obj X).obj Y)
+                (λ X₁ X₂ ⟨hX⟩ Y₁ Y₂ ⟨hY⟩, ⟨(F.obj X₁).map_iso hY ≪≫ (F.map_iso hX).app Y₂⟩) x y,
+    map := λ y₁ y₂, quotient.rec_on_subsingleton x $
+            λ X, quotient.rec_on_subsingleton₂ y₁ y₂ $
+              λ Y₁ Y₂ hY, hom_of_le ((le_of_hom hY).elim (λ g, ⟨(F.obj X).map g⟩)) },
+  map := λ x₁ x₂, quotient.rec_on_subsingleton₂ x₁ x₂ $
+           λ X₁ X₂ f,
+           { app := λ y, quotient.rec_on_subsingleton y
+              (λ Y, hom_of_le ((le_of_hom f).elim (λ f', ⟨(F.map f').app Y⟩))) } }
+
 variables (C) [∀ X Y : C, subsingleton (X ⟶ Y)]
 
 instance : faithful (to_thin_skeleton C) := {}
 
+/-- Use `quotient.out` to create a functor out of the thin skeleton. -/
 @[simps]
 noncomputable def from_thin_skeleton : thin_skeleton C ⥤ C :=
 { obj := quotient.out,
@@ -129,21 +149,6 @@ noncomputable instance from_thin_skeleton_equivalence : is_equivalence (from_thi
       (by tidy) }
 
 variables {C}
-
--- TODO: state the lemmas about what happens when you compose with `to_thin_skeleton`
-@[simps]
-def map₂ (F : E ⥤ D ⥤ C) :
-  thin_skeleton E ⥤ thin_skeleton D ⥤ thin_skeleton C :=
-{ obj := λ x,
-  { obj := λ y, quotient.map₂ (λ X Y, (F.obj X).obj Y)
-                (λ X₁ X₂ ⟨hX⟩ Y₁ Y₂ ⟨hY⟩, ⟨(F.obj X₁).map_iso hY ≪≫ (F.map_iso hX).app Y₂⟩) x y,
-    map := λ y₁ y₂, quotient.rec_on_subsingleton x $
-            λ X, quotient.rec_on_subsingleton₂ y₁ y₂ $
-              λ Y₁ Y₂ hY, hom_of_le ((le_of_hom hY).elim (λ g, ⟨(F.obj X).map g⟩)) },
-  map := λ x₁ x₂, quotient.rec_on_subsingleton₂ x₁ x₂ $
-           λ X₁ X₂ f,
-           { app := λ y, quotient.rec_on_subsingleton y
-              (λ Y, hom_of_le ((le_of_hom f).elim (λ f', ⟨(F.map f').app Y⟩))) } }
 
 lemma equiv_of_both_ways {X Y : C} (f : X ⟶ Y) (g : Y ⟶ X) : X ≈ Y :=
 ⟨iso_of_both_ways f g⟩
@@ -170,9 +175,13 @@ functor.eq_of_iso skeletal $
 lemma map_iso_eq {F₁ F₂ : D ⥤ C} (h : F₁ ≅ F₂) : map F₁ = map F₂ :=
 functor.eq_of_iso skeletal { hom := map_nat_trans h.hom, inv := map_nat_trans h.inv }
 
+/-- `from_thin_skeleton C` exhibits the thin skeleton as a skeleton. -/
 noncomputable def thin_skeleton_is_skeleton : is_skeleton_of C (thin_skeleton C) (from_thin_skeleton C) :=
 { skel := skeletal,
   eqv := thin_skeleton.from_thin_skeleton_equivalence C }
+
+noncomputable instance : inhabited (is_skeleton_of C (thin_skeleton C) (from_thin_skeleton C)) :=
+⟨thin_skeleton_is_skeleton⟩
 
 end thin_skeleton
 

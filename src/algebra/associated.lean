@@ -573,7 +573,7 @@ lemma coprime_associated {a b : α} :
 begin
   split,
   { intros h p hp ha,
-    obtain ⟨p0, hp0⟩ := exists_of_associate p,
+    obtain ⟨p0, hp0⟩ := exists_rep p,
     rw ← hp0 at *,
     apply mt dvd_of_mk_le_mk,
     exact h _ ((prime_mk p0).mp hp) (dvd_of_mk_le_mk ha) },

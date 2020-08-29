@@ -38,6 +38,9 @@ types used for indexing.
   `R`-endomorphisms of `M` and `matrix n n R`
 * `matrix.trace`: the trace of a square matrix
 * `linear_map.trace`: the trace of an endomorphism
+* `is_basis.to_matrix`: the matrix whose columns are a given family of vectors in a given basis
+* `is_basis.to_matrix_equiv`: given a basis, the linear equivalence between families of vectors
+  and matrices arising from `is_basis.to_matrix`
 * `is_basis.det`: the determinant of a family of vectors with respect to a basis, as a multilinear
   map
 

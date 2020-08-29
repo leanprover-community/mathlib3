@@ -38,7 +38,7 @@ show (s.val.map g).prod a = (s.val.map (λc, g c a)).prod,
   by rw [pi.multiset_prod_apply, multiset.map_map]
 
 @[simp, to_additive]
-lemma fintype.prod_apply  {α : Type*} {β : α → Type*} {γ : Type*} [fintype γ]
+lemma fintype.prod_apply {α : Type*} {β : α → Type*} {γ : Type*} [fintype γ]
   [∀a, comm_monoid (β a)] (a : α) (g : γ → Πa, β a) : (∏ c, g c) a = ∏ c, g c a :=
 finset.prod_apply a finset.univ g
 

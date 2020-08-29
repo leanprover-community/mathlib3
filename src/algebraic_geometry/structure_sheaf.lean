@@ -22,6 +22,11 @@ the subset of functions satisfying this condition is automatically a subpresheaf
 Because the condition "is locally equal to a fraction" is local,
 it is also a subsheaf.
 
+(It may be helpful to refer back to `topology.sheaves.sheaf_of_functions`,
+where we show that dependent functions into any type family form a sheaf,
+and also `topology.sheaves.local_predicate`, where we characterise the predicates
+which pick out sub-presheaves and sub-sheaves of these sheaves.)
+
 We also set up the ring structure, obtaining
 `structure_sheaf R : sheaf CommRing (Top.of (prime_spectrum R))`.
 -/
@@ -39,15 +44,20 @@ open opposite
 
 namespace algebraic_geometry
 
+/--
+`$$Spec R$$, just as a topological space.
+-/
+def Spec.Top : Top := Top.of (prime_spectrum R)
+
 namespace structure_sheaf
 
 /--
 The type family over `prime_spectrum R` consisting of the localization over each point.
 -/
 @[derive [comm_ring, local_ring]]
-def localizations (P : Top.of (prime_spectrum R)) : Type u := localization.at_prime P.as_ideal
+def localizations (P : Spec.Top R) : Type u := localization.at_prime P.as_ideal
 
-instance (P : Top.of (prime_spectrum R)) : inhabited (localizations R P) :=
+instance (P : Spec.Top R) : inhabited (localizations R P) :=
 ⟨(localization.of _).to_map 1⟩
 
 variables {R}
@@ -56,7 +66,7 @@ variables {R}
 The predicate saying that a dependent function on an open `U` is realised as a fixed fraction
 `r / s` in each of the stalks (which are localizations at various prime ideals).
 -/
-def is_fraction {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, localizations R x) : Prop :=
+def is_fraction {U : opens (Spec.Top R)} (f : Π x : U, localizations R x) : Prop :=
 ∃ (r s : R), ∀ x : U,
   ¬ (s ∈ x.1.as_ideal) ∧ f x * (localization.of _).to_map s = (localization.of _).to_map r
 
@@ -69,8 +79,6 @@ in the sense that if it holds on `U` it holds on any open subset `V` of `U`.
 def is_fraction_prelocal : prelocal_predicate (localizations R) :=
 { pred := λ U f, is_fraction f,
   res := by { rintro V U i f ⟨r, s, w⟩, exact ⟨r, s, λ x, w (i x)⟩ } }
-
-variables {R}
 
 /--
 We will define the structure sheaf as
@@ -91,34 +99,88 @@ Now Hartshorne had the disadvantage of not knowing about dependent functions,
 so we replace his circumlocution about functions into a disjoint union with
 `Π x : U, localizations x`.
 -/
-def is_locally_fraction
-  {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, localizations R x) : Prop :=
-∀ x : U, ∃ (V) (m : x.1 ∈ V) (i : V ⟶ U),
-  ∃ (r s : R), ∀ y : V,
-  ¬ (s ∈ y.1.as_ideal) ∧
-    f (i y : U) * (localization.of _).to_map s = (localization.of _).to_map r
-
-variables (R)
-
-/--
-Show that `is_locally_fraction_pred` is a "local predicate":
-in fact it is just the sheafification of the "prelocal predicate" `is_fraction`.
--/
-def is_locally_fraction_local : local_predicate (localizations R) :=
+def is_locally_fraction : local_predicate (localizations R) :=
 (is_fraction_prelocal R).sheafify
 
 @[simp]
-lemma is_locally_fraction_local_pred
-  {U : opens (Top.of (prime_spectrum R))} (f : Π x : U, localizations R x) :
-  (is_locally_fraction_local R).pred f = is_locally_fraction f :=
+lemma is_locally_fraction_pred
+  {U : opens (Spec.Top R)} (f : Π x : U, localizations R x) :
+  (is_locally_fraction R).pred f =
+  ∀ x : U, ∃ (V) (m : x.1 ∈ V) (i : V ⟶ U),
+  ∃ (r s : R), ∀ y : V,
+  ¬ (s ∈ y.1.as_ideal) ∧
+    f (i y : U) * (localization.of _).to_map s = (localization.of _).to_map r :=
 rfl
 
 /--
-The functions satisfying `is_locally_fraction` form a subring.
+The functions satisfying `is_locally_fraction` form a submonoid.
 -/
-def sections_subring (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
+def sections_subring (U : (opens (Spec.Top R))ᵒᵖ) :
   subring (Π x : unop U, localizations R x) :=
-{ carrier := { f | is_locally_fraction f },
+{ carrier := { f | (is_locally_fraction R).pred f },
+  zero_mem' :=
+  begin
+    refine λ x, ⟨unop U, x.2, 𝟙 _, 0, 1, λ y, ⟨_, _⟩⟩,
+    { rw ←ideal.ne_top_iff_one, exact y.1.is_prime.1, },
+    { simp, },
+  end,
+  one_mem' :=
+  begin
+    refine λ x, ⟨unop U, x.2, 𝟙 _, 1, 1, λ y, ⟨_, _⟩⟩,
+    { rw ←ideal.ne_top_iff_one, exact y.1.is_prime.1, },
+    { simp, },
+  end,
+  add_mem' :=
+  begin
+    intros a b ha hb x,
+    rcases ha x with ⟨Va, ma, ia, ra, sa, wa⟩,
+    rcases hb x with ⟨Vb, mb, ib, rb, sb, wb⟩,
+    refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * sb + rb * sa, sa * sb, _⟩,
+    intro y,
+    rcases wa (opens.inf_le_left _ _ y) with ⟨nma, wa⟩,
+    rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
+    fsplit,
+    { intro H, cases y.1.is_prime.mem_or_mem H; contradiction, },
+    { simp only [add_mul, ring_hom.map_add, pi.add_apply, ring_hom.map_mul],
+      erw [←wa, ←wb],
+      simp only [mul_assoc],
+      congr' 2,
+      rw [mul_comm], refl, }
+  end,
+  neg_mem' :=
+  begin
+    intros a ha x,
+    rcases ha x with ⟨V, m, i, r, s, w⟩,
+    refine ⟨V, m, i, -r, s, _⟩,
+    intro y,
+    rcases w y with ⟨nm, w⟩,
+    fsplit,
+    { exact nm, },
+    { simp only [ring_hom.map_neg, pi.neg_apply],
+      erw [←w],
+      simp only [neg_mul_eq_neg_mul_symm], }
+  end,
+  mul_mem' :=
+  begin
+    intros a b ha hb x,
+    rcases ha x with ⟨Va, ma, ia, ra, sa, wa⟩,
+    rcases hb x with ⟨Vb, mb, ib, rb, sb, wb⟩,
+    refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * rb, sa * sb, _⟩,
+    intro y,
+    rcases wa (opens.inf_le_left _ _ y) with ⟨nma, wa⟩,
+    rcases wb (opens.inf_le_right _ _ y) with ⟨nmb, wb⟩,
+    fsplit,
+    { intro H, cases y.1.is_prime.mem_or_mem H; contradiction, },
+    { simp only [pi.mul_apply, ring_hom.map_mul],
+      erw [←wa, ←wb],
+      simp only [mul_left_comm, mul_assoc, mul_comm],
+      refl, }
+  end, }
+
+
+def sections_subring (U : (opens (Spec.Top R))ᵒᵖ) :
+  subring (Π x : unop U, localizations R x) :=
+{ carrier := { f | (is_locally_fraction R).pred f },
   zero_mem' :=
   begin
     refine λ x, ⟨unop U, x.2, 𝟙 _, 0, 1, λ y, ⟨_, _⟩⟩,
@@ -184,12 +246,12 @@ open structure_sheaf
 
 /--
 The structure sheaf (valued in `Type`, not yet `CommRing`) is the subsheaf consisting of
-functions satisfying `locally_fraction`.
+functions satisfying `is_locally_fraction`.
 -/
-def structure_sheaf_in_Type : sheaf (Type u) (Top.of (prime_spectrum R)) :=
-subsheaf_to_Types (is_locally_fraction_local R)
+def structure_sheaf_in_Type : sheaf (Type u) (Spec.Top R):=
+subsheaf_to_Types (is_locally_fraction R)
 
-instance comm_ring_structure_sheaf_in_Type_obj (U : (opens (Top.of (prime_spectrum R)))ᵒᵖ) :
+instance comm_ring_structure_sheaf_in_Type_obj (U : (opens (Spec.Top R))ᵒᵖ) :
   comm_ring ((structure_sheaf_in_Type R).presheaf.obj U) :=
 (sections_subring R U).to_comm_ring
 
@@ -198,7 +260,7 @@ The structure presheaf, valued in `CommRing`, constructed by dressing up the `Ty
 structure presheaf.
 -/
 @[simps]
-def structure_presheaf_in_CommRing : presheaf CommRing (Top.of (prime_spectrum R)) :=
+def structure_presheaf_in_CommRing : presheaf CommRing (Spec.Top R) :=
 { obj := λ U, CommRing.of ((structure_sheaf_in_Type R).presheaf.obj U),
   map := λ U V i,
   { to_fun := ((structure_sheaf_in_Type R).presheaf.map i),
@@ -219,8 +281,10 @@ nat_iso.of_components
 
 /--
 The structure sheaf on $$Spec R$$, valued in `CommRing`.
+
+This is provided as a bundled `SheafedSpace` as `Spec.SheafedSpace R` later.
 -/
-def structure_sheaf : sheaf CommRing (Top.of (prime_spectrum R)) :=
+def structure_sheaf : sheaf CommRing (Spec.Top R) :=
 { presheaf := structure_presheaf_in_CommRing R,
   sheaf_condition :=
     -- We check the sheaf condition under `forget CommRing`.

@@ -103,8 +103,11 @@ def encodek_nat : ∀ n, (decode_nat(encode_nat n) ) = n := begin
     exact encodek_num ↑n,
   end,
   unfold decode_nat,
-  --simp,
-  exact_mod_cast h,--TODO: fix
+  have k : ∀ m : nat, m = ((m : num) : nat) := λ m, begin
+    exact (num.to_of_nat m).symm,
+  end,
+  conv_rhs {rw k n},
+  exact congr_arg coe h,
 end
 
 def encoding_nat_Γ₀₁ : encoding ℕ :=

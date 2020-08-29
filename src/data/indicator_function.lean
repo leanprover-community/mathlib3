@@ -85,7 +85,7 @@ variable {β}
 lemma indicator_indicator (s t : set α) (f : α → β) : indicator s (indicator t f) = indicator (s ∩ t) f :=
 funext $ λx, by { simp only [indicator], split_ifs, repeat {simp * at * {contextual := tt}} }
 
-lemma comp_indicator [has_zero β] (h : β → γ) {f : α → β} {s : set α} {x : α} :
+lemma comp_indicator (h : β → γ) (f : α → β) {s : set α} {x : α} :
   h (s.indicator f x) = s.piecewise (h ∘ f) (const α (h 0)) x :=
 s.comp_piecewise h
 

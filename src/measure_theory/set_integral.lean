@@ -49,7 +49,7 @@ migrated to the new definition.
 -/
 
 noncomputable theory
-open set filter topological_space measure_theory
+open set filter topological_space measure_theory function
 open_locale classical topological_space interval big_operators filter
 
 variables {α β E F : Type*} [measurable_space α]
@@ -285,9 +285,9 @@ begin
   { refine simple_func.induction _ _,
     { intros c s hs h, dsimp at h ⊢,
       by_cases hc : c = 0,
-      { subst hc, convert h_ind 0 is_measurable.empty (by simp) using 1, simp [const_def] },
+      { subst hc, convert h_ind 0 is_measurable.empty (by simp) using 1, simp [const] },
       apply h_ind c hs,
-      have := @comp_indicator _ _ _ _ (λ x : E, (nnnorm x : ennreal)) (const α c), dsimp at this,
+      have := comp_indicator (λ x : E, (nnnorm x : ennreal)) (const α c), dsimp at this,
       simp [integrable, this, lintegral_indicator, hs] at h,
       exact ennreal.lt_top_of_mul_lt_top_right h (by simp [hc]) },
     { intros f g hfg hf hg int_fg, dsimp at int_fg,

@@ -135,6 +135,36 @@ variables (p q : mv_polynomial σ R)
 open function
 open_locale classical big_operators
 
+section constant_coeff
+
+noncomputable
+def constant_coeff : mv_polynomial σ R →+* R :=
+{ to_fun := coeff 0,
+  map_one' := sorry,
+  map_mul' := sorry,
+  map_zero' := coeff_zero _,
+  map_add' := coeff_add _ }
+
+-- I think neither direction should be simp.
+-- But I one of them must be simp, then: ←
+lemma constant_coeff_eq : (constant_coeff : mv_polynomial σ R → R) = coeff 0 := rfl
+
+@[simp]
+lemma constant_coeff_C (r : R) :
+  constant_coeff (C r : mv_polynomial σ R) = r :=
+sorry
+
+@[simp]
+lemma constant_coeff_X (i : σ) :
+  constant_coeff (X i : mv_polynomial σ R) = 0 :=
+sorry
+
+lemma constant_coeff_monomial (d : σ →₀ ℕ) (r : R) :
+  constant_coeff (monomial d r) = if d = 0 then r else 0 :=
+by rw [constant_coeff_eq, coeff_monomial]
+
+end constant_coeff
+
 section monomial
 
 lemma eval₂_hom_monomial (f : R →+* S) (g : σ → S) (d : σ →₀ ℕ) (r : R) :
@@ -171,8 +201,6 @@ begin
   sorry
 end
 
-#check finset.bind
-
 lemma vars_sum_of_disjoint (h : pairwise $ disjoint on (λ i, (φ i).vars)) :
   (∑ i in s, φ i).vars = finset.bind s (λ i, (φ i).vars) :=
 begin
@@ -191,6 +219,37 @@ sorry
 lemma vars_monomial_single (i : σ) (e : ℕ) (r : R) (he : e ≠ 0) (hr : r ≠ 0) :
   (monomial (finsupp.single i e) r).vars = {i} :=
 by rw [vars_monomial hr, finsupp.support_single_ne_zero he]
+
+lemma eval₂_hom_eq_constant_coeff_of_vars (f : R →+* S) (g : σ → S)
+  (p : mv_polynomial σ R) (hp : ∀ i ∈ p.vars, g i = 0) :
+  eval₂_hom f g p = f (constant_coeff p) :=
+begin
+  -- I don't like this proof
+  -- revert hp,
+  -- generalize hps : p.vars = s,
+  -- revert hps,
+  -- apply mv_polynomial.induction_on' p,
+  -- { intros d r hs hg,
+  --   by_cases hr : r = 0,
+  --   { simp only [hr, monomial_zero, ring_hom.map_zero] },
+  --   { rw vars_monomial hr at hs,
+  --     rw [eval₂_hom_monomial, constant_coeff_monomial, finsupp.prod, hs],
+  --     split_ifs with h,
+  --     { -- TODO: `finsupp.prod_zero_index` is not in the default simp set
+  --       simp only [h, mul_one, finset.prod_const_one, finsupp.zero_apply, pow_zero], },
+  --     { subst hs,
+  --       rw [← finsupp.support_eq_empty, ← ne.def, ← finset.nonempty_iff_ne_empty] at h,
+  --       obtain ⟨i, hi⟩ := h,
+  --       rw [finset.prod_eq_zero hi, mul_zero, f.map_zero],
+  --       simp_rw [finsupp.mem_support_iff] at hi hg,
+  --       rw [hg i hi, zero_pow' _ hi], } } },
+  -- { intros φ ψ hφ hψ hs, sorry  }
+end
+
+lemma aeval_eq_constant_coeff_of_vars [algebra R S] (g : σ → S)
+  (p : mv_polynomial σ R) (hp : ∀ i ∈ p.vars, g i = 0) :
+  aeval g p = algebra_map _ _ (constant_coeff p) :=
+eval₂_hom_eq_constant_coeff_of_vars _ g p hp
 
 end vars
 

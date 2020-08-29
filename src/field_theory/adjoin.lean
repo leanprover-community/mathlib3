@@ -22,7 +22,7 @@ For example, `algebra.adjoin K {x}` might not include `x⁻¹`.
 
 ## Notation
 
- - `F[(α)]` : Adjoin a single element α to F.
+ - `F[(α)]`: adjoin a single element `α` to `F`.
 -/
 
 namespace field

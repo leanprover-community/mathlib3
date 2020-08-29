@@ -935,18 +935,6 @@ by { cases n, cases h, apply succ_pos, }
 def bit_cases {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (n : ℕ) : C n :=
 eq.rec_on n.bit_decomp (H (bodd n) (div2 n))
 
-/-- If `f` is a commutative operation on bools such that `f ff ff = ff`, then `bitwise f` is also
-    commutative. -/
-lemma bitwise_comm {f : bool → bool → bool} (hf : ∀ b b', f b b' = f b' b)
-  (hf' : f ff ff = ff) (n m : ℕ) : bitwise f n m = bitwise f m n :=
-suffices bitwise f = function.swap (bitwise f), by conv_lhs { rw this },
-calc bitwise f = bitwise (function.swap f) : congr_arg _ $ funext $ λ _, funext $ hf _
-     ...       = function.swap (bitwise f) : bitwise_swap hf'
-
-lemma lor_comm (n m : ℕ) : lor n m = lor m n := bitwise_comm bool.bor_comm rfl n m
-lemma land_comm (n m : ℕ) : land n m = land m n := bitwise_comm bool.band_comm rfl n m
-lemma lxor_comm (n m : ℕ) : lxor n m = lxor m n := bitwise_comm bool.bxor_comm rfl n m
-
 /- partial subtraction -/
 
 /-- Partial predecessor operation. Returns `ppred n = some m`

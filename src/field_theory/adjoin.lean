@@ -90,7 +90,7 @@ begin
   exact ⟨HF, HS⟩,
 end
 
-/-- `S ⊆ adjoin F T` if and only if `adjoin F S ⊆ adjoin F T` -/
+/-- `S ⊆ adjoin F T` if and only if `adjoin F S ⊆ adjoin F T`. -/
 lemma adjoin_subset_iff {T : set E} : S ⊆ adjoin F T ↔ (adjoin F S : set E) ⊆ adjoin F T :=
 ⟨λ h, adjoin_subset_subfield F S (adjoin.range_algebra_map_subset F T) h,
   λ h, set.subset.trans (subset_adjoin F S) h⟩

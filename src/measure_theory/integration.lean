@@ -1415,7 +1415,7 @@ end lintegral
 
 end measure_theory
 
-open measure_theory.simple_func
+open measure_theory measure_theory.simple_func
 lemma measurable.ennreal_induction {α} [measurable_space α] {P : (α → ennreal) → Prop}
   (h_ind : ∀ (c : ennreal) ⦃s⦄, is_measurable s → P (indicator s (λ _, c)))
   (h_sum : ∀ ⦃f g⦄, measurable f → measurable g → P f → P g → P (f + g))

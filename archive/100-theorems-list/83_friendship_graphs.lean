@@ -185,7 +185,7 @@ begin
     simp only [add_left_eq_self, nat.cast_add, nat.cast_one], apply p_dvd_d_pred, },
   have Vmod := friendship_reg_card_mod_p hG dmod hd,
   -- now we reduce to a trace calculation
-  have := zmod.trace_pow_card hG (G.adj_matrix (zmod p)),
+  have := zmod.trace_pow_card (G.adj_matrix (zmod p)),
   contrapose! this, clear this,
   -- the trace is 0 mod p when computed one way
   rw [trace_adj_matrix, zero_pow],

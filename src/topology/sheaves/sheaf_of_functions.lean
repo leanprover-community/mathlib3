@@ -188,29 +188,6 @@ end Top.sheaf_condition
 
 namespace Top
 
-def forget_continuity (T : Top.{u}) {ι : Type u} (U : ι → opens X) :
-  diagram (presheaf_to_Top X T) U ⟶ diagram (presheaf_to_Type X T) U :=
-{ app :=
-  begin
-    rintro ⟨_|_⟩,
-    exact (pi.map (λ i f, f.to_fun)),
-    exact (pi.map (λ p f, f.to_fun)),
-  end,
-  naturality' :=
-  begin
-    rintro ⟨_|_⟩ ⟨_|_⟩ ⟨⟩,
-    refl,
-    { ext,
-    simp only [sheaf_condition.left_res, cones.postcompose_obj_π, discrete.nat_trans_app, function.comp_app, functor_to_types.comp,
- limit.lift_map, types_comp_apply, presheaf_to_Type_map, parallel_pair_map_left, fan.mk_π_app, types.lift_π_apply,
- has_hom.hom.unop_op],
- delta pi.π,
- simp [inf_le_left_apply, presheaf_to_Top],
- refl, },
-    refl,
-    refl,
-  end, }
-
 /--
 The sheaf of not-necessarily-continuous functions on `X` with values in type family `T : X → Type u`.
 -/
@@ -224,6 +201,5 @@ The sheaf of not-necessarily-continuous functions on `X` with values in a type `
 def sheaf_to_Type (T : Type u) : sheaf (Type u) X :=
 { presheaf := presheaf_to_Type X T,
   sheaf_condition := sheaf_condition.to_Type _ _, }
-
 
 end Top

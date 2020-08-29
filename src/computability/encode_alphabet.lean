@@ -1,37 +1,26 @@
 import data.fintype.basic
 import data.num.lemmas
 import tactic
-import tactic.derive_fintype
 
 namespace encoding
 structure encoding (α : Type) :=
 (Γ : Type)
 (encode : α → list Γ)
 (decode : list Γ → option α)
-(encodek : decode ∘ encode = option.some)
+(encodek : ∀ x, decode(encode x) = some x )
 
 structure fin_encoding (α : Type) extends encoding α :=
 (Γ_fin : fintype Γ)
 
-#check fin_encoding
-
-@[derive [inhabited,decidable_eq]]
+@[derive [inhabited,decidable_eq,fintype]]
 inductive Γ₀₁
 | bit0 | bit1
 
---TODO: check if lean can do this automatically
-def Γ₀₁_fin : fintype Γ₀₁ :=
-{ elems := {Γ₀₁.bit0, Γ₀₁.bit1},
-  complete := λ x, begin cases x; finish, end }
-
-@[derive [decidable_eq]]
+@[derive [decidable_eq,fintype]]
 inductive Γ'
 | blank | bit0 | bit1 | bra | ket | comma
 
---TODO: check if lean can do this automatically
-def Γ'_fin : fintype Γ' :=
-{ elems := {Γ'.blank, Γ'.bit0, Γ'.bit1, Γ'.bra, Γ'.ket, Γ'.comma},
-  complete := λ x, begin cases x; finish, end }
+instance inhabited_Γ' : inhabited Γ' := ⟨Γ'.blank⟩
 
 def inclusion_Γ₀₁_Γ' : Γ₀₁ → Γ'
 | Γ₀₁.bit0 := Γ'.bit0
@@ -44,11 +33,7 @@ def section_Γ'_Γ₀₁ : Γ' → Γ₀₁
 
 lemma left_inverse_section_inclusion : function.left_inverse section_Γ'_Γ₀₁ inclusion_Γ₀₁_Γ' := begin intros x, cases x; trivial, end
 
---TODO: prove directly from having a left inverse
-def inclusion_Γ₀₁_Γ'_injective : function.injective inclusion_Γ₀₁_Γ' :=
-begin tidy, cases a₁; cases a₂; simp; finish end
-
-instance inhabited_Γ' : inhabited Γ' := ⟨Γ'.blank⟩
+lemma inclusion_Γ₀₁_Γ'_injective : function.injective inclusion_Γ₀₁_Γ' := by tidy
 
 def encode_pos_num : pos_num → list Γ₀₁
 | pos_num.one := [Γ₀₁.bit1]
@@ -128,9 +113,7 @@ def encoding_nat_Γ₀₁ : encoding ℕ :=
   decode := λ n, option.some (decode_nat n),
   encodek := begin funext, simp, exact encodek_nat x end }
 
-def fin_encoding_nat_Γ₀₁ : fin_encoding ℕ :=
-{ Γ_fin := Γ₀₁_fin,
-  ..encoding_nat_Γ₀₁ }
+def fin_encoding_nat_Γ₀₁ : fin_encoding ℕ := ⟨ encoding_nat_Γ₀₁, Γ₀₁.fintype ⟩
 
 def encoding_nat_Γ' : encoding ℕ :=
 { Γ := Γ',
@@ -144,9 +127,7 @@ def encoding_nat_Γ' : encoding ℕ :=
     exact encodek_nat x,
   end }
 
-def fin_encoding_nat_Γ' : fin_encoding ℕ :=
-{ Γ_fin := Γ'_fin,
-..encoding_nat_Γ' }
+def fin_encoding_nat_Γ' : fin_encoding ℕ := ⟨ encoding_nat_Γ', Γ'.fintype ⟩
 
 --TODO: unary encodings
 
@@ -159,16 +140,13 @@ def decode_bool : list Γ₀₁ → bool
 | [Γ₀₁.bit1] := tt
 | _ := arbitrary bool
 
-def encodek_bool : ∀ b, (decode_bool(encode_bool b) ) = b := λ b,
-begin
-  cases b; refl
-end
+def encodek_bool : ∀ b, (decode_bool(encode_bool b)) = b := λ b, bool.cases_on b rfl rfl
 
 def encoding_bool_Γ₀₁ : fin_encoding bool :=
 { Γ := Γ₀₁,
   encode := encode_bool,
-  decode := option.some ∘ decode_bool,
-  encodek := begin funext, simp [encodek_bool x], end,
-  Γ_fin := Γ₀₁_fin }
+  decode := λ x, some(decode_bool x),
+  encodek := λ x, congr_arg _ ( encodek_bool x ),
+  Γ_fin := Γ₀₁.fintype }
 
 end encoding

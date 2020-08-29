@@ -448,7 +448,7 @@ begin
     rw [C_pow, C_eq_coe_nat], norm_cast, },
   have key := (witt_structure_rat_prop p (map (int.cast_ring_hom ℚ) Φ) n).symm,
   conv_rhs at key
-  { rw [witt_polynomial, alg_hom.map_sum],
+  { rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum],
     conv {
       apply_congr, skip,
       rw [alg_hom.map_mul, alg_hom.map_pow, aeval_C, aeval_X],
@@ -473,7 +473,7 @@ begin
     funext i,
     apply xyzzy, },
   { simp only [map_aeval, map_eval₂_hom, aeval_eq_eval₂_hom, ring_hom.map_pow,
-      eval₂_hom_map_hom, witt_polynomial, int.nat_cast_eq_coe_nat],
+      eval₂_hom_map_hom, witt_polynomial_eq_sum_C_mul_X_pow, int.nat_cast_eq_coe_nat],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     funext i,
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
@@ -719,7 +719,6 @@ begin
 end
 
 noncomputable def ghost_map_fun : 𝕎 p R → (ℕ → R) := λ w n, ghost_component n w
-#where
 
 end witt_vectors
 
@@ -955,8 +954,7 @@ end
 
 -- move this up
 @[simp] lemma witt_polynomial_zero : witt_polynomial p R 0 = X 0 :=
-by simp only [witt_polynomial, one_mul, C_pow, pow_one, finset.sum_singleton,
-  finset.range_one, nat.pow_zero, pow_zero]
+by simp only [witt_polynomial, X, finset.sum_singleton, finset.range_one, nat.pow_zero, pow_zero]
 
 @[simp] lemma witt_add_zero : witt_add p 0 = X (tt,0) + X (ff,0) :=
 begin
@@ -980,7 +978,6 @@ begin
 end
 
 -- move this up?
-
 lemma witt_polynomial_vars (n : ℕ) :
   (witt_polynomial p ℤ n).vars = finset.range (n + 1) :=
 begin
@@ -991,8 +988,7 @@ begin
       apply nat.pow_pos hp.pos },
     { apply pow_ne_zero, exact_mod_cast hp.ne_zero } },
   rw [witt_polynomial, vars_sum_of_disjoint],
-  { simp only [this, int.nat_cast_eq_coe_nat],
-    sorry },
+  { simp only [this, int.nat_cast_eq_coe_nat, finset.fold_union_empty_singleton], },
   { simp only [this, int.nat_cast_eq_coe_nat],
     intros a b h,
     apply finset.singleton_disjoint.mpr,

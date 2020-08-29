@@ -37,6 +37,26 @@ universes u v w u₁
 
 -- end alg_hom
 
+namespace finset
+
+open_locale classical
+
+@[simp]
+lemma fold_union_empty_singleton {α : Type*} (s : finset α) :
+  finset.fold (∪) ∅ singleton s = s :=
+begin
+  apply finset.induction_on s,
+  { simp only [fold_empty], },
+  { intros a s has ih, rw [fold_insert has, ih, insert_eq], }
+end
+
+@[simp]
+lemma fold_sup_bot_singleton {α : Type*} (s : finset α) :
+  finset.fold (⊔) ⊥ singleton s = s :=
+fold_union_empty_singleton s
+
+end finset
+
 namespace mv_polynomial
 open finsupp
 

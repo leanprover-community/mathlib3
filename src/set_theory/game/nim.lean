@@ -277,7 +277,7 @@ begin
   -- We want to show that `n xor m` is the smallest unreachable Grundy value. We will do this in two
   -- steps:
   -- h₀: `n xor m` is not a reachable grundy number.
-  -- h₁: every grundy number strictly smaller than `n xor m` is reachable.
+  -- h₁: every Grundy number strictly smaller than `n xor m` is reachable.
 
   have h₀ : (nat.lxor n m : ordinal) ∈ nonmoves (λ i, grundy_value ((nim n + nim m).move_left i)),
   { -- To show that `n xor m` is unreachable, we show that every move produces a Grundy number
@@ -294,7 +294,7 @@ begin
       obtain ⟨k, rfl⟩ := ordinal.lt_omega.1 (lt_trans hk (ordinal.nat_lt_omega _)),
       replace hk := ordinal.nat_cast_lt.1 hk,
 
-      -- Thus, the problem is reduced to computing the grundy value of `nim n + nim k` or
+      -- Thus, the problem is reduced to computing the Grundy value of `nim n + nim k` or
       -- `nim k + nim m`, both of which can be dealt with using an inductive hypothesis.
       simp only [hk', add_move_left_inl, add_move_left_inr, id],
       rw hn _ hk <|> rw hm _ hk,

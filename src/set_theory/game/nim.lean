@@ -304,7 +304,7 @@ begin
       intro h,
       rw ordinal.nat_cast_inj at h,
       try { rw [nat.lxor_comm n k, nat.lxor_comm n m] at h },
-      exact (_root_.ne_of_lt hk (nat.lxor_left_inj h)) } },
+      exact _root_.ne_of_lt hk (nat.lxor_left_inj h) } },
 
   have h₁ : ∀ (u : ordinal), u < nat.lxor n m →
     u ∉ nonmoves (λ i, grundy_value ((nim n + nim m).move_left i)),

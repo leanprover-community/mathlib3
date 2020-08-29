@@ -1,6 +1,25 @@
+/-
+Copyright (c) 2020 Pim Spelier, Daan van Gent. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Pim Spelier, Daan van Gent.
+-/
+
 import data.fintype.basic
 import data.num.lemmas
 import tactic
+
+/-!
+# Encodings
+
+This file contains the definition of a (finite) encoding, a map from a type to strings in an alphabet, used in defining computability by Turing machines. It also contains several examples
+
+## Examples
+
+- `fin_encoding_nat_Γ₀₁`   : a binary encoding of ℕ in a simple alphabet.
+- `fin_encoding_nat_Γ'`    : a binary encoding of ℕ in the alphabet used for TM's.
+- `unary_fin_encoding_nat` : a unary encoding of ℕ
+- `fin_encoding_bool_Γ₀₁`  : an encoding of bool.
+-/
 
 namespace encoding
 structure encoding (α : Type) :=
@@ -131,11 +150,12 @@ def unary_decode_nat : list Γ₀₁ → nat := list.length
 def unary_encodek_nat : ∀ n, unary_decode_nat (unary_encode_nat n) = n :=
 λ n, nat.rec rfl (λ (m : ℕ) (hm : unary_decode_nat (unary_encode_nat m) = m), (congr_arg nat.succ hm.symm).symm) n
 
-def unary_encoding_nat : encoding ℕ :=
+def unary_fin_encoding_nat : fin_encoding ℕ :=
 { Γ := Γ₀₁,
   encode := unary_encode_nat,
   decode := λ n, some (unary_decode_nat n),
-  encodek := λ n, congr_arg _ (unary_encodek_nat n)}
+  encodek := λ n, congr_arg _ (unary_encodek_nat n),
+  Γ_fin := Γ₀₁.fintype}
 
 def encode_bool : bool → list Γ₀₁
 | ff := [Γ₀₁.bit0]
@@ -148,7 +168,7 @@ def decode_bool : list Γ₀₁ → bool
 
 def encodek_bool : ∀ b, (decode_bool(encode_bool b)) = b := λ b, bool.cases_on b rfl rfl
 
-def encoding_bool_Γ₀₁ : fin_encoding bool :=
+def fin_encoding_bool_Γ₀₁ : fin_encoding bool :=
 { Γ := Γ₀₁,
   encode := encode_bool,
   decode := λ x, some(decode_bool x),

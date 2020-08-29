@@ -82,9 +82,7 @@ def decode_pos_num : list Γ₀₁ → pos_num
 | _ := pos_num.one
 
 /-- A decoding function from `list Γ₀₁` to the binary numbers. -/
-def decode_num : list Γ₀₁ → num
-| [] := num.zero
-| l := decode_pos_num l
+def decode_num : list Γ₀₁ → num := λ l, ite (l = []) num.zero $ decode_pos_num l
 
 /-- A decoding function from `list Γ₀₁` to ℕ. -/
 def decode_nat : list Γ₀₁ → nat := λ l, decode_num l
@@ -103,17 +101,11 @@ end
 
 lemma encodek_num : ∀ n, (decode_num(encode_num n) ) = n := begin
   intros n,
-  cases n, {
-    trivial,
-  },
-  unfold encode_num,
-  have h : encode_pos_num n ≠ [] := encode_pos_num_nonempty n,
-  have h' : decode_num (encode_pos_num n) = decode_pos_num (encode_pos_num n) := begin
-    cases encode_pos_num n; trivial,
-  end,
-  rw h',
-  rw (encodek_pos_num n),
-  simp only [pos_num.cast_to_num],
+  cases n; unfold encode_num decode_num,
+  { refl },
+  rw encodek_pos_num n,
+  rw pos_num.cast_to_num,
+  exact if_neg (encode_pos_num_nonempty n),
 end
 
 lemma encodek_nat : ∀ n, (decode_nat(encode_nat n) ) = n := begin
@@ -189,3 +181,5 @@ def fin_encoding_bool_Γ₀₁ : fin_encoding bool :=
 instance inhabited_fin_encoding : inhabited (fin_encoding bool) := ⟨fin_encoding_bool_Γ₀₁⟩
 
 instance inhabited_encoding : inhabited (encoding bool) := ⟨fin_encoding_bool_Γ₀₁.to_encoding⟩
+
+#lint

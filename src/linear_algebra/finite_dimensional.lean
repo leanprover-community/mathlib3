@@ -255,6 +255,15 @@ begin
   apply cardinal.nat_lt_omega,
 end
 
+lemma not_linear_independent_of_infinite {ι : Type w} [inf : infinite ι] [finite_dimensional K V]
+  (v : ι → V) : ¬ linear_independent K v :=
+begin
+  intro h_lin_indep,
+  have : ¬ omega ≤ mk ι := not_le.mpr (lt_omega_of_linear_independent h_lin_indep),
+  have : omega ≤ mk ι := infinite_iff.mp inf,
+  contradiction
+end
+
 /-- A finite dimensional space has positive `findim` iff it has a nonzero element. -/
 lemma findim_pos_iff_exists_ne_zero [finite_dimensional K V] : 0 < findim K V ↔ ∃ x : V, x ≠ 0 :=
 iff.trans (by { rw ← findim_eq_dim, norm_cast }) (@dim_pos_iff_exists_ne_zero K V _ _ _)

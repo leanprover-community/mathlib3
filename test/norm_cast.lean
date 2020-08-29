@@ -96,7 +96,7 @@ end
 example (k : ℕ) {x y : ℕ} (h : ((x + y + k : ℕ) : ℤ) = 0) : x + y + k = 0 :=
 begin
   push_cast at h,
-  guard_hyp h := (x : ℤ) + y + k = 0,
+  guard_hyp h : (x : ℤ) + y + k = 0,
   assumption_mod_cast
 end
 

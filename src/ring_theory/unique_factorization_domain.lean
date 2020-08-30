@@ -457,10 +457,11 @@ begin
   use p, apply and.intro hm, refl
 end
 
-lemma dvd_of_mem_factors' {a : α} {p : {a : associates α // irreducible a }} {hz : a ≠ 0}
-  (hp : p ∈ factors' a hz) : p.1 ∣ associates.mk a := dvd_of_mem_factor (factors_mk _ hz) hp
-
 omit dec
+
+lemma dvd_of_mem_factors' {a : α} {p : {a : associates α // irreducible a }} {hz : a ≠ 0}
+  (hp : p ∈ factors' a hz) : p.1 ∣ associates.mk a :=
+by classical; exact dvd_of_mem_factor (factors_mk _ hz) hp
 
 lemma mem_factors'_of_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) (hd : p ∣ a) :
   (⟨associates.mk p, (irreducible_mk_iff _).2 hp⟩ : {a : associates α // irreducible a })
@@ -641,9 +642,12 @@ begin
   exact with_bot.coe_nsmul u k
 end
 
+omit dec
+
 theorem is_pow_of_coprime {a b c : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
   (hab : associates_coprime a b) {k : ℕ} (h : a * b = c ^ k) : ∃ (d : associates α), a = d ^ k :=
 begin
+  classical,
   by_cases hk0 : k = 0,
   { rw [hk0, pow_zero] at h,
     apply exists.intro (1 : associates α),

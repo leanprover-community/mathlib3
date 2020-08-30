@@ -39,6 +39,8 @@ meta inductive sf : Type
 | tag_expr : expr.address → expr → sf → sf
 | compose : sf →  sf →  sf
 | of_string : string →  sf
+| highlight : format.color → sf → sf
+| block : ℕ → sf → sf
 
 /-- Prints a debugging representation of an `sf` object. -/
 meta def sf.repr : sf → format
@@ -47,6 +49,8 @@ meta def sf.repr : sf → format
     "`(" ++ to_fmt e ++ ")" ++ format.line ++ a.repr ++ ")"
 | (sf.compose a b) := a.repr ++ format.line ++ b.repr
 | (sf.of_string s) := repr s
+| (sf.block i a) := "(block " ++ to_fmt i ++ format.line ++ a.repr ++ ")"
+| (sf.highlight c a) := "(highlight " ++ c.to_string ++ a.repr ++ ")"
 
 meta instance : has_to_format sf := ⟨sf.repr⟩
 meta instance : has_to_string sf := ⟨λ s, s.repr.to_string⟩
@@ -55,15 +59,15 @@ meta instance : has_repr sf := ⟨λ s, s.repr.to_string⟩
 /-- Constructs an `sf` from an `eformat` by forgetting grouping, nesting, etc. -/
 meta def sf.of_eformat : eformat → sf
 | (tag ⟨ea,e⟩ m) := sf.tag_expr ea e $ sf.of_eformat m
-| (group m) := sf.of_eformat m
-| (nest i m) := sf.of_eformat m
-| (highlight i m) := sf.of_eformat m
+| (group m) := sf.block 0 $ sf.of_eformat m
+| (nest i m) := sf.block i $ sf.of_eformat m
+| (highlight c m) := sf.highlight c $ sf.of_eformat m
 | (of_format f) := sf.of_string $ format.to_string f
 | (compose x y) := sf.compose (sf.of_eformat x) (sf.of_eformat y)
 
 /-- Flattens an `sf`, i.e. merges adjacent `of_string` constructors. -/
 meta def sf.flatten : sf → sf
-| (sf.tag_expr e ea m) := (sf.tag_expr e ea $ sf.flatten m)
+| (sf.tag_expr ea e m) := (sf.tag_expr ea e $ sf.flatten m)
 | (sf.compose x y) :=
   match (sf.flatten x), (sf.flatten y) with
   | (sf.of_string sx), (sf.of_string sy) := sf.of_string (sx ++ sy)
@@ -72,7 +76,11 @@ meta def sf.flatten : sf → sf
   | (sf.compose x (sf.of_string sy1)), (sf.compose (sf.of_string sy2) z) := sf.compose x (sf.compose (sf.of_string (sy1 ++ sy2)) z)
   | x, y := sf.compose x y
   end
-| (sf.of_string s) := sf.of_string s
+| (sf.of_string s) := -- replace newline by space
+  sf.of_string (s.to_list.map (λ c, if c = '\n' then ' ' else c)).as_string
+| (sf.block i (sf.block j a)) := (sf.block (i+j) a).flatten
+| (sf.block i a) := sf.block i a.flatten
+| (sf.highlight i a) := sf.highlight i a.flatten
 
 private meta def elim_part_apps : sf → expr.address → sf
 | (sf.tag_expr ea e m) acc :=
@@ -82,6 +90,8 @@ private meta def elim_part_apps : sf → expr.address → sf
     sf.tag_expr (acc ++ ea) e (elim_part_apps m [])
 | (sf.compose a b) acc := (elim_part_apps a acc).compose (elim_part_apps b acc)
 | (sf.of_string s) _ := sf.of_string s
+| (sf.block i a) acc := sf.block i $ elim_part_apps a acc
+| (sf.highlight c a) acc := sf.highlight c $ elim_part_apps a acc
 
 /--
 Post-process an `sf` object to eliminate tags for partial applications by
@@ -153,7 +163,17 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
     on_click (λ _, action.on_click ca),
     key s
   ] [html.of_string s]]
-
+| ca (sf.block i a) := do
+  inner ← view ca a,
+  pure [h "span" [cn "dib", style [
+    ("padding-left", "1ch"),
+    ("text-indent", "-1ch"),
+    ("white-space", "pre-wrap"),
+    ("vertical-align", "top")
+  ]] inner]
+| ca (sf.highlight c a) := do
+  inner ← view ca a,
+  pure [h "span" [cn $ c.to_string] inner]
 
 /-- Make an interactive expression. -/
 meta def mk {γ} (tooltip : tc subexpr γ) : tc expr γ :=
@@ -215,7 +235,7 @@ tc.stateless (λ ⟨e,ea⟩, do
     implicit_args ← implicit_arg_list type_tooltip e,
     pure [
         h "div" [style [("minWidth", "8rem")]] [
-          h "div" [] [y_comp],
+          h "div" [cn "pl1"] [y_comp],
           h "hr" [] [],
           implicit_args
         ]

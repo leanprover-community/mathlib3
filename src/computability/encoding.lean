@@ -11,7 +11,9 @@ import tactic
 /-!
 # Encodings
 
-This file contains the definition of a (finite) encoding, a map from a type to strings in an alphabet, used in defining computability by Turing machines. It also contains several examples:
+This file contains the definition of a (finite) encoding, a map from a type to
+strings in an alphabet, used in defining computability by Turing machines.
+It also contains several examples:
 
 ## Examples
 
@@ -26,7 +28,7 @@ structure encoding (α : Type) :=
 (Γ : Type)
 (encode : α → list Γ)
 (decode : list Γ → option α)
-(encodek : ∀ x, decode(encode x) = some x)
+(encodek : ∀ x, decode (encode x) = some x)
 
 /-- An encoding plus a guarantue of finiteness of the alphabet. -/
 structure fin_encoding (α : Type) extends encoding α :=
@@ -90,7 +92,8 @@ def decode_nat : list Γ₀₁ → nat := λ l, decode_num l
 lemma encode_pos_num_nonempty (n : pos_num) : (encode_pos_num n) ≠ [] :=
 pos_num.cases_on n (list.cons_ne_nil _ _) (λ m, list.cons_ne_nil _ _) (λ m, list.cons_ne_nil _ _)
 
-lemma encodek_pos_num : ∀ n, (decode_pos_num(encode_pos_num n) ) = n := begin
+lemma encodek_pos_num : ∀ n, (decode_pos_num(encode_pos_num n) ) = n :=
+begin
   intros n,
   induction n with m hm m hm; unfold encode_pos_num decode_pos_num,
   { refl },
@@ -99,7 +102,8 @@ lemma encodek_pos_num : ∀ n, (decode_pos_num(encode_pos_num n) ) = n := begin
   { exact congr_arg pos_num.bit0 hm }
 end
 
-lemma encodek_num : ∀ n, (decode_num(encode_num n) ) = n := begin
+lemma encodek_num : ∀ n, (decode_num(encode_num n) ) = n :=
+begin
   intros n,
   cases n; unfold encode_num decode_num,
   { refl },
@@ -108,7 +112,8 @@ lemma encodek_num : ∀ n, (decode_num(encode_num n) ) = n := begin
   exact if_neg (encode_pos_num_nonempty n),
 end
 
-lemma encodek_nat : ∀ n, (decode_nat(encode_nat n) ) = n := begin
+lemma encodek_nat : ∀ n, (decode_nat(encode_nat n) ) = n :=
+begin
   intro n,
   conv_rhs {rw ← num.to_of_nat n},
   exact congr_arg coe (encodek_num ↑n),
@@ -122,21 +127,18 @@ def encoding_nat_Γ₀₁ : encoding ℕ :=
   encodek := λ n, congr_arg _ (encodek_nat n) }
 
 /-- A binary fin_encoding of ℕ in Γ₀₁. -/
-def fin_encoding_nat_Γ₀₁ : fin_encoding ℕ := ⟨ encoding_nat_Γ₀₁, Γ₀₁.fintype ⟩
+def fin_encoding_nat_Γ₀₁ : fin_encoding ℕ := ⟨encoding_nat_Γ₀₁, Γ₀₁.fintype⟩
 
 /-- A binary encoding of ℕ in Γ'. -/
 def encoding_nat_Γ' : encoding ℕ :=
 { Γ := Γ',
   encode := λ x, list.map inclusion_Γ₀₁_Γ' (encode_nat x),
   decode := λ x, option.some (decode_nat (list.map section_Γ'_Γ₀₁ x)),
-  encodek := λ x, congr_arg _ begin
-    rw list.map_map,
-    rw list.map_id' left_inverse_section_inclusion,
-    exact encodek_nat x,
-  end }
+  encodek := λ x, congr_arg _ $
+    by rw [list.map_map, list.map_id' left_inverse_section_inclusion, encodek_nat] }
 
 /-- A binary fin_encoding of ℕ in Γ'. -/
-def fin_encoding_nat_Γ' : fin_encoding ℕ := ⟨ encoding_nat_Γ', Γ'.fintype ⟩
+def fin_encoding_nat_Γ' : fin_encoding ℕ := ⟨encoding_nat_Γ', Γ'.fintype⟩
 
 /-- A unary encoding function of ℕ in Γ₀₁. -/
 def unary_encode_nat : nat → list Γ₀₁
@@ -181,5 +183,3 @@ def fin_encoding_bool_Γ₀₁ : fin_encoding bool :=
 instance inhabited_fin_encoding : inhabited (fin_encoding bool) := ⟨fin_encoding_bool_Γ₀₁⟩
 
 instance inhabited_encoding : inhabited (encoding bool) := ⟨fin_encoding_bool_Γ₀₁.to_encoding⟩
-
-#lint

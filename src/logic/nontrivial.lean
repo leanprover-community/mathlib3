@@ -118,3 +118,14 @@ begin
   have : x' ≠ y', by { contrapose! h, rw [← hx', ← hy', h] },
   exact ⟨⟨x', y', this⟩⟩
 end
+
+/-- An injective function from a nontrivial type has an argument at
+which it does not take a given value. -/
+protected lemma function.injective.exists_ne [nontrivial α] {f : α → β}
+  (hf : function.injective f) (y : β) : ∃ x, f x ≠ y :=
+begin
+  rcases exists_pair_ne α with ⟨x₁, x₂, hx⟩,
+  by_cases h : f x₂ = y,
+  { exact ⟨x₁, (hf.ne_iff' h).2 hx⟩ },
+  { exact ⟨x₂, h⟩ }
+end

@@ -446,7 +446,6 @@ end
 section
 
 open equiv
-open function
 /-This constructs the natural permutation group on `G` that is used to show Cayley's theorem-/
 def group_to_perm (G : Type*) [group G] : G →* perm G :=
 { to_fun := λ g,

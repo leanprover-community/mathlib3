@@ -115,6 +115,11 @@ begin
 end
 variables {F}
 
+#check @liftp
+#check @liftp'
+
+#print of_subtype
+
 lemma liftp_def (x : F α) : liftp' p x ↔ ∃ u : F (subtype_ p), subtype_val p <$$> u = x :=
 begin
   dsimp only [liftp', mvfunctor.liftp],

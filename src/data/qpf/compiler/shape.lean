@@ -23,6 +23,7 @@ meta def datatype_shape.dead_params (d : datatype_shape) := internal_mvfunctor.d
 meta def datatype_shape.live_params (d : datatype_shape) := internal_mvfunctor.live_params d.to_internal_mvfunctor
 
 meta def mk_shape_decl (d : inductive_type) : tactic (expr × inductive_type) :=
+trace_scope $
 do v ← mk_local_def (fresh_univ (d.params.map expr.local_pp_name) `α) d.type,
    let c := @const tt d.name d.u_params,
    let c' := c.mk_app d.params,
@@ -35,9 +36,10 @@ do v ← mk_local_def (fresh_univ (d.params.map expr.local_pp_name) `α) d.type,
               ctors := d.ctors.map (replace_rec_occ d.name (d.name <.> "shape") c' v) })
 
 meta def mk_shape_functor' (d : inductive_type) : tactic (datatype_shape × internal_mvfunctor) :=
+trace_scope $
 do func' ← internalize_mvfunctor d,
    (v,func) ← mk_shape_decl d,
-   mk_inductive func,
+   mk_inductive d.name func,
    func ← internalize_mvfunctor func,
    mk_internal_functor_def func,
    mk_internal_functor_eqn func,
@@ -46,6 +48,7 @@ do func' ← internalize_mvfunctor d,
 -- meta def mk_struct (n : name) (ls : list name)
 
 meta def mk_fixpoint (fix : name) (func d : internal_mvfunctor) : tactic unit :=
+trace_scope $
 do let dead := func.dead_params,
    let shape := (@const tt (func.decl.to_name <.> "internal") func.induct.u_params).mk_app dead,
    df ← (mk_mapp fix [none,shape,none,none] >>= lambdas dead : tactic _),
@@ -66,6 +69,7 @@ meta def get_type_spec (n : name) : tactic inductive_type :=
 mk_const (n <.> "_spec") >>= eval_expr _
 
 meta def mk_datatype (iter : name) (d : inductive_decl) : tactic (datatype_shape × internal_mvfunctor) :=
+trace_scope $
 do dt ← inductive_type.of_decl d,
    (func', d) ← mk_shape_functor' dt,
    let func : internal_mvfunctor := { .. func' },
@@ -81,11 +85,11 @@ do dt ← inductive_type.of_decl d,
    add_meta_definition (d.induct.name <.> "_spec") [] `(inductive_type) `(dt),
 
    mk_liftp_defn' func,
-   mk_liftp_eqns₀ func,
-   mk_liftp_eqns₁ func,
+   -- mk_liftp_eqns₀ func,
+   -- mk_liftp_eqns₁ func,
    mk_liftr_defn' func,
-   mk_liftr_eqns₀ func,
-   mk_liftr_eqns₁ func,
+   -- mk_liftr_eqns₀ func,
+   -- mk_liftr_eqns₁ func,
    pure (func',d)
 
 end tactic

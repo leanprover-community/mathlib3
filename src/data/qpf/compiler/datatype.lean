@@ -265,6 +265,7 @@ do let my_shape_intl_t := (@const tt (d.induct.name <.> "shape" <.> "internal") 
          thm ← unify_app' thm [v',v],
          mpr ← mk_const ``iff.mpr,
          ih ← (unify_app' mpr [thm,ih] >>= instantiate_mvars >>= note ih.local_pp_name none) <* clear ih,
+         trace_state,
          simp_only [``(typevec.pred_last'),``(typevec.const_append1),``(typevec.const_nil),``(typevec.subtype_val_append1),``(typevec.subtype_val_nil)] [] (some ih.local_pp_name),
          let n := (c.name.update_prefix $ c.name.get_prefix <.> "shape").append_suffix "_liftp",
          n' ← mk_const n,
@@ -481,7 +482,7 @@ do d ← inductive_decl.parse meta_info,
      (func,d) ← mk_datatype ``mvqpf.cofix d,
      trace func.def_name.get_prefix,
      updateex_env $ λ e, pure $ e.add_namespace func.def_name.get_prefix,
-     mk_liftp_eqns func.to_internal_mvfunctor,
+     -- mk_liftp_eqns func.to_internal_mvfunctor,
      mk_constr ``mvqpf.cofix.mk d,
      mk_destr ``mvqpf.cofix.dest ``mvqpf.cofix.mk ``mvqpf.cofix.mk_dest func d,
      mk_destr_constr_eqn ``mvqpf.cofix.dest_mk func d,
@@ -496,159 +497,126 @@ do d ← inductive_decl.parse meta_info,
      mk_no_confusion d.induct,
      pure ())
 
-meta def mk_liftp_eqns₀_debug (func : internal_mvfunctor) : tactic unit :=
-trace_scope $
-do params ← func.params'.mmap_live' mk_pred_var,
-   let F := (@const tt func.induct.name func.induct.u_params).mk_app $ params.map $ elim id prod.fst,
-   let F_intl := (@const tt func.def_name func.induct.u_params).mk_app func.dead_params,
-   let n := func.live_params.length,
-   vec ← mk_live_vec func.vec_lvl func.live_params,
-   let fs := params.filter_map $ get_right prod.snd,
-   map_f ← mk_map_vec func.vec_lvl func.vec_lvl fs,
-   x ← mk_local_def `x F,
-   let vs := [params.bind $ decls' ∘ bimap to_implicit_local_const (bimap to_implicit_local_const id),[x]],
-   liftp ← mk_mapp ``mvfunctor.liftp' [`(n),F_intl,none,vec],
-   let df := liftp map_f x,
-   mk_const ``mvfunctor.liftp_def,
-   fn ← mk_mapp ``is_lawful_mvfunctor [`(n),F_intl,none] >>= mk_instance,
-   defn ← mk_mapp ``mvfunctor.liftp_def [`(n),F_intl,none,vec], -- ,map_f,none,x,y
-   let defn := defn map_f fn x,
-   param_sub ← params.mmap_live' $ λ ⟨α,f⟩,
-   do { σ ← mk_mapp ``subtype [none,f],
-        pure (α,f,σ) },
-   let F_sub := (@const tt func.induct.name func.induct.u_params).mk_app $ param_sub.map $ elim id $ prod.snd ∘ prod.snd,
-   u ← mk_local_def `u F_sub,
-   args ← list.join <$> param_sub.mmap (elim (pure ∘ list.ret) $ λ ⟨α,unc,σ⟩,
-           do { val ← mk_mapp ``subtype.val [none,unc],
-                pure [σ,α,val] }),
-   let map  := (@const tt (func.induct.name <.> "map") func.induct.u_params).mk_app args u,
-   l ← mk_app ``eq [map,x],
-   -- trace_expr df,
-   `(@Exists %%t₀ _) ← whnf df,
-   let lhs := df,
-   rhs ← mk_exists [u] l,
-   t ← mk_app `iff [lhs,rhs],
-   is_def_eq F_sub t₀ <|> fail "not def eq",
-   -- trace!"F_sub : {F_sub}",
-   -- trace!"t₀    : {t₀}",
-   -- trace!"t₀    : {whnf t₀}",
-   -- trace!"defn  : {infer_type defn}",
-   -- trace!"t     : {t}",
-   v ← mk_mvar,
-
-   -- trace!"\nprove: {infer_type defn}\nexpected: {t}\n",
-
-   (_,pr) ← solve_aux t $ refine ``(iff.trans %%defn %%v), -- (iff.refl _)
-   -- trace_expr v,
-   retrieve $ do {
-     set_goals [v],
-     -- trace_state ,
-     applyc ``exists_congr, intro1,
-     applyc ``eq.congr,
-     funext,
-     -- reflexivity,
-     let n := func.induct.name <.> "map" <.> ("_equation_n"),
-     rule ← mk_const n, rewrite_target rule { symm := tt },
-     -- reflexivity,
-
-     `[dsimp [mvfunctor.map]],
-     (l,r) ← target >>= match_eq,
-     trace!"l: {l}",
-     trace!"r: {r}",
-     -- congr,
-     -- applyc ``congr_arg,
-     trace_state },
-
-   t ← pis' vs t,
-   pr ← instantiate_mvars pr >>= lambdas' vs,
-   let vars := pr.list_local_consts,
-   emit_decl func.def_name $ mk_definition (func.induct.name <.> "liftp_def") func.induct.u_names t pr,
-   skip
-
-   -- let n := func.induct.name <.> "map" <.> ("_equation_n"),
-
-attribute [vm_override mk_liftp_eqns₀_debug] mk_liftp_eqns₀
+#check @mvfunctor.map
 
 open native
 
-meta def mk_mvfunctor_map_eqn_debug (func : internal_mvfunctor) : tactic unit :=
-trace_scope $
-do env ← get_env,
-   let decl := func.decl,
-   let cs := env.constructors_of func.decl.to_name,
-   params' ← func.params'.mmap_live' mk_fn_var,
-
-   let arity := func.live_params.length,
-   -- fs ← mzip_with (λ v v' : expr × ℕ, prod.mk v.1 <$> mk_local_def ("f" ++ to_string v.2 : string) (v.1.imp v'.1)) func.live_params live_params',
-   -- let get_arg : expr × expr × expr → expr := prod.fst,
-   -- let get_arg' : expr × expr × expr → expr := prod.fst ∘ prod.snd,
-   -- let get_fn : expr × expr × expr → expr := prod.snd ∘ prod.snd,
-   let m : rb_map expr expr := rb_map.of_list $ params'.filter_map $ get_right (λ x, (fn_var.dom x, fn_var.fn x)),
-   let fs := params'.filter_map get_fn,
-   let flat := params'.bind decls,
-   α ← mk_live_vec func.vec_lvl func.live_params,
-   β ← mk_live_vec func.vec_lvl $ params'.filter_map get_codom,
-   f ← mk_map_vec func.vec_lvl func.vec_lvl fs,
-   cs.enum.mmap' $ λ ⟨i,c⟩, do
-     { let c := @expr.const tt c func.decl.univ_levels,
-       let e := c.mk_app func.params,
-       -- trace live_params',
-       let e' := c.mk_app $ params'.map $ elim id fn_var.codom,
-       t  ← infer_type e,
-       (vs,_) ← mk_local_pis t,
-       t' ← infer_type e',
-       vs' ← vs.mmap (map_arg m),
-       let x := e.mk_app vs,
-       -- trace_expr x,
-       let map_e := (@expr.const tt func.map_name func.decl.univ_levels).mk_app' [func.dead_params, [α,β,f,x]],
-       let map_e' := (@expr.const tt (func.induct.name <.> "map") func.decl.univ_levels).mk_app' [flat, [x]],
-       -- trace_expr map_e,
-       -- trace_expr e',
-       -- trace! "{vs'} : {vs'.mmap infer_type}",
-       -- trace_expr (e'.mk_app vs'),
-       eqn ← mk_app `eq [map_e,(e'.mk_app vs')] >>= pis (params'.bind  decls++ vs) >>= instantiate_mvars,
-       eqn' ← mk_app `eq [map_e',(e'.mk_app vs')] >>= pis (params'.bind  decls++ vs) >>= instantiate_mvars,
-       pr ← solve_async [] eqn $ do
-         { intros >> reflexivity },
-       let n := func.map_name <.> ("_equation_" ++ to_string i),
-       d ← emit_decl' func.def_name $ declaration.thm n decl.univ_params eqn pr,
-       add_eqn_lemmas n,
-       simp_attr.typevec.set n () tt,
-       let n := func.induct.name <.> "map" <.> ("_equation_" ++ to_string i),
-       d ← emit_decl' func.def_name $ declaration.thm n decl.univ_params eqn' pr,
-       add_eqn_lemmas n,
-       simp_attr.typevec.set n () tt,
-       pure () },
-   let n := func.induct.name <.> "map" <.> ("_equation_n"),
-   let t := expr.mk_app (const func.induct.name decl.univ_levels) (func.params),
-   x ← mk_local_def `x t,
-   let map_e := (@expr.const tt func.map_name func.decl.univ_levels).mk_app' [func.dead_params, [α,β,f,x]],
-   let map_e' := (@expr.const tt (func.induct.name <.> "map") func.decl.univ_levels).mk_app' [flat,[x]],
-   eqn ← mk_app `eq [map_e,map_e'],
-   pr ← mk_app ``eq.refl [map_e] >>= lambdas' [params'.bind decls,[x]],
-   eqn ← pis' [params'.bind decls,[x]] eqn,
-   emit_decl func.def_name $ declaration.thm n decl.univ_params eqn (pure pr),
-
-   pure ()
-
-attribute [vm_override mk_mvfunctor_map_eqn_debug] mk_mvfunctor_map_eqn
--- meta def my_list := list my_list
-
-
--- meta def mk_meta_sort : tactic expr :=
--- expr.sort <$> mk_meta_univ >>= mk_meta_var
-
 end tactic
 
--- set_option trace.app_builder true
 -- set_option trace.trace_scope.begin_end true
 -- set_option trace.trace_scope.error true
--- set_option trace.generated_decl true
--- set_option trace.compiler.input true
+set_option trace.generated_decl true
+-- set_option trace.generated_decl.tests true
+-- #exit
+data tree'' (α β : Type)
+| nil : tree''
+| cons : α → (β → tree'') → tree''
+-- open tree'
 
 codata tree' (α β : Type)
 | nil : tree'
 | cons : α → (β → tree') → tree'
--- open tree'
 
-#print prefix tree'
+universes u_1
+
+#print tree'.shape.internal
+
+/- inductive declaration -/
+#check (@tree'.shape : Type → Type → Type → Type)
+#check (@tree'.shape.nil : Π (α β α_1 : Type), tree'.shape α β α_1)
+#check (@tree'.shape.cons : Π (α β α_1 : Type), α → (β → α_1) → tree'.shape α β α_1)
+#check (@tree'.shape.internal : Type → typevec 2 → Type)
+#check (@tree'.shape.internal_eq : ∀ (α β α_1 : Type),
+  tree'.shape.internal β (⦃⦄ ::: α ::: α_1) = tree'.shape α β α_1)
+#check (@tree'.shape.internal.map : Π (β : Type) (α β_1 : typevec 2),
+  α.arrow β_1 → tree'.shape.internal β α → tree'.shape.internal β β_1)
+#check (@tree'.shape.map : Π {α α' : Type},
+  (α → α') → Π {β α_1 α_1' : Type}, (α_1 → α_1') → tree'.shape α β α_1 → tree'.shape α' β α_1')
+#check (@tree'.shape.map._equation_1 : ∀ {α α' : Type} (f : α → α') (β : Type) {α_1 α_1' : Type}
+(f_1 : α_1 → α_1') (a : α) (a_1 : β → α_1),
+  tree'.shape.map f f_1 (tree'.shape.cons a a_1) = tree'.shape.cons (f a) (λ (a : β), f_1 (a_1 a)))
+#check (@tree'.shape.internal.mvfunctor : Π (β : Type), mvfunctor (tree'.shape.internal β))
+
+/- inductive declaration -/
+#check (@tree'.shape.head_t : Type → Type)
+#check (@tree'.shape.head_t.nil : Π (β : Type), tree'.shape.head_t β)
+#check (@tree'.shape.head_t.cons : Π (β : Type), tree'.shape.head_t β)
+
+/- inductive declaration -/
+#check (@tree'.shape.child_t.α : Π (β : Type), tree'.shape.head_t β → Type)
+#check (@tree'.shape.child_t.α.cons_0 : Π (β : Type), tree'.shape.child_t.α β (tree'.shape.head_t.cons β))
+
+/- inductive declaration -/
+#check (@tree'.shape.child_t.α_1 : Π (β : Type), tree'.shape.head_t β → Type)
+#check (@tree'.shape.child_t.α_1.cons_0 : Π (β : Type),
+  β → tree'.shape.child_t.α_1 β (tree'.shape.head_t.cons β))
+#check (@tree'.shape.child_t : Π (β : Type), tree'.shape.head_t β → typevec 2)
+#check (@tree'.shape.pfunctor : Type → mvpfunctor 2)
+#check (@tree'.shape.pfunctor.nil : Π (α β α_1 : Type), (tree'.shape.pfunctor β).obj (⦃⦄ ::: α ::: α_1))
+#check (@tree'.shape.pfunctor.cons : Π (α β α_1 : Type),
+  α → (β → α_1) → (tree'.shape.pfunctor β).obj (⦃⦄ ::: α ::: α_1))
+#check (@tree'.shape.pfunctor.rec : Π {α β α_1 : Type}
+{C : (tree'.shape.pfunctor β).obj (⦃⦄ ::: α ::: α_1) → Sort u_1},
+  C (tree'.shape.pfunctor.nil α β α_1) →
+  (Π (a : α) (a_1 : β → α_1), C (tree'.shape.pfunctor.cons α β α_1 a a_1)) →
+  Π (n : (tree'.shape.pfunctor β).obj (⦃⦄ ::: α ::: α_1)), C n)
+#check (@tree'.shape.internal.abs : Π (β : Type) (v : typevec 2),
+  (tree'.shape.pfunctor β).obj v → tree'.shape.internal β v)
+#check (@tree'.shape.internal.repr : Π (β : Type) (v : typevec 2),
+  tree'.shape.internal β v → (tree'.shape.pfunctor β).obj v)
+#check (@tree'.shape.pfunctor.nil_map : ∀ {α α' : Type} (f : α → α') (β : Type) {α_1 α_1' : Type}
+(f_1 : α_1 → α_1'),
+  mvfunctor.map (typevec.nil_fun ::: f ::: f_1) (tree'.shape.pfunctor.nil α β α_1) =
+    tree'.shape.pfunctor.nil α' β α_1')
+#check (@tree'.shape.pfunctor.cons_map : ∀ {α α' : Type} (f : α → α') (β : Type) {α_1 α_1' : Type}
+(f_1 : α_1 → α_1') (a : α) (a_1 : β → α_1),
+  mvfunctor.map (typevec.nil_fun ::: f ::: f_1) (tree'.shape.pfunctor.cons α β α_1 a a_1) =
+    tree'.shape.pfunctor.cons α' β α_1' (f a) (λ (a : β), f_1 (a_1 a)))
+#check (@tree'.shape.internal.mvqpf : Π (β : Type), mvqpf (tree'.shape.internal β))
+#check (@tree'.internal : Type → typevec 1 → Type)
+#check (@tree' : Type → Type → Type)
+
+/- inductive declaration -/
+#check (@tree'.shape.liftp : Π {α : Type},
+  (α → Prop) → Π {β α_1 : Type}, (α_1 → Prop) → tree'.shape α β α_1 → Prop)
+#check (@tree'.shape.liftp.tree'.shape.nil : ∀ {α : Type} (f : α → Prop) {β α_1 : Type} (f_1 : α_1 → Prop),
+  tree'.shape.liftp f f_1 tree'.shape.nil)
+#check (@tree'.shape.liftp.tree'.shape.cons : ∀ {α : Type} (f : α → Prop) {β α_1 : Type} (f_1 : α_1 → Prop)
+(a : α),
+  f a → ∀ (a_1 : β → α_1), (∀ (a : β), f_1 (a_1 a)) → tree'.shape.liftp f f_1 (tree'.shape.cons a a_1))
+
+/- inductive declaration -/
+#check (@tree'.shape.liftr : Π {α : Type},
+  (α → α → Prop) →
+  Π {β α_1 : Type}, (α_1 → α_1 → Prop) → tree'.shape α β α_1 → tree'.shape α β α_1 → Prop)
+#check (@tree'.shape.liftr.tree'.shape.nil : ∀ {α : Type} (f : α → α → Prop) {β α_1 : Type}
+(f_1 : α_1 → α_1 → Prop), tree'.shape.liftr f f_1 tree'.shape.nil tree'.shape.nil)
+-- #check (@tree'.shape.liftr.tree'.shape.cons : ∀ {α : Type} (f : α → α → Prop) {β α_1 : Type}
+-- (f_1 : α_1 → α_1 → Prop) (a a_1 : α),
+--   f a a_1 →
+--   ∀ (a_2 a_3 : β → α_1),
+--     (∀ (a : β), f_1 (a_2 a) (a_3 a)) → tree'.shape.liftr f f_1 (tree'.shape.cons a a_2) (tree'.shape.cons a_1 a_3))
+-- tree'.shape
+#check (@tree'.nil : Π {α β : Type}, tree' α β)
+#check (@tree'.cons : Π {α β : Type}, α → (β → tree' α β) → tree' α β)
+#check (@tree'.cases_on : Π {α β : Type} {C : tree' α β → Sort u_1} (n : tree' α β),
+  C tree'.nil → (Π (a : α) (a_1 : β → tree' α β), C (tree'.cons a a_1)) → C n)
+#check (@tree'.cases_on_nil : ∀ {α β : Type} {C : tree' α β → Sort u_1} (v : C tree'.nil)
+(v_1 : Π (a : α) (a_1 : β → tree' α β), C (tree'.cons a a_1)), tree'.nil.cases_on v v_1 = v)
+#check (@tree'.cases_on_cons : ∀ {α β : Type} {C : tree' α β → Sort u_1} (v : C tree'.nil)
+(v_1 : Π (a : α) (a_1 : β → tree' α β), C (tree'.cons a a_1)) (a : α) (a_1 : β → tree' α β),
+  (tree'.cons a a_1).cases_on v v_1 = v_1 a a_1)
+#check (@tree'.corec' : Π (α β α_1 : Type),
+  (α_1 → tree'.shape α β (tree' α β ⊕ α_1)) → α_1 → tree' α β)
+#check (@tree'.corec : Π (α β α_1 : Type), (α_1 → tree'.shape α β α_1) → α_1 → tree' α β)
+#check (@tree'.corec₁ : Π (α β α_1 : Type),
+  (Π (X : Type), (tree' α β → X) → (α_1 → X) → α_1 → tree'.shape α β X) → α_1 → tree' α β)
+#check (@tree'.mvfunctor : Π (β : Type), mvfunctor (tree'.internal β))
+#check (@tree'.mvqpf : Π (β : Type), mvqpf (tree'.internal β))
+
+/- inductive declaration -/
+#check (@tree'.liftr : Π {α : Type}, (α → α → Prop) → Π {β : Type}, tree' α β → tree' α β → Prop)
+#check (@tree'.liftr.tree'.nil : ∀ {α : Type} (f : α → α → Prop) {β : Type},
+  tree'.liftr f tree'.nil tree'.nil)
+#check (@tree'.liftr.tree'.cons : ∀ {α : Type} (f : α → α → Prop) {β : Type} (a a_1 : α),
+  f a a_1 → ∀ (a_2 : β → tree' α β), tree'.liftr f (tree'.cons a a_2) (tree'.cons a_1 a_2))

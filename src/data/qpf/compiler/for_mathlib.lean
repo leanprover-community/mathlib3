@@ -811,7 +811,9 @@ meta def decl_kind : declaration → string
 | (declaration.ax a a_1 a_2) := "axiom"
 
 declare_trace generated_decl
+declare_trace generated_decl.tests
 
+@[user_attribute]
 meta def generated_attr : user_attribute (native.rb_lmap name name) name :=
 { name := `generated,
   parser := ident,
@@ -823,6 +825,8 @@ meta def generated_attr : user_attribute (native.rb_lmap name name) name :=
 
 meta def emit_decl' (n : name) (d : declaration) : tactic expr :=
 do when_tracing `generated_decl $ trace!"[generated for {n}]\n  {decl_kind d} {d.to_name} : {d.type}",
+   when_tracing `generated_decl.tests $ trace!"#check (@{d.to_name} : {d.type})",
+   generated_attr.set d.to_name n tt,
    add_decl' d
 
 meta def emit_decl (n : name) (d : declaration) : tactic unit :=

@@ -6,6 +6,7 @@ Author: Simon Hudon
 import meta.expr
 import tactic.core
 import tactic.mk_has_to_format
+import .for_mathlib
 
 namespace tactic
 open expr
@@ -194,13 +195,20 @@ do let sig_c  : expr := const decl.name decl.u_params,
                              end,
    tactic.pis vs (sig_c.mk_app' [decl.params,r]) >>= pis params
 
-meta def mk_inductive : inductive_type → tactic unit
+meta def mk_inductive (parent : name) : inductive_type → tactic unit
 | decl :=
+trace_scope $
 do opt ← get_options,
    updateex_env $ λ env, pure $ env.add_namespace decl.name,
    updateex_env $ λ e : environment,
      e.add_ginductive opt decl.u_names decl.params
      [((decl.name,decl.type.pis decl.idx),decl.ctors.map $ type_cnstr.to_intro_rule decl)] ff,
+   when_tracing `generated_decl $ trace!"[generated for {parent}]\n  inductive {decl.name} : {decl.type.pis $ decl.params ++ decl.idx}",
+   -- when_tracing `generated_decl.tests $ do
+   -- { trace!"\n/- inductive declaration -/",
+   --   trace!"#check (@{decl.name} : {decl.type.pis $ decl.params ++ decl.idx})",
+   --   decl.ctors.mmap' $ λ c, trace!"#check (@{c.name} : {(c.to_intro_rule decl).type.pis decl.params})" },
+   generated_attr.set decl.name parent tt,
    pure ()
 
 open interactive

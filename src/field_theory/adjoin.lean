@@ -18,7 +18,7 @@ For example, `algebra.adjoin K {x}` might not include `x⁻¹`.
 
 (This is just a start; we've got more to add, including a proof of the Primitive Element Theorem.)
 
-- `adjoin_twice`: adjoining S and then T is the same as adjoining S ∪ T.
+- `adjoin_adjoin_left`: adjoining S and then T is the same as adjoining S ∪ T.
 
 ## Notation
 

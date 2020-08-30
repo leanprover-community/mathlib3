@@ -123,6 +123,10 @@ meta inductive action (γ : Type)
 | on_close_tooltip : action
 | effect : widget.effect → action
 
+/--
+Render a 'go to definition' button for a given expression.
+If there is no definition available, then returns an empty list.
+-/
 meta def goto_def_button {γ} : expr → tactic (list (html (action γ)))
 | e := (do
     (expr.const n _) ← pure $ expr.get_app_fn e,

@@ -188,13 +188,40 @@ begin
   simpa using multiset.mem_of_le (degrees_add _ _) hx,
 end
 
+-- not certain this is the right stragegy
+lemma degrees_add_of_disjoint (h : multiset.disjoint p.degrees q.degrees) :
+  (p + q).degrees = p.degrees ∪ q.degrees :=
+begin
+  ext x,
+  apply le_antisymm,
+  { apply multiset.count_le_of_le,
+    apply degrees_add },
+  { by_cases hxp : x ∈ p.degrees,
+    { rw [multiset.count_union, multiset.count_eq_zero_of_not_mem (multiset.disjoint_left.mp h hxp),
+         max_eq_left (nat.zero_le _)],
+      sorry },
+    { by_cases hxq : x ∈ q.degrees,
+      { rw [multiset.count_union, multiset.count_eq_zero_of_not_mem (multiset.disjoint_right.mp h hxq),
+         max_eq_right (nat.zero_le _)],
+        sorry },
+      { rw multiset.count_eq_zero_of_not_mem; simp [hxp, hxq] } } },
+end
+
+lemma multiset.disjoint_iff {α} (m1 m2 : multiset α) : disjoint m1.to_finset m2.to_finset ↔ m1.disjoint m2 :=
+sorry
+
+@[simp] lemma multiset.to_finset_union {α} (m1 m2 : multiset α) :
+  (m1 ∪ m2).to_finset = m1.to_finset ∪ m2.to_finset :=
+by ext; simp
+
 lemma vars_add_of_disjoint (h : disjoint p.vars q.vars) :
   (p + q).vars = p.vars ∪ q.vars :=
 begin
   apply finset.subset.antisymm (vars_add_subset p q),
   intros x hx,
-  simp only [vars, finset.mem_union, multiset.mem_to_finset] at h hx ⊢,
-  sorry
+  simp only [vars, multiset.disjoint_iff] at h hx ⊢,
+  rw [degrees_add_of_disjoint _ _ h, multiset.to_finset_union],
+  exact hx
 end
 
 section sum

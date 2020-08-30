@@ -595,3 +595,43 @@ end
 end io
 
 end slim_check
+
+open slim_check
+
+#eval testable.check (∀ xs : list ℕ, (∃ x ∈ xs, x < 3) → (∀ y ∈ xs, y < 5))
+-- ===================
+-- Found problems!
+
+-- xs := [0, 5]
+-- x := 0
+-- y := 5
+-- -------------------
+
+#eval testable.check (∀ x : ℕ, 2 ∣ x → x < 100)
+-- ===================
+-- Found problems!
+
+-- x := 258
+-- -------------------
+
+#eval testable.check (∀ (α : Type) (xs ys : list α), xs ++ ys = ys ++ xs)
+-- ===================
+-- Found problems!
+
+-- α := ℤ
+-- xs := [-4]
+-- ys := [1]
+-- -------------------
+
+#eval testable.check (∀ x ∈ [1,2,3], x < 4)
+-- Success
+
+#eval testable.check (∀ i j k : ℕ, j < k → i - k < i - j)
+
+#eval testable.check (∀ f : ℕ → ℕ → ℕ, ∀ x y z, f x (f y z) = f (f x y) z)
+#eval testable.check (∀ f : ℕ → ℕ → ℕ, ∀ x y z, f x (f y z) = f (f x y) z)
+#eval testable.check (∀ f : bool → bool → bool, ∀ x y z, f x (f y z) = f (f x y) z)
+
+#eval testable.check (∀ xs ys : list ℤ, list.perm ys xs → list.take 3 xs ~ list.take 3 ys)
+
+#eval testable.check (∀ R : ℤ → ℤ → bool, ∀ x y z, R x y → R y z → R x z)

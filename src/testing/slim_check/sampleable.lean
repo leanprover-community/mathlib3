@@ -42,7 +42,7 @@ random testing
   * https://hackage.haskell.org/package/QuickCheck
 
 -/
-universes u v
+universes u v w
 
 namespace slim_check
 
@@ -300,14 +300,22 @@ instance slim_check.sampleable_ge {x : α} [decidable_linear_ordered_add_comm_gr
               pure ⟨x + abs y, by norm_num [abs_nonneg]⟩ },
   shrink := λ _, lazy_list.nil }
 
+instance slim_check.perm {xs : list α} : slim_check.sampleable { ys : list α // list.perm xs ys } :=
+{ sample := permutation_of xs,
+  shrink := λ _, lazy_list.nil }
+
+instance slim_check.perm' {xs : list α} : slim_check.sampleable { ys : list α // list.perm ys xs } :=
+{ sample := subtype.map id (@list.perm.symm α _) <$> permutation_of xs,
+  shrink := λ _, lazy_list.nil }
+
 setup_tactic_parser
 
 /--
 Print (at most) 10 samples of a given type to stdout for debugging.
 -/
-def print_samples (t : Type u) [sampleable t] [has_repr t] : io unit := do
+def print_samples (t : Type u) [sampleable_ext t] : io unit := do
 xs ← io.run_rand $ uliftable.down $
-  do { xs ← (list.range 10).mmap $ (sample t).run ∘ ulift.up,
+  do { xs ← (list.range 10).mmap $ (sampleable_ext.sample t).run ∘ ulift.up,
        pure ⟨xs.map repr⟩ },
 xs.mmap' io.put_str_ln
 

@@ -121,17 +121,17 @@ meta inductive action (γ : Type)
 | on_click : subexpr → action
 | on_tooltip_action : γ → action
 | on_close_tooltip : action
-| copy : string → action
-| go_to_def : (string × pos) → action
+| effect : widget.effect → action
 
 meta def goto_def_button {γ} : expr → tactic (list (html (action γ)))
 | e := (do
-  (expr.const n _) ← pure $ expr.get_app_fn e,
-  env ← tactic.get_env,
-  file ← environment.decl_olean env n,
-  pos ← environment.decl_pos env n,
-  htm ←  pure $ h "button" [cn "pointer ba br3 mr1", on_click (λ _, action.go_to_def (file, pos)), attr.val "title" "go to definition"] ["↪"],
-  pure [htm]) <|> pure []
+    (expr.const n _) ← pure $ expr.get_app_fn e,
+    env ← tactic.get_env,
+    file ← pure $ environment.decl_olean env n,
+    pos ← environment.decl_pos env n,
+    htm ←  pure $ h "button" [cn "pointer ba br3 mr1", on_click (λ _, action.effect $ widget.effect.reveal_position file pos), attr.val "title" "go to definition"] ["↪"],
+    pure [htm]
+  ) <|> pure []
 
 /--
 Renders a subexpression as a list of html elements.
@@ -148,7 +148,7 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
       gd_btn ← goto_def_button e,
       pure [tooltip $ h "div" [] [
           h "div" [cn "fr"] (gd_btn ++ [
-            h "button" [cn "pointer ba br3 mr1", on_click (λ _, action.copy efmt), attr.val "title" "copy expression to clipboard"] ["📋"],
+            h "button" [cn "pointer ba br3 mr1", on_click (λ _, action.effect $ widget.effect.copy_text efmt), attr.val "title" "copy expression to clipboard"] ["📋"],
             h "button" [cn "pointer ba br3", on_click (λ _, action.on_close_tooltip), attr.val "title" "close"] ["×"]
           ]),
           content
@@ -190,8 +190,7 @@ $ tc.mk_simple
     | (action.on_click ⟨e, ea⟩)       := if some (e,ea) = ca then ((none, sa), none) else ((some (e, ea), sa), none)
     | (action.on_tooltip_action g)    := ((none, sa), some $ sum.inl g)
     | (action.on_close_tooltip)       := ((none, sa), none)
-    | (action.copy s)                 := ((ca,sa), some $ sum.inr $ widget.effect.copy_text s)
-    | (action.go_to_def (f,p))    := ((ca,sa), some $ sum.inr $ widget.effect.reveal_position (some f) p)
+    | (action.effect e)               := ((ca,sa), some $ sum.inr $ e)
     end
   )
   (λ e ⟨ca, sa⟩, do

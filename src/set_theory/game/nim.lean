@@ -299,7 +299,7 @@ begin
       simp only [hk', add_move_left_inl, add_move_left_inr, id],
       rw hn _ hk <|> rw hm _ hk,
 
-      -- But of course xor is injective, so if we change of one the arguments, we will not get the
+      -- But of course xor is injective, so if we change one of the arguments, we will not get the
       -- same value again.
       intro h,
       rw ordinal.nat_cast_inj at h,
@@ -313,7 +313,7 @@ begin
     obtain ⟨u, rfl⟩ := ordinal.lt_omega.1 (lt_trans hu (ordinal.nat_lt_omega _)),
     replace hu := ordinal.nat_cast_lt.1 hu,
 
-    -- Our goal is to produce a move that gives the grundy value u.
+    -- Our goal is to produce a move that gives the Grundy value `u`.
     simp only [nonmoves, not_exists, not_not, set.mem_set_of_eq, not_forall],
 
     -- By a lemma about xor, either `u xor m < n` or `u xor n < m`.

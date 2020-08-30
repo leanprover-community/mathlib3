@@ -44,6 +44,7 @@ general limits can be used.
 -/
 
 open category_theory
+open category_theory.functor
 
 namespace category_theory.limits
 
@@ -205,6 +206,14 @@ abbreviation cofork.π (t : cofork f g) := t.ι.app one
 
 lemma fork.ι_eq_app_zero (t : fork f g) : fork.ι t = t.π.app zero := rfl
 lemma cofork.π_eq_app_one (t : cofork f g) : cofork.π t = t.ι.app one := rfl
+
+@[simp]
+lemma fork.ι_mk (P : C) (π : (const walking_parallel_pair).obj P ⟶ parallel_pair f g) :
+  fork.ι { X := P, π := π } = π.app zero := rfl
+@[simp]
+lemma cofork.π_mk (P : C) (ι : parallel_pair f g ⟶ (const walking_parallel_pair).obj P) :
+  cofork.π { X := P, ι := ι } = ι.app one := rfl
+
 
 lemma fork.condition (t : fork f g) : (fork.ι t) ≫ f = (fork.ι t) ≫ g :=
 begin

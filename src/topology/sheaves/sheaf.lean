@@ -205,4 +205,31 @@ def forget : Top.sheaf C X ⥤ Top.presheaf C X := induced_functor sheaf.preshea
 
 end sheaf
 
+variables {C X}
+
+structure cover (U : opens X) :=
+(ι : Type v)
+(𝒰 : ι → opens X)
+(supr : supr 𝒰 = U)
+(le_supr : ∀ i, 𝒰 i ⟶ U)
+
+def cover.of {ι : Type v} (𝒰 : ι → opens X) : cover (supr 𝒰) :=
+{ ι := ι,
+  𝒰 := 𝒰,
+  supr := rfl,
+  le_supr := opens.le_supr 𝒰, }
+
+namespace cover
+
+open sheaf_condition
+
+def fork {U : opens X} (c : cover U) : fork.{v} (left_res F c.𝒰) (right_res F c.𝒰) :=
+(sheaf_condition.fork F c.𝒰).extend (F.map (eq_to_hom c.supr).op)
+
+end cover
+
+def sheaf.is_limit_of_cover (F : sheaf C X) {U : opens X} (c : cover U) : is_limit (c.fork F.presheaf) :=
+sorry
+
+
 end Top

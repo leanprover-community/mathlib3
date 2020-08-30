@@ -301,7 +301,7 @@ theorem of_irreducible_expand {f : polynomial F} (hf : irreducible (expand F p f
 theorem of_irreducible_expand_pow {f : polynomial F} {n : ℕ} :
   irreducible (expand F (p ^ n) f) → irreducible f :=
 nat.rec_on n (λ hf, by rwa [nat.pow_zero, expand_one] at hf) $ λ n ih hf,
-ih $ of_irreducible_expand p $ by rwa [expand_expand, mul_comm]
+ih $ of_irreducible_expand p $ by rwa [expand_expand]
 
 variables [HF : char_p F p]
 include HF

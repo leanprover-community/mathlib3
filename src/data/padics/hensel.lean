@@ -152,7 +152,7 @@ calc
   (div_le_div_right deriv_norm_pos).2 hz.2
 ... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel deriv_norm_ne_zero _
 ... < ∥F.derivative.eval a∥ :
-  (mul_lt_iff_lt_one_right deriv_norm_pos).2 (T_pow (pow_pos (by norm_num) _))
+  (mul_lt_iff_lt_one_right deriv_norm_pos).2 (T_pow (nat.pow_pos (by norm_num) _))
 
 private def calc_eval_z'  {z z' z1 : ℤ_[p]} (hz' : z' = z - z1) {n} (hz : ih n z)
   (h1 : ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥ ≤ 1) (hzeq : z1 = ⟨_, h1⟩) :
@@ -185,7 +185,7 @@ calc ∥F.eval z'∥
   (div_le_div_right deriv_sq_norm_pos).2 (pow_le_pow_of_le_left (norm_nonneg _) hz.2 _)
 ... = (∥F.derivative.eval a∥^2)^2 * (T^(2^n))^2 / ∥F.derivative.eval a∥^2 : by simp only [_root_.mul_pow]
 ... = ∥F.derivative.eval a∥^2 * (T^(2^n))^2 : div_sq_cancel deriv_sq_norm_ne_zero _
-... = ∥F.derivative.eval a∥^2 * T^(2^(n + 1)) : by rw [←pow_mul]; refl
+... = ∥F.derivative.eval a∥^2 * T^(2^(n + 1)) : by rw [←pow_mul, nat.pow_succ]
 
 set_option eqn_compiler.zeta true
 
@@ -270,7 +270,7 @@ private lemma newton_seq_dist_aux (n : ℕ) :
 | 0 := begin simp, apply mul_nonneg, {apply norm_nonneg}, {apply T_pow_nonneg} end
 | (k+1) :=
   have 2^n ≤ 2^(n+k),
-    by {rw [←nat.pow_eq_pow, ←nat.pow_eq_pow], apply pow_le_pow, norm_num, apply nat.le_add_right},
+    by {apply pow_le_pow, norm_num, apply nat.le_add_right},
   calc
   ∥newton_seq (n + (k + 1)) - newton_seq n∥
     = ∥newton_seq ((n + k) + 1) - newton_seq n∥ : by rw add_assoc

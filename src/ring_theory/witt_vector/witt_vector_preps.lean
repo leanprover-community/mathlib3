@@ -183,12 +183,17 @@ section vars
 lemma vars_add_subset :
   (p + q).vars ⊆ p.vars ∪ q.vars :=
 begin
-  sorry
+  intros x hx,
+  simp only [vars, finset.mem_union, multiset.mem_to_finset] at hx ⊢,
+  simpa using multiset.mem_of_le (degrees_add _ _) hx,
 end
 
 lemma vars_add_of_disjoint (h : disjoint p.vars q.vars) :
   (p + q).vars = p.vars ∪ q.vars :=
 begin
+  apply finset.subset.antisymm (vars_add_subset p q),
+  intros x hx,
+  simp only [vars, finset.mem_union, multiset.mem_to_finset] at h hx ⊢,
   sorry
 end
 

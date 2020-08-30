@@ -777,6 +777,13 @@ end fin_meas_supp
 
 end fin_meas_supp
 
+/-- To prove something for an arbitrary simple function, it sufficient to show
+that the property holds for (multiples of) characteristic functions and is closed under
+addition (of functions with disjoint support).
+
+It is possible to make the hypotheses in `h_sum` a bit stronger, and such conditions can be added
+once we need them (for example it is only necessary to consider the case where `g` is a multiple
+of a characteristic function, and that this multiple doesn't appear in the image of `f`) -/
 @[elab_as_eliminator]
 protected lemma induction {α γ} [measurable_space α] [add_monoid γ] {P : simple_func α γ → Prop}
   (h_ind : ∀ c {s} (hs : is_measurable s),
@@ -801,7 +808,7 @@ begin
       { rwa [finset.mem_coe] }},
     convert h_sum _ Pg (h_ind x mx),
     { ext1 y, by_cases hy : y ∈ f ⁻¹' {x}; [simpa [hy], simp [hy]] },
-    { rintro y -, by_cases hy : y ∈ f ⁻¹' {x}; simp [hy] }}
+    { rintro y -, by_cases hy : y ∈ f ⁻¹' {x}; simp [hy] } }
 end
 
 end simple_func
@@ -1421,12 +1428,19 @@ end lintegral
 end measure_theory
 
 open measure_theory measure_theory.simple_func
-/-- To prove something for an arbitrary measurable function into `ennreal`, it sufficient to show
+/-- To prove something for an arbitrary measurable function into `ennreal`, it suffices to show
 that the property holds for (multiples of) characteristic functions and is closed under addition
-and supremum of increasing sequences of functions. -/
+and supremum of increasing sequences of functions.
+
+It is possible to make the hypotheses in the induction steps a bit stronger, and such conditions
+can be added once we need them (for example in `h_sum` it is only necessary to consider the sum of
+a simple function with a multiple of a characteristic function and that the intersection
+of their images is a subset of `{0}`. -/
+@[elab_as_eliminator]
 theorem measurable.ennreal_induction {α} [measurable_space α] {P : (α → ennreal) → Prop}
   (h_ind : ∀ (c : ennreal) ⦃s⦄, is_measurable s → P (indicator s (λ _, c)))
-  (h_sum : ∀ ⦃f g⦄, measurable f → measurable g → P f → P g → P (f + g))
+  (h_sum : ∀ ⦃f g : α → ennreal⦄, set.univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0} → measurable f → measurable g →
+    P f → P g → P (f + g))
   (h_supr : ∀ ⦃f : ℕ → α → ennreal⦄ (hf : ∀n, measurable (f n)) (h_mono : monotone f)
     (hP : ∀ n, P (f n)), P (λ x, ⨆ n, f n x))
   ⦃f : α → ennreal⦄ (hf : measurable f) : P f :=
@@ -1434,5 +1448,5 @@ begin
   convert h_supr (λ n, (eapprox f n).measurable) (monotone_eapprox f) _,
   { ext1 x, rw [supr_eapprox_apply f hf] },
   { exact λ n, simple_func.induction (λ c s hs, h_ind c hs)
-      (λ f g _ hf hg, h_sum f.measurable g.measurable hf hg) (eapprox f n) }
+      (λ f g hfg hf hg, h_sum hfg f.measurable g.measurable hf hg) (eapprox f n) }
 end

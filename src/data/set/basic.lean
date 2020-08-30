@@ -925,7 +925,8 @@ ext $ assume x, ⟨assume ⟨hx, _⟩, hx, assume h, ⟨h, not_false⟩⟩
 theorem diff_diff {u : set α} : s \ t \ u = s \ (t ∪ u) :=
 ext $ by simp [not_or_distrib, and.comm, and.left_comm]
 
-lemma diff_diff_comm {s t u : set α} : s \ t \ u = s \ u \ t :=
+-- the following statement contains parentheses to help the reader
+lemma diff_diff_comm {s t u : set α} : (s \ t) \ u = (s \ u) \ t :=
 by simp_rw [diff_diff, union_comm]
 
 lemma diff_subset_iff {s t u : set α} : s \ t ⊆ u ↔ s ⊆ t ∪ u :=

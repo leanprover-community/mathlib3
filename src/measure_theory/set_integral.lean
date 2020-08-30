@@ -273,15 +273,24 @@ begin
 end
 
 variables [borel_space E] [second_countable_topology E]
+
 /-- To prove something for an arbitrary measurable + integrable function in a second countable
-Borel normed group, it sufficient to show that
+Borel normed group, it suffices to show that
 * the property holds for (multiples of) characteristic functions;
 * is closed under addition;
 * the set of functions in the `L¹` space for which the property holds is closed.
-* the property is closed under the almost-everywhere equal relation. -/
+* the property is closed under the almost-everywhere equal relation.
+
+It is possible to make the hypotheses in the induction steps a bit stronger, and such conditions
+can be added once we need them (for example in `h_sum` it is only necessary to consider the sum of
+a simple function with a multiple of a characteristic function and that the intersection
+of their images is a subset of `{0}`).
+-/
+@[elab_as_eliminator]
 lemma integrable.induction {P : (α → E) → Prop}
   (h_ind : ∀ (c : E) ⦃s⦄, is_measurable s → μ s < ⊤ → P (s.indicator (λ _, c)))
-  (h_sum : ∀ ⦃f g⦄, measurable f → measurable g → integrable f μ → integrable g μ → P f → P g → P (f + g))
+  (h_sum : ∀ ⦃f g : α → E⦄, set.univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0} → measurable f → measurable g →
+    integrable f μ → integrable g μ → P f → P g → P (f + g))
   (h_closed : is_closed {f : α →₁[μ] E | P f} )
   (h_ae : ∀ ⦃f g⦄, f =ᵐ[μ] g → measurable f → measurable g → integrable f μ → P f → P g) :
   ∀ ⦃f : α → E⦄ (hf : measurable f) (h2f : integrable f μ), P f :=
@@ -299,7 +308,7 @@ begin
       exact ennreal.lt_top_of_mul_lt_top_right this (by simp [hc]) },
     { intros f g hfg hf hg int_fg,
       rw [simple_func.coe_add, integrable_add hfg f.measurable g.measurable] at int_fg,
-      refine h_sum f.measurable g.measurable int_fg.1 int_fg.2 (hf int_fg.1) (hg int_fg.2) } },
+      refine h_sum hfg f.measurable g.measurable int_fg.1 int_fg.2 (hf int_fg.1) (hg int_fg.2) } },
   have : ∀ (f : α →₁ₛ[μ] E), P f,
   { intro f, exact h_ae f.to_simple_func_eq_to_fun f.measurable (l1.measurable _) f.integrable
       (this f.to_simple_func f.integrable) },

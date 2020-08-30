@@ -173,7 +173,7 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
   ]] inner]
 | ca (sf.highlight c a) := do
   inner ← view ca a,
-  pure [h "span" [cn $ "highlight_" ++ c.to_string] inner]
+  pure [h "span" [cn $ c.to_string] inner]
 
 /-- Make an interactive expression. -/
 meta def mk {γ} (tooltip : tc subexpr γ) : tc expr γ :=

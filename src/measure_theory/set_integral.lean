@@ -273,7 +273,12 @@ begin
 end
 
 variables [borel_space E] [second_countable_topology E]
-
+/-- To prove something for an arbitrary measurable + integrable function in a second countable
+Borel normed group, it sufficient to show that
+* the property holds for (multiples of) characteristic functions;
+* is closed under addition;
+* the set of functions in the `L¹` space for which the property holds is closed.
+* the property is closed under the almost-everywhere equal relation. -/
 lemma integrable.induction {P : (α → E) → Prop}
   (h_ind : ∀ (c : E) ⦃s⦄, is_measurable s → μ s < ⊤ → P (s.indicator (λ _, c)))
   (h_sum : ∀ ⦃f g⦄, measurable f → measurable g → integrable f μ → integrable g μ → P f → P g → P (f + g))

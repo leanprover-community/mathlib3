@@ -14,6 +14,11 @@ import data.support
 We define simple functions and show that each Borel measurable function on `ennreal` can be
 approximated by a sequence of simple functions.
 
+To prove something for an arbitrary measurable function into `ennreal`, the theorem
+`measurable.ennreal_induction` shows that is it sufficient to show that the property holds for
+(multiples of) characteristic functions and is closed under addition and supremum of increasing
+sequences of functions.
+
 ## Notation
 
 We introduce the following notation for the lower Lebesgue integral of a function `f : α → ennreal`.
@@ -1416,7 +1421,10 @@ end lintegral
 end measure_theory
 
 open measure_theory measure_theory.simple_func
-lemma measurable.ennreal_induction {α} [measurable_space α] {P : (α → ennreal) → Prop}
+/-- To prove something for an arbitrary measurable function into `ennreal`, it sufficient to show
+that the property holds for (multiples of) characteristic functions and is closed under addition
+and supremum of increasing sequences of functions. -/
+theorem measurable.ennreal_induction {α} [measurable_space α] {P : (α → ennreal) → Prop}
   (h_ind : ∀ (c : ennreal) ⦃s⦄, is_measurable s → P (indicator s (λ _, c)))
   (h_sum : ∀ ⦃f g⦄, measurable f → measurable g → P f → P g → P (f + g))
   (h_supr : ∀ ⦃f : ℕ → α → ennreal⦄ (hf : ∀n, measurable (f n)) (h_mono : monotone f)

@@ -607,6 +607,30 @@ instance (α : Type*) [conditionally_complete_linear_order α] :
 
 end order_dual
 
+namespace monotone
+variables [preorder α] [conditionally_complete_lattice β] {f : α → β} (h_mono : monotone f)
+
+/-! A monotone function into a conditionally complete lattice preserves the ordering properties of
+`Sup` and `Inf`. -/
+
+lemma image_le_cSup {s : set α} {c : α} (hcs : c ∈ s) (h_bdd : bdd_above s) :
+  f c ≤ Sup (f '' s) :=
+le_cSup (map_bdd_above h_mono h_bdd) (mem_image_of_mem f hcs)
+
+lemma image_cSup_le {s : set α} (hs : s.nonempty) {B : α} (hB: B ∈ upper_bounds s) :
+  Sup (f '' s) ≤ f B :=
+cSup_le (nonempty.image f hs) (h_mono.mem_upper_bounds_image hB)
+
+lemma image_cInf_le {s : set α} {c : α} (hcs : c ∈ s) (h_bdd : bdd_below s) :
+  Inf (f '' s) ≤ f c :=
+@image_le_cSup (order_dual α) (order_dual β) _ _ _ (λ x y hxy, h_mono hxy) _ _ hcs h_bdd
+
+lemma image_le_cInf {s : set α} (hs : s.nonempty) {B : α} (hB: B ∈ lower_bounds s) :
+  f B ≤ Inf (f '' s) :=
+@image_cSup_le (order_dual α) (order_dual β) _ _ _ (λ x y hxy, h_mono hxy) _ hs _ hB
+
+end monotone
+
 section with_top_bot
 
 /-!
@@ -692,3 +716,114 @@ noncomputable instance with_top.with_bot.complete_lattice {α : Type*}
   ..with_top.with_bot.bounded_lattice }
 
 end with_top_bot
+
+section intervals
+variables [conditionally_complete_linear_order α] {a b : α}
+
+/-! ### Subintervals of conditionally complete linear orders
+
+In this section we show that an open subinterval of a conditionally complete linear order is itself
+complete.
+
+TODO There are innumerable possible variants -- the interval `Ioo` could be changed to `Ico`, `Icc`,
+`Ioi`, etc.; the `conditionally_complete_linear_order` could be changed to
+`conditionally_complete_linear_order_bot` or `complete_linear_order`.
+-/
+
+open_locale classical
+
+section has_Sup
+
+/-- `has_Sup` structure on a nonempty open subinterval `Ioo a b` of a conditionally complete linear
+order. This definition is non-canonical (it uses `default (Ioo a b)`); it should be used only as
+here, as an auxiliary instance in the construction of the `conditionally_complete_linear_order`
+structure. -/
+noncomputable instance Ioo_has_Sup [inhabited (Ioo a b)] : has_Sup (Ioo a b) := {Sup := λ t,
+if ht : Sup (coe '' t : set α) ∈ (Ioo a b) then ⟨Sup (coe '' t : set α), ht⟩ else default (Ioo a b)}
+
+@[simp] lemma Ioo_Sup_def [inhabited (Ioo a b)] :
+  @Sup (Ioo a b) _ = λ t,
+  if ht : Sup (coe '' t : set α) ∈ (Ioo a b) then ⟨Sup (coe '' t : set α), ht⟩ else default (Ioo a b) :=
+rfl
+
+/-- The `Sup` function on a nonempty open subinterval `Ioo a b` of a conditionally complete linear
+order agrees with the `Sup` of the original order, for all nonempty bounded-above sets. -/
+lemma Ioo_Sup_within [inhabited (Ioo a b)] {s : set (Ioo a b)} (hs : s.nonempty)
+  (h_bdd : bdd_above s) :
+  Sup (coe '' s : set α) = (@Sup (Ioo a b) _ s : α) :=
+begin
+  suffices h : Sup (coe '' s) ∈ Ioo a b,
+  { simp [-mem_Ioo, dif_pos h] },
+  obtain ⟨c, hcs⟩ : ∃ c, c ∈ s := hs,
+  obtain ⟨B, hB⟩ : ∃ B, B ∈ upper_bounds s := h_bdd,
+  have ha := lt_of_lt_of_le c.2.1 ((strict_mono_coe (Ioo a b)).monotone.image_le_cSup hcs ⟨B, hB⟩),
+  have hb := lt_of_le_of_lt ((strict_mono_coe (Ioo a b)).monotone.image_cSup_le ⟨c, hcs⟩ hB) B.2.2,
+  exact ⟨ha, hb⟩,
+end
+
+end has_Sup
+
+section has_Inf
+
+/-- `has_Inf` structure on a nonempty open subinterval `Ioo a b` of a conditionally complete linear
+order. This definition is non-canonical (it uses `default (Ioo a b)`); it should be used only as
+here, as an auxiliary instance in the construction of the `conditionally_complete_linear_order`
+structure. -/
+noncomputable instance Ioo_has_Inf [inhabited (Ioo a b)] : has_Inf (Ioo a b) := {Inf := λ t,
+if ht : Inf (coe '' t : set α) ∈ (Ioo a b) then ⟨Inf (coe '' t : set α), ht⟩ else default (Ioo a b)}
+
+@[simp] lemma Ioo_Inf_def [inhabited (Ioo a b)] :
+  @Inf (Ioo a b) _ = λ t,
+  if ht : Inf (coe '' t : set α) ∈ (Ioo a b) then ⟨Inf (coe '' t : set α), ht⟩ else default (Ioo a b) :=
+rfl
+
+/-- The `Inf` function on a nonempty open subinterval `Ioo a b` of a conditionally complete linear
+order agrees with the `Inf` of the original order, for all nonempty bounded-below sets. -/
+lemma Ioo_Inf_within [inhabited (Ioo a b)] {s : set (Ioo a b)} (hs : s.nonempty)
+  (h_bdd : bdd_below s) :
+  Inf (coe '' s : set α) = (@Inf (Ioo a b) _ s : α) :=
+begin
+  suffices h : Inf (coe '' s) ∈ Ioo a b,
+  { simp [-mem_Ioo, dif_pos h] },
+  obtain ⟨c, hcs⟩ : ∃ c, c ∈ s := hs,
+  obtain ⟨B, hB⟩ : ∃ B, B ∈ lower_bounds s := h_bdd,
+  have ha := lt_of_lt_of_le B.2.1 ((strict_mono_coe (Ioo a b)).monotone.image_le_cInf ⟨c, hcs⟩ hB),
+  have hb := lt_of_le_of_lt ((strict_mono_coe (Ioo a b)).monotone.image_cInf_le hcs ⟨B, hB⟩) c.2.2,
+  exact ⟨ha, hb⟩,
+end
+
+end has_Inf
+
+/-- A nonempty open interval of a conditionally complete linear order is naturally a conditionally
+complete linear order. -/
+noncomputable instance Ioo_conditionally_complete_linear_order [inhabited (Ioo a b)] :
+  conditionally_complete_linear_order (Ioo a b) :=
+{ le_cSup := begin
+    rintros s c h_bdd hcs,
+    -- The following would be a more natural way to finish, but gives a "deep recursion" error:
+    -- `simpa [Ioo_Sup_within ⟨c, hcs⟩ h_bdd] using (strict_mono_coe (Ioo a b)).monotone.image_le_cSup hcs h_bdd`
+    -- Same for the other three properties.
+    have := (strict_mono_coe (Ioo a b)).monotone.image_le_cSup hcs h_bdd,
+    rwa Ioo_Sup_within ⟨c, hcs⟩ h_bdd at this,
+  end,
+  cSup_le := begin
+    rintros s B hs hB,
+    have := (strict_mono_coe (Ioo a b)).monotone.image_cSup_le hs hB,
+    rwa Ioo_Sup_within hs ⟨B, hB⟩ at this,
+  end,
+  le_cInf := begin
+    intros s B hs hB,
+    have := (strict_mono_coe (Ioo a b)).monotone.image_le_cInf hs hB,
+    rwa Ioo_Inf_within hs ⟨B, hB⟩ at this,
+  end,
+  cInf_le := begin
+    rintros s c h_bdd hcs,
+    have := (strict_mono_coe (Ioo a b)).monotone.image_cInf_le hcs h_bdd,
+    rwa Ioo_Inf_within ⟨c, hcs⟩ h_bdd at this,
+  end,
+  ..Ioo_has_Sup,
+  ..Ioo_has_Inf,
+  ..distrib_lattice.to_lattice (Ioo a b),
+  ..classical.DLO (Ioo a b) }
+
+end intervals

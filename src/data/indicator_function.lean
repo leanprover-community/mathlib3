@@ -189,7 +189,7 @@ lemma indicator_smul (s : set α) (r : 𝕜) (f : α → β) :
   indicator s (λ (x : α), r • f x) = λ (x : α), r • indicator s f x :=
 by { simp only [indicator], funext, split_ifs, refl, exact (smul_zero r).symm }
 
-lemma indicator_add_eq_left [add_monoid β] {f g : α → β} (h : univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0}) :
+lemma indicator_add_eq_left {f g : α → β} (h : univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0}) :
   (f ⁻¹' {0})ᶜ.indicator (f + g) = f :=
 begin
   ext x, by_cases hx : x ∈ (f ⁻¹' {0})ᶜ,
@@ -198,7 +198,7 @@ begin
   { simp * at * }
 end
 
-lemma indicator_add_eq_right [add_monoid β] {f g : α → β} (h : univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0}) :
+lemma indicator_add_eq_right {f g : α → β} (h : univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0}) :
   (g ⁻¹' {0})ᶜ.indicator (f + g) = g :=
 begin
   ext x, by_cases hx : x ∈ (g ⁻¹' {0})ᶜ,

@@ -42,6 +42,10 @@ the morphisms `U ⟶ V` are not just proofs `U ≤ V`, but rather
 `ulift (plift (U ≤ V))`.
 -/
 
+instance opens_hom_has_coe_to_fun {U V : opens X} : has_coe_to_fun (U ⟶ V) :=
+{ F := λ f, U → V,
+  coe := λ f x, ⟨x, (le_of_hom f) x.2⟩ }
+
 /-!
 We now construct as morphisms various inclusions of open sets.
 -/
@@ -64,10 +68,6 @@ The inclusion `U i ⟶ supr U` as a morphism in the category of open sets.
 -/
 def le_supr {ι : Type*} (U : ι → opens X) (i : ι) : U i ⟶ supr U :=
 hom_of_le (le_supr U i)
-
-instance opens_hom_has_coe_to_fun {U V : opens X} : has_coe_to_fun (U ⟶ V) :=
-{ F := λ f, U → V,
-  coe := λ f x, ⟨x, (le_of_hom f) x.2⟩ }
 
 /--
 The functor from open sets in `X` to `Top`,

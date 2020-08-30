@@ -45,7 +45,7 @@ open opposite
 namespace algebraic_geometry
 
 /--
-`$$Spec R$$, just as a topological space.
+$Spec R$, just as a topological space.
 -/
 def Spec.Top : Top := Top.of (prime_spectrum R)
 
@@ -76,7 +76,6 @@ variables (R)
 The predicate `is_fraction` is "prelocal",
 in the sense that if it holds on `U` it holds on any open subset `V` of `U`.
 -/
-@[simps]
 def is_fraction_prelocal : prelocal_predicate (localizations R) :=
 { pred := λ U f, is_fraction f,
   res := by { rintro V U i f ⟨r, s, w⟩, exact ⟨r, s, λ x, w (i x)⟩ } }
@@ -301,7 +300,7 @@ nat_iso.of_components
   (by tidy)
 
 /--
-The structure sheaf on $$Spec R$$, valued in `CommRing`.
+The structure sheaf on $Spec R$, valued in `CommRing`.
 
 This is provided as a bundled `SheafedSpace` as `Spec.SheafedSpace R` later.
 -/

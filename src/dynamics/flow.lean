@@ -51,28 +51,36 @@ section -- invariant subsets & omega limits
 variables {T : Type*} {X : Type*} {Y : Type*}
 
 /-! ### invariant subsets -/
-section invariant
+section is_invariant
 
 /-- a set `S ⊆ X` is invariant under `ϕ : T → X → X` if `ϕ t S ⊆ S`
     for all `t`. -/
-def invariant (ϕ : T → X → X) (S : set X) : Prop := ∀ t (x ∈ S), ϕ t x
-∈ S
+def is_invariant (ϕ : T → X → X) (S : set X) : Prop :=
+∀ t (x ∈ S), ϕ t x ∈ S
 
 variables (ϕ : T → X → X) (S : set X)
 
-lemma invariant_iff_image2_subset {S} : invariant ϕ S ↔ image2 ϕ univ S ⊆ S :=
+lemma is_invariant_iff_image2_subset : is_invariant ϕ S ↔ image2 ϕ univ S ⊆ S :=
 iff.intro
   (λ h _ ⟨_, _, ht, hx, htx⟩, htx ▸ h _ _ hx)
   (λ h _ _ hx, h ⟨_, _, mem_univ _, hx, rfl⟩)
 
-lemma invariant_iff_subset_preimage {S} : invariant ϕ S ↔  ∀ t, S ⊆ ϕ t ⁻¹' S := iff.rfl
+lemma is_invariant_iff_subset_preimage : is_invariant ϕ S ↔  ∀ t, S ⊆ ϕ t ⁻¹' S := iff.rfl
 
-lemma invariant_iff_image_subset {S} : invariant ϕ S ↔ ∀  t, ϕ t '' S ⊆ S :=
+lemma is_invariant_iff_image_subset : is_invariant ϕ S ↔ ∀  t, ϕ t '' S ⊆ S :=
 iff.intro
   (λ h t y ⟨_, hx, hy⟩, hy ▸ h t _ hx)
   (λ h t x hx, (@image_subset_iff _ _ _ _ (ϕ t)).mp (h t) hx)
 
-end invariant
+variable [topological_space X]
+
+lemma is_invariant_closure (hϕ : ∀ t, continuous (ϕ t)) (hS : is_invariant ϕ S) :
+  is_invariant ϕ (closure S) :=
+λ t, calc closure S ⊆ closure (ϕ t ⁻¹' S) : closure_mono (hS _)
+     ...            ⊆ ϕ t ⁻¹' (closure S) : closure_minimal (preimage_mono subset_closure)
+                                            (is_closed.preimage (hϕ _) is_closed_closure)
+
+end is_invariant
 
 /-! ### omega limit -/
 
@@ -163,6 +171,8 @@ def is_attractor [topological_space X]
   (f : filter T) (ϕ : T → X → X) (A : set X) : Prop :=
 ∃ u, is_open u ∧ A ⊆ u ∧ ω f ϕ u = A
 
+variables (f : filter T) (ϕ : T → X → X) (A : set X)
+
 -- (work in progress.)
 
 end attractor
@@ -218,10 +228,10 @@ lemma map_add (t₁ t₂ : T) (x : X) : ϕ t₂ (ϕ t₁ x) = ϕ (t₁ + t₂) x
 
 local notation `ω` := omega_limit
 
-lemma invariant_omega_limit (h : ∀ t, tendsto (+ t) f f) : invariant ϕ (ω f ϕ S) :=
+lemma is_invariant_omega_limit (h : ∀ t, tendsto (+ t) f f) : is_invariant ϕ (ω f ϕ S) :=
 begin
   unfold omega_limit,
-  simp_rw [invariant_iff_subset_preimage, preimage_Inter],
+  simp_rw [is_invariant_iff_subset_preimage, preimage_Inter],
   intro t,
   apply Inter_subset_Inter2, intro u,  use (+ t) ⁻¹' u,
   apply Inter_subset_Inter2, intro hu, use tendsto_def.mp (h t) _ hu,

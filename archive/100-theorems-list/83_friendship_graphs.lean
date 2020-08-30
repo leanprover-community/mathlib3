@@ -1,13 +1,37 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author:  Aaron Anderson, Jalex Stark.
+Author:  Aaron Anderson, Jalex Stark, Kyle Miller.
 -/
 import combinatorics.adj_matrix
 import linear_algebra.char_poly.coeff
 import data.int.modeq
 import data.zmod.basic
 import tactic
+
+/-!
+# The Friendship Theorem
+
+## Definitions and Statement
+- A `friendship` graph is one in which any two distinct vertices have exactly one neighbor in common
+- A `politician`, at least in the context of this problem, is a vertex in a graph which is adjacent
+  to every other vertex.
+- The friendship theorem (Erdős, Rényi, Sós 1966) states that every finite friendship graph has a
+  politician.
+
+## Proof outline
+The proof revolves around the theory of adjacency matrices.
+- Assume `G` is a finite friendship graph.
+- First we show that any two nonadjacent vertices have the same degree
+- Assume for contradiction that `G` does not have a politician.
+- Conclude from the last two points that `G` is `d`-regular for some `d : ℕ`.
+- Show that `G` has `d ^ 2 - d + 1` vertices.
+- By casework, show that if `d = 0, 1, 2`, then `G` has a politician.
+- If `3 ≤ d`, let `p` be a prime factor of `d - 1`.
+- If `A` is the adjacency matrix of `G` with entries in `ℤ/pℤ`, we show that `A ^ p` has trace `1`.
+- This gives a contradiction, as `A` has trace `0`, and thus `A ^ p` has trace `0`.
+
+-/
 
 open_locale classical big_operators
 noncomputable theory

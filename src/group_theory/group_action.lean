@@ -439,14 +439,10 @@ by rw [sub_eq_add_neg, sub_eq_add_neg, smul_add, smul_neg]
 
 end
 
-
-
-
-
 section
-
 open equiv
-/-This constructs the natural permutation group on `G` that is used to show Cayley's theorem-/
+
+/-- This constructs the natural permutation group on `G` that is used to show Cayley's theorem-/
 def group_to_perm (G : Type*) [group G] : G →* perm G :=
 { to_fun := λ g,
   { to_fun := λ h, g * h,

@@ -37,6 +37,7 @@ end
 @[field_simps] theorem pow_ne_zero' {M : Type*} [monoid_with_zero M] [no_zero_divisors M]
   {a : M} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero' h
+
 section group_with_zero
 variables {G₀ : Type*} [group_with_zero G₀]
 

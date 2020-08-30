@@ -136,6 +136,11 @@ abbreviation binary_cofan.inl {X Y : C} (s : binary_cofan X Y) := s.ι.app walki
 /-- The second inclusion of a binary cofan. -/
 abbreviation binary_cofan.inr {X Y : C} (s : binary_cofan X Y) := s.ι.app walking_pair.right
 
+@[simp] lemma binary_cofan.ι_app_left {X Y : C} (s : binary_cofan X Y) :
+  s.ι.app walking_pair.left = s.inl := rfl
+@[simp] lemma binary_cofan.ι_app_right {X Y : C} (s : binary_cofan X Y) :
+  s.ι.app walking_pair.right = s.inr := rfl
+
 lemma binary_cofan.is_colimit.hom_ext {W X Y : C} {s : binary_cofan X Y} (h : is_colimit s)
   {f g : s.X ⟶ W} (h₁ : s.inl ≫ f = s.inl ≫ g) (h₂ : s.inr ≫ f = s.inr ≫ g) : f = g :=
 h.hom_ext $ λ j, walking_pair.cases_on j h₁ h₂

@@ -105,10 +105,21 @@ nat.shrink' n n []
 
 open gen
 
+/--
+Transport a `sampleable` instance from a type `α` to a type `β` using
+functions between the two, going in both directions.
+-/
+def sampleable.lift (α : Type u) {β : Type u} [sampleable α] (f : α → β) (g : β → α) : sampleable β :=
+{ sample := f <$> sample α,
+  shrink := λ x, f <$> shrink (g x) }
+
 instance sampleable_nat : sampleable ℕ :=
 { sample := sized $ λ sz, fin.val <$> choose_any (fin $ succ (sz^3)) <|>
                           fin.val <$> choose_any (fin $ succ sz),
   shrink := lazy_list.of_list ∘ nat.shrink }
+
+instance sampleable_pnat : sampleable ℕ+ :=
+sampleable.lift ℕ nat.succ_pnat (λ i, i - 1)
 
 /-- `int.shrink' k n` creates a list of integers by successively
 dividing `n` by 2, subtracting the result from `k` and alternating the signs.
@@ -155,6 +166,9 @@ instance sampleable_sum {β} [sampleable α] [sampleable β] : sampleable (α �
 { sample := uliftable.up_map sum.inl (sample α) <|>
             uliftable.up_map sum.inr (sample β),
   shrink := sum.shrink _ }
+
+instance sampleable_rat : sampleable ℚ :=
+sampleable.lift (ℤ × ℕ+) (λ x, prod.cases_on x rat.mk_pnat) (λ r, (r.num, ⟨r.denom, r.pos⟩))
 
 /-- `sampleable_char` can be specialized into customized `sampleable char` instances.
 

@@ -14,61 +14,15 @@ together with a proof that they invalidate the proposition.
 
 This is a port of the Haskell QuickCheck library.
 
-## How to get started
+## Creating Customized Instances
 
-A proposition can be tested by writing it out as:
-
-```lean
-#eval testable.check (∀ xs : list ℕ, (∃ x ∈ xs, x < 3) → (∀ y ∈ xs, y < 5))
--- ===================
--- Found problems!
-
--- xs := [0, 5]
--- x := 0
--- y := 5
--- -------------------
-
-#eval testable.check (∀ x : ℕ, 2 ∣ x → x < 100)
--- ===================
--- Found problems!
-
--- x := 258
--- -------------------
-
-#eval testable.check (∀ (α : Type) (xs ys : list α), xs ++ ys = ys ++ xs)
--- ===================
--- Found problems!
-
--- α := ℤ
--- xs := [-4]
--- ys := [1]
--- -------------------
-
-#eval testable.check (∀ x ∈ [1,2,3], x < 4)
--- Success
-```
-
-`testable.check p` finds a `testable p` instance which lets us find
-data to test the proposition `p`.  For instance, `testable.check (∀ x
-: ℕ, 2 ∣ x → x < 100)` builds the `testable` instance step by step
-with:
-
-```
-testable (∀ x : ℕ, 2 ∣ x → x < 100) -: sampleable ℕ, decidable (λ x, 2 ∣ x), testable (λ x, x < 100)
-testable (λ x, x < 100)              -: decidable (λ x, x < 100)
-```
-
-`sampleable ℕ` lets us create random data of type `ℕ` in a way that
-helps find small counter-examples.  Next, the test of the proposition
-hinges on `2 ∣ 100` and `x < 100` both being decidable. The
-implication between the two could be tested as a whole but it would be
-less informative. Indeed, we could generate a hundred odd numbers and
-the property would be shown to hold for each but the right conclusion
-is that we haven't found meaningful examples. Instead, when `2 ∣ x`
-does not hold, we reject the example (i.e. we do not count it toward
-the 100 required positive examples) and we start over. Therefore, when
-`testable.check` prints `Success`, it means that a hundred even
-numbers were found to be less than 100.
+The type classes `testable` and `sampleable` are the means by which
+`slim_check` creates samples and tests them. For instance, the proposition
+`∀ i j : ℕ, i ≤ j` has a `testable` instance because `ℕ` is sampleable
+and `i ≤ j` is decidable. Once `slim_check` finds the `testable`
+instance, it can start using the instance to repeatedly creating samples
+and checking whether they satisfy the property. This allows the
+user to create new instances and apply `slim_check` to new situations.
 
 ### Polymorphism
 
@@ -76,6 +30,12 @@ The property `testable.check (∀ (α : Type) (xs ys : list α), xs ++ ys
 = ys ++ xs)` shows us that type-polymorphic properties can be
 tested. `α` is instantiated with `ℤ` first and then tested as normal
 monomorphic properties.
+
+The monomorphisation limits the applicability of `slim_check` to
+polymorphic properties that can be stated about integers. The
+limitation may be lifted in the future but, for now, if
+one wishes to use a different type than `ℤ`, one has to refer to
+the desired type.
 
 ### What do I do if I'm testing a property about my newly defined type?
 
@@ -202,6 +162,7 @@ random testing
 
 universes u v
 
+variables var var' : string
 variable α : Type u
 variable β : α → Prop
 variable f : Type → Prop
@@ -227,6 +188,14 @@ inductive test_result (p : Prop)
      guarantee no false positive. -/
 | failure : ¬ p → (list string) → test_result
 
+def test_result.to_string {p} : test_result p → string
+| (test_result.success (psum.inl ())) := "success (without proof)"
+| (test_result.success (psum.inr h)) := "success (with proof)"
+| (test_result.gave_up n) := sformat!"gave up {n} times"
+| (test_result.failure a vs) := sformat!"failed {vs}"
+
+instance {p} : has_to_string (test_result p) := ⟨ test_result.to_string ⟩
+
 /-- `testable p` uses random examples to try to disprove `p`. -/
 class testable (p : Prop) :=
 (run [] (enable_tracing minimize : bool) : gen (test_result p))
@@ -240,7 +209,7 @@ def combine {p q : Prop} : psum unit (p → q) → psum unit p → psum unit q
 | (psum.inr f) (psum.inr x) := psum.inr (f x)
 | _ _ := psum.inl ()
 
-/-- Combine the test result for properties `p` and `q` to create a test for the conjunction. -/
+/-- Combine the test result for properties `p` and `q` to create a test for their conjunction. -/
 def and_counter_example {p q : Prop} :
   test_result p →
   test_result q →
@@ -248,6 +217,18 @@ def and_counter_example {p q : Prop} :
 | (failure Hce xs) _ := failure (λ h, Hce h.1) xs
 | _ (failure Hce xs) := failure (λ h, Hce h.2) xs
 | (success xs) (success ys) := success $ combine (combine (psum.inr and.intro) xs) ys
+| (gave_up n) (gave_up m) := gave_up $ n + m
+| (gave_up n) _ := gave_up n
+| _ (gave_up n) := gave_up n
+
+/-- Combine the test result for properties `p` and `q` to create a test for their disjunction -/
+def or_counter_example {p q : Prop} :
+  test_result p →
+  test_result q →
+  test_result (p ∨ q)
+| (failure Hce xs) (failure Hce' ys) := failure (λ h, or_iff_not_and_not.1 h ⟨Hce, Hce'⟩) (xs ++ ys)
+| (success xs) _ := success $ combine (psum.inr or.inl) xs
+| _ (success ys) := success $ combine (psum.inr or.inr) ys
 | (gave_up n) (gave_up m) := gave_up $ n + m
 | (gave_up n) _ := gave_up n
 | _ (gave_up n) := gave_up n
@@ -291,7 +272,7 @@ def add_var_to_counter_example {γ : Type v} [has_to_string γ]
 /-- Gadget used to introspect the name of bound variables.
 
 It is used with the `testable` typeclass so that
-`testable (named_binder (some "x") (∀ x, p x))` can use the variable name
+`testable (named_binder "x" (∀ x, p x))` can use the variable name
 of `x` in error messages displayed to the user. If we find that instantiating
 the above quantifier with 3 falsifies it, we can print:
 
@@ -303,7 +284,7 @@ x := 3
 ```
  -/
 @[simp, nolint unused_arguments]
-def named_binder (n : option string) (p : Prop) : Prop := p
+def named_binder (n : string) (p : Prop) : Prop := p
 
 /-- Is the given test result a failure? -/
 def is_failure {p} : test_result p → bool
@@ -317,64 +298,74 @@ instance and_testable (p q : Prop) [testable p] [testable q] :
    xq ← testable.run q tracing min,
    pure $ and_counter_example xp xq ⟩
 
-@[priority 5000]
-instance imp_dec_testable {var} (p : Prop) [decidable p] (β : p → Prop)
+instance or_testable (p q : Prop) [testable p] [testable q] :
+  testable (p ∨ q) :=
+⟨ λ tracing min, do
+   xp ← testable.run p tracing min,
+   match xp with
+   | success (psum.inl h) := pure $ success (psum.inl h)
+   | success (psum.inr h) := pure $ success (psum.inr $ or.inl h)
+   | _ := do
+     xq ← testable.run q tracing min,
+     pure $ or_counter_example xp xq
+   end ⟩
+
+@[priority 1000]
+instance imp_dec_testable (p : Prop) [decidable p] (β : p → Prop)
   [∀ h, testable (β h)] : testable (named_binder var $ Π h, β h) :=
 ⟨ λ tracing min, do
     if h : p
     then (λ r, convert_counter_example ($ h) r (psum.inr $ λ q _, q)) <$> testable.run (β h) tracing min
-    else if tracing then  trace (sformat!"discard") $ return $ gave_up 1
+    else if tracing then  trace "discard" $ return $ gave_up 1
     else return $ gave_up 1 ⟩
 
 @[priority 2000]
-instance all_types_testable (var : string) [testable (f ℤ)] : testable (named_binder (some var) $ Π x, f x) :=
+instance all_types_testable [testable (f ℤ)] : testable (named_binder var $ Π x, f x) :=
 ⟨ λ tracing min, do
     r ← testable.run (f ℤ) tracing min,
     return $ add_var_to_counter_example var "ℤ" ($ ℤ) r ⟩
 
-/-- testable instance for universal properties; use the chosen example and
-instantiate the universal quantification with it -/
-def test_one (x : α) [testable (β x)] (var : option (string × string) := none) : testable (Π x, β x) :=
-⟨ λ tracing min, do
-    r ← testable.run (β x) tracing min,
-    return $ 
-      match var with
-      | none := convert_counter_example ($ x) r
-      | (some (v,x_str)) := add_var_to_counter_example v x_str ($ x) r
-      end ⟩
+/-- Trace the value of sampled variables if the sample is discarded. -/
+def trace_if_giveup {p α β} [has_to_string α] (tracing_enabled : bool) (var : string) (val : α) :
+  test_result p → thunk β → β
+| (test_result.gave_up _) :=
+  if tracing_enabled then trace (sformat!" {var} := {val}")
+  else ($ ())
+| _ := ($ ())
 
 /-- testable instance for a property iterating over the element of a list -/
 @[priority 5000]
-instance test_forall_in_list (var : string) (var' : option string)
+instance test_forall_in_list
   [∀ x, testable (β x)] [has_to_string α] :
-  Π xs : list α, testable (named_binder (some var) $ ∀ x, named_binder var' $ x ∈ xs → β x)
+  Π xs : list α, testable (named_binder var $ ∀ x, named_binder var' $ x ∈ xs → β x)
 | [] := ⟨ λ tracing min, return $ success $ psum.inr (by { introv x h, cases h} ) ⟩
 | (x :: xs) :=
 ⟨ λ tracing min, do
     r ← testable.run (β x) tracing min,
-    match r with
-    | failure _ _ := return $ add_var_to_counter_example var x
-                               (by { intro h, apply h, left, refl }) r
-    | success hp := do
-       rs ← @testable.run _ (test_forall_in_list xs) tracing min,
-       return $ convert_counter_example
-                               (by { intros h i h',
-                                     apply h,
-                                     right, apply h' })
-                               rs
-                               (combine (psum.inr
-                                $ by { intros j h, simp only [ball_cons,named_binder],
-                                       split ; assumption, } ) hp)
-    | gave_up n := do
-       rs ← @testable.run _ (test_forall_in_list xs) tracing min,
-       match rs with
-       | (success _) := return $ gave_up n
-       | (failure Hce xs) := return $ failure
-                    (by { simp only [ball_cons,named_binder],
-                          apply not_and_of_not_right _ Hce, }) xs
-       | (gave_up n') := return $ gave_up (n + n')
-       end
-    end ⟩
+    trace_if_giveup tracing var x r $
+      match r with
+      | failure _ _ := return $ add_var_to_counter_example var x
+                                 (by { intro h, apply h, left, refl }) r
+      | success hp := do
+         rs ← @testable.run _ (test_forall_in_list xs) tracing min,
+         return $ convert_counter_example
+                                 (by { intros h i h',
+                                       apply h,
+                                       right, apply h' })
+                                 rs
+                                 (combine (psum.inr
+                                  $ by { intros j h, simp only [ball_cons,named_binder],
+                                         split ; assumption, } ) hp)
+      | gave_up n := do
+         rs ← @testable.run _ (test_forall_in_list xs) tracing min,
+         match rs with
+         | (success _) := return $ gave_up n
+         | (failure Hce xs) := return $ failure
+                      (by { simp only [ball_cons,named_binder],
+                            apply not_and_of_not_right _ Hce, }) xs
+         | (gave_up n') := return $ gave_up (n + n')
+         end
+      end ⟩
 
 /-- Test proposition `p` by randomly selecting one of the provided
 testable instances. -/
@@ -386,67 +377,61 @@ def combine_testable (p : Prop)
 
 /-- Once a property fails to hold on an example, look for smaller counter-examples
 to show the user. -/
-def minimize [∀ x, testable (β x)] (x : α) (r : test_result (β x)) (tracing : bool) : lazy_list α → gen (Σ x, test_result (β x))
+def minimize [∀ x, testable (β x)] (x : α) (r : test_result (β x)) : lazy_list α → gen (Σ x, test_result (β x))
 | lazy_list.nil := pure ⟨x,r⟩
 | (lazy_list.cons x xs) := do
-  ⟨r⟩ ← uliftable.up $ testable.run (β x) tracing tt,
+  ⟨r⟩ ← uliftable.up $ testable.run (β x) ff tt,
      if is_failure r
        then pure ⟨x, convert_counter_example id r (psum.inl ())⟩
        else minimize $ xs ()
 
-@[priority 5000]
-instance exists_testable {p : Prop}
-  (var var' : option string)
+@[priority 2000]
+instance exists_testable (p : Prop)
   [testable (named_binder var (∀ x, named_binder var' $ β x → p))] :
   testable (named_binder var' (named_binder var (∃ x, β x) → p)) :=
 ⟨ λ tracing min, do
     x ← testable.run (named_binder var (∀ x, named_binder var' $ β x → p)) tracing min,
     pure $ convert_counter_example' exists_imp_distrib.symm x ⟩
 
-/-- Trace the value of sampled variables if the sample is discarded. -/
-def trace_if_giveup {p α β} [has_to_string α] (tracing_enabled : bool) (var : string) (val : α) :
-  test_result p → thunk β → β
-| (test_result.gave_up _) :=
-  if tracing_enabled then trace (sformat!" {var} := {val}")
-  else ($ ())
-| _ := ($ ())
+@[priority 5000]
+instance exists_testable' (xs : list α) (p : Prop)
+  [testable (named_binder var (∀ x, named_binder "H" $ x ∈ xs → named_binder var' (β x → p)))] :
+  testable (named_binder var' (named_binder var (∃ x ∈ xs, β x) → p)) :=
+⟨ λ tracing min, do
+    x ← testable.run (named_binder var (∀ x, named_binder "H" $ x ∈ xs → named_binder var' (β x → p))) tracing min,
+    pure $ convert_counter_example' (by simp) x ⟩
 
 /-- Test a universal property by creating a sample of the right type and instantiating the
 bound variable with it. -/
-instance var_testable [has_to_string α] [sampleable α] [∀ x, testable (β x)]
-  (var : option string) : testable (named_binder var $ Π x : α, β x) :=
+instance var_testable [has_to_string α] [sampleable α] [∀ x, testable (β x)] : testable (named_binder var $ Π x : α, β x) :=
 ⟨ λ tracing min, do
    uliftable.adapt_down (sample α) $
    λ x, do
      r ← testable.run (β x) tracing ff,
      uliftable.adapt_down (if is_failure r ∧ min
-                          then minimize _ _ x r tracing (shrink x)
+                          then minimize _ _ x r (shrink x)
                           else pure ⟨x,r⟩) $
-     λ ⟨x,r⟩, return $ match var with
-                       | none := add_to_counter_example (to_string x) ($ x) r
-                       | (some v) := trace_if_giveup tracing v x r (add_var_to_counter_example v x ($ x) r)
-                       end⟩
+     λ ⟨x,r⟩, return (trace_if_giveup tracing var x r $ add_var_to_counter_example var x ($ x) r) ⟩
 
 @[priority 3000]
-instance unused_var_testable {β} [inhabited α] [testable β]
-  (var : option string) : testable (named_binder var $ Π x : α, β) :=
+instance unused_var_testable (β) [inhabited α] [testable β] : testable (named_binder var $ Π x : α, β) :=
 ⟨ λ tracing min, do
   r ← testable.run β tracing min,
   pure $ convert_counter_example ($ default _) r (psum.inr $ λ x _, x) ⟩
 
 @[priority 2000]
-instance subtype_var_testable {p : α → Prop} [has_to_string α] [sampleable (subtype p)]
-  [∀ x, testable (β x)] (var var' : option string) :
+instance subtype_var_testable (p : α → Prop) [has_to_string α] [sampleable (subtype p)]
+  [∀ x, testable (β x)] :
   testable (named_binder var $ Π x : α, named_binder var' $ p x → β x) :=
 ⟨ λ tracing min,
-   do r ← @testable.run (∀ x : subtype p, β x.val) (slim_check.var_testable _ _ var) tracing min,
+   do r ← @testable.run (∀ x : subtype p, β x.val) (slim_check.var_testable var _ _) tracing min,
       pure $ convert_counter_example'
         ⟨λ (h : ∀ x : subtype p, β x) x h', h ⟨x,h'⟩,
          λ h ⟨x,h'⟩, h x h'⟩
         r ⟩
 
 @[priority 100]
-instance decidable_testable {p : Prop} [decidable p] : testable p :=
+instance decidable_testable (p : Prop) [decidable p] : testable p :=
 ⟨ λ tracing min, return $ if h : p then success (psum.inr h) else failure h [] ⟩
 
 section io
@@ -514,7 +499,7 @@ open tactic expr
 
 Instances of `testable` use `named_binder` as a decoration on
 propositions in order to access the name of bound variables, as in
-`named_binder (some "x") (forall x, x < y)`.  This helps the
+`named_binder "x" (forall x, x < y)`.  This helps the
 `testable` instances create useful error messages where variables
 are matched with values that falsify a given proposition.
 
@@ -527,7 +512,7 @@ root of `p` if `p` is an existential quantification. -/
 meta def add_existential_decorations : expr → expr
 | e@`(@Exists %%α %%(lam n bi d b)) :=
   let n := to_string n in
-  const ``named_binder [] (const ``option.some [level.zero] (`(string) : expr) (`(n) : expr)) e
+  const ``named_binder [] (`(n) : expr) e
 | e := e
 
 /-- Traverse the syntax of a proposition to find universal quantifiers
@@ -538,7 +523,8 @@ e.replace $ λ e _,
   match e with
   | (pi n bi d b) :=
     let n := to_string n in
-    some $ const ``named_binder [] (const ``option.some [level.zero] (`(string) : expr) (reflect n : expr)) (pi n bi (add_existential_decorations d) (add_decorations b))
+    some $ const ``named_binder [] (`(n) : expr)
+      (pi n bi (add_existential_decorations d) (add_decorations b))
   | e := none
   end
 

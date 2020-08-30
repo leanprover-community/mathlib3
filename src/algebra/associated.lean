@@ -110,10 +110,7 @@ assume a s ih h,
 def coprime (a b : α) : Prop := ∀ (p : α), prime p → p ∣ a → ¬ p ∣ b
 
 lemma coprime_symm {a b : α} (h : coprime a b) : coprime b a :=
-begin
-  intros p h₁ hb ha,
-  exact h _ h₁ ha hb
-end
+λ p h₁ hb ha, h p h₁ ha hb
 
 end prime
 

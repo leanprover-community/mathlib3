@@ -53,8 +53,10 @@ variables {T : Type*} {X : Type*} {Y : Type*}
 /-! ### invariant subsets -/
 section invariant
 
-def invariant (ϕ : T → X → X) (S : set X) : Prop :=
-∀ t (x ∈ S), ϕ t x ∈ S
+/-- a set `S ⊆ X` is invariant under `ϕ : T → X → X` if `ϕ t S ⊆ S`
+    for all `t`. -/
+def invariant (ϕ : T → X → X) (S : set X) : Prop := ∀ t (x ∈ S), ϕ t x
+∈ S
 
 variables (ϕ : T → X → X) (S : set X)
 
@@ -73,8 +75,24 @@ iff.intro
 end invariant
 
 /-! ### omega limit -/
+
+-- we define ω-limits of sets `S ⊆ X` under `ϕ : T → X → Y` with
+-- reference a filter `f` on `T`. An element `y ∈ Y` is in the ω-limit
+-- of `S` if the forward images of `S` intersect arbitrarily small
+-- neighbourhoods of `y` frequently "in the direction of `f`".
+
+-- In the case where `T` is `ℕ` or `ℝ` and `f` is `at_top`, we recover the usual
+-- definition of the ω-limit set as the set of all `y ∈ Y` such that
+-- there exist sequences `(tₙ)`, `(xₙ)` such that `ϕ tₙ xₙ ⟶ y` as `n ⟶ ∞`.
+
+-- in practice `ϕ` is often a flow on `X`, but the definitions make
+-- sense so long as `ϕ` has a coercion to the appropriate function
+-- type.
+
 section omega_limit
 
+/-- the ω-limit of `S ⊆ X` under `ϕ : T → X → Y` w.r.t. a filter `f`
+    on `T` is defined as `⋂ u ∈ f, cl (ϕ u S)`.  -/
 def omega_limit [topological_space Y]
   (f : filter T) (ϕ : T → X → Y) (S : set X) : set Y :=
 ⋂ n ∈ f, closure (image2 ϕ n S)
@@ -134,11 +152,38 @@ end
 
 end omega_limit
 
+/-! ### attractors -/
+section attractor
+
+local notation `ω` := omega_limit
+
+/-- a set `A ⊆ X` is an attractor for `ϕ` w.r.t a filter `f` if it has
+    a neighbourhood of which it is the ω-limit. -/
+def is_attractor [topological_space X]
+  (f : filter T) (ϕ : T → X → X) (A : set X) : Prop :=
+∃ u, is_open u ∧ A ⊆ u ∧ ω f ϕ u = A
+
+-- (work in progress.)
+
+end attractor
+
 end
 
 /-! ### semigroup flow -/
+
+-- a semigroup-flow on a topological space `X` by a topological
+-- semigroup `T` is a continuous semigroup-act of `T` on
+-- `X`. anticipating the cases `T = ℕ` or `ℝ`, we use additive
+-- notation. Furthermore, since we expect to consider families of
+-- flows, we do not register semigroup_flow as a class (as opposed to
+-- `add_action` from `algebra/add_torsor`, which also implements
+-- additive actions.)
+
 section
 
+/-- a semigroup-flow on a topological space `X` by an (additive)
+    topological semigroup `T` is a continuous semigroup-act of `T` on
+    `X`. -/
 structure semigroup_flow
   (T : Type*) [topological_space T] [add_semigroup T] [has_continuous_add T]
   (X : Type*) [topological_space X] :=
@@ -197,6 +242,8 @@ end
 
 end semigroup_flow
 
+/-- a flow on a topological space X by a topological (additive) group
+    T is a continuous group a action of T on X. -/
 structure flow
   (T : Type*) [topological_space T] [add_group T] [topological_add_group T]
   (X : Type*) [topological_space X] extends semigroup_flow T X :=
@@ -240,12 +287,14 @@ end
 
 section
 
--- with the expectation that T is either ℝ or ℕ.
+-- henceforth we assume `T` is linearly ordered and commutative. This
+-- makes it possible to speak of the time-reversal of a flow, as well
+-- as recover some familiar results for the cases `T = ℕ` and `T = ℝ`.
 variables [decidable_linear_ordered_add_comm_group T] [topological_add_group T]
 
 variables (ϕ : flow T X)
 
-/--the time-reversal of a flow, defined ϕ.reverse t x = ϕ (-t) x -/
+/-- the time-reversal of a flow, defined `ϕ.reverse t x = ϕ (-t) x` -/
 def reverse : (flow T X) :=
 { to_fun    := λ t x, ϕ (-t) x,
   cont      := show continuous (↿ϕ ∘ λ p : T × X, (-p.fst, p.snd)), from
@@ -253,6 +302,12 @@ def reverse : (flow T X) :=
   map_add'  := λ _ _ _, by rw [map_add, neg_add],
   map_zero' := λ _, show ϕ (-0) _ = _, by rw [neg_zero, map_zero] }
 
+-- (it might be convenient to register `ϕ.reverse` as `has_inv` or
+-- `has_neg` so that there is access to the notation `ϕ⁻¹` or `-ϕ`,
+-- but lean might try to coerce to a function first and then complain
+-- about not being able to find the appropriate instances.)
+
+-- also, the following lemmas are either redundant or need more descriptive names:
 lemma reverse_def (t : T) (x : X) : ϕ.reverse t x = ϕ (-t) x := rfl
 lemma reverse_def₁ (t : T) : ϕ.reverse t = ϕ (-t) := funext (λ x, reverse_def _ _ _)
 lemma reverse_def₂ : ⇑ϕ.reverse = λ t x, ϕ (-t) x := rfl
@@ -269,7 +324,8 @@ local notation `ω₋` := omega_limit at_bot
 
 variable (S : set X)
 
--- recover the usual definition of ω-limit sets:
+-- recover the usual definition of ω-limit sets as the intersection of
+-- the closures of forward orbits.
 lemma omega_limit_at_top_eq : ω₊ ϕ S = ⋂ t, closure (image2 ϕ (Ici t) S) :=
 begin
   apply subset.antisymm,
@@ -283,7 +339,7 @@ begin
 ... ⊆ closure (image2 ϕ u S) : closure_mono (image2_subset (λ _ hs, hb _ hs) subset.rfl) }
 end
 
-
+-- the α-limit set is the ω limit set under time-reversal.
 lemma omega_limit_at_top_reverse : ω₋ ϕ S = ω₊ ϕ.reverse S :=
 begin
   have l₁, from omega_limit_subset_of_tendsto _ _ _ ϕ.reverse S tendsto_neg_at_bot_at_top,

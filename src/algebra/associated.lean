@@ -562,17 +562,8 @@ def associates_coprime (a b : associates α) : Prop :=
 
 lemma coprime_associated {a b : α} :
   coprime a b ↔ associates_coprime (associates.mk a) (associates.mk b) :=
-begin
-  split,
-  { intros h p hp ha,
-    obtain ⟨p0, hp0⟩ := exists_rep p,
-    rw ← hp0 at *,
-    apply mt dvd_of_mk_le_mk,
-    exact h _ ((prime_mk p0).mp hp) (dvd_of_mk_le_mk ha) },
-  { intros h p hp ha,
-    apply mt mk_le_mk_of_dvd,
-    apply h _ ((prime_mk p).mpr hp)(mk_le_mk_of_dvd ha) }
-end
+by { convert forall_quotient_iff.symm,
+simp_rw [coprime, quotient_mk_eq_mk, prime_mk, mk_le_mk_iff_dvd_iff] }
 
 lemma associates_coprime_symm {a b : associates α} (h : associates_coprime a b) :
   associates_coprime b a :=

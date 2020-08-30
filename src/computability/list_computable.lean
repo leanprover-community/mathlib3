@@ -83,19 +83,19 @@ end
 
 structure computable_by_tm2_aux (Γ₀ Γ₁ : Type) :=
 ( tm : fin_tm2 )
-( input_alphabet : tm.Γ tm.k₀ = Γ₀ )
-( output_alphabet : tm.Γ tm.k₁ = Γ₁ )
+( input_alphabet : tm.Γ tm.k₀ ≃ Γ₀ )
+( output_alphabet : tm.Γ tm.k₁ ≃ Γ₁ )
 
 structure computable_by_tm2_list {Γ₀ Γ₁ : Type} (f : list Γ₀ →. list Γ₁) extends computable_by_tm2_aux Γ₀ Γ₁ :=
-( outputs_f : ∀ (l : list Γ₀), (f l ≠ none) → tm2_outputs tm begin rw input_alphabet, exact l, end begin rw output_alphabet, exact (f l), end )
+( outputs_f : ∀ (l : list Γ₀), (f l ≠ none) → tm2_outputs tm (list.map input_alphabet.inv_fun l) (roption.map (list.map output_alphabet.inv_fun) (f l)) )
 
 structure computable_by_tm2_in_time_list {Γ₀ Γ₁ : Type} (f : list Γ₀ →. list Γ₁) extends computable_by_tm2_aux Γ₀ Γ₁ :=
 ( time: ℕ → ℕ )
-( outputs_f : ∀ (l : list Γ₀), (f l ≠ none) → tm2_outputs_in_time tm begin rw input_alphabet, exact l, end begin rw output_alphabet, exact (f l), end (time l.length) )
+( outputs_f : ∀ (l : list Γ₀), (f l ≠ none) → tm2_outputs_in_time tm (list.map input_alphabet.inv_fun l) (roption.map (list.map output_alphabet.inv_fun) (f l)) (time l.length) )
 
 structure computable_by_tm2_in_poly_time_list {Γ₀ Γ₁ : Type} (f : list Γ₀ →. list Γ₁) extends computable_by_tm2_aux Γ₀ Γ₁ :=
 ( time: polynomial ℕ )
-( outputs_f : ∀ (l : list Γ₀), (f l ≠ none) → tm2_outputs_in_time tm begin rw input_alphabet, exact l, end begin rw output_alphabet, exact (f l), end (time.eval l.length) )
+( outputs_f : ∀ (l : list Γ₀), (f l ≠ none) → tm2_outputs_in_time tm (list.map input_alphabet.inv_fun l) (roption.map (list.map output_alphabet.inv_fun) (f l)) (time.eval l.length) )
 
 example (p : polynomial ℕ) : ℕ → ℕ := λ x, p.eval x
 
@@ -112,15 +112,15 @@ begin
 end
 
 structure computable_by_tm2 {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β) extends computable_by_tm2_aux ea.Γ eb.Γ :=
-(outputs_f : ∀ a, tm2_outputs tm begin rw input_alphabet, exact ea.encode a end begin rw output_alphabet, exact roption.some (eb.encode (f a)) end )
+(outputs_f : ∀ a, tm2_outputs tm (list.map input_alphabet.inv_fun (ea.encode a)) (roption.map (list.map output_alphabet.inv_fun) (roption.some (eb.encode (f a)))) )
 
 structure computable_by_tm2_in_time {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β) extends computable_by_tm2_aux ea.Γ eb.Γ :=
 ( time: ℕ → ℕ )
-( outputs_f : ∀ a, tm2_outputs_in_time tm begin rw input_alphabet, exact ea.encode a end begin rw output_alphabet, exact roption.some (eb.encode (f a)) end (time (ea.encode a).length) )
+( outputs_f : ∀ a, tm2_outputs_in_time tm (list.map input_alphabet.inv_fun (ea.encode a)) (roption.map (list.map output_alphabet.inv_fun) (roption.some (eb.encode (f a)))) (time (ea.encode a).length) )
 
 structure computable_by_tm2_in_poly_time {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β) extends computable_by_tm2_aux ea.Γ eb.Γ :=
 ( time: polynomial ℕ )
-( outputs_f : ∀ a, tm2_outputs_in_time tm begin rw input_alphabet, exact ea.encode a end begin rw output_alphabet, exact roption.some (eb.encode (f a)) end (time.eval (ea.encode a).length) )
+( outputs_f : ∀ a, tm2_outputs_in_time tm (list.map input_alphabet.inv_fun (ea.encode a)) (roption.map (list.map output_alphabet.inv_fun) (roption.some (eb.encode (f a)))) (time.eval (ea.encode a).length) )
 
 lemma computable_by_tm2_in_time.to_computable_by_tm2 {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β) :
 computable_by_tm2_in_time ea eb f → computable_by_tm2 ea eb f :=
@@ -152,14 +152,14 @@ open tm2
 
 def id_computable (α : Type) (ea : fin_encoding α) : @computable_by_tm2 α α ea ea (id: α → α) :=
 { tm := id_computer α ea,
-  input_alphabet := rfl,
-  output_alphabet := rfl,
+  input_alphabet := equiv.cast rfl,
+  output_alphabet := equiv.cast rfl,
   outputs_f := λ _, ⟨1, rfl⟩ }
 
 def id_computable_in_poly_time (α : Type) (ea : fin_encoding α) : @computable_by_tm2_in_poly_time α α ea ea id :=
 { tm := id_computer α ea,
-  input_alphabet := rfl,
-  output_alphabet := rfl,
+  input_alphabet := equiv.cast rfl,
+  output_alphabet := equiv.cast rfl,
   time := 1,
   outputs_f := λ _, { steps := 1,
     evals_in_steps := rfl,

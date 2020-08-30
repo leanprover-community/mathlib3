@@ -50,6 +50,7 @@ rfl
 
 instance (X : SheafedSpace.{v} C) : topological_space X := X.carrier.str
 
+/-- The trivial `punit` valued sheaf on any topological space. -/
 def punit (X : Top) : SheafedSpace (discrete punit) :=
 { sheaf_condition := sheaf_condition_punit _,
   ..@PresheafedSpace.const (discrete punit) _ X punit.star }

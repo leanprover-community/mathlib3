@@ -586,9 +586,7 @@ end
   (h : ∀ a, j.comp f.to_map a = k.comp f.to_map a) : j = k :=
 begin
   rw [←f.lift_of_comp j, ←f.lift_of_comp k],
-  congr' 1,
-  ext,
-  exact h x,
+  congr' 1 with x, exact h x,
 end
 
 @[to_additive] lemma lift_unique {j : N →* P}

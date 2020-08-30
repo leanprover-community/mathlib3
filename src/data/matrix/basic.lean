@@ -11,15 +11,15 @@ import data.fintype.card
 /-!
 # Matrices
 -/
-universes u v w
+universes u u' v w
 
 open_locale big_operators
 
 @[nolint unused_arguments]
-def matrix (m n : Type u) [fintype m] [fintype n] (α : Type v) : Type (max u v) :=
+def matrix (m : Type u) (n : Type u') [fintype m] [fintype n] (α : Type v) : Type (max u u' v) :=
 m → n → α
 
-variables {l m n o : Type u} [fintype l] [fintype m] [fintype n] [fintype o]
+variables {l m n o : Type*} [fintype l] [fintype m] [fintype n] [fintype o]
 variables {α : Type v}
 
 namespace matrix
@@ -47,10 +47,10 @@ def transpose (M : matrix m n α) : matrix n m α
 
 localized "postfix `ᵀ`:1500 := matrix.transpose" in matrix
 
-def col (w : m → α) : matrix m punit α
+def col (w : m → α) : matrix m unit α
 | x y := w x
 
-def row (v : n → α) : matrix punit n α
+def row (v : n → α) : matrix unit n α
 | x y := v y
 
 instance [inhabited α] : inhabited (matrix m n α) := pi.inhabited _
@@ -75,6 +75,16 @@ by { ext, simp [h], }
 lemma map_add [add_monoid α] {β : Type w} [add_monoid β] (f : α →+ β)
   (M N : matrix m n α) : (M + N).map f = M.map f + N.map f :=
 by { ext, simp, }
+
+lemma map_sub [add_group α] {β : Type w} [add_group β] (f : α →+ β)
+  (M N : matrix m n α) : (M - N).map f = M.map f - N.map f :=
+by { ext, simp }
+
+lemma subsingleton_of_empty_left (hm : ¬ nonempty m) : subsingleton (matrix m n α) :=
+⟨λ M N, by { ext, contrapose! hm, use i }⟩
+
+lemma subsingleton_of_empty_right (hn : ¬ nonempty n) : subsingleton (matrix m n α) :=
+⟨λ M N, by { ext, contrapose! hn, use j }⟩
 
 end matrix
 
@@ -445,6 +455,15 @@ by simp only [coe_scalar, mul_one, one_apply_eq, smul_apply]
 lemma scalar_apply_ne (a : α) (i j : n) (h : i ≠ j) :
   scalar n a i j = 0 :=
 by simp only [h, coe_scalar, one_apply_ne, ne.def, not_false_iff, smul_apply, mul_zero]
+
+lemma scalar_inj [nonempty n] {r s : α} : scalar n r = scalar n s ↔ r = s :=
+begin
+  split,
+  { intro h,
+    inhabit n,
+    rw [← scalar_apply_eq r (arbitrary n), ← scalar_apply_eq s (arbitrary n), h] },
+  { rintro rfl, refl }
+end
 
 end scalar
 
@@ -901,7 +920,7 @@ begin
   ext i j, rcases i; rcases j; refl,
 end
 
-lemma from_blocks_multiply {p q : Type u} [fintype p] [fintype q]
+lemma from_blocks_multiply {p q : Type*} [fintype p] [fintype q]
   (A  : matrix n l α) (B  : matrix n m α) (C  : matrix o l α) (D  : matrix o m α)
   (A' : matrix l p α) (B' : matrix l q α) (C' : matrix m p α) (D' : matrix m q α) :
   (from_blocks A B C D) ⬝ (from_blocks A' B' C' D') =

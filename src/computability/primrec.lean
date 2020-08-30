@@ -1114,7 +1114,7 @@ begin
   exactI (iff.trans (by refl) subtype_val_iff).trans (of_equiv_iff _)
 end
 
-theorem fin_val {n} : primrec (@fin.val n) := fin_val_iff.2 primrec.id
+theorem fin_val {n} : primrec (coe : fin n → ℕ) := fin_val_iff.2 primrec.id
 
 theorem fin_succ {n} : primrec (@fin.succ n) :=
 fin_val_iff.1 $ by simp [succ.comp fin_val]

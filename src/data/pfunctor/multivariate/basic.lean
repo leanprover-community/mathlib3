@@ -82,7 +82,7 @@ x.1
 @[simp]
 lemma const.get_map (f : α ⟹ β) (x : (const n A).obj α) :
   const.get (f <$$> x) = const.get x :=
-by cases x; refl
+by { cases x, refl }
 
 @[simp]
 lemma const.get_mk (x : A) : const.get (const.mk n x : (const n A).obj α) = x :=
@@ -90,7 +90,7 @@ by refl
 
 @[simp]
 lemma const.mk_get (x : (const n A).obj α) : const.mk n (const.get x) = x :=
-by cases x; dsimp [const.get,const.mk]; congr; ext _ ⟨ ⟩
+by { cases x, dsimp [const.get,const.mk], congr' with _ ⟨ ⟩ }
 
 end const
 
@@ -111,7 +111,7 @@ def comp.get (x : (comp P Q).obj α) : P.obj (λ i, (Q i).obj α) :=
 
 lemma comp.get_map (f : α ⟹ β) (x : (comp P Q).obj α) :
   comp.get (f <$$> x) = (λ i (x : (Q i).obj α), f <$$> x) <$$> comp.get x :=
-by cases x; refl
+by { cases x, refl }
 
 @[simp]
 lemma comp.get_mk (x : P.obj (λ i, (Q i).obj α)) : comp.get (comp.mk x) = x :=
@@ -125,9 +125,9 @@ lemma comp.mk_get (x : (comp P Q).obj α) : comp.mk (comp.get x) = x :=
 begin
   cases x,
   dsimp [comp.get,comp.mk],
-  ext; intros, refl, refl,
-  congr, ext; intros; refl,
-  ext, congr, rcases x_1 with ⟨a,b,c⟩; refl,
+  ext : 2; intros, refl, refl,
+  congr, ext1; intros; refl,
+  ext : 2, congr, rcases x_1 with ⟨a,b,c⟩; refl
 end
 
 /-

@@ -77,9 +77,9 @@ theorem linear_order.ext {α} {A B : linear_order α}
 by { haveI this := partial_order.ext H,
      casesI A, casesI B, injection this, congr' }
 
-/-- Given an order `R` on `β` and a function `f : α → β`,
-  the preimage order on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
-  It is the unique order on `α` making `f` an order embedding
+/-- Given a relation `R` on `β` and a function `f : α → β`,
+  the preimage relation on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
+  It is the unique relation on `α` making `f` a `rel_embedding`
   (assuming `f` is injective). -/
 @[simp] def order.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) := s (f x) (f y)
 
@@ -176,6 +176,13 @@ lemma le_iff_le (H : strict_mono f) {a b} :
   f a ≤ f b ↔ a ≤ b :=
 ⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H h') h,
  λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H h')) (λ h', h' ▸ le_refl _)⟩
+
+lemma top_preimage_top (H : strict_mono f) {a} (h_top : ∀ p, p ≤ f a) (x : α) : x ≤ a :=
+H.le_iff_le.mp (h_top (f x))
+
+lemma bot_preimage_bot (H : strict_mono f) {a} (h_bot : ∀ p, f a ≤ p) (x : α) : a ≤ x :=
+H.le_iff_le.mp (h_bot (f x))
+
 end
 
 protected lemma nat {β} [preorder β] {f : ℕ → β} (h : ∀n, f n < f (n+1)) : strict_mono f :=
@@ -409,20 +416,19 @@ lemma eq_of_le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a�
 le_antisymm (le_of_forall_le_of_dense h₂) h₁
 
 lemma le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
-  (h : ∀a₃<a₁, a₂ ≥ a₃) :
+  (h : ∀a₃<a₁, a₃ ≤ a₂) :
   a₁ ≤ a₂ :=
 le_of_not_gt $ assume ha,
   let ⟨a, ha₁, ha₂⟩ := dense ha in
   lt_irrefl a $ lt_of_le_of_lt (h _ ‹a < a₁›) ‹a₂ < a›
 
 lemma eq_of_le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
-  (h₁ : a₂ ≤ a₁) (h₂ : ∀a₃<a₁, a₂ ≥ a₃) : a₁ = a₂ :=
+  (h₁ : a₂ ≤ a₁) (h₂ : ∀a₃<a₁, a₃ ≤ a₂) : a₁ = a₂ :=
 le_antisymm (le_of_forall_ge_of_dense h₂) h₁
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma dense_or_discrete [linear_order α] (a₁ a₂ : α) :
-  (∃a, a₁ < a ∧ a < a₂) ∨ ((∀a>a₁, a ≥ a₂) ∧ (∀a<a₂, a ≤ a₁)) :=
-classical.or_iff_not_imp_left.2 $ assume h,
+  (∃a, a₁ < a ∧ a < a₂) ∨ ((∀a>a₁, a₂ ≤ a) ∧ (∀a<a₂, a ≤ a₁)) :=
+or_iff_not_imp_left.2 $ assume h,
   ⟨assume a ha₁, le_of_not_gt $ assume ha₂, h ⟨a, ha₁, ha₂⟩,
     assume a ha₂, le_of_not_gt $ assume ha₁, h ⟨a, ha₁, ha₂⟩⟩
 

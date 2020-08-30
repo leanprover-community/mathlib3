@@ -44,6 +44,8 @@ add_decl_doc AddGroup.of
 @[to_additive]
 instance (G : Group) : group G := G.str
 
+@[simp, to_additive] lemma coe_of (R : Type u) [group R] : (Group.of R : Type u) = R := rfl
+
 @[to_additive]
 instance : has_one Group := ⟨Group.of punit⟩
 
@@ -94,6 +96,8 @@ add_decl_doc AddCommGroup.of
 
 @[to_additive]
 instance comm_group_instance (G : CommGroup) : comm_group G := G.str
+
+@[simp, to_additive] lemma coe_of (R : Type u) [comm_group R] : (CommGroup.of R : Type u) = R := rfl
 
 @[to_additive] instance : has_one CommGroup := ⟨CommGroup.of punit⟩
 

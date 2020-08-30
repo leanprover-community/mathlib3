@@ -210,7 +210,7 @@ theorem mem_of_subset_of_mem {s₁ s₂ : set α} {a : α} : s₁ ⊆ s₂ → a
 assume h₁ h₂, h₁ h₂
 
 theorem not_subset : (¬ s ⊆ t) ↔ ∃a ∈ s, a ∉ t :=
-by simp [subset_def, classical.not_forall]
+by simp [subset_def, not_forall]
 
 /-! ### Definition of strict subsets `s ⊂ t` and basic properties. -/
 
@@ -333,7 +333,7 @@ lemma eq_empty_or_nonempty (s : set α) : s = ∅ ∨ s.nonempty :=
 classical.by_cases or.inr (λ h, or.inl $ not_nonempty_iff_eq_empty.1 h)
 
 theorem ne_empty_iff_nonempty : s ≠ ∅ ↔ s.nonempty :=
-(not_congr not_nonempty_iff_eq_empty.symm).trans classical.not_not
+(not_congr not_nonempty_iff_eq_empty.symm).trans not_not
 
 theorem subset_eq_empty {s t : set α} (h : t ⊆ s) (e : s = ∅) : t = ∅ :=
 subset_empty_iff.1 $ e ▸ h
@@ -942,7 +942,7 @@ lemma diff_subset_comm {s t u : set α} : s \ t ⊆ u ↔ s \ u ⊆ t :=
 by rw [diff_subset_iff, diff_subset_iff, union_comm]
 
 lemma diff_inter {s t u : set α} : s \ (t ∩ u) = (s \ t) ∪ (s \ u) :=
-ext $ λ x, by simp [classical.not_and_distrib, and_or_distrib_left]
+ext $ λ x, by simp [not_and_distrib, and_or_distrib_left]
 
 lemma diff_inter_diff {s t u : set α} : s \ t ∩ (s \ u) = s \ (t ∪ u) :=
 by { ext x, simp only [mem_inter_eq, mem_union_eq, mem_diff, not_or_distrib, and.left_comm,
@@ -1010,13 +1010,22 @@ theorem mem_powerset {x s : set α} (h : x ⊆ s) : x ∈ powerset s := h
 
 theorem subset_of_mem_powerset {x s : set α} (h : x ∈ powerset s) : x ⊆ s := h
 
-theorem mem_powerset_iff (x s : set α) : x ∈ powerset s ↔ x ⊆ s := iff.rfl
+@[simp] theorem mem_powerset_iff (x s : set α) : x ∈ powerset s ↔ x ⊆ s := iff.rfl
 
-@[simp] theorem powerset_mono : powerset s ⊆ powerset t ↔ s ⊆ t :=
+theorem powerset_inter (s t : set α) : 𝒫 (s ∩ t) = 𝒫 s ∩ 𝒫 t :=
+ext $ λ u, subset_inter_iff
+
+@[simp] theorem powerset_mono : 𝒫 s ⊆ 𝒫 t ↔ s ⊆ t :=
 ⟨λ h, h (subset.refl s), λ h u hu, subset.trans hu h⟩
 
-@[simp] theorem powerset_nonempty : (powerset s).nonempty :=
+theorem monotone_powerset : monotone (powerset : set α → set (set α)) :=
+λ s t, powerset_mono.2
+
+@[simp] theorem powerset_nonempty : (𝒫 s).nonempty :=
 ⟨∅, empty_subset s⟩
+
+@[simp] theorem powerset_empty : 𝒫 (∅ : set α) = {∅} :=
+ext $ λ s, subset_empty_iff
 
 /-! ### Inverse image -/
 
@@ -1034,7 +1043,7 @@ variables {f : α → β} {g : β → γ}
 @[simp] theorem mem_preimage {s : set β} {a : α} : (a ∈ f ⁻¹' s) ↔ (f a ∈ s) := iff.rfl
 
 lemma preimage_congr {f g : α → β} {s : set β} (h : ∀ (x : α), f x = g x) : f ⁻¹' s = g ⁻¹' s :=
-by { congr, ext, apply_assumption }
+by { congr' with x, apply_assumption }
 
 theorem preimage_mono {s t : set β} (h : s ⊆ t) : f ⁻¹' s ⊆ f ⁻¹' t :=
 assume x hx, h hx
@@ -1304,7 +1313,7 @@ iff.intro
   (assume eq, by rw [← @image_preimage_eq β α f s hf, ← @image_preimage_eq β α f t hf, eq])
   (assume eq, eq ▸ rfl)
 
-protected lemma push_pull (f : α → β) (s : set α) (t : set β) :
+lemma image_inter_preimage (f : α → β) (s : set α) (t : set β) :
   f '' (s ∩ f ⁻¹' t) = f '' s ∩ t :=
 begin
   apply subset.antisymm,
@@ -1314,9 +1323,12 @@ begin
     exact ⟨x, ⟨h', h⟩, rfl⟩ }
 end
 
-protected lemma push_pull' (f : α → β) (s : set α) (t : set β) :
+lemma image_preimage_inter (f : α → β) (s : set α) (t : set β) :
   f '' (f ⁻¹' t ∩ s) = t ∩ f '' s :=
-by simp only [inter_comm, set.push_pull]
+by simp only [inter_comm, image_inter_preimage]
+
+lemma image_compl_preimage {f : α → β} {s : set α} {t : set β} : f '' (s \ f ⁻¹' t) = f '' s \ t :=
+by simp_rw [diff_eq, ← preimage_compl, image_inter_preimage]
 
 theorem compl_image : image (compl : set α → set α) = preimage compl :=
 image_eq_preimage_of_inverse compl_compl compl_compl
@@ -1526,6 +1538,15 @@ theorem preimage_singleton_eq_empty {f : α → β} {y : β} :
   f ⁻¹' {y} = ∅ ↔ y ∉ range f :=
 not_nonempty_iff_eq_empty.symm.trans $ not_congr preimage_singleton_nonempty
 
+@[simp] theorem range_sigma_mk {β : α → Type*} (a : α) :
+  range (sigma.mk a : β a → Σ a, β a) = sigma.fst ⁻¹' {a} :=
+begin
+  apply subset.antisymm,
+  { rintros _ ⟨b, rfl⟩, simp },
+  { rintros ⟨x, y⟩ (rfl|_),
+    exact mem_range_self y }
+end
+
 /-- Any map `f : ι → β` factors through a map `range_factorization f : ι → range f`. -/
 def range_factorization (f : ι → β) : ι → range f :=
 λ i, ⟨f i, mem_range_self i⟩
@@ -1587,6 +1608,24 @@ theorem pairwise_on.mono {s t : set α} {r}
 theorem pairwise_on.mono' {s : set α} {r r' : α → α → Prop}
   (H : ∀ a b, r a b → r' a b) (hp : pairwise_on s r) : pairwise_on s r' :=
 λ x xs y ys h, H _ _ (hp x xs y ys h)
+
+/-- If and only if `f` takes pairwise equal values on `s`, there is
+some value it takes everywhere on `s`. -/
+lemma pairwise_on_eq_iff_exists_eq [nonempty β] (s : set α) (f : α → β) :
+  (pairwise_on s (λ x y, f x = f y)) ↔ ∃ z, ∀ x ∈ s, f x = z :=
+begin
+  split,
+  { intro h,
+    rcases eq_empty_or_nonempty s with rfl | ⟨x, hx⟩,
+    { exact ⟨classical.arbitrary β, λ x hx, false.elim hx⟩ },
+    { use f x,
+      intros y hy,
+      by_cases hyx : y = x,
+      { rw hyx },
+      { exact h y hy x hx hyx } } },
+  { rintros ⟨z, hz⟩ x hx y hy hne,
+    rw [hz x hx, hz y hy] }
+end
 
 end set
 open set
@@ -1735,8 +1774,11 @@ assume x ⟨h₁, h₂⟩, ⟨hs h₁, ht h₂⟩
 
 lemma prod_subset_iff {P : set (α × β)} :
   (s.prod t ⊆ P) ↔ ∀ (x ∈ s) (y ∈ t), (x, y) ∈ P :=
-⟨λ h _ xin _ yin, h (mk_mem_prod xin yin),
- λ h _ pin, by { cases mem_prod.1 pin with hs ht, simpa using h _ hs _ ht }⟩
+⟨λ h _ xin _ yin, h (mk_mem_prod xin yin), λ h ⟨_, _⟩ pin, h _ pin.1 _ pin.2⟩
+
+lemma forall_prod_set {p : α × β → Prop} :
+  (∀ x ∈ s.prod t, p x) ↔ ∀ (x ∈ s) (y ∈ t), p (x, y) :=
+prod_subset_iff
 
 @[simp] theorem prod_empty : s.prod ∅ = (∅ : set (α × β)) :=
 by { ext, simp }
@@ -1746,6 +1788,12 @@ by { ext, simp }
 
 @[simp] theorem univ_prod_univ : (@univ α).prod (@univ β) = univ :=
 by { ext ⟨x, y⟩, simp }
+
+lemma univ_prod {t : set β} : set.prod (univ : set α) t = prod.snd ⁻¹' t :=
+by simp [prod_eq]
+
+lemma prod_univ {s : set α} : set.prod s (univ : set β) = prod.fst ⁻¹' s :=
+by simp [prod_eq]
 
 @[simp] theorem singleton_prod {a : α} : set.prod {a} t = prod.mk a '' t :=
 by { ext ⟨x, y⟩, simp [and.left_comm, eq_comm] }
@@ -1765,12 +1813,10 @@ by { ext ⟨x, y⟩, simp [and_or_distrib_left] }
 theorem prod_inter_prod : s₁.prod t₁ ∩ s₂.prod t₂ = (s₁ ∩ s₂).prod (t₁ ∩ t₂) :=
 by { ext ⟨x, y⟩, simp [and_assoc, and.left_comm] }
 
-theorem insert_prod {a : α} {s : set α} {t : set β} :
-  (insert a s).prod t = (prod.mk a '' t) ∪ s.prod t :=
+theorem insert_prod {a : α} : (insert a s).prod t = (prod.mk a '' t) ∪ s.prod t :=
 by { ext ⟨x, y⟩, simp [image, iff_def, or_imp_distrib, imp.swap] {contextual := tt} }
 
-theorem prod_insert {b : β} {s : set α} {t : set β} :
-  s.prod (insert b t) = ((λa, (a, b)) '' s) ∪ s.prod t :=
+theorem prod_insert {b : β} : s.prod (insert b t) = ((λa, (a, b)) '' s) ∪ s.prod t :=
 by { ext ⟨x, y⟩, simp [image, iff_def, or_imp_distrib, imp.swap] {contextual := tt} }
 
 theorem prod_preimage_eq {f : γ → α} {g : δ → β} :
@@ -1781,6 +1827,22 @@ by { ext x, simp [h] }
 
 @[simp] lemma mk_preimage_prod_right {x : α} (h : x ∈ s) : prod.mk x ⁻¹' s.prod t = t :=
 by { ext y, simp [h] }
+
+@[simp] lemma mk_preimage_prod_left_eq_empty {y : β} (hy : y ∉ t) :
+  (λ x, (x, y)) ⁻¹' s.prod t = ∅ :=
+by { ext z, simp [hy] }
+
+@[simp] lemma mk_preimage_prod_right_eq_empty {x : α} (hx : x ∉ s) :
+  prod.mk x ⁻¹' s.prod t = ∅ :=
+by { ext z, simp [hx] }
+
+lemma mk_preimage_prod_left_eq_if {y : β} [decidable_pred (∈ t)] :
+  (λ x, (x, y)) ⁻¹' s.prod t = if y ∈ t then s else ∅ :=
+by { split_ifs; simp [h] }
+
+lemma mk_preimage_prod_right_eq_if {x : α} [decidable_pred (∈ s)] :
+  prod.mk x ⁻¹' s.prod t = if x ∈ s then t else ∅ :=
+by { split_ifs; simp [h] }
 
 theorem image_swap_eq_preimage_swap : image (@prod.swap α β) = preimage prod.swap :=
 image_eq_preimage_of_inverse prod.swap_left_inverse prod.swap_right_inverse
@@ -1817,9 +1879,9 @@ theorem nonempty.snd : (s.prod t).nonempty → t.nonempty
 theorem prod_nonempty_iff : (s.prod t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 ⟨λ h, ⟨h.fst, h.snd⟩, λ h, nonempty.prod h.1 h.2⟩
 
-theorem prod_eq_empty_iff {s : set α} {t : set β} :
+theorem prod_eq_empty_iff :
   s.prod t = ∅ ↔ (s = ∅ ∨ t = ∅) :=
-by simp only [not_nonempty_iff_eq_empty.symm, prod_nonempty_iff, classical.not_and_distrib]
+by simp only [not_nonempty_iff_eq_empty.symm, prod_nonempty_iff, not_and_distrib]
 
 lemma prod_sub_preimage_iff {W : set γ} {f : α × β → γ} :
   s.prod t ⊆ f ⁻¹' W ↔ ∀ a b, a ∈ s → b ∈ t → f (a, b) ∈ W :=
@@ -1882,32 +1944,97 @@ end prod
 /-! ### Lemmas about set-indexed products of sets -/
 
 section pi
-variables {α : Type*} {π : α → Type*}
+variables {ι : Type*} {α : ι → Type*} {s : set ι} {t t₁ t₂ : Π i, set (α i)}
 
-/-- Given an index set `i` and a family of sets `s : Πa, set (π a)`, `pi i s`
+/-- Given an index set `i` and a family of sets `s : Π i, set (α i)`, `pi i s`
 is the set of dependent functions `f : Πa, π a` such that `f a` belongs to `π a`
 whenever `a ∈ i`. -/
-def pi (i : set α) (s : Πa, set (π a)) : set (Πa, π a) := { f | ∀a∈i, f a ∈ s a }
+def pi (s : set ι) (t : Π i, set (α i)) : set (Π i, α i) := { f | ∀i ∈ s, f i ∈ t i }
 
-@[simp] lemma pi_empty_index (s : Πa, set (π a)) : pi ∅ s = univ := by ext; simp [pi]
+@[simp] lemma mem_pi {f : Π i, α i} : f ∈ s.pi t ↔ ∀ i ∈ s, f i ∈ t i :=
+by refl
 
-@[simp] lemma pi_insert_index (a : α) (i : set α) (s : Πa, set (π a)) :
-  pi (insert a i) s = ((λf, f a) ⁻¹' s a) ∩ pi i s :=
+@[simp] lemma mem_univ_pi {f : Π i, α i} : f ∈ pi univ t ↔ ∀ i, f i ∈ t i :=
+by simp
+
+@[simp] lemma empty_pi (s : Π i, set (α i)) : pi ∅ s = univ := by { ext, simp [pi] }
+
+lemma pi_eq_empty {i : ι} (hs : i ∈ s) (ht : t i = ∅) : s.pi t = ∅ :=
+by { ext f, simp only [mem_empty_eq, not_forall, iff_false, mem_pi, not_imp],
+     exact ⟨i, hs, by simp [ht]⟩ }
+
+lemma univ_pi_eq_empty {i : ι} (ht : t i = ∅) : pi univ t = ∅ :=
+pi_eq_empty (mem_univ i) ht
+
+lemma pi_nonempty_iff : (s.pi t).nonempty ↔ ∀ i, ∃ x, i ∈ s → x ∈ t i :=
+by simp [classical.skolem, set.nonempty]
+
+lemma univ_pi_nonempty_iff : (pi univ t).nonempty ↔ ∀ i, (t i).nonempty :=
+by simp [classical.skolem, set.nonempty]
+
+lemma pi_eq_empty_iff : s.pi t = ∅ ↔ ∃ i, (α i → false) ∨ (i ∈ s ∧ t i = ∅) :=
+begin
+  rw [← not_nonempty_iff_eq_empty, pi_nonempty_iff], push_neg, apply exists_congr, intro i,
+  split,
+  { intro h, by_cases hα : nonempty (α i),
+    { cases hα with x, refine or.inr ⟨(h x).1, by simp [eq_empty_iff_forall_not_mem, h]⟩ },
+    { exact or.inl (λ x, hα ⟨x⟩) }},
+  { rintro (h|h) x, exfalso, exact h x, simp [h] }
+end
+
+lemma univ_pi_eq_empty_iff : pi univ t = ∅ ↔ ∃ i, t i = ∅ :=
+by simp [← not_nonempty_iff_eq_empty, univ_pi_nonempty_iff]
+
+@[simp] lemma insert_pi (i : ι) (s : set ι) (t : Π i, set (α i)) :
+  pi (insert i s) t = (eval i ⁻¹' t i) ∩ pi s t :=
 by { ext, simp [pi, or_imp_distrib, forall_and_distrib] }
 
-@[simp] lemma pi_singleton_index (a : α) (s : Πa, set (π a)) :
-  pi {a} s = ((λf:(Πa, π a), f a) ⁻¹' s a) :=
+@[simp] lemma singleton_pi (i : ι) (t : Π i, set (α i)) :
+  pi {i} t = (eval i ⁻¹' t i) :=
 by { ext, simp [pi] }
 
-lemma pi_if {p : α → Prop} [h : decidable_pred p] (i : set α) (s t : Πa, set (π a)) :
-  pi i (λa, if p a then s a else t a) = pi {a ∈ i | p a} s ∩ pi {a ∈ i | ¬ p a} t :=
+lemma pi_if {p : ι → Prop} [h : decidable_pred p] (s : set ι) (t₁ t₂ : Π i, set (α i)) :
+  pi s (λ i, if p i then t₁ i else t₂ i) = pi {i ∈ s | p i} t₁ ∩ pi {i ∈ s | ¬ p i} t₂ :=
 begin
   ext f,
   split,
-  { assume h, split; { rintros a ⟨hai, hpa⟩, simpa [*] using h a } },
-  { rintros ⟨hs, ht⟩ a hai,
-    by_cases p a; simp [*, pi] at * }
+  { assume h, split; { rintros i ⟨his, hpi⟩, simpa [*] using h i } },
+  { rintros ⟨ht₁, ht₂⟩ i his,
+    by_cases p i; simp * at * }
 end
+
+open_locale classical
+
+lemma eval_image_pi {i : ι} (hs : i ∈ s) (ht : (s.pi t).nonempty) : eval i '' s.pi t = t i :=
+begin
+  ext x, rcases ht with ⟨f, hf⟩, split,
+  { rintro ⟨g, hg, rfl⟩, exact hg i hs },
+  { intro hg, refine ⟨update f i x, _, by simp⟩,
+    intros j hj, by_cases hji : j = i,
+    { subst hji, simp [hg] },
+    { rw [mem_pi] at hf, simp [hji, hf, hj] }},
+end
+
+@[simp] lemma eval_image_univ_pi {i : ι} (ht : (pi univ t).nonempty) :
+  (λ f : Π i, α i, f i) '' pi univ t = t i :=
+eval_image_pi (mem_univ i) ht
+
+lemma update_preimage_pi {i : ι} {f : Π i, α i} (hi : i ∈ s)
+  (hf : ∀ j ∈ s, j ≠ i → f j ∈ t j) : (update f i) ⁻¹' s.pi t = t i :=
+begin
+  ext x, split,
+  { intro h, convert h i hi, simp },
+  { intros hx j hj, by_cases h : j = i,
+    { cases h, simpa },
+    { rw [update_noteq h], exact hf j hj h }}
+end
+
+lemma update_preimage_univ_pi {i : ι} {f : Π i, α i} (hf : ∀ j ≠ i, f j ∈ t j) :
+  (update f i) ⁻¹' pi univ t = t i :=
+update_preimage_pi (mem_univ i) (λ j _, hf j)
+
+lemma subset_pi_eval_image (s : set ι) (u : set (Π i, α i)) : u ⊆ pi s (λ i, eval i '' u) :=
+λ f hf i hi, ⟨f, hf, rfl⟩
 
 end pi
 
@@ -1921,11 +2048,16 @@ def inclusion {s t : set α} (h : s ⊆ t) : s → t :=
 λ x : s, (⟨x, h x.2⟩ : t)
 
 @[simp] lemma inclusion_self {s : set α} (x : s) :
-  inclusion (set.subset.refl _) x = x := by cases x; refl
+  inclusion (set.subset.refl _) x = x :=
+by { cases x, refl }
+
+@[simp] lemma inclusion_right {s t : set α} (h : s ⊆ t) (x : t) (m : (x : α) ∈ s) :
+  inclusion h ⟨x, m⟩ = x :=
+by { cases x, refl }
 
 @[simp] lemma inclusion_inclusion {s t u : set α} (hst : s ⊆ t) (htu : t ⊆ u)
   (x : s) : inclusion htu (inclusion hst x) = inclusion (set.subset.trans hst htu) x :=
-by cases x; refl
+by { cases x, refl }
 
 @[simp] lemma coe_inclusion {s t : set α} (h : s ⊆ t) (x : s) :
   (inclusion h x : α) = (x : α) := rfl

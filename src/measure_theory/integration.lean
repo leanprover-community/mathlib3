@@ -919,8 +919,7 @@ begin
       refine supr_le_supr (assume n, _),
       rw [restrict_lintegral _ (h_meas n)],
       { refine le_of_eq (finset.sum_congr rfl $ assume r hr, _),
-        congr' 2,
-        ext a,
+        congr' 2 with a,
         refine and_congr_right _,
         simp {contextual := tt} }
     end
@@ -977,11 +976,11 @@ calc (∫⁻ a, f a + g a ∂μ) =
 
 lemma lintegral_zero : (∫⁻ a:α, 0 ∂μ) = 0 := by simp
 
-lemma lintegral_smul_meas (c : ennreal) (f : α → ennreal) :
+lemma lintegral_smul_measure (c : ennreal) (f : α → ennreal) :
   ∫⁻ a, f a ∂ (c • μ) = c * ∫⁻ a, f a ∂μ :=
 by simp only [lintegral, supr_subtype', simple_func.lintegral_smul, ennreal.mul_supr, smul_eq_mul]
 
-lemma lintegral_sum_meas {ι} (f : α → ennreal) (μ : ι → measure α) :
+lemma lintegral_sum_measure {ι} (f : α → ennreal) (μ : ι → measure α) :
   ∫⁻ a, f a ∂(measure.sum μ) = ∑' i, ∫⁻ a, f a ∂(μ i) :=
 begin
   simp only [lintegral, supr_subtype', simple_func.lintegral_sum, ennreal.tsum_eq_supr_sum],
@@ -996,11 +995,11 @@ begin
       (finset.sum_le_sum $ λ j hj, simple_func.lintegral_mono le_sup_right (le_refl _))⟩
 end
 
-lemma lintegral_add_meas (f : α → ennreal) (μ ν : measure α) :
+lemma lintegral_add_measure (f : α → ennreal) (μ ν : measure α) :
   ∫⁻ a, f a ∂ (μ + ν) = ∫⁻ a, f a ∂μ + ∫⁻ a, f a ∂ν :=
-by simpa [tsum_fintype] using lintegral_sum_meas f (λ b, cond b μ ν)
+by simpa [tsum_fintype] using lintegral_sum_measure f (λ b, cond b μ ν)
 
-@[simp] lemma lintegral_zero_meas (f : α → ennreal) : ∫⁻ a, f a ∂0 = 0 :=
+@[simp] lemma lintegral_zero_measure (f : α → ennreal) : ∫⁻ a, f a ∂0 = 0 :=
 bot_unique $ by simp [lintegral]
 
 lemma lintegral_finset_sum (s : finset β) {f : β → α → ennreal} (hf : ∀b, measurable (f b)) :
@@ -1352,12 +1351,12 @@ open measure
 lemma lintegral_Union [encodable β] {s : β → set α} (hm : ∀ i, is_measurable (s i))
   (hd : pairwise (disjoint on s)) (f : α → ennreal) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ = ∑' i, ∫⁻ a in s i, f a ∂μ :=
-by simp only [measure.restrict_Union hd hm, lintegral_sum_meas]
+by simp only [measure.restrict_Union hd hm, lintegral_sum_measure]
 
 lemma lintegral_Union_le [encodable β] (s : β → set α) (f : α → ennreal) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ ≤ ∑' i, ∫⁻ a in s i, f a ∂μ :=
 begin
-  rw [← lintegral_sum_meas],
+  rw [← lintegral_sum_measure],
   exact lintegral_mono' restrict_Union_le (le_refl _)
 end
 

@@ -95,7 +95,7 @@ theorem fin.prod_univ_cast_succ [comm_monoid β] {n:ℕ} (f : fin n.succ → β)
 begin
   rw [fin.univ_cast_succ, prod_insert, prod_image, mul_comm],
   { intros x _ y _ hxy, exact fin.cast_succ_inj.mp hxy },
-  { simpa using fin.cast_succ_ne_last }
+  { simp [ne_of_lt, fin.cast_succ_lt_last] }
 end
 
 theorem fin.sum_univ_cast_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
@@ -143,7 +143,7 @@ lemma finset.prod_attach_univ [fintype α] [comm_monoid β] (f : {a : α // a �
 prod_bij (λ x _, x.1) (λ _ _, mem_univ _) (λ _ _ , by simp) (by simp) (λ b _, ⟨⟨b, mem_univ _⟩, by simp⟩)
 
 @[to_additive]
-lemma finset.range_prod_eq_univ_prod [comm_monoid β] (n : ℕ) (f : ℕ → β) :
+lemma finset.prod_range_eq_prod_fin [comm_monoid β] (n : ℕ) (f : ℕ → β) :
   ∏ k in range n, f k = ∏ k : fin n, f k :=
 begin
   symmetry,
@@ -153,6 +153,15 @@ begin
   { intros, rwa fin.eq_iff_veq },
   { intros k hk, rw mem_range at hk,
     exact ⟨⟨k, hk⟩, mem_univ _, rfl⟩ }
+end
+
+@[to_additive]
+lemma finset.prod_fin_eq_prod_range [comm_monoid β] {n : ℕ} (c : fin n → β) :
+  ∏ i, c i = ∏ i in finset.range n, if h : i < n then c ⟨i, h⟩ else 1 :=
+begin
+  rw [finset.prod_range_eq_prod_fin, finset.prod_congr rfl],
+  rintros ⟨i, hi⟩ _,
+  simp only [fin.coe_eq_val, hi, dif_pos]
 end
 
 /-- Taking a product over `univ.pi t` is the same as taking the product over `fintype.pi_finset t`.
@@ -203,7 +212,7 @@ lemma fin.prod_univ_eq_prod_range [comm_monoid α] (f : ℕ → α) (n : ℕ) :
   ∏ i : fin n, f i.val = ∏ i in finset.range n, f i :=
 begin
   apply finset.prod_bij (λ (a : fin n) ha, a.val),
-  { assume a ha, simp [a.2] },
+  { assume a ha, simp [a.is_lt] },
   { assume a ha, refl },
   { assume a b ha hb H, exact (fin.ext_iff _ _).2 H },
   { assume b hb, exact ⟨⟨b, list.mem_range.mp hb⟩, finset.mem_univ _, rfl⟩, }
@@ -285,7 +294,7 @@ namespace list
 lemma prod_take_of_fn [comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
   ((of_fn f).take i).prod = ∏ j in finset.univ.filter (λ (j : fin n), j.val < i), f j :=
 begin
-  have A : ∀ (j : fin n), ¬ (j.val < 0) := λ j, not_lt_bot,
+  have A : ∀ (j : fin n), ¬ ((j : ℕ) < 0) := λ j, not_lt_bot,
   induction i with i IH, { simp [A] },
   by_cases h : i < n,
   { have : i < length (of_fn f), by rwa [length_of_fn f],
@@ -301,9 +310,9 @@ begin
     { rw ← length_of_fn f at h,
       have : length (of_fn f) ≤ i := not_lt.mp h,
       rw [take_all_of_le this, take_all_of_le (le_trans this (nat.le_succ _))] },
-    have B : ∀ (j : fin n), (j.val < i.succ) = (j.val < i),
+    have B : ∀ (j : fin n), ((j : ℕ) < i.succ) = ((j : ℕ) < i),
     { assume j,
-      have : j.val < i := lt_of_lt_of_le j.2 (not_lt.mp h),
+      have : (j : ℕ) < i := lt_of_lt_of_le j.2 (not_lt.mp h),
       simp [this, lt_trans this (nat.lt_succ_self _)] },
     simp [← A, B, IH] }
 end
@@ -322,12 +331,12 @@ lemma prod_of_fn [comm_monoid α] {n : ℕ} {f : fin n → α} :
 begin
   convert prod_take_of_fn f n,
   { rw [take_all_of_le (le_of_eq (length_of_fn f))] },
-  { have : ∀ (j : fin n), j.val < n := λ j, j.2,
+  { have : ∀ (j : fin n), (j : ℕ) < n := λ j, j.is_lt,
     simp [this] }
 end
 
 lemma alternating_sum_eq_finset_sum {G : Type*} [add_comm_group G] :
-  ∀ (L : list G), alternating_sum L = ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.2
+  ∀ (L : list G), alternating_sum L = ∑ i : fin L.length, (-1 : ℤ) ^ (i : ℕ) •ℤ L.nth_le i i.is_lt
 | [] := by { rw [alternating_sum, finset.sum_eq_zero], rintro ⟨i, ⟨⟩⟩ }
 | (g :: []) :=
 begin

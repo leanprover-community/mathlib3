@@ -63,7 +63,7 @@ namespace prime_spectrum
 as an ideal of that ring. -/
 abbreviation as_ideal (x : prime_spectrum R) : ideal R := x.val
 
-instance as_ideal.is_prime (x : prime_spectrum R) :
+instance is_prime (x : prime_spectrum R) :
   x.as_ideal.is_prime := x.2
 
 @[ext] lemma ext {x y : prime_spectrum R} :
@@ -247,7 +247,7 @@ begin
     rw set.mem_union,
     simp only [mem_zero_locus] at h ⊢,
     -- TODO: The rest of this proof should be factored out.
-    rw classical.or_iff_not_imp_right,
+    rw or_iff_not_imp_right,
     intros hs r hr,
     rw set.not_subset at hs,
     rcases hs with ⟨s, hs1, hs2⟩,

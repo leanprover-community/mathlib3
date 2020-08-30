@@ -73,6 +73,11 @@ assume ha, hb $ top_unique $ ha ▸ hab
 
 end order_top
 
+lemma strict_mono.top_preimage_top' [linear_order α] [order_top β]
+  {f : α → β} (H : strict_mono f) {a} (h_top : f a = ⊤) (x : α) :
+  x ≤ a :=
+H.top_preimage_top (λ p, by { rw h_top, exact le_top }) x
+
 theorem order_top.ext_top {α} {A B : order_top α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) :
   (by haveI := A; exact ⊤ : α) = ⊤ :=
@@ -131,6 +136,11 @@ lemma ne_bot_of_gt (h : a < b) : b ≠ ⊥ :=
 bot_lt_iff_ne_bot.1 $ lt_of_le_of_lt bot_le h
 
 end order_bot
+
+lemma strict_mono.bot_preimage_bot' [linear_order α] [order_bot β]
+  {f : α → β} (H : strict_mono f) {a} (h_bot : f a = ⊥) (x : α) :
+  a ≤ x :=
+H.bot_preimage_bot (λ p, by { rw h_bot, exact bot_le }) x
 
 theorem order_bot.ext_bot {α} {A B : order_bot α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) :
@@ -295,7 +305,7 @@ instance bounded_distrib_lattice_Prop : bounded_distrib_lattice Prop :=
   inf_le_left  := @and.left,
   inf_le_right := @and.right,
   le_inf       := assume a b c Hab Hac Ha, and.intro (Hab Ha) (Hac Ha),
-  le_sup_inf   := assume a b c H, classical.or_iff_not_imp_left.2 $
+  le_sup_inf   := assume a b c H, or_iff_not_imp_left.2 $
     λ Ha, ⟨H.1.resolve_left Ha, H.2.resolve_left Ha⟩,
 
   top          := true,
@@ -916,7 +926,7 @@ eq_bot_iff.symm
 theorem disjoint.comm {a b : α} : disjoint a b ↔ disjoint b a :=
 by rw [disjoint, disjoint, inf_comm]
 
-@[symm] theorem disjoint.symm {a b : α} : disjoint a b → disjoint b a :=
+@[symm] theorem disjoint.symm ⦃a b : α⦄ : disjoint a b → disjoint b a :=
 disjoint.comm.1
 
 @[simp] theorem disjoint_bot_left {a : α} : disjoint ⊥ a := disjoint_iff.2 bot_inf_eq

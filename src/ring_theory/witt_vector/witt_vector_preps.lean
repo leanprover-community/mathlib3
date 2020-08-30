@@ -140,8 +140,8 @@ section constant_coeff
 noncomputable
 def constant_coeff : mv_polynomial σ R →+* R :=
 { to_fun := coeff 0,
-  map_one' := sorry,
-  map_mul' := sorry,
+  map_one' := by simp [coeff, add_monoid_algebra.one_def],
+  map_mul' := by simp [coeff_mul, finsupp.support_single_ne_zero],
   map_zero' := coeff_zero _,
   map_add' := coeff_add _ }
 
@@ -152,12 +152,12 @@ lemma constant_coeff_eq : (constant_coeff : mv_polynomial σ R → R) = coeff 0 
 @[simp]
 lemma constant_coeff_C (r : R) :
   constant_coeff (C r : mv_polynomial σ R) = r :=
-sorry
+by simp [constant_coeff_eq]
 
 @[simp]
 lemma constant_coeff_X (i : σ) :
   constant_coeff (X i : mv_polynomial σ R) = 0 :=
-sorry
+by simp [constant_coeff_eq]
 
 lemma constant_coeff_monomial (d : σ →₀ ℕ) (r : R) :
   constant_coeff (monomial d r) = if d = 0 then r else 0 :=

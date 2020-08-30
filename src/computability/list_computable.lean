@@ -1,6 +1,13 @@
-import .encoding
+/-
+Copyright (c) 2020 Pim Spelier, Daan van Gent. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Pim Spelier, Daan van Gent.
+-/
+
+import computability.encoding
 import computability.turing_machine
-import algebra.polynomial.basic
+import data.polynomial.basic
+import data.polynomial.eval
 
 namespace tm2
 section
@@ -47,9 +54,11 @@ turing.evals_to (turing.TM2.step tm) (init_list l) ((roption.map halt_list) l')
 @[simp] def tm_outputs_in_time (tm : machine) (l : list (Γ k₀)) (l' : roption (list (Γ k₁))) (m : ℕ):=
 turing.evals_to_in_time (turing.TM2.step tm) (init_list l) ((roption.map halt_list) l') m
 
-private def computable_by_tm_aux (f : list (Γ k₀) →. list (Γ k₁)) := ∃ tm : machine, ∀ (l : list (Γ k₀)), (f l ≠ none) → tm_outputs tm l (f l)
+private def computable_by_tm_aux (f : list (Γ k₀) →. list (Γ k₁)) :=
+∃ tm : machine, ∀ (l : list (Γ k₀)), (f l ≠ none) → tm_outputs tm l (f l)
 
-private def computable_by_tm_in_poly_time_aux (f : list (Γ k₀) →. list (Γ k₁)) (m : ℕ) := ∃ tm : machine, ∃ p : polynomial ℕ , ∀ (l : list (Γ k₀)), (f l ≠ none) → tm_outputs_in_time tm l (f l) (p.eval (sizeof l))
+private def computable_by_tm_in_poly_time_aux (f : list (Γ k₀) →. list (Γ k₁)) (m : ℕ) :=
+∃ tm : machine, ∃ p : polynomial ℕ , ∀ (l : list (Γ k₀)), (f l ≠ none) → tm_outputs_in_time tm l (f l) (p.eval (sizeof l))
 
 section
 parameters ( σ_fin : fintype σ)

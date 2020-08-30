@@ -172,4 +172,5 @@ lemma monoid_algebra.submodule.exists_is_compl
 let ⟨f, hf⟩ := monoid_algebra.exists_left_inverse_of_injective not_dvd p.subtype p.ker_subtype in
 ⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
 
+
 #lint

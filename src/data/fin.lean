@@ -228,6 +228,8 @@ protected lemma heq_ext_iff {k l : ℕ} (h : k = l) {i : fin k} {j : fin l} :
   i == j ↔ (i : ℕ) = (j : ℕ) :=
 by { induction h, simp [ext_iff] }
 
+instance {n : ℕ} : nontrivial (fin (n + 2)) := ⟨⟨0, 1, dec_trivial⟩⟩
+
 instance {n : ℕ} : linear_order (fin n) :=
 { le := (≤), lt := (<), ..linear_order.lift (coe : fin n → ℕ) (@fin.eq_of_veq _) }
 

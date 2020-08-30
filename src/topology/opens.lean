@@ -120,10 +120,7 @@ by { ext, simp only [supr, opens.Sup_s, sUnion_image, bUnion_range], refl }
 
 @[simp] lemma supr_mk {ι} (s : ι → set α) (h : Π i, is_open (s i)) :
   (⨆ i, ⟨s i, h i⟩ : opens α) = ⟨⨆ i, s i, is_open_Union h⟩ :=
-begin
-  rw supr_def,
-  simp,
-end
+by { rw supr_def, simp }
 
 @[simp] lemma supr_s {ι} (s : ι → opens α) : ((⨆ i, s i : opens α) : set α) = ⋃ i, s i :=
 by simp [supr_def]

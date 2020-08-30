@@ -458,7 +458,7 @@ begin
   all_goals { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ <|> rintro ⟨a⟩,
     simp only [(•), submodule.quotient.quot_mk_eq_mk, ideal.quotient.mk_eq_mk],
     change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
-    congr, ext, simp [mul_assoc, mul_add, add_mul] }
+    congr' with i, simp [mul_assoc, mul_add, add_mul] }
 end
 
 /-- `R^n/I^n` is isomorphic to `(R/I)^n` as an `R/I`-module. -/

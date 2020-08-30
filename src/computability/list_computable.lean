@@ -41,7 +41,7 @@ structure fin_tm2 :=
 namespace fin_tm2
 def cfg (tm : fin_tm2 ) : Type := @tm2.cfg' tm.K tm.K_decidable_eq tm.Γ tm.Λ tm.σ
 
-def step (tm : fin_tm2 ) : tm.cfg → option tm.cfg := @turing.TM2.step tm.K tm.K_decidable_eq tm.Γ tm.Λ tm.σ tm.M
+@[simp] def step (tm : fin_tm2 ) : tm.cfg → option tm.cfg := @turing.TM2.step tm.K tm.K_decidable_eq tm.Γ tm.Λ tm.σ tm.M
 end fin_tm2
 
 def init_list (tm : fin_tm2) (s : list (tm.Γ tm.k₀)) : tm.cfg :=
@@ -138,76 +138,30 @@ open turing.TM2.stmt
 
 def id_computer (α : Type) (ea : fin_encoding α) : fin_tm2 :=
 { K := fin 1,
-  K_decidable_eq := fin.decidable_eq 1,
   k₀ := 0,
   k₁ := 0,
   Γ := λ _, ea.Γ,
   Λ := fin 1,
   main := 0,
   σ := fin 1,
-  σ_inhabited := unique.inhabited,
-  σ_fin := unique.fintype,
+  initial_state := 0,
   Γk₀_fin := ea.Γ_fin,
   M := λ _, halt }
 
 open tm2
 
-def id_computable (α : Type) (ea : fin_encoding α) : @computable_by_tm2 α α ea ea (id: α → α) := begin
-  let tr := id_computer α ea,
-  use tr,
-  use rfl,
-  use rfl,
-  intro a,
-  simp,
-  suffices h' : turing.TM2.step tr.M = (λ c, begin
-    cases c.l,
-    exact none,
-    exact some (turing.TM2.cfg.mk none c.var c.stk)
-  end ),
-  {
-    simp [h'],
-    use 1,
-    simp,
-    split,
-  },
-  funext,
-  cases x,
-  cases x_l;
-  simp,
-  have h : (tr.M x_l) = halt := rfl,
-  conv in (tr.M x_l) {rw h},
-  simp,
-end
+def id_computable (α : Type) (ea : fin_encoding α) : @computable_by_tm2 α α ea ea (id: α → α) :=
+{ tm := id_computer α ea,
+  input_alphabet := rfl,
+  output_alphabet := rfl,
+  outputs_f := λ _, ⟨1, rfl⟩ }
 
-#check @computable_by_tm2 _
-#check @id_computable _ _
-
-def id_computable_in_poly_time {α : Type} (ea : fin_encoding α) : @computable_by_tm2_in_poly_time α α ea ea (id: α → α) := begin
-  let tr := id_computer α ea,
-  use tr,
-  use rfl,
-  use rfl,
-  use 1,
-  intro a,
-  simp,
-  suffices h' : turing.TM2.step tr.M = (λ c, begin
-    cases c.l,
-    exact none,
-    exact some (turing.TM2.cfg.mk none c.var c.stk)
-  end ),
-  {
-    simp [h'],
-    use 1,
-    simp,
-    split,
-    trivial,
-    split,
-  },
-  funext,
-  cases x,
-  cases x_l;
-  simp,
-  have h : (tr.M x_l) = halt := rfl,
-  conv in (tr.M x_l) {rw h},
-  simp,
-end
+def id_computable_in_poly_time (α : Type) (ea : fin_encoding α) : @computable_by_tm2_in_poly_time α α ea ea id :=
+{ tm := id_computer α ea,
+  input_alphabet := rfl,
+  output_alphabet := rfl,
+  time := 1,
+  outputs_f := λ _, { steps := 1,
+    evals_in_steps := rfl,
+    steps_le_m := by tidy,
+}}

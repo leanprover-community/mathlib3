@@ -1851,7 +1851,7 @@ begin
   ext i,
   by_cases hi : i ∈ n.support,
   { replace h := congr_fun h ⟨i, hi⟩,
-    rwa [fin.ext_iff, ← fin.coe_eq_val, ← fin.coe_eq_val, hf m₁ h₁, hf m₂ h₂] at h },
+    rwa [fin.ext_iff, hf m₁ h₁, hf m₂ h₂] at h },
   { rw not_mem_support_iff at hi,
     specialize h₁ i,
     specialize h₂ i,

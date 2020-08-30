@@ -118,6 +118,11 @@ abbreviation binary_fan.fst {X Y : C} (s : binary_fan X Y) := s.π.app walking_p
 /-- The second projection of a binary fan. -/
 abbreviation binary_fan.snd {X Y : C} (s : binary_fan X Y) := s.π.app walking_pair.right
 
+@[simp] lemma binary_fan.π_app_left {X Y : C} (s : binary_fan X Y) :
+  s.π.app walking_pair.left = s.fst := rfl
+@[simp] lemma binary_fan.π_app_right {X Y : C} (s : binary_fan X Y) :
+  s.π.app walking_pair.right = s.snd := rfl
+
 lemma binary_fan.is_limit.hom_ext {W X Y : C} {s : binary_fan X Y} (h : is_limit s)
   {f g : W ⟶ s.X} (h₁ : f ≫ s.fst = g ≫ s.fst) (h₂ : f ≫ s.snd = g ≫ s.snd) : f = g :=
 h.hom_ext $ λ j, walking_pair.cases_on j h₁ h₂

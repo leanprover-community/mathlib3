@@ -76,7 +76,9 @@ meta def sf.flatten : sf → sf
   | (sf.compose x (sf.of_string sy1)), (sf.compose (sf.of_string sy2) z) := sf.compose x (sf.compose (sf.of_string (sy1 ++ sy2)) z)
   | x, y := sf.compose x y
   end
-| (sf.of_string s) := sf.of_string s
+| (sf.of_string s) := -- replace newline by space
+  sf.of_string (s.to_list.map (λ c, if c = '\n' then ' ' else c)).as_string
+| (sf.block i (sf.block j a)) := (sf.block (i+j) a).flatten
 | (sf.block i a) := sf.block i a.flatten
 | (sf.highlight i a) := sf.highlight i a.flatten
 
@@ -163,11 +165,15 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
   ] [html.of_string s]]
 | ca (sf.block i a) := do
   inner ← view ca a,
-  pure [h "span" [cn "indent-code dib", style [("--indent-level", to_string i)]] inner]
+  pure [h "span" [cn "dib", style [
+    ("padding-left", "1ch"),
+    ("text-indent", "-1ch"),
+    ("white-space", "pre-wrap"),
+    ("vertical-align", "top")
+  ]] inner]
 | ca (sf.highlight c a) := do
   inner ← view ca a,
   pure [h "span" [cn $ "highlight_" ++ c.to_string] inner]
-
 
 /-- Make an interactive expression. -/
 meta def mk {γ} (tooltip : tc subexpr γ) : tc expr γ :=

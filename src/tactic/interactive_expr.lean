@@ -235,7 +235,7 @@ tc.stateless (λ ⟨e,ea⟩, do
     implicit_args ← implicit_arg_list type_tooltip e,
     pure [
         h "div" [style [("minWidth", "8rem")]] [
-          h "div" [] [y_comp],
+          h "div" [cn "pl1"] [y_comp],
           h "hr" [] [],
           implicit_args
         ]

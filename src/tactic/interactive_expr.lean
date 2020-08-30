@@ -133,7 +133,10 @@ meta def goto_def_button {γ} : expr → tactic (list (html (action γ)))
     env ← tactic.get_env,
     let file := environment.decl_olean env n,
     pos ← environment.decl_pos env n,
-    pure $ h "button" [cn "pointer ba br3 mr1", on_click (λ _, action.effect $ widget.effect.reveal_position file pos), attr.val "title" "go to definition"] ["↪"]
+    pure $ [h "button" [
+      cn "pointer ba br3 mr1",
+      on_click (λ _, action.effect $ widget.effect.reveal_position file pos),
+      attr.val "title" "go to definition"] ["↪"]]
   ) <|> pure []
 
 /--

@@ -678,12 +678,7 @@ instance is_local_ring_hom_id (A : Type*) [semiring A] : is_local_ring_hom (ring
 instance is_local_ring_hom_comp {A B C : Type*} [semiring A] [semiring B] [semiring C]
   (g : B →+* C) (f : A →+* B) [is_local_ring_hom g] [is_local_ring_hom f] :
   is_local_ring_hom (g.comp f) :=
-{ map_nonunit :=
-  begin
-    intro a,
-    simp only [function.comp_app, ring_hom.coe_comp, is_unit_map_iff],
-    exact id
-  end }
+{ map_nonunit := λ a, is_local_ring_hom.map_nonunit a ∘ is_local_ring_hom.map_nonunit (f a) }
 
 @[simp] lemma is_unit_of_map_unit [semiring α] [semiring β] (f : α →+* β) [is_local_ring_hom f]
   (a) (h : is_unit (f a)) : is_unit a :=

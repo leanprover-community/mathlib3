@@ -70,11 +70,7 @@ instance is_prime (x : prime_spectrum R) :
 The prime spectrum of the zero ring is empty.
 -/
 lemma punit (x : prime_spectrum punit) : false :=
-begin
-  apply x.2.1,
-  ext ⟨⟩,
-  exact ⟨λ h, trivial, λ h, ideal.zero_mem x.1⟩,
-end
+x.1.ne_top_iff_one.1 x.2.1 $ subsingleton.elim (0 : punit) 1 ▸ x.1.zero_mem
 
 @[ext] lemma ext {x y : prime_spectrum R} :
   x = y ↔ x.as_ideal = y.as_ideal :=
@@ -396,13 +392,7 @@ def basic_open (r : R) : set (prime_spectrum R) :=
 { x | r ∉ x.as_ideal }
 
 lemma basic_open_open {r : R} : is_open (basic_open r) :=
-begin
-  use {r},
-  ext x,
-  dsimp [zero_locus, basic_open],
-  rw [set.singleton_subset_iff, not_not],
-  exact iff.rfl
-end
+⟨{r}, set.ext $ λ x, set.singleton_subset_iff.trans $ not_not.symm⟩
 
 end basic_open
 

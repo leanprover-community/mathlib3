@@ -1326,10 +1326,14 @@ begin
 end
 
 def coloring_equiv_complete_graph_hom (β : Type v) : coloring G β ≃ (G →g complete_graph β) :=
-{ to_fun := sorry, -- λ c, {to_fun := c.color}
-  inv_fun := sorry,
-  left_inv := sorry,
-  right_inv := sorry }
+{ to_fun := λ c,
+  { to_fun := c.color,
+    map_adj' := λ v w a, coloring.valid c a },
+  inv_fun := λ c,
+    { color := c,
+    valid := λ v w a, homomorphism.map_adj' c a },
+  left_inv := by tidy,
+  right_inv := by tidy }
 
 
 end coloring

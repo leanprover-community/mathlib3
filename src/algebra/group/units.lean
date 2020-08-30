@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes Hölzl, Chris Hughes, Jens Wagemaker
 -/
 import algebra.group.basic
+import data.equiv.basic
 
 /-!
 # Units (i.e., invertible elements) of a multiplicative monoid
@@ -279,6 +280,9 @@ by cases ha with a ha; rw [←ha, units.mul_left_inj]
 /-- The element of the group of units, corresponding to an element of a monoid which is a unit. -/
 noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : units M :=
 classical.some h
+
+noncomputable def is_unit.equiv [monoid M] : equiv {a : M | is_unit a} (units M) :=
+equiv.symm $ equiv.of_injective _ units.ext
 
 lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
 classical.some_spec h

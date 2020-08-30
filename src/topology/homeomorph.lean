@@ -51,10 +51,32 @@ rfl
 @[continuity]
 protected lemma continuous (h : α ≃ₜ β) : continuous h := h.continuous_to_fun
 
-lemma symm_comp_self (h : α ≃ₜ β) : ⇑h.symm ∘ ⇑h = id :=
+@[ext] lemma ext {f g : α ≃ₜ β} (H : ∀ x, f x = g x) : f = g :=
+by { cases f, cases g, congr', ext, exact H x }
+
+@[simp] lemma coe_refl : ⇑(homeomorph.refl α) = id := rfl
+@[simp] lemma refl_apply (x : α) : homeomorph.refl α x = x := rfl
+@[simp] lemma coe_trans (f : α ≃ₜ β) (g : β ≃ₜ γ) : ⇑(f.trans g) = g ∘ f := rfl
+@[simp] lemma trans_apply (f : α ≃ₜ β) (g : β ≃ₜ γ) (a : α) : (f.trans g) a = g (f a) := rfl
+@[simp] lemma apply_symm_apply  (e : α ≃ₜ β) (x : β) : e (e.symm x) = x := e.right_inv x
+@[simp] lemma symm_apply_apply (e : α ≃ₜ β) (x : α) : e.symm (e x) = x := e.left_inv x
+
+@[simp] lemma refl_trans (e : α ≃ₜ β) : (homeomorph.refl α).trans e = e :=
+by { ext, simp only [trans_apply, refl_apply] }
+
+@[simp] lemma symm_trans (e : α ≃ₜ β) : e.symm.trans e = homeomorph.refl β :=
+by { ext, simp only [trans_apply, refl_apply, apply_symm_apply] }
+
+@[simp] lemma trans_symm (e : α ≃ₜ β) : e.trans e.symm = homeomorph.refl α :=
+by { ext, simp only [symm_apply_apply, trans_apply, refl_apply] }
+
+@[simp] lemma symm_trans_apply (f : α ≃ₜ β) (g : β ≃ₜ γ) (a : γ) :
+  (f.trans g).symm a = f.symm (g.symm a) := rfl
+
+@[simp] lemma symm_comp_self (h : α ≃ₜ β) : ⇑h.symm ∘ ⇑h = id :=
 funext $ assume a, h.to_equiv.left_inv a
 
-lemma self_comp_symm (h : α ≃ₜ β) : ⇑h ∘ ⇑h.symm = id :=
+@[simp] lemma self_comp_symm (h : α ≃ₜ β) : ⇑h ∘ ⇑h.symm = id :=
 funext $ assume a, h.to_equiv.right_inv a
 
 lemma range_coe (h : α ≃ₜ β) : range h = univ :=
@@ -229,3 +251,14 @@ homeomorph_of_continuous_open (equiv.sigma_prod_distrib σ β).symm
 end distrib
 
 end homeomorph
+
+def equiv.homeomorph {α : Type*} {β : Type*} [tα : topological_space α] (e : α ≃ β) :
+  @homeomorph α β _ (tα.induced e.symm) :=
+{ to_fun := e,
+  continuous_inv_fun := λ s hs, ⟨s, hs, rfl⟩,
+  continuous_to_fun := λ s hs, by { rcases hs with ⟨t, ht1, ht2⟩,
+  have h := congr_arg (preimage e) ht2.symm,
+  rw [equiv.preimage_symm_preimage] at h,
+  rw h,
+  exact ht1 },
+  ..e }

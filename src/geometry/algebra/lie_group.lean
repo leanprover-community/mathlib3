@@ -246,7 +246,7 @@ end lie_group_core
 
 section real_numbers_lie_group
 
-instance normed_group_lie_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+instance normed_group_lie_add_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E] :
 lie_add_group (model_with_corners_self 𝕜 E) E :=
 { smooth_add :=
@@ -266,6 +266,66 @@ lie_add_group (model_with_corners_self 𝕜 E) E :=
     exact times_cont_diff_neg,
   end }
 
-instance reals_lie_group : lie_add_group (model_with_corners_self ℝ ℝ) ℝ := by apply_instance
+instance : lie_add_group (model_with_corners_self ℝ ℝ) ℝ := by apply_instance
 
 end real_numbers_lie_group
+
+instance is_units_of_normed_algebra.charted_space {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {R : Type*} [normed_ring R] [normed_algebra 𝕜 R] [complete_space R] :
+  charted_space R {x : R | is_unit x} :=
+topological_space.opens.charted_space ⟨({x : R | is_unit x} : set R), units.is_open⟩
+
+instance is_units_of_normed_algebra.smooth_manifold_with_corners
+  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {R : Type*} [normed_ring R] [normed_algebra 𝕜 R] [complete_space R] :
+  smooth_manifold_with_corners (model_with_corners_self 𝕜 R) {x : R | is_unit x} :=
+topological_space.opens.smooth_manifold_with_corners (model_with_corners_self 𝕜 R)
+  ⟨({x : R | is_unit x} : set R), units.is_open⟩
+
+instance units_of_normed_algebra.topological_space {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {R : Type*} [normed_ring R] [normed_algebra 𝕜 R] [complete_space R] :
+  topological_space (units R) :=
+topological_space.induced is_unit.equiv.symm (subtype.topological_space)
+
+instance units_of_normed_algebra.charted_space {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {R : Type*} [normed_ring R] [normed_algebra 𝕜 R] [complete_space R] :
+  charted_space R (units R) :=
+is_unit.equiv.homeomorph.charted_space R
+
+instance units_of_normed_algebra.smooth_manifold_with_corners
+  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {R : Type*} [normed_ring R] [normed_algebra 𝕜 R] [complete_space R] :
+  smooth_manifold_with_corners (model_with_corners_self 𝕜 R) (units R) :=
+is_unit.equiv.homeomorph.smooth_manifold_with_corners (model_with_corners_self 𝕜 R)
+
+def units_of_normed_algebra.lie_group_core
+  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {R : Type*} [normed_ring R] [normed_algebra 𝕜 R] [complete_space R] :
+  lie_group_core (model_with_corners_self 𝕜 R) (units R) :=
+{
+  smooth_mul := begin
+    rw smooth_iff,
+    split,
+    {
+      sorry
+    },
+    {
+      simp only [prod.forall] with mfld_simps,
+      intros a b c,
+      simp only [function.comp],
+      sorry,
+    }
+  end,
+  smooth_inv := begin
+    rw smooth_iff,
+    split,
+    {
+      sorry
+    },
+    {
+      simp only [set.inv_preimage, function.comp] with mfld_simps,
+      intros a b,
+      sorry,
+    }
+  end,
+}

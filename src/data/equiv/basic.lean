@@ -181,12 +181,27 @@ equiv_congr e e
 protected lemma image_eq_preimage {α β} (e : α ≃ β) (s : set α) : e '' s = e.symm ⁻¹' s :=
 set.ext $ assume x, set.mem_image_iff_of_inverse e.left_inv e.right_inv
 
+@[simp] lemma symm_preimage_eq_image {α β} (e : α ≃ β) (s : set α) : e.symm ⁻¹' s = e '' s :=
+by symmetry; exact equiv.image_eq_preimage e s
+
+lemma symm_image_eq_preimage {α β} (e : α ≃ β) (s : set β) : e ⁻¹' s = e.symm '' s :=
+by conv_lhs {rw [←symm_symm e, symm_preimage_eq_image]}
+
 protected lemma subset_image {α β} (e : α ≃ β) (s : set α) (t : set β) :
   t ⊆ e '' s ↔ e.symm '' t ⊆ s :=
 by rw [set.image_subset_iff, e.image_eq_preimage]
 
-lemma symm_image_image {α β} (f : equiv α β) (s : set α) : f.symm '' (f '' s) = s :=
+@[simp] lemma symm_image_image {α β} (f : equiv α β) (s : set α) : f.symm '' (f '' s) = s :=
+by { rw [← set.image_comp], simp, }
+
+@[simp] lemma image_symm_image {α β} (f : equiv α β) (s : set β) : f '' (f.symm '' s) = s :=
 by { rw [← set.image_comp], simp }
+
+@[simp] lemma symm_preimage_preimage {α β} (f : equiv α β) (s : set β) : f.symm ⁻¹' (f ⁻¹' s) = s :=
+by simp only [symm_image_eq_preimage, symm_preimage_eq_image, image_symm_image]
+
+@[simp] lemma preimage_symm_preimage {α β} (f : equiv α β) (s : set α) : f ⁻¹' (f.symm ⁻¹' s) = s :=
+by simp only [symm_image_eq_preimage, symm_preimage_eq_image, symm_image_image]
 
 protected lemma image_compl {α β} (f : equiv α β) (s : set α) :
   f '' sᶜ = (f '' s)ᶜ :=

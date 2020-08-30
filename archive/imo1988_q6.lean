@@ -293,4 +293,3 @@ begin
       obtain rfl|rfl : y = 1 ∨ y = 2 := nat.prime_two.2 y y_dvd,
       all_goals { ring at h, omega } } }
 end
-#lint

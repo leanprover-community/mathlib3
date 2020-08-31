@@ -367,7 +367,7 @@ begin
     rcases hqf.exists_pair_ne with ⟨⟨x⟩, ⟨y⟩, hxy⟩,
     exact hxy (ideal.quotient.eq.2 (mul_one (x - y) ▸ I.mul_mem_left h)) },
   { intros J x hIJ hxnI hxJ,
-    rcases hqf.mul_inv_cancel' (mt ideal.quotient.eq_zero_iff_mem.1 hxnI) with ⟨⟨y⟩, hy⟩,
+    rcases hqf.mul_inv_cancel (mt ideal.quotient.eq_zero_iff_mem.1 hxnI) with ⟨⟨y⟩, hy⟩,
     rw [← zero_add (1 : α), ← sub_self (x * y), sub_add],
     refine J.sub_mem (J.mul_mem_right hxJ) (hIJ (ideal.quotient.eq.1 hy)) }
 end

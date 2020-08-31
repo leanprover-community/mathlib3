@@ -36,6 +36,10 @@ def is_integral (x : A) : Prop :=
 
 variable {R}
 
+theorem is_integral_algebra_map {x : R} : is_integral R (algebra_map R A x) :=
+⟨X - C x, monic_X_sub_C _,
+by rw [alg_hom.map_sub, aeval_def, aeval_def, eval₂_X, eval₂_C, sub_self]⟩
+
 theorem is_integral_of_noetherian' (H : is_noetherian R A) (x : A) :
   is_integral R x :=
 begin
@@ -85,10 +89,6 @@ section
 variables {R : Type*} {A : Type*} {B : Type*}
 variables [comm_ring R] [comm_ring A] [comm_ring B]
 variables [algebra R A] [algebra R B]
-
-theorem is_integral_algebra_map {x : R} : is_integral R (algebra_map R A x) :=
-⟨X - C x, monic_X_sub_C _,
-by rw [alg_hom.map_sub, aeval_def, aeval_def, eval₂_X, eval₂_C, sub_self]⟩
 
 theorem is_integral_alg_hom (f : A →ₐ[R] B) {x : A} (hx : is_integral R x) : is_integral R (f x) :=
 let ⟨p, hp, hpx⟩ := hx in ⟨p, hp, by rw [aeval_alg_hom_apply, hpx, f.map_zero]⟩

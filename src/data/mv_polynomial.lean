@@ -444,6 +444,37 @@ ne_zero_iff.mp h
 
 end coeff
 
+section constant_coeff
+
+/--
+`constant_coeff p` returns the constant term of the polynomial `p`, defined as `coeff 0 p`.
+This is a ring homomorphism.
+-/
+def constant_coeff : mv_polynomial σ α →+* α :=
+{ to_fun := coeff 0,
+  map_one' := by simp [coeff, add_monoid_algebra.one_def],
+  map_mul' := by simp [coeff_mul, finsupp.support_single_ne_zero],
+  map_zero' := coeff_zero _,
+  map_add' := coeff_add _ }
+
+lemma constant_coeff_eq : (constant_coeff : mv_polynomial σ α → α) = coeff 0 := rfl
+
+@[simp]
+lemma constant_coeff_C (r : α) :
+  constant_coeff (C r : mv_polynomial σ α) = r :=
+by simp [constant_coeff_eq]
+
+@[simp]
+lemma constant_coeff_X (i : σ) :
+  constant_coeff (X i : mv_polynomial σ α) = 0 :=
+by simp [constant_coeff_eq]
+
+lemma constant_coeff_monomial (d : σ →₀ ℕ) (r : α) :
+  constant_coeff (monomial d r) = if d = 0 then r else 0 :=
+by rw [constant_coeff_eq, coeff_monomial]
+
+end constant_coeff
+
 section as_sum
 
 @[simp]
@@ -556,6 +587,11 @@ end
   (p : mv_polynomial σ α) :
   φ (eval₂_hom f g p) = (eval₂_hom (φ.comp f) (λ i, φ (g i)) p) :=
 by { rw ← comp_eval₂_hom, refl }
+
+lemma eval₂_hom_monomial (f : α →+* β) (g : σ → β) (d : σ →₀ ℕ) (r : α) :
+  eval₂_hom f g (monomial d r) = f r * d.prod (λ i k, g i ^ k) :=
+by simp only [monomial_eq, ring_hom.map_mul, eval₂_hom_C, finsupp.prod,
+  ring_hom.map_prod, ring_hom.map_pow, eval₂_hom_X']
 
 section
 local attribute [instance, priority 10] is_semiring_hom.comp
@@ -1038,6 +1074,26 @@ end
   (g : σ → A) (φ : A →+* B) (p : mv_polynomial σ R) :
   φ (aeval g p) = (eval₂_hom (φ.comp (algebra_map R A)) (λ i, φ (g i)) p) :=
 by { rw ← comp_eval₂_hom, refl }
+
+@[simp] lemma aeval_zero [algebra R A] (p : mv_polynomial σ R) :
+  aeval (0 : σ → A) p = algebra_map _ _ (constant_coeff p) :=
+begin
+  apply mv_polynomial.induction_on p,
+  { simp only [aeval_C, forall_const, if_true, constant_coeff_C, eq_self_iff_true] },
+  { intros, simp only [*, alg_hom.map_add, ring_hom.map_add, coeff_add] },
+  { intros,
+    simp only [ring_hom.map_mul, constant_coeff_X, pi.zero_apply, ring_hom.map_zero, eq_self_iff_true,
+      mem_support_iff, not_true, aeval_X, if_false, ne.def, mul_zero, alg_hom.map_mul, zero_apply] }
+end
+
+@[simp] lemma aeval_zero' [algebra R A] (p : mv_polynomial σ R) :
+  aeval (λ _, 0 : σ → A) p = algebra_map _ _ (constant_coeff p) :=
+aeval_zero p
+
+lemma aeval_monomial [algebra R A] (g : σ → A) (d : σ →₀ ℕ) (r : R) :
+  aeval g (monomial d r) = algebra_map _ _ r * d.prod (λ i k, g i ^ k) :=
+eval₂_hom_monomial _ _ _ _
+
 
 end aeval
 

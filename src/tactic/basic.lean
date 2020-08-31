@@ -1,6 +1,9 @@
 import tactic.alias
 import tactic.clear
+import tactic.choose
 import tactic.converter.apply_congr
+import tactic.congr
+import tactic.dec_trivial
 import tactic.delta_instance
 import tactic.elide
 import tactic.explode

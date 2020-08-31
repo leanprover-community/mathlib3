@@ -136,6 +136,10 @@ def C : α →+* mv_polynomial σ α :=
   map_add' := λ a a', single_add,
   map_mul' := λ a a', by simp [monomial, single_mul_single] }
 
+variables (α σ)
+theorem algebra_map_eq : algebra_map α (mv_polynomial σ α) = C := rfl
+variables {α σ}
+
 /-- `X n` is the degree `1` monomial `1*n` -/
 def X (n : σ) : mv_polynomial σ α := monomial (single n 1) 1
 
@@ -384,7 +388,7 @@ lemma coeff_mul_X' (m) (s : σ) (p : mv_polynomial σ α) :
 begin
   split_ifs with h h,
   { conv_rhs {rw ← coeff_mul_X _ s},
-    congr' 1, ext t,
+    congr' with  t,
     by_cases hj : s = t,
     { subst t, simp only [nat_sub_apply, add_apply, single_eq_same],
       refine (nat.sub_add_cancel $ nat.pos_of_ne_zero _).symm, rwa mem_support_iff at h },
@@ -397,6 +401,18 @@ begin
     rw [mem_support_iff, add_apply, single_apply, if_pos rfl],
     intro H, rw [_root_.add_eq_zero_iff] at H, exact one_ne_zero H.2 }
 end
+
+lemma eq_zero_iff {p : mv_polynomial σ α} :
+  p = 0 ↔ ∀ d, coeff d p = 0 :=
+by { rw ext_iff, simp only [coeff_zero], }
+
+lemma ne_zero_iff {p : mv_polynomial σ α} :
+  p ≠ 0 ↔ ∃ d, coeff d p ≠ 0 :=
+by { rw [ne.def, eq_zero_iff], push_neg, }
+
+lemma exists_coeff_ne_zero {p : mv_polynomial σ α} (h : p ≠ 0) :
+  ∃ d, coeff d p ≠ 0 :=
+ne_zero_iff.mp h
 
 end coeff
 
@@ -534,7 +550,7 @@ lemma eval₂_assoc (q : γ → mv_polynomial σ α) (p : mv_polynomial γ α) :
   eval₂ f (λ t, eval₂ f g (q t)) p = eval₂ f g (eval₂ C q p) :=
 begin
   show _ = eval₂_hom f g (eval₂ C q p),
-  rw eval₂_comp_left (eval₂_hom f g), congr, ext a, simp,
+  rw eval₂_comp_left (eval₂_hom f g), congr' with a, simp,
 end
 
 end eval₂
@@ -576,7 +592,7 @@ theorem eval_assoc {τ}
 begin
   rw eval₂_comp_left (eval g),
   unfold eval, simp only [coe_eval₂_hom],
-  congr, ext a, simp
+  congr' with a, simp
 end
 
 end eval
@@ -901,6 +917,17 @@ begin
     ... ≤ f.total_degree   : finset.le_sup hd,
 end
 
+lemma coeff_eq_zero_of_total_degree_lt {f : mv_polynomial σ α} {d : σ →₀ ℕ}
+  (h : f.total_degree < ∑ i in d.support, d i) :
+  coeff d f = 0 :=
+begin
+  classical,
+  rw [total_degree, finset.sup_lt_iff] at h,
+  { specialize h d, rw mem_support_iff at h,
+    refine not_not.mp (mt h _), exact lt_irrefl _, },
+  { exact lt_of_le_of_lt (nat.zero_le _) h, }
+end
+
 end total_degree
 
 section aeval
@@ -1094,9 +1121,9 @@ lemma rename_eq (f : β → γ) (p : mv_polynomial β α) :
   rename f p = finsupp.map_domain (finsupp.map_domain f) p :=
 begin
   simp only [rename, eval₂_hom, eval₂, finsupp.map_domain, ring_hom.coe_of],
-  congr, ext s a : 2,
+  congr' with s a : 2,
   rw [← monomial, monomial_eq, finsupp.prod_sum_index],
-  congr, ext n i : 2,
+  congr' with n i : 2,
   rw [finsupp.prod_single_index],
   exact pow_zero _,
   exact assume a, pow_zero _,

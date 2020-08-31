@@ -381,7 +381,51 @@ begin
     apply_rules [subset_diff_singleton] }
 end
 
+lemma mem_Ioo_or_eq_endpoints_of_mem_Icc {x : α} (hmem : x ∈ Icc a b) :
+  x = a ∨ x = b ∨ x ∈ Ioo a b :=
+begin
+  rw [mem_Icc, le_iff_lt_or_eq, le_iff_lt_or_eq] at hmem,
+  rcases hmem with ⟨hxa | hxa, hxb | hxb⟩,
+  { exact or.inr (or.inr ⟨hxa, hxb⟩) },
+  { exact or.inr (or.inl hxb) },
+  all_goals { exact or.inl hxa.symm }
+end
+
+lemma mem_Ioo_or_eq_left_of_mem_Ico {x : α} (hmem : x ∈ Ico a b) :
+  x = a ∨ x ∈ Ioo a b :=
+begin
+  rw [mem_Ico, le_iff_lt_or_eq] at hmem,
+  rcases hmem with ⟨hxa | hxa, hxb⟩,
+  { exact or.inr ⟨hxa, hxb⟩ },
+  { exact or.inl hxa.symm }
+end
+
+lemma mem_Ioo_or_eq_right_of_mem_Ioc {x : α} (hmem : x ∈ Ioc a b) :
+  x = b ∨ x ∈ Ioo a b :=
+begin
+  have := @mem_Ioo_or_eq_left_of_mem_Ico (order_dual α) _ b a x,
+  rw [dual_Ioo, dual_Ico] at this,
+  exact this hmem
+end
+
+lemma Ici_singleton_of_top {a : α} (h_top : ∀ x, x ≤ a) : Ici a = {a} :=
+begin
+  ext,
+  exact ⟨λ h, le_antisymm (h_top _) h, λ h, le_of_eq h.symm⟩,
+end
+
+lemma Iic_singleton_of_bot {a : α} (h_bot : ∀ x, a ≤ x) : Iic a = {a} :=
+@Ici_singleton_of_top (order_dual α) _ a h_bot
+
 end partial_order
+
+section order_top_or_bot
+variables {α : Type u}
+
+@[simp] lemma Ici_top [order_top α] : Ici (⊤ : α) = {⊤} := Ici_singleton_of_top (λ _, le_top)
+@[simp] lemma Ici_bot [order_bot α] : Iic (⊥ : α) = {⊥} := Iic_singleton_of_bot (λ _, bot_le)
+
+end order_top_or_bot
 
 section linear_order
 variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ : α}

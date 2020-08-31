@@ -369,7 +369,7 @@ begin
   cases h.left with f,
   have : ¬ surjective f := λ hn,
     ne_of_lt h (quotient.sound ⟨equiv.of_bijective f ⟨f.injective, hn⟩⟩),
-  cases classical.not_forall.1 this with b nex,
+  cases not_forall.1 this with b nex,
   refine ⟨⟨sum.rec (by exact f) _, _⟩⟩,
   { exact λ _, b },
   { intros a b h, rcases a with a|⟨⟨⟨⟩⟩⟩; rcases b with b|⟨⟨⟨⟩⟩⟩,
@@ -652,7 +652,7 @@ by rw [one_le_iff_pos, pos_iff_ne_zero]
 
 theorem nat_lt_omega (n : ℕ) : (n : cardinal.{u}) < omega :=
 succ_le.1 $ by rw [← nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
-⟨⟨fin.val, λ a b, fin.eq_of_veq⟩⟩
+⟨⟨coe, λ a b, fin.ext⟩⟩
 
 @[simp] theorem one_lt_omega : 1 < omega :=
 by simpa using nat_lt_omega 1
@@ -669,7 +669,7 @@ theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=
   have P : ∀ (n : ℕ) (IH : ∀ i<n, S), ∃ a : S, ¬ ∃ y h, IH y h = a :=
     λ n IH,
     let g : {i | i < n} → S := λ ⟨i, h⟩, IH i h in
-    classical.not_forall.1 (λ h, nf
+    not_forall.1 (λ h, nf
       ⟨fintype.of_surjective g (λ a, subtype.exists.2 (h a))⟩),
   let F : ℕ → S := nat.lt_wf.fix (λ n IH, classical.some (P n IH)),
   refine not_le_of_lt h' ⟨⟨F, _⟩⟩,
@@ -799,7 +799,7 @@ lt_of_not_ge $ λ ⟨F⟩, begin
   have sG : surjective G := inv_fun_surjective F.2,
   choose C hc using show ∀ i, ∃ b, ∀ a, G ⟨i, a⟩ i ≠ b,
   { assume i,
-    simp only [- not_exists, not_exists.symm, classical.not_forall.symm],
+    simp only [- not_exists, not_exists.symm, not_forall.symm],
     refine λ h, not_le_of_lt (H i) _,
     rw [← mk_out (f i), ← mk_out (g i)],
     exact ⟨embedding.of_surjective _ h⟩ },

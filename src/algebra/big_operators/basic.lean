@@ -119,7 +119,6 @@ lemma ring_hom.map_sum [semiring β] [semiring γ]
   g (∑ x in s, f x) = ∑ x in s, g (f x) :=
 g.to_add_monoid_hom.map_sum f s
 
-
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 
@@ -253,15 +252,15 @@ by rw prod_product
 lemma prod_sigma {σ : α → Type*}
   {s : finset α} {t : Πa, finset (σ a)} {f : sigma σ → β} :
   (∏ x in s.sigma t, f x) = ∏ a in s, ∏ s in (t a), f ⟨a, s⟩ :=
-by haveI := classical.dec_eq α; haveI := (λ a, classical.dec_eq (σ a)); exact
+by classical;
 calc (∏ x in s.sigma t, f x) =
-       ∏ x in s.bind (λa, (t a).image (λs, sigma.mk a s)), f x : by rw sigma_eq_bind
-  ... = ∏ a in s, ∏ x in (t a).image (λs, sigma.mk a s), f x :
-    prod_bind $ assume a₁ ha a₂ ha₂ h,
-    by simp only [disjoint_iff_ne, mem_image];
-    rintro ⟨_, _⟩ ⟨_, _, _⟩ ⟨_, _⟩ ⟨_, _, _⟩ ⟨_, _⟩; apply h; cc
+       ∏ x in s.bind (λa, (t a).map (function.embedding.sigma_mk a)), f x : by rw sigma_eq_bind
+  ... = ∏ a in s, ∏ x in (t a).map (function.embedding.sigma_mk a), f x :
+    prod_bind $ assume a₁ ha a₂ ha₂ h x hx,
+    by { simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.coe_sigma_mk] at hx,
+      rcases hx with ⟨⟨y, hy, rfl⟩, ⟨z, hz, hz'⟩⟩, cc }
   ... = ∏ a in s, ∏ s in t a, f ⟨a, s⟩ :
-    prod_congr rfl $ λ _ _, prod_image $ λ _ _ _ _ _, by cc
+    prod_congr rfl $ λ _ _, prod_map _ _ _
 
 @[to_additive]
 lemma prod_image' [decidable_eq α] {s : finset γ} {g : γ → α} (h : γ → β)
@@ -549,6 +548,14 @@ begin
   exact ⟨x, (mem_filter.1 hx).1, (mem_filter.1 hx).2⟩
 end
 
+@[to_additive]
+lemma prod_subset_one_on_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) (hg : ∀ x ∈ (s₂ \ s₁), g x = 1)
+  (hfg : ∀ x ∈ s₁, f x = g x) : ∏ i in s₁, f i = ∏ i in s₂, g i :=
+begin
+  rw [← prod_sdiff h, prod_eq_one hg, one_mul],
+  exact prod_congr rfl hfg
+end
+
 lemma sum_range_succ {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) :
   (∑ x in range (n + 1), f x) = f n + (∑ x in range n, f x) :=
 by rw [range_succ, sum_insert not_mem_range_self]
@@ -746,6 +753,16 @@ lemma prod_piecewise [decidable_eq α] (s t : finset α) (f g : α → β) :
   (∏ x in s, (t.piecewise f g) x) = (∏ x in s ∩ t, f x) * (∏ x in s \ t, g x) :=
 by { rw [piecewise, prod_ite, filter_mem_eq_inter, ← sdiff_eq_filter], }
 
+@[to_additive]
+lemma prod_inter_mul_prod_diff [decidable_eq α] (s t : finset α) (f : α → β) :
+  (∏ x in s ∩ t, f x) * (∏ x in s \ t, f x) = (∏ x in s, f x) :=
+by { convert (s.prod_piecewise t f f).symm, simp [finset.piecewise] }
+
+@[to_additive]
+lemma mul_prod_diff_singleton [decidable_eq α] {s : finset α} {i : α} (h : i ∈ s)
+  (f : α → β) : f i * (∏ x in s \ {i}, f x) = ∏ x in s, f x :=
+by { convert s.prod_inter_mul_prod_diff {i} f, simp [h] }
+
 /-- If we can partition a product into subsets that cancel out, then the whole product cancels. -/
 @[to_additive]
 lemma prod_cancels_of_partition_cancels (R : setoid α) [decidable_rel R.r]
@@ -851,6 +868,14 @@ lemma prod_pow_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) 
 by simp
 
 end comm_monoid
+
+/-- If `f = g = h` everywhere but at `i`, where `f i = g i + h i`, then the product of `f` over `s`
+  is the sum of the products of `g` and `h`. -/
+lemma prod_add_prod_eq [comm_semiring β] {s : finset α} {i : α} {f g h : α → β}
+  (hi : i ∈ s) (h1 : g i + h i = f i) (h2 : ∀ j ∈ s, j ≠ i → g j = f j)
+  (h3 : ∀ j ∈ s, j ≠ i → h j = f j) : ∏ i in s, g i + ∏ i in s, h i = ∏ i in s, f i :=
+by { classical, simp_rw [← mul_prod_diff_singleton hi, ← h1, right_distrib],
+     congr' 2; apply prod_congr rfl; simpa }
 
 lemma sum_update_of_mem [add_comm_monoid β] [decidable_eq α] {s : finset α} {i : α}
   (h : i ∈ s) (f : α → β) (b : β) :

@@ -50,7 +50,7 @@ def has_sum (f : β → α) (a : α) : Prop := tendsto (λs:finset β, ∑ b in 
 def summable (f : β → α) : Prop := ∃a, has_sum f a
 
 /-- `∑' i, f i` is the sum of `f` it exists, or 0 otherwise -/
-def tsum (f : β → α) := if h : summable f then classical.some h else 0
+def tsum {β} (f : β → α) := if h : summable f then classical.some h else 0
 
 notation `∑'` binders `, ` r:(scoped f, tsum f) := r
 
@@ -105,7 +105,7 @@ by rw [← set.indicator_range_comp, subtype.range_coe,
 has_sum_subtype_iff_of_support_subset $ set.subset.refl _
 
 lemma has_sum_fintype [fintype β] (f : β → α) : has_sum f (∑ b, f b) :=
-order_top.tendsto_at_top _
+order_top.tendsto_at_top_nhds _
 
 protected lemma finset.has_sum (s : finset β) (f : β → α) :
   has_sum (f ∘ coe : (↑s : set β) → α) (∑ b in s, f b) :=
@@ -240,48 +240,22 @@ lemma summable.compl_add {s : set β} (hs : summable (f ∘ coe : sᶜ → α))
 
 lemma has_sum.sigma [regular_space α] {γ : β → Type*} {f : (Σ b:β, γ b) → α} {g : β → α} {a : α}
   (ha : has_sum f a) (hf : ∀b, has_sum (λc, f ⟨b, c⟩) (g b)) : has_sum g a :=
-assume s' hs',
-let
-  ⟨s, hs, hss', hsc⟩ := nhds_is_closed hs',
-  ⟨u, hu⟩ := mem_at_top_sets.mp $ ha hs,
-  fsts := u.image sigma.fst,
-  snds := λb, u.bind (λp, (if h : p.1 = b then {cast (congr_arg γ h) p.2} else ∅ : finset (γ b)))
-in
-have u_subset : u ⊆ fsts.sigma snds,
-  from subset_iff.mpr $ assume ⟨b, c⟩ hu,
-  have hb : b ∈ fsts, from finset.mem_image.mpr ⟨_, hu, rfl⟩,
-  have hc : c ∈ snds b, from mem_bind.mpr ⟨_, hu, by simp; refl⟩,
-  by simp [mem_sigma, hb, hc] ,
-mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
-  have h : ∀cs : Π b ∈ bs, finset (γ b),
-      ((⋂b (hb : b ∈ bs), (λp:Πb, finset (γ b), p b) ⁻¹' {cs' | cs b hb ⊆ cs' }) ∩
-      (λp, ∑ b in bs, ∑ c in p b, f ⟨b, c⟩) ⁻¹' s).nonempty,
-    from assume cs,
-    let cs' := λb, (if h : b ∈ bs then cs b h else ∅) ∪ snds b in
-    have sum_eq : ∑ b in bs, ∑ c in cs' b, f ⟨b, c⟩ = ∑ x in bs.sigma cs', f x,
-      from sum_sigma.symm,
-    have ∑ x in bs.sigma cs', f x ∈ s,
-      from hu _ $ finset.subset.trans u_subset $ sigma_mono hbs $
-        assume b, @finset.subset_union_right (γ b) _ _ _,
-    exists.intro cs' $
-    by simp [sum_eq, this]; { intros b hb, simp [cs', hb, finset.subset_union_left] },
-  have tendsto (λp:(Πb:β, finset (γ b)), ∑ b in bs, ∑ c in p b, f ⟨b, c⟩)
-      (⨅b (h : b ∈ bs), at_top.comap (λp, p b)) (𝓝 (∑ b in bs, g b)),
-    from tendsto_finset_sum bs $
-      assume c hc, tendsto_infi' c $ tendsto_infi' hc $ by apply tendsto.comp (hf c) tendsto_comap,
-  have ∑ b in bs, g b ∈ s,
-    from @mem_of_closed_of_tendsto' _ _ _ _ _ _ _ this hsc $ forall_sets_nonempty_iff_ne_bot.mp $
-      begin
-        simp only [mem_inf_sets, exists_imp_distrib, forall_and_distrib, and_imp,
-               filter.mem_infi_sets_finset, mem_comap_sets, mem_at_top_sets, and_comm,
-               mem_principal_sets, set.preimage_subset_iff, exists_prop, skolem],
-        intros s₁ s₂ s₃ hs₁ hs₃ p hs₂ p' hp cs hp',
-        have : (⋂b (h : b ∈ bs), (λp:(Πb, finset (γ b)), p b) ⁻¹' {cs' | cs b h ⊆ cs' }) ≤ (⨅b∈bs, p b),
-          from (infi_le_infi $ assume b, infi_le_infi $ assume hb,
-            le_trans (set.preimage_mono $ hp' b hb) (hp b hb)),
-        exact (h _).mono (set.subset.trans (set.inter_subset_inter (le_trans this hs₂) hs₃) hs₁)
-      end,
-  hss' this
+begin
+  refine (at_top_basis.tendsto_iff (closed_nhds_basis a)).mpr _,
+  rintros s ⟨hs, hsc⟩,
+  rcases mem_at_top_sets.mp (ha hs) with ⟨u, hu⟩,
+  use [u.image sigma.fst, trivial],
+  intros bs hbs,
+  simp only [set.mem_preimage, ge_iff_le, finset.le_iff_subset] at hu,
+  have : tendsto (λ t : finset (Σ b, γ b), ∑ p in t.filter (λ p, p.1 ∈ bs), f p)
+    at_top (𝓝 $ ∑ b in bs, g b),
+  { simp only [← sigma_preimage_mk, sum_sigma],
+    refine tendsto_finset_sum _ (λ b hb, _),
+    change tendsto (λ t, (λ t, ∑ s in t, f ⟨b, s⟩) (preimage t (sigma.mk b) _)) at_top (𝓝 (g b)),
+    exact tendsto.comp (hf b) (tendsto_finset_preimage_at_top_at_top _) },
+  refine hsc.mem_of_tendsto this (eventually_at_top.2 ⟨u, λ t ht, hu _ (λ x hx, _)⟩),
+  exact mem_filter.2 ⟨ht hx, hbs $ mem_image_of_mem _ hx⟩
+end
 
 /-- If a series `f` on `β × γ` has sum `a` and for each `b` the restriction of `f` to `{b} × γ`
 has sum `g b`, then the series `g` has sum `a`. -/
@@ -455,8 +429,7 @@ theorem rel_sup_add [complete_lattice β] (m : β → α) (m0 : m ⊥ = 0)
 begin
   convert rel_supr_tsum m m0 R m_supr (λ b, cond b s₁ s₂),
   { simp only [supr_bool_eq, cond] },
-  { rw tsum_fintype, simp only [finset.sum_insert, not_false_iff, fintype.univ_bool,
-      finset.mem_singleton, cond, finset.sum_singleton] }
+  { rw [tsum_fintype, fintype.sum_bool, cond, cond] }
 end
 
 end encodable
@@ -718,7 +691,7 @@ begin
     { simp only [(finset.sum_sdiff ht₁).symm, (finset.sum_sdiff ht₂).symm,
         add_sub_add_right_eq_sub] },
     simp only [this],
-    exact hde _ _ (h _ finset.sdiff_disjoint) (h _ finset.sdiff_disjoint) }
+    exact hde _ (h _ finset.sdiff_disjoint) _ (h _ finset.sdiff_disjoint) }
 end
 
 variable [complete_space α]

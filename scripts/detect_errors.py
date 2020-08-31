@@ -12,4 +12,5 @@ for line in sys.stdin:
         was_silent = False
 
 if not was_silent:
+    print("Build succeeded, but was not silent.")
     sys.exit(1)

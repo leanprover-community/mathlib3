@@ -721,6 +721,31 @@ induced_order_topology' f @hf
   (λ a x xa, let ⟨b, xb, ba⟩ := H xa in ⟨b, hf.1 ba, le_of_lt xb⟩)
   (λ a x ax, let ⟨b, ab, bx⟩ := H ax in ⟨b, hf.1 ab, le_of_lt bx⟩)
 
+/-- On an open subinterval of a dense linear order, the order topology for the restriction of the
+order is the same as the restriction to the interval of the order topology. -/
+instance {α : Type*}
+  [topological_space α] [decidable_linear_order α] [densely_ordered α] [order_topology α]
+  {a b : α} :
+  order_topology (Ioo a b) :=
+induced_order_topology' (coe : (Ioo a b) → α)
+( λ x y, by refl ) -- `by refl` works, `rfl` doesn't
+( begin
+    intros x y hxy,
+    have hayx : max a y < x := max_lt x.2.1 hxy,
+    obtain ⟨c, hc⟩ := dense hayx,
+    use c,
+    exact ⟨lt_of_le_of_lt (le_max_left a y) hc.1, lt_trans hc.2 x.2.2⟩,
+    exact ⟨hc.2, le_trans (le_max_right a y) (le_of_lt hc.1)⟩,
+  end )
+( begin
+    intros x y hxy,
+    have hxyb : (x : α) < min y b := lt_min hxy x.2.2,
+    obtain ⟨c, hc⟩ := dense hxyb,
+    use c,
+    exact ⟨lt_trans x.2.1 hc.1, lt_of_lt_of_le hc.2 (min_le_right y b)⟩,
+    exact ⟨hc.1, le_trans (le_of_lt hc.2) (min_le_left y b)⟩
+  end)
+
 lemma nhds_top_order [topological_space α] [order_top α] [order_topology α] :
   𝓝 (⊤:α) = (⨅l (h₂ : l < ⊤), 𝓟 (Ioi l)) :=
 by simp [nhds_eq_order (⊤:α)]

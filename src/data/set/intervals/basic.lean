@@ -296,8 +296,8 @@ lemma Ici_inter_Iio : Ici a ∩ Iio b = Ico a b := rfl
 lemma Ioi_inter_Iic : Ioi a ∩ Iic b = Ioc a b := rfl
 lemma Ioi_inter_Iio : Ioi a ∩ Iio b = Ioo a b := rfl
 
-/-- In a dense order `α`, open intervals `Ioo a b` are also densely ordered, for any `a < b`. -/
-instance Ioo_densely_ordered [densely_ordered α] {a b : α} (hab : a < b) :
+/-- In a dense order `α`, open intervals `Ioo a b` are also densely ordered. -/
+instance Ioo_densely_ordered [densely_ordered α] {a b : α} :
   densely_ordered (set.Ioo a b) :=
 ⟨ begin
     intros a₁ a₂ ha,

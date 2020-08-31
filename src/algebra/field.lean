@@ -192,14 +192,14 @@ open_locale classical
 
 /-- Transferring from is_field to field -/
 noncomputable def is_field.to_field (R : Type u) [ring R] (h : is_field R) : field R :=
-{ inv := (λ a, if ha : a = 0 then 0 else classical.some (is_field.mul_inv_cancel' h ha)),
-  inv_zero := (dif_pos rfl),
-  mul_inv_cancel := (λ a ha,
+{ inv := λ a, if ha : a = 0 then 0 else classical.some (is_field.mul_inv_cancel' h ha),
+  inv_zero := dif_pos rfl,
+  mul_inv_cancel := λ a ha,
     begin
       convert classical.some_spec (is_field.mul_inv_cancel' h ha),
       exact dif_neg ha
-    end),
-  .. (‹_› : ring R), ..h }
+    end,
+  .. ‹ring R›, ..h }
 
 /-- For each field, and for each nonzero element of said field, there is a unique inverse.
 Since `is_field` doesn't remember the data of an `inv` function and as such,

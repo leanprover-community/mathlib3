@@ -480,6 +480,8 @@ by simp [piecewise]
 
 variable [∀j, decidable (j ∈ s)]
 
+instance compl.decidable_mem (j : α) : decidable (j ∈ sᶜ) := not.decidable
+
 lemma piecewise_insert [decidable_eq α] (j : α) [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g = function.update (s.piecewise f g) j (f j) :=
 begin
@@ -520,6 +522,20 @@ comp_eq_of_eq_on_range $ piecewise_eq_on _ _ _
 lemma piecewise_preimage (f g : α → β) (t) :
   s.piecewise f g ⁻¹' t = s ∩ f ⁻¹' t ∪ sᶜ ∩ g ⁻¹' t :=
 ext $ λ x, by by_cases x ∈ s; simp *
+
+lemma comp_piecewise (h : β → γ) {f g : α → β} {x : α} :
+  h (s.piecewise f g x) = s.piecewise (h ∘ f) (h ∘ g) x :=
+by by_cases hx : x ∈ s; simp [hx]
+
+@[simp] lemma piecewise_same : s.piecewise f f = f :=
+by { ext x, by_cases hx : x ∈ s; simp [hx] }
+
+lemma range_piecewise (f g : α → β) : range (s.piecewise f g) = f '' s ∪ g '' sᶜ :=
+begin
+  ext y, split,
+  { rintro ⟨x, rfl⟩, by_cases h : x ∈ s;[left, right]; use x; simp [h] },
+  { rintro (⟨x, hx, rfl⟩|⟨x, hx, rfl⟩); use x; simp * at * }
+end
 
 end set
 

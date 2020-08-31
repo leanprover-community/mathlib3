@@ -282,14 +282,49 @@ end
 end sum
 
 -- this might not be right
+
+-- generalize from multiset?
+lemma finset.sup_subset {α β} {s t : finset α} (hst : s ⊆ t) (f : α → multiset β) :
+  s.sup f ≤ t.sup f :=
+calc t.sup f = (s ∪ t).sup f : by rw [finset.union_eq_right_iff_subset.mpr hst]
+         ... = s.sup f ⊔ t.sup f : by rw finset.sup_union
+         ... ≥ s.sup f : le_sup_left
+
+lemma mv_polynomial.support_map_subset : (map f p).support ⊆ p.support :=
+begin
+  intro x,
+  simp only [finsupp.mem_support_iff],
+  contrapose!,
+  change p.coeff x = 0 → (map f p).coeff x = 0,
+  rw coeff_map,
+  intro hx,
+  rw hx,
+  exact ring_hom.map_zero f
+end
+
+lemma mv_polynomial.support_map_of_injective (hf : injective f) : (map f p).support = p.support :=
+begin
+  apply finset.subset.antisymm,
+  { exact mv_polynomial.support_map_subset _ _ },
+  intros x hx,
+  rw finsupp.mem_support_iff,
+  contrapose! hx,
+  simp only [not_not, finsupp.mem_support_iff],
+  change (map f p).coeff x = 0 at hx,
+  rw [coeff_map, ← f.map_zero] at hx,
+  exact hf hx
+end
+
 lemma degrees_map : (map f p).degrees ⊆ p.degrees :=
-by {simp [degrees], apply multiset.subset_of_le, apply finset.sup_le,
-    intros b hb,
-    rw finsupp.mem_support_iff at hb,
-    sorry }
+begin
+  dsimp only [degrees],
+  apply multiset.subset_of_le,
+  convert finset.sup_subset _ _,
+  apply mv_polynomial.support_map_subset
+end
 
 lemma degrees_map_of_injective (hf : injective f) : (map f p).degrees = p.degrees :=
-sorry
+by simp only [degrees, mv_polynomial.support_map_of_injective _ _ hf]
 
 lemma vars_map : (map f p).vars ⊆ p.vars :=
 by simp [vars, degrees_map]

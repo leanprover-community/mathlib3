@@ -194,6 +194,10 @@ instance comm_ring_structure_sheaf_in_Type_obj (U : (opens (Spec.Top R))ᵒᵖ) 
 
 open prime_spectrum
 
+/--
+The `stalk_to_fiber` map for the structure sheaf is surjective.
+(In fact, an isomorphism, as constructed below in `stalk_iso_Type`.)
+-/
 lemma structure_sheaf_stalk_to_fiber_surjective (x : Top.of (prime_spectrum R)) :
   function.surjective (stalk_to_fiber (is_locally_fraction R) x) :=
 begin
@@ -206,6 +210,7 @@ end
 
 /--
 The `stalk_to_fiber` map for the structure sheaf is injective.
+(In fact, an isomorphism, as constructed below in `stalk_iso_Type`.)
 
 The proof here follows the argument in Hartshorne's Algebraic Geometry, Proposition II.2.2.
 -/

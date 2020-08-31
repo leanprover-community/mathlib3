@@ -74,10 +74,14 @@ begin
 end
 .
 
+/-- The identity morphism of a `PresheafedSpace`. -/
 def id (X : PresheafedSpace C) : hom X X :=
 { base := 𝟙 (X : Top.{v}),
   c := (functor.left_unitor _).inv ≫ whisker_right (nat_trans.op (opens.map_id X.carrier).hom) _ }
 
+instance hom_inhabited (X : PresheafedSpace C) : inhabited (hom X X) := ⟨id X⟩
+
+/-- Composition of morphisms of `PresheafedSpace`s. -/
 def comp (X Y Z : PresheafedSpace C) (α : hom X Y) (β : hom Y Z) : hom X Z :=
 { base := α.base ≫ β.base,
   c := β.c ≫ (whisker_left (opens.map β.base).op α.c) ≫ (Top.presheaf.pushforward.comp _ _ _).inv }
@@ -197,8 +201,9 @@ end functor
 
 namespace nat_trans
 
-/- The proofs below can be done by `tidy`, but it is too slow,
-   and we don't have a tactic caching mechanism. -/
+/--
+A natural transformation induces a natural transformation between the `map_presheaf` functors.
+-/
 def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_presheaf :=
 { app := λ X,
   { base := 𝟙 _,

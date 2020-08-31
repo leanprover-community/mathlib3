@@ -90,7 +90,7 @@ of the `topological_fiber_bundle_core`, as it makes some constructions more
 functorial and it is a nice way to say that the trivializations cover the whole space `B`.
 
 With this definition, the type of the fiber bundle space constructed from the core data is just
-`Σ (b : B), F `, but the topology is not the product one.
+`Σ (b : B), F `, but the topology is not the product one, in general.
 
 We also take the indexing type (indexing all the trivializations) as a parameter to the fiber bundle
 core: it could always be taken as a subtype of all the maps from open subsets of `B` to continuous

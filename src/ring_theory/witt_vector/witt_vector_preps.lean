@@ -392,21 +392,7 @@ by rw [vars_monomial hr, finsupp.support_single_ne_zero he]
 
 lemma mem_vars (p : mv_polynomial σ R) (i : σ) :
   i ∈ p.vars ↔ ∃ (d : σ →₀ ℕ) (H : d ∈ p.support), i ∈ d.support :=
-begin
-  split,
-  { intro hi,
-    rw [vars, multiset.mem_to_finset, degrees] at hi,
-    rcases finset.mem_sup.mp hi with ⟨d, hd, hid⟩,
-    use [d, hd],
-    dsimp [finsupp.to_multiset] at hid,
-    rw finsupp.mem_support_iff,
-    -- maybe wrong track
-    sorry },
-  { rintros ⟨d, hd, hid⟩,
-    contrapose! hid,
-    simp only [not_not, finsupp.mem_support_iff],
-    exact mem_support_not_mem_vars_zero hd hid }
-end
+by simp only [vars, multiset.mem_to_finset, mem_degrees, coeff, finsupp.mem_support_iff, exists_prop]
 
 lemma vars_eq_support_bind_support (p : mv_polynomial σ R) :
   p.vars = p.support.bind finsupp.support :=

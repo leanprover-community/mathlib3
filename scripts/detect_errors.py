@@ -8,7 +8,7 @@ for line in sys.stdin:
         for line in itertools.islice(sys.stdin, 20):
             sys.stdout.write(line)
         sys.exit(1)
-    elif not line.startswith('configuring mathlib') and not line.startswith('> lean --make'):
+    else:
         was_silent = False
 
 if not was_silent:

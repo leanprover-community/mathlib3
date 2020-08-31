@@ -204,6 +204,15 @@ def extend : ℝ → X := I_extend γ
 lemma continuous_extend : continuous γ.extend :=
 γ.continuous.I_extend
 
+lemma extend_extends {t : ℝ} (ht : t ∈ Icc (0:ℝ) 1) : γ.extend t = γ ⟨t, ht⟩ :=
+I_extend_extends γ.to_fun ht
+
+lemma extend_extends' (t : (Icc 0 1 : set ℝ)) : γ.extend ↑t = γ t :=
+by {convert γ.extend_extends t.2, rw subtype.ext_iff_val}
+
+lemma extend_range : range γ.extend = range γ :=
+I_extend_range γ.to_fun
+
 @[simp] lemma extend_zero : γ.extend 0 = x :=
 by simp [extend]
 
@@ -236,6 +245,41 @@ path on `[0, 1/2]` and the second one on `[1/2, 1]`. -/
   end,
   source' := by norm_num,
   target' := by norm_num }
+
+lemma trans_range (γ₁ : path x y) (γ₂ : path y z) : range (γ₁.trans γ₂) = range γ₁ ∪ range γ₂ :=
+begin
+  rw trans,
+  apply eq_of_subset_of_subset,
+  { rintros x ⟨⟨t, ht0, ht1⟩, hxt⟩,
+    unfold_coes at hxt,
+    simp only [comp_app] at hxt,
+    split_ifs at hxt,
+    { left,
+      exact ⟨⟨2*t, ⟨by linarith, by linarith⟩⟩, by rwa ← γ₁.extend_extends⟩ },
+    { right,
+      exact ⟨⟨2*t-1, ⟨by linarith, by linarith⟩⟩, by rwa ← γ₂.extend_extends⟩ } },
+  { rintros x (⟨⟨t, ht0, ht1⟩, hxt⟩ | ⟨⟨t, ht0, ht1⟩, hxt⟩),
+    { use ⟨t/2, ⟨by linarith, by linarith⟩⟩,
+      unfold_coes,
+      have : t/2 ≤ 1/2 := by linarith,
+      simp only [this, comp_app, if_true],
+      ring,
+      rwa γ₁.extend_extends },
+    { by_cases h : t = 0,
+      { use ⟨1/2, ⟨by linarith, by linarith⟩⟩,
+        unfold_coes,
+        simp only [h, comp_app, if_true, le_refl, mul_one_div_cancel (@two_ne_zero ℝ _)],
+        rw γ₁.extend_one,
+        rwa [← γ₂.extend_extends, h, γ₂.extend_zero] at hxt },
+      { use ⟨(t+1)/2, ⟨by linarith, by linarith⟩⟩,
+        unfold_coes,
+        change t ≠ 0 at h,
+        have ht0 := lt_of_le_of_ne ht0 h.symm,
+        have : ¬ (t+1)/2 ≤ 1/2 := by {rw not_le, linarith},
+        simp only [comp_app, if_false, this],
+        ring,
+        rwa γ₂.extend_extends } } }
+end
 
 /-- Image of a path from `x` to `y` by a continuous map -/
 def map (γ : path x y) {Y : Type*} [topological_space Y]
@@ -469,6 +513,67 @@ begin
   exact ⟨(hx hyW).joined_subtype.some_path.map (continuous_inclusion hWU), by simp⟩
 end
 
+private lemma exists_path_through_family_aux {s : set X} (h : is_path_connected s) (n : ℕ)
+  (p : ℕ → X) (hp : ∀ i ≤ n, p i ∈ s) :
+∃ γ : path (p 0) (p n), (∀ i ≤ n, p i ∈ range γ) ∧ (range γ ⊆ s) :=
+begin
+  induction n with n hn,
+  { use (λ _, p 0),
+    { continuity },
+    { split,
+      { rintros i hi, rw nat.le_zero_iff.mp hi, exact ⟨0, rfl⟩ },
+      { rw range_subset_iff, rintros x, exact hp 0 (le_refl _) } } },
+  { rcases hn (λ i hi, hp i $ nat.le_succ_of_le hi) with ⟨γ₀, hγ₀⟩,
+    rcases h.joined_in (p n) (p $ n+1) (hp n n.le_succ) (hp (n+1) $ le_refl _) with ⟨γ₁, hγ₁⟩,
+    use γ₀.trans γ₁,
+    split,
+    { rintros i hi,
+      by_cases hi' : i ≤ n,
+      { rw γ₀.trans_range γ₁,
+        left,
+        exact hγ₀.1 i hi' },
+      { rw [not_le, ← nat.succ_le_iff] at hi',
+        have : i = n.succ := by linarith,
+        rw this,
+        use 1,
+        refine path.target _ } },
+    { rw γ₀.trans_range γ₁,
+      apply union_subset hγ₀.2,
+      rw range_subset_iff,
+      exact hγ₁ } }
+end
+
+lemma is_path_connected.exists_path_through_family {n : ℕ} {s : set X} (h : is_path_connected s)
+  (p : fin (n+1) → X) (hp : ∀ i, p i ∈ s) :
+  ∃ γ : path (p 0) (p n), (∀ i, p i ∈ range γ) ∧ (range γ ⊆ s) :=
+begin
+  let p' : ℕ → X := λ k, if h : k < n+1 then p ⟨k, h⟩ else p ⟨0, n.zero_lt_succ⟩,
+  have hpp' : ∀ k < n+1, p k = p' k,
+  { intros k hk, simp only [p', hk, dif_pos], congr, ext, exact_mod_cast fin.coe_coe_of_lt hk },
+  have := exists_path_through_family_aux h n p' (λ i hi, by simp [p', nat.lt_succ_of_le hi, hp]),
+  rcases this with ⟨γ, hγ⟩,
+  use γ.cast (hpp' 0 n.zero_lt_succ) (hpp' n n.lt_succ_self),
+  simp only [γ.cast_coe],
+  refine and.intro _ hγ.2,
+  rintros ⟨i, hi⟩,
+  convert hγ.1 i (nat.le_of_lt_succ hi), rw ← hpp' i hi,
+  congr,
+  ext,
+  exact_mod_cast (fin.coe_coe_of_lt hi).symm
+end
+
+lemma is_path_connected.exists_path_through_family' {n : ℕ} {s : set X} (h : is_path_connected s)
+  (p : fin (n+1) → X) (hp : ∀ i, p i ∈ s) :
+  ∃ (γ : path (p 0) (p n)) (t : fin (n + 1) → I), (∀ t, γ t ∈ s) ∧ ∀ i, γ (t i) = p i :=
+begin
+  rcases h.exists_path_through_family p hp with ⟨γ, hγ⟩,
+  rcases hγ with ⟨h₁, h₂⟩,
+  simp only [range, mem_set_of_eq] at h₁,
+  rw range_subset_iff at h₂,
+  choose! t ht using h₁,
+  exact ⟨γ, t, h₂, ht⟩
+end
+
 /-! ### Path connected spaces -/
 
 /-- A topological space is path-connected if it is non-empty and every two points can be
@@ -543,6 +648,27 @@ begin
   rw ← univ_subset_iff,
   exact (by simpa using hx : path_component x = univ) ▸ path_component_subset_component x
 end
+
+namespace path_connected_space
+variables [path_connected_space X]
+
+lemma exists_path_through_family {n : ℕ} (p : fin (n+1) → X) :
+  ∃ γ : path (p 0) (p n), (∀ i, p i ∈ range γ) :=
+begin
+  have : is_path_connected (univ : set X) := path_connected_space_iff_univ.mp (by apply_instance),
+  rcases this.exists_path_through_family p (λ i, true.intro) with ⟨γ, h, -⟩,
+  exact ⟨γ, h⟩
+end
+
+lemma exists_path_through_family' {n : ℕ} (p : fin (n+1) → X) :
+  ∃ (γ : path (p 0) (p n)) (t : fin (n + 1) → I), ∀ i, γ (t i) = p i :=
+begin
+  have : is_path_connected (univ : set X) := path_connected_space_iff_univ.mp (by apply_instance),
+  rcases this.exists_path_through_family' p (λ i, true.intro) with ⟨γ, t, -, h⟩,
+  exact ⟨γ, t, h⟩
+end
+
+end path_connected_space
 
 /-! ### Locally path connected spaces -/
 

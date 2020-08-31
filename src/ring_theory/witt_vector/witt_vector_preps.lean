@@ -191,23 +191,23 @@ begin
   simpa using multiset.mem_of_le (degrees_add _ _) hx,
 end
 
+lemma foobar (p q : mv_polynomial σ R) (h : p.degrees.disjoint q.degrees) :
+  p.degrees ≤ (p + q).degrees :=
+begin
+  apply finset.sup_le,
+  sorry
+  -- have := finsupp.support_add_eq, probably useful
+end
+
 -- not certain this is the right stragegy
 lemma degrees_add_of_disjoint (h : multiset.disjoint p.degrees q.degrees) :
   (p + q).degrees = p.degrees ∪ q.degrees :=
 begin
-  ext x,
   apply le_antisymm,
-  { apply multiset.count_le_of_le,
-    apply degrees_add },
-  { by_cases hxp : x ∈ p.degrees,
-    { rw [multiset.count_union, multiset.count_eq_zero_of_not_mem (multiset.disjoint_left.mp h hxp),
-         max_eq_left (nat.zero_le _)],
-      sorry },
-    { by_cases hxq : x ∈ q.degrees,
-      { rw [multiset.count_union, multiset.count_eq_zero_of_not_mem (multiset.disjoint_right.mp h hxq),
-         max_eq_right (nat.zero_le _)],
-        sorry },
-      { rw multiset.count_eq_zero_of_not_mem; simp [hxp, hxq] } } },
+  { apply degrees_add },
+  { apply multiset.union_le,
+    { apply foobar p q h },
+    { rw add_comm, apply foobar q p h.symm } }
 end
 
 lemma multiset.disjoint_to_finset {α} (m1 m2 : multiset α) :

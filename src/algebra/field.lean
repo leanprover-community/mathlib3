@@ -192,7 +192,7 @@ open_locale classical
 
 /-- Transferring from is_field to field -/
 noncomputable def is_field.to_field (R : Type u) [ring R] (h : is_field R) : field R :=
-{ inv := λ a, if ha : a = 0 then 0 else classical.some (is_field.mul_inv_cancel' h ha),
+{ inv := λ a, if ha : a = 0 then 0 else classical.some (is_field.mul_inv_cancel h ha),
   inv_zero := dif_pos rfl,
   mul_inv_cancel := λ a ha,
     begin

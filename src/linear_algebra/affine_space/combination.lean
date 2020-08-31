@@ -378,6 +378,28 @@ rfl
   ({i} : finset ι).centroid k p = p i :=
 by simp [centroid_def, affine_combination_apply]
 
+/-- The centroid of two points. -/
+lemma centroid_insert_singleton [char_zero k] (p : ι → P) (i₁ i₂ : ι) :
+  ({i₁, i₂} : finset ι).centroid k p = (2 ⁻¹ : k) • (p i₂ -ᵥ p i₁) +ᵥ p i₁ :=
+begin
+  by_cases h : i₁ = i₂,
+  { simp [h] },
+  { rw [centroid_def,
+        affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one _ _ _
+          (sum_centroid_weights_eq_one_of_nonempty k _ ⟨i₁, mem_insert_self _ _⟩) (p i₁)],
+    simp [h],
+    norm_num }
+end
+
+/-- The centroid of two points indexed by `fin 2`. -/
+lemma centroid_insert_singleton_fin [char_zero k] (p : fin 2 → P) :
+  univ.centroid k p = (2 ⁻¹ : k) • (p 1 -ᵥ p 0) +ᵥ p 0 :=
+begin
+  have hu : (finset.univ : finset (fin 2)) = {0, 1}, by dec_trivial,
+  rw hu,
+  convert centroid_insert_singleton k p 0 1
+end
+
 /-- The centroid combined with an embedding. -/
 lemma centroid_map (e : ι₂ ↪ ι) (p : ι → P) : (s₂.map e).centroid k p = s₂.centroid k (p ∘ e) :=
 by simp [centroid_def, affine_combination_map, centroid_weights]

@@ -70,6 +70,9 @@ variables [fintype V] [inhabited V] {G : simple_graph V} {d : ℕ} (hG : friends
 include hG
 
 variables (R)
+/-- Another characterization of a friendship graph is that there is exactly one path of length 2
+  between distinct vertices. These paths are counted in off-diagonal entries of the square of
+  the adjacency matrix, so for a friendship graph, those entries are all 1. -/
 theorem friendship_adj_sq_apply_of_ne {v w : V} (hvw : v ≠ w) :
   ((G.adj_matrix R) ^ 2) v w = 1 :=
 begin
@@ -77,39 +80,47 @@ begin
   simp [common_friends, neighbor_finset_eq_filter, finset.filter_filter, finset.filter_inter],
 end
 
+/-- This calculation amounts to counting the number of length 3 paths between nonadjacent vertices.
+  We use it to show that nonadjacent vertices have equal degrees. -/
 lemma friendship_adj_cube_apply_of_not_adj {v w : V} (non_adj : ¬ G.adj v w) :
   ((G.adj_matrix R) ^ 3) v w = degree G v :=
 begin
-  rw [pow_succ, mul_eq_mul, adj_matrix_mul_apply],
-  dunfold degree, rw [card_eq_sum_ones, sum_nat_cast],
+  rw [pow_succ, mul_eq_mul, adj_matrix_mul_apply, degree, card_eq_sum_ones, sum_nat_cast],
   apply sum_congr rfl,
-  intros x hx, rw [friendship_adj_sq_apply_of_ne, nat.cast_one], apply hG,
-  intro contra, rw contra at hx, apply non_adj, rw mem_neighbor_finset at hx, apply hx,
+  intros x hx,
+  rw [friendship_adj_sq_apply_of_ne _ hG, nat.cast_one],
+  rintro ⟨rfl⟩,
+  rw mem_neighbor_finset at hx,
+  apply non_adj hx,
 end
 
 variable {R}
 
+/-- The number of length 3 paths between `v` and `w` is the same as the number
+  of paths between `w` and `v`, and this is encoded in the fact that the cube of the
+  adjacency matrix is symmetric.
+  Given our previous lemma, this means the degrees of nonadjacent vertices are also equal. -/
 lemma degree_eq_of_not_adj {v w : V} (hvw : ¬ G.adj v w) :
   degree G v = degree G w :=
 begin
-  by_cases h : v = w,
-  { rw h },
-  { have hv := friendship_adj_cube_apply_of_not_adj ℕ hG hvw,
-    rw nat.cast_id at hv,
-    rw [← hv, ← transpose_adj_matrix, pow_succ, pow_two],
-    simp only [mul_eq_mul], repeat {rw ← transpose_mul},
-    rw [transpose_apply, ← mul_eq_mul, ← mul_eq_mul, ← pow_two, ← pow_succ',
-      friendship_adj_cube_apply_of_not_adj ℕ hG, nat.cast_id],
-    rw G.edge_symm, apply hvw, },
+  rw [← nat.cast_id (G.degree v), ← nat.cast_id (G.degree w),
+        ← friendship_adj_cube_apply_of_not_adj ℕ hG hvw,
+        ← friendship_adj_cube_apply_of_not_adj ℕ hG (λ h, hvw (G.sym h))],
+    conv_lhs {rw ← transpose_adj_matrix},
+    simp only [pow_succ, pow_two, mul_eq_mul, ← transpose_mul, transpose_apply],
+    simp only [← mul_eq_mul, mul_assoc],
 end
 
+/-- If there does not exist a politician, then a friendship graph is regular. We already know that
+  nonadjacent vertices have the same degree, and if there isn't a politician, we can show this for
+  adjacent vertices by finding a vertex neither is adjacent to and using transitivity. -/
 theorem counter_reg (hG' : ¬exists_politician G) :
   ∃ (d : ℕ), G.is_regular_of_degree d :=
 begin
-  let v := arbitrary V,
-  use G.degree v, intro x,
-  by_cases hvx : G.adj v x,
-    swap, { exact eq.symm (degree_eq_of_not_adj hG hvx), },
+  have v := arbitrary V,
+  use G.degree v,
+  intro x,
+  by_cases hvx : G.adj v x, swap, { exact eq.symm (degree_eq_of_not_adj hG hvx), },
   dunfold exists_politician at hG',
   push_neg at hG',
   rcases hG' v with ⟨w, hvw', hvw⟩,
@@ -130,22 +141,24 @@ begin
   rw [hy, hx],
 end
 
+/-- Knowing that a graph is a friendship graph determines the off-diagonal elements of the
+  square of its adjacency matrix, and knowing the graph is `d`-regular determines the diagonal.  -/
 theorem friendship_reg_adj_sq (hd : G.is_regular_of_degree d) :
   ((G.adj_matrix R) ^ 2) = λ v w, if v = w then d else 1 :=
 begin
   ext v w, by_cases h : v = w,
-  { cases h, rw [pow_two, mul_eq_mul, adj_matrix_mul_self_apply_self, hd], simp, },
+  { rw [h, pow_two, mul_eq_mul, adj_matrix_mul_self_apply_self, hd], simp, },
   { rw [friendship_adj_sq_apply_of_ne R hG h, if_neg h], },
 end
 
+/-- We can compute the size of a `d`-regular friendship graph by applying the square of the
+  adjacency matrix to a constant vector, and computing the result two different ways. -/
 lemma friendship_reg_card (hd : G.is_regular_of_degree d) :
   d + (fintype.card V - 1) = d * d :=
 begin
   let v := arbitrary V,
   transitivity ((G.adj_matrix ℕ) ^ 2).mul_vec (λ _, 1) v,
-  { rw friendship_reg_adj_sq hG hd,
-    dunfold mul_vec dot_product,
-    rw ← insert_erase (mem_univ v),
+  { rw [friendship_reg_adj_sq hG hd, mul_vec, dot_product, ← insert_erase (mem_univ v)],
     simp only [sum_insert, mul_one, if_true, nat.cast_id, eq_self_iff_true,
                mem_erase, not_true, ne.def, not_false_iff, add_right_inj, false_and],
     rw [finset.sum_const_nat, card_erase_of_mem (mem_univ v), mul_one], refl,
@@ -155,6 +168,8 @@ begin
           card_neighbor_set_eq_degree, hd v], }
 end
 
+/-- The size of a `d`-regular friendship graph is `1 mod (d-1)`, and also `1 mod p` for a
+  factor `p ∣ d-1`. -/
 lemma friendship_reg_card_mod_p {p : ℕ} (dmod : (d : zmod p) = 1) (hd : G.is_regular_of_degree d) :
   (fintype.card V : zmod p) = 1 :=
 begin
@@ -178,6 +193,8 @@ lemma friendship_reg_adj_mul_J_mod_p {p : ℕ} (dmod : (d : zmod p) = 1) (hd : G
   (G.adj_matrix (zmod p)) * (λ _ _, 1) = λ _ _, 1 :=
 by rw [friendship_reg_adj_sq_mul_J hG hd, dmod]
 
+/-- When you mod out by a factor of `d-1`, the square and all higher powers of the adjacency matrix
+  of a `d`-regular friendship graph reduce to the matrix whose entries are all 1. -/
 lemma friendship_reg_adj_pow_mod_p {p : ℕ} (dmod : (d : zmod p) = 1) (hd : G.is_regular_of_degree d)
 {k : ℕ} (hk : 2 ≤ k) :
   (G.adj_matrix (zmod p)) ^ k = λ _ _, 1 :=
@@ -191,8 +208,10 @@ begin
   apply friendship_reg_adj_mul_J_mod_p hG dmod hd,
 end
 
-/--
-This is the main proof
+/-- This is the main proof. Assuming that `3 ≤ d`, we take `p` to be a prime factor of `d-1`.
+  Then the `p`th power of the adjacency matrix of a `d`-regular friendship graph must have trace 1
+  mod `p`, but we can also show that the trace must be the `p`th power of the trace of the original
+  adjacency matrix, which is 0.
 -/
 lemma three_le_deg_friendship_contra
   (hd : G.is_regular_of_degree d) (h : 3 ≤ d) : false :=
@@ -222,6 +241,8 @@ begin
     linarith, },
 end
 
+/-- If `d ≤ 1`, a `d`-regular friendship graph has at most one vertex, which is
+  trivially a politician. -/
 lemma deg_le_one_friendship_has_pol (hd : G.is_regular_of_degree d) (hd1 : d ≤ 1) :
   exists_politician G :=
 begin
@@ -229,7 +250,7 @@ begin
   have h := friendship_reg_card hG hd,
   rw sq at h,
   have : fintype.card V ≤ 1,
-  { cases fintype.card V,
+  { cases fintype.card V with n,
     { exact zero_le _, },
     { have : n = 0,
       { rw [nat.succ_sub_succ_eq_sub, nat.sub_zero] at h,
@@ -240,6 +261,8 @@ begin
   apply fintype.card_le_one_iff.mp this,
 end
 
+/-- If `d = 2`, a `d`-regular friendship graph has 3 vertices, so it must be complete graph,
+  and all the vertices are politicians. -/
 lemma deg_two_neighbor_finset_eq (hd : G.is_regular_of_degree 2) (v : V) :
   G.neighbor_finset v = finset.univ.erase v :=
 begin
@@ -274,12 +297,15 @@ begin
   { exact deg_two_friendship_has_pol hG hd },
 end
 
+/-- We know that a friendship graph has a politician or is regular, so we assume it's regular.
+  If the degree is at most 2, we observe by casework that it's regular anyway.
+  If the degree is at least 3, the graph cannot exist. -/
 theorem friendship_theorem : exists_politician G :=
 begin
   by_contradiction npG,
   rcases counter_reg hG npG with ⟨d, dreg⟩,
-  have : d ≤ 2 ∨ 3 ≤ d := by omega,
-  cases this,
-  { refine npG (deg_le_two_friendship_has_pol hG dreg this) },
-  { exact three_le_deg_friendship_contra hG dreg this },
+  have h : d ≤ 2 ∨ 3 ≤ d := by omega,
+  cases h with dle2 dge3,
+  { refine npG (deg_le_two_friendship_has_pol hG dreg dle2) },
+  { exact three_le_deg_friendship_contra hG dreg dge3 },
 end

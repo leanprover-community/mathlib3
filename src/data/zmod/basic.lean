@@ -80,10 +80,9 @@ private lemma one_mul_aux (n : ℕ) (a : fin (n+1)) : (1 : fin (n+1)) * a = a :=
 begin
   cases n with n,
   { exact subsingleton.elim _ _ },
-  { have h₁ : a.1 % n.succ.succ = a.1 := nat.mod_eq_of_lt a.2,
-    have h₂ : 1 % n.succ.succ = 1 := nat.mod_eq_of_lt dec_trivial,
-    refine fin.eq_of_veq _,
-    simp [val_mul, one_val, h₁, h₂] }
+  { have h₁ : (a : ℕ) % n.succ.succ = a := nat.mod_eq_of_lt a.2,
+    apply fin.ext,
+    simp only [coe_mul, coe_one, h₁, one_mul], }
 end
 
 private lemma left_distrib_aux (n : ℕ) : ∀ a b c : fin (n+1), a * (b + c) = a * b + a * c :=
@@ -159,7 +158,7 @@ See `zmod.val_min_abs` for a variant that takes values in the integers.
 -/
 def val : Π {n : ℕ}, zmod n → ℕ
 | 0     := int.nat_abs
-| (n+1) := fin.val
+| (n+1) := (coe : fin (n + 1) → ℕ)
 
 lemma val_lt {n : ℕ} [fact (0 < n)] (a : zmod n) : a.val < n :=
 begin
@@ -226,18 +225,9 @@ begin
   assume i,
   casesI n,
   { exfalso, exact nat.not_lt_zero 0 ‹0 < 0› },
-  { refine ⟨i.val, _⟩,
-    cases i with i hi,
-    induction i with i IH, { ext, refl },
-    show (i+1 : zmod (n+1)) = _,
-    specialize IH (lt_of_le_of_lt i.le_succ hi),
-    ext, erw [fin.val_add, IH],
-    suffices : fin.val (1 : zmod (n+1)) = 1,
-    { rw this, apply nat.mod_eq_of_lt hi },
-    show 1 % (n+1) = 1,
-    apply nat.mod_eq_of_lt,
-    apply lt_of_le_of_lt _ hi,
-    exact le_of_inf_eq rfl }
+  { change fin (n + 1) at i,
+    refine ⟨i, _⟩,
+    rw [fin.ext_iff, fin.coe_coe_eq_self] }
 end
 
 lemma int_cast_surjective :
@@ -295,24 +285,22 @@ lemma cast_add (h : m ∣ n) (a b : zmod n) : ((a + b : zmod n) : R) = a + b :=
 begin
   casesI n,
   { apply int.cast_add },
-  show ((fin.val (a + b) : ℕ) : R) = fin.val a + fin.val b,
-  symmetry, resetI,
-  rw [fin.val_add, ← nat.cast_add, ← sub_eq_zero, ← nat.cast_sub,
-    @char_p.cast_eq_zero_iff R _ m],
-  { exact dvd_trans h (nat.dvd_sub_mod _) },
-  { apply nat.mod_le }
+  simp only [coe_coe],
+  symmetry,
+  erw [fin.coe_add, ← nat.cast_add, ← sub_eq_zero, ← nat.cast_sub (nat.mod_le _ _),
+      @char_p.cast_eq_zero_iff R _ m],
+  exact dvd_trans h (nat.dvd_sub_mod _),
 end
 
 lemma cast_mul (h : m ∣ n) (a b : zmod n) : ((a * b : zmod n) : R) = a * b :=
 begin
   casesI n,
   { apply int.cast_mul },
-  show ((fin.val (a * b) : ℕ) : R) = fin.val a * fin.val b,
-  symmetry, resetI,
-  rw [fin.val_mul, ← nat.cast_mul, ← sub_eq_zero, ← nat.cast_sub,
-    @char_p.cast_eq_zero_iff R _ m],
-  { exact dvd_trans h (nat.dvd_sub_mod _) },
-  { apply nat.mod_le }
+  simp only [coe_coe],
+  symmetry,
+  erw [fin.coe_mul, ← nat.cast_mul, ← sub_eq_zero, ← nat.cast_sub (nat.mod_le _ _),
+      @char_p.cast_eq_zero_iff R _ m],
+  exact dvd_trans h (nat.dvd_sub_mod _),
 end
 
 /-- The canonical ring homomorphism from `zmod n` to a ring of characteristic `n`. -/

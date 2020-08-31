@@ -46,14 +46,14 @@ def sections_submodule (F : J ⥤ Module R) :
   ..(AddGroup.sections_add_subgroup (F ⋙ forget₂ (Module R) AddCommGroup ⋙ forget₂ AddCommGroup AddGroup)) }
 
 instance limit_add_comm_group (F : J ⥤ Module R) :
-  add_comm_group (limit (F ⋙ forget (Module R))) :=
+  add_comm_group (types.limit_cone (F ⋙ forget (Module R))).X :=
 begin
   change add_comm_group (sections_submodule F),
   apply_instance,
 end
 
 instance limit_module (F : J ⥤ Module R) :
-  module R (limit (F ⋙ forget (Module R))) :=
+  module R (types.limit_cone (F ⋙ forget (Module R))).X :=
 begin
   change module R (sections_submodule F),
   apply_instance,
@@ -61,8 +61,8 @@ end
 
 /-- `limit.π (F ⋙ forget Ring) j` as a `ring_hom`. -/
 def limit_π_linear_map (F : J ⥤ Module R) (j) :
-  limit (F ⋙ forget (Module R)) →ₗ[R] (F ⋙ forget (Module R)).obj j :=
-{ to_fun := limit.π (F ⋙ forget (Module R)) j,
+  (types.limit_cone (F ⋙ forget (Module R))).X →ₗ[R] (F ⋙ forget (Module R)).obj j :=
+{ to_fun := (types.limit_cone (F ⋙ forget (Module R))).π.app j,
   map_smul' := λ x y, rfl,
   map_add' := λ x y, rfl }
 
@@ -75,21 +75,21 @@ namespace has_limits
 Construction of a limit cone in `Module R`.
 (Internal use only; use the limits API.)
 -/
-def limit (F : J ⥤ Module R) : cone F :=
-{ X := Module.of R (limit (F ⋙ forget _)),
+def limit_cone (F : J ⥤ Module R) : cone F :=
+{ X := Module.of R (types.limit_cone (F ⋙ forget _)).X,
   π :=
   { app := limit_π_linear_map F,
     naturality' := λ j j' f,
-      linear_map.coe_inj ((limit.cone (F ⋙ forget _)).π.naturality f) } }
+      linear_map.coe_inj ((types.limit_cone (F ⋙ forget _)).π.naturality f) } }
 
 /--
 Witness that the limit cone in `Module R` is a limit cone.
 (Internal use only; use the limits API.)
 -/
-def limit_is_limit (F : J ⥤ Module R) : is_limit (limit F) :=
+def limit_cone_is_limit (F : J ⥤ Module R) : is_limit (limit_cone F) :=
 begin
   refine is_limit.of_faithful
-    (forget (Module R)) (limit.is_limit _)
+    (forget (Module R)) (types.limit_cone_is_limit _)
     (λ s, ⟨_, _, _⟩) (λ s, rfl); tidy
 end
 
@@ -98,28 +98,34 @@ end has_limits
 open has_limits
 
 /-- The category of R-modules has all limits. -/
+@[irreducible]
 instance has_limits : has_limits (Module R) :=
-{ has_limits_of_shape := λ J 𝒥,
-  { has_limit := λ F, by exactI
-    { cone     := limit F,
-      is_limit := limit_is_limit F } } }
+{ has_limits_of_shape := λ J 𝒥, by exactI
+  { has_limit := λ F,
+    { cone     := limit_cone F,
+      is_limit := limit_cone_is_limit F } } }
+
+/--
+An auxiliary declaration to speed up typechecking.
+-/
+def forget₂_AddCommGroup_preserves_limits_aux (F : J ⥤ Module R) :
+  is_limit ((forget₂ (Module R) AddCommGroup).map_cone (limit_cone F)) :=
+AddCommGroup.limit_cone_is_limit (F ⋙ forget₂ (Module R) AddCommGroup)
 
 /--
 The forgetful functor from R-modules to abelian groups preserves all limits.
 -/
 instance forget₂_AddCommGroup_preserves_limits : preserves_limits (forget₂ (Module R) AddCommGroup) :=
-{ preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F,
-    by exactI preserves_limit_of_preserves_limit_cone
-      (limit.is_limit F) (limit.is_limit (F ⋙ forget₂ (Module R) AddCommGroup)) } }
+{ preserves_limits_of_shape := λ J 𝒥, by exactI
+  { preserves_limit := λ F, preserves_limit_of_preserves_limit_cone
+      (limit_cone_is_limit F) (forget₂_AddCommGroup_preserves_limits_aux F) } }
 
 /--
 The forgetful functor from R-modules to types preserves all limits.
 -/
 instance forget_preserves_limits : preserves_limits (forget (Module R)) :=
-{ preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F,
-    by exactI preserves_limit_of_preserves_limit_cone
-      (limit.is_limit F) (limit.is_limit (F ⋙ forget _)) } }
+{ preserves_limits_of_shape := λ J 𝒥, by exactI
+  { preserves_limit := λ F, preserves_limit_of_preserves_limit_cone
+    (limit_cone_is_limit F) (types.limit_cone_is_limit (F ⋙ forget _)) } }
 
 end Module

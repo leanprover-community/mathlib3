@@ -116,6 +116,11 @@ abbreviation binary_fan.fst {X Y : C} (s : binary_fan X Y) := s.π.app walking_p
 /-- The second projection of a binary fan. -/
 abbreviation binary_fan.snd {X Y : C} (s : binary_fan X Y) := s.π.app walking_pair.right
 
+@[simp] lemma binary_fan.π_app_left {X Y : C} (s : binary_fan X Y) :
+  s.π.app walking_pair.left = s.fst := rfl
+@[simp] lemma binary_fan.π_app_right {X Y : C} (s : binary_fan X Y) :
+  s.π.app walking_pair.right = s.snd := rfl
+
 lemma binary_fan.is_limit.hom_ext {W X Y : C} {s : binary_fan X Y} (h : is_limit s)
   {f g : W ⟶ s.X} (h₁ : f ≫ s.fst = g ≫ s.fst) (h₂ : f ≫ s.snd = g ≫ s.snd) : f = g :=
 h.hom_ext $ λ j, walking_pair.cases_on j h₁ h₂
@@ -128,6 +133,11 @@ abbreviation binary_cofan.inl {X Y : C} (s : binary_cofan X Y) := s.ι.app walki
 
 /-- The second inclusion of a binary cofan. -/
 abbreviation binary_cofan.inr {X Y : C} (s : binary_cofan X Y) := s.ι.app walking_pair.right
+
+@[simp] lemma binary_cofan.ι_app_left {X Y : C} (s : binary_cofan X Y) :
+  s.ι.app walking_pair.left = s.inl := rfl
+@[simp] lemma binary_cofan.ι_app_right {X Y : C} (s : binary_cofan X Y) :
+  s.ι.app walking_pair.right = s.inr := rfl
 
 lemma binary_cofan.is_colimit.hom_ext {W X Y : C} {s : binary_cofan X Y} (h : is_colimit s)
   {f g : s.X ⟶ W} (h₁ : s.inl ≫ f = s.inl ≫ g) (h₂ : s.inr ≫ f = s.inr ≫ g) : f = g :=
@@ -157,6 +167,7 @@ def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X
 /-- If `s` is a limit binary fan over `X` and `Y`, then every pair of morphisms `f : W ⟶ X` and
     `g : W ⟶ Y` induces a morphism `l : W ⟶ s.X` satisfying `l ≫ s.fst = f` and `l ≫ s.snd = g`.
     -/
+@[simps]
 def binary_fan.is_limit.lift' {W X Y : C} {s : binary_fan X Y} (h : is_limit s) (f : W ⟶ X)
   (g : W ⟶ Y) : {l : W ⟶ s.X // l ≫ s.fst = f ∧ l ≫ s.snd = g} :=
 ⟨h.lift $ binary_fan.mk f g, h.fac _ _, h.fac _ _⟩
@@ -164,6 +175,7 @@ def binary_fan.is_limit.lift' {W X Y : C} {s : binary_fan X Y} (h : is_limit s) 
 /-- If `s` is a colimit binary cofan over `X` and `Y`,, then every pair of morphisms `f : X ⟶ W` and
     `g : Y ⟶ W` induces a morphism `l : s.X ⟶ W` satisfying `s.inl ≫ l = f` and `s.inr ≫ l = g`.
     -/
+@[simps]
 def binary_cofan.is_colimit.desc' {W X Y : C} {s : binary_cofan X Y} (h : is_colimit s) (f : X ⟶ W)
   (g : Y ⟶ W) : {l : s.X ⟶ W // s.inl ≫ l = f ∧ s.inr ≫ l = g} :=
 ⟨h.desc $ binary_cofan.mk f g, h.fac _ _, h.fac _ _⟩

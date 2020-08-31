@@ -177,6 +177,10 @@ theorem span_singleton_prime {p : α} (hp : p ≠ 0) :
   is_prime (span ({p} : set α)) ↔ prime p :=
 by simp [is_prime, prime, span_singleton_eq_top, hp, mem_span_singleton]
 
+lemma bot_prime {R : Type*} [integral_domain R] : (⊥ : ideal R).is_prime :=
+⟨λ h, one_ne_zero (by rwa [ideal.eq_top_iff_one, submodule.mem_bot] at h),
+ λ x y h, mul_eq_zero.mp (by simpa only [submodule.mem_bot] using h)⟩
+
 /-- An ideal is maximal if it is maximal in the collection of proper ideals. -/
 @[class] def is_maximal (I : ideal α) : Prop :=
 I ≠ ⊤ ∧ ∀ J, I < J → J = ⊤
@@ -329,6 +333,11 @@ instance (I : ideal α) [hI : I.is_prime] : integral_domain I.quotient :=
   .. quotient.comm_ring I,
   .. quotient.nontrivial hI.1 }
 
+lemma is_integral_domain_iff_prime (I : ideal α) : is_integral_domain I.quotient ↔ I.is_prime :=
+⟨ λ ⟨h1, h2, h3⟩, ⟨zero_ne_one_iff.1 $ @zero_ne_one _ _ ⟨h1⟩, λ x y h,
+    by { simp only [←eq_zero_iff_mem, (mk I).map_mul] at ⊢ h, exact h3 _ _ h}⟩,
+  λ h, by exactI integral_domain.to_is_integral_domain I.quotient⟩
+
 lemma exists_inv {I : ideal α} [hI : I.is_maximal] :
  ∀ {a : I.quotient}, a ≠ 0 → ∃ b : I.quotient, a * b = 1 :=
 begin
@@ -347,6 +356,27 @@ protected noncomputable def field (I : ideal α) [hI : I.is_maximal] : field I.q
     exact classical.some_spec (exists_inv ha),
   inv_zero := dif_pos rfl,
   ..quotient.integral_domain I }
+
+/-- If the quotient by an ideal is a field, then the ideal is maximal. -/
+theorem maximal_of_is_field (I : ideal α)
+  (hqf : is_field I.quotient) : I.is_maximal :=
+begin
+  apply ideal.is_maximal_iff.2,
+  split,
+  { intro h,
+    rcases hqf.exists_pair_ne with ⟨⟨x⟩, ⟨y⟩, hxy⟩,
+    exact hxy (ideal.quotient.eq.2 (mul_one (x - y) ▸ I.mul_mem_left h)) },
+  { intros J x hIJ hxnI hxJ,
+    rcases hqf.mul_inv_cancel (mt ideal.quotient.eq_zero_iff_mem.1 hxnI) with ⟨⟨y⟩, hy⟩,
+    rw [← zero_add (1 : α), ← sub_self (x * y), sub_add],
+    refine J.sub_mem (J.mul_mem_right hxJ) (hIJ (ideal.quotient.eq.1 hy)) }
+end
+
+/-- The quotient of a ring by an ideal is a field iff the ideal is maximal. -/
+theorem maximal_ideal_iff_is_field_quotient (I : ideal α) :
+  I.is_maximal ↔ is_field I.quotient :=
+⟨λ h, @field.to_is_field I.quotient (@ideal.quotient.field _ _ I h),
+ λ h, maximal_of_is_field I h⟩
 
 variable [comm_ring β]
 
@@ -449,7 +479,7 @@ begin
   all_goals { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ <|> rintro ⟨a⟩,
     simp only [(•), submodule.quotient.quot_mk_eq_mk, ideal.quotient.mk_eq_mk],
     change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
-    congr, ext, simp [mul_assoc, mul_add, add_mul] }
+    congr' with i, simp [mul_assoc, mul_add, add_mul] }
 end
 
 /-- `R^n/I^n` is isomorphic to `(R/I)^n` as an `R/I`-module. -/
@@ -636,6 +666,19 @@ local_of_unique_max_ideal begin
     exact hPnot_top (hM.2 P (bot_lt_iff_ne_bot.2 hPnonzero)) },
 end
 
+lemma local_of_surjective {A B : Type*} [comm_ring A] [local_ring A] [comm_ring B] [nontrivial B]
+  (f : A →+* B) (hf : function.surjective f) :
+  local_ring B :=
+{ is_local :=
+  begin
+    intros b,
+    obtain ⟨a, rfl⟩ := hf b,
+    apply (local_ring.is_unit_or_is_unit_one_sub_self a).imp f.is_unit_map _,
+    rw [← f.map_one, ← f.map_sub],
+    apply f.is_unit_map,
+  end,
+  .. ‹nontrivial B› }
+
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A local ring homomorphism is a homomorphism between local rings
@@ -644,6 +687,19 @@ set_option default_priority 100 -- see Note [default priority]
 class is_local_ring_hom [semiring α] [semiring β] (f : α →+* β) : Prop :=
 (map_nonunit : ∀ a, is_unit (f a) → is_unit a)
 end prio
+
+instance is_local_ring_hom_id (A : Type*) [semiring A] : is_local_ring_hom (ring_hom.id A) :=
+{ map_nonunit := λ a, id }
+
+@[simp] lemma is_unit_map_iff {A B : Type*} [semiring A] [semiring B] (f : A →+* B)
+  [is_local_ring_hom f] (a) :
+  is_unit (f a) ↔ is_unit a :=
+⟨is_local_ring_hom.map_nonunit a, f.is_unit_map⟩
+
+instance is_local_ring_hom_comp {A B C : Type*} [semiring A] [semiring B] [semiring C]
+  (g : B →+* C) (f : A →+* B) [is_local_ring_hom g] [is_local_ring_hom f] :
+  is_local_ring_hom (g.comp f) :=
+{ map_nonunit := λ a, is_local_ring_hom.map_nonunit a ∘ is_local_ring_hom.map_nonunit (f a) }
 
 @[simp] lemma is_unit_of_map_unit [semiring α] [semiring β] (f : α →+* β) [is_local_ring_hom f]
   (a) (h : is_unit (f a)) : is_unit a :=

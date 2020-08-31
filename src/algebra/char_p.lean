@@ -67,7 +67,7 @@ classical.by_cases
 theorem char_p.exists_unique (α : Type u) [semiring α] : ∃! p, char_p α p :=
 let ⟨c, H⟩ := char_p.exists α in ⟨c, H, λ y H2, char_p.eq α H2 H⟩
 
-/-- Noncomuptable function that outputs the unique characteristic of a semiring. -/
+/-- Noncomputable function that outputs the unique characteristic of a semiring. -/
 noncomputable def ring_char (α : Type u) [semiring α] : ℕ :=
 classical.some (char_p.exists_unique α)
 
@@ -79,8 +79,8 @@ theorem ring_char.eq (α : Type u) [semiring α] {p : ℕ} (C : char_p α p) : p
 (classical.some_spec (char_p.exists_unique α)).2 p C
 
 theorem add_pow_char_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
-  [char_p R p] (x y : R) (h : commute x y):
-(x + y)^p = x^p + y^p :=
+  [char_p R p] (x y : R) (h : commute x y) :
+  (x + y)^p = x^p + y^p :=
 begin
   rw [commute.add_pow h, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
   rw [nat.cast_one, mul_one, mul_one, add_right_inj],
@@ -93,13 +93,49 @@ begin
   rwa ← finset.mem_range
 end
 
-theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} (hp : nat.prime p)
-  [char_p α p] (x y : α) : (x + y)^p = x^p + y^p :=
+theorem add_pow_char_pow_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] {n : ℕ} (x y : R) (h : commute x y) :
+  (x + y) ^ (p ^ n) = x ^ (p ^ n) + y ^ (p ^ n) :=
 begin
-  haveI : fact p.prime := hp,
-  apply add_pow_char_of_commute,
-  apply commute.all,
+  induction n, { simp, },
+  rw [nat.pow_succ, pow_mul, pow_mul, pow_mul, n_ih],
+  apply add_pow_char_of_commute, apply commute.pow_pow h,
 end
+
+theorem sub_pow_char_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] (x y : R) (h : commute x y) :
+  (x - y)^p = x^p - y^p :=
+begin
+  rw [eq_sub_iff_add_eq, ← add_pow_char_of_commute _ _ _ (commute.sub_left h rfl)],
+  simp, repeat {apply_instance},
+end
+
+theorem sub_pow_char_pow_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] {n : ℕ} (x y : R) (h : commute x y) :
+  (x - y) ^ (p ^ n) = x ^ (p ^ n) - y ^ (p ^ n) :=
+begin
+  induction n, { simp, },
+  rw [nat.pow_succ, pow_mul, pow_mul, pow_mul, n_ih],
+  apply sub_pow_char_of_commute, apply commute.pow_pow h,
+end
+
+theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} [fact p.prime]
+  [char_p α p] (x y : α) : (x + y)^p = x^p + y^p :=
+add_pow_char_of_commute _ _ _ (commute.all _ _)
+
+theorem add_pow_char_pow (R : Type u) [comm_ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] {n : ℕ} (x y : R) :
+  (x + y) ^ (p ^ n) = x ^ (p ^ n) + y ^ (p ^ n) :=
+add_pow_char_pow_of_commute _ _ _ (commute.all _ _)
+
+theorem sub_pow_char (α : Type u) [comm_ring α] {p : ℕ} [fact p.prime]
+  [char_p α p] (x y : α) : (x - y)^p = x^p - y^p :=
+sub_pow_char_of_commute _ _ _ (commute.all _ _)
+
+theorem sub_pow_char_pow (R : Type u) [comm_ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] {n : ℕ} (x y : R) :
+  (x - y) ^ (p ^ n) = x ^ (p ^ n) - y ^ (p ^ n) :=
+sub_pow_char_pow_of_commute _ _ _ (commute.all _ _)
 
 lemma eq_iff_modeq_int (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = b ↔ a ≡ b [ZMOD p] :=
@@ -129,11 +165,17 @@ def frobenius : R →+* R :=
   map_one' := one_pow p,
   map_mul' := λ x y, mul_pow x y p,
   map_zero' := zero_pow (lt_trans zero_lt_one ‹nat.prime p›.one_lt),
-  map_add' := add_pow_char R ‹nat.prime p› }
+  map_add' := add_pow_char R }
 
 variable {R}
 
 theorem frobenius_def : frobenius R p x = x ^ p := rfl
+
+theorem iterate_frobenius (n : ℕ) : (frobenius R p)^[n] x = x ^ p ^ n :=
+begin
+  induction n, {simp},
+  rw [function.iterate_succ', nat.pow_succ, pow_mul, function.comp_apply, frobenius_def, n_ih]
+end
 
 theorem frobenius_mul : frobenius R p (x * y) = frobenius R p x * frobenius R p y :=
 (frobenius R p).map_mul x y

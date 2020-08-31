@@ -359,8 +359,8 @@ protected noncomputable def field (I : ideal α) [hI : I.is_maximal] : field I.q
 
 /-- If the quotient by an ideal is a field, then the ideal is maximal
 -/
-theorem maximal_ideal_of_is_field_quotient (R : Type) [comm_ring R] (I : ideal R)
-[hqf : @is_field I.quotient (comm_ring.to_ring (ideal.quotient I))] : I.is_maximal :=
+theorem maximal_of_is_field {R : Type u} [comm_ring R] (I : ideal R)
+(hqf : @is_field I.quotient (comm_ring.to_ring (ideal.quotient I))) : I.is_maximal :=
 begin
   apply ideal.is_maximal_iff.2,
   split,
@@ -384,21 +384,21 @@ begin
       have hxyJ : x*y ∈ J, exact ideal.mul_mem_right J hxJ,
       have hend : x*y-(x*y-1) ∈ J, exact ideal.sub_mem J hxyJ hxy1J,
       have h1 : 1 = x*y-(x*y-1),
-        by calc 1 = 0 + 1 : eq.symm (zero_add 1)
+        by calc 1 = 0 + 1         : eq.symm (zero_add 1)
               ... = x*y - x*y + 1 : by rw sub_self
-              ... = x*y-(x*y-1) : by rw sub_add,
+              ... = x*y-(x*y-1)   : by rw sub_add,
       rw h1,
       exact hend, }
 end
 
 /-- The quotient of a ring by an ideal is a field iff the ideal is maximal.
 -/
-theorem maximal_ideal_iff_is_field_quotient (R : Type) [comm_ring R] (I : ideal R) :
+theorem maximal_ideal_iff_is_field_quotient {R : Type u} [comm_ring R] (I : ideal R) :
 I.is_maximal ↔ (@is_field I.quotient (comm_ring.to_ring (ideal.quotient I))) :=
 begin
   split; intro h,
   { exact @field.to_is_field I.quotient (@ideal.quotient.field _ _ I h) },
-  { exact @maximal_ideal_of_is_field_quotient R _ I h }
+  { exact maximal_of_is_field I h }
 end
 
 variable [comm_ring β]

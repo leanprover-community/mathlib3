@@ -205,7 +205,7 @@ noncomputable def is_field.to_field (R : Type u) [ring R] (h : is_field R) : fie
 Since `is_field` doesn't remember the data of an `inv` function and as such,
 a lemma that there is a unique inverse could be useful.
 -/
-lemma uniq_inv_of_is_field (R : Type u) [ring R] [hf : is_field R] :
+lemma uniq_inv_of_is_field (R : Type u) [ring R] (hf : is_field R) :
   ∀ (x : R), x ≠ 0 → ∃! (y : R), x * y = 1 :=
 begin
   intros x hx,

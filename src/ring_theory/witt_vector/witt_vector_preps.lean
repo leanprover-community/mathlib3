@@ -207,8 +207,19 @@ begin
       { rw multiset.count_eq_zero_of_not_mem; simp [hxp, hxq] } } },
 end
 
-lemma multiset.disjoint_iff {α} (m1 m2 : multiset α) : disjoint m1.to_finset m2.to_finset ↔ m1.disjoint m2 :=
-sorry
+lemma multiset.disjoint_to_finset {α} (m1 m2 : multiset α) :
+  disjoint m1.to_finset m2.to_finset ↔ m1.disjoint m2 :=
+begin
+  rw finset.disjoint_iff_ne,
+  split,
+  { intro h,
+    intros a ha1 ha2,
+    rw ← multiset.mem_to_finset at ha1 ha2,
+    exact h _ ha1 _ ha2 rfl },
+  { rintros h a ha b hb rfl,
+    rw multiset.mem_to_finset at ha hb,
+    exact h ha hb }
+end
 
 @[simp] lemma multiset.to_finset_union {α} (m1 m2 : multiset α) :
   (m1 ∪ m2).to_finset = m1.to_finset ∪ m2.to_finset :=
@@ -219,7 +230,7 @@ lemma vars_add_of_disjoint (h : disjoint p.vars q.vars) :
 begin
   apply finset.subset.antisymm (vars_add_subset p q),
   intros x hx,
-  simp only [vars, multiset.disjoint_iff] at h hx ⊢,
+  simp only [vars, multiset.disjoint_to_finset] at h hx ⊢,
   rw [degrees_add_of_disjoint _ _ h, multiset.to_finset_union],
   exact hx
 end
@@ -227,16 +238,38 @@ end
 section sum
 variables {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R)
 
+lemma finset.union_subset_union {α} {s1 t1 s2 t2 : finset α} (h1 : s1 ⊆ t1) (h2 : s2 ⊆ t2) :
+  s1 ∪ s2 ⊆ t1 ∪ t2 :=
+by { intros x hx, rw finset.mem_union at hx ⊢, tauto }
+
 lemma vars_sum_subset :
   (∑ i in s, φ i).vars ⊆ finset.bind s (λ i, (φ i).vars) :=
 begin
-  sorry
+  apply s.induction_on,
+  { simp },
+  { intros a s has hsum,
+    rw [finset.bind_insert, finset.sum_insert has],
+    refine finset.subset.trans (vars_add_subset _ _)
+      (finset.union_subset_union (finset.subset.refl _) _),
+    assumption }
 end
 
 lemma vars_sum_of_disjoint (h : pairwise $ disjoint on (λ i, (φ i).vars)) :
   (∑ i in s, φ i).vars = finset.bind s (λ i, (φ i).vars) :=
 begin
-  sorry
+  apply s.induction_on,
+  { simp },
+  { intros a s has hsum,
+    rw [finset.bind_insert, finset.sum_insert has, vars_add_of_disjoint, hsum],
+    unfold pairwise on_fun at h,
+    rw hsum,
+    simp only [finset.disjoint_iff_ne] at h ⊢,
+    intros v hv v2 hv2,
+    rw finset.mem_bind at hv2,
+    rcases hv2 with ⟨i, his, hi⟩,
+    refine h a i _ _ hv _ hi,
+    rintro rfl,
+    contradiction }
 end
 
 end sum

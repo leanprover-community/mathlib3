@@ -54,10 +54,12 @@ rfl
 instance (X : SheafedSpace.{v} C) : topological_space X := X.carrier.str
 
 /-- The trivial `punit` valued sheaf on any topological space. -/
+noncomputable
 def punit (X : Top) : SheafedSpace (discrete punit) :=
 { sheaf_condition := sheaf_condition_punit _,
   ..@PresheafedSpace.const (discrete punit) _ X punit.star }
 
+noncomputable
 instance : inhabited (SheafedSpace (discrete _root_.punit)) := ⟨punit (Top.of pempty)⟩
 
 instance : category (SheafedSpace C) :=
@@ -101,6 +103,7 @@ end
 /--
 The restriction of a sheafed space along an open embedding into the space.
 -/
+noncomputable
 def restrict {U : Top} (X : SheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) : SheafedSpace C :=
 { sheaf_condition := λ ι 𝒰, is_limit.of_iso_limit

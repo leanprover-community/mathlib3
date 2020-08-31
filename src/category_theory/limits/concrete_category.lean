@@ -7,7 +7,7 @@ import category_theory.limits.limits
 import category_theory.concrete_category.basic
 
 /-!
-# Facts about limits of functors into concrete categories
+# Facts about (co)limits of functors into concrete categories
 -/
 
 universes u
@@ -26,25 +26,79 @@ local attribute [instance] concrete_category.has_coe_to_fun
 namespace cone
 
 /-- Naturality of a cone over functors to a concrete category. -/
-@[simp] lemma naturality_concrete {G : J ⥤ C} (s : cone G) {j j' : J} (f : j ⟶ j') (x : s.X) :
-   (G.map f) ((s.π.app j) x) = (s.π.app j') x :=
+@[simp] lemma w_apply {F : J ⥤ C} (s : cone F) {j j' : J} (f : j ⟶ j') (x : s.X) :
+   F.map f (s.π.app j x) = s.π.app j' x :=
 begin
-  convert congr_fun (congr_arg (λ k : s.X ⟶ G.obj j', (k : s.X → G.obj j')) (s.π.naturality f).symm) x;
-  { dsimp, simp [-cone.w] },
+  convert congr_fun (congr_arg (λ k : s.X ⟶ F.obj j', (k : s.X → F.obj j')) (s.w f)) x,
+  simp only [coe_comp],
 end
+
+@[simp]
+lemma w_forget_apply (F : J ⥤ C) (s : cone (F ⋙ forget C)) {j j' : J} (f : j ⟶ j') (x : s.X) :
+  F.map f (s.π.app j x) = s.π.app j' x :=
+congr_fun (s.w f : _) x
 
 end cone
 
 namespace cocone
 
 /-- Naturality of a cocone over functors into a concrete category. -/
-@[simp] lemma naturality_concrete {G : J ⥤ C} (s : cocone G) {j j' : J} (f : j ⟶ j') (x : G.obj j) :
-  (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=
+@[simp] lemma w_apply {F : J ⥤ C} (s : cocone F) {j j' : J} (f : j ⟶ j') (x : F.obj j) :
+  s.ι.app j' (F.map f x) = s.ι.app j x :=
 begin
-  convert congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x;
-  { dsimp, simp [-nat_trans.naturality, -cocone.w] },
+  convert congr_fun (congr_arg (λ k : F.obj j ⟶ s.X, (k : F.obj j → s.X)) (s.w f)) x,
+  simp only [coe_comp],
 end
 
+@[simp]
+lemma w_forget_apply (F : J ⥤ C) (s : cocone (F ⋙ forget C)) {j j' : J} (f : j ⟶ j') (x : F.obj j) :
+  s.ι.app j' (F.map f x) = (s.ι.app j x : s.X) :=
+congr_fun (s.w f : _) x
+
 end cocone
+
+section has_limit
+
+@[simp]
+lemma limit.lift_π_apply (F : J ⥤ C) [has_limit F] (s : cone F) (j : J) (x : s.X) :
+  limit.π F j (limit.lift F s x) = s.π.app j x :=
+begin
+  have w := congr_arg (λ f : s.X ⟶ F.obj j, (f : s.X → F.obj j) x) (limit.lift_π s j),
+  dsimp at w,
+  rwa coe_comp at w,
+end
+
+@[simp]
+lemma limit.w_apply (F : J ⥤ C) [has_limit F] {j j' : J} (f : j ⟶ j') (x : limit F) :
+  F.map f (limit.π F j x) = limit.π F j' x :=
+begin
+  have w := congr_arg (λ f : limit F ⟶ F.obj j', (f : limit F → F.obj j') x) (limit.w F f),
+  dsimp at w,
+  rwa coe_comp at w,
+end
+
+end has_limit
+
+section has_colimit
+
+@[simp]
+lemma colimit.ι_desc_apply (F : J ⥤ C) [has_colimit F] (s : cocone F) (j : J) (x : F.obj j) :
+  colimit.desc F s (colimit.ι F j x) = s.ι.app j x :=
+begin
+  have w := congr_arg (λ f : F.obj j ⟶ s.X, (f : F.obj j → s.X) x) (colimit.ι_desc s j),
+  dsimp at w,
+  rwa coe_comp at w,
+end
+
+@[simp]
+lemma colimit.w_apply (F : J ⥤ C) [has_colimit F] {j j' : J} (f : j ⟶ j') (x : F.obj j) :
+  colimit.ι F j' (F.map f x) = colimit.ι F j x :=
+begin
+  have w := congr_arg (λ f : F.obj j ⟶ colimit F, (f : F.obj j → colimit F) x) (colimit.w F f),
+  dsimp at w,
+  rwa coe_comp at w,
+end
+
+end has_colimit
 
 end category_theory.limits

@@ -8,6 +8,7 @@ import algebra.category.Group.preadditive
 import category_theory.over
 import category_theory.limits.types
 import category_theory.limits.preserves.basic
+import category_theory.limits.concrete_category
 import category_theory.limits.shapes.concrete_category
 import algebra.group.pi
 
@@ -213,14 +214,6 @@ instance forget_preserves_limits : preserves_limits (forget CommGroup) :=
 end CommGroup
 
 namespace AddCommGroup
-
--- PROJECT:
--- it would be nice if this were available just by virtue of `forget AddCommGroup`
--- preserving limits.
-@[simp]
-lemma lift_π_apply (F : J ⥤ AddCommGroup) (s : cone F) (j : J) (x : s.X) :
-  limit.π F j (limit.lift F s x) = s.π.app j x :=
-congr_fun (congr_arg (λ f : s.X ⟶ F.obj j, (f : s.X → F.obj j)) (limit.lift_π s j)) x
 
 /--
 The categorical kernel of a morphism in `AddCommGroup`

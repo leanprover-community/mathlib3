@@ -6,7 +6,6 @@ Authors: Scott Morrison, Simon Hudon
 import category_theory.monoidal.braided
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.terminal
-import category_theory.pempty
 
 /-!
 # The natural monoidal structure on any category with finite (co)products.
@@ -36,7 +35,7 @@ variables (C : Type u) [category.{v} C] {X Y : C}
 
 namespace limits
 
-namespace has_binary_products
+section
 variables {C} [has_binary_products C]
 
 /-- The braiding isomorphism which swaps a binary product. -/
@@ -88,14 +87,8 @@ lemma prod.associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X�
     (prod.associator X₁ X₂ X₃).hom ≫ prod.map f₁ (prod.map f₂ f₃) :=
 by tidy
 
-end has_binary_products
 
-section has_terminal
 
-open has_binary_products
-
-variables {C}
-variables [has_binary_products C]
 variables [has_terminal C]
 
 /-- The left unitor isomorphism for binary products with the terminal object. -/
@@ -135,10 +128,9 @@ lemma prod.triangle (X Y : C) :
     prod.map ((prod.right_unitor X).hom) (𝟙 Y) :=
 by tidy
 
-end has_terminal
+end
 
-namespace has_binary_coproducts
-
+section
 variables {C} [has_binary_coproducts C]
 
 /-- The braiding isomorphism which swaps a binary coproduct. -/
@@ -178,14 +170,6 @@ lemma coprod.associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X
     (coprod.associator X₁ X₂ X₃).hom ≫ coprod.map f₁ (coprod.map f₂ f₃) :=
 by tidy
 
-end has_binary_coproducts
-
-namespace has_initial
-
-open has_binary_coproducts
-
-variables {C}
-variables [has_binary_coproducts C]
 variables [has_initial C]
 
 /-- The left unitor isomorphism for binary coproducts with the initial object. -/
@@ -205,8 +189,7 @@ lemma coprod.triangle (X Y : C) :
     coprod.map ((coprod.right_unitor X).hom) (𝟙 Y) :=
 by tidy
 
-end has_initial
-
+end
 end limits
 
 open category_theory.limits
@@ -215,8 +198,7 @@ section
 local attribute [tidy] tactic.case_bash
 
 /-- A category with a terminal object and binary products has a natural monoidal structure. -/
-def monoidal_of_has_finite_products [has_terminal C] [has_binary_products C] :
-  monoidal_category C :=
+def monoidal_of_has_finite_products [has_terminal C] [has_binary_products C] : monoidal_category C :=
 { tensor_unit  := ⊤_ C,
   tensor_obj   := λ X Y, X ⨯ Y,
   tensor_hom   := λ _ _ _ _ f g, limits.prod.map f g,

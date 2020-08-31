@@ -21,8 +21,8 @@ giving the expected definitional implementation:
 * the binary product of `X` and `Y` is `X × Y`
 * the product of a family `f : J → Type` is `Π j, f j`.
 
-It is not intended that these definitions will be global instances:
-they should be turned on as needed.
+Because these are not intended for use with the `has_limit` API,
+we instead construct terms of `limit_data`.
 
 As an example, when setting up the monoidal category structure on `Type`
 we use the `types_has_terminal` and `types_has_binary_products` instances.
@@ -42,20 +42,18 @@ lemma lift_π_apply' {β : Type u} (f : β → Type u) {P : Type u} (s : Π b, P
 congr_fun (limit.lift_π (fan.mk s) b) x
 
 /-- The category of types has `punit` as a terminal object. -/
-def types_has_terminal : has_terminal (Type u) :=
-{ has_limit := λ F, has_limit.mk
-  { cone :=
-    { X := punit,
-      π := by tidy, },
-    is_limit := by tidy, } }
+def terminal_limit_data : limit_data (functor.empty (Type u)) :=
+{ cone :=
+  { X := punit,
+    π := by tidy, },
+  is_limit := by tidy, }
 
 /-- The category of types has `pempty` as an initial object. -/
-def types_has_initial : has_initial (Type u) :=
-{ has_colimit := λ F, has_colimit.mk
-  { cocone :=
-    { X := pempty,
-      ι := by tidy, },
-    is_colimit := by tidy, } }
+def initial_limit_data : colimit_data (functor.empty (Type u)) :=
+{ cocone :=
+  { X := pempty,
+    ι := by tidy, },
+  is_colimit := by tidy, }
 
 open category_theory.limits.walking_pair
 
@@ -65,81 +63,71 @@ local attribute [tidy] tactic.case_bash
 The category of types has `X × Y`, the usual cartesian product,
 as the binary product of `X` and `Y`.
 -/
-def types_has_binary_products : has_binary_products (Type u) :=
-{ has_limit := λ F, has_limit.mk
-  { cone :=
-    { X := F.obj left × F.obj right,
-      π :=
-      { app := by { rintro ⟨_|_⟩, exact prod.fst, exact prod.snd, } }, },
-    is_limit :=
-    { lift := λ s x, (s.π.app left x, s.π.app right x),
-      uniq' := λ s m w,
-      begin
-        ext,
-        exact congr_fun (w left) x,
-        exact congr_fun (w right) x,
-      end }, } }
+def binary_product_limit_data (X Y : Type u) : limit_data (pair X Y) :=
+{ cone :=
+  { X := X × Y,
+    π :=
+    { app := by { rintro ⟨_|_⟩, exact prod.fst, exact prod.snd, } }, },
+  is_limit :=
+  { lift := λ s x, (s.π.app left x, s.π.app right x),
+    uniq' := λ s m w,
+    begin
+      ext,
+      exact congr_fun (w left) x,
+      exact congr_fun (w right) x,
+    end }, }
 
 /--
 The category of types has `X ⊕ Y`,
 as the binary coproduct of `X` and `Y`.
 -/
-def types_has_binary_coproducts : has_binary_coproducts (Type u) :=
-{ has_colimit := λ F, has_colimit.mk
-  { cocone :=
-    { X := F.obj left ⊕ F.obj right,
-      ι :=
-      { app := by { rintro ⟨_|_⟩, exact sum.inl, exact sum.inr, } }, },
-    is_colimit :=
-    { desc := λ s x, sum.elim (s.ι.app left) (s.ι.app right) x,
-      uniq' := λ s m w,
-      begin
-        ext (x|x),
-        exact (congr_fun (w left) x : _),
-        exact (congr_fun (w right) x : _),
-      end }, } }
+def binary_coproduct_limit_data (X Y : Type u) : colimit_data (pair X Y) :=
+{ cocone :=
+  { X := X ⊕ Y,
+    ι :=
+    { app := by { rintro ⟨_|_⟩, exact sum.inl, exact sum.inr, } }, },
+  is_colimit :=
+  { desc := λ s x, sum.elim (s.ι.app left) (s.ι.app right) x,
+    uniq' := λ s m w,
+    begin
+      ext (x|x),
+      exact (congr_fun (w left) x : _),
+      exact (congr_fun (w right) x : _),
+    end }, }
 
 /--
 The category of types has `Π j, f j` as the product of a type family `f : J → Type`.
 -/
-def types_has_products : has_products (Type u) := λ J,
-{ has_limit := λ F, has_limit.mk
-  { cone :=
-    { X := Π j, F.obj j,
-      π :=
-      { app := λ j f, f j }, },
-    is_limit :=
-    { lift := λ s x j, s.π.app j x,
-      uniq' := λ s m w,
-      begin
-        ext x j,
-        have := congr_fun (w j) x,
-        exact this,
-      end }, } }
+def product_limit_data {J : Type u} (F : J → Type u) : limit_data (discrete.functor F) :=
+{ cone :=
+  { X := Π j, F j,
+    π :=
+    { app := λ j f, f j }, },
+  is_limit :=
+  { lift := λ s x j, s.π.app j x,
+    uniq' := λ s m w,
+    begin
+      ext x j,
+      have := congr_fun (w j) x,
+      exact this,
+    end }, }
 
 /--
 The category of types has `Σ j, f j` as the coproduct of a type family `f : J → Type`.
 -/
-def types_has_coproducts : has_coproducts (Type u) := λ J,
-{ has_colimit := λ F, has_colimit.mk
-  { cocone :=
-    { X := Σ j, F.obj j,
-      ι :=
-      { app := λ j x, ⟨j, x⟩ }, },
-    is_colimit :=
-    { desc := λ s x, s.ι.app x.1 x.2,
-      uniq' := λ s m w,
-      begin
-        ext ⟨j, x⟩,
-        have := congr_fun (w j) x,
-        exact this,
-      end }, } }
-
-local attribute [instance, priority 200] types_has_products types_has_coproducts
--- We slightly increase the priority of `types_has_terminal` and `types_has_binary_products`
--- so that they come ahead of `types_has_products`.
-local attribute [instance, priority 300] types_has_terminal types_has_initial
-local attribute [instance, priority 300] types_has_binary_products types_has_binary_coproducts
+def coproduct_limit_data {J : Type u} (F : J → Type u) : colimit_data (discrete.functor F) :=
+{ cocone :=
+  { X := Σ j, F j,
+    ι :=
+    { app := λ j x, ⟨j, x⟩ }, },
+  is_colimit :=
+  { desc := λ s x, s.ι.app x.1 x.2,
+    uniq' := λ s m w,
+    begin
+      ext ⟨j, x⟩,
+      have := congr_fun (w j) x,
+      exact this,
+    end }, }
 
 -- FIXME Can we ditch these?
 

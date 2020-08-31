@@ -312,7 +312,7 @@ end
 /--
 The monoidal structure coming from finite products is symmetric.
 -/
-def symmetric_of_has_finite_products :
+def symmetric_of_chosen_finite_products :
   symmetric_category (monoidal_of_chosen_finite_products_synonym 𝒯 ℬ) :=
 { braiding := λ X Y, limits.prod.braiding (ℬ _ _).is_limit (ℬ _ _).is_limit,
   braiding_naturality' := λ X X' Y Y' f g, braiding_naturality ℬ f g,

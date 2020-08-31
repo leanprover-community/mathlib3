@@ -1,6 +1,4 @@
 import topology.metric_space.hausdorff_distance
-import algebra.add_torsor
---import analysis.convex.caratheodory
 
 -- stolen from #3694:
 section uncurry
@@ -82,7 +80,7 @@ lemma is_invariant_closure (hϕ : ∀ t, continuous (ϕ t)) (hS : is_invariant �
 
 end is_invariant
 
-/-! ### omega limit -/
+/-! ### ω-limits -/
 
 -- we define ω-limits of sets `S ⊆ X` under `ϕ : T → X → Y` with
 -- reference a filter `f` on `T`. An element `y ∈ Y` is in the ω-limit
@@ -158,6 +156,41 @@ begin
   exact closure_mono (image2_subset subset.rfl hS),
 end
 
+/-- in a compact space, a set is eventually carried by the flow into
+    any neighbourhood of its ω-limit.  -/
+lemma eventually_subset_nhd_omega_limit [compact_space Y]
+  (v : set Y) (ho : is_open v) (hv : ω f ϕ S ⊆ v) :
+  ∃ u ∈ f, image2 ϕ u S ⊆ v :=
+begin
+  let j := λ u, (closure (image2 ϕ u S))ᶜ,
+  have hj₁ : ∀ u ∈ f.sets, is_open (j u),
+    from λ _ _, is_open_compl_iff.mpr is_closed_closure,
+  have hj₂ : vᶜ ⊆ ⋃ u ∈ f, j u, begin
+    rw [compl_subset_comm, compl_Union], simp_rw compl_Union,
+    calc (⋂ u ∈ f, (closure (image2 ϕ u S))ᶜᶜ)
+        ⊆ ⋂ u ∈ f, closure (image2 ϕ u S) :
+          by { simp_rw compl_compl', exact subset.rfl }
+    ... ⊆ v : hv,
+  end,
+  have h : is_compact vᶜ, from (is_closed_compl_iff.mpr ho).compact,
+  rcases h.elim_finite_subcover_image hj₁ hj₂ with ⟨g, hg₁, hg₂, hg₃⟩,
+  let w := ⋂₀ g,
+  have hw₁ : w ∈ f, from sInter_mem_sets_of_finite hg₂ hg₁,
+  have hw₂ : image2 ϕ w S ⊆ v, begin
+    rw [compl_subset_comm, compl_Union] at hg₃,
+    simp_rw compl_Union at hg₃,
+    calc image2 ϕ w S
+        ⊆ ⋂ u ∈ g, image2 ϕ u S :
+          subset_Inter (λ _, subset_Inter (λ hu,
+            image2_subset (sInter_subset_of_mem hu) subset.rfl))
+    ... ⊆ ⋂ u ∈ g, (closure (image2 ϕ u S))ᶜᶜ :
+          Inter_subset_Inter (λ u, Inter_subset_Inter (λ hu,
+            by { rw compl_compl', exact subset_closure }))
+    ... ⊆ v : hg₃,
+  end,
+  exact ⟨w, hw₁, hw₂⟩,
+end
+
 end omega_limit
 
 /-! ### attractors -/
@@ -171,7 +204,7 @@ def is_attractor [topological_space X]
   (f : filter T) (ϕ : T → X → X) (A : set X) : Prop :=
 ∃ u, is_open u ∧ A ⊆ u ∧ ω f ϕ u = A
 
-variables (f : filter T) (ϕ : T → X → X) (A : set X)
+--variables [topological_space X] (f : filter T) (ϕ : T → X → X) (A : set X)
 
 -- (work in progress.)
 
@@ -179,7 +212,7 @@ end attractor
 
 end
 
-/-! ### semigroup flow -/
+/-! ### semigroup flows -/
 
 -- a semigroup-flow on a topological space `X` by a topological
 -- semigroup `T` is a continuous semigroup-act of `T` on
@@ -218,7 +251,7 @@ lemma ext : ∀ {ϕ₁ ϕ₂ : semigroup_flow T X}, (∀ x t, ϕ₁ x t = ϕ₂ 
 lemma ext_iff {ϕ₁ ϕ₂ : semigroup_flow T X} : ϕ₁ = ϕ₂ ↔ (∀ x t, ϕ₁ x t = ϕ₂ x t) :=
 ⟨λ h _ _, by rw h, ext⟩
 
-variables (f : filter T) (ϕ : semigroup_flow T X) (S : set X)
+variables (f : filter T) (ϕ : semigroup_flow T X) (A S : set X)
 
 @[continuity]
 protected lemma continuous : continuous ↿ϕ := ϕ.cont
@@ -228,6 +261,8 @@ lemma map_add (t₁ t₂ : T) (x : X) : ϕ t₂ (ϕ t₁ x) = ϕ (t₁ + t₂) x
 
 local notation `ω` := omega_limit
 
+/-- a filter `f` on `T` is invariant if `t ⁻¹' n ∈ f` for ever `t` in `T` and `n ∈ f`.
+    an ω-limit w.r.t. an invariant `f` is invariant. -/
 lemma is_invariant_omega_limit (h : ∀ t, tendsto (+ t) f f) : is_invariant ϕ (ω f ϕ S) :=
 begin
   unfold omega_limit,
@@ -248,7 +283,6 @@ begin
       (continuous_iff_is_closed.mp
         (continuous_uncurry_left _ _ ϕ.continuous) _ is_closed_closure),
 end
-
 
 end semigroup_flow
 
@@ -365,7 +399,6 @@ begin
   rw [←reverse_def₂, reverse_twice] at l₂,
   exact subset.antisymm l₁ l₂,
 end
-
 
 end
 

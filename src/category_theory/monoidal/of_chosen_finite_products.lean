@@ -357,8 +357,12 @@ begin
   dsimp [tensor_hom, limits.binary_fan.braiding],
   apply (ℬ _ _).is_limit.hom_ext, rintro ⟨⟩,
   { apply (ℬ _ _).is_limit.hom_ext, rintro ⟨⟩;
-    { dsimp [limits.is_limit.cone_point_unique_up_to_iso], simp, }, },
-  { dsimp [limits.is_limit.cone_point_unique_up_to_iso], simp, },
+    { dsimp [binary_fan.associator_of_limit_data, binary_fan.associator,
+        limits.is_limit.cone_point_unique_up_to_iso],
+      simp, }, },
+  { dsimp [binary_fan.associator_of_limit_data, binary_fan.associator,
+      limits.is_limit.cone_point_unique_up_to_iso],
+    simp, },
 end
 
 lemma symmetry (X Y : C) :

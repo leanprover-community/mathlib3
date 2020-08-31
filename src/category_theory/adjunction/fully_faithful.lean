@@ -95,7 +95,7 @@ adjunction.mk_of_hom_equiv
   hom_equiv_naturality_left_symm' := λ X' X Y f g,
   begin
     apply iD.map_injective,
-    dsimp [equiv.trans, equiv.symm, iso.hom_congr_apply, iso.hom_congr_symm],
+    dsimp [equiv.trans, equiv.symm, iso.hom_congr_apply, iso.hom_congr_symm, -equiv.inv_fun_as_coe],
     simp only [functor.image_preimage, adjunction.hom_equiv_counit, assoc, id_comp, comp_id,
                functor.map_comp],
     erw [comm1.inv.naturality_assoc f],

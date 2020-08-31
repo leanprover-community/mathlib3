@@ -37,6 +37,8 @@ universes u v w u₁
 
 -- end alg_hom
 
+
+
 namespace finset
 
 open_locale classical
@@ -195,11 +197,16 @@ lemma foobar (p q : mv_polynomial σ R) (h : p.degrees.disjoint q.degrees) :
   p.degrees ≤ (p + q).degrees :=
 begin
   apply finset.sup_le,
-  sorry
-  -- have := finsupp.support_add_eq, probably useful
+  rw [degrees, finsupp.support_add_eq],
+  { intros b hb,
+    apply finset.le_sup (finset.mem_union_left _ _),
+    exact hb },
+  { -- this goal is false: two constant polys
+   },
 end
 
--- not certain this is the right stragegy
+
+
 lemma degrees_add_of_disjoint (h : multiset.disjoint p.degrees q.degrees) :
   (p + q).degrees = p.degrees ∪ q.degrees :=
 begin
@@ -288,20 +295,29 @@ calc t.sup f = (s ∪ t).sup f : by rw [finset.union_eq_right_iff_subset.mpr hst
          ... = s.sup f ⊔ t.sup f : by rw finset.sup_union
          ... ≥ s.sup f : le_sup_left
 
-lemma finset.mem_sup {α β} {s : finset α} {f : α → multiset β} {x : β} : x ∈ s.sup f →
+
+lemma finset.mem_sup {α β} [decidable_eq α] [decidable_eq β] {s : finset α} {f : α → multiset β} {x : β} : x ∈ s.sup f ↔
   ∃ v ∈ s, x ∈ f v :=
 begin
   apply s.induction_on,
   { simp },
-  { intros a s has hxs hxi,
-    rw [finset.sup_insert, multiset.sup_eq_union, multiset.mem_union] at hxi,
-    cases hxi with hf hf,
-    { refine ⟨a, _, hf⟩,
-      simp only [true_or, eq_self_iff_true, finset.mem_insert] },
-    { rcases hxs hf with ⟨v, hv, hfv⟩,
-      refine ⟨v, _, hfv⟩,
-      simp only [hv, or_true, finset.mem_insert]} }
+  { intros a s has hxs,
+    rw [finset.sup_insert, multiset.sup_eq_union, multiset.mem_union],
+    split,
+    { intro hxi,
+      cases hxi with hf hf,
+      { refine ⟨a, _, hf⟩,
+        simp only [true_or, eq_self_iff_true, finset.mem_insert] },
+      { rcases hxs.mp hf with ⟨v, hv, hfv⟩,
+        refine ⟨v, _, hfv⟩,
+        simp only [hv, or_true, finset.mem_insert] } },
+    { rintros ⟨v, hv, hfv⟩,
+      rw [finset.mem_insert] at hv,
+      rcases hv with rfl | hv,
+      { exact or.inl hfv },
+      { refine or.inr (hxs.mpr ⟨v, hv, hfv⟩) } } },
 end
+
 
 lemma mv_polynomial.support_map_subset : (map f p).support ⊆ p.support :=
 begin
@@ -359,7 +375,7 @@ begin
   split,
   { intro hi,
     rw [vars, multiset.mem_to_finset, degrees] at hi,
-    rcases finset.mem_sup hi with ⟨d, hd, hid⟩,
+    rcases finset.mem_sup.mp hi with ⟨d, hd, hid⟩,
     use [d, hd],
     dsimp [finsupp.to_multiset] at hid,
     rw finsupp.mem_support_iff,

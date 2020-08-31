@@ -63,7 +63,7 @@ lemma supr_lsingle_range : (⨆a, (lsingle a : M →ₗ[R] (α →₀ M)).range)
 begin
   refine (eq_top_iff.2 $ le_def'.2 $ assume f _, _),
   rw [← sum_single f],
-  refine sum_mem _ (assume a ha, submodule.mem_supr_of_mem _ a $ set.mem_image_of_mem _ trivial)
+  refine sum_mem _ (assume a ha, submodule.mem_supr_of_mem a $ set.mem_image_of_mem _ trivial)
 end
 
 lemma disjoint_lsingle_lsingle (s t : set α) (hs : disjoint s t) :
@@ -391,8 +391,21 @@ end
 
 lemma total_comap_domain
  (f : α → α') (l : α' →₀ R) (hf : set.inj_on f (f ⁻¹' ↑l.support)) :
- finsupp.total α M R v (finsupp.comap_domain f l hf) = (l.support.preimage hf).sum (λ i, (l (f i)) • (v i)) :=
+ finsupp.total α M R v (finsupp.comap_domain f l hf) =
+   (l.support.preimage f hf).sum (λ i, (l (f i)) • (v i)) :=
 by rw finsupp.total_apply; refl
+
+lemma total_on_finset
+  {s : finset α} {f : α → R} (g : α → M) (hf : ∀ a, f a ≠ 0 → a ∈ s):
+  finsupp.total α M R g (finsupp.on_finset s f hf) =
+    finset.sum s (λ (x : α), f x • g x) :=
+begin
+  simp only [finsupp.total_apply, finsupp.sum, finsupp.on_finset_apply, finsupp.support_on_finset],
+  rw finset.sum_filter_of_ne,
+  intros x hx h,
+  contrapose! h,
+  simp [h],
+end
 
 end total
 

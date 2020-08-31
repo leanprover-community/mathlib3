@@ -74,12 +74,12 @@ begin
   have : Π {f : n → n} {i : n} (x : n → α),
     (∏ i' : n, (update_row A i x)ᵀ (f i') i')
     = (∏ i' : n, if i' = i then x (f i') else A i' (f i')),
-  { intros, congr, ext i', rw [transpose_apply, update_row_apply] },
+  { intros, congr' with i', rw [transpose_apply, update_row_apply] },
   split,
   { intros x y,
     repeat { rw [cramer_map, ←det_transpose, det] },
     rw [←sum_add_distrib],
-    congr, ext σ,
+    congr' with σ,
     rw [←mul_add ↑↑(sign σ)],
     congr,
     repeat { erw [this, finset.prod_ite] },
@@ -89,7 +89,7 @@ begin
   { intros c x,
     repeat { rw [cramer_map, ←det_transpose, det] },
     rw [smul_eq_mul, mul_sum],
-    congr, ext σ,
+    congr' with σ,
     rw [←mul_assoc, mul_comm c, mul_assoc], congr,
     repeat { erw [this, finset.prod_ite] },
     erw [finset.filter_eq', if_pos (mem_univ i),
@@ -124,7 +124,7 @@ begin
   by_cases i = j,
   { -- i = j: this entry should be `A.det`
     rw [if_pos h, ←h],
-    congr, ext i',
+    congr' with i',
     by_cases h : i' = i, { rw [h, update_row_self] }, { rw [update_row_ne h] } },
   { -- i ≠ j: this entry should be 0
     rw [if_neg h],
@@ -144,7 +144,7 @@ lemma sum_cramer_apply {β} (s : finset β) (f : n → β → α) (i : n) :
 calc ∑ x in s, cramer α A (λ j, f j x) i
     = (∑ x in s, cramer α A (λ j, f j x)) i : (finset.sum_apply i s _).symm
 ... = cramer α A (λ (j : n), ∑ x in s, f j x) i :
-  by { rw [sum_cramer, cramer_apply], congr, ext j, apply finset.sum_apply }
+  by { rw [sum_cramer, cramer_apply], congr' with j, apply finset.sum_apply }
 
 end cramer
 
@@ -205,7 +205,7 @@ lemma mul_adjugate_apply (A : matrix n n α) (i j k) :
   A i k * adjugate A k j = cramer α A (λ j, if k = j then A i k else 0) j :=
 begin
   erw [←smul_eq_mul, ←pi.smul_apply, ←linear_map.map_smul],
-  congr, ext,
+  congr' with l,
   rw [pi.smul_apply, smul_eq_mul, mul_boole],
 end
 
@@ -216,11 +216,11 @@ begin
   calc
     ∑ k : n, A i k * adjugate A k j
         = ∑ k : n, cramer α A (λ j, if k = j then A i k else 0) j
-      : by {congr, ext k, apply mul_adjugate_apply A i j k}
+      : by { congr' with k, apply mul_adjugate_apply A i j k }
     ... = cramer α A (λ j, ∑ k : n, if k = j then A i k else 0) j
       : sum_cramer_apply A univ (λ (j k : n), if k = j then A i k else 0) j
-    ... = cramer α A (A i) j : by { rw [cramer_apply], congr, ext,
-      rw [sum_ite_eq' univ x (A i), if_pos (mem_univ _)] }
+    ... = cramer α A (A i) j : by { rw [cramer_apply], congr' with k,
+      rw [sum_ite_eq' univ k (A i), if_pos (mem_univ _)] }
     ... = if i = j then det A else 0 : by rw [cramer_column_self]
 end
 

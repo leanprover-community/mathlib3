@@ -214,7 +214,7 @@ have hm' : p ∣ card (quotient (subgroup.comap ((normalizer H).subtype : normal
   nat.dvd_of_mod_eq_zero
     (by rwa [nat.mod_eq_zero_of_dvd (dvd_mul_left _ _), eq_comm] at hm),
 let ⟨x, hx⟩ := @exists_prime_order_of_dvd_card _ (quotient_group.group _) _ _ hp hm' in
-have hxcard : ∀ {f : fintype (gpowers x)}, card (gpowers x) = p,
+have hxcard : ∀ {f : fintype (subgroup.gpowers x)}, card (subgroup.gpowers x) = p,
   from λ f, by rw [← hx, order_eq_card_gpowers]; congr,
 have fintype (subgroup.comap (quotient_group.mk' (comap H.normalizer.subtype H)) (gpowers x)),
   by apply_instance,
@@ -224,7 +224,7 @@ have hequiv : H ≃ (subgroup.comap ((normalizer H).subtype : normalizer H →* 
 -- begin proof of ∃ H : subgroup G, fintype.card H = p ^ n
 ⟨subgroup.map ((normalizer H).subtype) (subgroup.comap (quotient_group.mk' _) (gpowers x)),
 begin
-  show card ↥(map H.normalizer.subtype (comap (mk' (comap H.normalizer.subtype H)) (gpowers x))) =
+  show card ↥(map H.normalizer.subtype (comap (mk' (comap H.normalizer.subtype H)) (subgroup.gpowers x))) =
     p ^ (n + 1),
   suffices : card ↥(subtype.val '' ((subgroup.comap (mk' (comap H.normalizer.subtype H))
     (gpowers x)) : set (↥(H.normalizer)))) = p^(n+1),

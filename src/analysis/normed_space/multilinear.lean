@@ -122,10 +122,10 @@ begin
     -- use the bound on `f` on the ball of size `δ` to conclude.
     calc
       ∥f m∥ = ∥f (λi, (d i)⁻¹ • (d i • m i))∥ :
-        by { unfold_coes, congr, ext i, rw [← mul_smul, inv_mul_cancel (hd i).1, one_smul] }
+        by { unfold_coes, congr' with i, rw [← mul_smul, inv_mul_cancel (hd i).1, one_smul] }
       ... = ∥(∏ i, (d i)⁻¹) • f (λi, d i • m i)∥ : by rw f.map_smul_univ
       ... = (∏ i, ∥d i∥⁻¹) * ∥f (λi, d i • m i)∥ :
-        by { rw [norm_smul, normed_field.norm_prod], congr, ext i, rw normed_field.norm_inv }
+        by { rw [norm_smul, normed_field.norm_prod], congr' with i, rw normed_field.norm_inv }
       ... ≤ (∏ i, ∥d i∥⁻¹) * (1 + ∥f 0∥) :
         mul_le_mul_of_nonneg_left (H ((pi_norm_le_iff (le_of_lt δ_pos)).2 (λi, (hd i).2.1)))
           (prod_nonneg B)
@@ -328,8 +328,9 @@ begin
     rw [this, norm_zero],
     exact mul_nonneg (op_norm_nonneg f) A },
   { have hlt : 0 < ∏ i, ∥m i∥ := lt_of_le_of_ne A (ne.symm h),
-    exact le_mul_of_div_le hlt ((le_Inf _ bounds_nonempty bounds_bdd_below).2
-      (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (begin rw mul_comm, apply hc, end))) }
+    rw [← div_le_iff hlt],
+    apply (le_Inf _ bounds_nonempty bounds_bdd_below).2,
+    rintro c ⟨_, hc⟩, rw [div_le_iff hlt], apply hc }
 end
 
 lemma ratio_le_op_norm : ∥f m∥ / ∏ i, ∥m i∥ ≤ ∥f∥ :=

@@ -49,12 +49,21 @@ theorem nodup_iff_le {s : multiset α} : nodup s ↔ ∀ a : α, ¬ a::a::0 ≤ 
 quot.induction_on s $ λ l, nodup_iff_sublist.trans $ forall_congr $ λ a,
 not_congr (@repeat_le_coe _ a 2 _).symm
 
+lemma nodup_iff_ne_cons_cons {s : multiset α} : s.nodup ↔ ∀ a t, s ≠ a :: a :: t :=
+nodup_iff_le.trans
+  ⟨λ h a t s_eq, h a (s_eq.symm ▸ cons_le_cons a (cons_le_cons a (zero_le _))),
+   λ h a le, let ⟨t, s_eq⟩ := le_iff_exists_add.mp le in
+     h a t (by rwa [cons_add, cons_add, zero_add] at s_eq )⟩
+
 theorem nodup_iff_count_le_one [decidable_eq α] {s : multiset α} : nodup s ↔ ∀ a, count a s ≤ 1 :=
 quot.induction_on s $ λ l, nodup_iff_count_le_one
 
 @[simp] theorem count_eq_one_of_mem [decidable_eq α] {a : α} {s : multiset α}
   (d : nodup s) (h : a ∈ s) : count a s = 1 :=
 le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos.2 h)
+
+lemma nodup_iff_pairwise {α} {s : multiset α} : nodup s ↔ pairwise (≠) s :=
+quotient.induction_on s $ λ l, (pairwise_coe_iff_pairwise (by exact λ a b, ne.symm)).symm
 
 lemma pairwise_of_nodup {r : α → α → Prop} {s : multiset α} :
   (∀a∈s, ∀b∈s, a ≠ b → r a b) → nodup s → pairwise r s :=

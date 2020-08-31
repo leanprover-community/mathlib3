@@ -282,12 +282,11 @@ end
 
 open is_noetherian submodule function
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem is_noetherian_iff_well_founded
   {R M} [ring R] [add_comm_group M] [module R M] :
   is_noetherian R M ↔ well_founded ((>) : submodule R M → submodule R M → Prop) :=
 ⟨λ h, begin
-  apply order_embedding.well_founded_iff_no_descending_seq.2,
+  apply rel_embedding.well_founded_iff_no_descending_seq.2,
   swap, { apply is_strict_order.swap },
   rintro ⟨⟨N, hN⟩⟩,
   let Q := ⨆ n, N n,
@@ -335,7 +334,6 @@ theorem is_noetherian_iff_well_founded
       rw [← hs₂, sup_assoc, ← submodule.span_union], simp }
   end⟩
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma well_founded_submodule_gt (R M) [ring R] [add_comm_group M] [module R M] :
   ∀ [is_noetherian R M], well_founded ((>) : submodule R M → submodule R M → Prop) :=
 is_noetherian_iff_well_founded.mp
@@ -343,7 +341,7 @@ is_noetherian_iff_well_founded.mp
 lemma finite_of_linear_independent {R M} [comm_ring R] [nontrivial R] [add_comm_group M] [module R M]
   [is_noetherian R M] {s : set M} (hs : linear_independent R (coe : s → M)) : s.finite :=
 begin
-  refine classical.by_contradiction (λ hf, order_embedding.well_founded_iff_no_descending_seq.1
+  refine classical.by_contradiction (λ hf, rel_embedding.well_founded_iff_no_descending_seq.1
     (well_founded_submodule_gt R M) ⟨_⟩),
   have f : ℕ ↪ s, from @infinite.nat_embedding s ⟨λ f, hf ⟨f⟩⟩,
   have : ∀ n, (coe ∘ f) '' {m | m ≤ n} ⊆ s,
@@ -359,6 +357,11 @@ begin
       λ x y, by simp [le_antisymm_iff, (this _ _).symm] {contextual := tt}⟩,
     by dsimp [gt]; simp only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
 end
+
+/-- A module is Noetherian iff every nonempty set of submodules has a maximal submodule among them. -/
+theorem set_has_maximal_iff_noetherian {R M} [ring R] [add_comm_group M] [module R M] :
+  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, M' ≤ I → I = M') ↔ is_noetherian R M :=
+by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_max']
 
 /--
 A ring is Noetherian if it is Noetherian as a module over itself,
@@ -384,16 +387,14 @@ theorem is_noetherian_of_submodule_of_noetherian (R M) [ring R] [add_comm_group 
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
-  convert order_embedding.well_founded (order_embedding.rsymm
-    (submodule.map_subtype.lt_order_embedding N)) h
+  exact order_embedding.well_founded (submodule.map_subtype.order_embedding N).osymm h,
 end
 
 theorem is_noetherian_of_quotient_of_noetherian (R) [ring R] (M) [add_comm_group M] [module R M]
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N.quotient :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
-  convert order_embedding.well_founded (order_embedding.rsymm
-    (submodule.comap_mkq.lt_order_embedding N)) h
+  exact order_embedding.well_founded (submodule.comap_mkq.order_embedding N).osymm h,
 end
 
 theorem is_noetherian_of_fg_of_noetherian {R M} [ring R] [add_comm_group M] [module R M]
@@ -437,10 +438,8 @@ theorem is_noetherian_ring_of_surjective (R) [comm_ring R] (S) [comm_ring S]
   (f : R →+* S) (hf : function.surjective f)
   [H : is_noetherian_ring R] : is_noetherian_ring S :=
 begin
-  unfold is_noetherian_ring at H ⊢,
-  rw is_noetherian_iff_well_founded at H ⊢,
-  convert order_embedding.well_founded (order_embedding.rsymm
-    (ideal.lt_order_embedding_of_surjective f hf)) H
+  rw [is_noetherian_ring, is_noetherian_iff_well_founded] at H ⊢,
+  exact order_embedding.well_founded (ideal.order_embedding_of_surjective f hf).osymm H,
 end
 
 instance is_noetherian_ring_range {R} [comm_ring R] {S} [comm_ring S] (f : R →+* S)

@@ -202,7 +202,7 @@ tt ← is_simp_lemma d.to_name | pure none,
 tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
 (lhs, rhs) ← simp_lhs_rhs d.type,
 if lhs.get_app_fn.const_name ≠ rhs.get_app_fn.const_name then pure none else do
-(lhs', rhs') ← (prod.snd <$> mk_meta_pis d.type) >>= simp_lhs_rhs,
+(lhs', rhs') ← (prod.snd <$> open_pis_metas d.type) >>= simp_lhs_rhs,
 tt ← succeeds $ unify rhs lhs' transparency.reducible | pure none,
 tt ← succeeds $ is_def_eq rhs lhs' transparency.reducible | pure none,
 -- ensure that the second application makes progress:

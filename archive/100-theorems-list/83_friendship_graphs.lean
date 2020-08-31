@@ -81,7 +81,7 @@ lemma friendship_adj_cube_apply_of_not_adj {v w : V} (non_adj : ¬ G.adj v w) :
   ((G.adj_matrix R) ^ 3) v w = degree G v :=
 begin
   rw [pow_succ, mul_eq_mul, adj_matrix_mul_apply],
-  dunfold degree, rw card_eq_sum_ones, rw sum_nat_cast,
+  dunfold degree, rw [card_eq_sum_ones, sum_nat_cast],
   apply sum_congr rfl,
   intros x hx, rw [friendship_adj_sq_apply_of_ne, nat.cast_one], apply hG,
   intro contra, rw contra at hx, apply non_adj, rw mem_neighbor_finset at hx, apply hx,
@@ -144,7 +144,7 @@ begin
   let v := arbitrary V,
   transitivity ((G.adj_matrix ℕ) ^ 2).mul_vec (λ _, 1) v,
   { rw friendship_reg_adj_sq hG hd,
-    dunfold mul_vec, dunfold dot_product,
+    dunfold mul_vec dot_product,
     rw ← insert_erase (mem_univ v),
     simp only [sum_insert, mul_one, if_true, nat.cast_id, eq_self_iff_true,
                mem_erase, not_true, ne.def, not_false_iff, add_right_inj, false_and],
@@ -168,11 +168,11 @@ end
 
 lemma friendship_reg_adj_sq_mod_p {p : ℕ} (dmod : (d : zmod p) = 1) (hd : G.is_regular_of_degree d) :
   (G.adj_matrix (zmod p)) ^ 2 = λ _ _, 1 :=
-by { rw [friendship_reg_adj_sq hG hd, dmod], simp, }
+by simp [friendship_reg_adj_sq hG hd, dmod]
 
 lemma friendship_reg_adj_sq_mul_J (hd : G.is_regular_of_degree d) :
   (G.adj_matrix R) * (λ _ _, 1) = λ _ _, d :=
-by { ext, rw ← hd x, simp [degree], }
+by { ext x, simp [← hd x, degree] }
 
 lemma friendship_reg_adj_mul_J_mod_p {p : ℕ} (dmod : (d : zmod p) = 1) (hd : G.is_regular_of_degree d) :
   (G.adj_matrix (zmod p)) * (λ _ _, 1) = λ _ _, 1 :=
@@ -253,8 +253,8 @@ begin
   { have hfr:= friendship_reg_card hG hd,
     linarith },
   { exact finset.card_erase_of_mem (finset.mem_univ _), },
-  dsimp [is_regular_of_degree, degree] at hd,
-  rw hd,
+  { dsimp [is_regular_of_degree, degree] at hd,
+    rw hd, }
 end
 
 lemma deg_two_friendship_has_pol (hd : G.is_regular_of_degree 2) :

@@ -121,7 +121,7 @@ begin
     -- Now, we can just assert that `s₂` is the droid you are looking for,
     -- and do a little patching up afterwards.
     convert s₂,
-    { simp only [sheaf_condition.res, presheaf_to_Types_map, types.lift_π_apply', types_comp_apply],
+    { simp only [sheaf_condition.res, presheaf_to_Types_map, types.pi_lift_π_apply, types_comp_apply],
       dsimp [inf_le_left_apply],
       simp,
       refl, },

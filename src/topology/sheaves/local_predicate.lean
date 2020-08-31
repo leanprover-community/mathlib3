@@ -343,19 +343,18 @@ begin
   { choose W s hW e using Q,
     exact e.1.trans e.2.symm, },
   -- Then use induction to pick particular representatives of `tU tV : stalk x`
-  have := types.jointly_surjective' _ tU,
-  induction tV,
+  obtain ⟨U, ⟨fU, hU⟩, rfl⟩ := types.jointly_surjective' tU,
+  obtain ⟨V, ⟨fV, hV⟩, rfl⟩ := types.jointly_surjective' tV,
   { -- Decompose everything into its constituent parts:
     dsimp,
-    rcases tU with ⟨U, ⟨fU, hU⟩⟩,
-    rcases tV with ⟨V, ⟨fV, hV⟩⟩,
+    simp only [stalk_to_fiber, types.ι_desc_apply] at h,
     specialize w (unop U) (unop V) fU hU fV hV h,
     rcases w with ⟨W, iU, iV, w⟩,
     -- and put it back together again in the correct order.
     refine ⟨(op W), (λ w, fU (iU w : (unop U).1)), P.res _ _ hU, _⟩,
-    exact ⟨quot.sound ⟨iU.op, subtype.eq rfl⟩, quot.sound ⟨iV.op, subtype.eq (funext w)⟩⟩, },
-  { refl, }, -- proof irrelevance
-  { refl, }, -- proof irrelevance
+    rcases W with ⟨W, m⟩,
+    exact ⟨types.colimit_sound iU.op (subtype.eq rfl),
+           types.colimit_sound iV.op (subtype.eq (funext w).symm)⟩, },
 end
 
 /--

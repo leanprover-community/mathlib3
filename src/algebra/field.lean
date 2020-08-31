@@ -186,7 +186,7 @@ structure is_field (R : Type u) [ring R] : Prop :=
 /-- Transferring from field to is_field -/
 lemma field.to_is_field (R : Type u) [field R] : is_field R :=
 { mul_inv_cancel' := λ a ha, ⟨a⁻¹, field.mul_inv_cancel ha⟩,
-  ..(‹_› : field R) }
+  ..‹field R› }
 
 open_locale classical
 

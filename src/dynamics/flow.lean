@@ -107,6 +107,9 @@ localized "notation `ω` := omega_limit" in omega_limit
 
 variables [topological_space Y]
 variables (m : T → T) (f f₁ f₂: filter T)
+
+section -- omega limits under ϕ : T → X → Y
+
 variables (ϕ : T → X → Y) (S S₁ S₂: set X)
 
 lemma omega_limit_def : ω f ϕ S = ⋂ n ∈ f, closure (image2 ϕ n S) := rfl
@@ -156,8 +159,16 @@ begin
   exact closure_mono (image2_subset subset.rfl hS),
 end
 
-/-- in a compact space, a set is eventually carried by the flow into
-    any neighbourhood of its ω-limit.  -/
+-- ω-limits in compact spaces: choose to require a `compact_space`
+-- instance rather than include an additional hypothesis for e.g. the
+-- orbits being precompact; with the expectation that we proceed by
+-- finding a compact invariant set and work in the subtype.
+
+lemma is_compact_omega_limit [compact_space Y] : is_compact (ω f ϕ S) :=
+(is_closed_omega_limit _ _ _).compact
+
+/-- in a compact space, a set is eventually carried into any
+    neighbourhood of its ω-limit.  -/
 lemma eventually_subset_nhd_omega_limit [compact_space Y]
   (v : set Y) (ho : is_open v) (hv : ω f ϕ S ⊆ v) :
   ∃ u ∈ f, image2 ϕ u S ⊆ v :=
@@ -189,6 +200,18 @@ begin
     ... ⊆ v : hg₃,
   end,
   exact ⟨w, hw₁, hw₂⟩,
+end
+
+end
+
+section -- omega limits under ϕ : T → Y → Y
+
+variables (ϕ : T → Y → Y) (S : set Y)
+
+lemma omega_limit_subset_closure (h : is_invariant ϕ S) : ω f ϕ S ⊆ closure S :=
+Inter_subset_of_subset univ (Inter_subset_of_subset univ_mem_sets (closure_mono
+  ((is_invariant_iff_image2_subset _ _).mp h)))
+
 end
 
 end omega_limit
@@ -261,7 +284,7 @@ lemma map_add (t₁ t₂ : T) (x : X) : ϕ t₂ (ϕ t₁ x) = ϕ (t₁ + t₂) x
 
 open_locale omega_limit
 
-/-- a filter `f` on `T` is invariant if `t ⁻¹' n ∈ f` for ever `t` in `T` and `n ∈ f`.
+/-- if `f` tends to itself under the (right-) action of `T` on itself,
     an ω-limit w.r.t. an invariant `f` is invariant. -/
 lemma is_invariant_omega_limit (h : ∀ t, tendsto (+ t) f f) : is_invariant ϕ (ω f ϕ S) :=
 begin
@@ -295,6 +318,7 @@ structure flow
 
 namespace flow
 
+open_locale omega_limit
 open semigroup_flow
 
 variables
@@ -310,10 +334,10 @@ instance : has_coe_to_fun (flow T X) := ⟨_, λ ϕ, ϕ.to_semigroup_flow.to_fun
 
 instance has_uncurry_flow : has_uncurry (flow T X) (T × X) X := ⟨λ ϕ, ↿(ϕ : semigroup_flow T X)⟩
 
-variables (ϕ : flow T X)
-
 @[ext] lemma ext : ∀ {ϕ₁ ϕ₂ : flow T X}, (∀ x t, ϕ₁ x t = ϕ₂ x t) → ϕ₁ = ϕ₂
 | ⟨f₁, _⟩ ⟨f₂, _⟩ h := by { congr, apply semigroup_flow.ext, apply h }
+
+variable (ϕ : flow T X)
 
 @[simp]
 lemma coe_coe : ⇑(ϕ : semigroup_flow T X) = ⇑ϕ := rfl
@@ -331,19 +355,15 @@ end
 
 section
 
--- henceforth we assume `T` is linearly ordered and commutative. This
--- makes it possible to speak of the time-reversal of a flow, as well
--- as recover some familiar results for the cases `T = ℕ` and `T = ℝ`.
-variables [decidable_linear_ordered_add_comm_group T] [topological_add_group T]
-
-variables (ϕ : flow T X)
+variables [add_comm_group T] [topological_add_group T]
+variables (f f₁ f₂ : filter T) (ϕ : flow T X) (A S : set X)
 
 /-- the time-reversal of a flow, defined `ϕ.reverse t x = ϕ (-t) x` -/
 def reverse : (flow T X) :=
 { to_fun    := λ t x, ϕ (-t) x,
   cont      := show continuous (↿ϕ ∘ λ p : T × X, (-p.fst, p.snd)), from
                ϕ.continuous.comp (by continuity),
-  map_add'  := λ _ _ _, by rw [map_add, neg_add],
+  map_add'  := λ s t _, by rw [map_add, neg_add],
   map_zero' := λ _, show ϕ (-0) _ = _, by rw [neg_zero, map_zero] }
 
 -- (it might be convenient to register `ϕ.reverse` as `has_inv` or
@@ -362,6 +382,62 @@ ext (λ _ _, by simp only [reverse_def, neg_neg])
 lemma image2_reverse_eq (I : set T) (S : set X):
   image2 ϕ.reverse I S = image2 ϕ (has_neg.neg '' I) S :=
 by simp_rw [image2_image_left, ←reverse_def₁]
+
+-- TODO: the statements/proofs/names of the following few results are
+-- ugly and likely should be refactored into nicer versions of
+-- themselves, once it is figured out what those are.
+
+lemma tendsto_add_iff_tendsto_sub :
+  (∀ t, tendsto (+ t) f₁ f₂) ↔ ∀ t, tendsto (λ x, x - t) f₁ f₂ :=
+iff.intro (λ h t, h (-t)) (λ h t, by { simp_rw ←sub_neg_eq_add, exact h (-t) })
+
+lemma omega_limit_forward_image (h : ∀ t, tendsto (+ t) f f) (t : T) :
+  ω f ϕ S = ω f ϕ (ϕ t '' S) :=
+begin
+  rw subset.antisymm_iff, split,
+  { calc ω f ϕ S
+        ⊆ ω f (λ s x, ϕ (s - t) x) (ϕ t '' S) :
+          begin
+            apply Inter_subset_Inter, intro u,
+            apply Inter_subset_Inter, intro hu,
+            apply closure_mono,
+            rw image2_image_right, simp
+          end
+    ... ⊆ ω f ϕ (ϕ t '' S) :
+          omega_limit_subset_of_tendsto _ _ _ _ (ϕ t '' S)
+            ((tendsto_add_iff_tendsto_sub _ _).mp h _) },
+  { apply Inter_subset_Inter2, intro u, use (+ t) ⁻¹' u,
+    apply Inter_subset_Inter2, intro hu, use tendsto_def.mp (h t) _ hu,
+    apply closure_mono,
+    simp_rw [image2_image_right, map_add],
+    rintro y ⟨s, x, hs, hx, hsx⟩,
+    exact ⟨s + t, x, hs, hx, by rwa add_comm⟩ }
+end
+
+lemma attractor_maximal (x : X) (h : ∀ t, tendsto (+ t) f f)
+  (ha : is_attractor f ϕ A) (hs : A ⊆ S) (he : (ω f ϕ {x} ∩ A).nonempty) :
+  ω f ϕ {x} ⊆ A :=
+begin
+  rcases ha with ⟨n, hn₁, hn₂, hn₃⟩, rw ←hn₃,
+  rcases he with ⟨y, hy₁, hy₂⟩,
+  rw mem_omega_limit_singleton_iff_frequently at hy₁,
+  rcases (hy₁ _ (mem_nhds_sets hn₁ (hn₂ hy₂))).exists with ⟨t, ht⟩,
+  calc ω f ϕ {x}
+      ⊆ ω f ϕ (ϕ t '' {x}) :
+        by { rw omega_limit_forward_image _ _ _ h t, exact subset.rfl, }
+  ... ⊆ ω f ϕ {ϕ t x} :
+        by { rw image_singleton, exact subset.rfl }
+  ... ⊆ ω f ϕ n : omega_limit_mono _ _ _ _ _ le_rfl (singleton_subset_iff.mpr ht),
+end
+
+end
+
+section
+
+-- recover some results for ω- and α-limit sets in the case where `T = ℕ or ℝ`:
+variables [decidable_linear_ordered_add_comm_group T] [topological_add_group T]
+
+variables (ϕ : flow T X)
 
 localized "notation `ω₊` := omega_limit at_top" in omega_limit
 localized "notation `ω₋` := omega_limit at_bot" in omega_limit

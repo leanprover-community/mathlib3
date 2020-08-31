@@ -39,26 +39,6 @@ universes u v w u₁
 
 
 
-namespace finset
-
-open_locale classical
-
-@[simp]
-lemma fold_union_empty_singleton {α : Type*} (s : finset α) :
-  finset.fold (∪) ∅ singleton s = s :=
-begin
-  apply finset.induction_on s,
-  { simp only [fold_empty], },
-  { intros a s has ih, rw [fold_insert has, ih, insert_eq], }
-end
-
-@[simp]
-lemma fold_sup_bot_singleton {α : Type*} (s : finset α) :
-  finset.fold (⊔) ⊥ singleton s = s :=
-fold_union_empty_singleton s
-
-end finset
-
 namespace mv_polynomial
 open finsupp
 
@@ -69,48 +49,7 @@ section constant_coeff
 open_locale classical
 variables {σ R}
 
--- noncomputable
--- def constant_coeff : mv_polynomial σ R →+* R :=
--- { to_fun := coeff 0,
---   map_one' := by simp [coeff, add_monoid_algebra.one_def],
---   map_mul' := by simp [coeff_mul, finsupp.support_single_ne_zero],
---   map_zero' := coeff_zero _,
---   map_add' := coeff_add _ }
-
--- -- I think neither direction should be simp.
--- -- But I one of them must be simp, then: ←
--- lemma constant_coeff_eq : (constant_coeff : mv_polynomial σ R → R) = coeff 0 := rfl
-
--- @[simp]
--- lemma constant_coeff_C (r : R) :
---   constant_coeff (C r : mv_polynomial σ R) = r :=
--- by simp [constant_coeff_eq]
-
--- @[simp]
--- lemma constant_coeff_X (i : σ) :
---   constant_coeff (X i : mv_polynomial σ R) = 0 :=
--- by simp [constant_coeff_eq]
-
--- lemma constant_coeff_monomial (d : σ →₀ ℕ) (r : R) :
---   constant_coeff (monomial d r) = if d = 0 then r else 0 :=
--- by rw [constant_coeff_eq, coeff_monomial]
-
 end constant_coeff
-
--- @[simp] lemma aeval_zero [algebra R A] (p : mv_polynomial σ R) :
---   aeval (0 : σ → A) p = algebra_map _ _ (constant_coeff p) :=
--- begin
---   apply mv_polynomial.induction_on p,
---   { simp only [aeval_C, forall_const, if_true, constant_coeff_C, eq_self_iff_true] },
---   { intros, simp only [*, alg_hom.map_add, ring_hom.map_add, coeff_add] },
---   { intros,
---     simp only [ring_hom.map_mul, constant_coeff_X, pi.zero_apply, ring_hom.map_zero, eq_self_iff_true,
---       mem_support_iff, not_true, aeval_X, if_false, ne.def, mul_zero, alg_hom.map_mul, zero_apply] }
--- end
-
--- @[simp] lemma aeval_zero' [algebra R A] (p : mv_polynomial σ R) :
---   aeval (λ _, 0 : σ → A) p = algebra_map _ _ (constant_coeff p) :=
--- aeval_zero σ R A p
 
 open_locale big_operators
 
@@ -180,42 +119,37 @@ begin
   simpa using multiset.mem_of_le (degrees_add _ _) hx,
 end
 
-lemma finset.mem_sup {α β} [decidable_eq α] [decidable_eq β] {s : finset α} {f : α → multiset β} {x : β} : x ∈ s.sup f ↔
-  ∃ v ∈ s, x ∈ f v :=
-begin
-  apply s.induction_on,
-  { simp },
-  { intros a s has hxs,
-    rw [finset.sup_insert, multiset.sup_eq_union, multiset.mem_union],
-    split,
-    { intro hxi,
-      cases hxi with hf hf,
-      { refine ⟨a, _, hf⟩,
-        simp only [true_or, eq_self_iff_true, finset.mem_insert] },
-      { rcases hxs.mp hf with ⟨v, hv, hfv⟩,
-        refine ⟨v, _, hfv⟩,
-        simp only [hv, or_true, finset.mem_insert] } },
-    { rintros ⟨v, hv, hfv⟩,
-      rw [finset.mem_insert] at hv,
-      rcases hv with rfl | hv,
-      { exact or.inl hfv },
-      { refine or.inr (hxs.mpr ⟨v, hv, hfv⟩) } } },
-end
+-- lemma finset.mem_sup {α β} [decidable_eq α] [decidable_eq β] {s : finset α} {f : α → multiset β}
+--   {x : β} : x ∈ s.sup f ↔ ∃ v ∈ s, x ∈ f v :=
+-- begin
+--   apply s.induction_on,
+--   { simp },
+--   { intros a s has hxs,
+--     rw [finset.sup_insert, multiset.sup_eq_union, multiset.mem_union],
+--     split,
+--     { intro hxi,
+--       cases hxi with hf hf,
+--       { refine ⟨a, _, hf⟩,
+--         simp only [true_or, eq_self_iff_true, finset.mem_insert] },
+--       { rcases hxs.mp hf with ⟨v, hv, hfv⟩,
+--         refine ⟨v, _, hfv⟩,
+--         simp only [hv, or_true, finset.mem_insert] } },
+--     { rintros ⟨v, hv, hfv⟩,
+--       rw [finset.mem_insert] at hv,
+--       rcases hv with rfl | hv,
+--       { exact or.inl hfv },
+--       { refine or.inr (hxs.mpr ⟨v, hv, hfv⟩) } } },
+-- end
 
--- generalize from multiset?
-lemma finset.sup_subset {α β} {s t : finset α} (hst : s ⊆ t) (f : α → multiset β) :
-  s.sup f ≤ t.sup f :=
-calc t.sup f = (s ∪ t).sup f : by rw [finset.union_eq_right_iff_subset.mpr hst]
-         ... = s.sup f ⊔ t.sup f : by rw finset.sup_union
-         ... ≥ s.sup f : le_sup_left
-
-lemma multiset.mem_iff_count_ne_zero {α : Type*} (s : multiset α) (a : α) :
-  a ∈ s ↔ s.count a ≠ 0 :=
-by rw [ne.def, multiset.count_eq_zero, not_not]
+-- lemma finset.sup_subset {α β} [semilattice_sup_bot β] {s t : finset α} (hst : s ⊆ t) (f : α → β) :
+--   s.sup f ≤ t.sup f :=
+-- calc t.sup f = (s ∪ t).sup f : by rw [finset.union_eq_right_iff_subset.mpr hst]
+--          ... = s.sup f ⊔ t.sup f : by rw finset.sup_union
+--          ... ≥ s.sup f : le_sup_left
 
 @[simp] lemma finsupp.mem_to_multiset (f : σ →₀ ℕ) (i : σ) :
   i ∈ f.to_multiset ↔ i ∈ f.support :=
-by rw [multiset.mem_iff_count_ne_zero, finsupp.count_to_multiset, finsupp.mem_support_iff]
+by rw [← multiset.count_ne_zero, finsupp.count_to_multiset, finsupp.mem_support_iff]
 
 lemma mem_degrees (p : mv_polynomial σ R) (i : σ) :
   i ∈ p.degrees ↔ ∃ d, p.coeff d ≠ 0 ∧ i ∈ d.support :=

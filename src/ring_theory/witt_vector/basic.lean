@@ -901,17 +901,19 @@ ghost_map_fun.bijective_of_invertible p R
 section witt_structure_simplifications
 
 -- move this up
-@[simp] lemma X_in_terms_of_W_coeff_zero [invertible (p : R)] (n : ℕ) :
-  (X_in_terms_of_W p R n).coeff 0 = 0 :=
+@[simp] lemma constant_coeff_X_in_terms_of_W [invertible (p : R)] (n : ℕ) :
+  constant_coeff (X_in_terms_of_W p R n) = 0 :=
 begin
   apply nat.strong_induction_on n; clear n,
   intros n IH,
-  rw [X_in_terms_of_W_eq, mul_comm, coeff_C_mul, coeff_sub, coeff_sum, finset.sum_eq_zero],
-  { simp only [coeff_zero_X, sub_zero, mul_zero] },
-  { intros,
-    rw [coeff_C_mul],
-    -- ouch, we don't know that `coeff 0` is a ring hom :sad:
-    sorry, }
+  rw [X_in_terms_of_W_eq, mul_comm, ring_hom.map_mul, ring_hom.map_sub, ring_hom.map_sum,
+    constant_coeff_C, finset.sum_eq_zero],
+  { simp only [constant_coeff_X, sub_zero, mul_zero] },
+  { intros m H,
+    rw finset.mem_range at H,
+    simp only [ring_hom.map_mul, ring_hom.map_pow, constant_coeff_C, IH m H],
+    rw [zero_pow, mul_zero],
+    apply nat.pow_pos hp.pos, }
 end
 
 -- move this up
@@ -923,7 +925,7 @@ by rw [X_in_terms_of_W_eq, finset.range_zero, finset.sum_empty, pow_zero, C_1, m
 begin
   apply mv_polynomial.coe_int_rat_map_injective,
   simp only [witt_zero, witt_structure_rat, aeval_zero', alg_hom.map_zero, ring_hom.map_zero,
-    X_in_terms_of_W_coeff_zero, map_witt_structure_int]
+    ← constant_coeff_eq, constant_coeff_X_in_terms_of_W, map_witt_structure_int],
 end
 
 @[simp] lemma witt_one_zero_eq_one : witt_one p 0 = 1 :=

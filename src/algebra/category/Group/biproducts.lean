@@ -3,9 +3,10 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.category.Group.basic
+import algebra.category.Group.limits
 import algebra.category.Group.preadditive
 import category_theory.limits.shapes.biproducts
+import category_theory.limits.shapes.types
 import algebra.group.pi
 
 /-!
@@ -42,8 +43,9 @@ has_binary_biproduct.of_has_binary_product _ _
 
 -- We verify that the biproduct we've just defined is isomorphic to
 -- the cartesian product of the underlying types:
+noncomputable
 def biprod_iso_prod (G H : AddCommGroup.{u}) : (G ⊞ H : AddCommGroup) ≅ AddCommGroup.of (G × H) :=
-is_limit.cone_point_unique_up_to_iso sorry (binary_product_limit_data G H).is_limit
+is_limit.cone_point_unique_up_to_iso (binary_biproduct.is_limit G H) (binary_product_limit_data G H).is_limit
 
 -- Furthermore, our biproduct will automatically function as a coproduct.
 example (G H : AddCommGroup.{u}) : has_colimit (pair G H) := by apply_instance
@@ -91,10 +93,14 @@ variables [decidable_eq J] [fintype J]
 instance (f : J → AddCommGroup.{u}) : has_biproduct f :=
 has_biproduct.of_has_product _
 
--- We verify that the underlying type of the biproduct we've just defined is definitionally
--- the dependent function type:
-def biproduct_iso_pi (f : J → AddCommGroup.{u}) : (⨁ f : AddCommGroup) = AddCommGroup.of (Π j, f j) :=
-sorry
+-- TODO
+-- /--
+-- We verify that the biproduct we've just defined is isomorphic to the AddCommGroup structure
+-- on the dependent function type
+-- -/
+-- noncomputable
+-- def biproduct_iso_pi (f : J → AddCommGroup.{u}) : (⨁ f : AddCommGroup) ≅ AddCommGroup.of (Π j, f j) :=
+-- sorry
 
 end
 

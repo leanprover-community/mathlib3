@@ -980,7 +980,7 @@ end
 section lim_functor
 
 /-- Functoriality of limits, stated for `is_limit`. -/
-def is_lim_map {F G : J ⥤ C} (c : cone F) {d : cone G} (hd : is_limit d) (α : F ⟶ G) : c.X ⟶ d.X :=
+def is_limit_map {F G : J ⥤ C} (c : cone F) {d : cone G} (hd : is_limit d) (α : F ⟶ G) : c.X ⟶ d.X :=
 hd.lift
   { X := c.X,
     π :=
@@ -988,8 +988,8 @@ hd.lift
       naturality' := λ j j' f,
         by erw [id_comp, assoc, ←α.naturality, ←assoc, c.w] } }
 
-@[simp, reassoc] lemma is_lim_map_π {F G : J ⥤ C} (c : cone F) {d : cone G} (hd : is_limit d)
-  (α : F ⟶ G) (j : J) : is_lim_map c hd α ≫ d.π.app j = c.π.app j ≫ α.app j :=
+@[simp, reassoc] lemma is_limit_map_π {F G : J ⥤ C} (c : cone F) {d : cone G} (hd : is_limit d)
+  (α : F ⟶ G) (j : J) : is_limit_map c hd α ≫ d.π.app j = c.π.app j ≫ α.app j :=
 by apply is_limit.fac
 
 /--
@@ -1000,7 +1000,7 @@ but may be needed separately when you have specified limits for the source and t
 but not necessarily for all functors of shape `J`.
 -/
 def lim_map {F G : J ⥤ C} [has_limit F] [has_limit G] (α : F ⟶ G) : limit F ⟶ limit G :=
-is_lim_map (limit.cone _) (limit.is_limit _) α
+is_limit_map (limit.cone _) (limit.is_limit _) α
 
 @[simp, reassoc] lemma lim_map_π {F G : J ⥤ C} [has_limit F] [has_limit G] (α : F ⟶ G) (j : J) :
   lim_map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
@@ -1374,7 +1374,7 @@ end
 section colim_functor
 
 /-- Functoriality of colimits, stated for `is_colimit`. -/
-def is_colim_map {F G : J ⥤ C} {c : cocone F} (hc : is_colimit c) (d : cocone G) (α : F ⟶ G) :
+def is_colimit_map {F G : J ⥤ C} {c : cocone F} (hc : is_colimit c) (d : cocone G) (α : F ⟶ G) :
   c.X ⟶ d.X :=
 hc.desc
   { X := d.X,
@@ -1384,8 +1384,8 @@ hc.desc
         by erw [comp_id, ←assoc, α.naturality, assoc, d.w] } }
 
 @[simp, reassoc]
-lemma ι_is_colim_map {F G : J ⥤ C} {c : cocone F} (hc : is_colimit c) (d : cocone G) (α : F ⟶ G)
-  (j : J) : c.ι.app j ≫ is_colim_map hc d α = α.app j ≫ d.ι.app j :=
+lemma ι_is_colimit_map {F G : J ⥤ C} {c : cocone F} (hc : is_colimit c) (d : cocone G) (α : F ⟶ G)
+  (j : J) : c.ι.app j ≫ is_colimit_map hc d α = α.app j ≫ d.ι.app j :=
 by apply is_colimit.fac
 
 /--
@@ -1396,7 +1396,7 @@ but may be needed separately when you have specified colimits for the source and
 but not necessarily for all functors of shape `J`.
 -/
 def colim_map {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G) : colimit F ⟶ colimit G :=
-is_colim_map (colimit.is_colimit F) (colimit.cocone G) α
+is_colimit_map (colimit.is_colimit F) (colimit.cocone G) α
 
 @[simp, reassoc]
 lemma ι_colim_map {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G) (j : J) :

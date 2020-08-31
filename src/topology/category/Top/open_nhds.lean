@@ -22,9 +22,9 @@ namespace open_nhds
 
 instance (x : X) : partial_order (open_nhds x) :=
 { le := λ U V, U.1 ≤ V.1,
-  le_refl := λ U, @le_refl _ _ U.1.1,
-  le_trans := λ U V W, @le_trans _ _ U.1.1 V.1.1 W.1.1,
-  le_antisymm := λ U V i j, subtype.eq (subtype.eq (@le_antisymm _ _ U.1.1 V.1.1 i j)), }
+  le_refl := λ _, le_refl _,
+  le_trans := λ _ _ _, le_trans,
+  le_antisymm := λ _ _ i j, subtype.eq $ le_antisymm i j }
 
 instance (x : X) : lattice (open_nhds x) :=
 { inf := λ U V, ⟨U.1 ⊓ V.1, ⟨U.2, V.2⟩⟩,

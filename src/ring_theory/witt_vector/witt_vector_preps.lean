@@ -69,48 +69,48 @@ section constant_coeff
 open_locale classical
 variables {σ R}
 
-noncomputable
-def constant_coeff : mv_polynomial σ R →+* R :=
-{ to_fun := coeff 0,
-  map_one' := by simp [coeff, add_monoid_algebra.one_def],
-  map_mul' := by simp [coeff_mul, finsupp.support_single_ne_zero],
-  map_zero' := coeff_zero _,
-  map_add' := coeff_add _ }
+-- noncomputable
+-- def constant_coeff : mv_polynomial σ R →+* R :=
+-- { to_fun := coeff 0,
+--   map_one' := by simp [coeff, add_monoid_algebra.one_def],
+--   map_mul' := by simp [coeff_mul, finsupp.support_single_ne_zero],
+--   map_zero' := coeff_zero _,
+--   map_add' := coeff_add _ }
 
--- I think neither direction should be simp.
--- But I one of them must be simp, then: ←
-lemma constant_coeff_eq : (constant_coeff : mv_polynomial σ R → R) = coeff 0 := rfl
+-- -- I think neither direction should be simp.
+-- -- But I one of them must be simp, then: ←
+-- lemma constant_coeff_eq : (constant_coeff : mv_polynomial σ R → R) = coeff 0 := rfl
 
-@[simp]
-lemma constant_coeff_C (r : R) :
-  constant_coeff (C r : mv_polynomial σ R) = r :=
-by simp [constant_coeff_eq]
+-- @[simp]
+-- lemma constant_coeff_C (r : R) :
+--   constant_coeff (C r : mv_polynomial σ R) = r :=
+-- by simp [constant_coeff_eq]
 
-@[simp]
-lemma constant_coeff_X (i : σ) :
-  constant_coeff (X i : mv_polynomial σ R) = 0 :=
-by simp [constant_coeff_eq]
+-- @[simp]
+-- lemma constant_coeff_X (i : σ) :
+--   constant_coeff (X i : mv_polynomial σ R) = 0 :=
+-- by simp [constant_coeff_eq]
 
-lemma constant_coeff_monomial (d : σ →₀ ℕ) (r : R) :
-  constant_coeff (monomial d r) = if d = 0 then r else 0 :=
-by rw [constant_coeff_eq, coeff_monomial]
+-- lemma constant_coeff_monomial (d : σ →₀ ℕ) (r : R) :
+--   constant_coeff (monomial d r) = if d = 0 then r else 0 :=
+-- by rw [constant_coeff_eq, coeff_monomial]
 
 end constant_coeff
 
-@[simp] lemma aeval_zero [algebra R A] (p : mv_polynomial σ R) :
-  aeval (0 : σ → A) p = algebra_map _ _ (constant_coeff p) :=
-begin
-  apply mv_polynomial.induction_on p,
-  { simp only [aeval_C, forall_const, if_true, constant_coeff_C, eq_self_iff_true] },
-  { intros, simp only [*, alg_hom.map_add, ring_hom.map_add, coeff_add] },
-  { intros,
-    simp only [ring_hom.map_mul, constant_coeff_X, pi.zero_apply, ring_hom.map_zero, eq_self_iff_true,
-      mem_support_iff, not_true, aeval_X, if_false, ne.def, mul_zero, alg_hom.map_mul, zero_apply] }
-end
+-- @[simp] lemma aeval_zero [algebra R A] (p : mv_polynomial σ R) :
+--   aeval (0 : σ → A) p = algebra_map _ _ (constant_coeff p) :=
+-- begin
+--   apply mv_polynomial.induction_on p,
+--   { simp only [aeval_C, forall_const, if_true, constant_coeff_C, eq_self_iff_true] },
+--   { intros, simp only [*, alg_hom.map_add, ring_hom.map_add, coeff_add] },
+--   { intros,
+--     simp only [ring_hom.map_mul, constant_coeff_X, pi.zero_apply, ring_hom.map_zero, eq_self_iff_true,
+--       mem_support_iff, not_true, aeval_X, if_false, ne.def, mul_zero, alg_hom.map_mul, zero_apply] }
+-- end
 
-@[simp] lemma aeval_zero' [algebra R A] (p : mv_polynomial σ R) :
-  aeval (λ _, 0 : σ → A) p = algebra_map _ _ (constant_coeff p) :=
-aeval_zero σ R A p
+-- @[simp] lemma aeval_zero' [algebra R A] (p : mv_polynomial σ R) :
+--   aeval (λ _, 0 : σ → A) p = algebra_map _ _ (constant_coeff p) :=
+-- aeval_zero σ R A p
 
 open_locale big_operators
 
@@ -169,19 +169,6 @@ variables (p q : mv_polynomial σ R)
 
 open function
 open_locale classical big_operators
-
-section monomial
-
-lemma eval₂_hom_monomial (f : R →+* S) (g : σ → S) (d : σ →₀ ℕ) (r : R) :
-  eval₂_hom f g (monomial d r) = f r * d.prod (λ i k, g i ^ k) :=
-by simp only [monomial_eq, ring_hom.map_mul, eval₂_hom_C, finsupp.prod,
-  ring_hom.map_prod, ring_hom.map_pow, eval₂_hom_X']
-
-lemma aeval_monomial [algebra R S] (g : σ → S) (d : σ →₀ ℕ) (r : R) :
-  aeval g (monomial d r) = algebra_map _ _ r * d.prod (λ i k, g i ^ k) :=
-eval₂_hom_monomial _ _ _ _
-
-end monomial
 
 section vars
 

@@ -6,10 +6,7 @@ Authors: Scott Morrison
 import algebra.category.Mon.limits
 import algebra.category.Group.preadditive
 import category_theory.over
-import category_theory.limits.types
-import category_theory.limits.preserves.basic
 import category_theory.limits.shapes.concrete_category
-import algebra.group.pi
 
 /-!
 # The category of (commutative) (additive) groups has all limits

@@ -9,7 +9,8 @@ import topology.sheaves.stalks
 /-!
 # Functions satisfying a local predicate form a sheaf.
 
-At this stage, we've proved that not-necessarily-continuous functions from a topological space
+At this stage, in `topology/sheaves/sheaf_of_functions.lean`
+we've proved that not-necessarily-continuous functions from a topological space
 into some type (or type family) form a sheaf.
 
 Why do the continuous functions form a sheaf?
@@ -22,6 +23,9 @@ which were assumed to be continuous).
 This file abstracts this argument to work for
 any collection of dependent functions on a topological space
 satisfying a "local predicate".
+
+As an application, we check that continuity is a local predicate in this sense, and provide
+* `Top.sheaf_condition.to_Top`: continuous functions into a topological space form a sheaf
 
 A sheaf constructed in this way has a natural map `stalk_to_fiber` from the stalks
 to the types in the ambient type family.

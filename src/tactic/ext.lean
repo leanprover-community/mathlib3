@@ -365,14 +365,18 @@ attribute [ext] has_zero
 
 namespace tactic
 
+/-- Try to introduce as many arguments as possible, using the given patterns to destruct the
+  introduced variables. Returns the unused patterns. -/
 meta def try_intros : list rcases_patt → tactic (list rcases_patt)
-| [] := try intros $> []
+| []      := try intros $> []
 | (x::xs) :=
 do tgt ← target >>= whnf,
    if tgt.is_pi
      then rintro [x] >> try_intros xs
      else pure (x :: xs)
 
+/-- Apply one extensionality lemma, and destruct the arguments using the given patterns.
+  Returns the unused patterns. -/
 meta def ext1 (xs : list rcases_patt) (cfg : apply_cfg := {}) : tactic (list rcases_patt) :=
 do subject ← target >>= get_ext_subject,
    m ← get_ext_lemmas,
@@ -383,11 +387,11 @@ do subject ← target >>= get_ext_subject,
      fail format!"no applicable extensionality rule found for {subject}",
    try_intros xs
 
-meta def ext : list rcases_patt → option ℕ → tactic unit
-| _  (some 0) := skip
-| xs n        := focus1 $ do
-  ys ← ext1 xs, try (ext ys (nat.pred <$> n))
-
+/-- Apply multiple extensionality lemmas, destructing the arguments using the given patterns.
+  `ext ps (some n)` applies at most `n` extensionality lemmas. Returns the unused patterns. -/
+meta def ext : list rcases_patt → option ℕ → tactic (list rcases_patt)
+| xs (some 0) := return xs
+| xs n        := focus1 $ do ys ← ext1 xs, (ext ys (nat.pred <$> n) <|> return ys)
 
 local postfix `?`:9001 := optional
 local postfix *:9001 := many
@@ -454,7 +458,7 @@ meta def interactive.ext :
   parse (rcases_patt_parse tt)* → parse (tk ":" *> small_nat)? → tactic unit
  | [] (some n) := iterate_range 1 n (ext1 [] $> ())
  | [] none     := repeat1 (ext1 [] $> ())
- | xs n        := tactic.ext xs n
+ | xs n        := tactic.ext xs n $> ()
 
 /--
 * `ext1 id` selects and apply one extensionality lemma (with

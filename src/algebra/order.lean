@@ -117,11 +117,7 @@ lemma lt_of_not_ge' [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
 lemma lt_iff_not_ge' [linear_order α] {x y : α} : x < y ↔ ¬ y ≤ x :=
 ⟨not_le_of_gt, lt_of_not_ge'⟩
 
-@[simp] lemma not_lt [linear_order α] {a b : α} : ¬ a < b ↔ b ≤ a := ⟨le_of_not_gt, not_lt_of_ge⟩
-
 lemma le_of_not_lt [linear_order α] {a b : α} : ¬ a < b → b ≤ a := not_lt.1
-
-@[simp] lemma not_le [linear_order α] {a b : α} : ¬ a ≤ b ↔ b < a := lt_iff_not_ge'.symm
 
 lemma lt_or_le [linear_order α] : ∀ a b : α, a < b ∨ b ≤ a := lt_or_ge
 lemma le_or_lt [linear_order α] : ∀ a b : α, a ≤ b ∨ b < a := le_or_gt
@@ -207,62 +203,6 @@ calc  c
 ... ≤ d : h₁
 
 namespace decidable
-
--- See Note [decidable namespace]
-lemma lt_or_eq_of_le [partial_order α] [@decidable_rel α (≤)] {a b : α} (hab : a ≤ b) : a < b ∨ a = b :=
-if hba : b ≤ a then or.inr (le_antisymm hab hba)
-else or.inl (lt_of_le_not_le hab hba)
-
--- See Note [decidable namespace]
-lemma eq_or_lt_of_le [partial_order α] [@decidable_rel α (≤)] {a b : α} (hab : a ≤ b) : a = b ∨ a < b :=
-(lt_or_eq_of_le hab).swap
-
--- See Note [decidable namespace]
-lemma le_iff_lt_or_eq [partial_order α] [@decidable_rel α (≤)] {a b : α} : a ≤ b ↔ a < b ∨ a = b :=
-⟨lt_or_eq_of_le, le_of_lt_or_eq⟩
-
--- See Note [decidable namespace]
-lemma le_of_not_lt [decidable_linear_order α] {a b : α} (h : ¬ b < a) : a ≤ b :=
-decidable.by_contradiction $ λ h', h $ lt_of_le_not_le ((le_total _ _).resolve_right h') h'
-
--- See Note [decidable namespace]
-lemma not_lt [decidable_linear_order α] {a b : α} : ¬ a < b ↔ b ≤ a :=
-⟨le_of_not_lt, not_lt_of_ge⟩
-
--- See Note [decidable namespace]
-lemma lt_or_le [decidable_linear_order α] (a b : α) : a < b ∨ b ≤ a :=
-if hba : b ≤ a then or.inr hba else or.inl $ not_le.1 hba
-
--- See Note [decidable namespace]
-lemma le_or_lt [decidable_linear_order α] (a b : α) : a ≤ b ∨ b < a :=
-(lt_or_le b a).swap
-
--- See Note [decidable namespace]
-lemma lt_trichotomy [decidable_linear_order α] (a b : α) : a < b ∨ a = b ∨ b < a :=
-(lt_or_le _ _).imp_right $ λ h, (eq_or_lt_of_le h).imp_left eq.symm
-
--- See Note [decidable namespace]
-lemma lt_or_gt_of_ne [decidable_linear_order α] {a b : α} (h : a ≠ b) : a < b ∨ b < a :=
-(lt_trichotomy a b).imp_right $ λ h', h'.resolve_left h
-
-/-- Perform a case-split on the ordering of `x` and `y` in a decidable linear order. -/
--- See Note [decidable namespace]
-def lt_by_cases [decidable_linear_order α] (x y : α) {P : Sort*}
-  (h₁ : x < y → P) (h₂ : x = y → P) (h₃ : y < x → P) : P :=
-begin
-  by_cases h : x < y, { exact h₁ h },
-  by_cases h' : y < x, { exact h₃ h' },
-  apply h₂, apply le_antisymm; apply le_of_not_gt; assumption
-end
-
--- See Note [decidable namespace]
-lemma ne_iff_lt_or_gt [decidable_linear_order α] {a b : α} : a ≠ b ↔ a < b ∨ b < a :=
-⟨lt_or_gt_of_ne, λo, o.elim ne_of_lt ne_of_gt⟩
-
--- See Note [decidable namespace]
-lemma le_imp_le_of_lt_imp_lt {β} [preorder α] [decidable_linear_order β]
-  {a b : α} {c d : β} (H : d < c → b < a) (h : a ≤ b) : c ≤ d :=
-le_of_not_lt $ λ h', (H h').not_le h
 
 -- See Note [decidable namespace]
 lemma le_imp_le_iff_lt_imp_lt {β} [linear_order α] [decidable_linear_order β]

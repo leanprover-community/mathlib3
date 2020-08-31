@@ -197,7 +197,7 @@ end order_embedding
 
 /-- The inclusion map `fin n → ℕ` is a relation embedding. -/
 def fin.val.rel_embedding (n) : (fin n) ↪o ℕ :=
-⟨⟨fin.val, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩
+⟨⟨coe, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩
 
 /-- The inclusion map `fin m → fin n` is an order embedding. -/
 def fin_fin.rel_embedding {m n} (h : m ≤ n) : (fin m) ↪o (fin n) :=

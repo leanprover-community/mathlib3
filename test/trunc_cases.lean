@@ -1,5 +1,6 @@
 import tactic.trunc_cases
 import tactic.interactive
+import tactic.congr
 import data.quot
 
 example (t : trunc ℕ) : punit :=
@@ -12,7 +13,7 @@ end
 example (t : trunc ℕ) : ℕ :=
 begin
   trunc_cases t,
-  guard_hyp t := ℕ, -- verify that the new hypothesis is still called `t`.
+  guard_hyp t : ℕ, -- verify that the new hypothesis is still called `t`.
   exact 0,
   -- verify that we don't even need to use `simp`,
   -- because `trunc_cases` has already removed the `eq.rec`.

@@ -76,6 +76,16 @@ lemma map_add [add_monoid α] {β : Type w} [add_monoid β] (f : α →+ β)
   (M N : matrix m n α) : (M + N).map f = M.map f + N.map f :=
 by { ext, simp, }
 
+lemma map_sub [add_group α] {β : Type w} [add_group β] (f : α →+ β)
+  (M N : matrix m n α) : (M - N).map f = M.map f - N.map f :=
+by { ext, simp }
+
+lemma subsingleton_of_empty_left (hm : ¬ nonempty m) : subsingleton (matrix m n α) :=
+⟨λ M N, by { ext, contrapose! hm, use i }⟩
+
+lemma subsingleton_of_empty_right (hn : ¬ nonempty n) : subsingleton (matrix m n α) :=
+⟨λ M N, by { ext, contrapose! hn, use j }⟩
+
 end matrix
 
 /-- The `add_monoid_hom` between spaces of matrices induced by an `add_monoid_hom` between their
@@ -445,6 +455,15 @@ by simp only [coe_scalar, mul_one, one_apply_eq, smul_apply]
 lemma scalar_apply_ne (a : α) (i j : n) (h : i ≠ j) :
   scalar n a i j = 0 :=
 by simp only [h, coe_scalar, one_apply_ne, ne.def, not_false_iff, smul_apply, mul_zero]
+
+lemma scalar_inj [nonempty n] {r s : α} : scalar n r = scalar n s ↔ r = s :=
+begin
+  split,
+  { intro h,
+    inhabit n,
+    rw [← scalar_apply_eq r (arbitrary n), ← scalar_apply_eq s (arbitrary n), h] },
+  { rintro rfl, refl }
+end
 
 end scalar
 

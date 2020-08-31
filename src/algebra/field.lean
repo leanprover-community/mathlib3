@@ -181,11 +181,11 @@ a particular ring structure extends to a field. -/
 structure is_field (R : Type u) [ring R] : Prop :=
 (exists_pair_ne : ∃ (x y : R), x ≠ y)
 (mul_comm : ∀ (x y : R), x * y = y * x)
-(mul_inv_cancel' : ∀ {a : R}, a ≠ 0 → ∃ b, a * b = 1)
+(mul_inv_cancel : ∀ {a : R}, a ≠ 0 → ∃ b, a * b = 1)
 
 /-- Transferring from field to is_field -/
 lemma field.to_is_field (R : Type u) [field R] : is_field R :=
-{ mul_inv_cancel' := λ a ha, ⟨a⁻¹, field.mul_inv_cancel ha⟩,
+{ mul_inv_cancel := λ a ha, ⟨a⁻¹, field.mul_inv_cancel ha⟩,
   ..‹field R› }
 
 open_locale classical
@@ -196,7 +196,7 @@ noncomputable def is_field.to_field (R : Type u) [ring R] (h : is_field R) : fie
   inv_zero := dif_pos rfl,
   mul_inv_cancel := λ a ha,
     begin
-      convert classical.some_spec (is_field.mul_inv_cancel' h ha),
+      convert classical.some_spec (is_field.mul_inv_cancel h ha),
       exact dif_neg ha
     end,
   .. ‹ring R›, ..h }
@@ -210,7 +210,7 @@ lemma uniq_inv_of_is_field (R : Type u) [ring R] (hf : is_field R) :
 begin
   intros x hx,
   apply exists_unique_of_exists_of_unique,
-  { exact hf.mul_inv_cancel' hx },
+  { exact hf.mul_inv_cancel hx },
   { intros y z hxy hxz,
     calc y = y * (x * z) : by rw [hxz, mul_one]
        ... = (x * y) * z : by rw [← mul_assoc, hf.mul_comm y x]

@@ -117,7 +117,7 @@ end mono_epi_iso
 
 /-- The pullback of two monomorphisms exists. -/
 @[irreducible]
-def pullback_of_mono {X Y Z : C} (a : X ⟶ Z) (b : Y ⟶ Z) [mono a] [mono b] :
+lemma pullback_of_mono {X Y Z : C} (a : X ⟶ Z) (b : Y ⟶ Z) [mono a] [mono b] :
   has_limit (cospan a b) :=
 let ⟨P, f, haf, i⟩ := non_preadditive_abelian.normal_mono a in
 let ⟨Q, g, hbg, i'⟩ := non_preadditive_abelian.normal_mono b in
@@ -158,7 +158,7 @@ has_limit.mk { cone := pullback_cone.mk a' b' $ by { simp at ha' hb', rw [ha', h
 
 /-- The pushout of two epimorphisms exists. -/
 @[irreducible]
-def pushout_of_epi {X Y Z : C} (a : X ⟶ Y) (b : X ⟶ Z) [epi a] [epi b] :
+lemma pushout_of_epi {X Y Z : C} (a : X ⟶ Y) (b : X ⟶ Z) [epi a] [epi b] :
   has_colimit (span a b) :=
 let ⟨P, f, hfa, i⟩ := non_preadditive_abelian.normal_epi a in
 let ⟨Q, g, hgb, i'⟩ := non_preadditive_abelian.normal_epi b in
@@ -206,7 +206,7 @@ pullback (prod.lift (𝟙 X) f) (prod.lift (𝟙 X) g)
 
 /-- The equalizer of `f` and `g` exists. -/
 @[irreducible]
-def has_limit_parallel_pair {X Y : C} (f g : X ⟶ Y) : has_limit (parallel_pair f g) :=
+lemma has_limit_parallel_pair {X Y : C} (f g : X ⟶ Y) : has_limit (parallel_pair f g) :=
 have h1f : mono (prod.lift (𝟙 X) f), from mono_of_mono_fac $ prod.lift_fst (𝟙 X) f,
 have h1g : mono (prod.lift (𝟙 X) g), from mono_of_mono_fac $ prod.lift_fst (𝟙 X) g,
 have huv : (pullback.fst : P f g ⟶ X) = pullback.snd, from
@@ -242,7 +242,7 @@ pushout (coprod.desc (𝟙 Y) f) (coprod.desc (𝟙 Y) g)
 
 /-- The coequalizer of `f` and `g` exists. -/
 @[irreducible]
-def has_colimit_parallel_pair {X Y : C} (f g : X ⟶ Y) : has_colimit (parallel_pair f g) :=
+lemma has_colimit_parallel_pair {X Y : C} (f g : X ⟶ Y) : has_colimit (parallel_pair f g) :=
 have h1f : epi (coprod.desc (𝟙 Y) f), from epi_of_epi_fac $ coprod.inl_desc _ _,
 have h1g : epi (coprod.desc (𝟙 Y) g), from epi_of_epi_fac $ coprod.inl_desc _ _,
 have huv : (pushout.inl : Y ⟶ Q f g) = pushout.inr, from

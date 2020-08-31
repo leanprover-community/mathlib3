@@ -348,10 +348,11 @@ end
 
 end algebra
 
---theorem integral_closure_idem {R : Type*} {A : Type*} [comm_ring R] [comm_ring A] [algebra R A] :
---  integral_closure (integral_closure R A : set A) A = ⊥ :=
---eq_bot_iff.2 $ λ x hx, algebra.mem_bot.2
---⟨⟨x, is_integral_trans integral_closure.is_integral _ hx⟩, rfl⟩
+theorem integral_closure_idem {R : Type*} {A : Type*} [comm_ring R] [comm_ring A] [algebra R A] :
+  integral_closure (integral_closure R A : set A) A = ⊥ :=
+eq_bot_iff.2 $ λ x hx, algebra.mem_bot.2
+⟨⟨x, @is_integral_trans _ _ _ _ _ _ _ _ (integral_closure R A).algebra
+     _ integral_closure.is_integral x hx⟩, rfl⟩
 
 section integral_domain
 variables {R S : Type*} [comm_ring R] [integral_domain S] [algebra R S]

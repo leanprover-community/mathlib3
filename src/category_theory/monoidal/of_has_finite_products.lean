@@ -36,98 +36,6 @@ variables (C : Type u) [category.{v} C] {X Y : C}
 
 namespace limits
 
-section
-variables {C}
-
-def binary_fan.swap {P Q : C} (t : binary_fan P Q) : binary_fan Q P :=
-binary_fan.mk t.snd t.fst
-
-@[simp] lemma binary_fan.swap_fst {P Q : C} (t : binary_fan P Q) : t.swap.fst = t.snd := rfl
-@[simp] lemma binary_fan.swap_snd {P Q : C} (t : binary_fan P Q) : t.swap.snd = t.fst := rfl
-
-/--
-If a cone `t` over `P Q` is a limit cone, then `t.swap` is a limit cone over `Q P`.
--/
-def is_limit.swap_binary_fan {P Q : C} {t : binary_fan P Q} (I : is_limit t) : is_limit t.swap :=
-{ lift := λ s, I.lift (binary_fan.swap s),
-  fac' := λ s, by { rintro ⟨⟩; simp, },
-  uniq' := λ s m w,
-  begin
-    have h := I.uniq (binary_fan.swap s) m,
-    rw h,
-    intro j,
-    specialize w j.swap,
-    cases j; exact w,
-  end }
-
-/--
-Construct `has_binary_product Q P` from `has_binary_product P Q`.
-This can't be an instance, as it would cause a loop in typeclass search.
--/
-def has_binary_product.swap (P Q : C) [has_binary_product P Q] : has_binary_product Q P :=
-has_limit.mk ⟨binary_fan.swap (limit.cone (pair P Q)), (limit.is_limit (pair P Q)).swap_binary_fan⟩
-
-def prod.braiding {X Y : C} {s : binary_fan X Y} (P : is_limit s) {t : binary_fan Y X} (Q : is_limit t) :
-  s.X ≅ t.X :=
-is_limit.cone_point_unique_up_to_iso P Q.swap_binary_fan
-
-def binary_fan.assoc {X Y Z : C} {sXY : binary_fan X Y} {sYZ : binary_fan Y Z} (Q : is_limit sYZ) (s : binary_fan sXY.X Z) :
-  binary_fan X sYZ.X :=
-binary_fan.mk (s.fst ≫ sXY.fst) (Q.lift (binary_fan.mk (s.fst ≫ sXY.snd) s.snd))
-
-@[simp] lemma binary_fan.assoc_fst {X Y Z : C} {sXY : binary_fan X Y} {sYZ : binary_fan Y Z} (Q : is_limit sYZ) (s : binary_fan sXY.X Z) :
-  (s.assoc Q).fst = s.fst ≫ sXY.fst := rfl
-@[simp] lemma binary_fan.assoc_snd {X Y Z : C} {sXY : binary_fan X Y} {sYZ : binary_fan Y Z} (Q : is_limit sYZ) (s : binary_fan sXY.X Z) :
-  (s.assoc Q).snd = Q.lift (binary_fan.mk (s.fst ≫ sXY.snd) s.snd) := rfl
-
-def binary_fan.assoc_inv {X Y Z : C} {sXY : binary_fan X Y} (P : is_limit sXY) {sYZ : binary_fan Y Z} (s : binary_fan X sYZ.X) :
-  binary_fan sXY.X Z :=
-binary_fan.mk (P.lift (binary_fan.mk s.fst (s.snd ≫ sYZ.fst))) (s.snd ≫ sYZ.snd)
-
-@[simp] lemma binary_fan.assoc_inv_fst {X Y Z : C} {sXY : binary_fan X Y} (P : is_limit sXY) {sYZ : binary_fan Y Z} (s : binary_fan X sYZ.X) :
-  (s.assoc_inv P).fst = P.lift (binary_fan.mk s.fst (s.snd ≫ sYZ.fst)) := rfl
-@[simp] lemma binary_fan.assoc_inv_snd {X Y Z : C} {sXY : binary_fan X Y} (P : is_limit sXY) {sYZ : binary_fan Y Z} (s : binary_fan X sYZ.X) :
-  (s.assoc_inv P).snd = s.snd ≫ sYZ.snd := rfl
-
-def is_limit.assoc {X Y Z : C}
-  {sXY : binary_fan X Y} (P : is_limit sXY) {sYZ : binary_fan Y Z} (Q : is_limit sYZ)
-  {s : binary_fan sXY.X Z} (R : is_limit s) : is_limit (s.assoc Q) :=
-{ lift := λ t, R.lift (binary_fan.assoc_inv P t),
-  fac' := λ t,
-  begin
-    rintro ⟨⟩; simp,
-    apply Q.hom_ext,
-    rintro ⟨⟩; simp,
-  end,
-  uniq' := λ t m w,
-  begin
-    have h := R.uniq (binary_fan.assoc_inv P t) m,
-    rw h,
-    rintro ⟨⟩; simp,
-    apply P.hom_ext,
-    rintro ⟨⟩; simp,
-    { exact w walking_pair.left, },
-    { specialize w walking_pair.right,
-      simp at w,
-      rw [←w], simp, },
-    { specialize w walking_pair.right,
-      simp at w,
-      rw [←w], simp, },
-  end, }
-
-def prod.assoc {X Y Z : C}
-  {sXY : binary_fan X Y} (P : is_limit sXY) {sYZ : binary_fan Y Z} (Q : is_limit sYZ)
-  {s : binary_fan sXY.X Z} (R : is_limit s) {t : binary_fan X sYZ.X} (S : is_limit t) :
-  s.X ≅ t.X :=
-is_limit.cone_point_unique_up_to_iso (is_limit.assoc P Q R) S
-
-def prod.assoc_of_limit_data
-  (L : Π X Y : C, limit_data (pair X Y)) (X Y Z : C) :
-  (L (L X Y).cone.X Z).cone.X ≅ (L X (L Y Z).cone.X).cone.X :=
-prod.assoc (L X Y).is_limit (L Y Z).is_limit (L (L X Y).cone.X Z).is_limit (L X (L Y Z).cone.X).is_limit
-
-end
-
 namespace has_binary_products
 variables {C} [has_binary_products C]
 
@@ -306,30 +214,18 @@ open category_theory.limits
 section
 local attribute [tidy] tactic.case_bash
 
-variables {C}
-variables (𝒯 : limit_data (functor.empty C))
-variables (ℬ : Π (X Y : C), limit_data (pair X Y))
-
-def tensor_obj (X Y : C) : C := (ℬ X Y).cone.X
-def tensor_hom {W X Y Z : C} (f : W ⟶ X) (g : Y ⟶ Z) : tensor_obj ℬ W Y ⟶ tensor_obj ℬ X Z :=
-  (binary_fan.is_limit.lift' (ℬ X Z).is_limit
-    ((ℬ W Y).cone.π.app walking_pair.left ≫ f)
-    (((ℬ W Y).cone.π.app walking_pair.right : (ℬ W Y).cone.X ⟶ Y) ≫ g)).val
-
 /-- A category with a terminal object and binary products has a natural monoidal structure. -/
-def monoidal_of_has_finite_products :
+def monoidal_of_has_finite_products [has_terminal C] [has_binary_products C] :
   monoidal_category C :=
-{ tensor_unit  := 𝒯.cone.X,
-  tensor_obj   := λ X Y, tensor_obj ℬ X Y,
-  tensor_hom   := λ _ _ _ _ f g, tensor_hom ℬ f g,
-  tensor_id'   := sorry,
-  tensor_comp' := sorry,
-  associator   := λ X Y Z, prod.assoc_of_limit_data ℬ X Y Z,
-  left_unitor  := sorry,
-  right_unitor := sorry,
-  pentagon'    := sorry,
-  triangle'    := sorry,
-  associator_naturality' := begin extract_goal, sorry, end, }
+{ tensor_unit  := ⊤_ C,
+  tensor_obj   := λ X Y, X ⨯ Y,
+  tensor_hom   := λ _ _ _ _ f g, limits.prod.map f g,
+  associator   := prod.associator,
+  left_unitor  := prod.left_unitor,
+  right_unitor := prod.right_unitor,
+  pentagon'    := prod.pentagon,
+  triangle'    := prod.triangle,
+  associator_naturality' := @prod.associator_naturality _ _ _, }
 end
 
 section

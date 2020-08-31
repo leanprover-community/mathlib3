@@ -270,14 +270,5 @@ def has_limits_of_reflective (R : D ⥤ C) [has_limits C] [reflective R] : has_l
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, monadic_creates_limits F R } }
 
-local attribute [instance] has_limits_of_reflective
-
--- FIXME There would be no way to salvage this observation:
-
--- -- We verify that, even jumping through these monadic hoops,
--- -- the limit is actually calculated in the obvious way:
--- example (R : D ⥤ C) [reflective R] [has_limits C] (F : J ⥤ D) :
---   limit F = (left_adjoint R).obj (limit (F ⋙ R)) := rfl
-
 end
 end category_theory

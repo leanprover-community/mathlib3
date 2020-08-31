@@ -9,21 +9,21 @@ import category_theory.limits.shapes.terminal
 import category_theory.pempty
 
 /-!
-# The natural monoidal structure on any category with finite (co)products.
+# The monoidal structure on a category with chosen finite products.
 
-A category with a monoidal structure provided in this way is sometimes called a (co)cartesian category,
-although this is also sometimes used to mean a finitely complete category.
-(See <https://ncatlab.org/nlab/show/cartesian+category>.)
+This is a variant of the development in `category_theory.monoidal.of_has_finite_products`,
+which used specified choices of the terminal object and binary product,
+enabling the construction of a cartesian category with specific definitions of the tensor unit
+and tensor product.
 
-As this works with either products or coproducts,
-and sometimes we want to think of a different monoidal structure entirely,
-we don't set up either construct as an instance.
+(Because the construction in `category_theory.monoidal.of_has_finite_products` uses `has_limit`
+classes, the actual definitions are opaque behind `classical.choice`.)
 
-## Implementation
-For the sake of nicer definitional properties,
-we rely on `has_terminal` and `has_binary_products` instead of `has_finite_products`,
-so that if a particular category provides customised instances of these
-we pick those up instead.
+We use this in `category_theory.monoidal.types` to construct the monoidal category of types
+so that the tensor product is the usual cartesian product of types.
+
+For now we only do the construction from products, and not from coproducts,
+which seems less often useful.
 -/
 
 universes v u

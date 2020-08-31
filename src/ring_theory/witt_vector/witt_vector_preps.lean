@@ -193,6 +193,27 @@ begin
   simpa using multiset.mem_of_le (degrees_add _ _) hx,
 end
 
+lemma finset.mem_sup {α β} [decidable_eq α] [decidable_eq β] {s : finset α} {f : α → multiset β} {x : β} : x ∈ s.sup f ↔
+  ∃ v ∈ s, x ∈ f v :=
+begin
+  apply s.induction_on,
+  { simp },
+  { intros a s has hxs,
+    rw [finset.sup_insert, multiset.sup_eq_union, multiset.mem_union],
+    split,
+    { intro hxi,
+      cases hxi with hf hf,
+      { refine ⟨a, _, hf⟩,
+        simp only [true_or, eq_self_iff_true, finset.mem_insert] },
+      { rcases hxs.mp hf with ⟨v, hv, hfv⟩,
+        refine ⟨v, _, hfv⟩,
+        simp only [hv, or_true, finset.mem_insert] } },
+    { rintros ⟨v, hv, hfv⟩,
+      rw [finset.mem_insert] at hv,
+      rcases hv with rfl | hv,
+      { exact or.inl hfv },
+      { refine or.inr (hxs.mpr ⟨v, hv, hfv⟩) } } },
+end
 
 -- generalize from multiset?
 lemma finset.sup_subset {α β} {s t : finset α} (hst : s ⊆ t) (f : α → multiset β) :
@@ -201,19 +222,42 @@ calc t.sup f = (s ∪ t).sup f : by rw [finset.union_eq_right_iff_subset.mpr hst
          ... = s.sup f ⊔ t.sup f : by rw finset.sup_union
          ... ≥ s.sup f : le_sup_left
 
-lemma foobar (p q : mv_polynomial σ R) (h : p.degrees.disjoint q.degrees) :
+lemma multiset.mem_iff_count_ne_zero {α : Type*} (s : multiset α) (a : α) :
+  a ∈ s ↔ s.count a ≠ 0 :=
+by rw [ne.def, multiset.count_eq_zero, not_not]
+
+@[simp] lemma finsupp.mem_to_multiset (f : σ →₀ ℕ) (i : σ) :
+  i ∈ f.to_multiset ↔ i ∈ f.support :=
+by rw [multiset.mem_iff_count_ne_zero, finsupp.count_to_multiset, finsupp.mem_support_iff]
+
+lemma mem_degrees (p : mv_polynomial σ R) (i : σ) :
+  i ∈ p.degrees ↔ ∃ d, p.coeff d ≠ 0 ∧ i ∈ d.support :=
+by simp only [degrees, finset.mem_sup, ← finsupp.mem_support_iff, coeff,
+    finsupp.mem_to_multiset, exists_prop]
+
+lemma le_degrees_add (p q : mv_polynomial σ R) (h : p.degrees.disjoint q.degrees) :
   p.degrees ≤ (p + q).degrees :=
 begin
+  apply finset.sup_le,
+  intros d hd,
   rw multiset.disjoint_iff_ne at h,
   rw multiset.le_iff_count,
-  intros a,
-  by_cases ha : a ∈ p.degrees,
-  { specialize h a ha,
-    sorry },
-  { simp [ha] }
+  intros i,
+  rw [degrees, multiset.count_sup],
+  simp only [finsupp.count_to_multiset],
+  by_cases h0 : d = 0,
+  { simp only [h0, zero_le, finsupp.zero_apply], },
+  { refine @finset.le_sup _ _ _ (p + q).support _ d _,
+    rw [finsupp.mem_support_iff, ← coeff, coeff_add],
+    suffices : q.coeff d = 0,
+    { rwa [this, add_zero, coeff, ← finsupp.mem_support_iff], },
+    rw [← finsupp.support_eq_empty, ← ne.def, ← finset.nonempty_iff_ne_empty] at h0,
+    obtain ⟨j, hj⟩ := h0,
+    contrapose! h,
+    rw finsupp.mem_support_iff at hd,
+    refine ⟨j, _, j, _, rfl⟩,
+    all_goals { rw mem_degrees, refine ⟨d, _, hj⟩, assumption } }
 end
-
-
 
 lemma degrees_add_of_disjoint (h : multiset.disjoint p.degrees q.degrees) :
   (p + q).degrees = p.degrees ∪ q.degrees :=
@@ -221,8 +265,8 @@ begin
   apply le_antisymm,
   { apply degrees_add },
   { apply multiset.union_le,
-    { apply foobar p q h },
-    { rw add_comm, apply foobar q p h.symm } }
+    { apply le_degrees_add p q h },
+    { rw add_comm, apply le_degrees_add q p h.symm } }
 end
 
 lemma multiset.disjoint_to_finset {α} (m1 m2 : multiset α) :
@@ -295,31 +339,6 @@ begin
 end
 
 end sum
-
-
-
-lemma finset.mem_sup {α β} [decidable_eq α] [decidable_eq β] {s : finset α} {f : α → multiset β} {x : β} : x ∈ s.sup f ↔
-  ∃ v ∈ s, x ∈ f v :=
-begin
-  apply s.induction_on,
-  { simp },
-  { intros a s has hxs,
-    rw [finset.sup_insert, multiset.sup_eq_union, multiset.mem_union],
-    split,
-    { intro hxi,
-      cases hxi with hf hf,
-      { refine ⟨a, _, hf⟩,
-        simp only [true_or, eq_self_iff_true, finset.mem_insert] },
-      { rcases hxs.mp hf with ⟨v, hv, hfv⟩,
-        refine ⟨v, _, hfv⟩,
-        simp only [hv, or_true, finset.mem_insert] } },
-    { rintros ⟨v, hv, hfv⟩,
-      rw [finset.mem_insert] at hv,
-      rcases hv with rfl | hv,
-      { exact or.inl hfv },
-      { refine or.inr (hxs.mpr ⟨v, hv, hfv⟩) } } },
-end
-
 
 lemma mv_polynomial.support_map_subset : (map f p).support ⊆ p.support :=
 begin

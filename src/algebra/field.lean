@@ -170,6 +170,55 @@ instance field.to_integral_domain : integral_domain α :=
 
 end field
 
+section is_field
+
+/-- A predicate to express that a ring is a field.
+
+This is mainly useful because such a predicate does not contain data,
+and can therefore be easily transported along ring isomorphisms.
+Additionaly, this is useful when trying to prove that
+a particular ring structure extends to a field. -/
+structure is_field (R : Type u) [ring R] : Prop :=
+(exists_pair_ne : ∃ (x y : R), x ≠ y)
+(mul_comm : ∀ (x y : R), x * y = y * x)
+(mul_inv_cancel : ∀ {a : R}, a ≠ 0 → ∃ b, a * b = 1)
+
+/-- Transferring from field to is_field -/
+lemma field.to_is_field (R : Type u) [field R] : is_field R :=
+{ mul_inv_cancel := λ a ha, ⟨a⁻¹, field.mul_inv_cancel ha⟩,
+  ..‹field R› }
+
+open_locale classical
+
+/-- Transferring from is_field to field -/
+noncomputable def is_field.to_field (R : Type u) [ring R] (h : is_field R) : field R :=
+{ inv := λ a, if ha : a = 0 then 0 else classical.some (is_field.mul_inv_cancel h ha),
+  inv_zero := dif_pos rfl,
+  mul_inv_cancel := λ a ha,
+    begin
+      convert classical.some_spec (is_field.mul_inv_cancel h ha),
+      exact dif_neg ha
+    end,
+  .. ‹ring R›, ..h }
+
+/-- For each field, and for each nonzero element of said field, there is a unique inverse.
+Since `is_field` doesn't remember the data of an `inv` function and as such,
+a lemma that there is a unique inverse could be useful.
+-/
+lemma uniq_inv_of_is_field (R : Type u) [ring R] (hf : is_field R) :
+  ∀ (x : R), x ≠ 0 → ∃! (y : R), x * y = 1 :=
+begin
+  intros x hx,
+  apply exists_unique_of_exists_of_unique,
+  { exact hf.mul_inv_cancel hx },
+  { intros y z hxy hxz,
+    calc y = y * (x * z) : by rw [hxz, mul_one]
+       ... = (x * y) * z : by rw [← mul_assoc, hf.mul_comm y x]
+       ... = z           : by rw [hxy, one_mul] }
+end
+
+end is_field
+
 namespace ring_hom
 
 section

@@ -355,9 +355,16 @@ begin
   conv_lhs { rw p.as_sum },
   simp only [ring_hom.map_sum, eval₂_hom_monomial],
   by_cases h0 : constant_coeff p = 0,
+  work_on_goal 0
   { rw [h0, f.map_zero, finset.sum_eq_zero],
-    intros d hd,
-    obtain ⟨i, hi⟩ : d.support.nonempty,
+    intros d hd },
+  work_on_goal 1
+  { rw [finset.sum_eq_single (0 : σ →₀ ℕ)],
+    { rw [finsupp.prod_zero_index, mul_one],
+      refl },
+    intros d hd hd0, },
+  repeat
+  { obtain ⟨i, hi⟩ : d.support.nonempty,
     { rw [constant_coeff_eq, coeff, ← finsupp.not_mem_support_iff] at h0,
       rw [finset.nonempty_iff_ne_empty, ne.def, finsupp.support_eq_empty],
       rintro rfl, contradiction },
@@ -365,21 +372,8 @@ begin
     rw [hp, zero_pow (nat.pos_of_ne_zero $ finsupp.mem_support_iff.mp hi)],
     rw [mem_vars],
     exact ⟨d, hd, hi⟩ },
-  { rw [finset.sum_eq_single (0 : σ →₀ ℕ)],
-    { rw [finsupp.prod_zero_index, mul_one],
-      refl },
-    { intros d hd hd0,
-      -- the next 8 lines are verbatim the same as 15 lines up
-      obtain ⟨i, hi⟩ : d.support.nonempty,
-      { rw [constant_coeff_eq, coeff, ← finsupp.not_mem_support_iff] at h0,
-        rw [finset.nonempty_iff_ne_empty, ne.def, finsupp.support_eq_empty],
-        rintro rfl, contradiction },
-      rw [finsupp.prod, finset.prod_eq_zero hi, mul_zero],
-      rw [hp, zero_pow (nat.pos_of_ne_zero $ finsupp.mem_support_iff.mp hi)],
-      rw [mem_vars],
-      exact ⟨d, hd, hi⟩ },
-    { rw [constant_coeff_eq, coeff, ← ne.def, ← finsupp.mem_support_iff] at h0,
-      intro, contradiction } }
+  { rw [constant_coeff_eq, coeff, ← ne.def, ← finsupp.mem_support_iff] at h0,
+    intro, contradiction }
 end
 
 lemma aeval_eq_constant_coeff_of_vars [algebra R S] (g : σ → S)

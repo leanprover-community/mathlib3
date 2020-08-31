@@ -103,7 +103,7 @@ def omega_limit [topological_space Y]
   (f : filter T) (ϕ : T → X → Y) (S : set X) : set Y :=
 ⋂ n ∈ f, closure (image2 ϕ n S)
 
-local notation `ω` := omega_limit
+localized "notation `ω` := omega_limit" in omega_limit
 
 variables [topological_space Y]
 variables (m : T → T) (f f₁ f₂: filter T)
@@ -196,7 +196,7 @@ end omega_limit
 /-! ### attractors -/
 section attractor
 
-local notation `ω` := omega_limit
+open_locale omega_limit
 
 /-- a set `A ⊆ X` is an attractor for `ϕ` w.r.t a filter `f` if it has
     a neighbourhood of which it is the ω-limit. -/
@@ -259,7 +259,7 @@ protected lemma continuous : continuous ↿ϕ := ϕ.cont
 @[simp]
 lemma map_add (t₁ t₂ : T) (x : X) : ϕ t₂ (ϕ t₁ x) = ϕ (t₁ + t₂) x := ϕ.map_add' _ _ _
 
-local notation `ω` := omega_limit
+open_locale omega_limit
 
 /-- a filter `f` on `T` is invariant if `t ⁻¹' n ∈ f` for ever `t` in `T` and `n ∈ f`.
     an ω-limit w.r.t. an invariant `f` is invariant. -/
@@ -363,8 +363,8 @@ lemma image2_reverse_eq (I : set T) (S : set X):
   image2 ϕ.reverse I S = image2 ϕ (has_neg.neg '' I) S :=
 by simp_rw [image2_image_left, ←reverse_def₁]
 
-local notation `ω₊` := omega_limit at_top
-local notation `ω₋` := omega_limit at_bot
+localized "notation `ω₊` := omega_limit at_top" in omega_limit
+localized "notation `ω₋` := omega_limit at_bot" in omega_limit
 
 variable (S : set X)
 

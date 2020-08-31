@@ -560,7 +560,10 @@ include Is I's
 lemma tangent_map_within_subset {p : tangent_bundle I M}
   (st : s ⊆ t) (hs : unique_mdiff_within_at I s p.1) (h : mdifferentiable_within_at I I' f t p.1) :
   tangent_map_within I I' f s p = tangent_map_within I I' f t p :=
-by { simp only [tangent_map_within], rw mfderiv_within_subset st hs h }
+begin
+  simp only [tangent_map_within] with mfld_simps,
+  rw mfderiv_within_subset st hs h,
+end
 
 lemma tangent_map_within_univ :
   tangent_map_within I I' f univ = tangent_map I I' f :=
@@ -809,7 +812,7 @@ lemma tangent_map_within_comp_at (p : tangent_bundle I M)
   tangent_map_within I I'' (g ∘ f) s p =
   tangent_map_within I' I'' g u (tangent_map_within I I' f s p) :=
 begin
-  simp only [tangent_map_within],
+  simp only [tangent_map_within] with mfld_simps,
   rw mfderiv_within_comp p.1 hg hf h hps,
   refl
 end
@@ -818,7 +821,7 @@ lemma tangent_map_comp_at (p : tangent_bundle I M)
   (hg : mdifferentiable_at I' I'' g (f p.1)) (hf : mdifferentiable_at I I' f p.1) :
   tangent_map I I'' (g ∘ f) p = tangent_map I' I'' g (tangent_map I I' f p) :=
 begin
-  simp only [tangent_map],
+  simp only [tangent_map] with mfld_simps,
   rw mfderiv_comp p.1 hg hf,
   refl
 end

@@ -466,32 +466,36 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
   end }
 
 variable {M}
+include I
 
-/-- The tangent space at a point of the manifold `M`. It is just `E`. -/
-def tangent_space (x : M) : Type* :=
-(tangent_bundle_core I M).to_topological_fiber_bundle_core.fiber x
+/-- The tangent space at a point of the manifold `M`. It is just `E`. We could use instead
+`(tangent_bundle_core I M).to_topological_fiber_bundle_core.fiber x`, but we use `E` to help the
+kernel.
+-/
+@[nolint unused_arguments]
+def tangent_space (x : M) : Type* := E
 
+omit I
 variable (M)
 
 /-- The tangent bundle to a smooth manifold, as a plain type. We could use
 `(tangent_bundle_core I M).to_topological_fiber_bundle_core.total_space`, but instead we use the
 (definitionally equal) `Σ (x : M), tangent_space I x`, to make sure that rcasing an element of the
 tangent bundle gives a second component in the tangent space. -/
-@[nolint has_inhabited_instance] -- is empty if the base manifold is empty
+@[nolint has_inhabited_instance, reducible] -- is empty if the base manifold is empty
 def tangent_bundle := Σ (x : M), tangent_space I x
 
 /-- The projection from the tangent bundle of a smooth manifold to the manifold. As the tangent
 bundle is represented internally as a product type, the notation `p.1` also works for the projection
 of the point `p`. -/
 def tangent_bundle.proj : tangent_bundle I M → M :=
-(tangent_bundle_core I M).to_topological_fiber_bundle_core.proj
+λ p, p.1
 
 variable {M}
 
 @[simp, mfld_simps] lemma tangent_bundle.proj_apply (x : M) (v : tangent_space I x) :
   tangent_bundle.proj I M ⟨x, v⟩ = x :=
 rfl
-
 
 section tangent_bundle_instances
 
@@ -509,12 +513,7 @@ instance : charted_space (model_prod H E) (tangent_bundle I M) :=
 instance : smooth_manifold_with_corners I.tangent (tangent_bundle I M) :=
 (tangent_bundle_core I M).to_smooth_manifold
 
-local attribute [reducible] tangent_space topological_fiber_bundle_core.fiber
-/- When `topological_fiber_bundle_core.fiber` is reducible, then
-`topological_fiber_bundle_core.topological_space_fiber` can be applied to prove that any space is
-a topological space, with several unknown metavariables. This is a bad instance, that we disable.-/
-local attribute [instance, priority 0] topological_fiber_bundle_core.topological_space_fiber
-
+local attribute [reducible] tangent_space
 variables {M} (x : M)
 
 instance : topological_module 𝕜 (tangent_space I x) := by apply_instance

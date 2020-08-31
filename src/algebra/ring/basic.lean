@@ -282,10 +282,7 @@ lemma domain_nontrivial [nontrivial β] : nontrivial α :=
 ⟨⟨1, 0, mt (λ h, show f 1 = 0, by rw [h, map_zero]) f.map_one_ne_zero⟩⟩
 
 lemma is_unit_map (f : α →+* β) {a : α} (h : is_unit a) : is_unit (f a) :=
-begin
-  rcases h with ⟨u, rfl⟩,
-  exact ⟨units.map f.to_monoid_hom u, rfl⟩,
-end
+h.map (f.to_monoid_hom)
 
 end
 

@@ -105,13 +105,9 @@ The restriction of a sheafed space along an open embedding into the space.
 -/
 def restrict {U : Top} (X : SheafedSpace C)
   (f : U ⟶ (X : Top.{v})) (h : open_embedding f) : SheafedSpace C :=
-{ sheaf_condition := λ ι 𝒰,
-  begin
-    dsimp at 𝒰, dsimp,
-    apply is_limit.of_iso_limit _ (sheaf_condition.fork.iso_of_open_embedding h 𝒰).symm,
-    apply (is_limit.postcompose_inv_equiv _ _).inv_fun,
-    apply X.sheaf_condition,
-  end,
+{ sheaf_condition := λ ι 𝒰, is_limit.of_iso_limit
+    ((is_limit.postcompose_inv_equiv _ _).inv_fun (X.sheaf_condition _))
+    (sheaf_condition.fork.iso_of_open_embedding h 𝒰).symm,
   ..X.to_PresheafedSpace.restrict f h }
 
 end SheafedSpace

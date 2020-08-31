@@ -192,10 +192,10 @@ section
   ∃ u' w', bkts.as_list = u' ++ v1 ++ w' ∧ bkts'.as_list = u' ++ v2 ++ w' :=
   begin
     unfold bucket_array.as_list,
-    have h : bidx.1 < bkts.to_list.length, {simp [bidx.2]},
-    refine ⟨(bkts.to_list.take bidx.1).join ++ u, w ++ (bkts.to_list.drop (bidx.1+1)).join, _, _⟩,
+    have h : (bidx : ℕ) < bkts.to_list.length, { simp only [bidx.is_lt, array.to_list_length] },
+    refine ⟨(bkts.to_list.take bidx).join ++ u, w ++ (bkts.to_list.drop (bidx+1)).join, _, _⟩,
     { conv { to_lhs,
-        rw [← list.take_append_drop bidx.1 bkts.to_list, list.drop_eq_nth_le_cons h],
+        rw [← list.take_append_drop bidx bkts.to_list, list.drop_eq_nth_le_cons h],
         simp [hl] }, simp },
     { conv { to_lhs,
         rw [bkts', array.write_to_list, list.update_nth_eq_take_cons_drop _ h],

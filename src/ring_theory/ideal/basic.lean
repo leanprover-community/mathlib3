@@ -469,17 +469,13 @@ begin
   exact le_refl ⊤,
 end
 
-lemma exists_prime_ne_bot [nontrivial R] (non_field : ∃(I : ideal R), ⊥ < I ∧ I < ⊤) : ∃(P : ideal R), P.is_prime ∧ ⊥ < P ∧ P < ⊤ :=
+lemma exists_prime_gt_bot [nontrivial R] (non_field : ∃(I : ideal R), ⊥ < I ∧ I < ⊤) : ∃(P : ideal R), P.is_prime ∧ ⊥ < P :=
 begin
   cases @exists_maximal R _ _ with P hp,
   use P,
   split,
-  exact is_maximal.is_prime hp,
-  split,
-  refine maximal_gt_bot hp non_field,
-  unfold is_maximal at hp,
-  rcases hp with ⟨ne_top, pkey⟩,
-  exact lt_top_iff_ne_top.mpr ne_top,
+  { exact is_maximal.is_prime hp, },
+  { refine maximal_gt_bot hp non_field, }
 end
 
 section pi

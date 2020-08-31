@@ -281,14 +281,27 @@ end
 
 end sum
 
--- this might not be right
-
 -- generalize from multiset?
 lemma finset.sup_subset {α β} {s t : finset α} (hst : s ⊆ t) (f : α → multiset β) :
   s.sup f ≤ t.sup f :=
 calc t.sup f = (s ∪ t).sup f : by rw [finset.union_eq_right_iff_subset.mpr hst]
          ... = s.sup f ⊔ t.sup f : by rw finset.sup_union
          ... ≥ s.sup f : le_sup_left
+
+lemma finset.mem_sup {α β} {s : finset α} {f : α → multiset β} {x : β} : x ∈ s.sup f →
+  ∃ v ∈ s, x ∈ f v :=
+begin
+  apply s.induction_on,
+  { simp },
+  { intros a s has hxs hxi,
+    rw [finset.sup_insert, multiset.sup_eq_union, multiset.mem_union] at hxi,
+    cases hxi with hf hf,
+    { refine ⟨a, _, hf⟩,
+      simp only [true_or, eq_self_iff_true, finset.mem_insert] },
+    { rcases hxs hf with ⟨v, hv, hfv⟩,
+      refine ⟨v, _, hfv⟩,
+      simp only [hv, or_true, finset.mem_insert]} }
+end
 
 lemma mv_polynomial.support_map_subset : (map f p).support ⊆ p.support :=
 begin
@@ -337,11 +350,25 @@ lemma vars_monomial_single (i : σ) (e : ℕ) (r : R) (he : e ≠ 0) (hr : r ≠
   (monomial (finsupp.single i e) r).vars = {i} :=
 by rw [vars_monomial hr, finsupp.support_single_ne_zero he]
 
+-- we might want to use in the first part?
+#check finsupp.mem_support_multiset_sum
+
 lemma mem_vars (p : mv_polynomial σ R) (i : σ) :
   i ∈ p.vars ↔ ∃ (d : σ →₀ ℕ) (H : d ∈ p.support), i ∈ d.support :=
 begin
-  sorry
-  -- `mem_support_not_mem_vars_zero` gives one direction (after a small massage)
+  split,
+  { intro hi,
+    rw [vars, multiset.mem_to_finset, degrees] at hi,
+    rcases finset.mem_sup hi with ⟨d, hd, hid⟩,
+    use [d, hd],
+    dsimp [finsupp.to_multiset] at hid,
+    rw finsupp.mem_support_iff,
+    -- maybe wrong track
+    sorry },
+  { rintros ⟨d, hd, hid⟩,
+    contrapose! hid,
+    simp only [not_not, finsupp.mem_support_iff],
+    exact mem_support_not_mem_vars_zero hd hid }
 end
 
 lemma vars_eq_support_bind_support (p : mv_polynomial σ R) :

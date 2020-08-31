@@ -809,7 +809,7 @@ lemma exists_cos_eq : (set.Icc (-1) 1 : set ℝ) ⊆ real.cos '' set.Icc 0 (real
 by convert intermediate_value_Icc' (le_of_lt real.pi_pos)
   real.continuous_cos.continuous_on; simp only [real.cos_pi, real.cos_zero]
 
-lemma real.cos_range : set.range cos = (set.Icc (-1) 1 : set ℝ) :=
+lemma cos_range : set.range cos = (set.Icc (-1) 1 : set ℝ) :=
 begin
   ext,
   split,
@@ -820,7 +820,7 @@ begin
     exact ⟨y, hy⟩ }
 end
 
-lemma real.sin_range : set.range sin = (set.Icc (-1) 1 : set ℝ) :=
+lemma sin_range : set.range sin = (set.Icc (-1) 1 : set ℝ) :=
 begin
   ext,
   split,

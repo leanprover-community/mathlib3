@@ -7,7 +7,7 @@ import algebraic_geometry.locally_ringed_space
 import algebraic_geometry.structure_sheaf
 
 /-!
-# $$Spec R$$ as a `SheafedSpace`.
+# $Spec R$ as a `SheafedSpace`
 
 We bundle the `structure_sheaf R` construction for `R : CommRing` as a `SheafedSpace`.
 

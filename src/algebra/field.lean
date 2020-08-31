@@ -212,12 +212,9 @@ begin
   apply exists_unique_of_exists_of_unique,
   { exact hf.mul_inv_cancel' hx },
   { intros y z hxy hxz,
-      calc y = y * 1       : eq.symm (mul_one y)
-         ... = y * (x * z) : by rw hxz
-         ... = (y * x) * z : eq.symm (mul_assoc y x z)
-         ... = (x * y) * z : by rw hf.mul_comm y x
-         ... = 1 * z       : by rw hxy
-         ... = z           : one_mul z }
+    calc y = y * (x * z) : by rw [hxz, mul_one]
+       ... = (x * y) * z : by rw [← mul_assoc, hf.mul_comm y x]
+       ... = z           : by rw [hxy, one_mul] }
 end
 
 end is_field

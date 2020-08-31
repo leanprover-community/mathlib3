@@ -316,9 +316,6 @@ def cast_hom (h : m ∣ n) (R : Type*) [ring R] [char_p R m] : zmod n →+* R :=
 lemma cast_sub (h : m ∣ n) (a b : zmod n) : ((a - b : zmod n) : R) = a - b :=
 (cast_hom h R).map_sub a b
 
-lemma cast_neg (h : m ∣ n) (a : zmod n) : ((-a : zmod n) : R) = -a :=
-(cast_hom h R).map_neg a
-
 lemma cast_pow (h : m ∣ n) (a : zmod n) (k : ℕ) : ((a ^ k : zmod n) : R) = a ^ k :=
 (cast_hom h R).map_pow a k
 

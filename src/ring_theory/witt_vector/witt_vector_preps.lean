@@ -15,27 +15,6 @@ import number_theory.basic
 universes u v w u₁
 
 -- ### FOR_MATHLIB
--- everything in this file should move to other files
-
-
--- namespace alg_hom
--- open mv_polynomial
-
--- note: this has moved to the mv_polynomial namespace, is that reasonable?
--- it also doesn't seem to be used
-
--- lemma comp_aeval {σ : Type*}
---   {R : Type*} {A : Type*} {B : Type*}
---    [comm_semiring R] [comm_semiring A] [algebra R A] [comm_semiring B] [algebra R B]
---   (f : σ → A) (φ : A →ₐ[R] B) :
---   φ.comp (aeval f) = (aeval (λ i, φ (f i))) :=
--- begin
---   apply mv_polynomial.alg_hom_ext,
---   intros i,
---   rw [comp_apply, aeval_X, aeval_X],
--- end
-
--- end alg_hom
 
 
 
@@ -119,37 +98,6 @@ begin
   simpa using multiset.mem_of_le (degrees_add _ _) hx,
 end
 
--- lemma finset.mem_sup {α β} [decidable_eq α] [decidable_eq β] {s : finset α} {f : α → multiset β}
---   {x : β} : x ∈ s.sup f ↔ ∃ v ∈ s, x ∈ f v :=
--- begin
---   apply s.induction_on,
---   { simp },
---   { intros a s has hxs,
---     rw [finset.sup_insert, multiset.sup_eq_union, multiset.mem_union],
---     split,
---     { intro hxi,
---       cases hxi with hf hf,
---       { refine ⟨a, _, hf⟩,
---         simp only [true_or, eq_self_iff_true, finset.mem_insert] },
---       { rcases hxs.mp hf with ⟨v, hv, hfv⟩,
---         refine ⟨v, _, hfv⟩,
---         simp only [hv, or_true, finset.mem_insert] } },
---     { rintros ⟨v, hv, hfv⟩,
---       rw [finset.mem_insert] at hv,
---       rcases hv with rfl | hv,
---       { exact or.inl hfv },
---       { refine or.inr (hxs.mpr ⟨v, hv, hfv⟩) } } },
--- end
-
--- lemma finset.sup_subset {α β} [semilattice_sup_bot β] {s t : finset α} (hst : s ⊆ t) (f : α → β) :
---   s.sup f ≤ t.sup f :=
--- calc t.sup f = (s ∪ t).sup f : by rw [finset.union_eq_right_iff_subset.mpr hst]
---          ... = s.sup f ⊔ t.sup f : by rw finset.sup_union
---          ... ≥ s.sup f : le_sup_left
-
-@[simp] lemma finsupp.mem_to_multiset (f : σ →₀ ℕ) (i : σ) :
-  i ∈ f.to_multiset ↔ i ∈ f.support :=
-by rw [← multiset.count_ne_zero, finsupp.count_to_multiset, finsupp.mem_support_iff]
 
 lemma mem_degrees (p : mv_polynomial σ R) (i : σ) :
   i ∈ p.degrees ↔ ∃ d, p.coeff d ≠ 0 ∧ i ∈ d.support :=
@@ -190,27 +138,6 @@ begin
     { rw add_comm, apply le_degrees_add q p h.symm } }
 end
 
-lemma multiset.disjoint_to_finset {α} (m1 m2 : multiset α) :
-  disjoint m1.to_finset m2.to_finset ↔ m1.disjoint m2 :=
-begin
-  rw finset.disjoint_iff_ne,
-  split,
-  { intro h,
-    intros a ha1 ha2,
-    rw ← multiset.mem_to_finset at ha1 ha2,
-    exact h _ ha1 _ ha2 rfl },
-  { rintros h a ha b hb rfl,
-    rw multiset.mem_to_finset at ha hb,
-    exact h ha hb }
-end
-
-@[simp] lemma multiset.to_finset_subset {α} (m1 m2 : multiset α) :
-  m1.to_finset ⊆ m2.to_finset ↔ m1 ⊆ m2 :=
-by simp only [finset.subset_iff, multiset.subset_iff, multiset.mem_to_finset]
-
-@[simp] lemma multiset.to_finset_union {α} (m1 m2 : multiset α) :
-  (m1 ∪ m2).to_finset = m1.to_finset ∪ m2.to_finset :=
-by ext; simp
 
 lemma vars_add_of_disjoint (h : disjoint p.vars q.vars) :
   (p + q).vars = p.vars ∪ q.vars :=
@@ -224,10 +151,6 @@ end
 
 section sum
 variables {ι : Type*} (s : finset ι) (φ : ι → mv_polynomial σ R)
-
-lemma finset.union_subset_union {α} {s1 t1 s2 t2 : finset α} (h1 : s1 ⊆ t1) (h2 : s2 ⊆ t2) :
-  s1 ∪ s2 ⊆ t1 ∪ t2 :=
-by { intros x hx, rw finset.mem_union at hx ⊢, tauto }
 
 lemma vars_sum_subset :
   (∑ i in s, φ i).vars ⊆ finset.bind s (λ i, (φ i).vars) :=

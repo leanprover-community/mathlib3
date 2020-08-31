@@ -46,7 +46,7 @@ have h : (>) = measure (λ y : nat.up p, x - y.val),
        apply x_1.property _ (lt_of_not_ge h'), },
 cast (congr_arg _ h.symm) (measure_wf _)
 
-/-- `0` -/
+/-- Zero is always a member of `nat.up p` because it has no predecessors. -/
 def zero : nat.up p := ⟨ 0, λ j h, false.elim (nat.not_lt_zero _ h) ⟩
 
 /-- `n+1` is a value `nat.up p` provided that `n` doesn't satisfy `p` -/

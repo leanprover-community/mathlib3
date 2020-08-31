@@ -6,11 +6,7 @@ Author: Simon Hudon
 
 import data.nat.up
 import data.stream.basic
-import logic.basic
-import order.basic
-import order.bounded_lattice
 import order.omega_complete_partial_order
-import tactic.apply
 
 /-!
 # Fixed point

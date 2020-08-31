@@ -7,7 +7,8 @@ Author: Simon Hudon
 import order.omega_complete_partial_order
 import order.category.Preorder
 
-/-! # Category of types with a omega complete partial order
+/-! 
+# Category of types with a omega complete partial order
 
 In this file, we bundle the class `omega_complete_partial_order` into a
 concrete category and prove that continuous functions also form

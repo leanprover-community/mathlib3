@@ -221,6 +221,10 @@ begin
     exact h ha hb }
 end
 
+@[simp] lemma multiset.to_finset_subset {α} (m1 m2 : multiset α) :
+  m1.to_finset ⊆ m2.to_finset ↔ m1 ⊆ m2 :=
+by simp only [finset.subset_iff, multiset.subset_iff, multiset.mem_to_finset]
+
 @[simp] lemma multiset.to_finset_union {α} (m1 m2 : multiset α) :
   (m1 ∪ m2).to_finset = m1.to_finset ∪ m2.to_finset :=
 by ext; simp
@@ -274,12 +278,22 @@ end
 
 end sum
 
-lemma vars_map : (map f p).vars ⊆ p.vars :=
+-- this might not be right
+lemma degrees_map : (map f p).degrees ⊆ p.degrees :=
+by {simp [degrees], apply multiset.subset_of_le, apply finset.sup_le,
+    intros b hb,
+    rw finsupp.mem_support_iff at hb,
+    sorry }
+
+lemma degrees_map_of_injective (hf : injective f) : (map f p).degrees = p.degrees :=
 sorry
+
+lemma vars_map : (map f p).vars ⊆ p.vars :=
+by simp [vars, degrees_map]
 
 lemma vars_map_of_injective (hf : injective f) :
   (map f p).vars = p.vars :=
-sorry
+by simp [vars, degrees_map_of_injective _ _ hf]
 
 lemma vars_monomial_single (i : σ) (e : ℕ) (r : R) (he : e ≠ 0) (hr : r ≠ 0) :
   (monomial (finsupp.single i e) r).vars = {i} :=

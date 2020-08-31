@@ -777,7 +777,7 @@ end fin_meas_supp
 
 end fin_meas_supp
 
-/-- To prove something for an arbitrary simple function, it sufficient to show
+/-- To prove something for an arbitrary simple function, it suffices to show
 that the property holds for (multiples of) characteristic functions and is closed under
 addition (of functions with disjoint support).
 

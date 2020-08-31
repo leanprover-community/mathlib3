@@ -89,6 +89,9 @@ begin
   apply_instance
 end
 
+section
+variables (A)
+
 lemma kernel_ι_eq_zero_of_exact_zero_left [exact (0 : A ⟶ B) g] : kernel.ι g = 0 :=
 begin
   rw [←cancel_epi (image_to_kernel_map (0 : A ⟶ B) g exact.w),
@@ -98,9 +101,6 @@ end
 
 lemma exact_zero_left_of_mono [has_zero_object V] [mono g] : exact (0 : A ⟶ B) g :=
 ⟨by simp, image_to_kernel_map_epi_of_zero_of_mono _⟩
-
-lemma exact_cokernel [has_cokernel f] : exact f (cokernel.π f) :=
-begin
 
 end
 

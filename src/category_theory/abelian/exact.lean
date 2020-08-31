@@ -72,5 +72,12 @@ begin
   { tidy }
 end
 
+lemma exact_cokernel : exact f (cokernel.π f) :=
+by { rw exact_iff, tidy }
+
+set_option pp.implicit true
+
+lemma mono_of_exact_zero_left [exact (0 : Z ⟶ X) f] : mono f :=
+mono_of_kernel_ι_eq_zero f (kernel_ι_eq_zero_of_exact_zero_left Z)
 
 end category_theory.abelian

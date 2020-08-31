@@ -479,5 +479,3 @@ end widget_override
 
 attribute [vm_override widget_override.term_goal_widget] widget.term_goal_widget
 attribute [vm_override widget_override.tactic_state_widget] widget.tactic_state_widget
-
-example : [1,2,3] = [3,2,1] := begin  end

@@ -357,38 +357,19 @@ protected noncomputable def field (I : ideal α) [hI : I.is_maximal] : field I.q
   inv_zero := dif_pos rfl,
   ..quotient.integral_domain I }
 
-/-- If the quotient by an ideal is a field, then the ideal is maximal
--/
-theorem maximal_of_is_field {R : Type u} [comm_ring R] (I : ideal R)
-(hqf : @is_field I.quotient (comm_ring.to_ring (ideal.quotient I))) : I.is_maximal :=
+/-- If the quotient by an ideal is a field, then the ideal is maximal. -/
+theorem maximal_of_is_field (I : ideal α)
+  (hqf : is_field I.quotient) : I.is_maximal :=
 begin
   apply ideal.is_maximal_iff.2,
   split,
   { intro h,
-      rcases (hqf.exists_pair_ne) with ⟨⟨x⟩, ⟨y⟩, hxy⟩,
-      apply hxy,
-      apply ideal.quotient.eq.2,
-      rw ←mul_one (x-y),
-      apply submodule.smul_mem',
-      exact h },
+    rcases hqf.exists_pair_ne with ⟨⟨x⟩, ⟨y⟩, hxy⟩,
+    exact hxy (ideal.quotient.eq.2 (mul_one (x - y) ▸ I.mul_mem_left h)) },
   { intros J x hIJ hxnI hxJ,
-      have hxn0 : (ideal.quotient.mk I x) ≠ 0,
-      { exact @mt ((ideal.quotient.mk I x) = 0) (x ∈ I) ideal.quotient.eq_zero_iff_mem.1 hxnI },
-      have hinvx : ∃ (y : I.quotient), (ideal.quotient.mk I x) * y = 1,
-      { exact hqf.mul_inv_cancel' hxn0 },
-      rcases hinvx with ⟨⟨y⟩, hy⟩,
-      change (ideal.quotient.mk I x) * (ideal.quotient.mk I y) = 1 at hy,
-      rw ←((ideal.quotient.mk I).map_mul x y) at hy,
-      have hxy1I : x*y-1 ∈ I, exact ideal.quotient.eq.1 hy,
-      have hxy1J : x*y-1 ∈ J, exact hIJ hxy1I,
-      have hxyJ : x*y ∈ J, exact ideal.mul_mem_right J hxJ,
-      have hend : x*y-(x*y-1) ∈ J, exact ideal.sub_mem J hxyJ hxy1J,
-      have h1 : 1 = x*y-(x*y-1),
-        by calc 1 = 0 + 1         : eq.symm (zero_add 1)
-              ... = x*y - x*y + 1 : by rw sub_self
-              ... = x*y-(x*y-1)   : by rw sub_add,
-      rw h1,
-      exact hend, }
+    rcases hqf.mul_inv_cancel' (mt ideal.quotient.eq_zero_iff_mem.1 hxnI) with ⟨⟨y⟩, hy⟩,
+    rw [← zero_add (1 : α), ← sub_self (x * y), sub_add],
+    refine J.sub_mem (J.mul_mem_right hxJ) (hIJ (ideal.quotient.eq.1 hy)) }
 end
 
 /-- The quotient of a ring by an ideal is a field iff the ideal is maximal.

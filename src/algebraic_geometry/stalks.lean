@@ -28,8 +28,14 @@ open Top.presheaf
 
 namespace algebraic_geometry.PresheafedSpace
 
+/--
+The stalk at `x` of a `PresheafedSpace`.
+-/
 def stalk (X : PresheafedSpace C) (x : X) : C := X.presheaf.stalk x
 
+/--
+A morphism of presheafed spaces induces a morphism of stalks.
+-/
 def stalk_map {X Y : PresheafedSpace C} (α : X ⟶ Y) (x : X) : Y.stalk (α.base x) ⟶ X.stalk x :=
 (stalk_functor C (α.base x)).map (α.c) ≫ X.presheaf.stalk_pushforward C α.base x
 

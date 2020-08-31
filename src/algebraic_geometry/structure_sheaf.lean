@@ -205,7 +205,9 @@ begin
 end
 
 /--
-This follows the argument in Hartshorne.
+The `stalk_to_fiber` map for the structure sheaf is injective.
+
+The proof here follows the argument in Hartshorne's Algebraic Geometry, Proposition II.2.2.
 -/
 lemma structure_sheaf_stalk_to_fiber_injective (x : Top.of (prime_spectrum R)) :
   function.injective (stalk_to_fiber (is_locally_fraction R) x) :=

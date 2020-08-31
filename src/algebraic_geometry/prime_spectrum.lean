@@ -48,11 +48,12 @@ universe variables u v
 variables (R : Type u) [comm_ring R]
 
 /-- The prime spectrum of a commutative ring `R`
-is the type of all prime ideal of `R`.
+is the type of all prime ideals of `R`.
 
 It is naturally endowed with a topology (the Zariski topology),
-and a sheaf of commutative rings (not yet in mathlib).
+and a sheaf of commutative rings (see `algebraic_geometry.structure_sheaf`).
 It is a fundamental building block in algebraic geometry. -/
+@[nolint has_inhabited_instance]
 def prime_spectrum := {I : ideal R // I.is_prime}
 
 variable {R}

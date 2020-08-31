@@ -305,8 +305,6 @@ noncomputable def cokernel_iso_quotient {G H : AddCommGroup} (f : G ⟶ H) :
   cokernel f ≅ AddCommGroup.of (quotient (add_monoid_hom.range f)) :=
 { hom := cokernel.desc f (mk' _)
     (by { ext, apply quotient.sound, fsplit, exact -x, simp, }),
-  inv := add_monoid_hom.of (quotient_add_group.lift _ (cokernel.π f) (by tidy)),
-  inv_hom_id' := begin ext ⟨x⟩, dsimp, simp, dsimp, simp, end,
-  hom_inv_id' := sorry, }
+  inv := add_monoid_hom.of (quotient_add_group.lift _ (cokernel.π f) (by tidy)), }
 
 end AddCommGroup

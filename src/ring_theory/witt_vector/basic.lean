@@ -997,6 +997,84 @@ begin
     rwa finset.mem_singleton, },
 end
 
+-- move this up?
+lemma X_in_terms_of_W_vars (n : ℕ) :
+  (X_in_terms_of_W p ℚ n).vars = finset.range (n + 1) :=
+begin
+  have : ∀ i, (monomial (single i (p ^ (n - i))) (p ^ i : ℤ)).vars = {i},
+  { intro i,
+    rw vars_monomial_single,
+    { rw ← nat.pos_iff_ne_zero,
+      apply nat.pow_pos hp.pos },
+    { apply pow_ne_zero, exact_mod_cast hp.ne_zero } },
+  sorry
+  -- rw [X_in_terms_of_W_eq, vars_sum_of_disjoint],
+  -- { simp only [this, int.nat_cast_eq_coe_nat, finset.bind_singleton_eq_self], },
+  -- { simp only [this, int.nat_cast_eq_coe_nat],
+  --   intros a b h,
+  --   apply finset.singleton_disjoint.mpr,
+  --   rwa finset.mem_singleton, },
+end
+
+section
+omit hp
+open_locale classical
+
+variables {R}
+
+lemma vars_aeval {τ} (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
+  (aeval f φ).vars ⊆ (φ.vars.bind (λ i, (f i).vars)) :=
+begin
+  sorry
+end
+
+lemma vars_rename {τ} (f : σ → τ) (φ : mv_polynomial σ R) :
+  (rename f φ).vars ⊆ (φ.vars.image f) :=
+begin
+  sorry
+end
+
+-- the usual finset.bind_mono gives decidable_eq issues when I try to apply it below
+lemma finset.bind_mono' {α β : Type*} (s : finset α) (t₁ t₂ : α → finset β)
+  (h : ∀ (a : α), a ∈ s → t₁ a ⊆ t₂ a) :
+  s.bind t₁ ⊆ s.bind t₂ :=
+finset.bind_mono h
+
+end
+
+-- we could relax the fintype on `idx`, but then we need to cast from finset to set.
+-- for our applications `idx` is always finite.
+lemma witt_structure_rat_vars [fintype idx] (Φ : mv_polynomial idx ℚ) (n : ℕ) :
+  (witt_structure_rat p Φ n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+begin
+  rw witt_structure_rat,
+  intros x hx,
+  simp only [finset.mem_product, true_and, finset.mem_univ, finset.mem_range],
+  have hx' := vars_aeval _ _ hx,
+  simp only [X_in_terms_of_W_vars] at hx',
+  simp only [exists_prop, finset.mem_bind, finset.mem_range] at hx',
+  rcases hx' with ⟨k, hk, hx''⟩,
+  have hx''' := vars_aeval _ _ hx'',
+  simp only [exists_prop, finset.mem_bind, finset.mem_range] at hx''',
+  rcases hx''' with ⟨i, -, H⟩,
+  have H' := vars_rename _ _ H,
+  rw [finset.mem_image] at H',
+  rcases H' with ⟨j, hj, rfl⟩,
+  -- we should generalise `witt_polynomial_vars` to coefficient rings of char_zero,
+  -- so that we can rewrite with it at `hj`.
+  sorry
+  -- rw witt_polynomial_vars at hj,
+end
+
+-- we could relax the fintype on `idx`, but then we need to cast from finset to set.
+-- for our applications `idx` is always finite.
+lemma witt_structure_int_vars [fintype idx] (Φ : mv_polynomial idx ℤ) (n : ℕ) :
+  (witt_structure_int p Φ n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+begin
+  rw ← vars_map_of_injective (int.cast_ring_hom ℚ) _ sorry,
+  simp only [map_witt_structure_int],
+  apply witt_structure_rat_vars,
+end
 
 end witt_structure_simplifications
 

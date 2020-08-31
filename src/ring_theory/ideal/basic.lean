@@ -446,6 +446,42 @@ lemma bot_is_maximal {K : Type u} [field K] : is_maximal (⊥ : ideal K) :=
 ⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simp),
 λ I hI, or_iff_not_imp_left.mp (eq_bot_or_top I) (ne_of_gt hI)⟩
 
+/-- Maximal ideals in a non-field are nontrivial. -/
+variables {R : Type u} [comm_ring R]
+lemma maximal_gt_bot {M : ideal R} (hm : M.is_maximal) (non_field : ∃(I : ideal R), ⊥ < I ∧ I < ⊤) : ⊥ < M :=
+begin
+  split,
+  simp only [le_eq_subset, submodule.mem_coe, zero_subset, singleton_zero, submodule.bot_coe, submodule.zero_mem],
+  intro mle,
+  have : M = ⊥,
+  { have h1 : M ≤ ⊥ := by assumption,
+    have h2 : ⊥ ≤ M := by simp only [bot_le],
+    exact le_antisymm h1 h2, },
+  unfold ideal.is_maximal at hm,
+  rcases hm with ⟨ne_top, h1⟩,
+  contrapose! h1,
+  rcases non_field with ⟨I, ibot, itop⟩,
+  use I, rw this at *,
+  split, assumption,
+  rcases itop with ⟨-, itop⟩,
+  contrapose! itop,
+  rw itop,
+  exact le_refl ⊤,
+end
+
+lemma exists_prime_ne_bot [nontrivial R] (non_field : ∃(I : ideal R), ⊥ < I ∧ I < ⊤) : ∃(P : ideal R), P.is_prime ∧ ⊥ < P ∧ P < ⊤ :=
+begin
+  cases @exists_maximal R _ _ with P hp,
+  use P,
+  split,
+  exact is_maximal.is_prime hp,
+  split,
+  refine maximal_gt_bot hp non_field,
+  unfold is_maximal at hp,
+  rcases hp with ⟨ne_top, pkey⟩,
+  exact lt_top_iff_ne_top.mpr ne_top,
+end
+
 section pi
 variables (ι : Type v)
 

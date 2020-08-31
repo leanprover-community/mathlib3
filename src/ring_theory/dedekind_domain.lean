@@ -1,7 +1,6 @@
 import ring_theory.fractional_ideal
 import ring_theory.ideal.over
 import ring_theory.discrete_valuation_ring
-import tactic
 
 /-- A ring `R` is (at most) one-dimensional if all nonzero prime ideals are maximal. -/
 def ring.is_one_dimensional (R : Type*) [comm_ring R] :=

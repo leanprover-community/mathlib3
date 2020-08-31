@@ -149,6 +149,24 @@ meta def goto_def_button {γ} : expr → tactic (list (html (action γ)))
       attr.val "title" "go to definition"] ["↪"]]
   ) <|> pure []
 
+/-- Due to a bug in the webview browser, we have to reduce the number of spans in the expression.
+To do this, we collect the attributes from `sf.block` and `sf.highlight` after an expression boundary. -/
+meta def get_block_attrs {γ}: sf → tactic (sf × list (attr γ))
+| (sf.block i a) := do
+  let s : attr (γ) := style [
+    ("display", "inline-block"),
+    ("padding-left", "1ch"),
+    ("text-indent", "-1ch"),
+    ("white-space", "pre-wrap"),
+    ("vertical-align", "top")
+  ],
+  (a,rest) ← get_block_attrs a,
+  pure (a, s :: rest)
+| (sf.highlight c a) := do
+  (a, rest) ← get_block_attrs a,
+  pure (a, (cn c.to_string) :: rest)
+| a := pure (a,[])
+
 /--
 Renders a subexpression as a list of html elements.
 -/
@@ -170,7 +188,8 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
           content
       ]]
     else pure [],
-  let as := [className "expr-boundary", key (ea)] ++ select_attrs ++ click_attrs,
+  (m, block_attrs) ← get_block_attrs m,
+  let as := [className "expr-boundary", key (ea)] ++ select_attrs ++ click_attrs ++ block_attrs,
   inner ← view (e,new_address) m,
   pure [h "span" as inner]
 | ca (sf.compose x y) := pure (++) <*> view ca x <*> view ca y
@@ -180,17 +199,14 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
     on_click (λ _, action.on_click ca),
     key s
   ] [html.of_string s]]
-| ca (sf.block i a) := do
+| ca b@(sf.block _ _) := do
+  (a, attrs) ← get_block_attrs b,
   inner ← view ca a,
-  pure [h "span" [cn "dib", style [
-    ("padding-left", "1ch"),
-    ("text-indent", "-1ch"),
-    ("white-space", "pre-wrap"),
-    ("vertical-align", "top")
-  ]] inner]
-| ca (sf.highlight c a) := do
+  pure [h "span" attrs inner]
+| ca b@(sf.highlight _ _) := do
+  (a, attrs) ← get_block_attrs b,
   inner ← view ca a,
-  pure [h "span" [cn $ c.to_string] inner]
+  pure [h "span" attrs inner]
 
 /-- Make an interactive expression. -/
 meta def mk {γ} (tooltip : tc subexpr γ) : tc expr γ :=

@@ -45,7 +45,7 @@ instance : has_coe_to_sort LocallyRingedSpace :=
 -- than defining it over and over for PresheafedSpace, LRS, Scheme, etc.
 
 /-- The structure sheaf of a locally ringed space. -/
-def 𝒪 : sheaf CommRing X.to_Top := ⟨X.1.presheaf, X.1.sheaf_condition⟩
+def 𝒪 : sheaf CommRing X.to_Top := X.to_SheafedSpace.sheaf
 
 /-- A morphism of locally ringed spaces is a morphism of ringed spaces
  such that the morphims induced on stalks are local ring homomorphisms. -/
@@ -62,7 +62,7 @@ The stalk of a locally ringed space, just as a `CommRing`.
 -/
 -- TODO perhaps we should make a bundled `LocalRing` and return one here?
 -- TODO define `sheaf.stalk` so we can write `X.𝒪.stalk` here?
-def stalk (X : LocallyRingedSpace) (x : X) := X.presheaf.stalk x
+def stalk (X : LocallyRingedSpace) (x : X) : CommRing := X.presheaf.stalk x
 
 /--
 A morphism of locally ringed spaces `f : X ⟶ Y` induces
@@ -99,6 +99,13 @@ instance : category LocallyRingedSpace :=
   comp_id' := by { intros, ext1, simp, },
   id_comp' := by { intros, ext1, simp, },
   assoc' := by { intros, ext1, simp, }, }.
+
+/-- The forgetful functor from `LocallyRingedSpace` to `SheafedSpace CommRing`. -/
+def forget_to_SheafedSpace : LocallyRingedSpace ⥤ SheafedSpace CommRing :=
+{ obj := λ X, X.to_SheafedSpace,
+  map := λ X Y f, f.1, }
+
+instance : faithful forget_to_SheafedSpace := {}
 
 -- PROJECT: once we have `PresheafedSpace.restrict_stalk_iso`
 -- (that restriction doesn't change stalks) we can uncomment this.

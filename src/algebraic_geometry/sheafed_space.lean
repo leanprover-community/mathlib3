@@ -43,6 +43,9 @@ namespace SheafedSpace
 instance coe_carrier : has_coe (SheafedSpace C) Top :=
 { coe := λ X, X.carrier }
 
+/-- Extract the `sheaf C (X : Top)` from a `SheafedSpace C`. -/
+def sheaf (X : SheafedSpace C) : sheaf C (X : Top.{v}) := ⟨X.presheaf, X.sheaf_condition⟩
+
 @[simp] lemma as_coe (X : SheafedSpace C) : X.carrier = (X : Top.{v}) := rfl
 @[simp] lemma mk_coe (carrier) (presheaf) (h) :
   (({ carrier := carrier, presheaf := presheaf, sheaf_condition := h } : SheafedSpace.{v} C) : Top.{v}) = carrier :=

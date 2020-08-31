@@ -34,6 +34,8 @@ if it is a root of some monic polynomial `p : polynomial R`. -/
 def is_integral (x : A) : Prop :=
 ∃ p : polynomial R, monic p ∧ aeval x p = 0
 
+variable {R}
+
 theorem is_integral_of_noetherian' (H : is_noetherian R A) (x : A) :
   is_integral R x :=
 begin

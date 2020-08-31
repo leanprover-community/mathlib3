@@ -101,4 +101,42 @@ def interleave_all {α} : list (lazy_list α) → lazy_list α
 | [] := lazy_list.nil
 | (x :: xs) := interleave x (interleave_all xs)
 
+protected def bind {α β} : lazy_list α → (α → lazy_list β) → lazy_list β
+| lazy_list.nil _ := lazy_list.nil
+| (lazy_list.cons x xs) f := lazy_list.append (f x) (bind (xs ()) f)
+
+def reverse {α} (xs : lazy_list α) : lazy_list α :=
+of_list xs.to_list.reverse
+
+instance : monad lazy_list :=
+{ pure := @lazy_list.singleton,
+  bind := @lazy_list.bind }
+
+lemma append_nil {α} (xs : lazy_list α) : xs.append lazy_list.nil = xs :=
+begin
+  induction xs, refl,
+  simp [lazy_list.append, xs_ih],
+  ext, congr,
+end
+
+lemma append_assoc {α} (xs ys zs : lazy_list α) : (xs.append ys).append zs = xs.append (ys.append zs) :=
+by induction xs; simp [append, *]
+
+lemma append_bind {α β} (xs : lazy_list α) (ys : thunk (lazy_list α)) (f : α → lazy_list β) :
+  (@lazy_list.append _ xs ys).bind f = (xs.bind f).append ((ys ()).bind f) :=
+by induction xs; simp [lazy_list.bind, append, *, append_assoc, append, lazy_list.bind]
+
+instance : is_lawful_monad lazy_list :=
+{ pure_bind := by intros; apply append_nil,
+  bind_assoc := by intros; dsimp [(>>=)]; induction x; simp [lazy_list.bind, append_bind, *],
+  id_map := by intros; simp [(<$>)]; induction x; simp [lazy_list.bind, *, singleton, append]; ext ⟨ ⟩; refl,
+ }
+
+/-- Try applying function `f` to every element of a `lazy_list` and
+return the result of the first attempt that succeeds. -/
+def mfirst {m} [alternative m] {α β} (f : α → m β) : lazy_list α → m β
+| nil := failure
+| (cons x xs) :=
+  f x <|> mfirst (xs ())
+
 end lazy_list

@@ -97,8 +97,6 @@ end comm_semiring
 section aeval
 variables [comm_semiring R] {p : polynomial R}
 
--- TODO this could be generalized: there's no need for `A` to be commutative,
--- we just need that `x` is central.
 variables [semiring A] [algebra R A]
 variables {B : Type*} [semiring B] [algebra R B]
 variables (x : A)

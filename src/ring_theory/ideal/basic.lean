@@ -372,15 +372,11 @@ begin
     refine J.sub_mem (J.mul_mem_right hxJ) (hIJ (ideal.quotient.eq.1 hy)) }
 end
 
-/-- The quotient of a ring by an ideal is a field iff the ideal is maximal.
--/
-theorem maximal_ideal_iff_is_field_quotient {R : Type u} [comm_ring R] (I : ideal R) :
-I.is_maximal ↔ (@is_field I.quotient (comm_ring.to_ring (ideal.quotient I))) :=
-begin
-  split; intro h,
-  { exact @field.to_is_field I.quotient (@ideal.quotient.field _ _ I h) },
-  { exact maximal_of_is_field I h }
-end
+/-- The quotient of a ring by an ideal is a field iff the ideal is maximal. -/
+theorem maximal_ideal_iff_is_field_quotient (I : ideal α) :
+  I.is_maximal ↔ is_field I.quotient :=
+⟨λ h, @field.to_is_field I.quotient (@ideal.quotient.field _ _ I h),
+ λ h, maximal_of_is_field I h⟩
 
 variable [comm_ring β]
 

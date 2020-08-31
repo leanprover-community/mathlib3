@@ -33,29 +33,34 @@ theorem map_rel (f : r →r s) : ∀ {a b}, r a b → s (f a) (f b) := f.map_rel
 
 @[simp] theorem coe_fn_to_fun (f : r →r s) : (f.to_fun : α → β) = f := rfl
 
-/-- The map `coe_fn : (r →r s) → (r → s)` is injective. We can't use `function.injective`
+/-- The map `coe_fn : (r →r s) → (α → β)` is injective. We can't use `function.injective`
 here but mimic its signature by using `⦃e₁ e₂⦄`. -/
 theorem coe_fn_inj : ∀ ⦃e₁ e₂ : r →r s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
 | ⟨f₁, o₁⟩ ⟨f₂, o₂⟩ h := by { congr, exact h }
 
+@[ext] theorem ext ⦃f g : r →r s⦄ (h : ∀ x, f x = g x) : f = g :=
+coe_fn_inj (funext h)
+
+theorem ext_iff {f g : r →r s} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, λ h, ext h⟩
+
 /-- Identity map is a relation homomorphism. -/
-@[refl] protected def refl (r : α → α → Prop) : r →r r :=
+@[refl] protected def id (r : α → α → Prop) : r →r r :=
 ⟨id, λ a b, id⟩
 
 /-- Composition of two relation homomorphisms is a relation homomorphism. -/
-@[trans] protected def trans (f : r →r s) (g : s →r t) : r →r t :=
+@[trans] protected def comp (g : s →r t) (f : r →r s) : r →r t :=
 ⟨g.1 ∘ f.1, λ a b h, g.2 (f.2 h)⟩
 
-@[simp] theorem refl_apply (x : α) : rel_hom.refl r x = x := rfl
+@[simp] theorem id_apply (x : α) : rel_hom.id r x = x := rfl
 
-@[simp] theorem trans_apply (f : r →r s) (g : s →r t) (a : α) : (f.trans g) a = g (f a) := rfl
+@[simp] theorem comp_apply (g : s →r t) (f : r →r s) (a : α) : (g.comp f) a = g (f a) := rfl
 
-/-- a relation embedding is also a relation embedding between dual relations. -/
-def rsymm (f : r →r s) : swap r →r swap s :=
-⟨f.to_fun, λ a b, f.map_rel⟩
+/-- A relation homomorphism is also a relation homomorphism between dual relations. -/
+protected def swap (f : r →r s) : swap r →r swap s :=
+⟨f, λ a b, f.map_rel⟩
 
-/-- If `f` is injective, then it is a relation embedding from the
-  preimage relation of `s` to `s`. -/
+/-- A function is a relation homomorphism from the preimage relation of `s` to `s`. -/
 def preimage (f : α → β) (s : β → β → Prop) : f ⁻¹'o s →r s := ⟨f, λ a b, id⟩
 
 protected theorem is_irrefl : ∀ (f : r →r s) [is_irrefl β s], is_irrefl α r
@@ -73,15 +78,6 @@ end
 
 protected theorem well_founded : ∀ (f : r →r s) (h : well_founded s), well_founded r
 | f ⟨H⟩ := ⟨λ a, f.acc _ (H _)⟩
-
-/-- It suffices to prove `f` is monotone between strict relations
-  to show it is a relation embedding. -/
-def of_monotone (f : α → β)
-  (H : ∀ a b, r a b → s (f a) (f b)) : r →r s :=
-⟨f, λ a b, H a b⟩
-
-@[simp] theorem of_monotone_coe (f : α → β) (H : ∀ a b, r a b → s (f a) (f b)) :
-  (of_monotone f H : α → β) = f := rfl
 
 end rel_hom
 
@@ -115,7 +111,7 @@ abbreviation order_embedding (α β : Type*) [has_le α] [has_le β] :=
 
 infix ` ↪o `:25 := order_embedding
 
-/-- the induced relation on a subtype is an embedding under the natural inclusion. -/
+/-- The induced relation on a subtype is an embedding under the natural inclusion. -/
 definition subtype.rel_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) :
 ((subtype.val : subtype p → X) ⁻¹'o r) ↪r r :=
 ⟨⟨subtype.val,subtype.val_injective⟩,by intros;refl⟩
@@ -129,7 +125,7 @@ namespace rel_embedding
 /-- A relation embedding is also a relation homomorphism -/
 def to_rel_hom (f : r ↪r s) : (r →r s) :=
 { to_fun := f.to_embedding.to_fun,
-  map_rel' := λ x y, by { rw f.map_rel_iff', exact id, } }
+  map_rel' := λ x y, (map_rel_iff' f).mp }
 
 instance : has_coe (r ↪r s) (r →r s) := ⟨to_rel_hom⟩
 -- see Note [function coercion]
@@ -148,10 +144,16 @@ theorem map_rel_iff (f : r ↪r s) : ∀ {a b}, r a b ↔ s (f a) (f b) := f.map
 
 @[simp] theorem coe_fn_to_embedding (f : r ↪r s) : (f.to_embedding : α → β) = f := rfl
 
-/-- The map `coe_fn : (r ↪r s) → (r → s)` is injective. We can't use `function.injective`
+/-- The map `coe_fn : (r ↪r s) → (α → β)` is injective. We can't use `function.injective`
 here but mimic its signature by using `⦃e₁ e₂⦄`. -/
 theorem coe_fn_inj : ∀ ⦃e₁ e₂ : r ↪r s⦄, (e₁ : α → β) = e₂ → e₁ = e₂
 | ⟨⟨f₁, h₁⟩, o₁⟩ ⟨⟨f₂, h₂⟩, o₂⟩ h := by { congr, exact h }
+
+@[ext] theorem ext ⦃f g : r ↪r s⦄ (h : ∀ x, f x = g x) : f = g :=
+coe_fn_inj (funext h)
+
+theorem ext_iff {f g : r ↪r s} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
 /-- Identity map is a relation embedding. -/
 @[refl] protected def refl (r : α → α → Prop) : r ↪r r :=
@@ -165,8 +167,8 @@ theorem coe_fn_inj : ∀ ⦃e₁ e₂ : r ↪r s⦄, (e₁ : α → β) = e₂ �
 
 @[simp] theorem trans_apply (f : r ↪r s) (g : s ↪r t) (a : α) : (f.trans g) a = g (f a) := rfl
 
-/-- a relation embedding is also a relation embedding between dual relations. -/
-def rsymm (f : r ↪r s) : swap r ↪r swap s :=
+/-- A relation embedding is also a relation embedding between dual relations. -/
+protected def swap (f : r ↪r s) : swap r ↪r swap s :=
 ⟨f.to_embedding, λ a b, f.map_rel_iff⟩
 
 /-- If `f` is injective, then it is a relation embedding from the
@@ -280,7 +282,7 @@ protected theorem is_well_order [is_well_order β (<)] : is_well_order α (<) :=
 f.lt_embedding.is_well_order
 
 /-- An order embedding is also an order embedding between dual orders. -/
-def osymm : order_dual α ↪o order_dual β :=
+protected def dual : order_dual α ↪o order_dual β :=
 ⟨f.to_embedding, λ a b, f.map_rel_iff⟩
 
 end order_embedding
@@ -327,8 +329,6 @@ instance : has_coe_to_fun (r ≃r s) := ⟨λ _, α → β, λ f, f⟩
 
 @[simp] lemma coe_coe_fn (f : r ≃r s) : ((f : r ↪r s) : α → β) = f := rfl
 
-@[simp] lemma coe_coe_coe_fn (f : r ≃r s) : (((f : r ↪r s) : r →r s) : α → β) = f := rfl
-
 theorem map_rel_iff (f : r ≃r s) : ∀ {a b}, r a b ↔ s (f a) (f b) := f.map_rel_iff'
 
 lemma map_rel_iff'' {r : α → α → Prop} {s : β → β → Prop} (f : r ≃r s) {x y : α} :
@@ -342,13 +342,16 @@ lemma map_rel_iff'' {r : α → α → Prop} {s : β → β → Prop} (f : r ≃
 theorem to_equiv_injective : injective (to_equiv : (r ≃r s) → α ≃ β)
 | ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by { congr, exact h }
 
-/-- The map `coe_fn : (r ≃r s) → (r → s)` is injective. We can't use `function.injective`
+/-- The map `coe_fn : (r ≃r s) → (α → β)` is injective. We can't use `function.injective`
 here but mimic its signature by using `⦃e₁ e₂⦄`. -/
 theorem coe_fn_injective ⦃e₁ e₂ : r ≃r s⦄ (h : (e₁ : α → β) = e₂) : e₁ = e₂ :=
 to_equiv_injective $ equiv.coe_fn_injective h
 
-@[ext] theorem ext {e₁ e₂ : r ≃r s} (h : ∀ x, e₁ x = e₂ x) : e₁ = e₂ :=
-coe_fn_injective $ funext h
+@[ext] theorem ext ⦃f g : r ≃r s⦄ (h : ∀ x, f x = g x) : f = g :=
+coe_fn_injective (funext h)
+
+theorem ext_iff {f g : r ≃r s} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
 /-- Identity map is a relation isomorphism. -/
 @[refl] protected def refl (r : α → α → Prop) : r ≃r r :=
@@ -363,7 +366,7 @@ coe_fn_injective $ funext h
 ⟨f₁.to_equiv.trans f₂.to_equiv, λ a b, f₁.map_rel_iff.trans f₂.map_rel_iff⟩
 
 /-- a relation isomorphism is also a relation isomorphism between dual relations. -/
-def rsymm (f : r ≃r s) : (swap r) ≃r (swap s) :=
+protected def swap (f : r ≃r s) : (swap r) ≃r (swap s) :=
 ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
 
 @[simp] theorem coe_fn_symm_mk (f o) : ((@rel_iso.mk _ _ r s f o).symm : β → α) = f.symm :=
@@ -479,7 +482,7 @@ def rel_embedding.cod_restrict (p : set β) (f : r ↪r s) (H : ∀ a, f a ∈ p
   rel_embedding.cod_restrict p f H a = ⟨f a, H a⟩ := rfl
 
   /-- An order isomorphism is also an order isomorphism between dual orders. -/
-def order_iso.osymm [preorder α] [preorder β] (f : α ≃o β) :
+protected def order_iso.dual [preorder α] [preorder β] (f : α ≃o β) :
   order_dual α ≃o order_dual β := ⟨f.to_equiv, λ _ _, f.map_rel_iff⟩
 
 section lattice_isos

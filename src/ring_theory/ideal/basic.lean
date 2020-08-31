@@ -357,6 +357,27 @@ protected noncomputable def field (I : ideal α) [hI : I.is_maximal] : field I.q
   inv_zero := dif_pos rfl,
   ..quotient.integral_domain I }
 
+/-- If the quotient by an ideal is a field, then the ideal is maximal. -/
+theorem maximal_of_is_field (I : ideal α)
+  (hqf : is_field I.quotient) : I.is_maximal :=
+begin
+  apply ideal.is_maximal_iff.2,
+  split,
+  { intro h,
+    rcases hqf.exists_pair_ne with ⟨⟨x⟩, ⟨y⟩, hxy⟩,
+    exact hxy (ideal.quotient.eq.2 (mul_one (x - y) ▸ I.mul_mem_left h)) },
+  { intros J x hIJ hxnI hxJ,
+    rcases hqf.mul_inv_cancel (mt ideal.quotient.eq_zero_iff_mem.1 hxnI) with ⟨⟨y⟩, hy⟩,
+    rw [← zero_add (1 : α), ← sub_self (x * y), sub_add],
+    refine J.sub_mem (J.mul_mem_right hxJ) (hIJ (ideal.quotient.eq.1 hy)) }
+end
+
+/-- The quotient of a ring by an ideal is a field iff the ideal is maximal. -/
+theorem maximal_ideal_iff_is_field_quotient (I : ideal α) :
+  I.is_maximal ↔ is_field I.quotient :=
+⟨λ h, @field.to_is_field I.quotient (@ideal.quotient.field _ _ I h),
+ λ h, maximal_of_is_field I h⟩
+
 variable [comm_ring β]
 
 /-- Given a ring homomorphism `f : α →+* β` sending all elements of an ideal to zero,

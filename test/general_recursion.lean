@@ -9,7 +9,7 @@ import tactic.linarith
 import tactic.omega
 import tactic.find_unused
 import control.fix
-import order.category.ωCPO
+import order.category.omega_complete_partial_order
 import data.nat.basic
 
 universes u_1 u_2

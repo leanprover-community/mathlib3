@@ -69,7 +69,15 @@ f $ λ x : α,
 assert (¬p (i.val)) $ λ h : ¬ p (i.val),
 g (i.succ h) (nat.lt_succ_self _) x
 
-/-- fixed point of `f` -/
+/-- The least fixed point of `f`.
+
+If `f` is a continuous function (according to complete partial orders),
+it satisfies the equations:
+
+ (0) fix f = f (fix f)          (is a fixed point)
+ (1) ∀ X, f X ≤ X → fix f ≤ X   (least fixed point)
+
+(proof below) -/
 protected def fix (x : α) : roption $ β x :=
 roption.assert (∃ i, (fix.approx f i x).dom) $ λ h,
 well_founded.fix.{1} (nat.up.wf h) (fix_aux f) nat.up.zero x

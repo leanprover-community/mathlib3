@@ -10,7 +10,7 @@ import algebraic_geometry.stalks
 import ring_theory.ideal.basic
 
 /-!
-# The category of locally ringed spaces.
+# The category of locally ringed spaces
 
 We define (bundled) locally ringed spaces
 (as `SheafedSpace CommRing` along with the fact that the stalks are local rings),

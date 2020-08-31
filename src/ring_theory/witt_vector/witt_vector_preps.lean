@@ -193,16 +193,24 @@ begin
   simpa using multiset.mem_of_le (degrees_add _ _) hx,
 end
 
+
+-- generalize from multiset?
+lemma finset.sup_subset {α β} {s t : finset α} (hst : s ⊆ t) (f : α → multiset β) :
+  s.sup f ≤ t.sup f :=
+calc t.sup f = (s ∪ t).sup f : by rw [finset.union_eq_right_iff_subset.mpr hst]
+         ... = s.sup f ⊔ t.sup f : by rw finset.sup_union
+         ... ≥ s.sup f : le_sup_left
+
 lemma foobar (p q : mv_polynomial σ R) (h : p.degrees.disjoint q.degrees) :
   p.degrees ≤ (p + q).degrees :=
 begin
-  apply finset.sup_le,
-  rw [degrees, finsupp.support_add_eq],
-  { intros b hb,
-    apply finset.le_sup (finset.mem_union_left _ _),
-    exact hb },
-  { -- this goal is false: two constant polys
-   },
+  rw multiset.disjoint_iff_ne at h,
+  rw multiset.le_iff_count,
+  intros a,
+  by_cases ha : a ∈ p.degrees,
+  { specialize h a ha,
+    sorry },
+  { simp [ha] }
 end
 
 
@@ -288,12 +296,6 @@ end
 
 end sum
 
--- generalize from multiset?
-lemma finset.sup_subset {α β} {s t : finset α} (hst : s ⊆ t) (f : α → multiset β) :
-  s.sup f ≤ t.sup f :=
-calc t.sup f = (s ∪ t).sup f : by rw [finset.union_eq_right_iff_subset.mpr hst]
-         ... = s.sup f ⊔ t.sup f : by rw finset.sup_union
-         ... ≥ s.sup f : le_sup_left
 
 
 lemma finset.mem_sup {α β} [decidable_eq α] [decidable_eq β] {s : finset α} {f : α → multiset β} {x : β} : x ∈ s.sup f ↔

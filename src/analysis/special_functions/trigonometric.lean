@@ -805,6 +805,32 @@ by convert intermediate_value_Icc
   (le_trans (neg_nonpos.2 (le_of_lt pi_div_two_pos)) (le_of_lt pi_div_two_pos))
   continuous_sin.continuous_on; simp only [sin_neg, sin_pi_div_two]
 
+lemma exists_cos_eq : (set.Icc (-1) 1 : set ℝ) ⊆ real.cos '' set.Icc 0 (real.pi) :=
+by convert intermediate_value_Icc' (le_of_lt real.pi_pos)
+  real.continuous_cos.continuous_on; simp only [real.cos_pi, real.cos_zero]
+
+lemma real.cos_range : set.range cos = (set.Icc (-1) 1 : set ℝ) :=
+begin
+  ext,
+  split,
+  { rintros ⟨y, hxy⟩,
+    exact hxy ▸ ⟨y.neg_one_le_cos, y.cos_le_one⟩ },
+  { rintros h,
+    rcases real.exists_cos_eq h with ⟨y, _, hy⟩,
+    exact ⟨y, hy⟩ }
+end
+
+lemma real.sin_range : set.range sin = (set.Icc (-1) 1 : set ℝ) :=
+begin
+  ext,
+  split,
+  { rintros ⟨y, hxy⟩,
+    exact hxy ▸ ⟨y.neg_one_le_sin, y.sin_le_one⟩ },
+  { rintros h,
+    rcases real.exists_sin_eq h with ⟨y, _, hy⟩,
+    exact ⟨y, hy⟩ }
+end
+
 lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
 begin
   cases le_or_gt x 1 with h' h',

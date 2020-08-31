@@ -1738,6 +1738,9 @@ rfl
 @[simp] theorem map_zero : e 0 = 0 := e.to_linear_map.map_zero
 @[simp] theorem map_smul (c : R) (x : M) : e (c • x) = c • e x := e.map_smul' c x
 
+@[simp] lemma map_sum {s : finset ι} (u : ι → M) : e (∑ i in s, u i) = ∑ i in s, e (u i) :=
+e.to_linear_map.map_sum
+
 @[simp] theorem map_eq_zero_iff {x : M} : e x = 0 ↔ x = 0 :=
 e.to_add_equiv.map_eq_zero_iff
 theorem map_ne_zero_iff {x : M} : e x ≠ 0 ↔ x ≠ 0 :=

@@ -360,18 +360,18 @@ do (x,xs) ← collect_struct e,
    set_goals (xs'.join ++ gs)
 
 /--
-`guard_hyp h := t` fails if the hypothesis `h` does not have type `t`.
+`guard_hyp' h : t` fails if the hypothesis `h` does not have type `t`.
 We use this tactic for writing tests.
 Fixes `guard_hyp` by instantiating meta variables
 -/
-meta def guard_hyp' (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+meta def guard_hyp' (n : parse ident) (p : parse $ tk ":" *> texpr) : tactic unit :=
 do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_eq h p
 
 /--
-`match_hyp h := t` fails if the hypothesis `h` does not match the type `t` (which may be a pattern).
+`match_hyp h : t` fails if the hypothesis `h` does not match the type `t` (which may be a pattern).
 We use this tactic for writing tests.
 -/
-meta def match_hyp (n : parse ident) (p : parse $ tk ":=" *> texpr) (m := reducible) : tactic (list expr) :=
+meta def match_hyp (n : parse ident) (p : parse $ tk ":" *> texpr) (m := reducible) : tactic (list expr) :=
 do
   h ← get_local n >>= infer_type >>= instantiate_mvars,
   match_expr p h m
@@ -393,11 +393,11 @@ do t ← target, guard_expr_strict t p
 
 
 /--
-`guard_hyp_strict h := t` fails if the hypothesis `h` does not have type syntactically equal
+`guard_hyp_strict h : t` fails if the hypothesis `h` does not have type syntactically equal
 to `t`.
 We use this tactic for writing tests.
 -/
-meta def guard_hyp_strict (n : parse ident) (p : parse $ tk ":=" *> texpr) : tactic unit :=
+meta def guard_hyp_strict (n : parse ident) (p : parse $ tk ":" *> texpr) : tactic unit :=
 do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_strict h p
 
 meta def guard_hyp_nums (n : ℕ) : tactic unit :=

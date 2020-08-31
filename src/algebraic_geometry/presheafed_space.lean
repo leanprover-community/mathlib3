@@ -76,7 +76,7 @@ end
 
 def id (X : PresheafedSpace C) : hom X X :=
 { base := 𝟙 (X : Top.{v}),
-  c := ((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id (X.carrier)).hom) _) }
+  c := (functor.left_unitor _).inv ≫ whisker_right (nat_trans.op (opens.map_id X.carrier).hom) _ }
 
 def comp (X Y Z : PresheafedSpace C) (α : hom X Y) (β : hom Y Z) : hom X Z :=
 { base := α.base ≫ β.base,
@@ -135,7 +135,7 @@ variables {C}
 
 lemma id_c (X : PresheafedSpace C) :
   ((𝟙 X) : X ⟶ X).c =
-  (((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id (X.carrier)).hom) _)) := rfl
+  (functor.left_unitor _).inv ≫ whisker_right (nat_trans.op (opens.map_id X.carrier).hom) _ := rfl
 
 @[simp] lemma id_c_app (X : PresheafedSpace C) (U) :
   ((𝟙 X) : X ⟶ X).c.app U = eq_to_hom (by { op_induction U, cases U, refl }) :=
@@ -202,8 +202,8 @@ namespace nat_trans
 def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_presheaf :=
 { app := λ X,
   { base := 𝟙 _,
-    c := whisker_left X.presheaf α ≫ ((functor.left_unitor _).inv) ≫
-           (whisker_right (nat_trans.op (opens.map_id X.carrier).hom) _) }, }
+    c := whisker_left X.presheaf α ≫ (functor.left_unitor _).inv ≫
+           whisker_right (nat_trans.op (opens.map_id X.carrier).hom) _ }, }
 
 -- TODO Assemble the last two constructions into a functor
 --   `(C ⥤ D) ⥤ (PresheafedSpace C ⥤ PresheafedSpace D)`

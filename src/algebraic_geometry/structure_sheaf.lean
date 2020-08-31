@@ -204,7 +204,7 @@ begin
     ⟨prelocal_predicate.sheafify_of ⟨r, s, λ y, ⟨y.2, localization_map.mk'_spec _ _ _⟩⟩, rfl⟩⟩,
 end
 
-/--
+/-
 This follows the argument in Hartshorne.
 -/
 lemma structure_sheaf_stalk_to_fiber_injective (x : Top.of (prime_spectrum R)) :

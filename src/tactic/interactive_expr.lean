@@ -150,7 +150,7 @@ meta def goto_def_button {γ} : expr → tactic (list (html (action γ)))
   ) <|> pure []
 
 /-- Due to a bug in the webview browser, we have to reduce the number of spans in the expression.
-Do do this, we collect the attributes from `sf.block` and `sf.highlight` after an expression boundary. -/
+To do this, we collect the attributes from `sf.block` and `sf.highlight` after an expression boundary. -/
 meta def get_block_attrs {γ}: sf → tactic (sf × list (attr γ))
 | (sf.block i a) := do
   let s : attr (γ) := style [

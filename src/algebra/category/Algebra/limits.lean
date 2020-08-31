@@ -42,14 +42,14 @@ def sections_subalgebra (F : J ⥤ Algebra R) :
 
 
 instance limit_semiring (F : J ⥤ Algebra R) :
-  ring (limit (F ⋙ forget (Algebra R))) :=
+  ring (types.limit_cone (F ⋙ forget (Algebra R))).X :=
 begin
   change ring (sections_subalgebra F),
   apply_instance,
 end
 
 instance limit_algebra (F : J ⥤ Algebra R) :
-  algebra R (limit (F ⋙ forget (Algebra R))) :=
+  algebra R (types.limit_cone (F ⋙ forget (Algebra R))).X :=
 begin
   change algebra R (sections_subalgebra F),
   apply_instance,
@@ -57,7 +57,7 @@ end
 
 /-- `limit.π (F ⋙ forget (Algebra R)) j` as a `alg_hom`. -/
 def limit_π_alg_hom (F : J ⥤ Algebra R) (j) :
-  limit (F ⋙ forget (Algebra R)) →ₐ[R] (F ⋙ forget (Algebra R)).obj j :=
+  (types.limit_cone (F ⋙ forget (Algebra R))).X →ₐ[R] (F ⋙ forget (Algebra R)).obj j :=
 { commutes' := λ r, rfl,
   ..SemiRing.limit_π_ring_hom (F ⋙ forget₂ (Algebra R) Ring ⋙ forget₂ Ring SemiRing) j }
 
@@ -70,21 +70,21 @@ namespace has_limits
 Construction of a limit cone in `Algebra R`.
 (Internal use only; use the limits API.)
 -/
-def limit (F : J ⥤ Algebra R) : cone F :=
-{ X := Algebra.of R (limit (F ⋙ forget _)),
+def limit_cone (F : J ⥤ Algebra R) : cone F :=
+{ X := Algebra.of R (types.limit_cone (F ⋙ forget _)).X,
   π :=
   { app := limit_π_alg_hom F,
     naturality' := λ j j' f,
-      alg_hom.coe_fn_inj ((limit.cone (F ⋙ forget _)).π.naturality f) } }
+      alg_hom.coe_fn_inj ((types.limit_cone (F ⋙ forget _)).π.naturality f) } }
 
 /--
 Witness that the limit cone in `Algebra R` is a limit cone.
 (Internal use only; use the limits API.)
 -/
-def limit_is_limit (F : J ⥤ Algebra R) : is_limit (limit F) :=
+def limit_cone_is_limit (F : J ⥤ Algebra R) : is_limit (limit_cone F) :=
 begin
   refine is_limit.of_faithful
-    (forget (Algebra R)) (limit.is_limit _)
+    (forget (Algebra R)) (types.limit_cone_is_limit _)
     (λ s, { .. }) (λ s, rfl),
   { simp only [forget_map_eq_coe, alg_hom.map_one, functor.map_cone_π], refl, },
   { intros x y, simp only [forget_map_eq_coe, alg_hom.map_mul, functor.map_cone_π], refl, },
@@ -98,37 +98,49 @@ end has_limits
 open has_limits
 
 /-- The category of R-algebras has all limits. -/
+@[irreducible]
 instance has_limits : has_limits (Algebra R) :=
-{ has_limits_of_shape := λ J 𝒥,
-  { has_limit := λ F, by exactI
-    { cone     := limit F,
-      is_limit := limit_is_limit F } } }
+{ has_limits_of_shape := λ J 𝒥, by exactI
+  { has_limit := λ F,
+    { cone     := limit_cone F,
+      is_limit := limit_cone_is_limit F } } }
+
+/--
+An auxiliary declaration to speed up typechecking.
+-/
+def forget₂_Ring_preserves_limits_aux (F : J ⥤ Algebra R) :
+  is_limit ((forget₂ (Algebra R) Ring).map_cone (limit_cone F)) :=
+Ring.limit_cone_is_limit (F ⋙ forget₂ (Algebra R) Ring)
 
 /--
 The forgetful functor from R-algebras to rings preserves all limits.
 -/
 instance forget₂_Ring_preserves_limits : preserves_limits (forget₂ (Algebra R) Ring) :=
-{ preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F,
-    by exactI preserves_limit_of_preserves_limit_cone
-      (limit.is_limit F) (limit.is_limit (F ⋙ forget₂ (Algebra R) Ring)) } }
+{ preserves_limits_of_shape := λ J 𝒥, by exactI
+  { preserves_limit := λ F, preserves_limit_of_preserves_limit_cone
+      (limit_cone_is_limit F) (forget₂_Ring_preserves_limits_aux F) } }
+
+/--
+An auxiliary declaration to speed up typechecking.
+-/
+def forget₂_Module_preserves_limits_aux (F : J ⥤ Algebra R) :
+  is_limit ((forget₂ (Algebra R) (Module R)).map_cone (limit_cone F)) :=
+Module.has_limits.limit_cone_is_limit (F ⋙ forget₂ (Algebra R) (Module R))
 
 /--
 The forgetful functor from R-algebras to R-modules preserves all limits.
 -/
 instance forget₂_Module_preserves_limits : preserves_limits (forget₂ (Algebra R) (Module R)) :=
-{ preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F,
-    by exactI preserves_limit_of_preserves_limit_cone
-      (limit.is_limit F) (limit.is_limit (F ⋙ forget₂ (Algebra R) (Module R))) } }
+{ preserves_limits_of_shape := λ J 𝒥, by exactI
+  { preserves_limit := λ F, preserves_limit_of_preserves_limit_cone
+      (limit_cone_is_limit F) (forget₂_Module_preserves_limits_aux F) } }
 
 /--
 The forgetful functor from R-algebras to types preserves all limits.
 -/
 instance forget_preserves_limits : preserves_limits (forget (Algebra R)) :=
-{ preserves_limits_of_shape := λ J 𝒥,
-  { preserves_limit := λ F,
-    by exactI preserves_limit_of_preserves_limit_cone
-      (limit.is_limit F) (limit.is_limit (F ⋙ forget _)) } }
+{ preserves_limits_of_shape := λ J 𝒥, by exactI
+  { preserves_limit := λ F, preserves_limit_of_preserves_limit_cone
+    (limit_cone_is_limit F) (types.limit_cone_is_limit (F ⋙ forget _)) } }
 
 end Algebra

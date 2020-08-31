@@ -241,6 +241,21 @@ rfl
   (on_finset s f hf).support ⊆ s :=
 filter_subset _
 
+lemma mem_support_on_finset
+  {s : finset α} {f : α → β} (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) {a : α} :
+  a ∈ (finsupp.on_finset s f hf).support ↔ f a ≠ 0 :=
+by simp [finsupp.mem_support_iff, finsupp.on_finset_apply]
+
+lemma support_on_finset
+  {s : finset α} {f : α → β} (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) :
+  (finsupp.on_finset s f hf).support = s.filter (λ a, f a ≠ 0) :=
+begin
+  ext a,
+  rw [mem_support_on_finset, finset.mem_filter],
+  specialize hf a,
+  finish
+end
+
 end on_finset
 
 /-! ### Declarations about `map_range` -/
@@ -1467,7 +1482,8 @@ lemma support_smul {R:semiring γ} [add_comm_monoid β] [semimodule γ β] {b : 
 λ a, by simp only [smul_apply', mem_support_iff, ne.def]; exact mt (λ h, h.symm ▸ smul_zero _)
 
 section
-variables {α' : Type*} [has_zero δ] {p : α → Prop}
+
+variables {p : α → Prop}
 
 @[simp] lemma filter_smul {R : semiring γ} [add_comm_monoid β] [semimodule γ β]
   {b : γ} {v : α →₀ β} : (b • v).filter p = b • v.filter p :=
@@ -1499,6 +1515,16 @@ ext $ λ a', by by_cases a = a';
 @[simp] lemma smul_single' {R : semiring γ}
   (c : γ) (a : α) (b : γ) : c • finsupp.single a b = finsupp.single a (c * b) :=
 smul_single _ _ _
+
+lemma smul_single_one [semiring β] (a : α) (b : β) : b • single a 1 = single a b :=
+by rw [smul_single, smul_eq_mul, mul_one]
+
+/-- Two `R`-linear maps from `finsupp X R` which agree on `single x 1` agree everywhere. -/
+lemma hom_ext [semiring β] [add_comm_monoid γ] [semimodule β γ] (φ ψ : (α →₀ β) →ₗ[β] γ)
+  (h : ∀ a : α, φ (single a 1) = ψ (single a 1)) : φ = ψ :=
+linear_map.ext $ λ x, finsupp.induction x (by rw [φ.map_zero, ψ.map_zero]) $
+  λ _ _ _ _ _ hgh,
+  by rw [φ.map_add, ψ.map_add, hgh, ←smul_single_one, φ.map_smul, ψ.map_smul, h]
 
 end
 
@@ -1825,7 +1851,7 @@ begin
   ext i,
   by_cases hi : i ∈ n.support,
   { replace h := congr_fun h ⟨i, hi⟩,
-    rwa [fin.ext_iff, ← fin.coe_eq_val, ← fin.coe_eq_val, hf m₁ h₁, hf m₂ h₂] at h },
+    rwa [fin.ext_iff, hf m₁ h₁, hf m₂ h₂] at h },
   { rw not_mem_support_iff at hi,
     specialize h₁ i,
     specialize h₂ i,

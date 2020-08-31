@@ -263,10 +263,12 @@ f.to_localization_map.mk'_mul _ _ _ _
 lemma mk'_one (x) : f.mk' x (1 : M) = f.to_map x :=
 f.to_localization_map.mk'_one _
 
+@[simp]
 lemma mk'_spec (x) (y : M) :
   f.mk' x y * f.to_map y = f.to_map x :=
 f.to_localization_map.mk'_spec _ _
 
+@[simp]
 lemma mk'_spec' (x) (y : M) :
   f.to_map y * f.mk' x y = f.to_map x :=
 f.to_localization_map.mk'_spec' _ _
@@ -1072,6 +1074,13 @@ def integral_domain_of_le_non_zero_divisors {M : submonoid A} (f : localization_
 def integral_domain_localization {M : submonoid A} (hM : M ≤ non_zero_divisors A) :
   integral_domain (localization M) :=
 (localization.of M).integral_domain_of_le_non_zero_divisors hM
+
+/--
+The localization of an integral domain at the complement of a prime ideal is an integral domain.
+-/
+instance integral_domain_of_local_at_prime {P : ideal A} (hp : P.is_prime) :
+  integral_domain (localization.at_prime P) :=
+integral_domain_localization (le_non_zero_divisors_of_domain (by simpa only [] using P.zero_mem))
 
 end localization_map
 end non_zero_divisors

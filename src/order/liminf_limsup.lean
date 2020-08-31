@@ -267,8 +267,7 @@ lemma limsup_congr {α : Type*} [conditionally_complete_lattice β] {f : filter 
   (h : ∀ᶠ a in f, u a = v a) : limsup f u = limsup f v :=
 begin
   rw limsup_eq,
-  congr,
-  ext b,
+  congr' with b,
   exact eventually_congr (h.mono $ λ x hx, by simp [hx])
 end
 

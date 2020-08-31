@@ -52,8 +52,7 @@ def of (X : Type u) [ring X] [algebra R X] : Algebra R := ⟨X⟩
 instance : inhabited (Algebra R) := ⟨of R R⟩
 
 @[simp]
-lemma of_apply (X : Type u) [ring X] [algebra R X] :
-  (of R X : Type u) = X := rfl
+lemma coe_of (X : Type u) [ring X] [algebra R X] : (of R X : Type u) = X := rfl
 
 variables {R}
 

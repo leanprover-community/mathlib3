@@ -75,21 +75,21 @@ begin
     congr, apply ys_ih, refl }
 end
 
-lemma to_fin_val {n : ℕ} (v : bitvec n) : (to_fin v).val = v.to_nat :=
-by rw [to_fin,fin.val_of_nat_eq_mod',nat.mod_eq_of_lt]; apply to_nat_lt
+lemma to_fin_val {n : ℕ} (v : bitvec n) : (to_fin v : ℕ) = v.to_nat :=
+by rw [to_fin, fin.coe_of_nat_eq_mod', nat.mod_eq_of_lt]; apply to_nat_lt
 
 lemma to_fin_le_to_fin_of_le {n} {v₀ v₁ : bitvec n} (h : v₀ ≤ v₁) : v₀.to_fin ≤ v₁.to_fin :=
-show v₀.to_fin.val ≤ v₁.to_fin.val,
+show (v₀.to_fin : ℕ) ≤ v₁.to_fin,
 by rw [to_fin_val,to_fin_val]; exact h
 
 lemma of_fin_le_of_fin_of_le {n : ℕ} {i j : fin (2^n)} (h : i ≤ j) : of_fin i ≤ of_fin j :=
-show (bitvec.of_nat n i.val).to_nat ≤ (bitvec.of_nat n j.val).to_nat,
-by simp only [to_nat_of_nat,nat.mod_eq_of_lt,fin.is_lt]; exact h
+show (bitvec.of_nat n i).to_nat ≤ (bitvec.of_nat n j).to_nat,
+by { simp only [to_nat_of_nat, nat.mod_eq_of_lt, fin.is_lt], exact h }
 
 lemma to_fin_of_fin {n} (i : fin $ 2^n) : (of_fin i).to_fin = i :=
-fin.eq_of_veq (by simp [to_fin_val,of_fin,to_nat_of_nat,nat.mod_eq_of_lt,i.is_lt])
+fin.eq_of_veq (by simp [to_fin_val, of_fin, to_nat_of_nat, nat.mod_eq_of_lt, i.is_lt])
 
 lemma of_fin_to_fin {n} (v : bitvec n) : of_fin (to_fin v) = v :=
-by dsimp [of_fin]; rw [to_fin_val,of_nat_to_nat]
+by dsimp [of_fin]; rw [to_fin_val, of_nat_to_nat]
 
 end bitvec

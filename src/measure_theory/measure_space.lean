@@ -326,7 +326,7 @@ begin
       finset.range_mono $ (le_add_iff_nonneg_right _).2 (zero_le 1)),
   rw [← Union_disjointed, measure_Union disjoint_disjointed (is_measurable.disjointed h),
     ennreal.tsum_eq_supr_sum' _ this],
-  congr' 1, ext1 n,
+  congr' 1 with n : 1,
   rw [← measure_bUnion_finset (disjoint_disjointed.pairwise_on _)
     (λ n _, is_measurable.disjointed h n)],
   convert congr_arg μ (Union_disjointed_of_mono hs n),
@@ -960,8 +960,7 @@ lemma ae_restrict_iff {s : set α} {p : α → Prop} (hp : is_measurable {x | p 
   (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
 begin
   simp only [ae_iff, ← compl_set_of, measure.restrict_apply hp.compl],
-  congr',
-  ext x, simp [and_comm]
+  congr' with x, simp [and_comm]
 end
 
 lemma ae_smul_measure {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) (c : ennreal) : ∀ᵐ x ∂(c • μ), p x :=

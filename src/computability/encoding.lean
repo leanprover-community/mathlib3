@@ -23,6 +23,8 @@ It also contains several examples:
 - `fin_encoding_bool_Γ₀₁`  : an encoding of bool.
 -/
 
+namespace computability
+
 /-- An encoding of a type in a certain alphabet, together with a decoding. -/
 structure encoding (α : Type) :=
 (Γ : Type)
@@ -183,3 +185,5 @@ def fin_encoding_bool_Γ₀₁ : fin_encoding bool :=
 instance inhabited_fin_encoding : inhabited (fin_encoding bool) := ⟨fin_encoding_bool_Γ₀₁⟩
 
 instance inhabited_encoding : inhabited (encoding bool) := ⟨fin_encoding_bool_Γ₀₁.to_encoding⟩
+
+end computability

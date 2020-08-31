@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel, Bhavik Mehta
 -/
 import category_theory.limits.shapes.wide_pullbacks
+import category_theory.limits.shapes.products
 import category_theory.limits.shapes.binary_products
 
 /-!
@@ -547,5 +548,65 @@ def has_pushouts_of_has_colimit_span
   [Π {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z}, has_colimit (span f g)] :
   has_pushouts C :=
 { has_colimit := λ F, has_colimit_of_iso (diagram_iso_span F) }
+
+section iso
+
+variables {X Y Z}
+
+instance has_pullback_is_iso_left (f : X ⟶ Z) (g : Y ⟶ Z) [is_iso f] : has_pullback f g :=
+{ cone := _,
+  is_limit := pullback_cone.is_limit.mk (g ≫ inv f) (𝟙 Y)
+    (by simp) (λ s, s.snd) (λ s, by { rw ←s.condition_assoc, simp, }) (by tidy) (by tidy) }
+
+instance has_pullback_is_iso_right (f : X ⟶ Z) (g : Y ⟶ Z) [is_iso g] : has_pullback f g :=
+{ cone := _,
+  is_limit := pullback_cone.is_limit.mk (𝟙 X) (f ≫ inv g)
+    (by simp) (λ s, s.fst) (by tidy) (λ s, by { rw s.condition_assoc, simp, }) (by tidy) }
+
+instance has_pushout_is_iso_left (f : X ⟶ Y) (g : X ⟶ Z) [is_iso f] : has_pushout f g :=
+{ cocone := _,
+  is_colimit := pushout_cocone.is_colimit.mk (inv f ≫ g) (𝟙 Z)
+    (by simp) (λ s, s.inr) (λ s, by { rw [category.assoc, ←s.condition], simp, }) (by tidy) (by tidy) }
+
+instance has_pushout_is_iso_right (f : X ⟶ Y) (g : X ⟶ Z) [is_iso g] : has_pushout f g :=
+{ cocone := _,
+  is_colimit := pushout_cocone.is_colimit.mk (𝟙 Y) (inv g ≫ f)
+    (by simp) (λ s, s.inl) (by tidy) (λ s, by { rw [category.assoc, s.condition], simp, }) (by tidy) }
+
+end iso
+
+section coproduct
+
+variables {β : Type v} (f : β → C) {U : C} (g : Π b, f b ⟶ U)
+variables {V : C} (h : V ⟶ U)
+variables [∀ b, has_pullback h (g b)]
+variables [has_coproduct f]
+
+section
+
+variables [has_pullback h (sigma.desc g)]
+
+instance has_coproduct_pullback : has_coproduct (λ b, pullback h (g b)) :=
+{ cocone :=
+  { X := pullback h (sigma.desc g),
+    ι := sorry, },
+  is_colimit := sorry, }
+
+end
+
+section -- Not sure we even want this one:
+
+variables [has_coproduct (λ b, pullback h (g b))]
+
+def has_pullback_sigma_desc : has_pullback h (sigma.desc g) :=
+{ cone := pullback_cone.mk
+    (sigma.desc (λ b : β, (pullback.fst : pullback h (g b) ⟶ V)))
+    (colim_map (discrete.nat_trans (λ b, (pullback.snd : pullback h (g b) ⟶ f b))))
+    (begin sorry end),
+  is_limit := sorry, }
+
+end
+
+end coproduct
 
 end category_theory.limits

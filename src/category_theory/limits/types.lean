@@ -57,6 +57,7 @@ begin
 end
 
 -- PROJECT: prove this for concrete categories where the forgetful functor preserves limits
+@[ext]
 lemma limit_ext (F : J ⥤ Type u) (x y : limit F) (w : ∀ j, limit.π F j x = limit.π F j y) :
   x = y :=
 begin

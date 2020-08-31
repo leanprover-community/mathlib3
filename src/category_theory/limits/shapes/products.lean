@@ -105,4 +105,92 @@ abbreviation has_products := Π (J : Type v), has_limits_of_shape (discrete J) C
 /-- An abbreviation for `Π J, has_colimits_of_shape (discrete J) C` -/
 abbreviation has_coproducts := Π (J : Type v), has_colimits_of_shape (discrete J) C
 
+variables {C}
+
+section punit
+
+instance has_products_of_shape_punit : has_products_of_shape punit C :=
+{ has_limit := λ F,
+  { cone :=
+    { X := F.obj punit.star,
+      π :=
+      { app := λ j, F.map (eq_to_hom (by ext)), } },
+    is_limit :=
+    { lift := λ s, s.π.app punit.star,
+      uniq' := λ s m w, by { specialize w punit.star, dsimp at w, simp [←w], }, }, }, }
+
+instance pi_π_punit_is_iso (f : punit.{v+1} → C) : is_iso (pi.π f punit.star) :=
+{ inv := pi.lift (λ x, eq_to_hom (by { rcases x, refl, })) }
+
+-- This formulation lets us see that `pi.lift p` is `mono`/`epi`/`is_iso` iff `p punit.star` is.
+@[simp]
+lemma pi_lift_punit {f : punit.{v+1} → C} {P : C} (p : Π b, P ⟶ f b) :
+  pi.lift p = p punit.star ≫ inv (pi.π f punit.star) :=
+by tidy
+
+instance has_coproducts_of_shape_punit : has_coproducts_of_shape punit C :=
+{ has_colimit := λ F,
+  { cocone :=
+    { X := F.obj punit.star,
+      ι :=
+      { app := λ j, F.map (eq_to_hom (by ext)), } },
+    is_colimit :=
+    { desc := λ s, s.ι.app punit.star,
+      uniq' := λ s m w, by { specialize w punit.star, dsimp at w, simp [←w], }, }, }, }
+
+instance sigma_ι_punit_is_iso (f : punit.{v+1} → C) : is_iso (sigma.ι f punit.star) :=
+{ inv := sigma.desc (λ x, eq_to_hom (by { rcases x, refl, })) }
+
+-- This formulation lets us see that `sigma.desc p` is `mono`/`epi`/`is_iso` iff `p punit.star` is.
+@[simp]
+lemma sigma_desc_punit {f : punit.{v+1} → C} {P : C} (p : Π b, f b ⟶ P) :
+  sigma.desc p = inv (sigma.ι f punit.star) ≫ p punit.star :=
+by tidy
+
+end punit
+
+section sigma -- (In the sense of dependent pairs!)
+
+variables (z : β → Type v)
+variables (f : Π b, z b → C)
+
+section
+variables [∀ b, has_product (f b)]
+variables [has_product (λ b, ∏ (f b))]
+
+instance has_product_of_shape_sigma : has_product (λ p : Σ b, z b, f p.1 p.2) :=
+{ cone :=
+  { X := ∏ (λ b : β, ∏ (λ c : z b, f b c)),
+    π :=
+    { app := λ j,
+        pi.π _ j.1 ≫ pi.π (λ c : z j.1, f j.1 c) j.2 ≫ eq_to_hom (by { cases j, refl, }),
+      naturality' :=
+        by { rintros ⟨j₁,j₂⟩ ⟨k₁,k₂⟩ ⟨⟨g⟩⟩, injection g with h₁ h₂, subst h₁, subst h₂, tidy, } } },
+  is_limit :=
+  { lift := λ s, pi.lift (λ b, pi.lift (λ c, s.π.app ⟨b, c⟩)),
+    uniq' := λ s m w, by { ext b c, specialize w ⟨b,c⟩, dsimp at w, simp [←w], }, }, }
+end
+
+section
+variables [∀ b, has_coproduct (f b)]
+variables [has_coproduct (λ b, ∐ (f b))]
+
+instance has_coproduct_of_shape_sigma : has_coproduct (λ p : Σ b, z b, f p.1 p.2) :=
+{ cocone :=
+  { X := ∐ (λ b : β, ∐ (λ c : z b, f b c)),
+    ι :=
+    { app := λ j,
+        eq_to_hom (by { cases j, refl, }) ≫
+          (sigma.ι (λ c : z j.1, f j.1 c) j.2 : _) ≫ sigma.ι (λ b : β, ∐ (λ c : z b, f b c)) j.1,
+      naturality' :=
+        by { rintros ⟨j₁,j₂⟩ ⟨k₁,k₂⟩ ⟨⟨g⟩⟩, injection g with h₁ h₂, subst h₁, subst h₂, tidy, } } },
+  is_colimit :=
+  { desc := λ s, sigma.desc (λ b, sigma.desc (λ c, s.ι.app ⟨b, c⟩)),
+    uniq' := λ s m w, by { ext b c, specialize w ⟨b,c⟩, dsimp at w, simp [←w], }, }, }
+end
+
+
+
+end sigma
+
 end category_theory.limits

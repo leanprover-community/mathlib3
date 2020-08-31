@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import topology.sheaves.presheaf
 import category_theory.limits.punit
+import category_theory.limits.types
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
 import category_theory.full_subcategory
@@ -18,6 +19,12 @@ The sheaf condition for a `F : presheaf C X` requires that the morphism
 `F.obj U ⟶ ∏ F.obj (U i)` (where `U` is some open set which is the union of the `U i`)
 is the equalizer of the two morphisms
 `∏ F.obj (U i) ⟶ ∏ F.obj (U i) ⊓ (U j)`.
+
+For the basic definitions, we work with covers as an indexed family of open sets `U : ι → opens X`,
+and refer to the union as `supr U`.
+This is sometimes inconvenient, when we have an existing open set, and want to talk about covers
+of that set, so we provide also some API for working in terms of
+the parameterized `cover U` structure.
 
 We provide the instance `category (sheaf C X)` as the full subcategory of presheaves,
 and the fully faithful functor `sheaf.forget : sheaf C X ⥤ presheaf C X`.
@@ -203,33 +210,46 @@ The forgetful functor from sheaves to presheaves.
 @[derive [full, faithful]]
 def forget : Top.sheaf C X ⥤ Top.presheaf C X := induced_functor sheaf.presheaf
 
-end sheaf
-
 variables {C X}
 
-structure cover (U : opens X) :=
-(ι : Type v)
-(𝒰 : ι → opens X)
-(supr : supr 𝒰 = U)
-(le_supr : ∀ i, 𝒰 i ⟶ U)
+lemma mono (F : sheaf C X) ⦃ι : Type v⦄ (U : ι → opens X) :
+  mono (pi.lift (λ i : ι, (F.presheaf.map (opens.le_supr U i).op : F.presheaf.obj (op (supr U)) ⟶ F.presheaf.obj (op (U i))))) :=
+mono_of_is_limit_parallel_pair (F.sheaf_condition U)
 
-def cover.of {ι : Type v} (𝒰 : ι → opens X) : cover (supr 𝒰) :=
-{ ι := ι,
-  𝒰 := 𝒰,
-  supr := rfl,
-  le_supr := opens.le_supr 𝒰, }
+lemma injective (F : sheaf (Type v) X) ⦃ι : Type v⦄ (U : ι → opens X) :
+  function.injective (λ (s : F.presheaf.obj (op (supr U))) (i : ι), F.presheaf.map (opens.le_supr U i).op s) :=
+begin
+  intros x y h,
+  apply (mono_iff_injective _).1 (F.mono U),
+  ext i,
+  exact (congr_fun h i : _),
+end
 
-namespace cover
+-- It would be more useful to have this in terms of `cover`.
+lemma ne_on_cover_of_ne {F : sheaf (Type v) X} ⦃ι : Type v⦄ {U : ι → opens X} {s t : F.presheaf.obj (op (supr U))} (h : s ≠ t) :
+  ∃ i : ι, F.presheaf.map (opens.le_supr U i).op s ≠ F.presheaf.map (opens.le_supr U i).op t :=
+begin
+  classical,
+  by_contradiction,
+  simp only [not_exists_not] at a,
+  exact h (injective F U (funext a)),
+end
 
-open sheaf_condition
+end sheaf
 
-def fork {U : opens X} (c : cover U) : fork.{v} (left_res F c.𝒰) (right_res F c.𝒰) :=
-(sheaf_condition.fork F c.𝒰).extend (F.map (eq_to_hom c.supr).op)
+-- variables {C X}
 
-end cover
+-- namespace cover
 
-def sheaf.is_limit_of_cover (F : sheaf C X) {U : opens X} (c : cover U) : is_limit (c.fork F.presheaf) :=
-sorry
+-- open sheaf_condition
+
+-- def fork {U : opens X} (c : cover U) : fork.{v} (left_res F c.𝒰) (right_res F c.𝒰) :=
+-- (sheaf_condition.fork F c.𝒰).extend (F.map (eq_to_hom c.supr).op)
+
+-- end cover
+
+-- def sheaf.is_limit_of_cover (F : sheaf C X) {U : opens X} (c : cover U) : is_limit (c.fork F.presheaf) :=
+-- sorry
 
 
 end Top

@@ -1347,6 +1347,28 @@ le_trans (degrees_add p (-q)) $ by rw [degrees_neg]
 
 end degrees
 
+section vars
+
+variables (p q)
+
+@[simp] lemma vars_neg : (-p).vars = p.vars :=
+by simp [vars, degrees_neg]
+
+lemma vars_sub_subset : (p - q).vars ⊆ p.vars ∪ q.vars :=
+by convert vars_add_subset p (-q) using 2; simp
+
+variables {p q}
+
+@[simp]
+lemma vars_sub_of_disjoint (hpq : disjoint p.vars q.vars) : (p - q).vars = p.vars ∪ q.vars :=
+begin
+  rw ←vars_neg q at hpq,
+  convert vars_add_of_disjoint hpq using 2,
+  simp
+end
+
+end vars
+
 section eval₂
 
 variables [comm_ring β]

@@ -96,6 +96,7 @@ end bicone
 /--
 A bicone over `F : J → C`, which is both a limit cone and a colimit cocone.
 -/
+@[nolint has_inhabited_instance]
 structure biproduct_data (F : J → C) :=
 (bicone : bicone F)
 (is_limit : is_limit bicone.to_cone)
@@ -417,6 +418,7 @@ end bicone
 /--
 A bicone over `P Q : C`, which is both a limit cone and a colimit cocone.
 -/
+@[nolint has_inhabited_instance]
 structure binary_biproduct_data (P Q : C) :=
 (bicone : binary_bicone P Q)
 (is_limit : is_limit bicone.to_cone)

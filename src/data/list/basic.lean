@@ -1882,8 +1882,8 @@ list.rec_on l h₁ (λ a l hl, by simp only [map_cons, prod_cons, h₂ hl])
 @[to_additive]
 theorem prod_hom [monoid β] (l : list α) (f : α →* β) :
   (l.map f).prod = f l.prod :=
-by { simp only [prod, foldl_map, (f.map_one).symm],
-  exact l.foldl_hom _ _ _ 1 (f.map_mul) }
+by { simp only [prod, foldl_map, f.map_one.symm],
+  exact l.foldl_hom _ _ _ 1 f.map_mul }
 
 -- `to_additive` chokes on the next few lemmas, so we do them by hand below
 @[simp]

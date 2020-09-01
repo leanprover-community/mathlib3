@@ -1,16 +1,19 @@
+from typing import Dict, Optional, Tuple, List
 import yaml
 import sys
 
-def tiered_extract(db):
+def tiered_extract(db: Dict[str, Dict[str, Dict[str, Optional[str]]]]) -> List[Tuple[str, str]]:
+  """From a three-level deep nested dictionary, return a list of (key, values)
+  of the deepest level."""
   out = []
-  for _, entry in db.items():
-    for _, values in entry.items():
+  for entry in db.values():
+    for values in entry.values():
       for name, decl in values.items():
-        if decl is not None and decl != '' and '/' not in decl:
+        if decl and '/' not in decl:
           out.append((name, decl))
   return out
 
-def print_list(fn, pairs):
+def print_list(fn: str, pairs: List[Tuple[str, str]]) -> None:
   with open(fn, 'w') as out:
     for (id, val) in pairs:
       out.write(f'{id}\n{val.strip()}\n\n')
@@ -26,7 +29,8 @@ with open(overview_yaml, 'r') as hy:
 with open(undergrad_yaml, 'r') as hy:
   undergrad = yaml.safe_load(hy)
 
-hundred_decls = []
+hundred_decls:List[Tuple[str, str]] = []
+
 for index, entry in hundred.items():
   if 'decl' in entry:
     hundred_decls.append((index, entry['decl']))

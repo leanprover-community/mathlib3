@@ -161,7 +161,7 @@ begin
   exact mul_eq_zero_of_left hp (q.eval₂ f x)
 end
 
-lemma eval₂_mul_eq_zero_of_right (hq : q.eval₂ f x = 0) (p : polynomial R) :
+lemma eval₂_mul_eq_zero_of_right (p : polynomial R) (hq : q.eval₂ f x = 0) :
   (p * q).eval₂ f x = 0 :=
 begin
   rw eval₂_mul f x,

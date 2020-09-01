@@ -1264,16 +1264,6 @@ section algebra
 section is_integral
 variables {R S} {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ] [algebra R S]
 
-/-- Explicit characterization of the submonoid map in the case of an algebra.
-`S` is made explicit to help with type inference -/
-def algebra_map_submonoid (S) [comm_ring S] [algebra R S]
-  (M : submonoid R) : (submonoid S) :=
-submonoid.map (algebra_map R S : R →* S) M
-
-lemma mem_algebra_map_submonoid_of_mem {M : submonoid R} (x : M) :
-  (algebra_map R S x) ∈ algebra_map_submonoid S M :=
-set.mem_image_of_mem (algebra_map R S) x.2
-
 /-- Definition of the natural algebra induced by the localization of an algebra.
 Given an algebra `R → S`, a submonoid `R` of `M`, and a localizaiton `Rₘ` for `M`,
 let `Sₘ` be the localization of `S` to the image of `M` under `algebra_map R S`.

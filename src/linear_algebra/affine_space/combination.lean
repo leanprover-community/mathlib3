@@ -3,6 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Myers.
 -/
+import algebra.invertible
 import data.indicator_function
 import linear_algebra.affine_space.basic
 import linear_algebra.finsupp
@@ -379,20 +380,24 @@ rfl
 by simp [centroid_def, affine_combination_apply]
 
 /-- The centroid of two points. -/
-lemma centroid_insert_singleton [char_zero k] (p : ι → P) (i₁ i₂ : ι) :
+lemma centroid_insert_singleton [invertible (2 : k)] (p : ι → P) (i₁ i₂ : ι) :
   ({i₁, i₂} : finset ι).centroid k p = (2 ⁻¹ : k) • (p i₂ -ᵥ p i₁) +ᵥ p i₁ :=
 begin
   by_cases h : i₁ = i₂,
   { simp [h] },
-  { rw [centroid_def,
+  { have hc : (card ({i₁, i₂} : finset ι) : k) ≠ 0,
+    { rw [card_insert_of_not_mem (not_mem_singleton.2 h), card_singleton],
+      norm_num,
+      exact nonzero_of_invertible _ },
+    rw [centroid_def,
         affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one _ _ _
-          (sum_centroid_weights_eq_one_of_nonempty k _ ⟨i₁, mem_insert_self _ _⟩) (p i₁)],
+          (sum_centroid_weights_eq_one_of_cast_card_ne_zero _ hc) (p i₁)],
     simp [h],
     norm_num }
 end
 
 /-- The centroid of two points indexed by `fin 2`. -/
-lemma centroid_insert_singleton_fin [char_zero k] (p : fin 2 → P) :
+lemma centroid_insert_singleton_fin [invertible (2 : k)] (p : fin 2 → P) :
   univ.centroid k p = (2 ⁻¹ : k) • (p 1 -ᵥ p 0) +ᵥ p 0 :=
 begin
   have hu : (finset.univ : finset (fin 2)) = {0, 1}, by dec_trivial,

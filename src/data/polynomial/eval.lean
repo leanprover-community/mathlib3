@@ -130,7 +130,7 @@ begin
 end
 
 /-- `eval₂` as a `ring_hom` for noncommutative rings -/
-def eval₂_ring_hom_noncomm (f : R →+* S) (hf : ∀ b a, a * f b = f b * a) (x : S) : polynomial R →+* S :=
+def eval₂_ring_hom' (f : R →+* S) (hf : ∀ b a, a * f b = f b * a) (x : S) : polynomial R →+* S :=
 { to_fun := eval₂ f x,
   map_add' := λ _ _, eval₂_add _ _,
   map_zero' := eval₂_zero _ _,

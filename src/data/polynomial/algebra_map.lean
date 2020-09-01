@@ -105,7 +105,7 @@ variables (x : A)
 the unique `R`-algebra homomorphism from `R[X]` to `A` sending `X` to `x`. -/
 def aeval : polynomial R →ₐ[R] A :=
 { commutes' := λ r, eval₂_C _ _,
-  ..eval₂_ring_hom_noncomm (algebra_map R A) (λ a b, (algebra.commutes a b).symm) x }
+  ..eval₂_ring_hom' (algebra_map R A) (λ a b, (algebra.commutes a b).symm) x }
 
 variables {R A}
 

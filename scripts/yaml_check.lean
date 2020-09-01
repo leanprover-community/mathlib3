@@ -38,12 +38,14 @@ def databases : list (string × string) := [
   ("100.txt", "Entries in `docs/100.yaml` refer to declarations that don't exist. Please correct the following:")
 ]
 
-meta def process_db : string × string → io unit | (file, msg) := do
+meta def process_db : string × string → io bool | (file, msg) := do
 entries ← read_nolints_file file,
 failures ← find_failures entries,
-when (failures.length > 0) $ do
+when (failures.length > 0) (do
   trace msg,
-  failures.mmap' $ λ p, trace format!"{p.1} : {p.2}"
+  failures.mmap' $ λ p, trace format!"{p.1} : {p.2}"),
+return $ failures.length = 0
 
-meta def main : io unit :=
-databases.mmap' process_db
+-- we don't use `list.mall` because we don't want to short circuit on the first failure
+meta def main : io unit := do
+databases.mfoldl (λ b p, do r ← process_db p, return $ b && r) tt >>= guardb

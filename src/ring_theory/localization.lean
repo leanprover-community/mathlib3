@@ -5,11 +5,8 @@ Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston
 -/
 
 import data.equiv.ring
-import tactic.ring_exp
-import ring_theory.ideal.operations
 import group_theory.monoid_localization
 import ring_theory.algebraic
-import ring_theory.integral_closure
 
 /-!
 # Localizations of commutative rings
@@ -263,10 +260,12 @@ f.to_localization_map.mk'_mul _ _ _ _
 lemma mk'_one (x) : f.mk' x (1 : M) = f.to_map x :=
 f.to_localization_map.mk'_one _
 
+@[simp]
 lemma mk'_spec (x) (y : M) :
   f.mk' x y * f.to_map y = f.to_map x :=
 f.to_localization_map.mk'_spec _ _
 
+@[simp]
 lemma mk'_spec' (x) (y : M) :
   f.to_map y * f.mk' x y = f.to_map x :=
 f.to_localization_map.mk'_spec' _ _

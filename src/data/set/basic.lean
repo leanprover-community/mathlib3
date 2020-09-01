@@ -143,6 +143,9 @@ end set_coe
 /-- See also `subtype.prop` -/
 lemma subtype.mem {α : Type*} {s : set α} (p : s) : (p : α) ∈ s := p.prop
 
+lemma eq.subset {α} {s t : set α} : s = t → s ⊆ t :=
+by { rintro rfl x hx, exact hx }
+
 namespace set
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a : α} {s t : set α}
@@ -922,6 +925,10 @@ ext $ assume x, ⟨assume ⟨hx, _⟩, hx, assume h, ⟨h, not_false⟩⟩
 theorem diff_diff {u : set α} : s \ t \ u = s \ (t ∪ u) :=
 ext $ by simp [not_or_distrib, and.comm, and.left_comm]
 
+-- the following statement contains parentheses to help the reader
+lemma diff_diff_comm {s t u : set α} : (s \ t) \ u = (s \ u) \ t :=
+by simp_rw [diff_diff, union_comm]
+
 lemma diff_subset_iff {s t u : set α} : s \ t ⊆ u ↔ s ⊆ t ∪ u :=
 ⟨assume h x xs, classical.by_cases or.inl (assume nxt, or.inr (h ⟨xs, nxt⟩)),
  assume h x ⟨xs, nxt⟩, or.resolve_left (h xs) nxt⟩
@@ -1327,7 +1334,7 @@ lemma image_preimage_inter (f : α → β) (s : set α) (t : set β) :
   f '' (f ⁻¹' t ∩ s) = t ∩ f '' s :=
 by simp only [inter_comm, image_inter_preimage]
 
-lemma image_compl_preimage {f : α → β} {s : set α} {t : set β} : f '' (s \ f ⁻¹' t) = f '' s \ t :=
+lemma image_diff_preimage {f : α → β} {s : set α} {t : set β} : f '' (s \ f ⁻¹' t) = f '' s \ t :=
 by simp_rw [diff_eq, ← preimage_compl, image_inter_preimage]
 
 theorem compl_image : image (compl : set α → set α) = preimage compl :=
@@ -1490,6 +1497,9 @@ lemma image_preimage_eq_of_subset {f : α → β} {s : set β} (hs : s ⊆ range
   f '' (f ⁻¹' s) = s :=
 by rw [image_preimage_eq_inter_range, inter_eq_self_of_subset_left hs]
 
+lemma image_preimage_eq_iff {f : α → β} {s : set β} : f '' (f ⁻¹' s) = s ↔ s ⊆ range f :=
+⟨by { intro h, rw [← h], apply image_subset_range }, image_preimage_eq_of_subset⟩
+
 lemma preimage_subset_preimage_iff {s t : set α} {f : β → α} (hs : s ⊆ range f) :
   f ⁻¹' s ⊆ f ⁻¹' t ↔ s ⊆ t :=
 begin
@@ -1537,6 +1547,12 @@ iff.rfl
 theorem preimage_singleton_eq_empty {f : α → β} {y : β} :
   f ⁻¹' {y} = ∅ ↔ y ∉ range f :=
 not_nonempty_iff_eq_empty.symm.trans $ not_congr preimage_singleton_nonempty
+
+lemma range_subset_singleton {f : ι → α} {x : α} : range f ⊆ {x} ↔ f = const ι x :=
+by simp [range_subset_iff, funext_iff, mem_singleton]
+
+lemma image_compl_preimage {f : α → β} {s : set β} : f '' ((f ⁻¹' s)ᶜ) = range f \ s :=
+by rw [compl_eq_univ_diff, image_diff_preimage, image_univ]
 
 @[simp] theorem range_sigma_mk {β : α → Type*} (a : α) :
   range (sigma.mk a : β a → Σ a, β a) = sigma.fst ⁻¹' {a} :=

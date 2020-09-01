@@ -442,6 +442,15 @@ lemma norm_sub_square_eq_norm_square_add_norm_square {x y : α} (h : inner x y =
   ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
 (norm_sub_square_eq_norm_square_add_norm_square_iff_inner_eq_zero x y).2 h
 
+/-- The sum and difference of two vectors are orthogonal if and only
+if they have the same norm. -/
+lemma inner_add_sub_eq_zero_iff (x y : α) : inner (x + y) (x - y) = 0 ↔ ∥x∥ = ∥y∥ :=
+begin
+  conv_rhs { rw ←mul_self_inj_of_nonneg (norm_nonneg _) (norm_nonneg _) },
+  simp [←inner_self_eq_norm_square, inner_add_left, inner_sub_right, inner_comm y x,
+        sub_eq_zero, add_comm (inner x y)]
+end
+
 /-- The inner product of two vectors, divided by the product of their
 norms, has absolute value at most 1. -/
 lemma abs_inner_div_norm_mul_norm_le_one (x y : α) : abs (inner x y / (∥x∥ * ∥y∥)) ≤ 1 :=

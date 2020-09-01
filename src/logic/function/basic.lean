@@ -15,13 +15,22 @@ universes u v w
 namespace function
 
 section
-variables {α : Sort u} {β : Sort v} {f : α → β}
+variables {α β γ : Sort*} {f : α → β}
 
 /-- Evaluate a function at an argument. Useful if you want to talk about the partially applied
   `function.eval x : (Π x, β x) → β x`. -/
 @[reducible] def eval {β : α → Sort*} (x : α) (f : Π x, β x) : β x := f x
 
 @[simp] lemma eval_apply {β : α → Sort*} (x : α) (f : Π x, β x) : eval x f = f x := rfl
+
+lemma comp_apply {α : Sort u} {β : Sort v} {φ : Sort w} (f : β → φ) (g : α → β) (a : α) :
+  (f ∘ g) a = f (g a) := rfl
+
+@[simp] lemma const_apply {y : β} {x : α} : const α y x = y := rfl
+
+@[simp] lemma const_comp {f : α → β} {c : γ} : const β c ∘ f = const α c := rfl
+
+@[simp] lemma comp_const {f : β → γ} {b : β} : f ∘ const α b = const α (f b) := rfl
 
 lemma hfunext {α α': Sort u} {β : α → Sort v} {β' : α' → Sort v} {f : Πa, β a} {f' : Πa, β' a}
   (hα : α = α') (h : ∀a a', a == a' → f a == f' a') : f == f' :=
@@ -39,9 +48,6 @@ end
 
 lemma funext_iff {β : α → Sort*} {f₁ f₂ : Π (x : α), β x} : f₁ = f₂ ↔ (∀a, f₁ a = f₂ a) :=
 iff.intro (assume h a, h ▸ rfl) funext
-
-lemma comp_apply {α : Sort u} {β : Sort v} {φ : Sort w} (f : β → φ) (g : α → β) (a : α) :
-  (f ∘ g) a = f (g a) := rfl
 
 @[simp] theorem injective.eq_iff (I : injective f) {a b : α} :
   f a = f b ↔ a = b :=
@@ -66,10 +72,10 @@ the domain `α` also has decidable equality. -/
 def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α :=
 λ a b, decidable_of_iff _ I.eq_iff
 
-lemma injective.of_comp {γ : Sort w} {g : γ → α} (I : injective (f ∘ g)) : injective g :=
+lemma injective.of_comp {g : γ → α} (I : injective (f ∘ g)) : injective g :=
 λ x y h, I $ show f (g x) = f (g y), from congr_arg f h
 
-lemma surjective.of_comp {γ : Sort w} {g : γ → α} (S : surjective (f ∘ g)) : surjective f :=
+lemma surjective.of_comp {g : γ → α} (S : surjective (f ∘ g)) : surjective f :=
 λ y, let ⟨x, h⟩ := S y in ⟨g x, h⟩
 
 instance decidable_eq_pfun (p : Prop) [decidable p] (α : p → Type*)
@@ -140,11 +146,11 @@ funext h
 theorem right_inverse_iff_comp {f : α → β} {g : β → α} : right_inverse f g ↔ g ∘ f = id :=
 ⟨right_inverse.comp_eq_id, congr_fun⟩
 
-theorem left_inverse.comp {γ} {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
+theorem left_inverse.comp {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
   (hf : left_inverse f g) (hh : left_inverse h i) : left_inverse (h ∘ f) (g ∘ i) :=
 assume a, show h (f (g (i a))) = a, by rw [hf (i a), hh a]
 
-theorem right_inverse.comp {γ} {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
+theorem right_inverse.comp {f : α → β} {g : β → α} {h : β → γ} {i : γ → β}
   (hf : right_inverse f g) (hh : right_inverse h i) : right_inverse (h ∘ f) (g ∘ i) :=
 left_inverse.comp hh hf
 
@@ -346,7 +352,7 @@ lemma uncurry_def {α β γ} (f : α → β → γ) : uncurry f = (λp, f p.1 p.
 rfl
 
 section bicomp
-variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ε : Type*}
+variables {α β γ δ ε : Type*}
 
 /-- Compose a binary function `f` with a pair of unary functions `g` and `h`.
 If both arguments of `f` have the same type and `g = h`, then `bicompl f g g = f on g`. -/

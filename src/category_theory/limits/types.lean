@@ -5,7 +5,6 @@ Authors: Scott Morrison, Reid Barton
 -/
 import category_theory.limits.shapes.images
 import category_theory.filtered
-import data.quot
 import tactic.equiv_rw
 
 universes u
@@ -134,6 +133,11 @@ begin
   erw iff_true,
   exact ⟨j, y, rfl⟩
 end
+
+/-- A variant of `jointly_surjective` for `x : colimit F`. -/
+lemma jointly_surjective' {F : J ⥤ Type u}
+  (x : colimit F) : ∃ j y, colimit.ι F j y = x :=
+jointly_surjective F (colimit.is_colimit _) x
 
 namespace filtered_colimit
 /- For filtered colimits of types, we can give an explicit description

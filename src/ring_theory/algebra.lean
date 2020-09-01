@@ -151,9 +151,22 @@ by rw [smul_def, smul_def, left_comm]
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
 
-variables (R)
+variables (R A)
+
+/--
+The canonical ring homomorphism `algebra_map R A : R →* A` for any `R`-algebra `A`,
+packaged as an `R`-linear map.
+-/
+protected def linear_map : R →ₗ[R] A :=
+{ map_smul' := λ x y, begin dsimp, simp [algebra.smul_def], end,
+  ..algebra_map R A }
+
+@[simp]
+lemma linear_map_apply (r : R) : algebra.linear_map R A r = algebra_map R A r := rfl
+
 instance id : algebra R R := (ring_hom.id R).to_algebra
-variables {R}
+
+variables {R A}
 
 namespace id
 
@@ -208,6 +221,10 @@ def lmul_right (r : A) : A →ₗ A :=
 def lmul_left_right (vw: A × A) : A →ₗ[R] A :=
 (lmul_right R A vw.2).comp (lmul_left R A vw.1)
 
+/-- The multiplication map on an algebra, as an `R`-linear map from `A ⊗[R] A` to `A`. -/
+def lmul' : A ⊗[R] A →ₗ[R] A :=
+tensor_product.lift (algebra.lmul R A)
+
 variables {R A}
 
 @[simp] lemma lmul_apply (p q : A) : lmul R A p q = p * q := rfl
@@ -215,6 +232,12 @@ variables {R A}
 @[simp] lemma lmul_right_apply (p q : A) : lmul_right R A p q = q * p := rfl
 @[simp] lemma lmul_left_right_apply (vw : A × A) (p : A) :
   lmul_left_right R A vw p = vw.1 * p * vw.2 := rfl
+
+@[simp] lemma lmul'_apply {x y} : algebra.lmul' R A (x ⊗ₜ y) = x * y :=
+begin
+  dsimp [algebra.lmul'],
+  simp,
+end
 
 end semiring
 
@@ -1122,6 +1145,7 @@ variable {I : Type u}     -- The indexing type
 variable {f : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
 variables (I f)
+
 instance algebra (α) {r : comm_semiring α}
   [s : ∀ i, semiring (f i)] [∀ i, algebra α (f i)] :
   algebra α (Π i : I, f i) :=

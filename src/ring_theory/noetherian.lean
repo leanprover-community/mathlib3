@@ -358,6 +358,11 @@ begin
     by dsimp [gt]; simp only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
 end
 
+/-- A module is Noetherian iff every nonempty set of submodules has a maximal submodule among them. -/
+theorem set_has_maximal_iff_noetherian {R M} [ring R] [add_comm_group M] [module R M] :
+  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, M' ≤ I → I = M') ↔ is_noetherian R M :=
+by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_max']
+
 /--
 A ring is Noetherian if it is Noetherian as a module over itself,
 i.e. all its ideals are finitely generated.

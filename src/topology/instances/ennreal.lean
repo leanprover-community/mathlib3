@@ -245,9 +245,8 @@ begin
   dsimp at h₁ h₂ ⊢,
   calc (n:ennreal) = ↑(((n:nnreal) / ε) * ε) :
     begin
-      simp [nnreal.div_def],
-      rw [mul_assoc, ← coe_mul, nnreal.inv_mul_cancel, coe_one, ← coe_nat, mul_one],
-      exact zero_lt_iff_ne_zero.1 hε
+      norm_cast,
+      simp [nnreal.div_def, mul_assoc, nnreal.inv_mul_cancel (ne_of_gt hε)]
     end
     ... < (↑m * ε : nnreal) : coe_lt_coe.2 $ mul_lt_mul hm (le_refl _) hε (nat.cast_nonneg _)
     ... ≤ a₁ * a₂ : by rw [coe_mul]; exact canonically_ordered_semiring.mul_le_mul

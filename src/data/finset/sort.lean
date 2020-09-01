@@ -68,13 +68,14 @@ begin
     exact s.min'_le _ this }
 end
 
-lemma sorted_last_eq_max' (s : finset α) (h : (s.sort (≤)).length - 1 < (s.sort (≤)).length)
-  (H : s.nonempty) : (s.sort (≤)).nth_le ((s.sort (≤)).length - 1) h = s.max' H :=
+lemma sorted_last_eq_max' (s : finset α) (H : s.nonempty) :
+  (s.sort (≤)).nth_le ((s.sort (≤)).length - 1) (by simpa using sub_lt (card_pos.mpr H) zero_lt_one)
+  = s.max' H :=
 begin
   let l := s.sort (≤),
   apply le_antisymm,
-  { have : l.nth_le ((s.sort (≤)).length - 1) h ∈ s :=
-      (finset.mem_sort (≤)).1 (list.nth_le_mem l _ h),
+  { have : l.nth_le ((s.sort (≤)).length - 1) _ ∈ s :=
+      (finset.mem_sort (≤)).1 (list.nth_le_mem l _ _),
     exact s.le_max' _ this },
   { have : s.max' H ∈ l := (finset.mem_sort (≤)).mpr (s.max'_mem H),
     obtain ⟨i, i_lt, hi⟩ : ∃ i (hi : i < l.length), l.nth_le i hi = s.max' H :=
@@ -91,7 +92,6 @@ casting issues in further uses of this function. -/
 def mono_of_fin (s : finset α) {k : ℕ} (h : s.card = k) (i : fin k) : α :=
 have A : (i : ℕ) < (s.sort (≤)).length, by simpa [h] using i.2,
 (s.sort (≤)).nth_le i A
-
 
 lemma mono_of_fin_strict_mono (s : finset α) {k : ℕ} (h : s.card = k) :
   strict_mono (s.mono_of_fin h) :=
@@ -122,11 +122,11 @@ lemma mono_of_fin_injective (s : finset α) {k : ℕ} (h : s.card = k) :
 set.injective_iff_inj_on_univ.mpr (s.mono_of_fin_bij_on h).inj_on
 
 /-- The bijection `mono_of_fin s h` sends `0` to the minimum of `s`. -/
-lemma mono_of_fin_zero {s : finset α} {k : ℕ} (h : s.card = k) (hs : s.nonempty) (hz : 0 < k) :
-  mono_of_fin s h ⟨0, hz⟩ = s.min' hs :=
+lemma mono_of_fin_zero {s : finset α} {k : ℕ} (h : s.card = k) (hz : 0 < k) :
+  mono_of_fin s h ⟨0, hz⟩ = s.min' (card_pos.mp (h.symm ▸ hz)) :=
 begin
   apply le_antisymm,
-  { have : min' s hs ∈ s := min'_mem s hs,
+  { have : min' s _ ∈ s := min'_mem s _,
     rcases (mono_of_fin_bij_on s h).surj_on this with ⟨a, _, ha⟩,
     rw ← ha,
     apply (mono_of_fin_strict_mono s h).monotone,
@@ -136,14 +136,14 @@ begin
 end
 
 /-- The bijection `mono_of_fin s h` sends `k-1` to the maximum of `s`. -/
-lemma mono_of_fin_last {s : finset α} {k : ℕ} (h : s.card = k) (hs : s.nonempty) (hz : 0 < k) :
-  mono_of_fin s h ⟨k-1, buffer.lt_aux_2 hz⟩ = s.max' hs :=
+lemma mono_of_fin_last {s : finset α} {k : ℕ} (h : s.card = k) (hz : 0 < k) :
+  mono_of_fin s h ⟨k-1, buffer.lt_aux_2 hz⟩ = s.max' (card_pos.mp (h.symm ▸ hz)) :=
 begin
   have h'' : k - 1 < k := buffer.lt_aux_2 hz,
   apply le_antisymm,
   { have : mono_of_fin s h ⟨k-1, h''⟩ ∈ s := (mono_of_fin_bij_on s h).maps_to (set.mem_univ _),
     exact le_max' s _ this },
-  { have : max' s hs ∈ s := max'_mem s hs,
+  { have : max' s _ ∈ s := max'_mem s _,
     rcases (mono_of_fin_bij_on s h).surj_on this with ⟨a, _, ha⟩,
     rw ← ha,
     apply (mono_of_fin_strict_mono s h).monotone,
@@ -154,7 +154,7 @@ end
 @[simp] lemma mono_of_fin_singleton (a : α) (i : fin 1) {h} :
   mono_of_fin {a} h i = a :=
 by rw [subsingleton.elim i ⟨0, zero_lt_one⟩,
-       mono_of_fin_zero h (singleton_nonempty a) zero_lt_one, min'_singleton]
+       mono_of_fin_zero h zero_lt_one, min'_singleton]
 
 /-- The range of `mono_of_fin`. -/
 @[simp] lemma range_mono_of_fin {s : finset α} {k : ℕ} (h : s.card = k) :

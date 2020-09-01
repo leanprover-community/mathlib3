@@ -8,7 +8,6 @@ import algebra.module.pi
 import algebra.module.prod
 import algebra.module.submodule
 import algebra.group.prod
-import ring_theory.subring
 import data.finsupp.basic
 import algebra.pointwise
 
@@ -436,6 +435,12 @@ variables (R)
 @[simp] lemma mem_bot : x ∈ (⊥ : submodule R M) ↔ x = 0 := mem_singleton_iff
 end
 
+lemma nonzero_mem_of_bot_lt {I : submodule R M} (bot_lt : ⊥ < I) : ∃ a : I, a ≠ 0 :=
+begin
+  have h := (submodule.lt_iff_le_and_exists.1 bot_lt).2,
+  tidy,
+end
+
 instance : order_bot (submodule R M) :=
 { bot := ⊥,
   bot_le := λ p x, by simp {contextual := tt},
@@ -845,6 +850,27 @@ lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) :
   span R {m} ≤ p ↔ m ∈ p :=
 by rw [span_le, singleton_subset_iff, mem_coe]
 
+lemma lt_add_iff_not_mem {I : submodule R M} {a : M} : I < I + span R {a} ↔ a ∉ I :=
+begin
+  split,
+  { intro h,
+    by_contra akey,
+    have h1 : I + span R {a} ≤ I,
+    { simp only [add_eq_sup, sup_le_iff],
+      split,
+      { exact le_refl I, },
+      { exact (span_singleton_le_iff_mem a I).mpr akey, } },
+    have h2 := gt_of_ge_of_gt h1 h,
+    exact lt_irrefl I h2, },
+  { intro h,
+    apply lt_iff_le_and_exists.mpr, split,
+    simp only [add_eq_sup, le_sup_left],
+    use a,
+    split, swap, { assumption, },
+    { have : span R {a} ≤ I + span R{a} := le_sup_right,
+      exact this (mem_span_singleton_self a), } },
+end
+
 lemma mem_supr {ι : Sort w} (p : ι → submodule R M) {m : M} :
   (m ∈ ⨆ i, p i) ↔ (∀ N, (∀ i, p i ≤ N) → m ∈ N) :=
 begin
@@ -964,6 +990,9 @@ instance : semimodule R (quotient p) :=
 semimodule.of_core $ by refine {smul := (•), ..};
   repeat {rintro ⟨⟩ <|> intro}; simp [smul_add, add_smul, smul_smul,
     -mk_add, (mk_add p).symm, -mk_smul, (mk_smul p).symm]
+
+lemma mk_surjective : function.surjective (@mk _ _ _ _ _ p) :=
+by { rintros ⟨x⟩, exact ⟨x, rfl⟩ }
 
 lemma nontrivial_of_lt_top (h : p < ⊤) : nontrivial (p.quotient) :=
 begin
@@ -1708,6 +1737,9 @@ rfl
 @[simp] theorem map_add (a b : M) : e (a + b) = e a + e b := e.map_add' a b
 @[simp] theorem map_zero : e 0 = 0 := e.to_linear_map.map_zero
 @[simp] theorem map_smul (c : R) (x : M) : e (c • x) = c • e x := e.map_smul' c x
+
+@[simp] lemma map_sum {s : finset ι} (u : ι → M) : e (∑ i in s, u i) = ∑ i in s, e (u i) :=
+e.to_linear_map.map_sum
 
 @[simp] theorem map_eq_zero_iff {x : M} : e x = 0 ↔ x = 0 :=
 e.to_add_equiv.map_eq_zero_iff

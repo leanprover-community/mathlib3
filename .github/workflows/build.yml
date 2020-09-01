@@ -119,6 +119,14 @@ jobs:
           ~/.elan/bin/lean --version
           echo "::add-path::$HOME/.elan/bin"
 
+      - name: install Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: install Python dependencies
+        run: python -m pip install --upgrade pip pyyaml
+
       - name: tests
         run: |
           set -o pipefail
@@ -128,3 +136,9 @@ jobs:
         run: |
           lean --recursive --export=mathlib.txt src/
           leanchecker mathlib.txt
+
+      - name: check declarations in db files
+        run: |
+          python scripts/yaml_check.py docs/100.yaml docs/overview.yaml docs/undergrad.yaml
+          bash scripts/mk_all.sh
+          lean --run scripts/yaml_check.lean

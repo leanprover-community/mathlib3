@@ -40,9 +40,9 @@ nth_of_fn_aux f _ _ _ _ $ λ i,
 by simp only [of_fn_nth_val, dif_neg (not_lt.2 (le_add_left n i))]; refl
 
 theorem nth_le_of_fn {n} (f : fin n → α) (i : fin n) :
-  nth_le (of_fn f) i.1 ((length_of_fn f).symm ▸ i.2) = f i :=
+  nth_le (of_fn f) i ((length_of_fn f).symm ▸ i.2) = f i :=
 option.some.inj $ by rw [← nth_le_nth];
-  simp only [list.nth_of_fn, of_fn_nth_val, fin.eta, dif_pos i.2]
+  simp only [list.nth_of_fn, of_fn_nth_val, fin.eta, dif_pos i.is_lt]
 
 @[simp] theorem nth_le_of_fn' {n} (f : fin n → α) {i : ℕ} (h : i < (of_fn f).length) :
   nth_le (of_fn f) i h = f ⟨i, ((length_of_fn f) ▸ h)⟩ :=
@@ -71,9 +71,9 @@ begin
   rw [of_fn_aux, IH], refl
 end
 
-theorem of_fn_nth_le : ∀ l : list α, of_fn (λ i, nth_le l i.1 i.2) = l
+theorem of_fn_nth_le : ∀ l : list α, of_fn (λ i, nth_le l i i.2) = l
 | [] := rfl
-| (a::l) := by rw of_fn_succ; congr; simp only [fin.succ_val]; exact of_fn_nth_le l
+| (a::l) := by { rw of_fn_succ, congr, simp only [fin.coe_succ], exact of_fn_nth_le l }
 
 -- not registered as a simp lemma, as otherwise it fires before `forall_mem_of_fn_iff` which
 -- is much more useful

@@ -447,8 +447,7 @@ underlying binary relation."]
 lemma Sup_def {S : set (con M)} : Sup S = con_gen (Sup (r '' S)) :=
 begin
   rw [Sup_eq_con_gen, Sup_image],
-  congr,
-  ext x y,
+  congr' with x y,
   simp only [Sup_image, supr_apply, supr_Prop_eq, exists_prop, rel_eq_coe]
 end
 

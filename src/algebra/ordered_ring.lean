@@ -912,6 +912,12 @@ begin
   exact (le_iff_exists_add _ _).2 ⟨_, rfl⟩
 end
 
+lemma mul_le_mul_left' {b c : α} (h : b ≤ c) (a : α) : a * b ≤ a * c :=
+mul_le_mul (le_refl a) h
+
+lemma mul_le_mul_right' {b c : α} (h : b ≤ c) (a : α) : b * a ≤ c * a :=
+mul_le_mul h (le_refl a)
+
 /-- A version of `zero_lt_one : 0 < 1` for a `canonically_ordered_comm_semiring`. -/
 lemma zero_lt_one : (0:α) < 1 := (zero_le 1).lt_of_ne zero_ne_one
 

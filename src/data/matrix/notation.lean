@@ -78,7 +78,7 @@ section val
 
 @[simp] lemma cons_val_zero (x : α) (u : fin m → α) : vec_cons x u 0 = x := rfl
 
-@[simp] lemma cons_val_zero' (h : 0 < m.succ) (x : α) (u : fin m → α) :
+lemma cons_val_zero' (h : 0 < m.succ) (x : α) (u : fin m → α) :
   vec_cons x u ⟨0, h⟩ = x :=
 rfl
 

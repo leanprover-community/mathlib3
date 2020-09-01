@@ -41,23 +41,23 @@ This is the default implementation, but there are equivalent definitions,
 TODO: Prove that these are actually equivalent definitions.
 -/
 class is_dedekind_domain [comm_ring R] [comm_ring K] (f : fraction_map R K) :=
-  (not_is_field : ¬ is_field R)
-  (is_noetherian_ring : is_noetherian_ring R)
-  (dimension_le_one : dimension_le_one R)
-  (is_integrally_closed : integral_closure R f.codomain = ⊥)
+(not_is_field : ¬ is_field R)
+(is_noetherian_ring : is_noetherian_ring R)
+(dimension_le_one : dimension_le_one R)
+(is_integrally_closed : integral_closure R f.codomain = ⊥)
 
 /-- A Dedekind domain is a nonfield that is Noetherian, and the localization at every nonzero prime is a discrete valuation ring.
 This is equivalent to `is_dedekind_domain`.
 -/
 structure is_dedekind_domain_dvr [integral_domain R]: Prop :=
-  (not_is_field : ¬ is_field R)
-  (is_noetherian_ring : is_noetherian_ring R)
-  (is_dvr_at_nonzero_prime : ∀ P ≠ (⊥ : ideal R), P.is_prime →
-    @discrete_valuation_ring (localization.at_prime P) (by {exact localization_map.integral_domain_of_local_at_prime a}))
+(not_is_field : ¬ is_field R)
+(is_noetherian_ring : is_noetherian_ring R)
+(is_dvr_at_nonzero_prime : ∀ P ≠ (⊥ : ideal R), P.is_prime →
+  @discrete_valuation_ring (localization.at_prime P) (by {exact localization_map.integral_domain_of_local_at_prime a}))
 
 /-- A dedekind domain is a nonfield such that every fractional ideal has an inverse.
 This is equivalent to `is_dedekind_domain`
 -/
 structure is_dedekind_domain_inv [integral_domain R] [comm_ring K] (f : fraction_map R K) : Prop :=
-  (not_is_field : ¬ is_field R)
-  (is_invertible_ideal : ∀ I : ring.fractional_ideal f, ⊥ < I → (∃ J : ring.fractional_ideal f, I * J = 1))
+(not_is_field : ¬ is_field R)
+(is_invertible_ideal : ∀ I : ring.fractional_ideal f, ⊥ < I → (∃ J : ring.fractional_ideal f, I * J = 1))

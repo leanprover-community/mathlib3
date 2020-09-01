@@ -1313,6 +1313,10 @@ lemma mem_support_single [has_zero β] (a a' : α) (b : β) :
   else ⟨by rw if_neg h at H; exact mem_singleton.1 H, h⟩,
 λ ⟨h1, h2⟩, show a ∈ ite _ _ _, by rw [if_neg h2]; exact mem_singleton.2 h1⟩
 
+@[simp] lemma mem_to_multiset (f : α →₀ ℕ) (i : α) :
+  i ∈ f.to_multiset ↔ i ∈ f.support :=
+by rw [← multiset.count_ne_zero, finsupp.count_to_multiset, finsupp.mem_support_iff]
+
 end multiset
 
 /-! ### Declarations about `curry` and `uncurry` -/

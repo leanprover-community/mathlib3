@@ -114,8 +114,8 @@ def sampleable.lift (α : Type u) {β : Type u} [sampleable α] (f : α → β) 
   shrink := λ x, f <$> shrink (g x) }
 
 instance sampleable_nat : sampleable ℕ :=
-{ sample := sized $ λ sz, fin.val <$> choose_any (fin $ succ (sz^3)) <|>
-                          fin.val <$> choose_any (fin $ succ sz),
+{ sample := sized $ λ sz, coe <$> choose_any (fin $ succ (sz^3)) <|>
+                          coe <$> choose_any (fin $ succ sz),
   shrink := lazy_list.of_list ∘ nat.shrink }
 
 instance sampleable_pnat : sampleable ℕ+ :=

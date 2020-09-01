@@ -39,6 +39,7 @@ The inverse morphism is bundled.
 
 See also `category_theory.core` for the category with the same objects and isomorphisms playing
 the role of morphisms. -/
+@[stacks "0017"]
 structure iso {C : Type u} [category.{v} C] (X Y : C) :=
 (hom : X ⟶ Y)
 (inv : Y ⟶ X)

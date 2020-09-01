@@ -17,6 +17,7 @@ A functor `F : C ⥤ D` is full if for each `X Y : C`, `F.map` is surjective.
 In fact, we use a constructive definition, so the `full F` typeclass contains data,
 specifying a particular preimage of each `f : F.obj X ⟶ F.obj Y`.
 -/
+@[stacks "001C"]
 class full (F : C ⥤ D) :=
 (preimage : ∀ {X Y : C} (f : (F.obj X) ⟶ (F.obj Y)), X ⟶ Y)
 (witness' : ∀ {X Y : C} (f : (F.obj X) ⟶ (F.obj Y)), F.map (preimage f) = f . obviously)
@@ -25,6 +26,7 @@ restate_axiom full.witness'
 attribute [simp] full.witness
 
 /-- A functor `F : C ⥤ D` is faithful if for each `X Y : C`, `F.map` is injective.-/
+@[stacks "001C"]
 class faithful (F : C ⥤ D) : Prop :=
 (map_injective' [] : ∀ {X Y : C}, function.injective (@functor.map _ _ _ _ F X Y) . obviously)
 

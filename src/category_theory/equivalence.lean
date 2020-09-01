@@ -19,6 +19,7 @@ universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `categor
   complicated if we write it as an equality of natural transformations, because then we would have
   to insert natural transformations like `F ⟶ F1`.
 -/
+@[stacks "001J"]
 structure equivalence (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :=
 mk' ::
 (functor : C ⥤ D)
@@ -394,6 +395,7 @@ eq_of_inv_eq_inv (functor_unit_comp _ _)
 
 end is_equivalence
 
+@[stacks "001C"]
 class ess_surj (F : C ⥤ D) :=
 (obj_preimage (d : D) : C)
 (iso' (d : D) : F.obj (obj_preimage d) ≅ d . obviously)
@@ -408,10 +410,11 @@ end functor
 
 namespace equivalence
 
+@[stacks "02C3"]
 def ess_surj_of_equivalence (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
 ⟨ λ Y : D, F.inv.obj Y, λ Y : D, (F.inv_fun_id.app Y) ⟩
 
-@[priority 100] -- see Note [lower instance priority]
+@[priority 100, stacks "02C3"] -- see Note [lower instance priority]
 instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :=
 { map_injective' := λ X Y f g w,
   begin
@@ -419,7 +422,7 @@ instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :
     simpa only [cancel_epi, cancel_mono, is_equivalence.inv_fun_map] using p
   end }.
 
-@[priority 100] -- see Note [lower instance priority]
+@[priority 100, stacks "02C3"] -- see Note [lower instance priority]
 instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
 { preimage := λ X Y f, F.fun_inv_id.inv.app X ≫ F.inv.map f ≫ F.fun_inv_id.hom.app Y,
   witness' := λ X Y f, F.inv.map_injective
@@ -431,6 +434,7 @@ instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
   map_id' := λ X, begin apply F.map_injective, tidy end,
   map_comp' := λ X Y Z f g, by apply F.map_injective; simp }
 
+@[stacks "02C3"]
 def equivalence_of_fully_faithfully_ess_surj
   (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : is_equivalence F :=
 is_equivalence.mk (equivalence_inverse F)

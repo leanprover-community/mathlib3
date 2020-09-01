@@ -57,6 +57,7 @@ instance category [monoid α] : category (single_obj α) :=
   assoc' := λ _ _ _ _ x y z, (mul_assoc z y x).symm }
 
 /-- Groupoid structure on `single_obj α` -/
+@[stacks "0019"]
 instance groupoid [group α] : groupoid (single_obj α) :=
 { inv := λ _ _ x, x⁻¹,
   inv_comp' := λ _ _, mul_right_inv,
@@ -76,6 +77,7 @@ lemma to_End_def [monoid α] (x : α) : to_End α x = x := rfl
 /-- There is a 1-1 correspondence between monoid homomorphisms `α → β` and functors between the
     corresponding single-object categories. It means that `single_obj` is a fully faithful
     functor. -/
+@[stacks "001F"] -- We do not characterize when the functor is full/faithful.
 def map_hom (α : Type u) (β : Type v) [monoid α] [monoid β] :
   (α →* β) ≃ (single_obj α) ⥤ (single_obj β) :=
 { to_fun := λ f,

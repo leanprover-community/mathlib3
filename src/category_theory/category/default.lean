@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
 import tactic.basic
+import meta.stacks
 
 /-!
 # Categories
@@ -52,6 +53,7 @@ The typeclass `category C` describes morphisms associated to objects of type `C`
 The universe levels of the objects and morphisms are unconstrained, and will often need to be
 specified explicitly, as `category.{v} C`. (See also `large_category` and `small_category`.)
 -/
+@[stacks "0014"]
 class category (obj : Type u)
 extends category_struct.{v} obj : Type (max u (v+1)) :=
 (id_comp' : ∀ {X Y : obj} (f : hom X Y), 𝟙 X ≫ f = f . obviously)

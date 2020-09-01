@@ -15,6 +15,7 @@ with the only morphisms being equalities.
 -/
 def discrete (α : Type u₁) := α
 
+@[stacks "001A"]
 instance discrete_category (α : Type u₁) : small_category (discrete α) :=
 { hom  := λ X Y, ulift (plift (X = Y)),
   id   := λ X, ulift.up (plift.up rfl),

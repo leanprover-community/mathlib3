@@ -53,7 +53,7 @@ instance has_limits_of_shape_of_has_finite_limits
 ‹has_finite_limits C› J
 
 /-- If `C` has all limits, it has finite limits. -/
-def has_finite_limits_of_has_limits [has_limits C] : has_finite_limits C :=
+lemma has_finite_limits_of_has_limits [has_limits C] : has_finite_limits C :=
 λ J 𝒥₁ 𝒥₂, by apply_instance
 
 def has_finite_colimits : Prop :=
@@ -68,7 +68,7 @@ instance has_colimits_of_shape_of_has_finite_colimits
 ‹has_finite_colimits C› J
 
 /-- If `C` has all colimits, it has finite colimits. -/
-def has_finite_colimits_of_has_colimits [has_colimits C] : has_finite_colimits C :=
+lemma has_finite_colimits_of_has_colimits [has_colimits C] : has_finite_colimits C :=
 λ J 𝒥₁ 𝒥₂, by apply_instance
 
 section
@@ -165,9 +165,9 @@ def has_finite_wide_pullbacks : Prop :=
 attribute [class] has_finite_wide_pullbacks
 
 instance has_limits_of_shape_wide_pullback_shape
-  (J : Type v) [decidable_eq J] [fintype J] [has_finite_wide_pullbacks C] :
+  (J : Type v) [fintype J] [has_finite_wide_pullbacks C] :
   has_limits_of_shape (wide_pullback_shape J) C :=
-‹has_finite_wide_pullbacks C› J
+by { classical, exact ‹has_finite_wide_pullbacks C› J }
 
 /--
 `has_finite_wide_pushouts` represents a choice of wide pushout
@@ -179,22 +179,22 @@ def has_finite_wide_pushouts : Prop :=
 attribute [class] has_finite_wide_pushouts
 
 instance has_colimits_of_shape_wide_pushout_shape
-  (J : Type v) [decidable_eq J] [fintype J] [has_finite_wide_pushouts C] :
+  (J : Type v) [fintype J] [has_finite_wide_pushouts C] :
   has_colimits_of_shape (wide_pushout_shape J) C :=
-‹has_finite_wide_pushouts C› J
+by { classical, exact ‹has_finite_wide_pushouts C› J }
 
 /--
 Finite wide pullbacks are finite limits, so if `C` has all finite limits,
 it also has finite wide pullbacks
 -/
-def has_finite_wide_pullbacks_of_has_finite_limits [has_finite_limits C] : has_finite_wide_pullbacks C :=
+lemma has_finite_wide_pullbacks_of_has_finite_limits [has_finite_limits C] : has_finite_wide_pullbacks C :=
 λ J _ _, by exactI limits.has_limits_of_shape_of_has_finite_limits _ _
 
 /--
 Finite wide pushouts are finite colimits, so if `C` has all finite colimits,
 it also has finite wide pushouts
 -/
-def has_finite_wide_pushouts_of_has_finite_limits [has_finite_colimits C] : has_finite_wide_pushouts C :=
+lemma has_finite_wide_pushouts_of_has_finite_limits [has_finite_colimits C] : has_finite_wide_pushouts C :=
 λ J _ _, by exactI limits.has_colimits_of_shape_of_has_finite_colimits _ _
 
 instance fintype_walking_pair : fintype walking_pair :=

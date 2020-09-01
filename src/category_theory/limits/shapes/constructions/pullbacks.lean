@@ -22,7 +22,7 @@ namespace category_theory.limits
 
 /-- If the product `X ⨯ Y` and the equalizer of `π₁ ≫ f` and `π₂ ≫ g` exist, then the
     pullback of `f` and `g` exists: It is given by composing the equalizer with the projections. -/
-def has_limit_cospan_of_has_limit_pair_of_has_limit_parallel_pair
+lemma has_limit_cospan_of_has_limit_pair_of_has_limit_parallel_pair
   {C : Type u} [𝒞 : category.{v} C] {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) [has_limit (pair X Y)]
   [has_limit (parallel_pair (prod.fst ≫ f) (prod.snd ≫ g))] : has_limit (cospan f g) :=
 let π₁ : X ⨯ Y ⟶ X := prod.fst, π₂ : X ⨯ Y ⟶ Y := prod.snd, e := equalizer.ι (π₁ ≫ f) (π₂ ≫ g) in
@@ -44,7 +44,7 @@ local attribute [instance] has_limit_cospan_of_has_limit_pair_of_has_limit_paral
 /-- If a category has all binary products and all equalizers, then it also has all pullbacks.
     As usual, this is not an instance, since there may be a more direct way to construct
     pullbacks. -/
-def has_pullbacks_of_has_binary_products_of_has_equalizers
+lemma has_pullbacks_of_has_binary_products_of_has_equalizers
   (C : Type u) [𝒞 : category.{v} C] [has_binary_products C] [has_equalizers C] :
   has_pullbacks C :=
 { has_limit := λ F, has_limit_of_iso (diagram_iso_cospan F).symm }
@@ -53,7 +53,7 @@ end
 
 /-- If the coproduct `Y ⨿ Z` and the coequalizer of `f ≫ ι₁` and `g ≫ ι₂` exist, then the
     pushout of `f` and `g` exists: It is given by composing the inclusions with the coequalizer. -/
-def has_colimit_span_of_has_colimit_pair_of_has_colimit_parallel_pair
+lemma has_colimit_span_of_has_colimit_pair_of_has_colimit_parallel_pair
   {C : Type u} [𝒞 : category.{v} C] {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) [has_colimit (pair Y Z)]
   [has_colimit (parallel_pair (f ≫ coprod.inl) (g ≫ coprod.inr))] : has_colimit (span f g) :=
 let ι₁ : Y ⟶ Y ⨿ Z := coprod.inl, ι₂ : Z ⟶ Y ⨿ Z := coprod.inr,
@@ -77,7 +77,7 @@ local attribute [instance] has_colimit_span_of_has_colimit_pair_of_has_colimit_p
 /-- If a category has all binary coproducts and all coequalizers, then it also has all pushouts.
     As usual, this is not an instance, since there may be a more direct way to construct
     pushouts. -/
-def has_pushouts_of_has_binary_coproducts_of_has_coequalizers
+lemma has_pushouts_of_has_binary_coproducts_of_has_coequalizers
   (C : Type u) [𝒞 : category.{v} C] [has_binary_coproducts C] [has_coequalizers C] :
   has_pushouts C :=
 has_pushouts_of_has_colimit_span C

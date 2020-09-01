@@ -422,12 +422,12 @@ abbreviation has_binary_products := has_limits_of_shape (discrete walking_pair) 
 abbreviation has_binary_coproducts := has_colimits_of_shape (discrete walking_pair) C
 
 /-- If `C` has all limits of diagrams `pair X Y`, then it has all binary products -/
-def has_binary_products_of_has_limit_pair [Π {X Y : C}, has_limit (pair X Y)] :
+lemma has_binary_products_of_has_limit_pair [Π {X Y : C}, has_limit (pair X Y)] :
   has_binary_products C :=
 { has_limit := λ F, has_limit_of_iso (diagram_iso_pair F).symm }
 
 /-- If `C` has all colimits of diagrams `pair X Y`, then it has all binary coproducts -/
-def has_binary_coproducts_of_has_colimit_pair [Π {X Y : C}, has_colimit (pair X Y)] :
+lemma has_binary_coproducts_of_has_colimit_pair [Π {X Y : C}, has_colimit (pair X Y)] :
   has_binary_coproducts C :=
 { has_colimit := λ F, has_colimit_of_iso (diagram_iso_pair F) }
 

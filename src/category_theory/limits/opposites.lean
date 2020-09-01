@@ -23,7 +23,7 @@ variable (F : J ⥤ Cᵒᵖ)
 /--
 If `F.left_op : Jᵒᵖ ⥤ C` has a chosen colimit, we can construct a chosen limit for `F : J ⥤ Cᵒᵖ`.
 -/
-def has_limit_of_has_colimit_left_op [has_colimit F.left_op] : has_limit F :=
+lemma has_limit_of_has_colimit_left_op [has_colimit F.left_op] : has_limit F :=
 has_limit.mk
 { cone := cone_of_cocone_left_op (colimit.cocone F.left_op),
   is_limit :=
@@ -50,7 +50,7 @@ has_limit.mk
 /--
 If `C` has chosen colimits of shape `Jᵒᵖ`, we can construct chosen limits in `Cᵒᵖ` of shape `J`.
 -/
-def has_limits_of_shape_op_of_has_colimits_of_shape [has_colimits_of_shape Jᵒᵖ C] :
+lemma has_limits_of_shape_op_of_has_colimits_of_shape [has_colimits_of_shape Jᵒᵖ C] :
   has_limits_of_shape J Cᵒᵖ :=
 { has_limit := λ F, has_limit_of_has_colimit_left_op F }
 
@@ -59,13 +59,13 @@ local attribute [instance] has_limits_of_shape_op_of_has_colimits_of_shape
 /--
 If `C` has chosen colimits, we can construct chosen limits for `Cᵒᵖ`.
 -/
-def has_limits_op_of_has_colimits [has_colimits C] : has_limits Cᵒᵖ :=
+lemma has_limits_op_of_has_colimits [has_colimits C] : has_limits Cᵒᵖ :=
 { has_limits_of_shape := λ J 𝒥, by { resetI, apply_instance } }
 
 /--
 If `F.left_op : Jᵒᵖ ⥤ C` has a chosen limit, we can construct a chosen colimit for `F : J ⥤ Cᵒᵖ`.
 -/
-def has_colimit_of_has_limit_left_op [has_limit F.left_op] : has_colimit F :=
+lemma has_colimit_of_has_limit_left_op [has_limit F.left_op] : has_colimit F :=
 has_colimit.mk
 { cocone := cocone_of_cone_left_op (limit.cone F.left_op),
   is_colimit :=
@@ -89,7 +89,7 @@ has_colimit.mk
 /--
 If `C` has chosen colimits of shape `Jᵒᵖ`, we can construct chosen limits in `Cᵒᵖ` of shape `J`.
 -/
-def has_colimits_of_shape_op_of_has_limits_of_shape [has_limits_of_shape Jᵒᵖ C] :
+lemma has_colimits_of_shape_op_of_has_limits_of_shape [has_limits_of_shape Jᵒᵖ C] :
   has_colimits_of_shape J Cᵒᵖ :=
 { has_colimit := λ F, has_colimit_of_has_limit_left_op F }
 
@@ -98,14 +98,14 @@ local attribute [instance] has_colimits_of_shape_op_of_has_limits_of_shape
 /--
 If `C` has chosen limits, we can construct chosen colimits for `Cᵒᵖ`.
 -/
-def has_colimits_op_of_has_limits [has_limits C] : has_colimits Cᵒᵖ :=
+lemma has_colimits_op_of_has_limits [has_limits C] : has_colimits Cᵒᵖ :=
 { has_colimits_of_shape := λ J 𝒥, by { resetI, apply_instance } }
 
 variables (X : Type v)
 /--
 If `C` has products indexed by `X`, then `Cᵒᵖ` has coproducts indexed by `X`.
 -/
-def has_coproducts_opposite [has_products_of_shape X C] :
+lemma has_coproducts_opposite [has_products_of_shape X C] :
   has_coproducts_of_shape X Cᵒᵖ :=
 begin
   haveI : has_limits_of_shape (discrete X)ᵒᵖ C :=
@@ -116,7 +116,7 @@ end
 /--
 If `C` has coproducts indexed by `X`, then `Cᵒᵖ` has products indexed by `X`.
 -/
-def has_products_opposite [has_coproducts_of_shape X C] :
+lemma has_products_opposite [has_coproducts_of_shape X C] :
   has_products_of_shape X Cᵒᵖ :=
 begin
   haveI : has_colimits_of_shape (discrete X)ᵒᵖ C :=

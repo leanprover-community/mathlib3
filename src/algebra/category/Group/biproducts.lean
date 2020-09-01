@@ -22,6 +22,9 @@ universe u
 
 namespace AddCommGroup
 
+/--
+Construct limit data for a binary product in `AddCommGroup`, using `AddCommGroup.of (G × H)`.
+-/
 def binary_product_limit_data (G H : AddCommGroup.{u}) : limit_data (pair G H) :=
 { cone :=
   { X := AddCommGroup.of (G × H),
@@ -41,8 +44,10 @@ has_limit.mk (binary_product_limit_data G H)
 instance (G H : AddCommGroup.{u}) : has_binary_biproduct G H :=
 has_binary_biproduct.of_has_binary_product _ _
 
--- We verify that the biproduct we've just defined is isomorphic to
--- the cartesian product of the underlying types:
+/-
+We verify that the biproduct in AddCommGroup is isomorphic to
+the cartesian product of the underlying types:
+-/
 noncomputable
 def biprod_iso_prod (G H : AddCommGroup.{u}) : (G ⊞ H : AddCommGroup) ≅ AddCommGroup.of (G × H) :=
 is_limit.cone_point_unique_up_to_iso (binary_biproduct.is_limit G H) (binary_product_limit_data G H).is_limit

@@ -668,12 +668,12 @@ abbreviation has_equalizers := has_limits_of_shape walking_parallel_pair C
 abbreviation has_coequalizers := has_colimits_of_shape walking_parallel_pair C
 
 /-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
-def has_equalizers_of_has_limit_parallel_pair
+lemma has_equalizers_of_has_limit_parallel_pair
   [Π {X Y : C} {f g : X ⟶ Y}, has_limit (parallel_pair f g)] : has_equalizers C :=
 { has_limit := λ F, has_limit_of_iso (diagram_iso_parallel_pair F).symm }
 
 /-- If `C` has all colimits of diagrams `parallel_pair f g`, then it has all coequalizers -/
-def has_coequalizers_of_has_colimit_parallel_pair
+lemma has_coequalizers_of_has_colimit_parallel_pair
   [Π {X Y : C} {f g : X ⟶ Y}, has_colimit (parallel_pair f g)] : has_coequalizers C :=
 { has_colimit := λ F, has_colimit_of_iso (diagram_iso_parallel_pair F) }
 

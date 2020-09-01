@@ -52,14 +52,14 @@ variables {C}
 
 /-- We can more explicitly show that a category has a terminal object by specifying the object,
 and showing there is a unique morphism to it from any other object. -/
-def has_terminal_of_unique (X : C) [h : Π Y : C, unique (Y ⟶ X)] : has_terminal C :=
+lemma has_terminal_of_unique (X : C) [h : Π Y : C, unique (Y ⟶ X)] : has_terminal C :=
 { has_limit := λ F, has_limit.mk
   { cone     := { X := X, π := { app := pempty.rec _ } },
     is_limit := { lift := λ s, (h s.X).default } } }
 
 /-- We can more explicitly show that a category has an initial object by specifying the object,
 and showing there is a unique morphism from it to any other object. -/
-def has_initial_of_unique (X : C) [h : Π Y : C, unique (X ⟶ Y)] : has_initial C :=
+lemma has_initial_of_unique (X : C) [h : Π Y : C, unique (X ⟶ Y)] : has_initial C :=
 { has_colimit := λ F, has_colimit.mk
   { cocone     := { X := X, ι := { app := pempty.rec _ } },
     is_colimit := { desc := λ s, (h s.X).default } } }

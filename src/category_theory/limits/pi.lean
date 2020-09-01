@@ -67,10 +67,10 @@ variables [∀ i, has_limit (F ⋙ pi.eval C i)]
 
 /--
 If we have a functor `F : J ⥤ Π i, C i` into a category of indexed families,
-and we have chosen limits for each of the `F ⋙ pi.eval C i`,
-there is a canonical choice of chosen limit for `F`.
+and we have limits for each of the `F ⋙ pi.eval C i`,
+then `F` has a limit.
 -/
-def has_limit_of_has_limit_comp_eval : has_limit F :=
+lemma has_limit_of_has_limit_comp_eval : has_limit F :=
 has_limit.mk
 { cone := cone_of_cone_comp_eval (λ i, limit.cone _),
   is_limit := cone_of_cone_eval_is_limit (λ i, limit.is_limit _), }

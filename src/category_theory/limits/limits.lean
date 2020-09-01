@@ -704,17 +704,20 @@ end is_colimit
 
 section limit
 
-/-- `has_limit F` represents a particular chosen limit of the diagram `F`. -/
+/-- `limit_data F` represents a particular chosen limit of the diagram `F`. -/
+@[nolint has_inhabited_instance]
 structure limit_data (F : J ⥤ C) :=
 (cone : cone F)
 (is_limit : is_limit cone)
 
+/-- `has_limit F` represents the mere existence of a limit for `F`. -/
 class has_limit (F : J ⥤ C) : Prop :=
 mk' :: (exists_limit : nonempty (limit_data F))
 
-def has_limit.mk {F : J ⥤ C} (d : limit_data F) : has_limit F :=
+lemma has_limit.mk {F : J ⥤ C} (d : limit_data F) : has_limit F :=
 ⟨nonempty.intro d⟩
 
+/-- Use the axiom of choice to extract explicit `limit_data F` from `has_limit F`. -/
 def get_limit_data (F : J ⥤ C) [has_limit F] : limit_data F :=
 classical.choice $ has_limit.exists_limit
 
@@ -753,7 +756,7 @@ def limit (F : J ⥤ C) [has_limit F] := (limit.cone F).X
 def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F.obj j :=
 (limit.cone F).π.app j
 
-@[simp] lemma limit.cone_X {F : J ⥤ C} [has_limit F] (j : J) :
+@[simp] lemma limit.cone_X {F : J ⥤ C} [has_limit F] :
   (limit.cone F).X = limit F := rfl
 
 @[simp] lemma limit.cone_π {F : J ⥤ C} [has_limit F] (j : J) :
@@ -831,8 +834,9 @@ by obviously
 If we've chosen a limit for a functor `F`,
 we can transport that choice across a natural isomorphism.
 -/
-def has_limit_of_iso {F G : J ⥤ C} [has_limit F] (α : F ≅ G) : has_limit G :=
-has_limit.mk { cone := (cones.postcompose α.hom).obj (limit.cone F),
+lemma has_limit_of_iso {F G : J ⥤ C} [has_limit F] (α : F ≅ G) : has_limit G :=
+has_limit.mk
+{ cone := (cones.postcompose α.hom).obj (limit.cone F),
   is_limit :=
   { lift := λ s, limit.lift F ((cones.postcompose α.inv).obj s),
     fac' := λ s j,
@@ -851,7 +855,7 @@ has_limit.mk { cone := (cones.postcompose α.hom).obj (limit.cone F),
 which has a limit, then `G` also has a limit. -/
 -- See the construction of limits from products and equalizers
 -- for an example usage.
-def has_limit.of_cones_iso {J K : Type v} [small_category J] [small_category K] (F : J ⥤ C) (G : K ⥤ C)
+lemma has_limit.of_cones_iso {J K : Type v} [small_category J] [small_category K] (F : J ⥤ C) (G : K ⥤ C)
   (h : F.cones ≅ G.cones) [has_limit F] : has_limit G :=
 has_limit.mk ⟨_, is_limit.of_nat_iso ((is_limit.nat_iso (limit.is_limit F)) ≪≫ h)⟩
 
@@ -968,7 +972,7 @@ local attribute [elab_simple] inv_fun_id_assoc -- not entirely sure why this is 
 /--
 If a `E ⋙ F` has a chosen limit, and `E` is an equivalence, we can construct a chosen limit of `F`.
 -/
-def has_limit_of_equivalence_comp (e : K ≌ J) [has_limit (e.functor ⋙ F)] : has_limit F :=
+lemma has_limit_of_equivalence_comp (e : K ≌ J) [has_limit (e.functor ⋙ F)] : has_limit F :=
 begin
   haveI : has_limit (e.inverse ⋙ e.functor ⋙ F) := limits.has_limit_equivalence_comp e.symm,
   apply has_limit_of_iso (e.inv_fun_id_assoc F),
@@ -1067,7 +1071,7 @@ end lim_functor
 /--
 We can transport chosen limits of shape `J` along an equivalence `J ≌ J'`.
 -/
-def has_limits_of_shape_of_equivalence {J' : Type v} [small_category J']
+lemma has_limits_of_shape_of_equivalence {J' : Type v} [small_category J']
   (e : J ≌ J') [has_limits_of_shape J C] : has_limits_of_shape J' C :=
 by { constructor, intro F, apply has_limit_of_equivalence_comp e, apply_instance }
 
@@ -1076,17 +1080,20 @@ end limit
 
 section colimit
 
-/-- `has_colimit F` represents a particular chosen colimit of the diagram `F`. -/
+/-- `colimit_data F` represents a particular chosen colimit of the diagram `F`. -/
+@[nolint has_inhabited_instance]
 structure colimit_data (F : J ⥤ C) :=
 (cocone : cocone F)
 (is_colimit : is_colimit cocone)
 
+/-- `has_colimit F` represents the mere existence of a colimit for `F`. -/
 class has_colimit (F : J ⥤ C) : Prop :=
 mk' :: (exists_colimit : nonempty (colimit_data F))
 
-def has_colimit.mk {F : J ⥤ C} (d : colimit_data F) : has_colimit F :=
+lemma has_colimit.mk {F : J ⥤ C} (d : colimit_data F) : has_colimit F :=
 ⟨nonempty.intro d⟩
 
+/-- Use the axiom of choice to extract explicit `colimit_data F` from `has_colimit F`. -/
 def get_colimit_data (F : J ⥤ C) [has_colimit F] : colimit_data F :=
 classical.choice $ has_colimit.exists_colimit
 
@@ -1128,7 +1135,7 @@ def colimit.ι (F : J ⥤ C) [has_colimit F] (j : J) : F.obj j ⟶ colimit F :=
 @[simp] lemma colimit.cocone_ι {F : J ⥤ C} [has_colimit F] (j : J) :
   (colimit.cocone F).ι.app j = colimit.ι _ j := rfl
 
-@[simp] lemma colimit.cocone_X {F : J ⥤ C} [has_colimit F] (j : J) :
+@[simp] lemma colimit.cocone_X {F : J ⥤ C} [has_colimit F] :
   (colimit.cocone F).X = colimit F := rfl
 
 @[simp] lemma colimit.w (F : J ⥤ C) [has_colimit F] {j j' : J} (f : j ⟶ j') :
@@ -1217,8 +1224,9 @@ we can transport that choice across a natural isomorphism.
 -/
 -- This has the isomorphism pointing in the opposite direction than in `has_limit_of_iso`.
 -- This is intentional; it seems to help with elaboration.
-def has_colimit_of_iso {F G : J ⥤ C} [has_colimit F] (α : G ≅ F) : has_colimit G :=
-has_colimit.mk { cocone := (cocones.precompose α.hom).obj (colimit.cocone F),
+lemma has_colimit_of_iso {F G : J ⥤ C} [has_colimit F] (α : G ≅ F) : has_colimit G :=
+has_colimit.mk
+{ cocone := (cocones.precompose α.hom).obj (colimit.cocone F),
   is_colimit :=
   { desc := λ s, colimit.desc F ((cocones.precompose α.inv).obj s),
     fac' := λ s j,
@@ -1236,7 +1244,7 @@ has_colimit.mk { cocone := (cocones.precompose α.hom).obj (colimit.cocone F),
 
 /-- If a functor `G` has the same collection of cocones as a functor `F`
 which has a colimit, then `G` also has a colimit. -/
-def has_colimit.of_cocones_iso {J K : Type v} [small_category J] [small_category K] (F : J ⥤ C) (G : K ⥤ C)
+lemma has_colimit.of_cocones_iso {J K : Type v} [small_category J] [small_category K] (F : J ⥤ C) (G : K ⥤ C)
   (h : F.cocones ≅ G.cocones) [has_colimit F] : has_colimit G :=
 has_colimit.mk ⟨_, is_colimit.of_nat_iso ((is_colimit.nat_iso (colimit.is_colimit F)) ≪≫ h)⟩
 
@@ -1365,7 +1373,7 @@ has_colimit.mk { cocone := cocone.whisker e.functor (colimit.cocone F),
 /--
 If a `E ⋙ F` has a chosen colimit, and `E` is an equivalence, we can construct a chosen colimit of `F`.
 -/
-def has_colimit_of_equivalence_comp (e : K ≌ J) [has_colimit (e.functor ⋙ F)] : has_colimit F :=
+lemma has_colimit_of_equivalence_comp (e : K ≌ J) [has_colimit (e.functor ⋙ F)] : has_colimit F :=
 begin
   haveI : has_colimit (e.inverse ⋙ e.functor ⋙ F) := limits.has_colimit_equivalence_comp e.symm,
   apply has_colimit_of_iso (e.inv_fun_id_assoc F).symm,
@@ -1465,7 +1473,7 @@ end colim_functor
 /--
 We can transport chosen colimits of shape `J` along an equivalence `J ≌ J'`.
 -/
-def has_colimits_of_shape_of_equivalence {J' : Type v} [small_category J']
+lemma has_colimits_of_shape_of_equivalence {J' : Type v} [small_category J']
   (e : J ≌ J') [has_colimits_of_shape J C] : has_colimits_of_shape J' C :=
 by { constructor, intro F, apply has_colimit_of_equivalence_comp e, apply_instance }
 

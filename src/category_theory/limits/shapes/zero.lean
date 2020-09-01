@@ -188,10 +188,10 @@ def zero_morphisms_of_zero_object : has_zero_morphisms C :=
   comp_zero' := λ X Y Z f, by { dunfold has_zero.zero, rw ←category.assoc, congr, }}
 
 /-- A zero object is in particular initial. -/
-def has_initial : has_initial C :=
+lemma has_initial : has_initial C :=
 has_initial_of_unique 0
 /-- A zero object is in particular terminal. -/
-def has_terminal : has_terminal C :=
+lemma has_terminal : has_terminal C :=
 has_terminal_of_unique 0
 
 end has_zero_object

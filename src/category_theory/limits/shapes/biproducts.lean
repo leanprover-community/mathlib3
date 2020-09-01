@@ -93,30 +93,37 @@ def to_cocone (B : bicone F) : cocone (discrete.functor F) :=
 
 end bicone
 
+/--
+A bicone over `F : J → C`, which is both a limit cone and a colimit cocone.
+-/
 structure biproduct_data (F : J → C) :=
 (bicone : bicone F)
 (is_limit : is_limit bicone.to_cone)
 (is_colimit : is_colimit bicone.to_cocone)
 
 /--
-`has_biproduct F` represents a particular chosen bicone which is
+`has_biproduct F` expresses the mere existence of a bicone which is
 simultaneously a limit and a colimit of the diagram `F`.
 -/
 class has_biproduct (F : J → C) : Prop :=
 mk' :: (exists_biproduct : nonempty (biproduct_data F))
 
-def has_biproduct.mk {F : J → C} (d : biproduct_data F) : has_biproduct F :=
+lemma has_biproduct.mk {F : J → C} (d : biproduct_data F) : has_biproduct F :=
 ⟨nonempty.intro d⟩
 
+/-- Use the axiom of choice to extract explicit `biproduct_data F` from `has_biproduct F`. -/
 def get_biproduct_data (F : J → C) [has_biproduct F] : biproduct_data F :=
 classical.choice has_biproduct.exists_biproduct
 
+/-- A bicone for `F` which is both a limit cone and a colimit cocone. -/
 def biproduct.bicone (F : J → C) [has_biproduct F] : bicone F :=
 (get_biproduct_data F).bicone
 
+/-- `biproduct.bicone F` is a limit cone. -/
 def biproduct.is_limit (F : J → C) [has_biproduct F] : is_limit (biproduct.bicone F).to_cone :=
 (get_biproduct_data F).is_limit
 
+/-- `biproduct.bicone F` is a colimit cocone. -/
 def biproduct.is_colimit (F : J → C) [has_biproduct F] : is_colimit (biproduct.bicone F).to_cocone :=
 (get_biproduct_data F).is_colimit
 
@@ -408,30 +415,39 @@ def to_binary_bicone_is_colimit {X Y : C} {b : bicone (pair X Y).obj}
 end bicone
 
 /--
-`has_binary_biproduct P Q` represents a particular chosen bicone which is
-simultaneously a limit and a colimit of the diagram `pair P Q`.
+A bicone over `P Q : C`, which is both a limit cone and a colimit cocone.
 -/
 structure binary_biproduct_data (P Q : C) :=
 (bicone : binary_bicone P Q)
 (is_limit : is_limit bicone.to_cone)
 (is_colimit : is_colimit bicone.to_cocone)
 
+/--
+`has_binary_biproduct P Q` expresses the mere existence of a bicone which is
+simultaneously a limit and a colimit of the diagram `pair P Q`.
+-/
 class has_binary_biproduct (P Q : C) : Prop :=
 mk' :: (exists_binary_biproduct : nonempty (binary_biproduct_data P Q))
 
-def has_binary_biproduct.mk {P Q : C} (d : binary_biproduct_data P Q) : has_binary_biproduct P Q :=
+lemma has_binary_biproduct.mk {P Q : C} (d : binary_biproduct_data P Q) : has_binary_biproduct P Q :=
 ⟨nonempty.intro d⟩
 
+/--
+Use the axiom of choice to extract explicit `binary_biproduct_data F` from `has_binary_biproduct F`.
+-/
 def get_binary_biproduct_data (P Q : C) [has_binary_biproduct P Q] : binary_biproduct_data P Q :=
 classical.choice has_binary_biproduct.exists_binary_biproduct
 
+/-- A bicone for `P Q ` which is both a limit cone and a colimit cocone. -/
 def binary_biproduct.bicone (P Q : C) [has_binary_biproduct P Q] : binary_bicone P Q :=
 (get_binary_biproduct_data P Q).bicone
 
+/-- `binary_biproduct.bicone P Q` is a limit cone. -/
 def binary_biproduct.is_limit (P Q : C) [has_binary_biproduct P Q] :
   is_limit (binary_biproduct.bicone P Q).to_cone :=
 (get_binary_biproduct_data P Q).is_limit
 
+/-- `binary_biproduct.bicone P Q` is a colimit cocone. -/
 def binary_biproduct.is_colimit (P Q : C) [has_binary_biproduct P Q] :
   is_colimit (binary_biproduct.bicone P Q).to_cocone :=
 (get_binary_biproduct_data P Q).is_colimit
@@ -748,8 +764,9 @@ any bicone `b` for `f` satisfying `total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b
 
 (That is, such a bicone is a limit cone and a colimit cocone.)
 -/
-def has_biproduct_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b.X) :
-  has_biproduct f := has_biproduct.mk
+lemma has_biproduct_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b.X) :
+  has_biproduct f :=
+has_biproduct.mk
 { bicone := b,
   is_limit :=
   { lift := λ s, ∑ j, s.π.app j ≫ b.ι j,
@@ -783,7 +800,7 @@ def has_biproduct_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π
 
 /-- In a preadditive category, if the product over `f : J → C` exists,
     then the biproduct over `f` exists. -/
-def has_biproduct.of_has_product (f : J → C) [has_product f] :
+lemma has_biproduct.of_has_product (f : J → C) [has_product f] :
   has_biproduct f :=
 has_biproduct_of_total
 { X := pi_obj f,
@@ -794,7 +811,7 @@ has_biproduct_of_total
 
 /-- In a preadditive category, if the coproduct over `f : J → C` exists,
     then the biproduct over `f` exists. -/
-def has_biproduct.of_has_coproduct (f : J → C) [has_coproduct f] :
+lemma has_biproduct.of_has_coproduct (f : J → C) [has_coproduct f] :
   has_biproduct f :=
 has_biproduct_of_total
 { X := sigma_obj f,
@@ -811,12 +828,12 @@ begin
 end
 
 /-- A preadditive category with finite products has finite biproducts. -/
-def has_finite_biproducts.of_has_finite_products [has_finite_products C] :
+lemma has_finite_biproducts.of_has_finite_products [has_finite_products C] :
   has_finite_biproducts C :=
 ⟨λ J _ _, { has_biproduct := λ F, by exactI has_biproduct.of_has_product _ }⟩
 
 /-- A preadditive category with finite coproducts has finite biproducts. -/
-def has_finite_biproducts.of_has_finite_coproducts [has_finite_coproducts C] :
+lemma has_finite_biproducts.of_has_finite_coproducts [has_finite_coproducts C] :
   has_finite_biproducts C :=
 ⟨λ J _ _, { has_biproduct := λ F, by exactI has_biproduct.of_has_coproduct _ }⟩
 
@@ -867,9 +884,10 @@ any binary bicone `b` satisfying `total : b.fst ≫ b.inl + b.snd ≫ b.inr = �
 
 (That is, such a bicone is a limit cone and a colimit cocone.)
 -/
-def has_binary_biproduct_of_total {X Y : C} (b : binary_bicone X Y)
+lemma has_binary_biproduct_of_total {X Y : C} (b : binary_bicone X Y)
   (total : b.fst ≫ b.inl + b.snd ≫ b.inr = 𝟙 b.X) :
-  has_binary_biproduct X Y := has_binary_biproduct.mk
+  has_binary_biproduct X Y :=
+has_binary_biproduct.mk
 { bicone := b,
   is_limit :=
   { lift := λ s, binary_fan.fst s ≫ b.inl +
@@ -886,7 +904,7 @@ def has_binary_biproduct_of_total {X Y : C} (b : binary_bicone X Y)
 
 /-- In a preadditive category, if the product of `X` and `Y` exists, then the
     binary biproduct of `X` and `Y` exists. -/
-def has_binary_biproduct.of_has_binary_product (X Y : C) [has_binary_product X Y] :
+lemma has_binary_biproduct.of_has_binary_product (X Y : C) [has_binary_product X Y] :
   has_binary_biproduct X Y :=
 has_binary_biproduct_of_total
 { X := X ⨯ Y,
@@ -899,13 +917,13 @@ begin
 end
 
 /-- In a preadditive category, if all binary products exist, then all binary biproducts exist. -/
-def has_binary_biproducts.of_has_binary_products [has_binary_products C] :
+lemma has_binary_biproducts.of_has_binary_products [has_binary_products C] :
   has_binary_biproducts C :=
 { has_binary_biproduct := λ X Y, has_binary_biproduct.of_has_binary_product X Y, }
 
 /-- In a preadditive category, if the coproduct of `X` and `Y` exists, then the
     binary biproduct of `X` and `Y` exists. -/
-def has_binary_biproduct.of_has_binary_coproduct (X Y : C) [has_binary_coproduct X Y] :
+lemma has_binary_biproduct.of_has_binary_coproduct (X Y : C) [has_binary_coproduct X Y] :
   has_binary_biproduct X Y :=
 has_binary_biproduct_of_total
 { X := X ⨿ Y,
@@ -918,7 +936,7 @@ begin
 end
 
 /-- In a preadditive category, if all binary coproducts exist, then all binary biproducts exist. -/
-def has_binary_biproducts.of_has_binary_coproducts [has_binary_coproducts C] :
+lemma has_binary_biproducts.of_has_binary_coproducts [has_binary_coproducts C] :
   has_binary_biproducts C :=
 { has_binary_biproduct := λ X Y, has_binary_biproduct.of_has_binary_coproduct X Y, }
 

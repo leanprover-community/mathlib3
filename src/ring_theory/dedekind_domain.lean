@@ -68,7 +68,6 @@ begin
 sorry,
 end
 
-
 lemma maximal_ideal_invertible_of_dedekind (h : is_dedekind_domain f) {M : ideal R}
   (hM : ideal.is_maximal M) : is_unit (M : fractional_ideal f) :=
 -- ⟨⟨M, M⁻¹, _, _⟩, rfl⟩
@@ -87,31 +86,24 @@ let M1 : fractional_ideal f,
     exact h1 y h,},sorry,
 },
 have hprod : ↑M*M1=1,
-  {apply le_antisymm,
-    {apply fractional_ideal.mul_le.mpr,
-      intros y hy x hx,
-      have hxy : localization_map.is_integer f (x*y),
-        {
-        rw fractional_ideal.mem_coe at hy,
-        rcases hy with ⟨s,hs⟩,simp * at *,
-        rcases hs with ⟨h_s_inM,h_sy⟩,
-        subst h_sy,
-        exact hx s h_s_inM,
-        },
-      apply fractional_ideal.mem_one_iff.mpr,
-      cases hxy, use hxy_w,
-      finish,
-    },
-    {have incl : ↑ M ≤ ↑ M*M1,sorry, sorry},
-      -- Copying the proof of right_inverse_eq from fractional_ideal.lean
-      -- exact (mem_div_iff_of_nonzero hI).mp hy x hx,},
-    --   {rw [←h],
-    --   apply mul_left_mono I,
-    --   apply (le_div_iff_of_nonzero hI).mpr _,
-    --   intros y hy x hx,
-    --   rw [mul_comm],
-    --   exact mul_mem_mul hx hy
-  },
+  {sorry},
+  -- {apply le_antisymm,
+  --   {apply fractional_ideal.mul_le.mpr,
+  --     intros y hy x hx,
+  --     have hxy : localization_map.is_integer f (x*y),
+  --       {
+  --       rw fractional_ideal.mem_coe at hy,
+  --       rcases hy with ⟨s,hs⟩,simp * at *,
+  --       rcases hs with ⟨h_s_inM,h_sy⟩,
+  --       subst h_sy,
+  --       exact hx s h_s_inM,
+  --       },
+  --     apply fractional_ideal.mem_one_iff.mpr,
+  --     cases hxy, use hxy_w,
+  --     finish,
+  --   },
+  --   {have incl : ↑ M ≤ ↑ M*M1, sorry, sorry},
+    -- },
 apply is_unit_of_mul_eq_one ↑M M1 hprod,
 end
 

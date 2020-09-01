@@ -1844,17 +1844,4 @@ by rw [pderivative_mul, pderivative_C, zero_mul, zero_add]
 
 end pderivative
 
-section counit
-
-variables [comm_semiring α] [comm_semiring β] [algebra α β]
-variables (α β)
-
-noncomputable def counit : mv_polynomial β α →ₐ β :=
-aeval id
-
-lemma counit_surjective : function.surjective (mv_polynomial.counit α β) :=
-λ r, ⟨X r, eval₂_hom_X' _ _ _⟩
-
-end counit
-
 end mv_polynomial

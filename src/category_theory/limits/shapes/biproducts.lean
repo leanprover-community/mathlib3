@@ -472,7 +472,7 @@ A category with finite biproducts has binary biproducts.
 This is not an instance as typically in concrete categories there will be
 an alternative construction with nicer definitional properties.
 -/
-def has_binary_biproducts_of_finite_biproducts [has_finite_biproducts C] :
+lemma has_binary_biproducts_of_finite_biproducts [has_finite_biproducts C] :
   has_binary_biproducts C :=
 { has_binary_biproduct := λ P Q, has_binary_biproduct.mk
   { bicone := (biproduct.bicone (pair P Q).obj).to_binary_bicone,

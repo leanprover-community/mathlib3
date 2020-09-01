@@ -44,7 +44,7 @@ has_limit.mk (binary_product_limit_data G H)
 instance (G H : AddCommGroup.{u}) : has_binary_biproduct G H :=
 has_binary_biproduct.of_has_binary_product _ _
 
-/-
+/--
 We verify that the biproduct in AddCommGroup is isomorphic to
 the cartesian product of the underlying types:
 -/

@@ -7,7 +7,7 @@ Author: Simon Hudon
 import order.omega_complete_partial_order
 import order.category.Preorder
 
-/-! 
+/-!
 # Category of types with a omega complete partial order
 
 In this file, we bundle the class `omega_complete_partial_order` into a
@@ -207,12 +207,6 @@ begin
              preorder_hom.prod.map_to_fun, preorder_hom.prod.diag_to_fun, prod.map_mk, preorder_hom.monotone_apply_to_fun,
              function.comp_app, prod.apply_to_fun, preorder_hom.comp_to_fun, ωSup_to_fun],
 end
-
-/-- `ite` as a continuous function -/
-@[simps { rhs_md := reducible }]
-def ite (p : Prop) [hp : decidable p] (f g : α →𝒄 β) : α →𝒄 β :=
-continuous_hom.of_mono (preorder_hom.ite p f g)
- (λ c, by { rw [preorder_hom.ite, ← preorder_hom.ite, ωSup_ite c (↑f) (↑g),← f.continuous,← g.continuous], refl })
 
 /-- flip the arguments on a continuous function -/
 @[simps]

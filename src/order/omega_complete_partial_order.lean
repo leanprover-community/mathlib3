@@ -92,13 +92,6 @@ def prod.snd : (α × β) →ₘ β :=
 def prod.zip (f : α →ₘ β) (g : α →ₘ γ) : α →ₘ (β × γ) :=
 (prod.map f g).comp prod.diag
 
-/-- the `if _ then _ else _` function as a monotone function -/
-@[simps]
-def ite (p : Prop) [h : decidable p] (f g : α →ₘ β) :
-  α →ₘ β :=
-{ to_fun := λ x, @ite _ h _ (f x) (g x),
-  monotone := by intros x y h; dsimp; split_ifs; [apply f.monotone h, apply g.monotone h] }
-
 /-- `roption.bind` as a monotone function -/
 @[simps]
 def bind {β γ} (f : α →ₘ roption β) (g : α →ₘ (β → roption γ)) : α →ₘ roption γ :=
@@ -241,7 +234,12 @@ open chain
 variables [omega_complete_partial_order β]
 variables [omega_complete_partial_order γ]
 
-/-- a monotone function `f : α →ₘ β` is continuous if it distributes over ωSup -/
+/-- A monotone function `f : α →ₘ β` is continuous if it distributes over ωSup.
+
+In order to distinguish it from the (more commonly used) continuity from topology
+(see topology/basic.lean), the present definition is often referred to as
+"Scott-continuity" (referring to Dana Scott). It corresponds to continuity
+in Scott topological spaces (not defined here). -/
 def continuous (f : α →ₘ β) : Prop :=
 ∀ c : chain α, f (ωSup c) = ωSup (c.map f)
 
@@ -465,15 +463,9 @@ end preorder_hom
 
 namespace continuous_hom
 
-lemma ωSup_ite {p : Prop} [hp : decidable p] (c : chain α) (f g : α →ₘ β) :
-  ωSup (c.map (preorder_hom.ite p f g)) = ite p (ωSup $ c.map f) (ωSup $ c.map g) :=
-by dsimp [preorder_hom.ite]; split_ifs; refl
-
 lemma ite_continuous' {p : Prop} [hp : decidable p] (f g : α → β) :
   continuous' f → continuous' g → continuous' (λ x, ite p (f x) (g x))
-| ⟨hf,hf'⟩ ⟨hg,hg'⟩ :=
-continuous.of_bundled' (preorder_hom.ite p ⟨f,hf⟩ ⟨g,hg⟩)
-  (λ c, by rw [ωSup_ite,← hf', ← hg']; refl)
+| hf hg := by split_ifs; assumption
 
 lemma ωSup_bind {β γ : Type v} (c : chain α) (f : α →ₘ roption β) (g : α →ₘ (β → roption γ)) :
   ωSup (c.map (f.bind g)) = ωSup (c.map f) >>= ωSup (c.map g) :=

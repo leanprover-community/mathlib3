@@ -128,3 +128,9 @@ jobs:
         run: |
           lean --recursive --export=mathlib.txt src/
           leanchecker mathlib.txt
+
+      - name: check declarations in db files
+        run: |
+          python scripts/yaml_check.py docs/100.yaml docs/overview.yaml docs/undergrad.yaml
+          bash scripts/mk_all.sh
+          lean --run scripts/yaml_check.lean

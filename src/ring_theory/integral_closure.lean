@@ -40,7 +40,7 @@ theorem is_integral_algebra_map {x : R} : is_integral R (algebra_map R A x) :=
 ⟨X - C x, monic_X_sub_C _,
 by rw [alg_hom.map_sub, aeval_def, aeval_def, eval₂_X, eval₂_C, sub_self]⟩
 
-theorem is_integral_of_noetherian' (H : is_noetherian R A) (x : A) :
+theorem is_integral_of_noetherian (H : is_noetherian R A) (x : A) :
   is_integral R x :=
 begin
   let leval : @linear_map R (polynomial R) A _ _ _ _ _ := (aeval x).to_linear_map,
@@ -63,7 +63,7 @@ begin
   rw [linear_map.map_sub, hpe, sub_self]
 end
 
-theorem is_integral_of_noetherian (S : subalgebra R A)
+theorem is_integral_of_submodule_noetherian (S : subalgebra R A)
   (H : is_noetherian R (S : submodule R A)) (x : A) (hx : x ∈ S) :
   is_integral R x :=
 begin
@@ -80,7 +80,7 @@ begin
       rw is_monoid_hom.map_pow coe, refl,
       split; intros; refl },
     refine { map_add := _, map_zero := _ }; intros; refl },
-  refine is_integral_of_noetherian' H ⟨x, hx⟩
+  refine is_integral_of_noetherian H ⟨x, hx⟩
 end
 
 end ring
@@ -193,7 +193,7 @@ begin
     rw algebra.algebra_map_eq_smul_one,
     exact smul_mem (span S₀ (insert 1 ↑y : set A)) _ (subset_span $ or.inl rfl) },
   haveI : is_noetherian_ring ↥S₀ := is_noetherian_ring_closure _ (finset.finite_to_set _),
-  refine is_integral_of_noetherian (algebra.adjoin S₀ ↑y)
+  refine is_integral_of_submodule_noetherian (algebra.adjoin S₀ ↑y)
     (is_noetherian_of_fg_of_noetherian _ ⟨insert 1 y, by rw [finset.coe_insert, this]⟩) _ _,
   rw [← hlx2, finsupp.total_apply, finsupp.sum], refine subalgebra.sum_mem _ (λ r hr, _),
   have : lx r ∈ S₀ := ring.subset_closure (finset.mem_union_left _ (finset.mem_image_of_mem _ hr)),

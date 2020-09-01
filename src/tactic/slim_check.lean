@@ -12,7 +12,7 @@ import testing.slim_check.testable
 A proposition can be tested by writing it out as:
 
 ```lean
-#eval testable.check (∀ xs : list ℕ, (∃ x ∈ xs, x < 3) → (∀ y ∈ xs, y < 5))
+example (xs : list ℕ) (w : ∃ x ∈ xs, x < 3) : ∀ y ∈ xs, y < 5 := by slim_check
 -- ===================
 -- Found problems!
 
@@ -21,14 +21,14 @@ A proposition can be tested by writing it out as:
 -- y := 5
 -- -------------------
 
-#eval testable.check (∀ x : ℕ, 2 ∣ x → x < 100)
+example (x : ℕ) (h : 2 ∣ x) : x < 100 := by slim_check
 -- ===================
 -- Found problems!
 
 -- x := 258
 -- -------------------
 
-#eval testable.check (∀ (α : Type) (xs ys : list α), xs ++ ys = ys ++ xs)
+example (α : Type) (xs ys : list α) : xs ++ ys = ys ++ xs := by slim_check
 -- ===================
 -- Found problems!
 
@@ -37,36 +37,11 @@ A proposition can be tested by writing it out as:
 -- ys := [1]
 -- -------------------
 
-#eval testable.check (∀ x ∈ [1,2,3], x < 4)
+example : ∀ x ∈ [1,2,3], x < 4 := by slim_check
 -- Success
 ```
 
-`testable.check p` finds a `testable p` instance which lets us find
-data to test the proposition `p`.  For instance, `testable.check (∀ x
-: ℕ, 2 ∣ x → x < 100)` builds the `testable` instance step by step
-with:
-
-```
-testable (∀ x : ℕ, 2 ∣ x → x < 100) -: sampleable ℕ, decidable (λ x, 2 ∣ x), testable (λ x, x < 100)
-testable (λ x, x < 100)              -: decidable (λ x, x < 100)
-```
-
-`sampleable ℕ` lets us create random data of type `ℕ` in a way that
-helps find small counter-examples.  Next, the test of the proposition
-hinges on `2 ∣ 100` and `x < 100` to both be decidable. The
-implication between the two could be tested as a whole but it would be
-less informative. Indeed, we could generate a hundred odd numbers and
-the property would be shown to hold for each but the right conclusion
-is that we haven't found meaningful examples. Instead, when `2 ∣ x`
-does not hold, we reject the example (i.e.  we do not count it toward
-the 100 required positive examples) and we start over. Therefore, when
-`testable.check` prints `Success`, it means that a hundred even
-numbers were found to be less than 100.
-
-### Proof tactic
-
-`slim_check` can be used as a proof tactic. Let's consider the
-following proof goal.
+In the first example, `slim_check` is called on the following goal:
 
 ```lean
 xs : list ℕ,
@@ -74,26 +49,49 @@ h : ∃ (x : ℕ) (H : x ∈ xs), x < 3
 ⊢ ∀ (y : ℕ), y ∈ xs → y < 5
 ```
 
-The local constants will be reverted and an instance will be found for
+The local constants are reverted and an instance is found for
 `testable (∀ (xs : list ℕ), (∃ x ∈ xs, x < 3) → (∀ y ∈ xs, y < 5))`.
 The `testable` instance is supported by an instance of `sampleable (list ℕ)`,
-`decidable (x < 3)` and `decidable (y < 5)`.
-
-Examples will be created in ascending order of size (more or less)
-
-The first counter-examples found will be printed and will result in an error:
+`decidable (x < 3)` and `decidable (y < 5)`. `slim_check` builds a 
+`testable` instance step by step with:
 
 ```
-===================
-Found problems!
-
-xs := [1, 28]
-x := 1
-y := 28
--------------------
+- testable (∀ (xs : list ℕ), (∃ x ∈ xs, x < 3) → (∀ y ∈ xs, y < 5)) 
+                                     -: sampleable (list xs)
+- testable ((∃ x ∈ xs, x < 3) → (∀ y ∈ xs, y < 5))
+- testable (∀ x ∈ xs, x < 3 → (∀ y ∈ xs, y < 5))
+- testable (x < 3 → (∀ y ∈ xs, y < 5))
+                                     -: decidable (x < 3) 
+- testable (∀ y ∈ xs, y < 5)
+                                     -: decidable (y < 5) 
 ```
+
+`sampleable (list ℕ)` lets us create random data of type `list ℕ` in a way that
+helps find small counter-examples.  Next, the test of the proposition
+hinges on `x < 3` and `y < 5` to both be decidable. The
+implication between the two could be tested as a whole but it would be
+less informative. Indeed, if we generate lists that only contain numbers
+greater than `3`, the implication will always trivially hold but we should 
+conclude that we haven't found meaningful examples. Instead, when `x < 3`
+does not hold, we reject the example (i.e.  we do not count it toward
+the 100 required positive examples) and we start over. Therefore, when
+`slim_check` prints `Success`, it means that a hundred suitable lists
+were found and successfully tested.
 
 If no counter-examples are found, `slim_check` behaves like `admit`.
+
+`slim_check` can also be invoked using `#eval`:
+
+```lean
+#check slim_check.testable.check (∀ (α : Type) (xs ys : list α), xs ++ ys = ys ++ xs)
+-- ===================
+-- Found problems!
+
+-- α := ℤ
+-- xs := [-4]
+-- ys := [1]
+-- -------------------
+```
 
 For more information on writing your own `sampleable` and `testable`
 instances, see `testing.slim_check.testable`.

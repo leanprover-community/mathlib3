@@ -21,7 +21,8 @@ We construct some simple examples of presheaves of functions on a topological sp
 * `presheaf_To_TopCommRing X R`, where `R : TopCommRing`
   is the presheaf valued in `CommRing` of functions functions into a topological ring `R`
 * as an example of the previous construction,
-  `presheaf_ℂ X` is the presheaf of rings of continuous complex-valued functions on `X`.
+  `presheaf_to_TopCommRing X (TopCommRing.of ℂ)`
+  is the presheaf of rings of continuous complex-valued functions on `X`.
 -/
 
 universes v u
@@ -121,18 +122,18 @@ def CommRing_yoneda : TopCommRing.{u} ⥤ (Top.{u}ᵒᵖ ⥤ CommRing.{u}) :=
   map := λ R S φ,
   { app := λ X, continuous_functions.map X φ } }
 
-/-- The presheaf (of commutative rings), consisting of functions on an open set `U ⊆ X` with
-values in some topological commutative ring `T`. -/
+/--
+The presheaf (of commutative rings), consisting of functions on an open set `U ⊆ X` with
+values in some topological commutative ring `T`.
+
+For example, we could construct the presheaf of continuous complex valued functions of `X` as
+```
+presheaf_to_TopCommRing X (TopCommRing.of ℂ)
+```
+(this requires `import topology.instances.complex`).
+-/
 def presheaf_to_TopCommRing (T : TopCommRing.{v}) :
   X.presheaf CommRing.{v} :=
 (opens.to_Top X).op ⋙ (CommRing_yoneda.obj T)
-
-/-- The presheaf (of commutative rings) of real valued functions. -/
-noncomputable def presheaf_ℝ (Y : Top) : Y.presheaf CommRing :=
-presheaf_to_TopCommRing Y (TopCommRing.of ℝ)
-
-/-- The presheaf (of commutative rings) of complex valued functions. -/
-noncomputable def presheaf_ℂ (Y : Top) : Y.presheaf CommRing :=
-presheaf_to_TopCommRing Y (TopCommRing.of ℂ)
 
 end Top

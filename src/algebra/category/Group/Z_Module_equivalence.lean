@@ -17,8 +17,10 @@ or, having constructed that monoidal structure directly, show this functor is mo
 open category_theory
 open category_theory.equivalence
 
+universes u
+
 /-- The forgetful functor from `ℤ` modules to `AddCommGroup` is full. -/
-instance : full (forget₂ (Module ℤ) AddCommGroup) :=
+instance : full (forget₂ (Module ℤ) AddCommGroup.{u}) :=
 { preimage := λ A B f,
   -- TODO: why `add_monoid_hom.to_int_linear_map` doesn't work here?
   { to_fun := f,
@@ -26,9 +28,9 @@ instance : full (forget₂ (Module ℤ) AddCommGroup) :=
     map_smul' := λ n x, by convert add_monoid_hom.map_int_module_smul f n x } }
 
 /-- The forgetful functor from `ℤ` modules to `AddCommGroup` is essentially surjective. -/
-instance : ess_surj (forget₂ (Module ℤ) AddCommGroup) :=
+instance : ess_surj (forget₂ (Module ℤ) AddCommGroup.{u}) :=
 { obj_preimage := λ A, Module.of ℤ A,
   iso' := λ A, { hom := 𝟙 A, inv := 𝟙 A, } }
 
-instance : is_equivalence (forget₂ (Module ℤ) AddCommGroup) :=
+instance : is_equivalence (forget₂ (Module ℤ) AddCommGroup.{u}) :=
 equivalence_of_fully_faithfully_ess_surj (forget₂ (Module ℤ) AddCommGroup)

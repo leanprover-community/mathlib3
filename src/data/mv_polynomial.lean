@@ -583,7 +583,7 @@ begin
   { intro i, rw [ring_hom.comp_apply, eval₂_hom_X', eval₂_hom_X'] }
 end
 
-@[simp] lemma map_eval₂_hom  [comm_semiring γ] (f : α →+* β) (g : σ → β) (φ : β →+* γ)
+lemma map_eval₂_hom  [comm_semiring γ] (f : α →+* β) (g : σ → β) (φ : β →+* γ)
   (p : mv_polynomial σ α) :
   φ (eval₂_hom f g p) = (eval₂_hom (φ.comp f) (λ i, φ (g i)) p) :=
 by { rw ← comp_eval₂_hom, refl }
@@ -1075,7 +1075,7 @@ end
   φ (aeval g p) = (eval₂_hom (φ.comp (algebra_map R A)) (λ i, φ (g i)) p) :=
 by { rw ← comp_eval₂_hom, refl }
 
-@[simp] lemma aeval_zero [algebra R A] (p : mv_polynomial σ R) :
+@[simp] lemma aeval_zero (p : mv_polynomial σ R) :
   aeval (0 : σ → A) p = algebra_map _ _ (constant_coeff p) :=
 begin
   apply mv_polynomial.induction_on p,
@@ -1086,11 +1086,11 @@ begin
       mem_support_iff, not_true, aeval_X, if_false, ne.def, mul_zero, alg_hom.map_mul, zero_apply] }
 end
 
-@[simp] lemma aeval_zero' [algebra R A] (p : mv_polynomial σ R) :
+@[simp] lemma aeval_zero' (p : mv_polynomial σ R) :
   aeval (λ _, 0 : σ → A) p = algebra_map _ _ (constant_coeff p) :=
 aeval_zero p
 
-lemma aeval_monomial [algebra R A] (g : σ → A) (d : σ →₀ ℕ) (r : R) :
+lemma aeval_monomial (g : σ → A) (d : σ →₀ ℕ) (r : R) :
   aeval g (monomial d r) = algebra_map _ _ r * d.prod (λ i k, g i ^ k) :=
 eval₂_hom_monomial _ _ _ _
 

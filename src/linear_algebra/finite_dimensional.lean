@@ -587,6 +587,19 @@ end
 
 end linear_equiv
 
+namespace finite_dimensional
+
+/-- If a submodule is less than or equal to a finite-dimensional
+submodule with the same dimension, they are equal. -/
+lemma eq_of_le_of_findim_eq {S₁ S₂ : submodule K V} [finite_dimensional K S₂] (hle : S₁ ≤ S₂)
+  (hd : findim K S₁ = findim K S₂) : S₁ = S₂ :=
+begin
+  rw ←linear_equiv.findim_eq (submodule.comap_subtype_equiv_of_le hle) at hd,
+  exact le_antisymm hle (submodule.comap_subtype_eq_top.1 (eq_top_of_findim_eq hd))
+end
+
+end finite_dimensional
+
 namespace linear_map
 open finite_dimensional
 

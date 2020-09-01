@@ -365,7 +365,7 @@ begin
   have ppos : p > 0 := nat.prime.pos ‹_›,
   by_cases h : a = 0,
   { subst a, apply zero_pow ppos },
-  { have := zmod.fermat_little p h,
+  { have := zmod.pow_card_sub_one_eq_one h,
     replace := congr_arg (λ x, a * x) this,
     simp at this,
     convert this,
@@ -1071,7 +1071,7 @@ end
 lemma witt_structure_int_vars [fintype idx] (Φ : mv_polynomial idx ℤ) (n : ℕ) :
   (witt_structure_int p Φ n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
 begin
-  rw ← vars_map_of_injective (int.cast_ring_hom ℚ) _ sorry,
+  rw ← @vars_map_of_injective _ _ _ _ _ _ (int.cast_ring_hom ℚ) sorry,
   simp only [map_witt_structure_int],
   apply witt_structure_rat_vars,
 end

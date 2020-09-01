@@ -1,5 +1,5 @@
 -- this should all be moved
-#exit
+
 -- import algebra.inj_surj
 import data.nat.choose
 import data.int.gcd

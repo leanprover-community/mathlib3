@@ -3,8 +3,7 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import ring_theory.polynomial
-import ring_theory.principal_ideal_domain
+import ring_theory.polynomial.basic
 
 /-!
 # Adjoining elements to form subalgebras

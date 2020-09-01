@@ -422,6 +422,10 @@ theorem subset_union_left (s₁ s₂ : finset α) : s₁ ⊆ s₁ ∪ s₂ := λ
 
 theorem subset_union_right (s₁ s₂ : finset α) : s₂ ⊆ s₁ ∪ s₂ := λ x, mem_union_right _
 
+lemma union_subset_union {s1 t1 s2 t2 : finset α} (h1 : s1 ⊆ t1) (h2 : s2 ⊆ t2) :
+  s1 ∪ s2 ⊆ t1 ∪ t2 :=
+by { intros x hx, rw finset.mem_union at hx ⊢, tauto }
+
 theorem union_comm (s₁ s₂ : finset α) : s₁ ∪ s₂ = s₂ ∪ s₁ :=
 ext $ λ x, by simp only [mem_union, or_comm]
 
@@ -1203,8 +1207,16 @@ finset.ext $ by simp
   to_finset (s ∩ t) = to_finset s ∩ to_finset t :=
 finset.ext $ by simp
 
+@[simp] lemma to_finset_union (s t : multiset α) :
+  (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
+by ext; simp
+
 theorem to_finset_eq_empty {m : multiset α} : m.to_finset = ∅ ↔ m = 0 :=
 finset.val_inj.symm.trans multiset.erase_dup_eq_zero
+
+@[simp] lemma to_finset_subset (m1 m2 : multiset α) :
+  m1.to_finset ⊆ m2.to_finset ↔ m1 ⊆ m2 :=
+by simp only [finset.subset_iff, multiset.subset_iff, multiset.mem_to_finset]
 
 end multiset
 
@@ -2099,3 +2111,21 @@ theorem to_finset_card_of_nodup {l : list α} (h : l.nodup) : l.to_finset.card =
 congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
 
 end list
+
+namespace multiset
+
+lemma disjoint_to_finset [decidable_eq α] (m1 m2 : multiset α) :
+  _root_.disjoint m1.to_finset m2.to_finset ↔ m1.disjoint m2 :=
+begin
+  rw finset.disjoint_iff_ne,
+  split,
+  { intro h,
+    intros a ha1 ha2,
+    rw ← multiset.mem_to_finset at ha1 ha2,
+    exact h _ ha1 _ ha2 rfl },
+  { rintros h a ha b hb rfl,
+    rw multiset.mem_to_finset at ha hb,
+    exact h ha hb }
+end
+
+end multiset

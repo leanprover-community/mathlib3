@@ -317,6 +317,12 @@ instance or_testable (p q : Prop) [testable p] [testable q] :
      pure $ or_counter_example xp xq
    end ⟩
 
+instance iff_testable (p q : Prop) [testable ((p ∧ q) ∨ (¬ p ∧ ¬ q))] :
+  testable (p ↔ q) :=
+⟨ λ tracing min, do
+   xp ← testable.run ((p ∧ q) ∨ (¬ p ∧ ¬ q)) tracing min,
+   return $ convert_counter_example' (by tauto!) xp ⟩
+
 @[priority 1000]
 instance imp_dec_testable (p : Prop) [decidable p] (β : p → Prop)
   [∀ h, testable (β h)] : testable (named_binder var $ Π h, β h) :=

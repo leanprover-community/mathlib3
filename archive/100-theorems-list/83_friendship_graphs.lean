@@ -32,9 +32,8 @@ The proof revolves around the theory of adjacency matrices.
 - This gives a contradiction, as `A` has trace `0`, and thus `A ^ p` has trace `0`.
 
 ## References
-- The original paper can be found at https://www.renyi.hu/~p_erdos/1966-06.pdf
-- Our proof most closely follows the second proof in this note by Craig Huneke:
-  https://www.researchgate.net/profile/Craig_Huneke/publication/268313555_The_Friendship_Theorem/links/54833c970cf2f5dd63a9109f/The-Friendship-Theorem.pdf
+- [P. Erdős, A. Rényi, V. Sós, *On A Problem of Graph Theory*][erdosrenyisos]
+- [C. Huneke, *The Friendship Theorem*][huneke2002]
 
 -/
 

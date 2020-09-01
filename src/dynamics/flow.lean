@@ -254,7 +254,7 @@ structure semigroup_flow
   (T : Type*) [topological_space T] [add_semigroup T] [has_continuous_add T]
   (X : Type*) [topological_space X] :=
 (to_fun   : T → X → X)
-(cont     : continuous ↿to_fun)
+(cont     : continuous (uncurry to_fun))
 (map_add' : ∀ t₁ t₂ x, to_fun t₂ (to_fun t₁ x) = to_fun (t₁ + t₂) x)
 
 namespace semigroup_flow
@@ -262,6 +262,11 @@ namespace semigroup_flow
 variables
 {X : Type*} [topological_space X]
 {T : Type*} [topological_space T] [add_semigroup T] [has_continuous_add T]
+
+instance [inhabited X] : inhabited (semigroup_flow T X) :=
+⟨{ to_fun   := λ t x, x,
+   cont     := continuous_snd,
+   map_add' := λ _ _ _, rfl }⟩
 
 instance : has_coe_to_fun (semigroup_flow T X) := ⟨_, semigroup_flow.to_fun⟩
 instance has_uncurry_semigroup_flow : has_uncurry (semigroup_flow T X) (T × X) X :=
@@ -329,6 +334,10 @@ section
 
 variables [add_group T] [topological_add_group T]
 
+instance [inhabited X] : inhabited (flow T X) :=
+⟨{ map_zero' := λ _, rfl,
+  .. default (semigroup_flow T X) }⟩
+
 instance : has_coe (flow T X) (semigroup_flow T X) := ⟨flow.to_semigroup_flow⟩
 instance : has_coe_to_fun (flow T X) := ⟨_, λ ϕ, ϕ.to_semigroup_flow.to_fun⟩
 
@@ -355,7 +364,13 @@ end
 
 section
 
-variables [add_comm_group T] [topological_add_group T]
+variables [add_comm_group T]
+
+lemma tendsto_add_iff_tendsto_sub (f₁ f₂ : filter T):
+  (∀ t, tendsto (+ t) f₁ f₂) ↔ ∀ t, tendsto (λ x, x - t) f₁ f₂ :=
+iff.intro (λ h t, h (-t)) (λ h t, by { simp_rw ←sub_neg_eq_add, exact h (-t) })
+
+variables [topological_add_group T]
 variables (f f₁ f₂ : filter T) (ϕ : flow T X) (A S : set X)
 
 /-- the time-reversal of a flow, defined `ϕ.reverse t x = ϕ (-t) x` -/
@@ -387,10 +402,6 @@ by simp_rw [image2_image_left, ←reverse_def₁]
 -- ugly and likely should be refactored into nicer versions of
 -- themselves, once it is figured out what those are.
 
-lemma tendsto_add_iff_tendsto_sub :
-  (∀ t, tendsto (+ t) f₁ f₂) ↔ ∀ t, tendsto (λ x, x - t) f₁ f₂ :=
-iff.intro (λ h t, h (-t)) (λ h t, by { simp_rw ←sub_neg_eq_add, exact h (-t) })
-
 lemma omega_limit_forward_image (h : ∀ t, tendsto (+ t) f f) (t : T) :
   ω f ϕ S = ω f ϕ (ϕ t '' S) :=
 begin
@@ -415,7 +426,7 @@ begin
 end
 
 lemma attractor_maximal (x : X) (h : ∀ t, tendsto (+ t) f f)
-  (ha : is_attractor f ϕ A) (hs : A ⊆ S) (he : (ω f ϕ {x} ∩ A).nonempty) :
+  (ha : is_attractor f ϕ A) (he : (ω f ϕ {x} ∩ A).nonempty) :
   ω f ϕ {x} ⊆ A :=
 begin
   rcases ha with ⟨n, hn₁, hn₂, hn₃⟩, rw ←hn₃,

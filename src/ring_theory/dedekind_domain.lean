@@ -113,9 +113,9 @@ lemma fractional_ideal_invertible_of_dedekind (h : is_dedekind_domain f) (I : fr
 begin
   sorry
 end
--/
+
 /- If L is a finite extension of K, the integral closure of R in L is a Dedekind domain. -/
-def closure_in_field_extension [algebra f.codomain L] [algebra R L] [is_algebra_tower R f.codomain L]
+def closure_in_field_extension [algebra f.codomain L] [algebra R L] [is_scalar_tower R f.codomain L]
   [finite_dimensional f.codomain L] (h : is_dedekind_domain f) :
   is_dedekind_domain (integral_closure.fraction_map_of_finite_extension L f) :=
 { is_noetherian_ring := is_noetherian_ring_of_is_noetherian_coe_submodule _ _ (is_noetherian_of_submodule_of_noetherian _ _ _ _),

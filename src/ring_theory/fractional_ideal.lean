@@ -126,7 +126,7 @@ end
 
 @[irreducible]
 def mk_fractional (I : ideal R) : fractional_ideal f :=
-⟨↑I, fractional_of_subset_one _ $ λ x ⟨y, hy, h⟩,
+⟨f.coe_submodule I, fractional_of_subset_one _ $ λ x ⟨y, hy, h⟩,
   submodule.mem_span_singleton.2 ⟨y, by rw ←h; exact mul_one _⟩⟩
 
 local attribute [semireducible] mk_fractional
@@ -541,7 +541,7 @@ lemma le_div_iff_of_nonzero {I J J' : fractional_ideal g} (hK : J' ≠ 0) :
   λ h x hx, (mem_div_iff_of_nonzero hK).mpr (h x hx) ⟩
 
 lemma coe_inv_of_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
-  (↑(I⁻¹) : submodule R g.codomain) = g.coe_submodule 1 / I :=
+  (↑I⁻¹ : submodule R₁ g.codomain) = g.coe_submodule 1 / I :=
 by { rw inv_nonzero h, refl }
 
 @[simp] lemma div_one {I : fractional_ideal g} : I / 1 = I :=

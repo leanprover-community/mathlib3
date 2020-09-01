@@ -2365,7 +2365,7 @@ open continuous_linear_map (smul_right)
 differentiable there, and its derivative (formulated with `deriv_within`) is `C^n`. -/
 theorem times_cont_diff_on_succ_iff_deriv_within {n : ℕ} (hs : unique_diff_on 𝕜 s₂) :
   times_cont_diff_on 𝕜 ((n + 1) : ℕ) f₂ s₂ ↔
-  differentiable_on 𝕜 f₂ s₂ ∧ times_cont_diff_on 𝕜 n (λ y, deriv_within f₂ s₂ y) s₂ :=
+  differentiable_on 𝕜 f₂ s₂ ∧ times_cont_diff_on 𝕜 n (deriv_within f₂ s₂) s₂ :=
 begin
   rw times_cont_diff_on_succ_iff_fderiv_within hs,
   congr' 2,
@@ -2389,7 +2389,7 @@ end
 differentiable there, and its derivative (formulated with `deriv`) is `C^n`. -/
 theorem times_cont_diff_on_succ_iff_deriv_of_open {n : ℕ} (hs : is_open s₂) :
   times_cont_diff_on 𝕜 ((n + 1) : ℕ) f₂ s₂ ↔
-  differentiable_on 𝕜 f₂ s₂ ∧ times_cont_diff_on 𝕜 n (λ y, deriv f₂ y) s₂ :=
+  differentiable_on 𝕜 f₂ s₂ ∧ times_cont_diff_on 𝕜 n (deriv f₂) s₂ :=
 begin
   rw times_cont_diff_on_succ_iff_deriv_within hs.unique_diff_on,
   congr' 2,
@@ -2422,7 +2422,7 @@ end
 there, and its derivative (formulated with `deriv`) is `C^∞`. -/
 theorem times_cont_diff_on_top_iff_deriv_of_open (hs : is_open s₂) :
   times_cont_diff_on 𝕜 ∞ f₂ s₂ ↔
-  differentiable_on 𝕜 f₂ s₂ ∧ times_cont_diff_on 𝕜 ∞ (λ y, deriv f₂ y) s₂ :=
+  differentiable_on 𝕜 f₂ s₂ ∧ times_cont_diff_on 𝕜 ∞ (deriv f₂) s₂ :=
 begin
   rw times_cont_diff_on_top_iff_deriv_within hs.unique_diff_on,
   congr' 2,
@@ -2434,7 +2434,7 @@ end
 
 lemma times_cont_diff_on.deriv_within {m n : with_top ℕ}
   (hf : times_cont_diff_on 𝕜 n f₂ s₂) (hs : unique_diff_on 𝕜 s₂) (hmn : m + 1 ≤ n) :
-  times_cont_diff_on 𝕜 m (λ y, deriv_within f₂ s₂ y) s₂ :=
+  times_cont_diff_on 𝕜 m (deriv_within f₂ s₂) s₂ :=
 begin
   cases m,
   { change ∞ + 1 ≤ n at hmn,
@@ -2447,17 +2447,17 @@ end
 
 lemma times_cont_diff_on.deriv_of_open {m n : with_top ℕ}
   (hf : times_cont_diff_on 𝕜 n f₂ s₂) (hs : is_open s₂) (hmn : m + 1 ≤ n) :
-  times_cont_diff_on 𝕜 m (λ y, deriv f₂ y) s₂ :=
+  times_cont_diff_on 𝕜 m (deriv f₂) s₂ :=
 (hf.deriv_within hs.unique_diff_on hmn).congr (λ x hx, (deriv_within_of_open hs hx).symm)
 
 lemma times_cont_diff_on.continuous_on_deriv_within {n : with_top ℕ}
   (h : times_cont_diff_on 𝕜 n f₂ s₂) (hs : unique_diff_on 𝕜 s₂) (hn : 1 ≤ n) :
-  continuous_on (λ x, deriv_within f₂ s₂ x) s₂ :=
+  continuous_on (deriv_within f₂ s₂) s₂ :=
 ((times_cont_diff_on_succ_iff_deriv_within hs).1 (h.of_le hn)).2.continuous_on
 
 lemma times_cont_diff_on.continuous_on_deriv_of_open {n : with_top ℕ}
   (h : times_cont_diff_on 𝕜 n f₂ s₂) (hs : is_open s₂) (hn : 1 ≤ n) :
-  continuous_on (λ x, deriv f₂ x) s₂ :=
+  continuous_on (deriv f₂) s₂ :=
 ((times_cont_diff_on_succ_iff_deriv_of_open hs).1 (h.of_le hn)).2.continuous_on
 
 end deriv

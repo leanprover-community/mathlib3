@@ -527,6 +527,14 @@ begin
         fderiv_within_zero_of_not_differentiable_within_at this] }
 end
 
+lemma fderiv_within_of_open (hs : is_open s) (hx : x ∈ s) :
+  fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
+begin
+  have : s = univ ∩ s, by simp only [univ_inter],
+  rw [this, ← fderiv_within_univ],
+  exact fderiv_within_inter (mem_nhds_sets hs hx) (unique_diff_on_univ _ (mem_univ _))
+end
+
 end fderiv_properties
 
 section continuous

@@ -79,7 +79,7 @@ The local constants will be reverted and an instance will be found for
 The `testable` instance is supported by an instance of `sampleable (list ℕ)`,
 `decidable (x < 3)` and `decidable (y < 5)`.
 
-Examples will be creeated in ascending order of size (more or less)
+Examples will be created in ascending order of size (more or less)
 
 The first counter-examples found will be printed and will result in an error:
 
@@ -107,7 +107,7 @@ declare_trace slim_check.decoration
 declare_trace slim_check.discared
 open expr
 
-/-- Tree structure representing `testable` a instance. -/
+/-- Tree structure representing a `testable` instance. -/
 meta inductive instance_tree
 | node : name → expr → list instance_tree → instance_tree
 
@@ -126,7 +126,7 @@ meta def summarize_instance : expr → tactic instance_tree
 | e := do
   failed
 
-/-- format as `instance_tree` -/
+/-- format a `instance_tree` -/
 meta def instance_tree.to_format : instance_tree → tactic format
 | (instance_tree.node n p xs) := do
   xs ← format.join <$> (xs.mmap $ λ t, flip format.indent 2 <$> instance_tree.to_format t),
@@ -153,7 +153,7 @@ The local constants will be reverted and an instance will be found for
 The `testable` instance is supported by an instance of `sampleable (list ℕ)`,
 `decidable (x < 3)` and `decidable (y < 5)`.
 
-Examples will be creeated in ascending order of size (more or less)
+Examples will be created in ascending order of size (more or less)
 
 The first counter-examples found will be printed and will result in an error:
 
@@ -179,7 +179,7 @@ Optional arguments given with `slim_check_cfg`
 
 Options:
   * `set_option trace.slim_check.decoration true`: print the proposition with quantifier annotations
-  * `set_option trace.slim_check.discared true`: print the examples discarded because they do not satisfy assumptions
+  * `set_option trace.slim_check.discarded true`: print the examples discarded because they do not satisfy assumptions
   * `set_option trace.slim_check.instance true`: print the instances of `testable` being used to test the proposition
 -/
 meta def slim_check (cfg : slim_check_cfg := {}) : tactic unit := do

@@ -188,6 +188,7 @@ inductive test_result (p : Prop)
      guarantee no false positive. -/
 | failure : ¬ p → (list string) → test_result
 
+/-- format a `test_result` as a string. -/
 def test_result.to_string {p} : test_result p → string
 | (test_result.success (psum.inl ())) := "success (without proof)"
 | (test_result.success (psum.inr h)) := "success (with proof)"

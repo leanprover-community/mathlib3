@@ -704,21 +704,21 @@ end is_colimit
 
 section limit
 
-/-- `limit_data F` represents a particular chosen limit of the diagram `F`. -/
+/-- `limit_cone F` contains a cone over `F` together with the information that it is a limit. -/
 @[nolint has_inhabited_instance]
-structure limit_data (F : J ⥤ C) :=
+structure limit_cone (F : J ⥤ C) :=
 (cone : cone F)
 (is_limit : is_limit cone)
 
 /-- `has_limit F` represents the mere existence of a limit for `F`. -/
 class has_limit (F : J ⥤ C) : Prop :=
-mk' :: (exists_limit : nonempty (limit_data F))
+mk' :: (exists_limit : nonempty (limit_cone F))
 
-lemma has_limit.mk {F : J ⥤ C} (d : limit_data F) : has_limit F :=
+lemma has_limit.mk {F : J ⥤ C} (d : limit_cone F) : has_limit F :=
 ⟨nonempty.intro d⟩
 
-/-- Use the axiom of choice to extract explicit `limit_data F` from `has_limit F`. -/
-def get_limit_data (F : J ⥤ C) [has_limit F] : limit_data F :=
+/-- Use the axiom of choice to extract explicit `limit_cone F` from `has_limit F`. -/
+def get_limit_cone (F : J ⥤ C) [has_limit F] : limit_cone F :=
 classical.choice $ has_limit.exists_limit
 
 variables (J C)
@@ -747,7 +747,7 @@ has_limits.has_limits_of_shape J
 /- Interface to the `has_limit` class. -/
 
 /-- The chosen limit cone of a functor. -/
-def limit.cone (F : J ⥤ C) [has_limit F] : cone F := (get_limit_data F).cone
+def limit.cone (F : J ⥤ C) [has_limit F] : cone F := (get_limit_cone F).cone
 
 /-- The chosen limit object of a functor. -/
 def limit (F : J ⥤ C) [has_limit F] := (limit.cone F).X
@@ -767,7 +767,7 @@ def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F.obj j :=
 
 /-- Evidence that the chosen cone is a limit cone. -/
 def limit.is_limit (F : J ⥤ C) [has_limit F] : is_limit (limit.cone F) :=
-(get_limit_data F).is_limit
+(get_limit_cone F).is_limit
 
 /-- The morphism from the cone point of any other cone to the chosen limit object. -/
 def limit.lift (F : J ⥤ C) [has_limit F] (c : cone F) : c.X ⟶ limit F :=
@@ -1080,21 +1080,22 @@ end limit
 
 section colimit
 
-/-- `colimit_data F` represents a particular chosen colimit of the diagram `F`. -/
+/-- `colimit_cocone F` contains a cocone over `F` together with the information that it is a
+    colimit. -/
 @[nolint has_inhabited_instance]
-structure colimit_data (F : J ⥤ C) :=
+structure colimit_cocone (F : J ⥤ C) :=
 (cocone : cocone F)
 (is_colimit : is_colimit cocone)
 
 /-- `has_colimit F` represents the mere existence of a colimit for `F`. -/
 class has_colimit (F : J ⥤ C) : Prop :=
-mk' :: (exists_colimit : nonempty (colimit_data F))
+mk' :: (exists_colimit : nonempty (colimit_cocone F))
 
-lemma has_colimit.mk {F : J ⥤ C} (d : colimit_data F) : has_colimit F :=
+lemma has_colimit.mk {F : J ⥤ C} (d : colimit_cocone F) : has_colimit F :=
 ⟨nonempty.intro d⟩
 
-/-- Use the axiom of choice to extract explicit `colimit_data F` from `has_colimit F`. -/
-def get_colimit_data (F : J ⥤ C) [has_colimit F] : colimit_data F :=
+/-- Use the axiom of choice to extract explicit `colimit_cocone F` from `has_colimit F`. -/
+def get_colimit_cocone (F : J ⥤ C) [has_colimit F] : colimit_cocone F :=
 classical.choice $ has_colimit.exists_colimit
 
 variables (J C)
@@ -1123,7 +1124,7 @@ has_colimits.has_colimits_of_shape J
 /- Interface to the `has_colimit` class. -/
 
 /-- The chosen colimit cocone of a functor. -/
-def colimit.cocone (F : J ⥤ C) [has_colimit F] : cocone F := (get_colimit_data F).cocone
+def colimit.cocone (F : J ⥤ C) [has_colimit F] : cocone F := (get_colimit_cocone F).cocone
 
 /-- The chosen colimit object of a functor. -/
 def colimit (F : J ⥤ C) [has_colimit F] := (colimit.cocone F).X
@@ -1143,7 +1144,7 @@ def colimit.ι (F : J ⥤ C) [has_colimit F] (j : J) : F.obj j ⟶ colimit F :=
 
 /-- Evidence that the chosen cocone is a colimit cocone. -/
 def colimit.is_colimit (F : J ⥤ C) [has_colimit F] : is_colimit (colimit.cocone F) :=
-(get_colimit_data F).is_colimit
+(get_colimit_cocone F).is_colimit
 
 /-- The morphism from the chosen colimit object to the cone point of any other cocone. -/
 def colimit.desc (F : J ⥤ C) [has_colimit F] (c : cocone F) : colimit F ⟶ c.X :=

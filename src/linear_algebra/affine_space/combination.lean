@@ -174,8 +174,8 @@ lemma weighted_vsub_indicator_subset (w : ι → k) (p : ι → P) {s₁ s₂ : 
 weighted_vsub_of_point_indicator_subset _ _ _ h
 
 /-- A weighted subtraction, over the image of an embedding, equals a
-weighted sum with the same points and weights over the original
-`finset`. -/
+weighted subtraction with the same points and weights over the
+original `finset`. -/
 lemma weighted_vsub_map (e : ι₂ ↪ ι) (w : ι → k) (p : ι → P) :
   (s₂.map e).weighted_vsub p w = s₂.weighted_vsub (p ∘ e) (w ∘ e) :=
 s₂.weighted_vsub_of_point_map _ _ _ _
@@ -252,8 +252,8 @@ lemma affine_combination_indicator_subset (w : ι → k) (p : ι → P) {s₁ s�
 by rw [affine_combination_apply, affine_combination_apply,
        weighted_vsub_of_point_indicator_subset _ _ _ h]
 
-/-- An affine combination, over the image of an embedding, equals a
-weighted sum with the same points and weights over the original
+/-- An affine combination, over the image of an embedding, equals an
+affine combination with the same points and weights over the original
 `finset`. -/
 lemma affine_combination_map (e : ι₂ ↪ ι) (w : ι → k) (p : ι → P) :
   (s₂.map e).affine_combination p w = s₂.affine_combination (p ∘ e) (w ∘ e) :=
@@ -385,7 +385,8 @@ rfl
   ({i} : finset ι).centroid k p = p i :=
 by simp [centroid_def, affine_combination_apply]
 
-/-- The centroid of two points. -/
+/-- The centroid of two points, expressed directly as adding a vector
+to a point. -/
 lemma centroid_insert_singleton [invertible (2 : k)] (p : ι → P) (i₁ i₂ : ι) :
   ({i₁, i₂} : finset ι).centroid k p = (2 ⁻¹ : k) • (p i₂ -ᵥ p i₁) +ᵥ p i₁ :=
 begin
@@ -402,7 +403,8 @@ begin
     norm_num }
 end
 
-/-- The centroid of two points indexed by `fin 2`. -/
+/-- The centroid of two points indexed by `fin 2`, expressed directly
+as adding a vector to the first point. -/
 lemma centroid_insert_singleton_fin [invertible (2 : k)] (p : fin 2 → P) :
   univ.centroid k p = (2 ⁻¹ : k) • (p 1 -ᵥ p 0) +ᵥ p 0 :=
 begin
@@ -411,7 +413,8 @@ begin
   convert centroid_insert_singleton k p 0 1
 end
 
-/-- The centroid combined with an embedding. -/
+/-- A centroid, over the image of an embedding, equals a centroid with
+the same points and weights over the original `finset`. -/
 lemma centroid_map (e : ι₂ ↪ ι) (p : ι → P) : (s₂.map e).centroid k p = s₂.centroid k (p ∘ e) :=
 by simp [centroid_def, affine_combination_map, centroid_weights]
 

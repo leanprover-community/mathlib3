@@ -125,7 +125,7 @@ jobs:
           python-version: 3.8
 
       - name: install Python dependencies
-        run: python -m pip install --upgrade pip yaml
+        run: python -m pip install --upgrade pip pyyaml
 
       - name: check declarations in db files
         run: |

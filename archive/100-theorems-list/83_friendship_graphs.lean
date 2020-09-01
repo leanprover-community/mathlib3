@@ -298,7 +298,7 @@ begin
 end
 
 /-- We know that a friendship graph has a politician or is regular, so we assume it's regular.
-  If the degree is at most 2, we observe by casework that it's regular anyway.
+  If the degree is at most 2, we observe by casework that it has a politician anyway.
   If the degree is at least 3, the graph cannot exist. -/
 theorem friendship_theorem : exists_politician G :=
 begin

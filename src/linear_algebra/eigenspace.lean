@@ -9,30 +9,21 @@ import linear_algebra.finsupp
 
 /-!
 # Eigenvectors and eigenvalues
-
 This file defines eigenspaces and eigenvalues.
-
 An eigenspace of a linear map `f` for a scalar `μ` is the kernel of the map `(f - μ • id)`. The
 nonzero elements of an eigenspace are eigenvectors `x`. They have the property `f x = μ • x`. If
 there are eigenvectors for a scalar `μ`, the scalar `μ` is called an eigenvalue.
-
 There is no consensus in the literature whether `0` is an eigenvector. Our definition of
 `eigenvector` permits only nonzero vectors. For an eigenvector `x` that may also be `0`, we write
 `x ∈ eigenspace f μ`.
-
 ## Notations
-
 The expression `algebra_map K (End K V)` appears very often, which is why we use `am` as a local
 notation for it.
-
 ## References
-
 * [Sheldon Axler, *Down with determinants!*,
   https://www.maa.org/sites/default/files/pdf/awards/Axler-Ford-1996.pdf][axler1996]
 * https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors
-
 ## Tags
-
 eigenspace, eigenvector, eigenvalue, eigen
 -/
 
@@ -89,7 +80,7 @@ calc
 
 lemma ker_eval₂_ring_hom'_unit_polynomial [field K] [vector_space K V]
   (f : End K V) (c : units (polynomial K)) :
-  ((eval₂_ring_hom' am (λ x y, (algebra.commutes x y).symm) f) ↑c).ker = ⊥ :=
+  ((eval₂_ring_hom' am algebra.commutes f) ↑c).ker = ⊥ :=
 begin
   rw polynomial.eq_C_of_degree_eq_zero (degree_coe_units c),
   simp only [eval₂_ring_hom', ring_hom.of, ring_hom.coe_mk, eval₂_C],
@@ -124,7 +115,7 @@ begin
   obtain ⟨q, hq_factor, hq_nonunit⟩ : ∃ q, q ∈ factors p ∧ ¬ is_unit (eval₂ am f q),
   { simp only [←not_imp, (is_unit.mem_submonoid_iff _).symm],
     apply not_forall.1 (λ h, h_eval_p_not_unit (ring_hom_mem_submonoid_of_factors_subset_of_units_subset
-      (eval₂_ring_hom' am (λ x y, (algebra.commutes x y).symm) f)
+      (eval₂_ring_hom' am algebra.commutes f)
       (is_unit.submonoid (End K V)) p h_p_ne_0 h _)),
     simp only [is_unit.mem_submonoid_iff, linear_map.is_unit_iff],
     apply ker_eval₂_ring_hom'_unit_polynomial },
@@ -145,7 +136,6 @@ end
 
 /-- Eigenvectors corresponding to distinct eigenvalues of a linear operator are linearly
     independent. (Axler's Proposition 2.2)
-
     We use the eigenvalues as indexing set to ensure that there is only one eigenvector for each
     eigenvalue in the image of `xs`. -/
 lemma eigenvectors_linear_independent [field K] [vector_space K V]

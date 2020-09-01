@@ -52,18 +52,20 @@ theorem sort_sorted_lt (s : finset α) :
   list.sorted (<) (sort (≤) s) :=
 (sort_sorted _ _).imp₂ (@lt_of_le_of_ne _ _) (sort_nodup _ _)
 
-lemma sorted_zero_eq_min' (s : finset α) (h : 0 < (s.sort (≤)).length) (H : s.nonempty) :
-  (s.sort (≤)).nth_le 0 h = s.min' H :=
+lemma sorted_zero_eq_min' (s : finset α) (h : 0 < s.card) :
+  (s.sort (≤)).nth_le 0 (by rwa length_sort) = s.min' (by rwa card_pos at h) :=
 begin
   let l := s.sort (≤),
+  have H : s.nonempty, by rwa card_pos at h,
+  have h' : 0 < (s.sort (≤)).length, by rwa length_sort,
   apply le_antisymm,
   { have : s.min' H ∈ l := (finset.mem_sort (≤)).mpr (s.min'_mem H),
     obtain ⟨i, i_lt, hi⟩ : ∃ i (hi : i < l.length), l.nth_le i hi = s.min' H :=
       list.mem_iff_nth_le.1 this,
     rw ← hi,
     exact list.nth_le_of_sorted_of_le (s.sort_sorted (≤)) (nat.zero_le i) },
-  { have : l.nth_le 0 h ∈ s := (finset.mem_sort (≤)).1 (list.nth_le_mem l 0 h),
-    exact s.min'_le H _ this }
+  { have : l.nth_le 0 h' ∈ s := (finset.mem_sort (≤)).1 (list.nth_le_mem l 0 h'),
+    exact s.min'_le _ this }
 end
 
 lemma sorted_last_eq_max' (s : finset α) (h : (s.sort (≤)).length - 1 < (s.sort (≤)).length)
@@ -73,7 +75,7 @@ begin
   apply le_antisymm,
   { have : l.nth_le ((s.sort (≤)).length - 1) h ∈ s :=
       (finset.mem_sort (≤)).1 (list.nth_le_mem l _ h),
-    exact s.le_max' H _ this },
+    exact s.le_max' _ this },
   { have : s.max' H ∈ l := (finset.mem_sort (≤)).mpr (s.max'_mem H),
     obtain ⟨i, i_lt, hi⟩ : ∃ i (hi : i < l.length), l.nth_le i hi = s.max' H :=
       list.mem_iff_nth_le.1 this,
@@ -130,7 +132,7 @@ begin
     apply (mono_of_fin_strict_mono s h).monotone,
     exact zero_le a.val },
   { have : mono_of_fin s h ⟨0, hz⟩ ∈ s := (mono_of_fin_bij_on s h).maps_to (set.mem_univ _),
-    exact min'_le s hs _ this }
+    exact min'_le s _ this }
 end
 
 /-- The bijection `mono_of_fin s h` sends `k-1` to the maximum of `s`. -/
@@ -140,7 +142,7 @@ begin
   have h'' : k - 1 < k := buffer.lt_aux_2 hz,
   apply le_antisymm,
   { have : mono_of_fin s h ⟨k-1, h''⟩ ∈ s := (mono_of_fin_bij_on s h).maps_to (set.mem_univ _),
-    exact le_max' s hs _ this },
+    exact le_max' s _ this },
   { have : max' s hs ∈ s := max'_mem s hs,
     rcases (mono_of_fin_bij_on s h).surj_on this with ⟨a, _, ha⟩,
     rw ← ha,

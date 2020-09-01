@@ -275,7 +275,7 @@ variables (s : finset α) (H : s.nonempty)
 
 theorem min'_mem : s.min' H ∈ s := mem_of_min $ by simp [min']
 
-theorem min'_le (x) (H2 : x ∈ s) : s.min' H ≤ x := min_le_of_mem H2 $ option.get_mem _
+theorem min'_le (x) (H2 : x ∈ s) : s.min' ⟨x, H2⟩ ≤ x := min_le_of_mem H2 $ option.get_mem _
 
 theorem le_min' (x) (H2 : ∀ y ∈ s, x ≤ y) : x ≤ s.min' H := H2 _ $ min'_mem _ _
 
@@ -285,7 +285,7 @@ by simp [min']
 
 theorem max'_mem : s.max' H ∈ s := mem_of_max $ by simp [max']
 
-theorem le_max' (x) (H2 : x ∈ s) : x ≤ s.max' H := le_max_of_mem H2 $ option.get_mem _
+theorem le_max' (x) (H2 : x ∈ s) : x ≤ s.max' ⟨x, H2⟩ := le_max_of_mem H2 $ option.get_mem _
 
 theorem max'_le (x) (H2 : ∀ y ∈ s, y ≤ x) : s.max' H ≤ x := H2 _ $ max'_mem _ _
 
@@ -296,13 +296,13 @@ by simp [max']
 theorem min'_lt_max' {i j} (H1 : i ∈ s) (H2 : j ∈ s) (H3 : i ≠ j) : s.min' H < s.max' H :=
 begin
   rcases lt_trichotomy i j with H4 | H4 | H4,
-  { have H5 := min'_le s H i H1,
-    have H6 := le_max' s H j H2,
+  { have H5 := min'_le s i H1,
+    have H6 := le_max' s j H2,
     apply lt_of_le_of_lt H5,
     apply lt_of_lt_of_le H4 H6 },
   { cc },
-  { have H5 := min'_le s H j H2,
-    have H6 := le_max' s H i H1,
+  { have H5 := min'_le s j H2,
+    have H6 := le_max' s i H1,
     apply lt_of_le_of_lt H5,
     apply lt_of_lt_of_le H4 H6 }
 end
@@ -319,7 +319,7 @@ begin
   rw card_eq_one,
   use max' s H,
   rw eq_singleton_iff_unique_mem,
-  refine ⟨max'_mem _ _, λ t Ht, le_antisymm (le_max' s H t Ht) (le_trans a (min'_le s H t Ht))⟩,
+  refine ⟨max'_mem _ _, λ t Ht, le_antisymm (le_max' s t Ht) (le_trans a (min'_le s t Ht))⟩,
 end
 
 end max_min

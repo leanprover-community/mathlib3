@@ -118,9 +118,9 @@ end preorder_hom
 
 namespace omega_complete_partial_order
 
-/-- Chains are monotonically increasing sequences/
+/-- A chain is a monotonically increasing sequence.
 
-See definition on page 114 of [gunter]-/
+See the definition on page 114 of [gunter]. -/
 def chain (α : Type u) [preorder α] :=
 ℕ →ₘ α
 
@@ -188,7 +188,7 @@ operation on increasing sequences indexed by natural numbers (which we
 call `ωSup`). In this sense, it is strictly weaker than join complete
 semi-lattices as only ω-sized totally ordered sets have a supremum.
 
-See definition on page 114 of [gunter] -/
+See the definition on page 114 of [gunter]. -/
 class omega_complete_partial_order (α : Type*) extends partial_order α :=
 (ωSup     : chain α → α)
 (le_ωSup  : ∀(c:chain α), ∀ i, c i ≤ ωSup c)
@@ -253,7 +253,7 @@ in Scott topological spaces (not defined here). -/
 def continuous (f : α →ₘ β) : Prop :=
 ∀ c : chain α, f (ωSup c) = ωSup (c.map f)
 
-/-- `continuous' f` asserts that `f` is both monotone and continuous -/
+/-- `continuous' f` asserts that `f` is both monotone and continuous. -/
 def continuous' (f : α → β) : Prop :=
 ∃ hf : monotone f, continuous ⟨f, hf⟩
 
@@ -311,7 +311,7 @@ begin
   have := c.monotone h _ ha, apply mem_unique this hb
 end
 
-/-- the `ωSup` definition for the instance `omega_complete_partial_order (roption α)` -/
+/-- The (noncomputable) `ωSup` definition for the `ω`-CPO structure on `roption α`. -/
 protected noncomputable def ωSup (c : chain (roption α)) : roption α :=
 if h : ∃a, some a ∈ c then some (classical.some h) else none
 
@@ -362,10 +362,9 @@ namespace pi
 
 variables {α : Type*} {β : α → Type*} {γ : Type*}
 
-/-- function application as a monotone function from function spaces to result,
-for a fixed arguments -/
+/-- Function application `λ f, f a` is monotone with respect to `f` for fixed `a`. -/
 @[simps]
-def monotone_apply [∀a, partial_order (β a)] (a : α) : (Πa, β a) →ₘ β a  :=
+def monotone_apply [∀a, partial_order (β a)] (a : α) : (Πa, β a) →ₘ β a :=
 { to_fun := (λf:Πa, β a, f a),
   monotone := assume f g hfg, hfg a }
 
@@ -408,7 +407,7 @@ variables [omega_complete_partial_order α]
 variables [omega_complete_partial_order β]
 variables [omega_complete_partial_order γ]
 
-/-- `ωSup` operator for product types -/
+/-- The supremum of a chain in the product `ω`-CPO. -/
 @[simps]
 protected def ωSup (c : chain (α × β)) : α × β :=
 (ωSup (c.map preorder_hom.prod.fst), ωSup (c.map preorder_hom.prod.snd))
@@ -426,6 +425,8 @@ variables (α : Type u) [complete_lattice α]
 
 set_option default_priority 100 -- see Note [default priority]
 
+/-- Any complete lattice has an `ω`-CPO structure where the countable supremum is a special case
+of arbitrary suprema. -/
 instance : omega_complete_partial_order α :=
 { ωSup    := λc, ⨆ i, c i,
   ωSup_le := assume ⟨c, _⟩ s hs, by simp only [supr_le_iff, preorder_hom.coe_fun_mk] at ⊢ hs; intros i; apply hs i,
@@ -443,22 +444,24 @@ variables [omega_complete_partial_order α'] [omega_complete_partial_order β']
 
 namespace preorder_hom
 
+/-- The partial order structure of `α →ₘ β` is pointwise inequality: `f ≤ g ↔ ∀ a, f a ≤ g a`. -/
 instance : partial_order (α →ₘ β) :=
 partial_order.lift preorder_hom.to_fun $ by rintro ⟨⟩ ⟨⟩ h; congr; exact h
 
-/-- function application as a monotone function from monotone functions to result,
-for a fixed arguments -/
+/-- Function application `λ f, f a` (for fixed `a`) is a monotone function from the
+monotone function space `α →ₘ β` to `β`. -/
 @[simps]
 def monotone_apply (a : α) : (α →ₘ β) →ₘ β :=
 { to_fun := (λf : α →ₘ β, f a),
   monotone := assume f g hfg, hfg a }
 
-/-- `preorder_hom.to_fun` as a monotone function from `α →ₘ β` to `α → β` -/
+/-- The "forgetful functor" from `α →ₘ β` to `α → β` that takes the underlying function,
+is monotone. -/
 def to_fun_hom : (α →ₘ β) →ₘ (α → β) :=
 { to_fun := λ f, f.to_fun,
   monotone := λ x y h, h }
 
-/-- `ωSup` operator for monotone functions -/
+/-- The `ωSup` operator for monotone functions. -/
 @[simps]
 protected def ωSup (c : chain (α →ₘ β)) : α →ₘ β :=
 { to_fun := λ a, ωSup (c.map (monotone_apply a)),
@@ -475,7 +478,9 @@ section old_struct
 set_option old_structure_cmd true
 variables (α β)
 
-/-- A monotone function is continuous if it preserves the supremum of chains -/
+/-- A monotone function on `ω`-continuous partial orders is said to be continuous
+if for every chain `c : chain α`, `f (⊔ i, c i) = ⊔ i, f (c i)`.
+This is just the bundled version of `preorder_hom.continuous`. -/
 structure continuous_hom extends preorder_hom α β :=
 (cont : continuous (preorder_hom.mk to_fun monotone))
 
@@ -596,7 +601,6 @@ lemma comp_assoc (f : γ →𝒄 φ) (g : β →𝒄 γ) (h : α →𝒄 β) : f
 lemma coe_apply (a : α) (f : α →𝒄 β) : (f : α →ₘ β) a = f a := rfl
 
 /-- `function.const` is a continuous function. -/
-@[simps {rhs_md := reducible}]
 def const (f : β) : α →𝒄 β :=
 of_mono (preorder_hom.const _ f)
     begin
@@ -606,6 +610,8 @@ of_mono (preorder_hom.const _ f)
       { apply ωSup_le, simp only [preorder_hom.const_to_fun, chain.map_to_fun, function.comp_app],
         intros, refl },
     end
+
+@[simp] theorem const_apply (f : β) (a : α) : const f a = f := rfl
 
 instance [inhabited β] : inhabited (α →𝒄 β) :=
 ⟨ const (default β) ⟩
@@ -683,13 +689,6 @@ begin
     preorder_hom.comp_to_fun, ωSup_to_fun],
 end
 
-/-- `if-then-else` is a continuous function, when the property `p` does not depend on the
-domain `α`. -/
-def ite (p : Prop) [hp : decidable p] (f g : α →𝒄 β) : α →𝒄 β := if p then f else g
-
-@[simp] theorem ite_apply (p) [decidable p] (f g : α →𝒄 β) (x) :
-  (ite p f g).to_fun x = if p then f x else g x := by rw ite; split_ifs; refl
-
 /-- A family of continuous functions yields a continuous family of functions. -/
 @[simps]
 def flip {α : Type*} (f : α → β →𝒄 γ) : β →𝒄 α → γ :=
@@ -701,14 +700,17 @@ def flip {α : Type*} (f : α → β →𝒄 γ) : β →𝒄 α → γ :=
 @[simps { rhs_md := reducible }]
 noncomputable def bind {β γ : Type v}
   (f : α →𝒄 roption β) (g : α →𝒄 β → roption γ) : α →𝒄 roption γ :=
-of_mono (preorder_hom.bind (↑f) (↑g))
-  (λ c, by rw [preorder_hom.bind, ← preorder_hom.bind, ωSup_bind, ← f.continuous, ← g.continuous]; refl)
+of_mono (preorder_hom.bind (↑f) (↑g)) $ λ c, begin
+  rw [preorder_hom.bind, ← preorder_hom.bind, ωSup_bind, ← f.continuous, ← g.continuous],
+  refl
+end
 
 /-- `roption.map` as a continuous function. -/
 @[simps {rhs_md := reducible}]
 noncomputable def map {β γ : Type v} (f : β → γ) (g : α →𝒄 roption β) : α →𝒄 roption γ :=
-of_fun (λ x, f <$> g x) (bind g (const (pure ∘ f)))
-  (by ext; simp only [map_eq_bind_pure_comp, bind_to_fun, preorder_hom.bind_to_fun, const_to_fun, preorder_hom.const_to_fun, coe_apply])
+of_fun (λ x, f <$> g x) (bind g (const (pure ∘ f))) $
+by ext; simp only [map_eq_bind_pure_comp, bind_to_fun, preorder_hom.bind_to_fun, const_apply,
+  preorder_hom.const_to_fun, coe_apply]
 
 /-- `roption.seq` as a continuous function. -/
 @[simps {rhs_md := reducible}]

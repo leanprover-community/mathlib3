@@ -73,6 +73,9 @@ def lift (s : cone F) :
 
 @[simp] lemma lift_apply (s : cone F) (x : s.X) (j : J) : (lift F s) x j = s.π.app j x := rfl
 
+/--
+Construct limit data for a product in `AddCommGroup`, using `AddCommGroup.of (Π j, F.obj j)`.
+-/
 def product_limit_data : limit_data F :=
 { cone :=
   { X := AddCommGroup.of (Π j, F.obj j),

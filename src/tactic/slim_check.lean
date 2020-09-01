@@ -192,7 +192,9 @@ What to do:
 3. make sure that instances of `testable` exist that, when combined, apply to your decorated proposition:
 ```
 {tgt'}
-```",
+```
+
+Use `set_option trace.class_instances true` to understand what instances are missing.",
   e ← mk_mapp ``testable.check [tgt, `(cfg), tgt', inst],
   when_tracing `slim_check.decoration trace!"[testable decoration]\n  {tgt'}",
   when_tracing `slim_check.instance   $ do

@@ -7,6 +7,7 @@ import algebra.invertible
 import data.polynomial.eval
 import data.equiv.ring
 import data.equiv.fin
+import data.set.disjointed
 import tactic.omega
 
 /-!
@@ -774,11 +775,35 @@ by { rw [← eval_map, ← eval_map, map_map], }
   eval₂_hom φ g (map f p) = eval₂_hom (φ.comp f) g p :=
 eval₂_map f g φ p
 
+lemma support_map_subset (p : mv_polynomial σ α) : (map f p).support ⊆ p.support :=
+begin
+  intro x,
+  simp only [finsupp.mem_support_iff],
+  contrapose!,
+  change p.coeff x = 0 → (map f p).coeff x = 0,
+  rw coeff_map,
+  intro hx,
+  rw hx,
+  exact ring_hom.map_zero f
+end
+
+lemma support_map_of_injective (p : mv_polynomial σ α) {f : α →+* β} (hf : injective f) :
+  (map f p).support = p.support :=
+begin
+  apply finset.subset.antisymm,
+  { exact mv_polynomial.support_map_subset _ _ },
+  intros x hx,
+  rw finsupp.mem_support_iff,
+  contrapose! hx,
+  simp only [not_not, finsupp.mem_support_iff],
+  change (map f p).coeff x = 0 at hx,
+  rw [coeff_map, ← f.map_zero] at hx,
+  exact hf hx
+end
+
 end map
 
 section degrees
-
-section comm_semiring
 
 /--
 The maximal degrees of each variable in a multi-variable polynomial, expressed as a multiset.
@@ -856,7 +881,57 @@ lemma degrees_pow (p : mv_polynomial σ α) :
 | 0       := begin rw [pow_zero, degrees_one], exact multiset.zero_le _ end
 | (n + 1) := le_trans (degrees_mul _ _) (add_le_add_left (degrees_pow n) _)
 
-end comm_semiring
+lemma mem_degrees {p : mv_polynomial σ α} {i : σ} :
+  i ∈ p.degrees ↔ ∃ d, p.coeff d ≠ 0 ∧ i ∈ d.support :=
+by simp only [degrees, finset.mem_sup, ← finsupp.mem_support_iff, coeff,
+    finsupp.mem_to_multiset, exists_prop]
+
+lemma le_degrees_add {p q : mv_polynomial σ α} (h : p.degrees.disjoint q.degrees) :
+  p.degrees ≤ (p + q).degrees :=
+begin
+  apply finset.sup_le,
+  intros d hd,
+  rw multiset.disjoint_iff_ne at h,
+  rw multiset.le_iff_count,
+  intros i,
+  rw [degrees, multiset.count_sup],
+  simp only [finsupp.count_to_multiset],
+  by_cases h0 : d = 0,
+  { simp only [h0, zero_le, finsupp.zero_apply], },
+  { refine @finset.le_sup _ _ _ (p + q).support _ d _,
+    rw [finsupp.mem_support_iff, ← coeff, coeff_add],
+    suffices : q.coeff d = 0,
+    { rwa [this, add_zero, coeff, ← finsupp.mem_support_iff], },
+    rw [← finsupp.support_eq_empty, ← ne.def, ← finset.nonempty_iff_ne_empty] at h0,
+    obtain ⟨j, hj⟩ := h0,
+    contrapose! h,
+    rw finsupp.mem_support_iff at hd,
+    refine ⟨j, _, j, _, rfl⟩,
+    all_goals { rw mem_degrees, refine ⟨d, _, hj⟩, assumption } }
+end
+
+lemma degrees_add_of_disjoint {p q : mv_polynomial σ α} (h : multiset.disjoint p.degrees q.degrees) :
+  (p + q).degrees = p.degrees ∪ q.degrees :=
+begin
+  apply le_antisymm,
+  { apply degrees_add },
+  { apply multiset.union_le,
+    { apply le_degrees_add h },
+    { rw add_comm, apply le_degrees_add h.symm } }
+end
+
+lemma degrees_map [comm_semiring β] (p : mv_polynomial σ α) (f : α →+* β) :
+  (map f p).degrees ⊆ p.degrees :=
+begin
+  dsimp only [degrees],
+  apply multiset.subset_of_le,
+  convert finset.sup_subset _ _,
+  apply mv_polynomial.support_map_subset
+end
+
+lemma degrees_map_of_injective [comm_semiring β] (p : mv_polynomial σ α)
+  {f : α →+* β} (hf : injective f) : (map f p).degrees = p.degrees :=
+by simp only [degrees, mv_polynomial.support_map_of_injective _ hf]
 
 end degrees
 
@@ -890,6 +965,86 @@ begin
   left,
   rwa [←to_finset_to_multiset, multiset.mem_to_finset] at h,
 end
+
+lemma vars_add_subset (p q : mv_polynomial σ α) :
+  (p + q).vars ⊆ p.vars ∪ q.vars :=
+begin
+  intros x hx,
+  simp only [vars, finset.mem_union, multiset.mem_to_finset] at hx ⊢,
+  simpa using multiset.mem_of_le (degrees_add _ _) hx,
+end
+
+lemma vars_add_of_disjoint (h : disjoint p.vars q.vars) :
+  (p + q).vars = p.vars ∪ q.vars :=
+begin
+  apply finset.subset.antisymm (vars_add_subset p q),
+  intros x hx,
+  simp only [vars, multiset.disjoint_to_finset] at h hx ⊢,
+  rw [degrees_add_of_disjoint h, multiset.to_finset_union],
+  exact hx
+end
+
+section sum
+
+variables {ι : Type*} (t : finset ι) (φ : ι → mv_polynomial σ α)
+
+lemma vars_sum_subset :
+  (∑ i in t, φ i).vars ⊆ finset.bind t (λ i, (φ i).vars) :=
+begin
+  apply t.induction_on,
+  { simp },
+  { intros a s has hsum,
+    rw [finset.bind_insert, finset.sum_insert has],
+    refine finset.subset.trans (vars_add_subset _ _)
+      (finset.union_subset_union (finset.subset.refl _) _),
+    assumption }
+end
+
+lemma vars_sum_of_disjoint (h : pairwise $ disjoint on (λ i, (φ i).vars)) :
+  (∑ i in t, φ i).vars = finset.bind t (λ i, (φ i).vars) :=
+begin
+  apply t.induction_on,
+  { simp },
+  { intros a s has hsum,
+    rw [finset.bind_insert, finset.sum_insert has, vars_add_of_disjoint, hsum],
+    unfold pairwise on_fun at h,
+    rw hsum,
+    simp only [finset.disjoint_iff_ne] at h ⊢,
+    intros v hv v2 hv2,
+    rw finset.mem_bind at hv2,
+    rcases hv2 with ⟨i, his, hi⟩,
+    refine h a i _ _ hv _ hi,
+    rintro rfl,
+    contradiction }
+end
+
+end sum
+
+section map
+
+variables [bcsr : comm_semiring β] (f : α →+* β)
+variable (p)
+
+lemma vars_map : (map f p).vars ⊆ p.vars :=
+by simp [vars, degrees_map]
+
+variable {f}
+lemma vars_map_of_injective (hf : injective f) :
+  (map f p).vars = p.vars :=
+by simp [vars, degrees_map_of_injective _ hf]
+
+lemma vars_monomial_single (i : σ) {e : ℕ} {r : α} (he : e ≠ 0) (hr : r ≠ 0) :
+  (monomial (finsupp.single i e) r).vars = {i} :=
+by rw [vars_monomial hr, finsupp.support_single_ne_zero he]
+
+lemma mem_vars (i : σ) :
+  i ∈ p.vars ↔ ∃ (d : σ →₀ ℕ) (H : d ∈ p.support), i ∈ d.support :=
+by simp only [vars, multiset.mem_to_finset, mem_degrees, coeff, finsupp.mem_support_iff, exists_prop]
+
+lemma vars_eq_support_bind_support : p.vars = p.support.bind finsupp.support :=
+by {ext i, rw [mem_vars, finset.mem_bind] }
+
+end map
 
 end vars
 
@@ -1031,8 +1186,8 @@ section aeval
 
 /-! ### The algebra of multivariate polynomials -/
 
-variables {R : Type u} {A : Type v} (f : σ → A)
-variables [comm_semiring R] [comm_semiring A] [algebra R A]
+variables {R : Type u} {A : Type v} {S : Type w} (f : σ → A)
+variables [comm_semiring R] [comm_semiring A] [algebra R A] [comm_semiring S]
 
 /-- A map `σ → A` where `A` is an algebra over `R` generates an `R`-algebra homomorphism
 from multivariate polynomials over `σ` to `A`. -/
@@ -1094,6 +1249,38 @@ lemma aeval_monomial (g : σ → A) (d : σ →₀ ℕ) (r : R) :
   aeval g (monomial d r) = algebra_map _ _ r * d.prod (λ i k, g i ^ k) :=
 eval₂_hom_monomial _ _ _ _
 
+lemma eval₂_hom_eq_constant_coeff_of_vars (f : R →+* S) {g : σ → S}
+  {p : mv_polynomial σ R} (hp : ∀ i ∈ p.vars, g i = 0) :
+  eval₂_hom f g p = f (constant_coeff p) :=
+begin
+  conv_lhs { rw p.as_sum },
+  simp only [ring_hom.map_sum, eval₂_hom_monomial],
+  by_cases h0 : constant_coeff p = 0,
+  work_on_goal 0
+  { rw [h0, f.map_zero, finset.sum_eq_zero],
+    intros d hd },
+  work_on_goal 1
+  { rw [finset.sum_eq_single (0 : σ →₀ ℕ)],
+    { rw [finsupp.prod_zero_index, mul_one],
+      refl },
+    intros d hd hd0, },
+  repeat
+  { obtain ⟨i, hi⟩ : d.support.nonempty,
+    { rw [constant_coeff_eq, coeff, ← finsupp.not_mem_support_iff] at h0,
+      rw [finset.nonempty_iff_ne_empty, ne.def, finsupp.support_eq_empty],
+      rintro rfl, contradiction },
+    rw [finsupp.prod, finset.prod_eq_zero hi, mul_zero],
+    rw [hp, zero_pow (nat.pos_of_ne_zero $ finsupp.mem_support_iff.mp hi)],
+    rw [mem_vars],
+    exact ⟨d, hd, hi⟩ },
+  { rw [constant_coeff_eq, coeff, ← ne.def, ← finsupp.mem_support_iff] at h0,
+    intro, contradiction }
+end
+
+lemma aeval_eq_constant_coeff_of_vars [algebra R S] {g : σ → S}
+  {p : mv_polynomial σ R} (hp : ∀ i ∈ p.vars, g i = 0) :
+  aeval g p = algebra_map _ _ (constant_coeff p) :=
+eval₂_hom_eq_constant_coeff_of_vars _ hp
 
 end aeval
 

@@ -20,7 +20,8 @@ import tactic
   politician.
 
 ## Proof outline
-The proof revolves around the theory of adjacency matrices.
+The proof revolves around the theory of adjacency matrices, although some steps could equivalently
+be phrased in terms of counting walks.
 - Assume `G` is a finite friendship graph.
 - First we show that any two nonadjacent vertices have the same degree
 - Assume for contradiction that `G` does not have a politician.
@@ -55,7 +56,8 @@ def common_friends [fintype V] (v w : V) : finset V := G.neighbor_finset v ∩ G
 
 /--
 This property of a graph is the hypothesis of the friendship theorem:
-every pair of vertices has exactly one common friend.
+every pair of nonadjacent vertices has exactly one common friend,
+a vertex to which both are adjacent.
 -/
 def friendship [fintype V] : Prop := ∀ ⦃v w : V⦄, v ≠ w → (common_friends G v w).card = 1
 
@@ -76,8 +78,8 @@ include hG
 namespace friendship
 
 variables (R)
-/-- Another characterization of a friendship graph is that there is exactly one path of length 2
-  between distinct vertices. These paths are counted in off-diagonal entries of the square of
+/-- One characterization of a friendship graph is that there is exactly one walk of length 2
+  between distinct vertices. These walks are counted in off-diagonal entries of the square of
   the adjacency matrix, so for a friendship graph, those entries are all 1. -/
 theorem adj_matrix_sq_of_ne {v w : V} (hvw : v ≠ w) :
   ((G.adj_matrix R) ^ 2) v w = 1 :=
@@ -86,7 +88,7 @@ begin
   simp [common_friends, neighbor_finset_eq_filter, finset.filter_filter, finset.filter_inter],
 end
 
-/-- This calculation amounts to counting the number of length 3 paths between nonadjacent vertices.
+/-- This calculation amounts to counting the number of length 3 walks between nonadjacent vertices.
   We use it to show that nonadjacent vertices have equal degrees. -/
 lemma adj_matrix_pow_three_of_not_adj {v w : V} (non_adj : ¬ G.adj v w) :
   ((G.adj_matrix R) ^ 3) v w = degree G v :=
@@ -102,10 +104,11 @@ end
 
 variable {R}
 
-/-- The number of length 3 paths between `v` and `w` is the same as the number
-  of paths between `w` and `v`, and this is encoded in the fact that the cube of the
-  adjacency matrix is symmetric.
-  Given our previous lemma, this means the degrees of nonadjacent vertices are also equal. -/
+/-- As `v` and `w` not being adjacent implies
+  `degree G v = ((G.adj_matrix R) ^ 3) v w` and `degree G w = ((G.adj_matrix R) ^ 3) v w`,
+  the degrees are equal if `((G.adj_matrix R) ^ 3) v w = ((G.adj_matrix R) ^ 3) w v`
+
+  This is true as the adjacency matrix is symmetric. -/
 lemma degree_eq_of_not_adj {v w : V} (hvw : ¬ G.adj v w) :
   degree G v = degree G w :=
 begin
@@ -117,9 +120,10 @@ begin
     simp only [← mul_eq_mul, mul_assoc],
 end
 
-/-- If there does not exist a politician, then a friendship graph is regular. We already know that
-  nonadjacent vertices have the same degree, and if there isn't a politician, we can show this for
-  adjacent vertices by finding a vertex neither is adjacent to and using transitivity. -/
+/-- If `G` is a friendship graph without a politician (a vertex adjacent to all others), then
+  it is regular. We have shown that nonadjacent vertices of a friendship graph have the same degree,
+  and if there isn't a politician, we can show this for adjacent vertices by finding a vertex
+  neither is adjacent to, and then using transitivity. -/
 theorem is_regular_of_not_exists_politician (hG' : ¬exists_politician G) :
   ∃ (d : ℕ), G.is_regular_of_degree d :=
 begin
@@ -147,8 +151,10 @@ begin
   rw [hy, hx],
 end
 
-/-- Knowing that a graph is a friendship graph determines the off-diagonal elements of the
-  square of its adjacency matrix, and knowing the graph is `d`-regular determines the diagonal.  -/
+/-- Let `A` be the adjacency matrix of a graph `G`.
+  If `G` is a friendship graph, then all of the off-diagonal entries of `A^2` are 1.
+  If `G` is `d`-regular, then all of the diagonal entries of `A^2` are `d`.
+  Putting these together determines `A^2` exactly for a `d`-regular friendship graph. -/
 theorem adj_matrix_sq_of_regular (hd : G.is_regular_of_degree d) :
   ((G.adj_matrix R) ^ 2) = λ v w, if v = w then d else 1 :=
 begin
@@ -157,8 +163,11 @@ begin
   { rw [adj_matrix_sq_of_ne R hG h, if_neg h], },
 end
 
-/-- We can compute the size of a `d`-regular friendship graph by applying the square of the
-  adjacency matrix to a constant vector, and computing the result two different ways. -/
+/-- Let `A` be the adjacency matrix of a `d`-regular friendship graph, and let `v` be a vector
+  all of whose components are `1`. Then `v` is an eigenvector of `A ^ 2`, and we can compute
+  the eigenvalue to be `d * d`, or as `d + (fintype.card V - 1)`, so those quantities must be equal.
+
+  This essentially means that the graph has `d ^ 2 - d + 1` vertices. -/
 lemma card_of_regular (hd : G.is_regular_of_degree d) :
   d + (fintype.card V - 1) = d * d :=
 begin
@@ -174,7 +183,7 @@ begin
           card_neighbor_set_eq_degree, hd v], }
 end
 
-/-- The size of a `d`-regular friendship graph is `1 mod (d-1)`, and also `1 mod p` for a
+/-- The size of a `d`-regular friendship graph is `1 mod (d-1)`, and thus `1 mod p` for a
   factor `p ∣ d-1`. -/
 lemma card_mod_p_of_regular {p : ℕ} (dmod : (d : zmod p) = 1) (hd : G.is_regular_of_degree d) :
   (fintype.card V : zmod p) = 1 :=
@@ -201,7 +210,7 @@ lemma adj_matrix_mul_const_one_mod_p_of_regular {p : ℕ} (dmod : (d : zmod p) =
   (G.adj_matrix (zmod p)) * (λ _ _, 1) = λ _ _, 1 :=
 by rw [adj_matrix_sq_mul_const_one_of_regular hG hd, dmod]
 
-/-- When you mod out by a factor of `d-1`, the square and all higher powers of the adjacency matrix
+/-- Modulo a factor of `d-1`, the square and all higher powers of the adjacency matrix
   of a `d`-regular friendship graph reduce to the matrix whose entries are all 1. -/
 lemma adj_matrix_pow_mod_p_of_regular {p : ℕ} (dmod : (d : zmod p) = 1) (hd : G.is_regular_of_degree d)
 {k : ℕ} (hk : 2 ≤ k) :
@@ -219,7 +228,7 @@ end
 /-- This is the main proof. Assuming that `3 ≤ d`, we take `p` to be a prime factor of `d-1`.
   Then the `p`th power of the adjacency matrix of a `d`-regular friendship graph must have trace 1
   mod `p`, but we can also show that the trace must be the `p`th power of the trace of the original
-  adjacency matrix, which is 0.
+  adjacency matrix, which is 0, a contradiction.
 -/
 lemma false_of_three_le_degree
   (hd : G.is_regular_of_degree d) (h : 3 ≤ d) : false :=
@@ -307,7 +316,10 @@ end
 
 end friendship
 
-/-- We know that a friendship graph has a politician or is regular, so we assume it's regular.
+/-- We wish to show that a friendship graph has a politician (a vertex adjacent to all others).
+  We proceed by contradiction, and assume the graph has no politician.
+  We have already proven that a friendship graph with no politician is `d`-regular for some `d`,
+  and now we do casework on `d`.
   If the degree is at most 2, we observe by casework that it has a politician anyway.
   If the degree is at least 3, the graph cannot exist. -/
 theorem friendship_theorem : exists_politician G :=

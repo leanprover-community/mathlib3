@@ -160,8 +160,8 @@ is_limit.cone_point_unique_up_to_iso (is_limit.assoc P Q R) S
 Given a fixed family of limit data for every pair `X Y`, we obtain an associator.
 -/
 @[reducible]
-def binary_fan.associator_of_limit_data
-  (L : Π X Y : C, limit_data (pair X Y)) (X Y Z : C) :
+def binary_fan.associator_of_limit_cone
+  (L : Π X Y : C, limit_cone (pair X Y)) (X Y Z : C) :
   (L (L X Y).cone.X Z).cone.X ≅ (L X (L Y Z).cone.X).cone.X :=
 binary_fan.associator
   (L X Y).is_limit (L Y Z).is_limit
@@ -199,8 +199,8 @@ section
 local attribute [tidy] tactic.case_bash
 
 variables {C}
-variables (𝒯 : limit_data (functor.empty C))
-variables (ℬ : Π (X Y : C), limit_data (pair X Y))
+variables (𝒯 : limit_cone (functor.empty C))
+variables (ℬ : Π (X Y : C), limit_cone (pair X Y))
 
 namespace monoidal_of_chosen_finite_products
 
@@ -231,11 +231,11 @@ begin
 end
 
 lemma pentagon (W X Y Z : C) :
-  tensor_hom ℬ (binary_fan.associator_of_limit_data ℬ W X Y).hom (𝟙 Z) ≫
-    (binary_fan.associator_of_limit_data ℬ W (tensor_obj ℬ X Y) Z).hom ≫
-      tensor_hom ℬ (𝟙 W) (binary_fan.associator_of_limit_data ℬ X Y Z).hom =
-  (binary_fan.associator_of_limit_data ℬ (tensor_obj ℬ W X) Y Z).hom ≫
-    (binary_fan.associator_of_limit_data ℬ W X (tensor_obj ℬ Y Z)).hom :=
+  tensor_hom ℬ (binary_fan.associator_of_limit_cone ℬ W X Y).hom (𝟙 Z) ≫
+    (binary_fan.associator_of_limit_cone ℬ W (tensor_obj ℬ X Y) Z).hom ≫
+      tensor_hom ℬ (𝟙 W) (binary_fan.associator_of_limit_cone ℬ X Y Z).hom =
+  (binary_fan.associator_of_limit_cone ℬ (tensor_obj ℬ W X) Y Z).hom ≫
+    (binary_fan.associator_of_limit_cone ℬ W X (tensor_obj ℬ Y Z)).hom :=
 begin
   dsimp [tensor_hom],
   apply is_limit.hom_ext (ℬ _ _).is_limit, rintro ⟨⟩,
@@ -248,7 +248,7 @@ begin
 end
 
 lemma triangle (X Y : C) :
-  (binary_fan.associator_of_limit_data ℬ X 𝒯.cone.X Y).hom ≫
+  (binary_fan.associator_of_limit_cone ℬ X 𝒯.cone.X Y).hom ≫
     tensor_hom ℬ (𝟙 X) (binary_fan.left_unitor 𝒯.is_limit (ℬ 𝒯.cone.X Y).is_limit).hom =
   tensor_hom ℬ (binary_fan.right_unitor 𝒯.is_limit (ℬ X 𝒯.cone.X).is_limit).hom (𝟙 Y) :=
 begin
@@ -273,8 +273,8 @@ begin
 end
 
 lemma associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃) :
-  tensor_hom ℬ (tensor_hom ℬ f₁ f₂) f₃ ≫ (binary_fan.associator_of_limit_data ℬ Y₁ Y₂ Y₃).hom =
-    (binary_fan.associator_of_limit_data ℬ X₁ X₂ X₃).hom ≫ tensor_hom ℬ f₁ (tensor_hom ℬ f₂ f₃) :=
+  tensor_hom ℬ (tensor_hom ℬ f₁ f₂) f₃ ≫ (binary_fan.associator_of_limit_cone ℬ Y₁ Y₂ Y₃).hom =
+    (binary_fan.associator_of_limit_cone ℬ X₁ X₂ X₃).hom ≫ tensor_hom ℬ f₁ (tensor_hom ℬ f₂ f₃) :=
 begin
   dsimp [tensor_hom],
   apply is_limit.hom_ext (ℬ _ _).is_limit, rintro ⟨⟩,
@@ -296,7 +296,7 @@ def monoidal_of_chosen_finite_products :
   tensor_hom   := λ _ _ _ _ f g, tensor_hom ℬ f g,
   tensor_id'   := tensor_id ℬ,
   tensor_comp' := λ _ _ _ _ _ _ f₁ f₂ g₁ g₂, tensor_comp ℬ f₁ f₂ g₁ g₂,
-  associator   := λ X Y Z, binary_fan.associator_of_limit_data ℬ X Y Z,
+  associator   := λ X Y Z, binary_fan.associator_of_limit_cone ℬ X Y Z,
   left_unitor  := λ X, binary_fan.left_unitor (𝒯.is_limit) (ℬ 𝒯.cone.X X).is_limit,
   right_unitor := λ X, binary_fan.right_unitor (𝒯.is_limit) (ℬ X 𝒯.cone.X).is_limit,
   pentagon'    := pentagon ℬ,
@@ -317,7 +317,7 @@ This is an implementation detail for `symmetric_of_chosen_finite_products`.
 -/
 @[derive category, nolint unused_arguments has_inhabited_instance]
 def monoidal_of_chosen_finite_products_synonym
-  (𝒯 : limit_data (functor.empty C)) (ℬ : Π (X Y : C), limit_data (pair X Y)):= C
+  (𝒯 : limit_cone (functor.empty C)) (ℬ : Π (X Y : C), limit_cone (pair X Y)):= C
 
 instance : monoidal_category (monoidal_of_chosen_finite_products_synonym 𝒯 ℬ) :=
 monoidal_of_chosen_finite_products 𝒯 ℬ
@@ -332,11 +332,11 @@ begin
 end
 
 lemma hexagon_forward (X Y Z : C) :
-  (binary_fan.associator_of_limit_data ℬ X Y Z).hom ≫
+  (binary_fan.associator_of_limit_cone ℬ X Y Z).hom ≫
     (limits.binary_fan.braiding (ℬ X (tensor_obj ℬ Y Z)).is_limit (ℬ (tensor_obj ℬ Y Z) X).is_limit).hom ≫
-        (binary_fan.associator_of_limit_data ℬ Y Z X).hom =
+        (binary_fan.associator_of_limit_cone ℬ Y Z X).hom =
     (tensor_hom ℬ (limits.binary_fan.braiding (ℬ X Y).is_limit (ℬ Y X).is_limit).hom (𝟙 Z)) ≫
-      (binary_fan.associator_of_limit_data ℬ Y X Z).hom ≫
+      (binary_fan.associator_of_limit_cone ℬ Y X Z).hom ≫
         (tensor_hom ℬ (𝟙 Y) (limits.binary_fan.braiding (ℬ X Z).is_limit (ℬ Z X).is_limit).hom) :=
 begin
   dsimp [tensor_hom, limits.binary_fan.braiding],
@@ -347,20 +347,20 @@ begin
 end
 
 lemma hexagon_reverse (X Y Z : C) :
-  (binary_fan.associator_of_limit_data ℬ X Y Z).inv ≫
+  (binary_fan.associator_of_limit_cone ℬ X Y Z).inv ≫
     (limits.binary_fan.braiding (ℬ (tensor_obj ℬ X Y) Z).is_limit (ℬ Z (tensor_obj ℬ X Y)).is_limit).hom ≫
-      (binary_fan.associator_of_limit_data ℬ Z X Y).inv =
+      (binary_fan.associator_of_limit_cone ℬ Z X Y).inv =
     (tensor_hom ℬ (𝟙 X) (limits.binary_fan.braiding (ℬ Y Z).is_limit (ℬ Z Y).is_limit).hom) ≫
-      (binary_fan.associator_of_limit_data ℬ X Z Y).inv ≫
+      (binary_fan.associator_of_limit_cone ℬ X Z Y).inv ≫
         (tensor_hom ℬ (limits.binary_fan.braiding (ℬ X Z).is_limit (ℬ Z X).is_limit).hom (𝟙 Y)) :=
 begin
   dsimp [tensor_hom, limits.binary_fan.braiding],
   apply (ℬ _ _).is_limit.hom_ext, rintro ⟨⟩,
   { apply (ℬ _ _).is_limit.hom_ext, rintro ⟨⟩;
-    { dsimp [binary_fan.associator_of_limit_data, binary_fan.associator,
+    { dsimp [binary_fan.associator_of_limit_cone, binary_fan.associator,
         limits.is_limit.cone_point_unique_up_to_iso],
       simp, }, },
-  { dsimp [binary_fan.associator_of_limit_data, binary_fan.associator,
+  { dsimp [binary_fan.associator_of_limit_cone, binary_fan.associator,
       limits.is_limit.cone_point_unique_up_to_iso],
     simp, },
 end

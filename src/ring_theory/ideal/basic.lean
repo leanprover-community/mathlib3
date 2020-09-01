@@ -446,38 +446,6 @@ lemma bot_is_maximal {K : Type u} [field K] : is_maximal (⊥ : ideal K) :=
 ⟨λ h, absurd ((eq_top_iff_one (⊤ : ideal K)).mp rfl) (by rw ← h; simp),
 λ I hI, or_iff_not_imp_left.mp (eq_bot_or_top I) (ne_of_gt hI)⟩
 
-/-- Maximal ideals in a non-field are nontrivial. -/
-variables {R : Type u} [comm_ring R]
-lemma maximal_gt_bot {M : ideal R} (hm : M.is_maximal) (non_field : ∃(I : ideal R), ⊥ < I ∧ I < ⊤) : ⊥ < M :=
-begin
-  split,
-  simp only [le_eq_subset, submodule.mem_coe, zero_subset, singleton_zero, submodule.bot_coe, submodule.zero_mem],
-  intro mle,
-  have : M = ⊥,
-  { have h1 : M ≤ ⊥ := by assumption,
-    have h2 : ⊥ ≤ M := by simp only [bot_le],
-    exact le_antisymm h1 h2, },
-  unfold ideal.is_maximal at hm,
-  rcases hm with ⟨ne_top, h1⟩,
-  contrapose! h1,
-  rcases non_field with ⟨I, ibot, itop⟩,
-  use I, rw this at *,
-  split, assumption,
-  rcases itop with ⟨-, itop⟩,
-  contrapose! itop,
-  rw itop,
-  exact le_refl ⊤,
-end
-
-lemma exists_prime_gt_bot [nontrivial R] (non_field : ∃(I : ideal R), ⊥ < I ∧ I < ⊤) : ∃(P : ideal R), P.is_prime ∧ ⊥ < P :=
-begin
-  cases @exists_maximal R _ _ with P hp,
-  use P,
-  split,
-  { exact is_maximal.is_prime hp, },
-  { refine maximal_gt_bot hp non_field, }
-end
-
 section pi
 variables (ι : Type v)
 
@@ -546,6 +514,70 @@ begin
 end
 
 end pi
+
+end ideal
+
+namespace ring
+
+variables {R : Type*} [comm_ring R]
+
+lemma not_is_field_of_subsingleton {R : Type*} [ring R] [subsingleton R] : ¬ is_field R :=
+λ ⟨⟨x, y, hxy⟩, _, _⟩, hxy (subsingleton.elim x y)
+
+lemma exists_not_is_unit_of_not_is_field [nontrivial R] (hf : ¬ is_field R) :
+  ∃ x ≠ (0 : R), ¬ is_unit x :=
+begin
+  have : ¬ _ := λ h, hf ⟨exists_pair_ne R, mul_comm, h⟩,
+  simp_rw is_unit_iff_exists_inv,
+  push_neg at ⊢ this,
+  obtain ⟨x, hx, not_unit⟩ := this,
+  exact ⟨x, hx, not_unit⟩
+end
+
+lemma not_is_field_iff_exists_ideal_bot_lt_and_lt_top [nontrivial R] :
+  ¬ is_field R ↔ ∃ I : ideal R, ⊥ < I ∧ I < ⊤ :=
+begin
+  split,
+  { intro h,
+    obtain ⟨x, nz, nu⟩ := exists_not_is_unit_of_not_is_field h,
+    use ideal.span {x},
+    rw [bot_lt_iff_ne_bot, lt_top_iff_ne_top],
+    exact ⟨mt ideal.span_singleton_eq_bot.mp nz, mt ideal.span_singleton_eq_top.mp nu⟩ },
+  { rintros ⟨I, bot_lt, lt_top⟩ hf,
+    obtain ⟨x, mem, ne_zero⟩ := submodule.exists_of_lt bot_lt,
+    rw submodule.mem_bot at ne_zero,
+    obtain ⟨y, hy⟩ := hf.mul_inv_cancel ne_zero,
+    rw [lt_top_iff_ne_top, ne.def, ideal.eq_top_iff_one, ← hy] at lt_top,
+    exact lt_top (ideal.mul_mem_right _ mem), }
+end
+
+lemma not_is_field_iff_exists_ideal_ne_bot_and_is_prime [nontrivial R] :
+  ¬ is_field R ↔ ∃ p : ideal R, p ≠ ⊥ ∧ p.is_prime :=
+not_is_field_iff_exists_ideal_bot_lt_and_lt_top.trans
+  ⟨λ ⟨I, bot_lt, lt_top⟩, let ⟨p, hp, le_p⟩ := I.exists_le_maximal (lt_top_iff_ne_top.mp lt_top) in
+    ⟨p, bot_lt_iff_ne_bot.mp (lt_of_lt_of_le bot_lt le_p), hp.is_prime⟩,
+   λ ⟨p, ne_bot, prime⟩, ⟨p, bot_lt_iff_ne_bot.mpr ne_bot, lt_top_iff_ne_top.mpr prime.1⟩⟩
+
+end ring
+
+namespace ideal
+
+/-- Maximal ideals in a non-field are nontrivial. -/
+variables {R : Type u} [comm_ring R] [nontrivial R]
+lemma bot_lt_of_maximal (M : ideal R) [hm : M.is_maximal] (non_field : ¬ is_field R) : ⊥ < M :=
+begin
+  rw ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top at non_field,
+  split, finish,
+  intro mle,
+  have : M = ⊥ := by exact eq_bot_iff.mpr mle,
+  rw this at *,
+  unfold ideal.is_maximal at hm,
+  rcases hm with ⟨ne_top, h1⟩,
+  rcases non_field with ⟨I, ibot, itop⟩,
+  have h2 := h1 I ibot,
+  rw h2 at itop,
+  exact irrefl ⊤ itop,
+end
 
 end ideal
 

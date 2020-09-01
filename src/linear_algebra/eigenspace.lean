@@ -145,6 +145,7 @@ end
 
 /-- Eigenvectors corresponding to distinct eigenvalues of a linear operator are linearly
     independent. (Axler's Proposition 2.2)
+
     We use the eigenvalues as indexing set to ensure that there is only one eigenvector for each
     eigenvalue in the image of `xs`. -/
 lemma eigenvectors_linear_independent [field K] [vector_space K V]

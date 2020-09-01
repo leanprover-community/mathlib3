@@ -39,13 +39,15 @@ section basic
 
 variables (f : (Π a, roption $ β a) → (Π a, roption $ β a))
 
-/-- series of successive, finite approximation of the fixed point of `f` -/
+/-- A series of successive, finite approximation of the fixed point of `f`, defined by
+`approx f n = f^[n] ⊥`. The limit of this chain is the fixed point of `f`. -/
 def fix.approx : stream $ Π a, roption $ β a
 | 0 := ⊥
 | (nat.succ i) := f (fix.approx i)
 
 /-- loop body for finding the fixed point of `f` -/
-def fix_aux {p : ℕ → Prop} (i : nat.upto p) (g : Π j : nat.upto p, i < j → Π a, roption $ β a) : Π a, roption $ β a :=
+def fix_aux {p : ℕ → Prop} (i : nat.upto p)
+  (g : Π j : nat.upto p, i < j → Π a, roption $ β a) : Π a, roption $ β a :=
 f $ λ x : α,
 assert (¬p (i.val)) $ λ h : ¬ p (i.val),
 g (i.succ h) (nat.lt_succ_self _) x
@@ -55,10 +57,9 @@ g (i.succ h) (nat.lt_succ_self _) x
 If `f` is a continuous function (according to complete partial orders),
 it satisfies the equations:
 
- (0) fix f = f (fix f)          (is a fixed point)
- (1) ∀ X, f X ≤ X → fix f ≤ X   (least fixed point)
-
-(proof below) -/
+  1. `fix f = f (fix f)`          (is a fixed point)
+  2. `∀ X, f X ≤ X → fix f ≤ X`   (least fixed point)
+-/
 protected def fix (x : α) : roption $ β x :=
 roption.assert (∃ i, (fix.approx f i x).dom) $ λ h,
 well_founded.fix.{1} (nat.upto.wf h) (fix_aux f) nat.upto.zero x
@@ -102,12 +103,8 @@ end roption
 
 namespace roption
 
-/-- Convert a function from and to `α` to a function from and to `unit → α`. Useful because
-the fixed point machinery for `roption` assumes functions with one argument -/
-def to_unit (f : α → α) (x : unit → α) (u : unit) : α := f (x u)
-
 instance : has_fix (roption α) :=
-⟨ λ f, roption.fix (to_unit f) () ⟩
+⟨λ f, roption.fix (λ x u, f (x u)) ()⟩
 
 end roption
 
@@ -115,7 +112,6 @@ open sigma
 
 namespace pi
 
-instance roption.has_fix {β} : has_fix (α → roption β) :=
-⟨ roption.fix ⟩
+instance roption.has_fix {β} : has_fix (α → roption β) := ⟨roption.fix⟩
 
 end pi

@@ -31,7 +31,12 @@ section prio
 
 set_option default_priority 100  -- see Note [default priority]
 
-/-- Laws for fixed point operator -/
+/-- Intuitively, a fixed point operator `fix` is lawful if it satisfies `fix f = f (fix f)` for all
+`f`, but this is inconsistent / uninteresting in most cases due to the existence of "exotic"
+functions `f`, such as the function that is defined iff its argument is not, familiar from the
+halting problem. Instead, this requirement is limited to only functions that are `continuous` in the
+sense of `ω`-complete partial orders, which excludes the example because it is not monotone
+(making the input argument less defined can make `f` more defined). -/
 class lawful_fix (α : Type*) [omega_complete_partial_order α] extends has_fix α :=
 (fix_eq : ∀ {f : α →ₘ α}, continuous f → has_fix.fix f = f (has_fix.fix f))
 
@@ -105,9 +110,8 @@ end
 
 include f
 
-/-- series of approximations of `fix f` as a `chain` -/
-def approx_chain : chain (Π a, roption $ β a) :=
-⟨ approx f, approx_mono f ⟩
+/-- The series of approximations of `fix f` (see `approx`) as a `chain` -/
+def approx_chain : chain (Π a, roption $ β a) := ⟨approx f, approx_mono f⟩
 
 lemma le_f_of_mem_approx {x} (hx : x ∈ approx_chain f) : x ≤ f x :=
 begin
@@ -176,19 +180,18 @@ namespace roption
 /-- `to_unit` as a monotone function -/
 @[simps]
 def to_unit_mono (f : roption α →ₘ roption α) : (unit → roption α) →ₘ (unit → roption α) :=
-{ to_fun := to_unit f,
-  monotone := λ x y, assume h : x ≤ y,
-    show to_unit f x ≤ to_unit f y,
-    from λ u, f.monotone $ h u }
+{ to_fun := λ x u, f (x u),
+  monotone := λ x y (h : x ≤ y) u, f.monotone $ h u }
 
-lemma fold_to_unit_mono (f : roption α →ₘ roption α) : to_unit f = to_unit_mono f := rfl
-
-lemma to_unit_cont (f : roption α →ₘ roption α) : Π hc : continuous f, continuous (to_unit_mono f)
-| hc := by { intro c, ext ⟨⟩ : 1, dsimp [to_unit,omega_complete_partial_order.ωSup], erw [hc,chain.map_comp], refl }
+lemma to_unit_cont (f : roption α →ₘ roption α) (hc : continuous f) : continuous (to_unit_mono f)
+| c := begin
+  ext ⟨⟩ : 1,
+  dsimp [omega_complete_partial_order.ωSup],
+  erw [hc, chain.map_comp], refl
+end
 
 noncomputable instance : lawful_fix (roption α) :=
-⟨ λ f hc, by { dsimp [has_fix.fix],
-              conv { to_lhs, rw [fold_to_unit_mono,roption.fix_eq (to_unit_cont f hc)] }, refl } ⟩
+⟨λ f hc, show roption.fix (to_unit_mono f) () = _, by rw roption.fix_eq (to_unit_cont f hc); refl⟩
 
 end roption
 
@@ -196,8 +199,7 @@ open sigma
 
 namespace pi
 
-noncomputable instance {β} : lawful_fix (α → roption β) :=
-⟨ λ f hc, by { dsimp [has_fix.fix], conv { to_lhs, rw [roption.fix_eq hc], } } ⟩
+noncomputable instance {β} : lawful_fix (α → roption β) := ⟨λ f, roption.fix_eq⟩
 
 variables {γ : Π a : α, β a → Type*}
 
@@ -205,15 +207,17 @@ section monotone
 
 variables (α β γ)
 
-/-- `sigma.curry` as a monotone function -/
+/-- `sigma.curry` as a monotone function. -/
 @[simps]
-def monotone_curry [∀ x y, preorder $ γ x y] : (Π x : Σ a, β a, γ x.1 x.2) →ₘ (Π a (b : β a), γ a b) :=
+def monotone_curry [∀ x y, preorder $ γ x y] :
+  (Π x : Σ a, β a, γ x.1 x.2) →ₘ (Π a (b : β a), γ a b) :=
 { to_fun := curry,
   monotone := λ x y h a b, h ⟨a,b⟩ }
 
-/-- `sigma.uncurry` as a monotone function -/
+/-- `sigma.uncurry` as a monotone function. -/
 @[simps]
-def monotone_uncurry [∀ x y, preorder $ γ x y] : (Π a (b : β a), γ a b) →ₘ (Π x : Σ a, β a, γ x.1 x.2) :=
+def monotone_uncurry [∀ x y, preorder $ γ x y] :
+  (Π a (b : β a), γ a b) →ₘ (Π x : Σ a, β a, γ x.1 x.2) :=
 { to_fun := uncurry,
   monotone := λ x y h a, h a.1 a.2 }
 

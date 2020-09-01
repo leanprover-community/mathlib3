@@ -416,7 +416,7 @@ instance exists_testable' (xs : list α) (p : Prop)
 
 /-- Test a universal property by creating a sample of the right type and instantiating the
 bound variable with it. -/
-instance var_testable [has_to_string α] [sampleable α] [∀ x, testable (β x)] : testable (named_binder var $ Π x : α, β x) :=
+instance var_testable [∀ x, testable (β x)] [has_to_string α] [sampleable α] : testable (named_binder var $ Π x : α, β x) :=
 ⟨ λ tracing min, do
    uliftable.adapt_down (sample α) $
    λ x, do
@@ -433,8 +433,8 @@ instance unused_var_testable (β) [inhabited α] [testable β] : testable (named
   pure $ convert_counter_example ($ default _) r (psum.inr $ λ x _, x) ⟩
 
 @[priority 2000]
-instance subtype_var_testable (p : α → Prop) [has_to_string α] [sampleable (subtype p)]
-  [∀ x, testable (β x)] :
+instance subtype_var_testable (p : α → Prop) [has_to_string α]
+  [∀ x, testable (β x)] [sampleable (subtype p)] :
   testable (named_binder var $ Π x : α, named_binder var' $ p x → β x) :=
 ⟨ λ tracing min,
    do r ← @testable.run (∀ x : subtype p, β x.val) (slim_check.var_testable var _ _) tracing min,

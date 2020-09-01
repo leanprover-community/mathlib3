@@ -165,7 +165,8 @@ y := 28
 -------------------
 ```
 
-If no counter-examples are found, `slim_check` behaves like `admit`.
+If `slim_check` successfully tests 100 examples, it acts like
+admit. If it gives up or finds a counter-example, it reports an error.
 
 For more information on writing your own `sampleable` and `testable`
 instances, see `testing.slim_check.testable`.

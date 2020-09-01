@@ -294,6 +294,7 @@ theorem max'_le (x) (H2 : ∀ y ∈ s, y ≤ x) : s.max' H ≤ x := H2 _ $ max'_
 @[simp] lemma max'_singleton (a : α) :
   ({a} : finset α).max' (singleton_nonempty _) = a :=
 by simp [max']
+
 theorem min'_lt_max' {i j} (H1 : i ∈ s) (H2 : j ∈ s) (H3 : i ≠ j) :
   s.min' ⟨i, H1⟩ < s.max' ⟨i, H1⟩ :=
 begin

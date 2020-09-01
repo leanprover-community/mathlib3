@@ -103,7 +103,7 @@ have hprod : ↑M*M1=1,
       finish,
     },
     {have incl : ↑ M ≤ ↑ M*M1,sorry, sorry},
-      -- sto copiando la prova dal teorema right_inverse_eq di fractional_ideal.lean
+      -- Copying the proof of right_inverse_eq from fractional_ideal.lean
       -- exact (mem_div_iff_of_nonzero hI).mp hy x hx,},
     --   {rw [←h],
     --   apply mul_left_mono I,

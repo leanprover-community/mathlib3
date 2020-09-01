@@ -81,7 +81,7 @@ A choice of limit cone for a functor into `Group`.
 -/
 @[to_additive "A choice of limit cone for a functor into `Group`. (Generally, you'll just want to use `limit F`.)"]
 def limit_cone (F : J ⥤ Group) : cone F :=
-lift_limit (limit.is_limit (F ⋙ (forget₂ Group Mon)))
+lift_limit (limit.is_limit (F ⋙ (forget₂ Group Mon.{u})))
 
 /--
 The chosen cone is a limit cone.
@@ -154,7 +154,7 @@ A choice of limit cone for a functor into `CommGroup`.
 -/
 @[to_additive "A choice of limit cone for a functor into `CommGroup`. (Generally, you'll just want to use `limit F`.)"]
 def limit_cone (F : J ⥤ CommGroup) : cone F :=
-lift_limit (limit.is_limit (F ⋙ (forget₂ CommGroup Group)))
+lift_limit (limit.is_limit (F ⋙ (forget₂ CommGroup Group.{u})))
 
 /--
 The chosen cone is a limit cone.

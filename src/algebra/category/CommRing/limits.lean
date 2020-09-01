@@ -165,7 +165,7 @@ A choice of limit cone for a functor into `CommSemiRing`.
 (Generally, you'll just want to use `limit F`.)
 -/
 def limit_cone (F : J ⥤ CommSemiRing) : cone F :=
-lift_limit (limit.is_limit (F ⋙ (forget₂ CommSemiRing SemiRing)))
+lift_limit (limit.is_limit (F ⋙ (forget₂ CommSemiRing SemiRing.{u})))
 
 /--
 The chosen cone is a limit cone.
@@ -250,7 +250,7 @@ A choice of limit cone for a functor into `Ring`.
 (Generally, you'll just want to use `limit F`.)
 -/
 def limit_cone (F : J ⥤ Ring) : cone F :=
-lift_limit (limit.is_limit (F ⋙ (forget₂ Ring SemiRing)))
+lift_limit (limit.is_limit (F ⋙ (forget₂ Ring SemiRing.{u})))
 
 /--
 The chosen cone is a limit cone.
@@ -341,7 +341,7 @@ A choice of limit cone for a functor into `CommRing`.
 (Generally, you'll just want to use `limit F`.)
 -/
 def limit_cone (F : J ⥤ CommRing) : cone F :=
-lift_limit (limit.is_limit (F ⋙ (forget₂ CommRing Ring)))
+lift_limit (limit.is_limit (F ⋙ (forget₂ CommRing Ring.{u})))
 
 /--
 The chosen cone is a limit cone.

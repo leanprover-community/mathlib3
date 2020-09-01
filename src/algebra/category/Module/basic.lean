@@ -68,11 +68,11 @@ instance : has_zero_object (Module.{v} R) :=
   unique_to := λ X,
   { default := (0 : punit →ₗ[R] X),
     uniq := λ _, linear_map.ext $ λ x,
-      have h : x = 0, from subsingleton.elim _ _,
+      have h : x = 0, from dec_trivial,
       by simp only [h, linear_map.map_zero]},
   unique_from := λ X,
   { default := (0 : X →ₗ[R] punit),
-    uniq := λ _, linear_map.ext $ λ x, subsingleton.elim _ _ } }
+    uniq := λ _, linear_map.ext $ λ x, dec_trivial } }
 
 variables {R} {M N U : Module.{v} R}
 

@@ -56,7 +56,7 @@ begin
 end
 
 /-- `limit.π (F ⋙ forget (Algebra R)) j` as a `alg_hom`. -/
-def limit_π_alg_hom (F : J ⥤ Algebra R) (j) :
+def limit_π_alg_hom (F : J ⥤ Algebra.{v} R) (j) :
   (types.limit_cone (F ⋙ forget (Algebra R))).X →ₐ[R] (F ⋙ forget (Algebra.{v} R)).obj j :=
 { commutes' := λ r, rfl,
   ..SemiRing.limit_π_ring_hom (F ⋙ forget₂ (Algebra R) Ring.{v} ⋙ forget₂ Ring SemiRing.{v}) j }

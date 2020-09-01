@@ -118,6 +118,13 @@ instance sampleable_nat : sampleable ℕ :=
                           coe <$> choose_any (fin $ succ sz),
   shrink := lazy_list.of_list ∘ nat.shrink }
 
+instance sampleable_fin {n} [fact $ 0 < n] : sampleable (fin n) :=
+sampleable.lift ℕ (fin.of_nat') subtype.val
+
+@[priority 100]
+instance sampleable_fin' {n} : sampleable (fin (succ n)) :=
+sampleable.lift ℕ fin.of_nat subtype.val
+
 instance sampleable_pnat : sampleable ℕ+ :=
 sampleable.lift ℕ nat.succ_pnat (λ i, i - 1)
 
@@ -287,7 +294,9 @@ meta def sample_cmd (_ : parse $ tk "#sample") : lean.parser unit :=
 do e ← texpr,
    of_tactic $ do
      e ← tactic.i_to_expr e,
-     print_samples ← tactic.mk_mapp ``print_samples [e,none,none],
+     sampleable_inst ← tactic.mk_app ``sampleable [e] >>= tactic.mk_instance,
+     has_repr_inst ← tactic.mk_app ``has_repr [e] >>= tactic.mk_instance,
+     print_samples ← tactic.mk_mapp ``print_samples [e, sampleable_inst, has_repr_inst],
      sample ← tactic.eval_expr (io unit) print_samples,
      tactic.unsafe_run_io sample
 

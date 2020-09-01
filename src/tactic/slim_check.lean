@@ -52,18 +52,18 @@ h : ∃ (x : ℕ) (H : x ∈ xs), x < 3
 The local constants are reverted and an instance is found for
 `testable (∀ (xs : list ℕ), (∃ x ∈ xs, x < 3) → (∀ y ∈ xs, y < 5))`.
 The `testable` instance is supported by instances of `sampleable (list ℕ)`,
-`decidable (x < 3)` and `decidable (y < 5)`. `slim_check` builds a 
+`decidable (x < 3)` and `decidable (y < 5)`. `slim_check` builds a
 `testable` instance step by step with:
 
 ```
-- testable (∀ (xs : list ℕ), (∃ x ∈ xs, x < 3) → (∀ y ∈ xs, y < 5)) 
+- testable (∀ (xs : list ℕ), (∃ x ∈ xs, x < 3) → (∀ y ∈ xs, y < 5))
                                      -: sampleable (list xs)
 - testable ((∃ x ∈ xs, x < 3) → (∀ y ∈ xs, y < 5))
 - testable (∀ x ∈ xs, x < 3 → (∀ y ∈ xs, y < 5))
 - testable (x < 3 → (∀ y ∈ xs, y < 5))
-                                     -: decidable (x < 3) 
+                                     -: decidable (x < 3)
 - testable (∀ y ∈ xs, y < 5)
-                                     -: decidable (y < 5) 
+                                     -: decidable (y < 5)
 ```
 
 `sampleable (list ℕ)` lets us create random data of type `list ℕ` in a way that
@@ -71,7 +71,7 @@ helps find small counter-examples.  Next, the test of the proposition
 hinges on `x < 3` and `y < 5` to both be decidable. The
 implication between the two could be tested as a whole but it would be
 less informative. Indeed, if we generate lists that only contain numbers
-greater than `3`, the implication will always trivially hold but we should 
+greater than `3`, the implication will always trivially hold but we should
 conclude that we haven't found meaningful examples. Instead, when `x < 3`
 does not hold, we reject the example (i.e.  we do not count it toward
 the 100 required positive examples) and we start over. Therefore, when
@@ -184,8 +184,18 @@ meta def slim_check (cfg : slim_check_cfg := {}) : tactic unit := do
 { tgt ← retrieve $ tactic.revert_all >> target,
   let tgt' := tactic.add_decorations tgt,
   let cfg := { cfg with enable_tracing := cfg.enable_tracing || is_trace_enabled_for `slim_check.discared },
-  e ← mk_mapp ``testable.check [tgt, `(cfg), tgt', none],
-  `(@testable.check _ _ _ %%inst) ← pure e,
+  inst ← mk_app ``testable [tgt'] >>= mk_instance <|>
+    fail!"Failed to create a `testable` instance for `{tgt}`.
+What to do:
+1. make sure that the types you are using have `sampleable` instances (you can use `#sample my_type` if you are unsure);
+2. make sure that the relations and predicates that your proposition use are decidable;
+3. make sure that instances of `testable` exist that, when combined, apply to your decorated proposition:
+```
+{tgt'}
+```
+
+Use `set_option trace.class_instances true` to understand what instances are missing.",
+  e ← mk_mapp ``testable.check [tgt, `(cfg), tgt', inst],
   when_tracing `slim_check.decoration trace!"[testable decoration]\n  {tgt'}",
   when_tracing `slim_check.instance   $ do
   { inst ← summarize_instance inst >>= pp,

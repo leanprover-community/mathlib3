@@ -62,6 +62,7 @@ We define the following operations:
 universe u
 open fin nat function
 
+/-- Projection for `fin` -/
 def fin.val {n} (x : fin n) : ℕ := subtype.val x
 
 /-- Elimination principle for the empty set `fin 0`, dependent version. -/

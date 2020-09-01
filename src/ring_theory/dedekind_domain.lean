@@ -9,7 +9,7 @@ namespace ring
 def dimension_le_one (R : Type*) [comm_ring R] : Prop :=
 ∀ p ≠ (⊥ : ideal R), p.is_prime → p.is_maximal
 
-variables {R : Type*} [comm_ring R]
+end ring
 
 open ideal ring
 

@@ -7,7 +7,7 @@ Author: Simon Hudon
 import testing.slim_check.testable
 
 /-!
-## How to get started
+## Finding counterexamples automatically using `slim_check`
 
 A proposition can be tested by writing it out as:
 
@@ -51,7 +51,7 @@ h : ∃ (x : ℕ) (H : x ∈ xs), x < 3
 
 The local constants are reverted and an instance is found for
 `testable (∀ (xs : list ℕ), (∃ x ∈ xs, x < 3) → (∀ y ∈ xs, y < 5))`.
-The `testable` instance is supported by an instance of `sampleable (list ℕ)`,
+The `testable` instance is supported by instances of `sampleable (list ℕ)`,
 `decidable (x < 3)` and `decidable (y < 5)`. `slim_check` builds a 
 `testable` instance step by step with:
 
@@ -83,7 +83,7 @@ If no counter-examples are found, `slim_check` behaves like `admit`.
 `slim_check` can also be invoked using `#eval`:
 
 ```lean
-#check slim_check.testable.check (∀ (α : Type) (xs ys : list α), xs ++ ys = ys ++ xs)
+#eval slim_check.testable.check (∀ (α : Type) (xs ys : list α), xs ++ ys = ys ++ xs)
 -- ===================
 -- Found problems!
 

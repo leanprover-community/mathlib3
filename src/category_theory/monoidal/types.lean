@@ -20,10 +20,10 @@ universes u
 namespace category_theory.monoidal
 
 instance types_monoidal : monoidal_category.{u} (Type u) :=
-monoidal_of_chosen_finite_products (types.terminal_limit_data) (types.binary_product_limit_data)
+monoidal_of_chosen_finite_products (types.terminal_limit_cone) (types.binary_product_limit_cone)
 
 instance types_symmetric : symmetric_category.{u} (Type u) :=
-symmetric_of_chosen_finite_products (types.terminal_limit_data) (types.binary_product_limit_data)
+symmetric_of_chosen_finite_products (types.terminal_limit_cone) (types.binary_product_limit_cone)
 
 @[simp] lemma tensor_apply {W X Y Z : Type u} (f : W ⟶ X) (g : Y ⟶ Z) (p : W ⊗ Y) :
   (f ⊗ g) p = (f p.1, g p.2) := rfl

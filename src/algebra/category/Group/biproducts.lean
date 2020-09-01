@@ -25,7 +25,7 @@ namespace AddCommGroup
 /--
 Construct limit data for a binary product in `AddCommGroup`, using `AddCommGroup.of (G × H)`.
 -/
-def binary_product_limit_data (G H : AddCommGroup.{u}) : limit_data (pair G H) :=
+def binary_product_limit_cone (G H : AddCommGroup.{u}) : limits.limit_cone (pair G H) :=
 { cone :=
   { X := AddCommGroup.of (G × H),
     π := { app := λ j, walking_pair.cases_on j (add_monoid_hom.fst G H) (add_monoid_hom.snd G H) }},
@@ -39,7 +39,7 @@ def binary_product_limit_data (G H : AddCommGroup.{u}) : limit_data (pair G H) :
 
 
 instance has_binary_product (G H : AddCommGroup.{u}) : has_binary_product G H :=
-has_limit.mk (binary_product_limit_data G H)
+has_limit.mk (binary_product_limit_cone G H)
 
 instance (G H : AddCommGroup.{u}) : has_binary_biproduct G H :=
 has_binary_biproduct.of_has_binary_product _ _
@@ -52,7 +52,7 @@ noncomputable
 def biprod_iso_prod (G H : AddCommGroup.{u}) : (G ⊞ H : AddCommGroup) ≅ AddCommGroup.of (G × H) :=
 is_limit.cone_point_unique_up_to_iso
   (binary_biproduct.is_limit G H)
-  (binary_product_limit_data G H).is_limit
+  (binary_product_limit_cone G H).is_limit
 
 -- Furthermore, our biproduct will automatically function as a coproduct.
 example (G H : AddCommGroup.{u}) : has_colimit (pair G H) := by apply_instance
@@ -76,7 +76,7 @@ def lift (s : cone F) :
 /--
 Construct limit data for a product in `AddCommGroup`, using `AddCommGroup.of (Π j, F.obj j)`.
 -/
-def product_limit_data : limit_data F :=
+def product_limit_cone : limits.limit_cone F :=
 { cone :=
   { X := AddCommGroup.of (Π j, F.obj j),
     π := discrete.nat_trans (λ j, add_monoid_hom.apply (λ j, F.obj j) j), },
@@ -111,7 +111,7 @@ def biproduct_iso_pi (f : J → AddCommGroup.{u}) :
   (⨁ f : AddCommGroup) ≅ AddCommGroup.of (Π j, f j) :=
 is_limit.cone_point_unique_up_to_iso
   (biproduct.is_limit f)
-  (product_limit_data (discrete.functor f)).is_limit
+  (product_limit_cone (discrete.functor f)).is_limit
 
 end
 

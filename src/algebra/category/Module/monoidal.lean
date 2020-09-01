@@ -135,7 +135,7 @@ instance : comm_ring ((𝟙_ (Module.{u} R) : Module.{u} R) : Type u) := (by app
 namespace monoidal_category
 
 @[simp]
-lemma hom_apply {K L M N : Module R} (f : K ⟶ L) (g : M ⟶ N) (k : K) (m : M) :
+lemma hom_apply {K L M N : Module.{u} R} (f : K ⟶ L) (g : M ⟶ N) (k : K) (m : M) :
   (f ⊗ g) (k ⊗ₜ m) = f k ⊗ₜ g m := rfl
 
 @[simp]

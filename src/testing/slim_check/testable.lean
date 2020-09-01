@@ -169,23 +169,29 @@ variable f : Type → Prop
 
 namespace slim_check
 
-/-- Result of trying to disprove `p` -/
-@[derive inhabited]
-inductive test_result (p : Prop)
-  /- succeed when we find another example satisfying `p`
+/-- Result of trying to disprove `p`
+
+The constructors are:
+  *  `success : (psum unit p) → test_result`
+     succeed when we find another example satisfying `p`
      In `success h`, `h` is an optional proof of the proposition.
      Without the proof, all we know is that we found one example
      where `p` holds. With a proof, the one test was sufficient to
-     prove that `p` holds and we do not need to keep finding examples. -/
-| success : (psum unit p) → test_result
-  /- give up when a well-formed example cannot be generated.
+     prove that `p` holds and we do not need to keep finding examples.
+   * `gave_up {} : ℕ → test_result`
+     give up when a well-formed example cannot be generated.
      `gave_up n` tells us that `n` invalid examples were tried.
      Above 100, we give up on the proposition and report that we
-     did not find a way to properly test it. -/
-| gave_up {} : ℕ → test_result
-  /- a counter-example to `p`; the strings specify values for the relevant variables.
+     did not find a way to properly test it.
+   * `failure : ¬ p → (list string) → test_result`
+     a counter-example to `p`; the strings specify values for the relevant variables.
      `failure h vs` also carries a proof that `p` does not hold. This way, we can
-     guarantee no false positive. -/
+     guarantee no false positive.
+-/
+@[derive inhabited]
+inductive test_result (p : Prop)
+| success : (psum unit p) → test_result
+| gave_up {} : ℕ → test_result
 | failure : ¬ p → (list string) → test_result
 
 /-- format a `test_result` as a string. -/

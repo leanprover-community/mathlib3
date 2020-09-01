@@ -129,7 +129,9 @@ begin
   exact set.sum_indicator_subset_of_eq_zero w (λ i wi, wi • (p i -ᵥ b : V)) h (λ i, zero_smul k _)
 end
 
-/-- A weighted sum combined with an embedding. -/
+/-- A weighted sum, over the image of an embedding, equals a weighted
+sum with the same points and weights over the original
+`finset`. -/
 lemma weighted_vsub_of_point_map (e : ι₂ ↪ ι) (w : ι → k) (p : ι → P) (b : P) :
   (s₂.map e).weighted_vsub_of_point p b w = s₂.weighted_vsub_of_point (p ∘ e) b (w ∘ e) :=
 begin
@@ -171,7 +173,9 @@ lemma weighted_vsub_indicator_subset (w : ι → k) (p : ι → P) {s₁ s₂ : 
   s₁.weighted_vsub p w = s₂.weighted_vsub p (set.indicator ↑s₁ w) :=
 weighted_vsub_of_point_indicator_subset _ _ _ h
 
-/-- A weighted subtraction combined with an embedding. -/
+/-- A weighted subtraction, over the image of an embedding, equals a
+weighted sum with the same points and weights over the original
+`finset`. -/
 lemma weighted_vsub_map (e : ι₂ ↪ ι) (w : ι → k) (p : ι → P) :
   (s₂.map e).weighted_vsub p w = s₂.weighted_vsub (p ∘ e) (w ∘ e) :=
 s₂.weighted_vsub_of_point_map _ _ _ _
@@ -248,7 +252,9 @@ lemma affine_combination_indicator_subset (w : ι → k) (p : ι → P) {s₁ s�
 by rw [affine_combination_apply, affine_combination_apply,
        weighted_vsub_of_point_indicator_subset _ _ _ h]
 
-/-- An affine combination combined with an embedding. -/
+/-- An affine combination, over the image of an embedding, equals a
+weighted sum with the same points and weights over the original
+`finset`. -/
 lemma affine_combination_map (e : ι₂ ↪ ι) (w : ι → k) (p : ι → P) :
   (s₂.map e).affine_combination p w = s₂.affine_combination (p ∘ e) (w ∘ e) :=
 by simp_rw [affine_combination_apply, weighted_vsub_of_point_map]
@@ -411,8 +417,12 @@ by simp [centroid_def, affine_combination_map, centroid_weights]
 
 omit V
 
-/-- The weights for the centroid as an indicator function for sums
-over a larger set (possibly `univ` in the case of a `fintype`). -/
+/-- `centroid_weights` gives the weights for the centroid as a
+constant function, which is suitable when summing over the points
+whose centroid is being taken.  This function gives the weights in a
+form suitable for summing over a larger set of points, as an indicator
+function that is zero outside the set whose centroid is being taken.
+In the case of a `fintype`, the sum may be over `univ`. -/
 def centroid_weights_indicator : ι → k := set.indicator ↑s (s.centroid_weights k)
 
 /-- The definition of `centroid_weights_indicator`. -/

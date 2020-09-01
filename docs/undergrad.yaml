@@ -150,7 +150,7 @@ Ring Theory:
     Euclid's' algorithm: 'nat.xgcd'
     $\Z$ is a euclidean ring: 'int.euclidean_domain'
     congruence in $\Z$: 'int.modeq'
-    prime numbers: 'associates.prime'
+    prime numbers: 'prime'
     Bezout's identity: '' # todo: prove this for PIDs https://en.wikipedia.org/wiki/B%C3%A9zout%27s_identity
     $\Z/n\Z$ and its invertible elements: 'zmod.unit_of_coprime'
     Euler's totient function ($\varphi$): 'nat.totient'

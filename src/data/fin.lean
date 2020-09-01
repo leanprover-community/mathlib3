@@ -507,7 +507,7 @@ begin
 end
 
 /-- Given a fixed pivot `x : fin (n + 1)`, `x.succ_above` is injective -/
-lemma succ_above_inj_about_pivot {x : fin (n + 1)} :
+lemma succ_above_right_inj {x : fin (n + 1)} :
   x.succ_above a = x.succ_above b ↔ a = b :=
 begin
   refine iff.intro _ (λ h, by rw h),
@@ -526,7 +526,7 @@ end
 
 /-- Given a fixed pivot `x : fin (n + 1)`, `x.succ_above` is injective -/
 lemma succ_above_injective_about_pivot {x : fin (n + 1)} : injective (succ_above x) :=
-λ _ _, succ_above_inj_about_pivot.mp
+λ _ _, succ_above_right_inj.mp
 
 /-- Embedding a `fin (n + 1)` into `fin n` and embedding it back around the same hole
 gives the starting `fin (n + 1)` -/
@@ -557,7 +557,7 @@ begin
 end
 
 /-- `succ_above` is injective at the pivot -/
-lemma succ_above_inj_at_pivot {x y : fin (n + 1)} :
+lemma succ_above_left_inj {x y : fin (n + 1)} :
   x.succ_above = y.succ_above ↔ x = y :=
 begin
   refine iff.intro _ (λ h, by rw h),
@@ -570,7 +570,7 @@ end
 
 /-- `succ_above` is injective at the pivot -/
 lemma succ_above_injective_at_pivot : injective (@succ_above n) :=
-λ _ _, succ_above_inj_at_pivot.mp
+λ _ _, succ_above_left_inj.mp
 
 /-- A function `f` on `fin n` is strictly monotone if and only if `f i < f (i+1)` for all `i`. -/
 lemma strict_mono_iff_lt_succ {α : Type*} [preorder α] {f : fin n → α} :

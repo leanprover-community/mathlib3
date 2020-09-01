@@ -47,6 +47,7 @@ supremum helps define the meaning of recursive procedures.
 
  * [G. Markowsky, *Chain-complete posets and directed sets with applications*, https://doi.org/10.1007/BF02485815][markowsky]
  * [J. M. Cadiou and Zohar Manna, *Recursive definitions of partial functions and their computations.*, https://doi.org/10.1145/942580.807072][cadiou]
+ * [Carl A. Gunter, *Semantics of Programming Languages: Structures and Techniques*, ISBN: 0262570955][gunter]
 -/
 
 universes u v
@@ -101,12 +102,6 @@ def prod.snd : (α × β) →ₘ β :=
 def prod.zip (f : α →ₘ β) (g : α →ₘ γ) : α →ₘ (β × γ) :=
 (prod.map f g).comp prod.diag
 
-/-- the `if _ then _ else _` function as a monotone function -/
-def ite (p : Prop) [decidable p] (f g : α →ₘ β) : α →ₘ β := if p then f else g
-
-@[simp] theorem ite_apply (p) [decidable p] (f g : α →ₘ β) (x) :
-  (ite p f g).to_fun x = if p then f x else g x := by rw ite; split_ifs; refl
-
 /-- `roption.bind` as a monotone function -/
 @[simps]
 def bind {β γ} (f : α →ₘ roption β) (g : α →ₘ β → roption γ) : α →ₘ roption γ :=
@@ -123,7 +118,9 @@ end preorder_hom
 
 namespace omega_complete_partial_order
 
-/-- Chains are monotonically increasing sequences -/
+/-- Chains are monotonically increasing sequences/
+
+See definition on page 114 of [gunter]-/
 def chain (α : Type u) [preorder α] :=
 ℕ →ₘ α
 
@@ -189,7 +186,9 @@ set_option default_priority 50 -- see Note [default priority]
 /-- An omega-complete partial order is a partial order with a supremum
 operation on increasing sequences indexed by natural numbers (which we
 call `ωSup`). In this sense, it is strictly weaker than join complete
-semi-lattices as only ω-sized totally ordered sets have a supremum. -/
+semi-lattices as only ω-sized totally ordered sets have a supremum.
+
+See definition on page 114 of [gunter] -/
 class omega_complete_partial_order (α : Type*) extends partial_order α :=
 (ωSup     : chain α → α)
 (le_ωSup  : ∀(c:chain α), ∀ i, c i ≤ ωSup c)
@@ -245,7 +244,12 @@ open chain
 variables [omega_complete_partial_order β]
 variables [omega_complete_partial_order γ]
 
-/-- a monotone function `f : α →ₘ β` is continuous if it distributes over ωSup -/
+/-- A monotone function `f : α →ₘ β` is continuous if it distributes over ωSup.
+
+In order to distinguish it from the (more commonly used) continuity from topology
+(see topology/basic.lean), the present definition is often referred to as
+"Scott-continuity" (referring to Dana Scott). It corresponds to continuity
+in Scott topological spaces (not defined here). -/
 def continuous (f : α →ₘ β) : Prop :=
 ∀ c : chain α, f (ωSup c) = ωSup (c.map f)
 
@@ -492,10 +496,6 @@ partial_order.lift continuous_hom.to_fun $ by rintro ⟨⟩ ⟨⟩ h; congr; exa
 end old_struct
 
 namespace continuous_hom
-
-lemma ωSup_ite {p : Prop} [hp : decidable p] (c : chain α) (f g : α →ₘ β) :
-  ωSup (c.map (preorder_hom.ite p f g)) = ite p (ωSup $ c.map f) (ωSup $ c.map g) :=
-by dsimp [preorder_hom.ite]; split_ifs; refl
 
 lemma ite_continuous' {p : Prop} [hp : decidable p] (f g : α → β)
   (hf : continuous' f) (hg : continuous' g) : continuous' (λ x, if p then f x else g x) :=

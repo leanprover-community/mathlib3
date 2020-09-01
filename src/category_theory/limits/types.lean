@@ -5,7 +5,6 @@ Authors: Scott Morrison, Reid Barton
 -/
 import category_theory.limits.shapes.images
 import category_theory.filtered
-import data.quot
 import tactic.equiv_rw
 
 universes u

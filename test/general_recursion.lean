@@ -7,7 +7,7 @@ Author: Simon Hudon
 import tactic.norm_num
 import tactic.linarith
 import tactic.omega
-import control.fix
+import control.lawful_fix
 import order.category.omega_complete_partial_order
 import data.nat.basic
 

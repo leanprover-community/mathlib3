@@ -822,7 +822,7 @@ begin
 end
 
 @[to_additive]
-lemma prod_hom [comm_monoid α] [comm_monoid β] (s : multiset α) (f : α → β) [is_monoid_hom f] :
+lemma prod_hom [comm_monoid α] [comm_monoid β] (s : multiset α) (f : α →* β) :
   (s.map f).prod = f s.prod :=
 quotient.induction_on s $ λ l, by simp only [l.prod_hom f, quot_mk_to_coe, coe_map, coe_prod]
 

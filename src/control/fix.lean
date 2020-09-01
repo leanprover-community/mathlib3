@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
 -/
 
-import data.nat.up
+import tactic.apply
+import data.nat.upto
 import data.stream.basic
 import order.omega_complete_partial_order
 
@@ -52,7 +53,7 @@ end prio
 
 namespace roption
 
-open roption nat nat.up
+open roption nat nat.upto
 
 section basic
 
@@ -64,7 +65,7 @@ def fix.approx : stream $ Π a, roption $ β a
 | (nat.succ i) := f (fix.approx i)
 
 /-- loop body for finding the fixed point of `f` -/
-def fix_aux {p : ℕ → Prop} (i : nat.up p) (g : Π j : nat.up p, i < j → Π a, roption $ β a) : Π a, roption $ β a :=
+def fix_aux {p : ℕ → Prop} (i : nat.upto p) (g : Π j : nat.upto p, i < j → Π a, roption $ β a) : Π a, roption $ β a :=
 f $ λ x : α,
 assert (¬p (i.val)) $ λ h : ¬ p (i.val),
 g (i.succ h) (nat.lt_succ_self _) x
@@ -80,7 +81,7 @@ it satisfies the equations:
 (proof below) -/
 protected def fix (x : α) : roption $ β x :=
 roption.assert (∃ i, (fix.approx f i x).dom) $ λ h,
-well_founded.fix.{1} (nat.up.wf h) (fix_aux f) nat.up.zero x
+well_founded.fix.{1} (nat.upto.wf h) (fix_aux f) nat.upto.zero x
 
 protected lemma fix_def {x : α} (h' : ∃ i, (fix.approx f i x).dom) :
   roption.fix f x = fix.approx f (nat.succ $ nat.find h') x :=
@@ -88,11 +89,11 @@ begin
   let p := λ (i : ℕ), (fix.approx f i x).dom,
   have : p (nat.find h') := nat.find_spec h',
   generalize hk : nat.find h' = k,
-  replace hk : nat.find h' = k + (@up.zero p).val := hk,
+  replace hk : nat.find h' = k + (@upto.zero p).val := hk,
   rw hk at this,
   revert hk,
   dsimp [roption.fix], rw assert_pos h', revert this,
-  generalize : up.zero = z, intros,
+  generalize : upto.zero = z, intros,
   suffices : ∀ x', well_founded.fix (fix._proof_1 f x h') (fix_aux f) z x' = fix.approx f (succ k) x',
     from this _,
   induction k generalizing z; intro,
@@ -108,7 +109,7 @@ begin
       apply nat.lt_of_succ_le,
       apply nat.le_add_left },
     rw succ_add_eq_succ_add at this hk,
-    rw [assert_pos hh, k_ih (up.succ z hh) this hk] }
+    rw [assert_pos hh, k_ih (upto.succ z hh) this hk] }
 end
 
 lemma fix_def' {x : α} (h' : ¬ ∃ i, (fix.approx f i x).dom) :
@@ -200,7 +201,7 @@ variables (f : (Π a, roption $ β a) →ₘ (Π a, roption $ β a))
 open omega_complete_partial_order
 
 open roption (hiding ωSup) nat
-open nat.up omega_complete_partial_order
+open nat.upto omega_complete_partial_order
 
 lemma fix_eq_ωSup : roption.fix f = ωSup (approx_chain f) :=
 begin

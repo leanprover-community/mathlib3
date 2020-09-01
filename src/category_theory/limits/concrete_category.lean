@@ -10,14 +10,14 @@ import category_theory.concrete_category.basic
 # Facts about (co)limits of functors into concrete categories
 -/
 
-universes u
+universes v u
 
 open category_theory
 
 namespace category_theory.limits
 
-variables {J : Type u} [small_category J]
-variables {C : Type (u+1)} [large_category C] [concrete_category C]
+variables {J : Type v} [small_category J]
+variables {C : Type u} [category.{v} C] [concrete_category.{v} C]
 
 local attribute [instance] concrete_category.has_coe_to_sort
 local attribute [instance] concrete_category.has_coe_to_fun
@@ -32,6 +32,7 @@ begin
   convert congr_fun (congr_arg (λ k : s.X ⟶ F.obj j', (k : s.X → F.obj j')) (s.w f)) x,
   simp only [coe_comp],
 end
+
 
 @[simp]
 lemma w_forget_apply (F : J ⥤ C) (s : cone (F ⋙ forget C)) {j j' : J} (f : j ⟶ j') (x : s.X) :

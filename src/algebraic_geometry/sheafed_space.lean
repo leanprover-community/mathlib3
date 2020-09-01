@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import algebraic_geometry.presheafed_space
 import topology.sheaves.sheaf
-import category_theory.full_subcategory
 
 /-!
 # Sheafed spaces

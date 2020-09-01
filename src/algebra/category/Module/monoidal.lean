@@ -135,17 +135,21 @@ instance : comm_ring ((𝟙_ (Module R) : Module R) : Type u) := (by apply_insta
 namespace monoidal_category
 
 @[simp]
-lemma left_unitor_hom {M : Module R} (r : R) (m : M) :
+lemma hom_apply {K L M N : Module R} (f : K ⟶ L) (g : M ⟶ N) (k : K) (m : M) :
+  (f ⊗ g) (k ⊗ₜ m) = f k ⊗ₜ g m := rfl
+
+@[simp]
+lemma left_unitor_hom_apply {M : Module R} (r : R) (m : M) :
   ((λ_ M).hom : 𝟙_ (Module R) ⊗ M ⟶ M) (r ⊗ₜ[R] m) = r • m :=
 tensor_product.lid_tmul m r
 
 @[simp]
-lemma right_unitor_hom {M : Module R} (m : M) (r : R) :
+lemma right_unitor_hom_apply {M : Module R} (m : M) (r : R) :
   ((ρ_ M).hom : M ⊗ 𝟙_ (Module R) ⟶ M) (m ⊗ₜ r) = r • m :=
 tensor_product.rid_tmul m r
 
 @[simp]
-lemma associator_hom {M N K : Module R} (m : M) (n : N) (k : K) :
+lemma associator_hom_apply {M N K : Module R} (m : M) (n : N) (k : K) :
   ((α_ M N K).hom : (M ⊗ N) ⊗ K ⟶ M ⊗ (N ⊗ K)) ((m ⊗ₜ n) ⊗ₜ k) = (m ⊗ₜ (n ⊗ₜ k)) := rfl
 
 end monoidal_category

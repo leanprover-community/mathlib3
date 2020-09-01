@@ -74,7 +74,7 @@ instance : abelian (Module R) :=
   normal_mono := λ X Y, normal_mono,
   normal_epi := λ X Y, normal_epi }
 
-variables {O : Module R} (g : N ⟶ O)
+variables {O : Module.{v} R} (g : N ⟶ O)
 
 open linear_map
 local attribute [instance] preadditive.has_equalizers_of_has_kernels

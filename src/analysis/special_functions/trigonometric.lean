@@ -348,6 +348,10 @@ funext $ λ x, (has_deriv_at_cosh x).deriv
 lemma continuous_cosh : continuous cosh :=
 differentiable_cosh.continuous
 
+/-- `sinh` is strictly monotone. -/
+lemma sinh_strict_mono : strict_mono sinh :=
+strict_mono_of_deriv_pos differentiable_sinh (by { rw [real.deriv_sinh], exact cosh_pos })
+
 end real
 
 section
@@ -800,6 +804,30 @@ lemma exists_sin_eq : set.Icc (-1:ℝ) 1 ⊆  sin '' set.Icc (-(π / 2)) (π / 2
 by convert intermediate_value_Icc
   (le_trans (neg_nonpos.2 (le_of_lt pi_div_two_pos)) (le_of_lt pi_div_two_pos))
   continuous_sin.continuous_on; simp only [sin_neg, sin_pi_div_two]
+
+lemma exists_cos_eq : (set.Icc (-1) 1 : set ℝ) ⊆ cos '' set.Icc 0 π :=
+by convert intermediate_value_Icc' real.pi_pos.le real.continuous_cos.continuous_on;
+  simp only [real.cos_pi, real.cos_zero]
+
+lemma range_cos : set.range cos = (set.Icc (-1) 1 : set ℝ) :=
+begin
+  ext,
+  split,
+  { rintros ⟨y, rfl⟩, exact ⟨y.neg_one_le_cos, y.cos_le_one⟩ },
+  { rintros h,
+    rcases real.exists_cos_eq h with ⟨y, -, hy⟩,
+    exact ⟨y, hy⟩ }
+end
+
+lemma range_sin : set.range sin = (set.Icc (-1) 1 : set ℝ) :=
+begin
+  ext,
+  split,
+  { rintros ⟨y, rfl⟩, exact ⟨y.neg_one_le_sin, y.sin_le_one⟩ },
+  { rintros h,
+    rcases real.exists_sin_eq h with ⟨y, -, hy⟩,
+    exact ⟨y, hy⟩ }
+end
 
 lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
 begin
@@ -1408,8 +1436,7 @@ else
 lemma tan_arg {x : ℂ} : real.tan (arg x) = x.im / x.re :=
 begin
   by_cases h : x = 0,
-  { simp only [h, euclidean_domain.zero_div,
-    complex.zero_im, complex.arg_zero, real.tan_zero, complex.zero_re] },
+  { simp only [h, zero_div, complex.zero_im, complex.arg_zero, real.tan_zero, complex.zero_re] },
   rw [real.tan_eq_sin_div_cos, sin_arg, cos_arg h,
       div_div_div_cancel_right _ (mt abs_eq_zero.1 h)]
 end

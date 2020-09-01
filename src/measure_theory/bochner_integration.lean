@@ -69,9 +69,13 @@ The Bochner integral is defined following these steps:
 Some tips on how to prove a proposition if the API for the Bochner integral is not enough so that
 you need to unfold the definition of the Bochner integral and go back to simple functions.
 
+One method is to use the theorem `integrable.induction` in the file `set_integral`, which allows
+you to prove something for an arbitrary measurable + integrable function.
+
+Another method is using the following steps.
 See `integral_eq_lintegral_max_sub_lintegral_min` for a complicated example, which proves that
 `∫ f = ∫⁻ f⁺ - ∫⁻ f⁻`, with the first integral sign being the Bochner integral of a real-valued
-function f : α → ℝ, and second and third integral sign being the integral on ennreal-valued
+function `f : α → ℝ`, and second and third integral sign being the integral on ennreal-valued
 functions (called `lintegral`). The proof of `integral_eq_lintegral_max_sub_lintegral_min` is
 scattered in sections with the name `pos_part`.
 
@@ -347,7 +351,7 @@ begin
     end
 end
 
-lemma integral_add_meas {ν} (f : α →ₛ E) (hf : integrable f (μ + ν)) :
+lemma integral_add_measure {ν} (f : α →ₛ E) (hf : integrable f (μ + ν)) :
   f.integral (μ + ν) = f.integral μ + f.integral ν :=
 begin
   simp only [integral_eq_sum_filter, ← sum_add_distrib, ← add_smul, measure.add_apply],
@@ -355,7 +359,7 @@ begin
   rw [to_real_add];
     refine ne_of_lt ((integrable_iff_fin_meas_supp.1 _).meas_preimage_singleton_ne_zero
       (mem_filter.1 hx).2),
-  exacts [hf.left_of_add_meas, hf.right_of_add_meas]
+  exacts [hf.left_of_add_measure, hf.right_of_add_measure]
 end
 
 variables [second_countable_topology E] [measurable_space E] [borel_space E]
@@ -1024,6 +1028,10 @@ begin
     exact to_real_nonneg }
 end
 
+lemma integral_eq_zero_of_ae {f : α → E} (hf : f =ᵐ[μ] 0) : ∫ a, f a ∂μ = 0 :=
+if hfm : measurable f then by simp [integral_congr_ae hfm measurable_zero hf]
+else integral_non_measurable hfm
+
 /-- If `F i → f` in `L1`, then `∫ x, F i x ∂μ → ∫ x, f x∂μ`. -/
 lemma tendsto_integral_of_l1 {ι} (f : α → E) (hfm : measurable f) (hfi : integrable f μ)
   {F : ι → α → E} {l : filter ι} (hFm : ∀ᶠ i in l, measurable (F i))
@@ -1262,13 +1270,14 @@ calc ∥∫ x, f x ∂μ∥ ≤ ∫ x, C ∂μ : norm_integral_le_of_norm_le mea
 
 variable {ν : measure α}
 
-lemma integral_add_meas {f : α → E} (hfm : measurable f) (hμ : integrable f μ) (hν : integrable f ν) :
+lemma integral_add_measure {f : α → E} (hμ : integrable f μ) (hν : integrable f ν) :
   ∫ x, f x ∂(μ + ν) = ∫ x, f x ∂μ + ∫ x, f x ∂ν :=
 begin
-  have hfi := hμ.add_meas hν,
+  by_cases hfm : measurable f; [skip, by simp only [integral_non_measurable hfm, zero_add]],
+  have hfi := hμ.add_measure hν,
   rcases simple_func_sequence_tendsto' hfm hfi with ⟨F, hFi, hFt⟩,
-  have hFiμ : ∀ i, integrable (F i) μ := λ i, (hFi i).left_of_add_meas,
-  have hFiν : ∀ i, integrable (F i) ν := λ i, (hFi i).right_of_add_meas,
+  have hFiμ : ∀ i, integrable (F i) μ := λ i, (hFi i).left_of_add_measure,
+  have hFiν : ∀ i, integrable (F i) ν := λ i, (hFi i).right_of_add_measure,
   simp only [← edist_nndist] at hFt,
   have hμν : tendsto (λ i, ∫ x, F i x ∂(μ + ν)) at_top (𝓝 ∫ x, f x ∂(μ + ν)) :=
     tendsto_integral_of_l1 _ hfm hfi (eventually_of_forall $ λ i, (F i).measurable)
@@ -1284,19 +1293,64 @@ begin
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hFt (λ _, zero_le _) _,
     exact λ i, lintegral_mono' (measure.le_add_left $ le_refl ν) (le_refl _) },
   apply tendsto_nhds_unique hμν,
-  simpa only [← simple_func.integral_eq_integral, *, simple_func.integral_add_meas] using hμ.add hν
+  simpa only [← simple_func.integral_eq_integral, *, simple_func.integral_add_measure]
+    using hμ.add hν
 end
 
-@[simp] lemma integral_zero_meas (f : α → E) : ∫ x, f x ∂0 = 0 :=
+@[simp] lemma integral_zero_measure (f : α → E) : ∫ x, f x ∂0 = 0 :=
 norm_le_zero_iff.1 $ le_trans (norm_integral_le_lintegral_norm f) $ by simp
 
-lemma integral_map_meas {β} [measurable_space β] {φ : α → β} (hφ : measurable φ)
+@[simp] lemma integral_smul_measure (f : α → E) (c : ennreal) :
+  ∫ x, f x ∂(c • μ) = c.to_real • ∫ x, f x ∂μ :=
+begin
+  -- First we consider “degenerate” cases:
+  -- `f` is not measurable
+  by_cases hfm : measurable f, swap, { simp [integral_non_measurable hfm] },
+  -- `c = 0`
+  rcases (zero_le c).eq_or_lt with rfl|h0, { simp },
+  -- `c = ⊤`
+  rcases (le_top : c ≤ ⊤).eq_or_lt with rfl|hc,
+  { rw [ennreal.top_to_real, zero_smul],
+    by_cases hf : f =ᵐ[μ] 0,
+    { have : f =ᵐ[⊤ • μ] 0 := ae_smul_measure hf ⊤,
+      exact integral_eq_zero_of_ae this },
+    { apply integral_non_integrable,
+      rw [integrable, lintegral_smul_measure, top_mul, if_neg],
+      { apply lt_irrefl },
+      { rw [lintegral_eq_zero_iff hfm.ennnorm],
+        refine λ h, hf (h.mono $ λ x, _),
+        simp } } },
+  -- `f` is not integrable
+  by_cases hfi : integrable f μ, swap,
+  { rw [integral_non_integrable hfi, smul_zero],
+    refine integral_non_integrable (mt (λ h, _) hfi),
+    convert h.smul_measure (ennreal.inv_lt_top.2 h0),
+    rw [smul_smul, ennreal.inv_mul_cancel (ne_of_gt h0) (ne_of_lt hc), one_smul] },
+  -- Main case: `0 < c < ⊤`, `f` is measurable and integrable
+  rcases simple_func_sequence_tendsto' hfm hfi with ⟨F, hFi, hFt⟩,
+  have hFi' := λ n, (hFi n).smul_measure hc,
+  simp only [← edist_nndist] at hFt,
+  have hμ : tendsto (λ i, ∫ x, F i x ∂μ) at_top (𝓝 ∫ x, f x ∂μ) :=
+    tendsto_integral_of_l1 _ hfm hfi (eventually_of_forall $ λ i, (F i).measurable)
+      (eventually_of_forall hFi) hFt,
+  refine tendsto_nhds_unique _ (tendsto_const_nhds.smul hμ),
+  replace hFt := ennreal.tendsto.mul (tendsto_const_nhds : tendsto (λ _, c) _ _)
+    (or.inr ennreal.zero_ne_top) hFt (or.inr $ ne_of_lt hc),
+  simp only [mul_zero, ← lintegral_smul_measure] at hFt,
+  convert tendsto_integral_of_l1 _ hfm (hfi.smul_measure hc)
+    (eventually_of_forall $ λ i, (F i).measurable) (eventually_of_forall hFi') hFt,
+  ext1 n,
+  simp only [← (F n).integral_eq_integral, hFi, hFi', simple_func.integral,
+    measure.smul_apply, finset.smul_sum, smul_smul, ennreal.to_real_mul_to_real]
+end
+
+lemma integral_map_measure {β} [measurable_space β] {φ : α → β} (hφ : measurable φ)
   {f : β → E} (hfm : measurable f) :
   ∫ y, f y ∂(measure.map φ μ) = ∫ x, f (φ x) ∂μ :=
 begin
   by_cases hfi : integrable f (measure.map φ μ), swap,
   { rw [integral_non_integrable hfi, integral_non_integrable],
-    rwa [← integrable_map_meas hφ hfm] },
+    rwa [← integrable_map_measure hφ hfm] },
   rcases simple_func_sequence_tendsto' hfm hfi with ⟨F, hFi, hFt⟩,
   simp only [← edist_nndist] at hFt,
   have hF : tendsto (λ i, ∫ x, F i x ∂(measure.map φ μ)) at_top (𝓝 ∫ x, f x ∂(measure.map φ μ)) :=
@@ -1305,7 +1359,7 @@ begin
   refine tendsto_nhds_unique hF _, clear hF,
   simp only [lintegral_map ((F _).measurable.edist hfm) hφ] at hFt,
   have hFi' := hFi,
-  simp only [integrable_map_meas, hφ, hfm, (F _).measurable] at hfi hFi',
+  simp only [integrable_map_measure, hφ, hfm, (F _).measurable] at hfi hFi',
   refine (tendsto_integral_of_l1 _ (hfm.comp hφ) hfi
     (eventually_of_forall $ λ i, (F i).measurable.comp hφ)
     (eventually_of_forall $ hFi') hFt).congr (λ n, _),
@@ -1317,6 +1371,12 @@ begin
   rw [hy],
   simp
 end
+
+lemma integral_dirac (f : α → E) (a : α) (hfm : measurable f) :
+  ∫ x, f x ∂(measure.dirac a) = f a :=
+calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
+  integral_congr_ae hfm measurable_const $ eventually_eq_dirac hfm
+... = f a : by simp [measure.dirac_apply_of_mem]
 
 end properties
 

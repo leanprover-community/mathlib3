@@ -17,6 +17,7 @@ local attribute [simp] -- euclidean_domain.mod_eq_zero uses (2 ∣ n) as normal 
 theorem mod_two_ne_zero {n : int} : ¬ n % 2 = 0 ↔ n % 2 = 1 :=
 by cases mod_two_eq_zero_or_one n with h h; simp [h]
 
+/-- An integer `n` is `even` if `2 | n`. -/
 def even (n : int) : Prop := 2 ∣ n
 
 @[simp] theorem even_coe_nat (n : nat) : even n ↔ nat.even n :=

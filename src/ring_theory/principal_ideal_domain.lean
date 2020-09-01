@@ -175,6 +175,27 @@ begin
     (is_noetherian_ring.exists_factors a h)
 end
 
+lemma ne_zero_of_mem_factors {R : Type v} [integral_domain R] [is_principal_ideal_ring R] {a b : R}
+  (ha : a ≠ 0) (hb : b ∈ factors a) : b ≠ 0 := irreducible.ne_zero ((factors_spec a ha).1 b hb)
+
+lemma mem_submonoid_of_factors_subset_of_units_subset (s : submonoid R)
+  {a : R} (ha : a ≠ 0) (hfac : ∀ b ∈ factors a, b ∈ s) (hunit : ∀ c : units R, (c : R) ∈ s) :
+  a ∈ s :=
+begin
+  rcases ((factors_spec a ha).2).symm with ⟨c, hc⟩,
+  rw [← hc],
+  exact submonoid.mul_mem _ (submonoid.multiset_prod_mem _ _ hfac) (hunit _),
+end
+
+/-- If a `ring_hom` maps all units and all factors of an element `a` into a submonoid `s`, then it
+also maps `a` into that submonoid. -/
+lemma ring_hom_mem_submonoid_of_factors_subset_of_units_subset {R S : Type*}
+  [integral_domain R] [is_principal_ideal_ring R] [semiring S]
+  (f : R →+* S) (s : submonoid S) (a : R) (ha : a ≠ 0)
+  (h : ∀ b ∈ factors a, f b ∈ s) (hf: ∀ c : units R, f c ∈ s) :
+  f a ∈ s :=
+mem_submonoid_of_factors_subset_of_units_subset (s.comap f.to_monoid_hom) ha h hf
+
 /-- The unique factorization domain structure given by the principal ideal domain.
 
 This is not added as type class instance, since the `factors` might be computed in a different way.

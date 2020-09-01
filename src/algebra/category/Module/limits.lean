@@ -16,18 +16,18 @@ the underlying types are just the limits in the category of types.
 open category_theory
 open category_theory.limits
 
-universe u
+universes u v
 
 namespace Module
 
 variables {R : Type u} [ring R]
-variables {J : Type u} [small_category J]
+variables {J : Type v} [small_category J]
 
-instance add_comm_group_obj (F : J ⥤ Module R) (j) :
+instance add_comm_group_obj (F : J ⥤ Module.{v} R) (j) :
   add_comm_group ((F ⋙ forget (Module R)).obj j) :=
 by { change add_comm_group (F.obj j), apply_instance }
 
-instance module_obj (F : J ⥤ Module R) (j) :
+instance module_obj (F : J ⥤ Module.{v} R) (j) :
   module R ((F ⋙ forget (Module R)).obj j) :=
 by { change module R (F.obj j), apply_instance }
 
@@ -43,17 +43,17 @@ def sections_submodule (F : J ⥤ Module R) :
     dsimp [functor.sections] at sh,
     rw sh f,
   end,
-  ..(AddGroup.sections_add_subgroup (F ⋙ forget₂ (Module R) AddCommGroup ⋙ forget₂ AddCommGroup AddGroup)) }
+  ..(AddGroup.sections_add_subgroup (F ⋙ forget₂ (Module R) AddCommGroup.{v} ⋙ forget₂ AddCommGroup AddGroup.{v})) }
 
 instance limit_add_comm_group (F : J ⥤ Module R) :
-  add_comm_group (types.limit_cone (F ⋙ forget (Module R))).X :=
+  add_comm_group (types.limit_cone (F ⋙ forget (Module.{v} R))).X :=
 begin
   change add_comm_group (sections_submodule F),
   apply_instance,
 end
 
 instance limit_module (F : J ⥤ Module R) :
-  module R (types.limit_cone (F ⋙ forget (Module R))).X :=
+  module R (types.limit_cone (F ⋙ forget (Module.{v} R))).X :=
 begin
   change module R (sections_submodule F),
   apply_instance,
@@ -61,7 +61,7 @@ end
 
 /-- `limit.π (F ⋙ forget Ring) j` as a `ring_hom`. -/
 def limit_π_linear_map (F : J ⥤ Module R) (j) :
-  (types.limit_cone (F ⋙ forget (Module R))).X →ₗ[R] (F ⋙ forget (Module R)).obj j :=
+  (types.limit_cone (F ⋙ forget (Module.{v} R))).X →ₗ[R] (F ⋙ forget (Module R)).obj j :=
 { to_fun := (types.limit_cone (F ⋙ forget (Module R))).π.app j,
   map_smul' := λ x y, rfl,
   map_add' := λ x y, rfl }
@@ -99,7 +99,7 @@ open has_limits
 
 /-- The category of R-modules has all limits. -/
 @[irreducible]
-instance has_limits : has_limits (Module R) :=
+instance has_limits : has_limits (Module.{v} R) :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F,
     { cone     := limit_cone F,
@@ -115,7 +115,7 @@ AddCommGroup.limit_cone_is_limit (F ⋙ forget₂ (Module R) AddCommGroup)
 /--
 The forgetful functor from R-modules to abelian groups preserves all limits.
 -/
-instance forget₂_AddCommGroup_preserves_limits : preserves_limits (forget₂ (Module R) AddCommGroup) :=
+instance forget₂_AddCommGroup_preserves_limits : preserves_limits (forget₂ (Module R) AddCommGroup.{v}) :=
 { preserves_limits_of_shape := λ J 𝒥, by exactI
   { preserves_limit := λ F, preserves_limit_of_preserves_limit_cone
       (limit_cone_is_limit F) (forget₂_AddCommGroup_preserves_limits_aux F) } }

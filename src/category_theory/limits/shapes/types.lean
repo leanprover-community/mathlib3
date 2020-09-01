@@ -48,14 +48,14 @@ lemma pi_map_π_apply {β : Type u} {f g : β → Type u} (α : Π j, f j ⟶ g 
 map_π_apply _ _ _
 
 /-- The category of types has `punit` as a terminal object. -/
-def terminal_limit_data : limits.limit_cone (functor.empty (Type u)) :=
+def terminal_limit_cone : limits.limit_cone (functor.empty (Type u)) :=
 { cone :=
   { X := punit,
     π := by tidy, },
   is_limit := by tidy, }
 
 /-- The category of types has `pempty` as an initial object. -/
-def initial_limit_data : limits.colimit_cocone (functor.empty (Type u)) :=
+def initial_limit_cone : limits.colimit_cocone (functor.empty (Type u)) :=
 { cocone :=
   { X := pempty,
     ι := by tidy, },
@@ -69,7 +69,7 @@ local attribute [tidy] tactic.case_bash
 The category of types has `X × Y`, the usual cartesian product,
 as the binary product of `X` and `Y`.
 -/
-def binary_product_limit_data (X Y : Type u) : limits.limit_cone (pair X Y) :=
+def binary_product_limit_cone (X Y : Type u) : limits.limit_cone (pair X Y) :=
 { cone :=
   { X := X × Y,
     π :=
@@ -87,7 +87,7 @@ def binary_product_limit_data (X Y : Type u) : limits.limit_cone (pair X Y) :=
 The category of types has `X ⊕ Y`,
 as the binary coproduct of `X` and `Y`.
 -/
-def binary_coproduct_limit_data (X Y : Type u) : limits.colimit_cocone (pair X Y) :=
+def binary_coproduct_limit_cone (X Y : Type u) : limits.colimit_cocone (pair X Y) :=
 { cocone :=
   { X := X ⊕ Y,
     ι :=
@@ -104,7 +104,7 @@ def binary_coproduct_limit_data (X Y : Type u) : limits.colimit_cocone (pair X Y
 /--
 The category of types has `Π j, f j` as the product of a type family `f : J → Type`.
 -/
-def product_limit_data {J : Type u} (F : J → Type u) : limits.limit_cone (discrete.functor F) :=
+def product_limit_cone {J : Type u} (F : J → Type u) : limits.limit_cone (discrete.functor F) :=
 { cone :=
   { X := Π j, F j,
     π :=
@@ -121,7 +121,7 @@ def product_limit_data {J : Type u} (F : J → Type u) : limits.limit_cone (disc
 /--
 The category of types has `Σ j, f j` as the coproduct of a type family `f : J → Type`.
 -/
-def coproduct_limit_data {J : Type u} (F : J → Type u) : limits.colimit_cocone (discrete.functor F) :=
+def coproduct_limit_cone {J : Type u} (F : J → Type u) : limits.colimit_cocone (discrete.functor F) :=
 { cocone :=
   { X := Σ j, F j,
     ι :=

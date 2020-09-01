@@ -348,28 +348,24 @@ end
 variables (k)
 
 /-- Two different points are affinely independent. -/
-lemma affine_independent_of_ne (p : ι → P) {i₁ i₂ : ι} (he : ∀ i, i = i₁ ∨ i = i₂)
-  (hn : p i₁ ≠ p i₂) : affine_independent k p :=
+lemma affine_independent_of_ne {p₁ p₂ : P} (h : p₁ ≠ p₂) : affine_independent k ![p₁, p₂] :=
 begin
-  rw affine_independent_iff_linear_independent_vsub k p i₁,
-  have hne : i₂ ≠ i₁,
-  { intro h,
-    rw h at hn,
-    exact hn rfl },
-  let i₂' : {x // x ≠ i₁} := ⟨i₂, hne⟩,
-  have he' : ∀ i, i = i₂' := λ ⟨i, hi⟩, subtype.mk_eq_mk.2 (or.resolve_left (he i) hi),
-  haveI : unique {x // x ≠ i₁} := ⟨⟨i₂'⟩, he'⟩,
-  have h : (p ↑(default {x // x ≠ i₁}) -ᵥ p i₁ : V) ≠ 0,
+  rw affine_independent_iff_linear_independent_vsub k ![p₁, p₂] 0,
+  let i₁ : {x // x ≠ (0 : fin 2)} := ⟨1, dec_trivial⟩,
+  have he' : ∀ i, i = i₁,
+  { rintro ⟨i, hi⟩,
+    ext,
+    fin_cases i,
+    { simpa using hi },
+    { refl } },
+  haveI : unique {x // x ≠ (0 : fin 2)} := ⟨⟨i₁⟩, he'⟩,
+  have hz : (![p₁, p₂] ↑(default {x // x ≠ (0 : fin 2)}) -ᵥ ![p₁, p₂] 0 : V) ≠ 0,
   { rw he' (default _),
-    intro h,
-    rw vsub_eq_zero_iff_eq at h,
-    exact hn h.symm },
-  exact linear_independent_unique h
+    intro he,
+    rw vsub_eq_zero_iff_eq at he,
+    exact h he.symm },
+  exact linear_independent_unique hz
 end
-
-/-- Two different points indexed by `fin 2` are affinely independent. -/
-lemma affine_independent_of_ne_fin {p₁ p₂ : P} (h : p₁ ≠ p₂) : affine_independent k ![p₁, p₂] :=
-affine_independent_of_ne k ![p₁, p₂] (dec_trivial : ∀ i : fin 2, i = 0 ∨ i = 1) h
 
 end field
 

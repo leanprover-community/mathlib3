@@ -346,16 +346,30 @@ lemma map_bind (x : m α) {g : α → m β} {f : β → γ} :
 -/
 
 lemma rename_bind₁ {υ : Type*} (f : σ → mv_polynomial τ R) (g : τ → υ) (φ : mv_polynomial σ R) :
-  rename g (bind₁ f φ) = bind₁ (λ i, rename g $ f i) φ := sorry
+  rename g (bind₁ f φ) = bind₁ (λ i, rename g $ f i) φ :=
+sorry
 
 lemma map_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* T) (φ : mv_polynomial σ R) :
-  map g (bind₂ f φ) = bind₂ ((map g).comp f) φ := sorry
+  map g (bind₂ f φ) = bind₂ ((map g).comp f) φ :=
+begin
+  simp only [bind₂, eval₂_comp_right, coe_eval₂_hom, eval₂_map],
+  congr' 1 with : 1,
+  simp only [function.comp_app, map_X]
+end
 
 lemma bind₁_rename {υ : Type*} (f : τ → mv_polynomial υ R) (g : σ → τ) (φ : mv_polynomial σ R) :
-  bind₁ f (rename g φ) = bind₁ (f ∘ g) φ := sorry
+  bind₁ f (rename g φ) = bind₁ (f ∘ g) φ :=
+begin
+  dsimp [bind₁],
+  apply φ.induction_on,
+  { simp },
+  { intros p q hp hq, simp only [hp, hq, alg_hom.map_add, ring_hom.map_add]},
+  { intros p n hp, simp only [hp, rename_X, aeval_X, ring_hom.map_mul, alg_hom.map_mul] }
+end
 
 lemma bind₂_map (f : S →+* mv_polynomial σ T) (g : R →+* S) (φ : mv_polynomial σ R) :
-  bind₂ f (map g φ) = bind₂ (f.comp g) φ := sorry
+  bind₂ f (map g φ) = bind₂ (f.comp g) φ :=
+by simp [bind₂]
 
 section
 

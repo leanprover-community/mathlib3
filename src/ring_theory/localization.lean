@@ -7,6 +7,8 @@ Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston
 import data.equiv.ring
 import group_theory.monoid_localization
 import ring_theory.algebraic
+import ring_theory.integral_closure
+import ring_theory.non_zero_divisors
 
 /-!
 # Localizations of commutative rings
@@ -1024,62 +1026,7 @@ by rw [aeval_def, is_scalar_tower.algebra_map_eq R f.codomain R', algebra_map_eq
 
 end integer_normalization
 
-end localization_map
-variables (R) {A : Type*} [integral_domain A]
-variables (K : Type*)
-
-section non_zero_divisors
-
-/-- The submonoid of non-zero-divisors of a `comm_ring` `R`. -/
-def non_zero_divisors : submonoid R :=
-{ carrier := {x | ∀ z, z * x = 0 → z = 0},
-  one_mem' := λ z hz, by rwa mul_one at hz,
-  mul_mem' := λ x₁ x₂ hx₁ hx₂ z hz,
-    have z * x₁ * x₂ = 0, by rwa mul_assoc,
-    hx₁ z $ hx₂ (z * x₁) this }
-
-variables {R}
-
-lemma mul_mem_non_zero_divisors {a b : R} :
-  a * b ∈ non_zero_divisors R ↔ a ∈ non_zero_divisors R ∧ b ∈ non_zero_divisors R :=
-begin
-  split,
-  { intro h,
-    split; intros x h'; apply h,
-    { rw [←mul_assoc, h', zero_mul] },
-    { rw [mul_comm a b, ←mul_assoc, h', zero_mul] } },
-  { rintros ⟨ha, hb⟩ x hx,
-    apply ha,
-    apply hb,
-    rw [mul_assoc, hx] },
-end
-
-lemma eq_zero_of_ne_zero_of_mul_eq_zero
-  {x y : A} (hnx : x ≠ 0) (hxy : y * x = 0) :
-  y = 0 := or.resolve_right (eq_zero_or_eq_zero_of_mul_eq_zero hxy) hnx
-
-lemma mem_non_zero_divisors_iff_ne_zero {x : A} :
-  x ∈ non_zero_divisors A ↔ x ≠ 0 :=
-⟨λ hm hz, zero_ne_one (hm 1 $ by rw [hz, one_mul]).symm,
-λ hnx z, eq_zero_of_ne_zero_of_mul_eq_zero hnx⟩
-
-lemma map_ne_zero_of_mem_non_zero_divisors {B : Type*} [ring B] {g : A →+* B}
-  (hg : injective g) {x : non_zero_divisors A} : g x ≠ 0 :=
-λ h0, mem_non_zero_divisors_iff_ne_zero.1 x.2 $ g.injective_iff.1 hg x h0
-
-lemma map_mem_non_zero_divisors {B : Type*} [integral_domain B] {g : A →+* B}
-  (hg : injective g) {x : non_zero_divisors A} : g x ∈ non_zero_divisors B :=
-λ z hz, eq_zero_of_ne_zero_of_mul_eq_zero
-  (map_ne_zero_of_mem_non_zero_divisors hg) hz
-
-variables {K}
-
-lemma le_non_zero_divisors_of_domain [integral_domain K] {M : submonoid K} (hM : ↑0 ∉ M) :
-  M ≤ non_zero_divisors K :=
-λ x hx y hy, or.rec_on (eq_zero_or_eq_zero_of_mul_eq_zero hy)
-  (λ h, h) (λ h, absurd (h ▸ hx : (0 : K) ∈ M) hM)
-
-namespace localization_map
+variables {R} {A K : Type*} [integral_domain A]
 
 lemma to_map_eq_zero_iff (f : localization_map M S) {x : R} (hM : M ≤ non_zero_divisors R) :
   f.to_map x = 0 ↔ x = 0 :=
@@ -1139,7 +1086,9 @@ instance integral_domain_of_local_at_prime {P : ideal A} (hp : P.is_prime) :
 integral_domain_localization (le_non_zero_divisors_of_domain (by simpa only [] using P.zero_mem))
 
 end localization_map
-end non_zero_divisors
+
+variables (R) {A : Type*} [integral_domain A]
+variables (K : Type*)
 
 /-- Localization map from an integral domain `R` to its field of fractions. -/
 @[reducible] def fraction_map [comm_ring K] := localization_map (non_zero_divisors R) K
@@ -1369,6 +1318,72 @@ end num_denom
 
 end fraction_map
 
+section algebra
+
+section is_integral
+variables {R S} {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ] [algebra R S]
+
+/-- Definition of the natural algebra induced by the localization of an algebra.
+Given an algebra `R → S`, a submonoid `R` of `M`, and a localizaiton `Rₘ` for `M`,
+let `Sₘ` be the localization of `S` to the image of `M` under `algebra_map R S`.
+Then this is the natural algebra structure on `Rₘ → Sₘ`, such that the entire square commutes,
+where `localization_map.map_comp` gives the commutativity of the underlying maps -/
+noncomputable def localization_algebra (M : submonoid R) (f : localization_map M Rₘ)
+  (g : localization_map (algebra.algebra_map_submonoid S M) Sₘ) : algebra Rₘ Sₘ :=
+(f.map (@algebra.mem_algebra_map_submonoid_of_mem R S _ _ _ _) g).to_algebra
+
+variables (f : localization_map M Rₘ)
+variables (g : localization_map (algebra.algebra_map_submonoid S M) Sₘ)
+
+open polynomial
+
+/-- Given a particular witness to an element being algebraic over an algebra `R → S`,
+We can localize to a submonoid containing the leading coefficient to make it integral -/
+theorem is_integral_localization_at_leading_coeff {x : S} (p : polynomial R)
+  (hp : aeval x p = 0) (hM' : p.leading_coeff ∈ M) :
+  @is_integral Rₘ _ _ _ (localization_algebra M f g) (g.to_map x) :=
+begin
+  by_cases triv : (1 : Rₘ) = 0,
+  { exact ⟨0, ⟨trans leading_coeff_zero triv.symm, eval₂_zero _ _⟩⟩ },
+  haveI : nontrivial Rₘ := nontrivial_of_ne 1 0 triv,
+  obtain ⟨b, hb⟩ := is_unit_iff_exists_inv.mp
+    (localization_map.map_units f ⟨p.leading_coeff, hM'⟩),
+  refine ⟨(p.map f.to_map) * C b, ⟨_, _⟩⟩,
+  { refine monic_mul_C_of_leading_coeff_mul_eq_one _,
+    rwa leading_coeff_map_of_leading_coeff_ne_zero f.to_map,
+    refine λ hfp, zero_ne_one (trans (zero_mul b).symm (hfp ▸ hb) : (0 : Rₘ) = 1) },
+  { refine eval₂_mul_eq_zero_of_left _ _ _ _,
+    erw [eval₂_map, localization_map.map_comp, ← hom_eval₂ _ (algebra_map R S) g.to_map x],
+    exact trans (congr_arg g.to_map hp) g.to_map.map_zero }
+end
+
+/-- If `R → S` is an integral extension, `M` is a submonoid of `R`,
+`Rₘ` is the localization of `R` at `M`,
+and `Sₘ` is the localization of `S` at the image of `M` under the extension map,
+then the induced map `Rₘ → Sₘ` is also an integral extension -/
+theorem is_integral_localization (H : ∀ x : S, is_integral R x)
+  (x : Sₘ) : @is_integral Rₘ _ _ _ (localization_algebra M f g) x :=
+begin
+  by_cases triv : (1 : R) = 0,
+  { have : (1 : Rₘ) = 0 := by convert congr_arg f.to_map triv; simp,
+    exact ⟨0, ⟨trans leading_coeff_zero this.symm, eval₂_zero _ _⟩⟩ },
+  { haveI : nontrivial R := nontrivial_of_ne 1 0 triv,
+    obtain ⟨⟨s, ⟨u, hu⟩⟩, hx⟩ := g.surj x,
+    obtain ⟨v, hv⟩ := hu,
+    obtain ⟨v', hv'⟩ := is_unit_iff_exists_inv'.1 (f.map_units ⟨v, hv.1⟩),
+    refine @is_integral_of_is_integral_mul_unit Rₘ _ _ _
+      (localization_algebra M f g) x (g.to_map u) v' _ _,
+    { replace hv' := congr_arg (@algebra_map Rₘ Sₘ _ _ (localization_algebra M f g)) hv',
+      rw [ring_hom.map_mul, ring_hom.map_one, ← ring_hom.comp_apply _ f.to_map] at hv',
+      erw localization_map.map_comp at hv',
+      exact hv.2 ▸ hv' },
+    { obtain ⟨p, hp⟩ := H s,
+      exact hx.symm ▸ is_integral_localization_at_leading_coeff
+        f g p hp.2 (hp.1.symm ▸ M.one_mem) } }
+end
+
+end is_integral
+
 namespace integral_closure
 
 variables {L : Type*} [field K] [field L] {f : fraction_map A K}
@@ -1401,6 +1416,8 @@ fraction_map_of_algebraic
     (is_scalar_tower.algebra_map_apply _ _ _ _).symm.trans hx))
 
 end integral_closure
+
+end algebra
 
 variables (A)
 

@@ -916,13 +916,13 @@ aeval x (W_ ℤ n)
 lemma ghost_component_apply (n : ℕ) (x : 𝕎 p R) :
   ghost_component n x = aeval x (W_ ℤ n) := rfl
 
--- lemma ghost_component_apply' (n : ℕ) (x : 𝕎 p R) :
---   ghost_component n x = aeval x (W_ R n) :=
--- begin
---   simp only [ghost_component_apply, aeval_eq_eval₂_hom,
---     ← map_witt_polynomial p (int.cast_ring_hom R), eval₂_hom_map_hom],
---   exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl,
--- end
+lemma ghost_component_apply' (n : ℕ) (x : 𝕎 p R) :
+  ghost_component n x = aeval x (W_ R n) :=
+begin
+  simp only [ghost_component_apply, aeval_eq_eval₂_hom,
+    ← map_witt_polynomial p (int.cast_ring_hom R), eval₂_hom_map_hom],
+  exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl,
+end
 
 noncomputable def ghost_map_fun : 𝕎 p R → (ℕ → R) := λ w n, ghost_component n w
 
@@ -1018,10 +1018,9 @@ lemma ghost_map_fun_eq [invertible (p : R)] :
   (ghost_map_fun : 𝕎 p R → ℕ → R) = ghost_map_fun.equiv_of_invertible p R :=
 begin
   ext w n,
-  rw [ghost_map_fun_apply, ghost_component_apply],
+  rw [ghost_map_fun_apply, ghost_component_apply'],
   dsimp [ghost_map_fun.equiv_of_invertible, witt.alg_equiv],
   rw [aeval_X],
-
 end
 
 lemma ghost_map_fun.bijective_of_invertible [invertible (p : R)] :
@@ -1193,7 +1192,7 @@ begin
   simp only [map_aeval, constant_coeff_comp_algebra_map, constant_coeff_rename,
     constant_coeff_witt_polynomial, this, h],
   conv_rhs { rw ← constant_coeff_X_in_terms_of_W p ℚ n },
-  exact @aeval_zero' _ _ ℚ _ _ (algebra.id _) _,
+  -- exact @aeval_zero' _ _ ℚ _ _ (algebra.id _) _,
 end
 
 section move_this
@@ -1239,15 +1238,16 @@ section witt_structure_simplifications
 @[simp] lemma witt_zero_eq_zero (n : ℕ) : witt_zero p n = 0 :=
 begin
   apply mv_polynomial.coe_int_rat_map_injective,
-  simp only [witt_zero, witt_structure_rat, aeval_zero', alg_hom.map_zero, ring_hom.map_zero,
-    ← constant_coeff_eq, constant_coeff_X_in_terms_of_W, map_witt_structure_int],
+  simp only [witt_zero, witt_structure_rat, bind₁, aeval_zero',
+    constant_coeff_X_in_terms_of_W, ring_hom.map_zero,
+    alg_hom.map_zero, map_witt_structure_int],
 end
 
 @[simp] lemma witt_one_zero_eq_one : witt_one p 0 = 1 :=
 begin
   apply mv_polynomial.coe_int_rat_map_injective,
-  simp only [witt_one, witt_structure_rat, alg_hom.map_one, ring_hom.map_one,
-    map_witt_structure_int, X_in_terms_of_W_zero, aeval_X]
+  simp only [witt_one, witt_structure_rat, X_in_terms_of_W_zero, alg_hom.map_one,
+    ring_hom.map_one, bind₁_X_right, map_witt_structure_int]
 end
 
 @[simp] lemma witt_one_pos_eq_zero (n : ℕ) (hn : 0 < n) : witt_one p n = 0 :=
@@ -1258,11 +1258,11 @@ begin
   revert hn, apply nat.strong_induction_on n, clear n,
   intros n IH hn,
   rw X_in_terms_of_W_eq,
-  simp only [alg_hom.map_mul, alg_hom.map_sub, alg_hom.map_sum, alg_hom.map_pow, aeval_X, aeval_C],
+  simp only [alg_hom.map_mul, alg_hom.map_sub, alg_hom.map_sum, alg_hom.map_pow, bind₁_X_right, bind₁_C_right],
   rw [sub_mul, one_mul],
   rw [finset.sum_eq_single 0],
   { simp only [inv_of_eq_inv, one_mul, inv_pow', nat.sub_zero, ring_hom.map_one, pow_zero],
-    simp only [one_pow, one_mul, X_in_terms_of_W_zero, aeval_X, sub_self], },
+    simp only [one_pow, one_mul, X_in_terms_of_W_zero, sub_self, bind₁_X_right] },
   { intros i hin hi0,
     rw [finset.mem_range] at hin,
     rw [IH _ hin (nat.pos_of_ne_zero hi0), zero_pow (nat.pow_pos hp.pos _), mul_zero], },
@@ -1276,22 +1276,26 @@ by simp only [witt_polynomial, X, finset.sum_singleton, finset.range_one, nat.po
 @[simp] lemma witt_add_zero : witt_add p 0 = X (tt,0) + X (ff,0) :=
 begin
   apply mv_polynomial.coe_int_rat_map_injective,
-  simp only [witt_add, witt_structure_rat, alg_hom.map_add, ring_hom.map_add, rename_X,
-    X_in_terms_of_W_zero, aeval_X, map_X, witt_polynomial_zero, map_witt_structure_int]
+  simp only [witt_add, witt_structure_rat, alg_hom.map_add, ring_hom.map_add,
+    rename_X, X_in_terms_of_W_zero, map_X,
+     witt_polynomial_zero, bind₁_X_right, map_witt_structure_int],
 end
 
 @[simp] lemma witt_mul_zero : witt_mul p 0 = X (tt,0) * X (ff,0) :=
 begin
   apply mv_polynomial.coe_int_rat_map_injective,
-  simp only [witt_mul, witt_structure_rat, alg_hom.map_mul, ring_hom.map_mul, rename_X,
-    X_in_terms_of_W_zero, aeval_X, map_X, witt_polynomial_zero, map_witt_structure_int]
+  simp only [witt_mul, witt_structure_rat, rename_X, X_in_terms_of_W_zero, map_X,
+    witt_polynomial_zero, ring_hom.map_mul,
+    bind₁_X_right, alg_hom.map_mul, map_witt_structure_int]
+
 end
 
 @[simp] lemma witt_neg_zero : witt_neg p 0 = - X ((),0) :=
 begin
   apply mv_polynomial.coe_int_rat_map_injective,
-  simp only [witt_neg, witt_structure_rat, alg_hom.map_neg, ring_hom.map_neg, rename_X,
-    X_in_terms_of_W_zero, aeval_X, map_X, witt_polynomial_zero, map_witt_structure_int]
+  simp only [witt_neg, witt_structure_rat, rename_X, X_in_terms_of_W_zero, map_X,
+    witt_polynomial_zero, ring_hom.map_neg,
+   alg_hom.map_neg, bind₁_X_right, map_witt_structure_int]
 end
 
 @[simp] lemma constant_coeff_witt_add (n : ℕ) :

@@ -406,7 +406,7 @@ sorry
 variables (p q : mv_polynomial σ R)
 #simp bind₁ f (p + q)
 
-#check degrees_add
+#check degrees
 lemma bind₁_vars : (bind₁ f φ).vars ⊆ φ.vars.bind (λ i, (f i).vars) :=
 begin
   apply φ.induction_on,

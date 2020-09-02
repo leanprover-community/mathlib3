@@ -119,6 +119,7 @@ Then to check the sheaf condition it suffices to check it on the underlying shea
 
 Another useful example is the forgetful functor `TopCommRing ⥤ Top`.
 -/
+@[stacks "0073" "We prove a stronger version with arbitrary complete target category."]
 def sheaf_condition_equiv_sheaf_condition_comp :
   sheaf_condition F ≃ sheaf_condition (F ⋙ G) :=
 begin

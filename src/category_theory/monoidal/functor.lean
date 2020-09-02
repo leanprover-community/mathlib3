@@ -62,6 +62,7 @@ attribute [simp] lax_monoidal_functor.associativity
 -- lax_monoidal_functor.right_unitality lax_monoidal_functor.associativity
 
 /-- A monoidal functor is a lax monoidal functor for which the tensorator and unitor as isomorphisms. -/
+@[stacks "0FFL"]
 structure monoidal_functor
 extends lax_monoidal_functor.{v₁ v₂} C D :=
 (ε_is_iso            : is_iso ε . obviously)

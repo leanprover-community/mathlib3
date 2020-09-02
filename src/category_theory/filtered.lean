@@ -53,6 +53,7 @@ A category `is_filtered` if
    are equal, and
 3. there exists some object.
 -/
+@[stacks "002V" "We only describe the condition on categories, not diagrams."]
 class is_filtered extends is_filtered_or_empty C : Prop :=
 [nonempty : nonempty C]
 

@@ -26,6 +26,7 @@ well as their duals) which can be simpler in practice.
 
 Uniqueness of adjoints is shown in `category_theory.adjunction.opposites`.
 -/
+@[stacks "0037"]
 structure adjunction (F : C ⥤ D) (G : D ⥤ C) :=
 (hom_equiv : Π (X Y), (F.obj X ⟶ Y) ≃ (X ⟶ G.obj Y))
 (unit : 𝟭 C ⟶ F.comp G)
@@ -294,6 +295,7 @@ section
 variables {E : Type u₃} [ℰ : category.{v₃} E] (H : D ⥤ E) (I : E ⥤ D)
 
 /-- Show that adjunctions can be composed. -/
+@[stacks "0DV0"]
 def comp (adj₁ : F ⊣ G) (adj₂ : H ⊣ I) : F ⋙ H ⊣ I ⋙ G :=
 { hom_equiv := λ X Z, equiv.trans (adj₂.hom_equiv _ _) (adj₁.hom_equiv _ _),
   unit := adj₁.unit ≫

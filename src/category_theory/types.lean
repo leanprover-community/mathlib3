@@ -139,6 +139,7 @@ lemma hom_of_element_eq_iff {X : Type u} (x y : X) :
   hom_of_element x = hom_of_element y ↔ x = y :=
 ⟨λ H, congr_fun H punit.star, by cc⟩
 
+@[stacks "003C"]
 lemma mono_iff_injective {X Y : Type u} (f : X ⟶ Y) : mono f ↔ function.injective f :=
 begin
   split,
@@ -152,6 +153,7 @@ begin
     exact H H₂ }
 end
 
+@[stacks "003C"]
 lemma epi_iff_surjective {X Y : Type u} (f : X ⟶ Y) : epi f ↔ function.surjective f :=
 begin
   split,

@@ -113,6 +113,7 @@ open has_limit_of_has_products_of_has_equalizers
 
 /-- Any category with products and equalizers has all limits. -/
 -- This is not an instance, as it is not always how one wants to construct limits!
+@[stacks "002N"]
 def limits_from_equalizers_and_products
   [has_products C] [has_equalizers C] : has_limits C :=
 { has_limits_of_shape := λ J 𝒥, by exactI
@@ -120,6 +121,7 @@ def limits_from_equalizers_and_products
 
 /-- Any category with finite products and equalizers has all finite limits. -/
 -- This is not an instance, as it is not always how one wants to construct finite limits!
+@[stacks "002O" "We do not prove equivalence with the third condition."]
 def finite_limits_from_equalizers_and_finite_products
   [has_finite_products C] [has_equalizers C] : has_finite_limits C :=
 λ J _ _, by exactI

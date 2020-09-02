@@ -7,13 +7,49 @@ import category_theory.adjunction.basic
 import category_theory.limits.cones
 import category_theory.reflects_isomorphisms
 
+/-!
+# Limits and colimits
+
+We set up the general theory of limits and colimits in a category.
+In this introduction we only describe the setup for limits;
+it is repeated, with slightly different names, for colimits.
+
+The three main structures involved are
+* `is_limit c`, for `c : cone F`, `F : J ⥤ C`, expressing that `c` is a limit cone,
+* `limit_cone F`, which consists of a choice of cone for `F` and the fact it is a limit cone, and
+* `has_limit F`, asserting the mere existence of some limit cone for `F`.
+
+Typically there are two different ways one can use the limits library:
+1. working with particular cones, and terms of type `is_limit`
+2. working solely with `has_limit`.
+
+While `has_limit` only asserts the existence of a limit cone,
+we happily use the axiom of choice in mathlib,
+so there are convenience functions all depending on `has_limit F`:
+* `limit F : C`, producing some limit object
+* `limit.π F j : limit F ⟶ F.obj j`, the morphisms out of the limit,
+* `limit.lift F c : c.X ⟶ limit F`, the universal morphism from any other `c : cone F`, etc.
+
+There are abbreviations `has_limits_of_shape J C` and `has_limits C`
+asserting the existence of classes of limits.
+Later more are introduced, for finite limits, special shapes of limits, etc.
+
+## Implementation
+At present we simply say everything twice, in order to handle both limits and colimits.
+It would be highly desirable to have some automation support,
+e.g. a `@[dualize]` attribute that behaves similarly to `@[to_additive]`.
+
+## References
+* [Stacks: Limits and colimits](https://stacks.math.columbia.edu/tag/002D)
+
+-/
+
 open category_theory category_theory.category category_theory.functor opposite
 
 namespace category_theory.limits
 
 universes v u u' u'' w -- declare the `v`'s first; see `category_theory.category` for an explanation
 
--- See the notes at the top of cones.lean, explaining why we can't allow `J : Prop` here.
 variables {J K : Type v} [small_category J] [small_category K]
 variables {C : Type u} [category.{v} C]
 
@@ -21,7 +57,7 @@ variables {F : J ⥤ C}
 
 /-- A cone `t` on `F` is a limit cone if each cone on `F` admits a unique
   cone morphism to `t`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_inhabited_instance, stacks "002E"]
 structure is_limit (t : cone F) :=
 (lift  : Π (s : cone F), s.X ⟶ t.X)
 (fac'  : ∀ (s : cone F) (j : J), lift s ≫ t.π.app j = s.π.app j . obviously)
@@ -373,7 +409,7 @@ end is_limit
 
 /-- A cocone `t` on `F` is a colimit cocone if each cocone on `F` admits a unique
   cocone morphism from `t`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_inhabited_instance, stacks "002F"]
 structure is_colimit (t : cocone F) :=
 (desc  : Π (s : cocone F), t.X ⟶ s.X)
 (fac'  : ∀ (s : cocone F) (j : J), t.ι.app j ≫ desc s = s.ι.app j . obviously)

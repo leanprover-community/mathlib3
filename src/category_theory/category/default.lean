@@ -126,6 +126,7 @@ by { split_ifs; refl }
 A morphism `f` is an epimorphism if it can be "cancelled" when precomposed:
 `f ≫ g = f ≫ h` implies `g = h`.
 -/
+@[stacks "003B"]
 class epi (f : X ⟶ Y) : Prop :=
 (left_cancellation : Π {Z : C} (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h), g = h)
 
@@ -133,6 +134,7 @@ class epi (f : X ⟶ Y) : Prop :=
 A morphism `f` is a monomorphism if it can be "cancelled" when postcomposed:
 `g ≫ f = h ≫ f` implies `g = h`.
 -/
+@[stacks "003B"]
 class mono (f : X ⟶ Y) : Prop :=
 (right_cancellation : Π {Z : C} (g h : Z ⟶ X) (w : g ≫ f = h ≫ f), g = h)
 
@@ -224,7 +226,7 @@ namespace preorder
 
 variables (α : Type u)
 
-@[priority 100] -- see Note [lower instance priority]
+@[priority 100, stacks "00D3"] -- see Note [lower instance priority]
 instance small_category [preorder α] : small_category α :=
 { hom  := λ U V, ulift (plift (U ≤ V)),
   id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,

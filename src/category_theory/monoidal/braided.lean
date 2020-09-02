@@ -66,6 +66,7 @@ set_option default_priority 100 -- see Note [default priority]
 /--
 A symmetric monoidal category is a braided monoidal category for which the braiding is symmetric.
 -/
+@[stacks "0FFW"]
 class symmetric_category (C : Type u) [category.{v} C] [monoidal_category.{v} C]
    extends braided_category.{v} C :=
 -- braiding symmetric:

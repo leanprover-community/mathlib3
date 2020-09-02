@@ -12,6 +12,9 @@ The Yoneda embedding as a functor `yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁)`,
 along with an instance that it is `fully_faithful`.
 
 Also the Yoneda lemma, `yoneda_lemma : (yoneda_pairing C) ≅ (yoneda_evaluation C)`.
+
+## References
+* [Stacks: Opposite Categories and the Yoneda Lemma](https://stacks.math.columbia.edu/tag/001L)
 -/
 
 namespace category_theory
@@ -21,7 +24,8 @@ universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.catego
 
 variables {C : Type u₁} [category.{v₁} C]
 
-@[simps] def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
+@[simps, stacks "001O"]
+def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
 { obj := λ X,
   { obj := λ Y, unop Y ⟶ X,
     map := λ Y Y' f g, f.unop ≫ g,
@@ -49,8 +53,11 @@ by obviously
   {Z Z' : C} (f : Z ⟶ Z') (h : Z' ⟶ X) : f ≫ α.app (op Z') h = α.app (op Z) (f ≫ h) :=
 (functor_to_types.naturality _ _ α f.op h).symm
 
+@[stacks "001P"]
 instance yoneda_full : full (@yoneda C _) :=
 { preimage := λ X Y f, (f.app (op X)) (𝟙 X) }
+
+@[stacks "001P"]
 instance yoneda_faithful : faithful (@yoneda C _) :=
 { map_injective' := λ X Y f g p,
   begin
@@ -86,6 +93,7 @@ begin erw [functor_to_types.naturality], refl end
 
 instance coyoneda_full : full (@coyoneda C _) :=
 { preimage := λ X Y f, ((f.app (unop X)) (𝟙 _)).op }
+
 instance coyoneda_faithful : faithful (@coyoneda C _) :=
 { map_injective' := λ X Y f g p,
   begin
@@ -99,6 +107,7 @@ is_iso_of_fully_faithful coyoneda f
 
 end coyoneda
 
+@[stacks "001Q"]
 class representable (F : Cᵒᵖ ⥤ Type v₁) :=
 (X : C)
 (w : yoneda.obj X ≅ F)
@@ -138,6 +147,7 @@ functor.prod yoneda.op (𝟭 (Cᵒᵖ ⥤ Type v₁)) ⋙ functor.hom (Cᵒᵖ �
   (P Q : Cᵒᵖ × (Cᵒᵖ ⥤ Type v₁)) (α : P ⟶ Q) (β : (yoneda_pairing C).obj P) :
   (yoneda_pairing C).map α β = yoneda.map α.1.unop ≫ β ≫ α.2 := rfl
 
+@[stacks "001P"]
 def yoneda_lemma : yoneda_pairing C ≅ yoneda_evaluation C :=
 { hom :=
   { app := λ F x, ulift.up ((x.app F.1) (𝟙 (unop F.1))),

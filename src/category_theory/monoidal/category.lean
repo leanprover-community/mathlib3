@@ -22,6 +22,7 @@ specified associator, `α_ X Y Z : (X ⊗ Y) ⊗ Z ≅ X ⊗ (Y ⊗ Z)`. There i
 with specified left and right unitor isomorphisms `λ_ X : 𝟙_ C ⊗ X ≅ X` and `ρ_ X : X ⊗ 𝟙_ C ≅ X`.
 These associators and unitors satisfy the pentagon and triangle equations.
 -/
+@[stacks "0FFK"]
 class monoidal_category (C : Type u) [𝒞 : category.{v} C] :=
 -- curried tensor product of objects:
 (tensor_obj               : C → C → C)

@@ -57,6 +57,7 @@ component'.
 
 This allows us to show that the functor X ⨯ - preserves connected limits.
 -/
+@[stacks "002S"]
 class connected (J : Type v₂) [category.{v₁} J] extends inhabited J :=
 (iso_constant : Π {α : Type v₂} (F : J ⥤ discrete α), F ≅ (functor.const J).obj (F.obj default))
 end connected

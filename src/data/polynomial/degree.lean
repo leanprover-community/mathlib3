@@ -69,6 +69,17 @@ le_antisymm (degree_map_le f) $
     rw [coeff_map], exact hf
   end
 
+lemma nat_degree_map_of_leading_coeff_ne_zero [semiring S] (f : R →+* S)
+  (hf : f (leading_coeff p) ≠ 0) : nat_degree (p.map f) = nat_degree p :=
+nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero f hf)
+
+lemma leading_coeff_map_of_leading_coeff_ne_zero [semiring S] (f : R →+* S)
+  (hf : f (leading_coeff p) ≠ 0) : leading_coeff (p.map f) = f (leading_coeff p) :=
+begin
+  unfold leading_coeff,
+  rw [coeff_map, nat_degree_map_of_leading_coeff_ne_zero f hf],
+end
+
 lemma degree_pos_of_root {p : polynomial R} (hp : p ≠ 0) (h : is_root p a) : 0 < degree p :=
 lt_of_not_ge $ λ hlt, begin
   have := eq_C_of_degree_le_zero hlt,
@@ -97,7 +108,6 @@ lemma degree_pos_of_eval₂_root {p : polynomial R} (hp : p ≠ 0) (f : R →+* 
   0 < degree p :=
 nat_degree_pos_iff_degree_pos.mp (nat_degree_pos_of_eval₂_root hp f hz inj)
 
-
 section injective
 open function
 variables {f : R →+* S} (hf : injective f)
@@ -115,11 +125,13 @@ p.degree_map_eq_of_injective hf
 
 lemma nat_degree_map' (p : polynomial R) :
   nat_degree (p.map f) = nat_degree p :=
-if h : p = 0 then by simp [h]
-else begin
-  have := degree_map' hf p, iterate 2 { rw degree_eq_nat_degree at this },
-  assumption_mod_cast, assumption,
-  contrapose! h, apply map_injective f hf, simpa
+nat_degree_eq_of_degree_eq (degree_map' hf p)
+
+lemma leading_coeff_map' (p : polynomial R) :
+  leading_coeff (p.map f) = f (leading_coeff p) :=
+begin
+  unfold leading_coeff,
+  rw [coeff_map, nat_degree_map' hf p],
 end
 
 end injective

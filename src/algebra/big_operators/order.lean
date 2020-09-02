@@ -219,6 +219,22 @@ begin
       apply le_trans (h0 a (mem_insert_self a s)) (h1 a (mem_insert_self a s)) }
 end
 
+/-- If `g, h ≤ f` and `g i + h i ≤ f i`, then the product of `f` over `s` is at least the
+  sum of the products of `g` and `h`. This is the version for `linear_ordered_comm_ring`. -/
+lemma prod_add_prod_le {s : finset α} {i : α} {f g h : α → β}
+  (hi : i ∈ s) (h2i : g i + h i ≤ f i) (hgf : ∀ j ∈ s, j ≠ i → g j ≤ f j)
+  (hhf : ∀ j ∈ s, j ≠ i → h j ≤ f j) (hg : ∀ i ∈ s, 0 ≤ g i) (hh : ∀ i ∈ s, 0 ≤ h i) :
+  ∏ i in s, g i + ∏ i in s, h i ≤ ∏ i in s, f i :=
+begin
+  simp_rw [← mul_prod_diff_singleton hi],
+  refine le_trans _ (mul_le_mul_of_nonneg_right h2i _),
+  { rw [right_distrib],
+    apply add_le_add; apply mul_le_mul_of_nonneg_left; try { apply prod_le_prod };
+    simp only [and_imp, mem_sdiff, mem_singleton]; intros; apply_assumption; assumption },
+  { apply prod_nonneg, simp only [and_imp, mem_sdiff, mem_singleton],
+    intros j h1j h2j, refine le_trans (hg j h1j) (hgf j h1j h2j) }
+end
+
 end linear_ordered_comm_ring
 
 section canonically_ordered_comm_semiring
@@ -235,6 +251,20 @@ begin
     apply canonically_ordered_semiring.mul_le_mul,
     { exact h _ (finset.mem_insert_self a s) },
     { exact ih (λ i hi, h _ (finset.mem_insert_of_mem hi)) } }
+end
+
+/-- If `g, h ≤ f` and `g i + h i ≤ f i`, then the product of `f` over `s` is at least the
+  sum of the products of `g` and `h`. This is the version for `canonically_ordered_comm_semiring`.
+-/
+lemma prod_add_prod_le' {s : finset α} {i : α} {f g h : α → β} (hi : i ∈ s) (h2i : g i + h i ≤ f i)
+  (hgf : ∀ j ∈ s, j ≠ i → g j ≤ f j) (hhf : ∀ j ∈ s, j ≠ i → h j ≤ f j) :
+  ∏ i in s, g i + ∏ i in s, h i ≤ ∏ i in s, f i :=
+begin
+  classical, simp_rw [← mul_prod_diff_singleton hi],
+  refine le_trans _ (canonically_ordered_semiring.mul_le_mul_right' h2i _),
+  rw [right_distrib],
+  apply add_le_add; apply canonically_ordered_semiring.mul_le_mul_left'; apply prod_le_prod';
+  simp only [and_imp, mem_sdiff, mem_singleton]; intros; apply_assumption; assumption
 end
 
 end canonically_ordered_comm_semiring

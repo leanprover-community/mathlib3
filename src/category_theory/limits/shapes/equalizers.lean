@@ -215,6 +215,34 @@ begin
   erw [t.w left, ← t.w right], refl
 end
 
+/--
+To construct an isomorphism between forks,
+it suffices to give an isomorphism between the cone points
+and check that it commutes with the `ι` morphisms.
+-/
+def fork.ext {s t : fork f g} (i : s.X ≅ t.X) (w : s.ι = i.hom ≫ t.ι) : s ≅ t :=
+cones.ext i
+begin
+  rintro ⟨⟩,
+  { exact w, },
+  { rw [←fork.app_zero_left, ←fork.ι_eq_app_zero, w],
+    simp, },
+end
+
+/--
+To construct an isomorphism between coforks,
+it suffices to give an isomorphism between the cocone points
+and check that it commutes with the `π` morphisms.
+-/
+def cofork.ext {s t : cofork f g} (i : s.X ≅ t.X) (w : s.π = t.π ≫ i.inv) : s ≅ t :=
+cocones.ext i
+begin
+  rintro ⟨⟩,
+  { rw [←cofork.left_app_one, ←cofork.π_eq_app_one, w],
+    simp, },
+  { rw [←cofork.π_eq_app_one, w], simp },
+end
+
 /-- To check whether two maps are equalized by both maps of a fork, it suffices to check it for the
     first map -/
 lemma fork.equalizer_ext (s : fork f g) {W : C} {k l : W ⟶ s.X}

@@ -191,6 +191,10 @@ begin
     rw [coeff_expand_mul hp, ← leading_coeff], exact mt leading_coeff_eq_zero.1 hf }
 end
 
+theorem map_expand {p : ℕ} (hp : 0 < p) {f : R →+* S} {q : polynomial R} :
+  map f (expand R p q) = expand S p (map f q) :=
+by { ext, rw [coeff_map, coeff_expand hp, coeff_expand hp], split_ifs; simp, }
+
 end comm_semiring
 
 section comm_ring
@@ -301,6 +305,25 @@ ih $ of_irreducible_expand p $ by rwa [expand_expand, mul_comm]
 
 variables [HF : char_p F p]
 include HF
+
+theorem expand_char (f : polynomial F) :
+  map (frobenius F p) (expand F p f) = f ^ p :=
+begin
+  refine f.induction_on' (λ a b ha hb, _) (λ n a, _),
+  { rw [alg_hom.map_add, map_add, ha, hb, add_pow_char], },
+  { rw [expand_monomial, map_monomial, single_eq_C_mul_X, single_eq_C_mul_X,
+        mul_pow, ← C.map_pow, frobenius_def],
+    ring_exp }
+end
+
+theorem map_expand_pow_char (f : polynomial F) (n : ℕ) :
+   map ((frobenius F p) ^ n) (expand F (p ^ n) f) = f ^ (p ^ n) :=
+begin
+  induction n, {simp [ring_hom.one_def]},
+  symmetry,
+  rw [nat.pow_succ, pow_mul, ← n_ih, ← expand_char, pow_succ, ring_hom.mul_def, ← map_map, mul_comm,
+      expand_mul, ← map_expand (nat.prime.pos hp)],
+end
 
 theorem expand_contract {f : polynomial F} (hf : f.derivative = 0) :
   expand F p (contract p f) = f :=

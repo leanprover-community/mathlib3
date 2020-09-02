@@ -159,7 +159,7 @@ end
 end -- default_priority 100
 
 section prio
-set_option default_priority 10 -- see Note [default priority]
+set_option default_priority 100 -- see Note [default priority]
 
 /-- A type `M` is a “monoid with zero” if it is a monoid with zero element, and `0` is left
 and right absorbing. -/

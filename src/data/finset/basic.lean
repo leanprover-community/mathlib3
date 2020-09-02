@@ -422,6 +422,10 @@ theorem subset_union_left (s₁ s₂ : finset α) : s₁ ⊆ s₁ ∪ s₂ := λ
 
 theorem subset_union_right (s₁ s₂ : finset α) : s₂ ⊆ s₁ ∪ s₂ := λ x, mem_union_right _
 
+lemma union_subset_union {s1 t1 s2 t2 : finset α} (h1 : s1 ⊆ t1) (h2 : s2 ⊆ t2) :
+  s1 ∪ s2 ⊆ t1 ∪ t2 :=
+by { intros x hx, rw finset.mem_union at hx ⊢, tauto }
+
 theorem union_comm (s₁ s₂ : finset α) : s₁ ∪ s₂ = s₂ ∪ s₁ :=
 ext $ λ x, by simp only [mem_union, or_comm]
 
@@ -1203,8 +1207,16 @@ finset.ext $ by simp
   to_finset (s ∩ t) = to_finset s ∩ to_finset t :=
 finset.ext $ by simp
 
+@[simp] lemma to_finset_union (s t : multiset α) :
+  (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
+by ext; simp
+
 theorem to_finset_eq_empty {m : multiset α} : m.to_finset = ∅ ↔ m = 0 :=
 finset.val_inj.symm.trans multiset.erase_dup_eq_zero
+
+@[simp] lemma to_finset_subset (m1 m2 : multiset α) :
+  m1.to_finset ⊆ m2.to_finset ↔ m1 ⊆ m2 :=
+by simp only [finset.subset_iff, multiset.subset_iff, multiset.mem_to_finset]
 
 end multiset
 
@@ -2052,12 +2064,12 @@ list.mem_fin_range m
 /-- Given a finset `s` of `ℕ` contained in `{0,..., n-1}`, the corresponding finset in `fin n`
 is `s.attach_fin h` where `h` is a proof that all elements of `s` are less than `n`. -/
 def attach_fin (s : finset ℕ) {n : ℕ} (h : ∀ m ∈ s, m < n) : finset (fin n) :=
-⟨s.1.pmap (λ a ha, ⟨a, ha⟩) h, multiset.nodup_pmap (λ _ _ _ _, fin.mk.inj) s.2⟩
+⟨s.1.pmap (λ a ha, ⟨a, ha⟩) h, multiset.nodup_pmap (λ _ _ _ _, fin.veq_of_eq) s.2⟩
 
 @[simp] lemma mem_attach_fin {n : ℕ} {s : finset ℕ} (h : ∀ m ∈ s, m < n) {a : fin n} :
-  a ∈ s.attach_fin h ↔ a.1 ∈ s :=
+  a ∈ s.attach_fin h ↔ (a : ℕ) ∈ s :=
 ⟨λ h, let ⟨b, hb₁, hb₂⟩ := multiset.mem_pmap.1 h in hb₂ ▸ hb₁,
-λ h, multiset.mem_pmap.2 ⟨a.1, h, fin.eta _ _⟩⟩
+λ h, multiset.mem_pmap.2 ⟨a, h, fin.eta _ _⟩⟩
 
 @[simp] lemma card_attach_fin {n : ℕ} (s : finset ℕ) (h : ∀ m ∈ s, m < n) :
   (s.attach_fin h).card = s.card := multiset.card_pmap _ _ _
@@ -2099,3 +2111,21 @@ theorem to_finset_card_of_nodup {l : list α} (h : l.nodup) : l.to_finset.card =
 congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
 
 end list
+
+namespace multiset
+
+lemma disjoint_to_finset [decidable_eq α] (m1 m2 : multiset α) :
+  _root_.disjoint m1.to_finset m2.to_finset ↔ m1.disjoint m2 :=
+begin
+  rw finset.disjoint_iff_ne,
+  split,
+  { intro h,
+    intros a ha1 ha2,
+    rw ← multiset.mem_to_finset at ha1 ha2,
+    exact h _ ha1 _ ha2 rfl },
+  { rintros h a ha b hb rfl,
+    rw multiset.mem_to_finset at ha hb,
+    exact h ha hb }
+end
+
+end multiset

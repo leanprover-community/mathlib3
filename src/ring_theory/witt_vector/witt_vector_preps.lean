@@ -283,18 +283,21 @@ by { ext1, apply bind₂_C_right }
 
 @[simp]
 lemma join₂_map (f : R →+* mv_polynomial σ S) (φ : mv_polynomial σ R) :
-  join₂ (map f φ) = bind₂ f φ := sorry
+  join₂ (map f φ) = bind₂ f φ :=
+by ext1; simp only [join₂, bind₂, eval₂_hom_map_hom, ring_hom.id_comp]
 
 @[simp]
 lemma join₂_comp_map (f : R →+* mv_polynomial σ S) :
-  join₂.comp (map f) = bind₂ f := sorry
+  join₂.comp (map f) = bind₂ f :=
+by ext1; simp [join₂, bind₂]
 
 -- TODO: upgrade `rename` to an `R`-algebra hom,
 -- and mention that it is `map` in first argument of `mv_polynomial`.
 
 @[simp]
 lemma join₁_rename (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
-  join₁ (rename f φ) = bind₁ f φ := sorry
+  join₁ (rename f φ) = bind₁ f φ :=
+sorry
 
 -- @[simp]
 -- lemma join₁_comp_rename (f : σ → mv_polynomial τ R) :

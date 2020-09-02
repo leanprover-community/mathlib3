@@ -10,31 +10,6 @@ import category_theory.limits.shapes.pullbacks
 
 universes v u
 
-namespace category_theory
-
-instance discrete_fintype {α : Type*} [fintype α] : fintype (discrete α) :=
-by { dsimp [discrete], apply_instance }
-
-instance discrete_hom_fintype {α : Type*} [decidable_eq α] (X Y : discrete α) : fintype (X ⟶ Y) :=
-by { apply ulift.fintype }
-
-/-- A category with a `fintype` of objects, and a `fintype` for each morphism space. -/
-class fin_category (J : Type v) [small_category J] :=
-(decidable_eq_obj : decidable_eq J . tactic.apply_instance)
-(fintype_obj : fintype J . tactic.apply_instance)
-(decidable_eq_hom : Π (j j' : J), decidable_eq (j ⟶ j') . tactic.apply_instance)
-(fintype_hom : Π (j j' : J), fintype (j ⟶ j') . tactic.apply_instance)
-
-attribute [instance] fin_category.decidable_eq_obj fin_category.fintype_obj
-                     fin_category.decidable_eq_hom fin_category.fintype_hom
-
--- We need a `decidable_eq` instance here to construct `fintype` on the morphism spaces.
-instance fin_category_discrete_of_decidable_fintype (J : Type v) [decidable_eq J] [fintype J] :
-  fin_category (discrete J) :=
-{ }
-
-end category_theory
-
 open category_theory
 
 namespace category_theory.limits

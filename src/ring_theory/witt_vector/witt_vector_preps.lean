@@ -284,7 +284,7 @@ by { ext1, apply bind₂_C_right }
 @[simp]
 lemma join₂_map (f : R →+* mv_polynomial σ S) (φ : mv_polynomial σ R) :
   join₂ (map f φ) = bind₂ f φ :=
-by ext1; simp only [join₂, bind₂, eval₂_hom_map_hom, ring_hom.id_comp]
+by simp only [join₂, bind₂, eval₂_hom_map_hom, ring_hom.id_comp]
 
 @[simp]
 lemma join₂_comp_map (f : R →+* mv_polynomial σ S) :
@@ -310,14 +310,16 @@ lemma bind₁_id : bind₁ (@id (mv_polynomial σ R)) = join₁ := rfl
 lemma bind₂_id : bind₂ (ring_hom.id (mv_polynomial σ R)) = join₂ := rfl
 
 lemma bind₁_bind₁ (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial υ R) (φ : mv_polynomial σ R) :
-  (bind₁ g) (bind₁ f φ) = bind₁ (λ i, bind₁ g (f i)) φ := sorry
+  (bind₁ g) (bind₁ f φ) = bind₁ (λ i, bind₁ g (f i)) φ :=
+by simp [bind₁, ← comp_aeval]
 
 lemma bind₁_comp_bind₁ {υ : Type*} (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial υ R) :
   (bind₁ g).comp (bind₁ f) = bind₁ (λ i, bind₁ g (f i)) :=
 by { ext1, apply bind₁_bind₁ }
 
 lemma bind₂_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_polynomial σ T) (φ : mv_polynomial σ R) :
-  (bind₂ g) (bind₂ f φ) = bind₂ ((bind₂ g).comp f) φ := sorry
+  (bind₂ g) (bind₂ f φ) = bind₂ ((bind₂ g).comp f) φ :=
+sorry
 
 lemma bind₂_comp_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_polynomial σ T) :
   (bind₂ g).comp (bind₂ f) = bind₂ ((bind₂ g).comp f) :=
@@ -345,10 +347,10 @@ section
 open_locale classical
 variables (φ : mv_polynomial σ R) (f : σ → mv_polynomial τ R)
 
--- jmc: I don't know what the correct statement is here...
-lemma bind₁_support : (bind₁ f φ).support ⊆ _ :=
-begin
-end
+-- -- jmc: I don't know what the correct statement is here...
+-- lemma bind₁_support : (bind₁ f φ).support ⊆ _ :=
+-- begin
+-- end
 
 lemma bind₁_vars : (bind₁ f φ).vars ⊆ φ.vars.bind (λ i, (f i).vars) :=
 begin

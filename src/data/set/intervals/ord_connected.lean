@@ -94,6 +94,17 @@ lemma ord_connected_empty : ord_connected (∅ : set α) := λ x, false.elim
 
 lemma ord_connected_univ : ord_connected (univ : set α) := λ _ _ _ _, subset_univ _
 
+/-- In a dense order `α`, the subtype from an `ord_connected` set is also densely ordered. -/
+instance Ioo_densely_ordered [densely_ordered α] {s : set α} (hs : ord_connected s) :
+  densely_ordered s :=
+⟨ begin
+    intros a₁ a₂ ha,
+    have ha' : ↑a₁ < ↑a₂ := ha,
+    obtain ⟨x, ha₁x, hxa₂⟩ := dense ha',
+    refine ⟨⟨x, _⟩, ⟨ha₁x, hxa₂⟩⟩,
+    exact (hs a₁.2 a₂.2) (Ioo_subset_Icc_self ⟨ha₁x, hxa₂⟩),
+  end ⟩
+
 variables {β : Type*} [decidable_linear_order β]
 
 lemma ord_connected_interval {a b : β} : ord_connected (interval a b) :=

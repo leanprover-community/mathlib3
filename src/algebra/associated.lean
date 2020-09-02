@@ -566,6 +566,40 @@ begin
     simpa [is_unit_mk] using h _ _ this }
 end
 
+theorem mk_dvd_not_unit_mk_iff {a b : α} :
+  (associates.mk a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ associates.mk b = associates.mk a * x) ↔
+  a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x :=
+begin
+  rw [ne, ne, mk_eq_zero],
+  apply and_congr_right, intro ane0,
+  split,
+  { contrapose!, rw forall_associated,
+    intros h x hx hbax,
+    rw [mk_mul_mk, mk_eq_mk_iff_associated] at hbax,
+    cases hbax with u hu,
+    apply h (x * ↑u⁻¹),
+    { rw is_unit_mk at hx,
+      rw is_unit_iff_of_associated,
+      apply hx,
+      use u,
+      simp, },
+    rw [← mul_assoc, ← hu], simp, },
+  { rintro ⟨x, ⟨hx, rfl⟩⟩,
+    use associates.mk x,
+    simp [is_unit_mk, mk_mul_mk, hx], }
+end
+
+theorem dvd_not_unit_of_lt {a b : associates α} (hlt : a < b) :
+  a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x :=
+begin
+  split, { rintro rfl, apply not_lt_of_le _ hlt, apply dvd_zero },
+  rcases hlt with ⟨⟨x, rfl⟩, ndvd⟩,
+  use x, split, swap, {refl},
+  contrapose! ndvd,
+  rcases ndvd with ⟨u, rfl⟩,
+  simp,
+end
+
 end comm_monoid_with_zero
 
 section comm_cancel_monoid_with_zero
@@ -622,29 +656,6 @@ lemma le_of_mul_le_mul_left (a b c : associates α) (ha : a ≠ 0) :
   a * b ≤ a * c → b ≤ c
 | ⟨d, hd⟩ := ⟨d, eq_of_mul_eq_mul_left a _ _ ha $ by rwa ← mul_assoc⟩
 
-theorem associates.mk_dvd_not_unit_mk_iff {a b : α} :
-  (associates.mk a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ associates.mk b = associates.mk a * x) ↔
-  a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x :=
-begin
-  rw [ne, ne, mk_eq_zero],
-  apply and_congr_right, intro ane0,
-  split,
-  { contrapose!, rw forall_associated,
-    intros h x hx hbax,
-    rw [mk_mul_mk, mk_eq_mk_iff_associated] at hbax,
-    cases hbax with u hu,
-    apply h (x * ↑u⁻¹),
-    { rw is_unit_mk at hx,
-      rw is_unit_iff_of_associated,
-      apply hx,
-      use u,
-      simp, },
-    rw [← mul_assoc, ← hu], simp, },
-  { rintro ⟨x, ⟨hx, rfl⟩⟩,
-    use associates.mk x,
-    simp [is_unit_mk, mk_mul_mk, hx], }
-end
-
 lemma one_or_eq_of_le_of_prime :
   ∀(p m : associates α), prime p → m ≤ p → (m = 1 ∨ m = p)
 | _ m ⟨hp0, hp1, h⟩ ⟨d, rfl⟩ :=
@@ -665,6 +676,10 @@ instance : comm_cancel_monoid_with_zero (associates α) :=
 { mul_left_cancel_of_ne_zero := eq_of_mul_eq_mul_left,
   mul_right_cancel_of_ne_zero := eq_of_mul_eq_mul_right,
   .. (infer_instance : comm_monoid_with_zero (associates α)) }
+
+theorem dvd_not_unit_iff_lt {a b : associates α} :
+  (a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x) ↔ a < b :=
+dvd_and_not_dvd_iff.symm
 
 end comm_cancel_monoid_with_zero
 

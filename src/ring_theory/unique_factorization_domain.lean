@@ -79,20 +79,7 @@ instance DCC_dvd_associates : DCC_dvd (associates α) :=
 end⟩
 
 theorem well_founded_associates : well_founded ((<) : associates α → associates α → Prop) :=
-begin
-  have h : ∀ a : associates α, ∃ b : α, a = associates.mk b,
-  { rw forall_associated, intro a, use a, },
-  let f : associates α → α := λ a, classical.some (h a),
-  have hf : ∀ a, associates.mk (f a) = a := λ a, (classical.some_spec (h a)).symm,
-  refine rel_hom.well_founded { to_fun := f, map_rel' := _ } DCC_dvd.well_founded_dvd_not_unit,
-  intros a b h, rw [← hf a, ← hf b] at h, split,
-  { contrapose! h, apply not_lt_of_le, rw h,
-    apply mk_le_mk_of_dvd, apply (dvd_zero _), },
-  have h1 := le_of_lt h, rw mk_le_mk_iff_dvd_iff at h1, cases h1 with x hx, use x,
-  split, swap, {exact hx},
-  contrapose! h, rcases h with ⟨u, rfl⟩, rw mk_eq_mk_iff_associated.2 ⟨_, hx.symm⟩,
-  apply lt_irrefl,
-end
+subrelation.wf (λ x y, dvd_not_unit_of_lt) DCC_dvd.well_founded_dvd_not_unit
 
 local attribute [elab_as_eliminator] well_founded.fix
 
@@ -137,13 +124,7 @@ end DCC_dvd
 
 theorem DCC_dvd_of_well_founded_associates [comm_cancel_monoid_with_zero α]
   (h : well_founded ((<) : associates α → associates α → Prop)): DCC_dvd α :=
-⟨by { refine rel_hom.well_founded _ h,
-  exact { to_fun := associates.mk,
-    map_rel' := λ a b ⟨ane0, ⟨c, ⟨hc, bac⟩⟩⟩,
-      by { rw bac, apply lt_of_le_of_ne (associates.mk_le_mk_of_dvd (dvd.intro c rfl)),
-        intro con, rw associates.mk_eq_mk_iff_associated at con, apply hc,
-        rw ← associated_one_iff_is_unit, symmetry, apply associated_mul_left_cancel,
-        convert con, apply mul_one, refl, exact ane0, }}}⟩
+@DCC_dvd.of_DCC_dvd_associates _ _ ⟨by { convert h, ext, exact associates.dvd_not_unit_iff_lt }⟩
 
 theorem DCC_dvd_iff_well_founded_associates [comm_cancel_monoid_with_zero α] :
   DCC_dvd α ↔ well_founded ((<) : associates α → associates α → Prop) :=

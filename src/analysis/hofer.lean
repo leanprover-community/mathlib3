@@ -112,4 +112,4 @@ begin
 
   -- So we have our contradiction!
   exact not_tendsto_at_top_of_tendsto_nhds lim lim_top,
-en
+end

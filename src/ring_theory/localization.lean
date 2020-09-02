@@ -1448,12 +1448,12 @@ variables (A)
 /-- The fraction field of an integral domain as a quotient type. -/
 @[reducible] def fraction_ring := localization (non_zero_divisors A)
 
+namespace fraction_ring
+
 /-- Natural hom sending `x : A`, `A` an integral domain, to the equivalence class of
 `(x, 1)` in the field of fractions of `A`. -/
 def of : fraction_map A (localization (non_zero_divisors A)) :=
 localization.of (non_zero_divisors A)
-
-namespace fraction_ring
 
 variables {A}
 

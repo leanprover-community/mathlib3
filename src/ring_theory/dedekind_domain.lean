@@ -68,6 +68,10 @@ begin
 sorry,
 end
 
+variables {M : ideal R} [is_maximal M]
+#check is_maximal M
+#eval is_maximal M
+
 lemma maximal_ideal_invertible_of_dedekind (h : is_dedekind_domain f) {M : ideal R}
   (hM : ideal.is_maximal M) : is_unit (M : fractional_ideal f) :=
 -- ⟨⟨M, M⁻¹, _, _⟩, rfl⟩
@@ -86,24 +90,38 @@ let M1 : fractional_ideal f,
     exact h1 y h,},sorry,
 },
 have hprod : ↑M*M1=1,
-  {sorry},
-  -- {apply le_antisymm,
-  --   {apply fractional_ideal.mul_le.mpr,
-  --     intros y hy x hx,
-  --     have hxy : localization_map.is_integer f (x*y),
-  --       {
-  --       rw fractional_ideal.mem_coe at hy,
-  --       rcases hy with ⟨s,hs⟩,simp * at *,
-  --       rcases hs with ⟨h_s_inM,h_sy⟩,
-  --       subst h_sy,
-  --       exact hx s h_s_inM,
-  --       },
-  --     apply fractional_ideal.mem_one_iff.mpr,
-  --     cases hxy, use hxy_w,
-  --     finish,
-  --   },
-  --   {have incl : ↑ M ≤ ↑ M*M1, sorry, sorry},
-    -- },
+  {suffices hincl: ↑M*M1≤ 1, --first we start with the proof that hincl → hprod
+  have h_nonfrac : ∃ (I : ideal R), ↑ I = ↑M*M1, sorry,
+  cases h_nonfrac with I hI,
+  have h_nf_incl : M ≤ I,sorry,--probably need to combine hI with the fact that ↑ M⊆ ↑ M*M1 easily
+  -- apply fractional_ideal.coe_one,
+  -- apply and.elim_right hM I,--Lean is unhappy because 1 and ⊤ seem different,
+                --but otherwise this should imply hincl
+  sorry,--end of the proof that hincl → hprod
+  -- and now we pass to the proof of hincl
+  sorry,--end of the proof of hincl
+  },
+  /-
+  /- here begins an old strategy
+  {apply le_antisymm,
+    {apply fractional_ideal.mul_le.mpr,
+      intros y hy x hx,
+      have hxy : localization_map.is_integer f (x*y),
+        {
+        rw fractional_ideal.mem_coe at hy,
+        rcases hy with ⟨s,hs⟩,simp * at *,
+        rcases hs with ⟨h_s_inM,h_sy⟩,
+        subst h_sy,
+        exact hx s h_s_inM,
+        },
+      apply fractional_ideal.mem_one_iff.mpr,
+      cases hxy, use hxy_w,
+      finish,
+    },
+    {have incl : ↑ M ≤ ↑ M*M1, sorry, sorry},
+    },
+    which finishes here-/
+    -/
 apply is_unit_of_mul_eq_one ↑M M1 hprod,
 end
 

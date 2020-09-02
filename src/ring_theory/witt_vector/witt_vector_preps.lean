@@ -292,6 +292,10 @@ lemma join₂_comp_map (f : R →+* mv_polynomial σ S) :
 -- TODO: upgrade `rename` to an `R`-algebra hom,
 -- and mention that it is `map` in first argument of `mv_polynomial`.
 
+@[simp]
+lemma join₁_rename (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
+  join₁ (rename f φ) = bind₁ f φ := sorry
+
 -- @[simp]
 -- lemma join₁_comp_rename (f : σ → mv_polynomial τ R) :
 --   join₁.comp (rename f) = bind₁ f
@@ -301,10 +305,6 @@ lemma bind₁_id : bind₁ (@id (mv_polynomial σ R)) = join₁ := rfl
 
 @[simp]
 lemma bind₂_id : bind₂ (ring_hom.id (mv_polynomial σ R)) = join₂ := rfl
-
-@[simp]
-lemma join₁_rename (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
-  join₁ (rename f φ) = bind₁ f φ := sorry
 
 lemma bind₁_bind₁ (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial υ R) (φ : mv_polynomial σ R) :
   (bind₁ g) (bind₁ f φ) = bind₁ (λ i, bind₁ g (f i)) φ := sorry
@@ -325,7 +325,12 @@ section
 open_locale classical
 variables (φ : mv_polynomial σ R) (f : σ → mv_polynomial τ R)
 
-lemma bind_support : (bind₁ f φ).support ⊆  _ :=
+-- jmc: I don't know what the correct statement is here...
+lemma bind₁_support : (bind₁ f φ).support ⊆ _ :=
+begin
+end
+
+lemma bind₁_vars : (bind₁ f φ).vars ⊆ φ.vars.bind (λ i, (f i).vars) :=
 begin
 end
 

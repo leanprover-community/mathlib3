@@ -1325,6 +1325,7 @@ open_locale classical
 
 variables {R}
 
+-- this is bind₁_vars in witt_vector_preps
 lemma vars_aeval {τ} (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
   (aeval f φ).vars ⊆ (φ.vars.bind (λ i, (f i).vars)) :=
 begin

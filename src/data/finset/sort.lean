@@ -154,6 +154,14 @@ end
 by rw [subsingleton.elim i ⟨0, zero_lt_one⟩,
        mono_of_fin_zero h (singleton_nonempty a) zero_lt_one, min'_singleton]
 
+/-- The range of `mono_of_fin`. -/
+@[simp] lemma range_mono_of_fin {s : finset α} {k : ℕ} (h : s.card = k) :
+  set.range (s.mono_of_fin h) = ↑s :=
+begin
+  rw ←set.image_univ,
+  exact (mono_of_fin_bij_on s h).image_eq
+end
+
 /-- Any increasing bijection between `fin k` and a finset of cardinality `k` has to coincide with
 the increasing bijection `mono_of_fin s h`. For a statement assuming only that `f` maps `univ` to
 `s`, see `mono_of_fin_unique'`.-/

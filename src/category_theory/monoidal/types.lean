@@ -7,6 +7,10 @@ import category_theory.monoidal.of_has_finite_products
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.types
 
+/-!
+# The category of types is a symmetric monoidal category
+-/
+
 open category_theory
 open category_theory.limits
 open tactic

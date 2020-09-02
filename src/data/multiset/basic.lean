@@ -826,7 +826,7 @@ begin
 end
 
 @[to_additive]
-lemma prod_hom [comm_monoid α] [comm_monoid β] (s : multiset α) (f : α → β) [is_monoid_hom f] :
+lemma prod_hom [comm_monoid α] [comm_monoid β] (s : multiset α) (f : α →* β) :
   (s.map f).prod = f s.prod :=
 quotient.induction_on s $ λ l, by simp only [l.prod_hom f, quot_mk_to_coe, coe_map, coe_prod]
 
@@ -1649,6 +1649,9 @@ by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
 
 theorem count_eq_zero {a : α} {s : multiset α} : count a s = 0 ↔ a ∉ s :=
 iff_not_comm.1 $ count_pos.symm.trans pos_iff_ne_zero
+
+theorem count_ne_zero {a : α} {s : multiset α} : count a s ≠ 0 ↔ a ∈ s :=
+by simp [ne.def, count_eq_zero]
 
 @[simp] theorem count_repeat (a : α) (n : ℕ) : count a (repeat a n) = n :=
 by simp [repeat]

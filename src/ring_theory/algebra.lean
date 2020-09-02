@@ -908,6 +908,10 @@ theorem map_le {S : subalgebra R A} {f : A →ₐ[R] B} {U : subalgebra R B} :
   map S f ≤ U ↔ S ≤ comap' U f :=
 set.image_subset_iff
 
+lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
+  y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
+subsemiring.mem_map
+
 instance integral_domain {R A : Type*} [comm_ring R] [integral_domain A] [algebra R A]
   (S : subalgebra R A) : integral_domain S :=
 @subring.domain A _ S _

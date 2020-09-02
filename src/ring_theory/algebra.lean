@@ -200,6 +200,13 @@ lemma subring_coe_algebra_map {R : Type*} [comm_ring R] (S : set R) [is_subring 
 lemma subring_algebra_map_apply {R : Type*} [comm_ring R] (S : set R) [is_subring S] (x : S) :
   algebra_map S R x = x := rfl
 
+lemma set_range_subset {R : Type*} [comm_ring R] {T₁ T₂ : set R} [is_subring T₁] (hyp : T₁ ⊆ T₂) :
+  set.range (algebra_map T₁ R) ⊆ T₂ :=
+begin
+  rintros x ⟨⟨t, ht⟩, rfl⟩,
+  exact hyp ht,
+end
+
 variables (R A)
 /-- The multiplication in an algebra is a bilinear map. -/
 def lmul : A →ₗ A →ₗ A :=

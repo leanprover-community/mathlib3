@@ -379,12 +379,23 @@ lemma map_comp_C (f : R →+* S) : (map f).comp (C : R →+* mv_polynomial σ R)
 by { ext1, apply map_C }
 
 -- mixing the two monad structures
+lemma hom_bind₁ (f : mv_polynomial τ R →+* S) (g : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
+  f (bind₁ g φ) = eval₂_hom (f.comp C) (λ i, f (g i)) φ :=
+by rw [bind₁, map_aeval, algebra_map_eq]
+
 lemma map_bind₁ (f : R →+* S) (g : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
-  map f (bind₁ g φ) = eval₂_hom (C.comp f) (λ i, map f (g i)) φ :=
-by rw [bind₁, map_aeval, algebra_map_eq, map_comp_C]
+  map f (bind₁ g φ) = bind₁ (λ (i : σ), (map f) (g i)) (map f φ) := -- eval₂_hom (C.comp f) (λ i, map f (g i)) φ :=
+by { rw [hom_bind₁, map_comp_C, ← eval₂_hom_map_hom], refl }
 
 @[simp]
 lemma eval₂_hom_C_left (f : σ → mv_polynomial τ R) : eval₂_hom C f = bind₁ f := rfl
+
+@[simp]
+lemma bind₁_C_right (f : σ → mv_polynomial τ R) (r : R) :
+  bind₁ f (C r) = C r :=
+begin
+  sorry
+end
 
 section
 
@@ -416,6 +427,31 @@ eval₂_hom_C _ _ _
 
 @[simp] lemma expand_X (p : ℕ) (i : σ) : expand p (X i : mv_polynomial σ R) = (X i) ^ p :=
 eval₂_hom_X' _ _ _
+
+lemma expand_comp_bind₁ (p : ℕ) (f : σ → mv_polynomial τ R) :
+  (expand p).comp (bind₁ f) = bind₁ (λ i, expand p (f i)) :=
+by { apply alg_hom_ext, intro i, simp only [alg_hom.comp_apply, bind₁_X_right], }
+
+lemma expand_bind₁ (p : ℕ) (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
+  expand p (bind₁ f φ) = bind₁ (λ i, expand p (f i)) φ :=
+by rw [← alg_hom.comp_apply, expand_comp_bind₁]
+
+section
+variables {S : Type*} [comm_semiring S] {τ : Type*}
+
+lemma map_expand (f : R →+* S) (p : ℕ) (φ : mv_polynomial σ R) :
+  map f (expand p φ) = expand p (map f φ) :=
+begin
+  sorry
+end
+
+-- TODO: prove `rename_comp_expand`
+
+lemma rename_expand (f : σ → τ) (p : ℕ) (φ : mv_polynomial σ R) :
+  rename f (expand p φ) = expand p (rename f φ) :=
+begin
+  sorry
+end
 
 end mv_polynomial
 

@@ -249,7 +249,7 @@ begin
 end
 
 /-- The generalized eigenspace for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
-    kernel of `(f x - μ • id) ^ k`. -/
+    kernel of `(f - μ • id) ^ k`. -/
 def generalized_eigenspace [comm_ring K] [module K V]
   (f : End K V) (μ : K) (k : ℕ) : submodule K V :=
 ((f - am μ) ^ k).ker

@@ -281,7 +281,7 @@ lemma generalized_eigenspace_mono [field K] [vector_space K V]
   f.generalized_eigenspace μ k ≤ f.generalized_eigenspace μ m :=
 begin
   simp only [generalized_eigenspace, ←pow_sub_mul_pow _ hm],
-  apply linear_map.ker_le_ker_comp ((f - am μ) ^ k) ((f - am μ) ^ (m - k))
+  exact linear_map.ker_le_ker_comp ((f - am μ) ^ k) ((f - am μ) ^ (m - k))
 end
 
 /-- A generalized eigenvalue for some exponent `k` is also

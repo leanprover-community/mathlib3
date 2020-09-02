@@ -27,20 +27,6 @@ apply_nolint ring_hom.to_add_monoid_hom doc_blame
 apply_nolint ring_hom.to_monoid_hom doc_blame
 apply_nolint semiring doc_blame
 
--- algebraic_geometry/presheafed_space.lean
-apply_nolint algebraic_geometry.PresheafedSpace has_inhabited_instance
-apply_nolint algebraic_geometry.PresheafedSpace.comp doc_blame
-apply_nolint algebraic_geometry.PresheafedSpace.hom has_inhabited_instance
-apply_nolint algebraic_geometry.PresheafedSpace.id doc_blame
-apply_nolint category_theory.nat_trans.on_presheaf doc_blame
-
--- algebraic_geometry/prime_spectrum.lean
-apply_nolint prime_spectrum has_inhabited_instance
-
--- algebraic_geometry/stalks.lean
-apply_nolint algebraic_geometry.PresheafedSpace.stalk doc_blame
-apply_nolint algebraic_geometry.PresheafedSpace.stalk_map doc_blame
-
 -- category_theory/adjunction/basic.lean
 apply_nolint category_theory.adjunction.core_hom_equiv doc_blame has_inhabited_instance
 apply_nolint category_theory.adjunction.core_unit_counit doc_blame has_inhabited_instance
@@ -140,10 +126,8 @@ apply_nolint category_theory.limits.cofan.mk doc_blame
 apply_nolint category_theory.limits.fan doc_blame
 apply_nolint category_theory.limits.fan.mk doc_blame
 apply_nolint category_theory.limits.pi.lift doc_blame
-apply_nolint category_theory.limits.pi.map doc_blame
 apply_nolint category_theory.limits.pi.π doc_blame
 apply_nolint category_theory.limits.sigma.desc doc_blame
-apply_nolint category_theory.limits.sigma.map doc_blame
 apply_nolint category_theory.limits.sigma.ι doc_blame
 
 -- category_theory/monad/adjunction.lean
@@ -1010,6 +994,9 @@ apply_nolint normal_subgroup doc_blame
 apply_nolint simple_add_group doc_blame
 apply_nolint simple_group doc_blame
 
+-- deprecated/subring.lean
+apply_nolint ring.closure doc_blame
+
 -- field_theory/mv_polynomial.lean
 apply_nolint mv_polynomial.R doc_blame unused_arguments
 apply_nolint mv_polynomial.evalᵢ doc_blame
@@ -1230,9 +1217,6 @@ apply_nolint ring_invo.id doc_blame
 -- ring_theory/multiplicity.lean
 apply_nolint multiplicity.finite doc_blame
 
--- ring_theory/subring.lean
-apply_nolint ring.closure doc_blame
-
 -- ring_theory/unique_factorization_domain.lean
 apply_nolint associates.factor_set.prod doc_blame
 apply_nolint associates.factors doc_blame
@@ -1444,9 +1428,6 @@ apply_nolint ext_param_type doc_blame
 apply_nolint get_ext_subject doc_blame
 apply_nolint opt_minus doc_blame
 apply_nolint saturate_fun doc_blame
-apply_nolint tactic.ext doc_blame
-apply_nolint tactic.ext1 doc_blame
-apply_nolint tactic.try_intros doc_blame
 
 -- tactic/fin_cases.lean
 apply_nolint tactic.expr_list_to_list_expr doc_blame
@@ -1477,12 +1458,9 @@ apply_nolint tactic.interactive.revert_all doc_blame
 apply_nolint tactic.generalize_proofs doc_blame
 
 -- tactic/interactive.lean
-apply_nolint tactic.interactive.apply_iff_congr_core doc_blame
 apply_nolint tactic.interactive.collect_struct doc_blame
 apply_nolint tactic.interactive.collect_struct' doc_blame
 apply_nolint tactic.interactive.compact_decl_aux doc_blame
-apply_nolint tactic.interactive.congr_core' doc_blame
-apply_nolint tactic.interactive.convert_to_core doc_blame
 apply_nolint tactic.interactive.field doc_blame
 apply_nolint tactic.interactive.format_names doc_blame
 apply_nolint tactic.interactive.get_current_field doc_blame
@@ -1835,12 +1813,6 @@ apply_nolint topological_add_group.to_uniform_space doc_blame
 
 -- topology/algebra/uniform_ring.lean
 apply_nolint uniform_space.sep_quot_equiv_ring_quot doc_blame
-
--- topology/category/Top/limits.lean
-apply_nolint Top.colimit doc_blame
-apply_nolint Top.colimit_is_colimit doc_blame
-apply_nolint Top.limit doc_blame
-apply_nolint Top.limit_is_limit doc_blame
 
 -- topology/category/Top/open_nhds.lean
 apply_nolint topological_space.open_nhds doc_blame has_inhabited_instance

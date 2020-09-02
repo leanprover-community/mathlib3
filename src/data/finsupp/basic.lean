@@ -241,6 +241,21 @@ rfl
   (on_finset s f hf).support ⊆ s :=
 filter_subset _
 
+lemma mem_support_on_finset
+  {s : finset α} {f : α → β} (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) {a : α} :
+  a ∈ (finsupp.on_finset s f hf).support ↔ f a ≠ 0 :=
+by simp [finsupp.mem_support_iff, finsupp.on_finset_apply]
+
+lemma support_on_finset
+  {s : finset α} {f : α → β} (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) :
+  (finsupp.on_finset s f hf).support = s.filter (λ a, f a ≠ 0) :=
+begin
+  ext a,
+  rw [mem_support_on_finset, finset.mem_filter],
+  specialize hf a,
+  finish
+end
+
 end on_finset
 
 /-! ### Declarations about `map_range` -/
@@ -1298,6 +1313,10 @@ lemma mem_support_single [has_zero β] (a a' : α) (b : β) :
   else ⟨by rw if_neg h at H; exact mem_singleton.1 H, h⟩,
 λ ⟨h1, h2⟩, show a ∈ ite _ _ _, by rw [if_neg h2]; exact mem_singleton.2 h1⟩
 
+@[simp] lemma mem_to_multiset (f : α →₀ ℕ) (i : α) :
+  i ∈ f.to_multiset ↔ i ∈ f.support :=
+by rw [← multiset.count_ne_zero, finsupp.count_to_multiset, finsupp.mem_support_iff]
+
 end multiset
 
 /-! ### Declarations about `curry` and `uncurry` -/
@@ -1836,7 +1855,7 @@ begin
   ext i,
   by_cases hi : i ∈ n.support,
   { replace h := congr_fun h ⟨i, hi⟩,
-    rwa [fin.ext_iff, ← fin.coe_eq_val, ← fin.coe_eq_val, hf m₁ h₁, hf m₂ h₂] at h },
+    rwa [fin.ext_iff, hf m₁ h₁, hf m₂ h₂] at h },
   { rw not_mem_support_iff at hi,
     specialize h₁ i,
     specialize h₂ i,

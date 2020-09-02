@@ -182,8 +182,8 @@ lemma continuous_at_remove_nth [topological_space α] {n : ℕ} {i : fin (n+1)} 
 --| ⟨l, hl⟩ :=
 begin
   rw [continuous_at, remove_nth, tendsto_subtype_rng],
-  simp [remove_nth_val, ← subtype.val_eq_coe],
-  exact tendsto.comp list.tendsto_remove_nth continuous_at_subtype_coe
+  simp only [← subtype.val_eq_coe, vector.remove_nth_val],
+  exact tendsto.comp list.tendsto_remove_nth continuous_at_subtype_coe,
 end
 
 lemma continuous_remove_nth [topological_space α] {n : ℕ} {i : fin (n+1)} :

@@ -109,6 +109,8 @@ lemma eq_iff_veq (a b : fin n) : a = b ↔ a.1 = b.1 :=
 lemma ne_iff_vne (a b : fin n) : a ≠ b ↔ a.1 ≠ b.1 :=
 ⟨vne_of_ne, ne_of_vne⟩
 
+@[simp] lemma mk_eq_subtype_mk (a : ℕ) (h : a < n) : mk a h = ⟨a, h⟩ := rfl
+
 protected lemma mk.inj_iff {n a b : ℕ} {ha : a < n} {hb : b < n} :
   (⟨a, ha⟩ : fin n) = ⟨b, hb⟩ ↔ a = b :=
 ⟨subtype.mk.inj, λ h, by subst h⟩
@@ -227,6 +229,8 @@ by { induction h, simp [heq_iff_eq, function.funext_iff] }
 protected lemma heq_ext_iff {k l : ℕ} (h : k = l) {i : fin k} {j : fin l} :
   i == j ↔ (i : ℕ) = (j : ℕ) :=
 by { induction h, simp [ext_iff] }
+
+instance {n : ℕ} : nontrivial (fin (n + 2)) := ⟨⟨0, 1, dec_trivial⟩⟩
 
 instance {n : ℕ} : linear_order (fin n) :=
 { le := (≤), lt := (<), ..linear_order.lift (coe : fin n → ℕ) (@fin.eq_of_veq _) }

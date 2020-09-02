@@ -27,20 +27,6 @@ apply_nolint ring_hom.to_add_monoid_hom doc_blame
 apply_nolint ring_hom.to_monoid_hom doc_blame
 apply_nolint semiring doc_blame
 
--- algebraic_geometry/presheafed_space.lean
-apply_nolint algebraic_geometry.PresheafedSpace has_inhabited_instance
-apply_nolint algebraic_geometry.PresheafedSpace.comp doc_blame
-apply_nolint algebraic_geometry.PresheafedSpace.hom has_inhabited_instance
-apply_nolint algebraic_geometry.PresheafedSpace.id doc_blame
-apply_nolint category_theory.nat_trans.on_presheaf doc_blame
-
--- algebraic_geometry/prime_spectrum.lean
-apply_nolint prime_spectrum has_inhabited_instance
-
--- algebraic_geometry/stalks.lean
-apply_nolint algebraic_geometry.PresheafedSpace.stalk doc_blame
-apply_nolint algebraic_geometry.PresheafedSpace.stalk_map doc_blame
-
 -- category_theory/adjunction/basic.lean
 apply_nolint category_theory.adjunction.core_hom_equiv doc_blame has_inhabited_instance
 apply_nolint category_theory.adjunction.core_unit_counit doc_blame has_inhabited_instance

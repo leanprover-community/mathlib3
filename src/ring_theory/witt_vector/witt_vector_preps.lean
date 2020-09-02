@@ -268,6 +268,13 @@ by ext1; simp [bind₁]
 lemma bind₁_X_right (f : σ → mv_polynomial τ R) (i : σ) : bind₁ f (X i) = f i :=
 aeval_X f i
 
+variable (f : σ → mv_polynomial τ R)
+variable x : R
+
+@[simp]
+lemma bind₁_C_right (f : σ → mv_polynomial τ R) (x) : bind₁ f (C x) = C x :=
+by simp [bind₁, C, aeval_monomial, finsupp.prod_zero_index]; refl
+
 @[simp]
 lemma bind₂_C_left : bind₂ (C : R →+* mv_polynomial σ R) = ring_hom.id _ :=
 by ext1; simp [bind₂]
@@ -308,10 +315,6 @@ lemma join₁_rename (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
   join₁ (rename f φ) = bind₁ f φ :=
 by simp [join₁, bind₁]
 
--- @[simp]
--- lemma join₁_comp_rename (f : σ → mv_polynomial τ R) :
---   join₁.comp (rename f) = bind₁ f
-
 @[simp]
 lemma bind₁_id : bind₁ (@id (mv_polynomial σ R)) = join₁ := rfl
 
@@ -340,14 +343,14 @@ lemma bind₂_comp_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_poly
   (bind₂ g).comp (bind₂ f) = bind₂ ((bind₂ g).comp f) :=
 by { ext1, simp only [function.comp_app, ring_hom.coe_comp, bind₂_bind₂], }
 
-/-
-lemma map_bind (x : m α) {g : α → m β} {f : β → γ} :
-  f <$> (x >>= g) = (x >>= λa, f <$> g a) :=
--/
-
 lemma rename_bind₁ {υ : Type*} (f : σ → mv_polynomial τ R) (g : τ → υ) (φ : mv_polynomial σ R) :
   rename g (bind₁ f φ) = bind₁ (λ i, rename g $ f i) φ :=
-sorry
+begin
+  apply φ.induction_on,
+  { intro a, simp },
+  { intros p q hp hq, simp [hp, hq] },
+  { intros p n hp, simp [hp] }
+end
 
 lemma map_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* T) (φ : mv_polynomial σ R) :
   map g (bind₂ f φ) = bind₂ ((map g).comp f) φ :=
@@ -386,7 +389,7 @@ lemma eval₂_hom_C_left (f : σ → mv_polynomial τ R) : eval₂_hom C f = bin
 section
 
 open_locale classical
-variables (φ : mv_polynomial σ R) (f : σ → mv_polynomial τ R)
+variables (φ : mv_polynomial σ R)
 
 -- -- jmc: I don't know what the correct statement is here...
 -- lemma bind₁_support : (bind₁ f φ).support ⊆ _ :=

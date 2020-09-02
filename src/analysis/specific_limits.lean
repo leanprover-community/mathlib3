@@ -718,4 +718,3 @@ begin
   norm_num,
   exact tendsto_coe_nat_real_at_top_at_top
 end
-#lint

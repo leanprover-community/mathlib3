@@ -69,12 +69,34 @@ limit.lift _ (fan.mk p)
 abbreviation sigma.desc {f : β → C} [has_coproduct f] {P : C} (p : Π b, f b ⟶ P) : ∐ f ⟶ P :=
 colimit.desc _ (cofan.mk p)
 
+/--
+Construct a morphism between categorical products (indexed by the same type)
+from a family of morphisms between the factors.
+-/
 abbreviation pi.map {f g : β → C} [has_products_of_shape β C]
   (p : Π b, f b ⟶ g b) : ∏ f ⟶ ∏ g :=
 lim.map (discrete.nat_trans p)
+/--
+Construct an isomorphism between categorical products (indexed by the same type)
+from a family of isomorphisms between the factors.
+-/
+abbreviation pi.map_iso {f g : β → C} [has_products_of_shape β C]
+  (p : Π b, f b ≅ g b) : ∏ f ≅ ∏ g :=
+lim.map_iso (discrete.nat_iso p)
+/--
+Construct a morphism between categorical coproducts (indexed by the same type)
+from a family of morphisms between the factors.
+-/
 abbreviation sigma.map {f g : β → C} [has_coproducts_of_shape β C]
   (p : Π b, f b ⟶ g b) : ∐ f ⟶ ∐ g :=
 colim.map (discrete.nat_trans p)
+/--
+Construct an isomorphism between categorical coproducts (indexed by the same type)
+from a family of isomorphisms between the factors.
+-/
+abbreviation sigma.map_iso {f g : β → C} [has_coproducts_of_shape β C]
+  (p : Π b, f b ≅ g b) : ∐ f ≅ ∐ g :=
+colim.map_iso (discrete.nat_iso p)
 
 variables (C)
 

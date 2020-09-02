@@ -6,7 +6,6 @@ Authors: Johan Commelin
 
 import linear_algebra.finite_dimensional
 import ring_theory.integral_closure
-import data.polynomial.field_division
 import data.polynomial.integral_normalization
 
 /-!

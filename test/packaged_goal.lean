@@ -12,7 +12,7 @@ works.
 -/
 example (m n : ℕ) : m = n :=
 by do
-{ let tac := `[cases m; apply fin.mk.inj],
+{ let tac := `[cases m; apply subtype.mk.inj],
   gs₀ ← retrieve $ tac >> get_goals,
   gs₁ ← retrieve $ tac >> get_goals,
   guard (gs₀ ≠ gs₁ : bool),

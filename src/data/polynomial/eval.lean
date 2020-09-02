@@ -109,14 +109,14 @@ begin
   have f_zero : ∀ (a : ℕ), f 0 * x ^ a = 0,
   { intro, simp },
   have f_add : ∀ (a : ℕ) (b₁ b₂ : R), f (b₁ + b₂) * x ^ a = f b₁ * x ^ a + f b₂ * x ^ a,
-  { intros, rw [is_semiring_hom.map_add f, add_mul] },
+  { intros, rw [f.map_add, add_mul] },
 
   simp_rw [eval₂, add_monoid_algebra.mul_def, finsupp.sum_mul _ p, finsupp.mul_sum _ q],
   rw sum_sum_index; try { assumption },
   apply sum_congr rfl, assume i hi, dsimp only,
   rw sum_sum_index; try { assumption },
   apply sum_congr rfl, assume j hj, dsimp only,
-  rw [sum_single_index, is_semiring_hom.map_mul f, pow_add],
+  rw [sum_single_index, f.map_mul, pow_add],
   { rw [mul_assoc, ←mul_assoc _ (x ^ i), ← hf _ (x ^ i), mul_assoc, mul_assoc] },
   { apply f_zero }
  end
@@ -305,7 +305,7 @@ begin
   conv_rhs { rw [← sum_C_mul_X_eq p, coeff_sum, finsupp.sum,
     ← p.support.sum_hom f], },
   refine finset.sum_congr rfl (λ x hx, _),
-  simp [function.comp, coeff_C_mul_X, is_semiring_hom.map_mul f],
+  simp [function.comp, coeff_C_mul_X, f.map_mul],
   split_ifs; simp [is_semiring_hom.map_zero f],
 end
 
@@ -368,7 +368,7 @@ instance map.is_semiring_hom : is_semiring_hom (map f) :=
   map_mul := λ _ _, map_mul f, }
 
 lemma map_list_prod (L : list (polynomial R)) : L.prod.map f = (L.map $ map f).prod :=
-eq.symm $ list.prod_hom _ _
+eq.symm $ list.prod_hom _ (monoid_hom.of (map f))
 
 @[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := is_monoid_hom.map_pow (map f) _ _
 
@@ -480,7 +480,7 @@ section map
 variables [comm_semiring R] [comm_semiring S] (f : R →+* S)
 
 lemma map_multiset_prod (m : multiset (polynomial R)) : m.prod.map f = (m.map $ map f).prod :=
-eq.symm $ multiset.prod_hom _ _
+eq.symm $ multiset.prod_hom _ (monoid_hom.of (map f))
 
 lemma map_prod {ι : Type*} (g : ι → polynomial R) (s : finset ι) :
   (∏ i in s, g i).map f = ∏ i in s, (g i).map f :=

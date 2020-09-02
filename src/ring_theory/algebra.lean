@@ -6,6 +6,7 @@ Authors: Kenny Lau, Yury Kudryashov
 import data.matrix.basic
 import linear_algebra.tensor_product
 import ring_theory.subsemiring
+import deprecated.subring
 
 /-!
 # Algebra over Commutative Semiring (under category)
@@ -150,9 +151,22 @@ by rw [smul_def, smul_def, left_comm]
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
 
-variables (R)
+variables (R A)
+
+/--
+The canonical ring homomorphism `algebra_map R A : R →* A` for any `R`-algebra `A`,
+packaged as an `R`-linear map.
+-/
+protected def linear_map : R →ₗ[R] A :=
+{ map_smul' := λ x y, begin dsimp, simp [algebra.smul_def], end,
+  ..algebra_map R A }
+
+@[simp]
+lemma linear_map_apply (r : R) : algebra.linear_map R A r = algebra_map R A r := rfl
+
 instance id : algebra R R := (ring_hom.id R).to_algebra
-variables {R}
+
+variables {R A}
 
 namespace id
 
@@ -186,6 +200,13 @@ lemma subring_coe_algebra_map {R : Type*} [comm_ring R] (S : set R) [is_subring 
 lemma subring_algebra_map_apply {R : Type*} [comm_ring R] (S : set R) [is_subring S] (x : S) :
   algebra_map S R x = x := rfl
 
+lemma set_range_subset {R : Type*} [comm_ring R] {T₁ T₂ : set R} [is_subring T₁] (hyp : T₁ ⊆ T₂) :
+  set.range (algebra_map T₁ R) ⊆ T₂ :=
+begin
+  rintros x ⟨⟨t, ht⟩, rfl⟩,
+  exact hyp ht,
+end
+
 variables (R A)
 /-- The multiplication in an algebra is a bilinear map. -/
 def lmul : A →ₗ A →ₗ A :=
@@ -207,6 +228,10 @@ def lmul_right (r : A) : A →ₗ A :=
 def lmul_left_right (vw: A × A) : A →ₗ[R] A :=
 (lmul_right R A vw.2).comp (lmul_left R A vw.1)
 
+/-- The multiplication map on an algebra, as an `R`-linear map from `A ⊗[R] A` to `A`. -/
+def lmul' : A ⊗[R] A →ₗ[R] A :=
+tensor_product.lift (algebra.lmul R A)
+
 variables {R A}
 
 @[simp] lemma lmul_apply (p q : A) : lmul R A p q = p * q := rfl
@@ -215,11 +240,19 @@ variables {R A}
 @[simp] lemma lmul_left_right_apply (vw : A × A) (p : A) :
   lmul_left_right R A vw p = vw.1 * p * vw.2 := rfl
 
+@[simp] lemma lmul'_apply {x y} : algebra.lmul' R A (x ⊗ₜ y) = x * y :=
+begin
+  dsimp [algebra.lmul'],
+  simp,
+end
+
 end semiring
 
 end algebra
 
-instance module.endomorphism_algebra (R : Type u) (M : Type v)
+namespace module
+
+instance endomorphism_algebra (R : Type u) (M : Type v)
   [comm_ring R] [add_comm_group M] [module R M] : algebra R (M →ₗ[R] M) :=
 { to_fun    := λ r, r • linear_map.id,
   map_one' := one_smul _ _,
@@ -228,6 +261,21 @@ instance module.endomorphism_algebra (R : Type u) (M : Type v)
   map_mul' := λ r₁ r₂, by { ext x, simp [mul_smul] },
   commutes' := by { intros, ext, simp },
   smul_def' := by { intros, ext, simp } }
+
+lemma algebra_map_End_eq_smul_id (R : Type u) (M : Type v)
+  [comm_ring R] [add_comm_group M] [module R M] (a : R) :
+  (algebra_map R (End R M)) a = a • linear_map.id := rfl
+
+lemma algebra_map_End_apply (R : Type u) (M : Type v)
+  [comm_ring R] [add_comm_group M] [module R M] (a : R) (m : M) :
+  (algebra_map R (End R M)) a m = a • m := rfl
+
+lemma ker_algebra_map_End (K : Type u) (V : Type v)
+  [field K] [add_comm_group V] [vector_space K V] (a : K) (ha : a ≠ 0) :
+  ((algebra_map K (End K V)) a).ker = ⊥ :=
+linear_map.ker_smul _ _ ha
+
+end module
 
 instance matrix_algebra (n : Type u) (R : Type v)
   [decidable_eq n] [fintype n] [comm_semiring R] : algebra R (matrix n n R) :=
@@ -1104,6 +1152,7 @@ variable {I : Type u}     -- The indexing type
 variable {f : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
 variables (I f)
+
 instance algebra (α) {r : comm_semiring α}
   [s : ∀ i, semiring (f i)] [∀ i, algebra α (f i)] :
   algebra α (Π i : I, f i) :=

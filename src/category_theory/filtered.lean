@@ -1,26 +1,38 @@
--- Copyright (c) 2019 Reid Barton. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Reid Barton
+/-
+Copyright (c) 2019 Reid Barton. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Reid Barton
+-/
 import category_theory.fin_category
 import category_theory.limits.cones
+import order.bounded_lattice
 import tactic.slice
 
 /-!
 # Filtered categories
 
-A filtered category is a category for which
-* for each pair of objects `X Y : C`, there exists some `Z` with morphisms `X ⟶ Z` and `Y ⟶ Z`,
-* for each pair of morphisms `f g : X ⟶ Y`, there exists some `k : Y ⟶ Z` for some `Z`,
-  so `f ≫ k = g ≫ k`
-* and the category is nonempty.
+A category is filtered if every finite diagram admits a cocone.
+We give a simple characterisation of this condition as
+1. for every pair of objects there exists another object "to the right",
+2. for every pair of parallel morphisms there exists a morphism to the right so the compositions
+   are equal, and
+3. there exists some object.
+
+Filtered colimits are often better behaved than arbitrary colimits.
+See `category_theory/limits/types` for some details.
 
 Filtered categories are nice because colimits indexed by filtered categories tend to be
 easier to describe than general colimits (and often often preserved by functors).
 
-In this file we show that any functor out of a filtered category admits a cocone,
-and more generally, for any finite collection of objects and morphisms between them in a category
+In this file we show that any functor from a finite category to a filtered category admits a cocone,
+and more generally,
+for any finite collection of objects and morphisms between them in a filtered category
 (even if not closed under composition) there exists some object `Z` receiving maps from all of them,
 so that all the triangles (one edge from the finite set, two from morphisms to `Z`) commute.
+
+## Future work
+* Finite limits commute with filtered colimits
+* Forgetful functors for algebraic categories typically preserve filtered colimits.
 -/
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -29,12 +41,42 @@ namespace category_theory
 
 variables (C : Type u) [category.{v} C]
 
+/--
+A category `is_filtered_or_empty` if
+1. for every pair of objects there exists another object "to the right", and
+2. for every pair of parallel morphisms there exists a morphism to the right so the compositions
+   are equal.
+-/
 class is_filtered_or_empty : Prop :=
 (cocone_objs : ∀ (X Y : C), ∃ Z (f : X ⟶ Z) (g : Y ⟶ Z), true)
 (cocone_maps : ∀ ⦃X Y : C⦄ (f g : X ⟶ Y), ∃ Z (h : Y ⟶ Z), f ≫ h = g ≫ h)
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
+
+/--
+A category `is_filtered` if
+1. for every pair of objects there exists another object "to the right",
+2. for every pair of parallel morphisms there exists a morphism to the right so the compositions
+   are equal, and
+3. there exists some object.
+-/
 class is_filtered extends is_filtered_or_empty C : Prop :=
-(nonempty : nonempty C)
+[nonempty : nonempty C]
+
+end prio
+
+@[priority 100]
+instance is_filtered_or_empty_of_semilattice_sup
+  (α : Type u) [semilattice_sup α] : is_filtered_or_empty α :=
+{ cocone_objs := λ X Y, ⟨X ⊔ Y, hom_of_le le_sup_left, hom_of_le le_sup_right, trivial⟩,
+  cocone_maps := λ X Y f g, ⟨Y, 𝟙 _, (by ext)⟩, }
+
+@[priority 100]
+instance is_filtered_of_semilattice_sup_top
+  (α : Type u) [semilattice_sup_top α] : is_filtered α :=
+{ nonempty := ⟨⊤⟩,
+  ..category_theory.is_filtered_or_empty_of_semilattice_sup α }
 
 namespace is_filtered
 

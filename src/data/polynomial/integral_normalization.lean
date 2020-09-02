@@ -109,8 +109,7 @@ calc eval₂ f (z * f p.leading_coeff) (integral_normalization p)
       begin
         have one_le_deg : 1 ≤ nat_degree p :=
           nat.succ_le_of_lt (nat_degree_pos_of_eval₂_root hp f hz inj),
-        congr,
-        ext i,
+        congr' with i,
         congr' 2,
         by_cases hi : i.1 = nat_degree p,
         { rw [hi, integral_normalization_coeff_degree, one_mul, leading_coeff, ←pow_succ,

@@ -354,8 +354,8 @@ lemma map_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* T) (φ : mv_poly
 lemma bind₁_rename {υ : Type*} (f : τ → mv_polynomial υ R) (g : σ → τ) (φ : mv_polynomial σ R) :
   bind₁ f (rename g φ) = bind₁ (f ∘ g) φ := sorry
 
-lemma bind₂_map (f : S → mv_polynomial σ T) (g) (φ) :
-  bind₂ f (map g φ) = bind₂ (f ∘ g) φ := sorry
+lemma bind₂_map (f : S →+* mv_polynomial σ T) (g : R →+* S) (φ : mv_polynomial σ R) :
+  bind₂ f (map g φ) = bind₂ (f.comp g) φ := sorry
 
 section
 

@@ -191,6 +191,9 @@ instance : order_bot (roption α) :=
   bot := none,
   bot_le := by { introv x, rintro ⟨⟨_⟩,_⟩, } }
 
+instance : preorder (roption α) :=
+by apply_instance
+
 lemma le_total_of_le_of_le {x y : roption α} (z : roption α) (hx : x ≤ z) (hy : y ≤ z) :
   x ≤ y ∨ y ≤ x :=
 begin

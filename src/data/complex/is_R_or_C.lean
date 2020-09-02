@@ -72,9 +72,13 @@ theorem ext : ∀ {z w : K}, re z = re w → im z = im w → z = w :=
 by { simp_rw ext_iff, cc }
 
 
-lemma zero_re : re (𝓚 0) = (0 : ℝ) := by simp only [of_real_re]
+@[simp] lemma zero_re : re (𝓚 0) = (0 : ℝ) := by simp only [of_real_re]
 @[simp] lemma zero_im : im (𝓚 0) = 0 := by rw [of_real_im]
 lemma of_real_zero : 𝓚 0 = 0 := by rw [of_real_alg, zero_smul]
+
+@[simp] lemma zero_re' : re (0 : K) = (0 : ℝ) :=
+by simp only [add_monoid_hom.map_zero]
+
 
 @[simp] lemma of_real_one : 𝓚 1 = 1 := by rw [of_real_alg, one_smul]
 @[simp] lemma one_re : re (1 : K) = 1 := by rw [←of_real_one, of_real_re]
@@ -95,7 +99,7 @@ by simp only [bit1, add_right_eq_self, add_monoid_hom.map_add, bit0_im, one_im]
 @[simp] theorem of_real_eq_zero {z : ℝ} : 𝓚 z = 0 ↔ z = 0 :=
 by rw [←of_real_zero]; exact of_real_inj
 
-@[simp] lemma of_real_add (r s : ℝ) : 𝓚 (r + s) = 𝓚 r + 𝓚 s :=
+@[simp] lemma of_real_add ⦃r s : ℝ⦄ : 𝓚 (r + s) = 𝓚 r + 𝓚 s :=
 by apply (@is_R_or_C.ext_iff K _ _ _ (𝓚 (r + s)) (𝓚 r + 𝓚 s)).mpr; simp
 
 @[simp] lemma of_real_bit0 (r : ℝ) : 𝓚 (bit0 r : ℝ) = bit0 (𝓚 r) :=
@@ -111,8 +115,10 @@ begin
   linarith,
 end
 
-@[simp] lemma of_real_neg (r : ℝ) : 𝓚 (-r : ℝ) = -(𝓚 r) := ext_iff.2 $ by simp
-@[simp] lemma of_real_mul (r s : ℝ) : 𝓚 (r * s : ℝ) = (𝓚 r) * (𝓚 s) := ext_iff.2 $ by simp
+@[simp] lemma of_real_neg (r : ℝ) : 𝓚 (-r) = -(𝓚 r) := ext_iff.2 $ by simp
+@[simp] lemma of_real_mul (r s : ℝ) : 𝓚 (r * s) = (𝓚 r) * (𝓚 s) := ext_iff.2 $ by simp
+lemma of_real_mul_re (r : ℝ) (z : K) : re ((𝓚 r) * z) = r * re z :=
+by simp only [mul_re, of_real_im, zero_mul, of_real_re, sub_zero]
 
 lemma smul_re (r : ℝ) (z : K) : re ((𝓚 r) * z) = r * (re z) :=
 by simp only [of_real_im, zero_mul, of_real_re, sub_zero, mul_re]
@@ -462,6 +468,16 @@ lemma is_cau_seq_abs {f : ℕ → K} (hf : is_cau_seq abs f) :
   is_cau_seq abs' (abs ∘ f) :=
 λ ε ε0, let ⟨i, hi⟩ := hf ε ε0 in
 ⟨i, λ j hj, lt_of_le_of_lt (abs_abs_sub_le_abs_sub _ _) (hi j hj)⟩
+
+section module
+
+/- Register as an instance (with low priority) the fact that an `is_R_or_C` vector space is also a real
+vector space. -/
+instance module.is_R_or_C_to_real (E : Type*) [add_comm_group E] [module K E] : module ℝ E :=
+semimodule.restrict_scalars' ℝ K E
+attribute [instance, priority 950] module.is_R_or_C_to_real
+
+end module
 
 end is_R_or_C
 

@@ -9,6 +9,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Sébastien Gouëzel
 -/
 
+import algebra.quadratic_discriminant
 import analysis.special_functions.pow
 import topology.metric_space.pi_Lp
 import data.complex.is_R_or_C
@@ -172,6 +173,7 @@ local postfix `†`:100 := @is_R_or_C.conj K _ _ _
 def to_has_inner : has_inner K F := { inner := c.inner }
 local attribute [instance] to_has_inner
 
+
 def norm_sq (x : F) := reK ⟪x, x⟫
 
 local notation `norm_sqF` := @norm_sq F K _ _ _ _ _ _
@@ -214,8 +216,8 @@ by rw [←zero_smul K (0 : F), inner_smul_left];
 @[simp] lemma inner_zero_right {x : F} : ⟪x, 0⟫ = 0 :=
 by rw [←inner_conj_sym, inner_zero_left]; simp only [ring_hom.map_zero]
 
-@[simp] lemma inner_re_zero_right {x : F} : ⟪x, 0⟫ = 0 :=
-by rw [←inner_conj_sym, inner_zero_left, ring_hom.map_zero]
+@[simp] lemma inner_re_zero_right {x : F} : re ⟪x, 0⟫ = 0 :=
+by rw [←inner_conj_sym, inner_zero_left]; simp only [ring_hom.map_zero, add_monoid_hom.map_zero]
 
 @[simp] lemma inner_self_eq_zero {x : F} : ⟪x, x⟫ = 0 ↔ x = 0 :=
 iff.intro (c.definite _) (by { rintro rfl, exact inner_zero_left })
@@ -235,187 +237,96 @@ begin
     simp only [h, inner_zero_left, add_monoid_hom.map_zero] }
 end
 
-@[simp] lemma inner_self_re_toK {x : F} : 𝓚 (re ⟪x, x⟫) = ⟪x, x⟫ :=
+lemma inner_symm_re {x y : F} : re ⟪x, y⟫ = re ⟪y, x⟫ := by rw [←inner_conj_sym, conj_re]
+
+@[simp] lemma inner_self_re_to_K {x : F} : 𝓚 (re ⟪x, x⟫) = ⟪x, x⟫ :=
 by norm_num [ext_iff, inner_self_nonneg_im]
 
-@[simp] lemma inner_self_re_abs {x : F} : re ⟪x, x⟫ = abs ⟪x, x⟫ := sorry
---begin
---  have H : ⟪x, x⟫ = re ⟪x, x⟫ + im ⟪x, x⟫ * I,
---  { rw re_add_im, },
---  rw[H, add_re, mul_re, I_re, mul_zero, I_im, mul_one, zero_sub],
---  norm_cast,
---  rw [neg_zero, add_zero, inner_self_nonneg_im],
---  simp only [abs_of_real, add_zero, of_real_zero, zero_mul],
---  rw[complex.abs_eq_re_of_im_zero_of_re_nonneg (inner x x) inner_self_im_zero],
---  rw [abs_abs (inner x x)],
---  exact inner_self_nonneg,
---end
+lemma inner_self_re_abs {x : F} : re ⟪x, x⟫ = abs ⟪x, x⟫ :=
+begin
+  have H : ⟪x, x⟫ = 𝓚 (re ⟪x, x⟫) + 𝓚 (im ⟪x, x⟫) * I,
+  { rw re_add_im, },
+  rw [H, is_add_hom.map_add re (𝓚 (re ⟪x, x⟫)) ((𝓚 (im ⟪x, x⟫)) * I)],
+  rw [mul_re, I_re, mul_zero, I_im, zero_sub, tactic.ring.add_neg_eq_sub],
+  rw [of_real_re, of_real_im, sub_zero, inner_self_nonneg_im],
+  simp only [abs_of_real, add_zero, of_real_zero, zero_mul],
+  exact (_root_.abs_of_nonneg inner_self_nonneg).symm,
+end
 
-lemma inner_self_abs_tocomplex {x : F} : ((inner x x).abs : ℂ) = inner x x :=
-  by { rw[←inner_self_re_abs], exact inner_self_re_tocomplex }
+lemma inner_self_abs_to_K {x : F} : 𝓚 (abs ⟪x, x⟫) = ⟪x, x⟫ :=
+  by { rw[←inner_self_re_abs], exact inner_self_re_to_K }
 
-@[simp] lemma inner_abs_conj_sym {x y : F} : (inner x y).abs = (inner y x).abs :=
-  by rw [inner_conj_sym, abs_conj]
+lemma inner_abs_conj_sym {x y : F} : abs ⟪x, y⟫ = abs ⟪y, x⟫ :=
+  by rw [←inner_conj_sym, abs_conj]
 
-@[simp] lemma inner_neg_left {x y : F} : inner (-x) y = -inner x y :=
-by { rw [← neg_one_smul ℂ x, inner_smul_left], simp }
+@[simp] lemma inner_neg_left {x y : F} : ⟪-x, y⟫ = -⟪x, y⟫ :=
+by { rw [← neg_one_smul K x, inner_smul_left], simp }
 
-@[simp] lemma inner_neg_right {x y : F} : inner x (-y) = -inner x y :=
-by { rw [inner_conj_sym, inner_neg_left, inner_conj_sym, conj_neg, conj_conj] }
+@[simp] lemma inner_neg_right {x y : F} : ⟪x, -y⟫ = -⟪x, y⟫ :=
+by rw [←inner_conj_sym, inner_neg_left]; simp only [ring_hom.map_neg, inner_conj_sym]
 
-@[simp] lemma inner_neg_neg {x y : F} : inner (-x) (-y) = inner x y := by simp
+lemma inner_neg_neg {x y : F} : ⟪-x, -y⟫ = ⟪x, y⟫ := by simp
 
-@[simp] lemma inner_self_conj {x : F} : (inner x x).conj = (inner x x) :=
-  by {ext, rw[conj_re], rw[conj_im, inner_self_im_zero, neg_zero]}
+@[simp] lemma inner_self_conj {x : F} : ⟪x, x⟫† = ⟪x, x⟫ :=
+by rw [ext_iff]; exact ⟨by rw [conj_re], by rw [conj_im, inner_self_im_zero, neg_zero]⟩
 
-lemma inner_sub_left {x y z : F} : inner (x - y) z = inner x z - inner y z :=
+lemma inner_sub_left {x y z : F} : ⟪x - y, z⟫ = ⟪x, z⟫ - ⟪y, z⟫ :=
 by { simp [sub_eq_add_neg, inner_add_left] }
 
-lemma inner_sub_right {x y z : F} : inner x (y - z) = inner x y - inner x z :=
+lemma inner_sub_right {x y z : F} : ⟪x, y - z⟫ = ⟪x, y⟫ - ⟪x, z⟫ :=
 by { simp [sub_eq_add_neg, inner_add_right] }
 
-lemma inner_mul_conj_re_abs {x y : F} : (inner x y * inner y x).re = (inner x y * inner y x).abs :=
-by { rw[inner_conj_sym, mul_comm], exact complex.re_eq_abs_of_mul_conj (inner y x), }
+lemma inner_mul_conj_re_abs {x y : F} : re (⟪x, y⟫ * ⟪y, x⟫) = abs (⟪x, y⟫ * ⟪y, x⟫) := sorry
+--by { rw[←inner_conj_sym, mul_comm], exact complex.re_eq_abs_of_mul_conj (inner y x), }
 
 /-- Expand `inner (x + y) (x + y)` -/
-lemma inner_add_add_self {x y : F} : inner (x + y) (x + y) = inner x x + inner x y + inner y x + inner y y :=
-begin
-  have H : inner (x + y) (x + y) = (inner x x + inner x y) + inner y (x+y),
-  {
-    calc
-    inner (x + y) (x + y) = inner x (x+y) + inner y (x+y)                   : by rw[inner_add_left]
-    ...                   = inner x x + inner x y + inner y (x+y)           : by rw[inner_add_right]
-    ...                   = (inner x x + inner x y) + inner y (x+y)         : by simp,
-  },
-  conv at H
-  begin
-    to_rhs,
-    congr, skip,
-    rw inner_add_right,
-  end,
-  rw H,
-  simp only [add_assoc],
-end
+lemma inner_add_add_self {x y : F} : ⟪x + y, x + y⟫ = ⟪x, x⟫ + ⟪x, y⟫ + ⟪y, x⟫ + ⟪y, y⟫ :=
+by simp only [inner_add_left, inner_add_right]; ring
 
 /- Expand `inner (x - y) (x - y)` -/
-lemma inner_sub_sub_self {x y : F} : inner (x - y) (x - y) = inner x x - inner x y - inner y x + inner y y :=
-begin
-  rw[sub_eq_add_neg, inner_add_add_self],
-  simp only [inner_neg_neg, inner_neg_left, add_left_inj, inner_neg_right],
-  rw[neg_neg, ←sub_eq_add_neg, ←sub_eq_add_neg],
-end
+lemma inner_sub_sub_self {x y : F} : ⟪x - y, x - y⟫ = ⟪x, x⟫ - ⟪x, y⟫ - ⟪y, x⟫ + ⟪y, y⟫ :=
+by simp only [inner_sub_left, inner_sub_right]; ring
 
 /- Parallelogram law -/
 lemma parallelogram_law {x y : F} :
-  inner (x + y) (x + y) + inner (x - y) (x - y) = 2 * (inner x x + inner y y) :=
+  ⟪x + y, x + y⟫ + ⟪x - y, x - y⟫ = 2 * (⟪x, x⟫ + ⟪y, y⟫) :=
 by simp [inner_add_add_self, inner_sub_sub_self, two_mul, sub_eq_add_neg, add_comm, add_left_comm]
 
-/-
+/--
 Cauchy–Schwarz inequality
-Follows the second proof on Wikipedia
-We need this for the "core" structure to prove the triangle inequality below when
+We need this for the `core` structure to prove the triangle inequality below when
 showing the core is a normed group.
 -/
-lemma inner_mul_inner_self_le (x y : F) :
-    (inner x y).abs * (inner y x).abs ≤ (inner x x).re * (inner y y).re :=
+lemma inner_mul_inner_self_le (x y : F) : re (⟪x, y⟫ * ⟪y, x⟫) ≤ re ⟪x, x⟫ * re ⟪y, y⟫ :=
 begin
-  by_cases y_zero : inner y y = 0,
-  --- first suppose ⟨y,y⟩ = 0:
-  have hzero : y = 0,
-    { exact c.definite y y_zero, },
-  rw[hzero, inner_zero_left, inner_zero_right, complex.abs_zero,
-      zero_mul, inner_zero_left, zero_re, mul_comm, zero_mul],
-  --- now suppose ⟨y,y⟩ ≠ 0:
-  change (inner y y) ≠ 0 at y_zero,
-  have H_expr : ∀ (t : ℂ),
-       inner (x - t•y) (x - t•y)
-       = inner x x - t* (inner x y) - (conj t) * inner y x + t* (conj t) * inner y y,
-  {
-    intro t,
+  have hquad : ∀ t : ℝ, 0 ≤ re ⟪y, y⟫ * t * t + abs (⟪x, y⟫ + ⟪y, x⟫) * t + re ⟪x, x⟫,
+  { intro t,
     calc
-      inner (x - t•y) (x - t•y)
-          = inner x x - inner x (t•y) - inner (t•y) x + inner (t•y) (t•y)
-                : by rw[inner_sub_sub_self]
-      ... = inner x x - t * inner x y - (conj t) * (inner y x) + t * inner (t•y) y
-                : by rw[inner_smul_left, inner_smul_right, inner_smul_right]
-      ... = inner x x - t * inner x y - (conj t) * (inner y x) + t* (conj t)* inner y y
-                : by rw[inner_smul_left, mul_assoc],
-  },
-  have H_expr_inneryy : ∀ (t : ℂ),
-       (inner y y) * inner (x - t•y) (x - t•y)
-       = (inner y y) * inner x x
-         - t* (inner y y) * (inner x y)
-         - (conj t) * inner y y * inner y x
-         + t*(conj t) * inner y y * inner y y,
-  { intro t, rw[H_expr], ring, },
-  -- Now choose a t to substitute:
-  set T := (inner y x) / (inner y y) with Ht,
-  set term1 := T * (inner y y)*(inner x y) with Hterm1,
-  set term2 := (conj T) * (inner y y) * (inner y x) with Hterm2,
-  set term3 := T * (conj T) * (inner y y) * (inner y y) with Hterm3,
-  have H₁ : term1 = (inner y x) * (inner x y),
-    { rw[Hterm1, Ht, div_mul_cancel (inner y x) y_zero], },
-  have H₂ : term2 =  (inner y x) * (inner x y),
-    {rw[Hterm2, conj_div, inner_self_conj, ←inner_conj_sym, div_mul_cancel (inner x y) y_zero, mul_comm] },
-  have H₃ : term3 = (inner y x) * (inner x y),
-  {
-    rw[Hterm3, Ht, conj_div, inner_self_conj, ←inner_conj_sym, mul_assoc],
-    rw[div_eq_mul_inv, div_eq_mul_inv],
-    have H₄ : inner y x * (inner y y)⁻¹ * (inner x y * (inner y y)⁻¹) * (inner y y * inner y y)
-                 = inner y x * inner x y * ((inner y y)⁻¹ * inner y y) * ((inner y y)⁻¹ * inner y y),
-                 {ring},
-    rw[H₄, inv_mul_cancel y_zero, mul_one, mul_one, mul_comm],
-  },
+      0   ≤ re ⟪x + (𝓚 t) • y, x + (𝓚 t) • y⟫   : inner_self_nonneg
+      ... = re ⟪y, y⟫ * t * t + (re ⟪x, y⟫ + re ⟪y, x⟫) * t + re ⟪x, x⟫
+              : begin
+                  simp [inner_add_add_self, inner_sub_sub_self, inner_smul_right,
+                        inner_smul_left, of_real_mul_re],
+                  ring
+                end
+      ... = re ⟪y, y⟫ * t * t + re (⟪x, y⟫ + ⟪y, x⟫) * t + re ⟪x, x⟫
+              : by simp only [add_monoid_hom.map_add]
+      ... = re ⟪y, y⟫ * t * t + abs (⟪x, y⟫ + ⟪y, x⟫) * t + re ⟪x, x⟫
+              : begin
+                sorry,
+              end },
+  have h₁ : re ⟪y, x⟫ = re ⟪x, y⟫ := inner_symm_re,
+  rw [mul_re, h₁],
+  have hdisc := discriminant_le_zero hquad,
+  have hdisc' : 4 * re ⟪x, y⟫^2 ≤ 4 * (re ⟪x, x⟫ * re ⟪y, y⟫),
+  { rw [discrim, pow_two] at hdisc,
+    simp [h₁] at hdisc,
+    rw [←mul_assoc],
+    ring at hdisc,
+    exact hdisc },
 
-  have H_step1 : (inner y y) * inner (x - T • y) (x - T • y)
-        = (inner y y) * (inner x x) - term1 - term2 + term3,
-    rw[Hterm1, Hterm2, Hterm3, H_expr_inneryy T],
-  have H_key : (inner y y) * inner (x - T • y) (x - T • y)
-      = (inner y y) * (inner x x) - inner y x * inner x y,
-  {
-    calc
-    (inner y y) * inner (x - T • y) (x - T • y)
-         = inner y y * inner x x - term1 - term2 + term3
-                    : H_step1
-    ...  = inner y y * inner x x - inner y x * inner x y
-              - inner y x * inner x y + inner y x * inner x y
-                    : by rw[H₁, H₂, H₃]
-    ...  = inner y y * inner x x - inner y x * inner x y
-                    : by ring,
-  },
-  have H_final : 0 ≤ ((inner y y) * inner (x - T • y) (x - T • y)).re,
-  {
-    rw [mul_re (inner y y) (inner (x - T • y)(x - T • y))],
-    rw[inner_self_nonneg_im, inner_self_nonneg_im, mul_zero, sub_zero],
-    have yynonneg : (inner y y).re ≥ 0, exact inner_self_nonneg,
-    have bignonneg : (inner (x - T • y) (x - T • y)).re ≥ 0, exact inner_self_nonneg,
-    exact mul_nonneg yynonneg bignonneg,
-  },
-
-  have H_split_re : (inner y y * inner x x).re  = (inner y y).re * (inner x x).re,
-    { rw[mul_re, inner_self_nonneg_im, zero_mul, sub_zero] },
-  have H_final_final : 0 ≤ (inner y y).re * (inner x x).re - (inner y x * inner x y).abs,
-  {
-    calc
-    0   ≤ ((inner y y) * inner (x - T • y) (x - T • y)).re
-                : H_final
-    ... = (inner y y * inner x x - inner y x * inner x y).re
-                : by rw[H_key]
-    ... = (inner y y * inner x x).re - (inner y x * inner x y).re
-                : by rw[sub_re]
-    ... = (inner y y).re * (inner x x).re - (inner y x * inner x y).re
-                : by rw[H_split_re]
-    ... = (inner y y).re * (inner x x).re - (inner y x * inner x y).abs
-                : by rw[inner_mul_conj_re_abs]
-  },
-  rw[←complex.abs_mul],
-  conv
-  begin
-    to_rhs,
-    rw[mul_comm],
-  end,
-  rw[mul_comm],
-  linarith,
+  --exact (mul_le_mul_left (show (0 : ℝ) < 4, by linarith)).mp hdisc'
+  sorry,
 end
 
 /-- Norm constructed from a `complex_inner_product_space.core` structure, defined to be the square root

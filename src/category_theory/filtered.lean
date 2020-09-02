@@ -90,14 +90,14 @@ noncomputable def max (j j' : C) : C :=
 (is_filtered_or_empty.cocone_objs j j').some
 
 /--
-`left_to_max j j'` is an arbitrarily choice of morphism from `j` to `sup j j'`,
+`left_to_max j j'` is an arbitrarily choice of morphism from `j` to `max j j'`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def left_to_max (j j' : C) : j ⟶ max j j' :=
 (is_filtered_or_empty.cocone_objs j j').some_spec.some
 
 /--
-`right_to_max j j'` is an arbitrarily choice of morphism from `j'` to `sup j j'`,
+`right_to_max j j'` is an arbitrarily choice of morphism from `j'` to `max j j'`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def right_to_max (j j' : C) : j' ⟶ max j j' :=
@@ -130,8 +130,9 @@ lemma coeq_condition {j j' : C} (f f' : j ⟶ j') : f ≫ coeq_hom f f' = f' ≫
 
 open category_theory.limits
 
-variables {J : Type v} [small_category J] [fin_category J]
-
+/--
+Any finite collection of objects in a filtered category has an object "to the right".
+-/
 lemma sup_objs_exists (O : finset C) : ∃ (S : C), ∀ {X}, X ∈ O → _root_.nonempty (X ⟶ S) :=
 begin
   classical,
@@ -167,6 +168,12 @@ begin
     { rw w' _ _ (by finish), }, },
 end
 
+/--
+Given any `finset` of objects `{X, ...}` and
+indexed collection of `finset`s of morphisms `{f, ...}` in `C`,
+there is an object `S`, with a morphism `T X : X ⟶ S` from each `X`,
+such that the triangles commute: `f ≫ T X = T Y`, for `f : X ⟶ Y` in the `finset`.
+-/
 lemma sup_exists (O : finset C) (H : Π X Y, X ∈ O → Y ∈ O → finset (X ⟶ Y)) :
   ∃ (S : C) (T : Π {X : C}, X ∈ O → (X ⟶ S)), ∀ {X Y : C} (mX : X ∈ O) (mY : Y ∈ O) {f : X ⟶ Y},
     f ∈ H _ _ mX mY → f ≫ T mY = T mX :=
@@ -184,24 +191,31 @@ begin
   refine ⟨X, mX, Y, mY, f, mf, rfl, (by simp)⟩,
 end
 
+/--
+An arbitrary choice of object "to the right" of a finite collection of objects `O` and morphisms `H`,
+making all the triangles commute.
+-/
 noncomputable
 def sup (O : finset C) (H : Π X Y, X ∈ O → Y ∈ O → finset (X ⟶ Y)) : C :=
 (sup_exists O H).some
 
+/--
+The morphisms to `sup O H`.
+-/
 noncomputable
 def to_sup (O : finset C) (H : Π X Y, X ∈ O → Y ∈ O → finset (X ⟶ Y)) {X : C} (m : X ∈ O) :
   X ⟶ sup O H :=
 (sup_exists O H).some_spec.some m
 
+/--
+The triangles of consisting of a morphism in `H` and the maps to `sup O H` commute.
+-/
 lemma to_sup_commutes (O : finset C) (H : Π X Y, X ∈ O → Y ∈ O → finset (X ⟶ Y))
-  {X Y : C} (mX : X ∈ O) (mY : Y ∈ O) {f : X ⟶ Y} (mf : f ∈ H _ _ mX mY) : f ≫ to_sup O H mY = to_sup O H mX :=
+  {X Y : C} (mX : X ∈ O) (mY : Y ∈ O) {f : X ⟶ Y} (mf : f ∈ H _ _ mX mY) :
+  f ≫ to_sup O H mY = to_sup O H mX :=
 (sup_exists O H).some_spec.some_spec mX mY mf
 
-@[simp] lemma exists_apply_eq_apply {α β : Type*} (f : α → β) (a : α) : ∃ a', f a = f a' :=
-⟨a, rfl⟩
-
-@[simp] lemma exists_apply_eq_apply' {α β : Type*} (f : α → β) (a : α) : ∃ a', f a' = f a :=
-⟨a, rfl⟩
+variables {J : Type v} [small_category J] [fin_category J]
 
 /--
 If we have `is_filtered C`, then for any functor `F : J ⥤ C` with `fin_category J`,

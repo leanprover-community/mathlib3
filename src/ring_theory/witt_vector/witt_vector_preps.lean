@@ -323,6 +323,23 @@ lemma bind₂_comp_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_poly
   (bind₂ g).comp (bind₂ f) = bind₂ ((bind₂ g).comp f) :=
 by { ext1, simp only [function.comp_app, ring_hom.coe_comp, bind₂_bind₂], }
 
+/-
+lemma map_bind (x : m α) {g : α → m β} {f : β → γ} :
+  f <$> (x >>= g) = (x >>= λa, f <$> g a) :=
+-/
+
+lemma rename_bind₁ {υ : Type*} (f : σ → mv_polynomial τ R) (g : τ → υ) (φ : mv_polynomial σ R) :
+  rename g (bind₁ f φ) = bind₁ (λ i, rename g $ f i) φ := sorry
+
+lemma map_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* T) (φ : mv_polynomial σ R) :
+  map g (bind₂ f φ) = bind₂ ((map g).comp f) φ := sorry
+
+lemma bind₁_rename {υ : Type*} (f : τ → mv_polynomial υ R) (g : σ → τ) (φ : mv_polynomial σ R) :
+  bind₁ f (rename g φ) = bind₁ (f ∘ g) φ := sorry
+
+lemma bind₂_map (f : S → mv_polynomial σ T) (g) (φ) :
+  bind₂ f (map g φ) = bind₂ (f ∘ g) φ := sorry
+
 section
 
 open_locale classical
@@ -340,6 +357,18 @@ end
 end
 
 end monadic_stuff
+
+/-- Expand the polynomial by a factor of p, so `∑ aₙ xⁿ` becomes `∑ aₙ xⁿᵖ`. -/
+-- this definition should also work for non-commutative `R`
+noncomputable def expand (p : ℕ) : mv_polynomial σ R →ₐ[R] mv_polynomial σ R :=
+{ commutes' := λ r, eval₂_hom_C _ _ _,
+  .. (eval₂_hom C (λ i, (X i) ^ p) : mv_polynomial σ R →+* mv_polynomial σ R) }
+
+@[simp] lemma expand_C (p : ℕ) (r : R) : expand p (C r : mv_polynomial σ R) = C r :=
+eval₂_hom_C _ _ _
+
+@[simp] lemma expand_X (p : ℕ) (i : σ) : expand p (X i : mv_polynomial σ R) = (X i) ^ p :=
+eval₂_hom_X' _ _ _
 
 end mv_polynomial
 

@@ -6,7 +6,6 @@ Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 import ring_theory.fractional_ideal
 import ring_theory.ideal.over
 import ring_theory.discrete_valuation_ring
-import order.zorn
 
 namespace ring
 

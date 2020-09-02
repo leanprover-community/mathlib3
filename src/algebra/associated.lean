@@ -105,13 +105,6 @@ assume a s ih h,
   | or.inr h := let ⟨a, has, h⟩ := ih h in ⟨a, multiset.mem_cons_of_mem has, h⟩
   end
 
-/-- Two elements of a `comm_monoid_with_zero` are coprime if they don't have any prime factors in
-  common -/
-def coprime (a b : α) : Prop := ∀ (p : α), prime p → p ∣ a → ¬ p ∣ b
-
-lemma coprime_symm {a b : α} (h : coprime a b) : coprime b a :=
-λ p h₁ hb ha, h p h₁ ha hb
-
 end prime
 
 /-- `irreducible p` states that `p` is non-unit and only factors into units.
@@ -555,22 +548,11 @@ begin
   rw [mk_mul_mk, mk_le_mk_iff_dvd_iff, mk_le_mk_iff_dvd_iff, mk_le_mk_iff_dvd_iff]
 end
 
-/-- Two associates of a `comm_monoid_with_zero` are coprime if they don't have any prime factors in
-  common -/
-def associates_coprime (a b : associates α) : Prop :=
-  ∀ (p : associates α), prime p → p ∣ a → ¬ p ∣ b
-
 lemma coprime_associated {a b : α} :
-  coprime a b ↔ associates_coprime (associates.mk a) (associates.mk b) :=
+  (∀ (d : α), d ∣ a → d ∣ b → ¬ _root_.prime d) ↔
+  (∀ (d : associates α), d ≤ associates.mk a → d ≤ associates.mk b → ¬ prime d) :=
 by { convert forall_quotient_iff.symm,
-simp_rw [coprime, quotient_mk_eq_mk, prime_mk, mk_le_mk_iff_dvd_iff] }
-
-lemma associates_coprime_symm {a b : associates α} (h : associates_coprime a b) :
-  associates_coprime b a :=
-begin
-  intros p h₁ hb ha,
-  exact h _ h₁ ha hb
-end
+  simp_rw [quotient_mk_eq_mk, prime_mk, mk_le_mk_iff_dvd_iff] }
 
 end comm_monoid_with_zero
 

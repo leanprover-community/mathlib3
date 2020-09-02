@@ -419,22 +419,22 @@ begin
     simp only [IH, int.cast_coe_nat, ring_hom.eq_int_cast, ring_hom.map_pow, map_C, ring_hom.map_mul, ring_hom.map_nat_cast], }
 end
 
-@[simp] lemma witt_polynomial_zmod_self (n : ℕ) :
-  W_ (zmod (p^(n+1))) (n + 1) = aeval (λ i, ((X i)^p)) (W_ (zmod (p^(n+1))) n) :=
-begin
-  simp only [witt_polynomial_eq_sum_C_mul_X_pow],
-  rw [finset.sum_range_succ, ← nat.cast_pow, char_p.cast_eq_zero (zmod (p^(n+1))) (p^(n+1)),
-      C_0, zero_mul, zero_add],
-  rw [alg_hom.map_sum, finset.sum_congr rfl],
-  intros k hk,
-  rw [alg_hom.map_mul, alg_hom.map_pow, aeval_X, alg_hom_C, ← pow_mul,
-      mul_comm p, ← nat.pow_succ, nat.succ_eq_add_one],
-  congr,
-  rw finset.mem_range at hk,
-  omega
-end
+-- @[simp] lemma witt_polynomial_zmod_self (n : ℕ) :
+--   W_ (zmod (p^(n+1))) (n + 1) = aeval (λ i, ((X i)^p)) (W_ (zmod (p^(n+1))) n) :=
+-- begin
+--   simp only [witt_polynomial_eq_sum_C_mul_X_pow],
+--   rw [finset.sum_range_succ, ← nat.cast_pow, char_p.cast_eq_zero (zmod (p^(n+1))) (p^(n+1)),
+--       C_0, zero_mul, zero_add],
+--   rw [alg_hom.map_sum, finset.sum_congr rfl],
+--   intros k hk,
+--   rw [alg_hom.map_mul, alg_hom.map_pow, aeval_X, alg_hom_C, ← pow_mul,
+--       mul_comm p, ← nat.pow_succ, nat.succ_eq_add_one],
+--   congr,
+--   rw finset.mem_range at hk,
+--   omega
+-- end
 
-@[simp] lemma witt_polynomial_zmod_self' (n : ℕ) :
+@[simp] lemma witt_polynomial_zmod_self (n : ℕ) :
   W_ (zmod (p^(n+1))) (n + 1) = expand p (W_ (zmod (p^(n+1))) n) :=
 begin
   simp only [witt_polynomial_eq_sum_C_mul_X_pow],
@@ -453,17 +453,17 @@ end
   frobenius _ p a = a :=
 by rw [frobenius_def, zmod.pow_card]
 
-lemma mv_polynomial.frobenius_zmod [fact p.prime] (φ : mv_polynomial σ (zmod p)) :
-  frobenius _ p φ = aeval (λ i, X i ^ p) φ :=
-begin
-  apply induction_on φ,
-  { intro a, rw [aeval_C, frobenius_def, ← C_pow, zmod.pow_card], refl },
-  { simp only [alg_hom.map_add, ring_hom.map_add], intros _ _ hf hg, rw [hf, hg] },
-  { simp only [aeval_X, ring_hom.map_mul, alg_hom.map_mul],
-    intros _ _ hf, rw [hf, frobenius_def], },
-end
+-- lemma mv_polynomial.frobenius_zmod [fact p.prime] (φ : mv_polynomial σ (zmod p)) :
+--   frobenius _ p φ = aeval (λ i, X i ^ p) φ :=
+-- begin
+--   apply induction_on φ,
+--   { intro a, rw [aeval_C, frobenius_def, ← C_pow, zmod.pow_card], refl },
+--   { simp only [alg_hom.map_add, ring_hom.map_add], intros _ _ hf hg, rw [hf, hg] },
+--   { simp only [aeval_X, ring_hom.map_mul, alg_hom.map_mul],
+--     intros _ _ hf, rw [hf, frobenius_def], },
+-- end
 
-lemma mv_polynomial.frobenius_zmod' [fact p.prime] (φ : mv_polynomial σ (zmod p)) :
+lemma mv_polynomial.frobenius_zmod [fact p.prime] (φ : mv_polynomial σ (zmod p)) :
   frobenius _ p φ = expand p φ :=
 begin
   apply induction_on φ,
@@ -473,16 +473,13 @@ begin
     intros _ _ hf, rw [hf, frobenius_def], },
 end
 
-lemma mv_polynomial.expand_zmod [fact p.prime] (φ : mv_polynomial ι (zmod p)) :
-  (aeval (λ i, (X i)^p)) φ = φ^p :=
-(mv_polynomial.frobenius_zmod' _ _).symm
+-- lemma mv_polynomial.expand_zmod [fact p.prime] (φ : mv_polynomial ι (zmod p)) :
+--   (aeval (λ i, (X i)^p)) φ = φ^p :=
+-- (mv_polynomial.frobenius_zmod' _ _).symm
 
-lemma mv_polynomial.expand_zmod' [fact p.prime] (φ : mv_polynomial ι (zmod p)) :
+lemma mv_polynomial.expand_zmod [fact p.prime] (φ : mv_polynomial ι (zmod p)) :
   expand p φ = φ^p :=
-begin
-  symmetry,
-  apply mv_polynomial.frobenius_zmod
-end
+(mv_polynomial.frobenius_zmod _ _).symm
 
 lemma rat_mv_poly_is_integral_iff (p : mv_polynomial ι ℚ) :
   map (int.cast_ring_hom ℚ) (finsupp.map_range rat.num (rat.coe_int_num 0) p) = p ↔

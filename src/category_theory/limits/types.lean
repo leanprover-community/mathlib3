@@ -150,6 +150,7 @@ begin
   exact ⟨j, y, rfl⟩
 end
 
+/-- A variant of `jointly_surjective` for `x : colimit F`. -/
 lemma jointly_surjective' (F : J ⥤ Type u)
   (x : colimit F) : ∃ j y, colimit.ι F j y = x :=
 jointly_surjective F (colimit.is_colimit _) x

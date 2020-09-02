@@ -372,6 +372,22 @@ ext (submodule.map_id I.1)
   (I : fractional_ideal f) : I.map (g'.comp g) = (I.map g).map g' :=
 ext (submodule.map_comp g.to_linear_map g'.to_linear_map I.1)
 
+@[simp] lemma map_coe_ideal (I : ideal R) (g : f.codomain →ₐ[R] f'.codomain) :
+  (I : fractional_ideal f).map g = I :=
+begin
+  ext x,
+  simp only [coe_coe_ideal, mem_coe_submodule],
+  split,
+  { rintro ⟨_, ⟨y, hy, rfl⟩, rfl⟩,
+    exact ⟨y, hy, (g.commutes y).symm⟩ },
+  { rintro ⟨y, hy, rfl⟩,
+    exact ⟨_, ⟨y, hy, rfl⟩, g.commutes y⟩ },
+end
+
+@[simp] lemma map_one (g : f.codomain →ₐ[R] f'.codomain) :
+  (1 : fractional_ideal f).map g = 1 :=
+map_coe_ideal 1 g
+
 @[simp] lemma map_add (I J : fractional_ideal f) (g : f.codomain →ₐ[R] f'.codomain) :
   (I + J).map g = I.map g + J.map g :=
 ext (submodule.map_sup _ _ _)
@@ -379,6 +395,14 @@ ext (submodule.map_sup _ _ _)
 @[simp] lemma map_mul (I J : fractional_ideal f) (g : f.codomain →ₐ[R] f'.codomain) :
   (I * J).map g = I.map g * J.map g :=
 ext (submodule.map_mul _ _ _)
+
+@[simp] lemma map_map_symm (I : fractional_ideal f) (g : f.codomain ≃ₐ[R] f'.codomain) :
+  (I.map (g : f.codomain →ₐ[R] f'.codomain)).map (g.symm : f'.codomain →ₐ[R] f.codomain) = I :=
+by rw [←map_comp, g.symm_comp, map_id]
+
+@[simp] lemma map_symm_map (I : fractional_ideal f') (g : f.codomain ≃ₐ[R] f'.codomain) :
+  (I.map (g.symm : f'.codomain →ₐ[R] f.codomain)).map (g : f.codomain →ₐ[R] f'.codomain) = I :=
+by rw [←map_comp, g.comp_symm, map_id]
 
 /-- If `g` is an equivalence, `map g` is an isomorphism -/
 def map_equiv (g : f.codomain ≃ₐ[R] f'.codomain) :
@@ -459,6 +483,8 @@ noncomputable instance fractional_ideal_has_div :
 
 noncomputable instance : has_inv (fractional_ideal g) := ⟨λ I, 1 / I⟩
 
+lemma inv_eq {I : fractional_ideal g} : I⁻¹ = 1 / I := rfl
+
 lemma div_nonzero {I J : fractional_ideal g} (h : J ≠ 0) :
   (I / J) = ⟨I.1 / J.1, fractional_div_of_nonzero h⟩ :=
 dif_neg h
@@ -514,6 +540,18 @@ end
 theorem mul_inv_cancel_iff {I : fractional_ideal g} :
   I * I⁻¹ = 1 ↔ ∃ J, I * J = 1 :=
 ⟨λ h, ⟨I⁻¹, h⟩, λ ⟨J, hJ⟩, by rwa [←right_inverse_eq I J hJ]⟩
+
+variables {K' : Type*} [field K'] {g' : fraction_map R K'}
+
+#check submodule.has_div
+
+@[simp] lemma map_div (I J : fractional_ideal g) (h : g.codomain →ₐ[R] g'.codomain) :
+  (I / J).map h = I.map h / J.map h :=
+ext submodule.map_div
+
+@[simp] lemma map_inv (I : fractional_ideal g) (h : g.codomain →ₐ[R] g'.codomain) :
+  (I⁻¹).map h = (I.map h)⁻¹ :=
+by rw [inv_eq, map_div, map_one, inv_eq]
 
 end quotient
 

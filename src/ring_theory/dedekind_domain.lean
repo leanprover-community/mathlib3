@@ -103,7 +103,24 @@ use `is_dedekind_domain_inv_iff` to prove `is_dedekind_domain_inv` for a given `
 This is equivalent to `is_dedekind_domain`.
 TODO: prove the equivalence.
 -/
--- TODO: choose that `f` is the fraction_map from `A` to `fraction_ring A` and show the independence of `f`
-structure is_dedekind_domain_inv (f : fraction_map A K) : Prop :=
-(not_is_field : ¬ is_field R)
-(mul_inv_cancel : ∀ I ≠ (⊥ : fractional_ideal f), I * I⁻¹ = 1)
+structure is_dedekind_domain_inv : Prop :=
+(not_is_field : ¬ is_field A)
+(mul_inv_cancel : ∀ I ≠ (⊥ : fractional_ideal (fraction_ring.of A)), I * I⁻¹ = 1)
+
+section
+
+open ring.fractional_ideal
+
+#check map_equiv
+
+lemma is_dedekind_domain_inv_iff (f : fraction_map A K) :
+  is_dedekind_domain_inv A ↔
+    (¬ is_field A) ∧ (∀ I ≠ (⊥ : fractional_ideal f), I * I⁻¹ = 1) :=
+begin
+  split; rintros ⟨hf, hi⟩; use hf; intros I hI,
+  { convert congr_arg (map_equiv (fraction_ring.alg_equiv_of_quotient f))
+      (hi (map_equiv (fraction_ring.alg_equiv_of_quotient f).symm I) _);
+      simp },
+end
+
+end

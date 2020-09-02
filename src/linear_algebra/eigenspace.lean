@@ -293,7 +293,7 @@ begin
   unfold has_generalized_eigenvalue at *,
   contrapose! hk,
   rw [←le_bot_iff, ←hk],
-  apply generalized_eigenspace_mono hm,
+  exact generalized_eigenspace_mono hm
 end
 
 /-- The eigenspace is a subspace of the generalized eigenspace. -/

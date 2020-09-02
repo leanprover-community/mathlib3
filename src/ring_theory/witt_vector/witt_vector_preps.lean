@@ -237,23 +237,56 @@ end
 
 end witt_structure_machine
 
-noncomputable def bind (f : σ → mv_polynomial τ R) : mv_polynomial σ R →+* mv_polynomial τ R :=
-{ to_fun := λ φ, aeval f φ,
-  map_zero' := by simp,
-  map_one' := by simp,
-  map_add' := by simp,
-  map_mul' := by simp }
+section monadic_stuff
+variables {S : Type*} [comm_semiring S]
+
+noncomputable def bind₁ (f : σ → mv_polynomial τ R) : mv_polynomial σ R →ₐ[R] mv_polynomial τ R :=
+aeval f
+
+noncomputable def bind₂ (f : R →+* mv_polynomial σ S) : mv_polynomial σ R →+* mv_polynomial σ S :=
+eval₂_hom f X
+
+noncomputable def join : mv_polynomial σ (mv_polynomial σ R) →+* mv_polynomial σ R :=
+eval₂_hom (ring_hom.id _) X
+
+@[simp]
+lemma bind₁_X_left : bind₁ (X : σ → mv_polynomial σ R) = alg_hom.id R _ :=
+begin
+  rw [bind₁],
+  sorry
+end
+
+@[simp]
+lemma bind₁_X_right (f : σ → mv_polynomial τ R) (i : σ) : bind₁ f (X i) = f i :=
+aeval_X f i
+
+@[simp]
+lemma bind₂_C_left : bind₂ (C : R →+* mv_polynomial σ R) = ring_hom.id _ :=
+begin
+  sorry
+end
+
+@[simp]
+lemma bind₂_C_right (f : R →+* mv_polynomial σ S) (r : R) : bind₂ f (C r) = f r :=
+eval₂_hom_C f X r
+
+@[simp]
+lemma bind₂_comp_C (f : R →+* mv_polynomial σ S) :
+  (bind₂ f).comp C = f :=
+by { ext1, apply bind₂_C_right }
 
 section
 
 open_locale classical
 variables (φ : mv_polynomial σ R) (f : σ → mv_polynomial τ R)
 
-lemma bind_support : (bind f φ).support ⊆  _ :=
+lemma bind_support : (bind₁ f φ).support ⊆  _ :=
 begin
 end
 
 end
+
+end monadic_stuff
 
 end mv_polynomial
 

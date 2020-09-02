@@ -97,6 +97,16 @@ lemma rel_hom.injective_of_increasing [is_trichotomous α r]
   [is_irrefl β s] (f : r →r s) : injective f :=
 injective_of_increasing r s f (λ x y, f.map_rel)
 
+theorem surjective.well_founded_iff {f : α → β} (hf : surjective f)
+  (o : ∀ {a b}, r a b ↔ s (f a) (f b)) : well_founded r ↔ well_founded s :=
+iff.intro (begin
+  apply rel_hom.well_founded,
+  refine rel_hom.mk _ _,
+  {exact classical.some hf.has_right_inverse},
+  intros a b h, apply o.2, convert h,
+  iterate 2 { apply classical.some_spec hf.has_right_inverse },
+end) (rel_hom.well_founded ⟨f, λ _ _, o.1⟩)
+
 /-- A relation embedding with respect to a given pair of relations `r` and `s`
 is an embedding `f : α ↪ β` such that `r a b ↔ s (f a) (f b)`. -/
 structure rel_embedding {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ↪ β :=
@@ -334,8 +344,8 @@ theorem map_rel_iff (f : r ≃r s) : ∀ {a b}, r a b ↔ s (f a) (f b) := f.map
 lemma map_rel_iff'' {r : α → α → Prop} {s : β → β → Prop} (f : r ≃r s) {x y : α} :
     r x y ↔ s ((↑f : r ↪r s) x) ((↑f : r ↪r s) y) := f.map_rel_iff
 
-@[simp] theorem coe_fn_mk (f : α ≃ β) (o) :
-  (@rel_iso.mk _ _ r s f o : α → β) = f := rfl
+@[simp] theorem coe_fn_mk (f : α ≃ β) (o : ∀ ⦃a b⦄, r a b ↔ s (f a) (f b)) :
+  (rel_iso.mk f o : α → β) = f := rfl
 
 @[simp] theorem coe_fn_to_equiv (f : r ≃r s) : (f.to_equiv : α → β) = f := rfl
 

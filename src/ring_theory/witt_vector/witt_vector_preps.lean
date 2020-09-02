@@ -390,12 +390,6 @@ by { rw [hom_bind₁, map_comp_C, ← eval₂_hom_map_hom], refl }
 @[simp]
 lemma eval₂_hom_C_left (f : σ → mv_polynomial τ R) : eval₂_hom C f = bind₁ f := rfl
 
-@[simp]
-lemma bind₁_C_right (f : σ → mv_polynomial τ R) (r : R) :
-  bind₁ f (C r) = C r :=
-begin
-  sorry
-end
 
 section
 
@@ -407,11 +401,35 @@ variables (φ : mv_polynomial σ R)
 -- begin
 -- end
 
+lemma finset.not_subset {α} {s t : finset α} : ¬ s ⊆ t ↔ ∃ x, x ∈ s ∧ x ∉ t :=
+sorry
+variables (p q : mv_polynomial σ R)
+#simp bind₁ f (p + q)
+
+#check degrees
 lemma bind₁_vars : (bind₁ f φ).vars ⊆ φ.vars.bind (λ i, (f i).vars) :=
 begin
-  sorry
-end
+  apply φ.induction_on,
+  { intro a, simp },
+  { intros p q hp hq,
+    simp [vars, ← finset.bind_to_finset],
+  }
 
+  -- intro x,
+  -- simp [vars, ← finset.bind_to_finset, bind₁],
+  -- intro hx,
+  -- obtain ⟨a, ha, hax⟩ := mem_degrees.mp hx,
+  -- rw aeval_coe
+  -- apply φ.induction_on,
+  -- { intro a, simp },
+  -- { intros p q hp hq,
+  --   simp,
+  --   apply finset.subset.trans (vars_add_subset _ _),
+  --   apply finset.union_subset,
+  --   sorry, sorry },
+  -- { intros p n hp, simp [hp], }
+end
+#check finset.bind_subset_bind_of_subset_left
 end
 
 end monadic_stuff

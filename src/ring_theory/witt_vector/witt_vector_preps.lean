@@ -455,7 +455,7 @@ lemma expand_bind₁ (p : ℕ) (f : σ → mv_polynomial τ R) (φ : mv_polynomi
 by rw [← alg_hom.comp_apply, expand_comp_bind₁]
 
 section
-variables {S : Type*} [comm_semiring S] {τ : Type*}
+variables {S : Type*} [comm_semiring S]
 
 lemma map_expand (f : R →+* S) (p : ℕ) (φ : mv_polynomial σ R) :
   map f (expand p φ) = expand p (map f φ) :=
@@ -469,6 +469,8 @@ lemma rename_expand (f : σ → τ) (p : ℕ) (φ : mv_polynomial σ R) :
   rename f (expand p φ) = expand p (rename f φ) :=
 begin
   sorry
+end
+
 end
 
 end mv_polynomial

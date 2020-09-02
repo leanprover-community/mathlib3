@@ -935,15 +935,18 @@ meta def tactic.interactive.ghost_boo (poly fn: parse parser.pexpr) : tactic uni
 do to_expr ```(witt_structure_int_prop p (%%poly) n) >>= note `aux none >>=
      apply_fun_to_hyp ```(aeval %%fn) none,
 `[convert aux using 1; clear aux,
-  simp only [aeval_eq_eval₂_hom, eval₂_hom_map_hom, map_eval₂_hom];
+  simp only [aeval_eq_eval₂_hom, eval₂_hom_map_hom, map_eval₂_hom, bind₁];
   apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl;
   funext k;
   exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl,
   all_goals { simp only [aeval_eq_eval₂_hom, ring_hom.map_add, ring_hom.map_one, ring_hom.map_neg,
-                         ring_hom.map_mul, eval₂_hom_X'];
+                         ring_hom.map_mul, eval₂_hom_X', bind₁];
               simp only [coe_eval₂_hom, eval₂_rename];
               refl }]
-
+/-
+have := witt_structure_int_prop p <first_arg> n,
+apply_fun_to_hyp (aeval <second arg>)
+-/
 end tactic
 
 namespace witt_vectors

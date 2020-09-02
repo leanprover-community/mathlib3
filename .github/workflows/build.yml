@@ -51,7 +51,7 @@ jobs:
         id: build
         run: |
           leanpkg configure
-          lean --json -T100000 --make src 2>&1 | python scripts/detect_errors.py
+          lean --json -T100000 --make src | python scripts/detect_errors.py
 
       - name: push release to azure
         if: always() && github.repository == 'leanprover-community/mathlib'

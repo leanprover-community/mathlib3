@@ -23,7 +23,7 @@ open_locale classical topological_space big_operators
 open filter finset
 
 local notation `d` := dist
-
+#lint
 lemma hofer {X: Type*} [metric_space X] [complete_space X]
   (x : X) (ε : ℝ) (ε_pos : 0 < ε)
   {ϕ : X → ℝ} (cont : continuous ϕ) (nonneg : ∀ y, 0 ≤ ϕ y) :
@@ -112,4 +112,4 @@ begin
 
   -- So we have our contradiction!
   exact not_tendsto_at_top_of_tendsto_nhds lim lim_top,
-end
+en

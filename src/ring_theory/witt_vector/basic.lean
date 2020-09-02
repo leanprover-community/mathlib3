@@ -236,16 +236,26 @@ section p_prime
 
 variables {idx : Type*} [fact p.prime]
 
-noncomputable def witt_structure_rat (Φ : mv_polynomial idx ℚ) (n : ℕ) :
-  mv_polynomial (idx × ℕ) ℚ :=
-aeval (λ k : ℕ, (aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ k)))) Φ) (X_in_terms_of_W p ℚ n)
+-- noncomputable def witt_structure_rat (Φ : mv_polynomial idx ℚ) (n : ℕ) :
+--   mv_polynomial (idx × ℕ) ℚ :=
+-- aeval (λ k : ℕ, (aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ k)))) Φ) (X_in_terms_of_W p ℚ n)
 
-noncomputable def witt_structure_rat' (Φ : mv_polynomial idx ℚ) (n : ℕ) :
+noncomputable def witt_structure_rat (Φ : mv_polynomial idx ℚ) (n : ℕ) :
   mv_polynomial (idx × ℕ) ℚ :=
 bind₁ (λ k : ℕ, (bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ k)))) Φ) (X_in_terms_of_W p ℚ n)
 
+-- theorem witt_structure_rat_prop (Φ : mv_polynomial idx ℚ) (n : ℕ) :
+--   aeval (witt_structure_rat p Φ) (W_ ℚ n) = aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :=
+-- calc aeval (witt_structure_rat p Φ) (W_ ℚ n) =
+--       aeval (λ k, aeval (λ b, (rename (prod.mk b)) (W_ ℚ k)) Φ)
+--         (aeval (X_in_terms_of_W p ℚ) (W_ ℚ n)) :
+--       by { conv_rhs { rw [aeval_eq_eval₂_hom, map_aeval] },
+--            apply eval₂_hom_congr (ring_hom.ext_rat _ _) rfl rfl }
+-- ... = aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :
+--       by rw [X_in_terms_of_W_prop₂ p _ n, aeval_X]
+
 theorem witt_structure_rat_prop (Φ : mv_polynomial idx ℚ) (n : ℕ) :
-  aeval (witt_structure_rat p Φ) (W_ ℚ n) = aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :=
+  bind₁ (witt_structure_rat p Φ) (W_ ℚ n) = bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :=
 calc aeval (witt_structure_rat p Φ) (W_ ℚ n) =
       aeval (λ k, aeval (λ b, (rename (prod.mk b)) (W_ ℚ k)) Φ)
         (aeval (X_in_terms_of_W p ℚ) (W_ ℚ n)) :
@@ -254,19 +264,24 @@ calc aeval (witt_structure_rat p Φ) (W_ ℚ n) =
 ... = aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :
       by rw [X_in_terms_of_W_prop₂ p _ n, aeval_X]
 
-theorem witt_structure_rat_prop' (Φ : mv_polynomial idx ℚ) (n : ℕ) :
-  bind₁ (witt_structure_rat' p Φ) (W_ ℚ n) = bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :=
-calc aeval (witt_structure_rat p Φ) (W_ ℚ n) =
-      aeval (λ k, aeval (λ b, (rename (prod.mk b)) (W_ ℚ k)) Φ)
-        (aeval (X_in_terms_of_W p ℚ) (W_ ℚ n)) :
-      by { conv_rhs { rw [aeval_eq_eval₂_hom, map_aeval] },
-           apply eval₂_hom_congr (ring_hom.ext_rat _ _) rfl rfl }
-... = aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :
-      by rw [X_in_terms_of_W_prop₂ p _ n, aeval_X]
+-- theorem witt_structure_prop_exists_unique (Φ : mv_polynomial idx ℚ) :
+--   ∃! (φ : ℕ → mv_polynomial (idx × ℕ) ℚ),
+--     ∀ (n : ℕ), aeval φ (W_ ℚ n) = aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :=
+-- begin
+--   refine ⟨witt_structure_rat p Φ, _, _⟩,
+--   { intro n, apply witt_structure_rat_prop },
+--   { intros φ H,
+--     funext n,
+--     rw show φ n = aeval φ (aeval (W_ ℚ) (X_in_terms_of_W p ℚ n)),
+--     { rw [X_in_terms_of_W_prop p, aeval_X] },
+--     rw [aeval_eq_eval₂_hom, map_aeval],
+--     apply eval₂_hom_congr (ring_hom.ext_rat _ _) _ rfl,
+--     funext k, exact H k },
+-- end
 
 theorem witt_structure_prop_exists_unique (Φ : mv_polynomial idx ℚ) :
   ∃! (φ : ℕ → mv_polynomial (idx × ℕ) ℚ),
-    ∀ (n : ℕ), aeval φ (W_ ℚ n) = aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :=
+    ∀ (n : ℕ), bind₁ φ (W_ ℚ n) = bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :=
 begin
   refine ⟨witt_structure_rat p Φ, _, _⟩,
   { intro n, apply witt_structure_rat_prop },
@@ -279,39 +294,24 @@ begin
     funext k, exact H k },
 end
 
-theorem witt_structure_prop_exists_unique' (Φ : mv_polynomial idx ℚ) :
-  ∃! (φ : ℕ → mv_polynomial (idx × ℕ) ℚ),
-    ∀ (n : ℕ), bind₁ φ (W_ ℚ n) = bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :=
-begin
-  refine ⟨witt_structure_rat p Φ, _, _⟩,
-  { intro n, apply witt_structure_rat_prop' },
-  { intros φ H,
-    funext n,
-    rw show φ n = aeval φ (aeval (W_ ℚ) (X_in_terms_of_W p ℚ n)),
-    { rw [X_in_terms_of_W_prop p, aeval_X] },
-    rw [aeval_eq_eval₂_hom, map_aeval],
-    apply eval₂_hom_congr (ring_hom.ext_rat _ _) _ rfl,
-    funext k, exact H k },
-end
+-- lemma witt_structure_rat_rec_aux (Φ : mv_polynomial idx ℚ) (n) :
+--   (witt_structure_rat p Φ n) * C (p^n : ℚ) =
+--   ((aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ)) -
+--   ∑ i in range n, C (p^i : ℚ) * (witt_structure_rat p Φ i)^p^(n-i) :=
+-- begin
+--   have := X_in_terms_of_W_aux p ℚ n,
+--   replace := congr_arg (aeval (λ k : ℕ, (aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ k)))) Φ)) this,
+--   rw [alg_hom.map_mul, aeval_C] at this,
+--   convert this, clear this,
+--   conv_rhs { simp only [alg_hom.map_sub, aeval_X] },
+--   rw sub_right_inj,
+--   rw [alg_hom.map_sum, finset.sum_congr rfl],
+--   intros i hi,
+--   rw [alg_hom.map_mul, aeval_C, alg_hom.map_pow],
+--   refl
+-- end
 
 lemma witt_structure_rat_rec_aux (Φ : mv_polynomial idx ℚ) (n) :
-  (witt_structure_rat p Φ n) * C (p^n : ℚ) =
-  ((aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ)) -
-  ∑ i in range n, C (p^i : ℚ) * (witt_structure_rat p Φ i)^p^(n-i) :=
-begin
-  have := X_in_terms_of_W_aux p ℚ n,
-  replace := congr_arg (aeval (λ k : ℕ, (aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ k)))) Φ)) this,
-  rw [alg_hom.map_mul, aeval_C] at this,
-  convert this, clear this,
-  conv_rhs { simp only [alg_hom.map_sub, aeval_X] },
-  rw sub_right_inj,
-  rw [alg_hom.map_sum, finset.sum_congr rfl],
-  intros i hi,
-  rw [alg_hom.map_mul, aeval_C, alg_hom.map_pow],
-  refl
-end
-
-lemma witt_structure_rat_rec_aux' (Φ : mv_polynomial idx ℚ) (n) :
   (witt_structure_rat p Φ n) * C (p^n : ℚ) =
   ((bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ)) -
   ∑ i in range n, C (p^i : ℚ) * (witt_structure_rat p Φ i)^p^(n-i) :=
@@ -326,22 +326,22 @@ begin
   refl
 end
 
-lemma witt_structure_rat_rec (Φ : mv_polynomial idx ℚ) (n) :
-  (witt_structure_rat p Φ n) = C (1/p^n : ℚ) *
-  (aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ -
-  ∑ i in range n, C (p^i : ℚ) * (witt_structure_rat p Φ i)^p^(n-i)) :=
-begin
-  rw [← witt_structure_rat_rec_aux p Φ n, mul_comm, mul_assoc,
-      ← C_mul, mul_one_div_cancel, C_1, mul_one],
-  exact pow_ne_zero _ (nat.cast_ne_zero.2 $ ne_of_gt (nat.prime.pos ‹_›)),
-end
+-- lemma witt_structure_rat_rec (Φ : mv_polynomial idx ℚ) (n) :
+--   (witt_structure_rat p Φ n) = C (1/p^n : ℚ) *
+--   (aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ -
+--   ∑ i in range n, C (p^i : ℚ) * (witt_structure_rat p Φ i)^p^(n-i)) :=
+-- begin
+--   rw [← witt_structure_rat_rec_aux p Φ n, mul_comm, mul_assoc,
+--       ← C_mul, mul_one_div_cancel, C_1, mul_one],
+--   exact pow_ne_zero _ (nat.cast_ne_zero.2 $ ne_of_gt (nat.prime.pos ‹_›)),
+-- end
 
-lemma witt_structure_rat_rec' (Φ : mv_polynomial idx ℚ) (n) :
+lemma witt_structure_rat_rec (Φ : mv_polynomial idx ℚ) (n) :
   (witt_structure_rat p Φ n) = C (1/p^n : ℚ) *
   (bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ -
   ∑ i in range n, C (p^i : ℚ) * (witt_structure_rat p Φ i)^p^(n-i)) :=
 begin
-  rw [← witt_structure_rat_rec_aux' p Φ n, mul_comm, mul_assoc,
+  rw [← witt_structure_rat_rec_aux p Φ n, mul_comm, mul_assoc,
       ← C_mul, mul_one_div_cancel, C_1, mul_one],
   exact pow_ne_zero _ (nat.cast_ne_zero.2 $ ne_of_gt (nat.prime.pos ‹_›)),
 end
@@ -372,33 +372,33 @@ variables {ι : Type*} {σ : Type*}
 variables {S : Type*} [comm_ring S]
 variables {T : Type*} [comm_ring T]
 
-lemma foo [fact p.prime] (Φ : mv_polynomial idx ℤ) (n : ℕ)
-  (IH : ∀ m : ℕ, m < n →
-    map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) =
-    witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) m) :
-  map (int.cast_ring_hom ℚ)
-    (((aeval (λ b, (rename (λ i, (b,i)) (W_ ℤ n)))) Φ) -
-      (∑ i in range n, C (p^i : ℤ) * (witt_structure_int p Φ i)^p^(n-i))) =
-  aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ n)))
-   (map (int.cast_ring_hom ℚ) Φ) -
-  (∑ i in range n, C (p^i : ℚ) * (witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) i)^p^(n-i)) :=
-begin
-  rw [ring_hom.map_sub, ring_hom.map_sum],
-  apply sub_congr,
-  { clear IH,
-    rw [map_aeval, aeval_eq_eval₂_hom, eval₂_hom_map_hom],
-    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    funext k, rw [map_rename, map_witt_polynomial] },
-  { apply finset.sum_congr rfl,
-    intros i hi,
-    rw finset.mem_range at hi,
-    specialize IH i hi,
-    simp only [IH, int.cast_coe_nat, ring_hom.eq_int_cast, C_pow,
-      ring_hom.map_pow, map_C, ring_hom.map_mul],
-    simp only [ring_hom.map_nat_cast], }
-end
+-- lemma foo [fact p.prime] (Φ : mv_polynomial idx ℤ) (n : ℕ)
+--   (IH : ∀ m : ℕ, m < n →
+--     map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) =
+--     witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) m) :
+--   map (int.cast_ring_hom ℚ)
+--     (((aeval (λ b, (rename (λ i, (b,i)) (W_ ℤ n)))) Φ) -
+--       (∑ i in range n, C (p^i : ℤ) * (witt_structure_int p Φ i)^p^(n-i))) =
+--   aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ n)))
+--    (map (int.cast_ring_hom ℚ) Φ) -
+--   (∑ i in range n, C (p^i : ℚ) * (witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) i)^p^(n-i)) :=
+-- begin
+--   rw [ring_hom.map_sub, ring_hom.map_sum],
+--   apply sub_congr,
+--   { clear IH,
+--     rw [map_aeval, aeval_eq_eval₂_hom, eval₂_hom_map_hom],
+--     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+--     funext k, rw [map_rename, map_witt_polynomial] },
+--   { apply finset.sum_congr rfl,
+--     intros i hi,
+--     rw finset.mem_range at hi,
+--     specialize IH i hi,
+--     simp only [IH, int.cast_coe_nat, ring_hom.eq_int_cast, C_pow,
+--       ring_hom.map_pow, map_C, ring_hom.map_mul],
+--     simp only [ring_hom.map_nat_cast], }
+-- end
 
-lemma foo' [fact p.prime] (Φ : mv_polynomial idx ℤ) (n : ℕ)
+lemma foo [fact p.prime] (Φ : mv_polynomial idx ℤ) (n : ℕ)
   (IH : ∀ m : ℕ, m < n →
     map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) =
     witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) m) :
@@ -525,56 +525,56 @@ end
 -- TODO! map_eval₂_hom is the same as eval₂_comp_left modulo bundling;
 -- the names should probably reflect this.
 
+-- lemma blur (Φ : mv_polynomial idx ℤ) (n : ℕ)
+--   (IH : ∀ m : ℕ, m < (n + 1) →
+--     map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) =
+--       witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) m) :
+--   aeval (λ b, rename (λ i, (b, i)) (aeval (λ i, ((X i ^ p : mv_polynomial ℕ ℤ))) (W_ ℤ n))) Φ =
+--   aeval (λ i, aeval (λ bi, (X bi)^p) (witt_structure_int p Φ i)) (W_ ℤ n) :=
+-- begin
+--   have aux := λ x, @aeval_X _ ℤ _ (witt_structure_int p Φ) _ _ _ x,
+--   have aux₂ : ∀ n : ℕ, (algebra_map ℚ (mv_polynomial (idx × ℕ) ℚ)) (p ^ n) =
+--     map (int.cast_ring_hom ℚ) (aeval (witt_structure_int p Φ) (C (p ^ n : ℤ))),
+--   { intro n, rw [map_aeval, eval₂_hom_C, ring_hom.eq_int_cast, mv_polynomial.algebra_map_eq_C],
+--     rw [C_pow, C_eq_coe_nat], norm_cast, },
+--   have key := (witt_structure_rat_prop p (map (int.cast_ring_hom ℚ) Φ) n).symm,
+--   conv_rhs at key
+--   { rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum],
+--     conv {
+--       apply_congr, skip,
+--       rw [alg_hom.map_mul, alg_hom.map_pow, bind₁_C_right, bind₁_X_right],
+--       rw [← IH x (finset.mem_range.mp H)],
+--       rw [← aux, aux₂],
+--       rw [← ring_hom.map_pow, ← alg_hom.map_pow, ← ring_hom.map_mul,
+--           ← alg_hom.map_mul (aeval (witt_structure_int p Φ)) (C (↑p ^ x : ℤ))], },
+--     rw [← ring_hom.map_sum, ← alg_hom.map_sum], },
+--   replace key := congr_arg (aeval (λ bi, (X bi ^ p : mv_polynomial (idx × ℕ) ℚ))) key,
+
+--   apply mv_polynomial.coe_int_rat_map_injective,
+
+--   calc _ = _ : _
+--      ... = _ : key
+--      ... = _ : _,
+
+--   { clear IH aux aux₂ key,
+--     conv_rhs { rw [aeval_eq_eval₂_hom] },
+--     simp only [map_aeval],
+--     rw [eval₂_hom_map_hom],
+--     refine eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+--     funext i,
+--     apply xyzzy, },
+--   { simp only [map_aeval, map_eval₂_hom, aeval_eq_eval₂_hom, ring_hom.map_pow,
+--       eval₂_hom_map_hom, witt_polynomial_eq_sum_C_mul_X_pow, int.nat_cast_eq_coe_nat],
+--     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+--     funext i,
+--     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+--     funext bi, rw map_X }
+-- end
+
 lemma blur (Φ : mv_polynomial idx ℤ) (n : ℕ)
   (IH : ∀ m : ℕ, m < (n + 1) →
     map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) =
       witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) m) :
-  aeval (λ b, rename (λ i, (b, i)) (aeval (λ i, ((X i ^ p : mv_polynomial ℕ ℤ))) (W_ ℤ n))) Φ =
-  aeval (λ i, aeval (λ bi, (X bi)^p) (witt_structure_int p Φ i)) (W_ ℤ n) :=
-begin
-  have aux := λ x, @aeval_X _ ℤ _ (witt_structure_int p Φ) _ _ _ x,
-  have aux₂ : ∀ n : ℕ, (algebra_map ℚ (mv_polynomial (idx × ℕ) ℚ)) (p ^ n) =
-    map (int.cast_ring_hom ℚ) (aeval (witt_structure_int p Φ) (C (p ^ n : ℤ))),
-  { intro n, rw [map_aeval, eval₂_hom_C, ring_hom.eq_int_cast, mv_polynomial.algebra_map_eq_C],
-    rw [C_pow, C_eq_coe_nat], norm_cast, },
-  have key := (witt_structure_rat_prop p (map (int.cast_ring_hom ℚ) Φ) n).symm,
-  conv_rhs at key
-  { rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum],
-    conv {
-      apply_congr, skip,
-      rw [alg_hom.map_mul, alg_hom.map_pow, aeval_C, aeval_X],
-      rw [← IH x (finset.mem_range.mp H)],
-      rw [← aux, aux₂],
-      rw [← ring_hom.map_pow, ← alg_hom.map_pow, ← ring_hom.map_mul,
-          ← alg_hom.map_mul (aeval (witt_structure_int p Φ)) (C (↑p ^ x : ℤ))], },
-    rw [← ring_hom.map_sum, ← alg_hom.map_sum], },
-  replace key := congr_arg (aeval (λ bi, (X bi ^ p : mv_polynomial (idx × ℕ) ℚ))) key,
-
-  apply mv_polynomial.coe_int_rat_map_injective,
-
-  calc _ = _ : _
-     ... = _ : key
-     ... = _ : _,
-
-  { clear IH aux aux₂ key,
-    conv_rhs { rw [aeval_eq_eval₂_hom] },
-    simp only [map_aeval],
-    rw [eval₂_hom_map_hom],
-    refine eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    funext i,
-    apply xyzzy, },
-  { simp only [map_aeval, map_eval₂_hom, aeval_eq_eval₂_hom, ring_hom.map_pow,
-      eval₂_hom_map_hom, witt_polynomial_eq_sum_C_mul_X_pow, int.nat_cast_eq_coe_nat],
-    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    funext i,
-    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    funext bi, rw map_X }
-end
-
-lemma blur' (Φ : mv_polynomial idx ℤ) (n : ℕ)
-  (IH : ∀ m : ℕ, m < (n + 1) →
-    map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) =
-      witt_structure_rat' p (map (int.cast_ring_hom ℚ) Φ) m) :
   bind₁ (λ b, rename (λ i, (b, i)) (expand p (W_ ℤ n))) Φ =
   bind₁ (λ i, expand p (witt_structure_int p Φ i)) (W_ ℤ n) :=
 begin
@@ -582,7 +582,7 @@ begin
   have aux₂ : ∀ n : ℕ, C (↑p ^ n) =
     map (int.cast_ring_hom ℚ) (bind₁ (witt_structure_int p Φ) (C (p ^ n : ℤ))),
   { intro n, rw [map_bind₁, map_C, bind₁_C_right, ring_hom.eq_int_cast], norm_cast, },
-  have key := (witt_structure_rat_prop' p (map (int.cast_ring_hom ℚ) Φ) n).symm,
+  have key := (witt_structure_rat_prop p (map (int.cast_ring_hom ℚ) Φ) n).symm,
   conv_rhs at key
   { rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum],
     conv {
@@ -626,7 +626,7 @@ begin
   rw [← C_dvd_iff_dvd_coeff, nat.succ_eq_add_one],
   rw C_dvd_iff_zmod,
   -- rw ← eq_mod_iff_dvd_sub',
-  rw [ring_hom.map_sub, sub_eq_zero, map_aeval],
+  rw [ring_hom.map_sub, sub_eq_zero],
   simp only [witt_polynomial_zmod_self, map_aeval, map_witt_polynomial,
     map_rename, ring_hom.map_pow, rename_X],
 
@@ -670,32 +670,55 @@ begin
 end
 .
 
-theorem witt_structure_int_prop (Φ : mv_polynomial idx ℤ) (n) :
-  aeval (witt_structure_int p Φ) (W_ ℤ n) = aeval (λ b, (rename (λ i, (b,i)) (W_ ℤ n))) Φ :=
-begin
-  apply mv_polynomial.coe_int_rat_map_injective,
-  convert witt_structure_rat_prop p (map (int.cast_ring_hom ℚ) Φ) n,
-  { rw [map_aeval, aeval_eq_eval₂_hom,
-        ← map_witt_polynomial p (int.cast_ring_hom ℚ), eval₂_hom_map_hom],
-    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    funext i, apply map_witt_structure_int },
-  { rw [map_aeval, aeval_eq_eval₂_hom, eval₂_hom_map_hom],
-    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    funext b, rw [map_rename, map_witt_polynomial] }
-end
+-- theorem witt_structure_int_prop (Φ : mv_polynomial idx ℤ) (n) :
+--   aeval (witt_structure_int p Φ) (W_ ℤ n) = aeval (λ b, (rename (λ i, (b,i)) (W_ ℤ n))) Φ :=
+-- begin
+--   apply mv_polynomial.coe_int_rat_map_injective,
+--   convert witt_structure_rat_prop p (map (int.cast_ring_hom ℚ) Φ) n,
+--   { rw [map_aeval, aeval_eq_eval₂_hom,
+--         ← map_witt_polynomial p (int.cast_ring_hom ℚ), eval₂_hom_map_hom],
+--     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+--     funext i, apply map_witt_structure_int },
+--   { rw [map_aeval, aeval_eq_eval₂_hom, eval₂_hom_map_hom],
+--     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+--     funext b, rw [map_rename, map_witt_polynomial] }
+-- end
 
-theorem witt_structure_int_prop' (Φ : mv_polynomial idx ℤ) (n) :
+theorem witt_structure_int_prop (Φ : mv_polynomial idx ℤ) (n) :
   bind₁ (witt_structure_int p Φ) (W_ ℤ n) = bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℤ n))) Φ :=
 begin
   apply mv_polynomial.coe_int_rat_map_injective,
-  have := witt_structure_rat_prop' p (map (int.cast_ring_hom ℚ) Φ) n,
+  have := witt_structure_rat_prop p (map (int.cast_ring_hom ℚ) Φ) n,
   simpa only [map_bind₁, ← eval₂_hom_map_hom, eval₂_hom_C_left, map_rename,
         map_witt_polynomial, alg_hom.coe_to_ring_hom, map_witt_structure_int],
 end
 
+-- theorem witt_structure_int_exists_unique (Φ : mv_polynomial idx ℤ) :
+--   ∃! (φ : ℕ → mv_polynomial (idx × ℕ) ℤ),
+--   ∀ (n : ℕ), aeval φ (W_ ℤ n) = aeval (λ b : idx, (rename (λ i, (b,i)) (W_ ℤ n))) Φ :=
+-- begin
+--   refine ⟨witt_structure_int p Φ, _, _⟩,
+--   { apply witt_structure_int_prop },
+--   { intros φ H,
+--     funext k,
+--     apply mv_polynomial.coe_int_rat_map_injective,
+--     rw map_witt_structure_int,
+--     refine congr_fun _ k,
+--     have := (witt_structure_prop_exists_unique p (map (int.cast_ring_hom ℚ) Φ)),
+--     apply unique_of_exists_unique this,
+--     { clear this, intro n,
+--       specialize H n,
+--       convert congr_arg (map (int.cast_ring_hom ℚ)) H using 1,
+--       { show bind₁ _ _ = map _ (bind₁ _ _),
+--         simp only [map_bind₁, ←eval₂_hom_map_hom, eval₂_hom_C_left, map_witt_polynomial, alg_hom.coe_to_ring_hom], },
+--       { show bind₁ _ _ = map _ (bind₁ _ _),
+--         simp only [map_bind₁, ← eval₂_hom_map_hom, eval₂_hom_C_left, map_rename, map_witt_polynomial, alg_hom.coe_to_ring_hom], } },
+--     { intro n, apply witt_structure_rat_prop } },
+-- end
+
 theorem witt_structure_int_exists_unique (Φ : mv_polynomial idx ℤ) :
   ∃! (φ : ℕ → mv_polynomial (idx × ℕ) ℤ),
-  ∀ (n : ℕ), aeval φ (W_ ℤ n) = aeval (λ b : idx, (rename (λ i, (b,i)) (W_ ℤ n))) Φ :=
+  ∀ (n : ℕ), bind₁ φ (W_ ℤ n) = bind₁ (λ b : idx, (rename (λ i, (b,i)) (W_ ℤ n))) Φ :=
 begin
   refine ⟨witt_structure_int p Φ, _, _⟩,
   { apply witt_structure_int_prop },
@@ -708,43 +731,20 @@ begin
     apply unique_of_exists_unique this,
     { clear this, intro n,
       specialize H n,
-      convert congr_arg (map (int.cast_ring_hom ℚ)) H using 1,
-      { show bind₁ _ _ = map _ (bind₁ _ _),
-        simp only [map_bind₁, ←eval₂_hom_map_hom, eval₂_hom_C_left, map_witt_polynomial, alg_hom.coe_to_ring_hom], },
-      { show bind₁ _ _ = map _ (bind₁ _ _),
-        simp only [map_bind₁, ← eval₂_hom_map_hom, eval₂_hom_C_left, map_rename, map_witt_polynomial, alg_hom.coe_to_ring_hom], } },
-    { intro n, apply witt_structure_rat_prop } },
-end
-
-theorem witt_structure_int_exists_unique' (Φ : mv_polynomial idx ℤ) :
-  ∃! (φ : ℕ → mv_polynomial (idx × ℕ) ℤ),
-  ∀ (n : ℕ), bind₁ φ (W_ ℤ n) = bind₁ (λ b : idx, (rename (λ i, (b,i)) (W_ ℤ n))) Φ :=
-begin
-  refine ⟨witt_structure_int p Φ, _, _⟩,
-  { apply witt_structure_int_prop },
-  { intros φ H,
-    funext k,
-    apply mv_polynomial.coe_int_rat_map_injective,
-    rw map_witt_structure_int,
-    refine congr_fun _ k,
-    have := (witt_structure_prop_exists_unique' p (map (int.cast_ring_hom ℚ) Φ)),
-    apply unique_of_exists_unique this,
-    { clear this, intro n,
-      specialize H n,
       apply_fun map (int.cast_ring_hom ℚ) at H,
       simpa only [map_bind₁, ← eval₂_hom_map_hom, eval₂_hom_C_left, map_rename,
         map_witt_polynomial, alg_hom.coe_to_ring_hom] using H, },
     { intro n, apply witt_structure_rat_prop } },
 end
 .
-
 theorem witt_structure_prop (Φ : mv_polynomial idx ℤ) (n) :
   aeval (λ i, map (int.cast_ring_hom R) (witt_structure_int p Φ i)) (W_ ℤ n) =
   aeval (λ b, (rename (λ i, (b,i)) (W n))) Φ :=
 begin
   convert congr_arg (map (int.cast_ring_hom R)) (witt_structure_int_prop p Φ n),
-  { rw [aeval_eq_eval₂_hom, map_aeval],
-    exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
+  { rw [aeval_eq_eval₂_hom, map_bind₁], simp,
+    -- convert eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl,
+    },
   { rw [aeval_eq_eval₂_hom, map_aeval],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     simp only [map_rename, map_witt_polynomial] }
@@ -863,13 +863,13 @@ aeval x (W_ ℤ n)
 lemma ghost_component_apply (n : ℕ) (x : 𝕎 p R) :
   ghost_component n x = aeval x (W_ ℤ n) := rfl
 
-lemma ghost_component_apply' (n : ℕ) (x : 𝕎 p R) :
-  ghost_component n x = aeval x (W_ R n) :=
-begin
-  simp only [ghost_component_apply, aeval_eq_eval₂_hom,
-    ← map_witt_polynomial p (int.cast_ring_hom R), eval₂_hom_map_hom],
-  exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl,
-end
+-- lemma ghost_component_apply' (n : ℕ) (x : 𝕎 p R) :
+--   ghost_component n x = aeval x (W_ R n) :=
+-- begin
+--   simp only [ghost_component_apply, aeval_eq_eval₂_hom,
+--     ← map_witt_polynomial p (int.cast_ring_hom R), eval₂_hom_map_hom],
+--   exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl,
+-- end
 
 noncomputable def ghost_map_fun : 𝕎 p R → (ℕ → R) := λ w n, ghost_component n w
 
@@ -965,9 +965,10 @@ lemma ghost_map_fun_eq [invertible (p : R)] :
   (ghost_map_fun : 𝕎 p R → ℕ → R) = ghost_map_fun.equiv_of_invertible p R :=
 begin
   ext w n,
-  rw [ghost_map_fun_apply, ghost_component_apply'],
+  rw [ghost_map_fun_apply, ghost_component_apply],
   dsimp [ghost_map_fun.equiv_of_invertible, witt.alg_equiv],
   rw [aeval_X],
+
 end
 
 lemma ghost_map_fun.bijective_of_invertible [invertible (p : R)] :
@@ -1124,7 +1125,9 @@ begin
   rw witt_structure_rat,
   simp only [X_in_terms_of_W_zero, aeval_X, map_aeval, constant_coeff_comp_algebra_map,
     constant_coeff_rename, constant_coeff_witt_polynomial],
-  exact @aeval_zero' _ _ ℚ _ _ (algebra.id _) Φ,
+
+  --  convert @aeval_zero' _ _ ℚ _ _ (algebra.id _) Φ,
+   simp [constant_coeff, bind₁_rename],
 end
 
 lemma constant_coeff_witt_structure_rat (Φ : mv_polynomial idx ℚ) (h : constant_coeff Φ = 0) (n : ℕ) :

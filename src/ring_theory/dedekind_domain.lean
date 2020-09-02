@@ -40,16 +40,65 @@ This is the default implementation, but there are equivalent definitions,
 `is_dedekind_domain_dvr` and `is_dedekind_domain_inv`.
 TODO: Prove that these are actually equivalent definitions.
 -/
-class is_dedekind_domain [comm_ring R] [comm_ring K] (f : fraction_map R K) :=
+class is_dedekind_domain (R : Type*) [integral_domain R] : Prop :=
 (not_is_field : ¬ is_field R)
 (is_noetherian_ring : is_noetherian_ring R)
 (dimension_le_one : dimension_le_one R)
-(is_integrally_closed : integral_closure R f.codomain = ⊥)
+(is_integrally_closed : integral_closure R (fraction_ring R) = ⊥)
+
+namespace subalgebra
+
+lemma mem_map
+  {R A A' : Type*} [comm_ring R] [comm_ring A] [comm_ring A'] [algebra R A] [algebra R A']
+  {f : A →ₐ[R] A'} {S : subalgebra R A} {y : A'} : y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
+subsemiring.mem_map
+
+lemma bot_map_equiv
+  {R A A' : Type*} [comm_ring R] [comm_ring A] [comm_ring A'] [algebra R A] [algebra R A']
+  (f : A ≃ₐ[R] A') : map ⊥ (f : A →ₐ[R] A') = ⊥ :=
+begin
+  rw ← le_bot_iff,
+  intros y hy,
+  obtain ⟨x, hx, rfl⟩ := mem_map.mp hy,
+  obtain ⟨x', rfl⟩ := algebra.mem_bot.mp hx,
+  erw [f.commutes, algebra.mem_bot],
+  exact ⟨x', rfl⟩
+end
+
+end subalgebra
+
+/-- Mapping an integral closure along an `alg_equiv` gives the integral closure. -/
+lemma integral_closure_map_alg_equiv
+  {R A A' : Type*} [comm_ring R] [comm_ring A] [comm_ring A'] [algebra R A] [algebra R A']
+  (f : A ≃ₐ[R] A') : (integral_closure R A).map (f : A →ₐ[R] A') = integral_closure R A' :=
+begin
+  ext y,
+  rw subalgebra.mem_map,
+  split,
+  { rintros ⟨x, hx, rfl⟩,
+    exact is_integral_alg_hom f hx },
+  { intro hy,
+    use [f.symm y, is_integral_alg_hom (f.symm : A' →ₐ[R] A) hy],
+    simp }
+end
+
+/-- The non-field, noetherian ring, dimension ≤ 1, integrally closed definition of Dedekind domain
+doesn't depend on the choice of fraction field. -/
+lemma is_dedekind_domain_iff [integral_domain R] [field K] (f : fraction_map R K) :
+  is_dedekind_domain R ↔
+    (¬ is_field R) ∧ is_noetherian_ring R ∧ dimension_le_one R ∧
+    integral_closure R f.codomain = ⊥ :=
+⟨λ ⟨hf, hr, hd, hi⟩, ⟨hf, hr, hd,
+  by rw [←integral_closure_map_alg_equiv (fraction_ring.alg_equiv_of_quotient f),
+         hi, subalgebra.bot_map_equiv]⟩,
+ λ ⟨hf, hr, hd, hi⟩, ⟨hf, hr, hd,
+  by rw [←integral_closure_map_alg_equiv (fraction_ring.alg_equiv_of_quotient f).symm,
+         hi, subalgebra.bot_map_equiv]⟩⟩
 
 /-- A Dedekind domain is a nonfield that is Noetherian, and the localization at every nonzero prime is a discrete valuation ring.
 This is equivalent to `is_dedekind_domain`.
 -/
-structure is_dedekind_domain_dvr [integral_domain R]: Prop :=
+structure is_dedekind_domain_dvr [integral_domain R] : Prop :=
 (not_is_field : ¬ is_field R)
 (is_noetherian_ring : is_noetherian_ring R)
 (is_dvr_at_nonzero_prime : ∀ P ≠ (⊥ : ideal R), P.is_prime →

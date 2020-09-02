@@ -237,6 +237,24 @@ end
 
 end witt_structure_machine
 
+noncomputable def bind (f : σ → mv_polynomial τ R) : mv_polynomial σ R →+* mv_polynomial τ R :=
+{ to_fun := λ φ, aeval f φ,
+  map_zero' := by simp,
+  map_one' := by simp,
+  map_add' := by simp,
+  map_mul' := by simp }
+
+section
+
+open_locale classical
+variables (φ : mv_polynomial σ R) (f : σ → mv_polynomial τ R)
+
+lemma bind_support : (bind f φ).support ⊆  _ :=
+begin
+end
+
+end
+
 end mv_polynomial
 
 -- ### end FOR_MATHLIB

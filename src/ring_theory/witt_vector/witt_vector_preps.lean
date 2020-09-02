@@ -401,24 +401,68 @@ variables (φ : mv_polynomial σ R)
 -- begin
 -- end
 
-lemma finset.not_subset {α} {s t : finset α} : ¬ s ⊆ t ↔ ∃ x, x ∈ s ∧ x ∉ t :=
-sorry
-variables (p q : mv_polynomial σ R)
-#simp bind₁ f (p + q)
+-- lemma finset.not_subset {α} {s t : finset α} : ¬ s ⊆ t ↔ ∃ x, x ∈ s ∧ x ∉ t :=
+-- sorry
+-- variables (p q : mv_polynomial σ R)
+-- #simp bind₁ f (p + q)
 
-#check degrees
+
+-- I've made a few starts at this, none of them feel right.
+-- this might not be the right lemma
+-- but it proves bind₁_vars
+lemma foo
+  (a : τ →₀ ℕ)
+   :
+  coeff a ((aeval f) φ) ≠ 0 → ∃ s : σ, s ∈ φ.vars ∧ a ∈ (f s).support  :=
+begin
+  simp only [aeval, eval₂_eq, ring_hom.to_fun_eq_coe, coe_eval₂_hom, finsupp.mem_support_iff, ne.def, alg_hom.coe_mk],
+  contrapose!, intro h,
+  simp only [coeff_sum],
+  apply finset.sum_eq_zero,
+  intros x hx,
+  simp only [mem_vars] at h,
+  convert h _ _,
+
+
+  -- by_cases xz : x = 0,
+  -- { simp [xz], admit },
+  -- { obtain ⟨c, hc⟩ : ∃ c, c ∈ x.support := sorry,
+  --   have := h c ⟨x, hx, hc⟩,
+  -- convert coeff_zero _,
+  -- convert mul_zero _,
+  -- apply finset.prod_eq_zero,
+  -- { exact hc },
+  -- { convert zero_pow' _ _,
+  --   {  },
+  --   { simpa using hc }   }
+  --  }
+
+  -- simp only [aeval, eval₂_eq, ring_hom.to_fun_eq_coe, coe_eval₂_hom, finsupp.mem_support_iff, ne.def, alg_hom.coe_mk],
+  -- contrapose!, intro h,
+  -- simp only [coeff_sum],
+  -- apply finset.sum_eq_zero,
+  -- intros x hx,
+  -- convert coeff_zero _,
+  -- convert mul_zero _,
+  -- apply finset.prod_eq_zero,
+
+end
+
 lemma bind₁_vars : (bind₁ f φ).vars ⊆ φ.vars.bind (λ i, (f i).vars) :=
 begin
-  apply φ.induction_on,
-  { intro a, simp },
-  { intros p q hp hq,
-    simp [vars, ← finset.bind_to_finset],
-  }
 
-  -- intro x,
-  -- simp [vars, ← finset.bind_to_finset, bind₁],
-  -- intro hx,
-  -- obtain ⟨a, ha, hax⟩ := mem_degrees.mp hx,
+  intro x,
+  simp [vars, ← finset.bind_to_finset, bind₁],
+  intro hx,
+  obtain ⟨a, ha, hax⟩ := mem_degrees.mp hx,
+  -- rw coeff_aeval at ha,
+  rcases foo _ _ _ ha with ⟨s, hs, hs2⟩,
+  simp [vars] at hs,
+  use [s, hs],
+  rw degrees,
+  rw finset.mem_sup,
+  use [a, hs2],
+  rw finsupp.mem_to_multiset, exact hax
   -- rw aeval_coe
   -- apply φ.induction_on,
   -- { intro a, simp },
@@ -429,7 +473,7 @@ begin
   --   sorry, sorry },
   -- { intros p n hp, simp [hp], }
 end
-#check finset.bind_subset_bind_of_subset_left
+
 end
 
 end monadic_stuff

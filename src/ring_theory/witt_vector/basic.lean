@@ -1106,6 +1106,14 @@ begin
   simp only [neg_zero, ring_hom.map_neg, constant_coeff_X],
 end
 
+-- not sure if this one is useful
+lemma coeff_witt_mul (n : ℕ) (d : bool × ℕ →₀ ℕ) (hd : coeff d (witt_mul p n) ≠ 0)
+  (b : bool) (k : ℕ) (hbk : d ⟨b, k⟩ ≠ 0) (b' : bool) :
+  d ⟨b', k⟩ ≠ 0 :=
+begin
+  sorry
+end
+
 end witt_structure_simplifications
 
 section witt_vars
@@ -1297,6 +1305,13 @@ end coeff
 
 section ideal
 
+lemma mul_coeff_eq_zero (n : ℕ) (x : 𝕎 p R) {y : 𝕎 p R}
+  (hy : y ∈ {x : 𝕎 p R | ∀ (i : ℕ), i ≤ n → coeff i x = 0}) :
+  (x * y).coeff n = 0 :=
+begin
+  admit,
+end
+
 noncomputable def ideal (n : ℕ) : ideal (𝕎 p R) :=
 { carrier := {x | ∀ i < n, x.coeff i = 0},
   zero_mem' := by { intros i hi, rw zero_coeff },
@@ -1315,11 +1330,10 @@ noncomputable def ideal (n : ℕ) : ideal (𝕎 p R) :=
   smul_mem' :=
   begin
     intros x y hy i hi,
-    rw smul_eq_mul,
-    rw [mul_coeff, aeval_eq_constant_coeff_of_vars, constant_coeff_witt_mul, ring_hom.map_zero],
-    rintro ⟨b, k⟩ hk,
-    dsimp,
-    -- oops, we need to use something stronger than `aeval_eq_constant_coeff_of_vars`
+    rw [smul_eq_mul],
+    apply mul_coeff_eq_zero,
+    intros j hj,
+    apply hy _ (lt_of_le_of_lt hj hi),
   end }
 
 end ideal

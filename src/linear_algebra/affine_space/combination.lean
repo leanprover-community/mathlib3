@@ -3,6 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Myers.
 -/
+import algebra.invertible
 import data.indicator_function
 import linear_algebra.affine_space.basic
 import linear_algebra.finsupp
@@ -47,6 +48,7 @@ variables [S : affine_space V P]
 include S
 
 variables {ι : Type*} (s : finset ι)
+variables {ι₂ : Type*} (s₂ : finset ι₂)
 
 /-- A weighted sum of the results of subtracting a base point from the
 given points, as a linear map on the weights.  The main cases of
@@ -127,6 +129,16 @@ begin
   exact set.sum_indicator_subset_of_eq_zero w (λ i wi, wi • (p i -ᵥ b : V)) h (λ i, zero_smul k _)
 end
 
+/-- A weighted sum, over the image of an embedding, equals a weighted
+sum with the same points and weights over the original
+`finset`. -/
+lemma weighted_vsub_of_point_map (e : ι₂ ↪ ι) (w : ι → k) (p : ι → P) (b : P) :
+  (s₂.map e).weighted_vsub_of_point p b w = s₂.weighted_vsub_of_point (p ∘ e) b (w ∘ e) :=
+begin
+  simp_rw [weighted_vsub_of_point_apply],
+  exact finset.sum_map _ _ _
+end
+
 /-- A weighted sum of the results of subtracting a default base point
 from the given points, as a linear map on the weights.  This is
 intended to be used when the sum of the weights is 0; that condition
@@ -160,6 +172,13 @@ corresponding indicator function and adding points to the set. -/
 lemma weighted_vsub_indicator_subset (w : ι → k) (p : ι → P) {s₁ s₂ : finset ι} (h : s₁ ⊆ s₂) :
   s₁.weighted_vsub p w = s₂.weighted_vsub p (set.indicator ↑s₁ w) :=
 weighted_vsub_of_point_indicator_subset _ _ _ h
+
+/-- A weighted subtraction, over the image of an embedding, equals a
+weighted subtraction with the same points and weights over the
+original `finset`. -/
+lemma weighted_vsub_map (e : ι₂ ↪ ι) (w : ι → k) (p : ι → P) :
+  (s₂.map e).weighted_vsub p w = s₂.weighted_vsub (p ∘ e) (w ∘ e) :=
+s₂.weighted_vsub_of_point_map _ _ _ _
 
 /-- A weighted sum of the results of subtracting a default base point
 from the given points, added to that base point, as an affine map on
@@ -233,6 +252,13 @@ lemma affine_combination_indicator_subset (w : ι → k) (p : ι → P) {s₁ s�
 by rw [affine_combination_apply, affine_combination_apply,
        weighted_vsub_of_point_indicator_subset _ _ _ h]
 
+/-- An affine combination, over the image of an embedding, equals an
+affine combination with the same points and weights over the original
+`finset`. -/
+lemma affine_combination_map (e : ι₂ ↪ ι) (w : ι → k) (p : ι → P) :
+  (s₂.map e).affine_combination p w = s₂.affine_combination (p ∘ e) (w ∘ e) :=
+by simp_rw [affine_combination_apply, weighted_vsub_of_point_map]
+
 variables {V}
 
 /-- Suppose an indexed family of points is given, along with a subset
@@ -299,7 +325,7 @@ end finset
 namespace finset
 
 variables (k : Type*) {V : Type*} {P : Type*} [division_ring k] [add_comm_group V] [module k V]
-variables [affine_space V P] {ι : Type*} (s : finset ι)
+variables [affine_space V P] {ι : Type*} (s : finset ι) {ι₂ : Type*} (s₂ : finset ι₂)
 
 /-- The weights for the centroid of some points. -/
 def centroid_weights : ι → k := function.const ι (card s : k) ⁻¹
@@ -358,6 +384,94 @@ rfl
 @[simp] lemma centroid_singleton (p : ι → P) (i : ι) :
   ({i} : finset ι).centroid k p = p i :=
 by simp [centroid_def, affine_combination_apply]
+
+/-- The centroid of two points, expressed directly as adding a vector
+to a point. -/
+lemma centroid_insert_singleton [invertible (2 : k)] (p : ι → P) (i₁ i₂ : ι) :
+  ({i₁, i₂} : finset ι).centroid k p = (2 ⁻¹ : k) • (p i₂ -ᵥ p i₁) +ᵥ p i₁ :=
+begin
+  by_cases h : i₁ = i₂,
+  { simp [h] },
+  { have hc : (card ({i₁, i₂} : finset ι) : k) ≠ 0,
+    { rw [card_insert_of_not_mem (not_mem_singleton.2 h), card_singleton],
+      norm_num,
+      exact nonzero_of_invertible _ },
+    rw [centroid_def,
+        affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one _ _ _
+          (sum_centroid_weights_eq_one_of_cast_card_ne_zero _ hc) (p i₁)],
+    simp [h],
+    norm_num }
+end
+
+/-- The centroid of two points indexed by `fin 2`, expressed directly
+as adding a vector to the first point. -/
+lemma centroid_insert_singleton_fin [invertible (2 : k)] (p : fin 2 → P) :
+  univ.centroid k p = (2 ⁻¹ : k) • (p 1 -ᵥ p 0) +ᵥ p 0 :=
+begin
+  have hu : (finset.univ : finset (fin 2)) = {0, 1}, by dec_trivial,
+  rw hu,
+  convert centroid_insert_singleton k p 0 1
+end
+
+/-- A centroid, over the image of an embedding, equals a centroid with
+the same points and weights over the original `finset`. -/
+lemma centroid_map (e : ι₂ ↪ ι) (p : ι → P) : (s₂.map e).centroid k p = s₂.centroid k (p ∘ e) :=
+by simp [centroid_def, affine_combination_map, centroid_weights]
+
+omit V
+
+/-- `centroid_weights` gives the weights for the centroid as a
+constant function, which is suitable when summing over the points
+whose centroid is being taken.  This function gives the weights in a
+form suitable for summing over a larger set of points, as an indicator
+function that is zero outside the set whose centroid is being taken.
+In the case of a `fintype`, the sum may be over `univ`. -/
+def centroid_weights_indicator : ι → k := set.indicator ↑s (s.centroid_weights k)
+
+/-- The definition of `centroid_weights_indicator`. -/
+lemma centroid_weights_indicator_def :
+  s.centroid_weights_indicator k = set.indicator ↑s (s.centroid_weights k) :=
+rfl
+
+/-- The sum of the weights for the centroid indexed by a `fintype`. -/
+lemma sum_centroid_weights_indicator [fintype ι] :
+  ∑ i, s.centroid_weights_indicator k i = ∑ i in s, s.centroid_weights k i :=
+(set.sum_indicator_subset _ (subset_univ _)).symm
+
+/-- In the characteristic zero case, the weights in the centroid
+indexed by a `fintype` sum to 1 if the number of points is not
+zero. -/
+lemma sum_centroid_weights_indicator_eq_one_of_card_ne_zero [char_zero k] [fintype ι]
+  (h : card s ≠ 0) : ∑ i, s.centroid_weights_indicator k i = 1 :=
+begin
+  rw sum_centroid_weights_indicator,
+  exact s.sum_centroid_weights_eq_one_of_card_ne_zero k h
+end
+
+/-- In the characteristic zero case, the weights in the centroid
+indexed by a `fintype` sum to 1 if the set is nonempty. -/
+lemma sum_centroid_weights_indicator_eq_one_of_nonempty [char_zero k] [fintype ι]
+  (h : s.nonempty) : ∑ i, s.centroid_weights_indicator k i = 1 :=
+begin
+  rw sum_centroid_weights_indicator,
+  exact s.sum_centroid_weights_eq_one_of_nonempty k h
+end
+
+/-- In the characteristic zero case, the weights in the centroid
+indexed by a `fintype` sum to 1 if the number of points is `n + 1`. -/
+lemma sum_centroid_weights_indicator_eq_one_of_card_eq_add_one [char_zero k] [fintype ι] {n : ℕ}
+  (h : card s = n + 1) : ∑ i, s.centroid_weights_indicator k i = 1 :=
+begin
+  rw sum_centroid_weights_indicator,
+  exact s.sum_centroid_weights_eq_one_of_card_eq_add_one k h
+end
+
+include V
+
+/-- The centroid as an affine combination over a `fintype`. -/
+lemma centroid_eq_affine_combination_fintype [fintype ι] (p : ι → P) :
+  s.centroid k p = univ.affine_combination p (s.centroid_weights_indicator k) :=
+affine_combination_indicator_subset _ _ (subset_univ _)
 
 end finset
 

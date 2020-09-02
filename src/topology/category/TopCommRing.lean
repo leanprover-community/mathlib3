@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.category.CommRing.basic
 import topology.category.Top.basic
-import topology.instances.complex
+import topology.algebra.ring
 
 universes u
 
@@ -40,10 +40,6 @@ instance : concrete_category TopCommRing.{u} :=
 
 /-- Construct a bundled `TopCommRing` from the underlying type and the appropriate typeclasses. -/
 def of (X : Type u) [comm_ring X] [topological_space X] [topological_ring X] : TopCommRing := ⟨X⟩
-
-noncomputable example : TopCommRing := TopCommRing.of ℚ
-noncomputable example : TopCommRing := TopCommRing.of ℝ
-noncomputable example : TopCommRing := TopCommRing.of ℂ
 
 @[simp] lemma coe_of (X : Type u) [comm_ring X] [topological_space X] [topological_ring X] :
   (of X : Type u) = X := rfl

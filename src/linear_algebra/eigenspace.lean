@@ -10,15 +10,21 @@ import linear_algebra.finsupp
 /-!
 # Eigenvectors and eigenvalues
 
-This file defines eigenspaces and eigenvalues.
+This file defines eigenspaces, eigenvalues, and eigenvalues, as well as their generalized
+counterparts.
 
 An eigenspace of a linear map `f` for a scalar `μ` is the kernel of the map `(f - μ • id)`. The
 nonzero elements of an eigenspace are eigenvectors `x`. They have the property `f x = μ • x`. If
 there are eigenvectors for a scalar `μ`, the scalar `μ` is called an eigenvalue.
 
 There is no consensus in the literature whether `0` is an eigenvector. Our definition of
-`eigenvector` permits only nonzero vectors. For an eigenvector `x` that may also be `0`, we write
-`x ∈ eigenspace f μ`.
+`has_eigenvector` permits only nonzero vectors. For an eigenvector `x` that may also be `0`, we
+write `x ∈ f.eigenspace μ`.
+
+A generalized eigenspace of a linear map `f` for a natural number `k` and a scalar `μ` is the kernel
+of the map `(f - μ • id) ^ k`. The nonzero elements of a generalized eigenspace are generalized
+eigenvectors `x`. If there are generalized eigenvectors for a natural number `k` and a scalar `μ`,
+the scalar `μ` is called a generalized eigenvalue.
 
 ## Notations
 
@@ -240,6 +246,69 @@ begin
       { rw h_cases,
         assumption },
       exact h_lμ_eq_0 μ h_cases } }
+end
+
+/-- The generalized eigenspace for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
+    kernel of `(f - μ • id) ^ k`. -/
+def generalized_eigenspace [comm_ring K] [module K V]
+  (f : End K V) (μ : K) (k : ℕ) : submodule K V :=
+((f - am μ) ^ k).ker
+
+/-- A nonzero element of a generalized eigenspace is a generalized eigenvector. -/
+def has_generalized_eigenvector [comm_ring K] [module K V]
+  (f : End K V) (μ : K) (k : ℕ) (x : V) : Prop :=
+x ≠ 0 ∧ x ∈ generalized_eigenspace f μ k
+
+/-- A scalar `μ` is a generalized eigenvalue for a linear map `f` and an exponent `k ∈ ℕ` if there
+    are generalized eigenvectors for `f`, `k`, and `μ`. -/
+def has_generalized_eigenvalue [comm_ring K] [module K V]
+  (f : End K V) (μ : K) (k : ℕ) : Prop :=
+generalized_eigenspace f μ k ≠ ⊥
+
+/-- The exponent of a generalized eigenvalue is never 0. -/
+lemma exp_ne_zero_of_has_generalized_eigenvalue [comm_ring K] [module K V]
+  {f : End K V} {μ : K} {k : ℕ} (h : f.has_generalized_eigenvalue μ k) :
+  k ≠ 0 :=
+begin
+  rintro rfl,
+  exact h linear_map.ker_id
+end
+
+/-- A generalized eigenspace for some exponent `k` is contained in
+    the generalized eigenspace for exponents larger than `k`. -/
+lemma generalized_eigenspace_mono [field K] [vector_space K V]
+  {f : End K V} {μ : K} {k : ℕ} {m : ℕ} (hm : k ≤ m) :
+  f.generalized_eigenspace μ k ≤ f.generalized_eigenspace μ m :=
+begin
+  simp only [generalized_eigenspace, ←pow_sub_mul_pow _ hm],
+  exact linear_map.ker_le_ker_comp ((f - am μ) ^ k) ((f - am μ) ^ (m - k))
+end
+
+/-- A generalized eigenvalue for some exponent `k` is also
+    a generalized eigenvalue for exponents larger than `k`. -/
+lemma has_generalized_eigenvalue_of_has_generalized_eigenvalue_of_le [field K] [vector_space K V]
+  {f : End K V} {μ : K} {k : ℕ} {m : ℕ} (hm : k ≤ m) (hk : f.has_generalized_eigenvalue μ k) :
+  f.has_generalized_eigenvalue μ m :=
+begin
+  unfold has_generalized_eigenvalue at *,
+  contrapose! hk,
+  rw [←le_bot_iff, ←hk],
+  exact generalized_eigenspace_mono hm
+end
+
+/-- The eigenspace is a subspace of the generalized eigenspace. -/
+lemma eigenspace_le_generalized_eigenspace [field K] [vector_space K V]
+  {f : End K V} {μ : K} {k : ℕ} (hk : 0 < k) :
+  f.eigenspace μ ≤ f.generalized_eigenspace μ k :=
+generalized_eigenspace_mono (nat.succ_le_of_lt hk)
+
+/-- All eigenvalues are generalized eigenvalues. -/
+lemma has_generalized_eigenvalue_of_has_eigenvalue [field K] [vector_space K V]
+  {f : End K V} {μ : K} {k : ℕ} (hk : 0 < k) (hμ : f.has_eigenvalue μ) :
+  f.has_generalized_eigenvalue μ k :=
+begin
+  apply has_generalized_eigenvalue_of_has_generalized_eigenvalue_of_le hk,
+  rwa [has_generalized_eigenvalue, generalized_eigenspace, pow_one]
 end
 
 end End

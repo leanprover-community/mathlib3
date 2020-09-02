@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import ring_theory.algebra_tower
+import ring_theory.polynomial.scale_roots
 
 /-!
 # Integral closure of a subring.
@@ -23,6 +24,7 @@ Let `R` be a `comm_ring` and let `A` be an R-algebra.
 universes u v w
 
 open_locale classical
+open_locale big_operators
 open polynomial submodule
 
 section
@@ -255,6 +257,15 @@ variables {R} {A}
 lemma integral_closure.is_integral (x : integral_closure R A) : is_integral R x :=
 let ⟨p, hpm, hpx⟩ := x.2 in ⟨p, hpm, subtype.eq $
 by rwa [subtype.val_eq_coe, ← subalgebra.val_apply, aeval_alg_hom_apply] at hpx⟩
+
+theorem is_integral_of_is_integral_mul_unit {x y : A} {r : R} (hr : algebra_map R A r * y = 1)
+  (hx : is_integral R (x * y)) : is_integral R x :=
+begin
+  obtain ⟨p, ⟨p_monic, hp⟩⟩ := hx,
+  refine ⟨scale_roots p r, ⟨(monic_scale_roots_iff r).2 p_monic, _⟩⟩,
+  convert scale_roots_aeval_eq_zero hp,
+  rw [mul_comm x y, ← mul_assoc, hr, one_mul],
+end
 
 end
 

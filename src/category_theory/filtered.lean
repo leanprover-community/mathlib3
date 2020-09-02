@@ -5,6 +5,24 @@ import category_theory.fin_category
 import category_theory.limits.cones
 import tactic.slice
 
+/-!
+# Filtered categories
+
+A filtered category is a category for which
+* for each pair of objects `X Y : C`, there exists some `Z` with morphisms `X ⟶ Z` and `Y ⟶ Z`,
+* for each pair of morphisms `f g : X ⟶ Y`, there exists some `k : Y ⟶ Z` for some `Z`,
+  so `f ≫ k = g ≫ k`
+* and the category is nonempty.
+
+Filtered categories are nice because colimits indexed by filtered categories tend to be
+easier to describe than general colimits (and often often preserved by functors).
+
+In this file we show that any functor out of a filtered category admits a cocone,
+and more generally, for any finite collection of objects and morphisms between them in a category
+(even if not closed under composition) there exists some object `Z` receiving maps from all of them,
+so that all the triangles (one edge from the finite set, two from morphisms to `Z`) commute.
+-/
+
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 namespace category_theory
@@ -23,24 +41,24 @@ namespace is_filtered
 variables {C} [is_filtered C]
 
 /--
-`sup j j'` is an arbitrary choice of object to the right of both `j` and `j'`,
+`max j j'` is an arbitrary choice of object to the right of both `j` and `j'`,
 whose existence is ensured by `is_filtered`.
 -/
-noncomputable def sup (j j' : C) : C :=
+noncomputable def max (j j' : C) : C :=
 (is_filtered_or_empty.cocone_objs j j').some
 
 /--
-`left_to_sup j j'` is an arbitrarily choice of morphism from `j` to `sup j j'`,
+`left_to_max j j'` is an arbitrarily choice of morphism from `j` to `sup j j'`,
 whose existence is ensured by `is_filtered`.
 -/
-noncomputable def left_to_sup (j j' : C) : j ⟶ sup j j' :=
+noncomputable def left_to_max (j j' : C) : j ⟶ max j j' :=
 (is_filtered_or_empty.cocone_objs j j').some_spec.some
 
 /--
-`right_to_sup j j'` is an arbitrarily choice of morphism from `j'` to `sup j j'`,
+`right_to_max j j'` is an arbitrarily choice of morphism from `j'` to `sup j j'`,
 whose existence is ensured by `is_filtered`.
 -/
-noncomputable def right_to_sup (j j' : C) : j' ⟶ sup j j' :=
+noncomputable def right_to_max (j j' : C) : j' ⟶ max j j' :=
 (is_filtered_or_empty.cocone_objs j j').some_spec.some_spec.some
 
 /--
@@ -72,63 +90,103 @@ open category_theory.limits
 
 variables {J : Type v} [small_category J] [fin_category J]
 
-lemma cocone_on_objs_aux (F : J ⥤ C) (s : finset J) : ∃ Z (f : ∀ j ∈ s, F.obj j ⟶ Z), true :=
+lemma sup_objs_exists (O : finset C) : ∃ (S : C), ∀ {X}, X ∈ O → _root_.nonempty (X ⟶ S) :=
 begin
-  apply finset.induction_on s,
-  { exact ⟨is_filtered.nonempty.some, by rintros j ⟨⟩, trivial⟩, },
-  { rintros j s nm ⟨Z, f, -⟩,
-    refine ⟨sup (F.obj j) Z, _, trivial⟩,
-    intros j' m,
-    by_cases h : j = j',
-    { subst h,
-      apply left_to_sup, },
-    { exact f j' (by finish) ≫ right_to_sup _ _, }, },
+  classical,
+  apply finset.induction_on O,
+  { exact ⟨is_filtered.nonempty.some, (by rintros - ⟨⟩)⟩, },
+  { rintros X O' nm ⟨S', w'⟩,
+    use max X S',
+    rintros Y mY,
+    by_cases h : X = Y,
+    { subst h, exact ⟨left_to_max _ _⟩, },
+    { exact ⟨(w' (by finish)).some ≫ right_to_max _ _⟩, }, }
 end
 
-lemma cocone_on_objs (F : J ⥤ C) : ∃ Z (f : ∀ j : J, F.obj j ⟶ Z), true :=
+lemma sup_exists' (O : finset C) (H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) :
+  ∃ (S : C) (T : Π {X : C}, X ∈ O → (X ⟶ S)), ∀ {X Y : C} (mX : X ∈ O) (mY : Y ∈ O) {f : X ⟶ Y},
+    (⟨X, Y, mX, mY, f⟩ : (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H → f ≫ T mY = T mX :=
 begin
-  obtain ⟨Z, f, -⟩ := cocone_on_objs_aux F (finset.univ),
-  exact ⟨Z, λ j, f j (by simp), trivial⟩,
-end
-
-lemma cocone_exists_aux (F : J ⥤ C) (s : finset (Σ (j j' : J), j ⟶ j')) :
-  ∃ Z (f : ∀ j : J, F.obj j ⟶ Z),
-    ∀ (j j' : J) (g : j ⟶ j'), (⟨j, j', g⟩ : Σ (j j' : J), j ⟶ j') ∈ s → F.map g ≫ f j' = f j :=
-begin
-  apply finset.induction_on s,
-  { obtain ⟨Z, f, -⟩ := cocone_on_objs F,
-    exact ⟨Z, f, by rintros - - - ⟨⟩⟩, },
-  { rintros ⟨j, j', g⟩ s nm ⟨Z, f, w⟩,
-    refine ⟨coeq (F.map g ≫ f j') (f j), λ j'', f j'' ≫ coeq_hom _ _, _⟩,
-    intros i i' g' m,
+  classical,
+  apply finset.induction_on H,
+  { obtain ⟨S, f⟩ := sup_objs_exists O,
+    refine ⟨S, λ X mX, (f mX).some, _⟩,
+    rintros - - - - - ⟨⟩, },
+  { rintros ⟨X, Y, mX, mY, f⟩ H' nmf ⟨S', T', w'⟩,
+    refine ⟨coeq (f ≫ T' mY) (T' mX), λ Z mZ, T' mZ ≫ coeq_hom (f ≫ T' mY) (T' mX), _⟩,
+    intros X' Y' mX' mY' f' mf',
     rw [←category.assoc],
-    by_cases h : i = j ∧ i' = j',
+    by_cases h : X = X' ∧ Y = Y',
     { rcases h with ⟨rfl, rfl⟩,
-      by_cases hg : g = g',
-      { subst hg,
+      by_cases hf : f = f',
+      { subst hf,
         apply coeq_condition, },
-      { rw w _ _ g' (by finish), }, },
-    { rw w _ _ g' (by finish), } },
+      { rw w' _ _ (by finish), }, },
+    { rw w' _ _ (by finish), }, },
 end
+
+lemma sup_exists (O : finset C) (H : Π X Y, X ∈ O → Y ∈ O → finset (X ⟶ Y)) :
+  ∃ (S : C) (T : Π {X : C}, X ∈ O → (X ⟶ S)), ∀ {X Y : C} (mX : X ∈ O) (mY : Y ∈ O) {f : X ⟶ Y},
+    f ∈ H _ _ mX mY → f ≫ T mY = T mX :=
+begin
+  classical,
+  let H' : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y) :=
+    O.attach.bind (λ X : { X // X ∈ O }, O.attach.bind (λ Y : { Y // Y ∈ O },
+      (H X.1 Y.1 X.2 Y.2).image (λ f, ⟨X.1, Y.1, X.2, Y.2, f⟩))),
+  obtain ⟨S, T, w⟩ := sup_exists' O H',
+  refine ⟨S, @T, _⟩,
+  intros X Y mX mY f mf,
+  apply w,
+  simp only [finset.mem_attach, exists_prop, finset.mem_bind, exists_prop_of_true, finset.mem_image,
+    subtype.exists, subtype.coe_mk, subtype.val_eq_coe],
+  refine ⟨X, mX, Y, mY, f, mf, rfl, (by simp)⟩,
+end
+
+noncomputable
+def sup (O : finset C) (H : Π X Y, X ∈ O → Y ∈ O → finset (X ⟶ Y)) : C :=
+(sup_exists O H).some
+
+noncomputable
+def to_sup (O : finset C) (H : Π X Y, X ∈ O → Y ∈ O → finset (X ⟶ Y)) {X : C} (m : X ∈ O) :
+  X ⟶ sup O H :=
+(sup_exists O H).some_spec.some m
+
+lemma to_sup_commutes (O : finset C) (H : Π X Y, X ∈ O → Y ∈ O → finset (X ⟶ Y))
+  {X Y : C} (mX : X ∈ O) (mY : Y ∈ O) {f : X ⟶ Y} (mf : f ∈ H _ _ mX mY) : f ≫ to_sup O H mY = to_sup O H mX :=
+(sup_exists O H).some_spec.some_spec mX mY mf
+
+@[simp] lemma exists_apply_eq_apply {α β : Type*} (f : α → β) (a : α) : ∃ a', f a = f a' :=
+⟨a, rfl⟩
+
+@[simp] lemma exists_apply_eq_apply' {α β : Type*} (f : α → β) (a : α) : ∃ a', f a' = f a :=
+⟨a, rfl⟩
 
 /--
 If we have `is_filtered C`, then for any functor `F : J ⥤ C` with `fin_category J`,
 there exists a cocone over `F`.
 -/
-lemma cocone_exists (F : J ⥤ C) : ∃ (s : cocone F), true :=
+lemma cocone_nonempty (F : J ⥤ C) : _root_.nonempty (cocone F):=
 begin
-  obtain ⟨Z, f, w⟩ := cocone_exists_aux F (finset.univ),
-  refine ⟨⟨Z, ⟨f, _⟩⟩, trivial⟩,
+  classical,
+  let O := (finset.univ.image F.obj),
+  let H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y) :=
+    finset.univ.bind (λ X : J, finset.univ.bind (λ Y : J, finset.univ.image (λ f : X ⟶ Y,
+      ⟨F.obj X, F.obj Y, by simp, by simp, F.map f⟩))),
+  obtain ⟨Z, f, w⟩ := sup_exists' O H,
+  refine ⟨⟨Z, ⟨λ X, f (by simp), _⟩⟩⟩,
   intros j j' g,
   dsimp,
-  simpa using w _ _ g (by simp),
+  simp,
+  apply w,
+  simp,
+  exact ⟨j, rfl, j', g, (by simp)⟩,
 end
 
 /--
 An arbitrarily chosen cocone over `F : J ⥤ C`, for `fin_category J` and `is_filtered C`.
 -/
 noncomputable def cocone (F : J ⥤ C) : cocone F :=
-(cocone_exists F).some
+(cocone_nonempty F).some
 
 /--
 Given a "bowtie" of morphisms
@@ -147,16 +205,16 @@ noncomputable lemma bowtie {jx jy j₁ j₂ : C}
   (ix₁ : jx ⟶ j₁) (ix₂ : jx ⟶ j₂) (iy₁ : jy ⟶ j₁) (iy₂ : jy ⟶ j₂) :
   Σ' (j : C) (i₁ : j₁ ⟶ j) (i₂ : j₂ ⟶ j), ix₁ ≫ i₁ = ix₂ ≫ i₂ ∧ iy₁ ≫ i₁ = iy₂ ≫ i₂ :=
 begin
-  let ja := sup j₁ j₂,
-  let jb := coeq (ix₁ ≫ left_to_sup _ _) (ix₂ ≫ right_to_sup _ _),
-  let jc := coeq (iy₁ ≫ left_to_sup _ _) (iy₂ ≫ right_to_sup _ _),
-  let jd := sup jb jc,
-  let j := coeq ((coeq_hom _ _ : ja ⟶ jb) ≫ left_to_sup _ _) ((coeq_hom _ _ : ja ⟶ jc) ≫ right_to_sup _ _),
+  let ja := max j₁ j₂,
+  let jb := coeq (ix₁ ≫ left_to_max _ _) (ix₂ ≫ right_to_max _ _),
+  let jc := coeq (iy₁ ≫ left_to_max _ _) (iy₂ ≫ right_to_max _ _),
+  let jd := max jb jc,
+  let j := coeq ((coeq_hom _ _ : ja ⟶ jb) ≫ left_to_max _ _) ((coeq_hom _ _ : ja ⟶ jc) ≫ right_to_max _ _),
   use j,
   fsplit,
-  exact left_to_sup j₁ j₂ ≫ coeq_hom _ _ ≫ left_to_sup jb jc ≫ coeq_hom _ _,
+  exact left_to_max j₁ j₂ ≫ coeq_hom _ _ ≫ left_to_max jb jc ≫ coeq_hom _ _,
   fsplit,
-  exact right_to_sup j₁ j₂ ≫ coeq_hom _ _ ≫ right_to_sup jb jc ≫ coeq_hom _ _,
+  exact right_to_max j₁ j₂ ≫ coeq_hom _ _ ≫ right_to_max jb jc ≫ coeq_hom _ _,
   fsplit,
   { slice_lhs 1 3 { rw [←category.assoc, coeq_condition], },
     slice_lhs 3 5 { rw [←category.assoc, coeq_condition], },

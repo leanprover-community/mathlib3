@@ -119,8 +119,18 @@ end
 
 variables (α : E)
 
-notation K`⟮`:std.prec.max_plus l`⟯` := adjoin K (@singleton _ _ set.has_singleton l)
-notation K`⟮`:std.prec.max_plus α`,`l:(foldr `, ` (h t, set.insert h t) {α}) `⟯` := adjoin K l
+class fancy_insert {α : Type*} (s : set α) :=
+(insert : α → set α)
+
+@[priority 1000]
+instance fancy_insert_empty {α : Type*} : fancy_insert (∅ : set α) :=
+{ insert := λ x, @singleton _ _ set.has_singleton x }
+
+@[priority 900]
+instance fancy_insert_nonempty {α : Type*} (s : set α) : fancy_insert s :=
+{ insert := λ x, set.insert x s }
+
+notation K`⟮`:std.prec.max_plus l:(foldr `, ` (h t, fancy_insert.insert t h) ∅) `⟯` := adjoin K l
 
 lemma mem_adjoin_simple_self : α ∈ F⟮α⟯ :=
  subset_adjoin F {α} (set.mem_singleton α)
@@ -129,12 +139,5 @@ lemma mem_adjoin_simple_self : α ∈ F⟮α⟯ :=
 def adjoin_simple.gen : F⟮α⟯ := ⟨α, mem_adjoin_simple_self F α⟩
 
 lemma adjoin_simple.algebra_map_gen : algebra_map F⟮α⟯ E (adjoin_simple.gen F α) = α := rfl
-
-lemma adjoin_simple_adjoin_simple (β : E) : F⟮α,β⟯ = adjoin F {α,β} :=
-begin
-  sorry,
-  --change adjoin F (insert α (insert β ∅)) = adjoin F _,
-  --simp only [insert_emptyc_eq],
-end
 
 end field

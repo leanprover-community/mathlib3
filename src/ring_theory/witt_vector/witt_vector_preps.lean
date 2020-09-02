@@ -371,6 +371,18 @@ lemma bind₂_map (f : S →+* mv_polynomial σ T) (g : R →+* S) (φ : mv_poly
   bind₂ f (map g φ) = bind₂ (f.comp g) φ :=
 by simp [bind₂]
 
+@[simp]
+lemma map_comp_C (f : R →+* S) : (map f).comp (C : R →+* mv_polynomial σ R) = C.comp f :=
+by { ext1, apply map_C }
+
+-- mixing the two monad structures
+lemma map_bind₁ (f : R →+* S) (g : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
+  map f (bind₁ g φ) = eval₂_hom (C.comp f) (λ i, map f (g i)) φ :=
+by rw [bind₁, map_aeval, algebra_map_eq, map_comp_C]
+
+@[simp]
+lemma eval₂_hom_C_left (f : σ → mv_polynomial τ R) : eval₂_hom C f = bind₁ f := rfl
+
 section
 
 open_locale classical

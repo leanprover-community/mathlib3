@@ -579,10 +579,8 @@ begin
             aeval_eq_eval₂_hom, eval₂_hom_map_hom],
         exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl },
       { show bind₁ _ _ = map _ (bind₁ _ _),
-        rw ← rename_bind₁,
-        rw [map_aeval, aeval_eq_eval₂_hom, eval₂_hom_map_hom],
-        apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-        funext i, rw [map_rename, map_witt_polynomial] } },
+        simp only [map_bind₁, ← eval₂_hom_map_hom, eval₂_hom_C_left, map_rename, map_witt_polynomial],
+        refl, } },
     { intro n, apply witt_structure_rat_prop } },
 end
 .

@@ -1,16 +1,30 @@
 import itertools
+from json import loads
+from pathlib import Path
 import sys
 
-was_silent = True
+def format_msg(msg):
+    return f"{msg['file_name']}:{msg.get('pos_line')}:{msg.get('pos_col')}: {msg.get('severity')}: {msg.get('text')}\n"
+
+def write_and_print_noisy_files(noisy_files):
+    with open('src/noisy_files', 'w') as f:
+        for file in noisy_files:
+            f.write(file + '\n')
+            print(file)
+
+noisy_files = set()
 for line in sys.stdin:
-    sys.stdout.write(line)
-    if 'error' in line:
-        for line in itertools.islice(sys.stdin, 20):
-            sys.stdout.write(line)
+    msg = loads(line)
+    sys.stdout.write(format_msg(msg))
+    if msg.get('severity') == 'error':
+        if len(noisy_files) > 0:
+            print("Also, the following files were noisy:")
+            write_and_print_noisy_files(noisy_files)
         sys.exit(1)
     else:
-        was_silent = False
+        noisy_files.add(str(Path(msg['file_name']).relative_to(Path.cwd())))
 
-if not was_silent:
-    print("Build succeeded, but was not silent.")
+if len(noisy_files) > 0:
+    print("Build succeeded, but the following files were noisy:")
+    write_and_print_noisy_files(noisy_files)
     sys.exit(1)

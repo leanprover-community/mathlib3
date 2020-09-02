@@ -308,8 +308,7 @@ lemma has_generalized_eigenvalue_of_has_eigenvalue [field K] [vector_space K V]
   f.has_generalized_eigenvalue μ k :=
 begin
   apply has_generalized_eigenvalue_of_has_generalized_eigenvalue_of_le hk,
-  rw [has_generalized_eigenvalue, generalized_eigenspace, pow_one],
-  apply hμ
+  rwa [has_generalized_eigenvalue, generalized_eigenspace, pow_one]
 end
 
 end End

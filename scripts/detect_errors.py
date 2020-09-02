@@ -15,7 +15,7 @@ def write_and_print_noisy_files(noisy_files):
 noisy_files = set()
 for line in sys.stdin:
     msg = loads(line)
-    sys.stdout.write(format_msg(msg))
+    print(format_msg(msg))
     if msg.get('severity') == 'error':
         if len(noisy_files) > 0:
             print("Also, the following files were noisy:")

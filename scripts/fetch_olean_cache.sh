@@ -34,6 +34,7 @@ if [ -e $dirs/noisy_files ]; then
     # the olean file might not exist
     [ ! -e $olean_file ] || rm $olean_file
   done < $dirs/noisy_files
+  rm $dirs/noisy_files
 fi
 
 # Archives no longer contain .lean files, but they used to.

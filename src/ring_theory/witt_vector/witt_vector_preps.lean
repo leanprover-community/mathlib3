@@ -246,7 +246,10 @@ aeval f
 noncomputable def bind₂ (f : R →+* mv_polynomial σ S) : mv_polynomial σ R →+* mv_polynomial σ S :=
 eval₂_hom f X
 
-noncomputable def join : mv_polynomial σ (mv_polynomial σ R) →+* mv_polynomial σ R :=
+noncomputable def join₁ : mv_polynomial (mv_polynomial σ R) R →ₐ[R] mv_polynomial σ R :=
+aeval (ring_hom.id _)
+
+noncomputable def join₂ : mv_polynomial σ (mv_polynomial σ R) →+* mv_polynomial σ R :=
 eval₂_hom (ring_hom.id _) X
 
 @[simp] lemma aeval_X_left (φ : mv_polynomial σ R) : aeval X φ = φ :=
@@ -277,6 +280,28 @@ eval₂_hom_C f X r
 lemma bind₂_comp_C (f : R →+* mv_polynomial σ S) :
   (bind₂ f).comp C = f :=
 by { ext1, apply bind₂_C_right }
+
+@[simp]
+lemma join₂_map (f : R →+* mv_polynomial σ S) (φ : mv_polynomial σ R) :
+  join₂ (map f φ) = bind₂ f φ := sorry
+
+@[simp]
+lemma join₂_comp_map (f : R →+* mv_polynomial σ S) :
+  join₂.comp (map f) = bind₂ f := sorry
+
+@[simp]
+lemma bind₁_id : bind₁ (ring_hom.id (mv_polynomial σ R)) = join₁ := rfl
+
+@[simp]
+lemma join₁_rename (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
+  join₁ (rename f φ) = bind₁ f φ := sorry
+
+-- TODO: upgrade `rename` to an `R`-algebra hom,
+-- and mention that it is `map` in first argument of `mv_polynomial`.
+
+-- @[simp]
+-- lemma join₁_comp_rename (f : σ → mv_polynomial τ R) :
+--   join₁.comp (rename f) = bind₁ f
 
 section
 

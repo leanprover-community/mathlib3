@@ -119,21 +119,11 @@ end
 
 variables (α : E)
 
-notation K`⟮`:std.prec.max_plus l:(foldr `, ` (h t, set.insert h t) ∅) `⟯` := adjoin K l
-
---unfortunately this lemma is not definitionally true
-lemma adjoin_singleton : F⟮α⟯ = adjoin F {α} :=
-begin
-  change adjoin F (insert α ∅) = adjoin F {α},
-  rw insert_emptyc_eq α,
-  exact set.is_lawful_singleton,
-end
+notation K`⟮`:std.prec.max_plus l`⟯` := adjoin K (@singleton _ _ set.has_singleton l)
+notation K`⟮`:std.prec.max_plus α`,`l:(foldr `, ` (h t, set.insert h t) {α}) `⟯` := adjoin K l
 
 lemma mem_adjoin_simple_self : α ∈ F⟮α⟯ :=
-begin
-  rw adjoin_singleton,
-  exact subset_adjoin F {α} (set.mem_singleton α),
-end
+ subset_adjoin F {α} (set.mem_singleton α)
 
 /-- generator of `F⟮α⟯` -/
 def adjoin_simple.gen : F⟮α⟯ := ⟨α, mem_adjoin_simple_self F α⟩
@@ -142,8 +132,9 @@ lemma adjoin_simple.algebra_map_gen : algebra_map F⟮α⟯ E (adjoin_simple.gen
 
 lemma adjoin_simple_adjoin_simple (β : E) : F⟮α,β⟯ = adjoin F {α,β} :=
 begin
-  change adjoin F (insert α (insert β ∅)) = adjoin F _,
-  simp only [insert_emptyc_eq],
+  sorry,
+  --change adjoin F (insert α (insert β ∅)) = adjoin F _,
+  --simp only [insert_emptyc_eq],
 end
 
 end field

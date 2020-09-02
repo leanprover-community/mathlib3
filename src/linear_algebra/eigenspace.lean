@@ -270,8 +270,7 @@ lemma exp_ne_zero_of_has_generalized_eigenvalue [comm_ring K] [module K V]
   {f : End K V} {μ : K} {k : ℕ} (h : f.has_generalized_eigenvalue μ k) :
   k ≠ 0 :=
 begin
-  intro hk,
-  rw hk at h,
+  rintro rfl,
   exact h linear_map.ker_id
 end
 

@@ -951,7 +951,12 @@ variable {σ}
 
 @[simp] lemma constant_coeff_rename {τ : Type*} (f : σ → τ) (φ : mv_polynomial σ R) :
   constant_coeff (rename f φ) = constant_coeff φ :=
-sorry
+begin
+  apply φ.induction_on,
+  { intro a, simp only [constant_coeff_C, rename_C]},
+  { intros p q hp hq, simp only [hp, hq, ring_hom.map_add] },
+  { intros p n hp, simp only [hp, rename_X, constant_coeff_X, ring_hom.map_mul]}
+end
 
 @[simp] lemma constant_coeff_comp_rename {τ : Type*} (f : σ → τ) :
   (constant_coeff : mv_polynomial τ R →+* R).comp (rename f) = constant_coeff :=
@@ -1142,7 +1147,7 @@ begin
     { rw ← nat.pos_iff_ne_zero,
       apply nat.pow_pos hp.pos },
     { apply pow_ne_zero, exact_mod_cast hp.ne_zero } },
-  -- rw [vars_sub_of_disjoint], -- unknown id
+  -- rw [vars_sub_of_disjoint], -- unknown id -- added in #4018
   -- also need vars_mul_eq (over integral domains)
   sorry
   -- rw [X_in_terms_of_W_eq, vars_sum_of_disjoint],

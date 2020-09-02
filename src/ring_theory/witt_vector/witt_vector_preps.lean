@@ -238,7 +238,7 @@ end
 end witt_structure_machine
 
 section monadic_stuff
-variables {S : Type*} [comm_semiring S]
+variables {S T : Type*} [comm_semiring S] [comm_semiring T]
 
 noncomputable def bind₁ (f : σ → mv_polynomial τ R) : mv_polynomial σ R →ₐ[R] mv_polynomial τ R :=
 aeval f
@@ -289,19 +289,36 @@ lemma join₂_map (f : R →+* mv_polynomial σ S) (φ : mv_polynomial σ R) :
 lemma join₂_comp_map (f : R →+* mv_polynomial σ S) :
   join₂.comp (map f) = bind₂ f := sorry
 
-@[simp]
-lemma bind₁_id : bind₁ (ring_hom.id (mv_polynomial σ R)) = join₁ := rfl
-
-@[simp]
-lemma join₁_rename (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
-  join₁ (rename f φ) = bind₁ f φ := sorry
-
 -- TODO: upgrade `rename` to an `R`-algebra hom,
 -- and mention that it is `map` in first argument of `mv_polynomial`.
 
 -- @[simp]
 -- lemma join₁_comp_rename (f : σ → mv_polynomial τ R) :
 --   join₁.comp (rename f) = bind₁ f
+
+@[simp]
+lemma bind₁_id : bind₁ (@id (mv_polynomial σ R)) = join₁ := rfl
+
+@[simp]
+lemma bind₂_id : bind₂ (ring_hom.id (mv_polynomial σ R)) = join₂ := rfl
+
+@[simp]
+lemma join₁_rename (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
+  join₁ (rename f φ) = bind₁ f φ := sorry
+
+lemma bind₁_bind₁ (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial υ R) (φ : mv_polynomial σ R) :
+  (bind₁ g) (bind₁ f φ) = bind₁ (λ i, bind₁ g (f i)) φ := sorry
+
+lemma bind₁_comp_bind₁ {υ : Type*} (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial υ R) :
+  (bind₁ g).comp (bind₁ f) = bind₁ (λ i, bind₁ g (f i)) :=
+by { ext1, apply bind₁_bind₁ }
+
+lemma bind₂_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_polynomial σ T) (φ : mv_polynomial σ R) :
+  (bind₂ g) (bind₂ f φ) = bind₂ ((bind₂ g).comp f) φ := sorry
+
+lemma bind₂_comp_bind₂ (f : R →+* mv_polynomial σ S) (g : S →+* mv_polynomial σ T) :
+  (bind₂ g).comp (bind₂ f) = bind₂ ((bind₂ g).comp f) :=
+by { ext1, simp only [function.comp_app, ring_hom.coe_comp, bind₂_bind₂], }
 
 section
 

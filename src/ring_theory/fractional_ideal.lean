@@ -467,7 +467,6 @@ lemma inv_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
   I⁻¹ = ⟨(1 : fractional_ideal g) / I, fractional_div_of_nonzero h⟩ :=
 div_nonzero h
 
--- set_option pp.all true
 lemma coe_inv_of_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
   (↑(I⁻¹) : submodule R g.codomain) = g.coe_submodule 1 / I :=
 by { rw inv_nonzero h, refl }

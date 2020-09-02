@@ -9,9 +9,154 @@ Theory of unique factorization domains.
 -/
 import algebra.gcd_monoid
 import ring_theory.integral_domain
+import ring_theory.noetherian
 
 variables {α : Type*}
 local infix ` ~ᵤ ` : 50 := associated
+
+section prio
+set_option default_priority 100 -- see Note [default priority]
+/-- `comm_cancel_monoid_with_zero`s whose divisibility relation -/
+class DCC_dvd (α : Type*) [comm_cancel_monoid_with_zero α] : Prop :=
+(well_founded_dvd_not_unit : well_founded (λ a b : α, a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x))
+
+export DCC_dvd (well_founded_dvd_not_unit)
+
+instance is_noetherian_ring.DCC_dvd [integral_domain α] [is_noetherian_ring α] :
+  DCC_dvd α :=
+⟨by simp only [ideal.span_singleton_lt_span_singleton.symm];
+   exact inv_image.wf (λ a, ideal.span ({a} : set α)) (well_founded_submodule_gt _ _)⟩
+
+instance polynomial.DCC_dvd [integral_domain α] [DCC_dvd α] : DCC_dvd (polynomial α) :=
+{ well_founded_dvd_not_unit := begin
+    classical,
+    apply rel_hom.well_founded, swap,
+    exact (prod.lex_wf (with_top.well_founded_lt $ with_bot.well_founded_lt nat.lt_wf)
+      _inst_2.well_founded_dvd_not_unit),
+    exact {
+      to_fun := λ p, (if p = 0 then ⊤ else ↑p.degree, p.leading_coeff),
+      map_rel' := λ a b ⟨ane0, ⟨c, ⟨not_unit_c, bac⟩⟩⟩, begin
+        rw bac, rw polynomial.degree_mul, rw if_neg ane0, by_cases c = 0,
+        { simp only [h, if_true, polynomial.leading_coeff_zero, eq_self_iff_true, ne.def, mul_zero],
+          apply prod.lex.left _ _ (lt_of_le_of_ne le_top _), apply with_top.coe_ne_top, },
+        { simp only [h, ane0, if_false, ne.def, polynomial.leading_coeff_mul, or_self, mul_eq_zero],
+          rename h cne0, by_cases c.degree = 0,
+        { simp only [h, add_zero, ne.def, polynomial.leading_coeff_mul],
+          apply prod.lex.right, split, {rw polynomial.leading_coeff_eq_zero, apply ane0},
+          use c.leading_coeff, split, swap, {refl},
+          contrapose! not_unit_c, rw polynomial.is_unit_iff, use c.leading_coeff,
+          split, {exact not_unit_c}, rw polynomial.leading_coeff,
+          convert (polynomial.eq_C_of_degree_eq_zero h).symm,
+          apply polynomial.nat_degree_eq_of_degree_eq_some h,},
+        { apply prod.lex.left, rw polynomial.degree_eq_nat_degree cne0 at *,
+          rw [with_top.coe_lt_coe, polynomial.degree_eq_nat_degree ane0,
+            ← with_bot.coe_add, with_bot.coe_lt_coe],
+          apply lt_add_of_pos_right, apply nat.pos_of_ne_zero, contrapose! h, rw h, refl, }, }
+      end }
+  end }
+end prio
+
+namespace DCC_dvd
+
+variables [comm_cancel_monoid_with_zero α]
+open associates nat
+
+@[priority 100]
+instance of_DCC_dvd_associates [comm_cancel_monoid_with_zero α]
+  [DCC_dvd (associates α)]: DCC_dvd α :=
+⟨by { refine rel_hom.well_founded (rel_hom.mk associates.mk _) DCC_dvd.well_founded_dvd_not_unit,
+  rintros a b ⟨ane0, ⟨c, ⟨hc, bac⟩⟩⟩,
+  rw bac, split, { contrapose! ane0, exact mk_eq_zero.1 ane0, },
+  use (associates.mk c), split, { rw is_unit_mk, exact hc, },rw mk_mul_mk, }⟩
+
+variables [DCC_dvd α]
+
+@[priority 100]
+instance DCC_dvd_associates : DCC_dvd (associates α) :=
+⟨begin
+  have h : ∀ a : associates α, ∃ b : α, a = associates.mk b,
+  { rw forall_associated, intro a, use a, },
+  let f : associates α → α := λ a, classical.some (h a),
+  have hf : ∀ a, associates.mk (f a) = a := λ a, (classical.some_spec (h a)).symm,
+  refine rel_hom.well_founded { to_fun := f, map_rel' := _ } DCC_dvd.well_founded_dvd_not_unit,
+  rintros a b ⟨h1, ⟨x, ⟨hnu, hx⟩⟩⟩,
+  split, { contrapose! h1, rw [← hf a, h1], refl, },
+  rw [← hf a, ← hf b, ← hf x, mk_mul_mk, mk_eq_mk_iff_associated] at hx,
+  rcases hx with ⟨u, hu⟩, use (f x * ↑u⁻¹), split,
+  { rw [← is_unit_mk, ← mk_mul_mk, hf x], contrapose! hnu, apply is_unit_of_mul_is_unit_left hnu, },
+  rw [← mul_assoc, ← hu, mul_assoc], simp,
+end⟩
+
+theorem well_founded_associates : well_founded ((<) : associates α → associates α → Prop) :=
+begin
+  have h : ∀ a : associates α, ∃ b : α, a = associates.mk b,
+  { rw forall_associated, intro a, use a, },
+  let f : associates α → α := λ a, classical.some (h a),
+  have hf : ∀ a, associates.mk (f a) = a := λ a, (classical.some_spec (h a)).symm,
+  refine rel_hom.well_founded { to_fun := f, map_rel' := _ } DCC_dvd.well_founded_dvd_not_unit,
+  intros a b h, rw [← hf a, ← hf b] at h, split,
+  { contrapose! h, apply not_lt_of_le, rw h,
+    apply mk_le_mk_of_dvd, apply (dvd_zero _), },
+  have h1 := le_of_lt h, rw mk_le_mk_iff_dvd_iff at h1, cases h1 with x hx, use x,
+  split, swap, {exact hx},
+  contrapose! h, rcases h with ⟨u, rfl⟩, rw mk_eq_mk_iff_associated.2 ⟨_, hx.symm⟩,
+  apply lt_irrefl,
+end
+
+local attribute [elab_as_eliminator] well_founded.fix
+
+lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
+  ∃ i, irreducible i ∧ i ∣ a :=
+(irreducible_or_factor a ha).elim (λ hai, ⟨a, hai, dvd_refl _⟩)
+  (well_founded.fix
+    DCC_dvd.well_founded_dvd_not_unit
+    (λ a ih ha ha0 ⟨x, y, hx, hy, hxy⟩,
+      have hx0 : x ≠ 0, from λ hx0, ha0 (by rw [← hxy, hx0, zero_mul]),
+      (irreducible_or_factor x hx).elim
+        (λ hxi, ⟨x, hxi, hxy ▸ by simp⟩)
+        (λ hxf, let ⟨i, hi⟩ := ih x ⟨hx0, y, hy, hxy.symm⟩ hx hx0 hxf in
+          ⟨i, hi.1, dvd.trans hi.2 (hxy ▸ by simp)⟩)) a ha ha0)
+
+@[elab_as_eliminator] lemma induction_on_irreducible {P : α → Prop} (a : α)
+  (h0 : P 0) (hu : ∀ u : α, is_unit u → P u)
+  (hi : ∀ a i : α, a ≠ 0 → irreducible i → P a → P (i * a)) :
+  P a :=
+by haveI := classical.dec; exact
+well_founded.fix DCC_dvd.well_founded_dvd_not_unit
+  (λ a ih, if ha0 : a = 0 then ha0.symm ▸ h0
+    else if hau : is_unit a then hu a hau
+    else let ⟨i, hii, ⟨b, hb⟩⟩ := exists_irreducible_factor hau ha0 in
+      have hb0 : b ≠ 0, from λ hb0, by simp * at *,
+      hb.symm ▸ hi _ _ hb0 hii (ih _ ⟨hb0, i,
+        hii.1, by rw [hb, mul_comm]⟩))
+  a
+
+lemma exists_factors (a : α) : a ≠ 0 →
+  ∃f : multiset α, (∀b ∈ f, irreducible b) ∧ associated a f.prod :=
+DCC_dvd.induction_on_irreducible a
+  (λ h, (h rfl).elim)
+  (λ u hu _, ⟨0, by simp [associated_one_iff_is_unit, hu]⟩)
+  (λ a i ha0 hii ih hia0,
+    let ⟨s, hs⟩ := ih ha0 in
+    ⟨i::s, ⟨by clear _let_match; finish,
+      by rw multiset.prod_cons;
+        exact associated_mul_mul (by refl) hs.2⟩⟩)
+
+end DCC_dvd
+
+theorem DCC_dvd_of_well_founded_associates [comm_cancel_monoid_with_zero α]
+  (h : well_founded ((<) : associates α → associates α → Prop)): DCC_dvd α :=
+⟨by { refine rel_hom.well_founded _ h,
+  exact { to_fun := associates.mk,
+    map_rel' := λ a b ⟨ane0, ⟨c, ⟨hc, bac⟩⟩⟩,
+      by { rw bac, apply lt_of_le_of_ne (associates.mk_le_mk_of_dvd (dvd.intro c rfl)),
+        intro con, rw associates.mk_eq_mk_iff_associated at con, apply hc,
+        rw ← associated_one_iff_is_unit, symmetry, apply associated_mul_left_cancel,
+        convert con, apply mul_one, refl, exact ane0, }}}⟩
+
+theorem DCC_dvd_iff_well_founded_associates [comm_cancel_monoid_with_zero α] :
+  DCC_dvd α ↔ well_founded ((<) : associates α → associates α → Prop) :=
+⟨by apply DCC_dvd.well_founded_associates, DCC_dvd_of_well_founded_associates⟩
 
 /-- Unique factorization domains.
 

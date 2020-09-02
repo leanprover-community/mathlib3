@@ -249,12 +249,17 @@ eval₂_hom f X
 noncomputable def join : mv_polynomial σ (mv_polynomial σ R) →+* mv_polynomial σ R :=
 eval₂_hom (ring_hom.id _) X
 
+@[simp] lemma aeval_X_left (φ : mv_polynomial σ R) : aeval X φ = φ :=
+begin
+  apply φ.induction_on,
+  { intro, rw aeval_C, refl },
+  { intros p q hp hq, simp only [hp, hq, alg_hom.map_add] },
+  { intros p n hp, simp only [hp, aeval_X, alg_hom.map_mul] }
+end
+
 @[simp]
 lemma bind₁_X_left : bind₁ (X : σ → mv_polynomial σ R) = alg_hom.id R _ :=
-begin
-  rw [bind₁],
-  sorry
-end
+by ext1; simp [bind₁]
 
 @[simp]
 lemma bind₁_X_right (f : σ → mv_polynomial τ R) (i : σ) : bind₁ f (X i) = f i :=
@@ -262,9 +267,7 @@ aeval_X f i
 
 @[simp]
 lemma bind₂_C_left : bind₂ (C : R →+* mv_polynomial σ R) = ring_hom.id _ :=
-begin
-  sorry
-end
+by ext1; simp [bind₂]
 
 @[simp]
 lemma bind₂_C_right (f : R →+* mv_polynomial σ S) (r : R) : bind₂ f (C r) = f r :=

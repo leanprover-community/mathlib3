@@ -27,7 +27,7 @@ find $dirs -name "*.olean" -delete || true
 
 # Delete every <path>.olean where <path>.lean appears in "noisy_files"
 # n.b. this for loop will break if there are filenames with spaces
-if [-e $dirs/noisy_files]; then
+if [ -e $dirs/noisy_files ]; then
   while read lean_file;
   do
     olean_file=${lean_file/%.lean/.olean}

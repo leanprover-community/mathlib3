@@ -458,6 +458,9 @@ instance subtype_var_testable (p : α → Prop) [has_to_string α]
 instance decidable_testable (p : Prop) [decidable p] : testable p :=
 ⟨ λ tracing min, return $ if h : p then success (psum.inr h) else failure h [] ⟩
 
+instance eq_testable {α} [has_repr α] (x y : α) [decidable_eq α] : testable (x = y) :=
+⟨ λ tracing min, return $ if h : x = y then success (psum.inr h) else failure h [sformat!"{repr x} ≠ {repr y}"] ⟩
+
 section io
 
 open nat

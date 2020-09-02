@@ -1270,18 +1270,18 @@ let `Sₘ` be the localization of `S` to the image of `M` under `algebra_map R S
 Then this is the natural algebra structure on `Rₘ → Sₘ`, such that the entire square commutes,
 where `localization_map.map_comp` gives the commutativity of the underlying maps -/
 noncomputable def localization_algebra (M : submonoid R) (f : localization_map M Rₘ)
-  (g : localization_map (algebra_map_submonoid S M) Sₘ) : algebra Rₘ Sₘ :=
-(f.map mem_algebra_map_submonoid_of_mem g).to_algebra
+  (g : localization_map (algebra.algebra_map_submonoid S M) Sₘ) : algebra Rₘ Sₘ :=
+(f.map (@algebra.mem_algebra_map_submonoid_of_mem R S _ _ _ _) g).to_algebra
 
 variables (f : localization_map M Rₘ)
-variables (g : localization_map (algebra_map_submonoid S M) Sₘ)
+variables (g : localization_map (algebra.algebra_map_submonoid S M) Sₘ)
 
 open polynomial
 
 /-- Given a particular witness to an element being algebraic over an algebra `R → S`,
 We can localize to a submonoid containing the leading coefficient to make it integral -/
-theorem is_integral_localization_at_leading_coeff {x : S} (hM : M ≤ non_zero_divisors R)
-  (p : polynomial R) (hp : aeval x p = 0) (hM' : p.leading_coeff ∈ M) :
+theorem is_integral_localization_at_leading_coeff {x : S} (p : polynomial R)
+  (hp : aeval x p = 0) (hM' : p.leading_coeff ∈ M) :
   @is_integral Rₘ _ _ _ (localization_algebra M f g) (g.to_map x) :=
 begin
   by_cases triv : (1 : Rₘ) = 0,
@@ -1291,7 +1291,8 @@ begin
     (localization_map.map_units f ⟨p.leading_coeff, hM'⟩),
   refine ⟨(p.map f.to_map) * C b, ⟨_, _⟩⟩,
   { refine monic_mul_C_of_leading_coeff_mul_eq_one _,
-    rwa leading_coeff_map' (f.injective hM) },
+    rwa leading_coeff_map_of_leading_coeff_ne_zero f.to_map,
+    refine λ hfp, zero_ne_one (trans (zero_mul b).symm (hfp ▸ hb) : (0 : Rₘ) = 1) },
   { refine eval₂_mul_eq_zero_of_left _ _ _ _,
     erw [eval₂_map, localization_map.map_comp, ← hom_eval₂ _ (algebra_map R S) g.to_map x],
     exact trans (congr_arg g.to_map hp) g.to_map.map_zero }
@@ -1301,7 +1302,7 @@ end
 `Rₘ` is the localization of `R` at `M`,
 and `Sₘ` is the localization of `S` at the image of `M` under the extension map,
 then the induced map `Rₘ → Sₘ` is also an integral extension -/
-theorem is_integral_localization (hM : M ≤ non_zero_divisors R) (H : ∀ x : S, is_integral R x)
+theorem is_integral_localization (H : ∀ x : S, is_integral R x)
   (x : Sₘ) : @is_integral Rₘ _ _ _ (localization_algebra M f g) x :=
 begin
   by_cases triv : (1 : R) = 0,
@@ -1319,7 +1320,7 @@ begin
       exact hv.2 ▸ hv' },
     { obtain ⟨p, hp⟩ := H s,
       exact hx.symm ▸ is_integral_localization_at_leading_coeff
-        f g hM p hp.2 (hp.1.symm ▸ M.one_mem) } }
+        f g p hp.2 (hp.1.symm ▸ M.one_mem) } }
 end
 
 end is_integral

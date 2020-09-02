@@ -313,9 +313,9 @@ setup_tactic_parser
 /--
 Print (at most) 10 samples of a given type to stdout for debugging.
 -/
-def print_samples (t : Type u) [sampleable_ext t] : io unit := do
+def print_samples (t : Type u) [sampleable t] [has_repr t] : io unit := do
 xs ← io.run_rand $ uliftable.down $
-  do { xs ← (list.range 10).mmap $ (sampleable_ext.sample t).run ∘ ulift.up,
+  do { xs ← (list.range 10).mmap $ (sampleable.sample t).run ∘ ulift.up,
        pure ⟨xs.map repr⟩ },
 xs.mmap' io.put_str_ln
 

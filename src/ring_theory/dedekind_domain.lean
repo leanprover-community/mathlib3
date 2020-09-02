@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2020 Kenji Nakagawa. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
+-/
 import ring_theory.fractional_ideal
 import ring_theory.ideal.over
 import ring_theory.discrete_valuation_ring
@@ -5,7 +10,7 @@ import order.zorn
 
 namespace ring
 
-/-- A ring `R` is at most one-dimensional if all nonzero prime ideals are maximal. -/
+/-- A ring `R` has Krull dimension at most one if all nonzero prime ideals are maximal. -/
 def dimension_le_one (R : Type*) [comm_ring R] : Prop :=
 ∀ p ≠ (⊥ : ideal R), p.is_prime → p.is_maximal
 
@@ -30,8 +35,8 @@ begin
   apply is_prime.comap
 end
 
-/-- A Dedekind domain is a nonfield is Noetherian, integrally closed, and has Krull dimension exactly one.
-This is the default implementation, but there are equivalent definitions, which are
+/-- A Dedekind domain is a nonfield that is Noetherian, integrally closed, and has Krull dimension exactly one (`not_is_field` and `dimension_le_one`).
+This is the default implementation, but there are equivalent definitions,
 `is_dedekind_domain_dvr` and `is_dedekind_domain_inv`.
 TODO: Prove that these are actually equivalent definitions.
 -/

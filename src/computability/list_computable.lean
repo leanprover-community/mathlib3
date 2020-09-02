@@ -106,45 +106,53 @@ evals_to_in_time tm.step (init_list tm l) ((option.map (halt_list tm)) l') m
 def tm2_outputs_in_time.to_tm2_outputs {tm : fin_tm2} {l : list (tm.Γ tm.k₀)} {l' : option (list (tm.Γ tm.k₁))} {m : ℕ} (h : tm2_outputs_in_time tm l l' m) : tm2_outputs tm l l' :=
 h.to_evals_to
 
-/-- -/
-structure computable_by_tm2_aux (Γ₀ Γ₁ : Type) :=
+/-- A Turing machine with input alphabet equivalent to Γ₀ and output alphabat equivalent to Γ₁. -/
+private structure computable_by_tm2_aux (Γ₀ Γ₁ : Type) :=
 ( tm : fin_tm2 )
 ( input_alphabet : tm.Γ tm.k₀ ≃ Γ₀ )
 ( output_alphabet : tm.Γ tm.k₁ ≃ Γ₁ )
 
+/-- A Turing machine + a proof it outputs f. -/
 structure computable_by_tm2_list {Γ₀ Γ₁ : Type} (f : list Γ₀ → option (list Γ₁)) extends computable_by_tm2_aux Γ₀ Γ₁ :=
 ( outputs_f : ∀ (l : list Γ₀), (f l ≠ none) → tm2_outputs tm (list.map input_alphabet.inv_fun l) (option.map (list.map output_alphabet.inv_fun) (f l)) )
 
+/-- A Turing machine + a time function + a proof it outputs f in at most time(len(input)) steps. -/
 structure computable_by_tm2_in_time_list {Γ₀ Γ₁ : Type} (f : list Γ₀ → option (list Γ₁)) extends computable_by_tm2_aux Γ₀ Γ₁ :=
 ( time: ℕ → ℕ )
 ( outputs_f : ∀ (l : list Γ₀), (f l ≠ none) → tm2_outputs_in_time tm (list.map input_alphabet.inv_fun l) (option.map (list.map output_alphabet.inv_fun) (f l)) (time l.length) )
 
+/-- A Turing machine + a polynomial time function + a proof it outputs f in at most time(len(input)) steps. -/
 structure computable_by_tm2_in_poly_time_list {Γ₀ Γ₁ : Type} (f : list Γ₀ → option (list Γ₁)) extends computable_by_tm2_aux Γ₀ Γ₁ :=
 ( time: polynomial ℕ )
 ( outputs_f : ∀ (l : list Γ₀), (f l ≠ none) → tm2_outputs_in_time tm (list.map input_alphabet.inv_fun l) (option.map (list.map output_alphabet.inv_fun) (f l)) (time.eval l.length) )
 
-example (p : polynomial ℕ) : ℕ → ℕ := λ x, p.eval x
-
+/-- A forgetful map, forgetting the time bound on the number of steps. -/
 def computable_by_tm2_in_time_list.to_computable_by_tm2_list {Γ₀ Γ₁ : Type} {f : list Γ₀ → option (list Γ₁)} (h : computable_by_tm2_in_time_list f) :
  computable_by_tm2_list f := ⟨h.to_computable_by_tm2_aux, λ l not_none, tm2_outputs_in_time.to_tm2_outputs (h.outputs_f l not_none) ⟩
 
+/-- A forgetful map, forgetting that the time function is polynomial. -/
 def computable_by_tm2_in_poly_time_list.to_computable_by_tm2_in_time_list {Γ₀ Γ₁ : Type} {f : list Γ₀ → option (list Γ₁)} (h : computable_by_tm2_in_poly_time_list f) :  computable_by_tm2_in_time_list f :=
 ⟨h.to_computable_by_tm2_aux, λ n, h.time.eval n, h.outputs_f⟩
 
+/-- A Turing machine + a proof it outputs f. -/
 structure computable_by_tm2 {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β) extends computable_by_tm2_aux ea.Γ eb.Γ :=
 (outputs_f : ∀ a, tm2_outputs tm (list.map input_alphabet.inv_fun (ea.encode a)) (option.map (list.map output_alphabet.inv_fun) (option.some (eb.encode (f a)))) )
 
+/-- A Turing machine + a time function + a proof it outputs f in at most time(len(input)) steps. -/
 structure computable_by_tm2_in_time {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β) extends computable_by_tm2_aux ea.Γ eb.Γ :=
 ( time: ℕ → ℕ )
 ( outputs_f : ∀ a, tm2_outputs_in_time tm (list.map input_alphabet.inv_fun (ea.encode a)) (option.map (list.map output_alphabet.inv_fun) (option.some (eb.encode (f a)))) (time (ea.encode a).length) )
 
+/-- A Turing machine + a polynomial time function + a proof it outputs f in at most time(len(input)) steps. -/
 structure computable_by_tm2_in_poly_time {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β) extends computable_by_tm2_aux ea.Γ eb.Γ :=
 ( time: polynomial ℕ )
 ( outputs_f : ∀ a, tm2_outputs_in_time tm (list.map input_alphabet.inv_fun (ea.encode a)) (option.map (list.map output_alphabet.inv_fun) (option.some (eb.encode (f a)))) (time.eval (ea.encode a).length) )
 
+/-- A forgetful map, forgetting the time bound on the number of steps. -/
 def computable_by_tm2_in_time.to_computable_by_tm2 {α β : Type} {ea : fin_encoding α} {eb : fin_encoding β} {f : α → β} (h : computable_by_tm2_in_time ea eb f) : computable_by_tm2 ea eb f :=
 ⟨h.to_computable_by_tm2_aux, λ a, tm2_outputs_in_time.to_tm2_outputs (h.outputs_f a)⟩
 
+/-- A forgetful map, forgetting that the time function is polynomial. -/
 def computable_by_tm2_in_poly_time.to_computable_by_tm2_in_time {α β : Type} {ea : fin_encoding α} {eb : fin_encoding β} {f : α → β} (h : computable_by_tm2_in_poly_time ea eb f) : computable_by_tm2_in_time ea eb f :=
 ⟨h.to_computable_by_tm2_aux, λ n, h.time.eval n, h.outputs_f⟩
 
@@ -180,5 +188,3 @@ def id_computable_in_poly_time {α : Type} (ea : fin_encoding α) : @computable_
 /-- A proof that the identity map on α is computable. -/
 def id_computable (α : Type) (ea : fin_encoding α) : @computable_by_tm2 α α ea ea (id: α → α) :=
 computable_by_tm2_in_time.to_computable_by_tm2 $ computable_by_tm2_in_poly_time.to_computable_by_tm2_in_time $ id_computable_in_poly_time ea
-
-#lint

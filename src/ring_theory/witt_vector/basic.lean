@@ -1080,6 +1080,27 @@ begin
     X_in_terms_of_W_zero, aeval_X, map_X, witt_polynomial_zero, map_witt_structure_int]
 end
 
+@[simp] lemma constant_coeff_witt_add (n : ℕ) :
+  constant_coeff (witt_add p n) = 0 :=
+begin
+  apply constant_coeff_witt_structure_int p _ _ n,
+  simp only [add_zero, ring_hom.map_add, constant_coeff_X],
+end
+
+@[simp] lemma constant_coeff_witt_mul (n : ℕ) :
+  constant_coeff (witt_mul p n) = 0 :=
+begin
+  apply constant_coeff_witt_structure_int p _ _ n,
+  simp only [mul_zero, ring_hom.map_mul, constant_coeff_X],
+end
+
+@[simp] lemma constant_coeff_witt_neg (n : ℕ) :
+  constant_coeff (witt_neg p n) = 0 :=
+begin
+  apply constant_coeff_witt_structure_int p _ _ n,
+  simp only [neg_zero, ring_hom.map_neg, constant_coeff_X],
+end
+
 end witt_structure_simplifications
 
 section witt_vars
@@ -1141,13 +1162,36 @@ variables {R}
 lemma vars_aeval {τ} (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
   (aeval f φ).vars ⊆ (φ.vars.bind (λ i, (f i).vars)) :=
 begin
+  intros i,
+  rw [mem_vars, finset.mem_bind],
+  rintro ⟨d, hd, hi⟩,
   sorry
 end
 
 lemma vars_rename {τ} (f : σ → τ) (φ : mv_polynomial σ R) :
   (rename f φ).vars ⊆ (φ.vars.image f) :=
 begin
-  sorry
+  -- I guess a higher level proof might be shorter
+  -- should we prove `degrees_rename` first?
+  intros i,
+  rw [mem_vars, finset.mem_image],
+  rintro ⟨d, hd, hi⟩,
+  simp only [exists_prop, mem_vars],
+  contrapose! hd,
+  rw [rename_eq],
+  rw [finsupp.not_mem_support_iff],
+  simp only [finsupp.map_domain, finsupp.sum_apply, finsupp.single_apply],
+  rw [finsupp.sum, finset.sum_eq_zero],
+  intros d' hd',
+  split_ifs with H, swap, refl,
+  subst H,
+  rw [finsupp.mem_support_iff, finsupp.sum_apply] at hi,
+  contrapose! hi,
+  rw [finsupp.sum, finset.sum_eq_zero],
+  intros j hj,
+  rw [finsupp.single_apply, if_neg],
+  apply hd,
+  exact ⟨d', hd', hj⟩
 end
 
 end
@@ -1184,6 +1228,18 @@ begin
   apply witt_structure_rat_vars,
 end
 
+lemma witt_add_vars (n : ℕ) :
+  (witt_add p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+witt_structure_int_vars _ _ _
+
+lemma witt_mul_vars (n : ℕ) :
+  (witt_mul p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+witt_structure_int_vars _ _ _
+
+lemma witt_neg_vars (n : ℕ) :
+  (witt_neg p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+witt_structure_int_vars _ _ _
+
 end witt_vars
 
 section coeff
@@ -1219,6 +1275,19 @@ by simp only [witt_one_zero_eq_one, alg_hom.map_one]
 show (aeval _ (witt_one p n) : R) = 0,
 by simp only [hn, witt_one_pos_eq_zero, alg_hom.map_zero]
 
+lemma add_coeff (x y : 𝕎 p R) (n : ℕ) :
+  (x + y).coeff n =
+  aeval (λ bn : bool × ℕ, cond bn.1 (x.coeff bn.2) (y.coeff bn.2)) (witt_add p n) :=
+rfl
+
+lemma mul_coeff (x y : 𝕎 p R) (n : ℕ) :
+  (x * y).coeff n =
+  aeval (λ bn : bool × ℕ, cond bn.1 (x.coeff bn.2) (y.coeff bn.2)) (witt_mul p n) :=
+rfl
+
+lemma neg_coeff (x : 𝕎 p R) (n : ℕ) :
+  (-x).coeff n = aeval (λ bn : unit × ℕ, (x.coeff bn.2)) (witt_neg p n) := rfl
+
 end coeff
 
 section ideal
@@ -1226,8 +1295,27 @@ section ideal
 noncomputable def ideal (n : ℕ) : ideal (𝕎 p R) :=
 { carrier := {x | ∀ i < n, x.coeff i = 0},
   zero_mem' := by { intros i hi, rw zero_coeff },
-  add_mem' := sorry,
-  smul_mem' := sorry }
+  add_mem' :=
+  begin
+    intros x y hx hy i hi,
+    rw [add_coeff, aeval_eq_constant_coeff_of_vars, constant_coeff_witt_add, ring_hom.map_zero],
+    rintro ⟨⟨⟩, k⟩ hk,
+    all_goals
+    { replace hk := witt_add_vars p i hk,
+      simp only [true_and, and_true, false_or, or_false, eq_self_iff_true, fintype.univ_bool,
+        finset.mem_insert, finset.mem_singleton, finset.mem_range, finset.mem_product] at hk,
+      apply_assumption,
+      exact lt_of_lt_of_le hk hi }
+  end,
+  smul_mem' :=
+  begin
+    intros x y hy i hi,
+    rw smul_eq_mul,
+    rw [mul_coeff, aeval_eq_constant_coeff_of_vars, constant_coeff_witt_mul, ring_hom.map_zero],
+    rintro ⟨b, k⟩ hk,
+    dsimp,
+    -- oops, we need to use something stronger than `aeval_eq_constant_coeff_of_vars`
+  end }
 
 end ideal
 

@@ -6,6 +6,7 @@ Authors: Thomas Browning and Patrick Lutz
 
 import field_theory.subfield
 import linear_algebra.finite_dimensional
+import field_theory.tower
 
 /-!
 # Adjoining Elements to Fields
@@ -139,5 +140,114 @@ lemma mem_adjoin_simple_self : α ∈ F⟮α⟯ :=
 def adjoin_simple.gen : F⟮α⟯ := ⟨α, mem_adjoin_simple_self F α⟩
 
 lemma adjoin_simple.algebra_map_gen : algebra_map F⟮α⟯ E (adjoin_simple.gen F α) = α := rfl
+
+section
+open finite_dimensional
+
+/-- If a subset of a set is infinite then the set is infinite. -/
+lemma inf_of_subset_inf {X : Type*} {s : set X} {t : set X} (hst : s ⊆ t) (hs : s.infinite) : t.infinite :=
+mt (λ ht, ht.subset hst) hs
+
+def submodule_restrict_field (S : set E) (p : submodule (adjoin F S) E) : submodule F E := {
+    carrier := p.carrier,
+    zero_mem' := p.zero_mem',
+    add_mem' := p.add_mem',
+    smul_mem' :=
+    begin
+        intros c x hx,
+        rw algebra.smul_def,
+        rw is_scalar_tower.algebra_map_eq F (adjoin F S) E,
+        rw ring_hom.comp_apply,
+        rw ←algebra.smul_def,
+        exact p.smul_mem' _ hx,
+    end
+}
+
+/-- If the generator is not in the inclusion of F in E then it's also not in the inclusion of
+    F in F[α]. -/
+lemma adjoin_simple_gen_nontrivial {α : E} (hα : α ∉ set.range (algebra_map F E)) :
+    adjoin_simple.gen F α ∉ set.range (algebra_map F F⟮α⟯) :=
+begin
+    revert hα,
+    contrapose!,
+    rintros ⟨x, hx⟩,
+    injections_and_clear,
+    use x, assumption,
+end
+
+/-- If E is a finite extension of F then it is also a finite extension of F adjoin alpha. -/
+instance adjoin_findim_of_findim [F_findim : finite_dimensional F E] (α : E) :
+    finite_dimensional F⟮α⟯ E :=
+begin
+    rw iff_fg,
+    rw submodule.fg_iff_finite_dimensional,
+    cases (finite_dimensional.exists_is_basis_finite F E) with B hB,
+    have key : submodule.span F⟮α⟯ B = ⊤,
+    {   ext,
+        simp only [submodule.mem_top, iff_true],
+        have hx : x ∈ submodule.span F (set.range coe),
+        {   rw hB.1.2,
+            exact submodule.mem_top, },
+        rw submodule.mem_span,
+        intros p hp,
+        rw submodule.mem_span at hx,
+        apply hx (submodule_restrict_field F {α} p),
+        rw subtype.range_coe,
+        exact hp, },
+    rw ← key,
+    apply finite_dimensional.span_of_finite F⟮α⟯ hB.2,
+end
+
+instance adjoin_findim_of_findim_base [F_findim : finite_dimensional F E] (α : E) :
+    finite_dimensional F F⟮α⟯ :=
+finite_dimensional.finite_dimensional_submodule (F⟮α⟯ : submodule F E)
+
+/-- If the field extension E has an element not in the base field F then the degree of E over F is
+    greater than 1. -/
+lemma algebra_findim_lt [hF : finite_dimensional F E] : (∃ x : E, x ∉ set.range (algebra_map F E)) →
+    1 < findim F E :=
+begin
+    contrapose!,
+    intros E_dim x,
+    have : 0 < findim F E := findim_pos_iff_exists_ne_zero.mpr ⟨1, one_ne_zero⟩,
+    replace E_dim : findim F E = 1 := by omega,
+    set s : set E := {1} with hs,
+    have : fintype s := unique.fintype,
+    have s_lin_ind : linear_independent F (coe : s → E) := linear_independent_singleton one_ne_zero,
+    have s_card : s.to_finset.card = findim F E := by change s.to_finset.card with 1; rw E_dim,
+    obtain ⟨_, s_spans⟩ := set_is_basis_of_linear_independent_of_card_eq_findim s_lin_ind s_card,
+    have x_in_span_one : x ∈ submodule.span F s :=
+    begin
+        rw subtype.range_coe at s_spans,
+        rw s_spans,
+        exact submodule.mem_top,
+    end,
+    obtain ⟨a, ha⟩ := submodule.mem_span_singleton.mp x_in_span_one,
+    exact ⟨a, by rw [← ha, algebra.smul_def, mul_one]⟩,
+end
+
+/-- Adjoining an element from outside of F strictly decreases the degree of a finite extension. -/
+lemma adjoin_dim_lt [hF : finite_dimensional F E] {α : E} (hα : α ∉ set.range (algebra_map F E)) :
+    findim F⟮α⟯ E < findim F E :=
+begin
+  rw ← findim_mul_findim F F⟮α⟯ E,
+  have : 0 < findim F⟮α⟯ E := findim_pos_iff_exists_ne_zero.mpr ⟨1, one_ne_zero⟩,
+  have : adjoin_simple.gen F α ∉ set.range (algebra_map F F⟮α⟯) := adjoin_simple_gen_nontrivial F hα,
+  have : findim F F⟮α⟯ > 1 := algebra_findim_lt F (by tauto),
+  nlinarith,
+end
+
+/-- If F is infinite then its inclusion into E is infinite. -/
+lemma inclusion.infinite (hF : infinite F) : (set.range (algebra_map F E)).infinite :=
+begin
+  apply set.infinite_coe_iff.mp,
+  apply infinite.of_injective (set.range_factorization (algebra_map F E)),
+  exact subtype.coind_injective (λ (a : F), set.mem_range_self a) ((algebra_map F E).injective),
+end
+
+lemma adjoin_inf_of_inf (S : set E) (hF : infinite F) : infinite (adjoin F S) :=
+set.infinite_coe_iff.mpr (inf_of_subset_inf (adjoin.range_algebra_map_subset F S) (inclusion.infinite F hF))
+
+end
 
 end field

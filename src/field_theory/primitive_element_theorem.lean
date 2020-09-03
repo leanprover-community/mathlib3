@@ -23,18 +23,6 @@ begin
         exact is_submonoid.pow_mem (is_subfield.inv_mem h), },
 end
 
--- Is this really not in mathlib?
-/-- If M is an algebra over a field F and x is a nonzero element of F then x as an element of M is also nonzero. -/
-lemma ne_zero_of_ne_zero (F M : Type*) [field F] [comm_semiring M] [nontrivial M] [algebra F M]
-    {x : F} (hx : x ≠ 0) : algebra_map F M x ≠ 0 :=
-begin
-    revert hx,
-    contrapose!,
-    intro h,
-    rw ← (algebra_map F M).map_zero at h,
-    exact (algebra_map F M).injective h,
-end
-
 namespace polynomial
 
 variables (F : Type*) [field F]
@@ -102,8 +90,7 @@ begin
       exact F⟮α.val⟯.zero_mem, },
     { obtain ⟨n, hn⟩ := set.mem_range.mp (hα (units.mk0 x hx)),
       rw (show x = α^n, by norm_cast; simp *),
-      exact is_subfield.pow_mem (show α.val ∈ (F⟮α.val⟯ : set E), from field.mem_adjoin_simple_self F α.val),
-    },
+      exact is_subfield.pow_mem (show α.val ∈ (F⟮α.val⟯ : set E), from field.mem_adjoin_simple_self F α.val), },
 end
 
 /-- Primitive element theorem for finite dimensional extension of a finite field. -/
@@ -407,14 +394,25 @@ begin
         rcases this with ⟨α, hα⟩,
         by_cases h : F⟮α⟯ = ⊤,
         {   exact ⟨α, h⟩,   },
-        {   have Fα_findim : finite_dimensional F⟮α⟯ E := sorry, --adjoin_findim_of_findim F α,
-            have Fα_le_n : findim F⟮α⟯ E < n := sorry, --by rw ← hn; exact adjoin_dim_lt F hα,
-            have Fα_inf : infinite F⟮α⟯ := sorry, --adjoin_inf_of_inf F {α} F_inf,
+        {   have Fα_findim : finite_dimensional F⟮α⟯ E := field.adjoin_findim_of_findim F α,
+            have Fα_le_n : findim F⟮α⟯ E < n := by rw ← hn; exact field.adjoin_dim_lt F hα,
+            have Fα_inf : infinite F⟮α⟯ := field.adjoin_inf_of_inf F {α} F_inf,
             have Fα_sep : is_separable F⟮α⟯ E := sorry, --adjoin.separable F (set.insert α ∅),
             obtain ⟨β, hβ⟩ := ih (findim F⟮α⟯ E) Fα_le_n F⟮α⟯ Fα_sep Fα_findim Fα_inf rfl,
             obtain ⟨γ, hγ⟩ := primitive_element_two_inf α β F_sep F_inf,
-            -- rw [field.adjoin_simple_adjoin_simple, hγ] at hβ,
-            sorry, --exact ⟨γ, hβ⟩,
+            have : (F⟮α⟯⟮β⟯ : set E) = (F⟮α, β⟯ : set E) := sorry,
+            use γ,
+            ext,
+            split,
+            exact λ _, algebra.mem_top,
+            intro _,
+            rw subalgebra.ext_iff at hβ,
+            specialize hβ x,
+            replace hβ := hβ.mpr algebra.mem_top,
+            change x ∈ (F⟮α⟯⟮β⟯ : set E) at hβ,
+            rw this at hβ,
+            rw hγ at hβ,
+            assumption,
         },
     },
 end

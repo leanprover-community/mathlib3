@@ -117,8 +117,7 @@ begin
             (subset_adjoin _ _) },
 end
 
-variables (α : E)
-
+--fancy_insert, courtesy of Aaron Anderson & Markus Himmel on zulip
 class fancy_insert {α : Type*} (s : set α) :=
 (insert : α → set α)
 
@@ -131,6 +130,8 @@ instance fancy_insert_nonempty {α : Type*} (s : set α) : fancy_insert s :=
 { insert := λ x, set.insert x s }
 
 notation K`⟮`:std.prec.max_plus l:(foldr `, ` (h t, fancy_insert.insert t h) ∅) `⟯` := adjoin K l
+
+variables (α : E)
 
 lemma mem_adjoin_simple_self : α ∈ F⟮α⟯ :=
  subset_adjoin F {α} (set.mem_singleton α)

@@ -59,6 +59,30 @@ theorem dim_mul_dim (F : Type u) (K A : Type v) [field F] [field K] [add_comm_gr
   vector_space.dim F K * vector_space.dim K A = vector_space.dim F A :=
 by convert dim_mul_dim' F K A; rw lift_id
 
+theorem dim_top_le_dim (F : Type u) (K A : Type v) [field F] [field K] [field A]
+  [algebra F K] [algebra K A] [algebra F A] [is_scalar_tower F K A] :
+  vector_space.dim F K ≤ vector_space.dim F A :=
+begin
+  rw ←dim_mul_dim F K A,
+  apply le_mul_right,
+  symmetry,
+  apply ne_of_lt,
+  rw dim_pos_iff_exists_ne_zero,
+  exact ⟨1,one_ne_zero⟩,
+end
+
+theorem dim_bottom_le_dim (F : Type u) (K A : Type v) [field F] [field K] [field A]
+  [algebra F K] [algebra K A] [algebra F A] [is_scalar_tower F K A] :
+  vector_space.dim K A ≤ vector_space.dim F A :=
+begin
+  rw ←dim_mul_dim F K A,
+  apply le_mul_left,
+  symmetry,
+  apply ne_of_lt,
+  rw dim_pos_iff_exists_ne_zero,
+  exact ⟨1,one_ne_zero⟩,
+end
+
 namespace finite_dimensional
 
 theorem trans [finite_dimensional F K] [finite_dimensional K A] : finite_dimensional F A :=

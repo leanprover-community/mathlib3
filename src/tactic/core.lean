@@ -465,7 +465,7 @@ do e ← resolve_name n,
    match e with
    | expr.const n _ := pure n
    | _ := do
-     e ← to_expr e,
+     e ← to_expr e tt ff,
      pure $ e.get_app_fn.const_name
    end
 

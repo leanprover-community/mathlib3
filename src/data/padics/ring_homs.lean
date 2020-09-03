@@ -126,8 +126,7 @@ begin
     apply subtype.coe_injective,
     simp only [coe_mul, subtype.coe_mk, coe_coe],
     rw_mod_cast @rat.mul_denom_eq_num r, refl },
-  dsimp [n, mod_part],
-  apply norm_sub_mod_part_aux r h,
+  exact norm_sub_mod_part_aux r h
 end
 
 lemma exists_mem_range_of_norm_rat_le_one (h : ∥(r : ℚ_[p])∥ ≤ 1) :
@@ -390,7 +389,9 @@ def to_zmod_pow (n : ℕ) : ℤ_[p] →+* zmod (p ^ n) :=
 to_zmod_hom (p^n) (λ x, appr x n)
   (by { intros, convert appr_spec n _ using 1, simp })
   (by { intros x a b ha hb,
-        apply zmod_congr_of_sub_mem_span n x a b; [simpa using ha, simpa using hb] })
+        apply zmod_congr_of_sub_mem_span n x a b,
+        { simpa using ha },
+        { simpa using hb } })
 
 lemma ker_to_zmod_pow (n : ℕ) : (to_zmod_pow n : ℤ_[p] →+* zmod (p ^ n)).ker = ideal.span {p ^ n} :=
 begin
@@ -491,8 +492,8 @@ lemma pow_dvd_nth_hom_sub (r : R) (i j : ℕ) (h : i ≤ j) :
   ↑p ^ i ∣ nth_hom f r j - nth_hom f r i :=
 begin
   specialize f_compat (i) (j) h,
-  rw [← int.coe_nat_pow, ← zmod.int_coe_zmod_eq_zero_iff_dvd],
-  rw [int.cast_sub],
+  rw [← int.coe_nat_pow, ← zmod.int_coe_zmod_eq_zero_iff_dvd,
+      int.cast_sub],
   dsimp [nth_hom],
   rw [← f_compat, ring_hom.comp_apply],
   have : fact (p ^ (i) > 0) := pow_pos (nat.prime.pos ‹_›) _,
@@ -538,8 +539,8 @@ begin
   intros j hj,
   dsimp [nth_hom_seq],
   apply lt_of_le_of_lt _ hn,
-  rw [← int.cast_add, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le],
-  rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
+  rw [← int.cast_add, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le,
+     ← zmod.int_coe_zmod_eq_zero_iff_dvd],
   dsimp [nth_hom],
   have : fact (p ^ n > 0) := pow_pos (nat.prime.pos ‹_›) _,
   have : fact (p ^ j > 0) := pow_pos (nat.prime.pos ‹_›) _,
@@ -559,8 +560,8 @@ begin
   intros j hj,
   dsimp [nth_hom_seq],
   apply lt_of_le_of_lt _ hn,
-  rw [← int.cast_mul, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le],
-  rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
+  rw [← int.cast_mul, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le,
+     ← zmod.int_coe_zmod_eq_zero_iff_dvd],
   dsimp [nth_hom],
   have : fact (p ^ n > 0) := pow_pos (nat.prime.pos ‹_›) _,
   have : fact (p ^ j > 0) := pow_pos (nat.prime.pos ‹_›) _,

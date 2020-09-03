@@ -3,18 +3,17 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.ordered_ring
+import algebra.order
+import order.lattice
 
 /-!
-# strictly monotone functions, max, min and abs
+# `max` and `min`
 
-This file proves basic properties about strictly monotone functions,
-maxima and minima on a `decidable_linear_order`, and the absolute value
-function on linearly ordered add_comm_groups, semirings and rings.
+This file proves basic properties about maxima and minima on a `decidable_linear_order`.
 
 ## Tags
 
-min, max, abs
+min, max
 -/
 
 universes u v
@@ -46,37 +45,29 @@ instance max_idem : is_idempotent α max := by apply_instance -- short-circuit t
 /-- An instance asserting that `min a a = a` -/
 instance min_idem : is_idempotent α min := by apply_instance -- short-circuit type class inference
 
-@[simp] lemma min_le_iff : min a b ≤ c ↔ a ≤ c ∨ b ≤ c :=
-have a ≤ b → (a ≤ c ∨ b ≤ c ↔ a ≤ c),
-  from assume h, or_iff_left_of_imp $ le_trans h,
-have b ≤ a → (a ≤ c ∨ b ≤ c ↔ b ≤ c),
-  from assume h, or_iff_right_of_imp $ le_trans h,
-by cases le_total a b; simp *
-
-@[simp] lemma le_max_iff : a ≤ max b c ↔ a ≤ b ∨ a ≤ c :=
-have b ≤ c → (a ≤ b ∨ a ≤ c ↔ a ≤ c),
-  from assume h, or_iff_right_of_imp $ assume h', le_trans h' h,
-have c ≤ b → (a ≤ b ∨ a ≤ c ↔ a ≤ b),
-  from assume h, or_iff_left_of_imp $ assume h', le_trans h' h,
-by cases le_total b c; simp *
-
 @[simp] lemma max_lt_iff : max a b < c ↔ (a < c ∧ b < c) :=
-by rw [lt_iff_not_ge]; simp [(≥), le_max_iff, not_or_distrib]
+sup_lt_iff
 
 @[simp] lemma lt_min_iff : a < min b c ↔ (a < b ∧ a < c) :=
-by rw [lt_iff_not_ge]; simp [(≥), min_le_iff, not_or_distrib]
+lt_inf_iff
 
 @[simp] lemma lt_max_iff : a < max b c ↔ a < b ∨ a < c :=
-by rw [lt_iff_not_ge]; simp [(≥), max_le_iff, not_and_distrib]
+by simp only [max_le_iff, ← not_le, not_and_distrib]
 
 @[simp] lemma min_lt_iff : min a b < c ↔ a < c ∨ b < c :=
-by rw [lt_iff_not_ge]; simp [(≥), le_min_iff, not_and_distrib]
+@lt_max_iff (order_dual α) _ _ _ _
+
+@[simp] lemma min_le_iff : min a b ≤ c ↔ a ≤ c ∨ b ≤ c :=
+by simp only [← not_lt, lt_min_iff, not_and_distrib]
+
+@[simp] lemma le_max_iff : a ≤ max b c ↔ a ≤ b ∨ a ≤ c :=
+@min_le_iff (order_dual α) _ _ _ _
 
 lemma max_lt_max (h₁ : a < c) (h₂ : b < d) : max a b < max c d :=
 by apply max_lt; simp [lt_max_iff, h₁, h₂]
 
 lemma min_lt_min (h₁ : a < c) (h₂ : b < d) : min a b < min c d :=
-by apply lt_min; simp [min_lt_iff, h₁, h₂]
+@max_lt_max (order_dual α) _ _ _ _ _ h₁ h₂
 
 theorem min_right_comm (a b c : α) : min (min a b) c = min (min a c) b :=
 right_comm min min_comm min_assoc a b c
@@ -91,13 +82,13 @@ lemma monotone.map_max (hf : monotone f) : f (max a b) = max (f a) (f b) :=
 by cases le_total a b; simp [h, hf h]
 
 lemma monotone.map_min (hf : monotone f) : f (min a b) = min (f a) (f b) :=
-by cases le_total a b; simp [h, hf h]
+hf.order_dual.map_max
 
 theorem min_choice (a b : α) : min a b = a ∨ min a b = b :=
-by by_cases h : a ≤ b; simp [min, h]
+by cases le_total a b; simp *
 
 theorem max_choice (a b : α) : max a b = a ∨ max a b = b :=
-by by_cases h : b ≤ a; simp [max, h]
+@min_choice (order_dual α) _ a b
 
 lemma le_of_max_le_left {a b c : α} (h : max a b ≤ c) : a ≤ c :=
 le_trans (le_max_left _ _) h
@@ -110,18 +101,6 @@ end
 lemma min_sub {α : Type u} [decidable_linear_ordered_add_comm_group α] (a b c : α) :
       min a b - c = min (a - c) (b - c) :=
 by simp only [min_add_add_right, sub_eq_add_neg]
-
-/- Some lemmas about types that have an ordering and a binary operation, with no
-  rules relating them. -/
-@[to_additive]
-lemma fn_min_mul_fn_max [decidable_linear_order α] [comm_semigroup β] (f : α → β) (n m : α) :
-  f (min n m) * f (max n m) = f n * f m :=
-by { cases le_total n m with h h; simp [h, mul_comm] }
-
-@[to_additive]
-lemma min_mul_max [decidable_linear_order α] [comm_semigroup α] (n m : α) :
-  min n m * max n m = n * m :=
-fn_min_mul_fn_max id n m
 
 section decidable_linear_ordered_add_comm_group
 variables [decidable_linear_ordered_add_comm_group α] {a b c : α}

@@ -61,8 +61,7 @@ namespace DCC_dvd
 variables [comm_monoid_with_zero α]
 open associates nat
 
-@[priority 100]
-instance of_DCC_dvd_associates
+theorem of_DCC_dvd_associates
   [DCC_dvd (associates α)]: DCC_dvd α :=
 ⟨begin
   refine (surjective.well_founded_iff mk_surjective _).2 DCC_dvd.well_founded_dvd_not_unit,

@@ -1,22 +1,38 @@
 /-
 Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Jens Wagemaker
+Authors: Johannes Hölzl, Jens Wagemaker, Aaron Anderson
 
-Theory of unique factorization domains.
-
-@TODO: setup the complete lattice structure on `factor_set`.
 -/
 import algebra.gcd_monoid
 import ring_theory.integral_domain
 import ring_theory.noetherian
+
+/--
+
+# Unique Factorization
+
+## Main Definitions
+* `DCC_dvd` holds for `monoid`s for which a strict divisibility relation is
+  well-founded.
+* `unique_factorization_domain` carries the structure of prime factorization.
+
+## To do
+* Refactor `unique_factorization_domain` for `comm_cancel_monoid_with_zero`
+* Redefine `unique_factorization_domain` as a predicate (`DCC_dvd` and `irreducible_iff_prime`)
+* set up the complete lattice structure on `factor_set`.
+
+-/
 
 variables {α : Type*}
 local infix ` ~ᵤ ` : 50 := associated
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
-/-- `comm_cancel_monoid_with_zero`s whose divisibility relation -/
+/-- Well-foundedness of the strict version of |, which is equivalent to the descending chain
+  condition on divisibility and to the ascending chain condition on
+  principal ideals in an integral domain.
+   -/
 class DCC_dvd (α : Type*) [comm_monoid_with_zero α] : Prop :=
 (well_founded_dvd_not_unit : well_founded (λ a b : α, a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x))
 

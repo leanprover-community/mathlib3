@@ -391,7 +391,6 @@ We use this tactic for writing tests.
 meta def guard_target_strict (p : parse texpr) : tactic unit :=
 do t ← target, guard_expr_strict t p
 
-
 /--
 `guard_hyp_strict h : t` fails if the hypothesis `h` does not have type syntactically equal
 to `t`.
@@ -400,19 +399,33 @@ We use this tactic for writing tests.
 meta def guard_hyp_strict (n : parse ident) (p : parse $ tk ":" *> texpr) : tactic unit :=
 do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_strict h p
 
+/-- Tests that there are `n` hypotheses in the current context. -/
 meta def guard_hyp_nums (n : ℕ) : tactic unit :=
 do k ← local_context,
    guard (n = k.length) <|> fail format!"{k.length} hypotheses found"
 
+/-- Test that `t` is the tag of the main goal. -/
 meta def guard_tags (tags : parse ident*) : tactic unit :=
 do (t : list name) ← get_main_tag,
    guard (t = tags)
+
+/-- `guard_proof_term { t } e` applies tactic `t` and tests whether the resulting proof term
+  unifies with `p`. -/
+meta def guard_proof_term (t : itactic) (p : parse texpr) : itactic :=
+do
+  g :: _ ← get_goals,
+  e ← to_expr p,
+  t,
+  g ← instantiate_mvars g,
+  unify e g
+
 
 /-- `success_if_fail_with_msg { tac } msg` succeeds if the interactive tactic `tac` fails with
 error message `msg` (for test writing purposes). -/
 meta def success_if_fail_with_msg (tac : tactic.interactive.itactic) :=
 tactic.success_if_fail_with_msg tac
 
+/-- Get the field of the current goal. -/
 meta def get_current_field : tactic name :=
 do [_,field,str] ← get_main_tag,
    expr.const_name <$> resolve_name (field.update_prefix str)
@@ -649,12 +662,16 @@ add_tactic_doc
   decl_names := [`tactic.interactive.field_simp],
   tags       := ["simplification", "arithmetic"] }
 
+/-- Tests whether `t` is definitionally equal to `p`. The difference with `guard_expr_eq` is that
+  this uses definitional equality instead of alpha-equivalence. -/
 meta def guard_expr_eq' (t : expr) (p : parse $ tk ":=" *> texpr) : tactic unit :=
 do e ← to_expr p, is_def_eq t e
 
 /--
-`guard_target t` fails if the target of the main goal is not `t`.
+`guard_target' t` fails if the target of the main goal is not definitionally equal to `t`.
 We use this tactic for writing tests.
+The difference with `guard_target` is that this uses definitional equality instead of
+alpha-equivalence.
 -/
 meta def guard_target' (p : parse texpr) : tactic unit :=
 do t ← target, guard_expr_eq' t p

@@ -154,6 +154,20 @@ begin
   simp [mul_comm]
 end
 
+lemma eval₂_mul_eq_zero_of_left (q : polynomial R) (hp : p.eval₂ f x = 0) :
+  (p * q).eval₂ f x = 0 :=
+begin
+  rw eval₂_mul f x,
+  exact mul_eq_zero_of_left hp (q.eval₂ f x)
+end
+
+lemma eval₂_mul_eq_zero_of_right (p : polynomial R) (hq : q.eval₂ f x = 0) :
+  (p * q).eval₂ f x = 0 :=
+begin
+  rw eval₂_mul f x,
+  exact mul_eq_zero_of_right (p.eval₂ f x) hq
+end
+
 instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f x) :=
 ⟨eval₂_zero _ _, eval₂_one _ _, λ _ _, eval₂_add _ _, λ _ _, eval₂_mul _ _⟩
 
@@ -444,11 +458,7 @@ instance eval.is_semiring_hom : is_semiring_hom (eval x) := eval₂.is_semiring_
 
 lemma eval₂_hom [comm_semiring S] (f : R →+* S) (x : R) :
   p.eval₂ f (f x) = f (p.eval x) :=
-polynomial.induction_on p
-  (by simp)
-  (by simp [f.map_add] {contextual := tt})
-  (by simp [f.map_mul, eval_pow,
-    f.map_pow, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
+(ring_hom.comp_id f) ▸ (hom_eval₂ p (ring_hom.id R) f x).symm
 
 lemma root_mul_left_of_is_root (p : polynomial R) {q : polynomial R} :
   is_root q a → is_root (p * q) a :=

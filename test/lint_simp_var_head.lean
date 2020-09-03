@@ -17,7 +17,7 @@ end
 
 
 open tactic
-#eval do
+run_cmd do
 decl ← get_decl ``const_zero_eq_zero,
 res ← linter.simp_var_head.test decl,
 -- linter complains

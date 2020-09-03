@@ -387,14 +387,14 @@ theorem is_noetherian_of_submodule_of_noetherian (R M) [ring R] [add_comm_group 
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
-  exact order_embedding.well_founded (submodule.map_subtype.order_embedding N).osymm h,
+  exact order_embedding.well_founded (submodule.map_subtype.order_embedding N).dual h,
 end
 
 theorem is_noetherian_of_quotient_of_noetherian (R) [ring R] (M) [add_comm_group M] [module R M]
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N.quotient :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
-  exact order_embedding.well_founded (submodule.comap_mkq.order_embedding N).osymm h,
+  exact order_embedding.well_founded (submodule.comap_mkq.order_embedding N).dual h,
 end
 
 theorem is_noetherian_of_fg_of_noetherian {R M} [ring R] [add_comm_group M] [module R M]
@@ -439,7 +439,7 @@ theorem is_noetherian_ring_of_surjective (R) [comm_ring R] (S) [comm_ring S]
   [H : is_noetherian_ring R] : is_noetherian_ring S :=
 begin
   rw [is_noetherian_ring, is_noetherian_iff_well_founded] at H ⊢,
-  exact order_embedding.well_founded (ideal.order_embedding_of_surjective f hf).osymm H,
+  exact order_embedding.well_founded (ideal.order_embedding_of_surjective f hf).dual H,
 end
 
 instance is_noetherian_ring_range {R} [comm_ring R] {S} [comm_ring S] (f : R →+* S)

@@ -31,7 +31,7 @@ variables {R : Type u} [comm_ring R]
 namespace Mon_Module_equivalence_Algebra
 
 @[simps]
-instance (A : Mon_ (Module R)) : ring A.X :=
+instance (A : Mon_ (Module.{u} R)) : ring A.X :=
 { one := A.one (1 : R),
   mul := λ x y, A.mul (x ⊗ₜ y),
   one_mul := λ x, by { convert lcongr_fun A.one_mul ((1 : R) ⊗ₜ x), simp, },
@@ -51,7 +51,7 @@ instance (A : Mon_ (Module R)) : ring A.X :=
   end,
   ..(by apply_instance : add_comm_group A.X) }
 
-instance (A : Mon_ (Module R)) : algebra R A.X :=
+instance (A : Mon_ (Module.{u} R)) : algebra R A.X :=
 { map_zero' := A.one.map_zero,
   map_one' := rfl,
   map_mul' := λ x y,
@@ -68,13 +68,13 @@ instance (A : Mon_ (Module R)) : algebra R A.X :=
   smul_def' := λ r a, by { convert (lcongr_fun A.one_mul (r ⊗ₜ a)).symm, simp, },
   ..A.one }
 
-@[simp] lemma algebra_map (A : Mon_ (Module R)) (r : R) : algebra_map R A.X r = A.one r := rfl
+@[simp] lemma algebra_map (A : Mon_ (Module.{u} R)) (r : R) : algebra_map R A.X r = A.one r := rfl
 
 /--
 Converting a monoid object in `Module R` to a bundled algebra.
 -/
 @[simps]
-def functor : Mon_ (Module R) ⥤ Algebra R :=
+def functor : Mon_ (Module.{u} R) ⥤ Algebra R :=
 { obj := λ A, Algebra.of R A.X,
   map := λ A B f,
   { to_fun := f.hom,
@@ -133,7 +133,7 @@ open Mon_Module_equivalence_Algebra
 The category of internal monoid objects in `Module R`
 is equivalent to the category of "native" bundled `R`-algebras.
 -/
-def Mon_Module_equivalence_Algebra : Mon_ (Module R) ≌ Algebra R :=
+def Mon_Module_equivalence_Algebra : Mon_ (Module.{u} R) ≌ Algebra R :=
 { functor := functor,
   inverse := inverse,
   unit_iso := nat_iso.of_components
@@ -162,7 +162,7 @@ The equivalence `Mon_ (Module R) ≌ Algebra R`
 is naturally compatible with the forgetful functors to `Module R`.
 -/
 def Mon_Module_equivalence_Algebra_forget :
-  Mon_Module_equivalence_Algebra.functor ⋙ forget₂ (Algebra R) (Module R) ≅ Mon_.forget :=
+  Mon_Module_equivalence_Algebra.functor ⋙ forget₂ (Algebra.{u} R) (Module.{u} R) ≅ Mon_.forget :=
 nat_iso.of_components (λ A,
 { hom :=
   { to_fun := id,

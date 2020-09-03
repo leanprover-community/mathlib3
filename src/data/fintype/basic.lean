@@ -288,16 +288,18 @@ list.length_fin_range n
 @[simp] lemma finset.card_fin (n : ℕ) : finset.card (finset.univ : finset (fin n)) = n :=
 by rw [finset.card_univ, fintype.card_fin]
 
+/-- Embed `fin n` into `fin (n + 1)` by prepending zero to the `univ` -/
 lemma fin.univ_succ (n : ℕ) :
-  (univ : finset (fin $ n+1)) = insert 0 (univ.image fin.succ) :=
+  (univ : finset (fin (n + 1))) = insert 0 (univ.image fin.succ) :=
 begin
   ext m,
   simp only [mem_univ, mem_insert, true_iff, mem_image, exists_prop],
   exact fin.cases (or.inl rfl) (λ i, or.inr ⟨i, trivial, rfl⟩) m
 end
 
+/-- Embed `fin n` into `fin (n + 1)` by appending a new `fin.last n` to the `univ` -/
 lemma fin.univ_cast_succ (n : ℕ) :
-  (univ : finset (fin $ n+1)) = insert (fin.last n) (univ.image fin.cast_succ) :=
+  (univ : finset (fin (n + 1))) = insert (fin.last n) (univ.image fin.cast_succ) :=
 begin
   ext m,
   simp only [mem_univ, mem_insert, true_iff, mem_image, exists_prop, true_and],
@@ -307,6 +309,22 @@ begin
     rw fin.cast_succ_cast_lt },
   { left,
     exact fin.eq_last_of_not_lt h }
+end
+
+/-- Embed `fin n` into `fin (n + 1)` by inserting
+around a specified pivot `p : fin (n + 1)` into the `univ` -/
+lemma fin.univ_succ_above (n : ℕ) (p : fin (n + 1)) :
+  (univ : finset (fin (n + 1))) = insert p (univ.image (fin.succ_above p)) :=
+begin
+  rcases lt_or_eq_of_le (fin.le_last p) with hl|rfl,
+  { ext m,
+    simp only [finset.mem_univ, finset.mem_insert, true_iff, finset.mem_image, exists_prop],
+    refine or_iff_not_imp_left.mpr _,
+    { intro h,
+      use p.pred_above m h,
+      simp only [eq_self_iff_true, fin.succ_above_descend, and_self] } },
+  { rw fin.succ_above_last,
+    exact fin.univ_cast_succ n }
 end
 
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=

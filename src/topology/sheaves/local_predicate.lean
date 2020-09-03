@@ -167,10 +167,30 @@ from the sheaf condition diagram for functions satisfying a local predicate
 to the sheaf condition diagram for arbitrary functions,
 given by forgetting that the local predicate holds.
 -/
+@[simps]
 def diagram_subtype {ι : Type v} (U : ι → opens X) :
   diagram (subpresheaf_to_Types P) U ⟶ diagram (presheaf_to_Types X T) U :=
 { app := λ j, walking_parallel_pair.rec_on j (pi.map (λ i f, f.1)) (pi.map (λ p f, f.1)),
-  naturality' := by rintro ⟨_|_⟩ ⟨_|_⟩ f; cases f; refl, }
+  naturality' :=
+  begin
+    rintro ⟨_|_⟩ ⟨_|_⟩ ⟨⟩,
+    { refl, },
+    { dsimp [left_res, subpresheaf_to_Types, presheaf_to_Types],
+      simp only [limit.lift_map],
+      ext1 ⟨i₁,i₂⟩,
+      simp only [limit.lift_π, cones.postcompose_obj_π, discrete.nat_trans_app, limit.map_π_assoc,
+        fan.mk_π_app, nat_trans.comp_app, category.assoc],
+      ext,
+      simp only [types_comp_apply, subtype.val_eq_coe], },
+    { dsimp [right_res, subpresheaf_to_Types, presheaf_to_Types],
+      simp only [limit.lift_map],
+      ext1 ⟨i₁,i₂⟩,
+      simp only [limit.lift_π, cones.postcompose_obj_π, discrete.nat_trans_app, limit.map_π_assoc,
+        fan.mk_π_app, nat_trans.comp_app, category.assoc],
+      ext,
+      simp only [types_comp_apply, subtype.val_eq_coe], },
+    { refl, },
+  end}
 
 /--
 The functions satisfying a local predicate satisfy the sheaf condition.
@@ -220,7 +240,11 @@ begin
     intros s,
     ext i f : 2,
     apply subtype.coe_injective,
-    exact congr_fun (((to_Types X T U).fac _ walking_parallel_pair.zero) =≫ pi.π _ i) _, },
+    convert congr_fun
+      ((to_Types X T U).fac
+        ((cones.postcompose (diagram_subtype P.to_prelocal_predicate U)).obj s)
+        walking_parallel_pair.zero =≫
+      pi.π (λ (i : ι), (X.presheaf_to_Types T).obj (op (U i))) i) f, },
   { -- Similarly for proving the uniqueness condition, after a certain amount of bookkeeping.
     intros s m w,
     ext f : 1,
@@ -239,12 +263,14 @@ begin
       intro i,
       simp only [category.assoc, limit.map_π],
       ext f' ⟨x, mem⟩,
-      refl, },
+      dsimp [res, subpresheaf_to_Types, presheaf_to_Types],
+      simp, },
     { apply limit.hom_ext,
       intro i,
       simp only [category.assoc, limit.map_π],
       ext f' ⟨x, mem⟩,
-      refl, }, },
+      dsimp [res, left_res, subpresheaf_to_Types, presheaf_to_Types],
+      simp, }, },
 end
 
 end subpresheaf_to_Types
@@ -290,7 +316,7 @@ begin
   rcases w t with ⟨U, f, h, rfl⟩,
   fsplit,
   { exact (subsheaf_to_Types P).presheaf.germ ⟨x, U.2⟩ ⟨f, h⟩, },
-  { exact stalk_to_fiber_germ _ _ _ ⟨f, h⟩, }
+  { exact stalk_to_fiber_germ _ U.1 ⟨x, U.2⟩ ⟨f, h⟩, }
 end
 
 /--
@@ -307,23 +333,23 @@ begin
   -- We promise to provide all the ingredients of the proof later:
   let Q :
     ∃ (W : (open_nhds x)ᵒᵖ) (s : Π w : (unop W).1, T w) (hW : P.pred s),
-      tU = quot.mk _ ⟨W, ⟨s, hW⟩⟩ ∧ tV = quot.mk _ ⟨W, ⟨s, hW⟩⟩ := _,
+      tU = (subsheaf_to_Types P).presheaf.germ ⟨x, (unop W).2⟩ ⟨s, hW⟩ ∧
+      tV = (subsheaf_to_Types P).presheaf.germ ⟨x, (unop W).2⟩ ⟨s, hW⟩ := _,
   { choose W s hW e using Q,
     exact e.1.trans e.2.symm, },
   -- Then use induction to pick particular representatives of `tU tV : stalk x`
-  induction tU,
-  induction tV,
+  obtain ⟨U, ⟨fU, hU⟩, rfl⟩ := types.jointly_surjective' tU,
+  obtain ⟨V, ⟨fV, hV⟩, rfl⟩ := types.jointly_surjective' tV,
   { -- Decompose everything into its constituent parts:
     dsimp,
-    rcases tU with ⟨U, ⟨fU, hU⟩⟩,
-    rcases tV with ⟨V, ⟨fV, hV⟩⟩,
+    simp only [stalk_to_fiber, types.ι_desc_apply] at h,
     specialize w (unop U) (unop V) fU hU fV hV h,
     rcases w with ⟨W, iU, iV, w⟩,
     -- and put it back together again in the correct order.
     refine ⟨(op W), (λ w, fU (iU w : (unop U).1)), P.res _ _ hU, _⟩,
-    exact ⟨quot.sound ⟨iU.op, subtype.eq rfl⟩, quot.sound ⟨iV.op, subtype.eq (funext w)⟩⟩, },
-  { refl, }, -- proof irrelevance
-  { refl, }, -- proof irrelevance
+    rcases W with ⟨W, m⟩,
+    exact ⟨types.colimit_sound iU.op (subtype.eq rfl),
+           types.colimit_sound iV.op (subtype.eq (funext w).symm)⟩, },
 end
 
 /--

@@ -85,9 +85,8 @@ begin
   rw padic_norm_e.mul at hr,
   have key : ∥(r.num : ℚ_[p])∥ < 1,
   { calc _ = _ : hr.symm
-    ... < 1 * 1 : _
-    ... = 1 : mul_one 1,
-    apply mul_lt_mul' h norm_denom_lt (norm_nonneg _) zero_lt_one, },
+    ... < 1 * 1 : mul_lt_mul' h norm_denom_lt (norm_nonneg _) zero_lt_one
+    ... = 1 : mul_one 1 },
   have : ↑p ∣ r.num ∧ (p : ℤ) ∣ r.denom,
   { simp only [← norm_int_lt_one_iff_dvd, ← padic_norm_e_of_padic_int],
     norm_cast, exact ⟨key, norm_denom_lt⟩ },
@@ -174,9 +173,9 @@ begin
   obtain ⟨r, hr⟩ := rat_dense (x : ℚ_[p]) zero_lt_one,
   have H : ∥(r : ℚ_[p])∥ ≤ 1,
   { rw norm_sub_rev at hr,
-    rw show (r : ℚ_[p]) = (r - x) + x, by ring,
-    apply le_trans (padic_norm_e.nonarchimedean _ _),
-    apply max_le (le_of_lt hr) x.2, },
+    calc _ = ∥(r : ℚ_[p]) - x + x∥ : by ring
+       ... ≤ _ : padic_norm_e.nonarchimedean _ _
+       ... ≤ _ :  max_le (le_of_lt hr) x.2 },
   obtain ⟨n, hzn, hnp, hn⟩ := exists_mem_range_of_norm_rat_le_one r H,
   lift n to ℕ using hzn,
   use [n],
@@ -270,8 +269,8 @@ begin
   dsimp [to_zmod, to_zmod_hom],
   unfreezingI { rcases (exists_eq_add_of_lt (hp_prime.pos)) with ⟨p', rfl⟩ },
   change ↑(zmod.val _) = _,
-  simp [zmod.val_cast_nat],
-  rw mod_eq_of_lt,
+  simp only [zmod.val_cast_nat, add_zero, add_def, cast_inj, zero_add],
+  apply mod_eq_of_lt,
   simpa only [zero_add] using zmod_repr_lt_p z,
 end
 
@@ -291,8 +290,6 @@ end
 
 /-- `appr n x` gives a value `v : ℕ` such that `x` and `↑v : ℤ_p` are congruent mod `p^n`.
 See `appr_spec`. -/
--- TODO: prove that `x.appr` is a sequence that tends to `x`.
--- Possibly relevant: summable_iff_vanishing_norm
 noncomputable def appr : ℤ_[p] → ℕ → ℕ
 | x 0     := 0
 | x (n+1) :=
@@ -385,6 +382,8 @@ begin
         apply dvd_pow (dvd_refl _),
         exact hc0 } } }
 end
+
+attribute [irreducible] appr
 
 /-- A ring hom from `ℤ_[p]` to `zmod (p^n)`, with underlying function `padic_int.appr n`. -/
 def to_zmod_pow (n : ℕ) : ℤ_[p] →+* zmod (p ^ n) :=

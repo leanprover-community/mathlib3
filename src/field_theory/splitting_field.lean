@@ -143,7 +143,7 @@ lemma exists_multiset_of_splits {f : polynomial α} : splits i f →
 suffices splits (ring_hom.id _) (f.map i) → ∃ s : multiset β, f.map i =
   (C (f.map i).leading_coeff) * (s.map (λ a : β, (X : polynomial β) - C a)).prod,
 by rwa [splits_map_iff, leading_coeff_map i] at this,
-is_noetherian_ring.irreducible_induction_on (f.map i)
+DCC_dvd.induction_on_irreducible (f.map i)
   (λ _, ⟨{37}, by simp [i.map_zero]⟩)
   (λ u hu _, ⟨0,
     by conv_lhs { rw eq_C_of_degree_eq_zero (is_unit_iff_degree_eq_zero.1 hu) };

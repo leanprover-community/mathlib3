@@ -862,10 +862,21 @@ def has_limit.iso_of_equivalence {F : J ⥤ C} [has_limit F] {G : K ⥤ C} [has_
 is_limit.cone_points_iso_of_equivalence (limit.is_limit F) (limit.is_limit G) e w
 
 @[simp]
-lemma has_limit.iso_of_equivalence_π {F : J ⥤ C} [has_limit F] {G : K ⥤ C} [has_limit G]
+lemma has_limit.iso_of_equivalence_hom_π {F : J ⥤ C} [has_limit F] {G : K ⥤ C} [has_limit G]
    (e : J ≌ K) (w : e.functor ⋙ G ≅ F) (k : K) :
   (has_limit.iso_of_equivalence e w).hom ≫ limit.π G k =
     limit.π F (e.inverse.obj k) ≫ w.inv.app (e.inverse.obj k) ≫ G.map (e.counit.app k) :=
+begin
+  simp [has_limit.iso_of_equivalence, is_limit.cone_points_iso_of_equivalence_hom],
+  dsimp,
+  simp,
+end
+
+@[simp]
+lemma has_limit.iso_of_equivalence_inv_π {F : J ⥤ C} [has_limit F] {G : K ⥤ C} [has_limit G]
+   (e : J ≌ K) (w : e.functor ⋙ G ≅ F) (j : J) :
+  (has_limit.iso_of_equivalence e w).inv ≫ limit.π F j =
+    limit.π G (e.functor.obj j) ≫ w.hom.app j :=
 begin
   simp [has_limit.iso_of_equivalence, is_limit.cone_points_iso_of_equivalence_hom],
   dsimp,
@@ -1226,10 +1237,21 @@ def has_colimit.iso_of_equivalence {F : J ⥤ C} [has_colimit F] {G : K ⥤ C} [
 is_colimit.cocone_points_iso_of_equivalence (colimit.is_colimit F) (colimit.is_colimit G) e w
 
 @[simp]
-lemma has_colimit.iso_of_equivalence_π {F : J ⥤ C} [has_colimit F] {G : K ⥤ C} [has_colimit G]
+lemma has_colimit.iso_of_equivalence_hom_π {F : J ⥤ C} [has_colimit F] {G : K ⥤ C} [has_colimit G]
    (e : J ≌ K) (w : e.functor ⋙ G ≅ F) (j : J) :
   colimit.ι F j ≫ (has_colimit.iso_of_equivalence e w).hom =
      F.map (e.unit.app j) ≫ w.inv.app _ ≫ colimit.ι G _ :=
+begin
+  simp [has_colimit.iso_of_equivalence, is_colimit.cocone_points_iso_of_equivalence_inv],
+  dsimp,
+  simp,
+end
+
+@[simp]
+lemma has_colimit.iso_of_equivalence_inv_π {F : J ⥤ C} [has_colimit F] {G : K ⥤ C} [has_colimit G]
+   (e : J ≌ K) (w : e.functor ⋙ G ≅ F) (k : K) :
+  colimit.ι G k ≫ (has_colimit.iso_of_equivalence e w).inv =
+     G.map (e.counit_inv.app k) ≫ w.hom.app (e.inverse.obj k) ≫ colimit.ι F (e.inverse.obj k) :=
 begin
   simp [has_colimit.iso_of_equivalence, is_colimit.cocone_points_iso_of_equivalence_inv],
   dsimp,

@@ -472,7 +472,7 @@ begin
   exact subtype.eq (eq.symm (mk_eq_mk_iff_associated.mpr hpq))
 end
 
-lemma associates_irreducible_iff_prime : ∀{p : associates α}, irreducible p ↔ p.prime :=
+lemma associates_irreducible_iff_prime : ∀{p : associates α}, irreducible p ↔ prime p :=
 associates.forall_associated.2 $ assume a,
 by rw [associates.irreducible_mk_iff, associates.prime_mk, irreducible_iff_prime]
 
@@ -480,7 +480,7 @@ include dec
 
 lemma exists_prime_dvd_of_not_inf_one {a b : α}
   (ha : a ≠ 0) (hb : b ≠ 0) (h : (associates.mk a) ⊓ (associates.mk b) ≠ 1)  :
-  ∃ (p : α), _root_.prime p ∧ p ∣ a ∧ p ∣ b :=
+  ∃ (p : α), prime p ∧ p ∣ a ∧ p ∣ b :=
 begin
   have hz : (factors (associates.mk a)) ⊓ (factors (associates.mk b)) ≠ 0,
   { intro hf, revert h, apply not_not_intro,
@@ -502,7 +502,7 @@ begin
 end
 
 theorem coprime_iff_inf_one {a b : α} (ha0 : a ≠ 0) (hb0 : b ≠ 0)
-  : (associates.mk a) ⊓ (associates.mk b) = 1 ↔ ∀ {d : α}, d ∣ a → d ∣ b → ¬ _root_.prime d :=
+  : (associates.mk a) ⊓ (associates.mk b) = 1 ↔ ∀ {d : α}, d ∣ a → d ∣ b → ¬ prime d :=
 begin
   split,
   { intros hg p ha hb hp,
@@ -537,7 +537,7 @@ begin
 end
 
 theorem dvd_prime_pow_iff_count_factors (m : associates α) (h₁ : m ≠ 0) (p : associates α)
-  (h₂ : irreducible p) (k : ℕ) : p ^ k ∣ m ↔ k ≤ count ⟨p, h₂⟩ m.factors :=
+  (h₂ : irreducible p) (k : ℕ) : p ^ k ≤ m ↔ k ≤ count ⟨p, h₂⟩ m.factors :=
 begin
   obtain ⟨a, nz, h⟩ := associates.exists_non_zero_rep h₁,
   erw [← h, (factors_mk a nz), ← with_top.some_eq_coe, multiset.le_count_iff_repeat_le],

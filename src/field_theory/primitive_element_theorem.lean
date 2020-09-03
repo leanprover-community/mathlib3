@@ -138,7 +138,7 @@ end
 section
 variables {F : Type*} [field F] {E : Type*} [field E] (ϕ : F →+* E)
 
-lemma primitive_element_two_aux (α β : E) {f g : polynomial F} [F_inf : infinite F] (hf : f ≠ 0) (hg : g ≠ 0) (f_monic : polynomial.monic f) (g_monic : polynomial.monic g) :
+lemma primitive_element_two_aux (α β : E) {f g : polynomial F} [F_inf : infinite F] :
     ∃ c : F, ∀ (α' ∈ (f.map ϕ).roots) (β' ∈ (g.map ϕ).roots), β' ≠ β → ϕ c ≠ -(α' - α)/(β' - β) :=
 begin
     let sf := (f.map ϕ).roots,
@@ -254,7 +254,7 @@ begin
     let ιFE := algebra_map F E,
     let ιEE' := algebra_map E E',
     let ιFE' := ιEE'.comp(ιFE),
-    have key := primitive_element_two_aux ιFE' (ιEE' α) (ιEE' β) (minimal_polynomial.ne_zero hα) (minimal_polynomial.ne_zero hβ) (minimal_polynomial.monic hα) (minimal_polynomial.monic hβ),
+    have key := primitive_element_two_aux ιFE' (ιEE' α) (ιEE' β),
     cases key with c hc,
     use c,
     let γ := α+(ιFE c)*β,
@@ -469,3 +469,5 @@ begin
     sorry,
     -- exact ⟨α, by simp only [*, adjoin_equals_adjoin_range]⟩,
 end
+
+#lint

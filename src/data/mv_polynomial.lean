@@ -1041,7 +1041,7 @@ lemma mem_vars (i : σ) :
 by simp only [vars, multiset.mem_to_finset, mem_degrees, coeff, finsupp.mem_support_iff, exists_prop]
 
 lemma vars_eq_support_bind_support : p.vars = p.support.bind finsupp.support :=
-by {ext i, rw [mem_vars, finset.mem_bind] }
+by { ext i, rw [mem_vars, finset.mem_bind] }
 
 end map
 

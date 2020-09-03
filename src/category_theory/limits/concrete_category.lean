@@ -10,7 +10,7 @@ import category_theory.concrete_category.basic
 # Facts about (co)limits of functors into concrete categories
 -/
 
-universes v u
+universes w v u
 
 open category_theory
 
@@ -32,7 +32,6 @@ begin
   convert congr_fun (congr_arg (λ k : s.X ⟶ F.obj j', (k : s.X → F.obj j')) (s.w f)) x,
   simp only [coe_comp],
 end
-
 
 @[simp]
 lemma w_forget_apply (F : J ⥤ C) (s : cone (F ⋙ forget C)) {j j' : J} (f : j ⟶ j') (x : s.X) :

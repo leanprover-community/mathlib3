@@ -177,7 +177,7 @@ begin
        ... ≤ _ :  max_le (le_of_lt hr) x.2 },
   obtain ⟨n, hzn, hnp, hn⟩ := exists_mem_range_of_norm_rat_le_one r H,
   lift n to ℕ using hzn,
-  use [n],
+  use n,
   split, {exact_mod_cast hnp},
   simp only [norm_def, coe_sub, subtype.coe_mk, coe_coe] at hn ⊢,
   rw show (x - n : ℚ_[p]) = (x - r) + (r - n), by ring,

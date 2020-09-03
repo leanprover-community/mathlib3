@@ -820,8 +820,7 @@ variables {a b : α}
 
 /-- The `Sup` function on a nonempty open subinterval `Ioo a b` of a conditionally complete linear
 order takes values within `Ioo a b`, for all nonempty bounded-above sets. -/
-lemma Ioo_Sup_within {a b : α} [inhabited (Ioo a b)] ⦃t : set (Ioo a b)⦄ (ht : t.nonempty)
-  (h_bdd : bdd_above t) :
+lemma Ioo_Sup_within {a b : α} ⦃t : set (Ioo a b)⦄ (ht : t.nonempty) (h_bdd : bdd_above t) :
   Sup (coe '' t : set α) ∈ Ioo a b :=
 begin
   obtain ⟨c, hct⟩ : ∃ c, c ∈ t := ht,
@@ -833,8 +832,7 @@ end
 
 /-- The `Inf` function on a nonempty open subinterval `Ioo a b` of a conditionally complete linear
 order takes values within `Ioo a b`, for all nonempty bounded-above sets. -/
-lemma Ioo_Inf_within {a b : α} [inhabited (Ioo a b)] ⦃t : set (Ioo a b)⦄ (ht : t.nonempty)
-  (h_bdd : bdd_below t) :
+lemma Ioo_Inf_within {a b : α} ⦃t : set (Ioo a b)⦄ (ht : t.nonempty) (h_bdd : bdd_below t) :
   Inf (coe '' t : set α) ∈ Ioo a b :=
 begin
   obtain ⟨c, hct⟩ : ∃ c, c ∈ t := ht,

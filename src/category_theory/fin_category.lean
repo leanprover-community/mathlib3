@@ -6,6 +6,17 @@ Authors: Scott Morrison
 import data.fintype.basic
 import category_theory.discrete_category
 
+/-!
+# Finite categories
+
+A category is finite in this sense if it has finitely many objects, and finitely many morphisms.
+
+## Implementation
+
+We also ask for decidable equality of objects and morphisms, but it may be reasonable to just
+go classical in future.
+-/
+
 universes v u
 
 namespace category_theory

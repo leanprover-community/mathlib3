@@ -143,12 +143,13 @@ def adjoin_simple.gen : F⟮α⟯ := ⟨α, mem_adjoin_simple_self F α⟩
 
 lemma adjoin_simple.algebra_map_gen : algebra_map F⟮α⟯ E (adjoin_simple.gen F α) = α := rfl
 
+lemma adjoin_simple_adjoin_simple (β : E) : (F⟮α⟯⟮β⟯ : set E) = (F⟮α, β⟯ : set E) :=
+begin
+  apply adjoin_adjoin_left,
+end
+
 section
 open finite_dimensional
-
-/-- If a subset of a set is infinite then the set is infinite. -/
-lemma inf_of_subset_inf {X : Type*} {s : set X} {t : set X} (hst : s ⊆ t) (hs : s.infinite) : t.infinite :=
-mt (λ ht, ht.subset hst) hs
 
 def submodule_restrict_field (S : set E) (p : submodule (adjoin F S) E) : submodule F E := {
     carrier := p.carrier,
@@ -246,9 +247,6 @@ begin
   apply infinite.of_injective (set.range_factorization (algebra_map F E)),
   exact subtype.coind_injective (λ (a : F), set.mem_range_self a) ((algebra_map F E).injective),
 end
-
-lemma adjoin_inf_of_inf (S : set E) (hF : infinite F) : infinite (adjoin F S) :=
-set.infinite_coe_iff.mpr (inf_of_subset_inf (adjoin.range_algebra_map_subset F S) (inclusion.infinite F hF))
 
 end
 

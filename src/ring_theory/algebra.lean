@@ -200,6 +200,13 @@ lemma subring_coe_algebra_map {R : Type*} [comm_ring R] (S : set R) [is_subring 
 lemma subring_algebra_map_apply {R : Type*} [comm_ring R] (S : set R) [is_subring S] (x : S) :
   algebra_map S R x = x := rfl
 
+lemma set_range_subset {R : Type*} [comm_ring R] {T₁ T₂ : set R} [is_subring T₁] (hyp : T₁ ⊆ T₂) :
+  set.range (algebra_map T₁ R) ⊆ T₂ :=
+begin
+  rintros x ⟨⟨t, ht⟩, rfl⟩,
+  exact hyp ht,
+end
+
 variables (R A)
 /-- The multiplication in an algebra is a bilinear map. -/
 def lmul : A →ₗ A →ₗ A :=
@@ -238,6 +245,16 @@ begin
   dsimp [algebra.lmul'],
   simp,
 end
+
+/-- Explicit characterization of the submonoid map in the case of an algebra.
+`S` is made explicit to help with type inference -/
+def algebra_map_submonoid (S : Type*) [semiring S] [algebra R S]
+  (M : submonoid R) : (submonoid S) :=
+submonoid.map (algebra_map R S : R →* S) M
+
+lemma mem_algebra_map_submonoid_of_mem [algebra R S] {M : submonoid R} (x : M) :
+  (algebra_map R S x) ∈ algebra_map_submonoid S M :=
+set.mem_image_of_mem (algebra_map R S) x.2
 
 end semiring
 

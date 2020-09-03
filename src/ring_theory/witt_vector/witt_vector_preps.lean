@@ -463,6 +463,7 @@ begin
   -- can we prove this using the `mono` tactic?
   -- are the lemmas above good `mono` lemmas?
   -- is `bind_mono` a good `mono` lemma?
+  -- Rob: I've never used mono, so I'm not really sure...
   calc (bind₁ f φ).vars
       = (φ.support.sum (λ (x : σ →₀ ℕ), (bind₁ f) (monomial x (coeff x φ)))).vars : by { rw [← alg_hom.map_sum, ← φ.as_sum], }
   ... ≤ φ.support.bind (λ (i : σ →₀ ℕ), ((bind₁ f) (monomial i (coeff i φ))).vars) : vars_sum_subset _ _
@@ -500,7 +501,8 @@ lemma vars_mul_eq (φ ψ : mv_polynomial σ A) :
 sorry
 
 lemma vars_pow_eq (φ : mv_polynomial σ A) (n : ℕ) :
-  (φ ^ n).vars = φ.vars := sorry
+  (φ ^ (n+1)).vars = φ.vars :=
+sorry
 
 lemma vars_prod_eq {ι : Type*} {s : finset ι} (f : ι → mv_polynomial σ A) :
   (∏ i in s, f i).vars = s.bind (λ i, (f i).vars) :=
@@ -535,19 +537,17 @@ by rw [← alg_hom.comp_apply, expand_comp_bind₁]
 section
 variables {S : Type*} [comm_semiring S]
 
+@[simp]
 lemma map_expand (f : R →+* S) (p : ℕ) (φ : mv_polynomial σ R) :
   map f (expand p φ) = expand p (map f φ) :=
-begin
-  sorry
-end
+by simp [expand, map_bind₁]
 
 -- TODO: prove `rename_comp_expand`
 
+@[simp]
 lemma rename_expand (f : σ → τ) (p : ℕ) (φ : mv_polynomial σ R) :
   rename f (expand p φ) = expand p (rename f φ) :=
-begin
-  sorry
-end
+by simp [expand, bind₁_rename, rename_bind₁]
 
 end
 

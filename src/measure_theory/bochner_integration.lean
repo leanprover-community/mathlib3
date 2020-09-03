@@ -69,9 +69,13 @@ The Bochner integral is defined following these steps:
 Some tips on how to prove a proposition if the API for the Bochner integral is not enough so that
 you need to unfold the definition of the Bochner integral and go back to simple functions.
 
+One method is to use the theorem `integrable.induction` in the file `set_integral`, which allows
+you to prove something for an arbitrary measurable + integrable function.
+
+Another method is using the following steps.
 See `integral_eq_lintegral_max_sub_lintegral_min` for a complicated example, which proves that
 `∫ f = ∫⁻ f⁺ - ∫⁻ f⁻`, with the first integral sign being the Bochner integral of a real-valued
-function f : α → ℝ, and second and third integral sign being the integral on ennreal-valued
+function `f : α → ℝ`, and second and third integral sign being the integral on ennreal-valued
 functions (called `lintegral`). The proof of `integral_eq_lintegral_max_sub_lintegral_min` is
 scattered in sections with the name `pos_part`.
 

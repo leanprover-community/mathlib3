@@ -52,7 +52,7 @@ The second value returned by `choose1` is the result of nondep elimination:
 meta def choose1 (nondep : bool) (h : expr) (data : name) (spec : name) :
   tactic (expr × option (option expr)) := do
   t ← infer_type h,
-  (ctxt, t) ← mk_local_pis_whnf t,
+  (ctxt, t) ← whnf t >>= open_pis,
   t ← whnf t transparency.all,
   match t with
   | `(@Exists %%α %%p) := do
@@ -144,9 +144,9 @@ Examples:
 example (h : ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n) : true :=
 begin
   choose i j h using h,
-  guard_hyp i := ℕ → ℕ → ℕ,
-  guard_hyp j := ℕ → ℕ → ℕ,
-  guard_hyp h := ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
+  guard_hyp i : ℕ → ℕ → ℕ,
+  guard_hyp j : ℕ → ℕ → ℕ,
+  guard_hyp h : ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
   trivial
 end
 ```
@@ -155,9 +155,9 @@ end
 example (h : ∀ i : ℕ, i < 7 → ∃ j, i < j ∧ j < i+i) : true :=
 begin
   choose! f h h' using h,
-  guard_hyp f := ℕ → ℕ,
-  guard_hyp h := ∀ (i : ℕ), i < 7 → i < f i,
-  guard_hyp h' := ∀ (i : ℕ), i < 7 → f i < i + i,
+  guard_hyp f : ℕ → ℕ,
+  guard_hyp h : ∀ (i : ℕ), i < 7 → i < f i,
+  guard_hyp h' : ∀ (i : ℕ), i < 7 → f i < i + i,
   trivial,
 end
 ```

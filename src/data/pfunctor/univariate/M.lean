@@ -177,12 +177,8 @@ show inhabited (M F), by apply_instance
 
 namespace M
 
-lemma ext' (x y : M F) (H : ∀ i : ℕ, x.approx i = y.approx i) :
-  x = y :=
-begin
-  cases x, cases y,
-  congr, ext, apply H,
-end
+lemma ext' (x y : M F) (H : ∀ i : ℕ, x.approx i = y.approx i) : x = y :=
+by { cases x, cases y, congr' with n, apply H }
 
 variables {X : Type*}
 variables (f : X → F.obj X)
@@ -278,7 +274,7 @@ lemma dest_mk (x : F.obj $ M F) :
 begin
   funext i,
   dsimp only [M.mk,dest],
-  cases x with x ch, congr, ext i,
+  cases x with x ch, congr' with i,
   cases h : ch i,
   simp  only [children,M.approx.s_mk,children',cast_eq],
   dsimp only [M.approx.s_mk,children'],
@@ -362,12 +358,10 @@ begin
   dsimp only [M.mk,pfunctor.M.cases,dest,head,approx.s_mk,head'],
   cases x, dsimp only [approx.s_mk],
   apply eq_of_heq,
-  apply rec_heq_of_heq, congr,
-  ext, dsimp only [children,approx.s_mk,children'],
+  apply rec_heq_of_heq, congr' with x,
+  dsimp only [children,approx.s_mk,children'],
   cases h : x_snd x, dsimp only [head],
-  congr, ext,
-  change (x_snd (x)).approx x_1 = _,
-  rw h
+  congr' with n, change (x_snd (x)).approx n = _, rw h
 end
 
 @[simp]
@@ -452,7 +446,7 @@ by apply ext'; intro n; refl
 lemma ichildren_mk [decidable_eq F.A] [inhabited (M F)] (x : F.obj (M F)) (i : F.Idx) :
   ichildren i (M.mk x) = x.iget i :=
 by { dsimp only [ichildren,pfunctor.obj.iget],
-     congr, ext, apply ext',
+     congr' with h, apply ext',
      dsimp only [children',M.mk,approx.s_mk],
      intros, refl }
 
@@ -475,7 +469,7 @@ lemma corec_def {X} (f : X → F.obj X) (x₀ : X) :
   M.corec f x₀ = M.mk (M.corec f <$> f x₀)  :=
 begin
   dsimp only [M.corec,M.mk],
-  congr, ext n,
+  congr' with n,
   cases n with n,
   { dsimp only [s_corec,approx.s_mk], refl, },
   { dsimp only [s_corec,approx.s_mk], cases h : (f x₀),

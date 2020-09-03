@@ -1143,8 +1143,7 @@ lemma ae_restrict_iff {s : set α} {p : α → Prop} (hp : is_measurable {x | p 
   (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
 begin
   simp only [ae_iff, ← compl_set_of, measure.restrict_apply hp.compl],
-  congr',
-  ext x, simp [and_comm]
+  congr' with x, simp [and_comm]
 end
 
 lemma ae_smul_measure {p : α → Prop} (h : ∀ᵐ x ∂μ, p x) (c : ennreal) : ∀ᵐ x ∂(c • μ), p x :=

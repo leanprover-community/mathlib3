@@ -263,8 +263,11 @@ instance : has_coe_to_fun (M →ₗ[R] M₂) := ⟨_, to_fun⟩
 def id : M →ₗ[R] M :=
 ⟨id, λ _ _, rfl, λ _ _, rfl⟩
 
-@[simp] lemma id_apply (x : M) :
+lemma id_apply (x : M) :
   @id R M _ _ _ x = x := rfl
+
+@[simp, norm_cast] lemma id_coe : ((linear_map.id : M →ₗ[R] M) : M → M) = _root_.id :=
+by { ext x, refl }
 
 end
 
@@ -291,6 +294,10 @@ lemma coe_fn_congr : Π {x x' : M}, x = x' → f x = f x'
 
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl } , ext⟩
+
+/-- If two linear maps are equal, they are equal at each point. -/
+lemma lcongr_fun (h : f = g) (m : M) : f m = g m :=
+congr_fun (congr_arg linear_map.to_fun h) m
 
 variables (f g)
 
@@ -330,6 +337,9 @@ variables (f : M₂ →ₗ[R] M₃) (g : M →ₗ[R] M₂)
 def comp : M →ₗ[R] M₃ := ⟨f ∘ g, by simp, by simp⟩
 
 @[simp] lemma comp_apply (x : M) : f.comp g x = f (g x) := rfl
+
+@[norm_cast]
+lemma comp_coe : (f : M₂ → M₃) ∘ (g : M → M₂) = f.comp g := rfl
 
 end
 

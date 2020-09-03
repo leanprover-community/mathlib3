@@ -342,6 +342,35 @@ begin
   use u
 end
 
+lemma unit_mul_pow_congr_pow {p q : R} (hp : irreducible p) (hq : irreducible q)
+  (u v : units R) (m n : ℕ) (h : ↑u * p ^ m = v * q ^ n) :
+  m = n :=
+begin
+  have key : associated (multiset.repeat p m).prod (multiset.repeat q n).prod,
+  { rw [multiset.prod_repeat, multiset.prod_repeat, associated],
+    refine ⟨u * v⁻¹, _⟩,
+    simp only [units.coe_mul],
+    rw [mul_left_comm, ← mul_assoc, h, mul_right_comm, units.mul_inv, one_mul], },
+  letI := @principal_ideal_ring.to_unique_factorization_domain R _ _,
+  have := multiset.card_eq_card_of_rel (unique_factorization_domain.unique _ _ key),
+  { simpa only [multiset.card_repeat] },
+  all_goals
+  { intros x hx, replace hx := multiset.eq_of_mem_repeat hx,
+    unfreezingI { subst hx, assumption } },
+end
+
+lemma unit_mul_pow_congr_unit {ϖ : R} (hirr : irreducible ϖ) (u v : units R) (m n : ℕ)
+  (h : ↑u * ϖ ^ m = v * ϖ ^ n) :
+  u = v :=
+begin
+  obtain rfl : m = n := unit_mul_pow_congr_pow hirr hirr u v m n h,
+  rw ← sub_eq_zero at h,
+  rw [← sub_mul, mul_eq_zero] at h,
+  cases h,
+  { rw sub_eq_zero at h, exact_mod_cast h },
+  { apply (hirr.ne_zero (pow_eq_zero h)).elim, }
+end
+
 end
 
 end discrete_valuation_ring

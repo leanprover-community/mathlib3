@@ -27,9 +27,9 @@ indicator, characteristic
 
 noncomputable theory
 open_locale classical big_operators
+open function
 
-universes u v
-variables {α : Type u} {β : Type v}
+variables {α β γ : Type*}
 
 namespace set
 
@@ -39,6 +39,8 @@ variables [has_zero β] {s t : set α} {f g : α → β} {a : α}
 /-- `indicator s f a` is `f a` if `a ∈ s`, `0` otherwise.  -/
 @[reducible]
 def indicator (s : set α) (f : α → β) : α → β := λ x, if x ∈ s then f x else 0
+
+@[simp] lemma piecewise_eq_indicator {s : set α} : s.piecewise f 0 = s.indicator f := rfl
 
 lemma indicator_apply (s : set α) (f : α → β) (a : α) :
   indicator s f a = if a ∈ s then f a else 0 := rfl
@@ -71,14 +73,23 @@ funext $ λx, indicator_of_mem (mem_univ _) f
 funext $ λx, indicator_of_not_mem (not_mem_empty _) f
 
 variable (β)
+
 @[simp] lemma indicator_zero (s : set α) : indicator s (λx, (0:β)) = λx, (0:β) :=
 funext $ λx, by { simp only [indicator], split_ifs, refl, refl }
+
+@[simp] lemma indicator_zero' {s : set α} : s.indicator (0 : α → β) = 0 :=
+indicator_zero β s
+
 variable {β}
 
 lemma indicator_indicator (s t : set α) (f : α → β) : indicator s (indicator t f) = indicator (s ∩ t) f :=
 funext $ λx, by { simp only [indicator], split_ifs, repeat {simp * at * {contextual := tt}} }
 
-lemma indicator_comp_of_zero {γ} [has_zero γ] {g : β → γ} (hg : g 0 = 0) :
+lemma comp_indicator (h : β → γ) (f : α → β) {s : set α} {x : α} :
+  h (s.indicator f x) = s.piecewise (h ∘ f) (const α (h 0)) x :=
+s.comp_piecewise h
+
+lemma indicator_comp_of_zero [has_zero γ] {g : β → γ} (hg : g 0 = 0) :
   indicator s (g ∘ f) = g ∘ (indicator s f) :=
 begin
   funext,
@@ -177,6 +188,24 @@ variables {β} {𝕜 : Type*} [monoid 𝕜] [distrib_mul_action 𝕜 β]
 lemma indicator_smul (s : set α) (r : 𝕜) (f : α → β) :
   indicator s (λ (x : α), r • f x) = λ (x : α), r • indicator s f x :=
 by { simp only [indicator], funext, split_ifs, refl, exact (smul_zero r).symm }
+
+lemma indicator_add_eq_left {f g : α → β} (h : univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0}) :
+  (f ⁻¹' {0})ᶜ.indicator (f + g) = f :=
+begin
+  ext x, by_cases hx : x ∈ (f ⁻¹' {0})ᶜ,
+  { have : g x = 0, { simp at hx, specialize h (mem_univ x), simpa [hx] using h },
+    simp [hx, this] },
+  { simp * at * }
+end
+
+lemma indicator_add_eq_right {f g : α → β} (h : univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0}) :
+  (g ⁻¹' {0})ᶜ.indicator (f + g) = g :=
+begin
+  ext x, by_cases hx : x ∈ (g ⁻¹' {0})ᶜ,
+  { have : f x = 0, { simp at hx, specialize h (mem_univ x), simpa [hx] using h },
+    simp [hx, this] },
+  { simp * at * }
+end
 
 end add_monoid
 

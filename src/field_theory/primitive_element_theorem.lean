@@ -10,6 +10,36 @@ import field_theory.separable
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
+section
+
+variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
+
+--lemma to move elsewhere:
+lemma infinite_lemma (hF : infinite F) : infinite E :=
+@infinite.of_injective _ _ hF (algebra_map F E) (algebra_map F E).injective
+
+variables {K : subalgebra F E} [is_subfield (K : set E)] [field K]
+
+/-lemma separable_lemma (hF : is_separable F E) : is_separable K E :=
+begin
+    intro x,
+    cases F_sep x with hx hs,
+    have hx' : is_integral (adjoin F S) x := is_integral_of_is_scalar_tower x hx,
+    use hx',
+    have key : (minimal_polynomial hx') ∣ (minimal_polynomial hx).map(algebra_map F (adjoin F S)),
+    apply minimal_polynomial.dvd,
+    dsimp[polynomial.aeval],
+    rw polynomial.eval₂_map,
+    rw ← adjoin.composition,
+    apply minimal_polynomial.aeval,
+    cases key with q hq,
+    apply polynomial.separable.of_mul_left,
+    rw ←hq,
+    exact polynomial.separable.map hs,
+end-/
+
+end
+
 /- Some stupid lemmas used below. Maybe some of them are already in mathlib? -/
 
 -- This should go into field_theory/subfield eventually probably
@@ -409,7 +439,7 @@ begin
         {   exact ⟨α, h⟩,   },
         {   have Fα_findim : finite_dimensional F⟮α⟯ E := sorry, --adjoin_findim_of_findim F α,
             have Fα_le_n : findim F⟮α⟯ E < n := sorry, --by rw ← hn; exact adjoin_dim_lt F hα,
-            have Fα_inf : infinite F⟮α⟯ := sorry, --adjoin_inf_of_inf F {α} F_inf,
+            have Fα_inf : infinite F⟮α⟯ := infinite_lemma F_inf,
             have Fα_sep : is_separable F⟮α⟯ E := sorry, --adjoin.separable F (set.insert α ∅),
             obtain ⟨β, hβ⟩ := ih (findim F⟮α⟯ E) Fα_le_n F⟮α⟯ Fα_sep Fα_findim Fα_inf rfl,
             obtain ⟨γ, hγ⟩ := primitive_element_two_inf α β F_sep F_inf,

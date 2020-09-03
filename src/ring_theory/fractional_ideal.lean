@@ -468,7 +468,7 @@ begin
     exact smul_mem _ _ y_mem }
 end
 
-@[simp] lemma map_ne_zero (hI : I ≠ 0) : I.map h ≠ 0 :=
+lemma map_ne_zero (hI : I ≠ 0) : I.map h ≠ 0 :=
 begin
   obtain ⟨x, x_ne_zero, hx⟩ := exists_ne_zero_mem_is_integer hI,
   contrapose! x_ne_zero with map_eq_zero,

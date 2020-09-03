@@ -52,30 +52,35 @@ theorem sort_sorted_lt (s : finset α) :
   list.sorted (<) (sort (≤) s) :=
 (sort_sorted _ _).imp₂ (@lt_of_le_of_ne _ _) (sort_nodup _ _)
 
-lemma sorted_zero_eq_min' (s : finset α) (h : 0 < s.card) :
-  (s.sort (≤)).nth_le 0 (by rwa length_sort) = s.min' (by rwa card_pos at h) :=
+lemma sorted_zero_eq_min'_aux (s : finset α) (h : 0 < (s.sort (≤)).length) (H : s.nonempty) :
+  (s.sort (≤)).nth_le 0 h = s.min' H :=
 begin
   let l := s.sort (≤),
-  have H : s.nonempty, by rwa card_pos at h,
-  have h' : 0 < (s.sort (≤)).length, by rwa length_sort,
   apply le_antisymm,
   { have : s.min' H ∈ l := (finset.mem_sort (≤)).mpr (s.min'_mem H),
     obtain ⟨i, i_lt, hi⟩ : ∃ i (hi : i < l.length), l.nth_le i hi = s.min' H :=
       list.mem_iff_nth_le.1 this,
     rw ← hi,
     exact list.nth_le_of_sorted_of_le (s.sort_sorted (≤)) (nat.zero_le i) },
-  { have : l.nth_le 0 h' ∈ s := (finset.mem_sort (≤)).1 (list.nth_le_mem l 0 h'),
+  { have : l.nth_le 0 h ∈ s := (finset.mem_sort (≤)).1 (list.nth_le_mem l 0 h),
     exact s.min'_le _ this }
 end
 
-lemma sorted_last_eq_max' (s : finset α) (H : s.nonempty) :
-  (s.sort (≤)).nth_le ((s.sort (≤)).length - 1) (by simpa using sub_lt (card_pos.mpr H) zero_lt_one)
-  = s.max' H :=
+lemma sorted_zero_eq_min' {s : finset α} {h : 0 < (s.sort (≤)).length} :
+  (s.sort (≤)).nth_le 0 h = s.min' (card_pos.1 $ by rwa length_sort at h) :=
+sorted_zero_eq_min'_aux _ _ _
+
+lemma min'_eq_sorted_zero {s : finset α} {h : s.nonempty} :
+  s.min' h = (s.sort (≤)).nth_le 0 (by { rw length_sort, exact card_pos.2 h }) :=
+(sorted_zero_eq_min'_aux _ _ _).symm
+
+lemma sorted_last_eq_max'_aux (s : finset α) (h : (s.sort (≤)).length - 1 < (s.sort (≤)).length)
+  (H : s.nonempty) : (s.sort (≤)).nth_le ((s.sort (≤)).length - 1) h = s.max' H :=
 begin
   let l := s.sort (≤),
   apply le_antisymm,
-  { have : l.nth_le ((s.sort (≤)).length - 1) _ ∈ s :=
-      (finset.mem_sort (≤)).1 (list.nth_le_mem l _ _),
+  { have : l.nth_le ((s.sort (≤)).length - 1) h ∈ s :=
+      (finset.mem_sort (≤)).1 (list.nth_le_mem l _ h),
     exact s.le_max' _ this },
   { have : s.max' H ∈ l := (finset.mem_sort (≤)).mpr (s.max'_mem H),
     obtain ⟨i, i_lt, hi⟩ : ∃ i (hi : i < l.length), l.nth_le i hi = s.max' H :=
@@ -84,6 +89,16 @@ begin
     have : i ≤ l.length - 1 := nat.le_pred_of_lt i_lt,
     exact list.nth_le_of_sorted_of_le (s.sort_sorted (≤)) (nat.le_pred_of_lt i_lt) },
 end
+
+lemma sorted_last_eq_max' {s : finset α} {h : (s.sort (≤)).length - 1 < (s.sort (≤)).length} :
+  (s.sort (≤)).nth_le ((s.sort (≤)).length - 1) h =
+  s.max' (by { rw length_sort at h, exact card_pos.1 (lt_of_le_of_lt bot_le h) }) :=
+sorted_last_eq_max'_aux _ _ _
+
+lemma max'_eq_sorted_last {s : finset α} {h : s.nonempty} :
+  s.max' h = (s.sort (≤)).nth_le ((s.sort (≤)).length - 1)
+    (by simpa using sub_lt (card_pos.mpr h) zero_lt_one) :=
+(sorted_last_eq_max'_aux _ _ _).symm
 
 /-- Given a finset `s` of cardinal `k` in a linear order `α`, the map `mono_of_fin s h`
 is the increasing bijection between `fin k` and `s` as an `α`-valued map. Here, `h` is a proof that

@@ -8,15 +8,34 @@ import computability.encoding
 import computability.turing_machine
 import data.polynomial.basic
 import data.polynomial.eval
-
 import tactic
+
+/-!
+# Computable functions
+
+This file contains the definition of a Turing machine with some finiteness conditions
+(bundling the definition of TM2 in turing_machine.lean), a definition of when a TM gives a certain
+output (in a certain time), and the definition of computability (in polytime or any time function)
+of a function between two types that have an encoding (as in encoding.lean).
+
+## Main theorems
+
+- `id_computable_in_poly_time` : a TM + a proof it computes the identity on a type in polytime.
+- `id_computable`              : a TM + a proof it computes the identity on a type.
+
+## Implementation notes
+
+To count the execution time of a Turing machine, we have decided to count the number of times the
+`step` function is used. Each step executes a statement (of type stmt); this is a function, and
+generally contains multiple "fundamental" steps (pushing, popping, so on). However, as functions
+only contain a finite number of executions and each one is executed at most once, this execution
+time is up to multiplication by a constant the amount of fundamental steps.
+-/
 
 open computability
 
 namespace tm2
 section
-
-#check decidable
 
 parameters {K : Type} [decidable_eq K] -- index type of stacks
 parameters (k₀ k₁ : K) -- input and output stack

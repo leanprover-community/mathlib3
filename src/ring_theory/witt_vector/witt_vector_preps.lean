@@ -433,71 +433,50 @@ variables (φ : mv_polynomial σ R)
 -- Then `bind₁ f φ` is just `(X i)^2`.
 -- `coeff a _ ≠ 0` holds for `a = single i 2`,
 -- but the support of `f i` is `single i 1`.
-lemma foo
-  (a : τ →₀ ℕ)
-   :
-  coeff a ((bind₁ f) φ) ≠ 0 → ∃ s : σ, s ∈ φ.vars ∧ a ∈ (f s).support :=
-begin
-  simp only [bind₁, aeval, eval₂_eq, ring_hom.to_fun_eq_coe, coe_eval₂_hom, finsupp.mem_support_iff, ne.def, alg_hom.coe_mk],
-  contrapose!, intro h,
-  simp only [coeff_sum],
-  apply finset.sum_eq_zero,
-  intros x hx,
-  simp only [mem_vars] at h,
-  convert h _ _,
+-- lemma foo
+--   (a : τ →₀ ℕ)
+--    :
+--   coeff a ((bind₁ f) φ) ≠ 0 → ∃ s : σ, s ∈ φ.vars ∧ a ∈ (f s).support :=
+-- begin
+--   simp only [bind₁, aeval, eval₂_eq, ring_hom.to_fun_eq_coe, coe_eval₂_hom, finsupp.mem_support_iff, ne.def, alg_hom.coe_mk],
+--   contrapose!, intro h,
+--   simp only [coeff_sum],
+--   apply finset.sum_eq_zero,
+--   intros x hx,
+--   simp only [mem_vars] at h,
+--   convert h _ _,
 
 
-  -- by_cases xz : x = 0,
-  -- { simp [xz], admit },
-  -- { obtain ⟨c, hc⟩ : ∃ c, c ∈ x.support := sorry,
-  --   have := h c ⟨x, hx, hc⟩,
-  -- convert coeff_zero _,
-  -- convert mul_zero _,
-  -- apply finset.prod_eq_zero,
-  -- { exact hc },
-  -- { convert zero_pow' _ _,
-  --   {  },
-  --   { simpa using hc }   }
-  --  }
 
-  -- simp only [aeval, eval₂_eq, ring_hom.to_fun_eq_coe, coe_eval₂_hom, finsupp.mem_support_iff, ne.def, alg_hom.coe_mk],
-  -- contrapose!, intro h,
-  -- simp only [coeff_sum],
-  -- apply finset.sum_eq_zero,
-  -- intros x hx,
-  -- convert coeff_zero _,
-  -- convert mul_zero _,
-  -- apply finset.prod_eq_zero,
+-- end
 
-end
+-- lemma bind₁_vars : (bind₁ f φ).vars ⊆ φ.vars.bind (λ i, (f i).vars) :=
+-- begin
 
-lemma bind₁_vars : (bind₁ f φ).vars ⊆ φ.vars.bind (λ i, (f i).vars) :=
-begin
+--   intro x,
+--   simp [vars, ← finset.bind_to_finset, bind₁],
+--   intro hx,
+--   obtain ⟨a, ha, hax⟩ := mem_degrees.mp hx,
+--   -- rw coeff_aeval at ha,
 
-  intro x,
-  simp [vars, ← finset.bind_to_finset, bind₁],
-  intro hx,
-  obtain ⟨a, ha, hax⟩ := mem_degrees.mp hx,
-  -- rw coeff_aeval at ha,
+--   rcases foo _ _ _ ha with ⟨s, hs, hs2⟩,
+--   simp [vars] at hs,
+--   use [s, hs],
+--   rw degrees,
+--   rw finset.mem_sup,
+--   use [a, hs2],
+--   rw finsupp.mem_to_multiset, exact hax
 
-  rcases foo _ _ _ ha with ⟨s, hs, hs2⟩,
-  simp [vars] at hs,
-  use [s, hs],
-  rw degrees,
-  rw finset.mem_sup,
-  use [a, hs2],
-  rw finsupp.mem_to_multiset, exact hax
-
-  -- rw aeval_coe
-  -- apply φ.induction_on,
-  -- { intro a, simp },
-  -- { intros p q hp hq,
-  --   simp,
-  --   apply finset.subset.trans (vars_add_subset _ _),
-  --   apply finset.union_subset,
-  --   sorry, sorry },
-  -- { intros p n hp, simp [hp], }
-end
+--   -- rw aeval_coe
+--   -- apply φ.induction_on,
+--   -- { intro a, simp },
+--   -- { intros p q hp hq,
+--   --   simp,
+--   --   apply finset.subset.trans (vars_add_subset _ _),
+--   --   apply finset.union_subset,
+--   --   sorry, sorry },
+--   -- { intros p n hp, simp [hp], }
+-- end
 
 lemma vars_mul (φ ψ : mv_polynomial σ R) :
   (φ * ψ).vars ⊆ φ.vars ∪ ψ.vars :=
@@ -519,12 +498,29 @@ begin
     rw [coeff, ← finsupp.not_mem_support_iff], intro, solve_by_elim, },
 end
 
+@[simp] lemma vars_one : (1 : mv_polynomial σ R).vars = ∅ :=
+vars_C
+
 lemma vars_pow (φ : mv_polynomial σ R) (n : ℕ) :
-  (φ ^ n).vars ⊆ φ.vars := sorry
+  (φ ^ n).vars ⊆ φ.vars :=
+begin
+  induction n with n ih,
+  { simp },
+  { rw pow_succ,
+    apply finset.subset.trans (vars_mul _ _),
+    exact finset.union_subset (finset.subset.refl _) ih }
+end
 
 lemma vars_prod {ι : Type*} {s : finset ι} (f : ι → mv_polynomial σ R) :
   (∏ i in s, f i).vars ⊆ s.bind (λ i, (f i).vars) :=
-sorry
+begin
+  apply s.induction_on,
+  { simp },
+  { intros a s hs hsub,
+    simp only [hs, finset.bind_insert, finset.prod_insert, not_false_iff],
+    apply finset.subset.trans (vars_mul _ _),
+    exact finset.union_subset_union (finset.subset.refl _) hsub }
+end
 
 section
 variables {A : Type*} [integral_domain A]
@@ -544,7 +540,7 @@ sorry
 
 end
 
-lemma bind₁_vars' : (bind₁ f φ).vars ⊆ φ.vars.bind (λ i, (f i).vars) :=
+lemma bind₁_vars : (bind₁ f φ).vars ⊆ φ.vars.bind (λ i, (f i).vars) :=
 begin
   -- can we prove this using the `mono` tactic?
   -- are the lemmas above good `mono` lemmas?

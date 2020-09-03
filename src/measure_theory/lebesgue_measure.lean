@@ -262,7 +262,7 @@ lemma map_volume_add_left (a : ℝ) : measure.map ((+) a) volume = volume :=
 eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
   by simp [measure.map_apply (measurable_add_left a) is_measurable_Ioo, sub_sub_sub_cancel_right]
 
-lemma map_volume_add_right (a : ℝ) : measure.map (λ x, x + a) volume = volume :=
+lemma map_volume_add_right (a : ℝ) : measure.map (+ a) volume = volume :=
 by simpa only [add_comm] using real.map_volume_add_left a
 
 lemma smul_map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
@@ -286,11 +286,11 @@ by conv_rhs { rw [← real.smul_map_volume_mul_left h, smul_smul,
   one_smul] }
 
 lemma smul_map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
-  ennreal.of_real (abs a) • measure.map (λ x, x * a) volume = volume :=
+  ennreal.of_real (abs a) • measure.map (* a) volume = volume :=
 by simpa only [mul_comm] using real.smul_map_volume_mul_left h
 
 lemma map_volume_mul_right {a : ℝ} (h : a ≠ 0) :
-  measure.map (λ x, x * a) volume = ennreal.of_real (abs a⁻¹) • volume :=
+  measure.map (* a) volume = ennreal.of_real (abs a⁻¹) • volume :=
 by simpa only [mul_comm] using real.map_volume_mul_left h
 
 @[simp] lemma map_volume_neg : measure.map has_neg.neg (volume : measure ℝ) = volume :=

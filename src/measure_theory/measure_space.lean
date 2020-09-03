@@ -892,7 +892,7 @@ alias ext_iff_of_sUnion_eq_univ ↔ _ measure_theory.measure.ext_of_sUnion_eq_un
 lemma ext_of_generate_from_of_cover {S T : set (set α)}
   (h_gen : ‹_› = measurable_space.generate_from S) (hc : countable T)
   (h_inter : ∀ (s₁ ∈ S) (s₂ ∈ S), (s₁ ∩ s₂ : set α).nonempty → s₁ ∩ s₂ ∈ S)
-  (hm : ∀ t ∈ T, is_measurable t) (hU : (⋃₀ T) = univ) (htop : ∀ t ∈ T, μ t < ⊤)
+  (hm : ∀ t ∈ T, is_measurable t) (hU : ⋃₀ T = univ) (htop : ∀ t ∈ T, μ t < ⊤)
   (ST_eq : ∀ (t ∈ T) (s ∈ S), μ (s ∩ t) = ν (s ∩ t)) (T_eq : ∀ t ∈ T, μ t = ν t) :
   μ = ν :=
 begin
@@ -913,18 +913,17 @@ begin
     simp only [Union_inter, measure_Union this (λ n, is_measurable.inter (hfm n) (hm t ht)), h_eq] }
 end
 
-lemma ext_of_generate_from_of_cover_same {S : set (set α)}
-  (h_gen : ‹_› = measurable_space.generate_from S) (hc : countable S)
+lemma ext_of_generate_from_of_cover_subset {S T : set (set α)} 
+  (h_gen : ‹_› = measurable_space.generate_from S) (hc : countable T) 
   (h_inter : ∀ (s₁ ∈ S) (s₂ ∈ S), (s₁ ∩ s₂ : set α).nonempty → s₁ ∩ s₂ ∈ S)
-  (hm : ∀ s ∈ S, is_measurable s) (hU : (⋃₀ S) = univ) (htop : ∀ s ∈ S, μ s < ⊤)
-  (h_eq : ∀ s ∈ S, μ s = ν s) :
+  (h_sub : T ⊆ S) (hU : ⋃₀ T = univ) (htop : ∀ s ∈ T, μ s < ⊤) (h_eq : ∀ s ∈ S, μ s = ν s) : 
   μ = ν :=
 begin
-  refine ext_of_generate_from_of_cover h_gen hc h_inter hm hU htop _ h_eq,
-  intros s₁ h₁ s₂ h₂,
-  cases (s₂ ∩ s₁).eq_empty_or_nonempty with H H,
-  { simp only [H, measure_empty] },
-  { exact h_eq _ (h_inter _ h₂ _ h₁ H) }
+  refine ext_of_generate_from_of_cover h_gen hc h_inter _ hU htop _ (λ t ht, h_eq t (h_sub ht)),
+  { intros t ht, rw [h_gen], exact measurable_space.generate_measurable.basic _ (h_sub ht) },
+  { intros t ht s hs, cases (s ∩ t).eq_empty_or_nonempty with H H,
+    { simp only [H, measure_empty] },
+    { exact h_eq _ (h_inter _ hs _ (h_sub ht) H) } }
 end
 
 /-- The dirac measure. -/

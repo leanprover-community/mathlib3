@@ -52,6 +52,7 @@ namespace is_R_or_C
 
 variables {K : Type*} [nondiscrete_normed_field K] [algebra ℝ K] [is_R_or_C K]
 local notation `𝓚` := @is_R_or_C.of_real K _ _ _
+local postfix `†`:100 := @is_R_or_C.conj K _ _ _
 
 lemma of_real_alg : ∀ x : ℝ, 𝓚 x = x • (1 : K) :=
 λ x, by rw [←mul_one (𝓚 x), smul_coe_mul_ax]
@@ -63,6 +64,8 @@ lemma of_real_alg : ∀ x : ℝ, 𝓚 x = x • (1 : K) :=
 is_R_or_C.mul_re_ax
 @[simp] lemma mul_im : ∀ z w : K, im (z * w) = re z * im w + im z * re w :=
 is_R_or_C.mul_im_ax
+
+lemma inv_def {z : K}: z⁻¹ = conj z * of_real ((∥z∥^2)⁻¹) := is_R_or_C.inv_def_ax z
 
 theorem ext_iff : ∀ {z w : K}, z = w ↔ re z = re w ∧ im z = im w :=
 λ z w, { mp := by { rintro rfl, cc },
@@ -236,9 +239,15 @@ lemma norm_sq_sub (z w : K) : norm_sq (z - w) =
   norm_sq z + norm_sq w - 2 * re (z * conj w) :=
 by simp [-mul_re, norm_sq_add, add_comm, add_left_comm, sub_eq_add_neg]
 
-/-! ### Inversion -/
+lemma sqrt_norm_sq_eq_norm {z : K} : real.sqrt (norm_sq z) = ∥z∥ :=
+begin
+  have h₁ : (norm_sq z) = ∥z∥^2 := by rw [norm_sq_eq_def, norm_sq],
+  have h₂ : ∥z∥ = real.sqrt (∥z∥^2) := eq_comm.mp (real.sqrt_sqr (norm_nonneg z)),
+  rw [h₂],
+  exact congr_arg real.sqrt h₁
+end
 
-lemma inv_def {z : K} : z⁻¹ = conj z * of_real ((∥z∥^2)⁻¹) := inv_def_ax z
+/-! ### Inversion -/
 
 @[simp] lemma inv_re (z : K) : re (z⁻¹) = re z / norm_sq z :=
 by simp [inv_def, norm_sq_eq_def, norm_sq, division_def]
@@ -266,6 +275,15 @@ by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm]
 @[simp] lemma of_real_div (r s : ℝ) : 𝓚 (r / s : ℝ) = 𝓚 r / 𝓚 s :=
 (@is_R_or_C.of_real_hom K _ _ _).map_div r s
 
+lemma div_re_of_real {z : K} {r : ℝ} : re (z / (𝓚 r)) = re z / r :=
+begin
+  by_cases h : r = 0,
+  { simp [h, of_real_zero] },
+  { change r ≠ 0 at h,
+    rw [div_eq_mul_inv, ←of_real_inv, div_eq_mul_inv],
+    simp [norm_sq, norm_sq_of_real, div_mul_eq_div_mul_one_div, div_self h] }
+end
+
 @[simp] lemma of_real_fpow (r : ℝ) (n : ℤ) : 𝓚 (r ^ n) = (𝓚 r) ^ n :=
 (@is_R_or_C.of_real_hom K _ _ _).map_fpow r n
 
@@ -292,6 +310,15 @@ end
 
 @[simp] lemma norm_sq_div (z w : K) : norm_sq (z / w) = norm_sq z / norm_sq w :=
 by { rw [division_def, norm_sq_mul, norm_sq_inv], refl }
+
+lemma norm_conj {z : K} : ∥conj z∥ = ∥z∥ :=
+by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
+
+lemma conj_inv {z : K} : conj (z⁻¹) = (conj z)⁻¹ :=
+by simp only [inv_def, norm_conj, ring_hom.map_mul, conj_of_real]
+
+lemma conj_div {z w : K} : conj (z / w) = (conj z) / (conj w) :=
+by rw [div_eq_inv_mul, div_eq_inv_mul, ring_hom.map_mul]; simp only [conj_inv]
 
 /-! ### Cast lemmas -/
 
@@ -445,6 +472,21 @@ by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]
 lemma norm_sq_eq_abs (x : K) : norm_sq x = abs x ^ 2 :=
 by rw [abs, pow_two, real.mul_self_sqrt (norm_sq_nonneg _)]
 
+lemma re_eq_abs_of_mul_conj (x : K) : re (x * (conj x)) = abs (x * (conj x)) :=
+by rw [mul_conj, of_real_re, abs_of_real, norm_sq_eq_abs, pow_two, _root_.abs_mul, abs_abs]
+
+lemma abs_sqr_re_add_conj (x : K) : (abs (x + x†))^2 = (re (x + x†))^2 :=
+by simp [pow_two, ←norm_sq_eq_abs, norm_sq]
+
+lemma abs_sqr_re_add_conj' (x : K) : (abs (x† + x))^2 = (re (x† + x))^2 :=
+by simp [pow_two, ←norm_sq_eq_abs, norm_sq]
+
+lemma conj_mul_eq_norm_sq_left (x : K) : x† * x = 𝓚 (norm_sq x) :=
+begin
+  rw ext_iff,
+  refine ⟨by simp [of_real_re, mul_re, conj_re, conj_im, norm_sq],_⟩,
+  simp [of_real_im, mul_im, conj_im, conj_re, mul_comm],
+end
 
 /-! ### Cauchy sequences -/
 

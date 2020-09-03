@@ -26,14 +26,8 @@ find $dirs -name "*.olean" -delete || true
 }
 
 # Delete every <path>.olean where <path>.lean appears in "src/.noisy_files"
-# n.b. this for loop will break if there are filenames with spaces
 if [ -e $dirs/.noisy_files ]; then
-  while read lean_file;
-  do
-    olean_file=${lean_file/%.lean/.olean}
-    # the olean file might not exist
-    [ ! -e $olean_file ] || rm $olean_file
-  done < $dirs/.noisy_files
+  sed 's/\.lean$/.olean/' $dirs/.noisy_files | xargs -d'\n' rm -f
   rm $dirs/.noisy_files
 fi
 

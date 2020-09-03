@@ -130,7 +130,7 @@ lemma exists_root_of_splits {f : polynomial α} (hs : splits i f) (hf0 : degree 
   ∃ x, eval₂ i x f = 0 :=
 if hf0 : f = 0 then ⟨37, by simp [hf0]⟩
 else
-  let ⟨g, hg⟩ := is_noetherian_ring.exists_irreducible_factor
+  let ⟨g, hg⟩ := DCC_dvd.exists_irreducible_factor
     (show ¬ is_unit (f.map i), from mt is_unit_iff_degree_eq_zero.1 (by rwa degree_map))
     (map_ne_zero hf0) in
   let ⟨x, hx⟩ := exists_root_of_degree_eq_one (hs.resolve_left hf0 hg.1 hg.2) in
@@ -328,8 +328,8 @@ end
 theorem factor_dvd_of_not_is_unit {f : polynomial α} (hf1 : ¬is_unit f) : factor f ∣ f :=
 begin
   by_cases hf2 : f = 0, { rw hf2, exact dvd_zero _ },
-  rw [factor, dif_pos (is_noetherian_ring.exists_irreducible_factor hf1 hf2)],
-  exact (classical.some_spec $ is_noetherian_ring.exists_irreducible_factor hf1 hf2).2
+  rw [factor, dif_pos (DCC_dvd.exists_irreducible_factor hf1 hf2)],
+  exact (classical.some_spec $ DCC_dvd.exists_irreducible_factor hf1 hf2).2
 end
 
 theorem factor_dvd_of_degree_ne_zero {f : polynomial α} (hf : f.degree ≠ 0) : factor f ∣ f :=

@@ -410,17 +410,17 @@ abbreviation has_equalizer := has_limit (parallel_pair f g)
 
 variables [has_equalizer f g]
 
-/-- If we have chosen an equalizer of `f` and `g`, we can access the corresponding object by
+/-- If an equalizer of `f` and `g` exists, we can access an arbitrary choice of such by
     saying `equalizer f g`. -/
 abbreviation equalizer : C := limit (parallel_pair f g)
 
-/-- If we have chosen an equalizer of `f` and `g`, we can access the inclusion
+/-- If an equalizer of `f` and `g` exists, we can access the inclusion
     `equalizer f g ⟶ X` by saying `equalizer.ι f g`. -/
 abbreviation equalizer.ι : equalizer f g ⟶ X :=
 limit.π (parallel_pair f g) zero
 
 /--
-The chosen equalizer cone for a parallel pair `f` and `g`.
+An equalizer cone for a parallel pair `f` and `g`.
 -/
 abbreviation equalizer.fork : fork f g := limit.cone (parallel_pair f g)
 
@@ -544,17 +544,17 @@ abbreviation has_coequalizer := has_colimit (parallel_pair f g)
 
 variables [has_coequalizer f g]
 
-/-- If we have chosen a coequalizer of `f` and `g`, we can access the corresponding object by
+/-- If a coequalizer of `f` and `g` exists, we can access an arbitrary choice of such by
     saying `coequalizer f g`. -/
 abbreviation coequalizer : C := colimit (parallel_pair f g)
 
-/-- If we have chosen a coequalizer of `f` and `g`, we can access the corresponding projection by
+/--  If a coequalizer of `f` and `g` exists, we can access the corresponding projection by
     saying `coequalizer.π f g`. -/
 abbreviation coequalizer.π : Y ⟶ coequalizer f g :=
 colimit.ι (parallel_pair f g) one
 
 /--
-The chosen coequalizer cocone for a parallel pair `f` and `g`.
+An arbitrary choice of coequalizer cocone for a parallel pair `f` and `g`.
 -/
 abbreviation coequalizer.cofork : cofork f g := colimit.cocone (parallel_pair f g)
 

@@ -20,7 +20,7 @@ In the first part, given a coherent family `D` of limit cones over the functors 
 and a cone `c` over `G`, we construct a cone over the cone points of `D`.
 We then show that if `c` is a limit cone, the constructed cone is also a limit cone.
 
-In the second part, we state the Fubini theorem in the setting where we have chosen limits
+In the second part, we state the Fubini theorem in the setting where limits are
 provided by suitable `has_limit` classes.
 
 We construct
@@ -153,7 +153,7 @@ variables (F)
 variables [has_limits_of_shape K C]
 
 /--
-Given a functor `F : J ⥤ K ⥤ C`, with all needed chosen limits,
+Given a functor `F : J ⥤ K ⥤ C`, with all needed limits,
 we can construct a diagram consisting of the limit cone over each functor `F.obj j`,
 and the universal cone morphisms between these.
 -/

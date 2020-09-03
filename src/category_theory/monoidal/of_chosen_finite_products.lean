@@ -12,12 +12,12 @@ import category_theory.pempty
 # The monoidal structure on a category with chosen finite products.
 
 This is a variant of the development in `category_theory.monoidal.of_has_finite_products`,
-which used specified choices of the terminal object and binary product,
+which uses specified choices of the terminal object and binary product,
 enabling the construction of a cartesian category with specific definitions of the tensor unit
 and tensor product.
 
 (Because the construction in `category_theory.monoidal.of_has_finite_products` uses `has_limit`
-classes, the actual definitions are opaque behind `classical.choice`.)
+classes, the actual definitions there are opaque behind `classical.choice`.)
 
 We use this in `category_theory.monoidal.types` to construct the monoidal category of types
 so that the tensor product is the usual cartesian product of types.

@@ -141,8 +141,8 @@ has_colimit.mk { cocone := (biproduct.bicone F).to_cocone,
 variables (J C)
 
 /--
-`C` has biproducts of shape `J` if we have chosen
-a particular limit and a particular colimit, with the same cone points,
+`C` has biproducts of shape `J` if we have
+a limit and a colimit, with the same cone points,
 of every function `F : J → C`.
 -/
 class has_biproducts_of_shape : Prop :=
@@ -458,7 +458,7 @@ section
 variable (C)
 
 /--
-`has_binary_biproducts C` represents a particular chosen bicone which is
+`has_binary_biproducts C` represents the existence of a bicone which is
 simultaneously a limit and a colimit of the diagram `pair P Q`, for every `P Q : C`.
 -/
 class has_binary_biproducts : Prop :=
@@ -509,7 +509,7 @@ def biprod_iso (X Y : C) [has_binary_biproduct X Y]  :
 (is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (binary_biproduct.is_limit X Y)).trans $
   is_colimit.cocone_point_unique_up_to_iso (binary_biproduct.is_colimit X Y) (colimit.is_colimit _)
 
-/-- The chosen biproduct of a pair of objects. -/
+/-- An arbitrary choice of biproduct of a pair of objects. -/
 abbreviation biprod (X Y : C) [has_binary_biproduct X Y] := (binary_biproduct.bicone X Y).X
 
 notation X ` ⊞ `:20 Y:20 := biprod X Y

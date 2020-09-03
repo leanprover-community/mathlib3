@@ -914,7 +914,7 @@ begin
       exact_mod_cast nat.prime.one_lt ‹_› }, },
 end
 
-lemma norm_int_lt_pow_iff_dvd (k : ℤ) (n : ℕ) : ↑(p^n) ∣ k ↔ ∥(k : ℚ_[p])∥ ≤ ((↑p)^(-n : ℤ)) :=
+lemma norm_int_le_pow_iff_dvd (k : ℤ) (n : ℕ) : ∥(k : ℚ_[p])∥ ≤ ((↑p)^(-n : ℤ)) ↔ ↑(p^n) ∣ k :=
 begin
   have : (p : ℝ) ^ (-n : ℤ) = ↑((p ^ (-n : ℤ) : ℚ)), {simp},
   rw [show (k : ℚ_[p]) = ((k : ℚ) : ℚ_[p]), by norm_cast, eq_padic_norm, this],

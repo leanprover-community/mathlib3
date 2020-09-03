@@ -68,13 +68,13 @@ Use `has_initial_of_unique` to construct instances.
 abbreviation has_initial := has_colimits_of_shape (discrete pempty) C
 
 /--
-The chosen terminal object, if it exists.
+An arbitrary choice of terminal object, if one exists.
 You can use the notation `⊤_ C`.
 This object is characterized by having a unique morphism from any object.
 -/
 abbreviation terminal [has_terminal C] : C := limit (functor.empty C)
 /--
-The chosen initial object, if it exists.
+An arbitrary choice of initial object, if one exists.
 You can use the notation `⊥_ C`.
 This object is characterized by having a unique morphism to any object.
 -/
@@ -115,11 +115,11 @@ instance unique_from_initial [has_initial C] (P : C) : unique (⊥_ C ⟶ P) :=
 { default := initial.to P,
   uniq := λ m, by { apply colimit.hom_ext, rintro ⟨⟩ } }
 
-/-- The chosen terminal object is terminal. -/
+/-- A terminal object is terminal. -/
 def terminal_is_terminal [has_terminal C] : is_terminal (⊤_ C) :=
 { lift := λ s, terminal.from _ }
 
-/-- The chosen initial object is terminal. -/
+/-- A initial object is terminal. -/
 def initial_is_initial [has_initial C] : is_initial (⊥_ C) :=
 { desc := λ s, initial.to _ }
 

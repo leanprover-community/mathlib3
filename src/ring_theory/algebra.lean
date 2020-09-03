@@ -656,7 +656,7 @@ theorem to_linear_map_inj {e₁ e₂ : A₁ ≃ₐ[R] A₂} (H : e₁.to_linear_
 ext $ λ x, show e₁.to_linear_map x = e₂.to_linear_map x, by rw H
 
 @[simp] lemma trans_to_linear_map (f : A₁ ≃ₐ[R] A₂) (g : A₂ ≃ₐ[R] A₃) :
-(f.trans g).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
+  (f.trans g).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
 
 end alg_equiv
 

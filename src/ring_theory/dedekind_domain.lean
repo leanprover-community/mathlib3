@@ -18,8 +18,11 @@ giving three equivalent definitions (TODO: and shows that they are equivalent).
  - `is_dedekind_domain` defines a Dedekind domain as a commutative ring that is not a field,
    Noetherian, integrally closed in its field of fractions and has Krull dimension exactly one.
    `is_dedekind_domain_iff` shows that this does not depend on the choice of field of fractions.
-
-TODO
+ - `is_dedekind_domain_dvr` alternatively defines a Dedekind domain as an integral domain that is not a field,
+   Noetherian, and the localization at every nonzero prime ideal is a discrete valuation ring.
+ - `is_dedekind_domain_inv` alternatively defines a Dedekind domain as an integral domain that is not a field,
+   and every nonzero fractional ideal is invertible.
+ - `is_dedekind_domain_inv_iff` shows that this does note depend on the choice of field of fractions.
 
 ## Implementation notes
 

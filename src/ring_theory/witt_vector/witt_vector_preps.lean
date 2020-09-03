@@ -16,7 +16,7 @@ universes u v w u₁
 
 -- ### FOR_MATHLIB
 
-
+open_locale big_operators
 
 namespace mv_polynomial
 open finsupp
@@ -268,6 +268,10 @@ by ext1; simp [bind₁]
 lemma bind₁_X_right (f : σ → mv_polynomial τ R) (i : σ) : bind₁ f (X i) = f i :=
 aeval_X f i
 
+@[simp]
+lemma bind₂_X_right (f : R →+* mv_polynomial σ S) (i : σ) : bind₂ f (X i) = X i :=
+eval₂_hom_X' f X i
+
 variable (f : σ → mv_polynomial τ R)
 variable x : R
 
@@ -390,6 +394,20 @@ by { rw [hom_bind₁, map_comp_C, ← eval₂_hom_map_hom], refl }
 @[simp]
 lemma eval₂_hom_C_left (f : σ → mv_polynomial τ R) : eval₂_hom C f = bind₁ f := rfl
 
+lemma bind₁_monomial (f : σ → mv_polynomial τ R) (d : σ →₀ ℕ) (r : R) :
+  bind₁ f (monomial d r) = C r * ∏ i in d.support, f i ^ d i :=
+by simp only [monomial_eq, alg_hom.map_mul, bind₁_C_right, finsupp.prod,
+  alg_hom.map_prod, alg_hom.map_pow, bind₁_X_right]
+
+lemma bind₂_monomial (f : R →+* mv_polynomial σ S) (d : σ →₀ ℕ) (r : R) :
+  bind₂ f (monomial d r) = f r * monomial d 1 :=
+by simp only [monomial_eq, ring_hom.map_mul, bind₂_C_right, finsupp.prod,
+  ring_hom.map_prod, ring_hom.map_pow, bind₂_X_right, C_1, one_mul]
+
+@[simp]
+lemma bind₂_monomial_one (f : R →+* mv_polynomial σ S) (d : σ →₀ ℕ) :
+  bind₂ f (monomial d 1) = monomial d 1 :=
+by rw [bind₂_monomial, f.map_one, one_mul]
 
 section
 
@@ -410,12 +428,17 @@ variables (φ : mv_polynomial σ R)
 -- I've made a few starts at this, none of them feel right.
 -- this might not be the right lemma
 -- but it proves bind₁_vars
+-- jmc: I fear that unfortunatley the lemma is wrong
+-- Take `φ = (X i)^2`, and `f = X`.
+-- Then `bind₁ f φ` is just `(X i)^2`.
+-- `coeff a _ ≠ 0` holds for `a = single i 2`,
+-- but the support of `f i` is `single i 1`.
 lemma foo
   (a : τ →₀ ℕ)
    :
-  coeff a ((aeval f) φ) ≠ 0 → ∃ s : σ, s ∈ φ.vars ∧ a ∈ (f s).support  :=
+  coeff a ((bind₁ f) φ) ≠ 0 → ∃ s : σ, s ∈ φ.vars ∧ a ∈ (f s).support :=
 begin
-  simp only [aeval, eval₂_eq, ring_hom.to_fun_eq_coe, coe_eval₂_hom, finsupp.mem_support_iff, ne.def, alg_hom.coe_mk],
+  simp only [bind₁, aeval, eval₂_eq, ring_hom.to_fun_eq_coe, coe_eval₂_hom, finsupp.mem_support_iff, ne.def, alg_hom.coe_mk],
   contrapose!, intro h,
   simp only [coeff_sum],
   apply finset.sum_eq_zero,
@@ -456,6 +479,7 @@ begin
   intro hx,
   obtain ⟨a, ha, hax⟩ := mem_degrees.mp hx,
   -- rw coeff_aeval at ha,
+
   rcases foo _ _ _ ha with ⟨s, hs, hs2⟩,
   simp [vars] at hs,
   use [s, hs],
@@ -463,6 +487,7 @@ begin
   rw finset.mem_sup,
   use [a, hs2],
   rw finsupp.mem_to_multiset, exact hax
+
   -- rw aeval_coe
   -- apply φ.induction_on,
   -- { intro a, simp },
@@ -472,6 +497,15 @@ begin
   --   apply finset.union_subset,
   --   sorry, sorry },
   -- { intros p n hp, simp [hp], }
+end
+
+lemma bind₁_vars' : (bind₁ f φ).vars ⊆ φ.vars.bind (λ i, (f i).vars) :=
+begin
+  calc (bind₁ f φ).vars
+      = (φ.support.sum (λ (x : σ →₀ ℕ), (bind₁ f) (monomial x (coeff x φ)))).vars : by { rw [← alg_hom.map_sum, ← φ.as_sum], }
+  ... ≤ φ.support.bind (λ (i : σ →₀ ℕ), ((bind₁ f) (monomial i (coeff i φ))).vars) : vars_sum_subset _ _
+  ... ≤ φ.vars.bind (λ (i : σ), (f i).vars) : _,
+
 end
 
 end

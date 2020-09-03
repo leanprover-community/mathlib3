@@ -1,10 +1,11 @@
 /-
 Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Johannes Hölzl, Casper Putz
+Author: Johannes Hölzl, Patrick Massot, Casper Putz
 -/
 import linear_algebra.finite_dimensional
 import linear_algebra.nonsingular_inverse
+import linear_algebra.multilinear
 
 /-!
 # Linear maps and matrices
@@ -15,16 +16,37 @@ to matrices. This defines a linear equivalence between linear maps
 between finite-dimensional vector spaces and matrices indexed by
 the respective bases.
 
+It also defines the trace of an endomorphism, and the determinant of a family of vectors with
+respect to some basis.
+
 Some results are proved about the linear map corresponding to a
 diagonal matrix (`range`, `ker` and `rank`).
 
 ## Main definitions
 
-`to_lin`, `to_matrix`, `linear_equiv_matrix`
+In the list below, and in all this file, `R` is a commutative ring (semiring
+is sometimes enough), `M` and its variations are `R`-modules, `ι`, `κ`, `n` and `m` are finite
+types used for indexing.
+
+* `to_lin`: the `R`-linear map from `matrix m n R` to `R`-linear maps from `n → R` to `m → R`
+* `to_matrix`: the map in the other direction
+* `linear_equiv_matrix`: given bases `v₁ : ι → M₁` and `v₂ : κ → M₂`, the `R`-linear equivalence
+  from `M₁ →ₗ[R] M₂` to `matrix κ ι R`
+* `linear_equiv_matrix'`: the same thing but with `M₁ = n → R` and `M₂ = m → R`, using their
+  standard bases
+* `alg_equiv_matrix`: given a basis indexed by `n`, the `R`-algebra equivalence between
+  `R`-endomorphisms of `M` and `matrix n n R`
+* `matrix.trace`: the trace of a square matrix
+* `linear_map.trace`: the trace of an endomorphism
+* `is_basis.to_matrix`: the matrix whose columns are a given family of vectors in a given basis
+* `is_basis.to_matrix_equiv`: given a basis, the linear equivalence between families of vectors
+  and matrices arising from `is_basis.to_matrix`
+* `is_basis.det`: the determinant of a family of vectors with respect to a basis, as a multilinear
+  map
 
 ## Tags
 
-linear_map, matrix, linear_equiv, diagonal
+linear_map, matrix, linear_equiv, diagonal, det, trace
 
 -/
 
@@ -131,7 +153,7 @@ theorem to_matrix_of_equiv {p q : Type*} [decidable_eq n] [decidable_eq q] [fint
       (linear_map.fun_congr_left R R e₂)
       (linear_map.fun_congr_left R R e₁) f) i j :=
 show f (λ k : q, ite (e₂ j = k) 1 0) (e₁ i) = f (λ k : q, ite (j = e₂.symm k) 1 0) (e₁ i),
-by { congr' 1, ext, congr' 1, rw equiv.eq_symm_apply }
+by { rcongr, rw equiv.eq_symm_apply }
 
 end linear_map
 
@@ -192,23 +214,47 @@ def linear_equiv_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n 
 @[simp] lemma linear_equiv_matrix'_apply (f : (n → R) →ₗ[R] (m → R)) :
   linear_equiv_matrix' f = to_matrix f := rfl
 
-/-- Given a basis of two modules `M₁` and `M₂` over a commutative ring `R`, we get a linear
-equivalence between linear maps `M₁ →ₗ M₂` and matrices over `R` indexed by the bases. -/
-def linear_equiv_matrix {ι κ M₁ M₂ : Type*}
+variables {ι κ M₁ M₂ : Type*}
   [add_comm_group M₁] [module R M₁]
   [add_comm_group M₂] [module R M₂]
-  [decidable_eq ι] [fintype ι] [fintype κ]
-  {v₁ : ι → M₁} {v₂ : κ → M₂} (hv₁ : is_basis R v₁) (hv₂ : is_basis R v₂) :
+  [fintype ι] [decidable_eq ι] [fintype κ]
+  {v₁ : ι → M₁} {v₂ : κ → M₂}
+
+/-- Given bases of two modules `M₁` and `M₂` over a commutative ring `R`, we get a linear
+equivalence between linear maps `M₁ →ₗ M₂` and matrices over `R` indexed by the bases. -/
+def linear_equiv_matrix (hv₁ : is_basis R v₁) (hv₂ : is_basis R v₂) :
   (M₁ →ₗ[R] M₂) ≃ₗ[R] matrix κ ι R :=
-linear_equiv.trans (linear_equiv.arrow_congr (equiv_fun_basis hv₁) (equiv_fun_basis hv₂)) linear_equiv_matrix'
+linear_equiv.trans (linear_equiv.arrow_congr hv₁.equiv_fun hv₂.equiv_fun) linear_equiv_matrix'
+
+variables (hv₁ : is_basis R v₁) (hv₂ : is_basis R v₂)
+
+lemma linear_equiv_matrix_apply (f : M₁ →ₗ[R] M₂) (i : κ) (j : ι) :
+  linear_equiv_matrix hv₁ hv₂ f i j = hv₂.equiv_fun (f (v₁ j)) i :=
+by simp only [linear_equiv_matrix, to_matrix, to_matrixₗ, ite_smul,
+  linear_equiv.trans_apply, linear_equiv.arrow_congr_apply,
+  linear_equiv.coe_coe, linear_equiv_matrix'_apply, finset.mem_univ, if_true,
+  one_smul, zero_smul, finset.sum_ite_eq, hv₁.equiv_fun_symm_apply]
+
+lemma linear_equiv_matrix_apply' (f : M₁ →ₗ[R] M₂) (i : κ) (j : ι) :
+  linear_equiv_matrix hv₁ hv₂ f i j = hv₂.repr (f (v₁ j)) i :=
+linear_equiv_matrix_apply hv₁ hv₂ f i j
+
+@[simp]
+lemma linear_equiv_matrix_id : linear_equiv_matrix hv₁ hv₁ id = 1 :=
+begin
+  ext i j,
+  simp [linear_equiv_matrix_apply, is_basis.equiv_fun, matrix.one_apply, finsupp.single, eq_comm]
+end
+
+@[simp] lemma linear_equiv_matrix_symm_one : (linear_equiv_matrix hv₁ hv₁).symm 1 = id :=
+begin
+  rw [← linear_equiv_matrix_id hv₁, ← linear_equiv.trans_apply],
+  simp
+end
 
 open_locale classical
 
-theorem linear_equiv_matrix_range {ι κ M₁ M₂ : Type*}
-  [add_comm_group M₁] [module R M₁]
-  [add_comm_group M₂] [module R M₂]
-  [fintype ι] [fintype κ]
-  {v₁ : ι → M₁} {v₂ : κ → M₂} (hv₁ : is_basis R v₁) (hv₂ : is_basis R v₂) (f : M₁ →ₗ[R] M₂) (k i) :
+theorem linear_equiv_matrix_range (f : M₁ →ₗ[R] M₂) (k : κ) (i : ι) :
   linear_equiv_matrix hv₁.range hv₂.range f ⟨v₂ k, mem_range_self k⟩ ⟨v₁ i, mem_range_self i⟩ =
     linear_equiv_matrix hv₁ hv₂ f k i :=
 if H : (0 : R) = 1 then eq_of_zero_eq_one H _ _ else
@@ -218,7 +264,7 @@ begin
     ← equiv.of_injective_apply _ hv₁.injective, ← equiv.of_injective_apply _ hv₂.injective,
     to_matrix_of_equiv, ← linear_equiv.trans_apply, linear_equiv.arrow_congr_trans], congr' 3;
   refine function.left_inverse.injective linear_equiv.symm_symm _; ext x;
-  simp_rw [linear_equiv.symm_trans_apply, equiv_fun_basis_symm_apply, fun_congr_left_symm,
+  simp_rw [linear_equiv.symm_trans_apply, is_basis.equiv_fun_symm_apply, fun_congr_left_symm,
     fun_congr_left_apply, fun_left_apply],
   convert (finset.sum_equiv (equiv.of_injective _ hv₁.injective) _).symm,
   simp_rw [equiv.symm_apply_apply, equiv.of_injective_apply, subtype.coe_mk],
@@ -237,24 +283,189 @@ lemma comp_to_matrix_mul {R : Type v} [comm_ring R] [decidable_eq l] [decidable_
 suffices (f.comp g) = (f.to_matrix ⬝ g.to_matrix).to_lin, by rw [this, to_lin_to_matrix],
 by rw [mul_to_lin, to_matrix_to_lin, to_matrix_to_lin]
 
-lemma linear_equiv_matrix_comp {R ι κ μ M₁ M₂ M₃ : Type*} [comm_ring R]
+section comp
+
+variables {R ι κ μ M₁ M₂ M₃ : Type*} [comm_ring R]
   [add_comm_group M₁] [module R M₁]
   [add_comm_group M₂] [module R M₂]
   [add_comm_group M₃] [module R M₃]
-  [decidable_eq ι] [fintype ι] [decidable_eq κ] [fintype κ] [fintype μ]
+  [fintype ι] [decidable_eq κ] [fintype κ] [fintype μ]
   {v₁ : ι → M₁} {v₂ : κ → M₂} {v₃ : μ → M₃}
   (hv₁ : is_basis R v₁) (hv₂ : is_basis R v₂) (hv₃ : is_basis R v₃)
-  (f : M₂ →ₗ[R] M₃) (g : M₁ →ₗ[R] M₂) :
+
+lemma linear_equiv_matrix_comp [decidable_eq ι] (f : M₂ →ₗ[R] M₃) (g : M₁ →ₗ[R] M₂) :
   linear_equiv_matrix hv₁ hv₃ (f.comp g) =
   linear_equiv_matrix hv₂ hv₃ f ⬝ linear_equiv_matrix hv₁ hv₂ g :=
 by simp_rw [linear_equiv_matrix, linear_equiv.trans_apply, linear_equiv_matrix'_apply,
-    linear_equiv.arrow_congr_comp _ (equiv_fun_basis hv₂), comp_to_matrix_mul]
+    linear_equiv.arrow_congr_comp _ hv₂.equiv_fun, comp_to_matrix_mul]
 
-lemma linear_equiv_matrix_mul {R M ι : Type*} [comm_ring R]
-  [add_comm_group M] [module R M] [decidable_eq ι] [fintype ι]
-  {b : ι → M} (hb : is_basis R b) (f g : M →ₗ[R] M) :
-  linear_equiv_matrix hb hb (f * g) = linear_equiv_matrix hb hb f * linear_equiv_matrix hb hb g :=
-linear_equiv_matrix_comp hb hb hb f g
+lemma linear_equiv_matrix_mul [decidable_eq ι] (f g : M₁ →ₗ[R] M₁) :
+  linear_equiv_matrix hv₁ hv₁ (f * g) = linear_equiv_matrix hv₁ hv₁ f * linear_equiv_matrix hv₁ hv₁ g :=
+linear_equiv_matrix_comp hv₁ hv₁ hv₁ f g
+
+lemma linear_equiv_matrix_symm_mul [decidable_eq μ] (A : matrix ι κ R) (B : matrix κ μ R) :
+  (linear_equiv_matrix hv₃ hv₁).symm (A ⬝ B) =
+  ((linear_equiv_matrix hv₂ hv₁).symm A).comp ((linear_equiv_matrix hv₃ hv₂).symm B) :=
+begin
+  suffices :  A ⬝ B = (linear_equiv_matrix hv₃ hv₁)
+     (((linear_equiv_matrix hv₂ hv₁).symm A).comp $ (linear_equiv_matrix hv₃ hv₂).symm B),
+    by rw [this, ← linear_equiv.trans_apply, linear_equiv.trans_symm, linear_equiv.refl_apply],
+  rw [linear_equiv_matrix_comp hv₃ hv₂ hv₁,
+      linear_equiv.apply_symm_apply, linear_equiv.apply_symm_apply]
+end
+
+end comp
+
+end matrix
+
+section is_basis_to_matrix
+
+variables {ι ι' R M : Type*} [fintype ι] [decidable_eq ι]
+          [comm_ring R] [add_comm_group M] [module R M]
+
+open function matrix
+
+/-- From a basis `e : ι → M` and a family of vectors `v : ι → M`, make the matrix whose columns
+are the vectors `v i` written in the basis `e`. -/
+def is_basis.to_matrix {e : ι → M} (he : is_basis R e) (v : ι → M) : matrix ι ι R :=
+linear_equiv_matrix he he (he.constr v)
+
+variables {e : ι → M} (he : is_basis R e) (v : ι → M) (i j : ι)
+
+namespace is_basis
+
+lemma to_matrix_apply : he.to_matrix v i j = he.equiv_fun (v j) i :=
+by simp [is_basis.to_matrix, linear_equiv_matrix_apply]
+
+@[simp] lemma to_matrix_self : he.to_matrix e = 1 :=
+begin
+  rw is_basis.to_matrix,
+  ext i j,
+  simp [linear_equiv_matrix_apply, is_basis.equiv_fun, matrix.one_apply, finsupp.single, eq_comm]
+end
+
+lemma to_matrix_update (x : M) :
+  he.to_matrix (function.update v i x) = matrix.update_column (he.to_matrix v) i (he.repr x) :=
+begin
+  ext j k,
+  rw [is_basis.to_matrix, linear_equiv_matrix_apply' he he (he.constr (update v i x)),
+      matrix.update_column_apply, constr_basis, he.to_matrix_apply],
+  split_ifs,
+  { rw [h, update_same i x v] },
+  { rw [update_noteq h, he.equiv_fun_apply] },
+end
+
+/-- From a basis `e : ι → M`, build a linear equivalence between families of vectors `v : ι → M`,
+and matrices, making the matrix whose columns are the vectors `v i` written in the basis `e`. -/
+def to_matrix_equiv {e : ι → M} (he : is_basis R e) : (ι → M) ≃ₗ[R] matrix ι ι R :=
+{ to_fun := he.to_matrix,
+  map_add' := λ v w, begin
+    ext i j,
+    change _ = _ + _,
+    simp [he.to_matrix_apply]
+  end,
+  map_smul' := begin
+    intros c v,
+    ext i j,
+    simp [he.to_matrix_apply]
+  end,
+  inv_fun := λ m j, ∑ i, (m i j) • e i,
+  left_inv := begin
+    intro v,
+    ext j,
+    simp [he.to_matrix_apply, he.equiv_fun_total (v j)]
+  end,
+  right_inv := begin
+    intros x,
+    ext k l,
+    simp [he.to_matrix_apply, he.equiv_fun.map_sum, he.equiv_fun.map_smul,
+          fintype.sum_apply k (λ i, x i l • he.equiv_fun (e i)),
+          he.equiv_fun_self]
+  end }
+
+end is_basis
+
+end is_basis_to_matrix
+
+open_locale matrix
+
+section det
+open matrix
+variables {R ι M M' : Type*} [comm_ring R]
+  [add_comm_group M] [module R M]
+  [add_comm_group M'] [module R M']
+  [decidable_eq ι] [fintype ι]
+  {v : ι → M} {v' : ι → M'}
+
+lemma linear_equiv.is_unit_det (f : M ≃ₗ[R] M') (hv : is_basis R v) (hv' : is_basis R v') :
+  is_unit (linear_equiv_matrix hv hv' f).det :=
+begin
+  apply is_unit_det_of_left_inverse,
+  simpa using (linear_equiv_matrix_comp hv hv' hv f.symm f).symm
+end
+
+/-- Builds a linear equivalence from a linear map whose determinant in some bases is a unit. -/
+def linear_equiv.of_is_unit_det {f : M →ₗ[R] M'} {hv : is_basis R v} {hv' : is_basis R v'}
+  (h : is_unit (linear_equiv_matrix hv hv' f).det) : M ≃ₗ[R] M' :=
+{ to_fun := f,
+  map_add' := f.map_add,
+  map_smul' := f.map_smul,
+  inv_fun := (linear_equiv_matrix hv' hv).symm (linear_equiv_matrix hv hv' f)⁻¹,
+  left_inv := begin
+    rw function.left_inverse_iff_comp,
+    have : f = (linear_equiv_matrix hv hv').symm (linear_equiv_matrix hv hv' f),
+    { rw ← linear_equiv.trans_apply,
+      simp },
+    conv_lhs { congr, skip, rw this },
+    rw [linear_map.comp_coe, ← linear_equiv_matrix_symm_mul],
+    simp [h]
+  end,
+  right_inv := begin
+    rw function.right_inverse_iff_comp,
+    have : f = (linear_equiv_matrix hv hv').symm (linear_equiv_matrix hv hv' f),
+    { change f = (linear_equiv_matrix hv hv').trans (linear_equiv_matrix hv hv').symm f,
+      simp },
+    conv_lhs { congr, rw this },
+    rw [linear_map.comp_coe, ← linear_equiv_matrix_symm_mul],
+    simp [h]
+  end }
+
+variables {e : ι → M} (he : is_basis R e)
+
+/-- The determinant of a family of vectors with respect to some basis, as a multilinear map. -/
+def is_basis.det : multilinear_map R (λ i : ι, M) R :=
+{ to_fun := λ v, det (he.to_matrix v),
+  map_add' := begin
+    intros v i x y,
+    simp only [he.to_matrix_update, linear_map.map_add],
+    apply det_update_column_add
+  end,
+  map_smul' := begin
+    intros u i c x,
+    simp only [he.to_matrix_update, algebra.id.smul_eq_mul, map_smul_eq_smul_map],
+    apply det_update_column_smul
+  end }
+
+lemma is_basis.det_apply (v : ι → M) : he.det v = det (he.to_matrix v) := rfl
+
+lemma is_basis.det_self : he.det e = 1 :=
+by simp [he.det_apply]
+
+lemma is_basis.iff_det {v : ι → M} : is_basis R v ↔ is_unit (he.det v) :=
+begin
+  split,
+  { intro hv,
+    change is_unit (linear_equiv_matrix he he (equiv_of_is_basis he hv $ equiv.refl ι)).det,
+    apply linear_equiv.is_unit_det },
+  { intro h,
+    convert linear_equiv.is_basis he (linear_equiv.of_is_unit_det h),
+    ext i,
+    exact (constr_basis he).symm },
+end
+
+end det
+
+namespace matrix
 
 section trace
 
@@ -604,4 +815,4 @@ square matrices. -/
 def alg_equiv_matrix {R : Type v} {M : Type w}
   [comm_ring R] [add_comm_group M] [module R M] [decidable_eq n] {b : n → M} (h : is_basis R b) :
   module.End R M ≃ₐ[R] matrix n n R :=
-(equiv_fun_basis h).alg_conj.trans alg_equiv_matrix'
+h.equiv_fun.alg_conj.trans alg_equiv_matrix'

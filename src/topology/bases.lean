@@ -184,7 +184,7 @@ begin
   { suffices : countable {f : Πa, set (π a) | ∀a, f a ∈ g a}, { simpa [pi] },
     exact countable_pi (assume i, (hg i).1), },
   rw [this, pi_generate_from_eq_fintype],
-  { congr' 1, ext f, simp [pi, eq_comm] },
+  { congr' 1 with f, simp [pi, eq_comm] },
   exact assume a, (hg a).2.2.2.1
 end
 

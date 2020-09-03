@@ -156,6 +156,9 @@ closure_eq_of_le (set.singleton_subset_iff.2 ⟨multiplicative.of_add 1, trivial
 lemma mem_closure_singleton {x y : M} : y ∈ closure ({x} : set M) ↔ ∃ n:ℕ, x^n=y :=
 by rw [closure_singleton_eq, mem_mrange]; refl
 
+lemma mem_closure_singleton_self {y : M} : y ∈ closure ({y} : set M) :=
+mem_closure_singleton.2 ⟨1, pow_one y⟩
+
 @[to_additive]
 lemma closure_eq_mrange (s : set M) : closure s = (free_monoid.lift (coe : s → M)).mrange :=
 by rw [mrange, ← free_monoid.closure_range_of, map_mclosure, ← set.range_comp,

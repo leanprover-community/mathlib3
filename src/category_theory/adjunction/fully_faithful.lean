@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.adjunction.basic
+import category_theory.conj
 import category_theory.yoneda
 
 open category_theory
@@ -65,6 +66,50 @@ instance counit_is_iso_of_R_fully_faithful [full R] [faithful R] : is_iso (adjun
 -- def R_faithful_of_counit_is_iso [is_iso (adjunction.counit h)] : faithful R := sorry
 
 -- TODO also do the statements from Riehl 4.5.13 for full and faithful separately?
+
+universes v₃ v₄ u₃ u₄
+
+variables {C' : Type u₃} [category.{v₃} C']
+variables {D' : Type u₄} [category.{v₄} D']
+
+-- TODO: This needs some lemmas describing the produced adjunction, probably in terms of `adj`,
+-- `iC` and `iD`.
+/--
+If `C` is a full subcategory of `C'` and `D` is a full subcategory of `D'`, then we can restrict
+an adjunction `L' ⊣ R'` where `L' : C' ⥤ D'` and `R' : D' ⥤ C'` to `C` and `D`.
+The construction here is slightly more general, in that `C` is required only to have a full and
+faithful "inclusion" functor `iC : C ⥤ C'` (and similarly `iD : D ⥤ D'`) which commute (up to
+natural isomorphism) with the proposed restrictions.
+-/
+def adjunction.restrict_fully_faithful (iC : C ⥤ C') (iD : D ⥤ D') {L' : C' ⥤ D'} {R' : D' ⥤ C'}
+  (adj : L' ⊣ R') {L : C ⥤ D} {R : D ⥤ C} (comm1 : iC ⋙ L' ≅ L ⋙ iD) (comm2 : iD ⋙ R' ≅ R ⋙ iC)
+  [full iC] [faithful iC] [full iD] [faithful iD] :
+  L ⊣ R :=
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ X Y,
+  calc (L.obj X ⟶ Y) ≃ (iD.obj (L.obj X) ⟶ iD.obj Y) : equiv_of_fully_faithful iD
+       ... ≃ (L'.obj (iC.obj X) ⟶ iD.obj Y) : iso.hom_congr (comm1.symm.app X) (iso.refl _)
+       ... ≃ (iC.obj X ⟶ R'.obj (iD.obj Y)) : adj.hom_equiv _ _
+       ... ≃ (iC.obj X ⟶ iC.obj (R.obj Y)) : iso.hom_congr (iso.refl _) (comm2.app Y)
+       ... ≃ (X ⟶ R.obj Y) : (equiv_of_fully_faithful iC).symm,
+  hom_equiv_naturality_left_symm' := λ X' X Y f g,
+  begin
+    apply iD.map_injective,
+    dsimp [equiv.trans, equiv.symm, iso.hom_congr_apply, iso.hom_congr_symm],
+    simp only [functor.image_preimage, adjunction.hom_equiv_counit, assoc, id_comp, comp_id,
+               functor.map_comp],
+    erw [comm1.inv.naturality_assoc f],
+    refl,
+  end,
+  hom_equiv_naturality_right' := λ X Y' Y f g,
+  begin
+    apply iC.map_injective,
+    dsimp [equiv.trans, iso.hom_congr_apply, iso.hom_congr_symm],
+    simp only [adjunction.hom_equiv_unit, functor.image_preimage, assoc, id_comp, comp_id,
+               functor.map_comp],
+    erw comm2.hom.naturality g,
+    refl,
+  end }
 
 
 end category_theory

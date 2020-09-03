@@ -119,7 +119,6 @@ lemma ring_hom.map_sum [semiring β] [semiring γ]
   g (∑ x in s, f x) = ∑ x in s, g (f x) :=
 g.to_add_monoid_hom.map_sum f s
 
-
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 
@@ -754,6 +753,16 @@ lemma prod_piecewise [decidable_eq α] (s t : finset α) (f g : α → β) :
   (∏ x in s, (t.piecewise f g) x) = (∏ x in s ∩ t, f x) * (∏ x in s \ t, g x) :=
 by { rw [piecewise, prod_ite, filter_mem_eq_inter, ← sdiff_eq_filter], }
 
+@[to_additive]
+lemma prod_inter_mul_prod_diff [decidable_eq α] (s t : finset α) (f : α → β) :
+  (∏ x in s ∩ t, f x) * (∏ x in s \ t, f x) = (∏ x in s, f x) :=
+by { convert (s.prod_piecewise t f f).symm, simp [finset.piecewise] }
+
+@[to_additive]
+lemma mul_prod_diff_singleton [decidable_eq α] {s : finset α} {i : α} (h : i ∈ s)
+  (f : α → β) : f i * (∏ x in s \ {i}, f x) = ∏ x in s, f x :=
+by { convert s.prod_inter_mul_prod_diff {i} f, simp [h] }
+
 /-- If we can partition a product into subsets that cancel out, then the whole product cancels. -/
 @[to_additive]
 lemma prod_cancels_of_partition_cancels (R : setoid α) [decidable_rel R.r]
@@ -859,6 +868,14 @@ lemma prod_pow_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) 
 by simp
 
 end comm_monoid
+
+/-- If `f = g = h` everywhere but at `i`, where `f i = g i + h i`, then the product of `f` over `s`
+  is the sum of the products of `g` and `h`. -/
+lemma prod_add_prod_eq [comm_semiring β] {s : finset α} {i : α} {f g h : α → β}
+  (hi : i ∈ s) (h1 : g i + h i = f i) (h2 : ∀ j ∈ s, j ≠ i → g j = f j)
+  (h3 : ∀ j ∈ s, j ≠ i → h j = f j) : ∏ i in s, g i + ∏ i in s, h i = ∏ i in s, f i :=
+by { classical, simp_rw [← mul_prod_diff_singleton hi, ← h1, right_distrib],
+     congr' 2; apply prod_congr rfl; simpa }
 
 lemma sum_update_of_mem [add_comm_monoid β] [decidable_eq α] {s : finset α} {i : α}
   (h : i ∈ s) (f : α → β) (b : β) :

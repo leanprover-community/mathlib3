@@ -527,6 +527,14 @@ begin
         fderiv_within_zero_of_not_differentiable_within_at this] }
 end
 
+lemma fderiv_within_of_open (hs : is_open s) (hx : x ∈ s) :
+  fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
+begin
+  have : s = univ ∩ s, by simp only [univ_inter],
+  rw [this, ← fderiv_within_univ],
+  exact fderiv_within_inter (mem_nhds_sets hs hx) (unique_diff_on_univ _ (mem_univ _))
+end
+
 end fderiv_properties
 
 section continuous
@@ -537,7 +545,7 @@ theorem has_fderiv_at_filter.tendsto_nhds
   tendsto f L (𝓝 (f x)) :=
 begin
   have : tendsto (λ x', f x' - f x) L (𝓝 0),
-  { refine h.is_O_sub.trans_tendsto (tendsto_le_left hL _),
+  { refine h.is_O_sub.trans_tendsto (tendsto.mono_left _ hL),
     rw ← sub_self x, exact tendsto_id.sub tendsto_const_nhds },
   have := tendsto.add this tendsto_const_nhds,
   rw zero_add (f x) at this,
@@ -1053,7 +1061,7 @@ protected lemma has_fderiv_within_at.iterate {f : E → E} {f' : E →L[𝕜] E}
 begin
   refine hf.iterate _ hx n,
   convert tendsto_inf.2 ⟨hf.continuous_within_at, _⟩,
-  exacts [hx.symm, tendsto_le_left inf_le_right (tendsto_principal_principal.2 hs)]
+  exacts [hx.symm, (tendsto_principal_principal.2 hs).mono_left inf_le_right]
 end
 
 protected lemma has_strict_fderiv_at.iterate {f : E → E} {f' : E →L[𝕜] E}

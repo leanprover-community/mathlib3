@@ -43,6 +43,9 @@ Maybe `integrable f` should be mean `(∫⁻ a, edist (f a) 0) < ⊤`, so that `
 `lintegral_nnnorm_eq_lintegral_edist : (∫⁻ a, nnnorm (f a)) = (∫⁻ a, edist (f a) 0)` to switch the
 two forms.
 
+To prove something for an arbitrary integrable + measurable function, a useful theorem is
+`integrable.induction` in the file `set_integral`.
+
 ## Tags
 
 integrable, function space, l1
@@ -121,7 +124,7 @@ begin
 end
 
 lemma integrable_const [finite_measure μ] (c : β) : integrable (λ x : α, c) μ :=
-integrable_const_iff.2 (or.inr meas_univ_lt_top)
+integrable_const_iff.2 (or.inr $ measure_lt_top _ _)
 
 lemma integrable_of_bounded [finite_measure μ] {f : α → β} {C : ℝ} (hC : ∀ᵐ a ∂μ, ∥f a∥ ≤ C) :
   integrable f μ :=

@@ -49,7 +49,7 @@ migrated to the new definition.
 -/
 
 noncomputable theory
-open set filter topological_space measure_theory
+open set filter topological_space measure_theory function
 open_locale classical topological_space interval big_operators filter
 
 variables {α β E F : Type*} [measurable_space α]
@@ -241,10 +241,10 @@ begin
 end
 
 lemma measure.finite_at_filter.integrable_at_filter_of_tendsto_ae
-  {l : filter α} [is_measurably_generated l] (hμ : μ.finite_at_filter (l ⊓ μ.ae)) {b}
+  {l : filter α} [is_measurably_generated l] (hμ : μ.finite_at_filter l) {b}
   (hf : tendsto f (l ⊓ μ.ae) (𝓝 b)) :
   integrable_at_filter f l μ :=
-(hμ.integrable_at_filter hf.norm.is_bounded_under_le).of_inf_ae
+(hμ.inf_of_left.integrable_at_filter hf.norm.is_bounded_under_le).of_inf_ae
 
 alias measure.finite_at_filter.integrable_at_filter_of_tendsto_ae ←
   filter.tendsto.integrable_at_filter_ae
@@ -257,21 +257,81 @@ hμ.integrable_at_filter hf.norm.is_bounded_under_le
 
 alias measure.finite_at_filter.integrable_at_filter_of_tendsto ← filter.tendsto.integrable_at_filter
 
-variables [measurable_space E] [borel_space E] [complete_space E] [second_countable_topology E]
-  [normed_space ℝ E]
+variables [measurable_space E]
+
+lemma integrable_add [opens_measurable_space E] {f g : α → E}
+  (h : univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0})
+  (hf : measurable f) (hg : measurable g) :
+  integrable (f + g) μ ↔ integrable f μ ∧ integrable g μ :=
+begin
+  refine ⟨λ hfg, _, λ h, h.1.add hf hg h.2⟩,
+  rw [← indicator_add_eq_left h],
+  conv { congr, skip, rw [← indicator_add_eq_right h] },
+  rw [integrable_indicator_iff (hf (is_measurable_singleton 0)).compl],
+  rw [integrable_indicator_iff (hg (is_measurable_singleton 0)).compl],
+  exact ⟨hfg.integrable_on, hfg.integrable_on⟩
+end
+
+variables [borel_space E] [second_countable_topology E]
+
+/-- To prove something for an arbitrary measurable + integrable function in a second countable
+Borel normed group, it suffices to show that
+* the property holds for (multiples of) characteristic functions;
+* is closed under addition;
+* the set of functions in the `L¹` space for which the property holds is closed.
+* the property is closed under the almost-everywhere equal relation.
+
+It is possible to make the hypotheses in the induction steps a bit stronger, and such conditions
+can be added once we need them (for example in `h_sum` it is only necessary to consider the sum of
+a simple function with a multiple of a characteristic function and that the intersection
+of their images is a subset of `{0}`).
+-/
+@[elab_as_eliminator]
+lemma integrable.induction {P : (α → E) → Prop}
+  (h_ind : ∀ (c : E) ⦃s⦄, is_measurable s → μ s < ⊤ → P (s.indicator (λ _, c)))
+  (h_sum : ∀ ⦃f g : α → E⦄, set.univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0} → measurable f → measurable g →
+    integrable f μ → integrable g μ → P f → P g → P (f + g))
+  (h_closed : is_closed {f : α →₁[μ] E | P f} )
+  (h_ae : ∀ ⦃f g⦄, f =ᵐ[μ] g → measurable f → measurable g → integrable f μ → P f → P g) :
+  ∀ ⦃f : α → E⦄ (hf : measurable f) (h2f : integrable f μ), P f :=
+begin
+  have : ∀ (f : simple_func α E), integrable f μ → P f,
+  { refine simple_func.induction _ _,
+    { intros c s hs h, dsimp only [simple_func.coe_const, simple_func.const_zero,
+        piecewise_eq_indicator, simple_func.coe_zero, simple_func.coe_piecewise] at h ⊢,
+      by_cases hc : c = 0,
+      { subst hc, convert h_ind 0 is_measurable.empty (by simp) using 1, simp [const] },
+      apply h_ind c hs,
+      have : (nnnorm c : ennreal) * μ s < ⊤,
+      { have := @comp_indicator _ _ _ _ (λ x : E, (nnnorm x : ennreal)) (const α c) s,
+        dsimp only at this, simpa [integrable, this, lintegral_indicator, hs] using h },
+      exact ennreal.lt_top_of_mul_lt_top_right this (by simp [hc]) },
+    { intros f g hfg hf hg int_fg,
+      rw [simple_func.coe_add, integrable_add hfg f.measurable g.measurable] at int_fg,
+      refine h_sum hfg f.measurable g.measurable int_fg.1 int_fg.2 (hf int_fg.1) (hg int_fg.2) } },
+  have : ∀ (f : α →₁ₛ[μ] E), P f,
+  { intro f, exact h_ae f.to_simple_func_eq_to_fun f.measurable (l1.measurable _) f.integrable
+      (this f.to_simple_func f.integrable) },
+  have : ∀ (f : α →₁[μ] E), P f :=
+    λ f, l1.simple_func.dense_range.induction_on f h_closed this,
+  exact λ f hf h2f, h_ae (l1.to_fun_of_fun f hf h2f) (l1.measurable _) hf (l1.integrable _)
+    (this (l1.of_fun f hf h2f))
+end
+
+variables [complete_space E] [normed_space ℝ E]
 
 lemma integral_union (hst : disjoint s t) (hs : is_measurable s) (ht : is_measurable t)
-  (hfm : measurable f) (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
+  (hfs : integrable_on f s μ) (hft : integrable_on f t μ) :
   ∫ x in s ∪ t, f x ∂μ = ∫ x in s, f x ∂μ + ∫ x in t, f x ∂μ :=
-by simp only [integrable_on, measure.restrict_union hst hs ht, integral_add_measure hfm hfs hft]
+by simp only [integrable_on, measure.restrict_union hst hs ht, integral_add_measure hfs hft]
 
 lemma integral_empty : ∫ x in ∅, f x ∂μ = 0 := by rw [measure.restrict_empty, integral_zero_measure]
 
 lemma integral_univ : ∫ x in univ, f x ∂μ = ∫ x, f x ∂μ := by rw [measure.restrict_univ]
 
-lemma integral_add_compl (hs : is_measurable s) (hfm : measurable f) (hfi : integrable f μ) :
+lemma integral_add_compl (hs : is_measurable s) (hfi : integrable f μ) :
   ∫ x in s, f x ∂μ + ∫ x in sᶜ, f x ∂μ = ∫ x, f x ∂μ :=
-by rw [← integral_union (disjoint_compl s) hs hs.compl hfm hfi.integrable_on hfi.integrable_on,
+by rw [← integral_union (disjoint_compl s) hs hs.compl hfi.integrable_on hfi.integrable_on,
   union_compl_self, integral_univ]
 
 /-- For a measurable function `f` and a measurable set `s`, the integral of `indicator s f`
@@ -281,7 +341,7 @@ lemma integral_indicator (hfm : measurable f) (hs : is_measurable s) :
 have hfms : measurable (indicator s f) := hfm.indicator hs,
 if hfi : integrable_on f s μ then
 calc ∫ x, indicator s f x ∂μ = ∫ x in s, indicator s f x ∂μ + ∫ x in sᶜ, indicator s f x ∂μ :
-  (integral_add_compl hs hfms (hfi.indicator hs)).symm
+  (integral_add_compl hs (hfi.indicator hs)).symm
 ... = ∫ x in s, f x ∂μ + ∫ x in sᶜ, 0 ∂μ :
   congr_arg2 (+) (integral_congr_ae hfms hfm (indicator_ae_eq_restrict hs))
     (integral_congr_ae hfms measurable_const (indicator_ae_eq_restrict_compl hs))
@@ -344,7 +404,7 @@ begin
   intros ε ε₀,
   have : ∀ᶠ s in l.lift' powerset, ∀ᶠ x in μ.ae, x ∈ s → f x ∈ closed_ball b ε :=
     eventually_lift'_powerset_eventually.2 (h.eventually $ closed_ball_mem_nhds _ ε₀),
-  refine hμ.eventually.mp ((h.integrable_at_filter_ae hμ.inf_of_left).eventually.mp (this.mono _)),
+  refine hμ.eventually.mp ((h.integrable_at_filter_ae hμ).eventually.mp (this.mono _)),
   simp only [mem_closed_ball, dist_eq_norm],
   intros s h_norm h_integrable hμs,
   rw [← set_integral_const, ← integral_sub hfm h_integrable measurable_const
@@ -392,8 +452,7 @@ lemma continuous_at.integral_sub_linear_is_o_ae
   {μ : measure α} [locally_finite_measure μ] {a : α}
   {f : α → E} (ha : continuous_at f a) (hfm : measurable f) :
   is_o (λ s, ∫ x in s, f x ∂μ - (μ s).to_real • f a) (λ s, (μ s).to_real) ((𝓝 a).lift' powerset) :=
-(tendsto_le_left (@inf_le_left _ _ (𝓝 a) μ.ae) ha).integral_sub_linear_is_o_ae hfm
-  (μ.finite_at_nhds a)
+(ha.mono_left inf_le_left).integral_sub_linear_is_o_ae hfm (μ.finite_at_nhds a)
 
 /-
 namespace integrable

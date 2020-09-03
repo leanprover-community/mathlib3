@@ -117,7 +117,7 @@ begin
             (subset_adjoin _ _) },
 end
 
---fancy_insert, courtesy of Aaron Anderson & Markus Himmel on zulip
+--this definition of notation is courtesy of Kyle Miller on zulip
 class fancy_insert {α : Type*} (s : set α) :=
 (insert : α → set α)
 

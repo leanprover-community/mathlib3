@@ -92,8 +92,8 @@ for each natural `m` is by definition `C^∞` at `0`.
 There is another issue with the definition of `times_cont_diff_within_at 𝕜 n f s x`. We can
 require the existence and good behavior of derivatives up to order `n` on a neighborhood of `x`
 within `s`. However, this does not imply continuity or differentiability within `s` of the function
-at `x`. Therefore, we require such existence and good behavior on a neighborhood of `x` within
-`s ∪ {x}` (which appears as `insert x s` in this file).
+at `x` when `x` does not belong to `s`. Therefore, we require such existence and good behavior on
+a neighborhood of `x` within `s ∪ {x}` (which appears as `insert x s` in this file).
 
 ### Side of the composition, and universe issues
 
@@ -994,7 +994,7 @@ begin
 end
 
 /-- A function is `C^(n + 1)` on a domain with unique derivatives if and only if it is
-differentiable there, and its derivative is `C^n`. -/
+differentiable there, and its derivative (expressed with `fderiv_within`) is `C^n`. -/
 theorem times_cont_diff_on_succ_iff_fderiv_within {n : ℕ} (hs : unique_diff_on 𝕜 s) :
   times_cont_diff_on 𝕜 ((n + 1) : ℕ) f s ↔
   differentiable_on 𝕜 f s ∧ times_cont_diff_on 𝕜 n (λ y, fderiv_within 𝕜 f s y) s :=
@@ -1022,8 +1022,22 @@ begin
       λ y hy, (hdiff y hy).has_fderiv_within_at, h x hx⟩ }
 end
 
+/-- A function is `C^(n + 1)` on an open domain if and only if it is
+differentiable there, and its derivative (expressed with `fderiv`) is `C^n`. -/
+theorem times_cont_diff_on_succ_iff_fderiv_of_open {n : ℕ} (hs : is_open s) :
+  times_cont_diff_on 𝕜 ((n + 1) : ℕ) f s ↔
+  differentiable_on 𝕜 f s ∧ times_cont_diff_on 𝕜 n (λ y, fderiv 𝕜 f y) s :=
+begin
+  rw times_cont_diff_on_succ_iff_fderiv_within hs.unique_diff_on,
+  congr' 2,
+  rw ← iff_iff_eq,
+  apply times_cont_diff_on_congr,
+  assume x hx,
+  exact fderiv_within_of_open hs hx
+end
+
 /-- A function is `C^∞` on a domain with unique derivatives if and only if it is differentiable
-there, and its derivative is `C^∞`. -/
+there, and its derivative (expressed with `fderiv_within`) is `C^∞`. -/
 theorem times_cont_diff_on_top_iff_fderiv_within (hs : unique_diff_on 𝕜 s) :
   times_cont_diff_on 𝕜 ∞ f s ↔
   differentiable_on 𝕜 f s ∧ times_cont_diff_on 𝕜 ∞ (λ y, fderiv_within 𝕜 f s y) s :=
@@ -1040,6 +1054,20 @@ begin
     exact with_top.coe_le_coe.2 (nat.le_succ n) }
 end
 
+/-- A function is `C^∞` on a domain with unique derivatives if and only if it is differentiable
+there, and its derivative (expressed with `fderiv`) is `C^∞`. -/
+theorem times_cont_diff_on_top_iff_fderiv_of_open (hs : is_open s) :
+  times_cont_diff_on 𝕜 ∞ f s ↔
+  differentiable_on 𝕜 f s ∧ times_cont_diff_on 𝕜 ∞ (λ y, fderiv 𝕜 f y) s :=
+begin
+  rw times_cont_diff_on_top_iff_fderiv_within hs.unique_diff_on,
+  congr' 2,
+  rw ← iff_iff_eq,
+  apply times_cont_diff_on_congr,
+  assume x hx,
+  exact fderiv_within_of_open hs hx
+end
+
 lemma times_cont_diff_on.fderiv_within {m n : with_top ℕ}
   (hf : times_cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hmn : m + 1 ≤ n) :
   times_cont_diff_on 𝕜 m (λ y, fderiv_within 𝕜 f s y) s :=
@@ -1053,10 +1081,20 @@ begin
     exact ((times_cont_diff_on_succ_iff_fderiv_within hs).1 (hf.of_le hmn)).2 }
 end
 
+lemma times_cont_diff_on.fderiv_of_open {m n : with_top ℕ}
+  (hf : times_cont_diff_on 𝕜 n f s) (hs : is_open s) (hmn : m + 1 ≤ n) :
+  times_cont_diff_on 𝕜 m (λ y, fderiv 𝕜 f y) s :=
+(hf.fderiv_within hs.unique_diff_on hmn).congr (λ x hx, (fderiv_within_of_open hs hx).symm)
+
 lemma times_cont_diff_on.continuous_on_fderiv_within {n : with_top ℕ}
   (h : times_cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hn : 1 ≤ n) :
   continuous_on (λ x, fderiv_within 𝕜 f s x) s :=
 ((times_cont_diff_on_succ_iff_fderiv_within hs).1 (h.of_le hn)).2.continuous_on
+
+lemma times_cont_diff_on.continuous_on_fderiv_of_open {n : with_top ℕ}
+  (h : times_cont_diff_on 𝕜 n f s) (hs : is_open s) (hn : 1 ≤ n) :
+  continuous_on (λ x, fderiv 𝕜 f x) s :=
+((times_cont_diff_on_succ_iff_fderiv_of_open hs).1 (h.of_le hn)).2.continuous_on
 
 /-- If a function is at least `C^1`, its bundled derivative (mapping `(x, v)` to `Df(x) v`) is
 continuous. -/
@@ -2310,3 +2348,116 @@ lemma times_cont_diff.has_strict_fderiv_at
 hf.times_cont_diff_at.has_strict_fderiv_at hn
 
 end real
+
+section deriv
+/-!
+### One dimension
+
+All results up to now have been expressed in terms of the general Fréchet derivative `fderiv`. For
+maps defined on the field, the one-dimensional derivative `deriv` is often easier to use. In this
+paragraph, we reformulate some higher smoothness results in terms of `deriv`.
+-/
+
+variables {f₂ : 𝕜 → F} {s₂ : set 𝕜}
+open continuous_linear_map (smul_right)
+
+/-- A function is `C^(n + 1)` on a domain with unique derivatives if and only if it is
+differentiable there, and its derivative (formulated with `deriv_within`) is `C^n`. -/
+theorem times_cont_diff_on_succ_iff_deriv_within {n : ℕ} (hs : unique_diff_on 𝕜 s₂) :
+  times_cont_diff_on 𝕜 ((n + 1) : ℕ) f₂ s₂ ↔
+  differentiable_on 𝕜 f₂ s₂ ∧ times_cont_diff_on 𝕜 n (deriv_within f₂ s₂) s₂ :=
+begin
+  rw times_cont_diff_on_succ_iff_fderiv_within hs,
+  congr' 2,
+  rw ← iff_iff_eq,
+  split,
+  { assume h,
+    have : deriv_within f₂ s₂ = (λ u : 𝕜 →L[𝕜] F, u 1) ∘ (fderiv_within 𝕜 f₂ s₂),
+      by { ext x, refl },
+    simp only [this],
+    apply times_cont_diff.comp_times_cont_diff_on _ h,
+    exact (is_bounded_bilinear_map_apply.is_bounded_linear_map_left _).times_cont_diff },
+  { assume h,
+    have : fderiv_within 𝕜 f₂ s₂ = (λ u, smul_right 1 u) ∘ (λ x, deriv_within f₂ s₂ x),
+      by { ext x, simp [deriv_within] },
+    simp only [this],
+    apply times_cont_diff.comp_times_cont_diff_on _ h,
+    exact (is_bounded_bilinear_map_smul_right.is_bounded_linear_map_right _).times_cont_diff }
+end
+
+/-- A function is `C^(n + 1)` on an open domain if and only if it is
+differentiable there, and its derivative (formulated with `deriv`) is `C^n`. -/
+theorem times_cont_diff_on_succ_iff_deriv_of_open {n : ℕ} (hs : is_open s₂) :
+  times_cont_diff_on 𝕜 ((n + 1) : ℕ) f₂ s₂ ↔
+  differentiable_on 𝕜 f₂ s₂ ∧ times_cont_diff_on 𝕜 n (deriv f₂) s₂ :=
+begin
+  rw times_cont_diff_on_succ_iff_deriv_within hs.unique_diff_on,
+  congr' 2,
+  rw ← iff_iff_eq,
+  apply times_cont_diff_on_congr,
+  assume x hx,
+  exact deriv_within_of_open hs hx
+end
+
+/-- A function is `C^∞` on a domain with unique derivatives if and only if it is differentiable
+there, and its derivative (formulated with `deriv_within`) is `C^∞`. -/
+theorem times_cont_diff_on_top_iff_deriv_within (hs : unique_diff_on 𝕜 s₂) :
+  times_cont_diff_on 𝕜 ∞ f₂ s₂ ↔
+  differentiable_on 𝕜 f₂ s₂ ∧ times_cont_diff_on 𝕜 ∞ (deriv_within f₂ s₂) s₂ :=
+begin
+  split,
+  { assume h,
+    refine ⟨h.differentiable_on le_top, _⟩,
+    apply times_cont_diff_on_top.2 (λ n, ((times_cont_diff_on_succ_iff_deriv_within hs).1 _).2),
+    exact h.of_le le_top },
+  { assume h,
+    refine times_cont_diff_on_top.2 (λ n, _),
+    have A : (n : with_top ℕ) ≤ ∞ := le_top,
+    apply ((times_cont_diff_on_succ_iff_deriv_within hs).2 ⟨h.1, h.2.of_le A⟩).of_le,
+    exact with_top.coe_le_coe.2 (nat.le_succ n) }
+end
+
+
+/-- A function is `C^∞` on an open domain if and only if it is differentiable
+there, and its derivative (formulated with `deriv`) is `C^∞`. -/
+theorem times_cont_diff_on_top_iff_deriv_of_open (hs : is_open s₂) :
+  times_cont_diff_on 𝕜 ∞ f₂ s₂ ↔
+  differentiable_on 𝕜 f₂ s₂ ∧ times_cont_diff_on 𝕜 ∞ (deriv f₂) s₂ :=
+begin
+  rw times_cont_diff_on_top_iff_deriv_within hs.unique_diff_on,
+  congr' 2,
+  rw ← iff_iff_eq,
+  apply times_cont_diff_on_congr,
+  assume x hx,
+  exact deriv_within_of_open hs hx
+end
+
+lemma times_cont_diff_on.deriv_within {m n : with_top ℕ}
+  (hf : times_cont_diff_on 𝕜 n f₂ s₂) (hs : unique_diff_on 𝕜 s₂) (hmn : m + 1 ≤ n) :
+  times_cont_diff_on 𝕜 m (deriv_within f₂ s₂) s₂ :=
+begin
+  cases m,
+  { change ∞ + 1 ≤ n at hmn,
+    have : n = ∞, by simpa using hmn,
+    rw this at hf,
+    exact ((times_cont_diff_on_top_iff_deriv_within hs).1 hf).2 },
+  { change (m.succ : with_top ℕ) ≤ n at hmn,
+    exact ((times_cont_diff_on_succ_iff_deriv_within hs).1 (hf.of_le hmn)).2 }
+end
+
+lemma times_cont_diff_on.deriv_of_open {m n : with_top ℕ}
+  (hf : times_cont_diff_on 𝕜 n f₂ s₂) (hs : is_open s₂) (hmn : m + 1 ≤ n) :
+  times_cont_diff_on 𝕜 m (deriv f₂) s₂ :=
+(hf.deriv_within hs.unique_diff_on hmn).congr (λ x hx, (deriv_within_of_open hs hx).symm)
+
+lemma times_cont_diff_on.continuous_on_deriv_within {n : with_top ℕ}
+  (h : times_cont_diff_on 𝕜 n f₂ s₂) (hs : unique_diff_on 𝕜 s₂) (hn : 1 ≤ n) :
+  continuous_on (deriv_within f₂ s₂) s₂ :=
+((times_cont_diff_on_succ_iff_deriv_within hs).1 (h.of_le hn)).2.continuous_on
+
+lemma times_cont_diff_on.continuous_on_deriv_of_open {n : with_top ℕ}
+  (h : times_cont_diff_on 𝕜 n f₂ s₂) (hs : is_open s₂) (hn : 1 ≤ n) :
+  continuous_on (deriv f₂) s₂ :=
+((times_cont_diff_on_succ_iff_deriv_of_open hs).1 (h.of_le hn)).2.continuous_on
+
+end deriv

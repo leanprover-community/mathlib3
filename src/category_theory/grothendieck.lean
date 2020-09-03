@@ -14,18 +14,22 @@ consist of dependent pairs `(b, f)`, where `b : C` and `f : F.obj c`,
 and a morphism `(b, f) ⟶ (b', f')` is a pair `β : b ⟶ b'` in `C`, and
 `φ : (F.map β).obj f ⟶ f'`
 
+Categories such as `PresheafedSpace` are in fact examples of this construction,
+and it may be interesting to try to generalize some of the development there.
+
 ## Implementation notes
 
 Really we should treat `Cat` as a 2-category, and allow `F` to be a 2-functor.
 
 There is also a closely related construction starting with `G : Cᵒᵖ ⥤ Cat`,
-where morphisms consists again of `β : b ⟶ b'` and `φ : F ⟶ (F.map (op β)).obj f'`.
+where morphisms consists again of `β : b ⟶ b'` and `φ : f ⟶ (F.map (op β)).obj f'`.
 
 ## References
 
 See also `category_theory.functor.elements` for the category of elements of functor `F : C ⥤ Type`.
 
-https://ncatlab.org/nlab/show/Grothendieck+construction
+* https://stacks.math.columbia.edu/tag/02XV
+* https://ncatlab.org/nlab/show/Grothendieck+construction
 
 -/
 
@@ -44,6 +48,7 @@ gives a category whose
   `base : X.base ⟶ Y.base` and
   `f.fiber : (F.map base).obj X.fiber ⟶ Y.fiber`
 -/
+@[nolint has_inhabited_instance]
 structure grothendieck :=
 (base : C)
 (fiber : F.obj base)
@@ -80,6 +85,8 @@ The identity morphism in the Grothendieck category.
 def id (X : grothendieck F) : hom X X :=
 { base := 𝟙 X.base,
   fiber := eq_to_hom (by erw [category_theory.functor.map_id, functor.id_obj X.fiber]), }
+
+instance (X : grothendieck F) : inhabited (hom X X) := ⟨id X⟩
 
 /--
 Composition of morphisms in the Grothendieck category.

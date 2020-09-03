@@ -41,7 +41,7 @@ meta def derive_struct_ext_lemma (n : name) : tactic name :=
 do e ← get_env,
    fs ← e.structure_fields n,
    d ← get_decl n,
-   n ← resolve_constant n,
+   n ← resolve_constant' n,
    let r := @expr.const tt n $ d.univ_params.map level.param,
    (args,_) ← infer_type r >>= open_pis,
    let args := args.map expr.to_implicit_local_const,
@@ -143,7 +143,7 @@ do v₀ ← mk_mvar,
 do u ← mk_meta_univ,
    pure $ expr.sort u
 | n :=
-do e ← resolve_constant n >>= mk_const,
+do e ← resolve_constant' n >>= mk_const,
    a ← get_arity e,
    e.mk_app <$> (list.iota a).mmap (λ _, mk_mvar)
 

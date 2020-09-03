@@ -456,6 +456,19 @@ do cxt ← list.map expr.to_implicit_local_const <$> local_context,
    add_decl $ declaration.defn n univ t' d' (reducibility_hints.regular 1 tt) trusted,
    applyc n
 
+/-- Replacement for `resolve_constant`. `resolve_constant` crashes
+when called on a name defined within a section that also uses `parameters`.
+This version handles can be used in all the same definitions as `resolve_constant`
+plus those declared within the scope of `parameters`. -/
+meta def resolve_constant' (n : name) : tactic name :=
+do e ← resolve_name n,
+   match e with
+   | expr.const n _ := pure n
+   | _ := do
+     e ← to_expr e,
+     pure $ e.get_app_fn.const_name
+   end
+
 /-- Attempts to close the goal with `dec_trivial`. -/
 meta def exact_dec_trivial : tactic unit := `[exact dec_trivial]
 

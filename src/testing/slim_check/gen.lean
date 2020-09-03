@@ -120,20 +120,15 @@ list.nth_le xs (down n).val (down n).is_lt
 def one_of (xs : list (gen α)) (pos : 0 < xs.length) : gen α := do
 one_of_aux xs pos
 
-def insert {α : Type u} (x : α) : Π xs : list α, ℕ → gen (subtype $ list.perm (x :: xs))
-| [] _ := pure ⟨[x], list.perm.cons _ list.perm.nil ⟩
-| (y :: ys) 0 := pure ⟨x::y::ys, list.perm.refl _⟩
-| (y :: ys) (succ n) := do
-  ⟨xs,h⟩ ← insert ys n,
-  pure ⟨y::xs, list.perm.trans (list.perm.swap _ _ _) (list.perm.cons _ h)⟩
-
+/-- Generate a random permutation of a given list. -/
 def permutation_of {α : Type u} : Π xs : list α, gen (subtype $ list.perm xs)
 | [] := pure ⟨[], list.perm.nil ⟩
 | (x :: xs) := do
 ⟨xs',h⟩ ← permutation_of xs,
-⟨n⟩ ← uliftable.up $ choose_nat 0 xs.length dec_trivial,
-⟨xs'', h'⟩ ← insert x xs' n,
-pure ⟨xs'', list.perm.trans (list.perm.cons _ h) h'⟩
+⟨⟨n,_,h'⟩⟩ ← uliftable.up $ choose_nat 0 xs'.length dec_trivial,
+pure ⟨list.insert_nth n x xs',
+  list.perm.trans (list.perm.cons _ h)
+    (list.perm_insert_nth _ _ h').symm ⟩
 
 end gen
 

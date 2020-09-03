@@ -44,26 +44,23 @@ else pure none
 
 open tactic
 
-/- this should print `[97, 101, 103, 107, 109, 113]` but
+/- `ps` should be `[97, 101, 103, 107, 109, 113]` but
 it uses a pseudo primality test and some composite numbers
 also sneak in -/
 run_cmd do
   let xs := list.range' 90 30,
   ps ← tactic.run_rand (xs.mfilter iterated_primality_test),
-  trace ps
+  when (ps ≠ [97, 101, 103, 107, 109, 113])
+    (trace!"The random primality test also included some composite numbers: {ps}")
 
-/- this should print `[97, 101, 103, 107, 109, 113]`. This
+/- `ps` should be `[97, 101, 103, 107, 109, 113]`. This
 test is deterministic because we pick the random seed -/
 run_cmd do
   let xs := list.range' 90 30,
   let ps : list ℕ := (xs.mfilter iterated_primality_test).eval ⟨ mk_std_gen 10 ⟩,
-  guard (ps = [97, 101, 103, 107, 109, 113]) <|> fail "wrong list of prime numbers",
-  trace ps
+  guard (ps = [97, 101, 103, 107, 109, 113]) <|> fail "wrong list of prime numbers"
 
 /- this finds a random probably-prime number -/
 run_cmd do
   some p ← tactic.run_rand (find_prime 100000) | trace "no prime found, gave up",
-  trace p,
-  if nat.prime p
-    then trace "true prime"
-    else trace "this number fooled Fermat's test"
+  when (¬ nat.prime p) (trace!"The number {p} fooled Fermat's test")

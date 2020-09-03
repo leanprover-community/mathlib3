@@ -266,12 +266,12 @@ else ⟨swap w y * swap x z, h hyz hwz⟩
 
 /-- set of all pairs (⟨a, b⟩ : Σ a : fin n, fin n) such that b < a -/
 def fin_pairs_lt (n : ℕ) : finset (Σ a : fin n, fin n) :=
-(univ : finset (fin n)).sigma (λ a, (range a.1).attach_fin
+(univ : finset (fin n)).sigma (λ a, (range a).attach_fin
   (λ m hm, lt_trans (mem_range.1 hm) a.2))
 
 lemma mem_fin_pairs_lt {n : ℕ} {a : Σ a : fin n, fin n} :
   a ∈ fin_pairs_lt n ↔ a.2 < a.1 :=
-by simp [fin_pairs_lt, fin.lt_def]
+by simp only [fin_pairs_lt, fin.lt_iff_coe_lt_coe, true_and, mem_attach_fin, mem_range, mem_univ, mem_sigma]
 
 def sign_aux {n : ℕ} (a : perm (fin n)) : units ℤ :=
 ∏ x in fin_pairs_lt n, if a x.1 ≤ a x.2 then -1 else 1

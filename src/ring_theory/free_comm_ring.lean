@@ -5,7 +5,6 @@ Authors: Kenny Lau, Johan Commelin
 -/
 import data.equiv.functor
 import data.mv_polynomial
-import ring_theory.ideal.operations
 import ring_theory.free_ring
 
 /-!
@@ -89,77 +88,49 @@ variables {R : Type v} [comm_ring R] (f : α → R)
 
 /-- Lift a map `α → R` to a additive group homomorphism `free_comm_ring α → R`.
 For a version producing a bundled homomorphism, see `lift_hom`. -/
-def lift : free_comm_ring α →+ R :=
-free_abelian_group.lift $ λ s, (s.map f).prod
-
-@[simp] lemma lift_zero : lift f 0 = 0 := rfl
-
-@[simp] lemma lift_one : lift f 1 = 1 :=
-free_abelian_group.lift.of _ _
+def lift : free_comm_ring α →+* R :=
+{ map_one' := free_abelian_group.lift.of _ _,
+  map_mul' := λ x y,
+  begin
+    refine free_abelian_group.induction_on y (mul_zero _).symm _ _ _,
+    { intros s2, conv_lhs { dsimp only [free_abelian_group.mul_def] },
+      simp only [free_abelian_group.lift.of, add_monoid_hom.to_fun_eq_coe],
+      refine free_abelian_group.induction_on x (zero_mul _).symm _ _ _,
+      { intros s1, iterate 3 { rw free_abelian_group.lift.of },
+        calc _ = multiset.prod ((multiset.map f s1) + (multiset.map f s2)) :
+            by {congr' 1, exact multiset.map_add _ _ _}
+          ... = _ : multiset.prod_add _ _ },
+      { intros s1 ih, iterate 3 { rw free_abelian_group.lift.neg }, rw [ih, neg_mul_eq_neg_mul] },
+      { intros x1 x2 ih1 ih2, iterate 3 { rw free_abelian_group.lift.add }, rw [ih1, ih2, add_mul] } },
+    { intros s2 ih,
+      simp only [add_monoid_hom.to_fun_eq_coe] at ih ⊢,
+      rw [mul_neg_eq_neg_mul_symm, add_monoid_hom.map_neg, add_monoid_hom.map_neg, mul_neg_eq_neg_mul_symm, ih] },
+    { intros y1 y2 ih1 ih2,
+      simp only [add_monoid_hom.to_fun_eq_coe] at ih1 ih2 ⊢,
+      rw [mul_add, add_monoid_hom.map_add, add_monoid_hom.map_add, mul_add, ih1, ih2] },
+  end,
+  ..free_abelian_group.lift $ λ s : multiplicative (multiset α), (s.to_add.map f).prod }
 
 @[simp] lemma lift_of (x : α) : lift f (of x) = f x :=
 (free_abelian_group.lift.of _ _).trans $ mul_one _
 
-@[simp] lemma lift_add (x y) : lift f (x + y) = lift f x + lift f y :=
-free_abelian_group.lift.add _ _ _
-
-@[simp] lemma lift_neg (x) : lift f (-x) = -lift f x :=
-free_abelian_group.lift.neg _ _
-
-@[simp] lemma lift_sub (x y) : lift f (x - y) = lift f x - lift f y :=
-free_abelian_group.lift.sub _ _ _
-
-@[simp] lemma lift_mul (x y) : lift f (x * y) = lift f x * lift f y :=
-begin
-  refine free_abelian_group.induction_on y (mul_zero _).symm _ _ _,
-  { intros s2, conv_lhs { dsimp only [free_abelian_group.mul_def] },
-    rw [free_abelian_group.lift.of, lift, free_abelian_group.lift.of],
-    refine free_abelian_group.induction_on x (zero_mul _).symm _ _ _,
-    { intros s1, iterate 3 { rw free_abelian_group.lift.of },
-      calc _ = multiset.prod ((multiset.map f s1) + (multiset.map f s2)) :
-          by {congr' 1, exact multiset.map_add _ _ _}
-         ... = _ : multiset.prod_add _ _ },
-    { intros s1 ih, iterate 3 { rw free_abelian_group.lift.neg }, rw [ih, neg_mul_eq_neg_mul] },
-    { intros x1 x2 ih1 ih2, iterate 3 { rw free_abelian_group.lift.add }, rw [ih1, ih2, add_mul] } },
-  { intros s2 ih, rw [mul_neg_eq_neg_mul_symm, lift_neg, lift_neg, mul_neg_eq_neg_mul_symm, ih] },
-  { intros y1 y2 ih1 ih2, rw [mul_add, lift_add, lift_add, mul_add, ih1, ih2] },
-end
-
-/-- Lift of a map `f : α → R` to `free_comm_ring α` as a ring homomorphism.
-We don't use it as the canonical form because Lean fails to coerce it to a function. -/
-def lift_hom : free_comm_ring α →+* R := ⟨lift f, lift_one f, lift_mul f, lift_zero f, lift_add f⟩
-
-@[simp] lemma coe_lift_hom : ⇑(lift_hom f : free_comm_ring α →+* R) = lift f := rfl
-
-@[simp] lemma lift_pow (x) (n : ℕ) : lift f (x ^ n) = lift f x ^ n :=
-(lift_hom f).map_pow _ _
-
-@[simp] lemma lift_comp_of (f : free_comm_ring α → R) [is_ring_hom f] : (lift (f ∘ of) : free_comm_ring α → R) = f :=
-funext $ λ x, free_comm_ring.induction_on x
-  (by rw [lift_neg, lift_one, is_ring_hom.map_neg f, is_ring_hom.map_one f])
+@[simp] lemma lift_comp_of (f : free_comm_ring α →+* R) : lift (f ∘ of) = f :=
+ring_hom.ext $ λ x, free_comm_ring.induction_on x
+  (by rw [ring_hom.map_neg, ring_hom.map_one, f.map_neg, f.map_one])
   (lift_of _)
-  (λ x y ihx ihy, by rw [lift_add, is_ring_hom.map_add f, ihx, ihy])
-  (λ x y ihx ihy, by rw [lift_mul, is_ring_hom.map_mul f, ihx, ihy])
-
-@[simp] lemma lift_hom_comp_of (f : free_comm_ring α →+* R) : lift_hom (f ∘ of) = f :=
-ring_hom.ext $ λ x, congr_fun (lift_comp_of f) x
+  (λ x y ihx ihy, by rw [ring_hom.map_add, f.map_add, ihx, ihy])
+  (λ x y ihx ihy, by rw [ring_hom.map_mul, f.map_mul, ihx, ihy])
 
 end lift
 
 variables {β : Type v} (f : α → β)
 
-/-- A map `f : α → β` produces a ring homomorphism `free_comm_ring α → free_comm_ring β`. -/
+/-- A map `f : α → β` produces a ring homomorphism `free_comm_ring α →+* free_comm_ring β`. -/
 def map : free_comm_ring α →+* free_comm_ring β :=
-lift_hom $ of ∘ f
+lift $ of ∘ f
 
-lemma map_zero : map f 0 = 0 := rfl
-lemma map_one : map f 1 = 1 := rfl
+@[simp]
 lemma map_of (x : α) : map f (of x) = of (f x) := lift_of _ _
-lemma map_add (x y) : map f (x + y) = map f x + map f y := lift_add _ _ _
-lemma map_neg (x) : map f (-x) = -map f x := lift_neg _ _
-lemma map_sub (x y) : map f (x - y) = map f x - map f y := lift_sub _ _ _
-lemma map_mul (x y) : map f (x * y) = map f x * map f y := lift_mul _ _ _
-lemma map_pow (x) (n : ℕ) : map f (x ^ n) = (map f x) ^ n := lift_pow _ _ _
 
 /-- `is_supported x s` means that all monomials showing up in `x` have variables in `s`. -/
 def is_supported (x : free_comm_ring α) (s : set α) : Prop :=
@@ -204,17 +175,12 @@ end is_supported
 /-- The restriction map from `free_comm_ring α` to `free_comm_ring s` where `s : set α`, defined
   by sending all variables not in `s` to zero. -/
 def restriction (s : set α) [decidable_pred s] : free_comm_ring α →+* free_comm_ring s :=
-lift_hom (λ p, if H : p ∈ s then of ⟨p, H⟩  else 0)
+lift (λ p, if H : p ∈ s then of ⟨p, H⟩  else 0)
 
 section restriction
 variables (s : set α) [decidable_pred s] (x y : free_comm_ring α)
 @[simp] lemma restriction_of (p) : restriction s (of p) = if H : p ∈ s then of ⟨p, H⟩ else 0 := lift_of _ _
-@[simp] lemma restriction_zero : restriction s 0 = 0 := lift_zero _
-@[simp] lemma restriction_one : restriction s 1 = 1 := lift_one _
-@[simp] lemma restriction_add : restriction s (x + y) = restriction s x + restriction s y := lift_add _ _ _
-@[simp] lemma restriction_neg : restriction s (-x) = -restriction s x := lift_neg _ _
-@[simp] lemma restriction_sub : restriction s (x - y) = restriction s x - restriction s y := lift_sub _ _ _
-@[simp] lemma restriction_mul : restriction s (x * y) = restriction s x * restriction s y := lift_mul _ _ _
+
 end restriction
 
 theorem is_supported_of {p} {s : set α} : is_supported (of p) s ↔ p ∈ s :=
@@ -224,10 +190,10 @@ assume hps : is_supported (of p) s, begin
   have : ∀ x, is_supported x s →
     ∃ (n : ℤ), lift (λ a, if a ∈ s then (0 : polynomial ℤ) else polynomial.X) x = n,
   { intros x hx, refine ring.in_closure.rec_on hx _ _ _ _,
-    { use 1, rw [lift_one], norm_cast },
-    { use -1, rw [lift_neg, lift_one], norm_cast },
-    { rintros _ ⟨z, hzs, rfl⟩ _ _, use 0, rw [lift_mul, lift_of, if_pos hzs, zero_mul], norm_cast },
-    { rintros x y ⟨q, hq⟩ ⟨r, hr⟩, refine ⟨q+r, _⟩, rw [lift_add, hq, hr], norm_cast } },
+    { use 1, rw [ring_hom.map_one], norm_cast },
+    { use -1, rw [ring_hom.map_neg, ring_hom.map_one], norm_cast },
+    { rintros _ ⟨z, hzs, rfl⟩ _ _, use 0, rw [ring_hom.map_mul, lift_of, if_pos hzs, zero_mul], norm_cast },
+    { rintros x y ⟨q, hq⟩ ⟨r, hr⟩, refine ⟨q+r, _⟩, rw [ring_hom.map_add, hq, hr], norm_cast } },
   specialize this (of p) hps, rw [lift_of] at this, split_ifs at this, { exact h },
   exfalso, apply ne.symm int.zero_ne_one,
   rcases this with ⟨w, H⟩, rw ←polynomial.C_eq_int_cast at H,
@@ -239,10 +205,10 @@ theorem map_subtype_val_restriction {x} (s : set α) [decidable_pred s] (hxs : i
   map (subtype.val : s → α) (restriction s x) = x :=
 begin
   refine ring.in_closure.rec_on hxs _ _ _ _,
-  { rw restriction_one, refl },
-  { rw [restriction_neg, map_neg, restriction_one], refl },
-  { rintros _ ⟨p, hps, rfl⟩ n ih, rw [restriction_mul, restriction_of, dif_pos hps, map_mul, map_of, ih] },
-  { intros x y ihx ihy, rw [restriction_add, map_add, ihx, ihy] }
+  { rw ring_hom.map_one, refl },
+  { rw [ring_hom.map_neg, ring_hom.map_neg, ring_hom.map_one], refl },
+  { rintros _ ⟨p, hps, rfl⟩ n ih, rw [ring_hom.map_mul, restriction_of, dif_pos hps, ring_hom.map_mul, map_of, ih] },
+  { intros x y ihx ihy, rw [ring_hom.map_add, ring_hom.map_add, ihx, ihy] }
 end
 
 theorem exists_finite_support (x : free_comm_ring α) : ∃ s : set α, set.finite s ∧ is_supported x s :=
@@ -269,7 +235,7 @@ variable (α)
 /-- The canonical ring homomorphism from the free ring generated by `α` to the free commutative ring
     generated by `α`. -/
 def to_free_comm_ring {α} : free_ring α →+* free_comm_ring α :=
-free_ring.lift_hom free_comm_ring.of
+free_ring.lift free_comm_ring.of
 
 instance : has_coe (free_ring α) (free_comm_ring α) := ⟨to_free_comm_ring⟩
 
@@ -284,13 +250,13 @@ variable {α}
 @[simp] protected lemma coe_of (a : α) : ↑(free_ring.of a) = free_comm_ring.of a :=
 free_ring.lift_of _ _
 @[simp, norm_cast] protected lemma coe_neg (x : free_ring α) : ↑(-x) = -(x : free_comm_ring α) :=
-free_ring.lift_neg _ _
+(free_ring.lift _).map_neg _
 @[simp, norm_cast] protected lemma coe_add (x y : free_ring α) : ↑(x + y) = (x : free_comm_ring α) + y :=
-free_ring.lift_add _ _ _
+(free_ring.lift _).map_add _ _
 @[simp, norm_cast] protected lemma coe_sub (x y : free_ring α) : ↑(x - y) = (x : free_comm_ring α) - y :=
-free_ring.lift_sub _ _ _
+(free_ring.lift _).map_sub _ _
 @[simp, norm_cast] protected lemma coe_mul (x y : free_ring α) : ↑(x * y) = (x : free_comm_ring α) * y :=
-free_ring.lift_mul _ _ _
+(free_ring.lift _).map_mul _ _
 
 variable (α)
 
@@ -300,8 +266,8 @@ begin
   apply free_comm_ring.induction_on x,
   { use -1, refl },
   { intro x, use free_ring.of x, refl },
-  { rintros _ _ ⟨x, rfl⟩ ⟨y, rfl⟩, use x + y, exact free_ring.lift_add _ _ _ },
-  { rintros _ _ ⟨x, rfl⟩ ⟨y, rfl⟩, use x * y, exact free_ring.lift_mul _ _ _ }
+  { rintros _ _ ⟨x, rfl⟩ ⟨y, rfl⟩, use x + y, exact (free_ring.lift _).map_add _ _ },
+  { rintros _ _ ⟨x, rfl⟩ ⟨y, rfl⟩, use x * y, exact (free_ring.lift _).map_mul _ _ }
 end
 
 lemma coe_eq :
@@ -356,20 +322,20 @@ def free_comm_ring_equiv_mv_polynomial_int :
     { intro s,
       refine multiset.induction_on s _ _,
       { unfold free_comm_ring.lift,
-        rw [free_abelian_group.lift.of],
+        simp only [free_abelian_group.lift.of, ring_hom.coe_mk, add_monoid_hom.to_fun_eq_coe],
         exact mv_polynomial.eval₂_one _ _ },
       { intros hd tl ih,
         show mv_polynomial.eval₂ (int.cast_ring_hom (free_comm_ring α)) free_comm_ring.of
           (free_comm_ring.lift (λ a, mv_polynomial.X a)
           (free_comm_ring.of hd * free_abelian_group.of tl)) =
           free_comm_ring.of hd * free_abelian_group.of tl,
-        rw [free_comm_ring.lift_mul, free_comm_ring.lift_of,
+        rw [ring_hom.map_mul, free_comm_ring.lift_of,
           mv_polynomial.eval₂_mul, mv_polynomial.eval₂_X, ih] } },
     { intros s ih,
-      rw [free_comm_ring.lift_neg, ← neg_one_mul, mv_polynomial.eval₂_mul,
+      rw [ring_hom.map_neg, ← neg_one_mul, mv_polynomial.eval₂_mul,
         ← mv_polynomial.C_1, ← mv_polynomial.C_neg, mv_polynomial.eval₂_C,
         ring_hom.map_neg, ring_hom.map_one, neg_one_mul, ih] },
-    { intros x₁ x₂ ih₁ ih₂, rw [free_comm_ring.lift_add, mv_polynomial.eval₂_add, ih₁, ih₂] }
+    { intros x₁ x₂ ih₁ ih₂, rw [ring_hom.map_add, mv_polynomial.eval₂_add, ih₁, ih₂] }
   end,
   right_inv :=
   begin
@@ -379,19 +345,19 @@ def free_comm_ring_equiv_mv_polynomial_int :
     have : ∀ i : ℤ, free_comm_ring.lift (λ (a : α), mv_polynomial.X a) (int.cast_ring_hom _ i) =
       mv_polynomial.C i,
     { exact λ i, int.induction_on i
-      (by rw [ring_hom.map_zero, free_comm_ring.lift_zero, mv_polynomial.C_0])
-      (λ i ih, by rw [ring_hom.map_add, ring_hom.map_one, free_comm_ring.lift_add,
-        free_comm_ring.lift_one, ih, mv_polynomial.C_add, mv_polynomial.C_1])
-      (λ i ih, by rw [ring_hom.map_sub, ring_hom.map_one, free_comm_ring.lift_sub,
-        free_comm_ring.lift_one, ih, mv_polynomial.C_sub, mv_polynomial.C_1]) },
+      (by rw [ring_hom.map_zero, ring_hom.map_zero, mv_polynomial.C_0])
+      (λ i ih, by rw [ring_hom.map_add, ring_hom.map_one, ring_hom.map_add,
+        ring_hom.map_one, ih, mv_polynomial.C_add, mv_polynomial.C_1])
+      (λ i ih, by rw [ring_hom.map_sub, ring_hom.map_one, ring_hom.map_sub,
+        ring_hom.map_one, ih, mv_polynomial.C_sub, mv_polynomial.C_1]) },
     apply mv_polynomial.induction_on x,
     { intro i, rw [mv_polynomial.eval₂_C, this] },
-    { intros p q ihp ihq, rw [mv_polynomial.eval₂_add, free_comm_ring.lift_add, ihp, ihq] },
+    { intros p q ihp ihq, rw [mv_polynomial.eval₂_add, ring_hom.map_add, ihp, ihq] },
     { intros p a ih,
       rw [mv_polynomial.eval₂_mul, mv_polynomial.eval₂_X,
-        free_comm_ring.lift_mul, free_comm_ring.lift_of, ih] }
+        ring_hom.map_mul, free_comm_ring.lift_of, ih] }
   end,
-  .. free_comm_ring.lift_hom $ λ a, mv_polynomial.X a }
+  .. free_comm_ring.lift $ λ a, mv_polynomial.X a }
 
 /-- The free commutative ring on the empty type is isomorphic to `ℤ`. -/
 def free_comm_ring_pempty_equiv_int : free_comm_ring pempty.{u+1} ≃+* ℤ :=

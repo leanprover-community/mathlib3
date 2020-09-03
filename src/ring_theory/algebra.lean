@@ -151,9 +151,22 @@ by rw [smul_def, smul_def, left_comm]
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
 
-variables (R)
+variables (R A)
+
+/--
+The canonical ring homomorphism `algebra_map R A : R →* A` for any `R`-algebra `A`,
+packaged as an `R`-linear map.
+-/
+protected def linear_map : R →ₗ[R] A :=
+{ map_smul' := λ x y, begin dsimp, simp [algebra.smul_def], end,
+  ..algebra_map R A }
+
+@[simp]
+lemma linear_map_apply (r : R) : algebra.linear_map R A r = algebra_map R A r := rfl
+
 instance id : algebra R R := (ring_hom.id R).to_algebra
-variables {R}
+
+variables {R A}
 
 namespace id
 
@@ -187,6 +200,13 @@ lemma subring_coe_algebra_map {R : Type*} [comm_ring R] (S : set R) [is_subring 
 lemma subring_algebra_map_apply {R : Type*} [comm_ring R] (S : set R) [is_subring S] (x : S) :
   algebra_map S R x = x := rfl
 
+lemma set_range_subset {R : Type*} [comm_ring R] {T₁ T₂ : set R} [is_subring T₁] (hyp : T₁ ⊆ T₂) :
+  set.range (algebra_map T₁ R) ⊆ T₂ :=
+begin
+  rintros x ⟨⟨t, ht⟩, rfl⟩,
+  exact hyp ht,
+end
+
 variables (R A)
 /-- The multiplication in an algebra is a bilinear map. -/
 def lmul : A →ₗ A →ₗ A :=
@@ -208,6 +228,10 @@ def lmul_right (r : A) : A →ₗ A :=
 def lmul_left_right (vw: A × A) : A →ₗ[R] A :=
 (lmul_right R A vw.2).comp (lmul_left R A vw.1)
 
+/-- The multiplication map on an algebra, as an `R`-linear map from `A ⊗[R] A` to `A`. -/
+def lmul' : A ⊗[R] A →ₗ[R] A :=
+tensor_product.lift (algebra.lmul R A)
+
 variables {R A}
 
 @[simp] lemma lmul_apply (p q : A) : lmul R A p q = p * q := rfl
@@ -215,6 +239,22 @@ variables {R A}
 @[simp] lemma lmul_right_apply (p q : A) : lmul_right R A p q = q * p := rfl
 @[simp] lemma lmul_left_right_apply (vw : A × A) (p : A) :
   lmul_left_right R A vw p = vw.1 * p * vw.2 := rfl
+
+@[simp] lemma lmul'_apply {x y} : algebra.lmul' R A (x ⊗ₜ y) = x * y :=
+begin
+  dsimp [algebra.lmul'],
+  simp,
+end
+
+/-- Explicit characterization of the submonoid map in the case of an algebra.
+`S` is made explicit to help with type inference -/
+def algebra_map_submonoid (S : Type*) [semiring S] [algebra R S]
+  (M : submonoid R) : (submonoid S) :=
+submonoid.map (algebra_map R S : R →* S) M
+
+lemma mem_algebra_map_submonoid_of_mem [algebra R S] {M : submonoid R} (x : M) :
+  (algebra_map R S x) ∈ algebra_map_submonoid S M :=
+set.mem_image_of_mem (algebra_map R S) x.2
 
 end semiring
 
@@ -1122,6 +1162,7 @@ variable {I : Type u}     -- The indexing type
 variable {f : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
 variables (I f)
+
 instance algebra (α) {r : comm_semiring α}
   [s : ∀ i, semiring (f i)] [∀ i, algebra α (f i)] :
   algebra α (Π i : I, f i) :=

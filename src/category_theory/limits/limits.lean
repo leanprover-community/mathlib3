@@ -743,7 +743,7 @@ def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F.obj j :=
 @[simp] lemma limit.cone_π {F : J ⥤ C} [has_limit F] (j : J) :
   (limit.cone F).π.app j = limit.π _ j := rfl
 
-@[simp] lemma limit.w (F : J ⥤ C) [has_limit F] {j j' : J} (f : j ⟶ j') :
+@[simp, reassoc] lemma limit.w (F : J ⥤ C) [has_limit F] {j j' : J} (f : j ⟶ j') :
   limit.π F j ≫ F.map f = limit.π F j' := (limit.cone F).w f
 
 /-- Evidence that the chosen cone is a limit cone. -/
@@ -1094,7 +1094,7 @@ def colimit.ι (F : J ⥤ C) [has_colimit F] (j : J) : F.obj j ⟶ colimit F :=
 @[simp] lemma colimit.cocone_ι {F : J ⥤ C} [has_colimit F] (j : J) :
   (colimit.cocone F).ι.app j = colimit.ι _ j := rfl
 
-@[simp] lemma colimit.w (F : J ⥤ C) [has_colimit F] {j j' : J} (f : j ⟶ j') :
+@[simp, reassoc] lemma colimit.w (F : J ⥤ C) [has_colimit F] {j j' : J} (f : j ⟶ j') :
   F.map f ≫ colimit.ι F j' = colimit.ι F j := (colimit.cocone F).w f
 
 /-- Evidence that the chosen cocone is a colimit cocone. -/

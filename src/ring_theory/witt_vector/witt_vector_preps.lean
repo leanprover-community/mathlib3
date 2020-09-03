@@ -414,70 +414,6 @@ section
 open_locale classical
 variables (φ : mv_polynomial σ R)
 
--- -- jmc: I don't know what the correct statement is here...
--- lemma bind₁_support : (bind₁ f φ).support ⊆ _ :=
--- begin
--- end
-
--- lemma finset.not_subset {α} {s t : finset α} : ¬ s ⊆ t ↔ ∃ x, x ∈ s ∧ x ∉ t :=
--- sorry
--- variables (p q : mv_polynomial σ R)
--- #simp bind₁ f (p + q)
-
-
--- I've made a few starts at this, none of them feel right.
--- this might not be the right lemma
--- but it proves bind₁_vars
--- jmc: I fear that unfortunatley the lemma is wrong
--- Take `φ = (X i)^2`, and `f = X`.
--- Then `bind₁ f φ` is just `(X i)^2`.
--- `coeff a _ ≠ 0` holds for `a = single i 2`,
--- but the support of `f i` is `single i 1`.
--- lemma foo
---   (a : τ →₀ ℕ)
---    :
---   coeff a ((bind₁ f) φ) ≠ 0 → ∃ s : σ, s ∈ φ.vars ∧ a ∈ (f s).support :=
--- begin
---   simp only [bind₁, aeval, eval₂_eq, ring_hom.to_fun_eq_coe, coe_eval₂_hom, finsupp.mem_support_iff, ne.def, alg_hom.coe_mk],
---   contrapose!, intro h,
---   simp only [coeff_sum],
---   apply finset.sum_eq_zero,
---   intros x hx,
---   simp only [mem_vars] at h,
---   convert h _ _,
-
-
-
--- end
-
--- lemma bind₁_vars : (bind₁ f φ).vars ⊆ φ.vars.bind (λ i, (f i).vars) :=
--- begin
-
---   intro x,
---   simp [vars, ← finset.bind_to_finset, bind₁],
---   intro hx,
---   obtain ⟨a, ha, hax⟩ := mem_degrees.mp hx,
---   -- rw coeff_aeval at ha,
-
---   rcases foo _ _ _ ha with ⟨s, hs, hs2⟩,
---   simp [vars] at hs,
---   use [s, hs],
---   rw degrees,
---   rw finset.mem_sup,
---   use [a, hs2],
---   rw finsupp.mem_to_multiset, exact hax
-
---   -- rw aeval_coe
---   -- apply φ.induction_on,
---   -- { intro a, simp },
---   -- { intros p q hp hq,
---   --   simp,
---   --   apply finset.subset.trans (vars_add_subset _ _),
---   --   apply finset.union_subset,
---   --   sorry, sorry },
---   -- { intros p n hp, simp [hp], }
--- end
-
 lemma vars_mul (φ ψ : mv_polynomial σ R) :
   (φ * ψ).vars ⊆ φ.vars ∪ ψ.vars :=
 begin
@@ -522,24 +458,6 @@ begin
     exact finset.union_subset_union (finset.subset.refl _) hsub }
 end
 
-section
-variables {A : Type*} [integral_domain A]
-
-lemma vars_mul_eq (φ ψ : mv_polynomial σ A) :
-  (φ * ψ).vars = φ.vars ∪ ψ.vars :=
-begin
-  sorry
-end
-
-lemma vars_pow_eq (φ : mv_polynomial σ A) (n : ℕ) :
-  (φ ^ n).vars = φ.vars := sorry
-
-lemma vars_prod_eq {ι : Type*} {s : finset ι} (f : ι → mv_polynomial σ A) :
-  (∏ i in s, f i).vars = s.bind (λ i, (f i).vars) :=
-sorry
-
-end
-
 lemma bind₁_vars : (bind₁ f φ).vars ⊆ φ.vars.bind (λ i, (f i).vars) :=
 begin
   -- can we prove this using the `mono` tactic?
@@ -571,6 +489,23 @@ begin
     refine ⟨i, _, hj⟩,
     rw [mem_vars],
     exact ⟨d, hd, hi⟩, }
+end
+
+section
+variables {A : Type*} [integral_domain A]
+
+-- this isn't true, is it? φ = 0? Not used anywhere so I'm not sure what conditions are safe to apply
+lemma vars_mul_eq (φ ψ : mv_polynomial σ A) :
+  (φ * ψ).vars = φ.vars ∪ ψ.vars :=
+sorry
+
+lemma vars_pow_eq (φ : mv_polynomial σ A) (n : ℕ) :
+  (φ ^ n).vars = φ.vars := sorry
+
+lemma vars_prod_eq {ι : Type*} {s : finset ι} (f : ι → mv_polynomial σ A) :
+  (∏ i in s, f i).vars = s.bind (λ i, (f i).vars) :=
+sorry
+
 end
 
 end

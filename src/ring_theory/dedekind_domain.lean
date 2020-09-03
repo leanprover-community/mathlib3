@@ -96,10 +96,6 @@ structure is_dedekind_domain_dvr : Prop :=
 /--
 A Dedekind domain is a nonfield such that every fractional ideal has an inverse.
 
-TODO:
-The fractional ideals are independent of the choice of field of fractions:
-use `is_dedekind_domain_inv_iff` to prove `is_dedekind_domain_inv` for a given `fraction_map`.
-
 This is equivalent to `is_dedekind_domain`.
 TODO: prove the equivalence.
 -/
@@ -111,16 +107,19 @@ section
 
 open ring.fractional_ideal
 
-#check map_equiv
-
 lemma is_dedekind_domain_inv_iff (f : fraction_map A K) :
   is_dedekind_domain_inv A ↔
     (¬ is_field A) ∧ (∀ I ≠ (⊥ : fractional_ideal f), I * I⁻¹ = 1) :=
 begin
   split; rintros ⟨hf, hi⟩; use hf; intros I hI,
-  { convert congr_arg (map_equiv (fraction_ring.alg_equiv_of_quotient f))
-      (hi (map_equiv (fraction_ring.alg_equiv_of_quotient f).symm I) _);
-      simp },
+  { have := hi (map (fraction_ring.alg_equiv_of_quotient f).symm.to_alg_hom I) (map_ne_zero _ hI),
+    erw [← map_inv, ← fractional_ideal.map_mul] at this,
+    convert congr_arg (map (fraction_ring.alg_equiv_of_quotient f).to_alg_hom) this;
+      simp only [alg_equiv.to_alg_hom_eq_coe, map_symm_map, map_one] },
+  { have := hi (map (fraction_ring.alg_equiv_of_quotient f).to_alg_hom I) (map_ne_zero _ hI),
+    erw [← map_inv, ← fractional_ideal.map_mul] at this,
+    convert congr_arg (map (fraction_ring.alg_equiv_of_quotient f).symm.to_alg_hom) this;
+      simp only [alg_equiv.to_alg_hom_eq_coe, map_map_symm, map_one] }
 end
 
 end

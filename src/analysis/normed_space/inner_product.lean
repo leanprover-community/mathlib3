@@ -2,11 +2,6 @@
 Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
-
-Based on real_inner_product.lean:
-Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Zhouhang Zhou, Sébastien Gouëzel
 -/
 
 import algebra.quadratic_discriminant
@@ -19,20 +14,24 @@ import data.complex.is_R_or_C
 
 This file defines inner product spaces and proves its basic properties.
 
-A complex inner product space is a vector space endowed with an inner product `⟨·,·⟩` which
-satisfies `⟨x, y⟩ = conj ⟨y, x⟩`.
+An inner product space is a vector space endowed with an inner product `⟪·, ·⟫` which
+satisfies `⟪x, y⟫ = conj ⟪y, x⟫`.
 
 ## Main results
 
-- We define the class `complex_inner_product_space` with a number of basic properties, most
+- We define the class `inner_product_space` with a number of basic properties, most
   notably the Cauchy-Schwarz inequality.
-- We show that if `f i` is a complex inner product space for each `i`, then so is `Π i, f i`
-- We define `complex_euclidean_space n` to be `n → ℂ` for any `fintype n`, and show that
-  this a complex inner product space.
+- We show that if `f i` is an inner product space for each `i`, then so is `Π i, f i`
+- We define `euclidean_space K n` to be `n → K` for any `fintype n`, and show that
+  this an inner product space.
 
 ## Notation
 
-We locally denote the inner product by `⟪·,·⟫`.
+We locally denote the inner product by `⟪·, ·⟫`.
+
+## Implementation notes
+
+We define both the real and complex cases at the same time using the `is_R_of_C` typeclass.
 
 ## Tags
 
@@ -51,50 +50,6 @@ variables {α : Type*} {F : Type*} {G : Type*}
 variables {K : Type*} [nondiscrete_normed_field K] [algebra ℝ K] [is_R_or_C K]
 local notation `𝓚` := @is_R_or_C.of_real K _ _ _
 
--- Some stuff on complex numbers that don't seem to be in the library --
---namespace complex
---
---lemma abs_eq_re_of_im_zero_of_re_nonneg (x : ℂ) : x.im = 0 → x.re ≥ 0 → x.re = x.abs :=
---begin
---  intros im_zero re_nonneg,
---  have H₁ : x.re ≤ x.abs, exact re_le_abs x,
---  unfold abs,
---  unfold norm_sq,
---  rw[im_zero, mul_zero, add_zero, sqrt_mul_self],
---  exact re_nonneg,
---end
---
---lemma re_eq_abs_of_mul_conj (x : ℂ) : (x * (conj x)).re = (x * (conj x)).abs :=
---begin
---  unfold abs,
---  rw[mul_re, conj_re, conj_im],
---  ring,
---  unfold norm_sq,
---  rw[mul_re, mul_im, conj_re, conj_im, ←neg_mul_eq_neg_mul, sub_neg_eq_add],
---  ring,
---  have h₁ : x.re * x.im - x.im * x.re = 0, ring,
---  rw[h₁, mul_zero, add_zero],
---  have h₂ : 0 ≤ x.re * x.re + x.im * x.im,
---  {
---    calc
---      0 ≤ x.norm_sq  : by exact norm_sq_nonneg x
---      ... = x.re * x.re + x.im * x.im   : by unfold norm_sq,
---  },
---  rw[sqrt_mul h₂, mul_self_sqrt h₂, pow_two, pow_two],
---end
---
---lemma conj_mul_eq_norm_sq_left (x : ℂ) : x.conj * x = x.norm_sq :=
---  by { unfold norm_sq, ext, norm_num, norm_num, ring }
---
---lemma conj_mul_re_eq_norm_sq_left (x : ℂ) : (x.conj * x).re = x.norm_sq :=
---  by { rw[conj_mul_eq_norm_sq_left], norm_cast }
---
---lemma conj_mul_eq_norm_sq_right (x : ℂ) : x * x.conj = x.norm_sq :=
---  by { rw[mul_comm], exact conj_mul_eq_norm_sq_left x }
---
---lemma abs_eq_norm_sq_sqrt (x : ℂ) : x.abs = x.norm_sq.sqrt := rfl
---
---end complex
 
 class has_inner (K α : Type*) := (inner : α → α → K)
 
@@ -107,7 +62,7 @@ set_option default_priority 100 -- see Note [default priority]
 /--
 An inner product space is a vector space with an additional operation called inner product.
 The norm could be derived from the inner product, instead we require the existence of a norm and
-the fact that it is equal to `sqrt (inner x x)` to be able to put instances on `K` or product
+the fact that `∥x∥^2 = re ⟪x, x⟫` to be able to put instances on `K` or product
 spaces.
 
 To construct a norm from an inner product, see `inner_product_space.of_core`.
@@ -170,10 +125,11 @@ local notation `reK` := @is_R_or_C.re K _ _ _
 local notation `ext_iff` := @is_R_or_C.ext_iff K _ _ _
 local postfix `†`:90 := @is_R_or_C.conj K _ _ _
 
+/-- Inner product defined by the `inner_product_space.core` structure. -/
 def to_has_inner : has_inner K F := { inner := c.inner }
 local attribute [instance] to_has_inner
 
-
+/-- The norm squared function for inner product spaces. -/
 def norm_sq (x : F) := reK ⟪x, x⟫
 
 local notation `norm_sqF` := @norm_sq F K _ _ _ _ _ _
@@ -215,15 +171,13 @@ by rw [←inner_conj_sym, inner_smul_left]; simp only [conj_conj, inner_conj_sym
 @[simp] lemma inner_zero_left {x : F} : ⟪0, x⟫ = 0 :=
 by rw [←zero_smul K (0 : F), inner_smul_left]; simp only [zero_mul, ring_hom.map_zero]
 
-@[simp] lemma inner_re_zero_left {x : F} : re ⟪0, x⟫ = 0 :=
-by rw [←zero_smul K (0 : F), inner_smul_left];
-  simp only [inner_zero_left, mul_zero, add_monoid_hom.map_zero]
+lemma inner_re_zero_left {x : F} : re ⟪0, x⟫ = 0 := by simp
 
 @[simp] lemma inner_zero_right {x : F} : ⟪x, 0⟫ = 0 :=
 by rw [←inner_conj_sym, inner_zero_left]; simp only [ring_hom.map_zero]
 
-@[simp] lemma inner_re_zero_right {x : F} : re ⟪x, 0⟫ = 0 :=
-by rw [←inner_conj_sym, inner_zero_left]; simp only [ring_hom.map_zero, add_monoid_hom.map_zero]
+lemma inner_re_zero_right {x : F} : re ⟪x, 0⟫ = 0 :=
+by simp only [inner_zero_right, add_monoid_hom.map_zero]
 
 @[simp] lemma inner_self_eq_zero {x : F} : ⟪x, x⟫ = 0 ↔ x = 0 :=
 iff.intro (c.definite _) (by { rintro rfl, exact inner_zero_left })
@@ -349,52 +303,6 @@ begin
     rwa [div_mul_cancel (abs ⟪x, y⟫ * abs ⟪y, x⟫) h₆] at this }
 end
 
---begin
---  have hquad : ∀ t : ℝ, 0 ≤ re ⟪y, y⟫ * t * t + re (⟪x, y⟫ + ⟪y, x⟫) * t + re ⟪x, x⟫,
---  { intro t,
---    calc
---      0   ≤ re ⟪x + (𝓚 t) • y, x + (𝓚 t) • y⟫   : inner_self_nonneg
---      ... = re ⟪y, y⟫ * t * t + (re ⟪x, y⟫ + re ⟪y, x⟫) * t + re ⟪x, x⟫
---              : begin
---                  simp [inner_add_add_self, inner_sub_sub_self, inner_smul_right,
---                        inner_smul_left, of_real_mul_re],
---                  ring
---                end
---      ... = re ⟪y, y⟫ * t * t + re (⟪x, y⟫ + ⟪y, x⟫) * t + re ⟪x, x⟫
---              : by simp only [add_monoid_hom.map_add] },
---  have h₁ : re ⟪y, x⟫ = re ⟪x, y⟫ := inner_symm_re,
---  --rw [mul_re, h₁],
---  have hdisc := discriminant_le_zero hquad,
---  rw [discrim] at hdisc,
---  have h₂ :=
---    calc
---      (re (⟪x, y⟫ + ⟪y, x⟫))^2 = (re (⟪x, y⟫ + ⟪x, y⟫†))^2     : by simp only [inner_conj_sym]
---                          ... = (abs (⟪x, y⟫ + ⟪x, y⟫†))^2     : by simp only [abs_sqr_re_add_conj]
---                          ... = (abs (⟪x, y⟫ + ⟪y, x⟫))^2     : by simp only [inner_conj_sym],
---  rw [h₂] at hdisc,
---  replace hdisc : abs (⟪x, y⟫ + ⟪y, x⟫) ^ 2 ≤ 4 * re ⟪x, x⟫ * re ⟪y, y⟫ := by linarith,
---  suffices : 4 * (abs ⟪x, y⟫ * abs ⟪y, x⟫) ≤ 4 * (re ⟪x, x⟫ * re ⟪y, y⟫),
---  { exact (mul_le_mul_left (show (0 : ℝ) < 4, by linarith)).mp this },
---  rw [←mul_assoc],
---  suffices h₃ : abs (inner x y + inner y x) ^ 2 = 4 * abs ⟪x, y⟫ * abs ⟪y, x⟫,
---  { rwa [←h₃, ←mul_assoc] },
---  rw [←inner_conj_sym, abs_sqr_re_add_conj', inner_conj_sym],
---  simp [-mul_re, pow_two, add_mul, mul_add],
---  ring,
---
---  --simp at hdisc,
---  --have hdisc' : (re (⟪x, y⟫ + ⟪y, x⟫))^2 ≤ 4 * (re ⟪x, x⟫ * re ⟪y, y⟫),
---  --{ rw [discrim, pow_two] at hdisc,
---  --  simp [h₁] at hdisc,
---  --  rw [←mul_assoc],
---  --  ring at hdisc,
---  --  exact hdisc },
---
---
---  --exact (mul_le_mul_left (show (0 : ℝ) < 4, by linarith)).mp hdisc'
---  sorry,
---end
-
 /-- Norm constructed from a `inner_product_space.core` structure, defined to be the square root
 of the scalar product. -/
 def to_has_norm : has_norm F :=
@@ -438,11 +346,7 @@ calc
   ... = re ⟪x, x⟫ - 2*re ⟪x, y⟫ + re ⟪y, y⟫ : by ring
 end
 
--- Same lemma as above but in a different form -/
---lemma norm_sub_mul_self {x y : α} : ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ - 2 * (inner x y).re + ∥y∥ * ∥y∥ :=
---  by { repeat {rw [← pow_two]}, exact norm_sub_pow_two }
-
--- Cauchy–Schwarz inequality with norm -/
+/-- Cauchy–Schwarz inequality with norm -/
 lemma abs_inner_le_norm (x y : F) : abs ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
 nonneg_le_nonneg_of_squares_le (mul_nonneg (sqrt_nonneg _) (sqrt_nonneg _))
 begin
@@ -464,8 +368,7 @@ begin
   simp only [add_monoid_hom.map_add],
 end
 
-/-- Normed group structure constructed from a `complex_inner_product_space.core`
-structure -/
+/-- Normed group structure constructed from an `inner_product_space.core` structure -/
 def to_normed_group : normed_group F :=
 normed_group.of_core F
 { norm_eq_zero_iff := assume x,
@@ -497,9 +400,7 @@ normed_group.of_core F
 
 local attribute [instance] to_normed_group
 
-/-
-Normed space structure constructed from a `complex_inner_product_space.core` structure
--/
+/-- Normed space structure constructed from a `inner_product_space.core` structure -/
 def to_normed_space : normed_space K F :=
 { norm_smul_le := assume r x,
   begin
@@ -511,9 +412,8 @@ def to_normed_space : normed_space K F :=
 
 end inner_product_space.of_core
 
-/-- Given a `complex_inner_product_space.core` structure on a space, one can use it to turn
-the space into a complex inner product space, constructing the norm out of the inner
-product -/
+/-- Given a `inner_product_space.core` structure on a space, one can use it to turn
+the space into an inner product space, constructing the norm out of the inner product -/
 def inner_product_space.of_core [add_comm_group F] [semimodule K F]
   (c : inner_product_space.core K F) : inner_product_space K F :=
 begin
@@ -568,14 +468,14 @@ by rw [←inner_conj_sym, inner_smul_left, ring_hom.map_mul, conj_conj, inner_co
 @[simp] lemma inner_zero_left {x : α} : ⟪0, x⟫ = 0 :=
 by rw [← zero_smul K (0:α), inner_smul_left, ring_hom.map_zero, zero_mul]
 
-@[simp] lemma inner_re_zero_left {x : α} : re ⟪0, x⟫ = 0 :=
-by { rw [← zero_smul K (0:α), inner_smul_left, ring_hom.map_zero, zero_mul], simp }
+lemma inner_re_zero_left {x : α} : re ⟪0, x⟫ = 0 :=
+by simp only [inner_zero_left, add_monoid_hom.map_zero]
 
 @[simp] lemma inner_zero_right {x : α} : ⟪x, 0⟫ = 0 :=
 by rw [←inner_conj_sym, inner_zero_left, ring_hom.map_zero]
 
-@[simp] lemma inner_re_zero_right {x : α} : re ⟪x, 0⟫ = 0 :=
-by { rw [←inner_conj_sym, inner_zero_left], simp }
+lemma inner_re_zero_right {x : α} : re ⟪x, 0⟫ = 0 :=
+by simp only [inner_zero_right, add_monoid_hom.map_zero]
 
 lemma inner_self_nonneg {x : α} : 0 ≤ re ⟪x, x⟫ :=
 by rw [←norm_sq_eq_inner]; exact pow_nonneg (norm_nonneg x) 2
@@ -620,10 +520,10 @@ begin
 end
 
 lemma inner_self_abs_to_K {x : α} : 𝓚 (abs ⟪x, x⟫) = ⟪x, x⟫ :=
-  by { rw[←inner_self_re_abs], exact inner_self_re_to_K }
+by { rw[←inner_self_re_abs], exact inner_self_re_to_K }
 
 lemma inner_abs_conj_sym {x y : α} : abs ⟪x, y⟫ = abs ⟪y, x⟫ :=
-  by rw [←inner_conj_sym, abs_conj]
+by rw [←inner_conj_sym, abs_conj]
 
 @[simp] lemma inner_neg_left {x y : α} : ⟪-x, y⟫ = -⟪x, y⟫ :=
 by { rw [← neg_one_smul K x, inner_smul_left], simp }
@@ -653,14 +553,12 @@ by simp only [inner_add_left, inner_add_right]; ring
 lemma inner_sub_sub_self {x y : α} : ⟪x - y, x - y⟫ = ⟪x, x⟫ - ⟪x, y⟫ - ⟪y, x⟫ + ⟪y, y⟫ :=
 by simp only [inner_sub_left, inner_sub_right]; ring
 
-/- Parallelogram law -/
+/-- Parallelogram law -/
 lemma parallelogram_law {x y : α} :
   ⟪x + y, x + y⟫ + ⟪x - y, x - y⟫ = 2 * (⟪x, x⟫ + ⟪y, y⟫) :=
 by simp [inner_add_add_self, inner_sub_sub_self, two_mul, sub_eq_add_neg, add_comm, add_left_comm]
 
-/--
-Cauchy–Schwarz inequality. This proof follows "Proof 2" on Wikipedia.
--/
+/-- Cauchy–Schwarz inequality. This proof follows "Proof 2" on Wikipedia. -/
 lemma inner_mul_inner_self_le (x y : α) : abs ⟪x, y⟫ * abs ⟪y, x⟫ ≤ re ⟪x, x⟫ * re ⟪y, y⟫ :=
 begin
   by_cases hy : y = 0,
@@ -691,7 +589,7 @@ begin
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
-                  : by field_simp [-mul_re, hT, conj_div, h₁, h₃]
+                  : by field_simp [-mul_re, hT, conj_div, h₁, h₃, inner_conj_sym]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
                   : by rw [div_mul_eq_mul_div_comm, ←mul_div_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / 𝓚 (re ⟪y, y⟫))
@@ -719,46 +617,42 @@ with the default instance for the norm on `Π i, f i`.
 -/
 instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   [Π i, inner_product_space K (f i)] : inner_product_space K (pi_Lp 2 one_le_two f) :=
-{
-  inner := λ x y, ∑ i, inner (x i) (y i),
-  norm_eq_sqrt_inner :=
-    begin
-      assume x,
-      unfold inner,
-      have h₁ : ∀ (x : ℂ), x.re.sqrt = x.re^(1 / (2:ℝ)),
-        intro y,
-        rw[sqrt_eq_rpow],
-      rw[pi_Lp.norm_eq, h₁],
-      rw[←finset.sum_hom finset.univ re],
-      have h₂ : ∀ (j : ι), (inner (x j) (x j)).re = ∥x j∥^2,
-        intro j,
-        rw[norm_eq_sqrt_inner, sqr_sqrt inner_self_nonneg],
-      simp[h₂],
-      congr',
-      ext1,
-      rw[←rpow_nat_cast],
-      norm_cast,
-    end,
+{ inner := λ x y, ∑ i, inner (x i) (y i),
+  norm_sq_eq_inner :=
+  begin
+    intro x,
+    have h₁ : ∑ (i : ι), ∥x i∥ ^ (2 : ℕ) = ∑ (i : ι), ∥x i∥ ^ (2 : ℝ),
+    { apply finset.sum_congr rfl,
+      intros j hj,
+      simp [←rpow_nat_cast] },
+    have h₂ : 0 ≤ ∑ (i : ι), ∥x i∥ ^ (2 : ℝ),
+    { rw [←h₁],
+      exact finset.sum_nonneg (λ (j : ι) (hj : j ∈ finset.univ), pow_nonneg (norm_nonneg (x j)) 2) },
+    simp [norm, add_monoid_hom.map_sum, ←norm_sq_eq_inner],
+    rw [←rpow_nat_cast ((∑ (i : ι), ∥x i∥ ^ (2 : ℝ)) ^ (2 : ℝ)⁻¹) 2],
+    rw [←rpow_mul h₂],
+    norm_num [h₁],
+  end,
   conj_sym :=
-    begin
-        intros x y,
-        unfold inner,
-        rw[←finset.sum_hom finset.univ complex.conj],
-        apply finset.sum_congr, refl,
-        intros z h,
-        rw[inner_conj_sym],
-    end,
+  begin
+    intros x y,
+    unfold inner,
+    rw [←finset.sum_hom finset.univ conj],
+    apply finset.sum_congr rfl,
+    rintros z -,
+    apply inner_conj_sym,
+    apply_instance
+  end,
   nonneg_im :=
-    begin
-      intro x,
-      unfold inner,
-      rw[←finset.sum_hom finset.univ complex.im],
-      have H : ∀ i, (inner (x i) (x i)).im = 0,
-        { intro i, exact inner_self_nonneg_im },
-      apply finset.sum_eq_zero,
-      intros z h,
-      exact inner_self_nonneg_im,
-    end,
+  begin
+    intro x,
+    unfold inner,
+    rw[←finset.sum_hom finset.univ im],
+    apply finset.sum_eq_zero,
+    rintros z -,
+    exact inner_self_nonneg_im,
+    apply_instance
+  end,
   add_left := λ x y z,
     show ∑ i, inner (x i + y i) (z i) = ∑ i, inner (x i) (z i) + ∑ i, inner (y i) (z i),
     by simp only [inner_add_left, finset.sum_add_distrib],
@@ -767,69 +661,34 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
     by simp only [finset.mul_sum, inner_smul_left]
 }
 
-/--
-A field `K` satisfying `is_R_or_C` is itself a `K`-inner produce space.
--/
+/-- A field `K` satisfying `is_R_or_C` is itself a `K`-inner product space. -/
 instance is_R_or_C.inner_product_space : inner_product_space K K :=
 { inner := (λ x y, (conj x) * y),
-  norm_eq_sqrt_inner :=
-    by { intro x, rw[complex.conj_mul_re_eq_norm_sq_left], refl },
-  conj_sym := assume x y,
-    by {unfold inner, rw[conj_mul y.conj x, conj_conj, mul_comm]},
-  nonneg_im :=
-    begin
-      intro x,
-      unfold inner,
-      rw[mul_im, conj_re, conj_im],
-      ring,
-    end,
-  add_left := by { intros x y z, unfold inner, rw[conj_add], ring},
-  smul_left :=
-    begin
-      intros x y z,
-      unfold inner,
-      simp only [complex.conj_mul, algebra.id.smul_eq_mul],
-      ring,
-    end
-}
+  norm_sq_eq_inner := λ x, by unfold inner; rw [mul_comm, mul_conj, of_real_re, norm_sq, norm_sq_eq_def],
+  conj_sym := λ x y, by simp [mul_comm],
+  nonneg_im := λ x, by rw[mul_im, conj_re, conj_im]; ring,
+  add_left := λ x y z, by simp [inner, add_mul],
+  smul_left := λ x y z, by simp [inner, mul_assoc] }
 
 
-/-- The standard complex Euclidean space, functions on a finite type. For an `n`-dimensional space
-use `complex_euclidean_space (fin n)`.  -/
+/-- The standard real/complex Euclidean space, functions on a finite type. For an `n`-dimensional space
+use `euclidean_space K (fin n)`.  -/
 @[reducible, nolint unused_arguments]
-def complex_euclidean_space (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), ℂ)
+def euclidean_space (K : Type*) [nondiscrete_normed_field K] [algebra ℝ K] [is_R_or_C K]
+  (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), K)
 
 section pi_Lp
 local attribute [reducible] pi_Lp
 variables {ι : Type*} [fintype ι]
 
-instance : finite_dimensional ℂ (complex_euclidean_space ι) := by apply_instance
+instance : finite_dimensional K (euclidean_space K ι) := by apply_instance
 
-@[simp] lemma findim_complex_euclidean_space :
-  finite_dimensional.findim ℂ (complex_euclidean_space ι) = fintype.card ι := by simp
+@[simp] lemma findim_euclidean_space :
+  finite_dimensional.findim K (euclidean_space K ι) = fintype.card ι := by simp
 
-lemma findim_complex_euclidean_space_fin {n : ℕ} :
-  finite_dimensional.findim ℂ (complex_euclidean_space (fin n)) = n := by simp
+lemma findim_euclidean_space_fin {n : ℕ} :
+  finite_dimensional.findim K (euclidean_space K (fin n)) = n := by simp
 
 end pi_Lp
-
-
-/-
-Orthogonality: `x` and `y` are orthogonal if `⟨x,y⟩ = 0`.
--/
-
-section orthogonal
-
-variables {ι : Type*}
-
-def is_orthogonal_set (v : ι → α) := ∀ i j : ι, i ≠ j → inner (v i) (v j) = 0
-
-def is_normalized_set (v : ι → α) := ∀ i : ι, inner (v i) (v i) = 1
-
-def is_orthonormal_set (v : ι → α) := is_orthogonal_set v ∧ is_normalized_set v
-
-def is_orthonormal_basis (v : ι → α) := is_basis ℂ v ∧ is_orthonormal_set v
-
-end orthogonal
 
 end is_R_or_C

@@ -499,13 +499,82 @@ begin
   -- { intros p n hp, simp [hp], }
 end
 
+lemma vars_mul (φ ψ : mv_polynomial σ R) :
+  (φ * ψ).vars ⊆ φ.vars ∪ ψ.vars :=
+begin
+  intro i,
+  simp only [mem_vars, finset.mem_union],
+  rintro ⟨d, hd, hi⟩,
+  rw [finsupp.mem_support_iff, ← coeff, coeff_mul] at hd,
+  contrapose! hd, cases hd,
+  rw finset.sum_eq_zero,
+  rintro ⟨d₁, d₂⟩ H,
+  rw finsupp.mem_antidiagonal_support at H,
+  subst H,
+  obtain H|H : i ∈ d₁.support ∨ i ∈ d₂.support,
+  { simpa only [finset.mem_union] using finsupp.support_add hi, },
+  { suffices : coeff d₁ φ = 0, by simp [this],
+    rw [coeff, ← finsupp.not_mem_support_iff], intro, solve_by_elim, },
+  { suffices : coeff d₂ ψ = 0, by simp [this],
+    rw [coeff, ← finsupp.not_mem_support_iff], intro, solve_by_elim, },
+end
+
+lemma vars_pow (φ : mv_polynomial σ R) (n : ℕ) :
+  (φ ^ n).vars ⊆ φ.vars := sorry
+
+lemma vars_prod {ι : Type*} {s : finset ι} (f : ι → mv_polynomial σ R) :
+  (∏ i in s, f i).vars ⊆ s.bind (λ i, (f i).vars) :=
+sorry
+
+section
+variables {A : Type*} [integral_domain A]
+
+lemma vars_mul_eq (φ ψ : mv_polynomial σ A) :
+  (φ * ψ).vars = φ.vars ∪ ψ.vars :=
+begin
+  sorry
+end
+
+lemma vars_pow_eq (φ : mv_polynomial σ A) (n : ℕ) :
+  (φ ^ n).vars = φ.vars := sorry
+
+lemma vars_prod_eq {ι : Type*} {s : finset ι} (f : ι → mv_polynomial σ A) :
+  (∏ i in s, f i).vars = s.bind (λ i, (f i).vars) :=
+sorry
+
+end
+
 lemma bind₁_vars' : (bind₁ f φ).vars ⊆ φ.vars.bind (λ i, (f i).vars) :=
 begin
+  -- can we prove this using the `mono` tactic?
+  -- are the lemmas above good `mono` lemmas?
+  -- is `bind_mono` a good `mono` lemma?
   calc (bind₁ f φ).vars
       = (φ.support.sum (λ (x : σ →₀ ℕ), (bind₁ f) (monomial x (coeff x φ)))).vars : by { rw [← alg_hom.map_sum, ← φ.as_sum], }
   ... ≤ φ.support.bind (λ (i : σ →₀ ℕ), ((bind₁ f) (monomial i (coeff i φ))).vars) : vars_sum_subset _ _
-  ... ≤ φ.vars.bind (λ (i : σ), (f i).vars) : _,
-
+  ... = φ.support.bind (λ (d : σ →₀ ℕ), (C (coeff d φ) * ∏ i in d.support, f i ^ d i).vars) : by simp only [bind₁_monomial]
+  ... ≤ φ.support.bind (λ (d : σ →₀ ℕ), d.support.bind (λ i, (f i).vars)) : _ -- proof below
+  ... ≤ φ.vars.bind (λ (i : σ), (f i).vars) : _, -- proof below
+  { apply finset.bind_mono,
+    intros d hd,
+    calc (C (coeff d φ) * ∏ (i : σ) in d.support, f i ^ d i).vars
+        ≤ (C (coeff d φ)).vars ∪ (∏ (i : σ) in d.support, f i ^ d i).vars : vars_mul _ _
+    ... ≤ (∏ (i : σ) in d.support, f i ^ d i).vars : by { simp only [finset.empty_union, vars_C, finset.le_iff_subset, finset.subset.refl], }
+    ... ≤ d.support.bind (λ (i : σ), (f i ^ d i).vars) : vars_prod _
+    ... ≤ d.support.bind (λ (i : σ), (f i).vars) : _,
+    apply finset.bind_mono,
+    intros i hi,
+    apply vars_pow, },
+  { -- can this be golfed into a point-free proof?
+    intro j,
+    rw [finset.mem_bind],
+    rintro ⟨d, hd, hj⟩,
+    rw [finset.mem_bind] at hj,
+    rcases hj with ⟨i, hi, hj⟩,
+    rw [finset.mem_bind],
+    refine ⟨i, _, hj⟩,
+    rw [mem_vars],
+    exact ⟨d, hd, hi⟩, }
 end
 
 end

@@ -723,7 +723,7 @@ variables [conditionally_complete_linear_order α] (s : set α)
 /-! ### Subtypes of conditionally complete linear orders
 
 In this section we give conditions on a subset of a conditionally complete linear order, to ensure
-that the subsypeshow is itself conditionally complete.
+that the subtype is itself conditionally complete.
 
 We check that `Ioo` satisfies these conditions.
 

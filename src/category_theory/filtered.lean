@@ -23,11 +23,17 @@ See `category_theory/limits/types` for some details.
 Filtered categories are nice because colimits indexed by filtered categories tend to be
 easier to describe than general colimits (and often often preserved by functors).
 
-In this file we show that any functor from a finite category to a filtered category admits a cocone,
-and more generally,
+In this file we show that any functor from a finite category to a filtered category admits a cocone:
+* `cocone_nonempty [fin_category J] [is_filtered C] (F : J ⥤ C) : nonempty (cocone F)`
+More generally,
 for any finite collection of objects and morphisms between them in a filtered category
 (even if not closed under composition) there exists some object `Z` receiving maps from all of them,
 so that all the triangles (one edge from the finite set, two from morphisms to `Z`) commute.
+This formulation is often more useful in practice. We give two variants,
+`sup_exists'`, which takes a single finset of objects, and a finset of morphisms
+(bundled with their sources and targets), and
+`sup_exists`, which takes a finset of objects, and an indexed family (indexed by source and target)
+of finsets of morphisms.
 
 ## Future work
 * Finite limits commute with filtered colimits
@@ -145,6 +151,15 @@ begin
     { exact ⟨(w' (by finish)).some ≫ right_to_max _ _⟩, }, }
 end
 
+/--
+An alternative formulation of `sup_exists`, using a single `finset` of morphisms,
+rather than a family indexed by the sources and targets.
+
+Given any `finset` of objects `{X, ...}` and
+indexed collection of `finset`s of morphisms `{f, ...}` in `C`,
+there is an object `S`, with a morphism `T X : X ⟶ S` from each `X`,
+such that the triangles commute: `f ≫ T X = T Y`, for `f : X ⟶ Y` in the `finset`.
+-/
 lemma sup_exists' (O : finset C) (H : finset (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) :
   ∃ (S : C) (T : Π {X : C}, X ∈ O → (X ⟶ S)), ∀ {X Y : C} (mX : X ∈ O) (mY : Y ∈ O) {f : X ⟶ Y},
     (⟨X, Y, mX, mY, f⟩ : (Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y)) ∈ H → f ≫ T mY = T mX :=
@@ -220,7 +235,7 @@ variables {J : Type v} [small_category J] [fin_category J]
 If we have `is_filtered C`, then for any functor `F : J ⥤ C` with `fin_category J`,
 there exists a cocone over `F`.
 -/
-lemma cocone_nonempty (F : J ⥤ C) : _root_.nonempty (cocone F):=
+lemma cocone_nonempty (F : J ⥤ C) : _root_.nonempty (cocone F) :=
 begin
   classical,
   let O := (finset.univ.image F.obj),
@@ -231,9 +246,10 @@ begin
   refine ⟨⟨Z, ⟨λ X, f (by simp), _⟩⟩⟩,
   intros j j' g,
   dsimp,
-  simp,
+  simp only [category.comp_id],
   apply w,
-  simp,
+  simp only [finset.mem_univ, finset.mem_bind, exists_and_distrib_left,
+    exists_prop_of_true, finset.mem_image],
   exact ⟨j, rfl, j', g, (by simp)⟩,
 end
 

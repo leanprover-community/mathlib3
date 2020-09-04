@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.category.Cat
-import category_theory.eq_to_hom
+import category_theory.elements
 
 /-!
 # The Grothendieck construction
@@ -129,6 +129,28 @@ instance : category (grothendieck F) :=
 def forget : grothendieck F ⥤ C :=
 { obj := λ X, X.1,
   map := λ X Y f, f.1, }
+
+universe w
+variables (G : C ⥤ Type w)
+
+/--
+The Grothendieck construction applied to a functor to `Type`
+(thought of as a functor to `Cat` by realising a type as a discrete category)
+is the same as the 'category of elements' construction.
+-/
+def grothendieck_Type_to_Cat : grothendieck (G ⋙ Type_to_Cat) ≌ G.elements :=
+{ functor :=
+  { obj := λ X, ⟨X.1, X.2⟩,
+    map := λ X Y f, ⟨f.1, f.2.1.1⟩ },
+  inverse :=
+  { obj := λ X, ⟨X.1, X.2⟩,
+    map := λ X Y f, ⟨f.1, ⟨⟨f.2⟩⟩⟩ },
+  unit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
+    (by { rintro ⟨⟩ ⟨⟩ ⟨base, ⟨⟨f⟩⟩⟩, dsimp at *, subst f, simp, }),
+  counit_iso := nat_iso.of_components (λ X, by { cases X, exact iso.refl _, })
+    (by { rintro ⟨⟩ ⟨⟩ ⟨f, e⟩, dsimp at *, subst e, simp }),
+  functor_unit_iso_comp' := by { rintro ⟨⟩, dsimp, simp, refl, } }
+
 
 end grothendieck
 

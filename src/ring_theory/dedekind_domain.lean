@@ -76,9 +76,9 @@ lemma maximal_ideal_invertible_of_dedekind (h : is_dedekind_domain f) {M : ideal
   (hM : ideal.is_maximal M) : is_unit (M : fractional_ideal f) :=
 -- ⟨⟨M, M⁻¹, _, _⟩, rfl⟩
 begin
-let M1 := {x : K | ∀ y ∈ M, f.is_integer (x * f.to_map y)},
+let setM1 := {x : K | ∀ y ∈ M, f.is_integer (x * f.to_map y)},
 let M1 : fractional_ideal f,
-{use M1,
+{use setM1,
   {intros y h,simp,use 0,simp,},
   {intros a b ha hb,intros y h,rw add_mul a b (f.to_map y),
   apply localization_map.is_integer_add,apply ha,exact h,apply hb,exact h,},
@@ -89,15 +89,23 @@ let M1 : fractional_ideal f,
     apply localization_map.is_integer_smul,
     exact h1 y h,},sorry,
 },
-have hprod : ↑M*M1=1,
+have M1_one : (1 : K) ∈ M1,sorry,
+have h_MinMM1 : ↑M ≤ ↑M*M1,
+  {intros x hx,cases hx with a ha,
+
+  }
+
+
+have hprod : ↑M*M1=(1: fractional_ideal f),
   {suffices hincl: ↑M*M1≤ 1, --first we start with the proof that hincl → hprod
-  have h_nonfrac : ∃ (I : ideal R), ↑ I = ↑M*M1, sorry,
+  have h_nonfrac : ∃ (I : ideal R), ↑M*M1=↑I, sorry,
   cases h_nonfrac with I hI,
-  have h_nf_incl : M ≤ I,sorry,--probably need to combine hI with the fact that ↑ M⊆ ↑ M*M1 easily
-  -- apply fractional_ideal.coe_one,
-  -- apply and.elim_right hM I,--Lean is unhappy because 1 and ⊤ seem different,
-                --but otherwise this should imply hincl
-  sorry,--end of the proof that hincl → hprod
+  have h_Iincl : M ≤ I,sorry,--probably need to combine hI with the fact that ↑ M⊆ ↑ M*M1 easily
+  have h_Itop : I=⊤ ,apply and.elim_right hM I,sorry,--this second sorry "proves" that M < I
+  have h_unitI : (1 : R) ∈ I, apply (eq_top_iff_one I).mp,exact h_Itop,
+  have h_IR : I= (1: ideal R),simp,exact h_Itop,
+  have h_okI : ↑I = (1 : fractional_ideal f),sorry,
+  rw hI,exact h_okI,--end of the proof that hincl → hprod
   -- and now we pass to the proof of hincl
   sorry,--end of the proof of hincl
   },

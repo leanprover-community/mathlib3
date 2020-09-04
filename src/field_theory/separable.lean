@@ -7,6 +7,7 @@ Authors: Kenny Lau.
 import algebra.polynomial.big_operators
 import field_theory.minimal_polynomial
 import field_theory.splitting_field
+import field_theory.tower
 
 /-!
 
@@ -502,3 +503,60 @@ end
 the minimal polynomial of every `x : K` is separable. -/
 @[class] def is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
 ∀ x : K, ∃ H : is_integral F x, (minimal_polynomial H).separable
+
+lemma is_separable_top (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E] [algebra K E]
+[is_scalar_tower F K E] (h : is_separable F E) : is_separable K E :=
+begin
+  intro x,
+  cases h x with hx hs,
+  have hx' : is_integral K x := is_integral_of_is_scalar_tower x hx,
+  use hx',
+  have key : (minimal_polynomial hx') ∣ (minimal_polynomial hx).map(algebra_map F K),
+  apply minimal_polynomial.dvd,
+  dsimp[polynomial.aeval],
+  rw polynomial.eval₂_map,
+  rw ←is_scalar_tower.algebra_map_eq F K E,
+  apply minimal_polynomial.aeval,
+  cases key with q hq,
+  apply polynomial.separable.of_mul_left,
+  rw ←hq,
+  exact polynomial.separable.map hs,
+end
+
+lemma is_separable_bottom (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E] [algebra K E]
+[is_scalar_tower F K E] (h : is_separable F E) : is_separable F K :=
+begin
+  intro x,
+
+  have main : ∀ p : polynomial F, algebra_map K E (aeval x p) = aeval (algebra_map K E x) p,
+  intro p,
+  dsimp[aeval],
+  rw eval₂_eq_eval_map (algebra_map F E),
+  rw is_scalar_tower.algebra_map_eq F K E,
+  rw ←polynomial.map_map,
+  rw ←eval₂_eq_eval_map,
+  rw eval₂_hom,
+  rw eval₂_eq_eval_map,
+
+  have swap : ∀ p : polynomial F, aeval (algebra_map K E x) p = 0 → aeval x p = 0,
+  intros p hp,
+  rw ←main p at hp,
+  rw ←(algebra_map K E).map_zero at hp,
+  exact ring_hom.injective (algebra_map K E) hp,
+
+  cases h (algebra_map K E x) with hx hs,
+  have hx' : is_integral F x,
+  cases hx with p hp,
+  use p,
+  split,
+  exact hp.1,
+  exact swap p hp.2,
+  use hx',
+  have key : (minimal_polynomial hx') ∣ (minimal_polynomial hx),
+  apply minimal_polynomial.dvd,
+  exact swap (minimal_polynomial hx) (minimal_polynomial.aeval hx),
+  cases key with q hq,
+  apply polynomial.separable.of_mul_left,
+  rw ←hq,
+  exact hs,
+end

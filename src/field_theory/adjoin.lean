@@ -5,8 +5,6 @@ Authors: Thomas Browning and Patrick Lutz
 -/
 
 import field_theory.subfield
-import field_theory.separable
-import linear_algebra.finite_dimensional
 import field_theory.tower
 
 /-!

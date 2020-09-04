@@ -469,8 +469,22 @@ begin
     have F'_findim : finite_dimensional F' E := sorry, --inclusion.finite_dimensional F_findim,
 
     obtain ⟨α, hα⟩ := primitive_element_aux F' E F'_sep F'_findim,
-    sorry,
-    -- exact ⟨α, by simp only [*, adjoin_equals_adjoin_range]⟩,
+    use α,
+    have key : (F'⟮α⟯ : set E) ⊆ F⟮α⟯,
+    rw field.adjoin_subset_adjoin_iff,
+    split,
+    intros x hx,
+    rw set.mem_range at hx,
+    cases hx with y hy,
+    cases y with z hz,
+    change z = x at hy,
+    rw [←hy],
+    exact field.adjoin.range_algebra_map_subset F ({α} : set E) hz,
+    exact field.subset_adjoin F {α},
+    symmetry,
+    ext1,
+    apply iff_of_true algebra.mem_top,
+    exact key ((subalgebra.ext_iff.mp hα x).mpr algebra.mem_top),
 end
 
 #lint

@@ -93,12 +93,12 @@ calc
   ... = (eval₂ am f q).ker
      : by { congr, apply (eq_X_add_C_of_degree_eq_one hq).symm }
 
-lemma ker_eval₂_ring_hom_noncomm_unit_polynomial [field K] [vector_space K V]
+lemma ker_eval₂_ring_hom'_unit_polynomial [field K] [vector_space K V]
   (f : End K V) (c : units (polynomial K)) :
-  ((eval₂_ring_hom_noncomm am (λ x y, (algebra.commutes x y).symm) f) ↑c).ker = ⊥ :=
+  ((eval₂_ring_hom' am algebra.commutes f) ↑c).ker = ⊥ :=
 begin
   rw polynomial.eq_C_of_degree_eq_zero (degree_coe_units c),
-  simp only [eval₂_ring_hom_noncomm, ring_hom.of, ring_hom.coe_mk, eval₂_C],
+  simp only [eval₂_ring_hom', ring_hom.of, ring_hom.coe_mk, eval₂_C],
   apply ker_algebra_map_End,
   apply coeff_coe_units_zero_ne_zero c
 end
@@ -122,7 +122,7 @@ begin
   { simp only [not_imp.symm],
     exact not_forall.1 (λ h, h_lin_dep ((linear_independent_powers_iff_eval₂ f v).2 h)) },
   -- Then `p(f)` is not invertible.
-  have h_eval_p_not_unit : eval₂_ring_hom_noncomm am _ f p ∉ is_unit.submonoid (End K V),
+  have h_eval_p_not_unit : eval₂_ring_hom' am _ f p ∉ is_unit.submonoid (End K V),
   { rw [is_unit.mem_submonoid_iff, linear_map.is_unit_iff, linear_map.ker_eq_bot'],
     intro h,
     exact hv (h v h_eval_p) },
@@ -130,10 +130,10 @@ begin
   obtain ⟨q, hq_factor, hq_nonunit⟩ : ∃ q, q ∈ factors p ∧ ¬ is_unit (eval₂ am f q),
   { simp only [←not_imp, (is_unit.mem_submonoid_iff _).symm],
     apply not_forall.1 (λ h, h_eval_p_not_unit (ring_hom_mem_submonoid_of_factors_subset_of_units_subset
-      (eval₂_ring_hom_noncomm am (λ x y, (algebra.commutes x y).symm) f)
+      (eval₂_ring_hom' am algebra.commutes f)
       (is_unit.submonoid (End K V)) p h_p_ne_0 h _)),
     simp only [is_unit.mem_submonoid_iff, linear_map.is_unit_iff],
-    apply ker_eval₂_ring_hom_noncomm_unit_polynomial },
+    apply ker_eval₂_ring_hom'_unit_polynomial },
   -- Since the field is algebraically closed, `q` has degree 1.
   have h_deg_q : q.degree = 1 := is_alg_closed.degree_eq_one_of_irreducible _
     (ne_zero_of_mem_factors h_p_ne_0 hq_factor)

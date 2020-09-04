@@ -103,7 +103,7 @@ begin
   rw [sum_insert, eval₂_add, hs, sum_insert]; assumption,
 end
 
-lemma eval₂_mul_noncomm (hf : ∀ b a, a * f b = f b * a) :
+lemma eval₂_mul_noncomm (hf : ∀ b a, f b * a = a * f b) :
   (p * q).eval₂ f x = p.eval₂ f x * q.eval₂ f x :=
 begin
   have f_zero : ∀ (a : ℕ), f 0 * x ^ a = 0,
@@ -116,12 +116,12 @@ begin
   apply sum_congr rfl, assume i hi, dsimp only,
   rw sum_sum_index; try { assumption },
   apply sum_congr rfl, assume j hj, dsimp only,
-  rw [sum_single_index, f.map_mul, pow_add],
-  { rw [mul_assoc, ←mul_assoc _ (x ^ i), ← hf _ (x ^ i), mul_assoc, mul_assoc] },
+  rw [sum_single_index, is_semiring_hom.map_mul f, pow_add],
+  { rw [mul_assoc, ←mul_assoc _ (x ^ i), hf _ (x ^ i), mul_assoc, mul_assoc] },
   { apply f_zero }
  end
 
-lemma eval₂_list_prod_noncomm (ps : list (polynomial R)) (hf : ∀ b a, a * f b = f b * a):
+lemma eval₂_list_prod_noncomm (ps : list (polynomial R)) (hf : ∀ b a, f b * a = a * f b):
   ps.prod.eval₂ f x = (ps.map (polynomial.eval₂ f x)).prod :=
 begin
   induction ps,
@@ -130,7 +130,7 @@ begin
 end
 
 /-- `eval₂` as a `ring_hom` for noncommutative rings -/
-def eval₂_ring_hom_noncomm (f : R →+* S) (hf : ∀ b a, a * f b = f b * a) (x : S) : polynomial R →+* S :=
+def eval₂_ring_hom' (f : R →+* S) (hf : ∀ b a, f b * a = a * f b) (x : S) : polynomial R →+* S :=
 { to_fun := eval₂ f x,
   map_add' := λ _ _, eval₂_add _ _,
   map_zero' := eval₂_zero _ _,

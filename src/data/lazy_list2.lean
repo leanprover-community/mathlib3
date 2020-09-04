@@ -107,10 +107,15 @@ def interleave_all {α} : list (lazy_list α) → lazy_list α
 | [] := lazy_list.nil
 | (x :: xs) := interleave x (interleave_all xs)
 
+/-- Monadic bind operation for `lazy_list`. -/
 protected def bind {α β} : lazy_list α → (α → lazy_list β) → lazy_list β
 | lazy_list.nil _ := lazy_list.nil
 | (lazy_list.cons x xs) f := lazy_list.append (f x) (bind (xs ()) f)
 
+/-- Reverse the order of a `lazy_list`.
+It is done by converting to a `list` first because reversal involves evaluating all
+the list and if the list is all evaluated, `list` is a better representation for
+it than a series of thunks. -/
 def reverse {α} (xs : lazy_list α) : lazy_list α :=
 of_list xs.to_list.reverse
 

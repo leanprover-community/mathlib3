@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.limits
+import category_theory.limits.types
 import category_theory.products.basic
 import category_theory.currying
 
@@ -84,6 +85,12 @@ this lemma characterises it.
 @[simp] lemma ι_colimit_limit_to_limit_colimit_π (j) (k) :
   colimit.ι _ k ≫ colimit_limit_to_limit_colimit F ≫ limit.π _ j =
     limit.π ((curry.obj (swap K J ⋙ F)).obj k) j ≫ colimit.ι ((curry.obj F).obj j) k :=
+by { dsimp [colimit_limit_to_limit_colimit], simp, }
+
+@[simp] lemma ι_colimit_limit_to_limit_colimit_π' (F : J × K ⥤ Type v) (j) (k) (f) :
+   limit.π ((curry.obj F) ⋙ colim) j
+     (colimit_limit_to_limit_colimit F (colimit.ι ((curry.obj (swap K J ⋙ F)) ⋙ lim) k f)) =
+     colimit.ι ((curry.obj F).obj j) k (limit.π ((curry.obj (swap K J ⋙ F)).obj k) j f) :=
 by { dsimp [colimit_limit_to_limit_colimit], simp, }
 
 end category_theory.limits

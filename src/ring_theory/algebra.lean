@@ -3,6 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
+import tactic.nth_rewrite
 import data.matrix.basic
 import linear_algebra.tensor_product
 import ring_theory.subring
@@ -184,6 +185,12 @@ instance of_subsemiring (S : subsemiring R) : algebra S A :=
   commutes' := λ r x, algebra.commutes r x,
   smul_def' := λ r x, algebra.smul_def r x,
   .. (algebra_map R A).comp (subsemiring.subtype S) }
+
+/-- A semiring that is an algebra over a commutative ring carries a natural ring structure. -/
+def as_ring (R A : Type*) [comm_ring R] [semiring A] [algebra R A] : ring A :=
+{ neg          := λ a, (-1 : R) • a,
+  add_left_neg := λ a, by { nth_rewrite 1 ← one_smul _ a, rw [← add_smul, add_left_neg, zero_smul], },
+  ..(infer_instance : semiring A), }
 
 /-- Algebra over a subring. -/
 instance of_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A]

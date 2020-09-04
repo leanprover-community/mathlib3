@@ -127,9 +127,10 @@ end
 section param
 
 parameters x y : ℤ
+variable [fact false] -- we work in an inconsistent context below
 
 @[ext]
-lemma my_ext (s s' : set ℤ) (h : x ∈ s ↔ y ∈ s') : s = s' := sorry
+lemma my_ext (s s' : set ℤ) (h : x ∈ s ↔ y ∈ s') : s = s' := false.elim _inst_1
 
 -- this is what used to cause it to fail
 -- run_cmd tactic.resolve_constant `my_ext

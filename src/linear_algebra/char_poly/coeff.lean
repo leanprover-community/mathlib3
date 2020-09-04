@@ -206,13 +206,13 @@ by { have h := finite_field.trace_pow_card M, rwa zmod.card at h, }
 
 namespace matrix
 
-theorem is_integral : is_integral R M := ⟨char_poly M, ⟨char_poly_monic M, aeval_char_poly M⟩⟩
+theorem is_integral : is_integral R M := ⟨char_poly M, ⟨char_poly_monic M, aeval_self_char_poly M⟩⟩
 
 /-- The minimal polynomial of a matrix -/
 def min_poly : polynomial R := minimal_polynomial (M.is_integral)
 
 theorem min_poly_dvd_char_poly {K : Type*} [field K] (M : matrix n n K) :
   M.min_poly ∣ char_poly M :=
-minimal_polynomial.dvd M.is_integral (aeval_char_poly M)
+minimal_polynomial.dvd M.is_integral (aeval_self_char_poly M)
 
 end matrix

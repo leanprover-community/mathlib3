@@ -79,8 +79,8 @@ applied to the matrix itself, is zero.
 This holds over any commutative ring.
 -/
 -- This proof follows http://drorbn.net/AcademicPensieve/2015-12/CayleyHamilton.pdf
-theorem aeval_char_poly (M : matrix n n R) :
-  polynomial.aeval M (char_poly M) = 0 :=
+theorem aeval_self_char_poly (M : matrix n n R) :
+  aeval M (char_poly M) = 0 :=
 begin
   -- We begin with the fact $χ_M(t) I = adjugate (t I - M) * (t I - M)$,
   -- as an identity in `matrix n n (polynomial R)`.

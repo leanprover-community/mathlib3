@@ -791,7 +791,7 @@ begin
     exact nat.not_lt_zero _ lt }
 end
 
-lemma findim_lt_findim_of_lt [finite_dimensional K V] {s t : submodule K V} (hst: s < t) :
+lemma findim_lt_findim_of_lt [finite_dimensional K V] {s t : submodule K V} (hst : s < t) :
   findim K s < findim K t :=
 begin
   rw linear_equiv.findim_eq (comap_subtype_equiv_of_le (le_of_lt hst)).symm,
@@ -1000,15 +1000,16 @@ lemma ker_pow_constant {f : End K V} {k : ℕ} (h : (f ^ k).ker = (f ^ k.succ).k
       exact le_refl _, }
   end
 
-lemma ker_pow_findim_add [finite_dimensional K V] {f : End K V} {m : ℕ} :
-  (f ^ (findim K V + m)).ker = (f ^ findim K V).ker :=
+lemma ker_pow_eq_ker_pow_findim_of_le [finite_dimensional K V]
+  {f : End K V} {m : ℕ} (hm : findim K V ≤ m) :
+  (f ^ m).ker = (f ^ findim K V).ker :=
 begin
   obtain ⟨k, h_k_le, hk⟩ :
     ∃ k, k ≤ findim K V ∧ linear_map.ker (f ^ k) = linear_map.ker (f ^ k.succ) :=
     exists_ker_pow_eq_ker_pow_succ f,
-  calc (f ^ (findim K V + m)).ker = (f ^ (k + ((findim K V + m) - k))).ker :
-      by rw nat.add_sub_of_le (h_k_le.trans (nat.le_add_right _ m))
-    ...  = (f ^ k).ker : by rw ker_pow_constant hk (findim K V + m - k)
+  calc (f ^ m).ker = (f ^ (k + (m - k))).ker :
+      by rw nat.add_sub_of_le (h_k_le.trans hm)
+    ...  = (f ^ k).ker : by rw ker_pow_constant hk _
     ...  = (f ^ (k + (findim K V - k))).ker : ker_pow_constant hk (findim K V - k)
     ...  = (f ^ findim K V).ker : by rw nat.add_sub_of_le h_k_le
 end
@@ -1019,7 +1020,7 @@ begin
   by_cases h_cases: m < findim K V,
   { rw [←nat.add_sub_of_le (nat.le_of_lt h_cases), add_comm, pow_add],
     apply linear_map.ker_le_ker_comp },
-  { rw [←nat.add_sub_of_le (le_of_not_lt h_cases), ker_pow_findim_add],
+  { rw [ker_pow_eq_ker_pow_findim_of_le (le_of_not_lt h_cases)],
     exact le_refl _ }
 end
 

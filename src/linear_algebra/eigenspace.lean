@@ -318,5 +318,12 @@ lemma generalized_eigenspace_le_generalized_eigenspace_findim
   f.generalized_eigenspace μ k ≤ f.generalized_eigenspace μ (findim K V) :=
 ker_pow_le_ker_pow_findim _ _
 
+/-- Generalized eigenspaces for exponents at least `findim K V` are equal to each other. -/
+lemma generalized_eigenspace_eq_generalized_eigenspace_findim_of_le
+  [field K] [vector_space K V] [finite_dimensional K V]
+  (f : End K V) (μ : K) {k : ℕ} (hk : findim K V ≤ k) :
+  f.generalized_eigenspace μ k = f.generalized_eigenspace μ (findim K V) :=
+ker_pow_eq_ker_pow_findim_of_le _
+
 end End
 end module

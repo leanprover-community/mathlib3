@@ -79,8 +79,8 @@ applied to the matrix itself, is zero.
 This holds over any commutative ring.
 -/
 -- This proof follows http://drorbn.net/AcademicPensieve/2015-12/CayleyHamilton.pdf
-theorem char_poly_map_eval_self (M : matrix n n R) :
-  ((char_poly M).map (algebra_map R (matrix n n R))).eval M = 0 :=
+theorem aeval_char_poly (M : matrix n n R) :
+  polynomial.aeval M (char_poly M) = 0 :=
 begin
   -- We begin with the fact $χ_M(t) I = adjugate (t I - M) * (t I - M)$,
   -- as an identity in `matrix n n (polynomial R)`.
@@ -103,5 +103,6 @@ begin
   -- and evaluated at some `N` is exactly $χ_M (N)$.
   rw mat_poly_equiv_smul_one at h,
   -- Thus we have $χ_M(M) = 0$, which is the desired result.
+  rw eval_map at h,
   exact h,
 end

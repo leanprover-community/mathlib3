@@ -131,12 +131,12 @@ local postfix `†`:90 := @is_R_or_C.conj K _ _ _
 def to_has_inner : has_inner K F := { inner := c.inner }
 local attribute [instance] to_has_inner
 
-/-- The norm squared function for inner product spaces. -/
+/-- The norm squared function for `inner_product_space.core` structure. -/
 def norm_sq (x : F) := reK ⟪x, x⟫
 
 local notation `norm_sqF` := @norm_sq F K _ _ _ _ _ _
 
-@[simp] lemma inner_conj_sym (x y : F) : ⟪y, x⟫† = ⟪x, y⟫ := c.conj_sym x y
+lemma inner_conj_sym (x y : F) : ⟪y, x⟫† = ⟪x, y⟫ := c.conj_sym x y
 
 lemma inner_self_nonneg {x : F} : 0 ≤ re ⟪x, x⟫ := c.nonneg_re _
 
@@ -149,8 +149,6 @@ c.add_left _ _ _
 
 lemma inner_add_right {x y z : F} : ⟪x, y + z⟫ = ⟪x, y⟫ + ⟪x, z⟫ :=
 by rw [←inner_conj_sym, inner_add_left, ring_hom.map_add]; simp only [inner_conj_sym]
-
-lemma inner_norm_sq_eq_inner_self_re (x : F) : norm_sqF x = re ⟪x, x⟫ := rfl
 
 lemma inner_norm_sq_eq_inner_self (x : F) : 𝓚 (norm_sqF x) = ⟪x, x⟫ :=
 begin
@@ -170,73 +168,32 @@ c.smul_left _ _ _
 lemma inner_smul_right {x y : F} {r : K} : ⟪x, r • y⟫ = r * ⟪x, y⟫ :=
 by rw [←inner_conj_sym, inner_smul_left]; simp only [conj_conj, inner_conj_sym, ring_hom.map_mul]
 
-@[simp] lemma inner_zero_left {x : F} : ⟪0, x⟫ = 0 :=
+lemma inner_zero_left {x : F} : ⟪0, x⟫ = 0 :=
 by rw [←zero_smul K (0 : F), inner_smul_left]; simp only [zero_mul, ring_hom.map_zero]
 
-lemma inner_re_zero_left {x : F} : re ⟪0, x⟫ = 0 := by simp
-
-@[simp] lemma inner_zero_right {x : F} : ⟪x, 0⟫ = 0 :=
+lemma inner_zero_right {x : F} : ⟪x, 0⟫ = 0 :=
 by rw [←inner_conj_sym, inner_zero_left]; simp only [ring_hom.map_zero]
 
-lemma inner_re_zero_right {x : F} : re ⟪x, 0⟫ = 0 :=
-by simp only [inner_zero_right, add_monoid_hom.map_zero]
-
-@[simp] lemma inner_self_eq_zero {x : F} : ⟪x, x⟫ = 0 ↔ x = 0 :=
+lemma inner_self_eq_zero {x : F} : ⟪x, x⟫ = 0 ↔ x = 0 :=
 iff.intro (c.definite _) (by { rintro rfl, exact inner_zero_left })
 
-@[simp] lemma inner_self_nonpos {x : F} : re ⟪x, x⟫ ≤ 0 ↔ x = 0 :=
-begin
-  split,
-  { intro h,
-    apply (@inner_self_eq_zero F K _ _ _ _ _ _ x).mp,
-    have H₁ : re ⟪x, x⟫ ≥ 0, exact inner_self_nonneg,
-    have H₂ : re ⟪x, x⟫ = 0, exact le_antisymm h H₁,
-    rw [ext_iff],
-    split,
-    { simp only [H₂, add_monoid_hom.map_zero] },
-    { simp [inner_self_im_zero] } },
-  { intro h,
-    simp only [h, inner_zero_left, add_monoid_hom.map_zero] }
-end
-
-lemma inner_symm_re {x y : F} : re ⟪x, y⟫ = re ⟪y, x⟫ := by rw [←inner_conj_sym, conj_re]
-
-@[simp] lemma inner_self_re_to_K {x : F} : 𝓚 (re ⟪x, x⟫) = ⟪x, x⟫ :=
+lemma inner_self_re_to_K {x : F} : 𝓚 (re ⟪x, x⟫) = ⟪x, x⟫ :=
 by norm_num [ext_iff, inner_self_nonneg_im]
-
-lemma inner_self_re_abs {x : F} : re ⟪x, x⟫ = abs ⟪x, x⟫ :=
-begin
-  have H : ⟪x, x⟫ = 𝓚 (re ⟪x, x⟫) + 𝓚 (im ⟪x, x⟫) * I,
-  { rw re_add_im, },
-  rw [H, is_add_hom.map_add re (𝓚 (re ⟪x, x⟫)) ((𝓚 (im ⟪x, x⟫)) * I)],
-  rw [mul_re, I_re, mul_zero, I_im, zero_sub, tactic.ring.add_neg_eq_sub],
-  rw [of_real_re, of_real_im, sub_zero, inner_self_nonneg_im],
-  simp only [abs_of_real, add_zero, of_real_zero, zero_mul],
-  exact (_root_.abs_of_nonneg inner_self_nonneg).symm,
-end
-
-lemma inner_self_abs_to_K {x : F} : 𝓚 (abs ⟪x, x⟫) = ⟪x, x⟫ :=
-  by { rw[←inner_self_re_abs], exact inner_self_re_to_K }
 
 lemma inner_abs_conj_sym {x y : F} : abs ⟪x, y⟫ = abs ⟪y, x⟫ :=
   by rw [←inner_conj_sym, abs_conj]
 
-@[simp] lemma inner_neg_left {x y : F} : ⟪-x, y⟫ = -⟪x, y⟫ :=
+lemma inner_neg_left {x y : F} : ⟪-x, y⟫ = -⟪x, y⟫ :=
 by { rw [← neg_one_smul K x, inner_smul_left], simp }
 
-@[simp] lemma inner_neg_right {x y : F} : ⟪x, -y⟫ = -⟪x, y⟫ :=
+lemma inner_neg_right {x y : F} : ⟪x, -y⟫ = -⟪x, y⟫ :=
 by rw [←inner_conj_sym, inner_neg_left]; simp only [ring_hom.map_neg, inner_conj_sym]
 
-lemma inner_neg_neg {x y : F} : ⟪-x, -y⟫ = ⟪x, y⟫ := by simp
-
-@[simp] lemma inner_self_conj {x : F} : ⟪x, x⟫† = ⟪x, x⟫ :=
-by rw [ext_iff]; exact ⟨by rw [conj_re], by rw [conj_im, inner_self_im_zero, neg_zero]⟩
-
 lemma inner_sub_left {x y z : F} : ⟪x - y, z⟫ = ⟪x, z⟫ - ⟪y, z⟫ :=
-by { simp [sub_eq_add_neg, inner_add_left] }
+by { simp [sub_eq_add_neg, inner_add_left, inner_neg_left] }
 
 lemma inner_sub_right {x y z : F} : ⟪x, y - z⟫ = ⟪x, y⟫ - ⟪x, z⟫ :=
-by { simp [sub_eq_add_neg, inner_add_right] }
+by { simp [sub_eq_add_neg, inner_add_right, inner_neg_right] }
 
 lemma inner_mul_conj_re_abs {x y : F} : re (⟪x, y⟫ * ⟪y, x⟫) = abs (⟪x, y⟫ * ⟪y, x⟫) :=
 by { rw[←inner_conj_sym, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }
@@ -248,11 +205,6 @@ by simp only [inner_add_left, inner_add_right]; ring
 /- Expand `inner (x - y) (x - y)` -/
 lemma inner_sub_sub_self {x y : F} : ⟪x - y, x - y⟫ = ⟪x, x⟫ - ⟪x, y⟫ - ⟪y, x⟫ + ⟪y, y⟫ :=
 by simp only [inner_sub_left, inner_sub_right]; ring
-
-/- Parallelogram law -/
-lemma parallelogram_law {x y : F} :
-  ⟪x + y, x + y⟫ + ⟪x - y, x - y⟫ = 2 * (⟪x, x⟫ + ⟪y, y⟫) :=
-by simp [inner_add_add_self, inner_sub_sub_self, two_mul, sub_eq_add_neg, add_comm, add_left_comm]
 
 /--
 Cauchy–Schwarz inequality. This proof follows "Proof 2" on Wikipedia.
@@ -289,7 +241,7 @@ begin
       ... = re ⟪x, x⟫ - re (T† * ⟪y, x⟫) - re (T * ⟪x, y⟫) + re (T * T† * ⟪y, y⟫)
                   : by simp [inner_smul_left, inner_smul_right, mul_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ / ⟪y, y⟫ * ⟪y, x⟫)
-                  : by field_simp [-mul_re, hT, conj_div, h₁, h₃]
+                  : by field_simp [-mul_re, inner_conj_sym, hT, conj_div, h₁, h₃]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / ⟪y, y⟫)
                   : by rw [div_mul_eq_mul_div_comm, ←mul_div_assoc]
       ... = re ⟪x, x⟫ - re (⟪x, y⟫ * ⟪y, x⟫ / 𝓚 (re ⟪y, y⟫))
@@ -321,33 +273,6 @@ lemma inner_self_eq_norm_square (x : F) : re ⟪x, x⟫ = ∥x∥ * ∥x∥ :=
 
 lemma sqrt_norm_sq_eq_norm {x : F} : sqrt (norm_sqF x) = ∥x∥ := rfl
 
-/-- Expand the square -/
-lemma norm_add_pow_two {x y : F} : ∥x + y∥^2 = ∥x∥^2 + 2 * (re ⟪x, y⟫) + ∥y∥^2 :=
-begin
-  repeat {rw [pow_two, ←inner_self_eq_norm_square]},
-  rw[inner_add_add_self, two_mul],
-  simp only [add_assoc, add_left_inj, add_right_inj, add_monoid_hom.map_add],
-  rw [←inner_conj_sym, conj_re],
-end
-
-/-- Same lemma as above but in a different form -/
-lemma norm_add_mul_self {x y : F} : ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + 2 * (re ⟪x, y⟫) + ∥y∥ * ∥y∥ :=
-    by { repeat {rw [← pow_two]}, exact norm_add_pow_two }
-
-/-- Expand the square -/
-lemma norm_sub_pow_two {x y : F} : ∥x - y∥^2 = ∥x∥^2 - 2 * (re ⟪x, y⟫) + ∥y∥^2 :=
-begin
-repeat {rw [pow_two, ←inner_self_eq_norm_square]},
-rw[inner_sub_sub_self],
-calc
-  re (⟪x, x⟫ - ⟪x, y⟫ - ⟪y, x⟫ + ⟪y, y⟫)
-      = re ⟪x, x⟫ - re ⟪x, y⟫ - re ⟪y, x⟫ + re ⟪y, y⟫  : by simp
-  ... = -re ⟪y, x⟫ - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫  : by ring
-  ... = -re (⟪x, y⟫†) - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫ : by rw[inner_conj_sym]
-  ... = -re ⟪x, y⟫ - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫ : by rw[conj_re]
-  ... = re ⟪x, x⟫ - 2*re ⟪x, y⟫ + re ⟪y, y⟫ : by ring
-end
-
 /-- Cauchy–Schwarz inequality with norm -/
 lemma abs_inner_le_norm (x y : F) : abs ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
 nonneg_le_nonneg_of_squares_le (mul_nonneg (sqrt_nonneg _) (sqrt_nonneg _))
@@ -360,14 +285,6 @@ begin
     to_lhs, congr, rw[inner_abs_conj_sym],
   end,
   exact inner_mul_inner_self_le y x,
-end
-
-lemma parallelogram_law_with_norm {x y : F} :
-  ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
-begin
-  simp only [(inner_self_eq_norm_square _).symm],
-  rw[←add_monoid_hom.map_add, parallelogram_law, two_mul, two_mul],
-  simp only [add_monoid_hom.map_add],
 end
 
 /-- Normed group structure constructed from an `inner_product_space.core` structure -/
@@ -767,13 +684,21 @@ begin
   simpa using h₁,
 end
 
-lemma parallelogram_law_with_norm {K' : Type*}
-  [nondiscrete_normed_field K'] [algebra ℝ K'] [is_R_or_C K'] [inner_product_space K' α] {x y : α} :
+include K
+lemma parallelogram_law_with_norm {x y : α} :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
 begin
   simp only [(inner_self_eq_norm_square _).symm],
   rw[←add_monoid_hom.map_add, parallelogram_law, two_mul, two_mul],
   simp only [add_monoid_hom.map_add],
+end
+omit K
+
+lemma real.parallelogram_law_with_norm {x y : β} :
+  ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
+begin
+  have h₁ := @parallelogram_law_with_norm ℝ _ _ _ β _ x y,
+  simpa using h₁,
 end
 
 /-- Polarization identity: The real inner product, in terms of the norm. -/

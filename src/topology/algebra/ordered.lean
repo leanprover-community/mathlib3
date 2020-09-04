@@ -2339,8 +2339,6 @@ by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iio _ _ _ _ (a⁻¹)
   tendsto has_inv.inv (𝓝[Ici (a⁻¹)] (a⁻¹)) (𝓝[Iic a] a) :=
 by simpa only [inv_inv] using @tendsto_inv_nhds_within_Ici _ _ _ _ (a⁻¹)
 
-#check eq
-
 @[to_additive] lemma tendsto_inv_nhds_within_Iic_inv [ordered_comm_group α]
   [topological_space α] [topological_group α] {a : α} :
   tendsto has_inv.inv (𝓝[Iic (a⁻¹)] (a⁻¹)) (𝓝[Ici a] a) :=

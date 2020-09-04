@@ -957,9 +957,7 @@ end is_basis
 namespace module
 namespace End
 
-variables [finite_dimensional K V]
-
-lemma exists_ker_pow_eq_ker_pow_succ (f : End K V) :
+lemma exists_ker_pow_eq_ker_pow_succ [finite_dimensional K V] (f : End K V) :
   ∃ (k : ℕ), k ≤ findim K V ∧ (f ^ k).ker = (f ^ k.succ).ker :=
 begin
   classical,
@@ -1002,7 +1000,7 @@ lemma ker_pow_constant {f : End K V} {k : ℕ} (h : (f ^ k).ker = (f ^ k.succ).k
       exact le_refl _, }
   end
 
-lemma ker_pow_findim_add {f : End K V} {m : ℕ} :
+lemma ker_pow_findim_add [finite_dimensional K V] {f : End K V} {m : ℕ} :
   (f ^ (findim K V + m)).ker = (f ^ findim K V).ker :=
 begin
   obtain ⟨k, h_k_le, hk⟩ :
@@ -1015,7 +1013,7 @@ begin
     ...  = (f ^ findim K V).ker : by rw nat.add_sub_of_le h_k_le
 end
 
-lemma ker_pow_le_ker_pow_findim (f : End K V) (m : ℕ) :
+lemma ker_pow_le_ker_pow_findim [finite_dimensional K V] (f : End K V) (m : ℕ) :
   (f ^ m).ker ≤ (f ^ findim K V).ker :=
 begin
   by_cases h_cases: m < findim K V,

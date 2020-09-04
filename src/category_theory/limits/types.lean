@@ -55,6 +55,16 @@ begin
   simp,
 end
 
+@[ext]
+def limit.mk (F : J ⥤ Type u) (x : Π j, F.obj j) (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') :
+  (limit F : Type u) :=
+(limit_equiv_sections F).symm ⟨x, h⟩
+
+@[simp]
+lemma limit.π_mk (F : J ⥤ Type u) (x : Π j, F.obj j) (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') (j) :
+  limit.π F j (limit.mk F x h) = x j :=
+by { dsimp [limit.mk], simp, }
+
 -- PROJECT: prove this for concrete categories where the forgetful functor preserves limits
 lemma limit_ext (F : J ⥤ Type u) (x y : limit F) (w : ∀ j, limit.π F j x = limit.π F j y) :
   x = y :=

@@ -43,6 +43,8 @@ instance is_noetherian_ring.DCC_dvd [integral_domain α] [is_noetherian_ring α]
 ⟨by simp only [ideal.span_singleton_lt_span_singleton.symm];
    exact inv_image.wf (λ a, ideal.span ({a} : set α)) (well_founded_submodule_gt _ _)⟩
 
+end prio
+
 instance polynomial.DCC_dvd [integral_domain α] [DCC_dvd α] : DCC_dvd (polynomial α) :=
 { well_founded_dvd_not_unit := begin
     classical,
@@ -86,7 +88,6 @@ end⟩
 
 variables [DCC_dvd α]
 
-@[priority 100]
 instance DCC_dvd_associates : DCC_dvd (associates α) :=
 ⟨begin
   refine (surjective.well_founded_iff mk_surjective _).1 DCC_dvd.well_founded_dvd_not_unit,
@@ -138,7 +139,7 @@ DCC_dvd.induction_on_irreducible a
 end DCC_dvd
 
 theorem DCC_dvd_of_well_founded_associates [comm_cancel_monoid_with_zero α]
-  (h : well_founded ((<) : associates α → associates α → Prop)): DCC_dvd α :=
+  (h : well_founded ((<) : associates α → associates α → Prop)) : DCC_dvd α :=
 @DCC_dvd.of_DCC_dvd_associates _ _ ⟨by { convert h, ext, exact associates.dvd_not_unit_iff_lt }⟩
 
 theorem DCC_dvd_iff_well_founded_associates [comm_cancel_monoid_with_zero α] :

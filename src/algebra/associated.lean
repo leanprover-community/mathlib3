@@ -552,18 +552,17 @@ end
 
 theorem irreducible_mk_iff (a : α) : irreducible (associates.mk a) ↔ irreducible a :=
 begin
-  simp [irreducible, is_unit_mk],
+  simp only [irreducible, is_unit_mk],
   apply and_congr iff.rfl,
   split,
-  { assume h x y eq,
-    have : is_unit (associates.mk x) ∨ is_unit (associates.mk y),
-      from h _ _ (by rw [eq]; refl),
-    simpa [is_unit_mk] },
-  { refine assume h x y, quotient.induction_on₂ x y (assume x y eq, _),
-    rcases quotient.exact eq.symm with ⟨u, eq⟩,
-    have : a = x * (y * u), by rwa [mul_assoc, eq_comm] at eq,
+  { rintro h x y rfl,
+    simpa [is_unit_mk] using h (associates.mk x) (associates.mk y) rfl },
+  { intros h x y,
+    refine quotient.induction_on₂ x y (assume x y a_eq, _),
+    rcases quotient.exact a_eq.symm with ⟨u, a_eq⟩,
+    rw mul_assoc at a_eq,
     show is_unit (associates.mk x) ∨ is_unit (associates.mk y),
-    simpa [is_unit_mk] using h _ _ this }
+    simpa [is_unit_mk] using h _ _ a_eq.symm }
 end
 
 theorem mk_dvd_not_unit_mk_iff {a b : α} :
@@ -583,7 +582,7 @@ begin
       apply hx,
       use u,
       simp, },
-    rw [← mul_assoc, ← hu], simp, },
+    simp [← mul_assoc, ← hu] },
   { rintro ⟨x, ⟨hx, rfl⟩⟩,
     use associates.mk x,
     simp [is_unit_mk, mk_mul_mk, hx], }
@@ -594,7 +593,7 @@ theorem dvd_not_unit_of_lt {a b : associates α} (hlt : a < b) :
 begin
   split, { rintro rfl, apply not_lt_of_le _ hlt, apply dvd_zero },
   rcases hlt with ⟨⟨x, rfl⟩, ndvd⟩,
-  use x, split, swap, {refl},
+  refine ⟨x, _, rfl⟩,
   contrapose! ndvd,
   rcases ndvd with ⟨u, rfl⟩,
   simp,

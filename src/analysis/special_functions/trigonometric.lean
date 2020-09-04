@@ -80,23 +80,6 @@ funext $ λ x, deriv_cos
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
 
-lemma has_deriv_at_tan {x:ℂ} (h : cos x ≠ 0) : has_deriv_at tan (1 / (cos x)^2) x :=
-begin
-  convert has_deriv_at.div (has_deriv_at_sin x) (has_deriv_at_cos x) h,
-  rw ← sin_sq_add_cos_sq x,
-  ring,
-end
-
-lemma differentiable_at_tan {x:ℂ} (h : cos x ≠ 0) : differentiable_at ℂ tan x :=
-(has_deriv_at_tan h).differentiable_at
-
-lemma deriv_tan {x:ℂ} (h : cos x ≠ 0) : deriv tan x = 1 / (cos x)^2 :=
-(has_deriv_at_tan h).deriv
-
-lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
-(continuous_sin.comp continuous_subtype_val).mul
-  (continuous.inv subtype.property (continuous_cos.comp continuous_subtype_val))
-
 /-- The complex hyperbolic sine function is everywhere differentiable, with the derivative `cosh x`. -/
 lemma has_deriv_at_sinh (x : ℂ) : has_deriv_at sinh (cosh x) x :=
 begin
@@ -324,26 +307,6 @@ funext $ λ _, deriv_cos
 
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
-
-lemma has_deriv_at_tan {x:ℝ} (h : cos x ≠ 0) : has_deriv_at tan (1 / (cos x)^2) x :=
-begin
-  rw [← complex.of_real_ne_zero, complex.of_real_cos] at h,
-  convert has_deriv_at_real_of_complex (complex.has_deriv_at_tan h),
-  rw ← complex.of_real_re (1/((cos x)^2)),
-  simp,
-end
-
-lemma differentiable_at_tan {x:ℝ} (h : cos x ≠ 0) : differentiable_at ℝ tan x :=
-(has_deriv_at_tan h).differentiable_at
-
-lemma deriv_tan {x:ℝ} (h : cos x ≠ 0) : deriv tan x = 1 / (cos x)^2 :=
-(has_deriv_at_tan h).deriv
-
-lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
-by simp only [tan_eq_sin_div_cos]; exact
-  (continuous_sin.comp continuous_subtype_val).mul
-  (continuous.inv subtype.property
-    (continuous_cos.comp continuous_subtype_val))
 
 lemma has_deriv_at_sinh (x : ℝ) : has_deriv_at sinh (cosh x) x :=
 has_deriv_at_real_of_complex (complex.has_deriv_at_sinh x)
@@ -728,18 +691,6 @@ lemma cos_eq_one_iff (x : ℝ) : cos x = 1 ↔ ∃ n : ℤ, (n : ℝ) * (2 * π)
         rw [← hn, cos_int_mul_two_pi_add_pi] at h;
         exact absurd h (by norm_num))⟩,
   λ ⟨n, hn⟩, hn ▸ cos_int_mul_two_pi _⟩
-
-theorem cos_eq_zero_iff {θ : ℝ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * pi / 2 :=
-begin
-  rw [←real.sin_pi_div_two_sub, sin_eq_zero_iff],
-  split,
-  { rintro ⟨n, hn⟩, existsi -n,
-    rw [int.cast_neg, add_mul, add_div, mul_assoc, mul_div_cancel_left _ (@two_ne_zero ℝ _),
-        one_mul, ←neg_mul_eq_neg_mul, hn, neg_sub, sub_add_cancel] },
-  { rintro ⟨n, hn⟩, existsi -n,
-    rw [hn, add_mul, one_mul, add_div, mul_assoc, mul_div_cancel_left _ (@two_ne_zero ℝ _),
-        sub_add_eq_sub_sub_swap, sub_self, zero_sub, neg_mul_eq_neg_mul, int.cast_neg] }
-end
 
 lemma cos_eq_one_iff_of_lt_of_lt {x : ℝ} (hx₁ : -(2 * π) < x) (hx₂ : x < 2 * π) : cos x = 1 ↔ x = 0 :=
 ⟨λ h, let ⟨n, hn⟩ := (cos_eq_one_iff x).1 h in
@@ -1271,15 +1222,6 @@ match lt_trichotomy x y with
 | or.inr (or.inr h) := absurd (tan_lt_tan_of_lt_of_lt_pi_div_two hy₁ hx₂ h) (by rw hxy; exact lt_irrefl _)
 end
 
-lemma has_deriv_at_tan_of_mem_Ioo {x:ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) : has_deriv_at tan (1 / (cos x)^2) x :=
-has_deriv_at_tan (ne_of_gt (cos_pos_of_mem_Ioo h.1 h.2))
-
-lemma differentiable_at_tan_of_mem_Ioo {x:ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) : differentiable_at ℝ tan x :=
-(has_deriv_at_tan_of_mem_Ioo h).differentiable_at
-
-lemma deriv_tan_of_mem_Ioo {x:ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) : deriv tan x = 1 / (cos x)^2 :=
-(has_deriv_at_tan_of_mem_Ioo h).deriv
-
 /-- Inverse of the `tan` function, returns values in the range `-π / 2 < arctan x` and `arctan x < π / 2` -/
 noncomputable def arctan (x : ℝ) : ℝ :=
 arcsin (x / sqrt (1 + x ^ 2))
@@ -1696,4 +1638,84 @@ by cases n; simp only [cos_nat_mul_two_pi, int.of_nat_eq_coe,
 lemma cos_int_mul_two_pi_add_pi (n : ℤ) : cos (n * (2 * π) + π) = -1 :=
 by simp [cos_add, sin_add, cos_int_mul_two_pi]
 
+lemma exp_pi_mul_I : exp (π * I) = -1 := by { rw exp_mul_I, simp, }
+
+theorem cos_eq_zero_iff {θ : ℂ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * π / 2 :=
+begin
+  have h : (exp (θ * I) + exp (-θ * I)) / 2 = 0 ↔ exp (2 * θ * I) = -1,
+  { rw [@div_eq_iff _ _ (exp (θ * I) + exp (-θ * I)) 2 0 (by norm_num), zero_mul, add_eq_zero_iff_eq_neg, neg_eq_neg_one_mul (exp (-θ * I)), ← div_eq_iff (exp_ne_zero (-θ * I)), ← exp_sub],
+    field_simp, ring },
+  rw [cos, h, ← exp_pi_mul_I, exp_eq_exp_iff_exists_int],
+  split; simp; intros; use x,
+  { field_simp, ring at a,
+    rwa [mul_right_comm 2 I θ, mul_right_comm (2*(x:ℂ)+1) I (π:ℂ), mul_left_inj' I_ne_zero, mul_comm 2 θ] at a },
+  { field_simp at a, ring,
+    rw [mul_right_comm 2 I θ, mul_right_comm (2*(x:ℂ)+1) I (π:ℂ), mul_left_inj' I_ne_zero, mul_comm 2 θ, a] },
+end
+
+theorem cos_ne_zero_iff {θ : ℂ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k + 1) * π / 2 :=
+by rw [← not_exists, not_iff_not, cos_eq_zero_iff]
+
+lemma has_deriv_at_tan {x:ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) : has_deriv_at tan (1 / (cos x)^2) x :=
+begin
+  convert has_deriv_at.div (has_deriv_at_sin x) (has_deriv_at_cos x) (cos_ne_zero_iff.mpr h),
+  rw ← sin_sq_add_cos_sq x,
+  ring,
+end
+
+lemma differentiable_at_tan {x:ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) : differentiable_at ℂ tan x :=
+(has_deriv_at_tan h).differentiable_at
+
+lemma deriv_tan {x:ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2): deriv tan x = 1 / (cos x)^2 :=
+(has_deriv_at_tan h).deriv
+
+lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
+(continuous_sin.comp continuous_subtype_val).mul
+  (continuous.inv subtype.property (continuous_cos.comp continuous_subtype_val))
+
 end complex
+
+namespace real
+
+open_locale real
+
+theorem cos_eq_zero_iff {θ : ℝ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * π / 2 :=
+begin
+  rw [← complex.of_real_eq_zero, complex.of_real_cos θ],
+  convert @complex.cos_eq_zero_iff θ,
+  norm_cast,
+end
+
+theorem cos_ne_zero_iff {θ : ℝ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k + 1) * π / 2 :=
+by rw [← not_exists, not_iff_not, cos_eq_zero_iff]
+
+
+lemma has_deriv_at_tan {x:ℝ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) : has_deriv_at tan (1 / (cos x)^2) x :=
+begin
+  convert has_deriv_at_real_of_complex (complex.has_deriv_at_tan (by { convert h, norm_cast } )),
+  rw ← complex.of_real_re (1/((cos x)^2)),
+  simp,
+end
+
+lemma differentiable_at_tan {x:ℝ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) : differentiable_at ℝ tan x :=
+(has_deriv_at_tan h).differentiable_at
+
+lemma deriv_tan {x:ℝ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) : deriv tan x = 1 / (cos x)^2 :=
+(has_deriv_at_tan h).deriv
+
+lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
+by simp only [tan_eq_sin_div_cos]; exact
+  (continuous_sin.comp continuous_subtype_val).mul
+  (continuous.inv subtype.property
+    (continuous_cos.comp continuous_subtype_val))
+
+lemma has_deriv_at_tan_of_mem_Ioo {x:ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) : has_deriv_at tan (1 / (cos x)^2) x :=
+has_deriv_at_tan (cos_ne_zero_iff.mp (ne_of_gt (cos_pos_of_mem_Ioo h.1 h.2)))
+
+lemma differentiable_at_tan_of_mem_Ioo {x:ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) : differentiable_at ℝ tan x :=
+(has_deriv_at_tan_of_mem_Ioo h).differentiable_at
+
+lemma deriv_tan_of_mem_Ioo {x:ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) : deriv tan x = 1 / (cos x)^2 :=
+(has_deriv_at_tan_of_mem_Ioo h).deriv
+
+end real

@@ -69,18 +69,6 @@ open finite_dimensional
 section
 variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E]
 
-/-- Trivial case of the primitive element theorem. -/
-lemma primitive_element_trivial (F_eq_E : set.range (algebra_map F E) = ⊤) :
-    ∃ α : E, F⟮α⟯ = ⊤ :=
-begin
-    use 0,
-    ext,
-    split,
-    { exact λ _, algebra.mem_top, },
-    { obtain ⟨x, rfl⟩ := (show x ∈ set.range (algebra_map F E), by simp only [*]),
-      exact λ _, F⟮0⟯.algebra_map_mem x, },
-end
-
 /- Primitive element theorem for finite fields. -/
 
 -- Replaces earlier messy proof, courtesy of Aaron Anderson & Markus Himmel on zulip

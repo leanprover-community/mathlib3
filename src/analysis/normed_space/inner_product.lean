@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 
-import algebra.quadratic_discriminant
+import linear_algebra.bilinear_form
+import linear_algebra.sesquilinear_form
 import analysis.special_functions.pow
 import topology.metric_space.pi_Lp
 import data.complex.is_R_or_C
@@ -32,6 +33,8 @@ We locally denote the inner product by `⟪·, ·⟫`.
 ## Implementation notes
 
 We define both the real and complex cases at the same time using the `is_R_of_C` typeclass.
+We choose the convention that inner products are conjugate linear in the first argument and linear
+in the second.
 
 ## Tags
 
@@ -42,11 +45,10 @@ noncomputable theory
 
 namespace is_R_or_C
 
-open is_R_or_C real set -- vector_space finite_dimensional submodule module
+open is_R_or_C real set
 open_locale big_operators
-open_locale topological_space
 
-variables {α : Type*} {F : Type*} {G : Type*}
+variables {F : Type*} {G : Type*}
 variables {K : Type*} [nondiscrete_normed_field K] [algebra ℝ K] [is_R_or_C K]
 local notation `𝓚` := @is_R_or_C.of_real K _ _ _
 
@@ -395,8 +397,7 @@ normed_group.of_core F
       linarith },
     exact nonneg_le_nonneg_of_squares_le (add_nonneg (sqrt_nonneg _) (sqrt_nonneg _)) this
   end,
-  norm_neg := λ x, by simp only [norm, inner_neg_left, neg_neg, inner_neg_right]
-}
+  norm_neg := λ x, by simp only [norm, inner_neg_left, neg_neg, inner_neg_right] }
 
 local attribute [instance] to_normed_group
 
@@ -428,17 +429,23 @@ begin
     ..c }
 end
 
-/-! ### Properties of complex inner product spaces -/
+/-! ### Properties of inner product spaces -/
 
-variables [inner_product_space K α]
+variables {α β γ : Type*}
+  [inner_product_space K α] [inner_product_space ℝ β] [inner_product_space ℂ γ]
 local notation `⟪`x`, `y`⟫` := @inner K α _ x y
+local notation `⟪`x`, `y`⟫_ℝ` := @inner ℝ β _ x y
+local notation `⟪`x`, `y`⟫_ℂ` := @inner ℂ γ _ x y
+local notation `IK` := @is_R_or_C.I K _ _ _
 local postfix `†`:90 := @is_R_or_C.conj K _ _ _
+local postfix `⋆`:90 := complex.conj
 
 export inner_product_space (norm_sq_eq_inner)
 
 section basic_properties
 
 lemma inner_conj_sym (x y : α) : ⟪y, x⟫† = ⟪x, y⟫ := inner_product_space.conj_sym _ _
+lemma real.inner_comm (x y : β) : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := inner_conj_sym x y
 
 lemma inner_self_nonneg_im {x : α} : im ⟪x, x⟫ = 0 := inner_product_space.nonneg_im _
 
@@ -461,9 +468,37 @@ by rw [←inner_conj_sym, conj_im]
 
 lemma inner_smul_left {x y : α} {r : K} : ⟪r • x, y⟫ = r† * ⟪x, y⟫ :=
 inner_product_space.smul_left _ _ _
+lemma real.inner_smul_left {x y : β} {r : ℝ} : ⟪r • x, y⟫_ℝ = r * ⟪x, y⟫_ℝ := inner_smul_left
 
 lemma inner_smul_right {x y : α} {r : K} : ⟪x, r • y⟫ = r * ⟪x, y⟫ :=
 by rw [←inner_conj_sym, inner_smul_left, ring_hom.map_mul, conj_conj, inner_conj_sym]
+lemma real.inner_smul_right {x y : β} {r : ℝ} : ⟪x, r • y⟫_ℝ = r * ⟪x, y⟫_ℝ := inner_smul_right
+
+/-- The inner product as a sesquilinear form. -/
+def sesq_form_of_inner : sesq_form K α conj_to_ring_equiv :=
+{ sesq := λ x y, ⟪y, x⟫,    -- Note that sesquilinear forms are linear in the first argument
+  sesq_add_left := λ x y z, inner_add_right,
+  sesq_add_right := λ x y z, inner_add_left,
+  sesq_smul_left := λ r x y, inner_smul_right,
+  sesq_smul_right := λ r x y, inner_smul_left }
+
+/-- The real inner product as a bilinear form. -/
+def real.bilin_form_of_inner : bilin_form ℝ β :=
+{ bilin := inner,
+  bilin_add_left := λ x y z, inner_add_left,
+  bilin_smul_left := λ a x y, inner_smul_left,
+  bilin_add_right := λ x y z, inner_add_right,
+  bilin_smul_right := λ a x y, inner_smul_right }
+
+/-- An inner product with a sum on the left. -/
+lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → α) (x : α) :
+  ⟪∑ i in s, f i, x⟫ = ∑ i in s, ⟪f i, x⟫ :=
+sesq_form.map_sum_right (sesq_form_of_inner) _ _ _
+
+/-- An inner product with a sum on the right. -/
+lemma inner_sum {ι : Type*} (s : finset ι) (f : ι → α) (x : α) :
+  ⟪x, ∑ i in s, f i⟫ = ∑ i in s, ⟪x, f i⟫ :=
+sesq_form.map_sum_left (sesq_form_of_inner) _ _ _
 
 @[simp] lemma inner_zero_left {x : α} : ⟪0, x⟫ = 0 :=
 by rw [← zero_smul K (0:α), inner_smul_left, ring_hom.map_zero, zero_mul]
@@ -479,6 +514,7 @@ by simp only [inner_zero_right, add_monoid_hom.map_zero]
 
 lemma inner_self_nonneg {x : α} : 0 ≤ re ⟪x, x⟫ :=
 by rw [←norm_sq_eq_inner]; exact pow_nonneg (norm_nonneg x) 2
+lemma real.inner_self_nonneg {x : β} : 0 ≤ ⟪x, x⟫_ℝ := @inner_self_nonneg ℝ _ _ _ β _ x
 
 @[simp] lemma inner_self_eq_zero {x : α} : ⟪x, x⟫ = 0 ↔ x = 0 :=
 begin
@@ -549,9 +585,25 @@ by { rw[←inner_conj_sym, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }
 lemma inner_add_add_self {x y : α} : ⟪x + y, x + y⟫ = ⟪x, x⟫ + ⟪x, y⟫ + ⟪y, x⟫ + ⟪y, y⟫ :=
 by simp only [inner_add_left, inner_add_right]; ring
 
+/-- Expand `inner (x + y) (x + y)` -/
+lemma real.inner_add_add_self {x y : β} : ⟪x + y, x + y⟫_ℝ = ⟪x, x⟫_ℝ + 2 * ⟪x, y⟫_ℝ + ⟪y, y⟫_ℝ :=
+begin
+  have : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := by rw [←inner_conj_sym]; refl,
+  simp [inner_add_add_self, this],
+  ring,
+end
+
 /- Expand `inner (x - y) (x - y)` -/
 lemma inner_sub_sub_self {x y : α} : ⟪x - y, x - y⟫ = ⟪x, x⟫ - ⟪x, y⟫ - ⟪y, x⟫ + ⟪y, y⟫ :=
 by simp only [inner_sub_left, inner_sub_right]; ring
+
+/-- Expand `inner (x - y) (x - y)` -/
+lemma real.inner_sub_sub_self {x y : β} : ⟪x - y, x - y⟫_ℝ = ⟪x, x⟫_ℝ - 2 * ⟪x, y⟫_ℝ + ⟪y, y⟫_ℝ :=
+begin
+  have : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := by rw [←inner_conj_sym]; refl,
+  simp [inner_sub_sub_self, this],
+  ring,
+end
 
 /-- Parallelogram law -/
 lemma parallelogram_law {x y : α} :
@@ -605,15 +657,157 @@ begin
     rwa [div_mul_cancel (abs ⟪x, y⟫ * abs ⟪y, x⟫) h₆] at this }
 end
 
+/-- Cauchy–Schwarz inequality -/
+lemma real.inner_mul_inner_self_le (x y : β) : ⟪x, y⟫_ℝ * ⟪x, y⟫_ℝ ≤ ⟪x, x⟫_ℝ * ⟪y, y⟫_ℝ :=
+begin
+  have h₁ : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := by rw [←inner_conj_sym]; refl,
+  have h₂ := @inner_mul_inner_self_le ℝ _ _ _ β _ x y,
+  dsimp at h₂,
+  have h₃ := abs_mul_abs_self ⟪x, y⟫_ℝ,
+  rw [h₁] at h₂,
+  simpa [h₃] using h₂,
+end
+
 end basic_properties
 
+section norm
+
+lemma norm_eq_sqrt_inner (x : α) : ∥x∥ = sqrt (re ⟪x, x⟫) :=
+begin
+  have h₁ : ∥x∥^2 = re ⟪x, x⟫ := norm_sq_eq_inner x,
+  have h₂ := congr_arg sqrt h₁,
+  simpa using h₂,
+end
+
+lemma inner_self_eq_norm_square (x : α) : re ⟪x, x⟫ = ∥x∥ * ∥x∥ :=
+  by rw[norm_eq_sqrt_inner, ←sqrt_mul inner_self_nonneg (re ⟪x, x⟫),
+        sqrt_mul_self inner_self_nonneg]
+
+/-- Expand the square -/
+lemma norm_add_pow_two {x y : α} : ∥x + y∥^2 = ∥x∥^2 + 2 * (re ⟪x, y⟫) + ∥y∥^2 :=
+begin
+  repeat {rw [pow_two, ←inner_self_eq_norm_square]},
+  rw[inner_add_add_self, two_mul],
+  simp only [add_assoc, add_left_inj, add_right_inj, add_monoid_hom.map_add],
+  rw [←inner_conj_sym, conj_re],
+end
+
+/-- Expand the square -/
+lemma real.norm_add_pow_two {x y : β} : ∥x + y∥^2 = ∥x∥^2 + 2 * inner x y + ∥y∥^2 :=
+begin
+  have h₁ := @norm_add_pow_two ℝ _ _ _ β _,
+  simpa using h₁,
+end
+
+/-- Same lemma as above but in a different form -/
+lemma norm_add_mul_self {x y : α} : ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + 2 * (re ⟪x, y⟫) + ∥y∥ * ∥y∥ :=
+    by { repeat {rw [← pow_two]}, exact norm_add_pow_two }
+
+/-- Same lemma as above but in a different form -/
+lemma real.norm_add_mul_self {x y : β} : ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + 2 * inner x y + ∥y∥ * ∥y∥ :=
+begin
+  have h₁ := @norm_add_mul_self ℝ _ _ _ β _,
+  simpa using h₁,
+end
+
+/-- Expand the square -/
+lemma norm_sub_pow_two {x y : α} : ∥x - y∥^2 = ∥x∥^2 - 2 * (re ⟪x, y⟫) + ∥y∥^2 :=
+begin
+  repeat {rw [pow_two, ←inner_self_eq_norm_square]},
+  rw[inner_sub_sub_self],
+  calc
+    re (⟪x, x⟫ - ⟪x, y⟫ - ⟪y, x⟫ + ⟪y, y⟫)
+        = re ⟪x, x⟫ - re ⟪x, y⟫ - re ⟪y, x⟫ + re ⟪y, y⟫  : by simp
+    ... = -re ⟪y, x⟫ - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫  : by ring
+    ... = -re (⟪x, y⟫†) - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫ : by rw[inner_conj_sym]
+    ... = -re ⟪x, y⟫ - re ⟪x, y⟫ + re ⟪x, x⟫ + re ⟪y, y⟫ : by rw[conj_re]
+    ... = re ⟪x, x⟫ - 2*re ⟪x, y⟫ + re ⟪y, y⟫ : by ring
+end
+
+/-- Expand the square -/
+lemma real.norm_sub_pow_two {x y : β} : ∥x - y∥^2 = ∥x∥^2 - 2 * inner x y + ∥y∥^2 :=
+begin
+  have h₁ := @norm_sub_pow_two ℝ _ _ _ β _,
+  simpa using h₁,
+end
+
+/-- Same lemma as above but in a different form -/
+lemma norm_sub_mul_self {x y : α} : ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ - 2 * re ⟪x, y⟫ + ∥y∥ * ∥y∥ :=
+by { repeat {rw [← pow_two]}, exact norm_sub_pow_two }
+
+/-- Same lemma as above but in a different form -/
+lemma real.norm_sub_mul_self {x y : β} : ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ - 2 * ⟪x, y⟫_ℝ + ∥y∥ * ∥y∥ :=
+begin
+  have h₁ := @norm_sub_mul_self ℝ _ _ _ β _,
+  simpa using h₁,
+end
+
+/-- Cauchy–Schwarz inequality with norm -/
+lemma abs_inner_le_norm (x y : α) : abs ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
+nonneg_le_nonneg_of_squares_le (mul_nonneg (norm_nonneg _) (norm_nonneg _))
+begin
+  have : ∥x∥ * ∥y∥ * (∥x∥ * ∥y∥) = (re ⟪x, x⟫) * (re ⟪y, y⟫),
+    simp only [inner_self_eq_norm_square], ring,
+  rw this,
+  conv_lhs { congr, skip, rw [inner_abs_conj_sym] },
+  exact inner_mul_inner_self_le _ _
+end
+
+lemma real.parallelogram_law_with_norm {x y : β} :
+  ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
+begin
+  simp only [(inner_self_eq_norm_square _).symm],
+  rw[←add_monoid_hom.map_add, parallelogram_law, two_mul, two_mul],
+  simp only [add_monoid_hom.map_add],
+end
+
+/-- Polarization identity: The real inner product, in terms of the norm. -/
+lemma real.inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two (x y : β) :
+  ⟪x, y⟫_ℝ = (∥x + y∥ * ∥x + y∥ - ∥x∥ * ∥x∥ - ∥y∥ * ∥y∥) / 2 :=
+by rw norm_add_mul_self; ring
+
+/-- Polarization identity: The real inner product, in terms of the norm. -/
+lemma real.inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two (x y : β) :
+  ⟪x, y⟫_ℝ = (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ - ∥x - y∥ * ∥x - y∥) / 2 :=
+by rw norm_sub_mul_self; ring
+
+/-- Pythagorean theorem, if-and-only-if vector inner product form. -/
+lemma real.norm_add_square_eq_norm_square_add_norm_square_iff_inner_eq_zero (x y : β) :
+  ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ ⟪x, y⟫_ℝ = 0 :=
+begin
+  rw [norm_add_mul_self, add_right_cancel_iff, add_right_eq_self, mul_eq_zero],
+  norm_num
+end
+
+/-- Pythagorean theorem, vector inner product form. -/
+lemma norm_add_square_eq_norm_square_add_norm_square {x y : β} (h : ⟪x, y⟫_ℝ = 0) :
+  ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
+(real.norm_add_square_eq_norm_square_add_norm_square_iff_inner_eq_zero x y).2 h
+
+/-- Pythagorean theorem, subtracting vectors, if-and-only-if vector
+inner product form. -/
+lemma real.norm_sub_square_eq_norm_square_add_norm_square_iff_inner_eq_zero (x y : β) :
+  ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ ↔ ⟪x, y⟫_ℝ = 0 :=
+begin
+  rw [norm_sub_mul_self, add_right_cancel_iff, sub_eq_add_neg, add_right_eq_self, neg_eq_zero,
+      mul_eq_zero],
+  norm_num
+end
+
+/-- Pythagorean theorem, subtracting vectors, vector inner product
+form. -/
+lemma real.norm_sub_square_eq_norm_square_add_norm_square {x y : β} (h : ⟪x, y⟫_ℝ = 0) :
+  ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
+(real.norm_sub_square_eq_norm_square_add_norm_square_iff_inner_eq_zero x y).2 h
+
+end norm
 
 /-! ### Inner product space structure on product spaces -/
 
 /-
  If `ι` is a finite type and each space `f i`, `i : ι`, is an inner product space,
-then `Π i, f i` is an inner product space as well. This is not an instance to avoid conflict
-with the default instance for the norm on `Π i, f i`.
+then `Π i, f i` is an inner product space as well. Since `Π i, f i` is endowed with the sup norm,
+we use instead `pi_Lp 2 one_le_two f` for the product space, which is endowed with the `L^2` norm.
 -/
 instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   [Π i, inner_product_space K (f i)] : inner_product_space K (pi_Lp 2 one_le_two f) :=

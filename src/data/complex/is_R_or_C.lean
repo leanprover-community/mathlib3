@@ -177,6 +177,14 @@ begin
   { rintros ⟨r, rfl⟩, apply conj_of_real }
 end
 
+def conj_to_ring_equiv : K ≃+* Kᵒᵖ :=
+{ to_fun := opposite.op ∘ conj,
+  inv_fun := conj ∘ opposite.unop,
+  left_inv := λ x, by simp only [conj_conj, function.comp_app, opposite.unop_op],
+  right_inv := λ x, by simp only [conj_conj, opposite.op_unop, function.comp_app],
+  map_mul' := λ x y, by simp [mul_comm],
+  map_add' := λ x y, by simp }
+
 lemma eq_conj_iff_re {z : K} : conj z = z ↔ 𝓚 (re z) = z :=
 eq_conj_iff_real.trans ⟨by rintro ⟨r, rfl⟩; simp, λ h, ⟨_, h.symm⟩⟩
 
@@ -515,9 +523,9 @@ section module
 
 /- Register as an instance (with low priority) the fact that an `is_R_or_C` vector space is also a real
 vector space. -/
-instance module.is_R_or_C_to_real (E : Type*) [add_comm_group E] [module K E] : module ℝ E :=
+def module.is_R_or_C_to_real (E : Type*) [add_comm_group E] [module K E] : module ℝ E :=
 semimodule.restrict_scalars' ℝ K E
-attribute [instance, priority 950] module.is_R_or_C_to_real
+--attribute [instance, priority 1000] module.is_R_or_C_to_real
 
 end module
 

@@ -438,13 +438,36 @@ begin
     exact primitive_element_inf F E F_sep F_findim (not_nonempty_fintype.mp F_finite) (findim F E) rfl,
 end
 
+--silly instances that are used in translating from F to set.range (algebra_map F E)
+instance tada1 : algebra F (set.range (algebra_map F E)) := {
+    smul := λ x y, ⟨algebra_map F E x,set.mem_range_self x⟩ * y,
+    to_fun := λ x, ⟨algebra_map F E x,set.mem_range_self x⟩,
+    map_zero' := by ext1;exact (algebra_map F E).map_zero,
+    map_add' := λ x y, by ext1;exact (algebra_map F E).map_add x y,
+    map_one' := by ext1;exact (algebra_map F E).map_one,
+    map_mul' := λ x y, by ext1;exact (algebra_map F E).map_mul x y,
+    commutes' := λ x y, by ext1;exact mul_comm (algebra_map F E x) y,
+    smul_def' := λ x y, by ext1;refl,
+}
+
+instance tada2 : is_scalar_tower F (set.range (algebra_map F E)) E := {
+    smul_assoc := λ x y z, begin
+        change ((algebra_map F E x) * y) * z = x • (y * z),
+        rw algebra.smul_def,
+        rw mul_assoc,
+    end,
+}
+
 /-- Primitive element theorem in different universes. -/
 theorem primitive_element (F_sep : is_separable F E)  (F_findim : finite_dimensional F E) :
     (∃ α : E, F⟮α⟯ = ⊤) :=
 begin
     set F' := set.range (algebra_map F E) with hF',
-    have F'_sep : is_separable F' E := sorry,--inclusion.separable F_sep,
+    have F'_sep : is_separable F' E := is_separable_top F F' E F_sep,
+
+    --this one should follow from some upcoming finite_dimensional lemmas
     have F'_findim : finite_dimensional F' E := sorry, --inclusion.finite_dimensional F_findim,
+
     obtain ⟨α, hα⟩ := primitive_element_aux F' E F'_sep F'_findim,
     sorry,
     -- exact ⟨α, by simp only [*, adjoin_equals_adjoin_range]⟩,

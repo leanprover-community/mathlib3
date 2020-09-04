@@ -159,7 +159,7 @@ def submodule_restrict_field (S : set E) (p : submodule (adjoin F S) E) : submod
         rw algebra.smul_def,
         rw is_scalar_tower.algebra_map_eq F (adjoin F S) E,
         rw ring_hom.comp_apply,
-        rw ←algebra.smul_def,
+        rw ← algebra.smul_def,
         exact p.smul_mem' _ hx,
     end
 }

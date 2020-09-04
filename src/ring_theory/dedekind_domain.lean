@@ -28,6 +28,15 @@ giving three equivalent definitions (TODO: and shows that they are equivalent).
 
 The definitions that involve a field of fractions choose a canonical field of fractions,
 but are independent of that choice. The `..._iff` lemmas express this independence.
+
+## References
+
+* [D. Marcus, *Number Fields*][marcus1977number]
+* [J.W.S. Cassels, A. Frölich, *Algebraic Number Theory*][cassels1967algebraic]
+
+## Tags
+
+dedekind domain, dedekind ring
 -/
 
 variables (R A K : Type*) [comm_ring R] [integral_domain A] [field K]
@@ -64,11 +73,11 @@ This is the default implementation, but there are equivalent definitions,
 TODO: Prove that these are actually equivalent definitions.
 -/
 -- TODO: R should be a `comm_ring`
-class is_dedekind_domain (R : Type*) [integral_domain R] : Prop :=
-(not_is_field : ¬ is_field R)
-(is_noetherian_ring : is_noetherian_ring R)
-(dimension_le_one : dimension_le_one R)
-(is_integrally_closed : integral_closure R (fraction_ring R) = ⊥)
+class is_dedekind_domain : Prop :=
+(not_is_field : ¬ is_field A)
+(is_noetherian_ring : is_noetherian_ring A)
+(dimension_le_one : dimension_le_one A)
+(is_integrally_closed : integral_closure A (fraction_ring A) = ⊥)
 
 /-- The non-field, noetherian ring, dimension ≤ 1, integrally closed definition of Dedekind domain
 doesn't depend on the choice of fraction field. -/

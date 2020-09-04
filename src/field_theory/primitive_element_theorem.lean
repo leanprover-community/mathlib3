@@ -18,29 +18,6 @@ variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 lemma infinite_lemma (hF : infinite F) : infinite E :=
 @infinite.of_injective _ _ hF (algebra_map F E) (algebra_map F E).injective
 
-<<<<<<< HEAD
-=======
-variables {K : subalgebra F E} [is_subfield (K : set E)] [field K]
-
--- lemma separable_lemma (hF : is_separable F E) : is_separable (K : set E) E :=
--- begin
---     intro x,
---     cases hF x with hx hs,
---     have hx' : is_integral K x := is_integral_of_is_scalar_tower x hx,
---     use hx',
---     have key : (minimal_polynomial hx') ∣ (minimal_polynomial hx).map(algebra_map F K),
---     apply minimal_polynomial.dvd,
---     dsimp[polynomial.aeval],
---     rw polynomial.eval₂_map,
---     rw ← adjoin.composition,
---     apply minimal_polynomial.aeval,
---     cases key with q hq,
---     apply polynomial.separable.of_mul_left,
---     rw ←hq,
---     exact polynomial.separable.map hs,
--- end
-
->>>>>>> trying out a few things
 end
 
 /- Some stupid lemmas used below. Maybe some of them are already in mathlib? -/

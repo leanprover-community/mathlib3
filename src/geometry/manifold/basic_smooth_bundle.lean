@@ -575,7 +575,7 @@ by { unfold_coes, simp only with mfld_simps }
 
 variable (H)
 /-- The canonical identification between the tangent bundle to the model space and the product,
-as a homeomorphim -/
+as a homeomorphism -/
 def tangent_bundle_model_space_homeomorph : tangent_bundle I H ≃ₜ model_prod H E :=
 { continuous_to_fun :=
   begin

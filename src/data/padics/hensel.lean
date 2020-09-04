@@ -41,7 +41,7 @@ lemma padic_polynomial_dist {p : ℕ} [fact p.prime] (F : polynomial ℤ_[p]) (x
   ∥F.eval x - F.eval y∥ ≤ ∥x - y∥ :=
 let ⟨z, hz⟩ := F.eval_sub_factor x y in calc
   ∥F.eval x - F.eval y∥ = ∥z∥ * ∥x - y∥ : by simp [hz]
-    ... ≤ 1 * ∥x - y∥ : mul_le_mul_of_nonneg_right (padic_norm_z.le_one _) (norm_nonneg _)
+    ... ≤ 1 * ∥x - y∥ : mul_le_mul_of_nonneg_right (padic_int.norm_le_one _) (norm_nonneg _)
     ... = ∥x - y∥ : by simp
 
 open filter metric
@@ -107,7 +107,7 @@ private lemma deriv_ne_zero : F.derivative.eval a ≠ 0 := mt norm_eq_zero.2 der
 
 private lemma T_def : T = ∥F.eval a∥ / ∥F.derivative.eval a∥^2 :=
 calc T = ∥F.eval a∥ / ∥((F.derivative.eval a)^2 : ℚ_[p])∥ : normed_field.norm_div _ _
-   ... = ∥F.eval a∥ / ∥(F.derivative.eval a)^2∥ : by simp [norm, padic_norm_z]
+   ... = ∥F.eval a∥ / ∥(F.derivative.eval a)^2∥ : by simp [norm, padic_int.norm_def]
    ... = ∥F.eval a∥ / ∥(F.derivative.eval a)∥^2 : by simp [pow, monoid.pow]
 
 private lemma T_lt_one : T < 1 :=
@@ -138,7 +138,7 @@ calc ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥
 ... ≤ ∥F.derivative.eval a∥^2 * T^(2^n) / ∥F.derivative.eval a∥ :
   (div_le_div_right deriv_norm_pos).2 hz.2
 ... = ∥F.derivative.eval a∥ * T^(2^n) : div_sq_cancel (ne_of_gt deriv_norm_pos) _
-... ≤ 1 : mul_le_one (padic_norm_z.le_one _) (T_pow_nonneg _) (le_of_lt (T_pow' _))
+... ≤ 1 : mul_le_one (padic_int.norm_le_one _) (T_pow_nonneg _) (le_of_lt (T_pow' _))
 
 private lemma calc_deriv_dist {z z' z1 : ℤ_[p]} (hz' : z' = z - z1)
   (hz1 : ∥z1∥ = ∥F.eval z∥ / ∥F.derivative.eval a∥) {n} (hz : ih n z) :
@@ -163,7 +163,7 @@ have hdzne' : (↑(F.derivative.eval z) : ℚ_[p]) ≠ 0, from
   λ h, hdzne $ subtype.ext_iff_val.2 h,
 let ⟨q, hq⟩ := F.binom_expansion z (-z1) in
 have ∥(↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)) : ℚ_[p])∥ ≤ 1,
-  by {rw padic_norm_e.mul, apply mul_le_one, apply padic_norm_z.le_one, apply norm_nonneg, apply h1},
+  by {rw padic_norm_e.mul, apply mul_le_one, apply padic_int.norm_le_one, apply norm_nonneg, apply h1},
 have F.derivative.eval z * (-z1) = -F.eval z, from calc
   F.derivative.eval z * (-z1)
     = (F.derivative.eval z) * -⟨↑(F.eval z) / ↑(F.derivative.eval z), h1⟩ : by rw [hzeq]
@@ -178,7 +178,7 @@ private def calc_eval_z'_norm {z z' z1 : ℤ_[p]} {n} (hz : ih n z) {q}
   (hzeq : z1 = ⟨_, h1⟩) : ∥F.eval z'∥ ≤ ∥F.derivative.eval a∥^2 * T^(2^(n+1)) :=
 calc ∥F.eval z'∥
     = ∥q∥ * ∥z1∥^2 : by simp [heq]
-... ≤ 1 * ∥z1∥^2 : mul_le_mul_of_nonneg_right (padic_norm_z.le_one _) (pow_nonneg (norm_nonneg _) _)
+... ≤ 1 * ∥z1∥^2 : mul_le_mul_of_nonneg_right (padic_int.norm_le_one _) (pow_nonneg (norm_nonneg _) _)
 ... = ∥F.eval z∥^2 / ∥F.derivative.eval a∥^2 :
   by simp [hzeq, hz.1, div_pow]
 ... ≤ (∥F.derivative.eval a∥^2 * T^(2^n))^2 / ∥F.derivative.eval a∥^2 :
@@ -201,7 +201,7 @@ let z1 : ℤ_[p] := ⟨_, h1⟩,
   have hfeq : ∥F.derivative.eval z'∥ = ∥F.derivative.eval a∥,
     begin
       rw [sub_eq_add_neg, ← hz.1, ←norm_neg (F.derivative.eval z)] at hdist,
-      have := padic_norm_z.eq_of_norm_add_lt_right hdist,
+      have := padic_int.norm_eq_of_norm_add_lt_right hdist,
       rwa [norm_neg, hz.1] at this
     end,
   let ⟨q, heq⟩ := calc_eval_z' rfl hz h1 rfl in
@@ -275,7 +275,7 @@ private lemma newton_seq_dist_aux (n : ℕ) :
   ∥newton_seq (n + (k + 1)) - newton_seq n∥
     = ∥newton_seq ((n + k) + 1) - newton_seq n∥ : by rw add_assoc
 ... = ∥(newton_seq ((n + k) + 1) - newton_seq (n+k)) + (newton_seq (n+k) - newton_seq n)∥ : by rw ←sub_add_sub_cancel
-... ≤ max (∥newton_seq ((n + k) + 1) - newton_seq (n+k)∥) (∥newton_seq (n+k) - newton_seq n∥) : padic_norm_z.nonarchimedean _ _
+... ≤ max (∥newton_seq ((n + k) + 1) - newton_seq (n+k)∥) (∥newton_seq (n+k) - newton_seq n∥) : padic_int.nonarchimedean _ _
 ... ≤ max (∥F.derivative.eval a∥ * T^(2^((n + k)))) (∥F.derivative.eval a∥ * T^(2^n)) :
   max_le_max (newton_seq_succ_dist _) (newton_seq_dist_aux _)
 ... = ∥F.derivative.eval a∥ * T^(2^n) :
@@ -295,7 +295,7 @@ private lemma newton_seq_dist_to_a : ∀ n : ℕ, 0 < n → ∥newton_seq n - a�
   have hne' : ∥newton_seq (k + 2) - newton_seq (k+1)∥ ≠ ∥newton_seq (k+1) - a∥, from ne_of_lt hlt,
   calc  ∥newton_seq (k + 2) - a∥
     = ∥(newton_seq (k + 2) - newton_seq (k+1)) + (newton_seq (k+1) - a)∥ : by rw ←sub_add_sub_cancel
-... = max (∥newton_seq (k + 2) - newton_seq (k+1)∥) (∥newton_seq (k+1) - a∥) : padic_norm_z.add_eq_max_of_ne hne'
+... = max (∥newton_seq (k + 2) - newton_seq (k+1)∥) (∥newton_seq (k+1) - a∥) : padic_int.norm_add_eq_max_of_ne hne'
 ... = ∥newton_seq (k+1) - a∥ : max_eq_right_of_lt hlt
 ... = ∥polynomial.eval a F∥ / ∥polynomial.eval a (polynomial.derivative F)∥ : newton_seq_dist_to_a (k+1) (succ_pos _)
 
@@ -379,7 +379,7 @@ private lemma soln_unique (z : ℤ_[p]) (hev : F.eval z = 0) (hnlt : ∥z - a∥
   z = soln :=
 have soln_dist : ∥z - soln∥ < ∥F.derivative.eval a∥, from calc
   ∥z - soln∥ = ∥(z - a) + (a - soln)∥ : by rw sub_add_sub_cancel
-        ... ≤ max (∥z - a∥) (∥a - soln∥) : padic_norm_z.nonarchimedean _ _
+        ... ≤ max (∥z - a∥) (∥a - soln∥) : padic_int.nonarchimedean _ _
         ... < ∥F.derivative.eval a∥ : max_lt hnlt (by rw norm_sub_rev; apply soln_dist_to_a_lt_deriv),
 let h := z - soln,
     ⟨q, hq⟩ := F.binom_expansion soln h in
@@ -392,7 +392,7 @@ have h = 0, from by_contradiction $ λ hne,
   have F.derivative.eval soln = (-q) * h, by simpa using eq_neg_of_add_eq_zero this,
   lt_irrefl ∥F.derivative.eval soln∥ (calc
   ∥F.derivative.eval soln∥ = ∥(-q) * h∥ : by rw this
-... ≤ 1 * ∥h∥ : by rw [padic_norm_z.mul]; exact mul_le_mul_of_nonneg_right (padic_norm_z.le_one _) (norm_nonneg _)
+... ≤ 1 * ∥h∥ : by rw [padic_int.norm_mul]; exact mul_le_mul_of_nonneg_right (padic_int.norm_le_one _) (norm_nonneg _)
 ... = ∥z - soln∥ : by simp [h]
 ... < ∥F.derivative.eval soln∥ : by rw soln_deriv_norm; apply soln_dist),
 eq_of_sub_eq_zero (by rw ←this; refl)
@@ -414,7 +414,7 @@ have h = 0, from by_contradiction $ λ hne,
   have F.derivative.eval a = (-q) * h, by simpa using eq_neg_of_add_eq_zero this,
   lt_irrefl ∥F.derivative.eval a∥ (calc
     ∥F.derivative.eval a∥ = ∥q∥*∥h∥ : by simp [this]
-    ... ≤ 1*∥h∥ : mul_le_mul_of_nonneg_right (padic_norm_z.le_one _) (norm_nonneg _)
+    ... ≤ 1*∥h∥ : mul_le_mul_of_nonneg_right (padic_int.norm_le_one _) (norm_nonneg _)
     ... < ∥F.derivative.eval a∥ : by simpa [h]),
 eq_of_sub_eq_zero (by rw ←this; refl)
 

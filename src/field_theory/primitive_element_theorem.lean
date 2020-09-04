@@ -94,13 +94,14 @@ begin
     obtain ⟨α, hα⟩ := is_cyclic.exists_generator (units E),
     use α,
     ext,
-    refine ⟨λ _, algebra.mem_top, λ _, _⟩,
+    symmetry,
+    apply iff_of_true algebra.mem_top,
     by_cases hx : x = 0,
     { rw hx,
       exact F⟮α.val⟯.zero_mem, },
     { obtain ⟨n, hn⟩ := set.mem_range.mp (hα (units.mk0 x hx)),
       rw (show x = α^n, by norm_cast; simp *),
-      exact is_subfield.pow_mem (show α.val ∈ (F⟮α.val⟯ : set E), from field.mem_adjoin_simple_self F α.val), },
+      exact @is_subfield.pow_mem E _ α.val n F⟮α.val⟯ _ (field.mem_adjoin_simple_self F α.val), },
 end
 
 /-- Primitive element theorem for finite dimensional extension of a finite field. -/
@@ -365,8 +366,8 @@ begin
     obtain ⟨c, β_in_Fγ⟩ := primitive_element_two_inf_key α β F_inf,
     let c' := algebra_map F E c,
     let γ := α + c'*β,
-    have γ_in_Fγ : γ ∈ (F⟮γ⟯ : set E) := field.mem_adjoin_simple_self F γ,
-    have c_in_Fγ : c' ∈ (F⟮γ⟯ : set E) := field.adjoin.algebra_map_mem F {γ} c,
+    have γ_in_Fγ : γ ∈ F⟮γ⟯ := field.mem_adjoin_simple_self F γ,
+    have c_in_Fγ : c' ∈ F⟮γ⟯ := field.adjoin.algebra_map_mem F {γ} c,
     have cβ_in_Fγ : c'*β ∈ (F⟮γ⟯ : set E) := is_submonoid.mul_mem c_in_Fγ β_in_Fγ,
     have α_in_Fγ : α ∈ (F⟮γ⟯ : set E) := by rw (show α = γ - c'*β, by simp *);
         exact is_add_subgroup.sub_mem F⟮γ⟯ γ (c'*β) γ_in_Fγ cβ_in_Fγ,
@@ -384,6 +385,24 @@ end
 
 universe u
 
+lemma usefulish {F E : Type*} [field F] [field E] [algebra F E] (A B : subalgebra F E) :
+    A = B ↔ (A : set E) = (B : set E) :=
+begin
+    split,
+    intro h,
+    rw h,
+    intro h,
+    ext,
+    rw ←subalgebra.mem_coe,
+    rw ←subalgebra.mem_coe,
+    exact set.ext_iff.mp h x,
+end
+
+lemma nlinarith_lemma (a b : ℕ) (h : a * b ≤ b) (ha : 0 < a) (hb : 0 < b) : a = 1 :=
+begin
+    nlinarith,
+end
+
 /-- Primitive element theorem for infinite fields. -/
 theorem primitive_element_inf (F E : Type u) [field F] [field E] [algebra F E] (F_sep : is_separable F E) (F_findim: finite_dimensional F E)
     (F_inf : infinite F) (n : ℕ) (hn : findim F E = n) : ∃ α : E, F⟮α⟯ = ⊤ :=
@@ -393,36 +412,35 @@ begin
     apply n.strong_induction_on,
     clear n,
     intros n ih F hF hFE F_sep F_findim F_inf hn,
-    by_cases F_neq_E : set.range (algebra_map F E) = (⊤ : set E),
-    {   exact primitive_element_trivial F F_neq_E, },
-    {   have : ∃ α : E, α ∉ set.range (algebra_map F E) :=
-        begin
-            revert F_neq_E,
-            contrapose!,
-            exact λ h, set.ext (λ x, ⟨λ _, dec_trivial, λ _, h x⟩),
-        end,
-        rcases this with ⟨α, hα⟩,
-        by_cases h : F⟮α⟯ = ⊤,
-        {   exact ⟨α, h⟩,   },
-        {   have Fα_findim : finite_dimensional F⟮α⟯ E := field.adjoin_findim_of_findim F α,
-            have Fα_le_n : findim F⟮α⟯ E < n := by rw ← hn; exact field.adjoin_dim_lt F hα,
-            have Fα_inf : infinite F⟮α⟯ := infinite_lemma F_inf,
-            have Fα_sep : is_separable F⟮α⟯ E := is_separable_top F F⟮α⟯ E F_sep,
-            obtain ⟨β, hβ⟩ := ih (findim F⟮α⟯ E) Fα_le_n F⟮α⟯ Fα_sep Fα_findim Fα_inf rfl,
-            obtain ⟨γ, hγ⟩ := primitive_element_two_inf α β F_sep F_inf,
-            use γ,
-            ext,
-            split,
-            exact λ _, algebra.mem_top,
-            intro _,
-            rw subalgebra.ext_iff at hβ,
-            specialize hβ x,
-            replace hβ := hβ.mpr algebra.mem_top,
-            change x ∈ (F⟮α⟯⟮β⟯ : set E) at hβ,
-            rw field.adjoin_simple_adjoin_simple at hβ,
-            rw hγ at hβ,
-            assumption,
-        },
+    by_cases key : ∃ α : E, findim F⟮α⟯ E < n,
+    {   cases key with α Fα_le_n,
+        have Fα_findim : finite_dimensional F⟮α⟯ E := finite_dimensional.findim_of_findim F F⟮α⟯ E,
+        have Fα_inf : infinite F⟮α⟯ := infinite_lemma F_inf,
+        have Fα_sep : is_separable F⟮α⟯ E := is_separable_top F F⟮α⟯ E F_sep,
+        obtain ⟨β, hβ⟩ := ih (findim F⟮α⟯ E) Fα_le_n F⟮α⟯ Fα_sep Fα_findim Fα_inf rfl,
+        obtain ⟨γ, hγ⟩ := primitive_element_two_inf α β F_sep F_inf,
+        use γ,
+        rw usefulish,
+        rw usefulish at hβ,
+        rw usefulish at hγ,
+        rw field.adjoin_simple_adjoin_simple at hβ,
+        rw ←hγ,
+        rw hβ,
+        simp only [submodule.top_coe, algebra.coe_top, coe_coe], },
+    {   push_neg at key,
+        use 0,
+        ext1,
+        symmetry,
+        apply iff_of_true algebra.mem_top,
+        specialize key x,
+        rw ←hn at key,
+        rw ←(findim_mul_findim F F⟮x⟯ E) at key,
+        have h : findim F F⟮x⟯ = 1 := nlinarith_lemma (findim F F⟮x⟯) (findim F⟮x⟯ E) key findim_pos findim_pos,
+        replace h := field.adjoin.findim_one F x h,
+        rw set.mem_range at h,
+        cases h with y hy,
+        rw ←hy,
+        exact F⟮0⟯.algebra_map_mem y,
     },
 end
 
@@ -464,10 +482,7 @@ theorem primitive_element (F_sep : is_separable F E)  (F_findim : finite_dimensi
 begin
     set F' := set.range (algebra_map F E) with hF',
     have F'_sep : is_separable F' E := is_separable_top F F' E F_sep,
-
-    --this one should follow from some upcoming finite_dimensional lemmas
-    have F'_findim : finite_dimensional F' E := sorry, --inclusion.finite_dimensional F_findim,
-
+    have F'_findim : finite_dimensional F' E := finite_dimensional.findim_of_findim F F' E,
     obtain ⟨α, hα⟩ := primitive_element_aux F' E F'_sep F'_findim,
     use α,
     have key : (F'⟮α⟯ : set E) ⊆ F⟮α⟯,

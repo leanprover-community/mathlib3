@@ -101,8 +101,7 @@ begin
   rw eval_mul_X_sub_C at h,
   -- Now $χ_M (t) I$, when thought of as a polynomial of matrices
   -- and evaluated at some `N` is exactly $χ_M (N)$.
-  rw mat_poly_equiv_smul_one at h,
+  rw [mat_poly_equiv_smul_one, eval_map] at h,
   -- Thus we have $χ_M(M) = 0$, which is the desired result.
-  rw eval_map at h,
   exact h,
 end

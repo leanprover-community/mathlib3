@@ -87,6 +87,12 @@ def init {α} : lazy_list α → lazy_list α
   | (lazy_list.cons _ _) := lazy_list.cons x (init xs')
   end
 
+/-- Return the first object contained in the list that satisfies
+predicate `p` -/
+def find {α} (p : α → Prop) [decidable_pred p] : lazy_list α → option α
+| nil        := none
+| (cons h t) := if p h then some h else find (t ())
+
 /-- `interleave xs ys` creates a list where elements of `xs` and `ys` alternate. -/
 def interleave {α} : lazy_list α → lazy_list α → lazy_list α
 | lazy_list.nil xs := xs

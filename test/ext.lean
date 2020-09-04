@@ -123,3 +123,15 @@ begin
 end
 
 @[ext] structure dumb (V : Type) := (val : V)
+
+section param
+
+parameters x y : ℤ
+
+@[ext]
+lemma my_ext (s s' : set ℤ) (h : x ∈ s ↔ y ∈ s') : s = s' := sorry
+
+-- this is what used to cause it to fail
+-- run_cmd tactic.resolve_constant `my_ext
+
+end param

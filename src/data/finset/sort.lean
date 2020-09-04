@@ -154,6 +154,14 @@ end
 by rw [subsingleton.elim i ⟨0, zero_lt_one⟩,
        mono_of_fin_zero h (singleton_nonempty a) zero_lt_one, min'_singleton]
 
+/-- The range of `mono_of_fin`. -/
+@[simp] lemma range_mono_of_fin {s : finset α} {k : ℕ} (h : s.card = k) :
+  set.range (s.mono_of_fin h) = ↑s :=
+begin
+  rw ←set.image_univ,
+  exact (mono_of_fin_bij_on s h).image_eq
+end
+
 /-- Any increasing bijection between `fin k` and a finset of cardinality `k` has to coincide with
 the increasing bijection `mono_of_fin s h`. For a statement assuming only that `f` maps `univ` to
 `s`, see `mono_of_fin_unique'`.-/
@@ -168,7 +176,7 @@ begin
     rw ← hj at H,
     have ji : j < ⟨i, hi⟩ := (mono_of_fin_strict_mono s h).lt_iff_lt.1 H,
     have : f j = mono_of_fin s h j,
-      by { convert IH j.1 ji (lt_trans ji hi), rw fin.ext_iff },
+      by { convert IH j ji (lt_trans ji hi), rw [fin.ext_iff, fin.coe_mk] },
     rw ← this at hj,
     exact (ne_of_lt (hmono ji) hj).elim },
   { exact H },
@@ -177,7 +185,7 @@ begin
     rw ← hj at H,
     have ji : j < ⟨i, hi⟩ := hmono.lt_iff_lt.1 H,
     have : f j = mono_of_fin s h j,
-      by { convert IH j.1 ji (lt_trans ji hi), rw fin.ext_iff },
+      by { convert IH j ji (lt_trans ji hi), rw [fin.ext_iff, fin.coe_mk] },
     rw this at hj,
     exact (ne_of_lt (mono_of_fin_strict_mono s h ji) hj).elim }
 end
@@ -199,14 +207,14 @@ end
 
 /-- Two parametrizations `mono_of_fin` of the same set take the same value on `i` and `j` if and
 only if `i = j`. Since they can be defined on a priori not defeq types `fin k` and `fin l` (although
-necessarily `k = l`), the conclusion is rather written `i.val = j.val`. -/
+necessarily `k = l`), the conclusion is rather written `(i : ℕ) = (j : ℕ)`. -/
 @[simp] lemma mono_of_fin_eq_mono_of_fin_iff
   {k l : ℕ} {s : finset α} {i : fin k} {j : fin l} {h : s.card = k} {h' : s.card = l} :
-  s.mono_of_fin h i = s.mono_of_fin h' j ↔ i.val = j.val :=
+  s.mono_of_fin h i = s.mono_of_fin h' j ↔ (i : ℕ) = (j : ℕ) :=
 begin
   have A : k = l, by rw [← h', ← h],
-  have : s.mono_of_fin h = (s.mono_of_fin h') ∘ (λ j : (fin k), ⟨j.1, A ▸ j.2⟩) := rfl,
-  rw [this, function.comp_app, (s.mono_of_fin_injective h').eq_iff, fin.ext_iff]
+  have : s.mono_of_fin h = (s.mono_of_fin h') ∘ (λ j : (fin k), ⟨j, A ▸ j.is_lt⟩) := rfl,
+  rw [this, function.comp_app, (s.mono_of_fin_injective h').eq_iff, fin.ext_iff, fin.coe_mk]
 end
 
 /-- Given a finset `s` of cardinal `k` in a linear order `α`, the equiv `mono_equiv_of_fin s h`

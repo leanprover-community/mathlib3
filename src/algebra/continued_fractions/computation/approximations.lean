@@ -77,15 +77,15 @@ begin
     ∧ int_fract_pair.of ifp_n.fr⁻¹ = ifp_succ_n, from
       succ_nth_stream_eq_some_iff.elim_left succ_nth_stream_eq,
   change 1 ≤ ⌊ifp_n.fr⁻¹⌋,
-  suffices : 1 ≤ ifp_n.fr⁻¹, by { rw_mod_cast [le_floor], assumption },
-  suffices : 1 * ifp_n.fr ≤ 1, by
-  { rw inv_eq_one_div,
-    have : 0 < ifp_n.fr, from
+  suffices : 1 ≤ ifp_n.fr⁻¹, { rw_mod_cast [le_floor], assumption },
+  suffices : ifp_n.fr ≤ 1,
+  { have h : 0 < ifp_n.fr :=
       lt_of_le_of_ne (nth_stream_fr_nonneg nth_stream_eq) stream_nth_fr_ne_zero.symm,
-    solve_by_elim [le_div_of_mul_le], },
+    apply one_le_inv h this },
   simp [(le_of_lt (nth_stream_fr_lt_one nth_stream_eq))]
 end
 
+local attribute [reducible] with_one
 /--
 Shows that the `n + 1`th integer part `bₙ₊₁` of the stream is smaller or equal than the inverse of
 the `n`th fractional part `frₙ` of the stream.
@@ -194,7 +194,7 @@ begin
     have : ¬(n + 2 ≤ 1), by linarith,
     have not_terminated_at_n : ¬g.terminated_at n, from or.resolve_left hyp this,
     obtain ⟨gp, s_ppred_nth_eq⟩ : ∃ gp, g.s.nth n = some gp, from
-      with_one.ne_one_iff_exists.elim_left not_terminated_at_n,
+      option.ne_none_iff_exists.elim_left not_terminated_at_n,
     set pconts := g.continuants_aux (n + 1) with pconts_eq,
     set ppconts := g.continuants_aux n with ppconts_eq,
     -- use the recurrence of continuants_aux
@@ -302,7 +302,7 @@ begin
       denominators_stable_of_terminated n.le_succ this,
     rw this },
   { obtain ⟨b, nth_part_denom_eq⟩ : ∃ b, g.partial_denominators.nth n = some b, from
-      with_one.ne_one_iff_exists.elim_left not_terminated,
+      option.ne_none_iff_exists.elim_left not_terminated,
     have : 1 ≤ b, from of_one_le_nth_part_denom nth_part_denom_eq,
     calc
       (gcf.of v).denominators n ≤ b * (gcf.of v).denominators n   : by simpa using

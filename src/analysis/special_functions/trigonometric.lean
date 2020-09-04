@@ -338,6 +338,10 @@ funext $ λ x, (has_deriv_at_cosh x).deriv
 lemma continuous_cosh : continuous cosh :=
 differentiable_cosh.continuous
 
+/-- `sinh` is strictly monotone. -/
+lemma sinh_strict_mono : strict_mono sinh :=
+strict_mono_of_deriv_pos differentiable_sinh (by { rw [real.deriv_sinh], exact cosh_pos })
+
 end real
 
 section
@@ -775,6 +779,30 @@ lemma exists_sin_eq : set.Icc (-1:ℝ) 1 ⊆  sin '' set.Icc (-(π / 2)) (π / 2
 by convert intermediate_value_Icc
   (le_trans (neg_nonpos.2 (le_of_lt pi_div_two_pos)) (le_of_lt pi_div_two_pos))
   continuous_sin.continuous_on; simp only [sin_neg, sin_pi_div_two]
+
+lemma exists_cos_eq : (set.Icc (-1) 1 : set ℝ) ⊆ cos '' set.Icc 0 π :=
+by convert intermediate_value_Icc' real.pi_pos.le real.continuous_cos.continuous_on;
+  simp only [real.cos_pi, real.cos_zero]
+
+lemma range_cos : set.range cos = (set.Icc (-1) 1 : set ℝ) :=
+begin
+  ext,
+  split,
+  { rintros ⟨y, rfl⟩, exact ⟨y.neg_one_le_cos, y.cos_le_one⟩ },
+  { rintros h,
+    rcases real.exists_cos_eq h with ⟨y, -, hy⟩,
+    exact ⟨y, hy⟩ }
+end
+
+lemma range_sin : set.range sin = (set.Icc (-1) 1 : set ℝ) :=
+begin
+  ext,
+  split,
+  { rintros ⟨y, rfl⟩, exact ⟨y.neg_one_le_sin, y.sin_le_one⟩ },
+  { rintros h,
+    rcases real.exists_sin_eq h with ⟨y, -, hy⟩,
+    exact ⟨y, hy⟩ }
+end
 
 lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
 begin
@@ -1237,7 +1265,7 @@ have h₂ : (x / sqrt (1 + x ^ 2)) ^ 2 < 1,
     exact mul_lt_one_of_nonneg_of_lt_one_left (abs_nonneg _)
       (abs_div_sqrt_one_add_lt _) (le_of_lt (abs_div_sqrt_one_add_lt _)),
 by rw [arctan, cos_arcsin (le_of_lt (neg_one_lt_div_sqrt_one_add _)) (le_of_lt (div_sqrt_one_add_lt_one _)),
-    one_div_eq_inv, ← sqrt_inv, sqrt_inj (sub_nonneg.2 (le_of_lt h₂)) (inv_nonneg.2 (le_of_lt h₁)),
+    one_div, ← sqrt_inv, sqrt_inj (sub_nonneg.2 (le_of_lt h₂)) (inv_nonneg.2 (le_of_lt h₁)),
     div_pow, pow_two (sqrt _), mul_self_sqrt (le_of_lt h₁),
     ← mul_right_inj' (ne.symm (ne_of_lt h₁)), mul_sub,
     mul_div_cancel' _ (ne.symm (ne_of_lt h₁)), mul_inv_cancel (ne.symm (ne_of_lt h₁))];
@@ -1307,7 +1335,7 @@ else
   if hx₂ : 0 ≤ x.im
   then by rw [arg, if_neg hx₁, if_pos hx₂];
     exact le_sub_iff_add_le.1 (by rw sub_self;
-      exact real.arcsin_nonpos (by rw [neg_im, neg_div, neg_nonpos]; exact div_nonneg hx₂ (abs_pos.2 hx)))
+      exact real.arcsin_nonpos (by rw [neg_im, neg_div, neg_nonpos]; exact div_nonneg hx₂ (abs_nonneg _)))
   else by rw [arg, if_neg hx₁, if_neg hx₂];
       exact sub_le_iff_le_add.2 (le_trans (real.arcsin_le_pi_div_two _)
         (by linarith [real.pi_pos]))
@@ -1383,8 +1411,7 @@ else
 lemma tan_arg {x : ℂ} : real.tan (arg x) = x.im / x.re :=
 begin
   by_cases h : x = 0,
-  { simp only [h, euclidean_domain.zero_div,
-    complex.zero_im, complex.arg_zero, real.tan_zero, complex.zero_re] },
+  { simp only [h, zero_div, complex.zero_im, complex.arg_zero, real.tan_zero, complex.zero_re] },
   rw [real.tan_eq_sin_div_cos, sin_arg, cos_arg h,
       div_div_div_cancel_right _ (mt abs_eq_zero.1 h)]
 end

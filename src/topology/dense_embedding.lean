@@ -216,7 +216,7 @@ begin
   { filter_upwards [inter_mem_sets V₁_in V₂_in], exact this },
   rintros x ⟨x_in₁, x_in₂⟩,
   have hV₂x : V₂ ∈ 𝓝 x := mem_nhds_sets V₂_op x_in₂,
-  apply mem_of_closed_of_tendsto x_in₁ V'_closed,
+  apply V'_closed.mem_of_tendsto x_in₁,
   use V₂,
   tauto,
 end

@@ -75,11 +75,19 @@ begin
   sorry
 end
 
+section
+local attribute [semireducible] witt_vectors
+lemma witt_vectors.mk_zero : witt_vectors.mk p (λ _, (0 : R)) = 0 :=
+by ext; simp [witt_vectors.mk]; refl
+end
+
 variables (p n R)
 @[simp] lemma mk_zero : mk p (0 : fin n → R) = 0 :=
 begin
   -- not sure if we need this
-  sorry
+  have : ∀ i n, dite (i < n) (λ (h : i < n), (0 : fin n → R) ⟨i, h⟩) (λ (h : ¬i < n), 0) = 0,
+  { intros, split_ifs; simp only [eq_self_iff_true, pi.zero_apply] },
+  simp only [mk, this, witt_vectors.mk_zero, ring_hom.map_zero],
 end
 
 def equiv : truncated_witt_vectors p n R ≃ (fin n → R) :=
@@ -98,7 +106,7 @@ by { equiv_rw (equiv p n R), apply_instance }
 
 lemma card [fintype R] :
   fintype.card (truncated_witt_vectors p n R) = fintype.card R ^ n :=
-by { rw fintype.card_congr (equiv p n R), sorry }
+by simp [fintype.card_congr (equiv p n R)]
 
 end fintype
 

@@ -1458,6 +1458,9 @@ end verschiebung
 
 -- end frobenius
 
+variable {R}
+def mk (x : ℕ → R) : 𝕎 p R := x
+
 end witt_vectors
 
 attribute [irreducible] witt_vectors

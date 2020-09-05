@@ -913,10 +913,11 @@ begin
     simp only [Union_inter, measure_Union this (λ n, is_measurable.inter (hfm n) (hm t ht)), h_eq] }
 end
 
-lemma ext_of_generate_from_of_cover_subset {S T : set (set α)} 
-  (h_gen : ‹_› = measurable_space.generate_from S) (hc : countable T) 
+lemma ext_of_generate_from_of_cover_subset {S T : set (set α)}
+  (h_gen : ‹_› = measurable_space.generate_from S)
   (h_inter : ∀ (s₁ ∈ S) (s₂ ∈ S), (s₁ ∩ s₂ : set α).nonempty → s₁ ∩ s₂ ∈ S)
-  (h_sub : T ⊆ S) (hU : ⋃₀ T = univ) (htop : ∀ s ∈ T, μ s < ⊤) (h_eq : ∀ s ∈ S, μ s = ν s) : 
+  (h_sub : T ⊆ S) (hc : countable T) (hU : ⋃₀ T = univ) (htop : ∀ s ∈ T, μ s < ⊤)
+  (h_eq : ∀ s ∈ S, μ s = ν s) :
   μ = ν :=
 begin
   refine ext_of_generate_from_of_cover h_gen hc h_inter _ hU htop _ (λ t ht, h_eq t (h_sub ht)),

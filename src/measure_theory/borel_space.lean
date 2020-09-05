@@ -550,16 +550,14 @@ borel_eq_generate_from_of_subbasis is_topological_basis_Ioo_rat.2.2
 lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [locally_finite_measure μ]
   (h : ∀ a b : ℚ, μ (Ioo a b) = ν (Ioo a b)) : μ = ν :=
 begin
-  apply measure.ext_of_generate_from_of_cover_same borel_eq_generate_from_Ioo_rat,
-  { exact countable_Union (λ a, (countable_encodable _).bUnion $ λ _ _, countable_singleton _) },
+  refine measure.ext_of_generate_from_of_cover_subset borel_eq_generate_from_Ioo_rat _
+    (subset.refl _) _ _ _ _,
   { simp only [mem_Union, mem_singleton_iff],
     rintros _ ⟨a₁, b₁, h₁, rfl⟩ _ ⟨a₂, b₂, h₂, rfl⟩ ne,
     simp only [Ioo_inter_Ioo, sup_eq_max, inf_eq_min, ← rat.cast_max, ← rat.cast_min, nonempty_Ioo] at ne ⊢,
     refine ⟨_, _, _, rfl⟩,
     assumption_mod_cast },
-  { simp only [mem_Union, mem_singleton_iff],
-    rintros _ ⟨a, b, h, rfl⟩,
-    exact is_measurable_Ioo },
+  { exact countable_Union (λ a, (countable_encodable _).bUnion $ λ _ _, countable_singleton _) },
   { exact is_topological_basis_Ioo_rat.2.1 },
   { simp only [mem_Union, mem_singleton_iff],
     rintros _ ⟨a, b, h, rfl⟩,

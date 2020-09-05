@@ -35,7 +35,6 @@ end defs
 
 namespace truncated_witt_vectors
 
-section basics
 variables (p : ℕ) [fact p.prime] {n : ℕ} {R : Type*} [comm_ring R]
 
 local notation `𝕎` := witt_vectors p -- type as `\bbW`
@@ -50,38 +49,57 @@ quot.lift (λ x : witt_vectors p R, x.coeff i)
 begin
   intros x y h,
   change x - y ∈ (witt_vectors.ideal p R n) at h,
+  set z := x - y with hz,
+  have hx : x = z + y, { simp only [sub_add_cancel] },
   dsimp,
+  rw [hx, witt_vectors.add_coeff],
+  -- hmmm, `witt_add_vars` is not good enough for this one :sad:
+  -- the first `n` coeffs of `z` are `0`, by assumption
+  -- this is enough, but we need a better lemma for this
   sorry
 end
 
 section mk_and_coeff
 
+variables (p)
+
+lemma mk_coeff (x : truncated_witt_vectors p n R) :
+  mk p (λ (i : fin n), coeff i x) = x :=
+begin
+  sorry
+end
+
+lemma coeff_mk (i : fin n) (x : fin n → R) :
+  coeff i (mk p x) = x i :=
+begin
+  sorry
+end
+
 variables (p n R)
 @[simp] lemma mk_zero : mk p (0 : fin n → R) = 0 :=
 begin
+  -- not sure if we need this
   sorry
 end
 
 def equiv : truncated_witt_vectors p n R ≃ (fin n → R) :=
 { to_fun := λ x i, x.coeff i,
   inv_fun := mk p,
-  left_inv :=
-  begin
-  end,
-  right_inv :=
-  begin
-  end }
+  left_inv := by { intros x, apply mk_coeff },
+  right_inv := by { intros x, ext i, apply coeff_mk } }
 
 
 end mk_and_coeff
 
+section fintype
+
 instance [fintype R] : fintype (truncated_witt_vectors p n R) :=
-_
+by { equiv_rw (equiv p n R), apply_instance }
 
 lemma card [fintype R] :
   fintype.card (truncated_witt_vectors p n R) = fintype.card R ^ n :=
-sorry
+by { rw fintype.card_congr (equiv p n R), sorry }
 
-end basics
+end fintype
 
 end truncated_witt_vectors

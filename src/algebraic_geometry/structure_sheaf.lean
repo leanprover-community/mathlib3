@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
 import algebraic_geometry.prime_spectrum
+import algebra.category.CommRing.colimits
 import algebra.category.CommRing.limits
 import topology.sheaves.local_predicate
 import topology.sheaves.forget
@@ -483,17 +484,11 @@ lemma is_unit_to_basic_open_self (f : R) : is_unit (to_open R (basic_open f) f) 
 is_unit_of_mul_eq_one _ (const R 1 f (basic_open f) (λ _, id)) $
 by rw [to_open_eq_const, const_mul_rev]
 
--- TODO: remove after localization.away is merged
-lemma is_unit_to_basic_open (f : R) (g : submonoid.powers f) :
-  is_unit (to_open R (basic_open f) (g : R)) :=
-let ⟨n, (hn : f ^ n = g)⟩ := g.2 in hn ▸ by { rw ring_hom.map_pow,
-exact is_unit_pow n (is_unit_to_basic_open_self R f), }
-
 /-- The canonical ring homomorphism interpreting `s ∈ R_f` as a section of the structure sheaf
 on the basic open defined by `f ∈ R`. -/
 def to_basic_open (f : R) : CommRing.of (localization (submonoid.powers f)) ⟶
   (structure_sheaf R).presheaf.obj (op $ basic_open f) :=
-(localization.of _).lift (is_unit_to_basic_open R f)
+localization_map.away_map.lift f (localization.away.of f) (is_unit_to_basic_open_self R f)
 
 @[simp] lemma to_basic_open_mk' (s f g) : to_basic_open R s ((localization.of _).mk' f g) =
   const R f g (basic_open s) (λ x hx, submonoid.powers_subset hx g.2) :=

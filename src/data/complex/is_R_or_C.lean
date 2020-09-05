@@ -399,6 +399,9 @@ real.mul_self_sqrt (norm_sq_nonneg _)
 calc absK 2 = absK (𝓚 2) : by rw [of_real_bit0, of_real_one]
 ... = (2 : ℝ) : abs_of_nonneg (by norm_num)
 
+lemma abs_norm_eq_norm (z : K) : abs' ∥z∥ = ∥z∥ :=
+  (abs_eq (norm_nonneg z)).mpr (or.inl rfl)
+
 lemma abs_nonneg (z : K) : 0 ≤ absK z :=
 real.sqrt_nonneg _
 

@@ -113,7 +113,6 @@ begin
     let sf := (f.map ϕ).roots,
     let sg := (g.map ϕ).roots,
     let s := {c : E | ∃ (α' ∈ sf) (β' ∈ sg), β' ≠ β ∧ c = -(α' - α)/(β' - β)},
-    let s' := ϕ⁻¹' s,
     let r : E → E → E := λ α' β', -(α' - α)/(β' - β),
     have hr : ∀ c ∈ s, ∃ α' β', ((α' ∈ sf) ∧ (β' ∈ sg)) ∧ r α' β' = c :=
     begin
@@ -126,7 +125,7 @@ begin
         refine (set.finite.image (λ z : E × E, r z.1 z.2) (set.finite_mem_finset (sf.product sg))).subset _,
         simpa only [set.subset_def, set.mem_image, prod.exists, finset.mem_product] using hr,
     end,
-    have s'_fin : s'.finite := s_fin.preimage ((ring_hom.injective ϕ).inj_on (⇑ϕ ⁻¹' s)),
+    have s'_fin : (ϕ⁻¹' s).finite := s_fin.preimage ((ring_hom.injective ϕ).inj_on (⇑ϕ⁻¹' s)),
     obtain ⟨c, hc⟩ := infinite.exists_not_mem_finset s'_fin.to_finset,
     rw [set.finite.mem_to_finset, set.mem_preimage, set.mem_set_of_eq] at hc,
     push_neg at hc,
@@ -137,73 +136,39 @@ lemma primitive_element_two_inf_key_aux {β : F} {h : polynomial F} (h_ne_zero :
 (h_root : h.eval β = 0) (h_splits : polynomial.splits ϕ h) (h_roots : ∀ x ∈ (h.map ϕ).roots, x = ϕ β) :
 h = (polynomial.C (polynomial.leading_coeff h)) * (polynomial.X - polynomial.C β) :=
 begin
-    have h_map_separable : (h.map ϕ).separable :=
-    begin
-        apply polynomial.separable.map,
-        exact h_sep,
-    end,
+    have map_injective := polynomial.map_injective ϕ ϕ.injective,
+    apply map_injective,
     rw polynomial.splits_iff_exists_multiset at h_splits,
     cases h_splits with s hs,
-    have s_elements : ∀ x ∈ s, x = ϕ β :=
-    begin
-        intros x hx,
-        have is_root : x ∈ (h.map ϕ).roots,
-        rw polynomial.mem_roots,
-        dsimp[polynomial.is_root],
-        rw polynomial.eval_map,
-        rw polynomial.eval₂_eq_eval_map,
-        rw hs,
-        rw polynomial.eval_mul,
-        cases multiset.exists_cons_of_mem hx with y hy,
-        rw hy,
-        rw multiset.map_cons,
-        simp only [polynomial.eval_X, multiset.prod_cons, polynomial.eval_C, zero_mul, polynomial.eval_mul, polynomial.eval_sub, mul_zero, sub_self],
-        exact polynomial.map_ne_zero h_ne_zero,
-        exact h_roots x is_root,
-    end,
-    replace s_elements : ∀ x ∈ multiset.map (λ (a : E), polynomial.X - polynomial.C a) s, x = polynomial.X - polynomial.C (ϕ β) :=
+    have h' := @multiset.eq_repeat_of_mem (polynomial E) (polynomial.X - polynomial.C (ϕ β)) (multiset.map (λ (a : E), polynomial.X - polynomial.C a) s)
     begin
         intros x hx,
         rw multiset.mem_map at hx,
         cases hx with a ha,
-        specialize s_elements a ha.1,
-        rw s_elements at ha,
+        rw h_roots a at ha,
         exact ha.2.symm,
+        rw polynomial.mem_roots (show polynomial.map ϕ h ≠ 0, by exact polynomial.map_ne_zero h_ne_zero),dsimp[polynomial.is_root],
+        cases multiset.exists_cons_of_mem ha.1 with y hy,
+        simp[hs,hy],
     end,
-    replace s_elements := multiset.eq_repeat_of_mem s_elements,
-    rw s_elements at hs,
-    rw multiset.prod_repeat at hs,
-    rw multiset.card_map at hs,
-    rw hs at h_map_separable,
+    rw [h',multiset.prod_repeat,multiset.card_map] at hs,
     have hf : ¬is_unit (polynomial.X - polynomial.C (ϕ β)) :=
     begin
-        rw polynomial.is_unit_iff_degree_eq_zero,
-        rw polynomial.degree_X_sub_C,
+        rw [polynomial.is_unit_iff_degree_eq_zero,polynomial.degree_X_sub_C],
         exact dec_trivial,
     end,
-    have map_injective := polynomial.map_injective ϕ ϕ.injective,
     have hn : s.card ≠ 0 :=
     begin
         intro hs_card,
-        rw hs_card at hs,
-        rw pow_zero at hs,
-        rw mul_one at hs,
-        rw ←polynomial.map_C at hs,
+        rw [hs_card,pow_zero,mul_one,←polynomial.map_C] at hs,
         replace hs := map_injective hs,
-        rw hs at h_root,
-        rw polynomial.eval_C at h_root,
-        rw polynomial.leading_coeff_eq_zero at h_root,
+        rw [hs,polynomial.eval_C,polynomial.leading_coeff_eq_zero] at h_root,
         exact h_ne_zero h_root,
     end,
-    rw (polynomial.separable.of_pow hf hn (polynomial.separable.of_mul_right h_map_separable)).2 at hs,
-    rw pow_one at hs,
-    apply map_injective,
-    rw hs,
-    rw polynomial.map_mul,
-    rw polynomial.map_C,
-    rw polynomial.map_sub,
-    rw polynomial.map_X,
-    rw polynomial.map_C,
+    have h_map_separable : (h.map ϕ).separable := polynomial.separable.map h_sep,
+    rw hs at h_map_separable,
+    rw [(polynomial.separable.of_pow hf hn (polynomial.separable.of_mul_right h_map_separable)).2,pow_one] at hs,
+    simp[hs],
 end
 
 end

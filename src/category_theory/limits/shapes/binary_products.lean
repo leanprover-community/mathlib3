@@ -136,11 +136,13 @@ h.hom_ext $ λ j, walking_pair.cases_on j h₁ h₂
 variables {X Y : C}
 
 /-- A binary fan with vertex `P` consists of the two projections `π₁ : P ⟶ X` and `π₂ : P ⟶ Y`. -/
+@[simps X]
 def binary_fan.mk {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) : binary_fan X Y :=
 { X := P,
   π := { app := λ j, walking_pair.cases_on j π₁ π₂ }}
 
 /-- A binary cofan with vertex `P` consists of the two inclusions `ι₁ : X ⟶ P` and `ι₂ : Y ⟶ P`. -/
+@[simps X]
 def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X Y :=
 { X := P,
   ι := { app := λ j, walking_pair.cases_on j ι₁ ι₂ }}
@@ -320,35 +322,24 @@ by simp
 @[reassoc]
 lemma prod.diag_map {X Y : C} [has_limits_of_shape (discrete walking_pair) C] (f : X ⟶ Y) :
   diag X ≫ prod.map f f = f ≫ diag Y :=
-by ext; simp only [limits.limit.lift_π, limits.cones.postcompose_obj_π, binary_fan.mk_π_app_left, map_pair_left,
-             binary_fan.mk_π_app_right, map_pair_right, limits.limit.lift_map, category.comp_id, nat_trans.comp_app,
-             category.assoc];
-        erw category.id_comp
+by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
 
 @[reassoc]
 lemma prod.diag_map_fst_snd {X Y : C} [has_limits_of_shape (discrete walking_pair) C] :
   diag (X ⨯ Y) ≫ prod.map prod.fst prod.snd = 𝟙 (X ⨯ Y) :=
-by ext; simp only [map_pair_right, binary_fan.mk_π_app_right, limits.limit.lift_π, limits.cones.postcompose_obj_π,
-             binary_fan.mk_π_app_left, map_pair_left, category.id_comp, limits.limit.lift_map, nat_trans.comp_app];
-        erw category.id_comp
+by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
 
 @[reassoc]
 lemma prod.diag_map_comp [has_limits_of_shape (discrete walking_pair) C]
   {X Y Z Z' : C} (f : X ⟶ Y) (g : Y ⟶ Z) (g' : Y ⟶ Z') :
   diag X ≫ prod.map (f ≫ g) (f ≫ g') = f ≫ diag Y ≫ prod.map g g' :=
-by ext; simp only [map_pair_right, binary_fan.mk_π_app_right, limits.limit.lift_π, limits.cones.postcompose_obj_π,
-             binary_fan.mk_π_app_left, map_pair_left, limits.limit.lift_map, nat_trans.comp_app, category.assoc];
-        erw [category.id_comp, category.id_comp]
-
+by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
 
 @[reassoc]
 lemma prod.diag_map_fst_snd_comp  [has_limits_of_shape (discrete walking_pair) C]
   {X X' Y Y' : C} (g : X ⟶ Y) (g' : X' ⟶ Y') :
   diag (X ⨯ X') ≫ prod.map (prod.fst ≫ g) (prod.snd ≫ g') = prod.map g g' :=
-by ext; simp only [map_pair_right, binary_fan.mk_π_app_right, limits.limit.lift_π, limits.cones.postcompose_obj_π,
-             binary_fan.mk_π_app_left, map_pair_left, limits.limit.lift_map, limits.limit.map_π, nat_trans.comp_app];
-        erw category.id_comp
-
+by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
 
 /-- If the coproducts `W ⨿ X` and `Y ⨿ Z` exist, then every pair of morphisms `f : W ⟶ Y` and
     `g : W ⟶ Z` induces a morphism `coprod.map f g : W ⨿ X ⟶ Y ⨿ Z`. -/
@@ -456,22 +447,22 @@ by simp
 @[reassoc]
 lemma coprod.map_codiag {X Y : C} (f : X ⟶ Y) :
   coprod.map f f ≫ codiag Y = codiag X ≫ f :=
-by ext; simp; erw category.comp_id
+by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
 
 @[reassoc]
 lemma coprod.map_inl_inr_codiag {X Y : C}  :
   coprod.map coprod.inl coprod.inr ≫ codiag (X ⨿ Y) = 𝟙 (X ⨿ Y) :=
-by ext; simp; erw category.comp_id
+by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
 
 @[reassoc]
 lemma coprod.map_comp_codiag {X X' Y Z : C} (f : X ⟶ Y) (f' : X' ⟶ Y) (g : Y ⟶ Z) :
   coprod.map (f ≫ g) (f' ≫ g) ≫ codiag Z = coprod.map f f' ≫ codiag Y ≫ g :=
-by ext; simp; erw [category.comp_id, category.id_comp]
+by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
 
 @[reassoc]
 lemma coprod.map_comp_inl_inr_codiag {X X' Y Y' : C} (g : X ⟶ Y) (g' : X' ⟶ Y') :
   coprod.map (g ≫ coprod.inl) (g' ≫ coprod.inr) ≫ codiag (Y ⨿ Y') = coprod.map g g' :=
-by ext; simp; erw category.comp_id
+by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
 
 end coprod_lemmas
 

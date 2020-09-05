@@ -163,13 +163,13 @@ open_locale classical
 
 /-- `factors a` is a multiset of irreducible elements whose product is `a`, up to units -/
 noncomputable def factors (a : R) : multiset R :=
-if h : a = 0 then ∅ else classical.some (DCC_dvd.exists_factors a h)
+if h : a = 0 then ∅ else classical.some (wf_dvd_monoid.exists_factors a h)
 
 lemma factors_spec (a : R) (h : a ≠ 0) :
   (∀b∈factors a, irreducible b) ∧ associated a (factors a).prod :=
 begin
   unfold factors, rw [dif_neg h],
-  exact classical.some_spec (DCC_dvd.exists_factors a h)
+  exact classical.some_spec (wf_dvd_monoid.exists_factors a h)
 end
 
 lemma ne_zero_of_mem_factors {R : Type v} [integral_domain R] [is_principal_ideal_ring R] {a b : R}

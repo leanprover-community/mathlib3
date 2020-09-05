@@ -13,13 +13,13 @@ import ring_theory.noetherian
 # Unique Factorization
 
 ## Main Definitions
-* `DCC_dvd` holds for `monoid`s for which a strict divisibility relation is
+* `wf_dvd_monoid` holds for `monoid`s for which a strict divisibility relation is
   well-founded.
 * `unique_factorization_domain` carries the structure of prime factorization.
 
 ## To do
 * Refactor `unique_factorization_domain` for `comm_cancel_monoid_with_zero`
-* Redefine `unique_factorization_domain` as a predicate (`DCC_dvd` and `irreducible_iff_prime`)
+* Redefine `unique_factorization_domain` as a predicate (`wf_dvd_monoid` and `irreducible_iff_prime`)
 * set up the complete lattice structure on `factor_set`.
 
 -/
@@ -33,19 +33,19 @@ set_option default_priority 100 -- see Note [default priority]
   condition on divisibility and to the ascending chain condition on
   principal ideals in an integral domain.
    -/
-class DCC_dvd (α : Type*) [comm_monoid_with_zero α] : Prop :=
+class wf_dvd_monoid (α : Type*) [comm_monoid_with_zero α] : Prop :=
 (well_founded_dvd_not_unit : well_founded (λ a b : α, a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x))
 
-export DCC_dvd (well_founded_dvd_not_unit)
+export wf_dvd_monoid (well_founded_dvd_not_unit)
 
-instance is_noetherian_ring.DCC_dvd [integral_domain α] [is_noetherian_ring α] :
-  DCC_dvd α :=
+instance is_noetherian_ring.wf_dvd_monoid [integral_domain α] [is_noetherian_ring α] :
+  wf_dvd_monoid α :=
 ⟨by simp only [ideal.span_singleton_lt_span_singleton.symm];
    exact inv_image.wf (λ a, ideal.span ({a} : set α)) (well_founded_submodule_gt _ _)⟩
 
 end prio
 
-instance polynomial.DCC_dvd [integral_domain α] [DCC_dvd α] : DCC_dvd (polynomial α) :=
+instance polynomial.wf_dvd_monoid [integral_domain α] [wf_dvd_monoid α] : wf_dvd_monoid (polynomial α) :=
 { well_founded_dvd_not_unit := begin
     classical,
     apply rel_hom.well_founded, swap,
@@ -73,28 +73,28 @@ instance polynomial.DCC_dvd [integral_domain α] [DCC_dvd α] : DCC_dvd (polynom
       end }
   end }
 
-namespace DCC_dvd
+namespace wf_dvd_monoid
 
 variables [comm_monoid_with_zero α]
 open associates nat
 
-theorem of_DCC_dvd_associates (h : DCC_dvd (associates α)): DCC_dvd α :=
+theorem of_wf_dvd_monoid_associates (h : wf_dvd_monoid (associates α)): wf_dvd_monoid α :=
 ⟨begin
   haveI := h,
-  refine (surjective.well_founded_iff mk_surjective _).2 DCC_dvd.well_founded_dvd_not_unit,
+  refine (surjective.well_founded_iff mk_surjective _).2 wf_dvd_monoid.well_founded_dvd_not_unit,
   intros, rw mk_dvd_not_unit_mk_iff
 end⟩
 
-variables [DCC_dvd α]
+variables [wf_dvd_monoid α]
 
-instance DCC_dvd_associates : DCC_dvd (associates α) :=
+instance wf_dvd_monoid_associates : wf_dvd_monoid (associates α) :=
 ⟨begin
-  refine (surjective.well_founded_iff mk_surjective _).1 DCC_dvd.well_founded_dvd_not_unit,
+  refine (surjective.well_founded_iff mk_surjective _).1 wf_dvd_monoid.well_founded_dvd_not_unit,
   intros, rw mk_dvd_not_unit_mk_iff
 end⟩
 
 theorem well_founded_associates : well_founded ((<) : associates α → associates α → Prop) :=
-subrelation.wf (λ x y, dvd_not_unit_of_lt) DCC_dvd.well_founded_dvd_not_unit
+subrelation.wf (λ x y, dvd_not_unit_of_lt) wf_dvd_monoid.well_founded_dvd_not_unit
 
 local attribute [elab_as_eliminator] well_founded.fix
 
@@ -102,7 +102,7 @@ lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
   ∃ i, irreducible i ∧ i ∣ a :=
 (irreducible_or_factor a ha).elim (λ hai, ⟨a, hai, dvd_refl _⟩)
   (well_founded.fix
-    DCC_dvd.well_founded_dvd_not_unit
+    wf_dvd_monoid.well_founded_dvd_not_unit
     (λ a ih ha ha0 ⟨x, y, hx, hy, hxy⟩,
       have hx0 : x ≠ 0, from λ hx0, ha0 (by rw [← hxy, hx0, zero_mul]),
       (irreducible_or_factor x hx).elim
@@ -115,7 +115,7 @@ lemma exists_irreducible_factor {a : α} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
   (hi : ∀ a i : α, a ≠ 0 → irreducible i → P a → P (i * a)) :
   P a :=
 by haveI := classical.dec; exact
-well_founded.fix DCC_dvd.well_founded_dvd_not_unit
+well_founded.fix wf_dvd_monoid.well_founded_dvd_not_unit
   (λ a ih, if ha0 : a = 0 then ha0.symm ▸ h0
     else if hau : is_unit a then hu a hau
     else let ⟨i, hii, ⟨b, hb⟩⟩ := exists_irreducible_factor hau ha0 in
@@ -126,7 +126,7 @@ well_founded.fix DCC_dvd.well_founded_dvd_not_unit
 
 lemma exists_factors (a : α) : a ≠ 0 →
   ∃f : multiset α, (∀b ∈ f, irreducible b) ∧ associated a f.prod :=
-DCC_dvd.induction_on_irreducible a
+wf_dvd_monoid.induction_on_irreducible a
   (λ h, (h rfl).elim)
   (λ u hu _, ⟨0, by simp [associated_one_iff_is_unit, hu]⟩)
   (λ a i ha0 hii ih hia0,
@@ -135,15 +135,15 @@ DCC_dvd.induction_on_irreducible a
       by rw multiset.prod_cons;
         exact associated_mul_mul (by refl) hs.2⟩⟩)
 
-end DCC_dvd
+end wf_dvd_monoid
 
-theorem DCC_dvd_of_well_founded_associates [comm_cancel_monoid_with_zero α]
-  (h : well_founded ((<) : associates α → associates α → Prop)) : DCC_dvd α :=
-DCC_dvd.of_DCC_dvd_associates ⟨by { convert h, ext, exact associates.dvd_not_unit_iff_lt }⟩
+theorem wf_dvd_monoid.of_well_founded_associates [comm_cancel_monoid_with_zero α]
+  (h : well_founded ((<) : associates α → associates α → Prop)) : wf_dvd_monoid α :=
+wf_dvd_monoid.of_wf_dvd_monoid_associates ⟨by { convert h, ext, exact associates.dvd_not_unit_iff_lt }⟩
 
-theorem DCC_dvd_iff_well_founded_associates [comm_cancel_monoid_with_zero α] :
-  DCC_dvd α ↔ well_founded ((<) : associates α → associates α → Prop) :=
-⟨by apply DCC_dvd.well_founded_associates, DCC_dvd_of_well_founded_associates⟩
+theorem wf_dvd_monoid.iff_well_founded_associates [comm_cancel_monoid_with_zero α] :
+  wf_dvd_monoid α ↔ well_founded ((<) : associates α → associates α → Prop) :=
+⟨by apply wf_dvd_monoid.well_founded_associates, wf_dvd_monoid.of_well_founded_associates⟩
 
 /-- Unique factorization domains.
 

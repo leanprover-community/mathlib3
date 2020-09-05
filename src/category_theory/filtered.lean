@@ -231,7 +231,7 @@ begin
 end
 
 /--
-An arbitrarily choice of cocone over `F : J ⥤ C`, for `fin_category J` and `is_filtered C`.
+An arbitrary choice of cocone over `F : J ⥤ C`, for `fin_category J` and `is_filtered C`.
 -/
 noncomputable def cocone (F : J ⥤ C) : cocone F :=
 (cocone_nonempty F).some

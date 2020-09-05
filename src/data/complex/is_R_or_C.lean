@@ -399,9 +399,6 @@ real.mul_self_sqrt (norm_sq_nonneg _)
 calc absK 2 = absK (𝓚 2) : by rw [of_real_bit0, of_real_one]
 ... = (2 : ℝ) : abs_of_nonneg (by norm_num)
 
-lemma abs_norm_eq_norm (z : K) : abs' ∥z∥ = ∥z∥ :=
-  (abs_eq (norm_nonneg z)).mpr (or.inl rfl)
-
 lemma abs_nonneg (z : K) : 0 ≤ absK z :=
 real.sqrt_nonneg _
 
@@ -524,11 +521,10 @@ lemma is_cau_seq_abs {f : ℕ → K} (hf : is_cau_seq abs f) :
 
 section module
 
-/- Register as an instance (with low priority) the fact that an `is_R_or_C` vector space is also a real
-vector space. -/
+/-- An `is_R_or_C` vector space is also a real vector space. -/
+-- Note: Registering this as an instance (even very low priority) causes trouble.
 def module.is_R_or_C_to_real (E : Type*) [add_comm_group E] [module K E] : module ℝ E :=
 semimodule.restrict_scalars' ℝ K E
---attribute [instance, priority 1000] module.is_R_or_C_to_real
 
 end module
 

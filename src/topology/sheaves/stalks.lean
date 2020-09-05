@@ -75,6 +75,10 @@ colimit.w ((open_nhds.inclusion x.1).op ⋙ F) i'.op
 let i' : (⟨U, x.2⟩ : open_nhds x.1) ⟶ ⟨V, (i x : V).2⟩ := i in
 congr_fun (colimit.w ((open_nhds.inclusion x.1).op ⋙ F) i'.op) f
 
+lemma stalk_hom_ext (F : X.presheaf C) {x} {Y : C} {f₁ f₂ : F.stalk x ⟶ Y}
+  (ih : ∀ (U : opens X) (hxU : x ∈ U), F.germ ⟨x, hxU⟩ ≫ f₁ = F.germ ⟨x, hxU⟩ ≫ f₂) : f₁ = f₂ :=
+colimit.hom_ext $ λ U, by { op_induction U, cases U with U hxU, exact ih U hxU }
+
 variables (C)
 
 def stalk_pushforward (f : X ⟶ Y) (ℱ : X.presheaf C) (x : X) : (f _* ℱ).stalk (f x) ⟶ ℱ.stalk x :=

@@ -373,6 +373,9 @@ theorem one_eq_mk_one [monoid α] : (1 : associates α) = associates.mk 1 := rfl
 
 instance [monoid α] : has_bot (associates α) := ⟨1⟩
 
+lemma exists_rep [monoid α] (a : associates α) : ∃ a0 : α, associates.mk a0 = a :=
+quot.exists_rep a
+
 section comm_monoid
 variable [comm_monoid α]
 
@@ -499,6 +502,9 @@ have (0 : α) ~ᵤ 1, from quotient.exact h,
 have (0 : α) = 1, from ((associated_zero_iff_eq_zero 1).1 this.symm).symm,
 zero_ne_one this⟩⟩
 
+lemma exists_non_zero_rep {a : associates α} : a ≠ 0 → ∃ a0 : α, a0 ≠ 0 ∧ associates.mk a0 = a :=
+quotient.induction_on a (λ b nz, ⟨b, mt (congr_arg quotient.mk) nz, rfl⟩)
+
 theorem dvd_of_mk_le_mk {a b : α} : associates.mk a ≤ associates.mk b → a ∣ b
 | ⟨c', hc'⟩ := (quotient.induction_on c' $ assume c hc,
     let ⟨d, hd⟩ := (quotient.exact hc).symm in
@@ -546,6 +552,12 @@ begin
   apply forall_congr, assume b,
   rw [mk_mul_mk, mk_dvd_mk, mk_dvd_mk, mk_dvd_mk],
 end
+
+lemma coprime_associated {a b : α} :
+  (∀ (d : α), d ∣ a → d ∣ b → ¬ _root_.prime d) ↔
+  (∀ (d : associates α), d ≤ associates.mk a → d ≤ associates.mk b → ¬ prime d) :=
+by { convert forall_quotient_iff.symm,
+  simp_rw [quotient_mk_eq_mk, prime_mk, mk_le_mk_iff_dvd_iff] }
 
 end comm_monoid_with_zero
 

@@ -1029,4 +1029,32 @@ multiset.induction_on s rfl
             finset.sum_const_zero, ih, count_eq_zero_of_not_mem ha, zero_add, add_comm, card_cons] }
       end)
 
+lemma to_finset_sum_count_smul_eq (s : multiset α) : (∑ a in s.to_finset, s.count a •ℕ ↑[a]) = s :=
+begin
+  apply ext', intro b,
+  erw count_bind,
+  have h : count b s = count b (count b s •ℕ ↑[b]),
+  { rw [count_smul, ← singleton_coe, count_singleton, mul_one] },
+  rw h, clear h,
+  apply finset.sum_eq_single b,
+  { intros c h hcb, rw count_smul, convert mul_zero (count c s),
+    apply count_eq_zero.mpr, exact finset.not_mem_singleton.mpr (ne.symm hcb) },
+  { intro hb, rw [count_eq_zero_of_not_mem (mt mem_to_finset.2 hb), count_smul, zero_mul]}
+end
+
+theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ} (h : ∀ (a : α), k ∣ multiset.count a s) :
+  ∃ (u : multiset α), s = k •ℕ u :=
+begin
+  use ∑ a in s.to_finset, (s.count a / k) •ℕ ([a] : multiset α),
+  rw ← finset.sum_nsmul,
+  have h₂ : ∑ (x : α) in s.to_finset, k •ℕ (count x s / k •ℕ ([x] : multiset α))
+    = ∑ (x : α) in s.to_finset, count x s •ℕ ([x] : multiset α),
+  { refine congr_arg s.to_finset.sum _,
+    apply funext, intro x,
+    rw ← mul_nsmul,
+    rw nat.mul_div_cancel' (h x) },
+  rw h₂,
+  rw to_finset_sum_count_smul_eq
+end
+
 end multiset

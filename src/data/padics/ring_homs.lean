@@ -44,11 +44,7 @@ open nat local_ring padic
 variables {p : ℕ} [hp_prime : fact (p.prime)]
 include hp_prime
 
-<<<<<<< HEAD
-section
-=======
 section ring_homs
->>>>>>> blessed/master
 /-! ### Ring homomorphisms to `zmod p` and `zmod (p ^ n)` -/
 variables (p) (r : ℚ)
 
@@ -89,14 +85,8 @@ begin
   rw padic_norm_e.mul at hr,
   have key : ∥(r.num : ℚ_[p])∥ < 1,
   { calc _ = _ : hr.symm
-<<<<<<< HEAD
-    ... < 1 * 1 : _
-    ... = 1 : mul_one 1,
-    apply mul_lt_mul' h norm_denom_lt (norm_nonneg _) zero_lt_one, },
-=======
     ... < 1 * 1 : mul_lt_mul' h norm_denom_lt (norm_nonneg _) zero_lt_one
     ... = 1 : mul_one 1 },
->>>>>>> blessed/master
   have : ↑p ∣ r.num ∧ (p : ℤ) ∣ r.denom,
   { simp only [← norm_int_lt_one_iff_dvd, ← padic_norm_e_of_padic_int],
     norm_cast, exact ⟨key, norm_denom_lt⟩ },
@@ -136,25 +126,13 @@ begin
     apply subtype.coe_injective,
     simp only [coe_mul, subtype.coe_mk, coe_coe],
     rw_mod_cast @rat.mul_denom_eq_num r, refl },
-<<<<<<< HEAD
-  dsimp [n, mod_part],
-  apply norm_sub_mod_part_aux r h,
-=======
   exact norm_sub_mod_part_aux r h
->>>>>>> blessed/master
 end
 
 lemma exists_mem_range_of_norm_rat_le_one (h : ∥(r : ℚ_[p])∥ ≤ 1) :
   ∃ n : ℤ, 0 ≤ n ∧ n < p ∧ ∥(⟨r,h⟩ - n : ℤ_[p])∥ < 1 :=
 ⟨mod_part p r, mod_part_nonneg _, mod_part_lt_p _, norm_sub_mod_part _ h⟩
 
-<<<<<<< HEAD
-end
-
-section
-
-=======
->>>>>>> blessed/master
 lemma zmod_congr_of_sub_mem_span_aux (n : ℕ) (x : ℤ_[p]) (a b : ℤ)
   (ha : x - a ∈ (ideal.span {p ^ n} : ideal ℤ_[p]))
   (hb : x - b ∈ (ideal.span {p ^ n} : ideal ℤ_[p])) :
@@ -194,21 +172,12 @@ begin
   obtain ⟨r, hr⟩ := rat_dense (x : ℚ_[p]) zero_lt_one,
   have H : ∥(r : ℚ_[p])∥ ≤ 1,
   { rw norm_sub_rev at hr,
-<<<<<<< HEAD
-    rw show (r : ℚ_[p]) = (r - x) + x, by ring,
-    apply le_trans (padic_norm_e.nonarchimedean _ _),
-    apply max_le (le_of_lt hr) x.2, },
-  obtain ⟨n, hzn, hnp, hn⟩ := exists_mem_range_of_norm_rat_le_one r H,
-  lift n to ℕ using hzn,
-  use [n],
-=======
     calc _ = ∥(r : ℚ_[p]) - x + x∥ : by ring
        ... ≤ _ : padic_norm_e.nonarchimedean _ _
        ... ≤ _ :  max_le (le_of_lt hr) x.2 },
   obtain ⟨n, hzn, hnp, hn⟩ := exists_mem_range_of_norm_rat_le_one r H,
   lift n to ℕ using hzn,
   use n,
->>>>>>> blessed/master
   split, {exact_mod_cast hnp},
   simp only [norm_def, coe_sub, subtype.coe_mk, coe_coe] at hn ⊢,
   rw show (x - n : ℚ_[p]) = (x - r) + (r - n), by ring,
@@ -231,11 +200,6 @@ lemma zmod_repr_lt_p : zmod_repr x < p := (zmod_repr_spec _).1
 
 lemma sub_zmod_repr_mem : (x - zmod_repr x ∈ maximal_ideal ℤ_[p]) := (zmod_repr_spec _).2
 
-<<<<<<< HEAD
-end
-
-=======
->>>>>>> blessed/master
 /--
 `to_zmod_hom` is an auxiliary constructor for creating ring homs from `ℤ_[p]` to `zmod v`.
 -/
@@ -304,13 +268,8 @@ begin
   dsimp [to_zmod, to_zmod_hom],
   unfreezingI { rcases (exists_eq_add_of_lt (hp_prime.pos)) with ⟨p', rfl⟩ },
   change ↑(zmod.val _) = _,
-<<<<<<< HEAD
-  simp [zmod.val_cast_nat],
-  rw mod_eq_of_lt,
-=======
   simp only [zmod.val_cast_nat, add_zero, add_def, cast_inj, zero_add],
   apply mod_eq_of_lt,
->>>>>>> blessed/master
   simpa only [zero_add] using zmod_repr_lt_p z,
 end
 
@@ -330,11 +289,6 @@ end
 
 /-- `appr n x` gives a value `v : ℕ` such that `x` and `↑v : ℤ_p` are congruent mod `p^n`.
 See `appr_spec`. -/
-<<<<<<< HEAD
--- TODO: prove that `x.appr` is a sequence that tends to `x`.
--- Possibly relevant: summable_iff_vanishing_norm
-=======
->>>>>>> blessed/master
 noncomputable def appr : ℤ_[p] → ℕ → ℕ
 | x 0     := 0
 | x (n+1) :=
@@ -428,23 +382,16 @@ begin
         exact hc0 } } }
 end
 
-<<<<<<< HEAD
-=======
 attribute [irreducible] appr
 
->>>>>>> blessed/master
 /-- A ring hom from `ℤ_[p]` to `zmod (p^n)`, with underlying function `padic_int.appr n`. -/
 def to_zmod_pow (n : ℕ) : ℤ_[p] →+* zmod (p ^ n) :=
 to_zmod_hom (p^n) (λ x, appr x n)
   (by { intros, convert appr_spec n _ using 1, simp })
   (by { intros x a b ha hb,
-<<<<<<< HEAD
-        apply zmod_congr_of_sub_mem_span n x a b; [simpa using ha, simpa using hb] })
-=======
         apply zmod_congr_of_sub_mem_span n x a b,
         { simpa using ha },
         { simpa using hb } })
->>>>>>> blessed/master
 
 lemma ker_to_zmod_pow (n : ℕ) : (to_zmod_pow n : ℤ_[p] →+* zmod (p ^ n)).ker = ideal.span {p ^ n} :=
 begin
@@ -512,11 +459,8 @@ begin
     exact set.mem_range_self _ }
 end
 
-<<<<<<< HEAD
-=======
 end ring_homs
 
->>>>>>> blessed/master
 section lift
 /-! ### Universal property as projective limit -/
 
@@ -548,13 +492,8 @@ lemma pow_dvd_nth_hom_sub (r : R) (i j : ℕ) (h : i ≤ j) :
   ↑p ^ i ∣ nth_hom f r j - nth_hom f r i :=
 begin
   specialize f_compat (i) (j) h,
-<<<<<<< HEAD
-  rw [← int.coe_nat_pow, ← zmod.int_coe_zmod_eq_zero_iff_dvd],
-  rw [int.cast_sub],
-=======
   rw [← int.coe_nat_pow, ← zmod.int_coe_zmod_eq_zero_iff_dvd,
       int.cast_sub],
->>>>>>> blessed/master
   dsimp [nth_hom],
   rw [← f_compat, ring_hom.comp_apply],
   have : fact (p ^ (i) > 0) := pow_pos (nat.prime.pos ‹_›) _,
@@ -600,13 +539,8 @@ begin
   intros j hj,
   dsimp [nth_hom_seq],
   apply lt_of_le_of_lt _ hn,
-<<<<<<< HEAD
-  rw [← int.cast_add, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le],
-  rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
-=======
   rw [← int.cast_add, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le,
      ← zmod.int_coe_zmod_eq_zero_iff_dvd],
->>>>>>> blessed/master
   dsimp [nth_hom],
   have : fact (p ^ n > 0) := pow_pos (nat.prime.pos ‹_›) _,
   have : fact (p ^ j > 0) := pow_pos (nat.prime.pos ‹_›) _,
@@ -626,13 +560,8 @@ begin
   intros j hj,
   dsimp [nth_hom_seq],
   apply lt_of_le_of_lt _ hn,
-<<<<<<< HEAD
-  rw [← int.cast_mul, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le],
-  rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
-=======
   rw [← int.cast_mul, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le,
      ← zmod.int_coe_zmod_eq_zero_iff_dvd],
->>>>>>> blessed/master
   dsimp [nth_hom],
   have : fact (p ^ n > 0) := pow_pos (nat.prime.pos ‹_›) _,
   have : fact (p ^ j > 0) := pow_pos (nat.prime.pos ‹_›) _,

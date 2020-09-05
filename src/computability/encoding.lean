@@ -32,7 +32,7 @@ structure encoding (α : Type) :=
 (decode : list Γ → option α)
 (encodek : ∀ x, decode (encode x) = some x)
 
-/-- An encoding plus a guarantue of finiteness of the alphabet. -/
+/-- An encoding plus a guarantee of finiteness of the alphabet. -/
 structure fin_encoding (α : Type) extends encoding α :=
 (Γ_fin : fintype Γ)
 

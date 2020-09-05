@@ -9,27 +9,27 @@ import data.padics.ring_homs
 
 noncomputable theory
 
-namespace truncated_witt_vectors
+namespace truncated_witt_vector
 
 variables (p : ℕ) [hp : fact p.prime] (n : ℕ)
 include hp
 
-instance char_p_zmod : char_p (truncated_witt_vectors p n (zmod p)) (p ^ n) :=
+instance char_p_zmod : char_p (truncated_witt_vector p n (zmod p)) (p ^ n) :=
 sorry
 
-end truncated_witt_vectors
+end truncated_witt_vector
 
-namespace witt_vectors
+namespace witt_vector
 
 variables (p : ℕ) [hp : fact p.prime]
 include hp
 
-local notation `𝕎` := witt_vectors p -- type as `\bbW`
+local notation `𝕎` := witt_vector p -- type as `\bbW`
 
 def to_zmod_pow (n : ℕ) : 𝕎 (zmod p) →+* zmod (p ^ n) :=
-(iso_to_zmod (truncated_witt_vectors p n (zmod p)) (p ^ n)
-  (by rw [truncated_witt_vectors.card, zmod.card])).to_ring_hom.comp
-(witt_vectors.truncate p n)
+(iso_to_zmod (truncated_witt_vector p n (zmod p)) (p ^ n)
+  (by rw [truncated_witt_vector.card, zmod.card])).to_ring_hom.comp
+(witt_vector.truncate p n)
 
 -- the show can go away with lean 3.20
 lemma to_zmod_pow_compat (k1 k2 : ℕ) (hk : k1 ≤ k2) :
@@ -43,4 +43,4 @@ end
 def to_padic_int : 𝕎 (zmod p) →+* ℤ_[p] :=
 padic_int.lift (to_zmod_pow_compat p)
 
-end witt_vectors
+end witt_vector

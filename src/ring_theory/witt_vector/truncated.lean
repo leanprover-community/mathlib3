@@ -18,41 +18,41 @@ section defs
 
 variables (p : ℕ) [fact p.prime] (n : ℕ) (R : Type*) [comm_ring R]
 
-local notation `𝕎` := witt_vectors p -- type as `\bbW`
+local notation `𝕎` := witt_vector p -- type as `\bbW`
 
 @[derive comm_ring]
-def truncated_witt_vectors :=
-(witt_vectors.ideal p R n).quotient
+def truncated_witt_vector :=
+(witt_vector.ideal p R n).quotient
 
 variables {p} {R}
 
-def witt_vectors.truncate : 𝕎 R →+* truncated_witt_vectors p n R :=
+def witt_vector.truncate : 𝕎 R →+* truncated_witt_vector p n R :=
 ideal.quotient.mk _
 
 -- huh? It seems that `p` is nevertheless an explicit argument of `truncate`...
 
 end defs
 
-namespace truncated_witt_vectors
+namespace truncated_witt_vector
 
 variables (p : ℕ) [fact p.prime] {n : ℕ} {R : Type*} [comm_ring R]
 
-local notation `𝕎` := witt_vectors p -- type as `\bbW`
+local notation `𝕎` := witt_vector p -- type as `\bbW`
 
-def mk (x : fin n → R) : truncated_witt_vectors p n R :=
-witt_vectors.truncate p n $ witt_vectors.mk p $
+def mk (x : fin n → R) : truncated_witt_vector p n R :=
+witt_vector.truncate p n $ witt_vector.mk p $
 λ i, if h : i < n then x ⟨i, h⟩ else 0
 
 variable {p}
-def coeff (i : fin n) : truncated_witt_vectors p n R → R :=
-quot.lift (λ x : witt_vectors p R, x.coeff i)
+def coeff (i : fin n) : truncated_witt_vector p n R → R :=
+quot.lift (λ x : witt_vector p R, x.coeff i)
 begin
   intros x y h,
-  change x - y ∈ (witt_vectors.ideal p R n) at h,
+  change x - y ∈ (witt_vector.ideal p R n) at h,
   set z := x - y with hz,
   have hx : x = z + y, { simp only [sub_add_cancel] },
   dsimp,
-  rw [hx, witt_vectors.add_coeff],
+  rw [hx, witt_vector.add_coeff],
   -- hmmm, `witt_add_vars` is not good enough for this one :sad:
   -- the first `n` coeffs of `z` are `0`, by assumption
   -- this is enough, but we need a better lemma for this
@@ -63,7 +63,7 @@ section mk_and_coeff
 
 variables (p)
 
-lemma mk_coeff (x : truncated_witt_vectors p n R) :
+lemma mk_coeff (x : truncated_witt_vector p n R) :
   mk p (λ (i : fin n), coeff i x) = x :=
 begin
   sorry
@@ -76,9 +76,9 @@ begin
 end
 
 section
-local attribute [semireducible] witt_vectors
-lemma witt_vectors.mk_zero : witt_vectors.mk p (λ _, (0 : R)) = 0 :=
-by ext; simp [witt_vectors.mk]; refl
+local attribute [semireducible] witt_vector
+lemma witt_vector.mk_zero : witt_vector.mk p (λ _, (0 : R)) = 0 :=
+by ext; simp [witt_vector.mk]; refl
 end
 
 variables (p n R)
@@ -87,10 +87,10 @@ begin
   -- not sure if we need this
   have : ∀ i n, dite (i < n) (λ (h : i < n), (0 : fin n → R) ⟨i, h⟩) (λ (h : ¬i < n), 0) = 0,
   { intros, split_ifs; simp only [eq_self_iff_true, pi.zero_apply] },
-  simp only [mk, this, witt_vectors.mk_zero, ring_hom.map_zero],
+  simp only [mk, this, witt_vector.mk_zero, ring_hom.map_zero],
 end
 
-def equiv : truncated_witt_vectors p n R ≃ (fin n → R) :=
+def equiv : truncated_witt_vector p n R ≃ (fin n → R) :=
 { to_fun := λ x i, x.coeff i,
   inv_fun := mk p,
   left_inv := by { intros x, apply mk_coeff },
@@ -101,13 +101,13 @@ end mk_and_coeff
 
 section fintype
 
-instance [fintype R] : fintype (truncated_witt_vectors p n R) :=
+instance [fintype R] : fintype (truncated_witt_vector p n R) :=
 by { equiv_rw (equiv p n R), apply_instance }
 
 lemma card [fintype R] :
-  fintype.card (truncated_witt_vectors p n R) = fintype.card R ^ n :=
+  fintype.card (truncated_witt_vector p n R) = fintype.card R ^ n :=
 by simp [fintype.card_congr (equiv p n R)]
 
 end fintype
 
-end truncated_witt_vectors
+end truncated_witt_vector

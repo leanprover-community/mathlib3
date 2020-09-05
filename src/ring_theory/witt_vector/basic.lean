@@ -29,14 +29,14 @@ TODO
 TODO
 -/
 
-/-- `witt_vectors p R` is the ring of `p`-typical Witt vectors over the commutative ring `R`,
+/-- `witt_vector p R` is the ring of `p`-typical Witt vectors over the commutative ring `R`,
 where `p` is a prime number.
 
 If `p` is invertible in `R`, this ring is isomorphic to `ℕ → R` (the product of `ℕ` copies of `R`).
-If `R` is a ring of characteristic `p`, then `witt_vectors p R` is a ring of characteristic `0`.
-The canonical example is `witt_vectors p (zmod p)`,
+If `R` is a ring of characteristic `p`, then `witt_vector p R` is a ring of characteristic `0`.
+The canonical example is `witt_vector p (zmod p)`,
 which is isomorphic to the `p`-adic integers `ℤ_[p]`. -/
-def witt_vectors (p : ℕ) (R : Type*) := ℕ → R
+def witt_vector (p : ℕ) (R : Type*) := ℕ → R
 
 universes u v w u₁
 open mv_polynomial
@@ -54,7 +54,7 @@ variables (R : Type u) [comm_ring R]
 /-!
 ## Witt polynomials
 
-To endow `witt_vectors p R` with a ring structure,
+To endow `witt_vector p R` with a ring structure,
 we need to study the so-called Witt polynomials.
 -/
 
@@ -538,9 +538,9 @@ end
 
 end p_prime
 
-namespace witt_vectors
+namespace witt_vector
 
-local notation `𝕎` := witt_vectors -- type as `\bbW`
+local notation `𝕎` := witt_vector -- type as `\bbW`
 
 -- do we want to keep these two?
 instance : functor (𝕎 p) :=
@@ -659,7 +659,7 @@ end
 
 noncomputable def ghost_map_fun : 𝕎 p R → (ℕ → R) := λ w n, ghost_component n w
 
-end witt_vectors
+end witt_vector
 
 section tactic
 setup_tactic_parser
@@ -678,8 +678,8 @@ do to_expr ```(witt_structure_int_prop p (%%poly) n) >>= note `aux none >>=
               refl }]
 end tactic
 
-namespace witt_vectors
-local notation `𝕎` := witt_vectors -- type as `\bbW`
+namespace witt_vector
+local notation `𝕎` := witt_vector -- type as `\bbW`
 
 
 section p_prime
@@ -1461,6 +1461,6 @@ end verschiebung
 variable {R}
 def mk (x : ℕ → R) : 𝕎 p R := x
 
-end witt_vectors
+end witt_vector
 
-attribute [irreducible] witt_vectors
+attribute [irreducible] witt_vector

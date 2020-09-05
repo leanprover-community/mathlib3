@@ -1823,15 +1823,31 @@ instance cfg.inhabited [inhabited σ] : inhabited cfg := ⟨⟨default _, defaul
 
 parameters {Γ Λ σ K}
 /-- The step function for the TM2 model. -/
-@[simp] def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg
-| (push k f q)     v S := step_aux q v (update S k (f v :: S k))
-| (peek k f q)     v S := step_aux q (f v (S k).head') S
-| (pop k f q)      v S := step_aux q (f v (S k).head') (update S k (S k).tail)
-| (load a q)       v S := step_aux q (a v) S
-| (branch f q₁ q₂) v S :=
-  cond (f v) (step_aux q₁ v S) (step_aux q₂ v S)
-| (goto f)         v S := ⟨some (f v), v, S⟩
-| halt             v S := ⟨none, v, S⟩
+-- @[simp] def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg
+-- | (push k f q)     v S := step_aux q v (update S k (f v :: S k))
+-- | (peek k f q)     v S := step_aux q (f v (S k).head') S
+-- | (pop k f q)      v S := step_aux q (f v (S k).head') (update S k (S k).tail)
+-- | (load a q)       v S := step_aux q (a v) S
+-- | (branch f q₁ q₂) v S :=
+--   cond (f v) (step_aux q₁ v S) (step_aux q₂ v S)
+-- | (goto f)         v S := ⟨some (f v), v, S⟩
+-- | halt             v S := ⟨none, v, S⟩
+
+def add_counter : cfg × ℕ → cfg × ℕ := λ h, ⟨h.1, h.2 + 1⟩
+
+@[simp] lemma add_counter_cfg (x : cfg × ℕ) : x.1 = (add_counter x).1 := rfl
+
+@[simp] def step_aux_len : stmt → σ → (∀ k, list (Γ k)) → cfg × ℕ
+| (push k f q)     v S := add_counter $ step_aux_len q v (update S k (f v :: S k))
+| (peek k f q)     v S := add_counter $ step_aux_len q (f v (S k).head') S
+| (pop k f q)      v S := add_counter $ step_aux_len q (f v (S k).head') (update S k (S k).tail)
+| (load a q)       v S := add_counter $ step_aux_len q (a v) S
+| (branch f q₁ q₂) v S := add_counter $
+  cond (f v) (step_aux_len q₁ v S) (step_aux_len q₂ v S)
+| (goto f)         v S := ⟨⟨some (f v), v, S⟩,1⟩
+| halt             v S := ⟨⟨none, v, S⟩,1⟩
+
+@[simp] def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg := λ l v S, (step_aux_len l v S).1
 
 /-- The step function for the TM2 model. -/
 @[simp] def step (M : Λ → stmt) : cfg → option cfg
@@ -1934,7 +1950,7 @@ theorem step_supports (M : Λ → stmt) {S}
     intro hs,
   iterate 4 { exact IH _ _ hs },
   case TM2.stmt.branch : p q₁' q₂' IH₁ IH₂ {
-    unfold step_aux, cases p v,
+    unfold step_aux, unfold step_aux_len, cases p v,
     { exact IH₂ _ _ hs.2 },
     { exact IH₁ _ _ hs.1 } },
   case TM2.stmt.goto { exact finset.some_mem_insert_none.2 (hs _) },
@@ -2339,7 +2355,7 @@ theorem tr_respects : respects (TM2.step M) (TM1.step tr) tr_cfg :=
   revert v S L hT, refine stmt_st_rec _ _ _ _ _ (M l); intros,
   { exact tr_respects_aux M hT s @IH },
   { exact IH _ hT },
-  { unfold TM2.step_aux tr_normal TM1.step_aux,
+  { unfold TM2.step_aux TM2.step_aux_len tr_normal TM1.step_aux,
     cases p v; [exact IH₂ _ hT, exact IH₁ _ hT] },
   { exact ⟨_, ⟨_, hT⟩, refl_trans_gen.refl⟩ },
   { exact ⟨_, ⟨_, hT⟩, refl_trans_gen.refl⟩ }

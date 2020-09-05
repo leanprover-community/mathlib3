@@ -67,10 +67,10 @@ equiv.ext H
   e₂.left_inv.comp e₁.left_inv, e₂.right_inv.comp e₁.right_inv⟩
 
 @[simp]
-lemma to_fun_as_coe (e : α ≃ β) (a : α) : e.to_fun a = e a := rfl
+lemma to_fun_as_coe (e : α ≃ β) : e.to_fun = e := rfl
 
 @[simp]
-lemma inv_fun_as_coe (e : α ≃ β) (b : β) : e.inv_fun b = e.symm b := rfl
+lemma inv_fun_as_coe (e : α ≃ β) : e.inv_fun = e.symm := rfl
 
 protected theorem injective (e : α ≃ β) : injective e :=
 e.left_inv.injective

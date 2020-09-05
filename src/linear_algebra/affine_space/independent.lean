@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Myers.
 -/
 import data.finset.sort
+import data.matrix.notation
 import linear_algebra.affine_space.combination
 import linear_algebra.basis
 
@@ -219,7 +220,8 @@ begin
   { rw [←hw, finset.sum_map],
     simp [hw'] },
   have hs' : fs'.weighted_vsub p w' = (0:V),
-  { rw [←hs, finset.weighted_vsub_apply, finset.weighted_vsub_apply, finset.sum_map],
+  { rw [←hs, finset.weighted_vsub_map],
+    congr' with i,
     simp [hw'] },
   rw [←ha fs' w' hw's hs' (f i0) ((finset.mem_map' _).2 hi0), hw']
 end
@@ -310,7 +312,7 @@ end affine_independent
 section field
 
 variables {k : Type*} {V : Type*} {P : Type*} [field k] [add_comm_group V] [module k V]
-variables [affine_space V P]
+variables [affine_space V P] {ι : Type*}
 include V
 
 /-- An affinely independent set of points can be extended to such a
@@ -341,6 +343,27 @@ begin
     { refine set.subset.trans _ (set.union_subset_union_right _ (set.image_subset _ hsv)),
       simp [set.image_image] },
     { use [hsvi, affine_span_singleton_union_vadd_eq_top_of_span_eq_top p₁ hsvt] } }
+end
+
+variables (k)
+
+/-- Two different points are affinely independent. -/
+lemma affine_independent_of_ne {p₁ p₂ : P} (h : p₁ ≠ p₂) : affine_independent k ![p₁, p₂] :=
+begin
+  rw affine_independent_iff_linear_independent_vsub k ![p₁, p₂] 0,
+  let i₁ : {x // x ≠ (0 : fin 2)} := ⟨1, dec_trivial⟩,
+  have he' : ∀ i, i = i₁,
+  { rintro ⟨i, hi⟩,
+    ext,
+    fin_cases i,
+    { simpa using hi } },
+  haveI : unique {x // x ≠ (0 : fin 2)} := ⟨⟨i₁⟩, he'⟩,
+  have hz : (![p₁, p₂] ↑(default {x // x ≠ (0 : fin 2)}) -ᵥ ![p₁, p₂] 0 : V) ≠ 0,
+  { rw he' (default _),
+    intro he,
+    rw vsub_eq_zero_iff_eq at he,
+    exact h he.symm },
+  exact linear_independent_unique hz
 end
 
 end field
@@ -413,6 +436,80 @@ rfl
   s.face (finset.card_singleton i) = mk_of_point k (s.points i) :=
 by { ext, simp [face_points] }
 
+/-- The set of points of a face. -/
+@[simp] lemma range_face_points {n : ℕ} (s : simplex k P n) {fs : finset (fin (n + 1))}
+  {m : ℕ} (h : fs.card = m + 1) : set.range (s.face h).points = s.points '' ↑fs :=
+begin
+  rw [face, set.range_comp],
+  simp
+end
+
 end simplex
 
+end affine
+
+namespace affine
+namespace simplex
+
+variables {k : Type*} {V : Type*} {P : Type*} [division_ring k]
+          [add_comm_group V] [module k V] [affine_space V P]
+include V
+
+/-- The centroid of a face of a simplex as the centroid of a subset of
+the points. -/
+@[simp] lemma face_centroid_eq_centroid {n : ℕ} (s : simplex k P n) {fs : finset (fin (n + 1))}
+  {m : ℕ} (h : fs.card = m + 1) :
+  finset.univ.centroid k (s.face h).points = fs.centroid k s.points :=
+begin
+  convert (finset.univ.centroid_map k ⟨fs.mono_of_fin h, fs.mono_of_fin_injective h⟩ s.points).symm,
+  rw [←finset.coe_inj, finset.coe_map, function.embedding.coe_fn_mk],
+  simp
+end
+
+/-- Over a characteristic-zero division ring, the centroids given by
+two subsets of the points of a simplex are equal if and only if those
+faces are given by the same subset of points. -/
+@[simp] lemma centroid_eq_iff [char_zero k] {n : ℕ} (s : simplex k P n)
+  {fs₁ fs₂ : finset (fin (n + 1))} {m₁ m₂ : ℕ} (h₁ : fs₁.card = m₁ + 1) (h₂ : fs₂.card = m₂ + 1) :
+  fs₁.centroid k s.points = fs₂.centroid k s.points ↔ fs₁ = fs₂ :=
+begin
+  split,
+  { intro h,
+    rw [finset.centroid_eq_affine_combination_fintype,
+        finset.centroid_eq_affine_combination_fintype] at h,
+    have ha := (affine_independent_iff_indicator_eq_of_affine_combination_eq k s.points).1
+      s.independent _ _ _ _ (fs₁.sum_centroid_weights_indicator_eq_one_of_card_eq_add_one k h₁)
+      (fs₂.sum_centroid_weights_indicator_eq_one_of_card_eq_add_one k h₂) h,
+    simp_rw [finset.coe_univ, set.indicator_univ, function.funext_iff,
+             finset.centroid_weights_indicator_def, finset.centroid_weights, h₁, h₂] at ha,
+    ext i,
+    replace ha := ha i,
+    split,
+    all_goals
+    { intro hi,
+      by_contradiction hni,
+      simp [hi, hni] at ha,
+      norm_cast at ha } },
+  { intro h,
+    have hm : m₁ = m₂,
+    { subst h,
+      simpa [h₁] using h₂ },
+    subst hm,
+    congr,
+    exact h }
+end
+
+/-- Over a characteristic-zero division ring, the centroids of two
+faces of a simplex are equal if and only if those faces are given by
+the same subset of points. -/
+lemma face_centroid_eq_iff [char_zero k] {n : ℕ} (s : simplex k P n)
+  {fs₁ fs₂ : finset (fin (n + 1))} {m₁ m₂ : ℕ} (h₁ : fs₁.card = m₁ + 1) (h₂ : fs₂.card = m₂ + 1) :
+  finset.univ.centroid k (s.face h₁).points = finset.univ.centroid k (s.face h₂).points ↔
+    fs₁ = fs₂ :=
+begin
+  rw [face_centroid_eq_centroid, face_centroid_eq_centroid],
+  exact s.centroid_eq_iff h₁ h₂
+end
+
+end simplex
 end affine

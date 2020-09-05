@@ -288,14 +288,14 @@ by { cases n, { exact fin_zero_elim a }, { rw [←succ_zero_eq_one, succ_lt_succ
 lemma succ_succ_ne_one (a : fin n) : fin.succ (fin.succ a) ≠ 1 := ne_of_gt (one_lt_succ_succ a)
 
 @[simp] lemma coe_pred (j : fin (n+1)) (h : j ≠ 0) : (j.pred h : ℕ) = j - 1 :=
-by { cases j, refl, }
+by { cases j, refl }
 
 @[simp] lemma succ_pred : ∀(i : fin (n+1)) (h : i ≠ 0), (i.pred h).succ = i
 | ⟨0,     h⟩ hi := by contradiction
 | ⟨n + 1, h⟩ hi := rfl
 
 @[simp] lemma pred_succ (i : fin n) {h : i.succ ≠ 0} : i.succ.pred h = i :=
-by cases i; refl
+by { cases i, refl }
 
 @[simp] lemma pred_mk_succ (i : ℕ) (h : i < n + 1) :
   fin.pred ⟨i + 1, add_lt_add_right h 1⟩ (ne_of_vne (ne_of_gt (mk_succ_pos i h))) = ⟨i, h⟩ :=
@@ -326,8 +326,8 @@ def cast_add (m) : fin n → fin (n + m) := cast_le $ le_add_right n m
 def cast_succ : fin n → fin (n + 1) := cast_add 1
 
 /-- `succ_above p i` embeds `fin n` into `fin (n + 1)` with a hole around `p`. -/
-def succ_above (p : fin (n+1)) (i : fin n) : fin (n+1) :=
-if (i : ℕ) < p then i.cast_succ else i.succ
+def succ_above (p : fin (n + 1)) (i : fin n) : fin (n + 1) :=
+if i.cast_succ < p then i.cast_succ else i.succ
 
 /-- `pred_above p i h` embeds `i : fin (n+1)` into `fin n` by ignoring `p`. -/
 def pred_above (p : fin (n+1)) (i : fin (n+1)) (hi : i ≠ p) : fin n :=
@@ -386,6 +386,10 @@ by simp [eq_iff_veq]
 lemma cast_succ_lt_last (a : fin n) : cast_succ a < last n := lt_iff_coe_lt_coe.mpr a.is_lt
 
 @[simp] lemma cast_succ_zero : cast_succ (0 : fin (n + 1)) = 0 := rfl
+
+/-- `cast_succ i` is positive when `i` is positive -/
+lemma cast_succ_pos (i : fin (n + 1)) (h : 0 < i) : 0 < cast_succ i :=
+by simpa [lt_iff_coe_lt_coe] using h
 
 lemma last_pos : (0 : fin (n + 2)) < last (n + 1) :=
 by simp [lt_iff_coe_lt_coe]
@@ -456,60 +460,117 @@ lemma cast_le_injective {n₁ n₂ : ℕ} (h : n₁ ≤ n₂) : injective (fin.c
 lemma cast_succ_injective (n : ℕ) : injective (@fin.cast_succ n) :=
 cast_le_injective (le_add_right n 1)
 
-lemma succ_above_below (p : fin (n + 1)) (i : fin n) (h : (i : ℕ) < p) :
+/-- Embedding `i : fin n` into `fin (n + 1)` with a hole around `p : fin (n + 1)`
+embeds `i` by `cast_succ` when the resulting `i.cast_succ < p` -/
+lemma succ_above_below (p : fin (n + 1)) (i : fin n) (h : i.cast_succ < p) :
   p.succ_above i = i.cast_succ :=
-by { rw [coe_eq_val, coe_eq_val] at h, rw [succ_above], exact if_pos h }
+by { rw [succ_above], exact if_pos h }
 
+/-- Embedding `fin n` into `fin (n + 1)` with a hole around zero embeds by `succ` -/
 @[simp] lemma succ_above_zero : succ_above (0 : fin (n + 1)) = fin.succ := rfl
 
+/-- Embedding `fin n` into `fin (n + 1)` with a whole around `last n` embeds by `cast_succ` -/
 @[simp] lemma succ_above_last : succ_above (fin.last n) = cast_succ :=
-by { ext i, simp [succ_above, i.is_lt, if_true, last_val], }
+by { ext, simp only [succ_above, cast_succ_lt_last, if_true] }
 
-lemma succ_above_above (p : fin (n + 1)) (i : fin n) (h : (p : ℕ) ≤ i) :
+/-- Embedding `i : fin n` into `fin (n + 1)` with a hole around `p : fin (n + 1)`
+embeds `i` by `succ` when the resulting `p < i.succ` -/
+lemma succ_above_above (p : fin (n + 1)) (i : fin n) (h : p ≤ i.cast_succ) :
   p.succ_above i = i.succ :=
-by { rw [coe_eq_val, coe_eq_val] at h, rw [succ_above], exact if_neg (not_lt_of_le h) }
+by { rw [succ_above], exact if_neg (not_lt_of_le h) }
 
-theorem succ_above_ne (p : fin (n+1)) (i : fin n) : p.succ_above i ≠ p :=
+/-- Embedding `i : fin n` into `fin (n + 1)` is always about some hole `p` -/
+lemma succ_above_lt_ge (p : fin (n + 1)) (i : fin n) : i.cast_succ < p ∨ p ≤ i.cast_succ :=
+lt_or_ge (cast_succ i) p
+
+/-- Embedding `i : fin n` into `fin (n + 1)` is always about some hole `p` -/
+lemma succ_above_lt_gt (p : fin (n + 1)) (i : fin n) : i.cast_succ < p ∨ p < i.succ :=
+or.cases_on (succ_above_lt_ge p i)
+  (λ h, or.inl h) (λ h, or.inr (lt_of_le_of_lt h (cast_succ_lt_succ i)))
+
+/-- Embedding `i : fin n` into `fin (n + 1)` with a hole around `p : fin (n + 1)`
+never results in `p` itself -/
+theorem succ_above_ne (p : fin (n + 1)) (i : fin n) : p.succ_above i ≠ p :=
 begin
-  assume eq,
-  unfold fin.succ_above at eq,
-  split_ifs at eq with h;
-    simpa [lt_irrefl, nat.lt_succ_self, eq.symm] using h
+  intro eq,
+  by_cases H : i.cast_succ < p,
+  { simpa [lt_irrefl, ←succ_above_below _ _ H, eq] using H },
+  { simpa [←succ_above_above _ _ (le_of_not_lt H), eq] using cast_succ_lt_succ i }
 end
 
+/-- Embedding a positive `fin n`  results in a positive fin (n + 1)` -/
 lemma succ_above_pos (p : fin (n + 2)) (i : fin (n + 1)) (h : 0 < i) : 0 < p.succ_above i :=
 begin
-  by_cases H : (i : ℕ) < p,
-  { simpa [succ_above_below, H, lt_iff_coe_lt_coe] using h },
-  { push_neg at H,
-    simp [succ_above_above, H, lt_iff_coe_lt_coe], },
+  by_cases H : i.cast_succ < p,
+  { simpa [succ_above_below _ _ H] using cast_succ_pos _ h },
+  { simpa [succ_above_above _ _ (le_of_not_lt H)] using succ_pos _ },
 end
 
-@[simp] lemma succ_above_descend :
-  ∀(p i : fin (n+1)) (h : i ≠ p), p.succ_above (p.pred_above i h) = i
-| ⟨p, hp⟩ ⟨0,   hi⟩ h := fin.eq_of_veq $ by simp [succ_above, pred_above]; split_ifs; simp * at *
-| ⟨p, hp⟩ ⟨i+1, hi⟩ h := fin.eq_of_veq
-  begin
-    have : i + 1 ≠ p, by rwa [(≠), fin.ext_iff] at h,
-    unfold succ_above pred_above,
-    split_ifs with h1 h2;
-      simp only [fin.cast_succ_cast_lt, add_right_inj, coe_pred, ne.def, coe_cast_succ,
-                 nat.pred_succ, fin.succ_pred, add_right_inj] at *,
-    exact (this (le_antisymm h2 (le_of_not_gt h1))).elim
-  end
-
-@[simp] lemma pred_above_succ_above (p : fin (n+1)) (i : fin n) (h : p.succ_above i ≠ p) :
-  p.pred_above (p.succ_above i) h = i :=
+/-- Given a fixed pivot `x : fin (n + 1)`, `x.succ_above` is injective -/
+lemma succ_above_right_inj {x : fin (n + 1)} :
+  x.succ_above a = x.succ_above b ↔ a = b :=
 begin
-  unfold succ_above,
-  ext,
-  split_ifs with h₀,
-  { rw [pred_above, dif_pos, cast_lt_cast_succ],
-    rwa [← coe_fin_lt, coe_cast_succ], },
-  { rw [pred_above, dif_neg, pred_succ],
-    rw [← coe_fin_lt, coe_succ],
-    exact mt (lt_trans $ lt_add_one _) h₀, }
+  refine iff.intro _ (λ h, by rw h),
+  intro h,
+  cases succ_above_lt_ge x a with ha ha;
+  cases succ_above_lt_ge x b with hb hb,
+  { simpa only [succ_above_below, ha, hb, cast_succ_inj] using h },
+  { simp only [succ_above_below, succ_above_above, ha, hb] at h,
+    rw h at ha,
+    exact absurd (lt_of_le_of_lt hb (cast_succ_lt_succ _)) (asymm ha) },
+  { simp only [succ_above_below, succ_above_above, ha, hb] at h,
+    rw ←h at hb,
+    exact absurd (lt_of_le_of_lt ha (cast_succ_lt_succ _)) (asymm hb) },
+  { simpa only [succ_above_above, ha, hb, succ_inj] using h },
 end
+
+/-- Given a fixed pivot `x : fin (n + 1)`, `x.succ_above` is injective -/
+lemma succ_above_right_injective {x : fin (n + 1)} : injective (succ_above x) :=
+λ _ _, succ_above_right_inj.mp
+
+/-- Embedding a `fin (n + 1)` into `fin n` and embedding it back around the same hole
+gives the starting `fin (n + 1)` -/
+@[simp] lemma succ_above_descend (p i : fin (n + 1)) (h : i ≠ p) :
+  p.succ_above (p.pred_above i h) = i :=
+begin
+  rw pred_above,
+  cases lt_or_le i p with H H,
+  { simp only [succ_above_below, cast_succ_cast_lt, H, dif_pos]},
+  { rw le_iff_coe_le_coe at H,
+    rw succ_above_above,
+    { simp only [le_iff_coe_le_coe, H, not_lt, dif_neg, succ_pred] },
+    { simp only [le_iff_coe_le_coe, H, coe_pred, not_lt, dif_neg, coe_cast_succ],
+      exact le_pred_of_lt (lt_of_le_of_ne H (vne_of_ne h.symm)) } }
+end
+
+/-- Embedding a `fin n` into `fin (n + 1)` and embedding it back around the same hole
+gives the starting `fin n` -/
+@[simp] lemma pred_above_succ_above (p : fin (n + 1)) (i : fin n) :
+  p.pred_above (p.succ_above i) (succ_above_ne _ _) = i :=
+begin
+  rw pred_above,
+  by_cases H : i.cast_succ < p,
+  { simp [succ_above_below _ _ H, H] },
+  { cases succ_above_lt_gt p i with h h,
+    { exact absurd h H },
+    { simp [succ_above_above _ _ (le_of_not_lt H), pred_succ, dif_neg (asymm h)] } }
+end
+
+/-- `succ_above` is injective at the pivot -/
+lemma succ_above_left_inj {x y : fin (n + 1)} :
+  x.succ_above = y.succ_above ↔ x = y :=
+begin
+  refine iff.intro _ (λ h, by rw h),
+  contrapose!,
+  intros H h,
+  have key := congr_fun h (y.pred_above x H),
+  rw [succ_above_descend] at key,
+  exact absurd key (succ_above_ne x _)
+end
+
+/-- `succ_above` is injective at the pivot -/
+lemma succ_above_left_injective : injective (@succ_above n) :=
+λ _ _, succ_above_left_inj.mp
 
 /-- A function `f` on `fin n` is strictly monotone if and only if `f i < f (i+1)` for all `i`. -/
 lemma strict_mono_iff_lt_succ {α : Type*} [preorder α] {f : fin n → α} :

@@ -418,7 +418,7 @@ f.single_mul_apply_aux $ λ z, eq_inv_mul_iff_mul_eq.symm
 
 lemma mul_apply_left (f g : monoid_algebra k G) (x : G) :
   (f * g) x = (f.sum $ λ a b, b * (g (a⁻¹ * x))) :=
-calc (f * g) x = sum f (λ a b, (single a (f a) * g) x) :
+calc (f * g) x = sum f (λ a b, (single a b * g) x) :
   by rw [← finsupp.sum_apply, ← finsupp.sum_mul, f.sum_single]
 ... = _ : by simp only [single_mul_apply, finsupp.sum]
 
@@ -426,7 +426,7 @@ calc (f * g) x = sum f (λ a b, (single a (f a) * g) x) :
 -- If we'd assumed `comm_semiring`, we could deduce this from `mul_apply_left`.
 lemma mul_apply_right (f g : monoid_algebra k G) (x : G) :
   (f * g) x = (g.sum $ λa b, (f (x * a⁻¹)) * b) :=
-calc (f * g) x = sum g (λ a b, (f * single a (g a)) x) :
+calc (f * g) x = sum g (λ a b, (f * single a b) x) :
   by rw [← finsupp.sum_apply, ← finsupp.mul_sum, g.sum_single]
 ... = _ : by simp only [mul_single_apply, finsupp.sum]
 

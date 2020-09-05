@@ -368,7 +368,7 @@ begin
   congr' 2, simp
 end
 
-lemma neg_equiv_neg {f g: cau_seq β abv} (hf : f ≈ g) : -f ≈ -g :=
+lemma neg_equiv_neg {f g : cau_seq β abv} (hf : f ≈ g) : -f ≈ -g :=
 begin
   have hf : lim_zero _ := neg_lim_zero hf,
   show lim_zero (-f - -g),

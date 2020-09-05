@@ -72,16 +72,15 @@ instance polynomial.DCC_dvd [integral_domain α] [DCC_dvd α] : DCC_dvd (polynom
           apply lt_add_of_pos_right, apply nat.pos_of_ne_zero, contrapose! h, rw h, refl, }, }
       end }
   end }
-end prio
 
 namespace DCC_dvd
 
 variables [comm_monoid_with_zero α]
 open associates nat
 
-theorem of_DCC_dvd_associates
-  [DCC_dvd (associates α)]: DCC_dvd α :=
+theorem of_DCC_dvd_associates (h : DCC_dvd (associates α)): DCC_dvd α :=
 ⟨begin
+  haveI := h,
   refine (surjective.well_founded_iff mk_surjective _).2 DCC_dvd.well_founded_dvd_not_unit,
   intros, rw mk_dvd_not_unit_mk_iff
 end⟩
@@ -140,7 +139,7 @@ end DCC_dvd
 
 theorem DCC_dvd_of_well_founded_associates [comm_cancel_monoid_with_zero α]
   (h : well_founded ((<) : associates α → associates α → Prop)) : DCC_dvd α :=
-@DCC_dvd.of_DCC_dvd_associates _ _ ⟨by { convert h, ext, exact associates.dvd_not_unit_iff_lt }⟩
+DCC_dvd.of_DCC_dvd_associates ⟨by { convert h, ext, exact associates.dvd_not_unit_iff_lt }⟩
 
 theorem DCC_dvd_iff_well_founded_associates [comm_cancel_monoid_with_zero α] :
   DCC_dvd α ↔ well_founded ((<) : associates α → associates α → Prop) :=
@@ -385,8 +384,8 @@ begin
   apply multiset.induction_on_multiset_quot q,
   assume s t hs ht eq,
   refine multiset.map_mk_eq_map_mk_of_rel (unique_factorization_domain.unique _ _ _),
-  { exact assume a ha, ((irreducible_mk_iff _).1 $ hs _ $ multiset.mem_map_of_mem _ ha) },
-  { exact assume a ha, ((irreducible_mk_iff _).1 $ ht _ $ multiset.mem_map_of_mem _ ha) },
+  { exact assume a ha, ((irreducible_mk _).1 $ hs _ $ multiset.mem_map_of_mem _ ha) },
+  { exact assume a ha, ((irreducible_mk _).1 $ ht _ $ multiset.mem_map_of_mem _ ha) },
   simpa [quot_mk_eq_mk, prod_mk, mk_eq_mk_iff_associated] using eq
 end
 
@@ -395,7 +394,7 @@ private theorem forall_map_mk_factors_irreducible (x : α) (hx : x ≠ 0) :
 begin
   assume a ha,
   rcases multiset.mem_map.1 ha with ⟨c, hc, rfl⟩,
-  exact (irreducible_mk_iff c).2 (irreducible_factors hx _ hc)
+  exact (irreducible_mk c).2 (irreducible_factors hx _ hc)
 end
 
 theorem prod_le_prod_iff_le {p q : multiset (associates α)}
@@ -407,7 +406,7 @@ iff.intro
     have : c ≠ 0, from (mt mk_eq_zero.2 $
       assume (hc : quot.mk setoid.r c = 0),
       have (0 : associates α) ∈ q, from prod_eq_zero_iff.1 $ eqc.symm ▸ hc.symm ▸ mul_zero _,
-      not_irreducible_zero ((irreducible_mk_iff 0).1 $ hq _ this)),
+      not_irreducible_zero ((irreducible_mk 0).1 $ hq _ this)),
     have : associates.mk (factors c).prod = quot.mk setoid.r c,
       from mk_eq_mk_iff_associated.2 (factors_prod this),
 
@@ -421,7 +420,7 @@ iff.intro
   prod_le_prod
 
 def factors' (a : α) (ha : a ≠ 0) : multiset { a : associates α // irreducible a } :=
-(factors a).pmap (λa ha, ⟨associates.mk a, (irreducible_mk_iff _).2 ha⟩)
+(factors a).pmap (λa ha, ⟨associates.mk a, (irreducible_mk _).2 ha⟩)
   (irreducible_factors $ ha)
 
 @[simp] theorem map_subtype_coe_factors' {a : α} (ha : a ≠ 0) :
@@ -470,7 +469,7 @@ theorem prod_factors : ∀(s : factor_set α), s.prod.factors = s
     have : (s.map (coe : _ → associates α)).prod ≠ 0, from assume ha,
       let ⟨⟨a, ha⟩, h, eq⟩ := multiset.mem_map.1 (prod_eq_zero_iff.1 ha) in
       have irreducible (0 : associates α), from eq ▸ ha,
-      not_irreducible_zero ((irreducible_mk_iff _).1 this),
+      not_irreducible_zero ((irreducible_mk _).1 this),
     have ha : a ≠ 0, by simp [*] at *,
     suffices : (unique_factorization_domain.factors a).map associates.mk = s.map coe,
     { rw [factors_mk a ha],

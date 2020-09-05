@@ -222,3 +222,23 @@ by { rcases hu with ⟨u, rfl⟩, apply units.mul_left_dvd, }
 end comm_monoid
 
 end is_unit
+
+section comm_monoid_with_zero
+
+variable [comm_monoid_with_zero α]
+
+/-- This is a strict version of divisibility -/
+def dvd_not_unit (a b : α) : Prop := a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x
+
+lemma dvd_not_unit_of_dvd_of_not_dvd {a b : α} (hd : a ∣ b) (hnd : ¬ b ∣ a) :
+  dvd_not_unit a b :=
+begin
+  split,
+  { contrapose! hnd, rw hnd, apply dvd_zero },
+  { rcases hd with ⟨c, rfl⟩, use c,
+    split, swap, {refl},
+    contrapose! hnd, rcases hnd with ⟨u, rfl⟩,
+    simp, }
+end
+
+end comm_monoid_with_zero

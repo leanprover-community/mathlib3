@@ -550,7 +550,7 @@ begin
   rw [mk_mul_mk, mk_dvd_mk, mk_dvd_mk, mk_dvd_mk],
 end
 
-theorem irreducible_mk_iff (a : α) : irreducible (associates.mk a) ↔ irreducible a :=
+theorem irreducible_mk (a : α) : irreducible (associates.mk a) ↔ irreducible a :=
 begin
   simp only [irreducible, is_unit_mk],
   apply and_congr iff.rfl,
@@ -635,7 +635,7 @@ theorem irreducible_iff_prime_iff :
   (∀ a : α, irreducible a ↔ prime a) ↔ (∀ a : (associates α), irreducible a ↔ prime a) :=
 begin
   rw forall_associated, split;
-  intros h a; have ha := h a; rw irreducible_mk_iff at *; rw prime_mk at *; exact ha,
+  intros h a; have ha := h a; rw irreducible_mk at *; rw prime_mk at *; exact ha,
 end
 
 lemma eq_of_mul_eq_mul_left :

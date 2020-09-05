@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2020 Frédéric Dupuis. All rights reserved.
+Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Frédéric Dupuis
+Authors: Zhouhang Zhou, Sébastien Gouëzel, Frédéric Dupuis
 -/
 
 import linear_algebra.bilinear_form
@@ -15,8 +15,9 @@ import data.complex.is_R_or_C
 
 This file defines inner product spaces and proves its basic properties.
 
-An inner product space is a vector space endowed with an inner product `⟪·, ·⟫` which
-satisfies `⟪x, y⟫ = conj ⟪y, x⟫`.
+An inner product space is a vector space endowed with an inner product. It generalizes the notion of
+dot product in `ℝ^n` and provides the means of defining the length of a vector and the angle between
+two vectors. In particular vectors `x` and `y` are orthogonal if their inner product equals zero.
 
 ## Main results
 
@@ -25,6 +26,10 @@ satisfies `⟪x, y⟫ = conj ⟪y, x⟫`.
 - We show that if `f i` is an inner product space for each `i`, then so is `Π i, f i`
 - We define `euclidean_space K n` to be `n → K` for any `fintype n`, and show that
   this an inner product space.
+- Existence of orthogonal projection onto nonempty complete subspace:
+  Let `u` be a point in an inner product space, and let `K` be a nonempty complete subspace.
+  Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
+  The point `v` is usually called the orthogonal projection of `u` onto `K`.
 
 ## Notation
 
@@ -39,6 +44,12 @@ in the second.
 ## Tags
 
 inner product space, norm
+
+## References
+*  [Clément & Martin, *The Lax-Milgram Theorem. A detailed proof to be formalized in Coq*]
+*  [Clément & Martin, *A Coq formal proof of the Lax–Milgram theorem*]
+
+The Coq code is available at the following address: <http://www.lri.fr/~sboldo/elfic/index.html>
 -/
 
 noncomputable theory
@@ -52,7 +63,7 @@ variables {F : Type*} {G : Type*}
 variables {K : Type*} [nondiscrete_normed_field K] [algebra ℝ K] [is_R_or_C K]
 local notation `𝓚` := @is_R_or_C.of_real K _ _ _
 
-
+/-- Syntactic typeclass for types endowed with an inner product -/
 class has_inner (K α : Type*) := (inner : α → α → K)
 
 export has_inner (inner)

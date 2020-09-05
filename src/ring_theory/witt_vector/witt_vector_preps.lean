@@ -553,4 +553,23 @@ end
 
 end mv_polynomial
 
+section isos_to_zmod
+variables (R : Type*) [comm_ring R] [fintype R]
+
+def iso_to_zmod (n : ℕ) (hn : fintype.card R = n) (hR : ∀ i < n, i ≠ 0 → (i : R) ≠ 0) :
+  R ≃+* zmod n :=
+_
+
+def iso_to_zmod_of_prime_pow (p : ℕ) [hp : fact p.prime] (n : ℕ) (hn : fintype.card R = p ^ n)
+  (hR : ∀ i < n, (p ^ i : R) ≠ 0) :
+  R ≃+* zmod (p ^ n) :=
+iso_to_zmod R (p ^ n) hn
+begin
+  sorry
+end
+
+end isos_to_zmod
+
+
+
 -- ### end FOR_MATHLIB

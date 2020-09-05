@@ -554,19 +554,20 @@ end
 end mv_polynomial
 
 section isos_to_zmod
-variables (R : Type*) [comm_ring R] [fintype R]
+variables (R : Type*) (n : ℕ) [comm_ring R] [fintype R]
 
-def iso_to_zmod (n : ℕ) (hn : fintype.card R = n) (hR : ∀ i < n, i ≠ 0 → (i : R) ≠ 0) :
+def iso_to_zmod [char_p R n] (hn : fintype.card R = n) :
   R ≃+* zmod n :=
+_ -- use zmod.cast_hom + bijection
+
+lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, i ≠ 0 → (i : R) ≠ 0) :
+  char_p R n :=
 _
 
-def iso_to_zmod_of_prime_pow (p : ℕ) [hp : fact p.prime] (n : ℕ) (hn : fintype.card R = p ^ n)
+def char_p_of_prime_pow_ne_zero (p : ℕ) [hp : fact p.prime] (n : ℕ) (hn : fintype.card R = p ^ n)
   (hR : ∀ i < n, (p ^ i : R) ≠ 0) :
-  R ≃+* zmod (p ^ n) :=
-iso_to_zmod R (p ^ n) hn
-begin
-  sorry
-end
+  char_p R (p ^ n) :=
+_
 
 end isos_to_zmod
 

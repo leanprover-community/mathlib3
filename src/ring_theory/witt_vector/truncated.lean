@@ -14,44 +14,34 @@ import ring_theory.witt_vector.basic
 
 noncomputable theory
 
-def truncated_witt_vectors (p : ℕ) (n : ℕ) (R : Type*) :=
-fin n → R
+
+section defs
+
+variables (p : ℕ) [fact p.prime] (n : ℕ) (R : Type*) [comm_ring R]
+
+local notation `𝕎` := witt_vectors p -- type as `\bbW`
+
+@[derive comm_ring]
+def truncated_witt_vectors :=
+(witt_vectors.ideal p R n).quotient
+
+def witt_vectors.truncate : 𝕎 R →+* truncated_witt_vectors p n R :=
+ideal.quotient.mk _
+
+end defs
 
 namespace truncated_witt_vectors
 
 section basics
-variables (p : ℕ) (n : ℕ) (R : Type*)
+variables (p : ℕ) [fact p.prime] (n : ℕ) (R : Type*) [comm_ring R]
 
 instance [fintype R] : fintype (truncated_witt_vectors p n R) :=
-pi.fintype
+_
 
 lemma card [fintype R] :
   fintype.card (truncated_witt_vectors p n R) = fintype.card R ^ n :=
 sorry
 
 end basics
-
-end truncated_witt_vectors
-
-namespace witt_vectors
-
-variables (p : ℕ) [fact p.prime] (n : ℕ) (R : Type*) [comm_ring R]
-
-local notation `𝕎` := witt_vectors p -- type as `\bbW`
-
--- huh, what's wrong here?
-def truncate_fun : 𝕎 R → truncated_witt_vectors p n R :=
-λ x i, x.coeff i
-
-end witt_vectors
-
-namespace truncated_witt_vectors
-
-variables (p : ℕ) [fact p.prime] (n : ℕ) (R : Type*) [comm_ring R]
-
-local notation `𝕎` := witt_vectors p -- type as `\bbW`
-
--- the "kernel" of `truncate_fun` is `witt_vectors.ideal n`
-instance : comm_ring (truncated_witt_vectors p n R) := sorry
 
 end truncated_witt_vectors

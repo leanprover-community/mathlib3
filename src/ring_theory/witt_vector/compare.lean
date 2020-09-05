@@ -31,9 +31,10 @@ def to_zmod_pow (n : ℕ) : 𝕎 (zmod p) →+* zmod (p ^ n) :=
   (by rw [truncated_witt_vectors.card, zmod.card])).to_ring_hom.comp
 (witt_vectors.truncate p n)
 
+-- the show can go away with lean 3.20
 lemma to_zmod_pow_compat (k1 k2 : ℕ) (hk : k1 ≤ k2) :
 ring_hom.comp
-  (zmod.cast_hom (pow_dvd_pow p hk) (zmod (p ^ k1)))
+  (zmod.cast_hom (show p ^ k1 ∣ p ^ k2, by simpa using pow_dvd_pow p hk) (zmod (p ^ k1)))
   (to_zmod_pow p k2) = to_zmod_pow p k1 :=
 begin
   sorry

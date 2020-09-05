@@ -1021,7 +1021,7 @@ end sum
 
 section map
 
-variables [bcsr : comm_semiring β] (f : α →+* β)
+variables [comm_semiring β] (f : α →+* β)
 variable (p)
 
 lemma vars_map : (map f p).vars ⊆ p.vars :=

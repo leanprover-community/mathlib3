@@ -1115,16 +1115,6 @@ open_locale classical
 
 variables {R}
 
--- this is bind₁_vars in witt_vector_preps
-lemma vars_aeval {τ} (f : σ → mv_polynomial τ R) (φ : mv_polynomial σ R) :
-  (aeval f φ).vars ⊆ (φ.vars.bind (λ i, (f i).vars)) :=
-begin
-  intros i,
-  rw [mem_vars, finset.mem_bind],
-  rintro ⟨d, hd, hi⟩,
-  sorry
-end
-
 lemma vars_rename {τ} (f : σ → τ) (φ : mv_polynomial σ R) :
   (rename f φ).vars ⊆ (φ.vars.image f) :=
 begin
@@ -1161,11 +1151,11 @@ begin
   rw witt_structure_rat,
   intros x hx,
   simp only [finset.mem_product, true_and, finset.mem_univ, finset.mem_range],
-  have hx' := vars_aeval _ _ hx,
+  have hx' := bind₁_vars _ _ hx,
   simp only [X_in_terms_of_W_vars] at hx',
   simp only [exists_prop, finset.mem_bind, finset.mem_range] at hx',
   rcases hx' with ⟨k, hk, hx''⟩,
-  have hx''' := vars_aeval _ _ hx'',
+  have hx''' := bind₁_vars _ _ hx'',
   simp only [exists_prop, finset.mem_bind, finset.mem_range] at hx''',
   rcases hx''' with ⟨i, -, H⟩,
   have H' := vars_rename _ _ H,
@@ -1253,7 +1243,7 @@ lemma mul_coeff_eq_zero (n : ℕ) (x : 𝕎 p R) {y : 𝕎 p R}
   (hy : y ∈ {x : 𝕎 p R | ∀ (i : ℕ), i ≤ n → coeff i x = 0}) :
   (x * y).coeff n = 0 :=
 begin
-  admit,
+  sorry,
 end
 
 noncomputable def ideal (n : ℕ) : ideal (𝕎 p R) :=

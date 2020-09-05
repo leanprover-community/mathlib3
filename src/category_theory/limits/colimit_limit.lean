@@ -9,14 +9,14 @@ import category_theory.products.basic
 import category_theory.currying
 
 /-!
-# The morphism comparing a colimit of a limit with the corresponding limit of a colimit.
+# The morphism comparing a colimit of limits with the corresponding limit of colimits.
 
 For `F : J × K ⥤ C` there is always a morphism $\colim_k \lim_j F(j,k) → \lim_j \colim_k F(j, k)$.
-It is not usually an isomorphism, with additional hypotheses on `J` and `K` is may be,
-in which case we say that colimits commute with limits.
+While it is not usually an isomorphism, with additional hypotheses on `J` and `K` it may be,
+in which case we say that "colimits commute with limits".
 
-The prototypical example, not proved here, is that when `C = Type`,
-filtered colimits commute with finite limits.
+The prototypical example, proved in `category_theory.limits.filtered_colimit_commutes_finite_limit`,
+is that when `C = Type`, filtered colimits commute with finite limits.
 
 ## References
 * Borceux, Handbook of categorical algebra 1, Section 2.13
@@ -87,7 +87,7 @@ this lemma characterises it.
     limit.π ((curry.obj (swap K J ⋙ F)).obj k) j ≫ colimit.ι ((curry.obj F).obj j) k :=
 by { dsimp [colimit_limit_to_limit_colimit], simp, }
 
-@[simp] lemma ι_colimit_limit_to_limit_colimit_π' (F : J × K ⥤ Type v) (j) (k) (f) :
+@[simp] lemma ι_colimit_limit_to_limit_colimit_π_apply (F : J × K ⥤ Type v) (j) (k) (f) :
    limit.π ((curry.obj F) ⋙ colim) j
      (colimit_limit_to_limit_colimit F (colimit.ι ((curry.obj (swap K J ⋙ F)) ⋙ lim) k f)) =
      colimit.ι ((curry.obj F).obj j) k (limit.π ((curry.obj (swap K J ⋙ F)).obj k) j f) :=

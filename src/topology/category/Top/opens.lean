@@ -42,6 +42,10 @@ the morphisms `U ⟶ V` are not just proofs `U ≤ V`, but rather
 `ulift (plift (U ≤ V))`.
 -/
 
+instance opens_hom_has_coe_to_fun {U V : opens X} : has_coe_to_fun (U ⟶ V) :=
+{ F := λ f, U → V,
+  coe := λ f x, ⟨x, (le_of_hom f) x.2⟩ }
+
 /-!
 We now construct as morphisms various inclusions of open sets.
 -/
@@ -65,10 +69,6 @@ The inclusion `U i ⟶ supr U` as a morphism in the category of open sets.
 def le_supr {ι : Type*} (U : ι → opens X) (i : ι) : U i ⟶ supr U :=
 hom_of_le (le_supr U i)
 
-instance opens_hom_has_coe_to_fun {U V : opens X} : has_coe_to_fun (U ⟶ V) :=
-{ F := λ f, U → V,
-  coe := λ f x, ⟨x, (le_of_hom f) x.2⟩ }
-
 /--
 The functor from open sets in `X` to `Top`,
 realising each open set as a topological space itself.
@@ -82,6 +82,17 @@ def to_Top (X : Top.{u}) : opens X ⥤ Top :=
 lemma to_Top_map (X : Top.{u}) {U V : opens X} {f : U ⟶ V} {x} {h} :
   ((to_Top X).map f) ⟨x, h⟩ = ⟨x, (le_of_hom f) h⟩ :=
 rfl
+
+/--
+The inclusion map from an open subset to the whole space, as a morphism in `Top`.
+-/
+@[simps]
+def inclusion {X : Top.{u}} (U : opens X) : (to_Top X).obj U ⟶ X :=
+{ to_fun := _,
+  continuous_to_fun := continuous_subtype_coe }
+
+lemma inclusion_open_embedding {X : Top.{u}} (U : opens X) : open_embedding (inclusion U) :=
+is_open.open_embedding_subtype_coe U.2
 
 /-- `opens.map f` gives the functor from open sets in Y to open set in X,
     given by taking preimages under f. -/
@@ -159,3 +170,12 @@ rfl
 rfl
 
 end topological_space.opens
+
+/--
+An open map `f : X ⟶ Y` induces a functor `opens X ⥤ opens Y`.
+-/
+@[simps]
+def is_open_map.functor {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f) :
+  opens X ⥤ opens Y :=
+{ obj := λ U, ⟨f '' U, hf U U.2⟩,
+  map := λ U V h, ⟨⟨set.image_subset _ h.down.down⟩⟩ }

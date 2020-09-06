@@ -21,6 +21,7 @@ namespace ulift
 universes u v w
 variable {R : Type u}
 variable {M : Type v}
+variable {N : Type w}
 
 instance has_scalar [has_scalar R M] :
   has_scalar (ulift R) M :=
@@ -36,6 +37,18 @@ instance has_scalar' [has_scalar R M] :
 lemma smul_down' [has_scalar R M] (s : R) (x : ulift M) :
   (s • x).down = s • x.down :=
 rfl
+
+instance is_scalar_tower [has_scalar R M] [has_scalar M N] [has_scalar R N]
+  [is_scalar_tower R M N] : is_scalar_tower (ulift R) M N :=
+⟨λ x y z, show (x.down • y) • z = x.down • y • z, from smul_assoc _ _ _⟩
+
+instance is_scalar_tower' [has_scalar R M] [has_scalar M N] [has_scalar R N]
+  [is_scalar_tower R M N] : is_scalar_tower R (ulift M) N :=
+⟨λ x y z, show (x • y.down) • z = x • y.down • z, from smul_assoc _ _ _⟩
+
+instance is_scalar_tower'' [has_scalar R M] [has_scalar M N] [has_scalar R N]
+  [is_scalar_tower R M N] : is_scalar_tower R M (ulift N) :=
+⟨λ x y z, show up ((x • y) • z.down) = ⟨x • y • z.down⟩, by rw smul_assoc⟩
 
 instance mul_action [monoid R] [mul_action R M] :
   mul_action (ulift R) M :=

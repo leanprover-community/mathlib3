@@ -122,22 +122,20 @@ begin
 end
 
 instance coe_to_fractional_ideal : has_coe (ideal R) (fractional_ideal f) :=
-⟨ λ I, ⟨↑I, fractional_of_subset_one _ $ λ x ⟨y, hy, h⟩,
+⟨ λ I, ⟨f.coe_submodule I, fractional_of_subset_one _ $ λ x ⟨y, hy, h⟩,
   submodule.mem_span_singleton.2 ⟨y, by rw ←h; exact mul_one _⟩⟩ ⟩
 
-@[simp]
-lemma coe_coe_ideal (I : ideal R) : ((I : fractional_ideal f) : submodule R f.codomain) = I := rfl
+@[simp] lemma coe_coe_ideal (I : ideal R) :
+  ((I : fractional_ideal f) : submodule R f.codomain) = f.coe_submodule I := rfl
 
-@[simp]
-lemma mem_coe {x : f.codomain} {I : ideal R} :
+@[simp] lemma mem_coe {x : f.codomain} {I : ideal R} :
   x ∈ (I : fractional_ideal f) ↔ ∃ (x' ∈ I), f.to_map x' = x :=
 ⟨ λ ⟨x', hx', hx⟩, ⟨x', hx', hx⟩,
   λ ⟨x', hx', hx⟩, ⟨x', hx', hx⟩ ⟩
 
 instance : has_zero (fractional_ideal f) := ⟨(0 : ideal R)⟩
 
-@[simp]
-lemma mem_zero_iff {x : P} : x ∈ (0 : fractional_ideal f) ↔ x = 0 :=
+@[simp] lemma mem_zero_iff {x : P} : x ∈ (0 : fractional_ideal f) ↔ x = 0 :=
 ⟨ (λ ⟨x', x'_mem_zero, x'_eq_x⟩,
     have x'_eq_zero : x' = 0 := x'_mem_zero,
     by simp [x'_eq_x.symm, x'_eq_zero]),
@@ -165,9 +163,7 @@ mem_one_iff.mpr ⟨x, rfl⟩
 lemma one_mem_one : (1 : P) ∈ (1 : fractional_ideal f) :=
 mem_one_iff.mpr ⟨1, f.to_map.map_one⟩
 
-@[simp] lemma coe_one :
-  ↑(1 : fractional_ideal f) = ((1 : ideal R) : submodule R f.codomain) :=
-rfl
+@[simp] lemma coe_one : ↑(1 : fractional_ideal f) = f.coe_submodule 1 := rfl
 
 section lattice
 
@@ -471,8 +467,9 @@ lemma inv_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
   I⁻¹ = ⟨(1 : fractional_ideal g) / I, fractional_div_of_nonzero h⟩ :=
 div_nonzero h
 
+-- set_option pp.all true
 lemma coe_inv_of_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
-  (↑(I⁻¹) : submodule R g.codomain) = (1 : ideal R) / I :=
+  (↑(I⁻¹) : submodule R g.codomain) = g.coe_submodule 1 / I :=
 by { rw inv_nonzero h, refl }
 
 @[simp] lemma div_one {I : fractional_ideal g} : I / 1 = I :=
@@ -633,7 +630,7 @@ lemma exists_eq_span_singleton_mul (I : fractional_ideal g) :
 begin
   obtain ⟨a_inv, nonzero, ha⟩ := I.2,
   have nonzero := mem_non_zero_divisors_iff_ne_zero.mp nonzero,
-  have map_a_nonzero := mt g.to_map_eq_zero_iff.mpr nonzero,
+  have map_a_nonzero := mt g.to_map_eq_zero_iff.mp nonzero,
   use (g.to_map a_inv)⁻¹,
   use (span_singleton (g.to_map a_inv) * I).1.comap g.lin_coe,
   ext,

@@ -282,7 +282,7 @@ end
 
 /-- Primitive element theorem for adjoining two elements to an infinite field. -/
 lemma primitive_element_two_inf (α β : E) (F_sep : is_separable F E)
-    (F_inf : infinite F) :  ∃ γ : E, F⟮α, β⟯ = F⟮γ⟯ :=
+    (F_inf : infinite F) :  ∃ γ : E, (F⟮α, β⟯ : set E) ⊆ (F⟮γ⟯ : set E) :=
 begin
     obtain ⟨c, β_in_Fγ⟩ := primitive_element_two_inf_key α β F_inf,
     let c' := algebra_map F E c,
@@ -294,35 +294,13 @@ begin
         exact is_add_subgroup.sub_mem F⟮γ⟯ γ (c'*β) γ_in_Fγ cβ_in_Fγ,
     have αβ_in_Fγ : {α,β} ⊆ (F⟮γ⟯ : set E) := λ x hx, by cases hx; cases hx; cases hx; assumption,
     have Fαβ_sub_Fγ : (F⟮α, β⟯ : set E) ⊆ (F⟮γ⟯ : set E) := (field.adjoin_subset_iff F {α,β}).mp αβ_in_Fγ,
-    have α_in_Fαβ : α ∈ F⟮α, β⟯ := field.subset_adjoin F {α,β} (set.mem_insert α {β}),
-    have β_in_Fαβ : β ∈ F⟮α, β⟯ := field.subset_adjoin F {α,β} (set.mem_insert_of_mem α rfl),
-    have c_in_Fαβ : c' ∈ (F⟮α, β⟯ : set E) := field.adjoin.algebra_map_mem F {α,β} c,
-    have cβ_in_Fαβ : c'*β ∈ (F⟮α, β⟯ : set E) := is_submonoid.mul_mem c_in_Fαβ β_in_Fαβ,
-    have γ_in_Fαβ : γ ∈ (F⟮α, β⟯ : set E) := is_add_submonoid.add_mem α_in_Fαβ cβ_in_Fαβ,
-    have : ({γ} : set E) ⊆ F⟮α, β⟯ := λ x hx, by cases hx; cases hx; assumption,
-    have Fγ_sub_Fαβ : (F⟮γ⟯ : set E) ⊆ (F⟮α, β⟯ : set E) := (field.adjoin_subset_iff F {γ}).mp this,
-    use γ, ext, exact ⟨λ hx, Fαβ_sub_Fγ hx, λ hx, Fγ_sub_Fαβ hx⟩,
+    use γ,
+    exact λ x hx, Fαβ_sub_Fγ hx,
 end
 
 universe u
 
-lemma usefulish {F E : Type*} [field F] [field E] [algebra F E] (A B : subalgebra F E) :
-    A = B ↔ (A : set E) = (B : set E) :=
-begin
-    split,
-    intro h,
-    rw h,
-    intro h,
-    ext,
-    rw ←subalgebra.mem_coe,
-    rw ←subalgebra.mem_coe,
-    exact set.ext_iff.mp h x,
-end
-
-lemma nlinarith_lemma (a b : ℕ) (h : a * b ≤ b) (ha : 0 < a) (hb : 0 < b) : a = 1 :=
-begin
-    nlinarith,
-end
+lemma nlinarith_lemma (a b : ℕ) (h : a * b ≤ b) (ha : 0 < a) (hb : 0 < b) : a = 1 := by nlinarith
 
 /-- Primitive element theorem for infinite fields. -/
 theorem primitive_element_inf (F E : Type u) [field F] [field E] [algebra F E] (F_sep : is_separable F E) (F_findim: finite_dimensional F E)
@@ -341,13 +319,13 @@ begin
         obtain ⟨β, hβ⟩ := ih (findim F⟮α⟯ E) Fα_le_n F⟮α⟯ Fα_sep Fα_findim Fα_inf rfl,
         obtain ⟨γ, hγ⟩ := primitive_element_two_inf α β F_sep F_inf,
         use γ,
-        rw usefulish,
-        rw usefulish at hβ,
-        rw usefulish at hγ,
-        rw field.adjoin_simple_adjoin_simple at hβ,
-        rw ←hγ,
+        ext1,
+        symmetry,
+        apply iff_of_true algebra.mem_top,
+        apply hγ,
+        rw ←field.adjoin_simple_adjoin_simple,
         rw hβ,
-        simp only [submodule.top_coe, algebra.coe_top, coe_coe], },
+        exact algebra.mem_top, },
     {   push_neg at key,
         use 0,
         ext1,

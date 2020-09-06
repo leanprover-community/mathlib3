@@ -60,6 +60,51 @@ open braided_category
 
 notation `β_` := braiding
 
+section properties
+variables (C : Type u)
+variables [category.{v} C]
+variables [monoidal_category.{v} C]
+variables [braided_category.{v} C]
+variables (X : C)
+
+#check monoidal_category.right_unitor_product_aux_triangle
+#check monoidal_category.left_unitor_product_aux_triangle
+#check monoidal_category.left_unitor_tensor
+#check hexagon_forward
+
+lemma left_unitor_braiding :
+  β_ _ _ ≪≫ λ_ X = ρ_ X :=
+-- iso.ext (by simp)
+begin
+  ext, simp,
+  rw [← monoidal_category.tensor_right_iff],
+  suffices :
+    ((β_ X (𝟙_ C)).hom ⊗ 𝟙 (𝟙_ C)) ≫ ((λ_ X).hom ⊗ 𝟙 (𝟙_ C)) =
+    (ρ_ X).hom ⊗ 𝟙 (𝟙_ C),
+  { simpa only [← monoidal_category.tensor_comp, category.id_comp] using this },
+  rw ← monoidal_category.left_unitor_tensor,
+  rw ← category.assoc,
+  rw ← iso.eq_comp_inv,
+  -- rw ← cancel_mono (iso.refl (𝟙_ C) ⊗ (β_ X (𝟙_ C))).hom,
+  rw ← cancel_mono (𝟙 (𝟙_ C) ⊗ (β_ X (𝟙_ C)).hom),
+  simp [- iso.cancel_iso_hom_right_assoc, category.assoc],
+  rw ← hexagon_forward,
+  simp,
+  done,
+  -- rw [← monoidal_category.tensor_left_iff],
+  rw ← iso.cancel_iso_hom_left (monoidal_category.associator _ _ _).symm,
+  simp,
+  -- ← monoidal_category.triangle, ← iso.inv_comp_eq],
+end
+
+lemma right_unitor_braiding :
+  β_ _ _ ≪≫ ρ_ X = λ_ X :=
+begin
+  rw ← left_unitor_braiding,
+end
+
+end properties
+
 section prio
 set_option default_priority 100 -- see Note [default priority]
 

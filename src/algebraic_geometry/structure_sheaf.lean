@@ -346,7 +346,7 @@ def stalk_iso_Type (x : prime_spectrum R) :
 
 /-
 
-Mathematical Notations:
+Notation in this comment
 
 X = Spec R
 OX = structure sheaf

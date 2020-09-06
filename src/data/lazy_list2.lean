@@ -9,6 +9,12 @@ import control.traversable.equiv
 import control.traversable.instances
 import data.lazy_list
 
+/-!
+## Definitions on lazy lists
+
+This file contains various definitions and proofs on lazy lists.
+-/
+
 universes u
 
 namespace thunk
@@ -26,6 +32,7 @@ namespace lazy_list
 
 open function
 
+/-- Isomorphism between strict and lazy lists. -/
 def list_equiv_lazy_list (α : Type*) : list α ≃ lazy_list α :=
 { to_fun := lazy_list.of_list,
   inv_fun := lazy_list.to_list,
@@ -50,6 +57,7 @@ instance {α : Type u} [decidable_eq α] : decidable_eq (lazy_list α)
 | nil (cons _ _) := is_false (by cc)
 | (cons _ _) nil := is_false (by cc)
 
+/-- Traversal of lazy lists using an applicative effect. -/
 protected def traverse {m : Type u → Type u} [applicative m] {α β : Type u}
     (f : α → m β) : lazy_list α → m (lazy_list β)
 | lazy_list.nil := pure lazy_list.nil

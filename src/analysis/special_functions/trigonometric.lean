@@ -1643,37 +1643,45 @@ lemma exp_pi_mul_I : exp (π * I) = -1 := by { rw exp_mul_I, simp, }
 theorem cos_eq_zero_iff {θ : ℂ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * π / 2 :=
 begin
   have h : (exp (θ * I) + exp (-θ * I)) / 2 = 0 ↔ exp (2 * θ * I) = -1,
-  { rw [@div_eq_iff _ _ (exp (θ * I) + exp (-θ * I)) 2 0 (by norm_num), zero_mul, add_eq_zero_iff_eq_neg, neg_eq_neg_one_mul (exp (-θ * I)), ← div_eq_iff (exp_ne_zero (-θ * I)), ← exp_sub],
+  { rw [@div_eq_iff _ _ (exp (θ * I) + exp (-θ * I)) 2 0 (by norm_num), zero_mul, add_eq_zero_iff_eq_neg,
+        neg_eq_neg_one_mul (exp (-θ * I)), ← div_eq_iff (exp_ne_zero (-θ * I)), ← exp_sub],
     field_simp, ring },
   rw [cos, h, ← exp_pi_mul_I, exp_eq_exp_iff_exists_int],
   split; simp; intros; use x,
   { field_simp, ring at a,
-    rwa [mul_right_comm 2 I θ, mul_right_comm (2*(x:ℂ)+1) I (π:ℂ), mul_left_inj' I_ne_zero, mul_comm 2 θ] at a },
+    rwa [mul_right_comm 2 I θ, mul_right_comm (2*(x:ℂ)+1) I (π:ℂ), mul_left_inj' I_ne_zero,
+        mul_comm 2 θ] at a },
   { field_simp at a, ring,
-    rw [mul_right_comm 2 I θ, mul_right_comm (2*(x:ℂ)+1) I (π:ℂ), mul_left_inj' I_ne_zero, mul_comm 2 θ, a] },
+    rw [mul_right_comm 2 I θ, mul_right_comm (2*(x:ℂ)+1) I (π:ℂ), mul_left_inj' I_ne_zero,
+        mul_comm 2 θ, a] },
 end
 
 theorem cos_ne_zero_iff {θ : ℂ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k + 1) * π / 2 :=
 by rw [← not_exists, not_iff_not, cos_eq_zero_iff]
 
-lemma has_deriv_at_tan {x:ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) : has_deriv_at tan (1 / (cos x)^2) x :=
+lemma has_deriv_at_tan {x : ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) :
+  has_deriv_at tan (1 / (cos x)^2) x :=
 begin
   convert has_deriv_at.div (has_deriv_at_sin x) (has_deriv_at_cos x) (cos_ne_zero_iff.mpr h),
   rw ← sin_sq_add_cos_sq x,
   ring,
 end
 
-lemma differentiable_at_tan {x:ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) : differentiable_at ℂ tan x :=
+lemma differentiable_at_tan {x : ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) : differentiable_at ℂ tan x :=
 (has_deriv_at_tan h).differentiable_at
 
-lemma deriv_tan {x:ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2): deriv tan x = 1 / (cos x)^2 :=
+@[simp] lemma deriv_tan {x : ℂ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) : deriv tan x = 1 / (cos x)^2 :=
 (has_deriv_at_tan h).deriv
 
-lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
+lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
 (continuous_sin.comp continuous_subtype_val).mul
   (continuous.inv subtype.property (continuous_cos.comp continuous_subtype_val))
 
+lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
+by { rw continuous_on_iff_continuous_restrict, convert continuous_tan }
+
 end complex
+
 
 namespace real
 
@@ -1690,32 +1698,38 @@ theorem cos_ne_zero_iff {θ : ℝ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k
 by rw [← not_exists, not_iff_not, cos_eq_zero_iff]
 
 
-lemma has_deriv_at_tan {x:ℝ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) : has_deriv_at tan (1 / (cos x)^2) x :=
+lemma has_deriv_at_tan {x : ℝ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) :
+  has_deriv_at tan (1 / (cos x)^2) x :=
 begin
   convert has_deriv_at_real_of_complex (complex.has_deriv_at_tan (by { convert h, norm_cast } )),
   rw ← complex.of_real_re (1/((cos x)^2)),
   simp,
 end
 
-lemma differentiable_at_tan {x:ℝ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) : differentiable_at ℝ tan x :=
+lemma differentiable_at_tan {x : ℝ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) : differentiable_at ℝ tan x :=
 (has_deriv_at_tan h).differentiable_at
 
-lemma deriv_tan {x:ℝ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) : deriv tan x = 1 / (cos x)^2 :=
+@[simp] lemma deriv_tan {x : ℝ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) : deriv tan x = 1 / (cos x)^2 :=
 (has_deriv_at_tan h).deriv
 
-lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
+lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
 by simp only [tan_eq_sin_div_cos]; exact
   (continuous_sin.comp continuous_subtype_val).mul
   (continuous.inv subtype.property
     (continuous_cos.comp continuous_subtype_val))
 
-lemma has_deriv_at_tan_of_mem_Ioo {x:ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) : has_deriv_at tan (1 / (cos x)^2) x :=
+lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
+by { rw continuous_on_iff_continuous_restrict, convert continuous_tan }
+
+lemma has_deriv_at_tan_of_mem_Ioo {x : ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) :
+  has_deriv_at tan (1 / (cos x)^2) x :=
 has_deriv_at_tan (cos_ne_zero_iff.mp (ne_of_gt (cos_pos_of_mem_Ioo h.1 h.2)))
 
-lemma differentiable_at_tan_of_mem_Ioo {x:ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) : differentiable_at ℝ tan x :=
+lemma differentiable_at_tan_of_mem_Ioo {x : ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) :
+  differentiable_at ℝ tan x :=
 (has_deriv_at_tan_of_mem_Ioo h).differentiable_at
 
-lemma deriv_tan_of_mem_Ioo {x:ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) : deriv tan x = 1 / (cos x)^2 :=
+lemma deriv_tan_of_mem_Ioo {x : ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) : deriv tan x = 1 / (cos x)^2 :=
 (has_deriv_at_tan_of_mem_Ioo h).deriv
 
 end real

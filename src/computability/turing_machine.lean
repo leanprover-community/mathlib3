@@ -8,6 +8,7 @@ import data.fintype.basic
 import data.pfun
 import tactic.apply_fun
 import logic.function.iterate
+import tactic.linarith
 
 /-!
 # Turing machines
@@ -1822,16 +1823,6 @@ structure cfg :=
 instance cfg.inhabited [inhabited σ] : inhabited cfg := ⟨⟨default _, default _, default _⟩⟩
 
 parameters {Γ Λ σ K}
-/-- The step function for the TM2 model. -/
--- @[simp] def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg
--- | (push k f q)     v S := step_aux q v (update S k (f v :: S k))
--- | (peek k f q)     v S := step_aux q (f v (S k).head') S
--- | (pop k f q)      v S := step_aux q (f v (S k).head') (update S k (S k).tail)
--- | (load a q)       v S := step_aux q (a v) S
--- | (branch f q₁ q₂) v S :=
---   cond (f v) (step_aux q₁ v S) (step_aux q₂ v S)
--- | (goto f)         v S := ⟨some (f v), v, S⟩
--- | halt             v S := ⟨none, v, S⟩
 
 def add_counter : cfg × ℕ → cfg × ℕ := λ h, ⟨h.1, h.2 + 1⟩
 
@@ -1849,10 +1840,74 @@ def add_counter : cfg × ℕ → cfg × ℕ := λ h, ⟨h.1, h.2 + 1⟩
 
 @[simp] def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg := λ l v S, (step_aux_len l v S).1
 
+example (a b c : ℕ) : (a + c ≤ b + c) ↔ (a ≤ b) := add_le_add_iff_right c
+
+lemma update_cons_increase_le_one (S : ∀ k, list (Γ k)) (s k : K) (x : Γ s) : ((update S s (x :: S s)) k).length ≤ (S k).length + 1 :=
+begin
+  unfold update,
+  split_ifs,
+  work_on_goal 0 { induction h, refl },
+  simp only [zero_le, le_add_iff_nonneg_right] at *,
+end
+
+lemma update_tail_increase_le_one (S : ∀ k, list (Γ k)) (s k : K): ((update S s (S s).tail) k).length ≤ (S k).length + 1 :=
+begin
+  unfold update,
+  split_ifs,
+  work_on_goal 0 { induction h, dsimp at *, simp only [list.length_tail] at *},
+  work_on_goal 1 { simp only [zero_le, le_add_iff_nonneg_right] at *},
+  exact le_add_right ((list.length (S k)).sub_le 1),
+end
+
+lemma step_aux_len_le_size_increase (s : stmt) (k : K) : ∀ (v : σ) (S : ∀ k, list (Γ k)),
+  ((step_aux s v S).stk k).length ≤ (S k).length + (step_aux_len s v S).2:=
+begin
+  induction s with s'; intros v S;
+  unfold step_aux step_aux_len;
+  try {rw ← add_counter_cfg};
+  try {unfold add_counter};
+  try {conv_rhs {congr,skip,dsimp}},
+  {specialize s_ih v (update S s' (s_a v :: S s')),
+  apply le_trans s_ih,
+  suffices : (update S s' (s_a v :: S s') k).length ≤ (S k).length + 1,
+  {linarith},
+  {exact update_cons_increase_le_one _ _ _ _}},
+
+  {specialize s_ih (s_a v (S s_k).head') S,
+  apply le_trans s_ih,
+  linarith,},
+
+  {specialize s_ih (s_a v (S s_k).head') (update S s_k (S s_k).tail),
+  apply le_trans s_ih,
+  suffices : (update S s_k (S s_k).tail k).length ≤ (S k).length + 1,
+  {linarith},
+  {exact update_tail_increase_le_one _ _ _},},
+
+  {specialize s_ih (s_a v) S,
+  apply le_trans s_ih,
+  linarith,},
+
+  {cases (s_a v); unfold cond,
+  specialize s_ih_a_1 v S,
+  apply le_trans s_ih_a_1,
+  linarith,
+  specialize s_ih_a v S,
+  apply le_trans s_ih_a,
+  linarith,},
+
+  {linarith},
+
+  {linarith},
+end
+
+#check sum.elim
+
 /-- The step function for the TM2 model. -/
-@[simp] def step (M : Λ → stmt) : cfg → option cfg
-| ⟨none,   v, S⟩ := none
-| ⟨some l, v, S⟩ := some (step_aux (M l) v S)
+@[simp] def step_len (M : Λ → stmt) : cfg → option cfg × ℕ
+| ⟨none,   v, S⟩ := ⟨none, 0⟩
+| ⟨some l, v, S⟩ := ⟨some (step_aux (M l) v S), (step_aux_len (M l) v S).2⟩
+
+@[simp] def step (M : Λ → stmt) : cfg → option cfg := λ c, (step_len M c).1
 
 /-- The (reflexive) reachability relation for the TM2 model. -/
 def reaches (M : Λ → stmt) : cfg → cfg → Prop :=
@@ -1945,7 +2000,7 @@ theorem step_supports (M : Λ → stmt) {S}
   c' ∈ step M c → c.l ∈ S.insert_none → c'.l ∈ S.insert_none
 | ⟨some l₁, v, T⟩ c' h₁ h₂ := begin
   replace h₂ := ss.2 _ (finset.some_mem_insert_none.1 h₂),
-  simp only [step, option.mem_def] at h₁, subst c',
+  simp only [step, step_len, option.mem_def] at h₁, subst c',
   revert h₂, induction M l₁ with _ _ q IH _ _ q IH _ _ q IH _ q IH generalizing v T;
     intro hs,
   iterate 4 { exact IH _ _ hs },

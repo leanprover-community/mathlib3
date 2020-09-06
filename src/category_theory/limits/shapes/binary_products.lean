@@ -440,22 +440,22 @@ by tidy
   coprod.map h k ≫ coprod.desc f g = coprod.desc (h ≫ f) (k ≫ g) :=
 by tidy
 
-@[reassoc]
+@[simp, reassoc]
 lemma coprod.map_codiag {X Y : C} (f : X ⟶ Y) :
   coprod.map f f ≫ codiag Y = codiag X ≫ f :=
 by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
 
-@[reassoc]
+@[simp, reassoc]
 lemma coprod.map_inl_inr_codiag {X Y : C}  :
   coprod.map coprod.inl coprod.inr ≫ codiag (X ⨿ Y) = 𝟙 (X ⨿ Y) :=
 by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
 
-@[reassoc]
+@[simp, reassoc]
 lemma coprod.map_comp_codiag {X X' Y Z : C} (f : X ⟶ Y) (f' : X' ⟶ Y) (g : Y ⟶ Z) :
   coprod.map (f ≫ g) (f' ≫ g) ≫ codiag Z = coprod.map f f' ≫ codiag Y ≫ g :=
 by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
 
-@[reassoc]
+@[simp, reassoc]
 lemma coprod.map_comp_inl_inr_codiag {X X' Y Y' : C} (g : X ⟶ Y) (g' : X' ⟶ Y') :
   coprod.map (g ≫ coprod.inl) (g' ≫ coprod.inr) ≫ codiag (Y ⨿ Y') = coprod.map g g' :=
 by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]

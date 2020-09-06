@@ -21,7 +21,7 @@ example (a b : ℤ) (h : a = b) : a + 1 = b + 1 :=
 begin
   apply_fun (λ n, n+1) at h,
   -- check that `h` was β-reduced
-  guard_hyp' h := a + 1 = b + 1,
+  guard_hyp' h : a + 1 = b + 1,
   exact h
 end
 
@@ -44,6 +44,6 @@ begin
   apply_fun f at h,
   -- check that our β-reduction didn't mess things up:
   -- (previously `apply_fun` was producing `f (A.mul B) = f 0`)
-  guard_hyp' h := f (A * B) = f 0,
+  guard_hyp' h : f (A * B) = f 0,
   exact h,
 end

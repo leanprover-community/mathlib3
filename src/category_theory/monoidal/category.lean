@@ -351,7 +351,7 @@ section
 variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 
 /-- The tensor product expressed as a functor. -/
-def tensor : (C × C) ⥤ C :=
+@[simps] def tensor : (C × C) ⥤ C :=
 { obj := λ X, X.1 ⊗ X.2,
   map := λ {X Y : C × C} (f : X ⟶ Y), f.1 ⊗ f.2 }
 
@@ -366,21 +366,21 @@ def left_assoc_tensor : (C × C × C) ⥤ C :=
   (left_assoc_tensor C).map f = (f.1 ⊗ f.2.1) ⊗ f.2.2 := rfl
 
 /-- The right-associated triple tensor product as a functor. -/
-def right_assoc_tensor : (C × C × C) ⥤ C :=
+@[simps] def right_assoc_tensor : (C × C × C) ⥤ C :=
 { obj := λ X, X.1 ⊗ (X.2.1 ⊗ X.2.2),
   map := λ {X Y : C × C × C} (f : X ⟶ Y), f.1 ⊗ (f.2.1 ⊗ f.2.2) }
 
-@[simp] lemma right_assoc_tensor_obj (X) :
-  (right_assoc_tensor C).obj X = X.1 ⊗ (X.2.1 ⊗ X.2.2) := rfl
-@[simp] lemma right_assoc_tensor_map {X Y} (f : X ⟶ Y) :
-  (right_assoc_tensor C).map f = f.1 ⊗ (f.2.1 ⊗ f.2.2) := rfl
+-- @[simp] lemma right_assoc_tensor_obj (X) :
+--   (right_assoc_tensor C).obj X = X.1 ⊗ (X.2.1 ⊗ X.2.2) := rfl
+-- @[simp] lemma right_assoc_tensor_map {X Y} (f : X ⟶ Y) :
+--   (right_assoc_tensor C).map f = f.1 ⊗ (f.2.1 ⊗ f.2.2) := rfl
 
 /-- The functor `λ X, 𝟙_ C ⊗ X`. -/
-def tensor_unit_left : C ⥤ C :=
+@[simps] def tensor_unit_left : C ⥤ C :=
 { obj := λ X, 𝟙_ C ⊗ X,
   map := λ {X Y : C} (f : X ⟶ Y), (𝟙 (𝟙_ C)) ⊗ f }
 /-- The functor `λ X, X ⊗ 𝟙_ C`. -/
-def tensor_unit_right : C ⥤ C :=
+@[simps] def tensor_unit_right : C ⥤ C :=
 { obj := λ X, X ⊗ 𝟙_ C,
   map := λ {X Y : C} (f : X ⟶ Y), f ⊗ (𝟙 (𝟙_ C)) }
 

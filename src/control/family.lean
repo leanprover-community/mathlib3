@@ -497,16 +497,6 @@ namespace category_theory
 namespace functor
 open category_theory
 
-section map_comp
-
-variables {C : Type u} {D : Type u'} [category.{v} C] [category.{v'} D] (F : C ⥤ D)
-
-@[reassoc]
-lemma map_comp_map {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : F.map f ≫ F.map g = F.map (f ≫ g) :=
-(category_theory.functor.map_comp _ _ _).symm
-
-end map_comp
-
 /-!
 In the following, we treat arrows `f : X ⟶ F.obj α` as collections of objects of type
 `α i`, for any `i`. The notion of containment is made formal by the definition of support set:

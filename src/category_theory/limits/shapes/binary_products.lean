@@ -319,23 +319,23 @@ by simp
 lemma prod.diag_snd {X : C} [has_limits_of_shape (discrete walking_pair) C] : diag X ≫ prod.snd = 𝟙 X :=
 by simp
 
-@[reassoc]
+@[simp, reassoc]
 lemma prod.diag_map {X Y : C} [has_limits_of_shape (discrete walking_pair) C] (f : X ⟶ Y) :
   diag X ≫ prod.map f f = f ≫ diag Y :=
 by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
 
-@[reassoc]
+@[simp, reassoc]
 lemma prod.diag_map_fst_snd {X Y : C} [has_limits_of_shape (discrete walking_pair) C] :
   diag (X ⨯ Y) ≫ prod.map prod.fst prod.snd = 𝟙 (X ⨯ Y) :=
 by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
 
-@[reassoc]
+@[simp, reassoc]
 lemma prod.diag_map_comp [has_limits_of_shape (discrete walking_pair) C]
   {X Y Z Z' : C} (f : X ⟶ Y) (g : Y ⟶ Z) (g' : Y ⟶ Z') :
   diag X ≫ prod.map (f ≫ g) (f ≫ g') = f ≫ diag Y ≫ prod.map g g' :=
 by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
 
-@[reassoc]
+@[simp, reassoc]
 lemma prod.diag_map_fst_snd_comp  [has_limits_of_shape (discrete walking_pair) C]
   {X X' Y Y' : C} (g : X ⟶ Y) (g' : X' ⟶ Y') :
   diag (X ⨯ X') ≫ prod.map (prod.fst ≫ g) (prod.snd ≫ g') = prod.map g g' :=

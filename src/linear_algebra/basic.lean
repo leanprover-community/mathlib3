@@ -169,10 +169,10 @@ instance linear_map_apply_is_add_monoid_hom (a : M) :
 { map_add := λ f g, linear_map.add_apply f g a,
   map_zero := rfl }
 
-@[simp] lemma add_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
+lemma add_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
   (h + g).comp f = h.comp f + g.comp f := rfl
 
-@[simp] lemma comp_add (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
+lemma comp_add (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
   h.comp (f + g) = h.comp f + h.comp g := by { ext, simp }
 
 lemma sum_apply (t : finset ι) (f : ι → M →ₗ[R] M₂) (b : M) :
@@ -335,10 +335,10 @@ instance linear_map_apply_is_add_group_hom (a : M) :
 
 @[simp] lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
 
-@[simp] lemma sub_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
+lemma sub_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
   (g - h).comp f = g.comp f - h.comp f := rfl
 
-@[simp] lemma comp_sub (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
+lemma comp_sub (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
   h.comp (g - f) = h.comp g - h.comp f := by { ext, simp }
 
 end add_comm_group

@@ -74,13 +74,13 @@ all norms are equivalent in finite dimension.
 This statement is superceded by the fact that every linear map on a finite-dimensional space is
 continuous, in `linear_map.continuous_of_finite_dimensional`. -/
 lemma continuous_equiv_fun_basis {ι : Type v} [fintype ι] (ξ : ι → E) (hξ : is_basis 𝕜 ξ) :
-  continuous (equiv_fun_basis hξ) :=
+  continuous hξ.equiv_fun :=
 begin
   unfreezingI { induction hn : fintype.card ι with n IH generalizing ι E },
   { apply linear_map.continuous_of_bound _ 0 (λx, _),
-    have : equiv_fun_basis hξ x = 0,
+    have : hξ.equiv_fun x = 0,
       by { ext i, exact (fintype.card_eq_zero_iff.1 hn i).elim },
-    change ∥equiv_fun_basis hξ x∥ ≤ 0 * ∥x∥,
+    change ∥hξ.equiv_fun x∥ ≤ 0 * ∥x∥,
     rw this,
     simp [norm_nonneg] },
   { haveI : finite_dimensional 𝕜 E := of_finite_basis hξ,
@@ -90,11 +90,11 @@ begin
     { assume s s_dim,
       rcases exists_is_basis_finite 𝕜 s with ⟨b, b_basis, b_finite⟩,
       letI : fintype b := finite.fintype b_finite,
-      have U : uniform_embedding (equiv_fun_basis b_basis).symm.to_equiv,
+      have U : uniform_embedding b_basis.equiv_fun.symm.to_equiv,
       { have : fintype.card b = n,
           by { rw ← s_dim, exact (findim_eq_card_basis b_basis).symm },
-        have : continuous (equiv_fun_basis b_basis) := IH (subtype.val : b → s) b_basis this,
-        exact (equiv_fun_basis b_basis).symm.uniform_embedding (linear_map.continuous_on_pi _) this },
+        have : continuous b_basis.equiv_fun := IH (subtype.val : b → s) b_basis this,
+        exact b_basis.equiv_fun.symm.uniform_embedding (linear_map.continuous_on_pi _) this },
       have : is_complete (s : set E),
         from complete_space_coe_iff_is_complete.1 ((complete_space_congr U).1 (by apply_instance)),
       exact this.is_closed },
@@ -124,9 +124,9 @@ begin
       exact linear_map.continuous_iff_is_closed_ker.2 this },
     -- third step: applying the continuity to the linear form corresponding to a coefficient in the
     -- basis decomposition, deduce that all such coefficients are controlled in terms of the norm
-    have : ∀i:ι, ∃C, 0 ≤ C ∧ ∀(x:E), ∥equiv_fun_basis hξ x i∥ ≤ C * ∥x∥,
+    have : ∀i:ι, ∃C, 0 ≤ C ∧ ∀(x:E), ∥hξ.equiv_fun x i∥ ≤ C * ∥x∥,
     { assume i,
-      let f : E →ₗ[𝕜] 𝕜 := (linear_map.proj i).comp (equiv_fun_basis hξ),
+      let f : E →ₗ[𝕜] 𝕜 := (linear_map.proj i).comp hξ.equiv_fun,
       let f' : E →L[𝕜] 𝕜 := { cont := H₂ f, ..f },
       exact ⟨∥f'∥, norm_nonneg _, λx, continuous_linear_map.le_op_norm f' x⟩ },
     -- fourth step: combine the bound on each coefficient to get a global bound and the continuity
@@ -149,12 +149,12 @@ begin
   -- argue that all linear maps there are continuous.
   rcases exists_is_basis_finite 𝕜 E with ⟨b, b_basis, b_finite⟩,
   letI : fintype b := finite.fintype b_finite,
-  have A : continuous (equiv_fun_basis b_basis) :=
+  have A : continuous b_basis.equiv_fun :=
     continuous_equiv_fun_basis _ b_basis,
-  have B : continuous (f.comp ((equiv_fun_basis b_basis).symm : (b → 𝕜) →ₗ[𝕜] E)) :=
+  have B : continuous (f.comp (b_basis.equiv_fun.symm : (b → 𝕜) →ₗ[𝕜] E)) :=
     linear_map.continuous_on_pi _,
-  have : continuous ((f.comp ((equiv_fun_basis b_basis).symm : (b → 𝕜) →ₗ[𝕜] E))
-                      ∘ (equiv_fun_basis b_basis)) := B.comp A,
+  have : continuous ((f.comp (b_basis.equiv_fun.symm : (b → 𝕜) →ₗ[𝕜] E))
+                      ∘ b_basis.equiv_fun) := B.comp A,
   convert this,
   ext x,
   dsimp,
@@ -183,10 +183,10 @@ lemma finite_dimensional.complete [finite_dimensional 𝕜 E] : complete_space E
 begin
   rcases exists_is_basis_finite 𝕜 E with ⟨b, b_basis, b_finite⟩,
   letI : fintype b := finite.fintype b_finite,
-  have : uniform_embedding (equiv_fun_basis b_basis).symm :=
+  have : uniform_embedding b_basis.equiv_fun.symm :=
     linear_equiv.uniform_embedding _ (linear_map.continuous_of_finite_dimensional _)
     (linear_map.continuous_of_finite_dimensional _),
-  change uniform_embedding (equiv_fun_basis b_basis).symm.to_equiv at this,
+  change uniform_embedding b_basis.equiv_fun.symm.to_equiv at this,
   exact (complete_space_congr this).1 (by apply_instance)
 end
 
@@ -221,7 +221,7 @@ lemma finite_dimensional.proper [finite_dimensional 𝕜 E] : proper_space E :=
 begin
   rcases exists_is_basis_finite 𝕜 E with ⟨b, b_basis, b_finite⟩,
   letI : fintype b := finite.fintype b_finite,
-  let e := equiv_fun_basis b_basis,
+  let e := b_basis.equiv_fun,
   let f : E →L[𝕜] (b → 𝕜) :=
     { cont := linear_map.continuous_of_finite_dimensional _, ..e.to_linear_map },
   refine metric.proper_image_of_proper e.symm

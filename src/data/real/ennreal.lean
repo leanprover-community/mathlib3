@@ -182,6 +182,8 @@ end
 protected lemma lt_top_iff_ne_top : a < ∞ ↔ a ≠ ∞ := lt_top_iff_ne_top
 protected lemma bot_lt_iff_ne_bot : 0 < a ↔ a ≠ 0 := bot_lt_iff_ne_bot
 
+lemma not_lt_top {x : ennreal} : ¬ x < ∞ ↔ x = ∞ := by rw [lt_top_iff_ne_top, not_not]
+
 lemma add_ne_top : a + b ≠ ∞ ↔ a ≠ ∞ ∧ b ≠ ∞ :=
 by simpa only [lt_top_iff_ne_top] using add_lt_top
 
@@ -197,16 +199,28 @@ lemma top_pow {n:ℕ} (h : 0 < n) : ∞^n = ∞ :=
 nat.le_induction (pow_one _) (λ m hm hm', by rw [pow_succ, hm', top_mul_top])
   _ (nat.succ_le_of_lt h)
 
-lemma mul_eq_top {a b : ennreal} : a * b = ⊤ ↔ (a ≠ 0 ∧ b = ⊤) ∨ (a = ⊤ ∧ b ≠ 0) :=
+lemma mul_eq_top : a * b = ⊤ ↔ (a ≠ 0 ∧ b = ⊤) ∨ (a = ⊤ ∧ b ≠ 0) :=
 with_top.mul_eq_top_iff
 
-lemma mul_ne_top {a b : ennreal} : a ≠ ∞ → b ≠ ∞ → a * b ≠ ∞ :=
+lemma mul_ne_top : a ≠ ∞ → b ≠ ∞ → a * b ≠ ∞ :=
 by simp [(≠), mul_eq_top] {contextual := tt}
 
-lemma mul_lt_top {a b : ennreal}  : a < ⊤ → b < ⊤ → a * b < ⊤ :=
+lemma mul_lt_top  : a < ⊤ → b < ⊤ → a * b < ⊤ :=
 by simpa only [ennreal.lt_top_iff_ne_top] using mul_ne_top
 
-@[simp] lemma mul_pos {a b : ennreal} : 0 < a * b ↔ 0 < a ∧ 0 < b :=
+lemma ne_top_of_mul_ne_top_left (h : a * b ≠ ⊤) (hb : b ≠ 0) : a ≠ ⊤ :=
+by { simp [mul_eq_top, hb, not_or_distrib] at h ⊢, exact h.2 }
+
+lemma ne_top_of_mul_ne_top_right (h : a * b ≠ ⊤) (ha : a ≠ 0) : b ≠ ⊤ :=
+ne_top_of_mul_ne_top_left (by rwa [mul_comm]) ha
+
+lemma lt_top_of_mul_lt_top_left (h : a * b < ⊤) (hb : b ≠ 0) : a < ⊤ :=
+by { rw [ennreal.lt_top_iff_ne_top] at h ⊢, exact ne_top_of_mul_ne_top_left h hb }
+
+lemma lt_top_of_mul_lt_top_right (h : a * b < ⊤) (ha : a ≠ 0) : b < ⊤ :=
+lt_top_of_mul_lt_top_left (by rwa [mul_comm]) ha
+
+@[simp] lemma mul_pos : 0 < a * b ↔ 0 < a ∧ 0 < b :=
 by simp only [zero_lt_iff_ne_zero, ne.def, mul_eq_zero, not_or_distrib]
 
 lemma pow_eq_top : ∀ n:ℕ, a^n=∞ → a=∞
@@ -936,10 +950,10 @@ by rw [← two_mul, ← div_def, div_self two_ne_zero two_ne_top]
 lemma add_halves (a : ennreal) : a / 2 + a / 2 = a :=
 by rw [div_def, ← mul_add, inv_two_add_inv_two, mul_one]
 
-@[simp] lemma div_zero_iff {a b : ennreal} : a / b = 0 ↔ a = 0 ∨ b = ⊤ :=
+@[simp] lemma div_zero_iff : a / b = 0 ↔ a = 0 ∨ b = ⊤ :=
 by simp [div_def, mul_eq_zero]
 
-@[simp] lemma div_pos_iff {a b : ennreal} : 0 < a / b ↔ a ≠ 0 ∧ b ≠ ⊤ :=
+@[simp] lemma div_pos_iff : 0 < a / b ↔ a ≠ 0 ∧ b ≠ ⊤ :=
 by simp [zero_lt_iff_ne_zero, not_or_distrib]
 
 lemma half_pos {a : ennreal} (h : 0 < a) : 0 < a / 2 :=
@@ -1113,7 +1127,7 @@ end
 @[simp] lemma to_real_top_mul (a : ennreal) : ennreal.to_real (⊤ * a) = 0 :=
 by { rw mul_comm, exact to_real_mul_top _ }
 
-lemma to_real_eq_to_real {a b : ennreal} (ha : a < ⊤) (hb : b < ⊤) :
+lemma to_real_eq_to_real (ha : a < ⊤) (hb : b < ⊤) :
   ennreal.to_real a = ennreal.to_real b ↔ a = b :=
 begin
   rw ennreal.lt_top_iff_ne_top at *,
@@ -1124,7 +1138,7 @@ begin
   { assume h, rw h }
 end
 
-lemma to_real_mul_to_real {a b : ennreal} :
+lemma to_real_mul_to_real :
   (ennreal.to_real a) * (ennreal.to_real b) = ennreal.to_real (a * b) :=
 begin
   by_cases ha : a = ⊤,

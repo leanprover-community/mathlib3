@@ -1575,7 +1575,7 @@ variables [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃
 variables [module R M] [module R M₂] [module R M₃]
 
 lemma range_mkq_comp (f : M →ₗ[R] M₂) : f.range.mkq.comp f = 0 :=
-linear_map.ext $ λ x, by { simp, use x }
+linear_map.ext $ λ x, by simp
 
 lemma ker_le_range_iff {f : M →ₗ[R] M₂} {g : M₂ →ₗ[R] M₃} :
   g.ker ≤ f.range ↔ f.range.mkq.comp g.ker.subtype = 0 :=
@@ -1737,6 +1737,9 @@ rfl
 @[simp] theorem map_add (a b : M) : e (a + b) = e a + e b := e.map_add' a b
 @[simp] theorem map_zero : e 0 = 0 := e.to_linear_map.map_zero
 @[simp] theorem map_smul (c : R) (x : M) : e (c • x) = c • e x := e.map_smul' c x
+
+@[simp] lemma map_sum {s : finset ι} (u : ι → M) : e (∑ i in s, u i) = ∑ i in s, e (u i) :=
+e.to_linear_map.map_sum
 
 @[simp] theorem map_eq_zero_iff {x : M} : e x = 0 ↔ x = 0 :=
 e.to_add_equiv.map_eq_zero_iff

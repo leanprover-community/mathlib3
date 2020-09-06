@@ -325,14 +325,14 @@ def structure_sheaf : sheaf CommRing (Spec.Top R) :=
   ((structure_sheaf R).presheaf.map i.op s).1 x = (s.1 (i x) : _) :=
 rfl
 
-lemma germ_ext {U V : opens (Spec.Top R)} {x : Spec.Top R} {hxU : x ∈ U} {hxV : x ∈ V}
-  (W : opens (Spec.Top R)) (hxW : x ∈ W) (iWU : W ⟶ U) (iWV : W ⟶ V)
-  {sU : (structure_sheaf R).presheaf.obj (op U)}
-  {sV : (structure_sheaf R).presheaf.obj (op V)}
-  (ih : (structure_sheaf R).presheaf.map iWU.op sU = (structure_sheaf R).presheaf.map iWV.op sV) :
-  (structure_sheaf R).presheaf.germ ⟨x, hxU⟩ sU = (structure_sheaf R).presheaf.germ ⟨x, hxV⟩ sV :=
-by erw [← (structure_sheaf R).presheaf.germ_res iWU ⟨x, hxW⟩,
-    ← (structure_sheaf R).presheaf.germ_res iWV ⟨x, hxW⟩, coe_comp, coe_comp, ih]
+-- lemma germ_ext {U V : opens (Spec.Top R)} {x : Spec.Top R} {hxU : x ∈ U} {hxV : x ∈ V}
+--   (W : opens (Spec.Top R)) (hxW : x ∈ W) (iWU : W ⟶ U) (iWV : W ⟶ V)
+--   {sU : (structure_sheaf R).presheaf.obj (op U)}
+--   {sV : (structure_sheaf R).presheaf.obj (op V)}
+--   (ih : (structure_sheaf R).presheaf.map iWU.op sU = (structure_sheaf R).presheaf.map iWV.op sV) :
+--   (structure_sheaf R).presheaf.germ ⟨x, hxU⟩ sU = (structure_sheaf R).presheaf.germ ⟨x, hxV⟩ sV :=
+-- by erw [← (structure_sheaf R).presheaf.germ_res iWU ⟨x, hxW⟩,
+--     ← (structure_sheaf R).presheaf.germ_res iWV ⟨x, hxW⟩, coe_comp, coe_comp, ih]
 
 /--
 The stalk at `x` is equivalent (just as a type) to the localization at `x`.
@@ -605,7 +605,7 @@ def stalk_iso (x : Spec.Top R) :
     ext s, simp only [coe_comp], rw [coe_id, stalk_to_fiber_ring_hom_germ'],
     obtain ⟨V, hxV, iVU, f, g, hg, hs⟩ := exists_const _ _ s x hxU,
     erw [← res_apply R U V iVU s ⟨x, hxV⟩, ← hs, const_apply, localization_to_stalk_mk'],
-    refine germ_ext R V hxV (hom_of_le hg) iVU _,
+    refine (structure_sheaf R).presheaf.germ_ext V hxV (hom_of_le hg) iVU _,
     erw [← hs, res_const']
   end,
   inv_hom_id' := (localization.of x.as_ideal.prime_compl).epic_of_localization_map $ λ f,

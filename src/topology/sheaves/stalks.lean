@@ -75,6 +75,22 @@ colimit.w ((open_nhds.inclusion x.1).op ⋙ F) i'.op
 let i' : (⟨U, x.2⟩ : open_nhds x.1) ⟶ ⟨V, (i x : V).2⟩ := i in
 congr_fun (colimit.w ((open_nhds.inclusion x.1).op ⋙ F) i'.op) f
 
+section
+local attribute [instance] concrete_category.has_coe_to_sort concrete_category.has_coe_to_fun
+
+@[ext]
+lemma germ_ext {D : Type u} [category.{v} D] [concrete_category D] [has_colimits D]
+  (F : X.presheaf D)
+  {U V : opens X} {x : X} {hxU : x ∈ U} {hxV : x ∈ V}
+  (W : opens X) (hxW : x ∈ W) (iWU : W ⟶ U) (iWV : W ⟶ V)
+  {sU : F.obj (op U)} {sV : F.obj (op V)}
+  (ih : F.map iWU.op sU = F.map iWV.op sV) :
+  F.germ ⟨x, hxU⟩ sU = F.germ ⟨x, hxV⟩ sV :=
+by erw [← F.germ_res iWU ⟨x, hxW⟩,
+    ← F.germ_res iWV ⟨x, hxW⟩, coe_comp, coe_comp, ih]
+
+end
+
 lemma stalk_hom_ext (F : X.presheaf C) {x} {Y : C} {f₁ f₂ : F.stalk x ⟶ Y}
   (ih : ∀ (U : opens X) (hxU : x ∈ U), F.germ ⟨x, hxU⟩ ≫ f₁ = F.germ ⟨x, hxU⟩ ≫ f₂) : f₁ = f₂ :=
 colimit.hom_ext $ λ U, by { op_induction U, cases U with U hxU, exact ih U hxU }

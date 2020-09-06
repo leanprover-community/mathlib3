@@ -28,65 +28,40 @@ namespace scott_topological_space
 def is_ωSup {α : Type u} [preorder α] (c : chain α) (x : α) : Prop :=
 (∀ i, c i ≤ x) ∧ (∀ y, (∀ i, c i ≤ y) → x ≤ y)
 
-variables (α : Type u) [preorder α]
+variables (α : Type u) [omega_complete_partial_order α]
 
 /-- The characteristic function of open sets is monotone and preserves
 the limits of chains. -/
 def is_open (s : set α) : Prop :=
-∃ (h : monotone s), ∀ (c : chain α) x, is_ωSup c x → is_ωSup (c.map ⟨s,h⟩) (s x)
+continuous' (s : α → Prop)
 
 theorem is_open_univ : is_open α set.univ :=
-⟨λ x y h, le_refl _, λ c x ⟨h₀,h₁⟩, ⟨λ i _, trivial, λ y h₂, h₂ 0⟩⟩
+⟨λ x y h, le_refl _,
+  show omega_complete_partial_order.continuous ⊤,
+    from complete_lattice.top_continuous ⟩
 
 theorem is_open_inter (s t : set α) : is_open α s → is_open α t → is_open α (s ∩ t) :=
 begin
-  simp only [is_open, exists_imp_distrib],
+  simp only [is_open, exists_imp_distrib, continuous'],
   intros h₀ h₁ h₂ h₃,
-  have h₄ : monotone (s ∩ t : set α),
-  { intros x y h, apply and_implies (h₀ h) (h₂ h) },
-  existsi h₄,
-  intros c x h₅,
-  specialize h₁ _ _ h₅,
-  specialize h₃ _ _ h₅,
-  split,
-  { rintros i ⟨h₆,h₇⟩,
-    refine ⟨h₁.1 i h₆, h₃.1 i h₇⟩, },
-  { rintros y h ⟨h₆,h₇⟩,
-    cases h₁ with ha₁ hb₁,
-    cases h₃ with ha₃ hb₃,
-    apply hb₃ y _ h₇, -- h₆,
-    intros i ht,
-    apply hb₁ y _ h₆,
-    intros j hs,
-    apply h (max i j), split,
-    { apply h₀ (c.monotone (le_max_right _ _)) hs, },
-    { apply h₂ (c.monotone (le_max_left _ _)) ht, }, }
+  rw ← set.inf_eq_inter,
+  let s' : α →ₘ Prop := ⟨s, h₀⟩,
+  let t' : α →ₘ Prop := ⟨t, h₂⟩,
+  split, change omega_complete_partial_order.continuous (s' ⊓ t'),
+  haveI : is_total Prop (≤) := ⟨ @le_total Prop _ ⟩,
+  apply complete_lattice.inf_continuous; assumption
 end
 
 theorem is_open_sUnion : ∀s, (∀t∈s, is_open α t) → is_open α (⋃₀ s) :=
 begin
   introv h₀,
-  simp only [is_open],
-  have h : monotone (⋃₀ s),
-  { intros x y h,
-    simp only [set.sUnion, set_of, exists_prop],
-    apply exists_imp_exists, intro t,
-    rintro ⟨h₁,h₂⟩,
-    specialize h₀ _ h₁,
-    cases h₀ with h₃ h₄,
-    existsi h₁,
-    exact h₃ h h₂ },
-  existsi h,
-  introv, rintro h₁, split,
-  { rintros i ⟨t,ht,h⟩, refine ⟨_, ht, _⟩,
-    specialize h₀ _ ht,
-    rcases h₀ with ⟨h₀,h₂⟩,
-    exact (h₂ _ _ h₁).1 i h, },
-  { rintro y hy ⟨t,ht,hx⟩,
-    specialize h₀ _ ht,
-    rcases h₀ with ⟨h₀,h₂⟩,
-    refine (h₂ _ _ h₁).2 y _ hx,
-    intros i hi, apply hy _ ⟨_,ht,hi⟩ }
+  suffices : is_open α (Sup s : α → Prop),
+  { convert this, ext,
+    simp only [set.sUnion, Sup, set_of, supr, conditionally_complete_lattice.Sup,
+               complete_lattice.Sup, exists_prop, set.mem_range,
+               set_coe.exists, eq_iff_iff, subtype.coe_mk],
+    tauto, },
+  apply complete_lattice.Sup_continuous' _ h₀,
 end
 
 end scott_topological_space
@@ -97,7 +72,7 @@ preserves the joins of ω-chains  -/
 @[reducible]
 def Scott (α : Type u) := α
 
-instance scott_topological_space (α : Type u) [preorder α] : topological_space (Scott α) :=
+instance scott_topological_space (α : Type u) [omega_complete_partial_order α] : topological_space (Scott α) :=
 { is_open := scott_topological_space.is_open α,
   is_open_univ := scott_topological_space.is_open_univ α,
   is_open_inter := scott_topological_space.is_open_inter α,
@@ -107,7 +82,7 @@ instance scott_topological_space (α : Type u) [preorder α] : topological_space
 lemma le_iff_imp {p q : Prop} : p ≤ q ↔ (p → q) := by refl
 
 section
-variables {α : Type*} [preorder α] (y : Scott α)
+variables {α : Type*} [omega_complete_partial_order α] (y : Scott α)
 
 /-- `not_below` is an open set in `Scott α` used
 to prove the monotonicity of continuous functions -/
@@ -155,6 +130,7 @@ lemma Scott_continuous_of_continuous {α β}
   (f : Scott α → Scott β) (hf : continuous f) :
   omega_complete_partial_order.continuous' f :=
 begin
+  dsimp [_root_.continuous, (⁻¹')] at hf,
   have h : monotone f,
   { intros x y h,
     cases (hf {x | ¬ x ≤ f y} (f_below_is_open _)) with hf hf', clear hf',
@@ -162,20 +138,13 @@ begin
     by_contradiction, apply hf a (le_refl (f y)) },
   existsi h, intro c,
   apply eq_of_forall_ge_iff, intro z,
-  simp only [ωSup_le_iff, preorder_hom.coe_fun_mk, chain.map_to_fun, function.comp_app],
   specialize (hf _ (f_below_is_open z)),
-  cases hf, specialize hf_h c (ωSup c) _,
-  simp only [not_below, set.preimage, set.mem_set_of_eq, set_of_apply] at hf_h,
-  { cases hf_h with h₀ h₁, split, intros,
-    { transitivity; [skip, apply a],
-      apply h, apply le_ωSup, },
-    { simp only [le_iff_imp, preorder_hom.coe_fun_mk, chain.map_to_fun, function.comp_app, set_of_apply] at h₀ h₁,
-      intros h₂,
-      by_contradiction h₃,
-      refine h₁ false _ h₃,
-      intros i h₄, apply h₄ (h₂ i), } },
-  { split, apply le_ωSup,
-    apply ωSup_le, }
+  cases hf, specialize hf_h c,
+  simp only [not_below, preorder_hom.coe_fun_mk, eq_iff_iff, set.mem_set_of_eq, set_of_apply] at hf_h,
+  rw [← not_iff_not],
+  simp only [ωSup_le_iff, hf_h, ωSup, supr, Sup, complete_lattice.Sup, exists_prop, set.mem_range, preorder_hom.coe_fun_mk,
+             chain.map_to_fun, function.comp_app, eq_iff_iff, set_of_apply, not_forall],
+  tauto,
 end
 
 lemma continuous_of_Scott_continuous {α β}
@@ -185,28 +154,9 @@ lemma continuous_of_Scott_continuous {α β}
   continuous f :=
 begin
   intros s hs,
+  change continuous' (s ∘ f),
+  cases hs with hs hs',
   cases hf with hf hf',
-  have hf₀ : monotone (f ⁻¹' s),
-  { intros x y h,
-    simp only [set.preimage, le_iff_imp, set_of_apply],
-    cases hs, intro h',
-    apply hs_w (hf h) h', },
-  existsi hf₀, rintros c x ⟨h₀,h₁⟩,
-  split,
-  { simp only [set.preimage, le_iff_imp, preorder_hom.coe_fun_mk, chain.map_to_fun, function.comp_app, set_of_apply],
-    intros i h₂,
-    exact hf₀ (h₀ i) h₂ },
-  { intros p hp hs',
-    simp only [set.preimage, le_iff_imp, preorder_hom.coe_fun_mk, chain.map_to_fun, function.comp_app, set_of_apply] at hp hs',
-    cases hs with hs₀ hs₁,
-    specialize hs₁ (c.map ⟨f,hf⟩) (ωSup (c.map ⟨f,hf⟩)) (is_ωSup_ωSup _),
-    { cases hs₁ with hs₁ hs₂,
-      simp only [le_iff_imp, preorder_hom.coe_fun_mk, chain.map_to_fun, function.comp_app] at hs₁ hs₂,
-      specialize hf' c,
-      apply hs₂ _ hp, clear hs₂,
-      rw ← hf',
-      rwa [show ωSup c = x, from _],
-      apply le_antisymm,
-      { apply ωSup_le _ _ h₀, },
-      { apply h₁, apply le_ωSup, } }, }
+  apply continuous.of_bundled,
+  apply continuous_comp _ _ hf' hs',
 end

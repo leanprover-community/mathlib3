@@ -142,9 +142,7 @@ def adjoin_simple.gen : F⟮α⟯ := ⟨α, mem_adjoin_simple_self F α⟩
 @[simp] lemma adjoin_simple.algebra_map_gen : algebra_map F⟮α⟯ E (adjoin_simple.gen F α) = α := rfl
 
 lemma adjoin_simple_adjoin_simple (β : E) : (F⟮α⟯⟮β⟯ : set E) = (F⟮α, β⟯ : set E) :=
-begin
-  apply adjoin_adjoin_left,
-end
+by apply adjoin_adjoin_left
 
 section
 open finite_dimensional

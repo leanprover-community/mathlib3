@@ -294,8 +294,7 @@ begin
         exact is_add_subgroup.sub_mem F⟮γ⟯ γ (c'*β) γ_in_Fγ cβ_in_Fγ,
     have αβ_in_Fγ : {α,β} ⊆ (F⟮γ⟯ : set E) := λ x hx, by cases hx; cases hx; cases hx; assumption,
     have Fαβ_sub_Fγ : (F⟮α, β⟯ : set E) ⊆ (F⟮γ⟯ : set E) := (field.adjoin_subset_iff F {α,β}).mp αβ_in_Fγ,
-    use γ,
-    exact λ x hx, Fαβ_sub_Fγ hx,
+    exact ⟨γ, Fαβ_sub_Fγ⟩,
 end
 
 universe u
@@ -323,7 +322,7 @@ begin
         symmetry,
         apply iff_of_true algebra.mem_top,
         apply hγ,
-        rw ←field.adjoin_simple_adjoin_simple,
+        rw ← field.adjoin_simple_adjoin_simple,
         rw hβ,
         exact algebra.mem_top, },
     {   push_neg at key,
@@ -338,7 +337,7 @@ begin
         replace h := field.adjoin.findim_one F x h,
         rw set.mem_range at h,
         cases h with y hy,
-        rw ←hy,
+        rw ← hy,
         exact F⟮0⟯.algebra_map_mem y,
     },
 end
@@ -400,5 +399,3 @@ begin
     apply iff_of_true algebra.mem_top,
     exact key ((subalgebra.ext_iff.mp hα x).mpr algebra.mem_top),
 end
-
-#lint

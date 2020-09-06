@@ -87,7 +87,7 @@ def submodule_restrict_field (p : submodule K A) : submodule F A := {
     end
 }
 
-/-- If E is a finite extension of F then it is also a finite extension of F adjoin alpha. -/
+/-- If A is a finite extension of F then it is also a finite extension of K. -/
 instance findim_of_findim [F_findim : finite_dimensional F A] :
     finite_dimensional K A :=
 begin

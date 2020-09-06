@@ -320,12 +320,15 @@ def structure_sheaf : sheaf CommRing (Spec.Top R) :=
       (sheaf_condition_equiv_of_iso (structure_presheaf_comp_forget R).symm
         (structure_sheaf_in_Type R).sheaf_condition), }
 
-@[simp] lemma res_apply (U V : opens (Spec.Top R)) (i : V ⟶ U) (s) (x : V) :
+@[simp] lemma res_apply (U V : opens (Spec.Top R)) (i : V ⟶ U)
+  (s : (structure_sheaf R).presheaf.obj (op U)) (x : V) :
   ((structure_sheaf R).presheaf.map i.op s).1 x = (s.1 (i x) : _) :=
 rfl
 
-lemma germ_ext {U V : opens (Spec.Top R)} {x : Spec.Top R} {hxU hxV}
-  (W : opens (Spec.Top R)) (hxW : x ∈ W) (iWU : W ⟶ U) (iWV : W ⟶ V) {sU sV}
+lemma germ_ext {U V : opens (Spec.Top R)} {x : Spec.Top R} {hxU : x ∈ U} {hxV : x ∈ V}
+  (W : opens (Spec.Top R)) (hxW : x ∈ W) (iWU : W ⟶ U) (iWV : W ⟶ V)
+  {sU : (structure_sheaf R).presheaf.obj (op U)}
+  {sV : (structure_sheaf R).presheaf.obj (op V)}
   (ih : (structure_sheaf R).presheaf.map iWU.op sU = (structure_sheaf R).presheaf.map iWV.op sV) :
   (structure_sheaf R).presheaf.germ ⟨x, hxU⟩ sU = (structure_sheaf R).presheaf.germ ⟨x, hxV⟩ sV :=
 by erw [← (structure_sheaf R).presheaf.germ_res iWU ⟨x, hxW⟩,
@@ -374,16 +377,19 @@ def const (f g : R) (U : opens (Spec.Top R))
 ⟨λ x, (localization.of _).mk' f ⟨g, hu x x.2⟩,
  λ x, ⟨U, x.2, 𝟙 _, f, g, λ y, ⟨hu y y.2, localization_map.mk'_spec _ _ _⟩⟩⟩
 
-@[simp] lemma const_apply (f g : R) (V hv x) :
-  (const R f g V hv).1 x = (localization.of _).mk' f ⟨g, hv x x.2⟩ :=
+@[simp] lemma const_apply (f g : R) (U : opens (Spec.Top R))
+  (hu : ∀ x ∈ U, g ∈ (x : Spec.Top R).as_ideal.prime_compl) (x : U) :
+  (const R f g U hu).1 x = (localization.of _).mk' f ⟨g, hu x x.2⟩ :=
 rfl
 
-lemma const_apply' (f g : R) (V hv x hx) :
-  (const R f g V hv).1 x = (localization.of _).mk' f ⟨g, hx⟩ :=
+lemma const_apply' (f g : R) (U : opens (Spec.Top R))
+  (hu : ∀ x ∈ U, g ∈ (x : Spec.Top R).as_ideal.prime_compl) (x : U)
+  (hx : g ∈ (as_ideal x.1).prime_compl) :
+  (const R f g U hu).1 x = (localization.of _).mk' f ⟨g, hx⟩ :=
 rfl
 
-lemma exists_const (U) (s : (structure_sheaf R).presheaf.obj (op U)) (x) (hx : x ∈ U) :
-  ∃ V (hxV : x ∈ V) (i : V ⟶ U) f g hg,
+lemma exists_const (U) (s : (structure_sheaf R).presheaf.obj (op U)) (x : Spec.Top R) (hx : x ∈ U) :
+  ∃ (V : opens (Spec.Top R)) (hxV : x ∈ V) (i : V ⟶ U) (f g : R) hg,
   const R f g V hg = (structure_sheaf R).presheaf.map i.op s :=
 let ⟨V, hxV, iVU, f, g, hfg⟩ := s.2 ⟨x, hx⟩ in
 ⟨V, hxV, iVU, f, g, λ y hyV, (hfg ⟨y, hyV⟩).1, subtype.eq $ funext $ λ y,

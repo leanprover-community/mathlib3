@@ -79,42 +79,35 @@ instance scott_topological_space (α : Type u) [omega_complete_partial_order α]
   is_open_sUnion := scott_topological_space.is_open_sUnion α }
 
 @[simp]
+lemma set_of_apply {α} (p : α → Prop) (x : α) : set_of p x ↔ p x := iff.rfl
+
+@[simp]
 lemma le_iff_imp {p q : Prop} : p ≤ q ↔ (p → q) := by refl
 
-section
+section not_below
 variables {α : Type*} [omega_complete_partial_order α] (y : Scott α)
 
 /-- `not_below` is an open set in `Scott α` used
 to prove the monotonicity of continuous functions -/
 def not_below := { x | ¬ x ≤ y }
 
-lemma f_below_is_open : is_open (not_below y) :=
+lemma not_below_is_open : is_open (not_below y) :=
 begin
   have h : monotone (not_below y),
   { intros x y' h,
     simp only [not_below, set_of, le_iff_imp],
     intros h₀ h₁, apply h₀ (le_trans h h₁) },
-  existsi h,
-  rintros c x ⟨h₀,h₁⟩, split,
-  { intros i,
-    simp only [not_below, set_of, le_iff_imp, preorder_hom.coe_fun_mk, chain.map_to_fun, function.comp_app],
-    intros h₂ h₃, apply h₂,
-    transitivity, apply h₀, exact h₃ },
-  { simp only [not_below, set_of, le_iff_imp, preorder_hom.coe_fun_mk, chain.map_to_fun, function.comp_app],
-    intros p hp hyx,
-    by_contradiction h₂, apply hyx, clear hyx,
-    apply h₁, intro i,
-    by_contradiction h₃,
-    apply h₂ (hp _ h₃), }
+  existsi h, rintros c,
+  apply eq_of_forall_ge_iff, intro z,
+  rw ωSup_le_iff,
+  simp only [ωSup_le_iff, not_below, set_of_apply, le_iff_imp, preorder_hom.coe_fun_mk,
+             chain.map_to_fun, function.comp_app, exists_imp_distrib, not_forall],
 end
 
-end
+end not_below
 
 open scott_topological_space (hiding is_open)
 open omega_complete_partial_order
-
-@[simp]
-lemma set_of_apply {α} (p : α → Prop) (x : α) : set_of p x ↔ p x := iff.rfl
 
 lemma is_ωSup_ωSup {α} [omega_complete_partial_order α] (c : chain α) :
   is_ωSup c (ωSup c) :=
@@ -133,12 +126,12 @@ begin
   dsimp [_root_.continuous, (⁻¹')] at hf,
   have h : monotone f,
   { intros x y h,
-    cases (hf {x | ¬ x ≤ f y} (f_below_is_open _)) with hf hf', clear hf',
+    cases (hf {x | ¬ x ≤ f y} (not_below_is_open _)) with hf hf', clear hf',
     specialize hf h, simp only [set.preimage, set_of, (∈), set.mem, le_iff_imp] at hf,
     by_contradiction, apply hf a (le_refl (f y)) },
   existsi h, intro c,
   apply eq_of_forall_ge_iff, intro z,
-  specialize (hf _ (f_below_is_open z)),
+  specialize (hf _ (not_below_is_open z)),
   cases hf, specialize hf_h c,
   simp only [not_below, preorder_hom.coe_fun_mk, eq_iff_iff, set.mem_set_of_eq, set_of_apply] at hf_h,
   rw [← not_iff_not],

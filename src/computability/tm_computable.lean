@@ -33,11 +33,11 @@ time is up to multiplication by a constant the amount of fundamental steps.
 
 open computability
 
-/-- A bundled Turing Machine of type 2 (as defined in turing_machine.lean), with an input and
-output stack, a main function, an initial state and some finiteness guarantees. -/
+/-- A bundled TM2 (an equivalent of the classical Turing machine, defined starting from
+the namespace `turing.TM2` in `turing_machine.lean`), with an input and output stack,
+ a main function, an initial state and some finiteness guarantees. -/
 structure fin_tm2 :=
- {K : Type}
- [K_decidable_eq : decidable_eq K] -- index type of stacks
+ {K : Type} [K_decidable_eq : decidable_eq K] -- index type of stacks
  (k₀ k₁ : K) -- input and output stack
  (Γ : K → Type) -- type of stack elements
  (Λ : Type) (main : Λ)  -- type of function labels
@@ -49,16 +49,16 @@ structure fin_tm2 :=
 namespace fin_tm2
 /-- The type of statements (functions) corresponding to this TM. -/
 @[derive inhabited]
-def stmt (tm : fin_tm2 ) : Type := @turing.TM2.stmt tm.K tm.K_decidable_eq tm.Γ tm.Λ tm.σ
+def stmt (tm : fin_tm2) : Type := @turing.TM2.stmt tm.K tm.K_decidable_eq tm.Γ tm.Λ tm.σ
 
 /-- The type of configurations (functions) corresponding to this TM. -/
-def cfg (tm : fin_tm2 ) : Type := @turing.TM2.cfg tm.K tm.K_decidable_eq tm.Γ tm.Λ tm.σ
+def cfg (tm : fin_tm2) : Type := @turing.TM2.cfg tm.K tm.K_decidable_eq tm.Γ tm.Λ tm.σ
 
 instance inhabited_cfg (tm : fin_tm2) : inhabited (cfg tm) :=
 @turing.TM2.cfg.inhabited _ tm.K_decidable_eq _ _ _ ⟨tm.initial_state⟩
 
 /-- The step function corresponding to this TM. -/
-@[simp] def step (tm : fin_tm2 ) : tm.cfg → option tm.cfg :=
+@[simp] def step (tm : fin_tm2) : tm.cfg → option tm.cfg :=
 @turing.TM2.step tm.K tm.K_decidable_eq tm.Γ tm.Λ tm.σ tm.M
 end fin_tm2
 
@@ -130,14 +130,14 @@ private structure computable_by_tm2_aux (Γ₀ Γ₁ : Type) :=
 /-- A Turing machine + a proof it outputs f. -/
 structure computable_by_tm2 {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β)
   extends computable_by_tm2_aux ea.Γ eb.Γ :=
-(outputs_f : ∀ a, tm2_outputs tm (list.map input_alphabet.inv_fun (ea.encode a))
+(outputs_fun : ∀ a, tm2_outputs tm (list.map input_alphabet.inv_fun (ea.encode a))
   (option.some ((list.map output_alphabet.inv_fun) (eb.encode (f a)))) )
 
 /-- A Turing machine + a time function + a proof it outputs f in at most time(len(input)) steps. -/
 structure computable_by_tm2_in_time {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β)
   extends computable_by_tm2_aux ea.Γ eb.Γ :=
 ( time: ℕ → ℕ )
-( outputs_f : ∀ a, tm2_outputs_in_time tm (list.map input_alphabet.inv_fun (ea.encode a))
+( outputs_fun : ∀ a, tm2_outputs_in_time tm (list.map input_alphabet.inv_fun (ea.encode a))
   (option.some ((list.map output_alphabet.inv_fun) (eb.encode (f a))))
   (time (ea.encode a).length) )
 
@@ -145,19 +145,19 @@ structure computable_by_tm2_in_time {α β : Type} (ea : fin_encoding α) (eb : 
 structure computable_by_tm2_in_poly_time {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β)
   extends computable_by_tm2_aux ea.Γ eb.Γ :=
 ( time: polynomial ℕ )
-( outputs_f : ∀ a, tm2_outputs_in_time tm (list.map input_alphabet.inv_fun (ea.encode a))
+( outputs_fun : ∀ a, tm2_outputs_in_time tm (list.map input_alphabet.inv_fun (ea.encode a))
   (option.some ((list.map output_alphabet.inv_fun) (eb.encode (f a))))
   (time.eval (ea.encode a).length) )
 
 /-- A forgetful map, forgetting the time bound on the number of steps. -/
 def computable_by_tm2_in_time.to_computable_by_tm2 {α β : Type} {ea : fin_encoding α} {eb : fin_encoding β}
 {f : α → β} (h : computable_by_tm2_in_time ea eb f) : computable_by_tm2 ea eb f :=
-⟨h.to_computable_by_tm2_aux, λ a, tm2_outputs_in_time.to_tm2_outputs (h.outputs_f a)⟩
+⟨h.to_computable_by_tm2_aux, λ a, tm2_outputs_in_time.to_tm2_outputs (h.outputs_fun a)⟩
 
 /-- A forgetful map, forgetting that the time function is polynomial. -/
 def computable_by_tm2_in_poly_time.to_computable_by_tm2_in_time {α β : Type} {ea : fin_encoding α}
 {eb : fin_encoding β} {f : α → β} (h : computable_by_tm2_in_poly_time ea eb f) : computable_by_tm2_in_time ea eb f :=
-⟨h.to_computable_by_tm2_aux, λ n, h.time.eval n, h.outputs_f⟩
+⟨h.to_computable_by_tm2_aux, λ n, h.time.eval n, h.outputs_fun⟩
 
 open turing.TM2.stmt
 
@@ -185,7 +185,7 @@ def id_computable_in_poly_time {α : Type} (ea : fin_encoding α) : @computable_
   input_alphabet := equiv.cast rfl,
   output_alphabet := equiv.cast rfl,
   time := 1,
-  outputs_f := λ _, { steps := 1,
+  outputs_fun := λ _, { steps := 1,
     evals_in_steps := rfl,
     steps_le_m := by simp only [polynomial.eval_one],
 }}
@@ -194,7 +194,7 @@ instance inhabited_computable_by_tm2_in_poly_time : inhabited _ :=
 ⟨id_computable_in_poly_time computability.inhabited_fin_encoding.default⟩
 
 instance inhabited_tm2_outputs_in_time : inhabited _ :=
-⟨(id_computable_in_poly_time fin_encoding_bool_bool).outputs_f ff⟩
+⟨(id_computable_in_poly_time fin_encoding_bool_bool).outputs_fun ff⟩
 
 instance inhabited_tm2_outputs : inhabited _ :=
 ⟨tm2_outputs_in_time.to_tm2_outputs inhabited_tm2_outputs_in_time.default⟩

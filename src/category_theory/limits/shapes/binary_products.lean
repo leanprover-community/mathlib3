@@ -324,14 +324,6 @@ lim.map_iso (map_pair_iso f g)
   (f : W ≅ Y) (g : X ≅ Z) : (prod.map_iso f g).inv = prod.map f.inv g.inv := by simp
 
 @[simp, reassoc]
-lemma prod.diag_fst {X : C} [has_limits_of_shape (discrete walking_pair) C] : diag X ≫ prod.fst = 𝟙 X :=
-by simp
-
-@[simp, reassoc]
-lemma prod.diag_snd {X : C} [has_limits_of_shape (discrete walking_pair) C] : diag X ≫ prod.snd = 𝟙 X :=
-by simp
-
-@[simp, reassoc]
 lemma prod.diag_map {X Y : C} [has_limits_of_shape (discrete walking_pair) C] (f : X ⟶ Y) :
   diag X ≫ prod.map f f = f ≫ diag Y :=
 by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
@@ -447,14 +439,6 @@ by tidy
 @[reassoc] lemma coprod.map_desc {S T U V W : C} (f : U ⟶ S) (g : W ⟶ S) (h : T ⟶ U) (k : V ⟶ W) :
   coprod.map h k ≫ coprod.desc f g = coprod.desc (h ≫ f) (k ≫ g) :=
 by tidy
-
-@[simp, reassoc]
-lemma coprod.inl_codiag {X : C} : coprod.inl ≫ codiag X = 𝟙 X :=
-by simp
-
-@[simp, reassoc]
-lemma coprod.inr_codiag {X : C} : coprod.inr ≫ codiag X = 𝟙 X :=
-by simp
 
 @[reassoc]
 lemma coprod.map_codiag {X Y : C} (f : X ⟶ Y) :

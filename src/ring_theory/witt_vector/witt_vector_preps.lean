@@ -553,12 +553,43 @@ end
 
 end mv_polynomial
 
+section ring_equiv
+-- does this exist? It should
+-- I'm slightly worried this def could be inconvenient later
+variables (R S : Type*) [ring R] [ring S]
+open function
+noncomputable def equiv_inv_of_bij (f : R →+* S) (hf : bijective f) : R ≃+* S :=
+begin
+  let inv := classical.some (function.bijective_iff_has_inverse.mp hf),
+  obtain ⟨hl : left_inverse inv f, hr : right_inverse inv f⟩ := classical.some_spec (function.bijective_iff_has_inverse.mp hf),
+  refine_struct {to_fun := f, inv_fun := inv}; try {assumption}; simp
+end
+
+end ring_equiv
+
 section isos_to_zmod
 variables (R : Type*) (n : ℕ) [comm_ring R] [fintype R]
+#check zmod.cast_hom
 
-def iso_to_zmod [char_p R n] (hn : fintype.card R = n) :
-  R ≃+* zmod n :=
-_ -- use zmod.cast_hom + bijection
+lemma zmod.cast_hom_inj [char_p R n] (hn : fintype.card R = n) :
+  function.injective (zmod.cast_hom (show n ∣ n, by refl) R) :=
+begin
+  intros x y hxy, simp [zmod.cast_hom] at hxy,
+
+end
+
+lemma zmod.cast_hom_surj [char_p R n] (hn : fintype.card R = n) :
+  function.surjective (zmod.cast_hom (show n ∣ n, by refl) R) :=
+_
+
+lemma zmod.cast_hom_bij [char_p R n] (hn : fintype.card R = n) :
+  function.bijective (zmod.cast_hom (show n ∣ n, by refl) R) :=
+⟨zmod.cast_hom_inj _ _ hn, zmod.cast_hom_surj _ _ hn⟩
+
+noncomputable def iso_to_zmod [char_p R n] (hn : fintype.card R = n) :
+  zmod n ≃+* R :=
+equiv_inv_of_bij _ _ _ (zmod.cast_hom_bij _  _ hn)
+-- _ -- use zmod.cast_hom + bijection
 
 lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, i ≠ 0 → (i : R) ≠ 0) :
   char_p R n :=

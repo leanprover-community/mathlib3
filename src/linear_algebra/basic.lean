@@ -127,6 +127,19 @@ ext $ assume b, rfl
   p.subtype.comp (cod_restrict p f h) = f :=
 ext $ assume b, rfl
 
+/-- Restrict domain and codomain of an endomorphism. -/
+def restrict (f : M →ₗ[R] M) (p : submodule R M) (hf : ∀ x ∈ p, f x ∈ p) : p →ₗ[R] p :=
+{ to_fun := λ x, ⟨f x, hf x.1 x.2⟩,
+  map_add' := begin intros, apply set_coe.ext, simp end,
+  map_smul' := begin intros, apply set_coe.ext, simp end }
+
+lemma restrict_apply
+  {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) (x : p) :
+  f.restrict p hf x = ⟨f x, hf x.1 x.2⟩ := rfl
+
+lemma subtype_comp_restrict {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) :
+  p.subtype.comp (f.restrict p hf) = f.comp p.subtype := rfl
+
 /-- If a function `g` is a left and right inverse of a linear map `f`, then `g` is linear itself. -/
 def inverse (g : M₂ → M) (h₁ : left_inverse g f) (h₂ : right_inverse g f) : M₂ →ₗ[R] M :=
 by dsimp [left_inverse, function.right_inverse] at h₁ h₂; exact
@@ -155,6 +168,12 @@ instance linear_map_apply_is_add_monoid_hom (a : M) :
   is_add_monoid_hom (λ f : M →ₗ[R] M₂, f a) :=
 { map_add := λ f g, linear_map.add_apply f g a,
   map_zero := rfl }
+
+@[simp] lemma add_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
+  (h + g).comp f = h.comp f + g.comp f := rfl
+
+@[simp] lemma comp_add (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
+  h.comp (f + g) = h.comp f + h.comp g := by { ext, simp }
 
 lemma sum_apply (t : finset ι) (f : ι → M →ₗ[R] M₂) (b : M) :
   (∑ d in t, f d) b = ∑ d in t, f d b :=
@@ -303,6 +322,8 @@ instance : has_neg (M →ₗ[R] M₂) :=
 
 @[simp] lemma neg_apply (x : M) : (- f) x = - f x := rfl
 
+@[simp] lemma comp_neg (g : M₂ →ₗ[R] M₃) : g.comp (- f) = - g.comp f := by { ext, simp }
+
 /-- The type of linear maps is an additive group. -/
 instance : add_comm_group (M →ₗ[R] M₂) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
@@ -313,6 +334,12 @@ instance linear_map_apply_is_add_group_hom (a : M) :
 { map_add := λ f g, linear_map.add_apply f g a }
 
 @[simp] lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
+
+@[simp] lemma sub_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
+  (g - h).comp f = g.comp f - h.comp f := rfl
+
+@[simp] lemma comp_sub (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
+  h.comp (g - f) = h.comp g - h.comp f := by { ext, simp }
 
 end add_comm_group
 

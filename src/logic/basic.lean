@@ -1112,13 +1112,13 @@ lemma apply_ite {α β : Type*} (f : α → β) (P : Prop) [decidable P] (x y : 
   f (ite P x y) = ite P (f x) (f y) :=
 apply_dite f P (λ _, x) (λ _, y)
 
-@[simp] lemma apply_dite2 {α β γ : Type*} (f : α → β → γ) (P : Prop) [decidable P] (a : P → α)
+lemma apply_dite2 {α β γ : Type*} (f : α → β → γ) (P : Prop) [decidable P] (a : P → α)
   (b : ¬P → α) (c : P → β) (d : ¬P → β) :
   f (dite P a b) (dite P c d) = dite P (λ h, f (a h) (c h)) (λ h, f (b h) (d h)) :=
 by { by_cases h : P; simp [h] }
 
-@[simp] lemma apply_ite2 {α β γ : Type*} (f : α → β → γ) (P : Prop) [decidable P] (a b : α)
-  (c d : β) : f (ite P a b) (ite P c d) = ite P (f a c) (f b d) :=
+lemma apply_ite2 {α β γ : Type*} (f : α → β → γ) (P : Prop) [decidable P] (a b : α) (c d : β) :
+  f (ite P a b) (ite P c d) = ite P (f a c) (f b d) :=
 apply_dite2 f P (λ _, a) (λ _, b) (λ _, c) (λ _, d)
 
 lemma dite_apply {α : Type*} {β : α → Type*} (P : Prop) [decidable P]

@@ -80,30 +80,6 @@ export sampleable (sample shrink)
 
 open nat lazy_list
 
--- /-- Apply `f` to combine every element of the first list with every element
--- of the second list and interleave the resulting lists.
-
--- For instance `lseq prod.mk [1,2,3] [4,5,6]` results in
-
--- ```
--- [(1, 4), (2, 4), (1, 5), (3, 4), (1, 6), (2, 5), (3, 5), (2, 6), (3, 6)]
--- ```
-
--- The purpose is to take two lists of shrunken values in ascending order of size
--- and produce a list of combined values in roughly ascending order of size too.
-
--- If we add the samples instead with `lseq (+) [1,2,3] [1,2,3]`, we
--- obtain:
-
--- ```
--- [2, 3, 3, 4, 4, 4, 5, 5, 6]
--- ```
---  -/
--- def lazy_list.lseq {α β γ} (f : α → β → γ) : lazy_list α → lazy_list β → lazy_list γ
--- | lazy_list.nil xs := lazy_list.nil
--- | (lazy_list.cons x xs) lazy_list.nil := lazy_list.nil
--- | (lazy_list.cons x xs) ys := interleave (ys.map $ f x) (lazy_list.lseq (xs ()) ys)
-
 /-- `nat.shrink' k n` creates a list of smaller natural numbers by
 successively dividing `n` by 2 and subtracting the difference from
 `k`. For example, `nat.shrink 100 = [50, 75, 88, 94, 97, 99]`. -/

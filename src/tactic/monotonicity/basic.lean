@@ -20,6 +20,8 @@ inductive mono_selection : Type
 | right : mono_selection
 | both : mono_selection
 
+declare_trace mono.relation
+
 section compare
 
 parameter opt : mono_cfg
@@ -95,8 +97,11 @@ meta def mono_head_candidates : ℕ → list expr → expr → tactic mono_key
 
 meta def monotonicity.check (lm_n : name) : tactic mono_key :=
 do lm ← mk_const lm_n,
-   lm_t ← infer_type lm,
-   lm_t ← expr.dsimp lm_t { fail_if_unchanged := ff } tt [] [simp_arg_type.expr ``(monotone)],
+   lm_t ← infer_type lm >>= instantiate_mvars,
+   when_tracing `mono.relation trace!"[mono] Looking for relation in {lm_t}",
+   s ← simp_lemmas.mk.add_simp ``monotone,
+   lm_t ← s.dsimplify [] lm_t { fail_if_unchanged := ff },
+   when_tracing `mono.relation trace!"[mono] Looking for relation in {lm_t} (after unfolding)",
    (xs,h) ← open_pis lm_t,
    mono_head_candidates 3 xs.reverse h
 

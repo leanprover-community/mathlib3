@@ -439,7 +439,12 @@ as an instance to avoid a loop. -/
 noncomputable def classical.DLO (α) [LO : linear_order α] : decidable_linear_order α :=
 { decidable_le := classical.dec_rel _, ..LO }
 
+/-- Type gadget create an instance of `linear_order` from a
+`partial_order` and `[is_total α (≤)]` -/
 def as_linear_order (α : Type u) := α
+
+instance {α} [inhabited α] : inhabited (as_linear_order α) :=
+⟨ (default α : α) ⟩
 
 instance as_linear_order.linear_order {α} [partial_order α] [is_total α (≤)] : linear_order (as_linear_order α) :=
 { le_total := @total_of α (≤) _,

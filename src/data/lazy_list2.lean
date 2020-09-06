@@ -138,10 +138,15 @@ lemma append_bind {α β} (xs : lazy_list α) (ys : thunk (lazy_list α)) (f : �
 by induction xs; simp [lazy_list.bind, append, *, append_assoc, append, lazy_list.bind]
 
 instance : is_lawful_monad lazy_list :=
-{ pure_bind := by intros; apply append_nil,
-  bind_assoc := by intros; dsimp [(>>=)]; induction x; simp [lazy_list.bind, append_bind, *],
-  id_map := by intros; simp [(<$>)]; induction x; simp [lazy_list.bind, *, singleton, append]; ext ⟨ ⟩; refl,
- }
+{ pure_bind := by { intros, apply append_nil },
+  bind_assoc := by { intros, dsimp [(>>=)], induction x; simp [lazy_list.bind, append_bind, *], },
+  id_map :=
+  begin
+    intros,
+    simp [(<$>)],
+    induction x; simp [lazy_list.bind, *, singleton, append],
+    ext ⟨ ⟩, refl,
+  end }
 
 /-- Try applying function `f` to every element of a `lazy_list` and
 return the result of the first attempt that succeeds. -/

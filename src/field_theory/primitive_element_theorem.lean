@@ -107,7 +107,7 @@ end
 section
 variables {F : Type*} [field F] {E : Type*} [field E] (ϕ : F →+* E)
 
-lemma primitive_element_two_aux (α β : E) {f g : polynomial F} [F_inf : infinite F] :
+lemma primitive_element_two_aux (α β : E) (f g : polynomial F) [F_inf : infinite F] :
     ∃ c : F, ∀ (α' ∈ (f.map ϕ).roots) (β' ∈ (g.map ϕ).roots), β' ≠ β → ϕ c ≠ -(α' - α)/(β' - β) :=
 begin
     let sf := (f.map ϕ).roots,
@@ -182,22 +182,21 @@ begin
     rcases F_sep β with ⟨hβ, hg⟩,
     let f := minimal_polynomial hα,
     let g := minimal_polynomial hβ,
-    let f_E := f.map (algebra_map F E),
-    let g_E := g.map (algebra_map F E),
-    let E' := polynomial.splitting_field g_E,
     let ιFE := algebra_map F E,
+    let g' := g.map ιFE,
+    let E' := polynomial.splitting_field g',
     let ιEE' := algebra_map E E',
     let ιFE' := ιEE'.comp(ιFE),
-    have key := primitive_element_two_aux ιFE' (ιEE' α) (ιEE' β),
+    have key := primitive_element_two_aux ιFE' (ιEE' α) (ιEE' β) f g,
     cases key with c hc,
     use c,
     let γ := α+(ιFE c)*β,
-    let f' := f_E.comp(polynomial.C γ-(polynomial.C (ιFE c)) * (polynomial.X)),
-    let h := euclidean_domain.gcd f' g_E,
+    change β ∈ F⟮γ⟯,
+    let f' := (f.map ιFE).comp(polynomial.C γ-(polynomial.C (ιFE c)) * (polynomial.X)),
+    let h := euclidean_domain.gcd f' g',
     have h_sep : h.separable :=
     begin
-        have div := euclidean_domain.gcd_dvd_right f' g_E,
-        cases div with p mul,
+        cases euclidean_domain.gcd_dvd_right f' g' with p mul,
         dsimp[←h] at mul,
         apply polynomial.separable.of_mul_left,
         rw ←mul,
@@ -209,11 +208,6 @@ begin
         rw euclidean_domain.gcd_eq_zero_iff at h_eq_zero,
         apply polynomial.map_monic_ne_zero (minimal_polynomial.monic hβ) h_eq_zero.2,
     end,
-    have h_map_separable : (h.map ιEE').separable :=
-    begin
-        apply polynomial.separable.map,
-        exact h_sep,
-    end,
     have h_root : h.eval β = 0 :=
     begin
         apply polynomial.gcd_eval_zero,
@@ -222,31 +216,33 @@ begin
         rw [polynomial.eval_map,←polynomial.aeval_def,minimal_polynomial.aeval],
     end,
     have h_splits : polynomial.splits (algebra_map E E') h :=
-        polynomial.splits_of_splits_of_dvd (algebra_map E E') (polynomial.map_ne_zero (minimal_polynomial.ne_zero hβ)) (polynomial.splitting_field.splits g_E) (euclidean_domain.gcd_dvd_right f' g_E),
+        polynomial.splits_of_splits_of_dvd (algebra_map E E') (polynomial.map_ne_zero (minimal_polynomial.ne_zero hβ)) (polynomial.splitting_field.splits g') (euclidean_domain.gcd_dvd_right f' g'),
     have h_roots : ∀ x ∈ (h.map ιEE').roots, x = algebra_map E E' β :=
     begin
         intros x hx,
-        rw polynomial.mem_roots at hx,
+        rw polynomial.mem_roots (show h.map ιEE' ≠ 0, by exact polynomial.map_ne_zero h_ne_zero) at hx,
         dsimp[polynomial.is_root] at hx,
         rw polynomial.eval_map at hx,
-        have f_root : f'.eval₂ (algebra_map E E') x = 0 := polynomial.gcd_root_left E f' g_E x hx,
-        simp only [polynomial.eval₂_comp,polynomial.eval₂_map,polynomial.eval₂_sub,polynomial.eval₂_mul,polynomial.eval₂_C,polynomial.eval₂_X] at f_root,
-        replace f_root : _ ∈ (f.map ιFE').roots,
-        rw polynomial.mem_roots,
-        dsimp[polynomial.is_root],
-        rw polynomial.eval_map,
-        exact f_root,
-        exact polynomial.map_ne_zero (minimal_polynomial.ne_zero hα),
-        specialize hc _ f_root,
-        have g_root : g_E.eval₂ (algebra_map E E') x = 0 := polynomial.gcd_root_right E f' g_E x hx,
-        simp only [polynomial.eval₂_map] at g_root,
-        replace g_root : _ ∈ (g.map ιFE').roots,
-        rw polynomial.mem_roots,
-        dsimp[polynomial.is_root],
-        rw polynomial.eval_map,
-        exact g_root,
-        exact polynomial.map_ne_zero (minimal_polynomial.ne_zero hβ),
-        specialize hc _ g_root,
+        specialize hc _
+        begin
+            rw polynomial.mem_roots,
+            dsimp[polynomial.is_root],
+            rw polynomial.eval_map,
+            have f_root : f'.eval₂ (algebra_map E E') x = 0 := polynomial.gcd_root_left E f' g' x hx,
+            simp only [polynomial.eval₂_map,polynomial.eval₂_comp,polynomial.eval₂_sub,polynomial.eval₂_mul,polynomial.eval₂_C,polynomial.eval₂_X] at f_root,
+            exact f_root,
+            exact polynomial.map_ne_zero (minimal_polynomial.ne_zero hα),
+        end,
+        specialize hc _
+        begin
+            rw polynomial.mem_roots,
+            dsimp[polynomial.is_root],
+            rw polynomial.eval_map,
+            have g_root : g'.eval₂ (algebra_map E E') x = 0 := polynomial.gcd_root_right E f' g' x hx,
+            simp only [polynomial.eval₂_map] at g_root,
+            exact g_root,
+            exact polynomial.map_ne_zero (minimal_polynomial.ne_zero hβ),
+        end,
         by_contradiction,
         specialize hc a,
         apply hc,
@@ -256,59 +252,31 @@ begin
         apply mul_div_cancel,
         rw sub_ne_zero,
         exact a,
-        exact polynomial.map_ne_zero h_ne_zero,
     end,
-    replace key := primitive_element_two_inf_key_aux ιEE' h_ne_zero h_sep h_root h_splits h_roots,
-    let f_Fγ := (f.map(algebra_map F F⟮γ⟯)).comp(polynomial.C (field.adjoin_simple.gen F γ)-(polynomial.C ↑c) * (polynomial.X)),
-    let g_Fγ := g.map(algebra_map F F⟮γ⟯),
-    have composition2 : (algebra_map F⟮γ⟯ E).comp(algebra_map F F⟮γ⟯) = algebra_map F E := by ext;refl,
-    have f_map : f_Fγ.map(algebra_map F⟮γ⟯ E) = f' :=
+    let p := euclidean_domain.gcd ((f.map(algebra_map F F⟮γ⟯)).comp(polynomial.C (field.adjoin_simple.gen F γ)-(polynomial.C ↑c) * (polynomial.X))) (g.map(algebra_map F F⟮γ⟯)),
+    have key : p.map(algebra_map F⟮γ⟯ E) = (polynomial.C (h.leading_coeff)) * (polynomial.X - polynomial.C β) :=
     begin
-        dsimp[f_Fγ,f',f_E],
-        rw ←composition2,
-        rw ←polynomial.map_map,
-        set p := f.map(algebra_map F F⟮γ⟯),
-        dsimp[←p],
-        erw polynomial.map_comp (algebra_map F⟮γ⟯ E) p (polynomial.C (field.adjoin_simple.gen F γ)-(polynomial.C ↑c) * (polynomial.X)),
-        rw [polynomial.map_sub,polynomial.map_C,field.adjoin_simple.algebra_map_gen,polynomial.map_mul,polynomial.map_C,polynomial.map_X],
+        rw ←primitive_element_two_inf_key_aux ιEE' h_ne_zero h_sep h_root h_splits h_roots,
+        rw ←(show euclidean_domain.gcd _ _ = (euclidean_domain.gcd ((f.map(algebra_map F F⟮γ⟯)).comp(polynomial.C (field.adjoin_simple.gen F γ)-(polynomial.C ↑c) * (polynomial.X))) (g.map(algebra_map F F⟮γ⟯))).map(algebra_map F⟮γ⟯ E), by convert polynomial.gcd_map (algebra_map F⟮γ⟯ E)),
+        have composition : (algebra_map F⟮γ⟯ E).comp(algebra_map F F⟮γ⟯) = algebra_map F E := by ext;refl,
+        simp[polynomial.map_comp,polynomial.map_map,composition],
+        dsimp[h,f',g',γ],
+        simp,
         refl,
     end,
-    have g_map : g_Fγ.map(algebra_map F⟮γ⟯ E) = g_E :=
+    have leading_coeff_ne_zero : h.leading_coeff ≠ 0 :=
     begin
-        rw polynomial.map_map,
-        rw composition2,
+        intro eq_zero,
+        rw [polynomial.leading_coeff_eq_zero,euclidean_domain.gcd_eq_zero_iff] at eq_zero,
+        apply polynomial.map_monic_ne_zero (minimal_polynomial.monic hβ) eq_zero.2,
     end,
-    dsimp[h] at key,
-    rw [←f_map,←g_map] at key,
-    have swap : euclidean_domain.gcd (f_Fγ.map(algebra_map F⟮γ⟯ E)) (g_Fγ.map(algebra_map F⟮γ⟯ E)) = (euclidean_domain.gcd f_Fγ g_Fγ).map(algebra_map F⟮γ⟯ E),
-    convert polynomial.gcd_map (algebra_map F⟮γ⟯ E),
-    rw swap at key,
-    set p := euclidean_domain.gcd f_Fγ g_Fγ,
-    set k := (p.map(algebra_map F⟮γ⟯ E)).leading_coeff,
-    dsimp[←k] at key,
-    rw mul_sub at key,
-    rw ←polynomial.C_mul at key,
-    have coeff0 : algebra_map F⟮γ⟯ E (p.coeff 0) = -(k*β) :=
-        by erw [←polynomial.coeff_map,key, polynomial.coeff_sub, polynomial.coeff_C_mul, polynomial.coeff_C_zero, polynomial.coeff_X_zero, mul_zero, zero_sub]; refl,
-    have coeff1 : algebra_map F⟮γ⟯ E (p.coeff 1) = k :=
+    have finale : β = algebra_map F⟮γ⟯ E (-p.coeff 0 / p.coeff 1) :=
     begin
-        erw [←polynomial.coeff_map,key,polynomial.coeff_sub,polynomial.coeff_mul_X,polynomial.coeff_C_zero,polynomial.coeff_C],
-        change k - 0 = k,
-        rw sub_zero,
+        simp[ring_hom.map_div,←polynomial.coeff_map,key,polynomial.coeff_C],
+        apply eq_div_of_mul_eq leading_coeff_ne_zero,
+        exact mul_comm _ _,
     end,
-    have k_ne_zero : k≠0 :=
-    begin
-        intro k_eq_zero,
-        rw [polynomial.leading_coeff_eq_zero,←polynomial.map_zero (algebra_map F⟮γ⟯ E)] at k_eq_zero,
-        replace k_eq_zero := polynomial.map_injective (algebra_map F⟮γ⟯ E) (algebra_map F⟮γ⟯ E).injective k_eq_zero,
-        rw euclidean_domain.gcd_eq_zero_iff at k_eq_zero,
-        apply polynomial.map_monic_ne_zero (minimal_polynomial.monic hβ) k_eq_zero.2,
-    end,
-    have last_step : β = algebra_map F⟮γ⟯ E (-p.coeff 0 / p.coeff 1) :=
-        by rw [division_def,ring_hom.map_mul,ring_hom.map_neg,ring_hom.map_inv,coeff0,coeff1,neg_neg,mul_comm,←mul_assoc,inv_mul_cancel k_ne_zero,one_mul],
-    change β = ↑(-p.coeff 0 / p.coeff 1) at last_step,
-    change β ∈ F⟮γ⟯,
-    rw last_step,
+    rw finale,
     exact subtype.mem (-p.coeff 0 / p.coeff 1),
 end
 

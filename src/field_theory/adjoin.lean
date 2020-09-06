@@ -117,6 +117,7 @@ begin
             (subset_adjoin _ _) },
 end
 
+/-- Variation on `set.insert` to enable good notation for adjoining elements to fields. -/
 --this definition of notation is courtesy of Kyle Miller on zulip
 class fancy_insert {α : Type*} (s : set α) :=
 (insert : α → set α)

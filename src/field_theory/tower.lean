@@ -75,44 +75,41 @@ let ⟨c, hc⟩ := finite_dimensional.exists_is_basis_finset K A in
 by rw [findim_eq_card_basis hb, findim_eq_card_basis hc,
     findim_eq_card_basis (hb.smul hc), fintype.card_prod]
 
-def submodule_restrict_field (p : submodule K A) : submodule F A := {
-    carrier := p.carrier,
-    zero_mem' := p.zero_mem',
-    add_mem' := p.add_mem',
-    smul_mem' :=
-    begin
-        intros c x hx,
-        rw [← one_smul K x, ← smul_assoc],
-        exact p.smul_mem' (c • 1) hx,
-    end
-}
+/-- Given a tower `F : K : A`, any submodule of `A` over `K` is also a submodule of `A` over `F`. -/
+def submodule_tower_submodule (p : submodule K A) : submodule F A := {
+  carrier := p.carrier,
+  zero_mem' := p.zero_mem',
+  add_mem' := p.add_mem',
+  smul_mem' :=
+  begin
+    intros c x hx,
+    rw [← one_smul K x, ← smul_assoc],
+    exact p.smul_mem' (c • 1) hx,
+  end, }
 
-/-- If A is a finite extension of F then it is also a finite extension of K. -/
-instance findim_of_findim [F_findim : finite_dimensional F A] :
-    finite_dimensional K A :=
+/-- Given a tower `F : K : A`, if `A` has finite dimension over `F` then it is also has
+  finite dimension over `K` -/
+instance findim_of_tower_findim [finite_dimensional F A] :
+  finite_dimensional K A :=
 begin
-    rw iff_fg,
-    rw submodule.fg_iff_finite_dimensional,
-    cases (finite_dimensional.exists_is_basis_finite F A) with B hB,
-    have key : submodule.span K B = ⊤,
-    {   ext,
-        simp only [submodule.mem_top, iff_true],
-        have hx : x ∈ submodule.span F (set.range coe),
-        {   rw hB.1.2,
-            exact submodule.mem_top, },
-        rw submodule.mem_span,
-        intros p hp,
-        rw submodule.mem_span at hx,
-        apply hx (submodule_restrict_field F K A p),
-        rw subtype.range_coe,
-        exact hp, },
-    rw ← key,
-    apply finite_dimensional.span_of_finite K hB.2,
+  rw iff_fg,
+  rw submodule.fg_iff_finite_dimensional,
+  cases (finite_dimensional.exists_is_basis_finite F A) with B hB,
+  have key : submodule.span K B = ⊤,
+  {  ext,
+    simp only [submodule.mem_top, iff_true],
+    have hx : x ∈ submodule.span F (set.range coe),
+    { rw hB.1.2,
+      exact submodule.mem_top, },
+    rw submodule.mem_span,
+    intros p hp,
+    rw submodule.mem_span at hx,
+    apply hx (submodule_tower_submodule F K A p),
+    rw subtype.range_coe,
+    exact hp, },
+  rw ← key,
+  apply finite_dimensional.span_of_finite K hB.2,
 end
-
--- instance findim_of_findim_base [F_findim : finite_dimensional F A] :
---     finite_dimensional F K :=
--- finite_dimensional.finite_dimensional_submodule (K : submodule F A)
 
 end finite_dimensional
 

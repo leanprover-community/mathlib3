@@ -361,8 +361,15 @@ section uncurry
 
 variables {α β γ δ : Type*}
 
-/-- Records a way to turn an element of `α` into a function from `β` to `γ`. -/
+/-- Records a way to turn an element of `α` into a function from `β` to `γ`. The most generic use
+is to recursively uncurry. For instance `f : α → β → γ → δ` will be turned into
+`↿f : α × β × γ → δ`. One can also add instances for bundled maps. -/
 class has_uncurry (α : Type*) (β : out_param Type*) (γ : out_param Type*) := (uncurry : α → (β → γ))
+
+/-- Uncurrying operator. The most generic use is to recursively uncurry. For instance
+`f : α → β → γ → δ` will be turned into `↿f : α × β × γ → δ`. One can also add instances
+for bundled maps.-/
+add_decl_doc has_uncurry.uncurry
 
 notation `↿`:max x:max := has_uncurry.uncurry x
 

@@ -1824,23 +1824,47 @@ instance cfg.inhabited [inhabited σ] : inhabited cfg := ⟨⟨default _, defaul
 
 parameters {Γ Λ σ K}
 
-def add_counter : cfg × ℕ → cfg × ℕ := λ h, ⟨h.1, h.2 + 1⟩
+def add_counter : cfg × ℕ+ → cfg × ℕ+ := λ h, ⟨h.1, h.2 + 1⟩
 
-@[simp] lemma add_counter_cfg (x : cfg × ℕ) : x.1 = (add_counter x).1 := rfl
+@[simp] lemma add_counter_cfg (x : cfg × ℕ+) : x.1 = (add_counter x).1 := rfl
 
-@[simp] def step_aux_len : stmt → σ → (∀ k, list (Γ k)) → cfg × ℕ
-| (push k f q)     v S := add_counter $ step_aux_len q v (update S k (f v :: S k))
-| (peek k f q)     v S := add_counter $ step_aux_len q (f v (S k).head') S
-| (pop k f q)      v S := add_counter $ step_aux_len q (f v (S k).head') (update S k (S k).tail)
-| (load a q)       v S := add_counter $ step_aux_len q (a v) S
+@[simp] def step_len_aux : stmt → σ → (∀ k, list (Γ k)) → cfg × ℕ+
+| (push k f q)     v S := add_counter $ step_len_aux q v (update S k (f v :: S k))
+| (peek k f q)     v S := add_counter $ step_len_aux q (f v (S k).head') S
+| (pop k f q)      v S := add_counter $ step_len_aux q (f v (S k).head') (update S k (S k).tail)
+| (load a q)       v S := add_counter $ step_len_aux q (a v) S
 | (branch f q₁ q₂) v S := add_counter $
-  cond (f v) (step_aux_len q₁ v S) (step_aux_len q₂ v S)
+  cond (f v) (step_len_aux q₁ v S) (step_len_aux q₂ v S)
 | (goto f)         v S := ⟨⟨some (f v), v, S⟩,1⟩
 | halt             v S := ⟨⟨none, v, S⟩,1⟩
 
-@[simp] def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg := λ l v S, (step_aux_len l v S).1
+@[simp] def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg := λ l v S, (step_len_aux l v S).1
 
-example (a b c : ℕ) : (a + c ≤ b + c) ↔ (a ≤ b) := add_le_add_iff_right c
+@[simp] def len_aux : stmt → σ → (∀ k, list (Γ k)) → ℕ+ := λ l v S, (step_len_aux l v S).2
+
+@[simp] def stmt_len : stmt → ℕ+
+| (push k f q)     := stmt_len q + 1
+| (peek k f q)     := stmt_len q + 1
+| (pop k f q)      := stmt_len q + 1
+| (load a q)       := stmt_len q + 1
+| (branch f q₁ q₂) := stmt_len q₂ + stmt_len q₁ + 1
+| (goto f)         := 1
+| halt             := 1
+
+lemma len_aux_le_stmt_len (s : stmt) : ∀ v S, len_aux s v S ≤ stmt_len s :=
+begin
+  induction s; intros v S;
+  try {unfold len_aux step_len_aux stmt_len add_counter};
+  dsimp only;
+  try {apply nat.add_le_add_right (s_ih _ _) 1},
+  cases (s_a v); unfold cond; apply nat.add_le_add_right _ 1,
+  transitivity (stmt_len s_a_2 : ℕ),
+  exact s_ih_a_1 _ _,
+  exact nat.le.intro rfl,
+  transitivity (stmt_len s_a_1 : ℕ),
+  exact s_ih_a _ _,
+  exact (stmt_len s_a_1 : ℕ).le_add_left ↑(stmt_len s_a_2),
+end
 
 lemma update_cons_increase_le_one (S : ∀ k, list (Γ k)) (s k : K) (x : Γ s) : ((update S s (x :: S s)) k).length ≤ (S k).length + 1 :=
 begin
@@ -1859,55 +1883,57 @@ begin
   exact le_add_right ((list.length (S k)).sub_le 1),
 end
 
-lemma step_aux_len_le_size_increase (s : stmt) (k : K) : ∀ (v : σ) (S : ∀ k, list (Γ k)),
-  ((step_aux s v S).stk k).length ≤ (S k).length + (step_aux_len s v S).2:=
+lemma step_len_aux_le_size_increase (s : stmt) (k : K) : ∀ (v : σ) (S : ∀ k, list (Γ k)),
+  ((step_aux s v S).stk k).length ≤ (S k).length + (len_aux s v S) :=
 begin
   induction s with s'; intros v S;
-  unfold step_aux step_aux_len;
+  unfold step_aux step_len_aux;
   try {rw ← add_counter_cfg};
   try {unfold add_counter};
   try {conv_rhs {congr,skip,dsimp}},
   {specialize s_ih v (update S s' (s_a v :: S s')),
   apply le_trans s_ih,
   suffices : (update S s' (s_a v :: S s') k).length ≤ (S k).length + 1,
-  {linarith},
+  {unfold len_aux add_counter, dsimp, linarith},
   {exact update_cons_increase_le_one _ _ _ _}},
 
   {specialize s_ih (s_a v (S s_k).head') S,
   apply le_trans s_ih,
-  linarith,},
+  unfold len_aux add_counter, dsimp, linarith,},
 
   {specialize s_ih (s_a v (S s_k).head') (update S s_k (S s_k).tail),
   apply le_trans s_ih,
   suffices : (update S s_k (S s_k).tail k).length ≤ (S k).length + 1,
-  {linarith},
+  {unfold len_aux add_counter, dsimp, linarith},
   {exact update_tail_increase_le_one _ _ _},},
 
   {specialize s_ih (s_a v) S,
   apply le_trans s_ih,
-  linarith,},
+  unfold len_aux add_counter, dsimp, linarith,},
 
   {cases (s_a v); unfold cond,
   specialize s_ih_a_1 v S,
   apply le_trans s_ih_a_1,
-  linarith,
+  unfold len_aux add_counter, dsimp, linarith,
   specialize s_ih_a v S,
   apply le_trans s_ih_a,
-  linarith,},
+  unfold len_aux add_counter, dsimp, linarith,},
 
   {linarith},
 
   {linarith},
 end
 
-#check sum.elim
-
 /-- The step function for the TM2 model. -/
-@[simp] def step_len (M : Λ → stmt) : cfg → option cfg × ℕ
-| ⟨none,   v, S⟩ := ⟨none, 0⟩
-| ⟨some l, v, S⟩ := ⟨some (step_aux (M l) v S), (step_aux_len (M l) v S).2⟩
+@[simp] def step_len (M : Λ → stmt) : cfg → option cfg × ℕ+
+| ⟨none,   v, S⟩ := ⟨none, 1⟩
+| ⟨some l, v, S⟩ := ⟨some (step_aux (M l) v S), (step_len_aux (M l) v S).2⟩
 
 @[simp] def step (M : Λ → stmt) : cfg → option cfg := λ c, (step_len M c).1
+
+@[simp] def len (M : Λ → stmt) : cfg → ℕ+ := λ c, (step_len M c).2
+
+--lemma size_increase_le_len (M : Λ → stmt) (k : K) (c : cfg) (d : cfg) (h : step M c = some d) : (d.stk k).length ≤ (c.stk k).length + (M c.l) := sorry
 
 /-- The (reflexive) reachability relation for the TM2 model. -/
 def reaches (M : Λ → stmt) : cfg → cfg → Prop :=
@@ -2005,7 +2031,7 @@ theorem step_supports (M : Λ → stmt) {S}
     intro hs,
   iterate 4 { exact IH _ _ hs },
   case TM2.stmt.branch : p q₁' q₂' IH₁ IH₂ {
-    unfold step_aux, unfold step_aux_len, cases p v,
+    unfold step_aux, unfold step_len_aux, cases p v,
     { exact IH₂ _ _ hs.2 },
     { exact IH₁ _ _ hs.1 } },
   case TM2.stmt.goto { exact finset.some_mem_insert_none.2 (hs _) },
@@ -2410,7 +2436,7 @@ theorem tr_respects : respects (TM2.step M) (TM1.step tr) tr_cfg :=
   revert v S L hT, refine stmt_st_rec _ _ _ _ _ (M l); intros,
   { exact tr_respects_aux M hT s @IH },
   { exact IH _ hT },
-  { unfold TM2.step_aux TM2.step_aux_len tr_normal TM1.step_aux,
+  { unfold TM2.step_aux TM2.step_len_aux tr_normal TM1.step_aux,
     cases p v; [exact IH₂ _ hT, exact IH₁ _ hT] },
   { exact ⟨_, ⟨_, hT⟩, refl_trans_gen.refl⟩ },
   { exact ⟨_, ⟨_, hT⟩, refl_trans_gen.refl⟩ }

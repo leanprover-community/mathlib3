@@ -25,7 +25,7 @@ We provide a coercion to a function `R → Rᵒᵖ`.
 Ring involution
 -/
 
-variables (R : Type*) (F : Type*)
+variables (R : Type*)
 
 /-- A ring involution -/
 structure ring_invo [semiring R] extends R ≃+* Rᵒᵖ :=
@@ -66,7 +66,7 @@ end ring_invo
 open ring_invo
 
 section comm_ring
-variables (R F) [comm_ring R] [comm_ring F]
+variables [comm_ring R]
 
 protected def ring_invo.id : ring_invo R :=
 { involution' := λ r, rfl,

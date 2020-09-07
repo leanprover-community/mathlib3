@@ -1178,7 +1178,8 @@ begin
   cases x,
   { simp [top_rpow_of_neg hz, ennreal.zero_lt_one] },
   { simp only [some_eq_coe, one_lt_coe_iff] at hx,
-    simp [coe_rpow_of_ne_zero (ne_of_gt (lt_trans zero_lt_one hx)), nnreal.rpow_lt_one_of_one_lt_of_neg hx hz] },
+    simp [coe_rpow_of_ne_zero (ne_of_gt (lt_trans zero_lt_one hx)),
+          nnreal.rpow_lt_one_of_one_lt_of_neg hx hz] },
 end
 
 lemma pow_le_one_of_one_le_of_neg {x : ennreal} {z : ℝ} (hx : 1 ≤ x) (hz : z < 0) : x^z ≤ 1 :=
@@ -1186,7 +1187,8 @@ begin
   cases x,
   { simp [top_rpow_of_neg hz, ennreal.zero_lt_one] },
   { simp only [one_le_coe_iff, some_eq_coe] at hx,
-    simp [coe_rpow_of_ne_zero (ne_of_gt (lt_of_lt_of_le zero_lt_one hx)), nnreal.rpow_le_one_of_one_le_of_nonpos hx (le_of_lt hz)] },
+    simp [coe_rpow_of_ne_zero (ne_of_gt (lt_of_lt_of_le zero_lt_one hx)),
+          nnreal.rpow_le_one_of_one_le_of_nonpos hx (le_of_lt hz)] },
 end
 
 lemma one_lt_rpow {x : ennreal} {z : ℝ} (hx : 1 < x) (hz : 0 < z) : 1 < x^z :=
@@ -1205,18 +1207,21 @@ begin
     simp [coe_rpow_of_nonneg _ (le_of_lt hz), nnreal.one_le_rpow hx (le_of_lt hz)] },
 end
 
-lemma one_lt_rpow_of_pos_of_lt_one_of_neg {x : ennreal} {z : ℝ} (hx1 : 0 < x) (hx2 : x < 1) (hz : z < 0) : 1 < x^z :=
+lemma one_lt_rpow_of_pos_of_lt_one_of_neg {x : ennreal} {z : ℝ} (hx1 : 0 < x) (hx2 : x < 1)
+  (hz : z < 0) : 1 < x^z :=
 begin
   lift x to ℝ≥0 using ne_of_lt (lt_of_lt_of_le hx2 le_top),
   simp only [coe_lt_one_iff, coe_pos] at ⊢ hx1 hx2,
   simp [coe_rpow_of_ne_zero (ne_of_gt hx1), nnreal.one_lt_rpow_of_pos_of_lt_one_of_neg hx1 hx2 hz],
 end
 
-lemma one_le_rpow_of_pos_of_le_one_of_neg {x : ennreal} {z : ℝ} (hx1 : 0 < x) (hx2 : x ≤ 1) (hz : z < 0) : 1 ≤ x^z :=
+lemma one_le_rpow_of_pos_of_le_one_of_neg {x : ennreal} {z : ℝ} (hx1 : 0 < x) (hx2 : x ≤ 1)
+  (hz : z < 0) : 1 ≤ x^z :=
 begin
   lift x to ℝ≥0 using ne_of_lt (lt_of_le_of_lt hx2 coe_lt_top),
   simp only [coe_le_one_iff, coe_pos] at ⊢ hx1 hx2,
-  simp [coe_rpow_of_ne_zero (ne_of_gt hx1), nnreal.one_le_rpow_of_pos_of_le_one_of_nonpos hx1 hx2 (le_of_lt hz)],
+  simp [coe_rpow_of_ne_zero (ne_of_gt hx1),
+        nnreal.one_le_rpow_of_pos_of_le_one_of_nonpos hx1 hx2 (le_of_lt hz)],
 end
 
 lemma to_real_rpow (x : ennreal) (z : ℝ) :

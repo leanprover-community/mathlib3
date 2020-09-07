@@ -33,6 +33,7 @@ time is up to multiplication by a constant the amount of fundamental steps.
 
 open computability
 
+namespace turing
 /-- A bundled TM2 (an equivalent of the classical Turing machine, defined starting from
 the namespace `turing.TM2` in `turing_machine.lean`), with an input and output stack,
  a main function, an initial state and some finiteness guarantees. -/
@@ -47,20 +48,27 @@ structure fin_tm2 :=
  (M : Λ → turing.TM2.stmt Γ Λ σ) -- the program itself, i.e. one function for every function label
 
 namespace fin_tm2
+variable (tm : fin_tm2)
+
+instance : decidable_eq tm.K := tm.K_decidable_eq
+
 /-- The type of statements (functions) corresponding to this TM. -/
 @[derive inhabited]
-def stmt (tm : fin_tm2) : Type := @turing.TM2.stmt tm.K tm.K_decidable_eq tm.Γ tm.Λ tm.σ
+def stmt : Type := turing.TM2.stmt tm.Γ tm.Λ tm.σ
 
 /-- The type of configurations (functions) corresponding to this TM. -/
-def cfg (tm : fin_tm2) : Type := @turing.TM2.cfg tm.K tm.K_decidable_eq tm.Γ tm.Λ tm.σ
+def cfg : Type := turing.TM2.cfg tm.Γ tm.Λ tm.σ
 
-instance inhabited_cfg (tm : fin_tm2) : inhabited (cfg tm) :=
-@turing.TM2.cfg.inhabited _ tm.K_decidable_eq _ _ _ ⟨tm.initial_state⟩
+instance inhabited_cfg : inhabited (cfg tm) :=
+@turing.TM2.cfg.inhabited _ _ _ _ _ ⟨tm.initial_state⟩
 
 /-- The step function corresponding to this TM. -/
-@[simp] def step (tm : fin_tm2) : tm.cfg → option tm.cfg :=
-@turing.TM2.step tm.K tm.K_decidable_eq tm.Γ tm.Λ tm.σ tm.M
+@[simp] def step : tm.cfg → option tm.cfg :=
+turing.TM2.step tm.M
 end fin_tm2
+end turing
+
+open turing
 
 /-- The initial configuration corresponding to a list in the input alphabet. -/
 def init_list (tm : fin_tm2) (s : list (tm.Γ tm.k₀)) : tm.cfg :=
@@ -89,20 +97,20 @@ remembering the number of steps it takes. -/
 structure evals_to_in_time {σ : Type*} (f : σ → option σ) (a : σ) (b : option σ) (m : ℕ) extends evals_to f a b :=
 (steps_le_m : steps ≤ m)
 
-/-- Reflexitivy of evals_to in 0 steps. -/
+/-- Reflexivity of `evals_to` in 0 steps. -/
 @[refl] def evals_to.refl {σ : Type*} (f : σ → option σ) (a : σ) : evals_to f a a := ⟨0,rfl⟩
 
-/-- Transitivity of evals_to in the sum of the numbers of steps. -/
+/-- Transitivity of `evals_to` in the sum of the numbers of steps. -/
 @[trans] def evals_to.trans {σ : Type*} (f : σ → option σ) (a : σ) (b : σ) (c : option σ)
   (h₁ : evals_to f a b) (h₂ : evals_to f b c) : evals_to f a c :=
 ⟨h₂.steps + h₁.steps,
  by rw [function.iterate_add_apply,h₁.evals_in_steps,h₂.evals_in_steps]⟩
 
-/-- Reflexitivy of evals_to_in_time in 0 steps. -/
+/-- Reflexivity of `evals_to_in_time` in 0 steps. -/
 @[refl] def evals_to_in_time.refl {σ : Type*} (f : σ → option σ) (a : σ) : evals_to_in_time f a a 0 :=
 ⟨evals_to.refl f a, le_refl 0⟩
 
-/-- Transitivity of evals_to_in_time in the sum of the numbers of steps. -/
+/-- Transitivity of `evals_to_in_time` in the sum of the numbers of steps. -/
 @[trans] def evals_to_in_time.trans {σ : Type*} (f : σ → option σ) (a : σ) (b : σ) (c : option σ)
   (m₁ : ℕ) (m₂ : ℕ) (h₁ : evals_to_in_time f a b m₁) (h₂ : evals_to_in_time f b c m₂) :
   evals_to_in_time f a c (m₂ + m₁) :=
@@ -163,14 +171,14 @@ open turing.TM2.stmt
 
 /-- A Turing machine computing the identity on α. -/
 def id_computer {α : Type} (ea : fin_encoding α) : fin_tm2 :=
-{ K := fin 1,
-  k₀ := 0,
-  k₁ := 0,
+{ K := unit,
+  k₀ := ⟨⟩,
+  k₁ := ⟨⟩,
   Γ := λ _, ea.Γ,
-  Λ := fin 1,
-  main := 0,
-  σ := fin 1,
-  initial_state := 0,
+  Λ := unit,
+  main := ⟨⟩,
+  σ := unit,
+  initial_state := ⟨⟩,
   Γk₀_fin := ea.Γ_fin,
   M := λ _, halt }
 
@@ -187,8 +195,7 @@ def id_computable_in_poly_time {α : Type} (ea : fin_encoding α) : @computable_
   time := 1,
   outputs_fun := λ _, { steps := 1,
     evals_in_steps := rfl,
-    steps_le_m := by simp only [polynomial.eval_one],
-}}
+    steps_le_m := by simp only [polynomial.eval_one] } }
 
 instance inhabited_computable_by_tm2_in_poly_time : inhabited _ :=
 ⟨id_computable_in_poly_time computability.inhabited_fin_encoding.default⟩

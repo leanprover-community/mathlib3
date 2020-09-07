@@ -192,6 +192,20 @@ lemma truncate_witt_vector_truncate {m : ℕ} (hm : n ≤ m) (x) :
   truncate p R hm (witt_vector.truncate p _ x) = witt_vector.truncate p _ x :=
 by rw ← truncate_comp_witt_vector_truncate p R hm; refl
 
+lemma truncate_surjective {m : ℕ} (hm : n ≤ m) : function.surjective (truncate p R hm) :=
+begin
+  rintro ⟨x⟩,
+  use ideal.quotient.mk _ x,
+  simp [truncate], refl
+end
+
+@[simp] lemma coeff_truncate' {m : ℕ} (hm : n ≤ m) (i : fin n) (x : truncated_witt_vector p m R) :
+  (truncate p R hm x).coeff i = x.coeff (fin.cast_le hm i) :=
+begin
+
+end
+
+
 -- this proof confuses me
 @[simp] lemma coeff_truncate {m : ℕ} (hm : n ≤ m) (i : fin n) (x : truncated_witt_vector p m R) :
   (truncate p R hm x).coeff i = x.coeff (fin.cast_le hm i) :=
@@ -204,7 +218,6 @@ begin
     refl },
   { refl }
 end
-
 
 section fintype
 

@@ -3,9 +3,10 @@ Copyright (c) 2019 Kenny Lau, Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes
 -/
-import ring_theory.free_comm_ring
-import linear_algebra.direct_sum_module
 import data.finset.order
+import linear_algebra.direct_sum_module
+import ring_theory.free_comm_ring
+import ring_theory.ideal.operations
 /-!
 # Direct limit of modules, abelian groups, rings, and fields.
 
@@ -348,6 +349,7 @@ let ⟨i, x, hx⟩ := exists_of z in hx ▸ ih i x
 section of_zero_exact
 open_locale classical
 variables (G f)
+
 lemma of.zero_exact_aux2 {x : free_comm_ring Σ i, G i} {s t} (hxs : is_supported x s) {j k}
   (hj : ∀ z : Σ i, G i, z ∈ s → z.1 ≤ j) (hk : ∀ z : Σ i, G i, z ∈ t → z.1 ≤ k)
   (hjk : j ≤ k) (hst : s ⊆ t) :
@@ -425,7 +427,7 @@ begin
     { rintros z (hz | hz), exact le_trans (hi z.1 $ finset.mem_image.2 ⟨z, hz, rfl⟩) hik, exact le_trans (hj z hz) hjk },
     refine ⟨k, ↑s ∪ t, this, is_supported_mul (is_supported_upwards hxs $ set.subset_union_left ↑s t)
       (is_supported_upwards hyt $ set.subset_union_right ↑s t), _⟩,
-    rw [ring_hom.map_mul, ring_hom.map_mul,
+    rw [(restriction _).map_mul, (free_comm_ring.lift _).map_mul,
         ← of.zero_exact_aux2 G f hyt hj this hjk (set.subset_union_right ↑s t),
         iht, is_ring_hom.map_zero (f j k hjk), mul_zero] }
 end
@@ -460,8 +462,11 @@ open free_comm_ring
 variables (G f)
 /-- The universal property of the direct limit: maps from the components to another ring
 that respect the directed system structure (i.e. make some diagram commute) give rise
-to a unique map out of the direct limit. -/
-def lift : direct_limit G f →+* P :=
+to a unique map out of the direct limit.
+
+We don't use this function as the canonical form because Lean 3 fails to automatically coerce
+it to a function; use `lift` instead. -/
+def lift_hom : direct_limit G f →+* P :=
 ideal.quotient.lift _ (free_comm_ring.lift $ λ x, g x.1 x.2) begin
   suffices : ideal.span _ ≤
     ideal.comap (free_comm_ring.lift (λ (x : Σ (i : ι), G i), g (x.fst) (x.snd))) ⊥,
@@ -469,7 +474,7 @@ ideal.quotient.lift _ (free_comm_ring.lift $ λ x, g x.1 x.2) begin
   rw ideal.span_le, intros x hx,
   rw [mem_coe, ideal.mem_comap, mem_bot],
   rcases hx with ⟨i, j, hij, x, rfl⟩ | ⟨i, rfl⟩ | ⟨i, x, y, rfl⟩ | ⟨i, x, y, rfl⟩;
-  simp [ring_hom.map_sub, lift_of, Hg, ring_hom.map_one, ring_hom.map_add, ring_hom.map_mul,
+  simp only [ring_hom.map_sub, lift_of, Hg, ring_hom.map_one, ring_hom.map_add, ring_hom.map_mul,
       is_ring_hom.map_one (g i), is_ring_hom.map_add (g i), is_ring_hom.map_mul (g i), sub_self]
 end
 

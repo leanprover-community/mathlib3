@@ -339,6 +339,13 @@ begin
   exact le_trans (mul_le_inf) (inf_le_left)
 end
 
+lemma mul_eq_bot {R : Type*} [integral_domain R] {I J : ideal R} :
+  I * J = ⊥ ↔ I = ⊥ ∨ J = ⊥ :=
+⟨λ hij, or_iff_not_imp_left.mpr (λ I_ne_bot, J.eq_bot_iff.mpr (λ j hj,
+  let ⟨i, hi, ne0⟩ := I.ne_bot_iff.mp I_ne_bot in
+    or.resolve_left (mul_eq_zero.mp ((I * J).eq_bot_iff.mp hij _ (mul_mem_mul hi hj))) ne0)),
+ λ h, by cases h; rw [← ideal.mul_bot, h, ideal.mul_comm]⟩
+
 /-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/
 def radical (I : ideal R) : ideal R :=
 { carrier := { r | ∃ n : ℕ, r ^ n ∈ I },

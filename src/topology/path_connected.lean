@@ -418,6 +418,8 @@ end
 
 /-! #### Portion of a path -/
 
+/-- `γ.portion t` is the path which starts by following the path `γ`,
+  but stops when reaching time `t`, and stays still after that. -/
 def portion {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) (t : ℝ) : path a (γ.extend t) :=
 { to_fun := λ s, γ.extend (min s t),
@@ -440,6 +442,8 @@ begin
   simp only [has_coe_to_fun.coe, coe_fn, path.portion, mem_range_self]
 end
 
+/-- For a path `γ`, `γ.portion` gives a "continuous family of paths", by which we
+  mean the uncurried function which maps `(t, s)` to `γ.portion t s` is continuous. -/
 lemma portion_continuous_family {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) : continuous ↿(γ.portion) :=
 begin
@@ -465,8 +469,6 @@ begin
   have : ↑x ∈ (Icc 0 1 : set ℝ) := x.2,
   simp [this.2, proj_I_I this]
 end
-
-#lint
 
 end path
 

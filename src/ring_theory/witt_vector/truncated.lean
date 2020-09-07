@@ -282,13 +282,20 @@ begin
   simp [truncate_lift_fun, f_compat], -- squeeze_simp output fails??
 end
 
-
 def lift : S →+* 𝕎 R :=
 { to_fun := lift_fun p f,
   map_one' := lift_fun_one f_compat,
   map_mul' := lift_fun_mul f_compat,
   map_zero' := lift_fun_zero f_compat,
   map_add' := lift_fun_add f_compat }
+
+@[simp] lemma truncate_lift (s : S) :
+  witt_vector.truncate p n (lift f_compat s) = f n s :=
+truncate_lift_fun f_compat s
+
+@[simp] lemma truncate_comp_lift :
+  (witt_vector.truncate p n).comp (lift f_compat) = f n :=
+by { ext1, rw [ring_hom.comp_apply, truncate_lift] }
 
 end lift
 

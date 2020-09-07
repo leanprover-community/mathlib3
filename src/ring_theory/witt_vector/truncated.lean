@@ -249,32 +249,39 @@ private lemma char_p_zmod : char_p (truncated_witt_vector p n (zmod p)) (p ^ n) 
     sorry)
 
 local attribute [instance] char_p_zmod
-
+variable (n)
 def zmod_equiv_trunc : zmod (p^n) ≃+* truncated_witt_vector p n (zmod p) :=
 iso_to_zmod (truncated_witt_vector p n (zmod p)) (p ^ n) (card_zmod _)
 
 lemma zmod_equiv_trunc_apply {x : zmod (p^n)} :
-  zmod_equiv_trunc p x =
+  zmod_equiv_trunc p n x =
   zmod.cast_hom (show p ^ n ∣ p ^ n, by refl) (truncated_witt_vector p n (zmod p)) x :=
 rfl
 
+lemma commutes {m : ℕ} (hm : n ≤ m) :
+  (truncate p (zmod p) hm).comp (zmod_equiv_trunc p m).to_ring_hom =
+    (zmod_equiv_trunc p n).to_ring_hom.comp (zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _) :=
+ring_hom.ext_zmod _ _
+
 lemma commutes' {m : ℕ} (hm : n ≤ m) (x : zmod (p^m)) :
-  truncate p (zmod p) hm (zmod_equiv_trunc p x) =
-    zmod_equiv_trunc p (zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _ x) :=
+  truncate p (zmod p) hm (zmod_equiv_trunc p m x) =
+    zmod_equiv_trunc p n (zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _ x) :=
+show (truncate p (zmod p) hm).comp (zmod_equiv_trunc p m).to_ring_hom x = _,
+by rw commutes _ _ hm; refl
+
+lemma commutes_symm' {m : ℕ} (hm : n ≤ m) (x : truncated_witt_vector p m (zmod p)) :
+  (zmod_equiv_trunc p n).symm (truncate p (zmod p) hm x) =
+    zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _ ((zmod_equiv_trunc p m).symm x) :=
 begin
-  simp [zmod_equiv_trunc_apply],
-  sorry
+  apply (zmod_equiv_trunc p n).injective,
+  rw ← commutes',
+  simp
 end
 
--- if we state zmod_equiv_trunc in the other direction this is the statement
--- lemma commutes {m : ℕ} (hm : n ≤ m) (x : truncated_witt_vector p m (zmod p)) :
---   (zmod_equiv_trunc p).symm (truncate p (zmod p) hm x) =
---     zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _ ((zmod_equiv_trunc p).symm x) :=
--- begin
---   induction x,
---   simp [zmod_equiv_trunc, iso_to_zmod, ring_equiv.of_bijective],
-
--- end
+lemma commutes_symm {m : ℕ} (hm : n ≤ m)  :
+  (zmod_equiv_trunc p n).symm.to_ring_hom.comp (truncate p (zmod p) hm) =
+    (zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _).comp (zmod_equiv_trunc p m).symm :=
+by ext; apply commutes_symm'
 
 end iso
 

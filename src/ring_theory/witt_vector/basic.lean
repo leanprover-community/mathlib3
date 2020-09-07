@@ -1062,6 +1062,8 @@ begin
   simp only [neg_zero, ring_hom.map_neg, constant_coeff_X],
 end
 
+end witt_structure_simplifications
+
 -- move this up?
 lemma X_in_terms_of_W_vars (n : ℕ) :
   (X_in_terms_of_W p ℚ n).vars = finset.range (n + 1) :=
@@ -1088,77 +1090,6 @@ lemma X_in_terms_of_W_vars_subset (n : ℕ) :
   (X_in_terms_of_W p ℚ n).vars ⊆ finset.range (n + 1) :=
 by { rw [X_in_terms_of_W_vars], refl, }
 
-lemma quux' (n : ℕ) (d : bool × ℕ →₀ ℕ) (b : bool)
-  (hd : ∀ (k : ℕ), k ≤ n → d (b, k) = 0)
-  (φ : mv_polynomial ℕ ℚ)
-  (hφ : ∀ d, φ.coeff d ≠ 0 → ∀ k : ℕ, d k ≠ 0 → k ≤ n)
-  (hφ0 : constant_coeff φ = 0) :
-  coeff d ((bind₁ (λ (k : ℕ), (bind₁ (λ (b : bool), (rename (λ (i : ℕ), (b, i)))
-    (witt_polynomial p ℚ k))) (X tt * X ff))) φ) = 0 :=
-begin
-  -- clean this up, streamline hypotheses
-  rw φ.as_sum,
-  simp only [coeff_sum, alg_hom.map_sum, bind₁_monomial, coeff_C_mul],
-  rw finset.sum_eq_zero,
-  intros d' hd',
-  by_cases hd'0 : d' = 0,
-  { simp only [hd'0, ← constant_coeff_eq, hφ0, zero_mul], },
-  convert mul_zero _,
-  simp only [alg_hom.map_pow, alg_hom.map_mul, bind₁_X_right],
-  let Φ := ∏ i in d'.support,
-    ((rename (prod.mk tt)) (witt_polynomial p ℚ i) *
-     (rename (prod.mk ff)) (witt_polynomial p ℚ i)) ^ d' i,
-  by_cases hd0 : d = 0,
-  { simp only [hd0, ← constant_coeff_eq, ring_hom.map_prod, ring_hom.map_pow, ring_hom.map_mul,
-      constant_coeff_rename, constant_coeff_witt_polynomial, mul_zero],
-    rw finset.prod_eq_zero_iff,
-    rw ← finsupp.support_eq_empty at hd'0,
-    obtain ⟨i, hi⟩ : ∃ i, i ∈ d'.support, exact finset.nonempty_of_ne_empty hd'0,
-    refine ⟨i, hi, _⟩,
-    rw zero_pow,
-    rwa [nat.pos_iff_ne_zero, ← finsupp.mem_support_iff], },
-  suffices : ∃ i : bool × ℕ, i ∈ d.support ∧ i ∉ Φ.vars,
-  { rcases this with ⟨i, hid, hi⟩,
-    rw mem_vars at hi,
-    contrapose! hi,
-    exact ⟨d, finsupp.mem_support_iff.mpr hi, hid⟩ },
-  contrapose! hd,
-  rw ← finsupp.support_eq_empty at hd0,
-  obtain ⟨i, hi⟩ : ∃ i, i ∈ d.support, exact finset.nonempty_of_ne_empty hd0,
-  use i.2,
-  specialize hd i hi,
-  -- rw [coeff, ← finsupp.not_mem_support_iff],
-  -- intro H,
-  -- have := (mem_vars Φ),
-end
-
-lemma quux (n : ℕ) (d : bool × ℕ →₀ ℕ) (b : bool)
-  (hd : ∀ (k : ℕ), k ≤ n → d (b, k) = 0) :
-  coeff d (witt_structure_rat p (X tt * X ff) n) = 0 :=
-begin
-  -- clean this up, streamline hypotheses
-  apply quux' p n d b hd,
-  intros d' hd' k hk,
-  apply nat.le_of_lt_succ,
-  rw [← finset.mem_range],
-  apply X_in_terms_of_W_vars_subset p,
-  rw mem_vars,
-  rw [coeff, ← finsupp.mem_support_iff] at hd',
-  rw [← finsupp.mem_support_iff] at hk,
-  exact ⟨d', hd', hk⟩,
-end
-
-lemma coeff_witt_mul (n : ℕ) (d : bool × ℕ →₀ ℕ) (hd : coeff d (witt_mul p n) ≠ 0) (b : bool) :
-  ∃ k ≤ n, d ⟨b, k⟩ ≠ 0 :=
-begin
-  contrapose! hd,
-  apply @int.cast_injective ℚ,
-  show int.cast_ring_hom ℚ _ = 0,
-  rw [← coeff_map, witt_mul, map_witt_structure_int, ring_hom.map_mul, map_X, map_X],
-  apply quux p n d b hd,
-end
-
-end witt_structure_simplifications
 
 section witt_vars
 
@@ -1319,6 +1250,93 @@ lemma map_coeff (f : R →+* S) (x : 𝕎 p R) (n : ℕ) :
   (map f x).coeff n = f (x.coeff n) := rfl
 
 end coeff
+
+section coeff_witt_mul
+
+lemma quux' (n : ℕ) (d : bool × ℕ →₀ ℕ) (b : bool)
+  (hd : ∀ (k : ℕ), d (b, k) = 0)
+  (φ : mv_polynomial ℕ ℚ)
+  -- (hφ : ∀ d, φ.coeff d ≠ 0 → ∀ k : ℕ, d k ≠ 0 → k ≤ n)
+  (hφ0 : constant_coeff φ = 0) :
+  ((bind₁ (λ (k : ℕ), (bind₁ (λ (b : bool), (rename (λ (i : ℕ), (b, i)))
+    (witt_polynomial p ℚ k))) (X tt * X ff))) φ).coeff d = 0 :=
+begin
+  -- clean this up, streamline hypotheses
+  rw φ.as_sum,
+  simp only [coeff_sum, alg_hom.map_sum, bind₁_monomial, coeff_C_mul],
+  rw finset.sum_eq_zero,
+  intros d' hd',
+  by_cases hd'0 : d' = 0,
+  { simp only [hd'0, ← constant_coeff_eq, hφ0, zero_mul], },
+  convert mul_zero _,
+  simp only [alg_hom.map_pow, alg_hom.map_mul, bind₁_X_right],
+  let Φ := ∏ i in d'.support,
+    ((rename (prod.mk tt)) (witt_polynomial p ℚ i) *
+     (rename (prod.mk ff)) (witt_polynomial p ℚ i)) ^ d' i,
+  by_cases hd0 : d = 0,
+  { simp only [hd0, ← constant_coeff_eq, ring_hom.map_prod, ring_hom.map_pow, ring_hom.map_mul,
+      constant_coeff_rename, constant_coeff_witt_polynomial, mul_zero],
+    rw finset.prod_eq_zero_iff,
+    rw ← finsupp.support_eq_empty at hd'0,
+    obtain ⟨i, hi⟩ : ∃ i, i ∈ d'.support, exact finset.nonempty_of_ne_empty hd'0,
+    refine ⟨i, hi, _⟩,
+    rw zero_pow,
+    rwa [nat.pos_iff_ne_zero, ← finsupp.mem_support_iff], },
+  suffices : ∃ i : bool × ℕ, i ∈ d.support ∧ i ∉ Φ.vars,
+  { rcases this with ⟨i, hid, hi⟩,
+    rw mem_vars at hi,
+    contrapose! hi,
+    exact ⟨d, finsupp.mem_support_iff.mpr hi, hid⟩ },
+  contrapose! hd,
+  rw ← finsupp.support_eq_empty at hd0,
+  obtain ⟨i, hi⟩ : ∃ i, i ∈ d.support, exact finset.nonempty_of_ne_empty hd0,
+  use i.2,
+  specialize hd i hi,
+  -- rw [coeff, ← finsupp.not_mem_support_iff],
+  -- intro H,
+  -- have := (mem_vars Φ),
+end
+
+lemma quux (n : ℕ) (d : bool × ℕ →₀ ℕ) (b : bool)
+  (hd : ∀ (k : ℕ), d (b, k) = 0) :
+  (witt_structure_rat p (X tt * X ff) n).coeff d = 0 :=
+begin
+  -- clean this up, streamline hypotheses
+  apply quux' p n d b hd,
+  -- { intros d' hd' k hk,
+  --   apply nat.le_of_lt_succ,
+  --   rw [← finset.mem_range],
+  --   apply X_in_terms_of_W_vars_subset p,
+  --   rw mem_vars,
+  --   exact ⟨d', finsupp.mem_support_iff.mpr hd', finsupp.mem_support_iff.mpr hk⟩, },
+  { exact constant_coeff_X_in_terms_of_W p ℚ n }
+end
+
+lemma coeff_witt_mul' (n : ℕ) (d : bool × ℕ →₀ ℕ) (hd : (witt_mul p n).coeff d ≠ 0) (b : bool) :
+  ∃ k, d ⟨b, k⟩ ≠ 0 :=
+begin
+  contrapose! hd,
+  apply @int.cast_injective ℚ,
+  show int.cast_ring_hom ℚ _ = 0,
+  rw [← coeff_map, witt_mul, map_witt_structure_int, ring_hom.map_mul, map_X, map_X],
+  exact quux p n d b hd,
+end
+
+lemma coeff_witt_mul (n : ℕ) (d : bool × ℕ →₀ ℕ) (hd : (witt_mul p n).coeff d ≠ 0) (b : bool) :
+  ∃ k ≤ n, d ⟨b, k⟩ ≠ 0 :=
+begin
+  obtain ⟨k, hk⟩ := coeff_witt_mul' p n d hd b,
+  refine ⟨k, _, hk⟩,
+  suffices : (b, k) ∈ (witt_mul p n).vars,
+  { replace := witt_mul_vars p n this,
+    simp only [fintype.univ_bool, finset.mem_insert, finset.mem_singleton,
+      finset.mem_range, finset.mem_product] at this,
+    exact nat.le_of_lt_succ this.2, },
+  rw mem_vars,
+  exact ⟨d, finsupp.mem_support_iff.mpr hd, finsupp.mem_support_iff.mpr hk⟩,
+end
+
+end coeff_witt_mul
 
 section ideal
 

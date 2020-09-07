@@ -135,7 +135,6 @@ end
 
 end mk_and_coeff
 
-#where
 end truncated_witt_vector
 
 namespace witt_vector
@@ -193,11 +192,19 @@ lemma truncate_witt_vector_truncate {m : ℕ} (hm : n ≤ m) (x) :
   truncate p R hm (witt_vector.truncate p _ x) = witt_vector.truncate p _ x :=
 by rw ← truncate_comp_witt_vector_truncate p R hm; refl
 
+-- this proof confuses me
 @[simp] lemma coeff_truncate {m : ℕ} (hm : n ≤ m) (i : fin n) (x : truncated_witt_vector p m R) :
   (truncate p R hm x).coeff i = x.coeff (fin.cast_le hm i) :=
 begin
-  sorry
+  induction x,
+  { simp only [truncate, submodule.quotient.quot_mk_eq_mk, witt_vector.coeff_truncate, ideal.quotient.lift_mk,
+      ideal.quotient.mk_eq_mk],
+    show _ = coeff _ (submodule.quotient.mk _),
+    rw [← submodule.quotient.quot_mk_eq_mk, coeff],
+    refl },
+  { refl }
 end
+
 
 section fintype
 

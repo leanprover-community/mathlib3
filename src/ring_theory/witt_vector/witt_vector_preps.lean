@@ -698,9 +698,17 @@ lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, (i : R) = 0 �
   end }
 
 def char_p_of_prime_pow_ne_zero (p : ℕ) [hp : fact p.prime] (n : ℕ) (hn : fintype.card R = p ^ n)
-  (hR : ∀ i < n, (p ^ i : R) ≠ 0) :
+  (hR : ∀ i ≤ n, (p ^ i : R) = 0 → i = n) :
   char_p R (p ^ n) :=
-_
+begin
+  obtain ⟨c, hc⟩ := char_p.exists R, resetI,
+  have hcpn : c ∣ p ^ n,
+  { rw [← char_p.cast_eq_zero_iff R c, ← hn, cast_card_eq_zero], },
+  obtain ⟨i, hi, hc⟩ : ∃ i ≤ n, c = p ^ i, by rwa nat.dvd_prime_pow hp at hcpn,
+  obtain rfl : i = n,
+  { apply hR i hi, rw [← nat.cast_pow, ← hc, char_p.cast_eq_zero] },
+  rwa ← hc,
+end
 
 end isos_to_zmod
 

@@ -1062,12 +1062,71 @@ begin
   simp only [neg_zero, ring_hom.map_neg, constant_coeff_X],
 end
 
--- not sure if this one is useful
-lemma coeff_witt_mul (n : ℕ) (d : bool × ℕ →₀ ℕ) (hd : coeff d (witt_mul p n) ≠ 0)
-  (b : bool) (k : ℕ) (hbk : d ⟨b, k⟩ ≠ 0) (b' : bool) :
-  d ⟨b', k⟩ ≠ 0 :=
+-- move this up?
+lemma X_in_terms_of_W_vars (n : ℕ) :
+  (X_in_terms_of_W p ℚ n).vars = finset.range (n + 1) :=
 begin
+  have : ∀ i, (monomial (single i (p ^ (n - i))) (p ^ i : ℤ)).vars = {i},
+  { intro i,
+    rw vars_monomial_single,
+    { rw ← nat.pos_iff_ne_zero,
+      apply nat.pow_pos hp.pos },
+    { apply pow_ne_zero, exact_mod_cast hp.ne_zero } },
+  -- rw [vars_sub_of_disjoint], -- unknown id -- added in #4018
+  -- also need vars_mul_eq (over integral domains)
   sorry
+  -- rw [X_in_terms_of_W_eq, vars_sum_of_disjoint],
+  -- { simp only [this, int.nat_cast_eq_coe_nat, finset.bind_singleton_eq_self], },
+  -- { simp only [this, int.nat_cast_eq_coe_nat],
+  --   intros a b h,
+  --   apply finset.singleton_disjoint.mpr,
+  --   rwa finset.mem_singleton, },
+end
+
+-- move this up?
+lemma X_in_terms_of_W_vars_subset (n : ℕ) :
+  (X_in_terms_of_W p ℚ n).vars ⊆ finset.range (n + 1) :=
+by { rw [X_in_terms_of_W_vars], refl, }
+
+lemma quux' (n : ℕ) (d : bool × ℕ →₀ ℕ) (b : bool)
+  (hd : ∀ (k : ℕ), k ≤ n → d (b, k) = 0)
+  (φ : mv_polynomial ℕ ℚ) (hφ : ∀ d, φ.coeff d ≠ 0 → ∀ k : ℕ, d k ≠ 0 → k ≤ n) :
+  coeff d ((bind₁ (λ (k : ℕ), (bind₁ (λ (b : bool), (rename (λ (i : ℕ), (b, i)))
+    (witt_polynomial p ℚ k))) (X tt * X ff))) φ) = 0 :=
+begin
+  -- clean this up, streamline hypotheses
+  rw φ.as_sum,
+  simp only [coeff_sum, alg_hom.map_sum, bind₁_monomial, coeff_C_mul],
+  rw finset.sum_eq_zero,
+  intros d' hd',
+  convert mul_zero _,
+  simp only [alg_hom.map_pow, alg_hom.map_mul, bind₁_X_right],
+end
+
+lemma quux (n : ℕ) (d : bool × ℕ →₀ ℕ) (b : bool)
+  (hd : ∀ (k : ℕ), k ≤ n → d (b, k) = 0) :
+  coeff d (witt_structure_rat p (X tt * X ff) n) = 0 :=
+begin
+  -- clean this up, streamline hypotheses
+  apply quux' p n d b hd,
+  intros d' hd' k hk,
+  apply nat.le_of_lt_succ,
+  rw [← finset.mem_range],
+  apply X_in_terms_of_W_vars_subset p,
+  rw mem_vars,
+  rw [coeff, ← finsupp.mem_support_iff] at hd',
+  rw [← finsupp.mem_support_iff] at hk,
+  exact ⟨d', hd', hk⟩,
+end
+
+lemma coeff_witt_mul (n : ℕ) (d : bool × ℕ →₀ ℕ) (hd : coeff d (witt_mul p n) ≠ 0) (b : bool) :
+  ∃ k ≤ n, d ⟨b, k⟩ ≠ 0 :=
+begin
+  contrapose! hd,
+  apply @int.cast_injective ℚ,
+  show int.cast_ring_hom ℚ _ = 0,
+  rw [← coeff_map, witt_mul, map_witt_structure_int, ring_hom.map_mul, map_X, map_X],
+  apply quux p n d b hd,
 end
 
 end witt_structure_simplifications
@@ -1099,27 +1158,6 @@ lemma witt_polynomial_vars_subset (n : ℕ) :
 begin
   rw [← map_witt_polynomial p (int.cast_ring_hom R), ← witt_polynomial_vars p ℤ],
   apply vars_map,
-end
-
--- move this up?
-lemma X_in_terms_of_W_vars (n : ℕ) :
-  (X_in_terms_of_W p ℚ n).vars = finset.range (n + 1) :=
-begin
-  have : ∀ i, (monomial (single i (p ^ (n - i))) (p ^ i : ℤ)).vars = {i},
-  { intro i,
-    rw vars_monomial_single,
-    { rw ← nat.pos_iff_ne_zero,
-      apply nat.pow_pos hp.pos },
-    { apply pow_ne_zero, exact_mod_cast hp.ne_zero } },
-  -- rw [vars_sub_of_disjoint], -- unknown id -- added in #4018
-  -- also need vars_mul_eq (over integral domains)
-  sorry
-  -- rw [X_in_terms_of_W_eq, vars_sum_of_disjoint],
-  -- { simp only [this, int.nat_cast_eq_coe_nat, finset.bind_singleton_eq_self], },
-  -- { simp only [this, int.nat_cast_eq_coe_nat],
-  --   intros a b h,
-  --   apply finset.singleton_disjoint.mpr,
-  --   rwa finset.mem_singleton, },
 end
 
 section
@@ -1260,6 +1298,11 @@ lemma mul_coeff_eq_zero (n : ℕ) (x : 𝕎 p R) {y : 𝕎 p R}
   (x * y).coeff n = 0 :=
 begin
   rw mul_coeff,
+  apply aeval_eq_zero,
+  intros d hd,
+  obtain ⟨k, hk, hdk⟩ := coeff_witt_mul p n d hd ff,
+  rw ← finsupp.mem_support_iff at hdk,
+  exact ⟨⟨ff, k⟩, hdk, hy k hk⟩,
 end
 
 noncomputable def ideal (n : ℕ) : ideal (𝕎 p R) :=

@@ -551,6 +551,28 @@ by simp [expand, bind₁_rename, rename_bind₁]
 
 end
 
+section aeval_eq_zero
+variables {S : Type*} [comm_semiring S]
+
+lemma eval₂_hom_eq_zero (f : R →+* S) (g : σ → S) (φ : mv_polynomial σ R)
+  (h : ∀ d, φ.coeff d ≠ 0 → ∃ i ∈ d.support, g i = 0) :
+  eval₂_hom f g φ = 0 :=
+begin
+  rw [φ.as_sum, ring_hom.map_sum, finset.sum_eq_zero],
+  intros d hd,
+  obtain ⟨i, hi, hgi⟩ : ∃ i ∈ d.support, g i = 0 := h d (finsupp.mem_support_iff.mp hd),
+  rw [eval₂_hom_monomial, finsupp.prod, finset.prod_eq_zero hi, mul_zero],
+  rw [hgi, zero_pow],
+  rwa [nat.pos_iff_ne_zero, ← finsupp.mem_support_iff]
+end
+
+lemma aeval_eq_zero [algebra R S] (f : σ → S) (φ : mv_polynomial σ R)
+  (h : ∀ d, φ.coeff d ≠ 0 → ∃ i ∈ d.support, f i = 0) :
+  aeval f φ = 0 :=
+eval₂_hom_eq_zero _ _ _ h
+
+end aeval_eq_zero
+
 end mv_polynomial
 
 section ring_equiv

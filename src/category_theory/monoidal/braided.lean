@@ -67,16 +67,10 @@ variables [monoidal_category.{v} C]
 variables [braided_category.{v} C]
 variables (X : C)
 
-#check monoidal_category.right_unitor_product_aux_triangle
-#check monoidal_category.left_unitor_product_aux_triangle
-#check monoidal_category.left_unitor_tensor
-#check hexagon_forward
-
 lemma left_unitor_braiding :
   β_ _ _ ≪≫ λ_ X = ρ_ X :=
--- iso.ext (by simp)
 begin
-  ext, simp,
+  ext, simp only [iso.trans_hom],
   rw [← monoidal_category.tensor_right_iff],
   suffices :
     ((β_ X (𝟙_ C)).hom ⊗ 𝟙 (𝟙_ C)) ≫ ((λ_ X).hom ⊗ 𝟙 (𝟙_ C)) =
@@ -85,22 +79,93 @@ begin
   rw ← monoidal_category.left_unitor_tensor,
   rw ← category.assoc,
   rw ← iso.eq_comp_inv,
-  -- rw ← cancel_mono (iso.refl (𝟙_ C) ⊗ (β_ X (𝟙_ C))).hom,
-  rw ← cancel_mono (𝟙 (𝟙_ C) ⊗ (β_ X (𝟙_ C)).hom),
-  simp [- iso.cancel_iso_hom_right_assoc, category.assoc],
+  simp only [← cancel_mono (𝟙 (𝟙_ C) ⊗ (β_ X (𝟙_ C)).hom), category.assoc],
+
+  show ((β_ X (𝟙_ C)).hom ⊗ 𝟙 (𝟙_ C)) ≫
+      (α_ (𝟙_ C) X (𝟙_ C)).hom ≫ (𝟙 (𝟙_ C) ⊗ (β_ X (𝟙_ C)).hom) =
+    ((ρ_ X).hom ⊗ 𝟙 (𝟙_ C)) ≫ (λ_ (X ⊗ 𝟙_ C)).inv ≫ (𝟙 (𝟙_ C) ⊗ (β_ X (𝟙_ C)).hom),
   rw ← hexagon_forward,
-  simp,
-  done,
-  -- rw [← monoidal_category.tensor_left_iff],
-  rw ← iso.cancel_iso_hom_left (monoidal_category.associator _ _ _).symm,
-  simp,
-  -- ← monoidal_category.triangle, ← iso.inv_comp_eq],
+  rw ← monoidal_category.triangle_assoc_comp_left,
+  simp only [category.assoc, iso.cancel_iso_hom_left],
+  rw ← monoidal_category.left_unitor_inv_naturality,
+  rw braiding_naturality_assoc,
+  simp only [iso.cancel_iso_hom_left],
+  rw [← monoidal_category.left_unitor_tensor, category.assoc, iso.hom_inv_id], simp,
 end
+
+
+lemma foo {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : X ⟶ Z) [is_iso g] :
+  h = f ≫ g ↔ f = h ≫ inv g :=
+sorry
+
+lemma foo' {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : X ⟶ Z) [is_iso g] :
+  f ≫ g = h ↔ f = h ≫ inv g :=
+sorry
+
+lemma foo'' {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : X ⟶ Z) [is_iso f] :
+  f ≫ g = h ↔ g = inv f ≫ h :=
+sorry
+
+lemma foo''' {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (h : X ⟶ Z) [is_iso f] :
+  h = f ≫ g ↔ inv f ≫ h = g :=
+sorry
+
+-- #exit
 
 lemma right_unitor_braiding :
   β_ _ _ ≪≫ ρ_ X = λ_ X :=
 begin
-  rw ← left_unitor_braiding,
+  ext, simp,
+  rw [← monoidal_category.tensor_right_iff],
+  suffices :
+    ((β_ (𝟙_ C) X).hom ⊗ 𝟙 (𝟙_ C)) ≫ ((ρ_ X).hom ⊗ 𝟙 (𝟙_ C)) =
+    (λ_ X).hom ⊗ 𝟙 (𝟙_ C),
+  { simpa only [← monoidal_category.tensor_comp, category.id_comp] using this },
+
+  -- have := @hexagon_forward C _ _ _ (𝟙_ _) X (𝟙_ _),
+  -- rw foo at this,
+  have := @hexagon_reverse C _ _ _ (𝟙_ _) (𝟙_ _) X,
+  rw [foo''', foo'''] at this,
+  rw ← this, simp,
+  -- simp at this,
+  rw this, simp,
+
+  rw ← monoidal_category.triangle_assoc_comp_right,
+  rw ← monoidal_category.triangle,
+
+  -- rw ← monoidal_category.left_unitor_tensor,
+  rw ← category.assoc,
+  -- rw ← iso.eq_comp_inv,
+  simp only [← cancel_mono (𝟙 (𝟙_ C) ⊗ (β_ X (𝟙_ C)).hom), category.assoc],
+
+  show ((β_ X (𝟙_ C)).hom ⊗ 𝟙 (𝟙_ C)) ≫
+      (α_ (𝟙_ C) X (𝟙_ C)).hom ≫ (𝟙 (𝟙_ C) ⊗ (β_ X (𝟙_ C)).hom) =
+    ((ρ_ X).hom ⊗ 𝟙 (𝟙_ C)) ≫ (λ_ (X ⊗ 𝟙_ C)).inv ≫ (𝟙 (𝟙_ C) ⊗ (β_ X (𝟙_ C)).hom),
+  rw ← hexagon_forward,
+
+
+  -- rw ← monoidal_category.triangle,
+
+  rw ← monoidal_category.triangle_assoc_comp_right,
+
+  rw iso.eq_inv_comp,
+
+  -- rw ← category.assoc,
+  -- have := cancel_mono (𝟙 (𝟙_ C) ⊗ (β_ (𝟙_ C) X).hom),
+  -- rw ← cancel_mono (𝟙 (𝟙_ C) ⊗ (β_ (𝟙_ C) X).hom),
+  -- simp [- iso.cancel_iso_hom_right_assoc, category.assoc],
+
+  -- suffices : (𝟙 (𝟙_ C) ⊗ (β_ (𝟙_ C) X).hom) ≫
+  --     (α_ (𝟙_ C) X (𝟙_ C)).inv ≫ ((β_ (𝟙_ C) X).hom ⊗ 𝟙 (𝟙_ C)) =
+  --   ((ρ_ X).hom ⊗ 𝟙 (𝟙_ C)) ≫ (λ_ (X ⊗ 𝟙_ C)).inv ≫ (𝟙 (𝟙_ C) ⊗ (β_ X (𝟙_ C)).hom),
+  -- { simpa },
+  rw ← hexagon_forward,
+  rw ← monoidal_category.triangle_assoc_comp_left,
+  simp only [category.assoc, iso.cancel_iso_hom_left],
+  rw ← monoidal_category.left_unitor_inv_naturality,
+  rw braiding_naturality_assoc,
+  simp,
+  rw [← monoidal_category.left_unitor_tensor, category.assoc, iso.hom_inv_id], simp,
 end
 
 end properties

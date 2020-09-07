@@ -156,6 +156,24 @@ by simp [fintype.card_congr (equiv p n R)]
 
 end fintype
 
+section ideals
+
+lemma ideal_inter : (⨅ i : ℕ, witt_vector.ideal p R i) = ⊥ :=
+begin
+  rw [submodule.eq_bot_iff],
+  intros x hx,
+  ext,
+  simp only [witt_vector.mem_ideal_iff, ideal.mem_infi, witt_vector.zero_coeff] at hx ⊢,
+  exact hx _ _ (nat.lt_succ_self _)
+end
+
+#check submodule.mem_bot
+
+lemma ideal.mem_bot {x : R} : x ∈ (⊥ : ideal R) ↔ x = 0 :=
+submodule.mem_bot _
+
+end ideals
+
 section lift
 
 variables {S : Type*} [comm_ring S]
@@ -169,7 +187,25 @@ lemma lift_fun_zero : lift_fun p f 0 = 0 :=
 by simp [lift_fun]
 
 lemma lift_fun_one : lift_fun p f 1 = 1 :=
-by simp [lift_fun]
+begin
+  rw [← sub_eq_zero, ← ideal.mem_bot, ← ideal_inter, ideal.mem_infi],
+  intro i,
+  rw [← ideal.quotient.eq, ring_hom.map_one],
+  show witt_vector.truncate _ _ _ = _,
+  simp [lift_fun],
+  rw [witt_vector.mem_ideal_iff],
+  intros j hj,
+
+end
+
+lemma lift_fun_add (x y) : lift_fun p f (x + y) = lift_fun p f x + lift_fun p f y :=
+begin
+  rw [← sub_eq_zero, ← ideal.mem_bot, ← ideal_inter, ideal.mem_infi],
+  intro i,
+  rw [← ideal.quotient.eq, ring_hom.map_add],
+  show witt_vector.truncate _ _ _ = witt_vector.truncate _ _ _ + witt_vector.truncate _ _ _,
+  simp [lift_fun],
+end
 
 
 include f_compat

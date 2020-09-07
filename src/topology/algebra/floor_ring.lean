@@ -37,10 +37,10 @@ tendsto_neg_at_top_at_bot.comp (tendsto_floor_at_top.comp tendsto_neg_at_bot_at_
 variables [topological_space α]
 
 lemma continuous_on_floor (n : ℤ) : continuous_on (λ x, floor x : α → α) (Ico n (n+1) : set α) :=
-(continuous_on_congr $ floor_eq_on_Ico n).mpr continuous_on_const
+(continuous_on_congr $ floor_eq_on_Ico' n).mpr continuous_on_const
 
 lemma continuous_on_ceil (n : ℤ) : continuous_on (λ x, ceil x : α → α) (Ioc (n-1) n : set α) :=
-(continuous_on_congr $ ceil_eq_on_Ioc n).mpr continuous_on_const
+(continuous_on_congr $ ceil_eq_on_Ioc' n).mpr continuous_on_const
 
 lemma tendsto_floor_right' [order_closed_topology α] (n : ℤ) :
   tendsto (λ x, floor x : α → α) (𝓝[Ici n] n) (𝓝 n) :=
@@ -88,7 +88,7 @@ lemma tendsto_floor_left [order_closed_topology α] (n : ℤ) :
   tendsto (λ x, floor x : α → α) (𝓝[Iio n] n) (𝓝[Iic (n-1)] (n-1)) :=
 begin
   rw ← nhds_within_Ico_eq_nhds_within_Iio (sub_one_lt (n : α)),
-  convert (tendsto_nhds_within_congr $ (λ x hx, (floor_eq_on_Ico (n-1) x hx).symm))
+  convert (tendsto_nhds_within_congr $ (λ x hx, (floor_eq_on_Ico' (n-1) x hx).symm))
     (tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ tendsto_const_nhds
       (eventually_of_forall (λ _, mem_Iic.mpr $ le_refl _)));
   norm_cast <|> apply_instance,
@@ -99,7 +99,7 @@ lemma tendsto_ceil_right [order_closed_topology α] (n : ℤ) :
   tendsto (λ x, ceil x : α → α) (𝓝[Ioi n] n) (𝓝[Ici (n+1)] (n+1)) :=
 begin
   rw ← nhds_within_Ioc_eq_nhds_within_Ioi (lt_add_one (n : α)),
-  convert (tendsto_nhds_within_congr $ (λ x hx, (ceil_eq_on_Ioc (n+1) x hx).symm))
+  convert (tendsto_nhds_within_congr $ (λ x hx, (ceil_eq_on_Ioc' (n+1) x hx).symm))
     (tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ tendsto_const_nhds
       (eventually_of_forall (λ _, mem_Ici.mpr $ le_refl _)));
   norm_cast <|> apply_instance,

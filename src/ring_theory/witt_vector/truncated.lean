@@ -241,13 +241,22 @@ end ideals
 
 section iso
 
-lemma zmod_equiv_trunc : zmod (p^n) ≃+* truncated_witt_vector p n (zmod p) :=
+lemma zmod_equiv_trunc : truncated_witt_vector p n (zmod p) ≃+* zmod (p^n) :=
 begin
   have card_t : fintype.card (truncated_witt_vector p n (zmod p)) = p ^ n,
   { convert card _ _, exact (zmod.card p).symm },
   haveI : char_p (truncated_witt_vector p n (zmod p)) (p ^ n) := _,
-  refine iso_to_zmod _ _ card_t,
+  refine (iso_to_zmod _ _ card_t).symm,
   apply char_p_of_prime_pow_ne_zero _ _ _ card_t,
+  sorry
+end
+
+#check @zmod_equiv_trunc
+
+lemma commutes {m : ℕ} (hm : n ≤ m) (x : truncated_witt_vector p m (zmod p)) :
+  zmod_equiv_trunc p (truncate p (zmod p) hm x) =
+    zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _ (zmod_equiv_trunc p x) :=
+begin
   sorry
 end
 

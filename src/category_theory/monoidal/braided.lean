@@ -22,6 +22,12 @@ just requiring a property.
 * Construct the Drinfeld center of a monoidal category as a braided monoidal category.
 * Say something about pseudo-natural transformations.
 
+## References
+
+ * Proposition 1 of André Joyal and Ross Street, "Braided monoidal categories", Macquarie Math Reports 860081 (1986).
+ * Proposition 2.1 of André Joyal and Ross Street, "Braided tensor categories" , Adv. Math. 102 (1993), 20–78.
+ * Exercise 8.1.6 of Etingof, Gelaki, Nikshych, Ostrik, "Tensor categories", vol 25, Mathematical Surveys and Monographs (2015), AMS.
+
 -/
 
 open category_theory
@@ -52,9 +58,10 @@ class braided_category (C : Type u) [category.{v} C] [monoidal_category.{v} C] :
   . obviously)
 
 restate_axiom braided_category.braiding_naturality'
-attribute [simp,reassoc] braided_category.braiding_naturality
+attribute [simp, reassoc] braided_category.braiding_naturality
 restate_axiom braided_category.hexagon_forward'
 restate_axiom braided_category.hexagon_reverse'
+attribute [reassoc] braided_category.hexagon_forward braided_category.hexagon_reverse
 
 open category
 open monoidal_category
@@ -148,6 +155,15 @@ class symmetric_category (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 
 restate_axiom symmetric_category.symmetry'
 attribute [simp,reassoc] symmetric_category.symmetry
+
+namespace symmetric_category
+
+variables (C : Type u₁) [category.{v₁} C] [monoidal_category C] [symmetric_category C]
+
+lemma braiding_inv {X Y : C} : (β_ X Y).inv = (β_ Y X).hom :=
+by rw [← cancel_epi (β_ X Y).hom, iso.hom_inv_id, symmetry]
+
+end symmetric_category
 
 variables (C : Type u₁) [category.{v₁} C] [monoidal_category C] [braided_category C]
 variables (D : Type u₂) [category.{v₂} D] [monoidal_category D] [braided_category D]

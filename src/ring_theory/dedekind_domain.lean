@@ -5,6 +5,7 @@ import ring_theory.polynomial.rational_root
 import ring_theory.ideal.over
 import set_theory.cardinal
 import tactic
+import group_theory.monoid_localization
 
 /-- A ring `R` is (at most) one-dimensional if all nonzero prime ideals are maximal. -/
 def ring.is_one_dimensional (R : Type*) [comm_ring R] :=
@@ -90,46 +91,38 @@ let M1 : fractional_ideal f,
     exact h1 y h,},sorry,
 },
 have M1_one : (1 : K) ∈ M1,sorry,
-have h_MinMM1 : ↑M ≤ ↑M*M1,
-  {intros x hx,cases hx with a ha,
-
-  }
-
-
+have h_MinMM1 : ↑M ≤ ↑M*M1,sorry,
+  -- {intros x hx,cases hx with a ha,
+  -- },
 have hprod : ↑M*M1=(1: fractional_ideal f),
   {suffices hincl: ↑M*M1≤ 1, --first we start with the proof that hincl → hprod
-  have h_nonfrac : ∃ (I : ideal R), ↑M*M1=↑I, sorry,
+  have h_nonfrac : ∃ (I : ideal R), ↑M*M1=↑I, sorry,--this sorry replaces a proof that ↑ M*M1=↑ I and
+                                                    --should follow from hincl, checking coercion
   cases h_nonfrac with I hI,
-  have h_Iincl : M ≤ I,sorry,--probably need to combine hI with the fact that ↑ M⊆ ↑ M*M1 easily
-  have h_Itop : I=⊤ ,apply and.elim_right hM I,sorry,--this second sorry "proves" that M < I
-  have h_unitI : (1 : R) ∈ I, apply (eq_top_iff_one I).mp,exact h_Itop,
-  have h_IR : I= (1: ideal R),simp,exact h_Itop,
-  have h_okI : ↑I = (1 : fractional_ideal f),sorry,
-  rw hI,exact h_okI,--end of the proof that hincl → hprod
-  -- and now we pass to the proof of hincl
-  sorry,--end of the proof of hincl
+  have h_Iincl : M ≤ I,
+    {suffices h_Iincl_f : (↑M: fractional_ideal f) ≤ (↑I: fractional_ideal f),
+    intros x hx,
+    let y := f.to_map x,
+    have hy : y ∈  (↑ M : fractional_ideal f), use x,sorry,
+    --apply fractional_ideal.mem_coe.mpr ↑ M,
+    have hxI : y ∈  (↑ I : fractional_ideal f), apply fractional_ideal.le_iff.mp h_Iincl_f,exact hy,
+    -- apply monoid_localization.to_map_injective, ?????????
+    -- have hx'I : ∃ (x' ∈ I), f.to_map x' = x,
+    -- apply fractional_ideal.mem_coe.mpr ↑ I,
+--the strategy here is to show that since y=f(x) where f is the localization map, and we have y ∈ ↑ I
+--by the hxI, we also have x ∈ I, which is our current goal
+
+
+    --sorry,--this sorry replaces the proof that h_Iincl_f → h_Iincl
+    rw ← hI,exact h_MinMM1,},
+  have h_Itop : I=⊤,apply and.elim_right hM I,sorry,--this second sorry "proves" that M < I
+  have h_okI : ↑I = (1 : fractional_ideal f),sorry,--this shoud be an easy matter of coercion
+  rw hI,exact h_okI,
+  -- have h_unitI : (1 : R) ∈ I, apply (eq_top_iff_one I).mp,exact h_Itop,
+  -- have h_IR : I= (1: ideal R),simp,exact h_Itop,
+
+  sorry,--this sorry replaces a proof of hincl
   },
-  /-
-  /- here begins an old strategy
-  {apply le_antisymm,
-    {apply fractional_ideal.mul_le.mpr,
-      intros y hy x hx,
-      have hxy : localization_map.is_integer f (x*y),
-        {
-        rw fractional_ideal.mem_coe at hy,
-        rcases hy with ⟨s,hs⟩,simp * at *,
-        rcases hs with ⟨h_s_inM,h_sy⟩,
-        subst h_sy,
-        exact hx s h_s_inM,
-        },
-      apply fractional_ideal.mem_one_iff.mpr,
-      cases hxy, use hxy_w,
-      finish,
-    },
-    {have incl : ↑ M ≤ ↑ M*M1, sorry, sorry},
-    },
-    which finishes here-/
-    -/
 apply is_unit_of_mul_eq_one ↑M M1 hprod,
 end
 

@@ -155,16 +155,19 @@ end fintype
 
 section lift
 
-#check truncate
 variables (S : Type*) [comm_ring S]
 variable (f : Π k : ℕ, S →+* truncated_witt_vector p k R)
 variable f_compat : ∀ (k₁ k₂ : ℕ) (hk : k₁ ≤ k₂), (truncate p R hk).comp (f k₂) = f k₁
+
+def lift_fun (s : S) : 𝕎 R :=
+witt_vector.mk p $ λ k, (quotient.out' (f k s)).coeff k
 
 include f_compat
 
 def lift : S →+* 𝕎 R :=
 _
 
+#print witt_vector
 end lift
 
 end truncated_witt_vector

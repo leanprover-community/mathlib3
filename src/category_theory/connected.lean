@@ -83,7 +83,7 @@ lemma any_functor_const_on_obj [connected J] {α : Type v₂} (F : J ⥤ discret
 If any functor to a discrete category is constant on objects, J is connected.
 The converse of `any_functor_const_on_obj`.
 -/
-def connected.of_any_functor_const_on_obj [inhabited J]
+def connected.of_any_functor_const_on_obj [nonempty J]
   (h : ∀ {α : Type v₂} (F : J ⥤ discrete α), ∀ (j j' : J), F.obj j = F.obj j') :
   connected J :=
 { iso_constant := λ α F j', ⟨nat_iso.of_components (λ j, eq_to_iso (h F j j')) (λ _ _ _, subsingleton.elim _ _)⟩ }
@@ -107,7 +107,7 @@ This can be thought of as a local-to-global property.
 
 The converse of `constant_of_preserves_morphisms`.
 -/
-def connected.of_constant_of_preserves_morphisms [inhabited J]
+def connected.of_constant_of_preserves_morphisms [nonempty J]
   (h : ∀ {α : Type v₂} (F : J → α), (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), F j₁ = F j₂) → (∀ j j' : J, F j = F j')) :
   connected J :=
 connected.of_any_functor_const_on_obj (λ _ F, h F.obj (λ _ _ f, (F.map f).down.1))
@@ -134,7 +134,7 @@ If any maximal connected component containing some element j₀ of J is all of J
 
 The converse of `induct_on_objects`.
 -/
-def connected.of_induct [inhabited J]
+def connected.of_induct [nonempty J]
   {j₀ : J} (h : ∀ (p : set J), j₀ ∈ p → (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), j₁ ∈ p ↔ j₂ ∈ p) → ∀ (j : J), j ∈ p) :
   connected J :=
 connected.of_constant_of_preserves_morphisms (λ α F a,
@@ -176,9 +176,9 @@ equiv_relation _
   (λ _ _ f, relation.refl_trans_gen.single (or.inl (nonempty.intro f))) _ _
 
 /--
-If any two objects in an inhabited category are related by `zigzag`, the category is connected.
+If any two objects in an nonempty category are related by `zigzag`, the category is connected.
 -/
-def zigzag_connected [inhabited J] (h : ∀ (j₁ j₂ : J), zigzag j₁ j₂) : connected J :=
+def zigzag_connected [nonempty J] (h : ∀ (j₁ j₂ : J), zigzag j₁ j₂) : connected J :=
 begin
   apply connected.of_induct,
   intros,
@@ -198,12 +198,12 @@ lemma exists_zigzag' [connected J] (j₁ j₂ : J) :
 list.exists_chain_of_relation_refl_trans_gen (connected_zigzag _ _)
 
 /--
-If any two objects in an inhabited category are linked by a sequence of (potentially reversed)
+If any two objects in an nonempty category are linked by a sequence of (potentially reversed)
 morphisms, then J is connected.
 
 The converse of `exists_zigzag'`.
 -/
-def connected_of_zigzag [inhabited J]
+def connected_of_zigzag [nonempty J]
   (h : ∀ (j₁ j₂ : J), ∃ l, list.chain zag j₁ l ∧ list.last (j₁ :: l) (list.cons_ne_nil _ _) = j₂) :
   connected J :=
 begin

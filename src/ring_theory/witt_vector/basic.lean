@@ -1101,7 +1101,18 @@ begin
   intros d' hd',
   convert mul_zero _,
   simp only [alg_hom.map_pow, alg_hom.map_mul, bind₁_X_right],
+  let Φ := ∏ i in d'.support,
+    ((rename (prod.mk tt)) (witt_polynomial p ℚ i) *
+     (rename (prod.mk ff)) (witt_polynomial p ℚ i)) ^ d' i,
+  suffices : ∃ i : bool × ℕ, i ∈ d.support ∧ i ∉ Φ.vars,
+  { rcases this with ⟨i, hid, hi⟩,
+    rw mem_vars at hi,
+    contrapose! hi,
+    exact ⟨d, finsupp.mem_support_iff.mpr hi, hid⟩ },
 
+  -- rw [coeff, ← finsupp.not_mem_support_iff],
+  -- intro H,
+  -- have := (mem_vars Φ),
 end
 
 lemma quux (n : ℕ) (d : bool × ℕ →₀ ℕ) (b : bool)

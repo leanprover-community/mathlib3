@@ -35,7 +35,7 @@ lemma is_unit_of_dvd_one [comm_monoid α] : ∀a ∣ 1, is_unit (a:α)
 | a ⟨b, eq⟩ := ⟨units.mk_of_mul_eq_one a b eq.symm, rfl⟩
 
 lemma dvd_and_not_dvd_iff [comm_cancel_monoid_with_zero α] {x y : α} :
-  x ∣ y ∧ ¬y ∣ x ↔ x ≠ 0 ∧ ∃ d : α, ¬ is_unit d ∧ y = x * d :=
+  x ∣ y ∧ ¬y ∣ x ↔ dvd_not_unit x y :=
 ⟨λ ⟨⟨d, hd⟩, hyx⟩, ⟨λ hx0, by simpa [hx0] using hyx, ⟨d,
     mt is_unit_iff_dvd_one.1 (λ ⟨e, he⟩, hyx ⟨e, by rw [hd, mul_assoc, ← he, mul_one]⟩), hd⟩⟩,
   λ ⟨hx0, d, hdu, hdx⟩, ⟨⟨d, hdx⟩, λ ⟨e, he⟩, hdu (is_unit_of_dvd_one _
@@ -566,10 +566,10 @@ begin
 end
 
 theorem mk_dvd_not_unit_mk_iff {a b : α} :
-  (associates.mk a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ associates.mk b = associates.mk a * x) ↔
-  a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x :=
+  dvd_not_unit (associates.mk a) (associates.mk b) ↔
+  dvd_not_unit a b :=
 begin
-  rw [ne, ne, mk_eq_zero],
+  rw [dvd_not_unit, dvd_not_unit, ne, ne, mk_eq_zero],
   apply and_congr_right, intro ane0,
   split,
   { contrapose!, rw forall_associated,
@@ -589,7 +589,7 @@ begin
 end
 
 theorem dvd_not_unit_of_lt {a b : associates α} (hlt : a < b) :
-  a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x :=
+  dvd_not_unit a b :=
 begin
   split, { rintro rfl, apply not_lt_of_le _ hlt, apply dvd_zero },
   rcases hlt with ⟨⟨x, rfl⟩, ndvd⟩,
@@ -677,7 +677,7 @@ instance : comm_cancel_monoid_with_zero (associates α) :=
   .. (infer_instance : comm_monoid_with_zero (associates α)) }
 
 theorem dvd_not_unit_iff_lt {a b : associates α} :
-  (a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x) ↔ a < b :=
+  dvd_not_unit a b ↔ a < b :=
 dvd_and_not_dvd_iff.symm
 
 end comm_cancel_monoid_with_zero

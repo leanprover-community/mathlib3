@@ -34,43 +34,45 @@ set_option default_priority 100 -- see Note [default priority]
   principal ideals in an integral domain.
    -/
 class wf_dvd_monoid (α : Type*) [comm_monoid_with_zero α] : Prop :=
-(well_founded_dvd_not_unit : well_founded (λ a b : α, a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x))
+(well_founded_dvd_not_unit : well_founded (@dvd_not_unit α _))
 
 export wf_dvd_monoid (well_founded_dvd_not_unit)
 
 instance is_noetherian_ring.wf_dvd_monoid [integral_domain α] [is_noetherian_ring α] :
   wf_dvd_monoid α :=
-⟨by simp only [ideal.span_singleton_lt_span_singleton.symm];
-   exact inv_image.wf (λ a, ideal.span ({a} : set α)) (well_founded_submodule_gt _ _)⟩
+⟨by { convert inv_image.wf (λ a, ideal.span ({a} : set α)) (well_founded_submodule_gt _ _),
+      ext,
+      exact ideal.span_singleton_lt_span_singleton.symm }⟩
 
 end prio
 
 instance polynomial.wf_dvd_monoid [integral_domain α] [wf_dvd_monoid α] : wf_dvd_monoid (polynomial α) :=
 { well_founded_dvd_not_unit := begin
     classical,
-    apply rel_hom.well_founded, swap,
-    exact (prod.lex_wf (with_top.well_founded_lt $ with_bot.well_founded_lt nat.lt_wf)
-      _inst_2.well_founded_dvd_not_unit),
-    exact {
-      to_fun := λ p, (if p = 0 then ⊤ else ↑p.degree, p.leading_coeff),
-      map_rel' := λ a b ⟨ane0, ⟨c, ⟨not_unit_c, bac⟩⟩⟩, begin
-        rw bac, rw polynomial.degree_mul, rw if_neg ane0, by_cases c = 0,
-        { simp only [h, if_true, polynomial.leading_coeff_zero, eq_self_iff_true, ne.def, mul_zero],
-          apply prod.lex.left _ _ (lt_of_le_of_ne le_top _), apply with_top.coe_ne_top, },
-        { simp only [h, ane0, if_false, ne.def, polynomial.leading_coeff_mul, or_self, mul_eq_zero],
-          rename h cne0, by_cases c.degree = 0,
-        { simp only [h, add_zero, ne.def, polynomial.leading_coeff_mul],
-          apply prod.lex.right, split, {rw polynomial.leading_coeff_eq_zero, apply ane0},
-          use c.leading_coeff, split, swap, {refl},
-          contrapose! not_unit_c, rw polynomial.is_unit_iff, use c.leading_coeff,
-          split, {exact not_unit_c}, rw polynomial.leading_coeff,
-          convert (polynomial.eq_C_of_degree_eq_zero h).symm,
-          apply polynomial.nat_degree_eq_of_degree_eq_some h,},
-        { apply prod.lex.left, rw polynomial.degree_eq_nat_degree cne0 at *,
-          rw [with_top.coe_lt_coe, polynomial.degree_eq_nat_degree ane0,
-            ← with_bot.coe_add, with_bot.coe_lt_coe],
-          apply lt_add_of_pos_right, apply nat.pos_of_ne_zero, contrapose! h, rw h, refl, }, }
-      end }
+    refine rel_hom.well_founded
+      ⟨λ p, (if p = 0 then ⊤ else ↑p.degree, p.leading_coeff), _⟩
+      (prod.lex_wf (with_top.well_founded_lt $ with_bot.well_founded_lt nat.lt_wf)
+        _inst_2.well_founded_dvd_not_unit),
+    rintros a b ⟨ane0, ⟨c, ⟨not_unit_c, rfl⟩⟩⟩,
+    rw [polynomial.degree_mul, if_neg ane0],
+    split_ifs with hac,
+    { rw [hac, polynomial.leading_coeff_zero],
+      apply prod.lex.left,
+      exact lt_of_le_of_ne le_top with_top.coe_ne_top },
+    have cne0 : c ≠ 0 := right_ne_zero_of_mul hac,
+    simp only [cne0, ane0, polynomial.leading_coeff_mul],
+    by_cases hdeg : c.degree = 0,
+    { simp only [hdeg, add_zero],
+      refine prod.lex.right _ ⟨_, ⟨c.leading_coeff, (λ unit_c, not_unit_c _), rfl⟩⟩,
+      { rwa [ne, polynomial.leading_coeff_eq_zero] },
+      rw [polynomial.is_unit_iff, polynomial.eq_C_of_degree_eq_zero hdeg],
+      use [c.leading_coeff, unit_c],
+      rw [polynomial.leading_coeff, polynomial.nat_degree_eq_of_degree_eq_some hdeg] },
+    { apply prod.lex.left,
+      rw polynomial.degree_eq_nat_degree cne0 at *,
+      rw [with_top.coe_lt_coe, polynomial.degree_eq_nat_degree ane0,
+          ← with_bot.coe_add, with_bot.coe_lt_coe],
+      exact lt_add_of_pos_right _ (nat.pos_of_ne_zero (λ h, hdeg (h.symm ▸ with_bot.coe_zero))) },
   end }
 
 namespace wf_dvd_monoid

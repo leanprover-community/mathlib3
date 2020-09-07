@@ -134,8 +134,8 @@ wf_dvd_monoid.induction_on_irreducible a
   (λ a i ha0 hii ih hia0,
     let ⟨s, hs⟩ := ih ha0 in
     ⟨i::s, ⟨by clear _let_match; finish,
-      by rw multiset.prod_cons;
-        exact associated_mul_mul (by refl) hs.2⟩⟩)
+      by { rw multiset.prod_cons,
+           exact associated_mul_mul (by refl) hs.2 }⟩⟩)
 
 end wf_dvd_monoid
 

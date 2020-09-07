@@ -832,10 +832,23 @@ noncomputable def ghost_map : 𝕎 p R →+* ℕ → R :=
 
 variables (p R)
 
+noncomputable def ghost_equiv [invertible (p : R)] : 𝕎 p R ≃+* (ℕ → R) :=
+{ inv_fun := (ghost_map_fun.equiv_of_invertible p R).inv_fun,
+  left_inv :=
+  begin
+    dsimp [ghost_map], rw [ghost_map_fun_eq],
+    exact (ghost_map_fun.equiv_of_invertible p R).left_inv
+  end,
+  right_inv :=
+  begin
+    dsimp [ghost_map], rw [ghost_map_fun_eq],
+    exact (ghost_map_fun.equiv_of_invertible p R).right_inv
+  end,
+  .. (ghost_map : 𝕎 p R →+* (ℕ → R)) }
+
 lemma ghost_map.bijective_of_invertible [invertible (p : R)] :
   function.bijective (ghost_map : 𝕎 p R → ℕ → R) :=
 ghost_map_fun.bijective_of_invertible p R
-
 
 section witt_constant_coeff
 -- move this up
@@ -1235,15 +1248,18 @@ rfl
 lemma neg_coeff (x : 𝕎 p R) (n : ℕ) :
   (-x).coeff n = aeval (λ bn : unit × ℕ, (x.coeff bn.2)) (witt_neg p n) := rfl
 
+lemma map_coeff (f : R →+* S) (x : 𝕎 p R) (n : ℕ) :
+  (map f x).coeff n = f (x.coeff n) := rfl
+
 end coeff
 
 section ideal
 
 lemma mul_coeff_eq_zero (n : ℕ) (x : 𝕎 p R) {y : 𝕎 p R}
-  (hy : y ∈ {x : 𝕎 p R | ∀ (i : ℕ), i ≤ n → coeff i x = 0}) :
+  (hy : ∀ (i : ℕ), i ≤ n → coeff i y = 0) :
   (x * y).coeff n = 0 :=
 begin
-  sorry,
+  rw mul_coeff,
 end
 
 noncomputable def ideal (n : ℕ) : ideal (𝕎 p R) :=

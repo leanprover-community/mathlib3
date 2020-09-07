@@ -66,7 +66,13 @@ variables (p)
 lemma mk_coeff (x : truncated_witt_vector p n R) :
   mk p (λ (i : fin n), coeff i x) = x :=
 begin
+  apply quot.induction_on x,
+  intros x',
+  show mk p (λ i : fin n, witt_vector.coeff i x') = _,
+  apply quot.sound,
+  show _ ∈ (witt_vector.ideal p R n),
   sorry
+  -- intros i hi,
 end
 
 lemma coeff_mk (i : fin n) (x : fin n → R) :

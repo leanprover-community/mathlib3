@@ -218,6 +218,41 @@ begin
       map_bind_roots_eq]
 end
 
+lemma nat_degree_multiset_prod {R : Type*} [integral_domain R] {s : multiset (polynomial R)}
+  (h : ∀ p ∈ s, p ≠ (0 : polynomial R)) :
+  nat_degree s.prod = (s.map nat_degree).sum :=
+begin
+  revert h,
+  refine s.induction_on _ _,
+  { simp },
+  intros p s ih h,
+  have hs : ∀ p ∈ s, p ≠ (0 : polynomial R) := λ p hp, h p (multiset.mem_cons_of_mem hp),
+  have hprod : s.prod ≠ 0 := multiset.prod_ne_zero (λ p hp, hs p hp),
+  rw [multiset.prod_cons, nat_degree_mul (h p (multiset.mem_cons_self _ _)) hprod, ih hs,
+      multiset.map_cons, multiset.sum_cons],
+end
+
+lemma nat_degree_eq_card_roots {p : polynomial α} {i : α →+* β}
+  (hsplit : splits i p) : p.nat_degree = (p.map i).roots.card :=
+begin
+  by_cases p_eq_zero : p = 0,
+  { rw [p_eq_zero, nat_degree_zero, map_zero, roots_zero, multiset.card_zero] },
+  have map_ne_zero : p.map i ≠ 0 := map_ne_zero (p_eq_zero),
+  rw eq_prod_roots_of_splits hsplit at map_ne_zero,
+
+  conv_lhs { rw [← nat_degree_map i, eq_prod_roots_of_splits hsplit] },
+  have : ∀ p' ∈ (map i p).roots.map (λ a, X - C a), p' ≠ (0 : polynomial β),
+  { intros p hp,
+    obtain ⟨a, ha, rfl⟩ := multiset.mem_map.mp hp,
+    exact X_sub_C_ne_zero _ },
+  simp [nat_degree_mul (left_ne_zero_of_mul map_ne_zero) (right_ne_zero_of_mul map_ne_zero),
+        nat_degree_multiset_prod this]
+end
+
+lemma degree_eq_card_roots {p : polynomial α} {i : α →+* β} (p_ne_zero : p ≠ 0)
+  (hsplit : splits i p) : p.degree = (p.map i).roots.card :=
+by rw [degree_eq_nat_degree p_ne_zero, nat_degree_eq_card_roots hsplit]
+
 section UFD
 
 local attribute [instance, priority 10] principal_ideal_ring.to_unique_factorization_domain

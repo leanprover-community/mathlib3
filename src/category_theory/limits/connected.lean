@@ -91,22 +91,23 @@ Note that this functor does not preserve the two most obvious disconnected limit
 `(X × -)` does not preserve products or terminal object, eg `(X ⨯ A) ⨯ (X ⨯ B)` is not isomorphic to
 `X ⨯ (A ⨯ B)` and `X ⨯ 1` is not isomorphic to `1`.
 -/
+noncomputable
 def prod_preserves_connected_limits [connected J] (X : C) :
   preserves_limits_of_shape J (prod_functor.obj X) :=
 { preserves_limit := λ K,
   { preserves := λ c l,
-    { lift := λ s, prod.lift (s.π.app (default _) ≫ limits.prod.fst) (l.lift (forget_cone s)),
+    { lift := λ s, prod.lift (s.π.app (classical.arbitrary _) ≫ limits.prod.fst) (l.lift (forget_cone s)),
       fac' := λ s j,
       begin
         apply prod.hom_ext,
         { erw [assoc, limit.map_π, comp_id, limit.lift_π],
-          exact (nat_trans_from_connected (s.π ≫ γ₁ X) j).symm },
+          exact (nat_trans_from_connected (s.π ≫ γ₁ X) j (classical.arbitrary _)).symm },
         { simp [← l.fac (forget_cone s) j] }
       end,
       uniq' := λ s m L,
       begin
         apply prod.hom_ext,
-        { erw [limit.lift_π, ← L (default J), assoc, limit.map_π, comp_id],
+        { erw [limit.lift_π, ← L (classical.arbitrary J), assoc, limit.map_π, comp_id],
           refl },
         { rw limit.lift_π,
           apply l.uniq (forget_cone s),

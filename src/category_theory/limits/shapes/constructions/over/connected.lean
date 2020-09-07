@@ -9,6 +9,8 @@ import category_theory.limits.creates
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
+noncomputable theory
+
 open category_theory category_theory.limits
 
 variables {J : Type v} [small_category J]
@@ -36,9 +38,9 @@ where the connected assumption is used.
 @[simps]
 def raise_cone [connected J] {B : C} {F : J ⥤ over B} (c : cone (F ⋙ forget)) :
   cone F :=
-{ X := over.mk (c.π.app (default J) ≫ (F.obj (default J)).hom),
+{ X := over.mk (c.π.app (classical.arbitrary J) ≫ (F.obj (classical.arbitrary J)).hom),
   π :=
-  { app := λ j, over.hom_mk (c.π.app j) (nat_trans_from_connected (c.π ≫ nat_trans_in_over F) j) } }
+  { app := λ j, over.hom_mk (c.π.app j) (nat_trans_from_connected (c.π ≫ nat_trans_in_over F) j _) } }
 
 lemma raised_cone_lowers_to_original [connected J] {B : C} {F : J ⥤ over B}
   (c : cone (F ⋙ forget)) (t : is_limit c) :

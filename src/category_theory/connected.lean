@@ -41,7 +41,10 @@ category is preserved by the functor `(X × -)`.
 
 universes v₁ v₂ u₁ u₂
 
+noncomputable theory
+
 open category_theory.category
+
 namespace category_theory
 
 section connected
@@ -57,8 +60,13 @@ component'.
 
 This allows us to show that the functor X ⨯ - preserves connected limits.
 -/
-class connected (J : Type v₂) [category.{v₁} J] extends inhabited J :=
-(iso_constant : Π {α : Type v₂} (F : J ⥤ discrete α), F ≅ (functor.const J).obj (F.obj default))
+class connected (J : Type v₂) [category.{v₁} J] : Prop :=
+[is_nonempty : nonempty J]
+(iso_constant : Π {α : Type v₂} (F : J ⥤ discrete α) (j : J),
+  nonempty (F ≅ (functor.const J).obj (F.obj j)))
+
+attribute [instance] connected.is_nonempty
+
 end connected
 
 variables {J : Type v₂} [category.{v₁} J]
@@ -67,18 +75,18 @@ variables {J : Type v₂} [category.{v₁} J]
 If J is connected, any functor to a discrete category is constant on objects.
 The converse is given in `connected.of_any_functor_const_on_obj`.
 -/
-lemma any_functor_const_on_obj [connected J] {α : Type v₂} (F : J ⥤ discrete α) (j : J) :
-  F.obj j = F.obj (default J) :=
-((connected.iso_constant F).hom.app j).down.1
+lemma any_functor_const_on_obj [connected J] {α : Type v₂} (F : J ⥤ discrete α) (j j' : J) :
+  F.obj j = F.obj j' :=
+((connected.iso_constant F j').some.hom.app j).down.1
 
 /--
 If any functor to a discrete category is constant on objects, J is connected.
 The converse of `any_functor_const_on_obj`.
 -/
 def connected.of_any_functor_const_on_obj [inhabited J]
-  (h : ∀ {α : Type v₂} (F : J ⥤ discrete α), ∀ (j : J), F.obj j = F.obj (default J)) :
+  (h : ∀ {α : Type v₂} (F : J ⥤ discrete α), ∀ (j j' : J), F.obj j = F.obj j') :
   connected J :=
-{ iso_constant := λ α F, nat_iso.of_components (λ B, eq_to_iso (h F B)) (λ _ _ _, subsingleton.elim _ _) }
+{ iso_constant := λ α F j', ⟨nat_iso.of_components (λ j, eq_to_iso (h F j j')) (λ _ _ _, subsingleton.elim _ _)⟩ }
 
 /--
 If `J` is connected, then given any function `F` such that the presence of a
@@ -88,9 +96,9 @@ This can be thought of as a local-to-global property.
 The converse is shown in `connected.of_constant_of_preserves_morphisms`
 -/
 lemma constant_of_preserves_morphisms [connected J] {α : Type v₂} (F : J → α)
-  (h : ∀ (j₁ j₂ : J) (f : j₁ ⟶ j₂), F j₁ = F j₂) (j : J) :
-  F j = F (default J) :=
-any_functor_const_on_obj { obj := F, map := λ _ _ f, eq_to_hom (h _ _ f) } j
+  (h : ∀ (j₁ j₂ : J) (f : j₁ ⟶ j₂), F j₁ = F j₂) (j j' : J) :
+  F j = F j' :=
+any_functor_const_on_obj { obj := F, map := λ _ _ f, eq_to_hom (h _ _ f) } j j'
 
 /--
 `J` is connected if: given any function `F : J → α` which is constant for any
@@ -100,36 +108,42 @@ This can be thought of as a local-to-global property.
 The converse of `constant_of_preserves_morphisms`.
 -/
 def connected.of_constant_of_preserves_morphisms [inhabited J]
-  (h : ∀ {α : Type v₂} (F : J → α), (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), F j₁ = F j₂) → (∀ j : J, F j = F (default J))) :
+  (h : ∀ {α : Type v₂} (F : J → α), (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), F j₁ = F j₂) → (∀ j j' : J, F j = F j')) :
   connected J :=
 connected.of_any_functor_const_on_obj (λ _ F, h F.obj (λ _ _ f, (F.map f).down.1))
 
 /--
 An inductive-like property for the objects of a connected category.
-If `default J` is in the set `p`, and `p` is closed under morphisms of `J`,
+If the set `p` is nonempty, and `p` is closed under morphisms of `J`,
 then `p` contains all of `J`.
 
 The converse is given in `connected.of_induct`.
 -/
-lemma induct_on_objects [connected J] (p : set J) (h0 : default J ∈ p)
+lemma induct_on_objects [connected J] (p : set J) {j₀ : J} (h0 : j₀ ∈ p)
   (h1 : ∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), j₁ ∈ p ↔ j₂ ∈ p) (j : J) :
   j ∈ p :=
 begin
-  injection (constant_of_preserves_morphisms (λ k, ulift.up (k ∈ p)) (λ j₁ j₂ f, _) j) with i,
+  injection (constant_of_preserves_morphisms (λ k, ulift.up (k ∈ p)) (λ j₁ j₂ f, _) j j₀) with i,
   rwa i,
   dsimp,
   exact congr_arg ulift.up (propext (h1 f)),
 end
 
 /--
-If any maximal connected component of J containing the default is all of J, then J is connected.
+If any maximal connected component containing some element j₀ of J is all of J, then J is connected.
 
 The converse of `induct_on_objects`.
 -/
 def connected.of_induct [inhabited J]
-  (h : ∀ (p : set J), default J ∈ p → (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), j₁ ∈ p ↔ j₂ ∈ p) → ∀ (j : J), j ∈ p) :
+  {j₀ : J} (h : ∀ (p : set J), j₀ ∈ p → (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), j₁ ∈ p ↔ j₂ ∈ p) → ∀ (j : J), j ∈ p) :
   connected J :=
-connected.of_constant_of_preserves_morphisms (λ α F a, h {j | F j = F (default J)} rfl (λ _ _ f, by simp [a f] ))
+connected.of_constant_of_preserves_morphisms (λ α F a,
+begin
+  have w := h {j | F j = F j₀} rfl (λ _ _ f, by simp [a f]),
+  dsimp at w,
+  intros j j',
+  rw [w j, w j'],
+end)
 
 /-- j₁ and j₂ are related by `zag` if there is a morphism between them. -/
 @[reducible]
@@ -146,9 +160,9 @@ lemma equiv_relation [connected J] (r : J → J → Prop) (hr : _root_.equivalen
   (h : ∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), r j₁ j₂) :
   ∀ (j₁ j₂ : J), r j₁ j₂ :=
 begin
-  have z: ∀ (j : J), r (default J) j :=
-    induct_on_objects (λ k, r (default J) k)
-        (hr.1 (default J)) (λ _ _ f, ⟨λ t, hr.2.2 t (h f), λ t, hr.2.2 t (hr.2.1 (h f))⟩),
+  have z: ∀ (j : J), r (classical.arbitrary J) j :=
+    induct_on_objects (λ k, r (classical.arbitrary J) k)
+        (hr.1 (classical.arbitrary J)) (λ _ _ f, ⟨λ t, hr.2.2 t (h f), λ t, hr.2.2 t (hr.2.1 (h f))⟩),
   intros, apply hr.2.2 (hr.2.1 (z _)) (z _)
 end
 
@@ -176,7 +190,7 @@ begin
       rcases k_a_1 with ⟨⟨_⟩⟩ | ⟨⟨_⟩⟩,
       apply a_1 k_a_1,
       apply (a_1 k_a_1).symm } },
-  rwa this j (default J) (h _ _)
+  rwa this j (classical.arbitrary J) (h _ _)
 end
 
 lemma exists_zigzag' [connected J] (j₁ j₂ : J) :
@@ -195,7 +209,7 @@ def connected_of_zigzag [inhabited J]
 begin
   apply connected.of_induct,
   intros p d k j,
-  obtain ⟨l, zags, lst⟩ := h j (default J),
+  obtain ⟨l, zags, lst⟩ := h j (classical.arbitrary J),
   apply list.chain.induction p l zags lst _ d,
   rintros _ _ (⟨⟨_⟩⟩ | ⟨⟨_⟩⟩),
   { exact (k a).2 },
@@ -205,9 +219,9 @@ end
 /-- If `discrete α` is connected, then `α` is (type-)equivalent to `punit`. -/
 def discrete_connected_equiv_punit {α : Type*} [connected (discrete α)] : α ≃ punit :=
 discrete.equiv_of_equivalence
-  { functor := functor.star _,
-    inverse := discrete.functor (λ _, default _),
-    unit_iso := by apply connected.iso_constant,
+  { functor := functor.star α,
+    inverse := discrete.functor (λ _, classical.arbitrary _),
+    unit_iso := by { exact (connected.iso_constant _ (classical.arbitrary _)).some, },
     counit_iso := functor.punit_ext _ _ }
 
 variables {C : Type u₂} [category.{v₂} C]
@@ -219,7 +233,7 @@ This is the key property of connected categories which we use to establish prope
 -/
 lemma nat_trans_from_connected [conn : connected J] {X Y : C}
   (α : (functor.const J).obj X ⟶ (functor.const J).obj Y) :
-  ∀ (j : J), α.app j = (α.app (default J) : X ⟶ Y) :=
+  ∀ (j j' : J), α.app j = (α.app j' : X ⟶ Y) :=
 @constant_of_preserves_morphisms _ _ _
   (X ⟶ Y)
   (λ j, α.app j)

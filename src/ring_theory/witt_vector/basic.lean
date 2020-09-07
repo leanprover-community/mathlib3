@@ -13,6 +13,7 @@ import ring_theory.multiplicity
 import algebra.invertible
 import number_theory.quadratic_reciprocity
 import ring_theory.witt_vector.witt_vector_preps
+import ring_theory.witt_vector.nice_poly
 import tactic
 import tactic.nth_rewrite
 
@@ -1322,6 +1323,19 @@ begin
   --   rw mem_vars,
   --   exact ⟨d', finsupp.mem_support_iff.mpr hd', finsupp.mem_support_iff.mpr hk⟩, },
   { exact constant_coeff_X_in_terms_of_W p ℚ n }
+end
+
+lemma coeff_witt_mul'' (n : ℕ) (d : bool × ℕ →₀ ℕ) (hd : (witt_mul p n).coeff d ≠ 0) (b : bool) :
+  ∃ k, d ⟨b, k⟩ ≠ 0 :=
+begin
+  suffices : nice (witt_mul p n),
+  { simp only [← finsupp.mem_support_iff], apply this hd, },
+  apply nice.of_map_of_injective (int.cast_ring_hom ℚ) (int.cast_injective),
+  rw [witt_mul, map_witt_structure_int, ring_hom.map_mul, map_X, map_X],
+  apply nice.bind₁_left _ _ _ (constant_coeff_X_in_terms_of_W p ℚ n),
+  intros i,
+  rw [alg_hom.map_mul, bind₁_X_right, bind₁_X_right],
+  -- intros d hd i,
 end
 
 lemma coeff_witt_mul' (n : ℕ) (d : bool × ℕ →₀ ℕ) (hd : (witt_mul p n).coeff d ≠ 0) (b : bool) :

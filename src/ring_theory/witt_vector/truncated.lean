@@ -43,6 +43,20 @@ def mk (x : fin n → R) : truncated_witt_vector p n R :=
 witt_vector.truncate p n $ witt_vector.mk p $
 λ i, if h : i < n then x ⟨i, h⟩ else 0
 
+section
+local attribute [semireducible] witt_vector
+
+lemma truncate_mk {m : ℕ} (f : ℕ → R) :
+  witt_vector.truncate p n (witt_vector.mk p f) = mk _ (λ k, f k) :=
+begin
+  simp only [witt_vector.truncate, mk, ideal.quotient.eq,
+    witt_vector.mem_ideal_iff, fin.coe_mk],
+  intros j hj,
+  sorry
+end
+
+end
+
 variable {p}
 
 def coeff (i : fin n) : truncated_witt_vector p n R → R :=
@@ -91,7 +105,6 @@ rfl
 lemma truncate_witt_vector_truncate {m : ℕ} (hm : n ≤ m) (x) :
   truncate p R hm (witt_vector.truncate p _ x) = witt_vector.truncate p _ x :=
 by rw ← truncate_comp_witt_vector_truncate p R hm; refl
-
 
 section mk_and_coeff
 

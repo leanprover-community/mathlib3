@@ -59,6 +59,17 @@ begin
   sorry
 end
 
+def truncate {m : ℕ} (hm : n ≤ m) : truncated_witt_vector p m R →+* truncated_witt_vector p n R :=
+ideal.quotient.lift _ (witt_vector.truncate p n)
+begin
+  intros w hw,
+  rw [witt_vector.truncate, ideal.quotient.eq_zero_iff_mem],
+  simp only [witt_vector.mem_ideal_iff] at *,
+  intros i hi,
+  apply hw,
+  linarith
+end
+
 section mk_and_coeff
 
 variables (p)

@@ -1022,7 +1022,7 @@ end sum
 
 section map
 
-variables [bcsr : comm_semiring β] (f : α →+* β)
+variables [comm_semiring β] (f : α →+* β)
 variable (p)
 
 lemma vars_map : (map f p).vars ⊆ p.vars :=
@@ -1042,7 +1042,11 @@ lemma mem_vars (i : σ) :
 by simp only [vars, multiset.mem_to_finset, mem_degrees, coeff, finsupp.mem_support_iff, exists_prop]
 
 lemma vars_eq_support_bind_support : p.vars = p.support.bind finsupp.support :=
+<<<<<<< HEAD
 by {ext i, rw [mem_vars, finset.mem_bind] }
+=======
+by { ext i, rw [mem_vars, finset.mem_bind] }
+>>>>>>> blessed/master
 
 end map
 
@@ -1347,6 +1351,28 @@ lemma degrees_sub (p q : mv_polynomial σ α) :
 le_trans (degrees_add p (-q)) $ by rw [degrees_neg]
 
 end degrees
+
+section vars
+
+variables (p q)
+
+@[simp] lemma vars_neg : (-p).vars = p.vars :=
+by simp [vars, degrees_neg]
+
+lemma vars_sub_subset : (p - q).vars ⊆ p.vars ∪ q.vars :=
+by convert vars_add_subset p (-q) using 2; simp
+
+variables {p q}
+
+@[simp]
+lemma vars_sub_of_disjoint (hpq : disjoint p.vars q.vars) : (p - q).vars = p.vars ∪ q.vars :=
+begin
+  rw ←vars_neg q at hpq,
+  convert vars_add_of_disjoint hpq using 2,
+  simp
+end
+
+end vars
 
 section eval₂
 

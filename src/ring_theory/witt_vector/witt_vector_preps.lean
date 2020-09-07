@@ -492,23 +492,23 @@ begin
     exact ⟨d, hd, hi⟩, }
 end
 
-section
-variables {A : Type*} [integral_domain A]
+-- section
+-- variables {A : Type*} [integral_domain A]
 
--- this isn't true, is it? φ = 0? Not used anywhere so I'm not sure what conditions are safe to apply
-lemma vars_mul_eq (φ ψ : mv_polynomial σ A) :
-  (φ * ψ).vars = φ.vars ∪ ψ.vars :=
-sorry
+-- -- this isn't true, is it? φ = 0? Not used anywhere so I'm not sure what conditions are safe to apply
+-- lemma vars_mul_eq (φ ψ : mv_polynomial σ A) :
+--   (φ * ψ).vars = φ.vars ∪ ψ.vars :=
+-- sorry
 
-lemma vars_pow_eq (φ : mv_polynomial σ A) (n : ℕ) :
-  (φ ^ (n+1)).vars = φ.vars :=
-sorry
+-- lemma vars_pow_eq (φ : mv_polynomial σ A) (n : ℕ) :
+--   (φ ^ (n+1)).vars = φ.vars :=
+-- sorry
 
-lemma vars_prod_eq {ι : Type*} {s : finset ι} (f : ι → mv_polynomial σ A) :
-  (∏ i in s, f i).vars = s.bind (λ i, (f i).vars) :=
-sorry
+-- lemma vars_prod_eq {ι : Type*} {s : finset ι} (f : ι → mv_polynomial σ A) :
+--   (∏ i in s, f i).vars = s.bind (λ i, (f i).vars) :=
+-- sorry
 
-end
+-- end
 
 end
 
@@ -558,38 +558,105 @@ section ring_equiv
 -- I'm slightly worried this def could be inconvenient later
 variables (R S : Type*) [ring R] [ring S]
 open function
-noncomputable def equiv_inv_of_bij (f : R →+* S) (hf : bijective f) : R ≃+* S :=
-begin
-  let inv := classical.some (function.bijective_iff_has_inverse.mp hf),
-  obtain ⟨hl : left_inverse inv f, hr : right_inverse inv f⟩ := classical.some_spec (function.bijective_iff_has_inverse.mp hf),
-  refine_struct {to_fun := f, inv_fun := inv}; try {assumption}; simp
-end
 
 end ring_equiv
 
-section isos_to_zmod
-variables (R : Type*) (n : ℕ) [comm_ring R] [fintype R]
-#check zmod.cast_hom
+namespace finset
 
-lemma zmod.cast_hom_inj [char_p R n] (hn : fintype.card R = n) :
-  function.injective (zmod.cast_hom (show n ∣ n, by refl) R) :=
+variables {α : Type*} [fintype α]
+
+lemma eq_univ_of_card (s : finset α) (hs : s.card = fintype.card α) :
+  s = univ :=
+eq_of_subset_of_card_le (subset_univ _) $ by rw [hs, card_univ]
+
+end finset
+
+namespace function
+variables {α β : Type*}
+open set
+
+lemma injective_of_inj_on (f : α → β) (hf : inj_on f univ) : injective f :=
+λ x y h, hf (mem_univ x) (mem_univ y) h
+
+lemma surjective_of_surj_on (f : α → β) (hf : surj_on f univ univ) : surjective f :=
 begin
-  intros x y hxy, simp [zmod.cast_hom] at hxy,
-
+  intro b,
+  rcases hf (mem_univ b) with ⟨a, -, ha⟩,
+  exact ⟨a, ha⟩
 end
 
-lemma zmod.cast_hom_surj [char_p R n] (hn : fintype.card R = n) :
-  function.surjective (zmod.cast_hom (show n ∣ n, by refl) R) :=
-_
+end function
+
+namespace fintype
+variables {α β : Type*} [fintype α] [fintype β]
+open function finset
+
+lemma bijective_iff_injective_and_card (f : α → β) :
+  bijective f ↔ injective f ∧ card α = card β :=
+begin
+  split,
+  { intro h, exact ⟨h.1, fintype.card_congr (equiv.of_bijective f h)⟩, },
+  { rintro ⟨hf, h⟩,
+    refine ⟨hf, _⟩,
+    let s := finset.univ.map ⟨f, hf⟩,
+    have hs : s = univ := s.eq_univ_of_card (by rw [card_map, card_univ, h]),
+    intro b,
+    suffices : b ∈ s,
+    { rw mem_map at this, rcases this with ⟨a, -, ha⟩, exact ⟨a, ha⟩ },
+    rw [hs],
+    exact mem_univ _ }
+end
+
+lemma bijective_iff_surjective_and_card (f : α → β) :
+  bijective f ↔ surjective f ∧ card α = card β :=
+begin
+  split,
+  { intro h, exact ⟨h.2, fintype.card_congr (equiv.of_bijective f h)⟩, },
+  { rintro ⟨hf, h⟩,
+    refine ⟨_, hf⟩,
+    apply injective_of_inj_on,
+    rintro x - y - hxy,
+    apply inj_on_of_surj_on_of_card_le
+      (λ a _, f a)
+      (λ b _, mem_univ _) _ _ (mem_univ x) (mem_univ y) (by simpa),
+    { rintro b -, obtain ⟨a, rfl⟩ := hf b, exact ⟨a, mem_univ _, rfl⟩ },
+    { rw [card_univ, card_univ, h] } }
+end
+
+end fintype
+
+section isos_to_zmod
+variables (R : Type*) (n : ℕ) [comm_ring R] [fintype R]
+
+lemma zmod.cast_hom_inj [char_p R n] :
+  function.injective (zmod.cast_hom (show n ∣ n, by refl) R) :=
+begin
+  rw ring_hom.injective_iff,
+  intro x,
+  obtain ⟨k, rfl⟩ := zmod.int_cast_surjective x,
+  rw [ring_hom.map_int_cast,
+      char_p.int_cast_eq_zero_iff R n, char_p.int_cast_eq_zero_iff (zmod n) n],
+  exact id,
+end
 
 lemma zmod.cast_hom_bij [char_p R n] (hn : fintype.card R = n) :
   function.bijective (zmod.cast_hom (show n ∣ n, by refl) R) :=
-⟨zmod.cast_hom_inj _ _ hn, zmod.cast_hom_surj _ _ hn⟩
+begin
+  haveI : fact (0 < n) :=
+  begin
+    classical, by_contra H,
+    erw [nat.pos_iff_ne_zero, not_not] at H,
+    unfreezingI { subst H, },
+    rw fintype.card_eq_zero_iff at hn,
+    exact hn 0
+  end,
+  rw [fintype.bijective_iff_injective_and_card, zmod.card, hn, eq_self_iff_true, and_true],
+  apply zmod.cast_hom_inj,
+end
 
 noncomputable def iso_to_zmod [char_p R n] (hn : fintype.card R = n) :
   zmod n ≃+* R :=
-equiv_inv_of_bij _ _ _ (zmod.cast_hom_bij _  _ hn)
--- _ -- use zmod.cast_hom + bijection
+ring_equiv.of_bijective _ (zmod.cast_hom_bij _  _ hn)
 
 lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, i ≠ 0 → (i : R) ≠ 0) :
   char_p R n :=

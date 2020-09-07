@@ -120,8 +120,8 @@ variables [∀ i, has_colimit (F ⋙ pi.eval C i)]
 
 /--
 If we have a functor `F : J ⥤ Π i, C i` into a category of indexed families,
-and we have chosen colimits for each of the `F ⋙ pi.eval C i`,
-there is a canonical choice of chosen colimit for `F`.
+and colimits exist for each of the `F ⋙ pi.eval C i`,
+there is a colimit for `F`.
 -/
 def has_colimit_of_has_colimit_comp_eval : has_colimit F :=
 { cocone := cocone_of_cocone_comp_eval (λ i, colimit.cocone _),

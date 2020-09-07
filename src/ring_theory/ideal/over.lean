@@ -164,11 +164,11 @@ begin
   exact quotient.eq.mpr hab
 end
 
-lemma is_integral_quotient_of_is_integral (hRS_integral : ∀ (x : S), is_integral R x) :
+lemma is_integral_quotient_of_is_integral (hRS : ∀ (x : S), is_integral R x) :
   (∀ (x : I.quotient), is_integral (I.comap (algebra_map R S)).quotient x) :=
 begin
   rintros ⟨x⟩,
-  obtain ⟨p, hp⟩ := hRS_integral x,
+  obtain ⟨p, hp⟩ := hRS x,
   refine ⟨p.map (quotient.mk _), ⟨monic_map _ hp.1, _⟩⟩,
   rw aeval_def at ⊢ hp,
   have := congr_arg (quotient.mk I) hp.2,
@@ -209,8 +209,8 @@ is_maximal_of_is_integral_of_is_maximal_comap (λ x, integral_closure.is_integra
 
 local attribute [instance] classical.prop_decidable
 
-/-- This restricted version of going-up theorem is used to prove the more general version
- proof of `exists_ideal_over_prime_of_is_integral` -/
+/-- `comap (algebra_map R S)` is a surjection from the prime spec of `R` to prime spec of `S`.
+`hP : (algebra_map R S).ker ≤ P` is a slight generalization of the extension being injective -/
 lemma exists_ideal_over_prime_of_is_integral' (H : ∀ x : S, is_integral R x)
   (P : ideal R) [is_prime P] (hP : (algebra_map R S).ker ≤ P)
   : ∃ (Q : ideal S), is_prime Q ∧ P = Q.comap (algebra_map R S) :=
@@ -237,7 +237,7 @@ begin
   exact (localization_map.map_comp f _).symm,
 end
 
-/-- `comap (algebra_map R S)` is a surjection from the prime spec of `R` to prime spec of `S`.
+/-- More general going-up theorem than `exists_ideal_over_prime_of_is_integral'`.
 TODO: Version of going-up theorem with arbitrary length chains (by induction on this)?
   Not sure how best to write an ascending chain in Lean -/
 theorem exists_ideal_over_prime_of_is_integral (H : ∀ x : S, is_integral R x)

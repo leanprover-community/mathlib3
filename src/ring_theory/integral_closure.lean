@@ -357,8 +357,9 @@ begin
   exact hp',
 end
 
-lemma is_field_of_is_integral_of_is_field {R S : Type*} [integral_domain R] [integral_domain S] [algebra R S]
-  (H : ∀ x : S, is_integral R x) (hRS : function.injective (algebra_map R S))
+/-- If the integral extension `R → S` is injective, and `S` is a field, then `R` is also a field -/
+lemma is_field_of_is_integral_of_is_field {R S : Type*} [integral_domain R] [integral_domain S]
+  [algebra R S] (H : ∀ x : S, is_integral R x) (hRS : function.injective (algebra_map R S))
   (hS : is_field S) : is_field R :=
 begin
   refine ⟨⟨0, 1, zero_ne_one⟩, mul_comm, λ a ha, _⟩,

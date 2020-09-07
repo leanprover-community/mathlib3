@@ -1440,7 +1440,3 @@ begin
 end
 
 end module_of_linear_maps
-
-section quotient_algebra
-
-end quotient_algebra

@@ -1092,6 +1092,8 @@ namespace localization
 
 local attribute [instance] classical.prop_decidable
 
+/-- The image of `P` in the localization at `P.prime_compl` is a maximal ideal, and in particular
+it is the unique maximal ideal given by the local ring structure `at_prime.local_ring` -/
 lemma at_prime.map_eq_maximal_ideal {P : ideal R} [hP : ideal.is_prime P] :
   ideal.map (localization.of P.prime_compl).to_map P = (local_ring.maximal_ideal (localization P.prime_compl)) :=
 begin
@@ -1115,6 +1117,7 @@ begin
     refine ⟨f.to_map b * a', by rwa [← mul_assoc, hab]⟩ }
 end
 
+/-- The unique maximal ideal of the localization at `P.prime_compl` lies over the ideal `P`. -/
 lemma at_prime.comap_maximal_ideal {P : ideal R} [ideal.is_prime P] :
   ideal.comap (localization.of P.prime_compl).to_map (local_ring.maximal_ideal (localization P.prime_compl)) = P :=
 begin
@@ -1379,6 +1382,7 @@ noncomputable def localization_algebra (M : submonoid R) (f : localization_map M
 variables (f : localization_map M Rₘ)
 variables (g : localization_map (algebra.algebra_map_submonoid S M) Sₘ)
 
+/-- Injectivity of the underlying `algebra_map` descends to the algebra induced by localization -/
 lemma localization_map_injective (hRS : function.injective (algebra_map R S))
   (hM : (algebra.algebra_map_submonoid S M) ≤ non_zero_divisors S) :
   function.injective (@algebra_map Rₘ Sₘ _ _ (localization_algebra M f g)) :=

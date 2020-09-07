@@ -116,8 +116,8 @@ begin
   exact ⟨floor_le v, lt_floor_add_one v⟩
 end
 
-lemma floor_eq_on_Ico (n : ℤ) : ∀ x ∈ (set.Ico n (n+1) : set α), (n : α) = floor x :=
-λ x ⟨h₀, h₁⟩, by exact_mod_cast (floor_eq_iff.mpr ⟨h₀, h₁⟩).symm
+lemma floor_eq_on_Ico (n : ℤ) : ∀ x ∈ (set.Ico n (n+1) : set α), (floor x : α) = n :=
+λ x ⟨h₀, h₁⟩, by exact_mod_cast floor_eq_iff.mpr ⟨h₀, h₁⟩
 
 /-- The fractional part fract r of r is just r - ⌊r⌋ -/
 def fract (r : α) : α := r - ⌊r⌋
@@ -237,8 +237,8 @@ lemma ceil_eq_iff {r : α} {z : ℤ} :
 by rw [←ceil_le, ←int.cast_one, ←int.cast_sub, ←lt_ceil,
 int.sub_one_lt_iff, le_antisymm_iff, and.comm]
 
-lemma ceil_eq_on_Ioc (n : ℤ) : ∀ x ∈ (set.Ioc (n-1) n : set α), (n:α) = ceil x :=
-λ x ⟨h₀, h₁⟩, by exact_mod_cast (ceil_eq_iff.mpr ⟨h₀, h₁⟩).symm
+lemma ceil_eq_on_Ioc (n : ℤ) : ∀ x ∈ (set.Ioc (n-1) n : set α), (ceil x : α) = n :=
+λ x ⟨h₀, h₁⟩, by exact_mod_cast ceil_eq_iff.mpr ⟨h₀, h₁⟩
 
 /--
 `nat_ceil x` is the smallest nonnegative integer `n` with `x ≤ n`.

@@ -1329,6 +1329,11 @@ noncomputable def ideal (n : ℕ) : ideal (𝕎 p R) :=
     apply hy _ (lt_of_le_of_lt hj hi),
   end }
 
+lemma mem_ideal_iff {n : ℕ} {x : 𝕎 p R} : x ∈ ideal p R n ↔ ∀ i < n, x.coeff i = 0 :=
+iff.refl _
+
+#exit
+
 end ideal
 
 section teichmuller

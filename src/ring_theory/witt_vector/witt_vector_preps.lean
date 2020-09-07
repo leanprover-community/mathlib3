@@ -575,13 +575,6 @@ end aeval_eq_zero
 
 end mv_polynomial
 
-section ring_equiv
--- does this exist? It should
--- I'm slightly worried this def could be inconvenient later
-variables (R S : Type*) [ring R] [ring S]
-open function
-
-end ring_equiv
 
 namespace finset
 
@@ -682,7 +675,14 @@ ring_equiv.of_bijective _ (zmod.cast_hom_bij _  _ hn)
 
 lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, i ≠ 0 → (i : R) ≠ 0) :
   char_p R n :=
-_
+begin
+  refine ⟨λ x, ⟨λ hx, _, λ hx, _⟩⟩,
+  { have : n ≤ x ∨ x = 0,
+    { specialize hR x, rw [← not_lt], rw ne at hR, tauto },
+    cases this with hle hz,
+    { sorry },
+    { simp [hz] } },
+end
 
 def char_p_of_prime_pow_ne_zero (p : ℕ) [hp : fact p.prime] (n : ℕ) (hn : fintype.card R = p ^ n)
   (hR : ∀ i < n, (p ^ i : R) ≠ 0) :

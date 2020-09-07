@@ -71,13 +71,26 @@ begin
   linarith
 end
 
+@[simp]
 lemma truncate_comp {n₁ n₂ n₃ : ℕ} (h1 : n₁ ≤ n₂) (h2 : n₂ ≤ n₃) :
   (truncate p R h1).comp (truncate p R h2) = truncate p R (h1.trans h2) :=
 by ext ⟨⟩; refl
 
+@[simp]
+lemma truncate_comp' {n₁ n₂ n₃ : ℕ} (h1 : n₁ ≤ n₂) (h2 : n₂ ≤ n₃) (x) :
+  truncate p R h1 (truncate p R h2 x) = truncate p R (h1.trans h2) x :=
+by rw ← truncate_comp p R h1 h2; refl
+
+@[simp]
 lemma truncate_comp_witt_vector_truncate {m : ℕ} (hm : n ≤ m) :
   (truncate p R hm).comp (witt_vector.truncate p _) = witt_vector.truncate p _ :=
 rfl
+
+@[simp]
+lemma truncate_comp_witt_vector_truncate' {m : ℕ} (hm : n ≤ m) (x) :
+  truncate p R hm (witt_vector.truncate p _ x) = witt_vector.truncate p _ x :=
+by rw ← truncate_comp_witt_vector_truncate p R hm; refl
+
 
 section mk_and_coeff
 

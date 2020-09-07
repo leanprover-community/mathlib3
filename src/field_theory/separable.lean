@@ -461,39 +461,6 @@ lemma nodup_roots {p : polynomial F} (hsep : separable p) :
   p.roots.nodup :=
 multiset.nodup_iff_count_le_one.mpr (count_roots_le_one hsep)
 
-lemma eq_prod_roots_of_separable {p : polynomial F} {i : F →+* K}
-  (hsep : separable p) (hsplit : splits i p) :
-  p.map i = C (i p.leading_coeff) * ((p.map i).roots.map (λ (a : K), X - C a)).prod :=
-begin
-  by_cases p_eq_zero : p = 0,
-  { rw [p_eq_zero, map_zero, leading_coeff_zero, i.map_zero, C.map_zero, zero_mul] },
-
-  obtain ⟨s, hs⟩ := exists_multiset_of_splits i hsplit,
-  have map_ne_zero : p.map i ≠ 0 := map_ne_zero (p_eq_zero),
-  have prod_ne_zero : C (i p.leading_coeff) * (multiset.map (λ a, X - C a) s).prod ≠ 0 :=
-    by rwa hs at map_ne_zero,
-
-  have map_sep : separable (map i p) := (separable_map i).mpr hsep,
-  rw hs at map_sep,
-
-  have nodup_s : s.nodup := nodup_of_separable_prod (separable.of_mul_right map_sep),
-  have nodup_map_s : (s.map (λ a, X - C a)).nodup :=
-    multiset.nodup_map (λ a b h, C_inj.mp (sub_right_inj.mp h)) nodup_s,
-  have ne_zero_of_mem : ∀ (p : polynomial K), p ∈ s.map (λ a, X - C a) → p ≠ 0,
-  { intros p mem,
-    obtain ⟨a, _, rfl⟩ := multiset.mem_map.mp mem,
-    apply X_sub_C_ne_zero },
-  have map_bind_roots_eq : (s.map (λ a, X - C a)).bind (λ a, a.roots) = s,
-  { refine multiset.induction_on s (by rw [multiset.map_zero, multiset.zero_bind]) _,
-    intros a s ih,
-    rw [multiset.map_cons, multiset.cons_bind, ih, roots_X_sub_C,
-        multiset.cons_add, zero_add] },
-
-  rw [hs, roots_mul prod_ne_zero, roots_C, zero_add,
-      roots_multiset_prod _ ne_zero_of_mem,
-      map_bind_roots_eq]
-end
-
 lemma nat_degree_multiset_prod {R : Type*} [integral_domain R] {s : multiset (polynomial R)}
   (h : ∀ p ∈ s, p ≠ (0 : polynomial R)) :
   nat_degree s.prod = (s.map nat_degree).sum :=

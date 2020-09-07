@@ -191,6 +191,33 @@ begin
       multiset.bind_cons, multiset.bind_zero, add_zero, multiset.map_id']
 end
 
+lemma eq_prod_roots_of_splits {p : polynomial α} {i : α →+* β}
+  (hsplit : splits i p) :
+  p.map i = C (i p.leading_coeff) * ((p.map i).roots.map (λ a, X - C a)).prod :=
+begin
+  by_cases p_eq_zero : p = 0,
+  { rw [p_eq_zero, map_zero, leading_coeff_zero, i.map_zero, C.map_zero, zero_mul] },
+
+  obtain ⟨s, hs⟩ := exists_multiset_of_splits i hsplit,
+  have map_ne_zero : p.map i ≠ 0 := map_ne_zero (p_eq_zero),
+  have prod_ne_zero : C (i p.leading_coeff) * (multiset.map (λ a, X - C a) s).prod ≠ 0 :=
+    by rwa hs at map_ne_zero,
+
+  have ne_zero_of_mem : ∀ (p : polynomial β), p ∈ s.map (λ a, X - C a) → p ≠ 0,
+  { intros p mem,
+    obtain ⟨a, _, rfl⟩ := multiset.mem_map.mp mem,
+    apply X_sub_C_ne_zero },
+  have map_bind_roots_eq : (s.map (λ a, X - C a)).bind (λ a, a.roots) = s,
+  { refine multiset.induction_on s (by rw [multiset.map_zero, multiset.zero_bind]) _,
+    intros a s ih,
+    rw [multiset.map_cons, multiset.cons_bind, ih, roots_X_sub_C,
+        multiset.cons_add, zero_add] },
+
+  rw [hs, roots_mul prod_ne_zero, roots_C, zero_add,
+      roots_multiset_prod _ ne_zero_of_mem,
+      map_bind_roots_eq]
+end
+
 section UFD
 
 local attribute [instance, priority 10] principal_ideal_ring.to_unique_factorization_domain

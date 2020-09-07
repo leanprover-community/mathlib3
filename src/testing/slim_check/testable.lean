@@ -146,6 +146,17 @@ instance {k : ℕ} : sampleable { x : ℕ // k ∣ x } :=
 -- -------------------
 ```
 
+Similarly, it is common to write properties of the form: `∀ i j, i ≤ j → ...`
+as the following example show:
+
+```lean
+#eval check (∀ i j k : ℕ, j < k → i - k < i - j)
+```
+
+Without subtype instances, the above property discards many samples
+because `j < k` does not hold. Fortunately, we have appropriate
+instance to choose `k` intelligently.
+
 ## Main definitions
   * `testable` class
   * `testable.check`: a way to test a proposition using random examples
@@ -446,6 +457,9 @@ instance subtype_var_testable (p : α → Prop) [has_to_string α]
 @[priority 100]
 instance decidable_testable (p : Prop) [decidable p] : testable p :=
 ⟨ λ tracing min, return $ if h : p then success (psum.inr h) else failure h [] ⟩
+
+instance eq_testable {α} [has_repr α] (x y : α) [decidable_eq α] : testable (x = y) :=
+⟨ λ tracing min, return $ if h : x = y then success (psum.inr h) else failure h [sformat!"{repr x} ≠ {repr y}"] ⟩
 
 section io
 

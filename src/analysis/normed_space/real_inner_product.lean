@@ -351,6 +351,24 @@ begin
   linarith
 end
 
+/-- A family of vectors is linearly independent if they are nonzero
+and orthogonal. -/
+lemma linear_independent_of_ne_zero_of_inner_eq_zero {ι : Type*} {v : ι → α}
+  (hz : ∀ i, v i ≠ 0) (ho : ∀ i j, i ≠ j → inner (v i) (v j) = 0) : linear_independent ℝ v :=
+begin
+  rw linear_independent_iff',
+  intros s g hg i hi,
+  have h' : g i * inner (v i) (v i) = inner (∑ j in s, g j • v j) (v i),
+  { rw sum_inner,
+    symmetry,
+    convert finset.sum_eq_single i _ _,
+    { rw inner_smul_left },
+    { intros j hj hji,
+      rw [inner_smul_left, ho j i hji, mul_zero] },
+    { exact λ h, false.elim (h hi) } },
+  simpa [hg, hz] using h'
+end
+
 end basic_properties
 
 section norm

@@ -106,7 +106,7 @@ have hprod : ↑M*M1=(1: fractional_ideal f),
     have hy : y ∈  (↑ M : fractional_ideal f), use x,sorry,
     --apply fractional_ideal.mem_coe.mpr ↑ M,
     have hxI : y ∈  (↑ I : fractional_ideal f), apply fractional_ideal.le_iff.mp h_Iincl_f,exact hy,
-    -- apply monoid_localization.to_map_injective, ?????????
+    sorry,-- apply monoid_localization.to_map_injective, ?????????
     -- have hx'I : ∃ (x' ∈ I), f.to_map x' = x,
     -- apply fractional_ideal.mem_coe.mpr ↑ I,
 --the strategy here is to show that since y=f(x) where f is the localization map, and we have y ∈ ↑ I

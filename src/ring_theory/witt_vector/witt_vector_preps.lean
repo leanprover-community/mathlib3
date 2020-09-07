@@ -676,7 +676,9 @@ ring_equiv.of_bijective _ (zmod.cast_hom_bij _  _ hn)
 
 @[simp] lemma cast_card_eq_zero : (fintype.card R : R) = 0 :=
 begin
-  have := @order_of,
+  have : fintype.card R •ℕ (1 : R) = 0 :=
+    @pow_card_eq_one (multiplicative R) _ _ (multiplicative.of_add 1),
+  simpa only [mul_one, nsmul_eq_mul]
 end
 
 lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, (i : R) = 0 → i = 0) :

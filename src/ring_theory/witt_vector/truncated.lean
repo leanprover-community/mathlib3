@@ -239,6 +239,21 @@ submodule.mem_bot _
 
 end ideals
 
+section iso
+
+lemma zmod_equiv_trunc : zmod (p^n) ≃+* truncated_witt_vector p n (zmod p) :=
+begin
+  have card_t : fintype.card (truncated_witt_vector p n (zmod p)) = p ^ n,
+  { convert card _ _, exact (zmod.card p).symm },
+  haveI : char_p (truncated_witt_vector p n (zmod p)) (p ^ n) := _,
+  refine iso_to_zmod _ _ card_t,
+  apply char_p_of_prime_pow_ne_zero _ _ _ card_t,
+  sorry
+end
+
+end iso
+
+
 section lift
 
 variables {S : Type*} [comm_ring S]

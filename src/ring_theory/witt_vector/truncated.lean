@@ -118,9 +118,12 @@ begin
   { apply_instance, }
 end
 
+@[simp] lemma coeff_zero (i : fin n) : coeff i (0 : truncated_witt_vector p n R) = 0 :=
+sorry
+
 section
 local attribute [semireducible] witt_vector
-lemma witt_vector.mk_zero : witt_vector.mk p (λ _, (0 : R)) = 0 :=
+@[simp] lemma witt_vector.mk_zero : witt_vector.mk p (λ _, (0 : R)) = 0 :=
 by ext; simp [witt_vector.mk]; refl
 end
 
@@ -155,12 +158,19 @@ end fintype
 
 section lift
 
-variables (S : Type*) [comm_ring S]
+variables {S : Type*} [comm_ring S]
 variable (f : Π k : ℕ, S →+* truncated_witt_vector p k R)
 variable f_compat : ∀ (k₁ k₂ : ℕ) (hk : k₁ ≤ k₂), (truncate p R hk).comp (f k₂) = f k₁
-
+variables {p R}
 def lift_fun (s : S) : 𝕎 R :=
-witt_vector.mk p $ λ k, (quotient.out' (f k s)).coeff k
+witt_vector.mk p $ λ k, coeff (fin.last k) (f (k+1) s)
+
+lemma lift_fun_zero : lift_fun p f 0 = 0 :=
+by simp [lift_fun]
+
+lemma lift_fun_one : lift_fun p f 1 = 1 :=
+by simp [lift_fun]
+
 
 include f_compat
 

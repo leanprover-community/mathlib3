@@ -11,6 +11,7 @@ import data.set.disjointed
 import ring_theory.multiplicity
 import algebra.invertible
 import number_theory.basic
+import group_theory.order_of_element
 
 universes u v w u₁
 
@@ -673,16 +674,26 @@ noncomputable def iso_to_zmod [char_p R n] (hn : fintype.card R = n) :
   zmod n ≃+* R :=
 ring_equiv.of_bijective _ (zmod.cast_hom_bij _  _ hn)
 
-lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, i ≠ 0 → (i : R) ≠ 0) :
-  char_p R n :=
+@[simp] lemma cast_card_eq_zero : (fintype.card R : R) = 0 :=
 begin
-  refine ⟨λ x, ⟨λ hx, _, λ hx, _⟩⟩,
-  { have : n ≤ x ∨ x = 0,
-    { specialize hR x, rw [← not_lt], rw ne at hR, tauto },
-    cases this with hle hz,
-    { sorry },
-    { simp [hz] } },
+  have := @order_of,
 end
+
+lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, (i : R) = 0 → i = 0) :
+  char_p R n :=
+{ cast_eq_zero_iff :=
+  begin
+    have H : (n : R) = 0, by { rw [← hn, cast_card_eq_zero] },
+    intros k,
+    split,
+    { intro h,
+      rw [← nat.mod_add_div k n, nat.cast_add, nat.cast_mul, H, zero_mul, add_zero] at h,
+      rw nat.dvd_iff_mod_eq_zero,
+      apply hR _ (nat.mod_lt _ _) h,
+      rw [← hn, gt, fintype.card_pos_iff],
+      exact ⟨0⟩, },
+    { rintro ⟨k, rfl⟩, rw [nat.cast_mul, H, zero_mul], }
+  end }
 
 def char_p_of_prime_pow_ne_zero (p : ℕ) [hp : fact p.prime] (n : ℕ) (hn : fintype.card R = p ^ n)
   (hR : ∀ i < n, (p ^ i : R) ≠ 0) :

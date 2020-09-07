@@ -1253,6 +1253,26 @@ end coeff
 
 section coeff_witt_mul
 
+
+lemma headache (n : ℕ) (d : bool × ℕ →₀ ℕ) (b : bool)
+  (d' : ℕ →₀ ℕ)
+  (hd'0 : ¬d' = 0)
+  (H : (∏ (i : ℕ) in
+          d'.support,
+          ((rename (prod.mk tt)) (witt_polynomial p ℚ i) *
+               (rename (prod.mk ff)) (witt_polynomial p ℚ i)) ^
+            d' i).coeff d ≠ 0)
+  (i : bool × ℕ)
+  (hi : i ∈ d.support) :
+  d (b, i.snd) ≠ 0 :=
+begin
+  revert_deps d',
+  apply finsupp.induction d',
+  { intros _ H, contradiction },
+  { clear d', intros j k d' hj hk IH H hjkd',
+    squeeze_simp [hj, hk, hjkd'] at H, }
+end
+
 lemma quux' (n : ℕ) (d : bool × ℕ →₀ ℕ) (b : bool)
   (hd : ∀ (k : ℕ), d (b, k) = 0)
   (φ : mv_polynomial ℕ ℚ)
@@ -1282,19 +1302,11 @@ begin
     refine ⟨i, hi, _⟩,
     rw zero_pow,
     rwa [nat.pos_iff_ne_zero, ← finsupp.mem_support_iff], },
-  suffices : ∃ i : bool × ℕ, i ∈ d.support ∧ i ∉ Φ.vars,
-  { rcases this with ⟨i, hid, hi⟩,
-    rw mem_vars at hi,
-    contrapose! hi,
-    exact ⟨d, finsupp.mem_support_iff.mpr hi, hid⟩ },
-  contrapose! hd,
+  by_contra H,
+  have aux := headache p n d b φ d' hφ0 hd' hd'0 H,
   rw ← finsupp.support_eq_empty at hd0,
   obtain ⟨i, hi⟩ : ∃ i, i ∈ d.support, exact finset.nonempty_of_ne_empty hd0,
-  use i.2,
-  specialize hd i hi,
-  -- rw [coeff, ← finsupp.not_mem_support_iff],
-  -- intro H,
-  -- have := (mem_vars Φ),
+  apply aux i hi (hd _),
 end
 
 lemma quux (n : ℕ) (d : bool × ℕ →₀ ℕ) (b : bool)

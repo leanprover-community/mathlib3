@@ -360,7 +360,7 @@ by have := int.mul_div_cancel 1 H; rwa one_mul at this
 
 theorem of_nat_mod (m n : nat) : (m % n : ℤ) = of_nat (m % n) := rfl
 
-@[simp] theorem coe_nat_mod (m n : ℕ) : (↑(m % n) : ℤ) = ↑m % ↑n := rfl
+@[simp, norm_cast] theorem coe_nat_mod (m n : ℕ) : (↑(m % n) : ℤ) = ↑m % ↑n := rfl
 
 theorem neg_succ_of_nat_mod (m : ℕ) {b : ℤ} (bpos : 0 < b) :
   -[1+m] % b = b - 1 - m % b :=
@@ -929,6 +929,10 @@ def to_nat' : ℤ → option ℕ
 theorem mem_to_nat' : ∀ (a : ℤ) (n : ℕ), n ∈ to_nat' a ↔ a = n
 | (m : ℕ) n := option.some_inj.trans coe_nat_inj'.symm
 | -[1+ m] n := by split; intro h; cases h
+
+lemma to_nat_zero_of_neg : ∀ {z : ℤ}, z < 0 → z.to_nat = 0
+| (-[1+n]) _ := rfl
+| (int.of_nat n) h := (not_le_of_gt h $ int.of_nat_nonneg n).elim
 
 /- units -/
 

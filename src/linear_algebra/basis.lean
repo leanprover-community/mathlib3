@@ -69,12 +69,12 @@ open_locale classical big_operators
 universe u
 
 variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}
-          {M : Type*} {M' : Type*} {V : Type u} {V' : Type*}
+          {M : Type*} {M' M'' : Type*} {V : Type u} {V' : Type*}
 
 section module
 variables {v : ι → M}
-variables [ring R] [add_comm_group M] [add_comm_group M']
-variables [module R M] [module R M']
+variables [ring R] [add_comm_group M] [add_comm_group M'] [add_comm_group M'']
+variables [module R M] [module R M'] [module R M'']
 variables {a b : R} {x y : M}
 
 variables (R) (v)
@@ -114,7 +114,7 @@ theorem linear_dependent_iff : ¬ linear_independent R v ↔
   ∃ s : finset ι, ∃ g : ι → R, s.sum (λ i, g i • v i) = 0 ∧ (∃ i ∈ s, g i ≠ 0) :=
 begin
   rw linear_independent_iff',
-  simp only [exists_prop, classical.not_forall],
+  simp only [exists_prop, not_forall],
 end
 
 lemma linear_independent_empty_type (h : ¬ nonempty ι) : linear_independent R v :=
@@ -369,9 +369,10 @@ lemma linear_independent_Union_of_directed {η : Type*}
   linear_independent R (λ x, x : (⋃ i, s i) → M) :=
 begin
   by_cases hη : nonempty η,
-  { refine linear_independent_of_finite (⋃ i, s i) (λ t ht ft, _),
+  { resetI,
+    refine linear_independent_of_finite (⋃ i, s i) (λ t ht ft, _),
     rcases finite_subset_Union ft ht with ⟨I, fi, hI⟩,
-    rcases hs.finset_le hη fi.to_finset with ⟨i, hi⟩,
+    rcases hs.finset_le fi.to_finset with ⟨i, hi⟩,
     exact (h i).mono (subset.trans hI $ bUnion_subset $
       λ j hj, hi j (finite.mem_to_finset.2 hj)) },
   { refine (linear_independent_empty _ _).mono _,
@@ -528,7 +529,7 @@ end, λ H, linear_independent_iff.2 $ λ l hl, begin
   { rw finsupp.mem_supported',
     intros j hj,
     have hij : j = i :=
-      classical.not_not.1
+      not_not.1
           (λ hij : j ≠ i, hj ((mem_diff _).2 ⟨mem_univ _, λ h, hij (eq_of_mem_singleton h)⟩)),
     simp [hij] },
   { simp [hl] }
@@ -776,6 +777,10 @@ end
 lemma is_basis.repr_eq_single {i} : hv.repr (v i) = finsupp.single i 1 :=
 by apply hv.1.repr_eq_single; simp
 
+@[simp]
+lemma is_basis.repr_self_apply (i j : ι) : hv.repr (v i) j = if i = j then 1 else 0 :=
+by rw [hv.repr_eq_single, finsupp.single_apply]
+
 /-- Construct a linear map given the value at the basis. -/
 def is_basis.constr (f : ι → M') : M →ₗ[R] M' :=
 (finsupp.total M' M' R id).comp $ (finsupp.lmap_domain R R f).comp hv.repr
@@ -868,6 +873,35 @@ def equiv_of_is_basis' {v : ι → M} {v' : ι' → M'} (f : M → M') (g : M' �
     λ y, congr_arg (λ h:M' →ₗ[R] M', h y) this,
   ..hv.constr (f ∘ v) }
 
+@[simp] lemma equiv_of_is_basis_comp {ι'' : Type*} {v : ι → M} {v' : ι' → M'} {v'' : ι'' → M''}
+  (hv : is_basis R v) (hv' : is_basis R v') (hv'' : is_basis R v'')
+  (e : ι ≃ ι') (f : ι' ≃ ι'' ) :
+  (equiv_of_is_basis hv hv' e).trans (equiv_of_is_basis hv' hv'' f) =
+  equiv_of_is_basis hv hv'' (e.trans f) :=
+begin
+  apply linear_equiv.eq_of_linear_map_eq,
+  apply hv.ext,
+  intros i,
+  simp [equiv_of_is_basis]
+end
+
+@[simp] lemma equiv_of_is_basis_refl :
+  equiv_of_is_basis hv hv (equiv.refl ι) = linear_equiv.refl R M :=
+begin
+  apply linear_equiv.eq_of_linear_map_eq,
+  apply hv.ext,
+  intros i,
+  simp [equiv_of_is_basis]
+end
+
+lemma equiv_of_is_basis_trans_symm (e : ι ≃ ι') {v' : ι' → M'} (hv' : is_basis R v') :
+  (equiv_of_is_basis hv hv' e).trans (equiv_of_is_basis hv' hv e.symm) = linear_equiv.refl R M :=
+by simp
+
+lemma equiv_of_is_basis_symm_trans (e : ι ≃ ι') {v' : ι' → M'} (hv' : is_basis R v') :
+  (equiv_of_is_basis hv' hv e.symm).trans (equiv_of_is_basis hv hv' e) = linear_equiv.refl R M' :=
+by simp
+
 lemma is_basis_inl_union_inr {v : ι → M} {v' : ι' → M'}
   (hv : is_basis R v) (hv' : is_basis R v') :
   is_basis R (sum.elim (inl R M M' ∘ v) (inr R M M' ∘ v')) :=
@@ -946,7 +980,7 @@ variables [fintype ι] (h : is_basis R v)
 
 /-- A module over `R` with a finite basis is linearly equivalent to functions from its basis to `R`.
 -/
-def equiv_fun_basis  : M ≃ₗ[R] (ι → R) :=
+def is_basis.equiv_fun : M ≃ₗ[R] (ι → R) :=
 linear_equiv.trans (module_equiv_finsupp h)
   { to_fun := finsupp.to_fun,
     map_add' := λ x y, by ext; exact finsupp.add_apply,
@@ -955,17 +989,17 @@ linear_equiv.trans (module_equiv_finsupp h)
 
 /-- A module over a finite ring that admits a finite basis is finite. -/
 def module.fintype_of_fintype [fintype R] : fintype M :=
-fintype.of_equiv _ (equiv_fun_basis h).to_equiv.symm
+fintype.of_equiv _ h.equiv_fun.to_equiv.symm
 
 theorem module.card_fintype [fintype R] [fintype M] :
   card M = (card R) ^ (card ι) :=
-calc card M = card (ι → R)    : card_congr (equiv_fun_basis h).to_equiv
+calc card M = card (ι → R)    : card_congr h.equiv_fun.to_equiv
         ... = card R ^ card ι : card_fun
 
 /-- Given a basis `v` indexed by `ι`, the canonical linear equivalence between `ι → R` and `M` maps
 a function `x : ι → R` to the linear combination `∑_i x i • v i`. -/
-@[simp] lemma equiv_fun_basis_symm_apply (x : ι → R) :
-  (equiv_fun_basis h).symm x = ∑ i, x i • v i :=
+@[simp] lemma is_basis.equiv_fun_symm_apply (x : ι → R) :
+  h.equiv_fun.symm x = ∑ i, x i • v i :=
 begin
   change finsupp.sum
       ((finsupp.equiv_fun_on_fintype.symm : (ι → R) ≃ (ι →₀ R)) x) (λ (i : ι) (a : R), a • v i)
@@ -977,6 +1011,18 @@ begin
   { simp [H] },
   { simp [H], refl }
 end
+
+lemma is_basis.equiv_fun_apply (u : M) : h.equiv_fun u = h.repr u := rfl
+
+lemma is_basis.equiv_fun_total (u : M) : ∑ i, h.equiv_fun u i • v i = u:=
+begin
+  conv_rhs { rw ← h.total_repr u },
+  simp [finsupp.total_apply, finsupp.sum_fintype, h.equiv_fun_apply]
+end
+
+@[simp]
+lemma is_basis.equiv_fun_self (i j : ι) : h.equiv_fun (v i) j = if i = j then 1 else 0 :=
+by { rw [h.equiv_fun_apply, h.repr_self_apply] }
 
 end module
 

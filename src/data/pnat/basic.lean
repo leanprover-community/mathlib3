@@ -286,13 +286,16 @@ begin
   { exact ⟨nat.mod_le (m : ℕ) (k : ℕ), le_of_lt (nat.mod_lt (m : ℕ) k.pos)⟩ }
 end
 
-instance : has_dvd ℕ+ := ⟨λ k m, (k : ℕ) ∣ (m : ℕ)⟩
-
-theorem dvd_iff {k m : ℕ+} : k ∣ m ↔ (k : ℕ) ∣ (m : ℕ) := by {refl}
+theorem dvd_iff {k m : ℕ+} : k ∣ m ↔ (k : ℕ) ∣ (m : ℕ) :=
+begin
+  split; intro h, rcases h with ⟨_, rfl⟩, apply dvd_mul_right,
+  rcases h with ⟨a, h⟩, cases a, { contrapose h, apply ne_zero, },
+  use a.succ, apply nat.succ_pos, rw [← coe_inj, h, mul_coe, mk_coe],
+end
 
 theorem dvd_iff' {k m : ℕ+} : k ∣ m ↔ mod m k = k :=
 begin
-  change (k : ℕ) ∣ (m : ℕ) ↔ mod m k = k,
+  rw dvd_iff,
   rw [nat.dvd_iff_mod_eq_zero], split,
   { intro h, apply eq, rw [mod_coe, if_pos h] },
   { intro h, by_cases h' : (m : ℕ) % (k : ℕ) = 0,
@@ -315,24 +318,8 @@ begin
  rw [mod_add_div m k, dvd_iff'.mp h, nat.mul_succ, add_comm],
 end
 
-theorem dvd_iff'' {k n : ℕ+} : k ∣ n ↔ ∃ m, k * m = n :=
-⟨λ h, ⟨div_exact h, mul_div_exact h⟩,
- λ ⟨m, h⟩, dvd.intro (m : ℕ)
-          ((mul_coe k m).symm.trans (congr_arg subtype.val h))⟩
-
-theorem dvd_intro {k n : ℕ+} (m : ℕ+) (h : k * m = n) : k ∣ n :=
- dvd_iff''.mpr ⟨m, h⟩
-
-@[simp]
-theorem dvd_refl (m : ℕ+) : m ∣ m := dvd_intro 1 (mul_one m)
-
 theorem dvd_antisymm {m n : ℕ+} : m ∣ n → n ∣ m → m = n :=
-λ hmn hnm, subtype.eq (nat.dvd_antisymm hmn hnm)
-
-protected theorem dvd_trans {k m n : ℕ+} : k ∣ m → m ∣ n → k ∣ n :=
-@dvd_trans ℕ _ (k : ℕ) (m : ℕ) (n : ℕ)
-
-theorem one_dvd (n : ℕ+) : 1 ∣ n := dvd_intro n (one_mul n)
+λ hmn hnm, le_antisymm (le_of_dvd hmn) (le_of_dvd hnm)
 
 theorem dvd_one_iff (n : ℕ+) : n ∣ 1 ↔ n = 1 :=
  ⟨λ h, dvd_antisymm h (one_dvd n), λ h, h.symm ▸ (dvd_refl 1)⟩
@@ -350,19 +337,19 @@ def lcm (n m : ℕ+) : ℕ+ :=
 
 @[simp] theorem lcm_coe (n m : ℕ+) : ((lcm n m) : ℕ) = nat.lcm n m := rfl
 
-theorem gcd_dvd_left (n m : ℕ+) : (gcd n m) ∣ n := nat.gcd_dvd_left (n : ℕ) (m : ℕ)
+theorem gcd_dvd_left (n m : ℕ+) : (gcd n m) ∣ n := dvd_iff.2 (nat.gcd_dvd_left (n : ℕ) (m : ℕ))
 
-theorem gcd_dvd_right (n m : ℕ+) : (gcd n m) ∣ m := nat.gcd_dvd_right (n : ℕ) (m : ℕ)
+theorem gcd_dvd_right (n m : ℕ+) : (gcd n m) ∣ m := dvd_iff.2 (nat.gcd_dvd_right (n : ℕ) (m : ℕ))
 
 theorem dvd_gcd {m n k : ℕ+} (hm : k ∣ m) (hn : k ∣ n) : k ∣ gcd m n :=
- @nat.dvd_gcd (m : ℕ) (n : ℕ) (k : ℕ) hm hn
+ dvd_iff.2 (@nat.dvd_gcd (m : ℕ) (n : ℕ) (k : ℕ) (dvd_iff.1 hm) (dvd_iff.1 hn))
 
-theorem dvd_lcm_left  (n m : ℕ+) : n ∣ lcm n m := nat.dvd_lcm_left  (n : ℕ) (m : ℕ)
+theorem dvd_lcm_left  (n m : ℕ+) : n ∣ lcm n m := dvd_iff.2 (nat.dvd_lcm_left  (n : ℕ) (m : ℕ))
 
-theorem dvd_lcm_right (n m : ℕ+) : m ∣ lcm n m := nat.dvd_lcm_right (n : ℕ) (m : ℕ)
+theorem dvd_lcm_right (n m : ℕ+) : m ∣ lcm n m := dvd_iff.2 (nat.dvd_lcm_right (n : ℕ) (m : ℕ))
 
 theorem lcm_dvd {m n k : ℕ+} (hm : m ∣ k) (hn : n ∣ k) : lcm m n ∣ k :=
- @nat.lcm_dvd (m : ℕ) (n : ℕ) (k : ℕ) hm hn
+  dvd_iff.2 (@nat.lcm_dvd (m : ℕ) (n : ℕ) (k : ℕ) (dvd_iff.1 hm) (dvd_iff.1 hn))
 
 theorem gcd_mul_lcm (n m : ℕ+) : (gcd n m) * (lcm n m) = n * m :=
  subtype.eq (nat.gcd_mul_lcm (n : ℕ) (m : ℕ))
@@ -393,12 +380,12 @@ by { intro pp, intro contra, apply nat.prime.ne_one pp, rw pnat.coe_eq_one_iff, 
 lemma not_prime_one : ¬ (1: ℕ+).prime :=  nat.not_prime_one
 
 lemma prime.not_dvd_one {p : ℕ+} :
-p.prime →  ¬ p ∣ 1 := λ pp : p.prime, nat.prime.not_dvd_one pp
+p.prime →  ¬ p ∣ 1 := λ pp : p.prime, by {rw dvd_iff, apply nat.prime.not_dvd_one pp}
 
 lemma exists_prime_and_dvd {n : ℕ+} : 2 ≤ n → (∃ (p : ℕ+), p.prime ∧ p ∣ n) :=
 begin
   intro h, cases nat.exists_prime_and_dvd h with p hp,
-  existsi (⟨p, nat.prime.pos hp.left⟩ : ℕ+), apply hp
+  existsi (⟨p, nat.prime.pos hp.left⟩ : ℕ+), rw dvd_iff, apply hp
 end
 
 end prime

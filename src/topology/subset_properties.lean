@@ -66,7 +66,7 @@ begin
   exact h₂ (h₁ hs)
 end
 
-/-- If `p : set α → Prop` is stable under restriction and union, and each point `x of a compact set `s` 
+/-- If `p : set α → Prop` is stable under restriction and union, and each point `x of a compact set `s`
   has a neighborhood `t` within `s` such that `p t`, then `p s` holds. -/
 @[elab_as_eliminator]
 lemma is_compact.induction_on {s : set α} (hs : is_compact s) {p : set α → Prop} (he : p ∅)
@@ -159,6 +159,16 @@ let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, (Z i)ᶜ) hZc
 ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
     exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using ht⟩
 
+/-- To show that a compact set intersects the intersection of a family of closed sets,
+  it is sufficient to show that it intersects every finite subfamily. -/
+lemma is_compact.inter_Inter_nonempty {s : set α} {ι : Type v} (hs : is_compact s)
+  (Z : ι → set α) (hZc : ∀i, is_closed (Z i)) (hsZ : ∀ t : finset ι, (s ∩ ⋂ i ∈ t, Z i).nonempty) :
+  (s ∩ ⋂ i, Z i).nonempty :=
+begin
+  simp only [← ne_empty_iff_nonempty] at hsZ ⊢,
+  apply mt (hs.elim_finite_subfamily_closed Z hZc), push_neg, exact hsZ
+end
+
 /-- Cantor's intersection theorem:
 the intersection of a directed family of nonempty compact closed sets is nonempty. -/
 lemma is_compact.nonempty_Inter_of_directed_nonempty_compact_closed
@@ -177,7 +187,7 @@ begin
     from (hZc i₀).elim_finite_subfamily_closed Z'
       (assume i, is_closed_inter (hZcl i) (hZcl i₀)) (by rw [H, inter_empty]),
   obtain ⟨i₁, hi₁⟩ : ∃ i₁ : ι, Z i₁ ⊆ Z i₀ ∧ ∀ i ∈ t, Z i₁ ⊆ Z' i,
-  { rcases directed.finset_le hι hZd t with ⟨i, hi⟩,
+  { rcases directed.finset_le hZd t with ⟨i, hi⟩,
     rcases hZd i i₀ with ⟨i₁, hi₁, hi₁₀⟩,
     use [i₁, hi₁₀],
     intros j hj,
@@ -337,9 +347,9 @@ assume H n hn hp,
   let ⟨u, v, uo, vo, su, tv, p⟩ :=
     H (prod.swap ⁻¹' n)
       (continuous_swap n hn)
-      (by rwa [←image_subset_iff, prod.swap, image_swap_prod]) in
+      (by rwa [←image_subset_iff, image_swap_prod]) in
   ⟨v, u, vo, uo, tv, su,
-    by rwa [←image_subset_iff, prod.swap, image_swap_prod] at p⟩
+    by rwa [←image_subset_iff, image_swap_prod] at p⟩
 
 lemma nhds_contain_boxes.comm {s : set α} {t : set β} :
   nhds_contain_boxes s t ↔ nhds_contain_boxes t s :=
@@ -1148,8 +1158,8 @@ begin
     rw ne_empty_iff_nonempty,
     simp [not_subset] at huv,
     rcases huv with ⟨⟨x, hxs, hxu⟩, ⟨y, hys, hyv⟩⟩,
-    have hxv : x ∈ v := classical.or_iff_not_imp_left.mp (hs hxs) hxu,
-    have hyu : y ∈ u := classical.or_iff_not_imp_right.mp (hs hys) hyv,
+    have hxv : x ∈ v := or_iff_not_imp_left.mp (hs hxs) hxu,
+    have hyu : y ∈ u := or_iff_not_imp_right.mp (hs hys) hyv,
     exact h ⟨y, hys, hyu⟩ ⟨x, hxs, hxv⟩ },
   { intros u v hu hv hs hsu hsv,
     rw ← ne_empty_iff_nonempty,

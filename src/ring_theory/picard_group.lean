@@ -14,8 +14,8 @@ def to_principal_ideal : units g.codomain →* units (fractional_ideal g) :=
 { to_fun := λ x,
   ⟨ span_singleton x,
     span_singleton x⁻¹,
-    by simp only [span_singleton_one, coe_unit_mul_inv', span_singleton_mul_span_singleton],
-    by simp only [span_singleton_one, coe_unit_inv_mul', span_singleton_mul_span_singleton]⟩,
+    by simp only [span_singleton_one, units.mul_inv', span_singleton_mul_span_singleton],
+    by simp only [span_singleton_one, units.inv_mul', span_singleton_mul_span_singleton]⟩,
   map_mul' := λ x y, ext (by simp only [coe_mk, units.coe_mul, span_singleton_mul_span_singleton]),
   map_one' := ext (by simp only [span_singleton_one, coe_mk, units.coe_one]) }
 

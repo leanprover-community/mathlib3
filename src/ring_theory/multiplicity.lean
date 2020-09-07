@@ -7,7 +7,7 @@ import algebra.associated
 import data.int.gcd
 import algebra.big_operators.basic
 import data.nat.enat
-
+import tactic
 
 variables {α : Type*}
 
@@ -148,6 +148,12 @@ lemma multiplicity_le_multiplicity_iff {a b c d : α} : multiplicity a b ≤ mul
 
 lemma dvd_of_multiplicity_pos {a b : α} (h : (0 : enat) < multiplicity a b) : a ∣ b :=
 by rw [← _root_.pow_one a]; exact pow_dvd_of_le_multiplicity (enat.pos_iff_one_le.1 h)
+
+lemma dvd_iff_multiplicity_pos {a b : α} : (0 : enat) < multiplicity a b ↔ a ∣ b :=
+⟨dvd_of_multiplicity_pos,
+  λ hdvd, lt_of_le_of_ne (zero_le _) (λ heq, is_greatest
+    (show multiplicity a b < 1, from heq ▸ enat.coe_lt_coe.mpr zero_lt_one)
+    (by rwa pow_one a))⟩
 
 lemma finite_nat_iff {a b : ℕ} : finite a b ↔ (a ≠ 1 ∧ 0 < b) :=
 begin

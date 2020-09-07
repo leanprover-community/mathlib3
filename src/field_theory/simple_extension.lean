@@ -406,13 +406,13 @@ variables (x y : L)
 variables (splits : splits (algebra_map K M) (is_separable.minimal_polynomial K y))
 
 noncomputable def conjugates : finset M :=
-((is_separable.minimal_polynomial K x).map (algebra_map K M)).roots
+((is_separable.minimal_polynomial K x).map (algebra_map K M)).roots.to_finset
 
 lemma mem_conjugates_of_eval_eq_zero (z : M)
   (hz : eval₂ (algebra_map K M) z (is_separable.minimal_polynomial K x) = 0) :
   z ∈ conjugates K M x :=
 begin
-  rwa [conjugates, mem_roots, is_root.def, eval_map],
+  rwa [conjugates, multiset.mem_to_finset, mem_roots, is_root.def, eval_map],
   exact map_ne_zero (minimal_polynomial.ne_zero _)
 end
 
@@ -563,7 +563,7 @@ instance adjoin.is_separable :
   is_separable (algebra.adjoin K ({x + c K M x y • y} : set L)) L :=
 right_is_separable_of_is_scalar_tower K L (algebra.adjoin K ({x + c K M x y • y} : set L))
 
-noncomputable def minpoly_y :=
+noncomputable def minpoly_y : polynomial _ :=
 is_separable.minimal_polynomial (algebra.adjoin K ({x + c K M x y • y} : set L)) y
 
 lemma minpoly_y_dvd_f_z :
@@ -596,26 +596,40 @@ begin
 end
 include inf_K
 
-lemma roots_minpoly_y :
-  roots ((minpoly_y K M x y).map ((algebra_map L M).comp
-      (algebra_map (algebra.adjoin K ({x + c K M x y • y} : set L)) L)))
-    ≤ ({algebra_map L M y} : finset M) :=
+lemma count_roots_minpoly_y (a : M) :
+  ((minpoly_y K M x y).map ((algebra_map L M).comp
+    (algebra_map (algebra.adjoin K ({x + c K M x y • y} : set L)) L))).roots.count a
+  ≤ multiset.count a (algebra_map L M y :: 0) :=
 begin
-  intros y' hy',
-  rw [mem_roots, is_root.def, eval_map] at hy',
-  refine finset.mem_singleton.mpr (eq_y_of_root_f_z_of_root_g_z K M x y _ _),
-  { exact eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _ (minpoly_y_dvd_f_z K M _ _) hy' },
-  { exact eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _ (minpoly_y_dvd_g_z K M _ _) hy' },
-  { exact map_ne_zero (minimal_polynomial.ne_zero _) },
+  by_cases ha : a ∈ ((minpoly_y K M x y).map ((algebra_map L M).comp
+    (algebra_map (algebra.adjoin K ({x + c K M x y • y} : set L)) L))).roots,
+  { have h : a = algebra_map _ _ y,
+    { rw [mem_roots, is_root.def, eval_map] at ha,
+      refine eq_y_of_root_f_z_of_root_g_z K M x y _ _,
+      { exact eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _ (minpoly_y_dvd_f_z K M _ _) ha },
+      { exact eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _ (minpoly_y_dvd_g_z K M _ _) ha },
+      { exact map_ne_zero (minimal_polynomial.ne_zero _) } },
+    rw [h, multiset.count_singleton],
+    exact count_roots_le_one (separable.map (is_separable.minimal_polynomial_separable _ _)) _ },
+  { rw multiset.count_eq_zero_of_not_mem ha,
+    exact nat.zero_le _ }
 end
+
+lemma roots_minpoly_y :
+  ((minpoly_y K M x y).map ((algebra_map L M).comp
+      (algebra_map (algebra.adjoin K ({x + c K M x y • y} : set L)) L))).roots
+    ≤ (algebra_map L M y :: 0) :=
+multiset.le_iff_count.mpr (count_roots_minpoly_y _ _ _ _)
 
 include M splits
 lemma nat_degree_minpoly_y :
   nat_degree (minpoly_y K M x y) ≤ 1 :=
 begin
-  erw [nat_degree_separable_eq_card_roots (is_separable.minimal_polynomial_separable _ _) (minpoly_y_splits K M x y splits),
-      ← finset.card_singleton _],
-  exact finset.card_le_of_subset (roots_minpoly_y K M x y),
+  erw [nat_degree_separable_eq_card_roots
+        (is_separable.minimal_polynomial_separable _ _)
+        (minpoly_y_splits K M x y splits),
+      ← multiset.card_singleton _],
+  exact multiset.card_le_of_le (roots_minpoly_y _ _ _ _)
 end
 
 lemma degree_minpoly_y :

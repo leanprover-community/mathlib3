@@ -153,4 +153,18 @@ by simp [fintype.card_congr (equiv p n R)]
 
 end fintype
 
+section lift
+
+#check truncate
+variables (S : Type*) [comm_ring S]
+variable (f : Π k : ℕ, S →+* truncated_witt_vector p k R)
+variable f_compat : ∀ (k₁ k₂ : ℕ) (hk : k₁ ≤ k₂), (truncate p R hk).comp (f k₂) = f k₁
+
+include f_compat
+
+def lift : S →+* 𝕎 R :=
+_
+
+end lift
+
 end truncated_witt_vector

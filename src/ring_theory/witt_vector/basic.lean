@@ -1090,7 +1090,9 @@ by { rw [X_in_terms_of_W_vars], refl, }
 
 lemma quux' (n : ℕ) (d : bool × ℕ →₀ ℕ) (b : bool)
   (hd : ∀ (k : ℕ), k ≤ n → d (b, k) = 0)
-  (φ : mv_polynomial ℕ ℚ) (hφ : ∀ d, φ.coeff d ≠ 0 → ∀ k : ℕ, d k ≠ 0 → k ≤ n) :
+  (φ : mv_polynomial ℕ ℚ)
+  (hφ : ∀ d, φ.coeff d ≠ 0 → ∀ k : ℕ, d k ≠ 0 → k ≤ n)
+  (hφ0 : constant_coeff φ = 0) :
   coeff d ((bind₁ (λ (k : ℕ), (bind₁ (λ (b : bool), (rename (λ (i : ℕ), (b, i)))
     (witt_polynomial p ℚ k))) (X tt * X ff))) φ) = 0 :=
 begin
@@ -1099,17 +1101,32 @@ begin
   simp only [coeff_sum, alg_hom.map_sum, bind₁_monomial, coeff_C_mul],
   rw finset.sum_eq_zero,
   intros d' hd',
+  by_cases hd'0 : d' = 0,
+  { simp only [hd'0, ← constant_coeff_eq, hφ0, zero_mul], },
   convert mul_zero _,
   simp only [alg_hom.map_pow, alg_hom.map_mul, bind₁_X_right],
   let Φ := ∏ i in d'.support,
     ((rename (prod.mk tt)) (witt_polynomial p ℚ i) *
      (rename (prod.mk ff)) (witt_polynomial p ℚ i)) ^ d' i,
+  by_cases hd0 : d = 0,
+  { simp only [hd0, ← constant_coeff_eq, ring_hom.map_prod, ring_hom.map_pow, ring_hom.map_mul,
+      constant_coeff_rename, constant_coeff_witt_polynomial, mul_zero],
+    rw finset.prod_eq_zero_iff,
+    rw ← finsupp.support_eq_empty at hd'0,
+    obtain ⟨i, hi⟩ : ∃ i, i ∈ d'.support, exact finset.nonempty_of_ne_empty hd'0,
+    refine ⟨i, hi, _⟩,
+    rw zero_pow,
+    rwa [nat.pos_iff_ne_zero, ← finsupp.mem_support_iff], },
   suffices : ∃ i : bool × ℕ, i ∈ d.support ∧ i ∉ Φ.vars,
   { rcases this with ⟨i, hid, hi⟩,
     rw mem_vars at hi,
     contrapose! hi,
     exact ⟨d, finsupp.mem_support_iff.mpr hi, hid⟩ },
-
+  contrapose! hd,
+  rw ← finsupp.support_eq_empty at hd0,
+  obtain ⟨i, hi⟩ : ∃ i, i ∈ d.support, exact finset.nonempty_of_ne_empty hd0,
+  use i.2,
+  specialize hd i hi,
   -- rw [coeff, ← finsupp.not_mem_support_iff],
   -- intro H,
   -- have := (mem_vars Φ),

@@ -30,9 +30,9 @@ local infix ` ~ᵤ ` : 50 := associated
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- Well-foundedness of the strict version of |, which is equivalent to the descending chain
-  condition on divisibility and to the ascending chain condition on
-  principal ideals in an integral domain.
-   -/
+condition on divisibility and to the ascending chain condition on
+principal ideals in an integral domain.
+  -/
 class wf_dvd_monoid (α : Type*) [comm_monoid_with_zero α] : Prop :=
 (well_founded_dvd_not_unit : well_founded (@dvd_not_unit α _))
 

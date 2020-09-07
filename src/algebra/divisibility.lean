@@ -234,11 +234,11 @@ lemma dvd_not_unit_of_dvd_of_not_dvd {a b : α} (hd : a ∣ b) (hnd : ¬ b ∣ a
   dvd_not_unit a b :=
 begin
   split,
-  { contrapose! hnd, rw hnd, apply dvd_zero },
-  { rcases hd with ⟨c, rfl⟩, use c,
-    split, swap, {refl},
-    contrapose! hnd, rcases hnd with ⟨u, rfl⟩,
-    simp, }
+  { rintro rfl, exact hnd (dvd_zero _) },
+  { rcases hd with ⟨c, rfl⟩,
+    refine ⟨c, _, rfl⟩,
+    rintro ⟨u, rfl⟩,
+    simpa using hnd }
 end
 
 end comm_monoid_with_zero

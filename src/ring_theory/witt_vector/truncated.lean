@@ -78,7 +78,7 @@ lemma truncate_comp {n₁ n₂ n₃ : ℕ} (h1 : n₁ ≤ n₂) (h2 : n₂ ≤ n
 by ext ⟨⟩; refl
 
 @[simp]
-lemma truncate_comp' {n₁ n₂ n₃ : ℕ} (h1 : n₁ ≤ n₂) (h2 : n₂ ≤ n₃) (x) :
+lemma truncate_truncate {n₁ n₂ n₃ : ℕ} (h1 : n₁ ≤ n₂) (h2 : n₂ ≤ n₃) (x) :
   truncate p R h1 (truncate p R h2 x) = truncate p R (h1.trans h2) x :=
 by rw ← truncate_comp p R h1 h2; refl
 
@@ -88,7 +88,7 @@ lemma truncate_comp_witt_vector_truncate {m : ℕ} (hm : n ≤ m) :
 rfl
 
 @[simp]
-lemma truncate_comp_witt_vector_truncate' {m : ℕ} (hm : n ≤ m) (x) :
+lemma truncate_witt_vector_truncate {m : ℕ} (hm : n ≤ m) (x) :
   truncate p R hm (witt_vector.truncate p _ x) = witt_vector.truncate p _ x :=
 by rw ← truncate_comp_witt_vector_truncate p R hm; refl
 

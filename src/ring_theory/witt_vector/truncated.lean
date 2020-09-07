@@ -88,7 +88,14 @@ begin
 end
 
 @[simp] lemma coeff_zero (i : fin n) : coeff i (0 : truncated_witt_vector p n R) = 0 :=
-sorry
+begin
+  convert coeff_mk p i 0,
+  symmetry,
+  apply ideal.quotient.eq_zero_iff_mem.mpr,
+  rw witt_vector.mem_ideal_iff,
+  intros i hi,
+  simp [hi]
+end
 
 section
 -- move this
@@ -232,6 +239,7 @@ witt_vector.mk p $ λ k, coeff (fin.last k) (f (k+1) s)
 
 include f_compat
 
+variables {f}
 @[simp]
 private lemma truncate_lift_fun (s : S) :
   witt_vector.truncate p n (lift_fun p f s) = f n s :=
@@ -240,7 +248,7 @@ begin
   simp only [lift_fun, coeff_mk, witt_vector.truncate_mk],
   rw [← f_compat (i+1) n i.is_lt, ring_hom.comp_apply, coeff_truncate],
   -- this is a bit unfortunate
-  congr, ext,
+  congr' with _,
   simp only [fin.coe_last, fin.coe_cast_le],
 end
 
@@ -253,10 +261,7 @@ begin
   intro i,
   rw [← ideal.quotient.eq, ring_hom.map_one],
   show witt_vector.truncate _ _ _ = _,
-  simp [lift_fun],
-  rw [witt_vector.mem_ideal_iff],
-  intros j hj,
-
+  simp [truncate_lift_fun, f_compat],
 end
 
 lemma lift_fun_add (x y) : lift_fun p f (x + y) = lift_fun p f x + lift_fun p f y :=
@@ -265,16 +270,26 @@ begin
   intro i,
   rw [← ideal.quotient.eq, ring_hom.map_add],
   show witt_vector.truncate _ _ _ = witt_vector.truncate _ _ _ + witt_vector.truncate _ _ _,
-  squeeze_simp [truncate_lift_fun, f_compat],
+  simp [truncate_lift_fun, f_compat], -- squeeze_simp output fails??
+end
+
+lemma lift_fun_mul (x y) : lift_fun p f (x * y) = lift_fun p f x * lift_fun p f y :=
+begin
+  rw [← sub_eq_zero, ← ideal.mem_bot, ← ideal_inter, ideal.mem_infi],
+  intro i,
+  rw [← ideal.quotient.eq, ring_hom.map_mul],
+  show witt_vector.truncate _ _ _ = witt_vector.truncate _ _ _ * witt_vector.truncate _ _ _,
+  simp [truncate_lift_fun, f_compat], -- squeeze_simp output fails??
 end
 
 
-include f_compat
-
 def lift : S →+* 𝕎 R :=
-_
+{ to_fun := lift_fun p f,
+  map_one' := lift_fun_one f_compat,
+  map_mul' := lift_fun_mul f_compat,
+  map_zero' := lift_fun_zero f_compat,
+  map_add' := lift_fun_add f_compat }
 
-#print witt_vector
 end lift
 
 end truncated_witt_vector

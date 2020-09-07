@@ -241,29 +241,27 @@ end ideals
 
 section iso
 
-private lemma card_tv : fintype.card (truncated_witt_vector p n (zmod p)) = p ^ n :=
-by { convert card _ _, exact (zmod.card p).symm }
+private lemma card_zmod : fintype.card (truncated_witt_vector p n (zmod p)) = p ^ n :=
+by rw [card, zmod.card]
 
-private lemma charp_lem : char_p (truncated_witt_vector p n (zmod p)) (p ^ n) :=
-(char_p_of_prime_pow_ne_zero _ _ _ (card_tv _)
+private lemma char_p_zmod : char_p (truncated_witt_vector p n (zmod p)) (p ^ n) :=
+(char_p_of_prime_pow_ne_zero _ _ _ (card_zmod _)
     sorry)
 
+local attribute [instance] char_p_zmod
+
 def zmod_equiv_trunc : zmod (p^n) ≃+* truncated_witt_vector p n (zmod p) :=
-(@iso_to_zmod _ _ _ _
-  (charp_lem _)
-  (by { convert card _ _, exact (zmod.card p).symm }))
+iso_to_zmod (truncated_witt_vector p n (zmod p)) (p ^ n) (card_zmod _)
 
-
-lemma zmod_equiv_trunc_apply {x : zmod (p^n)} : zmod_equiv_trunc p x =
-  @zmod.cast_hom _ _ (show p ^ n ∣ p ^ n, by refl) _ _ (charp_lem _) x :=
+lemma zmod_equiv_trunc_apply {x : zmod (p^n)} :
+  zmod_equiv_trunc p x =
+  zmod.cast_hom (show p ^ n ∣ p ^ n, by refl) (truncated_witt_vector p n (zmod p)) x :=
 rfl
 
 lemma commutes' {m : ℕ} (hm : n ≤ m) (x : zmod (p^m)) :
   truncate p (zmod p) hm (zmod_equiv_trunc p x) =
     zmod_equiv_trunc p (zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _ x) :=
 begin
-  haveI := @charp_lem p _ m,
-  haveI := @charp_lem p _ n,
   simp [zmod_equiv_trunc_apply],
   sorry
 end

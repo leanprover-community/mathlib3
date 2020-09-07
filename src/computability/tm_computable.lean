@@ -48,9 +48,11 @@ structure fin_tm2 :=
  (M : Λ → turing.TM2.stmt Γ Λ σ) -- the program itself, i.e. one function for every function label
 
 namespace fin_tm2
+section
 variable (tm : fin_tm2)
 
 instance : decidable_eq tm.K := tm.K_decidable_eq
+instance : inhabited tm.σ := ⟨tm.initial_state⟩
 
 /-- The type of statements (functions) corresponding to this TM. -/
 @[derive inhabited]
@@ -60,15 +62,13 @@ def stmt : Type := turing.TM2.stmt tm.Γ tm.Λ tm.σ
 def cfg : Type := turing.TM2.cfg tm.Γ tm.Λ tm.σ
 
 instance inhabited_cfg : inhabited (cfg tm) :=
-@turing.TM2.cfg.inhabited _ _ _ _ _ ⟨tm.initial_state⟩
+turing.TM2.cfg.inhabited _ _ _
 
 /-- The step function corresponding to this TM. -/
 @[simp] def step : tm.cfg → option tm.cfg :=
 turing.TM2.step tm.M
+end
 end fin_tm2
-end turing
-
-open turing
 
 /-- The initial configuration corresponding to a list in the input alphabet. -/
 def init_list (tm : fin_tm2) (s : list (tm.Γ tm.k₀)) : tm.cfg :=
@@ -204,13 +204,13 @@ instance inhabited_tm2_outputs_in_time : inhabited _ :=
 ⟨(id_computable_in_poly_time fin_encoding_bool_bool).outputs_fun ff⟩
 
 instance inhabited_tm2_outputs : inhabited _ :=
-⟨tm2_outputs_in_time.to_tm2_outputs inhabited_tm2_outputs_in_time.default⟩
+⟨tm2_outputs_in_time.to_tm2_outputs turing.inhabited_tm2_outputs_in_time.default⟩
 
 instance inhabited_tm2_evals_to_in_time : inhabited (evals_to_in_time _ _ _ _)
-:= inhabited_tm2_outputs_in_time
+:= turing.inhabited_tm2_outputs_in_time
 
 instance inhabited_tm2_evals_to : inhabited (evals_to _ _ _)
-:= inhabited_tm2_outputs
+:= turing.inhabited_tm2_outputs
 
 /-- A proof that the identity map on α is computable in time. -/
 def id_computable_in_time {α : Type} (ea : fin_encoding α) : @computable_by_tm2_in_time α α ea ea id :=
@@ -225,3 +225,5 @@ computable_by_tm2_in_time.to_computable_by_tm2 $ id_computable_in_time ea
 
 instance inhabited_computable_by_tm2 : inhabited _ :=
 ⟨id_computable computability.inhabited_fin_encoding.default⟩
+
+end turing

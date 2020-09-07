@@ -1097,60 +1097,35 @@ lemma at_prime.map_eq_maximal_ideal {P : ideal R} [hP : ideal.is_prime P] :
 begin
   let f := (localization.of P.prime_compl),
   refine le_antisymm _ _,
-  {
-    intros x hx,
-    simp,
-    intro h,
-    have := ideal.eq_top_of_is_unit_mem _ hx h,
-    refine (localization_map.is_prime_of_is_prime_disjoint f P hP _).left this,
-    refine set.disjoint_compl' P.carrier,
-  },
-  {
-    intros x hx,
+  { intros x hx,
+    simp only [local_ring.mem_maximal_ideal, mem_nonunits_iff],
+    refine λ h, (localization_map.is_prime_of_is_prime_disjoint f P hP
+      (set.disjoint_compl' P.carrier)).1 (ideal.eq_top_of_is_unit_mem _ hx h) },
+  { intros x hx,
     obtain ⟨⟨a, b⟩, hab⟩ := localization_map.surj f x,
-    simp at hx hab,
+    simp only [local_ring.mem_maximal_ideal, mem_nonunits_iff] at hx hab,
     contrapose! hx,
     rw is_unit_iff_exists_inv,
     rw localization_map.mem_map_to_map_iff at hx,
-    have : a ∈ P.prime_compl, {
-      contrapose! hx with ha,
+    have : a ∈ P.prime_compl,
+    { contrapose! hx with ha,
       erw [← set.mem_compl_iff P.prime_compl.carrier, compl_compl'] at ha,
-      refine ⟨⟨⟨a, ha⟩, b⟩, hab⟩,
-    },
-    have : is_unit (f.to_map a) := localization_map.map_units f ⟨a, this⟩,
-    rw is_unit_iff_exists_inv at this,
-    obtain ⟨a', ha'⟩ := this,
-    refine ⟨f.to_map b * a', _⟩,
-    rw [← mul_assoc, hab, ha'],
-  }
+      refine ⟨⟨⟨a, ha⟩, b⟩, hab⟩ },
+    obtain ⟨a', ha'⟩ := is_unit_iff_exists_inv.1 (localization_map.map_units f ⟨a, this⟩),
+    refine ⟨f.to_map b * a', by rwa [← mul_assoc, hab]⟩ }
 end
 
 lemma at_prime.comap_maximal_ideal {P : ideal R} [ideal.is_prime P] :
   ideal.comap (localization.of P.prime_compl).to_map (local_ring.maximal_ideal (localization P.prime_compl)) = P :=
 begin
-  let f := (localization.of P.prime_compl),
   let Pₚ := local_ring.maximal_ideal (localization P.prime_compl),
-  refine le_antisymm _ _,
-  {
-    intros x hx,
-    by_cases h0 : x = 0,
-    {
-      exact h0.symm ▸ P.zero_mem,
-    },
-    {
-      have : Pₚ.is_prime := ideal.is_maximal.is_prime (local_ring.maximal_ideal.is_maximal _),
-      rw localization_map.is_prime_iff_is_prime_disjoint f at this,
-      replace this := this.right,
-      by_contradiction hx',
-      specialize this ⟨hx', hx⟩,
-      refine h0 _,
-      simpa using this,
-    }
-  },
-  {
-    rw ← at_prime.map_eq_maximal_ideal,
-    refine ideal.le_comap_map,
-  },
+  refine le_antisymm (λ x hx, (classical.em (x = 0)).rec_on _ _)
+    (le_trans ideal.le_comap_map (ideal.comap_mono (le_of_eq at_prime.map_eq_maximal_ideal))),
+  { exact λ h0, h0.symm ▸ P.zero_mem },
+  { have : Pₚ.is_prime := ideal.is_maximal.is_prime (local_ring.maximal_ideal.is_maximal _),
+    rw localization_map.is_prime_iff_is_prime_disjoint (localization.of P.prime_compl) at this,
+    contrapose!,
+    exact λ hx', by simpa using this.2 ⟨hx', hx⟩ }
 end
 
 end localization

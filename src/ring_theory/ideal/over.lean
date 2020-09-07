@@ -146,7 +146,7 @@ lemma is_maximal_of_is_integral_of_is_maximal_comap
 
 section quotient_algebra
 
-variables {R S I} [algebra R S]
+variables {R S I}
 
 -- TODO: Where to put this? Can't go in ring_theory/algebra since `ideal` isn't yet defined there.
 @[priority 100]
@@ -154,7 +154,7 @@ instance quotient_algebra : algebra (I.comap (algebra_map R S)).quotient I.quoti
 (quotient.lift (I.comap (algebra_map R S)) ((quotient.mk I).comp (algebra_map R S)) (λ _ ha,
   by simpa [function.comp_app, ring_hom.coe_comp, quotient.eq_zero_iff_mem] using ha)).to_algebra
 
-lemma algebra_map_quotient_injective_of_injective (hRS : function.injective (algebra_map R S)) :
+lemma algebra_map_quotient_injective :
   function.injective (algebra_map (I.comap (algebra_map R S)).quotient I.quotient) :=
 begin
   rintros ⟨a⟩ ⟨b⟩ hab,
@@ -178,15 +178,13 @@ end
 
 end quotient_algebra
 
-lemma is_maximal_comap_of_is_integral_of_is_maximal (hRS : function.injective (algebra_map R S))
-  (hRS_integral : ∀ (x : S), is_integral R x) (I : ideal S) [hI : I.is_maximal] :
-  is_maximal (I.comap (algebra_map R S)) :=
+lemma is_maximal_comap_of_is_integral_of_is_maximal (hRS_integral : ∀ (x : S), is_integral R x)
+  (I : ideal S) [hI : I.is_maximal] : is_maximal (I.comap (algebra_map R S)) :=
 begin
   refine quotient.maximal_of_is_field _ _,
   haveI : is_prime (I.comap (algebra_map R S)) := comap_is_prime _ _,
   exact is_field_of_is_integral_of_is_field (is_integral_quotient_of_is_integral hRS_integral)
-    (algebra_map_quotient_injective_of_injective hRS)
-    (by rwa ← quotient.maximal_ideal_iff_is_field_quotient),
+    algebra_map_quotient_injective (by rwa ← quotient.maximal_ideal_iff_is_field_quotient),
 end
 
 lemma integral_closure.comap_ne_bot [nontrivial R] {I : ideal (integral_closure R S)}
@@ -211,20 +209,15 @@ is_maximal_of_is_integral_of_is_maximal_comap (λ x, integral_closure.is_integra
 
 local attribute [instance] classical.prop_decidable
 
-variables (hRS : function.injective (algebra_map R S))
-include hRS
-
-/-- `comap (algebra_map R S)` is a surjection from the prime spec of `R` to prime spec of `S` -/
-theorem exists_ideal_over_prime_of_is_integral (H : ∀ x : S, is_integral R x) (P : ideal R) [is_prime P]
+/-- This restricted version of going-up theorem is used to prove the more general version
+ proof of `exists_ideal_over_prime_of_is_integral` -/
+lemma exists_ideal_over_prime_of_is_integral' (H : ∀ x : S, is_integral R x)
+  (P : ideal R) [is_prime P] (hP : (algebra_map R S).ker ≤ P)
   : ∃ (Q : ideal S), is_prime Q ∧ P = Q.comap (algebra_map R S) :=
 begin
   have hP0 : (0 : S) ∉ algebra.algebra_map_submonoid S P.prime_compl,
-  { by_contradiction h,
-    erw set.mem_image at h,
-    obtain ⟨x, ⟨hx, x0⟩⟩ := h,
-    refine absurd P.zero_mem _,
-    convert hx,
-    refine hRS (trans (ring_hom.map_zero _) x0.symm) },
+  { rintro ⟨x, ⟨hx, x0⟩⟩,
+    exact absurd (hP x0) hx },
   let Rₚ := localization P.prime_compl,
   let f := localization.of P.prime_compl,
   let Sₚ := localization (algebra.algebra_map_submonoid S P.prime_compl),
@@ -234,7 +227,6 @@ begin
   obtain ⟨Qₚ : ideal Sₚ, Qₚ_maximal⟩ := @exists_maximal Sₚ _ (by apply_instance),
   haveI Qₚ_max : is_maximal (comap _ Qₚ) := @is_maximal_comap_of_is_integral_of_is_maximal Rₚ _ Sₚ _
     (localization_algebra P.prime_compl f g)
-    (localization_map_injective f g hRS (le_non_zero_divisors_of_domain hP0))
     (is_integral_localization f g H) _ Qₚ_maximal,
   refine ⟨comap g.to_map Qₚ, ⟨comap_is_prime g.to_map Qₚ, _⟩⟩,
   rw comap_comap,
@@ -242,22 +234,23 @@ begin
   { rw [← comap_comap, local_ring.eq_maximal_ideal Qₚ_max],
     exact localization.at_prime.comap_maximal_ideal.symm },
   convert this,
-  refine (localization_map.map_comp f _).symm,
+  exact (localization_map.map_comp f _).symm,
 end
 
-/-- TODO: Version of going-up theorem with arbitrary length chains by induction on this?
-Not sure how best to write an ascending chain in Lean -/
-theorem exists_ideal_over_prime_of_is_integral' (H : ∀ x : S, is_integral R x) (P : ideal R) [is_prime P]
-  (I : ideal S) [hI : is_prime I] (hIP : I.comap (algebra_map R S) ≤ P)
+/-- `comap (algebra_map R S)` is a surjection from the prime spec of `R` to prime spec of `S`.
+TODO: Version of going-up theorem with arbitrary length chains (by induction on this)?
+  Not sure how best to write an ascending chain in Lean -/
+theorem exists_ideal_over_prime_of_is_integral (H : ∀ x : S, is_integral R x)
+  (P : ideal R) [is_prime P] (I : ideal S) [is_prime I] (hIP : I.comap (algebra_map R S) ≤ P)
   : ∃ Q ≥ I, is_prime Q ∧ P = Q.comap (algebra_map R S) :=
 begin
-  obtain ⟨Q' : ideal I.quotient, ⟨Q'_prime, hQ'⟩⟩ := @exists_ideal_over_prime_of_is_integral
+  obtain ⟨Q' : ideal I.quotient, ⟨Q'_prime, hQ'⟩⟩ := @exists_ideal_over_prime_of_is_integral'
     (I.comap (algebra_map R S)).quotient _ I.quotient _
     ideal.quotient_algebra
-    (algebra_map_quotient_injective_of_injective hRS)
     (is_integral_quotient_of_is_integral H)
     (map (quotient.mk (I.comap (algebra_map R S))) P)
-    (map_is_prime_of_surjective quotient.mk_surjective (by simp [hIP])),
+    (map_is_prime_of_surjective quotient.mk_surjective (by simp [hIP]))
+    (le_trans (le_of_eq ((ring_hom.injective_iff_ker_eq_bot _).1 algebra_map_quotient_injective)) bot_le),
   haveI := Q'_prime,
   refine ⟨Q'.comap _, le_trans (le_of_eq mk_ker.symm) (ker_le_comap _), ⟨comap_is_prime _ Q', _⟩⟩,
   rw comap_comap,

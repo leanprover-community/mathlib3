@@ -305,6 +305,12 @@ by rw [sub_eq_add_neg, neg_vsub_eq_vsub_rev, add_comm, vsub_add_vsub_cancel]
   (v +ᵥ p1) -ᵥ (v +ᵥ p2) = p1 -ᵥ p2 :=
 by rw [vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, add_sub_cancel']
 
+lemma vsub_vadd_comm (p1 p2 p3 : P) : (p1 -ᵥ p2 : G) +ᵥ p3 = p3 -ᵥ p2 +ᵥ p1 :=
+begin
+  rw [←@vsub_eq_zero_iff_eq G, vadd_vsub_assoc, vsub_vadd_eq_vsub_sub],
+  simp
+end
+
 end comm
 
 namespace prod

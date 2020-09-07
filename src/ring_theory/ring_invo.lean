@@ -7,26 +7,25 @@ import data.equiv.ring
 import algebra.opposites
 
 /-!
-# Ring antihomomorphisms, isomorphisms, antiisomorphisms and involutions
+# Ring involutions
 
-This file defines ring antihomomorphisms, antiisomorphism and involutions
-and proves basic properties of them.
+This file defines a ring involution as a structure extending `R ≃+* Rᵒᵖ`,
+with the additional fact `f.involution : (f (f x).unop).unop = x`.
 
 ## Notations
 
-All types defined in this file are given a coercion to the underlying function.
+We provide a coercion to a function `R → Rᵒᵖ`.
 
 ## References
 
-* <https://en.wikipedia.org/wiki/Antihomomorphism>
 * <https://en.wikipedia.org/wiki/Involution_(mathematics)#Ring_theory>
 
 ## Tags
 
-Ring isomorphism, automorphism, antihomomorphism, antiisomorphism, antiautomorphism, involution
+Ring involution
 -/
 
-variables (R : Type*) (F : Type*)
+variables (R : Type*)
 
 /-- A ring involution -/
 structure ring_invo [semiring R] extends R ≃+* Rᵒᵖ :=
@@ -49,6 +48,10 @@ instance : has_coe_to_fun (ring_invo R) := ⟨_, λ f, f.to_ring_equiv.to_fun⟩
 @[simp]
 lemma to_fun_eq_coe (f : ring_invo R) : f.to_fun = f := rfl
 
+@[simp]
+lemma involution (f : ring_invo R) (x : R) : (f (f x).unop).unop = x :=
+f.involution' x
+
 instance has_coe_to_ring_equiv : has_coe (ring_invo R) (R ≃+* Rᵒᵖ) :=
 ⟨ring_invo.to_ring_equiv⟩
 
@@ -63,7 +66,7 @@ end ring_invo
 open ring_invo
 
 section comm_ring
-variables (R F) [comm_ring R] [comm_ring F]
+variables [comm_ring R]
 
 protected def ring_invo.id : ring_invo R :=
 { involution' := λ r, rfl,

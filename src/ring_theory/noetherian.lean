@@ -358,6 +358,11 @@ begin
     by dsimp [gt]; simp only [lt_iff_le_not_le, (this _ _).symm]; tauto⟩
 end
 
+/-- A module is Noetherian iff every nonempty set of submodules has a maximal submodule among them. -/
+theorem set_has_maximal_iff_noetherian {R M} [ring R] [add_comm_group M] [module R M] :
+  (∀ a : set $ submodule R M, a.nonempty → ∃ M' ∈ a, ∀ I ∈ a, M' ≤ I → I = M') ↔ is_noetherian R M :=
+by rw [is_noetherian_iff_well_founded, well_founded.well_founded_iff_has_max']
+
 /--
 A ring is Noetherian if it is Noetherian as a module over itself,
 i.e. all its ideals are finitely generated.
@@ -382,14 +387,14 @@ theorem is_noetherian_of_submodule_of_noetherian (R M) [ring R] [add_comm_group 
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
-  exact order_embedding.well_founded (submodule.map_subtype.order_embedding N).osymm h,
+  exact order_embedding.well_founded (submodule.map_subtype.order_embedding N).dual h,
 end
 
 theorem is_noetherian_of_quotient_of_noetherian (R) [ring R] (M) [add_comm_group M] [module R M]
   (N : submodule R M) (h : is_noetherian R M) : is_noetherian R N.quotient :=
 begin
   rw is_noetherian_iff_well_founded at h ⊢,
-  exact order_embedding.well_founded (submodule.comap_mkq.order_embedding N).osymm h,
+  exact order_embedding.well_founded (submodule.comap_mkq.order_embedding N).dual h,
 end
 
 theorem is_noetherian_of_fg_of_noetherian {R M} [ring R] [add_comm_group M] [module R M]
@@ -434,7 +439,7 @@ theorem is_noetherian_ring_of_surjective (R) [comm_ring R] (S) [comm_ring S]
   [H : is_noetherian_ring R] : is_noetherian_ring S :=
 begin
   rw [is_noetherian_ring, is_noetherian_iff_well_founded] at H ⊢,
-  exact order_embedding.well_founded (ideal.order_embedding_of_surjective f hf).osymm H,
+  exact order_embedding.well_founded (ideal.order_embedding_of_surjective f hf).dual H,
 end
 
 instance is_noetherian_ring_range {R} [comm_ring R] {S} [comm_ring S] (f : R →+* S)

@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import topology.category.Top.open_nhds
 import topology.sheaves.presheaf
 import category_theory.limits.limits
+import category_theory.limits.types
 
 universes v u v' u'
 
@@ -13,9 +14,9 @@ open category_theory
 open Top
 open category_theory.limits
 open topological_space
+open opposite
 
-variables {C : Type u} [𝒞 : category.{v} C]
-include 𝒞
+variables {C : Type u} [category.{v} C]
 
 variables [has_colimits.{v} C]
 
@@ -35,9 +36,64 @@ The stalk of a presheaf `F` at a point `x` is calculated as the colimit of the f
 nbhds x ⥤ opens F.X ⥤ C
 -/
 def stalk (ℱ : X.presheaf C) (x : X) : C :=
-(stalk_functor C x).obj ℱ -- -- colimit (nbhds_inclusion x ⋙ ℱ)
+(stalk_functor C x).obj ℱ -- -- colimit ((open_nhds.inclusion x).op ⋙ ℱ)
 
-@[simp] lemma stalk_functor_obj (ℱ : X.presheaf C) (x : X) : (stalk_functor C x).obj ℱ = ℱ.stalk x := rfl
+@[simp] lemma stalk_functor_obj (ℱ : X.presheaf C) (x : X) :
+  (stalk_functor C x).obj ℱ = ℱ.stalk x := rfl
+
+/--
+The germ of a section of a presheaf over an open at a point of that open.
+-/
+def germ (F : X.presheaf C) {U : opens X} (x : U) : F.obj (op U) ⟶ stalk F x :=
+colimit.ι ((open_nhds.inclusion x.1).op ⋙ F) (op ⟨U, x.2⟩)
+
+/-- For a `Type` valued presheaf, every point in a stalk is a germ. -/
+lemma germ_exist (F : X.presheaf (Type v)) (x : X) (t : stalk F x) :
+  ∃ (U : opens X) (m : x ∈ U) (s : F.obj (op U)), F.germ ⟨x, m⟩ s = t :=
+begin
+  obtain ⟨U, s, rfl⟩ := types.jointly_surjective' t,
+  refine ⟨(unop U).1, (unop U).2, s, _⟩,
+  revert s,
+  rw [(show U = op (unop U), from rfl)],
+  generalize : unop U = V, clear U,
+  intro s,
+  cases V,
+  fapply types.colimit_sound,
+  { exact (𝟙 _).op, },
+  { erw category_theory.functor.map_id,
+    refl, },
+end
+
+@[simp] lemma germ_res (F : X.presheaf C) {U V : opens X} (i : U ⟶ V) (x : U) :
+  F.map i.op ≫ germ F x = germ F (i x : V) :=
+let i' : (⟨U, x.2⟩ : open_nhds x.1) ⟶ ⟨V, (i x : V).2⟩ := i in
+colimit.w ((open_nhds.inclusion x.1).op ⋙ F) i'.op
+
+@[simp] lemma germ_res_apply (F : X.presheaf (Type v)) {U V : opens X} (i : U ⟶ V)
+  (x : U) (f : F.obj (op V)) :
+  germ F x (F.map i.op f) = germ F (i x : V) f :=
+let i' : (⟨U, x.2⟩ : open_nhds x.1) ⟶ ⟨V, (i x : V).2⟩ := i in
+congr_fun (colimit.w ((open_nhds.inclusion x.1).op ⋙ F) i'.op) f
+
+section
+local attribute [instance] concrete_category.has_coe_to_sort concrete_category.has_coe_to_fun
+
+@[ext]
+lemma germ_ext {D : Type u} [category.{v} D] [concrete_category D] [has_colimits D]
+  (F : X.presheaf D)
+  {U V : opens X} {x : X} {hxU : x ∈ U} {hxV : x ∈ V}
+  (W : opens X) (hxW : x ∈ W) (iWU : W ⟶ U) (iWV : W ⟶ V)
+  {sU : F.obj (op U)} {sV : F.obj (op V)}
+  (ih : F.map iWU.op sU = F.map iWV.op sV) :
+  F.germ ⟨x, hxU⟩ sU = F.germ ⟨x, hxV⟩ sV :=
+by erw [← F.germ_res iWU ⟨x, hxW⟩,
+    ← F.germ_res iWV ⟨x, hxW⟩, coe_comp, coe_comp, ih]
+
+end
+
+lemma stalk_hom_ext (F : X.presheaf C) {x} {Y : C} {f₁ f₂ : F.stalk x ⟶ Y}
+  (ih : ∀ (U : opens X) (hxU : x ∈ U), F.germ ⟨x, hxU⟩ ≫ f₁ = F.germ ⟨x, hxU⟩ ≫ f₂) : f₁ = f₂ :=
+colimit.hom_ext $ λ U, by { op_induction U, cases U with U hxU, exact ih U hxU }
 
 variables (C)
 

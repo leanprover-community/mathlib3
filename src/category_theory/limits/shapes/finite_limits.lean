@@ -4,36 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.fintype.basic
+import category_theory.fin_category
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.pullbacks
 
+/-!
+# Categories with finite limits.
+
+A typeclass for categories with all finite (co)limits.
+-/
+
 universes v u
-
-namespace category_theory
-
-instance discrete_fintype {α : Type*} [fintype α] : fintype (discrete α) :=
-by { dsimp [discrete], apply_instance }
-
-instance discrete_hom_fintype {α : Type*} [decidable_eq α] (X Y : discrete α) : fintype (X ⟶ Y) :=
-by { apply ulift.fintype }
-
-/-- A category with a `fintype` of objects, and a `fintype` for each morphism space. -/
-class fin_category (J : Type v) [small_category J] :=
-(decidable_eq_obj : decidable_eq J . tactic.apply_instance)
-(fintype_obj : fintype J . tactic.apply_instance)
-(decidable_eq_hom : Π (j j' : J), decidable_eq (j ⟶ j') . tactic.apply_instance)
-(fintype_hom : Π (j j' : J), fintype (j ⟶ j') . tactic.apply_instance)
-
-attribute [instance] fin_category.decidable_eq_obj fin_category.fintype_obj
-                     fin_category.decidable_eq_hom fin_category.fintype_hom
-
--- We need a `decidable_eq` instance here to construct `fintype` on the morphism spaces.
-instance fin_category_discrete_of_decidable_fintype (J : Type v) [decidable_eq J] [fintype J] :
-  fin_category (discrete J) :=
-{ }
-
-end category_theory
 
 open category_theory
 
@@ -41,6 +23,14 @@ namespace category_theory.limits
 
 variables (C : Type u) [category.{v} C]
 
+/--
+A category has all finite limits if every functor `J ⥤ C` with a `fin_category J` instance
+has a limit.
+
+This is often called 'finitely complete'.
+-/
+-- We can't just made this an `abbreviation`
+-- because of https://github.com/leanprover-community/lean/issues/429
 def has_finite_limits : Type (max (v+1) u) :=
 Π (J : Type v) [𝒥 : small_category J] [@fin_category J 𝒥], @has_limits_of_shape J 𝒥 C _
 
@@ -52,6 +42,16 @@ instance has_limits_of_shape_of_has_finite_limits
   has_limits_of_shape J C :=
 ‹has_finite_limits C› J
 
+/-- If `C` has all limits, it has finite limits. -/
+def has_finite_limits_of_has_limits [has_limits C] : has_finite_limits C :=
+λ J 𝒥₁ 𝒥₂, infer_instance
+
+/--
+A category has all finite colimits if every functor `J ⥤ C` with a `fin_category J` instance
+has a colimit.
+
+This is often called 'finitely cocomplete'.
+-/
 def has_finite_colimits : Type (max (v+1) u) :=
 Π (J : Type v) [𝒥 : small_category J] [@fin_category J 𝒥], @has_colimits_of_shape J 𝒥 C _
 
@@ -62,6 +62,10 @@ instance has_colimits_of_shape_of_has_finite_colimits
   (J : Type v) [small_category J] [fin_category J] [has_finite_colimits C] :
   has_colimits_of_shape J C :=
 ‹has_finite_colimits C› J
+
+/-- If `C` has all colimits, it has finite colimits. -/
+def has_finite_colimits_of_has_colimits [has_colimits C] : has_finite_colimits C :=
+λ J 𝒥₁ 𝒥₂, infer_instance
 
 section
 
@@ -149,7 +153,7 @@ instance fin_category_wide_pushout [decidable_eq J] [fintype J] : fin_category (
 `has_finite_wide_pullbacks` represents a choice of wide pullback
 for every finite collection of morphisms
 -/
--- We can't use the same design as for `has_wide_pullbacks`,
+-- We can't just made this an `abbreviation`
 -- because of https://github.com/leanprover-community/lean/issues/429
 def has_finite_wide_pullbacks : Type (max (v+1) u) :=
 Π (J : Type v) [decidable_eq J] [fintype J], has_limits_of_shape (wide_pullback_shape J) C

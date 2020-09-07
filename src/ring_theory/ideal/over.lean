@@ -207,8 +207,6 @@ lemma integral_closure.is_maximal_of_is_maximal_comap
   (hI : is_maximal (I.comap (algebra_map R (integral_closure R S)))) : is_maximal I :=
 is_maximal_of_is_integral_of_is_maximal_comap (λ x, integral_closure.is_integral x) I hI
 
-local attribute [instance] classical.prop_decidable
-
 /-- `comap (algebra_map R S)` is a surjection from the prime spec of `R` to prime spec of `S`.
 `hP : (algebra_map R S).ker ≤ P` is a slight generalization of the extension being injective -/
 lemma exists_ideal_over_prime_of_is_integral' (H : ∀ x : S, is_integral R x)

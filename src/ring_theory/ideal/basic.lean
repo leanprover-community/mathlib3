@@ -255,7 +255,7 @@ theorem mem_span_pair {x y z : α} :
 by simp [mem_span_insert, mem_span_singleton', @eq_comm _ _ z]
 
 lemma span_singleton_lt_span_singleton [integral_domain β] {x y : β} :
-  span ({x} : set β) < span ({y} : set β) ↔ y ≠ 0 ∧ ∃ d : β, ¬ is_unit d ∧ x = y * d :=
+  span ({x} : set β) < span ({y} : set β) ↔ dvd_not_unit y x :=
 by rw [lt_iff_le_not_le, span_singleton_le_span_singleton, span_singleton_le_span_singleton,
   dvd_and_not_dvd_iff]
 

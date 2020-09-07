@@ -44,6 +44,7 @@ witt_vector.truncate p n $ witt_vector.mk p $
 λ i, if h : i < n then x ⟨i, h⟩ else 0
 
 variable {p}
+
 def coeff (i : fin n) : truncated_witt_vector p n R → R :=
 quot.lift (λ x : witt_vector p R, x.coeff i)
 begin
@@ -111,7 +112,10 @@ end
 lemma coeff_mk (i : fin n) (x : fin n → R) :
   coeff i (mk p x) = x i :=
 begin
-  sorry
+  dsimp [coeff, mk],
+  convert quot.lift_beta _ (coeff._proof_1 _) _,
+  { dsimp, rw [dif_pos i.is_lt, fin.eta], },
+  { apply_instance, }
 end
 
 section

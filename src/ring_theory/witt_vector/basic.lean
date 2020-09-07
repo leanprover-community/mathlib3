@@ -1101,6 +1101,7 @@ begin
   intros d' hd',
   convert mul_zero _,
   simp only [alg_hom.map_pow, alg_hom.map_mul, bind₁_X_right],
+
 end
 
 lemma quux (n : ℕ) (d : bool × ℕ →₀ ℕ) (b : bool)
@@ -1522,6 +1523,9 @@ end verschiebung
 
 variable {R}
 def mk (x : ℕ → R) : 𝕎 p R := x
+
+@[simp] lemma coeff_mk (x : ℕ → R) (i : ℕ) :
+  (mk p x).coeff i = x i := rfl
 
 end witt_vector
 

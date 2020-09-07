@@ -365,6 +365,7 @@ local notation `⟪`x`, `y`⟫` := @inner K α _ x y
 local notation `⟪`x`, `y`⟫_ℝ` := @inner ℝ β _ x y
 local notation `⟪`x`, `y`⟫_ℂ` := @inner ℂ γ _ x y
 local notation `IK` := @is_R_or_C.I K _ _ _
+local notation `absR` := _root_.abs
 local postfix `†`:90 := @is_R_or_C.conj K _ _ _
 local postfix `⋆`:90 := complex.conj
 
@@ -701,7 +702,7 @@ begin
 end
 
 /-- Cauchy–Schwarz inequality with norm -/
-lemma real.abs_inner_le_norm (x y : β) : _root_.abs ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
+lemma real.abs_inner_le_norm (x y : β) : absR ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
 begin
   have h₁ := @abs_inner_le_norm ℝ _ _ _ β _ x y,
   simpa using h₁,
@@ -780,13 +781,13 @@ end
 
 /-- The real inner product of two vectors, divided by the product of their
 norms, has absolute value at most 1. -/
-lemma real.abs_inner_div_norm_mul_norm_le_one (x y : β) : _root_.abs (⟪x, y⟫_ℝ / (∥x∥ * ∥y∥)) ≤ 1 :=
+lemma real.abs_inner_div_norm_mul_norm_le_one (x y : β) : absR (⟪x, y⟫_ℝ / (∥x∥ * ∥y∥)) ≤ 1 :=
 begin
   rw _root_.abs_div,
-  by_cases h : 0 = _root_.abs (∥x∥ * ∥y∥),
+  by_cases h : 0 = absR (∥x∥ * ∥y∥),
   { rw [←h, div_zero],
     norm_num },
-  { change 0 ≠ _root_.abs (∥x∥ * ∥y∥) at h,
+  { change 0 ≠ absR (∥x∥ * ∥y∥) at h,
     rw div_le_iff' (lt_of_le_of_ne (ge_iff_le.mp (_root_.abs_nonneg (∥x∥ * ∥y∥))) h),
     convert real.abs_inner_le_norm x y using 1,
     rw [_root_.abs_mul, _root_.abs_of_nonneg (norm_nonneg x), _root_.abs_of_nonneg (norm_nonneg y), mul_one] }
@@ -804,7 +805,7 @@ by rw [inner_smul_right, ←real.inner_self_eq_norm_square]
 itself, divided by the product of their norms, has absolute value
 1. -/
 lemma real.abs_inner_div_norm_mul_norm_eq_one_of_ne_zero_of_ne_zero_mul
-  {x : β} {r : ℝ} (hx : x ≠ 0) (hr : r ≠ 0) : _root_.abs ⟪x, r • x⟫_ℝ / (∥x∥ * ∥r • x∥) = 1 :=
+  {x : β} {r : ℝ} (hx : x ≠ 0) (hr : r ≠ 0) : absR ⟪x, r • x⟫_ℝ / (∥x∥ * ∥r • x∥) = 1 :=
 begin
   simp [real.inner_smul_self_right, norm_smul, _root_.abs_mul, norm_eq_abs],
   rw [@abs_norm_eq_norm ℝ β _ _ _ x],
@@ -824,7 +825,7 @@ itself, divided by the product of their norms, has value 1. -/
 lemma real.inner_div_norm_mul_norm_eq_one_of_ne_zero_of_pos_mul
   {x : β} {r : ℝ} (hx : x ≠ 0) (hr : 0 < r) : ⟪x, r • x⟫_ℝ / (∥x∥ * ∥r • x∥) = 1 :=
 begin
-  rw [real.inner_smul_self_right, norm_smul, real.norm_eq_abs, ←mul_assoc ∥x∥, mul_comm _ (_root_.abs r),
+  rw [real.inner_smul_self_right, norm_smul, real.norm_eq_abs, ←mul_assoc ∥x∥, mul_comm _ (absR r),
       mul_assoc, _root_.abs_of_nonneg (le_of_lt hr), div_self],
   exact mul_ne_zero (ne_of_gt hr)
     (λ h, hx (norm_eq_zero.1 (eq_zero_of_mul_self_eq_zero h)))
@@ -835,7 +836,7 @@ itself, divided by the product of their norms, has value -1. -/
 lemma real.inner_div_norm_mul_norm_eq_neg_one_of_ne_zero_of_neg_mul
   {x : β} {r : ℝ} (hx : x ≠ 0) (hr : r < 0) : ⟪x, r • x⟫_ℝ / (∥x∥ * ∥r • x∥) = -1 :=
 begin
-  rw [real.inner_smul_self_right, norm_smul, real.norm_eq_abs, ←mul_assoc ∥x∥, mul_comm _ (_root_.abs r),
+  rw [real.inner_smul_self_right, norm_smul, real.norm_eq_abs, ←mul_assoc ∥x∥, mul_comm _ (absR r),
       mul_assoc, abs_of_neg hr, ←neg_mul_eq_neg_mul, div_neg_eq_neg_div, div_self],
   exact mul_ne_zero (ne_of_lt hr)
     (λ h, hx (norm_eq_zero.1 (eq_zero_of_mul_self_eq_zero h)))
@@ -845,7 +846,7 @@ end
 norms, has absolute value 1 if and only if they are nonzero and one is
 a multiple of the other. One form of equality case for Cauchy-Schwarz. -/
 lemma real.abs_inner_div_norm_mul_norm_eq_one_iff (x y : β) :
-  _root_.abs (⟪x, y⟫_ℝ / (∥x∥ * ∥y∥)) = 1 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r ≠ 0 ∧ y = r • x) :=
+  absR (⟪x, y⟫_ℝ / (∥x∥ * ∥y∥)) = 1 ↔ (x ≠ 0 ∧ ∃ (r : ℝ), r ≠ 0 ∧ y = r • x) :=
 begin
   split,
   { intro h,
@@ -902,7 +903,7 @@ begin
   split,
   { intro h,
     have ha := h,
-    apply_fun _root_.abs at ha,
+    apply_fun absR at ha,
     norm_num at ha,
     rcases (real.abs_inner_div_norm_mul_norm_eq_one_iff x y).1 ha with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
     use [hx, r],
@@ -927,7 +928,7 @@ begin
   split,
   { intro h,
     have ha := h,
-    apply_fun _root_.abs at ha,
+    apply_fun absR at ha,
     norm_num at ha,
     rcases (real.abs_inner_div_norm_mul_norm_eq_one_iff x y).1 ha with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
     use [hx, r],
@@ -1100,7 +1101,7 @@ begin
     calc
       4 * ∥u - half•(wq + wp)∥ * ∥u - half•(wq + wp)∥ + ∥wp - wq∥ * ∥wp - wq∥
           = (2*∥u - half•(wq + wp)∥) * (2 * ∥u - half•(wq + wp)∥) + ∥wp-wq∥*∥wp-wq∥ : by ring
-      ... = (_root_.abs((2:ℝ)) * ∥u - half•(wq + wp)∥) * (_root_.abs((2:ℝ)) * ∥u - half•(wq+wp)∥) + ∥wp-wq∥*∥wp-wq∥ :
+      ... = (absR ((2:ℝ)) * ∥u - half•(wq + wp)∥) * (absR ((2:ℝ)) * ∥u - half•(wq+wp)∥) + ∥wp-wq∥*∥wp-wq∥ :
       by { rw _root_.abs_of_nonneg, exact add_nonneg zero_le_one zero_le_one }
       ... = ∥(2:ℝ) • (u - half • (wq + wp))∥ * ∥(2:ℝ) • (u - half • (wq + wp))∥ + ∥wp-wq∥ * ∥wp-wq∥ :
         by { rw [norm_smul], refl }
@@ -1200,7 +1201,7 @@ begin
       begin
         rw [norm_sub_pow_two, inner_smul_right, norm_smul],
         simp only [pow_two],
-        show ∥u-v∥*∥u-v∥-2*(θ*inner(u-v)(w-v))+_root_.abs(θ)*∥w-v∥*(_root_.abs(θ)*∥w-v∥)=
+        show ∥u-v∥*∥u-v∥-2*(θ*inner(u-v)(w-v))+absR (θ)*∥w-v∥*(absR (θ)*∥w-v∥)=
                 ∥u-v∥*∥u-v∥-2*θ*inner(u-v)(w-v)+θ*θ*(∥w-v∥*∥w-v∥),
         rw abs_of_pos hθ₁, ring
       end,

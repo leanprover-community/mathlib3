@@ -207,9 +207,8 @@ end
 @[simp] lemma coeff_truncate {m : ℕ} (hm : n ≤ m) (i : fin n) (x : truncated_witt_vector p m R) :
   (truncate p R hm x).coeff i = x.coeff (fin.cast_le hm i) :=
 begin
-  cases witt_vector.truncate_surjective p m R x with y hy,
-  rw ← hy,
-  simp,
+  rcases witt_vector.truncate_surjective p m R x with ⟨y, rfl⟩,
+  simp only [truncate_witt_vector_truncate, witt_vector.coeff_truncate, fin.coe_cast_le],
 end
 
 section fintype

@@ -1087,6 +1087,75 @@ integral_domain_localization (le_non_zero_divisors_of_domain (by simpa only [] u
 
 end localization_map
 
+section at_prime
+namespace localization
+
+local attribute [instance] classical.prop_decidable
+
+lemma at_prime.map_eq_maximal_ideal {P : ideal R} [hP : ideal.is_prime P] :
+  ideal.map (localization.of P.prime_compl).to_map P = (local_ring.maximal_ideal (localization P.prime_compl)) :=
+begin
+  let f := (localization.of P.prime_compl),
+  refine le_antisymm _ _,
+  {
+    intros x hx,
+    simp,
+    intro h,
+    have := ideal.eq_top_of_is_unit_mem _ hx h,
+    refine (localization_map.is_prime_of_is_prime_disjoint f P hP _).left this,
+    refine set.disjoint_compl' P.carrier,
+  },
+  {
+    intros x hx,
+    obtain ⟨⟨a, b⟩, hab⟩ := localization_map.surj f x,
+    simp at hx hab,
+    contrapose! hx,
+    rw is_unit_iff_exists_inv,
+    rw localization_map.mem_map_to_map_iff at hx,
+    have : a ∈ P.prime_compl, {
+      contrapose! hx with ha,
+      erw [← set.mem_compl_iff P.prime_compl.carrier, compl_compl'] at ha,
+      refine ⟨⟨⟨a, ha⟩, b⟩, hab⟩,
+    },
+    have : is_unit (f.to_map a) := localization_map.map_units f ⟨a, this⟩,
+    rw is_unit_iff_exists_inv at this,
+    obtain ⟨a', ha'⟩ := this,
+    refine ⟨f.to_map b * a', _⟩,
+    rw [← mul_assoc, hab, ha'],
+  }
+end
+
+lemma at_prime.comap_maximal_ideal {P : ideal R} [ideal.is_prime P] :
+  ideal.comap (localization.of P.prime_compl).to_map (local_ring.maximal_ideal (localization P.prime_compl)) = P :=
+begin
+  let f := (localization.of P.prime_compl),
+  let Pₚ := local_ring.maximal_ideal (localization P.prime_compl),
+  refine le_antisymm _ _,
+  {
+    intros x hx,
+    by_cases h0 : x = 0,
+    {
+      exact h0.symm ▸ P.zero_mem,
+    },
+    {
+      have : Pₚ.is_prime := ideal.is_maximal.is_prime (local_ring.maximal_ideal.is_maximal _),
+      rw localization_map.is_prime_iff_is_prime_disjoint f at this,
+      replace this := this.right,
+      by_contradiction hx',
+      specialize this ⟨hx', hx⟩,
+      refine h0 _,
+      simpa using this,
+    }
+  },
+  {
+    rw ← at_prime.map_eq_maximal_ideal,
+    refine ideal.le_comap_map,
+  },
+end
+
+end localization
+end at_prime
+
 variables (R) {A : Type*} [integral_domain A]
 variables (K : Type*)
 
@@ -1334,6 +1403,20 @@ noncomputable def localization_algebra (M : submonoid R) (f : localization_map M
 
 variables (f : localization_map M Rₘ)
 variables (g : localization_map (algebra.algebra_map_submonoid S M) Sₘ)
+
+lemma localization_map_injective (hRS : function.injective (algebra_map R S))
+  (hM : (algebra.algebra_map_submonoid S M) ≤ non_zero_divisors S) :
+  function.injective (@algebra_map Rₘ Sₘ _ _ (localization_algebra M f g)) :=
+begin
+  rintros x y hxy,
+  obtain ⟨a, b, hx⟩ := localization_map.mk'_surjective f x,
+  obtain ⟨c, d, hy⟩ := localization_map.mk'_surjective f y,
+  rw [← hx, ← hy] at hxy ⊢,
+  iterate 2 {erw localization_map.map_mk' at hxy},
+  rw localization_map.mk'_eq_iff_eq at hxy ⊢,
+  refine congr_arg f.to_map (hRS _),
+  convert ((g.injective hM) hxy); simp,
+end
 
 open polynomial
 

@@ -59,6 +59,7 @@ begin
   sorry
 end
 
+variables (p R)
 def truncate {m : ℕ} (hm : n ≤ m) : truncated_witt_vector p m R →+* truncated_witt_vector p n R :=
 ideal.quotient.lift _ (witt_vector.truncate p n)
 begin
@@ -69,6 +70,14 @@ begin
   apply hw,
   linarith
 end
+
+lemma truncate_comp {n₁ n₂ n₃ : ℕ} (h1 : n₁ ≤ n₂) (h2 : n₂ ≤ n₃) :
+  (truncate p R h1).comp (truncate p R h2) = truncate p R (h1.trans h2) :=
+by ext ⟨⟩; refl
+
+lemma truncate_comp_witt_vector_truncate {m : ℕ} (hm : n ≤ m) :
+  (truncate p R hm).comp (witt_vector.truncate p _) = witt_vector.truncate p _ :=
+rfl
 
 section mk_and_coeff
 

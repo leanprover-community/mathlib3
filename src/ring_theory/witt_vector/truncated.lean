@@ -241,24 +241,42 @@ end ideals
 
 section iso
 
-lemma zmod_equiv_trunc : truncated_witt_vector p n (zmod p) ≃+* zmod (p^n) :=
+private lemma card_tv : fintype.card (truncated_witt_vector p n (zmod p)) = p ^ n :=
+by { convert card _ _, exact (zmod.card p).symm }
+
+private lemma charp_lem : char_p (truncated_witt_vector p n (zmod p)) (p ^ n) :=
+(char_p_of_prime_pow_ne_zero _ _ _ (card_tv _)
+    sorry)
+
+def zmod_equiv_trunc : zmod (p^n) ≃+* truncated_witt_vector p n (zmod p) :=
+(@iso_to_zmod _ _ _ _
+  (charp_lem _)
+  (by { convert card _ _, exact (zmod.card p).symm }))
+
+
+lemma zmod_equiv_trunc_apply {x : zmod (p^n)} : zmod_equiv_trunc p x =
+  @zmod.cast_hom _ _ (show p ^ n ∣ p ^ n, by refl) _ _ (charp_lem _) x :=
+rfl
+
+lemma commutes' {m : ℕ} (hm : n ≤ m) (x : zmod (p^m)) :
+  truncate p (zmod p) hm (zmod_equiv_trunc p x) =
+    zmod_equiv_trunc p (zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _ x) :=
 begin
-  have card_t : fintype.card (truncated_witt_vector p n (zmod p)) = p ^ n,
-  { convert card _ _, exact (zmod.card p).symm },
-  haveI : char_p (truncated_witt_vector p n (zmod p)) (p ^ n) := _,
-  refine (iso_to_zmod _ _ card_t).symm,
-  apply char_p_of_prime_pow_ne_zero _ _ _ card_t,
+  haveI := @charp_lem p _ m,
+  haveI := @charp_lem p _ n,
+  simp [zmod_equiv_trunc_apply],
   sorry
 end
 
-#check @zmod_equiv_trunc
+-- if we state zmod_equiv_trunc in the other direction this is the statement
+-- lemma commutes {m : ℕ} (hm : n ≤ m) (x : truncated_witt_vector p m (zmod p)) :
+--   (zmod_equiv_trunc p).symm (truncate p (zmod p) hm x) =
+--     zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _ ((zmod_equiv_trunc p).symm x) :=
+-- begin
+--   induction x,
+--   simp [zmod_equiv_trunc, iso_to_zmod, ring_equiv.of_bijective],
 
-lemma commutes {m : ℕ} (hm : n ≤ m) (x : truncated_witt_vector p m (zmod p)) :
-  zmod_equiv_trunc p (truncate p (zmod p) hm x) =
-    zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _ (zmod_equiv_trunc p x) :=
-begin
-  sorry
-end
+-- end
 
 end iso
 

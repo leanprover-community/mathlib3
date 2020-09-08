@@ -1141,9 +1141,14 @@ lemma ite_apply {α : Sort*} {β : α → Sort*} (P : Prop) [decidable P]
   (ite P f g) x = ite P (f x) (g x) :=
 dite_apply P (λ _, f) (λ _, g) x
 
-/-- Negation of the condition `P : Prop` in a `ite` is the same as swapping the branches. -/
-lemma ite_not (P : Prop) [decidable P] {α : Sort*} (x y : α) :
-  ite (¬ P) x y = ite P y x :=
+/-- Negation of the condition `P : Prop` in a `dite` is the same as swapping the branches. -/
+lemma dite_not {α : Sort*} (P : Prop) [decidable P] (x : P → α) (y : ¬P → α) :
+  dite (¬ P) y (λ h, x (of_not_not h)) = dite P x y :=
 by { by_cases h : P; simp [h] }
+
+/-- Negation of the condition `P : Prop` in a `ite` is the same as swapping the branches. -/
+lemma ite_not {α : Sort*} (P : Prop) [decidable P] (x y : α) :
+  ite (¬ P) x y = ite P y x :=
+dite_not P (λ _, y) (λ _, x)
 
 end ite

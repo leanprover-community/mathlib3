@@ -832,7 +832,7 @@ begin
 end⟩
 
 /-- The normal closure of `s` is the smallest normal subgroup containing `s`. -/
-theorem normal_closure_le_normal {N : subgroup G} (hN : N.normal)
+theorem normal_closure_le_normal {N : subgroup G} [hN : N.normal]
   (h : s ⊆ N) : normal_closure s ≤ N :=
 begin
   assume a w,
@@ -844,15 +844,15 @@ begin
 end
 
 lemma normal_closure_subset_iff {N : subgroup G} (hN : N.normal) : s ⊆ N ↔ normal_closure s ≤ N :=
-⟨normal_closure_le_normal hN, set.subset.trans (subset_normal_closure)⟩
+⟨normal_closure_le_normal, set.subset.trans (subset_normal_closure)⟩
 
 theorem normal_closure_mono {s t : set G} (h : s ⊆ t) : normal_closure s ≤ normal_closure t :=
-normal_closure_le_normal normal_closure_normal (set.subset.trans h subset_normal_closure)
+normal_closure_le_normal (set.subset.trans h subset_normal_closure)
 
 theorem normal_closure_eq_infi : normal_closure s =
   ⨅ (N : subgroup G) (h : normal N) (hs : s ⊆ N), N :=
 le_antisymm
-  (le_infi (λ N, le_infi (λ hN, le_infi (normal_closure_le_normal hN))))
+  (le_infi (λ N, le_infi (λ hN, by exactI le_infi (normal_closure_le_normal))))
   (infi_le_of_le (normal_closure s) (infi_le_of_le (by apply_instance)
     (infi_le_of_le subset_normal_closure (le_refl _))))
 

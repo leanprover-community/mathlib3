@@ -263,7 +263,7 @@ lemma lift_alg_hom_unique (f : A →ₐ[S] B) {s : A → A → Prop} (w : ∀ {x
   (g : ring_quot s →ₐ[S] B) (h : g.comp (mk_alg_hom S s) = f) : g = lift_alg_hom S f @w :=
 by { ext, simp [h], }
 
-lemma eq_lift_alg_hom_comp_mk_alg_hom (f : A →ₐ[S] B) {s : A → A → Prop} (f : ring_quot s →ₐ[S] B) :
+lemma eq_lift_alg_hom_comp_mk_alg_hom {s : A → A → Prop} (f : ring_quot s →ₐ[S] B) :
   f = lift_alg_hom S (f.comp (mk_alg_hom S s)) (λ x y h, by { dsimp, erw mk_alg_hom_rel S h, }) :=
 by { ext, simp, }
 

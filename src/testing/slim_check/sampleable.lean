@@ -264,11 +264,11 @@ lemma list.sizeof_drop_lt_sizeof_of_lt_length {xs : list α} {k}
   (hk : 0 < k) (hk' : k < xs.length) :
   sizeof (list.drop k xs) < sizeof xs :=
 begin
-  induction xs generalizing k,
+  induction xs with x xs generalizing k,
   { cases hk' },
   cases k,
   { cases hk },
-  have : sizeof xs_tl < sizeof (xs_hd :: xs_tl),
+  have : sizeof xs < sizeof (x :: xs),
   { unfold_wf, linarith },
   cases k,
   { simp only [this, list.drop] },

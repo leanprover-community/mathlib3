@@ -71,12 +71,14 @@ begin
   ext1, simp
 end
 
--- there's probably a better constructor for this
 def equiv : 𝕎 (zmod p) ≃+* ℤ_[p] :=
-ring_equiv.of_bijective (to_padic_int p) $
-  function.bijective_iff_has_inverse.mpr
-  ⟨ from_padic_int p,
-    λ x, show (from_padic_int p).comp (to_padic_int p) x = _, by rw from_padic_int_comp_to_padic_int; refl,
-    λ x, show (to_padic_int p).comp (from_padic_int p) x = _, by rw to_padic_int_comp_from_padic_int; refl, ⟩
+{ to_fun := to_padic_int p,
+  inv_fun := from_padic_int p,
+  left_inv := λ x, show (from_padic_int p).comp (to_padic_int p) x = _,
+              by rw from_padic_int_comp_to_padic_int; refl,
+  right_inv := λ x, show (to_padic_int p).comp (from_padic_int p) x = _,
+              by rw to_padic_int_comp_from_padic_int; refl,
+  map_mul' := ring_hom.map_mul _,
+  map_add' := ring_hom.map_add _ }
 
 end witt_vector

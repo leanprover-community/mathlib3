@@ -390,14 +390,22 @@ truncate_lift_fun f_compat s
 by { ext1, rw [ring_hom.comp_apply, truncate_lift] }
 
 lemma lift_unique (g : S →+* 𝕎 R) (g_compat : ∀ k, (witt_vector.truncate p k).comp g = f k) :
-  g = lift f_compat := sorry
+  g = lift f_compat :=
+begin
+  sorry
+end
 
 -- other name? something with `ext`?
+omit f_compat
+
 lemma hom_eq_hom (g₁ g₂ : S →+* 𝕎 R)
   (h : ∀ k, (witt_vector.truncate p k).comp g₁ = (witt_vector.truncate p k).comp g₂) :
   g₁ = g₂ :=
 begin
-  sorry
+  rw [lift_unique _ g₁, lift_unique _ g₂],
+  { intro k, apply (h k).symm },
+  { intros, rw [← ring_hom.comp_assoc], simp [truncate_comp_witt_vector_truncate] },
+  { intro, refl }
 end
 
 end lift

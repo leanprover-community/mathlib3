@@ -404,6 +404,7 @@ def involutive {α} (f : α → α) : Prop := ∀ x, f (f x) = x
 lemma involutive_iff_iter_2_eq_id {α} {f : α → α} : involutive f ↔ (f^[2] = id) :=
 funext_iff.symm
 
+/-- Involuting an `ite` of an involuted value `x : α` negates the `Prop` condition in the `ite`. -/
 lemma inv_ite {α} (P : Prop) [decidable P] {f : α → α} (h : involutive f) (x : α) :
   f (ite P x (f x)) = ite (¬ P) x (f x) :=
 by rw [apply_ite f, h, ite_not]

@@ -726,11 +726,10 @@ variables (s : set α)
 In this section we give conditions on a subset of a conditionally complete linear order, to ensure
 that the subtype is itself conditionally complete.
 
-We check that `Ioo` satisfies these conditions.
+We check that an `ord_connected` set satisfies these conditions.
 
-TODO There are innumerable possible variants -- the interval `Ioo` could be changed to `Ico`, `Icc`,
-`Ioi`, etc.; the `conditionally_complete_linear_order` could be changed to
-`conditionally_complete_linear_order_bot` or `complete_linear_order`.
+TODO There are several possible variants; the `conditionally_complete_linear_order` could be changed
+to `conditionally_complete_linear_order_bot` or `complete_linear_order`.
 -/
 
 open_locale classical
@@ -851,7 +850,8 @@ end
 /-- A nonempty `ord_connected` set in a conditionally complete linear order is naturally a
 conditionally complete linear order. -/
 noncomputable instance ord_connected_subset_conditionally_complete_linear_order
-  [inhabited s] [ord_connected s] :=
+  [inhabited s] [ord_connected s] :
+  conditionally_complete_linear_order s :=
 subset_conditionally_complete_linear_order s Sup_within_of_ord_connected Inf_within_of_ord_connected
 
 end ord_connected

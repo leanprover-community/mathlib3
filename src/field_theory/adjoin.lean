@@ -90,8 +90,18 @@ begin
   exact ⟨HF, HS⟩,
 end
 
+@[elab_as_eliminator]
+lemma adjoin_induction {s : set E} {p : E → Prop} {x} (h : x ∈ adjoin F s)
+  (Hs : ∀ x ∈ s, p x) (Hmap : ∀ x, p (algebra_map F E x)) (H0 : p 0) (H1 : p 1)
+  (Hadd : ∀ x y, p x → p y → p (x + y))
+  (Hneg : ∀ x, p x → p (-x))
+  (Hinv : ∀ x, p x → p x⁻¹)
+  (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
+field.closure_induction h (λ x hx, or.cases_on hx (λ ⟨x, hx⟩, hx ▸ Hmap x) (Hs x))
+  H0 H1 Hadd Hneg Hinv Hmul
+
 /-- `S ⊆ adjoin F T` if and only if `adjoin F S ⊆ adjoin F T`. -/
-lemma adjoin_subset_iff {T : set E} : S ⊆ adjoin F T ↔ (adjoin F S : set E) ⊆ adjoin F T :=
+lemma subset_adjoin_iff {T : set E} : S ⊆ adjoin F T ↔ (adjoin F S : set E) ⊆ adjoin F T :=
 ⟨λ h, adjoin_subset_subfield F S (adjoin.range_algebra_map_subset F T) h,
   λ h, set.subset.trans (subset_adjoin F S) h⟩
 
@@ -115,6 +125,17 @@ begin
   { exact set.union_subset
             (subset_adjoin_of_subset_left _ (subset_adjoin _ _))
             (subset_adjoin _ _) },
+end
+
+lemma adjoin_map {E' : Type*} [field E'] [algebra F E'] (f : E →ₐ[F] E') :
+  (adjoin F S).map f = adjoin F (f '' S) :=
+begin
+  ext x,
+  show x ∈ f '' field.closure (set.range (algebra_map F E) ∪ S) ↔
+       x ∈ field.closure (set.range (algebra_map F E') ∪ f '' S),
+  erw field.image_closure (f : E →+* E'),
+  rw [set.image_union, ← set.range_comp, ← ring_hom.coe_comp, f.comp_algebra_map],
+  refl
 end
 
 variables (α : E)

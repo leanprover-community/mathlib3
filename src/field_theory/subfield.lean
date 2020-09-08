@@ -102,6 +102,38 @@ theorem closure_subset_iff (s t : set F) [is_subfield t] : closure s ⊆ t ↔ s
 theorem closure_mono {s t : set F} (H : s ⊆ t) : closure s ⊆ closure t :=
 closure_subset $ set.subset.trans H subset_closure
 
+@[elab_as_eliminator]
+lemma closure_induction {s : set F} {p : F → Prop} {x} (h : x ∈ closure s)
+  (Hs : ∀ x ∈ s, p x) (H0 : p 0) (H1 : p 1)
+  (Hadd : ∀ x y, p x → p y → p (x + y))
+  (Hneg : ∀ (x : F), p x → p (-x))
+  (Hinv : ∀ (x : F), p x → p x⁻¹)
+  (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
+(@closure_subset_iff _ _ _ p
+  { mul_mem := Hmul, inv_mem := Hinv, one_mem := H1,
+    add_mem := Hadd, neg_mem := Hneg, zero_mem := H0 }).2 Hs h
+
+lemma image_closure {F' : Type*} [field F'] (f : F →+* F') (s : set F) :
+  f '' (closure s) = closure (f '' s) :=
+begin
+  apply le_antisymm,
+  { rintros _ ⟨x, hx, rfl⟩,
+    apply closure_induction hx,
+    { intros x hx,
+      exact mem_closure ((set.mem_image _ _ _).mpr ⟨x, hx, rfl⟩) },
+    { rw f.map_zero, apply is_add_submonoid.zero_mem },
+    { rw f.map_one, apply is_submonoid.one_mem },
+    { intros x y hx hy,
+      rw f.map_add, exact is_add_submonoid.add_mem hx hy },
+    { intros x hx,
+      rw f.map_neg, exact is_add_subgroup.neg_mem hx },
+    { intros x hx,
+      rw f.map_inv, exact is_subfield.inv_mem hx },
+    { intros x y hx hy,
+      rw f.map_mul, exact is_submonoid.mul_mem hx hy } },
+  { exact closure_subset (set.image_subset _ subset_closure) },
+end
+
 end field
 
 lemma is_subfield_Union_of_directed {ι : Type*} [hι : nonempty ι]

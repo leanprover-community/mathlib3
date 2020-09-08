@@ -386,6 +386,10 @@ lemma map_sum {ι : Type*} (f : ι → A) (s : finset ι) :
 @[simp] lemma map_nat_cast (n : ℕ) : φ n = n :=
 φ.to_ring_hom.map_nat_cast n
 
+lemma map_inv {K K' : Type*} [division_ring K] [division_ring K'] [algebra R K] [algebra R K']
+  (f : K →ₐ[R] K') (x : K) : f (x⁻¹) = (f x)⁻¹ :=
+f.to_ring_hom.map_inv x
+
 section
 
 variables (R A)
@@ -405,6 +409,9 @@ def comp (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) : A →ₐ[R] C :=
 
 @[simp] lemma comp_apply (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) (p : A) :
   φ₁.comp φ₂ p = φ₁ (φ₂ p) := rfl
+
+lemma coe_comp (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) :
+  (φ₁.comp φ₂ : A → C) = φ₁ ∘ φ₂ := rfl
 
 @[simp] theorem comp_id : φ.comp (alg_hom.id R A) = φ :=
 ext $ λ x, rfl

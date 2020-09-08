@@ -602,6 +602,7 @@ class canonically_linear_ordered_add_monoid (α : Type*)
 section canonically_linear_ordered_add_monoid
 variables [canonically_linear_ordered_add_monoid α]
 
+@[priority 100]  -- see Note [lower instance priority]
 instance canonically_linear_ordered_add_monoid.semilattice_sup_bot : semilattice_sup_bot α :=
 { ..lattice_of_decidable_linear_order, ..canonically_ordered_add_monoid.to_order_bot α }
 

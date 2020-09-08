@@ -718,6 +718,7 @@ lemma units_eq_one (u : units α) : u = 1 := subsingleton.elim u 1
 
 variable [nontrivial α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance normalization_monoid_of_unique_units : normalization_monoid α :=
 { norm_unit := λ x, 1,
   norm_unit_zero := rfl,

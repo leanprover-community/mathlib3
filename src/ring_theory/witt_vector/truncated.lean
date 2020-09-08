@@ -373,6 +373,7 @@ begin
   simp [truncate_lift_fun, f_compat], -- squeeze_simp output fails??
 end
 
+variable (f)
 -- everything about `lift` and `lift_fun` should probably move to `witt_vector` namespace
 def lift : S →+* 𝕎 R :=
 { to_fun := lift_fun p f,
@@ -381,17 +382,18 @@ def lift : S →+* 𝕎 R :=
   map_zero' := lift_fun_zero f_compat,
   map_add' := lift_fun_add f_compat }
 
+variable {f}
 @[simp] lemma truncate_lift (s : S) :
-  witt_vector.truncate p n (lift f_compat s) = f n s :=
+  witt_vector.truncate p n (lift _ f_compat s) = f n s :=
 truncate_lift_fun f_compat s
 
 @[simp] lemma truncate_comp_lift :
-  (witt_vector.truncate p n).comp (lift f_compat) = f n :=
+  (witt_vector.truncate p n).comp (lift _ f_compat) = f n :=
 by { ext1, rw [ring_hom.comp_apply, truncate_lift] }
 
 -- this is stated in reverse from `padic_int.lift_unique`, we should change one or the other
 lemma lift_unique (g : S →+* 𝕎 R) (g_compat : ∀ k, (witt_vector.truncate p k).comp g = f k) :
-  g = lift f_compat :=
+  g = lift _ f_compat :=
 begin
   ext1 x,
   rw [← sub_eq_zero, ← ideal.mem_bot, ← ideal_inter, ideal.mem_infi],

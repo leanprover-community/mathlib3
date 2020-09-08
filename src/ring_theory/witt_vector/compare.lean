@@ -34,8 +34,20 @@ def to_padic_int : 𝕎 (zmod p) →+* ℤ_[p] :=
 -- for increased readability.
 padic_int.lift (λ m n h, to_zmod_pow_compat p m n h)
 
+lemma zmod_equiv_trunc_compat (k₁ k₂ : ℕ) (hk : k₁ ≤ k₂) :
+    (truncated_witt_vector.truncate p (zmod p) hk).comp
+        ((zmod_equiv_trunc p k₂).to_ring_hom.comp
+           (padic_int.to_zmod_pow k₂)) =
+      (zmod_equiv_trunc p k₁).to_ring_hom.comp (padic_int.to_zmod_pow k₁) :=
+begin
+  rw [← ring_hom.comp_assoc, commutes, ring_hom.comp_assoc, padic_int.zmod_cast_comp_to_zmod_pow],
+  assumption
+end
+
+
 def from_padic_int : ℤ_[p] →+* 𝕎 (zmod p) :=
-truncated_witt_vector.lift sorry
+truncated_witt_vector.lift (λ k, (zmod_equiv_trunc p k).to_ring_hom.comp (padic_int.to_zmod_pow k)) $
+  zmod_equiv_trunc_compat _
 
 lemma to_padic_int_comp_from_padic_int :
   (to_padic_int p).comp (from_padic_int p) = ring_hom.id ℤ_[p] :=

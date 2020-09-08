@@ -44,7 +44,6 @@ begin
   assumption
 end
 
-
 def from_padic_int : ℤ_[p] →+* 𝕎 (zmod p) :=
 truncated_witt_vector.lift (λ k, (zmod_equiv_trunc p k).to_ring_hom.comp (padic_int.to_zmod_pow k)) $
   zmod_equiv_trunc_compat _
@@ -54,6 +53,7 @@ lemma to_padic_int_comp_from_padic_int :
 begin
   rw ← padic_int.to_zmod_pow_eq_iff_ext,
   intro n,
+  congr' with x,
   sorry
 end
 -- we might want a `hom_eq_hom` for `ℤ_[p]` like we have for `𝕎 R` in the truncated file
@@ -63,6 +63,7 @@ lemma from_padic_int_comp_to_padic_int :
 begin
   apply witt_vector.hom_ext,
   intro n,
+  congr,
   sorry
 end
 

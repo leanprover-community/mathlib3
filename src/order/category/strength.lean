@@ -160,4 +160,14 @@ class strong_monad extends monad F, has_strength F :=
   (𝟙 X ⊗ (μ_ F).app Y) ≫ σ_ F X Y =
   (σ_ F X (F.obj Y) ≫ F.map (σ_ F X Y) ≫ (μ_ F).app _ : X ⊗ F.obj _ ⟶ _))
 
+def strong_monad.to_lax_functor [strong_monad F] [has_costrength F] : lax_monoidal_functor C C :=
+{ ε := (η_ F).app _,
+  μ := λ X Y, (σ_ F _ _ ≫ F.map (τ_ F _ _) ≫ (μ_ F).app _ : F.obj _ ⊗ F.obj _ ⟶ F.obj _ ),
+  μ_natural' := by intros; simp [← (μ_ F).naturality]; rw [← functor.map_comp_assoc, ← has_strength.naturality_assoc, ← functor.map_comp_assoc, has_costrength.naturality]; dsimp,
+  associativity' := sorry, -- by intros; dsimp; simp [← (μ_ F).naturality]; rw [← functor.map_comp_assoc, ← tensor_comp_assoc, ← tensor_comp_assoc, ← tensor_comp_assoc, ← tensor_comp_assoc, ← (μ_ F).naturality, has_strength.naturality_assoc],
+  left_unitality' := sorry,  -- by obviously,
+  right_unitality' := sorry, -- by obviously,
+  .. F
+ }
+
 end category_theory

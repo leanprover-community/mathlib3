@@ -55,8 +55,6 @@ noncomputable instance {α : Type*} [preorder α] [has_Inf α] : has_Inf (with_b
 
 end -- section
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A conditionally complete lattice is a lattice in which
 every nonempty subset which is bounded above has a supremum, and
 every nonempty subset which is bounded below has an infimum.
@@ -78,7 +76,6 @@ class conditionally_complete_linear_order (α : Type*)
 class conditionally_complete_linear_order_bot (α : Type*)
   extends conditionally_complete_lattice α, decidable_linear_order α, order_bot α :=
 (cSup_empty : Sup ∅ = ⊥)
-end prio
 
 /- A complete lattice is a conditionally complete lattice, as there are no restrictions
 on the properties of Inf and Sup in a complete lattice.-/

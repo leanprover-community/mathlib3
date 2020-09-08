@@ -1296,13 +1296,10 @@ end is_complete
 
 namespace measure_theory
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A measure space is a measurable space equipped with a
   measure, referred to as `volume`. -/
 class measure_space (α : Type*) extends measurable_space α :=
 (volume : measure α)
-end prio
 
 export measure_space (volume)
 

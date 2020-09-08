@@ -82,6 +82,10 @@ lemma to_fun_eq_coe (f : M →* N) : f.to_fun = f := rfl
 lemma coe_mk (f : M → N) (h1 hmul) : ⇑(monoid_hom.mk f h1 hmul) = f := rfl
 
 @[to_additive]
+theorem congr_fun {f g : M →* N} (h : f = g) (x : M) : f x = g x :=
+congr_arg (λ h : M →* N, h x) h
+
+@[to_additive]
 lemma coe_inj ⦃f g : M →* N⦄ (h : (f : M → N) = g) : f = g :=
 by cases f; cases g; cases h; refl
 

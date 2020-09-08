@@ -16,7 +16,7 @@ It is based purely on the polynomial exponents and coefficients.
 
 ## Main declarations
 
-* `mv_polynomial.pderivative`: the partial derivative of a multivariate polynomial
+* `mv_polynomial.pderivative i p` : the partial derivative of `p` with respect to `i`.
 
 ## Notation
 

@@ -20,8 +20,18 @@ monomial of $P$.
 
 ## Main declarations
 
-* `mv_polynomial.degrees`: the degree set
-* `mv_polynomial.vars`: the variable set
+* `mv_polynomial.degrees p` : the multiset of variables representing the union of the multisets corresponding
+  to each non-zero monomial in `p`. For example if `7 ≠ 0` in `R` and `p = x²y+7y³` then
+  `degrees p = {x, x, y, y, y}`
+
+* `mv_polynomial.vars p` : the finset of variables occurring in `p`. For example if `p = x⁴y+yz` then
+  `vars p = {x, y, z}`
+
+* `mv_polynomial.degree_of n p : ℕ` -- the total degree of `p` with respect to the variable `n`. For example
+  if `p = x⁴y+yz` then `degree_of y p = 1`.
+
+* `mv_polynomial.total_degree p : ℕ` -- the max of the sizes of the multisets `s` whose monomials `X^s` occur
+  in `p`. For example if `p = x⁴y+yz` then `total_degree p = 5`.
 
 ## Notation
 

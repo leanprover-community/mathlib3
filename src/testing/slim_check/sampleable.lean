@@ -95,7 +95,7 @@ if h : n ≤ 1
     have n / 2 < n, by simpa,
     let m := n / 2 in
     have h₀ : m ≤ k, from le_trans (le_of_lt this) hn,
-    have h₃ : 0 < m, by simp [m,lt_iff_add_one_le]; rw [le_div_iff_mul_le]; linarith,
+    have h₃ : 0 < m, by simp only [m, lt_iff_add_one_le, zero_add]; rw [le_div_iff_mul_le]; linarith,
     have h₁ : k - m < k,
       from nat.sub_lt (lt_of_lt_of_le h₂ hn) h₃,
     nat.shrink' m h₀ (⟨k - m, h₁⟩ :: ls)
@@ -163,7 +163,8 @@ sampleable.lift ℕ fin.of_nat subtype.val $
 def pnat.pred_nat (i : ℕ+) : ℕ := i - 1
 
 instance pnat.sampleable : sampleable ℕ+ :=
-sampleable.lift ℕ nat.succ_pnat pnat.pred_nat $ λ a, by unfold_wf; simp [pnat.pred_nat,nat.succ_pnat]
+sampleable.lift ℕ nat.succ_pnat pnat.pred_nat $ λ a,
+by unfold_wf; simp only [pnat.pred_nat, succ_pnat, pnat.mk_coe, nat.sub_zero, succ_sub_succ_eq_sub]
 
 instance int.sampleable : sampleable ℤ :=
 { wf := ⟨ int.nat_abs ⟩,
@@ -273,8 +274,8 @@ begin
   have : sizeof xs_tl < sizeof (xs_hd :: xs_tl),
   { unfold_wf, linarith },
   cases k,
-  { simp [this] },
-  { simp,
+  { simp only [this, list.drop] },
+  { simp only [list.drop],
     transitivity,
     { solve_by_elim [xs_ih, lt_of_succ_lt_succ hk', zero_lt_succ] },
     { assumption } }
@@ -293,7 +294,9 @@ lemma list.sizeof_append_lt_left {xs ys ys' : list α} (h : sizeof ys < sizeof y
 begin
   induction xs,
   { apply h },
-  { unfold_wf, simp [list.sizeof], exact xs_ih }
+  { unfold_wf,
+    simp only [list.sizeof, add_lt_add_iff_left],
+    exact xs_ih }
 end
 
 lemma list.one_le_sizeof (xs : list α) : 1 ≤ sizeof xs :=
@@ -320,13 +323,13 @@ def list.shrink_removes (k : ℕ) (hk : 0 < k) : Π (xs : list α) n,
     match list.split_at k xs, rfl : Π ys, ys = list.split_at k xs → _ with
     |  ⟨xs₁,xs₂⟩, h :=
       have h₄ : xs₁ = xs.take k,
-        by simp [list.split_at_eq_take_drop] at h; tauto,
+        by simp only [list.split_at_eq_take_drop, prod.mk.inj_iff] at h; tauto,
       have h₃ : xs₂ = xs.drop k,
-        by simp [list.split_at_eq_take_drop] at h; tauto,
+        by simp only [list.split_at_eq_take_drop, prod.mk.inj_iff] at h; tauto,
       have sizeof xs₂ < sizeof xs,
         by rw h₃; solve_by_elim [list.sizeof_drop_lt_sizeof_of_lt_length],
       have h₁ : n - k = xs₂.length,
-        by simp [h₃, ← hn],
+        by simp only [h₃, ←hn, list.length_drop],
       have h₅ : ∀ (a : list α), sizeof_lt a xs₂ → sizeof_lt (xs₁ ++ a) xs, from
         λ a h, by rw [← list.take_append_drop k xs, ← h₃, ← h₄]; solve_by_elim [list.sizeof_append_lt_left],
       lazy_list.cons ⟨xs₂, this⟩ $ subtype.map ((++) xs₁) h₅ <$> list.shrink_removes xs₂ (n - k) h₁

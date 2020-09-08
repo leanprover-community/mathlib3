@@ -398,7 +398,7 @@ end
 -- other name? something with `ext`?
 omit f_compat
 
-lemma hom_eq_hom (g₁ g₂ : S →+* 𝕎 R)
+lemma witt_vector.hom_ext (g₁ g₂ : S →+* 𝕎 R)
   (h : ∀ k, (witt_vector.truncate p k).comp g₁ = (witt_vector.truncate p k).comp g₂) :
   g₁ = g₂ :=
 begin

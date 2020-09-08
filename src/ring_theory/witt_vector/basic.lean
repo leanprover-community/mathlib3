@@ -1760,27 +1760,61 @@ end verschiebung
 
 -- end frobenius
 
+variable {R}
+section mk
+-- move this up
+
+def mk (x : ℕ → R) : 𝕎 p R := x
+
+@[simp] lemma coeff_mk (x : ℕ → R) (i : ℕ) :
+  (mk p x).coeff i = x i := rfl
+
+end mk
+
 section disjoint
 
 lemma witt_add_sub_nice (n : ℕ) :
   (witt_add p n - p ^ n * (X (tt, n) + X (ff, n))).nice :=
 begin
-  sorry
+  apply nice.of_map_of_injective (int.cast_ring_hom ℚ) (int.cast_injective),
+  simp only [ring_hom.map_nat_cast, ring_hom.map_sub, ring_hom.map_add, map_X,
+    ring_hom.map_pow, ring_hom.map_mul],
+  rw [witt_add, map_witt_structure_int, ring_hom.map_add, map_X, map_X],
 end
 
 lemma coeff_add_of_disjoint (x y : 𝕎 p R) (n : ℕ) (hn : ∀ i < n, x.coeff i = 0 ∨ y.coeff i = 0) :
   (x + y).coeff n = x.coeff n + y.coeff n :=
 begin
   rw add_coeff,
+  sorry
 end
 
+def init (x : 𝕎 p R) (n : ℕ) := mk p (λ k, if k < n then x.coeff k else 0)
+
+def tail (x : 𝕎 p R) (n : ℕ) := mk p (λ k, if k < n then 0 else x.coeff k)
+
+lemma init_tail_disjoint (x : 𝕎 p R) (n : ℕ) (i : ℕ) :
+  (init p x n).coeff i = 0 ∨ (tail p x n).coeff i = 0 :=
+begin
+  simp only [init, tail, coeff_mk],
+  split_ifs; simp only [eq_self_iff_true, or_true, true_or]
+end
+
+lemma coeff_init_add_tail (x : 𝕎 p R) (n : ℕ) (i : ℕ) :
+  coeff i (init p x n + tail p x n) = coeff i (init p x n) + coeff i (tail p x n) :=
+by { rw coeff_add_of_disjoint, intros, apply init_tail_disjoint }
+
+lemma eq_init_add_tail (x : 𝕎 p R) (n : ℕ) :
+  x = init p x n + tail p x n :=
+begin
+  rw ext_iff,
+  intro k,
+  rw coeff_init_add_tail,
+  simp only [init, tail, coeff_mk], split_ifs; simp only [add_zero, zero_add]
+end
+
+
 end disjoint
-
-variable {R}
-def mk (x : ℕ → R) : 𝕎 p R := x
-
-@[simp] lemma coeff_mk (x : ℕ → R) (i : ℕ) :
-  (mk p x).coeff i = x i := rfl
 
 end witt_vector
 

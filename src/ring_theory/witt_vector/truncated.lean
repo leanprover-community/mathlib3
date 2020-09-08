@@ -34,26 +34,49 @@ ideal.quotient.mk _
 -- huh? It seems that `p` is nevertheless an explicit argument of `truncate`...
 
 lemma truncate_ker :
-  (witt_vector.truncate p n : 𝕎 R →+* truncated_witt_vector p n R).ker =
+  (truncate p n : 𝕎 R →+* truncated_witt_vector p n R).ker =
   witt_vector.ideal p R n :=
 begin
   ext1 x,
-  rw [ring_hom.mem_ker, witt_vector.truncate, ideal.quotient.eq_zero_iff_mem],
+  rw [ring_hom.mem_ker, truncate, ideal.quotient.eq_zero_iff_mem],
+end
+
+@[simp]
+lemma truncate_tail (x : 𝕎 R) (n : ℕ) :
+  truncate p n (witt_vector.tail p x n) = 0 :=
+begin
+  rw [← ring_hom.mem_ker, truncate_ker],
+  intros i h,
+  simp only [tail, coeff_mk, if_pos h],
 end
 
 lemma truncate_eq_iff (x y : 𝕎 R) (n : ℕ) :
-  witt_vector.truncate p n x = witt_vector.truncate p n y ↔
-  ∀ ⦃i : ℕ⦄, i < n → x.coeff i = y.coeff i :=
+  truncate p n x = truncate p n y ↔ ∀ ⦃i : ℕ⦄, i < n → x.coeff i = y.coeff i :=
 begin
-  rw [← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker, truncate_ker, mem_ideal_iff],
-  generalize hz : x - y = z,
-  rw sub_eq_iff_eq_add at hz,
-  subst hz,
+  rw [witt_vector.eq_add_split p x n,
+      witt_vector.eq_add_split p y n,
+      ring_hom.map_add, ring_hom.map_add,
+      truncate_tail, truncate_tail,
+      add_zero, add_zero],
+  split,
+  { intro H,
+    sorry },
+  { intro H,
+    congr' 1,
+    rw [ext_iff],
+    intro i,
+    simp only [init, coeff_mk],
+    split_ifs with hi, swap, refl,
+    specialize H hi,
+    rw [← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker, truncate_ker, mem_ideal_iff], }
+  -- generalize hz : x - y = z,
+  -- rw sub_eq_iff_eq_add at hz,
+  -- subst hz,
   sorry
 end
 
 lemma coeff_eq_of_truncate_eq (x y : 𝕎 R) (n : ℕ)
-  (h : witt_vector.truncate p n x = witt_vector.truncate p n y) :
+  (h : truncate p n x = truncate p n y) :
   ∀ ⦃i : ℕ⦄, i < n → x.coeff i = y.coeff i :=
 (truncate_eq_iff p _ _ n).mp h
 

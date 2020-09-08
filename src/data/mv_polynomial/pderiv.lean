@@ -21,20 +21,20 @@ It is based purely on the polynomial exponents and coefficients.
 
 ## Notation
 
-As in other polynomial files we typically use the notation:
+This file uses notation slightly different from other `mv_polynomial` files:
 
-+ `σ : Type*` (indexing the variables)
++ `S : Type` (indexing the variables)
 
-+ `R : Type*` `[comm_ring R]` (the coefficients)
++ `R : Type` `[comm_ring R]` (the coefficients)
 
-+ `s : σ →₀ ℕ`, a function from `σ` to `ℕ` which is zero away from a finite set.
-This will give rise to a monomial in `mv_polynomial σ R` which mathematicians might call `X^s`
++ `u' : S →₀ ℕ`, a function from `S` to `ℕ` which is zero away from a finite set.
+This will give rise to a monomial in `mv_polynomial S R` which mathematicians might call `X^s`
 
 + `a : R`
 
-+ `i : σ`, with corresponding monomial `X i`, often denoted `X_i` by mathematicians
++ `v : S`, with corresponding monomial `X i`, often denoted `X_i` by mathematicians
 
-+ `p : mv_polynomial σ R`
++ `p : mv_polynomial S R`
 
 -/
 
@@ -45,11 +45,7 @@ open_locale classical big_operators
 open set function finsupp add_monoid_algebra
 open_locale big_operators
 
-universes u v w x
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
-
 namespace mv_polynomial
-variables {σ : Type*} {a a' a₁ a₂ : α} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
 
 section pderivative
 

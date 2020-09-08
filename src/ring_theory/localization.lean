@@ -1095,26 +1095,21 @@ local attribute [instance] classical.prop_decidable
 /-- The image of `P` in the localization at `P.prime_compl` is a maximal ideal, and in particular
 it is the unique maximal ideal given by the local ring structure `at_prime.local_ring` -/
 lemma at_prime.map_eq_maximal_ideal {P : ideal R} [hP : ideal.is_prime P] :
-  ideal.map (localization.of P.prime_compl).to_map P = (local_ring.maximal_ideal (localization P.prime_compl)) :=
+  ideal.map (localization.of P.prime_compl).to_map P =
+    (local_ring.maximal_ideal (localization P.prime_compl)) :=
 begin
   let f := (localization.of P.prime_compl),
-  refine le_antisymm _ _,
-  { intros x hx,
-    simp only [local_ring.mem_maximal_ideal, mem_nonunits_iff],
-    refine λ h, (localization_map.is_prime_of_is_prime_disjoint f P hP
+  ext x,
+  split; simp only [local_ring.mem_maximal_ideal, mem_nonunits_iff]; intro hx,
+  { exact λ h, (localization_map.is_prime_of_is_prime_disjoint f P hP
       (set.disjoint_compl' P.carrier)).1 (ideal.eq_top_of_is_unit_mem _ hx h) },
-  { intros x hx,
-    obtain ⟨⟨a, b⟩, hab⟩ := localization_map.surj f x,
-    simp only [local_ring.mem_maximal_ideal, mem_nonunits_iff] at hx hab,
+  { obtain ⟨⟨a, b⟩, hab⟩ := localization_map.surj f x,
     contrapose! hx,
     rw is_unit_iff_exists_inv,
     rw localization_map.mem_map_to_map_iff at hx,
-    have : a ∈ P.prime_compl,
-    { contrapose! hx with ha,
-      erw [← set.mem_compl_iff P.prime_compl.carrier, compl_compl'] at ha,
-      refine ⟨⟨⟨a, ha⟩, b⟩, hab⟩ },
-    obtain ⟨a', ha'⟩ := is_unit_iff_exists_inv.1 (localization_map.map_units f ⟨a, this⟩),
-    refine ⟨f.to_map b * a', by rwa [← mul_assoc, hab]⟩ }
+    obtain ⟨a', ha'⟩ := is_unit_iff_exists_inv.1
+      (localization_map.map_units f ⟨a, λ ha, hx ⟨⟨⟨a, ha⟩, b⟩, hab⟩⟩),
+    exact ⟨f.to_map b * a', by rwa [← mul_assoc, hab]⟩ }
 end
 
 /-- The unique maximal ideal of the localization at `P.prime_compl` lies over the ideal `P`. -/
@@ -1122,13 +1117,14 @@ lemma at_prime.comap_maximal_ideal {P : ideal R} [ideal.is_prime P] :
   ideal.comap (localization.of P.prime_compl).to_map (local_ring.maximal_ideal (localization P.prime_compl)) = P :=
 begin
   let Pₚ := local_ring.maximal_ideal (localization P.prime_compl),
-  refine le_antisymm (λ x hx, (classical.em (x = 0)).rec_on _ _)
+  refine le_antisymm (λ x hx, _)
     (le_trans ideal.le_comap_map (ideal.comap_mono (le_of_eq at_prime.map_eq_maximal_ideal))),
-  { exact λ h0, h0.symm ▸ P.zero_mem },
+  by_cases h0 : x = 0,
+  { exact h0.symm ▸ P.zero_mem },
   { have : Pₚ.is_prime := ideal.is_maximal.is_prime (local_ring.maximal_ideal.is_maximal _),
     rw localization_map.is_prime_iff_is_prime_disjoint (localization.of P.prime_compl) at this,
-    contrapose!,
-    exact λ hx', by simpa using this.2 ⟨hx', hx⟩ }
+    contrapose! h0 with hx',
+    simpa using this.2 ⟨hx', hx⟩ }
 end
 
 end localization
@@ -1383,14 +1379,13 @@ variables (f : localization_map M Rₘ)
 variables (g : localization_map (algebra.algebra_map_submonoid S M) Sₘ)
 
 /-- Injectivity of the underlying `algebra_map` descends to the algebra induced by localization -/
-lemma localization_map_injective (hRS : function.injective (algebra_map R S))
+lemma localization_algebra_injective (hRS : function.injective (algebra_map R S))
   (hM : (algebra.algebra_map_submonoid S M) ≤ non_zero_divisors S) :
   function.injective (@algebra_map Rₘ Sₘ _ _ (localization_algebra M f g)) :=
 begin
   rintros x y hxy,
-  obtain ⟨a, b, hx⟩ := localization_map.mk'_surjective f x,
-  obtain ⟨c, d, hy⟩ := localization_map.mk'_surjective f y,
-  rw [← hx, ← hy] at hxy ⊢,
+  obtain ⟨a, b, rfl⟩ := localization_map.mk'_surjective f x,
+  obtain ⟨c, d, rfl⟩ := localization_map.mk'_surjective f y,
   iterate 2 {erw localization_map.map_mk' at hxy},
   rw localization_map.mk'_eq_iff_eq at hxy ⊢,
   refine congr_arg f.to_map (hRS _),

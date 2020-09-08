@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro, Shing Tak Lam
 -/
 
 import data.mv_polynomial.rename
+import data.equiv.fin
 
 /-!
 # Equivalences between polynomial rings

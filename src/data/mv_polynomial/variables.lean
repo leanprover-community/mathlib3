@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro, Shing Tak Lam
 -/
 
 import data.mv_polynomial.basic
+import data.set.disjointed
 
 /-!
 # Degrees and variables of polynomials

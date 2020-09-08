@@ -3,11 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro, Shing Tak Lam
 -/
+
 import data.polynomial.eval
-import data.equiv.ring
-import data.equiv.fin
-import data.set.disjointed
-import tactic.omega
 
 /-!
 # Multivariate polynomials

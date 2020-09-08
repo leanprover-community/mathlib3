@@ -670,6 +670,7 @@ begin
   apply zmod.cast_hom_inj,
 end
 
+-- this name is wrong, because the `iso` is not *to* `zmod`, but *from*.
 noncomputable def iso_to_zmod [char_p R n] (hn : fintype.card R = n) :
   zmod n ≃+* R :=
 ring_equiv.of_bijective _ (zmod.cast_hom_bij _  _ hn)

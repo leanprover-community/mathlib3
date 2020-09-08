@@ -239,14 +239,22 @@ submodule.mem_bot _
 
 end ideals
 
+-- move this to a better place
+lemma eq_of_le_of_cast_pow_eq_zero (i : ℕ) (hin : i ≤ n)
+  (hpi : (p ^ i : truncated_witt_vector p n R) = 0) :
+  i = n :=
+begin
+  sorry
+end
+
 section iso
 
-private lemma card_zmod : fintype.card (truncated_witt_vector p n (zmod p)) = p ^ n :=
+lemma card_zmod : fintype.card (truncated_witt_vector p n (zmod p)) = p ^ n :=
 by rw [card, zmod.card]
 
-private lemma char_p_zmod : char_p (truncated_witt_vector p n (zmod p)) (p ^ n) :=
-(char_p_of_prime_pow_ne_zero _ _ _ (card_zmod _)
-    sorry)
+lemma char_p_zmod : char_p (truncated_witt_vector p n (zmod p)) (p ^ n) :=
+char_p_of_prime_pow_ne_zero _ _ _ (card_zmod _)
+    (eq_of_le_of_cast_pow_eq_zero p (zmod p))
 
 local attribute [instance] char_p_zmod
 variable (n)
@@ -341,6 +349,7 @@ begin
   simp [truncate_lift_fun, f_compat], -- squeeze_simp output fails??
 end
 
+-- everything about `lift` and `lift_fun` should probably move to `witt_vector` namespace
 def lift : S →+* 𝕎 R :=
 { to_fun := lift_fun p f,
   map_one' := lift_fun_one f_compat,
@@ -355,6 +364,17 @@ truncate_lift_fun f_compat s
 @[simp] lemma truncate_comp_lift :
   (witt_vector.truncate p n).comp (lift f_compat) = f n :=
 by { ext1, rw [ring_hom.comp_apply, truncate_lift] }
+
+lemma lift_unique (g : S →+* 𝕎 R) (g_compat : ∀ k, (witt_vector.truncate p k).comp g = f k) :
+  g = lift f_compat := sorry
+
+-- other name? something with `ext`?
+lemma hom_eq_hom (g₁ g₂ : S →+* 𝕎 R)
+  (h : ∀ k, (witt_vector.truncate p k).comp g₁ = (witt_vector.truncate p k).comp g₂) :
+  g₁ = g₂ :=
+begin
+  sorry
+end
 
 end lift
 

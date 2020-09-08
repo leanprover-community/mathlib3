@@ -95,9 +95,10 @@ adjunction.mk_of_hom_equiv
   hom_equiv_naturality_left_symm' := λ X' X Y f g,
   begin
     apply iD.map_injective,
-    dsimp [equiv.trans, equiv.symm, iso.hom_congr_apply, iso.hom_congr_symm],
     simp only [functor.image_preimage, adjunction.hom_equiv_counit, assoc, id_comp, comp_id,
-               functor.map_comp],
+      functor.map_comp, iso.refl_hom, iso.refl_symm, iso.refl_inv, iso.symm_mk,
+      equiv_of_fully_faithful_symm_apply, iso.hom_congr_apply, iso.hom_congr_symm,
+      equiv_of_fully_faithful_apply, equiv.symm_symm, equiv.symm_trans_apply, iso.symm_hom],
     erw [comm1.inv.naturality_assoc f],
     refl,
   end,

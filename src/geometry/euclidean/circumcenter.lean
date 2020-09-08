@@ -335,6 +335,79 @@ begin
   exact h.2
 end
 
+/-- The circumradius is non-negative. -/
+lemma circumradius_nonneg {n : ℕ} (s : simplex ℝ P n) : 0 ≤ s.circumradius :=
+s.dist_circumcenter_eq_circumradius 0 ▸ dist_nonneg
+
+/-- The circumradius of a simplex with at least two points is
+positive. -/
+lemma circumradius_pos {n : ℕ} (s : simplex ℝ P (n + 1)) : 0 < s.circumradius :=
+begin
+  refine lt_of_le_of_ne s.circumradius_nonneg _,
+  intro h,
+  have hr := s.dist_circumcenter_eq_circumradius,
+  simp_rw [←h, dist_eq_zero] at hr,
+  have h01 := (injective_of_affine_independent s.independent).ne
+    (dec_trivial : (0 : fin (n + 2)) ≠ 1),
+  simpa [hr] using h01
+end
+
+/-- The circumcenter of a 0-simplex equals its unique point. -/
+lemma circumcenter_eq_point (s : simplex ℝ P 0) (i : fin 1) :
+  s.circumcenter = s.points i :=
+begin
+  have h := s.circumcenter_mem_affine_span,
+  rw [set.range_unique, mem_affine_span_singleton] at h,
+  rw h,
+  congr
+end
+
+/-- The circumcenter of a 1-simplex equals its centroid. -/
+lemma circumcenter_eq_centroid (s : simplex ℝ P 1) :
+  s.circumcenter = finset.univ.centroid ℝ s.points :=
+begin
+  have hr : set.pairwise_on set.univ
+    (λ i j : fin 2, dist (s.points i) (finset.univ.centroid ℝ s.points) =
+                    dist (s.points j) (finset.univ.centroid ℝ s.points)),
+  { intros i hi j hj hij,
+    rw [finset.centroid_insert_singleton_fin, dist_eq_norm_vsub V (s.points i),
+        dist_eq_norm_vsub V (s.points j), vsub_vadd_eq_vsub_sub, vsub_vadd_eq_vsub_sub,
+        ←one_smul ℝ (s.points i -ᵥ s.points 0), ←one_smul ℝ (s.points j -ᵥ s.points 0)],
+    fin_cases i; fin_cases j; simp [-one_smul, ←sub_smul]; norm_num },
+  rw set.pairwise_on_eq_iff_exists_eq at hr,
+  cases hr with r hr,
+  exact (s.eq_circumcenter_of_dist_eq
+          (centroid_mem_affine_span_of_card_eq_add_one ℝ _ (finset.card_fin 2))
+          (λ i, hr i (set.mem_univ _))).symm
+end
+
+/-- The orthogonal projection of the circumcenter onto a face is the
+circumcenter of that face. -/
+lemma orthogonal_projection_circumcenter {n : ℕ} (s : simplex ℝ P n) {fs : finset (fin (n + 1))}
+    {m : ℕ} (h : fs.card = m + 1) :
+  orthogonal_projection (affine_span ℝ (s.points '' ↑fs)) s.circumcenter =
+    (s.face h).circumcenter :=
+begin
+  have hr : ∃ r, ∀ p ∈ set.range (s.face h).points, dist p s.circumcenter = r,
+  { use s.circumradius,
+    intros p hp,
+    rcases set.mem_range.1 hp with ⟨i, rfl⟩,
+    simp [face_points] },
+  have hs : set.range (s.face h).points ⊆ affine_span ℝ (s.points '' ↑fs),
+  { rw s.range_face_points h,
+    exact subset_span_points ℝ _ },
+  rw exists_dist_eq_iff_exists_dist_orthogonal_projection_eq hs s.circumcenter at hr,
+  cases hr with r hr,
+  have ho : orthogonal_projection (affine_span ℝ (s.points '' ↑fs)) s.circumcenter ∈
+    affine_span ℝ (set.range (s.face h).points),
+  { rw s.range_face_points h,
+    have hn : (affine_span ℝ (s.points '' ↑fs) : set P).nonempty,
+    { simp [←finset.card_pos, h] },
+    exact orthogonal_projection_mem hn (submodule.complete_of_finite_dimensional _) _ },
+  rw set.forall_range_iff at hr,
+  exact (s.face h).eq_circumcenter_of_dist_eq ho hr
+end
+
 omit V
 
 /-- An index type for the vertices of a simplex plus its circumcenter.

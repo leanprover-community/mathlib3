@@ -18,8 +18,8 @@ forgetful functor.
 Each concrete category `C` comes with a canonical faithful functor
 `forget C : C ⥤ Type*`.  We say that a concrete category `C` admits a
 *forgetful functor* to a concrete category `D`, if it has a functor
-`forget₂ C D : C ⥤ D` such that `(forget₂ C D) ⋙ (forget D) = forget
-C`, see `class has_forget₂`.  Due to `faithful.div_comp`, it suffices
+`forget₂ C D : C ⥤ D` such that `(forget₂ C D) ⋙ (forget D) = forget C`,
+see `class has_forget₂`.  Due to `faithful.div_comp`, it suffices
 to verify that `forget₂.obj` and `forget₂.map` agree with the equality
 above; then `forget₂` will satisfy the functor laws automatically, see
 `has_forget₂.mk'`.
@@ -34,15 +34,23 @@ See [Ahrens and Lumsdaine, *Displayed Categories*][ahrens2017] for
 related work.
 -/
 
-universes u v v'
+universes w v v' u
 
 namespace category_theory
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
-/-- A concrete category is a category `C` with a fixed faithful functor `forget : C ⥤ Type`. -/
-class concrete_category (C : Type v) [category C] :=
-(forget [] : C ⥤ Type u)
+/--
+A concrete category is a category `C` with a fixed faithful functor `forget : C ⥤ Type`.
+
+Note that `concrete_category` potentially depends on three independent universe levels,
+* the universe level `w` appearing in `forget : C ⥤ Type w`
+* the universe level `v` of the morphisms (i.e. we have a `category.{v} C`)
+* the universe level `u` of the objects (i.e `C : Type u`)
+They are specified that order, to avoid unnecessary universe annotations.
+-/
+class concrete_category (C : Type u) [category.{v} C] :=
+(forget [] : C ⥤ Type w)
 [forget_faithful : faithful forget]
 end prio
 

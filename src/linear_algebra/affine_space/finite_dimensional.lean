@@ -44,6 +44,12 @@ instance finite_dimensional_direction_affine_span_of_fintype [fintype ι] (p : �
   finite_dimensional k (affine_span k (set.range p)).direction :=
 finite_dimensional_direction_affine_span_of_finite k (set.finite_range _)
 
+/-- The direction of the affine span of a subset of a family indexed
+by a `fintype` is finite-dimensional. -/
+instance finite_dimensional_direction_affine_span_image_of_fintype [fintype ι] (p : ι → P)
+  (s : set ι) : finite_dimensional k (affine_span k (p '' s)).direction :=
+finite_dimensional_direction_affine_span_of_finite k ((set.finite.of_fintype _).image _)
+
 variables {k}
 
 /-- The `vector_span` of a finite affinely independent family has

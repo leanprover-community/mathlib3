@@ -1,4 +1,41 @@
+/-
+Copyright (c) 2017 Johannes Hölzl. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro, Shing Tak Lam
+-/
+
 import data.mv_polynomial.variables
+
+/-!
+# Partial derivatives of polynomials
+
+This file defines the notion of the formal *partial derivative* of a polynomial,
+the derivative with respect to a single variable.
+This derivative is not connected to the notion of derivative from analysis.
+It is based purely on the polynomial exponents and coefficients.
+
+## Main declarations
+
+* `mv_polynomial.pderivative`: the partial derivative of a multivariate polynomial
+
+## Notation
+
+As in other polynomial files we typically use the notation:
+
++ `σ : Type*` (indexing the variables)
+
++ `R : Type*` `[comm_ring R]` (the coefficients)
+
++ `s : σ →₀ ℕ`, a function from `σ` to `ℕ` which is zero away from a finite set.
+This will give rise to a monomial in `mv_polynomial σ R` which mathematicians might call `X^s`
+
++ `a : R`
+
++ `i : σ`, with corresponding monomial `X i`, often denoted `X_i` by mathematicians
+
++ `p : mv_polynomial σ R`
+
+-/
 
 noncomputable theory
 

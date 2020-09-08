@@ -1,5 +1,46 @@
+/-
+Copyright (c) 2017 Johannes Hölzl. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro, Shing Tak Lam
+-/
+
 import data.mv_polynomial.basic
 
+/-!
+# Degrees and variables of polynomials
+
+This file establishes many results about the degree and variable sets of a multivariate polynomial.
+
+The *variable set* of a polynomial $P \in R[X]$ is a `finset` containing each $x \in X$
+that appears in a monomial in $P$.
+
+The *degree set* of a polynomial $P \in R[X]$ is a `multiset` containing, for each $x$ in the
+variable set, $n$ copies of $x$, where $n$ is the maximum number of copies of $x$ appearing in a
+monomial of $P$.
+
+## Main declarations
+
+* `mv_polynomial.degrees`: the degree set
+* `mv_polynomial.vars`: the variable set
+
+## Notation
+
+As in other polynomial files we typically use the notation:
+
++ `σ : Type*` (indexing the variables)
+
++ `α : Type*` `[comm_semiring α]` (the coefficients)
+
++ `s : σ →₀ ℕ`, a function from `σ` to `ℕ` which is zero away from a finite set.
+This will give rise to a monomial in `mv_polynomial σ R` which mathematicians might call `X^s`
+
++ `a : α`
+
++ `i : σ`, with corresponding monomial `X i`, often denoted `X_i` by mathematicians
+
++ `p : mv_polynomial σ α`
+
+-/
 
 noncomputable theory
 

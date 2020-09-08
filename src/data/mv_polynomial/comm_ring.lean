@@ -1,4 +1,37 @@
+/-
+Copyright (c) 2017 Johannes Hölzl. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro, Shing Tak Lam
+-/
+
 import data.mv_polynomial.variables
+
+/-!
+# Multivariate polynomials over a ring
+
+Many results about polynomials hold when the coefficient ring is a commutative semiring.
+Some stronger results can be derived when we assume this semiring is a ring.
+
+This file does not define any new operations, but proves some of these stronger results.
+
+## Notation
+
+As in other polynomial files we typically use the notation:
+
++ `σ : Type*` (indexing the variables)
+
++ `α : Type*` `[comm_ring α]` (the coefficients)
+
++ `s : σ →₀ ℕ`, a function from `σ` to `ℕ` which is zero away from a finite set.
+This will give rise to a monomial in `mv_polynomial σ R` which mathematicians might call `X^s`
+
++ `a : α`
+
++ `i : σ`, with corresponding monomial `X i`, often denoted `X_i` by mathematicians
+
++ `p : mv_polynomial σ α`
+
+-/
 
 noncomputable theory
 

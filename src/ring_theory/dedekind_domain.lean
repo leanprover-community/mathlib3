@@ -75,7 +75,6 @@ This is the default implementation, but there are equivalent definitions,
 `is_dedekind_domain_dvr` and `is_dedekind_domain_inv`.
 TODO: Prove that these are actually equivalent definitions.
 -/
--- TODO: R should be a `comm_ring`
 class is_dedekind_domain : Prop :=
 (not_is_field : ¬ is_field A)
 (is_noetherian_ring : is_noetherian_ring A)

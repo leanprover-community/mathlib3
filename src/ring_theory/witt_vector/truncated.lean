@@ -26,12 +26,49 @@ def truncated_witt_vector :=
 
 variables {p} {R}
 
-def witt_vector.truncate : 𝕎 R →+* truncated_witt_vector p n R :=
+namespace witt_vector
+
+def truncate : 𝕎 R →+* truncated_witt_vector p n R :=
 ideal.quotient.mk _
 
 -- huh? It seems that `p` is nevertheless an explicit argument of `truncate`...
 
-variable (R)
+lemma truncate_ker :
+  (witt_vector.truncate p n : 𝕎 R →+* truncated_witt_vector p n R).ker =
+  witt_vector.ideal p R n :=
+begin
+  ext1 x,
+  rw [ring_hom.mem_ker, witt_vector.truncate, ideal.quotient.eq_zero_iff_mem],
+end
+
+lemma truncate_eq_iff (x y : 𝕎 R) (n : ℕ) :
+  witt_vector.truncate p n x = witt_vector.truncate p n y ↔
+  ∀ ⦃i : ℕ⦄, i < n → x.coeff i = y.coeff i :=
+begin
+  sorry
+end
+
+lemma coeff_eq_of_truncate_eq (x y : 𝕎 R) (n : ℕ)
+  (h : witt_vector.truncate p n x = witt_vector.truncate p n y) :
+  ∀ ⦃i : ℕ⦄, i < n → x.coeff i = y.coeff i :=
+(truncate_eq_iff p _ _ n).mp h
+
+end witt_vector
+
+variables {n}
+
+def truncated_witt_vector.coeff (i : fin n) (x : truncated_witt_vector p n R) : R :=
+witt_vector.coeff i (quot.out x)
+
+@[simp]
+lemma witt_vector.coeff_truncate (x : witt_vector p R) (i : fin n) :
+  (witt_vector.truncate p n x).coeff i = x.coeff i :=
+begin
+  apply witt_vector.coeff_eq_of_truncate_eq p _ _ n _ i.is_lt,
+  exact quot.out_eq _,
+end
+
+-- variable (R)
 lemma witt_vector.truncate_surjective :
   function.surjective (witt_vector.truncate p n : 𝕎 R → truncated_witt_vector p n R) :=
 ideal.quotient.mk_surjective
@@ -50,28 +87,6 @@ witt_vector.truncate p n $ witt_vector.mk p $
 
 variable {p}
 
-lemma coeff_eq_of_truncate_eq (x y : 𝕎 R) (n i : ℕ) (hin : i < n)
-  (h : witt_vector.truncate p n x = witt_vector.truncate p n y) :
-  x.coeff i = y.coeff i :=
-begin
-  sorry
-end
-
-def coeff (i : fin n) (x : truncated_witt_vector p n R) : R :=
-witt_vector.coeff i (quot.out x)
--- begin
---   intros x y h,
---   change x - y ∈ (witt_vector.ideal p R n) at h,
---   set z := x - y with hz,
---   have hx : x = z + y, { simp only [sub_add_cancel] },
---   dsimp,
---   rw [hx, witt_vector.add_coeff],
---   -- hmmm, `witt_add_vars` is not good enough for this one :sad:
---   -- the first `n` coeffs of `z` are `0`, by assumption
---   -- this is enough, but we need a better lemma for this
---   sorry
--- end
-
 section mk_and_coeff
 
 variables (p)
@@ -83,7 +98,7 @@ begin
   have : x i = witt_vector.coeff i (witt_vector.mk p $ λ k, if h : k < n then x ⟨k, h⟩ else 0),
   { rw [witt_vector.coeff_mk, dif_pos i.is_lt, fin.eta], },
   rw this,
-  apply coeff_eq_of_truncate_eq p _ _ n i i.is_lt,
+  apply witt_vector.coeff_eq_of_truncate_eq p _ _ n _ i.is_lt,
   apply quot.out_eq,
 end
 
@@ -91,13 +106,11 @@ end
 lemma mk_coeff (x : truncated_witt_vector p n R) :
   mk p (λ (i : fin n), coeff i x) = x :=
 begin
-  apply quot.induction_on x,
-  intros x',
-  show mk p (λ i : fin n, witt_vector.coeff i x') = _,
-  apply quot.sound,
-  show _ ∈ (witt_vector.ideal p R n),
-  sorry
-  -- intros i hi,
+  obtain ⟨x, rfl⟩ := witt_vector.truncate_surjective p x,
+  show witt_vector.truncate p n _ = _,
+  rw witt_vector.truncate_eq_iff,
+  intros i hi,
+  simp only [witt_vector.coeff_mk, dif_pos hi, witt_vector.coeff_truncate, fin.coe_mk],
 end
 
 @[simp] lemma coeff_zero (i : fin n) : coeff i (0 : truncated_witt_vector p n R) = 0 :=
@@ -163,14 +176,6 @@ local attribute [semireducible] witt_vector
 variables {p n : ℕ} {R : Type*} [fact (nat.prime p)] [comm_ring R]
 
 @[simp]
-lemma coeff_truncate (x : witt_vector p R) (i : fin n) :
-  (truncate p n x).coeff i = x.coeff i :=
-begin
-  apply truncated_witt_vector.coeff_eq_of_truncate_eq p _ _ n i i.is_lt,
-  exact quot.out_eq _,
-end
-
-@[simp]
 lemma truncate_mk (f : ℕ → R) :
   truncate p n (mk p f) = truncated_witt_vector.mk _ (λ k, f k) :=
 begin
@@ -226,7 +231,7 @@ end
 @[simp] lemma coeff_truncate {m : ℕ} (hm : n ≤ m) (i : fin n) (x : truncated_witt_vector p m R) :
   (truncate p R hm x).coeff i = x.coeff (fin.cast_le hm i) :=
 begin
-  rcases witt_vector.truncate_surjective p m R x with ⟨y, rfl⟩,
+  rcases witt_vector.truncate_surjective p x with ⟨y, rfl⟩,
   simp only [truncate_witt_vector_truncate, witt_vector.coeff_truncate, fin.coe_cast_le],
 end
 

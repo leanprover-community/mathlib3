@@ -389,6 +389,7 @@ truncate_lift_fun f_compat s
   (witt_vector.truncate p n).comp (lift f_compat) = f n :=
 by { ext1, rw [ring_hom.comp_apply, truncate_lift] }
 
+-- this is stated in reverse from `padic_int.lift_unique`, we should change one or the other
 lemma lift_unique (g : S →+* 𝕎 R) (g_compat : ∀ k, (witt_vector.truncate p k).comp g = f k) :
   g = lift f_compat :=
 begin

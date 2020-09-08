@@ -37,12 +37,22 @@ truncated_witt_vector.lift sorry
 
 lemma to_padic_int_comp_from_padic_int :
   (to_padic_int p).comp (from_padic_int p) = ring_hom.id ℤ_[p] :=
-sorry
+begin
+  rw ← padic_int.to_zmod_pow_eq_iff_ext,
+  intro n,
+  sorry
+end
 -- we might want a `hom_eq_hom` for `ℤ_[p]` like we have for `𝕎 R` in the truncated file
 
 lemma from_padic_int_comp_to_padic_int :
   (from_padic_int p).comp (to_padic_int p) = ring_hom.id (𝕎 (zmod p)) :=
-sorry -- use `hom_eq_hom`
+begin
+  apply witt_vector.hom_ext,
+  intro n,
+  sorry
+end
+
+--sorry -- use `hom_eq_hom`
 
 def equiv : 𝕎 (zmod p) ≃+* ℤ_[p] := sorry
 

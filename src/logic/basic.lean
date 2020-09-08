@@ -536,6 +536,7 @@ protected theorem decidable.not_and_distrib [decidable a] : ¬ (a ∧ b) ↔ ¬a
 protected theorem decidable.not_and_distrib' [decidable b] : ¬ (a ∧ b) ↔ ¬a ∨ ¬b :=
 ⟨λ h, if hb : b then or.inl (λ ha, h ⟨ha, hb⟩) else or.inr hb, not_and_of_not_or_not⟩
 
+/-- One of de Morgan's laws. -/
 theorem not_and_distrib : ¬ (a ∧ b) ↔ ¬a ∨ ¬b := decidable.not_and_distrib
 
 @[simp] theorem not_and : ¬ (a ∧ b) ↔ (a → ¬ b) := and_imp
@@ -543,6 +544,7 @@ theorem not_and_distrib : ¬ (a ∧ b) ↔ ¬a ∨ ¬b := decidable.not_and_dist
 theorem not_and' : ¬ (a ∧ b) ↔ b → ¬a :=
 not_and.trans imp_not_comm
 
+/-- One of de Morgan's laws. -/
 theorem not_or_distrib : ¬ (a ∨ b) ↔ ¬ a ∧ ¬ b :=
 ⟨λ h, ⟨λ ha, h (or.inl ha), λ hb, h (or.inr hb)⟩,
  λ ⟨h₁, h₂⟩ h, or.elim h h₁ h₂⟩

@@ -493,13 +493,29 @@ begin
     exact ⟨d, hd, hi⟩, }
 end
 
--- section
--- variables {A : Type*} [integral_domain A]
+section
+variables {A : Type*} [integral_domain A]
 
--- -- this isn't true, is it? φ = 0? Not used anywhere so I'm not sure what conditions are safe to apply
--- lemma vars_mul_eq (φ ψ : mv_polynomial σ A) :
+lemma vars_C_mul (a : A) (ha : a ≠ 0) (φ : mv_polynomial σ A) :
+  (C a * φ).vars = φ.vars :=
+begin
+  ext1 i,
+  simp only [mem_vars, exists_prop, finsupp.mem_support_iff],
+  apply exists_congr,
+  intro d,
+  apply and_congr _ iff.rfl,
+  rw [← coeff, ← coeff, coeff_C_mul, mul_ne_zero_iff, eq_true_intro ha, true_and],
+end
+
+-- lemma vars_mul_eq (φ ψ : mv_polynomial σ A) (hφ : φ ≠ 0) (hψ : ψ ≠ 0) :
 --   (φ * ψ).vars = φ.vars ∪ ψ.vars :=
--- sorry
+-- begin
+--   apply le_antisymm, { apply vars_mul },
+--   intro i,
+--   rw finset.mem_union,
+--   simp only [mem_vars],
+--   -- painful
+-- end
 
 -- lemma vars_pow_eq (φ : mv_polynomial σ A) (n : ℕ) :
 --   (φ ^ (n+1)).vars = φ.vars :=
@@ -509,7 +525,7 @@ end
 --   (∏ i in s, f i).vars = s.bind (λ i, (f i).vars) :=
 -- sorry
 
--- end
+end
 
 end
 
@@ -573,6 +589,40 @@ lemma aeval_eq_zero [algebra R S] (f : σ → S) (φ : mv_polynomial σ R)
 eval₂_hom_eq_zero _ _ _ h
 
 end aeval_eq_zero
+
+section rename
+open function
+
+lemma coeff_rename_map_domain (f : σ → τ) (hf : injective f) (φ : mv_polynomial σ R) (d : σ →₀ ℕ) :
+  (rename f φ).coeff (d.map_domain f) = φ.coeff d :=
+begin
+  apply induction_on' φ,
+  { intros u r,
+    rw [rename_monomial, coeff_monomial, coeff_monomial],
+    simp only [(finsupp.map_domain_injective hf).eq_iff],
+    split_ifs; refl, },
+  { intros, simp only [*, ring_hom.map_add, coeff_add], }
+end
+
+lemma coeff_rename_eq_zero (f : σ → τ) (φ : mv_polynomial σ R) (d : τ →₀ ℕ)
+  (h : ∀ u : σ →₀ ℕ, u.map_domain f ≠ d) :
+  (rename f φ).coeff d = 0 :=
+begin
+  apply induction_on' φ,
+  { intros u r,
+    rw [rename_monomial, coeff_monomial],
+    split_ifs,
+    { exact (h _ ‹_›).elim },
+    { refl } },
+  { intros,  simp only [*, ring_hom.map_add, coeff_add, add_zero], }
+end
+
+lemma coeff_rename_ne_zero (f : σ → τ) (φ : mv_polynomial σ R) (d : τ →₀ ℕ)
+  (h : (rename f φ).coeff d ≠ 0) :
+  ∃ u : σ →₀ ℕ, u.map_domain f = d :=
+by { contrapose! h, apply coeff_rename_eq_zero _ _ _ h }
+
+end rename
 
 end mv_polynomial
 

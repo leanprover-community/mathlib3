@@ -1069,15 +1069,37 @@ end witt_structure_simplifications
 lemma X_in_terms_of_W_vars (n : ℕ) :
   (X_in_terms_of_W p ℚ n).vars = finset.range (n + 1) :=
 begin
+  apply nat.strong_induction_on n, clear n,
+  intros n ih,
   have : ∀ i, (monomial (single i (p ^ (n - i))) (p ^ i : ℤ)).vars = {i},
   { intro i,
     rw vars_monomial_single,
     { rw ← nat.pos_iff_ne_zero,
       apply nat.pow_pos hp.pos },
     { apply pow_ne_zero, exact_mod_cast hp.ne_zero } },
-  -- rw [vars_sub_of_disjoint], -- unknown id -- added in #4018
+  -- TODO: change `vars_X` to use `nontrivial` instead of `0 ≠ 1`
+  rw [X_in_terms_of_W_eq, mul_comm, vars_C_mul, vars_sub_of_disjoint, vars_X zero_ne_one,
+      finset.range_succ, finset.insert_eq],
+  {
+    sorry },
+  { apply_instance },
+  { rw [vars_X zero_ne_one, finset.singleton_disjoint],
+    swap, apply_instance,
+    intro H,
+    replace H := vars_sum_subset _ _ H,
+    rw [finset.mem_bind] at H,
+    rcases H with ⟨a, ha, H⟩,
+    rw vars_C_mul at H,
+    swap,
+    { apply pow_ne_zero, exact_mod_cast hp.ne_zero },
+    replace H := vars_pow _ _ H,
+    rw finset.mem_range at ha,
+    rw [ih a ha, finset.mem_range] at H,
+    exact lt_irrefl n (lt_of_lt_of_le H ha) },
+  { sorry }
+  -- rw [X_in_terms_of_W_eq, vars_sub_of_disjoint],
   -- also need vars_mul_eq (over integral domains)
-  sorry
+  -- sorry
   -- rw [X_in_terms_of_W_eq, vars_sum_of_disjoint],
   -- { simp only [this, int.nat_cast_eq_coe_nat, finset.bind_singleton_eq_self], },
   -- { simp only [this, int.nat_cast_eq_coe_nat],
@@ -1254,99 +1276,72 @@ end coeff
 
 section coeff_witt_mul
 
-
-lemma headache (n : ℕ) (d : bool × ℕ →₀ ℕ) (b : bool)
-  (d' : ℕ →₀ ℕ)
-  (hd'0 : ¬d' = 0)
-  (H : (∏ (i : ℕ) in
-          d'.support,
-          ((rename (prod.mk tt)) (witt_polynomial p ℚ i) *
-               (rename (prod.mk ff)) (witt_polynomial p ℚ i)) ^
-            d' i).coeff d ≠ 0)
-  (i : bool × ℕ)
-  (hi : i ∈ d.support) :
-  d (b, i.snd) ≠ 0 :=
-begin
-  revert_deps d',
-  apply finsupp.induction d',
-  { intros _ H, contradiction },
-  { clear d', intros j k d' hj hk IH H hjkd',
-    squeeze_simp [hj, hk, hjkd'] at H, }
+section
+omit hp
+-- move this
+lemma prod_mk_injective {α β : Type*} (a : α) :
+  function.injective (prod.mk a : β → α × β) :=
+by { intros b₁ b₂ h, simpa only [true_and, prod.mk.inj_iff, eq_self_iff_true] using h }
 end
 
-lemma quux' (n : ℕ) (d : bool × ℕ →₀ ℕ) (b : bool)
-  (hd : ∀ (k : ℕ), d (b, k) = 0)
-  (φ : mv_polynomial ℕ ℚ)
-  -- (hφ : ∀ d, φ.coeff d ≠ 0 → ∀ k : ℕ, d k ≠ 0 → k ≤ n)
-  (hφ0 : constant_coeff φ = 0) :
-  ((bind₁ (λ (k : ℕ), (bind₁ (λ (b : bool), (rename (λ (i : ℕ), (b, i)))
-    (witt_polynomial p ℚ k))) (X tt * X ff))) φ).coeff d = 0 :=
+lemma witt_mul_nice (n : ℕ) : (witt_mul p n).nice :=
 begin
-  -- clean this up, streamline hypotheses
-  rw φ.as_sum,
-  simp only [coeff_sum, alg_hom.map_sum, bind₁_monomial, coeff_C_mul],
-  rw finset.sum_eq_zero,
-  intros d' hd',
-  by_cases hd'0 : d' = 0,
-  { simp only [hd'0, ← constant_coeff_eq, hφ0, zero_mul], },
-  convert mul_zero _,
-  simp only [alg_hom.map_pow, alg_hom.map_mul, bind₁_X_right],
-  let Φ := ∏ i in d'.support,
-    ((rename (prod.mk tt)) (witt_polynomial p ℚ i) *
-     (rename (prod.mk ff)) (witt_polynomial p ℚ i)) ^ d' i,
-  by_cases hd0 : d = 0,
-  { simp only [hd0, ← constant_coeff_eq, ring_hom.map_prod, ring_hom.map_pow, ring_hom.map_mul,
-      constant_coeff_rename, constant_coeff_witt_polynomial, mul_zero],
-    rw finset.prod_eq_zero_iff,
-    rw ← finsupp.support_eq_empty at hd'0,
-    obtain ⟨i, hi⟩ : ∃ i, i ∈ d'.support, exact finset.nonempty_of_ne_empty hd'0,
-    refine ⟨i, hi, _⟩,
-    rw zero_pow,
-    rwa [nat.pos_iff_ne_zero, ← finsupp.mem_support_iff], },
-  by_contra H,
-  have aux := headache p n d b φ d' hφ0 hd' hd'0 H,
-  rw ← finsupp.support_eq_empty at hd0,
-  obtain ⟨i, hi⟩ : ∃ i, i ∈ d.support, exact finset.nonempty_of_ne_empty hd0,
-  apply aux i hi (hd _),
-end
-
-lemma quux (n : ℕ) (d : bool × ℕ →₀ ℕ) (b : bool)
-  (hd : ∀ (k : ℕ), d (b, k) = 0) :
-  (witt_structure_rat p (X tt * X ff) n).coeff d = 0 :=
-begin
-  -- clean this up, streamline hypotheses
-  apply quux' p n d b hd,
-  -- { intros d' hd' k hk,
-  --   apply nat.le_of_lt_succ,
-  --   rw [← finset.mem_range],
-  --   apply X_in_terms_of_W_vars_subset p,
-  --   rw mem_vars,
-  --   exact ⟨d', finsupp.mem_support_iff.mpr hd', finsupp.mem_support_iff.mpr hk⟩, },
-  { exact constant_coeff_X_in_terms_of_W p ℚ n }
-end
-
-lemma coeff_witt_mul'' (n : ℕ) (d : bool × ℕ →₀ ℕ) (hd : (witt_mul p n).coeff d ≠ 0) (b : bool) :
-  ∃ k, d ⟨b, k⟩ ≠ 0 :=
-begin
-  suffices : nice (witt_mul p n),
-  { simp only [← finsupp.mem_support_iff], apply this hd, },
   apply nice.of_map_of_injective (int.cast_ring_hom ℚ) (int.cast_injective),
   rw [witt_mul, map_witt_structure_int, ring_hom.map_mul, map_X, map_X],
   apply nice.bind₁_left _ _ _ (constant_coeff_X_in_terms_of_W p ℚ n),
   intros i,
   rw [alg_hom.map_mul, bind₁_X_right, bind₁_X_right],
-  -- intros d hd i,
+  intros d hd b,
+  contrapose! hd,
+  rw [coeff_mul, finset.sum_eq_zero],
+  rintro ⟨x, y⟩ hxy,
+  rw finsupp.mem_antidiagonal_support at hxy,
+  subst hxy,
+  contrapose! hd,
+  have hx : ((rename (prod.mk tt)) (witt_polynomial p ℚ i)).coeff x ≠ 0,
+  { intro H, simpa only [H, zero_mul, eq_self_iff_true, not_true, ne.def] using hd, },
+  have hy : ((rename (prod.mk ff)) (witt_polynomial p ℚ i)).coeff y ≠ 0,
+  { intro H, simpa only [H, mul_zero, eq_self_iff_true, not_true, ne.def] using hd, },
+  obtain ⟨x, rfl⟩ := coeff_rename_ne_zero _ _ _ hx,
+  obtain ⟨y, rfl⟩ := coeff_rename_ne_zero _ _ _ hy,
+  clear hd, dsimp at *,
+  rw coeff_rename_map_domain _ (prod_mk_injective _) at hx hy,
+  have hx' : x.map_domain (prod.mk tt) = x.emb_domain ⟨prod.mk tt, prod_mk_injective _⟩,
+  { rw [finsupp.emb_domain_eq_map_domain], refl },
+  have hy' : y.map_domain (prod.mk ff) = y.emb_domain ⟨prod.mk ff, prod_mk_injective _⟩,
+  { rw [finsupp.emb_domain_eq_map_domain], refl },
+  rw [hx', hy', finsupp.support_add_eq, finsupp.support_emb_domain, finsupp.support_emb_domain];
+  clear hx' hy',
+  swap,
+  { simp only [finsupp.support_emb_domain],
+    intro a,
+    erw [finset.mem_inter, finset.mem_map, finset.mem_map],
+    rintro ⟨⟨k, hk, rfl⟩, ⟨l, hl, H⟩⟩,
+    simpa only [prod.mk.inj_iff, function.embedding.coe_fn_mk, false_and] using H, },
+  cases b,
+  { obtain ⟨j, hj⟩ : y.support.nonempty,
+    { rw [finset.nonempty_iff_ne_empty, ne.def, finsupp.support_eq_empty],
+      rintro rfl,
+      rw [← constant_coeff_eq, constant_coeff_witt_polynomial] at hy,
+      contradiction },
+    use j,
+    rw finset.mem_union, right,
+    rw finset.mem_map,
+    exact ⟨j, hj, rfl⟩ },
+  { obtain ⟨j, hj⟩ : x.support.nonempty,
+    { rw [finset.nonempty_iff_ne_empty, ne.def, finsupp.support_eq_empty],
+      rintro rfl,
+      rw [← constant_coeff_eq, constant_coeff_witt_polynomial] at hx,
+      contradiction },
+    use j,
+    rw finset.mem_union, left,
+    rw finset.mem_map,
+    exact ⟨j, hj, rfl⟩ }
 end
 
 lemma coeff_witt_mul' (n : ℕ) (d : bool × ℕ →₀ ℕ) (hd : (witt_mul p n).coeff d ≠ 0) (b : bool) :
   ∃ k, d ⟨b, k⟩ ≠ 0 :=
-begin
-  contrapose! hd,
-  apply @int.cast_injective ℚ,
-  show int.cast_ring_hom ℚ _ = 0,
-  rw [← coeff_map, witt_mul, map_witt_structure_int, ring_hom.map_mul, map_X, map_X],
-  exact quux p n d b hd,
-end
+by { simp only [← finsupp.mem_support_iff], apply witt_mul_nice p n hd }
 
 lemma coeff_witt_mul (n : ℕ) (d : bool × ℕ →₀ ℕ) (hd : (witt_mul p n).coeff d ≠ 0) (b : bool) :
   ∃ k ≤ n, d ⟨b, k⟩ ≠ 0 :=

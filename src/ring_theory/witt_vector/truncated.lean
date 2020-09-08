@@ -393,7 +393,12 @@ by { ext1, rw [ring_hom.comp_apply, truncate_lift] }
 lemma lift_unique (g : S →+* 𝕎 R) (g_compat : ∀ k, (witt_vector.truncate p k).comp g = f k) :
   g = lift f_compat :=
 begin
-  sorry
+  ext1 x,
+  rw [← sub_eq_zero, ← ideal.mem_bot, ← ideal_inter, ideal.mem_infi],
+  intro i,
+  rw [← ideal.quotient.eq],
+  show (witt_vector.truncate p i).comp g _ = witt_vector.truncate _ _ _,
+  simp [g_compat]
 end
 
 -- other name? something with `ext`?

@@ -1065,53 +1065,155 @@ end
 
 end witt_structure_simplifications
 
--- move this up?
-lemma X_in_terms_of_W_vars (n : ℕ) :
-  (X_in_terms_of_W p ℚ n).vars = finset.range (n + 1) :=
+section
+omit hp
+-- move this
+lemma inv_of_commute {M : Type*} [has_one M] [has_mul M] (m : M) [invertible m] :
+  commute m (⅟m) :=
+calc m * ⅟m = 1       : mul_inv_of_self m
+        ... = ⅟ m * m : (inv_of_mul_self m).symm
+
+-- move this
+instance invertible_pow {M : Type*} [monoid M] (m : M) [invertible m] (n : ℕ) :
+  invertible (m ^ n) :=
+{ inv_of := ⅟ m ^ n,
+  inv_of_mul_self := by rw [← (inv_of_commute m).symm.mul_pow, inv_of_mul_self, one_pow],
+  mul_inv_of_self := by rw [← (inv_of_commute m).mul_pow, mul_inv_of_self, one_pow] }
+
+-- move this
+instance invertible_inv {M : Type*} [has_one M] [has_mul M] (m : M) [invertible m] :
+  invertible (⅟m) :=
+{ inv_of := m,
+  inv_of_mul_self := mul_inv_of_self m,
+  mul_inv_of_self := inv_of_mul_self m }
+
+-- lemma vars_sum_eq_range (n : ℕ) :
+--   ∀ (f : ℕ → mv_polynomial ℕ R) (hf : ∀ i, i ∈ (f i).vars ∧ (f i).vars ⊆ finset.range i),
+--   (∑ i in finset.range n, f i).vars = finset.range n :=
+-- begin
+--   induction n with n ih,
+--   { simp only [vars_0, finset.sum_empty, eq_self_iff_true, finset.range_zero, forall_true_iff], },
+--   { intros f hf,
+--     apply le_antisymm,
+--     { apply finset.subset.trans (vars_sum_subset _ _),
+--       intros i,
+--       rw finset.mem_bind,
+--       rintro ⟨j, hj, hij⟩,
+--       replace hij := (hf _).2 hij,
+--       rw finset.mem_range at hj hij ⊢,
+--       linarith },
+--     { rw finset.sum_range_succ, } },
+--     -- rw [finset.sum_range_succ, finset.range_succ, finset.insert_eq],
+--     -- ext i,
+--     --  },
+--   -- apply nat.strong_induction_on n, clear n,
+--   -- intros n IH f hf,
+-- end
+
+end
+
+lemma X_in_terms_of_W_vars_aux (n : ℕ) :
+  n ∈ (X_in_terms_of_W p ℚ n).vars ∧
+  (X_in_terms_of_W p ℚ n).vars ⊆ finset.range (n + 1) :=
 begin
   apply nat.strong_induction_on n, clear n,
   intros n ih,
-  have : ∀ i, (monomial (single i (p ^ (n - i))) (p ^ i : ℤ)).vars = {i},
-  { intro i,
-    rw vars_monomial_single,
-    { rw ← nat.pos_iff_ne_zero,
-      apply nat.pow_pos hp.pos },
-    { apply pow_ne_zero, exact_mod_cast hp.ne_zero } },
   -- TODO: change `vars_X` to use `nontrivial` instead of `0 ≠ 1`
   rw [X_in_terms_of_W_eq, mul_comm, vars_C_mul, vars_sub_of_disjoint, vars_X zero_ne_one,
       finset.range_succ, finset.insert_eq],
-  {
-    sorry },
+  { simp only [true_and, true_or, eq_self_iff_true,
+      finset.mem_union, finset.mem_singleton],
+    intro i,
+    rw [finset.mem_union, finset.mem_union],
+    apply or.imp id,
+    intro hi,
+    replace hi := vars_sum_subset _ _ hi,
+    rw finset.mem_bind at hi,
+    rcases hi with ⟨j, hj, hi⟩,
+    rw vars_C_mul at hi,
+    swap,
+    { apply pow_ne_zero, exact_mod_cast hp.ne_zero },
+    rw finset.mem_range at hj,
+    replace hi := (ih j hj).2 (vars_pow _ _ hi),
+    rw finset.mem_range at hi ⊢,
+    exact lt_of_lt_of_le hi hj },
   { apply_instance },
   { rw [vars_X zero_ne_one, finset.singleton_disjoint],
     swap, apply_instance,
+    -- the duplication, aaahrg
     intro H,
     replace H := vars_sum_subset _ _ H,
-    rw [finset.mem_bind] at H,
-    rcases H with ⟨a, ha, H⟩,
+    rw finset.mem_bind at H,
+    rcases H with ⟨j, hj, H⟩,
     rw vars_C_mul at H,
     swap,
     { apply pow_ne_zero, exact_mod_cast hp.ne_zero },
-    replace H := vars_pow _ _ H,
-    rw finset.mem_range at ha,
-    rw [ih a ha, finset.mem_range] at H,
-    exact lt_irrefl n (lt_of_lt_of_le H ha) },
-  { sorry }
-  -- rw [X_in_terms_of_W_eq, vars_sub_of_disjoint],
-  -- also need vars_mul_eq (over integral domains)
-  -- sorry
-  -- rw [X_in_terms_of_W_eq, vars_sum_of_disjoint],
-  -- { simp only [this, int.nat_cast_eq_coe_nat, finset.bind_singleton_eq_self], },
-  -- { simp only [this, int.nat_cast_eq_coe_nat],
-  --   intros a b h,
-  --   apply finset.singleton_disjoint.mpr,
-  --   rwa finset.mem_singleton, },
+    rw finset.mem_range at hj,
+    replace H := (ih j hj).2 (vars_pow _ _ H),
+    rw finset.mem_range at H,
+    exact lt_irrefl n (lt_of_lt_of_le H hj) },
+  { apply nonzero_of_invertible, }
 end
+
+-- lemma X_in_terms_of_W_vars (n : ℕ) :
+--   (X_in_terms_of_W p ℚ n).vars = finset.range (n + 1) :=
+-- begin
+--   rw [X_in_terms_of_W_eq, mul_comm, vars_C_mul, vars_sub_of_disjoint, vars_X zero_ne_one,
+--       vars_sum_eq_range, finset.range_succ, finset.insert_eq],
+--   { congr, },
+--   { intro i, rw [vars_C_mul],
+--     split,
+--     { sorry },
+--     { refine finset.subset.trans (vars_pow _ _) _, } }
+-- end
+
+-- move this up?
+-- lemma X_in_terms_of_W_vars' (n : ℕ) :
+--   (X_in_terms_of_W p ℚ n).vars = finset.range (n + 1) :=
+-- begin
+--   apply nat.strong_induction_on n, clear n,
+--   intros n ih,
+--   have : ∀ i, (monomial (single i (p ^ (n - i))) (p ^ i : ℤ)).vars = {i},
+--   { intro i,
+--     rw vars_monomial_single,
+--     { rw ← nat.pos_iff_ne_zero,
+--       apply nat.pow_pos hp.pos },
+--     { apply pow_ne_zero, exact_mod_cast hp.ne_zero } },
+--   -- TODO: change `vars_X` to use `nontrivial` instead of `0 ≠ 1`
+--   rw [X_in_terms_of_W_eq, mul_comm, vars_C_mul, vars_sub_of_disjoint, vars_X zero_ne_one,
+--       finset.range_succ, finset.insert_eq],
+--   {
+--     sorry },
+--   { apply_instance },
+--   { rw [vars_X zero_ne_one, finset.singleton_disjoint],
+--     swap, apply_instance,
+--     intro H,
+--     replace H := vars_sum_subset _ _ H,
+--     rw [finset.mem_bind] at H,
+--     rcases H with ⟨a, ha, H⟩,
+--     rw vars_C_mul at H,
+--     swap,
+--     { apply pow_ne_zero, exact_mod_cast hp.ne_zero },
+--     replace H := vars_pow _ _ H,
+--     rw finset.mem_range at ha,
+--     rw [ih a ha, finset.mem_range] at H,
+--     exact lt_irrefl n (lt_of_lt_of_le H ha) },
+--   { sorry }
+--   -- rw [X_in_terms_of_W_eq, vars_sub_of_disjoint],
+--   -- also need vars_mul_eq (over integral domains)
+--   -- sorry
+--   -- rw [X_in_terms_of_W_eq, vars_sum_of_disjoint],
+--   -- { simp only [this, int.nat_cast_eq_coe_nat, finset.bind_singleton_eq_self], },
+--   -- { simp only [this, int.nat_cast_eq_coe_nat],
+--   --   intros a b h,
+--   --   apply finset.singleton_disjoint.mpr,
+--   --   rwa finset.mem_singleton, },
+-- end
 
 -- move this up?
 lemma X_in_terms_of_W_vars_subset (n : ℕ) :
   (X_in_terms_of_W p ℚ n).vars ⊆ finset.range (n + 1) :=
-by { rw [X_in_terms_of_W_vars], refl, }
+(X_in_terms_of_W_vars_aux p n).2
 
 
 section witt_vars
@@ -1185,16 +1287,17 @@ begin
   rw witt_structure_rat,
   intros x hx,
   simp only [finset.mem_product, true_and, finset.mem_univ, finset.mem_range],
-  have hx' := bind₁_vars _ _ hx,
-  simp only [X_in_terms_of_W_vars] at hx',
-  simp only [exists_prop, finset.mem_bind, finset.mem_range] at hx',
-  rcases hx' with ⟨k, hk, hx''⟩,
-  have hx''' := bind₁_vars _ _ hx'',
-  simp only [exists_prop, finset.mem_bind, finset.mem_range] at hx''',
-  rcases hx''' with ⟨i, -, H⟩,
-  have H' := vars_rename _ _ H,
-  rw [finset.mem_image] at H',
-  rcases H' with ⟨j, hj, rfl⟩,
+  replace hx := bind₁_vars _ _ hx,
+  simp only [exists_prop, finset.mem_bind, finset.mem_range] at hx,
+  rcases hx with ⟨k, hk, hx⟩,
+  replace hk := X_in_terms_of_W_vars_subset p _ hk,
+  rw finset.mem_range at hk,
+  replace hx := bind₁_vars _ _ hx,
+  simp only [exists_prop, finset.mem_bind, finset.mem_range] at hx,
+  rcases hx with ⟨i, -, hx⟩,
+  replace hx := vars_rename _ _ hx,
+  rw [finset.mem_image] at hx,
+  rcases hx with ⟨j, hj, rfl⟩,
   rw [witt_polynomial_vars, finset.mem_range] at hj,
   exact lt_of_lt_of_le hj hk,
 end

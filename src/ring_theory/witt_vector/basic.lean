@@ -571,6 +571,9 @@ witt_structure_int p 1
 noncomputable def witt_add : ℕ → mv_polynomial (bool × ℕ) ℤ :=
 witt_structure_int p (X tt + X ff)
 
+noncomputable def witt_sub : ℕ → mv_polynomial (bool × ℕ) ℤ :=
+witt_structure_int p (X tt - X ff)
+
 noncomputable def witt_mul : ℕ → mv_polynomial (bool × ℕ) ℤ :=
 witt_structure_int p (X tt * X ff)
 
@@ -1017,10 +1020,29 @@ end
 @[simp] lemma witt_polynomial_zero : witt_polynomial p R 0 = X 0 :=
 by simp only [witt_polynomial, X, finset.sum_singleton, finset.range_one, nat.pow_zero, pow_zero]
 
+-- move this up
+@[simp] lemma witt_polynomial_one : witt_polynomial p R 1 = C ↑p * X 1 + (X 0) ^ p :=
+begin
+  simp only [witt_polynomial, finset.range_one, nat.pow_zero, pow_zero, finset.sum_range_succ,
+    pow_one, finset.sum_singleton, nat.sub_zero, nat.pow_one],
+  simp only [monomial_eq, C_1, one_mul],
+  rw [finsupp.prod_single_index, finsupp.prod_single_index, pow_one],
+  all_goals { rw [pow_zero], },
+end
+
+
 @[simp] lemma witt_add_zero : witt_add p 0 = X (tt,0) + X (ff,0) :=
 begin
   apply mv_polynomial.coe_int_rat_map_injective,
   simp only [witt_add, witt_structure_rat, alg_hom.map_add, ring_hom.map_add,
+    rename_X, X_in_terms_of_W_zero, map_X,
+     witt_polynomial_zero, bind₁_X_right, map_witt_structure_int],
+end
+
+@[simp] lemma witt_sub_zero : witt_sub p 0 = X (tt,0) - X (ff,0) :=
+begin
+  apply mv_polynomial.coe_int_rat_map_injective,
+  simp only [witt_sub, witt_structure_rat, alg_hom.map_sub, ring_hom.map_sub,
     rename_X, X_in_terms_of_W_zero, map_X,
      witt_polynomial_zero, bind₁_X_right, map_witt_structure_int],
 end
@@ -1047,6 +1069,13 @@ end
 begin
   apply constant_coeff_witt_structure_int p _ _ n,
   simp only [add_zero, ring_hom.map_add, constant_coeff_X],
+end
+
+@[simp] lemma constant_coeff_witt_sub (n : ℕ) :
+  constant_coeff (witt_sub p n) = 0 :=
+begin
+  apply constant_coeff_witt_structure_int p _ _ n,
+  simp only [sub_zero, ring_hom.map_sub, constant_coeff_X],
 end
 
 @[simp] lemma constant_coeff_witt_mul (n : ℕ) :
@@ -1377,6 +1406,46 @@ lemma map_coeff (f : R →+* S) (x : 𝕎 p R) (n : ℕ) :
 
 end coeff
 
+lemma sub_def (x y : 𝕎 p R) :
+  x - y = λ n, aeval (λ bn : bool × ℕ, cond bn.1 (x.coeff bn.2) (aeval (λ m : unit × ℕ, (y.coeff m.2)) (witt_neg p bn.2))) (witt_add p n) :=
+rfl
+
+noncomputable def Sub : ℕ → mv_polynomial (bool × ℕ) ℤ :=
+λ n, bind₁ (function.uncurry $ λ b, cond b
+    (λ k, X (tt, k))
+    (λ k, rename (λ un : unit × ℕ, (ff, un.2)) (witt_neg p k)))
+  (witt_add p n)
+
+lemma sub_eq (x y : 𝕎 p R) (n : ℕ) :
+  (x - y).coeff n =
+  aeval (λ bn : bool × ℕ, cond bn.1 (x.coeff bn.2) (y.coeff bn.2)) (Sub p n) :=
+begin
+  dsimp [Sub],
+  show aeval (λ bn : bool × ℕ, cond bn.1 (x.coeff bn.2) (aeval (λ m : unit × ℕ, (y.coeff m.2)) (witt_neg p bn.2))) (witt_add p n) = _,
+  conv_rhs { rw [aeval_eq_eval₂_hom, hom_bind₁] },
+  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+  ext ⟨⟨⟩, k⟩; dsimp [function.uncurry],
+  { rw eval₂_hom_rename,
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    ext ⟨⟨⟩, i⟩,
+    dsimp, refl },
+  { rw eval₂_hom_X', dsimp, refl, }
+end
+
+lemma Sub_eq : Sub p = witt_sub p :=
+begin
+  apply unique_of_exists_unique (witt_structure_int_exists_unique p (X tt - X ff)),
+  swap, { apply witt_structure_int_prop },
+  sorry
+end
+
+lemma sub_coeff (x y : 𝕎 p R) (n : ℕ) :
+  (x - y).coeff n =
+  aeval (λ bn : bool × ℕ, cond bn.1 (x.coeff bn.2) (y.coeff bn.2)) (witt_sub p n) :=
+begin
+  rw [← Sub_eq, sub_eq]
+end
+
 section coeff_witt_mul
 
 section
@@ -1692,6 +1761,12 @@ end verschiebung
 -- end frobenius
 
 section disjoint
+
+lemma witt_add_sub_nice (n : ℕ) :
+  (witt_add p n - p ^ n * (X (tt, n) + X (ff, n))).nice :=
+begin
+  sorry
+end
 
 lemma coeff_add_of_disjoint (x y : 𝕎 p R) (n : ℕ) (hn : ∀ i < n, x.coeff i = 0 ∨ y.coeff i = 0) :
   (x + y).coeff n = x.coeff n + y.coeff n :=

@@ -24,7 +24,9 @@ lemma to_zmod_pow_compat (m n : ℕ) (h : m ≤ n) :
   (zmod.cast_hom (show p ^ m ∣ p ^ n, by { simpa using pow_dvd_pow p h }) (zmod (p ^ m))).comp ((λ (k : ℕ), to_zmod_pow p k) n) =
     (λ (k : ℕ), to_zmod_pow p k) m :=
 begin
-  sorry
+  unfold to_zmod_pow,
+  rw [← ring_hom.comp_assoc, ← commutes_symm p _ h],
+  refl
 end
 
 def to_padic_int : 𝕎 (zmod p) →+* ℤ_[p] :=

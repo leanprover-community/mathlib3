@@ -312,7 +312,7 @@ end
 
 lemma commutes_symm {m : ℕ} (hm : n ≤ m)  :
   (zmod_equiv_trunc p n).symm.to_ring_hom.comp (truncate p (zmod p) hm) =
-    (zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _).comp (zmod_equiv_trunc p m).symm :=
+    (zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _).comp (zmod_equiv_trunc p m).symm.to_ring_hom :=
 by ext; apply commutes_symm'
 
 end iso

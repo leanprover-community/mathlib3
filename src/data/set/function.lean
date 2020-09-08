@@ -187,8 +187,10 @@ theorem eq_on.inj_on_iff (H : eq_on f₁ f₂ s) : inj_on f₁ s ↔ inj_on f₂
 theorem inj_on.mono (h : s₁ ⊆ s₂) (ht : inj_on f s₂) : inj_on f s₁ :=
 λ x hx y hy H, ht (h hx) (h hy) H
 
+lemma inj_on.injective (h : inj_on f univ) : injective f := λ _ _ heq, h trivial trivial heq
+
 lemma injective_iff_inj_on_univ : injective f ↔ inj_on f univ :=
-⟨λ h x hx y hy hxy, h hxy, λ h _ _ heq, h trivial trivial heq⟩
+⟨λ h x hx y hy hxy, h hxy, inj_on.injective⟩
 
 theorem inj_on.comp (hg : inj_on g t) (hf: inj_on f s) (h : maps_to f s t) :
   inj_on (g ∘ f) s :=
@@ -531,6 +533,8 @@ variables {fa : α → α} {fb : β → β} {f : α → β} {g : β → γ} {s t
 
 lemma injective.inj_on (h : injective f) (s : set α) : s.inj_on f :=
 λ _ _ _ _ heq, h heq
+
+lemma injective.inj_on_univ (h : injective f) : inj_on f univ := λ x hx y hy hxy, h hxy
 
 lemma injective.comp_inj_on (hg : injective g) (hf : s.inj_on f) : s.inj_on (g ∘ f) :=
 (hg.inj_on univ).comp hf (maps_to_univ _ _)

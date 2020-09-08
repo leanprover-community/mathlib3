@@ -8,6 +8,7 @@ Theory of topological monoids.
 import topology.continuous_on
 import group_theory.submonoid.basic
 import algebra.group.prod
+import topology.local_homeomorph
 
 open classical set filter topological_space
 open_locale classical topological_space big_operators
@@ -27,12 +28,12 @@ A topological monoid over `α`, for example, is obtained by requiring both the i
 class has_continuous_mul (α : Type*) [topological_space α] [has_mul α] : Prop :=
 (continuous_mul : continuous (λp:α×α, p.1 * p.2))
 
-section has_continuous_mul
+section topological_semigroup
 
 variables [topological_space α] [has_mul α] [has_continuous_mul α]
 
 @[to_additive]
-lemma continuous_mul : continuous (λp:α×α, p.1 * p.2) :=
+lemma continuous_mul : continuous (λ p : α×α, p.1 * p.2) :=
 has_continuous_mul.continuous_mul
 
 @[to_additive, continuity]
@@ -84,9 +85,9 @@ instance [topological_space β] [has_mul β] [has_continuous_mul β] : has_conti
 ⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
  ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
 
-end has_continuous_mul
+end topological_semigroup
 
-section has_continuous_mul
+section topological_monoid
 
 variables [topological_space α] [monoid α] [has_continuous_mul α]
 
@@ -120,7 +121,46 @@ lemma continuous.pow {f : β → α} [topological_space β] (h : continuous f) (
   continuous (λ b, (f b) ^ n) :=
 continuous.comp (continuous_pow n) h
 
-end has_continuous_mul
+@[to_additive]
+lemma function.injective_mul [monoid β] {f : β →* α} (h : function.injective f) (a b : β) :
+  a * b = h.to_local_equiv.symm ((f a) * (f b)) :=
+begin
+  rw [←local_equiv.left_inv h.to_local_equiv (mem_univ (a * b)),
+    function.injective_to_local_equiv_apply h],
+  exact congr_arg h.to_local_equiv.symm (f.map_mul a b),
+end
+
+@[to_additive]
+lemma embedding_mul [monoid β] [topological_space β] [nonempty β]
+  {f : β →* α} (h : open_embedding f) (a b : β) :
+  a * b = (h.to_local_homeomorph.symm) ((f a) * (f b)) :=
+begin
+  rw [←local_homeomorph.left_inv h.to_local_homeomorph (mem_univ (a * b)),
+    open_embedding.to_local_homeomorph_coe],
+  exact congr_arg h.to_local_homeomorph.symm (f.map_mul a b),
+end
+
+@[to_additive]
+lemma open_embedding.continuous_mul [topological_space β] [monoid β]
+  {f : β →* α} (h : open_embedding f) :
+  continuous (λ p : β × β, p.1 * p.2) :=
+begin
+  rw continuous_iff_continuous_at,
+  intro x,
+  simp only [embedding_mul h],
+  have h' : (f x.fst) * (f x.snd) ∈ h.to_local_homeomorph.target :=
+    by { rw [←monoid_hom.map_mul, open_embedding.target], exact mem_range_self (x.fst * x.snd), },
+  exact continuous_at.comp (h.to_local_homeomorph.continuous_inv_fun.continuous_at
+    (mem_nhds_sets h.to_local_homeomorph.open_target h')) (continuous_mul.continuous_at.comp
+    (h.continuous.continuous_at.prod_map h.continuous.continuous_at)),
+end
+
+@[to_additive]
+def open_embedding.has_continuous_mul [topological_space β] [monoid β]
+  {f : β →* α} (h : open_embedding f) : has_continuous_mul β :=
+{ continuous_mul := h.continuous_mul }
+
+end topological_monoid
 
 section
 

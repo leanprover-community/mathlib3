@@ -298,16 +298,35 @@ instance units_of_normed_algebra.smooth_manifold_with_corners
   smooth_manifold_with_corners (model_with_corners_self 𝕜 R) (units R) :=
 is_unit.equiv.homeomorph.smooth_manifold_with_corners (model_with_corners_self 𝕜 R)
 
-def units_of_normed_algebra.lie_group_core
+instance hey {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {R : Type*} [normed_ring R] [normed_algebra 𝕜 R] [complete_space R] :
+  has_continuous_mul {x : R | is_unit x}  := by {refine normed_ring_top_monoid}
+
+  #check subgroup
+
+instance units_of_normed_algebra.topological_group
   {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {R : Type*} [normed_ring R] [normed_algebra 𝕜 R] [complete_space R] :
-  lie_group_core (model_with_corners_self 𝕜 R) (units R) :=
+  topological_group (units R) :=
+{
+  continuous_mul := begin
+
+  end,
+  continuous_inv := begin
+    sorry
+  end
+}
+
+instance units_of_normed_algebra.lie_group_core
+  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {R : Type*} [normed_ring R] [normed_algebra 𝕜 R] [complete_space R] :
+  lie_group (model_with_corners_self 𝕜 R) (units R) :=
 {
   smooth_mul := begin
     rw smooth_iff,
     split,
     {
-      sorry
+      exact units_of_normed_algebra.topological_group.continuous_mul,
     },
     {
       simp only [prod.forall] with mfld_simps,

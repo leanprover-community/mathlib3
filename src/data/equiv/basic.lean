@@ -55,6 +55,9 @@ coe_fn_injective (funext H)
 @[ext] lemma perm.ext {σ τ : equiv.perm α} (H : ∀ x, σ x = τ x) : σ = τ :=
 equiv.ext H
 
+lemma perm.ext_iff {σ τ :equiv.perm α} : σ = τ ↔ ∀ x, σ x = τ x :=
+by {split, finish, exact perm.ext}
+
 /-- Any type is equivalent to itself. -/
 @[refl] protected def refl (α : Sort*) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
 

@@ -370,17 +370,21 @@ theorem not_imp_not : (¬ a → ¬ b) ↔ (b → a) := decidable.not_imp_not
 
 /-! ### Declarations about distributivity -/
 
+/-- `∧` distributes over `∨` (on the left). -/
 theorem and_or_distrib_left : a ∧ (b ∨ c) ↔ (a ∧ b) ∨ (a ∧ c) :=
 ⟨λ ⟨ha, hbc⟩, hbc.imp (and.intro ha) (and.intro ha),
  or.rec (and.imp_right or.inl) (and.imp_right or.inr)⟩
 
+/-- `∧` distributes over `∨` (on the right). -/
 theorem or_and_distrib_right : (a ∨ b) ∧ c ↔ (a ∧ c) ∨ (b ∧ c) :=
 (and.comm.trans and_or_distrib_left).trans (or_congr and.comm and.comm)
 
+/-- `∨` distributes over `∧` (on the left). -/
 theorem or_and_distrib_left : a ∨ (b ∧ c) ↔ (a ∨ b) ∧ (a ∨ c) :=
 ⟨or.rec (λha, and.intro (or.inl ha) (or.inl ha)) (and.imp or.inr or.inr),
  and.rec $ or.rec (imp_intro ∘ or.inl) (or.imp_right ∘ and.intro)⟩
 
+/-- `∨` distributes over `∧` (on the right). -/
 theorem and_or_distrib_right : (a ∧ b) ∨ c ↔ (a ∨ c) ∧ (b ∨ c) :=
 (or.comm.trans or_and_distrib_left).trans (and_congr or.comm or.comm)
 

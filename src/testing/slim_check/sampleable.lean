@@ -149,19 +149,19 @@ well_founded.fix has_well_founded.wf $ λ x f_rec,
      y ← (shrink x).find (λ a, p a),
      f_rec y y.property <|> some y.val .
 
-instance sampleable_fin {n} [fact $ 0 < n] : sampleable (fin n) :=
+instance fin.sampleable {n} [fact $ 0 < n] : sampleable (fin n) :=
 sampleable.lift ℕ fin.of_nat' subtype.val $
 λ i, (mod_le _ _ : i % n ≤ i)
 
 @[priority 100]
-instance sampleable_fin' {n} : sampleable (fin (succ n)) :=
+instance fin.sampleable' {n} : sampleable (fin (succ n)) :=
 sampleable.lift ℕ fin.of_nat subtype.val $
 λ i, (mod_le _ _ : i % succ n ≤ i)
 
 /-- Predecessor of a `ℕ+`, as a `ℕ`. -/
 def pnat.pred_nat (i : ℕ+) : ℕ := i - 1
 
-instance sampleable_pnat : sampleable ℕ+ :=
+instance pnat.sampleable : sampleable ℕ+ :=
 sampleable.lift ℕ nat.succ_pnat pnat.pred_nat $ λ a, by unfold_wf; simp [pnat.pred_nat,nat.succ_pnat]
 
 instance int.sampleable : sampleable ℤ :=
@@ -221,7 +221,7 @@ instance sum.sampleable {β} [sampleable α] [sampleable β] : sampleable (α �
             uliftable.up_map sum.inr (sample β),
   shrink := sum.shrink _ }
 
-instance sampleable_rat : sampleable ℚ :=
+instance rat.sampleable : sampleable ℚ :=
 sampleable.lift (ℤ × ℕ+) (λ x, prod.cases_on x rat.mk_pnat) (λ r, (r.num, ⟨r.denom, r.pos⟩)) $
 begin
   intro i,
@@ -360,11 +360,11 @@ lazy_list.append
 
 end list_shrink
 
-instance sampleable_list [sampleable α] : sampleable (list α) :=
+instance list.sampleable [sampleable α] : sampleable (list α) :=
 { sample := list_of (sample α),
   shrink := list.shrink_with shrink  }
 
-instance sampleable_prop : sampleable Prop :=
+instance prop.sampleable : sampleable Prop :=
 { sample := do { x ← choose_any bool,
                return ↑x },
   shrink := λ _, lazy_list.nil }
@@ -385,10 +385,10 @@ def no_shrink.mk {α} (x : α) : no_shrink α := x
 /-- Selector of the `no_shrink` type. -/
 def no_shrink.get {α} (x : no_shrink α) : α := x
 
-instance sampleable_no_shrink {α} [sampleable α] : sampleable (no_shrink α) :=
+instance no_shrink.sampleable {α} [sampleable α] : sampleable (no_shrink α) :=
 { sample := no_shrink.mk <$> sample α }
 
-instance sampleable_string : sampleable string :=
+instance string.sampleable : sampleable string :=
 { sample := do { x ← list_of (sample char), pure x.as_string },
   .. sampleable.lift (list char) list.as_string string.to_list $ λ _, le_refl _ }
 
@@ -437,7 +437,7 @@ match t with
       by revert hy; dsimp [sizeof_lt]; unfold_wf; intro; linarith ⟩
 end
 
-instance sampleable_tree [sampleable α] : sampleable (tree α) :=
+instance tree.sampleable [sampleable α] : sampleable (tree α) :=
 { sample := sized $ tree.sample (sample α),
   shrink := tree.shrink_with shrink }
 
@@ -455,53 +455,53 @@ constraints. The benefit is that we will not have to discard any choice
 of `j`.
  -/
 
-instance slim_check.sampleable_nat_le {y} : slim_check.sampleable { x : ℕ // x ≤ y } :=
+instance nat_le.sampleable {y} : slim_check.sampleable { x : ℕ // x ≤ y } :=
 { sample :=
          do { ⟨x,h⟩ ← slim_check.gen.choose_nat 0 y dec_trivial,
               pure ⟨x, h.2⟩},
   shrink := λ _, lazy_list.nil }
 
-instance slim_check.sampleable_nat_ge {x} : slim_check.sampleable { y : ℕ // x ≤ y } :=
+instance nat_ge.sampleable {x} : slim_check.sampleable { y : ℕ // x ≤ y } :=
 { sample :=
          do { (y : ℕ) ← slim_check.sampleable.sample ℕ,
               pure ⟨x+y, by norm_num⟩ },
   shrink := λ _, lazy_list.nil }
 
-instance slim_check.sampleable_nat_gt {x} : slim_check.sampleable { y : ℕ // x < y } :=
+instance nat_gt.sampleable {x} : slim_check.sampleable { y : ℕ // x < y } :=
 { sample :=
          do { (y : ℕ) ← slim_check.sampleable.sample ℕ,
               pure ⟨x+y+1, by linarith⟩ },
   shrink := λ _, lazy_list.nil }
 
-instance slim_check.sampleable_int_lt {y} : slim_check.sampleable { x : ℤ // x < y } :=
+instance int_lt.sampleable {y} : slim_check.sampleable { x : ℤ // x < y } :=
 { sample :=
          do { x ← slim_check.sampleable.sample ℕ,
               pure ⟨y - (x+1), sub_lt_self _ (by linarith)⟩},
   shrink := λ _, lazy_list.nil }
 
-instance slim_check.sampleable_int_gt {x} : slim_check.sampleable { y : ℤ // x < y } :=
+instance int_gt.sampleable {x} : slim_check.sampleable { y : ℤ // x < y } :=
 { sample :=
          do { (y : ℕ) ← slim_check.sampleable.sample ℕ,
               pure ⟨x+y+1, by linarith⟩ },
   shrink := λ _, lazy_list.nil }
 
-instance slim_check.sampleable_le {y : α} [decidable_linear_ordered_add_comm_group α] [sampleable α] : slim_check.sampleable { x : α // x ≤ y } :=
+instance le.sampleable {y : α} [decidable_linear_ordered_add_comm_group α] [sampleable α] : slim_check.sampleable { x : α // x ≤ y } :=
 { sample :=
          do { x ← sample α,
               pure ⟨y - abs x, sub_le_self _ (abs_nonneg _) ⟩ },
   shrink := λ _, lazy_list.nil }
 
-instance slim_check.sampleable_ge {x : α} [decidable_linear_ordered_add_comm_group α] [sampleable α] : slim_check.sampleable { y : α // x ≤ y } :=
+instance ge.sampleable {x : α} [decidable_linear_ordered_add_comm_group α] [sampleable α] : slim_check.sampleable { y : α // x ≤ y } :=
 { sample :=
          do { y ← sample α,
               pure ⟨x + abs y, by norm_num [abs_nonneg]⟩ },
   shrink := λ _, lazy_list.nil }
 
-instance slim_check.perm {xs : list α} : slim_check.sampleable { ys : list α // list.perm xs ys } :=
+instance perm.slim_check {xs : list α} : slim_check.sampleable { ys : list α // list.perm xs ys } :=
 { sample := permutation_of xs,
   shrink := λ _, lazy_list.nil }
 
-instance slim_check.perm' {xs : list α} : slim_check.sampleable { ys : list α // list.perm ys xs } :=
+instance perm'.slim_check {xs : list α} : slim_check.sampleable { ys : list α // list.perm ys xs } :=
 { sample := subtype.map id (@list.perm.symm α _) <$> permutation_of xs,
   shrink := λ _, lazy_list.nil }
 

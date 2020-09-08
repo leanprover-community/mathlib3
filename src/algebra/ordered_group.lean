@@ -8,7 +8,6 @@ import algebra.group.type_tags
 import order.bounded_lattice
 
 set_option old_structure_cmd true
-set_option default_priority 100 -- see Note [default priority]
 
 /-!
 # Ordered monoids and groups
@@ -633,7 +632,7 @@ attribute [to_additive] ordered_cancel_comm_monoid
 section ordered_cancel_comm_monoid
 variables [ordered_cancel_comm_monoid α] {a b c d : α}
 
-@[to_additive]
+@[priority 100, to_additive]    -- see Note [lower instance priority]
 instance ordered_cancel_comm_monoid.to_left_cancel_monoid :
   left_cancel_monoid α := { ..‹ordered_cancel_comm_monoid α› }
 
@@ -641,7 +640,7 @@ instance ordered_cancel_comm_monoid.to_left_cancel_monoid :
 lemma le_of_mul_le_mul_left' : ∀ {a b c : α}, a * b ≤ a * c → b ≤ c :=
 ordered_cancel_comm_monoid.le_of_mul_le_mul_left
 
-@[to_additive]
+@[priority 100, to_additive]    -- see Note [lower instance priority]
 instance ordered_cancel_comm_monoid.to_ordered_comm_monoid : ordered_comm_monoid α :=
 { lt_of_mul_lt_mul_left := λ a b c h, lt_of_le_not_le (le_of_mul_le_mul_left' h.le) $
       mt (λ h, ordered_cancel_comm_monoid.mul_le_mul_left _ _ h _) (not_le_of_gt h),
@@ -910,7 +909,7 @@ lemma ordered_comm_group.lt_of_mul_lt_mul_left (h : a * b < a * c) : b < c :=
 have a⁻¹ * (a * b) < a⁻¹ * (a * c), from ordered_comm_group.mul_lt_mul_left' _ _ h _,
 begin simp [inv_mul_cancel_left] at this, assumption end
 
-@[to_additive]
+@[priority 100, to_additive]    -- see Note [lower instance priority]
 instance ordered_comm_group.to_ordered_cancel_comm_monoid (α : Type u)
   [s : ordered_comm_group α] : ordered_cancel_comm_monoid α :=
 { mul_left_cancel       := @mul_left_cancel α _,
@@ -1585,6 +1584,7 @@ addition is strictly monotone. -/
   extends add_comm_group α, decidable_linear_order α :=
 (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
 
+@[priority 100] -- see Note [lower instance priority]
 instance decidable_linear_ordered_comm_group.to_ordered_add_comm_group (α : Type u)
   [s : decidable_linear_ordered_add_comm_group α] : ordered_add_comm_group α :=
 { add := s.add, ..s }
@@ -1806,9 +1806,6 @@ eq_of_abs_sub_eq_zero (le_antisymm h (abs_nonneg (a - b)))
 
 end decidable_linear_ordered_add_comm_group
 
-set_option old_structure_cmd true
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- This is not so much a new structure as a construction mechanism
   for ordered groups, by specifying only the "positive cone" of the group. -/
 class nonneg_add_comm_group (α : Type*) extends add_comm_group α :=
@@ -1818,7 +1815,6 @@ class nonneg_add_comm_group (α : Type*) extends add_comm_group α :=
 (zero_nonneg : nonneg 0)
 (add_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a + b))
 (nonneg_antisymm : ∀ {a}, nonneg a → nonneg (-a) → a = 0)
-end prio
 
 namespace nonneg_add_comm_group
 variable [s : nonneg_add_comm_group α]

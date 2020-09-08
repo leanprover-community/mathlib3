@@ -83,7 +83,8 @@ open nat lazy_list
 /-- `nat.shrink' k n` creates a list of smaller natural numbers by
 successively dividing `n` by 2 and subtracting the difference from
 `k`. For example, `nat.shrink 100 = [50, 75, 88, 94, 97, 99]`. -/
-def nat.shrink' (k : ℕ) : Π n : ℕ, n ≤ k → list { m // has_well_founded.r m k } → list { m // has_well_founded.r m k }
+def nat.shrink' (k : ℕ) : Π n : ℕ, n ≤ k →
+  list { m : ℕ // has_well_founded.r m k } → list { m : ℕ // has_well_founded.r m k }
 | n hn ls :=
 if h : n ≤ 1
   then ls.reverse
@@ -102,7 +103,7 @@ if h : n ≤ 1
 /-- `nat.shrink n` creates a list of smaller natural numbers by
 successively dividing by 2 and subtracting the difference from
 `n`. For example, `nat.shrink 100 = [50, 75, 88, 94, 97, 99]`. -/
-def nat.shrink (n : ℕ) : list { m // has_well_founded.r m n } :=
+def nat.shrink (n : ℕ) : list { m : ℕ // has_well_founded.r m n } :=
 if h : n > 0 then
   have ∀ k, 1 < k → n / k < n, from
     λ k hk,
@@ -183,7 +184,7 @@ def sizeof_lt {α} [has_sizeof α] (x y : α) := sizeof x < sizeof y
 /-- `shrink_fn α` is the type of functions that shrink an
 argument of type `α` -/
 @[reducible]
-def shrink_fn (α : Type*) [has_sizeof α] := Π x : α, lazy_list { y // sizeof_lt y x }
+def shrink_fn (α : Type*) [has_sizeof α] := Π x : α, lazy_list { y : α // sizeof_lt y x }
 
 /--
 Provided two shrinking functions` prod.shrink shrinks a pair `(x, y)` by
@@ -197,10 +198,10 @@ for `y` to get shrunken too.
 def prod.shrink {α β} [has_sizeof α] [has_sizeof β]
   (shr_a : shrink_fn α) (shr_b : shrink_fn β) : shrink_fn (α × β)
 | ⟨x₀,x₁⟩ :=
-  let xs₀ : lazy_list { y // sizeof_lt y (x₀,x₁) } :=
+  let xs₀ : lazy_list { y : α × β // sizeof_lt y (x₀,x₁) } :=
           (shr_a x₀).map $ subtype.map (λ a, (a, x₁))
                            (λ x h, by dsimp [sizeof_lt]; unfold_wf; apply h),
-      xs₁ : lazy_list { y // sizeof_lt y (x₀,x₁) } :=
+      xs₁ : lazy_list { y : α × β // sizeof_lt y (x₀,x₁) } :=
           (shr_b x₁).map $ subtype.map (λ a, (x₀, a))
                            (λ x h, by dsimp [sizeof_lt]; unfold_wf; apply h) in
   xs₀.append xs₁
@@ -212,7 +213,7 @@ instance prod.sampleable {β : Type v} [sampleable α] [sampleable β] : samplea
   shrink := prod.shrink shrink shrink }
 
 /-- shrinking function for sum types -/
-def sum.shrink {β} [sampleable α] [sampleable β] : Π x : α ⊕ β, lazy_list { y // y ≺ x }
+def sum.shrink {β} [sampleable α] [sampleable β] : Π x : α ⊕ β, lazy_list { y : α ⊕ β // y ≺ x }
 | (sum.inr x) := (shrink x).map $ subtype.map sum.inr $ λ a, by unfold_wf; solve_by_elim
 | (sum.inl x) := (shrink x).map $ subtype.map sum.inl $ λ a, by unfold_wf; solve_by_elim
 
@@ -259,7 +260,7 @@ variables {α}
 
 section list_shrink
 
-variables [has_sizeof α] (shr : Π x : α, lazy_list { y // sizeof_lt y x })
+variables [has_sizeof α] (shr : Π x : α, lazy_list { y : α // sizeof_lt y x })
 
 lemma list.sizeof_drop_lt_sizeof_of_lt_length {xs : list α} {k}
   (hk : 0 < k) (hk' : k < xs.length) :
@@ -302,7 +303,8 @@ by cases xs; unfold_wf; [refl, linarith]
 `list.shrink_removes` shrinks a list by removing chunks of size `k` in
 the middle of the list.
 -/
-def list.shrink_removes (k : ℕ) (hk : 0 < k) : Π (xs : list α) n, n = xs.length → lazy_list { ys // sizeof_lt ys xs }
+def list.shrink_removes (k : ℕ) (hk : 0 < k) : Π (xs : list α) n,
+  n = xs.length → lazy_list { ys : list α // sizeof_lt ys xs }
 | xs n hn :=
   if hkn : k > n then lazy_list.nil
   else
@@ -349,7 +351,7 @@ shrinks only one element of the list.
 
 This strategy is taken directly from Haskell's QuickCheck -/
 def list.shrink_with (xs : list α) :
-  lazy_list { ys // sizeof_lt ys xs } :=
+  lazy_list { ys : list α // sizeof_lt ys xs } :=
 let n := xs.length in
 lazy_list.append
   ((lazy_list.cons n $ (shrink n).reverse.map subtype.val).bind (λ k,
@@ -366,7 +368,7 @@ instance list.sampleable [sampleable α] : sampleable (list α) :=
 
 instance prop.sampleable : sampleable Prop :=
 { sample := do { x ← choose_any bool,
-               return ↑x },
+                 return ↑x },
   shrink := λ _, lazy_list.nil }
 
 /-- `no_shrink` is a type annotation to signal that
@@ -402,9 +404,10 @@ else pure tree.nil
 /-- `rec_shrink x f_rec` takes the recursive call `f_rec` introduced
 by `well_founded.fix` and turns it into a shrinking function whose
 result is adequate to use in a recursive call. -/
-def rec_shrink {α : Type*} [has_sizeof α] (t : α) (sh : Π x : α, sizeof_lt x t → lazy_list { y // sizeof_lt y x }) :
+def rec_shrink {α : Type*} [has_sizeof α] (t : α)
+  (sh : Π x : α, sizeof_lt x t → lazy_list { y : α // sizeof_lt y x }) :
   shrink_fn { t' : α // sizeof_lt t' t }
-| ⟨t',ht'⟩ := (λ t'' : { y // sizeof_lt y t' }, ⟨⟨t''.val, lt_trans t''.property ht'⟩, t''.property⟩ ) <$> sh t' ht'
+| ⟨t',ht'⟩ := (λ t'' : { y : α // sizeof_lt y t' }, ⟨⟨t''.val, lt_trans t''.property ht'⟩, t''.property⟩ ) <$> sh t' ht'
 
 lemma tree.one_le_sizeof {α} [has_sizeof α] (t : tree α) : 1 ≤ sizeof t :=
 by cases t; unfold_wf; linarith
@@ -419,7 +422,7 @@ match t with
 | tree.nil := λ f_rec, lazy_list.nil
 | (tree.node x t₀ t₁) :=
 λ f_rec,
-  let shrink_tree : shrink_fn { t' // sizeof_lt t' (tree.node x t₀ t₁) } := λ t', rec_shrink _ f_rec _ in
+  let shrink_tree : shrink_fn { t' : tree α // sizeof_lt t' (tree.node x t₀ t₁) } := λ t', rec_shrink _ f_rec _ in
   have h₂ : sizeof_lt tree.nil (tree.node x t₀ t₁),
     by clear _match; have := tree.one_le_sizeof t₀;
        dsimp [sizeof_lt, sizeof, has_sizeof.sizeof] at *;
@@ -431,7 +434,7 @@ match t with
   lazy_list.append
     (lazy_list.of_list
       [ lazy_list.of_list [⟨tree.nil, h₂⟩, ⟨t₀, h₀⟩, ⟨t₁, h₁⟩] ]
-      : lazy_list (lazy_list { y // sizeof_lt y (tree.node x t₀ t₁) })).join
+      : lazy_list (lazy_list { y : tree α // sizeof_lt y (tree.node x t₀ t₁) })).join
     $ (prod.shrink shrink_a (prod.shrink shrink_tree shrink_tree) (x, ⟨t₀, h₀⟩, ⟨t₁, h₁⟩)).map
     $ λ ⟨⟨y,⟨t'₀, _⟩,⟨t'₁, _⟩⟩,hy⟩, ⟨tree.node y t'₀ t'₁,
       by revert hy; dsimp [sizeof_lt]; unfold_wf; intro; linarith ⟩

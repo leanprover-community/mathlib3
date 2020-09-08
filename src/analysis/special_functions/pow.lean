@@ -1182,7 +1182,7 @@ begin
           nnreal.rpow_lt_one_of_one_lt_of_neg hx hz] },
 end
 
-lemma pow_le_one_of_one_le_of_neg {x : ennreal} {z : ℝ} (hx : 1 ≤ x) (hz : z < 0) : x^z ≤ 1 :=
+lemma rpow_le_one_of_one_le_of_neg {x : ennreal} {z : ℝ} (hx : 1 ≤ x) (hz : z < 0) : x^z ≤ 1 :=
 begin
   cases x,
   { simp [top_rpow_of_neg hz, ennreal.zero_lt_one] },

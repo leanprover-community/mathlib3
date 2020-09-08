@@ -53,22 +53,30 @@ lemma to_padic_int_comp_from_padic_int :
 begin
   rw ← padic_int.to_zmod_pow_eq_iff_ext,
   intro n,
-  congr' with x,
-  sorry
+  rw [← ring_hom.comp_assoc, to_padic_int, padic_int.lift_spec],
+  simp only [from_padic_int, to_zmod_pow, ring_hom.comp_id],
+  rw [ring_hom.comp_assoc, truncate_comp_lift, ← ring_hom.comp_assoc],
+  convert ring_hom.id_comp _,
 end
--- we might want a `hom_eq_hom` for `ℤ_[p]` like we have for `𝕎 R` in the truncated file
 
 lemma from_padic_int_comp_to_padic_int :
   (from_padic_int p).comp (to_padic_int p) = ring_hom.id (𝕎 (zmod p)) :=
 begin
   apply witt_vector.hom_ext,
   intro n,
-  congr,
-  sorry
+  rw [from_padic_int, ← ring_hom.comp_assoc, truncate_comp_lift, ring_hom.comp_assoc],
+  simp only [to_padic_int, to_zmod_pow, ring_hom.comp_id],
+  rw [padic_int.lift_spec, ← ring_hom.comp_assoc],
+  convert ring_hom.id_comp _,
+  ext1, simp
 end
 
---sorry -- use `hom_eq_hom`
-
-def equiv : 𝕎 (zmod p) ≃+* ℤ_[p] := sorry
+-- there's probably a better constructor for this
+def equiv : 𝕎 (zmod p) ≃+* ℤ_[p] :=
+ring_equiv.of_bijective (to_padic_int p) $
+  function.bijective_iff_has_inverse.mpr
+  ⟨ from_padic_int p,
+    λ x, show (from_padic_int p).comp (to_padic_int p) x = _, by rw from_padic_int_comp_to_padic_int; refl,
+    λ x, show (to_padic_int p).comp (from_padic_int p) x = _, by rw to_padic_int_comp_from_padic_int; refl, ⟩
 
 end witt_vector

@@ -675,13 +675,6 @@ end
 
 end lift
 
-<<<<<<< HEAD
-lemma ext_of_to_zmod_pow (x y : ℤ_[p]) (h : ∀ n, to_zmod_pow n x = to_zmod_pow n y) :
-  x = y :=
-begin
-  rw [← lift_self x, ← lift_self y],
-  simp [lift, lim_nth_hom, nth_hom, h],
-=======
 lemma ext_of_to_zmod_pow {x y : ℤ_[p]} :
   (∀ n, to_zmod_pow n x = to_zmod_pow n y) ↔ x = y :=
 begin
@@ -703,7 +696,6 @@ begin
     show (to_zmod_pow n).comp g x = (to_zmod_pow n).comp g' x,
     rw hg n },
   { rintro rfl _, refl }
->>>>>>> blessed/master
 end
 
 end padic_int

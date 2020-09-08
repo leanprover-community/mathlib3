@@ -185,7 +185,7 @@ argument of type `α` -/
 def shrink_fn (α : Type*) [has_sizeof α] := Π x : α, lazy_list { y : α // sizeof_lt y x }
 
 /--
-Provided two shrinking functions` prod.shrink shrinks a pair `(x, y)` by
+Provided two shrinking functions `prod.shrink` shrinks a pair `(x, y)` by
 first shrinking `x` and pairing the results with `y` and then shrinking
 `y` and pairing the results with `x`.
 

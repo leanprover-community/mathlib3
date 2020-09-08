@@ -62,7 +62,7 @@ begin
 end
 
 /--
-A Dedekind domain is a nonfield that is Noetherian, integrally closed, and
+A Dedekind domain is an integral domain that is Noetherian, integrally closed, and
 has Krull dimension exactly one (`not_is_field` and `dimension_le_one`).
 
 The integral closure condition is independent of the choice of field of fractions:
@@ -79,8 +79,9 @@ class is_dedekind_domain : Prop :=
 (dimension_le_one : dimension_le_one A)
 (is_integrally_closed : integral_closure A (fraction_ring A) = ⊥)
 
-/-- The non-field, noetherian ring, dimension ≤ 1, integrally closed definition of Dedekind domain
-doesn't depend on the choice of fraction field. -/
+/-- An integral domain is a Dedekind domain iff and only if it is not a field, is Noetherian, has dimension ≤ 1,
+and is integrally closed in a given fraction field.
+In particular, this definition does not depend on the choice of this fraction field. -/
 lemma is_dedekind_domain_iff (f : fraction_map A K) :
   is_dedekind_domain A ↔
     (¬ is_field A) ∧ is_noetherian_ring A ∧ dimension_le_one A ∧
@@ -93,7 +94,7 @@ lemma is_dedekind_domain_iff (f : fraction_map A K) :
          hi, algebra.map_bot]⟩⟩
 
 /--
-A Dedekind domain is a nonfield that is Noetherian, and the localization at
+A Dedekind domain is an integral domain that is not a field, is Noetherian, and the localization at
 every nonzero prime is a discrete valuation ring.
 
 This is equivalent to `is_dedekind_domain`.
@@ -106,7 +107,7 @@ structure is_dedekind_domain_dvr : Prop :=
   discrete_valuation_ring (localization.at_prime P))
 
 /--
-A Dedekind domain is a nonfield such that every fractional ideal has an inverse.
+A Dedekind domain is an integral domain that is not a field such that every fractional ideal has an inverse.
 
 This is equivalent to `is_dedekind_domain`.
 TODO: prove the equivalence.

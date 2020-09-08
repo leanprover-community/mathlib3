@@ -159,12 +159,9 @@ instance fin.sampleable' {n} : sampleable (fin (succ n)) :=
 sampleable.lift ℕ fin.of_nat subtype.val $
 λ i, (mod_le _ _ : i % succ n ≤ i)
 
-/-- Predecessor of a `ℕ+`, as a `ℕ`. -/
-def pnat.pred_nat (i : ℕ+) : ℕ := i - 1
-
 instance pnat.sampleable : sampleable ℕ+ :=
-sampleable.lift ℕ nat.succ_pnat pnat.pred_nat $ λ a,
-by unfold_wf; simp only [pnat.pred_nat, succ_pnat, pnat.mk_coe, nat.sub_zero, succ_sub_succ_eq_sub]
+sampleable.lift ℕ nat.succ_pnat pnat.nat_pred $ λ a,
+by unfold_wf; simp only [pnat.nat_pred, succ_pnat, pnat.mk_coe, nat.sub_zero, succ_sub_succ_eq_sub]
 
 instance int.sampleable : sampleable ℤ :=
 { wf := ⟨ int.nat_abs ⟩,

@@ -47,11 +47,13 @@ def ring.dimension_le_one : Prop :=
 
 open ideal ring
 
-lemma is_principal_ideal_ring.dimension_le_one
-  [is_principal_ideal_ring A] : ring.dimension_le_one A :=
+namespace ring
+
+lemma dimension_le_one.principal_ideal_ring
+  [is_principal_ideal_ring A] : dimension_le_one A :=
 λ p nonzero prime, by { haveI := prime, exact is_prime.to_maximal_ideal nonzero }
 
-lemma integral_closure.dimension_le_one [nontrivial R] [algebra R A]
+lemma dimension_le_one.integral_closure [nontrivial R] [algebra R A]
   (h : dimension_le_one R) : dimension_le_one (integral_closure R A) :=
 begin
   intros p ne_bot prime,
@@ -60,6 +62,7 @@ begin
     (h _ (integral_closure.comap_ne_bot ne_bot) _),
   apply is_prime.comap
 end
+end ring
 
 /--
 A Dedekind domain is an integral domain that is Noetherian, integrally closed, and

@@ -610,7 +610,7 @@ subtype.ext $ quot.sound $ nth_hom_seq_mul _ _ _
 -- TODO: generalize this to arbitrary complete discrete valuation rings
 /--
 `lift f_compat` is the limit of a sequence `f` of compatible ring homs `R →+* zmod (p^k)`,
-with the equality `lift f_compat r = `padic_int.lim_nth_hom f_compat r`.
+with the equality `lift f_compat r = padic_int.lim_nth_hom f_compat r`.
 -/
 def lift : R →+* ℤ_[p] :=
 { to_fun := lim_nth_hom f_compat,

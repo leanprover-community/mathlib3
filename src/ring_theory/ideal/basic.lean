@@ -551,7 +551,7 @@ begin
     exact lt_top (ideal.mul_mem_right _ mem), }
 end
 
-lemma not_is_field_iff_exists_ideal_ne_bot_and_is_prime [nontrivial R] :
+lemma not_is_field_iff_exists_prime [nontrivial R] :
   ¬ is_field R ↔ ∃ p : ideal R, p ≠ ⊥ ∧ p.is_prime :=
 not_is_field_iff_exists_ideal_bot_lt_and_lt_top.trans
   ⟨λ ⟨I, bot_lt, lt_top⟩, let ⟨p, hp, le_p⟩ := I.exists_le_maximal (lt_top_iff_ne_top.mp lt_top) in

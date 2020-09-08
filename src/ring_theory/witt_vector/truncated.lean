@@ -50,24 +50,42 @@ witt_vector.truncate p n $ witt_vector.mk p $
 
 variable {p}
 
-def coeff (i : fin n) : truncated_witt_vector p n R → R :=
-quot.lift (λ x : witt_vector p R, x.coeff i)
+lemma coeff_eq_of_truncate_eq (x y : 𝕎 R) (n i : ℕ) (hin : i < n)
+  (h : witt_vector.truncate p n x = witt_vector.truncate p n y) :
+  x.coeff i = y.coeff i :=
 begin
-  intros x y h,
-  change x - y ∈ (witt_vector.ideal p R n) at h,
-  set z := x - y with hz,
-  have hx : x = z + y, { simp only [sub_add_cancel] },
-  dsimp,
-  rw [hx, witt_vector.add_coeff],
-  -- hmmm, `witt_add_vars` is not good enough for this one :sad:
-  -- the first `n` coeffs of `z` are `0`, by assumption
-  -- this is enough, but we need a better lemma for this
   sorry
 end
+
+def coeff (i : fin n) (x : truncated_witt_vector p n R) : R :=
+witt_vector.coeff i (quot.out x)
+-- begin
+--   intros x y h,
+--   change x - y ∈ (witt_vector.ideal p R n) at h,
+--   set z := x - y with hz,
+--   have hx : x = z + y, { simp only [sub_add_cancel] },
+--   dsimp,
+--   rw [hx, witt_vector.add_coeff],
+--   -- hmmm, `witt_add_vars` is not good enough for this one :sad:
+--   -- the first `n` coeffs of `z` are `0`, by assumption
+--   -- this is enough, but we need a better lemma for this
+--   sorry
+-- end
 
 section mk_and_coeff
 
 variables (p)
+
+@[simp]
+lemma coeff_mk (i : fin n) (x : fin n → R) :
+  coeff i (mk p x) = x i :=
+begin
+  have : x i = witt_vector.coeff i (witt_vector.mk p $ λ k, if h : k < n then x ⟨k, h⟩ else 0),
+  { rw [witt_vector.coeff_mk, dif_pos i.is_lt, fin.eta], },
+  rw this,
+  apply coeff_eq_of_truncate_eq p _ _ n i i.is_lt,
+  apply quot.out_eq,
+end
 
 @[simp]
 lemma mk_coeff (x : truncated_witt_vector p n R) :
@@ -80,16 +98,6 @@ begin
   show _ ∈ (witt_vector.ideal p R n),
   sorry
   -- intros i hi,
-end
-
-@[simp]
-lemma coeff_mk (i : fin n) (x : fin n → R) :
-  coeff i (mk p x) = x i :=
-begin
-  dsimp [coeff, mk],
-  convert quot.lift_beta _ (coeff._proof_1 _) _,
-  { dsimp, rw [dif_pos i.is_lt, fin.eta], },
-  { apply_instance, }
 end
 
 @[simp] lemma coeff_zero (i : fin n) : coeff i (0 : truncated_witt_vector p n R) = 0 :=
@@ -124,6 +132,13 @@ def equiv : truncated_witt_vector p n R ≃ (fin n → R) :=
   left_inv := by { intros x, apply mk_coeff },
   right_inv := by { intros x, ext i, apply coeff_mk } }
 
+@[simp]
+lemma equiv_apply (x : truncated_witt_vector p n R) (i : fin n) :
+  equiv p n R x i = x.coeff i :=
+begin
+  dsimp [equiv], refl
+end
+
 variables {p n R}
 
 @[ext] lemma ext (x y : truncated_witt_vector p n R) (h : ∀ i : fin n, x.coeff i = y.coeff i) :
@@ -131,7 +146,7 @@ variables {p n R}
 begin
   apply (equiv p n R).injective,
   ext i,
-  exact h i
+  simp only [equiv_apply, h],
 end
 
 @[ext] lemma ext_iff (x y : truncated_witt_vector p n R) :
@@ -149,7 +164,11 @@ variables {p n : ℕ} {R : Type*} [fact (nat.prime p)] [comm_ring R]
 
 @[simp]
 lemma coeff_truncate (x : witt_vector p R) (i : fin n) :
-  (truncate p n x).coeff i = x.coeff i := rfl
+  (truncate p n x).coeff i = x.coeff i :=
+begin
+  apply truncated_witt_vector.coeff_eq_of_truncate_eq p _ _ n i i.is_lt,
+  exact quot.out_eq _,
+end
 
 @[simp]
 lemma truncate_mk (f : ℕ → R) :

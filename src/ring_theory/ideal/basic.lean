@@ -566,17 +566,14 @@ namespace ideal
 variables {R : Type u} [comm_ring R] [nontrivial R]
 lemma bot_lt_of_maximal (M : ideal R) [hm : M.is_maximal] (non_field : ¬ is_field R) : ⊥ < M :=
 begin
-  rw ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top at non_field,
+  rcases (ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top.1 non_field)
+    with ⟨I, Ibot, Itop⟩,
   split, finish,
   intro mle,
-  have : M = ⊥ := by exact eq_bot_iff.mpr mle,
+  apply @irrefl _ (<) _ (⊤ : ideal R),
+  have : M = ⊥ := eq_bot_iff.mpr mle,
   rw this at *,
-  unfold ideal.is_maximal at hm,
-  rcases hm with ⟨ne_top, h1⟩,
-  rcases non_field with ⟨I, ibot, itop⟩,
-  have h2 := h1 I ibot,
-  rw h2 at itop,
-  exact irrefl ⊤ itop,
+  rwa hm.2 I Ibot at Itop,
 end
 
 end ideal

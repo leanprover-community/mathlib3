@@ -231,6 +231,9 @@ lemma to_fun_eq_coe (f : α →+* β) : f.to_fun = f := rfl
 
 variables (f : α →+* β) {x y : α} {rα rβ}
 
+theorem congr_fun {f g : α →+* β} (h : f = g) (x : α) : f x = g x :=
+congr_arg (λ h : α →+* β, h x) h
+
 theorem coe_inj ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
 

@@ -1691,6 +1691,16 @@ end verschiebung
 
 -- end frobenius
 
+section disjoint
+
+lemma coeff_add_of_disjoint (x y : 𝕎 p R) (n : ℕ) (hn : ∀ i < n, x.coeff i = 0 ∨ y.coeff i = 0) :
+  (x + y).coeff n = x.coeff n + y.coeff n :=
+begin
+  rw add_coeff,
+end
+
+end disjoint
+
 variable {R}
 def mk (x : ℕ → R) : 𝕎 p R := x
 

@@ -45,6 +45,10 @@ lemma truncate_eq_iff (x y : 𝕎 R) (n : ℕ) :
   witt_vector.truncate p n x = witt_vector.truncate p n y ↔
   ∀ ⦃i : ℕ⦄, i < n → x.coeff i = y.coeff i :=
 begin
+  rw [← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker, truncate_ker, mem_ideal_iff],
+  generalize hz : x - y = z,
+  rw sub_eq_iff_eq_add at hz,
+  subst hz,
   sorry
 end
 

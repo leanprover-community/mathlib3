@@ -6,11 +6,18 @@ Authors: Johannes Hölzl
 Type class hierarchy for Boolean algebras.
 -/
 import order.bounded_lattice
-import logic.function.basic
+
 set_option old_structure_cmd true
 
-universes u
+universes u v
 variables {α : Type u} {w x y z : α}
+
+/-- Set / lattice complement -/
+class has_compl (α : Type*) := (compl : α → α)
+
+export has_compl (compl)
+
+postfix `ᶜ`:(max+1) := compl
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
@@ -19,8 +26,8 @@ set_option default_priority 100 -- see Note [default priority]
   This is a generalization of (classical) logic of propositions, or
   the powerset lattice. -/
 class boolean_algebra α extends bounded_distrib_lattice α, has_compl α, has_sdiff α :=
-(inf_compl_eq_bot : ∀x:α, x ⊓ xᶜ = ⊥)
-(sup_compl_eq_top : ∀x:α, x ⊔ xᶜ = ⊤)
+(inf_compl_le_bot : ∀x:α, x ⊓ xᶜ ≤ ⊥)
+(top_le_sup_compl : ∀x:α, ⊤ ≤ x ⊔ xᶜ)
 (sdiff_eq : ∀x y:α, x \ y = x ⊓ yᶜ)
 end prio
 
@@ -28,13 +35,13 @@ section boolean_algebra
 variables [boolean_algebra α]
 
 @[simp] theorem inf_compl_eq_bot : x ⊓ xᶜ = ⊥ :=
-boolean_algebra.inf_compl_eq_bot x
+bot_unique $ boolean_algebra.inf_compl_le_bot x
 
 @[simp] theorem compl_inf_eq_bot : xᶜ ⊓ x = ⊥ :=
 eq.trans inf_comm inf_compl_eq_bot
 
 @[simp] theorem sup_compl_eq_top : x ⊔ xᶜ = ⊤ :=
-boolean_algebra.sup_compl_eq_top x
+top_unique $ boolean_algebra.top_le_sup_compl x
 
 @[simp] theorem compl_sup_eq_top : xᶜ ⊔ x = ⊤ :=
 eq.trans sup_comm sup_compl_eq_top
@@ -98,3 +105,15 @@ theorem sdiff_le_sdiff (h₁ : w ≤ y) (h₂ : z ≤ x) : w \ x ≤ y \ z :=
 by rw [sdiff_eq, sdiff_eq]; from inf_le_inf h₁ (compl_le_compl h₂)
 
 end boolean_algebra
+
+instance boolean_algebra_Prop : boolean_algebra Prop :=
+{ compl := not,
+  sdiff := λ p q, p ∧ ¬ q,
+  sdiff_eq := λ _ _, rfl,
+  inf_compl_le_bot := λ p ⟨Hp, Hpc⟩, Hpc Hp,
+  top_le_sup_compl := λ p H, classical.em p,
+  .. bounded_distrib_lattice_Prop }
+
+instance pi.boolean_algebra {α : Type u} {β : Type v} [boolean_algebra β] :
+  boolean_algebra (α → β) :=
+by pi_instance

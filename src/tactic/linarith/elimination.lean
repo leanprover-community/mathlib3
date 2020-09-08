@@ -319,12 +319,12 @@ by eliminating all variables ≤ `max_var`.
 If successful, it returns a map `coeff : ℕ → ℕ` as a certificate.
 This map represents that we can find a contradiction by taking the sum  `∑ (coeff i) * hyps[i]`.
 -/
-meta def fourier_motzkin.produce_certificate (hyps : list comp) (max_var : ℕ) :
-  option (rb_map ℕ ℕ) :=
+meta def fourier_motzkin.produce_certificate : certificate_oracle :=
+λ hyps max_var,
 let state := mk_linarith_structure hyps max_var in
 match except_t.run (state_t.run (validate >> elim_all_vars) state) with
-| (except.ok (a, _)) := none
-| (except.error contr) := contr.src.flatten
+| (except.ok (a, _)) := tactic.failed
+| (except.error contr) := return contr.src.flatten
 end
 
 end linarith

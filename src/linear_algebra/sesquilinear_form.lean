@@ -3,8 +3,8 @@ Copyright (c) 2018 Andreas Swerdlow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Andreas Swerdlow
 -/
-import algebra.module
-import ring_theory.maps
+import algebra.module.basic
+import ring_theory.ring_invo
 
 /-!
 # Sesquilinear form
@@ -13,7 +13,7 @@ This file defines a sesquilinear form over a module. The definition requires a r
 on the scalar ring. Basic ideas such as
 orthogonality are also introduced.
 
-A sesquilinear form on an `R`-module `M`, is a function from `M × M` to `R, that is linear in the
+A sesquilinear form on an `R`-module `M`, is a function from `M × M` to `R`, that is linear in the
 first argument and antilinear in the second, with respect to an antiautomorphism on `R` (an
 antiisomorphism from `R` to `R`).
 

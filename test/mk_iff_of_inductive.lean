@@ -1,5 +1,3 @@
-import tactic.mk_iff_of_inductive_prop
-
 import data.list
 import data.list.perm
 import data.multiset.basic

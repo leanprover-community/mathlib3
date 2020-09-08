@@ -3,8 +3,8 @@ Copyright (c) 2014 Floris van Doorn (c) 2016 Microsoft Corporation. All rights r
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import algebra.ordered_ring
 import algebra.order_functions
+import data.set.basic
 
 /-!
 # Basic operations on the natural numbers
@@ -21,8 +21,8 @@ universes u v
 
 attribute [protected] nat.pow_zero nat.pow_succ
 
-instance : nonzero ℕ :=
-{ zero_ne_one := nat.zero_ne_one }
+instance : nontrivial ℕ :=
+⟨⟨0, 1, nat.zero_ne_one⟩⟩
 
 instance : comm_semiring nat :=
 { add            := nat.add,
@@ -76,13 +76,20 @@ instance : canonically_ordered_comm_semiring ℕ :=
 { le_iff_exists_add := assume a b,
   ⟨assume h, let ⟨c, hc⟩ := nat.le.dest h in ⟨c, hc.symm⟩,
     assume ⟨c, hc⟩, hc.symm ▸ nat.le_add_right _ _⟩,
-  zero_ne_one       := ne_of_lt zero_lt_one,
   eq_zero_or_eq_zero_of_mul_eq_zero   := assume a b, nat.eq_zero_of_mul_eq_zero,
   bot               := 0,
   bot_le            := nat.zero_le,
+  .. nat.nontrivial,
   .. (infer_instance : ordered_add_comm_monoid ℕ),
   .. (infer_instance : linear_ordered_semiring ℕ),
   .. (infer_instance : comm_semiring ℕ) }
+
+instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : nonempty s] :
+  semilattice_sup_bot s :=
+{ bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
+  bot_le := λ x, nat.find_min' _ x.2,
+  ..subtype.linear_order s,
+  ..lattice_of_decidable_linear_order }
 
 namespace nat
 variables {m n k : ℕ}
@@ -106,8 +113,13 @@ theorem le_mul_self : Π (n : ℕ), n ≤ n * n
 | 0     := le_refl _
 | (n+1) := let t := mul_le_mul_left (n+1) (succ_pos n) in by simp at t; exact t
 
-theorem eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : m > 0) (H : n * m = k * m) : n = k :=
+theorem eq_of_mul_eq_mul_right {n m k : ℕ} (Hm : 0 < m) (H : n * m = k * m) : n = k :=
 by rw [mul_comm n m, mul_comm k m] at H; exact eq_of_mul_eq_mul_left Hm H
+
+instance nat.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero ℕ :=
+{ mul_left_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_left (nat.pos_of_ne_zero h1) h2,
+  mul_right_cancel_of_ne_zero := λ _ _ _ h1 h2, nat.eq_of_mul_eq_mul_right (nat.pos_of_ne_zero h1) h2,
+  .. (infer_instance : comm_monoid_with_zero ℕ) }
 
 theorem one_add (n : ℕ) : 1 + n = succ n := by simp [add_comm]
 
@@ -638,6 +650,9 @@ protected theorem dvd_add_left {k m n : ℕ} (h : k ∣ n) : k ∣ m + n ↔ k �
 protected theorem dvd_add_right {k m n : ℕ} (h : k ∣ m) : k ∣ m + n ↔ k ∣ n :=
 (nat.dvd_add_iff_right h).symm
 
+@[simp] protected theorem not_two_dvd_bit1 (n : ℕ) : ¬ 2 ∣ bit1 n :=
+mt (nat.dvd_add_right two_dvd_bit0).1 dec_trivial
+
 /-- A natural number m divides the sum m + n if and only if m divides b.-/
 @[simp] protected lemma dvd_add_self_left {m n : ℕ} :
   m ∣ m + n ↔ m ∣ n :=
@@ -709,6 +724,8 @@ end
 lemma sub_mod_eq_zero_of_mod_eq {a b c : ℕ} (h : a % c = b % c) : (a - b) % c = 0 :=
 by rw [←nat.mod_add_div a c, ←nat.mod_add_div b c, ←h, ←nat.sub_sub, nat.add_sub_cancel_left,
        ←nat.mul_sub_left_distrib, nat.mul_mod_right]
+
+@[simp] lemma one_mod (n : ℕ) : 1 % (n + 2) = 1 := nat.mod_eq_of_lt (add_lt_add_right n.succ_pos 1)
 
 lemma dvd_sub_mod (k : ℕ) : n ∣ (k - (k % n)) :=
 ⟨k / n, nat.sub_eq_of_eq_add (nat.mod_add_div k n).symm⟩
@@ -1528,6 +1545,24 @@ begin
   cc
 end
 
+@[simp]
+lemma div_div_div_eq_div : ∀ {a b c : ℕ} (dvd : b ∣ a) (dvd2 : a ∣ c), (c / (a / b)) / b = c / a
+| 0 _ := by simp
+| (a + 1) 0 := λ _ dvd _, by simpa using dvd
+| (a + 1) (c + 1) :=
+have a_split : a + 1 ≠ 0 := succ_ne_zero a,
+have c_split : c + 1 ≠ 0 := succ_ne_zero c,
+λ b dvd dvd2,
+begin
+  rcases dvd2 with ⟨k, rfl⟩,
+  rcases dvd with ⟨k2, pr⟩,
+  have k2_nonzero : k2 ≠ 0 := λ k2_zero, by simpa [k2_zero] using pr,
+  rw [nat.mul_div_cancel_left k (nat.pos_of_ne_zero a_split), pr,
+    nat.mul_div_cancel_left k2 (nat.pos_of_ne_zero c_split), nat.mul_comm ((c + 1) * k2) k,
+    ←nat.mul_assoc k (c + 1) k2, nat.mul_div_cancel _ (nat.pos_of_ne_zero k2_nonzero),
+    nat.mul_div_cancel _ (nat.pos_of_ne_zero c_split)],
+end
+
 lemma pow_dvd_of_le_of_pow_dvd {p m n k : ℕ} (hmn : m ≤ n) (hdiv : p ^ n ∣ k) : p ^ m ∣ k :=
 have p ^ m ∣ p ^ n, from pow_dvd_pow _ hmn,
 dvd_trans this hdiv
@@ -1645,5 +1680,56 @@ lemma decreasing_induction_succ_left {P : ℕ → Sort*} (h : ∀n, P (n+1) → 
   (decreasing_induction h mn hP : P m) = h m (decreasing_induction h smn hP) :=
 by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_trans,
          decreasing_induction_succ'] }
+
+/-- `log b n`, is the logarithm of natural number
+`n` in base `b`. It returns the largest `k:ℕ` such that `b^k ≤ n`, so if `b^k = n`, it returns exactly `k`. -/
+def log (b : ℕ) : ℕ → ℕ
+| n :=
+  if h : b ≤ n ∧ 1 < b then
+    have n / b < n,
+      from div_lt_self
+        (nat.lt_of_lt_of_le (lt_trans zero_lt_one h.2) h.1) h.2,
+    log (n / b) + 1
+  else 0
+
+lemma pow_le_iff_le_log (x y : ℕ) {b} (hb : 1 < b) (hy : 1 ≤ y) :
+  b^x ≤ y ↔ x ≤ log b y :=
+begin
+  induction y using nat.strong_induction_on with y ih
+    generalizing x,
+  rw [log], split_ifs,
+  { have h'' : 0 < b := lt_of_le_of_lt (zero_le _) hb,
+    cases h with h₀ h₁,
+    rw [← nat.sub_le_right_iff_le_add,← ih (y / b),
+          le_div_iff_mul_le _ _ h'',← nat.pow_succ],
+    { cases x; simp [h₀,hy] },
+    { apply div_lt_self; assumption },
+    { rwa [le_div_iff_mul_le _ _ h'',one_mul], } },
+  { replace h := lt_of_not_ge (not_and'.1 h hb),
+    split; intros h',
+    { have := lt_of_le_of_lt h' h,
+      apply le_of_succ_le_succ,
+      change x < 1, rw [← pow_lt_iff_lt_right hb,pow_one],
+      exact this },
+    { replace h' := le_antisymm h' (zero_le _),
+      rw [h',nat.pow_zero], exact hy} },
+end
+
+lemma log_pow (b x : ℕ) (hb : 1 < b) : log b (b ^ x) = x :=
+eq_of_forall_le_iff $ λ z,
+by { rwa [← pow_le_iff_le_log _ _ hb,pow_le_iff_le_right],
+     rw ← nat.pow_zero b, apply pow_le_pow_of_le_right,
+     apply lt_of_le_of_lt (zero_le _) hb, apply zero_le }
+
+lemma pow_succ_log_gt_self (b x : ℕ) (hb : 1 < b) (hy : 1 ≤ x) :
+  x < b ^ succ (log b x) :=
+begin
+  apply lt_of_not_ge,
+  rw [(≥),pow_le_iff_le_log _ _ hb hy],
+  apply not_le_of_lt, apply lt_succ_self,
+end
+
+lemma pow_log_le_self (b x : ℕ) (hb : 1 < b) (hx : 1 ≤ x) : b ^ log b x ≤ x :=
+by rw [pow_le_iff_le_log _ _ hb hx]
 
 end nat

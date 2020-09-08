@@ -195,10 +195,23 @@ calc
   ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
   ... < ∥g∥ + r : by { apply add_lt_add_left, rw ← dist_eq_norm, exact H }
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
 metric.tendsto_nhds.trans $ by simp only [dist_zero_right]
+
+/-- A homomorphism `f` of normed groups is Lipschitz, if there exists a constant `C` such that for
+all `x`, one has `∥f x∥ ≤ C * ∥x∥`.
+The analogous condition for a linear map of normed spaces is in `normed_space.operator_norm`. -/
+lemma add_monoid_hom.lipschitz_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  lipschitz_with (nnreal.of_real C) f :=
+lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
+
+/-- A homomorphism `f` of normed groups is continuous, if there exists a constant `C` such that for
+all `x`, one has `∥f x∥ ≤ C * ∥x∥`.
+The analogous condition for a linear map of normed spaces is in `normed_space.operator_norm`. -/
+lemma add_monoid_hom.continuous_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  continuous f :=
+(f.lipschitz_of_bound C h).continuous
 
 section nnnorm
 
@@ -273,7 +286,7 @@ lemma antilipschitz_with.add_lipschitz_with {α : Type*} [metric_space α] {Kf :
 begin
   refine antilipschitz_with.of_le_mul_dist (λ x y, _),
   rw [nnreal.coe_inv, ← div_eq_inv_mul],
-  apply le_div_of_mul_le (nnreal.coe_pos.2 $ nnreal.sub_pos.2 hK),
+  rw le_div_iff (nnreal.coe_pos.2 $ nnreal.sub_pos.2 hK),
   rw [mul_comm, nnreal.coe_sub (le_of_lt hK), sub_mul],
   calc ↑Kf⁻¹ * dist x y - Kg * dist x y ≤ dist (f x) (f y) - dist (g x) (g y) :
     sub_le_sub (hf.mul_le_dist x y) (hg.dist_le_mul x y)
@@ -334,6 +347,25 @@ have tendsto f a (𝓝 0) ↔ tendsto (λ e, ∥ f e - 0 ∥) a (𝓝 0) :=
   tendsto_iff_norm_tendsto_zero,
 by simpa
 
+/-- Special case of the sandwich theorem: if the norm of `f` is eventually bounded by a real
+function `g` which tends to `0`, then `f` tends to `0`.
+In this pair of lemmas (`squeeze_zero_norm'` and `squeeze_zero_norm`), following a convention of
+similar lemmas in `topology.metric_space.basic` and `topology.algebra.ordered`, the `'` version is
+phrased using "eventually" and the non-`'` version is phrased absolutely. -/
+lemma squeeze_zero_norm' {f : γ → α} {g : γ → ℝ} {t₀ : filter γ}
+  (h : ∀ᶠ n in t₀, ∥f n∥ ≤ g n)
+  (h' : tendsto g t₀ (𝓝 0)) : tendsto f t₀ (𝓝 0) :=
+tendsto_zero_iff_norm_tendsto_zero.mpr
+  (squeeze_zero' (eventually_of_forall (λ n, norm_nonneg _)) h h')
+
+/-- Special case of the sandwich theorem: if the norm of `f` is bounded by a real function `g` which
+tends to `0`, then `f` tends to `0`.  -/
+lemma squeeze_zero_norm {f : γ → α} {g : γ → ℝ} {t₀ : filter γ}
+  (h : ∀ (n:γ), ∥f n∥ ≤ g n)
+  (h' : tendsto g t₀ (𝓝 0)) :
+  tendsto f t₀ (𝓝 0) :=
+squeeze_zero_norm' (eventually_of_forall h) h'
+
 lemma lim_norm (x : α) : (λg:α, ∥g - x∥) →_{x} 0 :=
 tendsto_iff_norm_tendsto_zero.1 (continuous_iff_continuous_at.1 continuous_id x)
 
@@ -385,7 +417,7 @@ begin
 end
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_top_monoid : topological_add_monoid α := by apply_instance -- short-circuit type class inference
+instance normed_top_monoid : has_continuous_add α := by apply_instance -- short-circuit type class inference
 @[priority 100] -- see Note [lower instance priority]
 instance normed_top_group : topological_add_group α := by apply_instance -- short-circuit type class inference
 
@@ -414,6 +446,27 @@ lemma norm_pow_le {α : Type*} [normed_ring α] (a : α) : ∀ {n : ℕ}, 0 < n 
            (mul_le_mul (le_refl _)
                        (norm_pow_le (nat.succ_pos _)) (norm_nonneg _) (norm_nonneg _))
 
+lemma eventually_norm_pow_le {α : Type*} [normed_ring α] (a : α) :
+  ∀ᶠ (n:ℕ) in at_top, ∥a ^ n∥ ≤ ∥a∥ ^ n :=
+begin
+  refine eventually_at_top.mpr ⟨1, _⟩,
+  intros b h,
+  exact norm_pow_le a (nat.succ_le_iff.mp h),
+end
+
+lemma units.norm_pos {α : Type*} [normed_ring α] [nontrivial α] (x : units α) : 0 < ∥(x:α)∥ :=
+norm_pos_iff.mpr (units.ne_zero x)
+
+/-- In a normed ring, the left-multiplication `add_monoid_hom` is bounded. -/
+lemma mul_left_bound {α : Type*} [normed_ring α] (x : α) :
+  ∀ (y:α), ∥add_monoid_hom.mul_left x y∥ ≤ ∥x∥ * ∥y∥ :=
+norm_mul_le x
+
+/-- In a normed ring, the right-multiplication `add_monoid_hom` is bounded. -/
+lemma mul_right_bound {α : Type*} [normed_ring α] (x : α) :
+  ∀ (y:α), ∥add_monoid_hom.mul_right x y∥ ≤ ∥x∥ * ∥y∥ :=
+λ y, by {rw mul_comm, convert norm_mul_le y x}
+
 /-- Normed ring structure on the product of two normed rings, using the sup norm. -/
 instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := assume x y,
@@ -430,7 +483,7 @@ instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α ×
 end normed_ring
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
+instance normed_ring_top_monoid [normed_ring α] : has_continuous_mul α :=
 ⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
     have ∀ e : α × α, e.fst * e.snd - x.fst * x.snd =
       e.fst * e.snd - e.fst * x.snd + (e.fst * x.snd - x.fst * x.snd), by intro; rw sub_add_sub_cancel,
@@ -555,8 +608,9 @@ let ⟨n, hle, hlt⟩ := exists_int_pow_near' hr hw in
 ⟨w^n, by { rw norm_fpow; exact fpow_pos_of_pos (lt_trans zero_lt_one hw) _},
 by rwa norm_fpow⟩
 
+@[instance]
 lemma punctured_nhds_ne_bot {α : Type*} [nondiscrete_normed_field α] (x : α) :
-  nhds_within x {x}ᶜ ≠ ⊥ :=
+  ne_bot (𝓝[{x}ᶜ] x) :=
 begin
   rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
   rintros ε ε0,
@@ -564,6 +618,11 @@ begin
   refine ⟨x + b, mt (set.mem_singleton_iff.trans add_right_eq_self).1 $ norm_pos_iff.1 hb0, _⟩,
   rwa [dist_comm, dist_eq_norm, add_sub_cancel'],
 end
+
+@[instance]
+lemma nhds_within_is_unit_ne_bot {α : Type*} [nondiscrete_normed_field α] :
+  ne_bot (𝓝[{x : α | is_unit x}] 0) :=
+by simpa only [is_unit_iff_ne_zero] using punctured_nhds_ne_bot (0:α)
 
 lemma tendsto_inv [normed_field α] {r : α} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
 begin
@@ -590,7 +649,7 @@ begin
   calc dist x⁻¹ r⁻¹ = ∥x⁻¹ - r⁻¹∥ : dist_eq_norm _ _
   ... ≤ ∥r-x∥ * ∥x∥⁻¹ * ∥r∥⁻¹ : by rw [this, norm_mul, norm_mul, norm_inv, norm_inv]
   ... ≤ (ε/2 * ∥r∥^2) * (2 * ∥r∥⁻¹) * (∥r∥⁻¹) : begin
-    apply_rules [mul_le_mul, inv_nonneg.2, le_of_lt A, norm_nonneg, inv_nonneg.2, mul_nonneg,
+    apply_rules [mul_le_mul, inv_nonneg.2, le_of_lt A, norm_nonneg, mul_nonneg,
                  (inv_le_inv norm_x_pos norm_r_pos).2, le_refl],
     show ∥r - x∥ ≤ ε / 2 * ∥r∥ ^ 2,
       by { rw [← dist_eq_norm, dist_comm], exact le_trans hx (min_le_left _ _) },
@@ -748,17 +807,6 @@ begin
         (tendsto_const_nhds.mul (tendsto_iff_norm_tendsto_zero.1 (continuous_snd.tendsto p))) }
 end
 
-/-- In a normed space over a nondiscrete normed field, only `⊤` submodule has a nonempty interior.
-See also `submodule.eq_top_of_nonempty_interior'` for a `topological_module` version.  -/
-lemma submodule.eq_top_of_nonempty_interior {α E : Type*} [nondiscrete_normed_field α]
-  [normed_group E] [normed_space α E] (s : submodule α E) (hs : (interior (s:set E)).nonempty) :
-  s = ⊤ :=
-begin
-  refine s.eq_top_of_nonempty_interior' _ hs,
-  simp only [is_unit_iff_ne_zero, @ne.def α, set.mem_singleton_iff.symm],
-  exact normed_field.punctured_nhds_ne_bot _
-end
-
 theorem closure_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
   closure (ball x r) = closed_ball x r :=
 begin
@@ -778,7 +826,7 @@ end
 theorem frontier_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
   frontier (ball x r) = sphere x r :=
 begin
-  rw [frontier, closure_ball x hr, interior_eq_of_open is_open_ball],
+  rw [frontier, closure_ball x hr, is_open_ball.interior_eq],
   ext x, exact (@eq_iff_le_not_lt ℝ _ _ _).symm
 end
 
@@ -801,7 +849,7 @@ begin
   simpa [f, dist_eq_norm, norm_smul] using hc
 end
 
-theorem interior_closed_ball' [normed_space ℝ E] (x : E) (r : ℝ) (hE : ∃ z : E, z ≠ 0) :
+theorem interior_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
   interior (closed_ball x r) = ball x r :=
 begin
   rcases lt_trichotomy r 0 with hr|rfl|hr,
@@ -812,7 +860,7 @@ begin
       obtain rfl : y = x := set.mem_singleton_iff.1 (interior_subset hy),
       exact this hy },
     rw [← set.mem_compl_iff, ← closure_compl],
-    rcases hE with ⟨z, hz⟩,
+    rcases exists_ne (0 : E) with ⟨z, hz⟩,
     suffices : (λ c : ℝ, x + c • z) 0 ∈ closure ({x}ᶜ : set E),
       by simpa only [zero_smul, add_zero] using this,
     have : (0:ℝ) ∈ closure (set.Ioi (0:ℝ)), by simp [closure_Ioi],
@@ -828,10 +876,9 @@ theorem frontier_closed_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r)
 by rw [frontier, closure_closed_ball, interior_closed_ball x hr,
   closed_ball_diff_ball]
 
-theorem frontier_closed_ball' [normed_space ℝ E] (x : E) (r : ℝ) (hE : ∃ z : E, z ≠ 0) :
+theorem frontier_closed_ball' [normed_space ℝ E] [nontrivial E] (x : E) (r : ℝ) :
   frontier (closed_ball x r) = sphere x r :=
-by rw [frontier, closure_closed_ball, interior_closed_ball' x r hE,
-  closed_ball_diff_ball]
+by rw [frontier, closure_closed_ball, interior_closed_ball' x r, closed_ball_diff_ball]
 
 open normed_field
 
@@ -841,7 +888,7 @@ up in applications. -/
 lemma rescale_to_shell {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E} (hx : x ≠ 0) :
   ∃d:α, d ≠ 0 ∧ ∥d • x∥ ≤ ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
 begin
-  have xεpos : 0 < ∥x∥/ε := div_pos_of_pos_of_pos (norm_pos_iff.2 hx) εpos,
+  have xεpos : 0 < ∥x∥/ε := div_pos (norm_pos_iff.2 hx) εpos,
   rcases exists_int_pow_near xεpos hc with ⟨n, hn⟩,
   have cpos : 0 < ∥c∥ := lt_trans (zero_lt_one : (0 :ℝ) < 1) hc,
   have cnpos : 0 < ∥c^(n+1)∥ := by { rw norm_fpow, exact lt_trans xεpos hn.2 },
@@ -901,45 +948,87 @@ end prio
   [h : normed_algebra 𝕜 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥ = ∥x∥ :=
 normed_algebra.norm_algebra_map_eq _
 
+variables (𝕜 : Type*) [normed_field 𝕜]
+variables (𝕜' : Type*) [normed_ring 𝕜']
+
 @[priority 100]
-instance normed_algebra.to_normed_space (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
-  [h : normed_algebra 𝕜 𝕜'] : normed_space 𝕜 𝕜' :=
+instance normed_algebra.to_normed_space [h : normed_algebra 𝕜 𝕜'] : normed_space 𝕜 𝕜' :=
 { norm_smul_le := λ s x, calc
     ∥s • x∥ = ∥((algebra_map 𝕜 𝕜') s) * x∥ : by { rw h.smul_def', refl }
     ... ≤ ∥algebra_map 𝕜 𝕜' s∥ * ∥x∥ : normed_ring.norm_mul _ _
     ... = ∥s∥ * ∥x∥ : by rw norm_algebra_map_eq,
   ..h }
 
-instance normed_algebra.id (𝕜 : Type*) [normed_field 𝕜] : normed_algebra 𝕜 𝕜 :=
+instance normed_algebra.id : normed_algebra 𝕜 𝕜 :=
 { norm_algebra_map_eq := by simp,
 .. algebra.id 𝕜}
+
+variables {𝕜'} [normed_algebra 𝕜 𝕜']
+include 𝕜
+
+@[simp] lemma normed_algebra.norm_one : ∥(1:𝕜')∥ = 1 :=
+by simpa using (norm_algebra_map_eq 𝕜' (1:𝕜))
+
+lemma normed_algebra.zero_ne_one : (0:𝕜') ≠ 1 :=
+begin
+  refine (norm_pos_iff.mp _).symm,
+  rw @normed_algebra.norm_one 𝕜, norm_num,
+end
+
+lemma normed_algebra.to_nonzero : nontrivial 𝕜' :=
+⟨⟨0, 1, normed_algebra.zero_ne_one 𝕜⟩⟩
 
 end normed_algebra
 
 section restrict_scalars
 
 variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-{E : Type*} [normed_group E] [normed_space 𝕜' E]
+(E : Type*) [normed_group E] [normed_space 𝕜' E]
 
 /-- `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
-normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred. -/
--- We could add a type synonym equipped with this as an instance,
--- as we've done for `module.restrict_scalars`.
-def normed_space.restrict_scalars : normed_space 𝕜 E :=
+normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred.
+
+The type synonym `semimodule.restrict_scalars 𝕜 𝕜' E` will be endowed with this instance by default.
+-/
+def normed_space.restrict_scalars' : normed_space 𝕜 E :=
 { norm_smul_le := λc x, le_of_eq $ begin
     change ∥(algebra_map 𝕜 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
     simp [norm_smul]
   end,
-  ..module.restrict_scalars' 𝕜 𝕜' E }
+  ..semimodule.restrict_scalars' 𝕜 𝕜' E }
+
+instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : normed_group E] :
+  normed_group (semimodule.restrict_scalars 𝕜 𝕜' E) := I
+
+instance semimodule.restrict_scalars.normed_space_orig {𝕜 : Type*} {𝕜' : Type*} {E : Type*}
+  [normed_field 𝕜'] [normed_group E] [I : normed_space 𝕜' E] :
+  normed_space 𝕜' (semimodule.restrict_scalars 𝕜 𝕜' E) := I
+
+instance : normed_space 𝕜 (semimodule.restrict_scalars 𝕜 𝕜' E) :=
+(normed_space.restrict_scalars' 𝕜 𝕜' E : normed_space 𝕜 E)
 
 end restrict_scalars
 
 section summable
 open_locale classical
 open finset filter
-variables [normed_group α]
+variables [normed_group α] [normed_group β]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
+-- Applying a bounded homomorphism commutes with taking an (infinite) sum.
+lemma has_sum_of_bounded_monoid_hom_of_has_sum
+  {f : ι → α} {φ : α →+ β} {x : α} (hf : has_sum f x) (C : ℝ) (hφ : ∀x, ∥φ x∥ ≤ C * ∥x∥) :
+  has_sum (λ (b:ι), φ (f b)) (φ x) :=
+begin
+  unfold has_sum,
+  convert (φ.continuous_of_bound C hφ).continuous_at.tendsto.comp hf,
+  ext s, rw [function.comp_app, finset.sum_hom s φ],
+end
+
+lemma has_sum_of_bounded_monoid_hom_of_summable
+  {f : ι → α} {φ : α →+ β} (hf : summable f) (C : ℝ) (hφ : ∀x, ∥φ x∥ ≤ C * ∥x∥) :
+  has_sum (λ (b:ι), φ (f b)) (φ (∑'b, f b)) :=
+has_sum_of_bounded_monoid_hom_of_has_sum hf.has_sum C hφ
+
 lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → α} :
   cauchy_seq (λ s : finset ι, ∑ i in s, f i) ↔ ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
 begin
@@ -953,7 +1042,6 @@ begin
     exact ht u hu }
 end
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma summable_iff_vanishing_norm [complete_space α] {f : ι → α} :
   summable f ↔ ∀ε > (0 : ℝ), ∃s:finset ι, ∀t, disjoint t s → ∥ ∑ i in t, f i ∥ < ε :=
 by rw [summable_iff_cauchy_seq_finset, cauchy_seq_finset_iff_vanishing_norm]
@@ -976,10 +1064,10 @@ cauchy_seq_finset_of_norm_bounded _ hf (assume i, le_refl _)
 its sum is converging to a limit `a`, then this holds along all finsets, i.e., `f` is summable
 with sum `a`. -/
 lemma has_sum_of_subseq_of_summable {f : ι → α} (hf : summable (λa, ∥f a∥))
-  {s : β → finset ι} {p : filter β} (hp : p ≠ ⊥)
+  {s : γ → finset ι} {p : filter γ} [ne_bot p]
   (hs : tendsto s p at_top) {a : α} (ha : tendsto (λ b, ∑ i in s b, f i) p (𝓝 a)) :
   has_sum f a :=
-tendsto_nhds_of_cauchy_seq_of_subseq (cauchy_seq_finset_of_summable_norm hf) hp hs ha
+tendsto_nhds_of_cauchy_seq_of_subseq (cauchy_seq_finset_of_summable_norm hf) hs ha
 
 /-- If `∑' i, ∥f i∥` is summable, then `∥(∑' i, f i)∥ ≤ (∑' i, ∥f i∥)`. Note that we do not assume
 that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete space. -/
@@ -991,7 +1079,7 @@ begin
       (continuous_norm.tendsto _).comp h.has_sum,
     have h₂ : tendsto (λs:finset ι, ∑ i in s, ∥f i∥) at_top (𝓝 (∑' i, ∥f i∥)) :=
       hf.has_sum,
-    exact le_of_tendsto_of_tendsto' at_top_ne_bot h₁ h₂ (assume s, norm_sum_le _ _) },
+    exact le_of_tendsto_of_tendsto' h₁ h₂ (assume s, norm_sum_le _ _) },
   { rw tsum_eq_zero_of_not_summable h,
     simp [tsum_nonneg] }
 end
@@ -999,13 +1087,47 @@ end
 lemma has_sum_iff_tendsto_nat_of_summable_norm {f : ℕ → α} {a : α} (hf : summable (λi, ∥f i∥)) :
   has_sum f a ↔ tendsto (λn:ℕ, ∑ i in range n, f i) at_top (𝓝 a) :=
 ⟨λ h, h.tendsto_sum_nat,
-λ h, has_sum_of_subseq_of_summable hf at_top_ne_bot tendsto_finset_range h⟩
+λ h, has_sum_of_subseq_of_summable hf tendsto_finset_range h⟩
+
+/-- The direct comparison test for series:  if the norm of `f` is bounded by a real function `g`
+which is summable, then `f` is summable. -/
+lemma summable_of_norm_bounded
+  [complete_space α] {f : ι → α} (g : ι → ℝ) (hg : summable g) (h : ∀i, ∥f i∥ ≤ g i) :
+  summable f :=
+by { rw summable_iff_cauchy_seq_finset, exact cauchy_seq_finset_of_norm_bounded g hg h }
+
+/-- Quantitative result associated to the direct comparison test for series:  If `∑' i, g i` is
+summable, and for all `i`, `∥f i∥ ≤ g i`, then `∥(∑' i, f i)∥ ≤ (∑' i, g i)`. Note that we do not
+assume that `∑' i, f i` is summable, and it might not be the case if `α` is not a complete space. -/
+lemma tsum_of_norm_bounded {f : ι → α} {g : ι → ℝ} {a : ℝ} (hg : has_sum g a) (h : ∀i, ∥f i∥ ≤ g i) :
+  ∥(∑' (i:ι), f i)∥ ≤ a :=
+begin
+  have h' : summable (λ (i : ι), ∥f i∥),
+  { let f' : ι → ℝ := λ i, ∥f i∥,
+    have h'' : ∀ i, ∥f' i∥ ≤ g i,
+    { intros i,
+      convert h i,
+      simp },
+    simpa [f'] using summable_of_norm_bounded g hg.summable h'' },
+  have h1 : ∥(∑' (i:ι), f i)∥ ≤ ∑' (i:ι), ∥f i∥ := by simpa using norm_tsum_le_tsum_norm h',
+  have h2 := tsum_le_tsum h h' hg.summable,
+  have h3 : a = ∑' (i:ι), g i := (has_sum.tsum_eq hg).symm,
+  linarith
+end
 
 variable [complete_space α]
 
-lemma summable_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hg : summable g) (h : ∀i, ∥f i∥ ≤ g i) :
-  summable f :=
-by { rw summable_iff_cauchy_seq_finset, exact cauchy_seq_finset_of_norm_bounded g hg h }
+/-- Variant of the direct comparison test for series:  if the norm of `f` is eventually bounded by a
+real function `g` which is summable, then `f` is summable. -/
+lemma summable_of_norm_bounded_eventually {f : ι → α} (g : ι → ℝ) (hg : summable g)
+  (h : ∀ᶠ i in cofinite, ∥f i∥ ≤ g i) : summable f :=
+begin
+  replace h := mem_cofinite.1 h,
+  refine h.summable_compl_iff.mp _,
+  refine summable_of_norm_bounded _ (h.summable_compl_iff.mpr hg) _,
+  rintros ⟨a, h'⟩,
+  simpa using h'
+end
 
 lemma summable_of_nnnorm_bounded {f : ι → α} (g : ι → nnreal) (hg : summable g)
   (h : ∀i, nnnorm (f i) ≤ g i) : summable f :=

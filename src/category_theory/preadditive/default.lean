@@ -5,7 +5,7 @@ Authors: Markus Himmel
 -/
 import algebra.group.hom
 import category_theory.limits.shapes.kernels
-import algebra.big_operators
+import algebra.big_operators.basic
 
 /-!
 # Preadditive categories

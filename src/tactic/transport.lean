@@ -123,6 +123,12 @@ do
   e ← to_expr e,
   tactic.transport s e
 
+add_tactic_doc
+{ name        := "transport",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.transport],
+  tags        := ["rewriting", "equiv", "transport"] }
+
 end interactive
 
 end tactic

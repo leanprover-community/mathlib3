@@ -81,7 +81,7 @@ begin
   have : (λz, z + edist x y) (Inf (edist y '' s)) = Inf ((λz, z + edist x y) '' (edist y '' s)),
   { refine map_Inf_of_continuous_at_of_monotone _ _ (by simp),
     { exact continuous_at_id.add continuous_at_const },
-    { assume a b h, simp, apply add_le_add_right' h }},
+    { assume a b h, simp, apply add_le_add_right h _ }},
   simp only [inf_edist] at this,
   rw [inf_edist, inf_edist, this, ← image_comp],
   simpa only [and_imp, function.comp_app, le_Inf_iff, exists_imp_distrib, ball_image_iff]
@@ -211,7 +211,7 @@ exists_edist_lt_of_inf_edist_lt $ calc
   ... ≤ Sup ((λx, inf_edist x t) '' s) ⊔ Sup ((λx, inf_edist x s) '' t) : le_sup_left
   ... < r : by rwa Hausdorff_edist_def at H
 
-/-- The distance from `x` to `s`or `t` is controlled in terms of the Hausdorff distance
+/-- The distance from `x` to `s` or `t` is controlled in terms of the Hausdorff distance
 between `s` and `t` -/
 lemma inf_edist_le_inf_edist_add_Hausdorff_edist :
   inf_edist x t ≤ inf_edist x s + Hausdorff_edist s t :=
@@ -281,11 +281,11 @@ begin
   show ∀x ∈ s, inf_edist x u ≤ Hausdorff_edist s t + Hausdorff_edist t u, from λx xs, calc
     inf_edist x u ≤ inf_edist x t + Hausdorff_edist t u : inf_edist_le_inf_edist_add_Hausdorff_edist
     ... ≤ Hausdorff_edist s t + Hausdorff_edist t u :
-      add_le_add_right' (inf_edist_le_Hausdorff_edist_of_mem  xs),
+      add_le_add_right (inf_edist_le_Hausdorff_edist_of_mem  xs) _,
   show ∀x ∈ u, inf_edist x s ≤ Hausdorff_edist s t + Hausdorff_edist t u, from λx xu, calc
     inf_edist x s ≤ inf_edist x t + Hausdorff_edist t s : inf_edist_le_inf_edist_add_Hausdorff_edist
     ... ≤ Hausdorff_edist u t + Hausdorff_edist t s :
-      add_le_add_right' (inf_edist_le_Hausdorff_edist_of_mem xu)
+      add_le_add_right (inf_edist_le_Hausdorff_edist_of_mem xu) _
     ... = Hausdorff_edist s t + Hausdorff_edist t u : by simp [Hausdorff_edist_comm, add_comm]
 end
 
@@ -548,7 +548,7 @@ by simp [Hausdorff_dist_comm]
 
 /-- Bounding the Hausdorff distance by bounding the distance of any point
 in each set to the other set -/
-lemma Hausdorff_dist_le_of_inf_dist {r : ℝ} (hr : r ≥ 0)
+lemma Hausdorff_dist_le_of_inf_dist {r : ℝ} (hr : 0 ≤ r)
   (H1 : ∀x ∈ s, inf_dist x t ≤ r) (H2 : ∀x ∈ t, inf_dist x s ≤ r) :
   Hausdorff_dist s t ≤ r :=
 begin

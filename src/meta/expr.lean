@@ -19,6 +19,9 @@ expr, name, declaration, level, environment, meta, metaprogramming, tactic
 
 attribute [derive has_reflect, derive decidable_eq] binder_info congr_arg_kind
 
+@[priority 100] meta instance has_reflect.has_to_pexpr {α} [has_reflect α] : has_to_pexpr α :=
+⟨λ b, pexpr.of_expr (reflect b)⟩
+
 namespace binder_info
 
 /-! ### Declarations about `binder_info` -/
@@ -283,6 +286,20 @@ end expr
 namespace expr
 open tactic
 
+/-- List of names removed by `clean`. All these names must resolve to functions defeq `id`. -/
+meta def clean_ids : list name :=
+[``id, ``id_rhs, ``id_delta, ``hidden]
+
+/-- Clean an expression by removing `id`s listed in `clean_ids`. -/
+meta def clean (e : expr) : expr :=
+e.replace (λ e n,
+     match e with
+     | (app (app (const n _) _) e') :=
+       if n ∈ clean_ids then some e' else none
+     | (app (lam _ _ _ (var 0)) e') := some e'
+     | _ := none
+     end)
+
 /-- `replace_with e s s'` replaces ocurrences of `s` with `s'` in `e`. -/
 meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
 e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
@@ -295,6 +312,62 @@ e.replace $ λ e d,
   | _ := none
   end
 
+/-- Match a variable. -/
+meta def match_var {elab} : expr elab → option ℕ
+| (var n) := some n
+| _ := none
+
+/-- Match a sort. -/
+meta def match_sort {elab} : expr elab → option level
+| (sort u) := some u
+| _ := none
+
+/-- Match a constant. -/
+meta def match_const {elab} : expr elab → option (name × list level)
+| (const n lvls) := some (n, lvls)
+| _ := none
+
+/-- Match a metavariable. -/
+meta def match_mvar {elab} : expr elab →
+  option (name × name × expr elab)
+| (mvar unique pretty type) := some (unique, pretty, type)
+| _ := none
+
+/-- Match a local constant. -/
+meta def match_local_const {elab} : expr elab →
+  option (name × name × binder_info × expr elab)
+| (local_const unique pretty bi type) := some (unique, pretty, bi, type)
+| _ := none
+
+/-- Match an application. -/
+meta def match_app {elab} : expr elab → option (expr elab × expr elab)
+| (app t u) := some (t, u)
+| _ := none
+
+/-- Match an abstraction. -/
+meta def match_lam {elab} : expr elab →
+  option (name × binder_info × expr elab × expr elab)
+| (lam var_name bi type body) := some (var_name, bi, type, body)
+| _ := none
+
+/-- Match a Π type. -/
+meta def match_pi {elab} : expr elab →
+  option (name × binder_info × expr elab × expr elab)
+| (pi var_name bi type body) := some (var_name, bi, type, body)
+| _ := none
+
+/-- Match a let. -/
+meta def match_elet {elab} : expr elab →
+  option (name × expr elab × expr elab × expr elab)
+| (elet var_name type assignment body) := some (var_name, type, assignment, body)
+| _ := none
+
+/-- Match a macro. -/
+meta def match_macro {elab} : expr elab →
+  option (macro_def × list (expr elab))
+| (macro df args) := some (df, args)
+| _ := none
+
 /-- Tests whether an expression is a meta-variable. -/
 meta def is_mvar : expr → bool
 | (mvar _ _ _) := tt
@@ -304,6 +377,18 @@ meta def is_mvar : expr → bool
 meta def is_sort : expr → bool
 | (sort _) := tt
 | e         := ff
+
+/-- Get the universe levels of a `const` expression -/
+meta def univ_levels : expr → list level
+| (const n ls) := ls
+| _            := []
+
+/--
+Replace any metavariables in the expression with underscores, in preparation for printing
+`refine ...` statements.
+-/
+meta def replace_mvars (e : expr) : expr :=
+e.replace (λ e' _, if e'.is_mvar then some (unchecked_cast pexpr.mk_placeholder) else none)
 
 /-- If `e` is a local constant, `to_implicit_local_const e` changes the binder info of `e` to
  `implicit`. See also `to_implicit_binder`, which also changes lambdas and pis. -/
@@ -364,6 +449,12 @@ meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : b
 e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
 
 /--
+Returns true if `e` contains a `sorry`.
+-/
+meta def contains_sorry (e : expr) : bool :=
+e.fold ff (λ e' _ b, if (is_sorry e').is_some then tt else b)
+
+/--
 `app_symbol_in e l` returns true iff `e` is an application of a constant whose name is in `l`.
 -/
 meta def app_symbol_in (e : expr) (l : list name) : bool :=
@@ -401,16 +492,6 @@ meta def dsimp (t : expr)
 do (s, to_unfold) ← mk_simp_set no_defaults attr_names hs,
    s.dsimplify to_unfold t cfg
 
-/-- Auxilliary definition for `expr.pi_arity` -/
-meta def pi_arity_aux : ℕ → expr → ℕ
-| n (pi _ _ _ b) := pi_arity_aux (n + 1) b
-| n e            := n
-
-/-- The arity of a pi-type. Does not perform any reduction of the expression.
-  In one application this was ~30 times quicker than `tactic.get_pi_arity`. -/
-meta def pi_arity : expr → ℕ :=
-pi_arity_aux 0
-
 /-- Get the names of the bound variables by a sequence of pis or lambdas. -/
 meta def binding_names : expr → list name
 | (pi n _ _ e)  := n :: e.binding_names
@@ -432,10 +513,15 @@ meta def instantiate_lambdas : list expr → expr → expr
 | (e'::es) (lam n bi t e) := instantiate_lambdas es (e.instantiate_var e')
 | _        e              := e
 
+/-- Repeatedly apply `expr.subst`. -/
+meta def substs : expr → list expr → expr | e es := es.foldl expr.subst e
+
 /-- `instantiate_lambdas_or_apps es e` instantiates lambdas in `e` by expressions from `es`.
 If the length of `es` is larger than the number of lambdas in `e`,
 then the term is applied to the remaining terms.
-Also reduces head let-expressions in `e`, including those after instantiating all lambdas. -/
+Also reduces head let-expressions in `e`, including those after instantiating all lambdas.
+
+This is very similar to `expr.substs`, but this also reduces head let-expressions. -/
 meta def instantiate_lambdas_or_apps : list expr → expr → expr
 | (v::es) (lam n bi t b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
 | es      (elet _ _ v b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
@@ -607,11 +693,6 @@ end expr
 
 namespace environment
 
-/-- Tests whether a name is declared in the current file. Fixes an error in `in_current_file`
-  which returns `tt` for the four names `quot, quot.mk, quot.lift, quot.ind` -/
-meta def in_current_file' (env : environment) (n : name) : bool :=
-env.in_current_file n && (n ∉ [``quot, ``quot.mk, ``quot.lift, ``quot.ind])
-
 /-- Tests whether `n` is a structure. -/
 meta def is_structure (env : environment) (n : name) : bool :=
 (env.structure_fields n).is_some
@@ -712,7 +793,7 @@ meta def is_eta_expansion_test : list (name × expr) → option expr
 /-- `is_eta_expansion_aux val l` checks whether `val` can be eta-reduced to an expression `e`.
   Here `l` is intended to consists of the projections and the fields of `val`.
   This tactic calls `is_eta_expansion_test l`, but first removes all proofs from the list `l` and
-  afterward checks whether the retulting expression `e` unifies with `val`.
+  afterward checks whether the resulting expression `e` unifies with `val`.
   This last check is necessary, because `val` and `e` might have different types. -/
 meta def is_eta_expansion_aux (val : expr) (l : list (name × expr)) : tactic (option expr) :=
 do l' ← l.mfilter (λ⟨proj, val⟩, bnot <$> is_proof val),
@@ -757,10 +838,10 @@ let decl := decl.update_type $ decl.type.apply_replacement_fun f in
 decl.update_value $ decl.value.apply_replacement_fun f
 
 /-- Checks whether the declaration is declared in the current file.
-  This is a simple wrapper around `environment.in_current_file'`
-  Use `environment.in_current_file'` instead if performance matters. -/
+  This is a simple wrapper around `environment.in_current_file`
+  Use `environment.in_current_file` instead if performance matters. -/
 meta def in_current_file (d : declaration) : tactic bool :=
-do e ← get_env, return $ e.in_current_file' d.to_name
+do e ← get_env, return $ e.in_current_file d.to_name
 
 /-- Checks whether a declaration is a theorem -/
 meta def is_theorem : declaration → bool
@@ -805,6 +886,39 @@ d.univ_params.map level.param
 protected meta def reducibility_hints : declaration → reducibility_hints
 | (declaration.defn _ _ _ _ red _) := red
 | _ := _root_.reducibility_hints.opaque
+
+/-- formats the arguments of a `declaration.thm` -/
+private meta def print_thm (nm : name) (tp : expr) (body : task expr) : tactic format :=
+do tp ← pp tp, body ← pp body.get,
+   return $ "<theorem " ++ to_fmt nm ++ " : " ++ tp ++ " := " ++ body ++ ">"
+
+/-- formats the arguments of a `declaration.defn` -/
+private meta def print_defn (nm : name) (tp : expr) (body : expr) (is_trusted : bool) :
+  tactic format :=
+do tp ← pp tp, body ← pp body,
+   return $ "<" ++ (if is_trusted then "def " else "meta def ") ++ to_fmt nm ++ " : " ++ tp ++ " := "
+     ++ body ++ ">"
+
+/-- formats the arguments of a `declaration.cnst` -/
+private meta def print_cnst (nm : name) (tp : expr) (is_trusted : bool) : tactic format :=
+do tp ← pp tp,
+   return $ "<" ++ (if is_trusted then "constant " else "meta constant ") ++ to_fmt nm ++ " : "
+     ++ tp ++ ">"
+
+/-- formats the arguments of a `declaration.ax` -/
+private meta def print_ax (nm : name) (tp : expr) : tactic format :=
+do tp ← pp tp,
+   return $ "<axiom " ++ to_fmt nm ++ " : " ++ tp ++ ">"
+
+/-- pretty-prints a `declaration` object. -/
+meta def to_tactic_format : declaration → tactic format
+| (declaration.thm nm _ tp bd) := print_thm nm tp bd
+| (declaration.defn nm _ tp bd _ is_trusted) := print_defn nm tp bd is_trusted
+| (declaration.cnst nm _ tp is_trusted) := print_cnst nm tp is_trusted
+| (declaration.ax nm _ tp) := print_ax nm tp
+
+meta instance : has_to_tactic_format declaration :=
+⟨to_tactic_format⟩
 
 end declaration
 

@@ -7,6 +7,7 @@ import algebra.order
 import data.fintype.basic
 import data.pfun
 import tactic.apply_fun
+import logic.function.iterate
 
 /-!
 # Turing machines
@@ -1277,7 +1278,7 @@ end
 theorem tr_eval (l : list Γ) : TM0.eval tr l = TM1.eval M l :=
 (congr_arg _ (tr_eval' _ _ _ tr_respects ⟨some _, _, _⟩)).trans begin
   rw [roption.map_eq_map, roption.map_map, TM1.eval],
-  congr', ext ⟨⟩, refl
+  congr' with ⟨⟩, refl
 end
 
 variables [fintype σ]

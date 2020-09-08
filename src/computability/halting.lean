@@ -181,7 +181,7 @@ begin
   simp at e,
   by_cases eval c ∈ C,
   { simp [h] at e, rwa ← e },
-  { simp at h, simp [h] at e,
+  { simp [h] at e,
     rw e at h, contradiction }
 end
 

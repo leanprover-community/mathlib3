@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Ken Lee, Chris Hughes
 -/
 import tactic.ring
-import algebra.big_operators
+import algebra.big_operators.basic
 import data.fintype.basic
 import data.int.gcd
 import data.set.disjointed

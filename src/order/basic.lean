@@ -3,7 +3,9 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
-import data.set.basic
+import data.subtype
+import data.prod
+
 open function
 
 /-!
@@ -44,6 +46,9 @@ open function
 - expand module docs
 - automatic construction of dual definitions / theorems
 
+## See also
+- `algebra.order` for basic lemmas about orders, and projection notation for orders
+
 ## Tags
 
 preorder, order, partial order, linear order, monotone, strictly monotone
@@ -51,10 +56,6 @@ preorder, order, partial order, linear order, monotone, strictly monotone
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
-
-@[nolint ge_or_gt] -- see Note [nolint_ge]
-theorem ge_of_eq [preorder α] {a b : α} : a = b → a ≥ b :=
-λ h, h ▸ le_refl a
 
 theorem preorder.ext {α} {A B : preorder α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
@@ -76,9 +77,9 @@ theorem linear_order.ext {α} {A B : linear_order α}
 by { haveI this := partial_order.ext H,
      casesI A, casesI B, injection this, congr' }
 
-/-- Given an order `R` on `β` and a function `f : α → β`,
-  the preimage order on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
-  It is the unique order on `α` making `f` an order embedding
+/-- Given a relation `R` on `β` and a function `f : α → β`,
+  the preimage relation on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
+  It is the unique relation on `α` making `f` a `rel_embedding`
   (assuming `f` is injective). -/
 @[simp] def order.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) := s (f x) (f y)
 
@@ -175,10 +176,17 @@ lemma le_iff_le (H : strict_mono f) {a b} :
   f a ≤ f b ↔ a ≤ b :=
 ⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H h') h,
  λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H h')) (λ h', h' ▸ le_refl _)⟩
+
+lemma top_preimage_top (H : strict_mono f) {a} (h_top : ∀ p, p ≤ f a) (x : α) : x ≤ a :=
+H.le_iff_le.mp (h_top (f x))
+
+lemma bot_preimage_bot (H : strict_mono f) {a} (h_bot : ∀ p, f a ≤ p) (x : α) : a ≤ x :=
+H.le_iff_le.mp (h_bot (f x))
+
 end
 
 protected lemma nat {β} [preorder β] {f : ℕ → β} (h : ∀n, f n < f (n+1)) : strict_mono f :=
-by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact lt.trans ih (h _) }
+by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact ih.trans (h _) }
 
 -- `preorder α` isn't strong enough: if the preorder on α is an equivalence relation,
 -- then `strict_mono f` is vacuously true.
@@ -201,15 +209,17 @@ begin
     apply h _ _ k }
 end
 
-variables [partial_order α] [partial_order β] {f : α → β}
-
-lemma strict_mono_of_monotone_of_injective (h₁ : monotone f) (h₂ : injective f) :
-  strict_mono f :=
+lemma strict_mono_of_monotone_of_injective [partial_order α] [partial_order β] {f : α → β}
+  (h₁ : monotone f) (h₂ : injective f) : strict_mono f :=
 λ a b h,
 begin
   rw lt_iff_le_and_ne at ⊢ h,
   exact ⟨h₁ h.1, λ e, h.2 (h₂ e)⟩
 end
+
+lemma strict_mono_of_le_iff_le [preorder α] [preorder β] {f : α → β}
+  (h : ∀ x y, x ≤ y ↔ f x ≤ f y) : strict_mono f :=
+λ a b, by simp [lt_iff_le_not_le, h] {contextual := tt}
 
 end
 
@@ -232,7 +242,7 @@ lemma dual_lt [has_lt α] {a b : α} :
 
 instance (α : Type*) [preorder α] : preorder (order_dual α) :=
 { le_refl  := le_refl,
-  le_trans := assume a b c hab hbc, le_trans hbc hab,
+  le_trans := assume a b c hab hbc, hbc.trans hab,
   lt_iff_le_not_le := λ _ _, lt_iff_le_not_le,
   .. order_dual.has_le α,
   .. order_dual.has_lt α }
@@ -360,6 +370,10 @@ class no_top_order (α : Type u) [preorder α] : Prop :=
 lemma no_top [preorder α] [no_top_order α] : ∀a:α, ∃a', a < a' :=
 no_top_order.no_top
 
+instance nonempty_gt {α : Type u} [preorder α] [no_top_order α] (a : α) :
+  nonempty {x // a < x} :=
+nonempty_subtype.2 (no_top a)
+
 /-- order without a bottom element; somtimes called coinitial or dense -/
 class no_bot_order (α : Type u) [preorder α] : Prop :=
 (no_bot : ∀a:α, ∃a', a' < a)
@@ -374,6 +388,10 @@ instance order_dual.no_top_order (α : Type u) [preorder α] [no_bot_order α] :
 instance order_dual.no_bot_order (α : Type u) [preorder α] [no_top_order α] :
   no_bot_order (order_dual α) :=
 ⟨λ a, @no_top α _ _ a⟩
+
+instance nonempty_lt {α : Type u} [preorder α] [no_bot_order α] (a : α) :
+  nonempty {x // x < a} :=
+nonempty_subtype.2 (no_bot a)
 
 /-- An order is dense if there is an element between any pair of distinct elements. -/
 class densely_ordered (α : Type u) [preorder α] : Prop :=
@@ -398,20 +416,19 @@ lemma eq_of_le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a�
 le_antisymm (le_of_forall_le_of_dense h₂) h₁
 
 lemma le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
-  (h : ∀a₃<a₁, a₂ ≥ a₃) :
+  (h : ∀a₃<a₁, a₃ ≤ a₂) :
   a₁ ≤ a₂ :=
 le_of_not_gt $ assume ha,
   let ⟨a, ha₁, ha₂⟩ := dense ha in
   lt_irrefl a $ lt_of_le_of_lt (h _ ‹a < a₁›) ‹a₂ < a›
 
 lemma eq_of_le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α}
-  (h₁ : a₂ ≤ a₁) (h₂ : ∀a₃<a₁, a₂ ≥ a₃) : a₁ = a₂ :=
+  (h₁ : a₂ ≤ a₁) (h₂ : ∀a₃<a₁, a₃ ≤ a₂) : a₁ = a₂ :=
 le_antisymm (le_of_forall_ge_of_dense h₂) h₁
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma dense_or_discrete [linear_order α] (a₁ a₂ : α) :
-  (∃a, a₁ < a ∧ a < a₂) ∨ ((∀a>a₁, a ≥ a₂) ∧ (∀a<a₂, a ≤ a₁)) :=
-classical.or_iff_not_imp_left.2 $ assume h,
+  (∃a, a₁ < a ∧ a < a₂) ∨ ((∀a>a₁, a₂ ≤ a) ∧ (∀a<a₂, a ≤ a₁)) :=
+or_iff_not_imp_left.2 $ assume h,
   ⟨assume a ha₁, le_of_not_gt $ assume ha₂, h ⟨a, ha₁, ha₂⟩,
     assume a ha₂, le_of_not_gt $ assume ha₁, h ⟨a, ha₁, ha₂⟩⟩
 
@@ -421,48 +438,3 @@ variables {s : β → β → Prop} {t : γ → γ → Prop}
 as an instance to avoid a loop. -/
 noncomputable def classical.DLO (α) [LO : linear_order α] : decidable_linear_order α :=
 { decidable_le := classical.dec_rel _, ..LO }
-
-variable (r)
-local infix ` ≼ ` : 50 := r
-
-/-- A family of elements of α is directed (with respect to a relation `≼` on α)
-  if there is a member of the family `≼`-above any pair in the family.  -/
-def directed {ι : Sort v} (f : ι → α) := ∀x y, ∃z, f x ≼ f z ∧ f y ≼ f z
-
-/-- A subset of α is directed if there is an element of the set `≼`-above any
-  pair of elements in the set. -/
-def directed_on (s : set α) := ∀ (x ∈ s) (y ∈ s), ∃z ∈ s, x ≼ z ∧ y ≼ z
-
-theorem directed_on_iff_directed {s} : @directed_on α r s ↔ directed r (coe : s → α) :=
-by simp [directed, directed_on]; refine ball_congr (λ x hx, by simp; refl)
-
-theorem directed_on_image {s} {f : β → α} :
-  directed_on r (f '' s) ↔ directed_on (f ⁻¹'o r) s :=
-by simp only [directed_on, set.ball_image_iff, set.bex_image_iff, order.preimage]
-
-theorem directed_on.mono {s : set α} (h : directed_on r s)
-  {r' : α → α → Prop} (H : ∀ {a b}, r a b → r' a b) :
-  directed_on r' s :=
-λ x hx y hy, let ⟨z, zs, xz, yz⟩ := h x hx y hy in ⟨z, zs, H xz, H yz⟩
-
-theorem directed_comp {ι} (f : ι → β) (g : β → α) :
-  directed r (g ∘ f) ↔ directed (g ⁻¹'o r) f := iff.rfl
-
-variable {r}
-
-theorem directed.mono {s : α → α → Prop} {ι} {f : ι → α}
-  (H : ∀ a b, r a b → s a b) (h : directed r f) : directed s f :=
-λ a b, let ⟨c, h₁, h₂⟩ := h a b in ⟨c, H _ _ h₁, H _ _ h₂⟩
-
-theorem directed.mono_comp {ι} {rb : β → β → Prop} {g : α → β} {f : ι → α}
-  (hg : ∀ ⦃x y⦄, x ≼ y → rb (g x) (g y)) (hf : directed r f) :
-  directed rb (g ∘ f) :=
-(directed_comp rb f g).2 $ hf.mono hg
-
-section prio
-set_option default_priority 100 -- see Note [default priority]
-/-- A `preorder` is a `directed_order` if for any two elements `i`, `j`
-there is an element `k` such that `i ≤ k` and `j ≤ k`. -/
-class directed_order (α : Type u) extends preorder α :=
-(directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)
-end prio

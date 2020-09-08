@@ -26,16 +26,18 @@ is written and compiles, but takes longer than the `-T100000` time limit,
 so is currently commented out.
 -/
 
-namespace algebra.tensor_product
+namespace algebra
 
 open_locale tensor_product
 open tensor_product
 
-section ring
+namespace tensor_product
 
-variables {R : Type u} [comm_ring R]
-variables {A : Type v₁} [ring A] [algebra R A]
-variables {B : Type v₂} [ring B] [algebra R B]
+section semiring
+
+variables {R : Type u} [comm_semiring R]
+variables {A : Type v₁} [semiring A] [algebra R A]
+variables {B : Type v₂} [semiring B] [algebra R B]
 
 /--
 (Implementation detail)
@@ -111,11 +113,11 @@ lemma mul_assoc' (mul : (A ⊗[R] B) →ₗ[R] (A ⊗[R] B) →ₗ[R] (A ⊗[R] 
   ∀ (x y z : A ⊗[R] B), mul (mul x y) z = mul x (mul y z) :=
 begin
     intros,
-    apply tensor_product.induction_on A B x,
+    apply tensor_product.induction_on x,
     { simp, },
-    apply tensor_product.induction_on A B y,
+    apply tensor_product.induction_on y,
     { simp, },
-    apply tensor_product.induction_on A B z,
+    apply tensor_product.induction_on z,
     { simp, },
     { intros, simp [h], },
     { intros, simp [linear_map.map_add, *], },
@@ -128,13 +130,13 @@ mul_assoc' mul (by { intros, simp only [mul_apply, mul_assoc], }) x y z
 
 lemma one_mul (x : A ⊗[R] B) : mul (1 ⊗ₜ 1) x = x :=
 begin
-  apply tensor_product.induction_on A B x;
+  apply tensor_product.induction_on x;
   simp {contextual := tt},
 end
 
 lemma mul_one (x : A ⊗[R] B) : mul x (1 ⊗ₜ 1) = x :=
 begin
-  apply tensor_product.induction_on A B x;
+  apply tensor_product.induction_on x;
   simp {contextual := tt},
 end
 
@@ -150,13 +152,9 @@ instance : semiring (A ⊗[R] B) :=
   mul_zero := by simp,
   left_distrib := by simp,
   right_distrib := by simp,
-  .. (by apply_instance : add_comm_group (A ⊗[R] B)) }.
+  .. (by apply_instance : add_comm_monoid (A ⊗[R] B)) }.
 
 lemma one_def : (1 : A ⊗[R] B) = (1 : A) ⊗ₜ (1 : B) := rfl
-
-instance : ring (A ⊗[R] B) :=
-{ .. (by apply_instance : add_comm_group (A ⊗[R] B)),
-  .. (by apply_instance : semiring (A ⊗[R] B)) }.
 
 @[simp]
 lemma tmul_mul_tmul (a₁ a₂ : A) (b₁ b₂ : B) :
@@ -186,28 +184,28 @@ def tensor_algebra_map : R →+* (A ⊗[R] B) :=
 instance : algebra R (A ⊗[R] B) :=
 { commutes' := λ r x,
   begin
-    apply tensor_product.induction_on A B x,
+    apply tensor_product.induction_on x,
     { simp, },
     { intros a b, simp [tensor_algebra_map, algebra.commutes], },
     { intros y y' h h', simp at h h', simp [mul_add, add_mul, h, h'], },
   end,
   smul_def' := λ r x,
   begin
-    apply tensor_product.induction_on A B x,
-    { simp, },
+    apply tensor_product.induction_on x,
+    { simp [smul_zero], },
     { intros a b,
       rw [tensor_algebra_map, ←tmul_smul, ←smul_tmul, algebra.smul_def r a],
       simp, },
     { intros, dsimp, simp [smul_add, mul_add, *], },
   end,
   .. tensor_algebra_map,
-  .. (by apply_instance : ring (A ⊗[R] B)) }.
+  .. (by apply_instance : semimodule R (A ⊗[R] B)) }.
 
 @[simp]
 lemma algebra_map_apply (r : R) :
   (algebra_map R (A ⊗[R] B)) r = ((algebra_map R A) r) ⊗ₜ[R] 1 := rfl
 
-variables {C : Type v₃} [ring C] [algebra R C]
+variables {C : Type v₃} [semiring C] [algebra R C]
 
 @[ext]
 theorem ext {g h : (A ⊗[R] B) →ₐ[R] C}
@@ -248,6 +246,18 @@ def include_right : B →ₐ[R] A ⊗[R] B :=
 @[simp]
 lemma include_right_apply (b : B) : (include_right : B →ₐ[R] A ⊗[R] B) b = 1 ⊗ₜ b := rfl
 
+end semiring
+
+section ring
+
+variables {R : Type u} [comm_ring R]
+variables {A : Type v₁} [ring A] [algebra R A]
+variables {B : Type v₂} [ring B] [algebra R B]
+
+instance : ring (A ⊗[R] B) :=
+{ .. (by apply_instance : add_comm_group (A ⊗[R] B)),
+  .. (by apply_instance : semiring (A ⊗[R] B)) }.
+
 end ring
 
 section comm_ring
@@ -259,10 +269,10 @@ variables {B : Type v₂} [comm_ring B] [algebra R B]
 instance : comm_ring (A ⊗[R] B) :=
 { mul_comm := λ x y,
   begin
-    apply tensor_product.induction_on A B x,
+    apply tensor_product.induction_on x,
     { simp, },
     { intros a₁ b₁,
-      apply tensor_product.induction_on A B y,
+      apply tensor_product.induction_on y,
       { simp, },
       { intros a₂ b₂,
         simp [mul_comm], },
@@ -295,12 +305,11 @@ We now build the structure maps for the symmetric monoidal category of `R`-algeb
 section monoidal
 
 section
-variables {R : Type u} {rR : comm_ring R}
-variables {A : Type v₁} {rA : ring A} {aA : algebra R A}
-variables {B : Type v₂} {rB : ring B} {aB : algebra R B}
-variables {C : Type v₃} {rC : ring C} {aC : algebra R C}
-variables {D : Type v₄} {rD : ring D} {aD : algebra R D}
-include aA aB aC
+variables {R : Type u} [comm_semiring R]
+variables {A : Type v₁} [semiring A] [algebra R A]
+variables {B : Type v₂} [semiring B] [algebra R B]
+variables {C : Type v₃} [semiring C] [algebra R C]
+variables {D : Type v₄} [semiring D] [algebra R D]
 
 /--
 Build an algebra morphism from a linear map out of a tensor product,
@@ -315,10 +324,10 @@ def alg_hom_of_linear_map_tensor_product
   map_zero' := by simp,
   map_mul' := λ x y,
   begin
-    apply tensor_product.induction_on A B x,
+    apply tensor_product.induction_on x,
     { simp, },
     { intros a₁ b₁,
-      apply tensor_product.induction_on A B y,
+      apply tensor_product.induction_on y,
       { simp, },
       { intros a₂ b₂,
         simp [w₁], },
@@ -352,7 +361,6 @@ def alg_equiv_of_linear_equiv_tensor_product
 lemma alg_equiv_of_linear_equiv_tensor_product_apply (f w₁ w₂ x) :
   (alg_equiv_of_linear_equiv_tensor_product f w₁ w₂ : A ⊗[R] B ≃ₐ[R] C) x = f x := rfl
 
-include aD
 /--
 Build an algebra equivalence from a linear equivalence out of a triple tensor product,
 and evidence of multiplicativity on pure tensors.
@@ -365,16 +373,16 @@ def alg_equiv_of_linear_equiv_triple_tensor_product
   (A ⊗[R] B) ⊗[R] C ≃ₐ[R] D :=
 { map_mul' := λ x y,
   begin
-    apply tensor_product.induction_on (A ⊗[R] B) C x,
+    apply tensor_product.induction_on x,
     { simp, },
     { intros ab₁ c₁,
-      apply tensor_product.induction_on (A ⊗[R] B) C y,
+      apply tensor_product.induction_on y,
       { simp, },
       { intros ab₂ c₂,
-        apply tensor_product.induction_on A B ab₁,
+        apply tensor_product.induction_on ab₁,
         { simp, },
         { intros a₁ b₁,
-          apply tensor_product.induction_on A B ab₂,
+          apply tensor_product.induction_on ab₂,
           { simp, },
           { simp [w₁], },
           { intros x₁ x₂ h₁ h₂,
@@ -400,11 +408,11 @@ rfl
 
 end
 
-variables {R : Type u} [comm_ring R]
-variables {A : Type v₁} [ring A] [algebra R A]
-variables {B : Type v₂} [ring B] [algebra R B]
-variables {C : Type v₃} [ring C] [algebra R C]
-variables {D : Type v₄} [ring D] [algebra R D]
+variables {R : Type u} [comm_semiring R]
+variables {A : Type v₁} [semiring A] [algebra R A]
+variables {B : Type v₂} [semiring B] [algebra R B]
+variables {C : Type v₃} [semiring C] [algebra R C]
+variables {D : Type v₄} [semiring D] [algebra R D]
 
 section
 variables (R A)
@@ -518,4 +526,6 @@ end
 
 end monoidal
 
-end algebra.tensor_product
+end tensor_product
+
+end algebra

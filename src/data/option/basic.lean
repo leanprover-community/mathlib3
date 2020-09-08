@@ -3,9 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import tactic.simpa
-import tactic.ext
-import data.option.defs
+import tactic.basic
 
 namespace option
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -142,6 +140,12 @@ by cases o; simp
 
 lemma ne_none_iff_is_some {o : option α} : o ≠ none ↔ o.is_some :=
 by cases o; simp
+
+lemma ne_none_iff_exists {o : option α} : o ≠ none ↔ ∃ (x : α), o = some x :=
+by {cases o; simp}
+
+lemma ne_none_iff_exists' {o : option α} : o ≠ none ↔ ∃ (x : α), o = x :=
+ne_none_iff_exists
 
 lemma bex_ne_none {p : option α → Prop} :
   (∃ x ≠ none, p x) ↔ ∃ x, p (some x) :=

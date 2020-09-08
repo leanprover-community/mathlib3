@@ -24,8 +24,8 @@ unfreeze_local_instances,
 freeze_local_instances
 
 /-- Unfreeze the local instances while executing `tac` on the main goal. -/
-meta def unfreezing (tac : tactic unit) : tactic unit :=
-unfreeze_local_instances *> (tac; freeze_local_instances)
+meta def unfreezing {α} (tac : tactic α) : tactic α :=
+focus1 $ unfreeze_local_instances *> tac <* all_goals freeze_local_instances
 
 /--
 Unfreeze local instances while executing `tac`,

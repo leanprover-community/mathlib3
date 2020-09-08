@@ -3,7 +3,7 @@ Copyright (c) 2018 Andreas Swerdlow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andreas Swerdlow
 -/
-import ring_theory.subring
+import deprecated.subring
 
 variables {F : Type*} [field F] (S : set F)
 
@@ -15,7 +15,7 @@ end prio
 
 instance is_subfield.field [is_subfield S] : field S :=
 { inv := λ x, ⟨x⁻¹, is_subfield.inv_mem x.2⟩,
-  zero_ne_one := λ h, zero_ne_one (subtype.ext_iff_val.1 h),
+  exists_pair_ne := ⟨0, 1, λ h, zero_ne_one (subtype.ext_iff_val.1 h)⟩,
   mul_inv_cancel := λ a ha, subtype.ext_iff_val.2 (mul_inv_cancel
     (λ h, ha $ subtype.ext_iff_val.2 h)),
   inv_zero := subtype.ext_iff_val.2 inv_zero,

@@ -5,14 +5,14 @@ Authors: Kenny Lau
 
 Instances on punit.
 -/
-import algebra.module
+import algebra.module.basic
 
 universes u
 
 namespace punit
 variables (x y : punit.{u+1}) (s : set punit.{u+1})
 
-@[to_additive add_comm_group]
+@[to_additive]
 instance : comm_group punit :=
 by refine
 { mul := λ _ _, star,

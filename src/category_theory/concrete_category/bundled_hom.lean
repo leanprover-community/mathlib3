@@ -5,6 +5,7 @@ Authors: Scott Morrison, Yury Kudryashov
 -/
 import category_theory.concrete_category.basic
 import category_theory.concrete_category.bundled
+import category_theory.fully_faithful
 
 /-!
 # Category instances for algebraic structures that use bundled homs.
@@ -63,7 +64,7 @@ intros; apply 𝒞.hom_ext;
 
 This instance generates the type-class problem `bundled_hom ?m` (which is why this is marked as
 `[nolint]`). Currently that is not a problem, as there are almost no instances of `bundled_hom`. -/
-@[nolint dangerous_instance] instance : concrete_category (bundled c) :=
+@[nolint dangerous_instance] instance : concrete_category.{u} (bundled c) :=
 { forget := { obj := λ X, X,
               map := λ X Y f, 𝒞.to_fun X.str Y.str f,
               map_id' := λ X, 𝒞.id_to_fun X.str,
@@ -127,10 +128,15 @@ instance bundled_hom_of_parent_projection (F : Π {α}, d α → c α) [parent_p
   bundled_hom (map_hom hom @F) :=
 map hom @F
 
-instance forget₂ (F : Π {α}, d α → c α) [parent_projection @F] : has_forget₂ (bundled d) (bundled c) :=
+instance forget₂ (F : Π {α}, d α → c α) [parent_projection @F] :
+  has_forget₂ (bundled d) (bundled c) :=
 { forget₂ :=
   { obj := λ X, ⟨X, F X.2⟩,
     map := λ X Y f, f } }
+
+instance forget₂_full (F : Π {α}, d α → c α) [parent_projection @F] :
+  full (forget₂ (bundled d) (bundled c)) :=
+{ preimage := λ X Y f, f }
 
 end bundled_hom
 

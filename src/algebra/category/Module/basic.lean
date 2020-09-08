@@ -13,13 +13,13 @@ open category_theory
 open category_theory.limits
 open category_theory.limits.walking_parallel_pair
 
-universe u
+universes v u
 
 variables (R : Type u) [ring R]
 
 /-- The category of R-modules and their morphisms. -/
 structure Module :=
-(carrier : Type u)
+(carrier : Type v)
 [is_add_comm_group : add_comm_group carrier]
 [is_module : module R carrier]
 
@@ -28,15 +28,15 @@ attribute [instance] Module.is_add_comm_group Module.is_module
 namespace Module
 
 -- TODO revisit this after #1438 merges, to check coercions and instances are handled consistently
-instance : has_coe_to_sort (Module R) :=
-{ S := Type u, coe := Module.carrier }
+instance : has_coe_to_sort (Module.{v} R) :=
+{ S := Type v, coe := Module.carrier }
 
-instance : category (Module R) :=
+instance : category (Module.{v} R) :=
 { hom   := λ M N, M →ₗ[R] N,
   id    := λ M, 1,
   comp  := λ A B C f g, g.comp f }
 
-instance : concrete_category (Module R) :=
+instance : concrete_category.{v} (Module.{v} R) :=
 { forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
   forget_faithful := { } }
 
@@ -46,12 +46,12 @@ instance has_forget_to_AddCommGroup : has_forget₂ (Module R) AddCommGroup :=
     map := λ M₁ M₂ f, linear_map.to_add_monoid_hom f } }
 
 /-- The object in the category of R-modules associated to an R-module -/
-def of (X : Type u) [add_comm_group X] [module R X] : Module R := ⟨X⟩
+def of (X : Type v) [add_comm_group X] [module R X] : Module R := ⟨X⟩
 
 instance : inhabited (Module R) := ⟨of R punit⟩
 
 @[simp]
-lemma of_apply (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
+lemma coe_of (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
 
 variables {R}
 
@@ -61,20 +61,20 @@ def of_self_iso (M : Module R) : Module.of R M ≅ M :=
 { hom := 𝟙 M, inv := 𝟙 M }
 
 instance : subsingleton (of R punit) :=
-by { rw of_apply R punit, apply_instance }
+by { rw coe_of R punit, apply_instance }
 
-instance : has_zero_object (Module R) :=
+instance : has_zero_object (Module.{v} R) :=
 { zero := of R punit,
   unique_to := λ X,
   { default := (0 : punit →ₗ[R] X),
     uniq := λ _, linear_map.ext $ λ x,
-      have h : x = 0, from subsingleton.elim _ _,
+      have h : x = 0, from dec_trivial,
       by simp only [h, linear_map.map_zero]},
   unique_from := λ X,
   { default := (0 : X →ₗ[R] punit),
-    uniq := λ _, linear_map.ext $ λ x, subsingleton.elim _ _ } }
+    uniq := λ _, linear_map.ext $ λ x, dec_trivial } }
 
-variables {R} {M N U : Module R}
+variables {R} {M N U : Module.{v} R}
 
 @[simp] lemma id_apply (m : M) : (𝟙 M : M → M) m = m := rfl
 
@@ -84,7 +84,11 @@ variables {R} {M N U : Module R}
 end Module
 
 variables {R}
-variables {X₁ X₂ : Type u}
+variables {X₁ X₂ : Type v}
+
+/-- Reinterpreting a linear map in the category of `R`-modules. -/
+def Module.as_hom [add_comm_group X₁] [module R X₁] [add_comm_group X₂] [module R X₂] :
+  (X₁ →ₗ[R] X₂) → (Module.of R X₁ ⟶ Module.of R X₂) := id
 
 /-- Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s. -/
 @[simps]
@@ -95,6 +99,18 @@ def linear_equiv.to_Module_iso
   inv := (e.symm : X₂ →ₗ[R] X₁),
   hom_inv_id' := begin ext, exact e.left_inv x, end,
   inv_hom_id' := begin ext, exact e.right_inv x, end, }
+
+/--
+Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s.
+
+This version is better than `linear_equiv_to_Module_iso` when applicable, because Lean can't see `Module.of R M` is defeq to `M` when `M : Module R`.
+  -/
+@[simps]
+def linear_equiv.to_Module_iso' {M N : Module.{v} R} (i : M ≃ₗ[R] N) : M ≅ N :=
+{ hom := i,
+  inv := i.symm,
+  hom_inv_id' := linear_map.ext $ λ x, by simp,
+  inv_hom_id' := linear_map.ext $ λ x, by simp }
 
 namespace category_theory.iso
 
@@ -121,7 +137,7 @@ namespace Module
 
 section preadditive
 
-instance : preadditive (Module R) :=
+instance : preadditive (Module.{v} R) :=
 { add_comp' := λ P Q R f f' g,
     show (f + f') ≫ g = f ≫ g + f' ≫ g, by { ext, simp },
   comp_add' := λ P Q R f g g',
@@ -129,41 +145,22 @@ instance : preadditive (Module R) :=
 
 end preadditive
 
-section kernel
-variables {R} {M N : Module R} (f : M ⟶ N)
+section epi_mono
+variables {M N : Module.{v} R} (f : M ⟶ N)
 
-/-- The cone on the equalizer diagram of f and 0 induced by the kernel of f -/
-def kernel_cone : cone (parallel_pair f 0) :=
-{ X := of R f.ker,
-  π :=
-  { app := λ j,
-    match j with
-    | zero := f.ker.subtype
-    | one := 0
-    end,
-    naturality' := λ j j' g, by { cases j; cases j'; cases g; tidy } } }
+lemma ker_eq_bot_of_mono [mono f] : f.ker = ⊥ :=
+linear_map.ker_eq_bot_of_cancel $ λ u v, (@cancel_mono _ _ _ _ _ f _ (as_hom u) (as_hom v)).1
 
-/-- The kernel of a linear map is a kernel in the categorical sense -/
-def kernel_is_limit : is_limit (kernel_cone f) :=
-{ lift := λ s, linear_map.cod_restrict f.ker (fork.ι s) (λ c, linear_map.mem_ker.2 $
-  by { erw [←@function.comp_apply _ _ _ f (fork.ι s) c, ←coe_comp, fork.condition,
-    has_zero_morphisms.comp_zero (fork.ι s) N], refl }),
-  fac' := λ s j, linear_map.ext $ λ x,
-  begin
-    rw [coe_comp, function.comp_app, ←linear_map.comp_apply],
-    cases j,
-    { erw @linear_map.subtype_comp_cod_restrict _ _ _ _ _ _ _ _ (fork.ι s) f.ker _ },
-    { rw [←fork.app_zero_left, ←fork.app_zero_left], refl }
-  end,
-  uniq' := λ s m h, linear_map.ext $ λ x, subtype.ext_iff_val.2 $
-    have h₁ : (m ≫ (kernel_cone f).π.app zero).to_fun = (s.π.app zero).to_fun,
-    by { congr, exact h zero },
-    by convert @congr_fun _ _ _ _ h₁ x }
+lemma range_eq_top_of_epi [epi f] : f.range = ⊤ :=
+linear_map.range_eq_top_of_cancel $ λ u v, (@cancel_epi _ _ _ _ _ f _ (as_hom u) (as_hom v)).1
 
-end kernel
+lemma mono_of_ker_eq_bot (hf : f.ker = ⊥) : mono f :=
+concrete_category.mono_of_injective _ $ linear_map.ker_eq_bot.1 hf
 
-instance : has_kernels (Module R) :=
-⟨λ _ _ f, ⟨kernel_cone f, kernel_is_limit f⟩⟩
+lemma epi_of_range_eq_top (hf : f.range = ⊤) : epi f :=
+concrete_category.epi_of_surjective _ $ linear_map.range_eq_top.1 hf
+
+end epi_mono
 
 end Module
 

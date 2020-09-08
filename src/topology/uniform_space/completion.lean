@@ -2,8 +2,11 @@
 Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
+-/
+import topology.uniform_space.abstract_completion
 
-Hausdorff completions of uniform spaces.
+/-!
+# Hausdorff completions of uniform spaces
 
 The goal is to construct a left-adjoint to the inclusion of complete Hausdorff uniform spaces
 into all uniform spaces. Any uniform space `α` gets a completion `completion α` and a morphism
@@ -29,12 +32,13 @@ In this file we introduce the following concepts:
 
 * `completion α := quotient (separation_setoid (Cauchy α))` the Hausdorff completion.
 
+## References
+
 This formalization is mostly based on
   N. Bourbaki: General Topology
   I. M. James: Topologies and Uniformities
 From a slightly different perspective in order to reuse material in topology.uniform_space.basic.
 -/
-import topology.uniform_space.abstract_completion
 
 noncomputable theory
 open filter set
@@ -58,14 +62,14 @@ variables {β : Type v} {γ : Type w}
 variables [uniform_space β] [uniform_space γ]
 
 def gen (s : set (α × α)) : set (Cauchy α × Cauchy α) :=
-{p | s ∈ filter.prod (p.1.val) (p.2.val) }
+{p | s ∈ p.1.val ×ᶠ p.2.val }
 
 lemma monotone_gen : monotone gen :=
-monotone_set_of $ assume p, @monotone_mem_sets (α×α) (filter.prod (p.1.val) (p.2.val))
+monotone_set_of $ assume p, @monotone_mem_sets (α×α) (p.1.val ×ᶠ p.2.val)
 
 private lemma symm_gen : map prod.swap ((𝓤 α).lift' gen) ≤ (𝓤 α).lift' gen :=
 calc map prod.swap ((𝓤 α).lift' gen) =
-  (𝓤 α).lift' (λs:set (α×α), {p | s ∈ filter.prod (p.2.val) (p.1.val) }) :
+  (𝓤 α).lift' (λs:set (α×α), {p | s ∈ p.2.val ×ᶠ p.1.val }) :
   begin
     delta gen,
     simp [map_lift'_eq, monotone_set_of, monotone_mem_sets,
@@ -74,7 +78,7 @@ calc map prod.swap ((𝓤 α).lift' gen) =
   ... ≤ (𝓤 α).lift' gen :
     uniformity_lift_le_swap
       (monotone_principal.comp (monotone_set_of $ assume p,
-        @monotone_mem_sets (α×α) ((filter.prod ((p.2).val) ((p.1).val)))))
+        @monotone_mem_sets (α×α) (p.2.val ×ᶠ  p.1.val)))
       begin
         have h := λ(p:Cauchy α×Cauchy α), @filter.prod_comm _ _ (p.2.val) (p.1.val),
         simp [function.comp, h, -subtype.val_eq_coe],
@@ -91,8 +95,8 @@ let ⟨t₃, (ht₃ : t₃ ∈ h.val), t₄, (ht₄ : t₄ ∈ g.val), (h₂ : s
 have t₂ ∩ t₃ ∈ h.val,
   from inter_mem_sets ht₂ ht₃,
 let ⟨x, xt₂, xt₃⟩ :=
-  nonempty_of_mem_sets (h.property.left) this in
-(filter.prod f.val g.val).sets_of_superset
+  h.property.left.nonempty_of_mem this in
+(f.val ×ᶠ g.val).sets_of_superset
   (prod_mem_prod ht₁ ht₄)
   (assume ⟨a, b⟩ ⟨(ha : a ∈ t₁), (hb : b ∈ t₄)⟩,
     ⟨x,
@@ -131,8 +135,7 @@ theorem mem_uniformity {s : set (Cauchy α × Cauchy α)} :
 mem_lift'_sets monotone_gen
 
 theorem mem_uniformity' {s : set (Cauchy α × Cauchy α)} :
-  s ∈ 𝓤 (Cauchy α) ↔ ∃ t ∈ 𝓤 α,
-    ∀ f g : Cauchy α, t ∈ filter.prod f.1 g.1 → (f, g) ∈ s :=
+  s ∈ 𝓤 (Cauchy α) ↔ ∃ t ∈ 𝓤 α, ∀ f g : Cauchy α, t ∈ f.1 ×ᶠ g.1 → (f, g) ∈ s :=
 mem_uniformity.trans $ bex_congr $ λ t h, prod.forall
 
 /-- Embedding of `α` into its completion -/
@@ -158,11 +161,11 @@ have h_ex : ∀ s ∈ 𝓤 (Cauchy α), ∃y:α, (f, pure_cauchy y) ∈ s, from
   assume s hs,
   let ⟨t'', ht''₁, (ht''₂ : gen t'' ⊆ s)⟩ := (mem_lift'_sets monotone_gen).mp hs in
   let ⟨t', ht'₁, ht'₂⟩ := comp_mem_uniformity_sets ht''₁ in
-  have t' ∈ filter.prod (f.val) (f.val),
+  have t' ∈ f.val ×ᶠ f.val,
     from f.property.right ht'₁,
   let ⟨t, ht, (h : set.prod t t ⊆ t')⟩ := mem_prod_same_iff.mp this in
-  let ⟨x, (hx : x ∈ t)⟩ := nonempty_of_mem_sets f.property.left ht in
-  have t'' ∈ filter.prod f.val (pure x),
+  let ⟨x, (hx : x ∈ t)⟩ := f.property.left.nonempty_of_mem ht in
+  have t'' ∈ f.val ×ᶠ pure x,
     from mem_prod_iff.mpr ⟨t, ht, {y:α | (x, y) ∈ t'},
       h $ mk_mem_prod hx hx,
       assume ⟨a, b⟩ ⟨(h₁ : a ∈ t), (h₂ : (x, b) ∈ t')⟩,
@@ -206,7 +209,7 @@ complete_space_extension
     let ⟨t, ht₁, (ht₂ : gen t ⊆ s)⟩ := (mem_lift'_sets monotone_gen).mp hs in
     let ⟨t', ht', (h : set.prod t' t' ⊆ t)⟩ := mem_prod_same_iff.mp (hf.right ht₁) in
     have t' ⊆ { y : α | (f', pure_cauchy y) ∈ gen t },
-      from assume x hx, (filter.prod f (pure x)).sets_of_superset (prod_mem_prod ht' hx) h,
+      from assume x hx, (f ×ᶠ pure x).sets_of_superset (prod_mem_prod ht' hx) h,
     f.sets_of_superset ht' $ subset.trans this (preimage_mono ht₂),
   ⟨f', by simp [nhds_eq_uniformity]; assumption⟩
 end
@@ -308,8 +311,8 @@ instance complete_space_separation [h : complete_space α] :
   complete_space (quotient (separation_setoid α)) :=
 ⟨assume f, assume hf : cauchy f,
   have cauchy (f.comap (λx, ⟦x⟧)), from
-    cauchy_comap comap_quotient_le_uniformity hf $
-      comap_ne_bot_of_surj hf.left $ assume b, quotient.exists_rep _,
+    hf.comap' comap_quotient_le_uniformity $
+      hf.left.comap_of_surj $ assume b, quotient.exists_rep _,
   let ⟨x, (hx : f.comap (λx, ⟦x⟧) ≤ 𝓝 x)⟩ := complete_space.complete this in
   ⟨⟦x⟧, calc f = map (λx, ⟦x⟧) (f.comap (λx, ⟦x⟧)) :
       (map_comap $ univ_mem_sets' $ assume b, quotient.exists_rep _).symm
@@ -345,7 +348,7 @@ begin
   have : (λx:α×α, ((x.1 : completion α), (x.2 : completion α))) =
     (λx:(Cauchy α)×(Cauchy α), (⟦x.1⟧, ⟦x.2⟧)) ∘ (λx:α×α, (pure_cauchy x.1, pure_cauchy x.2)),
   { ext ⟨a, b⟩; simp; refl },
-  rw [this, ← filter.comap_comap_comp],
+  rw [this, ← filter.comap_comap],
   change filter.comap _ (filter.comap _ (𝓤 $ quotient $ separation_setoid $ Cauchy α)) = 𝓤 α,
   rw [comap_quotient_eq_uniformity, uniform_embedding_pure_cauchy.comap_uniformity]
 end

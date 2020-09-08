@@ -13,6 +13,26 @@ universes u v w x
 variables {α : Type u} {α' : Type w} {β : Type v} {β' : Type x}
 open sum
 
+/-- Check if a sum is `inl` and if so, retrieve its contents. -/
+@[simp] def sum.get_left {α β} : α ⊕ β → option α
+| (inl a) := some a
+| (inr _) := none
+
+/-- Check if a sum is `inr` and if so, retrieve its contents. -/
+@[simp] def sum.get_right {α β} : α ⊕ β → option β
+| (inr b) := some b
+| (inl _) := none
+
+/-- Check if a sum is `inl`. -/
+@[simp] def sum.is_left {α β} : α ⊕ β → bool
+| (inl _) := tt
+| (inr _) := ff
+
+/-- Check if a sum is `inr`. -/
+@[simp] def sum.is_right {α β} : α ⊕ β → bool
+| (inl _) := ff
+| (inr _) := tt
+
 attribute [derive decidable_eq] sum
 
 @[simp] theorem sum.forall {p : α ⊕ β → Prop} : (∀ x, p x) ↔ (∀ a, p (inl a)) ∧ (∀ b, p (inr b)) :=
@@ -139,3 +159,19 @@ swap_swap
 swap_swap
 
 end sum
+
+namespace function
+
+open sum
+
+lemma injective.sum_map {f : α → β} {g : α' → β'} (hf : injective f) (hg : injective g) :
+  injective (sum.map f g)
+| (inl x) (inl y) h := congr_arg inl $ hf $ inl.inj h
+| (inr x) (inr y) h := congr_arg inr $ hg $ inr.inj h
+
+lemma surjective.sum_map {f : α → β} {g : α' → β'} (hf : surjective f) (hg : surjective g) :
+  surjective (sum.map f g)
+| (inl y) := let ⟨x, hx⟩ := hf y in ⟨inl x, congr_arg inl hx⟩
+| (inr y) := let ⟨x, hx⟩ := hg y in ⟨inr x, congr_arg inr hx⟩
+
+end function

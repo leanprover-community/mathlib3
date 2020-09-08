@@ -76,6 +76,9 @@ congr_arg coe $ list.Ico.filter_lt_of_top_le hml
 lemma filter_lt_of_le_bot {n m l : ℕ} (hln : l ≤ n) : (Ico n m).filter (λ x, x < l) = ∅ :=
 congr_arg coe $ list.Ico.filter_lt_of_le_bot hln
 
+lemma filter_le_of_bot {n m : ℕ} (hnm : n < m) : (Ico n m).filter (λ x, x ≤ n) = {n} :=
+congr_arg coe $ list.Ico.filter_le_of_bot hnm
+
 lemma filter_lt_of_ge {n m l : ℕ} (hlm : l ≤ m) : (Ico n m).filter (λ x, x < l) = Ico n l :=
 congr_arg coe $ list.Ico.filter_lt_of_ge hlm
 

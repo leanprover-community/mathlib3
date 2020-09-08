@@ -2,18 +2,17 @@
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather
-
-Bundled types.
 -/
-import tactic.doc_commands
-import tactic.lint
+import category_theory.category
 
 /-!
+# Bundled types
+
 `bundled c` provides a uniform structure for bundling a type equipped with a type class.
 
-We provide `category` instances for these in `unbundled_hom.lean` (for categories with unbundled
-homs, e.g. topological spaces) and in `bundled_hom.lean` (for categories with bundled homs, e.g.
-monoids).
+We provide `category` instances for these in `category_theory/unbundled_hom.lean`
+(for categories with unbundled homs, e.g. topological spaces)
+and in `category_theory/bundled_hom.lean` (for categories with bundled homs, e.g. monoids).
 -/
 
 universes u v

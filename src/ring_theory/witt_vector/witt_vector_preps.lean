@@ -624,6 +624,30 @@ by { contrapose! h, apply coeff_rename_eq_zero _ _ _ h }
 
 end rename
 
+section
+open_locale classical
+variables {S : Type*} [comm_semiring S]
+
+lemma eval₂_hom_congr' {f₁ f₂ : R →+* S} {g₁ g₂ : σ → S} {p₁ p₂ : mv_polynomial σ R} :
+  f₁ = f₂ → (∀ i, i ∈ p₁.vars → i ∈ p₂.vars → g₁ i = g₂ i) → p₁ = p₂ →
+   eval₂_hom f₁ g₁ p₁ = eval₂_hom f₂ g₂ p₂ :=
+begin
+  rintro rfl h rfl,
+  rename [p₁ p, f₁ f],
+  rw p.as_sum,
+  simp only [ring_hom.map_sum, eval₂_hom_monomial],
+  apply finset.sum_congr rfl,
+  intros d hd,
+  congr' 1,
+  simp only [finsupp.prod],
+  apply finset.prod_congr rfl,
+  intros i hi,
+  have : i ∈ p.vars, { rw mem_vars, exact ⟨d, hd, hi⟩ },
+  rw h i this this,
+end
+
+end
+
 end mv_polynomial
 
 

@@ -53,13 +53,17 @@ end
 lemma truncate_eq_iff (x y : 𝕎 R) (n : ℕ) :
   truncate p n x = truncate p n y ↔ ∀ ⦃i : ℕ⦄, i < n → x.coeff i = y.coeff i :=
 begin
-  rw [witt_vector.eq_add_split p x n,
-      witt_vector.eq_add_split p y n,
+  rw [witt_vector.eq_init_add_tail p x n,
+      witt_vector.eq_init_add_tail p y n,
       ring_hom.map_add, ring_hom.map_add,
       truncate_tail, truncate_tail,
       add_zero, add_zero],
+  simp only [coeff_init_add_tail],
+  conv_rhs {
+    simp only [tail, coeff_mk, if_pos, add_zero] { contextual := tt } },
   split,
-  { intro H,
+  { rw [← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker, truncate_ker, mem_ideal_iff],
+    intro H,
     sorry },
   { intro H,
     congr' 1,
@@ -68,11 +72,8 @@ begin
     simp only [init, coeff_mk],
     split_ifs with hi, swap, refl,
     specialize H hi,
-    rw [← sub_eq_zero, ← ring_hom.map_sub, ← ring_hom.mem_ker, truncate_ker, mem_ideal_iff], }
-  -- generalize hz : x - y = z,
-  -- rw sub_eq_iff_eq_add at hz,
-  -- subst hz,
-  sorry
+    simp only [init, tail, coeff_mk, if_pos hi, add_zero] at H,
+    exact H },
 end
 
 lemma coeff_eq_of_truncate_eq (x y : 𝕎 R) (n : ℕ)

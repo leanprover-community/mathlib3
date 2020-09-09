@@ -131,27 +131,6 @@ begin
   rwa finsupp.mem_support_iff at hi,
 end
 
-lemma bind₁_right {ι : Type*} (f : ι → mv_polynomial (σ × τ) R) (hf : ∀ i, (f i).nice)
-  (φ : mv_polynomial ι R) (hφ : constant_coeff φ = 0) :
-  (bind₁ f φ).nice :=
-begin
-  rw φ.as_sum,
-  simp only [coeff_sum, alg_hom.map_sum, bind₁_monomial, coeff_C_mul],
-  apply sum,
-  intros d hd,
-  apply mul_nice,
-  rw [constant_coeff_eq, coeff, ← finsupp.not_mem_support_iff] at hφ,
-  obtain ⟨i, hi⟩ : d.support.nonempty,
-  { rw [finset.nonempty_iff_ne_empty, ne.def, finsupp.support_eq_empty],
-    rintro rfl, contradiction },
-  apply prod,
-  refine ⟨i, hi, _⟩,
-  apply (hf i).pow,
-  rwa finsupp.mem_support_iff at hi,
-end
-
 end nice
-
-
 
 end mv_polynomial

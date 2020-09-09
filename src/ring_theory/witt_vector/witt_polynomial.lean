@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2020 Johan Commelin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin, Robert Y. Lewis
+-/
+
 import ring_theory.witt_vector.witt_vector_preps
 
 open mv_polynomial

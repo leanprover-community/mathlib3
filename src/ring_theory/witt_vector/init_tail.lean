@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2020 Johan Commelin and Robert Y. Lewis. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Johan Commelin, Robert Y. Lewis
+-/
+
 import ring_theory.witt_vector.basic
 import ring_theory.witt_vector.witt_vector_preps
 

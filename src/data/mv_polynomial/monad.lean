@@ -10,7 +10,16 @@ import data.mv_polynomial.rename
 
 # Monad operations on `mv_polynomial`
 
-TODO
+This file defines two monadic operations on `mv_polynomial`. Given `p : mv_polynomial σ R`,
+
+* `mv_polynomial.bind₁` and `mv_polynomial.join₁` operate on the variable type `σ`.
+* `mv_polynomial.bind₂` and `mv_polynomial.join₂` operate on the cofficient type `R`.
+
+These operations themselves have algebraic structure: `bind₁` and `join₁` are algebra homs and
+`bind₂` and `join₂` are ring homs.
+
+They interact in convenient ways with `mv_polynomial.map`, `mv_polynomial.vars`,
+`mv_polynomial.rename`, and other polynomial operations.
 
 -/
 
@@ -113,9 +122,10 @@ by ext1; simp [join₂, bind₂]
   aeval (ring_hom.id (mv_polynomial τ R)) (rename f p) = aeval f p :=
 begin
   apply p.induction_on,
-  { simp only [aeval_C, forall_const, eq_self_iff_true, rename_C]},
+  { simp only [aeval_C, forall_const, eq_self_iff_true, rename_C] },
   { intros p q hp hq, simp only [hp, hq, alg_hom.map_add, ring_hom.map_add] },
-  { intros p n hp, simp only [hp, rename_X, ring_hom.id_apply, aeval_X, ring_hom.map_mul, alg_hom.map_mul]}
+  { intros p n hp, simp only [hp, rename_X, ring_hom.id_apply, aeval_X, ring_hom.map_mul,
+                              alg_hom.map_mul] }
 end
 
 @[simp]
@@ -175,7 +185,7 @@ begin
   dsimp [bind₁],
   apply φ.induction_on,
   { simp },
-  { intros p q hp hq, simp only [hp, hq, alg_hom.map_add, ring_hom.map_add]},
+  { intros p q hp hq, simp only [hp, hq, alg_hom.map_add, ring_hom.map_add] },
   { intros p n hp, simp only [hp, rename_X, aeval_X, ring_hom.map_mul, alg_hom.map_mul] }
 end
 

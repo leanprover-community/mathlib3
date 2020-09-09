@@ -1135,7 +1135,7 @@ add_tactic_doc
 
 /--
 Query the proof goal and print the skeleton of a proof by
-case.
+cases.
 
 For example, let us consider the following proof:
 

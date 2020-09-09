@@ -757,6 +757,11 @@ by simp [dif_pos h]
 end has_Sup
 
 section has_Inf
+variables [has_Inf α]
+
+/-- `has_Inf` structure on a nonempty subset `s` of an object with `has_Inf`. This definition is
+non-canonical (it uses `default s`); it should be used only as here, as an auxiliary instance in the
+construction of the `conditionally_complete_linear_order` structure. -/
 noncomputable def subset_has_Inf [inhabited s] : has_Inf s := {Inf := λ t,
 if ht : Inf (coe '' t : set α) ∈ s then ⟨Inf (coe '' t : set α), ht⟩ else default s}
 
@@ -772,6 +777,8 @@ lemma subset_Inf_of_within [inhabited s] {t : set s} (h : Inf (coe '' t : set α
 by simp [dif_pos h]
 
 end has_Inf
+
+variables [conditionally_complete_linear_order α]
 
 local attribute [instance] subset_has_Sup
 local attribute [instance] subset_has_Inf

@@ -7,6 +7,39 @@ import category_theory.adjunction.basic
 import category_theory.limits.cones
 import category_theory.reflects_isomorphisms
 
+/-!
+# Limits and colimits
+
+(Everything about colimits is developed in parallel to limits; we only discuss limits in this
+module doc.)
+
+The two key notions introduced here are
+* `is_limit t`, for `t : cone F`, which expresses that `t` is a limit cone
+* `has_limit F`, for `F : J ⥤ C`, which expresses that there merely exists some limit cone for `F`.
+
+`has_limit` is a propositional typeclass
+(it's important that it is a proposition merely asserting the existence of a limit,
+as otherwise we would have non-defeq problems from incompatible instances).
+
+Ideally, many results about limits should be stated first in terms of `is_limit`,
+and then a result in terms of `has_limit` derived from this.
+At this point, however, this is far from uniformly achieved in mathlib ---
+often statements are only written in terms of `has_limit`.
+
+The `has_limit` typeclass has an extensive interface.  If `has_limit F` is available, one can write
+* `limit F : C`, for an arbitrary choice of limit object (of course all such are isomorphic)
+* `limit.π F j : limit F ⟶ F.obj j`
+* `limit.lift F c : c.x ⟶ limit F`, where `c : cone F`, for the universal morphism from any other cone
+Key to using the `has_limit` interface is that there is an `@[ext]` lemma stating that
+to check `f = g`, for `f g : Z ⟶ limit F`, it suffices to check `f ≫ limit.π F j = g ≫ limit.π F j`
+for every `j`.
+This, combined with `@[simp]` lemmas, makes it possible to prove many easy facts about limits using
+automation (e.g. `tidy`).
+
+## Future work
+* Develop automation like `@[to_additive]` so we don't need to do everything for colimits separately.
+-/
+
 noncomputable theory
 
 open category_theory category_theory.category category_theory.functor opposite

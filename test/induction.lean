@@ -281,7 +281,9 @@ begin
   -- this performs induction on (n : ℕ)
   induction' n,
   { exact n },
-  { -- n is the list, which was automatically generalized and keeps its name.
+  { guard_hyp n := list ℕ,
+    guard_hyp n_1 := ℕ,
+    -- n is the list, which was automatically generalized and keeps its name.
     -- n_1 is the recursive argument of `nat.succ`. It would be called `n` if
     -- there wasn't already an `n` in the context.
     exact (n_1 :: n)
@@ -614,17 +616,17 @@ inductive lte : nat → nat → Type
 | succ {n m : nat} : lte n m → lte (1 + n) (1 + m)
 
 lemma lt_lte {n m} : lt n m → lte n m :=
-  begin
-    intro lt_n_m,
-    induction' lt_n_m,
-    case less_than.lt.zero_succ : i {
-      constructor
-    },
-    case less_than.lt.succ_succ : i j lt_i_j ih {
-      constructor,
-      apply ih
-    }
-  end.
+begin
+  intro lt_n_m,
+  induction' lt_n_m,
+  case zero_succ : i {
+    constructor
+  },
+  case succ_succ : i j lt_i_j ih {
+    constructor,
+    apply ih
+  }
+end
 
 end less_than
 
@@ -1007,17 +1009,6 @@ begin
   { cases' hr,
     { cc },
     { refl } }
-end
-
-lemma big_step_doesnt_terminate {S s t} :
-  ¬ (stmt.while (λ_, true) S, s) ⟹ t :=
-begin
-  intro hw,
-  induction' hw,
-  case while_true {
-    assumption },
-  case while_false {
-    cc }
 end
 
 @[simp] lemma big_step_skip_iff {s t} :

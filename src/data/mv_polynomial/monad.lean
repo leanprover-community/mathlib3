@@ -23,6 +23,12 @@ They interact in convenient ways with `mv_polynomial.rename`, `mv_polynomial.map
 Indeed, `mv_polynomial.rename` is the "map" operation for the (`bind₁`, `join₁`) pair,
 whereas `mv_polynomial.map` is the "map" operation for the other pair.
 
+## Implementation notes
+
+We add an `is_lawful_monad` instance for the (`bind₁`, `join₁`) pair.
+The second pair cannot be instantiated as a monad, since we do not have
+`mv_polynomial σ : Type → Type`; the type of coefficients must have a ring structure.
+
 -/
 
 open_locale big_operators

@@ -183,6 +183,26 @@ begin
   }
 end
 
+-- Here's an example where this is more useful.
+example {n m : ℕ} (h : n + n = m + m) : n = m :=
+begin
+  induction' n with n ih,
+  case zero {
+    cases' m,
+    { refl },
+    { cases' h }
+  },
+  case succ {
+    cases' m,
+    { cases' h },
+    { rw @ih m,
+      simp only [nat.succ_eq_add_one] at h,
+      replace h : n + n + 2 = m + m + 2 := by linarith,
+      injections
+    }
+  }
+end
+
 -- If we don't want a hypothesis to be generalised, we can say so with a
 -- "fixing" clause.
 example {n m : ℕ} : n + m = m + n :=

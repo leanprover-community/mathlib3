@@ -3,22 +3,20 @@ import ring_theory.witt_vector.nice_poly
 import ring_theory.witt_vector.init_tail
 import ring_theory.witt_vector.witt_vector_preps
 
-namespace mv_polynomial
-variables {σ R : Type*} [comm_semiring R]
+-- namespace mv_polynomial
+-- variables {σ R : Type*} [comm_semiring R]
 
+-- lemma eval_inj [char_zero R] (φ ψ : mv_polynomial σ R) (h : ∀ f, eval f φ = eval f ψ) :
+--   φ = ψ :=
+-- begin
+--   sorry
+-- end
 
-lemma eval_inj [char_zero R] (φ ψ : mv_polynomial σ R) (h : ∀ f, eval f φ = eval f ψ) :
-  φ = ψ :=
-begin
-  sorry
-end
+-- lemma eval_inj_iff [char_zero R] (φ ψ : mv_polynomial σ R) :
+--   φ = ψ ↔ (∀ f, eval f φ = eval f ψ) :=
+-- ⟨by rintro rfl _; refl, eval_inj _ _⟩
 
-lemma eval_inj_iff [char_zero R] (φ ψ : mv_polynomial σ R) :
-  φ = ψ ↔ (∀ f, eval f φ = eval f ψ) :=
-⟨by rintro rfl _; refl, eval_inj _ _⟩
-
-end mv_polynomial
-
+-- end mv_polynomial
 
 namespace witt_vector
 
@@ -63,11 +61,33 @@ begin
   { rw eval₂_hom_X', dsimp, refl, }
 end
 
+section omit hp
+lemma congr₂ {α β γ : Type*} (f : α → β → γ) (a₁ a₂ : α) (b₁ b₂ : β) :
+  a₁ = a₂ → b₁ = b₂ → f a₁ b₁ = f a₂ b₂ :=
+by rintro rfl rfl; refl
+end
+
 lemma Sub_eq : Sub p = witt_sub p :=
 begin
-  apply unique_of_exists_unique (witt_structure_int_exists_unique p (X tt - X ff)),
-  swap, { apply witt_structure_int_prop },
+  apply eq_witt_structure_int,
   intro n,
+  erw [Sub, ← bind₁_bind₁, witt_structure_int_prop p (X tt + X ff) n, bind₁_bind₁],
+  rw [alg_hom.map_add, alg_hom.map_sub, sub_eq_add_neg, ← alg_hom.map_neg],
+  apply congr₂,
+  { rw [bind₁_X_right, bind₁_X_right, bind₁_rename],
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    ext1 i,
+    dsimp [function.uncurry],
+    refl },
+  { rw [← witt_structure_int_prop p (- X ff), bind₁_X_right, bind₁_rename],
+    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+    ext1 i,
+    dsimp [function.uncurry],
+    rw witt_neg,
+    apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
+    simp only [map_rename, map_witt_structure_int, map_X, ring_hom.map_neg],
+    simp only [witt_structure_rat, rename_bind₁, rename_rename,
+      alg_hom.map_neg, ring_hom.map_neg, bind₁_X_right], }
 end
 
 lemma sub_coeff (x y : 𝕎 R) (n : ℕ) :
@@ -77,6 +97,7 @@ begin
   rw [← Sub_eq, sub_eq]
 end
 
+/-
 section disjoint
 
 lemma witt_add_sub_nice (n : ℕ) :
@@ -123,5 +144,6 @@ end
 
 
 end disjoint
+-/
 
 end witt_vector

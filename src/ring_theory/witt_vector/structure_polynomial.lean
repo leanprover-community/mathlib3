@@ -31,7 +31,8 @@ noncomputable def witt_structure_rat (Φ : mv_polynomial idx ℚ) (n : ℕ) :
 bind₁ (λ k : ℕ, (bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ k)))) Φ) (X_in_terms_of_W p ℚ n)
 
 theorem witt_structure_rat_prop (Φ : mv_polynomial idx ℚ) (n : ℕ) :
-  bind₁ (witt_structure_rat p Φ) (W_ ℚ n) = bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :=
+  bind₁ (witt_structure_rat p Φ) (W_ ℚ n) =
+  bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :=
 calc aeval (witt_structure_rat p Φ) (W_ ℚ n) =
       aeval (λ k, aeval (λ b, (rename (prod.mk b)) (W_ ℚ k)) Φ)
         (aeval (X_in_terms_of_W p ℚ) (W_ ℚ n)) :
@@ -294,7 +295,8 @@ end
 variables (p)
 
 theorem witt_structure_int_prop (Φ : mv_polynomial idx ℤ) (n) :
-  bind₁ (witt_structure_int p Φ) (witt_polynomial p ℤ n) = bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℤ n))) Φ :=
+  bind₁ (witt_structure_int p Φ) (witt_polynomial p ℤ n) =
+  bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℤ n))) Φ :=
 begin
   apply mv_polynomial.coe_int_rat_map_injective,
   have := witt_structure_rat_prop p (map (int.cast_ring_hom ℚ) Φ) n,
@@ -302,27 +304,29 @@ begin
         map_witt_polynomial, alg_hom.coe_to_ring_hom, map_witt_structure_int],
 end
 
-theorem witt_structure_int_exists_unique (Φ : mv_polynomial idx ℤ) :
-  ∃! (φ : ℕ → mv_polynomial (idx × ℕ) ℤ),
-  ∀ (n : ℕ), bind₁ φ (witt_polynomial p ℤ n) = bind₁ (λ b : idx, (rename (λ i, (b,i)) (W_ ℤ n))) Φ :=
+lemma eq_witt_structure_int (Φ : mv_polynomial idx ℤ) (φ : ℕ → mv_polynomial (idx × ℕ) ℤ)
+  (h : ∀ n, bind₁ φ (witt_polynomial p ℤ n) = bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℤ n))) Φ) :
+  φ = witt_structure_int p Φ :=
 begin
-  refine ⟨witt_structure_int p Φ, _, _⟩,
-  { apply witt_structure_int_prop },
-  { intros φ H,
-    funext k,
+  funext k,
     apply mv_polynomial.coe_int_rat_map_injective,
     rw map_witt_structure_int,
     refine congr_fun _ k,
     have := (witt_structure_prop_exists_unique p (map (int.cast_ring_hom ℚ) Φ)),
     apply unique_of_exists_unique this,
     { clear this, intro n,
-      specialize H n,
-      apply_fun map (int.cast_ring_hom ℚ) at H,
+      specialize h n,
+      apply_fun map (int.cast_ring_hom ℚ) at h,
       simpa only [map_bind₁, ← eval₂_hom_map_hom, eval₂_hom_C_left, map_rename,
-        map_witt_polynomial, alg_hom.coe_to_ring_hom] using H, },
-    { intro n, apply witt_structure_rat_prop } },
+        map_witt_polynomial, alg_hom.coe_to_ring_hom] using h, },
+    { intro n, apply witt_structure_rat_prop }
 end
-.
+
+theorem witt_structure_int_exists_unique (Φ : mv_polynomial idx ℤ) :
+  ∃! (φ : ℕ → mv_polynomial (idx × ℕ) ℤ),
+  ∀ (n : ℕ), bind₁ φ (witt_polynomial p ℤ n) = bind₁ (λ b : idx, (rename (λ i, (b,i)) (W_ ℤ n))) Φ :=
+⟨witt_structure_int p Φ, witt_structure_int_prop _ _, eq_witt_structure_int _ _⟩
+
 theorem witt_structure_prop (Φ : mv_polynomial idx ℤ) (n) :
   aeval (λ i, map (int.cast_ring_hom R) (witt_structure_int p Φ i)) (witt_polynomial p ℤ n) =
   aeval (λ b, (rename (λ i, (b,i)) (W n))) Φ :=

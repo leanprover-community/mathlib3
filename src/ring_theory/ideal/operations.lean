@@ -907,6 +907,7 @@ section quotient_algebra
 
 variables [algebra R S] {I : ideal S}
 
+/-- The ring hom `R/f⁻¹(I) →+* S/I` induced by a ring hom `f : R →+* S` -/
 def quotient_map (I : ideal S) (f : R →+* S) : (I.comap f).quotient →+* I.quotient :=
 (quotient.lift (I.comap f) ((quotient.mk I).comp f) (λ _ ha,
   by simpa [function.comp_app, ring_hom.coe_comp, quotient.eq_zero_iff_mem] using ha))

@@ -117,7 +117,7 @@ meta def linear_form_of_expr (red : transparency) : exmap → expr → tactic (e
       (m', comp2) ← linear_form_of_expr m' e2,
       return (m', comp1.add (comp2.scale (-1)))
 | m `(-%%e) := do (m', comp) ← linear_form_of_expr m e, return (m', comp.scale (-1))
-| m p@`(%%e ^ %%n) :=
+| m p@`(@has_pow.pow _ ℕ _ %%e %%n) :=
   match n.to_nat with
   | some k :=
     do (m', comp) ← linear_form_of_expr m e,

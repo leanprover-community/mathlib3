@@ -1,4 +1,5 @@
 import tactic.linarith
+import algebra.field_power
 
 example {α : Type} (_inst : Π (a : Prop), decidable a)
   [linear_ordered_field α]

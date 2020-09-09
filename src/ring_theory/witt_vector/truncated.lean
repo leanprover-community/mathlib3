@@ -1,10 +1,12 @@
 /-
 Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin
+Authors: Johan Commelin, Rob Lewis
 -/
 
-import ring_theory.witt_vector.basic
+import ring_theory.witt_vector.ideal
+import ring_theory.witt_vector.move_this
+import tactic.equiv_rw
 
 /-!
 

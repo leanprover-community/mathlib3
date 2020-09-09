@@ -566,6 +566,44 @@ lemma rename_expand (f : σ → τ) (p : ℕ) (φ : mv_polynomial σ R) :
   rename f (expand p φ) = expand p (rename f φ) :=
 by simp [expand, bind₁_rename, rename_bind₁]
 
+section
+open_locale classical
+lemma vars_rename {τ} (f : σ → τ) (φ : mv_polynomial σ R) :
+  (rename f φ).vars ⊆ (φ.vars.image f) :=
+begin
+  -- I guess a higher level proof might be shorter
+  -- should we prove `degrees_rename` first?
+  intros i,
+  rw [mem_vars, finset.mem_image],
+  rintro ⟨d, hd, hi⟩,
+  simp only [exists_prop, mem_vars],
+  contrapose! hd,
+  rw [rename_eq],
+  rw [finsupp.not_mem_support_iff],
+  simp only [finsupp.map_domain, finsupp.sum_apply, finsupp.single_apply],
+  rw [finsupp.sum, finset.sum_eq_zero],
+  intros d' hd',
+  split_ifs with H, swap, refl,
+  subst H,
+  rw [finsupp.mem_support_iff, finsupp.sum_apply] at hi,
+  contrapose! hi,
+  rw [finsupp.sum, finset.sum_eq_zero],
+  intros j hj,
+  rw [finsupp.single_apply, if_neg],
+  apply hd,
+  exact ⟨d', hd', hj⟩
+end
+
+end
+
+lemma constant_coeff_map (f : R →+* S) (φ : mv_polynomial σ R) :
+  constant_coeff (mv_polynomial.map f φ) = f (constant_coeff φ) :=
+coeff_map f φ 0
+
+lemma constant_coeff_comp_map (f : R →+* S) :
+  (constant_coeff : mv_polynomial σ S →+* S).comp (mv_polynomial.map f) = f.comp (constant_coeff) :=
+by { ext, apply constant_coeff_map }
+
 end
 
 section aeval_eq_zero
@@ -647,6 +685,35 @@ begin
 end
 
 end
+
+section move_this
+
+-- move this
+variables (σ) (R)
+@[simp] lemma constant_coeff_comp_C :
+  constant_coeff.comp (C : R →+* mv_polynomial σ R) = ring_hom.id R :=
+by { ext, apply constant_coeff_C }
+
+@[simp] lemma constant_coeff_comp_algebra_map :
+  constant_coeff.comp (algebra_map R (mv_polynomial σ R)) = ring_hom.id R :=
+constant_coeff_comp_C _ _
+
+variable {σ}
+
+@[simp] lemma constant_coeff_rename {τ : Type*} (f : σ → τ) (φ : mv_polynomial σ R) :
+  constant_coeff (rename f φ) = constant_coeff φ :=
+begin
+  apply φ.induction_on,
+  { intro a, simp only [constant_coeff_C, rename_C]},
+  { intros p q hp hq, simp only [hp, hq, ring_hom.map_add] },
+  { intros p n hp, simp only [hp, rename_X, constant_coeff_X, ring_hom.map_mul]}
+end
+
+@[simp] lemma constant_coeff_comp_rename {τ : Type*} (f : σ → τ) :
+  (constant_coeff : mv_polynomial τ R →+* R).comp (rename f) = constant_coeff :=
+by { ext, apply constant_coeff_rename }
+
+end move_this
 
 end mv_polynomial
 
@@ -787,6 +854,23 @@ end
 
 end isos_to_zmod
 
+lemma inv_of_commute {M : Type*} [has_one M] [has_mul M] (m : M) [invertible m] :
+  commute m (⅟m) :=
+calc m * ⅟m = 1       : mul_inv_of_self m
+        ... = ⅟ m * m : (inv_of_mul_self m).symm
 
+-- move this
+instance invertible_pow {M : Type*} [monoid M] (m : M) [invertible m] (n : ℕ) :
+  invertible (m ^ n) :=
+{ inv_of := ⅟ m ^ n,
+  inv_of_mul_self := by rw [← (inv_of_commute m).symm.mul_pow, inv_of_mul_self, one_pow],
+  mul_inv_of_self := by rw [← (inv_of_commute m).mul_pow, mul_inv_of_self, one_pow] }
+
+section
+-- move this
+lemma prod_mk_injective {α β : Type*} (a : α) :
+  function.injective (prod.mk a : β → α × β) :=
+by { intros b₁ b₂ h, simpa only [true_and, prod.mk.inj_iff, eq_self_iff_true] using h }
+end
 
 -- ### end FOR_MATHLIB

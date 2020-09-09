@@ -737,10 +737,9 @@ open_locale classical
 section has_Sup
 variables [has_Sup α]
 
-/-- `has_Sup` structure on a nonempty open subset `s` of a conditionally complete linear
-order. This definition is non-canonical (it uses `default s`); it should be used only as
-here, as an auxiliary instance in the construction of the `conditionally_complete_linear_order`
-structure. -/
+/-- `has_Sup` structure on a nonempty subset `s` of an object with `has_Sup`. This definition is
+non-canonical (it uses `default s`); it should be used only as here, as an auxiliary instance in the
+construction of the `conditionally_complete_linear_order` structure. -/
 noncomputable def subset_has_Sup [inhabited s] : has_Sup s := {Sup := λ t,
 if ht : Sup (coe '' t : set α) ∈ s then ⟨Sup (coe '' t : set α), ht⟩ else default s}
 
@@ -760,10 +759,9 @@ end has_Sup
 section has_Inf
 variables [has_Inf α]
 
-/-- `has_Inf` structure on a nonempty open subset `s` of a conditionally complete linear
-order. This definition is non-canonical (it uses `default s`); it should be used only as
-here, as an auxiliary instance in the construction of the `conditionally_complete_linear_order`
-structure. -/
+/-- `has_Inf` structure on a nonempty subset `s` of an object with `has_Inf`. This definition is
+non-canonical (it uses `default s`); it should be used only as here, as an auxiliary instance in the
+construction of the `conditionally_complete_linear_order` structure. -/
 noncomputable def subset_has_Inf [inhabited s] : has_Inf s := {Inf := λ t,
 if ht : Inf (coe '' t : set α) ∈ s then ⟨Inf (coe '' t : set α), ht⟩ else default s}
 

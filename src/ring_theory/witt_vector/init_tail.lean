@@ -14,12 +14,14 @@ local notation `𝕎` := witt_vector p -- type as `\bbW`
 namespace witt_vector
 open mv_polynomial
 
-local attribute [irreducible] witt_vector.coeff
+section
 
+local attribute [semireducible] witt_vector
 def init (x : 𝕎 R) (n : ℕ) : 𝕎 R := mk p (λ k, if k < n then x.coeff k else 0)
 
 def tail (x : 𝕎 R) (n : ℕ) : 𝕎 R := mk p (λ k, if k < n then 0 else x.coeff k)
 
+end
 include hp
 
 @[simp]

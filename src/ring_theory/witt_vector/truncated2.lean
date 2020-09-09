@@ -71,8 +71,15 @@ end truncated_witt_vector
 namespace witt_vector
 
 variables {p} (n)
+
+section
+
+local attribute [semireducible] witt_vector
+
 def truncate_fun (x : 𝕎 R) : truncated_witt_vector p n R :=
 truncated_witt_vector.mk p $ λ i, x.coeff i
+
+end
 
 variables {n}
 

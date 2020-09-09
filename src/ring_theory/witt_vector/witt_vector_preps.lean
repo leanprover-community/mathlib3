@@ -12,6 +12,7 @@ import ring_theory.multiplicity
 import algebra.invertible
 import number_theory.basic
 import group_theory.order_of_element
+import ring_theory.witt_vector.mv_poly_temp
 
 universes u v w u₁
 

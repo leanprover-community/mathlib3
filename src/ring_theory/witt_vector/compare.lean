@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
-import ring_theory.witt_vector.truncated
+import ring_theory.witt_vector.truncated2
 import data.padics.ring_homs
 
 /-!
 
-# Comparison isomorphism between `witt_vector (zmod p)` and `ℤ_[p]`
+# Comparison isomorphism between `witt_vector p (zmod p)` and `ℤ_[p]`
 
 -/
 
@@ -24,16 +24,16 @@ include hp
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
 def to_zmod_pow (k : ℕ) : 𝕎 (zmod p) →+* zmod (p ^ k) :=
-(zmod_equiv_trunc p k).symm.to_ring_hom.comp (truncate p k)
+(zmod_equiv_trunc p k).symm.to_ring_hom.comp (truncate k)
 
 lemma to_zmod_pow_compat (m n : ℕ) (h : m ≤ n) :
   (zmod.cast_hom (show p ^ m ∣ p ^ n, by { simpa using pow_dvd_pow p h }) (zmod (p ^ m))).comp ((λ (k : ℕ), to_zmod_pow p k) n) =
     (λ (k : ℕ), to_zmod_pow p k) m :=
-begin
-  unfold to_zmod_pow,
-  rw [← ring_hom.comp_assoc, ← commutes_symm p _ h],
-  refl
-end
+calc (zmod.cast_hom _ (zmod (p ^ m))).comp ((zmod_equiv_trunc p n).symm.to_ring_hom.comp (truncate n)) =
+  ((zmod_equiv_trunc p m).symm.to_ring_hom.comp (truncated_witt_vector.truncate h)).comp (truncate n) :
+  by rw [commutes_symm, ring_hom.comp_assoc]
+... = (zmod_equiv_trunc p m).symm.to_ring_hom.comp (truncate m) :
+  by rw [ring_hom.comp_assoc, truncate_comp_witt_vector_truncate]
 
 def to_padic_int : 𝕎 (zmod p) →+* ℤ_[p] :=
 -- I think the family should be an explicit argument of `lift`,
@@ -41,7 +41,7 @@ def to_padic_int : 𝕎 (zmod p) →+* ℤ_[p] :=
 padic_int.lift (λ m n h, to_zmod_pow_compat p m n h)
 
 lemma zmod_equiv_trunc_compat (k₁ k₂ : ℕ) (hk : k₁ ≤ k₂) :
-    (truncated_witt_vector.truncate p (zmod p) hk).comp
+    (truncated_witt_vector.truncate hk).comp
         ((zmod_equiv_trunc p k₂).to_ring_hom.comp
            (padic_int.to_zmod_pow k₂)) =
       (zmod_equiv_trunc p k₁).to_ring_hom.comp (padic_int.to_zmod_pow k₁) :=

@@ -5,6 +5,8 @@ Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.ring.basic
 import algebra.group_with_zero
+import data.set.finite
+
 open set
 
 set_option default_priority 100 -- see Note [default priority]
@@ -247,6 +249,8 @@ lemma map_inv : g x⁻¹ = (g x)⁻¹ := (g : α →* γ).map_inv' g.map_zero x
 lemma map_div : g (x / y) = g x / g y := (g : α →* γ).map_div g.map_zero x y
 
 protected lemma injective : function.injective f := f.injective_iff.2 $ λ x, f.map_eq_zero.1
+
+lemma infinite_of_infinite (hF : infinite α) : infinite β := @infinite.of_injective _ _ hF f f.injective
 
 end
 

@@ -128,25 +128,25 @@ ext $ assume b, rfl
 ext $ assume b, rfl
 
 /-- Restrict domain and codomain of an endomorphism. -/
-def restrict (f : M →ₗ[R] M) (p : submodule R M) (hf : ∀ x ∈ p, f x ∈ p) : p →ₗ[R] p :=
+def restrict (f : M →ₗ[R] M) {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) : p →ₗ[R] p :=
 { to_fun := λ x, ⟨f x, hf x.1 x.2⟩,
   map_add' := begin intros, apply set_coe.ext, simp end,
   map_smul' := begin intros, apply set_coe.ext, simp end }
 
 lemma restrict_apply
   {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) (x : p) :
-  f.restrict p hf x = ⟨f x, hf x.1 x.2⟩ := rfl
+  f.restrict hf x = ⟨f x, hf x.1 x.2⟩ := rfl
 
 lemma subtype_comp_restrict {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) :
-  p.subtype.comp (f.restrict p hf) = f.dom_restrict p := rfl
+  p.subtype.comp (f.restrict hf) = f.dom_restrict p := rfl
 
 lemma restrict_eq_cod_restrict_dom_restrict
   {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) :
-  f.restrict p hf = (f.dom_restrict p).cod_restrict p (λ x, hf x.1 x.2) := rfl
+  f.restrict hf = (f.dom_restrict p).cod_restrict p (λ x, hf x.1 x.2) := rfl
 
 lemma restrict_eq_dom_restrict_cod_restrict
   {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x, f x ∈ p) :
-  f.restrict p (λ x _, hf x) = (f.cod_restrict p hf).dom_restrict p := rfl
+  f.restrict (λ x _, hf x) = (f.cod_restrict p hf).dom_restrict p := rfl
 
 /-- If a function `g` is a left and right inverse of a linear map `f`, then `g` is linear itself. -/
 def inverse (g : M₂ → M) (h₁ : left_inverse g f) (h₂ : right_inverse g f) : M₂ →ₗ[R] M :=

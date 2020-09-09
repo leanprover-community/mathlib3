@@ -540,7 +540,8 @@ protected theorem decidable.not_and_distrib [decidable a] : ¬ (a ∧ b) ↔ ¬a
 protected theorem decidable.not_and_distrib' [decidable b] : ¬ (a ∧ b) ↔ ¬a ∨ ¬b :=
 ⟨λ h, if hb : b then or.inl (λ ha, h ⟨ha, hb⟩) else or.inr hb, not_and_of_not_or_not⟩
 
-/-- One of de Morgan's laws. -/
+/-- One of de Morgan's laws: the negation of a conjunction is logically equivalent to the
+disjunction of the negations. -/
 theorem not_and_distrib : ¬ (a ∧ b) ↔ ¬a ∨ ¬b := decidable.not_and_distrib
 
 @[simp] theorem not_and : ¬ (a ∧ b) ↔ (a → ¬ b) := and_imp

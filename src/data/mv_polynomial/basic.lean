@@ -757,6 +757,14 @@ by { rw [← eval_map, ← eval_map, map_map], }
   eval₂_hom φ g (map f p) = eval₂_hom (φ.comp f) g p :=
 eval₂_map f g φ p
 
+lemma constant_coeff_map (f : α →+* β) (φ : mv_polynomial σ α) :
+  constant_coeff (mv_polynomial.map f φ) = f (constant_coeff φ) :=
+coeff_map f φ 0
+
+lemma constant_coeff_comp_map (f : α →+* β) :
+  (constant_coeff : mv_polynomial σ β →+* β).comp (mv_polynomial.map f) = f.comp (constant_coeff) :=
+by { ext, apply constant_coeff_map }
+
 lemma support_map_subset (p : mv_polynomial σ α) : (map f p).support ⊆ p.support :=
 begin
   intro x,

@@ -304,8 +304,8 @@ lemma rename_expand (f : σ → τ) (p : ℕ) (φ : mv_polynomial σ R) :
   rename f (expand p φ) = expand p (rename f φ) :=
 by simp [expand, bind₁_rename, rename_bind₁]
 
-section
 open_locale classical
+
 lemma vars_rename {τ} (f : σ → τ) (φ : mv_polynomial σ R) :
   (rename f φ).vars ⊆ (φ.vars.image f) :=
 begin
@@ -332,15 +332,6 @@ begin
   exact ⟨d', hd', hj⟩
 end
 
-end
-
-lemma constant_coeff_map (f : R →+* S) (φ : mv_polynomial σ R) :
-  constant_coeff (mv_polynomial.map f φ) = f (constant_coeff φ) :=
-coeff_map f φ 0
-
-lemma constant_coeff_comp_map (f : R →+* S) :
-  (constant_coeff : mv_polynomial σ S →+* S).comp (mv_polynomial.map f) = f.comp (constant_coeff) :=
-by { ext, apply constant_coeff_map }
 
 end
 

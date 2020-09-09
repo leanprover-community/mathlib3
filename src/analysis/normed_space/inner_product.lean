@@ -24,12 +24,12 @@ two vectors. In particular vectors `x` and `y` are orthogonal if their inner pro
 - We define the class `inner_product_space` with a number of basic properties, most
   notably the Cauchy-Schwarz inequality.
 - We show that if `f i` is an inner product space for each `i`, then so is `Π i, f i`
-- We define `euclidean_space K n` to be `n → K` for any `fintype n`, and show that
+- We define `euclidean_space 𝕜 n` to be `n → 𝕜` for any `fintype n`, and show that
   this an inner product space.
 - Existence of orthogonal projection onto nonempty complete subspace:
-  Let `u` be a point in an inner product space, and let `K` be a nonempty complete subspace.
-  Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
-  The point `v` is usually called the orthogonal projection of `u` onto `K`.
+  Let `u` be a point in an inner product space, and let `𝕜` be a nonempty complete subspace.
+  Then there exists a unique `v` in `𝕜` that minimizes the distance `∥u - v∥` to `u`.
+  The point `v` is usually called the orthogonal projection of `u` onto `𝕜`.
 
 ## Notation
 
@@ -54,17 +54,15 @@ The Coq code is available at the following address: <http://www.lri.fr/~sboldo/e
 
 noncomputable theory
 
---namespace is_R_or_C
-
-open is_R_or_C real set classical
+open is_R_or_C real
 open_locale big_operators classical
 
 variables {F : Type*} {G : Type*}
-variables {K : Type*} [nondiscrete_normed_field K] [algebra ℝ K] [is_R_or_C K]
-local notation `𝓚` := @is_R_or_C.of_real K _ _ _
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜] [is_R_or_C 𝕜]
+local notation `𝓚` := @is_R_or_C.of_real 𝕜 _ _ _
 
 /-- Syntactic typeclass for types endowed with an inner product -/
-class has_inner (K α : Type*) := (inner : α → α → K)
+class has_inner (𝕜 α : Type*) := (inner : α → α → 𝕜)
 
 export has_inner (inner)
 
@@ -75,14 +73,14 @@ set_option default_priority 100 -- see Note [default priority]
 /--
 An inner product space is a vector space with an additional operation called inner product.
 The norm could be derived from the inner product, instead we require the existence of a norm and
-the fact that `∥x∥^2 = re ⟪x, x⟫` to be able to put instances on `K` or product
+the fact that `∥x∥^2 = re ⟪x, x⟫` to be able to put instances on `𝕂` or product
 spaces.
 
 To construct a norm from an inner product, see `inner_product_space.of_core`.
 -/
-class inner_product_space (K : Type*) (α : Type*)
-  [nondiscrete_normed_field K] [algebra ℝ K] [is_R_or_C K]
-  extends normed_group α, normed_space K α, has_inner K α :=
+class inner_product_space (𝕜 : Type*) (α : Type*)
+  [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜] [is_R_or_C 𝕜]
+  extends normed_group α, normed_space 𝕜 α, has_inner 𝕜 α :=
 (norm_sq_eq_inner : ∀ (x : α), ∥x∥^2 = re (inner x x))
 (conj_sym  : ∀ x y, conj (inner y x) = inner x y)
 (nonneg_im : ∀ x, im (inner x x) = 0)
@@ -110,10 +108,10 @@ possible to the construction of the norm and the proof of the triangular inequal
 can construct an `inner_product_space` instance in `inner_product_space.of_core`. -/
 @[nolint has_inhabited_instance]
 structure inner_product_space.core
-  (K : Type*) (F : Type*)
-  [nondiscrete_normed_field K] [algebra ℝ K] [is_R_or_C K]
-  [add_comm_group F] [semimodule K F] :=
-(inner     : F → F → K)
+  (𝕜 : Type*) (F : Type*)
+  [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜] [is_R_or_C 𝕜]
+  [add_comm_group F] [semimodule 𝕜 F] :=
+(inner     : F → F → 𝕜)
 (conj_sym  : ∀ x y, conj (inner y x) = inner x y)
 (nonneg_im : ∀ x, im (inner x x) = 0)
 (nonneg_re : ∀ x, re (inner x x) ≥ 0)
@@ -128,24 +126,24 @@ attribute [class] inner_product_space.core
 
 namespace inner_product_space.of_core
 
-variables [add_comm_group F] [semimodule K F] [c : inner_product_space.core K F]
+variables [add_comm_group F] [semimodule 𝕜 F] [c : inner_product_space.core 𝕜 F]
 include c
 
-local notation `⟪`x`, `y`⟫` := @inner K F _ x y
-local notation `𝓚` := @is_R_or_C.of_real K _ _ _
-local notation `norm_sqK` := @is_R_or_C.norm_sq K _ _ _
-local notation `reK` := @is_R_or_C.re K _ _ _
-local notation `ext_iff` := @is_R_or_C.ext_iff K _ _ _
-local postfix `†`:90 := @is_R_or_C.conj K _ _ _
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 F _ x y
+local notation `𝓚` := @is_R_or_C.of_real 𝕜 _ _ _
+local notation `norm_sqK` := @is_R_or_C.norm_sq 𝕜 _ _ _
+local notation `reK` := @is_R_or_C.re 𝕜 _ _ _
+local notation `ext_iff` := @is_R_or_C.ext_iff 𝕜 _ _ _
+local postfix `†`:90 := @is_R_or_C.conj 𝕜 _ _ _
 
 /-- Inner product defined by the `inner_product_space.core` structure. -/
-def to_has_inner : has_inner K F := { inner := c.inner }
+def to_has_inner : has_inner 𝕜 F := { inner := c.inner }
 local attribute [instance] to_has_inner
 
 /-- The norm squared function for `inner_product_space.core` structure. -/
 def norm_sq (x : F) := reK ⟪x, x⟫
 
-local notation `norm_sqF` := @norm_sq F K _ _ _ _ _ _
+local notation `norm_sqF` := @norm_sq F 𝕜 _ _ _ _ _ _
 
 lemma inner_conj_sym (x y : F) : ⟪y, x⟫† = ⟪x, y⟫ := c.conj_sym x y
 
@@ -173,14 +171,14 @@ by rw [←inner_conj_sym, conj_re]
 lemma inner_im_symm {x y : F} : im ⟪x, y⟫ = -im ⟪y, x⟫ :=
 by rw [←inner_conj_sym, conj_im]
 
-lemma inner_smul_left {x y : F} {r : K} : ⟪r • x, y⟫ = r† * ⟪x, y⟫ :=
+lemma inner_smul_left {x y : F} {r : 𝕜} : ⟪r • x, y⟫ = r† * ⟪x, y⟫ :=
 c.smul_left _ _ _
 
-lemma inner_smul_right {x y : F} {r : K} : ⟪x, r • y⟫ = r * ⟪x, y⟫ :=
+lemma inner_smul_right {x y : F} {r : 𝕜} : ⟪x, r • y⟫ = r * ⟪x, y⟫ :=
 by rw [←inner_conj_sym, inner_smul_left]; simp only [conj_conj, inner_conj_sym, ring_hom.map_mul]
 
 lemma inner_zero_left {x : F} : ⟪0, x⟫ = 0 :=
-by rw [←zero_smul K (0 : F), inner_smul_left]; simp only [zero_mul, ring_hom.map_zero]
+by rw [←zero_smul 𝕜 (0 : F), inner_smul_left]; simp only [zero_mul, ring_hom.map_zero]
 
 lemma inner_zero_right {x : F} : ⟪x, 0⟫ = 0 :=
 by rw [←inner_conj_sym, inner_zero_left]; simp only [ring_hom.map_zero]
@@ -195,7 +193,7 @@ lemma inner_abs_conj_sym {x y : F} : abs ⟪x, y⟫ = abs ⟪y, x⟫ :=
   by rw [←inner_conj_sym, abs_conj]
 
 lemma inner_neg_left {x y : F} : ⟪-x, y⟫ = -⟪x, y⟫ :=
-by { rw [← neg_one_smul K x, inner_smul_left], simp }
+by { rw [← neg_one_smul 𝕜 x, inner_smul_left], simp }
 
 lemma inner_neg_right {x y : F} : ⟪x, -y⟫ = -⟪x, y⟫ :=
 by rw [←inner_conj_sym, inner_neg_left]; simp only [ring_hom.map_neg, inner_conj_sym]
@@ -330,7 +328,7 @@ normed_group.of_core F
 local attribute [instance] to_normed_group
 
 /-- Normed space structure constructed from a `inner_product_space.core` structure -/
-def to_normed_space : normed_space K F :=
+def to_normed_space : normed_space 𝕜 F :=
 { norm_smul_le := assume r x,
   begin
     rw [norm_eq_sqrt_inner, inner_smul_left, inner_smul_right, ←mul_assoc],
@@ -343,11 +341,11 @@ end inner_product_space.of_core
 
 /-- Given a `inner_product_space.core` structure on a space, one can use it to turn
 the space into an inner product space, constructing the norm out of the inner product -/
-def inner_product_space.of_core [add_comm_group F] [semimodule K F]
-  (c : inner_product_space.core K F) : inner_product_space K F :=
+def inner_product_space.of_core [add_comm_group F] [semimodule 𝕜 F]
+  (c : inner_product_space.core 𝕜 F) : inner_product_space 𝕜 F :=
 begin
-  letI : normed_group F := @inner_product_space.of_core.to_normed_group F K _ _ _ _ _ c,
-  letI : normed_space K F := @inner_product_space.of_core.to_normed_space F K _ _ _ _ _ c,
+  letI : normed_group F := @inner_product_space.of_core.to_normed_group F 𝕜 _ _ _ _ _ c,
+  letI : normed_space 𝕜 F := @inner_product_space.of_core.to_normed_space F 𝕜 _ _ _ _ _ c,
   exact { norm_sq_eq_inner := λ x,
     begin
       have h₁ : ∥x∥^2 = (sqrt (re (c.inner x x))) ^ 2 := rfl,
@@ -360,21 +358,26 @@ end
 /-! ### Properties of inner product spaces -/
 
 variables {α β γ : Type*}
-  [inner_product_space K α] [inner_product_space ℝ β] [inner_product_space ℂ γ]
-local notation `⟪`x`, `y`⟫` := @inner K α _ x y
+  [inner_product_space 𝕜 α] [inner_product_space ℝ β] [inner_product_space ℂ γ]
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 α _ x y
 local notation `⟪`x`, `y`⟫_ℝ` := @inner ℝ β _ x y
 local notation `⟪`x`, `y`⟫_ℂ` := @inner ℂ γ _ x y
-local notation `IK` := @is_R_or_C.I K _ _ _
+local notation `IK` := @is_R_or_C.I 𝕜 _ _ _
 local notation `absR` := _root_.abs
-local postfix `†`:90 := @is_R_or_C.conj K _ _ _
+local postfix `†`:90 := @is_R_or_C.conj 𝕜 _ _ _
 local postfix `⋆`:90 := complex.conj
 
 export inner_product_space (norm_sq_eq_inner)
+
+namespace inner
 
 section basic_properties
 
 lemma inner_conj_sym (x y : α) : ⟪y, x⟫† = ⟪x, y⟫ := inner_product_space.conj_sym _ _
 lemma real.inner_comm (x y : β) : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := inner_conj_sym x y
+
+lemma inner_eq_zero_sym {x y : α} : ⟪x, y⟫ = 0 ↔ ⟪y, x⟫ = 0 :=
+  ⟨λ h, by simp [←inner_conj_sym, h], λ h, by simp [←inner_conj_sym, h]⟩
 
 lemma inner_self_nonneg_im {x : α} : im ⟪x, x⟫ = 0 := inner_product_space.nonneg_im _
 
@@ -395,16 +398,16 @@ by rw [←inner_conj_sym, conj_re]
 lemma inner_im_symm {x y : α} : im ⟪x, y⟫ = -im ⟪y, x⟫ :=
 by rw [←inner_conj_sym, conj_im]
 
-lemma inner_smul_left {x y : α} {r : K} : ⟪r • x, y⟫ = r† * ⟪x, y⟫ :=
+lemma inner_smul_left {x y : α} {r : 𝕜} : ⟪r • x, y⟫ = r† * ⟪x, y⟫ :=
 inner_product_space.smul_left _ _ _
 lemma real.inner_smul_left {x y : β} {r : ℝ} : ⟪r • x, y⟫_ℝ = r * ⟪x, y⟫_ℝ := inner_smul_left
 
-lemma inner_smul_right {x y : α} {r : K} : ⟪x, r • y⟫ = r * ⟪x, y⟫ :=
+lemma inner_smul_right {x y : α} {r : 𝕜} : ⟪x, r • y⟫ = r * ⟪x, y⟫ :=
 by rw [←inner_conj_sym, inner_smul_left, ring_hom.map_mul, conj_conj, inner_conj_sym]
 lemma real.inner_smul_right {x y : β} {r : ℝ} : ⟪x, r • y⟫_ℝ = r * ⟪x, y⟫_ℝ := inner_smul_right
 
 /-- The inner product as a sesquilinear form. -/
-def sesq_form_of_inner : sesq_form K α conj_to_ring_equiv :=
+def sesq_form_of_inner : sesq_form 𝕜 α conj_to_ring_equiv :=
 { sesq := λ x y, ⟪y, x⟫,    -- Note that sesquilinear forms are linear in the first argument
   sesq_add_left := λ x y z, inner_add_right,
   sesq_add_right := λ x y z, inner_add_left,
@@ -430,7 +433,7 @@ lemma inner_sum {ι : Type*} (s : finset ι) (f : ι → α) (x : α) :
 sesq_form.map_sum_left (sesq_form_of_inner) _ _ _
 
 @[simp] lemma inner_zero_left {x : α} : ⟪0, x⟫ = 0 :=
-by rw [← zero_smul K (0:α), inner_smul_left, ring_hom.map_zero, zero_mul]
+by rw [← zero_smul 𝕜 (0:α), inner_smul_left, ring_hom.map_zero, zero_mul]
 
 lemma inner_re_zero_left {x : α} : re ⟪0, x⟫ = 0 :=
 by simp only [inner_zero_left, add_monoid_hom.map_zero]
@@ -471,10 +474,7 @@ begin
 end
 
 lemma real.inner_self_nonpos {x : β} : ⟪x, x⟫_ℝ ≤ 0 ↔ x = 0 :=
-begin
-  have h := @inner_self_nonpos ℝ _ _ _ β _ x,
-  simpa using h
-end
+by have h := @inner_self_nonpos ℝ _ _ _ β _ x; simpa using h
 
 @[simp] lemma inner_self_re_to_K {x : α} : 𝓚 (re ⟪x, x⟫) = ⟪x, x⟫ :=
 by rw is_R_or_C.ext_iff; exact ⟨by simp, by simp [inner_self_nonneg_im]⟩
@@ -497,7 +497,7 @@ lemma inner_abs_conj_sym {x y : α} : abs ⟪x, y⟫ = abs ⟪y, x⟫ :=
 by rw [←inner_conj_sym, abs_conj]
 
 @[simp] lemma inner_neg_left {x y : α} : ⟪-x, y⟫ = -⟪x, y⟫ :=
-by { rw [← neg_one_smul K x, inner_smul_left], simp }
+by { rw [← neg_one_smul 𝕜 x, inner_smul_left], simp }
 
 @[simp] lemma inner_neg_right {x y : α} : ⟪x, -y⟫ = -⟪x, y⟫ :=
 by rw [←inner_conj_sym, inner_neg_left]; simp only [ring_hom.map_neg, inner_conj_sym]
@@ -615,20 +615,14 @@ begin
 end
 
 lemma real.norm_eq_sqrt_inner (x : β) : ∥x∥ = sqrt ⟪x, x⟫_ℝ :=
-begin
-  have h := @norm_eq_sqrt_inner ℝ _ _ _ β _ x,
-  simpa using h,
-end
+by have h := @norm_eq_sqrt_inner ℝ _ _ _ β _ x; simpa using h
 
 lemma inner_self_eq_norm_square (x : α) : re ⟪x, x⟫ = ∥x∥ * ∥x∥ :=
   by rw[norm_eq_sqrt_inner, ←sqrt_mul inner_self_nonneg (re ⟪x, x⟫),
         sqrt_mul_self inner_self_nonneg]
 
 lemma real.inner_self_eq_norm_square (x : β) : ⟪x, x⟫_ℝ = ∥x∥ * ∥x∥ :=
-begin
-  have h := @inner_self_eq_norm_square ℝ _ _ _ β _ x,
-  simpa using h,
-end
+by have h := @inner_self_eq_norm_square ℝ _ _ _ β _ x; simpa using h
 
 
 /-- Expand the square -/
@@ -642,21 +636,15 @@ end
 
 /-- Expand the square -/
 lemma real.norm_add_pow_two {x y : β} : ∥x + y∥^2 = ∥x∥^2 + 2 * inner x y + ∥y∥^2 :=
-begin
-  have h₁ := @norm_add_pow_two ℝ _ _ _ β _,
-  simpa using h₁,
-end
+by have h := @norm_add_pow_two ℝ _ _ _ β _; simpa using h
 
 /-- Same lemma as above but in a different form -/
 lemma norm_add_mul_self {x y : α} : ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + 2 * (re ⟪x, y⟫) + ∥y∥ * ∥y∥ :=
-    by { repeat {rw [← pow_two]}, exact norm_add_pow_two }
+by { repeat {rw [← pow_two]}, exact norm_add_pow_two }
 
 /-- Same lemma as above but in a different form -/
 lemma real.norm_add_mul_self {x y : β} : ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + 2 * inner x y + ∥y∥ * ∥y∥ :=
-begin
-  have h₁ := @norm_add_mul_self ℝ _ _ _ β _,
-  simpa using h₁,
-end
+by have h := @norm_add_mul_self ℝ _ _ _ β _; simpa using h
 
 /-- Expand the square -/
 lemma norm_sub_pow_two {x y : α} : ∥x - y∥^2 = ∥x∥^2 - 2 * (re ⟪x, y⟫) + ∥y∥^2 :=
@@ -674,10 +662,7 @@ end
 
 /-- Expand the square -/
 lemma real.norm_sub_pow_two {x y : β} : ∥x - y∥^2 = ∥x∥^2 - 2 * inner x y + ∥y∥^2 :=
-begin
-  have h₁ := @norm_sub_pow_two ℝ _ _ _ β _,
-  simpa using h₁,
-end
+by have h := @norm_sub_pow_two ℝ _ _ _ β _; simpa using h
 
 /-- Same lemma as above but in a different form -/
 lemma norm_sub_mul_self {x y : α} : ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ - 2 * re ⟪x, y⟫ + ∥y∥ * ∥y∥ :=
@@ -685,10 +670,7 @@ by { repeat {rw [← pow_two]}, exact norm_sub_pow_two }
 
 /-- Same lemma as above but in a different form -/
 lemma real.norm_sub_mul_self {x y : β} : ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ - 2 * ⟪x, y⟫_ℝ + ∥y∥ * ∥y∥ :=
-begin
-  have h₁ := @norm_sub_mul_self ℝ _ _ _ β _,
-  simpa using h₁,
-end
+by have h := @norm_sub_mul_self ℝ _ _ _ β _; simpa using h
 
 /-- Cauchy–Schwarz inequality with norm -/
 lemma abs_inner_le_norm (x y : α) : abs ⟪x, y⟫ ≤ ∥x∥ * ∥y∥ :=
@@ -703,12 +685,9 @@ end
 
 /-- Cauchy–Schwarz inequality with norm -/
 lemma real.abs_inner_le_norm (x y : β) : absR ⟪x, y⟫_ℝ ≤ ∥x∥ * ∥y∥ :=
-begin
-  have h₁ := @abs_inner_le_norm ℝ _ _ _ β _ x y,
-  simpa using h₁,
-end
+by have h := @abs_inner_le_norm ℝ _ _ _ β _ x y; simpa using h
 
-include K
+include 𝕜
 lemma parallelogram_law_with_norm {x y : α} :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
 begin
@@ -716,14 +695,11 @@ begin
   rw[←add_monoid_hom.map_add, parallelogram_law, two_mul, two_mul],
   simp only [add_monoid_hom.map_add],
 end
-omit K
+omit 𝕜
 
 lemma real.parallelogram_law_with_norm {x y : β} :
   ∥x + y∥ * ∥x + y∥ + ∥x - y∥ * ∥x - y∥ = 2 * (∥x∥ * ∥x∥ + ∥y∥ * ∥y∥) :=
-begin
-  have h₁ := @parallelogram_law_with_norm ℝ _ _ _ β _ x y,
-  simpa using h₁,
-end
+by have h := @parallelogram_law_with_norm ℝ _ _ _ β _ x y; simpa using h
 
 /-- Polarization identity: The real inner product, in terms of the norm. -/
 lemma real.inner_eq_norm_add_mul_self_sub_norm_mul_self_sub_norm_mul_self_div_two (x y : β) :
@@ -960,6 +936,10 @@ by simp_rw [sum_inner, inner_sum, real.inner_smul_left, real.inner_smul_right,
 
 end norm
 
+end inner
+
+open inner
+
 /-! ### Inner product space structure on product spaces -/
 
 /-
@@ -968,7 +948,7 @@ then `Π i, f i` is an inner product space as well. Since `Π i, f i` is endowed
 we use instead `pi_Lp 2 one_le_two f` for the product space, which is endowed with the `L^2` norm.
 -/
 instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
-  [Π i, inner_product_space K (f i)] : inner_product_space K (pi_Lp 2 one_le_two f) :=
+  [Π i, inner_product_space 𝕜 (f i)] : inner_product_space 𝕜 (pi_Lp 2 one_le_two f) :=
 { inner := λ x y, ∑ i, inner (x i) (y i),
   norm_sq_eq_inner :=
   begin
@@ -1014,7 +994,7 @@ instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
 }
 
 /-- A field `K` satisfying `is_R_or_C` is itself a `K`-inner product space. -/
-instance is_R_or_C.inner_product_space : inner_product_space K K :=
+instance is_R_or_C.inner_product_space : inner_product_space 𝕜 𝕜 :=
 { inner := (λ x y, (conj x) * y),
   norm_sq_eq_inner := λ x, by unfold inner; rw [mul_comm, mul_conj, of_real_re, norm_sq, norm_sq_eq_def],
   conj_sym := λ x y, by simp [mul_comm],
@@ -1026,26 +1006,29 @@ instance is_R_or_C.inner_product_space : inner_product_space K K :=
 /-- The standard real/complex Euclidean space, functions on a finite type. For an `n`-dimensional space
 use `euclidean_space K (fin n)`.  -/
 @[reducible, nolint unused_arguments]
-def euclidean_space (K : Type*) [nondiscrete_normed_field K] [algebra ℝ K] [is_R_or_C K]
-  (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), K)
+def euclidean_space (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜] [is_R_or_C 𝕜]
+  (n : Type*) [fintype n] : Type* := pi_Lp 2 one_le_two (λ (i : n), 𝕜)
 
 section pi_Lp
 local attribute [reducible] pi_Lp
 variables {ι : Type*} [fintype ι]
 
-instance : finite_dimensional K (euclidean_space K ι) := by apply_instance
+instance : finite_dimensional 𝕜 (euclidean_space 𝕜 ι) := by apply_instance
 
 @[simp] lemma findim_euclidean_space :
-  finite_dimensional.findim K (euclidean_space K ι) = fintype.card ι := by simp
+  finite_dimensional.findim 𝕜 (euclidean_space 𝕜 ι) = fintype.card ι := by simp
 
 lemma findim_euclidean_space_fin {n : ℕ} :
-  finite_dimensional.findim K (euclidean_space K (fin n)) = n := by simp
+  finite_dimensional.findim 𝕜 (euclidean_space 𝕜 (fin n)) = n := by simp
 
 end pi_Lp
 
 
 /-! ### Orthogonal projection in inner product spaces -/
+
 section orthogonal
+
+namespace inner
 
 open filter
 
@@ -1064,7 +1047,7 @@ begin
   letI : nonempty K := ne.to_subtype,
   have zero_le_δ : 0 ≤ δ := le_cinfi (λ _, norm_nonneg _),
   have δ_le : ∀ w : K, δ ≤ ∥u - w∥,
-    from cinfi_le ⟨0, forall_range_iff.2 $ λ _, norm_nonneg _⟩,
+    from cinfi_le ⟨0, set.forall_range_iff.2 $ λ _, norm_nonneg _⟩,
   have δ_le' : ∀ w ∈ K, δ ≤ ∥u - w∥ := assume w hw, δ_le ⟨w, hw⟩,
   -- Step 1: since `δ` is the infimum, can find a sequence `w : ℕ → K` in `K`
   -- such that `∥u - w n∥ < δ + 1 / (n + 1)` (which implies `∥u - w n∥ --> δ`);
@@ -1413,88 +1396,90 @@ begin
   exact real.eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero h hvm hvo
 end
 
+end inner
+
 /-- The subspace of vectors orthogonal to a given subspace. -/
-def submodule.real_orthogonal (K : submodule ℝ β) : submodule ℝ β :=
-{ carrier := {v | ∀ u ∈ K, ⟪u, v⟫_ℝ = 0},
+def submodule.orthogonal (K : submodule 𝕜 α) : submodule 𝕜 α :=
+{ carrier := {v | ∀ u ∈ K, ⟪u, v⟫ = 0},
   zero_mem' := λ _ _, inner_zero_right,
   add_mem' := λ x y hx hy u hu, by rw [inner_add_right, hx u hu, hy u hu, add_zero],
   smul_mem' := λ c x hx u hu, by rw [inner_smul_right, hx u hu, mul_zero] }
 
 /-- When a vector is in `K.orthogonal`. -/
-lemma submodule.real_mem_orthogonal (K : submodule ℝ β) (v : β) :
-  v ∈ K.real_orthogonal ↔ ∀ u ∈ K, ⟪u, v⟫_ℝ = 0 :=
+lemma submodule.mem_orthogonal (K : submodule 𝕜 α) (v : α) :
+  v ∈ K.orthogonal ↔ ∀ u ∈ K, ⟪u, v⟫ = 0 :=
 iff.rfl
 
 /-- When a vector is in `K.orthogonal`, with the inner product the
 other way round. -/
-lemma submodule.real_mem_orthogonal' (K : submodule ℝ β) (v : β) :
-  v ∈ K.real_orthogonal ↔ ∀ u ∈ K, ⟪v, u⟫_ℝ = 0 :=
-by simp_rw [submodule.real_mem_orthogonal, real.inner_comm]
+lemma submodule.mem_orthogonal' (K : submodule 𝕜 α) (v : α) :
+  v ∈ K.orthogonal ↔ ∀ u ∈ K, ⟪v, u⟫ = 0 :=
+by simp_rw [submodule.mem_orthogonal, inner_eq_zero_sym]
 
 /-- A vector in `K` is orthogonal to one in `K.orthogonal`. -/
-lemma submodule.real_inner_right_of_mem_orthogonal {u v : β} {K : submodule ℝ β} (hu : u ∈ K)
-    (hv : v ∈ K.real_orthogonal) : ⟪u, v⟫_ℝ = 0 :=
-(K.real_mem_orthogonal v).1 hv u hu
+lemma submodule.inner_right_of_mem_orthogonal {u v : α} {K : submodule 𝕜 α} (hu : u ∈ K)
+    (hv : v ∈ K.orthogonal) : ⟪u, v⟫ = 0 :=
+(K.mem_orthogonal v).1 hv u hu
 
 /-- A vector in `K.orthogonal` is orthogonal to one in `K`. -/
-lemma submodule.real_inner_left_of_mem_orthogonal {u v : β} {K : submodule ℝ β} (hu : u ∈ K)
-    (hv : v ∈ K.real_orthogonal) : ⟪v, u⟫_ℝ = 0 :=
-by rw [real.inner_comm u v]; exact submodule.real_inner_right_of_mem_orthogonal hu hv
+lemma submodule.inner_left_of_mem_orthogonal {u v : α} {K : submodule 𝕜 α} (hu : u ∈ K)
+    (hv : v ∈ K.orthogonal) : ⟪v, u⟫ = 0 :=
+by rw [inner_eq_zero_sym]; exact submodule.inner_right_of_mem_orthogonal hu hv
 
 /-- `K` and `K.orthogonal` have trivial intersection. -/
-lemma submodule.real_orthogonal_disjoint (K : submodule ℝ β) : disjoint K K.real_orthogonal :=
+lemma submodule.orthogonal_disjoint (K : submodule 𝕜 α) : disjoint K K.orthogonal :=
 begin
-  simp_rw [submodule.disjoint_def, submodule.real_mem_orthogonal],
+  simp_rw [submodule.disjoint_def, submodule.mem_orthogonal],
   exact λ x hx ho, inner_self_eq_zero.1 (ho x hx)
 end
 
-variables (β)
+variables (𝕜 α)
 
 /-- `submodule.orthogonal` gives a `galois_connection` between
-`submodule ℝ β` and its `order_dual`. -/
-lemma submodule.real_orthogonal_gc :
-  @galois_connection (submodule ℝ β) (order_dual $ submodule ℝ β) _ _
-    submodule.real_orthogonal submodule.real_orthogonal :=
-λ K₁ K₂, ⟨λ h v hv u hu, submodule.real_inner_left_of_mem_orthogonal hv (h hu),
-          λ h v hv u hu, submodule.real_inner_left_of_mem_orthogonal hv (h hu)⟩
+`submodule 𝕜 α` and its `order_dual`. -/
+lemma submodule.orthogonal_gc :
+  @galois_connection (submodule 𝕜 α) (order_dual $ submodule 𝕜 α) _ _
+    submodule.orthogonal submodule.orthogonal :=
+λ K₁ K₂, ⟨λ h v hv u hu, submodule.inner_left_of_mem_orthogonal hv (h hu),
+          λ h v hv u hu, submodule.inner_left_of_mem_orthogonal hv (h hu)⟩
 
-variables {β}
+variables {𝕜 α}
 
 /-- `K` is contained in `K.orthogonal.orthogonal`. -/
-lemma submodule.real_le_orthogonal_orthogonal (K : submodule ℝ β) : K ≤ K.real_orthogonal.real_orthogonal :=
-(submodule.real_orthogonal_gc β).le_u_l _
+lemma submodule.le_orthogonal_orthogonal (K : submodule 𝕜 α) : K ≤ K.orthogonal.orthogonal :=
+(submodule.orthogonal_gc 𝕜 α).le_u_l _
 
 /-- The inf of two orthogonal subspaces equals the subspace orthogonal
 to the sup. -/
-lemma submodule.real_inf_orthogonal (K₁ K₂ : submodule ℝ β) :
-  K₁.real_orthogonal ⊓ K₂.real_orthogonal = (K₁ ⊔ K₂).real_orthogonal :=
-(submodule.real_orthogonal_gc β).l_sup.symm
+lemma submodule.inf_orthogonal (K₁ K₂ : submodule 𝕜 α) :
+  K₁.orthogonal ⊓ K₂.orthogonal = (K₁ ⊔ K₂).orthogonal :=
+(submodule.orthogonal_gc 𝕜 α).l_sup.symm
 
 /-- The inf of an indexed family of orthogonal subspaces equals the
 subspace orthogonal to the sup. -/
-lemma submodule.real_infi_orthogonal {ι : Type*} (K : ι → submodule ℝ β) :
-  (⨅ i, (K i).real_orthogonal) = (supr K).real_orthogonal :=
-(submodule.real_orthogonal_gc β).l_supr.symm
+lemma submodule.infi_orthogonal {ι : Type*} (K : ι → submodule 𝕜 α) :
+  (⨅ i, (K i).orthogonal) = (supr K).orthogonal :=
+(submodule.orthogonal_gc 𝕜 α).l_supr.symm
 
 /-- The inf of a set of orthogonal subspaces equals the subspace
 orthogonal to the sup. -/
-lemma submodule.real_Inf_orthogonal (s : set $ submodule ℝ β) :
-  (⨅ K ∈ s, submodule.real_orthogonal K) = (Sup s).real_orthogonal :=
-(submodule.real_orthogonal_gc β).l_Sup.symm
+lemma submodule.Inf_orthogonal (s : set $ submodule 𝕜 α) :
+  (⨅ K ∈ s, submodule.orthogonal K) = (Sup s).orthogonal :=
+(submodule.orthogonal_gc 𝕜 α).l_Sup.symm
 
 /-- If `K` is complete, `K` and `K.orthogonal` span the whole
 space. -/
-lemma submodule.real_sup_orthogonal_of_is_complete {K : submodule ℝ β} (h : is_complete (K : set β)) :
-  K ⊔ K.real_orthogonal = ⊤ :=
+lemma submodule.sup_orthogonal_of_is_complete {K : submodule ℝ β} (h : is_complete (K : set β)) :
+  K ⊔ K.orthogonal = ⊤ :=
 begin
   rw submodule.eq_top_iff',
   intro x,
   rw submodule.mem_sup,
-  rcases real.exists_norm_eq_infi_of_complete_subspace K h x with ⟨v, hv, hvm⟩,
-  rw real.norm_eq_infi_iff_inner_eq_zero K hv at hvm,
+  rcases inner.real.exists_norm_eq_infi_of_complete_subspace K h x with ⟨v, hv, hvm⟩,
+  rw inner.real.norm_eq_infi_iff_inner_eq_zero K hv at hvm,
   use [v, hv, x - v],
   split,
-  { rw submodule.real_mem_orthogonal',
+  { rw submodule.mem_orthogonal',
     exact hvm },
   { exact add_sub_cancel'_right _ _ }
 end
@@ -1502,7 +1487,7 @@ end
 /-- If `K` is complete, `K` and `K.orthogonal` are complements of each
 other. -/
 lemma submodule.real_is_compl_orthogonal_of_is_complete {K : submodule ℝ β}
-    (h : is_complete (K : set β)) : is_compl K K.real_orthogonal :=
-⟨K.real_orthogonal_disjoint, le_of_eq (submodule.real_sup_orthogonal_of_is_complete h).symm⟩
+    (h : is_complete (K : set β)) : is_compl K K.orthogonal :=
+⟨K.orthogonal_disjoint, le_of_eq (submodule.sup_orthogonal_of_is_complete h).symm⟩
 
 end orthogonal

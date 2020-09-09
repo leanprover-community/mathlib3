@@ -26,7 +26,7 @@ set_option default_priority 100 -- see Note [default priority]
 /--
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
 -/
-class is_R_or_C (K : Type*) [nondiscrete_normed_field K] [algebra ℝ K] :=
+class is_R_or_C (K : Type*) [nondiscrete_normed_field K] [normed_algebra ℝ K] :=
 (re : K →+ ℝ)
 (im : K →+ ℝ)
 (conj : K →+* K)
@@ -50,7 +50,7 @@ class is_R_or_C (K : Type*) [nondiscrete_normed_field K] [algebra ℝ K] :=
 
 namespace is_R_or_C
 
-variables {K : Type*} [nondiscrete_normed_field K] [algebra ℝ K] [is_R_or_C K]
+variables {K : Type*} [nondiscrete_normed_field K] [normed_algebra ℝ K] [is_R_or_C K]
 local notation `𝓚` := @is_R_or_C.of_real K _ _ _
 local postfix `†`:100 := @is_R_or_C.conj K _ _ _
 
@@ -523,7 +523,7 @@ section module
 
 /-- An `is_R_or_C` vector space is also a real vector space. -/
 -- Note: Registering this as an instance (even very low priority) causes trouble.
-def module.is_R_or_C_to_real (E : Type*) [add_comm_group E] [module K E] : module ℝ E :=
+noncomputable def module.is_R_or_C_to_real (E : Type*) [add_comm_group E] [module K E] : module ℝ E :=
 semimodule.restrict_scalars' ℝ K E
 
 end module

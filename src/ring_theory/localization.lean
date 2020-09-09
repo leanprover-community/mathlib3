@@ -1324,7 +1324,7 @@ section is_integral
 variables {R S} {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ] [algebra R S]
 
 /-- Definition of the natural algebra induced by the localization of an algebra.
-Given an algebra `R → S`, a submonoid `R` of `M`, and a localizaiton `Rₘ` for `M`,
+Given an algebra `R → S`, a submonoid `R` of `M`, and a localization `Rₘ` for `M`,
 let `Sₘ` be the localization of `S` to the image of `M` under `algebra_map R S`.
 Then this is the natural algebra structure on `Rₘ → Sₘ`, such that the entire square commutes,
 where `localization_map.map_comp` gives the commutativity of the underlying maps -/

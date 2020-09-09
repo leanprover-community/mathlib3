@@ -92,9 +92,6 @@ variables {C : Type u} [category.{v} C]
 
 variables (C)
 
-section prio
-set_option default_priority 100
-
 /--
 A (preadditive) category `C` is called abelian if it has all finite products,
 all kernels and cokernels, and if every monomorphism is the kernel of some morphism
@@ -111,10 +108,9 @@ class abelian extends preadditive C :=
 (normal_mono : Π {X Y : C} (f : X ⟶ Y) [mono f], normal_mono f)
 (normal_epi : Π {X Y : C} (f : X ⟶ Y) [epi f], normal_epi f)
 
-attribute [instance] abelian.has_finite_products
-attribute [instance] abelian.has_kernels abelian.has_cokernels
+attribute [instance, priority 100] abelian.has_finite_products
+attribute [instance, priority 100] abelian.has_kernels abelian.has_cokernels
 
-end prio
 end category_theory
 
 open category_theory

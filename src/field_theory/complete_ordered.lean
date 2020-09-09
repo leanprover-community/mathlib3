@@ -60,15 +60,16 @@ def cut_map (F K : Type*) [division_ring F] [char_zero F] [division_ring K] [cha
   set (set.range (coe : ℚ → F)) → set (set.range (coe : ℚ → K)) :=
 λ c, (range_rat_equiv F K) '' c
 
-local attribute [instance] pointwise_one pointwise_mul pointwise_add
+--local attribute [instance] pointwise_one pointwise_mul pointwise_add
 
+#check set.has_add
 /- No longer used -/
 lemma bdd_above_add {F : Type*} [ordered_add_comm_monoid F] {A B : set F} :
   bdd_above A → bdd_above B → bdd_above (A + B) :=
 begin
   rintros ⟨bA, hbA⟩ ⟨bB, hbB⟩,
   use bA + bB,
-  rintros x ⟨xa, hxa, xb, hxb, rfl⟩,
+  rintros x ⟨xa, xb, hxa, hxb, rfl⟩,
   exact add_le_add (hbA hxa) (hbB hxb),
 end
 
@@ -78,13 +79,13 @@ set_option default_priority 100
 /-- Equivalence commuting with multiplicative, additive and order structure. -/
 @[nolint has_inhabited_instance]
 structure ordered_ring_equiv {R S : Type*} [has_mul R] [has_add R] [has_mul S] [has_add S]
-  (r : R → R → Prop) (s : S → S → Prop) extends R ≃ S, R ≃+* S, r ≃o s
+  (r : R → R → Prop) (s : S → S → Prop) extends R ≃ S, R ≃+* S, rel_iso r s
 
 /-- Reinterpret an ordered ring equivalence as a ring equivalence. -/
 add_decl_doc ordered_ring_equiv.to_ring_equiv
 
 /-- Reinterpret an ordered ring equivalence as an order isomorphism. -/
-add_decl_doc ordered_ring_equiv.to_order_iso
+add_decl_doc ordered_ring_equiv.to_rel_iso
 
 /-- Reinterpret an ordered ring equivalence as an equivalence of types. -/
 add_decl_doc ordered_ring_equiv.to_equiv
@@ -96,7 +97,7 @@ infix ` ≃+*o `:25 := ordered_ring_equiv
 /-- Identity map is an ordered ring isomorphism. -/
 @[refl] protected def refl {R : Type*} [has_mul R] [has_add R] (r : R → R → Prop) : r ≃+*o r :=
 { ..ring_equiv.refl _,
-  ..order_iso.refl _, }
+  ..rel_iso.refl _, }
 
 /-- Inverse map of an ordered ring isomorphism is an order isomorphism. -/
 @[symm] protected def symm {R S : Type*}
@@ -104,7 +105,7 @@ infix ` ≃+*o `:25 := ordered_ring_equiv
 [has_mul S] [has_add S] (s : S → S → Prop)
   (f : r ≃+*o s) : s ≃+*o r :=
 { ..f.to_ring_equiv.symm,
-  ..f.to_order_iso.symm, }
+  ..f.to_rel_iso.symm, }
 
 /-- Composition of two ordered ring isomorphisms is an order isomorphism. -/
 @[trans] protected def trans {R S T : Type*} [has_mul R] [has_add R] (r : R → R → Prop)
@@ -112,7 +113,7 @@ infix ` ≃+*o `:25 := ordered_ring_equiv
   [has_mul T] [has_add T] (t : T → T → Prop)
     (f₁ : r ≃+*o s) (f₂ : s ≃+*o t) : r ≃+*o t :=
 { ..f₁.to_ring_equiv.trans f₂.to_ring_equiv,
-  ..f₁.to_order_iso.trans f₂.to_order_iso, }
+  ..f₁.to_rel_iso.trans f₂.to_rel_iso, }
 
 end ordered_ring_equiv
 
@@ -317,12 +318,12 @@ begin
     rcases h with ⟨q, rfl, h⟩,
     rw ← sub_lt_iff_lt_add at h,
     obtain ⟨q₁, hq₁q, hq₁xy⟩ := exists_rat_btwn h,
-    refine ⟨q₁, _, q - q₁, _, by abel⟩; try {norm_cast};
+    refine ⟨q₁, q - q₁, _, _, by abel⟩; try {norm_cast};
     rw mem_cut_image_iff',
     assumption,
     push_cast,
     exact sub_lt.mp hq₁q, },
-  { rcases h with ⟨tx, htx, ty, hty, rfl⟩,
+  { rcases h with ⟨tx, ty, htx, hty, rfl⟩,
     rw mem_cut_image_iff at *,
     rcases htx with ⟨qx, rfl, hx⟩,
     rcases hty with ⟨qy, rfl, hy⟩,
@@ -429,15 +430,15 @@ end
 lemma pointwise_add_Sup (A B : set F) (hA : A.nonempty) (hB : B.nonempty)
   (hbA : bdd_above A) (hbB : bdd_above B) : Sup (A + B) = Sup A + Sup B :=
 begin
-  apply cSup_intro (nonempty.pointwise_add hA hB),
-  { rintros f ⟨a, ha, b, hb, rfl⟩,
+  apply cSup_intro (nonempty.add hA hB),
+  { rintros f ⟨a, b, ha, hb, rfl⟩,
     exact add_le_add (le_cSup _ _ hbA ha) (le_cSup _ _ hbB hb), },
   { intros w hw,
     have : w - Sup B < Sup A := sub_lt_iff_lt_add.mpr hw,
     obtain ⟨a, ha, halt⟩ := exists_lt_of_lt_cSup hA this,
     have : w - a < Sup B := sub_lt.mp halt,
     obtain ⟨b, hb, hblt⟩ := exists_lt_of_lt_cSup hB this,
-    exact ⟨a + b, add_mem_pointwise_add ha hb, sub_lt_iff_lt_add'.mp hblt⟩, }
+    exact ⟨a + b, add_mem_add ha hb, sub_lt_iff_lt_add'.mp hblt⟩, }
 end
 
 lemma induced_map_add (F K : Type*) [linear_ordered_field F] [archimedean F]
@@ -579,11 +580,11 @@ def ordered_ring_equiv (F K : Type*)
 { inv_fun := induced_map K F,
   left_inv := induced_map_inv_self F K,
   right_inv := induced_map_inv_self K F,
-  ord' := λ x y, begin
+  map_rel_iff' := λ x y, begin
     refine ⟨induced_map_le _ _, _⟩,
     intro h,
     replace h := induced_map_le K F h,
-    dsimp  at h,
+    dsimp at h,
     simp [ring_hom.mk_mul_self_of_two_ne_zero_to_fun] at h,
     rw [ induced_map_inv_self, induced_map_inv_self] at h,
     exact h,

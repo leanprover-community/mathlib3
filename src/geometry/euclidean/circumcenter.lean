@@ -378,6 +378,56 @@ begin
           (λ i, hr i (set.mem_univ _))).symm
 end
 
+/-- If there exists a distance that a point has from all vertices of a
+simplex, the orthogonal projection of that point onto the subspace
+spanned by that simplex is its circumcenter.  Version with distance
+condition using `set.range`. -/
+lemma orthogonal_projection_eq_circumcenter_of_exists_dist_eq {n : ℕ} (s : simplex ℝ P n)
+  {p : P} (hr : ∃ r, ∀ p₁ ∈ set.range s.points, dist p₁ p = r) :
+  orthogonal_projection (affine_span ℝ (set.range s.points)) p = s.circumcenter :=
+begin
+  rw exists_dist_eq_iff_exists_dist_orthogonal_projection_eq (subset_affine_span ℝ _) p at hr,
+  cases hr with r hr,
+  rw set.forall_range_iff at hr,
+  exact s.eq_circumcenter_of_dist_eq
+    (orthogonal_projection_mem
+      ((affine_span_nonempty ℝ _).2 (set.range_nonempty _))
+      (submodule.complete_of_finite_dimensional _)
+      p) hr
+end
+
+/-- If there exists a distance that a point has from all vertices of a
+simplex, the orthogonal projection of that point onto the subspace
+spanned by that simplex is its circumcenter.  Version with distance
+condition being for all indicies in `fin (n + 1)`. -/
+lemma orthogonal_projection_eq_circumcenter_of_exists_dist_eq' {n : ℕ} (s : simplex ℝ P n)
+  {p : P} (hr : ∃ r, ∀ i, dist (s.points i) p = r) :
+  orthogonal_projection (affine_span ℝ (set.range s.points)) p = s.circumcenter :=
+begin
+  have h : ∃ r, ∀ p₁ ∈ set.range s.points, dist p₁ p = r,
+  { simp_rw [set.forall_range_iff],
+    exact hr },
+  exact s.orthogonal_projection_eq_circumcenter_of_exists_dist_eq h
+end
+
+/-- If a point has the same distance from all vertices of a simplex,
+the orthogonal projection of that point onto the subspace spanned by
+that simplex is its circumcenter.  Version with distance condition
+using `set.range`. -/
+lemma orthogonal_projection_eq_circumcenter_of_dist_eq {n : ℕ} (s : simplex ℝ P n) {p : P}
+  {r : ℝ} (hr : ∀ p₁ ∈ set.range s.points, dist p₁ p = r) :
+  orthogonal_projection (affine_span ℝ (set.range s.points)) p = s.circumcenter :=
+s.orthogonal_projection_eq_circumcenter_of_exists_dist_eq ⟨r, hr⟩
+
+/-- If a point has the same distance from all vertices of a simplex,
+the orthogonal projection of that point onto the subspace spanned by
+that simplex is its circumcenter.  Version with distance condition
+being for all indices in `fin (n + 1)`. -/
+lemma orthogonal_projection_eq_circumcenter_of_dist_eq' {n : ℕ} (s : simplex ℝ P n) {p : P}
+  {r : ℝ} (hr : ∀ i, dist (s.points i) p = r) :
+  orthogonal_projection (affine_span ℝ (set.range s.points)) p = s.circumcenter :=
+s.orthogonal_projection_eq_circumcenter_of_exists_dist_eq' ⟨r, hr⟩
+
 /-- The orthogonal projection of the circumcenter onto a face is the
 circumcenter of that face. -/
 lemma orthogonal_projection_circumcenter {n : ℕ} (s : simplex ℝ P n) {fs : finset (fin (n + 1))}
@@ -385,24 +435,10 @@ lemma orthogonal_projection_circumcenter {n : ℕ} (s : simplex ℝ P n) {fs : f
   orthogonal_projection (affine_span ℝ (s.points '' ↑fs)) s.circumcenter =
     (s.face h).circumcenter :=
 begin
-  have hr : ∃ r, ∀ p ∈ set.range (s.face h).points, dist p s.circumcenter = r,
+  have hr : ∃ r, ∀ i, dist ((s.face h).points i) s.circumcenter = r,
   { use s.circumradius,
-    intros p hp,
-    rcases set.mem_range.1 hp with ⟨i, rfl⟩,
     simp [face_points] },
-  have hs : set.range (s.face h).points ⊆ affine_span ℝ (s.points '' ↑fs),
-  { rw s.range_face_points h,
-    exact subset_span_points ℝ _ },
-  rw exists_dist_eq_iff_exists_dist_orthogonal_projection_eq hs s.circumcenter at hr,
-  cases hr with r hr,
-  have ho : orthogonal_projection (affine_span ℝ (s.points '' ↑fs)) s.circumcenter ∈
-    affine_span ℝ (set.range (s.face h).points),
-  { rw s.range_face_points h,
-    have hn : (affine_span ℝ (s.points '' ↑fs) : set P).nonempty,
-    { simp [←finset.card_pos, h] },
-    exact orthogonal_projection_mem hn (submodule.complete_of_finite_dimensional _) _ },
-  rw set.forall_range_iff at hr,
-  exact (s.face h).eq_circumcenter_of_dist_eq ho hr
+  rw [←range_face_points, orthogonal_projection_eq_circumcenter_of_exists_dist_eq' _ hr]
 end
 
 omit V
@@ -583,3 +619,77 @@ end
 end simplex
 
 end affine
+
+namespace euclidean_geometry
+
+open affine affine_subspace
+
+variables {V : Type*} {P : Type*} [inner_product_space V] [metric_space P]
+    [normed_add_torsor V P]
+include V
+
+/-- Suppose all distances from `p₁` and `p₂` to the points of a
+simplex are equal, and that `p₁` and `p₂` lie in the affine span of
+`p` with the vertices of that simplex.  Then `p₁` and `p₂` are equal
+or reflections of each other in the affine span of the vertices of the
+simplex. -/
+lemma eq_or_eq_reflection_of_dist_eq {n : ℕ} {s : simplex ℝ P n} {p p₁ p₂ : P} {r : ℝ}
+    (hp₁ : p₁ ∈ affine_span ℝ (insert p (set.range s.points)))
+    (hp₂ : p₂ ∈ affine_span ℝ (insert p (set.range s.points)))
+    (h₁ : ∀ i, dist (s.points i) p₁ = r) (h₂ : ∀ i, dist (s.points i) p₂ = r) :
+  p₁ = p₂ ∨ p₁ = reflection (affine_span ℝ (set.range s.points)) p₂ :=
+begin
+  have h₁' := s.orthogonal_projection_eq_circumcenter_of_dist_eq' h₁,
+  have h₂' := s.orthogonal_projection_eq_circumcenter_of_dist_eq' h₂,
+  have hn : (affine_span ℝ (set.range s.points) : set P).nonempty :=
+    (affine_span_nonempty ℝ _).2 (set.range_nonempty _),
+  have hc : is_complete ((affine_span ℝ (set.range s.points)).direction : set V) :=
+    submodule.complete_of_finite_dimensional _,
+  rw [←affine_span_insert_affine_span,
+      mem_affine_span_insert_iff (orthogonal_projection_mem hn hc p)] at hp₁ hp₂,
+  rcases hp₁ with ⟨r₁, p₁o, hp₁o, hp₁⟩,
+  rcases hp₂ with ⟨r₂, p₂o, hp₂o, hp₂⟩,
+  have hp₁o' : orthogonal_projection (affine_span ℝ (set.range s.points)) p₁ = p₁o,
+  { rw hp₁,
+    exact orthogonal_projection_vadd_smul_vsub_orthogonal_projection hc _ _ hp₁o },
+  subst hp₁o',
+  rw h₁' at hp₁,
+  have hp₂o' : orthogonal_projection (affine_span ℝ (set.range s.points)) p₂ = p₂o,
+  { rw hp₂,
+    exact orthogonal_projection_vadd_smul_vsub_orthogonal_projection hc _ _ hp₂o },
+  subst hp₂o',
+  rw h₂' at hp₂,
+  have h : s.points 0 ∈ affine_span ℝ (set.range s.points) :=
+    mem_affine_span ℝ (set.mem_range_self _),
+  have hd₁ : dist p₁ s.circumcenter * dist p₁ s.circumcenter =
+    r * r - s.circumradius * s.circumradius,
+  { rw [dist_comm, ←h₁ 0,
+        dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square p₁ h],
+    simp [h₁', dist_comm p₁] },
+  have hd₂ : dist p₂ s.circumcenter * dist p₂ s.circumcenter =
+    r * r - s.circumradius * s.circumradius,
+  { rw [dist_comm, ←h₂ 0,
+        dist_square_eq_dist_orthogonal_projection_square_add_dist_orthogonal_projection_square p₂ h],
+    simp [h₂', dist_comm p₂] },
+  rw [←hd₂, hp₁, hp₂, dist_eq_norm_vsub V _ s.circumcenter,
+      dist_eq_norm_vsub V _ s.circumcenter, vadd_vsub, vadd_vsub, ←inner_self_eq_norm_square,
+      ←inner_self_eq_norm_square, inner_smul_left, inner_smul_left, inner_smul_right,
+      inner_smul_right, ←mul_assoc, ←mul_assoc] at hd₁,
+  by_cases hp : p = orthogonal_projection (affine_span ℝ (set.range s.points)) p,
+  { rw [hp₁, hp₂, ←hp],
+    simp },
+  { have hz : inner (p -ᵥ orthogonal_projection (affine_span ℝ (set.range s.points)) p)
+                    (p -ᵥ orthogonal_projection (affine_span ℝ (set.range s.points)) p) ≠ 0,
+    { simpa using hp },
+    rw [mul_left_inj' hz, mul_self_eq_mul_self_iff] at hd₁,
+    rw [hp₁, hp₂],
+    cases hd₁,
+    { left,
+      rw hd₁ },
+    { right,
+      rw [hd₁,
+          reflection_vadd_smul_vsub_orthogonal_projection hc p r₂ s.circumcenter_mem_affine_span,
+          neg_smul] } }
+end
+
+end euclidean_geometry

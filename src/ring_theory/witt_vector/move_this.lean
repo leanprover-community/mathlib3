@@ -35,8 +35,11 @@ include hp
 
 variables (p)
 
-lemma sub_def (x y : 𝕎 R) :
-  x - y = λ n, aeval (λ bn : bool × ℕ, cond bn.1 (x.coeff bn.2) (aeval (λ m : unit × ℕ, (y.coeff m.2)) (witt_neg p bn.2))) (witt_add p n) :=
+lemma sub_def (x y : 𝕎 R) : x - y =  λ n,
+  aeval
+    (λ bn : bool × ℕ, cond bn.1 (x.coeff bn.2)
+      (aeval (λ m : unit × ℕ, (y.coeff m.2)) (witt_neg p bn.2)))
+    (witt_add p n) :=
 rfl
 
 noncomputable def Sub : ℕ → mv_polynomial (bool × ℕ) ℤ :=
@@ -50,15 +53,15 @@ lemma sub_eq (x y : 𝕎 R) (n : ℕ) :
   aeval (λ bn : bool × ℕ, cond bn.1 (x.coeff bn.2) (y.coeff bn.2)) (Sub p n) :=
 begin
   dsimp [Sub],
-  show aeval (λ bn : bool × ℕ, cond bn.1 (x.coeff bn.2) (aeval (λ m : unit × ℕ, (y.coeff m.2)) (witt_neg p bn.2))) (witt_add p n) = _,
+  show aeval (λ bn : bool × ℕ, cond bn.1 (x.coeff bn.2)
+    (aeval (λ m : unit × ℕ, (y.coeff m.2)) (witt_neg p bn.2))) (witt_add p n) = _,
   conv_rhs { rw [aeval_eq_eval₂_hom, hom_bind₁] },
   apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
   ext ⟨⟨⟩, k⟩; dsimp [function.uncurry],
   { rw eval₂_hom_rename,
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    ext ⟨⟨⟩, i⟩,
-    dsimp, refl },
-  { rw eval₂_hom_X', dsimp, refl, }
+    ext ⟨⟨⟩, i⟩, refl },
+  { rw eval₂_hom_X', refl, }
 end
 
 section omit hp
@@ -77,7 +80,6 @@ begin
   { rw [bind₁_X_right, bind₁_X_right, bind₁_rename],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
     ext1 i,
-    dsimp [function.uncurry],
     refl },
   { rw [← witt_structure_int_prop p (- X ff), bind₁_X_right, bind₁_rename],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
@@ -93,9 +95,7 @@ end
 lemma sub_coeff (x y : 𝕎 R) (n : ℕ) :
   (x - y).coeff n =
   aeval (λ bn : bool × ℕ, cond bn.1 (x.coeff bn.2) (y.coeff bn.2)) (witt_sub p n) :=
-begin
-  rw [← Sub_eq, sub_eq]
-end
+by rw [← Sub_eq, sub_eq]
 
 /-
 section disjoint

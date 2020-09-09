@@ -169,7 +169,6 @@ end witt_structure_machine
 
 section monadic_stuff
 
-section
 
 open_locale classical
 variables (φ : mv_polynomial σ R) (f : σ → mv_polynomial τ R)
@@ -264,26 +263,6 @@ begin
   intro d,
   apply and_congr _ iff.rfl,
   rw [← coeff, ← coeff, coeff_C_mul, mul_ne_zero_iff, eq_true_intro ha, true_and],
-end
-
--- lemma vars_mul_eq (φ ψ : mv_polynomial σ A) (hφ : φ ≠ 0) (hψ : ψ ≠ 0) :
---   (φ * ψ).vars = φ.vars ∪ ψ.vars :=
--- begin
---   apply le_antisymm, { apply vars_mul },
---   intro i,
---   rw finset.mem_union,
---   simp only [mem_vars],
---   -- painful
--- end
-
--- lemma vars_pow_eq (φ : mv_polynomial σ A) (n : ℕ) :
---   (φ ^ (n+1)).vars = φ.vars :=
--- sorry
-
--- lemma vars_prod_eq {ι : Type*} {s : finset ι} (f : ι → mv_polynomial σ A) :
---   (∏ i in s, f i).vars = s.bind (λ i, (f i).vars) :=
--- sorry
-
 end
 
 end

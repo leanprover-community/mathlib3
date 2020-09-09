@@ -272,15 +272,7 @@ end
 lemma affine_independent_of_subset_affine_independent {s t : set P}
   (ha : affine_independent k (λ x, x : t → P)) (hs : s ⊆ t) :
   affine_independent k (λ x, x : s → P) :=
-begin
-  let f : s → t := λ x, ⟨x, hs x.property⟩,
-  let fe : s ↪ t := ⟨f, λ x y h, begin
-    rw subtype.ext_iff,
-    rw subtype.mk_eq_mk at h,
-    exact h
-  end⟩,
-  exact affine_independent_embedding_of_affine_independent fe ha
-end
+affine_independent_embedding_of_affine_independent (set.embedding_of_subset s t hs) ha
 
 /-- If the range of an injective indexed family of points is affinely
 independent, so is that family. -/

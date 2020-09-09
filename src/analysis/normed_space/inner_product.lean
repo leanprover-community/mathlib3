@@ -1030,8 +1030,11 @@ section orthogonal
 
 namespace inner
 
+variables [normed_space ℝ α] [is_scalar_tower ℝ 𝕜 α]
+
 open filter
 
+include 𝕜
 /--
 Existence of minimizers
 Let `u` be a point in an inner product space, and let `K` be a nonempty complete convex subset.
@@ -1040,8 +1043,8 @@ Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` 
 -- FIXME this monolithic proof causes a deterministic timeout with `-T50000`
 -- It should be broken in a sequence of more manageable pieces,
 -- perhaps with individual statements for the three steps below.
-theorem real.exists_norm_eq_infi_of_complete_convex {K : set β} (ne : K.nonempty) (h₁ : is_complete K)
-  (h₂ : convex K) : ∀ u : β, ∃ v ∈ K, ∥u - v∥ = ⨅ w : K, ∥u - w∥ := assume u,
+theorem exists_norm_eq_infi_of_complete_convex {K : set α} (ne : K.nonempty) (h₁ : is_complete K)
+  (h₂ : convex K) : ∀ u : α, ∃ v ∈ K, ∥u - v∥ = ⨅ w : K, ∥u - w∥ := assume u,
 begin
   let δ := ⨅ w : K, ∥u - w∥,
   letI : nonempty K := ne.to_subtype,
@@ -1066,7 +1069,7 @@ begin
     exact tendsto_of_tendsto_of_tendsto_of_le_of_le h h'
       (λ x, δ_le _) (λ x, le_of_lt (hw _)) },
   -- Step 2: Prove that the sequence `w : ℕ → K` is a Cauchy sequence
-  have seq_is_cauchy : cauchy_seq (λ n, ((w n):β)),
+  have seq_is_cauchy : cauchy_seq (λ n, ((w n):α)),
   { rw cauchy_seq_iff_le_tendsto_0, -- splits into three goals
     let b := λ n:ℕ, (8 * δ * (1/(n+1)) + 4 * (1/(n+1)) * (1/(n+1))),
     use (λn, sqrt (b n)),
@@ -1076,7 +1079,7 @@ begin
     split,
     -- second goal : `∀ (n m N : ℕ), N ≤ n → N ≤ m → dist ↑(w n) ↑(w m) ≤ sqrt (b N)`
     assume p q N hp hq,
-    let wp := ((w p):β), let wq := ((w q):β),
+    let wp := ((w p):α), let wq := ((w q):α),
     let a := u - wq, let b := u - wp,
     let half := 1 / (2:ℝ), let div := 1 / ((N:ℝ) + 1),
     have : 4 * ∥u - half • (wq + wp)∥ * ∥u - half • (wq + wp)∥ + ∥wp - wq∥ * ∥wp - wq∥ =
@@ -1087,7 +1090,7 @@ begin
       ... = (absR ((2:ℝ)) * ∥u - half•(wq + wp)∥) * (absR ((2:ℝ)) * ∥u - half•(wq+wp)∥) + ∥wp-wq∥*∥wp-wq∥ :
       by { rw _root_.abs_of_nonneg, exact add_nonneg zero_le_one zero_le_one }
       ... = ∥(2:ℝ) • (u - half • (wq + wp))∥ * ∥(2:ℝ) • (u - half • (wq + wp))∥ + ∥wp-wq∥ * ∥wp-wq∥ :
-        by { rw [norm_smul], refl }
+      by simp [norm_smul]
       ... = ∥a + b∥ * ∥a + b∥ + ∥a - b∥ * ∥a - b∥ :
       begin
         rw [smul_sub, smul_smul, mul_one_div_cancel (_root_.two_ne_zero : (2 : ℝ) ≠ 0),
@@ -1148,8 +1151,9 @@ begin
   exact tendsto_nhds_unique this norm_tendsto,
   exact subtype.mem _
 end
+omit 𝕜
 
-/-- Characterization of minimizers in the above theorem -/
+/-- Characterization of minimizers in the above theorem, in the real case. -/
 theorem real.norm_eq_infi_iff_inner_le_zero {K : set β} (h : convex K) {u : β} {v : β}
   (hv : v ∈ K) : ∥u - v∥ = (⨅ w : K, ∥u - w∥) ↔ ∀ w ∈ K, ⟪u - v, w - v⟫_ℝ ≤ 0 :=
 iff.intro
@@ -1230,21 +1234,24 @@ begin
       apply cinfi_le, use 0, rintros y ⟨z, rfl⟩, exact norm_nonneg _ }
 end
 
+include 𝕜
 /--
 Existence of minimizers.
 Let `u` be a point in an inner product space, and let `K` be a nonempty complete subspace.
 Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
 This point `v` is usually called the orthogonal projection of `u` onto `K`.
 -/
-theorem real.exists_norm_eq_infi_of_complete_subspace (K : subspace ℝ β)
-  (h : is_complete (↑K : set β)) : ∀ u : β, ∃ v ∈ K, ∥u - v∥ = ⨅ w : (↑K : set β), ∥u - w∥ :=
-real.exists_norm_eq_infi_of_complete_convex ⟨0, K.zero_mem⟩ h K.convex
+theorem exists_norm_eq_infi_of_complete_subspace (K : subspace ℝ α)
+  (h : is_complete (↑K : set α)) : ∀ u : α, ∃ v ∈ K, ∥u - v∥ = ⨅ w : (↑K : set α), ∥u - w∥ :=
+exists_norm_eq_infi_of_complete_convex ⟨0, K.zero_mem⟩ h K.convex
+
+omit 𝕜
 
 /--
 Characterization of minimizers in the above theorem.
 Let `u` be a point in an inner product space, and let `K` be a nonempty subspace.
 Then point `v` minimizes the distance `∥u - v∥` if and only if
-for all `w ∈ K`, `inner (u - v) w = 0` (i.e., `u - v` is orthogonal to the subspace `K`)
+for all `w ∈ K`, `⟪u - v, w⟫ = 0` (i.e., `u - v` is orthogonal to the subspace `K`)
 -/
 theorem real.norm_eq_infi_iff_inner_eq_zero (K : subspace ℝ β) {u : β} {v : β}
   (hv : v ∈ K) : ∥u - v∥ = (⨅ w : (↑K : set β), ∥u - w∥) ↔ ∀ w ∈ K, ⟪u - v, w⟫_ℝ = 0 :=
@@ -1281,28 +1288,32 @@ begin
   exacts [submodule.convex _, hv]
 end
 
+include 𝕜
 /-- The orthogonal projection onto a complete subspace, as an
 unbundled function.  This definition is only intended for use in
 setting up the bundled version `orthogonal_projection` and should not
 be used once that is defined. -/
-def real.orthogonal_projection_fn {K : submodule ℝ β} (h : is_complete (K : set β)) (v : β) :=
-(real.exists_norm_eq_infi_of_complete_subspace K h v).some
+def orthogonal_projection_fn {K : submodule ℝ α} (h : is_complete (K : set α)) (v : α) :=
+(exists_norm_eq_infi_of_complete_subspace K h v).some
+
 
 /-- The unbundled orthogonal projection is in the given subspace.
 This lemma is only intended for use in setting up the bundled version
 and should not be used once that is defined. -/
-lemma real.orthogonal_projection_fn_mem {K : submodule ℝ β} (h : is_complete (K : set β)) (v : β) :
-  real.orthogonal_projection_fn h v ∈ K :=
-(real.exists_norm_eq_infi_of_complete_subspace K h v).some_spec.some
+lemma orthogonal_projection_fn_mem {K : submodule ℝ α} (h : is_complete (K : set α)) (v : α) :
+  orthogonal_projection_fn h v ∈ K :=
+(exists_norm_eq_infi_of_complete_subspace K h v).some_spec.some
+
+omit 𝕜
 
 /-- The characterization of the unbundled orthogonal projection.  This
 lemma is only intended for use in setting up the bundled version
 and should not be used once that is defined. -/
 lemma real.orthogonal_projection_fn_inner_eq_zero {K : submodule ℝ β} (h : is_complete (K : set β))
-  (v : β) : ∀ w ∈ K, ⟪v - real.orthogonal_projection_fn h v, w⟫_ℝ = 0 :=
+  (v : β) : ∀ w ∈ K, ⟪v - orthogonal_projection_fn h v, w⟫_ℝ = 0 :=
 begin
-  rw ←real.norm_eq_infi_iff_inner_eq_zero K (real.orthogonal_projection_fn_mem h v),
-  exact (real.exists_norm_eq_infi_of_complete_subspace K h v).some_spec.some_spec
+  rw ←real.norm_eq_infi_iff_inner_eq_zero K (orthogonal_projection_fn_mem h v),
+  exact (exists_norm_eq_infi_of_complete_subspace K h v).some_spec.some_spec
 end
 
 /-- The unbundled orthogonal projection is the unique point in `K`
@@ -1311,15 +1322,15 @@ in setting up the bundled version and should not be used once that is
 defined. -/
 lemma real.eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero {K : submodule ℝ β}
   (h : is_complete (K : set β)) {u v : β} (hvm : v ∈ K) (hvo : ∀ w ∈ K, ⟪u - v, w⟫_ℝ = 0) :
-  v = real.orthogonal_projection_fn h u :=
+  v = orthogonal_projection_fn h u :=
 begin
   rw [←sub_eq_zero, ←inner_self_eq_zero],
-  have hvs : v - real.orthogonal_projection_fn h u ∈ K :=
-    submodule.sub_mem K hvm (real.orthogonal_projection_fn_mem h u),
-  have huo : ⟪u - real.orthogonal_projection_fn h u, v - real.orthogonal_projection_fn h u⟫_ℝ = 0 :=
+  have hvs : v - orthogonal_projection_fn h u ∈ K :=
+    submodule.sub_mem K hvm (orthogonal_projection_fn_mem h u),
+  have huo : ⟪u - orthogonal_projection_fn h u, v - orthogonal_projection_fn h u⟫_ℝ = 0 :=
     real.orthogonal_projection_fn_inner_eq_zero h u _ hvs,
-  have huv : ⟪u - v, v - real.orthogonal_projection_fn h u⟫_ℝ = 0 := hvo _ hvs,
-  have houv : ⟪(u - real.orthogonal_projection_fn h u) - (u - v), v - real.orthogonal_projection_fn h u⟫_ℝ = 0,
+  have huv : ⟪u - v, v - orthogonal_projection_fn h u⟫_ℝ = 0 := hvo _ hvs,
+  have houv : ⟪(u - orthogonal_projection_fn h u) - (u - v), v - orthogonal_projection_fn h u⟫_ℝ = 0,
   { rw [inner_sub_left, huo, huv, sub_zero] },
   rwa sub_sub_sub_cancel_left at houv
 end
@@ -1330,21 +1341,21 @@ hypothesis and is the identity map when the subspace is not complete,
 should be used instead. -/
 def real.orthogonal_projection_of_complete {K : submodule ℝ β} (h : is_complete (K : set β)) :
   linear_map ℝ β β :=
-{ to_fun := real.orthogonal_projection_fn h,
+{ to_fun := orthogonal_projection_fn h,
   map_add' := λ x y, begin
-    have hm : real.orthogonal_projection_fn h x + real.orthogonal_projection_fn h y ∈ K :=
-      submodule.add_mem K (real.orthogonal_projection_fn_mem h x) (real.orthogonal_projection_fn_mem h y),
+    have hm : orthogonal_projection_fn h x + orthogonal_projection_fn h y ∈ K :=
+      submodule.add_mem K (orthogonal_projection_fn_mem h x) (orthogonal_projection_fn_mem h y),
     have ho :
-      ∀ w ∈ K, ⟪x + y - (real.orthogonal_projection_fn h x + real.orthogonal_projection_fn h y), w⟫_ℝ = 0,
+      ∀ w ∈ K, ⟪x + y - (orthogonal_projection_fn h x + orthogonal_projection_fn h y), w⟫_ℝ = 0,
     { intros w hw,
       rw [add_sub_comm, inner_add_left, real.orthogonal_projection_fn_inner_eq_zero h _ w hw,
           real.orthogonal_projection_fn_inner_eq_zero h _ w hw, add_zero] },
     rw real.eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero h hm ho
   end,
   map_smul' := λ c x, begin
-    have hm : c • real.orthogonal_projection_fn h x ∈ K :=
-      submodule.smul_mem K _ (real.orthogonal_projection_fn_mem h x),
-    have ho : ∀ w ∈ K, ⟪c • x - c • real.orthogonal_projection_fn h x, w⟫_ℝ = 0,
+    have hm : c • orthogonal_projection_fn h x ∈ K :=
+      submodule.smul_mem K _ (orthogonal_projection_fn_mem h x),
+    have ho : ∀ w ∈ K, ⟪c • x - c • orthogonal_projection_fn h x, w⟫_ℝ = 0,
     { intros w hw,
       rw [←smul_sub, inner_smul_left, real.orthogonal_projection_fn_inner_eq_zero h _ w hw, mul_zero] },
     rw real.eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero h hm ho
@@ -1364,7 +1375,7 @@ rfl
 
 @[simp]
 lemma real.orthogonal_projection_fn_eq {K : submodule ℝ β} (h : is_complete (K : set β)) (v : β) :
-  real.orthogonal_projection_fn h v = real.orthogonal_projection K v :=
+  orthogonal_projection_fn h v = real.orthogonal_projection K v :=
 by { rw [real.orthogonal_projection_def, dif_pos h], refl }
 
 /-- The orthogonal projection is in the given subspace. -/
@@ -1372,7 +1383,7 @@ lemma real.orthogonal_projection_mem {K : submodule ℝ β} (h : is_complete (K 
   real.orthogonal_projection K v ∈ K :=
 begin
   rw ←real.orthogonal_projection_fn_eq h,
-  exact real.orthogonal_projection_fn_mem h v
+  exact orthogonal_projection_fn_mem h v
 end
 
 /-- The characterization of the orthogonal projection.  -/
@@ -1475,7 +1486,7 @@ begin
   rw submodule.eq_top_iff',
   intro x,
   rw submodule.mem_sup,
-  rcases inner.real.exists_norm_eq_infi_of_complete_subspace K h x with ⟨v, hv, hvm⟩,
+  rcases inner.exists_norm_eq_infi_of_complete_subspace K h x with ⟨v, hv, hvm⟩,
   rw inner.real.norm_eq_infi_iff_inner_eq_zero K hv at hvm,
   use [v, hv, x - v],
   split,

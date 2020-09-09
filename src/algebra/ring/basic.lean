@@ -772,7 +772,7 @@ def ring_hom.mk_mul_self_of_two_ne_zero [comm_ring β] (f : β →+ α) (h : ∀
     rw [add_comm, ← sub_sub, ← sub_sub, ← sub_sub, mul_comm y x, mul_comm (f y) (f x)] at hxy,
     simp [add_assoc, add_sub_assoc] at hxy,
     rw [sub_sub, ← two_mul, ← add_sub_assoc, ← two_mul, ← mul_sub,
-      mul_eq_zero, sub_eq_zero_iff_eq, classical.or_iff_not_imp_left] at hxy,
+      mul_eq_zero, sub_eq_zero_iff_eq, or_iff_not_imp_left] at hxy,
     exact hxy h2,
   end,
   ..f }

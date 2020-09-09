@@ -269,7 +269,7 @@ begin
 end
 
 /-- If a set of points is affinely independent, so is any subset. -/
-lemma affine_independent_subset_of_affine_independent {s t : set P}
+lemma affine_independent_of_subset_affine_independent {s t : set P}
   (ha : affine_independent k (λ x, x : t → P)) (hs : s ⊆ t) :
   affine_independent k (λ x, x : s → P) :=
 begin

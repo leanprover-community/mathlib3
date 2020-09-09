@@ -1378,6 +1378,11 @@ noncomputable def localization_algebra (M : submonoid R) (f : localization_map M
 variables (f : localization_map M Rₘ)
 variables (g : localization_map (algebra.algebra_map_submonoid S M) Sₘ)
 
+lemma algebra_map_mk' (r : R) (m : M) :
+  (@algebra_map Rₘ Sₘ _ _ (localization_algebra M f g)) (f.mk' r m) =
+    g.mk' (algebra_map R S r) ⟨algebra_map R S m, algebra.mem_algebra_map_submonoid_of_mem m⟩ :=
+localization_map.map_mk' f _ r m
+
 /-- Injectivity of the underlying `algebra_map` descends to the algebra induced by localization -/
 lemma localization_algebra_injective (hRS : function.injective (algebra_map R S))
   (hM : (algebra.algebra_map_submonoid S M) ≤ non_zero_divisors S) :
@@ -1386,9 +1391,8 @@ begin
   rintros x y hxy,
   obtain ⟨a, b, rfl⟩ := localization_map.mk'_surjective f x,
   obtain ⟨c, d, rfl⟩ := localization_map.mk'_surjective f y,
-  iterate 2 {erw localization_map.map_mk' at hxy},
-  rw localization_map.mk'_eq_iff_eq at hxy ⊢,
-  refine congr_arg f.to_map (hRS _),
+  rw [algebra_map_mk' f g a b, algebra_map_mk' f g c d, localization_map.mk'_eq_iff_eq] at hxy,
+  refine (localization_map.mk'_eq_iff_eq f).2 (congr_arg f.to_map (hRS _)),
   convert ((g.injective hM) hxy); simp,
 end
 

@@ -903,6 +903,29 @@ begin
     refine ⟨hJ' ▸ map_mono hJ.left, hJ' ▸ map_is_prime_of_surjective hf (le_trans h hJ.left)⟩ },
 end
 
+section quotient_algebra
+
+variables [algebra R S] {I : ideal S}
+
+def quotient_map (I : ideal S) (f : R →+* S) : (I.comap f).quotient →+* I.quotient :=
+(quotient.lift (I.comap f) ((quotient.mk I).comp f) (λ _ ha,
+  by simpa [function.comp_app, ring_hom.coe_comp, quotient.eq_zero_iff_mem] using ha))
+
+@[priority 100]
+instance quotient_algebra : algebra (I.comap (algebra_map R S)).quotient I.quotient :=
+(quotient_map I (algebra_map R S)).to_algebra
+
+lemma algebra_map_quotient_injective :
+  function.injective (algebra_map (I.comap (algebra_map R S)).quotient I.quotient) :=
+begin
+  rintros ⟨a⟩ ⟨b⟩ hab,
+  replace hab := quotient.eq.mp hab,
+  rw ← ring_hom.map_sub at hab,
+  exact quotient.eq.mpr hab
+end
+
+end quotient_algebra
+
 end ideal
 
 namespace submodule

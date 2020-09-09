@@ -357,6 +357,16 @@ begin
   exact hp',
 end
 
+lemma is_integral_quotient_of_is_integral {I : ideal A} (hRS : ∀ (x : A), is_integral R x) :
+  (∀ (x : I.quotient), is_integral (I.comap (algebra_map R A)).quotient x) :=
+begin
+  rintros ⟨x⟩,
+  obtain ⟨p, ⟨p_monic, hpx⟩⟩ := hRS x,
+  refine ⟨p.map (ideal.quotient.mk _), ⟨monic_map _ p_monic, _⟩⟩,
+  have := congr_arg (ideal.quotient.mk I) hpx,
+  simpa only [aeval_def, hom_eval₂, eval₂_map] using congr_arg (ideal.quotient.mk I) hpx
+end
+
 /-- If the integral extension `R → S` is injective, and `S` is a field, then `R` is also a field -/
 lemma is_field_of_is_integral_of_is_field {R S : Type*} [integral_domain R] [integral_domain S]
   [algebra R S] (H : ∀ x : S, is_integral R x) (hRS : function.injective (algebra_map R S))

@@ -144,37 +144,6 @@ lemma is_maximal_of_is_integral_of_is_maximal_comap
   λ J I_lt_J, let ⟨I_le_J, x, hxJ, hxI⟩ := lt_iff_le_and_exists.mp I_lt_J
   in comap_eq_top_iff.mp (hI.2 _ (comap_lt_comap_of_integral_mem_sdiff I_le_J ⟨hxJ, hxI⟩ (hRS x))) ⟩
 
-section quotient_algebra
-
-variables {R S I}
-
--- TODO: Where to put this? Can't go in ring_theory/algebra since `ideal` isn't yet defined there.
-@[priority 100]
-instance quotient_algebra : algebra (I.comap (algebra_map R S)).quotient I.quotient :=
-(quotient.lift (I.comap (algebra_map R S)) ((quotient.mk I).comp (algebra_map R S)) (λ _ ha,
-  by simpa [function.comp_app, ring_hom.coe_comp, quotient.eq_zero_iff_mem] using ha)).to_algebra
-
-lemma algebra_map_quotient_injective :
-  function.injective (algebra_map (I.comap (algebra_map R S)).quotient I.quotient) :=
-begin
-  rintros ⟨a⟩ ⟨b⟩ hab,
-  replace hab := quotient.eq.mp hab,
-  rw ← ring_hom.map_sub at hab,
-  exact quotient.eq.mpr hab
-end
-
-lemma is_integral_quotient_of_is_integral (hRS : ∀ (x : S), is_integral R x) :
-  (∀ (x : I.quotient), is_integral (I.comap (algebra_map R S)).quotient x) :=
-begin
-  rintros ⟨x⟩,
-  obtain ⟨p, ⟨p_monic, hpx⟩⟩ := hRS x,
-  refine ⟨p.map (quotient.mk _), ⟨monic_map _ p_monic, _⟩⟩,
-  have := congr_arg (quotient.mk I) hpx,
-  simpa only [aeval_def, hom_eval₂, eval₂_map] using congr_arg (quotient.mk I) hpx
-end
-
-end quotient_algebra
-
 lemma is_maximal_comap_of_is_integral_of_is_maximal (hRS_integral : ∀ (x : S), is_integral R x)
   (I : ideal S) [hI : I.is_maximal] : is_maximal (I.comap (algebra_map R S)) :=
 begin
@@ -248,9 +217,10 @@ begin
   haveI := Q'_prime,
   refine ⟨Q'.comap _, le_trans (le_of_eq mk_ker.symm) (ker_le_comap _), ⟨comap_is_prime _ Q', _⟩⟩,
   rw comap_comap,
-  convert congr_arg (comap (quotient.mk (comap (algebra_map R S) I))) hQ',
-  refine trans ((sup_eq_left.2 _).symm) (comap_map_of_surjective _ quotient.mk_surjective _).symm,
-  simpa [← ring_hom.ker_eq_comap_bot] using hIP,
+  refine trans _ (trans (congr_arg (comap (quotient.mk (comap (algebra_map R S) I))) hQ') _),
+  { refine trans ((sup_eq_left.2 _).symm) (comap_map_of_surjective _ quotient.mk_surjective _).symm,
+    simpa [← ring_hom.ker_eq_comap_bot] using hIP},
+  { simpa [comap_comap] },
 end
 
 end integral_domain

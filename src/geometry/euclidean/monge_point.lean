@@ -133,8 +133,7 @@ begin
   { rw [if_pos (mem_univ _), sub_zero, add_zero, card_fin],
     have hn3 : (n + 2 + 1 : ℝ) ≠ 0,
     { exact_mod_cast nat.succ_ne_zero _ },
-    field_simp [hn1, hn3],
-    ring },
+    field_simp [hn1, hn3] },
   { field_simp [hn1],
     ring }
 end

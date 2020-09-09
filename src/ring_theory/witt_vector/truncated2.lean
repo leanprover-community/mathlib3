@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
--- import ring_theory.witt_vector.ideal
 import ring_theory.witt_vector.init_tail
+import ring_theory.witt_vector.mul_p
 import tactic.equiv_rw
 
 /-!
@@ -328,11 +328,18 @@ end ideals
 
 variables (p n R)
 
-lemma eq_of_le_of_cast_pow_eq_zero (i : ℕ) (hin : i ≤ n)
+lemma eq_of_le_of_cast_pow_eq_zero [nontrivial R] (i : ℕ) (hin : i ≤ n)
   (hpi : (p ^ i : truncated_witt_vector p n R) = 0) :
   i = n :=
 begin
-  sorry
+  contrapose! hpi,
+  replace hin := lt_of_le_of_ne hin hpi, clear hpi,
+  have : (↑p ^ i : truncated_witt_vector p n R) = witt_vector.truncate n (↑p ^ i),
+  { rw [ring_hom.map_pow, ring_hom.map_nat_cast] },
+  rw [this, ext_iff, not_forall], clear this,
+  use ⟨i, hin⟩,
+  rw [witt_vector.coeff_truncate, coeff_zero],
+  apply witt_vector.coeff_p_pow,
 end
 
 section iso

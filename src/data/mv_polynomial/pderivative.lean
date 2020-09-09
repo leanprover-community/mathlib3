@@ -49,7 +49,7 @@ universes u
 variables {R : Type u}
 
 namespace mv_polynomial
-variables {σ : Type*} {a a' a₁ a₂ : R} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
+variables {σ : Type*} {a a' a₁ a₂ : R} {s : σ →₀ ℕ}
 
 section pderivative
 

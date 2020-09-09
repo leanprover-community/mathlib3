@@ -97,7 +97,7 @@ end bicone
 A bicone over `F : J → C`, which is both a limit cone and a colimit cocone.
 -/
 @[nolint has_inhabited_instance]
-structure biproduct_data (F : J → C) :=
+structure limit_bicone (F : J → C) :=
 (bicone : bicone F)
 (is_limit : is_limit bicone.to_cone)
 (is_colimit : is_colimit bicone.to_cocone)
@@ -107,13 +107,13 @@ structure biproduct_data (F : J → C) :=
 simultaneously a limit and a colimit of the diagram `F`.
 -/
 class has_biproduct (F : J → C) : Prop :=
-mk' :: (exists_biproduct : nonempty (biproduct_data F))
+mk' :: (exists_biproduct : nonempty (limit_bicone F))
 
-lemma has_biproduct.mk {F : J → C} (d : biproduct_data F) : has_biproduct F :=
+lemma has_biproduct.mk {F : J → C} (d : limit_bicone F) : has_biproduct F :=
 ⟨nonempty.intro d⟩
 
 /-- Use the axiom of choice to extract explicit `biproduct_data F` from `has_biproduct F`. -/
-def get_biproduct_data (F : J → C) [has_biproduct F] : biproduct_data F :=
+def get_biproduct_data (F : J → C) [has_biproduct F] : limit_bicone F :=
 classical.choice has_biproduct.exists_biproduct
 
 /-- A bicone for `F` which is both a limit cone and a colimit cocone. -/

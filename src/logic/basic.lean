@@ -252,7 +252,9 @@ library_note "decidable namespace"
 protected theorem decidable.not_not [decidable a] : ¬¬a ↔ a :=
 iff.intro decidable.by_contradiction not_not_intro
 
-/-- The Double Negation Theorem: `¬ ¬ P` is equivalent to `P`. Classically true, but not constructively. -/
+/-- The Double Negation Theorem: `¬ ¬ P` is equivalent to `P`. 
+The left-to-right direction, double negation elimination (DNE), 
+is classically true but not constructively. -/
 @[simp] theorem not_not : ¬¬a ↔ a := decidable.not_not
 
 theorem of_not_not : ¬¬a → a := by_contra

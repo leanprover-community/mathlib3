@@ -13,7 +13,6 @@ import ring_theory.multiplicity
 import algebra.invertible
 import number_theory.basic
 import group_theory.order_of_element
-import ring_theory.witt_vector.mv_poly_temp
 
 universes u v w u₁
 
@@ -579,5 +578,19 @@ lemma prod_mk_injective {α β : Type*} (a : α) :
   function.injective (prod.mk a : β → α × β) :=
 by { intros b₁ b₂ h, simpa only [true_and, prod.mk.inj_iff, eq_self_iff_true] using h }
 end
+
+namespace mv_polynomial
+noncomputable instance invertible_C
+  (σ : Type*) {R : Type*} [comm_semiring R] (r : R) [invertible r] :
+  invertible (C r : mv_polynomial σ R) :=
+invertible.map ⟨C, C_1, λ x y, C_mul⟩ _
+
+-- name??
+noncomputable def invertible_rat_coe_nat (σ : Type*) (p : ℕ) [invertible (p : ℚ)] :
+  invertible (p : mv_polynomial σ ℚ) :=
+(mv_polynomial.invertible_C σ (p:ℚ)).copy p $ (C_eq_coe_nat p).symm
+
+
+end mv_polynomial
 
 -- ### end FOR_MATHLIB

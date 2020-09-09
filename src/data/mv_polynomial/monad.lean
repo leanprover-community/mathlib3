@@ -13,13 +13,15 @@ import data.mv_polynomial.rename
 This file defines two monadic operations on `mv_polynomial`. Given `p : mv_polynomial σ R`,
 
 * `mv_polynomial.bind₁` and `mv_polynomial.join₁` operate on the variable type `σ`.
-* `mv_polynomial.bind₂` and `mv_polynomial.join₂` operate on the cofficient type `R`.
+* `mv_polynomial.bind₂` and `mv_polynomial.join₂` operate on the coefficient type `R`.
 
 These operations themselves have algebraic structure: `bind₁` and `join₁` are algebra homs and
 `bind₂` and `join₂` are ring homs.
 
-They interact in convenient ways with `mv_polynomial.map`, `mv_polynomial.vars`,
-`mv_polynomial.rename`, and other polynomial operations.
+They interact in convenient ways with `mv_polynomial.rename`, `mv_polynomial.map`,
+`mv_polynomial.vars`, and other polynomial operations.
+Indeed, `mv_polynomial.rename` is the "map" operation for the (`bind₁`, `join₁`) pair,
+whereas `mv_polynomial.map` is the "map" operation for the other pair.
 
 -/
 

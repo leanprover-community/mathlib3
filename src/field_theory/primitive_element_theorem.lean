@@ -313,7 +313,7 @@ begin
   by_cases key : ∃ α : E, findim F⟮α⟯ E < n,
   { cases key with α Fα_le_n,
     have Fα_findim : finite_dimensional F⟮α⟯ E := finite_dimensional.findim_of_tower_findim F F⟮α⟯ E,
-    have Fα_inf : infinite F⟮α⟯ := infinite_lemma F_inf,
+    have Fα_inf : infinite F⟮α⟯ := field.infinite_of_infinite F_inf,
     have Fα_sep : is_separable F⟮α⟯ E := is_separable_top F F⟮α⟯ E F_sep,
     obtain ⟨β, hβ⟩ := ih (findim F⟮α⟯ E) Fα_le_n F⟮α⟯ Fα_sep Fα_findim Fα_inf rfl,
     obtain ⟨γ, hγ⟩ := primitive_element_two_inf α β F_sep F_inf,

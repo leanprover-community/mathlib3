@@ -49,8 +49,7 @@ class has_vsub (G : out_param Type*) (P : Type*) :=
 infix ` +ᵥ `:65 := has_vadd.vadd
 infix ` -ᵥ `:65 := has_vsub.vsub
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
+section old_structure_cmd
 set_option old_structure_cmd true
 /-- Type class for additive monoid actions. -/
 class add_action (G : Type*) (P : Type*) [add_monoid G] extends has_vadd G P :=
@@ -70,7 +69,7 @@ class add_torsor (G : out_param Type*) (P : Type*) [out_param $ add_group G]
 
 attribute [instance, priority 100, nolint dangerous_instance] add_torsor.nonempty
 
-end prio
+end old_structure_cmd
 
 /-- An `add_group G` is a torsor for itself. -/
 @[nolint instance_priority]

@@ -43,6 +43,9 @@ Maybe `integrable f` should be mean `(∫⁻ a, edist (f a) 0) < ⊤`, so that `
 `lintegral_nnnorm_eq_lintegral_edist : (∫⁻ a, nnnorm (f a)) = (∫⁻ a, edist (f a) 0)` to switch the
 two forms.
 
+To prove something for an arbitrary integrable + measurable function, a useful theorem is
+`integrable.induction` in the file `set_integral`.
+
 ## Tags
 
 integrable, function space, l1

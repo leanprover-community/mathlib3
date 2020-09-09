@@ -29,6 +29,7 @@ the `order_topology`, then this condition is equivalent to `is_preconnected s`. 
 this condition is also equivalent to `convex s`.
 -/
 def ord_connected (s : set α) : Prop := ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), Icc x y ⊆ s
+attribute [class] ord_connected
 
 /-- It suffices to prove `[x, y] ⊆ s` for `x y ∈ s`, `x ≤ y`. -/
 lemma ord_connected_iff : ord_connected s ↔ ∀ (x ∈ s) (y ∈ s), x ≤ y → Icc x y ⊆ s :=
@@ -86,6 +87,9 @@ ord_connected_Ioi.inter ord_connected_Iic
 lemma ord_connected_Ioo {a b : α} : ord_connected (Ioo a b) :=
 ord_connected_Ioi.inter ord_connected_Iio
 
+attribute [instance] ord_connected_Ici ord_connected_Iic ord_connected_Ioi ord_connected_Iio
+ord_connected_Icc ord_connected_Ico ord_connected_Ioc ord_connected_Ioo
+
 lemma ord_connected_singleton {α : Type*} [partial_order α] {a : α} :
   ord_connected ({a} : set α) :=
 by { rw ← Icc_self, exact ord_connected_Icc }
@@ -95,7 +99,7 @@ lemma ord_connected_empty : ord_connected (∅ : set α) := λ x, false.elim
 lemma ord_connected_univ : ord_connected (univ : set α) := λ _ _ _ _, subset_univ _
 
 /-- In a dense order `α`, the subtype from an `ord_connected` set is also densely ordered. -/
-lemma subtype_densely_ordered [densely_ordered α] {s : set α} (hs : ord_connected s) :
+instance [densely_ordered α] {s : set α} [hs : ord_connected s] :
   densely_ordered s :=
 ⟨ begin
     intros a₁ a₂ ha,
@@ -104,10 +108,6 @@ lemma subtype_densely_ordered [densely_ordered α] {s : set α} (hs : ord_connec
     refine ⟨⟨x, _⟩, ⟨ha₁x, hxa₂⟩⟩,
     exact (hs a₁.2 a₂.2) (Ioo_subset_Icc_self ⟨ha₁x, hxa₂⟩),
   end ⟩
-
-/-- In a dense order `α`, open intervals `Ioo a b` are also densely ordered. -/
-instance [densely_ordered α] {a b : α} : densely_ordered (Ioo a b) :=
-subtype_densely_ordered ord_connected_Ioo
 
 variables {β : Type*} [decidable_linear_order β]
 

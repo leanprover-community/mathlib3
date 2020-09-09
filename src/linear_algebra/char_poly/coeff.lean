@@ -203,3 +203,13 @@ by rw [trace_eq_neg_char_poly_coeff, trace_eq_neg_char_poly_coeff,
 lemma zmod.trace_pow_card {p:ℕ} [fact p.prime] [nonempty n] (M : matrix n n (zmod p)) :
   trace n (zmod p) (zmod p) (M ^ p) = (trace n (zmod p) (zmod p) M)^p :=
 by { have h := finite_field.trace_pow_card M, rwa zmod.card at h, }
+
+namespace matrix
+
+theorem is_integral : is_integral R M := ⟨char_poly M, ⟨char_poly_monic M, aeval_self_char_poly M⟩⟩
+
+theorem min_poly_dvd_char_poly {K : Type*} [field K] (M : matrix n n K) :
+  (minimal_polynomial M.is_integral) ∣ char_poly M :=
+minimal_polynomial.dvd M.is_integral (aeval_self_char_poly M)
+
+end matrix

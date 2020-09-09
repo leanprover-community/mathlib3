@@ -57,10 +57,6 @@ class has_inner (α : Type*) := (inner : α → α → ℝ)
 
 export has_inner (inner)
 
-section prio
-
-set_option default_priority 100 -- see Note [default priority]
-
 -- the norm is embedded in the inner product space structure
 -- to avoid definitional equality issues. See Note [forgetful inheritance].
 
@@ -78,7 +74,6 @@ class inner_product_space (α : Type*) extends normed_group α, normed_space ℝ
 (comm      : ∀ x y, inner x y = inner y x)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = r * inner x y)
-end prio
 
 /-!
 ### Constructing a normed space structure from a scalar product
@@ -351,6 +346,24 @@ begin
   linarith
 end
 
+/-- A family of vectors is linearly independent if they are nonzero
+and orthogonal. -/
+lemma linear_independent_of_ne_zero_of_inner_eq_zero {ι : Type*} {v : ι → α}
+  (hz : ∀ i, v i ≠ 0) (ho : ∀ i j, i ≠ j → inner (v i) (v j) = 0) : linear_independent ℝ v :=
+begin
+  rw linear_independent_iff',
+  intros s g hg i hi,
+  have h' : g i * inner (v i) (v i) = inner (∑ j in s, g j • v j) (v i),
+  { rw sum_inner,
+    symmetry,
+    convert finset.sum_eq_single i _ _,
+    { rw inner_smul_left },
+    { intros j hj hji,
+      rw [inner_smul_left, ho j i hji, mul_zero] },
+    { exact λ h, false.elim (h hi) } },
+  simpa [hg, hz] using h'
+end
+
 end basic_properties
 
 section norm
@@ -441,6 +454,15 @@ form. -/
 lemma norm_sub_square_eq_norm_square_add_norm_square {x y : α} (h : inner x y = 0) :
   ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
 (norm_sub_square_eq_norm_square_add_norm_square_iff_inner_eq_zero x y).2 h
+
+/-- The sum and difference of two vectors are orthogonal if and only
+if they have the same norm. -/
+lemma inner_add_sub_eq_zero_iff (x y : α) : inner (x + y) (x - y) = 0 ↔ ∥x∥ = ∥y∥ :=
+begin
+  conv_rhs { rw ←mul_self_inj_of_nonneg (norm_nonneg _) (norm_nonneg _) },
+  simp [←inner_self_eq_norm_square, inner_add_left, inner_sub_right, inner_comm y x,
+        sub_eq_zero, add_comm (inner x y)]
+end
 
 /-- The inner product of two vectors, divided by the product of their
 norms, has absolute value at most 1. -/

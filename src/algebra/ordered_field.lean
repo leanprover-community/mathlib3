@@ -18,7 +18,6 @@ import algebra.field
     decidable.
 -/
 
-set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
 
 variable {α : Type*}
@@ -485,6 +484,7 @@ lemma strict_mono.div_const {β : Type*} [preorder β] {f : β → α} (hf : str
   strict_mono (λ x, (f x) / c) :=
 hf.mul_const (inv_pos.2 hc)
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_densely_ordered : densely_ordered α :=
 { dense := λ a₁ a₂ h, ⟨(a₁ + a₂) / 2,
   calc a₁ = (a₁ + a₁) / 2 : (add_self_div_two a₁).symm

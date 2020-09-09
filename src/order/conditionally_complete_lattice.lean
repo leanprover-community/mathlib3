@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.nat.enat
+import data.set.intervals.ord_connected
 
 /-!
 # Theory of conditionally complete lattices.
@@ -718,28 +719,27 @@ noncomputable instance with_top.with_bot.complete_lattice {α : Type*}
 end with_top_bot
 
 section subtype
-variables [conditionally_complete_linear_order α] (s : set α)
+variables (s : set α)
 
 /-! ### Subtypes of conditionally complete linear orders
 
 In this section we give conditions on a subset of a conditionally complete linear order, to ensure
-that the subsypeshow is itself conditionally complete.
+that the subtype is itself conditionally complete.
 
-We check that `Ioo` satisfies these conditions.
+We check that an `ord_connected` set satisfies these conditions.
 
-TODO There are innumerable possible variants -- the interval `Ioo` could be changed to `Ico`, `Icc`,
-`Ioi`, etc.; the `conditionally_complete_linear_order` could be changed to
-`conditionally_complete_linear_order_bot` or `complete_linear_order`.
+TODO There are several possible variants; the `conditionally_complete_linear_order` could be changed
+to `conditionally_complete_linear_order_bot` or `complete_linear_order`.
 -/
 
 open_locale classical
 
 section has_Sup
+variables [has_Sup α]
 
-/-- `has_Sup` structure on a nonempty open subset `s` of a conditionally complete linear
-order. This definition is non-canonical (it uses `default s`); it should be used only as
-here, as an auxiliary instance in the construction of the `conditionally_complete_linear_order`
-structure. -/
+/-- `has_Sup` structure on a nonempty subset `s` of an object with `has_Sup`. This definition is
+non-canonical (it uses `default s`); it should be used only as here, as an auxiliary instance in the
+construction of the `conditionally_complete_linear_order` structure. -/
 noncomputable def subset_has_Sup [inhabited s] : has_Sup s := {Sup := λ t,
 if ht : Sup (coe '' t : set α) ∈ s then ⟨Sup (coe '' t : set α), ht⟩ else default s}
 
@@ -757,11 +757,6 @@ by simp [dif_pos h]
 end has_Sup
 
 section has_Inf
-
-/-- `has_Inf` structure on a nonempty open subset `s` of a conditionally complete linear
-order. This definition is non-canonical (it uses `default s`); it should be used only as
-here, as an auxiliary instance in the construction of the `conditionally_complete_linear_order`
-structure. -/
 noncomputable def subset_has_Inf [inhabited s] : has_Inf s := {Inf := λ t,
 if ht : Inf (coe '' t : set α) ∈ s then ⟨Inf (coe '' t : set α), ht⟩ else default s}
 
@@ -815,38 +810,41 @@ noncomputable def subset_conditionally_complete_linear_order [inhabited s]
   ..distrib_lattice.to_lattice s,
   ..classical.DLO s }
 
-section Ioo
-variables {a b : α}
+section ord_connected
 
-/-- The `Sup` function on a nonempty open subinterval `Ioo a b` of a conditionally complete linear
-order takes values within `Ioo a b`, for all nonempty bounded-above sets. -/
-lemma Ioo_Sup_within {a b : α} ⦃t : set (Ioo a b)⦄ (ht : t.nonempty) (h_bdd : bdd_above t) :
-  Sup (coe '' t : set α) ∈ Ioo a b :=
+/-- The `Sup` function on a nonempty `ord_connected` set `s` in a conditionally complete linear
+order takes values within `s`, for all nonempty bounded-above subsets of `s`. -/
+lemma Sup_within_of_ord_connected
+  {s : set α} [hs : ord_connected s] ⦃t : set s⦄ (ht : t.nonempty) (h_bdd : bdd_above t) :
+  Sup (coe '' t : set α) ∈ s :=
 begin
   obtain ⟨c, hct⟩ : ∃ c, c ∈ t := ht,
   obtain ⟨B, hB⟩ : ∃ B, B ∈ upper_bounds t := h_bdd,
-  have ha := lt_of_lt_of_le c.2.1 ((strict_mono_coe (Ioo a b)).monotone.le_cSup_image hct ⟨B, hB⟩),
-  have hb := lt_of_le_of_lt ((strict_mono_coe (Ioo a b)).monotone.cSup_image_le ⟨c, hct⟩ hB) B.2.2,
-  exact ⟨ha, hb⟩,
+  refine hs c.2 B.2 ⟨_, _⟩,
+  { exact (strict_mono_coe s).monotone.le_cSup_image hct ⟨B, hB⟩ },
+  { exact (strict_mono_coe s).monotone.cSup_image_le ⟨c, hct⟩ hB },
 end
 
-/-- The `Inf` function on a nonempty open subinterval `Ioo a b` of a conditionally complete linear
-order takes values within `Ioo a b`, for all nonempty bounded-above sets. -/
-lemma Ioo_Inf_within {a b : α} ⦃t : set (Ioo a b)⦄ (ht : t.nonempty) (h_bdd : bdd_below t) :
-  Inf (coe '' t : set α) ∈ Ioo a b :=
+/-- The `Inf` function on a nonempty `ord_connected` set `s` in a conditionally complete linear
+order takes values within `s`, for all nonempty bounded-below subsets of `s`. -/
+lemma Inf_within_of_ord_connected
+  {s : set α} [hs : ord_connected s] ⦃t : set s⦄ (ht : t.nonempty) (h_bdd : bdd_below t) :
+  Inf (coe '' t : set α) ∈ s :=
 begin
   obtain ⟨c, hct⟩ : ∃ c, c ∈ t := ht,
   obtain ⟨B, hB⟩ : ∃ B, B ∈ lower_bounds t := h_bdd,
-  have ha := lt_of_lt_of_le B.2.1 ((strict_mono_coe (Ioo a b)).monotone.le_cInf_image ⟨c, hct⟩ hB),
-  have hb := lt_of_le_of_lt ((strict_mono_coe (Ioo a b)).monotone.cInf_image_le hct ⟨B, hB⟩) c.2.2,
-  exact ⟨ha, hb⟩,
+  refine hs B.2 c.2 ⟨_, _⟩,
+  { exact (strict_mono_coe s).monotone.le_cInf_image ⟨c, hct⟩ hB },
+  { exact (strict_mono_coe s).monotone.cInf_image_le hct ⟨B, hB⟩ },
 end
 
-/-- A nonempty open interval of a conditionally complete linear order is naturally a conditionally
-complete linear order. -/
-noncomputable instance Ioo_conditionally_complete_linear_order [inhabited (Ioo a b)] :=
-subset_conditionally_complete_linear_order (Ioo a b) Ioo_Sup_within Ioo_Inf_within
+/-- A nonempty `ord_connected` set in a conditionally complete linear order is naturally a
+conditionally complete linear order. -/
+noncomputable instance ord_connected_subset_conditionally_complete_linear_order
+  [inhabited s] [ord_connected s] :
+  conditionally_complete_linear_order s :=
+subset_conditionally_complete_linear_order s Sup_within_of_ord_connected Inf_within_of_ord_connected
 
-end Ioo
+end ord_connected
 
 end subtype

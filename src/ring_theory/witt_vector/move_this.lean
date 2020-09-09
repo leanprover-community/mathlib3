@@ -3,6 +3,23 @@ import ring_theory.witt_vector.nice_poly
 import ring_theory.witt_vector.init_tail
 import ring_theory.witt_vector.witt_vector_preps
 
+namespace mv_polynomial
+variables {σ R : Type*} [comm_semiring R]
+
+
+lemma eval_inj [char_zero R] (φ ψ : mv_polynomial σ R) (h : ∀ f, eval f φ = eval f ψ) :
+  φ = ψ :=
+begin
+  sorry
+end
+
+lemma eval_inj_iff [char_zero R] (φ ψ : mv_polynomial σ R) :
+  φ = ψ ↔ (∀ f, eval f φ = eval f ψ) :=
+⟨by rintro rfl _; refl, eval_inj _ _⟩
+
+end mv_polynomial
+
+
 namespace witt_vector
 
 variables {p : ℕ} {R S σ idx : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
@@ -50,7 +67,7 @@ lemma Sub_eq : Sub p = witt_sub p :=
 begin
   apply unique_of_exists_unique (witt_structure_int_exists_unique p (X tt - X ff)),
   swap, { apply witt_structure_int_prop },
-  sorry
+  intro n,
 end
 
 lemma sub_coeff (x y : 𝕎 R) (n : ℕ) :

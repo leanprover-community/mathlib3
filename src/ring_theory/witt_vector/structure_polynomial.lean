@@ -8,8 +8,6 @@ import ring_theory.witt_vector.witt_polynomial
 import field_theory.mv_polynomial
 import field_theory.finite
 
-import ring_theory.witt_vector.witt_vector_preps
-
 open mv_polynomial
 open set
 open finset (range)

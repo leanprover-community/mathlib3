@@ -1,5 +1,6 @@
 import ring_theory.witt_vector.basic
 import ring_theory.witt_vector.nice_poly
+import ring_theory.witt_vector.init_tail
 import ring_theory.witt_vector.witt_vector_preps
 
 namespace witt_vector
@@ -83,23 +84,19 @@ begin
   convert zero_add _,
 end
 
-def init (x : 𝕎 R) (n : ℕ) := mk p (λ k, if k < n then x.coeff k else 0)
-
-def tail (x : 𝕎 R) (n : ℕ) := mk p (λ k, if k < n then 0 else x.coeff k)
-
 lemma init_tail_disjoint (x : 𝕎 R) (n : ℕ) (i : ℕ) :
-  (init p x n).coeff i = 0 ∨ (tail p x n).coeff i = 0 :=
+  (init x n).coeff i = 0 ∨ (tail x n).coeff i = 0 :=
 begin
   simp only [init, tail, coeff_mk],
   split_ifs; simp only [eq_self_iff_true, or_true, true_or]
 end
 
 lemma coeff_init_add_tail (x : 𝕎 R) (n : ℕ) (i : ℕ) :
-  coeff i (init p x n + tail p x n) = coeff i (init p x n) + coeff i (tail p x n) :=
+  coeff i (init x n + tail x n) = coeff i (init x n) + coeff i (tail x n) :=
 by { rw coeff_add_of_disjoint, intros, apply init_tail_disjoint }
 
 lemma eq_init_add_tail (x : 𝕎 R) (n : ℕ) :
-  x = init p x n + tail p x n :=
+  x = init x n + tail x n :=
 begin
   rw ext_iff,
   intro k,
@@ -107,55 +104,6 @@ begin
   simp only [init, tail, coeff_mk], split_ifs; simp only [add_zero, zero_add]
 end
 
-@[simp]
-lemma init_init (x : 𝕎 R) (n : ℕ) :
-  init p (init p x n) n = init p x n :=
-begin
-  rw ext_iff,
-  intros i,
-  simp only [init, coeff_mk],
-  split_ifs with hi; refl,
-end
-
-lemma init_add (x y : 𝕎 R) (n : ℕ) :
-  init p (x + y) n = init p (init p x n + init p y n) n :=
-begin
-  rw ext_iff,
-  intros i,
-  simp only [init, coeff_mk],
-  split_ifs with hi, swap, refl,
-  simp only [add_coeff],
-  apply eval₂_hom_congr' (ring_hom.ext_int _ _) _ rfl,
-  rintro ⟨b, k⟩ h -,
-  replace h := witt_add_vars p _ h,
-  simp only [finset.mem_range, finset.mem_product, true_and, finset.mem_univ] at h,
-  have hk : k < n, by linarith,
-  simp only [hk, coeff_mk, if_true],
-end
-
-lemma init_neg (x : 𝕎 R) (n : ℕ) :
-  init p (-x) n = init p (-init p x n) n :=
-begin
-  rw ext_iff,
-  intros i,
-  simp only [init, coeff_mk],
-  split_ifs with hi, swap, refl,
-  simp only [neg_coeff],
-  apply eval₂_hom_congr' (ring_hom.ext_int _ _) _ rfl,
-  rintro ⟨u, k⟩ h -,
-  replace h := witt_neg_vars p _ h,
-  simp only [finset.mem_range, finset.mem_product, true_and, finset.mem_univ] at h,
-  have hk : k < n, by linarith,
-  simp only [hk, coeff_mk, if_true],
-end
-
-lemma init_sub (x y : 𝕎 R) (n : ℕ) :
-  init p (x - y) n = init p (init p x n - init p y n) n :=
-begin
-  simp only [sub_eq_add_neg],
-  rw [init_add, init_neg],
-  conv_rhs { rw [init_add, init_init] },
-end
 
 end disjoint
 

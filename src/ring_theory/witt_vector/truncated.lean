@@ -94,7 +94,7 @@ witt_vector.coeff i (quot.out x)
 lemma witt_vector.coeff_truncate (x : witt_vector p R) (i : fin n) :
   (witt_vector.truncate p n x).coeff i = x.coeff i :=
 begin
-  apply witt_vector.coeff_eq_of_truncate_eq p _ _ n _ i.is_lt,
+  refine witt_vector.coeff_eq_of_truncate_eq p _ _ n _ i.is_lt,
   exact quot.out_eq _,
 end
 
@@ -128,7 +128,7 @@ begin
   have : x i = witt_vector.coeff i (witt_vector.mk p $ λ k, if h : k < n then x ⟨k, h⟩ else 0),
   { rw [witt_vector.coeff_mk, dif_pos i.is_lt, fin.eta], },
   rw this,
-  apply witt_vector.coeff_eq_of_truncate_eq p _ _ n _ i.is_lt,
+  refine witt_vector.coeff_eq_of_truncate_eq p _ _ n _ i.is_lt,
   apply quot.out_eq,
 end
 

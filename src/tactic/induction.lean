@@ -71,7 +71,7 @@ TODO doc
 Input: The local constants representing the constructor arguments.
 
 Assumption: The input expression has the form `e = C x₁ ... xₙ` where
-`C` is a local constant.
+`C` is a constant.
 
 Output: A map associating each of the arg local constants `cᵢ` with the set of
 indexes `j` such that `cᵢ` appears in `xⱼ` and `xⱼ`'s type fuzzily matches that
@@ -194,7 +194,10 @@ let index_occs := i.ainfo.index_occurrences in
 let eliminee_args := i.einfo.args in
 let local_index_instantiations :=
   (index_occs.map (eliminee_args.find >=> expr.local_names_option)).all_some in
--- TODO this needs to be updated when we allow complex indices
+-- TODO this needs to be updated when we allow complex indices. Right now, the
+-- rule only triggers if the eliminee arg is exactly a local const. We probably
+-- want a more permissive rule where the eliminee arg can be an arbitrary term
+-- as long as that term *contains* only a single local const.
 match local_index_instantiations with
 | none := failed
 | some [] := failed
@@ -353,7 +356,7 @@ meta def to_generalize (eliminee : expr) : generalization_mode → tactic name_s
     let rev :=
       ¬ fixed_dependencies.contains h_name ∧
       (h_depends_on_eliminee_deps ∨ tgt_dependencies.contains h_name),
-    -- TODO I think `h_type.has_local_in eliminee_dependencies` is an
+    -- TODO I think `h_depends_on_eliminee_deps` is an
     -- overapproximation. What we actually want is any hyp that depends either
     -- on the eliminee or on one of the eliminee's index args. (But the
     -- overapproximation seems to work okay in practice as well.)
@@ -577,7 +580,7 @@ focus1 $ do
 
   let js_ks := js.zip ks,
 
-  -- Replace the index args in the relevant context and the target.
+  -- Replace the index args in the relevant context.
   new_ctx ← relevant_ctx.mmap $ λ ⟨h, H⟩, do {
     H ← js_ks.mfoldr (λ ⟨j, k⟩ h, kreplace h j k) H,
     pure $ local_const h.local_uniq_name h.local_pp_name h.binding_info H
@@ -770,6 +773,7 @@ meta def eliminate_hyp (generate_ihs : bool) (eliminee : expr)
   (gm := generalization_mode.generalize_all_except [])
   (with_names : list name := []) : tactic unit :=
 focus1 $ do
+  -- TODO make sure that the eliminee is not a local def.
   einfo ← get_eliminee_info eliminee,
   let eliminee := einfo.eexpr,
   let eliminee_type := einfo.type,

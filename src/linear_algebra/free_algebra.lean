@@ -178,6 +178,8 @@ The canonical function `M → free_algebra R M`.
 def ι : M → free_algebra R M :=
 λ m, quot.mk _ m
 
+@[simp] lemma quot_mk_eq_ι (m : M) : quot.mk (free_algebra.rel R M) m = ι R M m := rfl
+
 /--
 Given a function `f : M → A` where `A` is an `R`-algebra, `lift R M f` is the unique lift
 of `f` to a morphism of `R`-algebras `free_algebra R M → A`.
@@ -229,6 +231,10 @@ theorem ι_comp_lift {A : Type*} [semiring A] [algebra R A] (f : M → A) :
   (lift R M f : free_algebra R M → A) ∘ (ι R M) = f := by {ext, refl}
 
 @[simp]
+theorem lift_ι_apply {A : Type*} [semiring A] [algebra R A] (f : M → A) (x) :
+  lift R M f (ι R M x) = f x := rfl
+
+@[simp]
 theorem lift_unique {A : Type*} [semiring A] [algebra R A] (f : M → A)
   (g : free_algebra R M →ₐ[R] A) :
   (g : free_algebra R M → A) ∘ (ι R M) = f ↔ g = lift R M f :=
@@ -253,12 +259,12 @@ end
 theorem lift_comp_ι {A : Type*} [semiring A] [algebra R A] (g : free_algebra R M →ₐ[R] A) :
   lift R M ((g : free_algebra R M → A) ∘ (ι R M)) = g := by {symmetry, rw ←lift_unique}
 
-theorem hom_ext {A : Type*} [semiring A] [algebra R A] {f g : free_algebra R M →ₐ[R] A} :
-  ((f : free_algebra R M → A) ∘ (ι R M)) = ((g : free_algebra R M → A) ∘ (ι R M)) → f = g :=
+@[ext]
+theorem hom_ext {A : Type*} [semiring A] [algebra R A] {f g : free_algebra R M →ₐ[R] A}
+  (w : ((f : free_algebra R M → A) ∘ (ι R M)) = ((g : free_algebra R M → A) ∘ (ι R M))) : f = g :=
 begin
-  intro hyp,
   have : g = lift R M ((g : free_algebra R M → A) ∘ (ι R M)), by rw ←lift_unique,
-  rw [this, ←lift_unique, hyp],
+  rw [this, ←lift_unique, w],
 end
 
 end free_algebra

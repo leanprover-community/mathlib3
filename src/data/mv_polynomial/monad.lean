@@ -15,23 +15,49 @@ TODO
 -/
 
 open_locale big_operators
-
+noncomputable theory
 namespace mv_polynomial
 open finsupp
 
 variables {σ : Type*} {τ : Type*}
 variables {R S T : Type*} [comm_semiring R] [comm_semiring S] [comm_semiring T]
 
-noncomputable def bind₁ (f : σ → mv_polynomial τ R) : mv_polynomial σ R →ₐ[R] mv_polynomial τ R :=
+/--
+`bind₁` is the "left hand side" bind operation on `mv_polynomial`, operating on the variable type.
+Given a polynomial `p : mv_polynomial σ R` and a map `f : σ → mv_polynomial τ R` taking variables
+in `p` to polynomials in the variable type `τ`, `bind₁ f p` replaces each variable in `p` with
+its value under `f`, producing a new polynomial in `τ`. The coefficient type remains the same.
+This operation is an algebra hom.
+-/
+def bind₁ (f : σ → mv_polynomial τ R) : mv_polynomial σ R →ₐ[R] mv_polynomial τ R :=
 aeval f
 
-noncomputable def bind₂ (f : R →+* mv_polynomial σ S) : mv_polynomial σ R →+* mv_polynomial σ S :=
+/--
+`bind₂` is the "right hand side" bind operation on `mv_polynomial`, operating on the coefficient type.
+Given a polynomial `p : mv_polynomial σ R` and a map `f : R → mv_polynomial σ S` taking coefficients
+in `p` to polynomials over a new ring `S`, `bind₂ f p` replaces each coefficient in `p` with its
+value under `f`, producing a new polynomial over `S`. The variable type remains the same.
+This operation is a ring hom.
+-/
+def bind₂ (f : R →+* mv_polynomial σ S) : mv_polynomial σ R →+* mv_polynomial σ S :=
 eval₂_hom f X
 
-noncomputable def join₁ : mv_polynomial (mv_polynomial σ R) R →ₐ[R] mv_polynomial σ R :=
+/--
+`join₁` is the monadic join operation corresponding to `mv_polynomial.bind₁`. Given a polynomial `p`
+with coefficients in `R` whose variables are polynomials in `σ` with coefficients in `R`,
+`join₁ p` collapses `p` to a polynomial with variables in `σ` and coefficients in `R`.
+This operation is an algebra hom.
+-/
+def join₁ : mv_polynomial (mv_polynomial σ R) R →ₐ[R] mv_polynomial σ R :=
 aeval (ring_hom.id _)
 
-noncomputable def join₂ : mv_polynomial σ (mv_polynomial σ R) →+* mv_polynomial σ R :=
+/--
+`join₂` is the monadic join operation corresponding to `mv_polynomial.bind₂`. Given a polynomial `p`
+with variables in `σ` whose coefficients are polynomials in `σ` with coefficients in `R`,
+`join₂ p` collapses `p` to a polynomial with variables in `σ` and coefficients in `R`.
+This operation is a ring hom.
+-/
+def join₂ : mv_polynomial σ (mv_polynomial σ R) →+* mv_polynomial σ R :=
 eval₂_hom (ring_hom.id _) X
 
 @[simp] lemma aeval_X_left (φ : mv_polynomial σ R) : aeval X φ = φ :=

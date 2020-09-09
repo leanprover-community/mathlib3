@@ -26,8 +26,8 @@ whereas `mv_polynomial.map` is the "map" operation for the other pair.
 ## Implementation notes
 
 We add an `is_lawful_monad` instance for the (`bind₁`, `join₁`) pair.
-The second pair cannot be instantiated as a monad, since we do not have
-`mv_polynomial σ : Type → Type`; the type of coefficients must have a ring structure.
+The second pair cannot be instantiated as a `monad`,
+since it is not a monad in `Type` but in `CommRing` (or rather `CommSemiRing`).
 
 -/
 

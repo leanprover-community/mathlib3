@@ -160,7 +160,7 @@ structure braided_functor extends monoidal_functor C D :=
 
 restate_axiom braided_functor.braided'
 -- It's not totally clear that `braided` deserves to be a `simp` lemma.
--- The principle being applying here is that `μ` "doesn't weigh much"
+-- The principle being applied here is that `μ` "doesn't weigh much"
 -- (similar to all the structural morphisms, e.g. associators and unitors)
 -- and the `simp` normal form is determined by preferring `obj` over `map`.
 attribute [simp] braided_functor.braided

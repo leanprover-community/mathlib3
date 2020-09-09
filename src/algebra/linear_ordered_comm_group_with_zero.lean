@@ -23,7 +23,6 @@ The solutions is to use a typeclass, and that is exactly what we do in this file
 -/
 
 set_option old_structure_cmd true
-set_option default_priority 100 -- see Note [default priority]
 
 /-- A linearly ordered commutative group with a zero element. -/
 class linear_ordered_comm_group_with_zero (α : Type*)
@@ -37,6 +36,7 @@ variables {a b c d x y z : α}
 local attribute [instance] classical.prop_decidable
 
 /-- Every linearly ordered commutative group with zero is an ordered commutative monoid.-/
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_comm_group_with_zero.to_ordered_comm_monoid : ordered_comm_monoid α :=
 { lt_of_mul_lt_mul_left := λ a b c h, by { contrapose! h,
     exact linear_ordered_comm_group_with_zero.mul_le_mul_left h a }

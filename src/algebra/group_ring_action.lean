@@ -30,16 +30,11 @@ group action, invariant subring
 universes u v
 open_locale big_operators
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
-
 /-- Typeclass for multiplicative actions by monoids on semirings. -/
 class mul_semiring_action (M : Type u) [monoid M] (R : Type v) [semiring R]
   extends distrib_mul_action M R :=
 (smul_one : ∀ (g : M), (g • 1 : R) = 1)
 (smul_mul : ∀ (g : M) (x y : R), g • (x * y) = (g • x) * (g • y))
-
-end prio
 
 export mul_semiring_action (smul_one)
 

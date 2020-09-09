@@ -2631,8 +2631,6 @@ sample; there are at least 16 possible variations with open intervals (`univ` to
 `univ`, ...), not to mention the possibilities with closed or half-closed intervals. -/
 variables {a b : α}
 
-def foo (a b : α) : ord_connected (Ioo a b) := by apply_instance
-
 /-- If `f : α → β` is strictly monotone and continuous on the interval `Ioo a b` of `α`, and tends
 to `at_top` with `𝓝[Iio b] b` and to `at_bot` with `𝓝[Ioi a] a`, then it restricts to a
 homeomorphism from `Ioo a b` to `β`. -/

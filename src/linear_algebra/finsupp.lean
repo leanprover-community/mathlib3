@@ -70,8 +70,8 @@ lemma disjoint_lsingle_lsingle (s t : set α) (hs : disjoint s t) :
   disjoint (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) (⨆a∈t, (lsingle a).range) :=
 begin
   refine disjoint.mono
-    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl s)
-    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl t)
+    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right s)
+    (lsingle_range_le_ker_lapply _ _ $ disjoint_compl_right t)
     (le_trans (le_infi $ assume i, _) infi_ker_lapply_le_bot),
   classical,
   by_cases his : i ∈ s,

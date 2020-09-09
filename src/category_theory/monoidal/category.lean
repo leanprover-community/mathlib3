@@ -325,11 +325,11 @@ lemma triangle_assoc_comp_left (X Y : C) :
   (α_ X (𝟙_ C) Y).hom ≫ ((𝟙 X) ⊗ (λ_ Y).hom) = (ρ_ X).hom ⊗ 𝟙 Y :=
 monoidal_category.triangle X Y
 
-@[simp] lemma triangle_assoc_comp_right (X Y : C) :
+@[simp, reassoc] lemma triangle_assoc_comp_right (X Y : C) :
   (α_ X (𝟙_ C) Y).inv ≫ ((ρ_ X).hom ⊗ 𝟙 Y) = ((𝟙 X) ⊗ (λ_ Y).hom) :=
 by rw [←triangle_assoc_comp_left, ←category.assoc, iso.inv_hom_id, category.id_comp]
 
-@[simp] lemma triangle_assoc_comp_right_inv (X Y : C) :
+@[simp, reassoc] lemma triangle_assoc_comp_right_inv (X Y : C) :
   ((ρ_ X).inv ⊗ 𝟙 Y) ≫ (α_ X (𝟙_ C) Y).hom = ((𝟙 X) ⊗ (λ_ Y).inv) :=
 begin
   apply (cancel_mono (𝟙 X ⊗ (λ_ Y).hom)).1,
@@ -337,7 +337,7 @@ begin
   rw [←comp_tensor_id, iso.inv_hom_id, ←id_tensor_comp, iso.inv_hom_id]
 end
 
-@[simp] lemma triangle_assoc_comp_left_inv (X Y : C) :
+@[simp, reassoc] lemma triangle_assoc_comp_left_inv (X Y : C) :
   ((𝟙 X) ⊗ (λ_ Y).inv) ≫ (α_ X (𝟙_ C) Y).inv = ((ρ_ X).inv ⊗ 𝟙 Y) :=
 begin
   apply (cancel_mono ((ρ_ X).hom ⊗ 𝟙 Y)).1,
@@ -345,13 +345,23 @@ begin
   rw [←id_tensor_comp, iso.inv_hom_id, ←comp_tensor_id, iso.inv_hom_id]
 end
 
+lemma left_unitor_eq_right_unitor : (λ_ (𝟙_ C)).hom = (ρ_ (𝟙_ _)).hom :=
+begin
+  rw [← tensor_right_iff, ← left_unitor_tensor, ← eq_inv_comp],
+  rw [triangle_assoc_comp_right],
+  rw [← cancel_mono (λ_ (𝟙_ C)).hom, left_unitor_naturality],
+end
+
+lemma left_unitor_eq_right_unitor_inv : (λ_ (𝟙_ C)).inv = (ρ_ (𝟙_ _)).inv :=
+by congr; ext; rw left_unitor_eq_right_unitor
+
 end
 
 section
 variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 
 /-- The tensor product expressed as a functor. -/
-def tensor : (C × C) ⥤ C :=
+@[simps] def tensor : (C × C) ⥤ C :=
 { obj := λ X, X.1 ⊗ X.2,
   map := λ {X Y : C × C} (f : X ⟶ Y), f.1 ⊗ f.2 }
 
@@ -366,21 +376,21 @@ def left_assoc_tensor : (C × C × C) ⥤ C :=
   (left_assoc_tensor C).map f = (f.1 ⊗ f.2.1) ⊗ f.2.2 := rfl
 
 /-- The right-associated triple tensor product as a functor. -/
-def right_assoc_tensor : (C × C × C) ⥤ C :=
+@[simps] def right_assoc_tensor : (C × C × C) ⥤ C :=
 { obj := λ X, X.1 ⊗ (X.2.1 ⊗ X.2.2),
   map := λ {X Y : C × C × C} (f : X ⟶ Y), f.1 ⊗ (f.2.1 ⊗ f.2.2) }
 
-@[simp] lemma right_assoc_tensor_obj (X) :
-  (right_assoc_tensor C).obj X = X.1 ⊗ (X.2.1 ⊗ X.2.2) := rfl
-@[simp] lemma right_assoc_tensor_map {X Y} (f : X ⟶ Y) :
-  (right_assoc_tensor C).map f = f.1 ⊗ (f.2.1 ⊗ f.2.2) := rfl
+-- @[simp] lemma right_assoc_tensor_obj (X) :
+--   (right_assoc_tensor C).obj X = X.1 ⊗ (X.2.1 ⊗ X.2.2) := rfl
+-- @[simp] lemma right_assoc_tensor_map {X Y} (f : X ⟶ Y) :
+--   (right_assoc_tensor C).map f = f.1 ⊗ (f.2.1 ⊗ f.2.2) := rfl
 
 /-- The functor `λ X, 𝟙_ C ⊗ X`. -/
-def tensor_unit_left : C ⥤ C :=
+@[simps] def tensor_unit_left : C ⥤ C :=
 { obj := λ X, 𝟙_ C ⊗ X,
   map := λ {X Y : C} (f : X ⟶ Y), (𝟙 (𝟙_ C)) ⊗ f }
 /-- The functor `λ X, X ⊗ 𝟙_ C`. -/
-def tensor_unit_right : C ⥤ C :=
+@[simps] def tensor_unit_right : C ⥤ C :=
 { obj := λ X, X ⊗ 𝟙_ C,
   map := λ {X Y : C} (f : X ⟶ Y), f ⊗ (𝟙 (𝟙_ C)) }
 

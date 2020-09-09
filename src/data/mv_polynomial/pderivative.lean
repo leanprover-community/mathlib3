@@ -21,20 +21,20 @@ It is based purely on the polynomial exponents and coefficients.
 
 ## Notation
 
-As in other polynomial files we typically use the notation:
+This file uses notation slightly different from other `mv_polynomial` files:
 
 + `σ : Type*` (indexing the variables)
 
-+ `α : Type*` `[comm_ring α]` (the coefficients)
++ `R : Type*` `[comm_ring R]` (the coefficients)
 
 + `s : σ →₀ ℕ`, a function from `σ` to `ℕ` which is zero away from a finite set.
 This will give rise to a monomial in `mv_polynomial σ R` which mathematicians might call `X^s`
 
-+ `a : α`
++ `a : R`
 
 + `i : σ`, with corresponding monomial `X i`, often denoted `X_i` by mathematicians
 
-+ `p : mv_polynomial σ α`
++ `p : mv_polynomial σ R`
 
 -/
 
@@ -45,22 +45,22 @@ open_locale classical big_operators
 open set function finsupp add_monoid_algebra
 open_locale big_operators
 
-universes u v w x
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
+universes u
+variables {R : Type u}
 
 namespace mv_polynomial
-variables {σ : Type*} {a a' a₁ a₂ : α} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
+variables {σ : Type*} {a a' a₁ a₂ : R} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
 
 section pderivative
 
-variables {α} [comm_semiring α]
+variables {R} [comm_semiring R]
 
 /-- `pderivative i p` is the partial derivative of `p` with respect to `i` -/
-def pderivative (i : σ) (p : mv_polynomial σ α) : mv_polynomial σ α :=
+def pderivative (i : σ) (p : mv_polynomial σ R) : mv_polynomial σ R :=
 p.sum (λ A B, monomial (A - single i 1) (B * (A i)))
 
 @[simp]
-lemma pderivative_add {i : σ} {f g : mv_polynomial σ α} :
+lemma pderivative_add {i : σ} {f g : mv_polynomial σ R} :
   pderivative i (f + g) = pderivative i f + pderivative i g :=
 begin
   refine sum_add_index _ _,
@@ -79,29 +79,29 @@ suffices pderivative i (monomial 0 a) = 0, by simpa,
 by simp
 
 @[simp]
-lemma pderivative_zero {i : σ} : pderivative i (0 : mv_polynomial σ α) = 0 :=
-suffices pderivative i (C 0 : mv_polynomial σ α) = 0, by simpa,
-show pderivative i (C 0 : mv_polynomial σ α) = 0, from pderivative_C
+lemma pderivative_zero {i : σ} : pderivative i (0 : mv_polynomial σ R) = 0 :=
+suffices pderivative i (C 0 : mv_polynomial σ R) = 0, by simpa,
+show pderivative i (C 0 : mv_polynomial σ R) = 0, from pderivative_C
 
 section
-variables (α)
+variables (R)
 
-/-- `pderivative : S → mv_polynomial σ α → mv_polynomial σ α` as an `add_monoid_hom`  -/
-def pderivative.add_monoid_hom (i : σ) : mv_polynomial σ α →+ mv_polynomial σ α :=
+/-- `pderivative : S → mv_polynomial σ R → mv_polynomial σ R` as an `add_monoid_hom`  -/
+def pderivative.add_monoid_hom (i : σ) : mv_polynomial σ R →+ mv_polynomial σ R :=
 { to_fun := pderivative i,
   map_zero' := pderivative_zero,
   map_add' := λ x y, pderivative_add, }
 
 @[simp]
-lemma pderivative.add_monoid_hom_apply (i : σ) (p : mv_polynomial σ α) :
-  (pderivative.add_monoid_hom α i) p = pderivative i p :=
+lemma pderivative.add_monoid_hom_apply (i : σ) (p : mv_polynomial σ R) :
+  (pderivative.add_monoid_hom R i) p = pderivative i p :=
 rfl
 end
 
-lemma pderivative_eq_zero_of_not_mem_vars {i : σ} {f : mv_polynomial σ α} (h : i ∉ f.vars) :
+lemma pderivative_eq_zero_of_not_mem_vars {i : σ} {f : mv_polynomial σ R} (h : i ∉ f.vars) :
   pderivative i f = 0 :=
 begin
-  change (pderivative.add_monoid_hom α i) f = 0,
+  change (pderivative.add_monoid_hom R i) f = 0,
   rw [f.as_sum, add_monoid_hom.map_sum],
   apply finset.sum_eq_zero,
   intros,
@@ -132,7 +132,7 @@ begin
 end
 
 @[simp]
-lemma pderivative_mul {i : σ} {f g : mv_polynomial σ α} :
+lemma pderivative_mul {i : σ} {f g : mv_polynomial σ R} :
   pderivative i (f * g) = pderivative i f * g + f * pderivative i g :=
 begin
   apply induction_on' f,
@@ -147,7 +147,7 @@ begin
 end
 
 @[simp]
-lemma pderivative_C_mul {f : mv_polynomial σ α} {i : σ} :
+lemma pderivative_C_mul {f : mv_polynomial σ R} {i : σ} :
   pderivative i (C a * f) = C a * pderivative i f :=
 by rw [pderivative_mul, pderivative_C, zero_mul, zero_add]
 

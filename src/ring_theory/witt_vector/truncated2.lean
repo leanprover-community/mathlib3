@@ -135,6 +135,14 @@ end
 
 end truncated_witt_vector
 
+meta def tactic.interactive.truncate_fun_tac : tactic unit :=
+`[
+  show _ = truncate_fun n _,
+  apply truncated_witt_vector.out_injective,
+  iterate { rw [out_truncate_fun] },
+  rw init_add <|> rw init_mul <|> rw init_neg
+]
+
 namespace witt_vector
 
 variables (p n R)
@@ -156,31 +164,16 @@ variables {p R}
 @[simp]
 lemma truncate_fun_add (x y : 𝕎 R) :
   truncate_fun n (x + y) = truncate_fun n x + truncate_fun n y :=
-begin
-  show _ = truncate_fun n _,
-  apply truncated_witt_vector.out_injective,
-  iterate 4 { rw [out_truncate_fun] },
-  rw init_add,
-end
+by truncate_fun_tac
 
 @[simp]
 lemma truncate_fun_mul (x y : 𝕎 R) :
   truncate_fun n (x * y) = truncate_fun n x * truncate_fun n y :=
-begin
-  show _ = truncate_fun n _,
-  apply truncated_witt_vector.out_injective,
-  iterate 4 { rw [out_truncate_fun] },
-  rw init_mul,
-end
+by truncate_fun_tac
 
 lemma truncate_fun_neg (x : 𝕎 R) :
   truncate_fun n (-x) = -truncate_fun n x :=
-begin
-  show _ = truncate_fun n _,
-  apply truncated_witt_vector.out_injective,
-  iterate 3 { rw [out_truncate_fun] },
-  rw init_neg,
-end
+by truncate_fun_tac
 
 end witt_vector
 
@@ -469,7 +462,6 @@ begin
     truncate_comp_lift, ring_hom.map_sub, sub_self],
 end
 
--- other name? something with `ext`?
 omit f_compat
 
 lemma witt_vector.hom_ext (g₁ g₂ : S →+* 𝕎 R)

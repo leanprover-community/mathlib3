@@ -2,6 +2,7 @@ import ring_theory.witt_vector.basic
 import ring_theory.witt_vector.nice_poly
 import ring_theory.witt_vector.init_tail
 import ring_theory.witt_vector.witt_vector_preps
+import ring_theory.witt_vector.verschiebung
 
 namespace witt_vector
 
@@ -49,12 +50,6 @@ begin
   { rw eval₂_hom_X', refl, }
 end
 
-section omit hp
-lemma congr₂ {α β γ : Type*} (f : α → β → γ) (a₁ a₂ : α) (b₁ b₂ : β) :
-  a₁ = a₂ → b₁ = b₂ → f a₁ b₁ = f a₂ b₂ :=
-by rintro rfl rfl; refl
-end
-
 lemma Sub_eq : Sub p = witt_sub p :=
 begin
   apply eq_witt_structure_int,
@@ -84,40 +79,6 @@ by rw [← Sub_eq, sub_eq]
 
 end sub_coeff
 
-section ghost_equation
-noncomputable theory
-
-variables {p}
-
-structure is_poly {k : ℕ} (f : Π ⦃R : Type*⦄ [comm_ring R], (fin k → 𝕎 R) → 𝕎 R) :=
-(poly : ℕ → mv_polynomial (fin k × ℕ) ℤ)
-(coeff : ∀ (n : ℕ) ⦃R : Type*⦄ [comm_ring R] (x : fin k → 𝕎 R),
-  (f x).coeff n = aeval (function.uncurry $ λ i n, (x i).coeff n) (poly n))
-
-variables (p)
-
-def Zero : Π ⦃R : Type*⦄ [comm_ring R], (fin 0 → 𝕎 R) → 𝕎 R :=
-λ _ _ _, by exactI 0
-
-def One : Π ⦃R : Type*⦄ [comm_ring R], (fin 0 → 𝕎 R) → 𝕎 R :=
-λ _ _ _, by exactI 1
-
-def Neg : Π ⦃R : Type*⦄ [comm_ring R], (fin 1 → 𝕎 R) → 𝕎 R :=
-λ _ _ x, by exactI (-(x 0))
-
-def Zero_is_poly : is_poly (Zero p) :=
-{ poly := _,
-  coeff := _ }
-
-lemma machine₁
-  (Φ : ℕ → mv_polynomial (idx × ℕ) ℤ)
-  (x : idx → 𝕎 R) (n : ℕ) :
-  aeval (function.uncurry $ λ i k, (x i).coeff k) (Φ n) = _ :=
-begin
-end
-
-
-end ghost_equation
 
 /-
 section disjoint

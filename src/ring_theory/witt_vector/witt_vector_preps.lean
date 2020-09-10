@@ -280,6 +280,32 @@ eval₂_hom_C _ _ _
 @[simp] lemma expand_X (p : ℕ) (i : σ) : expand p (X i : mv_polynomial σ R) = (X i) ^ p :=
 eval₂_hom_X' _ _ _
 
+@[simp] lemma expand_monomial (p : ℕ) (d : σ →₀ ℕ) (r : R) :
+  expand p (monomial d r) = C r * ∏ i in d.support, ((X i) ^ p) ^ (d i) :=
+bind₁_monomial _ _ _
+
+-- @[simp] lemma expand_zero (f : mv_polynomial σ R) :
+--   expand 0 f = C (∑ d in f.support, f.coeff d) :=
+-- begin
+--   apply induction_on' f,
+--   { intros d r,
+--     rw [expand_monomial],
+--     simp only [finset.prod_const_one, one_pow, mul_one, finsupp.mem_support_iff,
+--       coeff_monomial, ne.def, pow_zero, finset.sum_ite_eq],
+--     by_cases hr : r = 0,
+--     { simp only [hr, monomial_zero, eq_self_iff_true, not_true, finsupp.zero_apply, if_false], },
+--     { rw [if_pos],
+--       rwa [← coeff, coeff_monomial, if_pos rfl], } },
+--   { simp only [alg_hom.map_add] {contextual := tt}, }
+-- end
+
+@[simp] lemma expand_one_apply (f : mv_polynomial σ R) : expand 1 f = f :=
+by simp only [expand, bind₁_X_left, alg_hom.id_apply, ring_hom.to_fun_eq_coe,
+  eval₂_hom_C_left, alg_hom.coe_to_ring_hom, pow_one, alg_hom.coe_mk]
+
+@[simp] lemma expand_one : expand 1 = alg_hom.id R (mv_polynomial σ R) :=
+by { ext1 f, rw [expand_one_apply, alg_hom.id_apply] }
+
 lemma expand_comp_bind₁ (p : ℕ) (f : σ → mv_polynomial τ R) :
   (expand p).comp (bind₁ f) = bind₁ (λ i, expand p (f i)) :=
 by { apply alg_hom_ext, intro i, simp only [alg_hom.comp_apply, bind₁_X_right], }
@@ -592,5 +618,9 @@ noncomputable def invertible_rat_coe_nat (σ : Type*) (p : ℕ) [invertible (p :
 
 
 end mv_polynomial
+
+lemma congr₂ {α β γ : Type*} (f : α → β → γ) (a₁ a₂ : α) (b₁ b₂ : β) :
+  a₁ = a₂ → b₁ = b₂ → f a₁ b₁ = f a₂ b₂ :=
+by rintro rfl rfl; refl
 
 -- ### end FOR_MATHLIB

@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 
 import ring_theory.witt_vector.basic
+import ring_theory.witt_vector.is_poly
 
 
 /-! ## The Verschiebung operator -/
@@ -106,5 +107,34 @@ ghost_component_zero_verschiebung_fun _
 @[simp] lemma ghost_component_verschiebung (x : 𝕎 R) (n : ℕ) :
   ghost_component (n + 1) (verschiebung x) = p * ghost_component n x :=
 ghost_component_verschiebung_fun _ _
+
+section
+open mv_polynomial
+
+noncomputable theory
+
+variables (p)
+
+def verschiebung_poly (n : ℕ) : mv_polynomial ℕ ℤ :=
+if n = 0 then 0 else X (n-1)
+
+def verschiebung_is_poly : is_poly p (λ R _Rcr, @verschiebung p R hp _Rcr) :=
+{ poly := verschiebung_poly p,
+  coeff :=
+  begin
+    rintro n R _Rcr x,
+    cases n,
+    { simp only [verschiebung_poly, verschiebung_coeff_zero, if_pos rfl, alg_hom.map_zero], },
+    { rw [verschiebung_poly, verschiebung_coeff_succ, if_neg (n.succ_ne_zero),
+          aeval_X, nat.succ_eq_add_one, nat.add_sub_cancel], }
+  end }
+
+lemma bind₁_verschiebung_poly_witt_polynomial (n k : ℕ) :
+  bind₁ (verschiebung_poly p) (witt_polynomial p ℤ k) = p * witt_polynomial p ℤ (k+1) :=
+begin
+
+end
+
+end
 
 end witt_vector

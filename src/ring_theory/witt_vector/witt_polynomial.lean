@@ -136,7 +136,7 @@ as a polynomial written in terms of the standard basis.
 In particular, this sends `X n` to `witt_polynomial p n`.
 This fact is recorded in `from_W_to_X_basis_X`. -/
 noncomputable def from_W_to_X_basis : mv_polynomial ℕ R →ₐ[R] mv_polynomial ℕ R :=
-aeval W
+bind₁ W
 
 @[simp] lemma from_W_to_X_basis_X (n) : from_W_to_X_basis p R (X n) = W n :=
 by simp [from_W_to_X_basis]
@@ -238,11 +238,11 @@ as a polynomial written in terms of the Witt basis.
 This sends `W n` to `X n`, and `X n` to `X_in_terms_of_W p R n`. -/
 noncomputable def from_X_to_W_basis [invertible (p : R)] :
   mv_polynomial ℕ R →ₐ[R] mv_polynomial ℕ R :=
-aeval (X_in_terms_of_W p R)
+bind₁ (X_in_terms_of_W p R)
 
 @[simp] lemma from_X_to_W_basis_X [invertible (p : R)] (n : ℕ) :
   (from_X_to_W_basis p R) (X n) = X_in_terms_of_W p R n :=
-by rw [from_X_to_W_basis, aeval_X]
+by rw [from_X_to_W_basis, bind₁_X_right]
 
 @[simp] lemma from_W_to_X_basis_X_in_terms_of_W [invertible (p : R)] (n : ℕ) :
   from_W_to_X_basis p R (X_in_terms_of_W p R n) = X n :=
@@ -268,7 +268,7 @@ lemma from_W_to_X_basis_comp_from_X_to_W_basis [invertible (p : R)] :
 begin
   apply mv_polynomial.alg_hom_ext,
   intro n,
-  rw [from_X_to_W_basis, alg_hom.comp_apply, aeval_X],
+  rw [from_X_to_W_basis, alg_hom.comp_apply, bind₁_X_right],
   exact from_W_to_X_basis_X_in_terms_of_W p R n
 end
 
@@ -309,7 +309,7 @@ begin
 end
 
 @[simp] lemma X_in_terms_of_W_prop₂ [invertible (p : R)] (k : ℕ) :
-  aeval (X_in_terms_of_W p R) (W_ R k) = X k :=
+  bind₁ (X_in_terms_of_W p R) (W_ R k) = X k :=
 begin
   rw ← from_X_to_W_basis_comp_from_W_to_X_basis_apply p R (X k),
   rw from_W_to_X_basis_X,
@@ -317,7 +317,7 @@ begin
 end
 
 @[simp] lemma X_in_terms_of_W_prop [invertible (p : R)] (n : ℕ) :
-  aeval (W_ R) (X_in_terms_of_W p R n) = X n :=
+  bind₁ (W_ R) (X_in_terms_of_W p R n) = X n :=
 begin
   rw ← from_W_to_X_basis_comp_from_X_to_W_basis_apply p R (X n),
   rw from_X_to_W_basis_X,

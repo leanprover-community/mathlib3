@@ -33,13 +33,12 @@ bind₁ (λ k : ℕ, (bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ k)))) Φ) (X_
 theorem witt_structure_rat_prop (Φ : mv_polynomial idx ℚ) (n : ℕ) :
   bind₁ (witt_structure_rat p Φ) (W_ ℚ n) =
   bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :=
-calc aeval (witt_structure_rat p Φ) (W_ ℚ n) =
-      aeval (λ k, aeval (λ b, (rename (prod.mk b)) (W_ ℚ k)) Φ)
-        (aeval (X_in_terms_of_W p ℚ) (W_ ℚ n)) :
-      by { conv_rhs { rw [aeval_eq_eval₂_hom, map_aeval] },
-           apply eval₂_hom_congr (ring_hom.ext_rat _ _) rfl rfl }
-... = aeval (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :
-      by rw [X_in_terms_of_W_prop₂ p _ n, aeval_X]
+calc bind₁ (witt_structure_rat p Φ) (W_ ℚ n) =
+      bind₁ (λ k, bind₁ (λ b, (rename (prod.mk b)) (W_ ℚ k)) Φ)
+        (bind₁ (X_in_terms_of_W p ℚ) (W_ ℚ n)) :
+      by { rw [bind₁_bind₁], apply eval₂_hom_congr (ring_hom.ext_rat _ _) rfl rfl }
+... = bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :
+      by rw [X_in_terms_of_W_prop₂ p _ n, bind₁_X_right]
 
 theorem witt_structure_prop_exists_unique (Φ : mv_polynomial idx ℚ) :
   ∃! (φ : ℕ → mv_polynomial (idx × ℕ) ℚ),
@@ -49,9 +48,9 @@ begin
   { intro n, apply witt_structure_rat_prop },
   { intros φ H,
     funext n,
-    rw show φ n = aeval φ (aeval (W_ ℚ) (X_in_terms_of_W p ℚ n)),
-    { rw [X_in_terms_of_W_prop p, aeval_X] },
-    rw [aeval_eq_eval₂_hom, map_aeval],
+    rw show φ n = bind₁ φ (bind₁ (W_ ℚ) (X_in_terms_of_W p ℚ n)),
+    { rw [X_in_terms_of_W_prop p, bind₁_X_right] },
+    rw [bind₁_bind₁],
     apply eval₂_hom_congr (ring_hom.ext_rat _ _) _ rfl,
     funext k, exact H k },
 end
@@ -99,10 +98,6 @@ end
 
 end p_prime
 
-lemma sub_congr (a b c d : R) (h1 : a = c) (h2 : b = d) : a - b = c - d :=
-by rw [h1, h2]
-.
-
 variables {ι : Type*} {σ : Type*}
 variables {S : Type*} [comm_ring S]
 variables {T : Type*} [comm_ring T]
@@ -121,7 +116,7 @@ lemma foo [fact p.prime] (Φ : mv_polynomial idx ℤ) (n : ℕ)
   (∑ i in range n, C (p^i : ℚ) * (witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) i)^p^(n-i)) :=
 begin
   rw [ring_hom.map_sub, ring_hom.map_sum],
-  apply sub_congr,
+  apply congr₂,
   { simp only [map_bind₁, map_rename, map_witt_polynomial], },
   { apply finset.sum_congr rfl,
     intros i hi,

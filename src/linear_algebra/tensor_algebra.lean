@@ -55,7 +55,7 @@ end tensor_algebra
 /--
 The tensor algebra of the module `M` over the commutative semiring `R`.
 -/
-@[derive [add_comm_monoid, semiring, algebra R]]
+@[derive [inhabited, semiring, algebra R]]
 def tensor_algebra := ring_quot (tensor_algebra.rel R M)
 
 namespace tensor_algebra
@@ -99,6 +99,8 @@ begin
   refl,
 end
 
+attribute [irreducible] tensor_algebra ι lift
+
 @[simp]
 theorem lift_comp_ι {A : Type*} [semiring A] [algebra R A] (g : tensor_algebra R M →ₐ[R] A) :
   lift R M (g.to_linear_map.comp (ι R M)) = g := by {symmetry, rw ←lift_unique}
@@ -111,7 +113,5 @@ begin
   have : g = lift R M h, by rw ←lift_unique,
   rw [this, ←lift_unique, w],
 end
-
-attribute [irreducible] tensor_algebra ι lift
 
 end tensor_algebra

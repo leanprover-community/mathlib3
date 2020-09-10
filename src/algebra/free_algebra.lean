@@ -255,6 +255,8 @@ begin
     refl },
 end
 
+attribute [irreducible] free_algebra ι lift
+
 @[simp]
 theorem lift_comp_ι {A : Type*} [semiring A] [algebra R A] (g : free_algebra R M →ₐ[R] A) :
   lift R M ((g : free_algebra R M → A) ∘ (ι R M)) = g := by {symmetry, rw ←lift_unique}

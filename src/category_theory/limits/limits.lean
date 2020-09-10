@@ -867,7 +867,7 @@ lemma has_limit.iso_of_equivalence_hom_π {F : J ⥤ C} [has_limit F] {G : K ⥤
   (has_limit.iso_of_equivalence e w).hom ≫ limit.π G k =
     limit.π F (e.inverse.obj k) ≫ w.inv.app (e.inverse.obj k) ≫ G.map (e.counit.app k) :=
 begin
-  simp [has_limit.iso_of_equivalence, is_limit.cone_points_iso_of_equivalence_hom],
+  simp only [has_limit.iso_of_equivalence, is_limit.cone_points_iso_of_equivalence_hom],
   dsimp,
   simp,
 end
@@ -878,7 +878,7 @@ lemma has_limit.iso_of_equivalence_inv_π {F : J ⥤ C} [has_limit F] {G : K ⥤
   (has_limit.iso_of_equivalence e w).inv ≫ limit.π F j =
     limit.π G (e.functor.obj j) ≫ w.hom.app j :=
 begin
-  simp [has_limit.iso_of_equivalence, is_limit.cone_points_iso_of_equivalence_hom],
+  simp only [has_limit.iso_of_equivalence, is_limit.cone_points_iso_of_equivalence_hom],
   dsimp,
   simp,
 end

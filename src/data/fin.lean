@@ -490,32 +490,32 @@ or.cases_on (succ_above_lt_ge p i)
 
 /-- Embedding `i : fin n` into `fin (n + 1)` using a pivot `p` that is greater
 results in a value that is less than `p`. -/
-lemma succ_above_lt_iff (p : fin (n + 1)) (i : fin n) : i.cast_succ < p ↔ p.succ_above i < p :=
+@[simp] lemma succ_above_lt_iff (p : fin (n + 1)) (i : fin n) : p.succ_above i < p ↔ i.cast_succ < p :=
 begin
   refine iff.intro _ _,
-  { intro h,
-    rw succ_above_below _ _ h,
-    exact h },
   { intro h,
     cases succ_above_lt_ge p i with H H,
     { exact H },
     { rw succ_above_above _ _ H at h,
-      exact lt_trans (cast_succ_lt_succ i) h } }
+      exact lt_trans (cast_succ_lt_succ i) h } },
+  { intro h,
+    rw succ_above_below _ _ h,
+    exact h }
 end
 
 /-- Embedding `i : fin n` into `fin (n + 1)` using a pivot `p` that is lesser
 results in a value that is greater than `p`. -/
-lemma succ_above_gt_iff (p : fin (n + 1)) (i : fin n) : p ≤ i.cast_succ ↔ p < p.succ_above i :=
+@[simp] lemma lt_succ_above_iff (p : fin (n + 1)) (i : fin n) : p < p.succ_above i ↔ p ≤ i.cast_succ :=
 begin
   refine iff.intro _ _,
-  { intro h,
-    rw succ_above_above _ _ h,
-    exact lt_of_le_of_lt h (cast_succ_lt_succ i) },
   { intro h,
     cases succ_above_lt_ge p i with H H,
     { rw succ_above_below _ _ H at h,
       exact le_of_lt h },
-    { exact H } }
+    { exact H } },
+  { intro h,
+    rw succ_above_above _ _ h,
+    exact lt_of_le_of_lt h (cast_succ_lt_succ i) }
 end
 
 /-- Embedding `i : fin n` into `fin (n + 1)` with a hole around `p : fin (n + 1)`

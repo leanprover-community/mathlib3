@@ -41,6 +41,11 @@ We define both the real and complex cases at the same time using the `is_R_of_C`
 We choose the convention that inner products are conjugate linear in the first argument and linear
 in the second.
 
+## TODO
+
+- Fix the section on the existence of minimizers to make sure that it also applies in the complex
+  case.
+
 ## Tags
 
 inner product space, norm
@@ -493,6 +498,9 @@ end
 lemma inner_self_abs_to_K {x : α} : 𝓚 (abs ⟪x, x⟫) = ⟪x, x⟫ :=
 by { rw[←inner_self_re_abs], exact inner_self_re_to_K }
 
+lemma real.inner_self_abs {x : β} : absR ⟪x, x⟫_ℝ = ⟪x, x⟫_ℝ :=
+by have h := @inner_self_abs_to_K ℝ _ _ _ β _ x; simpa using h
+
 lemma inner_abs_conj_sym {x y : α} : abs ⟪x, y⟫ = abs ⟪y, x⟫ :=
 by rw [←inner_conj_sym, abs_conj]
 
@@ -516,11 +524,11 @@ by { simp [sub_eq_add_neg, inner_add_right] }
 lemma inner_mul_conj_re_abs {x y : α} : re (⟪x, y⟫ * ⟪y, x⟫) = abs (⟪x, y⟫ * ⟪y, x⟫) :=
 by { rw[←inner_conj_sym, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }
 
-/-- Expand `inner (x + y) (x + y)` -/
+/-- Expand `⟪x + y, x + y⟫` -/
 lemma inner_add_add_self {x y : α} : ⟪x + y, x + y⟫ = ⟪x, x⟫ + ⟪x, y⟫ + ⟪y, x⟫ + ⟪y, y⟫ :=
 by simp only [inner_add_left, inner_add_right]; ring
 
-/-- Expand `inner (x + y) (x + y)` -/
+/-- Expand `⟪x + y, x + y⟫_ℝ` -/
 lemma real.inner_add_add_self {x y : β} : ⟪x + y, x + y⟫_ℝ = ⟪x, x⟫_ℝ + 2 * ⟪x, y⟫_ℝ + ⟪y, y⟫_ℝ :=
 begin
   have : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := by rw [←inner_conj_sym]; refl,
@@ -528,11 +536,11 @@ begin
   ring,
 end
 
-/- Expand `inner (x - y) (x - y)` -/
+/- Expand `⟪x - y, x - y⟫` -/
 lemma inner_sub_sub_self {x y : α} : ⟪x - y, x - y⟫ = ⟪x, x⟫ - ⟪x, y⟫ - ⟪y, x⟫ + ⟪y, y⟫ :=
 by simp only [inner_sub_left, inner_sub_right]; ring
 
-/-- Expand `inner (x - y) (x - y)` -/
+/-- Expand `⟪x - y, x - y⟫_ℝ` -/
 lemma real.inner_sub_sub_self {x y : β} : ⟪x - y, x - y⟫_ℝ = ⟪x, x⟫_ℝ - 2 * ⟪x, y⟫_ℝ + ⟪y, y⟫_ℝ :=
 begin
   have : ⟪y, x⟫_ℝ = ⟪x, y⟫_ℝ := by rw [←inner_conj_sym]; refl,
@@ -635,7 +643,7 @@ begin
 end
 
 /-- Expand the square -/
-lemma real.norm_add_pow_two {x y : β} : ∥x + y∥^2 = ∥x∥^2 + 2 * inner x y + ∥y∥^2 :=
+lemma real.norm_add_pow_two {x y : β} : ∥x + y∥^2 = ∥x∥^2 + 2 * ⟪x, y⟫_ℝ + ∥y∥^2 :=
 by have h := @norm_add_pow_two ℝ _ _ _ β _; simpa using h
 
 /-- Same lemma as above but in a different form -/
@@ -643,7 +651,7 @@ lemma norm_add_mul_self {x y : α} : ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x�
 by { repeat {rw [← pow_two]}, exact norm_add_pow_two }
 
 /-- Same lemma as above but in a different form -/
-lemma real.norm_add_mul_self {x y : β} : ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + 2 * inner x y + ∥y∥ * ∥y∥ :=
+lemma real.norm_add_mul_self {x y : β} : ∥x + y∥ * ∥x + y∥ = ∥x∥ * ∥x∥ + 2 * ⟪x, y⟫_ℝ + ∥y∥ * ∥y∥ :=
 by have h := @norm_add_mul_self ℝ _ _ _ β _; simpa using h
 
 /-- Expand the square -/
@@ -661,7 +669,7 @@ begin
 end
 
 /-- Expand the square -/
-lemma real.norm_sub_pow_two {x y : β} : ∥x - y∥^2 = ∥x∥^2 - 2 * inner x y + ∥y∥^2 :=
+lemma real.norm_sub_pow_two {x y : β} : ∥x - y∥^2 = ∥x∥^2 - 2 * ⟪x, y⟫_ℝ + ∥y∥^2 :=
 by have h := @norm_sub_pow_two ℝ _ _ _ β _; simpa using h
 
 /-- Same lemma as above but in a different form -/
@@ -1159,7 +1167,7 @@ theorem real.norm_eq_infi_iff_inner_le_zero {K : set β} (h : convex K) {u : β}
 iff.intro
 begin
   assume eq w hw,
-  let δ := ⨅ w : K, ∥u - w∥, let p := inner (u - v) (w - v), let q := ∥w - v∥^2,
+  let δ := ⨅ w : K, ∥u - w∥, let p := ⟪u - v, w - v⟫_ℝ, let q := ∥w - v∥^2,
   letI : nonempty K := ⟨⟨v, hv⟩⟩,
   have zero_le_δ : 0 ≤ δ,
     apply le_cinfi, intro, exact norm_nonneg _,
@@ -1168,7 +1176,7 @@ begin
   have δ_le' : ∀ w ∈ K, δ ≤ ∥u - w∥ := assume w hw, δ_le ⟨w, hw⟩,
   have : ∀θ:ℝ, 0 < θ → θ ≤ 1 → 2 * p ≤ θ * q,
     assume θ hθ₁ hθ₂,
-    have : ∥u - v∥^2 ≤ ∥u - v∥^2 - 2 * θ * inner (u - v) (w - v) + θ*θ*∥w - v∥^2 :=
+    have : ∥u - v∥^2 ≤ ∥u - v∥^2 - 2 * θ * ⟪u - v, w - v⟫_ℝ + θ*θ*∥w - v∥^2 :=
     calc
       ∥u - v∥^2 ≤ ∥u - (θ•w + (1-θ)•v)∥^2 :
       begin

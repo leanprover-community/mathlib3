@@ -3,21 +3,6 @@ import ring_theory.witt_vector.nice_poly
 import ring_theory.witt_vector.init_tail
 import ring_theory.witt_vector.witt_vector_preps
 
--- namespace mv_polynomial
--- variables {σ R : Type*} [comm_semiring R]
-
--- lemma eval_inj [char_zero R] (φ ψ : mv_polynomial σ R) (h : ∀ f, eval f φ = eval f ψ) :
---   φ = ψ :=
--- begin
---   sorry
--- end
-
--- lemma eval_inj_iff [char_zero R] (φ ψ : mv_polynomial σ R) :
---   φ = ψ ↔ (∀ f, eval f φ = eval f ψ) :=
--- ⟨by rintro rfl _; refl, eval_inj _ _⟩
-
--- end mv_polynomial
-
 namespace witt_vector
 
 variables {p : ℕ} {R S σ idx : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
@@ -30,10 +15,10 @@ local attribute [instance] mv_polynomial.invertible_rat_coe_nat
 open mv_polynomial
 local attribute [-simp] coe_eval₂_hom
 
-
 include hp
-
 variables (p)
+
+section sub_coeff
 
 lemma sub_def (x y : 𝕎 R) : x - y =  λ n,
   aeval
@@ -96,6 +81,43 @@ lemma sub_coeff (x y : 𝕎 R) (n : ℕ) :
   (x - y).coeff n =
   aeval (λ bn : bool × ℕ, cond bn.1 (x.coeff bn.2) (y.coeff bn.2)) (witt_sub p n) :=
 by rw [← Sub_eq, sub_eq]
+
+end sub_coeff
+
+section ghost_equation
+noncomputable theory
+
+variables {p}
+
+structure is_poly {k : ℕ} (f : Π ⦃R : Type*⦄ [comm_ring R], (fin k → 𝕎 R) → 𝕎 R) :=
+(poly : ℕ → mv_polynomial (fin k × ℕ) ℤ)
+(coeff : ∀ (n : ℕ) ⦃R : Type*⦄ [comm_ring R] (x : fin k → 𝕎 R),
+  (f x).coeff n = aeval (function.uncurry $ λ i n, (x i).coeff n) (poly n))
+
+variables (p)
+
+def Zero : Π ⦃R : Type*⦄ [comm_ring R], (fin 0 → 𝕎 R) → 𝕎 R :=
+λ _ _ _, by exactI 0
+
+def One : Π ⦃R : Type*⦄ [comm_ring R], (fin 0 → 𝕎 R) → 𝕎 R :=
+λ _ _ _, by exactI 1
+
+def Neg : Π ⦃R : Type*⦄ [comm_ring R], (fin 1 → 𝕎 R) → 𝕎 R :=
+λ _ _ x, by exactI (-(x 0))
+
+def Zero_is_poly : is_poly (Zero p) :=
+{ poly := _,
+  coeff := _ }
+
+lemma machine₁
+  (Φ : ℕ → mv_polynomial (idx × ℕ) ℤ)
+  (x : idx → 𝕎 R) (n : ℕ) :
+  aeval (function.uncurry $ λ i k, (x i).coeff k) (Φ n) = _ :=
+begin
+end
+
+
+end ghost_equation
 
 /-
 section disjoint

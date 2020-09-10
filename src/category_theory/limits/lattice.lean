@@ -9,8 +9,9 @@ import order.complete_lattice
 universes u
 
 open category_theory
+open category_theory.limits
 
-namespace category_theory.limits
+namespace category_theory.limits.complete_lattice
 
 variables {α : Type u}
 
@@ -41,7 +42,7 @@ instance has_limits_of_complete_lattice [complete_lattice α] : has_limits α :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F,
     { cone :=
-      { X := Inf (set.range F.obj),
+      { X := infi F.obj,
         π :=
         { app := λ j, ⟨⟨complete_lattice.Inf_le _ _ (set.mem_range_self _)⟩⟩ } },
       is_limit :=
@@ -53,11 +54,35 @@ instance has_colimits_of_complete_lattice [complete_lattice α] : has_colimits �
 { has_colimits_of_shape := λ J 𝒥, by exactI
   { has_colimit := λ F,
     { cocone :=
-      { X := Sup (set.range F.obj),
+      { X := supr F.obj,
         ι :=
         { app := λ j, ⟨⟨complete_lattice.le_Sup _ _ (set.mem_range_self _)⟩⟩ } },
       is_colimit :=
       { desc := λ s, ⟨⟨complete_lattice.Sup_le _ _
         begin rintros _ ⟨j, rfl⟩, exact le_of_hom (s.ι.app j), end⟩⟩ } } } }
 
-end category_theory.limits
+variables {J : Type u} [small_category J]
+variables [complete_lattice α]
+variable (F : J ⥤ α)
+
+/--
+The limit of a functor into a complete lattice is the infimum of the objects in the image.
+-/
+def limit_iso_infi : limit F ≅ infi F.obj := iso.refl _
+
+@[simp] lemma limit_iso_infi_hom (j : J) :
+  (limit_iso_infi F).hom ≫ hom_of_le (infi_le _ j) = limit.π F j := rfl
+@[simp] lemma limit_iso_infi_inv (j : J) :
+  (limit_iso_infi F).inv ≫ limit.π F j = hom_of_le (infi_le _ j) := rfl
+
+/--
+The colimit of a functor into a complete lattice is the supremum of the objects in the image.
+-/
+def colimit_iso_supr : colimit F ≅ supr F.obj := iso.refl _
+
+@[simp] lemma colimit_iso_supr_hom (j : J) :
+  colimit.ι F j ≫ (colimit_iso_supr F).hom = hom_of_le (le_supr _ j) := rfl
+@[simp] lemma colimit_iso_supr_inv (j : J) :
+  hom_of_le (le_supr _ j) ≫ (colimit_iso_supr F).inv = colimit.ι F j := rfl
+
+end category_theory.limits.complete_lattice

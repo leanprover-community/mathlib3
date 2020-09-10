@@ -119,7 +119,7 @@ instance unique_from_initial [has_initial C] (P : C) : unique (⊥_ C ⟶ P) :=
 def terminal_is_terminal [has_terminal C] : is_terminal (⊤_ C) :=
 { lift := λ s, terminal.from _ }
 
-/-- A initial object is terminal. -/
+/-- An initial object is initial. -/
 def initial_is_initial [has_initial C] : is_initial (⊥_ C) :=
 { desc := λ s, initial.to _ }
 

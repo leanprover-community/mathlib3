@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.normed_space.operator_norm
+import topology.bases
 import linear_algebra.finite_dimensional
 import tactic.omega
 
@@ -39,8 +40,10 @@ then the identities from `E` to `E'` and from `E'`to `E` are continuous thanks t
 
 universes u v w x
 
-open set finite_dimensional
+open set finite_dimensional topological_space
 open_locale classical big_operators
+
+noncomputable theory
 
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
 lemma linear_map.continuous_on_pi {ι : Type w} [fintype ι] {𝕜 : Type u} [normed_field 𝕜]
@@ -173,6 +176,111 @@ def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E �
     exact e.symm.to_linear_map.continuous_of_finite_dimensional
   end,
   ..e }
+
+/-- Construct a continuous linear map given the value at a finite basis. -/
+def is_basis.constrL {ι : Type*} [fintype ι] {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) :
+  E →L[𝕜] F :=
+⟨hv.constr f, begin
+  haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finite_basis hv,
+  exact (hv.constr f).continuous_of_finite_dimensional,
+end⟩
+
+/-- The continuous linear equivalence between a vector space over `𝕜` with a finite basis and
+functions from its basis indexing type to `𝕜`. -/
+def is_basis.equiv_funL {ι : Type*} [fintype ι] {v : ι → E} (hv : is_basis 𝕜 v) : E ≃L[𝕜] (ι → 𝕜) :=
+{ continuous_to_fun := begin
+    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finite_basis hv,
+    apply linear_map.continuous_of_finite_dimensional,
+  end,
+  continuous_inv_fun := begin
+    change continuous hv.equiv_fun.symm.to_fun,
+    apply linear_map.continuous_of_finite_dimensional,
+  end,
+  ..hv.equiv_fun }
+
+@[simp] lemma is_basis.constrL_apply {ι : Type*} [fintype ι] {v : ι → E} (hv : is_basis 𝕜 v)(f : ι → F) (e : E) :
+  (hv.constrL f) e = ∑ i, (hv.equiv_fun e i) • f i :=
+by { simp [is_basis.constrL, hv.equiv_fun_apply, hv.constr_apply, finsupp.sum_fintype] }
+
+lemma is_basis.sup_norm_le_norm  {ι : Type*} [fintype ι] {v : ι → E} (hv : is_basis 𝕜 v) :
+  ∃ C > (0 : ℝ), ∀ e : E, ∑ i, ∥hv.equiv_fun e i∥ ≤ C * ∥e∥ :=
+begin
+  set φ := hv.equiv_funL.to_continuous_linear_map,
+  set C := ∥φ∥ * (fintype.card ι),
+  use if 0 < C then C else 1,
+  split,
+  { split_ifs,
+    exacts [h, zero_lt_one] },
+  { intros e,
+    have key :=
+      calc ∑ i, ∥φ e i∥ ≤ ∑ i : ι, ∥φ e∥ : by { apply finset.sum_le_sum,
+                                               exact λ i hi, norm_le_pi_norm (φ e) i }
+      ... = ∥φ e∥*(fintype.card ι) : by simpa only [mul_comm, finset.sum_const, nsmul_eq_mul]
+      ... ≤ ∥φ∥ * ∥e∥ * (fintype.card ι) : mul_le_mul_of_nonneg_right (φ.le_op_norm e)
+                                                                     (fintype.card ι).cast_nonneg
+      ... = (∥φ∥ * (fintype.card ι)) * ∥e∥ : by ring,
+    split_ifs,
+    { exact key },
+    { apply le_trans key,
+      simp [C] at h,
+      rw one_mul,
+      calc ∥φ∥ * (fintype.card ι) * ∥e∥ ≤ 0 : mul_nonpos_of_nonpos_of_nonneg h (norm_nonneg e)
+      ... ≤ ∥e∥ : norm_nonneg e } }
+end
+
+instance [finite_dimensional 𝕜 E] [second_countable_topology F] :
+  second_countable_topology (E →L[𝕜] F) :=
+begin
+  set d := finite_dimensional.findim 𝕜 E,
+  suffices :
+    ∀ ε > (0 : ℝ), ∃ n : (E →L[𝕜] F) → fin d → ℕ, ∀ (f g : E →L[𝕜] F), n f = n g → dist f g ≤ ε,
+  from metric.second_countable_of_countable_discretization
+    (λ ε ε_pos, ⟨fin d → ℕ, by apply_instance, this ε ε_pos⟩),
+  intros ε ε_pos,
+  obtain ⟨u, hu⟩ := exists_dense_seq F,
+  obtain ⟨v, hv⟩ : ∃ v : fin d → E, is_basis 𝕜 v := finite_dimensional.fin_basis 𝕜 E,
+  obtain ⟨C, C_pos, hC⟩ : ∃ C > (0 : ℝ), ∀ (e : E), ∑ i, ∥hv.equiv_fun e i∥ ≤ C * ∥e∥,
+    from hv.sup_norm_le_norm,
+  have h_2C : 0 < 2*C := mul_pos two_pos C_pos,
+  have hε2C : 0 < ε/(2*C) := div_pos ε_pos h_2C,
+  have : ∀ φ : E →L[𝕜] F, ∃ n : fin d → ℕ, ∥φ - (hv.constrL $ u ∘ n)∥ ≤ ε/2,
+  { intros φ,
+    have : ∀ i, ∃ n, ∥φ (v i) - u n∥ ≤ ε/(2*C),
+    { simp only [norm_sub_rev],
+      intro i,
+      have : φ (v i) ∈ closure (range u), by simp [hu],
+      obtain ⟨n, hn⟩ : ∃ n, ∥u n - φ (v i)∥ < ε / (2 * C),
+      { rw mem_closure_iff_nhds_basis metric.nhds_basis_ball at this,
+        specialize this (ε/(2*C)) hε2C,
+        simpa [dist_eq_norm] },
+      exact ⟨n, le_of_lt hn⟩ },
+    choose n hn using this,
+    use n,
+    apply continuous_linear_map.op_norm_le_bound _ (le_of_lt $ half_pos ε_pos),
+    intros e,
+    simp only [is_basis.constrL_apply, continuous_linear_map.coe_sub', function.comp_app, pi.sub_apply],
+    conv_lhs { congr, congr, rw ← hv.equiv_fun_total e },
+    rw [φ.map_sum, ← finset.sum_sub_distrib],
+    conv_lhs { congr, congr, skip, simp [linear_map.map_smul, ← smul_sub] },
+    calc ∥∑ i, (hv.equiv_fun) e i • (φ (v i) - u (n i))∥
+        ≤ ∑ i, ∥(hv.equiv_fun) e i • (φ (v i) - u (n i))∥ : by { apply norm_sum_le }
+    ... = ∑ i, ∥(hv.equiv_fun) e i∥ * ∥(φ (v i) - u (n i))∥ : by simp [norm_smul]
+    ... ≤  ∑ i, ∥(hv.equiv_fun) e i∥ * (ε/(2*C)) : finset.sum_le_sum (λ i hi,
+                                                   mul_le_mul_of_nonneg_left (hn i) (norm_nonneg _))
+    ... = (∑ i, ∥(hv.equiv_fun) e i∥) * (ε/(2*C)) : by rw finset.sum_mul
+    ... ≤ C*∥e∥ * (ε/(2*C)) : mul_le_mul_of_nonneg_right (hC e) (le_of_lt hε2C)
+    ... = ε / 2 * ∥e∥ : by { field_simp [C_pos, h_2C],
+                             rw [show C * ∥e∥ * ε * 2= ∥e∥ * ε * (2*C), by ring,
+                                 mul_div_cancel _ (ne_of_gt h_2C), mul_comm] } },
+  choose n hn using this,
+  set Φ := λ φ : E →L[𝕜] F, (hv.constrL $ u ∘ (n φ)),
+  change ∀ z, dist z (Φ z) ≤ ε/2 at hn,
+  use n,
+  intros x y hxy,
+  calc dist x y ≤ dist x (Φ x) + dist (Φ x) y : dist_triangle _ _ _
+  ... = dist x (Φ x) + dist y (Φ y) : by simp [Φ, hxy, dist_comm]
+  ... ≤ ε : by linarith [hn x, hn y]
+end
 
 /-- Any finite-dimensional vector space over a complete field is complete.
 We do not register this as an instance to avoid an instance loop when trying to prove the

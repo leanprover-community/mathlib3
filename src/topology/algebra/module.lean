@@ -231,6 +231,9 @@ variables (c : R) (f g : M →L[R] M₂) (h : M₂ →L[R] M₃) (x y z : M)
 @[simp] lemma map_add  : f (x + y) = f x + f y := (to_linear_map _).map_add _ _
 @[simp] lemma map_smul : f (c • x) = c • f x := (to_linear_map _).map_smul _ _
 
+lemma map_sum {ι : Type*} (s : finset ι) (g : ι → M) :
+  f (∑ i in s, g i) = ∑ i in s, f (g i) := f.to_linear_map.map_sum
+
 @[simp, norm_cast] lemma coe_coe : ((f : M →ₗ[R] M₂) : (M → M₂)) = (f : M → M₂) := rfl
 
 /-- The continuous map that is constantly zero. -/

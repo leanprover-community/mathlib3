@@ -73,6 +73,11 @@ follow automatically in `linear_map.mk_continuous_norm_le`. -/
 def linear_map.mk_continuous_of_exists_bound (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
 ⟨f, let ⟨C, hC⟩ := h in linear_map.continuous_of_bound f C hC⟩
 
+lemma continuous_of_linear_of_bound {f : E → F} (h_add : ∀ x y, f (x + y) = f x + f y)
+  (h_smul : ∀ (c : 𝕜) x, f (c • x) = c • f x) {C : ℝ} (h_bound : ∀ x, ∥f x∥ ≤ C*∥x∥) :
+  continuous f :=
+let φ : E →ₗ[𝕜] F := ⟨f, h_add, h_smul⟩ in φ.continuous_of_bound C h_bound
+
 @[simp, norm_cast] lemma linear_map.mk_continuous_coe (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ((f.mk_continuous C h) : E →ₗ[𝕜] F) = f := rfl
 
@@ -278,6 +283,31 @@ Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
 theorem op_norm_le_of_lipschitz {f : E →L[𝕜] F} {K : nnreal} (hf : lipschitz_with K f) :
   ∥f∥ ≤ K :=
 f.op_norm_le_bound K.2 $ λ x, by simpa only [dist_zero_right, f.map_zero] using hf.dist_le_mul x 0
+
+lemma op_norm_le_of_ball {f : E →L[𝕜] F} {ε : ℝ} {C : ℝ} (ε_pos : 0 < ε) (hC : 0 ≤ C)
+  (hf : ∀ x ∈ ball (0 : E) ε, ∥f x∥ ≤ C * ∥x∥ ) : ∥f∥ ≤ C :=
+begin
+  apply f.op_norm_le_bound hC,
+  intros x,
+  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  by_cases hx : x = 0, { simp [hx] },
+  rcases rescale_to_shell hc (half_pos ε_pos) hx with ⟨δ, hδ, δxle, leδx, δinv⟩,
+  have δx_in : δ • x ∈ ball (0 : E) ε,
+  { rw [mem_ball, dist_eq_norm, sub_zero],
+    linarith },
+  calc ∥f x∥ = ∥f ((1/δ) • δ • x)∥ : by simp [hδ, smul_smul]
+  ... = ∥1/δ∥ * ∥f (δ • x)∥ : by simp [norm_smul]
+  ... ≤ ∥1/δ∥ * (C*∥δ • x∥) : mul_le_mul_of_nonneg_left _ (norm_nonneg _)
+  ... = C * ∥x∥ : by { rw norm_smul, field_simp [hδ], ring },
+  exact hf _ δx_in
+end
+
+lemma op_norm_eq_of_bounds {φ : E →L[𝕜] F} {M : ℝ} (M_nonneg : 0 ≤ M)
+  (h_above : ∀ x, ∥φ x∥ ≤ M*∥x∥) (h_below : ∀ N ≥ 0, (∀ x, ∥φ x∥ ≤ N*∥x∥) → M ≤ N) :
+  ∥φ∥ = M :=
+le_antisymm (φ.op_norm_le_bound M_nonneg h_above)
+  ((le_cInf_iff continuous_linear_map.bounds_bdd_below ⟨M, M_nonneg, h_above⟩).mpr $
+   λ N ⟨N_nonneg, hN⟩, h_below N N_nonneg hN)
 
 /-- The operator norm satisfies the triangle inequality. -/
 theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=

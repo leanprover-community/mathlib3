@@ -5,6 +5,7 @@ Authors: Shing Tak Lam
 -/
 
 import data.mv_polynomial.variables
+import algebra.module.basic
 import tactic.ring
 
 /-!
@@ -56,22 +57,31 @@ section pderivative
 variables {R} [comm_semiring R]
 
 /-- `pderivative i p` is the partial derivative of `p` with respect to `i` -/
-def pderivative (i : σ) (p : mv_polynomial σ R) : mv_polynomial σ R :=
-p.sum (λ A B, monomial (A - single i 1) (B * (A i)))
+def pderivative (i : σ) : mv_polynomial σ R →ₗ[R] mv_polynomial σ R :=
+{ to_fun := λ p, p.sum (λ A B, monomial (A - single i 1) (B * (A i))),
+  map_smul' := begin
+    intros c x,
+    rw [sum_smul_index', smul_sum],
+    simp_rw [monomial, smul_single, smul_eq_mul, mul_assoc],
+    intros s,
+    simp only [monomial_zero, zero_mul],
+  end,
+  map_add' := λ f g, sum_add_index (by simp only [monomial_zero, forall_const, zero_mul])
+    (by simp only [add_mul, forall_const, eq_self_iff_true, monomial_add]), }
 
 @[simp]
 lemma pderivative_add {i : σ} {f g : mv_polynomial σ R} :
   pderivative i (f + g) = pderivative i f + pderivative i g :=
-begin
-  refine sum_add_index _ _,
-  { simp },
-  simp [add_mul],
-end
+(pderivative i).map_add _ _
 
 @[simp]
 lemma pderivative_monomial {i : σ} :
   pderivative i (monomial s a) = monomial (s - single i 1) (a * (s i)) :=
-by simp [pderivative]
+begin
+  change (_ : _ →ₗ[R] _).to_fun _ = _,
+  change (⟨_, _, _⟩ : _ →ₗ[R] _).to_fun _ = _,
+  simp,
+end
 
 @[simp]
 lemma pderivative_C {i : σ} : pderivative i (C a) = 0 :=
@@ -80,29 +90,13 @@ by simp
 
 @[simp]
 lemma pderivative_zero {i : σ} : pderivative i (0 : mv_polynomial σ R) = 0 :=
-suffices pderivative i (C 0 : mv_polynomial σ R) = 0, by simpa,
-show pderivative i (C 0 : mv_polynomial σ R) = 0, from pderivative_C
-
-section
-variables (R)
-
-/-- `pderivative : S → mv_polynomial σ R → mv_polynomial σ R` as an `add_monoid_hom`  -/
-def pderivative.add_monoid_hom (i : σ) : mv_polynomial σ R →+ mv_polynomial σ R :=
-{ to_fun := pderivative i,
-  map_zero' := pderivative_zero,
-  map_add' := λ x y, pderivative_add, }
-
-@[simp]
-lemma pderivative.add_monoid_hom_apply (i : σ) (p : mv_polynomial σ R) :
-  (pderivative.add_monoid_hom R i) p = pderivative i p :=
-rfl
-end
+(pderivative i).map_zero
 
 lemma pderivative_eq_zero_of_not_mem_vars {i : σ} {f : mv_polynomial σ R} (h : i ∉ f.vars) :
   pderivative i f = 0 :=
 begin
-  change (pderivative.add_monoid_hom R i) f = 0,
-  rw [f.as_sum, add_monoid_hom.map_sum],
+  change (pderivative i) f = 0,
+  rw [f.as_sum, linear_map.map_sum],
   apply finset.sum_eq_zero,
   intros,
   simp [mem_support_not_mem_vars_zero H h],

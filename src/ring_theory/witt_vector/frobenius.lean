@@ -34,12 +34,40 @@ begin
   rw [← bind₁_bind₁, X_in_terms_of_W_prop₂, bind₁_X_right],
 end
 
+def frobenius_poly_aux (n : ℕ) : mv_polynomial ℕ ℤ :=
+finsupp.map_range (λ r : ℚ, (r / p).num) (by { rw [zero_div], exact rat.coe_int_num 0 })
+  (frobenius_poly_rat p n - (X n ^ p) : mv_polynomial ℕ ℚ)
+
 def frobenius_poly (n : ℕ) : mv_polynomial ℕ ℤ :=
 finsupp.map_range rat.num (rat.coe_int_num 0) (frobenius_poly_rat p n)
 
+lemma map_frobenius_poly_aux (n : ℕ) :
+  (C ↑p) * mv_polynomial.map (int.cast_ring_hom ℚ) (frobenius_poly_aux p n) + X n ^ p =
+  frobenius_poly_rat p n :=
+begin
+  delta frobenius_poly_rat,
+  apply nat.strong_induction_on n, clear n,
+  intros n IH,
+  rw [X_in_terms_of_W_eq, alg_hom.map_mul, bind₁_C_right, alg_hom.map_sub, bind₁_X_right, alg_hom.map_sum],
+  conv_rhs { congr, congr, skip, apply_congr, skip,
+    rw [alg_hom.map_mul, alg_hom.map_pow, ← IH x (finset.mem_range.mp H)] },
+  dsimp,
+  rw [witt_polynomial_eq_sum_C_mul_X_pow, finset.sum_range_succ, finset.sum_range_succ],
+  rw [nat.sub_self, nat.pow_zero],
+  rw [sub_mul, mul_comm _ (C (⅟ ↑p ^ n)), mul_add, ← mul_assoc, ← C_mul, mul_add, ← mul_assoc, ← C_mul],
+  rw [pow_add, ← mul_assoc, pow_one, pow_one],
+  rw [← mul_pow, inv_of_mul_self, one_pow, one_mul, C_1, one_mul],
+  rw [add_comm n, nat.add_sub_cancel, nat.pow_one, add_comm _ n],
+  rw [add_left_comm, add_comm, ← add_sub, add_right_inj, ← add_sub],
+end
+
 lemma map_frobenius_poly (n : ℕ) :
   mv_polynomial.map (int.cast_ring_hom ℚ) (frobenius_poly p n) = frobenius_poly_rat p n :=
-sorry
+begin
+  apply nat.strong_induction_on n, clear n,
+  intros n IH,
+  {  },
+end
 
 variables {p}
 

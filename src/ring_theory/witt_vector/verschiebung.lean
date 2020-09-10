@@ -60,7 +60,7 @@ lemma verschiebung_add_aux₂ (x y : 𝕎 (mv_polynomial R ℤ)) :
   verschiebung_fun (x + y) = verschiebung_fun x + verschiebung_fun y :=
 begin
   refine map_injective (mv_polynomial.map (int.cast_ring_hom ℚ))
-    (mv_polynomial.coe_int_rat_map_injective _) _,
+    (mv_polynomial.map_injective _ int.cast_injective) _,
   simp only [verschiebung_add_aux₁, ring_hom.map_add, map_verschiebung_fun],
 end
 

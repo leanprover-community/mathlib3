@@ -13,6 +13,8 @@ import data.lazy_list
 ## Definitions on lazy lists
 
 This file contains various definitions and proofs on lazy lists.
+
+TODO: move the `lazy_list.lean` file from core to mathlib.
 -/
 
 universes u

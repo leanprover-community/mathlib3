@@ -25,7 +25,7 @@ local infix `++ₜ`:65 := vector.append
 /-- Create a zero bitvector -/
 @[reducible] protected def zero (n : ℕ) : bitvec n := repeat ff n
 
-/-- Create a bitvector with the constant one. -/
+/-- Create a bitvector of length `n` whose `n-1`st entry is 1 and other entries are 0. -/
 @[reducible] protected def one : Π (n : ℕ), bitvec n
 | 0        := nil
 | (succ n) := repeat ff n ++ₜ tt::nil

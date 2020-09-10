@@ -344,7 +344,7 @@ theorem comp_smul (g : M₂ →ₗ[R] M₃) (a : R) : g.comp (a • f) = a • (
 ext $ assume b, by rw [comp_apply, smul_apply, g.map_smul]; refl
 
 /-- Applying a linear map at `v : M`, seen as a linear map from `M →ₗ[R] M₂` to `M₂`. -/
-def linear_map.applyₗ (v : M) : (M →ₗ[R] M₂) →ₗ[R] M₂ :=
+def applyₗ (v : M) : (M →ₗ[R] M₂) →ₗ[R] M₂ :=
 { to_fun := λ f, f v,
   map_add' := λ f g, f.add_apply g v,
   map_smul' := λ x f, f.smul_apply x v }

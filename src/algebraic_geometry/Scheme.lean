@@ -62,13 +62,19 @@ Every `Scheme` is a `LocallyRingedSpace`.
 def to_LocallyRingedSpace (S : Scheme) : LocallyRingedSpace := { ..S }
 
 /--
+`Spec R` as a `Scheme`.
+-/
+noncomputable
+def Spec (R : CommRing) : Scheme :=
+{ local_affine := λ x, ⟨⊤, trivial, R, (Spec.PresheafedSpace R).restrict_top_iso, trivial⟩,
+  .. Spec.LocallyRingedSpace R }
+
+/--
 The empty scheme, as `Spec 0`.
 -/
 noncomputable
 def empty : Scheme :=
-{ local_ring := λ x, false.elim (prime_spectrum.punit x),
-  local_affine := λ x, false.elim (prime_spectrum.punit x),
-  ..Spec.SheafedSpace (CommRing.of punit) }
+Spec (CommRing.of punit)
 
 noncomputable
 instance : has_emptyc Scheme := ⟨empty⟩

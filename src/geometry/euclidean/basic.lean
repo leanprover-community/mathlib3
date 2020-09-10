@@ -461,8 +461,7 @@ open affine_subspace finite_dimensional
 
 /-- Distances `r₁` `r₂` of `p` from two different points `c₁` `c₂` determine at
 most two points `p₁` `p₂` in a two-dimensional subspace containing those points
-(two circles
-intersect in at most two points). -/
+(two circles intersect in at most two points). -/
 lemma eq_of_dist_eq_of_dist_eq_of_mem_of_findim_eq_two {s : affine_subspace ℝ P}
   [finite_dimensional ℝ s.direction] (hd : findim ℝ s.direction = 2) {c₁ c₂ p₁ p₂ p : P}
   (hc₁s : c₁ ∈ s) (hc₂s : c₂ ∈ s) (hp₁s : p₁ ∈ s) (hp₂s : p₂ ∈ s) (hps : p ∈ s) {r₁ r₂ : ℝ}
@@ -516,9 +515,9 @@ begin
   cases hpc₁; simp [hpc₁]
 end
 
-/-- Distances from two different points determine at most two points
-in two-dimensional space (two circles intersect in at most two
-points). -/
+/-- Distances `r₁` `r₂` of `p` from two different points `c₁` `c₂` determine at
+most two points `p₁` `p₂` in two-dimensional space (two circles intersect in at
+most two points). -/
 lemma eq_of_dist_eq_of_dist_eq_of_findim_eq_two [finite_dimensional ℝ V] (hd : findim ℝ V = 2)
   {c₁ c₂ p₁ p₂ p : P} {r₁ r₂ : ℝ} (hc : c₁ ≠ c₂) (hp : p₁ ≠ p₂) (hp₁c₁ : dist p₁ c₁ = r₁)
   (hp₂c₁ : dist p₂ c₁ = r₁) (hpc₁ : dist p c₁ = r₁) (hp₁c₂ : dist p₁ c₂ = r₂)

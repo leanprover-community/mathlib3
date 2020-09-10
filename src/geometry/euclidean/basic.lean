@@ -459,8 +459,9 @@ end
 
 open affine_subspace finite_dimensional
 
-/-- Distances from two different points determine at most two points
-in a two-dimensional subspace containing those points (two circles
+/-- Distances `r₁` `r₂` of `p` from two different points `c₁` `c₂` determine at
+most two points `p₁` `p₂` in a two-dimensional subspace containing those points
+(two circles
 intersect in at most two points). -/
 lemma eq_of_dist_eq_of_dist_eq_of_mem_of_findim_eq_two {s : affine_subspace ℝ P}
   [finite_dimensional ℝ s.direction] (hd : findim ℝ s.direction = 2) {c₁ c₂ p₁ p₂ p : P}

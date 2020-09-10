@@ -103,21 +103,6 @@ lemma linear_equiv.map_sum {R : Type u} {M : Type v} {M₂ : Type w}
   f (t.sum (λ (i : ι), g i)) = t.sum (λ (i : ι), f (g i)) :=
 f.to_linear_map.map_sum
 
-lemma trace_comp_of_basis [algebra S T] [is_scalar_tower R S T]
-  {ι κ : Type*} [fintype ι] [fintype κ] [decidable_eq ι] [decidable_eq κ] {b : ι → S} {c : κ → T}
-  (hb : is_basis R b) (hc : is_basis S c) (x : T) :
-  trace R T x = trace R S (trace S T x) :=
-begin
-  rw [trace_apply R S, trace_eq_matrix_trace R hb, trace_diag,
-      trace_apply S T, trace_eq_matrix_trace S hc, trace_diag,
-      trace_apply R T, trace_eq_matrix_trace R (hb.smul hc), trace_diag],
-    refine trans finset.sum_product _,
-  congr, ext i,
-  simp_rw [diag_apply, linear_map.map_sum, linear_equiv.map_sum, finset.sum_apply],
-  congr, ext j,
-  sorry
-end
-
 section trace_form
 
 /-- The `trace_form` maps `x y : S` to the trace of `x * y`.
@@ -146,6 +131,27 @@ by { ext z, simp [mul_assoc] }
 lemma matrix.trace_apply (A : matrix ι ι S) : matrix.trace ι R S A = ∑ i, A i i := rfl
 
 open is_simple_extension
+
+lemma linear_equiv_matrix_lmul [is_simple_extension K L] (alg : is_algebraic K L)
+  [decidable_eq ι] (x : L) (b : ι → L) (hb : is_basis K⟮x⟯ b) :
+  linear_equiv_matrix (power_basis (K⟮x⟯.is_algebraic_iff.mp _)) (lmul R S x) :=
+begin
+
+end
+
+lemma trace_comp_of_basis [algebra S T] [is_scalar_tower R S T]
+{ι κ : Type*} [fintype ι] [fintype κ] [decidable_eq ι] [decidable_eq κ] {b : ι → S} {c : κ → T}
+(hb : is_basis R b) (hc : is_basis S c) (x : T) :
+trace R T x = trace R S (trace S T x) :=
+begin
+haveI hι : nonempty ι := _,
+haveI hκ : nonempty κ := _,
+haveI : nonempty (ι × κ) := prod.nonempty,
+rw [trace_apply R T, trace_eq_matrix_trace R (hb.smul hc)],
+have := trace_eq_neg_char_poly_coeff (linear_equiv_matrix (hb.smul hc) (hb.smul hc) (lmul R T x)),
+simp at this ⊢,
+refine trans this _,
+end
 
 lemma repr_primitive_element_pow_of_lt'
   [is_simple_extension K L] (alg : is_algebraic K L) (n : fin (simple_degree alg)) :

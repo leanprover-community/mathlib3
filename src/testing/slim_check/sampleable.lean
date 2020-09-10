@@ -56,38 +56,46 @@ class sampleable :=
 (sample [] : gen α)
 (shrink : α → lazy_list α)
 
+/-- `sampleable_functor F` makes it possible to create samples of and
+shrink `F α` given a sampling function and a shrinking function for
+arbitrary `α` -/
 class sampleable_functor (F : Type u → Type v) [functor F] :=
 (sample [] : ∀ {α}, gen α → gen (F α))
 (shrink : ∀ {α}, (α → lazy_list α) → F α → lazy_list (F α))
-[p_repr : ∀ α, has_repr α → has_repr (F α)]
--- [dec_eq : ∀ α, decidable_eq α → decidable_eq (F α)]
+(p_repr : ∀ α, has_repr α → has_repr (F α))
 
+/-- `sampleable_bifunctor F` makes it possible to create samples of
+and shrink `F α β` given a sampling function and a shrinking function
+for arbitrary `α` and `β` -/
 class sampleable_bifunctor (F : Type u → Type v → Type w) [bifunctor F] :=
 (sample [] : ∀ {α β}, gen α → gen β → gen (F α β))
 (shrink : ∀ {α β}, (α → lazy_list α) → (β → lazy_list β) → F α β → lazy_list (F α β))
-[p_repr : ∀ α β, has_repr α → has_repr β → has_repr (F α β)]
--- [dec_eq : ∀ α β, decidable_eq α → decidable_eq β → decidable_eq (F α β)]
+(p_repr : ∀ α β, has_repr α → has_repr β → has_repr (F α β))
 
 export sampleable (sample shrink)
 
+/-- This function helps infer the proxy representation and
+interpretation in `sampleable_ext` instances. -/
 meta def sampleable.mk_trivial_interp : tactic unit :=
 tactic.refine ``(id)
 
+/-- `sampleable_ext` generalizes the behavior of `sampleable`
+and makes it possible to express instances for types that
+do not lend themselves to introspection, such as `ℕ → ℕ`.
+If we test a quantification over functions the
+counter-examples cannot be shrunken or printed meaningfully.
+
+For that purpose, `sampleable_ext` provides a proxy representation
+`proxy_repr` that can be printed and shrunken as well
+as interpretted (using `interp`) as an object of the right type. -/
 class sampleable_ext (α : Sort u) :=
 (proxy_repr : Type v)
 (interp [] : proxy_repr → α . sampleable.mk_trivial_interp)
 [p_repr : has_repr proxy_repr]
--- [dec_eq : decidable_eq proxy_repr]
 (sample [] : gen proxy_repr)
 (shrink : proxy_repr → lazy_list proxy_repr)
 
 attribute [instance, priority 100] sampleable_ext.p_repr
-attribute [instance, priority 100] sampleable_functor.p_repr
-attribute [instance, priority 100] sampleable_bifunctor.p_repr
--- attribute [instance, priority 100]
---   sampleable_ext.dec_eq
---   sampleable_functor.dec_eq
---   sampleable_bifunctor.dec_eq
 
 open nat lazy_list
 
@@ -97,7 +105,7 @@ open sampleable_ext
 
 set_option default_priority 50
 
-instance {α} [sampleable α] [decidable_eq α] [has_repr α] : sampleable_ext α :=
+instance {α} [sampleable α] [has_repr α] : sampleable_ext α :=
 { proxy_repr := α,
   sample := sampleable.sample α,
   shrink := shrink }

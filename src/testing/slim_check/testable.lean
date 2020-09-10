@@ -344,8 +344,12 @@ instance imp_dec_testable (p : Prop) [decidable p] (β : p → Prop)
     else if tracing then  trace "discard" $ return $ gave_up 1
     else return $ gave_up 1 ⟩
 
+/-- Type tag that replaces a type's `has_repr` instance with its `has_to_string` instance. -/
 def use_has_to_string (α : Type*) := α
 
+instance use_has_to_string.inhabited [I : inhabited α] : inhabited (use_has_to_string α) := I
+
+/-- Add the type tag `use_has_to_string` to an expression's type. -/
 def use_has_to_string.mk {α} (x : α) : use_has_to_string α := x
 
 instance [has_to_string α] : has_repr (use_has_to_string α) :=

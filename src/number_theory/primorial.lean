@@ -161,7 +161,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
       { rw primorial_succ (by linarith) n_even,
         calc (n + 1)#
               ≤ 4 ^ n.succ : primorial_le_4_pow (n + 1)
-          ... ≤ 4 ^ (n + 2) : nat.le_add_left _ _, },
+          ... ≤ 4 ^ (n + 2) : pow_le_pow (by norm_num) (nat.le_succ _), },
       { cases lt_or_le 0 n with _ n_le_zero,
         { linarith, },
         { have n_zero : n = 0 := eq_bot_iff.mpr n_le_zero,

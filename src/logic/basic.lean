@@ -252,6 +252,9 @@ library_note "decidable namespace"
 protected theorem decidable.not_not [decidable a] : ¬¬a ↔ a :=
 iff.intro decidable.by_contradiction not_not_intro
 
+/-- The Double Negation Theorem: `¬ ¬ P` is equivalent to `P`. 
+The left-to-right direction, double negation elimination (DNE), 
+is classically true but not constructively. -/
 @[simp] theorem not_not : ¬¬a ↔ a := decidable.not_not
 
 theorem of_not_not : ¬¬a → a := by_contra
@@ -369,17 +372,21 @@ theorem not_imp_not : (¬ a → ¬ b) ↔ (b → a) := decidable.not_imp_not
 
 /-! ### Declarations about distributivity -/
 
+/-- `∧` distributes over `∨` (on the left). -/
 theorem and_or_distrib_left : a ∧ (b ∨ c) ↔ (a ∧ b) ∨ (a ∧ c) :=
 ⟨λ ⟨ha, hbc⟩, hbc.imp (and.intro ha) (and.intro ha),
  or.rec (and.imp_right or.inl) (and.imp_right or.inr)⟩
 
+/-- `∧` distributes over `∨` (on the right). -/
 theorem or_and_distrib_right : (a ∨ b) ∧ c ↔ (a ∧ c) ∨ (b ∧ c) :=
 (and.comm.trans and_or_distrib_left).trans (or_congr and.comm and.comm)
 
+/-- `∨` distributes over `∧` (on the left). -/
 theorem or_and_distrib_left : a ∨ (b ∧ c) ↔ (a ∨ b) ∧ (a ∨ c) :=
 ⟨or.rec (λha, and.intro (or.inl ha) (or.inl ha)) (and.imp or.inr or.inr),
  and.rec $ or.rec (imp_intro ∘ or.inl) (or.imp_right ∘ and.intro)⟩
 
+/-- `∨` distributes over `∧` (on the right). -/
 theorem and_or_distrib_right : (a ∧ b) ∨ c ↔ (a ∨ c) ∧ (b ∨ c) :=
 (or.comm.trans or_and_distrib_left).trans (and_congr or.comm or.comm)
 
@@ -535,6 +542,8 @@ protected theorem decidable.not_and_distrib [decidable a] : ¬ (a ∧ b) ↔ ¬a
 protected theorem decidable.not_and_distrib' [decidable b] : ¬ (a ∧ b) ↔ ¬a ∨ ¬b :=
 ⟨λ h, if hb : b then or.inl (λ ha, h ⟨ha, hb⟩) else or.inr hb, not_and_of_not_or_not⟩
 
+/-- One of de Morgan's laws: the negation of a conjunction is logically equivalent to the
+disjunction of the negations. -/
 theorem not_and_distrib : ¬ (a ∧ b) ↔ ¬a ∨ ¬b := decidable.not_and_distrib
 
 @[simp] theorem not_and : ¬ (a ∧ b) ↔ (a → ¬ b) := and_imp
@@ -542,6 +551,8 @@ theorem not_and_distrib : ¬ (a ∧ b) ↔ ¬a ∨ ¬b := decidable.not_and_dist
 theorem not_and' : ¬ (a ∧ b) ↔ b → ¬a :=
 not_and.trans imp_not_comm
 
+/-- One of de Morgan's laws: the negation of a disjunction is logically equivalent to the
+conjunction of the negations. -/
 theorem not_or_distrib : ¬ (a ∨ b) ↔ ¬ a ∧ ¬ b :=
 ⟨λ h, ⟨λ ha, h (or.inl ha), λ hb, h (or.inr hb)⟩,
  λ ⟨h₁, h₂⟩ h, or.elim h h₁ h₂⟩

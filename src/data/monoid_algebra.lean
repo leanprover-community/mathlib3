@@ -337,6 +337,7 @@ by conv_lhs { rw lift_unique' F, simp [lift_apply] }
 
 /-- A `k`-algebra homomorphism from `monoid_algebra k G` is uniquely defined by its
 values on the functions `single a 1`. -/
+@[ext]
 lemma alg_hom_ext ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] R⦄
   (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
 (lift k G R).symm.injective $ monoid_hom.ext h

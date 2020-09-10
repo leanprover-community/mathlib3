@@ -72,16 +72,12 @@ def pderivative (i : σ) : mv_polynomial σ R →ₗ[R] mv_polynomial σ R :=
 @[simp]
 lemma pderivative_monomial {i : σ} :
   pderivative i (monomial s a) = monomial (s - single i 1) (a * (s i)) :=
-begin
-  change (_ : _ →ₗ[R] _).to_fun _ = _,
-  change (⟨_, _, _⟩ : _ →ₗ[R] _).to_fun _ = _,
-  simp,
-end
+by simp only [pderivative, monomial_zero, sum_monomial, zero_mul, linear_map.coe_mk]
 
 @[simp]
 lemma pderivative_C {i : σ} : pderivative i (C a) = 0 :=
 suffices pderivative i (monomial 0 a) = 0, by simpa,
-by simp
+by simp only [monomial_zero, pderivative_monomial, nat.cast_zero, mul_zero, zero_apply]
 
 lemma pderivative_eq_zero_of_not_mem_vars {i : σ} {f : mv_polynomial σ R} (h : i ∉ f.vars) :
   pderivative i f = 0 :=

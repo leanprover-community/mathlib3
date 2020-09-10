@@ -1012,12 +1012,7 @@ section lim_functor
 
 /-- Functoriality of limits, stated for `is_limit`. -/
 def is_limit_map {F G : J ⥤ C} (c : cone F) {d : cone G} (hd : is_limit d) (α : F ⟶ G) : c.X ⟶ d.X :=
-hd.lift
-  { X := c.X,
-    π :=
-    { app := λ j, c.π.app j ≫ α.app j,
-      naturality' := λ j j' f,
-        by erw [id_comp, assoc, ←α.naturality, ←assoc, c.w] } }
+hd.lift ((cones.postcompose α).obj c)
 
 @[simp, reassoc] lemma is_limit_map_π {F G : J ⥤ C} (c : cone F) {d : cone G} (hd : is_limit d)
   (α : F ⟶ G) (j : J) : is_limit_map c hd α ≫ d.π.app j = c.π.app j ≫ α.app j :=
@@ -1407,12 +1402,7 @@ section colim_functor
 /-- Functoriality of colimits, stated for `is_colimit`. -/
 def is_colimit_map {F G : J ⥤ C} {c : cocone F} (hc : is_colimit c) (d : cocone G) (α : F ⟶ G) :
   c.X ⟶ d.X :=
-hc.desc
-  { X := d.X,
-    ι :=
-    { app := λ j, α.app j ≫ d.ι.app j,
-      naturality' := λ j j' f,
-        by erw [comp_id, ←assoc, α.naturality, assoc, d.w] } }
+hc.desc ((cocones.precompose α).obj d)
 
 @[simp, reassoc]
 lemma ι_is_colimit_map {F G : J ⥤ C} {c : cocone F} (hc : is_colimit c) (d : cocone G) (α : F ⟶ G)

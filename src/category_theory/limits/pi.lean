@@ -125,6 +125,7 @@ and colimits exist for each of the `F ⋙ pi.eval C i`,
 there is a colimit for `F`.
 -/
 def has_colimit_of_has_colimit_comp_eval : has_colimit F :=
+has_colimit.mk
 { cocone := cocone_of_cocone_comp_eval (λ i, colimit.cocone _),
   is_colimit := cocone_of_cocone_eval_is_colimit (λ i, colimit.is_colimit _), }
 

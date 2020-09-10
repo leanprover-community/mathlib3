@@ -517,6 +517,67 @@ end pi
 
 end ideal
 
+namespace ring
+
+variables {R : Type*} [comm_ring R]
+
+lemma not_is_field_of_subsingleton {R : Type*} [ring R] [subsingleton R] : ¬ is_field R :=
+λ ⟨⟨x, y, hxy⟩, _, _⟩, hxy (subsingleton.elim x y)
+
+lemma exists_not_is_unit_of_not_is_field [nontrivial R] (hf : ¬ is_field R) :
+  ∃ x ≠ (0 : R), ¬ is_unit x :=
+begin
+  have : ¬ _ := λ h, hf ⟨exists_pair_ne R, mul_comm, h⟩,
+  simp_rw is_unit_iff_exists_inv,
+  push_neg at ⊢ this,
+  obtain ⟨x, hx, not_unit⟩ := this,
+  exact ⟨x, hx, not_unit⟩
+end
+
+lemma not_is_field_iff_exists_ideal_bot_lt_and_lt_top [nontrivial R] :
+  ¬ is_field R ↔ ∃ I : ideal R, ⊥ < I ∧ I < ⊤ :=
+begin
+  split,
+  { intro h,
+    obtain ⟨x, nz, nu⟩ := exists_not_is_unit_of_not_is_field h,
+    use ideal.span {x},
+    rw [bot_lt_iff_ne_bot, lt_top_iff_ne_top],
+    exact ⟨mt ideal.span_singleton_eq_bot.mp nz, mt ideal.span_singleton_eq_top.mp nu⟩ },
+  { rintros ⟨I, bot_lt, lt_top⟩ hf,
+    obtain ⟨x, mem, ne_zero⟩ := submodule.exists_of_lt bot_lt,
+    rw submodule.mem_bot at ne_zero,
+    obtain ⟨y, hy⟩ := hf.mul_inv_cancel ne_zero,
+    rw [lt_top_iff_ne_top, ne.def, ideal.eq_top_iff_one, ← hy] at lt_top,
+    exact lt_top (ideal.mul_mem_right _ mem), }
+end
+
+lemma not_is_field_iff_exists_prime [nontrivial R] :
+  ¬ is_field R ↔ ∃ p : ideal R, p ≠ ⊥ ∧ p.is_prime :=
+not_is_field_iff_exists_ideal_bot_lt_and_lt_top.trans
+  ⟨λ ⟨I, bot_lt, lt_top⟩, let ⟨p, hp, le_p⟩ := I.exists_le_maximal (lt_top_iff_ne_top.mp lt_top) in
+    ⟨p, bot_lt_iff_ne_bot.mp (lt_of_lt_of_le bot_lt le_p), hp.is_prime⟩,
+   λ ⟨p, ne_bot, prime⟩, ⟨p, bot_lt_iff_ne_bot.mpr ne_bot, lt_top_iff_ne_top.mpr prime.1⟩⟩
+
+end ring
+
+namespace ideal
+
+/-- Maximal ideals in a non-field are nontrivial. -/
+variables {R : Type u} [comm_ring R] [nontrivial R]
+lemma bot_lt_of_maximal (M : ideal R) [hm : M.is_maximal] (non_field : ¬ is_field R) : ⊥ < M :=
+begin
+  rcases (ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top.1 non_field)
+    with ⟨I, Ibot, Itop⟩,
+  split, finish,
+  intro mle,
+  apply @irrefl _ (<) _ (⊤ : ideal R),
+  have : M = ⊥ := eq_bot_iff.mpr mle,
+  rw this at *,
+  rwa hm.2 I Ibot at Itop,
+end
+
+end ideal
+
 /-- The set of non-invertible elements of a monoid. -/
 def nonunits (α : Type u) [monoid α] : set α := { a | ¬is_unit a }
 

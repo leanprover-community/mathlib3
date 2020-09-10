@@ -52,7 +52,7 @@ private lemma teichmuller_mul_aux₂ (x y : mv_polynomial R ℤ) :
   teichmuller_fun p (x * y) = teichmuller_fun p x * teichmuller_fun p y :=
 begin
   refine map_injective (mv_polynomial.map (int.cast_ring_hom ℚ))
-    (mv_polynomial.coe_int_rat_map_injective _) _,
+    (mv_polynomial.map_injective _ int.cast_injective) _,
   simp only [teichmuller_mul_aux₁, map_teichmuller_fun, ring_hom.map_mul]
 end
 

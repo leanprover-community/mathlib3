@@ -328,7 +328,7 @@ end ideals
 
 variables (p n R)
 
-lemma eq_of_le_of_cast_pow_eq_zero [nontrivial R] (i : ℕ) (hin : i ≤ n)
+lemma eq_of_le_of_cast_pow_eq_zero [char_p R p] (i : ℕ) (hin : i ≤ n)
   (hpi : (p ^ i : truncated_witt_vector p n R) = 0) :
   i = n :=
 begin
@@ -339,6 +339,8 @@ begin
   rw [this, ext_iff, not_forall], clear this,
   use ⟨i, hin⟩,
   rw [witt_vector.coeff_truncate, coeff_zero],
+  haveI : nontrivial R := sorry, -- follows from `char_p R p`
+  apply is_unit.ne_zero,
   apply witt_vector.coeff_p_pow,
 end
 

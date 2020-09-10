@@ -56,7 +56,7 @@ begin
   { simp only [ghost_map_apply, ghost_component_verschiebung_fun, ghost_component_add, mul_add], }
 end
 
-lemma vershiebung_add_aux₂ (x y : 𝕎 (mv_polynomial R ℤ)) :
+lemma verschiebung_add_aux₂ (x y : 𝕎 (mv_polynomial R ℤ)) :
   verschiebung_fun (x + y) = verschiebung_fun x + verschiebung_fun y :=
 begin
   refine map_injective (mv_polynomial.map (int.cast_ring_hom ℚ))
@@ -83,7 +83,7 @@ def verschiebung : 𝕎 R →+ 𝕎 R :=
     rcases map_surjective _ (counit_surjective R) y with ⟨y, rfl⟩,
     rw [← ring_hom.map_add],
     iterate 3 { rw [← map_verschiebung_fun] },
-    rw [vershiebung_add_aux₂, ring_hom.map_add],
+    rw [verschiebung_add_aux₂, ring_hom.map_add],
   end }
 
 @[simp] lemma verschiebung_coeff_zero (x : 𝕎 R) :
@@ -118,6 +118,10 @@ variables (p)
 def verschiebung_poly (n : ℕ) : mv_polynomial ℕ ℤ :=
 if n = 0 then 0 else X (n-1)
 
+@[simp] lemma verschiebung_poly_zero :
+  verschiebung_poly p 0 = 0 := rfl
+
+@[simps { fully_applied := ff }]
 def verschiebung_is_poly : is_poly p (λ R _Rcr, @verschiebung p R hp _Rcr) :=
 { poly := verschiebung_poly p,
   coeff :=
@@ -129,10 +133,32 @@ def verschiebung_is_poly : is_poly p (λ R _Rcr, @verschiebung p R hp _Rcr) :=
           aeval_X, nat.succ_eq_add_one, nat.add_sub_cancel], }
   end }
 
-lemma bind₁_verschiebung_poly_witt_polynomial (n k : ℕ) :
-  bind₁ (verschiebung_poly p) (witt_polynomial p ℤ k) = p * witt_polynomial p ℤ (k+1) :=
+lemma bind₁_verschiebung_poly_witt_polynomial (n : ℕ) :
+  bind₁ (verschiebung_poly p) (witt_polynomial p ℤ n) =
+  if n = 0 then 0 else p * witt_polynomial p ℤ (n-1) :=
 begin
-
+  have aux : ∀ k : ℕ, p ^ k ≠ 0,
+  { intro k, rw ← nat.pow_eq_pow, apply pow_ne_zero _ hp.ne_zero, },
+  split_ifs with hn,
+  { rw [hn, witt_polynomial_zero, bind₁_X_right, verschiebung_poly, if_pos rfl] },
+  { obtain ⟨n, rfl⟩ := nat.exists_eq_succ_of_ne_zero hn,
+    rw [nat.succ_eq_add_one, nat.add_sub_cancel],
+    dsimp [witt_polynomial],
+    rw [alg_hom.map_sum, finset.sum_range_succ', finset.mul_sum],
+    rw [bind₁_monomial],
+    simp only [finsupp.support_single_ne_zero, aux, add_zero, finset.prod_singleton,
+      nat.succ_sub_succ_eq_sub, finsupp.single_eq_same, verschiebung_poly_zero, ne.def,
+      nat.sub_zero, not_false_iff, int.nat_cast_eq_coe_nat, C_1, mul_zero, pow_zero, zero_pow'],
+    apply finset.sum_congr rfl,
+    intros i hi,
+    rw bind₁_monomial,
+    simp only [finsupp.support_single_ne_zero, aux, int.cast_coe_nat, finset.prod_singleton,
+      ring_hom.eq_int_cast, finsupp.single_eq_same, C_pow, ne.def, not_false_iff],
+    rw [verschiebung_poly],
+    simp only [monomial_eq, finsupp.prod_single_index, int.cast_coe_nat, nat.add_succ_sub_one,
+      add_zero, ring_hom.eq_int_cast, C_pow, eq_self_iff_true, add_eq_zero_iff, if_false,
+      one_ne_zero, pow_zero, and_false],
+    ring_exp, }
 end
 
 end

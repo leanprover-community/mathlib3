@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
+import ring_theory.witt_vector.frobenius
 import ring_theory.witt_vector.verschiebung
-import ring_theory.witt_vector.is_poly
 
 /-! ## Multiplication by `p` -/
 
@@ -47,6 +47,9 @@ begin
     { simp only [function.uncurry, ih, aeval_eq_eval₂_hom, cond], } }
 end
 
+variables (p)
+
+@[simps { fully_applied := ff }]
 def mul_n_is_poly (n : ℕ) : is_poly p (λ R _Rcr x, by exactI x * n) :=
 { poly := witt_mul_n p n,
   coeff := λ k R _Rcr x, by exactI mul_n_coeff n x k }
@@ -66,9 +69,40 @@ begin
     simp only [function.uncurry, function.comp, bind₁_X_left, alg_hom.id_apply, cond, ih], }
 end
 
--- lemma coeff_p_pow [nontrivial R] (i : ℕ) : (p ^ i : 𝕎 R).coeff i ≠ 0 :=
--- begin
+lemma frobenius_fun_comp_verschiebung :
+  (frobenius_fun ∘ verschiebung : 𝕎 R → 𝕎 R) = λ x, x * p :=
+begin
+  have := is_poly.ext' ((frobenius_is_poly p).comp (verschiebung_is_poly p)) (mul_n_is_poly p p) _,
+  { rw [function.funext_iff] at this,
+    specialize this R,
+    rw [function.funext_iff] at this,
+    apply this, },
+  intro n,
+  rw [is_poly.comp_poly, ← bind₁_bind₁],
+  rw [mul_n_is_poly_poly, frobenius_is_poly_poly],
+  rw [bind₁_frobenius_poly_witt_polynomial],
+  rw [bind₁_witt_mul_n_witt_polynomial],
+  rw [verschiebung_is_poly_poly, bind₁_verschiebung_poly_witt_polynomial],
+  refl,
+end
 
--- end
+lemma frobenius_fun_verschiebung (x : 𝕎 R) :
+  frobenius_fun (verschiebung x) = x * p :=
+congr_fun (frobenius_fun_comp_verschiebung p) x
+
+lemma verschiebung_zmod (x : 𝕎 (zmod p)) :
+  verschiebung x = x * p :=
+begin
+  rw [← frobenius_fun_verschiebung, frobenius_fun_zmodp],
+end
+
+-- this should be true not just for `char_p R p` but for general `nontrivial R`.
+lemma coeff_p_pow [char_p R p] (i : ℕ) : is_unit ((p ^ i : 𝕎 R).coeff i) :=
+begin
+  induction i with i h,
+  { simp only [one_coeff_zero, ne.def, pow_zero, is_unit_one] },
+  { rw [pow_succ', ← frobenius_fun_verschiebung, coeff_frobenius_fun_char_p, verschiebung_coeff_succ],
+    exact is_unit_pow p h, }
+end
 
 end witt_vector

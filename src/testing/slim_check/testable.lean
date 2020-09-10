@@ -207,7 +207,7 @@ inductive test_result (p : Prop)
 | failure : ¬ p → (list string) → test_result
 
 /-- format a `test_result` as a string. -/
-def test_result.to_string {p} : test_result p → string
+protected def test_result.to_string {p} : test_result p → string
 | (test_result.success (psum.inl ())) := "success (without proof)"
 | (test_result.success (psum.inr h)) := "success (with proof)"
 | (test_result.gave_up n) := sformat!"gave up {n} times"
@@ -358,18 +358,18 @@ instance all_types_testable [testable (f ℤ)] : testable (named_binder var $ Π
     return $ add_var_to_counter_example var (use_has_to_string.mk "ℤ") ($ ℤ) r ⟩
 
 /-- Trace the value of sampled variables if the sample is discarded. -/
-def trace_if_giveup {p α β} [has_to_string α] (tracing_enabled : bool) (var : string) (val : α) :
+def trace_if_giveup {p α β} [has_repr α] (tracing_enabled : bool) (var : string) (val : α) :
   test_result p → thunk β → β
 | (test_result.gave_up _) :=
-  if tracing_enabled then trace (sformat!" {var} := {val}")
+  if tracing_enabled then trace (sformat!" {var} := {repr val}")
   else ($ ())
 | _ := ($ ())
 
 /-- testable instance for a property iterating over the element of a list -/
 @[priority 5000]
-instance test_forall_in_list (var : string) (var' : option string)
+instance test_forall_in_list
   [∀ x, testable (β x)] [has_repr α] :
-  Π xs : list α, testable (named_binder (some var) $ ∀ x, named_binder var' $ x ∈ xs → β x)
+  Π xs : list α, testable (named_binder var $ ∀ x, named_binder var' $ x ∈ xs → β x)
 | [] := ⟨ λ tracing min, return $ success $ psum.inr (by { introv x h, cases h} ) ⟩
 | (x :: xs) :=
 ⟨ λ tracing min, do
@@ -425,29 +425,17 @@ instance exists_testable (p : Prop)
     x ← testable.run (named_binder var (∀ x, named_binder var' $ β x → p)) tracing min,
     pure $ convert_counter_example' exists_imp_distrib.symm x ⟩
 
-/-- trave the value of sampled variables if the sample is discarded -/
-def trace_if_giveup {p α β} [has_repr α] (tracing_enabled : bool) (var : string) (val : α) :
-  test_result p → thunk β → β
-| (test_result.gave_up _) :=
-  if tracing_enabled then trace (sformat!" {var} := {repr val}")
-  else ($ ())
-| _ := ($ ())
-
 /-- Test a universal property by creating a sample of the right type and instantiating the
 bound variable with it -/
-instance var_testable [sampleable_ext α] [∀ x, testable (β x)]
-  (var : option string) : testable (named_binder var $ Π x : α, β x) :=
+instance var_testable [sampleable_ext α] [∀ x, testable (β x)] : testable (named_binder var $ Π x : α, β x) :=
 ⟨ λ tracing min, do
    uliftable.adapt_down (sampleable_ext.sample α) $
    λ x, do
      r ← testable.run (β (sampleable_ext.interp α x)) tracing ff,
      uliftable.adapt_down (if is_failure r ∧ min
-                          then minimize _ _ x r tracing (sampleable_ext.shrink x)
+                          then minimize _ _ x r (sampleable_ext.shrink x)
                           else pure ⟨x,r⟩) $
-     λ ⟨x,r⟩, return $ match var with
-                       | none := add_to_counter_example (repr x) ($ sampleable_ext.interp α x) r
-                       | (some v) := trace_if_giveup tracing v x r (add_var_to_counter_example v x ($ sampleable_ext.interp α x) r)
-                       end⟩
+     λ ⟨x,r⟩, return $ trace_if_giveup tracing var x r (add_var_to_counter_example var x ($ sampleable_ext.interp α x) r) ⟩
 
 @[priority 3000]
 instance unused_var_testable (β) [inhabited α] [testable β] : testable (named_binder var $ Π x : α, β) :=
@@ -457,7 +445,7 @@ instance unused_var_testable (β) [inhabited α] [testable β] : testable (named
 
 @[priority 2000]
 instance subtype_var_testable {p : α → Prop} [sampleable_ext (subtype p)]
-  [∀ x, testable (β x)] (var var' : option string) :
+  [∀ x, testable (β x)] :
   testable (named_binder var $ Π x : α, named_binder var' $ p x → β x) :=
 ⟨ λ tracing min,
    do r ← @testable.run (∀ x : subtype p, β x.val) (slim_check.var_testable var _ _) tracing min,

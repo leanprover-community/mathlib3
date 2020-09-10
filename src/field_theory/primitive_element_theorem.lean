@@ -10,28 +10,7 @@ import field_theory.separable
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-section
-
-variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
-
---lemma to move elsewhere:
-lemma infinite_lemma (hF : infinite F) : infinite E :=
-@infinite.of_injective _ _ hF (algebra_map F E) (algebra_map F E).injective
-
-end
-
 /- Some stupid lemmas used below. Maybe some of them are already in mathlib? -/
-
--- This should go into field_theory/subfield eventually probably
-lemma is_subfield.pow_mem {K : Type*} [field K] {a : K} {n : ℤ} {s : set K} [is_subfield s] (h : a ∈ s) : a ^ n ∈ s :=
-begin
-  by_cases hn : n ≥ 0,
-  { lift n to ℕ using hn,
-    exact is_submonoid.pow_mem h, },
-  { rw [(show n = (-1)*(-n), by ring), fpow_mul, fpow_neg a, fpow_one],
-    lift -n to ℕ using (show -n ≥ 0, by linarith),
-    exact is_submonoid.pow_mem (is_subfield.inv_mem h), },
-end
 
 namespace polynomial
 

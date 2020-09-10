@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andreas Swerdlow
 -/
 import deprecated.subring
+import algebra.group_with_zero_power
 
 variables {F : Type*} [field F] (S : set F)
 
@@ -20,6 +21,13 @@ instance is_subfield.field [is_subfield S] : field S :=
     (λ h, ha $ subtype.ext_iff_val.2 h)),
   inv_zero := subtype.ext_iff_val.2 inv_zero,
   ..show comm_ring S, by apply_instance }
+
+lemma is_subfield.pow_mem {K : Type*} [field K] {a : K} {n : ℤ} {s : set K} [is_subfield s] (h : a ∈ s) : a ^ n ∈ s :=
+begin
+  cases n,
+  { exact is_submonoid.pow_mem h },
+  { exact is_subfield.inv_mem (is_submonoid.pow_mem h) },
+end
 
 instance univ.is_subfield : is_subfield (@set.univ F) :=
 { inv_mem := by intros; trivial }

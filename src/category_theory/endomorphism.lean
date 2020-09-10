@@ -5,7 +5,6 @@ Authors: Yury Kudryashov, Scott Morrison, Simon Hudon
 
 Definition and basic properties of endomorphisms and automorphisms of an object in a category.
 -/
-import category_theory.category
 import category_theory.groupoid
 import data.equiv.mul_add
 

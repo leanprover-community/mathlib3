@@ -37,6 +37,12 @@ instance has_decidable_eq [decidable_eq α] : decidable_eq (multiset α)
 | s₁ s₂ := quotient.rec_on_subsingleton₂ s₁ s₂ $ λ l₁ l₂,
   decidable_of_iff' _ quotient.eq
 
+/-- defines a size for a multiset by referring to the size of the underlying list -/
+protected def sizeof [has_sizeof α] (s : multiset α) : ℕ :=
+quot.lift_on s sizeof $ λ l₁ l₂, perm.sizeof_eq_sizeof
+
+instance has_sizeof [has_sizeof α] : has_sizeof (multiset α) := ⟨multiset.sizeof⟩
+
 /- empty multiset -/
 
 /-- `0 : multiset α` is the empty set -/
@@ -153,6 +159,10 @@ mem_cons.2 $ or.inr h
 @[simp] theorem mem_cons_self (a : α) (s : multiset α) : a ∈ a :: s :=
 mem_cons.2 (or.inl rfl)
 
+theorem forall_mem_cons {p : α → Prop} {a : α} {s : multiset α} :
+  (∀ x ∈ (a :: s), p x) ↔ p a ∧ ∀ x ∈ s, p x :=
+quotient.induction_on' s $ λ L, list.forall_mem_cons
+
 theorem exists_cons_of_mem {s : multiset α} {a : α} : a ∈ s → ∃ t, s = a :: t :=
 quot.induction_on s $ λ l (h : a ∈ l),
 let ⟨l₁, l₂, e⟩ := mem_split h in
@@ -236,6 +246,23 @@ theorem subset_zero {s : multiset α} : s ⊆ 0 ↔ s = 0 :=
 ⟨eq_zero_of_subset_zero, λ xeq, xeq.symm ▸ subset.refl 0⟩
 
 end subset
+
+section to_list
+
+/-- Produces a list of the elements in the multiset using choice. -/
+@[reducible] noncomputable def to_list {α : Type*} (s : multiset α) :=
+classical.some (quotient.exists_rep s)
+
+@[simp] lemma to_list_zero {α : Type*} : (multiset.to_list 0 : list α) = [] :=
+(multiset.coe_eq_zero _).1 (classical.some_spec (quotient.exists_rep multiset.zero))
+
+lemma coe_to_list {α : Type*} (s : multiset α) : (s.to_list : multiset α) = s :=
+classical.some_spec (quotient.exists_rep _)
+
+lemma mem_to_list {α : Type*} (a : α) (s : multiset α) : a ∈ s.to_list ↔ a ∈ s :=
+by rw [←multiset.mem_coe, multiset.coe_to_list]
+
+end to_list
 
 /- multiset order -/
 
@@ -590,6 +617,10 @@ def map (f : α → β) (s : multiset α) : multiset β :=
 quot.lift_on s (λ l : list α, (l.map f : multiset β))
   (λ l₁ l₂ p, quot.sound (p.map f))
 
+theorem forall_mem_map_iff {f : α → β} {p : β → Prop} {s : multiset α} :
+  (∀ y ∈ s.map f, p y) ↔ (∀ x ∈ s, p (f x)) :=
+quotient.induction_on' s $ λ L, list.forall_mem_map_iff
+
 @[simp] theorem coe_map (f : α → β) (l : list α) : map f ↑l = l.map f := rfl
 
 @[simp] theorem map_zero (f : α → β) : map f 0 = 0 := rfl
@@ -778,8 +809,20 @@ lemma sum_map_mul_right [semiring β] {b : β} {s : multiset α} {f : α → β}
   sum (s.map (λa, f a * b)) = sum (s.map f) * b :=
 multiset.induction_on s (by simp) (assume a s ih, by simp [ih, add_mul])
 
+theorem prod_ne_zero {R : Type*} [integral_domain R] {m : multiset R} :
+  (∀ x ∈ m, (x : _) ≠ 0) → m.prod ≠ 0 :=
+multiset.induction_on m (λ _, one_ne_zero) $ λ hd tl ih H,
+  by { rw forall_mem_cons at H, rw prod_cons, exact mul_ne_zero H.1 (ih H.2) }
+
+lemma prod_eq_zero {α : Type*} [comm_semiring α] {s : multiset α} (h : (0 : α) ∈ s) :
+  multiset.prod s = 0 :=
+begin
+  rcases multiset.exists_cons_of_mem h with ⟨s', hs'⟩,
+  simp [hs', multiset.prod_cons]
+end
+
 @[to_additive]
-lemma prod_hom [comm_monoid α] [comm_monoid β] (s : multiset α) (f : α → β) [is_monoid_hom f] :
+lemma prod_hom [comm_monoid α] [comm_monoid β] (s : multiset α) (f : α →* β) :
   (s.map f).prod = f s.prod :=
 quotient.induction_on s $ λ l, by simp only [l.prod_hom f, quot_mk_to_coe, coe_map, coe_prod]
 
@@ -1011,6 +1054,10 @@ def attach (s : multiset α) : multiset {x // x ∈ s} := pmap subtype.mk s (λ 
 
 @[simp] theorem coe_attach (l : list α) :
  @eq (multiset {x // x ∈ l}) (@attach α l) l.attach := rfl
+
+theorem sizeof_lt_sizeof_of_mem [has_sizeof α] {x : α} {s : multiset α} (hx : x ∈ s) :
+  sizeof x < sizeof s := by
+{ induction s with l a b, exact list.sizeof_lt_sizeof_of_mem hx, refl }
 
 theorem pmap_eq_map (p : α → Prop) (f : α → β) (s : multiset α) :
   ∀ H, @pmap _ _ p (λ a _, f a) s H = map f s :=
@@ -1598,6 +1645,9 @@ by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
 
 theorem count_eq_zero {a : α} {s : multiset α} : count a s = 0 ↔ a ∉ s :=
 iff_not_comm.1 $ count_pos.symm.trans pos_iff_ne_zero
+
+theorem count_ne_zero {a : α} {s : multiset α} : count a s ≠ 0 ↔ a ∈ s :=
+by simp [ne.def, count_eq_zero]
 
 @[simp] theorem count_repeat (a : α) (n : ℕ) : count a (repeat a n) = n :=
 by simp [repeat]

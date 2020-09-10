@@ -129,7 +129,7 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
         fail!"Invalid custom projection:\n {custom_proj}\nExpression is not definitionally equal to {raw_expr}.",
       return custom_proj),
     /- check for other coercions and type-class arguments to use as projections instead. -/
-    (args, _) ← mk_local_pis d_str.type,
+    (args, _) ← open_pis d_str.type,
     let e_str := (expr.const str raw_levels).mk_app args,
     automatic_projs ← attribute.get_instances `notation_class,
     raw_exprs ← automatic_projs.mfoldl (λ (raw_exprs : list expr) class_nm, (do
@@ -199,7 +199,8 @@ library_note "custom simps projection"
 meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   (rhs : expr) : tactic $ list $ expr × name × expr := do
   let params := get_app_args tgt, -- the parameters of the structure
-  guard ((get_app_args rhs).take params.length = params) <|> fail "unreachable code (1)",
+  (params.zip $ (get_app_args rhs).take params.length).mmap' (λ ⟨a, b⟩, is_def_eq a b)
+    <|> fail "unreachable code (1)",
   let str := tgt.get_app_fn.const_name,
   projs ← e.structure_fields_full str,
   let rhs_args := (get_app_args rhs).drop params.length, -- the fields of the object
@@ -264,7 +265,7 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
   (cfg : simps_cfg) (todo : list string), tactic unit
 | e nm suffix type lhs rhs args univs must_be_str cfg todo := do
   -- we don't want to unfold non-reducible definitions (like `set`) to apply more arguments
-  (type_args, tgt) ← mk_local_pis_whnf type cfg.type_md,
+  (type_args, tgt) ← whnf type cfg.type_md >>= open_pis,
   tgt ← whnf tgt,
   let new_args := args ++ type_args,
   let lhs_ap := lhs.mk_app type_args,

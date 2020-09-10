@@ -97,7 +97,7 @@ theorem cmp_swap (m) : ∀n, (cmp m n).swap = cmp n m :=
 by induction m with m IH m IH; intro n;
    cases n with n n; try {unfold cmp}; try {refl}; rw ←IH; cases cmp m n; refl
 
-theorem cmp_to_nat : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℕ) < n) (m = n) ((m:ℕ) > n) : Prop)
+theorem cmp_to_nat : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℕ) < n) (m = n) ((n:ℕ) < m) : Prop)
 | 1        1        := rfl
 | (bit0 a) 1        := let h : (1:ℕ) ≤ a := to_nat_pos a in add_le_add h h
 | (bit1 a) 1        := nat.succ_lt_succ $ to_nat_pos $ bit0 a
@@ -227,7 +227,7 @@ theorem mul_to_nat : ∀ m n, ((m * n : num) : ℕ) = m * n
 | (pos p) 0       := rfl
 | (pos p) (pos q) := pos_num.mul_to_nat _ _
 
-theorem cmp_to_nat : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℕ) < n) (m = n) ((m:ℕ) > n) : Prop)
+theorem cmp_to_nat : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℕ) < n) (m = n) ((n:ℕ) < m) : Prop)
 | 0       0       := rfl
 | 0       (pos b) := to_nat_pos _
 | (pos a) 0       := to_nat_pos _
@@ -347,6 +347,11 @@ num.to_nat_inj.1 $ by rw [pred'_to_nat, succ'_to_nat,
 to_nat_inj.1 $ by rw [succ'_to_nat, pred'_to_nat,
   nat.add_one, nat.succ_pred_eq_of_pos (to_nat_pos _)]
 
+instance : has_dvd pos_num := ⟨λ m n, pos m ∣ pos n⟩
+
+@[norm_cast] theorem dvd_to_nat {m n : pos_num} : (m:ℕ) ∣ n ↔ m ∣ n :=
+num.dvd_to_nat (pos m) (pos n)
+
 theorem size_to_nat : ∀ n, (size n : ℕ) = nat.size n
 | 1        := nat.size_one.symm
 | (bit0 n) := by rw [size, succ_to_nat, size_to_nat, cast_bit0,
@@ -377,7 +382,6 @@ by refine {add := (+), ..}; transfer
 
 instance : comm_monoid pos_num :=
 by refine {mul := (*), one := 1, ..}; transfer
-
 
 instance : distrib pos_num :=
 by refine {add := (+), mul := (*), ..}; {transfer, simp [mul_add, mul_comm]}
@@ -513,7 +517,7 @@ end num
 namespace pos_num
 open num
 
-theorem pred_to_nat {n : pos_num} (h : n > 1) : (pred n : ℕ) = nat.pred n :=
+theorem pred_to_nat {n : pos_num} (h : 1 < n) : (pred n : ℕ) = nat.pred n :=
 begin
   unfold pred,
   have := pred'_to_nat n,
@@ -946,7 +950,7 @@ of_int_cast n
 | (n : ℕ) := to_int_inj.1 $ by simp [znum.of_int']
 | -[1+ n] := to_int_inj.1 $ by simp [znum.of_int']
 
-theorem cmp_to_int : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℤ) < n) (m = n) ((m:ℤ) > n) : Prop)
+theorem cmp_to_int : ∀ (m n), (ordering.cases_on (cmp m n) ((m:ℤ) < n) (m = n) ((n:ℤ) < m) : Prop)
 | 0       0       := rfl
 | (pos a) (pos b) := begin
     have := pos_num.cmp_to_nat a b; revert this; dsimp [cmp];
@@ -1161,10 +1165,13 @@ theorem dvd_iff_mod_eq_zero {m n : num} : m ∣ n ↔ n % m = 0 :=
 by rw [← dvd_to_nat, nat.dvd_iff_mod_eq_zero,
   ← to_nat_inj, mod_to_nat]; refl
 
-instance : decidable_rel ((∣) : num → num → Prop)
+instance decidable_dvd : decidable_rel ((∣) : num → num → Prop)
 | a b := decidable_of_iff' _ dvd_iff_mod_eq_zero
 
 end num
+
+instance pos_num.decidable_dvd : decidable_rel ((∣) : pos_num → pos_num → Prop)
+| a b := num.decidable_dvd _ _
 
 namespace znum
 

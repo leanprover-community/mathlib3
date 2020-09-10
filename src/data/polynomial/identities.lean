@@ -53,7 +53,7 @@ end
 private lemma poly_binom_aux2 (f : polynomial R) (x y : R) :
   f.eval (x + y) = f.sum (λ e a, a * (x^e + e*x^(e-1)*y + (poly_binom_aux1 x y e a).val*y^2)) :=
 begin
-  unfold eval eval₂, congr, ext,
+  unfold eval eval₂, congr' with n z,
   apply (poly_binom_aux1 x y _ _).property
 end
 
@@ -73,6 +73,7 @@ begin
   existsi f.sum (λ e a, a *((poly_binom_aux1 x y e a).val)),
   rw poly_binom_aux3,
   congr,
+  { rw [←eval_eq_sum], },
   { rw derivative_eval, symmetry,
     apply finsupp.sum_mul },
   { symmetry, apply finsupp.sum_mul }
@@ -99,7 +100,7 @@ begin
   rw ← finsupp.sum_sub,
   rw finsupp.sum_mul,
   delta finsupp.sum,
-  congr, ext i r, dsimp,
+  congr' with i r, dsimp,
   rw [mul_assoc, ←(pow_sub_pow_factor x y _).prop, mul_sub],
 end
 

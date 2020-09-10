@@ -8,7 +8,8 @@ import algebra.ring.basic
 universes u v
 variable {α : Type u}
 
-@[to_additive]
+/-- Add an extra element `1` to a type -/
+@[to_additive "Add an extra element `0` to a type"]
 def with_one (α) := option α
 
 namespace with_one
@@ -27,6 +28,9 @@ instance [nonempty α] : nontrivial (with_one α) := option.nontrivial
 
 @[to_additive]
 instance : has_coe_t α (with_one α) := ⟨some⟩
+
+@[to_additive]
+lemma some_eq_coe {a : α} : (some a : with_one α) = ↑a := rfl
 
 @[simp, to_additive]
 lemma one_ne_coe {a : α} : (1 : with_one α) ≠ a :=
@@ -54,10 +58,7 @@ option.cases_on
 instance [has_mul α] : has_mul (with_one α) :=
 { mul := option.lift_or_get (*) }
 
-@[simp, to_additive]
-lemma mul_coe [has_mul α] (a b : α) : (a : with_one α) * b = (a * b : α) := rfl
-
-@[to_additive add_monoid]
+@[to_additive]
 instance [semigroup α] : monoid (with_one α) :=
 { mul_assoc := (option.lift_or_get_assoc _).1,
   one_mul   := (option.lift_or_get_is_left_id _).1,
@@ -65,7 +66,7 @@ instance [semigroup α] : monoid (with_one α) :=
   ..with_one.has_one,
   ..with_one.has_mul }
 
-@[to_additive add_comm_monoid]
+@[to_additive]
 instance [comm_semigroup α] : comm_monoid (with_one α) :=
 { mul_comm := (option.lift_or_get_comm _).1,
   ..with_one.monoid }
@@ -77,7 +78,9 @@ variables [semigroup α] {β : Type v} [monoid β]
 /-- Lift a semigroup homomorphism `f` to a bundled monoid homorphism.
 We have no bundled semigroup homomorphisms, so this function
 takes `∀ x y, f (x * y) = f x * f y` as an explicit argument. -/
-@[to_additive]
+@[to_additive "Lift an add_semigroup homomorphism `f` to a bundled add_monoid homorphism.
+  We have no bundled add_semigroup homomorphisms, so this function
+  takes `∀ x y, f (x + y) = f x + f y` as an explicit argument."]
 def lift (f : α → β) (hf : ∀ x y, f (x * y) = f x * f y) :
   (with_one α) →* β :=
 { to_fun := λ x, option.cases_on x 1 f,
@@ -105,12 +108,20 @@ section map
 
 variables {β : Type v} [semigroup α] [semigroup β]
 
-@[to_additive]
+/-- Given a multiplicative map from `α → β` returns a monoid homomorphism
+  from `with_one α` to `with_one β` -/
+@[to_additive "Given an additive map from `α → β` returns an add_monoid homomorphism
+  from `with_zero α` to `with_zero β`"]
 def map (f : α → β) (hf : ∀ x y, f (x * y) = f x * f y) :
   with_one α →* with_one β :=
 lift (coe ∘ f) (λ x y, coe_inj.2 $ hf x y)
 
 end map
+
+attribute [irreducible] with_one
+
+@[simp, norm_cast, to_additive]
+lemma coe_mul [has_mul α] (a b : α) : ((a * b : α) : with_one α) = a * b := rfl
 
 end with_one
 
@@ -127,8 +138,14 @@ instance [has_mul α] : mul_zero_class (with_zero α) :=
   mul_zero  := λ a, by cases a; refl,
   ..with_zero.has_zero }
 
-@[simp] lemma mul_coe [has_mul α] (a b : α) :
-  (a : with_zero α) * b = (a * b : α) := rfl
+@[simp, norm_cast] lemma coe_mul {α : Type u} [has_mul α]
+  {a b : α} : ((a * b : α) : with_zero α) = a * b := rfl
+
+@[simp] lemma zero_mul {α : Type u} [has_mul α]
+  (a : with_zero α) : 0 * a = 0 := rfl
+
+@[simp] lemma mul_zero {α : Type u} [has_mul α]
+  (a : with_zero α) : a * 0 = 0 := by cases a; refl
 
 instance [semigroup α] : semigroup (with_zero α) :=
 { mul_assoc := λ a b c, match a, b, c with
@@ -163,13 +180,16 @@ instance [monoid α] : monoid_with_zero (with_zero α) :=
 instance [comm_monoid α] : comm_monoid_with_zero (with_zero α) :=
 { ..with_zero.monoid_with_zero, ..with_zero.comm_semigroup }
 
+/-- Given an inverse operation on `α` there is an inverse operation
+  on `with_zero α` sending `0` to `0`-/
 definition inv [has_inv α] (x : with_zero α) : with_zero α :=
 do a ← x, return a⁻¹
 
 instance [has_inv α] : has_inv (with_zero α) := ⟨with_zero.inv⟩
 
-@[simp] lemma inv_coe [has_inv α] (a : α) :
-  (a : with_zero α)⁻¹ = (a⁻¹ : α) := rfl
+@[simp, norm_cast] lemma coe_inv [has_inv α] (a : α) :
+  ((a⁻¹ : α) : with_zero α) = a⁻¹ := rfl
+
 @[simp] lemma inv_zero [has_inv α] :
   (0 : with_zero α)⁻¹ = 0 := rfl
 
@@ -179,6 +199,7 @@ variables [group α]
 @[simp] lemma inv_one : (1 : with_zero α)⁻¹ = 1 :=
 show ((1⁻¹ : α) : with_zero α) = 1, by simp [coe_one]
 
+/-- A division operation on `with_zero α` when `α` has an inverse operation -/
 definition div (x y : with_zero α) : with_zero α :=
 x * y⁻¹
 
@@ -197,17 +218,17 @@ lemma one_div (x : with_zero α) : 1 / x = x⁻¹ := one_mul _
 
 @[simp] lemma mul_right_inv : ∀  (x : with_zero α) (h : x ≠ 0), x * x⁻¹ = 1
 | 0       h := false.elim $ h rfl
-| (a : α) h := by simp [coe_one]
+| (a : α) h := by {norm_cast, simp [coe_one]}
 
 @[simp] lemma mul_left_inv : ∀  (x : with_zero α) (h : x ≠ 0), x⁻¹ * x = 1
 | 0       h := false.elim $ h rfl
-| (a : α) h := by simp [coe_one]
+| (a : α) h := by {norm_cast, simp [coe_one]}
 
 @[simp] lemma mul_inv_rev : ∀ (x y : with_zero α), (x * y)⁻¹ = y⁻¹ * x⁻¹
 | 0       0       := rfl
 | 0       (b : α) := rfl
 | (a : α) 0       := rfl
-| (a : α) (b : α) := by simp
+| (a : α) (b : α) := by {norm_cast, exact _root_.mul_inv_rev _ _}
 
 @[simp] lemma mul_div_cancel {a b : with_zero α} (hb : b ≠ 0) : a * b / b = a :=
 show _ * _ * _ = _, by simp [mul_assoc, hb]
@@ -218,6 +239,20 @@ show _ * _ * _ = _, by simp [mul_assoc, hb]
 lemma div_eq_iff_mul_eq {a b c : with_zero α} (hb : b ≠ 0) : a / b = c ↔ c * b = a :=
 by split; intro h; simp [h.symm, hb]
 
+lemma mul_inv_cancel : ∀ (a : with_zero α), a ≠ 0 → a * a⁻¹ = 1 :=
+begin
+  rintro (_ | a) h,
+    {exact absurd rfl h },
+    { refine option.some_inj.2 (_root_.mul_right_inv _) }
+end
+
+/-- if `G` is a group then `with_zero G` is a group with zero. -/
+instance : group_with_zero (with_zero α) :=
+{ inv_zero := with_zero.inv_zero,
+  mul_inv_cancel := with_zero.mul_inv_cancel,
+  ..with_zero.monoid_with_zero,
+  ..with_zero.has_inv,
+  ..with_zero.nontrivial }
 end group
 
 section comm_group
@@ -241,6 +276,23 @@ begin
   { rw [mul_inv_eq_iff_eq_mul, mul_right_comm, mul_comm c, ← H, mul_inv_cancel_right] }
 end
 
+theorem mul_comm {α : Type u}
+  [comm_group α] :
+  ∀ (a b : with_zero α), a * b = b * a :=
+begin
+  rintro (_ | a) (_ | b),
+  { refl },
+  { refl },
+  { refl },
+  { apply option.some_inj.2,
+    apply mul_comm }
+end
+
+/-- if `G` is a `comm_group` then `with_zero G` is a `comm_group_with_zero`. -/
+instance : comm_group_with_zero (with_zero α) :=
+{ mul_comm := mul_comm,
+  ..with_zero.group_with_zero }
+
 end comm_group
 
 section semiring
@@ -262,5 +314,7 @@ instance [semiring α] : semiring (with_zero α) :=
   ..with_zero.monoid_with_zero }
 
 end semiring
+
+attribute [irreducible] with_zero
 
 end with_zero

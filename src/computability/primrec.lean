@@ -109,13 +109,10 @@ end primrec
 
 end nat
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `primcodable` type is an `encodable` type for which
   the encode/decode functions are primitive recursive. -/
 class primcodable (α : Type*) extends encodable α :=
 (prim [] : nat.primrec (λ n, encodable.encode (decode n)))
-end prio
 
 namespace primcodable
 open nat.primrec
@@ -581,7 +578,7 @@ theorem nat_le : primrec_rel ((≤) : ℕ → ℕ → Prop) :=
 end
 
 theorem nat_min : primrec₂ (@min ℕ _) := ite nat_le fst snd
-theorem nat_max : primrec₂ (@max ℕ _) := ite nat_le snd fst
+theorem nat_max : primrec₂ (@max ℕ _) := ite (nat_le.comp primrec.snd primrec.fst) fst snd
 
 theorem dom_bool (f : bool → α) : primrec f :=
 (cond primrec.id (const (f tt)) (const (f ff))).of_eq $
@@ -1114,7 +1111,7 @@ begin
   exactI (iff.trans (by refl) subtype_val_iff).trans (of_equiv_iff _)
 end
 
-theorem fin_val {n} : primrec (@fin.val n) := fin_val_iff.2 primrec.id
+theorem fin_val {n} : primrec (coe : fin n → ℕ) := fin_val_iff.2 primrec.id
 
 theorem fin_succ {n} : primrec (@fin.succ n) :=
 fin_val_iff.1 $ by simp [succ.comp fin_val]

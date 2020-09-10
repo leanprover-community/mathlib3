@@ -50,48 +50,34 @@ protected theorem is_asymm.is_irrefl [is_asymm α r] : is_irrefl α r :=
 
 /- Convert algebraic structure style to explicit relation style typeclasses -/
 instance [preorder α] : is_refl α (≤) := ⟨le_refl⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_refl α (≥) := is_refl.swap _
 instance [preorder α] : is_trans α (≤) := ⟨@le_trans _ _⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_trans α (≥) := is_trans.swap _
 instance [preorder α] : is_preorder α (≤) := {}
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_preorder α (≥) := {}
 instance [preorder α] : is_irrefl α (<) := ⟨lt_irrefl⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_irrefl α (>) := is_irrefl.swap _
 instance [preorder α] : is_trans α (<) := ⟨@lt_trans _ _⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_trans α (>) := is_trans.swap _
 instance [preorder α] : is_asymm α (<) := ⟨@lt_asymm _ _⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_asymm α (>) := is_asymm.swap _
 instance [preorder α] : is_antisymm α (<) := is_asymm.is_antisymm _
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_antisymm α (>) := is_asymm.is_antisymm _
 instance [preorder α] : is_strict_order α (<) := {}
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [preorder α] : is_strict_order α (>) := {}
 instance preorder.is_total_preorder [preorder α] [is_total α (≤)] : is_total_preorder α (≤) := {}
 instance [partial_order α] : is_antisymm α (≤) := ⟨@le_antisymm _ _⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [partial_order α] : is_antisymm α (≥) := is_antisymm.swap _
 instance [partial_order α] : is_partial_order α (≤) := {}
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [partial_order α] : is_partial_order α (≥) := {}
 instance [linear_order α] : is_total α (≤) := ⟨le_total⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [linear_order α] : is_total α (≥) := is_total.swap _
 instance linear_order.is_total_preorder [linear_order α] : is_total_preorder α (≤) :=
   by apply_instance
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [linear_order α] : is_total_preorder α (≥) := {}
 instance [linear_order α] : is_linear_order α (≤) := {}
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [linear_order α] : is_linear_order α (≥) := {}
 instance [linear_order α] : is_trichotomous α (<) := ⟨lt_trichotomy⟩
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 instance [linear_order α] : is_trichotomous α (>) := is_trichotomous.swap _
 
 lemma trans_trichotomous_left [is_trans α r] [is_trichotomous α r] {a b c : α} :
@@ -299,7 +285,7 @@ namespace well_founded
 with respect to `r`. -/
 theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
   (s : set α) : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
-| ⟨a, ha⟩ := (acc.rec_on (H.apply a) $ λ x _ IH, classical.not_imp_not.1 $ λ hne hx, hne $
+| ⟨a, ha⟩ := (acc.rec_on (H.apply a) $ λ x _ IH, not_imp_not.1 $ λ hne hx, hne $
   ⟨x, hx, λ y hy hyx, hne $ IH y hyx hy⟩) ha
 
 /-- A minimal element of a nonempty set in a well-founded order -/
@@ -314,6 +300,43 @@ let ⟨h, _⟩ := classical.some_spec (H.has_min p h) in h
 theorem not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p.nonempty) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
 let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
+
+theorem well_founded_iff_has_min  {α} {r : α → α → Prop} : (well_founded r) ↔
+  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, ¬ r x m :=
+begin
+  classical,
+  split,
+  { exact has_min, },
+  { set counterexamples := { x : α | ¬ acc r x},
+    intro exists_max,
+    fconstructor,
+    intro x,
+    by_contra hx,
+    obtain ⟨m, m_mem, hm⟩ := exists_max counterexamples ⟨x, hx⟩,
+    refine m_mem (acc.intro _ ( λ y y_gt_m, _)),
+    by_contra hy,
+    exact hm y hy y_gt_m, },
+end
+
+lemma eq_iff_not_lt_of_le {α} [partial_order α] {x y : α} : x ≤ y → y = x ↔ ¬ x < y :=
+begin
+  split,
+  { intros xle nge,
+    cases le_not_le_of_lt nge,
+    rw xle left at nge,
+    exact lt_irrefl x nge },
+  { intros ngt xle,
+    contrapose! ngt,
+    exact lt_of_le_of_ne xle (ne.symm ngt) }
+end
+
+theorem well_founded_iff_has_max' [partial_order α] : (well_founded ((>) : α → α → Prop) ↔
+  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, m ≤ x → x = m) :=
+by simp only [eq_iff_not_lt_of_le, well_founded_iff_has_min]
+
+theorem well_founded_iff_has_min' [partial_order α] : (well_founded (has_lt.lt : α → α → Prop)) ↔
+  ∀ (p : set α), p.nonempty → ∃ m ∈ p, ∀ x ∈ p, x ≤ m → x = m :=
+@well_founded_iff_has_max' (order_dual α) _
 
 open set
 /-- The supremum of a bounded, well-founded order -/

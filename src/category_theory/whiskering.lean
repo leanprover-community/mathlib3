@@ -133,7 +133,7 @@ variables {D : Type u₄} [category.{v₄} D]
 lemma triangle (F : A ⥤ B) (G : B ⥤ C) :
   (associator F (𝟭 B) G).hom ≫ (whisker_left F (left_unitor G).hom) =
     (whisker_right (right_unitor F).hom G) :=
-by { ext, dsimp, simp }
+by { ext, dsimp, simp }  -- See note [dsimp, simp].
 
 variables {E : Type u₅} [category.{v₅} E]
 

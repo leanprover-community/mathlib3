@@ -200,12 +200,12 @@ Lim_eq (le_refl _)
 Lim_nhds a
 
 @[simp] lemma Lim_nhds_within {a : α} {s : set α} (h : a ∈ closure s) :
-  @Lim _ _ ⟨a⟩ (nhds_within a s) = a :=
-by haveI : ne_bot (nhds_within a s) := mem_closure_iff_cluster_pt.1 h;
+  @Lim _ _ ⟨a⟩ (𝓝[s] a) = a :=
+by haveI : ne_bot (𝓝[s] a) := mem_closure_iff_cluster_pt.1 h;
 exact Lim_eq inf_le_left
 
 @[simp] lemma lim_nhds_within_id {a : α} {s : set α} (h : a ∈ closure s) :
-  @lim _ _ _ ⟨a⟩ (nhds_within a s) id = a :=
+  @lim _ _ _ ⟨a⟩ (𝓝[s] a) id = a :=
 Lim_nhds_within h
 
 end lim
@@ -292,30 +292,26 @@ open finset function
 /-- For every finite open cover `Uᵢ` of a compact set, there exists a compact cover `Kᵢ ⊆ Uᵢ`. -/
 lemma is_compact.finite_compact_cover [t2_space α] {s : set α} (hs : is_compact s) {ι} (t : finset ι)
   (U : ι → set α) (hU : ∀ i ∈ t, is_open (U i)) (hsC : s ⊆ ⋃ i ∈ t, U i) :
-  ∃ K : ι → set α, (∀ i ∈ t, is_compact (K i) ∧ K i ⊆ U i) ∧ s = ⋃ i ∈ t, K i :=
+  ∃ K : ι → set α, (∀ i, is_compact (K i)) ∧ (∀i, K i ⊆ U i) ∧ s = ⋃ i ∈ t, K i :=
 begin
   classical,
   induction t using finset.induction with x t hx ih generalizing U hU s hs hsC,
-  { refine ⟨λ _, ∅, λ i _, ⟨compact_empty, empty_subset _⟩, _⟩, simpa only [subset_empty_iff,
+  { refine ⟨λ _, ∅, λ i, compact_empty, λ i, empty_subset _, _⟩, simpa only [subset_empty_iff,
       finset.not_mem_empty, Union_neg, Union_empty, not_false_iff] using hsC },
   simp only [finset.bUnion_insert] at hsC,
   simp only [finset.mem_insert] at hU,
   have hU' : ∀ i ∈ t, is_open (U i) := λ i hi, hU i (or.inr hi),
   rcases hs.binary_compact_cover (hU x (or.inl rfl)) (is_open_bUnion hU') hsC
     with ⟨K₁, K₂, h1K₁, h1K₂, h2K₁, h2K₂, hK⟩,
-  rcases ih U hU' h1K₂ h2K₂ with ⟨K, h1K, h2K⟩,
-  refine ⟨update K x K₁, _, _⟩,
-  { intros i hi, simp only [finset.mem_insert] at hi, rcases hi with rfl|hi,
-    simpa only [update_same, h1K₁, true_and] using h2K₁,
-    rw [update_noteq], exact h1K i hi, rintro rfl, exact hx hi },
-  { ext y, simp only [exists_prop, mem_Union, mem_union_eq, finset.bUnion_insert, update_same, hK],
-    split,
-    { rintro (hy|hy), exact or.inl hy,
-      simp only [h2K, mem_Union, subtype.exists] at hy, rcases hy with ⟨i, h1i, h2i⟩,
-      refine or.inr ⟨i, h1i, _⟩, rw [update_noteq], exact h2i, rintro rfl, exact hx h1i },
-    { rintro (hy|⟨i, h1i, h2i⟩), exact or.inl hy,
-      rw [h2K], simp only [exists_prop, mem_Union], rw [update_noteq] at h2i,
-      exact or.inr ⟨i, h1i, h2i⟩, rintro rfl, exact hx h1i }}
+  rcases ih U hU' h1K₂ h2K₂ with ⟨K, h1K, h2K, h3K⟩,
+  refine ⟨update K x K₁, _, _, _⟩,
+  { intros i, by_cases hi : i = x,
+    { simp only [update_same, hi, h1K₁] },
+    { rw [← ne.def] at hi, simp only [update_noteq hi, h1K] }},
+  { intros i, by_cases hi : i = x,
+    { simp only [update_same, hi, h2K₁] },
+    { rw [← ne.def] at hi, simp only [update_noteq hi, h2K] }},
+  { simp only [bUnion_insert_update _ hx, hK, h3K] }
 end
 end
 
@@ -379,13 +375,13 @@ set_option default_priority 100 -- see Note [default priority]
   omits T₂), is one in which for every closed `C` and `x ∉ C`, there exist
   disjoint open sets containing `x` and `C` respectively. -/
 class regular_space (α : Type u) [topological_space α] extends t1_space α : Prop :=
-(regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝 a ⊓ 𝓟 t = ⊥)
+(regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝[t] a = ⊥)
 end prio
 
 lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a) :
   ∃t∈(𝓝 a), t ⊆ s ∧ is_closed t :=
 let ⟨s', h₁, h₂, h₃⟩ := mem_nhds_sets_iff.mp h in
-have ∃t, is_open t ∧ s'ᶜ ⊆ t ∧ 𝓝 a ⊓ 𝓟 t = ⊥,
+have ∃t, is_open t ∧ s'ᶜ ⊆ t ∧ 𝓝[t] a = ⊥,
   from regular_space.regular (is_closed_compl_iff.mpr h₂) (not_not_intro h₃),
 let ⟨t, ht₁, ht₂, ht₃⟩ := this in
 ⟨tᶜ,
@@ -404,7 +400,7 @@ instance subtype.regular_space [regular_space α] {p : α → Prop} : regular_sp
    rcases is_closed_induced_iff.1 hs with ⟨s, hs', rfl⟩,
    rcases regular_space.regular hs' ha with ⟨t, ht, hst, hat⟩,
    refine ⟨coe ⁻¹' t, is_open_induced ht, preimage_mono hst, _⟩,
-   rw [nhds_induced, ← comap_principal, ← comap_inf, hat, comap_bot]
+   rw [nhds_within, nhds_induced, ← comap_principal, ← comap_inf, ← nhds_within, hat, comap_bot]
  end⟩
 
 variable (α)

@@ -264,7 +264,7 @@ begin
   rw [←fix.ind_aux a f], apply h,
   rw [←abs_map, ←abs_map, pfunctor.map_eq, pfunctor.map_eq],
   dsimp [function.comp],
-  congr, ext x, apply ih
+  congr' with x, apply ih
 end
 
 theorem fix.rec_unique {α : Type u} (g : F α → α) (h : fix F → α)
@@ -290,7 +290,7 @@ theorem fix.dest_mk (x : F (fix F)) : fix.dest (fix.mk x) = x :=
 begin
   unfold fix.dest, rw [fix.rec_eq, ←fix.dest, ←comp_map],
   conv { to_rhs, rw ←(id_map x) },
-  congr, ext x, apply fix.mk_dest
+  congr' with x, apply fix.mk_dest
 end
 
 theorem fix.ind (p : fix F → Prop)
@@ -424,7 +424,7 @@ begin
   intros x y rxy,
   rcases (liftr_iff r _ _).mp (h x y rxy) with ⟨a, f₀, f₁, dxeq, dyeq, h'⟩,
   rw [dxeq, dyeq, ←abs_map, ←abs_map, pfunctor.map_eq, pfunctor.map_eq],
-  congr' 2, ext i,
+  congr' 2 with i,
   apply quot.sound,
   apply h'
 end
@@ -484,8 +484,7 @@ def comp : qpf (functor.comp F₂ F₁) :=
       conv { to_rhs, rw ←abs_repr x},
       cases h : repr x with a f,
       dsimp,
-      congr,
-      ext x,
+      congr' with x,
       cases h' : repr (f x) with b g,
       dsimp, rw [←h', abs_repr] }
     end,

@@ -53,21 +53,21 @@ by letI := classical.dec_eq α; exact
 classical.by_cases
   (assume H : ∀ p:ℕ, (p:α) = 0 → p = 0, ⟨0,
     ⟨λ x, by rw [zero_dvd_iff]; exact ⟨H x, by rintro rfl; refl⟩⟩⟩)
-  (λ H, ⟨nat.find (classical.not_forall.1 H), ⟨λ x,
+  (λ H, ⟨nat.find (not_forall.1 H), ⟨λ x,
     ⟨λ H1, nat.dvd_of_mod_eq_zero (by_contradiction $ λ H2,
-      nat.find_min (classical.not_forall.1 H)
+      nat.find_min (not_forall.1 H)
         (nat.mod_lt x $ nat.pos_of_ne_zero $ not_of_not_imp $
-          nat.find_spec (classical.not_forall.1 H))
-        (not_imp_of_and_not ⟨by rwa [← nat.mod_add_div x (nat.find (classical.not_forall.1 H)),
-          nat.cast_add, nat.cast_mul, of_not_not (not_not_of_not_imp $ nat.find_spec (classical.not_forall.1 H)),
+          nat.find_spec (not_forall.1 H))
+        (not_imp_of_and_not ⟨by rwa [← nat.mod_add_div x (nat.find (not_forall.1 H)),
+          nat.cast_add, nat.cast_mul, of_not_not (not_not_of_not_imp $ nat.find_spec (not_forall.1 H)),
           zero_mul, add_zero] at H1, H2⟩)),
     λ H1, by rw [← nat.mul_div_cancel' H1, nat.cast_mul,
-      of_not_not (not_not_of_not_imp $ nat.find_spec (classical.not_forall.1 H)), zero_mul]⟩⟩⟩)
+      of_not_not (not_not_of_not_imp $ nat.find_spec (not_forall.1 H)), zero_mul]⟩⟩⟩)
 
 theorem char_p.exists_unique (α : Type u) [semiring α] : ∃! p, char_p α p :=
 let ⟨c, H⟩ := char_p.exists α in ⟨c, H, λ y H2, char_p.eq α H2 H⟩
 
-/-- Noncomuptable function that outputs the unique characteristic of a semiring. -/
+/-- Noncomputable function that outputs the unique characteristic of a semiring. -/
 noncomputable def ring_char (α : Type u) [semiring α] : ℕ :=
 classical.some (char_p.exists_unique α)
 
@@ -79,8 +79,8 @@ theorem ring_char.eq (α : Type u) [semiring α] {p : ℕ} (C : char_p α p) : p
 (classical.some_spec (char_p.exists_unique α)).2 p C
 
 theorem add_pow_char_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
-  [char_p R p] (x y : R) (h : commute x y):
-(x + y)^p = x^p + y^p :=
+  [char_p R p] (x y : R) (h : commute x y) :
+  (x + y)^p = x^p + y^p :=
 begin
   rw [commute.add_pow h, finset.sum_range_succ, nat.sub_self, pow_zero, nat.choose_self],
   rw [nat.cast_one, mul_one, mul_one, add_right_inj],
@@ -93,13 +93,49 @@ begin
   rwa ← finset.mem_range
 end
 
-theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} (hp : nat.prime p)
-  [char_p α p] (x y : α) : (x + y)^p = x^p + y^p :=
+theorem add_pow_char_pow_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] {n : ℕ} (x y : R) (h : commute x y) :
+  (x + y) ^ (p ^ n) = x ^ (p ^ n) + y ^ (p ^ n) :=
 begin
-  haveI : fact p.prime := hp,
-  apply add_pow_char_of_commute,
-  apply commute.all,
+  induction n, { simp, },
+  rw [nat.pow_succ, pow_mul, pow_mul, pow_mul, n_ih],
+  apply add_pow_char_of_commute, apply commute.pow_pow h,
 end
+
+theorem sub_pow_char_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] (x y : R) (h : commute x y) :
+  (x - y)^p = x^p - y^p :=
+begin
+  rw [eq_sub_iff_add_eq, ← add_pow_char_of_commute _ _ _ (commute.sub_left h rfl)],
+  simp, repeat {apply_instance},
+end
+
+theorem sub_pow_char_pow_of_commute (R : Type u) [ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] {n : ℕ} (x y : R) (h : commute x y) :
+  (x - y) ^ (p ^ n) = x ^ (p ^ n) - y ^ (p ^ n) :=
+begin
+  induction n, { simp, },
+  rw [nat.pow_succ, pow_mul, pow_mul, pow_mul, n_ih],
+  apply sub_pow_char_of_commute, apply commute.pow_pow h,
+end
+
+theorem add_pow_char (α : Type u) [comm_ring α] {p : ℕ} [fact p.prime]
+  [char_p α p] (x y : α) : (x + y)^p = x^p + y^p :=
+add_pow_char_of_commute _ _ _ (commute.all _ _)
+
+theorem add_pow_char_pow (R : Type u) [comm_ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] {n : ℕ} (x y : R) :
+  (x + y) ^ (p ^ n) = x ^ (p ^ n) + y ^ (p ^ n) :=
+add_pow_char_pow_of_commute _ _ _ (commute.all _ _)
+
+theorem sub_pow_char (α : Type u) [comm_ring α] {p : ℕ} [fact p.prime]
+  [char_p α p] (x y : α) : (x - y)^p = x^p - y^p :=
+sub_pow_char_of_commute _ _ _ (commute.all _ _)
+
+theorem sub_pow_char_pow (R : Type u) [comm_ring R] {p : ℕ} [fact p.prime]
+  [char_p R p] {n : ℕ} (x y : R) :
+  (x - y) ^ (p ^ n) = x ^ (p ^ n) - y ^ (p ^ n) :=
+sub_pow_char_pow_of_commute _ _ _ (commute.all _ _)
 
 lemma eq_iff_modeq_int (R : Type*) [ring R] (p : ℕ) [char_p R p] (a b : ℤ) :
   (a : R) = b ↔ a ≡ b [ZMOD p] :=
@@ -129,11 +165,17 @@ def frobenius : R →+* R :=
   map_one' := one_pow p,
   map_mul' := λ x y, mul_pow x y p,
   map_zero' := zero_pow (lt_trans zero_lt_one ‹nat.prime p›.one_lt),
-  map_add' := add_pow_char R ‹nat.prime p› }
+  map_add' := add_pow_char R }
 
 variable {R}
 
 theorem frobenius_def : frobenius R p x = x ^ p := rfl
+
+theorem iterate_frobenius (n : ℕ) : (frobenius R p)^[n] x = x ^ p ^ n :=
+begin
+  induction n, {simp},
+  rw [function.iterate_succ', nat.pow_succ, pow_mul, function.comp_apply, frobenius_def, n_ih]
+end
 
 theorem frobenius_mul : frobenius R p (x * y) = frobenius R p x * frobenius R p y :=
 (frobenius R p).map_mul x y
@@ -214,7 +256,7 @@ assume hp : p = 1,
 have ( 1 : α) = 0, by simpa using (cast_eq_zero_iff α p 1).mpr (hp ▸ dvd_refl p),
 absurd this one_ne_zero
 
-theorem char_is_prime_of_ge_two (p : ℕ) [hc : char_p α p] (hp : p ≥ 2) : nat.prime p :=
+theorem char_is_prime_of_two_le (p : ℕ) [hc : char_p α p] (hp : 2 ≤ p) : nat.prime p :=
 suffices ∀d ∣ p, d = 1 ∨ d = p, from ⟨hp, this⟩,
 assume (d : ℕ) (hdvd : ∃ e, p = d * e),
 let ⟨e, hmul⟩ := hdvd in
@@ -236,7 +278,7 @@ theorem char_is_prime_or_zero (p : ℕ) [hc : char_p α p] : nat.prime p ∨ p =
 match p, hc with
 | 0,     _  := or.inr rfl
 | 1,     hc := absurd (eq.refl (1 : ℕ)) (@char_ne_one α _ (1 : ℕ) hc)
-| (m+2), hc := or.inl (@char_is_prime_of_ge_two α _ (m+2) hc (nat.le_add_left 2 m))
+| (m+2), hc := or.inl (@char_is_prime_of_two_le α _ (m+2) hc (nat.le_add_left 2 m))
 end
 
 lemma char_is_prime_of_pos (p : ℕ) [h : fact (0 < p)] [char_p α p] : fact p.prime :=
@@ -251,9 +293,7 @@ section char_one
 
 variables {R : Type*}
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
-
+@[priority 100]  -- see Note [lower instance priority]
 instance [semiring R] [char_p R 1] : subsingleton R :=
 subsingleton.intro $
 suffices ∀ (r : R), r = 0,
@@ -263,8 +303,6 @@ calc r = 1 * r       : by rw one_mul
    ... = (1 : ℕ) * r : by rw nat.cast_one
    ... = 0 * r       : by rw char_p.cast_eq_zero
    ... = 0           : by rw zero_mul
-
-end prio
 
 lemma false_of_nonzero_of_char_one [semiring R] [nontrivial R] [char_p R 1] : false :=
 zero_ne_one $ show (0:R) = 1, from subsingleton.elim 0 1

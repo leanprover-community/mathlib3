@@ -110,10 +110,7 @@ add_tactic_doc
 `h : ¬ p` in the second branch. You can specify the name of the new hypothesis using the syntax
 `by_cases h : p`.
 
-This tactic requires that `p` is decidable. To ensure that all propositions are decidable via
-classical reasoning, use `open_locale classical`
-(or `local attribute [instance, priority 10] classical.prop_decidable` if you are not using
-mathlib).
+If `p` is not already decidable, `by_cases` will use the instance `classical.prop_decidable p`.
 -/
 add_tactic_doc
 { name       := "by_cases",
@@ -221,6 +218,9 @@ The `congr` tactic attempts to identify both sides of an equality goal `A = B`,
 leaving as new goals the subterms of `A` and `B` which are not definitionally equal.
 Example: suppose the goal is `x * f y = g w * f z`. Then `congr` will produce two goals:
 `x = g w` and `y = z`.
+
+If `x y : t`, and an instance `subsingleton t` is in scope, then any goals of the form
+`x = y` are solved automatically.
 
 Note that `congr` can be over-aggressive at times; the `congr'` tactic in mathlib
 provides a more refined approach, by taking a parameter that limits the recursion depth.

@@ -157,8 +157,7 @@ by refine (homeomorph.set_congr $ set.ext $ λ x, _).trans ne_top_homeomorph_nnr
 -- using Icc because
 -- • don't have 'Ioo (x - ε) (x + ε) ∈ 𝓝 x' unless x > 0
 -- • (x - y ≤ ε ↔ x ≤ ε + y) is true, while (x - y < ε ↔ x < ε + y) is not
-@[nolint ge_or_gt] -- see Note [nolint_ge]
-lemma Icc_mem_nhds : x ≠ ⊤ → ε > 0 → Icc (x - ε) (x + ε) ∈ 𝓝 x :=
+lemma Icc_mem_nhds : x ≠ ⊤ → 0 < ε → Icc (x - ε) (x + ε) ∈ 𝓝 x :=
 begin
   assume xt ε0, rw mem_nhds_sets_iff,
   by_cases x0 : x = 0,
@@ -169,7 +168,6 @@ begin
     exact ⟨is_open_Ioo, mem_Ioo_self_sub_add xt x0 ε0 ε0 ⟩ }
 end
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma nhds_of_ne_top : x ≠ ⊤ → 𝓝 x = ⨅ε > 0, 𝓟 (Icc (x - ε) (x + ε)) :=
 begin
   assume xt, refine le_antisymm _ _,
@@ -197,12 +195,10 @@ end
 
 /-- Characterization of neighborhoods for `ennreal` numbers. See also `tendsto_order`
 for a version with strict inequalities. -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 protected theorem tendsto_nhds {f : filter α} {u : α → ennreal} {a : ennreal} (ha : a ≠ ⊤) :
   tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∀ᶠ x in f, (u x) ∈ Icc (a - ε) (a + ε) :=
 by simp only [nhds_of_ne_top ha, tendsto_infi, tendsto_principal, mem_Icc]
 
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 protected lemma tendsto_at_top [nonempty β] [semilattice_sup β] {f : β → ennreal} {a : ennreal}
   (ha : a ≠ ⊤) : tendsto f at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, (f n) ∈ Icc (a - ε) (a + ε) :=
 by simp only [ennreal.tendsto_nhds ha, mem_at_top_sets, mem_set_of_eq, filter.eventually]
@@ -249,9 +245,8 @@ begin
   dsimp at h₁ h₂ ⊢,
   calc (n:ennreal) = ↑(((n:nnreal) / ε) * ε) :
     begin
-      simp [nnreal.div_def],
-      rw [mul_assoc, ← coe_mul, nnreal.inv_mul_cancel, coe_one, ← coe_nat, mul_one],
-      exact zero_lt_iff_ne_zero.1 hε
+      norm_cast,
+      simp [nnreal.div_def, mul_assoc, nnreal.inv_mul_cancel (ne_of_gt hε)]
     end
     ... < (↑m * ε : nnreal) : coe_lt_coe.2 $ mul_lt_mul hm (le_refl _) hε (nat.cast_nonneg _)
     ... ≤ a₁ * a₂ : by rw [coe_mul]; exact canonically_ordered_semiring.mul_le_mul
@@ -525,7 +520,7 @@ tsum_add ennreal.summable ennreal.summable
 protected lemma tsum_le_tsum (h : ∀a, f a ≤ g a) : (∑'a, f a) ≤ (∑'a, g a) :=
 tsum_le_tsum h ennreal.summable ennreal.summable
 
-protected lemma sum_le_tsum {f : α → ennreal} (s : finset α) : s.sum f ≤ tsum f :=
+protected lemma sum_le_tsum {f : α → ennreal} (s : finset α) : ∑ x in s, f x ≤ ∑' x, f x :=
 sum_le_tsum s (λ x hx, zero_le _) ennreal.summable
 
 protected lemma tsum_eq_supr_nat {f : ℕ → ennreal} :
@@ -533,9 +528,8 @@ protected lemma tsum_eq_supr_nat {f : ℕ → ennreal} :
 ennreal.tsum_eq_supr_sum' _ finset.exists_nat_subset_range
 
 protected lemma le_tsum (a : α) : f a ≤ (∑'a, f a) :=
-calc f a = ∑ a' in {a}, f a' : by simp
-  ... ≤ (⨆s:finset α, ∑ a' in s, f a') : le_supr (λs:finset α, ∑ a' in s, f a') _
-  ... = (∑'a, f a) : by rw [ennreal.tsum_eq_supr_sum]
+calc f a = ∑ x in {a}, f x : finset.sum_singleton.symm
+     ... ≤ ∑' x, f x       : ennreal.sum_le_tsum {a}
 
 protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → (∑' a, f a) = ∞
 | ⟨a, ha⟩ := top_unique $ ha ▸ ennreal.le_tsum a
@@ -545,7 +539,7 @@ protected lemma ne_top_of_tsum_ne_top (h : (∑' a, f a) ≠ ∞) (a : α) : f a
 
 protected lemma tsum_mul_left : (∑'i, a * f i) = a * (∑'i, f i) :=
 if h : ∀i, f i = 0 then by simp [h] else
-let ⟨i, (hi : f i ≠ 0)⟩ := classical.not_forall.mp h in
+let ⟨i, (hi : f i ≠ 0)⟩ := not_forall.mp h in
 have sum_ne_0 : (∑'i, f i) ≠ 0, from ne_of_gt $
   calc 0 < f i : lt_of_le_of_ne (zero_le _) hi.symm
     ... ≤ (∑'i, f i) : ennreal.le_tsum _,

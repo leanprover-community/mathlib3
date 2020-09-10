@@ -32,7 +32,6 @@ Rescaling everything, it follows that any `y ∈ F` is arbitrarily well approach
 images of elements of norm at most `C * ∥y∥`.
 For further use, we will only need such an element whose image
 is within distance `∥y∥/2` of `y`, to apply an iterative process. -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma exists_approx_preimage_norm_le (surj : surjective f) :
   ∃C ≥ 0, ∀y, ∃x, dist (f x) y ≤ 1/2 * ∥y∥ ∧ ∥x∥ ≤ C * ∥y∥ :=
 begin
@@ -50,8 +49,7 @@ begin
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine ⟨(ε/2)⁻¹ * ∥c∥ * 2 * n, _, λy, _⟩,
   { refine mul_nonneg (mul_nonneg (mul_nonneg _ (norm_nonneg _)) (by norm_num)) _,
-    refine inv_nonneg.2 (div_nonneg' (le_of_lt εpos) (by norm_num)),
-    exact nat.cast_nonneg n },
+    exacts [inv_nonneg.2 (div_nonneg (le_of_lt εpos) (by norm_num)), n.cast_nonneg] },
   { by_cases hy : y = 0,
     { use 0, simp [hy] },
     { rcases rescale_to_shell hc (half_pos εpos) hy with ⟨d, hd, ydle, leyd, dinv⟩,
@@ -95,7 +93,7 @@ begin
         ... = ∥y∥/2 : by { rw [inv_mul_cancel, one_mul],  simp [norm_eq_zero, hd] }
         ... = (1/2) * ∥y∥ : by ring,
       rw ← dist_eq_norm at J,
-      have 𝕜 : ∥d⁻¹ • x∥ ≤ (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ := calc
+      have K : ∥d⁻¹ • x∥ ≤ (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ := calc
         ∥d⁻¹ • x∥ = ∥d∥⁻¹ * ∥x₁ - x₂∥ : by rw [norm_smul, normed_field.norm_inv]
         ... ≤ ((ε / 2)⁻¹ * ∥c∥ * ∥y∥) * (n + n) : begin
             refine mul_le_mul dinv _ (norm_nonneg _) _,
@@ -104,14 +102,13 @@ begin
               exact inv_nonneg.2 (le_of_lt (half_pos εpos)) }
           end
         ... = (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ : by ring,
-      exact ⟨d⁻¹ • x, J, 𝕜⟩ } },
+      exact ⟨d⁻¹ • x, J, K⟩ } },
 end
 
 variable [complete_space E]
 
 /-- The Banach open mapping theorem: if a bounded linear map between Banach spaces is onto, then
 any point has a preimage with controlled norm. -/
-@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem exists_preimage_norm_le (surj : surjective f) :
   ∃C > 0, ∀y, ∃x, f x = y ∧ ∥x∥ ≤ C * ∥y∥ :=
 begin
@@ -132,7 +129,7 @@ begin
   have hnle : ∀n:ℕ, ∥(h^[n]) y∥ ≤ (1/2)^n * ∥y∥,
   { assume n,
     induction n with n IH,
-    { simp only [one_div_eq_inv, nat.nat_zero_eq_zero, one_mul, iterate_zero_apply,
+    { simp only [one_div, nat.nat_zero_eq_zero, one_mul, iterate_zero_apply,
         pow_zero] },
     { rw [iterate_succ'],
       apply le_trans (hle _) _,
@@ -159,7 +156,7 @@ begin
     ... = 2 * C * ∥y∥ + 0 : by rw [add_zero, mul_assoc]
     ... ≤ 2 * C * ∥y∥ + ∥y∥ : add_le_add (le_refl _) (norm_nonneg _)
     ... = (2 * C + 1) * ∥y∥ : by ring,
-  have fsumeq : ∀n:ℕ, f(∑ i in finset.range n, u i) = y - (h^[n]) y,
+  have fsumeq : ∀n:ℕ, f (∑ i in finset.range n, u i) = y - (h^[n]) y,
   { assume n,
     induction n with n IH,
     { simp [f.map_zero] },
@@ -210,6 +207,7 @@ end
 namespace linear_equiv
 
 /-- If a bounded linear map is a bijection, then its inverse is also a bounded linear map. -/
+@[continuity]
 theorem continuous_symm (e : E ≃ₗ[𝕜] F) (h : continuous e) :
   continuous e.symm :=
 begin

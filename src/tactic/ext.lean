@@ -43,7 +43,7 @@ do e ← get_env,
    d ← get_decl n,
    n ← resolve_constant n,
    let r := @expr.const tt n $ d.univ_params.map level.param,
-   (args,_) ← infer_type r >>= mk_local_pis,
+   (args,_) ← infer_type r >>= open_pis,
    let args := args.map expr.to_implicit_local_const,
    let t := r.mk_app args,
    x ← mk_local_def `x t,
@@ -360,17 +360,24 @@ end plift
 -- as they become useful.
 attribute [ext] has_zero
 
+@[ext] lemma unit.ext {x y : unit} : x = y := by { cases x, cases y, refl, }
+@[ext] lemma punit.ext {x y : punit} : x = y := by { cases x, cases y, refl, }
+
 namespace tactic
 
-meta def try_intros : ext_patt → tactic ext_patt
-| [] := try intros $> []
+/-- Try to introduce as many arguments as possible, using the given patterns to destruct the
+  introduced variables. Returns the unused patterns. -/
+meta def try_intros : list rcases_patt → tactic (list rcases_patt)
+| []      := try intros $> []
 | (x::xs) :=
 do tgt ← target >>= whnf,
    if tgt.is_pi
      then rintro [x] >> try_intros xs
      else pure (x :: xs)
 
-meta def ext1 (xs : ext_patt) (cfg : apply_cfg := {}) : tactic ext_patt :=
+/-- Apply one extensionality lemma, and destruct the arguments using the given patterns.
+  Returns the unused patterns. -/
+meta def ext1 (xs : list rcases_patt) (cfg : apply_cfg := {}) : tactic (list rcases_patt) :=
 do subject ← target >>= get_ext_subject,
    m ← get_ext_lemmas,
    do { rule ← m.find subject,
@@ -380,11 +387,11 @@ do subject ← target >>= get_ext_subject,
      fail format!"no applicable extensionality rule found for {subject}",
    try_intros xs
 
-meta def ext : ext_patt → option ℕ → tactic unit
-| _  (some 0) := skip
-| xs n        := focus1 $ do
-  ys ← ext1 xs, try (ext ys (nat.pred <$> n))
-
+/-- Apply multiple extensionality lemmas, destructing the arguments using the given patterns.
+  `ext ps (some n)` applies at most `n` extensionality lemmas. Returns the unused patterns. -/
+meta def ext : list rcases_patt → option ℕ → tactic (list rcases_patt)
+| xs (some 0) := return xs
+| xs n        := focus1 $ do ys ← ext1 xs, (ext ys (nat.pred <$> n) <|> return ys)
 
 local postfix `?`:9001 := optional
 local postfix *:9001 := many
@@ -395,7 +402,7 @@ local postfix *:9001 := many
 introduced by the lemma. If `id` is omitted, the local constant is
 named automatically, as per `intro`.
 -/
-meta def interactive.ext1 (xs : parse ext_parse) : tactic unit :=
+meta def interactive.ext1 (xs : parse (rcases_patt_parse tt)*) : tactic unit :=
 ext1 xs $> ()
 
 /--
@@ -447,10 +454,11 @@ by applying functional extensionality and destructing the introduced pair.
 
 A maximum depth can be provided with `ext x y z : 3`.
 -/
-meta def interactive.ext : parse ext_parse → parse (tk ":" *> small_nat)? → tactic unit
+meta def interactive.ext :
+  parse (rcases_patt_parse tt)* → parse (tk ":" *> small_nat)? → tactic unit
  | [] (some n) := iterate_range 1 n (ext1 [] $> ())
  | [] none     := repeat1 (ext1 [] $> ())
- | xs n        := tactic.ext xs n
+ | xs n        := tactic.ext xs n $> ()
 
 /--
 * `ext1 id` selects and apply one extensionality lemma (with

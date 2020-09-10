@@ -3,7 +3,9 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
-import tactic.pi_instances algebra.group.pi algebra.ring.basic
+import tactic.pi_instances
+import algebra.group.pi
+import algebra.ring.basic
 
 /-!
 # Pi instances for ring
@@ -27,6 +29,10 @@ instance semiring [∀ i, semiring $ f i] : semiring (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*), .. };
   tactic.pi_instance_derive_field
 
+instance comm_semiring [∀ i, comm_semiring $ f i] : comm_semiring (Π i : I, f i) :=
+by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),  .. };
+  tactic.pi_instance_derive_field
+
 instance ring [∀ i, ring $ f i] : ring (Π i : I, f i) :=
 by refine_struct { zero := (0 : Π i, f i), one := 1, add := (+), mul := (*),
   neg := has_neg.neg, .. }; tactic.pi_instance_derive_field
@@ -46,6 +52,12 @@ protected def ring_hom
   map_mul' := λ x y, funext $ λ z, (f z).map_mul x y,
   map_one' := funext $ λ z, (f z).map_one,
   map_zero' := funext $ λ z, (f z).map_zero }
+
+@[simp] lemma ring_hom_apply
+  {α : Type u} {β : α → Type v} [R : Π a : α, semiring (β a)]
+  {γ : Type w} [semiring γ] (f : Π a : α, γ →+* β a) (g) (a) :
+  pi.ring_hom f g a = f a g :=
+rfl
 
 end pi
 

@@ -434,6 +434,19 @@ lemma fintype.card_le_of_injective [fintype α] [fintype β] (f : α → β)
   (hf : function.injective f) : fintype.card α ≤ fintype.card β :=
 finset.card_le_card_of_inj_on f (λ _ _, finset.mem_univ _) (λ _ _ _ _ h, hf h)
 
+/--
+The pigeonhole principle for finitely many pigeons and pigeonholes.
+-/
+lemma fintype.pigeonhole [fintype α] [fintype β] (f : α → β)
+(h : fintype.card β < fintype.card α) :
+  ∃ x y, x ≠ y ∧ f x = f y :=
+begin
+  classical, by_contra hf,
+  refine nat.lt_le_antisymm h (fintype.card_le_of_injective f _),
+  push_neg at hf, intros x y, contrapose, apply hf,
+end
+
+
 lemma fintype.card_eq_one_iff [fintype α] : fintype.card α = 1 ↔ (∃ x : α, ∀ y, y = x) :=
 by rw [← fintype.card_unit, fintype.card_eq]; exact
 ⟨λ ⟨a⟩, ⟨a.symm (), λ y, a.injective (subsingleton.elim _ _)⟩,
@@ -1057,6 +1070,35 @@ lemma not_injective_infinite_fintype [infinite α] [fintype β] (f : α → β) 
 assume (hf : injective f),
 have H : fintype α := fintype.of_injective f hf,
 infinite.not_fintype H
+
+/--
+The pigeonhole principle for infinitely many pigeons in finitely many pigeonholes.
+-/
+lemma fintype.infinite_pigeonhole [infinite α] [fintype β] (f : α → β) :
+  ∃ x y : α, x ≠ y ∧ f x = f y :=
+begin
+  classical, by_contra h, push_neg at h,
+  apply not_injective_infinite_fintype f,
+  intros x y, contrapose, apply h,
+end
+
+/--
+The strong pigeonhole principle for infinitely many pigeons in finitely many pigeonholes.
+-/
+lemma fintype.strong_infinite_pigeonhole [infinite α] [fintype β] (f : α → β) :
+  ∃ y : β, infinite (f ⁻¹' {y}) :=
+begin
+  classical, by_contra h, push_neg at h,
+  haveI h' : ∀ (y : β), fintype (f ⁻¹' {y}) := begin
+    intro y, specialize h y,
+    rw [←not_nonempty_fintype, not_not] at h,
+    exact classical.choice h,
+  end,
+  let key : fintype α :=
+  { elems := finset.bind univ (λ (y : β), (f ⁻¹' {y}).to_finset),
+    complete := by simp },
+  exact infinite.not_fintype key,
+end
 
 lemma not_surjective_fintype_infinite [fintype α] [infinite β] (f : α → β) :
   ¬ surjective f :=

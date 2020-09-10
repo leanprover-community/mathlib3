@@ -17,7 +17,7 @@ def is_integrally_closed_domain : Prop := ∀ {r s : R}, s ≠ 0 → (∃ (n : �
     ∑ ij in finset.nat.antidiagonal n, f ij.1 * r ^ ij.2 * s ^ ij.1 = 0) → s ∣ r
 
 /-!
-Any nontrivial localization of an integral domain results in an integral domain.
+Any nontrivial localization of an integral domain results in an integral domain
 -/
 
 /-

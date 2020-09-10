@@ -23,7 +23,22 @@ open mv_polynomial
 
 variables (p)
 include hp
+
+def frobenius_poly_rat (n : ℕ) : mv_polynomial ℕ ℚ :=
+bind₁ (witt_polynomial p ℚ ∘ λ n, n + 1) (X_in_terms_of_W p ℚ n)
+
+lemma bind₁_frobenius_poly_rat_witt_polynomial (n : ℕ) :
+  bind₁ (frobenius_poly_rat p) (witt_polynomial p ℚ n) = (witt_polynomial p ℚ (n+1)) :=
+begin
+  delta frobenius_poly_rat,
+  rw [← bind₁_bind₁, X_in_terms_of_W_prop₂, bind₁_X_right],
+end
+
 def frobenius_poly (n : ℕ) : mv_polynomial ℕ ℤ :=
+sorry
+
+lemma map_frobenius_poly (n : ℕ) :
+  mv_polynomial.map (int.cast_ring_hom ℚ) (frobenius_poly p n) = frobenius_poly_rat p n :=
 sorry
 
 variables {p}
@@ -44,7 +59,11 @@ lemma frobenius_is_poly : is_poly p (λ R _Rcr, @frobenius_fun p R _ _Rcr) :=
 
 lemma bind₁_frobenius_poly_witt_polynomial (n : ℕ) :
   bind₁ (frobenius_poly p) (witt_polynomial p ℤ n) = (witt_polynomial p ℤ (n+1)) :=
-sorry
+begin
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
+  simp only [map_bind₁, map_frobenius_poly, bind₁_frobenius_poly_rat_witt_polynomial,
+    map_witt_polynomial],
+end
 
 lemma frobenius_poly_zmod (n : ℕ) :
   mv_polynomial.map (int.cast_ring_hom (zmod p)) (frobenius_poly p n) = X n ^ p :=

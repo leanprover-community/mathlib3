@@ -85,17 +85,6 @@ finsupp.map_range rat.num (rat.coe_int_num 0)
   (witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) n)
 .
 
-omit hp
-
-lemma mv_polynomial.coe_int_rat_map_injective (I : Type*) :
-  function.injective (map (int.cast_ring_hom ℚ) : mv_polynomial I ℤ → mv_polynomial I ℚ) :=
-begin
-  apply map_injective,
-  intros m n,
-  exact int.cast_inj.mp
-end
-.
-
 end p_prime
 
 variables {ι : Type*} {σ : Type*}
@@ -223,7 +212,7 @@ begin
     rw [← ring_hom.map_sum, ← alg_hom.map_sum], },
   apply_fun expand p at key,
 
-  apply mv_polynomial.coe_int_rat_map_injective,
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
 
   calc _ = _ : _
      ... = _ : key
@@ -293,7 +282,7 @@ theorem witt_structure_int_prop (Φ : mv_polynomial idx ℤ) (n) :
   bind₁ (witt_structure_int p Φ) (witt_polynomial p ℤ n) =
   bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℤ n))) Φ :=
 begin
-  apply mv_polynomial.coe_int_rat_map_injective,
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
   have := witt_structure_rat_prop p (map (int.cast_ring_hom ℚ) Φ) n,
   simpa only [map_bind₁, ← eval₂_hom_map_hom, eval₂_hom_C_left, map_rename,
         map_witt_polynomial, alg_hom.coe_to_ring_hom, map_witt_structure_int],
@@ -304,7 +293,7 @@ lemma eq_witt_structure_int (Φ : mv_polynomial idx ℤ) (φ : ℕ → mv_polyno
   φ = witt_structure_int p Φ :=
 begin
   funext k,
-    apply mv_polynomial.coe_int_rat_map_injective,
+    apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
     rw map_witt_structure_int,
     refine congr_fun _ k,
     have := (witt_structure_prop_exists_unique p (map (int.cast_ring_hom ℚ) Φ)),
@@ -410,7 +399,7 @@ section witt_structure_simplifications
 
 @[simp] lemma witt_zero_eq_zero (n : ℕ) : witt_zero p n = 0 :=
 begin
-  apply mv_polynomial.coe_int_rat_map_injective,
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
   simp only [witt_zero, witt_structure_rat, bind₁, aeval_zero',
     constant_coeff_X_in_terms_of_W, ring_hom.map_zero,
     alg_hom.map_zero, map_witt_structure_int],
@@ -418,14 +407,14 @@ end
 
 @[simp] lemma witt_one_zero_eq_one : witt_one p 0 = 1 :=
 begin
-  apply mv_polynomial.coe_int_rat_map_injective,
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
   simp only [witt_one, witt_structure_rat, X_in_terms_of_W_zero, alg_hom.map_one,
     ring_hom.map_one, bind₁_X_right, map_witt_structure_int]
 end
 
 @[simp] lemma witt_one_pos_eq_zero (n : ℕ) (hn : 0 < n) : witt_one p n = 0 :=
 begin
-  apply mv_polynomial.coe_int_rat_map_injective,
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
   simp only [witt_one, witt_structure_rat, ring_hom.map_zero, alg_hom.map_one,
     ring_hom.map_one, map_witt_structure_int],
   revert hn, apply nat.strong_induction_on n, clear n,
@@ -444,7 +433,7 @@ end
 
 @[simp] lemma witt_add_zero : witt_add p 0 = X (tt,0) + X (ff,0) :=
 begin
-  apply mv_polynomial.coe_int_rat_map_injective,
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
   simp only [witt_add, witt_structure_rat, alg_hom.map_add, ring_hom.map_add,
     rename_X, X_in_terms_of_W_zero, map_X,
      witt_polynomial_zero, bind₁_X_right, map_witt_structure_int],
@@ -452,7 +441,7 @@ end
 
 @[simp] lemma witt_sub_zero : witt_sub p 0 = X (tt,0) - X (ff,0) :=
 begin
-  apply mv_polynomial.coe_int_rat_map_injective,
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
   simp only [witt_sub, witt_structure_rat, alg_hom.map_sub, ring_hom.map_sub,
     rename_X, X_in_terms_of_W_zero, map_X,
      witt_polynomial_zero, bind₁_X_right, map_witt_structure_int],
@@ -460,7 +449,7 @@ end
 
 @[simp] lemma witt_mul_zero : witt_mul p 0 = X (tt,0) * X (ff,0) :=
 begin
-  apply mv_polynomial.coe_int_rat_map_injective,
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
   simp only [witt_mul, witt_structure_rat, rename_X, X_in_terms_of_W_zero, map_X,
     witt_polynomial_zero, ring_hom.map_mul,
     bind₁_X_right, alg_hom.map_mul, map_witt_structure_int]
@@ -469,7 +458,7 @@ end
 
 @[simp] lemma witt_neg_zero : witt_neg p 0 = - X ((),0) :=
 begin
-  apply mv_polynomial.coe_int_rat_map_injective,
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
   simp only [witt_neg, witt_structure_rat, rename_X, X_in_terms_of_W_zero, map_X,
     witt_polynomial_zero, ring_hom.map_neg,
    alg_hom.map_neg, bind₁_X_right, map_witt_structure_int]

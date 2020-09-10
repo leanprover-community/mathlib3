@@ -53,8 +53,9 @@ open polynomial
 lemma card_image_polynomial_eval [decidable_eq R] [fintype R] {p : polynomial R} (hp : 0 < p.degree) :
   fintype.card R ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
 finset.card_le_mul_card_image _ _
-  (λ a _, calc _ = (p - C a).roots.card : congr_arg card
-    (by simp [finset.ext_iff, mem_roots_sub_C hp, -sub_eq_add_neg])
+  (λ a _, calc _ = (p - C a).roots.to_finset.card : congr_arg card
+    (by simp [finset.ext_iff, mem_roots_sub_C hp])
+    ... ≤ (p - C a).roots.card : multiset.to_finset_card_le _
     ... ≤ _ : card_roots_sub_C' hp)
 
 /-- If `f` and `g` are quadratic polynomials, then the `f.eval a + g.eval b = 0` has a solution. -/

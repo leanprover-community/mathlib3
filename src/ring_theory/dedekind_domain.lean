@@ -72,7 +72,12 @@ variables {M : ideal R} [is_maximal M]
 
 /-
 From Kevin:
-so the first thing you should do is prove submodule.le_div_iff_mul_le
+
+lemma le_div_iff_mul_le {I J K : submodule R A} : I ≤ J / K ↔ I * K ≤ J :=
+begin
+  rw le_div_iff,
+  rw mul_le,
+end
 -/
 
 
@@ -101,7 +106,7 @@ have h_MinMM1 : ↑M ≤ ↑M*M1,sorry,
 have hprod : ↑M*M1=(1: fractional_ideal f),
 suffices hincl: ↑M*M1≤ 1, --first we start with the proof that hincl → hprod
   have h_nonfrac : ∃ (I : ideal R), ↑M*M1=↑I,
-  cases is_fractional f M1.2 with a ha,
+  -- cases is_fractional f M1.2 with a ha,
   -- let setI := (↑ M : fractional_ideal f).val * (M1.val),
   sorry,--this sorry replaces a proof that ↑ M*M1=↑ I and
                                                     --should follow from hincl, checking coercion
@@ -117,8 +122,7 @@ suffices hincl: ↑M*M1≤ 1, --first we start with the proof that hincl → hpr
       apply fractional_ideal.le_iff.mp h_Iincl_f,exact hy,
       have hxyI : ∃ (x' ∈ I), f.to_map x' = y,
       apply fractional_ideal.mem_coe.mp hyI,
-      cases hxyI with a h1a,
-      cases h1a with ha hfa,--rcases?
+      rcases hxyI with ⟨a, ⟨ha, hfa⟩⟩,
       have hax : a=x,
         suffices haxf : f.to_map a=f.to_map x,apply fraction_map.injective f haxf,rw hfa,
       subst hax,exact ha,

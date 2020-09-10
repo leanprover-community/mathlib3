@@ -959,7 +959,31 @@ lemma map_smul (x : f.codomain) (z : R) :
 show f.map hy k (f.to_map z * x) = k.to_map (g z) * f.map hy k x,
 by rw [ring_hom.map_mul, map_eq]
 
+end localization_map
+
+namespace localization
+
+variables (f : localization_map M S)
+
+/-- Given a localization map `f : R →+* S` for a submonoid `M`, we get an `R`-preserving
+isomorphism between the localization of `R` at `M` as a quotient type and `S`. -/
+noncomputable def alg_equiv_of_quotient : localization M ≃ₐ[R] f.codomain :=
+{ commutes' := ring_equiv_of_quotient_of,
+  ..ring_equiv_of_quotient f }
+
+lemma alg_equiv_of_quotient_apply (x : localization M) :
+alg_equiv_of_quotient f x = ring_equiv_of_quotient f x := rfl
+
+lemma alg_equiv_of_quotient_symm_apply (x : f.codomain) :
+  (alg_equiv_of_quotient f).symm x = (ring_equiv_of_quotient f).symm x := rfl
+
+end localization
+
+namespace localization_map
+
 section integer_normalization
+
+variables {f : localization_map M S}
 
 open finsupp polynomial
 open_locale classical
@@ -1424,12 +1448,12 @@ variables (A)
 /-- The fraction field of an integral domain as a quotient type. -/
 @[reducible] def fraction_ring := localization (non_zero_divisors A)
 
+namespace fraction_ring
+
 /-- Natural hom sending `x : A`, `A` an integral domain, to the equivalence class of
 `(x, 1)` in the field of fractions of `A`. -/
 def of : fraction_map A (localization (non_zero_divisors A)) :=
 localization.of (non_zero_divisors A)
-
-namespace fraction_ring
 
 variables {A}
 
@@ -1441,10 +1465,10 @@ noncomputable instance : field (fraction_ring A) :=
 by erw [localization.mk_eq_mk', (of A).mk'_eq_div]
 
 /-- Given an integral domain `A` and a localization map to a field of fractions
-`f : A →+* K`, we get an isomorphism between the field of fractions of `A` as a quotient
+`f : A →+* K`, we get an `A`-isomorphism between the field of fractions of `A` as a quotient
 type and `K`. -/
-noncomputable def field_equiv_of_quotient {K : Type*} [field K] (f : fraction_map A K) :
-  fraction_ring A ≃+* K :=
-localization.ring_equiv_of_quotient f
+noncomputable def alg_equiv_of_quotient {K : Type*} [field K] (f : fraction_map A K) :
+  fraction_ring A ≃ₐ[A] f.codomain :=
+localization.alg_equiv_of_quotient f
 
 end fraction_ring

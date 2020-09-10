@@ -635,4 +635,19 @@ mt pow_eq_zero h
 
 end pow
 
+section abs
+
+@[simp] lemma abs_eq (x : ℝ≥0) : abs (x : ℝ) = x :=
+abs_of_nonneg x.property
+
+@[simp] lemma norm_eq (x : ℝ≥0) : ∥(x : ℝ)∥ = x :=
+by rw [real.norm_eq_abs, x.abs_eq]
+
+protected def abs : ℝ → ℝ≥0 := λ x, ⟨abs x, abs_nonneg x⟩
+
+@[norm_cast, simp] lemma coe_abs (x : ℝ) : (nnreal.abs x : ℝ) = abs x :=
+by simp [nnreal.abs]
+
+end abs
+
 end nnreal

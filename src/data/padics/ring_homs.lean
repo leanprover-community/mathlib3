@@ -305,8 +305,7 @@ begin
   { simp only [appr, succ_pos', nat.pow_zero], },
   simp only [appr, ring_hom.map_nat_cast, zmod.cast_self, ring_hom.map_pow, int.nat_abs, ring_hom.map_mul],
   have hp : p ^ n < p ^ (n + 1),
-  { simp [← nat.pow_eq_pow],
-    apply pow_lt_pow hp_prime.one_lt (lt_add_one n) },
+  { apply pow_lt_pow hp_prime.one_lt (lt_add_one n) },
   split_ifs with h,
   { apply lt_trans (ih _) hp, },
   { calc _ < p ^ n + p ^ n * (p - 1) : _

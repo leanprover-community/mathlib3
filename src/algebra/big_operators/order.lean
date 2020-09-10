@@ -310,6 +310,44 @@ open opposite
 
 end with_top
 
+namespace finset
+
+/--
+The strong pigeonhole principle for finitely many pigeons and pigeonholes.
+-/
+lemma strong_pigeonhole {s : finset α} {t : finset β} (hne : t.nonempty) [decidable_eq β]
+  (f : α → β) (hf : ∀ a ∈ s, f a ∈ t)
+  (n : ℕ) (hn : t.card * n ≤ s.card) :
+  ∃ y ∈ t, n ≤ (s.filter (λ x, f x = y)).card :=
+begin
+  classical, by_contra hz, push_neg at hz,
+  suffices h : s.card < t.card * n,
+  have h' := lt_of_lt_of_le h hn,
+  exact nat.lt_asymm h' h',
+
+  have key : ∀ y ∈ t, (s.filter (λ x, f x = y)).card ≠ 0 → y ∈ s.image f,
+  { intros y _,
+    rw [mem_image, ←zero_lt_iff_ne_zero, card_pos],
+    rintro ⟨x, hne⟩,
+    use x, exact mem_filter.mp hne, },
+
+  have key' : ∀ y, y ∈ image f s ↔ y ∈ t ∧ y ∈ image f s,
+  { intro y, split,
+    intro h, rcases mem_image.mp h with ⟨y, yel, rfl⟩, use [hf _ yel, h],
+    rintro ⟨_, h⟩, exact h, },
+
+  calc s.card = ∑ y in s.image f, (s.filter (λ x, f x = y)).card :
+    by apply card_eq_sum_card_image
+          ... = ∑ y in t, (s.filter (λ x, f x = y)).card :
+    by { rw ←sum_filter_of_ne key, congr, ext, rw mem_filter, apply key', }
+          ... < ∑ y in t, n :
+    by { convert sum_lt_sum_of_nonempty hne hz, simp, }
+          ... = t.card * n :
+    by { simp only [nat.cast_id, nsmul_eq_mul, sum_const] },
+end
+
+end finset
+
 namespace fintype
 open finset
 
@@ -320,26 +358,8 @@ lemma strong_pigeonhole [fintype α] [fintype β] [nonempty β] [decidable_eq β
   (n : ℕ) (hn : fintype.card β * n ≤ fintype.card α) :
   ∃ y : β, n ≤ (univ.filter (λ x, f x = y)).card :=
 begin
-  classical, by_contra hf, push_neg at hf,
-  suffices h : card α < card β * n,
-  have h' := lt_of_lt_of_le h hn,
-  exact nat.lt_asymm h' h',
-
-  have key : ∀ y ∈ (univ : finset β), (univ.filter (λ x, f x = y)).card ≠ 0 → y ∈ (univ : finset α).image f,
-  { intros y _,
-    rw [mem_image, ←zero_lt_iff_ne_zero, card_pos],
-    rintro ⟨x, hne⟩,
-    use x,
-    exact mem_filter.mp hne, },
-
-  calc card α = ∑ y in univ.image f, (univ.filter (λ x, f x = y)).card :
-    by apply card_eq_sum_card_image
-          ... = ∑ y, (univ.filter (λ x, f x = y)).card :
-    by { rw ←sum_filter_of_ne key, congr, ext, simp }
-          ... < ∑ y in (univ : finset β), n :
-    by { convert sum_lt_sum_of_nonempty univ_nonempty (λ y _, hf y), simp }
-          ... = card β * n :
-    by { simp only [nat.cast_id, nsmul_eq_mul, sum_const], refl },
+  obtain ⟨y, _, h⟩ := @strong_pigeonhole _ _ univ univ univ_nonempty _ f (by simp) n hn,
+  exact ⟨y, h⟩,
 end
 
 end fintype

@@ -1679,6 +1679,18 @@ begin
       assume x hx, match x, finset.mem_image.1 hx with _, ⟨a, ha, rfl⟩ := hf a ha end
 end
 
+/--
+The pigeonhole principle for finitely many pigeons in finitely many holes.
+-/
+lemma pigeonhole {s : finset α} {t : finset β} (hc : t.card < s.card)
+  (f : α → β) (hf : ∀ a ∈ s, f a ∈ t) :
+  ∃ (x ∈ s) (y ∈ s), x ≠ y ∧ f x = f y :=
+begin
+  classical, by_contra hz, push_neg at hz,
+  refine nat.lt_le_antisymm hc (card_le_card_of_inj_on f hf _),
+  intros x hx y hy, contrapose, exact hz x hx y hy,
+end
+
 lemma card_le_of_inj_on {n} {s : finset α}
   (f : ℕ → α) (hf : ∀i<n, f i ∈ s) (f_inj : ∀i j, i<n → j<n → f i = f j → i = j) : n ≤ card s :=
 calc n = card (range n) : (card_range n).symm

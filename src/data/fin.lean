@@ -505,7 +505,7 @@ end
 
 /-- Embedding `i : fin n` into `fin (n + 1)` using a pivot `p` that is lesser
 results in a value that is greater than `p`. -/
-@[simp] lemma lt_succ_above_iff (p : fin (n + 1)) (i : fin n) : p < p.succ_above i ↔ p ≤ i.cast_succ :=
+lemma lt_succ_above_iff (p : fin (n + 1)) (i : fin n) : p < p.succ_above i ↔ p ≤ i.cast_succ :=
 begin
   refine iff.intro _ _,
   { intro h,
@@ -515,7 +515,7 @@ begin
     { exact H } },
   { intro h,
     rw succ_above_above _ _ h,
-    exact lt_of_le_of_lt h (cast_succ_lt_succ i) }
+    exact lt_of_le_of_lt h (cast_succ_lt_succ i) },
 end
 
 /-- Embedding `i : fin n` into `fin (n + 1)` with a hole around `p : fin (n + 1)`
@@ -583,7 +583,7 @@ begin
   { simp [succ_above_below _ _ H, H] },
   { cases succ_above_lt_gt p i with h h,
     { exact absurd h H },
-    { simp [succ_above_above _ _ (le_of_not_lt H), pred_succ, dif_neg (asymm h)] } }
+    { simp [succ_above_above _ _ (le_of_not_lt H), dif_neg H] } }
 end
 
 /-- `succ_above` is injective at the pivot -/

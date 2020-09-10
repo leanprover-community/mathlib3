@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Adam Topaz.
+Author: Scott Morrison, Adam Topaz.
 -/
 
 import ring_theory.algebra
@@ -28,6 +28,7 @@ Given a commutative semiring `R`, and a type `X`, we construct the free `R`-alge
 3. `hom_ext` is a variant of `lift_unique` in the form of an extensionality theorem.
 4. `lift_comp_ι` is a combination of `ι_comp_lift` and `lift_unique`. It states that the lift
   of the composition of an algebra morphism with `ι` is the algebra morphism itself.
+5. `equiv_monoid_algebra_free_monoid : free_algebra R X ≃ₐ[R] monoid_algebra R (free_monoid X)`
 
 ## Implementation details
 

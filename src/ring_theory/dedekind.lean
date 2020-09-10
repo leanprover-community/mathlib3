@@ -1,7 +1,4 @@
-import ring_theory.fractional_ideal
-import ring_theory.discrete_valuation_ring
-import linear_algebra.basic
-import order.zorn
+import ring_theory.dedekind_domain
 universes u v
 
 variables (R : Type u) [comm_ring R] {A : Type v} [comm_ring A]

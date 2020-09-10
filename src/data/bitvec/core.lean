@@ -11,6 +11,8 @@ import data.nat.basic
 # Basic operations on bitvectors
 
 This is a work-in-progress, and contains additions to other theories.
+
+This file was moved to mathlib from core Lean in the switch to Lean 3.20.0c. It is not fully in compliance with mathlib style standards.
 -/
 
 /-- `bitvec n` is a `vector` of `bool` with length `n`. -/

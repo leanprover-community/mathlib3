@@ -1,3 +1,4 @@
+import field_theory.adjoin
 import field_theory.separable
 import field_theory.splitting_field
 import linear_algebra.finite_dimensional
@@ -6,17 +7,70 @@ import ring_theory.adjoin
 open finite_dimensional
 open polynomial
 
+namespace intermediate_field
+variables {K L : Type*} [field K] [field L] [algebra K L]
+
+protected lemma gc : galois_connection (field.adjoin K : set L → intermediate_field K L) coe :=
+λ s S, ⟨λ H, le_trans (field.subset_adjoin _ _) H,
+λ H, field.adjoin_subset_subfield _ _ (range_le _) H⟩
+
+protected def gi : galois_insertion (field.adjoin K : set L → intermediate_field K L) coe :=
+{ choice := λ s hs, field.adjoin K s,
+  gc := intermediate_field.gc,
+  le_l_u := λ S, (intermediate_field.gc (S : set L) (field.adjoin K S)).1 $ le_refl _,
+  choice_eq := λ _ _, rfl }
+
+instance : complete_lattice (intermediate_field K L) :=
+galois_insertion.lift_complete_lattice intermediate_field.gi
+
+lemma mem_top (x : L) : x ∈ (⊤ : intermediate_field K L) :=
+field.subset_adjoin _ _ trivial
+
+lemma mem_bot {x : L} : x ∈ (⊥ : intermediate_field K L) ↔ x ∈ set.range (algebra_map K L) :=
+begin
+  refine ⟨_, λ hx, intermediate_field.range_le ⊥ hx⟩,
+  rintros ⟨y, hy, z, hz, rfl⟩,
+  have : ring.closure (set.range (algebra_map K L) ∪ ⊥) = set.range (algebra_map K L),
+  { rw [set.bot_eq_empty, set.union_empty],
+    refine le_antisymm _ ring.subset_closure,
+    apply ring.closure_subset,
+    refl },
+  simp only [set.mem_range, this] at hy hz ⊢,
+  obtain ⟨y, rfl⟩ := hy,
+  obtain ⟨z, rfl⟩ := hz,
+  exact ⟨y / z, ring_hom.map_div _ _ _⟩,
+end
+
+lemma fg_of_noetherian (F : intermediate_field K L)
+  [is_noetherian K L] : ∃ (t : finset L), F = field.adjoin K ↑t :=
+begin
+  obtain ⟨t, ht⟩ := subalgebra.fg_of_noetherian (F : subalgebra K L),
+  use t,
+  apply intermediate_field.coe_subalgebra_injective,
+  rw ← ht,
+  have subf : is_subfield ((algebra.adjoin K (↑t : set L)) : set L),
+  { rw ht, exact intermediate_field.is_subfield F },
+  apply le_antisymm,
+  { apply subsemiring.closure_le.mpr,
+    apply set.union_subset (intermediate_field.range_le (field.adjoin K ↑t)),
+    apply field.subset_adjoin },
+  { refine @field.adjoin_subset_subfield _ _ _ _ _ _ _ subf (subalgebra.range_subset _) _,
+    exact algebra.subset_adjoin },
+end
+
+end intermediate_field
+
 /-- A computable specialization of `finsupp.emb_domain` from `fin i` to `ℕ`. -/
 def finsupp.emb_fin_nat {M : Type*} [has_zero M] {i : ℕ} (f : fin i →₀ M) : ℕ →₀ M :=
 { to_fun := λ n, if h : n < i then f ⟨n, h⟩ else 0,
-  support := f.support.map ⟨fin.val, fin.val_injective⟩,
+  support := f.support.map ⟨subtype.val, subtype.val_injective⟩,
   mem_support_to_fun := λ n, finset.mem_map.trans begin
     simp only [function.embedding.coe_fn_mk],
     split_ifs with h,
     { refine iff.trans _ finsupp.mem_support_iff,
       split,
       { rintros ⟨n', n'_mem, rfl⟩,
-        rw fin.eta,
+        rw subtype.eta,
         exact n'_mem },
       { intro n_mem,
         exact ⟨⟨n, h⟩, n_mem, rfl⟩ } },
@@ -29,7 +83,7 @@ def finsupp.emb_fin_nat {M : Type*} [has_zero M] {i : ℕ} (f : fin i →₀ M) 
   f.emb_fin_nat n = if h : n < i then f ⟨n, h⟩ else 0 := rfl
 
 @[simp] lemma finsupp.emb_fin_nat_support {M : Type*} [has_zero M] {i : ℕ} (f : fin i →₀ M) :
-  f.emb_fin_nat.support = f.support.map ⟨fin.val, fin.val_injective⟩ := rfl
+  f.emb_fin_nat.support = f.support.map ⟨subtype.val, subtype.val_injective⟩ := rfl
 
 @[simp] lemma finsupp.emb_fin_nat_sum {M N : Type*} [has_zero M] [add_comm_monoid N]
   {i : ℕ} (f : fin i →₀ M) (g : ℕ → M → N) :
@@ -40,7 +94,7 @@ begin
   congr,
   rw finsupp.emb_fin_nat_apply,
   split_ifs with h,
-  { rw fin.eta },
+  { rw subtype.eta },
   { exfalso,
     exact h j.2 }
 end
@@ -59,7 +113,7 @@ end
 
 namespace polynomial
 
-lemma degree_emb_fin_nat_lt {R : Type*} [semiring R] {i : ℕ} (f : fin i →₀ R) :
+lemma degree_emb_fin_nat_lt {K : Type*} [semiring K] {i : ℕ} (f : fin i →₀ K) :
   degree (f.emb_fin_nat) < i :=
 begin
   by_cases hf : f.emb_fin_nat = 0,
@@ -69,95 +123,130 @@ begin
   exact lt_of_not_ge (λ h, hf (leading_coeff_eq_zero.mp (dif_neg (not_lt_of_ge h))))
 end
 
-lemma eval₂_mod_by_monic_eq_self_of_root {R S : Type*} [comm_ring R] [comm_ring S] {f : R →+* S}
-  {p q : polynomial R} (hq : q.monic) {x : S} (hx : q.eval₂ f x = 0) :
+lemma eval₂_mod_by_monic_eq_self_of_root {K L : Type*} [comm_ring K] [comm_ring L] {f : K →+* L}
+  {p q : polynomial K} (hq : q.monic) {x : L} (hx : q.eval₂ f x = 0) :
     (p %ₘ q).eval₂ f x = p.eval₂ f x :=
 by rw [mod_by_monic_eq_sub_mul_div p hq, eval₂_sub, eval₂_mul, hx, zero_mul, sub_zero]
 
 end polynomial
 
-variables (R S : Type*) [comm_ring R] [comm_semiring S] [algebra R S]
 variables (K L : Type*) [field K] [field L] [algebra K L]
 
-/- A ring extension `S / R` is a simple extension if `S = R(x)` for some `x : S`. -/
+/-- A field extension `L / K` is a simple extension if `L = K(x)` for some `x : K`. -/
 @[class] def is_simple_extension : Prop :=
-∃ x : S, (algebra.adjoin R {x} : subalgebra R S) = ⊤
+∃ x : L, (field.adjoin K {x} : intermediate_field K L) = ⊤
+
+variables {K L}
+
+lemma field.mk_intermediate_field_mem_adjoin {S : intermediate_field K L} {t : set S}
+  {y : L} {hys : y ∈ S} :
+  (⟨y, hys⟩ : S) ∈ field.adjoin K t ↔ y ∈ field.adjoin K (intermediate_field.val _ '' t) :=
+begin
+  rw ← field.adjoin_map,
+  split,
+  { intros hyt,
+    exact ⟨⟨y, hys⟩, hyt, rfl⟩ },
+  { rintros ⟨⟨y, _⟩, hyt, rfl⟩,
+    exact hyt }
+end
+
+lemma field.mem_adjoin_adjoin {s : set L} {t : set (field.adjoin K s)}
+  {y : L} {hys : y ∈ field.adjoin K s} :
+  (⟨y, hys⟩ : field.adjoin K s) ∈ field.adjoin K t ↔
+    y ∈ field.adjoin K (intermediate_field.val _ '' t) :=
+field.mk_intermediate_field_mem_adjoin
+
+lemma is_simple_intermediate_field_iff {A : intermediate_field K L} :
+  is_simple_extension K A ↔ ∃ x ∈ A, field.adjoin K {x} = A :=
+⟨λ ⟨⟨x, mem⟩, hx⟩, ⟨x, mem, le_antisymm
+  (field.adjoin_subset_subfield _ _ (intermediate_field.range_le _) (set.singleton_subset_iff.mpr mem))
+  (λ y hy, begin
+    have := intermediate_field.mem_top (subtype.mk y hy),
+    rwa [← hx, field.mk_intermediate_field_mem_adjoin, set.image_singleton,
+        intermediate_field.val_mk, set.singleton_def, insert_emptyc_eq] at this
+  end)⟩,
+ λ ⟨x, mem, hx⟩, ⟨⟨x, mem⟩, eq_top_iff.mpr (λ ⟨y, hy⟩ _, begin
+     simpa [field.mk_intermediate_field_mem_adjoin, ← hx] using hy,
+   end)⟩⟩
+
+instance field.adjoin_singleton_is_simple_extension (x : L) :
+  is_simple_extension K K⟮x⟯ :=
+is_simple_intermediate_field_iff.mpr ⟨x, field.subset_adjoin _ _ (set.mem_insert _ _),
+  by { rw set.singleton_def, refl }⟩
 
 namespace is_simple_extension
 
-variables {R S}
+variables (K L)
 
-lemma iff_exists_eq_aeval :
-  is_simple_extension R S ↔ ∃ x : S, ∀ y : S, ∃ f : polynomial R, aeval x f = y :=
-by simpa only [is_simple_extension, algebra.adjoin_singleton_eq_range, subalgebra.ext_iff,
-               algebra.mem_top, iff_true] using iff.rfl
-
-variables (R S)
-
-/- A primitive element for `S / R` is an `x : S` such that `L = K(x)`. -/
-noncomputable def primitive_element [simple : is_simple_extension R S] : S :=
+/- A primitive element for `L / K` is an `x : L` such that `L = K(x)`. -/
+noncomputable def primitive_element [simple : is_simple_extension K L] : L :=
 classical.some simple
 
-/- Adjoining the primitive element of `S` to `R` gives `S`. -/
-lemma adjoin_primitive_element [simple : is_simple_extension R S] :
-  (algebra.adjoin R {primitive_element R S} : subalgebra R S) = ⊤ :=
+/- Adjoining the primitive element of `L` to `K` gives `L`. -/
+lemma adjoin_primitive_element [simple : is_simple_extension K L] :
+  (field.adjoin K {primitive_element K L} : intermediate_field K L) = ⊤ :=
 classical.some_spec simple
 
-lemma mem_adjoin_primitive_element [is_simple_extension R S] (x : S) :
-  x ∈ (algebra.adjoin R {primitive_element R S} : subalgebra R S) :=
-(adjoin_primitive_element R S).symm ▸ algebra.mem_top
+lemma mem_adjoin_primitive_element [is_simple_extension K L] (x : L) :
+  x ∈ (field.adjoin K {primitive_element K L} : intermediate_field K L) :=
+(adjoin_primitive_element K L).symm ▸ intermediate_field.mem_top _
 
-lemma adjoin_primitive_element_submodule [simple : is_simple_extension R S] :
-  ((algebra.adjoin R {primitive_element R S} : subalgebra R S) : submodule R S) = ⊤ :=
+lemma adjoin_primitive_element_submodule [simple : is_simple_extension K L] :
+  ((field.adjoin K {primitive_element K L} : intermediate_field K L) : submodule K L) = ⊤ :=
 by { ext, simp [mem_adjoin_primitive_element] }
 
-lemma exists_eq_aeval_primitive_element (x : S) [is_simple_extension R S] :
-  ∃ f : polynomial R, x = aeval (primitive_element R S) f :=
+lemma exists_eq_aeval_primitive_element (x : L) [is_simple_extension K L]
+  (alg : algebra.is_algebraic K L) :
+  ∃ f : polynomial K, x = aeval (primitive_element K L) f :=
 begin
-  obtain ⟨f, hf⟩ : x ∈ (aeval (primitive_element R S)).range :=
-    by simpa [algebra.adjoin_singleton_eq_range] using mem_adjoin_primitive_element R S x,
-  exact ⟨f, hf.symm⟩
+  have := mem_adjoin_primitive_element K L x,
+  refine field.adjoin_induction _ (mem_adjoin_primitive_element K L x) _ _ _ _ _ _,
+  { intros x hx,
+    rw set.mem_singleton_iff.mp hx,
+    exact ⟨X, (aeval_X _).symm⟩ },
+  { intros x,
+    exact ⟨C x, (aeval_C _ _).symm⟩ },
+  { rintros x y ⟨fx, rfl⟩ ⟨fy, rfl⟩,
+    exact ⟨fx + fy, (ring_hom.map_add _ _ _).symm⟩ },
+  { rintros x ⟨fx, rfl⟩,
+    exact ⟨-fx, (ring_hom.map_neg _ _).symm⟩ },
+  { rintros x ⟨fx, x_eq⟩,
+    by_cases hx0 : x = 0,
+    { rw [hx0, inv_zero],
+      exact ⟨0, (ring_hom.map_zero _).symm⟩ },
+    have hx : is_integral K x := ((is_algebraic_iff_is_integral _).mp (alg x)),
+    rw inv_eq_of_root_of_coeff_zero_ne_zero
+      (minimal_polynomial.aeval hx) (minimal_polynomial.coeff_zero_ne_zero hx hx0),
+    use - (C ((minimal_polynomial hx).coeff 0)⁻¹) * (minimal_polynomial hx).div_X.comp fx,
+    rw aeval_def at x_eq,
+    rw [div_eq_inv_mul, alg_hom.map_mul, alg_hom.map_neg, aeval_C, neg_mul_eq_neg_mul,
+        ring_hom.map_inv, aeval_def, aeval_def, eval₂_comp, ← x_eq] },
+  { rintros x y ⟨fx, rfl⟩ ⟨fy, rfl⟩,
+    exact ⟨fx * fy, (ring_hom.map_mul _ _ _).symm⟩ },
 end
 
-@[simp] lemma coe_aeval {S} [comm_ring S] [algebra R S] (A : subalgebra R S) (f : polynomial R) (y : A) :
-  (aeval y f : S) = aeval (y : S) f :=
+@[simp] lemma coe_aeval (A : subalgebra K L) (f : polynomial K) (y : A) :
+  (aeval y f : L) = aeval (y : L) f :=
 alg_hom_eval₂_algebra_map f A.val y
 
-lemma is_simple_subalgebra_iff {S} [comm_ring S] [algebra R S] (A : subalgebra R S) :
-  is_simple_extension R A ↔ ∃ x ∈ A, algebra.adjoin R {x} = A :=
-⟨λ ⟨⟨x, mem⟩, hx⟩, ⟨x, mem, le_antisymm
-  (algebra.adjoin_le (set.singleton_subset_iff.mpr mem))
-  (λ y hy, begin
-    have : subtype.mk y hy ∈ (⊤ : subalgebra R A) := algebra.mem_top,
-    rw ← hx at this,
-    rw algebra.adjoin_singleton_eq_range at this ⊢,
-    obtain ⟨f, hf⟩ := this,
-    use f,
-    rw [subtype.ext_iff, subtype.coe_mk, coe_aeval] at hf,
-    exact hf
-  end)⟩,
- λ ⟨x, mem, hx⟩, ⟨⟨x, mem⟩, eq_top_iff.mpr (λ ⟨y, (hy : y ∈ A)⟩ _, begin
-    rw [coe_coe, submodule.mem_coe, subalgebra.mem_to_submodule, algebra.adjoin_singleton_eq_range],
-    rw [← hx, algebra.adjoin_singleton_eq_range] at hy,
-    obtain ⟨f, hf⟩ := hy,
-    use f,
-    rw [subtype.ext_iff, coe_aeval, subtype.coe_mk],
-    exact hf
-  end)⟩⟩
+lemma is_simple_top_iff :
+  is_simple_extension K (⊤ : intermediate_field K L) ↔ is_simple_extension K L :=
+is_simple_intermediate_field_iff.trans
+  ⟨λ ⟨x, _, hx⟩, ⟨x, hx⟩, λ ⟨x, hx⟩, ⟨x, intermediate_field.mem_top _, hx⟩⟩
 
-lemma is_simple_top_iff {S} [comm_ring S] [algebra R S] :
-  is_simple_extension R (⊤ : subalgebra R S) ↔ is_simple_extension R S :=
-(is_simple_subalgebra_iff R ⊤).trans ⟨λ ⟨x, _, hx⟩, ⟨x, hx⟩, λ ⟨x, hx⟩, ⟨x, algebra.mem_top, hx⟩⟩
+lemma is_simple_of_bot_eq_top (h : (⊥ : intermediate_field K L) = ⊤) : is_simple_extension K L :=
+⟨0, trans (eq_bot_iff.mpr
+  (field.adjoin_subset_subfield _ _
+    (intermediate_field.range_le _)
+    (set.singleton_subset_iff.mpr (subalgebra.zero_mem _))))
+  h⟩
 
-lemma is_simple_of_bot_eq_top (h : (⊥ : subalgebra R S) = ⊤) : is_simple_extension R S :=
-⟨0, trans (eq_bot_iff.mpr (algebra.adjoin_le (by simpa using subalgebra.zero_mem ⊥))) h⟩
-
-instance is_simple_bot : is_simple_extension R (⊥ : subalgebra R S) :=
+instance is_simple_bot : is_simple_extension K (⊥ : intermediate_field K L) :=
 begin
   refine is_simple_of_bot_eq_top _ _ (eq_top_iff.mpr _),
   rintros ⟨x, hx⟩ _,
-  obtain ⟨y, rfl⟩ := algebra.mem_bot.mp hx,
-  refine algebra.mem_bot.mpr ⟨y, _⟩,
+  obtain ⟨y, rfl⟩ := intermediate_field.mem_bot.mp hx,
+  refine intermediate_field.mem_bot.mpr ⟨y, _⟩,
   ext,
   refl
 end
@@ -171,14 +260,14 @@ instance finite_field.is_simple_extension [fintype L] :
 begin
   obtain ⟨x, hx⟩ := is_cyclic.exists_generator (units L),
   simp_rw ← mem_powers_iff_mem_gpowers at hx,
-  refine iff_exists_eq_aeval.mpr ⟨x, λ y, _⟩,
+  refine ⟨x, eq_top_iff.mpr (λ y _, _)⟩,
   by_cases hy : y = 0,
   { rw hy,
-    exact ⟨0, eval₂_zero _ _⟩ },
+    exact subalgebra.zero_mem _ },
   obtain ⟨y, rfl⟩ : is_unit y := is_unit.mk0 y hy,
   obtain ⟨n, rfl⟩ := hx y,
-  use X^n,
-  rw [alg_hom.map_pow, aeval_X, units.coe_pow]
+  rw units.coe_pow at *,
+  exact subalgebra.pow_mem _ (field.subset_adjoin _ _ (set.mem_singleton _)) _
 end
 
 namespace is_simple_extension
@@ -214,7 +303,7 @@ rfl
 @[simp] lemma total_power_basis_eq (f : fin (simple_degree alg) →₀ K) :
   finsupp.total _ _ _ (power_basis alg) f =
     aeval (primitive_element K L) (finsupp.emb_fin_nat f) :=
-by simp [aeval, eval₂_eq_sum, finsupp.total, linear_map.smul_right, algebra.smul_def]
+by simp [aeval_def, eval₂_eq_sum, finsupp.total, linear_map.smul_right, algebra.smul_def]
 
 lemma linear_independent_power_basis :
   linear_independent K (power_basis alg) :=
@@ -233,7 +322,7 @@ begin
   have mp_monic := minimal_polynomial.monic (primitive_element_is_integral alg),
   have mp_ne_zero := minimal_polynomial.ne_zero (primitive_element_is_integral alg),
 
-  obtain ⟨f, rfl⟩ := exists_eq_aeval_primitive_element K L x,
+  obtain ⟨f, rfl⟩ := exists_eq_aeval_primitive_element K L x alg,
   change (eval₂ (algebra_map K L) (primitive_element K L)) f ∈
     submodule.span K (set.range (power_basis alg)),
   rw [← polynomial.eval₂_mod_by_monic_eq_self_of_root mp_monic (minimal_polynomial.aeval _),
@@ -275,69 +364,92 @@ le_antisymm
      algebra.adjoin_mono (set.subset_insert _ _)⟩))
   (algebra.adjoin_mono (set.insert_subset_insert algebra.subset_adjoin))
 
+@[simp] lemma field.adjoin_idem (s : set L) :
+  field.adjoin K (field.adjoin K s : set L) = field.adjoin K s :=
+le_antisymm
+  (field.adjoin_subset_subfield _ _ (intermediate_field.range_le _) (set.subset.refl _))
+  ((field.adjoin_subset_adjoin_iff _).mpr
+    ⟨intermediate_field.range_le _,
+     field.subset_adjoin_of_subset_right _ _ (field.subset_adjoin _ _)⟩)
+
+@[simp] lemma field.adjoin_insert_adjoin (x : L) (s : set L) :
+  field.adjoin K (insert x (field.adjoin K s : set L)) = field.adjoin K (insert x s) :=
+le_antisymm
+  ((field.adjoin_subset_adjoin_iff _).mpr ⟨intermediate_field.range_le _,
+    set.insert_subset.mpr ⟨field.subset_adjoin _ _ (set.mem_insert _ _),
+      (field.adjoin_subset_adjoin_iff _).mpr ⟨intermediate_field.range_le _,
+        field.subset_adjoin_of_subset_right _ _ (set.subset_insert _ _)⟩⟩⟩)
+  ((field.adjoin_subset_adjoin_iff _).mpr ⟨intermediate_field.range_le _,
+    field.subset_adjoin_of_subset_right _ _ (set.insert_subset_insert (field.subset_adjoin _ _))⟩)
+
 /-- Induction principle for finite dimensional fields: adjoin extra elements until finished. -/
-lemma induction_on_adjoin [fd : finite_dimensional K L] {P : subalgebra K L → Prop}
-  (base : P ⊥) (ih : ∀ (F : subalgebra K L) (x : L), P F → P (algebra.adjoin K (insert x F)))
-  (F : subalgebra K L) : P F :=
+lemma induction_on_adjoin [fd : finite_dimensional K L] {P : intermediate_field K L → Prop}
+  (base : P ⊥) (ih : ∀ (F : intermediate_field K L) (x : L), P F → P (field.adjoin K (insert x F)))
+  (F : intermediate_field K L) : P F :=
 begin
   haveI := classical.prop_decidable,
-  obtain ⟨t, rfl⟩ : F.fg := F.fg_of_noetherian,
+  obtain ⟨t, rfl⟩ := F.fg_of_noetherian,
   refine finset.induction_on t _ _,
   { simpa using base },
   intros x t hxt h,
   convert ih _ x h using 1,
-  rw [finset.coe_insert, adjoin_insert_adjoin],
+  rw [finset.coe_insert, field.adjoin_insert_adjoin],
 end
 
 lemma is_simple_of_extension_eq (x y : L) (a₁ a₂ : K) (ne : a₁ ≠ a₂)
-  (extension_eq : algebra.adjoin K {a₁ • x + y} = algebra.adjoin K ({a₂ • x + y} : set L)) :
-  is_simple_extension K (algebra.adjoin K ({x, y} : set L)) :=
+  (extension_eq : field.adjoin K {a₁ • x + y} = field.adjoin K ({a₂ • x + y} : set L)) :
+  is_simple_extension K (field.adjoin K ({x, y} : set L)) :=
 begin
-  rw is_simple_subalgebra_iff,
-  have z_mem : a₁ • x + y ∈ algebra.adjoin K {x, y},
-  { exact subalgebra.add_mem _
-    (subalgebra.smul_mem _ (algebra.subset_adjoin (set.mem_insert _ _)) _)
-    (algebra.subset_adjoin (set.subset_insert _ _ (set.mem_singleton _))) },
-  have x_mem : x ∈ algebra.adjoin K {a₁ • x + y},
-  { rw [← subalgebra.mem_to_submodule, ← submodule.smul_mem_iff _ (sub_ne_zero.mpr ne)],
+  rw is_simple_intermediate_field_iff,
+  have z_mem : a₁ • x + y ∈ field.adjoin K {x, y},
+  { exact intermediate_field.add_mem _
+      (subalgebra.smul_mem _ (field.subset_adjoin _ _ (set.mem_insert _ _)) _)
+      (field.subset_adjoin _ _ (set.subset_insert _ _ (set.mem_singleton _))) },
+  have x_mem : x ∈ field.adjoin K {a₁ • x + y},
+  { rw [← intermediate_field.mem_coe_subalgebra, ← subalgebra.mem_to_submodule,
+        ← submodule.smul_mem_iff _ (sub_ne_zero.mpr ne)],
     have : (a₁ - a₂) • x = (a₁ • x + y) - (a₂ • x + y) := by { rw sub_smul, ring },
     rw this,
-    refine submodule.sub_mem _ (algebra.subset_adjoin (set.mem_singleton _)) _,
+    refine submodule.sub_mem _ (field.subset_adjoin _ _ (set.mem_singleton _)) _,
     rw extension_eq,
-    exact algebra.subset_adjoin (set.mem_singleton _) },
+    exact field.subset_adjoin _ _ (set.mem_singleton _) },
   refine ⟨a₁ • x + y, z_mem,
-    le_antisymm (algebra.adjoin_le (set.singleton_subset_iff.mpr z_mem))
-      (algebra.adjoin_le (set.insert_subset.mpr ⟨x_mem, set.singleton_subset_iff.mpr _⟩))⟩,
+    le_antisymm (field.adjoin_subset_subfield _ _ (intermediate_field.range_le _)
+      (set.singleton_subset_iff.mpr z_mem))
+        (field.adjoin_subset_subfield _ _ (intermediate_field.range_le _)
+          (set.insert_subset.mpr ⟨x_mem, set.singleton_subset_iff.mpr _⟩))⟩,
   conv_lhs { rw [← add_sub_cancel y (a₁ • x), add_comm] },
-  refine submodule.sub_mem _ (algebra.subset_adjoin (set.mem_singleton _)) _,
+  refine submodule.sub_mem _ (field.subset_adjoin _ _ (set.mem_singleton _)) _,
   exact submodule.smul_mem _ _ x_mem
 end
 
 lemma is_simple_of_is_simple_adjoin_insert_singleton [finite_dimensional K L]
-  (h : ∀ (x ≠ (0 : L)) y, is_simple_extension K (algebra.adjoin K ({x, y} : set L))) :
+  (h : ∀ (x ≠ (0 : L)) y, is_simple_extension K (field.adjoin K ({x, y} : set L))) :
   is_simple_extension K L :=
 begin
   rw ← is_simple_top_iff,
   generalize : ⊤ = F,
   revert F,
 
-  refine induction_on_adjoin _ _ _ _,
+  refine induction_on_adjoin _ _,
   { intros, exact is_simple_extension.is_simple_bot _ _ },
 
   rintros F x hF,
-  rw [is_simple_subalgebra_iff] at hF,
+  rw is_simple_intermediate_field_iff at hF,
   obtain ⟨y, hy, hF⟩ := hF,
 
   by_cases hx : x = 0,
   { have : (0 : L) ∈ (F : set L) := F.zero_mem,
-    rw [hx, set.insert_eq_of_mem this, ←hF, adjoin_idem, is_simple_subalgebra_iff],
-    exact ⟨y, algebra.subset_adjoin (set.mem_singleton _), rfl⟩ },
+    rw [hx, set.insert_eq_of_mem this, ←hF, field.adjoin_idem, is_simple_intermediate_field_iff],
+    exact ⟨y, field.subset_adjoin _ _ (set.mem_singleton _), rfl⟩ },
 
-  rw [← hF, adjoin_insert_adjoin],
+  rw [← hF, field.adjoin_insert_adjoin],
   exact h x hx y
 end
 
 open_locale classical
+
+variables (K L)
 
 noncomputable instance finsupp.fintype {α β : Type*} [fintype α] [has_zero β] [fintype β] :
   fintype (α →₀ β) :=
@@ -358,12 +470,13 @@ end
 
 -- Not an instance because `finite_dimensional K K` will make it loop.
 lemma infinite_of_finite_dimensional_infinite [finite_dimensional K L] [infinite L] : infinite K :=
-⟨λ h, infinite.not_fintype (show fintype L, by { haveI := h, apply fintype_of_finite_dimensional K L })⟩
+⟨λ h, infinite.not_fintype (show fintype L,
+  by { haveI := h, apply @fintype_of_finite_dimensional K L })⟩
 
 /-- Artin's primitive element theorem: if `L / K` is a finite extension
 with finitely many intermediate fields `L / F / K`, then `L / K` is a simple extension. -/
 lemma is_simple_of_finite_intermediates [finite_dimensional K L]
-  [fintype (subalgebra K L)] : is_simple_extension K L :=
+  [fintype (intermediate_field K L)] : is_simple_extension K L :=
 begin
   by_cases h : nonempty (fintype L),
   { haveI : fintype L := h.some,
@@ -377,7 +490,7 @@ begin
   -- This is the case because there are infinitely many `a₁`, `a₂` and finitely many
   -- fields in between `K` and `L`.
   set zs := { (a • x + y) | a : K },
-  set Fs := { (algebra.adjoin K ({z} : set L)) | z : zs },
+  set Fs := { (field.adjoin K ({z} : set L)) | z : zs },
   set f : zs → Fs := λ z, ⟨_, z, rfl⟩ with f_def,
   haveI := infinite_of_finite_dimensional_infinite K L,
   haveI inf_zs : infinite zs := infinite.of_injective (λ a, ⟨_, a, rfl⟩) (λ a₁ a₂ ha, begin
@@ -391,7 +504,7 @@ begin
   obtain ⟨Fz₁_eq_Fz₂, z₁_ne_z₂⟩ := not_imp.mp hz,
 
   -- The field `K[z₁] = K[z₂]` contains both `x` and `y`, so it must be `K[x, y]`.
-  refine is_simple_of_extension_eq K L x y a₁ a₂
+  refine is_simple_of_extension_eq x y a₁ a₂
     (λ h, z₁_ne_z₂ (by rw [subtype.ext_iff, subtype.coe_mk, subtype.coe_mk, h])) _,
   simpa only [f_def, subtype.ext_iff, subtype.coe_mk] using Fz₁_eq_Fz₂
 end
@@ -435,7 +548,10 @@ lemma zero_mem_bad_cs : (0 : K) ∈ bad_cs K M x y :=
 finset.mem_preimage.mpr (finset.mem_bind.mpr ⟨algebra_map _ _ x, mem_conjugates_self K M x,
   finset.mem_image.mpr ⟨algebra_map _ _ y, mem_conjugates_self K M y, by simp⟩⟩)
 
-@[simp] lemma algebra_map_mk (A : subalgebra R S) (x : S) (h : x ∈ A) : algebra_map A S ⟨x, h⟩ = x :=
+@[simp] lemma algebra_map_mk (A : subalgebra K L) (x : L) (h : x ∈ A) : algebra_map A L ⟨x, h⟩ = x :=
+rfl
+
+@[simp] lemma algebra_map_mk' (A : intermediate_field K L) (x : L) (h : x ∈ A) : algebra_map A L ⟨x, h⟩ = x :=
 rfl
 
 variables [inf_K : infinite K]
@@ -446,9 +562,6 @@ classical.some (infinite.exists_not_mem_finset (bad_cs K M x y))
 
 lemma c_spec : c K M x y ∉ bad_cs K M x y :=
 classical.some_spec (infinite.exists_not_mem_finset (bad_cs K M x y))
-
-instance adjoin_field (x : L) : field (algebra.adjoin K ({x} : set L)) :=
-subalgebra.field_of_algebraic _ algebra.is_algebraic_of_finite
 
 lemma c_ne_zero : c K L x y ≠ 0 :=
 λ h, c_spec K L x y (by simpa [h] using zero_mem_bad_cs K L x y)
@@ -478,19 +591,20 @@ begin
   exact sub_eq
 end
 
-lemma z_mem : x + c K M x y • y ∈ algebra.adjoin K ({x, y} : set L) :=
+lemma z_mem : x + c K M x y • y ∈ field.adjoin K ({x, y} : set L) :=
 subalgebra.add_mem _
-  (algebra.subset_adjoin (set.mem_insert _ _))
-  (subalgebra.smul_mem _ (algebra.subset_adjoin (set.subset_insert _ _ (set.mem_singleton _))) _)
+  (field.subset_adjoin _ _ (set.mem_insert _ _))
+  (subalgebra.smul_mem _ (field.subset_adjoin _ _ (set.subset_insert _ _ (set.mem_singleton _))) _)
 
-lemma z_mem' : x + c K M x y • y ∈ algebra.adjoin K ({x + c K M x y • y} : set L) :=
-subalgebra.mem_coe.mp (algebra.subset_adjoin (set.mem_singleton _))
+lemma z_mem' : x + c K M x y • y ∈ field.adjoin K ({x + c K M x y • y} : set L) :=
+subalgebra.mem_coe.mp (field.subset_adjoin _ _ (set.mem_singleton _))
 
-noncomputable def f_z : polynomial (algebra.adjoin K ({x + c K M x y • y} : set L)) :=
+noncomputable def f_z : polynomial (field.adjoin K ({x + c K M x y • y} : set L)) :=
 ((is_separable.minimal_polynomial K x).map (algebra_map _ _)).comp
-  (C (⟨x + c K M x y • y, z_mem' K M x y⟩ : algebra.adjoin K _) - c K M x y • X)
+  (C (⟨x + c K M x y • y, z_mem' K M x y⟩ : field.adjoin K _) - c K M x y • X)
 
-lemma eval₂_f_z (f : algebra.adjoin K ({x + c K M x y • y} : set L) →+* R) (y' : R) :
+lemma eval₂_f_z {K' : Type*} [field K']
+  (f : field.adjoin K ({x + c K M x y • y} : set L) →+* K') (y' : K') :
   eval₂ f y' (f_z K M x y) =
     eval₂ (f.comp (algebra_map K _))
       (f ⟨x + c K M x y • y, z_mem' K M x y⟩ - f (algebra_map _ _ (c K M x y)) * y')
@@ -501,8 +615,7 @@ begin
 end
 
 lemma aeval_f_z_y : aeval y (f_z K M x y) = 0 :=
-show eval₂ (algebra_map _ _) y (f_z K M x y) = 0,
-by { rw [eval₂_f_z, algebra_map_mk, ← is_scalar_tower.algebra_map_eq, ← algebra.smul_def,
+by { rw [aeval_def, eval₂_f_z, algebra_map_mk', ← is_scalar_tower.algebra_map_eq, ← algebra.smul_def,
          is_scalar_tower.algebra_map_smul, add_sub_cancel],
      apply minimal_polynomial.aeval }
 
@@ -514,14 +627,14 @@ begin
   rw eval₂_f_z at h,
   convert h,
   { rw [ring_hom.comp_assoc, is_scalar_tower.algebra_map_eq K L M,
-        is_scalar_tower.algebra_map_eq K (algebra.adjoin K ({x + c K M x y • y} : set L)) L] },
+        is_scalar_tower.algebra_map_eq K (field.adjoin K ({x + c K M x y • y} : set L)) L] },
   { refine trans (algebra.smul_def _ _) _,
     rw [← ring_hom.comp_apply, ring_hom.comp_assoc, is_scalar_tower.algebra_map_eq K L M,
-        is_scalar_tower.algebra_map_eq K (algebra.adjoin K ({x + c K M x y • y} : set L)) L] },
+        is_scalar_tower.algebra_map_eq K (field.adjoin K ({x + c K M x y • y} : set L)) L] },
 end
 
-noncomputable def g_z : polynomial (algebra.adjoin K ({x + c K M x y • y} : set L)) :=
-(is_separable.minimal_polynomial K y).map (algebra_map K (algebra.adjoin K {x + c K M x y • y}))
+noncomputable def g_z : polynomial (field.adjoin K ({x + c K M x y • y} : set L)) :=
+(is_separable.minimal_polynomial K y).map (algebra_map K (field.adjoin K {x + c K M x y • y}))
 
 lemma mem_conjugates_y_of_root_g_z {y' : M}
   (h : (g_z K M x y).eval₂ ((algebra_map _ M).comp (algebra_map _ L)) y' = 0) :
@@ -531,7 +644,7 @@ begin
   rw [g_z, eval₂_map] at h,
   convert h,
   rw [ring_hom.comp_assoc, is_scalar_tower.algebra_map_eq K L M,
-      is_scalar_tower.algebra_map_eq K (algebra.adjoin K ({x + c K M x y • y} : set L)) L],
+      is_scalar_tower.algebra_map_eq K (field.adjoin K ({x + c K M x y • y} : set L)) L],
 end
 
 lemma eq_y_of_root_f_z_of_root_g_z {y' : M}
@@ -560,11 +673,11 @@ end
 
 include inf_K
 instance adjoin.is_separable :
-  is_separable (algebra.adjoin K ({x + c K M x y • y} : set L)) L :=
-right_is_separable_of_is_scalar_tower K L (algebra.adjoin K ({x + c K M x y • y} : set L))
+  is_separable (field.adjoin K ({x + c K M x y • y} : set L)) L :=
+right_is_separable_of_is_scalar_tower K L (field.adjoin K ({x + c K M x y • y} : set L))
 
 noncomputable def minpoly_y : polynomial _ :=
-is_separable.minimal_polynomial (algebra.adjoin K ({x + c K M x y • y} : set L)) y
+is_separable.minimal_polynomial (field.adjoin K ({x + c K M x y • y} : set L)) y
 
 lemma minpoly_y_dvd_f_z :
   minpoly_y K M x y ∣ f_z K M x y :=
@@ -578,7 +691,7 @@ include splits
 lemma minpoly_y_splits :
   (minpoly_y K M x y).splits
     ((algebra_map L M).comp
-      (algebra_map (algebra.adjoin K ({x + c K M x y • y} : set L)) L)) :=
+      (algebra_map (field.adjoin K ({x + c K M x y • y} : set L)) L)) :=
 splits_of_splits_of_dvd _
   (map_ne_zero (minimal_polynomial.ne_zero _))
   ((splits_map_iff _ _).mpr (by { rw [ring_hom.comp_assoc, ← is_scalar_tower.algebra_map_eq,
@@ -588,7 +701,8 @@ splits_of_splits_of_dvd _
 omit splits
 
 omit inf_K
-lemma eval₂_eq_zero_of_dvd_of_eval₂_eq_zero {f : R →+* S} {p q : polynomial R} {x : S}
+lemma eval₂_eq_zero_of_dvd_of_eval₂_eq_zero {R S : Type*} [semiring R] [comm_semiring S]
+  {f : R →+* S} {p q : polynomial R} {x : S}
   (hpq : p ∣ q) (hxp : eval₂ f x p = 0) : eval₂ f x q = 0 :=
 begin
   rcases hpq with ⟨q, rfl⟩,
@@ -598,16 +712,16 @@ include inf_K
 
 lemma count_roots_minpoly_y (a : M) :
   ((minpoly_y K M x y).map ((algebra_map L M).comp
-    (algebra_map (algebra.adjoin K ({x + c K M x y • y} : set L)) L))).roots.count a
+    (algebra_map (field.adjoin K ({x + c K M x y • y} : set L)) L))).roots.count a
   ≤ multiset.count a (algebra_map L M y :: 0) :=
 begin
   by_cases ha : a ∈ ((minpoly_y K M x y).map ((algebra_map L M).comp
-    (algebra_map (algebra.adjoin K ({x + c K M x y • y} : set L)) L))).roots,
+    (algebra_map (field.adjoin K ({x + c K M x y • y} : set L)) L))).roots,
   { have h : a = algebra_map _ _ y,
     { rw [mem_roots, is_root.def, eval_map] at ha,
       refine eq_y_of_root_f_z_of_root_g_z K M x y _ _,
-      { exact eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _ (minpoly_y_dvd_f_z K M _ _) ha },
-      { exact eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _ (minpoly_y_dvd_g_z K M _ _) ha },
+      { exact eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (minpoly_y_dvd_f_z K M _ _) ha },
+      { exact eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (minpoly_y_dvd_g_z K M _ _) ha },
       { exact map_ne_zero (minimal_polynomial.ne_zero _) } },
     rw [h, multiset.count_singleton],
     exact count_roots_le_one (separable.map (is_separable.minimal_polynomial_separable _ _)) _ },
@@ -617,7 +731,7 @@ end
 
 lemma roots_minpoly_y :
   ((minpoly_y K M x y).map ((algebra_map L M).comp
-      (algebra_map (algebra.adjoin K ({x + c K M x y • y} : set L)) L))).roots
+      (algebra_map (field.adjoin K ({x + c K M x y • y} : set L)) L))).roots
     ≤ (algebra_map L M y :: 0) :=
 multiset.le_iff_count.mpr (count_roots_minpoly_y _ _ _ _)
 
@@ -676,24 +790,28 @@ begin
   haveI := infinite_of_finite_dimensional_infinite K L,
   apply is_simple_of_is_simple_adjoin_insert_singleton,
   intros x hx y,
-  rw is_simple_subalgebra_iff,
+  rw is_simple_intermediate_field_iff,
 
   use x + c K (splitting_field K y) x y • y,
   use z_mem K _ x y,
 
-  have y_mem : y ∈ algebra.adjoin K {x + c K (splitting_field K y) x y • y},
+  have y_mem : y ∈ field.adjoin K {x + c K (splitting_field K y) x y • y},
   { have := degree_minpoly_y K _ x y (splitting_field_splits K y),
     conv_lhs { rw minimal_polynomial.root_eq_algebra_map_of_degree_le_one _ this },
-    apply subalgebra.neg_mem,
+    apply intermediate_field.neg_mem,
     exact ((minpoly_y K _ x y).coeff 0).2 },
-  have x_mem : x ∈ algebra.adjoin K {x + c K (splitting_field K y) x y • y},
-  { rw [← subalgebra.mem_to_submodule, ← submodule.add_mem_iff_left _ (submodule.smul_mem _ _ _)],
+  have x_mem : x ∈ field.adjoin K {x + c K (splitting_field K y) x y • y},
+  { rw [← intermediate_field.mem_coe_subalgebra, ← subalgebra.mem_to_submodule,
+      ← submodule.add_mem_iff_left _ (submodule.smul_mem _ _ _)],
     { exact z_mem' K _ x y },
     { exact y_mem } },
-  exact le_antisymm
-    (algebra.adjoin_le (set.singleton_subset_iff.mpr (z_mem K _ x y)))
-    (algebra.adjoin_le (set.insert_subset.mpr
-      ⟨subalgebra.mem_coe.mpr x_mem, set.singleton_subset_iff.mpr (subalgebra.mem_coe.mpr y_mem)⟩))
+  refine le_antisymm
+    (field.adjoin_subset_subfield _ _ (intermediate_field.range_le _) _)
+    (field.adjoin_subset_subfield _ _ (intermediate_field.range_le _) _),
+  { exact set.singleton_subset_iff.mpr (z_mem K _ x y) },
+  { exact set.insert_subset.mpr
+    ⟨subalgebra.mem_coe.mpr x_mem,
+     set.singleton_subset_iff.mpr (subalgebra.mem_coe.mpr y_mem)⟩ }
 end
 
 end is_separable

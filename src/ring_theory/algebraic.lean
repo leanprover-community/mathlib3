@@ -133,19 +133,43 @@ section field
 
 variables {K L : Type*} [field K] [field L] [algebra K L] (A : subalgebra K L)
 
+lemma inv_eq_of_aeval_div_X_ne_zero {x : L} {p : polynomial K}
+  (aeval_ne : aeval x (div_X p) ≠ 0) :
+  x⁻¹ = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)) :=
+begin
+  rw [inv_eq_iff, inv_div, div_eq_iff, sub_eq_iff_eq_add, mul_comm],
+  conv_lhs { rw ← div_X_mul_X_add p },
+  rw [alg_hom.map_add, alg_hom.map_mul, aeval_X, aeval_C],
+  exact aeval_ne
+end
+
+lemma inv_eq_of_root_of_coeff_zero_ne_zero {x : L} {p : polynomial K}
+  (aeval_eq : aeval x p = 0) (coeff_zero_ne : p.coeff 0 ≠ 0) :
+  x⁻¹ = - (aeval x (div_X p) / algebra_map _ _ (p.coeff 0)) :=
+begin
+  convert inv_eq_of_aeval_div_X_ne_zero (mt (λ h, (algebra_map K L).injective _) coeff_zero_ne),
+  { rw [aeval_eq, zero_sub, div_neg] },
+  rw ring_hom.map_zero,
+  convert aeval_eq,
+  conv_rhs { rw ← div_X_mul_X_add p },
+  rw [alg_hom.map_add, alg_hom.map_mul, h, zero_mul, zero_add, aeval_C]
+end
+
+@[simp] lemma aeval_coe {x : A} {p : polynomial K} : aeval (x : L) p = aeval x p :=
+begin
+  convert (hom_eval₂ p (algebra_map K A) (algebra_map A L) x).symm,
+  rw [aeval_def, is_scalar_tower.algebra_map_eq K A L],
+  refl
+end
+
 lemma subalgebra.inv_mem_of_root_of_coeff_zero_ne_zero {x : A} {p : polynomial K}
   (aeval_eq : aeval x p = 0) (coeff_zero_ne : p.coeff 0 ≠ 0) : (x⁻¹ : L) ∈ A :=
 begin
   have : (x⁻¹ : L) = aeval x (div_X p) / (aeval x p - algebra_map _ _ (p.coeff 0)),
-  { rw [inv_eq_iff, inv_div, div_eq_iff, sub_eq_iff_eq_add, mul_comm],
-    conv_lhs { rw ← div_X_mul_X_add p },
-    rw [alg_hom.map_add, alg_hom.map_mul, aeval_X, aeval_C, submodule.coe_add, subsemiring.coe_mul],
-    { refl },
-    { refine mt (λ h, _) coeff_zero_ne,
-      rw submodule.coe_eq_zero at h,
-      rw ←div_X_mul_X_add p at aeval_eq,
-      apply (algebra_map K A).injective,
-      simpa [h] using aeval_eq } },
+  { rw [aeval_eq, submodule.coe_zero, zero_sub, div_neg],
+    convert inv_eq_of_root_of_coeff_zero_ne_zero _ coeff_zero_ne,
+    { rw aeval_coe },
+    { simpa using aeval_eq } },
   rw [this, div_eq_mul_inv, aeval_eq, submodule.coe_zero, zero_sub, ← ring_hom.map_neg,
       ← ring_hom.map_inv],
   exact A.mul_mem (aeval x p.div_X).2 (A.algebra_map_mem _),

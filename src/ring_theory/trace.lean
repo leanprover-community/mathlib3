@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Anne Baanen
 -/
 
-import linear_algebra.bilinear_form
-import linear_algebra.matrix
+import field_theory.adjoin
 import field_theory.simple_extension
+import linear_algebra.bilinear_form
+import linear_algebra.char_poly.coeff
 import ring_theory.algebra_tower
 
 /-!

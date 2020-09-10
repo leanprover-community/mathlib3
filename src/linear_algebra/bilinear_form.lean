@@ -436,7 +436,7 @@ variables {M : Type*} [add_comm_group M] [module R M] {b : n → M} (hb : is_bas
 
 /-- Bilinear forms are linearly equivalent to matrices. -/
 noncomputable def bilin_form_equiv_matrix : bilin_form R M ≃ₗ[R] matrix n n R :=
-linear_equiv.trans (congr (equiv_fun_basis hb)) bilin_form_equiv_matrix'
+linear_equiv.trans (congr (hb.equiv_fun)) bilin_form_equiv_matrix'
 
 @[simp] lemma bilin_form_equiv_matrix_apply (B : bilin_form R M) (i j : n) :
   bilin_form_equiv_matrix hb B i j = B (b i) (b j) :=

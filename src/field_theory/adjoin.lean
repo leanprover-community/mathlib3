@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning and Patrick Lutz
 -/
 
+import field_theory.intermediate_field
 import field_theory.subfield
 import linear_algebra.finite_dimensional
 
@@ -31,14 +32,15 @@ variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (S : set E)
 /--
 `adjoin F S` extends a field `F` by adjoining a set `S ⊆ E`.
 -/
-def adjoin : subalgebra F E :=
+def adjoin : intermediate_field F E :=
 { carrier :=
   { carrier := field.closure (set.range (algebra_map F E) ∪ S),
     one_mem' := is_submonoid.one_mem,
     mul_mem' := λ x y, is_submonoid.mul_mem,
     zero_mem' := is_add_submonoid.zero_mem,
     add_mem' := λ x y, is_add_submonoid.add_mem },
-  algebra_map_mem' := λ x, field.mem_closure (or.inl (set.mem_range.mpr ⟨x,rfl⟩)) }
+  algebra_map_mem' := λ x, field.mem_closure (or.inl (set.mem_range.mpr ⟨x,rfl⟩)),
+  inv_mem := @is_subfield.inv_mem _ _ (field.closure _) _ }
 
 lemma adjoin.algebra_map_mem (x : F) : algebra_map F E x ∈ adjoin F S :=
 field.mem_closure (or.inl (set.mem_range_self x))
@@ -92,13 +94,15 @@ end
 
 @[elab_as_eliminator]
 lemma adjoin_induction {s : set E} {p : E → Prop} {x} (h : x ∈ adjoin F s)
-  (Hs : ∀ x ∈ s, p x) (Hmap : ∀ x, p (algebra_map F E x)) (H0 : p 0) (H1 : p 1)
+  (Hs : ∀ x ∈ s, p x) (Hmap : ∀ x, p (algebra_map F E x))
   (Hadd : ∀ x y, p x → p y → p (x + y))
   (Hneg : ∀ x, p x → p (-x))
   (Hinv : ∀ x, p x → p x⁻¹)
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 field.closure_induction h (λ x hx, or.cases_on hx (λ ⟨x, hx⟩, hx ▸ Hmap x) (Hs x))
-  H0 H1 Hadd Hneg Hinv Hmul
+  ((algebra_map F E).map_zero ▸ Hmap 0)
+  ((algebra_map F E).map_one ▸ Hmap 1)
+  Hadd Hneg Hinv Hmul
 
 /-- `S ⊆ adjoin F T` if and only if `adjoin F S ⊆ adjoin F T`. -/
 lemma subset_adjoin_iff {T : set E} : S ⊆ adjoin F T ↔ (adjoin F S : set E) ⊆ adjoin F T :=

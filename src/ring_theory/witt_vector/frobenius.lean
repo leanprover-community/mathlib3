@@ -35,7 +35,7 @@ begin
 end
 
 def frobenius_poly (n : ℕ) : mv_polynomial ℕ ℤ :=
-sorry
+finsupp.map_range rat.num (rat.coe_int_num 0) (frobenius_poly_rat p n)
 
 lemma map_frobenius_poly (n : ℕ) :
   mv_polynomial.map (int.cast_ring_hom ℚ) (frobenius_poly p n) = frobenius_poly_rat p n :=

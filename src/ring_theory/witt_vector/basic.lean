@@ -304,7 +304,7 @@ local attribute [instance] comm_ring_aux₁
 
 private noncomputable def comm_ring_aux₂ : comm_ring (𝕎 (mv_polynomial R ℤ)) :=
 function.injective.comm_ring (map_fun $ mv_polynomial.map (int.cast_ring_hom ℚ))
-  (map_fun_injective _ $ mv_polynomial.coe_int_rat_map_injective _)
+  (map_fun_injective _ $ mv_polynomial.map_injective _ int.cast_injective)
   (map_fun_zero _) (map_fun_one _) (map_fun_add _) (map_fun_mul _) (map_fun_neg _)
 
 local attribute [instance] comm_ring_aux₂

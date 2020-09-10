@@ -640,6 +640,7 @@ section abs
 @[simp] lemma abs_eq (x : ℝ≥0) : abs (x : ℝ) = x :=
 abs_of_nonneg x.property
 
+/-- The absolute value on `ℝ` as a map to `ℝ≥0`. -/
 protected def abs : ℝ → ℝ≥0 := λ x, ⟨abs x, abs_nonneg x⟩
 
 @[norm_cast, simp] lemma coe_abs (x : ℝ) : (nnreal.abs x : ℝ) = abs x :=

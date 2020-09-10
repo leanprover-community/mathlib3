@@ -317,29 +317,29 @@ open finset
 The strong pigeonhole principle for finitely many pigeons and pigeonholes.
 -/
 lemma strong_pigeonhole [fintype α] [fintype β] [nonempty β] [decidable_eq β] (f : α → β)
-  (n : ℕ) (hn : n * fintype.card β ≤ fintype.card α) :
+  (n : ℕ) (hn : fintype.card β * n ≤ fintype.card α) :
   ∃ y : β, n ≤ (univ.filter (λ x, f x = y)).card :=
 begin
   classical, by_contra hf, push_neg at hf,
-  have h : ∑ y, (univ.filter (λ x, f x = y)).card = fintype.card α,
-  { convert_to ∑ y in univ.image f, (univ.filter (λ x, f x = y)).card = _,
-    { have key : ∀ y ∈ (univ : finset β), (univ.filter (λ x, f x = y)).card ≠ 0 → y ∈ (univ : finset α).image f,
-      { intros y _,
-        rw [mem_image, ←zero_lt_iff_ne_zero, card_pos],
-        rintro ⟨x, hne⟩,
-        use x,
-        exact mem_filter.mp hne, },
-      rw ←sum_filter_of_ne key, congr, ext, simp, },
-    rw ←card_eq_sum_card_image, refl, },
-  have h' : ∑ y, (univ.filter (λ x, f x = y)).card < ∑ y in (univ : finset β), n,
-  { convert sum_lt_sum_of_nonempty _ (λ y _, hf y), simp,
-    use classical.choice (by assumption), apply mem_univ, },
-  simp only [nat.cast_id, nsmul_eq_mul, sum_const] at h',
-  rw [h, mul_comm] at h',
-  have h'' : card α < card α,
-  { change _ < n * card β at h',
-    exact gt_of_ge_of_gt hn h', },
-  exact nat.lt_asymm h'' h'',
+  suffices h : card α < card β * n,
+  have h' := lt_of_lt_of_le h hn,
+  exact nat.lt_asymm h' h',
+
+  have key : ∀ y ∈ (univ : finset β), (univ.filter (λ x, f x = y)).card ≠ 0 → y ∈ (univ : finset α).image f,
+  { intros y _,
+    rw [mem_image, ←zero_lt_iff_ne_zero, card_pos],
+    rintro ⟨x, hne⟩,
+    use x,
+    exact mem_filter.mp hne, },
+
+  calc card α = ∑ y in univ.image f, (univ.filter (λ x, f x = y)).card :
+    by apply card_eq_sum_card_image
+          ... = ∑ y, (univ.filter (λ x, f x = y)).card :
+    by { rw ←sum_filter_of_ne key, congr, ext, simp }
+          ... < ∑ y in (univ : finset β), n :
+    by { convert sum_lt_sum_of_nonempty univ_nonempty (λ y _, hf y), simp }
+          ... = card β * n :
+    by { simp only [nat.cast_id, nsmul_eq_mul, sum_const], refl },
 end
 
 end fintype

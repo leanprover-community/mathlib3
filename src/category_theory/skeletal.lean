@@ -180,7 +180,8 @@ noncomputable def thin_skeleton_is_skeleton : is_skeleton_of C (thin_skeleton C)
 { skel := skeletal,
   eqv := thin_skeleton.from_thin_skeleton_equivalence C }
 
-noncomputable instance : inhabited (is_skeleton_of C (thin_skeleton C) (from_thin_skeleton C)) :=
+noncomputable instance is_skeleton_of_inhabited :
+  inhabited (is_skeleton_of C (thin_skeleton C) (from_thin_skeleton C)) :=
 ⟨thin_skeleton_is_skeleton⟩
 
 end thin_skeleton

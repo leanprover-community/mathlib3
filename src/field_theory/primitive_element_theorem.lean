@@ -1,10 +1,4 @@
 import field_theory.adjoin
-import linear_algebra.finite_dimensional
-import linear_algebra.basic
-import data.set.finite
-import field_theory.tower
-import algebra.gcd_monoid
-import field_theory.splitting_field
 import field_theory.separable
 
 noncomputable theory
@@ -310,8 +304,8 @@ begin
     symmetry,
     apply iff_of_true algebra.mem_top,
     specialize key x,
-    rw ←hn at key,
-    rw ←(findim_mul_findim F F⟮x⟯ E) at key,
+    rw ← hn at key,
+    rw ← (findim_mul_findim F F⟮x⟯ E) at key,
     have h : findim F F⟮x⟯ = 1 := nlinarith_lemma (findim F F⟮x⟯) (findim F⟮x⟯ E) key findim_pos findim_pos,
     replace h := field.adjoin.findim_one F x h,
     rw set.mem_range at h,

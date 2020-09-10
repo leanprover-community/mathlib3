@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
+-- this fiile isn't used anymore
+
+#exit
 import ring_theory.witt_vector.ideal
 import ring_theory.witt_vector.move_this
 import tactic.equiv_rw

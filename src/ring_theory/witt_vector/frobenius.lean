@@ -62,9 +62,13 @@ begin
     have cpos : c ≠ 0,
     { rintro rfl, simpa only using hc, },
     apply nat.le_of_lt_succ,
-    calc m < p ^ m : sorry
-       ... ≤ j + 1 : sorry,
-     }
+    calc m < p ^ m : nat.lt_pow_self hp.one_lt m
+       ... ≤ j + 1 : _,
+    obtain ⟨c, rfl⟩ := nat.exists_eq_succ_of_ne_zero cpos,
+    rw [nat.succ_eq_add_one, mul_add, mul_one] at hc,
+    have := nat.sub_eq_of_eq_add hc,
+    rw ← this,
+    apply nat.sub_le }
 end
 
 section omit hp

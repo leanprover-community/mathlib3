@@ -661,7 +661,7 @@ def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra 
   left_inv := λ f, begin ext x, simp [sum_single_index] end,
   right_inv := λ F,
     begin
-      ext f,
+      apply alg_hom.ext, intro f,
       conv_rhs { rw ← f.sum_single },
       simp [← F.map_smul, finsupp.sum, ← F.map_sum]
     end }

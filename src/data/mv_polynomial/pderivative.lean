@@ -70,11 +70,6 @@ def pderivative (i : σ) : mv_polynomial σ R →ₗ[R] mv_polynomial σ R :=
     (by simp only [add_mul, forall_const, eq_self_iff_true, monomial_add]), }
 
 @[simp]
-lemma pderivative_add {i : σ} {f g : mv_polynomial σ R} :
-  pderivative i (f + g) = pderivative i f + pderivative i g :=
-(pderivative i).map_add _ _
-
-@[simp]
 lemma pderivative_monomial {i : σ} :
   pderivative i (monomial s a) = monomial (s - single i 1) (a * (s i)) :=
 begin
@@ -88,17 +83,13 @@ lemma pderivative_C {i : σ} : pderivative i (C a) = 0 :=
 suffices pderivative i (monomial 0 a) = 0, by simpa,
 by simp
 
-@[simp]
-lemma pderivative_zero {i : σ} : pderivative i (0 : mv_polynomial σ R) = 0 :=
-(pderivative i).map_zero
-
 lemma pderivative_eq_zero_of_not_mem_vars {i : σ} {f : mv_polynomial σ R} (h : i ∉ f.vars) :
   pderivative i f = 0 :=
 begin
   change (pderivative i) f = 0,
   rw [f.as_sum, linear_map.map_sum],
   apply finset.sum_eq_zero,
-  intros,
+  intros x H,
   simp [mem_support_not_mem_vars_zero H h],
 end
 
@@ -133,7 +124,7 @@ begin
   { apply induction_on' g,
     { intros u r u' r', exact pderivative_monomial_mul },
     { intros p q hp hq u r,
-      rw [mul_add, pderivative_add, hp, hq, mul_add, pderivative_add],
+      rw [mul_add, linear_map.map_add, hp, hq, mul_add, linear_map.map_add],
       ring } },
   { intros p q hp hq,
     simp [add_mul, hp, hq],

@@ -48,7 +48,6 @@ to use this method than to use type class inference.
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {R : Type x}
 
-set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
 open function
 
@@ -197,15 +196,12 @@ structure ring_hom (α : Type*) (β : Type*) [semiring α] [semiring β]
 
 infixr ` →+* `:25 := ring_hom
 
-@[priority 1000]
 instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe_to_fun (α →+* β) :=
 ⟨_, ring_hom.to_fun⟩
 
-@[priority 1000]
 instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →* β) :=
 ⟨ring_hom.to_monoid_hom⟩
 
-@[priority 1000]
 instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →+ β) :=
 ⟨ring_hom.to_add_monoid_hom⟩
 
@@ -354,12 +350,14 @@ end ring_hom
 @[protect_proj, ancestor semiring comm_monoid]
 class comm_semiring (α : Type u) extends semiring α, comm_monoid α
 
+@[priority 100] -- see Note [lower instance priority]
 instance comm_semiring.to_comm_monoid_with_zero [comm_semiring α] : comm_monoid_with_zero α :=
 { .. comm_semiring.to_comm_monoid α, .. comm_semiring.to_semiring α }
 
 section comm_semiring
 variables [comm_semiring α] [comm_semiring β] {a b c : α}
 
+@[priority 100] -- see Note [lower instance priority]
 instance comm_semiring.comm_monoid_with_zero : comm_monoid_with_zero α :=
 { .. (‹_› : comm_semiring α) }
 
@@ -401,18 +399,17 @@ class ring (α : Type u) extends add_comm_group α, monoid α, distrib α
 section ring
 variables [ring α] {a b c d e : α}
 
+/- The instance from `ring` to `semiring` happens often in linear algebra, for which all the basic
+definitions are given in terms of semirings, but many applications use rings or fields. We increase
+a little bit its priority above 100 to try it quickly, but remaining below the default 1000 so that
+more specific instances are tried first. -/
+@[priority 200]
 instance ring.to_semiring : semiring α :=
 { zero_mul := λ a, add_left_cancel $ show 0 * a + 0 * a = 0 * a + 0,
     by rw [← add_mul, zero_add, add_zero],
   mul_zero := λ a, add_left_cancel $ show a * 0 + a * 0 = a * 0 + 0,
     by rw [← mul_add, add_zero, add_zero],
   ..‹ring α› }
-
-/- The instance from `ring` to `semiring` happens often in linear algebra, for which all the basic
-definitions are given in terms of semirings, but many applications use rings or fields. We increase
-a little bit its priority above 100 to try it quickly, but remaining below the default 1000 so that
-more specific instances are tried first. -/
-attribute [instance, priority 200] ring.to_semiring
 
 /-- Pullback a `ring` instance along an injective function. -/
 protected def function.injective.ring [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β]
@@ -560,6 +557,7 @@ end ring_hom
 @[protect_proj, ancestor ring comm_semigroup]
 class comm_ring (α : Type u) extends ring α, comm_semigroup α
 
+@[priority 100] -- see Note [lower instance priority]
 instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=
 { mul_zero := mul_zero, zero_mul := zero_mul, ..s }
 
@@ -704,9 +702,11 @@ lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 section domain
 variable [domain α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance domain.to_no_zero_divisors : no_zero_divisors α :=
 ⟨domain.eq_zero_or_eq_zero_of_mul_eq_zero⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance domain.to_cancel_monoid_with_zero : cancel_monoid_with_zero α :=
 { mul_left_cancel_of_ne_zero := λ a b c ha,
     by { rw [← sub_eq_zero, ← mul_sub], simp [ha, sub_eq_zero] },
@@ -735,6 +735,7 @@ class integral_domain (α : Type u) extends comm_ring α, domain α
 section integral_domain
 variables [integral_domain α] {a b c d e : α}
 
+@[priority 100] -- see Note [lower instance priority]
 instance integral_domain.to_comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero α :=
 { ..comm_semiring.to_comm_monoid_with_zero, ..domain.to_cancel_monoid_with_zero }
 

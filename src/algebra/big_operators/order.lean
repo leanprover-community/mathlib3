@@ -317,41 +317,29 @@ open finset
 The strong pigeonhole principle for finitely many pigeons and pigeonholes.
 -/
 lemma strong_pigeonhole [fintype α] [fintype β] [nonempty β] [decidable_eq β] (f : α → β)
-(n : ℕ) (hn : n * fintype.card β ≤ fintype.card α) :
+  (n : ℕ) (hn : n * fintype.card β ≤ fintype.card α) :
   ∃ y : β, n ≤ (univ.filter (λ x, f x = y)).card :=
 begin
-  classical, by_contra hf,
-  push_neg at hf,
-  cases n,
-  exact nat.not_lt_zero _ (hf (classical.choice (by assumption))),
-  have hf' : ∀ y, (univ.filter (λ x, f x = y)).card ≤ n,
-  { intro y, specialize hf y,
-    convert nat.lt_succ_iff.mp hf },
+  classical, by_contra hf, push_neg at hf,
   have h : ∑ y, (univ.filter (λ x, f x = y)).card = fintype.card α,
   { convert_to ∑ y in univ.image f, (univ.filter (λ x, f x = y)).card = _,
-    swap, rw ←card_eq_sum_card_image, refl,
-    have k : ∀ y ∈ (univ : finset β), (univ.filter (λ x, f x = y)).card ≠ 0 → y ∈ (univ : finset α).image f,
-    { intros y _,
-      rw [mem_image, ←zero_lt_iff_ne_zero, card_pos],
-      { rintro ⟨x, hne⟩,
+    { have key : ∀ y ∈ (univ : finset β), (univ.filter (λ x, f x = y)).card ≠ 0 → y ∈ (univ : finset α).image f,
+      { intros y _,
+        rw [mem_image, ←zero_lt_iff_ne_zero, card_pos],
+        rintro ⟨x, hne⟩,
         use x,
-        exact mem_filter.mp hne, }, },
-    change ∀ y ∈ univ, (λ y, (univ.filter (λ x, f x = y)).card) y ≠ 0 → (λ y, y ∈ univ.image f) y at k,
-    rw ←sum_filter_of_ne k, congr, ext, simp,
-  },
-  have h' : ∑ y, (univ.filter (λ x, f x = y)).card ≤ ∑ y in (univ : finset β), n := sum_le_sum (λ y _, hf' y),
+        exact mem_filter.mp hne, },
+      rw ←sum_filter_of_ne key, congr, ext, simp, },
+    rw ←card_eq_sum_card_image, refl, },
+  have h' : ∑ y, (univ.filter (λ x, f x = y)).card < ∑ y in (univ : finset β), n,
+  { convert sum_lt_sum_of_nonempty _ (λ y _, hf y), simp,
+    use classical.choice (by assumption), apply mem_univ, },
   simp only [nat.cast_id, nsmul_eq_mul, sum_const] at h',
-  rw h at h',
-  change card α ≤ card β * n at h',
-  rw nat.succ_eq_add_one at hn,
-  have h'' : (n + 1) * card β ≤ n * card β,
-  { rw mul_comm at h',
-    exact trans hn h', },
-  rw add_mul at h'',
-  simp only [add_le_iff_nonpos_right, one_mul, le_zero_iff_eq] at h'',
-  have hg : 0 < card β := fintype.card_pos_iff.mpr (by assumption),
-  rw h'' at hg,
-  exact nat.lt_asymm hg hg,
+  rw [h, mul_comm] at h',
+  have h'' : card α < card α,
+  { change _ < n * card β at h',
+    exact gt_of_ge_of_gt hn h', },
+  exact nat.lt_asymm h'' h'',
 end
 
 end fintype

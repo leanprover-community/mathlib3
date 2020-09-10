@@ -4,7 +4,6 @@ import ring_theory.fractional_ideal
 import ring_theory.polynomial.rational_root
 import ring_theory.ideal.over
 import set_theory.cardinal
--- import group_theory.monoid_localization
 import tactic
 
 /-- A ring `R` is (at most) one-dimensional if all nonzero prime ideals are maximal. -/
@@ -71,8 +70,14 @@ end
 
 variables {M : ideal R} [is_maximal M]
 
+/-
+From Kevin:
+so the first thing you should do is prove submodule.le_div_iff_mul_le
+-/
+
+
 lemma maximal_ideal_invertible_of_dedekind (h : is_dedekind_domain f) {M : ideal R}
-  (hM : ideal.is_maximal M) : is_unit (M : fractional_ideal f) :=
+  (hM : ideal.is_maximal M) (nonzeroM : M ≠ 0): is_unit (M : fractional_ideal f) :=
 -- ⟨⟨M, M⁻¹, _, _⟩, rfl⟩
 begin
 let setM1 := {x : K | ∀ y ∈ M, f.is_integer (x * f.to_map y)},
@@ -86,7 +91,8 @@ let M1 : fractional_ideal f,
    { intros c x h1 y h,
     rw algebra.smul_mul_assoc,
     apply localization_map.is_integer_smul,
-    exact h1 y h,},sorry,
+    exact h1 y h,},sorry,--this sorry is here because the "second component" of a fractional_ideal is
+                          --a proof that ∃ a s.t. ∀ b blablabla; and this I still miss
 },
 -- have M1_one : (1 : K) ∈ M1,sorry,
 have h_MinMM1 : ↑M ≤ ↑M*M1,sorry,
@@ -94,8 +100,10 @@ have h_MinMM1 : ↑M ≤ ↑M*M1,sorry,
   -- },
 have hprod : ↑M*M1=(1: fractional_ideal f),
 suffices hincl: ↑M*M1≤ 1, --first we start with the proof that hincl → hprod
-  {have h_nonfrac : ∃ (I : ideal R), ↑M*M1=↑I,
-  sorry},--this sorry replaces a proof that ↑ M*M1=↑ I and
+  have h_nonfrac : ∃ (I : ideal R), ↑M*M1=↑I,
+  cases is_fractional f M1.2 with a ha,
+  -- let setI := (↑ M : fractional_ideal f).val * (M1.val),
+  sorry,--this sorry replaces a proof that ↑ M*M1=↑ I and
                                                     --should follow from hincl, checking coercion
   cases h_nonfrac with I hI,--could replace the above have and this cases by obtain?
   have h_Iincl : M ≤ I,
@@ -122,7 +130,7 @@ suffices hincl: ↑M*M1≤ 1, --first we start with the proof that hincl → hpr
   -- have h_unitI : (1 : R) ∈ I, apply (eq_top_iff_one I).mp,exact h_Itop,
   -- have h_IR : I= (1: ideal R),simp,exact h_Itop,
 
-  sorry,--this sorry replaces a proof of hincl
+  sorry,--this sorry replaces a proof of hincl and fractional_ideal.mul_le could be useful
 apply is_unit_of_mul_eq_one ↑M M1 hprod,
 end
 

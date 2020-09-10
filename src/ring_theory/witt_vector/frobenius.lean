@@ -197,8 +197,7 @@ begin
   -- conv_rhs { rw [mul_left_comm _ ((X i ^ p) ^ j), mul_left_comm _ ((X i ^ p) ^ j)], },
   congr' 2,
   convert final_bit p n i j hi hj,
-  simp [nat.pow_eq_pow, C_mul],
-  ring,
+  simp [nat.pow_eq_pow, C_mul, mul_assoc]
 end
 .
 

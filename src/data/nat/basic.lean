@@ -998,7 +998,8 @@ mul_comm _ _
 
 @[simp, protected] lemma pow_zero (b : ℕ) : b ^ 0 = 1 := rfl
 
-@[simp] theorem pow_one (b : ℕ) : b ^ 1 = b := mul_one _
+-- TODO: this is redundant with pow_one in algebra.group_power
+@[simp, nolint simp_nf] theorem pow_one (b : ℕ) : b ^ 1 = b := mul_one _
 
 theorem pow_le_pow_of_le_left {x y : ℕ} (H : x ≤ y) : ∀ i : ℕ, x^i ≤ y^i
 | 0 := le_refl _
@@ -1017,7 +1018,7 @@ pow_le_pow_of_le_right h (zero_le _)
 theorem zero_pow {n : ℕ} (h : 0 < n) : 0^n = 0 :=
 by rw [← succ_pred_eq_of_pos h, _root_.pow_succ, nat.zero_mul]
 
-theorem pow_lt_pow_of_lt_left {x y : ℕ} (H : x < y) {i} (h : i > 0) : x^i < y^i :=
+theorem pow_lt_pow_of_lt_left {x y : ℕ} (H : x < y) {i} (h : 0 < i) : x^i < y^i :=
 begin
   cases i with i, { exact absurd h (not_lt_zero _) },
   rw [nat.pow_succ, nat.pow_succ],
@@ -1035,7 +1036,7 @@ end
 
 /- mod / div / pow -/
 
-theorem mod_pow_succ {b : ℕ} (b_pos : b > 0) (w m : ℕ)
+theorem mod_pow_succ {b : ℕ} (b_pos : 0 < b) (w m : ℕ)
 : m % (b^succ w) = b * (m/b % b^w) + m % b :=
 begin
   apply nat.strong_induction_on m,
@@ -1067,7 +1068,8 @@ begin
     rw [eq.symm (mod_eq_sub_mod p_b_ge)] }
 end
 
-@[simp] lemma one_pow : ∀ n : ℕ, 1 ^ n = 1
+-- TODO: this is redundant with one_pow in algebra.group_power
+@[simp, nolint simp_nf] lemma one_pow : ∀ n : ℕ, 1 ^ n = 1
 | 0 := rfl
 | (k+1) := show 1 * 1^k = 1, by rw [one_mul, one_pow]
 

@@ -86,6 +86,8 @@ begin
   exact @modeq.modeq_mul _ _ 1 _ 1 h₁ h₂
 end
 
+/-- If `m` and `n` are natural numbers, then the natural number `m^n` is even 
+if and only if `m` is even and `n` is positive. -/
 @[parity_simps] theorem even_pow {m n : nat} : even (m^n) ↔ even m ∧ n ≠ 0 :=
 by { induction n with n ih; simp [*, nat.pow_succ, even_mul], tauto }
 

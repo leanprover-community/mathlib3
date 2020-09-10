@@ -83,6 +83,17 @@ lemma to_Top_map (X : Top.{u}) {U V : opens X} {f : U ⟶ V} {x} {h} :
   ((to_Top X).map f) ⟨x, h⟩ = ⟨x, (le_of_hom f) h⟩ :=
 rfl
 
+/--
+The inclusion map from an open subset to the whole space, as a morphism in `Top`.
+-/
+@[simps]
+def inclusion {X : Top.{u}} (U : opens X) : (to_Top X).obj U ⟶ X :=
+{ to_fun := _,
+  continuous_to_fun := continuous_subtype_coe }
+
+lemma inclusion_open_embedding {X : Top.{u}} (U : opens X) : open_embedding (inclusion U) :=
+is_open.open_embedding_subtype_coe U.2
+
 /-- `opens.map f` gives the functor from open sets in Y to open set in X,
     given by taking preimages under f. -/
 def map (f : X ⟶ Y) : opens Y ⥤ opens X :=
@@ -159,3 +170,12 @@ rfl
 rfl
 
 end topological_space.opens
+
+/--
+An open map `f : X ⟶ Y` induces a functor `opens X ⥤ opens Y`.
+-/
+@[simps]
+def is_open_map.functor {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f) :
+  opens X ⥤ opens Y :=
+{ obj := λ U, ⟨f '' U, hf U U.2⟩,
+  map := λ U V h, ⟨⟨set.image_subset _ h.down.down⟩⟩ }

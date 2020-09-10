@@ -37,9 +37,15 @@ namespace category_theory.limits.types
 
 /-- A restatement of `types.lift_π_apply` that uses `pi.π` and `pi.lift`. -/
 @[simp]
-lemma lift_π_apply' {β : Type u} (f : β → Type u) {P : Type u} (s : Π b, P ⟶ f b) (b : β) (x : P) :
+lemma pi_lift_π_apply {β : Type u} (f : β → Type u) {P : Type u} (s : Π b, P ⟶ f b) (b : β) (x : P) :
   (pi.π f b : (∏ f) → f b) (@pi.lift β _ _ f _ P s x) = s b x :=
 congr_fun (limit.lift_π (fan.mk s) b) x
+
+/-- A restatement of `types.map_π_apply` that uses `pi.π` and `pi.map`. -/
+@[simp]
+lemma pi_map_π_apply {β : Type u} {f g : β → Type u} (α : Π j, f j ⟶ g j) (b : β) (x) :
+  (pi.π g b : (∏ g) → g b) (pi.map α x) = α b ((pi.π f b : (∏ f) → f b) x) :=
+map_π_apply _ _ _
 
 /-- The category of types has `punit` as a terminal object. -/
 def types_has_terminal : has_terminal (Type u) :=

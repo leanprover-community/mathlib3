@@ -10,7 +10,7 @@ open tactic
 Demonstrate the packaged goals and how comparison of dependent goals
 works.
 -/
-example (m n : ℕ) : m = n :=
+example (m n : ℕ) (h : m = n) : m = n :=
 by do
 { let tac := `[cases m; apply subtype.mk.inj],
   gs₀ ← retrieve $ tac >> get_goals,
@@ -25,4 +25,4 @@ by do
   gs₀ ← get_proof_state_after $ tac >> swap,
   gs₁ ← get_proof_state_after $ tac >> swap,
   guard (gs₀ = gs₁),
-  tactic.admit }
+  interactive.exact ```(h) }

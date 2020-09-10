@@ -100,7 +100,8 @@ begin
   rw ← zmod.int_coe_zmod_eq_zero_iff_dvd,
   simp only [int.cast_coe_nat, zmod.cast_mod_nat p, int.cast_mul, int.cast_sub],
   have := congr_arg (coe : ℤ → zmod p) (gcd_eq_gcd_ab r.denom p),
-  simp only [int.cast_coe_nat, add_zero, int.cast_add, zmod.cast_self, int.cast_mul, zero_mul] at this,
+  simp only [int.cast_coe_nat, add_zero, int.cast_add, zmod.cast_self, int.cast_mul, zero_mul]
+    at this,
   push_cast,
   rw [mul_right_comm, mul_assoc, ←this],
   suffices rdcp : r.denom.coprime p,
@@ -259,8 +260,8 @@ The coercion from `zmod p` to `ℤ_[p]` is `zmod.has_coe_t`,
 which coerces `zmod p` into artibrary rings.
 This is unfortunate, but a consequence of the fact that we allow `zmod p`
 to coerce to rings of arbitrary characteristic, instead of only rings of characteristic `p`.
-This coercion is only a ring homomorphism if it coerces into a ring whose characteristic divides `p`.
-While this is not the case here we can still make use of the coercion.
+This coercion is only a ring homomorphism if it coerces into a ring whose characteristic divides
+`p`. While this is not the case here we can still make use of the coercion.
 -/
 lemma to_zmod_spec (z : ℤ_[p]) : z - (to_zmod z : ℤ_[p]) ∈ maximal_ideal ℤ_[p] :=
 begin
@@ -303,10 +304,10 @@ lemma appr_lt (x : ℤ_[p]) (n : ℕ) : x.appr n < p ^ n :=
 begin
   induction n with n ih generalizing x,
   { simp only [appr, succ_pos', nat.pow_zero], },
-  simp only [appr, ring_hom.map_nat_cast, zmod.cast_self, ring_hom.map_pow, int.nat_abs, ring_hom.map_mul],
+  simp only [appr, ring_hom.map_nat_cast, zmod.cast_self, ring_hom.map_pow, int.nat_abs,
+    ring_hom.map_mul],
   have hp : p ^ n < p ^ (n + 1),
-  { simp [← nat.pow_eq_pow],
-    apply pow_lt_pow hp_prime.one_lt (lt_add_one n) },
+  { apply pow_lt_pow hp_prime.one_lt (lt_add_one n) },
   split_ifs with h,
   { apply lt_trans (ih _) hp, },
   { calc _ < p ^ n + p ^ n * (p - 1) : _
@@ -355,7 +356,8 @@ begin
     { rw h, apply dvd_zero },
     { push_cast, rw sub_add_eq_sub_sub,
       obtain ⟨c, hc⟩ := ih x,
-      simp only [ring_hom.map_nat_cast, zmod.cast_self, ring_hom.map_pow, ring_hom.map_mul, zmod.nat_cast_val],
+      simp only [ring_hom.map_nat_cast, zmod.cast_self, ring_hom.map_pow, ring_hom.map_mul,
+        zmod.nat_cast_val],
       have hc' : c ≠ 0,
       { rintro rfl, simp only [mul_zero] at hc, contradiction },
       conv_rhs { congr, simp only [hc], },
@@ -496,8 +498,8 @@ begin
       int.cast_sub],
   dsimp [nth_hom],
   rw [← f_compat, ring_hom.comp_apply],
-  have : fact (p ^ (i) > 0) := pow_pos (nat.prime.pos ‹_›) _,
-  have : fact (p ^ (j) > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ (i) > 0) := nat.pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ (j) > 0) := nat.pow_pos (nat.prime.pos ‹_›) _,
   unfreezingI { simp only [zmod.cast_id, zmod.cast_hom_apply, sub_self, zmod.nat_cast_val], },
 end
 
@@ -542,8 +544,8 @@ begin
   rw [← int.cast_add, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le,
      ← zmod.int_coe_zmod_eq_zero_iff_dvd],
   dsimp [nth_hom],
-  have : fact (p ^ n > 0) := pow_pos (nat.prime.pos ‹_›) _,
-  have : fact (p ^ j > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ n > 0) := nat.pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ j > 0) := nat.pow_pos (nat.prime.pos ‹_›) _,
   unfreezingI
   { simp only [int.cast_coe_nat, int.cast_add, ring_hom.map_add, int.cast_sub, zmod.nat_cast_val] },
   rw [zmod.cast_add (show p ^ n ∣ p ^ j, from _), sub_self],
@@ -563,8 +565,8 @@ begin
   rw [← int.cast_mul, ← int.cast_sub, ← padic_norm.dvd_iff_norm_le,
      ← zmod.int_coe_zmod_eq_zero_iff_dvd],
   dsimp [nth_hom],
-  have : fact (p ^ n > 0) := pow_pos (nat.prime.pos ‹_›) _,
-  have : fact (p ^ j > 0) := pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ n > 0) := nat.pow_pos (nat.prime.pos ‹_›) _,
+  have : fact (p ^ j > 0) := nat.pow_pos (nat.prime.pos ‹_›) _,
   unfreezingI
   { simp only [int.cast_coe_nat, int.cast_mul, int.cast_sub, ring_hom.map_mul, zmod.nat_cast_val] },
   rw [zmod.cast_mul (show p ^ n ∣ p ^ j, from _), sub_self],
@@ -601,10 +603,12 @@ by simp [lim_nth_hom]; refl
 lemma lim_nth_hom_one : lim_nth_hom f_compat 1 = 1 :=
 subtype.ext $ quot.sound $ nth_hom_seq_one _
 
-lemma lim_nth_hom_add (r s : R) : lim_nth_hom f_compat (r + s) = lim_nth_hom f_compat r + lim_nth_hom f_compat s :=
+lemma lim_nth_hom_add (r s : R) :
+  lim_nth_hom f_compat (r + s) = lim_nth_hom f_compat r + lim_nth_hom f_compat s :=
 subtype.ext $ quot.sound $ nth_hom_seq_add _ _ _
 
-lemma lim_nth_hom_mul (r s : R) : lim_nth_hom f_compat (r * s) = lim_nth_hom f_compat r * lim_nth_hom f_compat s :=
+lemma lim_nth_hom_mul (r s : R) :
+  lim_nth_hom f_compat (r * s) = lim_nth_hom f_compat r * lim_nth_hom f_compat s :=
 subtype.ext $ quot.sound $ nth_hom_seq_mul _ _ _
 
 -- TODO: generalize this to arbitrary complete discrete valuation rings

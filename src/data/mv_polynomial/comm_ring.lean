@@ -71,31 +71,6 @@ instance coeff.is_add_group_hom (m : σ →₀ ℕ) :
 { map_add := coeff_add m }
 
 variables {σ} (p)
-theorem C_mul' : mv_polynomial.C a * p = a • p :=
-begin
-  apply finsupp.induction p,
-  { exact (mul_zero $ mv_polynomial.C a).trans (@smul_zero α (mv_polynomial σ α) _ _ _ a).symm },
-  intros p b f haf hb0 ih,
-  rw [mul_add, ih, @smul_add α (mv_polynomial σ α) _ _ _ a], congr' 1,
-  rw [add_monoid_algebra.mul_def, finsupp.smul_single],
-  simp only [mv_polynomial.C],
-  dsimp [mv_polynomial.monomial],
-  rw [finsupp.sum_single_index, finsupp.sum_single_index, zero_add],
-  { rw [mul_zero, finsupp.single_zero] },
-  { rw finsupp.sum_single_index,
-    all_goals { rw [zero_mul, finsupp.single_zero] }, }
-end
-
-lemma smul_eq_C_mul (p : mv_polynomial σ α) (a : α) : a • p = C a * p :=
-begin
-  rw [← finsupp.sum_single p, @finsupp.smul_sum (σ →₀ ℕ) α α, finsupp.mul_sum],
-  refine finset.sum_congr rfl (assume n _, _),
-  simp only [finsupp.smul_single],
-  exact C_mul_monomial.symm
-end
-
-@[simp] lemma smul_eval (x) (p : mv_polynomial σ α) (s) : eval x (s • p) = s * eval x p :=
-by rw [smul_eq_C_mul, (eval x).map_mul, eval_C]
 
 section degrees
 

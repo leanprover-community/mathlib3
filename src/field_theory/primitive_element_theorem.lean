@@ -1,5 +1,22 @@
+/-
+Copyright (c) 2020 Thomas Browning and Patrick Lutz. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Thomas Browning and Patrick Lutz
+-/
+
 import field_theory.adjoin
 import field_theory.separable
+
+/-!
+# Primitive Element Theorem
+
+In this file we prove the primitive element theorem.
+
+## Main results
+
+- `primitive_element`: a finite separable extension has a primitive element.
+
+-/
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -296,7 +313,7 @@ begin
 end
 
 --silly instances that are used in translating from F to set.range (algebra_map F E)
-instance tada1 : algebra F (set.range (algebra_map F E)) := {
+instance algebra_map_range_is_algebra : algebra F (set.range (algebra_map F E)) := {
   smul := λ x y, ⟨algebra_map F E x,set.mem_range_self x⟩ * y,
   to_fun := λ x, ⟨algebra_map F E x,set.mem_range_self x⟩,
   map_zero' := by ext1;exact (algebra_map F E).map_zero,
@@ -307,7 +324,7 @@ instance tada1 : algebra F (set.range (algebra_map F E)) := {
   smul_def' := λ x y, by ext1;refl,
 }
 
-instance tada2 : is_scalar_tower F (set.range (algebra_map F E)) E := {
+instance algebra_map_range_is_scalar_tower : is_scalar_tower F (set.range (algebra_map F E)) E := {
   smul_assoc := λ x y z, begin
     change ((algebra_map F E x) * y) * z = x • (y * z),
     rw algebra.smul_def,

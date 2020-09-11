@@ -55,7 +55,22 @@ begin
   simp,
 end
 
+/--
+Construct a term of `limit F : Type u` from a family of terms `x : Π j, F.obj j`
+which are "coherent": `∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j'`.
+-/
+@[ext]
+def limit.mk (F : J ⥤ Type u) (x : Π j, F.obj j) (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') :
+  (limit F : Type u) :=
+(limit_equiv_sections F).symm ⟨x, h⟩
+
+@[simp]
+lemma limit.π_mk (F : J ⥤ Type u) (x : Π j, F.obj j) (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') (j) :
+  limit.π F j (limit.mk F x h) = x j :=
+by { dsimp [limit.mk], simp, }
+
 -- PROJECT: prove this for concrete categories where the forgetful functor preserves limits
+@[ext]
 lemma limit_ext (F : J ⥤ Type u) (x y : limit F) (w : ∀ j, limit.π F j x = limit.π F j y) :
   x = y :=
 begin
@@ -145,6 +160,15 @@ lemma colimit_sound
 begin
   rw [←w],
   simp,
+end
+
+lemma colimit_sound'
+  {F : J ⥤ Type u} {j j' : J} {x : F.obj j} {x' : F.obj j'} {j'' : J} (f : j ⟶ j'') (f' : j' ⟶ j'')
+  (w : F.map f x = F.map f' x') :
+  colimit.ι F j x = colimit.ι F j' x' :=
+begin
+  rw [←colimit.w _ f, ←colimit.w _ f'],
+  rw [types_comp_apply, types_comp_apply, w],
 end
 
 lemma jointly_surjective (F : J ⥤ Type u) {t : cocone F} (h : is_colimit t)

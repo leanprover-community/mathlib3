@@ -226,10 +226,10 @@ def to_iso (e : X ≃ Y) : X ≅ Y :=
 
 end equiv
 
+universe u
+
 namespace category_theory.iso
 open category_theory
-
-universe u
 
 variables {X Y : Type u}
 
@@ -251,8 +251,16 @@ def to_equiv (i : X ≅ Y) : X ≃ Y :=
 
 end category_theory.iso
 
+namespace category_theory
 
-universe u
+/-- A morphism in `Type` is an isomorphism if and only if it is bijective. -/
+noncomputable
+def is_iso_equiv_bijective {X Y : Type u} (f : X ⟶ Y) : is_iso f ≃ function.bijective f :=
+equiv_of_subsingleton_of_subsingleton
+  (by { introI i, exact (as_iso f).to_equiv.bijective, })
+  (λ b, { .. (equiv.of_bijective f b).to_iso })
+
+end category_theory
 
 -- We prove `equiv_iso_iso` and then use that to sneakily construct `equiv_equiv_iso`.
 -- (In this order the proofs are handled by `obviously`.)

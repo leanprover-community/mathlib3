@@ -35,8 +35,6 @@ open_locale topological_space big_operators
 
 universes u v w u'
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A topological semimodule, over a semiring which is also a topological space, is a
 semimodule in which scalar multiplication is continuous. In applications, R will be a topological
 semiring and M a topological additive semigroup, but this is not needed for the definition -/
@@ -45,7 +43,6 @@ class topological_semimodule (R : Type u) (M : Type v)
   [topological_space M] [add_comm_monoid M]
   [semimodule R M] : Prop :=
 (continuous_smul : continuous (λp : R × M, p.1 • p.2))
-end prio
 
 section
 
@@ -71,8 +68,6 @@ tendsto_smul.comp (hf.prod_mk_nhds hg)
 
 end
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A topological module, over a ring which is also a topological space, is a module in which
 scalar multiplication is continuous. In applications, `R` will be a topological ring and `M` a
 topological additive group, but this is not needed for the definition -/
@@ -87,7 +82,6 @@ abbreviation topological_vector_space (R : Type u) (M : Type v)
   [field R] [topological_space R]
   [topological_space M] [add_comm_group M] [module R M] :=
 topological_module R M
-end prio
 
 section
 

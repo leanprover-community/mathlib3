@@ -801,7 +801,8 @@ end
 lemma is_basis.repr_apply_eq {f : M → ι → R}
   (hfin : ∀ x, ∃ (s : finset ι), ∀ i, f x i ≠ 0 → i ∈ s)
   (hadd : ∀ x y, f (x + y) = f x + f y) (hsmul : ∀ (c : R) (x : M), f (c • x) = c • f x)
-  (f_eq : ∀ i, f (v i) = finsupp.single i 1) (x : M) (i : ι) : hv.repr x i = f x i :=
+  (f_eq : ∀ i, f (v i) = finsupp.single i 1) (x : M) (i : ι) :
+  hv.repr x i = f x i :=
 begin
   set f' : M →ₗ[R] (ι →₀ R) :=
   { to_fun := λ x, finsupp.on_finset _ _ (classical.some_spec (hfin x)),

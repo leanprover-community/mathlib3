@@ -291,7 +291,7 @@ begin
   { have : u k ∈ A,
       from finset.mem_image_of_mem _ (finset.mem_range.mpr $ nat.lt_succ_of_le H),
     have : u k ≤ M,
-      from finset.le_max' A Ane (u k) this,
+      from finset.le_max' A (u k) this,
     exact lt_of_le_of_lt this hnM },
   { push_neg at H,
     calc u k ≤ M   : hn_min k (le_of_lt H) hk

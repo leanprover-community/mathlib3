@@ -484,6 +484,10 @@ def affine_span (s : set P) : affine_subspace k P :=
   (affine_span k s : set P) = span_points k s :=
 rfl
 
+/-- A set is contained in its affine span. -/
+lemma subset_affine_span (s : set P) : s ⊆ affine_span k s :=
+subset_span_points k s
+
 /-- The direction of the affine span is the `vector_span`. -/
 lemma direction_affine_span (s : set P) : (affine_span k s).direction = vector_span k s :=
 begin
@@ -828,6 +832,8 @@ variables (k : Type*) {V : Type*} {P : Type*} [ring k] [add_comm_group V] [modul
 variables {ι : Type*}
 include V
 
+open affine_subspace
+
 /-- The `vector_span` is the span of the pairwise subtractions with a
 given point on the left. -/
 lemma vector_span_eq_span_vsub_set_left {s : set P} {p : P} (hp : p ∈ s) :
@@ -932,17 +938,39 @@ lemma affine_span_singleton_union_vadd_eq_top_of_span_eq_top {s : set V} (p : P)
     (h : submodule.span k (set.range (coe : s → V)) = ⊤) :
   affine_span k ({p} ∪ (λ v, v +ᵥ p) '' s) = ⊤ :=
 begin
-  convert affine_subspace.ext_of_direction_eq _
+  convert ext_of_direction_eq _
     ⟨p,
      mem_affine_span k (set.mem_union_left _ (set.mem_singleton _)),
-     affine_subspace.mem_top k V p⟩,
-  rw [direction_affine_span, affine_subspace.direction_top,
+     mem_top k V p⟩,
+  rw [direction_affine_span, direction_top,
       vector_span_eq_span_vsub_set_right k
         ((set.mem_union_left _ (set.mem_singleton _)) : p ∈ _), eq_top_iff, ←h],
   apply submodule.span_mono,
   rintros v ⟨v', rfl⟩,
   use (v' : V) +ᵥ p,
   simp
+end
+
+variables (k)
+
+/-- `affine_span` is monotone. -/
+lemma affine_span_mono {s₁ s₂ : set P} (h : s₁ ⊆ s₂) : affine_span k s₁ ≤ affine_span k s₂ :=
+span_points_subset_coe_of_subset_coe (set.subset.trans h (subset_affine_span k _))
+
+/-- Taking the affine span of a set, adding a point and taking the
+span again produces the same results as adding the point to the set
+and taking the span. -/
+lemma affine_span_insert_affine_span (p : P) (ps : set P) :
+  affine_span k (insert p (affine_span k ps : set P)) = affine_span k (insert p ps) :=
+by rw [set.insert_eq, set.insert_eq, span_union, span_union, affine_span_coe]
+
+/-- If a point is in the affine span of a set, adding it to that set
+does not change the affine span. -/
+lemma affine_span_insert_eq_affine_span {p : P} {ps : set P} (h : p ∈ affine_span k ps) :
+  affine_span k (insert p ps) = affine_span k ps :=
+begin
+  rw ←mem_coe at h,
+  rw [←affine_span_insert_affine_span, set.insert_eq_of_mem h, affine_span_coe]
 end
 
 end affine_space'

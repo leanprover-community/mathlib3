@@ -792,6 +792,15 @@ begin
   refl
 end
 
+lemma diff_mem_inf_principal_compl {f : filter α} {s : set α} (hs : s ∈ f) (t : set α) :
+  s \ t ∈ f ⊓ 𝓟 tᶜ :=
+begin
+  rw mem_inf_principal,
+  filter_upwards [hs],
+  intros a has hat,
+  exact ⟨has, hat⟩
+end
+
 lemma mem_iff_inf_principal_compl {f : filter α} {V : set α} :
   V ∈ f ↔ f ⊓ 𝓟 Vᶜ = ⊥ :=
 begin

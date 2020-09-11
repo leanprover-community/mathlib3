@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Andreas Swerdlow
 -/
 import algebra.module.basic
-import ring_theory.maps
+import ring_theory.ring_invo
 
 /-!
 # Sesquilinear form

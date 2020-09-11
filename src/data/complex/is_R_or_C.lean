@@ -21,8 +21,6 @@ typeclass, which basically amounts to doing the complex case, and the two cases 
 immediately from the two instances of the class.
 -/
 
-set_option default_priority 100 -- see Note [default priority]
-
 /--
 This typeclass captures properties shared by ℝ and ℂ, with an API that closely matches that of ℂ.
 -/

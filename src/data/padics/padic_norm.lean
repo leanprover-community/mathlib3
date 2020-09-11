@@ -438,12 +438,11 @@ begin
     refine ⟨p, ⟨_, Hp⟩, ⟨_, rfl⟩⟩,
     { rw mem_factors_iff_dvd hn Hp at hp, exact lt_of_le_of_lt (le_of_dvd hn hp) pr },
     { rw padic_val_nat_eq_factors_count,
-      simp only [pow_eq_pow, ne.def, multiset.coe_count] at hpn,
-      convert hpn } },
+      simpa [ne.def, multiset.coe_count] using hpn } },
   { intros p hp hpn,
     rw [finset.mem_filter, finset.mem_range] at hp,
     haveI Hp : fact p.prime := hp.2,
-    rw [padic_val_nat_eq_factors_count, multiset.coe_count, pow_eq_pow] }
+    rw [padic_val_nat_eq_factors_count, multiset.coe_count] }
 end
 
 end padic_val_nat

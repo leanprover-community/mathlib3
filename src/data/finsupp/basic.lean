@@ -1313,6 +1313,10 @@ lemma mem_support_single [has_zero β] (a a' : α) (b : β) :
   else ⟨by rw if_neg h at H; exact mem_singleton.1 H, h⟩,
 λ ⟨h1, h2⟩, show a ∈ ite _ _ _, by rw [if_neg h2]; exact mem_singleton.2 h1⟩
 
+@[simp] lemma mem_to_multiset (f : α →₀ ℕ) (i : α) :
+  i ∈ f.to_multiset ↔ i ∈ f.support :=
+by rw [← multiset.count_ne_zero, finsupp.count_to_multiset, finsupp.mem_support_iff]
+
 end multiset
 
 /-! ### Declarations about `curry` and `uncurry` -/
@@ -1545,11 +1549,11 @@ section
 variables [semiring β] [semiring γ]
 
 lemma sum_mul (b : γ) (s : α →₀ β) {f : α → β → γ} :
-  (s.sum f) * b = s.sum (λ a c, (f a (s a)) * b) :=
+  (s.sum f) * b = s.sum (λ a c, (f a c) * b) :=
 by simp only [finsupp.sum, finset.sum_mul]
 
 lemma mul_sum (b : γ) (s : α →₀ β) {f : α → β → γ} :
-  b * (s.sum f) = s.sum (λ a c, b * (f a (s a))) :=
+  b * (s.sum f) = s.sum (λ a c, b * (f a c)) :=
 by simp only [finsupp.sum, finset.mul_sum]
 
 protected lemma eq_zero_of_zero_eq_one

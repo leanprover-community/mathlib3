@@ -34,9 +34,6 @@ class has_hom (obj : Type u) : Type (max u (v+1)) :=
 
 infixr ` ⟶ `:10 := has_hom.hom -- type as \h
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
-
 /-- A preliminary structure on the way to defining a category,
 containing the data, but none of the axioms. -/
 class category_struct (obj : Type u)
@@ -58,7 +55,6 @@ extends category_struct.{v} obj : Type (max u (v+1)) :=
 (comp_id' : ∀ {X Y : obj} (f : hom X Y), f ≫ 𝟙 Y = f . obviously)
 (assoc'   : ∀ {W X Y Z : obj} (f : hom W X) (g : hom X Y) (h : hom Y Z),
   (f ≫ g) ≫ h = f ≫ (g ≫ h) . obviously)
-end prio
 
 -- `restate_axiom` is a command that creates a lemma from a structure field,
 -- discarding any auto_param wrappers from the type.
@@ -128,7 +124,7 @@ class epi (f : X ⟶ Y) : Prop :=
 (left_cancellation : Π {Z : C} (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h), g = h)
 
 /--
-A morphism `f` is an epimorphism if it can be "cancelled" when postcomposed:
+A morphism `f` is a monomorphism if it can be "cancelled" when postcomposed:
 `g ≫ f = h ≫ f` implies `g = h`.
 -/
 class mono (f : X ⟶ Y) : Prop :=

@@ -44,9 +44,6 @@ universes v₁ v₂ u₁ u₂
 open category_theory.category
 namespace category_theory
 
-section connected
--- See note [default priority]
-set_option default_priority 100
 /--
 We define a connected category as a _nonempty_ category for which every
 functor to a discrete category is constant.
@@ -59,7 +56,6 @@ This allows us to show that the functor X ⨯ - preserves connected limits.
 -/
 class connected (J : Type v₂) [category.{v₁} J] extends inhabited J :=
 (iso_constant : Π {α : Type v₂} (F : J ⥤ discrete α), F ≅ (functor.const J).obj (F.obj default))
-end connected
 
 variables {J : Type v₂} [category.{v₁} J]
 

@@ -16,13 +16,10 @@ class has_scalar (α : Type u) (γ : Type v) := (smul : α → γ → γ)
 
 infixr ` • `:73 := has_scalar.smul
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- Typeclass for multiplicative actions by monoids. This generalizes group actions. -/
 @[protect_proj] class mul_action (α : Type u) (β : Type v) [monoid α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
-end prio
 
 section
 variables [monoid α] [mul_action α β]
@@ -91,6 +88,23 @@ by split_ifs; refl
 
 end
 
+section compatible_scalar
+
+variables (R M N : Type*) [has_scalar R M] [has_scalar M N] [has_scalar R N]
+
+/-- An instance of `is_scalar_tower R M N` states that the multiplicative
+action of `R` on `N` is determined by the multiplicative actions of `R` on `M`
+and `M` on `N`. -/
+class is_scalar_tower : Prop :=
+(smul_assoc : ∀ (x : R) (y : M) (z : N), (x • y) • z = x • (y • z))
+
+variables {R M N}
+
+@[simp] lemma smul_assoc [is_scalar_tower R M N] (x : R) (y : M) (z : N) :
+  (x • y) • z = x • y • z := is_scalar_tower.smul_assoc x y z
+
+end compatible_scalar
+
 namespace mul_action
 
 variables (α) [monoid α]
@@ -102,6 +116,15 @@ def regular : mul_action α α :=
   mul_smul := λ a₁ a₂ a₃, mul_assoc _ _ _, }
 
 variables [mul_action α β]
+
+section regular
+
+local attribute [instance] regular
+
+instance is_scalar_tower.left : is_scalar_tower α α β :=
+⟨λ x y z, mul_smul x y z⟩
+
+end regular
 
 /-- The orbit of an element under an action. -/
 def orbit (b : β) := set.range (λ x : α, x • b)
@@ -179,10 +202,10 @@ section
 open mul_action quotient_group
 
 @[simp] lemma inv_smul_smul (c : α) (x : β) : c⁻¹ • c • x = x :=
-(to_units α c).inv_smul_smul x
+(to_units c).inv_smul_smul x
 
 @[simp] lemma smul_inv_smul (c : α) (x : β) : c • c⁻¹ • x = x :=
-(to_units α c).smul_inv_smul x
+(to_units c).smul_inv_smul x
 
 lemma inv_smul_eq_iff {a : α} {x y : β} : a⁻¹ • x = y ↔ x = a • y :=
 begin
@@ -321,13 +344,10 @@ end
 
 end mul_action
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
 class distrib_mul_action (α : Type u) (β : Type v) [monoid α] [add_monoid β] extends mul_action α β :=
 (smul_add : ∀(r : α) (x y : β), r • (x + y) = r • x + r • y)
 (smul_zero : ∀(r : α), r • (0 : β) = 0)
-end prio
 
 section
 variables [monoid α] [add_monoid β] [distrib_mul_action α β]

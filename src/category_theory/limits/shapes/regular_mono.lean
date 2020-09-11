@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
-import category_theory.limits.preserves
+import category_theory.limits.preserves.basic
 import category_theory.limits.shapes.kernels
 import category_theory.limits.shapes.strong_epi
 import category_theory.limits.shapes.pullbacks

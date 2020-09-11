@@ -63,9 +63,6 @@ open braided_category
 
 notation `β_` := braiding
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
-
 /--
 A symmetric monoidal category is a braided monoidal category for which the braiding is symmetric.
 -/
@@ -73,8 +70,6 @@ class symmetric_category (C : Type u) [category.{v} C] [monoidal_category.{v} C]
    extends braided_category.{v} C :=
 -- braiding symmetric:
 (symmetry' : ∀ X Y : C, (β_ X Y).hom ≫ (β_ Y X).hom = 𝟙 (X ⊗ Y) . obviously)
-
-end prio
 
 restate_axiom symmetric_category.symmetry'
 attribute [simp,reassoc] symmetric_category.symmetry

@@ -177,7 +177,7 @@ int.coe_nat_lt.1 (by simp [-int.coe_nat_lt, norm_mod_lt x hy])
 lemma norm_le_norm_mul_left (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) :
   (norm x).nat_abs ≤ (norm (x * y)).nat_abs :=
 by rw [norm_mul, int.nat_abs_mul];
-  exact le_mul_of_one_le_right' (nat.zero_le _)
+  exact le_mul_of_one_le_right (nat.zero_le _)
     (int.coe_nat_le.1 (by rw [coe_nat_abs_norm]; exact norm_pos.2 hy))
 
 instance : nontrivial ℤ[i] :=
@@ -212,8 +212,7 @@ hp.eq_two_or_odd.elim
         rw [← nat.mod_mul_left_mod p 2 2, show 2 * 2 = 4, from rfl] at hp1,
         have := nat.mod_lt p (show 0 < 4, from dec_trivial),
         revert this hp3 hp1,
-        generalize hm : p % 4 = m, clear hm, revert m,
-        exact dec_trivial,
+        generalize : p % 4 = m, dec_trivial!,
       end,
     let ⟨k, hk⟩ := (zmod.exists_pow_two_eq_neg_one_iff_mod_four_ne_three p).2 $
       by rw hp41; exact dec_trivial in
@@ -259,7 +258,7 @@ have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2 $
   by rw [norm_nat_cast, int.nat_abs_mul, nat.mul_eq_one_iff];
     exact λ h, (ne_of_lt hp.one_lt).symm h.1,
 have hab : ∃ a b, (p : ℤ[i]) = a * b ∧ ¬ is_unit a ∧ ¬ is_unit b,
-  by simpa [irreducible, hpu, classical.not_forall, not_or_distrib] using hpi,
+  by simpa [irreducible, hpu, not_forall, not_or_distrib] using hpi,
 let ⟨a, b, hpab, hau, hbu⟩ := hab in
 have hnap : (norm a).nat_abs = p, from ((hp.mul_eq_prime_pow_two_iff
     (mt norm_eq_one_iff.1 hau) (mt norm_eq_one_iff.1 hbu)).1 $

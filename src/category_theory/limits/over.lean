@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Reid Barton, Bhavik Mehta
 -/
 import category_theory.over
-import category_theory.limits.preserves
+import category_theory.limits.preserves.basic
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 

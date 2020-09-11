@@ -244,10 +244,7 @@ begin
       rw hr,
       change ∃! (cccr : P × ℝ), (_ ∧ ∀ (i2 : ι2), (λ q, dist q cccr.fst = cccr.snd) (p i2)) at hm,
       conv at hm { congr, funext, conv { congr, skip, rw ←set.forall_range_iff } },
-      have hs : affine_span ℝ (insert (p i) (set.range (λ (i2 : ι2), p i2))) =
-        affine_span ℝ (insert (p i) (affine_span ℝ (set.range (λ (i2 : ι2), p i2)) : set P)),
-      { rw [set.insert_eq, set.insert_eq, span_union, span_union, affine_span_coe] },
-      rw hs,
+      rw ←affine_span_insert_affine_span,
       refine exists_unique_dist_eq_of_insert
         (submodule.complete_of_finite_dimensional _)
         (set.range_nonempty _)
@@ -581,6 +578,52 @@ begin
   symmetry,
   refine affine_combination_of_eq_one_of_eq_zero _ _ _ (mem_univ _) rfl _,
   rintros ⟨i⟩ hi hn ; tauto
+end
+
+omit V
+
+/-- The weights for the reflection of the circumcenter in an edge of a
+simplex.  This definition is only valid with `i₁ ≠ i₂`. -/
+def reflection_circumcenter_weights_with_circumcenter {n : ℕ} (i₁ i₂ : fin (n + 1)) :
+  points_with_circumcenter_index n → ℝ
+| (point_index i) := if i = i₁ ∨ i = i₂ then 1 else 0
+| circumcenter_index := -1
+
+/-- `reflection_circumcenter_weights_with_circumcenter` sums to 1. -/
+@[simp] lemma sum_reflection_circumcenter_weights_with_circumcenter {n : ℕ} {i₁ i₂ : fin (n + 1)}
+  (h : i₁ ≠ i₂) : ∑ i, reflection_circumcenter_weights_with_circumcenter i₁ i₂ i = 1 :=
+begin
+  simp_rw [sum_points_with_circumcenter, reflection_circumcenter_weights_with_circumcenter,
+           sum_ite, sum_const, filter_or, filter_eq'],
+  rw card_union_eq,
+  { simp },
+  { simp [h.symm] }
+end
+
+include V
+
+/-- The reflection of the circumcenter of a simplex in an edge, in
+terms of `points_with_circumcenter`. -/
+lemma reflection_circumcenter_eq_affine_combination_of_points_with_circumcenter {n : ℕ}
+  (s : simplex ℝ P n) {i₁ i₂ : fin (n + 1)} (h : i₁ ≠ i₂) :
+  reflection (affine_span ℝ (s.points '' {i₁, i₂})) s.circumcenter =
+    (univ : finset (points_with_circumcenter_index n)).affine_combination
+      s.points_with_circumcenter (reflection_circumcenter_weights_with_circumcenter i₁ i₂) :=
+begin
+  have hc : card ({i₁, i₂} : finset (fin (n + 1))) = 2,
+  { simp [h] },
+  rw [reflection_apply, ←coe_singleton, ←coe_insert, s.orthogonal_projection_circumcenter hc,
+      circumcenter_eq_centroid, s.face_centroid_eq_centroid hc,
+      centroid_eq_affine_combination_of_points_with_circumcenter,
+      circumcenter_eq_affine_combination_of_points_with_circumcenter, ←@vsub_eq_zero_iff_eq V,
+      affine_combination_vsub, weighted_vsub_vadd_affine_combination, affine_combination_vsub,
+      weighted_vsub_apply, sum_points_with_circumcenter],
+  simp_rw [pi.sub_apply, pi.add_apply, pi.sub_apply, sub_smul, add_smul, sub_smul,
+           centroid_weights_with_circumcenter, circumcenter_weights_with_circumcenter,
+           reflection_circumcenter_weights_with_circumcenter, ite_smul, zero_smul, sub_zero,
+           apply_ite2 (+), add_zero, ←add_smul, hc, zero_sub, neg_smul, sub_self, add_zero],
+  convert sum_const_zero,
+  norm_num
 end
 
 end simplex

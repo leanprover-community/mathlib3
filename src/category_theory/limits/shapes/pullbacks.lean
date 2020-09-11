@@ -14,6 +14,10 @@ for the given data for a pullback (resp. pushout) diagram. Convenience methods `
 and `span f g` construct functors from the walking (co)span, hitting the given morphisms.
 
 We define `pullback f g` and `pushout f g` as limits and colimits of such functors.
+
+## References
+* [Stacks: Fibre products](https://stacks.math.columbia.edu/tag/001U)
+* [Stacks: Pushouts](https://stacks.math.columbia.edu/tag/0025)
 -/
 
 open category_theory
@@ -530,7 +534,11 @@ instance pushout.inr_of_epi {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_pushout
 
 variables (C)
 
-/-- `has_pullbacks` represents a choice of pullback for every pair of morphisms -/
+/--
+`has_pullbacks` represents a choice of pullback for every pair of morphisms
+
+See https://stacks.math.columbia.edu/tag/001W.
+-/
 abbreviation has_pullbacks := has_limits_of_shape walking_cospan C
 
 /-- `has_pushouts` represents a choice of pushout for every pair of morphisms -/

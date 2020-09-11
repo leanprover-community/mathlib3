@@ -26,8 +26,12 @@ namespace category_theory
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 variables {T : Type u₁} [category.{v₁} T]
 
-/-- The over category has as objects arrows in `T` with codomain `X` and as morphisms commutative
-    triangles. -/
+/--
+The over category has as objects arrows in `T` with codomain `X` and as morphisms commutative
+triangles.
+
+See https://stacks.math.columbia.edu/tag/001G.
+-/
 @[derive category]
 def over (X : T) := comma.{v₁ 0 v₁} (𝟭 T) (functor.from_punit X)
 
@@ -92,13 +96,21 @@ lemma iso_mk_hom_left {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g
 lemma iso_mk_inv_left {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom) :
   (iso_mk hl hw).inv.left = hl.inv := rfl
 
-/-- The forgetful functor mapping an arrow to its domain. -/
+/--
+The forgetful functor mapping an arrow to its domain.
+
+See https://stacks.math.columbia.edu/tag/001G.
+-/
 def forget : over X ⥤ T := comma.fst _ _
 
 @[simp] lemma forget_obj {U : over X} : forget.obj U = U.left := rfl
 @[simp] lemma forget_map {U V : over X} {f : U ⟶ V} : forget.map f = f.left := rfl
 
-/-- A morphism `f : X ⟶ Y` induces a functor `over X ⥤ over Y` in the obvious way. -/
+/--
+A morphism `f : X ⟶ Y` induces a functor `over X ⥤ over Y` in the obvious way.
+
+See https://stacks.math.columbia.edu/tag/001G.
+-/
 def map {Y : T} (f : X ⟶ Y) : over X ⥤ over Y := comma.map_right _ $ discrete.nat_trans (λ _, f)
 
 section

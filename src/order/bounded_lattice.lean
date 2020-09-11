@@ -27,14 +27,11 @@ notation `⊥` := has_bot.bot
 
 attribute [pattern] has_bot.bot has_top.top
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- An `order_top` is a partial order with a maximal element.
   (We could state this on preorders, but then it wouldn't be unique
   so distinguishing one would seem odd.) -/
 class order_top (α : Type u) extends has_top α, partial_order α :=
 (le_top : ∀ a : α, a ≤ ⊤)
-end prio
 
 section order_top
 variables [order_top α] {a b : α}
@@ -92,14 +89,11 @@ begin
   injection this; congr'
 end
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- An `order_bot` is a partial order with a minimal element.
   (We could state this on preorders, but then it wouldn't be unique
   so distinguishing one would seem odd.) -/
 class order_bot (α : Type u) extends has_bot α, partial_order α :=
 (bot_le : ∀ a : α, ⊥ ≤ a)
-end prio
 
 section order_bot
 variables [order_bot α] {a b : α}
@@ -156,11 +150,8 @@ begin
   injection this; congr'
 end
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `semilattice_sup_top` is a semilattice with top and join. -/
 class semilattice_sup_top (α : Type u) extends order_top α, semilattice_sup α
-end prio
 
 section semilattice_sup_top
 variables [semilattice_sup_top α] {a : α}
@@ -173,11 +164,8 @@ sup_of_le_right le_top
 
 end semilattice_sup_top
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `semilattice_sup_bot` is a semilattice with bottom and join. -/
 class semilattice_sup_bot (α : Type u) extends order_bot α, semilattice_sup α
-end prio
 
 section semilattice_sup_bot
 variables [semilattice_sup_bot α] {a b : α}
@@ -196,11 +184,8 @@ end semilattice_sup_bot
 instance nat.semilattice_sup_bot : semilattice_sup_bot ℕ :=
 { bot := 0, bot_le := nat.zero_le, .. nat.distrib_lattice }
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `semilattice_inf_top` is a semilattice with top and meet. -/
 class semilattice_inf_top (α : Type u) extends order_top α, semilattice_inf α
-end prio
 
 section semilattice_inf_top
 variables [semilattice_inf_top α] {a b : α}
@@ -216,11 +201,8 @@ by rw [eq_top_iff, le_inf_iff]; simp
 
 end semilattice_inf_top
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `semilattice_inf_bot` is a semilattice with bottom and meet. -/
 class semilattice_inf_bot (α : Type u) extends order_bot α, semilattice_inf α
-end prio
 
 section semilattice_inf_bot
 variables [semilattice_inf_bot α] {a : α}
@@ -235,13 +217,10 @@ end semilattice_inf_bot
 
 /- Bounded lattices -/
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A bounded lattice is a lattice with a top and bottom element,
   denoted `⊤` and `⊥` respectively. This allows for the interpretation
   of all finite suprema and infima, taking `inf ∅ = ⊤` and `sup ∅ = ⊥`. -/
 class bounded_lattice (α : Type u) extends lattice α, order_top α, order_bot α
-end prio
 
 @[priority 100] -- see Note [lower instance priority]
 instance semilattice_inf_top_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] : semilattice_inf_top α :=
@@ -272,11 +251,8 @@ begin
   injection H1; injection H2; injection H3; congr'
 end
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A bounded distributive lattice is exactly what it sounds like. -/
 class bounded_distrib_lattice α extends distrib_lattice α, bounded_lattice α
-end prio
 
 lemma inf_eq_bot_iff_le_compl {α : Type u} [bounded_distrib_lattice α] {a b c : α}
   (h₁ : b ⊔ c = ⊤) (h₂ : b ⊓ c = ⊥) : a ⊓ b = ⊥ ↔ a ≤ c :=

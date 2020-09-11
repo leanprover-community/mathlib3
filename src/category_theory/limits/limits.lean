@@ -7,20 +7,60 @@ import category_theory.adjunction.basic
 import category_theory.limits.cones
 import category_theory.reflects_isomorphisms
 
+/-!
+# Limits and colimits
+
+We set up the general theory of limits and colimits in a category.
+In this introduction we only describe the setup for limits;
+it is repeated, with slightly different names, for colimits.
+
+The three main structures involved are
+* `is_limit c`, for `c : cone F`, `F : J ⥤ C`, expressing that `c` is a limit cone,
+* `limit_cone F`, which consists of a choice of cone for `F` and the fact it is a limit cone, and
+* `has_limit F`, asserting the mere existence of some limit cone for `F`.
+
+Typically there are two different ways one can use the limits library:
+1. working with particular cones, and terms of type `is_limit`
+2. working solely with `has_limit`.
+
+While `has_limit` only asserts the existence of a limit cone,
+we happily use the axiom of choice in mathlib,
+so there are convenience functions all depending on `has_limit F`:
+* `limit F : C`, producing some limit object
+* `limit.π F j : limit F ⟶ F.obj j`, the morphisms out of the limit,
+* `limit.lift F c : c.X ⟶ limit F`, the universal morphism from any other `c : cone F`, etc.
+
+There are abbreviations `has_limits_of_shape J C` and `has_limits C`
+asserting the existence of classes of limits.
+Later more are introduced, for finite limits, special shapes of limits, etc.
+
+## Implementation
+At present we simply say everything twice, in order to handle both limits and colimits.
+It would be highly desirable to have some automation support,
+e.g. a `@[dualize]` attribute that behaves similarly to `@[to_additive]`.
+
+## References
+* [Stacks: Limits and colimits](https://stacks.math.columbia.edu/tag/002D)
+
+-/
+
 open category_theory category_theory.category category_theory.functor opposite
 
 namespace category_theory.limits
 
 universes v u u' u'' w -- declare the `v`'s first; see `category_theory.category` for an explanation
 
--- See the notes at the top of cones.lean, explaining why we can't allow `J : Prop` here.
 variables {J K : Type v} [small_category J] [small_category K]
 variables {C : Type u} [category.{v} C]
 
 variables {F : J ⥤ C}
 
-/-- A cone `t` on `F` is a limit cone if each cone on `F` admits a unique
-  cone morphism to `t`. -/
+/--
+A cone `t` on `F` is a limit cone if each cone on `F` admits a unique
+cone morphism to `t`.
+
+See https://stacks.math.columbia.edu/tag/002E.
+  -/
 @[nolint has_inhabited_instance]
 structure is_limit (t : cone F) :=
 (lift  : Π (s : cone F), s.X ⟶ t.X)
@@ -371,8 +411,12 @@ end
 
 end is_limit
 
-/-- A cocone `t` on `F` is a colimit cocone if each cocone on `F` admits a unique
-  cocone morphism from `t`. -/
+/--
+A cocone `t` on `F` is a colimit cocone if each cocone on `F` admits a unique
+cocone morphism from `t`.
+
+See https://stacks.math.columbia.edu/tag/002F.
+-/
 @[nolint has_inhabited_instance]
 structure is_colimit (t : cocone F) :=
 (desc  : Π (s : cocone F), t.X ⟶ s.X)
@@ -743,7 +787,7 @@ def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F.obj j :=
 @[simp] lemma limit.cone_π {F : J ⥤ C} [has_limit F] (j : J) :
   (limit.cone F).π.app j = limit.π _ j := rfl
 
-@[simp] lemma limit.w (F : J ⥤ C) [has_limit F] {j j' : J} (f : j ⟶ j') :
+@[simp, reassoc] lemma limit.w (F : J ⥤ C) [has_limit F] {j j' : J} (f : j ⟶ j') :
   limit.π F j ≫ F.map f = limit.π F j' := (limit.cone F).w f
 
 /-- Evidence that the chosen cone is a limit cone. -/
@@ -988,6 +1032,7 @@ section
 local attribute [simp] lim_map
 
 /-- `limit F` is functorial in `F`, when `C` has all limits of shape `J`. -/
+@[simps obj]
 def lim : (J ⥤ C) ⥤ C :=
 { obj := λ F, limit F,
   map := λ F G α, lim_map α,
@@ -1094,7 +1139,7 @@ def colimit.ι (F : J ⥤ C) [has_colimit F] (j : J) : F.obj j ⟶ colimit F :=
 @[simp] lemma colimit.cocone_ι {F : J ⥤ C} [has_colimit F] (j : J) :
   (colimit.cocone F).ι.app j = colimit.ι _ j := rfl
 
-@[simp] lemma colimit.w (F : J ⥤ C) [has_colimit F] {j j' : J} (f : j ⟶ j') :
+@[simp, reassoc] lemma colimit.w (F : J ⥤ C) [has_colimit F] {j j' : J} (f : j ⟶ j') :
   F.map f ≫ colimit.ι F j' = colimit.ι F j := (colimit.cocone F).w f
 
 /-- Evidence that the chosen cocone is a colimit cocone. -/
@@ -1362,6 +1407,7 @@ section
 local attribute [simp] colim_map
 
 /-- `colimit F` is functorial in `F`, when `C` has all colimits of shape `J`. -/
+@[simps obj]
 def colim : (J ⥤ C) ⥤ C :=
 { obj := λ F, colimit F,
   map := λ F G α, colim_map α,

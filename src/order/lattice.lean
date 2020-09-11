@@ -34,8 +34,6 @@ class has_inf (α : Type u) := (inf : α → α → α)
 infix ⊔ := has_sup.sup
 infix ⊓ := has_inf.inf
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `semilattice_sup` is a join-semilattice, that is, a partial order
   with a join (a.k.a. lub / least upper bound, sup / supremum) operation
   `⊔` which is the least element larger than both factors. -/
@@ -43,7 +41,6 @@ class semilattice_sup (α : Type u) extends has_sup α, partial_order α :=
 (le_sup_left : ∀ a b : α, a ≤ a ⊔ b)
 (le_sup_right : ∀ a b : α, b ≤ a ⊔ b)
 (sup_le : ∀ a b c : α, a ≤ c → b ≤ c → a ⊔ b ≤ c)
-end prio
 
 section semilattice_sup
 variables [semilattice_sup α] {a b c d : α}
@@ -166,8 +163,6 @@ end
 
 end semilattice_sup
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `semilattice_inf` is a meet-semilattice, that is, a partial order
   with a meet (a.k.a. glb / greatest lower bound, inf / infimum) operation
   `⊓` which is the greatest element smaller than both factors. -/
@@ -175,7 +170,6 @@ class semilattice_inf (α : Type u) extends has_inf α, partial_order α :=
 (inf_le_left : ∀ a b : α, a ⊓ b ≤ a)
 (inf_le_right : ∀ a b : α, a ⊓ b ≤ b)
 (le_inf : ∀ a b c : α, a ≤ b → a ≤ c → a ≤ b ⊓ c)
-end prio
 
 section semilattice_inf
 variables [semilattice_inf α] {a b c d : α}
@@ -301,11 +295,8 @@ end semilattice_inf
 
 /- Lattices -/
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
 class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
-end prio
 
 section lattice
 variables [lattice α] {a b c d : α}
@@ -336,8 +327,6 @@ end
 
 end lattice
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A distributive lattice is a lattice that satisfies any of four
   equivalent distribution properties (of sup over inf or inf over sup,
   on the left or right). A classic example of a distributive lattice
@@ -346,7 +335,6 @@ set_option default_priority 100 -- see Note [default priority]
   as a sublattice of a powerset lattice. -/
 class distrib_lattice α extends lattice α :=
 (le_sup_inf : ∀x y z : α, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z))
-end prio
 
 section distrib_lattice
 variables [distrib_lattice α] {x y z : α}

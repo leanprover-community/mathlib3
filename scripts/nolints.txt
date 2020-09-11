@@ -116,10 +116,6 @@ apply_nolint category_theory.limits.preserves_colimits_of_shape doc_blame
 apply_nolint category_theory.limits.preserves_limits doc_blame
 apply_nolint category_theory.limits.preserves_limits_of_shape doc_blame
 
--- category_theory/limits/shapes/finite_limits.lean
-apply_nolint category_theory.limits.has_finite_colimits doc_blame
-apply_nolint category_theory.limits.has_finite_limits doc_blame
-
 -- category_theory/limits/shapes/products.lean
 apply_nolint category_theory.limits.cofan doc_blame
 apply_nolint category_theory.limits.cofan.mk doc_blame
@@ -559,10 +555,6 @@ apply_nolint int.to_nat' doc_blame
 
 -- data/int/modeq.lean
 apply_nolint int.modeq doc_blame
-
--- data/lazy_list2.lean
-apply_nolint lazy_list.list_equiv_lazy_list doc_blame
-apply_nolint lazy_list.traverse doc_blame
 
 -- data/list/defs.lean
 apply_nolint list.permutations_aux doc_blame
@@ -1209,11 +1201,11 @@ apply_nolint ideal.quotient_inf_to_pi_quotient doc_blame
 apply_nolint submodule.annihilator doc_blame
 apply_nolint submodule.colon doc_blame
 
--- ring_theory/maps.lean
-apply_nolint ring_invo.id doc_blame
-
 -- ring_theory/multiplicity.lean
 apply_nolint multiplicity.finite doc_blame
+
+-- ring_theory/ring_invo.lean
+apply_nolint ring_invo.id doc_blame
 
 -- ring_theory/unique_factorization_domain.lean
 apply_nolint associates.factor_set.prod doc_blame
@@ -1461,10 +1453,6 @@ apply_nolint tactic.interactive.collect_struct' doc_blame
 apply_nolint tactic.interactive.compact_decl_aux doc_blame
 apply_nolint tactic.interactive.field doc_blame
 apply_nolint tactic.interactive.format_names doc_blame
-apply_nolint tactic.interactive.get_current_field doc_blame
-apply_nolint tactic.interactive.guard_expr_eq' doc_blame
-apply_nolint tactic.interactive.guard_hyp_nums doc_blame
-apply_nolint tactic.interactive.guard_tags doc_blame
 apply_nolint tactic.interactive.list_cast_of doc_blame
 apply_nolint tactic.interactive.list_cast_of_aux doc_blame
 apply_nolint tactic.interactive.loc.get_local_pp_names doc_blame

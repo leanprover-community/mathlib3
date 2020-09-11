@@ -180,7 +180,7 @@ end omega_complete_partial_order
 open omega_complete_partial_order
 
 section prio
-set_option default_priority 50 -- see Note [default priority]
+set_option extends_priority 50
 
 /-- An omega-complete partial order is a partial order with a supremum
 operation on increasing sequences indexed by natural numbers (which we
@@ -423,10 +423,10 @@ end prod
 namespace complete_lattice
 variables (α : Type u)
 
-set_option default_priority 100 -- see Note [default priority]
-
 /-- Any complete lattice has an `ω`-CPO structure where the countable supremum is a special case
 of arbitrary suprema. -/
+
+@[priority 100] -- see Note [lower instance priority]
 instance [complete_lattice α] : omega_complete_partial_order α :=
 { ωSup    := λc, ⨆ i, c i,
   ωSup_le := assume ⟨c, _⟩ s hs, by simp only [supr_le_iff, preorder_hom.coe_fun_mk] at ⊢ hs; intros i; apply hs i,

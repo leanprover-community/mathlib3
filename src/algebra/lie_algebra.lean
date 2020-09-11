@@ -71,8 +71,6 @@ lemma commutator (x y : A) : ⁅x, y⁆ = x*y - y*x := rfl
 
 end ring_commutator
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /--
 A Lie ring is an additive group with compatible product, known as the bracket, satisfying the
 Jacobi identity. The bracket is not associative unless it is identically zero.
@@ -82,7 +80,6 @@ Jacobi identity. The bracket is not associative unless it is identically zero.
 (lie_add : ∀ (x y z : L), ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆)
 (lie_self : ∀ (x : L), ⁅x, x⁆ = 0)
 (jacobi : ∀ (x y z : L), ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0)
-end prio
 
 section lie_ring
 
@@ -154,15 +151,12 @@ end
 
 end lie_ring
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /--
 A Lie algebra is a module with compatible product, known as the bracket, satisfying the Jacobi
 identity. Forgetting the scalar multiplication, every Lie algebra is a Lie ring.
 -/
 class lie_algebra (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] extends semimodule R L :=
 (lie_smul : ∀ (t : R) (x y : L), ⁅x, t • y⁆ = t • ⁅x, y⁆)
-end prio
 
 @[simp] lemma lie_smul  (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] [lie_algebra R L]
   (t : R) (x y : L) : ⁅x, t • y⁆ = t • ⁅x, y⁆ :=
@@ -545,15 +539,12 @@ section lie_module
 variables (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] [lie_algebra R L]
 variables (M  : Type v) [add_comm_group M] [module R M]
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /--
 A Lie module is a module over a commutative ring, together with a linear action of a Lie algebra
 on this module, such that the Lie bracket acts as the commutator of endomorphisms.
 -/
 class lie_module extends linear_action R L M :=
 (lie_act : ∀ (l l' : L) (m : M), act ⁅l, l'⁆ m = act l (act l' m) - act l' (act l m))
-end prio
 
 @[simp] lemma lie_act [lie_module R L M]
   (l l' : L) (m : M) : linear_action.act R ⁅l, l'⁆ m =

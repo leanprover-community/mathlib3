@@ -34,11 +34,15 @@ universes v u -- declare the `v`'s first; see `category_theory.category` for an 
 namespace category_theory
 open category
 
-/-- An isomorphism (a.k.a. an invertible morphism) between two objects of a category.
+/--
+An isomorphism (a.k.a. an invertible morphism) between two objects of a category.
 The inverse morphism is bundled.
 
 See also `category_theory.core` for the category with the same objects and isomorphisms playing
-the role of morphisms. -/
+the role of morphisms.
+
+See https://stacks.math.columbia.edu/tag/0017.
+-/
 structure iso {C : Type u} [category.{v} C] (X Y : C) :=
 (hom : X ⟶ Y)
 (inv : Y ⟶ X)

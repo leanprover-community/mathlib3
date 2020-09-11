@@ -220,8 +220,6 @@ def uniform_space.core.to_topological_space {α : Type u} (u : uniform_space.cor
 lemma uniform_space.core_eq : ∀{u₁ u₂ : uniform_space.core α}, u₁.uniformity = u₂.uniformity → u₁ = u₂
 | ⟨u₁, _, _, _⟩  ⟨u₂, _, _, _⟩ h := have u₁ = u₂, from h, by simp [*]
 
-section prio
-
 /-- Suppose that one can put two mathematical structures on a type, a rich one `R` and a poor one
 `P`, and that one can deduce the poor structure from the rich structure through a map `F` (called a
 forgetful functor) (think `R = metric_space` and `P = topological_space`). A possible
@@ -273,7 +271,6 @@ analysis](https://hal.inria.fr/hal-02463336).
 -/
 library_note "forgetful inheritance"
 
-set_option default_priority 100 -- see Note [default priority]
 /-- A uniform space is a generalization of the "uniform" topological aspects of a
   metric space. It consists of a filter on `α × α` called the "uniformity", which
   satisfies properties analogous to the reflexivity, symmetry, and triangle properties
@@ -283,7 +280,6 @@ set_option default_priority 100 -- see Note [default priority]
   A topological group also has a natural uniformity, even when it is not metrizable. -/
 class uniform_space (α : Type u) extends topological_space α, uniform_space.core α :=
 (is_open_uniformity : ∀s, is_open s ↔ (∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ uniformity))
-end prio
 
 /-- Alternative constructor for `uniform_space α` when a topology is already given. -/
 @[pattern] def uniform_space.mk' {α} (t : topological_space α)

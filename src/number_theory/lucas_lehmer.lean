@@ -370,7 +370,7 @@ end
 theorem ω_pow_eq_one (p' : ℕ) (h : lucas_lehmer_residue (p'+2) = 0) :
   (ω : X (q (p'+2)))^(2^(p'+2)) = 1 :=
 calc (ω : X (q (p'+2)))^2^(p'+2)
-        = (ω^(2^(p'+1)))^2 : by rw [←pow_mul, ←nat.pow_succ, nat.succ_eq_add_one]
+        = (ω^(2^(p'+1)))^2 : by rw [←pow_mul, ←nat.pow_succ]
     ... = (-1)^2           : by rw ω_pow_eq_neg_one p' h
     ... = 1                : by simp
 

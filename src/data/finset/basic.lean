@@ -1362,6 +1362,18 @@ by simp only [mem_def, image_val, mem_erase_dup, multiset.mem_map, exists_prop]
 theorem mem_image_of_mem (f : α → β) {a} {s : finset α} (h : a ∈ s) : f a ∈ s.image f :=
 mem_image.2 ⟨_, h, rfl⟩
 
+lemma filter_mem_image_eq_image (f : α → β) (s : finset α) (t : finset β) (h : ∀ x ∈ s, f x ∈ t) :
+  t.filter (λ y, y ∈ s.image f) = s.image f :=
+by { ext, rw [mem_filter, mem_image],
+     simp only [and_imp, exists_prop, and_iff_right_iff_imp, exists_imp_distrib],
+     rintros x xel rfl, exact h _ xel }
+
+lemma mem_image_iff_preimage_nonempty (f : α → β) (s : finset α) (y : β) :
+  y ∈ s.image f ↔ (s.filter (λ x, f x = y)).nonempty :=
+by { rw mem_image, split,
+     { rintros ⟨x, xel, rfl⟩, use x, rw mem_filter, exact ⟨xel, rfl⟩, },
+     { rintros ⟨x, xel⟩, use x, rwa mem_filter at xel } }
+
 @[simp, norm_cast] lemma coe_image {f : α → β} : ↑(s.image f) = f '' ↑s :=
 set.ext $ λ _, mem_image.trans set.mem_image_iff_bex.symm
 

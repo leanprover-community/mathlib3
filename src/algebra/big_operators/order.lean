@@ -326,20 +326,13 @@ begin
   exact nat.lt_asymm h' h',
 
   have key : ∀ y ∈ t, (s.filter (λ x, f x = y)).card ≠ 0 → y ∈ s.image f,
-  { intros y _,
-    rw [mem_image, ←zero_lt_iff_ne_zero, card_pos],
-    rintro ⟨x, hne⟩,
-    use x, exact mem_filter.mp hne, },
-
-  have key' : ∀ y, y ∈ image f s ↔ y ∈ t ∧ y ∈ image f s,
-  { intro y, split,
-    intro h, rcases mem_image.mp h with ⟨y, yel, rfl⟩, use [hf _ yel, h],
-    rintro ⟨_, h⟩, exact h, },
+  { intros y h hf,
+    rwa [←zero_lt_iff_ne_zero, card_pos, ←mem_image_iff_preimage_nonempty f s y] at hf },
 
   calc s.card = ∑ y in s.image f, (s.filter (λ x, f x = y)).card :
     by apply card_eq_sum_card_image
           ... = ∑ y in t, (s.filter (λ x, f x = y)).card :
-    by { rw ←sum_filter_of_ne key, congr, ext, rw mem_filter, apply key', }
+    by { rw ←sum_filter_of_ne key, congr, convert (filter_mem_image_eq_image f s t hf).symm }
           ... < ∑ y in t, n :
     by { convert sum_lt_sum_of_nonempty hne hz, simp, }
           ... = t.card * n :

@@ -79,10 +79,50 @@ begin
   rw mul_le,
 end
 -/
+lemma maximal_ideal_inv_of_dedekin
+(h : is_dedekind_domain f) {M : ideal R}
+  (hM : ideal.is_maximal M) (hnonzeroM : M ≠ 0): is_unit (M : fractional_ideal f) :=
+begin
+  let Mf : fractional_ideal f := ↑ M,
+  -- let Mf : fractional_ideal f := fractional_ideal.mk_fractional M,
+  let M1 : fractional_ideal f := 1/Mf,
+  suffices hprod : ↑M*M1=(1: fractional_ideal f),
+  apply is_unit_of_mul_eq_one ↑M M1 hprod,
+  suffices hincl: ↑M*M1≤ 1, --first we start with the proof that hincl → hprod
+  have h_nonfrac : ∃ (I : ideal R), ↑M*M1=↑I,
+  -- cases is_fractional f M1.2 with a ha,
+  -- let setI := (↑ M : fractional_ideal f).val * (M1.val),
+  sorry,--this sorry replaces a proof that ↑ M*M1=↑ I and
+                                                    --should follow from hincl, checking coercion
+  cases h_nonfrac with I hI,--could replace the above have and this cases by obtain?
+  have h_Iincl : M ≤ I,
+    {suffices h_Iincl_f : (↑M: fractional_ideal f) ≤ (↑I: fractional_ideal f),-- what follows it the proof that h_Iincl_f → h_Iincl
+      intros x hx,
+      let y := f.to_map x,
+      have defy: f.to_map x =y,refl,
+      have hy : y ∈  (↑ M : fractional_ideal f), use x,sorry,
+      --apply fractional_ideal.mem_coe.mpr ↑ M,
+      have hyI : y ∈  (↑ I : fractional_ideal f),
+      apply fractional_ideal.le_iff.mp h_Iincl_f,exact hy,
+      have hxyI : ∃ (x' ∈ I), f.to_map x' = y,
+      apply fractional_ideal.mem_coe.mp hyI,
+      rcases hxyI with ⟨a, ⟨ha, hfa⟩⟩,
+      have hax : a=x,
+        suffices haxf : f.to_map a=f.to_map x,apply fraction_map.injective f haxf,rw hfa,
+      subst hax,exact ha,
+      rw ← hI,exact h_MinMM1,
+    },
+  have h_Itop : I=⊤,apply and.elim_right hM I,sorry,--this second sorry "proves" that M < I
+  have h_okI : ↑I = (1 : fractional_ideal f),sorry,--this shoud be an easy matter of coercion
+  rw hI,exact h_okI,
+  -- have h_unitI : (1 : R) ∈ I, apply (eq_top_iff_one I).mp,exact h_Itop,
+  -- have h_IR : I= (1: ideal R),simp,exact h_Itop,
 
+  sorry,--this sorry replaces a proof of hincl and fractional_ideal.mul_le could be useful
+end
 
 lemma maximal_ideal_invertible_of_dedekind (h : is_dedekind_domain f) {M : ideal R}
-  (hM : ideal.is_maximal M) (nonzeroM : M ≠ 0): is_unit (M : fractional_ideal f) :=
+  (hM : ideal.is_maximal M) (hnonzeroM : M ≠ 0): is_unit (M : fractional_ideal f) :=
 -- ⟨⟨M, M⁻¹, _, _⟩, rfl⟩
 begin
 let setM1 := {x : K | ∀ y ∈ M, f.is_integer (x * f.to_map y)},

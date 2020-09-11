@@ -7,7 +7,6 @@ import topology.sheaves.presheaf
 import category_theory.limits.punit
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
-import category_theory.full_subcategory
 
 /-!
 # Sheaves

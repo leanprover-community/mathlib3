@@ -17,7 +17,7 @@ begin
 end
 
 open tactic
-#eval do
+run_cmd do
 decl ← get_decl ``f_c,
 res ← linter.simp_nf.test decl,
 -- linter complains
@@ -45,7 +45,7 @@ begin
 end
 
 open tactic
-#eval do
+run_cmd do
 decl ← get_decl ``h_c,
 res ← linter.simp_nf.test decl,
 -- linter complains

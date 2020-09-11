@@ -1838,7 +1838,7 @@ begin
 end
 
 def tan_homeomorph : homeomorph (set.Ioo (-(π/2)) (π/2)) ℝ :=
-homeomorph_of_strict_mono_continuous_Ioo tan (λ x y, tan_lt_tan_of_lt_of_lt_pi_div_two)
+homeomorph_of_strict_mono_continuous_Ioo tan (by linarith [pi_div_two_pos]) (λ x y, tan_lt_tan_of_lt_of_lt_pi_div_two)
   continuous_on_tan_of_mem_Ioo tendsto_tan_pi_div_two tendsto_tan_neg_pi_div_two
 
 lemma arctan_homeomorph : arctan = coe ∘ tan_homeomorph.inv_fun :=

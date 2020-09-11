@@ -1043,8 +1043,6 @@ end pi_Lp
 
 section orthogonal
 
-variables [normed_space ℝ α] [is_scalar_tower ℝ 𝕜 α]
-
 open filter
 
 include 𝕜
@@ -1056,7 +1054,10 @@ Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` 
 -- FIXME this monolithic proof causes a deterministic timeout with `-T50000`
 -- It should be broken in a sequence of more manageable pieces,
 -- perhaps with individual statements for the three steps below.
-theorem exists_norm_eq_infi_of_complete_convex {K : set α} (ne : K.nonempty) (h₁ : is_complete K)
+/- Normally we would want `[is_scalar_tower ℝ 𝕜 α]` in applications as well, to ensure that this
+`[normed_space ℝ α]` instance is compatible with the `[normed_space 𝕜 α]` defined above, but
+here this is not strictly needed as these lemmas never use the 𝕜 instance. -/
+theorem exists_norm_eq_infi_of_complete_convex [normed_space ℝ α] {K : set α} (ne : K.nonempty) (h₁ : is_complete K)
   (h₂ : convex K) : ∀ u : α, ∃ v ∈ K, ∥u - v∥ = ⨅ w : K, ∥u - w∥ := assume u,
 begin
   let δ := ⨅ w : K, ∥u - w∥,
@@ -1254,7 +1255,7 @@ Let `u` be a point in an inner product space, and let `K` be a nonempty complete
 Then there exists a unique `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
 This point `v` is usually called the orthogonal projection of `u` onto `K`.
 -/
-theorem exists_norm_eq_infi_of_complete_subspace (K : subspace ℝ α)
+theorem exists_norm_eq_infi_of_complete_subspace [normed_space ℝ α] (K : subspace ℝ α)
   (h : is_complete (↑K : set α)) : ∀ u : α, ∃ v ∈ K, ∥u - v∥ = ⨅ w : (↑K : set α), ∥u - w∥ :=
 exists_norm_eq_infi_of_complete_convex ⟨0, K.zero_mem⟩ h K.convex
 
@@ -1306,14 +1307,14 @@ include 𝕜
 unbundled function.  This definition is only intended for use in
 setting up the bundled version `orthogonal_projection` and should not
 be used once that is defined. -/
-def orthogonal_projection_fn {K : submodule ℝ α} (h : is_complete (K : set α)) (v : α) :=
+def orthogonal_projection_fn [normed_space ℝ α] {K : submodule ℝ α} (h : is_complete (K : set α)) (v : α) :=
 (exists_norm_eq_infi_of_complete_subspace K h v).some
 
 
 /-- The unbundled orthogonal projection is in the given subspace.
 This lemma is only intended for use in setting up the bundled version
 and should not be used once that is defined. -/
-lemma orthogonal_projection_fn_mem {K : submodule ℝ α} (h : is_complete (K : set α)) (v : α) :
+lemma orthogonal_projection_fn_mem [normed_space ℝ α] {K : submodule ℝ α} (h : is_complete (K : set α)) (v : α) :
   orthogonal_projection_fn h v ∈ K :=
 (exists_norm_eq_infi_of_complete_subspace K h v).some_spec.some
 

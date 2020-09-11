@@ -1549,11 +1549,11 @@ section
 variables [semiring β] [semiring γ]
 
 lemma sum_mul (b : γ) (s : α →₀ β) {f : α → β → γ} :
-  (s.sum f) * b = s.sum (λ a c, (f a (s a)) * b) :=
+  (s.sum f) * b = s.sum (λ a c, (f a c) * b) :=
 by simp only [finsupp.sum, finset.sum_mul]
 
 lemma mul_sum (b : γ) (s : α →₀ β) {f : α → β → γ} :
-  b * (s.sum f) = s.sum (λ a c, b * (f a (s a))) :=
+  b * (s.sum f) = s.sum (λ a c, b * (f a c)) :=
 by simp only [finsupp.sum, finset.mul_sum]
 
 protected lemma eq_zero_of_zero_eq_one

@@ -10,14 +10,14 @@ import category_theory.concrete_category.basic
 # Facts about (co)limits of functors into concrete categories
 -/
 
-universes u
+universes w v u
 
 open category_theory
 
 namespace category_theory.limits
 
-variables {J : Type u} [small_category J]
-variables {C : Type (u+1)} [large_category C] [concrete_category C]
+variables {J : Type v} [small_category J]
+variables {C : Type u} [category.{v} C] [concrete_category.{v} C]
 
 local attribute [instance] concrete_category.has_coe_to_sort
 local attribute [instance] concrete_category.has_coe_to_fun

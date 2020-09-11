@@ -195,8 +195,7 @@ by rw roption.dom_iff_mem; apply exists_imp_exists _ (f91_spec n); simp
 
 def f91' (n : ℕ) : ℕ := (f91 n).get (f91_dom n)
 
-#eval f91' 109
--- 99
+run_cmd guard (f91' 109 = 99)
 
 lemma f91_spec' (n : ℕ) : f91' n = if n > 100 then n - 10 else 91 :=
 begin

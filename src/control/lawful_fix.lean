@@ -27,10 +27,6 @@ variables {α : Type*} {β : α → Type*}
 
 open omega_complete_partial_order
 
-section prio
-
-set_option default_priority 100  -- see Note [default priority]
-
 /-- Intuitively, a fixed point operator `fix` is lawful if it satisfies `fix f = f (fix f)` for all
 `f`, but this is inconsistent / uninteresting in most cases due to the existence of "exotic"
 functions `f`, such as the function that is defined iff its argument is not, familiar from the
@@ -44,8 +40,6 @@ lemma lawful_fix.fix_eq' {α} [omega_complete_partial_order α] [lawful_fix α]
   {f : α → α} (hf : continuous' f) :
   has_fix.fix f = f (has_fix.fix f) :=
 lawful_fix.fix_eq (continuous.to_bundled _ hf)
-
-end prio
 
 namespace roption
 

@@ -20,8 +20,8 @@ In the first part, given a coherent family `D` of limit cones over the functors 
 and a cone `c` over `G`, we construct a cone over the cone points of `D`.
 We then show that if `c` is a limit cone, the constructed cone is also a limit cone.
 
-In the second part, we state the Fubini theorem in the setting where we have chosen limits
-provided by suitable `has_limit` classes.
+In the second part, we state the Fubini theorem in the setting where limits exist
+promised by `has_limit` classes.
 
 We construct
 `limit_uncurry_iso_limit_comp_lim F : limit (uncurry.obj F) ≅ limit (F ⋙ lim)`
@@ -29,6 +29,10 @@ and give simp lemmas characterising it.
 For convenience, we also provide
 `limit_iso_limit_curry_comp_lim G : limit G ≅ limit ((curry.obj G) ⋙ lim)`
 in terms of the uncurried functor.
+
+## Future work
+
+The dual statement.
 -/
 
 universes v u

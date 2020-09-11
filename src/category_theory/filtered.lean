@@ -62,6 +62,8 @@ A category `is_filtered` if
 2. for every pair of parallel morphisms there exists a morphism to the right so the compositions
    are equal, and
 3. there exists some object.
+
+See https://stacks.math.columbia.edu/tag/002V. (They also define a diagram being filtered.)
 -/
 class is_filtered extends is_filtered_or_empty C : Prop :=
 [nonempty : nonempty C]

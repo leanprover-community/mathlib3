@@ -14,6 +14,8 @@ variables (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D
 
 /--
 `prod C D` gives the cartesian product of two categories.
+
+See https://stacks.math.columbia.edu/tag/001K.
 -/
 instance prod : category.{max v₁ v₂} (C × D) :=
 { hom     := λ X Y, ((X.1) ⟶ (Y.1)) × ((X.2) ⟶ (Y.2)),

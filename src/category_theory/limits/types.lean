@@ -30,6 +30,11 @@ def limit_cone_is_limit (F : J ⥤ Type u) : is_limit (limit_cone F) :=
 { lift := λ s v, ⟨λ j, s.π.app j v, λ j j' f, congr_fun (cone.w s f) _⟩,
   uniq' := by { intros, ext x j, exact congr_fun (w j) x } }
 
+/--
+The category of types has all limits.
+
+See https://stacks.math.columbia.edu/tag/002U.
+-/
 instance : has_limits (Type u) :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F,
@@ -123,6 +128,11 @@ def colimit_cocone_is_colimit (F : J ⥤ Type u) : is_colimit (colimit_cocone F)
 { desc := λ s, quot.lift (λ (p : Σ j, F.obj j), s.ι.app p.1 p.2)
     (assume ⟨j, x⟩ ⟨j', x'⟩ ⟨f, hf⟩, by rw hf; exact (congr_fun (cocone.w s f) x).symm) }
 
+/--
+The category of types has all colimits.
+
+See https://stacks.math.columbia.edu/tag/002U.
+-/
 instance : has_colimits (Type u) :=
 { has_colimits_of_shape := λ J 𝒥, by exactI
   { has_colimit := λ F,

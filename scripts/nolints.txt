@@ -556,10 +556,6 @@ apply_nolint int.to_nat' doc_blame
 -- data/int/modeq.lean
 apply_nolint int.modeq doc_blame
 
--- data/lazy_list2.lean
-apply_nolint lazy_list.list_equiv_lazy_list doc_blame
-apply_nolint lazy_list.traverse doc_blame
-
 -- data/list/defs.lean
 apply_nolint list.permutations_aux doc_blame
 apply_nolint list.permutations_aux.rec doc_blame

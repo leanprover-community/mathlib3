@@ -11,7 +11,8 @@ import linear_algebra.finsupp
 # Eigenvectors and eigenvalues
 
 This file defines eigenspaces, eigenvalues, and eigenvalues, as well as their generalized
-counterparts.
+counterparts. We follow Axler's approach [axler2015] because it allows us to derive many properties
+without choosing a basis and without using matrices.
 
 An eigenspace of a linear map `f` for a scalar `μ` is the kernel of the map `(f - μ • id)`. The
 nonzero elements of an eigenspace are eigenvectors `x`. They have the property `f x = μ • x`. If
@@ -33,8 +34,8 @@ notation for it.
 
 ## References
 
-* [Sheldon Axler, *Down with determinants!*,
-  https://www.maa.org/sites/default/files/pdf/awards/Axler-Ford-1996.pdf][axler1996]
+* [Sheldon Axler, *Linear Algebra Done Right*,
+  https://zhangyk8.github.io/teaching/file_spring2018/linear_algebra_done_right.pdf][axler2015]
 * https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors
 
 ## Tags
@@ -54,16 +55,16 @@ variables {K : Type v} {V : Type w} [add_comm_group V]
 local notation `am` := algebra_map K (End K V)
 
 /-- The submodule `eigenspace f μ` for a linear map `f` and a scalar `μ` consists of all vectors `x`
-    such that `f x = μ • x`. -/
+    such that `f x = μ • x`. (Def 5.36 of [axler2015])-/
 def eigenspace [comm_ring K] [module K V] (f : End K V) (μ : K) : submodule K V :=
 (f - am μ).ker
 
-/-- A nonzero element of an eigenspace is an eigenvector. -/
+/-- A nonzero element of an eigenspace is an eigenvector. (Def 5.7 of [axler2015]) -/
 def has_eigenvector [comm_ring K] [module K V] (f : End K V) (μ : K) (x : V) : Prop :=
 x ≠ 0 ∧ x ∈ eigenspace f μ
 
 /-- A scalar `μ` is an eigenvalue for a linear map `f` if there are nonzero vectors `x`
-    such that `f x = μ • x`. -/
+    such that `f x = μ • x`. (Def 5.5 of [axler2015]) -/
 def has_eigenvalue [comm_ring K] [module K V] (f : End K V) (a : K) : Prop :=
 eigenspace f a ≠ ⊥
 
@@ -104,7 +105,7 @@ begin
 end
 
 /-- Every linear operator on a vector space over an algebraically closed field has
-    an eigenvalue. (Axler's Theorem 2.1.) -/
+    an eigenvalue. (Lemma 5.21 of [axler2015]) -/
 lemma exists_eigenvalue
   [field K] [is_alg_closed K] [vector_space K V] [finite_dimensional K V] [nontrivial V]
   (f : End K V) :
@@ -150,7 +151,7 @@ begin
 end
 
 /-- Eigenvectors corresponding to distinct eigenvalues of a linear operator are linearly
-    independent. (Axler's Proposition 2.2)
+    independent. (Lemma 5.10 of [axler2015])
 
     We use the eigenvalues as indexing set to ensure that there is only one eigenvector for each
     eigenvalue in the image of `xs`. -/
@@ -249,12 +250,13 @@ begin
 end
 
 /-- The generalized eigenspace for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
-    kernel of `(f - μ • id) ^ k`. -/
+    kernel of `(f - μ • id) ^ k`. (Def 8.10 of [axler2015])-/
 def generalized_eigenspace [comm_ring K] [module K V]
   (f : End K V) (μ : K) (k : ℕ) : submodule K V :=
 ((f - am μ) ^ k).ker
 
-/-- A nonzero element of a generalized eigenspace is a generalized eigenvector. -/
+/-- A nonzero element of a generalized eigenspace is a generalized eigenvector.
+    (Def 8.9 of [axler2015])-/
 def has_generalized_eigenvector [comm_ring K] [module K V]
   (f : End K V) (μ : K) (k : ℕ) (x : V) : Prop :=
 x ≠ 0 ∧ x ∈ generalized_eigenspace f μ k
@@ -264,6 +266,12 @@ x ≠ 0 ∧ x ∈ generalized_eigenspace f μ k
 def has_generalized_eigenvalue [comm_ring K] [module K V]
   (f : End K V) (μ : K) (k : ℕ) : Prop :=
 generalized_eigenspace f μ k ≠ ⊥
+
+/-- The generalized eigenrange for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
+    range of `(f - μ • id) ^ k`. -/
+def generalized_eigenrange [comm_ring K] [module K V]
+  (f : End K V) (μ : K) (k : ℕ) : submodule K V :=
+((f - am μ) ^ k).range
 
 /-- The exponent of a generalized eigenvalue is never 0. -/
 lemma exp_ne_zero_of_has_generalized_eigenvalue [comm_ring K] [module K V]
@@ -311,10 +319,10 @@ begin
   rwa [has_generalized_eigenvalue, generalized_eigenspace, pow_one]
 end
 
-/-- Every generalized eigenvector is a generalized eigenvector for exponent `findim K V`. -/
+/-- Every generalized eigenvector is a generalized eigenvector for exponent `findim K V`.
+    (Lemma 8.11 of [axler2015]) -/
 lemma generalized_eigenspace_le_generalized_eigenspace_findim
-  [field K] [vector_space K V] [finite_dimensional K V]
-  (f : End K V) (μ : K) (k : ℕ) :
+  [field K] [vector_space K V] [finite_dimensional K V] (f : End K V) (μ : K) (k : ℕ) :
   f.generalized_eigenspace μ k ≤ f.generalized_eigenspace μ (findim K V) :=
 ker_pow_le_ker_pow_findim _ _
 
@@ -339,6 +347,116 @@ begin
     apply submodule.ker_subtype },
   { erw [pow_succ', pow_succ', linear_map.ker_comp,
       ih, ←linear_map.ker_comp, linear_map.comp_assoc], }
+end
+
+/-- Generalized eigenrange and generalized eigenspace for exponent `findim K V` are disjoint. -/
+lemma generalized_eigenvec_disjoint_range_ker
+  [field K] [vector_space K V] [finite_dimensional K V] (f : End K V) (μ : K) :
+  disjoint (f.generalized_eigenrange μ (findim K V)) (f.generalized_eigenspace μ (findim K V))  :=
+begin
+  have h : submodule.comap ((f - am μ) ^ findim K V) (f.generalized_eigenspace μ (findim K V)) =
+    (f.generalized_eigenspace μ (findim K V)),
+    from calc
+      submodule.comap ((f - am μ) ^ findim K V) (f.generalized_eigenspace μ (findim K V))
+         = ((f - am μ) ^ findim K V * (f - am μ) ^ findim K V).ker :
+        by { rw [generalized_eigenspace, ←linear_map.ker_comp], refl }
+     ... = f.generalized_eigenspace μ (findim K V + findim K V) :
+        by { rw ←pow_add, refl }
+     ... = f.generalized_eigenspace μ (findim K V) :
+        by { rw generalized_eigenspace_eq_generalized_eigenspace_findim_of_le, linarith },
+  erw [disjoint, submodule.map_inf_eq_map_inf_comap, top_inf_eq, h],
+  apply submodule.map_comap_le,
+end
+
+/-- The generalized eigenspace of eigenvalues has positive dimension for positive exponents. -/
+lemma pos_findim_generalized_eigenspace_of_has_eigenvalue
+  [field K] [vector_space K V] [finite_dimensional K V]
+  {f : End K V} {k : ℕ} {μ : K} (hx : f.has_eigenvalue μ) (hk : 0 < k):
+  0 < findim K (f.generalized_eigenspace μ k) :=
+calc
+    0 = findim K (⊥ : submodule K V) : by rw findim_bot
+  ... < findim K (f.eigenspace μ) : submodule.findim_lt_findim_of_lt (bot_lt_iff_ne_bot.2 hx)
+  ... ≤ findim K (f.generalized_eigenspace μ k) :
+    submodule.findim_mono (generalized_eigenspace_mono (nat.succ_le_of_lt hk))
+
+/-- A linear map maps its generalized eigenrange into itself. -/
+lemma map_generalized_eigenrange_le [field K] [vector_space K V] {f : End K V} {μ : K} {n : ℕ} :
+  submodule.map f (f.generalized_eigenrange μ n) ≤ f.generalized_eigenrange μ n :=
+calc submodule.map f (f.generalized_eigenrange μ n)
+       = (f.comp ((f - am μ) ^ n)).range : by erw ←linear_map.range_comp
+   ... = (f * ((f - am μ) ^ n)).range : rfl
+   ... = (((f - am μ) ^ n) * f).range : by rw algebra.mul_sub_algebra_map_pow_commutes
+   ... = (((f - am μ) ^ n).comp f).range : rfl
+   ... = submodule.map ((f - am μ) ^ n) f.range : by rw linear_map.range_comp
+   ... ≤ f.generalized_eigenrange μ n : linear_map.map_le_range
+
+/-- The generalized eigenvectors span the entire vector space (Lemma 8.21 of [axler2015]). -/
+lemma supr_generalized_eigenspace_eq_top
+  [field K] [is_alg_closed K] [vector_space K V] [finite_dimensional K V] (f : End K V) :
+  (⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k) = ⊤ :=
+begin
+  tactic.unfreeze_local_instances,
+  -- We prove the claim by strong induction on the dimension of the vector space.
+  induction h_dim : findim K V using nat.strong_induction_on with n ih generalizing V,
+  cases n,
+  -- If the vector space is 0-dimensional, the result is trivial.
+  { rw ←top_le_iff,
+    simp only [findim_eq_zero.1 (eq.trans findim_top h_dim), bot_le] },
+  -- Otherwise the vector space is nontrivial.
+  { haveI : nontrivial V := findim_pos_iff.1 (by { rw [h_dim], apply nat.zero_lt_succ }),
+    -- Hence, `f` has an eigenvalue `μ₀`.
+    obtain ⟨μ₀, hμ₀⟩ : ∃ μ₀, f.has_eigenvalue μ₀ := exists_eigenvalue f,
+    -- We define `ES` to be the generalized eigenspace
+    let ES := f.generalized_eigenspace μ₀ (findim K V),
+    -- and `ER` to be the generalized eigenrange.
+    let ER := f.generalized_eigenrange μ₀ (findim K V),
+    -- `f` maps `ER` into itself.
+    have h_f_ER : ∀ (x : V), x ∈ ER → f x ∈ ER,
+      from λ x hx, map_generalized_eigenrange_le (submodule.mem_map_of_mem hx),
+    -- Therefore, we can define the restriction `f'` of `f` to `ER`.
+    let f' : End K ER := f.restrict h_f_ER,
+    -- The dimension of `ES` is positive
+    have h_dim_ES_pos : 0 < findim K ES,
+    { dsimp only [ES],
+      rw h_dim,
+      apply pos_findim_generalized_eigenspace_of_has_eigenvalue hμ₀ (nat.zero_lt_succ n) },
+    -- and the dimensions of `ES` and `ER` add up to `findim K V`.
+    have h_dim_add : findim K ER + findim K ES = findim K V,
+    { apply linear_map.findim_range_add_findim_ker },
+    -- Therfore the dimension `ER` mus be smaller than `findim K V`.
+    have h_dim_ER : findim K ER < n.succ, by omega,
+    -- This allows us to apply the induction hypothesis on `ER`:
+    have ih_ER : (⨆ (μ : K) (k : ℕ), f'.generalized_eigenspace μ k) = ⊤,
+      from ih (findim K ER) h_dim_ER f' rfl,
+    -- The induction hypothesis gives us a statement about subspaces of `ER`. We can transfer this
+    -- to a statement about subspaces of `V` via `submoudule.subtype`:
+    have ih_ER' : (⨆ (μ : K) (k : ℕ), (f'.generalized_eigenspace μ k).map ER.subtype) = ER,
+      by simp only [(submodule.map_supr _ _).symm, ih_ER, submodule.map_subtype_top ER],
+    -- Moreover, every generalized eigenspace of `f'` is contained in the corresponding generalized
+    -- eigenspace of `f`.
+    have hff' : ∀ μ k,
+        (f'.generalized_eigenspace μ k).map ER.subtype ≤ f.generalized_eigenspace μ k,
+    { intros,
+      rw [generalized_eigenspace_restrict],
+      apply submodule.map_comap_le},
+    -- It follows that ER is contained in the span of all generalized eigenvectors.
+    have hER : ER ≤ ⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k,
+    { rw ← ih_ER',
+      apply supr_le_supr _,
+      exact λ μ, supr_le_supr (λ k, hff' μ k), },
+    -- `ES` is contained in this span by definition.
+    have hES : ES ≤ ⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k,
+      from le_trans
+        (le_supr (λ k, f.generalized_eigenspace μ₀ k) (findim K V))
+        (le_supr (λ (μ : K), ⨆ (k : ℕ), f.generalized_eigenspace μ k) μ₀),
+    -- Moreover, we know that `ER` and `ES` are disjoint.
+    have h_disjoint : disjoint ER ES,
+      from generalized_eigenvec_disjoint_range_ker f μ₀,
+    -- Since the dimensions of `ER` and `ES` add up to the dimension of `V`, it follows that the
+    -- span of all generalized eigenvectors is all of `V`.
+    show (⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k) = ⊤,
+    { rw [←top_le_iff, ←submodule.eq_top_of_disjoint ER ES h_dim_add h_disjoint],
+      apply sup_le hER hES } }
 end
 
 end End

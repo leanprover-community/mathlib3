@@ -184,17 +184,16 @@ begin
     rw polynomial.eval_map at hx,
     specialize hc _
     begin
-      rw polynomial.mem_roots,
+      rw polynomial.mem_roots (show f.map ιFE' ≠ 0, by exact polynomial.map_ne_zero (minimal_polynomial.ne_zero hα)),
       dsimp[polynomial.is_root],
       rw polynomial.eval_map,
       have f_root : f'.eval₂ (algebra_map E E') x = 0 := polynomial.gcd_root_left f' g' x hx,
       simp only [polynomial.eval₂_map,polynomial.eval₂_comp,polynomial.eval₂_sub,polynomial.eval₂_mul,polynomial.eval₂_C,polynomial.eval₂_X] at f_root,
       { exact f_root, },
-      { exact polynomial.map_ne_zero (minimal_polynomial.ne_zero hα), },
     end,
-    specialize hc _
+    specialize hc x
     begin
-      rw polynomial.mem_roots,
+      rw polynomial.mem_roots (show g.map ιFE' ≠ 0, by exact polynomial.map_ne_zero (minimal_polynomial.ne_zero hβ)),
       dsimp[polynomial.is_root],
       rw polynomial.eval_map,
       have g_root : g'.eval₂ (algebra_map E E') x = 0 := polynomial.gcd_root_right f' g' x hx,

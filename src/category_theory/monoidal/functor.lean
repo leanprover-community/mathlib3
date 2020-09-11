@@ -49,7 +49,7 @@ structure lax_monoidal_functor extends C ⥤ D :=
   . obviously)
 
 restate_axiom lax_monoidal_functor.μ_natural'
-attribute [simp] lax_monoidal_functor.μ_natural
+attribute [simp, reassoc] lax_monoidal_functor.μ_natural
 restate_axiom lax_monoidal_functor.left_unitality'
 attribute [simp] lax_monoidal_functor.left_unitality
 restate_axiom lax_monoidal_functor.right_unitality'

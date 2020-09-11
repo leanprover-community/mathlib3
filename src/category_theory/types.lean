@@ -47,6 +47,12 @@ lemma types_id_apply (X : Type u) (x : X) : ((𝟙 X) : X → X) x = x := rfl
 @[simp]
 lemma types_comp_apply {X Y Z : Type u} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) : (f ≫ g) x = g (f x) := rfl
 
+@[simp]
+lemma hom_inv_id_apply {X Y : Type u} (f : X ≅ Y) (x : X) : f.inv (f.hom x) = x :=
+congr_fun f.hom_inv_id x
+@[simp]
+lemma inv_hom_id_apply {X Y : Type u} (f : X ≅ Y) (y : Y) : f.hom (f.inv y) = y :=
+congr_fun f.inv_hom_id y
 
 /-- `as_hom f` helps Lean type check a function as a morphism in the category `Type`. -/
 -- Unfortunately without this wrapper we can't use `category_theory` idioms, such as `is_iso f`.
@@ -251,8 +257,17 @@ def to_equiv (i : X ≅ Y) : X ≃ Y :=
 
 end category_theory.iso
 
-
 universe u
+
+namespace category_theory
+
+noncomputable
+def is_iso_equiv_bijective {X Y : Type u} (f : X ⟶ Y) : is_iso f ≃ function.bijective f :=
+equiv_of_subsingleton_of_subsingleton
+  (λ i, ({ hom := f, .. i } : X ≅ Y).to_equiv.bijective)
+  (λ b, { .. (equiv.of_bijective f b).to_iso })
+
+end category_theory
 
 -- We prove `equiv_iso_iso` and then use that to sneakily construct `equiv_equiv_iso`.
 -- (In this order the proofs are handled by `obviously`.)

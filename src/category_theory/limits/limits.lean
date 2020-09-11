@@ -389,9 +389,9 @@ namespace is_colimit
 instance subsingleton {t : cocone F} : subsingleton (is_colimit t) :=
 ⟨by intros P Q; cases P; cases Q; congr; ext; solve_by_elim⟩
 
-/- Repackaging the definition in terms of cone morphisms. -/
+/- Repackaging the definition in terms of cocone morphisms. -/
 
-/-- The universal morphism from a colimit cocone to any other cone. -/
+/-- The universal morphism from a colimit cocone to any other cocone. -/
 @[simps]
 def desc_cocone_morphism {t : cocone F} (h : is_colimit t) (s : cocone F) : t ⟶ s :=
 { hom := h.desc s }
@@ -911,19 +911,14 @@ from `G` applied to the chosen limit of `F`
 to the chosen limit of `F ⋙ G`.
 -/
 def limit.post : G.obj (limit F) ⟶ limit (F ⋙ G) :=
-limit.lift (F ⋙ G)
-{ X := G.obj (limit F),
-  π :=
-  { app := λ j, G.map (limit.π F j),
-    naturality' :=
-      by intros j j' f; erw [←G.map_comp, limits.cone.w, id_comp]; refl } }
+limit.lift (F ⋙ G) (G.map_cone (limit.cone F))
 
 @[simp] lemma limit.post_π (j : J) : limit.post F G ≫ limit.π (F ⋙ G) j = G.map (limit.π F j) :=
-by erw is_limit.fac
+by { erw is_limit.fac, refl }
 
 @[simp] lemma limit.lift_post (c : cone F) :
   G.map (limit.lift F c) ≫ limit.post F G = limit.lift (F ⋙ G) (G.map_cone c) :=
-by ext; rw [assoc, limit.post_π, ←G.map_comp, limit.lift_π, limit.lift_π]; refl
+by { ext, rw [assoc, limit.post_π, ←G.map_comp, limit.lift_π, limit.lift_π], refl }
 
 @[simp] lemma limit.post_post
   {E : Type u''} [category.{v} E] (H : D ⥤ E) [has_limit ((F ⋙ G) ⋙ H)] :
@@ -1280,19 +1275,14 @@ from `G` applied to the chosen colimit of `F ⋙ G`
 to `G` applied to the chosen colimit of `F`.
 -/
 def colimit.post : colimit (F ⋙ G) ⟶ G.obj (colimit F) :=
-colimit.desc (F ⋙ G)
-{ X := G.obj (colimit F),
-  ι :=
-  { app := λ j, G.map (colimit.ι F j),
-    naturality' :=
-      by intros j j' f; erw [←G.map_comp, limits.cocone.w, comp_id]; refl } }
+colimit.desc (F ⋙ G) (G.map_cocone (colimit.cocone F))
 
 @[simp, reassoc] lemma colimit.ι_post (j : J) : colimit.ι (F ⋙ G) j ≫ colimit.post F G  = G.map (colimit.ι F j) :=
-by erw is_colimit.fac
+by { erw is_colimit.fac, refl, }
 
 @[simp] lemma colimit.post_desc (c : cocone F) :
   colimit.post F G ≫ G.map (colimit.desc F c) = colimit.desc (F ⋙ G) (G.map_cocone c) :=
-by ext; rw [←assoc, colimit.ι_post, ←G.map_comp, colimit.ι_desc, colimit.ι_desc]; refl
+by { ext, rw [←assoc, colimit.ι_post, ←G.map_comp, colimit.ι_desc, colimit.ι_desc], refl }
 
 @[simp] lemma colimit.post_post
   {E : Type u''} [category.{v} E] (H : D ⥤ E) [has_colimit ((F ⋙ G) ⋙ H)] :
@@ -1336,6 +1326,10 @@ end
 
 section colim_functor
 
+def is_colimit.map {F G : J ⥤ C} {s : cocone F} (P : is_colimit s) {t : cocone G} (Q : is_colimit t)
+  (α : F ⟶ G) : s.X ⟶ t.X :=
+P.desc ((cocones.precompose α).obj t)
+
 /--
 Functoriality of colimits.
 
@@ -1344,12 +1338,7 @@ but may be needed separately when you have specified colimits for the source and
 but not necessarily for all functors of shape `J`.
 -/
 def colim_map {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G) : colimit F ⟶ colimit G :=
-colimit.desc F
-  { X := colimit G,
-    ι :=
-    { app := λ j, α.app j ≫ colimit.ι G j,
-      naturality' := λ j j' f,
-        by erw [comp_id, ←assoc, α.naturality, assoc, colimit.w] } }
+is_colimit.map (colimit.is_colimit F) (colimit.is_colimit G) α
 
 @[simp, reassoc]
 lemma ι_colim_map {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G) (j : J) :
@@ -1365,8 +1354,9 @@ local attribute [simp] colim_map
 def colim : (J ⥤ C) ⥤ C :=
 { obj := λ F, colimit F,
   map := λ F G α, colim_map α,
+  map_id' := λ F, by { ext, erw [is_colimit.fac], simp, },
   map_comp' := λ F G H α β,
-    by ext; erw [←assoc, is_colimit.fac, is_colimit.fac, assoc, is_colimit.fac, ←assoc]; refl }
+    by { ext, erw [←assoc, is_colimit.fac, is_colimit.fac, assoc, is_colimit.fac, ←assoc], refl } }
 
 end
 

@@ -1098,7 +1098,7 @@ lemma at_prime.map_eq_maximal_ideal {P : ideal R} [hP : ideal.is_prime P] :
   ideal.map (localization.of P.prime_compl).to_map P =
     (local_ring.maximal_ideal (localization P.prime_compl)) :=
 begin
-  let f := (localization.of P.prime_compl),
+  let f := localization.of P.prime_compl,
   ext x,
   split; simp only [local_ring.mem_maximal_ideal, mem_nonunits_iff]; intro hx,
   { exact λ h, (localization_map.is_prime_of_is_prime_disjoint f P hP
@@ -1385,7 +1385,7 @@ localization_map.map_mk' f _ r m
 
 /-- Injectivity of the underlying `algebra_map` descends to the algebra induced by localization -/
 lemma localization_algebra_injective (hRS : function.injective (algebra_map R S))
-  (hM : (algebra.algebra_map_submonoid S M) ≤ non_zero_divisors S) :
+  (hM : algebra.algebra_map_submonoid S M ≤ non_zero_divisors S) :
   function.injective (@algebra_map Rₘ Sₘ _ _ (localization_algebra M f g)) :=
 begin
   rintros x y hxy,
@@ -1393,7 +1393,7 @@ begin
   obtain ⟨c, d, rfl⟩ := localization_map.mk'_surjective f y,
   rw [algebra_map_mk' f g a b, algebra_map_mk' f g c d, localization_map.mk'_eq_iff_eq] at hxy,
   refine (localization_map.mk'_eq_iff_eq f).2 (congr_arg f.to_map (hRS _)),
-  convert ((g.injective hM) hxy); simp,
+  convert g.injective hM hxy; simp,
 end
 
 open polynomial

@@ -358,12 +358,11 @@ begin
 end
 
 lemma is_integral_quotient_of_is_integral {I : ideal A} (hRS : ∀ (x : A), is_integral R x) :
-  (∀ (x : I.quotient), is_integral (I.comap (algebra_map R A)).quotient x) :=
+  ∀ (x : I.quotient), is_integral (I.comap (algebra_map R A)).quotient x :=
 begin
   rintros ⟨x⟩,
   obtain ⟨p, ⟨p_monic, hpx⟩⟩ := hRS x,
   refine ⟨p.map (ideal.quotient.mk _), ⟨monic_map _ p_monic, _⟩⟩,
-  have := congr_arg (ideal.quotient.mk I) hpx,
   simpa only [aeval_def, hom_eval₂, eval₂_map] using congr_arg (ideal.quotient.mk I) hpx
 end
 
@@ -373,32 +372,41 @@ lemma is_field_of_is_integral_of_is_field {R S : Type*} [integral_domain R] [int
   (hS : is_field S) : is_field R :=
 begin
   refine ⟨⟨0, 1, zero_ne_one⟩, mul_comm, λ a ha, _⟩,
-  obtain ⟨a_inv : S, ha_inv⟩ := hS.mul_inv_cancel (λ h, ha (hRS (trans h (ring_hom.map_zero _).symm))),
-  suffices : ∃ (b : R), a_inv = algebra_map R S b,
-  { obtain ⟨b, hb⟩ := this,
-    refine ⟨b, hRS (by simpa using (hb ▸ ha_inv : (algebra_map R S a) * (algebra_map R S b) = 1))⟩ },
-  obtain ⟨p, ⟨p_monic, hp⟩⟩ := H a_inv,
-  have hp_deg : p.nat_degree ≥ 1,
-  { refine le_of_not_lt (λ hp_deg, one_ne_zero (_ : (1 : S) = 0)),
-    have : p.nat_degree = 0 := by simpa [nat.lt_iff_add_one_le] using hp_deg,
-    rwa [eq_C_of_degree_le_zero (nat_degree_eq_zero_iff_degree_le_zero.1 this), aeval_C,
-      ← this, ← leading_coeff, monic.def.1 p_monic, ring_hom.map_one] at hp },
-  rw [p.as_sum, aeval_def, eval₂_finset_sum, finset.sum_range_succ] at hp,
-  use -∑ (i : ℕ) in finset.range p.nat_degree, (p.coeff i) * a ^ (p.nat_degree - 1 - i),
-  have : is_unit (a_inv ^ (p.nat_degree - 1)) := is_unit_pow (p.nat_degree - 1)
-    (is_unit_iff_exists_inv.2 ⟨algebra_map R S a, by rwa mul_comm a_inv⟩),
-  rw [ring_hom.map_neg, ← add_eq_zero_iff_eq_neg, ← is_unit.mul_left_eq_zero this, add_mul,
-    ← pow_succ, nat.sub_add_cancel hp_deg, ← finset.sum_hom _ (algebra_map R S), finset.sum_mul],
-  convert hp using 2,
-  { simp only [p_monic.coeff_nat_degree, one_mul, eval₂_X_pow, ring_hom.map_one] },
-  { refine finset.sum_congr rfl (λ x hx, _),
-    simp only [mul_assoc, eval₂_X_pow, ring_hom.map_pow, eval₂_C, eval₂_mul, ring_hom.map_mul],
+  -- Let `a_inv` be the inverse of `algebra_map R S a`,
+  -- then we need to show that `a_inv` is of the form `algebra_map R S b`.
+  obtain ⟨a_inv, ha_inv⟩ := hS.mul_inv_cancel (λ h, ha (hRS (trans h (ring_hom.map_zero _).symm))),
+
+  -- Let `p : polynomial R` be monic with root `a_inv`,
+  -- and `q` be `p` with coefficients reversed (so `q(a) = q'(a) * a + 1`).
+  -- We claim that `q(a) = 0`, so `-q'(a)` is the inverse of `a`.
+  obtain ⟨p, p_monic, hp⟩ := H a_inv,
+  use -∑ (i : ℕ) in finset.range p.nat_degree, (p.coeff i) * a ^ (p.nat_degree - i - 1),
+
+  -- `q(a) = 0`, because multiplying everything with `a_inv^n` gives `p(a_inv) = 0`.
+  -- TODO: this could be a lemma for `polynomial.reverse`.
+  have hq : ∑ (i : ℕ) in finset.range (p.nat_degree + 1), (p.coeff i) * a ^ (p.nat_degree - i) = 0,
+  { apply (algebra_map R S).injective_iff.mp hRS,
+    have a_inv_ne_zero : a_inv ≠ 0 := right_ne_zero_of_mul (mt ha_inv.symm.trans one_ne_zero),
+    refine (mul_eq_zero.mp _).resolve_right (pow_ne_zero p.nat_degree a_inv_ne_zero),
+    -- TODO: define `polynomial.eval₂_eq_sum_range : p.eval₂ f x = ∑ i in finset.range p.nat_degree, f (p.coeff i) * x^i` and similar for `polynomial.aeval`.
+    rw [p.as_sum, aeval_def, eval₂_finset_sum] at hp,
+    rw [ring_hom.map_sum, finset.sum_mul],
+    refine (finset.sum_congr rfl (λ i hi, _)).trans hp,
+    rw [eval₂_mul, eval₂_C, eval₂_X_pow, ring_hom.map_mul, mul_assoc],
     congr,
-    have : x ≤ p.nat_degree - 1,
-    from (nat.add_le_to_le_sub _ hp_deg).1 (by rwa [finset.mem_range, nat.lt_iff_add_one_le] at hx),
-    have : a_inv ^ (p.nat_degree - 1) = a_inv ^ (p.nat_degree - 1 - x) * a_inv ^ x,
-    by rw [← pow_add a_inv, nat.sub_add_cancel this],
-    rw [this, ← mul_assoc, ← mul_pow, ha_inv, one_pow, one_mul] }
+    have : a_inv ^ p.nat_degree = a_inv ^ (p.nat_degree - i) * a_inv ^ i,
+    { rw [← pow_add a_inv, nat.sub_add_cancel (nat.le_of_lt_succ (finset.mem_range.mp hi))] },
+    rw [ring_hom.map_pow, this, ← mul_assoc, ← mul_pow, ha_inv, one_pow, one_mul] },
+
+  -- Since `q(a) = 0` and `q(a) = q'(a) * a + 1`, we have `a * -q'(a) = 1`.
+  -- TODO: we could use a lemma for `polynomial.div_X` here.
+  rw [finset.sum_range_succ, p_monic.coeff_nat_degree, one_mul, nat.sub_self, pow_zero,
+      add_eq_zero_iff_eq_neg, eq_comm] at hq,
+  rw [mul_comm, ← neg_mul_eq_neg_mul, finset.sum_mul],
+  convert hq using 2,
+  refine finset.sum_congr rfl (λ i hi, _),
+  have : 1 ≤ p.nat_degree - i := nat.le_sub_left_of_add_le (finset.mem_range.mp hi),
+  rw [mul_assoc, ← pow_succ', nat.sub_add_cancel this]
 end
 
 end algebra

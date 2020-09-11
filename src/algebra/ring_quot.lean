@@ -128,11 +128,11 @@ def lift (f : R →+* T) {r : R → R → Prop} (w : ∀ {x y}, r x y → f x = 
 { to_fun := quot.lift f
   begin
     rintros _ _ r,
-    induction r with a b r a b c r r' a b c r r' a b c r r',
-    { exact w r, },
-    { simp [r'], },
-    { simp [r'], },
-    { simp [r'], },
+    induction r,
+    case of : _ _ r { exact w r, },
+    case add : _ _ _ _ r' { simp [r'], },
+    case mul_left : _ _ _ _ r' { simp [r'], },
+    case mul_right : _ _ _ _ r' { simp [r'], },
   end,
   map_zero' := f.map_zero,
   map_add' := by { rintros ⟨x⟩ ⟨y⟩, exact f.map_add x y, },

@@ -34,8 +34,7 @@ notation for it.
 
 ## References
 
-* [Sheldon Axler, *Linear Algebra Done Right*,
-  https://zhangyk8.github.io/teaching/file_spring2018/linear_algebra_done_right.pdf][axler2015]
+* Sheldon Axler, *Linear Algebra Done Right* [axler2015]
 * https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors
 
 ## Tags

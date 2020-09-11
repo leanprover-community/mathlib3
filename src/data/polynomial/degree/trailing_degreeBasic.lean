@@ -293,3 +293,6 @@ begin
   revert h,
   exact dec_trivial,
 end
+
+end semiring
+end polynomial

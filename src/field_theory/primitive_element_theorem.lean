@@ -4,37 +4,6 @@ import field_theory.separable
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-/- Some stupid lemmas used below. Maybe some of them are already in mathlib? -/
-
-namespace polynomial
-
-variables (F : Type*) [field F]
-
-lemma gcd_eval_zero (f g : polynomial F) (α : F) (hf : f.eval α = 0) (hg : g.eval α = 0) : (euclidean_domain.gcd f g).eval α = 0 :=
-begin
-  rw euclidean_domain.gcd_eq_gcd_ab f g,
-  rw [polynomial.eval_add,polynomial.eval_mul,polynomial.eval_mul,hf,hg,zero_mul,zero_mul,zero_add],
-end
-
-variables {E : Type*} [field E] [algebra F E]
-
-lemma gcd_root_left (f g : polynomial F) (α : E) (hα : (euclidean_domain.gcd f g).eval₂ (algebra_map F E) α = 0) :
-f.eval₂ (algebra_map F E) α = 0 :=
-begin
-  cases euclidean_domain.gcd_dvd_left f g with p hp,
-  rw [hp,polynomial.eval₂_mul,hα,zero_mul],
-end
-
-lemma gcd_root_right (f g : polynomial F) (α : E) (hα : (euclidean_domain.gcd f g).eval₂ (algebra_map F E) α = 0) :
-g.eval₂ (algebra_map F E) α = 0 :=
-begin
-  cases euclidean_domain.gcd_dvd_right f g with p hp,
-  rw [hp,polynomial.eval₂_mul,hα,zero_mul],
-end
-
-end polynomial
-
-
 /- Proof of the primitive element theorem. -/
 
 open finite_dimensional
@@ -201,7 +170,7 @@ begin
       rw polynomial.mem_roots,
       dsimp[polynomial.is_root],
       rw polynomial.eval_map,
-      have f_root : f'.eval₂ (algebra_map E E') x = 0 := polynomial.gcd_root_left E f' g' x hx,
+      have f_root : f'.eval₂ (algebra_map E E') x = 0 := polynomial.gcd_root_left f' g' x hx,
       simp only [polynomial.eval₂_map,polynomial.eval₂_comp,polynomial.eval₂_sub,polynomial.eval₂_mul,polynomial.eval₂_C,polynomial.eval₂_X] at f_root,
       { exact f_root, },
       { exact polynomial.map_ne_zero (minimal_polynomial.ne_zero hα), },
@@ -211,7 +180,7 @@ begin
       rw polynomial.mem_roots,
       dsimp[polynomial.is_root],
       rw polynomial.eval_map,
-      have g_root : g'.eval₂ (algebra_map E E') x = 0 := polynomial.gcd_root_right E f' g' x hx,
+      have g_root : g'.eval₂ (algebra_map E E') x = 0 := polynomial.gcd_root_right f' g' x hx,
       simp only [polynomial.eval₂_map] at g_root,
       exact g_root,
       exact polynomial.map_ne_zero (minimal_polynomial.ne_zero hβ),

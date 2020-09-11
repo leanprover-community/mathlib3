@@ -373,55 +373,32 @@ lemma is_field_of_is_integral_of_is_field {R S : Type*} [integral_domain R] [int
   (hS : is_field S) : is_field R :=
 begin
   refine ⟨⟨0, 1, zero_ne_one⟩, mul_comm, λ a ha, _⟩,
-  obtain ⟨a' : S, ha'⟩ := hS.mul_inv_cancel (λ h, ha (hRS (trans h (ring_hom.map_zero _).symm))),
-  obtain ⟨p, ⟨p_monic, hp⟩⟩ := H a',
-  have hp_deg : p.nat_degree ≥ 1,
-  { refine le_of_not_lt (λ hp_deg, _),
-    have : p.nat_degree = 0 := by simpa [nat.lt_iff_add_one_le] using hp_deg,
-    rw nat_degree_eq_zero_iff_degree_le_zero at this,
-    rw [eq_C_of_degree_le_zero this, aeval_C] at hp,
-    have : p.coeff 0 = 1 := by
-    { have : 0 = p.nat_degree := by rw [eq_C_of_degree_le_zero this, nat_degree_C],
-      rwa this },
-    rw [this, ring_hom.map_one] at hp,
-    exact one_ne_zero hp },
-  suffices : ∃ (b : R), a' ^ (p.nat_degree) + (a' ^ (p.nat_degree - 1) * algebra_map R S b) = 0,
+  obtain ⟨a_inv : S, ha_inv⟩ := hS.mul_inv_cancel (λ h, ha (hRS (trans h (ring_hom.map_zero _).symm))),
+  suffices : ∃ (b : R), a_inv = algebra_map R S b,
   { obtain ⟨b, hb⟩ := this,
-    refine ⟨-b, hRS _⟩,
-    simp only [ring_hom.map_mul, ring_hom.map_neg, mul_neg_eq_neg_mul_symm, ring_hom.map_one],
-    rw [eq_comm, ← add_eq_zero_iff_eq_neg],
-    refine eq_zero_of_ne_zero_of_mul_left_eq_zero
-      (λ h, zero_ne_one (trans (by rw [pow_eq_zero h, mul_zero]) ha') : a' ^ p.nat_degree ≠ 0) _,
-    rw [mul_add, mul_one, ← mul_assoc],
-    convert hb,
-    calc a' ^ p.nat_degree * (algebra_map R S a)
-    = a' ^ (p.nat_degree - 1 + 1) * (algebra_map R S a) : by rw nat.sub_add_cancel hp_deg
-    ... = a' ^ (p.nat_degree - 1) * (a' * algebra_map R S a) : by rw [pow_add, pow_one, mul_assoc]
-    ... = a' ^ (p.nat_degree - 1) : by rw [mul_comm a', ha', mul_one] },
-  use ∑ (i : ℕ) in finset.range p.nat_degree, (p.coeff i) * a ^ (p.nat_degree - 1 - i),
-  have : ∑ (i : ℕ) in finset.range (p.nat_degree + 1), (algebra_map R S (p.coeff i)) * a' ^ i = 0,
-  { rw [p.as_sum, aeval_def, eval₂_finset_sum] at hp,
-    convert hp,
-    exact funext (λ _, by simp) },
-  rw finset.sum_range_succ at this,
-  convert this,
-  { have : p.coeff p.nat_degree = 1 := p_monic,
-    rw [this, ring_hom.map_one, one_mul] },
-  { rw [← finset.sum_hom _ (algebra_map R S), finset.mul_sum],
-    refine finset.sum_congr rfl (λ x hx, _),
-    rw [ring_hom.map_mul, ← mul_assoc, mul_comm _ (algebra_map R S (p.coeff x)), mul_assoc],
+    refine ⟨b, hRS (by simpa using (hb ▸ ha_inv : (algebra_map R S a) * (algebra_map R S b) = 1))⟩ },
+  obtain ⟨p, ⟨p_monic, hp⟩⟩ := H a_inv,
+  have hp_deg : p.nat_degree ≥ 1,
+  { refine le_of_not_lt (λ hp_deg, one_ne_zero (_ : (1 : S) = 0)),
+    have : p.nat_degree = 0 := by simpa [nat.lt_iff_add_one_le] using hp_deg,
+    rwa [eq_C_of_degree_le_zero (nat_degree_eq_zero_iff_degree_le_zero.1 this), aeval_C,
+      ← this, ← leading_coeff, monic.def.1 p_monic, ring_hom.map_one] at hp },
+  rw [p.as_sum, aeval_def, eval₂_finset_sum, finset.sum_range_succ] at hp,
+  use -∑ (i : ℕ) in finset.range p.nat_degree, (p.coeff i) * a ^ (p.nat_degree - 1 - i),
+  have : is_unit (a_inv ^ (p.nat_degree - 1)) := is_unit_pow (p.nat_degree - 1)
+    (is_unit_iff_exists_inv.2 ⟨algebra_map R S a, by rwa mul_comm a_inv⟩),
+  rw [ring_hom.map_neg, ← add_eq_zero_iff_eq_neg, ← is_unit.mul_left_eq_zero this, add_mul,
+    ← pow_succ, nat.sub_add_cancel hp_deg, ← finset.sum_hom _ (algebra_map R S), finset.sum_mul],
+  convert hp using 2,
+  { simp only [p_monic.coeff_nat_degree, one_mul, eval₂_X_pow, ring_hom.map_one] },
+  { refine finset.sum_congr rfl (λ x hx, _),
+    simp only [mul_assoc, eval₂_X_pow, ring_hom.map_pow, eval₂_C, eval₂_mul, ring_hom.map_mul],
     congr,
-    rw ring_hom.map_pow,
-    calc a' ^ (p.nat_degree - 1) * (algebra_map R S a) ^ (p.nat_degree - 1 - x)
-    = a' ^ (p.nat_degree - 1) * ((algebra_map R S a) ^ (p.nat_degree - 1) * a' ^ x) :
-    begin
-      congr,
-      suffices : (algebra_map R S a) ^ (p.nat_degree - 1 - x)
-        = (algebra_map R S a) ^ (p.nat_degree - 1 - x) * ((algebra_map R S a) ^ x * a' ^ x),
-      from trans this (by rw [← mul_assoc, ← pow_add, nat.sub_add_cancel (nat.le_pred_of_lt (finset.mem_range.1 hx))]),
-      rw [← mul_pow, ha', one_pow, mul_one]
-    end
-    ... = a' ^ x : by rw [← mul_assoc, ← mul_pow, mul_comm a', ha', one_pow, one_mul] }
+    have : x ≤ p.nat_degree - 1,
+    from (nat.add_le_to_le_sub _ hp_deg).1 (by rwa [finset.mem_range, nat.lt_iff_add_one_le] at hx),
+    have : a_inv ^ (p.nat_degree - 1) = a_inv ^ (p.nat_degree - 1 - x) * a_inv ^ x,
+    by rw [← pow_add a_inv, nat.sub_add_cancel this],
+    rw [this, ← mul_assoc, ← mul_pow, ha_inv, one_pow, one_mul] }
 end
 
 end algebra

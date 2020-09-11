@@ -325,5 +325,21 @@ lemma generalized_eigenspace_eq_generalized_eigenspace_findim_of_le
   f.generalized_eigenspace μ k = f.generalized_eigenspace μ (findim K V) :=
 ker_pow_eq_ker_pow_findim_of_le hk
 
+/-- If `f` maps a subspace `p` into itself, then the generalized eigenspace of the restriction
+    of `f` to `p` is the part of the generalized eigenspace of `f` that lies in `p`. -/
+lemma generalized_eigenspace_restrict [field K] [vector_space K V]
+  (f : End K V) (p : submodule K V) (k : ℕ) (μ : K) (hfp : ∀ (x : V), x ∈ p → f x ∈ p) :
+  generalized_eigenspace (linear_map.restrict f hfp) μ k =
+    submodule.comap p.subtype (f.generalized_eigenspace μ k) :=
+begin
+  rw [generalized_eigenspace, generalized_eigenspace, ←linear_map.ker_comp],
+  induction k with k ih,
+  { rw [pow_zero,pow_zero],
+    convert linear_map.ker_id,
+    apply submodule.ker_subtype },
+  { erw [pow_succ', pow_succ', linear_map.ker_comp,
+      ih, ←linear_map.ker_comp, linear_map.comp_assoc], }
+end
+
 end End
 end module

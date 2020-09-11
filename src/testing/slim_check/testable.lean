@@ -411,15 +411,28 @@ def combine_testable (p : Prop)
     by { rw [length_map], apply h },
   gen.one_of (list.map (λ t, @testable.run _ t tracing min) t) this ⟩
 
+open sampleable_ext
+
+/-- Shrink a counter-example `x` by using `shrink x`, picking the first
+candidate that falsifies a property and recursively shrinking that one.
+
+The process is guaranteed to terminate because `shrink x` produces
+a proof that all the values it produces are smaller (according to `sizeof`)
+than `x`. -/
+def minimize_aux [sampleable_ext α] [∀ x, testable (β x)] : proxy_repr α → option_t gen (Σ x, test_result (β (interp α x))) :=
+well_founded.fix has_well_founded.wf $ λ x f_rec, do
+     ⟨y,h₀,⟨h₁⟩⟩ ← (sampleable_ext.shrink x).mfirst (λ ⟨a,h⟩, do
+       ⟨r⟩ ← monad_lift (uliftable.up $ testable.run (β (interp α a)) ff tt : gen (ulift (test_result (β (interp α a))))),
+       if is_failure r
+         then pure (⟨a, r, ⟨h⟩⟩ : (Σ a, test_result (β (interp α a)) × plift (sizeof_lt a x)))
+         else failure),
+     f_rec y h₁ <|> pure ⟨y,h₀⟩.
+
 /-- Once a property fails to hold on an example, look for smaller counter-examples
 to show the user. -/
-def minimize [∀ x, testable (β x)] (x : α) (r : test_result (β x)) : lazy_list α → gen (Σ x, test_result (β x))
-| lazy_list.nil := pure ⟨x,r⟩
-| (lazy_list.cons x xs) := do
-  ⟨r⟩ ← uliftable.up $ testable.run (β x) ff tt,
-     if is_failure r
-       then pure ⟨x, convert_counter_example id r (psum.inl ())⟩
-       else minimize $ xs ()
+def minimize [sampleable_ext α] [∀ x, testable (β x)] (x : proxy_repr α) (r : test_result (β (interp α x))) : gen (Σ x, test_result (β (interp α x))) := do
+x' ← option_t.run $ minimize_aux α _ x,
+pure $ x'.get_or_else ⟨x, r⟩
 
 @[priority 2000]
 instance exists_testable (p : Prop)
@@ -437,7 +450,7 @@ instance var_testable [sampleable_ext α] [∀ x, testable (β x)] : testable (n
    λ x, do
      r ← testable.run (β (sampleable_ext.interp α x)) tracing ff,
      uliftable.adapt_down (if is_failure r ∧ min
-                          then minimize _ _ x r (sampleable_ext.shrink x)
+                          then minimize _ _ x r
                           else pure ⟨x,r⟩) $
      λ ⟨x,r⟩, return $ trace_if_giveup tracing var x r (add_var_to_counter_example var x ($ sampleable_ext.interp α x) r) ⟩
 

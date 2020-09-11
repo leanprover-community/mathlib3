@@ -22,7 +22,7 @@ inductive total_function (α : Type u) : Type u → Type (u+1)
 | with_default {β} : finmap (λ _ : α, β) → β → total_function β
 | map_to_self : finmap (λ _ : α, α) → total_function α
 
-instance {α β} [inhabited β] : inhabited (total_function α β) :=
+instance total_function.inhabited {α β} [inhabited β] : inhabited (total_function α β) :=
 ⟨ total_function.with_default ∅ (default _) ⟩
 
 namespace total_function

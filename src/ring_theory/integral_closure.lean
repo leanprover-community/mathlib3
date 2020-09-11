@@ -261,6 +261,20 @@ theorem mem_integral_closure_iff_mem_fg {r : A} :
 
 variables {R} {A}
 
+/-- Mapping an integral closure along an `alg_equiv` gives the integral closure. -/
+lemma integral_closure_map_alg_equiv (f : A ≃ₐ[R] B) :
+  (integral_closure R A).map (f : A →ₐ[R] B) = integral_closure R B :=
+begin
+  ext y,
+  rw subalgebra.mem_map,
+  split,
+  { rintros ⟨x, hx, rfl⟩,
+    exact is_integral_alg_hom f hx },
+  { intro hy,
+    use [f.symm y, is_integral_alg_hom (f.symm : B →ₐ[R] A) hy],
+    simp }
+end
+
 lemma integral_closure.is_integral (x : integral_closure R A) : is_integral R x :=
 let ⟨p, hpm, hpx⟩ := x.2 in ⟨p, hpm, subtype.eq $
 by rwa [subtype.val_eq_coe, ← subalgebra.val_apply, aeval_alg_hom_apply] at hpx⟩

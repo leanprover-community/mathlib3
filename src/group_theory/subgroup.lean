@@ -677,13 +677,13 @@ end add_subgroup
 namespace subgroup
 
 variables {H K : subgroup G}
-@[instance, priority 100, to_additive]
-lemma normal_of_comm {G : Type*} [comm_group G] (H : subgroup G) : H.normal :=
+@[priority 100, to_additive]
+instance normal_of_comm {G : Type*} [comm_group G] (H : subgroup G) : H.normal :=
 ⟨by simp [mul_comm, mul_left_comm]⟩
 
 namespace normal
 
-variable nH : H.normal
+variable (nH : H.normal)
 
 @[to_additive] lemma mem_comm {a b : G} (h : a * b ∈ H) : b * a ∈ H :=
 have a⁻¹ * (a * b) * a⁻¹⁻¹ ∈ H, from nH.conj_mem (a * b) h a⁻¹, by simpa
@@ -693,8 +693,8 @@ have a⁻¹ * (a * b) * a⁻¹⁻¹ ∈ H, from nH.conj_mem (a * b) h a⁻¹, by
 
 end normal
 
-@[instance, priority 100, to_additive]
-lemma bot_normal : normal (⊥ : subgroup G) := ⟨by simp⟩
+@[priority 100, to_additive]
+instance bot_normal : normal (⊥ : subgroup G) := ⟨by simp⟩
 
 variable (G)
 /-- The center of a group `G` is the set of elements that commute with everything in `G` -/
@@ -711,8 +711,8 @@ variable {G}
 
 @[to_additive] lemma mem_center_iff {z : G} : z ∈ center G ↔ ∀ g, g * z = z * g := iff.rfl
 
-@[instance, priority 100, to_additive]
-lemma center_normal : (center G).normal :=
+@[priority 100, to_additive]
+instance center_normal : (center G).normal :=
 ⟨begin
   assume n hn g h,
   assoc_rw [hn (h * g), hn g],
@@ -749,13 +749,14 @@ variable {H}
 @[to_additive] lemma le_normalizer : H ≤ normalizer H :=
 λ x xH n, by rw [H.mul_mem_cancel_right (H.inv_mem xH), H.mul_mem_cancel_left xH]
 
-@[instance, priority 100, to_additive]
-lemma normal_in_normalizer : (H.comap H.normalizer.subtype).normal :=
+@[priority 100, to_additive]
+instance normal_in_normalizer : (H.comap H.normalizer.subtype).normal :=
 ⟨λ x xH g, by simpa using (g.2 x).1 xH⟩
 
 open_locale classical
 
-@[to_additive] lemma le_normalizer_of_normal (hK : (H.comap K.subtype).normal) (HK : H ≤ K) : K ≤ H.normalizer :=
+@[to_additive]
+lemma le_normalizer_of_normal [hK : (H.comap K.subtype).normal] (HK : H ≤ K) : K ≤ H.normalizer :=
 λ x hx y, ⟨λ yH, hK.conj_mem ⟨y, HK yH⟩ yH ⟨x, hx⟩,
   λ yH, by simpa [mem_comap, mul_assoc] using
              hK.conj_mem ⟨x * y * x⁻¹, HK yH⟩ yH ⟨x⁻¹, K.inv_mem hx⟩⟩
@@ -784,13 +785,13 @@ theorem conjugates_of_set_mono {s t : set G} (h : s ⊆ t) :
   conjugates_of_set s ⊆ conjugates_of_set t :=
 set.bUnion_subset_bUnion_left h
 
-lemma conjugates_subset_normal {N : subgroup G} (tn : N.normal) {a : G} (h : a ∈ N) :
+lemma conjugates_subset_normal {N : subgroup G} [tn : N.normal] {a : G} (h : a ∈ N) :
   conjugates a ⊆ N :=
 by { rintros a ⟨c, rfl⟩, exact tn.conj_mem a h c }
 
-theorem conjugates_of_set_subset {s : set G} {N : subgroup G} (hN : N.normal) (h : s ⊆ N) :
+theorem conjugates_of_set_subset {s : set G} {N : subgroup G} [N.normal] (h : s ⊆ N) :
   conjugates_of_set s ⊆ N :=
-set.bUnion_subset (λ x H, conjugates_subset_normal hN (h H))
+set.bUnion_subset (λ x H, conjugates_subset_normal (h H))
 
 /-- The set of conjugates of `s` is closed under conjugation. -/
 lemma conj_mem_conjugates_of_set {x c : G} :
@@ -819,7 +820,7 @@ theorem subset_normal_closure : s ⊆ normal_closure s :=
 set.subset.trans subset_conjugates_of_set conjugates_of_set_subset_normal_closure
 
 /-- The normal closure of `s` is a normal subgroup. -/
-@[instance] lemma normal_closure_normal : (normal_closure s).normal :=
+instance normal_closure_normal : (normal_closure s).normal :=
 ⟨λ n h g,
 begin
   refine subgroup.closure_induction h (λ x hx, _) _ (λ x y ihx ihy, _) (λ x ihx, _),
@@ -832,25 +833,25 @@ begin
 end⟩
 
 /-- The normal closure of `s` is the smallest normal subgroup containing `s`. -/
-theorem normal_closure_le_normal {N : subgroup G} [hN : N.normal]
+theorem normal_closure_le_normal {N : subgroup G} [N.normal]
   (h : s ⊆ N) : normal_closure s ≤ N :=
 begin
   assume a w,
   refine closure_induction w (λ x hx, _) _  (λ x y ihx ihy, _) (λ x ihx, _),
-  { exact (conjugates_of_set_subset hN h hx) },
+  { exact (conjugates_of_set_subset h hx) },
   { exact subgroup.one_mem _ },
   { exact subgroup.mul_mem _ ihx ihy },
   { exact subgroup.inv_mem _ ihx }
 end
 
-lemma normal_closure_subset_iff {N : subgroup G} (hN : N.normal) : s ⊆ N ↔ normal_closure s ≤ N :=
+lemma normal_closure_subset_iff {N : subgroup G} [N.normal] : s ⊆ N ↔ normal_closure s ≤ N :=
 ⟨normal_closure_le_normal, set.subset.trans (subset_normal_closure)⟩
 
 theorem normal_closure_mono {s t : set G} (h : s ⊆ t) : normal_closure s ≤ normal_closure t :=
 normal_closure_le_normal (set.subset.trans h subset_normal_closure)
 
 theorem normal_closure_eq_infi : normal_closure s =
-  ⨅ (N : subgroup G) (h : normal N) (hs : s ⊆ N), N :=
+  ⨅ (N : subgroup G) [normal N] (hs : s ⊆ N), N :=
 le_antisymm
   (le_infi (λ N, le_infi (λ hN, by exactI le_infi (normal_closure_le_normal))))
   (infi_le_of_le (normal_closure s) (infi_le_of_le (by apply_instance)
@@ -1091,16 +1092,18 @@ end monoid_hom
 
 variables {N : Type*} [group N]
 
+-- Here `H.normal` is an explicit argument so we can use dot notation with `comap`.
 @[to_additive]
 lemma subgroup.normal.comap {H : subgroup N} (hH : H.normal) (f : G →* N) :
   (H.comap f).normal :=
 ⟨λ _, by simp [subgroup.mem_comap, hH.conj_mem] {contextual := tt}⟩
 
-@[instance, priority 100, to_additive] lemma subgroup.normal_comap {H : subgroup N}
+@[priority 100, to_additive]
+instance subgroup.normal_comap {H : subgroup N}
   [nH : H.normal] (f : G →* N) :  (H.comap f).normal := nH.comap _
 
-@[instance, priority 100, to_additive]
-lemma monoid_hom.normal_ker (f : G →* N) : f.ker.normal :=
+@[priority 100, to_additive]
+instance monoid_hom.normal_ker (f : G →* N) : f.ker.normal :=
 by rw [monoid_hom.ker]; apply_instance
 
 namespace subgroup

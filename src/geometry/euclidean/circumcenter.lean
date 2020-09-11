@@ -11,6 +11,7 @@ noncomputable theory
 open_locale big_operators
 open_locale classical
 open_locale real
+open_locale real_inner_product_space
 
 /-!
 # Circumcenter and circumradius
@@ -38,7 +39,6 @@ open inner_product_geometry
 
 variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
-local notation `⟪`x`, `y`⟫` := @inner ℝ V _ x y
 include V
 
 open affine_subspace

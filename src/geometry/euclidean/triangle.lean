@@ -10,6 +10,7 @@ noncomputable theory
 open_locale big_operators
 open_locale classical
 open_locale real
+open_locale real_inner_product_space
 
 /-!
 # Triangles
@@ -49,7 +50,6 @@ deduce corresponding results for Euclidean affine spaces.
 -/
 
 variables {V : Type*} [inner_product_space ℝ V]
-local notation `⟪`x`, `y`⟫` := @inner ℝ V _ x y
 
 /-- Pythagorean theorem, if-and-only-if vector angle form. -/
 lemma norm_add_square_eq_norm_square_add_norm_square_iff_angle_eq_pi_div_two (x y : V) :
@@ -295,7 +295,6 @@ open_locale euclidean_geometry
 
 variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
-local notation `⟪`x`, `y`⟫` := @inner ℝ V _ x y
 include V
 
 /-- Pythagorean theorem, if-and-only-if angle-at-point form. -/

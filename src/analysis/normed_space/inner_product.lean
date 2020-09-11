@@ -359,9 +359,9 @@ end
 
 variables {α β γ : Type*}
   [inner_product_space 𝕜 α] [inner_product_space ℝ β] [inner_product_space ℂ γ]
-local notation `⟪`x`, `y`⟫` := @inner 𝕜 α _ x y
-local notation `⟪`x`, `y`⟫_ℝ` := @inner ℝ β _ x y
-local notation `⟪`x`, `y`⟫_ℂ` := @inner ℂ γ _ x y
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
+local notation `⟪`x`, `y`⟫_ℝ` := @inner ℝ _ _ x y
+local notation `⟪`x`, `y`⟫_ℂ` := @inner ℂ _ _ x y
 local notation `IK` := @is_R_or_C.I 𝕜 _ _ _
 local notation `absR` := _root_.abs
 local postfix `†`:90 := @is_R_or_C.conj 𝕜 _ _ _
@@ -1514,3 +1514,6 @@ lemma submodule.is_compl_orthogonal_of_is_complete_real {K : submodule ℝ β}
 ⟨K.orthogonal_disjoint, le_of_eq (submodule.sup_orthogonal_of_is_complete_real h).symm⟩
 
 end orthogonal
+
+localized "notation `⟪`x`, `y`⟫` := @inner ℝ _ _ x y" in real_inner_product_space
+localized "notation `⟪`x`, `y`⟫` := @inner ℂ _ _ x y" in complex_inner_product_space

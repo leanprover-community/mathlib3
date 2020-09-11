@@ -9,6 +9,7 @@ noncomputable theory
 open_locale big_operators
 open_locale classical
 open_locale real
+open_locale real_inner_product_space
 
 /-!
 # Monge point and orthocenter
@@ -53,7 +54,6 @@ open finset affine_subspace euclidean_geometry points_with_circumcenter_index
 
 variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
-local notation `⟪`x`, `y`⟫` := @inner ℝ V _ x y
 include V
 
 /-- The Monge point of a simplex (in 2 or more dimensions) is a
@@ -348,7 +348,6 @@ open finset simplex
 
 variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
-local notation `⟪`x`, `y`⟫` := @inner ℝ V _ x y
 include V
 
 /-- The orthocenter of a triangle is the intersection of its

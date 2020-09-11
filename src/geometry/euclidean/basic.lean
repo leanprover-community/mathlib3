@@ -11,6 +11,7 @@ noncomputable theory
 open_locale big_operators
 open_locale classical
 open_locale real
+open_locale real_inner_product_space
 
 /-!
 # Euclidean spaces
@@ -65,7 +66,6 @@ corresponding results for Euclidean affine spaces.
 -/
 
 variables {V : Type*} [inner_product_space ℝ V]
-local notation `⟪`x`, `y`⟫` := @inner ℝ V _ x y
 
 /-- The undirected angle between two vectors. If either vector is 0,
 this is π/2. -/

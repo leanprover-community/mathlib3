@@ -97,12 +97,12 @@ begin
 end
 
 -- this should be true not just for `char_p R p` but for general `nontrivial R`.
-lemma coeff_p_pow [char_p R p] (i : ℕ) : is_unit ((p ^ i : 𝕎 R).coeff i) :=
+lemma coeff_p_pow [char_p R p] (i : ℕ) : (p ^ i : 𝕎 R).coeff i = 1 :=
 begin
   induction i with i h,
-  { simp only [one_coeff_zero, ne.def, pow_zero, is_unit_one] },
-  { rw [pow_succ', ← frobenius_fun_verschiebung, coeff_frobenius_fun_char_p, verschiebung_coeff_succ],
-    exact is_unit_pow p h, }
+  { simp only [one_coeff_zero, ne.def, pow_zero] },
+  { rw [pow_succ', ← frobenius_fun_verschiebung, coeff_frobenius_fun_char_p,
+        verschiebung_coeff_succ, h, one_pow], }
 end
 
 end witt_vector

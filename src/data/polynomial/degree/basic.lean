@@ -57,9 +57,6 @@ by unfold monic; apply_instance
 @[simp] lemma monic.leading_coeff {p : polynomial R} (hp : p.monic) :
   leading_coeff p = 1 := hp
 
-@[simp] lemma monic.coeff_nat_degree {p : polynomial R} (hp : p.monic) :
-  p.coeff p.nat_degree = 1 := hp
-
 @[simp] lemma degree_zero : degree (0 : polynomial R) = ⊥ := rfl
 
 @[simp] lemma nat_degree_zero : nat_degree (0 : polynomial R) = 0 := rfl

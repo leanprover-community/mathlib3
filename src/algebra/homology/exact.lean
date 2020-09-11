@@ -52,6 +52,16 @@ lemma exact.w_assoc {A B C D : V} {f : A ⟶ B} {g : B ⟶ C} [exact f g] {h : C
   f ≫ g ≫ h = 0 :=
 by rw [←category.assoc, @exact.w _ _ _ _ _ _ _ _ _ f g, has_zero_morphisms.zero_comp]
 
+instance exact_comp_iso {A B C C' : V} (f : A ⟶ B) (g : B ⟶ C) (h : C ≅ C') [exact f g] :
+  exact f (g ≫ h.hom) :=
+{ w := exact.w_assoc,
+  epi := by { simp only [image_to_kernel_map_comp_iso], apply epi_comp, } }
+
+instance exact_iso_comp {A A' B C : V} (h : A' ≅ A) (f : A ⟶ B) (g : B ⟶ C) [exact f g] :
+  exact (h.hom ≫ f) g :=
+{ w := by rw [category.assoc, @exact.w _ _ _ _ _ _ _ _ _ f g, has_zero_morphisms.comp_zero],
+  epi := by { simp only [image_to_kernel_map_iso_comp], apply epi_comp, } }
+
 section
 variables [has_cokernels V] {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
 
@@ -68,15 +78,7 @@ by rw [←kernel.lift_ι _ _ hι, ←cokernel.π_desc _ _ hπ, category.assoc, k
   (t : cokernel_cofork f) : fork.ι s ≫ cofork.π t = 0 :=
 comp_eq_zero_of_exact f g (kernel_fork.condition s) (cokernel_cofork.condition t)
 
-instance exact_comp_iso {A B C C' : V} (f : A ⟶ B) (g : B ⟶ C) (h : C ≅ C') [exact f g] :
-  exact f (g ≫ h.hom) :=
-{ w := exact.w_assoc,
-  epi := by { simp only [image_to_kernel_map_comp_iso], apply epi_comp, } }
-
-instance exact_iso_comp {A A' B C C' : V} (h : A' ≅ A) (f : A ⟶ B) (g : B ⟶ C) [exact f g] :
-  exact (h.hom ≫ f) g :=
-{ w := by rw [category.assoc, @exact.w _ _ _ _ _ _ _ _ _ f g, has_zero_morphisms.comp_zero],
-  epi := by { simp only [image_to_kernel_map_iso_comp], apply epi_comp, } }
+end
 
 section
 local attribute [instance] has_zero_object.has_zero
@@ -92,5 +94,4 @@ end
 
 end
 
-end
 end category_theory

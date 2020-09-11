@@ -136,18 +136,22 @@ nonempty.to_subtype (nonempty_Ico.mpr h)
 lemma nonempty_Ioc_subtype (h : a < b) : nonempty (Ioc a b) :=
 nonempty.to_subtype (nonempty_Ioc.mpr h)
 
+/-- An interval `Ici a` is nonempty. -/
 instance nonempty_Ici_subtype : nonempty (Ici a) :=
 nonempty.to_subtype nonempty_Ici
 
+/-- An interval `Iic a` is nonempty. -/
 instance nonempty_Iic_subtype : nonempty (Iic a) :=
 nonempty.to_subtype nonempty_Iic
 
 lemma nonempty_Ioo_subtype [densely_ordered α] (h : a < b) : nonempty (Ioo a b) :=
 nonempty.to_subtype (nonempty_Ioo.mpr h)
 
+/-- In a `no_top_order`, the intervals `Ioi` are nonempty. -/
 instance nonempty_Ioi_subtype [no_top_order α] : nonempty (Ioi a) :=
 nonempty.to_subtype nonempty_Ioi
 
+/-- In a `no_bot_order`, the intervals `Iio` are nonempty. -/
 instance nonempty_Iio_subtype [no_bot_order α] : nonempty (Iio a) :=
 nonempty.to_subtype nonempty_Iio
 

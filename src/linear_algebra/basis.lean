@@ -796,23 +796,24 @@ begin
 end
 
 lemma is_basis.repr_apply_eq {f : M → ι → R}
-  (hfin : ∀ x, ∃ (s : finset ι), ∀ i, f x i ≠ 0 → i ∈ s)
   (hadd : ∀ x y, f (x + y) = f x + f y) (hsmul : ∀ (c : R) (x : M), f (c • x) = c • f x)
   (f_eq : ∀ i, f (v i) = finsupp.single i 1) (x : M) (i : ι) :
   hv.repr x i = f x i :=
 begin
-  set f' : M →ₗ[R] (ι →₀ R) :=
-  { to_fun := λ x, finsupp.on_finset _ _ (classical.some_spec (hfin x)),
-    map_add' := λ x y, by { ext,
-      simp only [hadd, finsupp.on_finset_apply, pi.add_apply, finsupp.add_apply] },
-    map_smul' := λ c x, by { ext,
-      simp only [hsmul, finsupp.on_finset_apply, pi.smul_apply, finsupp.smul_apply] } }
+  set f' : M →ₗ[R] (ι → R) :=
+    { to_fun := f, map_add' := hadd, map_smul' := hsmul }
     with f'_eq,
   have hf' : ∀ i, f' (v i) = finsupp.single i 1,
   { intro i,
     ext j,
-    rw [f'_eq, linear_map.coe_mk, finsupp.on_finset_apply, f_eq] },
-  rw [hv.repr_eq_iff.mpr hf', f'_eq, linear_map.coe_mk, finsupp.on_finset_apply]
+    rw [f'_eq, linear_map.coe_mk, f_eq] },
+  show hv.repr x i = f' x i,
+  conv_rhs { rw ← hv.total_repr x },
+  simp_rw [finsupp.total_apply, finsupp_sum, finsupp.sum, finset.sum_apply, f'.map_smul, hf',
+           pi.smul_apply, finsupp.single_apply, smul_eq_mul, mul_boole, finset.sum_ite_eq',
+           finsupp.mem_support_iff],
+  split_ifs, { refl },
+  push_neg at h, exact h
 end
 
 /-- Construct a linear map given the value at the basis. -/

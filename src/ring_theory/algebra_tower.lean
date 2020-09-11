@@ -333,14 +333,6 @@ theorem is_basis.smul_repr
   (hb.smul hc).repr x ij = hb.repr (hc.repr x ij.2) ij.1 :=
 begin
   apply (hb.smul hc).repr_apply_eq,
-  { intro x,
-    use (hc.repr x).support.bind
-      (λ j, (hb.repr (hc.repr x j)).support.map (function.embedding.sectl ι j)),
-    rintros ⟨i, j⟩ hij,
-    rw finset.mem_bind,
-    use [j, mem_support_iff.mpr (λ h, hij (by rw [h, linear_map.map_zero, zero_apply]))],
-    rw finset.mem_map,
-    exact ⟨i, mem_support_iff.mpr hij, rfl⟩ },
   { intros x y, ext, simp only [linear_map.map_add, add_apply, pi.add_apply] },
   { intros c x, ext,
     simp only [← is_scalar_tower.algebra_map_smul S c x, linear_map.map_smul, smul_eq_mul,

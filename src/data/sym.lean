@@ -6,7 +6,7 @@ Author: Kyle Miller.
 
 import data.multiset.basic
 import data.vector
-import tactic
+import tactic.tidy
 
 /-!
 # Symmetric powers

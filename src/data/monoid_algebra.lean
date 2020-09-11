@@ -337,7 +337,7 @@ by conv_lhs { rw lift_unique' F, simp [lift_apply] }
 
 /-- A `k`-algebra homomorphism from `monoid_algebra k G` is uniquely defined by its
 values on the functions `single a 1`. -/
-@[ext]
+-- @[ext] -- FIXME I would really like to make this an `ext` lemma, but it seems to cause `ext` to loop.
 lemma alg_hom_ext ⦃φ₁ φ₂ : monoid_algebra k G →ₐ[k] R⦄
   (h : ∀ x, φ₁ (single x 1) = φ₂ (single x 1)) : φ₁ = φ₂ :=
 (lift k G R).symm.injective $ monoid_hom.ext h
@@ -661,7 +661,7 @@ def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra 
   left_inv := λ f, begin ext x, simp [sum_single_index] end,
   right_inv := λ F,
     begin
-      apply alg_hom.ext, intro f,
+      ext f,
       conv_rhs { rw ← f.sum_single },
       simp [← F.map_smul, finsupp.sum, ← F.map_sum]
     end }

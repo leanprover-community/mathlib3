@@ -277,7 +277,7 @@ alg_equiv.of_alg_hom
   (lift R X (λ x, (monoid_algebra.of R (free_monoid X)) (free_monoid.of x)))
   ((monoid_algebra.lift R (free_monoid X) (free_algebra R X)) (free_monoid.lift (ι R X)))
 begin
-  ext1 x,
+  apply monoid_algebra.alg_hom_ext, intro x,
   apply free_monoid.rec_on x,
   { simp, refl, },
   { intros x y ih, simp at ih, simp [ih], }

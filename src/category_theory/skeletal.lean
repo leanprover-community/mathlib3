@@ -63,7 +63,7 @@ preorder with nice definitional properties, but is only really appropriate for t
 -/
 def thin_skeleton : Type u₁ := quotient (is_isomorphic_setoid C)
 
-instance [inhabited C] : inhabited (thin_skeleton C) := ⟨quotient.mk (default _)⟩
+instance inhabited_thin_skeleton [inhabited C] : inhabited (thin_skeleton C) := ⟨quotient.mk (default _)⟩
 
 instance thin_skeleton.preorder : preorder (thin_skeleton C) :=
 { le := quotient.lift₂ (λ X Y, nonempty (X ⟶ Y))
@@ -128,7 +128,7 @@ def map₂ (F : C ⥤ D ⥤ E) :
 
 variables (C) [∀ X Y : C, subsingleton (X ⟶ Y)]
 
-instance : faithful (to_thin_skeleton C) := {}
+instance to_thin_skeleton_faithful : faithful (to_thin_skeleton C) := {}
 
 /-- Use `quotient.out` to create a functor out of the thin skeleton. -/
 @[simps]
@@ -153,7 +153,7 @@ variables {C}
 lemma equiv_of_both_ways {X Y : C} (f : X ⟶ Y) (g : Y ⟶ X) : X ≈ Y :=
 ⟨iso_of_both_ways f g⟩
 
-instance : partial_order (thin_skeleton C) :=
+instance thin_skeleton_partial_order : partial_order (thin_skeleton C) :=
 { le_antisymm := quotient.ind₂
   begin
     rintros _ _ ⟨f⟩ ⟨g⟩,

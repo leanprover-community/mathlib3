@@ -261,6 +261,7 @@ universe u
 
 namespace category_theory
 
+/-- A morphism in `Type u` is an isomorphism if and only if it is bijective. -/
 noncomputable
 def is_iso_equiv_bijective {X Y : Type u} (f : X ⟶ Y) : is_iso f ≃ function.bijective f :=
 equiv_of_subsingleton_of_subsingleton

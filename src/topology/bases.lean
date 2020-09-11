@@ -6,9 +6,11 @@ Authors: Johannes Hölzl, Mario Carneiro
 Bases of topologies. Countability axioms.
 -/
 import topology.constructions
+import topology.continuous_on
 
 open set filter classical
 open_locale topological_space filter
+noncomputable theory
 
 namespace topological_space
 /- countability axioms
@@ -111,6 +113,21 @@ variables (α)
 class separable_space : Prop :=
 (exists_countable_closure_eq_univ : ∃s:set α, countable s ∧ closure s = univ)
 
+lemma exists_dense_seq [separable_space α] [nonempty α] : ∃ u : ℕ → α, closure (range u) = univ :=
+begin
+  obtain ⟨s : set α, hs, s_dense⟩ := @separable_space.exists_countable_closure_eq_univ α _ _,
+  cases countable_iff_exists_surjective.mp hs with u hu,
+  use u,
+  apply eq_univ_of_univ_subset,
+  simpa [s_dense] using closure_mono hu
+end
+
+/-- A sequence dense in a non-empty separable topological space. -/
+def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some (exists_dense_seq α)
+
+lemma dense_seq_dense [separable_space α] [nonempty α] :
+  closure (range $ dense_seq α) = univ := classical.some_spec (exists_dense_seq α)
+
 /-- A first-countable space is one in which every point has a
   countable neighborhood basis. -/
 class first_countable_topology : Prop :=
@@ -118,10 +135,24 @@ class first_countable_topology : Prop :=
 
 namespace first_countable_topology
 variable {α}
+
 lemma tendsto_subseq [first_countable_topology α] {u : ℕ → α} {x : α} (hx : map_cluster_pt x at_top u) :
   ∃ (ψ : ℕ → ℕ), (strict_mono ψ) ∧ (tendsto (u ∘ ψ) at_top (𝓝 x)) :=
 (nhds_generated_countable x).subseq_tendsto hx
+
 end first_countable_topology
+
+variables {α}
+
+lemma is_countably_generated_nhds [first_countable_topology α] (x : α) :
+  is_countably_generated (𝓝 x) :=
+first_countable_topology.nhds_generated_countable x
+
+lemma is_countably_generated_nhds_within [first_countable_topology α] (x : α) (s : set α) :
+  is_countably_generated (𝓝[s] x) :=
+(is_countably_generated_nhds x).inf_principal s
+
+variable (α)
 
 /-- A second-countable space is one with a countable basis. -/
 class second_countable_topology : Prop :=

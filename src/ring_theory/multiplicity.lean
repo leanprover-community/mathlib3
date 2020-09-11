@@ -7,7 +7,7 @@ import algebra.associated
 import data.int.gcd
 import algebra.big_operators.basic
 import data.nat.enat
-
+import tactic
 
 variables {α : Type*}
 
@@ -43,7 +43,7 @@ theorem int.coe_nat_multiplicity (a b : ℕ) :
 begin
     apply roption.ext',
     { repeat {rw [← finite_iff_dom, finite_def]},
-      norm_cast, simp },
+      norm_cast },
     { intros h1 h2,
       apply _root_.le_antisymm; { apply nat.find_le, norm_cast, simp }}
 end
@@ -149,6 +149,12 @@ lemma multiplicity_le_multiplicity_iff {a b c d : α} : multiplicity a b ≤ mul
 lemma dvd_of_multiplicity_pos {a b : α} (h : (0 : enat) < multiplicity a b) : a ∣ b :=
 by rw [← _root_.pow_one a]; exact pow_dvd_of_le_multiplicity (enat.pos_iff_one_le.1 h)
 
+lemma dvd_iff_multiplicity_pos {a b : α} : (0 : enat) < multiplicity a b ↔ a ∣ b :=
+⟨dvd_of_multiplicity_pos,
+  λ hdvd, lt_of_le_of_ne (zero_le _) (λ heq, is_greatest
+    (show multiplicity a b < 1, from heq ▸ enat.coe_lt_coe.mpr zero_lt_one)
+    (by rwa pow_one a))⟩
+
 lemma finite_nat_iff {a b : ℕ} : finite a b ↔ (a ≠ 1 ∧ 0 < b) :=
 begin
   rw [← not_iff_not, not_finite_iff_forall, not_and_distrib, ne.def,
@@ -159,7 +165,7 @@ begin
       have ha_gt_one : 1 < a, from
         lt_of_not_ge (λ ha', by { clear h, revert ha ha1, dec_trivial! }),
       not_lt_of_ge (le_of_dvd (nat.pos_of_ne_zero hb) (h b))
-          (by simp only [nat.pow_eq_pow]; exact lt_pow_self ha_gt_one b))),
+          (lt_pow_self ha_gt_one b))),
     λ h, by cases h; simp *⟩
 end
 
@@ -167,7 +173,7 @@ lemma finite_int_iff_nat_abs_finite {a b : ℤ} : finite a b ↔ finite a.nat_ab
 begin
   rw [finite_def, finite_def],
   conv in (a ^ _ ∣ b)
-    { rw [← int.nat_abs_dvd_abs_iff, int.nat_abs_pow, ← pow_eq_pow] }
+    { rw [← int.nat_abs_dvd_abs_iff, int.nat_abs_pow] }
 end
 
 lemma finite_int_iff {a b : ℤ} : finite a b ↔ (a.nat_abs ≠ 1 ∧ b ≠ 0) :=
@@ -336,7 +342,8 @@ have hdiv : p ^ (get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
 have hsucc : ¬p ^ ((get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
     get (multiplicity p b) ((finite_mul_iff hp).1 h).2) + 1) ∣ a * b,
   from λ h, not_or (is_greatest' _ (lt_succ_self _)) (is_greatest' _ (lt_succ_self _))
-    (by exact succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul hp hdiva hdivb h),
+    -- TODO: What happened here? Do we still need both this one and a `nat.` version?
+    (by exact _root_.succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul hp hdiva hdivb h),
 by rw [← enat.coe_inj, enat.coe_get, eq_some_iff];
   exact ⟨hdiv, hsucc⟩
 

@@ -56,9 +56,6 @@ class is_filtered_or_empty : Prop :=
 (cocone_objs : ∀ (X Y : C), ∃ Z (f : X ⟶ Z) (g : Y ⟶ Z), true)
 (cocone_maps : ∀ ⦃X Y : C⦄ (f g : X ⟶ Y), ∃ Z (h : Y ⟶ Z), f ≫ h = g ≫ h)
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
-
 /--
 A category `is_filtered` if
 1. for every pair of objects there exists another object "to the right",
@@ -68,8 +65,6 @@ A category `is_filtered` if
 -/
 class is_filtered extends is_filtered_or_empty C : Prop :=
 [nonempty : nonempty C]
-
-end prio
 
 @[priority 100]
 instance is_filtered_or_empty_of_semilattice_sup

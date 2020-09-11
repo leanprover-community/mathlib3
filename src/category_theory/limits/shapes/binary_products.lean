@@ -20,6 +20,10 @@ of (co)limits shaped as walking pairs.
 
 We include lemmas for simplifying equations involving projections and coprojections, and define
 braiding and associating isomorphisms, and the product comparison morphism.
+
+## References
+* [Stacks: Products of pairs](https://stacks.math.columbia.edu/tag/001R)
+* [Stacks: coproducts of pairs](https://stacks.math.columbia.edu/tag/04AN)
 -/
 
 noncomputable theory
@@ -467,10 +471,18 @@ end coprod_lemmas
 
 variables (C)
 
-/-- `has_binary_products` represents a choice of product for every pair of objects. -/
+/--
+`has_binary_products` represents a choice of product for every pair of objects.
+
+See https://stacks.math.columbia.edu/tag/001T.
+-/
 abbreviation has_binary_products := has_limits_of_shape (discrete walking_pair) C
 
-/-- `has_binary_coproducts` represents a choice of coproduct for every pair of objects. -/
+/--
+`has_binary_coproducts` represents a choice of coproduct for every pair of objects.
+
+See https://stacks.math.columbia.edu/tag/04AP.
+-/
 abbreviation has_binary_coproducts := has_colimits_of_shape (discrete walking_pair) C
 
 /-- If `C` has all limits of diagrams `pair X Y`, then it has all binary products -/

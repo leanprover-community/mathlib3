@@ -10,34 +10,54 @@ import category_theory.reflects_isomorphisms
 /-!
 # Limits and colimits
 
-(Everything about colimits is developed in parallel to limits; we only discuss limits in this
-module doc.)
+We set up the general theory of limits and colimits in a category.
+In this introduction we only describe the setup for limits;
+it is repeated, with slightly different names, for colimits.
 
-The two key notions introduced here are
-* `is_limit t`, for `t : cone F`, which expresses that `t` is a limit cone
-* `has_limit F`, for `F : J ⥤ C`, which expresses that there merely exists some limit cone for `F`.
+The three main structures involved are
+* `is_limit c`, for `c : cone F`, `F : J ⥤ C`, expressing that `c` is a limit cone,
+* `limit_cone F`, which consists of a choice of cone for `F` and the fact it is a limit cone, and
+* `has_limit F`, asserting the mere existence of some limit cone for `F`.
 
 `has_limit` is a propositional typeclass
 (it's important that it is a proposition merely asserting the existence of a limit,
 as otherwise we would have non-defeq problems from incompatible instances).
 
-Ideally, many results about limits should be stated first in terms of `is_limit`,
-and then a result in terms of `has_limit` derived from this.
-At this point, however, this is far from uniformly achieved in mathlib ---
-often statements are only written in terms of `has_limit`.
 
-The `has_limit` typeclass has an extensive interface.  If `has_limit F` is available, one can write
-* `limit F : C`, for an arbitrary choice of limit object (of course all such are isomorphic)
-* `limit.π F j : limit F ⟶ F.obj j`
-* `limit.lift F c : c.x ⟶ limit F`, where `c : cone F`, for the universal morphism from any other cone
+Typically there are two different ways one can use the limits library:
+1. working with particular cones, and terms of type `is_limit`
+2. working solely with `has_limit`.
+
+While `has_limit` only asserts the existence of a limit cone,
+we happily use the axiom of choice in mathlib,
+so there are convenience functions all depending on `has_limit F`:
+* `limit F : C`, producing some limit object (of course all such are isomorphic)
+* `limit.π F j : limit F ⟶ F.obj j`, the morphisms out of the limit,
+* `limit.lift F c : c.X ⟶ limit F`, the universal morphism from any other `c : cone F`, etc.
+
 Key to using the `has_limit` interface is that there is an `@[ext]` lemma stating that
 to check `f = g`, for `f g : Z ⟶ limit F`, it suffices to check `f ≫ limit.π F j = g ≫ limit.π F j`
 for every `j`.
 This, combined with `@[simp]` lemmas, makes it possible to prove many easy facts about limits using
 automation (e.g. `tidy`).
 
-## Future work
-* Develop automation like `@[to_additive]` so we don't need to do everything for colimits separately.
+There are abbreviations `has_limits_of_shape J C` and `has_limits C`
+asserting the existence of classes of limits.
+Later more are introduced, for finite limits, special shapes of limits, etc.
+
+Ideally, many results about limits should be stated first in terms of `is_limit`,
+and then a result in terms of `has_limit` derived from this.
+At this point, however, this is far from uniformly achieved in mathlib ---
+often statements are only written in terms of `has_limit`.
+
+## Implementation
+At present we simply say everything twice, in order to handle both limits and colimits.
+It would be highly desirable to have some automation support,
+e.g. a `@[dualize]` attribute that behaves similarly to `@[to_additive]`.
+
+## References
+* [Stacks: Limits and colimits](https://stacks.math.columbia.edu/tag/002D)
+
 -/
 
 noncomputable theory
@@ -48,14 +68,17 @@ namespace category_theory.limits
 
 universes v u u' u'' w -- declare the `v`'s first; see `category_theory.category` for an explanation
 
--- See the notes at the top of cones.lean, explaining why we can't allow `J : Prop` here.
 variables {J K : Type v} [small_category J] [small_category K]
 variables {C : Type u} [category.{v} C]
 
 variables {F : J ⥤ C}
 
-/-- A cone `t` on `F` is a limit cone if each cone on `F` admits a unique
-  cone morphism to `t`. -/
+/--
+A cone `t` on `F` is a limit cone if each cone on `F` admits a unique
+cone morphism to `t`.
+
+See https://stacks.math.columbia.edu/tag/002E.
+  -/
 @[nolint has_inhabited_instance]
 structure is_limit (t : cone F) :=
 (lift  : Π (s : cone F), s.X ⟶ t.X)
@@ -407,8 +430,12 @@ end
 
 end is_limit
 
-/-- A cocone `t` on `F` is a colimit cocone if each cocone on `F` admits a unique
-  cocone morphism from `t`. -/
+/--
+A cocone `t` on `F` is a colimit cocone if each cocone on `F` admits a unique
+cocone morphism from `t`.
+
+See https://stacks.math.columbia.edu/tag/002F.
+-/
 @[nolint has_inhabited_instance]
 structure is_colimit (t : cocone F) :=
 (desc  : Π (s : cocone F), t.X ⟶ s.X)
@@ -794,7 +821,7 @@ def limit.π (F : J ⥤ C) [has_limit F] (j : J) : limit F ⟶ F.obj j :=
 @[simp] lemma limit.cone_π {F : J ⥤ C} [has_limit F] (j : J) :
   (limit.cone F).π.app j = limit.π _ j := rfl
 
-@[simp] lemma limit.w (F : J ⥤ C) [has_limit F] {j j' : J} (f : j ⟶ j') :
+@[simp, reassoc] lemma limit.w (F : J ⥤ C) [has_limit F] {j j' : J} (f : j ⟶ j') :
   limit.π F j ≫ F.map f = limit.π F j' := (limit.cone F).w f
 
 /-- Evidence that the arbitrary choice of cone provied by `limit.cone F` is a limit cone. -/
@@ -913,12 +940,23 @@ def has_limit.iso_of_equivalence {F : J ⥤ C} [has_limit F] {G : K ⥤ C} [has_
 is_limit.cone_points_iso_of_equivalence (limit.is_limit F) (limit.is_limit G) e w
 
 @[simp]
-lemma has_limit.iso_of_equivalence_π {F : J ⥤ C} [has_limit F] {G : K ⥤ C} [has_limit G]
+lemma has_limit.iso_of_equivalence_hom_π {F : J ⥤ C} [has_limit F] {G : K ⥤ C} [has_limit G]
    (e : J ≌ K) (w : e.functor ⋙ G ≅ F) (k : K) :
   (has_limit.iso_of_equivalence e w).hom ≫ limit.π G k =
     limit.π F (e.inverse.obj k) ≫ w.inv.app (e.inverse.obj k) ≫ G.map (e.counit.app k) :=
 begin
-  simp [has_limit.iso_of_equivalence, is_limit.cone_points_iso_of_equivalence_hom],
+  simp only [has_limit.iso_of_equivalence, is_limit.cone_points_iso_of_equivalence_hom],
+  dsimp,
+  simp,
+end
+
+@[simp]
+lemma has_limit.iso_of_equivalence_inv_π {F : J ⥤ C} [has_limit F] {G : K ⥤ C} [has_limit G]
+   (e : J ≌ K) (w : e.functor ⋙ G ≅ F) (j : J) :
+  (has_limit.iso_of_equivalence e w).inv ≫ limit.π F j =
+    limit.π G (e.functor.obj j) ≫ w.hom.app j :=
+begin
+  simp only [has_limit.iso_of_equivalence, is_limit.cone_points_iso_of_equivalence_hom],
   dsimp,
   simp,
 end
@@ -1038,6 +1076,7 @@ section
 local attribute [simp] lim_map
 
 /-- `limit F` is functorial in `F`, when `C` has all limits of shape `J`. -/
+@[simps obj]
 def lim : (J ⥤ C) ⥤ C :=
 { obj := λ F, limit F,
   map := λ F G α, lim_map α,
@@ -1160,7 +1199,7 @@ def colimit.ι (F : J ⥤ C) [has_colimit F] (j : J) : F.obj j ⟶ colimit F :=
 @[simp] lemma colimit.cocone_X {F : J ⥤ C} [has_colimit F] :
   (colimit.cocone F).X = colimit F := rfl
 
-@[simp] lemma colimit.w (F : J ⥤ C) [has_colimit F] {j j' : J} (f : j ⟶ j') :
+@[simp, reassoc] lemma colimit.w (F : J ⥤ C) [has_colimit F] {j j' : J} (f : j ⟶ j') :
   F.map f ≫ colimit.ι F j' = colimit.ι F j := (colimit.cocone F).w f
 
 /-- Evidence that the arbitrary choice of cocone is a colimit cocone. -/
@@ -1292,10 +1331,21 @@ def has_colimit.iso_of_equivalence {F : J ⥤ C} [has_colimit F] {G : K ⥤ C} [
 is_colimit.cocone_points_iso_of_equivalence (colimit.is_colimit F) (colimit.is_colimit G) e w
 
 @[simp]
-lemma has_colimit.iso_of_equivalence_π {F : J ⥤ C} [has_colimit F] {G : K ⥤ C} [has_colimit G]
+lemma has_colimit.iso_of_equivalence_hom_π {F : J ⥤ C} [has_colimit F] {G : K ⥤ C} [has_colimit G]
    (e : J ≌ K) (w : e.functor ⋙ G ≅ F) (j : J) :
   colimit.ι F j ≫ (has_colimit.iso_of_equivalence e w).hom =
      F.map (e.unit.app j) ≫ w.inv.app _ ≫ colimit.ι G _ :=
+begin
+  simp [has_colimit.iso_of_equivalence, is_colimit.cocone_points_iso_of_equivalence_inv],
+  dsimp,
+  simp,
+end
+
+@[simp]
+lemma has_colimit.iso_of_equivalence_inv_π {F : J ⥤ C} [has_colimit F] {G : K ⥤ C} [has_colimit G]
+   (e : J ≌ K) (w : e.functor ⋙ G ≅ F) (k : K) :
+  colimit.ι G k ≫ (has_colimit.iso_of_equivalence e w).inv =
+     G.map (e.counit_inv.app k) ≫ w.hom.app (e.inverse.obj k) ≫ colimit.ι F (e.inverse.obj k) :=
 begin
   simp [has_colimit.iso_of_equivalence, is_colimit.cocone_points_iso_of_equivalence_inv],
   dsimp,
@@ -1430,6 +1480,7 @@ section
 local attribute [simp] colim_map
 
 /-- `colimit F` is functorial in `F`, when `C` has all colimits of shape `J`. -/
+@[simps obj]
 def colim : (J ⥤ C) ⥤ C :=
 { obj := λ F, colimit F,
   map := λ F G α, colim_map α,

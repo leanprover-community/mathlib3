@@ -317,7 +317,7 @@ def subsheaf_to_Types (P : local_predicate T) : sheaf (Type v) X :=
   sheaf_condition := subpresheaf_to_Types.sheaf_condition P }.
 
 /--
-There is a canonical map from the stalk to the original fiber.
+There is a canonical map from the stalk to the original fiber, given by evaluating sections.
 -/
 def stalk_to_fiber (P : local_predicate T) (x : X) :
   (subsheaf_to_Types P).presheaf.stalk x ⟶ T x :=

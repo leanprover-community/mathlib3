@@ -119,6 +119,9 @@ that preserves limits and reflects isomorphisms.
 Then to check the sheaf condition it suffices to check it on the underlying sheaf of types.
 
 Another useful example is the forgetful functor `TopCommRing ⥤ Top`.
+
+See https://stacks.math.columbia.edu/tag/0073.
+In fact we prove a stronger version with arbitrary complete target category.
 -/
 def sheaf_condition_equiv_sheaf_condition_comp :
   sheaf_condition F ≃ sheaf_condition (F ⋙ G) :=

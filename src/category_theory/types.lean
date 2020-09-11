@@ -139,6 +139,11 @@ lemma hom_of_element_eq_iff {X : Type u} (x y : X) :
   hom_of_element x = hom_of_element y ↔ x = y :=
 ⟨λ H, congr_fun H punit.star, by cc⟩
 
+/--
+A morphism in `Type` is a monomorphism if and only if it is injective.
+
+See https://stacks.math.columbia.edu/tag/003C.
+-/
 lemma mono_iff_injective {X Y : Type u} (f : X ⟶ Y) : mono f ↔ function.injective f :=
 begin
   split,
@@ -152,6 +157,11 @@ begin
     exact H H₂ }
 end
 
+/--
+A morphism in `Type` is an epimorphism if and only if it is surjective.
+
+See https://stacks.math.columbia.edu/tag/003C.
+-/
 lemma epi_iff_surjective {X Y : Type u} (f : X ⟶ Y) : epi f ↔ function.surjective f :=
 begin
   split,
@@ -226,10 +236,10 @@ def to_iso (e : X ≃ Y) : X ≅ Y :=
 
 end equiv
 
+universe u
+
 namespace category_theory.iso
 open category_theory
-
-universe u
 
 variables {X Y : Type u}
 
@@ -251,8 +261,16 @@ def to_equiv (i : X ≅ Y) : X ≃ Y :=
 
 end category_theory.iso
 
+namespace category_theory
 
-universe u
+/-- A morphism in `Type` is an isomorphism if and only if it is bijective. -/
+noncomputable
+def is_iso_equiv_bijective {X Y : Type u} (f : X ⟶ Y) : is_iso f ≃ function.bijective f :=
+equiv_of_subsingleton_of_subsingleton
+  (by { introI i, exact (as_iso f).to_equiv.bijective, })
+  (λ b, { .. (equiv.of_bijective f b).to_iso })
+
+end category_theory
 
 -- We prove `equiv_iso_iso` and then use that to sneakily construct `equiv_equiv_iso`.
 -- (In this order the proofs are handled by `obviously`.)

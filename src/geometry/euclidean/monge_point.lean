@@ -343,7 +343,7 @@ end simplex
 
 namespace triangle
 
-open finset simplex
+open euclidean_geometry finset simplex
 
 variables {V : Type*} {P : Type*} [inner_product_space V] [metric_space P]
     [normed_add_torsor V P]
@@ -411,6 +411,42 @@ begin
     { exact hi₁₂ ▸ h₂ },
     { exact hi₁₂ ▸ h₁ } },
   exact eq_monge_point_of_forall_mem_monge_plane ha
+end
+
+/-- The distance from the orthocenter to the reflection of the
+circumcenter in a side equals the circumradius. -/
+lemma dist_orthocenter_reflection_circumcenter (t : triangle ℝ P) {i₁ i₂ : fin 3} (h : i₁ ≠ i₂) :
+  dist t.orthocenter (reflection (affine_span ℝ (t.points '' {i₁, i₂})) t.circumcenter) =
+    t.circumradius :=
+begin
+  rw [←mul_self_inj_of_nonneg dist_nonneg t.circumradius_nonneg,
+      t.reflection_circumcenter_eq_affine_combination_of_points_with_circumcenter h,
+      t.orthocenter_eq_monge_point,
+      monge_point_eq_affine_combination_of_points_with_circumcenter,
+      dist_affine_combination t.points_with_circumcenter
+        (sum_monge_point_weights_with_circumcenter _)
+        (sum_reflection_circumcenter_weights_with_circumcenter h)],
+  simp_rw [sum_points_with_circumcenter, pi.sub_apply, monge_point_weights_with_circumcenter,
+           reflection_circumcenter_weights_with_circumcenter],
+  have hu : ({i₁, i₂} : finset (fin 3)) ⊆ univ := subset_univ _,
+  obtain ⟨i₃, hi₃, hi₃₁, hi₃₂⟩ :
+    ∃ i₃, univ \ ({i₁, i₂} : finset (fin 3)) = {i₃} ∧ i₃ ≠ i₁ ∧ i₃ ≠ i₂, by dec_trivial!,
+  simp_rw [←sum_sdiff hu, hi₃],
+  simp [hi₃₁, hi₃₂],
+  norm_num
+end
+
+/-- The distance from the orthocenter to the reflection of the
+circumcenter in a side equals the circumradius, variant using a
+`finset`. -/
+lemma dist_orthocenter_reflection_circumcenter_finset (t : triangle ℝ P) {i₁ i₂ : fin 3}
+    (h : i₁ ≠ i₂) :
+  dist t.orthocenter (reflection (affine_span ℝ (t.points '' ↑({i₁, i₂} : finset (fin 3))))
+                                 t.circumcenter) =
+    t.circumradius :=
+begin
+  convert dist_orthocenter_reflection_circumcenter t h,
+  simp
 end
 
 end triangle

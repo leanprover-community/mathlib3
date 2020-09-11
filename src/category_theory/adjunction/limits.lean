@@ -42,7 +42,11 @@ def functoriality_is_left_adjoint :
   { unit := functoriality_unit adj K,
     counit := functoriality_counit adj K } }
 
-/-- A left adjoint preserves colimits. -/
+/--
+A left adjoint preserves colimits.
+
+See https://stacks.math.columbia.edu/tag/0038.
+-/
 def left_adjoint_preserves_colimits : preserves_colimits F :=
 { preserves_colimits_of_shape := λ J 𝒥,
   { preserves_colimit := λ F,
@@ -98,7 +102,11 @@ def functoriality_is_right_adjoint :
   { unit := functoriality_unit' adj K,
     counit := functoriality_counit' adj K } }
 
-/-- A right adjoint preserves limits. -/
+/--
+A right adjoint preserves limits.
+
+See https://stacks.math.columbia.edu/tag/0038.
+-/
 def right_adjoint_preserves_limits : preserves_limits G :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ K,

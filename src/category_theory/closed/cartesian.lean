@@ -308,7 +308,7 @@ begin
   apply is_iso_of_mono_of_split_epi
 end
 
-instance [has_initial C] (f : A ⟶ ⊥_ C) : is_iso f :=
+instance to_initial_is_iso [has_initial C] (f : A ⟶ ⊥_ C) : is_iso f :=
 strict_initial initial_is_initial _
 
 /-- If an initial object `0` exists in a CCC then every morphism from it is monic. -/

@@ -286,6 +286,7 @@ end semiring
 
 section ring
 
+open finsupp
 open_locale big_operators classical
 universes v₁ w₁
 
@@ -313,5 +314,66 @@ theorem is_basis.smul {ι : Type v₁} {b : ι → S} {κ : Type w₁} {c : κ �
 ⟨linear_independent_smul hb.1 hc.1,
 by rw [← set.range_smul_range, submodule.span_smul hb.2, ← submodule.restrict_scalars'_top R S A,
     submodule.restrict_scalars'_inj, hc.2]⟩
+
+lemma is_basis.repr_eq_iff {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  {ι : Type*} {b : ι → M} (hb : is_basis R b) {f : M →ₗ[R] (ι →₀ R)} :
+  hb.repr = f ↔ ∀ i, f (b i) = single i 1 :=
+begin
+  split,
+  { rintros rfl i,
+    exact hb.repr_eq_single },
+  intro h,
+  refine hb.ext (λ _, _),
+  rw [h, hb.repr_eq_single]
+end
+
+lemma is_basis.repr_apply_eq {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  {ι : Type*} {b : ι → M} (hb : is_basis R b)
+  {f : M → ι → R} (hfin : ∀ x, ∃ (s : finset ι), ∀ i, f x i ≠ 0 → i ∈ s)
+  (hadd : ∀ x y, f (x + y) = f x + f y) (hsmul : ∀ (c : R) (x : M), f (c • x) = c • f x)
+  (hf : ∀ i, f (b i) = single i 1) (x : M) (i : ι) : hb.repr x i = f x i :=
+begin
+  set f' : M →ₗ[R] (ι →₀ R) :=
+  { to_fun := λ x, on_finset _ _ (classical.some_spec (hfin x)),
+    map_add' := λ x y, by { ext,
+      simp only [hadd, on_finset_apply, pi.add_apply, add_apply] },
+    map_smul' := λ c x, by { ext,
+      simp only [hsmul, on_finset_apply, pi.smul_apply, smul_apply] } }
+    with f'_eq,
+  have hf' : ∀ i, f' (b i) = single i 1,
+  { intro i,
+    ext j,
+    rw [f'_eq, linear_map.coe_mk, on_finset_apply, hf] },
+  rw [hb.repr_eq_iff.mpr hf', f'_eq, linear_map.coe_mk, on_finset_apply]
+end
+
+theorem is_basis.smul_repr
+  {ι κ : Type*} {b : ι → S} {c : κ → A}
+  (hb : is_basis R b) (hc : is_basis S c) (x : A) (ij : ι × κ) :
+  (hb.smul hc).repr x ij = hb.repr (hc.repr x ij.2) ij.1 :=
+begin
+  apply (hb.smul hc).repr_apply_eq,
+  { intro x,
+    use (hc.repr x).support.bind
+      (λ j, (hb.repr (hc.repr x j)).support.map (function.embedding.sectl ι j)),
+    rintros ⟨i, j⟩ hij,
+    rw finset.mem_bind,
+    use [j, mem_support_iff.mpr (λ h, hij (by rw [h, linear_map.map_zero, zero_apply]))],
+    rw finset.mem_map,
+    exact ⟨i, mem_support_iff.mpr hij, rfl⟩ },
+  { intros x y, ext, simp only [linear_map.map_add, add_apply, pi.add_apply] },
+  { intros c x, ext,
+    simp only [← is_scalar_tower.algebra_map_smul S c x, linear_map.map_smul, smul_eq_mul,
+               ← algebra.smul_def, smul_apply, pi.smul_apply] },
+  rintros ij,
+  ext ij',
+  rw single_apply,
+  split_ifs with hij,
+  { simp [hij] },
+  rw [linear_map.map_smul, smul_apply, hc.repr_self_apply],
+  split_ifs with hj,
+  { simp [hj, show ¬ (ij.1 = ij'.1), from λ hi, hij (prod.ext hi hj)] },
+  simp
+end
 
 end ring

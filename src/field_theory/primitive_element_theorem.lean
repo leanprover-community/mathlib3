@@ -189,7 +189,7 @@ begin
       rw polynomial.eval_map,
       have f_root : f'.eval₂ (algebra_map E E') x = 0 := polynomial.gcd_root_left f' g' x hx,
       simp only [polynomial.eval₂_map,polynomial.eval₂_comp,polynomial.eval₂_sub,polynomial.eval₂_mul,polynomial.eval₂_C,polynomial.eval₂_X] at f_root,
-      { exact f_root, },
+      exact f_root,
     end,
     specialize hc x
     begin
@@ -199,11 +199,9 @@ begin
       have g_root : g'.eval₂ (algebra_map E E') x = 0 := polynomial.gcd_root_right f' g' x hx,
       simp only [polynomial.eval₂_map] at g_root,
       exact g_root,
-      exact polynomial.map_ne_zero (minimal_polynomial.ne_zero hβ),
     end,
     by_contradiction,
-    specialize hc a,
-    apply hc,
+    apply hc a,
     dsimp[ιEE'],
     rw[neg_sub,ring_hom.map_add,←sub_add,←sub_sub,sub_self,zero_sub,neg_add_eq_sub,ring_hom.map_mul,←mul_sub],
     symmetry,

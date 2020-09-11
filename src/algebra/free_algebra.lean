@@ -271,6 +271,12 @@ begin
   rw [this, ←lift_unique, w],
 end
 
+/--
+The free algebra on `X` is "just" the monoid algebra on the free monoid on `X`.
+
+This would be useful when constructing linear maps out of a free algebra,
+for example.
+-/
 noncomputable
 def equiv_monoid_algebra_free_monoid : free_algebra R X ≃ₐ[R] monoid_algebra R (free_monoid X) :=
 alg_equiv.of_alg_hom

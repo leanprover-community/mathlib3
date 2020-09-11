@@ -36,8 +36,9 @@ namespace euclidean_geometry
 
 open inner_product_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space V] [metric_space P]
+variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
+local notation `⟪`x`, `y`⟫` := @inner ℝ V _ x y
 include V
 
 open affine_subspace
@@ -265,7 +266,7 @@ namespace simplex
 
 open finset affine_subspace euclidean_geometry
 
-variables {V : Type*} {P : Type*} [inner_product_space V] [metric_space P]
+variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
 include V
 

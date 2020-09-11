@@ -298,6 +298,7 @@ end semiring
 
 section ring
 
+open finsupp
 open_locale big_operators classical
 universes v₁ w₁
 
@@ -325,5 +326,34 @@ theorem is_basis.smul {ι : Type v₁} {b : ι → S} {κ : Type w₁} {c : κ �
 ⟨linear_independent_smul hb.1 hc.1,
 by rw [← set.range_smul_range, submodule.span_smul hb.2, ← submodule.restrict_scalars'_top R S A,
     submodule.restrict_scalars'_inj, hc.2]⟩
+
+theorem is_basis.smul_repr
+  {ι κ : Type*} {b : ι → S} {c : κ → A}
+  (hb : is_basis R b) (hc : is_basis S c) (x : A) (ij : ι × κ) :
+  (hb.smul hc).repr x ij = hb.repr (hc.repr x ij.2) ij.1 :=
+begin
+  apply (hb.smul hc).repr_apply_eq,
+  { intro x,
+    use (hc.repr x).support.bind
+      (λ j, (hb.repr (hc.repr x j)).support.map (function.embedding.sectl ι j)),
+    rintros ⟨i, j⟩ hij,
+    rw finset.mem_bind,
+    use [j, mem_support_iff.mpr (λ h, hij (by rw [h, linear_map.map_zero, zero_apply]))],
+    rw finset.mem_map,
+    exact ⟨i, mem_support_iff.mpr hij, rfl⟩ },
+  { intros x y, ext, simp only [linear_map.map_add, add_apply, pi.add_apply] },
+  { intros c x, ext,
+    simp only [← is_scalar_tower.algebra_map_smul S c x, linear_map.map_smul, smul_eq_mul,
+               ← algebra.smul_def, smul_apply, pi.smul_apply] },
+  rintros ij,
+  ext ij',
+  rw single_apply,
+  split_ifs with hij,
+  { simp [hij] },
+  rw [linear_map.map_smul, smul_apply, hc.repr_self_apply],
+  split_ifs with hj,
+  { simp [hj, show ¬ (ij.1 = ij'.1), from λ hi, hij (prod.ext hi hj)] },
+  simp
+end
 
 end ring

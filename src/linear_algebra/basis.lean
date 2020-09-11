@@ -758,6 +758,12 @@ hv.1.total_repr ⟨x, _⟩
 lemma is_basis.total_comp_repr : (finsupp.total ι M R v).comp hv.repr = linear_map.id :=
 linear_map.ext hv.total_repr
 
+lemma is_basis.ext {f g : M →ₗ[R] M'} (hv : is_basis R v) (h : ∀i, f (v i) = g (v i)) : f = g :=
+begin
+  apply linear_map.ext (λ x, linear_eq_on (range v) _ (hv.mem_span x)),
+  exact (λ y hy, exists.elim (set.mem_range.1 hy) (λ i hi, by rw ←hi; exact h i))
+end
+
 lemma is_basis.repr_ker : hv.repr.ker = ⊥ :=
 linear_map.ker_eq_bot.2 $ left_inverse.injective hv.total_repr
 
@@ -781,6 +787,36 @@ by apply hv.1.repr_eq_single; simp
 lemma is_basis.repr_self_apply (i j : ι) : hv.repr (v i) j = if i = j then 1 else 0 :=
 by rw [hv.repr_eq_single, finsupp.single_apply]
 
+lemma is_basis.repr_eq_iff {f : M →ₗ[R] (ι →₀ R)} :
+  hv.repr = f ↔ ∀ i, f (v i) = finsupp.single i 1 :=
+begin
+  split,
+  { rintros rfl i,
+    exact hv.repr_eq_single },
+  intro h,
+  refine hv.ext (λ _, _),
+  rw [h, hv.repr_eq_single]
+end
+
+lemma is_basis.repr_apply_eq {f : M → ι → R}
+  (hfin : ∀ x, ∃ (s : finset ι), ∀ i, f x i ≠ 0 → i ∈ s)
+  (hadd : ∀ x y, f (x + y) = f x + f y) (hsmul : ∀ (c : R) (x : M), f (c • x) = c • f x)
+  (f_eq : ∀ i, f (v i) = finsupp.single i 1) (x : M) (i : ι) : hv.repr x i = f x i :=
+begin
+  set f' : M →ₗ[R] (ι →₀ R) :=
+  { to_fun := λ x, finsupp.on_finset _ _ (classical.some_spec (hfin x)),
+    map_add' := λ x y, by { ext,
+      simp only [hadd, finsupp.on_finset_apply, pi.add_apply, finsupp.add_apply] },
+    map_smul' := λ c x, by { ext,
+      simp only [hsmul, finsupp.on_finset_apply, pi.smul_apply, finsupp.smul_apply] } }
+    with f'_eq,
+  have hf' : ∀ i, f' (v i) = finsupp.single i 1,
+  { intro i,
+    ext j,
+    rw [f'_eq, linear_map.coe_mk, finsupp.on_finset_apply, f_eq] },
+  rw [hv.repr_eq_iff.mpr hf', f'_eq, linear_map.coe_mk, finsupp.on_finset_apply]
+end
+
 /-- Construct a linear map given the value at the basis. -/
 def is_basis.constr (f : ι → M') : M →ₗ[R] M' :=
 (finsupp.total M' M' R id).comp $ (finsupp.lmap_domain R R f).comp hv.repr
@@ -789,12 +825,6 @@ theorem is_basis.constr_apply (f : ι → M') (x : M) :
   (hv.constr f : M → M') x = (hv.repr x).sum (λb a, a • f b) :=
 by dsimp [is_basis.constr];
    rw [finsupp.total_apply, finsupp.sum_map_domain_index]; simp [add_smul]
-
-lemma is_basis.ext {f g : M →ₗ[R] M'} (hv : is_basis R v) (h : ∀i, f (v i) = g (v i)) : f = g :=
-begin
-  apply linear_map.ext (λ x, linear_eq_on (range v) _ (hv.mem_span x)),
-  exact (λ y hy, exists.elim (set.mem_range.1 hy) (λ i hi, by rw ←hi; exact h i))
-end
 
 @[simp] lemma constr_basis {f : ι → M'} {i : ι} (hv : is_basis R v) :
   (hv.constr f : M → M') (v i) = f i :=

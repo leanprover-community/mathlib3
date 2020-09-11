@@ -358,6 +358,23 @@ instance equiv : setoid (cau_seq β abv) :=
  λ f g h, by simpa using neg_lim_zero h,
  λ f g h fg gh, by simpa [sub_eq_add_neg, add_assoc] using add_lim_zero fg gh⟩⟩
 
+lemma add_equiv_add {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈ g2) :
+  f1 + g1 ≈ f2 + g2 :=
+begin
+  change lim_zero ((f1 + g1) - _),
+  convert add_lim_zero hf hg using 1,
+  simp only [sub_eq_add_neg, add_assoc],
+  rw add_comm (-f2), simp only [add_assoc],
+  congr' 2, simp
+end
+
+lemma neg_equiv_neg {f g : cau_seq β abv} (hf : f ≈ g) : -f ≈ -g :=
+begin
+  have hf : lim_zero _ := neg_lim_zero hf,
+  show lim_zero (-f - -g),
+  convert hf using 1, simp
+end
+
 theorem equiv_def₃ {f g : cau_seq β abv} (h : f ≈ g) {ε : α} (ε0 : 0 < ε) :
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - g j) < ε :=
 (exists_forall_ge_and (h _ $ half_pos ε0) (f.cauchy₃ $ half_pos ε0)).imp $

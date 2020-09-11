@@ -60,6 +60,11 @@ begin
   suffices : (map f p).nat_degree = p.nat_degree, rw this, exact hp,
   rwa nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero _ _),
 end
+
+lemma monic_mul_C_of_leading_coeff_mul_eq_one [nontrivial R] {b : R}
+  (hp : p.leading_coeff * b = 1) : monic (p * C b) :=
+by rw [monic, leading_coeff_mul' _]; simp [leading_coeff_C b, hp]
+
 theorem monic_of_degree_le (n : ℕ) (H1 : degree p ≤ n) (H2 : coeff p n = 1) : monic p :=
 decidable.by_cases
   (assume H : degree p < n, eq_of_zero_eq_one

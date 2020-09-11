@@ -127,6 +127,30 @@ set.ext $ λ x, and_comm _ _
 
 @[simp] lemma nonempty_Iio [no_bot_order α] : (Iio a).nonempty := no_bot a
 
+lemma nonempty_Icc_subtype (h : a ≤ b) : nonempty (Icc a b) :=
+nonempty.to_subtype (nonempty_Icc.mpr h)
+
+lemma nonempty_Ico_subtype (h : a < b) : nonempty (Ico a b) :=
+nonempty.to_subtype (nonempty_Ico.mpr h)
+
+lemma nonempty_Ioc_subtype (h : a < b) : nonempty (Ioc a b) :=
+nonempty.to_subtype (nonempty_Ioc.mpr h)
+
+instance nonempty_Ici_subtype : nonempty (Ici a) :=
+nonempty.to_subtype nonempty_Ici
+
+instance nonempty_Iic_subtype : nonempty (Iic a) :=
+nonempty.to_subtype nonempty_Iic
+
+lemma nonempty_Ioo_subtype [densely_ordered α] (h : a < b) : nonempty (Ioo a b) :=
+nonempty.to_subtype (nonempty_Ioo.mpr h)
+
+instance nonempty_Ioi_subtype [no_top_order α] : nonempty (Ioi a) :=
+nonempty.to_subtype nonempty_Ioi
+
+instance nonempty_Iio_subtype [no_bot_order α] : nonempty (Iio a) :=
+nonempty.to_subtype nonempty_Iio
+
 @[simp] lemma Ioo_eq_empty (h : b ≤ a) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, not_le_of_lt (lt_trans h₁ h₂) h
 

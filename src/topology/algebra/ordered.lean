@@ -1641,7 +1641,7 @@ the right endpoint in the ambient order. -/
 lemma Ioo_at_top_eq_nhds_within {a b : α} (h : a < b) :
   at_top = comap (coe : Ioo a b → α) (𝓝[Iio b] b) :=
 begin
-  haveI : nonempty (Ioo a b) := ⟨classical.choice (nonempty.to_subtype (dense h))⟩,
+  haveI : nonempty (Ioo a b) := nonempty_Ioo_subtype h,
   ext,
   split,
   { intros hs,
@@ -1662,7 +1662,7 @@ the left endpoint in the ambient order. -/
 lemma Ioo_at_bot_eq_nhds_within {a b : α} (h : a < b) :
   at_bot = comap (coe : Ioo a b → α) (𝓝[Ioi a] a) :=
 begin
-  haveI : nonempty (Ioo a b) := ⟨classical.choice (nonempty.to_subtype (dense h))⟩,
+  haveI : nonempty (Ioo a b) := nonempty_Ioo_subtype h,
   ext,
   split,
   { intros hs,
@@ -2643,7 +2643,7 @@ noncomputable def homeomorph_of_strict_mono_continuous_Ioo
   homeomorph (Ioo a b) β :=
 @homeomorph_of_strict_mono_continuous _ _ _ _
 (@ord_connected_subset_conditionally_complete_linear_order α (Ioo a b) _
-  ⟨classical.choice (nonempty.to_subtype (dense h))⟩ _)
+  ⟨classical.choice (nonempty_Ioo_subtype h)⟩ _)
 _ _ _ _
 (restrict f (Ioo a b))
 (λ x y, h_mono x.2.1 y.2.2)

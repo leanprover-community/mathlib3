@@ -172,6 +172,25 @@ begin
     exact λ h, false.elim (zero_ne_one.symm h.1) }
 end
 
+theorem linear_independent_equiv (e : ι ≃ ι') {f : ι' → M} :
+  linear_independent R (f ∘ e) ↔ linear_independent R f :=
+⟨λ h, function.comp.right_id f ▸ e.self_comp_symm ▸ h.comp _ e.symm.injective,
+λ h, h.comp _ e.injective⟩
+
+theorem linear_independent_equiv' (e : ι ≃ ι') {f : ι' → M} {g : ι → M} (h : f ∘ e = g) :
+  linear_independent R g ↔ linear_independent R f :=
+h ▸ linear_independent_equiv e
+
+theorem linear_independent_image {ι} {s : set ι} {f : ι → M} (hf : set.inj_on f s) :
+  linear_independent R (λ x : s, f x) ↔ linear_independent R (λ x : f '' s, (x : M)) :=
+linear_independent_equiv' (equiv.set.image_of_inj_on _ _ hf) rfl
+
+theorem linear_independent.image' {ι} {s : set ι} {f : ι → M}
+  (hs : linear_independent R (λ x : s, f x)) : linear_independent R (λ x : f '' s, (x : M)) :=
+or.cases_on (subsingleton_or_nontrivial R)
+  (λ hr, linear_independent_of_zero_eq_one $ by exactI subsingleton.elim _ _)
+  (λ hr, by exactI (linear_independent_image $ set.inj_on_iff_injective.2 hs.injective).1 hs)
+
 lemma linear_independent_span (hs : linear_independent R v) :
   @linear_independent ι R (span R (range v))
       (λ i : ι, ⟨v i, subset_span (mem_range_self i)⟩) _ _ _ :=
@@ -186,6 +205,13 @@ begin
   rw linear_map.map_sum (submodule.subtype (span R (range v))),
   simp
 end
+
+lemma linear_independent_of_comp (f : M →ₗ[R] M') (hfv : linear_independent R (f ∘ v)) :
+  linear_independent R v :=
+linear_independent_iff'.2 $ λ s g hg i his,
+have ∑ (i : ι) in s, g i • f (v i) = 0,
+  by simp_rw [← f.map_smul, ← f.map_sum, hg, f.map_zero],
+linear_independent_iff'.1 hfv s g this i his
 
 section subtype
 /-! The following lemmas use the subtype defined by a set in `M` as the index set `ι`. -/
@@ -1101,6 +1127,37 @@ begin
   have x0 : x ≠ 0 := mt (by rintro rfl; apply zero_mem _) hx,
   apply hs.union (linear_independent_singleton x0),
   rwa [disjoint_span_singleton x0]
+end
+
+theorem linear_independent_insert (hxs : x ∉ s) :
+  linear_independent K (λ b : insert x s, (b : V)) ↔
+  linear_independent K (λ b : s, (b : V)) ∧ x ∉ submodule.span K s :=
+⟨λ h, ⟨h.mono $ set.subset_insert x s,
+have (λ (b : ↥(insert x s)), ↑b) '' (set.univ \ {⟨x, set.mem_insert x s⟩}) = s,
+from set.ext $ λ b, ⟨λ ⟨y, hy1, hy2⟩, hy2 ▸ y.2.resolve_left (λ H, hy1.2 $ subtype.eq H),
+  λ hb, ⟨⟨b, set.mem_insert_of_mem x hb⟩,
+    ⟨trivial, λ H, hxs $ (show b = x, from congr_arg subtype.val H) ▸ hb⟩, rfl⟩⟩,
+this ▸ linear_independent_iff_not_mem_span.1 h ⟨x, set.mem_insert x s⟩⟩,
+λ ⟨h1, h2⟩, h1.insert h2⟩
+
+theorem linear_independent_insert' {ι} {s : set ι} {a : ι} {f : ι → V} (has : a ∉ s) :
+  linear_independent K (λ x : insert a s, f x) ↔
+  linear_independent K (λ x : s, f x) ∧ f a ∉ submodule.span K (f '' s) :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { have hfas : f a ∉ f '' s := λ ⟨x, hxs, hfxa⟩, has (set.mem_of_eq_of_mem (congr_arg subtype.val $
+      (@id _ (h.injective) ⟨x, or.inr hxs⟩ ⟨a, or.inl rfl⟩ hfxa)).symm hxs),
+    have := h.image',
+    rwa [set.image_insert_eq, linear_independent_insert hfas, ← linear_independent_image] at this,
+    exact (set.inj_on_iff_injective.2 h.injective).mono (set.subset_insert _ _) },
+  { cases h with h1 h2,
+    have : set.inj_on f (insert a s) :=
+      (set.inj_on_insert has).2 ⟨set.inj_on_iff_injective.2 h1.injective,
+        λ h, h2 $ submodule.subset_span h⟩,
+    have hfas : f a ∉ f '' s := λ ⟨x, hxs, hfxa⟩, has (set.mem_of_eq_of_mem
+      (this (or.inr hxs) (or.inl rfl) hfxa).symm hxs),
+    rw [linear_independent_image this, set.image_insert_eq, linear_independent_insert hfas],
+    exact ⟨h1.image', h2⟩ }
 end
 
 lemma exists_linear_independent (hs : linear_independent K (λ x, x : s → V)) (hst : s ⊆ t) :

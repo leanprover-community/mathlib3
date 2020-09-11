@@ -484,6 +484,7 @@ namespace alg_equiv
 variables {R : Type u} {A₁ : Type v} {A₂ : Type w} {A₃ : Type u₁}
 variables [comm_semiring R] [semiring A₁] [semiring A₂] [semiring A₃]
 variables [algebra R A₁] [algebra R A₂] [algebra R A₃]
+variables (e : A₁ ≃ₐ[R] A₂)
 
 instance : has_coe_to_fun (A₁ ≃ₐ[R] A₂) := ⟨_, alg_equiv.to_fun⟩
 
@@ -511,7 +512,7 @@ rfl
 
 @[simp] lemma to_fun_apply {e : A₁ ≃ₐ[R] A₂} {a : A₁} : e.to_fun a = e a := rfl
 
-@[simp, norm_cast] lemma coe_ring_equiv (e : A₁ ≃ₐ[R] A₂) : ((e : A₁ ≃+* A₂) : A₁ → A₂) = e := rfl
+@[simp, norm_cast] lemma coe_ring_equiv : ((e : A₁ ≃+* A₂) : A₁ → A₂) = e := rfl
 
 lemma coe_ring_equiv_injective : function.injective (λ e : A₁ ≃ₐ[R] A₂, (e : A₁ ≃+* A₂)) :=
 begin
@@ -522,15 +523,15 @@ begin
   exact congr_fun w a,
 end
 
-@[simp] lemma map_add (e : A₁ ≃ₐ[R] A₂) : ∀ x y, e (x + y) = e x + e y := e.to_add_equiv.map_add
+@[simp] lemma map_add : ∀ x y, e (x + y) = e x + e y := e.to_add_equiv.map_add
 
-@[simp] lemma map_zero (e : A₁ ≃ₐ[R] A₂) : e 0 = 0 := e.to_add_equiv.map_zero
+@[simp] lemma map_zero : e 0 = 0 := e.to_add_equiv.map_zero
 
-@[simp] lemma map_mul (e : A₁ ≃ₐ[R] A₂) : ∀ x y, e (x * y) = (e x) * (e y) := e.to_mul_equiv.map_mul
+@[simp] lemma map_mul : ∀ x y, e (x * y) = (e x) * (e y) := e.to_mul_equiv.map_mul
 
-@[simp] lemma map_one (e : A₁ ≃ₐ[R] A₂) : e 1 = 1 := e.to_mul_equiv.map_one
+@[simp] lemma map_one : e 1 = 1 := e.to_mul_equiv.map_one
 
-@[simp] lemma commutes (e : A₁ ≃ₐ[R] A₂) : ∀ (r : R), e (algebra_map R A₁ r) = algebra_map R A₂ r :=
+@[simp] lemma commutes : ∀ (r : R), e (algebra_map R A₁ r) = algebra_map R A₂ r :=
   e.commutes'
 
 @[simp] lemma map_neg {A₁ : Type v} {A₂ : Type w}
@@ -541,21 +542,30 @@ end
   [ring A₁] [ring A₂] [algebra R A₁] [algebra R A₂] (e : A₁ ≃ₐ[R] A₂) :
   ∀ x y, e (x - y) = e x - e y := e.to_add_equiv.map_sub
 
-lemma map_sum (e : A₁ ≃ₐ[R] A₂) {ι : Type*} (f : ι → A₁) (s : finset ι) :
+lemma map_sum {ι : Type*} (f : ι → A₁) (s : finset ι) :
   e (∑ x in s, f x) = ∑ x in s, e (f x) :=
 e.to_add_equiv.map_sum f s
 
+/-- Interpret an algebra equivalence as an algebra homomorphism.
+
+This definition is included for symmetry with the other `to_*_hom` projections.
+The `simp` normal form is to use the coercion of the `has_coe_to_alg_hom` instance. -/
+def to_alg_hom : A₁ →ₐ[R] A₂ :=
+{ map_one' := e.map_one, map_zero' := e.map_zero, ..e }
+
 instance has_coe_to_alg_hom : has_coe (A₁ ≃ₐ[R] A₂) (A₁ →ₐ[R] A₂) :=
-  ⟨λ e, { map_one' := e.map_one, map_zero' := e.map_zero, ..e }⟩
+⟨to_alg_hom⟩
 
-@[simp, norm_cast] lemma coe_alg_hom (e : A₁ ≃ₐ[R] A₂) : ((e : A₁ →ₐ[R] A₂) : A₁ → A₂) = e :=
-  rfl
+@[simp] lemma to_alg_hom_eq_coe : e.to_alg_hom = e := rfl
 
-lemma injective (e : A₁ ≃ₐ[R] A₂) : function.injective e := e.to_equiv.injective
+@[simp, norm_cast] lemma coe_alg_hom : ((e : A₁ →ₐ[R] A₂) : A₁ → A₂) = e :=
+rfl
 
-lemma surjective (e : A₁ ≃ₐ[R] A₂) : function.surjective e := e.to_equiv.surjective
+lemma injective : function.injective e := e.to_equiv.injective
 
-lemma bijective (e : A₁ ≃ₐ[R] A₂) : function.bijective e := e.to_equiv.bijective
+lemma surjective : function.surjective e := e.to_equiv.surjective
+
+lemma bijective : function.bijective e := e.to_equiv.bijective
 
 instance : has_one (A₁ ≃ₐ[R] A₁) := ⟨{commutes' := λ r, rfl, ..(1 : A₁ ≃+* A₁)}⟩
 
@@ -624,6 +634,29 @@ def to_linear_equiv (e : A₁ ≃ₐ[R] A₂) : A₁ ≃ₗ[R] A₂ :=
   right_inv := e.right_inv, }
 
 @[simp] lemma to_linear_equiv_apply (e : A₁ ≃ₐ[R] A₂) (x : A₁) : e.to_linear_equiv x = e x := rfl
+
+theorem to_linear_equiv_inj {e₁ e₂ : A₁ ≃ₐ[R] A₂} (H : e₁.to_linear_equiv = e₂.to_linear_equiv) :
+  e₁ = e₂ :=
+ext $ λ x, show e₁.to_linear_equiv x = e₂.to_linear_equiv x, by rw H
+
+/-- Interpret an algebra equivalence as a linear map. -/
+def to_linear_map : A₁ →ₗ[R] A₂ :=
+e.to_alg_hom.to_linear_map
+
+@[simp] lemma to_alg_hom_to_linear_map :
+  (e : A₁ →ₐ[R] A₂).to_linear_map = e.to_linear_map := rfl
+
+@[simp] lemma to_linear_equiv_to_linear_map :
+  e.to_linear_equiv.to_linear_map = e.to_linear_map := rfl
+
+@[simp] lemma to_linear_map_apply (x : A₁) : e.to_linear_map x = e x := rfl
+
+theorem to_linear_map_inj {e₁ e₂ : A₁ ≃ₐ[R] A₂} (H : e₁.to_linear_map = e₂.to_linear_map) :
+  e₁ = e₂ :=
+ext $ λ x, show e₁.to_linear_map x = e₂.to_linear_map x, by rw H
+
+@[simp] lemma trans_to_linear_map (f : A₁ ≃ₐ[R] A₂) (g : A₂ ≃ₐ[R] A₃) :
+  (f.trans g).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
 
 end alg_equiv
 
@@ -907,6 +940,10 @@ def comap' (S : subalgebra R B) (f : A →ₐ[R] B) : subalgebra R A :=
 theorem map_le {S : subalgebra R A} {f : A →ₐ[R] B} {U : subalgebra R B} :
   map S f ≤ U ↔ S ≤ comap' U f :=
 set.image_subset_iff
+
+lemma mem_map {S : subalgebra R A} {f : A →ₐ[R] B} {y : B} :
+  y ∈ map S f ↔ ∃ x ∈ S, f x = y :=
+subsemiring.mem_map
 
 instance integral_domain {R A : Type*} [comm_ring R] [integral_domain A] [algebra R A]
   (S : subalgebra R A) : integral_domain S :=

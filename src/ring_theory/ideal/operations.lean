@@ -292,6 +292,12 @@ theorem span_mul_span (S T : set R) : span S * span T =
 submodule.span_smul_span S T
 variables {I J K}
 
+lemma span_mul_span' (S T : set R) : span S * span T = span (S*T) :=
+by { unfold span, rw submodule.span_mul_span,}
+
+lemma span_singleton_mul_span_singleton (r s : R) : span {r} * span {s} = (span {r * s} : ideal R) :=
+by { unfold span, rw [submodule.span_mul_span, set.singleton_mul_singleton],}
+
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
 mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right hri, J.mul_mem_left hsj⟩
 

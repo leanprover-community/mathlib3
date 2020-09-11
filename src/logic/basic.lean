@@ -759,6 +759,14 @@ by simp [@eq_comm _ a']
   (∃ b, (∃ a, f a = b) ∧ p b) ↔ ∃ a, p (f a) :=
 ⟨λ ⟨b, ⟨a, ha⟩, hb⟩, ⟨a, ha.symm ▸ hb⟩, λ ⟨a, ha⟩, ⟨f a, ⟨a, rfl⟩, ha⟩⟩
 
+@[simp] theorem forall_apply_eq_imp_iff {f : α → β} {p : β → Prop} :
+  (∀ a, ∀ b, f a = b → p b) ↔ (∀ a, p (f a)) :=
+⟨λ h a, h a (f a) rfl, λ h a b hab, hab ▸ h a⟩
+
+@[simp] theorem forall_apply_eq_imp_iff' {f : α → β} {p : β → Prop} :
+  (∀ b, ∀ a, f a = b → p b) ↔ (∀ a, p (f a)) :=
+by { rw forall_swap, simp }
+
 @[simp] theorem exists_eq_left' {a' : α} : (∃ a, a' = a ∧ p a) ↔ p a' :=
 by simp [@eq_comm _ a']
 

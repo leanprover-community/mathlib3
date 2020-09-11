@@ -616,26 +616,24 @@ lemma eq_or_eq_reflection_of_dist_eq {n : ℕ} {s : simplex ℝ P n} {p p₁ p�
     (h₁ : ∀ i, dist (s.points i) p₁ = r) (h₂ : ∀ i, dist (s.points i) p₂ = r) :
   p₁ = p₂ ∨ p₁ = reflection (affine_span ℝ (set.range s.points)) p₂ :=
 begin
+  let span_s := affine_span ℝ (set.range s.points),
   have h₁' := s.orthogonal_projection_eq_circumcenter_of_dist_eq h₁,
   have h₂' := s.orthogonal_projection_eq_circumcenter_of_dist_eq h₂,
-  have hn : (affine_span ℝ (set.range s.points) : set P).nonempty :=
-    (affine_span_nonempty ℝ _).2 (set.range_nonempty _),
-  have hc : is_complete ((affine_span ℝ (set.range s.points)).direction : set V) :=
-    submodule.complete_of_finite_dimensional _,
+  have hn : (span_s : set P).nonempty := (affine_span_nonempty ℝ _).2 (set.range_nonempty _),
+  have hc : is_complete (span_s.direction : set V) := submodule.complete_of_finite_dimensional _,
   rw [←affine_span_insert_affine_span,
       mem_affine_span_insert_iff (orthogonal_projection_mem hn hc p)] at hp₁ hp₂,
   obtain ⟨r₁, p₁o, hp₁o, hp₁⟩ := hp₁,
   obtain ⟨r₂, p₂o, hp₂o, hp₂⟩ := hp₂,
-  obtain rfl : orthogonal_projection (affine_span ℝ (set.range s.points)) p₁ = p₁o,
+  obtain rfl : orthogonal_projection span_s p₁ = p₁o,
   { rw hp₁,
     exact orthogonal_projection_vadd_smul_vsub_orthogonal_projection hc _ _ hp₁o },
   rw h₁' at hp₁,
-  obtain rfl : orthogonal_projection (affine_span ℝ (set.range s.points)) p₂ = p₂o,
+  obtain rfl : orthogonal_projection span_s p₂ = p₂o,
   { rw hp₂,
     exact orthogonal_projection_vadd_smul_vsub_orthogonal_projection hc _ _ hp₂o },
   rw h₂' at hp₂,
-  have h : s.points 0 ∈ affine_span ℝ (set.range s.points) :=
-    mem_affine_span ℝ (set.mem_range_self _),
+  have h : s.points 0 ∈ span_s := mem_affine_span ℝ (set.mem_range_self _),
   have hd₁ : dist p₁ s.circumcenter * dist p₁ s.circumcenter =
     r * r - s.circumradius * s.circumradius,
   { rw [dist_comm, ←h₁ 0,
@@ -650,11 +648,11 @@ begin
       dist_eq_norm_vsub V _ s.circumcenter, vadd_vsub, vadd_vsub, ←inner_self_eq_norm_square,
       ←inner_self_eq_norm_square, inner_smul_left, inner_smul_left, inner_smul_right,
       inner_smul_right, ←mul_assoc, ←mul_assoc] at hd₁,
-  by_cases hp : p = orthogonal_projection (affine_span ℝ (set.range s.points)) p,
+  by_cases hp : p = orthogonal_projection span_s p,
   { rw [hp₁, hp₂, ←hp],
     simp },
-  { have hz : inner (p -ᵥ orthogonal_projection (affine_span ℝ (set.range s.points)) p)
-                    (p -ᵥ orthogonal_projection (affine_span ℝ (set.range s.points)) p) ≠ 0,
+  { have hz : inner (p -ᵥ orthogonal_projection span_s p)
+                    (p -ᵥ orthogonal_projection span_s p) ≠ 0,
     { simpa using hp },
     rw [mul_left_inj' hz, mul_self_eq_mul_self_iff] at hd₁,
     rw [hp₁, hp₂],

@@ -76,7 +76,7 @@ restate_axiom monoidal_category.right_unitor_naturality'
 attribute [reassoc] monoidal_category.right_unitor_naturality
 restate_axiom monoidal_category.pentagon'
 restate_axiom monoidal_category.triangle'
-attribute [simp] monoidal_category.triangle
+attribute [simp, reassoc] monoidal_category.triangle
 
 open monoidal_category
 

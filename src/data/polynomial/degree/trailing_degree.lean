@@ -252,7 +252,7 @@ if p.nat_trailing_degree = 0 then 0 else p.coeff (p.nat_trailing_degree + 1)
 
 @[simp]
 lemma next_coeff_up_C_eq_zero (c : R) :
-  next_coeff (C c) = 0 := by { rw next_coeff, simp }
+  next_coeff_up (C c) = 0 := by { rw next_coeff_up, simp }
 
 lemma next_coeff_up_of_pos_nat_trailing_degree (p : polynomial R) (hp : 0 < p.nat_trailing_degree) :
   next_coeff_up p = p.coeff (p.nat_trailing_degree + 1) :=

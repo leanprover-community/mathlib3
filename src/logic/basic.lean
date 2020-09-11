@@ -1115,31 +1115,51 @@ end nonempty
 
 section ite
 
-lemma apply_dite {α β : Type*} (f : α → β) (P : Prop) [decidable P] (x : P → α) (y : ¬P → α) :
+/-- A function applied to a `dite` is a `dite` of that function applied to each of the branches. -/
+lemma apply_dite {α β : Sort*} (f : α → β) (P : Prop) [decidable P] (x : P → α) (y : ¬P → α) :
   f (dite P x y) = dite P (λ h, f (x h)) (λ h, f (y h)) :=
-by { by_cases h : P; simp [h], }
+by { by_cases h : P; simp [h] }
 
-lemma apply_ite {α β : Type*} (f : α → β) (P : Prop) [decidable P] (x y : α) :
+/-- A function applied to a `ite` is a `ite` of that function applied to each of the branches. -/
+lemma apply_ite {α β : Sort*} (f : α → β) (P : Prop) [decidable P] (x y : α) :
   f (ite P x y) = ite P (f x) (f y) :=
 apply_dite f P (λ _, x) (λ _, y)
 
-lemma apply_dite2 {α β γ : Type*} (f : α → β → γ) (P : Prop) [decidable P] (a : P → α)
+/-- A two-argument function applied to two `dite`s is a `dite` of that two-argument function
+applied to each of the branches. -/
+lemma apply_dite2 {α β γ : Sort*} (f : α → β → γ) (P : Prop) [decidable P] (a : P → α)
   (b : ¬P → α) (c : P → β) (d : ¬P → β) :
   f (dite P a b) (dite P c d) = dite P (λ h, f (a h) (c h)) (λ h, f (b h) (d h)) :=
 by { by_cases h : P; simp [h] }
 
-lemma apply_ite2 {α β γ : Type*} (f : α → β → γ) (P : Prop) [decidable P] (a b : α) (c d : β) :
+/-- A two-argument function applied to two `ite`s is a `ite` of that two-argument function
+applied to each of the branches. -/
+lemma apply_ite2 {α β γ : Sort*} (f : α → β → γ) (P : Prop) [decidable P] (a b : α) (c d : β) :
   f (ite P a b) (ite P c d) = ite P (f a c) (f b d) :=
 apply_dite2 f P (λ _, a) (λ _, b) (λ _, c) (λ _, d)
 
-lemma dite_apply {α : Type*} {β : α → Type*} (P : Prop) [decidable P]
+/-- A 'dite' producing a `Pi` type `Π a, β a`, applied to a value `x : α`
+is a `dite` that applies either branch to `x`. -/
+lemma dite_apply {α : Sort*} {β : α → Sort*} (P : Prop) [decidable P]
   (f : P → Π a, β a) (g : ¬ P → Π a, β a) (x : α) :
   (dite P f g) x = dite P (λ h, f h x) (λ h, g h x) :=
-by { by_cases h : P; simp [h], }
+by { by_cases h : P; simp [h] }
 
-lemma ite_apply {α : Type*} {β : α → Type*} (P : Prop) [decidable P]
+/-- A 'ite' producing a `Pi` type `Π a, β a`, applied to a value `x : α`
+is a `ite` that applies either branch to `x` -/
+lemma ite_apply {α : Sort*} {β : α → Sort*} (P : Prop) [decidable P]
   (f g : Π a, β a) (x : α) :
   (ite P f g) x = ite P (f x) (g x) :=
 dite_apply P (λ _, f) (λ _, g) x
+
+/-- Negation of the condition `P : Prop` in a `dite` is the same as swapping the branches. -/
+@[simp] lemma dite_not {α : Sort*} (P : Prop) [decidable P] (x : ¬ P → α) (y : ¬¬ P → α) :
+  dite (¬ P) x y = dite P (λ h, y (not_not_intro h)) x :=
+by { by_cases h : P; simp [h] }
+
+/-- Negation of the condition `P : Prop` in a `ite` is the same as swapping the branches. -/
+@[simp] lemma ite_not {α : Sort*} (P : Prop) [decidable P] (x y : α) :
+  ite (¬ P) x y = ite P y x :=
+dite_not P (λ _, x) (λ _, y)
 
 end ite

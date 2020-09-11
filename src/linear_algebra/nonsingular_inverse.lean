@@ -45,54 +45,9 @@ matrix inverse, cramer, cramer's rule, adjugate
 
 namespace matrix
 universes u v
-variables {n : Type u} [fintype n] [decidable_eq n] {α : Type v}
+variables {n : Type u} [decidable_eq n] [fintype n] {α : Type v}
 open_locale matrix big_operators
 open equiv equiv.perm finset
-
-
-section update
-
-/-- Update, i.e. replace the `i`th row of matrix `A` with the values in `b`. -/
-def update_row (A : matrix n n α) (i : n) (b : n → α) : matrix n n α :=
-function.update A i b
-
-/-- Update, i.e. replace the `i`th column of matrix `A` with the values in `b`. -/
-def update_column (A : matrix n n α) (j : n) (b : n → α) : matrix n n α :=
-λ i, function.update (A i) j (b i)
-
-variables {A : matrix n n α} {i j : n} {b : n → α}
-
-@[simp] lemma update_row_self : update_row A i b i = b := function.update_same i b A
-
-@[simp] lemma update_column_self : update_column A j b i j = b i := function.update_same j (b i) (A i)
-
-@[simp] lemma update_row_ne {i' : n} (i_ne : i' ≠ i) : update_row A i b i' = A i' :=
-function.update_noteq i_ne b A
-
-@[simp] lemma update_column_ne {j' : n} (j_ne : j' ≠ j) : update_column A j b i j' = A i j' :=
-function.update_noteq j_ne (b i) (A i)
-
-lemma update_row_val {i' : n} : update_row A i b i' j = if i' = i then b j else A i' j :=
-begin
-  by_cases i' = i,
-  { rw [h, update_row_self, if_pos rfl] },
-  { rw [update_row_ne h, if_neg h] }
-end
-
-lemma update_column_val {j' : n} : update_column A j b i j' = if j' = j then b i else A i j' :=
-begin
-  by_cases j' = j,
-  { rw [h, update_column_self, if_pos rfl] },
-  { rw [update_column_ne h, if_neg h] }
-end
-
-lemma update_row_transpose : update_row Aᵀ i b = (update_column A i b)ᵀ :=
-begin
-  ext i' j,
-  rw [transpose_val, update_row_val, update_column_val],
-  refl
-end
-end update
 
 section cramer
 /-!
@@ -119,12 +74,12 @@ begin
   have : Π {f : n → n} {i : n} (x : n → α),
     (∏ i' : n, (update_row A i x)ᵀ (f i') i')
     = (∏ i' : n, if i' = i then x (f i') else A i' (f i')),
-  { intros, congr, ext i', rw [transpose_val, update_row_val] },
+  { intros, congr' with i', rw [transpose_apply, update_row_apply] },
   split,
   { intros x y,
     repeat { rw [cramer_map, ←det_transpose, det] },
     rw [←sum_add_distrib],
-    congr, ext σ,
+    congr' with σ,
     rw [←mul_add ↑↑(sign σ)],
     congr,
     repeat { erw [this, finset.prod_ite] },
@@ -134,7 +89,7 @@ begin
   { intros c x,
     repeat { rw [cramer_map, ←det_transpose, det] },
     rw [smul_eq_mul, mul_sum],
-    congr, ext σ,
+    congr' with σ,
     rw [←mul_assoc, mul_comm c, mul_assoc], congr,
     repeat { erw [this, finset.prod_ite] },
     erw [finset.filter_eq', if_pos (mem_univ i),
@@ -169,8 +124,8 @@ begin
   by_cases i = j,
   { -- i = j: this entry should be `A.det`
     rw [if_pos h, ←h],
-    congr, ext i',
-    by_cases h : i' = i, { rw [h, update_row_self] }, { rw [update_row_ne h]} },
+    congr' with i',
+    by_cases h : i' = i, { rw [h, update_row_self] }, { rw [update_row_ne h] } },
   { -- i ≠ j: this entry should be 0
     rw [if_neg h],
     apply det_zero_of_column_eq h,
@@ -187,9 +142,9 @@ lemma sum_cramer {β} (s : finset β) (f : β → n → α) :
 lemma sum_cramer_apply {β} (s : finset β) (f : n → β → α) (i : n) :
 ∑ x in s, cramer α A (λ j, f j x) i = cramer α A (λ (j : n), ∑ x in s, f j x) i :=
 calc ∑ x in s, cramer α A (λ j, f j x) i
-    = (∑ x in s, cramer α A (λ j, f j x)) i : (pi.finset_sum_apply i s _).symm
+    = (∑ x in s, cramer α A (λ j, f j x)) i : (finset.sum_apply i s _).symm
 ... = cramer α A (λ (j : n), ∑ x in s, f j x) i :
-  by { rw [sum_cramer, cramer_apply], congr, ext j, apply pi.finset_sum_apply }
+  by { rw [sum_cramer, cramer_apply], congr' with j, apply finset.sum_apply }
 
 end cramer
 
@@ -216,13 +171,13 @@ def adjugate (A : matrix n n α) : matrix n n α := λ i, cramer α A (λ j, if 
 lemma adjugate_def (A : matrix n n α) :
   adjugate A = λ i, cramer α A (λ j, if i = j then 1 else 0) := rfl
 
-lemma adjugate_val (A : matrix n n α) (i j : n) :
+lemma adjugate_apply (A : matrix n n α) (i j : n) :
   adjugate A i j = (A.update_row j (λ j, if i = j then 1 else 0)).det := rfl
 
 lemma adjugate_transpose (A : matrix n n α) : (adjugate A)ᵀ = adjugate (Aᵀ) :=
 begin
   ext i j,
-  rw [transpose_val, adjugate_val, adjugate_val, update_row_transpose, det_transpose],
+  rw [transpose_apply, adjugate_apply, adjugate_apply, update_row_transpose, det_transpose],
   apply finset.sum_congr rfl,
   intros σ _,
   congr' 1,
@@ -231,7 +186,7 @@ begin
   { -- Everything except `(i , j)` (= `(σ j , j)`) is given by A, and the rest is a single `1`.
     congr; ext j',
     have := (@equiv.injective _ _ σ j j' : σ j = σ j' → j = j'),
-    rw [update_row_val, update_column_val],
+    rw [update_row_apply, update_column_apply],
     finish },
   { -- Otherwise, we need to show that there is a `0` somewhere in the product.
     have : (∏ j' : n, update_column A j (λ (i' : n), ite (i = i') 1 0) (σ j') j') = 0,
@@ -246,26 +201,26 @@ begin
     exact h ((symm_apply_eq σ).mp h'.symm) }
 end
 
-lemma mul_adjugate_val (A : matrix n n α) (i j k) :
+lemma mul_adjugate_apply (A : matrix n n α) (i j k) :
   A i k * adjugate A k j = cramer α A (λ j, if k = j then A i k else 0) j :=
 begin
   erw [←smul_eq_mul, ←pi.smul_apply, ←linear_map.map_smul],
-  congr, ext,
+  congr' with l,
   rw [pi.smul_apply, smul_eq_mul, mul_boole],
 end
 
 lemma mul_adjugate (A : matrix n n α) : A ⬝ adjugate A = A.det • 1 :=
 begin
   ext i j,
-  rw [mul_val, smul_val, one_val, mul_boole],
+  rw [mul_apply, smul_apply, one_apply, mul_boole],
   calc
     ∑ k : n, A i k * adjugate A k j
         = ∑ k : n, cramer α A (λ j, if k = j then A i k else 0) j
-      : by {congr, ext k, apply mul_adjugate_val A i j k}
+      : by { congr' with k, apply mul_adjugate_apply A i j k }
     ... = cramer α A (λ j, ∑ k : n, if k = j then A i k else 0) j
       : sum_cramer_apply A univ (λ (j k : n), if k = j then A i k else 0) j
-    ... = cramer α A (A i) j : by { rw [cramer_apply], congr, ext,
-      rw [sum_ite_eq' univ x (A i), if_pos (mem_univ _)] }
+    ... = cramer α A (A i) j : by { rw [cramer_apply], congr' with k,
+      rw [sum_ite_eq' univ k (A i), if_pos (mem_univ _)] }
     ... = if i = j then det A else 0 : by rw [cramer_column_self]
 end
 
@@ -296,7 +251,7 @@ begin
   have i_eq_j : i = j := singleton_inj.mp (by rw [←univ_eq_i, univ_eq_j]),
   have perm_eq : (univ : finset (perm n)) = {1} :=
     univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
-  simp [adjugate_val, det, univ_eq_i, perm_eq, i_eq_j]
+  simp [adjugate_apply, det, univ_eq_i, perm_eq, i_eq_j]
 end
 
 @[simp] lemma adjugate_zero (h : 1 < fintype.card n) : adjugate (0 : matrix n n α) = 0 :=
@@ -425,6 +380,32 @@ begin
   { -- is_unit A.det → is_unit A
     exact is_unit_unit (A.nonsing_inv_unit h), },
 end
+
+lemma is_unit_det_of_left_inverse (B : matrix n n α) (h : B ⬝ A = 1) : is_unit A.det :=
+⟨{ val     := A.det,
+    inv     := B.det,
+    val_inv := by rw [mul_comm, ← det_mul, h, det_one],
+    inv_val := by rw [← det_mul, h, det_one],
+}, rfl⟩
+
+lemma is_unit_det_of_right_inverse (B : matrix n n α) (h : A ⬝ B = 1) : is_unit A.det :=
+⟨{ val     := A.det,
+    inv     := B.det,
+    val_inv := by rw [← det_mul, h, det_one],
+    inv_val := by rw [mul_comm, ← det_mul, h, det_one],
+}, rfl⟩
+
+lemma nonsing_inv_left_right (B : matrix n n α) (h : A ⬝ B = 1) : B ⬝ A = 1 :=
+begin
+  have h' : is_unit B.det := B.is_unit_det_of_left_inverse A h,
+  calc B ⬝ A = (B ⬝ A) ⬝ (B ⬝ B⁻¹) : by simp only [h', matrix.mul_one, mul_nonsing_inv]
+        ... = B ⬝ ((A ⬝ B) ⬝ B⁻¹) : by simp only [matrix.mul_assoc]
+        ... = B ⬝ B⁻¹ : by simp only [h, matrix.one_mul]
+        ... = 1 : mul_nonsing_inv B h',
+end
+
+lemma nonsing_inv_right_left (B : matrix n n α) (h : B ⬝ A = 1) : A ⬝ B = 1 :=
+B.nonsing_inv_left_right A h
 
 end inv
 end matrix

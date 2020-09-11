@@ -141,6 +141,12 @@ by cases o; simp
 lemma ne_none_iff_is_some {o : option α} : o ≠ none ↔ o.is_some :=
 by cases o; simp
 
+lemma ne_none_iff_exists {o : option α} : o ≠ none ↔ ∃ (x : α), o = some x :=
+by {cases o; simp}
+
+lemma ne_none_iff_exists' {o : option α} : o ≠ none ↔ ∃ (x : α), o = x :=
+ne_none_iff_exists
+
 lemma bex_ne_none {p : option α → Prop} :
   (∃ x ≠ none, p x) ↔ ∃ x, p (some x) :=
 ⟨λ ⟨x, hx, hp⟩, ⟨get $ ne_none_iff_is_some.1 hx, by rwa [some_get]⟩,

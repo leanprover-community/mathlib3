@@ -7,6 +7,8 @@ Linear structures on function with finite support `ι →₀ β`.
 -/
 import data.mv_polynomial
 import linear_algebra.dimension
+import linear_algebra.direct_sum.finsupp
+
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 

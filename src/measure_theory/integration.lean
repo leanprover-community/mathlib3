@@ -14,6 +14,11 @@ import data.support
 We define simple functions and show that each Borel measurable function on `ennreal` can be
 approximated by a sequence of simple functions.
 
+To prove something for an arbitrary measurable function into `ennreal`, the theorem
+`measurable.ennreal_induction` shows that is it sufficient to show that the property holds for
+(multiples of) characteristic functions and is closed under addition and supremum of increasing
+sequences of functions.
+
 ## Notation
 
 We introduce the following notation for the lower Lebesgue integral of a function `f : α → ennreal`.
@@ -184,6 +189,20 @@ lemma map_preimage_singleton (f : α →ₛ β) (g : β → γ) (c : γ) :
   (f.map g) ⁻¹' {c} = f ⁻¹' ↑(f.range.filter (λ b, g b = c)) :=
 map_preimage _ _ _
 
+/-- Composition of a `simple_fun` and a measurable function is a `simple_func`. -/
+def comp [measurable_space β] (f : β →ₛ γ) (g : α → β) (hgm : measurable g) : α →ₛ γ :=
+{ to_fun := f ∘ g,
+  finite_range' := f.finite_range.subset $ set.range_comp_subset_range _ _,
+  is_measurable_fiber' := λ z, hgm (f.is_measurable_fiber z) }
+
+@[simp] lemma coe_comp [measurable_space β] (f : β →ₛ γ) {g : α → β} (hgm : measurable g) :
+  ⇑(f.comp g hgm) = f ∘ g :=
+rfl
+
+lemma range_comp_subset_range [measurable_space β] (f : β →ₛ γ) {g : α → β} (hgm : measurable g) :
+  (f.comp g hgm).range ⊆ f.range :=
+finset.coe_subset.1 $ by simp only [coe_range, coe_comp, set.range_comp_subset_range]
+
 /-- If `f` is a simple function taking values in `β → γ` and `g` is another simple function
 with the same domain and codomain `β`, then `f.seq g = f a (g a)`. -/
 def seq (f : α →ₛ (β → γ)) (g : α →ₛ β) : α →ₛ γ := f.bind (λf, g.map f)
@@ -202,7 +221,7 @@ lemma pair_preimage (f : α →ₛ β) (g : α →ₛ γ) (s : set β) (t : set 
 /- A special form of `pair_preimage` -/
 lemma pair_preimage_singleton (f : α →ₛ β) (g : α →ₛ γ) (b : β) (c : γ) :
   (pair f g) ⁻¹' {(b, c)} = (f ⁻¹' {b}) ∩ (g ⁻¹' {c}) :=
-by { rw ← prod_singleton_singleton, exact pair_preimage _ _ _ _ }
+by { rw ← singleton_prod_singleton, exact pair_preimage _ _ _ _ }
 
 theorem bind_const (f : α →ₛ β) : f.bind (const α) = f := by ext; simp
 
@@ -640,9 +659,10 @@ begin
 end
 
 /-- If two simple functions are equal a.e., then their `lintegral`s are equal. -/
-lemma lintegral_congr {f g : α →ₛ ennreal} (h : ∀ᵐ a ∂ μ, f a = g a) :
+lemma lintegral_congr {f g : α →ₛ ennreal} (h : f =ᵐ[μ] g) :
   f.lintegral μ = g.lintegral μ :=
-lintegral_eq_of_measure_preimage $ λ y, measure_congr $ h.mono $ λ x hx, by simp [hx]
+lintegral_eq_of_measure_preimage $ λ y, measure_congr $
+  eventually.set_eq $ h.mono $ λ x hx, by simp [hx]
 
 lemma lintegral_map {β} [measurable_space β] {μ' : measure β} (f : α →ₛ ennreal) (g : β →ₛ ennreal)
   (m : α → β) (eq : ∀a:α, f a = g (m a)) (h : ∀s:set β, is_measurable s → μ' s = μ (m ⁻¹' s)) :
@@ -756,6 +776,40 @@ lemma iff_lintegral_lt_top {f : α →ₛ ennreal} (hf : ∀ᵐ a ∂μ, f a < �
 end fin_meas_supp
 
 end fin_meas_supp
+
+/-- To prove something for an arbitrary simple function, it suffices to show
+that the property holds for (multiples of) characteristic functions and is closed under
+addition (of functions with disjoint support).
+
+It is possible to make the hypotheses in `h_sum` a bit stronger, and such conditions can be added
+once we need them (for example it is only necessary to consider the case where `g` is a multiple
+of a characteristic function, and that this multiple doesn't appear in the image of `f`) -/
+@[elab_as_eliminator]
+protected lemma induction {α γ} [measurable_space α] [add_monoid γ] {P : simple_func α γ → Prop}
+  (h_ind : ∀ c {s} (hs : is_measurable s),
+    P (simple_func.piecewise s hs (simple_func.const _ c) (simple_func.const _ 0)))
+  (h_sum : ∀ ⦃f g : simple_func α γ⦄, set.univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0} → P f → P g → P (f + g))
+  (f : simple_func α γ) : P f :=
+begin
+  generalize' h : f.range \ {0} = s,
+  rw [← finset.coe_inj, finset.coe_sdiff, finset.coe_singleton, simple_func.coe_range] at h,
+  revert s f h, refine finset.induction _ _,
+  { intros f hf, rw [finset.coe_empty, diff_eq_empty, range_subset_singleton] at hf,
+    convert h_ind 0 is_measurable.univ, ext x, simp [hf] },
+  { intros x s hxs ih f hf,
+    have mx := f.is_measurable_preimage {x},
+    let g := simple_func.piecewise (f ⁻¹' {x}) mx 0 f,
+    have Pg : P g,
+    { apply ih, simp only [g, simple_func.coe_piecewise, range_piecewise],
+      rw [image_compl_preimage, union_diff_distrib, diff_diff_comm, hf, finset.coe_insert,
+        insert_diff_self_of_not_mem, diff_eq_empty.mpr, set.empty_union],
+      { rw [set.image_subset_iff], convert set.subset_univ _,
+        exact preimage_const_of_mem (mem_singleton _) },
+      { rwa [finset.mem_coe] }},
+    convert h_sum _ Pg (h_ind x mx),
+    { ext1 y, by_cases hy : y ∈ f ⁻¹' {x}; [simpa [hy], simp [hy]] },
+    { rintro y -, by_cases hy : y ∈ f ⁻¹' {x}; simp [hy] } }
+end
 
 end simple_func
 
@@ -904,8 +958,7 @@ begin
       refine supr_le_supr (assume n, _),
       rw [restrict_lintegral _ (h_meas n)],
       { refine le_of_eq (finset.sum_congr rfl $ assume r hr, _),
-        congr' 2,
-        ext a,
+        congr' 2 with a,
         refine and_congr_right _,
         simp {contextual := tt} }
     end
@@ -962,11 +1015,11 @@ calc (∫⁻ a, f a + g a ∂μ) =
 
 lemma lintegral_zero : (∫⁻ a:α, 0 ∂μ) = 0 := by simp
 
-lemma lintegral_smul_meas (c : ennreal) (f : α → ennreal) :
+lemma lintegral_smul_measure (c : ennreal) (f : α → ennreal) :
   ∫⁻ a, f a ∂ (c • μ) = c * ∫⁻ a, f a ∂μ :=
 by simp only [lintegral, supr_subtype', simple_func.lintegral_smul, ennreal.mul_supr, smul_eq_mul]
 
-lemma lintegral_sum_meas {ι} (f : α → ennreal) (μ : ι → measure α) :
+lemma lintegral_sum_measure {ι} (f : α → ennreal) (μ : ι → measure α) :
   ∫⁻ a, f a ∂(measure.sum μ) = ∑' i, ∫⁻ a, f a ∂(μ i) :=
 begin
   simp only [lintegral, supr_subtype', simple_func.lintegral_sum, ennreal.tsum_eq_supr_sum],
@@ -981,11 +1034,11 @@ begin
       (finset.sum_le_sum $ λ j hj, simple_func.lintegral_mono le_sup_right (le_refl _))⟩
 end
 
-lemma lintegral_add_meas (f : α → ennreal) (μ ν : measure α) :
+lemma lintegral_add_measure (f : α → ennreal) (μ ν : measure α) :
   ∫⁻ a, f a ∂ (μ + ν) = ∫⁻ a, f a ∂μ + ∫⁻ a, f a ∂ν :=
-by simpa [tsum_fintype] using lintegral_sum_meas f (λ b, cond b μ ν)
+by simpa [tsum_fintype] using lintegral_sum_measure f (λ b, cond b μ ν)
 
-@[simp] lemma lintegral_zero_meas (f : α → ennreal) : ∫⁻ a, f a ∂0 = 0 :=
+@[simp] lemma lintegral_zero_measure (f : α → ennreal) : ∫⁻ a, f a ∂0 = 0 :=
 bot_unique $ by simp [lintegral]
 
 lemma lintegral_finset_sum (s : finset β) {f : β → α → ennreal} (hf : ∀b, measurable (f b)) :
@@ -1337,12 +1390,12 @@ open measure
 lemma lintegral_Union [encodable β] {s : β → set α} (hm : ∀ i, is_measurable (s i))
   (hd : pairwise (disjoint on s)) (f : α → ennreal) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ = ∑' i, ∫⁻ a in s i, f a ∂μ :=
-by simp only [measure.restrict_Union hd hm, lintegral_sum_meas]
+by simp only [measure.restrict_Union hd hm, lintegral_sum_measure]
 
 lemma lintegral_Union_le [encodable β] (s : β → set α) (f : α → ennreal) :
   ∫⁻ a in ⋃ i, s i, f a ∂μ ≤ ∑' i, ∫⁻ a in s i, f a ∂μ :=
 begin
-  rw [← lintegral_sum_meas],
+  rw [← lintegral_sum_measure],
   exact lintegral_mono' restrict_Union_le (le_refl _)
 end
 
@@ -1361,6 +1414,8 @@ lemma lintegral_dirac (a : α) {f : α → ennreal} (hf : measurable f) :
   ∫⁻ a, f a ∂(dirac a) = f a :=
 by simp [lintegral_congr_ae (eventually_eq_dirac hf)]
 
+/-- Given a measure `μ : measure α` and a function `f : α → ennreal`, `μ.with_density f` is the
+measure such that for a measurable set `s` we have `μ.with_density f s = ∫⁻ a in s, f a ∂μ`. -/
 def measure.with_density (μ : measure α) (f : α → ennreal) : measure α :=
 measure.of_measurable (λs hs, ∫⁻ a in s, f a ∂μ) (by simp) (λ s hs hd, lintegral_Union hs hd _)
 
@@ -1371,3 +1426,27 @@ measure.of_measurable_apply s hs
 end lintegral
 
 end measure_theory
+
+open measure_theory measure_theory.simple_func
+/-- To prove something for an arbitrary measurable function into `ennreal`, it suffices to show
+that the property holds for (multiples of) characteristic functions and is closed under addition
+and supremum of increasing sequences of functions.
+
+It is possible to make the hypotheses in the induction steps a bit stronger, and such conditions
+can be added once we need them (for example in `h_sum` it is only necessary to consider the sum of
+a simple function with a multiple of a characteristic function and that the intersection
+of their images is a subset of `{0}`. -/
+@[elab_as_eliminator]
+theorem measurable.ennreal_induction {α} [measurable_space α] {P : (α → ennreal) → Prop}
+  (h_ind : ∀ (c : ennreal) ⦃s⦄, is_measurable s → P (indicator s (λ _, c)))
+  (h_sum : ∀ ⦃f g : α → ennreal⦄, set.univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0} → measurable f → measurable g →
+    P f → P g → P (f + g))
+  (h_supr : ∀ ⦃f : ℕ → α → ennreal⦄ (hf : ∀n, measurable (f n)) (h_mono : monotone f)
+    (hP : ∀ n, P (f n)), P (λ x, ⨆ n, f n x))
+  ⦃f : α → ennreal⦄ (hf : measurable f) : P f :=
+begin
+  convert h_supr (λ n, (eapprox f n).measurable) (monotone_eapprox f) _,
+  { ext1 x, rw [supr_eapprox_apply f hf] },
+  { exact λ n, simple_func.induction (λ c s hs, h_ind c hs)
+      (λ f g hfg hf hg, h_sum hfg f.measurable g.measurable hf hg) (eapprox f n) }
+end

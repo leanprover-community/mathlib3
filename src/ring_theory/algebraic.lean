@@ -6,7 +6,7 @@ Authors: Johan Commelin
 
 import linear_algebra.finite_dimensional
 import ring_theory.integral_closure
-import data.polynomial.field_division
+import data.polynomial.integral_normalization
 
 /-!
 # Algebraic elements and algebraic extensions
@@ -27,7 +27,7 @@ variables (R : Type u) {A : Type v} [comm_ring R] [comm_ring A] [algebra R A]
 
 /-- An element of an R-algebra is algebraic over R if it is the root of a nonzero polynomial. -/
 def is_algebraic (x : A) : Prop :=
-∃ p : polynomial R, p ≠ 0 ∧ aeval R A x p = 0
+∃ p : polynomial R, p ≠ 0 ∧ aeval x p = 0
 
 variables {R}
 
@@ -52,7 +52,7 @@ begin
   apply and_congr iff.rfl,
   have h : function.injective (S.val) := subtype.val_injective,
   conv_rhs { rw [← h.eq_iff, alg_hom.map_zero], },
-  rw [← aeval_alg_hom_apply, S.val_apply, subtype.val_eq_coe],
+  rw [← aeval_alg_hom_apply, S.val_apply]
 end
 
 /-- An algebra is algebraic if and only if it is algebraic as a subalgebra. -/
@@ -91,7 +91,7 @@ end field
 namespace algebra
 variables {K : Type*} {L : Type*} {A : Type*}
 variables [field K] [field L] [comm_ring A]
-variables [algebra K L] [algebra L A] [algebra K A] [is_algebra_tower K L A]
+variables [algebra K L] [algebra L A] [algebra K A] [is_scalar_tower K L A]
 
 /-- If L is an algebraic field extension of K and A is an algebraic algebra over L,
 then A is algebraic over K. -/
@@ -104,7 +104,7 @@ end
 
 /-- A field extension is algebraic if it is finite. -/
 lemma is_algebraic_of_finite [finite : finite_dimensional K L] : is_algebraic K L :=
-λ x, (is_algebraic_iff_is_integral _).mpr (is_integral_of_noetherian ⊤
+λ x, (is_algebraic_iff_is_integral _).mpr (is_integral_of_submodule_noetherian ⊤
   (is_noetherian_of_submodule_of_noetherian _ _ _ finite) x algebra.mem_top)
 
 end algebra

@@ -45,6 +45,7 @@ noncomputable theory
 
 open real set
 open_locale big_operators
+open_locale classical
 open_locale topological_space
 
 universes u v w
@@ -55,10 +56,6 @@ variables {α : Type u} {F : Type v} {G : Type w}
 class has_inner (α : Type*) := (inner : α → α → ℝ)
 
 export has_inner (inner)
-
-section prio
-
-set_option default_priority 100 -- see Note [default priority]
 
 -- the norm is embedded in the inner product space structure
 -- to avoid definitional equality issues. See Note [forgetful inheritance].
@@ -77,7 +74,6 @@ class inner_product_space (α : Type*) extends normed_group α, normed_space ℝ
 (comm      : ∀ x y, inner x y = inner y x)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = r * inner x y)
-end prio
 
 /-!
 ### Constructing a normed space structure from a scalar product
@@ -350,6 +346,24 @@ begin
   linarith
 end
 
+/-- A family of vectors is linearly independent if they are nonzero
+and orthogonal. -/
+lemma linear_independent_of_ne_zero_of_inner_eq_zero {ι : Type*} {v : ι → α}
+  (hz : ∀ i, v i ≠ 0) (ho : ∀ i j, i ≠ j → inner (v i) (v j) = 0) : linear_independent ℝ v :=
+begin
+  rw linear_independent_iff',
+  intros s g hg i hi,
+  have h' : g i * inner (v i) (v i) = inner (∑ j in s, g j • v j) (v i),
+  { rw sum_inner,
+    symmetry,
+    convert finset.sum_eq_single i _ _,
+    { rw inner_smul_left },
+    { intros j hj hji,
+      rw [inner_smul_left, ho j i hji, mul_zero] },
+    { exact λ h, false.elim (h hi) } },
+  simpa [hg, hz] using h'
+end
+
 end basic_properties
 
 section norm
@@ -441,6 +455,15 @@ lemma norm_sub_square_eq_norm_square_add_norm_square {x y : α} (h : inner x y =
   ∥x - y∥ * ∥x - y∥ = ∥x∥ * ∥x∥ + ∥y∥ * ∥y∥ :=
 (norm_sub_square_eq_norm_square_add_norm_square_iff_inner_eq_zero x y).2 h
 
+/-- The sum and difference of two vectors are orthogonal if and only
+if they have the same norm. -/
+lemma inner_add_sub_eq_zero_iff (x y : α) : inner (x + y) (x - y) = 0 ↔ ∥x∥ = ∥y∥ :=
+begin
+  conv_rhs { rw ←mul_self_inj_of_nonneg (norm_nonneg _) (norm_nonneg _) },
+  simp [←inner_self_eq_norm_square, inner_add_left, inner_sub_right, inner_comm y x,
+        sub_eq_zero, add_comm (inner x y)]
+end
+
 /-- The inner product of two vectors, divided by the product of their
 norms, has absolute value at most 1. -/
 lemma abs_inner_div_norm_mul_norm_le_one (x y : α) : abs (inner x y / (∥x∥ * ∥y∥)) ≤ 1 :=
@@ -449,7 +472,7 @@ begin
   by_cases h : 0 = abs (∥x∥ * ∥y∥),
   { rw [←h, div_zero],
     norm_num },
-  { apply div_le_of_le_mul (lt_of_le_of_ne (ge_iff_le.mp (abs_nonneg (∥x∥ * ∥y∥))) h),
+  { rw div_le_iff' (lt_of_le_of_ne (ge_iff_le.mp (abs_nonneg (∥x∥ * ∥y∥))) h),
     convert abs_inner_le_norm x y using 1,
     rw [abs_mul, abs_of_nonneg (norm_nonneg x), abs_of_nonneg (norm_nonneg y), mul_one] }
 end
@@ -563,7 +586,7 @@ begin
     by_contradiction hrneg,
     rw hy at h,
     rw inner_div_norm_mul_norm_eq_neg_one_of_ne_zero_of_neg_mul hx
-      (lt_of_le_of_ne' (le_of_not_lt hrneg) hr) at h,
+      (lt_of_le_of_ne (le_of_not_lt hrneg) hr) at h,
     norm_num at h },
   { intro h,
     rcases h with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
@@ -588,7 +611,7 @@ begin
     by_contradiction hrpos,
     rw hy at h,
     rw inner_div_norm_mul_norm_eq_one_of_ne_zero_of_pos_mul hx
-      (lt_of_le_of_ne' (le_of_not_lt hrpos) hr.symm) at h,
+      (lt_of_le_of_ne (le_of_not_lt hrpos) hr.symm) at h,
     norm_num at h },
   { intro h,
     rcases h with ⟨hx, ⟨r, ⟨hr, hy⟩⟩⟩,
@@ -921,6 +944,122 @@ begin
   exacts [submodule.convex _, hv]
 end
 
+/-- The orthogonal projection onto a complete subspace, as an
+unbundled function.  This definition is only intended for use in
+setting up the bundled version `orthogonal_projection` and should not
+be used once that is defined. -/
+def orthogonal_projection_fn {K : submodule ℝ α} (h : is_complete (K : set α)) (v : α) :=
+(exists_norm_eq_infi_of_complete_subspace K h v).some
+
+/-- The unbundled orthogonal projection is in the given subspace.
+This lemma is only intended for use in setting up the bundled version
+and should not be used once that is defined. -/
+lemma orthogonal_projection_fn_mem {K : submodule ℝ α} (h : is_complete (K : set α)) (v : α) :
+  orthogonal_projection_fn h v ∈ K :=
+(exists_norm_eq_infi_of_complete_subspace K h v).some_spec.some
+
+/-- The characterization of the unbundled orthogonal projection.  This
+lemma is only intended for use in setting up the bundled version
+and should not be used once that is defined. -/
+lemma orthogonal_projection_fn_inner_eq_zero {K : submodule ℝ α} (h : is_complete (K : set α))
+  (v : α) : ∀ w ∈ K, inner (v - orthogonal_projection_fn h v) w = 0 :=
+begin
+  rw ←norm_eq_infi_iff_inner_eq_zero K (orthogonal_projection_fn_mem h v),
+  exact (exists_norm_eq_infi_of_complete_subspace K h v).some_spec.some_spec
+end
+
+/-- The unbundled orthogonal projection is the unique point in `K`
+with the orthogonality property.  This lemma is only intended for use
+in setting up the bundled version and should not be used once that is
+defined. -/
+lemma eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero {K : submodule ℝ α}
+  (h : is_complete (K : set α)) {u v : α} (hvm : v ∈ K) (hvo : ∀ w ∈ K, inner (u - v) w = 0) :
+  v = orthogonal_projection_fn h u :=
+begin
+  rw [←sub_eq_zero, ←inner_self_eq_zero],
+  have hvs : v - orthogonal_projection_fn h u ∈ K :=
+    submodule.sub_mem K hvm (orthogonal_projection_fn_mem h u),
+  have huo : inner (u - orthogonal_projection_fn h u) (v - orthogonal_projection_fn h u) = 0 :=
+    orthogonal_projection_fn_inner_eq_zero h u _ hvs,
+  have huv : inner (u - v) (v - orthogonal_projection_fn h u) = 0 := hvo _ hvs,
+  have houv : inner ((u - orthogonal_projection_fn h u) - (u - v))
+                    (v - orthogonal_projection_fn h u) = 0,
+  { rw [inner_sub_left, huo, huv, sub_zero] },
+  rwa sub_sub_sub_cancel_left at houv
+end
+
+/-- The orthogonal projection onto a complete subspace.  For most
+purposes, `orthogonal_projection`, which removes the `is_complete`
+hypothesis and is the identity map when the subspace is not complete,
+should be used instead. -/
+def orthogonal_projection_of_complete {K : submodule ℝ α} (h : is_complete (K : set α)) :
+  linear_map ℝ α α :=
+{ to_fun := orthogonal_projection_fn h,
+  map_add' := λ x y, begin
+    have hm : orthogonal_projection_fn h x + orthogonal_projection_fn h y ∈ K :=
+      submodule.add_mem K (orthogonal_projection_fn_mem h x) (orthogonal_projection_fn_mem h y),
+    have ho :
+      ∀ w ∈ K, inner (x + y - (orthogonal_projection_fn h x + orthogonal_projection_fn h y)) w = 0,
+    { intros w hw,
+      rw [add_sub_comm, inner_add_left, orthogonal_projection_fn_inner_eq_zero h _ w hw,
+          orthogonal_projection_fn_inner_eq_zero h _ w hw, add_zero] },
+    rw eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero h hm ho
+  end,
+  map_smul' := λ c x, begin
+    have hm : c • orthogonal_projection_fn h x ∈ K :=
+      submodule.smul_mem K _ (orthogonal_projection_fn_mem h x),
+    have ho : ∀ w ∈ K, inner (c • x - c • orthogonal_projection_fn h x) w = 0,
+    { intros w hw,
+      rw [←smul_sub, inner_smul_left, orthogonal_projection_fn_inner_eq_zero h _ w hw, mul_zero] },
+    rw eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero h hm ho
+  end }
+
+/-- The orthogonal projection onto a subspace, which is expected to be
+complete.  If the subspace is not complete, this uses the identity map
+instead. -/
+def orthogonal_projection (K : submodule ℝ α) : linear_map ℝ α α :=
+if h : is_complete (K : set α) then orthogonal_projection_of_complete h else linear_map.id
+
+/-- The definition of `orthogonal_projection` using `if`. -/
+lemma orthogonal_projection_def (K : submodule ℝ α) :
+  orthogonal_projection K =
+    if h : is_complete (K : set α) then orthogonal_projection_of_complete h else linear_map.id :=
+rfl
+
+@[simp]
+lemma orthogonal_projection_fn_eq {K : submodule ℝ α} (h : is_complete (K : set α)) (v : α) :
+  orthogonal_projection_fn h v = orthogonal_projection K v :=
+by { rw [orthogonal_projection_def, dif_pos h], refl }
+
+/-- The orthogonal projection is in the given subspace. -/
+lemma orthogonal_projection_mem {K : submodule ℝ α} (h : is_complete (K : set α)) (v : α) :
+  orthogonal_projection K v ∈ K :=
+begin
+  rw ←orthogonal_projection_fn_eq h,
+  exact orthogonal_projection_fn_mem h v
+end
+
+/-- The characterization of the orthogonal projection.  -/
+@[simp]
+lemma orthogonal_projection_inner_eq_zero (K : submodule ℝ α) (v : α) :
+  ∀ w ∈ K, inner (v - orthogonal_projection K v) w = 0 :=
+begin
+  simp_rw orthogonal_projection_def,
+  split_ifs,
+  { exact orthogonal_projection_fn_inner_eq_zero h v },
+  { simp },
+end
+
+/-- The orthogonal projection is the unique point in `K` with the
+orthogonality property. -/
+lemma eq_orthogonal_projection_of_mem_of_inner_eq_zero {K : submodule ℝ α}
+  (h : is_complete (K : set α)) {u v : α} (hvm : v ∈ K) (hvo : ∀ w ∈ K, inner (u - v) w = 0) :
+  v = orthogonal_projection K u :=
+begin
+  rw ←orthogonal_projection_fn_eq h,
+  exact eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero h hvm hvo
+end
+
 /-- The subspace of vectors orthogonal to a given subspace. -/
 def submodule.orthogonal (K : submodule ℝ α) : submodule ℝ α :=
 { carrier := {v | ∀ u ∈ K, inner u v = 0},
@@ -956,9 +1095,39 @@ begin
   exact λ x hx ho, inner_self_eq_zero.1 (ho x hx)
 end
 
+variables (α)
+
+/-- `submodule.orthogonal` gives a `galois_connection` between
+`submodule ℝ α` and its `order_dual`. -/
+lemma submodule.orthogonal_gc :
+  @galois_connection (submodule ℝ α) (order_dual $ submodule ℝ α) _ _
+    submodule.orthogonal submodule.orthogonal :=
+λ K₁ K₂, ⟨λ h v hv u hu, submodule.inner_left_of_mem_orthogonal hv (h hu),
+          λ h v hv u hu, submodule.inner_left_of_mem_orthogonal hv (h hu)⟩
+
+variables {α}
+
 /-- `K` is contained in `K.orthogonal.orthogonal`. -/
 lemma submodule.le_orthogonal_orthogonal (K : submodule ℝ α) : K ≤ K.orthogonal.orthogonal :=
-λ u hu v hv, submodule.inner_left_of_mem_orthogonal hu hv
+(submodule.orthogonal_gc α).le_u_l _
+
+/-- The inf of two orthogonal subspaces equals the subspace orthogonal
+to the sup. -/
+lemma submodule.inf_orthogonal (K₁ K₂ : submodule ℝ α) :
+  K₁.orthogonal ⊓ K₂.orthogonal = (K₁ ⊔ K₂).orthogonal :=
+(submodule.orthogonal_gc α).l_sup.symm
+
+/-- The inf of an indexed family of orthogonal subspaces equals the
+subspace orthogonal to the sup. -/
+lemma submodule.infi_orthogonal {ι : Type*} (K : ι → submodule ℝ α) :
+  (⨅ i, (K i).orthogonal) = (supr K).orthogonal :=
+(submodule.orthogonal_gc α).l_supr.symm
+
+/-- The inf of a set of orthogonal subspaces equals the subspace
+orthogonal to the sup. -/
+lemma submodule.Inf_orthogonal (s : set $ submodule ℝ α) :
+  (⨅ K ∈ s, submodule.orthogonal K) = (Sup s).orthogonal :=
+(submodule.orthogonal_gc α).l_Sup.symm
 
 /-- If `K` is complete, `K` and `K.orthogonal` span the whole
 space. -/

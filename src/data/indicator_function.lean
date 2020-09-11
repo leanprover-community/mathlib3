@@ -3,9 +3,10 @@ Copyright (c) 2020 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-import algebra.pi_instances
-import data.set.disjointed
+import algebra.group.pi
+import group_theory.group_action
 import data.support
+import data.finset.lattice
 
 /-!
 # Indicator function
@@ -26,9 +27,9 @@ indicator, characteristic
 
 noncomputable theory
 open_locale classical big_operators
+open function
 
-universes u v
-variables {α : Type u} {β : Type v}
+variables {α β γ : Type*}
 
 namespace set
 
@@ -38,6 +39,8 @@ variables [has_zero β] {s t : set α} {f g : α → β} {a : α}
 /-- `indicator s f a` is `f a` if `a ∈ s`, `0` otherwise.  -/
 @[reducible]
 def indicator (s : set α) (f : α → β) : α → β := λ x, if x ∈ s then f x else 0
+
+@[simp] lemma piecewise_eq_indicator {s : set α} : s.piecewise f 0 = s.indicator f := rfl
 
 lemma indicator_apply (s : set α) (f : α → β) (a : α) :
   indicator s f a = if a ∈ s then f a else 0 := rfl
@@ -70,14 +73,23 @@ funext $ λx, indicator_of_mem (mem_univ _) f
 funext $ λx, indicator_of_not_mem (not_mem_empty _) f
 
 variable (β)
+
 @[simp] lemma indicator_zero (s : set α) : indicator s (λx, (0:β)) = λx, (0:β) :=
 funext $ λx, by { simp only [indicator], split_ifs, refl, refl }
+
+@[simp] lemma indicator_zero' {s : set α} : s.indicator (0 : α → β) = 0 :=
+indicator_zero β s
+
 variable {β}
 
 lemma indicator_indicator (s t : set α) (f : α → β) : indicator s (indicator t f) = indicator (s ∩ t) f :=
 funext $ λx, by { simp only [indicator], split_ifs, repeat {simp * at * {contextual := tt}} }
 
-lemma indicator_comp_of_zero {γ} [has_zero γ] {g : β → γ} (hg : g 0 = 0) :
+lemma comp_indicator (h : β → γ) (f : α → β) {s : set α} {x : α} :
+  h (s.indicator f x) = s.piecewise (h ∘ f) (const α (h 0)) x :=
+s.comp_piecewise h
+
+lemma indicator_comp_of_zero [has_zero γ] {g : β → γ} (hg : g 0 = 0) :
   indicator s (g ∘ f) = g ∘ (indicator s f) :=
 begin
   funext,
@@ -97,6 +109,10 @@ lemma mem_range_indicator {r : β} {s : set α} {f : α → β} :
   r ∈ range (indicator s f) ↔ (r = 0 ∧ s ≠ univ) ∨ (r ∈ f '' s) :=
 by simp [indicator, ite_eq_iff, exists_or_distrib, eq_univ_iff_forall, and_comm, or_comm,
   @eq_comm _ r 0]
+
+lemma indicator_rel_indicator {r : β → β → Prop} (h0 : r 0 0) (ha : a ∈ s → r (f a) (g a)) :
+  r (indicator s f a) (indicator s g a) :=
+by { simp only [indicator], split_ifs with has has, exacts [ha has, h0] }
 
 /-- Consider a sum of `g i (f i)` over a `finset`.  Suppose `g` is a
 function such as multiplication, which maps a second argument of 0 to
@@ -172,6 +188,24 @@ variables {β} {𝕜 : Type*} [monoid 𝕜] [distrib_mul_action 𝕜 β]
 lemma indicator_smul (s : set α) (r : 𝕜) (f : α → β) :
   indicator s (λ (x : α), r • f x) = λ (x : α), r • indicator s f x :=
 by { simp only [indicator], funext, split_ifs, refl, exact (smul_zero r).symm }
+
+lemma indicator_add_eq_left {f g : α → β} (h : univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0}) :
+  (f ⁻¹' {0})ᶜ.indicator (f + g) = f :=
+begin
+  ext x, by_cases hx : x ∈ (f ⁻¹' {0})ᶜ,
+  { have : g x = 0, { simp at hx, specialize h (mem_univ x), simpa [hx] using h },
+    simp [hx, this] },
+  { simp * at * }
+end
+
+lemma indicator_add_eq_right {f g : α → β} (h : univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0}) :
+  (g ⁻¹' {0})ᶜ.indicator (f + g) = g :=
+begin
+  ext x, by_cases hx : x ∈ (g ⁻¹' {0})ᶜ,
+  { have : f x = 0, { simp at hx, specialize h (mem_univ x), simpa [hx] using h },
+    simp [hx, this] },
+  { simp * at * }
+end
 
 end add_monoid
 
@@ -252,7 +286,7 @@ lemma indicator_le' (hfg : ∀ a ∈ s, f a ≤ g a) (hg : ∀ a ∉ s, 0 ≤ g 
 λ a, if ha : a ∈ s then by simpa [ha] using hfg a ha else by simpa [ha] using hg a ha
 
 @[mono] lemma indicator_le_indicator (h : f a ≤ g a) : indicator s f a ≤ indicator s g a :=
-by { simp only [indicator], split_ifs with ha, { exact h }, refl }
+indicator_rel_indicator (le_refl _) (λ _, h)
 
 lemma indicator_le_indicator_of_subset (h : s ⊆ t) (hf : ∀a, 0 ≤ f a) (a : α) :
   indicator s f a ≤ indicator t f a :=

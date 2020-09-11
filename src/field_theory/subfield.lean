@@ -3,15 +3,12 @@ Copyright (c) 2018 Andreas Swerdlow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andreas Swerdlow
 -/
-import ring_theory.subring
+import deprecated.subring
 
 variables {F : Type*} [field F] (S : set F)
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 class is_subfield extends is_subring S : Prop :=
 (inv_mem : ∀ {x : F}, x ∈ S → x⁻¹ ∈ S)
-end prio
 
 instance is_subfield.field [is_subfield S] : field S :=
 { inv := λ x, ⟨x⁻¹, is_subfield.inv_mem x.2⟩,

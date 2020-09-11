@@ -2,11 +2,26 @@
 Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-Adjoining elements to form subalgebras.
 -/
-import ring_theory.polynomial
-import ring_theory.principal_ideal_domain
+import ring_theory.polynomial.basic
+
+/-!
+# Adjoining elements to form subalgebras
+
+This file develops the basic theory of subalgebras of an R-algebra generated
+by a set of elements. A basic interface for `adjoin` is set up, and various
+results about finitely-generated subalgebras and submodules are proved.
+
+## Definitions
+
+* `fg (S : subalgebra R A)` : A predicate saying that the subalgebra is finitely-generated
+as an A-algebra
+
+## Tags
+
+adjoin, algebra, finitely-generated algebra
+
+-/
 
 universes u v w
 
@@ -79,16 +94,16 @@ le_antisymm
     (set.subset.trans (set.subset_union_right _ _) subset_adjoin))
 
 theorem adjoin_eq_range :
-  adjoin R s = (mv_polynomial.aeval R A (coe : s → A)).range :=
+  adjoin R s = (mv_polynomial.aeval (coe : s → A)).range :=
 le_antisymm
   (adjoin_le $ λ x hx, ⟨mv_polynomial.X ⟨x, hx⟩, mv_polynomial.eval₂_X _ _ _⟩)
   (λ x ⟨p, hp⟩, hp ▸ mv_polynomial.induction_on p
     (λ r, by rw [mv_polynomial.aeval_def, mv_polynomial.eval₂_C]; exact (adjoin R s).2 r)
     (λ p q hp hq, by rw alg_hom.map_add; exact is_add_submonoid.add_mem hp hq)
-    (λ p ⟨n, hn⟩ hp, by rw [alg_hom.map_mul, mv_polynomial.aeval_def _ _ _ (mv_polynomial.X _),
+    (λ p ⟨n, hn⟩ hp, by rw [alg_hom.map_mul, mv_polynomial.aeval_def _ (mv_polynomial.X _),
       mv_polynomial.eval₂_X]; exact is_submonoid.mul_mem hp (subset_adjoin hn)))
 
-theorem adjoin_singleton_eq_range (x : A) : adjoin R {x} = (polynomial.aeval R A x).range :=
+theorem adjoin_singleton_eq_range (x : A) : adjoin R {x} = (polynomial.aeval x).range :=
 le_antisymm
   (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, polynomial.eval₂_X _ _⟩)
   (λ y ⟨p, hp⟩, hp ▸ polynomial.induction_on p
@@ -102,7 +117,7 @@ theorem adjoin_union_coe_submodule : (adjoin R (s ∪ t) : submodule R A) =
   (adjoin R s) * (adjoin R t) :=
 begin
   rw [adjoin_eq_span, adjoin_eq_span, adjoin_eq_span, span_mul_span],
-  congr' 1, ext z, simp [monoid.mem_closure_union_iff, set.mem_mul],
+  congr' 1 with z, simp [monoid.mem_closure_union_iff, set.mem_mul],
 end
 
 end comm_semiring
@@ -202,6 +217,7 @@ end subalgebra
 variables {R : Type u} {A : Type v} {B : Type w}
 variables [comm_ring R] [comm_ring A] [comm_ring B] [algebra R A] [algebra R B]
 
+/-- The image of a Noetherian R-algebra under an R-algebra map is a Noetherian ring. -/
 instance alg_hom.is_noetherian_ring_range (f : A →ₐ[R] B) [is_noetherian_ring A] :
   is_noetherian_ring f.range :=
 is_noetherian_ring_range f.to_ring_hom

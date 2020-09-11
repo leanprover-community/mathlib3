@@ -61,7 +61,7 @@ lemma ultrafilter_iff_compl_mem_iff_not_mem :
 
 lemma mem_or_compl_mem_of_ultrafilter (hf : is_ultrafilter f) (s : set α) :
   s ∈ f ∨ sᶜ ∈ f :=
-classical.or_iff_not_imp_left.2 (ultrafilter_iff_compl_mem_iff_not_mem.mp hf s).mpr
+or_iff_not_imp_left.2 (ultrafilter_iff_compl_mem_iff_not_mem.mp hf s).mpr
 
 lemma mem_or_mem_of_ultrafilter {s t : set α} (hf : is_ultrafilter f) (h : s ∪ t ∈ f) :
   s ∈ f ∨ t ∈ f :=

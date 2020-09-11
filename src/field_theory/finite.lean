@@ -8,6 +8,7 @@ import data.equiv.ring
 import data.zmod.basic
 import linear_algebra.basis
 import ring_theory.integral_domain
+import field_theory.separable
 
 /-!
 # Finite fields
@@ -49,11 +50,12 @@ open polynomial
 
 /-- The cardinality of a field is at most `n` times the cardinality of the image of a degree `n`
   polynomial -/
-lemma card_image_polynomial_eval [fintype R] [decidable_eq R] {p : polynomial R} (hp : 0 < p.degree) :
+lemma card_image_polynomial_eval [decidable_eq R] [fintype R] {p : polynomial R} (hp : 0 < p.degree) :
   fintype.card R ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
 finset.card_le_mul_card_image _ _
-  (λ a _, calc _ = (p - C a).roots.card : congr_arg card
-    (by simp [finset.ext_iff, mem_roots_sub_C hp, -sub_eq_add_neg])
+  (λ a _, calc _ = (p - C a).roots.to_finset.card : congr_arg card
+    (by simp [finset.ext_iff, mem_roots_sub_C hp])
+    ... ≤ (p - C a).roots.card : multiset.to_finset_card_le _
     ... ≤ _ : card_roots_sub_C' hp)
 
 /-- If `f` and `g` are quadratic polynomials, then the `f.eval a + g.eval b = 0` has a solution. -/
@@ -110,11 +112,18 @@ begin
       this, mul_one]
 end
 
-lemma pow_card_sub_one_eq_one (a : K) (ha : a ≠ 0) :
-  a ^ (fintype.card K - 1) = 1 :=
+lemma pow_card_sub_one_eq_one (a : K) (ha : a ≠ 0) : a ^ (q - 1) = 1 :=
 calc a ^ (fintype.card K - 1) = (units.mk0 a ha ^ (fintype.card K - 1) : units K) :
     by rw [units.coe_pow, units.coe_mk0]
   ... = 1 : by { classical, rw [← card_units, pow_card_eq_one], refl }
+
+lemma pow_card (a : K) : a ^ q = a :=
+begin
+  have hp : fintype.card K > 0 := fintype.card_pos_iff.2 (by apply_instance),
+  by_cases h : a = 0, { rw h, apply zero_pow hp },
+  rw [← nat.succ_pred_eq_of_pos hp, pow_succ, nat.pred_eq_sub_one,
+    pow_card_sub_one_eq_one a h, mul_one],
+end
 
 variable (K)
 
@@ -153,7 +162,7 @@ begin
   split,
   { intro h, apply h },
   { intros h y,
-    rw ← powers_eq_gpowers at hx,
+    simp_rw ← mem_powers_iff_mem_gpowers at hx,
     rcases hx y with ⟨j, rfl⟩,
     rw [← pow_mul, mul_comm, pow_mul, h, one_pow], }
 end
@@ -200,6 +209,28 @@ begin
            zero_pow (nat.pos_of_ne_zero hi), add_zero]
     ... = ∑ x : units K, x ^ i : by { rw [← this, univ.sum_map φ], refl }
     ... = 0 : by { rw [sum_pow_units K i, if_neg], exact hiq, }
+end
+
+variables {K}
+
+theorem frobenius_pow {p : ℕ} [fact p.prime] [char_p K p] {n : ℕ} (hcard : q = p^n) :
+  (frobenius K p) ^ n = 1 :=
+begin
+  ext, conv_rhs { rw [ring_hom.one_def, ring_hom.id_apply, ← pow_card x, hcard], }, clear hcard,
+  induction n, {simp},
+  rw [pow_succ, nat.pow_succ, pow_mul, ring_hom.mul_def, ring_hom.comp_apply, frobenius_def, n_ih]
+end
+
+open polynomial
+
+lemma expand_card (f : polynomial K) :
+  expand K q f = f ^ q :=
+begin
+  cases char_p.exists K with p hp, letI := hp,
+  rcases finite_field.card K p with ⟨⟨n, npos⟩, ⟨hp, hn⟩⟩, letI : fact p.prime := hp,
+  dsimp at hn, rw hn at *,
+  rw ← map_expand_pow_char,
+  rw [frobenius_pow hn, ring_hom.one_def, map_id],
 end
 
 end finite_field
@@ -258,3 +289,31 @@ begin
   simpa only [-zmod.pow_totient, nat.succ_eq_add_one, nat.cast_pow, units.coe_one,
     nat.cast_one, cast_unit_of_coprime, units.coe_pow],
 end
+
+open finite_field
+namespace zmod
+
+/-- A variation on Fermat's little theorem. See `zmod.pow_card_sub_one_eq_one` -/
+@[simp] lemma pow_card {p : ℕ} [fact p.prime] (x : zmod p) : x ^ p = x :=
+by { have h := finite_field.pow_card x, rwa zmod.card p at h }
+
+@[simp] lemma card_units (p : ℕ) [fact p.prime] : fintype.card (units (zmod p)) = p - 1 :=
+by rw [card_units, card]
+
+/-- Fermat's Little Theorem: for every unit `a` of `zmod p`, we have `a ^ (p - 1) = 1`. -/
+theorem units_pow_card_sub_one_eq_one (p : ℕ) [fact p.prime] (a : units (zmod p)) :
+  a ^ (p - 1) = 1 :=
+by rw [← card_units p, pow_card_eq_one]
+
+/-- Fermat's Little Theorem: for all nonzero `a : zmod p`, we have `a ^ (p - 1) = 1`. -/
+theorem pow_card_sub_one_eq_one {p : ℕ} [fact p.prime] {a : zmod p} (ha : a ≠ 0) :
+  a ^ (p - 1) = 1 :=
+by { have h := pow_card_sub_one_eq_one a ha, rwa zmod.card p at h }
+
+open polynomial
+
+lemma expand_card {p : ℕ} [fact p.prime] (f : polynomial (zmod p)) :
+  expand (zmod p) p f = f ^ p :=
+by { have h := finite_field.expand_card f, rwa zmod.card p at h }
+
+end zmod

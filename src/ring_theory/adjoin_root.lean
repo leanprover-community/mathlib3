@@ -84,7 +84,7 @@ quotient.sound' (mem_span_singleton.2 $ by simp)
 
 @[simp] lemma mk_X : mk f X = root f := rfl
 
-@[simp] lemma aeval_eq (p : polynomial R) : aeval R (adjoin_root f) (root f) p = mk f p :=
+@[simp] lemma aeval_eq (p : polynomial R) : aeval (root f) p = mk f p :=
 polynomial.induction_on p (λ x, by { rw aeval_C, refl })
   (λ p q ihp ihq, by rw [alg_hom.map_add, ring_hom.map_add, ihp, ihq])
   (λ n x ih, by { rw [alg_hom.map_mul, aeval_C, alg_hom.map_pow, aeval_X,
@@ -123,6 +123,16 @@ by rw [← mk_C x, lift_mk, eval₂_C]
 
 @[simp] lemma lift_comp_of : (lift i a h).comp (of f) = i :=
 ring_hom.ext $ λ _, @lift_of _ _ _ _ _ _ _ h _
+
+/-- Produce an algebra homomorphism `adjoin_root f →ₐ[R] S` sending `root f` to
+a root of `f` in `S`. -/
+def alg_hom [algebra R S] (f : polynomial R) (x : S) (hfx : aeval x f = 0) : adjoin_root f →ₐ[R] S :=
+{ commutes' := λ r, show lift _ _ hfx r = _, from lift_of,
+  .. lift (algebra_map R S) x hfx }
+
+@[simp] lemma coe_alg_hom [algebra R S] (f : polynomial R) (x : S) (hfx : aeval x f = 0) :
+  (alg_hom f x hfx : adjoin_root f →+* S) = lift (algebra_map R S) x hfx :=
+rfl
 
 end comm_ring
 

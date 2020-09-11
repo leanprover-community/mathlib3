@@ -7,7 +7,7 @@ Type class for encodable Types.
 Note that every encodable Type is countable.
 -/
 import data.equiv.nat
-import order.order_iso
+import order.rel_iso
 import order.directed
 
 open option list nat function
@@ -358,11 +358,11 @@ def encode' (α) [encodable α] : α ↪ nat :=
 ⟨encodable.encode, encodable.encode_injective⟩
 
 instance {α} [encodable α] : is_trans _ (encode' α ⁻¹'o (≤)) :=
-(order_embedding.preimage _ _).is_trans
+(rel_embedding.preimage _ _).is_trans
 instance {α} [encodable α] : is_antisymm _ (encodable.encode' α ⁻¹'o (≤)) :=
-(order_embedding.preimage _ _).is_antisymm
+(rel_embedding.preimage _ _).is_antisymm
 instance {α} [encodable α] : is_total _ (encodable.encode' α ⁻¹'o (≤)) :=
-(order_embedding.preimage _ _).is_total
+(rel_embedding.preimage _ _).is_total
 
 end encodable
 

@@ -171,7 +171,7 @@ variables {E : Type u₃} [category.{v₃} E]
     refine iso.trans _ f.counit_iso,
     exact iso_whisker_left f.inverse (iso_whisker_right e.counit_iso f.functor)
   end,
-  -- We wouldn't have need to give this proof if we'd used `equivalence.mk`,
+  -- We wouldn't have needed to give this proof if we'd used `equivalence.mk`,
   -- but we choose to avoid using that here, for the sake of good structure projection `simp` lemmas.
   functor_unit_iso_comp' := λ X,
   begin
@@ -202,6 +202,59 @@ by { dsimp [inv_fun_id_assoc], tidy }
 @[simp] lemma inv_fun_id_assoc_inv_app (e : C ≌ D) (F : D ⥤ E) (X : D) :
   (inv_fun_id_assoc e F).inv.app X = F.map (e.counit_inv.app X) :=
 by { dsimp [inv_fun_id_assoc], tidy }
+
+
+
+section cancellation_lemmas
+variables (e : C ≌ D)
+
+-- We need special forms of `cancel_nat_iso_hom_right(_assoc)` and `cancel_nat_iso_inv_right(_assoc)`
+-- for units and counits, because neither `simp` or `rw` will apply those lemmas in this
+-- setting without providing `e.unit_iso` (or similar) as an explicit argument.
+-- We also provide the lemmas for length four compositions, since they're occasionally useful.
+-- (e.g. in proving that equivalences take monos to monos)
+
+@[simp] lemma cancel_unit_right {X Y : C}
+  (f f' : X ⟶ Y) :
+  f ≫ e.unit.app Y = f' ≫ e.unit.app Y ↔ f = f' :=
+by simp only [cancel_mono]
+
+@[simp] lemma cancel_unit_inv_right {X Y : C}
+  (f f' : X ⟶ e.inverse.obj (e.functor.obj Y))   :
+  f ≫ e.unit_inv.app Y = f' ≫ e.unit_inv.app Y ↔ f = f' :=
+by simp only [cancel_mono]
+
+@[simp] lemma cancel_counit_right {X Y : D}
+  (f f' : X ⟶ e.functor.obj (e.inverse.obj Y))   :
+  f ≫ e.counit.app Y = f' ≫ e.counit.app Y ↔ f = f' :=
+by simp only [cancel_mono]
+
+@[simp] lemma cancel_counit_inv_right {X Y : D}
+  (f f' : X ⟶ Y) :
+  f ≫ e.counit_inv.app Y = f' ≫ e.counit_inv.app Y ↔ f = f' :=
+by simp only [cancel_mono]
+
+@[simp] lemma cancel_unit_right_assoc {W X X' Y : C}
+  (f : W ⟶ X) (g : X ⟶ Y) (f' : W ⟶ X') (g' : X' ⟶ Y) :
+  f ≫ g ≫ e.unit.app Y = f' ≫ g' ≫ e.unit.app Y ↔ f ≫ g = f' ≫ g' :=
+by simp only [←category.assoc, cancel_mono]
+
+@[simp] lemma cancel_counit_inv_right_assoc {W X X' Y : D}
+  (f : W ⟶ X) (g : X ⟶ Y) (f' : W ⟶ X') (g' : X' ⟶ Y) :
+  f ≫ g ≫ e.counit_inv.app Y = f' ≫ g' ≫ e.counit_inv.app Y ↔ f ≫ g = f' ≫ g' :=
+by simp only [←category.assoc, cancel_mono]
+
+@[simp] lemma cancel_unit_right_assoc' {W X X' Y Y' Z : C}
+  (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) (f' : W ⟶ X') (g' : X' ⟶ Y') (h' : Y' ⟶ Z) :
+  f ≫ g ≫ h ≫ e.unit.app Z = f' ≫ g' ≫ h' ≫ e.unit.app Z ↔ f ≫ g ≫ h = f' ≫ g' ≫ h' :=
+by simp only [←category.assoc, cancel_mono]
+
+@[simp] lemma cancel_counit_inv_right_assoc' {W X X' Y Y' Z : D}
+  (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) (f' : W ⟶ X') (g' : X' ⟶ Y') (h' : Y' ⟶ Z) :
+  f ≫ g ≫ h ≫ e.counit_inv.app Z = f' ≫ g' ≫ h' ≫ e.counit_inv.app Z ↔ f ≫ g ≫ h = f' ≫ g' ≫ h' :=
+by simp only [←category.assoc, cancel_mono]
+
+end cancellation_lemmas
 
 section
 
@@ -332,11 +385,11 @@ end
 -- We should probably restate many of the lemmas about `equivalence` for `is_equivalence`,
 -- but these are the only ones I need for now.
 @[simp] lemma functor_unit_comp (E : C ⥤ D) [is_equivalence E] (Y) :
-  E.map (is_equivalence.unit_iso.hom.app Y) ≫ is_equivalence.counit_iso.hom.app (E.obj Y) = 𝟙 _ :=
-equivalence.functor_unit_comp (E.as_equivalence) Y
+  E.map (E.fun_inv_id.inv.app Y) ≫ E.inv_fun_id.hom.app (E.obj Y) = 𝟙 _ :=
+equivalence.functor_unit_comp E.as_equivalence Y
 
-@[simp] lemma counit_inv_functor_comp (E : C ⥤ D) [is_equivalence E] (Y) :
-  is_equivalence.counit_iso.inv.app (E.obj Y) ≫ E.map (is_equivalence.unit_iso.inv.app Y) = 𝟙 _ :=
+@[simp] lemma inv_fun_id_inv_comp (E : C ⥤ D) [is_equivalence E] (Y) :
+  E.inv_fun_id.inv.app (E.obj Y) ≫ E.map (E.fun_inv_id.hom.app Y) = 𝟙 _ :=
 eq_of_inv_eq_inv (functor_unit_comp _ _)
 
 end is_equivalence

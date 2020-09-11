@@ -6,7 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 Theory of topological rings.
 -/
 import topology.algebra.group
-import ring_theory.ideals
+import ring_theory.ideal.basic
 
 open classical set filter topological_space
 open_locale classical
@@ -37,6 +37,16 @@ instance topological_ring.to_topological_semiring : topological_semiring α := {
 
 @[priority 100] -- see Note [lower instance priority]
 instance topological_ring.to_topological_add_group : topological_add_group α := {..t}
+
+variables {α} [topological_ring α]
+
+/-- In a topological ring, the left-multiplication `add_monoid_hom` is continuous. -/
+lemma mul_left_continuous (x : α) : continuous (add_monoid_hom.mul_left x) :=
+continuous_const.mul continuous_id
+
+/-- In a topological ring, the right-multiplication `add_monoid_hom` is continuous. -/
+lemma mul_right_continuous (x : α) : continuous (add_monoid_hom.mul_right x) :=
+continuous_id.mul continuous_const
 
 end topological_ring
 

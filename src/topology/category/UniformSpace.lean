@@ -38,6 +38,8 @@ def of (α : Type u) [uniform_space α] : UniformSpace := ⟨α⟩
 
 instance : inhabited UniformSpace := ⟨UniformSpace.of empty⟩
 
+@[simp] lemma coe_of (X : Type u) [uniform_space X] : (of X : Type u) = X := rfl
+
 instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) :=
 { F := λ _, X → Y, coe := category_theory.functor.map (forget UniformSpace) }
 
@@ -51,9 +53,9 @@ lemma hom_ext {X Y : UniformSpace} {f g : X ⟶ Y} : (f : X → Y) = g → f = g
 
 /-- The forgetful functor from uniform spaces to topological spaces. -/
 instance has_forget_to_Top : has_forget₂ UniformSpace.{u} Top.{u} :=
-unbundled_hom.mk_has_forget₂
-  @uniform_space.to_topological_space
-  @uniform_continuous.continuous
+{ forget₂ :=
+  { obj := λ X, Top.of X,
+    map := λ X Y f, { to_fun := f, continuous_to_fun := uniform_continuous.continuous f.property }, }, }
 
 end UniformSpace
 
@@ -79,6 +81,9 @@ instance (X : CpltSepUniformSpace) : separated_space ((to_UniformSpace X).α) :=
 
 /-- Construct a bundled `UniformSpace` from the underlying type and the appropriate typeclasses. -/
 def of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] : CpltSepUniformSpace := ⟨X⟩
+
+@[simp] lemma coe_of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] :
+  (of X : Type u) = X := rfl
 
 instance : inhabited CpltSepUniformSpace :=
 begin

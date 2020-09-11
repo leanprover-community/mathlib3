@@ -3,8 +3,12 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
-import algebra.pi_instances
-import data.finsupp
+import algebra.big_operators.pi
+import algebra.module.pi
+import algebra.module.prod
+import algebra.module.submodule
+import algebra.group.prod
+import data.finsupp.basic
 import algebra.pointwise
 
 /-!
@@ -77,16 +81,7 @@ open_locale classical
 /-- decomposing `x : ι → R` as a sum along the canonical basis -/
 lemma pi_eq_sum_univ {ι : Type u} [fintype ι] {R : Type v} [semiring R] (x : ι → R) :
   x = ∑ i, x i • (λj, if i = j then 1 else 0) :=
-begin
-  ext k,
-  rw pi.finset_sum_apply,
-  have : ∑ i, x i * ite (k = i) 1 0 = x k,
-    by { have := finset.sum_mul_boole finset.univ x k, rwa if_pos (finset.mem_univ _) at this },
-  rw ← this,
-  apply finset.sum_congr rfl (λl hl, _),
-  simp only [smul_eq_mul, mul_ite, pi.smul_apply],
-  conv_lhs { rw eq_comm }
-end
+by { ext, simp }
 
 end
 
@@ -132,6 +127,27 @@ ext $ assume b, rfl
   p.subtype.comp (cod_restrict p f h) = f :=
 ext $ assume b, rfl
 
+/-- Restrict domain and codomain of an endomorphism. -/
+def restrict (f : M →ₗ[R] M) {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) : p →ₗ[R] p :=
+{ to_fun := λ x, ⟨f x, hf x.1 x.2⟩,
+  map_add' := begin intros, apply set_coe.ext, simp end,
+  map_smul' := begin intros, apply set_coe.ext, simp end }
+
+lemma restrict_apply
+  {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) (x : p) :
+  f.restrict hf x = ⟨f x, hf x.1 x.2⟩ := rfl
+
+lemma subtype_comp_restrict {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) :
+  p.subtype.comp (f.restrict hf) = f.dom_restrict p := rfl
+
+lemma restrict_eq_cod_restrict_dom_restrict
+  {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) :
+  f.restrict hf = (f.dom_restrict p).cod_restrict p (λ x, hf x.1 x.2) := rfl
+
+lemma restrict_eq_dom_restrict_cod_restrict
+  {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x, f x ∈ p) :
+  f.restrict (λ x _, hf x) = (f.cod_restrict p hf).dom_restrict p := rfl
+
 /-- If a function `g` is a left and right inverse of a linear map `f`, then `g` is linear itself. -/
 def inverse (g : M₂ → M) (h₁ : left_inverse g f) (h₂ : right_inverse g f) : M₂ →ₗ[R] M :=
 by dsimp [left_inverse, function.right_inverse] at h₁ h₂; exact
@@ -160,6 +176,12 @@ instance linear_map_apply_is_add_monoid_hom (a : M) :
   is_add_monoid_hom (λ f : M →ₗ[R] M₂, f a) :=
 { map_add := λ f g, linear_map.add_apply f g a,
   map_zero := rfl }
+
+lemma add_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
+  (h + g).comp f = h.comp f + g.comp f := rfl
+
+lemma comp_add (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
+  h.comp (f + g) = h.comp f + h.comp g := by { ext, simp }
 
 lemma sum_apply (t : finset ι) (f : ι → M →ₗ[R] M₂) (b : M) :
   (∑ d in t, f d) b = ∑ d in t, f d b :=
@@ -241,15 +263,21 @@ section
 variables (R M M₂)
 
 /-- The left injection into a product is a linear map. -/
-def inl : M →ₗ[R] M × M₂ := by refine ⟨prod.inl, _, _⟩; intros; simp [prod.inl]
+def inl : M →ₗ[R] M × M₂ := by refine ⟨add_monoid_hom.inl _ _, _, _⟩; intros; simp
 
 /-- The right injection into a product is a linear map. -/
-def inr : M₂ →ₗ[R] M × M₂ := by refine ⟨prod.inr, _, _⟩; intros; simp [prod.inr]
+def inr : M₂ →ₗ[R] M × M₂ := by refine ⟨add_monoid_hom.inr _ _, _, _⟩; intros; simp
 
 end
 
 @[simp] theorem inl_apply (x : M) : inl R M M₂ x = (x, 0) := rfl
 @[simp] theorem inr_apply (x : M₂) : inr R M M₂ x = (0, x) := rfl
+
+theorem inl_injective : function.injective (inl R M M₂) :=
+λ _, by simp
+
+theorem inr_injective : function.injective (inr R M M₂) :=
+λ _, by simp
 
 /-- The coprod function `λ x : M × M₂, f x.1 + g x.2` is a linear map. -/
 def coprod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) : M × M₂ →ₗ[R] M₃ :=
@@ -302,6 +330,8 @@ instance : has_neg (M →ₗ[R] M₂) :=
 
 @[simp] lemma neg_apply (x : M) : (- f) x = - f x := rfl
 
+@[simp] lemma comp_neg (g : M₂ →ₗ[R] M₃) : g.comp (- f) = - g.comp f := by { ext, simp }
+
 /-- The type of linear maps is an additive group. -/
 instance : add_comm_group (M →ₗ[R] M₂) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
@@ -312,6 +342,12 @@ instance linear_map_apply_is_add_group_hom (a : M) :
 { map_add := λ f g, linear_map.add_apply f g a }
 
 @[simp] lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
+
+lemma sub_comp (g : M₂ →ₗ[R] M₃) (h : M₂ →ₗ[R] M₃) :
+  (g - h).comp f = g.comp f - h.comp f := rfl
+
+lemma comp_sub (g : M →ₗ[R] M₂) (h : M₂ →ₗ[R] M₃) :
+  h.comp (g - f) = h.comp g - h.comp f := by { ext, simp }
 
 end add_comm_group
 
@@ -341,6 +377,12 @@ rfl
 
 theorem comp_smul (g : M₂ →ₗ[R] M₃) (a : R) : g.comp (a • f) = a • (g.comp f) :=
 ext $ assume b, by rw [comp_apply, smul_apply, g.map_smul]; refl
+
+/-- Applying a linear map at `v : M`, seen as a linear map from `M →ₗ[R] M₂` to `M₂`. -/
+def applyₗ (v : M) : (M →ₗ[R] M₂) →ₗ[R] M₂ :=
+{ to_fun := λ f, f v,
+  map_add' := λ f g, f.add_apply g v,
+  map_smul' := λ x f, f.smul_apply x v }
 
 end comm_semiring
 
@@ -434,6 +476,12 @@ variables (R)
 @[simp] lemma mem_bot : x ∈ (⊥ : submodule R M) ↔ x = 0 := mem_singleton_iff
 end
 
+lemma nonzero_mem_of_bot_lt {I : submodule R M} (bot_lt : ⊥ < I) : ∃ a : I, a ≠ 0 :=
+begin
+  have h := (submodule.lt_iff_le_and_exists.1 bot_lt).2,
+  tidy,
+end
+
 instance : order_bot (submodule R M) :=
 { bot := ⊥,
   bot_le := λ p x, by simp {contextual := tt},
@@ -513,6 +561,9 @@ instance add_comm_monoid_submodule : add_comm_monoid (submodule R M) :=
 
 lemma eq_top_iff' {p : submodule R M} : p = ⊤ ↔ ∀ x, x ∈ p :=
 eq_top_iff.trans ⟨λ h x, @h x trivial, λ h x _, h x⟩
+
+lemma bot_ne_top [nontrivial M] : (⊥ : submodule R M) ≠ ⊤ :=
+λ h, let ⟨a, ha⟩ := exists_ne (0 : M) in ha $ (mem_bot R).1 $ (eq_top_iff.1 h) trivial
 
 @[simp] theorem inf_coe : (p ⊓ p' : set M) = p ∩ p' := rfl
 
@@ -714,10 +765,20 @@ begin
   { exact λ a x i hi, ⟨i, smul_mem _ a hi⟩ },
 end
 
-lemma mem_supr_of_mem {ι : Sort*} {b : M} (p : ι → submodule R M) (i : ι) (h : b ∈ p i) :
+lemma mem_sup_left {S T : submodule R M} : ∀ {x : M}, x ∈ S → x ∈ S ⊔ T :=
+show S ≤ S ⊔ T, from le_sup_left
+
+lemma mem_sup_right {S T : submodule R M} : ∀ {x : M}, x ∈ T → x ∈ S ⊔ T :=
+show T ≤ S ⊔ T, from le_sup_right
+
+lemma mem_supr_of_mem {ι : Sort*} {b : M} {p : ι → submodule R M} (i : ι) (h : b ∈ p i) :
   b ∈ (⨆i, p i) :=
 have p i ≤ (⨆i, p i) := le_supr p i,
 @this b h
+
+lemma mem_Sup_of_mem {S : set (submodule R M)} {s : submodule R M}
+  (hs : s ∈ S) : ∀ {x : M}, x ∈ s → x ∈ Sup S :=
+show s ≤ Sup S, from le_Sup hs
 
 @[simp] theorem mem_supr_of_directed {ι} [nonempty ι]
   (S : ι → submodule R M) (H : directed (≤) S) {x} :
@@ -758,7 +819,7 @@ mem_sup.trans $ by simp only [submodule.exists, coe_mk]
 
 end
 
-lemma mem_span_singleton_self (x : M) : x ∈ span R ({x} : set M) := subset_span (mem_def.mpr rfl)
+lemma mem_span_singleton_self (x : M) : x ∈ span R ({x} : set M) := subset_span rfl
 
 lemma mem_span_singleton {y : M} : x ∈ span R ({y} : set M) ↔ ∃ a:R, a • y = x :=
 ⟨λ h, begin
@@ -824,11 +885,32 @@ lemma supr_eq_span {ι : Sort w} (p : ι → submodule R M) :
   (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
 le_antisymm
   (supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
-  (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem _ i hm)
+  (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem i hm)
 
 lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) :
   span R {m} ≤ p ↔ m ∈ p :=
 by rw [span_le, singleton_subset_iff, mem_coe]
+
+lemma lt_add_iff_not_mem {I : submodule R M} {a : M} : I < I + span R {a} ↔ a ∉ I :=
+begin
+  split,
+  { intro h,
+    by_contra akey,
+    have h1 : I + span R {a} ≤ I,
+    { simp only [add_eq_sup, sup_le_iff],
+      split,
+      { exact le_refl I, },
+      { exact (span_singleton_le_iff_mem a I).mpr akey, } },
+    have h2 := gt_of_ge_of_gt h1 h,
+    exact lt_irrefl I h2, },
+  { intro h,
+    apply lt_iff_le_and_exists.mpr, split,
+    simp only [add_eq_sup, le_sup_left],
+    use a,
+    split, swap, { assumption, },
+    { have : span R {a} ≤ I + span R{a} := le_sup_right,
+      exact this (mem_span_singleton_self a), } },
+end
 
 lemma mem_supr {ι : Sort w} (p : ι → submodule R M) {m : M} :
   (m ∈ ⨆ i, p i) ↔ (∀ N, (∀ i, p i ≤ N) → m ∈ N) :=
@@ -949,6 +1031,16 @@ instance : semimodule R (quotient p) :=
 semimodule.of_core $ by refine {smul := (•), ..};
   repeat {rintro ⟨⟩ <|> intro}; simp [smul_add, add_smul, smul_smul,
     -mk_add, (mk_add p).symm, -mk_smul, (mk_smul p).symm]
+
+lemma mk_surjective : function.surjective (@mk _ _ _ _ _ p) :=
+by { rintros ⟨x⟩, exact ⟨x, rfl⟩ }
+
+lemma nontrivial_of_lt_top (h : p < ⊤) : nontrivial (p.quotient) :=
+begin
+  obtain ⟨x, _, not_mem_s⟩ := exists_of_lt h,
+  refine ⟨⟨mk x, 0, _⟩⟩,
+  simpa using not_mem_s
+end
 
 end quotient
 
@@ -1079,6 +1171,9 @@ def ker (f : M →ₗ[R] M₂) : submodule R M := comap f ⊥
 
 @[simp] theorem map_coe_ker (f : M →ₗ[R] M₂) (x : ker f) : f x = 0 := mem_ker.1 x.2
 
+lemma comp_ker_subtype (f : M →ₗ[R] M₂) : f.comp f.ker.subtype = 0 :=
+linear_map.ext $ λ x, suffices f x = 0, by simp [this], mem_ker.1 x.2
+
 theorem ker_comp (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) : ker (g.comp f) = comap f (ker g) := rfl
 
 theorem ker_le_ker_comp (f : M →ₗ[R] M₂) (g : M₂ →ₗ[R] M₃) : ker f ≤ ker (g.comp f) :=
@@ -1166,7 +1261,7 @@ theorem prod_eq_sup_map (p : submodule R M) (q : submodule R M₂) :
 by rw [← map_coprod_prod, coprod_inl_inr, map_id]
 
 lemma span_inl_union_inr {s : set M} {t : set M₂} :
-  span R (prod.inl '' s ∪ prod.inr '' t) = (span R s).prod (span R t) :=
+  span R (inl R M  M₂ '' s ∪ inr R M M₂ '' t) = (span R s).prod (span R t) :=
 by rw [span_union, prod_eq_sup_map, ← span_image, ← span_image]; refl
 
 @[simp] lemma ker_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) :
@@ -1345,10 +1440,10 @@ maximal submodule of `p` is just `p `. -/
 by simp
 
 @[simp] lemma comap_subtype_eq_top {p p' : submodule R M} :
-  p'.comap p.subtype = ⊤ ↔ p ≤ p' :=
+  comap p.subtype p' = ⊤ ↔ p ≤ p' :=
 eq_top_iff.trans $ map_le_iff_le_comap.symm.trans $ by rw [map_subtype_top]
 
-@[simp] lemma comap_subtype_self : p.comap p.subtype = ⊤ :=
+@[simp] lemma comap_subtype_self : comap p.subtype p = ⊤ :=
 comap_subtype_eq_top.2 (le_refl _)
 
 @[simp] theorem ker_of_le (p p' : submodule R M) (h : p ≤ p') : (of_le h).ker = ⊥ :=
@@ -1406,29 +1501,22 @@ lemma disjoint_iff_comap_eq_bot {p q : submodule R M} :
 by rw [eq_bot_iff, ← map_le_map_iff' p.ker_subtype, map_bot, map_comap_subtype, disjoint]
 
 /-- If `N ⊆ M` then submodules of `N` are the same as submodules of `M` contained in `N` -/
-def map_subtype.order_iso :
-  ((≤) : submodule R p → submodule R p → Prop) ≃o
-  ((≤) : {p' : submodule R M // p' ≤ p} → {p' : submodule R M // p' ≤ p} → Prop) :=
+def map_subtype.rel_iso :
+  submodule R p ≃o {p' : submodule R M // p' ≤ p} :=
 { to_fun    := λ p', ⟨map p.subtype p', map_subtype_le p _⟩,
   inv_fun   := λ q, comap p.subtype q,
   left_inv  := λ p', comap_map_eq_self $ by simp,
   right_inv := λ ⟨q, hq⟩, subtype.ext_val $ by simp [map_comap_subtype p, inf_of_le_right hq],
-  ord'      := λ p₁ p₂, (map_le_map_iff' (ker_subtype p)).symm }
+  map_rel_iff'      := λ p₁ p₂, (map_le_map_iff' (ker_subtype p)).symm }
 
 /-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
 submodules of `M`. -/
-def map_subtype.le_order_embedding :
-  ((≤) : submodule R p → submodule R p → Prop) ≼o ((≤) : submodule R M → submodule R M → Prop) :=
-(order_iso.to_order_embedding $ map_subtype.order_iso p).trans (subtype.order_embedding _ _)
+def map_subtype.order_embedding :
+  submodule R p ↪o submodule R M :=
+(rel_iso.to_rel_embedding $ map_subtype.rel_iso p).trans (subtype.rel_embedding _ _)
 
 @[simp] lemma map_subtype_embedding_eq (p' : submodule R p) :
-  map_subtype.le_order_embedding p p' = map p.subtype p' := rfl
-
-/-- If `p ⊆ M` is a submodule, the ordering of submodules of `p` is embedded in the ordering of
-submodules of `M`. -/
-def map_subtype.lt_order_embedding :
-  ((<) : submodule R p → submodule R p → Prop) ≼o ((<) : submodule R M → submodule R M → Prop) :=
-(map_subtype.le_order_embedding p).lt_embedding_of_le_embedding
+  map_subtype.order_embedding p p' = map p.subtype p' := rfl
 
 
 /-- The map from a module `M` to the quotient of `M` by a submodule `p` as a linear map. -/
@@ -1502,33 +1590,57 @@ by rw [ker_liftq, le_antisymm h h', mkq_map_self]
 
 /-- The correspondence theorem for modules: there is an order isomorphism between submodules of the
 quotient of `M` by `p`, and submodules of `M` larger than `p`. -/
-def comap_mkq.order_iso :
-  ((≤) : submodule R p.quotient → submodule R p.quotient → Prop) ≃o
-  ((≤) : {p' : submodule R M // p ≤ p'} → {p' : submodule R M // p ≤ p'} → Prop) :=
+def comap_mkq.rel_iso :
+  submodule R p.quotient ≃o {p' : submodule R M // p ≤ p'} :=
 { to_fun    := λ p', ⟨comap p.mkq p', le_comap_mkq p _⟩,
   inv_fun   := λ q, map p.mkq q,
   left_inv  := λ p', map_comap_eq_self $ by simp,
   right_inv := λ ⟨q, hq⟩, subtype.ext_val $ by simpa [comap_map_mkq p],
-  ord'      := λ p₁ p₂, (comap_le_comap_iff $ range_mkq _).symm }
+  map_rel_iff'      := λ p₁ p₂, (comap_le_comap_iff $ range_mkq _).symm }
 
 /-- The ordering on submodules of the quotient of `M` by `p` embeds into the ordering on submodules
 of `M`. -/
-def comap_mkq.le_order_embedding :
-  ((≤) : submodule R p.quotient → submodule R p.quotient → Prop) ≼o ((≤) : submodule R M → submodule R M → Prop) :=
-(order_iso.to_order_embedding $ comap_mkq.order_iso p).trans (subtype.order_embedding _ _)
+def comap_mkq.order_embedding :
+  submodule R p.quotient ↪o submodule R M :=
+(rel_iso.to_rel_embedding $ comap_mkq.rel_iso p).trans (subtype.rel_embedding _ _)
 
 @[simp] lemma comap_mkq_embedding_eq (p' : submodule R p.quotient) :
-  comap_mkq.le_order_embedding p p' = comap p.mkq p' := rfl
-
-/-- The ordering on submodules of the quotient of `M` by `p` embeds into the ordering on submodules
-of `M`. -/
-def comap_mkq.lt_order_embedding :
-  ((<) : submodule R p.quotient → submodule R p.quotient → Prop) ≼o ((<) : submodule R M → submodule R M → Prop) :=
-(comap_mkq.le_order_embedding p).lt_embedding_of_le_embedding
+  comap_mkq.order_embedding p p' = comap p.mkq p' := rfl
 
 end ring
 
 end submodule
+
+namespace linear_map
+variables [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
+variables [module R M] [module R M₂] [module R M₃]
+
+lemma range_mkq_comp (f : M →ₗ[R] M₂) : f.range.mkq.comp f = 0 :=
+linear_map.ext $ λ x, by simp
+
+lemma ker_le_range_iff {f : M →ₗ[R] M₂} {g : M₂ →ₗ[R] M₃} :
+  g.ker ≤ f.range ↔ f.range.mkq.comp g.ker.subtype = 0 :=
+by rw [←range_le_ker_iff, submodule.ker_mkq, submodule.range_subtype]
+
+/-- A monomorphism is injective. -/
+lemma ker_eq_bot_of_cancel {f : M →ₗ[R] M₂}
+  (h : ∀ (u v : f.ker →ₗ[R] M), f.comp u = f.comp v → u = v) : f.ker = ⊥ :=
+begin
+  have h₁ : f.comp (0 : f.ker →ₗ[R] M) = 0 := comp_zero _,
+  rw [←submodule.range_subtype f.ker, ←h 0 f.ker.subtype (eq.trans h₁ (comp_ker_subtype f).symm)],
+  exact range_zero
+end
+
+/-- An epimorphism is surjective. -/
+lemma range_eq_top_of_cancel {f : M →ₗ[R] M₂}
+  (h : ∀ (u v : M₂ →ₗ[R] f.range.quotient), u.comp f = v.comp f → u = v) : f.range = ⊤ :=
+begin
+  have h₁ : (0 : M₂ →ₗ[R] f.range.quotient).comp f = 0 := zero_comp _,
+  rw [←submodule.ker_mkq f.range, ←h 0 f.range.mkq (eq.trans h₁ (range_mkq_comp _).symm)],
+  exact ker_zero
+end
+
+end linear_map
 
 @[simp] lemma linear_map.range_range_restrict [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
   [semimodule R M] [semimodule R M₂] (f : M →ₗ[R] M₂) :
@@ -1573,6 +1685,7 @@ rfl
 
 lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
 λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
+
 end
 
 section
@@ -1589,6 +1702,16 @@ section
 variables {e e'}
 @[ext] lemma ext (h : ∀ x, e x = e' x) : e = e' :=
 to_equiv_injective (equiv.ext h)
+
+variables [semimodule R M] [semimodule R M₂]
+
+lemma eq_of_linear_map_eq {f f' : M ≃ₗ[R] M₂} (h : (f : M →ₗ[R] M₂) = f') : f = f' :=
+begin
+  ext x,
+  change (f : M →ₗ[R] M₂) x = (f' : M →ₗ[R] M₂) x,
+  rw h
+end
+
 end
 
 section
@@ -1635,9 +1758,29 @@ lemma symm_apply_eq {x y} : e.symm x = y ↔ x = e y := e.to_equiv.symm_apply_eq
 
 lemma eq_symm_apply {x y} : y = e.symm x ↔ e y = x := e.to_equiv.eq_symm_apply
 
+@[simp] lemma trans_symm [semimodule R M] [semimodule R M₂] (f : M ≃ₗ[R] M₂) :
+  f.trans f.symm = linear_equiv.refl R M :=
+by { ext x, simp }
+
+@[simp] lemma symm_trans [semimodule R M] [semimodule R M₂] (f : M ≃ₗ[R] M₂) :
+  f.symm.trans f = linear_equiv.refl R M₂ :=
+by { ext x, simp }
+
+@[simp, norm_cast] lemma refl_to_linear_map [semimodule R M] :
+  (linear_equiv.refl R M : M →ₗ[R] M) = linear_map.id :=
+rfl
+
+@[simp, norm_cast]
+lemma comp_coe [semimodule R M] [semimodule R M₂] [semimodule R M₃] (f :  M ≃ₗ[R] M₂)
+  (f' :  M₂ ≃ₗ[R] M₃) : (f' : M₂ →ₗ[R] M₃).comp (f : M →ₗ[R] M₂) = (f.trans f' : M →ₗ[R] M₃) :=
+rfl
+
 @[simp] theorem map_add (a b : M) : e (a + b) = e a + e b := e.map_add' a b
 @[simp] theorem map_zero : e 0 = 0 := e.to_linear_map.map_zero
 @[simp] theorem map_smul (c : R) (x : M) : e (c • x) = c • e x := e.map_smul' c x
+
+@[simp] lemma map_sum {s : finset ι} (u : ι → M) : e (∑ i in s, u i) = ∑ i in s, e (u i) :=
+e.to_linear_map.map_sum
 
 @[simp] theorem map_eq_zero_iff {x : M} : e x = 0 ↔ x = 0 :=
 e.to_add_equiv.map_eq_zero_iff
@@ -1970,6 +2113,23 @@ end linear_equiv
 
 namespace submodule
 
+section semimodule
+
+variables [semiring R] [add_comm_monoid M] [semimodule R M]
+
+/-- If `s ≤ t`, then we can view `s` as a submodule of `t` by taking the comap
+of `t.subtype`. -/
+def comap_subtype_equiv_of_le {p q : submodule R M} (hpq : p ≤ q) :
+comap q.subtype p ≃ₗ[R] p :=
+{ to_fun := λ x, ⟨x, x.2⟩,
+  inv_fun := λ x, ⟨⟨x, hpq x.2⟩, x.2⟩,
+  left_inv := λ x, by simp only [coe_mk, submodule.eta, coe_coe],
+  right_inv := λ x, by simp only [subtype.coe_mk, submodule.eta, coe_coe],
+  map_add' := λ x y, rfl,
+  map_smul' := λ c x, rfl }
+
+end semimodule
+
 variables [ring R] [add_comm_group M] [module R M]
 variables (p : submodule R M)
 
@@ -1988,6 +2148,13 @@ linear_equiv.of_linear (p.liftq id $ hp.symm ▸ bot_le) p.mkq (liftq_mkq _ _ _)
 
 @[simp] lemma coe_quot_equiv_of_eq_bot_symm (hp : p = ⊥) :
   ((p.quot_equiv_of_eq_bot hp).symm : M →ₗ[R] p.quotient) = p.mkq := rfl
+
+variables (q : submodule R M)
+
+/-- Quotienting by equal submodules gives linearly equivalent quotients. -/
+def quot_equiv_of_eq (h : p = q) : p.quotient ≃ₗ[R] q.quotient :=
+{ map_add' := by { rintros ⟨x⟩ ⟨y⟩, refl }, map_smul' := by { rintros x ⟨y⟩, refl },
+  ..@quotient.congr _ _ (quotient_rel p) (quotient_rel q) (equiv.refl _) $ λ a b, by { subst h, refl } }
 
 end submodule
 
@@ -2024,7 +2191,7 @@ begin
 end
 
 /-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`, the
-set of maps $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \}$ is a submodule of `Hom(M, M₂)`. -/
+set of maps $\\{f ∈ Hom(M, M₂) | f(p) ⊆ q \\}$ is a submodule of `Hom(M, M₂)`. -/
 def compatible_maps : submodule R (M →ₗ[R] M₂) :=
 { carrier   := {f | p ≤ comap f q},
   zero_mem' := by { change p ≤ comap 0 q, rw comap_zero, refine le_top, },
@@ -2033,7 +2200,7 @@ def compatible_maps : submodule R (M →ₗ[R] M₂) :=
   smul_mem' := λ c f h, le_trans h (comap_le_comap_smul q f c), }
 
 /-- Given modules `M`, `M₂` over a commutative ring, together with submodules `p ⊆ M`, `q ⊆ M₂`, the
-natural map $\{f ∈ Hom(M, M₂) | f(p) ⊆ q \} \to Hom(M/p, M₂/q)$ is linear. -/
+natural map $\\{f ∈ Hom(M, M₂) | f(p) ⊆ q \\} \to Hom(M/p, M₂/q)$ is linear. -/
 def mapq_linear : compatible_maps p q →ₗ[R] p.quotient →ₗ[R] q.quotient :=
 { to_fun    := λ f, mapq _ _ f.val f.property,
   map_add'  := λ x y, by { ext m', apply quotient.induction_on' m', intros m, refl, },
@@ -2279,12 +2446,12 @@ begin
   simp only [mem_infi, mem_ker, proj_apply] at hb,
   rw ← show ∑ i in I, std_basis R φ i (b i) = b,
   { ext i,
-    rw [pi.finset_sum_apply, ← std_basis_same R φ i (b i)],
+    rw [finset.sum_apply, ← std_basis_same R φ i (b i)],
     refine finset.sum_eq_single i (assume j hjI ne, std_basis_ne _ _ _ _ ne.symm _) _,
     assume hiI,
     rw [std_basis_same],
     exact hb _ ((hu trivial).resolve_left hiI) },
-  exact sum_mem _ (assume i hiI, mem_supr_of_mem _ i $ mem_supr_of_mem _ hiI $
+  exact sum_mem _ (assume i hiI, mem_supr_of_mem i $ mem_supr_of_mem hiI $
     (std_basis R φ i).mem_range_self (b i))
 end
 

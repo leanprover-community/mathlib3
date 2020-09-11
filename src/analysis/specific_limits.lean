@@ -118,6 +118,14 @@ lemma tendsto_inv_at_top_zero [discrete_linear_ordered_field α] [topological_sp
   [order_topology α] : tendsto (λr:α, r⁻¹) at_top (𝓝 0) :=
 tendsto_inv_at_top_zero'.mono_right inf_le_left
 
+lemma tendsto.inv_tendsto_at_top [discrete_linear_ordered_field α] [topological_space α] [order_topology α]
+  {l : filter β} {f : β → α} (h : tendsto f l at_top) : tendsto (f⁻¹) l (𝓝 0) :=
+tendsto_inv_at_top_zero.comp h
+
+lemma tendsto.inv_tendsto_zero [discrete_linear_ordered_field α] [topological_space α] [order_topology α]
+  {l : filter β} {f : β → α} (h : tendsto f l (𝓝[set.Ioi 0] 0)) : tendsto (f⁻¹) l at_top :=
+tendsto_inv_zero_at_top.comp h
+
 lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
   (∃r, tendsto (λn, (∑ i in range n, abs (f i))) at_top (𝓝 r)) → summable f
 | ⟨r, hr⟩ :=

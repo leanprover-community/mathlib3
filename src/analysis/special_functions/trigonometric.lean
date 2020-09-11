@@ -1710,8 +1710,8 @@ by { rw continuous_on_iff_continuous_restrict, convert continuous_tan }
 end complex
 
 
-namespace real
 
+namespace real
 open_locale real
 
 theorem cos_eq_zero_iff {θ : ℝ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * π / 2 :=
@@ -1758,5 +1758,111 @@ lemma differentiable_at_tan_of_mem_Ioo {x : ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ
 
 lemma deriv_tan_of_mem_Ioo {x : ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) : deriv tan x = 1 / (cos x)^2 :=
 (has_deriv_at_tan_of_mem_Ioo h).deriv
+
+lemma continuous_on_tan_of_mem_Ioo : continuous_on tan (set.Ioo (-(π/2)) (π/2)) :=
+begin
+  refine continuous_on_tan.mono _,
+  intros x hx,
+  simp only [set.mem_set_of_eq],
+  exact ne_of_gt (cos_pos_of_mem_Ioo hx.1 hx.2),
+end
+
+
+open filter
+open_locale topological_space
+
+lemma tendsto_sin_pi_div_two : tendsto sin (𝓝[set.Iio (π/2)] (π/2)) (𝓝 1) :=
+by { convert (@continuous.continuous_within_at _ _ _ _ _ (set.Iio (π/2)) (π/2) continuous_sin).tendsto,
+  simp }
+
+lemma tendsto_cos_pi_div_two : tendsto cos (𝓝[set.Iio (π/2)] (π/2)) (𝓝[set.Ioi 0] 0) :=
+begin
+  change (tendsto cos (𝓝[set.Iio (π/2)] (π/2)) (_ ⊓ _)),
+  rw tendsto_inf,
+  split,
+  { convert (@continuous.continuous_within_at _ _ _ _ _ (set.Iio (π/2)) (π/2) continuous_cos).tendsto,
+    simp },
+  { rw tendsto_principal,
+    use set.Ioi (0:ℝ),
+    split,
+    { exact mem_nhds_sets is_open_Ioi (by simp [pi_div_two_pos]) },
+    { use set.Iio (π/2),
+      split,
+      { exact λ (x:ℝ), set.mem_Iio.mpr },
+      { intro x,
+        simp,
+        intros h1 h2,
+        exact cos_pos_of_mem_Ioo (by linarith) h2 } } },
+end
+
+lemma tendsto_tan_pi_div_two : tendsto tan (𝓝[set.Iio (π/2)] (π/2)) at_top :=
+begin
+  convert tendsto_mul_at_top (by norm_num) (tendsto.inv_tendsto_zero tendsto_cos_pi_div_two)
+            tendsto_sin_pi_div_two,
+  ext x,
+  ring,
+  apply tan_eq_sin_div_cos x,
+end
+
+lemma tendsto_sin_neg_pi_div_two : tendsto sin (𝓝[set.Ioi (-(π/2))] (-(π/2))) (𝓝 (-1)) :=
+by { convert (@continuous.continuous_within_at _ _ _ _ _ (set.Ioi (-(π/2))) (-(π/2)) continuous_sin).tendsto,
+  simp [sin_neg (π/2)] }
+
+lemma tendsto_cos_neg_pi_div_two : tendsto cos (𝓝[set.Ioi (-(π/2))] (-(π/2))) (𝓝[set.Ioi 0] 0) :=
+begin
+  change (tendsto cos (𝓝[set.Ioi (-(π/2))] (-(π/2))) (_ ⊓ _)),
+  rw tendsto_inf,
+  split,
+  { convert (@continuous.continuous_within_at _ _ _ _ _ (set.Ioi (-(π/2))) (-(π/2)) continuous_cos).tendsto,
+    simp [cos_neg (π/2)] },
+  { rw tendsto_principal,
+    use set.Iio (0:ℝ),
+    split,
+    { exact mem_nhds_sets is_open_Iio (by simp [pi_div_two_pos]) },
+    { use set.Ioi (-(π/2)),
+      split,
+      { exact λ (x:ℝ), set.mem_Ioi.mpr },
+      { intro x,
+        simp,
+        intros h1 h2,
+        exact cos_pos_of_mem_Ioo h2 (by linarith) } } },
+end
+
+lemma tendsto_tan_neg_pi_div_two : tendsto tan (𝓝[set.Ioi (-(π/2))] (-(π/2))) at_bot :=
+begin
+  convert tendsto_mul_at_bot (by norm_num) (tendsto.inv_tendsto_zero tendsto_cos_neg_pi_div_two)
+            tendsto_sin_neg_pi_div_two,
+  ext x,
+  ring,
+  apply tan_eq_sin_div_cos x,
+end
+
+def tan_homeomorph : homeomorph (set.Ioo (-(π/2)) (π/2)) ℝ :=
+homeomorph_of_strict_mono_continuous_Ioo tan (λ x y, tan_lt_tan_of_lt_of_lt_pi_div_two)
+  continuous_on_tan_of_mem_Ioo tendsto_tan_pi_div_two tendsto_tan_neg_pi_div_two
+
+lemma arctan_homeomorph : arctan = coe ∘ tan_homeomorph.inv_fun :=
+begin
+  sorry,
+end
+
+lemma continuous_arctan : continuous arctan :=
+by { rw arctan_homeomorph, exact continuous_subtype_coe.comp tan_homeomorph.continuous_inv_fun }
+
+lemma has_deriv_at_arctan (x:ℝ) : has_deriv_at arctan (1 / (1 + x^2)) x :=
+begin
+  have h1 : 0 < 1 + x^2 := by nlinarith,
+  have h2 : cos (arctan x) ≠ 0 := by { rw cos_arctan, exact ne_of_gt (one_div_pos.mpr (sqrt_pos.mpr h1)) },
+  simpa [(cos_arctan x), sqr_sqrt (le_of_lt h1)] using has_deriv_at.of_local_left_inverse
+    continuous_arctan.continuous_at (has_deriv_at_tan (cos_ne_zero_iff.mp h2))
+      (one_div_ne_zero (pow_ne_zero 2 h2)) (by {apply eventually_of_forall, exact tan_arctan} ),
+end
+
+lemma differentiable_at_arctan (x:ℝ) : differentiable_at ℝ arctan x :=
+(has_deriv_at_arctan x).differentiable_at
+
+lemma deriv_arctan (x:ℝ) : deriv arctan x = 1 / (1 + x^2) :=
+(has_deriv_at_arctan x).deriv
+
 
 end real

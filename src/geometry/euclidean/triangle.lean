@@ -188,18 +188,18 @@ begin
     apply mul_right_cancel' hyn,
     apply mul_right_cancel' hxyn,
     apply mul_right_cancel' hxyn,
-    have H1 : real.sin (angle x (x - y)) * (inner y (y - x) / (∥y∥ * ∥y - x∥)) * ∥x∥ * ∥y∥ * ∥x - y∥ =
+    have H1 : real.sin (angle x (x - y)) * (⟪y, y - x⟫ / (∥y∥ * ∥y - x∥)) * ∥x∥ * ∥y∥ * ∥x - y∥ =
                 real.sin (angle x (x - y)) * (∥x∥ * ∥x - y∥) *
-                  (inner y (y - x) / (∥y∥ * ∥y - x∥)) * ∥y∥, { ring },
-    have H2 : inner x (x - y) / (∥x∥ * ∥y - x∥) * real.sin (angle y (y - x)) * ∥x∥ * ∥y∥ * ∥y - x∥ =
-                inner x (x - y) / (∥x∥ * ∥y - x∥) *
+                  (⟪y, y - x⟫ / (∥y∥ * ∥y - x∥)) * ∥y∥, { ring },
+    have H2 : ⟪x, x - y⟫ / (∥x∥ * ∥y - x∥) * real.sin (angle y (y - x)) * ∥x∥ * ∥y∥ * ∥y - x∥ =
+                ⟪x, x - y⟫ / (∥x∥ * ∥y - x∥) *
                   (real.sin (angle y (y - x)) * (∥y∥ * ∥y - x∥)) * ∥x∥, { ring },
-    have H3 : ⟪x, x⟫ * (inner x x - inner x y - (inner x y - inner y y)) -
-                (inner x x - inner x y) * (inner x x - inner x y) =
-              inner x x * inner y y - inner x y * inner x y, { ring },
-    have H4 : ⟪y, y⟫ * (inner y y - inner x y - (inner x y - inner x x)) -
-                (inner y y - inner x y) * (inner y y - inner x y) =
-              inner x x * inner y y - inner x y * inner x y, { ring },
+    have H3 : ⟪x, x⟫ * (⟪x, x⟫ - ⟪x, y⟫ - (⟪x, y⟫ - ⟪y, y⟫)) -
+                (⟪x, x⟫ - ⟪x, y⟫) * (⟪x, x⟫ - ⟪x, y⟫) =
+              ⟪x, x⟫ * ⟪y, y⟫ - ⟪x, y⟫ * ⟪x, y⟫, { ring },
+    have H4 : ⟪y, y⟫ * (⟪y, y⟫ - ⟪x, y⟫ - (⟪x, y⟫ - ⟪x, x⟫)) -
+                (⟪y, y⟫ - ⟪x, y⟫) * (⟪y, y⟫ - ⟪x, y⟫) =
+              ⟪x, x⟫ * ⟪y, y⟫ - ⟪x, y⟫  * ⟪x, y⟫, { ring },
     rw [right_distrib, right_distrib, right_distrib, right_distrib, H1,
         sin_angle_mul_norm_mul_norm, norm_sub_rev x y, H2, sin_angle_mul_norm_mul_norm,
         norm_sub_rev y x, mul_assoc (real.sin (angle x y)), sin_angle_mul_norm_mul_norm,

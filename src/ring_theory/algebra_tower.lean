@@ -356,4 +356,10 @@ begin
   simp
 end
 
+theorem is_basis.smul_repr_mk
+  {ι κ : Type*} {b : ι → S} {c : κ → A}
+  (hb : is_basis R b) (hc : is_basis S c) (x : A) (i : ι) (j : κ) :
+  (hb.smul hc).repr x (i, j) = hb.repr (hc.repr x j) i :=
+by simp [is_basis.smul_repr]
+
 end ring

@@ -177,17 +177,22 @@ def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E �
   end,
   ..e }
 
+variables {ι : Type*} [fintype ι]
+
 /-- Construct a continuous linear map given the value at a finite basis. -/
-def is_basis.constrL {ι : Type*} [fintype ι] {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) :
+def is_basis.constrL {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) :
   E →L[𝕜] F :=
 ⟨hv.constr f, begin
   haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finite_basis hv,
   exact (hv.constr f).continuous_of_finite_dimensional,
 end⟩
 
+@[norm_cast] lemma is_basis.coe_constrL {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) :
+  (hv.constrL f : E →ₗ[𝕜] F) = hv.constr f := rfl
+
 /-- The continuous linear equivalence between a vector space over `𝕜` with a finite basis and
 functions from its basis indexing type to `𝕜`. -/
-def is_basis.equiv_funL {ι : Type*} [fintype ι] {v : ι → E} (hv : is_basis 𝕜 v) : E ≃L[𝕜] (ι → 𝕜) :=
+def is_basis.equiv_funL {v : ι → E} (hv : is_basis 𝕜 v) : E ≃L[𝕜] (ι → 𝕜) :=
 { continuous_to_fun := begin
     haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finite_basis hv,
     apply linear_map.continuous_of_finite_dimensional,
@@ -198,34 +203,56 @@ def is_basis.equiv_funL {ι : Type*} [fintype ι] {v : ι → E} (hv : is_basis 
   end,
   ..hv.equiv_fun }
 
-@[simp] lemma is_basis.constrL_apply {ι : Type*} [fintype ι] {v : ι → E} (hv : is_basis 𝕜 v)(f : ι → F) (e : E) :
-  (hv.constrL f) e = ∑ i, (hv.equiv_fun e i) • f i :=
-by { simp [is_basis.constrL, hv.equiv_fun_apply, hv.constr_apply, finsupp.sum_fintype] }
 
-lemma is_basis.sup_norm_le_norm  {ι : Type*} [fintype ι] {v : ι → E} (hv : is_basis 𝕜 v) :
+@[simp] lemma is_basis.constrL_apply {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) (e : E) :
+  (hv.constrL f) e = ∑ i, (hv.equiv_fun e i) • f i :=
+by simp [is_basis.constrL, hv.equiv_fun_apply, hv.constr_apply, finsupp.sum_fintype]
+
+@[simp] lemma is_basis.constrL_apply_self {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) (i : ι) :
+  (hv.constrL f) (v i) = f i :=
+begin
+ simp only [is_basis.constrL_apply, hv.equiv_fun_self],
+ have : ∀ j ∈ (finset.univ : finset ι), ite (i = j) (1 :𝕜) 0 • f j = ite (i = j) (f i) 0,
+ { intros x hx,
+   split_ifs ; simp [h] },
+ simpa using finset.sum_congr rfl this
+end
+
+lemma is_basis.sup_norm_le_norm  {v : ι → E} (hv : is_basis 𝕜 v) :
   ∃ C > (0 : ℝ), ∀ e : E, ∑ i, ∥hv.equiv_fun e i∥ ≤ C * ∥e∥ :=
 begin
   set φ := hv.equiv_funL.to_continuous_linear_map,
   set C := ∥φ∥ * (fintype.card ι),
-  use if 0 < C then C else 1,
-  split,
-  { split_ifs,
-    exacts [h, zero_lt_one] },
-  { intros e,
-    have key :=
-      calc ∑ i, ∥φ e i∥ ≤ ∑ i : ι, ∥φ e∥ : by { apply finset.sum_le_sum,
-                                               exact λ i hi, norm_le_pi_norm (φ e) i }
-      ... = ∥φ e∥*(fintype.card ι) : by simpa only [mul_comm, finset.sum_const, nsmul_eq_mul]
-      ... ≤ ∥φ∥ * ∥e∥ * (fintype.card ι) : mul_le_mul_of_nonneg_right (φ.le_op_norm e)
-                                                                     (fintype.card ι).cast_nonneg
-      ... = (∥φ∥ * (fintype.card ι)) * ∥e∥ : by ring,
-    split_ifs,
-    { exact key },
-    { apply le_trans key,
-      simp [C] at h,
-      rw one_mul,
-      calc ∥φ∥ * (fintype.card ι) * ∥e∥ ≤ 0 : mul_nonpos_of_nonpos_of_nonneg h (norm_nonneg e)
-      ... ≤ ∥e∥ : norm_nonneg e } }
+  use [max C 1, lt_of_lt_of_le (zero_lt_one) (le_max_right C 1)],
+  intros e,
+  calc ∑ i, ∥φ e i∥ ≤ ∑ i : ι, ∥φ e∥ : by { apply finset.sum_le_sum,
+                                           exact λ i hi, norm_le_pi_norm (φ e) i }
+  ... = ∥φ e∥*(fintype.card ι) : by simpa only [mul_comm, finset.sum_const, nsmul_eq_mul]
+  ... ≤ ∥φ∥ * ∥e∥ * (fintype.card ι) : mul_le_mul_of_nonneg_right (φ.le_op_norm e)
+                                                                 (fintype.card ι).cast_nonneg
+  ... = ∥φ∥ * (fintype.card ι) * ∥e∥ : by ring
+  ... ≤ max C 1 * ∥e∥ :  mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _)
+end
+
+lemma is_basis.op_norm_le  {ι : Type*} [fintype ι] {v : ι → E} (hv : is_basis 𝕜 v) :
+  ∃ C > (0 : ℝ), ∀ {u : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥u (v i)∥ ≤ M) → ∥u∥ ≤ C*M :=
+begin
+  obtain ⟨C, C_pos, hC⟩ : ∃ C > (0 : ℝ), ∀ (e : E), ∑ i, ∥hv.equiv_fun e i∥ ≤ C * ∥e∥,
+    from hv.sup_norm_le_norm,
+  use [C, C_pos],
+  intros u M hM hu,
+  apply u.op_norm_le_bound (mul_nonneg (le_of_lt C_pos) hM),
+  intros e,
+  calc
+  ∥u e∥ = ∥u (∑ i, hv.equiv_fun e i • v i)∥ :  by conv_lhs { rw ← hv.equiv_fun_total e }
+  ... = ∥∑ i, (hv.equiv_fun e i) • (u $ v i)∥ :  by simp [u.map_sum, linear_map.map_smul]
+  ... ≤ ∑ i, ∥(hv.equiv_fun e i) • (u $ v i)∥ : norm_sum_le _ _
+  ... = ∑ i, ∥hv.equiv_fun e i∥ * ∥u (v i)∥ : by simp only [norm_smul]
+  ... ≤ ∑ i, ∥hv.equiv_fun e i∥ * M : finset.sum_le_sum (λ i hi,
+                                                  mul_le_mul_of_nonneg_left (hu i) (norm_nonneg _))
+  ... = (∑ i, ∥hv.equiv_fun e i∥) * M : finset.sum_mul.symm
+  ... ≤ C * ∥e∥ * M : mul_le_mul_of_nonneg_right (hC e) hM
+  ... = C * M * ∥e∥ : by ring
 end
 
 instance [finite_dimensional 𝕜 E] [second_countable_topology F] :
@@ -237,10 +264,10 @@ begin
   from metric.second_countable_of_countable_discretization
     (λ ε ε_pos, ⟨fin d → ℕ, by apply_instance, this ε ε_pos⟩),
   intros ε ε_pos,
-  obtain ⟨u, hu⟩ := exists_dense_seq F,
-  obtain ⟨v, hv⟩ : ∃ v : fin d → E, is_basis 𝕜 v := finite_dimensional.fin_basis 𝕜 E,
-  obtain ⟨C, C_pos, hC⟩ : ∃ C > (0 : ℝ), ∀ (e : E), ∑ i, ∥hv.equiv_fun e i∥ ≤ C * ∥e∥,
-    from hv.sup_norm_le_norm,
+  obtain ⟨u : ℕ → F, hu : closure (range u) = univ⟩ := exists_dense_seq F,
+  obtain ⟨v : fin d → E, hv : is_basis 𝕜 v⟩ := finite_dimensional.fin_basis 𝕜 E,
+  obtain ⟨C : ℝ, C_pos : 0 < C,
+          hC : ∀ {φ : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥φ (v i)∥ ≤ M) → ∥φ∥ ≤ C * M⟩ := hv.op_norm_le,
   have h_2C : 0 < 2*C := mul_pos two_pos C_pos,
   have hε2C : 0 < ε/(2*C) := div_pos ε_pos h_2C,
   have : ∀ φ : E →L[𝕜] F, ∃ n : fin d → ℕ, ∥φ - (hv.constrL $ u ∘ n)∥ ≤ ε/2,
@@ -256,22 +283,12 @@ begin
       exact ⟨n, le_of_lt hn⟩ },
     choose n hn using this,
     use n,
-    apply continuous_linear_map.op_norm_le_bound _ (le_of_lt $ half_pos ε_pos),
-    intros e,
-    simp only [is_basis.constrL_apply, continuous_linear_map.coe_sub', function.comp_app, pi.sub_apply],
-    conv_lhs { congr, congr, rw ← hv.equiv_fun_total e },
-    rw [φ.map_sum, ← finset.sum_sub_distrib],
-    conv_lhs { congr, congr, skip, simp [linear_map.map_smul, ← smul_sub] },
-    calc ∥∑ i, (hv.equiv_fun) e i • (φ (v i) - u (n i))∥
-        ≤ ∑ i, ∥(hv.equiv_fun) e i • (φ (v i) - u (n i))∥ : by { apply norm_sum_le }
-    ... = ∑ i, ∥(hv.equiv_fun) e i∥ * ∥(φ (v i) - u (n i))∥ : by simp [norm_smul]
-    ... ≤  ∑ i, ∥(hv.equiv_fun) e i∥ * (ε/(2*C)) : finset.sum_le_sum (λ i hi,
-                                                   mul_le_mul_of_nonneg_left (hn i) (norm_nonneg _))
-    ... = (∑ i, ∥(hv.equiv_fun) e i∥) * (ε/(2*C)) : by rw finset.sum_mul
-    ... ≤ C*∥e∥ * (ε/(2*C)) : mul_le_mul_of_nonneg_right (hC e) (le_of_lt hε2C)
-    ... = ε / 2 * ∥e∥ : by { field_simp [C_pos, h_2C],
-                             rw [show C * ∥e∥ * ε * 2= ∥e∥ * ε * (2*C), by ring,
-                                 mul_div_cancel _ (ne_of_gt h_2C), mul_comm] } },
+    replace hn : ∀ i : fin d, ∥(φ - (hv.constrL $ u ∘ n)) (v i)∥ ≤ ε / (2 * C), by simp [hn],
+    have : C * (ε / (2 * C)) = ε/2,
+    { rw [eq_div_iff (two_ne_zero : (2 : ℝ) ≠ 0), mul_comm, ← mul_assoc,
+          mul_div_cancel' _ (ne_of_gt h_2C)] },
+    specialize hC (le_of_lt hε2C) hn,
+    rwa this at hC },
   choose n hn using this,
   set Φ := λ φ : E →L[𝕜] F, (hv.constrL $ u ∘ (n φ)),
   change ∀ z, dist z (Φ z) ≤ ε/2 at hn,

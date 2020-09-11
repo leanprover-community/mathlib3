@@ -380,12 +380,13 @@ end
 
 /-- If there exists a distance that a point has from all vertices of a
 simplex, the orthogonal projection of that point onto the subspace
-spanned by that simplex is its circumcenter.  Version with distance
-condition using `set.range`. -/
+spanned by that simplex is its circumcenter.  -/
 lemma orthogonal_projection_eq_circumcenter_of_exists_dist_eq {n : ℕ} (s : simplex ℝ P n)
-  {p : P} (hr : ∃ r, ∀ p₁ ∈ set.range s.points, dist p₁ p = r) :
+  {p : P} (hr : ∃ r, ∀ i, dist (s.points i) p = r) :
   orthogonal_projection (affine_span ℝ (set.range s.points)) p = s.circumcenter :=
 begin
+  change ∃ r : ℝ, ∀ i, (λ x, dist x p = r) (s.points i) at hr,
+  conv at hr { congr, funext, rw ←set.forall_range_iff },
   rw exists_dist_eq_iff_exists_dist_orthogonal_projection_eq (subset_affine_span ℝ _) p at hr,
   cases hr with r hr,
   rw set.forall_range_iff at hr,
@@ -396,37 +397,13 @@ begin
       p) hr
 end
 
-/-- If there exists a distance that a point has from all vertices of a
-simplex, the orthogonal projection of that point onto the subspace
-spanned by that simplex is its circumcenter.  Version with distance
-condition being for all indicies in `fin (n + 1)`. -/
-lemma orthogonal_projection_eq_circumcenter_of_exists_dist_eq' {n : ℕ} (s : simplex ℝ P n)
-  {p : P} (hr : ∃ r, ∀ i, dist (s.points i) p = r) :
-  orthogonal_projection (affine_span ℝ (set.range s.points)) p = s.circumcenter :=
-begin
-  have h : ∃ r, ∀ p₁ ∈ set.range s.points, dist p₁ p = r,
-  { simp_rw [set.forall_range_iff],
-    exact hr },
-  exact s.orthogonal_projection_eq_circumcenter_of_exists_dist_eq h
-end
-
 /-- If a point has the same distance from all vertices of a simplex,
 the orthogonal projection of that point onto the subspace spanned by
-that simplex is its circumcenter.  Version with distance condition
-using `set.range`. -/
+that simplex is its circumcenter.  -/
 lemma orthogonal_projection_eq_circumcenter_of_dist_eq {n : ℕ} (s : simplex ℝ P n) {p : P}
-  {r : ℝ} (hr : ∀ p₁ ∈ set.range s.points, dist p₁ p = r) :
-  orthogonal_projection (affine_span ℝ (set.range s.points)) p = s.circumcenter :=
-s.orthogonal_projection_eq_circumcenter_of_exists_dist_eq ⟨r, hr⟩
-
-/-- If a point has the same distance from all vertices of a simplex,
-the orthogonal projection of that point onto the subspace spanned by
-that simplex is its circumcenter.  Version with distance condition
-being for all indices in `fin (n + 1)`. -/
-lemma orthogonal_projection_eq_circumcenter_of_dist_eq' {n : ℕ} (s : simplex ℝ P n) {p : P}
   {r : ℝ} (hr : ∀ i, dist (s.points i) p = r) :
   orthogonal_projection (affine_span ℝ (set.range s.points)) p = s.circumcenter :=
-s.orthogonal_projection_eq_circumcenter_of_exists_dist_eq' ⟨r, hr⟩
+s.orthogonal_projection_eq_circumcenter_of_exists_dist_eq ⟨r, hr⟩
 
 /-- The orthogonal projection of the circumcenter onto a face is the
 circumcenter of that face. -/
@@ -438,7 +415,7 @@ begin
   have hr : ∃ r, ∀ i, dist ((s.face h).points i) s.circumcenter = r,
   { use s.circumradius,
     simp [face_points] },
-  rw [←range_face_points, orthogonal_projection_eq_circumcenter_of_exists_dist_eq' _ hr]
+  rw [←range_face_points, orthogonal_projection_eq_circumcenter_of_exists_dist_eq _ hr]
 end
 
 omit V
@@ -639,8 +616,8 @@ lemma eq_or_eq_reflection_of_dist_eq {n : ℕ} {s : simplex ℝ P n} {p p₁ p�
     (h₁ : ∀ i, dist (s.points i) p₁ = r) (h₂ : ∀ i, dist (s.points i) p₂ = r) :
   p₁ = p₂ ∨ p₁ = reflection (affine_span ℝ (set.range s.points)) p₂ :=
 begin
-  have h₁' := s.orthogonal_projection_eq_circumcenter_of_dist_eq' h₁,
-  have h₂' := s.orthogonal_projection_eq_circumcenter_of_dist_eq' h₂,
+  have h₁' := s.orthogonal_projection_eq_circumcenter_of_dist_eq h₁,
+  have h₂' := s.orthogonal_projection_eq_circumcenter_of_dist_eq h₂,
   have hn : (affine_span ℝ (set.range s.points) : set P).nonempty :=
     (affine_span_nonempty ℝ _).2 (set.range_nonempty _),
   have hc : is_complete ((affine_span ℝ (set.range s.points)).direction : set V) :=

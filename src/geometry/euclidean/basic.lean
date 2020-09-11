@@ -20,7 +20,7 @@ This file makes some definitions and proves very basic geometrical
 results about real inner product spaces and Euclidean affine spaces.
 Results about real inner product spaces that involve the norm and
 inner product but not angles generally go in
-`analysis.normed_space.real_inner_product`.  Results with longer
+`analysis.normed_space.inner_product`.  Results with longer
 proofs or more geometrical content generally go in separate files.
 
 ## Main definitions
@@ -40,7 +40,7 @@ proofs or more geometrical content generally go in separate files.
 ## Implementation notes
 
 To declare `P` as the type of points in a Euclidean affine space with
-`V` as the type of vectors, use `[inner_product_space V] [metric_space P]
+`V` as the type of vectors, use `[inner_product_space ℝ V] [metric_space P]
 [normed_add_torsor V P]`.  This works better with `out_param` to make
 `V` implicit in most cases than having a separate type alias for
 Euclidean affine spaces.

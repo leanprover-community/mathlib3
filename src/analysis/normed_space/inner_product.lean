@@ -33,7 +33,9 @@ two vectors. In particular vectors `x` and `y` are orthogonal if their inner pro
 
 ## Notation
 
-We locally denote the inner product by `⟪·, ·⟫`.
+We locally denote the inner product by `⟪·, ·⟫`. We also provide two notation namespaces:
+`real_inner_product_space` and `complex_inner_product_space`, which introduce the notation
+`⟪·, ·⟫` for the real and the complex inner product respectively.
 
 ## Implementation notes
 
@@ -43,8 +45,8 @@ in the second.
 
 ## TODO
 
-- Fix the section on the existence of minimizers to make sure that it also applies in the complex
-  case.
+- Fix the section on the existence of minimizers and orthogonal projections to make sure that it
+  also applies in the complex case.
 
 ## Tags
 

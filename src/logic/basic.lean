@@ -732,6 +732,9 @@ by simp [and_comm]
 @[simp] theorem forall_eq {a' : α} : (∀a, a = a' → p a) ↔ p a' :=
 ⟨λ h, h a' rfl, λ h a e, e.symm ▸ h⟩
 
+@[simp] theorem forall_eq' {a' : α} : (∀a, a' = a → p a) ↔ p a' :=
+by simp [@eq_comm _ a']
+
 @[simp] theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
 
 @[simp] theorem exists_eq' {a' : α} : ∃ a, a' = a := ⟨_, rfl⟩
@@ -755,9 +758,6 @@ by simp [and_comm]
 @[simp] theorem exists_exists_eq_and {f : α → β} {p : β → Prop} :
   (∃ b, (∃ a, f a = b) ∧ p b) ↔ ∃ a, p (f a) :=
 ⟨λ ⟨b, ⟨a, ha⟩, hb⟩, ⟨a, ha.symm ▸ hb⟩, λ ⟨a, ha⟩, ⟨f a, ⟨a, rfl⟩, ha⟩⟩
-
-@[simp] theorem forall_eq' {a' : α} : (∀a, a' = a → p a) ↔ p a' :=
-by simp [@eq_comm _ a']
 
 @[simp] theorem exists_eq_left' {a' : α} : (∃ a, a' = a ∧ p a) ↔ p a' :=
 by simp [@eq_comm _ a']

@@ -423,7 +423,7 @@ begin
     -- and the dimensions of `ES` and `ER` add up to `findim K V`.
     have h_dim_add : findim K ER + findim K ES = findim K V,
     { apply linear_map.findim_range_add_findim_ker },
-    -- Therfore the dimension `ER` mus be smaller than `findim K V`.
+    -- Therefore the dimension `ER` mus be smaller than `findim K V`.
     have h_dim_ER : findim K ER < n.succ, by omega,
     -- This allows us to apply the induction hypothesis on `ER`:
     have ih_ER : (⨆ (μ : K) (k : ℕ), f'.generalized_eigenspace μ k) = ⊤,
@@ -439,7 +439,7 @@ begin
     { intros,
       rw [generalized_eigenspace_restrict],
       apply submodule.map_comap_le},
-    -- It follows that ER is contained in the span of all generalized eigenvectors.
+    -- It follows that `ER` is contained in the span of all generalized eigenvectors.
     have hER : ER ≤ ⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k,
     { rw ← ih_ER',
       apply supr_le_supr _,

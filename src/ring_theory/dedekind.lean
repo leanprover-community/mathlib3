@@ -8,18 +8,6 @@ variables [algebra R A]
 open function
 open_locale big_operators
 
-structure is_integrally_closed_in : Prop :=
-(inj : injective (algebra_map R A))
-(closed : ∀ (a : A), is_integral R a → ∃ r : R, algebra_map R A r = a)
-
---should modify to be a statement about polynomials instead
-def is_integrally_closed_domain : Prop := ∀ {r s : R}, s ≠ 0 → (∃ (n : ℕ) (f : ℕ → R) (hf : f 0 = 1),
-    ∑ ij in finset.nat.antidiagonal n, f ij.1 * r ^ ij.2 * s ^ ij.1 = 0) → s ∣ r
-
-/-!
-Any nontrivial localization of an integral domain results in an integral domain
--/
-
 /-
 Chopping block:
 -- class discrete_valuation_ring [comm_ring R] : Prop :=
@@ -30,83 +18,57 @@ Chopping block:
 --     (is_pir : is_principal_ideal_ring(R))
 -/
 
-
-/-!
-Def 1: integral domain, noetherian, integrally closed, nonzero prime ideals are maximal
--/
-class dedekind_id : Prop :=
-    (noetherian : is_noetherian_ring R')
-    (int_closed : is_integrally_closed_domain R')
-    (max_nonzero_primes : ∀ P ≠ (⊥ : ideal R'), P.is_prime → P.is_maximal)
-    (non_field : ∃(I : ideal R'), ⊥ < I ∧ I < ⊤)
-
-/-
-Def 2: noetherian ring,
-localization at each nonzero prime ideals is a DVR.
-
-Something is a discrete valuation ring if
-it is an integral domain and is a PIR and has one non-zero maximal ideal.
--/
-
-class dedekind_dvr : Prop :=
-  (noetherian : is_noetherian_ring R')
-  (local_dvr_nonzero_prime : ∀ P ≠ (⊥ : ideal R'), P.is_prime →
-    @discrete_valuation_ring (localization.at_prime P) (by {letI := localization_map.integral_domain_of_local_at_prime a, assumption,}))
-  (non_field : ∃(I : ideal R'), ⊥ < I ∧ I < ⊤)
-/-
-Def 3: every nonzero fractional ideal is invertible.
-
-Fractional ideal: I = {r | rI ⊆ R}
-It is invertible if there exists a fractional ideal J
-such that IJ=R.
-This definition might be entirely wrong as is, and f should be able to be inferred.
--/
-
-class dedekind_inv (f : localization_map (non_zero_divisors R') $ localization (non_zero_divisors R')) : Prop :=
-  (inv_ideals : ∀ I : ring.fractional_ideal f, (∃ t : I, t ≠ 0) → (∃ J : ring.fractional_ideal f, I * J = 1))
-  (non_field : ∃(I : ideal R'), ⊥ < I ∧ I < ⊤)
-
-
 --make lemma that the image of P under the local map is that of the unique prime ideal of the local ring
-lemma dedekind_id_imp_dedekind_dvr [dedekind_id R'] : dedekind_dvr R' :=
+/-
+(almost) Need that the localization is another dedekind domain.
+In general, noetherian is preserved under localizations, same with Krull dim
+
+https://math.mit.edu/classes/18.785/2017fa/LectureNotes2.pdf
+
+Should prove that `discrete_valuation_ring R ↔ {is_noetherian : _, is_integrally_closed : _, is_one_dim : _, is_local_ring : _`.
+most of these things then drop out easily.
+-/
+lemma dedekind_id_imp_dedekind_dvr [is_dedekind_domain R'] : is_dedekind_domain_dvr R' :=
 begin
-  refine {noetherian := dedekind_id.noetherian, local_dvr_nonzero_prime := _, non_field := dedekind_id.non_field},
+  refine {is_noetherian_ring := is_dedekind_domain.is_noetherian_ring, is_dvr_at_nonzero_prime := _, not_is_field := is_dedekind_domain.not_is_field},
   intros P hp_nonzero hp_prime,
   letI := hp_prime,
   have f := localization.of (ideal.prime_compl P), --this line fails without the letI
   rw discrete_valuation_ring.iff_pid_with_one_nonzero_prime (localization.at_prime P),
   split, swap,
-  {
-    have p' := local_ring.maximal_ideal (localization.at_prime P),
-    have hp' := local_ring.maximal_ideal.is_maximal (localization.at_prime P),
-    use p',
+  { --local Krull dim = 1
+    rcases local_ring.maximal_ideal_unique (localization.at_prime P) with ⟨q',hqmax, hq2⟩,
+    use q',
     fsplit,
-    split,
-    repeat {sorry},
+    exact ⟨ by { sorry, } , ideal.is_maximal.is_prime hqmax,⟩,
+    rintro Q ⟨nebot, hQ⟩,
+    have h1 : Q.is_maximal, sorry,
+    apply hq2 Q h1,
   },
+
   repeat {sorry},
 end
-
-lemma dedekind_dvr_imp_dedekind_inv [dedekind_dvr R'] (f : fraction_map R' $ localization (non_zero_divisors R')) :
-  dedekind_inv R' f :=
+/-
+lemma dedekind_dvr_imp_dedekind_inv [is_dedekind_domain_dvr R'] : is_dedekind_domain_inv R' :=
 begin
     sorry,
 end
 
-lemma dedekind_inv_imp_dedekind_id (f : fraction_map R' $ localization (non_zero_divisors R')) [dedekind_inv R' f] :
-  dedekind_id R' :=
+lemma dedekind_inv_imp_dedekind_id [is_dedekind_domain_inv R'] : is_dedekind_domain R' :=
 begin
   sorry,
 end
 
-lemma dedekind_id_imp_dedekind_inv [dedekind_id R'] (f : fraction_map R' $ localization (non_zero_divisors R')) : dedekind_inv R' f :=
-by {letI := dedekind_id_imp_dedekind_dvr R', exact dedekind_dvr_imp_dedekind_inv R' f,}
+lemma dedekind_id_imp_dedekind_inv [is_dedekind_domain R'] : is_dedekind_domain_inv R' :=
+by {have I := dedekind_id_imp_dedekind_dvr R', exact @dedekind_dvr_imp_dedekind_inv R' _ I,}
 
-lemma dedekind_inv_imp_dedekind_dvr (f : fraction_map R' $ localization (non_zero_divisors R')) [dedekind_inv R' f] : dedekind_dvr R' :=
+lemma dedekind_inv_imp_dedekind_dvr [is_dedekind_domain_inv R'] : is_dedekind_domain_dvr R' :=
 by {letI := dedekind_inv_imp_dedekind_id R', exact dedekind_id_imp_dedekind_dvr R',}
 
 lemma dedekind_dvr_imp_dedekind_id (f : fraction_map R' $ localization (non_zero_divisors R')) [dedekind_dvr R'] : dedekind_id R' :=
 by {letI := dedekind_dvr_imp_dedekind_inv R', exact dedekind_inv_imp_dedekind_id R' f,}
+-/
+
 
 /-
 Time to break a lot of things !
@@ -120,8 +82,6 @@ probably morally correct: fractional ideals have prime factorization !
 open_locale classical
 
 --make analogous statement for submodules
-lemma ideal_mul_span (r s : R') : ideal.span{r} * ideal.span{s} = (ideal.span{r * s} : ideal R') :=
-by { unfold ideal.span, rw [submodule.span_mul_span, set.singleton_mul_singleton],}
 
 namespace dedekind
 
@@ -162,9 +122,9 @@ Now observe that (M+(r))(M+(s)) is divisible by some primes, but M*M ⊂ M, rM �
 this is contained in M, but this is a contradiction.
 -/
 
-lemma ideal_contains_prime_product [dedekind_id R'] (I : ideal R') (gt_zero : ⊥ < I) : ∃(pset : multiset $ ideal R'), ∅ < pset ∧ pset.prod ≤ I ∧ (∀(P ∈ pset), ideal.is_prime P ∧ ⊥ < P) :=
+lemma ideal_contains_prime_product [is_dedekind_domain R'] (I : ideal R') (gt_zero : ⊥ < I) : ∃(pset : multiset $ ideal R'), ∅ < pset ∧ pset.prod ≤ I ∧ (∀(P ∈ pset), ideal.is_prime P ∧ ⊥ < P) :=
 begin
-  letI : is_noetherian R' R', exact dedekind_id.noetherian,
+  letI : is_noetherian R' R', exact is_dedekind_domain.is_noetherian_ring,
   by_contra hyp,
   push_neg at hyp,
   let A := {J : ideal R' | ∀(qset : multiset $ ideal R'), ∅ < qset → qset.prod ≤ J → (∃ (P : ideal R'), P ∈ qset ∧ (P.is_prime → ¬⊥ < P))},
@@ -174,10 +134,11 @@ begin
   rw set.mem_set_of_eq at Mkey,
   by_cases ne_top : M = ⊤,
   { --basically krull's theorem
-    rcases top_contains_nonzero_prime R' dedekind_id.non_field with ⟨P, hp, gt_bot, lt_top⟩,
-    cases hp with hp _,
+    have not_field : ¬ is_field R', exact is_dedekind_domain.not_is_field,
+    rcases ring.not_is_field_iff_exists_prime.1 not_field with ⟨P, ne0, hp⟩,
+    have netop := hp.1,
+    have bot_lt := bot_lt_iff_ne_bot.mpr ne0,
     rw ne_top at *,
-    have hp : P.is_prime, unfold ideal.is_prime, split, assumption',
     let qs := ({P} : multiset $ ideal R'),
     have h2 : ∅ < qs, exact (∅ : multiset $ ideal R').lt_cons_self P,
     have h3 : qs.prod ≤ ⊤, have blah : qs.prod = P, exact multiset.prod_singleton P, rw blah, exact submodule.comap_subtype_eq_top.mp rfl,
@@ -216,7 +177,7 @@ begin
   { simp only [hrm, hrs, left_distrib, right_distrib],
     repeat {rw ideal.add_eq_sup},
     simp only [ideal.mul_le_left, ideal.mul_le_right, sup_le_iff, true_and],
-    have := ideal_mul_span R' r s,
+    have := ideal.span_singleton_mul_span_singleton r s,
     rw this, rw ideal.span_le, exact set.singleton_subset_iff.mpr hr },
   have key1 : rm ∉ A,
   { intro rma,
@@ -277,7 +238,7 @@ We have that J ⊂ A, as α ∈ I. so γ J ⊂ γ A ⊂ R.
 We make the observation that γ J ⊂ J.
 
 -/
-lemma exists_ideal_prod_principal [dedekind_id R'](I : ideal R') : ∃ (J : ideal R'), (I * J).is_principal ∧ (J ≠ ⊥) :=
+lemma exists_ideal_prod_principal [is_dedekind_domain R'](I : ideal R') : ∃ (J : ideal R'), (I * J).is_principal ∧ (J ≠ ⊥) :=
 begin
   sorry,
 end
@@ -288,7 +249,7 @@ begin
   sorry,
 end
 
-lemma ddk_mul_right_inj [dedekind_id R'] (A B C : ideal R') (A ≠ ⊥ ) : A * B = A * C ↔ B=C :=
+lemma ddk_mul_right_inj [is_dedekind_domain R'] (A B C : ideal R') (A ≠ ⊥ ) : A * B = A * C ↔ B=C :=
 begin
   symmetry,
   split,
@@ -333,7 +294,7 @@ end
 /-
 TODO: Refactor ddk_left_inj to be more like mul_left_inj
 -/
-lemma ddk_left_inj [dedekind_id R'] (A B C : ideal R') ( C ≠ ⊥ ) : A * C = B * C ↔ A = B :=
+lemma ddk_left_inj [is_dedekind_domain R'] (A B C : ideal R') ( C ≠ ⊥ ) : A * C = B * C ↔ A = B :=
 begin
   rw [mul_comm(A), mul_comm(B)],
   have h1 := ddk_mul_right_inj R' C A B C H, --why does this require so many args?
@@ -341,13 +302,13 @@ begin
 end
 
 --This is currently dead wrong
-lemma ideal_prime_factorization [dedekind_id R'] (I : ideal R') : ∃ (pset : finset $ ideal R'), ∃(powset : finset $ ℕ ), (finset.card pset = finset.card powset) ∧ (∀(P ∈  pset), ideal.is_prime(P)) ∧ false :=
+lemma ideal_prime_factorization [is_dedekind_domain R'] (I : ideal R') : ∃ (pset : finset $ ideal R'), ∃(powset : finset $ ℕ ), (finset.card pset = finset.card powset) ∧ (∀(P ∈  pset), ideal.is_prime(P)) ∧ false :=
 begin
   sorry,
 end
 
 --every ideal is generated by at most two elements of dedekind domain
-lemma two_generators [dedekind_id R'] (I : ideal R') : ∃ (a b : R'), I = ideal.span {a,b} :=
+lemma two_generators [is_dedekind_domain R'] (I : ideal R') : ∃ (a b : R'), I = ideal.span {a,b} :=
 begin
   by_cases ⊥ < I,
   tactic.swap,

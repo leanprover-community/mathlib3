@@ -89,14 +89,6 @@ direction gives a commutative triangle.
 def iso_mk {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom . obviously) : f ≅ g :=
 comma.iso_mk hl (eq_to_iso (subsingleton.elim _ _)) (by simp [hw])
 
-@[simp]
-lemma iso_mk_hom_left {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom) :
-  (iso_mk hl hw).hom.left = hl.hom := rfl
-
-@[simp]
-lemma iso_mk_inv_left {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom) :
-  (iso_mk hl hw).inv.left = hl.inv := rfl
-
 /--
 The forgetful functor mapping an arrow to its domain.
 

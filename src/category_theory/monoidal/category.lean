@@ -21,6 +21,8 @@ Tensor product does not need to be strictly associative on objects, but there is
 specified associator, `α_ X Y Z : (X ⊗ Y) ⊗ Z ≅ X ⊗ (Y ⊗ Z)`. There is a tensor unit `𝟙_ C`,
 with specified left and right unitor isomorphisms `λ_ X : 𝟙_ C ⊗ X ≅ X` and `ρ_ X : X ⊗ 𝟙_ C ≅ X`.
 These associators and unitors satisfy the pentagon and triangle equations.
+
+See https://stacks.math.columbia.edu/tag/0FFK.
 -/
 class monoidal_category (C : Type u) [𝒞 : category.{v} C] :=
 -- curried tensor product of objects:
@@ -284,24 +286,32 @@ begin
 end
 
 -- See Proposition 2.2.4 of <http://www-math.mit.edu/~etingof/egnobookfinal.pdf>
-@[simp] lemma left_unitor_tensor (X Y : C) :
-  ((α_ (𝟙_ C) X Y).hom) ≫ ((λ_ (X ⊗ Y)).hom) =
-    ((λ_ X).hom ⊗ (𝟙 Y)) :=
+lemma left_unitor_tensor' (X Y : C) :
+  ((α_ (𝟙_ C) X Y).hom) ≫ ((λ_ (X ⊗ Y)).hom) = ((λ_ X).hom ⊗ (𝟙 Y)) :=
 by rw [←tensor_left_iff, id_tensor_comp, left_unitor_product_aux]
 
-@[simp] lemma left_unitor_tensor_inv (X Y : C) :
-  ((λ_ (X ⊗ Y)).inv) ≫ ((α_ (𝟙_ C) X Y).inv) =
-    ((λ_ X).inv ⊗ (𝟙 Y)) :=
+@[simp]
+lemma left_unitor_tensor (X Y : C) :
+  ((λ_ (X ⊗ Y)).hom) = ((α_ (𝟙_ C) X Y).inv) ≫ ((λ_ X).hom ⊗ (𝟙 Y)) :=
+by { rw [←left_unitor_tensor'], simp }
+
+lemma left_unitor_tensor_inv' (X Y : C) :
+  ((λ_ (X ⊗ Y)).inv) ≫ ((α_ (𝟙_ C) X Y).inv) = ((λ_ X).inv ⊗ (𝟙 Y)) :=
 eq_of_inv_eq_inv (by simp)
 
-@[simp] lemma right_unitor_tensor (X Y : C) :
-  ((α_ X Y (𝟙_ C)).hom) ≫ ((𝟙 X) ⊗ (ρ_ Y).hom) =
-    ((ρ_ (X ⊗ Y)).hom) :=
+@[simp]
+lemma left_unitor_tensor_inv (X Y : C) :
+  ((λ_ (X ⊗ Y)).inv) = ((λ_ X).inv ⊗ (𝟙 Y)) ≫ ((α_ (𝟙_ C) X Y).hom) :=
+by { rw [←left_unitor_tensor_inv'], simp }
+
+@[simp]
+lemma right_unitor_tensor (X Y : C) :
+  ((ρ_ (X ⊗ Y)).hom) = ((α_ X Y (𝟙_ C)).hom) ≫ ((𝟙 X) ⊗ (ρ_ Y).hom) :=
 by rw [←tensor_right_iff, comp_tensor_id, right_unitor_product_aux]
 
-@[simp] lemma right_unitor_tensor_inv (X Y : C) :
-  ((𝟙 X) ⊗ (ρ_ Y).inv) ≫ ((α_ X Y (𝟙_ C)).inv) =
-    ((ρ_ (X ⊗ Y)).inv) :=
+@[simp]
+lemma right_unitor_tensor_inv (X Y : C) :
+  ((ρ_ (X ⊗ Y)).inv) = ((𝟙 X) ⊗ (ρ_ Y).inv) ≫ ((α_ X Y (𝟙_ C)).inv) :=
 eq_of_inv_eq_inv (by simp)
 
 lemma associator_inv_naturality {X Y Z X' Y' Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :

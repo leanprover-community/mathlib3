@@ -20,8 +20,8 @@ In the first part, given a coherent family `D` of limit cones over the functors 
 and a cone `c` over `G`, we construct a cone over the cone points of `D`.
 We then show that if `c` is a limit cone, the constructed cone is also a limit cone.
 
-In the second part, we state the Fubini theorem in the setting where we have chosen limits
-provided by suitable `has_limit` classes.
+In the second part, we state the Fubini theorem in the setting where limits exist
+promised by `has_limit` classes.
 
 We construct
 `limit_uncurry_iso_limit_comp_lim F : limit (uncurry.obj F) ≅ limit (F ⋙ lim)`
@@ -29,6 +29,10 @@ and give simp lemmas characterising it.
 For convenience, we also provide
 `limit_iso_limit_curry_comp_lim G : limit G ≅ limit ((curry.obj G) ⋙ lim)`
 in terms of the uncurried functor.
+
+## Future work
+
+The dual statement.
 -/
 
 universes v u
@@ -210,6 +214,8 @@ end
 
 section
 variables (G : J × K ⥤ C)
+
+section
 variables [has_limits_of_shape K C]
 variables [has_limit G]
 variables [has_limit ((curry.obj G) ⋙ lim)]
@@ -229,7 +235,7 @@ begin
   exact limit_uncurry_iso_limit_comp_lim ((@curry J _ K _ C _).obj G),
 end
 
-@[simp]
+@[simp,reassoc]
 lemma limit_iso_limit_curry_comp_lim_hom_π_π {j} {k} :
   (limit_iso_limit_curry_comp_lim G).hom ≫ limit.π _ j ≫ limit.π _ k = limit.π _ (j, k) :=
 begin
@@ -238,12 +244,57 @@ begin
   simp, dsimp, simp, -- See note [dsimp, simp].
 end
 
-@[simp]
+@[simp,reassoc]
 lemma limit_iso_limit_curry_comp_lim_inv_π {j} {k} :
   (limit_iso_limit_curry_comp_lim G).inv ≫ limit.π _ (j, k) = limit.π _ j ≫ limit.π _ k :=
 begin
   rw [←cancel_epi (limit_iso_limit_curry_comp_lim G).hom],
   simp,
+end
+end
+
+
+section
+variables [has_limits C] -- Certainly one could weaken the hypotheses here.
+
+open category_theory.prod
+
+/--
+A variant of the Fubini theorem for a functor `G : J × K ⥤ C`,
+showing that $\lim_k \lim_j G(j,k) ≅ \lim_j \lim_k G(j,k)$.
+-/
+def limit_curry_swap_comp_lim_iso_limit_curry_comp_lim :
+  limit ((curry.obj (swap K J ⋙ G)) ⋙ lim) ≅ limit ((curry.obj G) ⋙ lim) :=
+calc
+  limit ((curry.obj (swap K J ⋙ G)) ⋙ lim)
+      ≅ limit (swap K J ⋙ G) : (limit_iso_limit_curry_comp_lim _).symm
+  ... ≅ limit G : has_limit.iso_of_equivalence (braiding K J) (iso.refl _)
+  ... ≅ limit ((curry.obj G) ⋙ lim) : limit_iso_limit_curry_comp_lim _
+
+@[simp]
+lemma limit_curry_swap_comp_lim_iso_limit_curry_comp_lim_hom_π_π {j} {k} :
+  (limit_curry_swap_comp_lim_iso_limit_curry_comp_lim G).hom ≫ limit.π _ j ≫ limit.π _ k =
+   limit.π _ k ≫ limit.π _ j :=
+begin
+  dsimp [limit_curry_swap_comp_lim_iso_limit_curry_comp_lim],
+  simp only [iso.refl_hom, braiding_counit_iso_hom_app, limits.has_limit.iso_of_equivalence_hom_π,
+    iso.refl_inv, limit_iso_limit_curry_comp_lim_hom_π_π, eq_to_iso_refl, category.assoc],
+  erw [nat_trans.id_app], -- Why can't `simp` do this`?
+  dsimp, simp,
+end
+
+@[simp]
+lemma limit_curry_swap_comp_lim_iso_limit_curry_comp_lim_inv_π_π {j} {k} :
+  (limit_curry_swap_comp_lim_iso_limit_curry_comp_lim G).inv ≫ limit.π _ k ≫ limit.π _ j =
+   limit.π _ j ≫ limit.π _ k :=
+begin
+  dsimp [limit_curry_swap_comp_lim_iso_limit_curry_comp_lim],
+  simp only [iso.refl_hom, braiding_counit_iso_hom_app, limits.has_limit.iso_of_equivalence_inv_π,
+    iso.refl_inv, limit_iso_limit_curry_comp_lim_hom_π_π, eq_to_iso_refl, category.assoc],
+  erw [nat_trans.id_app], -- Why can't `simp` do this`?
+  dsimp, simp,
+end
+
 end
 
 end

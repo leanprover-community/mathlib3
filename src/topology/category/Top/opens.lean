@@ -179,3 +179,12 @@ def is_open_map.functor {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f) :
   opens X ⥤ opens Y :=
 { obj := λ U, ⟨f '' U, hf U U.2⟩,
   map := λ U V h, ⟨⟨set.image_subset _ h.down.down⟩⟩ }
+
+/--
+An open map `f : X ⟶ Y` induces an adjunction between `opens X` and `opens Y`.
+-/
+def is_open_map.adjunction {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f) :
+  adjunction hf.functor (topological_space.opens.map f) :=
+adjunction.mk_of_unit_counit
+{ unit := { app := λ U, hom_of_le $ λ x hxU, ⟨x, hxU, rfl⟩ },
+  counit := { app := λ V, hom_of_le $ λ y ⟨x, hfxV, hxy⟩, hxy ▸ hfxV } }

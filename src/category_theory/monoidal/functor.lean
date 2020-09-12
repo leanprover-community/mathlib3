@@ -68,8 +68,8 @@ See https://stacks.math.columbia.edu/tag/0FFL.
 -/
 structure monoidal_functor
 extends lax_monoidal_functor.{v₁ v₂} C D :=
-(ε_is_iso            : is_iso ε . obviously)
-(μ_is_iso            : Π X Y : C, is_iso (μ X Y) . obviously)
+(ε_is_iso            : is_iso ε . tactic.apply_instance)
+(μ_is_iso            : Π X Y : C, is_iso (μ X Y) . tactic.apply_instance)
 
 attribute [instance] monoidal_functor.ε_is_iso monoidal_functor.μ_is_iso
 
@@ -85,6 +85,18 @@ as_iso (F.μ X Y)
 end
 
 open monoidal_category
+
+namespace lax_monoidal_functor
+
+variables (C : Type u₁) [category.{v₁} C] [monoidal_category.{v₁} C]
+
+/-- The identity lax monoidal functor. -/
+@[simps] def id : lax_monoidal_functor.{v₁ v₁} C C :=
+{ ε := 𝟙 _,
+  μ := λ X Y, 𝟙 _,
+  .. 𝟭 C }
+
+end lax_monoidal_functor
 
 namespace monoidal_functor
 

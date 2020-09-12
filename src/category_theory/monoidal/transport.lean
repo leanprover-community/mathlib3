@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.monoidal.category
+import category_theory.monoidal.functor
 
 /-!
 # Transport a monoidal structure along an equivalence.
@@ -20,6 +20,7 @@ to a monoidal functor with respect to this new structure.
 universes v₁ v₂ u₁ u₂
 
 open category_theory
+open category_theory.category
 open category_theory.monoidal_category
 
 namespace category_theory.monoidal
@@ -30,6 +31,7 @@ variables {D : Type u₂} [category.{v₂} D]
 /--
 Transport a monoidal structure along an equivalence of (plain) categories.
 -/
+@[simps]
 def transport (e : C ≌ D) : monoidal_category.{v₂} D :=
 { tensor_obj := λ X Y, e.functor.obj (e.inverse.obj X ⊗ e.inverse.obj Y),
   tensor_hom := λ W X Y Z f g, e.functor.map (e.inverse.map f ⊗ e.inverse.map g),
@@ -47,7 +49,8 @@ def transport (e : C ≌ D) : monoidal_category.{v₂} D :=
   triangle' := λ X Y,
   begin
     dsimp,
-    simp, -- This is a non-terminal simp, but squeeze_simp reports the wrong results!
+    simp only [iso.hom_inv_id_app_assoc, comp_tensor_id, equivalence.unit_inverse_comp, assoc,
+      equivalence.inv_fun_map, comp_id, functor.map_comp, id_tensor_comp, e.inverse.map_id],
     simp only [←e.functor.map_comp],
     congr' 2,
     slice_lhs 2 3 { rw [←id_tensor_comp], simp, dsimp, rw [tensor_id], },
@@ -56,7 +59,8 @@ def transport (e : C ≌ D) : monoidal_category.{v₂} D :=
   pentagon' := λ W X Y Z,
   begin
     dsimp,
-    simp, -- This is a non-terminal simp, but squeeze_simp reports the wrong results!
+    simp only [iso.hom_inv_id_app_assoc, comp_tensor_id, assoc, equivalence.inv_fun_map,
+      functor.map_comp, id_tensor_comp, e.inverse.map_id],
     simp only [←e.functor.map_comp],
     congr' 2,
     slice_lhs 4 5 { rw [←comp_tensor_id, iso.hom_inv_id_app], dsimp, rw [tensor_id], },
@@ -123,7 +127,106 @@ def transport (e : C ≌ D) : monoidal_category.{v₂} D :=
     conv_rhs { rw [id_tensor_comp], },
     slice_rhs 2 3 { rw [id_tensor_comp_tensor_id, ←tensor_id_comp_id_tensor], },
     slice_rhs 1 2 { rw [id_tensor_comp_tensor_id], },
-  end, }
+  end, }.
+
+@[derive category]
+def transported (e : C ≌ D) := D
+
+instance (e : C ≌ D) : monoidal_category (transported e) := transport e
+
+@[simps]
+def lax_to_transported (e : C ≌ D) : lax_monoidal_functor C (transported e) :=
+{ ε := 𝟙 (e.functor.obj (𝟙_ C)),
+  μ := λ X Y, e.functor.map (e.unit_inv.app X ⊗ e.unit_inv.app Y),
+  μ_natural' := λ X Y X' Y' f g,
+  begin
+    dsimp,
+    simp only [equivalence.inv_fun_map, functor.map_comp, tensor_comp, category.assoc],
+    simp only [←e.functor.map_comp],
+    congr' 1,
+    rw [←tensor_comp, iso.hom_inv_id_app, iso.hom_inv_id_app, ←tensor_comp],
+    dsimp,
+    rw [comp_id, comp_id],
+  end,
+  associativity' := λ X Y Z,
+  begin
+    dsimp,
+    simp only [comp_tensor_id, assoc, equivalence.inv_fun_map, functor.map_comp, id_tensor_comp, e.inverse.map_id],
+    simp only [←e.functor.map_comp],
+    congr' 2,
+    sorry, -- doable from here
+  end,
+  left_unitality' := λ X,
+  begin
+    dsimp,
+    simp only [tensor_id, assoc, id_comp, functor.map_comp, e.inverse.map_id],
+    rw equivalence.counit_functor,
+    simp only [←e.functor.map_comp],
+    congr' 1,
+    rw [←left_unitor_naturality],
+    simp,
+  end,
+  right_unitality' := λ X,
+  begin
+    dsimp,
+    simp only [tensor_id, assoc, id_comp, functor.map_comp, e.inverse.map_id],
+    rw equivalence.counit_functor,
+    simp only [←e.functor.map_comp],
+    congr' 1,
+    rw [←right_unitor_naturality],
+    simp,
+  end,
+  ..e.functor, }.
+
+@[simps]
+def to_transported (e : C ≌ D) : monoidal_functor C (transported e) :=
+{ ε_is_iso := by { dsimp, apply_instance, },
+  μ_is_iso := λ X Y, by { dsimp, apply_instance, },
+  ..lax_to_transported e, }
+
+@[simps]
+def lax_from_transported (e : C ≌ D) : lax_monoidal_functor (transported e) C :=
+{ ε := e.unit.app (𝟙_ C),
+  μ := λ  X Y, e.unit.app (e.inverse.obj X ⊗ e.inverse.obj Y),
+  μ_natural' := λ X Y X' Y' f g,
+  begin
+    dsimp,
+    simp only [iso.hom_inv_id_app_assoc, equivalence.inv_fun_map],
+  end,
+  associativity' := λ X Y Z,
+  begin
+    dsimp,
+    simp only [iso.hom_inv_id_app_assoc, assoc, equivalence.inv_fun_map, functor.map_comp],
+    slice_lhs 1 2 { rw [←comp_tensor_id, iso.hom_inv_id_app], dsimp, rw [tensor_id], },
+    simp,
+  end,
+  left_unitality' := λ X,
+  begin
+    dsimp,
+    simp only [iso.hom_inv_id_app_assoc, equivalence.unit_inverse_comp, assoc,
+      equivalence.inv_fun_map, comp_id, functor.map_comp],
+    slice_rhs 1 2 { rw [←comp_tensor_id, iso.hom_inv_id_app], dsimp, rw [tensor_id], },
+    simp,
+  end,
+  right_unitality' := λ X,
+  begin
+    dsimp,
+    simp only [iso.hom_inv_id_app_assoc, equivalence.unit_inverse_comp, assoc,
+      equivalence.inv_fun_map, comp_id, functor.map_comp],
+    slice_rhs 1 2 { rw [←id_tensor_comp, iso.hom_inv_id_app], dsimp, rw [tensor_id], },
+    simp,
+  end,
+  ..e.inverse, }
+
+@[simps]
+def from_transported (e : C ≌ D) : monoidal_functor (transported e) C :=
+{ ε_is_iso := by { dsimp, apply_instance, },
+  μ_is_iso := λ X Y, by { dsimp, apply_instance, },
+  ..lax_from_transported e, }
+
+def transported_monoidal_unit_iso (e : C ≌ D) :
+  lax_monoidal_functor.id C ≅ lax_to_transported e ⊗⋙ lax_from_transported e :=
+monoidal_nat_iso.of_components (λ X, )
 
 -- PROJECT:
 -- We should show that `e.functor` can be upgraded to a (strong) monoidal functor.

@@ -193,6 +193,8 @@ variables (F : lax_monoidal_functor.{v₁ v₂} C D) (G : lax_monoidal_functor.{
   end,
   .. (F.to_functor) ⋙ (G.to_functor) }.
 
+infixr ` ⊗⋙ `:80 := comp
+
 end lax_monoidal_functor
 
 namespace monoidal_functor
@@ -205,6 +207,8 @@ def comp : monoidal_functor.{v₁ v₃} C E :=
 { ε_is_iso := by { dsimp, apply_instance },
   μ_is_iso := by { dsimp, apply_instance },
   .. (F.to_lax_monoidal_functor).comp (G.to_lax_monoidal_functor) }.
+
+infixr ` ⊗⋙ `:80 := comp -- We overload notation; potentially dangerous, but it seems to work.
 
 end monoidal_functor
 

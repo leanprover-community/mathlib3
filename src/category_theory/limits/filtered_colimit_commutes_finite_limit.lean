@@ -117,8 +117,7 @@ begin
   ext,
 
   -- Now it's just a calculation using `W` and `w`.
-  dsimp [limits.lim, limits.lim_map],
-  simp only [types_comp_apply, limits.types.lift_π_apply],
+  simp only [functor.comp_map, limits.types.map_π_apply, curry.obj_map_app, swap_map],
   rw ←W _ _ (fH j),
   rw ←W _ _ (gH j),
   simp [w],

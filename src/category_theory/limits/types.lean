@@ -66,6 +66,7 @@ Construct a term of `limit F : Type u` from a family of terms `x : Π j, F.obj j
 which are "coherent": `∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j'`.
 -/
 @[ext]
+noncomputable
 def limit.mk (F : J ⥤ Type u) (x : Π j, F.obj j) (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') :
   (limit F : Type u) :=
 (limit_equiv_sections F).symm ⟨x, h⟩

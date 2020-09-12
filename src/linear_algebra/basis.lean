@@ -1024,7 +1024,7 @@ end
 lemma is_basis.equiv_fun_self (i j : ι) : h.equiv_fun (v i) j = if i = j then 1 else 0 :=
 by { rw [h.equiv_fun_apply, h.repr_self_apply] }
 
-@[simp] theorem is_basis.constr_apply_fintype [fintype ι] (f : ι → M') (x : M) :
+@[simp] theorem is_basis.constr_apply_fintype (f : ι → M') (x : M) :
   (h.constr f : M → M') x = ∑ i, (h.equiv_fun x i) • f i :=
 by simp [h.constr_apply, h.equiv_fun_apply, finsupp.sum_fintype]
 

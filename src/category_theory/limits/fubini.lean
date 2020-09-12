@@ -263,6 +263,7 @@ open category_theory.prod
 A variant of the Fubini theorem for a functor `G : J × K ⥤ C`,
 showing that $\lim_k \lim_j G(j,k) ≅ \lim_j \lim_k G(j,k)$.
 -/
+noncomputable
 def limit_curry_swap_comp_lim_iso_limit_curry_comp_lim :
   limit ((curry.obj (swap K J ⋙ G)) ⋙ lim) ≅ limit ((curry.obj G) ⋙ lim) :=
 calc

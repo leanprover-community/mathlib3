@@ -39,10 +39,13 @@ additionally satisfying:
 @[ext]
 structure monoidal_nat_trans (F G : lax_monoidal_functor C D)
   extends nat_trans F.to_functor G.to_functor :=
+(unit' : F.ε ≫ app (𝟙_ C) = G.ε . obviously)
 (tensor' : ∀ X Y, F.μ _ _ ≫ app (X ⊗ Y) = (app X ⊗ app Y) ≫ G.μ _ _ . obviously)
 
 restate_axiom monoidal_nat_trans.tensor'
 attribute [simp, reassoc] monoidal_nat_trans.tensor
+restate_axiom monoidal_nat_trans.unit'
+attribute [simp, reassoc] monoidal_nat_trans.unit
 
 namespace monoidal_nat_trans
 
@@ -80,13 +83,16 @@ Horizontal composition of monoidal natural transformations.
 def hcomp {F G : lax_monoidal_functor C D} {H K : lax_monoidal_functor D E}
   (α : monoidal_nat_trans F G) (β : monoidal_nat_trans H K) :
   monoidal_nat_trans (F ⊗⋙ H) (G ⊗⋙ K) :=
-{ tensor' := λ X Y,
-   begin
-     dsimp, simp,
-     conv_lhs { rw [←K.to_functor.map_comp, α.tensor, K.to_functor.map_comp], },
-     slice_lhs 2 3 { rw [←K.μ_natural] },
-     simp only [category.assoc],
-   end,
+{ unit' :=
+  begin
+    dsimp, simp,
+    conv_lhs { rw [←K.to_functor.map_comp, α.unit], },
+  end,
+  tensor' := λ X Y,
+  begin
+    dsimp, simp,
+    conv_lhs { rw [←K.to_functor.map_comp, α.tensor, K.to_functor.map_comp], },
+  end,
   ..(nat_trans.hcomp α.to_nat_trans β.to_nat_trans) }
 
 end monoidal_nat_trans

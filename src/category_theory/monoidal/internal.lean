@@ -3,20 +3,21 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.monoidal.natural_transformation
+import category_theory.monoidal.discrete
 import category_theory.monoidal.unitors
 import category_theory.limits.shapes.terminal
+import algebra.punit_instances
 
 /-!
 # The category of monoids in a monoidal category, and modules over an internal monoid.
 -/
 
-universes v u
+universes v₁ v₂ u₁ u₂
 
 open category_theory
 open category_theory.monoidal_category
 
-variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
+variables (C : Type u₁) [category.{v₁} C] [monoidal_category.{v₁} C]
 
 /--
 A monoid object internal to a monoidal category.
@@ -125,7 +126,7 @@ end Mon_
 
 namespace category_theory.lax_monoidal_functor
 
-variables {C} {D : Type u} [category.{v} D] [monoidal_category.{v} D]
+variables {C} {D : Type u₂} [category.{v₂} D] [monoidal_category.{v₂} D]
 
 /--
 A lax monoidal functor takes monoid objects to monoid objects.
@@ -180,6 +181,8 @@ def map_Mon (F : lax_monoidal_functor C D) : Mon_ C ⥤ Mon_ D :=
   map_id' := λ A, by { ext, simp, },
   map_comp' := λ A B C f g, by { ext, simp, }, }
 
+variables (C) (D)
+
 /-- `map_Mon` is functorial in the lax monoidal functor. -/
 def map_Mon_functor : (lax_monoidal_functor C D) ⥤ (Mon_ C ⥤ Mon_ D) :=
 { obj := map_Mon,
@@ -188,6 +191,39 @@ def map_Mon_functor : (lax_monoidal_functor C D) ⥤ (Mon_ C ⥤ Mon_ D) :=
     { hom := α.app A.X, } } }
 
 end category_theory.lax_monoidal_functor
+
+namespace Mon_
+
+open category_theory.lax_monoidal_functor
+
+@[simps]
+def lax_monoidal_to_Mon : lax_monoidal_functor (discrete punit) C ⥤ Mon_ C :=
+{ obj := λ F, (F.map_Mon : Mon_ _ ⥤ Mon_ C).obj (trivial (discrete punit)),
+  map := λ F G α, ((map_Mon_functor (discrete punit) C).map α).app _ }
+
+@[simps]
+def Mon_to_lax_monoidal : Mon_ C ⥤ lax_monoidal_functor (discrete punit) C :=
+{ obj := λ A,
+  { obj := λ _, A.X,
+    map := λ _ _ _, 𝟙 _,
+    ε := A.one,
+    μ := λ _ _, A.mul,
+    map_id' := λ _, rfl,
+    map_comp' := λ _ _ _ _ _, (category.id_comp (𝟙 A.X)).symm, },
+  map := λ A B f,
+  { app := λ _, f.hom,
+    naturality' := λ _ _ _, by { dsimp, rw [category.id_comp, category.comp_id], },
+    unit' := f.one_hom,
+    tensor' := λ _ _, f.mul_hom, }, }
+
+@[simps]
+def foo2 : lax_monoidal_functor (discrete punit) C ≌ Mon_ C :=
+{ functor := lax_monoidal_to_Mon C,
+  inverse := Mon_to_lax_monoidal C,
+  unit_iso := nat_iso.of_components (λ F, begin dsimp, end) sorry,
+  counit_iso := sorry, }
+
+end Mon_
 
 variables {C}
 

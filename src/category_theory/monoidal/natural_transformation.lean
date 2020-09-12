@@ -97,4 +97,37 @@ def hcomp {F G : lax_monoidal_functor C D} {H K : lax_monoidal_functor D E}
 
 end monoidal_nat_trans
 
+namespace monoidal_nat_iso
+
+variables {F G : lax_monoidal_functor C D}
+
+instance is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
+{ inv :=
+  { app := λ X, inv (α.app X),
+    naturality' := λ X Y f,
+    begin
+      have h := congr_arg (λ f, inv (α.app X) ≫ (f ≫ inv (α.app Y))) (α.to_nat_trans.naturality f).symm,
+      simp only [is_iso.inv_hom_id_assoc, is_iso.hom_inv_id, assoc, comp_id, cancel_mono] at h,
+      exact h
+    end,
+    tensor' := λ X Y, begin dsimp, simp, end } }
+
+def of_components
+  (app : ∀ X : C, F.obj X ≅ G.obj X)
+  (naturality : ∀ {X Y : C} (f : X ⟶ Y), F.map f ≫ (app Y).hom = (app X).hom ≫ G.map f)
+  (unit : F.ε ≫ (app (𝟙_ C)).hom = G.ε)
+  (tensor : ∀ X Y, F.μ X Y ≫ (app (X ⊗ Y)).hom = ((app X).hom ⊗ (app Y).hom) ≫ G.μ X Y) :
+  F ≅ G :=
+as_iso { app := λ X, (app X).hom }
+
+@[simp] lemma of_components.app (app' : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (unit) (tensor) (X) :
+  (of_components app' naturality unit tensor).app X = app' X :=
+by tidy
+@[simp] lemma of_components.hom_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (unit) (tensor) (X) :
+  (of_components app naturality unit tensor).hom.app X = (app X).hom := rfl
+@[simp] lemma of_components.inv_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (unit) (tensor) (X) :
+  (of_components app naturality unit tensor).inv.app X = (app X).inv := rfl
+
+end monoidal_nat_iso
+
 end category_theory

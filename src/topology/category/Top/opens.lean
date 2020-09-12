@@ -69,6 +69,22 @@ The inclusion `U i ⟶ supr U` as a morphism in the category of open sets.
 def le_supr {ι : Type*} (U : ι → opens X) (i : ι) : U i ⟶ supr U :=
 hom_of_le (le_supr U i)
 
+-- We do not mark this as a simp lemma because it breaks open `x`.
+-- Nevertheless, it is useful in `sheaf_of_functions`.
+lemma inf_le_left_apply (U V : opens X) (x) :
+  (inf_le_left U V) x = ⟨x.1, (@_root_.inf_le_left _ _ U V : _ ≤ _) x.2⟩ :=
+rfl
+
+@[simp]
+lemma inf_le_left_apply_mk (U V : opens X) (x) (m) :
+  (inf_le_left U V) ⟨x, m⟩ = ⟨x, (@_root_.inf_le_left _ _ U V : _ ≤ _) m⟩ :=
+rfl
+
+@[simp]
+lemma le_supr_apply_mk {ι : Type*} (U : ι → opens X) (i : ι) (x) (m) :
+  (le_supr U i) ⟨x, m⟩ = ⟨x, (_root_.le_supr U i : _) m⟩ :=
+rfl
+
 /--
 The functor from open sets in `X` to `Top`,
 realising each open set as a topological space itself.
@@ -152,6 +168,10 @@ def map_comp (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map g ⋙ map f :=
 { hom := { app := λ U, eq_to_hom (map_comp_obj f g U) },
   inv := { app := λ U, eq_to_hom (map_comp_obj f g U).symm } }
 
+/--
+If two continuous maps `f g : X ⟶ Y` are equal,
+then the functors `opens Y ⥤ opens X` they induce are isomorphic.
+-/
 -- We could make `f g` implicit here, but it's nice to be able to see when
 -- they are the identity (often!)
 def map_iso (f g : X ⟶ Y) (h : f = g) : map f ≅ map g :=

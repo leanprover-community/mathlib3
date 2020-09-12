@@ -157,11 +157,11 @@ end wide_pushout_shape
 variables (C : Type u) [category.{v} C]
 
 /-- `has_wide_pullbacks` represents a choice of wide pullback for every collection of morphisms -/
-abbreviation has_wide_pullbacks : Type (max (v+1) u) :=
+abbreviation has_wide_pullbacks : Prop :=
 Π (J : Type v), has_limits_of_shape (wide_pullback_shape J) C
 
 /-- `has_wide_pushouts` represents a choice of wide pushout for every collection of morphisms -/
-abbreviation has_wide_pushouts : Type (max (v+1) u) :=
+abbreviation has_wide_pushouts : Prop :=
 Π (J : Type v), has_colimits_of_shape (wide_pushout_shape J) C
 
 end category_theory.limits

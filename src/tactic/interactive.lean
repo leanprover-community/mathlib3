@@ -1131,6 +1131,7 @@ add_tactic_doc
   decl_names := [`tactic.interactive.generalize'],
   tags       := ["context management"] }
 
+/-- Query the proof goal and print the skeleton of a proof by cases. -/
 meta def pretty_cases_advice : tactic string := retrieve $ do
 gs ← get_goals,
 cases ← gs.mmap $ λ g, do

@@ -60,8 +60,6 @@ apply_nolint category_theory.equivalence has_inhabited_instance
 apply_nolint category_theory.equivalence.adjointify_η doc_blame
 apply_nolint category_theory.equivalence.counit doc_blame
 apply_nolint category_theory.equivalence.counit_inv doc_blame
-apply_nolint category_theory.equivalence.equivalence_of_fully_faithfully_ess_surj doc_blame
-apply_nolint category_theory.equivalence.ess_surj_of_equivalence doc_blame
 apply_nolint category_theory.equivalence.fun_inv_id_assoc doc_blame
 apply_nolint category_theory.equivalence.inv_fun_id_assoc doc_blame
 apply_nolint category_theory.equivalence.mk doc_blame
@@ -70,7 +68,6 @@ apply_nolint category_theory.equivalence.symm doc_blame
 apply_nolint category_theory.equivalence.trans doc_blame
 apply_nolint category_theory.equivalence.unit doc_blame
 apply_nolint category_theory.equivalence.unit_inv doc_blame
-apply_nolint category_theory.ess_surj doc_blame
 apply_nolint category_theory.ess_surj.iso doc_blame
 apply_nolint category_theory.functor.as_equivalence doc_blame
 apply_nolint category_theory.functor.fun_inv_id doc_blame
@@ -165,9 +162,6 @@ apply_nolint category_theory.nat_trans.unop doc_blame
 -- category_theory/products/basic.lean
 apply_nolint category_theory.evaluation doc_blame
 apply_nolint category_theory.evaluation_uncurried doc_blame
-apply_nolint category_theory.prod.braiding doc_blame
-apply_nolint category_theory.prod.swap doc_blame
-apply_nolint category_theory.prod.symmetry doc_blame
 
 -- category_theory/whiskering.lean
 apply_nolint category_theory.functor.associator doc_blame
@@ -181,13 +175,9 @@ apply_nolint category_theory.whiskering_left doc_blame
 apply_nolint category_theory.whiskering_right doc_blame
 
 -- category_theory/yoneda.lean
-apply_nolint category_theory.coyoneda doc_blame
 apply_nolint category_theory.coyoneda.is_iso doc_blame
-apply_nolint category_theory.representable doc_blame
-apply_nolint category_theory.yoneda doc_blame
 apply_nolint category_theory.yoneda.is_iso doc_blame
 apply_nolint category_theory.yoneda_evaluation doc_blame
-apply_nolint category_theory.yoneda_lemma doc_blame
 apply_nolint category_theory.yoneda_pairing doc_blame
 apply_nolint category_theory.yoneda_sections doc_blame
 apply_nolint category_theory.yoneda_sections_small doc_blame

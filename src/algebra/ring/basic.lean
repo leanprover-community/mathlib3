@@ -619,7 +619,7 @@ theorem two_dvd_bit1 : 2 ∣ bit1 a ↔ (2 : α) ∣ 1 := (dvd_add_iff_right (@t
 theorem mul_self_sub_mul_self (a b : α) : a * a - b * b = (a + b) * (a - b) :=
 by rw [add_mul, mul_sub, mul_sub, mul_comm a b, sub_add_sub_cancel]
 
-lemma mul_self_sub_one_eq (a : α) : a * a - 1 = (a + 1) * (a - 1) :=
+lemma mul_self_sub_one (a : α) : a * a - 1 = (a + 1) * (a - 1) :=
 by rw [← mul_self_sub_mul_self, mul_one]
 
 /-- An element a of a commutative ring divides the additive inverse of an element b iff a

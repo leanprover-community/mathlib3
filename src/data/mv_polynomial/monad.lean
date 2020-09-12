@@ -87,7 +87,7 @@ end
 
 @[simp]
 lemma bind₁_X_left : bind₁ (X : σ → mv_polynomial σ R) = alg_hom.id R _ :=
-by ext1; simp [bind₁]
+by { ext1, simp [bind₁] }
 
 @[simp]
 lemma bind₁_X_right (f : σ → mv_polynomial τ R) (i : σ) : bind₁ f (X i) = f i :=
@@ -105,7 +105,7 @@ by simp [bind₁, C, aeval_monomial, finsupp.prod_zero_index]; refl
 
 @[simp]
 lemma bind₂_C_left : bind₂ (C : R →+* mv_polynomial σ R) = ring_hom.id _ :=
-by ext1; simp [bind₂]
+by { ext1, simp [bind₂] }
 
 @[simp]
 lemma bind₂_C_right (f : R →+* mv_polynomial σ S) (r : R) : bind₂ f (C r) = f r :=
@@ -124,7 +124,7 @@ by simp only [join₂, bind₂, eval₂_hom_map_hom, ring_hom.id_comp]
 @[simp]
 lemma join₂_comp_map (f : R →+* mv_polynomial σ S) :
   join₂.comp (map f) = bind₂ f :=
-by ext1; simp [join₂, bind₂]
+by { ext1, simp [join₂, bind₂] }
 
 @[simp] lemma aeval_rename (f : σ → mv_polynomial τ R) (p : mv_polynomial σ R) :
   aeval (ring_hom.id (mv_polynomial τ R)) (rename f p) = aeval f p :=

@@ -17,6 +17,7 @@ Multiplicative morphisms induced monoidal functors.
 universes u
 
 open category_theory
+open category_theory.discrete
 
 variables (M : Type u) [monoid M]
 
@@ -27,10 +28,10 @@ instance monoid_discrete : monoid (discrete M) := by { dsimp [discrete], apply_i
 instance : monoidal_category (discrete M) :=
 { tensor_unit := 1,
   tensor_obj := λ X Y, X * Y,
-  tensor_hom := λ W X Y Z f g, ⟨⟨by rw [f.1.1, g.1.1]⟩⟩,
-  left_unitor := λ X, discrete.iso (one_mul X),
-  right_unitor := λ X, discrete.iso (mul_one X),
-  associator := λ X Y Z, discrete.iso (mul_assoc _ _ _), }
+  tensor_hom := λ W X Y Z f g, eq_to_hom (by rw [eq_of_hom f, eq_of_hom g]),
+  left_unitor := λ X, eq_to_iso (one_mul X),
+  right_unitor := λ X, eq_to_iso (mul_one X),
+  associator := λ X Y Z, eq_to_iso (mul_assoc _ _ _), }
 
 variables {M} {N : Type u} [monoid N]
 
@@ -40,9 +41,9 @@ discrete monoidal categories.
 -/
 def discrete.monoidal_functor (F : M →* N) : monoidal_functor (discrete M) (discrete N) :=
 { obj := F,
-  map := λ X Y f, ⟨⟨F.congr_arg f.1.1⟩⟩,
-  ε := ⟨⟨F.map_one.symm⟩⟩,
-  μ := λ X Y, ⟨⟨(F.map_mul X Y).symm⟩⟩, }
+  map := λ X Y f, eq_to_hom (F.congr_arg (eq_of_hom f)),
+  ε := eq_to_hom F.map_one.symm,
+  μ := λ X Y, eq_to_hom (F.map_mul X Y).symm, }
 
 variables {K : Type u} [monoid K]
 

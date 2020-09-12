@@ -21,7 +21,7 @@ instance has_finite_limits_of_semilattice_inf_top [semilattice_inf_top α] :
   { has_limit := λ F,
     { cone :=
       { X := finset.univ.inf F.obj,
-        π := { app := λ j, ⟨⟨finset.inf_le (fintype.complete _)⟩⟩ } },
+        π := { app := λ j, hom_of_le (finset.inf_le (fintype.complete _)) } },
       is_limit := { lift := λ s, ⟨⟨finset.le_inf (λ j _, (s.π.app j).down.down)⟩⟩ } } }
 
 @[priority 100] -- see Note [lower instance priority]

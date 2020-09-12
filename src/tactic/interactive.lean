@@ -419,7 +419,6 @@ do
   g ← instantiate_mvars g,
   unify e g
 
-
 /-- `success_if_fail_with_msg { tac } msg` succeeds if the interactive tactic `tac` fails with
 error message `msg` (for test writing purposes). -/
 meta def success_if_fail_with_msg (tac : tactic.interactive.itactic) :=
@@ -1132,6 +1131,21 @@ add_tactic_doc
   decl_names := [`tactic.interactive.generalize'],
   tags       := ["context management"] }
 
+meta def pretty_cases_advice : tactic string := retrieve $ do
+gs ← get_goals,
+cases ← gs.mmap $ λ g, do
+{ t : list name ← get_tag g,
+  let vs := t.tail,
+  let ⟨vs,ts⟩ := vs.span (λ n, name.last_string n = "_arg"),
+  set_goals [g],
+  ls ← local_context,
+  let m := native.rb_map.of_list $ (ls.map expr.local_uniq_name).zip (ls.map expr.local_pp_name),
+  let vs := vs.map $ λ v, (m.find v.get_prefix).get_or_else `_,
+  let var_decls := string.intercalate " " $ vs.map to_string,
+  let var_decls := if vs.empty then "" else " : " ++ var_decls,
+  pure sformat!"case {ts.head}{var_decls}\n{{ admit }" },
+let cases := string.intercalate ",\n" cases,
+pure sformat!"Try this:\n{cases}"
 
 /--
 Query the proof goal and print the skeleton of a proof by
@@ -1159,19 +1173,8 @@ end
 The output helps the user layout the cases and rename the
 introduced variables.
 -/
-meta def pretty_cases : tactic unit := retrieve $ do
-gs ← get_goals,
-trace "Try this: ",
-gs.mmap' $ λ g, do
-{ t : list name ← get_tag g,
-  let vs := t.tail,
-  let ⟨vs,ts⟩ := vs.span (λ n, name.last_string n = "_arg"),
-  set_goals [g],
-  ls ← local_context,
-  let m := native.rb_map.of_list $ (ls.map expr.local_uniq_name).zip (ls.map expr.local_pp_name),
-  let vs := vs.map $ λ v, (m.find v.get_prefix).get_or_else `_,
-  let var_decls := string.intercalate " " $ vs.map to_string,
-  trace!"case {ts.head} : {var_decls}\n{{ admit }," }
+meta def pretty_cases : tactic unit :=
+pretty_cases_advice >>= trace
 
 add_tactic_doc
 { name       := "pretty_cases",

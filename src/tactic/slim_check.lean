@@ -5,6 +5,8 @@ Author: Simon Hudon
 -/
 
 import testing.slim_check.testable
+import testing.slim_check.functions
+import data.list.sort
 
 /-!
 ## Finding counterexamples automatically using `slim_check`
@@ -103,6 +105,7 @@ open tactic slim_check
 declare_trace slim_check.instance
 declare_trace slim_check.decoration
 declare_trace slim_check.discared
+declare_trace slim_check.success
 open expr
 
 /-- Tree structure representing a `testable` instance. -/
@@ -184,7 +187,9 @@ Options:
 meta def slim_check (cfg : slim_check_cfg := {}) : tactic unit := do
 { tgt ← retrieve $ tactic.revert_all >> target,
   let tgt' := tactic.add_decorations tgt,
-  let cfg := { cfg with enable_tracing := cfg.enable_tracing || is_trace_enabled_for `slim_check.discared },
+  let cfg := { cfg with
+               trace_discarded := cfg.trace_discarded || is_trace_enabled_for `slim_check.discared,
+               trace_success := cfg.trace_success || is_trace_enabled_for `slim_check.success },
   inst ← mk_app ``testable [tgt'] >>= mk_instance <|>
     fail!"Failed to create a `testable` instance for `{tgt}`.
 What to do:
@@ -210,3 +215,74 @@ set_option trace.class_instances true
   if b then admit else failed }
 
 end tactic.interactive
+
+open function slim_check
+
+example (f : ℤ → ℤ) (h : injective f) : monotone (f ∘ small.mk) :=
+begin
+
+  slim_check
+end
+
+example (f : ℤ → ℤ) (h : injective f) : monotone (f) :=
+begin
+
+  slim_check
+end
+
+example (xs ys : list ℤ) (h : xs ~ ys) : list.qsort (λ x y, x ≠ y) xs = list.qsort (λ x y, x ≠ y) ys :=
+begin
+
+  slim_check
+end
+
+example (x y : ℕ) : y ≤ x → x + y < 100 :=
+begin
+
+  slim_check,
+end
+
+example (x : ℤ) : x ≤ 3 → 3 ≤ x :=
+begin
+
+  slim_check,
+end
+
+example (x y : ℤ) : y ≤ x → x + y < 100 :=
+begin
+
+  slim_check,
+end
+
+example (x y : Prop) : x ∨ y → y ∧ x :=
+begin
+
+  slim_check,
+end
+
+example (x y : Prop) : (¬ x ↔ y) → y ∧ x :=
+begin
+
+  slim_check,
+end
+
+example (x y : Prop) : (x ↔ y) → y ∨ x :=
+begin
+
+  -- deterministic
+  slim_check,
+end
+
+example (x y : Prop) : y ∨ x :=
+begin
+
+  -- deterministic
+  slim_check,
+end
+
+example (x y : Prop) : x ↔ y :=
+begin
+
+  -- deterministic
+  slim_check,
+end

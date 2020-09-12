@@ -246,6 +246,15 @@ instance nat_bounded_random : bounded_random ℕ :=
      pure ⟨z.val + x, nat.le_add_left _ _,
        by rw ← nat.le_sub_right_iff_add_le hxy; apply le_of_succ_le_succ z.is_lt⟩ }
 
+instance int_bounded_random : bounded_random ℤ :=
+{ random_r := λ g inst x y hxy,
+  do ⟨z,h₀,h₁⟩ ← @bounded_random.random_r ℕ _ _ g inst 0 (int.nat_abs $ y - x) dec_trivial,
+     pure ⟨z + x,
+       int.le_add_of_nonneg_left (int.coe_nat_nonneg _),
+       int.add_le_of_le_sub_right $ le_trans
+         (int.coe_nat_le_coe_nat_of_le h₁)
+         (le_of_eq $ int.of_nat_nat_abs_eq_of_nonneg (int.sub_nonneg_of_le hxy)) ⟩ }
+
 instance fin_random (n : ℕ) [fact (0 < n)] : random (fin n) :=
 { random := λ g inst, @fin.random g inst _ _,
   random_r := λ g inst (x y : fin n) p,

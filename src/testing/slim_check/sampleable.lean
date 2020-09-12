@@ -229,8 +229,8 @@ def sampleable.lift (α : Type u) {β : Type u} [sampleable α] (f : α → β) 
     subtype.map f this <$> shrink (g x) }
 
 instance nat.sampleable : sampleable ℕ :=
-{ sample := sized $ λ sz, coe <$> choose_any (fin $ succ (sz^3)) <|>
-                          coe <$> choose_any (fin $ succ sz),
+{ sample := sized $ λ sz, freq [ (1, coe <$> choose_any (fin $ succ (sz^3))),
+                                 (3, coe <$> choose_any (fin $ succ sz))] dec_trivial,
   shrink :=  λ x, lazy_list.of_list $ nat.shrink x }
 
 /-- `iterate_shrink p x` takes a decidable predicate `p` and a
@@ -262,15 +262,19 @@ by unfold_wf; simp only [pnat.nat_pred, succ_pnat, pnat.mk_coe, nat.sub_zero, su
 instance int.sampleable : sampleable ℤ :=
 { wf := ⟨ int.nat_abs ⟩,
   sample := sized $ λ sz,
-       let k := sz^5 in
-       (λ n : fin _, n.val - int.of_nat (k / 2) ) <$> choose_any (fin $ succ k),
+          freq [ (1, subtype.val <$> choose (-(sz^3 + 1) : ℤ) (sz^3 + 1) (neg_le_self dec_trivial)),
+                 (3, subtype.val <$> choose (-(sz + 1)) (sz + 1) (neg_le_self dec_trivial))]
+               dec_trivial,
   shrink :=
     λ x, lazy_list.of_list $ (nat.shrink $ int.nat_abs x).bind $
     λ ⟨y,h⟩, [⟨y, h⟩, ⟨-y, by dsimp [sizeof,has_sizeof.sizeof]; rw int.nat_abs_neg; exact h ⟩] }
 
 instance bool.sampleable : sampleable bool :=
-{ sample := do { x ← choose_any bool,
-                 return x }, }
+{ wf := ⟨ λ b, if b then 1 else 0 ⟩,
+  sample := do { x ← choose_any bool,
+                 return x },
+  shrink := λ b, if h : b then lazy_list.singleton ⟨ff, by cases h; unfold_wf⟩
+                          else lazy_list.nil }
 
 /--
 Provided two shrinking functions `prod.shrink` shrinks a pair `(x, y)` by
@@ -462,9 +466,10 @@ instance list.sampleable : sampleable_functor list.{u} :=
   shrink := λ α Iα shr_α, @list.shrink_with _ Iα shr_α,
   p_repr := @list.has_repr }
 
-instance prop.sampleable : sampleable Prop :=
-{ sample := do { x ← choose_any bool,
-                 return ↑x },
+instance prop.sampleable_ext : sampleable_ext Prop :=
+{ proxy_repr := bool,
+  interp := coe,
+  sample := choose_any bool,
   shrink := λ _, lazy_list.nil }
 
 /-- `no_shrink` is a type annotation to signal that
@@ -500,6 +505,14 @@ else pure tree.nil
 /-- `rec_shrink x f_rec` takes the recursive call `f_rec` introduced
 by `well_founded.fix` and turns it into a shrinking function whose
 result is adequate to use in a recursive call. -/
+def rec_shrink' {α β : Type*} [has_sizeof α] [has_sizeof β] (t : β)
+  (sh : Π x : α, sizeof x < sizeof t → lazy_list { y : α // sizeof_lt y x }) :
+  shrink_fn { t' : α // sizeof t' < sizeof t }
+| ⟨t',ht'⟩ := (λ t'' : { y : α // sizeof_lt y t' }, ⟨⟨t''.val, lt_trans t''.property ht'⟩, t''.property⟩ ) <$> sh t' ht'
+
+/-- `rec_shrink x f_rec` takes the recursive call `f_rec` introduced
+by `well_founded.fix` and turns it into a shrinking function whose
+result is adequate to use in a recursive call. -/
 def rec_shrink {α : Type*} [has_sizeof α] (t : α)
   (sh : Π x : α, sizeof_lt x t → lazy_list { y : α // sizeof_lt y x }) :
   shrink_fn { t' : α // sizeof_lt t' t }
@@ -511,17 +524,38 @@ by cases t; unfold_wf; linarith
 instance : functor tree :=
 { map := @tree.map }
 
+/--
+Recursion principle for shrinking tree-like structures.
+-/
+def rec_shrink_with [has_sizeof α]
+  (shrink_a : Π x : α, shrink_fn { y : α // sizeof_lt y x } → list (lazy_list { y : α // sizeof_lt y x })) :
+  shrink_fn α :=
+well_founded.fix (sizeof_measure_wf _) $ λ t f_rec,
+lazy_list.join
+    (lazy_list.of_list $
+      shrink_a t $ λ ⟨t', h⟩, rec_shrink _ f_rec _)
+
+lemma rec_shrink_with_eq [has_sizeof α]
+  (shrink_a : Π x : α, shrink_fn { y : α // sizeof_lt y x } → list (lazy_list { y : α // sizeof_lt y x }))
+  (x : α) :
+  rec_shrink_with shrink_a x =
+  lazy_list.join
+    (lazy_list.of_list $ shrink_a x $ λ t', rec_shrink _ (λ x h', rec_shrink_with shrink_a x) _) :=
+begin
+  conv_lhs { rw [rec_shrink_with, well_founded.fix_eq], },
+  congr, ext ⟨y, h⟩, refl
+end
+
 /-- `tree.shrink_with shrink_f t` shrinks `xs` by using the empty tree,
 each subtrees, and by shrinking the subtree to recombine them.
 
 This strategy is taken directly from Haskell's QuickCheck -/
 def tree.shrink_with [has_sizeof α] (shrink_a : shrink_fn α) : shrink_fn (tree α) :=
-well_founded.fix (sizeof_measure_wf _) $ λ t,
+rec_shrink_with $ λ t,
 match t with
-| tree.nil := λ f_rec, lazy_list.nil
+| tree.nil := λ f_rec, []
 | (tree.node x t₀ t₁) :=
 λ f_rec,
-  let shrink_tree : shrink_fn { t' : tree α // sizeof_lt t' (tree.node x t₀ t₁) } := λ t', rec_shrink _ f_rec _ in
   have h₂ : sizeof_lt tree.nil (tree.node x t₀ t₁),
     by clear _match; have := tree.one_le_sizeof t₀;
        dsimp [sizeof_lt, sizeof, has_sizeof.sizeof] at *;
@@ -530,13 +564,10 @@ match t with
     by dsimp [sizeof_lt]; unfold_wf; linarith,
   have h₁ : sizeof_lt t₁ (tree.node x t₀ t₁),
     by dsimp [sizeof_lt]; unfold_wf; linarith,
-  lazy_list.append
-    (lazy_list.of_list
-      [ lazy_list.of_list [⟨tree.nil, h₂⟩, ⟨t₀, h₀⟩, ⟨t₁, h₁⟩] ]
-      : lazy_list (lazy_list { y : tree α // sizeof_lt y (tree.node x t₀ t₁) })).join
-    $ (prod.shrink shrink_a (prod.shrink shrink_tree shrink_tree) (x, ⟨t₀, h₀⟩, ⟨t₁, h₁⟩)).map
+  [ lazy_list.of_list [⟨tree.nil, h₂⟩, ⟨t₀, h₀⟩, ⟨t₁, h₁⟩],
+    (prod.shrink shrink_a (prod.shrink f_rec f_rec) (x, ⟨t₀, h₀⟩, ⟨t₁, h₁⟩)).map
     $ λ ⟨⟨y,⟨t'₀, _⟩,⟨t'₁, _⟩⟩,hy⟩, ⟨tree.node y t'₀ t'₁,
-      by revert hy; dsimp [sizeof_lt]; unfold_wf; intro; linarith ⟩
+      by revert hy; dsimp [sizeof_lt]; unfold_wf; intro; linarith ⟩ ]
 end
 
 instance sampleable_tree : sampleable_functor tree :=
@@ -544,6 +575,31 @@ instance sampleable_tree : sampleable_functor tree :=
   sample := λ α sam_α, sized $ tree.sample sam_α,
   shrink := λ α Iα shr_α, @tree.shrink_with _ Iα shr_α,
   p_repr := @tree.has_repr }
+
+/-- Type tag that signals to `slim_check` to use small values for a given type. -/
+def small (α : Type*) := α
+
+def small.mk {α} (x : α) : small α := x
+
+/-- Type tag that signals to `slim_check` to use large values for a given type. -/
+def large (α : Type*) := α
+
+def large.mk {α} (x : α) : large α := x
+
+instance small.functor : functor small := id.monad.to_functor
+instance large.functor : functor large := id.monad.to_functor
+
+instance small.sampleable_functor : sampleable_functor small :=
+{ wf := _,
+  sample := λ α samp, gen.resize (λ n, n / 5 + 5) samp,
+  shrink := λ α _, id,
+  p_repr := λ α, id  }
+
+instance large.sampleable_functor : sampleable_functor large :=
+{ wf := _,
+  sample := λ α samp, gen.resize (λ n, n * 5) samp,
+  shrink := λ α _, id,
+  p_repr := λ α, id  }
 
 /-!
 ## Subtype instances
@@ -558,6 +614,8 @@ constraints. The benefit is that we will not have to discard any choice
 of `j`.
  -/
 
+/-! ### Subtypes of `ℕ` -/
+
 instance nat_le.sampleable {y} : slim_check.sampleable { x : ℕ // x ≤ y } :=
 { sample :=
          do { ⟨x,h⟩ ← slim_check.gen.choose_nat 0 y dec_trivial,
@@ -570,11 +628,15 @@ instance nat_ge.sampleable {x} : slim_check.sampleable { y : ℕ // x ≤ y } :=
               pure ⟨x+y, by norm_num⟩ },
   shrink := λ _, lazy_list.nil }
 
+-- there is no `nat_lt.sampleable` instance because if `y = 0`, there is no valid choice to satisfy `x < y`
+
 instance nat_gt.sampleable {x} : slim_check.sampleable { y : ℕ // x < y } :=
 { sample :=
          do { (y : ℕ) ← slim_check.sampleable.sample ℕ,
               pure ⟨x+y+1, by linarith⟩ },
   shrink := λ _, lazy_list.nil }
+
+/-! ### Subtypes of `ℤ` -/
 
 instance int_lt.sampleable {y} : slim_check.sampleable { x : ℤ // x < y } :=
 { sample :=
@@ -588,17 +650,31 @@ instance int_gt.sampleable {x} : slim_check.sampleable { y : ℤ // x < y } :=
               pure ⟨x+y+1, by linarith⟩ },
   shrink := λ _, lazy_list.nil }
 
-instance le.sampleable {y : α} [decidable_linear_ordered_add_comm_group α] [sampleable α] : slim_check.sampleable { x : α // x ≤ y } :=
+#check (by apply_instance : decidable_linear_ordered_add_comm_group ℤ)
+
+/-! ### Subtypes of any `decidable_linear_ordered_add_comm_group` -/
+
+instance le.sampleable {y : α} [sampleable α] [decidable_linear_ordered_add_comm_group α] : slim_check.sampleable { x : α // x ≤ y } :=
 { sample :=
          do { x ← sample α,
               pure ⟨y - abs x, sub_le_self _ (abs_nonneg _) ⟩ },
   shrink := λ _, lazy_list.nil }
 
-instance ge.sampleable {x : α} [decidable_linear_ordered_add_comm_group α] [sampleable α] : slim_check.sampleable { y : α // x ≤ y } :=
+instance ge.sampleable {x : α}  [sampleable α] [decidable_linear_ordered_add_comm_group α] : slim_check.sampleable { y : α // x ≤ y } :=
 { sample :=
          do { y ← sample α,
               pure ⟨x + abs y, by norm_num [abs_nonneg]⟩ },
   shrink := λ _, lazy_list.nil }
+
+-- Specialization of `le.sampleable` and `ge.sampleable` for `ℤ` to head instance search
+
+instance int_le.sampleable {y : ℤ} : slim_check.sampleable { x : ℤ // x ≤ y } :=
+le.sampleable
+
+instance int_ge.sampleable {x : ℤ} : slim_check.sampleable { y : ℤ // x ≤ y } :=
+ge.sampleable
+
+/-! ### Subtypes of any `list` -/
 
 instance perm.slim_check {xs : list α} : slim_check.sampleable { ys : list α // list.perm xs ys } :=
 { sample := permutation_of xs,
@@ -609,15 +685,35 @@ instance perm'.slim_check {xs : list α} : slim_check.sampleable { ys : list α 
   shrink := λ _, lazy_list.nil }
 
 setup_tactic_parser
+open tactic
 
 /--
 Print (at most) 10 samples of a given type to stdout for debugging.
 -/
-def print_samples (t : Type u) [sampleable_ext t] : io unit := do
+def print_samples {t : Type u} [has_repr t] (g : gen t) : io unit := do
 xs ← io.run_rand $ uliftable.down $
-  do { xs ← (list.range 10).mmap $ (sampleable_ext.sample t).run ∘ ulift.up,
+  do { xs ← (list.range 10).mmap $ g.run ∘ ulift.up,
        pure ⟨xs.map repr⟩ },
 xs.mmap' io.put_str_ln
+
+meta def mk_generator (e : expr) : tactic (expr × expr) := do
+t ← infer_type e,
+match t with
+| `(gen %%t) := do
+  repr_inst ← mk_app ``has_repr [t] >>= mk_instance,
+  pure (repr_inst, e)
+| _ := do
+  trace e,
+  samp_inst ← to_expr ``(sampleable_ext %%e) >>= mk_instance,
+  trace samp_inst,
+  repr_inst ← mk_mapp ``sampleable_ext.p_repr [e, samp_inst],
+  gen ← mk_mapp ``sampleable_ext.sample [none, samp_inst],
+  pure (repr_inst, gen)
+end
+
+#check @sampleable_ext.p_repr
+
+#check sampleable_ext
 
 /--
 `#sample my_type`, where `my_type` has an instance of `sampleable`, prints ten random
@@ -657,9 +753,10 @@ values of type `my_type` of using an increasing size parameter.
 meta def sample_cmd (_ : parse $ tk "#sample") : lean.parser unit :=
 do e ← texpr,
    of_tactic $ do
-     e ← tactic.i_to_expr e,
-     print_samples ← tactic.mk_mapp ``print_samples [e,none],
-     sample ← tactic.eval_expr (io unit) print_samples,
-     tactic.unsafe_run_io sample
+     e ← i_to_expr e,
+     (repr_inst, gen) ← mk_generator e,
+     print_samples ← mk_mapp ``print_samples [none, repr_inst, gen],
+     sample ← eval_expr (io unit) print_samples,
+     unsafe_run_io sample
 
 end slim_check

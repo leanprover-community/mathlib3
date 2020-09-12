@@ -3,6 +3,7 @@ import data.finmap
 import data.multiset.sort
 import tactic.find_unused
 import testing.slim_check.sampleable
+import testing.slim_check.testable
 
 universes u v w
 
@@ -26,7 +27,6 @@ instance total_function.inhabited {α β} [inhabited β] : inhabited (total_func
 ⟨ total_function.with_default ∅ (default _) ⟩
 
 namespace total_function
-open sampleable_ext
 
 /-- Apply a total function to an argument. -/
 def apply {α : Type u} [decidable_eq α] : Π {β : Type u}, total_function α β → α → β
@@ -90,6 +90,9 @@ instance pi.sampleable_ext {α : Type u} {β : Type v} [has_repr α] [has_repr �
     pure $ total_function.with_default (list.to_finmap' xs) ⟨x⟩ },
   shrink := λ _, lazy_list.nil }
 
+section sampleable_ext
+open sampleable_ext
+
 @[priority 2000]
 instance pi_pred.sampleable_ext {α : Type u} [sampleable_ext (α → bool)] : sampleable_ext.{u+1} (α → Prop) :=
 { proxy_repr := proxy_repr (α → bool),
@@ -104,52 +107,7 @@ instance pi_uncurry.sampleable_ext {α : Type u} {β : Type v} {γ : Sort w} [sa
   sample := sample (α × β → γ),
   shrink := shrink }
 
-section tactic
-setup_tactic_parser
-open tactic native
-
-/--
-Query the proof goal and print the skeleton of a proof by
-case.
-
-For example, let us consider the following proof:
-
-```lean
-example {α} (xs ys : list α) (h : xs ~ ys) : true :=
-begin
-  induction h,
-  pretty_cases,
-    -- Try this:
-    -- case list.perm.nil :
-    -- { admit },
-    -- case list.perm.cons : h_x h_l₁ h_l₂ h_a h_ih
-    -- { admit },
-    -- case list.perm.swap : h_x h_y h_l
-    -- { admit },
-    -- case list.perm.trans : h_l₁ h_l₂ h_l₃ h_a h_a_1 h_ih_a h_ih_a_1
-    -- { admit },
-end
-```
-
-The output helps the user layout the cases and rename the
-introduced variables.
--/
-@[interactive]
-meta def pretty_cases : tactic unit := retrieve $ do
-gs ← get_goals,
-trace "Try this: ",
-gs.mmap' $ λ g, do
-{ t : list name ← get_tag g,
-  let vs := t.tail,
-  let ⟨vs,ts⟩ := vs.span (λ n, name.last_string n = "_arg"),
-  set_goals [g],
-  ls ← local_context,
-  let m := rb_map.of_list $ (ls.map expr.local_uniq_name).zip (ls.map expr.local_pp_name),
-  let vs := vs.map $ λ v, (m.find v.get_prefix).get_or_else `_,
-  let var_decls := string.intercalate " " $ vs.map to_string,
-  trace!"case {ts.head} : {var_decls}\n{{ admit }," }
-
-end tactic
+end sampleable_ext
 
 /-- Interpret a list of pairs as a total function, defaulting to
 the identity function when no entries are found for a given function -/
@@ -162,56 +120,7 @@ lemma list.apply_id_cons {α : Type u} [decidable_eq α] (xs : list (α × α)) 
 by simp [list.apply_id, list.lookup]; split_ifs; refl
 
 open function list prod
-
 open nat
-
--- lemma exists_idx {α : Type u} {xs : list α} {ys : list α}
---   (h₁ : xs ~ ys) (h₃ : nodup xs) (x y : α) :
---   (x, y) ∈ xs.zip ys ↔ ∃ i, xs.nth i = some x ∧ ys.nth i = some y :=
--- begin
---   simp [mem_iff_nth, nth_zip_eq_some],
-
-
---   induction h₁,
---   case list.perm.nil :
---   { simp [zip, zip_with] },
---   case list.perm.cons : h₁_x h₁_l₁ h₁_l₂ h₁_a h₁_ih
---   { cases h₃ with _ _ h₃ h₄,
---     simp [h₁_ih h₄],
---     split,
---     rintros (⟨h,h'⟩|⟨i,h,h'⟩),
---     { existsi 0, subst_vars; split; refl },
---     { refine ⟨nat.succ _, by assumption, by assumption⟩ },
---     rintros ⟨(_|i),h,h'⟩,
---     { left, injection h with hh, injection h' with hh', cc },
---     { right, refine ⟨i, _, _⟩; assumption } },
---   case list.perm.swap : h₁_x h₁_y h₁_l
---   { cases h₃ with _ _ h₃ h₄,
---     cases h₄ with _ _ h₄ h₅,
---     simp,
---     split,
---     rintro (⟨h, h'⟩|⟨h, h'⟩|h),
---     { refine ⟨0, _⟩, simp * },
---     { refine ⟨1, _⟩, simp * },
---     { simp [mem_iff_nth] at h,
---       cases h with i h,
---       existsi (succ (succ i)),
---       rwa nth_zip_eq_some at h, },
---     { rintro ⟨(_|_|i),h,h'⟩,
---       { injection h, injection h', cc },
---       { injection h, injection h', cc },
---       { simp [mem_iff_nth, nth_zip_eq_some],
---         right, right, existsi i, split; assumption }, } },
---   case list.perm.trans : h₁_l₁ h₁_l₂ h₁_l₃ h₁_a h₁_a_1 h₁_ih₀ h₁_ih₁
---   { specialize h₁_ih₀ h₃, rw perm.nodup_iff h₁_a at h₃,
---     specialize h₁_ih₁ h₃,
---     split,
---     { intros h,
---       simp [mem_iff_nth, nth_zip_eq_some] at h,
---  },
-
---  },
--- end
 
 lemma nth_injective {α : Type u} {xs : list α} (i j : ℕ) (a : α)
   (h : nodup xs)
@@ -230,139 +139,6 @@ begin
       { rw mem_iff_nth, exact ⟨_, hj⟩ } },
     { congr, apply xs_ih; assumption, } }
 end
-
--- lemma zip_comp {α : Type u} {xs : list α} {ys : list α} {zs : list α}
---   (h₁ : xs ~ zs) (h₂ : zs ~ ys) (h₃ : nodup zs)
---   (x y : α) :
---   (x, y) ∈ xs.zip ys ↔ ∃ z, (x, z) ∈ xs.zip zs ∧ (z, y) ∈ zs.zip ys :=
--- begin
---   simp [mem_iff_nth, nth_zip_eq_some],
---   split,
---   { rintro ⟨i, h, h'⟩,
---     have hi : i < zs.length,
---     { rw nth_eq_some at h', cases h',
---       rwa perm.length_eq h₂, },
---     existsi zs.nth_le _ hi,
---     refine ⟨⟨i, h, nth_le_nth _⟩, ⟨i, nth_le_nth _, h'⟩⟩, },
---   { rintros ⟨z,⟨i, hi, hi'⟩,⟨j, hj, hj'⟩⟩,
---     have : i = j, { solve_by_elim [nth_injective] },
---     subst this,
---     exact ⟨i, hi, hj'⟩ },
-
-
---   done,
---   induction h₁ generalizing ys,
---   case list.perm.nil : ys h₂
---   { simp },
---   case list.perm.cons : a l₁ l₂ h₂ h₁_ih ys h₂
---   { cases h₂,
---     case list.perm.cons : a l₂ l₃ h₄
---     { cases h₃ with _ _ ha₃ hb₃,
---       simp [h₁_ih hb₃ h₄], split;
---       intros; casesm* [_ ∧ _, _ ∨ _, Exists _],
---       { existsi a, tauto! },
---       { existsi a_1_w, tauto! },
---       { tauto!, },
---       { have := (mem_zip a_1_h_right).1,
---         replace ha₃ := ha₃ _ this,
---         subst_vars, contradiction },
---       { have := (mem_zip a_1_h_left).2,
---         replace ha₃ := ha₃ _ this,
---         subst_vars, contradiction },
---       { tauto } },
---     case list.perm.swap : h₂_x a h₂_l
---     { simp, },
---     case list.perm.trans : h₂_l₂ ys h₂_a h₂_a_1
---     { admit },
-
---  },
---   case list.perm.swap : a b l ys h₂
---   { admit },
---   case list.perm.trans : l₁ l₂ l₃ a b h₁_ih₁ h₁_ih₂ ys h₂
---   { admit },
--- end
-
--- lemma df  {α : Type u} {xs ys : list α} (h₁ : xs ~ ys) (x y : α) :
---   (x, y) ∈ xs.zip ys ↔ (y, x) ∈ xs.zip ys :=
--- begin
---   revert x y,
---   suffices : ∀ x y, (x, y) ∈ xs.zip ys → (y, x) ∈ xs.zip ys,
---   { intros, split; solve_by_elim, },
---   intros x y,
---   induction h₁ generalizing x y,
---   case list.perm.nil : x y
---   { simp only [zip_nil_right, not_mem_nil, imp_self] },
---   -- done,
---   case list.perm.cons : h₁_x h₁_l₁ h₁_l₂ h₁_a h₁_ih x y
---   { simp only [mem_cons_iff, mk.inj_iff, zip_cons_cons],
---     rintro (⟨h₀,h₁⟩| h),
---     { cc },
---     tauto },
---   case list.perm.swap : h₁_x h₁_y h₁_l x y
---   { simp only [zip, zip_with, mem_cons_iff, mk.inj_iff],
---     intro h,
---     rw [← zip, ← zip_swap, mem_map_swap, zip],
---     tauto!, },
---   case list.perm.trans : h₁_l₁ h₁_l₂ h₁_l₃ h₁_a h₁_a_1 h₁_ih₁ h₁_ih₂ x y
---   { intro h,
---     simp [zip_comp h₁_a h₁_a_1, zip_comp h₁_a h₁_a_1] at h,
---     rcases h with ⟨z,h₀,h₁⟩,
---     have := h₁_ih₁ _ _ h₀,
---     have := h₁_ih₂ _ _ h₁,
---  },
--- end
-
--- lemma dg {α : Type u} {xs : list α} (x y : α) :
---   (x,y) ∈ xs.zip xs → x = y :=
--- begin
---   induction xs; simp only [mem_cons_iff, mk.inj_iff, zip_cons_cons, zip_nil_right, not_mem_nil, forall_prop_of_false, not_false_iff],
---   intro,
---   casesm* [_ ∨ _, _ ∧ _]; subst_vars,
---   solve_by_elim,
--- end
-
--- -- #find _ = _ ↔ _ = _
--- lemma d {α : Type u} [decidable_eq α] {xs ys : list α} (h₀ : list.nodup xs) (h₁ : xs ~ ys) (x y k : α) :
---   (x,k) ∈ xs.zip ys → (y,k) ∈ xs.zip ys → x = y :=
--- begin
---   induction h₁ generalizing x y k,
---   case list.perm.nil :
---   { simp },
---   case list.perm.cons : a l₁ l₂ h₂ h₁_ih
---   { simp, cases h₀ with ha₀ hb₀, intros h₁ h₂,
---     casesm* [_ ∨ _, _ ∧ _]; subst_vars,
---     { have h₂_3 : k ∈ l₁,
---       { have := (mem_zip h₂_1).2,
---         rwa perm.mem_iff h₂ },
---       specialize h₀_a _ h₂_3,
---       contradiction },
---     { have h₂_3 : k ∈ l₁,
---       { have := (mem_zip h₁).2,
---         rwa perm.mem_iff h₂ },
---       specialize h₀_a _ h₂_3,
---       contradiction },
---     { apply h₁_ih; assumption } },
---   case list.perm.swap : h₁_x h₁_y h₁_l
---   { simp, intros h₁ h₂,
---     dsimp [list.nodup] at h₀,
---     casesm* [pairwise _ (_ :: _), _ ∨ _, _ ∧ _]; subst_vars,
---     all_goals
---     { replace h₀_a_1 := λ x h, h₀_a_1 x (or.inr h),
---       try { have h₃ := dg _ _ h₁ },
---       try { have h₄ := dg _ _ h₂ },
---       subst_vars,
---       have h₅ := (mem_zip h₂).1 <|>
---       have h₆ := (mem_zip h₁).1 <|>
---       skip,
---       done <|> solve_by_elim,
---       }, },
---   case list.perm.trans : l₁ l₂ l₃ h₂ h₃ h₁_ih₁ h₁_ih₂
---   { have : nodup l₂, simpa [← perm.nodup_iff h₂],
---     simp [zip_comp h₂ h₃],
---     intros k₀ h₄ h₅ k₁ h₆ h₇,
---     specialize h₁_ih₂ this _ _ _ h₅ h₇, subst h₁_ih₂,
---     exact h₁_ih₁ h₀ _ _ _ h₄ h₆ },
--- end
 
 lemma foo {α : Type u} [decidable_eq α] {xs ys : list α} (h₀ : list.nodup xs)
   (h₁ : xs.length = ys.length) (x y : α) (i : ℕ)
@@ -398,7 +174,6 @@ begin
   introv h₀ h₁ h₂,
   by_cases j < xs.length,
   { congr, rw nth_le_nth h at h₂,
-    -- have h₃ : i < xs.length,
     apply nth_injective _ _ _ h₀ h₂,
     rw nth_le_nth },
   { have h' : ¬j < ys.length, { rwa ← h₁.length_eq },
@@ -496,19 +271,30 @@ begin
   { rw [← hxs, ← hys], solve_by_elim [perm.map] }
 end
 
-instance pi_injective.sampleable_ext {α : Type u} [has_repr α] [sampleable α] [decidable_eq α] : sampleable_ext { f : α → α // function.injective f } :=
-{ proxy_repr := { f : total_function (ulift.{u} α) (ulift.{u} α) // function.injective (total_function.interp α α f) },
-  interp := subtype.map (total_function.interp α α) $ λ x h, h,
-  sample := do {
-    uliftable.adapt_up.{u+1} gen.{u} gen.{u+1}
-      (sampleable.sample (list α)) $ λ xs,
-    let xs' := xs.erase_dup in
-    uliftable.adapt_up.{u+1} gen.{u} gen.{u+1}
+open sampleable
+
+instance pi_injective.sampleable_ext : sampleable_ext { f : ℤ → ℤ // function.injective f } :=
+{ proxy_repr := { f : total_function (ulift ℤ) (ulift ℤ) // function.injective (total_function.interp ℤ ℤ f) },
+  interp := subtype.map (total_function.interp ℤ ℤ) $ λ x h, h,
+  sample := gen.sized $ λ sz, do {
+    let xs' := int.range (-(2*sz+2)) (2*sz + 2)  in
+    uliftable.adapt_up.{1} gen.{0} gen.{1}
       (gen.permutation_of xs') $ λ ys,
-    let r : total_function (ulift.{u} α) (ulift.{u} α) := total_function.map_to_self (list.to_finmap' (xs'.zip ys.1)) in
-    pure ⟨r, interp_injective (list.nodup_erase_dup _) ys.2⟩ },
+    let r : total_function (ulift.{0} ℤ) (ulift.{0} ℤ) := total_function.map_to_self (list.to_finmap' (xs'.zip ys.1)) in
+    have Hinj : injective (λ (r : ℕ), -(2*sz + 2 : ℤ) + ↑r), from λ x y h, int.coe_nat_inj (add_right_injective _ h),
+    pure ⟨r, interp_injective (list.nodup_map Hinj (nodup_range _)) ys.2⟩ },
   shrink := λ _, lazy_list.nil }
 
 end total_function
+
+open function
+
+instance injective.testable {α β} (f : α → β)
+  [I : testable (named_binder "x" $ ∀ x : α, named_binder "y" $ ∀ y : α, named_binder "H" $ f x = f y → x = y)] :
+  testable (injective f) := I
+
+instance monotone.testable {α β} [preorder α] [preorder β] (f : α → β)
+  [I : testable (named_binder "x" $ ∀ x : α, named_binder "y" $ ∀ y : α, named_binder "H" $ x ≤ y → f x ≤ f y)] :
+  testable (monotone f) := I
 
 end slim_check

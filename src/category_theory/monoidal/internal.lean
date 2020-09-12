@@ -196,11 +196,15 @@ namespace Mon_
 
 open category_theory.lax_monoidal_functor
 
+namespace equiv_lax_monoidal_functor_punit
+
+/-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
 @[simps]
 def lax_monoidal_to_Mon : lax_monoidal_functor (discrete punit) C ⥤ Mon_ C :=
 { obj := λ F, (F.map_Mon : Mon_ _ ⥤ Mon_ C).obj (trivial (discrete punit)),
   map := λ F G α, ((map_Mon_functor (discrete punit) C).map α).app _ }
 
+/-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
 @[simps]
 def Mon_to_lax_monoidal : Mon_ C ⥤ lax_monoidal_functor (discrete punit) C :=
 { obj := λ A,
@@ -216,12 +220,35 @@ def Mon_to_lax_monoidal : Mon_ C ⥤ lax_monoidal_functor (discrete punit) C :=
     unit' := f.one_hom,
     tensor' := λ _ _, f.mul_hom, }, }
 
+/-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
+@[simps {rhs_md:=semireducible}]
+def unit_iso :
+  𝟭 (lax_monoidal_functor (discrete punit) C) ≅ lax_monoidal_to_Mon C ⋙ Mon_to_lax_monoidal C :=
+nat_iso.of_components (λ F,
+  monoidal_nat_iso.of_components
+    (λ _, F.to_functor.map_iso (eq_to_iso (by ext)))
+    (by tidy) (by tidy) (by tidy))
+  (by tidy)
+
+/-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
+@[simps {rhs_md:=semireducible}]
+def counit_iso : Mon_to_lax_monoidal C ⋙ lax_monoidal_to_Mon C ≅ 𝟭 (Mon_ C) :=
+nat_iso.of_components (λ F, { hom := { hom := 𝟙 _, }, inv := { hom := 𝟙 _, } })
+  (by tidy)
+
+end equiv_lax_monoidal_functor_punit
+
+open equiv_lax_monoidal_functor_punit
+
+/--
+Monoid objects in `C` are "just" lax monoidal functors from the trivial monoidal category to `C`.
+-/
 @[simps]
-def foo2 : lax_monoidal_functor (discrete punit) C ≌ Mon_ C :=
+def equiv_lax_monoidal_functor_punit : lax_monoidal_functor (discrete punit) C ≌ Mon_ C :=
 { functor := lax_monoidal_to_Mon C,
   inverse := Mon_to_lax_monoidal C,
-  unit_iso := nat_iso.of_components (λ F, begin dsimp, end) sorry,
-  counit_iso := sorry, }
+  unit_iso := unit_iso C,
+  counit_iso := counit_iso C, }
 
 end Mon_
 

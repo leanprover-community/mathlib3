@@ -71,8 +71,16 @@ instance category_lax_monoidal_functor : category (lax_monoidal_functor C D) :=
   id := id,
   comp := λ F G H α β, vcomp α β, }
 
+@[simp] lemma comp_to_nat_trans' {F G H : lax_monoidal_functor C D} {α : F ⟶ G} {β : G ⟶ H} :
+  (α ≫ β).to_nat_trans =
+    @category_struct.comp (C ⥤ D) _ _ _ _ (α.to_nat_trans) (β.to_nat_trans) := rfl
+
 instance category_monoidal_functor : category (monoidal_functor C D) :=
 induced_category.category monoidal_functor.to_lax_monoidal_functor
+
+@[simp] lemma comp_to_nat_trans'' {F G H : monoidal_functor C D} {α : F ⟶ G} {β : G ⟶ H} :
+  (α ≫ β).to_nat_trans =
+    @category_struct.comp (C ⥤ D) _ _ _ _ (α.to_nat_trans) (β.to_nat_trans) := rfl
 
 variables {E : Type u₃} [category.{v₃} E] [monoidal_category.{v₃} E]
 
@@ -110,8 +118,17 @@ instance is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is
       simp only [is_iso.inv_hom_id_assoc, is_iso.hom_inv_id, assoc, comp_id, cancel_mono] at h,
       exact h
     end,
-    tensor' := λ X Y, begin dsimp, simp, end } }
+    tensor' := λ X Y,
+    begin
+      dsimp,
+      rw [is_iso.comp_inv_eq, assoc, monoidal_nat_trans.tensor, ←inv_tensor,
+        is_iso.inv_hom_id_assoc],
+    end }, }
 
+/--
+Construct a monoidal natural isomorphism from object level isomorphisms,
+and the monoidal naturality in the forward direction.
+-/
 def of_components
   (app : ∀ X : C, F.obj X ≅ G.obj X)
   (naturality : ∀ {X Y : C} (f : X ⟶ Y), F.map f ≫ (app Y).hom = (app X).hom ≫ G.map f)
@@ -120,9 +137,6 @@ def of_components
   F ≅ G :=
 as_iso { app := λ X, (app X).hom }
 
-@[simp] lemma of_components.app (app' : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (unit) (tensor) (X) :
-  (of_components app' naturality unit tensor).app X = app' X :=
-by tidy
 @[simp] lemma of_components.hom_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (unit) (tensor) (X) :
   (of_components app naturality unit tensor).hom.app X = (app X).hom := rfl
 @[simp] lemma of_components.inv_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (unit) (tensor) (X) :

@@ -117,8 +117,7 @@ begin
   ext,
 
   -- Now it's just a calculation using `W` and `w`.
-  dsimp [limits.lim, limits.lim_map],
-  simp only [types_comp_apply, limits.types.lift_π_apply],
+  simp only [functor.comp_map, limits.types.map_π_apply, curry.obj_map_app, swap_map],
   rw ←W _ _ (fH j),
   rw ←W _ _ (gH j),
   simp [w],
@@ -173,7 +172,7 @@ begin
     { simp only [id_comp, comp_id, prod_comp], },
     erw [types.colimit_w_apply, t, functor_to_types.map_comp_apply, types.colimit_w_apply, e,
       ←types.limit_w_apply f, ←e],
-    refl, },
+    simp, },
 
   -- Because `K` is filtered, we can restate this as saying that
   -- for each such `f`, there is some place to the right of `k'`

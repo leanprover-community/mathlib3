@@ -253,16 +253,18 @@ then well_founded gt in local if well_founded gt in original
 -/
 
 --abstract to modules(?)
+--better name
 -- Every local ideal is of the form S⁻¹I for some ideal I of R.
 lemma local_ideal_char (S : submonoid R) (f : localization_map S $ localization S) : ∀(I : ideal f.codomain), ∃(I' : ideal R), ideal.map f.to_ring_hom I' = I :=
   λ (I : ideal f.codomain), Exists.intro (I.comap f.to_ring_hom) (f.map_comap I)
 
---pull out more lemmas
+--pull out more lemmas(?)
 --better name
 lemma local_rel_emb (S : submonoid R) (f : localization_map S $ localization S) : (gt : ideal f.codomain → ideal f.codomain → Prop) ↪r (gt : ideal R → ideal R → Prop) :=
 begin
   refine {to_embedding := _, map_rel_iff' := _},
   refine {to_fun := comap f.to_map, inj' := f.order_embedding.inj'},
+  dsimp at *,
   intros,
   split,
   {
@@ -284,18 +286,19 @@ begin
     split, rwa [f.order_embedding.map_rel_iff'],
     use f.to_fun x,
     split,
-    { have h1 : f.to_fun x ∈ (a.comap f.to_ring_hom).map f.to_ring_hom, sorry, --basic alg fact
+    { have h1 : f.to_fun x ∈ (a.comap f.to_ring_hom).map f.to_ring_hom := by tidy, --avoid tidy
       simpa only [f.map_comap], },
     contrapose! hxb,
     have h1 : f.to_map⁻¹' ({f.to_map x} : _) ≤ b.comap f.to_ring_hom,
-    { have : ({f.to_map x} : set f.codomain) ≤ b := by simpa only [set.singleton_subset_iff, set.le_eq_subset],
-    exact set.monotone_preimage this,},
+    { suffices : ({f.to_map x} : set f.codomain) ≤ b,
+    exact set.monotone_preimage this,
+    simpa only [set.singleton_subset_iff, set.le_eq_subset],},
     have h2 : x ∈ f.to_map⁻¹' ({f.to_map x} : _) := rfl,
     exact h1 h2,
   }
 end
 
-
+--better name
 lemma noetherian_local [is_noetherian_ring R] (S : submonoid R) (f : localization_map S $ localization S) : is_noetherian_ring f.codomain :=
 begin
   unfold is_noetherian_ring,

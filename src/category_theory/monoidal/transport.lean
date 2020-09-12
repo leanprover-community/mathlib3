@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.monoidal.functor
+import category_theory.monoidal.natural_transformation
 
 /-!
 # Transport a monoidal structure along an equivalence.
@@ -224,9 +224,33 @@ def from_transported (e : C ≌ D) : monoidal_functor (transported e) C :=
   μ_is_iso := λ X Y, by { dsimp, apply_instance, },
   ..lax_from_transported e, }
 
+/-- The unit isomorphism upgrades to a monoidal isomorphism. -/
+@[simps {rhs_md:=semireducible}]
 def transported_monoidal_unit_iso (e : C ≌ D) :
   lax_monoidal_functor.id C ≅ lax_to_transported e ⊗⋙ lax_from_transported e :=
-monoidal_nat_iso.of_components (λ X, )
+monoidal_nat_iso.of_components (λ X, e.unit_iso.app X) (λ X Y f, e.unit.naturality f)
+  (by { dsimp, simp })
+  (λ X Y,
+  begin
+    dsimp, simp only [iso.hom_inv_id_app_assoc, id_comp, equivalence.inv_fun_map],
+    slice_rhs 1 2 { rw [←tensor_comp, iso.hom_inv_id_app, iso.hom_inv_id_app],
+      dsimp, rw [tensor_id] },
+    simp,
+  end)
+
+/-- The counit isomorphism upgrades to a monoidal isomorphism. -/
+@[simps {rhs_md:=semireducible}]
+def transported_monoidal_counit_iso (e : C ≌ D) :
+  lax_from_transported e ⊗⋙ lax_to_transported e ≅ lax_monoidal_functor.id (transported e) :=
+monoidal_nat_iso.of_components (λ X, e.counit_iso.app X) (λ X Y f, e.counit.naturality f)
+  (by { dsimp, simp })
+  (λ X Y,
+  begin
+    dsimp, simp only [iso.hom_inv_id_app_assoc, id_comp, equivalence.inv_fun_map],
+    slice_rhs 1 2 { rw [←tensor_comp, iso.hom_inv_id_app, iso.hom_inv_id_app],
+      dsimp, rw [tensor_id] },
+    simp,
+  end)
 
 -- PROJECT:
 -- We should show that `e.functor` can be upgraded to a (strong) monoidal functor.

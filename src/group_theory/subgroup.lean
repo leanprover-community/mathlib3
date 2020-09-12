@@ -25,11 +25,11 @@ Special thanks goes to Amelia Livingston and Yury Kudryashov for their help and 
 
 Notation used here:
 
-- `G N` are groups
+- `G N` are `group`s
 
-- `A` is an add_group
+- `A` is an `add_group`
 
-- `H K` are subgroups of `G` or add_subgroups of `A`
+- `H K` are `subgroup`s of `G` or `add_subgroup`s of `A`
 
 - `x` is an element of type `G` or type `A`
 
@@ -45,26 +45,28 @@ Definitions in the file:
 
 * `complete_lattice (subgroup G)` : the subgroups of `G` form a complete lattice
 
-* `closure k` : the minimal subgroup that includes the set `k`
+* `subgroup.closure k` : the minimal subgroup that includes the set `k`
 
-* `subtype` : the natural group homomorphism from a subgroup of group `G` to `G`
+* `subgroup.subtype` : the natural group homomorphism from a subgroup of group `G` to `G`
 
-* `gi` : `closure` forms a Galois insertion with the coercion to set
+* `subgroup.gi` : `closure` forms a Galois insertion with the coercion to set
 
-* `comap H f` : the preimage of a subgroup `H` along the group homomorphism `f` is also a subgroup
+* `subgroup.comap H f` : the preimage of a subgroup `H` along the group homomorphism `f` is also a
+  subgroup
 
-* `map f H` : the image of a subgroup `H` along the group homomorphism `f` is also a subgroup
+* `subgroup.map f H` : the image of a subgroup `H` along the group homomorphism `f` is also a
+  subgroup
 
-* `prod H K` : the product of subgroups `H`, `K` of groups `G`, `N` respectively, `H × K` is a
-subgroup of `G × N`
+* `subgroup.prod H K` : the product of subgroups `H`, `K` of groups `G`, `N` respectively, `H × K`
+  is a subgroup of `G × N`
 
 * `monoid_hom.range f` : the range of the group homomorphism `f` is a subgroup
 
-* `monoid_hom.ker f` : the kernel of a group homomorphism `f` is the subgroup of elements `x : G` such that
-`f x = 1`
+* `monoid_hom.ker f` : the kernel of a group homomorphism `f` is the subgroup of elements `x : G`
+  such that `f x = 1`
 
-* `monoid_hom.eq_locus f g` : given group homomorphisms `f`, `g`, the elements of `G` such that `f x = g x`
-form a subgroup of `G`
+* `monoid_hom.eq_locus f g` : given group homomorphisms `f`, `g`, the elements of `G` such that
+  `f x = g x` form a subgroup of `G`
 
 ## Implementation notes
 

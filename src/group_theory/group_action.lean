@@ -452,7 +452,6 @@ def group_to_perm (G : Type*) [group G] : G →* perm G :=
   map_one' := by {ext, simp},
   map_mul' := λ x y, by { ext, simp, group } }
 
-lemma cayley (G : Type*) [group G] : ∃ h: G →* perm G, h=h :=
-⟨ group_to_perm G, rfl ⟩
+instance (G : Type*) [group G] : inhabited (G →* perm G) := group_to_perm G
 
 end

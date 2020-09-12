@@ -269,7 +269,7 @@ def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
   map_add' := λ x y, by { induction x; induction y; refl }, }
 
 /-- Evidence that the proposed colimit is the colimit. -/
-def colimit_is_colimit : is_colimit (colimit_cocone F) :=
+def colimit_cocone_is_colimit : is_colimit (colimit_cocone F) :=
 { desc := λ s, desc_morphism F s,
   uniq' := λ s m w,
   begin
@@ -289,7 +289,7 @@ instance has_colimits_AddCommGroup : has_colimits AddCommGroup :=
 { has_colimits_of_shape := λ J 𝒥, by exactI
   { has_colimit := λ F, has_colimit.mk
     { cocone := colimit_cocone F,
-      is_colimit := colimit_is_colimit F } } }
+      is_colimit := colimit_cocone_is_colimit F } } }
 
 end AddCommGroup.colimits
 

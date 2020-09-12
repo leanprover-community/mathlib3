@@ -81,14 +81,15 @@ end
 -/
 lemma maximal_ideal_inv_of_dedekin
 (h : is_dedekind_domain f) {M : ideal R}
-  (hM : ideal.is_maximal M) (hnonzeroM : M ≠ 0): is_unit (M : fractional_ideal f) :=
+  (hM : ideal.is_maximal M) (hnz_M : M ≠ 0): is_unit (M : fractional_ideal f) :=
 begin
-  let Mf : fractional_ideal f := ↑ M,
-  -- let Mf : fractional_ideal f := fractional_ideal.mk_fractional M,
-  let M1 : fractional_ideal f := 1/Mf,
+  have hnz_Mf : (↑ M : fractional_ideal f) ≠ (0 : fractional_ideal f), sorry,
+  let M1 : fractional_ideal f := (↑ M)⁻¹,--fractional_ideal f := (1: fractional_ideal f)/↑ M,
+  -- have nz_M1 : M1 ≠ (0 : fractional_ideal f), sorry,
   suffices hprod : ↑M*M1=(1: fractional_ideal f),
   apply is_unit_of_mul_eq_one ↑M M1 hprod,
-  suffices hincl: ↑M*M1≤ 1, --first we start with the proof that hincl → hprod
+  have hincl: ↑ M*M1≤ 1,
+  apply (fractional_ideal.le_div_iff_of_nonzero hnz_Mf).mp (1:fractional_ideal f) (1:fractional_ideal f) ↑M,  --first we start with the proof that hincl → hprod
   have h_nonfrac : ∃ (I : ideal R), ↑M*M1=↑I,
   -- cases is_fractional f M1.2 with a ha,
   -- let setI := (↑ M : fractional_ideal f).val * (M1.val),
@@ -110,7 +111,8 @@ begin
       have hax : a=x,
         suffices haxf : f.to_map a=f.to_map x,apply fraction_map.injective f haxf,rw hfa,
       subst hax,exact ha,
-      rw ← hI,exact h_MinMM1,
+      rw ← hI,apply algebra_operations.le_dev_iff
+      exact h_MinMM1,
     },
   have h_Itop : I=⊤,apply and.elim_right hM I,sorry,--this second sorry "proves" that M < I
   have h_okI : ↑I = (1 : fractional_ideal f),sorry,--this shoud be an easy matter of coercion

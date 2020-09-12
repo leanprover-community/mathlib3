@@ -31,7 +31,7 @@ instance [subsingleton α] : subsingleton (discrete α) :=
 by { dsimp [discrete], apply_instance }
 
 /-- Extract the equation from a morphism in a discrete category. -/
-def eq_of_hom {X Y : discrete α} (i : X ⟶ Y) : X = Y := i.down.down
+lemma eq_of_hom {X Y : discrete α} (i : X ⟶ Y) : X = Y := i.down.down
 
 @[simp] lemma id_def (X : discrete α) : ulift.up (plift.up (eq.refl X)) = 𝟙 X := rfl
 

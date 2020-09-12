@@ -247,13 +247,13 @@ lemma biproduct.ι_desc {f : J → C} [has_biproduct f] {P : C} (p : Π b, f b �
 indexed by the same type, we obtain a map between the biproducts. -/
 abbreviation biproduct.map [fintype J] {f g : J → C} [has_finite_biproducts C]
   (p : Π b, f b ⟶ g b) : ⨁ f ⟶ ⨁ g :=
-is_limit_map (biproduct.bicone f).to_cone (biproduct.is_limit g) (discrete.nat_trans p)
+is_limit.map (biproduct.bicone f).to_cone (biproduct.is_limit g) (discrete.nat_trans p)
 
 /-- An alternative to `biproduct.map` constructed via colimits.
 This construction only exists in order to show it is equal to `biproduct.map`. -/
 abbreviation biproduct.map' [fintype J] {f g : J → C} [has_finite_biproducts C]
   (p : Π b, f b ⟶ g b) : ⨁ f ⟶ ⨁ g :=
-is_colimit_map (biproduct.is_colimit f) (biproduct.bicone g).to_cocone (discrete.nat_trans p)
+is_colimit.map (biproduct.is_colimit f) (biproduct.bicone g).to_cocone (discrete.nat_trans p)
 
 @[ext] lemma biproduct.hom_ext {f : J → C} [has_biproduct f]
   {Z : C} (g h : Z ⟶ ⨁ f)
@@ -605,14 +605,14 @@ epi_of_epi_fac $ biprod.inr_desc _ _
 we obtain a map between the binary biproducts. -/
 abbreviation biprod.map {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⊞ X ⟶ Y ⊞ Z :=
-is_limit_map (binary_biproduct.bicone W X).to_cone (binary_biproduct.is_limit Y Z)
+is_limit.map (binary_biproduct.bicone W X).to_cone (binary_biproduct.is_limit Y Z)
   (@map_pair _ _ (pair W X) (pair Y Z) f g)
 
 /-- An alternative to `biprod.map` constructed via colimits.
 This construction only exists in order to show it is equal to `biprod.map`. -/
 abbreviation biprod.map' {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biproduct Y Z]
   (f : W ⟶ Y) (g : X ⟶ Z) : W ⊞ X ⟶ Y ⊞ Z :=
-is_colimit_map (binary_biproduct.is_colimit W X) (binary_biproduct.bicone Y Z).to_cocone
+is_colimit.map (binary_biproduct.is_colimit W X) (binary_biproduct.bicone Y Z).to_cocone
   (@map_pair _ _ (pair W X) (pair Y Z) f g)
 
 @[ext] lemma biprod.hom_ext {X Y Z : C} [has_binary_biproduct X Y] (f g : Z ⟶ X ⊞ Y)

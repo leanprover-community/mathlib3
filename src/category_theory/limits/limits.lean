@@ -1045,12 +1045,12 @@ section lim_functor
 
 /-- Given a natural transformation `α : F ⟶ G`, we give a morphism from the cone point
 of any cone over `F` to the cone point of a limit cone over `G`. -/
-def is_limit.map {F G : J ⥤ C} {s : cone F} {t : cone G} (P : is_limit t)
+def is_limit.map {F G : J ⥤ C} (s : cone F) {t : cone G} (P : is_limit t)
   (α : F ⟶ G) : s.X ⟶ t.X :=
 P.lift ((cones.postcompose α).obj s)
 
 @[simp, reassoc] lemma is_limit_map_π {F G : J ⥤ C} (c : cone F) {d : cone G} (hd : is_limit d)
-  (α : F ⟶ G) (j : J) : is_limit.map hd α ≫ d.π.app j = c.π.app j ≫ α.app j :=
+  (α : F ⟶ G) (j : J) : is_limit.map c hd α ≫ d.π.app j = c.π.app j ≫ α.app j :=
 by apply is_limit.fac
 
 /--
@@ -1061,7 +1061,7 @@ but may be needed separately when you have specified limits for the source and t
 but not necessarily for all functors of shape `J`.
 -/
 def lim_map {F G : J ⥤ C} [has_limit F] [has_limit G] (α : F ⟶ G) : limit F ⟶ limit G :=
-is_limit.map (limit.is_limit G) α
+is_limit.map _ (limit.is_limit G) α
 
 @[simp, reassoc] lemma lim_map_π {F G : J ⥤ C} [has_limit F] [has_limit G] (α : F ⟶ G) (j : J) :
   lim_map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
@@ -1443,13 +1443,13 @@ section colim_functor
 
 /-- Given a natural transformation `α : F ⟶ G`, we give a morphism from the cocone point
 of a colimit cocone over `F` to the cocone point of any cocone over `G`. -/
-def is_colimit.map {F G : J ⥤ C} {s : cocone F} (P : is_colimit s) {t : cocone G}
+def is_colimit.map {F G : J ⥤ C} {s : cocone F} (P : is_colimit s) (t : cocone G)
   (α : F ⟶ G) : s.X ⟶ t.X :=
 P.desc ((cocones.precompose α).obj t)
 
 @[simp, reassoc]
 lemma ι_is_colimit_map {F G : J ⥤ C} {c : cocone F} (hc : is_colimit c) (d : cocone G) (α : F ⟶ G)
-  (j : J) : c.ι.app j ≫ is_colimit.map hc α = α.app j ≫ d.ι.app j :=
+  (j : J) : c.ι.app j ≫ is_colimit.map hc d α = α.app j ≫ d.ι.app j :=
 by apply is_colimit.fac
 
 /--
@@ -1460,7 +1460,7 @@ but may be needed separately when you have specified colimits for the source and
 but not necessarily for all functors of shape `J`.
 -/
 def colim_map {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G) : colimit F ⟶ colimit G :=
-is_colimit.map (colimit.is_colimit F) α
+is_colimit.map (colimit.is_colimit F) _ α
 
 @[simp, reassoc]
 lemma ι_colim_map {F G : J ⥤ C} [has_colimit F] [has_colimit G] (α : F ⟶ G) (j : J) :

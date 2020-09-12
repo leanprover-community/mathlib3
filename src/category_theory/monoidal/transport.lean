@@ -129,11 +129,15 @@ def transport (e : C ≌ D) : monoidal_category.{v₂} D :=
     slice_rhs 1 2 { rw [id_tensor_comp_tensor_id], },
   end, }.
 
+/-- A type synonym for `D`, which will carry the transported monoidal structure. -/
 @[derive category]
 def transported (e : C ≌ D) := D
 
 instance (e : C ≌ D) : monoidal_category (transported e) := transport e
 
+/--
+We can upgrade `e.functor` to a lax monoidal functor from `C` to `D` with the transported structure.
+-/
 @[simps]
 def lax_to_transported (e : C ≌ D) : lax_monoidal_functor C (transported e) :=
 { ε := 𝟙 (e.functor.obj (𝟙_ C)),
@@ -151,10 +155,20 @@ def lax_to_transported (e : C ≌ D) : lax_monoidal_functor C (transported e) :=
   associativity' := λ X Y Z,
   begin
     dsimp,
-    simp only [comp_tensor_id, assoc, equivalence.inv_fun_map, functor.map_comp, id_tensor_comp, e.inverse.map_id],
+    simp only [comp_tensor_id, assoc, equivalence.inv_fun_map, functor.map_comp, id_tensor_comp,
+      e.inverse.map_id],
     simp only [←e.functor.map_comp],
     congr' 2,
-    sorry, -- doable from here
+    slice_lhs 3 3 { rw [←tensor_id_comp_id_tensor], },
+    slice_lhs 2 3 { rw [←comp_tensor_id, iso.hom_inv_id_app], dsimp, rw [tensor_id] },
+    simp only [id_comp],
+    slice_rhs 2 3 { rw [←id_tensor_comp, iso.hom_inv_id_app], dsimp, rw [tensor_id] },
+    simp only [id_comp],
+    conv_rhs { rw [←id_tensor_comp_tensor_id _ (e.unit_inv.app X)], },
+    dsimp only [functor.comp_obj],
+    slice_rhs 3 4 { rw [←id_tensor_comp, iso.hom_inv_id_app], dsimp, rw [tensor_id] },
+    simp only [id_comp],
+    simp [associator_naturality],
   end,
   left_unitality' := λ X,
   begin
@@ -178,12 +192,18 @@ def lax_to_transported (e : C ≌ D) : lax_monoidal_functor C (transported e) :=
   end,
   ..e.functor, }.
 
+/--
+We can upgrade `e.functor` to a monoidal functor from `C` to `D` with the transported structure.
+-/
 @[simps]
 def to_transported (e : C ≌ D) : monoidal_functor C (transported e) :=
 { ε_is_iso := by { dsimp, apply_instance, },
   μ_is_iso := λ X Y, by { dsimp, apply_instance, },
   ..lax_to_transported e, }
 
+/--
+We can upgrade `e.inverse` to a lax monoidal functor from `D` with the transported structure to `C`.
+-/
 @[simps]
 def lax_from_transported (e : C ≌ D) : lax_monoidal_functor (transported e) C :=
 { ε := e.unit.app (𝟙_ C),
@@ -218,6 +238,9 @@ def lax_from_transported (e : C ≌ D) : lax_monoidal_functor (transported e) C 
   end,
   ..e.inverse, }
 
+/--
+We can upgrade `e.inverse` to a monoidal functor from `D` with the transported structure to `C`.
+-/
 @[simps]
 def from_transported (e : C ≌ D) : monoidal_functor (transported e) C :=
 { ε_is_iso := by { dsimp, apply_instance, },
@@ -247,14 +270,15 @@ monoidal_nat_iso.of_components (λ X, e.counit_iso.app X) (λ X Y f, e.counit.na
   (λ X Y,
   begin
     dsimp, simp only [iso.hom_inv_id_app_assoc, id_comp, equivalence.inv_fun_map],
-    slice_rhs 1 2 { rw [←tensor_comp, iso.hom_inv_id_app, iso.hom_inv_id_app],
-      dsimp, rw [tensor_id] },
-    simp,
+    simp only [equivalence.counit_functor, ←e.functor.map_id, ←e.functor.map_comp],
+    congr' 1,
+    simp [equivalence.inverse_counit],
+    dsimp,
+    simp, -- See note [dsimp, simp].
   end)
 
--- PROJECT:
--- We should show that `e.functor` can be upgraded to a (strong) monoidal functor.
-
+-- We could put these together as an equivalence of monoidal categories,
+-- but I don't want to do this quite yet.
 -- Etingof-Gelaki-Nikshych-Ostrik "Tensor categories" define an equivalence of monoidal categories
 -- as a monoidal functor which, as a functor, is an equivalence.
 -- Presumably one can show that the inverse functor can be upgraded to a monoidal

@@ -291,7 +291,7 @@ begin
     rw ← (findim_mul_findim F F⟮x⟯ E) at key,
     have h : findim F F⟮x⟯ = 1 := nlinarith_lemma (findim F F⟮x⟯) (findim F⟮x⟯ E) key findim_pos findim_pos,
     replace h := field.adjoin.findim_one F x h,
-    rw set.mem_range at h,
+    rw algebra.mem_bot at h,
     cases h with y hy,
     rw ← hy,
     exact F⟮0⟯.algebra_map_mem y, },

@@ -152,12 +152,10 @@ instance adjoin_findim_of_findim_base [F_findim : finite_dimensional F E] (α : 
     finite_dimensional F F⟮α⟯ :=
 finite_dimensional.finite_dimensional_submodule (F⟮α⟯ : submodule F E)
 
-lemma findim_one_implies_equal (E_dim : findim F E = 1) : set.range(algebra_map F E) = ⊤ :=
+lemma findim_one_implies_equal (E_dim : findim F E = 1) : (⊤ : subalgebra F E) = ⊥ :=
 begin
-  ext1,
-  symmetry,
-  apply iff_of_true,
-  tauto,
+  ext,
+  apply iff_of_true algebra.mem_top,
   set s : set E := {1} with hs,
   have : fintype s := unique.fintype,
   have s_lin_ind : linear_independent F (coe : s → E) := linear_independent_singleton one_ne_zero,
@@ -170,19 +168,19 @@ begin
     exact submodule.mem_top,
   end,
   obtain ⟨a, ha⟩ := submodule.mem_span_singleton.mp x_in_span_one,
+  rw algebra.mem_bot,
   exact ⟨a, by rw [← ha, algebra.smul_def, mul_one]⟩,
 end
 
-lemma adjoin.findim_one (hdim : findim F F⟮α⟯ = 1) : α ∈ set.range(algebra_map F E) :=
+lemma adjoin.findim_one (h : findim F F⟮α⟯ = 1) : α ∈ (⊥ : subalgebra F E) :=
 begin
-  have h := (set.ext_iff.mp (findim_one_implies_equal F hdim) (adjoin_simple.gen F α)).mpr (by tauto),
-  rw set.mem_range at h,
-  cases h with x hx,
-  rw set.mem_range,
-  use x,
-  rw ←adjoin_simple.algebra_map_gen F α,
-  rw ←hx,
-  refl,
+  replace h := findim_one_implies_equal F h,
+  rw subalgebra.ext_iff at h,
+  specialize h (adjoin_simple.gen F α),
+  rw algebra.mem_bot at h,
+  obtain ⟨x, hx⟩ := h.mp algebra.mem_top,
+  rw [← adjoin_simple.algebra_map_gen F α, ← hx, algebra.mem_bot],
+  exact ⟨x, rfl⟩,
 end
 
 end

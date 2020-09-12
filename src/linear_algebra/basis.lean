@@ -787,7 +787,7 @@ def is_basis.constr (f : ι → M') : M →ₗ[R] M' :=
 
 theorem is_basis.constr_apply (f : ι → M') (x : M) :
   (hv.constr f : M → M') x = (hv.repr x).sum (λb a, a • f b) :=
-by dsimp [is_basis.constr];
+by dsimp [is_basis.constr] ;
    rw [finsupp.total_apply, finsupp.sum_map_domain_index]; simp [add_smul]
 
 lemma is_basis.ext {f g : M →ₗ[R] M'} (hv : is_basis R v) (h : ∀i, f (v i) = g (v i)) : f = g :=
@@ -1023,6 +1023,10 @@ end
 @[simp]
 lemma is_basis.equiv_fun_self (i j : ι) : h.equiv_fun (v i) j = if i = j then 1 else 0 :=
 by { rw [h.equiv_fun_apply, h.repr_self_apply] }
+
+@[simp] theorem is_basis.constr_apply_fintype [fintype ι] (f : ι → M') (x : M) :
+  (h.constr f : M → M') x = ∑ i, (h.equiv_fun x i) • f i :=
+by simp [h.constr_apply, h.equiv_fun_apply, finsupp.sum_fintype]
 
 end module
 

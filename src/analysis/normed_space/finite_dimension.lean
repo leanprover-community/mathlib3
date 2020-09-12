@@ -187,7 +187,7 @@ def is_basis.constrL {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) :
   exact (hv.constr f).continuous_of_finite_dimensional,
 end⟩
 
-@[norm_cast] lemma is_basis.coe_constrL {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) :
+@[simp, norm_cast] lemma is_basis.coe_constrL {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) :
   (hv.constrL f : E →ₗ[𝕜] F) = hv.constr f := rfl
 
 /-- The continuous linear equivalence between a vector space over `𝕜` with a finite basis and
@@ -206,19 +206,13 @@ def is_basis.equiv_funL {v : ι → E} (hv : is_basis 𝕜 v) : E ≃L[𝕜] (ι
 
 @[simp] lemma is_basis.constrL_apply {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) (e : E) :
   (hv.constrL f) e = ∑ i, (hv.equiv_fun e i) • f i :=
-by simp [is_basis.constrL, hv.equiv_fun_apply, hv.constr_apply, finsupp.sum_fintype]
+hv.constr_apply_fintype _ _
 
-@[simp] lemma is_basis.constrL_apply_self {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) (i : ι) :
+@[simp] lemma is_basis.constrL_basis {v : ι → E} (hv : is_basis 𝕜 v) (f : ι → F) (i : ι) :
   (hv.constrL f) (v i) = f i :=
-begin
- simp only [is_basis.constrL_apply, hv.equiv_fun_self],
- have : ∀ j ∈ (finset.univ : finset ι), ite (i = j) (1 :𝕜) 0 • f j = ite (i = j) (f i) 0,
- { intros x hx,
-   split_ifs ; simp [h] },
- simpa using finset.sum_congr rfl this
-end
+constr_basis _
 
-lemma is_basis.sup_norm_le_norm  {v : ι → E} (hv : is_basis 𝕜 v) :
+lemma is_basis.sup_norm_le_norm {v : ι → E} (hv : is_basis 𝕜 v) :
   ∃ C > (0 : ℝ), ∀ e : E, ∑ i, ∥hv.equiv_fun e i∥ ≤ C * ∥e∥ :=
 begin
   set φ := hv.equiv_funL.to_continuous_linear_map,

@@ -8,6 +8,9 @@ import category_theory.limits.limits
 
 /-!
 # Initial and terminal objects in a category.
+
+## References
+* [Stacks: Initial and final objects](https://stacks.math.columbia.edu/tag/002B)
 -/
 
 universes v u

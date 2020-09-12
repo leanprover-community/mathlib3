@@ -48,6 +48,8 @@ infixr ` ≫ `:80 := category_struct.comp -- type as \gg
 The typeclass `category C` describes morphisms associated to objects of type `C`.
 The universe levels of the objects and morphisms are unconstrained, and will often need to be
 specified explicitly, as `category.{v} C`. (See also `large_category` and `small_category`.)
+
+See https://stacks.math.columbia.edu/tag/0014.
 -/
 class category (obj : Type u)
 extends category_struct.{v} obj : Type (max u (v+1)) :=
@@ -119,6 +121,8 @@ by { split_ifs; refl }
 /--
 A morphism `f` is an epimorphism if it can be "cancelled" when precomposed:
 `f ≫ g = f ≫ h` implies `g = h`.
+
+See https://stacks.math.columbia.edu/tag/003B.
 -/
 class epi (f : X ⟶ Y) : Prop :=
 (left_cancellation : Π {Z : C} (g h : Y ⟶ Z) (w : f ≫ g = f ≫ h), g = h)
@@ -126,6 +130,8 @@ class epi (f : X ⟶ Y) : Prop :=
 /--
 A morphism `f` is a monomorphism if it can be "cancelled" when postcomposed:
 `g ≫ f = h ≫ f` implies `g = h`.
+
+See https://stacks.math.columbia.edu/tag/003B.
 -/
 class mono (f : X ⟶ Y) : Prop :=
 (right_cancellation : Π {Z : C} (g h : Z ⟶ X) (w : g ≫ f = h ≫ f), g = h)
@@ -218,6 +224,15 @@ namespace preorder
 
 variables (α : Type u)
 
+/--
+The category structure coming from a preorder. There is a morphism `X ⟶ Y` if and only if `X ≤ Y`.
+
+Because we don't allow morphisms to live in `Prop`,
+we have to define `X ⟶ Y` as `ulift (plift (X ≤ Y))`.
+See `category_theory.hom_of_le` and `category_theory.le_of_hom`.
+
+See https://stacks.math.columbia.edu/tag/00D3.
+-/
 @[priority 100] -- see Note [lower instance priority]
 instance small_category [preorder α] : small_category α :=
 { hom  := λ U V, ulift (plift (U ≤ V)),

@@ -32,7 +32,9 @@ open_locale tensor_product big_operators
 
 section prio
 -- We set this priority to 0 later in this file
-set_option default_priority 200 -- see Note [default priority]
+set_option extends_priority 200 /- control priority of
+`instance [algebra R A] : has_scalar R A` -/
+
 /-- The category of R-algebras where R is a commutative
 ring is the under category R ↓ CRing. In the categorical
 setting we have a forgetful functor R-Alg ⥤ R-Mod.

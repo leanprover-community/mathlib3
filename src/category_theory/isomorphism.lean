@@ -34,11 +34,15 @@ universes v u -- declare the `v`'s first; see `category_theory.category` for an 
 namespace category_theory
 open category
 
-/-- An isomorphism (a.k.a. an invertible morphism) between two objects of a category.
+/--
+An isomorphism (a.k.a. an invertible morphism) between two objects of a category.
 The inverse morphism is bundled.
 
 See also `category_theory.core` for the category with the same objects and isomorphisms playing
-the role of morphisms. -/
+the role of morphisms.
+
+See https://stacks.math.columbia.edu/tag/0017.
+-/
 structure iso {C : Type u} [category.{v} C] (X Y : C) :=
 (hom : X ⟶ Y)
 (inv : Y ⟶ X)
@@ -204,6 +208,22 @@ is_iso.of_iso $ (as_iso f) ≪≫ (as_iso h)
 @[simp] lemma inv_inv [is_iso f] : inv (inv f) = f := rfl
 @[simp] lemma iso.inv_inv (f : X ≅ Y) : inv (f.inv) = f.hom := rfl
 @[simp] lemma iso.inv_hom (f : X ≅ Y) : inv (f.hom) = f.inv := rfl
+
+@[simp]
+lemma inv_comp_eq (α : X ⟶ Y) [is_iso α] {f : X ⟶ Z} {g : Y ⟶ Z} : inv α ≫ f = g ↔ f = α ≫ g :=
+⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
+
+@[simp]
+lemma eq_inv_comp (α : X ⟶ Y) [is_iso α] {f : X ⟶ Z} {g : Y ⟶ Z} : g = inv α ≫ f ↔ α ≫ g = f :=
+(inv_comp_eq (inv α)).symm
+
+@[simp]
+lemma comp_inv_eq (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : f ≫ (inv α) = g ↔ f = g ≫ α :=
+⟨λ H, by simp [H.symm], λ H, by simp [H]⟩
+
+@[simp]
+lemma comp_is_iso_eq (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : g = f ≫ (inv α) ↔ g ≫ α = f :=
+(comp_inv_eq (inv α)).symm
 
 @[priority 100] -- see Note [lower instance priority]
 instance epi_of_iso (f : X ⟶ Y) [is_iso f] : epi f  :=

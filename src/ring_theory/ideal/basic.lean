@@ -610,13 +610,10 @@ begin
   use [I, Imax], apply H, apply ideal.subset_span, exact set.mem_singleton a
 end
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A commutative ring is local if it has a unique maximal ideal. Note that
   `local_ring` is a predicate. -/
 class local_ring (α : Type u) [comm_ring α] extends nontrivial α : Prop :=
 (is_local : ∀ (a : α), (is_unit a) ∨ (is_unit (1 - a)))
-end prio
 
 namespace local_ring
 
@@ -740,14 +737,11 @@ lemma local_of_surjective {A B : Type*} [comm_ring A] [local_ring A] [comm_ring 
   end,
   .. ‹nontrivial B› }
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A local ring homomorphism is a homomorphism between local rings
   such that the image of the maximal ideal of the source is contained within
   the maximal ideal of the target. -/
 class is_local_ring_hom [semiring α] [semiring β] (f : α →+* β) : Prop :=
 (map_nonunit : ∀ a, is_unit (f a) → is_unit a)
-end prio
 
 instance is_local_ring_hom_id (A : Type*) [semiring A] : is_local_ring_hom (ring_hom.id A) :=
 { map_nonunit := λ a, id }

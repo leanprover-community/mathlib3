@@ -49,7 +49,7 @@ structure lax_monoidal_functor extends C ⥤ D :=
   . obviously)
 
 restate_axiom lax_monoidal_functor.μ_natural'
-attribute [simp] lax_monoidal_functor.μ_natural
+attribute [simp, reassoc] lax_monoidal_functor.μ_natural
 restate_axiom lax_monoidal_functor.left_unitality'
 attribute [simp] lax_monoidal_functor.left_unitality
 restate_axiom lax_monoidal_functor.right_unitality'
@@ -61,7 +61,11 @@ attribute [simp] lax_monoidal_functor.associativity
 -- lax_monoidal_functor.μ_natural lax_monoidal_functor.left_unitality
 -- lax_monoidal_functor.right_unitality lax_monoidal_functor.associativity
 
-/-- A monoidal functor is a lax monoidal functor for which the tensorator and unitor as isomorphisms. -/
+/--
+A monoidal functor is a lax monoidal functor for which the tensorator and unitor as isomorphisms.
+
+See https://stacks.math.columbia.edu/tag/0FFL.
+-/
 structure monoidal_functor
 extends lax_monoidal_functor.{v₁ v₂} C D :=
 (ε_is_iso            : is_iso ε . obviously)

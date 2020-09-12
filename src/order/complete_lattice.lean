@@ -60,8 +60,6 @@ notation `⨅` binders `, ` r:(scoped f, infi f) := r
 instance (α) [has_Inf α] : has_Sup (order_dual α) := ⟨(Inf : set α → α)⟩
 instance (α) [has_Sup α] : has_Inf (order_dual α) := ⟨(Sup : set α → α)⟩
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A complete lattice is a bounded lattice which
   has suprema and infima for every subset. -/
 class complete_lattice (α : Type*) extends bounded_lattice α, has_Sup α, has_Inf α :=
@@ -124,7 +122,6 @@ def complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
 
 /-- A complete linear order is a linear order whose lattice structure is complete. -/
 class complete_linear_order (α : Type*) extends complete_lattice α, decidable_linear_order α
-end prio
 
 namespace order_dual
 variable (α)

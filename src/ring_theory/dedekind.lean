@@ -48,6 +48,14 @@ begin
 
   repeat {sorry},
 end
+
+example (X : Type*) [comm_ring X] [local_ring X] (I : ideal X) (hI : I.is_maximal): false :=
+begin
+  rcases local_ring.maximal_ideal_unique X with ⟨p, hpmax, hp⟩,
+  simp only [] at hp,
+  sorry,
+end
+
 /-
 lemma dedekind_dvr_imp_dedekind_inv [is_dedekind_domain_dvr R'] : is_dedekind_domain_inv R' :=
 begin

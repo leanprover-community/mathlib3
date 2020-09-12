@@ -20,8 +20,8 @@ In the first part, given a coherent family `D` of limit cones over the functors 
 and a cone `c` over `G`, we construct a cone over the cone points of `D`.
 We then show that if `c` is a limit cone, the constructed cone is also a limit cone.
 
-In the second part, we state the Fubini theorem in the setting where limits exist
-promised by `has_limit` classes.
+In the second part, we state the Fubini theorem in the setting where limits are
+provided by suitable `has_limit` classes.
 
 We construct
 `limit_uncurry_iso_limit_comp_lim F : limit (uncurry.obj F) ≅ limit (F ⋙ lim)`
@@ -157,17 +157,17 @@ variables (F)
 variables [has_limits_of_shape K C]
 
 /--
-Given a functor `F : J ⥤ K ⥤ C`, with all needed chosen limits,
+Given a functor `F : J ⥤ K ⥤ C`, with all needed limits,
 we can construct a diagram consisting of the limit cone over each functor `F.obj j`,
 and the universal cone morphisms between these.
 -/
 @[simps]
-def diagram_of_cones.mk_of_has_limits : diagram_of_cones F :=
+noncomputable def diagram_of_cones.mk_of_has_limits : diagram_of_cones F :=
 { obj := λ j, limit.cone (F.obj j),
   map := λ j j' f, { hom := lim.map (F.map f), }, }
 
 -- Satisfying the inhabited linter.
-instance diagram_of_cones_inhabited : inhabited (diagram_of_cones F) :=
+noncomputable instance diagram_of_cones_inhabited : inhabited (diagram_of_cones F) :=
 ⟨diagram_of_cones.mk_of_has_limits F⟩
 
 @[simp]
@@ -183,7 +183,7 @@ The Fubini theorem for a functor `F : J ⥤ K ⥤ C`,
 showing that the limit of `uncurry.obj F` can be computed as
 the limit of the limits of the functors `F.obj j`.
 -/
-def limit_uncurry_iso_limit_comp_lim : limit (uncurry.obj F) ≅ limit (F ⋙ lim) :=
+noncomputable def limit_uncurry_iso_limit_comp_lim : limit (uncurry.obj F) ≅ limit (F ⋙ lim) :=
 begin
   let c := limit.cone (uncurry.obj F),
   let P : is_limit c := limit.is_limit _,
@@ -225,7 +225,7 @@ The Fubini theorem for a functor `G : J × K ⥤ C`,
 showing that the limit of `G` can be computed as
 the limit of the limits of the functors `G.obj (j, _)`.
 -/
-def limit_iso_limit_curry_comp_lim : limit G ≅ limit ((curry.obj G) ⋙ lim) :=
+noncomputable def limit_iso_limit_curry_comp_lim : limit G ≅ limit ((curry.obj G) ⋙ lim) :=
 begin
   have i : G ≅ uncurry.obj ((@curry J _ K _ C _).obj G) := currying.symm.unit_iso.app G,
   haveI : limits.has_limit (uncurry.obj ((@curry J _ K _ C _).obj G)) :=
@@ -263,6 +263,7 @@ open category_theory.prod
 A variant of the Fubini theorem for a functor `G : J × K ⥤ C`,
 showing that $\lim_k \lim_j G(j,k) ≅ \lim_j \lim_k G(j,k)$.
 -/
+noncomputable
 def limit_curry_swap_comp_lim_iso_limit_curry_comp_lim :
   limit ((curry.obj (swap K J ⋙ G)) ⋙ lim) ≅ limit ((curry.obj G) ⋙ lim) :=
 calc

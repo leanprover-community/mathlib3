@@ -43,6 +43,8 @@ general limits can be used.
 * [F. Borceux, *Handbook of Categorical Algebra 1*][borceux-vol1]
 -/
 
+noncomputable theory
+
 open category_theory
 
 namespace category_theory.limits
@@ -408,17 +410,17 @@ abbreviation has_equalizer := has_limit (parallel_pair f g)
 
 variables [has_equalizer f g]
 
-/-- If we have chosen an equalizer of `f` and `g`, we can access the corresponding object by
+/-- If an equalizer of `f` and `g` exists, we can access an arbitrary choice of such by
     saying `equalizer f g`. -/
 abbreviation equalizer : C := limit (parallel_pair f g)
 
-/-- If we have chosen an equalizer of `f` and `g`, we can access the inclusion
+/-- If an equalizer of `f` and `g` exists, we can access the inclusion
     `equalizer f g ⟶ X` by saying `equalizer.ι f g`. -/
 abbreviation equalizer.ι : equalizer f g ⟶ X :=
 limit.π (parallel_pair f g) zero
 
 /--
-The chosen equalizer cone for a parallel pair `f` and `g`.
+An equalizer cone for a parallel pair `f` and `g`.
 -/
 abbreviation equalizer.fork : fork f g := limit.cone (parallel_pair f g)
 
@@ -542,17 +544,17 @@ abbreviation has_coequalizer := has_colimit (parallel_pair f g)
 
 variables [has_coequalizer f g]
 
-/-- If we have chosen a coequalizer of `f` and `g`, we can access the corresponding object by
+/-- If a coequalizer of `f` and `g` exists, we can access an arbitrary choice of such by
     saying `coequalizer f g`. -/
 abbreviation coequalizer : C := colimit (parallel_pair f g)
 
-/-- If we have chosen a coequalizer of `f` and `g`, we can access the corresponding projection by
+/--  If a coequalizer of `f` and `g` exists, we can access the corresponding projection by
     saying `coequalizer.π f g`. -/
 abbreviation coequalizer.π : Y ⟶ coequalizer f g :=
 colimit.ι (parallel_pair f g) one
 
 /--
-The chosen coequalizer cocone for a parallel pair `f` and `g`.
+An arbitrary choice of coequalizer cocone for a parallel pair `f` and `g`.
 -/
 abbreviation coequalizer.cofork : cofork f g := colimit.cocone (parallel_pair f g)
 
@@ -666,12 +668,12 @@ abbreviation has_equalizers := has_limits_of_shape walking_parallel_pair C
 abbreviation has_coequalizers := has_colimits_of_shape walking_parallel_pair C
 
 /-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
-def has_equalizers_of_has_limit_parallel_pair
+lemma has_equalizers_of_has_limit_parallel_pair
   [Π {X Y : C} {f g : X ⟶ Y}, has_limit (parallel_pair f g)] : has_equalizers C :=
 { has_limit := λ F, has_limit_of_iso (diagram_iso_parallel_pair F).symm }
 
 /-- If `C` has all colimits of diagrams `parallel_pair f g`, then it has all coequalizers -/
-def has_coequalizers_of_has_colimit_parallel_pair
+lemma has_coequalizers_of_has_colimit_parallel_pair
   [Π {X Y : C} {f g : X ⟶ Y}, has_colimit (parallel_pair f g)] : has_coequalizers C :=
 { has_colimit := λ F, has_colimit_of_iso (diagram_iso_parallel_pair F) }
 

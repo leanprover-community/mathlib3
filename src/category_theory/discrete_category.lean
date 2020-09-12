@@ -37,9 +37,6 @@ variables {C : Type u₂} [category.{v₂} C]
 instance {I : Type u₁} {i j : discrete I} (f : i ⟶ j) : is_iso f :=
 { inv := ⟨⟨f.1.1.symm⟩⟩, }
 
-def iso {I : Type u₁} {i j : discrete I} (h : i = j) : i ≅ j :=
-{ hom := ⟨⟨h⟩⟩, inv := ⟨⟨h.symm⟩⟩, }
-
 /--
 Any function `I → C` gives a functor `discrete I ⥤ C`.
 -/

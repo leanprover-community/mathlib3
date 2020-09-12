@@ -194,7 +194,8 @@ protected lemma continuous : continuous γ :=
 
 /-- Any function `φ : α → path F` can be seen as a function `α × I → F`. -/
 instance has_uncurry_path {X α : Type*} [topological_space X] {x y : α → X} :
-has_uncurry (Π (a : α), path (x a) (y a)) (α × I) X := ⟨λ φ p, φ p.1 p.2⟩
+  has_uncurry (Π (a : α), path (x a) (y a)) (α × I) X :=
+⟨λ φ p, φ p.1 p.2⟩
 
 /-- The constant path from a point to itself -/
 @[refl] def refl (x : X) : path x x :=
@@ -221,7 +222,7 @@ begin
   refl
 end
 
-lemma symm_range {X : Type*} [topological_space X] {a b : X} (γ : path a b) :
+@[simp] lemma symm_range {X : Type*} [topological_space X] {a b : X} (γ : path a b) :
   range γ.symm = range γ :=
 begin
   ext x,
@@ -249,7 +250,7 @@ I_extend_extends γ.to_fun ht
 
 @[simp] lemma extend_extends' {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) (t : (Icc 0 1 : set ℝ)) : γ.extend ↑t = γ t :=
-by {convert γ.extend_extends t.2, rw subtype.ext_iff_val}
+by { convert γ.extend_extends t.2, rw subtype.ext_iff_val }
 
 @[simp] lemma extend_range {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) : range γ.extend = range γ :=
@@ -678,51 +679,45 @@ begin
   exact ⟨(hx hyW).joined_subtype.some_path.map (continuous_inclusion hWU), by simp⟩
 end
 
-private lemma exists_path_through_family_aux
-  {X : Type*} [topological_space X] {s : set X} (h : is_path_connected s) (n : ℕ)
-  (p : ℕ → X) (hp : ∀ i ≤ n, p i ∈ s) : ∃ γ : path (p 0) (p n), (∀ i ≤ n, p i ∈ range γ) ∧ (range γ ⊆ s) :=
-begin
-  induction n with n hn,
-  { use (λ _, p 0),
-    { continuity },
-    { split,
-      { rintros i hi, rw nat.le_zero_iff.mp hi, exact ⟨0, rfl⟩ },
-      { rw range_subset_iff, rintros x, exact hp 0 (le_refl _) } } },
-  { rcases hn (λ i hi, hp i $ nat.le_succ_of_le hi) with ⟨γ₀, hγ₀⟩,
-    rcases h.joined_in (p n) (p $ n+1) (hp n n.le_succ) (hp (n+1) $ le_refl _) with ⟨γ₁, hγ₁⟩,
-    let γ : path (p 0) (p $ n+1) := γ₀.trans γ₁,
-    use γ,
-    have range_eq : range γ = range γ₀ ∪ range γ₁ := γ₀.trans_range γ₁,
-    split,
-    { rintros i hi,
-      by_cases hi' : i ≤ n,
-      { rw range_eq,
-        left,
-        exact hγ₀.1 i hi' },
-      { rw [not_le, ← nat.succ_le_iff] at hi',
-        have : i = n.succ := by linarith,
-        rw this,
-        use 1,
-        exact γ.target } },
-    { rw range_eq,
-      apply union_subset hγ₀.2,
-      rw range_subset_iff,
-      exact hγ₁ } }
-end
-
 lemma is_path_connected.exists_path_through_family
   {X : Type*} [topological_space X] {n : ℕ} {s : set X} (h : is_path_connected s)
   (p : fin (n+1) → X) (hp : ∀ i, p i ∈ s) : ∃ γ : path (p 0) (p n), (∀ i, p i ∈ range γ) ∧ (range γ ⊆ s) :=
 begin
   let p' : ℕ → X := λ k, if h : k < n+1 then p ⟨k, h⟩ else p ⟨0, n.zero_lt_succ⟩,
+  obtain ⟨γ, hγ⟩ : ∃ (γ : path (p' 0) (p' n)), (∀ i ≤ n, p' i ∈ range γ) ∧ range γ ⊆ s,
+  { have hp' : ∀ i ≤ n, p' i ∈ s,
+    { intros i hi,
+      simp [p', nat.lt_succ_of_le hi, hp] },
+    clear_value p',
+    clear hp p,
+    induction n with n hn,
+    { use (λ _, p' 0),
+      { continuity },
+      { split,
+        { rintros i hi, rw nat.le_zero_iff.mp hi, exact ⟨0, rfl⟩ },
+        { rw range_subset_iff, rintros x, exact hp' 0 (le_refl _) } } },
+    { rcases hn (λ i hi, hp' i $ nat.le_succ_of_le hi) with ⟨γ₀, hγ₀⟩,
+      rcases h.joined_in (p' n) (p' $ n+1) (hp' n n.le_succ) (hp' (n+1) $ le_refl _) with ⟨γ₁, hγ₁⟩,
+      let γ : path (p' 0) (p' $ n+1) := γ₀.trans γ₁,
+      use γ,
+      have range_eq : range γ = range γ₀ ∪ range γ₁ := γ₀.trans_range γ₁,
+      split,
+      { rintros i hi,
+        by_cases hi' : i ≤ n,
+        { rw range_eq,
+          left,
+          exact hγ₀.1 i hi' },
+        { rw [not_le, ← nat.succ_le_iff] at hi',
+          have : i = n.succ := by linarith,
+          rw this,
+          use 1,
+          exact γ.target } },
+      { rw range_eq,
+        apply union_subset hγ₀.2,
+        rw range_subset_iff,
+        exact hγ₁ } } },
   have hpp' : ∀ k < n+1, p k = p' k,
   { intros k hk, simp only [p', hk, dif_pos], congr, ext, rw fin.coe_coe_of_lt hk, norm_cast },
-  have := exists_path_through_family_aux h n p'
-  begin
-    intros i hi,
-    simp [p', nat.lt_succ_of_le hi, hp]
-  end,
-  rcases this with ⟨γ, hγ⟩,
   use γ.cast (hpp' 0 n.zero_lt_succ) (hpp' n n.lt_succ_self),
   simp only [γ.cast_coe],
   refine and.intro _ hγ.2,

@@ -19,6 +19,7 @@ A morphism is schemes is just a morphism of the underlying locally ringed spaces
 open topological_space
 open category_theory
 open Top
+open opposite
 
 namespace algebraic_geometry
 
@@ -83,6 +84,32 @@ Schemes are a full subcategory of locally ringed spaces.
 -/
 instance : category Scheme :=
 induced_category.category Scheme.to_LocallyRingedSpace
+
+/--
+The global sections, notated Gamma.
+-/
+def Γ : Schemeᵒᵖ ⥤ CommRing :=
+(induced_functor Scheme.to_LocallyRingedSpace).op ⋙ LocallyRingedSpace.Γ
+
+lemma Γ_def : Γ = (induced_functor Scheme.to_LocallyRingedSpace).op ⋙ LocallyRingedSpace.Γ := rfl
+
+@[simp] lemma Γ_obj (X : Schemeᵒᵖ) : Γ.obj X = (unop X).presheaf.obj (op ⊤) := rfl
+
+lemma Γ_obj_op (X : Scheme) : Γ.obj (op X) = X.presheaf.obj (op ⊤) := rfl
+
+@[simp] lemma Γ_map {X Y : Schemeᵒᵖ} (f : X ⟶ Y) :
+  Γ.map f = f.unop.1.c.app (op ⊤) ≫ (unop Y).presheaf.map
+      (hom_of_le $ λ _ _, trivial : ⊤ ⟶ (opens.map f.unop.1.base).obj ⊤).op := rfl
+
+lemma Γ_map_op {X Y : Scheme} (f : X ⟶ Y) :
+  Γ.map f.op = f.1.c.app (op ⊤) ≫ X.presheaf.map
+      (hom_of_le $ λ _ _, trivial : ⊤ ⟶ (opens.map f.1.base).obj ⊤).op := rfl
+
+-- PROJECTS:
+-- 1. Make `Spec` a functor.
+-- 2. Constructr `Spec ≫ Γ ≅ functor.id _`.
+-- 3. Adjunction between `Γ` and `Spec`.
+--
 
 end Scheme
 

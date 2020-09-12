@@ -110,6 +110,26 @@ def restrict {U : Top} (X : SheafedSpace C)
     (sheaf_condition.fork.iso_of_open_embedding h 𝒰).symm,
   ..X.to_PresheafedSpace.restrict f h }
 
+/--
+The global sections, notated Gamma.
+-/
+def Γ : (SheafedSpace C)ᵒᵖ ⥤ C :=
+forget_to_PresheafedSpace.op ⋙ PresheafedSpace.Γ
+
+lemma Γ_def : (Γ : _ ⥤ C) = forget_to_PresheafedSpace.op ⋙ PresheafedSpace.Γ := rfl
+
+@[simp] lemma Γ_obj (X : (SheafedSpace C)ᵒᵖ) : Γ.obj X = (unop X).presheaf.obj (op ⊤) := rfl
+
+lemma Γ_obj_op (X : SheafedSpace C) : Γ.obj (op X) = X.presheaf.obj (op ⊤) := rfl
+
+@[simp] lemma Γ_map {X Y : (SheafedSpace C)ᵒᵖ} (f : X ⟶ Y) :
+  Γ.map f = f.unop.c.app (op ⊤) ≫ (unop Y).presheaf.map
+      (hom_of_le $ λ _ _, trivial : ⊤ ⟶ (opens.map f.unop.base).obj ⊤).op := rfl
+
+lemma Γ_map_op {X Y : SheafedSpace C} (f : X ⟶ Y) :
+  Γ.map f.op = f.c.app (op ⊤) ≫ X.presheaf.map
+      (hom_of_le $ λ _ _, trivial : ⊤ ⟶ (opens.map f.base).obj ⊤).op := rfl
+
 end SheafedSpace
 
 end algebraic_geometry

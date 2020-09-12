@@ -492,10 +492,12 @@ variable [testable p]
 /-- configuration for testing a property -/
 @[derive [has_reflect, inhabited]]
 structure slim_check_cfg :=
-(num_inst : ℕ := 100) -- number of examples
-(max_size : ℕ := 100) -- final size argument
-(enable_tracing : bool := ff) -- enable the printing out of discarded samples
-(random_seed : option ℕ := none) --
+(num_inst : ℕ := 100)            -- number of examples
+(max_size : ℕ := 100)            -- final size argument
+(enable_tracing : bool := ff)    -- enable the printing out of discarded samples
+(random_seed : option ℕ := none) -- specify a seed to the random number generator to
+                                 -- obtain a deterministic behavior
+(quiet : bool := ff)             -- suppress success message when running `slim_check`
 
 /-- Try `n` times to find a counter-example for `p`. -/
 def testable.run_suite_aux (cfg : slim_check_cfg) : test_result p → ℕ → rand (test_result p)
@@ -591,7 +593,7 @@ x ← match cfg.random_seed with
     | none := io.run_rand (testable.run_suite p' cfg)
     end,
 match x with
-| (success _) := when cfg.random_seed.is_none $ io.put_str_ln "Success"
+| (success _) := when (¬ cfg.quiet) $ io.put_str_ln "Success"
 | (gave_up n) := io.fail sformat!"Gave up {repr n} times"
 | (failure _ xs) := do
    let counter_ex := string.intercalate "\n" xs,

@@ -156,7 +156,7 @@ end
 example : true :=
 begin
   have : ∀ x ∈ [1,2,3], x < 4,
-  slim_check { random_seed := some 257 },
+  slim_check { random_seed := some 257, quiet := tt },
     -- success
   trivial,
 end

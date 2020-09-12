@@ -82,18 +82,12 @@ stalk_to_fiber (sheafify.is_locally_germ F) x
 lemma stalk_to_fiber_surjective (x : X) : function.surjective (F.stalk_to_fiber x) :=
 begin
   apply stalk_to_fiber_surjective,
-  rintro ⟨U,s⟩,
-  { revert s,
-    rw [(show U = op (unop U), from rfl)],
-    generalize : unop U = V, clear U,
-    intro s,
-    use V,
-    cases V,
+  intro t,
+  obtain ⟨U, m, s, rfl⟩ := F.germ_exist _ t,
+  { use ⟨U, m⟩,
     fsplit,
     { exact λ y, F.germ y s, },
-    { fsplit,
-      { apply prelocal_predicate.sheafify_of, exact ⟨s, λ x, rfl⟩, },
-      { exact quot.sound ⟨𝟙 _, by { dsimp, erw category_theory.functor.map_id, refl, }⟩, }, }, },
+    { exact ⟨prelocal_predicate.sheafify_of ⟨s, (λ _, rfl)⟩, rfl⟩, }, },
 end
 
 lemma stalk_to_fiber_injective (x : X) : function.injective (F.stalk_to_fiber x) :=

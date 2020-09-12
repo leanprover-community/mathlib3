@@ -49,6 +49,7 @@ variables [has_colimits_of_shape K C]
 The universal morphism
 $\colim_k \lim_j F(j,k) → \lim_j \colim_k F(j, k)$.
 -/
+noncomputable
 def colimit_limit_to_limit_colimit :
   colimit ((curry.obj (swap K J ⋙ F)) ⋙ lim) ⟶ limit ((curry.obj F) ⋙ colim) :=
 limit.lift ((curry.obj F) ⋙ colim)

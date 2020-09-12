@@ -190,7 +190,67 @@ def diagram_subtype {ι : Type v} (U : ι → opens X) :
       ext,
       simp only [types_comp_apply, subtype.val_eq_coe], },
     { refl, },
-  end}
+  end}.
+
+-- auxilliary lemma for `sheaf_condition` below
+lemma sheaf_condition_fac
+  {P : local_predicate T} {ι : Type v} {U : ι → opens X}
+  {s : fork (left_res (subpresheaf_to_Types P.to_prelocal_predicate) U)
+         (right_res (subpresheaf_to_Types P.to_prelocal_predicate) U)}
+  (i : ι) (f : s.X) (h) :
+  limit.π (discrete.functor (λ i, { f //  P.pred f })) i
+    (res (subpresheaf_to_Types P.to_prelocal_predicate) U
+      ⟨(to_Types X T U).lift ((cones.postcompose (diagram_subtype _ U)).obj s) f, h⟩) =
+    limit.π (discrete.functor (λ i, { f //  P.pred f })) i (s.ι f) :=
+begin
+  apply subtype.coe_injective,
+  convert congr_fun
+    ((to_Types X T U).fac
+      ((cones.postcompose (diagram_subtype P.to_prelocal_predicate U)).obj s)
+      walking_parallel_pair.zero =≫
+    pi.π (λ i, (X.presheaf_to_Types T).obj (op (U i))) i) f,
+  { dsimp [res, presheaf_to_Types, subpresheaf_to_Types],
+    simp only [types.pi_lift_π_apply, fan.mk_π_app, subtype.coe_mk, types.lift_π_apply], },
+  { dsimp,
+    simp only [types.pi_map_π_apply, subtype.val_eq_coe], },
+end
+
+-- auxilliary lemma for `sheaf_condition` below
+lemma sheaf_condition_uniq
+  {P : local_predicate T} {ι : Type v} {U : ι → opens X}
+  {s : fork (left_res (subpresheaf_to_Types P.to_prelocal_predicate) U)
+         (right_res (subpresheaf_to_Types P.to_prelocal_predicate) U)}
+  (m : s.X ⟶ (fork (subpresheaf_to_Types P.to_prelocal_predicate) U).X)
+  (w : ∀ (j : walking_parallel_pair),
+         m ≫ (fork (subpresheaf_to_Types P.to_prelocal_predicate) U).π.app j = s.π.app j)
+  (f : s.X) (h) :
+  m f = ⟨(to_Types X T U).lift ((cones.postcompose (diagram_subtype _ U)).obj s) f, h⟩ :=
+begin
+  apply subtype.coe_injective,
+  let s' := (cones.postcompose (diagram_subtype P.to_prelocal_predicate U)).obj s,
+  refine congr_fun ((to_Types X T U).uniq s' _ _) f,
+  -- We "just" need to fix up our `w` to match the missing `w` argument.
+  -- Unfortunately, it's still gross.
+  intro j,
+  specialize w j,
+  dsimp [s'],
+  rw ←w, clear w,
+  simp only [category.assoc],
+  rcases j with ⟨_|_⟩,
+  { apply limit.hom_ext,
+    intro i,
+    simp only [category.assoc, limit.map_π],
+    ext f' ⟨x, mem⟩,
+    dsimp [res, subpresheaf_to_Types, presheaf_to_Types],
+    simp only [discrete.nat_trans_app, types.map_π_apply, fan.mk_π_app, types.lift_π_apply], },
+  { apply limit.hom_ext,
+    intro i,
+    simp only [category.assoc, limit.map_π],
+    ext f' ⟨x, mem⟩,
+    dsimp [res, left_res, subpresheaf_to_Types, presheaf_to_Types],
+    simp only [discrete.nat_trans_app, types.map_π_apply, types.pi_lift_π_apply, types_comp_apply,
+      fan.mk_π_app, subtype.coe_mk, types.lift_π_apply], },
+end
 
 /--
 The functions satisfying a local predicate satisfy the sheaf condition.
@@ -239,38 +299,11 @@ begin
     -- and use the factorisation condition for the sheaf condition for functions.
     intros s,
     ext i f : 2,
-    apply subtype.coe_injective,
-    convert congr_fun
-      ((to_Types X T U).fac
-        ((cones.postcompose (diagram_subtype P.to_prelocal_predicate U)).obj s)
-        walking_parallel_pair.zero =≫
-      pi.π (λ (i : ι), (X.presheaf_to_Types T).obj (op (U i))) i) f, },
+    apply sheaf_condition_fac, },
   { -- Similarly for proving the uniqueness condition, after a certain amount of bookkeeping.
     intros s m w,
     ext f : 1,
-    apply subtype.coe_injective,
-    let s' := (cones.postcompose (diagram_subtype P.to_prelocal_predicate U)).obj s,
-    refine congr_fun ((to_Types X T U).uniq s' _ _) f,
-    -- We "just" need to fix up our `w` to match the missing `w` argument.
-    -- Unfortunately, it's still gross.
-    intro j,
-    specialize w j,
-    dsimp [s'],
-    rw ←w, clear w,
-    simp only [category.assoc],
-    rcases j with ⟨_|_⟩,
-    { apply limit.hom_ext,
-      intro i,
-      simp only [category.assoc, limit.map_π],
-      ext f' ⟨x, mem⟩,
-      dsimp [res, subpresheaf_to_Types, presheaf_to_Types],
-      simp, },
-    { apply limit.hom_ext,
-      intro i,
-      simp only [category.assoc, limit.map_π],
-      ext f' ⟨x, mem⟩,
-      dsimp [res, left_res, subpresheaf_to_Types, presheaf_to_Types],
-      simp, }, },
+    apply sheaf_condition_uniq m w, },
 end
 
 end subpresheaf_to_Types

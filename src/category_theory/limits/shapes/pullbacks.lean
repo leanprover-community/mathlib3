@@ -20,6 +20,8 @@ We define `pullback f g` and `pushout f g` as limits and colimits of such functo
 * [Stacks: Pushouts](https://stacks.math.columbia.edu/tag/0025)
 -/
 
+noncomputable theory
+
 open category_theory
 
 namespace category_theory.limits
@@ -545,13 +547,13 @@ abbreviation has_pullbacks := has_limits_of_shape walking_cospan C
 abbreviation has_pushouts := has_colimits_of_shape walking_span C
 
 /-- If `C` has all limits of diagrams `cospan f g`, then it has all pullbacks -/
-def has_pullbacks_of_has_limit_cospan
+lemma has_pullbacks_of_has_limit_cospan
   [Π {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z}, has_limit (cospan f g)] :
   has_pullbacks C :=
 { has_limit := λ F, has_limit_of_iso (diagram_iso_cospan F).symm }
 
 /-- If `C` has all colimits of diagrams `span f g`, then it has all pushouts -/
-def has_pushouts_of_has_colimit_span
+lemma has_pushouts_of_has_colimit_span
   [Π {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z}, has_colimit (span f g)] :
   has_pushouts C :=
 { has_colimit := λ F, has_colimit_of_iso (diagram_iso_span F) }

@@ -37,13 +37,14 @@ See https://stacks.math.columbia.edu/tag/002U.
 -/
 instance : has_limits (Type u) :=
 { has_limits_of_shape := λ J 𝒥, by exactI
-  { has_limit := λ F,
+  { has_limit := λ F, has_limit.mk
     { cone := limit_cone F, is_limit := limit_cone_is_limit F } } }
 
 /--
 The equivalence between the abstract limit of `F` in `Type u`
 and the "concrete" definition as the sections of `F`.
 -/
+noncomputable
 def limit_equiv_sections (F : J ⥤ Type u) : (limit F : Type u) ≃ F.sections :=
 (is_limit.cone_point_unique_up_to_iso (limit.is_limit F) (limit_cone_is_limit F)).to_equiv
 
@@ -65,6 +66,7 @@ Construct a term of `limit F : Type u` from a family of terms `x : Π j, F.obj j
 which are "coherent": `∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j'`.
 -/
 @[ext]
+noncomputable
 def limit.mk (F : J ⥤ Type u) (x : Π j, F.obj j) (h : ∀ (j j') (f : j ⟶ j'), F.map f (x j) = x j') :
   (limit F : Type u) :=
 (limit_equiv_sections F).symm ⟨x, h⟩
@@ -135,13 +137,14 @@ See https://stacks.math.columbia.edu/tag/002U.
 -/
 instance : has_colimits (Type u) :=
 { has_colimits_of_shape := λ J 𝒥, by exactI
-  { has_colimit := λ F,
+  { has_colimit := λ F, has_colimit.mk
     { cocone := colimit_cocone F, is_colimit := colimit_cocone_is_colimit F } } }
 
 /--
 The equivalence between the abstract colimit of `F` in `Type u`
 and the "concrete" definition as a quotient.
 -/
+noncomputable
 def colimit_equiv_quot (F : J ⥤ Type u) : (colimit F : Type u) ≃ quot F :=
 (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit F) (colimit_cocone_is_colimit F)).to_equiv
 

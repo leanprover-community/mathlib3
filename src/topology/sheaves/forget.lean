@@ -25,11 +25,12 @@ to check it on the underlying sheaf of types.
 * https://stacks.math.columbia.edu/tag/0073
 -/
 
+noncomputable theory
+
 open category_theory
 open category_theory.limits
 open topological_space
 open opposite
-
 
 namespace Top
 

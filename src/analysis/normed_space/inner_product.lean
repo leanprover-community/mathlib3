@@ -1269,7 +1269,7 @@ Let `u` be a point in an inner product space, and let `K` be a nonempty subspace
 Then point `v` minimizes the distance `∥u - v∥` if and only if
 for all `w ∈ K`, `⟪u - v, w⟫ = 0` (i.e., `u - v` is orthogonal to the subspace `K`)
 -/
-theorem norm_eq_infi_iff_real_inner_eq_zero (K : subspace ℝ β) {u : β} {v : β}
+theorem norm_eq_infi_iff_inner_eq_zero (K : subspace ℝ β) {u : β} {v : β}
   (hv : v ∈ K) : ∥u - v∥ = (⨅ w : (↑K : set β), ∥u - w∥) ↔ ∀ w ∈ K, ⟪u - v, w⟫_ℝ = 0 :=
 iff.intro
 begin
@@ -1325,10 +1325,10 @@ omit 𝕜
 /-- The characterization of the unbundled orthogonal projection.  This
 lemma is only intended for use in setting up the bundled version
 and should not be used once that is defined. -/
-lemma orthogonal_projection_fn_real_inner_eq_zero {K : submodule ℝ β} (h : is_complete (K : set β))
+lemma orthogonal_projection_fn_inner_eq_zero {K : submodule ℝ β} (h : is_complete (K : set β))
   (v : β) : ∀ w ∈ K, ⟪v - orthogonal_projection_fn h v, w⟫_ℝ = 0 :=
 begin
-  rw ←norm_eq_infi_iff_real_inner_eq_zero K (orthogonal_projection_fn_mem h v),
+  rw ←norm_eq_infi_iff_inner_eq_zero K (orthogonal_projection_fn_mem h v),
   exact (exists_norm_eq_infi_of_complete_subspace K h v).some_spec.some_spec
 end
 
@@ -1336,7 +1336,7 @@ end
 with the orthogonality property.  This lemma is only intended for use
 in setting up the bundled version and should not be used once that is
 defined. -/
-lemma eq_orthogonal_projection_fn_of_mem_of_real_inner_eq_zero {K : submodule ℝ β}
+lemma eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero {K : submodule ℝ β}
   (h : is_complete (K : set β)) {u v : β} (hvm : v ∈ K) (hvo : ∀ w ∈ K, ⟪u - v, w⟫_ℝ = 0) :
   v = orthogonal_projection_fn h u :=
 begin
@@ -1344,7 +1344,7 @@ begin
   have hvs : v - orthogonal_projection_fn h u ∈ K :=
     submodule.sub_mem K hvm (orthogonal_projection_fn_mem h u),
   have huo : ⟪u - orthogonal_projection_fn h u, v - orthogonal_projection_fn h u⟫_ℝ = 0 :=
-    orthogonal_projection_fn_real_inner_eq_zero h u _ hvs,
+    orthogonal_projection_fn_inner_eq_zero h u _ hvs,
   have huv : ⟪u - v, v - orthogonal_projection_fn h u⟫_ℝ = 0 := hvo _ hvs,
   have houv : ⟪(u - orthogonal_projection_fn h u) - (u - v), v - orthogonal_projection_fn h u⟫_ℝ = 0,
   { rw [inner_sub_left, huo, huv, sub_zero] },
@@ -1355,7 +1355,7 @@ end
 purposes, `orthogonal_projection`, which removes the `is_complete`
 hypothesis and is the identity map when the subspace is not complete,
 should be used instead. -/
-def orthogonal_projection_of_complete_real {K : submodule ℝ β} (h : is_complete (K : set β)) :
+def orthogonal_projection_of_complete {K : submodule ℝ β} (h : is_complete (K : set β)) :
   linear_map ℝ β β :=
 { to_fun := orthogonal_projection_fn h,
   map_add' := λ x y, begin
@@ -1364,39 +1364,39 @@ def orthogonal_projection_of_complete_real {K : submodule ℝ β} (h : is_comple
     have ho :
       ∀ w ∈ K, ⟪x + y - (orthogonal_projection_fn h x + orthogonal_projection_fn h y), w⟫_ℝ = 0,
     { intros w hw,
-      rw [add_sub_comm, inner_add_left, orthogonal_projection_fn_real_inner_eq_zero h _ w hw,
-          orthogonal_projection_fn_real_inner_eq_zero h _ w hw, add_zero] },
-    rw eq_orthogonal_projection_fn_of_mem_of_real_inner_eq_zero h hm ho
+      rw [add_sub_comm, inner_add_left, orthogonal_projection_fn_inner_eq_zero h _ w hw,
+          orthogonal_projection_fn_inner_eq_zero h _ w hw, add_zero] },
+    rw eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero h hm ho
   end,
   map_smul' := λ c x, begin
     have hm : c • orthogonal_projection_fn h x ∈ K :=
       submodule.smul_mem K _ (orthogonal_projection_fn_mem h x),
     have ho : ∀ w ∈ K, ⟪c • x - c • orthogonal_projection_fn h x, w⟫_ℝ = 0,
     { intros w hw,
-      rw [←smul_sub, inner_smul_left, orthogonal_projection_fn_real_inner_eq_zero h _ w hw, mul_zero] },
-    rw eq_orthogonal_projection_fn_of_mem_of_real_inner_eq_zero h hm ho
+      rw [←smul_sub, inner_smul_left, orthogonal_projection_fn_inner_eq_zero h _ w hw, mul_zero] },
+    rw eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero h hm ho
   end }
 
 /-- The orthogonal projection onto a subspace, which is expected to be
 complete.  If the subspace is not complete, this uses the identity map
 instead. -/
-def orthogonal_projection_real (K : submodule ℝ β) : linear_map ℝ β β :=
-if h : is_complete (K : set β) then orthogonal_projection_of_complete_real h else linear_map.id
+def orthogonal_projection (K : submodule ℝ β) : linear_map ℝ β β :=
+if h : is_complete (K : set β) then orthogonal_projection_of_complete h else linear_map.id
 
 /-- The definition of `orthogonal_projection` using `if`. -/
-lemma orthogonal_projection_def_real (K : submodule ℝ β) :
-  orthogonal_projection_real K =
-    if h : is_complete (K : set β) then orthogonal_projection_of_complete_real h else linear_map.id :=
+lemma orthogonal_projection_def (K : submodule ℝ β) :
+  orthogonal_projection K =
+    if h : is_complete (K : set β) then orthogonal_projection_of_complete h else linear_map.id :=
 rfl
 
 @[simp]
 lemma orthogonal_projection_fn_eq_real {K : submodule ℝ β} (h : is_complete (K : set β)) (v : β) :
-  orthogonal_projection_fn h v = orthogonal_projection_real K v :=
-by { rw [orthogonal_projection_def_real, dif_pos h], refl }
+  orthogonal_projection_fn h v = orthogonal_projection K v :=
+by { rw [orthogonal_projection_def, dif_pos h], refl }
 
 /-- The orthogonal projection is in the given subspace. -/
 lemma orthogonal_projection_mem_real {K : submodule ℝ β} (h : is_complete (K : set β)) (v : β) :
-  orthogonal_projection_real K v ∈ K :=
+  orthogonal_projection K v ∈ K :=
 begin
   rw ←orthogonal_projection_fn_eq_real h,
   exact orthogonal_projection_fn_mem h v
@@ -1405,22 +1405,22 @@ end
 /-- The characterization of the orthogonal projection.  -/
 @[simp]
 lemma orthogonal_projection_real_inner_eq_zero (K : submodule ℝ β) (v : β) :
-  ∀ w ∈ K, ⟪v - orthogonal_projection_real K v, w⟫_ℝ = 0 :=
+  ∀ w ∈ K, ⟪v - orthogonal_projection K v, w⟫_ℝ = 0 :=
 begin
-  simp_rw orthogonal_projection_def_real,
+  simp_rw orthogonal_projection_def,
   split_ifs,
-  { exact orthogonal_projection_fn_real_inner_eq_zero h v },
+  { exact orthogonal_projection_fn_inner_eq_zero h v },
   { simp },
 end
 
 /-- The orthogonal projection is the unique point in `K` with the
 orthogonality property. -/
-lemma eq_orthogonal_projection_of_mem_of_real_inner_eq_zero {K : submodule ℝ β}
+lemma eq_orthogonal_projection_of_mem_of_inner_eq_zero {K : submodule ℝ β}
   (h : is_complete (K : set β)) {u v : β} (hvm : v ∈ K) (hvo : ∀ w ∈ K, ⟪u - v, w⟫_ℝ = 0) :
-  v = orthogonal_projection_real K u :=
+  v = orthogonal_projection K u :=
 begin
   rw ←orthogonal_projection_fn_eq_real h,
-  exact eq_orthogonal_projection_fn_of_mem_of_real_inner_eq_zero h hvm hvo
+  exact eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero h hvm hvo
 end
 
 /-- The subspace of vectors orthogonal to a given subspace. -/
@@ -1494,14 +1494,14 @@ lemma submodule.Inf_orthogonal (s : set $ submodule 𝕜 α) :
 
 /-- If `K` is complete, `K` and `K.orthogonal` span the whole
 space. -/
-lemma submodule.sup_orthogonal_of_is_complete_real {K : submodule ℝ β} (h : is_complete (K : set β)) :
+lemma submodule.sup_orthogonal_of_is_complete {K : submodule ℝ β} (h : is_complete (K : set β)) :
   K ⊔ K.orthogonal = ⊤ :=
 begin
   rw submodule.eq_top_iff',
   intro x,
   rw submodule.mem_sup,
   rcases exists_norm_eq_infi_of_complete_subspace K h x with ⟨v, hv, hvm⟩,
-  rw norm_eq_infi_iff_real_inner_eq_zero K hv at hvm,
+  rw norm_eq_infi_iff_inner_eq_zero K hv at hvm,
   use [v, hv, x - v],
   split,
   { rw submodule.mem_orthogonal',
@@ -1513,7 +1513,7 @@ end
 other. -/
 lemma submodule.is_compl_orthogonal_of_is_complete_real {K : submodule ℝ β}
     (h : is_complete (K : set β)) : is_compl K K.orthogonal :=
-⟨K.orthogonal_disjoint, le_of_eq (submodule.sup_orthogonal_of_is_complete_real h).symm⟩
+⟨K.orthogonal_disjoint, le_of_eq (submodule.sup_orthogonal_of_is_complete h).symm⟩
 
 end orthogonal
 

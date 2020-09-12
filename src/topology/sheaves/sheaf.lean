@@ -24,6 +24,8 @@ and the fully faithful functor `sheaf.forget : sheaf C X ⥤ presheaf C X`.
 
 universes v u
 
+noncomputable theory
+
 open category_theory
 open category_theory.limits
 open topological_space

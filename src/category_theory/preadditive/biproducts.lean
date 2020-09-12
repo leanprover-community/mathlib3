@@ -38,6 +38,8 @@ open category_theory.limits
 
 universes v u
 
+noncomputable theory
+
 namespace category_theory
 
 variables {C : Type u} [category.{v} C]

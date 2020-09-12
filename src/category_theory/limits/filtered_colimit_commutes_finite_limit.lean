@@ -172,7 +172,7 @@ begin
     { simp only [id_comp, comp_id, prod_comp], },
     erw [types.colimit_w_apply, t, functor_to_types.map_comp_apply, types.colimit_w_apply, e,
       ←types.limit_w_apply f, ←e],
-    refl, },
+    simp, },
 
   -- Because `K` is filtered, we can restate this as saying that
   -- for each such `f`, there is some place to the right of `k'`

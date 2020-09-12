@@ -528,6 +528,34 @@ theorem fg_iff_finite_dimensional (s : submodule K V) :
 ⟨λh, is_noetherian_of_fg_of_noetherian s h,
  λh, by { rw ← map_subtype_top s, exact fg_map (iff_fg.1 h) }⟩
 
+/-- A submodule contained in a finite-dimensional submodule is
+finite-dimensional. -/
+lemma finite_dimensional_of_le {S₁ S₂ : submodule K V} [finite_dimensional K S₂] (h : S₁ ≤ S₂) :
+  finite_dimensional K S₁ :=
+finite_dimensional_iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_le_of_submodule _ _ h)
+                                                      (dim_lt_omega K S₂))
+
+/-- The inf of two submodules, the first finite-dimensional, is
+finite-dimensional. -/
+instance finite_dimensional_inf_left (S₁ S₂ : submodule K V) [finite_dimensional K S₁] :
+  finite_dimensional K (S₁ ⊓ S₂ : submodule K V) :=
+finite_dimensional_of_le inf_le_left
+
+/-- The inf of two submodules, the second finite-dimensional, is
+finite-dimensional. -/
+instance finite_dimensional_inf_right (S₁ S₂ : submodule K V) [finite_dimensional K S₂] :
+  finite_dimensional K (S₁ ⊓ S₂ : submodule K V) :=
+finite_dimensional_of_le inf_le_right
+
+/-- The sup of two finite-dimensional submodules is
+finite-dimensional. -/
+instance finite_dimensional_sup (S₁ S₂ : submodule K V) [h₁ : finite_dimensional K S₁]
+  [h₂ : finite_dimensional K S₂] : finite_dimensional K (S₁ ⊔ S₂ : submodule K V) :=
+begin
+  rw ←submodule.fg_iff_finite_dimensional at *,
+  exact submodule.fg_sup h₁ h₂
+end
+
 /-- In a finite-dimensional vector space, the dimensions of a submodule and of the corresponding
 quotient add up to the dimension of the space. -/
 theorem findim_quotient_add_findim [finite_dimensional K V] (s : submodule K V) :

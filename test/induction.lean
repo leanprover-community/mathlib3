@@ -159,12 +159,12 @@ example (n : nat_or_positive) : unit :=
 begin
   cases' n,
   case nat {
-    guard_hyp x := ℕ',
+    guard_hyp x : ℕ',
     exact ()
   },
   case positive {
-    guard_hyp n := ℕ,
-    guard_hyp h := n > 0,
+    guard_hyp n : ℕ,
+    guard_hyp h : n > 0,
     exact ()
   }
 end
@@ -176,9 +176,9 @@ begin
   induction' m,
   case zero { simp },
   case succ : k IH {
-    guard_hyp k := ℕ,
-    guard_hyp n := ℕ,
-    guard_hyp IH := ∀ {n}, n + k = k + n,
+    guard_hyp k : ℕ,
+    guard_hyp n : ℕ,
+    guard_hyp IH : ∀ {n}, n + k = k + n,
     ac_refl
   }
 end
@@ -210,9 +210,9 @@ begin
   induction' m fixing n,
   case zero { simp },
   case succ : k IH {
-    guard_hyp k := ℕ,
-    guard_hyp n := ℕ,
-    guard_hyp IH := n + k = k + n,
+    guard_hyp k : ℕ,
+    guard_hyp n : ℕ,
+    guard_hyp IH : n + k = k + n,
     ac_refl
   }
 end
@@ -225,11 +225,11 @@ begin
   induction' n fixing *,
   case zero { simp [*] },
   case succ : n IH {
-    guard_hyp n := ℕ,
-    guard_hyp m := ℕ,
-    guard_hyp k := ℕ,
-    guard_hyp h := n.succ + m = k,
-    guard_hyp IH := n + m = k → n + m = k,
+    guard_hyp n : ℕ,
+    guard_hyp m : ℕ,
+    guard_hyp k : ℕ,
+    guard_hyp h : n.succ + m = k,
+    guard_hyp IH : n + m = k → n + m = k,
     -- Neither m nor k were generalised.
     exact h
   }
@@ -244,11 +244,11 @@ begin
   induction' n generalizing k,
   case zero { simp [*] },
   case succ : n IH {
-    guard_hyp n := ℕ,
-    guard_hyp m := ℕ,
-    guard_hyp k := ℕ,
-    guard_hyp h := n.succ + m = k,
-    guard_hyp IH := ∀ {k}, n + m = k → n + m = k,
+    guard_hyp n : ℕ,
+    guard_hyp m : ℕ,
+    guard_hyp k : ℕ,
+    guard_hyp h : n.succ + m = k,
+    guard_hyp IH : ∀ {k}, n + m = k → n + m = k,
     -- k was generalised, but m was not.
     exact h
   }
@@ -263,7 +263,7 @@ begin
   induction' m,
   case zero { simp },
   case succ {
-    guard_hyp ih := ∀ k, m + k = k + m,
+    guard_hyp ih : ∀ k, m + k = k + m,
     -- k was generalised because this makes the IH more general.
     -- n was not generalised -- if it had been, the IH would be
     --
@@ -281,8 +281,8 @@ begin
   -- this performs induction on (n : ℕ)
   induction' n,
   { exact n },
-  { guard_hyp n := list ℕ,
-    guard_hyp n_1 := ℕ,
+  { guard_hyp n : list ℕ,
+    guard_hyp n_1 : ℕ,
     -- n is the list, which was automatically generalized and keeps its name.
     -- n_1 is the recursive argument of `nat.succ`. It would be called `n` if
     -- there wasn't already an `n` in the context.
@@ -333,10 +333,10 @@ lemma fraction.ext (a b : fraction) (hnum : fraction.num a = fraction.num b)
 begin
   cases' a,
   cases' b,
-  guard_hyp num := ℤ,
-  guard_hyp denom := ℤ,
-  guard_hyp num_1 := ℤ,
-  guard_hyp denom_1 := ℤ,
+  guard_hyp num : ℤ,
+  guard_hyp denom : ℤ,
+  guard_hyp num_1 : ℤ,
+  guard_hyp denom_1 : ℤ,
   rw fraction.mk.inj_eq,
   exact and.intro hnum hdenom
 end
@@ -346,23 +346,23 @@ end
 example (x : ℕ × ℕ) (y : Vec ℕ 2) (z : List ℕ) : unit :=
 begin
   cases' x with i j k l,
-  guard_hyp i := ℕ,
-  guard_hyp j := ℕ,
+  guard_hyp i : ℕ,
+  guard_hyp j : ℕ,
   clear i j,
 
   cases' y with i j k l,
   -- TODO Note that i is 'skipped' because it is used to name the (n : ℕ)
   -- argument of `cons`, but that argument is cleared by index unification. I
   -- find this a little strange, but `cases` also behaves like this.
-  guard_hyp j := ℕ,
-  guard_hyp k := Vec ℕ 1,
+  guard_hyp j : ℕ,
+  guard_hyp k : Vec ℕ 1,
   clear j k,
 
   cases' z with i j k l,
   case nil { exact () },
   case cons {
-    guard_hyp i := ℕ,
-    guard_hyp j := List ℕ,
+    guard_hyp i : ℕ,
+    guard_hyp j : List ℕ,
     exact ()
   }
 end
@@ -373,9 +373,9 @@ begin
   induction' x with i j k l,
   case nil { exact () },
   case cons {
-    guard_hyp i := ℕ,
-    guard_hyp j := List ℕ,
-    guard_hyp k := unit,
+    guard_hyp i : ℕ,
+    guard_hyp j : List ℕ,
+    guard_hyp k : unit,
     exact ()
   }
 end
@@ -387,9 +387,9 @@ begin
   induction' x with _ j _ l,
   case nil { exact () },
   case cons {
-    guard_hyp x := ℕ,
-    guard_hyp j := List ℕ,
-    guard_hyp ih := unit,
+    guard_hyp x : ℕ,
+    guard_hyp j : List ℕ,
+    guard_hyp ih : unit,
     exact ()
   }
 end
@@ -646,7 +646,7 @@ lemma not_sorted_17_13 :
 begin
   intro h,
   cases' h,
-  guard_hyp hle := 17 ≤ 13,
+  guard_hyp hle : 17 ≤ 13,
   linarith
 end
 

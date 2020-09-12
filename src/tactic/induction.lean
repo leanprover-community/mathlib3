@@ -98,7 +98,7 @@ TODO doc
 -/
 meta def decompose_constructor_type (num_params : ℕ) (e : expr) :
   tactic (list (name × expr × bool × rb_set ℕ)) := do
-  ⟨args, ret⟩ ← open_pis_normalizing e,
+  ⟨args, ret⟩ ← open_pis_whnf_dep e,
   let arg_constants := rb_map.set_of_list (args.map prod.fst),
   index_occs ← decompose_constructor_type_return num_params arg_constants ret,
   pure $ args.map $ λ ⟨c, dep⟩,
@@ -686,7 +686,7 @@ mvars.mmap_filter $ λ ⟨mv, pp_name, binfo⟩,
 meta def simplify_ih (num_generalized : ℕ) (num_index_vars : ℕ) (ih : expr) :
   tactic expr := do
   ih_type ← infer_type ih,
-  ⟨generalized_arg_mvars, ih_type⟩ ← mopen_n_pis num_generalized ih_type,
+  (generalized_arg_mvars, ih_type) ← open_n_pis_metas' ih_type num_generalized,
   let apps := ih.app_of_list (generalized_arg_mvars.map prod.fst),
   ⟨apps, cnsts⟩ ← ih_apps num_index_vars apps ih_type,
   generalized_arg_locals ← assign_unassigned_mvars generalized_arg_mvars,

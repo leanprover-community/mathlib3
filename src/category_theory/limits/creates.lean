@@ -7,6 +7,8 @@ import category_theory.limits.preserves.basic
 
 open category_theory category_theory.limits
 
+noncomputable theory
+
 namespace category_theory
 
 universes v u₁ u₂ u₃
@@ -116,9 +118,9 @@ def lifted_limit_is_limit {K : J ⥤ C} {F : C ⥤ D}
 reflects_limit.reflects (is_limit.of_iso_limit t (lifted_limit_maps_to_original t).symm)
 
 /-- If `F` creates the limit of `K` and `K ⋙ F` has a limit, then `K` has a limit. -/
-def has_limit_of_created (K : J ⥤ C) (F : C ⥤ D)
+lemma has_limit_of_created (K : J ⥤ C) (F : C ⥤ D)
   [has_limit (K ⋙ F)] [creates_limit K F] : has_limit K :=
-{ cone := lift_limit (limit.is_limit (K ⋙ F)),
+has_limit.mk { cone := lift_limit (limit.is_limit (K ⋙ F)),
   is_limit := lifted_limit_is_limit _ }
 
 /- Interface to the `creates_colimit` class. -/
@@ -141,9 +143,9 @@ def lifted_colimit_is_colimit {K : J ⥤ C} {F : C ⥤ D}
 reflects_colimit.reflects (is_colimit.of_iso_colimit t (lifted_colimit_maps_to_original t).symm)
 
 /-- If `F` creates the limit of `K` and `K ⋙ F` has a limit, then `K` has a limit. -/
-def has_colimit_of_created (K : J ⥤ C) (F : C ⥤ D)
+lemma has_colimit_of_created (K : J ⥤ C) (F : C ⥤ D)
   [has_colimit (K ⋙ F)] [creates_colimit K F] : has_colimit K :=
-{ cocone := lift_colimit (colimit.is_colimit (K ⋙ F)),
+has_colimit.mk { cocone := lift_colimit (colimit.is_colimit (K ⋙ F)),
   is_colimit := lifted_colimit_is_colimit _ }
 
 /--

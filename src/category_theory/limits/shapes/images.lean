@@ -317,6 +317,11 @@ image.lift
   m := image.ι g,
   e := f ≫ factor_thru_image g }
 
+@[simp, reassoc]
+lemma image.factor_thru_image_pre_comp [has_image g] [has_image (f ≫ g)] :
+  factor_thru_image (f ≫ g) ≫ image.pre_comp f g = f ≫ factor_thru_image g :=
+by simp [image.pre_comp]
+
 /--
 The two step comparison map
   `image (f ≫ (g ≫ h)) ⟶ image (g ≫ h) ⟶ image h`
@@ -332,6 +337,21 @@ begin
   apply (cancel_mono (image.ι h)).1,
   simp [image.pre_comp, image.eq_to_hom],
 end
+
+variables [has_equalizers C]
+
+/--
+`image.pre_comp f g` is an isomorphism when `f` is an isomorphism
+(we need `C` to have equalizers to prove this).
+-/
+instance image.is_iso_precomp_iso (f : X ≅ Y) [has_image g] [has_image (f.hom ≫ g)] :
+  is_iso (image.pre_comp f.hom g) :=
+{ inv := image.lift
+  { I := image (f.hom ≫ g),
+    m := image.ι (f.hom ≫ g),
+    e := f.inv ≫ factor_thru_image (f.hom ≫ g) },
+  hom_inv_id' := by { ext, simp [image.pre_comp], },
+  inv_hom_id' := by { ext, simp [image.pre_comp], }, }
 
 -- Note that in general we don't have the other comparison map you might expect
 -- `image f ⟶ image (f ≫ g)`.

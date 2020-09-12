@@ -113,7 +113,8 @@ pure not_simplified
 
 -- TODO copied from core (init/meta/injection_tactic.lean)
 meta def injection_with (h : expr) (ns : list name)
-  (base := `h) (offset := some 1) : tactic (list expr × list name) :=
+  (base := `h) (offset := some 1) :
+  tactic (option (list expr) × list name) :=
 do
   H ← infer_type h,
   (lhs, rhs, constructor_left, constructor_right, inj_name) ← do {
@@ -136,13 +137,18 @@ do
     tgt ← target,
     proof ← mk_mapp inj_name (list.repeat none (inj_arity - 3) ++ [some h, some tgt]),
     eapply proof,
-    intron_with num_equations ns base offset
+    (next, ns) ← intron_with num_equations ns base offset,
+    next ← next.mfilter $ λ h, do {
+      `(true) ← infer_type h | pure tt,
+      (clear h >> pure ff) <|> pure tt
+    },
+    pure (some next, ns)
   else do
     tgt ← target,
     let inductive_name := constructor_left.get_prefix,
     pr ← mk_app (inductive_name <.> "no_confusion") [tgt, lhs, rhs, h],
     exact pr,
-    return ([], ns)
+    return (none, ns)
 
 /--
 Given `equ : C x₁ ... xₙ = D y₁ ... yₘ` with `C` and `D` constructors of the
@@ -157,9 +163,10 @@ do {
   (next, _) ← injection_with equ [] `_ none,
   try $ clear equ,
   pure $
-    if next.empty
-      then goal_solved
-      else simplified $ next.map expr.local_pp_name
+    match next with
+    | none := goal_solved
+    | some next := simplified $ next.map expr.local_pp_name
+    end
 } <|>
 pure not_simplified
 

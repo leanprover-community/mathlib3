@@ -70,7 +70,7 @@ to a monoid object in the functor category
 @[simps]
 def inverse : (C ⥤ Mon_ D) ⥤ Mon_ (C ⥤ D) :=
 { obj := λ F,
-  { X := F ⋙ Mon_.forget,
+  { X := F ⋙ Mon_.forget D,
     one := { app := λ X, (F.obj X).one, },
     mul := { app := λ X, (F.obj X).mul, },
     one_mul' := by { ext X, exact (F.obj X).one_mul, },

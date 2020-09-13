@@ -99,6 +99,8 @@ instance : category (Mon_ C) :=
 @[simp] lemma comp_hom' {M N K : Mon_ C} (f : M ⟶ N) (g : N ⟶ K) :
   (f ≫ g : hom M K).hom = f.hom ≫ g.hom := rfl
 
+variables (C)
+
 /-- The forgetful functor from monoid objects to the ambient category. -/
 @[simps]
 def forget : Mon_ C ⥤ C :=

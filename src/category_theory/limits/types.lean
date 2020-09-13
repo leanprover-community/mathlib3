@@ -41,12 +41,33 @@ instance : has_limits (Type u) :=
     { cone := limit_cone F, is_limit := limit_cone_is_limit F } } }
 
 /--
+The equivalence between a limiting cone of `F` in `Type u` and the "concrete" definition as the
+sections of `F`.
+-/
+def is_limit_equiv_sections {F : J ⥤ Type u} {c : cone F} (t : is_limit c) :
+  c.X ≃ F.sections :=
+(is_limit.cone_point_unique_up_to_iso t (limit_cone_is_limit F)).to_equiv
+
+@[simp]
+lemma is_limit_equiv_sections_apply {F : J ⥤ Type u} {c : cone F} (t : is_limit c) (j : J) (x : c.X) :
+  (((is_limit_equiv_sections t) x) : Π j, F.obj j) j = c.π.app j x :=
+rfl
+
+@[simp]
+lemma is_limit_equiv_sections_symm_apply {F : J ⥤ Type u} {c : cone F} (t : is_limit c) (x : F.sections) (j : J) :
+  c.π.app j ((is_limit_equiv_sections t).symm x) = (x : Π j, F.obj j) j :=
+begin
+  equiv_rw (is_limit_equiv_sections t).symm at x,
+  simp,
+end
+
+/--
 The equivalence between the abstract limit of `F` in `Type u`
 and the "concrete" definition as the sections of `F`.
 -/
 noncomputable
 def limit_equiv_sections (F : J ⥤ Type u) : (limit F : Type u) ≃ F.sections :=
-(is_limit.cone_point_unique_up_to_iso (limit.is_limit F) (limit_cone_is_limit F)).to_equiv
+is_limit_equiv_sections (limit.is_limit _)
 
 @[simp]
 lemma limit_equiv_sections_apply (F : J ⥤ Type u) (x : limit F) (j : J) :
@@ -56,10 +77,7 @@ rfl
 @[simp]
 lemma limit_equiv_sections_symm_apply (F : J ⥤ Type u) (x : F.sections) (j : J) :
   limit.π F j ((limit_equiv_sections F).symm x) = (x : Π j, F.obj j) j :=
-begin
-  equiv_rw (limit_equiv_sections F).symm at x,
-  simp,
-end
+is_limit_equiv_sections_symm_apply _ _ _
 
 /--
 Construct a term of `limit F : Type u` from a family of terms `x : Π j, F.obj j`

@@ -192,7 +192,7 @@ protected lemma continuous : continuous γ :=
 @[simp] protected lemma target : γ 1 = y :=
 γ.target'
 
-/-- Any function `φ : α → path F` can be seen as a function `α × I → F`. -/
+/-- Any function `φ : Π (a : α), path (x a) (y a)` can be seen as a function `α × I → X`. -/
 instance has_uncurry_path {X α : Type*} [topological_space X] {x y : α → X} :
   has_uncurry (Π (a : α), path (x a) (y a)) (α × I) X :=
 ⟨λ φ p, φ p.1 p.2⟩
@@ -417,58 +417,95 @@ begin
       (continuous_const.mul continuous_subtype_coe).sub continuous_const) },
 end
 
-/-! #### Portion of a path -/
+/-! #### Truncating a path -/
 
-/-- `γ.portion t` is the path which starts by following the path `γ`,
-  but stops when reaching time `t`, and stays still after that. -/
-def portion {X : Type*} [topological_space X] {a b : X}
-  (γ : path a b) (t : ℝ) : path a (γ.extend t) :=
-{ to_fun := λ s, γ.extend (min s t),
-  continuous' := γ.continuous_extend.comp (continuous_subtype_coe.min continuous_const),
-  source' := γ.extend_le_zero (min_le_left _ _),
+/-- `γ.truncate t₀ t₁` is the path which follows the path `γ` on the
+  time interval `[t₀, t₁]` and stays still otherwise. -/
+def truncate {X : Type*} [topological_space X] {a b : X}
+  (γ : path a b) (t₀ t₁ : ℝ) : path (γ.extend $ min t₀ t₁) (γ.extend t₁) :=
+{ to_fun := λ s, γ.extend (min (max s t₀) t₁),
+  continuous' := γ.continuous_extend.comp
+    ((continuous_subtype_coe.max continuous_const).min continuous_const),
+  source' :=
+  begin
+    unfold min,
+    unfold max,
+    norm_cast,
+    split_ifs with h₁ h₂ h₃ h₄,
+    { simp [γ.extend_le_zero h₁] },
+    { congr, linarith },
+    { have h₄ : t₁ ≤ 0 := le_of_lt (by simpa using h₂),
+      simp [γ.extend_le_zero h₄, γ.extend_le_zero h₁] },
+    { refl },
+    { refl },
+    { refl }
+  end,
   target' :=
   begin
     unfold min,
-    split_ifs,
-    { simp [γ.extend_one_le h] },
+    unfold max,
+    norm_cast,
+    split_ifs with h₁ h₂ h₃,
+    { simp [γ.extend_one_le h₂] },
+    { refl },
+    { have h₄ : 1 ≤ t₀ := le_of_lt (by simpa using h₁),
+      simp [γ.extend_one_le h₄, γ.extend_one_le (h₄.trans h₃)] },
     { refl }
   end }
 
-lemma portion_range {X : Type*} [topological_space X] {a b : X}
-  (γ : path a b) {t : ℝ} : range (γ.portion t) ⊆ range γ :=
+/-- `γ.truncate_of_le t₀ t₁ h`, where `h : t₀ ≤ t₁` is `γ.truncate t₀ t₁`
+  casted as a path from `γ.extend t₀` to `γ.extend t₁`. -/
+def truncate_of_le {X : Type*} [topological_space X] {a b : X}
+  (γ : path a b) {t₀ t₁ : ℝ} (h : t₀ ≤ t₁) : path (γ.extend t₀) (γ.extend t₁) :=
+(γ.truncate t₀ t₁).cast (by rw min_eq_left h) rfl
+
+lemma truncate_range {X : Type*} [topological_space X] {a b : X}
+  (γ : path a b) {t₀ t₁ : ℝ} : range (γ.truncate t₀ t₁) ⊆ range γ :=
 begin
   rw ← γ.extend_range,
   simp only [range_subset_iff, set_coe.exists, set_coe.forall],
   intros x hx,
-  simp only [has_coe_to_fun.coe, coe_fn, path.portion, mem_range_self]
+  simp only [has_coe_to_fun.coe, coe_fn, path.truncate, mem_range_self]
 end
 
-/-- For a path `γ`, `γ.portion` gives a "continuous family of paths", by which we
-  mean the uncurried function which maps `(t, s)` to `γ.portion t s` is continuous. -/
-lemma portion_continuous_family {X : Type*} [topological_space X] {a b : X}
-  (γ : path a b) : continuous ↿(γ.portion) :=
+/-- For a path `γ`, `γ.truncate` gives a "continuous family of paths", by which we
+  mean the uncurried function which maps `(t₀, t₁, s)` to `γ.truncate t₀ t₁ s` is continuous. -/
+lemma truncate_continuous_family {X : Type*} [topological_space X] {a b : X}
+  (γ : path a b) : continuous (λ x, γ.truncate x.1 x.2.1 x.2.2 : ℝ × ℝ × I → X) :=
 begin
-  simp only [has_uncurry.uncurry, has_coe_to_fun.coe, coe_fn, path.portion],
-  exact γ.continuous_extend.comp ((continuous_subtype_coe.comp continuous_snd).min continuous_fst),
+  simp only [has_coe_to_fun.coe, coe_fn, path.truncate],
+  continuity,
+  exact continuous_subtype_coe
 end
 
-@[simp] lemma portion_zero {X : Type*} [topological_space X] {a b : X}
-  (γ : path a b) : γ.portion 0 = (path.refl a).cast rfl γ.extend_zero :=
-begin
-  ext x,
-  rw path.cast_coe,
-  simp [path.portion, has_coe_to_fun.coe, coe_fn, path.refl, γ.extend_le_zero (min_le_right x 0)]
-end
-
-@[simp] lemma portion_one {X : Type*} [topological_space X] {a b : X}
-  (γ : path a b) : γ.portion 1 = γ.cast rfl γ.extend_one :=
+@[simp] lemma truncate_self {X : Type*} [topological_space X] {a b : X}
+  (γ : path a b) (t : ℝ) : γ.truncate t t = (path.refl $ γ.extend t).cast (by rw min_self) rfl :=
 begin
   ext x,
-  rw path.cast_coe,
-  simp only [min, path.portion, has_coe_to_fun.coe, coe_fn, path.extend, I_extend, comp_app],
+  rw cast_coe,
+  simp only [truncate, has_coe_to_fun.coe, coe_fn, refl, min, max],
+  split_ifs with h₁ h₂;
+  congr,
+  linarith
+end
+
+@[simp] lemma truncate_zero_zero {X : Type*} [topological_space X] {a b : X}
+  (γ : path a b) : γ.truncate 0 0 = (path.refl a).cast (by rw [min_self, γ.extend_zero]) γ.extend_zero :=
+by convert γ.truncate_self 0; exact γ.extend_zero.symm
+
+@[simp] lemma truncate_one_one {X : Type*} [topological_space X] {a b : X}
+  (γ : path a b) : γ.truncate 1 1 = (path.refl b).cast (by rw [min_self, γ.extend_one]) γ.extend_one :=
+by convert γ.truncate_self 1; exact γ.extend_one.symm
+
+@[simp] lemma truncate_zero_one {X : Type*} [topological_space X] {a b : X}
+  (γ : path a b) : γ.truncate 0 1 = γ.cast (by simp [zero_le_one, extend_zero]) (by simp) :=
+begin
+  ext x,
+  rw cast_coe,
+  simp only [truncate, has_coe_to_fun.coe, coe_fn, refl, min, max, extend, I_extend, comp_app],
   congr,
   have : ↑x ∈ (Icc 0 1 : set ℝ) := x.2,
-  simp [this.2, proj_I_I this]
+  simp [this.1, this.2, proj_I_I this]
 end
 
 end path

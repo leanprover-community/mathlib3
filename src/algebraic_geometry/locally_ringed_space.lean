@@ -152,12 +152,10 @@ lemma Γ_def : Γ = forget_to_SheafedSpace.op ⋙ SheafedSpace.Γ := rfl
 lemma Γ_obj_op (X : LocallyRingedSpace) : Γ.obj (op X) = X.presheaf.obj (op ⊤) := rfl
 
 @[simp] lemma Γ_map {X Y : LocallyRingedSpaceᵒᵖ} (f : X ⟶ Y) :
-  Γ.map f = f.unop.1.c.app (op ⊤) ≫ (unop Y).presheaf.map
-      (hom_of_le $ λ _ _, trivial : ⊤ ⟶ (opens.map f.unop.1.base).obj ⊤).op := rfl
+  Γ.map f = f.unop.1.c.app (op ⊤) ≫ (unop Y).presheaf.map (opens.le_map_top _ _).op := rfl
 
 lemma Γ_map_op {X Y : LocallyRingedSpace} (f : X ⟶ Y) :
-  Γ.map f.op = f.1.c.app (op ⊤) ≫ X.presheaf.map
-      (hom_of_le $ λ _ _, trivial : ⊤ ⟶ (opens.map f.1.base).obj ⊤).op := rfl
+  Γ.map f.op = f.1.c.app (op ⊤) ≫ X.presheaf.map (opens.le_map_top _ _).op := rfl
 
 end LocallyRingedSpace
 

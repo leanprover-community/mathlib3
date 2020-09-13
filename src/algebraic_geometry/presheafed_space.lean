@@ -223,19 +223,24 @@ The global sections, notated Gamma.
 @[simps]
 def Γ : (PresheafedSpace C)ᵒᵖ ⥤ C :=
 { obj := λ X, (unop X).presheaf.obj (op ⊤),
-  map := λ X Y f, f.unop.c.app (op ⊤) ≫ (unop Y).presheaf.map
-    (hom_of_le $ λ _ _, trivial : ⊤ ⟶ (opens.map f.unop.base).obj ⊤).op,
-  map_id' := λ X, by { op_induction X, erw [unop_id_op, id_c_app, eq_to_hom_refl, id_comp],
-    exact X.presheaf.map_id _, },
-  map_comp' := λ X Y Z f g, by { rw [unop_comp, comp_c_app], simp_rw category.assoc,
+  map := λ X Y f, f.unop.c.app (op ⊤) ≫ (unop Y).presheaf.map (opens.le_map_top _ _).op,
+  map_id' := λ X, begin
+    op_induction X,
+    erw [unop_id_op, id_c_app, eq_to_hom_refl, id_comp],
+    exact X.presheaf.map_id _
+  end,
+  map_comp' := λ X Y Z f g, begin
+    rw [unop_comp, comp_c_app],
+    simp_rw category.assoc,
     erw [nat_trans.naturality_assoc, presheaf.pushforward.comp_inv_app, id_comp,
-        category_theory.functor.comp_map, ← map_comp], refl }, }
+        category_theory.functor.comp_map, ← map_comp],
+    refl
+  end }
 
 lemma Γ_obj_op (X : PresheafedSpace C) : Γ.obj (op X) = X.presheaf.obj (op ⊤) := rfl
 
 lemma Γ_map_op {X Y : PresheafedSpace C} (f : X ⟶ Y) :
-  Γ.map f.op = f.c.app (op ⊤) ≫ X.presheaf.map
-      (hom_of_le $ λ _ _, trivial : ⊤ ⟶ (opens.map f.base).obj ⊤).op := rfl
+  Γ.map f.op = f.c.app (op ⊤) ≫ X.presheaf.map (opens.le_map_top _ _).op := rfl
 
 end PresheafedSpace
 

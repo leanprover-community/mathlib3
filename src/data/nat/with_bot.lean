@@ -1,8 +1,16 @@
+/-
+Copyright (c) 2018 Chris Hughes. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Hughes
+-/
 import data.nat.basic
 import algebra.ordered_group
+/-!
+# `with_bot ℕ`
 
+Lemmas about the type of natural numbers with a bottom element adjoined.
+-/
 namespace nat
-/-! ### `with_bot` -/
 
 lemma with_bot.add_eq_zero_iff : ∀ {n m : with_bot ℕ}, n + m = 0 ↔ n = 0 ∧ m = 0
 | none     m        := iff_of_false dec_trivial (λ h, absurd h.1 dec_trivial)

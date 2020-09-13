@@ -2,14 +2,14 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-More operations on modules and ideals.
 -/
 import data.nat.choose.sum
 import data.equiv.ring
 import ring_theory.algebra_operations
 import ring_theory.ideal.basic
-
+/-!
+# More operations on modules and ideals
+-/
 universes u v w x
 
 open_locale big_operators

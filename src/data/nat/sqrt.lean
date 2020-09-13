@@ -17,13 +17,15 @@ namespace nat
 
 theorem sqrt_aux_dec {b} (h : b ≠ 0) : shiftr b 2 < b :=
 begin
-  simp [shiftr_eq_div_pow],
+  simp only [shiftr_eq_div_pow],
   apply (nat.div_lt_iff_lt_mul' (dec_trivial : 0 < 4)).2,
   have := nat.mul_lt_mul_of_pos_left
     (dec_trivial : 1 < 4) (nat.pos_of_ne_zero h),
   rwa mul_one at this
 end
 
+/-- Auxiliary function for `nat.sqrt`. See e.g.
+<https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Binary_numeral_system_(base_2)> -/
 def sqrt_aux : ℕ → ℕ → ℕ → ℕ
 | b r n := if b0 : b = 0 then r else
   let b' := shiftr b 2 in

@@ -1,9 +1,16 @@
+/-
+Copyright (c) 2018 Mario Carneiro. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mario Carneiro, Chris Hughes, Floris van Doorn
+-/
 import data.nat.basic
-/-! # factorial -/
+/-!
+# The factorial function
+
+-/
 
 namespace nat
 variables {m n : ℕ}
-
 
 /-- `nat.fact n` is the factorial of `n`. -/
 @[simp] def fact : nat → nat

@@ -9,13 +9,13 @@ import algebra.order_functions
 /-!
 # Basic operations on the natural numbers
 
-This files has:
+This file contains:
 - instances on the natural numbers,
 - some basic lemmas about natural numbers,
 - extra recursors:
   * `le_rec_on`, `le_induction`: recursion and induction principles starting at non-zero numbers.
-  * `decreasing_induction` : recursion growing downwards.
-  * `strong_rec'` : recursion based on strong inequalities.
+  * `decreasing_induction`: recursion growing downwards.
+  * `strong_rec'`: recursion based on strong inequalities.
 - decidability instances on predicates about the natural numbers
 
 -/
@@ -118,7 +118,7 @@ end facts
 namespace nat
 variables {m n k : ℕ}
 
-/-! ### units -/
+/-! ### The units of the natural numbers as a `monoid` and `add_monoid` -/
 
 theorem units_eq_one (u : units ℕ) : u = 1 :=
 units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
@@ -131,7 +131,7 @@ iff.intro
   (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
   (assume h, h.symm ▸ ⟨1, rfl⟩)
 
-/-! ### one, zero -/
+/-! ### Equalities and inequalities involving zero and one -/
 
 theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 :=
 ⟨ne_of_gt, nat.pos_of_ne_zero⟩
@@ -140,10 +140,6 @@ lemma one_lt_iff_ne_zero_and_ne_one : ∀ {n : ℕ}, 1 < n ↔ n ≠ 0 ∧ n ≠
 | 0     := dec_trivial
 | 1     := dec_trivial
 | (n+2) := dec_trivial
-
-theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=
-have h3 : a ≤ b, from le_of_lt_succ h1,
-or.elim (eq_or_lt_of_not_lt h2) (λ h, h) (λ h, absurd h (not_lt_of_ge h3))
 
 protected theorem mul_ne_zero {n m : ℕ} (n0 : n ≠ 0) (m0 : m ≠ 0) : n * m ≠ 0
 | nm := (eq_zero_of_mul_eq_zero nm).elim n0 m0
@@ -171,6 +167,10 @@ lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=
 lt_of_le_of_lt (nat.zero_le _) h
 
 /-! ### `succ` -/
+
+theorem eq_of_lt_succ_of_not_lt {a b : ℕ} (h1 : a < b + 1) (h2 : ¬ a < b) : a = b :=
+have h3 : a ≤ b, from le_of_lt_succ h1,
+or.elim (eq_or_lt_of_not_lt h2) (λ h, h) (λ h, absurd h (not_lt_of_ge h3))
 
 theorem one_add (n : ℕ) : 1 + n = succ n := by simp [add_comm]
 
@@ -549,7 +549,12 @@ theorem mul_self_inj {n m : ℕ} : n * n = m * m ↔ n = m :=
 le_antisymm_iff.trans (le_antisymm_iff.trans
   (and_congr mul_self_le_mul_self_iff mul_self_le_mul_self_iff)).symm
 
-/-! ### Recursion and induction principles -/
+/-!
+### Recursion and induction principles
+
+This section is here due to dependencies -- the lemmas here require some of the lemmas
+proved above, and some of the results in later sections depend on the definitions in this section.
+-/
 
 /-- Recursion starting at a non-zero number: given a map `C k → C (k+1)` for each `k`,
 there is a map from `C n` to each `C m`, `n ≤ m`. -/
@@ -974,7 +979,7 @@ end
 lemma eq_of_dvd_of_div_eq_one {a b : ℕ} (w : a ∣ b) (h : b / a = 1) : a = b :=
 by rw [←nat.div_mul_cancel w, h, one_mul]
 
-lemma eq_zero_of_dvd_of_div_eq_zero {a b : ℕ} (w : a ∣ b)  (h : b / a = 0) : b = 0 :=
+lemma eq_zero_of_dvd_of_div_eq_zero {a b : ℕ} (w : a ∣ b) (h : b / a = 0) : b = 0 :=
 by rw [←nat.div_mul_cancel w, h, zero_mul]
 
 /-- If a small natural number is divisible by a larger natural number,
@@ -1122,7 +1127,7 @@ strict_mono.lt_iff_lt (pow_left_strict_mono k)
 lemma pow_left_injective {m : ℕ} (k : 1 ≤ m) : function.injective (λ (x : ℕ), x^m) :=
 strict_mono.injective (pow_left_strict_mono k)
 
-/-! ### `pow` / `mod` / `dvd` -/
+/-! ### `pow` and `mod` / `dvd` -/
 
 theorem mod_pow_succ {b : ℕ} (b_pos : 0 < b) (w m : ℕ)
 : m % (b^succ w) = b * (m/b % b^w) + m % b :=

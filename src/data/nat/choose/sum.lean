@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2018 Chris Hughes. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Chris Hughes, Patrick Stevens
+-/
 import data.nat.choose.basic
 import tactic.linarith
 import tactic.omega
@@ -5,11 +10,14 @@ import algebra.big_operators.ring
 import algebra.big_operators.intervals
 import algebra.big_operators.order
 /-!
-# Facts about binomial coefficients and their sums
+# Sums of binomial coefficients
+
+This file includes variants of the binomial theorem and other results on sums of binomial
+coefficients. Theorems whose proofs depend on such sums may also go in this file for import
+reasons.
+
 -/
 open nat
-
-section binomial
 open finset
 
 open_locale big_operators
@@ -52,10 +60,12 @@ begin
        mul_zero, zero_add, pow_succ] }
 end
 
-/-- The binomial theorem-/
+/-- The binomial theorem -/
 theorem add_pow [comm_semiring α] (x y : α) (n : ℕ) :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 (commute.all x y).add_pow n
+
+namespace nat
 
 /-- The sum of entries in a row of Pascal's triangle -/
 theorem sum_range_choose (n : ℕ) :
@@ -63,27 +73,27 @@ theorem sum_range_choose (n : ℕ) :
 by simpa using (add_pow 1 1 n).symm
 
 lemma sum_range_choose_halfway (m : nat) :
-  ∑ i in range (m + 1), nat.choose (2 * m + 1) i = 4 ^ m :=
+  ∑ i in range (m + 1), choose (2 * m + 1) i = 4 ^ m :=
 have ∑ i in range (m + 1), choose (2 * m + 1) (2 * m + 1 - i) =
   ∑ i in range (m + 1), choose (2 * m + 1) i,
 from sum_congr rfl $ λ i hi, choose_symm $ by linarith [mem_range.1 hi],
 (nat.mul_right_inj zero_lt_two).1 $
-calc 2 * (∑ i in range (m + 1), nat.choose (2 * m + 1) i) =
-  (∑ i in range (m + 1), nat.choose (2 * m + 1) i) +
-    ∑ i in range (m + 1), nat.choose (2 * m + 1) (2 * m + 1 - i) :
+calc 2 * (∑ i in range (m + 1), choose (2 * m + 1) i) =
+  (∑ i in range (m + 1), choose (2 * m + 1) i) +
+    ∑ i in range (m + 1), choose (2 * m + 1) (2 * m + 1 - i) :
   by rw [two_mul, this]
-... = (∑ i in range (m + 1), nat.choose (2 * m + 1) i) +
-  ∑ i in Ico (m + 1) (2 * m + 2), nat.choose (2 * m + 1) i :
+... = (∑ i in range (m + 1), choose (2 * m + 1) i) +
+  ∑ i in Ico (m + 1) (2 * m + 2), choose (2 * m + 1) i :
   by { rw [range_eq_Ico, sum_Ico_reflect], { congr, omega }, omega }
-... = ∑ i in range (2 * m + 2), nat.choose (2 * m + 1) i : sum_range_add_sum_Ico _ (by omega)
+... = ∑ i in range (2 * m + 2), choose (2 * m + 1) i : sum_range_add_sum_Ico _ (by omega)
 ... = 2^(2 * m + 1) : sum_range_choose (2 * m + 1)
 ... = 2 * 4^m : by { rw [nat.pow_succ, mul_comm, nat.pow_mul], refl }
 
 lemma choose_middle_le_pow (n : ℕ) : choose (2 * n + 1) n ≤ 4 ^ n :=
 begin
-  have t : choose (2 * n + 1) n ≤ ∑ i in finset.range (n + 1), choose (2 * n + 1) i :=
-    finset.single_le_sum (λ x _, by linarith) (finset.self_mem_range_succ n),
+  have t : choose (2 * n + 1) n ≤ ∑ i in range (n + 1), choose (2 * n + 1) i :=
+    single_le_sum (λ x _, by linarith) (self_mem_range_succ n),
   simpa [sum_range_choose_halfway n] using t
 end
 
-end binomial
+end nat

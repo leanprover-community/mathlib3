@@ -1,7 +1,20 @@
+/-
+Copyright (c) 2017 Mario Carneiro. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Mario Carneiro
+-/
 import data.nat.basic
-
 /-!
 # Partial predecessor and partial subtraction on the natural numbers
+
+The usual definition of natural number subtraction (`nat.sub`) returns 0 as a "garbage value" for
+`a - b` when `a < b`. Similarly, `nat.pred 0` is defined to be `0`. The functions in this file
+wrap the result in an `option` type instead:
+
+## Main definitions
+
+- `nat.ppred`: a partial predecessor operation
+- `nat.psub`: a partial subtraction operation
 
 -/
 namespace nat

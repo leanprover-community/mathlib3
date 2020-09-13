@@ -1,13 +1,26 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Bhavik Mehta, Patrick Stevens
+Authors: Chris Hughes, Bhavik Mehta
 -/
 import data.nat.fact
+/-!
+# Binomial coefficients
+
+This file contains a definition of binomial coefficients and simple lemmas (i.e. those not
+requiring more imports).
+
+## Main definition and results
+
+- `nat.choose`: binomial coefficients, defined inductively
+- `nat.choose_eq_fact_div_fact`: a proof that `choose n k = fact n / (fact k * fact (n - k))`
+- `nat.choose_symm`: symmetry of binomial coefficients
+- `nat.choose_le_succ_of_lt_half_left`: `choose n k` is increasing for small values of `k`
+- `nat.choose_le_middle`: `choose n r` is maximised when `r` is `n/2`
+
+-/
 
 namespace nat
-
-/-! ### `choose` -/
 
 /-- `choose n k` is the number of `k`-element subsets in an `n`-element set. Also known as binomial
 coefficients. -/
@@ -142,11 +155,9 @@ begin
   exact mul_le_mul_left _ hk,
 end
 
-end nat
+/-! ### Inequalities -/
 
-open nat
-
-/-- Show that choose is increasing for small values of the right argument. -/
+/-- Show that `nat.choose` is increasing for small values of the right argument. -/
 lemma choose_le_succ_of_lt_half_left {r n : ℕ} (h : r < n/2) :
   choose n r ≤ choose n (r+1) :=
 begin
@@ -168,7 +179,7 @@ decreasing_induction
   hr (λ _, le_refl _) hr
 
 /-- `choose n r` is maximised when `r` is `n/2`. -/
-lemma choose_le_middle (r n : ℕ) : nat.choose n r ≤ nat.choose n (n/2) :=
+lemma choose_le_middle (r n : ℕ) : choose n r ≤ choose n (n/2) :=
 begin
   cases le_or_gt r n with b b,
   { cases le_or_lt r (n/2) with a h,
@@ -179,6 +190,8 @@ begin
       rw [le_div_iff_mul_le' zero_lt_two, nat.mul_sub_right_distrib, nat.sub_le_iff,
           mul_two, nat.add_sub_cancel],
       exact le_of_lt h } },
-  { rw nat.choose_eq_zero_of_lt b,
-    apply nat.zero_le }
+  { rw choose_eq_zero_of_lt b,
+    apply zero_le }
 end
+
+end nat

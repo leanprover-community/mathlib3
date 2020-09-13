@@ -1,12 +1,21 @@
+/-
+Copyright (c) 2020 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Simon Hudon
+-/
 import data.nat.basic
+/-!
+# Natural number logarithm
 
+This file defines `log b n`, the logarithm of `n` with base `b`, to be the largest `k` such that
+`b ^ k ≤ n`.
+
+-/
 namespace nat
-
-/-! ### logarithm -/
 
 /-- `log b n`, is the logarithm of natural number `n` in base `b`. It returns the largest `k : ℕ`
 such that `b^k ≤ n`, so if `b^k = n`, it returns exactly `k`. -/
-def log (b : ℕ) : ℕ → ℕ
+@[pp_nodot] def log (b : ℕ) : ℕ → ℕ
 | n :=
   if h : b ≤ n ∧ 1 < b then
     have n / b < n,

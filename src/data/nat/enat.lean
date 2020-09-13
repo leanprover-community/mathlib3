@@ -25,14 +25,20 @@ followed by `@[simp] lemma to_with_top_zero'` whose proof uses `convert`.
 
 ## Main definitions
 
-* `canonically_ordered_add_monoid enat` : an instance is defined
-* `canonically_ordered_add_monoid enat` : an instance is defined.
+The following instances are defined:
+
+* `ordered_add_comm_monoid enat`
+* `canonically_ordered_add_monoid enat`
 
 There is no additive analogue of `monoid_with_zero`; if there were then `enat` could
 be an `add_monoid_with_top`.
 
 * `to_with_top` : the map from `enat` to `with_top ℕ`, with theorems that it plays well
 with `+` and `≤`.
+
+* `with_top_add_equiv : enat ≃+ with_top ℕ`
+* `with_top_order_iso : enat ≃o with_top ℕ`
+
 
 ## Tags
 
@@ -342,6 +348,7 @@ to_with_top_le
 @[simp] lemma with_top_equiv_lt {x y : enat} : with_top_equiv x < with_top_equiv y ↔ x < y :=
 to_with_top_lt
 
+/-- `to_with_top` induces an order isomorphism between `enat` and `with_top ℕ`.-/
 noncomputable def with_top_order_iso : enat ≃o with_top ℕ :=
 { map_rel_iff' := λ _ _, with_top_equiv_le.symm,
   ..with_top_equiv}
@@ -363,6 +370,7 @@ by rw ← with_top_equiv_le; simp
   with_top_equiv.symm x < with_top_equiv.symm y ↔ x < y :=
 by rw ← with_top_equiv_lt; simp
 
+/-- `to_with_top` induces an additive monoid isomorphism between `enat` and `with_top ℕ`.-/
 noncomputable def with_top_add_equiv : enat ≃+ with_top ℕ :=
 { map_add' := λ x y, by simp only [with_top_equiv]; convert to_with_top_add,
   ..with_top_equiv}

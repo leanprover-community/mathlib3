@@ -99,10 +99,15 @@ instance : category (Mon_ C) :=
 @[simp] lemma comp_hom' {M N K : Mon_ C} (f : M ⟶ N) (g : N ⟶ K) :
   (f ≫ g : hom M K).hom = f.hom ≫ g.hom := rfl
 
+section
+variables (C)
+
 /-- The forgetful functor from monoid objects to the ambient category. -/
 def forget : Mon_ C ⥤ C :=
 { obj := λ A, A.X,
   map := λ A B f, f.hom, }
+
+end
 
 instance (A : Mon_ C) : unique (trivial C ⟶ A) :=
 { default :=
@@ -242,6 +247,11 @@ def regular : Mod A :=
   act := A.mul, }
 
 instance : inhabited (Mod A) := ⟨regular A⟩
+
+/-- The forgetful functor from module objects to the ambient category. -/
+def forget : Mod A ⥤ C :=
+{ obj := λ A, A.X,
+  map := λ A B f, f.hom, }
 
 open category_theory.monoidal_category
 

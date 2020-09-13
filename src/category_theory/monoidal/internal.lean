@@ -11,12 +11,12 @@ import category_theory.limits.shapes.terminal
 # The category of monoids in a monoidal category, and modules over an internal monoid.
 -/
 
-universes v u
+universes v₁ v₂ u₁ u₂
 
 open category_theory
 open category_theory.monoidal_category
 
-variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
+variables (C : Type u₁) [category.{v₁} C] [monoidal_category.{v₁} C]
 
 /--
 A monoid object internal to a monoidal category.
@@ -100,9 +100,12 @@ instance : category (Mon_ C) :=
   (f ≫ g : hom M K).hom = f.hom ≫ g.hom := rfl
 
 /-- The forgetful functor from monoid objects to the ambient category. -/
+@[simps]
 def forget : Mon_ C ⥤ C :=
 { obj := λ A, A.X,
   map := λ A B f, f.hom, }
+
+instance forget_faithful : faithful (@forget C _ _) := { }
 
 instance (A : Mon_ C) : unique (trivial C ⟶ A) :=
 { default :=
@@ -125,7 +128,7 @@ end Mon_
 
 namespace category_theory.lax_monoidal_functor
 
-variables {C} {D : Type u} [category.{v} D] [monoidal_category.{v} D]
+variables {C} {D : Type u₂} [category.{v₂} D] [monoidal_category.{v₂} D]
 
 /--
 A lax monoidal functor takes monoid objects to monoid objects.

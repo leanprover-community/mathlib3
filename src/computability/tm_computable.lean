@@ -38,10 +38,10 @@ namespace turing
 the namespace `turing.TM2` in `turing_machine.lean`), with an input and output stack,
  a main function, an initial state and some finiteness guarantees. -/
 structure fin_tm2 :=
- {K : Type} [K_decidable_eq : decidable_eq K] -- index type of stacks
+ {K : Type} [K_decidable_eq : decidable_eq K] [K_fin : fintype K] -- index type of stacks
  (k₀ k₁ : K) -- input and output stack
  (Γ : K → Type) -- type of stack elements
- (Λ : Type) (main : Λ)  -- type of function labels
+ (Λ : Type) (main : Λ) [Λ_fin : fintype Λ] -- type of function labels
  (σ : Type) (initial_state : σ) -- type of states of the machine
  [σ_fin : fintype σ]
  [Γk₀_fin : fintype (Γ k₀)]
@@ -129,43 +129,43 @@ def tm2_outputs_in_time.to_tm2_outputs {tm : fin_tm2} {l : list (tm.Γ tm.k₀)}
 {l' : option (list (tm.Γ tm.k₁))} {m : ℕ} (h : tm2_outputs_in_time tm l l' m) : tm2_outputs tm l l' :=
 h.to_evals_to
 
-/-- A Turing machine with input alphabet equivalent to Γ₀ and output alphabat equivalent to Γ₁. -/
-private structure computable_by_tm2_aux (Γ₀ Γ₁ : Type) :=
+/-- A Turing machine with input alphabet equivalent to Γ₀ and output alphabet equivalent to Γ₁. -/
+structure tm2_computable_aux (Γ₀ Γ₁ : Type) :=
 ( tm : fin_tm2 )
 ( input_alphabet : tm.Γ tm.k₀ ≃ Γ₀ )
 ( output_alphabet : tm.Γ tm.k₁ ≃ Γ₁ )
 
 /-- A Turing machine + a proof it outputs f. -/
-structure computable_by_tm2 {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β)
-  extends computable_by_tm2_aux ea.Γ eb.Γ :=
+structure tm2_computable {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β)
+  extends tm2_computable_aux ea.Γ eb.Γ :=
 (outputs_fun : ∀ a, tm2_outputs tm (list.map input_alphabet.inv_fun (ea.encode a))
   (option.some ((list.map output_alphabet.inv_fun) (eb.encode (f a)))) )
 
 /-- A Turing machine + a time function + a proof it outputs f in at most time(len(input)) steps. -/
-structure computable_by_tm2_in_time {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β)
-  extends computable_by_tm2_aux ea.Γ eb.Γ :=
+structure tm2_computable_in_time {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β)
+  extends tm2_computable_aux ea.Γ eb.Γ :=
 ( time: ℕ → ℕ )
 ( outputs_fun : ∀ a, tm2_outputs_in_time tm (list.map input_alphabet.inv_fun (ea.encode a))
   (option.some ((list.map output_alphabet.inv_fun) (eb.encode (f a))))
   (time (ea.encode a).length) )
 
 /-- A Turing machine + a polynomial time function + a proof it outputs f in at most time(len(input)) steps. -/
-structure computable_by_tm2_in_poly_time {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β)
-  extends computable_by_tm2_aux ea.Γ eb.Γ :=
+structure tm2_computable_in_poly_time {α β : Type} (ea : fin_encoding α) (eb : fin_encoding β) (f : α → β)
+  extends tm2_computable_aux ea.Γ eb.Γ :=
 ( time: polynomial ℕ )
 ( outputs_fun : ∀ a, tm2_outputs_in_time tm (list.map input_alphabet.inv_fun (ea.encode a))
   (option.some ((list.map output_alphabet.inv_fun) (eb.encode (f a))))
   (time.eval (ea.encode a).length) )
 
 /-- A forgetful map, forgetting the time bound on the number of steps. -/
-def computable_by_tm2_in_time.to_computable_by_tm2 {α β : Type} {ea : fin_encoding α} {eb : fin_encoding β}
-{f : α → β} (h : computable_by_tm2_in_time ea eb f) : computable_by_tm2 ea eb f :=
-⟨h.to_computable_by_tm2_aux, λ a, tm2_outputs_in_time.to_tm2_outputs (h.outputs_fun a)⟩
+def tm2_computable_in_time.to_tm2_computable {α β : Type} {ea : fin_encoding α} {eb : fin_encoding β}
+{f : α → β} (h : tm2_computable_in_time ea eb f) : tm2_computable ea eb f :=
+⟨h.to_tm2_computable_aux, λ a, tm2_outputs_in_time.to_tm2_outputs (h.outputs_fun a)⟩
 
 /-- A forgetful map, forgetting that the time function is polynomial. -/
-def computable_by_tm2_in_poly_time.to_computable_by_tm2_in_time {α β : Type} {ea : fin_encoding α}
-{eb : fin_encoding β} {f : α → β} (h : computable_by_tm2_in_poly_time ea eb f) : computable_by_tm2_in_time ea eb f :=
-⟨h.to_computable_by_tm2_aux, λ n, h.time.eval n, h.outputs_fun⟩
+def tm2_computable_in_poly_time.to_tm2_computable_in_time {α β : Type} {ea : fin_encoding α}
+{eb : fin_encoding β} {f : α → β} (h : tm2_computable_in_poly_time ea eb f) : tm2_computable_in_time ea eb f :=
+⟨h.to_tm2_computable_aux, λ n, h.time.eval n, h.outputs_fun⟩
 
 open turing.TM2.stmt
 
@@ -188,7 +188,7 @@ instance inhabited_fin_tm2 : inhabited fin_tm2 :=
 noncomputable theory
 
 /-- A proof that the identity map on α is computable in polytime. -/
-def id_computable_in_poly_time {α : Type} (ea : fin_encoding α) : @computable_by_tm2_in_poly_time α α ea ea id :=
+def id_computable_in_poly_time {α : Type} (ea : fin_encoding α) : @tm2_computable_in_poly_time α α ea ea id :=
 { tm := id_computer ea,
   input_alphabet := equiv.cast rfl,
   output_alphabet := equiv.cast rfl,
@@ -197,33 +197,40 @@ def id_computable_in_poly_time {α : Type} (ea : fin_encoding α) : @computable_
     evals_in_steps := rfl,
     steps_le_m := by simp only [polynomial.eval_one] } }
 
-instance inhabited_computable_by_tm2_in_poly_time : inhabited _ :=
+instance inhabited_tm2_computable_in_poly_time : inhabited (tm2_computable_in_poly_time
+(default (fin_encoding bool)) (default (fin_encoding bool)) id) :=
 ⟨id_computable_in_poly_time computability.inhabited_fin_encoding.default⟩
 
-instance inhabited_tm2_outputs_in_time : inhabited _ :=
+instance inhabited_tm2_outputs_in_time : inhabited (tm2_outputs_in_time (id_computer fin_encoding_bool_bool)
+(list.map (equiv.cast rfl).inv_fun [ff]) (some (list.map (equiv.cast rfl).inv_fun [ff])) _)
+ :=
 ⟨(id_computable_in_poly_time fin_encoding_bool_bool).outputs_fun ff⟩
 
-instance inhabited_tm2_outputs : inhabited _ :=
+instance inhabited_tm2_outputs : inhabited (tm2_outputs (id_computer fin_encoding_bool_bool)
+(list.map (equiv.cast rfl).inv_fun [ff]) (some (list.map (equiv.cast rfl).inv_fun [ff]))) :=
 ⟨tm2_outputs_in_time.to_tm2_outputs turing.inhabited_tm2_outputs_in_time.default⟩
 
-instance inhabited_tm2_evals_to_in_time : inhabited (evals_to_in_time _ _ _ _)
-:= turing.inhabited_tm2_outputs_in_time
+instance inhabited_evals_to_in_time : inhabited (evals_to_in_time (λ _ : unit, some ⟨⟩) ⟨⟩ (some ⟨⟩) 0)
+:= ⟨evals_to_in_time.refl _ _⟩
 
-instance inhabited_tm2_evals_to : inhabited (evals_to _ _ _)
-:= turing.inhabited_tm2_outputs
+instance inhabited_tm2_evals_to : inhabited (evals_to (λ _ : unit, some ⟨⟩) ⟨⟩ (some ⟨⟩))
+:= ⟨evals_to.refl _ _⟩
 
 /-- A proof that the identity map on α is computable in time. -/
-def id_computable_in_time {α : Type} (ea : fin_encoding α) : @computable_by_tm2_in_time α α ea ea id :=
-computable_by_tm2_in_poly_time.to_computable_by_tm2_in_time $ id_computable_in_poly_time ea
+def id_computable_in_time {α : Type} (ea : fin_encoding α) : @tm2_computable_in_time α α ea ea id :=
+tm2_computable_in_poly_time.to_tm2_computable_in_time $ id_computable_in_poly_time ea
 
-instance inhabited_computable_by_tm2_in_time : inhabited _ :=
+instance inhabited_tm2_computable_in_time : inhabited (tm2_computable_in_time fin_encoding_bool_bool fin_encoding_bool_bool id) :=
 ⟨id_computable_in_time computability.inhabited_fin_encoding.default⟩
 
 /-- A proof that the identity map on α is computable. -/
-def id_computable {α : Type} (ea : fin_encoding α) : @computable_by_tm2 α α ea ea id :=
-computable_by_tm2_in_time.to_computable_by_tm2 $ id_computable_in_time ea
+def id_computable {α : Type} (ea : fin_encoding α) : @tm2_computable α α ea ea id :=
+tm2_computable_in_time.to_tm2_computable $ id_computable_in_time ea
 
-instance inhabited_computable_by_tm2 : inhabited _ :=
+instance inhabited_tm2_computable : inhabited (tm2_computable fin_encoding_bool_bool fin_encoding_bool_bool id) :=
 ⟨id_computable computability.inhabited_fin_encoding.default⟩
+
+instance inhabited_tm2_computable_aux : inhabited (tm2_computable_aux bool bool) :=
+⟨(default (tm2_computable fin_encoding_bool_bool fin_encoding_bool_bool id)).to_tm2_computable_aux⟩
 
 end turing

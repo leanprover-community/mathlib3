@@ -587,6 +587,13 @@ second. -/
 lemma lt_iff_le_and_exists (s1 s2 : affine_subspace k P) : s1 < s2 ↔ s1 ≤ s2 ∧ ∃ p ∈ s2, p ∉ s1 :=
 by rw [lt_iff_le_not_le, not_le_iff_exists]
 
+/-- If an affine subspace is nonempty and contained in another with
+the same direction, they are equal. -/
+lemma eq_of_direction_eq_of_nonempty_of_le {s₁ s₂ : affine_subspace k P}
+  (hd : s₁.direction = s₂.direction) (hn : (s₁ : set P).nonempty) (hle : s₁ ≤ s₂) :
+  s₁ = s₂ :=
+let ⟨p, hp⟩ := hn in ext_of_direction_eq hd ⟨p, hp, hle hp⟩
+
 variables (k V)
 
 /-- The affine span is the `Inf` of subspaces containing the given

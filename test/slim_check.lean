@@ -163,6 +163,46 @@ trace!"Try this:
 
 end
 
+example (f : ℤ → ℤ) : true :=
+begin
+  have : injective f,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+f := [_ ↦ 0]
+x := 0
+y := -1
+guard: 0 = 0
+issue: 0 = -1 does not hold
+-------------------
+",
+  admit,
+  trivial,
+end
+
+example (f : ℤ → ℤ) : true :=
+begin
+  have : monotone f,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+f := [-1 ↦ -6, -228 ↦ -6, -8 ↦ 8, 2 ↦ 192, 260 ↦ 201, 8 ↦ -176, _ ↦ -8]
+x := -1
+y := 3
+guard: -1 ≤ 3 (by construction)
+issue: -6 ≤ -8 does not hold
+-------------------
+",
+  admit,
+  trivial,
+end
+
 example (xs ys : list ℤ) (h : xs ~ ys) : true :=
 begin
   have : list.qsort (λ x y, x ≠ y) xs = list.qsort (λ x y, x ≠ y) ys,

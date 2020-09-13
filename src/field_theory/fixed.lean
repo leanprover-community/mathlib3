@@ -68,6 +68,8 @@ theorem fixed_points.coe_algebra_map :
   (algebra_map (fixed_points G F) F) = is_subring.subtype (fixed_points G F) :=
 rfl
 
+section fintype
+
 variables [fintype G] (x : F)
 
 /-- `fixed_points.minpoly G F x` is the minimal polynomial of `(x : F)` over `fixed_points G F`. -/
@@ -161,6 +163,8 @@ by { rw [← fixed_points.minpoly.minimal_polynomial,
         ← polynomial.separable_map (is_subring.subtype (fixed_points G F)),
         fixed_points.minpoly, polynomial.map_to_subring],
   exact polynomial.separable_prod_X_sub_C_iff.2 (injective_of_quotient_stabilizer G x) }⟩
+
+end fintype
 
 open finset finite_dimensional
 

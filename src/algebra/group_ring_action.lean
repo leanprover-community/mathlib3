@@ -38,6 +38,7 @@ class mul_semiring_action (M : Type u) [monoid M] (R : Type v) [semiring R]
 
 export mul_semiring_action (smul_one)
 
+/-- Typeclass for faithful multiplicative actions by monoids on semirings. -/
 class faithful_mul_semiring_action (M : Type u) [monoid M] (R : Type v) [semiring R]
   extends mul_semiring_action M R :=
 (eq_of_smul_eq_smul' : ∀ {m₁ m₂ : M}, (∀ r : R, m₁ • r = m₂ • r) → m₁ = m₂)

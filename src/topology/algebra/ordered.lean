@@ -721,6 +721,55 @@ induced_order_topology' f @hf
   (λ a x xa, let ⟨b, xb, ba⟩ := H xa in ⟨b, hf.1 ba, le_of_lt xb⟩)
   (λ a x ax, let ⟨b, ab, bx⟩ := H ax in ⟨b, hf.1 ab, le_of_lt bx⟩)
 
+/-- On an `ord_connected` subset of a linear order, the order topology for the restriction of the
+order is the same as the restriction to the subset of the order topology. -/
+instance order_topology_of_ord_connected {α : Type u}
+  [ta : topological_space α] [decidable_linear_order α] [order_topology α]
+  {t : set α} [ht : ord_connected t] :
+  order_topology t :=
+begin
+  letI := induced (coe : t → α) ta,
+  refine ⟨eq_of_nhds_eq_nhds (λ a, _)⟩,
+  rw [nhds_induced, nhds_generate_from, nhds_eq_order (a : α)],
+  apply le_antisymm,
+  { refine le_infi (λ s, le_infi $ λ hs, le_principal_iff.2 _),
+    rcases hs with ⟨ab, b, rfl|rfl⟩,
+    { refine ⟨Ioi b, _, λ _, id⟩,
+      refine mem_inf_sets_of_left (mem_infi_sets b _),
+      exact mem_infi_sets ab (mem_principal_self (Ioi ↑b)) },
+    { refine ⟨Iio b, _, λ _, id⟩,
+      refine mem_inf_sets_of_right (mem_infi_sets b _),
+      exact mem_infi_sets ab (mem_principal_self (Iio b)) } },
+  { rw [← map_le_iff_le_comap],
+    refine le_inf _ _,
+    { refine le_infi (λ x, le_infi $ λ h, le_principal_iff.2 _),
+      by_cases hx : x ∈ t,
+      { refine mem_infi_sets (Ioi ⟨x, hx⟩) (mem_infi_sets ⟨h, ⟨⟨x, hx⟩, or.inl rfl⟩⟩ _),
+        exact λ _, id },
+      simp only [set_coe.exists, mem_set_of_eq, mem_map],
+      convert univ_sets _,
+      suffices hx' : ∀ (y : t), ↑y ∈ Ioi x,
+      { simp [hx'] },
+      intros y,
+      revert hx,
+      contrapose!,
+      -- here we use the `ord_connected` hypothesis
+      exact λ hx, ht y.2 a.2 ⟨le_of_not_gt hx, le_of_lt h⟩ },
+    { refine le_infi (λ x, le_infi $ λ h, le_principal_iff.2 _),
+      by_cases hx : x ∈ t,
+      { refine mem_infi_sets (Iio ⟨x, hx⟩) (mem_infi_sets ⟨h, ⟨⟨x, hx⟩, or.inr rfl⟩⟩ _),
+        exact λ _, id },
+      simp only [set_coe.exists, mem_set_of_eq, mem_map],
+      convert univ_sets _,
+      suffices hx' : ∀ (y : t), ↑y ∈ Iio x,
+      { simp [hx'] },
+      intros y,
+      revert hx,
+      contrapose!,
+      -- here we use the `ord_connected` hypothesis
+      exact λ hx, ht a.2 y.2 ⟨le_of_lt h, le_of_not_gt hx⟩ } }
+end
+
 lemma nhds_top_order [topological_space α] [order_top α] [order_topology α] :
   𝓝 (⊤:α) = (⨅l (h₂ : l < ⊤), 𝓟 (Ioi l)) :=
 by simp [nhds_eq_order (⊤:α)]
@@ -2323,6 +2372,26 @@ by simpa only [inv_inv] using @tendsto_inv_nhds_within_Ioi _ _ _ _ (a⁻¹)
   [topological_space α] [topological_group α] {a : α} :
   tendsto has_inv.inv (𝓝[Iio (a⁻¹)] (a⁻¹)) (𝓝[Ioi a] a) :=
 by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iio _ _ _ _ (a⁻¹)
+
+@[to_additive] lemma tendsto_inv_nhds_within_Ici [ordered_comm_group α]
+  [topological_space α] [topological_group α] {a : α} :
+  tendsto has_inv.inv (𝓝[Ici a] a) (𝓝[Iic (a⁻¹)] (a⁻¹)) :=
+(continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
+
+@[to_additive] lemma tendsto_inv_nhds_within_Iic [ordered_comm_group α]
+  [topological_space α] [topological_group α] {a : α} :
+  tendsto has_inv.inv (𝓝[Iic a] a) (𝓝[Ici (a⁻¹)] (a⁻¹)) :=
+(continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
+
+@[to_additive] lemma tendsto_inv_nhds_within_Ici_inv [ordered_comm_group α]
+  [topological_space α] [topological_group α] {a : α} :
+  tendsto has_inv.inv (𝓝[Ici (a⁻¹)] (a⁻¹)) (𝓝[Iic a] a) :=
+by simpa only [inv_inv] using @tendsto_inv_nhds_within_Ici _ _ _ _ (a⁻¹)
+
+@[to_additive] lemma tendsto_inv_nhds_within_Iic_inv [ordered_comm_group α]
+  [topological_space α] [topological_group α] {a : α} :
+  tendsto has_inv.inv (𝓝[Iic (a⁻¹)] (a⁻¹)) (𝓝[Ici a] a) :=
+by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iic _ _ _ _ (a⁻¹)
 
 lemma nhds_left_sup_nhds_right (a : α) [topological_space α] [linear_order α] :
   nhds_within a (Iic a) ⊔ nhds_within a (Ici a) = 𝓝 a :=

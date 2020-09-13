@@ -94,12 +94,9 @@ end applicative_transformation
 
 open applicative_transformation
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 class traversable (t : Type u → Type u) extends functor t :=
 (traverse : Π {m : Type u → Type u} [applicative m] {α β},
    (α → m β) → t α → m (t β))
-end prio
 
 open functor
 
@@ -118,8 +115,6 @@ def sequence [traversable t] : t (f α) → f (t α) := traverse id
 
 end functions
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 class is_lawful_traversable (t : Type u → Type u) [traversable t]
   extends is_lawful_functor t : Type (u+1) :=
 (id_traverse : ∀ {α} (x : t α), traverse id.mk x = x )
@@ -134,7 +129,6 @@ class is_lawful_traversable (t : Type u → Type u) [traversable t]
     [is_lawful_applicative F] [is_lawful_applicative G]
     (η : applicative_transformation F G) {α β} (f : α → F β) (x : t α),
   η (traverse f x) = traverse (@η _ ∘ f) x)
-end prio
 
 instance : traversable id := ⟨λ _ _ _ _, id⟩
 instance : is_lawful_traversable id := by refine {..}; intros; refl

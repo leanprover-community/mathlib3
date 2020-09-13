@@ -7,6 +7,11 @@ import category_theory.over
 import category_theory.limits.connected
 import category_theory.limits.creates
 
+/-!
+# `forget : over B ⥤ C` creates connected limits.
+
+-/
+
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
 noncomputable theory

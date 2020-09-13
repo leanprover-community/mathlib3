@@ -9,6 +9,14 @@ import control.traversable.equiv
 import control.traversable.instances
 import data.lazy_list
 
+/-!
+## Definitions on lazy lists
+
+This file contains various definitions and proofs on lazy lists.
+
+TODO: move the `lazy_list.lean` file from core to mathlib.
+-/
+
 universes u
 
 namespace thunk
@@ -26,6 +34,7 @@ namespace lazy_list
 
 open function
 
+/-- Isomorphism between strict and lazy lists. -/
 def list_equiv_lazy_list (α : Type*) : list α ≃ lazy_list α :=
 { to_fun := lazy_list.of_list,
   inv_fun := lazy_list.to_list,
@@ -50,6 +59,7 @@ instance {α : Type u} [decidable_eq α] : decidable_eq (lazy_list α)
 | nil (cons _ _) := is_false (by cc)
 | (cons _ _) nil := is_false (by cc)
 
+/-- Traversal of lazy lists using an applicative effect. -/
 protected def traverse {m : Type u → Type u} [applicative m] {α β : Type u}
     (f : α → m β) : lazy_list α → m (lazy_list β)
 | lazy_list.nil := pure lazy_list.nil
@@ -87,6 +97,12 @@ def init {α} : lazy_list α → lazy_list α
   | (lazy_list.cons _ _) := lazy_list.cons x (init xs')
   end
 
+/-- Return the first object contained in the list that satisfies
+predicate `p` -/
+def find {α} (p : α → Prop) [decidable_pred p] : lazy_list α → option α
+| nil        := none
+| (cons h t) := if p h then some h else find (t ())
+
 /-- `interleave xs ys` creates a list where elements of `xs` and `ys` alternate. -/
 def interleave {α} : lazy_list α → lazy_list α → lazy_list α
 | lazy_list.nil xs := xs
@@ -100,5 +116,53 @@ and `zs` and the rest alternate. Every other element of the resulting list is ta
 def interleave_all {α} : list (lazy_list α) → lazy_list α
 | [] := lazy_list.nil
 | (x :: xs) := interleave x (interleave_all xs)
+
+/-- Monadic bind operation for `lazy_list`. -/
+protected def bind {α β} : lazy_list α → (α → lazy_list β) → lazy_list β
+| lazy_list.nil _ := lazy_list.nil
+| (lazy_list.cons x xs) f := lazy_list.append (f x) (bind (xs ()) f)
+
+/-- Reverse the order of a `lazy_list`.
+It is done by converting to a `list` first because reversal involves evaluating all
+the list and if the list is all evaluated, `list` is a better representation for
+it than a series of thunks. -/
+def reverse {α} (xs : lazy_list α) : lazy_list α :=
+of_list xs.to_list.reverse
+
+instance : monad lazy_list :=
+{ pure := @lazy_list.singleton,
+  bind := @lazy_list.bind }
+
+lemma append_nil {α} (xs : lazy_list α) : xs.append lazy_list.nil = xs :=
+begin
+  induction xs, refl,
+  simp [lazy_list.append, xs_ih],
+  ext, congr,
+end
+
+lemma append_assoc {α} (xs ys zs : lazy_list α) : (xs.append ys).append zs = xs.append (ys.append zs) :=
+by induction xs; simp [append, *]
+
+lemma append_bind {α β} (xs : lazy_list α) (ys : thunk (lazy_list α)) (f : α → lazy_list β) :
+  (@lazy_list.append _ xs ys).bind f = (xs.bind f).append ((ys ()).bind f) :=
+by induction xs; simp [lazy_list.bind, append, *, append_assoc, append, lazy_list.bind]
+
+instance : is_lawful_monad lazy_list :=
+{ pure_bind := by { intros, apply append_nil },
+  bind_assoc := by { intros, dsimp [(>>=)], induction x; simp [lazy_list.bind, append_bind, *], },
+  id_map :=
+  begin
+    intros,
+    simp [(<$>)],
+    induction x; simp [lazy_list.bind, *, singleton, append],
+    ext ⟨ ⟩, refl,
+  end }
+
+/-- Try applying function `f` to every element of a `lazy_list` and
+return the result of the first attempt that succeeds. -/
+def mfirst {m} [alternative m] {α β} (f : α → m β) : lazy_list α → m β
+| nil := failure
+| (cons x xs) :=
+  f x <|> mfirst (xs ())
 
 end lazy_list

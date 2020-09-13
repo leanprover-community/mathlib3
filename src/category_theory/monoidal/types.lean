@@ -3,7 +3,7 @@ Copyright (c) 2018 Michael Jendrusch. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Jendrusch, Scott Morrison
 -/
-import category_theory.monoidal.of_has_finite_products
+import category_theory.monoidal.of_chosen_finite_products
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.types
 
@@ -19,11 +19,11 @@ universes u
 
 namespace category_theory.monoidal
 
-local attribute [instance] types.types_has_terminal types.types_has_binary_products
-local attribute [instance] monoidal_of_has_finite_products symmetric_of_has_finite_products
+instance types_monoidal : monoidal_category.{u} (Type u) :=
+monoidal_of_chosen_finite_products (types.terminal_limit_cone) (types.binary_product_limit_cone)
 
-instance types_monoidal : monoidal_category.{u} (Type u) := by apply_instance
-instance types_symmetric : symmetric_category.{u} (Type u) := by apply_instance
+instance types_symmetric : symmetric_category.{u} (Type u) :=
+symmetric_of_chosen_finite_products (types.terminal_limit_cone) (types.binary_product_limit_cone)
 
 @[simp] lemma tensor_apply {W X Y Z : Type u} (f : W ⟶ X) (g : Y ⟶ Z) (p : W ⊗ Y) :
   (f ⊗ g) p = (f p.1, g p.2) := rfl

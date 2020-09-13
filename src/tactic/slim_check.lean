@@ -210,9 +210,9 @@ set_option trace.class_instances true
   when_tracing `slim_check.instance   $ do
   { inst ← summarize_instance inst >>= pp,
     trace!"\n[testable instance]{format.indent inst 2}" },
-  code ← eval_expr (io bool) e,
-  b ← unsafe_run_io code,
-  if b then admit else failed }
+  code ← eval_expr (io punit) e,
+  unsafe_run_io code,
+  admit }
 
 end tactic.interactive
 

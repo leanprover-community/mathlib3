@@ -40,6 +40,7 @@ variables {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
 /--
 The morphism from `image f` to `kernel g` when `f ≫ g = 0`.
 -/
+noncomputable
 abbreviation image_to_kernel_map (w : f ≫ g = 0) :
   image f ⟶ kernel g :=
 kernel.lift g (image.ι f) $ (cancel_epi (factor_thru_image f)).1 $ by simp [w]
@@ -52,6 +53,20 @@ by { delta image_to_kernel_map, simp }
 lemma image_to_kernel_map_zero_right {w} :
   image_to_kernel_map f (0 : B ⟶ C) w = image.ι f ≫ inv (kernel.ι (0 : B ⟶ C)) :=
 by { ext, simp }
+
+@[simp]
+lemma image_to_kernel_map_comp_iso {D : V} (h : C ⟶ D) [is_iso h] (w) :
+  image_to_kernel_map f (g ≫ h) w =
+  image_to_kernel_map f g ((cancel_mono h).mp (by simpa using w : (f ≫ g) ≫ h = 0 ≫ h)) ≫
+    (kernel_comp_is_iso g h).inv :=
+by { ext, simp, }
+
+@[simp]
+lemma image_to_kernel_map_iso_comp {Z : V} (h : Z ⟶ A) [is_iso h] (w) :
+  image_to_kernel_map (h ≫ f) g w =
+  image.pre_comp h f ≫
+    image_to_kernel_map f g ((cancel_epi h).mp (by simpa using w : h ≫ f ≫ g = h ≫ 0)) :=
+by { ext, simp, }
 
 local attribute [instance] has_zero_object.has_zero
 

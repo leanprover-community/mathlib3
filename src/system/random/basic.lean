@@ -147,10 +147,14 @@ return $ mk_std_gen seed
 
 variables {α : Type}
 
-/-- run `cmd` using a randomly seeded random number generator -/
+/-- Run `cmd` using a randomly seeded random number generator -/
 def run_rand (cmd : _root_.rand α) : io α :=
 do g ← io.mk_generator,
    return $ (cmd.run ⟨g⟩).1
+
+/-- Run `cmd` using the provided seed. -/
+def run_rand_with (seed : ℕ) (cmd : _root_.rand α) : io α :=
+return $ (cmd.run ⟨mk_std_gen seed⟩).1
 
 section random
 variables [preorder α] [random α]

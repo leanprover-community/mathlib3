@@ -220,6 +220,9 @@ structure slim_check_cfg :=
 (max_size : ℕ := 100) -- final size argument
 (trace_discarded : bool := ff) -- enable the printing out of discarded samples
 (trace_success : bool := ff) -- enable the printing out of successful samples
+(random_seed : option ℕ := none) -- specify a seed to the random number generator to
+                                 -- obtain a deterministic behavior
+(quiet : bool := ff)             -- suppress success message when running `slim_check`
 
 instance {p} : has_to_string (test_result p) := ⟨ test_result.to_string ⟩
 
@@ -620,7 +623,10 @@ testable.run_suite_aux p cfg (success $ psum.inl ()) cfg.num_inst
 
 /-- Run a test suite for `p` in `io`. -/
 def testable.check' (cfg : slim_check_cfg := {}) : io (test_result p) :=
-io.run_rand (testable.run_suite p cfg)
+match cfg.random_seed with
+| some seed := io.run_rand_with seed (testable.run_suite p cfg)
+| none := io.run_rand (testable.run_suite p cfg)
+end
 
 namespace tactic
 
@@ -686,18 +692,23 @@ exact $ add_decorations p
 end tactic
 
 /-- Run a test suite for `p` and return true or false: should we believe that `p` holds? -/
-def testable.check (p : Prop) (cfg : slim_check_cfg := {}) (p' : tactic.decorations_of p . tactic.mk_decorations) [testable p'] : io bool := do
-x ← io.run_rand (testable.run_suite p' cfg),
+def testable.check (p : Prop) (cfg : slim_check_cfg := {}) (p' : tactic.decorations_of p . tactic.mk_decorations) [testable p'] : io punit := do
+x ← match cfg.random_seed with
+    | some seed := io.run_rand_with seed (testable.run_suite p' cfg)
+    | none := io.run_rand (testable.run_suite p' cfg)
+    end,
 match x with
-| (success _) := io.put_str_ln ("Success") >> return tt
-| (gave_up n) := io.put_str_ln ("Gave up " ++ repr n ++ " times") >> return ff
+| (success _) := when (¬ cfg.quiet) $ io.put_str_ln "Success"
+| (gave_up n) := io.fail sformat!"Gave up {repr n} times"
 | (failure _ xs) := do
-   io.put_str_ln "\n===================",
-   io.put_str_ln "Found problems!",
-   io.put_str_ln "",
-   list.mmap' io.put_str_ln xs,
-   io.put_str_ln "-------------------",
-   return ff
+   let counter_ex := string.intercalate "\n" xs,
+   io.fail sformat!"
+===================
+Found problems!
+
+{counter_ex}
+-------------------
+"
 end
 
 end io

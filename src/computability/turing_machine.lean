@@ -1933,7 +1933,28 @@ end
 
 @[simp] def len (M : Λ → stmt) : cfg → ℕ+ := λ c, (step_len M c).2
 
---lemma size_increase_le_len (M : Λ → stmt) (k : K) (c : cfg) (d : cfg) (h : step M c = some d) : (d.stk k).length ≤ (c.stk k).length + (M c.l) := sorry
+example {a : Type*} (x y : a) (h : some x = some y) : x = y := option.some_inj.mp h
+
+def fun_len (M : Λ → stmt) (l : option Λ) : ℕ+ := (@option.get_or_else ℕ+ ((option.map stmt_len) ((option.map M) l)) 1)
+
+lemma size_increase_le_len (M : Λ → stmt) (k : K) (c : cfg) (d : cfg) (h : d ∈ step M c) : (d.stk k).length ≤ (c.stk k).length +
+  fun_len M c.l :=
+begin
+  cases c,
+  cases c_l,
+  exfalso,
+  simp only [step_len, step] at h,
+  exact option.not_mem_none d h,
+  unfold step step_len at h,
+  change some (step_aux (M c_l) c_var c_stk) = some d at h,
+  rw option.some_inj at h,
+  rw ← h,
+  simp only [option.get_or_else_some, option.map_some'],
+  transitivity (c_stk k).length + len_aux (M c_l) c_var c_stk,
+  exact step_len_aux_le_size_increase _ _ _ _,
+  simp only [pnat.coe_le_coe, add_le_add_iff_left, len_aux],
+  exact len_aux_le_stmt_len _ _ _,
+end
 
 /-- The (reflexive) reachability relation for the TM2 model. -/
 def reaches (M : Λ → stmt) : cfg → cfg → Prop :=

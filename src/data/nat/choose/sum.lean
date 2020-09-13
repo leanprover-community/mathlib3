@@ -1,77 +1,18 @@
-/-
-Copyright (c) 2018 Chris Hughes. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Bhavik Mehta, Patrick Stevens
--/
+import data.nat.choose.basic
 import tactic.linarith
 import tactic.omega
 import algebra.big_operators.ring
 import algebra.big_operators.intervals
 import algebra.big_operators.order
-
+/-!
+# Facts about binomial coefficients and their sums
+-/
 open nat
-
-open_locale big_operators
-
-lemma nat.prime.dvd_choose_add {p a b : ℕ} (hap : a < p) (hbp : b < p) (h : p ≤ a + b)
-  (hp : prime p) : p ∣ choose (a + b) a :=
-have h₁ : p ∣ fact (a + b), from hp.dvd_fact.2 h,
-have h₂ : ¬p ∣ fact a, from mt hp.dvd_fact.1 (not_le_of_gt hap),
-have h₃ : ¬p ∣ fact b, from mt hp.dvd_fact.1 (not_le_of_gt hbp),
-by
-  rw [← choose_mul_fact_mul_fact (le.intro rfl), mul_assoc, hp.dvd_mul, hp.dvd_mul,
-    norm_num.sub_nat_pos (a + b) a b rfl] at h₁;
-  exact h₁.resolve_right (not_or_distrib.2 ⟨h₂, h₃⟩)
-
-lemma nat.prime.dvd_choose_self {p k : ℕ} (hk : 0 < k) (hkp : k < p) (hp : prime p) :
-  p ∣ choose p k :=
-begin
-  have r : k + (p - k) = p,
-    by rw [← nat.add_sub_assoc (nat.le_of_lt hkp) k, nat.add_sub_cancel_left],
-  have e : p ∣ choose (k + (p - k)) k,
-    by exact nat.prime.dvd_choose_add hkp (sub_lt (lt.trans hk hkp) hk) (by rw r) hp,
-  rwa r at e,
-end
-
-/-- Show that choose is increasing for small values of the right argument. -/
-lemma choose_le_succ_of_lt_half_left {r n : ℕ} (h : r < n/2) :
-  choose n r ≤ choose n (r+1) :=
-begin
-  refine le_of_mul_le_mul_right _ (nat.lt_sub_left_of_add_lt (lt_of_lt_of_le h (nat.div_le_self n 2))),
-  rw ← choose_succ_right_eq,
-  apply nat.mul_le_mul_left,
-  rw [← nat.lt_iff_add_one_le, nat.lt_sub_left_iff_add_lt, ← mul_two],
-  exact lt_of_lt_of_le (mul_lt_mul_of_pos_right h zero_lt_two) (nat.div_mul_le_self n 2),
-end
-
-/-- Show that for small values of the right argument, the middle value is largest. -/
-private lemma choose_le_middle_of_le_half_left {n r : ℕ} (hr : r ≤ n/2) :
-  choose n r ≤ choose n (n/2) :=
-decreasing_induction
-  (λ _ k a,
-      (eq_or_lt_of_le a).elim
-        (λ t, t.symm ▸ le_refl _)
-        (λ h, trans (choose_le_succ_of_lt_half_left h) (k h)))
-  hr (λ _, le_refl _) hr
-
-/-- `choose n r` is maximised when `r` is `n/2`. -/
-lemma choose_le_middle (r n : ℕ) : nat.choose n r ≤ nat.choose n (n/2) :=
-begin
-  cases le_or_gt r n with b b,
-  { cases le_or_lt r (n/2) with a h,
-    { apply choose_le_middle_of_le_half_left a },
-    { rw ← choose_symm b,
-      apply choose_le_middle_of_le_half_left,
-      rw [div_lt_iff_lt_mul' zero_lt_two] at h,
-      rw [le_div_iff_mul_le' zero_lt_two, nat.mul_sub_right_distrib, nat.sub_le_iff,
-          mul_two, nat.add_sub_cancel],
-      exact le_of_lt h } },
-  { rw nat.choose_eq_zero_of_lt b,
-    apply nat.zero_le }
-end
 
 section binomial
 open finset
+
+open_locale big_operators
 
 variables {α : Type*}
 
@@ -120,10 +61,6 @@ theorem add_pow [comm_semiring α] (x y : α) (n : ℕ) :
 theorem sum_range_choose (n : ℕ) :
   ∑ m in range (n + 1), choose n m = 2 ^ n :=
 by simpa using (add_pow 1 1 n).symm
-
-/-!
-# Specific facts about binomial coefficients and their sums
--/
 
 lemma sum_range_choose_halfway (m : nat) :
   ∑ i in range (m + 1), nat.choose (2 * m + 1) i = 4 ^ m :=

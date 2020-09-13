@@ -2,13 +2,17 @@
 Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Johannes Hölzl, Mario Carneiro
-
-An efficient binary implementation of a (sqrt n) function that
-returns s s.t.
-    s*s ≤ n ≤ s*s + s + s
 -/
 import data.int.basic
+/-!
+# Square root of natural numbers
 
+An efficient binary implementation of a (`sqrt n`) function that
+returns `s` such that
+```
+s*s ≤ n ≤ s*s + s + s
+```
+-/
 namespace nat
 
 theorem sqrt_aux_dec {b} (h : b ≠ 0) : shiftr b 2 < b :=

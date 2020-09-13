@@ -69,7 +69,8 @@ class monoidal_category (C : Type u) [𝒞 : category.{v} C] :=
 restate_axiom monoidal_category.tensor_id'
 attribute [simp] monoidal_category.tensor_id
 restate_axiom monoidal_category.tensor_comp'
-attribute [simp, reassoc] monoidal_category.tensor_comp
+attribute [reassoc] monoidal_category.tensor_comp
+attribute [simp] monoidal_category.tensor_comp
 restate_axiom monoidal_category.associator_naturality'
 attribute [reassoc] monoidal_category.associator_naturality
 restate_axiom monoidal_category.left_unitor_naturality'

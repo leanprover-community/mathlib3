@@ -46,9 +46,9 @@ def raise_cone [is_connected J] {B : C} {F : J ⥤ over B} (c : cone (F ⋙ forg
 { X := over.mk (c.π.app (classical.arbitrary J) ≫ (F.obj (classical.arbitrary J)).hom),
   π :=
   { app := λ j,
-      over.hom_mk (c.π.app j) (nat_trans_from_connected (c.π ≫ nat_trans_in_over F) j _) } }
+      over.hom_mk (c.π.app j) (nat_trans_from_is_connected (c.π ≫ nat_trans_in_over F) j _) } }
 
-lemma raised_cone_lowers_to_original [connected J] {B : C} {F : J ⥤ over B}
+lemma raised_cone_lowers_to_original [is_connected J] {B : C} {F : J ⥤ over B}
   (c : cone (F ⋙ forget)) (t : is_limit c) :
   forget.map_cone (raise_cone c) = c :=
 by tidy

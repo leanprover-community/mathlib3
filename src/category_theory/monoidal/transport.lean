@@ -130,10 +130,11 @@ def transport (e : C ≌ D) : monoidal_category.{v₂} D :=
   end, }.
 
 /-- A type synonym for `D`, which will carry the transported monoidal structure. -/
-@[derive category]
+@[derive category, nolint unused_arguments]
 def transported (e : C ≌ D) := D
 
 instance (e : C ≌ D) : monoidal_category (transported e) := transport e
+instance (e : C ≌ D) : inhabited (transported e) := ⟨𝟙_ _⟩
 
 /--
 We can upgrade `e.functor` to a lax monoidal functor from `C` to `D` with the transported structure.

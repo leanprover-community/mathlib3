@@ -1,8 +1,10 @@
 import data.nat.basic
 
-namespace nat
+/-!
+# Partial predecessor and partial subtraction on the natural numbers
 
-/-! ### partial subtraction -/
+-/
+namespace nat
 
 /-- Partial predecessor operation. Returns `ppred n = some m`
   if `n = m + 1`, otherwise `none`. -/

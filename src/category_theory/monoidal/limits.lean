@@ -31,10 +31,10 @@ variables {C : Type u} [category.{v} C] [has_limits C]
 
 instance limit_functorial : functorial (λ F : J ⥤ C, limit F) := { ..limits.lim }
 
-variables  [monoidal_category.{v} C]
-
 @[simp] lemma limit_functorial_map {F G : J ⥤ C} (α : F ⟶ G) :
   map (λ F : J ⥤ C, limit F) α = limits.lim.map α := rfl
+
+variables  [monoidal_category.{v} C]
 
 instance limit_lax_functorial : lax_monoidal (λ F : J ⥤ C, limit F) :=
 { ε := limit.lift _ { X := _, π := { app := λ j, 𝟙 _, } },

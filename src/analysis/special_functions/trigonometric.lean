@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
+Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import analysis.special_functions.exp_log
 
@@ -1289,6 +1289,9 @@ lt_of_le_of_ne (neg_pi_div_two_le_arcsin _)
     by rw [← sin_arcsin (le_of_lt (neg_one_lt_div_sqrt_one_add _))
         (le_of_lt (div_sqrt_one_add_lt_one _)), ← arctan, ← h, sin_neg, sin_pi_div_two])
 
+lemma arctan_mem_Ioo (x : ℝ) : arctan x ∈ set.Ioo (-(π / 2)) (π / 2) :=
+⟨neg_pi_div_two_lt_arctan x, arctan_lt_pi_div_two x⟩
+
 lemma tan_surjective : function.surjective tan :=
 function.right_inverse.surjective tan_arctan
 
@@ -1709,8 +1712,6 @@ by { rw continuous_on_iff_continuous_restrict, convert continuous_tan }
 
 end complex
 
-
-
 namespace real
 open_locale real
 
@@ -1766,7 +1767,6 @@ begin
   simp only [set.mem_set_of_eq],
   exact ne_of_gt (cos_pos_of_mem_Ioo hx.1 hx.2),
 end
-
 
 open filter
 open_locale topological_space
@@ -1837,13 +1837,19 @@ begin
   apply tan_eq_sin_div_cos x,
 end
 
+/-- The function `tan` restricted to the open interval (-π/2, π/2) is a homeomorphism -/
 def tan_homeomorph : homeomorph (set.Ioo (-(π/2)) (π/2)) ℝ :=
 homeomorph_of_strict_mono_continuous_Ioo tan (by linarith [pi_div_two_pos]) (λ x y, tan_lt_tan_of_lt_of_lt_pi_div_two)
   continuous_on_tan_of_mem_Ioo tendsto_tan_pi_div_two tendsto_tan_neg_pi_div_two
 
 lemma arctan_homeomorph : arctan = coe ∘ tan_homeomorph.inv_fun :=
 begin
-  sorry,
+  ext x,
+  have h_coe : arctan x = ↑(⟨arctan x, arctan_mem_Ioo x⟩ : set.Ioo _ _) := by simp,
+  have h : (⟨arctan x, arctan_mem_Ioo x⟩ : set.Ioo _ _) = (tan_homeomorph.inv_fun ∘ tan_homeomorph.to_fun) ⟨arctan x, arctan_mem_Ioo x⟩ := by simp,
+  have h' : tan_homeomorph.to_fun = tan ∘ coe := by refl,
+  rw [h_coe, h],
+  simp [h', tan_arctan],
 end
 
 lemma continuous_arctan : continuous arctan :=
@@ -1861,8 +1867,7 @@ end
 lemma differentiable_at_arctan (x:ℝ) : differentiable_at ℝ arctan x :=
 (has_deriv_at_arctan x).differentiable_at
 
-lemma deriv_arctan (x:ℝ) : deriv arctan x = 1 / (1 + x^2) :=
+@[simp] lemma deriv_arctan (x:ℝ) : deriv arctan x = 1 / (1 + x^2) :=
 (has_deriv_at_arctan x).deriv
-
 
 end real

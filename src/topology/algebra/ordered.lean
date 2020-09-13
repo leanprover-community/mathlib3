@@ -1332,47 +1332,39 @@ end
 
 end linear_ordered_ring
 
-
-
 section linear_ordered_field
 variables [topological_space α] [linear_ordered_field α] [order_topology α]
 variables {l : filter β} {f g : β → α}
 
-
+/-- In a linearly ordered field with the order topology, if `f` tends to `at_top` and `g` tends to
+a positive constant `C` then `f * g` tends to `at_top`. -/
 lemma tendsto_mul_at_top {C : α} (hC : 0 < C) (hf : tendsto f l at_top) (hg : tendsto g l (𝓝 C)) :
   tendsto (λ x, (f x * g x)) l at_top :=
 begin
-  rw tendsto_at_top at *,
+  rw tendsto_at_top at hf ⊢,
   rw tendsto_order at hg,
-  have h : ∀ᶠ (a : β) in l, 0 < f a,
-  { refine (hf 1).mp (eventually_of_forall _),
-    intros y hy,
-    linarith }, --exact gt_of_ge_of_gt hy zero_lt_one
   intro b,
-  refine (hf (b/(C/2))).mp ((hg.1 (C/2) (half_lt_self hC)).mp (h.mp (eventually_of_forall _))),
+  refine (hf (b/(C/2))).mp ((hg.1 (C/2) (half_lt_self hC)).mp ((hf 1).mp (eventually_of_forall _))),
   intros x hx hltg hlef,
-  linarith [(div_le_iff' (half_pos hC)).mp hlef, (mul_lt_mul_right hx).mpr hltg],
+  nlinarith [(div_le_iff' (half_pos hC)).mp hlef],
 end
 
+/-- In a linearly ordered field with the order topology, if `f` tends to `at_top` and `g` tends to
+a negative constant `C` then `f * g` tends to `at_bot`. -/
 lemma tendsto_mul_at_bot {C : α} (hC : C < 0) (hf : tendsto f l at_top) (hg : tendsto g l (𝓝 C)) :
   tendsto (λ x, (f x * g x)) l at_bot :=
 begin
   rw tendsto_at_bot,
   rw tendsto_at_top at hf,
   rw tendsto_order at hg,
-  have h : ∀ᶠ (a : β) in l, 0 < f a,
-  { refine (hf 1).mp (eventually_of_forall _),
-    intros y hy,
-    linarith },
   intro b,
-  refine (hf (b/(C/2))).mp ((hg.2 (C/2) (by linarith)).mp (h.mp (eventually_of_forall _))),
+  refine (hf (b/(C/2))).mp ((hg.2 (C/2) (by linarith)).mp ((hf 1).mp (eventually_of_forall _))),
   intros x hx hltg hlef,
-  linarith [(div_le_iff_of_neg (by linarith)).mp hlef, (mul_lt_mul_right hx).mpr hltg],
+  have : f x * (C / 2) ≤ b := (div_le_iff_of_neg (by linarith)).mp hlef,
+  nlinarith,
 end
 
 end linear_ordered_field
-
-
 
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
 (image_eq_preimage_of_inverse neg_neg neg_neg).symm

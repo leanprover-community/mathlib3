@@ -306,9 +306,9 @@ variables {R S A}
 variables [comm_ring R] [ring S] [add_comm_group A]
 variables [algebra R S] [module S A] [module R A] [is_scalar_tower R S A]
 
-theorem linear_independent_smul {ι : Type v₁} {b : ι → S} {κ : Type w₁} {c : κ → A}
+theorem linear_independent_smul {ι : Type v₁} {b : ι → S} {ι' : Type w₁} {c : ι' → A}
   (hb : linear_independent R b) (hc : linear_independent S c) :
-  linear_independent R (λ p : ι × κ, b p.1 • c p.2) :=
+  linear_independent R (λ p : ι × ι', b p.1 • c p.2) :=
 begin
   rw linear_independent_iff' at hb hc, rw linear_independent_iff'', rintros s g hg hsg ⟨i, k⟩,
   by_cases hik : (i, k) ∈ s,
@@ -321,15 +321,15 @@ begin
   exact hg _ hik
 end
 
-theorem is_basis.smul {ι : Type v₁} {b : ι → S} {κ : Type w₁} {c : κ → A}
-  (hb : is_basis R b) (hc : is_basis S c) : is_basis R (λ p : ι × κ, b p.1 • c p.2) :=
+theorem is_basis.smul {ι : Type v₁} {b : ι → S} {ι' : Type w₁} {c : ι' → A}
+  (hb : is_basis R b) (hc : is_basis S c) : is_basis R (λ p : ι × ι', b p.1 • c p.2) :=
 ⟨linear_independent_smul hb.1 hc.1,
 by rw [← set.range_smul_range, submodule.span_smul hb.2, ← submodule.restrict_scalars'_top R S A,
     submodule.restrict_scalars'_inj, hc.2]⟩
 
 theorem is_basis.smul_repr
-  {ι κ : Type*} {b : ι → S} {c : κ → A}
-  (hb : is_basis R b) (hc : is_basis S c) (x : A) (ij : ι × κ) :
+  {ι ι' : Type*} {b : ι → S} {c : ι' → A}
+  (hb : is_basis R b) (hc : is_basis S c) (x : A) (ij : ι × ι') :
   (hb.smul hc).repr x ij = hb.repr (hc.repr x ij.2) ij.1 :=
 begin
   apply (hb.smul hc).repr_apply_eq,
@@ -349,8 +349,8 @@ begin
 end
 
 theorem is_basis.smul_repr_mk
-  {ι κ : Type*} {b : ι → S} {c : κ → A}
-  (hb : is_basis R b) (hc : is_basis S c) (x : A) (i : ι) (j : κ) :
+  {ι ι' : Type*} {b : ι → S} {c : ι' → A}
+  (hb : is_basis R b) (hc : is_basis S c) (x : A) (i : ι) (j : ι') :
   (hb.smul hc).repr x (i, j) = hb.repr (hc.repr x j) i :=
 by simp [is_basis.smul_repr]
 

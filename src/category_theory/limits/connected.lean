@@ -6,7 +6,7 @@ Authors: Bhavik Mehta
 import category_theory.limits.shapes.pullbacks
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.preserves.basic
-import category_theory.connected
+import category_theory.is_connected
 
 /-!
 # Connected limits
@@ -27,18 +27,18 @@ namespace category_theory
 
 section examples
 
-instance wide_pullback_shape_connected (J : Type v₁) : connected (wide_pullback_shape J) :=
+instance wide_pullback_shape_connected (J : Type v₁) : is_connected (wide_pullback_shape J) :=
 begin
-  apply connected.of_induct,
+  apply is_connected.of_induct,
   introv _ t,
   cases j,
   { exact a },
   { rwa t (wide_pullback_shape.hom.term j) }
 end
 
-instance wide_pushout_shape_connected (J : Type v₁) : connected (wide_pushout_shape J) :=
+instance wide_pushout_shape_connected (J : Type v₁) : is_connected (wide_pushout_shape J) :=
 begin
-  apply connected.of_induct,
+  apply is_connected.of_induct,
   introv _ t,
   cases j,
   { exact a },
@@ -47,9 +47,9 @@ end
 
 instance parallel_pair_inhabited : inhabited walking_parallel_pair := ⟨walking_parallel_pair.one⟩
 
-instance parallel_pair_connected : connected (walking_parallel_pair) :=
+instance parallel_pair_connected : is_connected (walking_parallel_pair) :=
 begin
-  apply connected.of_induct,
+  apply is_connected.of_induct,
   introv _ t,
   cases j,
   { rwa t walking_parallel_pair_hom.left },
@@ -94,7 +94,7 @@ Note that this functor does not preserve the two most obvious disconnected limit
 `X ⨯ (A ⨯ B)` and `X ⨯ 1` is not isomorphic to `1`.
 -/
 noncomputable
-def prod_preserves_connected_limits [connected J] (X : C) :
+def prod_preserves_connected_limits [is_connected J] (X : C) :
   preserves_limits_of_shape J (prod_functor.obj X) :=
 { preserves_limit := λ K,
   { preserves := λ c l,

@@ -650,8 +650,6 @@ instance int_gt.sampleable {x} : slim_check.sampleable { y : ℤ // x < y } :=
               pure ⟨x+y+1, by linarith⟩ },
   shrink := λ _, lazy_list.nil }
 
-#check (by apply_instance : decidable_linear_ordered_add_comm_group ℤ)
-
 /-! ### Subtypes of any `decidable_linear_ordered_add_comm_group` -/
 
 instance le.sampleable {y : α} [sampleable α] [decidable_linear_ordered_add_comm_group α] : slim_check.sampleable { x : α // x ≤ y } :=
@@ -710,10 +708,6 @@ match t with
   gen ← mk_mapp ``sampleable_ext.sample [none, samp_inst],
   pure (repr_inst, gen)
 end
-
-#check @sampleable_ext.p_repr
-
-#check sampleable_ext
 
 /--
 `#sample my_type`, where `my_type` has an instance of `sampleable`, prints ten random

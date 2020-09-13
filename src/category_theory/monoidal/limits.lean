@@ -92,4 +92,3 @@ def lim_lax : lax_monoidal_functor (J ⥤ C) C := lax_monoidal_functor.of (λ F 
 @[simp] lemma lim_lax_map {F G : J ⥤ C} (α : F ⟶ G) : lim_lax.map α = lim.map α := rfl
 
 end category_theory.limits
-#lint

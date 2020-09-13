@@ -5,7 +5,7 @@ Authors: Patrick Stevens
 -/
 import tactic.ring_exp
 import data.nat.parity
-import data.nat.choose
+import data.nat.choose.dvd
 
 /-!
 # Primorial

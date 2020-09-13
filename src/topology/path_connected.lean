@@ -478,6 +478,11 @@ begin
   exact continuous_subtype_coe
 end
 
+lemma truncate_const_continuous_family {X : Type*} [topological_space X] {a b : X}
+  (γ : path a b) (t : ℝ) : continuous ↿(γ.truncate t) :=
+have key : continuous (λ x, (t, x) : ℝ × I → ℝ × ℝ × I) := continuous_const.prod_mk continuous_id,
+by convert γ.truncate_continuous_family.comp key
+
 @[simp] lemma truncate_self {X : Type*} [topological_space X] {a b : X}
   (γ : path a b) (t : ℝ) : γ.truncate t t = (path.refl $ γ.extend t).cast (by rw min_self) rfl :=
 begin

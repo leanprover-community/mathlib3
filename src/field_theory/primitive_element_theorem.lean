@@ -278,8 +278,7 @@ begin
     symmetry,
     apply iff_of_true algebra.mem_top,
     apply hγ,
-    rw ← field.adjoin_simple_adjoin_simple,
-    rw hβ,
+    rw [←field.adjoin_simple_adjoin_simple,hβ],
     exact algebra.mem_top, },
   { push_neg at key,
     use 0,
@@ -287,11 +286,10 @@ begin
     symmetry,
     apply iff_of_true algebra.mem_top,
     specialize key x,
-    rw ← hn at key,
-    rw ← (findim_mul_findim F F⟮x⟯ E) at key,
+    rw [←hn,←findim_mul_findim F F⟮x⟯ E] at key,
     have h : findim F F⟮x⟯ = 1 := nlinarith_lemma (findim F F⟮x⟯) (findim F⟮x⟯ E) key findim_pos findim_pos,
     replace h := field.adjoin.findim_one F x h,
-    rw algebra.mem_bot at h,
+    rw [algebra.mem_bot,set.mem_range] at h,
     cases h with y hy,
     rw ← hy,
     exact F⟮0⟯.algebra_map_mem y, },
@@ -309,48 +307,25 @@ begin
   exact primitive_element_inf F E F_sep F_findim (not_nonempty_fintype.mp F_finite) (findim F E) rfl,
 end
 
---silly instances that are used in translating from F to set.range (algebra_map F E)
-instance algebra_map_range_is_algebra : algebra F (set.range (algebra_map F E)) := {
-  smul := λ x y, ⟨algebra_map F E x,set.mem_range_self x⟩ * y,
-  to_fun := λ x, ⟨algebra_map F E x,set.mem_range_self x⟩,
-  map_zero' := by ext1;exact (algebra_map F E).map_zero,
-  map_add' := λ x y, by ext1;exact (algebra_map F E).map_add x y,
-  map_one' := by ext1;exact (algebra_map F E).map_one,
-  map_mul' := λ x y, by ext1;exact (algebra_map F E).map_mul x y,
-  commutes' := λ x y, by ext1;exact mul_comm (algebra_map F E x) y,
-  smul_def' := λ x y, by ext1;refl,
-}
-
-instance algebra_map_range_is_scalar_tower : is_scalar_tower F (set.range (algebra_map F E)) E := {
-  smul_assoc := λ x y z, begin
-    change ((algebra_map F E x) * y) * z = x • (y * z),
-    rw algebra.smul_def,
-    rw mul_assoc,
-  end,
-}
-
 /-- Primitive element theorem in different universes. -/
 theorem primitive_element (F_sep : is_separable F E)  (F_findim : finite_dimensional F E) :
   (∃ α : E, F⟮α⟯ = ⊤) :=
 begin
-  set F' := set.range (algebra_map F E) with hF',
-  have F'_sep : is_separable F' E := is_separable_top F F' E F_sep,
-  have F'_findim : finite_dimensional F' E := finite_dimensional.findim_of_tower_findim F F' E,
-  obtain ⟨α, hα⟩ := primitive_element_aux F' E F'_sep F'_findim,
+  have F'_sep : is_separable F⟮(0 : E)⟯ E := is_separable_top F F⟮(0 : E)⟯ E F_sep,
+  have F'_findim : finite_dimensional F⟮(0 : E)⟯ E := finite_dimensional.findim_of_tower_findim F F⟮(0 : E)⟯ E,
+  obtain ⟨α, hα⟩ := primitive_element_aux F⟮(0 : E)⟯ E F'_sep F'_findim,
   use α,
-  have key : (F'⟮α⟯ : set E) ⊆ F⟮α⟯,
-  rw field.adjoin_subset_adjoin_iff,
-  split,
-  intros x hx,
-  rw set.mem_range at hx,
-  cases hx with y hy,
-  cases y with z hz,
-  change z = x at hy,
-  rw [←hy],
-  exact field.adjoin.range_algebra_map_subset F ({α} : set E) hz,
-  exact field.subset_adjoin F {α},
-  symmetry,
   ext1,
-  apply iff_of_true algebra.mem_top,
-  exact key ((subalgebra.ext_iff.mp hα x).mpr algebra.mem_top),
+  rw iff_true_right algebra.mem_top,
+  rw subalgebra.ext_iff at hα,
+  specialize hα x,
+  rw iff_true_right algebra.mem_top at hα,
+  change x ∈ (↑_ : set E) at hα,
+  rw [field.adjoin_simple_comm,field.adjoin_zero] at hα,
+  change x ∈ (⊥ : subalgebra F⟮α⟯ E) at hα,
+  rw [algebra.mem_bot,set.mem_range] at hα,
+  cases hα with y hy,
+  rw ←hy,
+  cases y,
+  assumption,
 end

@@ -117,6 +117,10 @@ begin
             (subset_adjoin _ _) },
 end
 
+/-- `F[S][T] = F[T][S]` -/
+lemma adjoin_adjoin_comm (T : set E) : (adjoin (adjoin F S : set E) T : set E) = (adjoin (adjoin F T : set E) S : set E) :=
+by rw[adjoin_adjoin_left,adjoin_adjoin_left,set.union_comm]
+
 /-- Variation on `set.insert` to enable good notation for adjoining elements to fields. -/
 --this definition of notation is courtesy of Kyle Miller on zulip
 class fancy_insert {α : Type*} (s : set α) :=
@@ -144,6 +148,9 @@ def adjoin_simple.gen : F⟮α⟯ := ⟨α, mem_adjoin_simple_self F α⟩
 
 lemma adjoin_simple_adjoin_simple (β : E) : (F⟮α⟯⟮β⟯ : set E) = (F⟮α, β⟯ : set E) :=
 by apply adjoin_adjoin_left
+
+lemma adjoin_simple_comm (β : E) : (F⟮α⟯⟮β⟯ : set E) = (F⟮β⟯⟮α⟯ : set E) :=
+by apply adjoin_adjoin_comm
 
 section
 open finite_dimensional
@@ -182,6 +189,25 @@ begin
   rw [← adjoin_simple.algebra_map_gen F α, ← hx, algebra.mem_bot],
   exact ⟨x, rfl⟩,
 end
+
+lemma adjoin_self (hα : α ∈ (⊥ : subalgebra F E)) : F⟮α⟯ = (⊥ : subalgebra F E) :=
+begin
+  have key : ↑F⟮α⟯ ⊆ set.range (algebra_map F E),
+  { apply adjoin_subset_subfield,
+    { refl },
+    { change {α} ⊆ set.range (algebra_map F E),
+      rw set.singleton_subset_iff,
+      exact algebra.mem_bot.mp hα, } },
+  ext1,
+  rw algebra.mem_bot,
+  exact ⟨λ hx, key hx, λ hx, adjoin.range_algebra_map_subset F {α} hx⟩,
+end
+
+lemma adjoin_zero : F⟮0⟯ = (⊥ : subalgebra F E) :=
+adjoin_self F (0 : E) (algebra.mem_bot.mpr (is_add_submonoid.zero_mem))
+
+lemma adjoin_one : F⟮1⟯ = (⊥ : subalgebra F E) :=
+adjoin_self F (1 : E) (algebra.mem_bot.mpr (is_submonoid.one_mem))
 
 end
 

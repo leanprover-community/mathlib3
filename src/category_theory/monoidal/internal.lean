@@ -108,7 +108,7 @@ def forget : Mon_ C ⥤ C :=
 
 instance {A B : Mon_ C} (f : A ⟶ B) [e : is_iso ((forget C).map f)] : is_iso (f.hom) := e
 
-/-- The forgetful functor from monoidal objects to the ambient category reflects isomorphisms. -/
+/-- The forgetful functor from monoid objects to the ambient category reflects isomorphisms. -/
 instance : reflects_isomorphisms (forget C) :=
 { reflects := λ X Y f e, by exactI
   { inv :=

@@ -42,8 +42,6 @@ apply_nolint category_theory.adjunction.functoriality_left_adjoint doc_blame
 apply_nolint category_theory.adjunction.functoriality_right_adjoint doc_blame
 apply_nolint category_theory.adjunction.functoriality_unit doc_blame
 apply_nolint category_theory.adjunction.functoriality_unit' doc_blame
-apply_nolint category_theory.adjunction.has_colimit_of_comp_equivalence doc_blame
-apply_nolint category_theory.adjunction.has_limit_of_comp_equivalence doc_blame
 
 -- category_theory/category/Kleisli.lean
 apply_nolint category_theory.Kleisli doc_blame unused_arguments has_inhabited_instance
@@ -1795,9 +1793,6 @@ apply_nolint topological_space.open_nhds doc_blame has_inhabited_instance
 apply_nolint topological_space.open_nhds.inclusion doc_blame
 apply_nolint topological_space.open_nhds.inclusion_map_iso doc_blame
 apply_nolint topological_space.open_nhds.map doc_blame
-
--- topology/category/Top/opens.lean
-apply_nolint topological_space.opens.map_iso doc_blame
 
 -- topology/category/TopCommRing.lean
 apply_nolint TopCommRing has_inhabited_instance

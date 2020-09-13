@@ -214,14 +214,14 @@ whnf type >>= get_expl_pi_arity_aux
 meta def get_expl_arity (fn : expr) : tactic nat :=
 infer_type fn >>= get_expl_pi_arity
 
-/--
-Auxiliary function for `get_app_fn_args_whnf`.
--/
 private meta def get_app_fn_args_whnf_aux (md : transparency)
   (unfold_ginductive : bool) : list expr → expr → tactic (expr × list expr) :=
 λ args e, do
-  (expr.app t u) ← whnf e md unfold_ginductive | pure (e, args),
-  get_app_fn_args_whnf_aux (u :: args) t
+  e ← whnf e md unfold_ginductive,
+  match e with
+  | (expr.app t u) := get_app_fn_args_whnf_aux (u :: args) t
+  | _ := pure (e, args)
+  end
 
 /--
 For `e = f x₁ ... xₙ`, `get_app_fn_args_whnf e` returns `(f, [x₁, ..., xₙ])`. `e`
@@ -230,6 +230,8 @@ is normalised as necessary; for example:
 ```
 get_app_fn_args_whnf `(let f := g x in f y) = (`(g), [`(x), `(y)])
 ```
+
+The returned expression is in whnf, but the arguments are generally not.
 -/
 meta def get_app_fn_args_whnf (e : expr) (md := semireducible)
   (unfold_ginductive := tt) : tactic (expr × list expr) :=
@@ -238,12 +240,16 @@ get_app_fn_args_whnf_aux md unfold_ginductive [] e
 /--
 `get_app_fn_whnf e md unfold_ginductive` is like `expr.get_app_fn e` but `e` is
 normalised as necessary (with transparency `md`). `unfold_ginductive` controls
-whether constructors of generalised inductive types are unfolded.
+whether constructors of generalised inductive types are unfolded. The returned
+expression is in whnf.
 -/
 meta def get_app_fn_whnf : expr → opt_param _ semireducible → opt_param _ tt → tactic expr
 | e md unfold_ginductive := do
-  (expr.app f _) ← whnf e md unfold_ginductive | pure e,
-  get_app_fn_whnf f md
+  e ← whnf e md unfold_ginductive,
+  match e with
+  | (expr.app f _) := get_app_fn_whnf f md unfold_ginductive
+  | _ := pure e
+  end
 
 /-- `pis loc_consts f` is used to create a pi expression whose body is `f`.
 `loc_consts` should be a list of local constants. The function will abstract these local

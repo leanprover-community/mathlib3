@@ -119,11 +119,9 @@ do
   H ← infer_type h,
   (lhs, rhs, constructor_left, constructor_right, inj_name) ← do {
     (lhs, rhs) ← match_eq H,
-    lhs ← whnf_ginductive lhs,
-    rhs ← whnf_ginductive rhs,
     env ← get_env,
-    (const constructor_left _) ← pure $ get_app_fn lhs,
-    (const constructor_right _) ← pure $ get_app_fn rhs,
+    (const constructor_left _) ← get_app_fn_whnf lhs semireducible ff,
+    (const constructor_right _) ← get_app_fn_whnf rhs semireducible ff,
     inj_name ← resolve_constant $ constructor_left ++ "inj_arrow",
     pure (lhs, rhs, constructor_left, constructor_right, inj_name)
   } <|> fail
@@ -145,8 +143,15 @@ do
     pure (some next, ns)
   else do
     tgt ← target,
-    let inductive_name := constructor_left.get_prefix,
-    pr ← mk_app (inductive_name <.> "no_confusion") [tgt, lhs, rhs, h],
+    -- The following construction deals with a corner case involing
+    -- mutual/nested inductive types. For these, Lean does not generate
+    -- no-confusion principles. However, the regular inductive data type which a
+    -- mutual/nested inductive type is compiled to does have a no-confusion
+    -- principle which we can (usually? always?) use. To find it, we normalise
+    -- the constructor with `unfold_ginductive = tt`.
+    (const constructor_left _) ← get_app_fn_whnf lhs semireducible tt,
+    let no_confusion := constructor_left.get_prefix ++ "no_confusion",
+    pr ← mk_app no_confusion [tgt, lhs, rhs, h],
     exact pr,
     return (none, ns)
 

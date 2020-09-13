@@ -141,6 +141,17 @@ begin
   cases' h
 end
 
+-- This example used to fail because it involves a nested inductive as a complex
+-- index.
+inductive rose₁ : Type
+| tip : rose₁
+| node : list rose₁ → rose₁
+
+example (rs) (h : rose₁.tip = rose₁.node rs) : false :=
+begin
+  cases' h
+end
+
 -- This example tests type-based naming.
 example (k : ℕ') (i : ℕ') : ℕ :=
 begin

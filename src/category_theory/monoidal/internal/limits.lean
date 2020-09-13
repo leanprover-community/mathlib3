@@ -49,6 +49,10 @@ def limit_cone (F : J ⥤ Mon_ C) : cone F :=
   { app := λ j, { hom := limit.π (F ⋙ Mon_.forget C) j, },
     naturality' := λ j j' f, by { ext, exact (limit.cone (F ⋙ Mon_.forget C)).π.naturality f, } } }
 
+/--
+The image of the proposed limit cone for `F : J ⥤ Mon_ C` under the forgetful functor
+`forget C : Mon_ C ⥤ C` is isomorphic to the limit cone of `F ⋙ forget C`.
+-/
 def forget_map_cone_limit_cone_iso (F : J ⥤ Mon_ C) :
   (forget C).map_cone (limit_cone F) ≅ limit.cone (F ⋙ forget C) :=
 cones.ext (iso.refl _) (λ j, (by tidy))

@@ -105,7 +105,7 @@ lemma Γ_map_op {X Y : Scheme} (f : X ⟶ Y) :
 
 -- PROJECTS:
 -- 1. Make `Spec` a functor.
--- 2. Constructr `Spec ≫ Γ ≅ functor.id _`.
+-- 2. Construct `Spec ≫ Γ ≅ functor.id _`.
 -- 3. Adjunction between `Γ` and `Spec`.
 --
 

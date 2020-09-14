@@ -326,7 +326,7 @@ begin
   { intros, rw [to_with_top_coe', to_with_top_coe'], norm_cast, exact to_with_top_coe' _ }
 end
 
-/-- equiv between `enat` and `with_top ℕ` (for the order isomorphism see with_top_order_iso). -/
+/-- `equiv` between `enat` and `with_top ℕ` (for the order isomorphism see `with_top_order_iso`). -/
 noncomputable def with_top_equiv : enat ≃ with_top ℕ :=
 { to_fun := λ x, to_with_top x,
   inv_fun := λ x, match x with (some n) := coe n | none := ⊤ end,

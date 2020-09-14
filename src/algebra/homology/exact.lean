@@ -36,7 +36,7 @@ open category_theory
 open category_theory.limits
 
 variables {V : Type u} [category.{v} V] [has_zero_morphisms V]
-variables [has_kernels V] [has_equalizers V] [has_images V]
+variables [has_equalizers V] [has_images V]
 
 namespace category_theory
 
@@ -50,7 +50,7 @@ attribute [instance] exact.epi
 
 lemma exact.w_assoc {A B C D : V} {f : A ⟶ B} {g : B ⟶ C} [exact f g] {h : C ⟶ D} :
   f ≫ g ≫ h = 0 :=
-by rw [←category.assoc, @exact.w _ _ _ _ _ _ _ _ _ f g, has_zero_morphisms.zero_comp]
+by rw [←category.assoc, @exact.w _ _ _ _ _ _ _ _ f g, has_zero_morphisms.zero_comp]
 
 instance exact_comp_iso {A B C C' : V} (f : A ⟶ B) (g : B ⟶ C) (h : C ≅ C') [exact f g] :
   exact f (g ≫ h.hom) :=
@@ -59,7 +59,7 @@ instance exact_comp_iso {A B C C' : V} (f : A ⟶ B) (g : B ⟶ C) (h : C ≅ C'
 
 instance exact_iso_comp {A A' B C : V} (h : A' ≅ A) (f : A ⟶ B) (g : B ⟶ C) [exact f g] :
   exact (h.hom ≫ f) g :=
-{ w := by rw [category.assoc, @exact.w _ _ _ _ _ _ _ _ _ f g, has_zero_morphisms.comp_zero],
+{ w := by rw [category.assoc, @exact.w _ _ _ _ _ _ _ _ f g, has_zero_morphisms.comp_zero],
   epi := by { simp only [image_to_kernel_map_iso_comp], apply epi_comp, } }
 
 section

@@ -418,6 +418,21 @@ begin
   rw [←range_face_points, orthogonal_projection_eq_circumcenter_of_exists_dist_eq _ hr]
 end
 
+/-- Two simplices with the same points have the same circumcenter. -/
+lemma circumcenter_eq_of_range_eq {n : ℕ} {s₁ s₂ : simplex ℝ P n}
+  (h : set.range s₁.points = set.range s₂.points) : s₁.circumcenter = s₂.circumcenter :=
+begin
+  have hs : s₁.circumcenter ∈ affine_span ℝ (set.range s₂.points) :=
+    h ▸ s₁.circumcenter_mem_affine_span,
+  have hr : ∀ i, dist (s₂.points i) s₁.circumcenter = s₁.circumradius,
+  { intro i,
+    have hi : s₂.points i ∈ set.range s₂.points := set.mem_range_self _,
+    rw [←h, set.mem_range] at hi,
+    rcases hi with ⟨j, hj⟩,
+    rw [←hj, s₁.dist_circumcenter_eq_circumradius j] },
+  exact s₂.eq_circumcenter_of_dist_eq hs hr
+end
+
 omit V
 
 /-- An index type for the vertices of a simplex plus its circumcenter.

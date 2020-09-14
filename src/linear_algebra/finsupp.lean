@@ -296,6 +296,11 @@ variables {α M v}
 theorem total_apply (l : α →₀ R) :
   finsupp.total α M R v l = l.sum (λ i a, a • v i) := rfl
 
+theorem total_apply_of_mem_supported {l : α →₀ R} {s : finset α}
+  (hs : l ∈ supported R R (↑s : set α)) :
+  finsupp.total α M R v l = s.sum (λ i, l i • v i) :=
+finset.sum_subset hs $ λ x _ hxg, show l x • v x = 0, by rw [not_mem_support_iff.1 hxg, zero_smul]
+
 @[simp] theorem total_single (c : R) (a : α) :
   finsupp.total α M R v (single a c) = c • (v a) :=
 by simp [total_apply, sum_single_index]

@@ -903,6 +903,7 @@ calc ∥integral f∥ = ∥Integral f∥ : rfl
   ... ≤ 1 * ∥f∥ : mul_le_mul_of_nonneg_right norm_Integral_le_one $ norm_nonneg _
   ... = ∥f∥ : one_mul _
 
+@[continuity]
 lemma continuous_integral : continuous (λ (f : α →₁[μ] E), f.integral) :=
 by simp [l1.integral, l1.integral_clm.continuous]
 
@@ -1028,6 +1029,7 @@ end
   ∫ a, (l1.of_fun f f_m f_i) a ∂μ = ∫ a, f a ∂μ :=
 integral_congr_ae (l1.measurable _) f_m (l1.to_fun_of_fun f f_m f_i)
 
+@[continuity]
 lemma continuous_integral : continuous (λ (f : α →₁[μ] E), ∫ a, f a ∂μ) :=
 begin
   convert l1.continuous_integral,
@@ -1203,12 +1205,16 @@ begin
   rwa [integral_neg, neg_nonneg] at this,
 end
 
-lemma l1.norm_eq_integral_norm (f : α →₁[μ] E) : ∥f∥ = ∫ a, ∥f a∥ ∂μ :=
+section normed_group
+variables {H : Type*} [normed_group H] [second_countable_topology H] [measurable_space H]
+          [borel_space H]
+
+lemma l1.norm_eq_integral_norm (f : α →₁[μ] H) : ∥f∥ = ∫ a, ∥f a∥ ∂μ :=
 by rw [l1.norm_eq_norm_to_fun,
        integral_eq_lintegral_of_nonneg_ae (eventually_of_forall $ by simp [norm_nonneg])
        (continuous_norm.measurable.comp f.measurable)]
 
-lemma l1.norm_of_fun_eq_integral_norm {f : α → E} (f_m : measurable f) (f_i : integrable f μ) :
+lemma l1.norm_of_fun_eq_integral_norm {f : α → H} (f_m : measurable f) (f_i : integrable f μ) :
   ∥l1.of_fun f f_m f_i∥ = ∫ a, ∥f a∥ ∂μ :=
 begin
   rw l1.norm_eq_integral_norm,
@@ -1217,6 +1223,8 @@ begin
   intros a ha,
   simp [ha]
 end
+
+end normed_group
 
 lemma integral_mono {f g : α → ℝ} (hfm : measurable f) (hfi : integrable f μ)
   (hgm : measurable g) (hgi : integrable g μ) (h : f ≤ᵐ[μ] g) : ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=

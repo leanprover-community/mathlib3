@@ -339,8 +339,8 @@ lemma associated_mul_right_cancel [comm_cancel_monoid_with_zero α] {a b c d : �
 by rw [mul_comm a, mul_comm c]; exact associated_mul_left_cancel
 
 /-- The quotient of a monoid by the `associated` relation. Two elements `x` and `y`
-  are associated iff there is a unit `u` such that `x * u = y`. `associates α`
-  forms a monoid. -/
+  are associated iff there is a unit `u` such that `x * u = y`. There is a natural
+  monoid structure on `associates α`. -/
 def associates (α : Type*) [monoid α] : Type* :=
 quotient (associated.setoid α)
 

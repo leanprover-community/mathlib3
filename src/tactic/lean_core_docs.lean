@@ -219,6 +219,9 @@ leaving as new goals the subterms of `A` and `B` which are not definitionally eq
 Example: suppose the goal is `x * f y = g w * f z`. Then `congr` will produce two goals:
 `x = g w` and `y = z`.
 
+If `x y : t`, and an instance `subsingleton t` is in scope, then any goals of the form
+`x = y` are solved automatically.
+
 Note that `congr` can be over-aggressive at times; the `congr'` tactic in mathlib
 provides a more refined approach, by taking a parameter that limits the recursion depth.
 -/

@@ -222,6 +222,23 @@ lemma findim_eq_card_finset_basis {b : finset V}
   findim K V = finset.card b :=
 by { rw [findim_eq_card_basis h, fintype.subtype_card], intros x, refl }
 
+lemma equiv_fin {ι : Type*} [finite_dimensional K V] {v : ι → V} (hv : is_basis K v) :
+  ∃ g : fin (findim K V) ≃ ι, is_basis K (v ∘ g) :=
+begin
+  have : (cardinal.mk (fin $ findim K V)).lift = (cardinal.mk ι).lift,
+  { simp [cardinal.mk_fin (findim K V), ← findim_eq_card_basis' hv] },
+  rcases cardinal.lift_mk_eq.mp this with ⟨g⟩,
+  exact ⟨g, hv.comp _ g.bijective⟩
+end
+
+variables (K V)
+
+lemma fin_basis [finite_dimensional K V] : ∃ v : fin (findim K V) → V, is_basis K v :=
+let ⟨B, hB, B_fin⟩ := exists_is_basis_finite K V, ⟨g, hg⟩ := finite_dimensional.equiv_fin hB in
+⟨coe ∘ g, hg⟩
+
+variables {K V}
+
 lemma cardinal_mk_le_findim_of_linear_independent
   [finite_dimensional K V] {ι : Type w} {b : ι → V} (h : linear_independent K b) :
   cardinal.mk ι ≤ findim K V :=

@@ -98,8 +98,8 @@ def cone_of_cone_uncurry
     begin
       dsimp,
       intro k,
-      simp only [limits.cone_morphism.w, limits.cones.postcompose_obj_π, limits.is_limit.fac_assoc,
-        limits.is_limit.fac, nat_trans.comp_app, category.id_comp, category.assoc],
+      simp only [limits.cone_morphism.w, limits.cones.postcompose_obj_π_app, category.assoc,
+        limits.is_limit.fac_assoc, limits.is_limit.fac, nat_trans.comp_app, category.id_comp],
       have := @nat_trans.naturality _ _ _ _ _ _ c.π (j, k) (j', k) (f, 𝟙 k),
       dsimp at this,
       simp only [category.id_comp, category.comp_id,

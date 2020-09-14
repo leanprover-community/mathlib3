@@ -364,7 +364,7 @@ def is_colimit_biproduct_to_pushout : is_colimit (biproduct_to_pushout_cofork f 
 cofork.is_colimit.mk _
   (λ s, pushout.desc (biprod.inl ≫ cofork.π s) (biprod.inr ≫ cofork.π s) $
     sub_eq_zero.1 $ by rw [←category.assoc, ←category.assoc, ←sub_comp, sub_eq_add_neg, ←neg_comp,
-      ←biprod.lift_eq, cofork.condition s, has_zero_morphisms.zero_comp])
+      ←biprod.lift_eq, cofork.condition s, zero_comp])
   (λ s, by ext; simp)
   (λ s m h, by ext; simp [cofork.π_eq_app_one, ←h walking_parallel_pair.one] )
 
@@ -471,7 +471,7 @@ begin
     ... = (d ≫ biprod.lift f (-g)) ≫ biprod.snd : by rw ←hd
     ... = (0 ≫ biprod.lift f (-g)) ≫ biprod.snd : by rw this
     ... = 0 ≫ biprod.lift f (-g) ≫ biprod.snd : by rw category.assoc
-    ... = 0 : has_zero_morphisms.zero_comp _ _
+    ... = 0 : zero_comp
 end
 
 instance mono_pushout_of_mono_g [mono g] : mono (pushout.inl : Y ⟶ pushout f g) :=
@@ -494,7 +494,7 @@ begin
     ... = (d ≫ biprod.lift f (-g)) ≫ biprod.fst : by rw ←hd
     ... = (0 ≫ biprod.lift f (-g)) ≫ biprod.fst : by rw this
     ... = 0 ≫ biprod.lift f (-g) ≫ biprod.fst : by rw category.assoc
-    ... = 0 : has_zero_morphisms.zero_comp _ _
+    ... = 0 : zero_comp
 end
 
 end mono_pushout

@@ -8,39 +8,120 @@ import ring_theory.witt_vector.witt_polynomial
 import field_theory.mv_polynomial
 import field_theory.finite
 
+/-!
+# Witt structure polynomials
+
+In this file we prove the main theorem that makes the whole theory of Witt vectors work.
+Briefly, consider a polynomial `Φ : mv_polynomial idx ℤ` over the integers,
+with polynomials variables indexed by an arbitrary type `idx`.
+
+Then there exists a unique family of polynomials `φ : ℕ → mv_polynomial (idx × ℕ) Φ`
+such that for all `n : ℕ` we have (`witt_structure_int_exists_unique`)
+```lean
+bind₁ φ (witt_polynomial p ℤ n) = bind₁ (λ b, (rename (λ i, (b,i)) (witt_polynomial p ℤ n))) Φ
+```
+In other words: evaluating the `n`-th Witt polynomial on the family `φ`
+is the same as evaluation `Φ` on the (appropriately renamed) `n`-th Witt polynomials.
+
+N.b.: As far as we know, these polynomials do not have a name in the literature,
+so we have decided to call them the “Witt structure polynomials”. See `witt_structure_int`.
+
+## Special cases
+
+With the main result of this file in place, we apply it to certain special polynomials.
+For example, by taking `Φ = X tt + X ff` resp. `Φ = X tt * X ff`
+we obtain families of polynomials `witt_add` resp. `witt_mul`
+(with type `ℕ → mv_polynomial (bool × ℕ) ℤ`) that will be used in later files to define the
+addition and multiplication on the ring of Witt vectors.
+
+## Outline of the proof
+
+The proof of `witt_structure_int_exists_unique` is rather technical, and takes up most of this file.
+We start by proving the analagous version for polynomials with rational coefficients,
+instead of integer coefficients.
+In this case, the solution is rather easy,
+since the Witt polynomials form a faithful change of coordinates
+in the polynomial ring `mv_polynomial ℕ ℚ`.
+
+We therefore obtain a family of polynomials `witt_structure_rat Φ`
+for every `Φ : mv_polynomial idx ℚ`.
+If `Φ` has integer coefficients, then the polynomials `witt_structure_rat Φ n` do so as well.
+Proving this claim is the essential core of this file, and culminates in
+`map_witt_structure_int`, which proves that upon mapping the coefficients of `witt_structure_int Φ n`
+from the integers to the rationals, one obtains `witt_structure_rat Φ n`.
+Ultimately, the proof of `map_witt_structure_int` relies on
+```lean
+dvd_sub_pow_of_dvd_sub {R : Type*} [comm_ring R] {p : ℕ} {a b : R} :
+    (p : R) ∣ a - b → ∀ (k : ℕ), (p : R) ^ (k + 1) ∣ a ^ p ^ k - b ^ p ^ k
+```
+
+## Main results
+
+* `witt_structure_int Φ`: the family of polynomials `ℕ → mv_polynomial (idx × ℕ) Φ`
+  associated with `Φ : mv_polynomial idx ℤ` and satisfying the property explained above.
+* `witt_structure_int_prop`: the proof that `witt_structure_int` indeed satisfies the property.
+
+* Five families of polynomials that will be used to define the rings structure
+  on the ring of Witt vectors:
+  - `witt_vector.witt_zero`
+  - `witt_vector.witt_one`
+  - `witt_vector.witt_add`
+  - `witt_vector.witt_mul`
+  - `witt_vector.witt_neg`
+  (We also define `witt_vector.witt_sub`, and later we will prove that it describes subtraction,
+  which is defined as `λ a b, a + -b`. See `witt_vector.sub_coeff` for this proof.)
+
+-/
+
 open mv_polynomial
 open set
 open finset (range)
 open finsupp (single)
 
-open_locale big_operators
-
+-- This lemma reduces a bundled morphism to a "mere" function,
+-- and consequently the simplifier cannot use a lot of powerful simp-lemmas.
+-- We disable this locally, and probably it should be disabled globally in mathlib.
 local attribute [-simp] coe_eval₂_hom
 
 variables {p : ℕ} {R : Type*} {idx : Type*} [comm_ring R]
 
 open_locale witt
+open_locale big_operators
 
 section p_prime
 
 variables (p) [hp : fact p.prime]
 include hp
 
+/-- `witt_structure_rat Φ` is a family of polynomials `ℕ → mv_polynomial (idx × ℕ) ℚ`
+that are uniquely characterised by the property that
+`bind₁ (witt_structure_rat p Φ) (witt_polynomial p ℚ n) = bind₁ (λ b, (rename (λ i, (b,i)) (witt_polynomial p ℚ n))) Φ`.
+In other words: evaluating the `n`-th Witt polynomial on the family `witt_structure_rat Φ`
+is the same as evaluation `Φ` on the (appropriately renamed) `n`-th Witt polynomials.
+
+See `witt_structure_rat_prop` for this property,
+and `witt_structure_rat_exists_unique` for the fact that `witt_structure_rat`
+gives the unique family of polynomials with this property.
+
+These polynomials turn out to have integral coefficients,
+but it requires some effort to show this.
+See `witt_structure_int` for the version with integral coefficients,
+and `map_witt_structure_int` for the fact that it is equal to `witt_structure_rat`
+when mapped to polynomials over the rationals. -/
 noncomputable def witt_structure_rat (Φ : mv_polynomial idx ℚ) (n : ℕ) :
   mv_polynomial (idx × ℕ) ℚ :=
-bind₁ (λ k : ℕ, (bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ k)))) Φ) (X_in_terms_of_W p ℚ n)
+bind₁ (λ k, bind₁ (λ b, rename (λ i, (b,i)) (W_ ℚ k)) Φ) (X_in_terms_of_W p ℚ n)
 
 theorem witt_structure_rat_prop (Φ : mv_polynomial idx ℚ) (n : ℕ) :
   bind₁ (witt_structure_rat p Φ) (W_ ℚ n) =
   bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :=
-calc bind₁ (witt_structure_rat p Φ) (W_ ℚ n) =
-      bind₁ (λ k, bind₁ (λ b, (rename (prod.mk b)) (W_ ℚ k)) Φ)
-        (bind₁ (X_in_terms_of_W p ℚ) (W_ ℚ n)) :
+calc bind₁ (witt_structure_rat p Φ) (W_ ℚ n)
+    = bind₁ (λ k, bind₁ (λ b, (rename (prod.mk b)) (W_ ℚ k)) Φ) (bind₁ (X_in_terms_of_W p ℚ) (W_ ℚ n)) :
       by { rw [bind₁_bind₁], apply eval₂_hom_congr (ring_hom.ext_rat _ _) rfl rfl }
 ... = bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :
       by rw [X_in_terms_of_W_prop₂ p _ n, bind₁_X_right]
 
-theorem witt_structure_prop_exists_unique (Φ : mv_polynomial idx ℚ) :
+theorem witt_structure_rat_exists_unique (Φ : mv_polynomial idx ℚ) :
   ∃! (φ : ℕ → mv_polynomial (idx × ℕ) ℚ),
     ∀ (n : ℕ), bind₁ φ (W_ ℚ n) = bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :=
 begin
@@ -55,7 +136,7 @@ begin
     funext k, exact H k },
 end
 
-lemma witt_structure_rat_rec_aux (Φ : mv_polynomial idx ℚ) (n) :
+lemma witt_structure_rat_rec_aux (Φ : mv_polynomial idx ℚ) (n : ℕ) :
   (witt_structure_rat p Φ n) * C (p^n : ℚ) =
   ((bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ)) -
   ∑ i in range n, C (p^i : ℚ) * (witt_structure_rat p Φ i)^p^(n-i) :=
@@ -70,7 +151,7 @@ begin
   refl
 end
 
-lemma witt_structure_rat_rec (Φ : mv_polynomial idx ℚ) (n) :
+lemma witt_structure_rat_rec (Φ : mv_polynomial idx ℚ) (n : ℕ) :
   (witt_structure_rat p Φ n) = C (1/p^n : ℚ) *
   (bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ -
   ∑ i in range n, C (p^i : ℚ) * (witt_structure_rat p Φ i)^p^(n-i)) :=
@@ -80,10 +161,18 @@ begin
   exact pow_ne_zero _ (nat.cast_ne_zero.2 $ ne_of_gt (nat.prime.pos ‹_›)),
 end
 
+/-- `witt_structure_int Φ` is a family of polynomials `ℕ → mv_polynomial (idx × ℕ) ℚ`
+that are uniquely characterised by the property that
+`bind₁ (witt_structure_int p Φ) (witt_polynomial p ℚ n) = bind₁ (λ b, (rename (λ i, (b,i)) (witt_polynomial p ℚ n))) Φ`.
+In other words: evaluating the `n`-th Witt polynomial on the family `witt_structure_int Φ`
+is the same as evaluation `Φ` on the (appropriately renamed) `n`-th Witt polynomials.
+
+See `witt_structure_int_prop` for this property,
+and `witt_structure_int_exists_unique` for the fact that `witt_structure_int`
+gives the unique family of polynomials with this property. -/
 noncomputable def witt_structure_int (Φ : mv_polynomial idx ℤ) (n : ℕ) : mv_polynomial (idx × ℕ) ℤ :=
 finsupp.map_range rat.num (rat.coe_int_num 0)
   (witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) n)
-.
 
 end p_prime
 
@@ -117,7 +206,7 @@ end
 variable {p}
 
 @[simp] lemma witt_polynomial_zmod_self (n : ℕ) :
-  W_ (zmod (p^(n+1))) (n + 1) = expand p (W_ (zmod (p^(n+1))) n) :=
+  W_ (zmod (p ^ (n + 1))) (n + 1) = expand p (W_ (zmod (p^(n + 1))) n) :=
 begin
   simp only [witt_polynomial_eq_sum_C_mul_X_pow],
   rw [finset.sum_range_succ, ← nat.cast_pow, char_p.cast_eq_zero (zmod (p^(n+1))) (p^(n+1)),
@@ -295,7 +384,7 @@ begin
     apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
     rw map_witt_structure_int,
     refine congr_fun _ k,
-    have := (witt_structure_prop_exists_unique p (map (int.cast_ring_hom ℚ) Φ)),
+    have := (witt_structure_rat_exists_unique p (map (int.cast_ring_hom ℚ) Φ)),
     apply unique_of_exists_unique this,
     { clear this, intro n,
       specialize h n,
@@ -373,24 +462,31 @@ namespace witt_vector
 variables (p) [hp : fact p.prime]
 include hp
 
-/-- The polynomial used for defining the element `0` of the ring of Witt vectors. -/
+/-- The polynomials used for defining the element `0` of the ring of Witt vectors. -/
 noncomputable def witt_zero : ℕ → mv_polynomial (empty × ℕ) ℤ :=
 witt_structure_int p 0
 
-/-- The polynomial used for defining the element `1` of the ring of Witt vectors. -/
+/-- The polynomials used for defining the element `1` of the ring of Witt vectors. -/
 noncomputable def witt_one : ℕ → mv_polynomial (empty × ℕ) ℤ :=
 witt_structure_int p 1
 
 -- Do we want to use bool, or a custom inductive type with terms l(eft) and r(ight)?
+/-- The polynomials used for defining the addition of the ring of Witt vectors. -/
 noncomputable def witt_add : ℕ → mv_polynomial (bool × ℕ) ℤ :=
 witt_structure_int p (X tt + X ff)
 
+/-- The polynomials used for describing the subtraction of the ring of Witt vectors.
+Note that `a - b` is defined as `a + -b`.
+See `witt_vector.sub_coeff` for a proof that subtraction is precisely
+given by these polynomials `witt_vector.witt_sub` -/
 noncomputable def witt_sub : ℕ → mv_polynomial (bool × ℕ) ℤ :=
 witt_structure_int p (X tt - X ff)
 
+/-- The polynomials used for defining the multiplication of the ring of Witt vectors. -/
 noncomputable def witt_mul : ℕ → mv_polynomial (bool × ℕ) ℤ :=
 witt_structure_int p (X tt * X ff)
 
+/-- The polynomials used for defining the negation of the ring of Witt vectors. -/
 noncomputable def witt_neg : ℕ → mv_polynomial (unit × ℕ) ℤ :=
 witt_structure_int p (-X unit.star)
 
@@ -543,6 +639,5 @@ lemma witt_neg_vars (n : ℕ) :
 witt_structure_int_vars _ _ _
 
 end witt_vars
-
 
 end witt_vector

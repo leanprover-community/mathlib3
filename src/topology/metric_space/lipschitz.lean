@@ -44,6 +44,21 @@ by { simp only [lipschitz_with, edist_nndist, dist_nndist], norm_cast }
 
 alias lipschitz_with_iff_dist_le_mul ↔ lipschitz_with.dist_le_mul lipschitz_with.of_dist_le_mul
 
+/-- A function `f` is Lipschitz continuous with constant `K ≥ 0` on `s` if for all `x, y` in `s`
+we have `dist (f x) (f y) ≤ K * dist x y` -/
+def lipschitz_on_with [emetric_space α] [emetric_space β] (K : ℝ≥0) (s : set α) (f : α → β) :=
+∀ x y ∈ s, edist (f x) (f y) ≤ K * edist x y
+
+lemma lipschitz_on_with.mono [emetric_space α] [emetric_space β] {K : ℝ≥0} {s t : set α} {f : α → β}
+  (hf : lipschitz_on_with K t f) (h : s ⊆ t) : lipschitz_on_with K s f :=
+λ x y x_in y_in, hf _ _ (h x_in) (h y_in)
+
+lemma lipschitz_on_with_iff_dist_le_mul [metric_space α] [metric_space β] {K : ℝ≥0} {s : set α}
+  {f : α → β} : lipschitz_on_with K s f ↔ ∀ x y ∈ s, dist (f x) (f y) ≤ K * dist x y :=
+by { simp only [lipschitz_on_with, edist_nndist, dist_nndist], norm_cast }
+
+alias lipschitz_on_with_iff_dist_le_mul ↔ lipschitz_on_with.dist_le_mul lipschitz_on_with.of_dist_le_mul
+
 namespace lipschitz_with
 
 section emetric

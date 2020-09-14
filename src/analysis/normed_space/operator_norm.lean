@@ -621,7 +621,7 @@ namespace continuous_linear_map
 
 /-- The norm of the tensor product of a scalar linear map and of an element of a normed space
 is the product of the norms. -/
-@[simp] lemma smul_right_norm {c : E →L[𝕜] 𝕜} {f : F} :
+@[simp] lemma norm_smul_right_apply (c : E →L[𝕜] 𝕜) (f : F) :
   ∥smul_right c f∥ = ∥c∥ * ∥f∥ :=
 begin
   refine le_antisymm _ _,
@@ -641,6 +641,48 @@ begin
       ... = ∥((smul_right c f) : E → F) x∥ : rfl
       ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
 end
+
+/-- Given `c : c : E →L[𝕜] 𝕜`, `c.smul_rightₗ` is the linear map from `F` to `(E →L[𝕜] F)`
+sending `f` to `λ e, c e • f`. -/
+def smul_rightₗ (c : E →L[𝕜] 𝕜) : F →ₗ[𝕜] (E →L[𝕜] F) :=
+{ to_fun := c.smul_right,
+  map_add' := λ x y, by { ext e, simp [smul_add] },
+  map_smul' := λ a x, by { ext e, simp [smul_comm] } }
+
+/-- Given `c : c : E →L[𝕜] 𝕜`, `c.smul_rightL` is the continuous linear map from `F` to `(E →L[𝕜] F)`
+sending `f` to `λ e, c e • f`. -/
+def smul_rightL (c : E →L[𝕜] 𝕜) : F →L[𝕜] (E →L[𝕜] F) :=
+(c.smul_rightₗ : F →ₗ[𝕜] (E →L[𝕜] F)).mk_continuous _ (λ f, le_of_eq $ c.norm_smul_right_apply f)
+
+@[simp] lemma norm_smul_rightL_apply (c : E →L[𝕜] 𝕜) (f : F) :
+  ∥c.smul_rightL f∥ = ∥c∥ * ∥f∥ :=
+by simp [continuous_linear_map.smul_rightL, continuous_linear_map.smul_rightₗ]
+
+@[simp] lemma norm_smul_right (c : E →L[𝕜] 𝕜) (hF : 0 < vector_space.dim 𝕜 F) :
+  ∥(c.smul_rightL : F →L[𝕜] (E →L[𝕜] F))∥ = ∥c∥ :=
+continuous_linear_map.homothety_norm hF _ (norm_nonneg _) c.norm_smul_right_apply
+
+variables (𝕜 F)
+
+/-- The linear map obtained by applying a continuous linear map at a given vector. -/
+def applyₗ (v : E) : (E →L[𝕜] F) →ₗ[𝕜] F :=
+{ to_fun := λ f, f v,
+  map_add' := λ f g, f.add_apply g v,
+  map_smul' := λ x f, f.smul_apply x v }
+
+lemma continuous_applyₗ (v : E) : continuous (continuous_linear_map.applyₗ 𝕜 F v) :=
+begin
+  apply (continuous_linear_map.applyₗ 𝕜 F v).continuous_of_bound,
+  intro f,
+  rw mul_comm,
+  exact f.le_op_norm v,
+end
+
+/-- The continuous linear map obtained by applying a continuous linear map at a given vector. -/
+def apply (v : E) : (E →L[𝕜] F) →L[𝕜] F :=
+⟨continuous_linear_map.applyₗ 𝕜 F v, continuous_linear_map.continuous_applyₗ _ _ _⟩
+
+variables {𝕜 F}
 
 section multiplication_linear
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']

@@ -497,6 +497,17 @@ instance nnreal.borel_space : borel_space nnreal := ⟨rfl⟩
 instance ennreal.measurable_space : measurable_space ennreal := borel ennreal
 instance ennreal.borel_space : borel_space ennreal := ⟨rfl⟩
 
+section real_mul
+variables [measurable_space α]
+
+lemma measurable.const_mul {f : α → ℝ} (h : measurable f) (c : ℝ) : measurable (λ x, c*f x) :=
+(measurable.const_smul h c : _)
+
+lemma measurable.mul_const {f : α → ℝ} (h : measurable f) (c : ℝ) : measurable (λ x, f x*c) :=
+by simp only [h.const_mul c, mul_comm]
+
+end real_mul
+
 section metric_space
 
 variables [metric_space α] [measurable_space α] [opens_measurable_space α] {x : α} {ε : ℝ}
@@ -703,6 +714,22 @@ lemma measurable.ennnorm {f : β → α} (hf : measurable f) :
 hf.nnnorm.ennreal_coe
 
 end normed_group
+
+section normed_space
+
+variables [measurable_space α]
+variables {𝕜 : Type*} [normed_field 𝕜]
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
+variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [measurable_space F] [borel_space F]
+
+lemma continuous_linear_map.measurable (L : E →L[𝕜] F) : measurable L :=
+L.continuous.measurable
+
+lemma measurable.clm_apply {φ : α → E} (φ_meas : measurable φ)
+  (L : E →L[𝕜] F) : measurable (λ (a : α), L (φ a)) :=
+L.measurable.comp φ_meas
+
+end normed_space
 
 namespace measure_theory
 namespace measure

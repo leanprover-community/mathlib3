@@ -395,6 +395,12 @@ begin
   exact integrable.smul _
 end
 
+lemma integrable.const_mul {f : α → ℝ} (h : integrable f μ) (c : ℝ) : integrable (λ x, c*f x) μ :=
+(integrable.smul c h : _)
+
+lemma integrable.mul_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) : integrable (λ x, f x * c) μ :=
+by simp_rw [mul_comm, h.const_mul _]
+
 end normed_space
 
 variables [second_countable_topology β]
@@ -604,8 +610,14 @@ section to_fun
 
 protected lemma measurable (f : α →₁[μ] β) : measurable f := f.1.measurable
 
+lemma measurable_norm (f : α →₁[μ] β) : measurable (λ a, ∥f a∥) :=
+f.measurable.norm
+
 protected lemma integrable (f : α →₁[μ] β) : integrable ⇑f μ :=
 integrable_coe_fn.2 f.2
+
+lemma integrable_norm (f : α →₁[μ] β) : integrable (λ a, ∥f a∥) μ :=
+(integrable_norm_iff _).mpr f.integrable
 
 lemma of_fun_to_fun (f : α →₁[μ] β) : of_fun f f.measurable f.integrable = f :=
 subtype.ext (f : α →ₘ[μ] β).mk_coe_fn

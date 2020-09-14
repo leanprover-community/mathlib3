@@ -388,11 +388,10 @@ begin
   { apply (algebra_map R S).injective_iff.mp hRS,
     have a_inv_ne_zero : a_inv ≠ 0 := right_ne_zero_of_mul (mt ha_inv.symm.trans one_ne_zero),
     refine (mul_eq_zero.mp _).resolve_right (pow_ne_zero p.nat_degree a_inv_ne_zero),
-    -- TODO: define `polynomial.eval₂_eq_sum_range : p.eval₂ f x = ∑ i in finset.range p.nat_degree, f (p.coeff i) * x^i` and similar for `polynomial.aeval`.
-    rw [p.as_sum, aeval_def, eval₂_finset_sum] at hp,
+    rw [aeval_def, eval₂_eq_sum_range] at hp,
     rw [ring_hom.map_sum, finset.sum_mul],
     refine (finset.sum_congr rfl (λ i hi, _)).trans hp,
-    rw [eval₂_mul, eval₂_C, eval₂_X_pow, ring_hom.map_mul, mul_assoc],
+    rw [ring_hom.map_mul, mul_assoc],
     congr,
     have : a_inv ^ p.nat_degree = a_inv ^ (p.nat_degree - i) * a_inv ^ i,
     { rw [← pow_add a_inv, nat.sub_add_cancel (nat.le_of_lt_succ (finset.mem_range.mp hi))] },

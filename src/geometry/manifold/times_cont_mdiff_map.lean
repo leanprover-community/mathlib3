@@ -31,8 +31,8 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 /-- Bundled `n` times continuously differentiable maps. -/
 @[protect_proj]
 structure times_cont_mdiff_map :=
-(to_fun                   : M → M')
-(times_cont_mdiff_to_fun  : times_cont_mdiff I I' n to_fun)
+(to_fun                  : M → M')
+(times_cont_mdiff_to_fun : times_cont_mdiff I I' n to_fun)
 
 /-- Bundled smooth maps. -/
 @[reducible] def smooth_map := times_cont_mdiff_map I I' M M' ⊤

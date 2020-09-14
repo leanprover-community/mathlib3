@@ -41,21 +41,21 @@ local attribute [tidy] tactic.case_bash
 where the connected assumption is used.
 -/
 @[simps]
-def raise_cone [is_connected J] {B : C} {F : J ⥤ over B} (c : cone (F ⋙ forget)) :
+def raise_cone [is_connected.{v v v} J] {B : C} {F : J ⥤ over B} (c : cone (F ⋙ forget)) :
   cone F :=
 { X := over.mk (c.π.app (classical.arbitrary J) ≫ (F.obj (classical.arbitrary J)).hom),
   π :=
   { app := λ j,
       over.hom_mk (c.π.app j) (nat_trans_from_is_connected (c.π ≫ nat_trans_in_over F) j _) } }
 
-lemma raised_cone_lowers_to_original [is_connected J] {B : C} {F : J ⥤ over B}
+lemma raised_cone_lowers_to_original [is_connected.{v v v} J] {B : C} {F : J ⥤ over B}
   (c : cone (F ⋙ forget)) (t : is_limit c) :
   forget.map_cone (raise_cone c) = c :=
 by tidy
 
 /-- (Impl) Show that the raised cone is a limit. -/
 def raised_cone_is_limit
-  [is_connected J] {B : C} {F : J ⥤ over B} {c : cone (F ⋙ forget)} (t : is_limit c) :
+  [is_connected.{v v v} J] {B : C} {F : J ⥤ over B} {c : cone (F ⋙ forget)} (t : is_limit c) :
   is_limit (raise_cone c) :=
 { lift := λ s, over.hom_mk (t.lift (forget.map_cone s)) (by { dsimp, simp }),
   uniq' := λ s m K, by { ext1, apply t.hom_ext, intro j, simp [← K j] } }
@@ -64,7 +64,7 @@ end creates_connected
 
 /-- The forgetful functor from the over category creates any connected limit. -/
 instance forget_creates_connected_limits
-  [is_connected J] {B : C} : creates_limits_of_shape J (forget : over B ⥤ C) :=
+  [is_connected.{v v v} J] {B : C} : creates_limits_of_shape J (forget : over B ⥤ C) :=
 { creates_limit := λ K,
     creates_limit_of_reflects_iso (λ c t,
       { lifted_cone := creates_connected.raise_cone c,
@@ -73,7 +73,7 @@ instance forget_creates_connected_limits
 
 /-- The over category has any connected limit which the original category has. -/
 instance has_connected_limits
-  {B : C} [is_connected J] [has_limits_of_shape J C] : has_limits_of_shape J (over B) :=
+  {B : C} [is_connected.{v v v} J] [has_limits_of_shape J C] : has_limits_of_shape J (over B) :=
 { has_limit := λ F, has_limit_of_created F (forget : over B ⥤ C) }
 
 end category_theory.over

@@ -94,7 +94,7 @@ Note that this functor does not preserve the two most obvious disconnected limit
 `X ⨯ (A ⨯ B)` and `X ⨯ 1` is not isomorphic to `1`.
 -/
 noncomputable
-def prod_preserves_connected_limits [is_connected J] (X : C) :
+def prod_preserves_connected_limits [is_connected.{v₂ v₂ v₂} J] (X : C) :
   preserves_limits_of_shape J (prod_functor.obj X) :=
 { preserves_limit := λ K,
   { preserves := λ c l,

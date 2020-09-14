@@ -18,6 +18,8 @@ open category_theory.limits
 
 universes u v
 
+noncomputable theory
+
 namespace Module
 
 variables {R : Type u} [ring R]
@@ -101,7 +103,7 @@ open has_limits
 @[irreducible]
 instance has_limits : has_limits (Module.{v} R) :=
 { has_limits_of_shape := λ J 𝒥, by exactI
-  { has_limit := λ F,
+  { has_limit := λ F, has_limit.mk
     { cone     := limit_cone F,
       is_limit := limit_cone_is_limit F } } }
 

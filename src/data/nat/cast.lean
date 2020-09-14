@@ -154,7 +154,7 @@ by by_cases a ≤ b; simp [h, max]
 abs_of_nonneg (cast_nonneg a)
 
 lemma coe_nat_dvd [comm_semiring α] (m n : ℕ) (h : m ∣ n) :
-  (m : α) ∣ n :=
+  (m : α) ∣ (n : α) :=
 ring_hom.map_dvd (nat.cast_ring_hom α) h
 
 section linear_ordered_field

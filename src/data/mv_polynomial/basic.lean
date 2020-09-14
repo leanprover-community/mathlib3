@@ -151,6 +151,23 @@ finsupp.single_injective _
 lemma C_eq_coe_nat (n : ℕ) : (C ↑n : mv_polynomial σ α) = n :=
 by induction n; simp [nat.succ_eq_add_one, *]
 
+theorem C_mul' : mv_polynomial.C a * p = a • p :=
+begin
+  apply finsupp.induction p,
+  { exact (mul_zero $ mv_polynomial.C a).trans (@smul_zero α (mv_polynomial σ α) _ _ _ a).symm },
+  intros p b f haf hb0 ih,
+  rw [mul_add, ih, @smul_add α (mv_polynomial σ α) _ _ _ a], congr' 1,
+  rw [add_monoid_algebra.mul_def, finsupp.smul_single],
+  simp only [mv_polynomial.C],
+  dsimp [mv_polynomial.monomial],
+  rw [finsupp.sum_single_index, finsupp.sum_single_index, zero_add],
+  { rw [mul_zero, finsupp.single_zero] },
+  { rw finsupp.sum_single_index,
+    all_goals { rw [zero_mul, finsupp.single_zero] }, }
+end
+
+lemma smul_eq_C_mul (p : mv_polynomial σ α) (a : α) : a • p = C a * p := C_mul'.symm
+
 lemma X_pow_eq_single : X n ^ e = monomial (single n e) (1 : α) :=
 begin
   induction e,
@@ -642,6 +659,9 @@ eval₂_monomial _ _
 
 @[simp] lemma eval_X : ∀ n, eval f (X n) = f n := eval₂_X _ _
 
+@[simp] lemma smul_eval (x) (p : mv_polynomial σ α) (s) : eval x (s • p) = s * eval x p :=
+by rw [smul_eq_C_mul, (eval x).map_mul, eval_C]
+
 lemma eval_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ α) (g : σ → α) :
   eval g (∑ i in s, f i) = ∑ i in s, eval g (f i) :=
 (eval g).map_sum _ _
@@ -757,7 +777,7 @@ by { rw [← eval_map, ← eval_map, map_map], }
   eval₂_hom φ g (map f p) = eval₂_hom (φ.comp f) g p :=
 eval₂_map f g φ p
 
-lemma constant_coeff_map (f : α →+* β) (φ : mv_polynomial σ α) :
+@[simp] lemma constant_coeff_map (f : α →+* β) (φ : mv_polynomial σ α) :
   constant_coeff (mv_polynomial.map f φ) = f (constant_coeff φ) :=
 coeff_map f φ 0
 

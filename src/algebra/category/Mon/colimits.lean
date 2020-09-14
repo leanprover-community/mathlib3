@@ -240,8 +240,8 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
   end }.
 
 instance has_colimits_Mon : has_colimits Mon :=
-{ has_colimits_of_shape := λ J 𝒥,
-  { has_colimit := λ F, by exactI
+{ has_colimits_of_shape := λ J 𝒥, by exactI
+  { has_colimit := λ F, has_colimit.mk
     { cocone := colimit_cocone F,
       is_colimit := colimit_is_colimit F } } }
 

@@ -454,7 +454,8 @@ rfl
 variables [topological_space R] [topological_semimodule R M₂]
 
 /-- The linear map `λ x, c x • f`.  Associates to a scalar-valued linear map and an element of
-`M₂` the `M₂`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `M₂`) -/
+`M₂` the `M₂`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `M₂`).
+See also `continuous_linear_map.smul_rightₗ` and `continuous_linear_map.smul_rightL`..-/
 def smul_right (c : M →L[R] R) (f : M₂) : M →L[R] M₂ :=
 { cont := c.2.smul continuous_const,
   ..c.to_linear_map.smul_right f }

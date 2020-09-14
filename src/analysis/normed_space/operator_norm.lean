@@ -395,24 +395,21 @@ begin
     rw [dist_eq_norm, dist_eq_norm, ← f.map_sub, H] }
 end
 
-lemma homothety_norm (hE : 0 < vector_space.dim 𝕜 E) (f : E →L[𝕜] F) {a : ℝ} (ha : 0 ≤ a) (hf : ∀x, ∥f x∥ = a * ∥x∥) :
+lemma homothety_norm [nontrivial E] (f : E →L[𝕜] F) {a : ℝ} (ha : 0 ≤ a) (hf : ∀x, ∥f x∥ = a * ∥x∥) :
   ∥f∥ = a :=
 begin
   refine le_antisymm_iff.mpr ⟨_, _⟩,
   { exact continuous_linear_map.op_norm_le_bound f ha (λ y, le_of_eq (hf y)) },
   { rw continuous_linear_map.norm_def,
     apply real.lb_le_Inf _ continuous_linear_map.bounds_nonempty,
-    cases dim_pos_iff_exists_ne_zero.mp hE with x hx,
+    cases dim_pos_iff_exists_ne_zero.mp (dim_pos : 0 < vector_space.dim 𝕜 E) with x hx,
     intros c h, rw mem_set_of_eq at h,
     apply (mul_le_mul_right (norm_pos_iff.mpr hx)).mp,
     rw ← hf x, exact h.2 x }
 end
 
 lemma to_span_singleton_norm (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
-begin
-  refine homothety_norm _ _ (norm_nonneg x) (to_span_singleton_homothety 𝕜 x),
-  rw dim_of_field, exact cardinal.zero_lt_one,
-end
+homothety_norm _ (norm_nonneg x) (to_span_singleton_homothety 𝕜 x)
 
 variable (f)
 
@@ -642,14 +639,14 @@ begin
       ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
 end
 
-/-- Given `c : c : E →L[𝕜] 𝕜`, `c.smul_rightₗ` is the linear map from `F` to `(E →L[𝕜] F)`
-sending `f` to `λ e, c e • f`. -/
+/-- Given `c : c : E →L[𝕜] 𝕜`, `c.smul_rightₗ` is the linear map from `F` to `E →L[𝕜] F`
+sending `f` to `λ e, c e • f`. See also `continuous_linear_map.smul_rightL`. -/
 def smul_rightₗ (c : E →L[𝕜] 𝕜) : F →ₗ[𝕜] (E →L[𝕜] F) :=
 { to_fun := c.smul_right,
   map_add' := λ x y, by { ext e, simp [smul_add] },
   map_smul' := λ a x, by { ext e, simp [smul_comm] } }
 
-/-- Given `c : c : E →L[𝕜] 𝕜`, `c.smul_rightL` is the continuous linear map from `F` to `(E →L[𝕜] F)`
+/-- Given `c : c : E →L[𝕜] 𝕜`, `c.smul_rightL` is the continuous linear map from `F` to `E →L[𝕜] F`
 sending `f` to `λ e, c e • f`. -/
 def smul_rightL (c : E →L[𝕜] 𝕜) : F →L[𝕜] (E →L[𝕜] F) :=
 (c.smul_rightₗ : F →ₗ[𝕜] (E →L[𝕜] F)).mk_continuous _ (λ f, le_of_eq $ c.norm_smul_right_apply f)
@@ -658,9 +655,9 @@ def smul_rightL (c : E →L[𝕜] 𝕜) : F →L[𝕜] (E →L[𝕜] F) :=
   ∥c.smul_rightL f∥ = ∥c∥ * ∥f∥ :=
 by simp [continuous_linear_map.smul_rightL, continuous_linear_map.smul_rightₗ]
 
-@[simp] lemma norm_smul_right (c : E →L[𝕜] 𝕜) (hF : 0 < vector_space.dim 𝕜 F) :
+@[simp] lemma norm_smul_rightL (c : E →L[𝕜] 𝕜) [nontrivial F] :
   ∥(c.smul_rightL : F →L[𝕜] (E →L[𝕜] F))∥ = ∥c∥ :=
-continuous_linear_map.homothety_norm hF _ (norm_nonneg _) c.norm_smul_right_apply
+continuous_linear_map.homothety_norm _ (norm_nonneg _) c.norm_smul_right_apply
 
 variables (𝕜 F)
 
@@ -887,15 +884,9 @@ abbreviation coord (x : E) (h : x ≠ 0) : (submodule.span 𝕜 ({x} : set E)) �
 lemma coord_norm (x : E) (h : x ≠ 0) : ∥coord 𝕜 x h∥ = ∥x∥⁻¹ :=
 begin
   have hx : 0 < ∥x∥ := (norm_pos_iff.mpr h),
-  refine continuous_linear_map.homothety_norm _ _ (le_of_lt (inv_pos.mpr hx)) _,
-  { rw ← finite_dimensional.findim_eq_dim,
-    rw ← linear_equiv.findim_eq (linear_equiv.to_span_nonzero_singleton 𝕜 E x h),
-    rw finite_dimensional.findim_of_field,
-    have : 0 = ((0:nat) : cardinal) := rfl,
-    rw this, apply cardinal.nat_cast_lt.mpr, norm_num },
-  { intros y,
-    have : (coord 𝕜 x h) y = (to_span_nonzero_singleton 𝕜 x h).symm y := rfl,
-    rw this, apply homothety_inverse, exact hx, exact to_span_nonzero_singleton_homothety 𝕜 x h, }
+  haveI : nontrivial (submodule.span 𝕜 ({x} : set E)) := submodule.nontrivial_span_singleton h,
+  exact continuous_linear_map.homothety_norm _ (le_of_lt (inv_pos.mpr hx))
+        (λ y, homothety_inverse _ hx _ (to_span_nonzero_singleton_homothety 𝕜 x h) _)
 end
 
 lemma coord_self (x : E) (h : x ≠ 0) :

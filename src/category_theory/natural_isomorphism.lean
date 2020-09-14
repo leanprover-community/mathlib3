@@ -159,7 +159,6 @@ instance is_iso_app_of_is_iso (α : F ⟶ G) [is_iso α] (X) : is_iso (α.app X)
 Construct a natural isomorphism between functors by giving object level isomorphisms,
 and checking naturality only in the forward direction.
 -/
-@[simps]
 def of_components (app : ∀ X : C, F.obj X ≅ G.obj X)
   (naturality : ∀ {X Y : C} (f : X ⟶ Y), F.map f ≫ (app Y).hom = (app X).hom ≫ G.map f) :
   F ≅ G :=
@@ -168,6 +167,10 @@ def of_components (app : ∀ X : C, F.obj X ≅ G.obj X)
 @[simp] lemma of_components.app (app' : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
   (of_components app' naturality).app X = app' X :=
 by tidy
+@[simp] lemma of_components.hom_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
+  (of_components app naturality).hom.app X = (app X).hom := rfl
+@[simp] lemma of_components.inv_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
+  (of_components app naturality).inv.app X = (app X).inv := rfl
 
 /-- Horizontal composition of natural isomorphisms. -/
 def hcomp {F G : C ⥤ D} {H I : D ⥤ E} (α : F ≅ G) (β : H ≅ I) : F ⋙ H ≅ G ⋙ I :=

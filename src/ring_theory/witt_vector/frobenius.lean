@@ -57,7 +57,7 @@ begin
     rw [← (nat.prime.multiplicity_choose_prime_pow hp hj j.succ_pos)],
     apply le_add_left, refl },
   { obtain ⟨c, hc⟩ : p ^ m ∣ j + 1,
-    { rw [← h, ← nat.pow_eq_pow],
+    { rw [← h],
       exact multiplicity.pow_multiplicity_dvd _, },
     have cpos : c ≠ 0,
     { rintro rfl, simpa only using hc, },
@@ -90,8 +90,7 @@ begin
   simp only [inv_of_eq_inv, ring_hom.eq_int_cast, inv_pow', int.cast_coe_nat],
   rw [rat.coe_nat_div],
   swap,
-  { rw ← nat.pow_eq_pow,
-    apply multiplicity.pow_dvd_of_le_multiplicity,
+  { apply multiplicity.pow_dvd_of_le_multiplicity,
     have aux : multiplicity.finite p ((p ^ (n - i)).choose (j + 1)),
     { rw multiplicity.finite_nat_iff,
       exact ⟨ne_of_gt hp.one_lt, nat.choose_pos hj⟩, },
@@ -183,7 +182,7 @@ begin
   rw [nat.sub_zero, pow_zero, nat.choose_zero_right, nat.cast_one, one_mul, mul_one,
       sub_add_eq_sub_sub_swap],
   rw show (X i ^ p ^ (n + 1 - i) - (X i ^ p) ^ p ^ (n - i) : mv_polynomial ℕ ℚ) = 0,
-  { rw [← pow_mul, mul_comm, ← nat.pow_succ, nat.succ_eq_add_one, nat.sub_add_comm, sub_self],
+  { rw [← pow_mul, mul_comm, nat.sub_add_comm, nat.pow_succ, sub_self],
     exact le_of_lt hi },
   -- some extra clean up, and then we compare the remaining sums term by term
   rw [zero_sub, mul_neg_eq_neg_mul_symm, neg_inj, mul_sum, ring_hom.map_sum, mul_sum],
@@ -197,7 +196,8 @@ begin
   -- conv_rhs { rw [mul_left_comm _ ((X i ^ p) ^ j), mul_left_comm _ ((X i ^ p) ^ j)], },
   congr' 2,
   convert final_bit p n i j hi hj,
-  simp [nat.pow_eq_pow, C_mul, mul_assoc]
+  { simp [C_mul, mul_assoc] },
+  { simp only [C_mul, mul_assoc], conv_lhs { congr, skip, congr, skip, rw mul_comm } }
 end
 .
 

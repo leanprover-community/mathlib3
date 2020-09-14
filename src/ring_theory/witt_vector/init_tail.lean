@@ -112,7 +112,7 @@ lemma bind₁_init_poly_witt_polynomial (n k : ℕ) :
     expand (p ^ (k - n)) (witt_polynomial p ℤ (min n k)) :=
 begin
   have aux : ∀ k : ℕ, p ^ k ≠ 0,
-  { intro k, rw ← nat.pow_eq_pow, apply pow_ne_zero _ hp.ne_zero, },
+  { intro k, apply pow_ne_zero _ hp.ne_zero, },
   dsimp [init_is_poly, min],
   split_ifs with hk,
   { dsimp [witt_polynomial],

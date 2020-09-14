@@ -138,7 +138,7 @@ lemma bind₁_verschiebung_poly_witt_polynomial (n : ℕ) :
   if n = 0 then 0 else p * witt_polynomial p ℤ (n-1) :=
 begin
   have aux : ∀ k : ℕ, p ^ k ≠ 0,
-  { intro k, rw ← nat.pow_eq_pow, apply pow_ne_zero _ hp.ne_zero, },
+  { intro k, apply pow_ne_zero _ hp.ne_zero, },
   split_ifs with hn,
   { rw [hn, witt_polynomial_zero, bind₁_X_right, verschiebung_poly, if_pos rfl] },
   { obtain ⟨n, rfl⟩ := nat.exists_eq_succ_of_ne_zero hn,

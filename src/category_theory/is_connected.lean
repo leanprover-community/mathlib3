@@ -47,6 +47,9 @@ open category_theory.category
 
 namespace category_theory
 
+/--
+A possibly empty category for which every functor to the discrete category is constant.
+-/
 class is_connected_or_empty (J : Type v₂) [category.{v₁} J] : Prop :=
 (iso_constant : Π {α : Type v₂} (F : J ⥤ discrete α) (j : J),
   nonempty (F ≅ (functor.const J).obj (F.obj j)))
@@ -66,10 +69,14 @@ See https://stacks.math.columbia.edu/tag/002S
 class is_connected (J : Type v₂) [category.{v₁} J] extends is_connected_or_empty J : Prop :=
 [is_nonempty : nonempty J]
 
-attribute [instance] is_connected.is_nonempty
+attribute [instance, priority 100] is_connected.is_nonempty
 
 variables {J : Type v₂} [category.{v₁} J]
 
+/--
+If `J` is connected, any functor `F : J ⥤ discrete α` is isomorphic to
+the constant functor with value `F.obj j` (for any choice of `j`).
+-/
 def iso_constant [is_connected_or_empty J] {α : Type v₂} (F : J ⥤ discrete α) (j : J) :
   F ≅ (functor.const J).obj (F.obj j) :=
   (is_connected_or_empty.iso_constant F j).some
@@ -87,7 +94,7 @@ lemma any_functor_const_on_obj [is_connected_or_empty J]
 If any functor to a discrete category is constant on objects, J is connected.
 The converse of `any_functor_const_on_obj`.
 -/
-def is_connected.of_any_functor_const_on_obj [nonempty J]
+lemma is_connected.of_any_functor_const_on_obj [nonempty J]
   (h : ∀ {α : Type v₂} (F : J ⥤ discrete α), ∀ (j j' : J), F.obj j = F.obj j') :
   is_connected J :=
 { iso_constant := λ α F j',
@@ -112,7 +119,7 @@ This can be thought of as a local-to-global property.
 
 The converse of `constant_of_preserves_morphisms`.
 -/
-def is_connected.of_constant_of_preserves_morphisms [nonempty J]
+lemma is_connected.of_constant_of_preserves_morphisms [nonempty J]
   (h : ∀ {α : Type v₂} (F : J → α), (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), F j₁ = F j₂) → (∀ j j' : J, F j = F j')) :
   is_connected J :=
 is_connected.of_any_functor_const_on_obj (λ _ F, h F.obj (λ _ _ f, (F.map f).down.1))
@@ -139,7 +146,7 @@ If any maximal connected component containing some element j₀ of J is all of J
 
 The converse of `induct_on_objects`.
 -/
-def is_connected.of_induct [nonempty J]
+lemma is_connected.of_induct [nonempty J]
   {j₀ : J} (h : ∀ (p : set J), j₀ ∈ p → (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), j₁ ∈ p ↔ j₂ ∈ p) → ∀ (j : J), j ∈ p) :
   is_connected J :=
 is_connected.of_constant_of_preserves_morphisms (λ α F a,
@@ -183,7 +190,7 @@ equiv_relation _
 /--
 If any two objects in an nonempty category are related by `zigzag`, the category is connected.
 -/
-def zigzag_is_connected [nonempty J] (h : ∀ (j₁ j₂ : J), zigzag j₁ j₂) : is_connected J :=
+lemma zigzag_is_connected [nonempty J] (h : ∀ (j₁ j₂ : J), zigzag j₁ j₂) : is_connected J :=
 begin
   apply is_connected.of_induct,
   intros,
@@ -208,7 +215,7 @@ morphisms, then J is connected.
 
 The converse of `exists_zigzag'`.
 -/
-def is_connected_of_zigzag [nonempty J]
+lemma is_connected_of_zigzag [nonempty J]
   (h : ∀ (j₁ j₂ : J), ∃ l, list.chain zag j₁ l ∧ list.last (j₁ :: l) (list.cons_ne_nil _ _) = j₂) :
   is_connected J :=
 begin

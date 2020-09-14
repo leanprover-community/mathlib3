@@ -72,6 +72,8 @@ variables [comm_semiring α] {p q : mv_polynomial σ α}
 
 section degrees
 
+/-! ### `degrees` -/
+
 /--
 The maximal degrees of each variable in a multi-variable polynomial, expressed as a multiset.
 
@@ -204,6 +206,8 @@ end degrees
 
 section vars
 
+/-! ### `vars` -/
+
 /-- `vars p` is the set of variables appearing in the polynomial `p` -/
 def vars (p : mv_polynomial σ α) : finset σ := p.degrees.to_finset
 
@@ -218,6 +222,10 @@ by rw [vars, degrees_C, multiset.to_finset_zero]
 
 @[simp] lemma vars_X (h : 0 ≠ (1 : α)) : (X n : mv_polynomial σ α).vars = {n} :=
 by rw [X, vars_monomial h.symm, finsupp.support_single_ne_zero (one_ne_zero : 1 ≠ 0)]
+
+lemma mem_vars (i : σ) :
+  i ∈ p.vars ↔ ∃ (d : σ →₀ ℕ) (H : d ∈ p.support), i ∈ d.support :=
+by simp only [vars, multiset.mem_to_finset, mem_degrees, coeff, finsupp.mem_support_iff, exists_prop]
 
 lemma mem_support_not_mem_vars_zero {f : mv_polynomial σ α} {x : σ →₀ ℕ} (H : x ∈ f.support) {v : σ} (h : v ∉ vars f) :
   x v = 0 :=
@@ -250,6 +258,70 @@ begin
   rw [degrees_add_of_disjoint h, multiset.to_finset_union],
   exact hx
 end
+
+section mul
+
+lemma vars_mul (φ ψ : mv_polynomial σ α) :
+  (φ * ψ).vars ⊆ φ.vars ∪ ψ.vars :=
+begin
+  intro i,
+  simp only [mem_vars, finset.mem_union],
+  rintro ⟨d, hd, hi⟩,
+  rw [finsupp.mem_support_iff, ← coeff, coeff_mul] at hd,
+  contrapose! hd, cases hd,
+  rw finset.sum_eq_zero,
+  rintro ⟨d₁, d₂⟩ H,
+  rw finsupp.mem_antidiagonal_support at H,
+  subst H,
+  obtain H|H : i ∈ d₁.support ∨ i ∈ d₂.support,
+  { simpa only [finset.mem_union] using finsupp.support_add hi, },
+  { suffices : coeff d₁ φ = 0, by simp [this],
+    rw [coeff, ← finsupp.not_mem_support_iff], intro, solve_by_elim, },
+  { suffices : coeff d₂ ψ = 0, by simp [this],
+    rw [coeff, ← finsupp.not_mem_support_iff], intro, solve_by_elim, },
+end
+
+@[simp] lemma vars_one : (1 : mv_polynomial σ α).vars = ∅ :=
+vars_C
+
+lemma vars_pow (φ : mv_polynomial σ α) (n : ℕ) :
+  (φ ^ n).vars ⊆ φ.vars :=
+begin
+  induction n with n ih,
+  { simp },
+  { rw pow_succ,
+    apply finset.subset.trans (vars_mul _ _),
+    exact finset.union_subset (finset.subset.refl _) ih }
+end
+
+lemma vars_prod {ι : Type*} {s : finset ι} (f : ι → mv_polynomial σ α) :
+  (∏ i in s, f i).vars ⊆ s.bind (λ i, (f i).vars) :=
+begin
+  apply s.induction_on,
+  { simp },
+  { intros a s hs hsub,
+    simp only [hs, finset.bind_insert, finset.prod_insert, not_false_iff],
+    apply finset.subset.trans (vars_mul _ _),
+    exact finset.union_subset_union (finset.subset.refl _) hsub }
+end
+
+section integral_domain
+variables {A : Type*} [integral_domain A]
+
+lemma vars_C_mul (a : A) (ha : a ≠ 0) (φ : mv_polynomial σ A) :
+  (C a * φ).vars = φ.vars :=
+begin
+  ext1 i,
+  simp only [mem_vars, exists_prop, finsupp.mem_support_iff],
+  apply exists_congr,
+  intro d,
+  apply and_congr _ iff.rfl,
+  rw [← coeff, ← coeff, coeff_C_mul, mul_ne_zero_iff, eq_true_intro ha, true_and],
+end
+
+end integral_domain
+
+end mul
 
 section sum
 
@@ -304,10 +376,6 @@ lemma vars_monomial_single (i : σ) {e : ℕ} {r : α} (he : e ≠ 0) (hr : r �
   (monomial (finsupp.single i e) r).vars = {i} :=
 by rw [vars_monomial hr, finsupp.support_single_ne_zero he]
 
-lemma mem_vars (i : σ) :
-  i ∈ p.vars ↔ ∃ (d : σ →₀ ℕ) (H : d ∈ p.support), i ∈ d.support :=
-by simp only [vars, multiset.mem_to_finset, mem_degrees, coeff, finsupp.mem_support_iff, exists_prop]
-
 lemma vars_eq_support_bind_support : p.vars = p.support.bind finsupp.support :=
 by { ext i, rw [mem_vars, finset.mem_bind] }
 
@@ -317,12 +385,17 @@ end vars
 
 section degree_of
 
+/-! ### `degree_of` -/
+
 /-- `degree_of n p` gives the highest power of X_n that appears in `p` -/
 def degree_of (n : σ) (p : mv_polynomial σ α) : ℕ := p.degrees.count n
 
 end degree_of
 
 section total_degree
+
+/-! ### `total_degree` -/
+
 /-- `total_degree p` gives the maximum |s| over the monomials X^s in `p` -/
 def total_degree (p : mv_polynomial σ α) : ℕ := p.support.sup (λs, s.sum $ λn e, e)
 
@@ -450,6 +523,8 @@ end
 end total_degree
 
 section eval_vars
+
+/-! ### `vars` and `eval` -/
 
 variables {R : Type u} {A : Type v} {S : Type w} (f : σ → A)
 variables [comm_semiring R] [comm_semiring A] [algebra R A] [comm_semiring S]

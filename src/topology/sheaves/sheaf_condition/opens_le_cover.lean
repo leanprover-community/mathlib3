@@ -6,6 +6,10 @@ Authors: Scott Morrison
 import topology.sheaves.presheaf
 import category_theory.limits.limits
 
+/-!
+Another version of the sheaf condition, from Lurie SAG.
+-/
+
 universes v u
 
 noncomputable theory

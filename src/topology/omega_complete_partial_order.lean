@@ -29,39 +29,49 @@ def is_ωSup {α : Type u} [preorder α] (c : chain α) (x : α) : Prop :=
 (∀ i, c i ≤ x) ∧ (∀ y, (∀ i, c i ≤ y) → x ≤ y)
 
 variables (α : Type u) [omega_complete_partial_order α]
+local attribute [irreducible] set
 
 /-- The characteristic function of open sets is monotone and preserves
 the limits of chains. -/
 def is_open (s : set α) : Prop :=
-continuous' (s : α → Prop)
+continuous' (λ x, x ∈ s)
 
 theorem is_open_univ : is_open α set.univ :=
-⟨λ x y h, le_refl _,
-  show omega_complete_partial_order.continuous ⊤,
-    from complete_lattice.top_continuous ⟩
+⟨λ x y h, by simp only [set.mem_univ]; refl',
+  by convert @complete_lattice.top_continuous α Prop _ _; ext; simp ⟩
 
 theorem is_open_inter (s t : set α) : is_open α s → is_open α t → is_open α (s ∩ t) :=
 begin
   simp only [is_open, exists_imp_distrib, continuous'],
   intros h₀ h₁ h₂ h₃,
   rw ← set.inf_eq_inter,
-  let s' : α →ₘ Prop := ⟨s, h₀⟩,
-  let t' : α →ₘ Prop := ⟨t, h₂⟩,
-  split, change omega_complete_partial_order.continuous (s' ⊓ t'),
-  haveI : is_total Prop (≤) := ⟨ @le_total Prop _ ⟩,
-  apply complete_lattice.inf_continuous; assumption
+  let s' : α →ₘ Prop := ⟨λ x, x ∈ s, h₀⟩,
+  let t' : α →ₘ Prop := ⟨λ x, x ∈ t, h₂⟩,
+  split,
+  { change omega_complete_partial_order.continuous (s' ⊓ t'),
+    haveI : is_total Prop (≤) := ⟨ @le_total Prop _ ⟩,
+    apply complete_lattice.inf_continuous; assumption },
+  { intros x y h, apply and_implies;
+    solve_by_elim [h₀ h, h₂ h], }
 end
 
 theorem is_open_sUnion : ∀s, (∀t∈s, is_open α t) → is_open α (⋃₀ s) :=
 begin
   introv h₀,
-  suffices : is_open α (Sup s : α → Prop),
+  suffices : is_open α ({ x | Sup (flip (∈) '' s) x }),
   { convert this, ext,
-    simp only [set.sUnion, Sup, set_of, supr, conditionally_complete_lattice.Sup,
+    simp only [set.sUnion, Sup, set.mem_image, set.mem_set_of_eq, supr,
+               conditionally_complete_lattice.Sup, exists_exists_and_eq_and,
                complete_lattice.Sup, exists_prop, set.mem_range,
                set_coe.exists, eq_iff_iff, subtype.coe_mk],
     tauto, },
-  apply complete_lattice.Sup_continuous' _ h₀,
+  dsimp [is_open] at *,
+  apply complete_lattice.Sup_continuous' _,
+  introv ht, specialize h₀ { x | t x } _,
+  { simpa using h₀ },
+  { simp only [flip, set.mem_image] at *,
+    rcases ht with ⟨x,h₀,h₁⟩, subst h₁,
+    simpa, }
 end
 
 end scott_topological_space
@@ -100,7 +110,7 @@ begin
   existsi h, rintros c,
   apply eq_of_forall_ge_iff, intro z,
   rw ωSup_le_iff,
-  simp only [ωSup_le_iff, not_below, set_of_apply, le_iff_imp, preorder_hom.coe_fun_mk,
+  simp only [ωSup_le_iff, not_below, set.mem_set_of_eq, le_iff_imp, preorder_hom.coe_fun_mk,
              chain.map_to_fun, function.comp_app, exists_imp_distrib, not_forall],
 end
 

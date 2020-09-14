@@ -593,7 +593,16 @@ lemma mv_polynomial.expand_zmod [fact p.prime] (φ : mv_polynomial σ (zmod p)) 
   expand p φ = φ^p :=
 (mv_polynomial.frobenius_zmod _).symm
 
+-- move this
+instance zmod.algebra (R : Type*) [comm_ring R] [char_p R p] : algebra (zmod p) R :=
+ring_hom.to_algebra (zmod.cast_hom (dvd_refl p) R)
+
 end zmod
 
+lemma rat.coe_nat_div (a b : ℕ) (h : b ∣ a) : ((a / b : ℕ) : ℚ) = (a / b : ℚ) :=
+begin
+  rcases h with ⟨c, rfl⟩,
+  simp only [dvd_mul_right, nat.cast_dvd_char_zero],
+end
 
 -- ### end FOR_MATHLIB

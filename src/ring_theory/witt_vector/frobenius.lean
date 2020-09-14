@@ -71,14 +71,6 @@ begin
     apply nat.sub_le }
 end
 
-section omit hp
-lemma rat.coe_nat_div (a b : ℕ) (h : b ∣ a) : ((a / b : ℕ) : ℚ) = (a / b : ℚ) :=
-begin
-  rcases h with ⟨c, rfl⟩,
-  simp only [dvd_mul_right, nat.cast_dvd_char_zero],
-end
-end
-
 lemma final_bit (n i j : ℕ) (hi : i < n) (hj : j < p ^ (n - i)) :
   @C _ ℕ _ (↑p * (int.cast_ring_hom ℚ)
            ↑((p ^ (n - i)).choose (j + 1) / p ^ (n - i - vp ⟨j + 1, nat.succ_pos j⟩)) *
@@ -112,7 +104,6 @@ begin
     apply blahrg p n i j hi hj, }
 end
 .
-
 
 noncomputable
 def frobenius_poly_aux : ℕ → mv_polynomial ℕ ℤ
@@ -304,10 +295,6 @@ end
 
 section char_p
 variables [char_p R p]
-
--- move this
-instance qwerty : algebra (zmod p) R :=
-ring_hom.to_algebra (zmod.cast_hom (dvd_refl p) R)
 
 @[simp]
 lemma coeff_frobenius_fun_char_p (x : 𝕎 R) (n : ℕ) :

@@ -12,6 +12,8 @@ Show that a functor `F : C ⥤ D` preserves binary products if and only if
 `⟨Fπ₁, Fπ₂⟩ : F (A ⨯ B) ⟶ F A ⨯ F B` (that is, `prod_comparison`) is an isomorphism for all `A, B`.
 -/
 
+noncomputable theory
+
 open category_theory
 
 namespace category_theory.limits

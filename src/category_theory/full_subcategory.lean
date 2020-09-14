@@ -87,6 +87,11 @@ section full_subcategory
 variables {C : Type u₂} [category.{v} C]
 variables (Z : C → Prop)
 
+/--
+The category structure on a subtype; morphisms just ignore the property.
+
+See https://stacks.math.columbia.edu/tag/001D. We do not define 'strictly full' subcategories.
+-/
 instance full_subcategory : category.{v} {X : C // Z X} :=
 induced_category.category subtype.val
 

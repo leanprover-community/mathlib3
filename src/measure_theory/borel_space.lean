@@ -113,7 +113,8 @@ begin
       rw this, resetI,
       apply is_measurable.Union,
       exact λ _, (H _).compl _ } },
-  { simp, rintro _ a rfl,
+  { rw forall_range_iff,
+    intro a,
     exact generate_measurable.basic _ is_open_Iio }
 end
 

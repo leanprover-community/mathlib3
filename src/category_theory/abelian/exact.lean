@@ -16,6 +16,8 @@ We prove that in an abelian category, `(f, g)` is exact if and only if `f ≫ g 
 
 universes v u
 
+noncomputable theory
+
 open category_theory
 open category_theory.limits
 open category_theory.preadditive

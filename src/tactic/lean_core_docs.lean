@@ -711,7 +711,7 @@ Navigate to the right-hand-side of a relation.
 A goal of `| a = b` will turn into the the goal `| b`.
 -/
 add_tactic_doc
-{ name       := "to_lhs",
+{ name       := "to_rhs",
   category   := doc_category.tactic,
   decl_names := [`conv.​interactive.​to_rhs],
   tags       := ["conv"] }

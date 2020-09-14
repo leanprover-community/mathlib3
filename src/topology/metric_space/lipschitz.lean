@@ -57,11 +57,11 @@ alias lipschitz_with_iff_dist_le_mul ↔ lipschitz_with.dist_le_mul lipschitz_wi
 /-- A function `f` is Lipschitz continuous with constant `K ≥ 0` on `s` if for all `x, y` in `s`
 we have `dist (f x) (f y) ≤ K * dist x y` -/
 def lipschitz_on_with [emetric_space α] [emetric_space β] (K : ℝ≥0) (s : set α) (f : α → β) :=
-∀ (x ∈ s) (y ∈ s), edist (f x) (f y) ≤ K * edist x y
+∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), edist (f x) (f y) ≤ K * edist x y
 
 lemma lipschitz_on_with.mono [emetric_space α] [emetric_space β] {K : ℝ≥0} {s t : set α} {f : α → β}
   (hf : lipschitz_on_with K t f) (h : s ⊆ t) : lipschitz_on_with K s f :=
-λ x x_in y y_in, hf x (h x_in) y (h y_in)
+λ x x_in y y_in, hf (h x_in) (h y_in)
 
 lemma lipschitz_on_with_iff_dist_le_mul [metric_space α] [metric_space β] {K : ℝ≥0} {s : set α}
   {f : α → β} : lipschitz_on_with K s f ↔ ∀ (x ∈ s) (y ∈ s), dist (f x) (f y) ≤ K * dist x y :=
@@ -75,15 +75,7 @@ by simp [lipschitz_on_with, lipschitz_with]
 
 lemma lipschitz_on_with_iff_restrict [emetric_space α] [emetric_space β] {K : ℝ≥0}
   {f : α → β} {s : set α} : lipschitz_on_with K s f ↔ lipschitz_with K (s.restrict f) :=
-begin
-  dsimp [lipschitz_on_with, lipschitz_with],
-  rw set_coe.forall,
-  apply forall_congr,
-  intros x,
-  apply forall_congr,
-  intro h,
-  simpa
-end
+by simp only [lipschitz_on_with, lipschitz_with, set_coe.forall', restrict, subtype.edist_eq]
 
 namespace lipschitz_with
 
@@ -308,7 +300,6 @@ protected lemma continuous_on (hf : lipschitz_on_with K s f) : continuous_on f s
 hf.uniform_continuous_on.continuous_on
 
 end lipschitz_on_with
-
 
 open metric
 

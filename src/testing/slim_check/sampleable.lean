@@ -433,8 +433,8 @@ def list.shrink_removes (k : ℕ) (hk : 0 < k) : Π (xs : list α) n,
         by rw h₃; solve_by_elim [list.sizeof_drop_lt_sizeof_of_lt_length],
       have h₁ : n - k = xs₂.length,
         by simp only [h₃, ←hn, list.length_drop],
-      have h₅ : ∀ (a : list α), sizeof_lt a xs₂ → sizeof_lt (xs₁ ++ a) xs, from
-        λ a h, by rw [← list.take_append_drop k xs, ← h₃, ← h₄]; solve_by_elim [list.sizeof_append_lt_left],
+      have h₅ : ∀ (a : list α), sizeof_lt a xs₂ → sizeof_lt (xs₁ ++ a) xs,
+        by intros a h; rw [← list.take_append_drop k xs, ← h₃, ← h₄]; solve_by_elim [list.sizeof_append_lt_left],
       lazy_list.cons ⟨xs₂, this⟩ $ subtype.map ((++) xs₁) h₅ <$> list.shrink_removes xs₂ (n - k) h₁
     end
 

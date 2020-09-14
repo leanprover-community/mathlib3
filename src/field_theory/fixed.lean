@@ -238,25 +238,16 @@ lemma findim_alg_hom (K : Type u) (V : Type v)
 fintype_card_le_findim_of_linear_independent $ linear_independent_to_linear_map K V
 
 namespace fixed_points
+-- `simps` needs to unfold these definitions to get the correct simp lemma for `to_alg_hom`.
+local attribute [simp] mul_semiring_action.to_semiring_hom distrib_mul_action.to_add_monoid_hom
 
 /-- Embedding produced from a faithful action. -/
+@[simps {simp_rhs := tt}, simps to_fun {fully_applied := ff}]
 def to_alg_hom (G : Type u) (F : Type v) [group G] [field F]
   [faithful_mul_semiring_action G F] : G ↪ (F →ₐ[fixed_points G F] F) :=
 { to_fun := λ g, { commutes' := λ x, x.2 g,
     .. mul_semiring_action.to_semiring_hom G F g },
   inj' := λ g₁ g₂ hg, injective_to_semiring_hom G F $ ring_hom.ext $ λ x, alg_hom.ext_iff.1 hg x, }
-
-@[simp] lemma coe_to_alg_hom (G : Type u) (F : Type v) [group G] [field F]
-  [faithful_mul_semiring_action G F] :
-  (to_alg_hom G F : G → F →ₐ[fixed_points G F] F) =
-    λ g, { commutes' := λ x, x.2 g,
-      .. mul_semiring_action.to_semiring_hom G F g } :=
-rfl
-
-lemma to_alg_hom_apply {G : Type u} {F : Type v} [group G] [field F]
-  [faithful_mul_semiring_action G F] (g : G) (x : F) :
-  to_alg_hom G F g x = g • x :=
-rfl
 
 theorem findim_eq_card (G : Type u) (F : Type v) [group G] [field F]
   [fintype G] [faithful_mul_semiring_action G F] :

@@ -984,6 +984,7 @@ theorem nth_eq_some {l : list α} {n a} : nth l n = some a ↔ ∃ h, nth_le l n
     injection e with e; apply nth_le_mem⟩,
 λ ⟨h, e⟩, e ▸ nth_le_nth _⟩
 
+@[simp]
 theorem nth_eq_none_iff : ∀ {l : list α} {n}, nth l n = none ↔ length l ≤ n :=
 begin
   intros, split,

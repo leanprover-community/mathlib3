@@ -64,7 +64,7 @@ jobs:
 
       - if: (steps.parse_pr_head.outputs.head_user == 'leanprover-community') && (steps.parse_user.outputs.permission == 'admin')
         id: remove_request_review
-        name: Remove "request-review"
+        name: Remove "awaiting-review"
         # we use curl rather than octokit/request-action so that the job won't fail
         # (and send an annoying email) if the label doesn't exist
         run: |

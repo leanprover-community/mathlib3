@@ -187,7 +187,7 @@ begin
 end
 
 /-- The symmetric monoidal structure on `Module R`. -/
-instance Module.braided_monoidal_category : symmetric_category (Module.{u} R) :=
+instance Module.symmetric_category : symmetric_category (Module.{u} R) :=
 { braiding := braiding,
   braiding_naturality' := λ X₁ X₂ Y₁ Y₂ f g, braiding_naturality f g,
   hexagon_forward' := hexagon_forward,

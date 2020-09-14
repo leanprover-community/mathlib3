@@ -1839,7 +1839,8 @@ begin
 end
 
 /-!
-## Continuity and differentiability of arctan
+### Continuity and differentiability of arctan
+
 The continuity of `arctan` is difficult to prove due to `arctan` being (indirectly) defined naively
 via `classical.some`. The proof therefore uses the general theorem that monotone functions are
 homeomorphisms: `homeomorph_of_strict_mono_continuous_Ioo`. We first prove that `tan` (restricted)

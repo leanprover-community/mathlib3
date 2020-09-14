@@ -441,7 +441,7 @@ as an instance to avoid a loop. -/
 noncomputable def classical.DLO (α) [LO : linear_order α] : decidable_linear_order α :=
 { decidable_le := classical.dec_rel _, ..LO }
 
-/-- Type gadget create an instance of `linear_order` from a
+/-- Type synonym to create an instance of `linear_order` from a
 `partial_order` and `[is_total α (≤)]` -/
 def as_linear_order (α : Type u) := α
 

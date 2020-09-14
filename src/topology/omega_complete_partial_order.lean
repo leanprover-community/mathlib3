@@ -9,7 +9,7 @@ import order.omega_complete_partial_order
 /-!
 # Scott Topological Spaces
 
-I don't know what they're good for but their notion
+A type of topological spaces whose notion
 of continuity is equivalent to continuity in ωCPOs.
 
 ## Reference
@@ -22,7 +22,7 @@ open omega_complete_partial_order
 open_locale classical
 
 universes u
-namespace scott_topological_space
+namespace Scott
 
 /--  -/
 def is_ωSup {α : Type u} [preorder α] (c : chain α) (x : α) : Prop :=
@@ -74,7 +74,7 @@ begin
     simpa, }
 end
 
-end scott_topological_space
+end Scott
 
 /-- A Scott topological space is defined on preorders
 such that their open sets, seen as a function `α → Prop`,
@@ -82,7 +82,7 @@ preserves the joins of ω-chains  -/
 @[reducible]
 def Scott (α : Type u) := α
 
-instance scott_topological_space (α : Type u) [omega_complete_partial_order α] : topological_space (Scott α) :=
+instance Scott.topological_space (α : Type u) [omega_complete_partial_order α] : topological_space (Scott α) :=
 { is_open := scott_topological_space.is_open α,
   is_open_univ := scott_topological_space.is_open_univ α,
   is_open_inter := scott_topological_space.is_open_inter α,

@@ -14,10 +14,20 @@ import category_theory.types
 A map `f : α → β` between two (extended) metric spaces is called *Lipschitz continuous*
 with constant `K ≥ 0` if for all `x, y` we have `edist (f x) (f y) ≤ K * edist x y`.
 For a metric space, the latter inequality is equivalent to `dist (f x) (f y) ≤ K * dist x y`.
+There is also a version asserting this inequality only for `x` and `y` in some set `s`.
 
 In this file we provide various ways to prove that various combinations of Lipschitz continuous
 functions are Lipschitz continuous. We also prove that Lipschitz continuous functions are
 uniformly continuous.
+
+## Main definitions and lemmas
+
+* `lipschitz_with K f`: states that `f` is Lipschitz with constant `K : ℝ≥0`
+* `lipschitz_on_with K f`: states that `f` is Lipschitz with constant `K : ℝ≥0` on a set `s`
+* `lipschitz_with.uniform_continuous`: a Lipschitz function is uniformly continuous
+* `lipschitz_on_with.uniform_continuous_on`: a function which is Lipschitz on a set is uniformly
+  continuous on that set.
+
 
 ## Implementation notes
 
@@ -28,7 +38,7 @@ argument, and return `lipschitz_with (nnreal.of_real K) f`.
 
 universes u v w x
 
-open filter function
+open filter function set
 open_locale topological_space nnreal
 
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Type x}
@@ -58,6 +68,29 @@ lemma lipschitz_on_with_iff_dist_le_mul [metric_space α] [metric_space β] {K :
 by { simp only [lipschitz_on_with, edist_nndist, dist_nndist], norm_cast }
 
 alias lipschitz_on_with_iff_dist_le_mul ↔ lipschitz_on_with.dist_le_mul lipschitz_on_with.of_dist_le_mul
+
+@[simp] lemma lipschitz_on_univ [emetric_space α] [emetric_space β] (K : ℝ≥0) {f : α → β} :
+  lipschitz_on_with K univ f ↔ lipschitz_with K f :=
+by simp [lipschitz_on_with, lipschitz_with]
+
+namespace lipschitz_on_with
+
+variables [emetric_space α] [emetric_space β] [emetric_space γ] {K : ℝ≥0} {s : set α} {f : α → β}
+
+protected lemma uniform_continuous_on (hf : lipschitz_on_with K s f) : uniform_continuous_on f s :=
+begin
+  refine emetric.uniform_continuous_on_iff.2 (λε εpos, _),
+  use [ε/K, canonically_ordered_semiring.mul_pos.2 ⟨εpos, ennreal.inv_pos.2 $ ennreal.coe_ne_top⟩],
+  assume x y x_in y_in Dxy,
+  apply lt_of_le_of_lt (hf x y x_in y_in),
+  rw [mul_comm],
+  exact ennreal.mul_lt_of_lt_div Dxy
+end
+
+protected lemma continuous_on (hf : lipschitz_on_with K s f) : continuous_on f s :=
+hf.uniform_continuous_on.continuous_on
+
+end lipschitz_on_with
 
 namespace lipschitz_with
 

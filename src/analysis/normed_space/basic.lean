@@ -222,7 +222,7 @@ lemma lipschitz_on_with_iff_norm_sub_le {f : α → β} {C : ℝ≥0} {s : set �
 by simp only [lipschitz_on_with_iff_dist_le_mul, dist_eq_norm]
 
 lemma lipschitz_on_with.norm_sub_le {f : α → β} {C : ℝ≥0} {s : set α} (h : lipschitz_on_with C s f)
-{x y : α} (x_in : x ∈ s) (y_in : y ∈ s) : ∥f x - f y∥ ≤ C * ∥x - y∥ :=
+  {x y : α} (x_in : x ∈ s) (y_in : y ∈ s) : ∥f x - f y∥ ≤ C * ∥x - y∥ :=
 lipschitz_on_with_iff_norm_sub_le.mp h x_in y_in
 
 /-- A homomorphism `f` of normed groups is continuous, if there exists a constant `C` such that for

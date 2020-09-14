@@ -347,6 +347,55 @@ end
 
 open sampleable
 
+#eval list.diff [1,1,2,2] [1]
+
+def perm.split_at {α} [decidable_eq α] (n : ℕ) : (Σ' xs ys : list α, xs ~ ys) → (Σ' xs ys : list α, xs ~ ys) × (Σ' xs ys : list α, xs ~ ys)
+| ⟨xs, ys, h⟩ :=
+  let xs' := xs.split_at n,
+      xs₀ := xs'.1,
+      xs₁ := xs'.2 in
+  -- have h₂ : xs₀.subset ys, from _,
+  have h₂ : ys.nodup, from _,
+  have h₀ : xs₀ ~ ys.diff xs₁,
+    begin
+      simp [xs', xs₀, xs₁] at *, clear xs₀ xs₁ xs',
+      induction xs generalizing n ys,
+      { rw ← perm.nil_eq h, simp },
+      { cases n,
+        { simp only [take, drop],
+          symmetry, rw [perm_nil, diff_eq_filter_of_nodup h₂, filter_eq_nil],
+          intros a h₀ h₁, apply h₁,
+          apply @perm.subset _ _ _ h.symm _ h₀ },
+        { simp only [take, drop],
+          cases ys with y ys, rw perm_nil at h, cases h,
+          rw [diff_eq_filter_of_nodup h₂, filter], split_ifs,
+          {  },
+ }
+ },
+    end,
+  have h₁ : xs₁ ~ ys.diff xs₀, from _,
+  (⟨xs₀, ys.diff xs₁, h₀⟩, ⟨xs₁, ys.diff xs₀, h₁⟩)
+
+protected def shrink_perm {α} [decidable_eq α] : shrink_fn (Σ' xs ys : list α, xs ~ ys)
+| ⟨xs,ys,h⟩ := do
+  let n := xs.length,
+  let ⟨xs₀, xs⟩ := xs.split_at (n / 3),
+  let ⟨xs₁, xs₂⟩ := xs.split_at (n / 3),
+  ⟨xa₀, xb₀⟩ ← lazy_list.of_list [ ([], xs₀), (xs₀, []) ],
+  ⟨xa₁, xb₁⟩ ← lazy_list.of_list [ ([], xs₁), (xs₁, []) ],
+  ⟨xa₂, xb₂⟩ ← lazy_list.of_list [ ([], xs₂), (xs₂, []) ],
+  let ys' := ys.diff (xb₀ ++ xb₁ ++ xb₂),
+  let ys'' := ys'.split_at (ys'.length / 2),
+  have hs : xa₀ ++ xa₁ ++ xa₂ ~ ys', from sorry,
+  have hs' : xa₀ ++ xa₁ ++ xa₂ ~ ys''.2 ++ ys''.1, from sorry,
+  lazy_list.of_list [ ⟨⟨xa₀ ++ xa₁ ++ xa₂, ys', hs⟩, _⟩, ⟨⟨xa₀ ++ xa₁ ++ xa₂, ys''.2 ++ ys''.1, hs'⟩, _⟩ ],
+  _
+
+
+
+protected def shrink {α} [sampleable α] : shrink_fn (injective_function α)
+| ⟨m⟩ := (sampleable.shrink m).map $ λ ⟨m', h⟩, ⟨⟨_⟩, _⟩
+
 instance pi_injective.sampleable_ext : sampleable_ext { f : ℤ → ℤ // function.injective f } :=
 { proxy_repr := { f : injective_function ℤ // function.injective (apply f) },
   interp := subtype.map apply $ λ x h, h,

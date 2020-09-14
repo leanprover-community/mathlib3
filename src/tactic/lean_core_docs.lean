@@ -728,7 +728,7 @@ add_tactic_doc
 
 /--
 Navigate into the contents of a `λ` binder.
-A target of `| λ a, a + b` will turn into the targets `| a + b` and introduce `a` into the local
+A target of `| λ a, a + b` will turn into the target `| a + b` and introduce `a` into the local
 context.
 -/
 add_tactic_doc

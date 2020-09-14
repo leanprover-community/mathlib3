@@ -92,7 +92,7 @@ def map_pair : F ⟶ G :=
 @[simp] lemma map_pair_right : (map_pair f g).app right = g := rfl
 
 /-- The natural isomorphism between two functors out of the walking pair, specified by its components. -/
-@[simps]
+@[simps hom inv]
 def map_pair_iso (f : F.obj left ≅ G.obj left) (g : F.obj right ≅ G.obj right) : F ≅ G :=
 { hom := map_pair f.hom g.hom,
   inv := map_pair f.inv g.inv,
@@ -326,6 +326,7 @@ lim.map_iso (map_pair_iso f g)
 @[simp] lemma prod.map_iso_hom {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
   (f : W ≅ Y) (g : X ≅ Z) : (prod.map_iso f g).hom = prod.map f.hom g.hom := by simp
 
+#print map_pair_iso
 @[simp] lemma prod.map_iso_inv {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
   (f : W ≅ Y) (g : X ≅ Z) : (prod.map_iso f g).inv = prod.map f.inv g.inv := by simp
 

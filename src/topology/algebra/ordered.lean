@@ -1639,7 +1639,7 @@ variables [topological_space α] [decidable_linear_order α] [order_topology α]
 /-- The `at_top` filter for an open interval `Ioo a b` comes from the left-neighbourhoods filter at
 the right endpoint in the ambient order. -/
 lemma Ioo_at_top_eq_nhds_within {a b : α} (h : a < b) :
-  at_top = comap (coe : Ioo a b → α) (𝓝[Iio b] b) :=
+  (at_top : filter (Ioo a b)) = comap (coe : Ioo a b → α) (𝓝[Iio b] b) :=
 begin
   haveI : nonempty (Ioo a b) := nonempty_Ioo_subtype h,
   ext,
@@ -1660,7 +1660,7 @@ end
 /-- The `at_bot` filter for an open interval `Ioo a b` comes from the right-neighbourhoods filter at
 the left endpoint in the ambient order. -/
 lemma Ioo_at_bot_eq_nhds_within {a b : α} (h : a < b) :
-  at_bot = comap (coe : Ioo a b → α) (𝓝[Ioi a] a) :=
+  (at_bot : filter (Ioo a b)) = comap (coe : Ioo a b → α) (𝓝[Ioi a] a) :=
 begin
   haveI : nonempty (Ioo a b) := nonempty_Ioo_subtype h,
   ext,

@@ -88,12 +88,6 @@ instance Scott.topological_space (α : Type u) [omega_complete_partial_order α]
   is_open_inter := scott_topological_space.is_open_inter α,
   is_open_sUnion := scott_topological_space.is_open_sUnion α }
 
-@[simp]
-lemma set_of_apply {α} (p : α → Prop) (x : α) : set_of p x ↔ p x := iff.rfl
-
-@[simp]
-lemma le_iff_imp {p q : Prop} : p ≤ q ↔ (p → q) := by refl
-
 section not_below
 variables {α : Type*} [omega_complete_partial_order α] (y : Scott α)
 

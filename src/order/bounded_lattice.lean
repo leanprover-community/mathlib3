@@ -290,9 +290,12 @@ instance bounded_distrib_lattice_Prop : bounded_distrib_lattice Prop :=
   bot          := false,
   bot_le       := @false.elim }
 
-instance linear_order_Prop : linear_order Prop :=
+instance Prop.linear_order : linear_order Prop :=
 { le_total := by intros p q; change (p → q) ∨ (q → p); tauto!,
   .. (_ : partial_order Prop) }
+
+@[simp]
+lemma le_iff_imp {p q : Prop} : p ≤ q ↔ (p → q) := iff.rfl
 
 section logic
 variable [preorder α]

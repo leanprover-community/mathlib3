@@ -261,15 +261,15 @@ if H : (0 : R) = 1 then eq_of_zero_eq_one H _ _ else
 begin
   haveI : nontrivial R := ⟨⟨0, 1, H⟩⟩,
   simp_rw [linear_equiv_matrix, linear_equiv.trans_apply, linear_equiv_matrix'_apply,
-    ← equiv.of_injective_apply _ hv₁.injective, ← equiv.of_injective_apply _ hv₂.injective,
+    ← equiv.of_injective_to_fun _ hv₁.injective, ← equiv.of_injective_to_fun _ hv₂.injective,
     to_matrix_of_equiv, ← linear_equiv.trans_apply, linear_equiv.arrow_congr_trans], congr' 3;
   refine function.left_inverse.injective linear_equiv.symm_symm _; ext x;
   simp_rw [linear_equiv.symm_trans_apply, is_basis.equiv_fun_symm_apply, fun_congr_left_symm,
     fun_congr_left_apply, fun_left_apply],
   convert (finset.sum_equiv (equiv.of_injective _ hv₁.injective) _).symm,
-  simp_rw [equiv.symm_apply_apply, equiv.of_injective_apply, subtype.coe_mk],
+  simp_rw [equiv.symm_apply_apply, equiv.of_injective_to_fun, subtype.coe_mk],
   convert (finset.sum_equiv (equiv.of_injective _ hv₂.injective) _).symm,
-  simp_rw [equiv.symm_apply_apply, equiv.of_injective_apply, subtype.coe_mk]
+  simp_rw [equiv.symm_apply_apply, equiv.of_injective_to_fun, subtype.coe_mk]
 end
 
 end linear_equiv_matrix

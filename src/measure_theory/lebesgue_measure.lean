@@ -237,7 +237,7 @@ open_locale topological_space
 
 theorem volume_val (s) : volume s = lebesgue_outer s := rfl
 
-instance no_atoms_volume : no_atoms_measure (volume : measure ℝ) :=
+instance has_no_atoms_volume : has_no_atoms (volume : measure ℝ) :=
 ⟨lebesgue_outer_singleton⟩
 
 @[simp] lemma volume_Ico {a b : ℝ} : volume (Ico a b) = of_real (b - a) := lebesgue_outer_Ico a b

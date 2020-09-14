@@ -28,7 +28,9 @@ We introduce the following typeclasses for measures:
 
 * `probability_measure μ`: `μ univ = 1`;
 * `finite_measure μ`: `μ univ < ⊤`;
-* `locally_finite_measure μ` : `∀ x, ∃ s ∈ 𝓝 x, μ s < ⊤`.
+* `locally_finite_measure μ` : `∀ x, ∃ s ∈ 𝓝 x, μ s < ⊤`;
+* `has_no_atoms μ` : `∀ x, μ {x} = 0`; possibly should be redefined as
+  `∀ s, 0 < μ s → ∃ t ⊆ s, 0 < μ t ∧ μ t < μ s`.
 
 Given a measure, the null sets are the sets where `μ s = 0`, where `μ` denotes the corresponding
 outer measure (so `s` might not be measurable). We can then define the completion of `μ` as the
@@ -836,7 +838,9 @@ begin
     ht _ (diff_subset_iff.2 hu) (hum.diff hsm)]
 end
 
-lemma restrict_finset_bUnion_congr {ι} {s : finset ι} {t : ι → set α}
+variables {ι : Type*}
+
+lemma restrict_finset_bUnion_congr {s : finset ι} {t : ι → set α}
   (htm : ∀ i ∈ s, is_measurable (t i)) :
   μ.restrict (⋃ i ∈ s, t i) = ν.restrict (⋃ i ∈ s, t i) ↔
     ∀ i ∈ s, μ.restrict (t i) = ν.restrict (t i) :=
@@ -847,7 +851,7 @@ begin
   exact restrict_union_congr htm.1 (is_measurable.bUnion s.countable_to_set htm.2)
 end
 
-lemma restrict_Union_congr {ι} [encodable ι] {s : ι → set α} (hm : ∀ i, is_measurable (s i)) :
+lemma restrict_Union_congr [encodable ι] {s : ι → set α} (hm : ∀ i, is_measurable (s i)) :
   μ.restrict (⋃ i, s i) = ν.restrict (⋃ i, s i) ↔
     ∀ i, μ.restrict (s i) = ν.restrict (s i) :=
 begin
@@ -862,7 +866,19 @@ begin
     (restrict_finset_bUnion_congr (λ i hi, hm i)).2 (λ i hi, h i)],
 end
 
-variables {ι : Type*}
+lemma restrict_bUnion_congr {s : set ι} {t : ι → set α} (hc : countable s)
+  (htm : ∀ i ∈ s, is_measurable (t i)) :
+  μ.restrict (⋃ i ∈ s, t i) = ν.restrict (⋃ i ∈ s, t i) ↔
+    ∀ i ∈ s, μ.restrict (t i) = ν.restrict (t i) :=
+begin
+  simp only [bUnion_eq_Union, set_coe.forall'] at htm ⊢,
+  haveI := hc.to_encodable,
+  exact restrict_Union_congr htm
+end
+
+lemma restrict_sUnion_congr {S : set (set α)} (hc : countable S) (hm : ∀ s ∈ S, is_measurable s) :
+  μ.restrict (⋃₀ S) = ν.restrict (⋃₀ S) ↔ ∀ s ∈ S, μ.restrict s = ν.restrict s :=
+by rw [sUnion_eq_bUnion, restrict_bUnion_congr hc hm]
 
 lemma ext_iff_of_Union_eq_univ [encodable ι] {s : ι → set α}
   (hm : ∀ i, is_measurable (s i)) (hs : (⋃ i, s i) = univ) :
@@ -874,11 +890,7 @@ alias ext_iff_of_Union_eq_univ ↔ _ measure_theory.measure.ext_of_Union_eq_univ
 lemma ext_iff_of_bUnion_eq_univ {S : set ι} {s : ι → set α} (hc : countable S)
   (hm : ∀ i ∈ S, is_measurable (s i)) (hs : (⋃ i ∈ S, s i) = univ) :
   μ = ν ↔ ∀ i ∈ S, μ.restrict (s i) = ν.restrict (s i) :=
-begin
-  simp only [bUnion_eq_Union, set_coe.forall'] at hs hm ⊢,
-  haveI := hc.to_encodable,
-  exact ext_iff_of_Union_eq_univ hm hs
-end
+by rw [← restrict_bUnion_congr hc hm, hs, restrict_univ, restrict_univ]
 
 alias ext_iff_of_bUnion_eq_univ ↔ _ measure_theory.measure.ext_of_bUnion_eq_univ
 
@@ -1232,11 +1244,15 @@ class probability_measure (μ : measure α) : Prop := (measure_univ : μ univ = 
 /-- A measure `μ` is called finite if `μ univ < ⊤`. -/
 class finite_measure (μ : measure α) : Prop := (measure_univ_lt_top : μ univ < ⊤)
 
-/-- Measure `μ` *has no atoms* if the measure of each singleton is zero.-/
-class no_atoms_measure (μ : measure α) : Prop :=
+/-- Measure `μ` *has no atoms* if the measure of each singleton is zero.
+
+NB: Wikipedia assumes that for any measurable set `s` with positive `μ`-measure,
+there exists a measurable `t ⊆ s` such that `0 < μ t < μ s`. While this implies `μ {x} = 0`,
+the converse is not true. -/
+class has_no_atoms (μ : measure α) : Prop :=
 (measure_singleton : ∀ x, μ {x} = 0)
 
-export probability_measure (measure_univ) no_atoms_measure (measure_singleton)
+export probability_measure (measure_univ) has_no_atoms (measure_singleton)
 
 attribute [simp] measure_singleton
 
@@ -1253,7 +1269,7 @@ instance probability_measure.to_finite_measure (μ : measure α) [probability_me
 
 section no_atoms
 
-variables [no_atoms_measure μ]
+variables [has_no_atoms μ]
 
 lemma measure_countable {s : set α} (h : countable s) : μ s = 0 :=
 begin

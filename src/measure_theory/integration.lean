@@ -847,7 +847,7 @@ lintegral_mono
 @[simp] lemma lintegral_const (c : ennreal) : ∫⁻ a, c ∂μ = c * μ univ :=
 by rw [← simple_func.const_lintegral, ← simple_func.lintegral_eq_lintegral, simple_func.coe_const]
 
-lemma measure_eq_lintegral (s) : μ s = ∫⁻ a in s, 1 ∂μ :=
+lemma set_lintegral_one (s) : ∫⁻ a in s, 1 ∂μ = μ s :=
 by rw [lintegral_const, one_mul, measure.restrict_apply_univ]
 
 /-- `∫⁻ a in s, f a ∂μ` is defined as the supremum of integrals of simple functions

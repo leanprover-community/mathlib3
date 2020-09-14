@@ -207,7 +207,7 @@ instance : finite_dimensional (fixed_points G F) F :=
 finite_dimensional.finite_dimensional_iff_dim_lt_omega.2 $
 lt_of_le_of_lt (dim_le_card G F) (cardinal.nat_lt_omega _)
 
-protected lemma findim : findim (fixed_points G F) F ≤ fintype.card G :=
+lemma findim_le_card : findim (fixed_points G F) F ≤ fintype.card G :=
 by exact_mod_cast trans_rel_right (≤) (findim_eq_dim _ _) (dim_le_card G F)
 
 end fixed_points
@@ -258,10 +258,10 @@ lemma to_alg_hom_apply {G : Type u} {F : Type v} [group G] [field F]
   to_alg_hom G F g x = g • x :=
 rfl
 
-protected theorem dim (G : Type u) (F : Type v) [group G] [field F]
+theorem findim_eq_card (G : Type u) (F : Type v) [group G] [field F]
   [fintype G] [faithful_mul_semiring_action G F] :
   findim (fixed_points G F) F = fintype.card G :=
-le_antisymm (fixed_points.findim G F) $
+le_antisymm (fixed_points.findim_le_card G F) $
 calc  fintype.card G
     ≤ fintype.card (F →ₐ[fixed_points G F] F) : fintype.card_le_of_injective _ (to_alg_hom G F).2
 ... ≤ findim F (F →ₗ[fixed_points G F] F) : findim_alg_hom (fixed_points G F) F

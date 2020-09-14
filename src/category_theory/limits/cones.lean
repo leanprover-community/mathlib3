@@ -527,11 +527,31 @@ end category_theory
 
 namespace category_theory.limits
 
+section
+variables {F : J ⥤ C}
+
+/-- Change a `cocone F` into a `cone F.op`. -/
+@[simps] def cocone.op (c : cocone F) : cone F.op :=
+{ X := op c.X,
+  π :=
+  { app := λ j, (c.ι.app (unop j)).op,
+    naturality' := λ j j' f, has_hom.hom.unop_inj (by tidy) } }
+
+/-- Change a `cone F` into a `cocone F.op`. -/
+@[simps] def cone.op (c : cone F) : cocone F.op :=
+{ X := op c.X,
+  ι :=
+  { app := λ j, (c.π.app (unop j)).op,
+    naturality' := λ j j' f, has_hom.hom.unop_inj (by tidy) } }
+
+end
+
+section
 variables {F : J ⥤ Cᵒᵖ}
 
--- Here and below we only automatically generate the `@[simp]` lemma for the `X` field,
--- as we can be a simpler `rfl` lemma for the components of the natural transformation by hand.
 /-- Change a cocone on `F.left_op : Jᵒᵖ ⥤ C` to a cocone on `F : J ⥤ Cᵒᵖ`. -/
+-- Here and below we only automatically generate the `@[simp]` lemma for the `X` field,
+-- as we can write a simpler `rfl` lemma for the components of the natural transformation by hand.
 @[simps X] def cone_of_cocone_left_op (c : cocone F.left_op) : cone F :=
 { X := op c.X,
   π := nat_trans.right_op (c.ι ≫ (const.op_obj_unop (op c.X)).hom) }
@@ -566,4 +586,7 @@ by { dsimp [cocone_of_cone_left_op], simp }
 @[simp] lemma cone_left_op_of_cocone_π_app (c : cocone F) (j) :
   (cone_left_op_of_cocone c).π.app j = (c.ι.app (unop j)).unop :=
 by { dsimp [cone_left_op_of_cocone], simp }
+
+end
+
 end category_theory.limits

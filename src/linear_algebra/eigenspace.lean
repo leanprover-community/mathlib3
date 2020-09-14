@@ -428,7 +428,7 @@ begin
     have ih_ER : (⨆ (μ : K) (k : ℕ), f'.generalized_eigenspace μ k) = ⊤,
       from ih (findim K ER) h_dim_ER f' rfl,
     -- The induction hypothesis gives us a statement about subspaces of `ER`. We can transfer this
-    -- to a statement about subspaces of `V` via `submoudule.subtype`:
+    -- to a statement about subspaces of `V` via `submodule.subtype`:
     have ih_ER' : (⨆ (μ : K) (k : ℕ), (f'.generalized_eigenspace μ k).map ER.subtype) = ER,
       by simp only [(submodule.map_supr _ _).symm, ih_ER, submodule.map_subtype_top ER],
     -- Moreover, every generalized eigenspace of `f'` is contained in the corresponding generalized

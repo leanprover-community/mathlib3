@@ -80,14 +80,12 @@ begin
 end
 -/
 
-lemma mah (I J J' : fractional_ideal f) (hJ' : J'≠ 0) :  I ≤ J * (1/ J') ↔  J'*I ≤ J:= sorry
-variables {N1 N2 : fractional_ideal f}
-lemma boh {I : fractional_ideal f} : I ≤ I / 1 ↔  I * 1 ≤ I:= sorry
-lemma hnz_M1 : N2 ≠ 0 := sorry,
+lemma le_div_iff_of_nonzero' {I J J' : fractional_ideal f} (hJ' : J'≠ 0) :  I ≤ J * (1/ J') ↔  J'*I ≤ J:= sorry
 lemma hM_sq (N2 : fractional_ideal f) : N2*N2 ≤ N2 := sorry,
 lemma hM_triv (N2 : fractional_ideal f): (N2 : fractional_ideal f)≤1*(N2) : fractional_ideal f := sorry,
-#check (mah N2 N2 N2 hnz_M1).mpr
-#check hM_triv (1/N2)
+
+variables {N1 N2 : fractional_ideal f}
+
 
 lemma maximal_ideal_inv_of_dedekin
 (h : is_dedekind_domain f) {M : ideal R}
@@ -95,11 +93,10 @@ lemma maximal_ideal_inv_of_dedekin
 begin
   have hnz_Mf : (↑ M : fractional_ideal f) ≠ (0 : fractional_ideal f),
     sorry,--apply fractional_ideal.mkid_ne_zero_iff_nonzero.mpr hnz_M,
-  have h_onenezero : (1 : fractional_ideal f)/(↑ M : fractional_ideal f) ≠ (0 : fractional_ideal f), sorry,
   have hM_inclMinv : (↑ M : fractional_ideal f) ≤ (↑ M : fractional_ideal f)*(1/↑ M : fractional_ideal f),
-    apply (mah ↑M ↑M ↑M hnz_Mf).mpr (hM_sq (↑ M : fractional_ideal f)),
+    apply (le_div_iff_of_nonzero' hnz_Mf).mpr (hM_sq (↑ M : fractional_ideal f)),
   have hMMinv_inclR : ↑ M * (1/↑ M) ≤ (1 : fractional_ideal f),
-    apply (mah ((1: fractional_ideal f)/(↑M : fractional_ideal f)) (1: fractional_ideal f) ↑M hnz_Mf).mp (hM_triv ((1: fractional_ideal f)/(↑ M : fractional_ideal f))),
+    apply (le_div_iff_of_nonzero' hnz_Mf).mp (hM_triv ((1: fractional_ideal f)/(↑ M : fractional_ideal f))),
   suffices hprod : ↑M*((1: fractional_ideal f)/↑M)=(1: fractional_ideal f),
   apply is_unit_of_mul_eq_one ↑M ((1: fractional_ideal f)/↑M) hprod,
       --now comes the 'hard' part: showing that M*(1/M)≤ 1 implies M*(1/M)=1 since M is max'l.

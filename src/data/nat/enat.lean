@@ -33,7 +33,8 @@ with `+` and `≤`.
 `enat` is defined to be `roption ℕ`.
 
 `+` and `≤` are defined on `enat`, but there is an issue with `*` because it's not
-clear what `0 * ⊤` should be. `mul` is hence left undefined.
+clear what `0 * ⊤` should be. `mul` is hence left undefined. Similarly `⊤ - ⊤` is ambiguous
+so there is no `-` defined on `enat`.
 
 Before the `open_locale classical` line, various proofs are made with decidability assumptions.
 This can cause issues -- see for example the non-simp lemma `to_with_top_zero` proved by `rfl`,

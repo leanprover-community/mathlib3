@@ -378,7 +378,7 @@ calc
   ... ≤ findim K (f.generalized_eigenspace μ k) :
     submodule.findim_mono (generalized_eigenspace_mono (nat.succ_le_of_lt hk))
 
-/-- A linear map maps its generalized eigenrange into itself. -/
+/-- A linear map maps a generalized eigenrange into itself. -/
 lemma map_generalized_eigenrange_le [field K] [vector_space K V] {f : End K V} {μ : K} {n : ℕ} :
   submodule.map f (f.generalized_eigenrange μ n) ≤ f.generalized_eigenrange μ n :=
 calc submodule.map f (f.generalized_eigenrange μ n)

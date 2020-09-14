@@ -727,9 +727,10 @@ add_tactic_doc
   tags       := ["conv"] }
 
 /--
-Navigate into the contents of a `λ` binder.
+Navigate into the contents of top-level `λ` binders.
 A target of `| λ a, a + b` will turn into the target `| a + b` and introduce `a` into the local
 context.
+If there are multiple binders, all of them will be entered, and if there are none, this tactic is a no-op.
 -/
 add_tactic_doc
 { name       := "funext",

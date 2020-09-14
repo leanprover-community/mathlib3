@@ -172,49 +172,49 @@ section monadic_stuff
 open_locale classical
 variables (φ : mv_polynomial σ R) (f : σ → mv_polynomial τ R)
 
-lemma vars_mul (φ ψ : mv_polynomial σ R) :
-  (φ * ψ).vars ⊆ φ.vars ∪ ψ.vars :=
-begin
-  intro i,
-  simp only [mem_vars, finset.mem_union],
-  rintro ⟨d, hd, hi⟩,
-  rw [finsupp.mem_support_iff, ← coeff, coeff_mul] at hd,
-  contrapose! hd, cases hd,
-  rw finset.sum_eq_zero,
-  rintro ⟨d₁, d₂⟩ H,
-  rw finsupp.mem_antidiagonal_support at H,
-  subst H,
-  obtain H|H : i ∈ d₁.support ∨ i ∈ d₂.support,
-  { simpa only [finset.mem_union] using finsupp.support_add hi, },
-  { suffices : coeff d₁ φ = 0, by simp [this],
-    rw [coeff, ← finsupp.not_mem_support_iff], intro, solve_by_elim, },
-  { suffices : coeff d₂ ψ = 0, by simp [this],
-    rw [coeff, ← finsupp.not_mem_support_iff], intro, solve_by_elim, },
-end
+-- lemma vars_mul (φ ψ : mv_polynomial σ R) :
+--   (φ * ψ).vars ⊆ φ.vars ∪ ψ.vars :=
+-- begin
+--   intro i,
+--   simp only [mem_vars, finset.mem_union],
+--   rintro ⟨d, hd, hi⟩,
+--   rw [finsupp.mem_support_iff, ← coeff, coeff_mul] at hd,
+--   contrapose! hd, cases hd,
+--   rw finset.sum_eq_zero,
+--   rintro ⟨d₁, d₂⟩ H,
+--   rw finsupp.mem_antidiagonal_support at H,
+--   subst H,
+--   obtain H|H : i ∈ d₁.support ∨ i ∈ d₂.support,
+--   { simpa only [finset.mem_union] using finsupp.support_add hi, },
+--   { suffices : coeff d₁ φ = 0, by simp [this],
+--     rw [coeff, ← finsupp.not_mem_support_iff], intro, solve_by_elim, },
+--   { suffices : coeff d₂ ψ = 0, by simp [this],
+--     rw [coeff, ← finsupp.not_mem_support_iff], intro, solve_by_elim, },
+-- end
 
-@[simp] lemma vars_one : (1 : mv_polynomial σ R).vars = ∅ :=
-vars_C
+-- @[simp] lemma vars_one : (1 : mv_polynomial σ R).vars = ∅ :=
+-- vars_C
 
-lemma vars_pow (φ : mv_polynomial σ R) (n : ℕ) :
-  (φ ^ n).vars ⊆ φ.vars :=
-begin
-  induction n with n ih,
-  { simp },
-  { rw pow_succ,
-    apply finset.subset.trans (vars_mul _ _),
-    exact finset.union_subset (finset.subset.refl _) ih }
-end
+-- lemma vars_pow (φ : mv_polynomial σ R) (n : ℕ) :
+--   (φ ^ n).vars ⊆ φ.vars :=
+-- begin
+--   induction n with n ih,
+--   { simp },
+--   { rw pow_succ,
+--     apply finset.subset.trans (vars_mul _ _),
+--     exact finset.union_subset (finset.subset.refl _) ih }
+-- end
 
-lemma vars_prod {ι : Type*} {s : finset ι} (f : ι → mv_polynomial σ R) :
-  (∏ i in s, f i).vars ⊆ s.bind (λ i, (f i).vars) :=
-begin
-  apply s.induction_on,
-  { simp },
-  { intros a s hs hsub,
-    simp only [hs, finset.bind_insert, finset.prod_insert, not_false_iff],
-    apply finset.subset.trans (vars_mul _ _),
-    exact finset.union_subset_union (finset.subset.refl _) hsub }
-end
+-- lemma vars_prod {ι : Type*} {s : finset ι} (f : ι → mv_polynomial σ R) :
+--   (∏ i in s, f i).vars ⊆ s.bind (λ i, (f i).vars) :=
+-- begin
+--   apply s.induction_on,
+--   { simp },
+--   { intros a s hs hsub,
+--     simp only [hs, finset.bind_insert, finset.prod_insert, not_false_iff],
+--     apply finset.subset.trans (vars_mul _ _),
+--     exact finset.union_subset_union (finset.subset.refl _) hsub }
+-- end
 
 lemma bind₁_vars : (bind₁ f φ).vars ⊆ φ.vars.bind (λ i, (f i).vars) :=
 begin
@@ -250,21 +250,21 @@ begin
     exact ⟨d, hd, hi⟩, }
 end
 
-section
-variables {A : Type*} [integral_domain A]
+-- section
+-- variables {A : Type*} [integral_domain A]
 
-lemma vars_C_mul (a : A) (ha : a ≠ 0) (φ : mv_polynomial σ A) :
-  (C a * φ).vars = φ.vars :=
-begin
-  ext1 i,
-  simp only [mem_vars, exists_prop, finsupp.mem_support_iff],
-  apply exists_congr,
-  intro d,
-  apply and_congr _ iff.rfl,
-  rw [← coeff, ← coeff, coeff_C_mul, mul_ne_zero_iff, eq_true_intro ha, true_and],
-end
+-- lemma vars_C_mul (a : A) (ha : a ≠ 0) (φ : mv_polynomial σ A) :
+--   (C a * φ).vars = φ.vars :=
+-- begin
+--   ext1 i,
+--   simp only [mem_vars, exists_prop, finsupp.mem_support_iff],
+--   apply exists_congr,
+--   intro d,
+--   apply and_congr _ iff.rfl,
+--   rw [← coeff, ← coeff, coeff_C_mul, mul_ne_zero_iff, eq_true_intro ha, true_and],
+-- end
 
-end
+-- end
 
 end monadic_stuff
 

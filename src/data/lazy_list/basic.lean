@@ -197,4 +197,7 @@ by simp only [has_mem.mem, lazy_list.mem, or_imp_distrib, forall_and_distrib, fo
   with the same elements but in the type `{x // x ∈ l}`. -/
 def attach {α} (l : lazy_list α) : lazy_list {x // x ∈ l} := pmap subtype.mk l (λ a, id)
 
+instance {α} [has_repr α] : has_repr (lazy_list α) :=
+⟨ λ xs, repr xs.to_list ⟩
+
 end lazy_list

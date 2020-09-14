@@ -9,19 +9,15 @@ universes u v w
 
 namespace slim_check
 
-/-- Data structure specifying a total function
-using a partial function (`finmap`) and a default value
-used when the input is not in the domain of the partial function.
+/-- Data structure specifying a total function using a list of pairs
+and a default value returned when the input is not in the domain of
+the partial function.
 
 `with_default f y` encodes `x ↦ f x` when `x ∈ f` and `x ↦ y`
 otherwise.
-
-`map_to_self f` encodes `x ↦ f x` when `x ∈ f` and `x ↦ x`,
-i.e. `x` to itself, otherwise.
  -/
-inductive total_function (α : Type u) : Type u → Type (u+1)
-| with_default {β} : finmap (λ _ : α, β) → β → total_function β
-| map_to_self : finmap (λ _ : α, α) → total_function α
+inductive total_function (α : Type u) (β : Type v) : Type (max u v)
+| with_default : list (Σ _ : α, β) → β → total_function
 
 instance total_function.inhabited {α β} [inhabited β] : inhabited (total_function α β) :=
 ⟨ total_function.with_default ∅ (default _) ⟩
@@ -29,9 +25,8 @@ instance total_function.inhabited {α β} [inhabited β] : inhabited (total_func
 namespace total_function
 
 /-- Apply a total function to an argument. -/
-def apply {α : Type u} [decidable_eq α] : Π {β : Type u}, total_function α β → α → β
-| β (total_function.with_default m y) x := (m.lookup x).get_or_else y
-| β (total_function.map_to_self m) x := (m.lookup x).get_or_else x
+def apply {α β : Type*} [decidable_eq α] : total_function α β → α → β
+| (total_function.with_default m y) x := (m.lookup x).get_or_else y
 
 /--
 Implementation of `has_repr (total_function α β)`.
@@ -39,8 +34,8 @@ Implementation of `has_repr (total_function α β)`.
 Creates a string for a given `finmap` and output, `x₀ ↦ y₀, .. xₙ ↦ yₙ`
 for each of the entries. The brackets are provided by the calling function.
 -/
-def repr_aux {α : Type u} [has_repr α] {β : Type u} [has_repr β] (m : finmap (λ _ : α, β)) : string :=
-string.join $ multiset.sort (≤) (m.entries.map $ λ x, sformat!"{repr $ sigma.fst x} ↦ {repr $ sigma.snd x}, ")
+def repr_aux {α : Type u} [has_repr α] {β : Type v} [has_repr β] (m : list (Σ _ : α, β)) : string :=
+string.join $ list.qsort (λ x y, x < y) (m.map $ λ x, sformat!"{repr $ sigma.fst x} ↦ {repr $ sigma.snd x}, ")
 
 /--
 Produce a string for a given `total_function`.
@@ -49,11 +44,10 @@ For `with_default f y`, produce `[x₀ ↦ f x₀, .. xₙ ↦ f xₙ, _ ↦ y]`
 
 For `map_to_self f`, produce `[x₀ ↦ f x₀, .. xₙ ↦ f xₙ, x ↦ x]`.
 -/
-protected def repr {α : Type u} [has_repr α] : Π {β : Type u} [has_repr β], total_function α β → string
-| β Iβ (total_function.with_default m y) := sformat!"[{@repr_aux _ _ _ Iβ m}_ ↦ {@has_repr.repr _ Iβ y}]"
-| _ _ (total_function.map_to_self m) := sformat!"[{repr_aux m}x ↦ x]"
+protected def repr {α : Type u} [has_repr α] {β : Type v} [has_repr β] : total_function α β → string
+| (total_function.with_default m y) := sformat!"[{repr_aux m}_ ↦ {has_repr.repr y}]"
 
-instance (α : Type u) (β : Type u) [has_repr α] [has_repr β] : has_repr (total_function α β) :=
+instance (α : Type u) (β : Type v) [has_repr α] [has_repr β] : has_repr (total_function α β) :=
 ⟨ total_function.repr ⟩
 
 /-- Convert a product type to a Σ-type. -/
@@ -61,34 +55,72 @@ instance (α : Type u) (β : Type u) [has_repr α] [has_repr β] : has_repr (tot
 def prod.to_sigma {α β} : α × β → Σ _ : α, β
 | ⟨x,y⟩ := ⟨x,y⟩
 
+/-- Convert a product type to a Σ-type. -/
+@[simp]
+def sigma.to_prod {α β} : (Σ _ : α, β) → α × β
+| ⟨x,y⟩ := ⟨x,y⟩
+
 /-- Create a `finmap` from a list of pairs. -/
-def list.to_finmap' {α β} [decidable_eq α] (xs : list (α × β)) : finmap (λ _ : ulift α, ulift β) :=
-(xs.map $ prod.to_sigma ∘ prod.map ulift.up ulift.up).to_finmap
+def list.to_finmap' {α β} [decidable_eq α] (xs : list (α × β)) : list (Σ _ : α, β) :=
+xs.map prod.to_sigma
 
 @[simp]
 lemma prod.fst_to_sigma {α β} (x : α × β) : (prod.to_sigma x).fst = x.fst :=
 by cases x; refl
 
-/-- Print out the representation of a function. -/
-@[reducible]
-protected def proxy_repr (α : Type u) (β : Type v) :=
-total_function (ulift.{max u v} α) (ulift.{max v u} β)
-
-/-- Interpret a `total_function` as a pi-typed function. -/
-protected def interp (α : Type u) (β : Type v) [decidable_eq α] (m : total_function.proxy_repr α β) (x : α) : β :=
-ulift.down $ total_function.apply m (ulift.up x)
-
 instance ulift.has_repr {α} [has_repr α] : has_repr (ulift α) :=
 ⟨ λ ⟨x⟩, repr x ⟩
 
-instance pi.sampleable_ext {α : Type u} {β : Type v} [has_repr α] [has_repr β] [sampleable α] [decidable_eq α] [sampleable β] : sampleable_ext (α → β) :=
-{ proxy_repr := total_function (ulift.{max u v} α) (ulift.{max v u} β),
-  interp := total_function.interp α β,
+section
+
+variables {α : Type u} {β : Type v} [sampleable α] [sampleable β]
+
+def total.sizeof : total_function α β → ℕ
+| ⟨m, x⟩ := 1 + @sizeof _ sampleable.wf m + sizeof x
+
+@[priority 2000]
+instance : has_sizeof (total_function α β) :=
+⟨ total.sizeof ⟩
+
+variables [decidable_eq α]
+
+lemma sizeof_kerase {α β} [decidable_eq α] [has_sizeof (Σ _ : α, β)] (x : α) (xs : list (Σ _ : α, β)) :
+  sizeof (list.kerase x xs) ≤ sizeof xs :=
+begin
+  unfold_wf,
+  induction xs with y ys,
+  { simp },
+  { by_cases x = y.1; simp [*, list.sizeof] },
+end
+
+lemma sizeof_erase_dupkeys {α β} [decidable_eq α] [has_sizeof (Σ _ : α, β)] (xs : list (Σ _ : α, β)) :
+  sizeof (list.erase_dupkeys xs) ≤ sizeof xs :=
+begin
+  unfold_wf,
+  induction xs with x xs,
+  { simp [list.erase_dupkeys] },
+  { simp [list.erase_dupkeys_cons, list.sizeof],
+    transitivity, apply sizeof_kerase,
+    assumption }
+end
+
+protected def shrink : shrink_fn (total_function α β)
+| ⟨m, x⟩ := (sampleable.shrink (m, x)).map $ λ ⟨⟨m', x'⟩, h⟩, ⟨⟨list.erase_dupkeys m', x'⟩,
+            lt_of_le_of_lt (by unfold_wf; refine @sizeof_erase_dupkeys _ _ _ (@sampleable.wf _ _) _) h ⟩
+
+variables
+ [has_repr α] [has_repr β]
+
+instance pi.sampleable_ext : sampleable_ext (α → β) :=
+{ proxy_repr := total_function α β,
+  interp := total_function.apply,
   sample := do {
-    ⟨xs⟩ ← (uliftable.up $ sampleable.sample (list (α × β)) : gen (ulift.{(max u v)+1} (list (α × β)))),
-    ⟨x⟩ ← (uliftable.up $ sample β : gen (ulift.{(max u v)+1} β)),
-    pure $ total_function.with_default (list.to_finmap' xs) ⟨x⟩ },
-  shrink := λ _, lazy_list.nil }
+    xs ← (sampleable.sample (list (α × β)) : gen ((list (α × β)))),
+    ⟨x⟩ ← (uliftable.up $ sample β : gen (ulift.{(max u v)} β)),
+    pure $ total_function.with_default (list.to_finmap' xs) x },
+  shrink := total_function.shrink }
+
+end
 
 section sampleable_ext
 open sampleable_ext
@@ -108,6 +140,33 @@ instance pi_uncurry.sampleable_ext {α : Type u} {β : Type v} {γ : Sort w} [sa
   shrink := shrink }
 
 end sampleable_ext
+
+end total_function
+
+/--
+Data structure specifying a total function using a list of pairs
+and a default value returned when the input is not in the domain of
+the partial function.
+
+`map_to_self f` encodes `x ↦ f x` when `x ∈ f` and `x ↦ x`,
+i.e. `x` to itself, otherwise.
+-/
+inductive injective_function (α : Type u) : Type u
+| map_to_self : list (Σ _ : α, α) → injective_function
+
+namespace injective_function
+
+/-- Apply a total function to an argument. -/
+def apply {α : Type u} [decidable_eq α] : injective_function α → α → α
+| (injective_function.map_to_self m) x := (m.lookup x).get_or_else x
+
+protected def repr {α : Type u} [has_repr α] : injective_function α → string
+| (injective_function.map_to_self m) := sformat!"[{total_function.repr_aux m}x ↦ x]"
+
+instance (α : Type u) [has_repr α] : has_repr (injective_function α) :=
+⟨ injective_function.repr ⟩
+
+open total_function (prod.to_sigma sigma.to_prod)
 
 /-- Interpret a list of pairs as a total function, defaulting to
 the identity function when no entries are found for a given function -/
@@ -253,39 +312,33 @@ begin
   { rwa [bar_foo, bar_foo] at h; assumption },
 end
 
+open total_function (list.to_finmap')
+
 lemma interp_injective {α : Type u} [decidable_eq α] {xs ys : list α} (h₀ : list.nodup xs) (h₁ : xs ~ ys) :
   injective.{u+1 u+1}
-    (total_function.interp α α (total_function.map_to_self (list.to_finmap' $ xs.zip ys))) :=
+    (apply (injective_function.map_to_self (list.to_finmap'.{u u} $ xs.zip ys))) :=
 begin
   simp [list.to_finmap'],
-  rw [← map_map, ← zip_map],
-  generalize hxs : (map ulift.up xs) = xs',
-  generalize hys : (map ulift.up ys) = ys',
   intros x y h,
-  dsimp [total_function.interp, apply] at h,
-  replace h : list.apply_id.{u} (xs'.zip ys') ⟨x⟩ = list.apply_id (xs'.zip ys') ⟨y⟩,
-  { dsimp [list.apply_id],
-    simp at h, ext, exact h, },
-  refine congr_arg ulift.down (apply_id_injective _ _ h),
-  { subst xs', solve_by_elim [nodup_map, ulift.up.inj], },
-  { rw [← hxs, ← hys], solve_by_elim [perm.map] }
+  dsimp [apply] at h,
+  replace h : list.apply_id.{u} (xs.zip ys) x = list.apply_id (xs.zip ys) y := h,
+  refine (apply_id_injective h₀ h₁ h),
 end
 
 open sampleable
 
 instance pi_injective.sampleable_ext : sampleable_ext { f : ℤ → ℤ // function.injective f } :=
-{ proxy_repr := { f : total_function (ulift ℤ) (ulift ℤ) // function.injective (total_function.interp ℤ ℤ f) },
-  interp := subtype.map (total_function.interp ℤ ℤ) $ λ x h, h,
+{ proxy_repr := { f : injective_function ℤ // function.injective (apply f) },
+  interp := subtype.map apply $ λ x h, h,
   sample := gen.sized $ λ sz, do {
-    let xs' := int.range (-(2*sz+2)) (2*sz + 2)  in
-    uliftable.adapt_up.{1} gen.{0} gen.{1}
-      (gen.permutation_of xs') $ λ ys,
-    let r : total_function (ulift.{0} ℤ) (ulift.{0} ℤ) := total_function.map_to_self (list.to_finmap' (xs'.zip ys.1)) in
+    let xs' := int.range (-(2*sz+2)) (2*sz + 2),
+    ys ← gen.permutation_of xs',
+    let r : injective_function ℤ := injective_function.map_to_self (list.to_finmap' (xs'.zip ys.1)),
     have Hinj : injective (λ (r : ℕ), -(2*sz + 2 : ℤ) + ↑r), from λ x y h, int.coe_nat_inj (add_right_injective _ h),
     pure ⟨r, interp_injective (list.nodup_map Hinj (nodup_range _)) ys.2⟩ },
   shrink := λ _, lazy_list.nil }
 
-end total_function
+end injective_function
 
 open function
 

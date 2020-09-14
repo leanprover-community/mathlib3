@@ -216,13 +216,15 @@ protected def test_result.to_string {p} : test_result p → string
 /-- configuration for testing a property -/
 @[derive [has_reflect, inhabited]]
 structure slim_check_cfg :=
-(num_inst : ℕ := 100) -- number of examples
-(max_size : ℕ := 100) -- final size argument
-(trace_discarded : bool := ff) -- enable the printing out of discarded samples
-(trace_success : bool := ff) -- enable the printing out of successful samples
-(random_seed : option ℕ := none) -- specify a seed to the random number generator to
-                                 -- obtain a deterministic behavior
-(quiet : bool := ff)             -- suppress success message when running `slim_check`
+(num_inst : ℕ                   := 100)  -- number of examples
+(max_size : ℕ                   := 100)  -- final size argument
+(trace_discarded : bool         := ff)   -- enable the printing out of discarded samples
+(trace_success : bool           := ff)   -- enable the printing out of successful samples
+(trace_shrink : bool            := ff)   -- enable the printing out of shrinking steps
+(trace_shrink_candidates : bool := ff)   -- enable the printing out of shrinking candidates
+(random_seed : option ℕ         := none) -- specify a seed to the random number generator to
+                                         -- obtain a deterministic behavior
+(quiet : bool                   := ff)   -- suppress success message when running `slim_check`
 
 instance {p} : has_to_string (test_result p) := ⟨ test_result.to_string ⟩
 
@@ -441,25 +443,47 @@ def combine_testable (p : Prop)
 
 open sampleable_ext
 
+def format_failure (s : string) (xs : list string) : string :=
+let counter_ex := string.intercalate "\n" xs in
+sformat!"
+===================
+{s}
+
+{counter_ex}
+-------------------
+"
+
+def format_failure' (s : string) {p} : test_result p → string
+| (success a) := ""
+| (gave_up a) := ""
+| (test_result.failure _ xs) := format_failure s xs
+
+
 /-- Shrink a counter-example `x` by using `shrink x`, picking the first
 candidate that falsifies a property and recursively shrinking that one.
 
 The process is guaranteed to terminate because `shrink x` produces
 a proof that all the values it produces are smaller (according to `sizeof`)
 than `x`. -/
-def minimize_aux [sampleable_ext α] [∀ x, testable (β x)] : proxy_repr α → option_t gen (Σ x, test_result (β (interp α x))) :=
+def minimize_aux [sampleable_ext α] [∀ x, testable (β x)] (cfg : slim_check_cfg) (var : string) : proxy_repr α → option_t gen (Σ x, test_result (β (interp α x))) :=
 well_founded.fix has_well_founded.wf $ λ x f_rec, do
-     ⟨y,h₀,⟨h₁⟩⟩ ← (sampleable_ext.shrink x).mfirst (λ ⟨a,h⟩, do
-       ⟨r⟩ ← monad_lift (uliftable.up $ testable.run (β (interp α a)) {} tt : gen (ulift (test_result (β (interp α a))))),
+     if cfg.trace_shrink_candidates
+       then return $ trace sformat!"candidates for {var} :=\n{repr (sampleable_ext.shrink x).to_list}\n" ()
+       else pure (),
+     ⟨y,r,⟨h₁⟩⟩ ← (sampleable_ext.shrink x).mfirst (λ ⟨a,h⟩, do
+       ⟨r⟩ ← monad_lift (uliftable.up $ testable.run (β (interp α a)) cfg tt : gen (ulift (test_result (β (interp α a))))),
        if is_failure r
          then pure (⟨a, r, ⟨h⟩⟩ : (Σ a, test_result (β (interp α a)) × plift (sizeof_lt a x)))
          else failure),
-     f_rec y h₁ <|> pure ⟨y,h₀⟩.
+     if cfg.trace_shrink then return $
+       trace (sformat!"{var} := {repr y}" ++ format_failure' "Shrink counter-example:" r) ()
+       else pure (),
+     f_rec y h₁ <|> pure ⟨y,r⟩
 
 /-- Once a property fails to hold on an example, look for smaller counter-examples
 to show the user. -/
-def minimize [sampleable_ext α] [∀ x, testable (β x)] (x : proxy_repr α) (r : test_result (β (interp α x))) : gen (Σ x, test_result (β (interp α x))) := do
-x' ← option_t.run $ minimize_aux α _ x,
+def minimize [sampleable_ext α] [∀ x, testable (β x)] (cfg : slim_check_cfg) (var : string) (x : proxy_repr α) (r : test_result (β (interp α x))) : gen (Σ x, test_result (β (interp α x))) := do
+x' ← option_t.run $ minimize_aux α _ cfg var x,
 pure $ x'.get_or_else ⟨x, r⟩
 
 @[priority 2000]
@@ -478,7 +502,7 @@ instance var_testable [sampleable_ext α] [∀ x, testable (β x)] : testable (n
    λ x, do
      r ← testable.run (β (sampleable_ext.interp α x)) cfg ff,
      uliftable.adapt_down (if is_failure r ∧ min
-                          then minimize _ _ x r
+                          then minimize _ _ cfg var x r
                           else if cfg.trace_success
                           then trace (sformat!"  {var} := {repr x}") $ pure ⟨x,r⟩
                           else pure ⟨x,r⟩) $
@@ -501,7 +525,7 @@ instance unused_var_testable (β) [inhabited α] [testable β] : testable (named
 instance subtype_var_testable {p : α → Prop}
   [∀ x, printable_prop (p x)]
   [∀ x, testable (β x)]
-  [sampleable_ext (subtype p)]  :
+  [I : sampleable_ext (subtype p)]  :
   testable (named_binder var $ Π x : α, named_binder var' $ p x → β x) :=
 ⟨ λ cfg min,
    do let test (x : subtype p) : testable (β x) :=
@@ -511,7 +535,7 @@ instance subtype_var_testable {p : α → Prop}
               | none := pure r
               | some str := pure $ add_to_counter_example sformat!"guard: {str} (by construction)" id r (psum.inr id)
               end ⟩,
-      r ← @testable.run (∀ x : subtype p, β x.val) (@slim_check.var_testable var _ _ _ test) cfg min,
+      r ← @testable.run (∀ x : subtype p, β x.val) (@slim_check.var_testable var _ _ I test) cfg min,
       pure $ convert_counter_example'
                  ⟨λ (h : ∀ x : subtype p, β x) x h', h ⟨x,h'⟩,
                   λ h ⟨x,h'⟩, h x h'⟩
@@ -701,14 +725,7 @@ match x with
 | (success _) := when (¬ cfg.quiet) $ io.put_str_ln "Success"
 | (gave_up n) := io.fail sformat!"Gave up {repr n} times"
 | (failure _ xs) := do
-   let counter_ex := string.intercalate "\n" xs,
-   io.fail sformat!"
-===================
-Found problems!
-
-{counter_ex}
--------------------
-"
+  io.fail $ format_failure "Found problems!" xs
 end
 
 end io

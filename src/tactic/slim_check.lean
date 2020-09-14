@@ -106,6 +106,8 @@ declare_trace slim_check.instance
 declare_trace slim_check.decoration
 declare_trace slim_check.discared
 declare_trace slim_check.success
+declare_trace slim_check.shrink.steps
+declare_trace slim_check.shrink.candidates .
 open expr
 
 /-- Tree structure representing a `testable` instance. -/
@@ -182,14 +184,18 @@ Optional arguments given with `slim_check_cfg`
 Options:
   * `set_option trace.slim_check.decoration true`: print the proposition with quantifier annotations
   * `set_option trace.slim_check.discarded true`: print the examples discarded because they do not satisfy assumptions
+  * `set_option trace.slim_check.shrink.steps true`: trace the shrinking of counter-example
+  * `set_option trace.slim_check.shrink.candidates true`: print the lists of candidates considered when shrinking each variable
   * `set_option trace.slim_check.instance true`: print the instances of `testable` being used to test the proposition
 -/
 meta def slim_check (cfg : slim_check_cfg := {}) : tactic unit := do
 { tgt ← retrieve $ tactic.revert_all >> target,
   let tgt' := tactic.add_decorations tgt,
   let cfg := { cfg with
-               trace_discarded := cfg.trace_discarded || is_trace_enabled_for `slim_check.discared,
-               trace_success := cfg.trace_success || is_trace_enabled_for `slim_check.success },
+               trace_discarded         := cfg.trace_discarded         || is_trace_enabled_for `slim_check.discared,
+               trace_shrink            := cfg.trace_shrink            || is_trace_enabled_for `slim_check.shrink.steps,
+               trace_shrink_candidates := cfg.trace_shrink_candidates || is_trace_enabled_for `slim_check.shrink.candidates,
+               trace_success           := cfg.trace_success           || is_trace_enabled_for `slim_check.success },
   inst ← mk_app ``testable [tgt'] >>= mk_instance <|>
     fail!"Failed to create a `testable` instance for `{tgt}`.
 What to do:

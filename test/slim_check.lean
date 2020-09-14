@@ -1,6 +1,27 @@
 
 import tactic.slim_check
 
+section
+
+open tactic
+@[interactive]
+meta def mk_slim_check_test : tactic unit := do
+tgt ← target,
+msg ← (λ s, match interactive.slim_check { random_seed := some 257 } s with
+      | result.success x _ := fail "expecting error" s
+      | result.exception msg _ _ := result.success (msg.iget ()).to_string s
+      end ),
+trace!"Try this:
+  have : {tgt},
+  success_if_fail_with_msg
+  {{ slim_check {{ random_seed := some 257 } }
+\"{msg}\",
+  admit,
+  trivial
+"
+
+end
+
 example : true :=
 begin
   have : ∀ i j : ℕ, i < j → j < i,
@@ -111,15 +132,15 @@ begin
 ===================
 Found problems!
 
-f := [-1 ↦ 0, -2 ↦ -2, 0 ↦ -1, 1 ↦ 1, x ↦ x]
-x := -1
-y := 0
-guard: -1 ≤ 0 (by construction)
-issue: 0 ≤ -1 does not hold
+f := [-1 ↦ 6, -10 ↦ -2, -2 ↦ -1, -3 ↦ -4, -4 ↦ 9, -5 ↦ 1, -6 ↦ -3, -7 ↦ 7, -8 ↦ 0, -9 ↦ 3, 0 ↦ -8, 1 ↦ 4, 2 ↦ -5, 3 ↦ 2, 4 ↦ -10, 5 ↦ -9, 6 ↦ 5, 7 ↦ 8, 8 ↦ -7, 9 ↦ -6, x ↦ x]
+x := 1
+y := 5
+guard: 1 ≤ 5 (by construction)
+issue: 4 ≤ -9 does not hold
 -------------------
 ",
   admit,
-  trivial
+  trivial,
 end
 
 example (f : ℤ → ℤ) (h : injective f) : true :=
@@ -131,36 +152,15 @@ begin
 ===================
 Found problems!
 
-f := [-1 ↦ 0, -2 ↦ -2, 0 ↦ -1, 1 ↦ 1, x ↦ x]
-x := -1
-y := 0
-guard: -1 ≤ 0 (by construction)
-issue: 0 ≤ -1 does not hold
+f := [-1 ↦ 6, -10 ↦ -2, -2 ↦ -1, -3 ↦ -4, -4 ↦ 9, -5 ↦ 1, -6 ↦ -3, -7 ↦ 7, -8 ↦ 0, -9 ↦ 3, 0 ↦ -8, 1 ↦ 4, 2 ↦ -5, 3 ↦ 2, 4 ↦ -10, 5 ↦ -9, 6 ↦ 5, 7 ↦ 8, 8 ↦ -7, 9 ↦ -6, x ↦ x]
+x := 1
+y := 5
+guard: 1 ≤ 5 (by construction)
+issue: 4 ≤ -9 does not hold
 -------------------
 ",
   admit,
-  trivial
-end
-
-section
-
-open tactic
-@[interactive]
-meta def mk_slim_check_test : tactic unit := do
-tgt ← target,
-msg ← (λ s, match interactive.slim_check { random_seed := some 257 } s with
-      | result.success x _ := fail "expecting error" s
-      | result.exception msg _ _ := result.success (msg.iget ()).to_string s
-      end ),
-trace!"Try this:
-  have : {tgt},
-  success_if_fail_with_msg
-  {{ slim_check {{ random_seed := some 257 } }
-\"{msg}\",
-  admit,
-  trivial
-"
-
+  trivial,
 end
 
 example (f : ℤ → ℤ) : true :=
@@ -192,17 +192,16 @@ begin
 ===================
 Found problems!
 
-f := [-1 ↦ -6, -228 ↦ -6, -8 ↦ 8, 2 ↦ 192, 260 ↦ 201, 8 ↦ -176, _ ↦ -8]
-x := -1
-y := 3
-guard: -1 ≤ 3 (by construction)
-issue: -6 ≤ -8 does not hold
+f := [-6 ↦ 97, 0 ↦ 0, _ ↦ 4]
+x := -6
+y := -2
+guard: -6 ≤ -2 (by construction)
+issue: 97 ≤ 4 does not hold
 -------------------
 ",
   admit,
   trivial,
 end
-
 example (xs ys : list ℤ) (h : xs ~ ys) : true :=
 begin
   have : list.qsort (λ x y, x ≠ y) xs = list.qsort (λ x y, x ≠ y) ys,
@@ -232,9 +231,9 @@ begin
 Found problems!
 
 x := 59
-y := 42
-guard: 42 ≤ 59 (by construction)
-issue: 101 < 100 does not hold
+y := 41
+guard: 41 ≤ 59 (by construction)
+issue: 100 < 100 does not hold
 -------------------
 ",
   admit,
@@ -269,9 +268,9 @@ begin
 Found problems!
 
 x := 52
-y := 49
-guard: 49 ≤ 52 (by construction)
-issue: 101 < 100 does not hold
+y := 52
+guard: 52 ≤ 52 (by construction)
+issue: 104 < 100 does not hold
 -------------------
 ",
   admit,

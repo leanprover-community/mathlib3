@@ -5,6 +5,7 @@ Author(s): Simon Hudon
 -/
 import data.lazy_list.basic
 import data.tree
+import data.int.basic
 import control.bifunctor
 import tactic.linarith
 import testing.slim_check.gen
@@ -259,8 +260,12 @@ instance pnat.sampleable : sampleable ℕ+ :=
 sampleable.lift ℕ nat.succ_pnat pnat.nat_pred $ λ a,
 by unfold_wf; simp only [pnat.nat_pred, succ_pnat, pnat.mk_coe, nat.sub_zero, succ_sub_succ_eq_sub]
 
+def int.has_sizeof : has_sizeof ℤ := ⟨ int.nat_abs ⟩
+
+local attribute [instance, priority 2000] int.has_sizeof
+
 instance int.sampleable : sampleable ℤ :=
-{ wf := ⟨ int.nat_abs ⟩,
+{ wf := _,
   sample := sized $ λ sz,
           freq [ (1, subtype.val <$> choose (-(sz^3 + 1) : ℤ) (sz^3 + 1) (neg_le_self dec_trivial)),
                  (3, subtype.val <$> choose (-(sz + 1)) (sz + 1) (neg_le_self dec_trivial))]
@@ -304,6 +309,9 @@ instance prod.sampleable : sampleable_bifunctor.{u v} prod :=
                 pure (x,y) },
   shrink := @prod.shrink,
   p_repr := @prod.has_repr }
+
+instance sigma.sampleable {α β} [sampleable α] [sampleable β] : sampleable (Σ _ : α, β) :=
+sampleable.lift (α × β) (λ ⟨x,y⟩, ⟨x,y⟩) (λ ⟨x,y⟩, ⟨x,y⟩) $ λ ⟨x,y⟩, le_refl _
 
 /-- shrinking function for sum types -/
 def sum.shrink {α β} [has_sizeof α] [has_sizeof β] (shrink_α : shrink_fn α) (shrink_β : shrink_fn β) : shrink_fn (α ⊕ β)
@@ -601,6 +609,12 @@ instance large.sampleable_functor : sampleable_functor large :=
   shrink := λ α _, id,
   p_repr := λ α, id  }
 
+instance ulift.sampleable_functor : sampleable_functor ulift.{u v} :=
+{ wf := λ α h, ⟨ λ ⟨x⟩, @sizeof α h x ⟩,
+  sample := λ α samp, uliftable.up_map ulift.up $ samp,
+  shrink := λ α _ shr ⟨x⟩, (shr x).map (subtype.map ulift.up (λ a h, h)),
+  p_repr := λ α h, ⟨ @repr α h ∘ ulift.down ⟩ }
+
 /-!
 ## Subtype instances
 
@@ -620,13 +634,13 @@ instance nat_le.sampleable {y} : slim_check.sampleable { x : ℕ // x ≤ y } :=
 { sample :=
          do { ⟨x,h⟩ ← slim_check.gen.choose_nat 0 y dec_trivial,
               pure ⟨x, h.2⟩},
-  shrink := λ _, lazy_list.nil }
+  shrink := λ ⟨x, h⟩, (λ a : subtype _, subtype.rec_on a $ λ x' h', ⟨⟨x', le_trans (le_of_lt h') h⟩, h'⟩) <$> shrink x }
 
 instance nat_ge.sampleable {x} : slim_check.sampleable { y : ℕ // x ≤ y } :=
 { sample :=
          do { (y : ℕ) ← slim_check.sampleable.sample ℕ,
               pure ⟨x+y, by norm_num⟩ },
-  shrink := λ _, lazy_list.nil }
+  shrink := λ ⟨y, h⟩, (λ a : { y' // sizeof y' < sizeof (y - x) }, subtype.rec_on a $ λ δ h', ⟨⟨x + δ, nat.le_add_right _ _⟩, nat.add_lt_of_lt_sub_left h'⟩) <$> shrink (y - x) }
 
 -- there is no `nat_lt.sampleable` instance because if `y = 0`, there is no valid choice to satisfy `x < y`
 
@@ -634,21 +648,7 @@ instance nat_gt.sampleable {x} : slim_check.sampleable { y : ℕ // x < y } :=
 { sample :=
          do { (y : ℕ) ← slim_check.sampleable.sample ℕ,
               pure ⟨x+y+1, by linarith⟩ },
-  shrink := λ _, lazy_list.nil }
-
-/-! ### Subtypes of `ℤ` -/
-
-instance int_lt.sampleable {y} : slim_check.sampleable { x : ℤ // x < y } :=
-{ sample :=
-         do { x ← slim_check.sampleable.sample ℕ,
-              pure ⟨y - (x+1), sub_lt_self _ (by linarith)⟩},
-  shrink := λ _, lazy_list.nil }
-
-instance int_gt.sampleable {x} : slim_check.sampleable { y : ℤ // x < y } :=
-{ sample :=
-         do { (y : ℕ) ← slim_check.sampleable.sample ℕ,
-              pure ⟨x+y+1, by linarith⟩ },
-  shrink := λ _, lazy_list.nil }
+  shrink := λ x, shrink _ }
 
 /-! ### Subtypes of any `decidable_linear_ordered_add_comm_group` -/
 
@@ -664,13 +664,26 @@ instance ge.sampleable {x : α}  [sampleable α] [decidable_linear_ordered_add_c
               pure ⟨x + abs y, by norm_num [abs_nonneg]⟩ },
   shrink := λ _, lazy_list.nil }
 
--- Specialization of `le.sampleable` and `ge.sampleable` for `ℤ` to head instance search
+
+/-! ### Subtypes of `ℤ` -/
+
+-- Specialization of `le.sampleable` and `ge.sampleable` for `ℤ` to help instance search
 
 instance int_le.sampleable {y : ℤ} : slim_check.sampleable { x : ℤ // x ≤ y } :=
-le.sampleable
+sampleable.lift ℕ (λ n, ⟨y - n, int.sub_left_le_of_le_add $ by simp⟩) (λ ⟨i, h⟩, (y - i).nat_abs)
+  (λ n, by unfold_wf; simp [int_le.sampleable._match_1]; ring)
 
 instance int_ge.sampleable {x : ℤ} : slim_check.sampleable { y : ℤ // x ≤ y } :=
-ge.sampleable
+sampleable.lift ℕ (λ n, ⟨x + n, by simp⟩) (λ ⟨i, h⟩, (i - x).nat_abs)
+  (λ n, by unfold_wf; simp [int_ge.sampleable._match_1]; ring)
+
+instance int_lt.sampleable {y} : slim_check.sampleable { x : ℤ // x < y } :=
+sampleable.lift ℕ (λ n, ⟨y - (n+1), int.sub_left_lt_of_lt_add $ by linarith [int.coe_nat_nonneg n]⟩) (λ ⟨i, h⟩, (y - i - 1).nat_abs)
+  (λ n, by unfold_wf; simp [int_lt.sampleable._match_1]; ring)
+
+instance int_gt.sampleable {x} : slim_check.sampleable { y : ℤ // x < y } :=
+sampleable.lift ℕ (λ n, ⟨x + (n+1), by linarith⟩) (λ ⟨i, h⟩, (i - x - 1).nat_abs)
+  (λ n, by unfold_wf; simp [int_gt.sampleable._match_1]; ring)
 
 /-! ### Subtypes of any `list` -/
 

@@ -141,15 +141,15 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
         (hyp, e_inst) ← try_for 1000 (mk_conditional_instance e_str e_inst_type),
         raw_expr ← mk_mapp proj_nm [args.head, e_inst],
         clear hyp,
-        raw_expr_lambda ← lambdas [hyp] raw_expr, -- expr.bind_lambda doesn't give the correct type
+        raw_expr_lambda ← lambdas [hyp] raw_expr, -- `expr.bind_lambda` doesn't give the correct type
         return (raw_expr, raw_expr_lambda.lambdas args))
       else (do
         e_inst_type ← to_expr ((expr.const class_nm []).app (pexpr.of_expr e_str)),
         e_inst ← try_for 1000 (mk_instance e_inst_type),
         raw_expr ← mk_mapp proj_nm [e_str, e_inst],
         return (raw_expr, raw_expr.lambdas args)),
-      raw_expr_whnf ← whnf raw_expr.binding_body,
-      let relevant_proj := raw_expr_whnf.get_app_fn.const_name,
+      raw_expr_whnf ← whnf raw_expr,
+      let relevant_proj := raw_expr_whnf.binding_body.get_app_fn.const_name,
       /- use this as projection, if the function reduces to a projection, and this projection has
         not been overrriden by the user. -/
       guard (projs.any (= relevant_proj) ∧ ¬ e.contains (str ++ `simps ++ relevant_proj.last)),

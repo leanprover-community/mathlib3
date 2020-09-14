@@ -606,3 +606,23 @@ structure needs_prop_class (n : ℕ) [prop_class n] :=
 
 @[simps] def test_prop_class : needs_prop_class 1 :=
 { t := trivial }
+
+structure alg_hom (R A B : Type*) :=
+(to_fun : A → B)
+
+instance (R A B : Type*) : has_coe_to_fun (alg_hom R A B) := ⟨_, λ f, f.to_fun⟩
+
+@[simps] def my_alg_hom : alg_hom unit bool bool :=
+{ to_fun := id }
+
+example (x : bool) : my_alg_hom x = id x := by simp only [my_alg_hom_to_fun]
+
+structure ring_hom (A B : Type*) :=
+(to_fun : A → B)
+
+instance (A B : Type*) : has_coe_to_fun (ring_hom A B) := ⟨_, λ f, f.to_fun⟩
+
+@[simps] def my_ring_hom : ring_hom bool bool :=
+{ to_fun := id }
+
+example (x : bool) : my_ring_hom x = id x := by simp only [my_ring_hom_to_fun]

@@ -124,7 +124,18 @@ begin
       rw ← hI,exact hM_inclMinv,--algebra_operations.le_dev_iff,
     },
   have h_Itop : I=⊤,apply and.elim_right hM I,sorry,--this second sorry "proves" that M < I
-  have h_okI : ↑I = (1 : fractional_ideal f),sorry,--this shoud be an easy matter of coercion
+  have h_okI : ↑I=(1 : fractional_ideal f),apply fractional_ideal.ext_iff.mp,
+    intros x,split,
+      {intro hx,
+      have h_x' : ∃ (x' ∈  (I : ideal R)), f.to_map x' = x,
+      apply fractional_ideal.mem_coe.mp hx,
+      apply fractional_ideal.mem_one_iff.mpr,simp * at *,
+      },
+      {intro hx,
+      have h_x' : ∃ x' ∈ (1:ideal R),  f.to_map x' = x,
+      apply fractional_ideal.mem_coe.mp hx,
+      rw h_Itop,simp * at *,
+      },
     rw hI,exact h_okI,
 end
 

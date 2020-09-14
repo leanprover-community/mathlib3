@@ -103,7 +103,7 @@ instance nat.comm_cancel_monoid_with_zero : comm_cancel_monoid_with_zero ℕ :=
   .. (infer_instance : comm_monoid_with_zero ℕ) }
 
 /-!
-Inject some simple facts into the typeclass system.
+Inject some simple facts into the type class system.
 This `fact` should not be confused with the factorial function `nat.fact`!
 -/
 section facts

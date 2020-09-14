@@ -148,7 +148,11 @@ begin
   apply nat.strong_induction_on n, clear n,
   intros n IH,
   rw [X_in_terms_of_W_eq],
+
   -- we move the `bind₁` into the sum, so that we can isolate `X n ^ p` in the right hand side
+  suffices : X n ^ p + C ↑p * (mv_polynomial.map (int.cast_ring_hom ℚ)) (frobenius_poly_aux p n)
+   = X n ^ p + (C ↑p * X (n + 1) + C (⅟ ↑p ^ n) * ∑ (x : ℕ) in range n, (C (↑p ^ x) * X x ^ p ^ (n + 1 - x) - C (↑p ^ x) * (bind₁ (witt_polynomial p ℚ ∘ λ (n : ℕ), n + 1)) (X_in_terms_of_W p ℚ x) ^ p ^ (n - x))),
+  { convert this,
   simp only [alg_hom.map_mul, alg_hom.map_sub, alg_hom.map_pow, alg_hom.map_sum,
     bind₁_C_right, bind₁_X_right, function.comp_app, witt_polynomial_eq_sum_C_mul_X_pow],
   rw [sum_range_succ, sum_range_succ, nat.sub_self, nat.pow_zero,
@@ -156,44 +160,110 @@ begin
       pow_add, ← mul_assoc, pow_one, pow_one,
       ← mul_pow, inv_of_mul_self, one_pow, one_mul, C_1, one_mul,
       add_comm n, nat.add_sub_cancel, nat.pow_one, add_comm _ n,
-      add_left_comm, ← add_sub, ← add_sub, ← mul_sub, ← sum_sub_distrib],
+      add_left_comm, ← add_sub, ← add_sub, ← mul_sub, ← sum_sub_distrib], },
+
   -- now that we have managed to isolate `X n ^ p`, we gladly cancel it
   rw [add_right_inj],
+
+
   -- the next step is to isolate `C p * X (n + 1)`
   -- to do that, it is time to take a better look at the left hand side
-  rw [frobenius_poly_aux_eq, ring_hom.map_sub, map_X, ring_hom.map_sum, mul_sub, sub_eq_add_neg],
+  suffices : C ↑p * X (n + 1) +
+    -(C ↑p *
+         ∑ (x : ℕ) in
+           range n,
+           (mv_polynomial.map (int.cast_ring_hom ℚ))
+             (∑ (j : ℕ) in
+                range (p ^ (n - x)),
+                (X x ^ p) ^ (p ^ (n - x) - (j + 1)) * frobenius_poly_aux p x ^ (j + 1) *
+                  C
+                    ↑((p ^ (n - x)).choose (j + 1) / p ^ (n - x - pnat_multiplicity p ⟨j + 1, _⟩) *
+                         ↑p ^ (j - pnat_multiplicity p ⟨j + 1, _⟩)))) =
+  C ↑p * X (n + 1) +
+    C (⅟ ↑p ^ n) *
+      ∑ (x : ℕ) in
+        range n,
+        (C (↑p ^ x) * X x ^ p ^ (n + 1 - x) -
+           C (↑p ^ x) *
+             (bind₁ (witt_polynomial p ℚ ∘ λ (n : ℕ), n + 1)) (X_in_terms_of_W p ℚ x) ^ p ^ (n - x)),
+  { convert this,
+    rw [frobenius_poly_aux_eq, ring_hom.map_sub, map_X, ring_hom.map_sum, mul_sub, sub_eq_add_neg], },
+
   -- now we can cancel `X (n + 1)`
   rw [add_right_inj],
+
   -- we push the everything into the sums,
   -- and compare the remaining sums term by term
   rw [mul_sum, mul_sum, ← sum_neg_distrib],
   apply sum_congr rfl,
   intros i hi,
   rw mem_range at hi,
+
   -- use the induction hypothesis, but in a smart way
-  specialize IH i hi,
-  rw [add_comm] at IH,
-  rw [← IH], clear IH,
-  rw [← mul_sub, ← mul_assoc, ← C_mul],
+  suffices : -(C ↑p *
+       (mv_polynomial.map (int.cast_ring_hom ℚ))
+         (∑ (j : ℕ) in
+            range (p ^ (n - i)),
+            (X i ^ p) ^ (p ^ (n - i) - (j + 1)) * frobenius_poly_aux p i ^ (j + 1) *
+              C
+                ↑((p ^ (n - i)).choose (j + 1) / p ^ (n - i - pnat_multiplicity p ⟨j + 1, _⟩) *
+                     ↑p ^ (j - pnat_multiplicity p ⟨j + 1, _⟩)))) =
+  C (⅟ ↑p ^ n * ↑p ^ i) *
+    (X i ^ p ^ (n + 1 - i) -
+       (C ↑p * (mv_polynomial.map (int.cast_ring_hom ℚ)) (frobenius_poly_aux p i) + X i ^ p) ^ p ^ (n - i)),
+  { convert this using 1,
+    specialize IH i hi,
+    rw [add_comm] at IH,
+    rw [← IH, ← mul_sub, ← mul_assoc, ← C_mul], },
+  clear IH,
+
   -- we now apply the binomium of Newton on the right hand side,
   -- and split off the first term of the resulting sum
-  rw [add_pow, sum_range_succ'],
-  -- now we can clean up the term that we split off
-  rw [nat.sub_zero, pow_zero, nat.choose_zero_right, nat.cast_one, one_mul, mul_one,
-      sub_add_eq_sub_sub_swap],
-  rw show (X i ^ p ^ (n + 1 - i) - (X i ^ p) ^ p ^ (n - i) : mv_polynomial ℕ ℚ) = 0,
-  { rw [← pow_mul, mul_comm, nat.sub_add_comm, nat.pow_succ, sub_self],
-    exact le_of_lt hi },
-  -- some extra clean up, and then we compare the remaining sums term by term
-  rw [zero_sub, mul_neg_eq_neg_mul_symm, neg_inj, mul_sum, ring_hom.map_sum, mul_sum],
+  suffices : ∑ (x : ℕ) in
+    range (p ^ (n - i)),
+    C ↑p *
+      (mv_polynomial.map (int.cast_ring_hom ℚ))
+        ((X i ^ p) ^ (p ^ (n - i) - (x + 1)) * frobenius_poly_aux p i ^ (x + 1) *
+           C
+             ↑((p ^ (n - i)).choose (x + 1) / p ^ (n - i - pnat_multiplicity p ⟨x + 1, _⟩) *
+                  ↑p ^ (x - pnat_multiplicity p ⟨x + 1, _⟩))) =
+  ∑ (x : ℕ) in
+    range (p ^ (n - i)),
+    C (⅟ ↑p ^ n * ↑p ^ i) *
+      ((C ↑p * (mv_polynomial.map (int.cast_ring_hom ℚ)) (frobenius_poly_aux p i)) ^ (x + 1) *
+           (X i ^ p) ^ (p ^ (n - i) - (x + 1)) *
+         ↑((p ^ (n - i)).choose (x + 1))),
+  { rw [add_pow, sum_range_succ'],
+    -- now we can clean up the term that we split off
+    rw [nat.sub_zero, pow_zero, nat.choose_zero_right, nat.cast_one, one_mul, mul_one,
+        sub_add_eq_sub_sub_swap],
+    rw show (X i ^ p ^ (n + 1 - i) - (X i ^ p) ^ p ^ (n - i) : mv_polynomial ℕ ℚ) = 0,
+    { rw [← pow_mul, mul_comm, nat.sub_add_comm, nat.pow_succ, sub_self],
+      exact le_of_lt hi },
+    rw [zero_sub, mul_neg_eq_neg_mul_symm, neg_inj, mul_sum, ring_hom.map_sum, mul_sum],
+    exact this },
+
+  -- and then we compare the remaining sums term by term
   apply sum_congr rfl,
   intros j hj,
   rw mem_range at hj,
+
   -- reorganise, in order to isolate more common factors
-  simp only [ring_hom.map_mul, ring_hom.map_pow, map_X, map_C, mul_pow, mul_assoc],
-  simp only [← mul_assoc, ← C_mul, ← C_pow, ← C_eq_coe_nat, mul_right_comm],
-  rw [mul_right_comm, mul_right_comm (C ↑p : mv_polynomial ℕ ℚ), ← C_mul],
-  -- conv_rhs { rw [mul_left_comm _ ((X i ^ p) ^ j), mul_left_comm _ ((X i ^ p) ^ j)], },
+  suffices : C
+        (↑p *
+           (int.cast_ring_hom ℚ)
+             ↑((p ^ (n - i)).choose (j + 1) / p ^ (n - i - pnat_multiplicity p ⟨j + 1, _⟩) *
+                  ↑p ^ (j - pnat_multiplicity p ⟨j + 1, _⟩))) *
+      (X i ^ p) ^ (p ^ (n - i) - (j + 1)) *
+    (mv_polynomial.map (int.cast_ring_hom ℚ)) (frobenius_poly_aux p i) ^ (j + 1) =
+  C (⅟ ↑p ^ n * ↑p ^ i * ↑p ^ (j + 1) * ↑((p ^ (n - i)).choose (j + 1))) *
+      (X i ^ p) ^ (p ^ (n - i) - (j + 1)) *
+    (mv_polynomial.map (int.cast_ring_hom ℚ)) (frobenius_poly_aux p i) ^ (j + 1),
+  { simp only [ring_hom.map_mul, ring_hom.map_pow, map_X, map_C, mul_pow, mul_assoc],
+    simp only [← mul_assoc, ← C_mul, ← C_pow, ← C_eq_coe_nat, mul_right_comm],
+    rw [mul_right_comm, mul_right_comm (C ↑p : mv_polynomial ℕ ℚ), ← C_mul],
+    exact this },
+
   congr' 2,
   convert final_bit p n i j hi hj,
   { simp [C_mul, mul_assoc] },

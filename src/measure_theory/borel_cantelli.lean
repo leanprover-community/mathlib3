@@ -85,12 +85,15 @@ by rw [←nnreal.eq_iff, nnreal.coe_sub h, ←nnreal.eq_iff, nnreal.coe_add, sub
 
 lemma nnreal.summable_shift (f : ℕ → nnreal) (hf : summable f) (k : ℕ) :
   summable (λ i, f (k + i)) :=
-sorry
+nnreal.summable_comp_injective hf $ add_right_injective k
 
 lemma nnreal.split (f : ℕ → nnreal) (hf : summable f) (k : ℕ) :
-  (∑' i, f i) = ∑ i in range k, f i + ∑' i, f (k + i) :=
+  (∑' i, f i) = (∑ i in range k, f i) + ∑' i, f (k + i) :=
 begin
-  sorry,
+  rw [←nnreal.coe_eq, nnreal.coe_tsum, nnreal.coe_add, nnreal.coe_sum, nnreal.coe_tsum],
+  have := nnreal.summable_coe.2 hf,
+  simp_rw add_comm k,
+  rw sum_add_tsum_nat_add k this
 end
 
 lemma bla.tendsto_sum_add

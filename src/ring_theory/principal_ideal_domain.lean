@@ -20,7 +20,7 @@ Theorems about PID's are in the `principal_ideal_ring` namespace.
 - `is_principal_ideal_ring`: a predicate on commutative rings, saying that every
   ideal is principal.
 - `generator`: a generator of a principal ideal (or more generally submodule)
-- `to_unique_factorization_domain`: a noncomputable definition, putting a UFD structure on a PID.
+- `to_unique_factorization_monoid`: a noncomputable definition, putting a UFD structure on a PID.
   Note that the definition of a UFD is currently not a predicate, as it contains data
   of factorizations of non-zero elements.
 
@@ -193,15 +193,11 @@ lemma ring_hom_mem_submonoid_of_factors_subset_of_units_subset {R S : Type*}
   f a ∈ s :=
 mem_submonoid_of_factors_subset_of_units_subset (s.comap f.to_monoid_hom) ha h hf
 
-/-- The unique factorization domain structure given by the principal ideal domain.
-
-This is not added as type class instance, since the `factors` might be computed in a different way.
-E.g. factors could return normalized values.
--/
-noncomputable def to_unique_factorization_domain : unique_factorization_domain R :=
-{ factors := factors,
-  factors_prod := assume a ha, associated.symm (factors_spec a ha).2,
-  prime_factors := assume a ha, by simpa [irreducible_iff_prime] using (factors_spec a ha).1 }
+/-- A principal ideal domain has unique factorization -/
+@[priority 100] -- see Note [lower instance priority]
+instance to_unique_factorization_monoid : unique_factorization_monoid R :=
+{ irreducible_iff_prime := λ _, principal_ideal_ring.irreducible_iff_prime
+  .. (is_noetherian_ring.wf_dvd_monoid : wf_dvd_monoid R) }
 
 end
 

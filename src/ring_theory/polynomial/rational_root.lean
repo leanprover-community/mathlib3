@@ -42,7 +42,7 @@ begin
 end
 
 lemma num_is_root_scale_roots_of_aeval_eq_zero
-  [unique_factorization_domain A] (g : fraction_map A K)
+  [unique_factorization_monoid A] (g : fraction_map A K)
   {p : polynomial A} {x : g.codomain} (hr : aeval x p = 0) :
   is_root (scale_roots p (g.denom x)) (g.num x) :=
 begin
@@ -56,10 +56,10 @@ end scale_roots
 
 section rational_root_theorem
 
-variables {A K : Type*} [integral_domain A] [unique_factorization_domain A] [field K]
+variables {A K : Type*} [integral_domain A] [unique_factorization_monoid A] [field K]
 variables {f : fraction_map A K}
 
-open polynomial unique_factorization_domain
+open polynomial unique_factorization_monoid
 
 /-- Rational root theorem part 1:
 if `r : f.codomain` is a root of a polynomial over the ufd `A`,
@@ -118,7 +118,7 @@ theorem is_integer_of_is_root_of_monic {p : polynomial A} (hp : monic p) {r : f.
   (hr : aeval r p = 0) : f.is_integer r :=
 f.is_integer_of_is_unit_denom (is_unit_of_dvd_one _ (hp ▸ denom_dvd_of_is_root hr))
 
-namespace unique_factorization_domain
+namespace unique_factorization_monoid
 
 lemma integer_of_integral {x : f.codomain} :
   is_integral A x → f.is_integer x :=
@@ -127,6 +127,6 @@ lemma integer_of_integral {x : f.codomain} :
 lemma integrally_closed : integral_closure A f.codomain = ⊥ :=
 eq_bot_iff.mpr (λ x hx, algebra.mem_bot.mpr (integer_of_integral hx))
 
-end unique_factorization_domain
+end unique_factorization_monoid
 
 end rational_root_theorem

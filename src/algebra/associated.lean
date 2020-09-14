@@ -626,11 +626,6 @@ instance : no_zero_divisors (associates α) :=
     have a = 0 ∨ b = 0, from mul_eq_zero.1 this,
     this.imp (assume h, h.symm ▸ rfl) (assume h, h.symm ▸ rfl))⟩
 
-theorem prod_eq_zero_iff [nontrivial α] {s : multiset (associates α)} :
-  s.prod = 0 ↔ (0 : associates α) ∈ s :=
-multiset.induction_on s (by simp) $
-  assume a s, by simp [mul_eq_zero, @eq_comm _ 0 a] {contextual := tt}
-
 theorem irreducible_iff_prime_iff :
   (∀ a : α, irreducible a ↔ prime a) ↔ (∀ a : (associates α), irreducible a ↔ prime a) :=
 begin

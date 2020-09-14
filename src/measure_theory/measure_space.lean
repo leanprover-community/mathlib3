@@ -318,6 +318,8 @@ begin
   exact λ i hi j hj hij x hx, H i hi j hj hij ⟨x, hx⟩
 end
 
+/-- Continuity from below: the measure of the union of an increasing sequence of measurable sets
+is the supremum of the measures. -/
 lemma measure_Union_eq_supr_nat {s : ℕ → set α} (h : ∀i, is_measurable (s i)) (hs : monotone s) :
   μ (⋃i, s i) = (⨆i, μ (s i)) :=
 begin
@@ -333,6 +335,8 @@ begin
   ext, simp
 end
 
+/-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
+sets is the infimum of the measures. -/
 lemma measure_Inter_eq_infi_nat {s : ℕ → set α}
   (h : ∀i, is_measurable (s i)) (hs : ∀i j, i ≤ j → s j ⊆ s i)
   (hfin : ∃i, μ (s i) < ⊤) :
@@ -361,6 +365,8 @@ lemma measure_eq_inter_diff {μ : measure α} {s t : set α}
 have hd : disjoint (s ∩ t) (s \ t) := assume a ⟨⟨_, hs⟩, _, hns⟩, hns hs ,
 by rw [← measure_union hd (hs.inter ht) (hs.diff ht), inter_union_diff s t]
 
+/-- Continuity from below: the measure of the union of an increasing sequence of measurable sets
+is the limit of the measures. -/
 lemma tendsto_measure_Union {μ : measure α} {s : ℕ → set α}
   (hs : ∀n, is_measurable (s n)) (hm : monotone s) :
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋃n, s n))) :=
@@ -369,6 +375,8 @@ begin
   exact tendsto_at_top_supr_nat (μ ∘ s) (assume n m hnm, measure_mono $ hm $ hnm)
 end
 
+/-- Continuity from above: the measure of the intersection of a decreasing sequence of measurable
+sets is the limit of the measures. -/
 lemma tendsto_measure_Inter {μ : measure α} {s : ℕ → set α}
   (hs : ∀n, is_measurable (s n)) (hm : ∀n m, n ≤ m → s m ⊆ s n) (hf : ∃i, μ (s i) < ⊤) :
   tendsto (μ ∘ s) at_top (𝓝 (μ (⋂n, s n))) :=

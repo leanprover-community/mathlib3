@@ -758,6 +758,9 @@ hv.1.total_repr ⟨x, _⟩
 lemma is_basis.total_comp_repr : (finsupp.total ι M R v).comp hv.repr = linear_map.id :=
 linear_map.ext hv.total_repr
 
+lemma is_basis.ext {f g : M →ₗ[R] M'} (hv : is_basis R v) (h : ∀i, f (v i) = g (v i)) : f = g :=
+linear_map.ext_on hv.2 h
+
 lemma is_basis.repr_ker : hv.repr.ker = ⊥ :=
 linear_map.ker_eq_bot.2 $ left_inverse.injective hv.total_repr
 
@@ -781,6 +784,33 @@ by apply hv.1.repr_eq_single; simp
 lemma is_basis.repr_self_apply (i j : ι) : hv.repr (v i) j = if i = j then 1 else 0 :=
 by rw [hv.repr_eq_single, finsupp.single_apply]
 
+lemma is_basis.repr_eq_iff {f : M →ₗ[R] (ι →₀ R)} :
+  hv.repr = f ↔ ∀ i, f (v i) = finsupp.single i 1 :=
+begin
+  split,
+  { rintros rfl i,
+    exact hv.repr_eq_single },
+  intro h,
+  refine hv.ext (λ _, _),
+  rw [h, hv.repr_eq_single]
+end
+
+lemma is_basis.repr_apply_eq {f : M → ι → R}
+  (hadd : ∀ x y, f (x + y) = f x + f y) (hsmul : ∀ (c : R) (x : M), f (c • x) = c • f x)
+  (f_eq : ∀ i, f (v i) = finsupp.single i 1) (x : M) (i : ι) :
+  hv.repr x i = f x i :=
+begin
+  let f_i : M →ₗ[R] R :=
+  { to_fun := λ x, f x i,
+    map_add' := λ _ _, by rw [hadd, pi.add_apply],
+    map_smul' := λ _ _, by rw [hsmul, pi.smul_apply] },
+  show (finsupp.leval i).comp hv.repr x = f_i x,
+  congr' 1,
+  refine hv.ext (λ j, _),
+  show hv.repr (v j) i = f (v j) i,
+  rw [hv.repr_eq_single, f_eq]
+end
+
 /-- Construct a linear map given the value at the basis. -/
 def is_basis.constr (f : ι → M') : M →ₗ[R] M' :=
 (finsupp.total M' M' R id).comp $ (finsupp.lmap_domain R R f).comp hv.repr
@@ -789,12 +819,6 @@ theorem is_basis.constr_apply (f : ι → M') (x : M) :
   (hv.constr f : M → M') x = (hv.repr x).sum (λb a, a • f b) :=
 by dsimp [is_basis.constr] ;
    rw [finsupp.total_apply, finsupp.sum_map_domain_index]; simp [add_smul]
-
-lemma is_basis.ext {f g : M →ₗ[R] M'} (hv : is_basis R v) (h : ∀i, f (v i) = g (v i)) : f = g :=
-begin
-  apply linear_map.ext (λ x, linear_eq_on (range v) _ (hv.mem_span x)),
-  exact (λ y hy, exists.elim (set.mem_range.1 hy) (λ i hi, by rw ←hi; exact h i))
-end
 
 @[simp] lemma constr_basis {f : ι → M'} {i : ι} (hv : is_basis R v) :
   (hv.constr f : M → M') (v i) = f i :=

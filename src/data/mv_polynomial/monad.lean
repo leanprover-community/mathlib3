@@ -104,7 +104,7 @@ variables (σ R)
 @[simp] lemma aeval_id_eq_join₁ :
   aeval id = @join₁ σ R _ := rfl
 
-@[simp] lemma eval₂_hom_C_id_eq_join₁ (f : σ → mv_polynomial τ R) (φ : mv_polynomial (mv_polynomial σ R) R) :
+@[simp] lemma eval₂_hom_C_id_eq_join₁ (φ : mv_polynomial (mv_polynomial σ R) R) :
   eval₂_hom C id φ = join₁ φ := rfl
 
 @[simp] lemma eval₂_hom_id_X_eq_join₂ :
@@ -286,7 +286,7 @@ begin
   { intros, simp only [*, bind₂_X_right, eval₂_hom_X', ring_hom.map_mul] }
 end
 
-lemma eval₂_hom_comp_bind₂ (f : S →+* T) (g : σ → T) (h : R →+* mv_polynomial σ S) (φ : mv_polynomial σ R) :
+lemma eval₂_hom_comp_bind₂ (f : S →+* T) (g : σ → T) (h : R →+* mv_polynomial σ S) :
   (eval₂_hom f g).comp (bind₂ h) = eval₂_hom ((eval₂_hom f g).comp h) g :=
 by { ext1, apply eval₂_hom_bind₂ }
 
@@ -294,7 +294,6 @@ lemma aeval_bind₂ [algebra S T] (f : σ → T) (g : R →+* mv_polynomial σ S
   aeval f (bind₂ g φ) = eval₂_hom ((@aeval σ S T f _ _ _ : mv_polynomial σ S →+* T).comp g) f φ :=
 eval₂_hom_bind₂ _ _ _ _
 
-@[simp]
 lemma eval₂_hom_C_left (f : σ → mv_polynomial τ R) : eval₂_hom C f = bind₁ f := rfl
 
 lemma bind₁_monomial (f : σ → mv_polynomial τ R) (d : σ →₀ ℕ) (r : R) :

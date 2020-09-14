@@ -12,17 +12,6 @@ import data.equiv.mul_add
 
 The natural numbers and an extra `top` element `⊤`.
 
-## Implementation details
-
-`enat` represented as `roption ℕ`.
-
-`+` and `≤` are defined on `enat`, but there is an issue with `*` because it's not
-clear what `0 * ⊤` should be. `mul` is hence left undefined.
-
-Before the `open_locale classical` line various proofs are made with decidability assumptions.
-This can cause issues -- see for example the non-simp lemma `to_with_top_zero` proved by `rfl`,
-followed by `@[simp] lemma to_with_top_zero'` whose proof uses `convert`.
-
 ## Main definitions
 
 The following instances are defined:
@@ -38,6 +27,17 @@ with `+` and `≤`.
 
 * `with_top_add_equiv : enat ≃+ with_top ℕ`
 * `with_top_order_iso : enat ≃o with_top ℕ`
+
+## Implementation details
+
+`enat` is defined to be `roption ℕ`.
+
+`+` and `≤` are defined on `enat`, but there is an issue with `*` because it's not
+clear what `0 * ⊤` should be. `mul` is hence left undefined.
+
+Before the `open_locale classical` line, various proofs are made with decidability assumptions.
+This can cause issues -- see for example the non-simp lemma `to_with_top_zero` proved by `rfl`,
+followed by `@[simp] lemma to_with_top_zero'` whose proof uses `convert`.
 
 
 ## Tags

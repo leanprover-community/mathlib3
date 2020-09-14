@@ -1,5 +1,4 @@
 import ring_theory.witt_vector.basic
-import ring_theory.witt_vector.nice_poly
 import ring_theory.witt_vector.init_tail
 import ring_theory.witt_vector.witt_vector_preps
 import ring_theory.witt_vector.verschiebung

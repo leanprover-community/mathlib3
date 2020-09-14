@@ -367,7 +367,7 @@ begin
   apply submodule.map_comap_le,
 end
 
-/-- The generalized eigenspace of eigenvalues has positive dimension for positive exponents. -/
+/-- The generalized eigenspace of an eigenvalue has positive dimension for positive exponents. -/
 lemma pos_findim_generalized_eigenspace_of_has_eigenvalue
   [field K] [vector_space K V] [finite_dimensional K V]
   {f : End K V} {k : ℕ} {μ : K} (hx : f.has_eigenvalue μ) (hk : 0 < k):

@@ -1710,7 +1710,9 @@ lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
 by { rw continuous_on_iff_continuous_restrict, convert continuous_tan }
 
+
 end complex
+
 
 namespace real
 open_locale real
@@ -1724,7 +1726,6 @@ end
 
 theorem cos_ne_zero_iff {θ : ℝ} : cos θ ≠ 0 ↔ ∀ k : ℤ, θ ≠ (2 * k + 1) * π / 2 :=
 by rw [← not_exists, not_iff_not, cos_eq_zero_iff]
-
 
 lemma has_deriv_at_tan {x : ℝ} (h : ∀ k : ℤ, x ≠ (2 * k + 1) * π / 2) :
   has_deriv_at tan (1 / (cos x)^2) x :=
@@ -1837,23 +1838,35 @@ begin
   apply tan_eq_sin_div_cos x,
 end
 
-/-- The function `tan` restricted to the open interval (-π/2, π/2) is a homeomorphism -/
-def tan_homeomorph : homeomorph (set.Ioo (-(π/2)) (π/2)) ℝ :=
-homeomorph_of_strict_mono_continuous_Ioo tan (by linarith [pi_div_two_pos]) (λ x y, tan_lt_tan_of_lt_of_lt_pi_div_two)
-  continuous_on_tan_of_mem_Ioo tendsto_tan_pi_div_two tendsto_tan_neg_pi_div_two
+/-!
+## Continuity and differentiability of arctan
+The continuity of `arctan` is difficult to prove due to `arctan` being (indirectly) defined naively
+via `classical.some`. The proof therefore uses the general theorem that monotone functions are
+homeomorphisms: `homeomorph_of_strict_mono_continuous_Ioo`. We first prove that `tan` (restricted)
+is a homeomorphism, then that `arctan` is equal (though not defeq) to the inverse function of that
+homeomorphism. The fact that `arctan` is continuous is then derived from the fact that it is equal
+to a homeomorphism, and its differentiability is in turn derived from its continuity using
+`has_deriv_at.of_local_left_inverse`.
+-/
 
-lemma arctan_homeomorph : arctan = coe ∘ tan_homeomorph.inv_fun :=
+/-- The function `tan`, restricted to the open interval (-π/2, π/2), is a homeomorphism -/
+def tan_homeomorph : homeomorph (set.Ioo (-(π/2)) (π/2)) ℝ :=
+homeomorph_of_strict_mono_continuous_Ioo tan (by linarith [pi_div_two_pos])
+  (λ x y, tan_lt_tan_of_lt_of_lt_pi_div_two) continuous_on_tan_of_mem_Ioo tendsto_tan_pi_div_two
+    tendsto_tan_neg_pi_div_two
+
+lemma arctan_eq_tan_homeomorph_inv_fun : arctan = coe ∘ tan_homeomorph.inv_fun :=
 begin
   ext x,
-  have h_coe : arctan x = ↑(⟨arctan x, arctan_mem_Ioo x⟩ : set.Ioo _ _) := by simp,
-  have h : (⟨arctan x, arctan_mem_Ioo x⟩ : set.Ioo _ _) = (tan_homeomorph.inv_fun ∘ tan_homeomorph.to_fun) ⟨arctan x, arctan_mem_Ioo x⟩ := by simp,
-  have h' : tan_homeomorph.to_fun = tan ∘ coe := by refl,
-  rw [h_coe, h],
-  simp [h', tan_arctan],
+  calc arctan x = ↑(⟨arctan x, arctan_mem_Ioo x⟩ : set.Ioo _ _) : by simp
+    ... = ↑((tan_homeomorph.inv_fun ∘ tan_homeomorph.to_fun) ⟨arctan x, arctan_mem_Ioo x⟩) : by simp
+    ... = ↑(tan_homeomorph.inv_fun (tan (arctan x))) : rfl
+    ... = ↑(tan_homeomorph.inv_fun x) : by rw tan_arctan,
 end
 
 lemma continuous_arctan : continuous arctan :=
-by { rw arctan_homeomorph, exact continuous_subtype_coe.comp tan_homeomorph.continuous_inv_fun }
+by { rw arctan_eq_tan_homeomorph_inv_fun,
+  exact continuous_subtype_coe.comp tan_homeomorph.continuous_inv_fun }
 
 lemma has_deriv_at_arctan (x:ℝ) : has_deriv_at arctan (1 / (1 + x^2)) x :=
 begin

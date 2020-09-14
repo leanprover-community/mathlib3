@@ -57,40 +57,33 @@ alias lipschitz_with_iff_dist_le_mul ↔ lipschitz_with.dist_le_mul lipschitz_wi
 /-- A function `f` is Lipschitz continuous with constant `K ≥ 0` on `s` if for all `x, y` in `s`
 we have `dist (f x) (f y) ≤ K * dist x y` -/
 def lipschitz_on_with [emetric_space α] [emetric_space β] (K : ℝ≥0) (s : set α) (f : α → β) :=
-∀ x y ∈ s, edist (f x) (f y) ≤ K * edist x y
+∀ (x ∈ s) (y ∈ s), edist (f x) (f y) ≤ K * edist x y
 
 lemma lipschitz_on_with.mono [emetric_space α] [emetric_space β] {K : ℝ≥0} {s t : set α} {f : α → β}
   (hf : lipschitz_on_with K t f) (h : s ⊆ t) : lipschitz_on_with K s f :=
-λ x y x_in y_in, hf _ _ (h x_in) (h y_in)
+λ x x_in y y_in, hf x (h x_in) y (h y_in)
 
 lemma lipschitz_on_with_iff_dist_le_mul [metric_space α] [metric_space β] {K : ℝ≥0} {s : set α}
-  {f : α → β} : lipschitz_on_with K s f ↔ ∀ x y ∈ s, dist (f x) (f y) ≤ K * dist x y :=
+  {f : α → β} : lipschitz_on_with K s f ↔ ∀ (x ∈ s) (y ∈ s), dist (f x) (f y) ≤ K * dist x y :=
 by { simp only [lipschitz_on_with, edist_nndist, dist_nndist], norm_cast }
 
 alias lipschitz_on_with_iff_dist_le_mul ↔ lipschitz_on_with.dist_le_mul lipschitz_on_with.of_dist_le_mul
 
-@[simp] lemma lipschitz_on_univ [emetric_space α] [emetric_space β] (K : ℝ≥0) {f : α → β} :
+@[simp] lemma lipschitz_on_univ [emetric_space α] [emetric_space β] {K : ℝ≥0} {f : α → β} :
   lipschitz_on_with K univ f ↔ lipschitz_with K f :=
 by simp [lipschitz_on_with, lipschitz_with]
 
-namespace lipschitz_on_with
-
-variables [emetric_space α] [emetric_space β] [emetric_space γ] {K : ℝ≥0} {s : set α} {f : α → β}
-
-protected lemma uniform_continuous_on (hf : lipschitz_on_with K s f) : uniform_continuous_on f s :=
+lemma lipschitz_on_with_iff_restrict [emetric_space α] [emetric_space β] {K : ℝ≥0}
+  {f : α → β} {s : set α} : lipschitz_on_with K s f ↔ lipschitz_with K (s.restrict f) :=
 begin
-  refine emetric.uniform_continuous_on_iff.2 (λε εpos, _),
-  use [ε/K, canonically_ordered_semiring.mul_pos.2 ⟨εpos, ennreal.inv_pos.2 $ ennreal.coe_ne_top⟩],
-  assume x y x_in y_in Dxy,
-  apply lt_of_le_of_lt (hf x y x_in y_in),
-  rw [mul_comm],
-  exact ennreal.mul_lt_of_lt_div Dxy
+  dsimp [lipschitz_on_with, lipschitz_with],
+  rw set_coe.forall,
+  apply forall_congr,
+  intros x,
+  apply forall_congr,
+  intro h,
+  simpa
 end
-
-protected lemma continuous_on (hf : lipschitz_on_with K s f) : continuous_on f s :=
-hf.uniform_continuous_on.continuous_on
-
-end lipschitz_on_with
 
 namespace lipschitz_with
 
@@ -303,6 +296,19 @@ end
 end metric
 
 end lipschitz_with
+
+namespace lipschitz_on_with
+
+variables [emetric_space α] [emetric_space β] [emetric_space γ] {K : ℝ≥0} {s : set α} {f : α → β}
+
+protected lemma uniform_continuous_on (hf : lipschitz_on_with K s f) : uniform_continuous_on f s :=
+uniform_continuous_on_iff_restrict.mpr (lipschitz_on_with_iff_restrict.mp hf).uniform_continuous
+
+protected lemma continuous_on (hf : lipschitz_on_with K s f) : continuous_on f s :=
+hf.uniform_continuous_on.continuous_on
+
+end lipschitz_on_with
+
 
 open metric
 

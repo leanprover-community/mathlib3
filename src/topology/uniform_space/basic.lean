@@ -1113,7 +1113,7 @@ lemma uniform_continuous_subtype_mk {p : α → Prop} [uniform_space α] [unifor
   uniform_continuous (λx, ⟨f x, h x⟩ : β → subtype p) :=
 uniform_continuous_comap' hf
 
-lemma uniform_continuous_on_iff_restrict [uniform_space α] [uniform_space β] (f : α → β) (s : set α) :
+lemma uniform_continuous_on_iff_restrict [uniform_space α] [uniform_space β] {f : α → β} {s : set α} :
   uniform_continuous_on f s ↔ uniform_continuous (s.restrict f) :=
 begin
   unfold uniform_continuous_on set.restrict uniform_continuous tendsto,

@@ -218,12 +218,12 @@ lemma add_monoid_hom.lipschitz_of_bound (f :α →+ β) (C : ℝ) (h : ∀x, ∥
 lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
 lemma lipschitz_on_with_iff_norm_sub_le {f : α → β} {C : ℝ≥0} {s : set α} :
-  lipschitz_on_with C s f ↔  ∀ {x y : α}, x ∈ s → y ∈ s →  ∥f x - f y∥ ≤ C * ∥x - y∥ :=
+  lipschitz_on_with C s f ↔  ∀ (x ∈ s) (y ∈ s),  ∥f x - f y∥ ≤ C * ∥x - y∥ :=
 by simp only [lipschitz_on_with_iff_dist_le_mul, dist_eq_norm]
 
 lemma lipschitz_on_with.norm_sub_le {f : α → β} {C : ℝ≥0} {s : set α} (h : lipschitz_on_with C s f)
   {x y : α} (x_in : x ∈ s) (y_in : y ∈ s) : ∥f x - f y∥ ≤ C * ∥x - y∥ :=
-lipschitz_on_with_iff_norm_sub_le.mp h x_in y_in
+lipschitz_on_with_iff_norm_sub_le.mp h x x_in y y_in
 
 /-- A homomorphism `f` of normed groups is continuous, if there exists a constant `C` such that for
 all `x`, one has `∥f x∥ ≤ C * ∥x∥`.

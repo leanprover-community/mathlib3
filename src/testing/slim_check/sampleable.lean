@@ -118,7 +118,7 @@ counter-examples cannot be shrunken or printed meaningfully.
 
 For that purpose, `sampleable_ext` provides a proxy representation
 `proxy_repr` that can be printed and shrunken as well
-as interpretted (using `interp`) as an object of the right type. -/
+as interpreted (using `interp`) as an object of the right type. -/
 class sampleable_ext (α : Sort u) :=
 (proxy_repr : Type v)
 [wf : has_sizeof proxy_repr]

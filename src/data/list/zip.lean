@@ -138,7 +138,6 @@ by rw [← zip_unzip.{u u} (revzip l).reverse, unzip_eq_map]; simp; simp [revzip
 theorem revzip_swap (l : list α) : (revzip l).map prod.swap = revzip l.reverse :=
 by simp [revzip]
 
--- not needed
 lemma nth_zip_with {α β γ} (f : α → β → γ) (l₁ : list α) (l₂ : list β) (i : ℕ) :
   (zip_with f l₁ l₂).nth i = f <$> l₁.nth i <*> l₂.nth i :=
 begin

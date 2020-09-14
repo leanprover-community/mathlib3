@@ -3896,6 +3896,7 @@ sum_map_hom L f $ add_monoid_hom.mul_right r
 .
 universes u v
 .
+@[simp]
 theorem mem_map_swap {α : Type u} {β : Type v} (x : α) (y : β) (xs : list (α × β)) :
   (y, x) ∈ map prod.swap xs ↔ (x, y) ∈ xs :=
 begin

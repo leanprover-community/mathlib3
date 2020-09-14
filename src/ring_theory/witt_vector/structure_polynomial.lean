@@ -216,82 +216,59 @@ begin
   simp only [IH i hi, ring_hom.map_mul, ring_hom.map_pow, map_C], refl
 end
 
-lemma blur (Φ : mv_polynomial idx ℤ) (n : ℕ)
+lemma bind₁_rename_expand_witt_polynomial (Φ : mv_polynomial idx ℤ) (n : ℕ)
   (IH : ∀ m : ℕ, m < (n + 1) →
     map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) = witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) m) :
   bind₁ (λ b, rename (λ i, (b, i)) (expand p (W_ ℤ n))) Φ =
   bind₁ (λ i, expand p (witt_structure_int p Φ i)) (W_ ℤ n) :=
 begin
-  have aux := λ x, @bind₁_X_right _ _ ℤ _ (witt_structure_int p Φ) x,
-  have aux₂ : ∀ n : ℕ, C (↑p ^ n) =
-    map (int.cast_ring_hom ℚ) (bind₁ (witt_structure_int p Φ) (C (p ^ n : ℤ))),
-  { intro n, rw [map_bind₁, map_C, bind₁_C_right, ring_hom.eq_int_cast], norm_cast, },
-  have key := (witt_structure_rat_prop p (map (int.cast_ring_hom ℚ) Φ) n).symm,
-  conv_rhs at key
-  { rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum],
-    conv {
-      apply_congr, skip,
-      rw [alg_hom.map_mul, alg_hom.map_pow, bind₁_C_right, bind₁_X_right],
-      rw [← IH x (finset.mem_range.mp H)],
-      rw [← aux, aux₂],
-      rw [← ring_hom.map_pow, ← alg_hom.map_pow, ← ring_hom.map_mul, ← alg_hom.map_mul], },
-    rw [← ring_hom.map_sum, ← alg_hom.map_sum], },
-  apply_fun expand p at key,
-
   apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
-
-  calc _ = _ : _
-     ... = _ : key
-     ... = _ : _,
-
-  { clear IH aux aux₂ key,
-    simp only [map_bind₁, expand_bind₁, map_rename, map_expand, rename_expand, map_witt_polynomial] },
-  { simp only [map_bind₁, expand_bind₁, map_expand, witt_polynomial_eq_sum_C_mul_X_pow, int.nat_cast_eq_coe_nat], }
+  simp only [map_bind₁, map_rename, map_expand, rename_expand, map_witt_polynomial],
+  have key := (witt_structure_rat_prop p (map (int.cast_ring_hom ℚ) Φ) n).symm,
+  apply_fun expand p at key,
+  simp only [expand_bind₁] at key,
+  rw key, clear key,
+  apply eval₂_hom_congr' rfl _ rfl,
+  rintro i hi -,
+  rw [witt_polynomial_vars, finset.mem_range] at hi,
+  simp only [IH i hi],
 end
 
--- this seems like a nice statement that needs a good name
-lemma C_p_pow_dvd_better_name (Φ : mv_polynomial idx ℤ) (n : ℕ)
+lemma C_p_pow_dvd_bind₁_rename_witt_polynomial_sub_sum (Φ : mv_polynomial idx ℤ) (n : ℕ)
   (IH : ∀ m : ℕ, m < n →
     map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) = witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) m) :
   C ↑(p ^ n) ∣
     (bind₁ (λ (b : idx), rename (λ i, (b, i)) (witt_polynomial p ℤ n)) Φ -
       ∑ i in range n, C (↑p ^ i) * witt_structure_int p Φ i ^ p ^ (n - i)) :=
 begin
-  cases n, {simp},
-  rw [nat.succ_eq_add_one],
-  rw C_dvd_iff_zmod,
-  rw [ring_hom.map_sub, sub_eq_zero, map_bind₁],
+  cases n,
+  { simp only [is_unit_one, int.coe_nat_zero, int.coe_nat_succ, zero_add,
+      nat.pow_zero, C_1, is_unit.dvd] },
+  rw [nat.succ_eq_add_one, C_dvd_iff_zmod, ring_hom.map_sub, sub_eq_zero, map_bind₁],
   simp only [map_rename, map_witt_polynomial, witt_polynomial_zmod_self],
-
-  have key := congr_arg (map (int.cast_ring_hom (zmod (p^(n+1))))) (blur Φ n IH),
-
-  calc _ = _ : _
-     ... = _ : key
-     ... = _ : _,
-
-  { simp only [map_bind₁, map_rename, map_expand, map_witt_polynomial], },
-
-  { clear key IH,
-    rw [bind₁, aeval_witt_polynomial, ring_hom.map_sum, ring_hom.map_sum],
-    apply finset.sum_congr rfl,
-    intros k hk, rw finset.mem_range at hk,
-    rw [← sub_eq_zero, ← ring_hom.map_sub, ← C_dvd_iff_zmod],
-    rw [← int.nat_cast_eq_coe_nat, C_eq_coe_nat],
-    rw [← int.nat_cast_eq_coe_nat, ← nat.cast_pow, ← nat.cast_pow, C_eq_coe_nat, ← mul_sub],
-    rw show p^(n+1) = p^k * p^(n-k+1),
-    { rw ← nat.pow_add, congr' 1, omega },
-    rw [nat.cast_mul, nat.cast_pow, nat.cast_pow],
-    apply mul_dvd_mul_left,
-    rw show p^(n+1-k) = p * p^(n-k),
-    { rw [mul_comm, ← nat.pow_succ], congr' 1, omega },
-    rw [pow_mul],
-    -- the machine!
-    apply dvd_sub_pow_of_dvd_sub,
-
-    rw [← C_eq_coe_nat, int.nat_cast_eq_coe_nat, C_dvd_iff_zmod],
-    rw [ring_hom.map_sub, sub_eq_zero, ring_hom.map_pow, ← mv_polynomial.expand_zmod],
-    rw [map_expand],
-   }
+  -- prepare a useful equation for rewriting
+  have key := bind₁_rename_expand_witt_polynomial Φ n IH,
+  apply_fun (map (int.cast_ring_hom (zmod (p ^ (n + 1))))) at key,
+  conv_lhs at key { simp only [map_bind₁, map_rename, map_expand, map_witt_polynomial] },
+  rw key,
+  clear key IH,
+  -- clean up and massage
+  rw [bind₁, aeval_witt_polynomial, ring_hom.map_sum, ring_hom.map_sum, finset.sum_congr rfl],
+  intros k hk,
+  rw finset.mem_range at hk,
+  simp only [← sub_eq_zero, ← ring_hom.map_sub, ← C_dvd_iff_zmod, C_eq_coe_nat, ← mul_sub,
+    ← int.nat_cast_eq_coe_nat, ← nat.cast_pow],
+  rw show p ^ (n + 1) = p ^ k * p ^ (n - k + 1),
+  { rw ← nat.pow_add, congr' 1, omega },
+  rw [nat.cast_mul, nat.cast_pow, nat.cast_pow],
+  apply mul_dvd_mul_left,
+  rw show p ^ (n + 1 - k) = p * p ^ (n - k),
+  { rw [mul_comm, ← pow_succ'], congr' 1, omega },
+  rw [pow_mul],
+  -- the machine!
+  apply dvd_sub_pow_of_dvd_sub,
+  rw [← C_eq_coe_nat, int.nat_cast_eq_coe_nat, C_dvd_iff_zmod, ring_hom.map_sub,
+      sub_eq_zero, map_expand, ring_hom.map_pow, mv_polynomial.expand_zmod],
 end
 
 variables (p)
@@ -311,7 +288,7 @@ begin
   rw [ring_hom.eq_int_cast, rat.denom_div_cast_eq_one_iff],
   swap, { exact_mod_cast pow_ne_zero n hp.ne_zero },
   revert c, rw [← C_dvd_iff_dvd_coeff],
-  exact C_p_pow_dvd_better_name Φ n IH,
+  exact C_p_pow_dvd_bind₁_rename_witt_polynomial_sub_sum Φ n IH,
 end
 
 variables (p)

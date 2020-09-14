@@ -10,8 +10,6 @@ import data.sigma.basic
 # Injective functions
 -/
 
-set_option trace.simps.verbose true
-
 universes u v w x
 
 namespace function

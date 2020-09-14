@@ -104,7 +104,7 @@ variables (σ R)
 @[simp] lemma aeval_id_eq_join₁ :
   aeval id = @join₁ σ R _ := rfl
 
-@[simp] lemma eval₂_hom_C_id_eq_join₁ (φ : mv_polynomial (mv_polynomial σ R) R) :
+lemma eval₂_hom_C_id_eq_join₁ (φ : mv_polynomial (mv_polynomial σ R) R) :
   eval₂_hom C id φ = join₁ φ := rfl
 
 @[simp] lemma eval₂_hom_id_X_eq_join₂ :

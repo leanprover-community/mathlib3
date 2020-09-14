@@ -775,6 +775,10 @@ by simp [@eq_comm _ _ (f _)]
   (∀ b, ∀ a, b = f a → p b) ↔ (∀ a, p (f a)) :=
 by { rw forall_swap, simp }
 
+/-- An implication whose LHS is independent of the forall can be brought outside -/
+@[simp] theorem forall_imp_indep {p : Prop} {q : α → Prop} :
+  (∀ a, p → q a) ↔ (p → ∀ a, q a) := forall_swap
+
 @[simp] theorem exists_eq_left' {a' : α} : (∃ a, a' = a ∧ p a) ↔ p a' :=
 by simp [@eq_comm _ a']
 
@@ -1179,3 +1183,5 @@ by { by_cases h : P; simp [h] }
 dite_not P (λ _, x) (λ _, y)
 
 end ite
+
+#lint

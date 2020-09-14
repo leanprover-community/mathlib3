@@ -95,6 +95,20 @@ lemma aeval_witt_polynomial {A : Type*} [comm_ring A] [algebra R A] (f : ℕ →
   aeval f (W_ R n) = ∑ i in range (n+1), p^i * (f i) ^ (p ^ (n-i)) :=
 by simp [witt_polynomial, alg_hom.map_sum, aeval_monomial, finsupp.prod_single_index]
 
+@[simp] lemma witt_polynomial_zmod_self (n : ℕ) :
+  W_ (zmod (p ^ (n + 1))) (n + 1) = expand p (W_ (zmod (p^(n + 1))) n) :=
+begin
+  simp only [witt_polynomial_eq_sum_C_mul_X_pow],
+  rw [finset.sum_range_succ, ← nat.cast_pow, char_p.cast_eq_zero (zmod (p^(n+1))) (p^(n+1)),
+      C_0, zero_mul, zero_add],
+  rw [alg_hom.map_sum, finset.sum_congr rfl],
+  intros k hk,
+  rw [alg_hom.map_mul, alg_hom.map_pow, expand_X, alg_hom_C, ← pow_mul, ← pow_succ],
+  congr,
+  rw finset.mem_range at hk,
+  omega
+end
+
 section p_prime
 -- in fact, `0 < p` would be sufficient
 variables [hp : fact p.prime]

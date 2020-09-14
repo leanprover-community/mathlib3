@@ -13,6 +13,8 @@ import ring_theory.multiplicity
 import algebra.invertible
 import number_theory.basic
 import group_theory.order_of_element
+import field_theory.finite
+import field_theory.mv_polynomial
 
 universes u v w u₁
 
@@ -568,5 +570,30 @@ by rintro rfl rfl; refl
 lemma nontrivial_of_char_ne_one {v : ℕ} (hv : v ≠ 1) {R : Type*} [semiring R] [hr : char_p R v] :
   nontrivial R :=
 ⟨⟨(1 : ℕ), 0, λ h, hv $ by rwa [char_p.cast_eq_zero_iff _ v, nat.dvd_one] at h; assumption ⟩⟩
+
+section zmod
+open mv_polynomial
+variables {p : ℕ} {σ : Type*}
+
+@[simp] lemma frobenius_zmod (p : ℕ) [hp : fact p.prime] (a : zmod p) :
+  frobenius _ p a = a :=
+by rw [frobenius_def, zmod.pow_card]
+
+lemma mv_polynomial.frobenius_zmod [fact p.prime] (φ : mv_polynomial σ (zmod p)) :
+  frobenius _ p φ = expand p φ :=
+begin
+  apply induction_on φ,
+  { intro a, rw [expand_C, frobenius_def, ← C_pow, zmod.pow_card], },
+  { simp only [alg_hom.map_add, ring_hom.map_add], intros _ _ hf hg, rw [hf, hg] },
+  { simp only [expand_X, ring_hom.map_mul, alg_hom.map_mul],
+    intros _ _ hf, rw [hf, frobenius_def], },
+end
+
+lemma mv_polynomial.expand_zmod [fact p.prime] (φ : mv_polynomial σ (zmod p)) :
+  expand p φ = φ^p :=
+(mv_polynomial.frobenius_zmod _).symm
+
+end zmod
+
 
 -- ### end FOR_MATHLIB

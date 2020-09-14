@@ -260,7 +260,7 @@ begin
     rw [mul_right_comm, ← C_mul, ← mul_pow, mul_inv_of_self, one_pow, C_1, one_mul], },
   { intros i h,
     rw finset.mem_range at h,
-    simp only [alg_hom.map_mul, alg_hom.map_pow, alg_hom_C, function.comp_app, H i h] },
+    simp only [alg_hom.map_mul, alg_hom.map_pow, alg_hom_C, H i h] },
 end
 
 lemma from_W_to_X_basis_comp_from_X_to_W_basis [invertible (p : R)] :

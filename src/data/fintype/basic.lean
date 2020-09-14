@@ -1052,13 +1052,6 @@ lemma exists_subset_card_eq (α : Type*) [infinite α] (n : ℕ) :
 
 end infinite
 
-namespace field
-
-lemma infinite_of_infinite [division_ring α] [semiring β] [nontrivial β] [infinite α] (f : α →+* β) : infinite β :=
-@infinite.of_injective _ _ _ f f.injective
-
-end field
-
 lemma not_injective_infinite_fintype [infinite α] [fintype β] (f : α → β) :
   ¬ injective f :=
 assume (hf : injective f),

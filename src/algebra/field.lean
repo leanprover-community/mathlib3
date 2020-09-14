@@ -5,7 +5,6 @@ Authors: Robert Lewis, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.ring.basic
 import algebra.group_with_zero
-
 open set
 
 set_option old_structure_cmd true

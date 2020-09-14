@@ -124,8 +124,7 @@ begin
       C_0, zero_mul, zero_add],
   rw [alg_hom.map_sum, finset.sum_congr rfl],
   intros k hk,
-  rw [alg_hom.map_mul, alg_hom.map_pow, expand_X, alg_hom_C, ← pow_mul,
-      mul_comm p, ← nat.pow_succ, nat.succ_eq_add_one],
+  rw [alg_hom.map_mul, alg_hom.map_pow, expand_X, alg_hom_C, ← pow_mul, ← pow_succ],
   congr,
   rw finset.mem_range at hk,
   omega

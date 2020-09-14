@@ -79,7 +79,7 @@ begin
   rw [finset.sum_eq_zero],
   rintro i hi,
   rw [if_neg],
-  rw [finsupp.single_eq_zero, ← nat.pow_eq_pow],
+  rw [finsupp.single_eq_zero],
   apply ne_of_gt,
   apply pow_pos hp.pos
 end
@@ -108,7 +108,7 @@ begin
     rw vars_monomial_single,
     { rw ← nat.pos_iff_ne_zero,
       apply nat.pow_pos hp.pos },
-    { rw [← nat.cast_pow, nat.cast_ne_zero, ← nat.pow_eq_pow],
+    { rw [← nat.cast_pow, nat.cast_ne_zero],
       apply ne_of_gt,
       apply pow_pos hp.pos i } },
   rw [witt_polynomial, vars_sum_of_disjoint],

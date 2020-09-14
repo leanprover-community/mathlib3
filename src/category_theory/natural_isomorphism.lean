@@ -133,7 +133,11 @@ lemma naturality_2 (α : F ≅ G) (f : X ⟶ Y) :
   (α.hom.app X) ≫ (G.map f) ≫ (α.inv.app Y) = F.map f :=
 begin erw [naturality, ←category.assoc, is_iso.hom_inv_id, category.id_comp] end
 
-instance is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
+/--
+A natural transformation is an isomorphism if all its components are isomorphisms.
+-/
+-- Making this an instance would cause a typeclass inference loop with `is_iso_app_of_is_iso`.
+def is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is_iso α :=
 { inv :=
   { app := λ X, inv (α.app X),
     naturality' := λ X Y f,
@@ -146,8 +150,7 @@ instance is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is
 /--
 The components of a natural isomorphism are isomorphisms.
 -/
--- Making this an instance would cause a typeclass inference loop with `is_iso_of_is_iso_app`.
-def is_iso_app_of_is_iso (α : F ⟶ G) [is_iso α] (X) : is_iso (α.app X) :=
+instance is_iso_app_of_is_iso (α : F ⟶ G) [is_iso α] (X) : is_iso (α.app X) :=
 { inv := (inv α).app X,
   hom_inv_id' := congr_fun (congr_arg nat_trans.app (is_iso.hom_inv_id α)) X,
   inv_hom_id' := congr_fun (congr_arg nat_trans.app (is_iso.inv_hom_id α)) X }
@@ -156,18 +159,15 @@ def is_iso_app_of_is_iso (α : F ⟶ G) [is_iso α] (X) : is_iso (α.app X) :=
 Construct a natural isomorphism between functors by giving object level isomorphisms,
 and checking naturality only in the forward direction.
 -/
+@[simps]
 def of_components (app : ∀ X : C, F.obj X ≅ G.obj X)
   (naturality : ∀ {X Y : C} (f : X ⟶ Y), F.map f ≫ (app Y).hom = (app X).hom ≫ G.map f) :
   F ≅ G :=
-as_iso { app := λ X, (app X).hom }
+{ hom := { app := λ X, (app X).hom }, ..is_iso_of_is_iso_app _ }
 
 @[simp] lemma of_components.app (app' : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
   (of_components app' naturality).app X = app' X :=
 by tidy
-@[simp] lemma of_components.hom_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
-  (of_components app naturality).hom.app X = (app X).hom := rfl
-@[simp] lemma of_components.inv_app (app : ∀ X : C, F.obj X ≅ G.obj X) (naturality) (X) :
-  (of_components app naturality).inv.app X = (app X).inv := rfl
 
 /-- Horizontal composition of natural isomorphisms. -/
 def hcomp {F G : C ⥤ D} {H I : D ⥤ E} (α : F ≅ G) (β : H ≅ I) : F ⋙ H ≅ G ⋙ I :=

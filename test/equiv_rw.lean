@@ -289,7 +289,7 @@ attribute [transport_simps]
   eq_rec_constant
   eq_mpr_rfl
   equiv.to_fun_as_coe
-  equiv.arrow_congr'_apply
+  equiv.arrow_congr'_to_fun
   equiv.symm_apply_apply
   equiv.apply_eq_iff_eq_symm_apply
 

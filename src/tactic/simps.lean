@@ -327,9 +327,9 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
               ff cfg new_todo
     else do
       when must_be_str $
-        fail!"Invalid `simps` attribute. The body is not a constructor application:\n{rhs_ap}\nPossible solution: add option {{rhs_md := semireducible}.",
+        fail!"Invalid `simps` attribute. The body is not a constructor application:\n{rhs_ap}\nPossible solution: add option {{rhs_md := semireducible}.\nThe option {{simp_rhs := tt} might also be useful to simplify the right-hand side.",
       when (todo_next ≠ []) $
-        fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo_next.head}. The given definition is not a constructor application:\n{rhs_ap}\nPossible solution: add option {{rhs_md := semireducible}.",
+        fail!"Invalid simp-lemma {nm.append_suffix $ suffix ++ todo_next.head}. The given definition is not a constructor application:\n{rhs_ap}\nPossible solution: add option {{rhs_md := semireducible}.\nThe option {{simp_rhs := tt} might also be useful to simplify the right-hand side.",
       if cfg.fully_applied then
         simps_add_projection new_nm tgt lhs_ap rhs_ap new_args univs cfg else
         simps_add_projection new_nm type lhs rhs args univs cfg

@@ -180,29 +180,6 @@ variables {ι : Type*} {σ : Type*}
 variables {S : Type*} [comm_ring S]
 variables {T : Type*} [comm_ring T]
 
-variables (p)
-
-lemma foo [fact p.prime] (Φ : mv_polynomial idx ℤ) (n : ℕ)
-  (IH : ∀ m : ℕ, m < n →
-    map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) =
-    witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) m) :
-  map (int.cast_ring_hom ℚ)
-    (((bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℤ n)))) Φ) -
-      (∑ i in range n, C (p^i : ℤ) * (witt_structure_int p Φ i)^p^(n-i))) =
-  bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n)))
-   (map (int.cast_ring_hom ℚ) Φ) -
-  (∑ i in range n, C (p^i : ℚ) * (witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) i)^p^(n-i)) :=
-begin
-  rw [ring_hom.map_sub, ring_hom.map_sum],
-  apply congr₂,
-  { simp only [map_bind₁, map_rename, map_witt_polynomial], },
-  { apply finset.sum_congr rfl,
-    intros i hi,
-    rw finset.mem_range at hi,
-    specialize IH i hi,
-    simp only [IH, int.cast_coe_nat, ring_hom.eq_int_cast, ring_hom.map_pow, map_C, ring_hom.map_mul, ring_hom.map_nat_cast], }
-end
-
 variable {p}
 
 -- this seems overly specific. I wouldn't mind getting rid of it.
@@ -222,25 +199,29 @@ end
 
 section p_prime
 
-variable [fact p.prime]
+variable [hp : fact p.prime]
+include hp
 
-lemma xyzzy (n : ℕ) (i : idx) :
-  (map (int.cast_ring_hom ℚ))
-    ((eval₂_hom ((rename (prod.mk i)).comp (algebra_map.{0 0} ℤ (mv_polynomial ℕ ℤ)))
-      (λ (k : ℕ), (rename (prod.mk i)) (X k ^ p)))
-        (witt_polynomial p ℤ n)) =
-  (eval₂_hom (algebra_map ℚ (mv_polynomial (idx × ℕ) ℚ))
-    (λ (bi : idx × ℕ), X bi ^ p))
-    ((rename (prod.mk i)) (witt_polynomial p ℚ n)) :=
+lemma foo (Φ : mv_polynomial idx ℤ) (n : ℕ)
+  (IH : ∀ m : ℕ, m < n →
+    map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) =
+    witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) m) :
+  map (int.cast_ring_hom ℚ)
+    (((bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℤ n)))) Φ) -
+      (∑ i in range n, C (p^i : ℤ) * (witt_structure_int p Φ i)^p^(n-i))) =
+  bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n)))
+   (map (int.cast_ring_hom ℚ) Φ) -
+  (∑ i in range n, C (p^i : ℚ) * (witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) i)^p^(n-i)) :=
 begin
-  rw [map_eval₂_hom, eval₂_hom_rename,
-    ← map_witt_polynomial p (int.cast_ring_hom ℚ), eval₂_hom_map_hom],
-  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-  funext k,
-  simp only [rename_X, map_X, ring_hom.map_pow],
+  rw [ring_hom.map_sub, ring_hom.map_sum],
+  simp only [map_bind₁, map_rename, map_witt_polynomial],
+  apply congr₂ _ _ _ _ _ rfl,
+  { apply finset.sum_congr rfl,
+    intros i hi,
+    rw finset.mem_range at hi,
+    simp only [IH i hi, int.cast_coe_nat, ring_hom.eq_int_cast, ring_hom.map_pow, map_C,
+      ring_hom.map_mul, ring_hom.map_nat_cast], }
 end
-
-variables (p)
 
 lemma blur (Φ : mv_polynomial idx ℤ) (n : ℕ)
   (IH : ∀ m : ℕ, m < (n + 1) →
@@ -276,29 +257,24 @@ begin
   { simp only [map_bind₁, expand_bind₁, map_expand, witt_polynomial_eq_sum_C_mul_X_pow, int.nat_cast_eq_coe_nat], }
 end
 
-
-@[simp] lemma map_witt_structure_int (Φ : mv_polynomial idx ℤ) (n : ℕ) :
-  map (int.cast_ring_hom ℚ) (witt_structure_int p Φ n) =
-    witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) n :=
+-- this seems like a nice statement that needs a good name
+lemma C_p_pow_dvd_better_name
+  (Φ : mv_polynomial idx ℤ)
+  (n : ℕ)
+  (IH : ∀ m : ℕ, m < n →
+    map (int.cast_ring_hom ℚ) (witt_structure_int p Φ m) =
+      witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) m) :
+  C ↑(p ^ n) ∣
+    (bind₁ (λ (b : idx), rename (λ i, (b, i)) (witt_polynomial p ℤ n)) Φ -
+      ∑ i in range n, C (↑p ^ i) * witt_structure_int p Φ i ^ p ^ (n - i)) :=
 begin
-  apply nat.strong_induction_on n, clear n,
-  intros n IH,
-  erw rat_mv_poly_is_integral_iff,
-  intro c,
-  rw [witt_structure_rat_rec p _ n, coeff_C_mul, mul_comm, mul_div_assoc', mul_one],
-  rw ← foo p Φ n IH,
-  rw coeff_map,
-  rw show (p : ℚ)^n = ((p^n : ℕ) : ℤ), by norm_cast,
-  rw [ring_hom.eq_int_cast, rat.denom_div_cast_eq_one_iff],
-  swap,
-  { rw int.coe_nat_pow, apply pow_ne_zero, exact_mod_cast ne_of_gt (nat.prime.pos ‹_›) },
-  induction n with n ih, {simp}, clear ih, revert c,
-  rw [← C_dvd_iff_dvd_coeff, nat.succ_eq_add_one],
+  cases n, {simp},
+  rw [nat.succ_eq_add_one],
   rw C_dvd_iff_zmod,
   rw [ring_hom.map_sub, sub_eq_zero, map_bind₁],
   simp only [map_rename, map_witt_polynomial, witt_polynomial_zmod_self],
 
-  have key := congr_arg (map (int.cast_ring_hom (zmod (p^(n+1))))) (blur p Φ n IH),
+  have key := congr_arg (map (int.cast_ring_hom (zmod (p^(n+1))))) (blur Φ n IH),
 
   calc _ = _ : _
      ... = _ : key
@@ -327,6 +303,30 @@ begin
     rw [ring_hom.map_sub, sub_eq_zero, ring_hom.map_pow, ← mv_polynomial.expand_zmod],
     rw [map_expand],
    }
+end
+
+variables (p)
+
+@[simp] lemma map_witt_structure_int (Φ : mv_polynomial idx ℤ) (n : ℕ) :
+  map (int.cast_ring_hom ℚ) (witt_structure_int p Φ n) =
+    witt_structure_rat p (map (int.cast_ring_hom ℚ) Φ) n :=
+begin
+  apply nat.strong_induction_on n, clear n,
+  intros n IH,
+  erw rat_mv_poly_is_integral_iff,
+  intro c,
+  rw [witt_structure_rat_rec p _ n, coeff_C_mul, mul_comm, mul_div_assoc', mul_one],
+  rw ← foo Φ n IH,
+  rw coeff_map,
+  rw show (p : ℚ)^n = ((p^n : ℕ) : ℤ), by norm_cast,
+  rw [ring_hom.eq_int_cast, rat.denom_div_cast_eq_one_iff],
+
+  swap,
+  { exact_mod_cast pow_ne_zero n hp.ne_zero },
+
+  revert c, rw [← C_dvd_iff_dvd_coeff],
+
+  apply C_p_pow_dvd_better_name Φ n IH,
 end
 
 variables (p)

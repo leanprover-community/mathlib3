@@ -44,9 +44,7 @@ class has_zero_morphisms :=
 
 attribute [instance] has_zero_morphisms.has_zero
 restate_axiom has_zero_morphisms.comp_zero'
-attribute [simp] has_zero_morphisms.comp_zero
 restate_axiom has_zero_morphisms.zero_comp'
-attribute [simp] has_zero_morphisms.zero_comp
 
 variables {C}
 

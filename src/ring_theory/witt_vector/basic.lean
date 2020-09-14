@@ -268,7 +268,7 @@ begin
   ext w n,
   rw [ghost_map_fun_apply, ghost_component_apply'],
   dsimp [ghost_map_fun.equiv_of_invertible, witt.alg_equiv],
-  rw [aeval_X],
+  rw bind₁_X_right
 end
 
 lemma ghost_map_fun.bijective_of_invertible [invertible (p : R)] :

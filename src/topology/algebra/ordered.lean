@@ -2632,7 +2632,7 @@ sample; there are at least 16 possible variations with open intervals (`univ` to
 variables {a b : α}
 
 /-- If `f : α → β` is strictly monotone and continuous on the interval `Ioo a b` of `α`, and tends
-to `at_top` with `𝓝[Iio b] b` and to `at_bot` with `𝓝[Ioi a] a`, then it restricts to a
+to `at_top` within `𝓝[Iio b] b` and to `at_bot` within `𝓝[Ioi a] a`, then it restricts to a
 homeomorphism from `Ioo a b` to `β`. -/
 noncomputable def homeomorph_of_strict_mono_continuous_Ioo
   (f : α → β) (h : a < b)
@@ -2663,7 +2663,7 @@ end
   (h_cont : continuous_on f (Ioo a b))
   (h_top : tendsto f (𝓝[Iio b] b) at_top)
   (h_bot : tendsto f (𝓝[Ioi a] a) at_bot) :
-(homeomorph_of_strict_mono_continuous_Ioo f h h_mono h_cont h_top h_bot : Ioo a b → β)
+  (homeomorph_of_strict_mono_continuous_Ioo f h h_mono h_cont h_top h_bot : Ioo a b → β)
   = restrict f (Ioo a b) :=
 rfl
 

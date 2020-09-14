@@ -137,6 +137,11 @@ theorem aeval_apply (x : B) (p : polynomial R) : polynomial.aeval x p =
   polynomial.aeval x (polynomial.map (algebra_map R A) p) :=
 by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.eval₂_map, algebra_map_eq R A B]
 
+instance linear_map (R : Type u) (A : Type v) (V : Type w)
+  [comm_semiring R] [comm_semiring A] [add_comm_monoid V]
+  [semimodule R V] [algebra R A] : is_scalar_tower R A (V →ₗ[R] A) :=
+⟨λ x y f, linear_map.ext $ λ v, algebra.smul_mul_assoc x y (f v)⟩
+
 end comm_semiring
 
 section comm_ring

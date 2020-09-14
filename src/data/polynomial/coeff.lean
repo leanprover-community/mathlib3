@@ -40,10 +40,7 @@ lemma coeff_sum [semiring S] (n : ℕ) (f : ℕ → R → polynomial S) :
 coeff (r • p) n = r * coeff p n := finsupp.smul_apply
 
 lemma mem_support_iff_coeff_ne_zero : n ∈ p.support ↔ p.coeff n ≠ 0 :=
-begin
-  rw mem_support_to_fun,
-  refl,
-end
+by { rw mem_support_to_fun, refl }
 
 variable (R)
 /-- The nth coefficient, as a linear map. -/

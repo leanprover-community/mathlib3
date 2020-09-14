@@ -12,7 +12,7 @@ import linear_algebra.tensor_product
 
 Mostly this uses existing machinery in `linear_algebra.tensor_product`.
 We just need to provide a few small missing pieces to build the
-`monoidal_category` instance and then the `symmetric_monoidal_category` instance.
+`monoidal_category` instance and then the `symmetric_category` instance.
 
 If you're happy using the bundled `Module R`, it may be possible to mostly
 use this as an interface and not need to interact much with the implementation details.

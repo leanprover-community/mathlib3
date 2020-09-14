@@ -72,6 +72,8 @@ variables [comm_semiring α] {p q : mv_polynomial σ α}
 
 section degrees
 
+/-! ### `degrees` -/
+
 /--
 The maximal degrees of each variable in a multi-variable polynomial, expressed as a multiset.
 
@@ -203,6 +205,8 @@ by simp only [degrees, mv_polynomial.support_map_of_injective _ hf]
 end degrees
 
 section vars
+
+/-! ### `vars` -/
 
 /-- `vars p` is the set of variables appearing in the polynomial `p` -/
 def vars (p : mv_polynomial σ α) : finset σ := p.degrees.to_finset
@@ -381,12 +385,17 @@ end vars
 
 section degree_of
 
+/-! ### `degree_of` -/
+
 /-- `degree_of n p` gives the highest power of X_n that appears in `p` -/
 def degree_of (n : σ) (p : mv_polynomial σ α) : ℕ := p.degrees.count n
 
 end degree_of
 
 section total_degree
+
+/-! ### `total_degree` -/
+
 /-- `total_degree p` gives the maximum |s| over the monomials X^s in `p` -/
 def total_degree (p : mv_polynomial σ α) : ℕ := p.support.sup (λs, s.sum $ λn e, e)
 
@@ -514,6 +523,8 @@ end
 end total_degree
 
 section eval_vars
+
+/-! ### `vars` and `eval` -/
 
 variables {R : Type u} {A : Type v} {S : Type w} (f : σ → A)
 variables [comm_semiring R] [comm_semiring A] [algebra R A] [comm_semiring S]

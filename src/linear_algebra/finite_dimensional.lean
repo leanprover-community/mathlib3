@@ -942,4 +942,25 @@ lemma set_is_basis_of_linear_independent_of_card_eq_findim
   is_basis K (coe : s → V) :=
 is_basis_of_linear_independent_of_card_eq_findim lin_ind (trans s.to_finset_card.symm card_eq)
 
+lemma findim_one_implies_equal {F E : Type*} [field F] [field E] [algebra F E]
+  (E_dim : findim F E = 1) : (⊤ : subalgebra F E) = ⊥ :=
+begin
+  ext,
+  apply iff_of_true algebra.mem_top,
+  set s : set E := {1} with hs,
+  have : fintype s := unique.fintype,
+  have s_lin_ind : linear_independent F (coe : s → E) := linear_independent_singleton one_ne_zero,
+  have s_card : s.to_finset.card = findim F E := by change s.to_finset.card with 1; rw E_dim,
+  obtain ⟨_, s_spans⟩ := set_is_basis_of_linear_independent_of_card_eq_findim s_lin_ind s_card,
+  have x_in_span_one : x ∈ submodule.span F s :=
+  begin
+    rw subtype.range_coe at s_spans,
+    rw s_spans,
+    exact submodule.mem_top,
+  end,
+  obtain ⟨a, ha⟩ := submodule.mem_span_singleton.mp x_in_span_one,
+  rw algebra.mem_bot,
+  exact ⟨a, by rw [← ha, algebra.smul_def, mul_one]⟩,
+end
+
 end is_basis

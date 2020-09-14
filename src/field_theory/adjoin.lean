@@ -155,33 +155,9 @@ by apply adjoin_adjoin_comm
 section
 open finite_dimensional
 
-instance adjoin_findim_of_findim_base [F_findim : finite_dimensional F E] (α : E) :
-    finite_dimensional F F⟮α⟯ :=
-finite_dimensional.finite_dimensional_submodule (F⟮α⟯ : submodule F E)
-
-lemma findim_one_implies_equal (E_dim : findim F E = 1) : (⊤ : subalgebra F E) = ⊥ :=
-begin
-  ext,
-  apply iff_of_true algebra.mem_top,
-  set s : set E := {1} with hs,
-  have : fintype s := unique.fintype,
-  have s_lin_ind : linear_independent F (coe : s → E) := linear_independent_singleton one_ne_zero,
-  have s_card : s.to_finset.card = findim F E := by change s.to_finset.card with 1; rw E_dim,
-  obtain ⟨_, s_spans⟩ := set_is_basis_of_linear_independent_of_card_eq_findim s_lin_ind s_card,
-  have x_in_span_one : x ∈ submodule.span F s :=
-  begin
-    rw subtype.range_coe at s_spans,
-    rw s_spans,
-    exact submodule.mem_top,
-  end,
-  obtain ⟨a, ha⟩ := submodule.mem_span_singleton.mp x_in_span_one,
-  rw algebra.mem_bot,
-  exact ⟨a, by rw [← ha, algebra.smul_def, mul_one]⟩,
-end
-
 lemma adjoin.findim_one (h : findim F F⟮α⟯ = 1) : α ∈ (⊥ : subalgebra F E) :=
 begin
-  replace h := findim_one_implies_equal F h,
+  replace h := findim_one_implies_equal h,
   rw subalgebra.ext_iff at h,
   specialize h (adjoin_simple.gen F α),
   rw algebra.mem_bot at h,

@@ -89,8 +89,7 @@ def submodule_tower_submodule (p : submodule K A) : submodule F A := {
 
 /-- Given a tower `F : K : A`, if `A` has finite dimension over `F` then it is also has
   finite dimension over `K` -/
-instance findim_of_tower_findim [finite_dimensional F A] :
-  finite_dimensional K A :=
+lemma findim_of_tower_findim [finite_dimensional F A] : finite_dimensional K A :=
 begin
   rw iff_fg,
   rw submodule.fg_iff_finite_dimensional,

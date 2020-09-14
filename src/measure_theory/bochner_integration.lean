@@ -956,7 +956,7 @@ lemma integral_eq (f : α → E) (h₁ : measurable f) (h₂ : integrable f μ) 
   ∫ a, f a ∂μ = (l1.of_fun f h₁ h₂).integral :=
 dif_pos ⟨h₁, h₂⟩
 
-lemma l1.integral_eq_integral (f : α →₁[μ] E) : f.integral =  ∫ a, f a ∂μ :=
+lemma l1.integral_eq_integral (f : α →₁[μ] E) : f.integral = ∫ a, f a ∂μ :=
 by rw [integral_eq, l1.of_fun_to_fun]
 
 lemma integral_undef (h : ¬ (measurable f ∧ integrable f μ)) : ∫ a, f a ∂μ = 0 :=

@@ -34,7 +34,7 @@ span_of_finite k $ vsub_set_finite_of_finite h
 
 /-- The `vector_span` of a family indexed by a `fintype` is
 finite-dimensional. -/
-instance finite_dimensional_direction_vector_span_of_fintype [fintype ι] (p : ι → P) :
+instance finite_dimensional_vector_span_of_fintype [fintype ι] (p : ι → P) :
   finite_dimensional k (vector_span k (set.range p)) :=
 finite_dimensional_vector_span_of_finite k (set.finite_range _)
 

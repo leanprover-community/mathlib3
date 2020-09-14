@@ -331,7 +331,7 @@ lemma integral_univ : ∫ x in univ, f x ∂μ = ∫ x, f x ∂μ := by rw [meas
 
 lemma integral_add_compl (hs : is_measurable s) (hfi : integrable f μ) :
   ∫ x in s, f x ∂μ + ∫ x in sᶜ, f x ∂μ = ∫ x, f x ∂μ :=
-by rw [← integral_union (disjoint_compl s) hs hs.compl hfi.integrable_on hfi.integrable_on,
+by rw [← integral_union (disjoint_compl_right s) hs hs.compl hfi.integrable_on hfi.integrable_on,
   union_compl_self, integral_univ]
 
 /-- For a measurable function `f` and a measurable set `s`, the integral of `indicator s f`
@@ -351,6 +351,11 @@ by { rwa [integral_non_integrable, integral_non_integrable], rwa integrable_indi
 
 lemma set_integral_const (c : E) : ∫ x in s, c ∂μ = (μ s).to_real • c :=
 by rw [integral_const, measure.restrict_apply_univ]
+
+@[simp]
+lemma integral_indicator_const (e : E) ⦃s : set α⦄ (s_meas : is_measurable s) :
+  ∫ (a : α), s.indicator (λ (x : α), e) a ∂μ = (μ s).to_real • e :=
+by rw [integral_indicator measurable_const s_meas, ← set_integral_const]
 
 lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ⊤)
   (hC : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ C) :

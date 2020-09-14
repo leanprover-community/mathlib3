@@ -8,7 +8,12 @@ import category_theory.limits.limits
 
 /-!
 # Initial and terminal objects in a category.
+
+## References
+* [Stacks: Initial and final objects](https://stacks.math.columbia.edu/tag/002B)
 -/
+
+noncomputable theory
 
 universes v u
 
@@ -66,13 +71,13 @@ Use `has_initial_of_unique` to construct instances.
 abbreviation has_initial := has_colimits_of_shape (discrete pempty) C
 
 /--
-The chosen terminal object, if it exists.
+An arbitrary choice of terminal object, if one exists.
 You can use the notation `⊤_ C`.
 This object is characterized by having a unique morphism from any object.
 -/
 abbreviation terminal [has_terminal C] : C := limit (functor.empty C)
 /--
-The chosen initial object, if it exists.
+An arbitrary choice of initial object, if one exists.
 You can use the notation `⊥_ C`.
 This object is characterized by having a unique morphism to any object.
 -/
@@ -86,15 +91,15 @@ variables {C}
 
 /-- We can more explicitly show that a category has a terminal object by specifying the object,
 and showing there is a unique morphism to it from any other object. -/
-def has_terminal_of_unique (X : C) [h : Π Y : C, unique (Y ⟶ X)] : has_terminal C :=
-{ has_limit := λ F,
+lemma has_terminal_of_unique (X : C) [h : Π Y : C, unique (Y ⟶ X)] : has_terminal C :=
+{ has_limit := λ F, has_limit.mk
   { cone     := { X := X, π := { app := pempty.rec _ } },
     is_limit := { lift := λ s, (h s.X).default } } }
 
 /-- We can more explicitly show that a category has an initial object by specifying the object,
 and showing there is a unique morphism from it to any other object. -/
-def has_initial_of_unique (X : C) [h : Π Y : C, unique (X ⟶ Y)] : has_initial C :=
-{ has_colimit := λ F,
+lemma has_initial_of_unique (X : C) [h : Π Y : C, unique (X ⟶ Y)] : has_initial C :=
+{ has_colimit := λ F, has_colimit.mk
   { cocone     := { X := X, ι := { app := pempty.rec _ } },
     is_colimit := { desc := λ s, (h s.X).default } } }
 
@@ -113,11 +118,11 @@ instance unique_from_initial [has_initial C] (P : C) : unique (⊥_ C ⟶ P) :=
 { default := initial.to P,
   uniq := λ m, by { apply colimit.hom_ext, rintro ⟨⟩ } }
 
-/-- The chosen terminal object is terminal. -/
+/-- A terminal object is terminal. -/
 def terminal_is_terminal [has_terminal C] : is_terminal (⊤_ C) :=
 { lift := λ s, terminal.from _ }
 
-/-- The chosen initial object is terminal. -/
+/-- An initial object is initial. -/
 def initial_is_initial [has_initial C] : is_initial (⊥_ C) :=
 { desc := λ s, initial.to _ }
 

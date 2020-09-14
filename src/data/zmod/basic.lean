@@ -313,15 +313,23 @@ def cast_hom (h : m ∣ n) (R : Type*) [ring R] [char_p R m] : zmod n →+* R :=
 
 @[simp] lemma cast_hom_apply {h : m ∣ n} (i : zmod n) : cast_hom h R i = i := rfl
 
+@[simp, norm_cast]
 lemma cast_sub (h : m ∣ n) (a b : zmod n) : ((a - b : zmod n) : R) = a - b :=
 (cast_hom h R).map_sub a b
 
+@[simp, norm_cast]
+lemma cast_neg (h : m ∣ n) (a : zmod n) : ((-a : zmod n) : R) = -a :=
+(cast_hom h R).map_neg a
+
+@[simp, norm_cast]
 lemma cast_pow (h : m ∣ n) (a : zmod n) (k : ℕ) : ((a ^ k : zmod n) : R) = a ^ k :=
 (cast_hom h R).map_pow a k
 
+@[simp, norm_cast]
 lemma cast_nat_cast (h : m ∣ n) (k : ℕ) : ((k : zmod n) : R) = k :=
 (cast_hom h R).map_nat_cast k
 
+@[simp, norm_cast]
 lemma cast_int_cast (h : m ∣ n) (k : ℤ) : ((k : zmod n) : R) = k :=
 (cast_hom h R).map_int_cast k
 

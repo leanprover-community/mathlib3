@@ -149,7 +149,7 @@
   title  : Dirichlet’s Theorem
 49:
   title  : The Cayley-Hamilton Theorem
-  decl   : char_poly_map_eval_self
+  decl   : aeval_self_char_poly
   author : Scott Morrison
 50:
   title  : The Number of Platonic Solids
@@ -286,7 +286,7 @@
   title  : The Friendship Theorem
   links:
     mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/83_friendship_graphs.lean
-    author: Aaron Anderson, Jalex Stark, Kyle Miller
+  author: Aaron Anderson, Jalex Stark, Kyle Miller
 84:
   title  : Morley’s Theorem
 85:

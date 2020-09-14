@@ -146,6 +146,17 @@ instance {k : ℕ} : sampleable { x : ℕ // k ∣ x } :=
 -- -------------------
 ```
 
+Similarly, it is common to write properties of the form: `∀ i j, i ≤ j → ...`
+as the following example show:
+
+```lean
+#eval check (∀ i j k : ℕ, j < k → i - k < i - j)
+```
+
+Without subtype instances, the above property discards many samples
+because `j < k` does not hold. Fortunately, we have appropriate
+instance to choose `k` intelligently.
+
 ## Main definitions
   * `testable` class
   * `testable.check`: a way to test a proposition using random examples
@@ -388,15 +399,26 @@ def combine_testable (p : Prop)
     by { rw [length_map], apply h },
   gen.one_of (list.map (λ t, @testable.run _ t tracing min) t) this ⟩
 
+/-- Shrink a counter-example `x` by using `shrink x`, picking the first
+candidate that falsifies a property and recursively shrinking that one.
+
+The process is guaranteed to terminate because `shrink x` produces
+a proof that all the values it produces are smaller (according to `sizeof`)
+than `x`. -/
+def minimize_aux [sampleable α] [∀ x, testable (β x)] : α → option_t gen (Σ x, test_result (β x)) :=
+well_founded.fix has_well_founded.wf $ λ x f_rec, do
+     ⟨y,h₀,⟨h₁⟩⟩ ← (shrink x).mfirst (λ ⟨a,h⟩, do
+       ⟨r⟩ ← monad_lift (uliftable.up $ testable.run (β a) ff tt : gen (ulift (test_result (β a)))),
+       if is_failure r
+         then pure (⟨a, r, ⟨h⟩⟩ : (Σ a, test_result (β a) × plift (sizeof_lt a x)))
+         else failure),
+     f_rec y h₁ <|> pure ⟨y,h₀⟩.
+
 /-- Once a property fails to hold on an example, look for smaller counter-examples
 to show the user. -/
-def minimize [∀ x, testable (β x)] (x : α) (r : test_result (β x)) : lazy_list α → gen (Σ x, test_result (β x))
-| lazy_list.nil := pure ⟨x,r⟩
-| (lazy_list.cons x xs) := do
-  ⟨r⟩ ← uliftable.up $ testable.run (β x) ff tt,
-     if is_failure r
-       then pure ⟨x, convert_counter_example id r (psum.inl ())⟩
-       else minimize $ xs ()
+def minimize [sampleable α] [∀ x, testable (β x)] (x : α) (r : test_result (β x)) : gen (Σ x, test_result (β x)) := do
+x' ← option_t.run $ minimize_aux α _ x,
+pure $ x'.get_or_else ⟨x, r⟩
 
 @[priority 2000]
 instance exists_testable (p : Prop)
@@ -422,7 +444,7 @@ instance var_testable [∀ x, testable (β x)] [has_to_string α] [sampleable α
    λ x, do
      r ← testable.run (β x) tracing ff,
      uliftable.adapt_down (if is_failure r ∧ min
-                          then minimize _ _ x r (shrink x)
+                          then minimize _ _ x r
                           else pure ⟨x,r⟩) $
      λ ⟨x,r⟩, return (trace_if_giveup tracing var x r $ add_var_to_counter_example var x ($ x) r) ⟩
 
@@ -446,6 +468,9 @@ instance subtype_var_testable (p : α → Prop) [has_to_string α]
 @[priority 100]
 instance decidable_testable (p : Prop) [decidable p] : testable p :=
 ⟨ λ tracing min, return $ if h : p then success (psum.inr h) else failure h [] ⟩
+
+instance eq_testable {α} [has_repr α] (x y : α) [decidable_eq α] : testable (x = y) :=
+⟨ λ tracing min, return $ if h : x = y then success (psum.inr h) else failure h [sformat!"{repr x} ≠ {repr y}"] ⟩
 
 section io
 
@@ -478,9 +503,12 @@ variable [testable p]
 /-- configuration for testing a property -/
 @[derive [has_reflect, inhabited]]
 structure slim_check_cfg :=
-(num_inst : ℕ := 100) -- number of examples
-(max_size : ℕ := 100) -- final size argument
-(enable_tracing : bool := ff) -- enable the printing out of discarded samples
+(num_inst : ℕ := 100)            -- number of examples
+(max_size : ℕ := 100)            -- final size argument
+(enable_tracing : bool := ff)    -- enable the printing out of discarded samples
+(random_seed : option ℕ := none) -- specify a seed to the random number generator to
+                                 -- obtain a deterministic behavior
+(quiet : bool := ff)             -- suppress success message when running `slim_check`
 
 /-- Try `n` times to find a counter-example for `p`. -/
 def testable.run_suite_aux (cfg : slim_check_cfg) : test_result p → ℕ → rand (test_result p)
@@ -501,7 +529,10 @@ testable.run_suite_aux p cfg (success $ psum.inl ()) cfg.num_inst
 
 /-- Run a test suite for `p` in `io`. -/
 def testable.check' (cfg : slim_check_cfg := {}) : io (test_result p) :=
-io.run_rand (testable.run_suite p cfg)
+match cfg.random_seed with
+| some seed := io.run_rand_with seed (testable.run_suite p cfg)
+| none := io.run_rand (testable.run_suite p cfg)
+end
 
 namespace tactic
 
@@ -567,18 +598,23 @@ exact $ add_decorations p
 end tactic
 
 /-- Run a test suite for `p` and return true or false: should we believe that `p` holds? -/
-def testable.check (p : Prop) (cfg : slim_check_cfg := {}) (p' : tactic.decorations_of p . tactic.mk_decorations) [testable p'] : io bool := do
-x ← io.run_rand (testable.run_suite p' cfg),
+def testable.check (p : Prop) (cfg : slim_check_cfg := {}) (p' : tactic.decorations_of p . tactic.mk_decorations) [testable p'] : io punit := do
+x ← match cfg.random_seed with
+    | some seed := io.run_rand_with seed (testable.run_suite p' cfg)
+    | none := io.run_rand (testable.run_suite p' cfg)
+    end,
 match x with
-| (success _) := io.put_str_ln ("Success") >> return tt
-| (gave_up n) := io.put_str_ln ("Gave up " ++ repr n ++ " times") >> return ff
+| (success _) := when (¬ cfg.quiet) $ io.put_str_ln "Success"
+| (gave_up n) := io.fail sformat!"Gave up {repr n} times"
 | (failure _ xs) := do
-   io.put_str_ln "\n===================",
-   io.put_str_ln "Found problems!",
-   io.put_str_ln "",
-   list.mmap' io.put_str_ln xs,
-   io.put_str_ln "-------------------",
-   return ff
+   let counter_ex := string.intercalate "\n" xs,
+   io.fail sformat!"
+===================
+Found problems!
+
+{counter_ex}
+-------------------
+"
 end
 
 end io

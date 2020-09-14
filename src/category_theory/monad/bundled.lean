@@ -57,10 +57,15 @@ instance : category (Monad C) :=
   id := λ _, monad_hom.id _,
   comp := λ _ _ _, monad_hom.comp }
 
+section
+variables (C)
+
 /-- The forgetful functor from `Monad C` to `C ⥤ C`. -/
 def forget : Monad C ⥤ (C ⥤ C) :=
 { obj := func,
   map := λ _ _ f, f.to_nat_trans }
+
+end
 
 @[simp]
 lemma comp_to_nat_trans {M N L : Monad C} (f : M ⟶ N) (g : N ⟶ L) :
@@ -95,10 +100,15 @@ instance : category (Comonad C) :=
   id := λ _, comonad_hom.id _,
   comp := λ _ _ _, comonad_hom.comp }
 
+section
+variables (C)
+
 /-- The forgetful functor from `CoMonad C` to `C ⥤ C`. -/
 def forget : Comonad C ⥤ (C ⥤ C) :=
 { obj := func,
   map := λ _ _ f, f.to_nat_trans }
+
+end
 
 @[simp]
 lemma comp_to_nat_trans {M N L : Comonad C} (f : M ⟶ N) (g : N ⟶ L) :

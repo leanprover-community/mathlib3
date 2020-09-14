@@ -10,12 +10,12 @@ import algebra.order_functions
 # Basic operations on the natural numbers
 
 This file contains:
-- instances on the natural numbers,
-- some basic lemmas about natural numbers,
+- instances on the natural numbers
+- some basic lemmas about natural numbers
 - extra recursors:
-  * `le_rec_on`, `le_induction`: recursion and induction principles starting at non-zero numbers.
-  * `decreasing_induction`: recursion growing downwards.
-  * `strong_rec'`: recursion based on strong inequalities.
+  * `le_rec_on`, `le_induction`: recursion and induction principles starting at non-zero numbers
+  * `decreasing_induction`: recursion growing downwards
+  * `strong_rec'`: recursion based on strong inequalities
 - decidability instances on predicates about the natural numbers
 
 -/

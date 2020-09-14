@@ -528,6 +528,34 @@ theorem fg_iff_finite_dimensional (s : submodule K V) :
 ⟨λh, is_noetherian_of_fg_of_noetherian s h,
  λh, by { rw ← map_subtype_top s, exact fg_map (iff_fg.1 h) }⟩
 
+/-- A submodule contained in a finite-dimensional submodule is
+finite-dimensional. -/
+lemma finite_dimensional_of_le {S₁ S₂ : submodule K V} [finite_dimensional K S₂] (h : S₁ ≤ S₂) :
+  finite_dimensional K S₁ :=
+finite_dimensional_iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_le_of_submodule _ _ h)
+                                                      (dim_lt_omega K S₂))
+
+/-- The inf of two submodules, the first finite-dimensional, is
+finite-dimensional. -/
+instance finite_dimensional_inf_left (S₁ S₂ : submodule K V) [finite_dimensional K S₁] :
+  finite_dimensional K (S₁ ⊓ S₂ : submodule K V) :=
+finite_dimensional_of_le inf_le_left
+
+/-- The inf of two submodules, the second finite-dimensional, is
+finite-dimensional. -/
+instance finite_dimensional_inf_right (S₁ S₂ : submodule K V) [finite_dimensional K S₂] :
+  finite_dimensional K (S₁ ⊓ S₂ : submodule K V) :=
+finite_dimensional_of_le inf_le_right
+
+/-- The sup of two finite-dimensional submodules is
+finite-dimensional. -/
+instance finite_dimensional_sup (S₁ S₂ : submodule K V) [h₁ : finite_dimensional K S₁]
+  [h₂ : finite_dimensional K S₂] : finite_dimensional K (S₁ ⊔ S₂ : submodule K V) :=
+begin
+  rw ←submodule.fg_iff_finite_dimensional at *,
+  exact submodule.fg_sup h₁ h₂
+end
+
 /-- In a finite-dimensional vector space, the dimensions of a submodule and of the corresponding
 quotient add up to the dimension of the space. -/
 theorem findim_quotient_add_findim [finite_dimensional K V] (s : submodule K V) :
@@ -556,8 +584,8 @@ lemma findim_quotient_le [finite_dimensional K V] (s : submodule K V) :
 by { rw ← s.findim_quotient_add_findim, exact nat.le_add_right _ _ }
 
 /-- The sum of the dimensions of s + t and s ∩ t is the sum of the dimensions of s and t -/
-theorem dim_sup_add_dim_inf_eq [finite_dimensional K V] (s t : submodule K V) :
-  findim K ↥(s ⊔ t) + findim K ↥(s ⊓ t) = findim K ↥s + findim K ↥t :=
+theorem dim_sup_add_dim_inf_eq (s t : submodule K V) [finite_dimensional K s]
+  [finite_dimensional K t] : findim K ↥(s ⊔ t) + findim K ↥(s ⊓ t) = findim K ↥s + findim K ↥t :=
 begin
   have key : dim K ↥(s ⊔ t) + dim K ↥(s ⊓ t) = dim K s + dim K t := dim_sup_add_dim_inf_eq s t,
   repeat { rw ←findim_eq_dim at key },
@@ -910,6 +938,31 @@ begin
   ... = 0           : smul_zero _,
   -- And then it's just a bit of manipulation with finite sums.
   rwa [← finset.insert_erase i_mem_s, finset.sum_insert (finset.not_mem_erase _ _)] at dependent
+end
+
+/-- A finite family of vectors is linearly independent if and only if
+its cardinality equals the dimension of its span. -/
+lemma linear_independent_iff_card_eq_findim_span {ι : Type*} [fintype ι] {b : ι → V} :
+  linear_independent K b ↔ fintype.card ι = findim K (span K (set.range b)) :=
+begin
+  split,
+  { intro h,
+    exact (findim_span_eq_card h).symm },
+  { intro hc,
+    let f := (submodule.subtype (span K (set.range b))),
+    let b' : ι → span K (set.range b) :=
+      λ i, ⟨b i, mem_span.2 (λ p hp, hp (set.mem_range_self _))⟩,
+    have hs : span K (set.range b') = ⊤,
+    { rw eq_top_iff',
+      intro x,
+      have h : span K (f '' (set.range b')) = map f (span K (set.range b')) := span_image f,
+      have hf : f '' (set.range b') = set.range b, { ext x, simp [set.mem_image, set.mem_range] },
+      rw hf at h,
+      have hx : (x : V) ∈ span K (set.range b) := x.property,
+      conv at hx { congr, skip, rw h },
+      simpa [mem_map] using hx },
+    have hi : disjoint (span K (set.range b')) f.ker, by simp,
+    convert (linear_independent_of_span_eq_top_of_card_eq_findim hs hc).image hi }
 end
 
 lemma is_basis_of_span_eq_top_of_card_eq_findim {ι : Type*} [fintype ι] {b : ι → V}

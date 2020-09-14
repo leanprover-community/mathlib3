@@ -88,6 +88,12 @@ smul_vsub_vadd_mem _ _
   s.circumcenter_mem_affine_span
   s.circumcenter_mem_affine_span
 
+/-- Two simplices with the same points have the same Monge point. -/
+lemma monge_point_eq_of_range_eq {n : ℕ} {s₁ s₂ : simplex ℝ P n}
+  (h : set.range s₁.points = set.range s₂.points) : s₁.monge_point = s₂.monge_point :=
+by simp_rw [monge_point_eq_smul_vsub_vadd_circumcenter, centroid_eq_of_range_eq h,
+            circumcenter_eq_of_range_eq h]
+
 omit V
 
 /-- The weights for the Monge point of an (n+2)-simplex, in terms of
@@ -372,6 +378,11 @@ end
 lemma orthocenter_mem_affine_span (t : triangle ℝ P) :
   t.orthocenter ∈ affine_span ℝ (set.range t.points) :=
 t.monge_point_mem_affine_span
+
+/-- Two triangles with the same points have the same orthocenter. -/
+lemma orthocenter_eq_of_range_eq {t₁ t₂ : triangle ℝ P}
+  (h : set.range t₁.points = set.range t₂.points) : t₁.orthocenter = t₂.orthocenter :=
+monge_point_eq_of_range_eq h
 
 /-- In the case of a triangle, altitudes are the same thing as Monge
 planes. -/

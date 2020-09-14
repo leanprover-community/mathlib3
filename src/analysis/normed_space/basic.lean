@@ -806,7 +806,7 @@ lemma nndist_smul [normed_space α β] (s : α) (x y : β) :
   nndist (s • x) (s • y) = nnnorm s * nndist x y :=
 nnreal.eq $ dist_smul s x y
 
-lemma norm_smul_of_nonneg [normed_space ℝ α] {t : ℝ} (ht : 0 ≤ t) (x : α) : ∥t • x∥ = t * ∥x∥ :=
+lemma norm_smul_of_nonneg [normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x : β) : ∥t • x∥ = t * ∥x∥ :=
 by rw [norm_smul, real.norm_eq_abs, abs_of_nonneg ht]
 
 variables {E : Type*} {F : Type*}

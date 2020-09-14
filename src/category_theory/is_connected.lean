@@ -48,7 +48,7 @@ open category_theory.category
 namespace category_theory
 
 /--
-A possibly empty category for which every functor to the discrete category is constant.
+A possibly empty category for which every functor to a discrete category is constant.
 -/
 class is_connected_or_empty (J : Type v₂) [category.{v₁} J] : Prop :=
 (iso_constant : Π {α : Type v₂} (F : J ⥤ discrete α) (j : J),

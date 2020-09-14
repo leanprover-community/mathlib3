@@ -348,7 +348,7 @@ to_with_top_le
 @[simp] lemma with_top_equiv_lt {x y : enat} : with_top_equiv x < with_top_equiv y ↔ x < y :=
 to_with_top_lt
 
-/-- `to_with_top` induces an order isomorphism between `enat` and `with_top ℕ`.-/
+/-- `to_with_top` induces an order isomorphism between `enat` and `with_top ℕ`. -/
 noncomputable def with_top_order_iso : enat ≃o with_top ℕ :=
 { map_rel_iff' := λ _ _, with_top_equiv_le.symm,
   ..with_top_equiv}

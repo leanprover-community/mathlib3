@@ -42,8 +42,6 @@ apply_nolint category_theory.adjunction.functoriality_left_adjoint doc_blame
 apply_nolint category_theory.adjunction.functoriality_right_adjoint doc_blame
 apply_nolint category_theory.adjunction.functoriality_unit doc_blame
 apply_nolint category_theory.adjunction.functoriality_unit' doc_blame
-apply_nolint category_theory.adjunction.has_colimit_of_comp_equivalence doc_blame
-apply_nolint category_theory.adjunction.has_limit_of_comp_equivalence doc_blame
 
 -- category_theory/category/Kleisli.lean
 apply_nolint category_theory.Kleisli doc_blame unused_arguments has_inhabited_instance
@@ -60,8 +58,6 @@ apply_nolint category_theory.equivalence has_inhabited_instance
 apply_nolint category_theory.equivalence.adjointify_η doc_blame
 apply_nolint category_theory.equivalence.counit doc_blame
 apply_nolint category_theory.equivalence.counit_inv doc_blame
-apply_nolint category_theory.equivalence.equivalence_of_fully_faithfully_ess_surj doc_blame
-apply_nolint category_theory.equivalence.ess_surj_of_equivalence doc_blame
 apply_nolint category_theory.equivalence.fun_inv_id_assoc doc_blame
 apply_nolint category_theory.equivalence.inv_fun_id_assoc doc_blame
 apply_nolint category_theory.equivalence.mk doc_blame
@@ -70,7 +66,6 @@ apply_nolint category_theory.equivalence.symm doc_blame
 apply_nolint category_theory.equivalence.trans doc_blame
 apply_nolint category_theory.equivalence.unit doc_blame
 apply_nolint category_theory.equivalence.unit_inv doc_blame
-apply_nolint category_theory.ess_surj doc_blame
 apply_nolint category_theory.ess_surj.iso doc_blame
 apply_nolint category_theory.functor.as_equivalence doc_blame
 apply_nolint category_theory.functor.fun_inv_id doc_blame
@@ -115,10 +110,6 @@ apply_nolint category_theory.limits.preserves_colimits doc_blame
 apply_nolint category_theory.limits.preserves_colimits_of_shape doc_blame
 apply_nolint category_theory.limits.preserves_limits doc_blame
 apply_nolint category_theory.limits.preserves_limits_of_shape doc_blame
-
--- category_theory/limits/shapes/finite_limits.lean
-apply_nolint category_theory.limits.has_finite_colimits doc_blame
-apply_nolint category_theory.limits.has_finite_limits doc_blame
 
 -- category_theory/limits/shapes/products.lean
 apply_nolint category_theory.limits.cofan doc_blame
@@ -169,9 +160,6 @@ apply_nolint category_theory.nat_trans.unop doc_blame
 -- category_theory/products/basic.lean
 apply_nolint category_theory.evaluation doc_blame
 apply_nolint category_theory.evaluation_uncurried doc_blame
-apply_nolint category_theory.prod.braiding doc_blame
-apply_nolint category_theory.prod.swap doc_blame
-apply_nolint category_theory.prod.symmetry doc_blame
 
 -- category_theory/whiskering.lean
 apply_nolint category_theory.functor.associator doc_blame
@@ -185,13 +173,9 @@ apply_nolint category_theory.whiskering_left doc_blame
 apply_nolint category_theory.whiskering_right doc_blame
 
 -- category_theory/yoneda.lean
-apply_nolint category_theory.coyoneda doc_blame
 apply_nolint category_theory.coyoneda.is_iso doc_blame
-apply_nolint category_theory.representable doc_blame
-apply_nolint category_theory.yoneda doc_blame
 apply_nolint category_theory.yoneda.is_iso doc_blame
 apply_nolint category_theory.yoneda_evaluation doc_blame
-apply_nolint category_theory.yoneda_lemma doc_blame
 apply_nolint category_theory.yoneda_pairing doc_blame
 apply_nolint category_theory.yoneda_sections doc_blame
 apply_nolint category_theory.yoneda_sections_small doc_blame
@@ -559,10 +543,6 @@ apply_nolint int.to_nat' doc_blame
 
 -- data/int/modeq.lean
 apply_nolint int.modeq doc_blame
-
--- data/lazy_list2.lean
-apply_nolint lazy_list.list_equiv_lazy_list doc_blame
-apply_nolint lazy_list.traverse doc_blame
 
 -- data/list/defs.lean
 apply_nolint list.permutations_aux doc_blame
@@ -1209,11 +1189,11 @@ apply_nolint ideal.quotient_inf_to_pi_quotient doc_blame
 apply_nolint submodule.annihilator doc_blame
 apply_nolint submodule.colon doc_blame
 
--- ring_theory/maps.lean
-apply_nolint ring_invo.id doc_blame
-
 -- ring_theory/multiplicity.lean
 apply_nolint multiplicity.finite doc_blame
+
+-- ring_theory/ring_invo.lean
+apply_nolint ring_invo.id doc_blame
 
 -- ring_theory/unique_factorization_domain.lean
 apply_nolint associates.factor_set.prod doc_blame
@@ -1461,10 +1441,6 @@ apply_nolint tactic.interactive.collect_struct' doc_blame
 apply_nolint tactic.interactive.compact_decl_aux doc_blame
 apply_nolint tactic.interactive.field doc_blame
 apply_nolint tactic.interactive.format_names doc_blame
-apply_nolint tactic.interactive.get_current_field doc_blame
-apply_nolint tactic.interactive.guard_expr_eq' doc_blame
-apply_nolint tactic.interactive.guard_hyp_nums doc_blame
-apply_nolint tactic.interactive.guard_tags doc_blame
 apply_nolint tactic.interactive.list_cast_of doc_blame
 apply_nolint tactic.interactive.list_cast_of_aux doc_blame
 apply_nolint tactic.interactive.loc.get_local_pp_names doc_blame
@@ -1817,9 +1793,6 @@ apply_nolint topological_space.open_nhds doc_blame has_inhabited_instance
 apply_nolint topological_space.open_nhds.inclusion doc_blame
 apply_nolint topological_space.open_nhds.inclusion_map_iso doc_blame
 apply_nolint topological_space.open_nhds.map doc_blame
-
--- topology/category/Top/opens.lean
-apply_nolint topological_space.opens.map_iso doc_blame
 
 -- topology/category/TopCommRing.lean
 apply_nolint TopCommRing has_inhabited_instance

@@ -57,6 +57,11 @@ add_tactic_doc
   decl_names := [`tactic.interactive.unfold_coes],
   tags       := ["simplification"] }
 
+
+/-- Unfold `has_well_founded.r`, `sizeof` and other such definitions. -/
+meta def unfold_wf :=
+well_founded_tactics.unfold_wf_rel; well_founded_tactics.unfold_sizeof
+
 /-- Unfold auxiliary definitions associated with the current declaration. -/
 meta def unfold_aux : tactic unit :=
 do tgt ← target,

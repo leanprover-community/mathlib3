@@ -5,7 +5,6 @@ Authors: Johan Commelin, Robert Y. Lewis
 -/
 
 import ring_theory.witt_vector.basic
-import ring_theory.witt_vector.nice_poly
 import ring_theory.witt_vector.witt_vector_preps
 
 /-! ## Truncation ideals -/

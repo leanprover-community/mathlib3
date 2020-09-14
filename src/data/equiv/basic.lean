@@ -11,8 +11,6 @@ Two equivalent types have the same cardinality.
 import data.set.function
 import algebra.group.basic
 
-set_option trace.simps.verbose true
-
 open function
 
 universes u v w z

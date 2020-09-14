@@ -370,7 +370,7 @@ by rw ← with_top_equiv_le; simp
   with_top_equiv.symm x < with_top_equiv.symm y ↔ x < y :=
 by rw ← with_top_equiv_lt; simp
 
-/-- `to_with_top` induces an additive monoid isomorphism between `enat` and `with_top ℕ`.-/
+/-- `to_with_top` induces an additive monoid isomorphism between `enat` and `with_top ℕ`. -/
 noncomputable def with_top_add_equiv : enat ≃+ with_top ℕ :=
 { map_add' := λ x y, by simp only [with_top_equiv]; convert to_with_top_add,
   ..with_top_equiv}

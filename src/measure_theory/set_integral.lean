@@ -353,7 +353,7 @@ lemma set_integral_const (c : E) : ∫ x in s, c ∂μ = (μ s).to_real • c :=
 by rw [integral_const, measure.restrict_apply_univ]
 
 @[simp]
-lemma integral_indicator_const (e : E) ⦃s : set α⦄ (s_meas : is_measurable s) (s_finite : μ s < ⊤) :
+lemma integral_indicator_const (e : E) ⦃s : set α⦄ (s_meas : is_measurable s) :
   ∫ (a : α), s.indicator (λ (x : α), e) a ∂μ = (μ s).to_real • e :=
 by rw [integral_indicator measurable_const s_meas, ← set_integral_const]
 

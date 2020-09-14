@@ -50,7 +50,7 @@ namespace category_theory
 /--
 A possibly empty category for which every functor to a discrete category is constant.
 -/
-class is_connected_or_empty (J : Type v₂) [category.{v₁} J] : Prop :=
+class is_preconnected (J : Type v₂) [category.{v₁} J] : Prop :=
 (iso_constant : Π {α : Type v₂} (F : J ⥤ discrete α) (j : J),
   nonempty (F ≅ (functor.const J).obj (F.obj j)))
 
@@ -66,7 +66,7 @@ This allows us to show that the functor X ⨯ - preserves connected limits.
 
 See https://stacks.math.columbia.edu/tag/002S
 -/
-class is_connected (J : Type v₂) [category.{v₁} J] extends is_connected_or_empty J : Prop :=
+class is_connected (J : Type v₂) [category.{v₁} J] extends is_preconnected J : Prop :=
 [is_nonempty : nonempty J]
 
 attribute [instance, priority 100] is_connected.is_nonempty
@@ -77,15 +77,15 @@ variables {J : Type v₂} [category.{v₁} J]
 If `J` is connected, any functor `F : J ⥤ discrete α` is isomorphic to
 the constant functor with value `F.obj j` (for any choice of `j`).
 -/
-def iso_constant [is_connected_or_empty J] {α : Type v₂} (F : J ⥤ discrete α) (j : J) :
+def iso_constant [is_preconnected J] {α : Type v₂} (F : J ⥤ discrete α) (j : J) :
   F ≅ (functor.const J).obj (F.obj j) :=
-  (is_connected_or_empty.iso_constant F j).some
+  (is_preconnected.iso_constant F j).some
 
 /--
 If J is connected, any functor to a discrete category is constant on objects.
 The converse is given in `is_connected.of_any_functor_const_on_obj`.
 -/
-lemma any_functor_const_on_obj [is_connected_or_empty J]
+lemma any_functor_const_on_obj [is_preconnected J]
   {α : Type v₂} (F : J ⥤ discrete α) (j j' : J) :
   F.obj j = F.obj j' :=
 ((iso_constant F j').hom.app j).down.1
@@ -107,7 +107,7 @@ This can be thought of as a local-to-global property.
 
 The converse is shown in `is_connected.of_constant_of_preserves_morphisms`
 -/
-lemma constant_of_preserves_morphisms [is_connected_or_empty J] {α : Type v₂} (F : J → α)
+lemma constant_of_preserves_morphisms [is_preconnected J] {α : Type v₂} (F : J → α)
   (h : ∀ (j₁ j₂ : J) (f : j₁ ⟶ j₂), F j₁ = F j₂) (j j' : J) :
   F j = F j' :=
 any_functor_const_on_obj { obj := F, map := λ _ _ f, eq_to_hom (h _ _ f) } j j'
@@ -131,7 +131,7 @@ then `p` contains all of `J`.
 
 The converse is given in `is_connected.of_induct`.
 -/
-lemma induct_on_objects [is_connected_or_empty J] (p : set J) {j₀ : J} (h0 : j₀ ∈ p)
+lemma induct_on_objects [is_preconnected J] (p : set J) {j₀ : J} (h0 : j₀ ∈ p)
   (h1 : ∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), j₁ ∈ p ↔ j₂ ∈ p) (j : J) :
   j ∈ p :=
 begin
@@ -243,7 +243,7 @@ For objects `X Y : C`, any natural transformation `α : const X ⟶ const Y` fro
 category must be constant.
 This is the key property of connected categories which we use to establish properties about limits.
 -/
-lemma nat_trans_from_is_connected [is_connected_or_empty J] {X Y : C}
+lemma nat_trans_from_is_connected [is_preconnected J] {X Y : C}
   (α : (functor.const J).obj X ⟶ (functor.const J).obj Y) :
   ∀ (j j' : J), α.app j = (α.app j' : X ⟶ Y) :=
 @constant_of_preserves_morphisms _ _ _

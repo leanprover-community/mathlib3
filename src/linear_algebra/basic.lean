@@ -2486,8 +2486,8 @@ lemma disjoint_std_basis_std_basis (I J : set ι) (h : disjoint I J) :
   disjoint (⨆i∈I, range (std_basis R φ i)) (⨆i∈J, range (std_basis R φ i)) :=
 begin
   refine disjoint.mono
-    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl I)
-    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl J) _,
+    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl_right I)
+    (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ set.disjoint_compl_right J) _,
   simp only [disjoint, submodule.le_def', mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,
     funext_iff],
   rintros b ⟨hI, hJ⟩ i,

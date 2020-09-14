@@ -8,6 +8,8 @@ import category_theory.limits.shapes.products
 
 universes v u₁ u₂
 
+noncomputable theory
+
 open category_theory
 open category_theory.limits
 
@@ -19,8 +21,8 @@ section
 variables {J : Type v} [small_category J]
 
 /--
-If `G` preserves limits, we have an isomorphism from the image of the chosen limit of a functor `F`
-to the chosen limit of the functor `F ⋙ G`.
+If `G` preserves limits, we have an isomorphism from the image of the limit of a functor `F`
+to the limit of the functor `F ⋙ G`.
 -/
 def preserves_limits_iso (F : J ⥤ C) [has_limit F] [has_limit (F ⋙ G)] :
   G.obj (limit F) ≅ limit (F ⋙ G) :=

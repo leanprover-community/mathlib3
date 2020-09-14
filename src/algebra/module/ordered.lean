@@ -34,8 +34,6 @@ ordered semimodule, ordered module, ordered vector space
 -/
 
 
-set_option default_priority 100 -- see Note [default priority]
-
 /--
 An ordered semimodule is an ordered additive commutative monoid
 with a partial order in which the scalar multiplication is compatible with the order.

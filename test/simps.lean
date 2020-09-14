@@ -314,12 +314,9 @@ class has_hom (obj : Type u) : Type (max u (v+1)) :=
 
 infixr ` ⟶ `:10 := has_hom.hom -- type as \h
 
-section prio
-set_option default_priority 100
 class category_struct (obj : Type u) extends has_hom.{v} obj : Type (max u (v+1)) :=
 (id       : Π X : obj, hom X X)
 (comp     : Π {X Y Z : obj}, (X ⟶ Y) → (Y ⟶ Z) → (X ⟶ Z))
-end prio
 
 notation `𝟙` := category_struct.id -- type as \b1
 infixr ` ≫ `:80 := category_struct.comp -- type as \gg

@@ -375,6 +375,29 @@ rfl
 
 end bicomp
 
+section uncurry
+
+variables {α β γ δ : Type*}
+
+/-- Records a way to turn an element of `α` into a function from `β` to `γ`. The most generic use
+is to recursively uncurry. For instance `f : α → β → γ → δ` will be turned into
+`↿f : α × β × γ → δ`. One can also add instances for bundled maps. -/
+class has_uncurry (α : Type*) (β : out_param Type*) (γ : out_param Type*) := (uncurry : α → (β → γ))
+
+/-- Uncurrying operator. The most generic use is to recursively uncurry. For instance
+`f : α → β → γ → δ` will be turned into `↿f : α × β × γ → δ`. One can also add instances
+for bundled maps.-/
+add_decl_doc has_uncurry.uncurry
+
+notation `↿`:max x:max := has_uncurry.uncurry x
+
+instance has_uncurry_base : has_uncurry (α → β) α β := ⟨id⟩
+
+instance has_uncurry_induction [has_uncurry β γ δ] : has_uncurry (α → β) (α × γ) δ :=
+⟨λ f p, ↿(f p.1) p.2⟩
+
+end uncurry
+
 /-- A function is involutive, if `f ∘ f = id`. -/
 def involutive {α} (f : α → α) : Prop := ∀ x, f (f x) = x
 
@@ -383,6 +406,7 @@ funext_iff.symm
 
 namespace involutive
 variables {α : Sort u} {f : α → α} (h : involutive f)
+include h
 
 protected lemma left_inverse : left_inverse f f := h
 protected lemma right_inverse : right_inverse f f := h
@@ -390,6 +414,11 @@ protected lemma right_inverse : right_inverse f f := h
 protected lemma injective : injective f := h.left_inverse.injective
 protected lemma surjective : surjective f := λ x, ⟨f x, h x⟩
 protected lemma bijective : bijective f := ⟨h.injective, h.surjective⟩
+
+/-- Involuting an `ite` of an involuted value `x : α` negates the `Prop` condition in the `ite`. -/
+protected lemma ite_not (P : Prop) [decidable P] (x : α) :
+  f (ite P x (f x)) = ite (¬ P) x (f x) :=
+by rw [apply_ite f, h, ite_not]
 
 end involutive
 

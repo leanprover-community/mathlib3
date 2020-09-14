@@ -80,14 +80,14 @@ instance {R : Type u₁} [comm_ring R] (r : R → R → Prop) : comm_ring (ring_
   .. (ring_quot.ring r) }
 
 instance (s : A → A → Prop) : algebra S (ring_quot s) :=
-{ smul      := λ r a, (quot.mk _ (r • 1)) * a,
-  to_fun    := λ r, quot.mk _ (r • 1),
-  map_one'  := by { rw one_smul, refl, },
-  map_mul'  := λ r s, by { change _ = quot.mk _ _, simp [mul_smul], },
-  map_zero' := by { rw zero_smul, refl, },
-  map_add'  := λ r s, by { change _ = quot.mk _ _, rw add_smul, },
-  commutes' := λ r, by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, simp, },
-  smul_def' := λ r u, rfl, }
+{ smul      := λ r, quot.map ((•) r) (λ a b h, by simp only [algebra.smul_def, rel.mul_right h]),
+  to_fun    := λ r, quot.mk _ (algebra_map S A r),
+  map_one'  := congr_arg (quot.mk _) (ring_hom.map_one _),
+  map_mul'  := λ r s, congr_arg (quot.mk _) (ring_hom.map_mul _ _ _),
+  map_zero' := congr_arg (quot.mk _) (ring_hom.map_zero _),
+  map_add'  := λ r s, congr_arg (quot.mk _) (ring_hom.map_add _ _ _),
+  commutes' := λ r, by { rintro ⟨a⟩, exact congr_arg (quot.mk _) (algebra.commutes _ _) },
+  smul_def' := λ r, by { rintro ⟨a⟩, exact congr_arg (quot.mk _) (algebra.smul_def _ _) }, }
 
 instance (r : R → R → Prop) : inhabited (ring_quot r) := ⟨0⟩
 
@@ -123,16 +123,16 @@ variables  {T : Type u₄} [semiring T]
 Any ring homomorphism `f : R →+* T` which respects a relation `r : R → R → Prop`
 factors through a morphism `ring_quot r →+* T`.
 -/
-def lift (f : R →+* T) {r : R → R → Prop} (w : ∀ {x y}, r x y → f x = f y) :
+def lift (f : R →+* T) {r : R → R → Prop} (w : ∀ ⦃x y⦄, r x y → f x = f y) :
   ring_quot r →+* T :=
 { to_fun := quot.lift f
   begin
     rintros _ _ r,
-    induction r with a b r a b c r r' a b c r r' a b c r r',
-    { exact w r, },
-    { simp [r'], },
-    { simp [r'], },
-    { simp [r'], },
+    induction r,
+    case of : _ _ r { exact w r, },
+    case add : _ _ _ _ r' { simp [r'], },
+    case mul_left : _ _ _ _ r' { simp [r'], },
+    case mul_right : _ _ _ _ r' { simp [r'], },
   end,
   map_zero' := f.map_zero,
   map_add' := by { rintros ⟨x⟩ ⟨y⟩, exact f.map_add x y, },
@@ -140,13 +140,12 @@ def lift (f : R →+* T) {r : R → R → Prop} (w : ∀ {x y}, r x y → f x = 
   map_mul' := by { rintros ⟨x⟩ ⟨y⟩, exact f.map_mul x y, }, }
 
 @[simp]
-lemma lift_mk_ring_hom_apply
-  (f : R →+* T) {r : R → R → Prop} (w : ∀ {x y}, r x y → f x = f y) (x : R) :
-  (lift f @w (mk_ring_hom r x)) = f x :=
-rfl
+lemma lift_mk_ring_hom_apply (f : R →+* T) {r : R → R → Prop} (w : ∀ ⦃x y⦄, r x y → f x = f y) :
+  (lift f w).comp (mk_ring_hom r) = f :=
+by { ext, simp, refl, }
 
-lemma lift_unique (f : R →+* T) {r : R → R → Prop} (w : ∀ {x y}, r x y → f x = f y)
-  (g : ring_quot r →+* T) (h : g.comp (mk_ring_hom r) = f) : g = lift f @w :=
+lemma lift_unique (f : R →+* T) {r : R → R → Prop} (w : ∀ ⦃x y⦄, r x y → f x = f y)
+  (g : ring_quot r →+* T) (h : g.comp (mk_ring_hom r) = f) : g = lift f w :=
 by { ext, simp [h], }
 
 lemma eq_lift_comp_mk_ring_hom {r : R → R → Prop} (f : ring_quot r →+* T) :
@@ -204,7 +203,7 @@ section algebra
 The quotient map from an `S`-algebra to its quotient, as a homomorphism of `S`-algebras.
 -/
 def mk_alg_hom (s : A → A → Prop) : A →ₐ[S] ring_quot s :=
-{ commutes' := λ r, show quot.mk _ _ = quot.mk _ _, by rw [algebra.smul_def'', mul_one],
+{ commutes' := λ r, rfl,
   ..mk_ring_hom s }
 
 @[simp]
@@ -233,7 +232,7 @@ end
 Any `S`-algebra homomorphism `f : A →ₐ[S] B` which respects a relation `s : A → A → Prop`
 factors through a morphism `ring_quot s →ₐ[S]  B`.
 -/
-def lift_alg_hom (f : A →ₐ[S] B) {s : A → A → Prop} (w : ∀ {x y}, s x y → f x = f y) :
+def lift_alg_hom (f : A →ₐ[S] B) {s : A → A → Prop} (w : ∀ ⦃x y⦄, s x y → f x = f y) :
   ring_quot s →ₐ[S] B :=
 { to_fun := quot.lift f
   begin
@@ -252,17 +251,17 @@ def lift_alg_hom (f : A →ₐ[S] B) {s : A → A → Prop} (w : ∀ {x y}, s x 
   begin
     rintros x,
     conv_rhs { rw [algebra.algebra_map_eq_smul_one, ←f.map_one, ←f.map_smul], },
+    rw algebra.algebra_map_eq_smul_one,
     exact quot.lift_beta f @w (x • 1),
   end, }
 
 @[simp]
-lemma lift_alg_hom_mk_alg_hom_apply
-  (f : A →ₐ[S] B) {s : A → A → Prop} (w : ∀ {x y}, s x y → f x = f y) (x : A) :
-  lift_alg_hom S f @w (mk_alg_hom S s x) = f x :=
-rfl
+lemma lift_alg_hom_mk_alg_hom_apply (f : A →ₐ[S] B) {s : A → A → Prop} (w : ∀ ⦃x y⦄, s x y → f x = f y) :
+  (lift_alg_hom S f w).comp (mk_alg_hom S s) = f :=
+by { ext, simp, refl, }
 
-lemma lift_alg_hom_unique (f : A →ₐ[S] B) {s : A → A → Prop} (w : ∀ {x y}, s x y → f x = f y)
-  (g : ring_quot s →ₐ[S] B) (h : g.comp (mk_alg_hom S s) = f) : g = lift_alg_hom S f @w :=
+lemma lift_alg_hom_unique (f : A →ₐ[S] B) {s : A → A → Prop} (w : ∀ ⦃x y⦄, s x y → f x = f y)
+  (g : ring_quot s →ₐ[S] B) (h : g.comp (mk_alg_hom S s) = f) : g = lift_alg_hom S f w :=
 by { ext, simp [h], }
 
 lemma eq_lift_alg_hom_comp_mk_alg_hom {s : A → A → Prop} (f : ring_quot s →ₐ[S] B) :

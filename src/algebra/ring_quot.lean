@@ -80,14 +80,14 @@ instance {R : Type u₁} [comm_ring R] (r : R → R → Prop) : comm_ring (ring_
   .. (ring_quot.ring r) }
 
 instance (s : A → A → Prop) : algebra S (ring_quot s) :=
-{ smul      := λ r a, (quot.mk _ (r • 1)) * a,
-  to_fun    := λ r, quot.mk _ (r • 1),
-  map_one'  := by { rw one_smul, refl, },
-  map_mul'  := λ r s, by { change _ = quot.mk _ _, simp [mul_smul], },
-  map_zero' := by { rw zero_smul, refl, },
-  map_add'  := λ r s, by { change _ = quot.mk _ _, rw add_smul, },
-  commutes' := λ r, by { rintros ⟨a⟩, change quot.mk _ _ = quot.mk _ _, simp, },
-  smul_def' := λ r u, rfl, }
+{ smul      := λ r, quot.map ((•) r) (λ a b h, by simp only [algebra.smul_def, rel.mul_right h]),
+  to_fun    := λ r, quot.mk _ (algebra_map S A r),
+  map_one'  := congr_arg (quot.mk _) (ring_hom.map_one _),
+  map_mul'  := λ r s, congr_arg (quot.mk _) (ring_hom.map_mul _ _ _),
+  map_zero' := congr_arg (quot.mk _) (ring_hom.map_zero _),
+  map_add'  := λ r s, congr_arg (quot.mk _) (ring_hom.map_add _ _ _),
+  commutes' := λ r, by { rintro ⟨a⟩, exact congr_arg (quot.mk _) (algebra.commutes _ _) },
+  smul_def' := λ r, by { rintro ⟨a⟩, exact congr_arg (quot.mk _) (algebra.smul_def _ _) }, }
 
 instance (r : R → R → Prop) : inhabited (ring_quot r) := ⟨0⟩
 

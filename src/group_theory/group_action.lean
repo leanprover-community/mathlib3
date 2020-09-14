@@ -193,6 +193,17 @@ def stabilizer.submonoid (b : β) : submonoid α :=
   mul_mem' := λ a a' (ha : a • b = b) (hb : a' • b = b),
     by rw [mem_stabilizer_iff, ←smul_smul, hb, ha] }
 
+variables (α β)
+
+/-- Embedding induced by action. -/
+def to_fun : β ↪ (α → β) :=
+⟨λ y x, x • y, λ y₁ y₂ H, one_smul α y₁ ▸ one_smul α y₂ ▸ by convert congr_fun H 1⟩
+
+variables {α β}
+
+@[simp] lemma to_fun_apply (x : α) (y : β) : mul_action.to_fun α β y x = x • y :=
+rfl
+
 end mul_action
 
 namespace mul_action

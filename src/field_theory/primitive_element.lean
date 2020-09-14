@@ -25,7 +25,10 @@ local attribute [instance, priority 100] classical.prop_decidable
 
 open finite_dimensional
 
+namespace field
+
 section
+
 variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E]
 
 /- Primitive element theorem for finite fields. -/
@@ -328,3 +331,5 @@ begin
   cases y,
   assumption,
 end
+
+end field

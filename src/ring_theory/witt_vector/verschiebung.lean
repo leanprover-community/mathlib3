@@ -36,11 +36,13 @@ include hp
   map f (verschiebung_fun x) = verschiebung_fun (map f x) :=
 by { ext ⟨-, -⟩, exact f.map_zero, refl }
 
+omit hp
 @[simp] lemma ghost_component_zero_verschiebung_fun (x : 𝕎 R) :
   ghost_component 0 (verschiebung_fun x) = 0 :=
 by rw [ghost_component_apply, aeval_witt_polynomial, finset.range_one, finset.sum_singleton,
        verschiebung_fun_coeff_zero, pow_zero, pow_zero, pow_one, one_mul]
 
+include hp
 @[simp] lemma ghost_component_verschiebung_fun (x : 𝕎 R) (n : ℕ) :
   ghost_component (n + 1) (verschiebung_fun x) = p * ghost_component n x :=
 begin
@@ -52,7 +54,7 @@ begin
     nat.succ_sub_succ, nat.sub_zero]
 end
 
-lemma verschiebung_add_aux₁ (x y : 𝕎 (mv_polynomial R ℚ)) :
+lemma verschiebung_add_aux₁ {R : Type*} (x y : 𝕎 (mv_polynomial R ℚ)) :
   verschiebung_fun (x + y) = verschiebung_fun x + verschiebung_fun y :=
 begin
   apply (ghost_map.bijective_of_invertible p (mv_polynomial R ℚ)).1,
@@ -64,7 +66,7 @@ begin
   { simp only [ghost_map_apply, ghost_component_verschiebung_fun, ghost_component_add, mul_add], }
 end
 
-lemma verschiebung_add_aux₂ (x y : 𝕎 (mv_polynomial R ℤ)) :
+lemma verschiebung_add_aux₂ {R : Type*} (x y : 𝕎 (mv_polynomial R ℤ)) :
   verschiebung_fun (x + y) = verschiebung_fun x + verschiebung_fun y :=
 begin
   refine map_injective (mv_polynomial.map (int.cast_ring_hom ℚ))
@@ -92,7 +94,8 @@ def verschiebung : 𝕎 R →+ 𝕎 R :=
 @[simp] lemma verschiebung_coeff_zero (x : 𝕎 R) :
   (verschiebung x).coeff 0 = 0 := rfl
 
-@[simp] lemma verschiebung_coeff_add_one (x : 𝕎 R) (n : ℕ) :
+-- simp_nf complains if this is simp
+lemma verschiebung_coeff_add_one (x : 𝕎 R) (n : ℕ) :
   (verschiebung x).coeff (n + 1) = x.coeff n := rfl
 
 @[simp] lemma verschiebung_coeff_succ (x : 𝕎 R) (n : ℕ) :
@@ -118,6 +121,11 @@ noncomputable theory
 
 variables (p)
 
+omit hp
+include p
+
+-- does this need the `p` argument?
+@[nolint unused_arguments]
 def verschiebung_poly (n : ℕ) : mv_polynomial ℕ ℤ :=
 if n = 0 then 0 else X (n-1)
 
@@ -139,6 +147,7 @@ def verschiebung_is_poly : is_poly p (λ R _Rcr, @verschiebung p R hp _Rcr) :=
           aeval_X, nat.succ_eq_add_one, nat.add_sub_cancel], }
   end }
 
+include hp
 lemma bind₁_verschiebung_poly_witt_polynomial (n : ℕ) :
   bind₁ (verschiebung_poly p) (witt_polynomial p ℤ n) =
   if n = 0 then 0 else p * witt_polynomial p ℤ (n-1) :=
@@ -170,3 +179,4 @@ end
 end
 
 end witt_vector
+#lint

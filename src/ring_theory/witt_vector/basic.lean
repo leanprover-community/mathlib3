@@ -236,6 +236,10 @@ end map
 
 section
 
+/--
+Evaluates the `n`th Witt polynomial using the first `n` coefficients of `x`,
+producing a value in `R`. This is effectively a truncating operation.
+-/
 noncomputable def ghost_component (n : ℕ) (x : 𝕎 R) : R :=
 aeval x.coeff (W_ ℤ n)
 
@@ -250,6 +254,7 @@ begin
   exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl,
 end
 
+/-- Reorders the arguments of `ghost_component` -/
 noncomputable def ghost_map_fun : 𝕎 R → (ℕ → R) := λ w n, ghost_component n w
 
 end
@@ -259,7 +264,11 @@ end witt_vector
 section tactic
 setup_tactic_parser
 open tactic
-meta def tactic.interactive.ghost_component (poly fn: parse parser.pexpr) : tactic unit :=
+
+/--
+An auxiliary tactic for proving that `ghost_component` respects the ring operations.
+-/
+meta def tactic.interactive.ghost_component (poly fn : parse parser.pexpr) : tactic unit :=
 do fn ← to_expr ```(%%fn : fin _ → ℕ → R),
   `(fin %%k → _ → _) ← infer_type fn,
   to_expr ```(witt_structure_int_prop p (%%poly : mv_polynomial (fin %%k) ℤ) n) >>= note `aux none >>=
@@ -335,6 +344,7 @@ end p_prime
 
 variables (p) (R)
 
+/-- From the equivalence `witt.alg_equiv`, induce a bijection between `𝕎 R` and `ℕ → R`. -/
 noncomputable def ghost_map_fun.equiv_of_invertible [invertible (p : R)] :
   𝕎 R ≃ (ℕ → R) :=
 mv_polynomial.comap_equiv (witt.alg_equiv p R)
@@ -386,6 +396,9 @@ function.injective.comm_ring (map_fun $ mv_polynomial.map (int.cast_ring_hom ℚ
 
 local attribute [instance] comm_ring_aux₂
 
+/--
+The commutative ring structure on `𝕎 R`.
+-/
 noncomputable instance : comm_ring (𝕎 R) :=
 function.surjective.comm_ring
   (map_fun $ mv_polynomial.counit _) (map_fun_surjective _ $ counit_surjective _)
@@ -396,6 +409,9 @@ variables {p R}
 section map
 open function
 
+/--
+`witt_vector.map_fun` is a ring homomorphism.
+-/
 noncomputable def map (f : R →+* S) : 𝕎 R →+* 𝕎 S :=
 { to_fun := map_fun f,
   map_zero' := map_fun_zero f,
@@ -416,6 +432,9 @@ lemma map_coeff (f : R →+* S) (x : 𝕎 R) (n : ℕ) :
 
 end map
 
+/--
+`witt_vector.ghost_map_fun` is a ring homomorphism.
+-/
 noncomputable def ghost_map : 𝕎 R →+* ℕ → R :=
 { to_fun := ghost_map_fun,
   map_zero' := ghost_map_fun.zero R,
@@ -428,6 +447,9 @@ noncomputable def ghost_map : 𝕎 R →+* ℕ → R :=
 
 variables (p R)
 
+/--
+`witt_vector.ghost_map` is a ring isomorphism when `p` is invertible in `R`.
+-/
 noncomputable def ghost_equiv [invertible (p : R)] : 𝕎 R ≃+* (ℕ → R) :=
 { inv_fun := (ghost_map_fun.equiv_of_invertible p R).inv_fun,
   left_inv :=

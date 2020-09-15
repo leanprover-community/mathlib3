@@ -220,15 +220,12 @@ open tactic
 meta def tactic.interactive.ghost_boo (poly fn: parse parser.pexpr) : tactic unit :=
 do to_expr ```(witt_structure_int_prop p (%%poly) n) >>= note `aux none >>=
      apply_fun_to_hyp ```(aeval (function.uncurry %%fn)) none,
-`[convert aux using 1; clear aux,
-  simp only [aeval_eq_eval₂_hom, eval₂_hom_map_hom, map_eval₂_hom, bind₁];
-  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl;
-  funext k;
-  exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl,
-  all_goals { simp only [aeval_eq_eval₂_hom, ring_hom.map_add, ring_hom.map_one, ring_hom.map_neg,
-                         ring_hom.map_mul, eval₂_hom_X', bind₁];
-              simp only [coe_eval₂_hom, eval₂_rename];
-              refl }]
+`[simp only [aeval_bind₁] at aux,
+  simp only [ghost_component_apply],
+  convert aux using 1; clear aux;
+  simp only [alg_hom.map_zero, alg_hom.map_one, alg_hom.map_add, alg_hom.map_mul, alg_hom.map_neg,
+    aeval_X];
+  simp only [aeval_eq_eval₂_hom, eval₂_hom_rename]; refl]
 end tactic
 
 namespace witt_vector
@@ -258,19 +255,7 @@ variable {R}
 
 @[simp] lemma ghost_component_add (n : ℕ) (x y : 𝕎 R) :
   ghost_component n (x + y) = ghost_component n x + ghost_component n y :=
-begin
-  have aux := witt_structure_int_prop p (X (0 : fin 2) + X 1) n,
-  apply_fun aeval (function.uncurry $ ![x.coeff, y.coeff]) at aux,
-  simp only [aeval_bind₁] at aux,
-  simp only [ghost_component_apply],
-  convert aux using 1; clear aux,
-  simp only [alg_hom.map_zero, alg_hom.map_one, alg_hom.map_add, alg_hom.map_mul, alg_hom.map_neg,
-    aeval_X],
-  all_goals { simp only [aeval_eq_eval₂_hom, ring_hom.map_add, ring_hom.map_one, ring_hom.map_neg,
-                         ring_hom.map_mul, eval₂_hom_X', bind₁];
-              simp only [coe_eval₂_hom, eval₂_rename];
-              refl }
-end
+by ghost_boo (X 0 + X 1 : mv_polynomial (fin 2) ℤ) ![x.coeff, y.coeff]
 
 @[simp] lemma ghost_component_mul (n : ℕ) (x y : 𝕎 R) :
   ghost_component n (x * y) = ghost_component n x * ghost_component n y :=

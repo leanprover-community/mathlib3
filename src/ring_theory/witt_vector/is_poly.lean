@@ -78,12 +78,19 @@ A function `f : Π R, 𝕎 R → 𝕎 R` that maps Witt vectors to Witt vectors 
 is said to be *polynomial* if there is a family of polynomials `φₙ` over `ℤ` such that the `n`th
 coefficient of `f x` is given by evaluating `phiₙ` at the coefficients of `x`.
 -/
+@[nolint has_inhabited_instance]
 structure is_poly (f : Π ⦃R : Type*⦄ [comm_ring R], witt_vector p R → 𝕎 R) :=
 (poly : ℕ → mv_polynomial ℕ ℤ)
 (coeff : ∀ (n : ℕ) ⦃R : Type*⦄ [comm_ring R] (x : 𝕎 R),
   (f x).coeff n = aeval (λ k, x.coeff k) (poly n))
 
+<<<<<<< HEAD
 /-- The identity function is a polynomial function. -/
+=======
+/--
+The identity function `𝕎 R → 𝕎 R` is polynomial.
+-/
+>>>>>>> lint is_poly
 def id_is_poly : is_poly p (λ _ _, id) :=
 { poly := X,
   coeff := by { introsI, rw [aeval_X, id] } }
@@ -93,7 +100,13 @@ instance is_poly.inhabited : inhabited (is_poly p (λ _ _, id)) :=
 
 variables {p}
 
+<<<<<<< HEAD
 /-- The composition of polynomial functions is polynomial. -/
+=======
+/--
+The composition of two polynomial functions is polynomial.
+-/
+>>>>>>> lint is_poly
 @[simps { fully_applied := ff }]
 def is_poly.comp {g f} (hg : is_poly p g) (hf : is_poly p f) :
   is_poly p (λ R _Rcr, @g R _Rcr ∘ @f R _Rcr) :=

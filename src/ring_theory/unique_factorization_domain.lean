@@ -395,7 +395,6 @@ noncomputable def factors (a : α) : multiset α := if h : a = 0 then 0 else
 multiset.map normalize $ classical.some (unique_factorization_monoid.exists_prime_factors a h)
 
 theorem factors_prod {a : α} (ane0 : a ≠ 0) : associated (factors a).prod a :=
-theorem factors_prod {a : α} (ane0 : a ≠ 0) : associated (factors a).prod a :=
 begin
   rw [factors, dif_neg ane0],
   refine associated.trans _ (classical.some_spec (exists_prime_factors a ane0)).2.symm,

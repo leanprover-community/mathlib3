@@ -26,22 +26,16 @@ section
 lemma nnreal.sub_lt_iff {a b c : nnreal} (h : b ≤ a) : a - b < c ↔ a < b + c :=
 by simp only [←nnreal.coe_lt_coe, nnreal.coe_sub h, nnreal.coe_add, sub_lt_iff_lt_add']
 
-lemma lt_top_of_lt_tsum_lt_top {α : Type*} {f : α → ennreal} (hf : (∑' i, f i) < ⊤) :
-  ∀ x, f x < ⊤ :=
-begin
-  contrapose! hf,
-  rcases hf with ⟨x, hx⟩,
-  exact le_trans hx (ennreal.le_tsum _)
-end
+lemma ne_top_of_tsum_ne_top {α : Type*} {f : α → ennreal} : (∑' i, f i) ≠ ⊤ → ∀ x, f x ≠ ⊤ :=
+by { contrapose!, exact λ ⟨x, hx⟩, top_le_iff.1 (le_trans (top_le_iff.2 hx) (ennreal.le_tsum _)) }
 
-lemma to_nnreal_of_sum_lt_top {α : Type*} {f : α → ennreal} (hf : (∑' i, f i) < ⊤) (x : α) :
+lemma to_nnreal_of_sum_ne_top {α : Type*} {f : α → ennreal} (hf : (∑' i, f i) ≠ ⊤) (x : α) :
   (((ennreal.to_nnreal ∘ f) x : nnreal) : ennreal) = f x :=
-ennreal.coe_to_nnreal $ ennreal.lt_top_iff_ne_top.1 $ lt_top_of_lt_tsum_lt_top hf _
+ennreal.coe_to_nnreal (ne_top_of_tsum_ne_top hf _)
 
-lemma summable_to_nnreal {α : Type u} {f : α → ennreal} (hf : (∑' i, f i) < ⊤) :
+lemma summable_to_nnreal {α : Type u} {f : α → ennreal} (hf : (∑' i, f i) ≠ ⊤) :
   summable (ennreal.to_nnreal ∘ f) :=
-by simpa only [←ennreal.tsum_coe_ne_top_iff_summable, ←ennreal.lt_top_iff_ne_top,
-  to_nnreal_of_sum_lt_top hf] using hf
+by simpa only [←ennreal.tsum_coe_ne_top_iff_summable, to_nnreal_of_sum_ne_top hf] using hf
 
 lemma nnreal.not_lt_zero {a : nnreal} : ¬(a < 0) := by simp
 
@@ -69,7 +63,7 @@ le_tsum hf x $ λ _ _, zero_le _
 lemma nnreal.sub_eq_iff {a b c : nnreal} (h : b ≤ a) : a - b = c ↔ a = c + b :=
 by rw [←nnreal.eq_iff, nnreal.coe_sub h, ←nnreal.eq_iff, nnreal.coe_add, sub_eq_iff_eq_add]
 
-lemma nnreal.summable_shift (f : ℕ → nnreal) (hf : summable f) (k : ℕ) :
+lemma nnreal.summable_nat_add (f : ℕ → nnreal) (hf : summable f) (k : ℕ) :
   summable (λ i, f (i + k)) :=
 nnreal.summable_comp_injective hf $ add_left_injective k
 
@@ -125,16 +119,16 @@ begin
   { push_neg at h,
     refine lt_of_le_of_lt _ h,
     exact tsum_le_tsum_of_inj (λ k, k + m) (add_left_injective m) (λ _ _, nnreal.zero_le)
-      (λ _, le_refl _) (nnreal.summable_shift _ hf _) hf }
+      (λ _, le_refl _) (nnreal.summable_nat_add _ hf _) hf }
 end
 
-lemma ennreal.tendsto_sum_add (f : ℕ → ennreal) (hf : (∑' i, f i) < ⊤) :
+lemma ennreal.tendsto_sum_add (f : ℕ → ennreal) (hf : (∑' i, f i) ≠ ⊤) :
   tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
 begin
   have : ∀ i, (∑' k, (((ennreal.to_nnreal ∘ f) (k + i) : nnreal) : ennreal)) =
     (∑' k, (ennreal.to_nnreal ∘ f) (k + i) : nnreal) :=
-    λ i, (ennreal.coe_tsum (nnreal.summable_shift _ (summable_to_nnreal hf) _)).symm,
-  simp only [λ x, (to_nnreal_of_sum_lt_top hf x).symm, ←ennreal.coe_zero,
+    λ i, (ennreal.coe_tsum (nnreal.summable_nat_add _ (summable_to_nnreal hf) _)).symm,
+  simp only [λ x, (to_nnreal_of_sum_ne_top hf x).symm, ←ennreal.coe_zero,
     this, ennreal.tendsto_coe] { single_pass := tt },
   exact nnreal.tendsto_sum_add _ (summable_to_nnreal hf)
 end
@@ -147,13 +141,13 @@ variables {α : Type u} [measurable_space α] {μ : measure α}
 
 /-- The Borel-Cantelli lemma. -/
 lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∀ i, is_measurable (s i))
-  (hs' : (∑' i, μ (s i)) < ⊤) : μ (limsup at_top s) = 0 :=
+  (hs' : (∑' i, μ (s i)) ≠ ⊤) : μ (limsup at_top s) = 0 :=
 begin
   rw limsup_eq_infi_supr_of_nat',
 
   refine tendsto_nhds_unique
     (tendsto_measure_Inter (λ i, is_measurable.Union (λ b, hs (b + i))) _
-      ⟨0, lt_of_le_of_lt (measure_Union_le s) hs'⟩)
+      ⟨0, lt_of_le_of_lt (measure_Union_le s) (ennreal.lt_top_iff_ne_top.2 hs')⟩)
     (tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds
       (ennreal.tendsto_sum_add (μ ∘ s) hs')
       (eventually_of_forall (by simp only [forall_const, zero_le]))

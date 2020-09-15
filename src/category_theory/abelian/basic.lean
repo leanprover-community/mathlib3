@@ -78,6 +78,8 @@ convention:
 
 -/
 
+noncomputable theory
+
 open category_theory
 open category_theory.preadditive
 open category_theory.limits
@@ -89,9 +91,6 @@ namespace category_theory
 variables {C : Type u} [category.{v} C]
 
 variables (C)
-
-section prio
-set_option default_priority 100
 
 /--
 A (preadditive) category `C` is called abelian if it has all finite products,
@@ -109,10 +108,9 @@ class abelian extends preadditive C :=
 (normal_mono : Π {X Y : C} (f : X ⟶ Y) [mono f], normal_mono f)
 (normal_epi : Π {X Y : C} (f : X ⟶ Y) [epi f], normal_epi f)
 
-attribute [instance] abelian.has_finite_products
-attribute [instance] abelian.has_kernels abelian.has_cokernels
+attribute [instance, priority 100] abelian.has_finite_products
+attribute [instance, priority 100] abelian.has_kernels abelian.has_cokernels
 
-end prio
 end category_theory
 
 open category_theory
@@ -121,7 +119,7 @@ namespace category_theory.abelian
 variables {C : Type u} [category.{v} C] [abelian C]
 
 /-- An abelian category has finite biproducts. -/
-def has_finite_biproducts : has_finite_biproducts C :=
+lemma has_finite_biproducts : has_finite_biproducts C :=
 limits.has_finite_biproducts.of_has_finite_products
 
 section to_non_preadditive_abelian
@@ -291,7 +289,7 @@ section
 local attribute [instance] preadditive.has_equalizers_of_has_kernels
 
 /-- Any abelian category has pullbacks -/
-def has_pullbacks : has_pullbacks C :=
+lemma has_pullbacks : has_pullbacks C :=
 has_pullbacks_of_has_binary_products_of_has_equalizers C
 
 end
@@ -301,7 +299,7 @@ local attribute [instance] preadditive.has_coequalizers_of_has_cokernels
 local attribute [instance] has_binary_biproducts.of_has_binary_products
 
 /-- Any abelian category has pushouts -/
-def has_pushouts : has_pushouts C :=
+lemma has_pushouts : has_pushouts C :=
 has_pushouts_of_has_binary_coproducts_of_has_coequalizers C
 
 end
@@ -338,8 +336,8 @@ fork.is_limit.mk _
   (λ s,
   begin
     ext; rw [fork.ι_of_ι, category.assoc],
-    { rw [prod.lift_fst, pullback.lift_fst] },
-    { rw [prod.lift_snd, pullback.lift_snd] }
+    { rw [biprod.lift_fst, pullback.lift_fst] },
+    { rw [biprod.lift_snd, pullback.lift_snd] }
   end)
   (λ s m h, by ext; simp [fork.ι_eq_app_zero, ←h walking_parallel_pair.zero])
 
@@ -366,7 +364,7 @@ def is_colimit_biproduct_to_pushout : is_colimit (biproduct_to_pushout_cofork f 
 cofork.is_colimit.mk _
   (λ s, pushout.desc (biprod.inl ≫ cofork.π s) (biprod.inr ≫ cofork.π s) $
     sub_eq_zero.1 $ by rw [←category.assoc, ←category.assoc, ←sub_comp, sub_eq_add_neg, ←neg_comp,
-      ←biprod.lift_eq, cofork.condition s, has_zero_morphisms.zero_comp])
+      ←biprod.lift_eq, cofork.condition s, zero_comp])
   (λ s, by ext; simp)
   (λ s m h, by ext; simp [cofork.π_eq_app_one, ←h walking_parallel_pair.one] )
 
@@ -398,14 +396,14 @@ begin
   change biprod.desc f (-g) ≫ d = u at hd,
   -- But then f ≫ d = 0:
   have : f ≫ d = 0, calc
-    f ≫ d = (biprod.inl ≫ biprod.desc f (-g)) ≫ d : by rw coprod.inl_desc
+    f ≫ d = (biprod.inl ≫ biprod.desc f (-g)) ≫ d : by rw biprod.inl_desc
     ... = biprod.inl ≫ u : by rw [category.assoc, hd]
-    ... = 0 : coprod.inl_desc _ _,
+    ... = 0 : biprod.inl_desc _ _,
   -- But f is an epimorphism, so d = 0...
   have : d = 0 := (cancel_epi f).1 (by simpa),
   -- ...or, in other words, e = 0.
   calc
-    e = biprod.inr ≫ u : by rw coprod.inr_desc
+    e = biprod.inr ≫ u : by rw biprod.inr_desc
     ... = biprod.inr ≫ biprod.desc f (-g) ≫ d : by rw ←hd
     ... = biprod.inr ≫ biprod.desc f (-g) ≫ 0 : by rw this
     ... = (biprod.inr ≫ biprod.desc f (-g)) ≫ 0 : by rw ←category.assoc
@@ -432,14 +430,14 @@ begin
   change biprod.desc f (-g) ≫ d = u at hd,
   -- But then (-g) ≫ d = 0:
   have : (-g) ≫ d = 0, calc
-    (-g) ≫ d = (biprod.inr ≫ biprod.desc f (-g)) ≫ d : by rw coprod.inr_desc
+    (-g) ≫ d = (biprod.inr ≫ biprod.desc f (-g)) ≫ d : by rw biprod.inr_desc
     ... = biprod.inr ≫ u : by rw [category.assoc, hd]
-    ... = 0 : coprod.inr_desc _ _,
+    ... = 0 : biprod.inr_desc _ _,
   -- But g is an epimorphism, thus so is -g, so d = 0...
   have : d = 0 := (cancel_epi (-g)).1 (by simpa),
   -- ...or, in other words, e = 0.
   calc
-    e = biprod.inl ≫ u : by rw coprod.inl_desc
+    e = biprod.inl ≫ u : by rw biprod.inl_desc
     ... = biprod.inl ≫ biprod.desc f (-g) ≫ d : by rw ←hd
     ... = biprod.inl ≫ biprod.desc f (-g) ≫ 0 : by rw this
     ... = (biprod.inl ≫ biprod.desc f (-g)) ≫ 0 : by rw ←category.assoc
@@ -464,16 +462,16 @@ begin
   change R ⟶ X at d,
   change d ≫ biprod.lift f (-g) = u at hd,
   have : d ≫ f = 0, calc
-    d ≫ f = d ≫ biprod.lift f (-g) ≫ biprod.fst : by rw prod.lift_fst
+    d ≫ f = d ≫ biprod.lift f (-g) ≫ biprod.fst : by rw biprod.lift_fst
     ... = u ≫ biprod.fst : by rw [←category.assoc, hd]
-    ... = 0 : prod.lift_fst _ _,
+    ... = 0 : biprod.lift_fst _ _,
   have : d = 0 := (cancel_mono f).1 (by simpa),
   calc
-    e = u ≫ biprod.snd : by rw prod.lift_snd
+    e = u ≫ biprod.snd : by rw biprod.lift_snd
     ... = (d ≫ biprod.lift f (-g)) ≫ biprod.snd : by rw ←hd
     ... = (0 ≫ biprod.lift f (-g)) ≫ biprod.snd : by rw this
     ... = 0 ≫ biprod.lift f (-g) ≫ biprod.snd : by rw category.assoc
-    ... = 0 : has_zero_morphisms.zero_comp _ _
+    ... = 0 : zero_comp
 end
 
 instance mono_pushout_of_mono_g [mono g] : mono (pushout.inl : Y ⟶ pushout f g) :=
@@ -487,16 +485,16 @@ begin
   change R ⟶ X at d,
   change d ≫ biprod.lift f (-g) = u at hd,
   have : d ≫ (-g) = 0, calc
-    d ≫ (-g) = d ≫ biprod.lift f (-g) ≫ biprod.snd : by rw prod.lift_snd
+    d ≫ (-g) = d ≫ biprod.lift f (-g) ≫ biprod.snd : by rw biprod.lift_snd
     ... = u ≫ biprod.snd : by rw [←category.assoc, hd]
-    ... = 0 : prod.lift_snd _ _,
+    ... = 0 : biprod.lift_snd _ _,
   have : d = 0 := (cancel_mono (-g)).1 (by simpa),
   calc
-    e = u ≫ biprod.fst : by rw prod.lift_fst
+    e = u ≫ biprod.fst : by rw biprod.lift_fst
     ... = (d ≫ biprod.lift f (-g)) ≫ biprod.fst : by rw ←hd
     ... = (0 ≫ biprod.lift f (-g)) ≫ biprod.fst : by rw this
     ... = 0 ≫ biprod.lift f (-g) ≫ biprod.fst : by rw category.assoc
-    ... = 0 : has_zero_morphisms.zero_comp _ _
+    ... = 0 : zero_comp
 end
 
 end mono_pushout
@@ -509,7 +507,7 @@ variables (C : Type u) [category.{v} C] [non_preadditive_abelian C]
 
 /-- Every non_preadditive_abelian category can be promoted to an abelian category. -/
 def abelian : abelian C :=
-{ has_finite_products := infer_instance,
+{ has_finite_products := by apply_instance,
 /- We need the `convert`s here because the instances we have are slightly different from the
    instances we need: `has_kernels` depends on an instance of `has_zero_morphisms`. In the
    case of `non_preadditive_abelian`, this instance is an explicit argument. However, in the case
@@ -518,8 +516,8 @@ def abelian : abelian C :=
    instance of "has kernels with non_preadditive_abelian.preadditive.has_zero_morphisms". Luckily,
    we have a `subsingleton` instance for `has_zero_morphisms`, so `convert` can immediately close
    the goal it creates for the two instances of `has_zero_morphisms`, and the proof is complete. -/
-  has_kernels := by convert (infer_instance : limits.has_kernels C),
-  has_cokernels := by convert (infer_instance : limits.has_cokernels C),
+  has_kernels := by convert (by apply_instance : limits.has_kernels C),
+  has_cokernels := by convert (by apply_instance : limits.has_cokernels C),
   normal_mono := by { introsI, convert normal_mono f },
   normal_epi := by { introsI, convert normal_epi f },
   ..non_preadditive_abelian.preadditive }

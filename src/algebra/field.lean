@@ -7,7 +7,6 @@ import algebra.ring.basic
 import algebra.group_with_zero
 open set
 
-set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
 
 universe u
@@ -23,6 +22,7 @@ class division_ring (α : Type u) extends ring α, has_inv α, nontrivial α :=
 section division_ring
 variables [division_ring α] {a b : α}
 
+@[priority 100] -- see Note [lower instance priority]
 instance division_ring_has_div : has_div α :=
 ⟨λ a b, a * b⁻¹⟩
 
@@ -103,6 +103,7 @@ by rw [(mul_sub_left_distrib (1 / a)), (one_div_mul_cancel ha), mul_sub_right_di
 lemma add_div_eq_mul_add_div (a b : α) {c : α} (hc : c ≠ 0) : a + b / c = (a * c + b) / c :=
 (eq_div_iff_mul_eq hc).2 $ by rw [right_distrib, (div_mul_cancel _ hc)]
 
+@[priority 100] -- see Note [lower instance priority]
 instance division_ring.to_domain : domain α :=
 { ..‹division_ring α›, ..(by apply_instance : semiring α),
   ..(by apply_instance : no_zero_divisors α) }
@@ -119,11 +120,13 @@ section field
 
 variable [field α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance field.to_division_ring : division_ring α :=
 { inv_mul_cancel := λ _ h, by rw [mul_comm, field.mul_inv_cancel h]
   ..show field α, by apply_instance }
 
 /-- Every field is a `comm_group_with_zero`. -/
+@[priority 100] -- see Note [lower instance priority]
 instance field.to_comm_group_with_zero :
   comm_group_with_zero α :=
 { .. (_ : group_with_zero α), .. ‹field α› }

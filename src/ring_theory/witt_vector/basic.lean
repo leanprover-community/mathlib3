@@ -254,7 +254,10 @@ begin
   exact eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl,
 end
 
-/-- Reorders the arguments of `ghost_component` -/
+/-- Reorders the arguments of `ghost_component`.
+This function will be bundled as the ring homomorphism `witt_vector.ghost_map`
+once the ring structure is available,
+but we rely on it to set up the ring structure in the first place. -/
 noncomputable def ghost_map_fun : 𝕎 R → (ℕ → R) := λ w n, ghost_component n w
 
 end
@@ -344,7 +347,8 @@ end p_prime
 
 variables (p) (R)
 
-/-- From the equivalence `witt.alg_equiv`, induce a bijection between `𝕎 R` and `ℕ → R`. -/
+/-- From the equivalence `witt.alg_equiv`, induce a bijection between `𝕎 R` and `ℕ → R`,
+under the assumption that `p` is invertible in `R`. -/
 noncomputable def ghost_map_fun.equiv_of_invertible [invertible (p : R)] :
   𝕎 R ≃ (ℕ → R) :=
 mv_polynomial.comap_equiv (witt.alg_equiv p R)
@@ -410,7 +414,9 @@ section map
 open function
 
 /--
-`witt_vector.map_fun` is a ring homomorphism.
+`witt_vector.map f` is the ring homomorphism `𝕎 R →+* 𝕎 S` naturally induced
+by a ring homomorphism `f : R →+* S`.
+It acts coefficientwise.
 -/
 noncomputable def map (f : R →+* S) : 𝕎 R →+* 𝕎 S :=
 { to_fun := map_fun f,
@@ -433,7 +439,8 @@ lemma map_coeff (f : R →+* S) (x : 𝕎 R) (n : ℕ) :
 end map
 
 /--
-`witt_vector.ghost_map_fun` is a ring homomorphism.
+`witt_vector.ghost_map` is a ring homomorphism that maps each Witt vector
+to the sequence of its ghost components.
 -/
 noncomputable def ghost_map : 𝕎 R →+* ℕ → R :=
 { to_fun := ghost_map_fun,

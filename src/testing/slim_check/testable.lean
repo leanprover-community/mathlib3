@@ -194,23 +194,24 @@ The constructors are:
      `gave_up n` tells us that `n` invalid examples were tried.
      Above 100, we give up on the proposition and report that we
      did not find a way to properly test it.
-   * `failure : ¬ p → (list string) → test_result`
+   * `failure : ¬ p → (list string) → ℕ → test_result`
      a counter-example to `p`; the strings specify values for the relevant variables.
-     `failure h vs` also carries a proof that `p` does not hold. This way, we can
-     guarantee no false positive.
+     `failure h vs n` also carries a proof that `p` does not hold. This way, we can
+     guarantee that there will be no false positive. The last component, `n`,
+     is the number of times that the counter-example was shrunk.
 -/
 @[derive inhabited]
 inductive test_result (p : Prop)
 | success : (psum unit p) → test_result
 | gave_up {} : ℕ → test_result
-| failure : ¬ p → (list string) → test_result
+| failure : ¬ p → (list string) → ℕ → test_result
 
 /-- format a `test_result` as a string. -/
 protected def test_result.to_string {p} : test_result p → string
 | (test_result.success (psum.inl ())) := "success (without proof)"
 | (test_result.success (psum.inr h)) := "success (with proof)"
 | (test_result.gave_up n) := sformat!"gave up {n} times"
-| (test_result.failure a vs) := sformat!"failed {vs}"
+| (test_result.failure a vs _) := sformat!"failed {vs}"
 
 
 /-- configuration for testing a property -/
@@ -253,8 +254,8 @@ def and_counter_example {p q : Prop} :
   test_result p →
   test_result q →
   test_result (p ∧ q)
-| (failure Hce xs) _ := failure (λ h, Hce h.1) xs
-| _ (failure Hce xs) := failure (λ h, Hce h.2) xs
+| (failure Hce xs n) _ := failure (λ h, Hce h.1) xs n
+| _ (failure Hce xs n) := failure (λ h, Hce h.2) xs n
 | (success xs) (success ys) := success $ combine (combine (psum.inr and.intro) xs) ys
 | (gave_up n) (gave_up m) := gave_up $ n + m
 | (gave_up n) _ := gave_up n
@@ -265,7 +266,7 @@ def or_counter_example {p q : Prop} :
   test_result p →
   test_result q →
   test_result (p ∨ q)
-| (failure Hce xs) (failure Hce' ys) := failure (λ h, or_iff_not_and_not.1 h ⟨Hce, Hce'⟩) (xs ++ ys)
+| (failure Hce xs n) (failure Hce' ys n') := failure (λ h, or_iff_not_and_not.1 h ⟨Hce, Hce'⟩) (xs ++ ys) (n + n')
 | (success xs) _ := success $ combine (psum.inr or.inl) xs
 | _ (success ys) := success $ combine (psum.inr or.inr) ys
 | (gave_up n) (gave_up m) := gave_up $ n + m
@@ -279,7 +280,7 @@ def convert_counter_example {p q : Prop}
   test_result p →
   opt_param (psum unit (p → q)) (psum.inl ()) →
   test_result q
-| (failure Hce xs) _ := failure (mt h Hce) xs
+| (failure Hce xs n) _ := failure (mt h Hce) xs n
 | (success Hp) Hpq := success (combine Hpq Hp)
 | (gave_up n) _ := gave_up n
 
@@ -297,7 +298,7 @@ def add_to_counter_example (x : string) {p q : Prop}
   test_result p →
   opt_param (psum unit (p → q)) (psum.inl ()) →
   test_result q
-| (failure Hce xs) _ := failure (mt h Hce) $ x :: xs
+| (failure Hce xs n) _ := failure (mt h Hce) (x :: xs) n
 | r hpq := convert_counter_example h r hpq
 
 /-- Add some formatting to the information recorded by `add_to_counter_example`. -/
@@ -327,7 +328,7 @@ def named_binder (n : string) (p : Prop) : Prop := p
 
 /-- Is the given test result a failure? -/
 def is_failure {p} : test_result p → bool
-| (test_result.failure _ _) := tt
+| (test_result.failure _ _ _) := tt
 | _ := ff
 
 instance and_testable (p q : Prop) [testable p] [testable q] :
@@ -410,7 +411,7 @@ instance test_forall_in_list
     r ← testable.run (β x) cfg min,
     trace_if_giveup cfg.trace_discarded var x r $
       match r with
-      | failure _ _ := return $ add_var_to_counter_example var x
+      | failure _ _ _ := return $ add_var_to_counter_example var x
                                  (by { intro h, apply h, left, refl }) r
       | success hp := do
          rs ← @testable.run _ (test_forall_in_list xs) cfg min,
@@ -426,9 +427,9 @@ instance test_forall_in_list
          rs ← @testable.run _ (test_forall_in_list xs) cfg min,
          match rs with
          | (success _) := return $ gave_up n
-         | (failure Hce xs) := return $ failure
+         | (failure Hce xs n) := return $ failure
                       (by { simp only [ball_cons,named_binder],
-                            apply not_and_of_not_right _ Hce, }) xs
+                            apply not_and_of_not_right _ Hce, }) xs n
          | (gave_up n') := return $ gave_up (n + n')
          end
       end ⟩
@@ -443,21 +444,26 @@ def combine_testable (p : Prop)
 
 open sampleable_ext
 
-def format_failure (s : string) (xs : list string) : string :=
+def format_failure (s : string) (xs : list string) (n : ℕ) : string :=
 let counter_ex := string.intercalate "\n" xs in
 sformat!"
 ===================
 {s}
 
 {counter_ex}
+({n} shrinks)
 -------------------
 "
 
 def format_failure' (s : string) {p} : test_result p → string
 | (success a) := ""
 | (gave_up a) := ""
-| (test_result.failure _ xs) := format_failure s xs
+| (test_result.failure _ xs n) := format_failure s xs n
 
+def add_shrinks {p} (n : ℕ) : test_result p → test_result p
+| r@(success a) := r
+| r@(gave_up a) := r
+| (test_result.failure h vs n') := test_result.failure h vs $ n + n'
 
 /-- Shrink a counter-example `x` by using `shrink x`, picking the first
 candidate that falsifies a property and recursively shrinking that one.
@@ -465,8 +471,8 @@ candidate that falsifies a property and recursively shrinking that one.
 The process is guaranteed to terminate because `shrink x` produces
 a proof that all the values it produces are smaller (according to `sizeof`)
 than `x`. -/
-def minimize_aux [sampleable_ext α] [∀ x, testable (β x)] (cfg : slim_check_cfg) (var : string) : proxy_repr α → option_t gen (Σ x, test_result (β (interp α x))) :=
-well_founded.fix has_well_founded.wf $ λ x f_rec, do
+def minimize_aux [sampleable_ext α] [∀ x, testable (β x)] (cfg : slim_check_cfg) (var : string) : proxy_repr α → ℕ → option_t gen (Σ x, test_result (β (interp α x))) :=
+well_founded.fix has_well_founded.wf $ λ x f_rec n, do
      if cfg.trace_shrink_candidates
        then return $ trace sformat!"candidates for {var} :=\n{repr (sampleable_ext.shrink x).to_list}\n" ()
        else pure (),
@@ -478,12 +484,15 @@ well_founded.fix has_well_founded.wf $ λ x f_rec, do
      if cfg.trace_shrink then return $
        trace (sformat!"{var} := {repr y}" ++ format_failure' "Shrink counter-example:" r) ()
        else pure (),
-     f_rec y h₁ <|> pure ⟨y,r⟩
+     f_rec y h₁ (n+1) <|> pure ⟨y,add_shrinks (n+1) r⟩
 
 /-- Once a property fails to hold on an example, look for smaller counter-examples
 to show the user. -/
 def minimize [sampleable_ext α] [∀ x, testable (β x)] (cfg : slim_check_cfg) (var : string) (x : proxy_repr α) (r : test_result (β (interp α x))) : gen (Σ x, test_result (β (interp α x))) := do
-x' ← option_t.run $ minimize_aux α _ cfg var x,
+if cfg.trace_shrink then return $
+  trace (sformat!"{var} := {repr x}" ++ format_failure' "Shrink counter-example:" r) ()
+  else pure (),
+x' ← option_t.run $ minimize_aux α _ cfg var x 0,
 pure $ x'.get_or_else ⟨x, r⟩
 
 @[priority 2000]
@@ -547,8 +556,8 @@ instance decidable_testable (p : Prop) [printable_prop p] [decidable p] : testab
   if h : p then success (psum.inr h)
   else
     match print_prop p with
-    | none := failure h []
-    | some str := failure h [sformat!"issue: {str} does not hold"]
+    | none := failure h [] 0
+    | some str := failure h [sformat!"issue: {str} does not hold"] 0
     end ⟩
 
 instance eq.printable_prop {α} [has_repr α] (x y : α) : printable_prop (x = y) :=
@@ -612,7 +621,7 @@ def retry (cmd : rand (test_result p)) : ℕ → rand (test_result p)
 r ← cmd,
 match r with
 | success hp := return $ success hp
-| (failure Hce xs) := return (failure Hce xs)
+| (failure Hce xs n) := return (failure Hce xs n)
 | (gave_up _) := retry n
 end
 
@@ -621,7 +630,7 @@ def give_up (x : ℕ) : test_result p → test_result p
 | (success (psum.inl ())) := gave_up x
 | (success (psum.inr p))  := success (psum.inr p)
 | (gave_up n) := gave_up (n+x)
-| (failure Hce xs) := failure Hce xs
+| (failure Hce xs n) := failure Hce xs n
 
 variable (p)
 
@@ -637,7 +646,7 @@ do let size := (cfg.num_inst - n - 1) * cfg.max_size / cfg.num_inst,
    match x with
    | (success (psum.inl ())) := testable.run_suite_aux r n
    | (success (psum.inr Hp)) := return $ success (psum.inr Hp)
-   | (failure Hce xs) := return (failure Hce xs)
+   | (failure Hce xs n) := return (failure Hce xs n)
    | (gave_up g) := testable.run_suite_aux (give_up g r) n
    end
 
@@ -724,8 +733,8 @@ x ← match cfg.random_seed with
 match x with
 | (success _) := when (¬ cfg.quiet) $ io.put_str_ln "Success"
 | (gave_up n) := io.fail sformat!"Gave up {repr n} times"
-| (failure _ xs) := do
-  io.fail $ format_failure "Found problems!" xs
+| (failure _ xs n) := do
+  io.fail $ format_failure "Found problems!" xs n
 end
 
 end io

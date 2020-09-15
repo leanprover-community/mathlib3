@@ -35,6 +35,7 @@ i := 0
 j := 1
 guard: 0 < 1 (by construction)
 issue: 1 < 0 does not hold
+(0 shrinks)
 -------------------
 ",
   admit,
@@ -52,6 +53,7 @@ Found problems!
 
 x := 104
 issue: 104 < 100 does not hold
+(2 shrinks)
 -------------------
 ",
   admit,
@@ -71,6 +73,7 @@ xs := [5, 5, 0, 1]
 x := 0
 y := 5
 issue: 5 < 5 does not hold
+(5 shrinks)
 -------------------
 ",
   admit,
@@ -88,6 +91,7 @@ Found problems!
 
 x := 104
 issue: 104 < 100 does not hold
+(2 shrinks)
 -------------------
 ",
   admit,
@@ -107,6 +111,7 @@ Found problems!
 xs := [0]
 ys := [1]
 issue: [0, 1] = [1, 0] does not hold
+(4 shrinks)
 -------------------
 ",
   admit,
@@ -137,6 +142,7 @@ x := 3
 y := 4
 guard: 3 ≤ 4 (by construction)
 issue: 9 ≤ 6 does not hold
+(5 shrinks)
 -------------------
 ",
   admit,
@@ -156,6 +162,7 @@ f := [x ↦ x]
 g := [1 ↦ 2, 2 ↦ 1, x ↦ x]
 i := 1
 issue: 1 = 2 does not hold
+(5 shrinks)
 -------------------
 ",
   admit,
@@ -176,6 +183,7 @@ x := 3
 y := 4
 guard: 3 ≤ 4 (by construction)
 issue: 9 ≤ 6 does not hold
+(5 shrinks)
 -------------------
 ",
   admit,
@@ -196,6 +204,7 @@ x := 0
 y := -1
 guard: 0 = 0
 issue: 0 = -1 does not hold
+(0 shrinks)
 -------------------
 ",
   admit,
@@ -216,6 +225,7 @@ x := -6
 y := -2
 guard: -6 ≤ -2 (by construction)
 issue: 97 ≤ 4 does not hold
+(5 shrinks)
 -------------------
 ",
   admit,
@@ -234,6 +244,7 @@ xs := [0, 1]
 ys := [1, 0]
 guard: [0, 1] ~ [1, 0] (by construction)
 issue: [0, 1] = [1, 0] does not hold
+(4 shrinks)
 -------------------
 ",
   admit,
@@ -253,6 +264,7 @@ x := 59
 y := 41
 guard: 41 ≤ 59 (by construction)
 issue: 100 < 100 does not hold
+(8 shrinks)
 -------------------
 ",
   admit,
@@ -271,6 +283,7 @@ Found problems!
 x := 2
 guard: 2 ≤ 3 (by construction)
 issue: 3 ≤ 2 does not hold
+(1 shrinks)
 -------------------
 ",
   admit,
@@ -290,6 +303,7 @@ x := 52
 y := 52
 guard: 52 ≤ 52 (by construction)
 issue: 104 < 100 does not hold
+(4 shrinks)
 -------------------
 ",
   admit,
@@ -309,6 +323,7 @@ x := tt
 y := ff
 guard: (true ∨ false)
 issue: false does not hold
+(0 shrinks)
 -------------------
 ",
   admit,
@@ -328,6 +343,7 @@ x := tt
 y := ff
 guard: (¬ true ↔ false)
 issue: false does not hold
+(0 shrinks)
 -------------------
 ",
   admit,
@@ -349,6 +365,7 @@ y := ff
 guard: (false ↔ false)
 issue: false does not hold
 issue: false does not hold
+(0 shrinks)
 -------------------
 ",
   admit,
@@ -369,6 +386,7 @@ x := ff
 y := ff
 issue: false does not hold
 issue: false does not hold
+(0 shrinks)
 -------------------
 ",
   admit,
@@ -388,6 +406,7 @@ x := tt
 y := ff
 issue: false does not hold
 issue: ¬ true does not hold
+(0 shrinks)
 -------------------
 ",
   admit,

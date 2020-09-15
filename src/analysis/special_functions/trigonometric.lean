@@ -1710,7 +1710,6 @@ lemma continuous_tan : continuous (λ x : {x | cos x ≠ 0}, tan x) :=
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
 by { rw continuous_on_iff_continuous_restrict, convert continuous_tan }
 
-
 end complex
 
 
@@ -1859,10 +1858,9 @@ homeomorph_of_strict_mono_continuous_Ioo tan (by linarith [pi_div_two_pos])
 lemma arctan_eq_tan_homeomorph_inv_fun : arctan = coe ∘ tan_homeomorph.inv_fun :=
 begin
   ext x,
-  calc arctan x = ↑(⟨arctan x, arctan_mem_Ioo x⟩ : set.Ioo _ _) : by simp
-    ... = ↑((tan_homeomorph.inv_fun ∘ tan_homeomorph.to_fun) ⟨arctan x, arctan_mem_Ioo x⟩) : by simp
-    ... = ↑(tan_homeomorph.inv_fun (tan (arctan x))) : rfl
-    ... = ↑(tan_homeomorph.inv_fun x) : by rw tan_arctan,
+  calc arctan x = ↑((tan_homeomorph.inv_fun ∘ tan_homeomorph.to_fun) ⟨arctan x, arctan_mem_Ioo x⟩) : by simp
+            ... = ↑(tan_homeomorph.inv_fun (tan (arctan x))) : rfl
+            ... = ↑(tan_homeomorph.inv_fun x) : by rw tan_arctan,
 end
 
 lemma continuous_arctan : continuous arctan :=

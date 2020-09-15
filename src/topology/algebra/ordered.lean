@@ -1360,8 +1360,7 @@ begin
   intro b,
   refine (hf (b/(C/2))).mp ((hg.2 (C/2) (by linarith)).mp ((hf 1).mp (eventually_of_forall _))),
   intros x hx hltg hlef,
-  have := (div_le_iff_of_neg (div_neg_of_neg_of_pos hC two_pos)).mp hlef,
-  nlinarith,
+  nlinarith [(div_le_iff_of_neg (div_neg_of_neg_of_pos hC two_pos)).mp hlef],
 end
 
 end linear_ordered_field

@@ -11,14 +11,37 @@ import data.mv_polynomial.comap
 /-!
 # Witt vectors
 
+In this file we define the type of `p`-typical Witt vectors and their ring structure.
+
+For a fixed commutative ring `R` and prime `p`,
+a Witt vector `x : 𝕎 R` is an infinite sequence `ℕ → R` of elements of `R`.
+However, the ring operations `+` and `*` are not defined in the obvious component-wise way.
+Instead, these operations are defined via certain polynomials
+using the machinery in `structure_polynomial.lean`.
+The `n`th value of the sum of two Witt vectors can depend on the 0th through `n`th values
+of the summands. In the case when the base ring is `zmod p`, this effectively simulates a
+"carrying" operation.
+
 ## Main definitions
-TODO
+
+* `witt_vector.coeff x n`: projects the `n`th value of the Witt vector `x`
+* `ghost_component n x`: evaluates the `n`th Witt polynomial using the first `n` coefficients of `x`,
+  producing a value in `R`. This is effectively a truncating operation.
+  The ghost components produce an equivalence with `N → R`, which we use to define the ring operations
+  on `𝕎 R`.
+* `witt_vector.comm_ring`: the ring structure induced by the ghost components.
 
 ## Notation
-TODO
+
+We use notation `𝕎 R`, entered `\bbW`, for the Witt vectors over `R`.
 
 ## Implementation details
-TODO
+
+As we prove that the ghost components respect the ring operations, we face a number of repetitive
+proofs. To avoid duplicating code we factor these proofs into a custom tactic, only slightly more
+powerful than a tactic macro. This tactic is not particularly useful outside of its applications
+in this file.
+
 -/
 
 /-- `witt_vector p R` is the ring of `p`-typical Witt vectors over the commutative ring `R`,

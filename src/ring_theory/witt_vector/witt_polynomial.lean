@@ -168,28 +168,14 @@ end
 
 /-!
 
-## Witt vectors as a basis
+## Witt polynomials as a basis
 
 -/
-
-
-/-- View a polynomial written in terms of the basis of Witt polynomials
-as a polynomial written in terms of the standard basis.
-
-In particular, this sends `X n` to `witt_polynomial p n`.
-This fact is recorded in `from_W_to_X_basis_X`. -/
-noncomputable def from_W_to_X_basis : mv_polynomial ℕ R →ₐ[R] mv_polynomial ℕ R :=
-bind₁ W
-
-@[simp] lemma from_W_to_X_basis_X (n) : from_W_to_X_basis p R (X n) = W n :=
-by simp [from_W_to_X_basis]
 
 -- We need p to be invertible for the following definitions
 
 /-- The `X_in_terms_of_W p R n` is the polynomial on the basis of Witt polynomials
-that corresponds to the ordinary `X n`.
-This means that `from_W_to_X_basis` sends `X_in_terms_of_W p R n` to `X n`.
-This fact is recorded in `from_W_to_X_basis_X_in_terms_of_W`. -/
+that corresponds to the ordinary `X n`. -/
 noncomputable def X_in_terms_of_W [invertible (p : R)] :
   ℕ → mv_polynomial ℕ R
 | n := (X n - (∑ i : fin n,
@@ -275,26 +261,27 @@ lemma X_in_terms_of_W_vars_subset (n : ℕ) :
 
 end p_prime
 
-/-- View a polynomial written in terms of the standard basis
-as a polynomial written in terms of the Witt basis.
+lemma X_in_terms_of_W_aux [invertible (p : R)] (n : ℕ) :
+  X_in_terms_of_W p R n * C (p^n : R) =
+  X n - ∑ i in range n, C (p^i : R) * (X_in_terms_of_W p R i)^p^(n-i) :=
+by rw [X_in_terms_of_W_eq, mul_assoc, ← C_mul, ← mul_pow, inv_of_mul_self, one_pow, C_1, mul_one]
 
-This sends `W n` to `X n`, and `X n` to `X_in_terms_of_W p R n`. -/
-noncomputable def from_X_to_W_basis [invertible (p : R)] :
-  mv_polynomial ℕ R →ₐ[R] mv_polynomial ℕ R :=
-bind₁ (X_in_terms_of_W p R)
+@[simp] lemma bind₁_X_in_terms_of_W_witt_polynomial [invertible (p : R)] (k : ℕ) :
+  bind₁ (X_in_terms_of_W p R) (W_ R k) = X k :=
+begin
+  rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum],
+  simp only [alg_hom.map_pow, C_pow, alg_hom.map_mul, alg_hom_C],
+  rw [finset.sum_range_succ, nat.sub_self, nat.pow_zero, pow_one, bind₁_X_right,
+      mul_comm, ← C_pow, X_in_terms_of_W_aux],
+  simp only [C_pow, bind₁_X_right, sub_add_cancel],
+end
 
-@[simp] lemma from_X_to_W_basis_X [invertible (p : R)] (n : ℕ) :
-  (from_X_to_W_basis p R) (X n) = X_in_terms_of_W p R n :=
-by rw [from_X_to_W_basis, bind₁_X_right]
-
-@[simp] lemma from_W_to_X_basis_X_in_terms_of_W [invertible (p : R)] (n : ℕ) :
-  from_W_to_X_basis p R (X_in_terms_of_W p R n) = X n :=
+@[simp] lemma bind₁_witt_polynomial_X_in_terms_of_W [invertible (p : R)] (n : ℕ) :
+  bind₁ (W_ R) (X_in_terms_of_W p R n) = X n :=
 begin
   apply nat.strong_induction_on n,
   clear n, intros n H,
-  rw [X_in_terms_of_W_eq],
-  rw [alg_hom.map_mul, alg_hom.map_sub, alg_hom_C, alg_hom.map_sum, from_W_to_X_basis_X],
-  -- simp only [from_W_to_X_basis_X p R n, alg_hom.map_sum],
+  rw [X_in_terms_of_W_eq, alg_hom.map_mul, alg_hom.map_sub, bind₁_X_right, alg_hom_C, alg_hom.map_sum],
   have : W_ R n - ∑ i in range n, C (p ^ i : R) * (X i) ^ p ^ (n - i) = C (p ^ n : R) * X n,
   by simp only [witt_polynomial_eq_sum_C_mul_X_pow, nat.sub_self, finset.sum_range_succ,
     pow_one, add_sub_cancel, nat.pow_zero],
@@ -306,71 +293,11 @@ begin
     simp only [alg_hom.map_mul, alg_hom.map_pow, alg_hom_C, H i h] },
 end
 
-lemma from_W_to_X_basis_comp_from_X_to_W_basis [invertible (p : R)] :
-  (from_W_to_X_basis p R).comp (from_X_to_W_basis p _) = alg_hom.id _ _ :=
-begin
-  apply mv_polynomial.alg_hom_ext,
-  intro n,
-  rw [from_X_to_W_basis, alg_hom.comp_apply, bind₁_X_right],
-  exact from_W_to_X_basis_X_in_terms_of_W p R n
-end
-
-lemma X_in_terms_of_W_aux [invertible (p : R)] (n : ℕ) :
-  X_in_terms_of_W p R n * C (p^n : R) =
-  X n - ∑ i in range n, C (p^i : R) * (X_in_terms_of_W p R i)^p^(n-i) :=
-by rw [X_in_terms_of_W_eq, mul_assoc, ← C_mul, ← mul_pow, inv_of_mul_self, one_pow, C_1, mul_one]
-
-lemma from_X_to_W_basis_witt_polynomial [invertible (p : R)] (n : ℕ) :
-  (from_X_to_W_basis p R) (W n) = X n :=
-begin
-  rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum],
-  simp only [alg_hom.map_pow, C_pow, alg_hom.map_mul, from_X_to_W_basis_X, alg_hom_C],
-  rw [finset.sum_range_succ, nat.sub_self, nat.pow_zero, pow_one,
-      mul_comm, ← C_pow, X_in_terms_of_W_aux],
-  simp only [C_pow, sub_add_cancel],
-end
-
-lemma from_X_to_W_basis_comp_from_W_to_X_basis [invertible (p : R)] :
-  (from_X_to_W_basis p R).comp (from_W_to_X_basis p _) = alg_hom.id _ _ :=
-begin
-  apply mv_polynomial.alg_hom_ext,
-  intro n,
-  rw [alg_hom.comp_apply, from_W_to_X_basis_X],
-  exact from_X_to_W_basis_witt_polynomial p R n,
-end
-
-@[simp] lemma from_X_to_W_basis_comp_from_W_to_X_basis_apply [invertible (p : R)] (φ : mv_polynomial ℕ R) :
-  (from_X_to_W_basis p R) (from_W_to_X_basis p R φ) = φ :=
-begin
-  rw [← alg_hom.comp_apply, from_X_to_W_basis_comp_from_W_to_X_basis, alg_hom.id_apply],
-end
-
-@[simp] lemma from_W_to_X_basis_comp_from_X_to_W_basis_apply [invertible (p : R)] (φ : mv_polynomial ℕ R) :
-  (from_W_to_X_basis p R) (from_X_to_W_basis p R φ) = φ :=
-begin
-  rw [← alg_hom.comp_apply, from_W_to_X_basis_comp_from_X_to_W_basis, alg_hom.id_apply],
-end
-
-@[simp] lemma X_in_terms_of_W_prop₂ [invertible (p : R)] (k : ℕ) :
-  bind₁ (X_in_terms_of_W p R) (W_ R k) = X k :=
-begin
-  rw ← from_X_to_W_basis_comp_from_W_to_X_basis_apply p R (X k),
-  rw from_W_to_X_basis_X,
-  refl,
-end
-
-@[simp] lemma X_in_terms_of_W_prop [invertible (p : R)] (n : ℕ) :
-  bind₁ (W_ R) (X_in_terms_of_W p R n) = X n :=
-begin
-  rw ← from_W_to_X_basis_comp_from_X_to_W_basis_apply p R (X n),
-  rw from_X_to_W_basis_X,
-  refl,
-end
-
 /--
-The Witt vectors induce an algebra equivalence from `mv_polynomial ℕ R` to itself.
+The Witt polynomials induce an algebra equivalence from `mv_polynomial ℕ R` to itself,
+under the assumption that `p` is invertible in `R`.
 -/
 noncomputable def witt.alg_equiv [invertible (p : R)] : mv_polynomial ℕ R ≃ₐ[R] mv_polynomial ℕ R :=
 equiv_of_family (W_ R) (X_in_terms_of_W p R)
-(X_in_terms_of_W_prop₂ p R)
-(X_in_terms_of_W_prop p R)
+(bind₁_X_in_terms_of_W_witt_polynomial p R)
+(bind₁_witt_polynomial_X_in_terms_of_W p R)

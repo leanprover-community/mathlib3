@@ -39,7 +39,7 @@ begin
     (λ fam, bind₁ (mv_polynomial.map (int.cast_ring_hom ℚ) ∘ fam)
     (X_in_terms_of_W p ℚ n)) h,
   simpa only [function.comp, map_bind₁, map_witt_polynomial,
-    ← bind₁_bind₁, X_in_terms_of_W_prop, bind₁_X_right] using h
+    ← bind₁_bind₁, bind₁_witt_polynomial_X_in_terms_of_W, bind₁_X_right] using h
 end
 
 -- Ideally, we would generalise this to n-ary functions

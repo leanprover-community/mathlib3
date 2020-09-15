@@ -33,7 +33,7 @@ lemma bind₁_frobenius_poly_rat_witt_polynomial (n : ℕ) :
   bind₁ (frobenius_poly_rat p) (witt_polynomial p ℚ n) = (witt_polynomial p ℚ (n+1)) :=
 begin
   delta frobenius_poly_rat,
-  rw [← bind₁_bind₁, X_in_terms_of_W_prop₂, bind₁_X_right],
+  rw [← bind₁_bind₁, bind₁_X_in_terms_of_W_witt_polynomial, bind₁_X_right],
 end
 
 -- move this?

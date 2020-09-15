@@ -120,7 +120,7 @@ calc bind₁ (witt_structure_rat p Φ) (W_ ℚ n)
     = bind₁ (λ k, bind₁ (λ b, (rename (prod.mk b)) (W_ ℚ k)) Φ) (bind₁ (X_in_terms_of_W p ℚ) (W_ ℚ n)) :
       by { rw [bind₁_bind₁], apply eval₂_hom_congr (ring_hom.ext_rat _ _) rfl rfl }
 ... = bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :
-      by rw [X_in_terms_of_W_prop₂ p _ n, bind₁_X_right]
+      by rw [bind₁_X_in_terms_of_W_witt_polynomial p _ n, bind₁_X_right]
 
 theorem witt_structure_rat_exists_unique (Φ : mv_polynomial idx ℚ) :
   ∃! (φ : ℕ → mv_polynomial (idx × ℕ) ℚ),
@@ -131,7 +131,7 @@ begin
   { intros φ H,
     funext n,
     rw show φ n = bind₁ φ (bind₁ (W_ ℚ) (X_in_terms_of_W p ℚ n)),
-    { rw [X_in_terms_of_W_prop p, bind₁_X_right] },
+    { rw [bind₁_witt_polynomial_X_in_terms_of_W p, bind₁_X_right] },
     rw [bind₁_bind₁],
     apply eval₂_hom_congr (ring_hom.ext_rat _ _) _ rfl,
     funext k, exact H k },

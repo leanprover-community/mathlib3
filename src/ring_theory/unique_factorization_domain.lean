@@ -175,7 +175,7 @@ instance ufm_of_gcd_of_wf_dvd_monoid [nontrivial α] [comm_cancel_monoid_with_ze
 { irreducible_iff_prime := λ _, gcd_monoid.irreducible_iff_prime
   .. ‹wf_dvd_monoid α› }
 
-instance associates.ufm [nontrivial α] [comm_cancel_monoid_with_zero α]
+instance associates.ufm [comm_cancel_monoid_with_zero α]
   [unique_factorization_monoid α] : unique_factorization_monoid (associates α) :=
 { irreducible_iff_prime := by { rw ← associates.irreducible_iff_prime_iff,
     apply unique_factorization_monoid.irreducible_iff_prime, }
@@ -378,7 +378,7 @@ namespace unique_factorization_monoid
 variables [comm_cancel_monoid_with_zero α] [decidable_eq α] [nontrivial α] [normalization_monoid α]
   [unique_factorization_monoid α]
 
-/-- Noncomputably determines the multiset of prime factors -/
+/-- Noncomputably determines the multiset of prime factors. -/
 noncomputable def factors (a : α) : multiset α := if h : a = 0 then 0 else
 multiset.map normalize $ classical.some (unique_factorization_monoid.exists_prime_factors a h)
 
@@ -520,7 +520,7 @@ end unique_factorization_monoid
 
 namespace associates
 open unique_factorization_monoid associated multiset
-variables [comm_cancel_monoid_with_zero α] [nontrivial α]
+variables [comm_cancel_monoid_with_zero α]
 
 /-- `factor_set α` representation elements of unique factorization domain as multisets.
 `multiset α` produced by `factors` are only unique up to associated elements, while the multisets in
@@ -528,7 +528,7 @@ variables [comm_cancel_monoid_with_zero α] [nontrivial α]
 representation of each element as a unique multisets (or the added ⊤ for 0), which has a complete
 lattice struture. Infimum is the greatest common divisor and supremum is the least common multiple.
 -/
-@[reducible] def {u} factor_set (α : Type u) [comm_cancel_monoid_with_zero α] [nontrivial α] :
+@[reducible] def {u} factor_set (α : Type u) [comm_cancel_monoid_with_zero α] :
   Type u :=
 with_top (multiset { a : associates α // irreducible a })
 
@@ -549,6 +549,8 @@ lemma factor_set.sup_add_inf_eq_add [decidable_eq (associates α)] :
     exact multiset.union_add_inter _ _
   end
 
+/-- Evaluates the product of a `factor_set` to be the product of the corresponding multiset,
+  or `0` if there is none. -/
 def factor_set.prod : factor_set α → associates α
 | none     := 0
 | (some s) := (s.map coe).prod
@@ -585,9 +587,9 @@ begin
   simpa [quot_mk_eq_mk, prod_mk, mk_eq_mk_iff_associated] using eq
 end
 
-variables [decidable_eq α] [normalization_monoid α]
+variables [nontrivial α] [normalization_monoid α]
 
-private theorem forall_map_mk_factors_irreducible (x : α) (hx : x ≠ 0) :
+private theorem forall_map_mk_factors_irreducible [decidable_eq α] (x : α) (hx : x ≠ 0) :
   ∀(a : associates α), a ∈ multiset.map associates.mk (factors x) → irreducible a :=
 begin
   assume a ha,
@@ -600,6 +602,7 @@ theorem prod_le_prod_iff_le {p q : multiset (associates α)}
   p.prod ≤ q.prod ↔ p ≤ q :=
 iff.intro
   begin
+    classical,
     rintros ⟨⟨c⟩, eqc⟩,
     have : c ≠ 0, from (mt mk_eq_zero.2 $
       assume (hc : quot.mk setoid.r c = 0),
@@ -617,43 +620,52 @@ iff.intro
   end
   prod_le_prod
 
-noncomputable def factors' (a : α) (ha : a ≠ 0) : multiset { a : associates α // irreducible a } :=
+variables [dec : decidable_eq α] [dec' : decidable_eq (associates α)]
+include dec
+
+/-- This returns the multiset of irreducible factors as a `factor_set`,
+  a multiset of irreducible associates `with_top`. -/
+noncomputable def factors' (a : α) :
+  multiset { a : associates α // irreducible a } :=
 (factors a).pmap (λa ha, ⟨associates.mk a, (irreducible_mk _).2 ha⟩)
   (irreducible_factors)
 
-@[simp] theorem map_subtype_coe_factors' {a : α} (ha : a ≠ 0) :
-  (factors' a ha).map coe = (factors a).map associates.mk :=
+@[simp] theorem map_subtype_coe_factors' {a : α} :
+  (factors' a).map coe = (factors a).map associates.mk :=
 by simp [factors', multiset.map_pmap, multiset.pmap_eq_map]
 
 theorem factors'_cong {a b : α} (ha : a ≠ 0) (hb : b ≠ 0) (h : a ~ᵤ b) :
-  factors' a ha = factors' b hb :=
+  factors' a = factors' b :=
 have multiset.rel associated (factors a) (factors b), from
   factors_unique irreducible_factors irreducible_factors
     ((factors_prod ha).trans $ h.trans $ (factors_prod hb).symm),
 by simpa [(multiset.map_eq_map subtype.coe_injective).symm, rel_associated_iff_map_eq_map.symm]
 
-variable [dec : decidable_eq (associates α)]
-include dec
+include dec'
 
-noncomputable def factors (a : associates α) : factor_set α :=
+/-- This returns the multiset of irreducible factors of an associate as a `factor_set`,
+  a multiset of irreducible associates `with_top`. -/
+noncomputable def factors (a : associates α) :
+  factor_set α :=
 begin
   refine (if h : a = 0 then ⊤ else
-    quotient.hrec_on a (λx h, some $ factors' x (mt mk_eq_zero.2 h)) _ h),
-
+    quotient.hrec_on a (λx h, some $ factors' x) _ h),
   assume a b hab,
   apply function.hfunext,
   { have : a ~ᵤ 0 ↔ b ~ᵤ 0, from
       iff.intro (assume ha0, hab.symm.trans ha0) (assume hb0, hab.trans hb0),
     simp only [associated_zero_iff_eq_zero] at this,
     simp only [quotient_mk_eq_mk, this, mk_eq_zero] },
-  exact (assume ha hb eq, heq_of_eq $ congr_arg some $ factors'_cong _ _ hab)
+  exact (assume ha hb eq, heq_of_eq $ congr_arg some $ factors'_cong
+    (λ c, ha (mk_eq_zero.2 c)) (λ c, hb (mk_eq_zero.2 c)) hab)
 end
 
 @[simp] theorem factors_0 : (0 : associates α).factors = ⊤ :=
 dif_pos rfl
 
-@[simp] theorem factors_mk (a : α) (h : a ≠ 0) : (associates.mk a).factors = factors' a h :=
-dif_neg (mt mk_eq_zero.1 h)
+@[simp] theorem factors_mk (a : α) (h : a ≠ 0) :
+  (associates.mk a).factors = factors' a :=
+by { classical, apply dif_neg, apply (mt mk_eq_zero.1 h) }
 
 theorem prod_factors : ∀(s : factor_set α), s.prod.factors = s
 | none     := by simp [factor_set.prod]; refl
@@ -693,7 +705,7 @@ theorem eq_of_factors_eq_factors {a b : associates α} (h : a.factors = b.factor
 have a.factors.prod = b.factors.prod, by rw h,
 by rwa [factors_prod, factors_prod] at this
 
-omit dec
+omit dec dec'
 
 theorem eq_of_prod_eq_prod {a b : factor_set α} (h : a.prod = b.prod) : a = b :=
 begin
@@ -702,8 +714,7 @@ begin
   rwa [prod_factors, prod_factors] at this
 end
 
-include dec
-
+include dec dec'
 
 @[simp] theorem factors_mul (a b : associates α) : (a * b).factors = a.factors + b.factors :=
 eq_of_prod_eq_prod $ eq_of_factors_eq_factors $
@@ -718,7 +729,7 @@ iff.intro
     by rwa [factors_prod, factors_prod] at this)
   factors_mono
 
-omit dec
+omit dec dec'
 
 theorem prod_le {a b : factor_set α} : a.prod ≤ b.prod ↔ a ≤ b :=
 begin
@@ -729,7 +740,7 @@ begin
   prod_mono
 end
 
-include dec
+include dec dec'
 
 noncomputable instance : has_sup (associates α) := ⟨λa b, (a.factors ⊔ b.factors).prod⟩
 noncomputable instance : has_inf (associates α) := ⟨λa b, (a.factors ⊓ b.factors).prod⟩

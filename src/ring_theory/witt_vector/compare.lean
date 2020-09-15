@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Robert Y. Lewis
 -/
 
-import ring_theory.witt_vector.truncated2
+import ring_theory.witt_vector.truncated
 import data.padics.ring_homs
 
 /-!

@@ -1632,6 +1632,54 @@ nhds_within_Iio_ne_bot (le_refl a)
 
 end linear_order
 
+section decidable_linear_order
+
+variables [topological_space α] [decidable_linear_order α] [order_topology α] [densely_ordered α]
+
+/-- The `at_top` filter for an open interval `Ioo a b` comes from the left-neighbourhoods filter at
+the right endpoint in the ambient order. -/
+lemma Ioo_at_top_eq_nhds_within {a b : α} (h : a < b) :
+  (at_top : filter (Ioo a b)) = comap (coe : Ioo a b → α) (𝓝[Iio b] b) :=
+begin
+  haveI : nonempty (Ioo a b) := nonempty_Ioo_subtype h,
+  ext,
+  split,
+  { intros hs,
+    obtain ⟨x, hx⟩ : ∃ x : (Ioo a b), ∀ z : (Ioo a b), z ≥ x → z ∈ s := mem_at_top_sets.mp hs,
+    refine ⟨Ioo x b, Ioo_mem_nhds_within_Iio (right_mem_Ioc.mpr x.2.2), _⟩,
+    intros z hz,
+    simpa using hx z (le_of_lt hz.1) },
+  { rintros ⟨t, ht, hts⟩,
+    obtain ⟨x, hx, hxt⟩ : ∃ x ∈ Iio b, Ioo x b ⊆ t := (mem_nhds_within_Iio_iff_exists_Ioo_subset' h).mp ht,
+    obtain ⟨y, hay, hyb⟩ : ∃ y, max a x < y ∧ y < b := dense (max_lt_iff.mpr ⟨h, hx⟩),
+    refine mem_at_top_sets.mpr ⟨⟨y, (max_lt_iff.mp hay).1, hyb⟩, _⟩,
+    intros z hz,
+    exact hts (hxt ⟨lt_of_lt_of_le (lt_of_le_of_lt (le_max_right a x) hay) hz, z.2.2⟩) }
+end
+
+/-- The `at_bot` filter for an open interval `Ioo a b` comes from the right-neighbourhoods filter at
+the left endpoint in the ambient order. -/
+lemma Ioo_at_bot_eq_nhds_within {a b : α} (h : a < b) :
+  (at_bot : filter (Ioo a b)) = comap (coe : Ioo a b → α) (𝓝[Ioi a] a) :=
+begin
+  haveI : nonempty (Ioo a b) := nonempty_Ioo_subtype h,
+  ext,
+  split,
+  { intros hs,
+    obtain ⟨x, hx⟩ : ∃ x : (Ioo a b), ∀ z : (Ioo a b), z ≤ x → z ∈ s := mem_at_bot_sets.mp hs,
+    refine ⟨Ioo a x, Ioo_mem_nhds_within_Ioi (left_mem_Ico.mpr x.2.1), _⟩,
+    intros z hz,
+    simpa using hx z (le_of_lt hz.2) },
+  { rintros ⟨t, ht, hts⟩,
+    obtain ⟨x, hx, hxt⟩ : ∃ x ∈ Ioi a, Ioo a x ⊆ t := (mem_nhds_within_Ioi_iff_exists_Ioo_subset' h).mp ht,
+    obtain ⟨y, hay, hyb⟩ : ∃ y, a < y ∧ y < min b x := dense (lt_min_iff.mpr ⟨h, hx⟩),
+    refine mem_at_bot_sets.mpr ⟨⟨y, hay, (lt_min_iff.mp hyb).1⟩, _⟩,
+    intros z hz,
+    exact hts (hxt ⟨z.2.1, lt_of_le_of_lt hz (lt_of_lt_of_le hyb (min_le_right b x))⟩) }
+end
+
+end decidable_linear_order
+
 section complete_linear_order
 
 variables [complete_linear_order α] [topological_space α] [order_topology α]
@@ -2577,6 +2625,47 @@ homeomorph_of_strict_mono_surjective f h_mono (surjective_of_continuous h_cont h
   (f : α → β) (h_mono : strict_mono f) (h_cont : continuous f) (h_top : tendsto f at_top at_top)
   (h_bot : tendsto f at_bot at_bot) :
   (homeomorph_of_strict_mono_continuous f h_mono h_cont h_top h_bot : α → β) = f := rfl
+
+/- Now we prove a relative version of the above result.  This (`Ioo` to `univ`) is provided as a
+sample; there are at least 16 possible variations with open intervals (`univ` to `Ioo`, `Ioi` to
+`univ`, ...), not to mention the possibilities with closed or half-closed intervals. -/
+variables {a b : α}
+
+/-- If `f : α → β` is strictly monotone and continuous on the interval `Ioo a b` of `α`, and tends
+to `at_top` within `𝓝[Iio b] b` and to `at_bot` within `𝓝[Ioi a] a`, then it restricts to a
+homeomorphism from `Ioo a b` to `β`. -/
+noncomputable def homeomorph_of_strict_mono_continuous_Ioo
+  (f : α → β) (h : a < b)
+  (h_mono : ∀ ⦃x y : α⦄, a < x → y < b → x < y → f x < f y)
+  (h_cont : continuous_on f (Ioo a b))
+  (h_top : tendsto f (𝓝[Iio b] b) at_top)
+  (h_bot : tendsto f (𝓝[Ioi a] a) at_bot) :
+  homeomorph (Ioo a b) β :=
+@homeomorph_of_strict_mono_continuous _ _ _ _
+(@ord_connected_subset_conditionally_complete_linear_order α (Ioo a b) _
+  ⟨classical.choice (nonempty_Ioo_subtype h)⟩ _)
+_ _ _ _
+(restrict f (Ioo a b))
+(λ x y, h_mono x.2.1 y.2.2)
+(continuous_on_iff_continuous_restrict.mp h_cont)
+begin
+  rw [restrict_eq f (Ioo a b), Ioo_at_top_eq_nhds_within h],
+  exact h_top.comp tendsto_comap
+end
+begin
+  rw [restrict_eq f (Ioo a b), Ioo_at_bot_eq_nhds_within h],
+  exact h_bot.comp tendsto_comap
+end
+
+@[simp] lemma coe_homeomorph_of_strict_mono_continuous_Ioo
+  (f : α → β) (h : a < b)
+  (h_mono : ∀ ⦃x y : α⦄, a < x → y < b → x < y → f x < f y)
+  (h_cont : continuous_on f (Ioo a b))
+  (h_top : tendsto f (𝓝[Iio b] b) at_top)
+  (h_bot : tendsto f (𝓝[Ioi a] a) at_bot) :
+  (homeomorph_of_strict_mono_continuous_Ioo f h h_mono h_cont h_top h_bot : Ioo a b → β)
+  = restrict f (Ioo a b) :=
+rfl
 
 end conditionally_complete_linear_order
 

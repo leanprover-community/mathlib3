@@ -357,6 +357,11 @@ lemma integral_indicator_const (e : E) ⦃s : set α⦄ (s_meas : is_measurable 
   ∫ (a : α), s.indicator (λ (x : α), e) a ∂μ = (μ s).to_real • e :=
 by rw [integral_indicator measurable_const s_meas, ← set_integral_const]
 
+lemma set_integral_map {β} [measurable_space β] {g : α → β} {f : β → E} {s : set β}
+  (hs : is_measurable s) (hf : measurable f) (hg : measurable g) :
+  ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
+by rw [measure.restrict_map hg hs, integral_map_measure hg hf]
+
 lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ⊤)
   (hC : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ C) :
   ∥∫ x in s, f x ∂μ∥ ≤ C * (μ s).to_real :=

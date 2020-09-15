@@ -192,50 +192,50 @@ begin
 end
 -/
 
-lemma le_div_iff_of_nonzero' {I J J' : fractional_ideal f} (hJ' : J'≠ 0) :  I ≤ J * (1/ J') ↔  J'*I ≤ J:= sorry
+-- lemma le_div_iff_of_nonzero' {I J J' : fractional_ideal f} (hJ' : J'≠ 0) :  I ≤ J * (1/ J') ↔  J'*I ≤ J:= sorry
 -- it is actually equal to algebra_operations.le_div_iff_mul_le added recently
 
-lemma le_square {I : fractional_ideal f} (hI: I ≤ (1:fractional_ideal f)) : I*I ≤ I :=
-begin apply fractional_ideal.mul_le.mpr,
-end
+-- lemma le_square {I : fractional_ideal f} (hI: I ≤ (1:fractional_ideal f)) : I*I ≤ I :=
+-- begin apply fractional_ideal.mul_le.mpr,
+-- end
 
 
-lemma le_self {I : fractional_ideal f}: (I : fractional_ideal f)≤ (1: fractional_ideal f)*I :=
-begin simp,exact le_refl I,
-end
+-- lemma le_self {I : fractional_ideal f}: (I : fractional_ideal f)≤ (1: fractional_ideal f)*I :=
+-- begin simp,exact le_refl I,
+-- end
 
 
-lemma coe_ideal_in_one {I : ideal R}: ↑ I ≤ (1 : fractional_ideal f):=
-begin
-  intros x hx,
-  have ex_x' : ∃ (x' ∈ I), f.to_map x' = x,
-  apply fractional_ideal.mem_coe.mp hx,
-  apply fractional_ideal.mem_one_iff.mpr,simp * at *,
-  cases ex_x' with y hy,
-  use y,exact and.right hy,
-end
+-- lemma coe_ideal_in_one {I : ideal R}: ↑ I ≤ (1 : fractional_ideal f):=
+-- begin
+--   intros x hx,
+--   have ex_x' : ∃ (x' ∈ I), f.to_map x' = x,
+--   apply fractional_ideal.mem_coe.mp hx,
+--   apply fractional_ideal.mem_one_iff.mpr,simp * at *,
+--   cases ex_x' with y hy,
+--   use y,exact and.right hy,
+-- end
 
-lemma coe_ideal_iff_in_one {J : fractional_ideal f}:  (J ≤ (1 : fractional_ideal f)) ↔ ∃ (I : ideal R), ↑I=J:=
-begin
-  split,
-    {intro hJ,rw fractional_ideal.le_iff at hJ,
-    let setI : (set R) := {x : R | f.to_map x ∈ J},
-    let I : (ideal R),
-        {use setI,
-        have f_zJ : (f.to_map (0 : R))=0,
-        rw f.to_map.map_zero,simp,sorry,
-        sorry,--proof that 0 ∈ J,
-        sorry,--proof that a,b ∈ I → a+b ∈ I,
-        sorry,--proof that a ∈  I → c*a ∈ I,},
-        },
-    use I,sorry,--proof that ↑ I = J,
-    -- replace hJ := fractional_ideal.mem_one_iff.mp hJ,
-    -- apply fractional_ideal.mem_one_iff.mp at hJ,
-    },
-  {intro ex_I,cases ex_I with I hI,
-  have hI: ↑ I≤ (1:fractional_ideal f),
-  apply coe_ideal_in_one,simp * at *},
-end
+-- lemma coe_ideal_iff_in_one {J : fractional_ideal f}:  (J ≤ (1 : fractional_ideal f)) ↔ ∃ (I : ideal R), ↑I=J:=
+-- begin
+--   split,
+--     {intro hJ,rw fractional_ideal.le_iff at hJ,
+--     let setI : (set R) := {x : R | f.to_map x ∈ J},
+--     let I : (ideal R),
+--         {use setI,
+--         have f_zJ : (f.to_map (0 : R))=0,
+--         rw f.to_map.map_zero,simp,sorry,
+--         sorry,--proof that 0 ∈ J,
+--         sorry,--proof that a,b ∈ I → a+b ∈ I,
+--         sorry,--proof that a ∈  I → c*a ∈ I,},
+--         },
+--     use I,sorry,--proof that ↑ I = J,
+--     -- replace hJ := fractional_ideal.mem_one_iff.mp hJ,
+--     -- apply fractional_ideal.mem_one_iff.mp at hJ,
+--     },
+--   {intro ex_I,cases ex_I with I hI,
+--   have hI: ↑ I≤ (1:fractional_ideal f),
+--   apply coe_ideal_in_one,simp * at *},
+-- end
 
 
 lemma maximal_ideal_inv_of_dedekin
@@ -244,11 +244,13 @@ lemma maximal_ideal_inv_of_dedekin
 begin
   have hnz_Mf : (↑ M : fractional_ideal f) ≠ (0 : fractional_ideal f),
     sorry,--apply fractional_ideal.mkid_ne_zero_iff_nonzero.mpr hnz_M,
-  have h_MfinR : ↑M≤ (1:fractional_ideal f), apply coe_ideal_in_one,
-  have hM_inclMinv : (↑ M : fractional_ideal f) ≤ (↑ M : fractional_ideal f)*(1/↑ M : fractional_ideal f),
-    apply (le_div_iff_of_nonzero' hnz_Mf).mpr (le_square h_MfinR),
+  have h_MfinR : ↑M≤ (1:fractional_ideal f), apply fractional_ideal.coe_ideal_le_one,
+  have hM_inclMinv : (↑ M : fractional_ideal f) ≤ (↑ M : fractional_ideal f)*(1/↑ M : fractional_ideal f),sorry,
+    -- apply (fractional_ideal.le_div_iff_mul_le hnz_Mf).mpr (le_square h_MfinR),
+  have h_self : (↑ M : fractional_ideal f)≤ (1: fractional_ideal f)*↑ M,
+  simp,exact le_refl ↑ M,
   have hMMinv_inclR : ↑ M * (1/↑ M) ≤ (1 : fractional_ideal f),
-    apply (le_div_iff_of_nonzero' hnz_Mf).mp (le_self),
+    apply (le_div_iff_of_nonzero' hnz_Mf).mp (fractional_ideal.mul_self_le_self h_self),
   suffices hprod : ↑M*((1: fractional_ideal f)/↑M)=(1: fractional_ideal f),
   apply is_unit_of_mul_eq_one ↑M ((1: fractional_ideal f)/↑M) hprod,
       --now comes the 'hard' part: showing that M*(1/M)≤ 1 implies M*(1/M)=1 since M is max'l.

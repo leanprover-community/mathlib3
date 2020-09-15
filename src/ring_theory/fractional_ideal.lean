@@ -373,6 +373,61 @@ instance comm_semiring : comm_semiring (fractional_ideal f) :=
   ..fractional_ideal.has_one,
   ..fractional_ideal.has_mul }
 
+section order
+
+lemma add_le_add_left {I J : fractional_ideal f} (hIJ : I ≤ J) (J' : fractional_ideal f) :
+  J' + I ≤ J' + J := sup_le_sup_left hIJ J'
+
+lemma mul_le_mul_left {I J : fractional_ideal f} (hIJ : I ≤ J) (J' : fractional_ideal f) :
+  J' * I ≤ J' * J := mul_le.mpr (λ k hk j hj, mul_mem_mul hk (hIJ hj))
+
+lemma le_self_mul_self {I : fractional_ideal f} (hI: 1 ≤ I) : I ≤ I * I :=
+begin
+  convert mul_left_mono I hI,
+  exact (mul_one I).symm
+end
+
+lemma mul_self_le_self {I : fractional_ideal f} (hI: I ≤ 1) : I * I ≤ I :=
+begin
+  convert mul_left_mono I hI,
+  exact (mul_one I).symm
+end
+
+lemma coe_ideal_le_one {I : ideal R} : (I : fractional_ideal f) ≤ 1 :=
+λ x hx, let ⟨y, _, hy⟩ := fractional_ideal.mem_coe.mp hx
+  in fractional_ideal.mem_one_iff.mpr ⟨y, hy⟩
+
+lemma le_one_iff_exists_coe_ideal {J : fractional_ideal f} :
+  J ≤ (1 : fractional_ideal f) ↔ ∃ (I : ideal R), ↑I = J :=
+begin
+  split,
+  { intro hJ,
+    refine ⟨⟨{x : R | f.to_map x ∈ J}, _, _, _⟩, _⟩,
+    { rw [mem_set_of_eq, ring_hom.map_zero],
+      exact J.val.zero_mem },
+    { intros a b ha hb,
+      rw [mem_set_of_eq, ring_hom.map_add],
+      exact J.val.add_mem ha hb },
+    { intros c x hx,
+      rw [smul_eq_mul, mem_set_of_eq, ring_hom.map_mul],
+      exact J.val.smul_mem c hx },
+    { ext x,
+      split,
+      { rintros ⟨y, hy, eq_y⟩,
+        rwa ← eq_y },
+      { intro hx,
+        obtain ⟨y, eq_x⟩ := fractional_ideal.mem_one_iff.mp (hJ hx),
+        rw ← eq_x at *,
+        exact ⟨y, hx, rfl⟩ } } },
+  { rintro ⟨I, hI⟩,
+    rw ← hI,
+    apply coe_ideal_le_one },
+end
+
+end order
+
+
+
 variables {P' : Type*} [comm_ring P'] {f' : localization_map S P'}
 variables {P'' : Type*} [comm_ring P''] {f'' : localization_map S P''}
 
@@ -496,6 +551,7 @@ by { erw [mem_canonical_equiv_apply, canonical_equiv, map_equiv_symm, map_equiv,
   canonical_equiv f f' (canonical_equiv f' f I) = I :=
 by rw [←canonical_equiv_symm, ring_equiv.symm_apply_apply]
 
+
 end semiring
 
 section fraction_map
@@ -614,6 +670,14 @@ lemma le_div_iff_of_nonzero {I J J' : fractional_ideal g} (hK : J' ≠ 0) :
   I ≤ J / J' ↔ ∀ (x ∈ I) (y ∈ J'), x * y ∈ J :=
 ⟨ λ h x hx, (mem_div_iff_of_nonzero hK).mp (h hx),
   λ h x hx, (mem_div_iff_of_nonzero hK).mpr (h x hx) ⟩
+
+lemma le_div_iff_mul_le {I J J' : fractional_ideal g} (hJ' : J' ≠ 0) : I ≤ J / J' ↔ I * J' ≤ J :=
+begin
+  rw div_nonzero hJ',
+  convert submodule.le_div_iff_mul_le using 1,
+  rw [val_eq_coe, val_eq_coe, ←coe_mul],
+  refl,
+end
 
 lemma coe_inv_of_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
   (↑I⁻¹ : submodule R₁ g.codomain) = g.coe_submodule 1 / I :=

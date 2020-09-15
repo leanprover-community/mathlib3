@@ -77,12 +77,13 @@ See `witt_vector.init` for the complementary part. -/
 def tail (x : 𝕎 R) (n : ℕ) : 𝕎 R := mk p (λ k, if k < n then 0 else x.coeff k)
 
 end
-include hp
 
 @[simp]
 lemma init_init (x : 𝕎 R) (n : ℕ) :
   init (init x n) n = init x n :=
 by init_ring
+
+include hp
 
 lemma init_add (x y : 𝕎 R) (n : ℕ) :
   init (x + y) n = init (init x n + init y n) n :=
@@ -108,6 +109,8 @@ section
 
 variables (p)
 
+omit hp
+
 /-- `witt_vector.init x` is polynomial in the coefficients of `x`. -/
 noncomputable
 def init_is_poly (n : ℕ) : is_poly p (λ R _Rcr x, @init p R _Rcr x n) :=
@@ -120,6 +123,8 @@ def init_is_poly (n : ℕ) : is_poly p (λ R _Rcr x, @init p R _Rcr x n) :=
     { rw [aeval_X] },
     { rw [alg_hom.map_zero] }
   end }
+
+include hp
 
 lemma bind₁_init_poly_witt_polynomial (n k : ℕ) :
   bind₁ (init_is_poly p (n+1)).poly (witt_polynomial p ℤ k) =

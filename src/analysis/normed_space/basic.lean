@@ -175,6 +175,16 @@ le_trans (le_abs_self _) (abs_norm_sub_norm_le g h)
 lemma dist_norm_norm_le (g h : α) : dist ∥g∥ ∥h∥ ≤ ∥g - h∥ :=
 abs_norm_sub_norm_le g h
 
+lemma eq_of_norm_sub_eq_zero {u v : α} (h : ∥u - v∥ = 0) : u = v :=
+begin
+  apply eq_of_dist_eq_zero,
+  rwa dist_eq_norm
+end
+
+lemma norm_le_insert (u v : α) : ∥v∥ ≤ ∥u∥ + ∥u - v∥ :=
+calc ∥v∥ = ∥u - (u - v)∥ : by abel
+... ≤ ∥u∥ + ∥u - v∥ : norm_sub_le u _
+
 lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
@@ -195,6 +205,10 @@ calc
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
 metric.tendsto_nhds.trans $ by simp only [dist_zero_right]
+
+lemma normed_group.tendsto_nhds_nhds {f : α → β} {x : α} {y : β} :
+  tendsto f (𝓝 x) (𝓝 y) ↔ ∀ ε > 0, ∃ δ > 0, ∀ x', ∥x' - x∥ < δ → ∥f x' - y∥ < ε :=
+by simp_rw [metric.tendsto_nhds_nhds, dist_eq_norm]
 
 /-- A homomorphism `f` of normed groups is Lipschitz, if there exists a constant `C` such that for
 all `x`, one has `∥f x∥ ≤ C * ∥x∥`.
@@ -706,6 +720,11 @@ lemma norm_eq_abs (r : ℝ) : ∥r∥ = abs r := rfl
 
 @[simp] lemma nnnorm_two : nnnorm (2:ℝ) = 2 := nnreal.eq $ by simp
 
+open_locale nnreal
+
+@[simp] lemma nnreal.norm_eq (x : ℝ≥0) : ∥(x : ℝ)∥ = x :=
+by rw [real.norm_eq_abs, x.abs_eq]
+
 end real
 
 @[simp] lemma norm_norm [normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
@@ -778,6 +797,9 @@ nnreal.eq $ norm_smul s x
 lemma nndist_smul [normed_space α β] (s : α) (x y : β) :
   nndist (s • x) (s • y) = nnnorm s * nndist x y :=
 nnreal.eq $ dist_smul s x y
+
+lemma norm_smul_of_nonneg [normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x : β) : ∥t • x∥ = t * ∥x∥ :=
+by rw [norm_smul, real.norm_eq_abs, abs_of_nonneg ht]
 
 variables {E : Type*} {F : Type*}
 [normed_group E] [normed_space α E] [normed_group F] [normed_space α F]

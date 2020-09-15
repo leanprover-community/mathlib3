@@ -1674,9 +1674,9 @@ variables [topological_space α] [decidable_linear_order α] [order_topology α]
 /-- The `at_top` filter for an open interval `Ioo a b` comes from the left-neighbourhoods filter at
 the right endpoint in the ambient order. -/
 lemma Ioo_at_top_eq_nhds_within {a b : α} (h : a < b) :
-  at_top = comap (coe : Ioo a b → α) (𝓝[Iio b] b) :=
+  (at_top : filter (Ioo a b)) = comap (coe : Ioo a b → α) (𝓝[Iio b] b) :=
 begin
-  haveI : nonempty (Ioo a b) := ⟨classical.choice (nonempty.to_subtype (dense h))⟩,
+  haveI : nonempty (Ioo a b) := nonempty_Ioo_subtype h,
   ext,
   split,
   { intros hs,
@@ -1695,9 +1695,9 @@ end
 /-- The `at_bot` filter for an open interval `Ioo a b` comes from the right-neighbourhoods filter at
 the left endpoint in the ambient order. -/
 lemma Ioo_at_bot_eq_nhds_within {a b : α} (h : a < b) :
-  at_bot = comap (coe : Ioo a b → α) (𝓝[Ioi a] a) :=
+  (at_bot : filter (Ioo a b)) = comap (coe : Ioo a b → α) (𝓝[Ioi a] a) :=
 begin
-  haveI : nonempty (Ioo a b) := ⟨classical.choice (nonempty.to_subtype (dense h))⟩,
+  haveI : nonempty (Ioo a b) := nonempty_Ioo_subtype h,
   ext,
   split,
   { intros hs,
@@ -2667,7 +2667,7 @@ sample; there are at least 16 possible variations with open intervals (`univ` to
 variables {a b : α}
 
 /-- If `f : α → β` is strictly monotone and continuous on the interval `Ioo a b` of `α`, and tends
-to `at_top` with `𝓝[Iio b] b` and to `at_bot` with `𝓝[Ioi a] a`, then it restricts to a
+to `at_top` within `𝓝[Iio b] b` and to `at_bot` within `𝓝[Ioi a] a`, then it restricts to a
 homeomorphism from `Ioo a b` to `β`. -/
 noncomputable def homeomorph_of_strict_mono_continuous_Ioo
   (f : α → β) (h : a < b)
@@ -2678,7 +2678,7 @@ noncomputable def homeomorph_of_strict_mono_continuous_Ioo
   homeomorph (Ioo a b) β :=
 @homeomorph_of_strict_mono_continuous _ _ _ _
 (@ord_connected_subset_conditionally_complete_linear_order α (Ioo a b) _
-  ⟨classical.choice (nonempty.to_subtype (dense h))⟩ _)
+  ⟨classical.choice (nonempty_Ioo_subtype h)⟩ _)
 _ _ _ _
 (restrict f (Ioo a b))
 (λ x y, h_mono x.2.1 y.2.2)
@@ -2698,7 +2698,7 @@ end
   (h_cont : continuous_on f (Ioo a b))
   (h_top : tendsto f (𝓝[Iio b] b) at_top)
   (h_bot : tendsto f (𝓝[Ioi a] a) at_bot) :
-(homeomorph_of_strict_mono_continuous_Ioo f h h_mono h_cont h_top h_bot : Ioo a b → β)
+  (homeomorph_of_strict_mono_continuous_Ioo f h h_mono h_cont h_top h_bot : Ioo a b → β)
   = restrict f (Ioo a b) :=
 rfl
 

@@ -47,6 +47,11 @@ end has_hom
 
 variables [category.{v₁} C]
 
+/--
+The opposite category.
+
+See https://stacks.math.columbia.edu/tag/001M.
+-/
 instance category.opposite : category.{v₁} Cᵒᵖ :=
 { comp := λ _ _ _ f g, (g.unop ≫ f.unop).op,
   id   := λ X, (𝟙 (unop X)).op }

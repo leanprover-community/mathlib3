@@ -151,7 +151,7 @@ fintype.card_pi_finset _
 -- FIXME ouch, this should be in the main file.
 @[simp] lemma fintype.card_fun [decidable_eq α] [fintype α] [fintype β] :
   fintype.card (α → β) = fintype.card β ^ fintype.card α :=
-by rw [fintype.card_pi, finset.prod_const, nat.pow_eq_pow]; refl
+by rw [fintype.card_pi, finset.prod_const]; refl
 
 @[simp] lemma card_vector [fintype α] (n : ℕ) :
   fintype.card (vector α n) = fintype.card α ^ n :=

@@ -18,6 +18,8 @@ universes v₁ v₂ v₃ u₁ u₂ u₃ -- declare the `v`'s first; see `categor
   The triangle equation is written as a family of equalities between morphisms, it is more
   complicated if we write it as an equality of natural transformations, because then we would have
   to insert natural transformations like `F ⟶ F1`.
+
+See https://stacks.math.columbia.edu/tag/001J
 -/
 structure equivalence (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :=
 mk' ::
@@ -394,6 +396,14 @@ eq_of_inv_eq_inv (functor_unit_comp _ _)
 
 end is_equivalence
 
+/--
+A functor `F : C ⥤ D` is essentially surjective if for every `d : D`, there is some `c : C`
+so `F.obj c ≅ D`.
+
+See https://stacks.math.columbia.edu/tag/001C.
+-/
+-- TODO should we make this a `Prop` that merely asserts the existence of a preimage,
+-- rather than choosing one?
 class ess_surj (F : C ⥤ D) :=
 (obj_preimage (d : D) : C)
 (iso' (d : D) : F.obj (obj_preimage d) ≅ d . obviously)
@@ -408,9 +418,19 @@ end functor
 
 namespace equivalence
 
+/--
+An equivalence is essentially surjective.
+
+See https://stacks.math.columbia.edu/tag/02C3.
+-/
 def ess_surj_of_equivalence (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
 ⟨ λ Y : D, F.inv.obj Y, λ Y : D, (F.inv_fun_id.app Y) ⟩
 
+/--
+An equivalence is faithful.
+
+See https://stacks.math.columbia.edu/tag/02C3.
+-/
 @[priority 100] -- see Note [lower instance priority]
 instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :=
 { map_injective' := λ X Y f g w,
@@ -419,6 +439,11 @@ instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :
     simpa only [cancel_epi, cancel_mono, is_equivalence.inv_fun_map] using p
   end }.
 
+/--
+An equivalence is full.
+
+See https://stacks.math.columbia.edu/tag/02C3.
+-/
 @[priority 100] -- see Note [lower instance priority]
 instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
 { preimage := λ X Y f, F.fun_inv_id.inv.app X ≫ F.inv.map f ≫ F.fun_inv_id.hom.app Y,
@@ -431,6 +456,11 @@ instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
   map_id' := λ X, begin apply F.map_injective, tidy end,
   map_comp' := λ X Y Z f g, by apply F.map_injective; simp }
 
+/--
+A functor which is full, faithful, and essentially surjective is an equivalence.
+
+See https://stacks.math.columbia.edu/tag/02C3.
+-/
 def equivalence_of_fully_faithfully_ess_surj
   (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : is_equivalence F :=
 is_equivalence.mk (equivalence_inverse F)

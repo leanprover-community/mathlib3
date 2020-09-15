@@ -560,6 +560,18 @@ noncomputable def invertible_rat_coe_nat (σ : Type*) (p : ℕ) [invertible (p :
 (mv_polynomial.invertible_C σ (p:ℚ)).copy p $ (C_eq_coe_nat p).symm
 
 
+section
+open function
+
+variables (R : Type*) [comm_ring R]
+
+noncomputable def counit : mv_polynomial R ℤ →+* R :=
+eval₂_hom (int.cast_ring_hom R) id
+
+lemma counit_surjective : surjective (counit R) :=
+λ r, ⟨X r, eval₂_hom_X' _ _ _⟩
+
+end
 end mv_polynomial
 
 lemma congr₂ {α β γ : Type*} (f : α → β → γ) (a₁ a₂ : α) (b₁ b₂ : β) :

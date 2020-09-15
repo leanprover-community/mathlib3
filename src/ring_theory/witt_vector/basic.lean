@@ -60,14 +60,14 @@ namespace witt_vector
 
 variables (p) {R : Type*}
 
+/-- Construct a Witt vector `mk p x : 𝕎 R` from a sequence `x` of elements of `R`. -/
 def mk (x : ℕ → R) : witt_vector p R := x
 
-/-
-`x.coeff n` is the `n`th value of the Witt vector `n`.
+/--
+`x.coeff n` is the `n`th coefficient of the Witt vector `n`.
 
 This concept does not have a standard name in the literature.
 -/
-
 def coeff (x : 𝕎 R) (n : ℕ) : R := x n
 
 @[ext]
@@ -366,19 +366,6 @@ lemma ghost_map_fun.bijective_of_invertible [invertible (p : R)] :
   function.bijective (ghost_map_fun : 𝕎 R → ℕ → R) :=
 by { rw ghost_map_fun_eq, exact (ghost_map_fun.equiv_of_invertible p R).bijective }
 
-section
-open function
-
-variable (R)
-
-noncomputable def mv_polynomial.counit : mv_polynomial R ℤ →+* R :=
-eval₂_hom (int.cast_ring_hom R) id
-
-lemma counit_surjective : surjective (mv_polynomial.counit R) :=
-λ r, ⟨X r, eval₂_hom_X' _ _ _⟩
-
-end
-
 local attribute [instance] mv_polynomial.invertible_rat_coe_nat
 
 variable (R)
@@ -478,3 +465,5 @@ ghost_map_fun.bijective_of_invertible p R
 end witt_vector
 
 attribute [irreducible] witt_vector
+
+#lint

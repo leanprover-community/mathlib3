@@ -126,7 +126,7 @@ aeval (function.uncurry x) φ
 Let `φ` be a family of polynomials, indexed by natural numbers, whose variables come from the
 disjoint union of `k` copies of `ℕ`, and let `xᵢ` be a Witt vector for `0 ≤ i < k`.
 
-`eval φ x` evaluates `phi` mapping the variable `X_(i, n)` to the `n`th coefficient of `xᵢ`.
+`eval φ x` evaluates `φ` mapping the variable `X_(i, n)` to the `n`th coefficient of `xᵢ`.
 
 Instantiating `φ` with certain polynomials defined in `structure_polynomial.lean` establishes the
 ring operations on `𝕎 R`. For example, `witt_vector.witt_add` is such a `φ` with `k = 2`;
@@ -259,7 +259,7 @@ end witt_vector
 section tactic
 setup_tactic_parser
 open tactic
-meta def tactic.interactive.ghost_boo (poly fn: parse parser.pexpr) : tactic unit :=
+meta def tactic.interactive.ghost_component (poly fn: parse parser.pexpr) : tactic unit :=
 do fn ← to_expr ```(%%fn : fin _ → ℕ → R),
   `(fin %%k → _ → _) ← infer_type fn,
   to_expr ```(witt_structure_int_prop p (%%poly : mv_polynomial (fin %%k) ℤ) n) >>= note `aux none >>=
@@ -289,25 +289,25 @@ include hp
 
 @[simp] lemma ghost_component_zero (n : ℕ) :
   ghost_component n (0 : 𝕎 R) = 0 :=
-by ghost_boo 0 ![]
+by ghost_component 0 ![]
 
 @[simp] lemma ghost_component_one (n : ℕ) :
   ghost_component n (1 : 𝕎 R) = 1 :=
-by ghost_boo 1 ![]
+by ghost_component 1 ![]
 
 variable {R}
 
 @[simp] lemma ghost_component_add (n : ℕ) (x y : 𝕎 R) :
   ghost_component n (x + y) = ghost_component n x + ghost_component n y :=
-by ghost_boo (X 0 + X 1) ![x.coeff, y.coeff]
+by ghost_component (X 0 + X 1) ![x.coeff, y.coeff]
 
 @[simp] lemma ghost_component_mul (n : ℕ) (x y : 𝕎 R) :
   ghost_component n (x * y) = ghost_component n x * ghost_component n y :=
-by ghost_boo (X 0 * X 1) ![x.coeff, y.coeff]
+by ghost_component (X 0 * X 1) ![x.coeff, y.coeff]
 
 @[simp] lemma ghost_component_neg (n : ℕ) (x : 𝕎 R) :
   ghost_component n (-x) = - ghost_component n x :=
-by ghost_boo (-X 0) ![x.coeff]
+by ghost_component (-X 0) ![x.coeff]
 
 variables (R)
 

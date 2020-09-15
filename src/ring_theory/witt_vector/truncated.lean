@@ -339,11 +339,7 @@ begin
   exact hx _ _ (nat.lt_succ_self _)
 end
 
-omit hp
-
 end ideals
-
--- move this to a better place
 
 variables (p n R)
 
@@ -462,6 +458,13 @@ end
 
 variable (f)
 -- everything about `lift` and `lift_fun` should probably move to `witt_vector` namespace
+
+/--
+Given compatible ring homs from `S` into `truncated_witt_vector n` for each `n`, we can lift these
+to a ring hom `S → 𝕎 R`.
+
+`lift` defines the universal property of `𝕎 R` as the inverse limit of `truncated_witt_vector n`.
+-/
 def lift : S →+* 𝕎 R :=
 { to_fun := lift_fun f,
   map_one' := lift_fun_one f_compat,

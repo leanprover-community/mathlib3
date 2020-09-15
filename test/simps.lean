@@ -1,6 +1,6 @@
 import tactic.simps
 
--- set_option trace.simps.verbose true
+set_option trace.simps.verbose true
 -- set_option trace.app_builder true
 
 open function tactic expr
@@ -497,8 +497,7 @@ run_cmd do e ← get_env, success_if_fail (simps_get_raw_projections e `faulty_m
 end failty_manual_coercion
 
 namespace manual_initialize
-/- defining a manual coercion. This should be made more easily. -/
-
+/- defining a manual coercion. -/
 variables {α β γ : Sort*}
 
 structure equiv (α : Sort*) (β : Sort*) :=
@@ -607,6 +606,7 @@ structure needs_prop_class (n : ℕ) [prop_class n] :=
 @[simps] def test_prop_class : needs_prop_class 1 :=
 { t := trivial }
 
+/- check that when the coercion is given in eta-expanded form, we can also find the coercion. -/
 structure alg_hom (R A B : Type*) :=
 (to_fun : A → B)
 

@@ -128,13 +128,15 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
       is_def_eq custom_proj raw_expr <|>
         fail!"Invalid custom projection:\n {custom_proj}\nExpression is not definitionally equal to {raw_expr}.",
       return custom_proj),
-    /- check for other coercions and type-class arguments to use as projections instead. -/
+    /- Check for other coercions and type-class arguments to use as projections instead. -/
     (args, _) ← open_pis d_str.type,
     let e_str := (expr.const str raw_levels).mk_app args,
     automatic_projs ← attribute.get_instances `notation_class,
     raw_exprs ← automatic_projs.mfoldl (λ (raw_exprs : list expr) class_nm, (do
       (is_class, proj_nm) ← notation_class_attr.get_param class_nm,
       proj_nm ← proj_nm <|> (e.structure_fields_full class_nm).map list.head,
+      /- For this class, find the projection. `raw_expr` is the projection found applied to `args`,
+        and `lambda_raw_expr` has the arguments `args` abstracted. -/
       (raw_expr, lambda_raw_expr) ← if is_class then (do
         guard $ args.length = 1,
         let e_inst_type := (expr.const class_nm raw_levels).mk_app args,
@@ -150,7 +152,7 @@ meta def simps_get_raw_projections (e : environment) (str : name) :
         return (raw_expr, raw_expr.lambdas args)),
       raw_expr_whnf ← whnf raw_expr,
       let relevant_proj := raw_expr_whnf.binding_body.get_app_fn.const_name,
-      /- use this as projection, if the function reduces to a projection, and this projection has
+      /- Use this as projection, if the function reduces to a projection, and this projection has
         not been overrriden by the user. -/
       guard (projs.any (= relevant_proj) ∧ ¬ e.contains (str ++ `simps ++ relevant_proj.last)),
       let pos := projs.find_index (= relevant_proj),

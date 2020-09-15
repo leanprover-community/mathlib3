@@ -24,6 +24,9 @@ Even though this sufficient condition looks somewhat intimidating,
 it is rather pleasant to check in practice;
 more so than direct checking of `φ = ψ`.
 
+In practice, we apply this technique to show that the composition of `witt_vector.frobenius`
+and `witt_vector.verschiebung` is equal to multiplication by `p`.
+
 ## On higher arity analogues
 
 Ideally, there should be a predicate `is_polyₙ` for functions of higher arity,

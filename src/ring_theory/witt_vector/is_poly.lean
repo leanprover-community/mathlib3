@@ -42,19 +42,6 @@ structure is_poly (f : Π ⦃R : Type*⦄ [comm_ring R], witt_vector p R → �
 (coeff : ∀ (n : ℕ) ⦃R : Type*⦄ [comm_ring R] (x : 𝕎 R),
   (f x).coeff n = aeval (λ k, x.coeff k) (poly n))
 
--- def Zero : Π ⦃R : Type*⦄ [comm_ring R], (fin 0 → 𝕎 R) → 𝕎 R :=
--- λ _ _ _, by exactI 0
-
--- def One : Π ⦃R : Type*⦄ [comm_ring R], (fin 0 → 𝕎 R) → 𝕎 R :=
--- λ _ _ _, by exactI 1
-
--- def Neg : Π ⦃R : Type*⦄ [comm_ring R], (fin 1 → 𝕎 R) → 𝕎 R :=
--- λ _ _ x, by exactI (-(x 0))
-
--- def Zero_is_poly : is_poly (Zero p) :=
--- { poly := _,
---   coeff := _ }
-
 lemma id_is_poly : is_poly p (λ _ _, id) :=
 { poly := X,
   coeff := by { introsI, rw [aeval_X, id] } }
@@ -65,13 +52,7 @@ variables {p}
 def is_poly.comp {g f} (hg : is_poly p g) (hf : is_poly p f) :
   is_poly p (λ R _Rcr, @g R _Rcr ∘ @f R _Rcr) :=
 { poly := λ n, bind₁ (hf.poly) (hg.poly n),
-  coeff :=
-  begin
-    rintro i R _Rcr x,
-    rw [aeval_eq_eval₂_hom, hom_bind₁], -- would be good to have `aeval_bind₁`
-    simp only [function.comp, hg.coeff, hf.coeff],
-    apply eval₂_hom_congr (ring_hom.ext_int _ _) rfl rfl -- `exact` fails, lol
-  end }
+  coeff := by intros; simp only [aeval_bind₁, function.comp, hg.coeff, hf.coeff] }
 
 lemma is_poly.ext {f g} (hf : is_poly p f) (hg : is_poly p g)
   (h : hf.poly = hg.poly) :

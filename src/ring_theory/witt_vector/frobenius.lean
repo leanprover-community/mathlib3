@@ -42,69 +42,6 @@ def pnat_multiplicity (n : ℕ+) : ℕ :=
 
 local notation `vp` k := pnat_multiplicity p k
 
-lemma blahrg (n i j : ℕ)
-  (hi : i < n)
-  (hj : j < p ^ (n - i)) :
-  j - pnat_multiplicity p ⟨j + 1, j.succ_pos⟩ + n =
-    i + j + (n - i - pnat_multiplicity p ⟨j + 1, j.succ_pos⟩) :=
-begin
-  generalize h : pnat_multiplicity p ⟨j + 1, j.succ_pos⟩ = m,
-  suffices : m ≤ n - i ∧ m ≤ j,
-  { cases this, unfreezingI { clear_dependent p }, omega },
-  split,
-  { rw ← h,
-    rw [← enat.coe_le_coe, pnat_multiplicity, enat.coe_get],
-    rw [← (nat.prime.multiplicity_choose_prime_pow hp hj j.succ_pos)],
-    apply le_add_left, refl },
-  { obtain ⟨c, hc⟩ : p ^ m ∣ j + 1,
-    { rw [← h],
-      exact multiplicity.pow_multiplicity_dvd _, },
-    have cpos : c ≠ 0,
-    { rintro rfl, simpa only using hc, },
-    apply nat.le_of_lt_succ,
-    calc m < p ^ m : nat.lt_pow_self hp.one_lt m
-       ... ≤ j + 1 : _,
-    obtain ⟨c, rfl⟩ := nat.exists_eq_succ_of_ne_zero cpos,
-    rw [nat.succ_eq_add_one, mul_add, mul_one] at hc,
-    have := nat.sub_eq_of_eq_add hc,
-    rw ← this,
-    apply nat.sub_le }
-end
-
-lemma final_bit (n i j : ℕ) (hi : i < n) (hj : j < p ^ (n - i)) :
-  @C _ ℕ _ (↑p * (int.cast_ring_hom ℚ)
-           ↑((p ^ (n - i)).choose (j + 1) / p ^ (n - i - vp ⟨j + 1, nat.succ_pos j⟩)) *
-            ↑p ^ (j - vp ⟨j + 1, nat.succ_pos j⟩)) =
-    C (⅟ ↑p ^ n * ↑p ^ i * ↑((p ^ (n - i)).choose (j + 1)) *
-         ↑p ^ (j + 1)) :=
-begin
-  rw C_inj,
-  simp only [inv_of_eq_inv, ring_hom.eq_int_cast, inv_pow', int.cast_coe_nat],
-  rw [rat.coe_nat_div],
-  swap,
-  { apply multiplicity.pow_dvd_of_le_multiplicity,
-    have aux : multiplicity.finite p ((p ^ (n - i)).choose (j + 1)),
-    { rw multiplicity.finite_nat_iff,
-      exact ⟨ne_of_gt hp.one_lt, nat.choose_pos hj⟩, },
-    rw multiplicity.finite_iff_dom at aux,
-    rw [← enat.coe_get aux, enat.coe_le_coe, nat.sub_le_left_iff_le_add],
-    rw [← enat.coe_le_coe, enat.coe_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
-    apply le_of_eq,
-    apply (nat.prime.multiplicity_choose_prime_pow hp hj j.succ_pos).symm, },
-  { have aux : ∀ k : ℕ, (p ^ k : ℚ) ≠ 0,
-    { intro, apply pow_ne_zero, exact_mod_cast hp.ne_zero },
-    simp only [nat.cast_pow, pow_add, pow_one],
-    field_simp [aux],
-    ring_exp,
-    congr' 1,
-    simp only [← mul_assoc],
-    congr' 1,
-    simp only [← pow_add],
-    congr' 1,
-    apply blahrg p n i j hi hj, }
-end
-.
-
 noncomputable
 def frobenius_poly_aux : ℕ → mv_polynomial ℕ ℤ
 | n := X (n + 1) - ∑ i : fin n, have _ := i.is_lt,
@@ -124,6 +61,50 @@ by { rw [frobenius_poly_aux, ← fin.sum_univ_eq_sum_range], refl }
 
 def frobenius_poly (n : ℕ) : mv_polynomial ℕ ℤ :=
 X n ^ p + C ↑p * (frobenius_poly_aux p n)
+
+/-
+Our next goal is to prove
+```
+lemma map_frobenius_poly (n : ℕ) :
+  mv_polynomial.map (int.cast_ring_hom ℚ) (frobenius_poly p n) = frobenius_poly_rat p n
+```
+-/
+
+lemma map_frobenius_poly.aux₁ (n i j : ℕ) (hi : i < n) (hj : j < p ^ (n - i)) :
+  p ^ (n - i - vp ⟨j + 1, j.succ_pos⟩) ∣ (p ^ (n - i)).choose (j + 1) :=
+begin
+  apply multiplicity.pow_dvd_of_le_multiplicity,
+  have aux : multiplicity.finite p ((p ^ (n - i)).choose (j + 1)),
+  { rw multiplicity.finite_nat_iff,
+    exact ⟨ne_of_gt hp.one_lt, nat.choose_pos hj⟩, },
+  rw multiplicity.finite_iff_dom at aux,
+  rw [← enat.coe_get aux, enat.coe_le_coe, nat.sub_le_left_iff_le_add],
+  rw [← enat.coe_le_coe, enat.coe_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
+  apply le_of_eq,
+  apply (nat.prime.multiplicity_choose_prime_pow hp hj j.succ_pos).symm,
+end
+
+/-- A key numerical identity needed for the proof of `witt_vector.map_frobenius_poly`. -/
+lemma map_frobenius_poly.aux₂ (n i j : ℕ) (hi : i < n) (hj : j < p ^ (n - i)) :
+  j - (vp ⟨j + 1, j.succ_pos⟩) + n =
+    i + j + (n - i - vp ⟨j + 1, j.succ_pos⟩) :=
+begin
+  generalize h : (vp ⟨j + 1, j.succ_pos⟩) = m,
+  suffices : m ≤ n - i ∧ m ≤ j,
+  { cases this, unfreezingI { clear_dependent p }, omega },
+  split,
+  { rw [← h, ← enat.coe_le_coe, pnat_multiplicity, enat.coe_get,
+        ← (nat.prime.multiplicity_choose_prime_pow hp hj j.succ_pos)],
+    apply le_add_left, refl },
+  { obtain ⟨c, hc⟩ : p ^ m ∣ j + 1,
+    { rw [← h], exact multiplicity.pow_multiplicity_dvd _, },
+    obtain ⟨c, rfl⟩ : ∃ k : ℕ, c = k + 1,
+    { apply nat.exists_eq_succ_of_ne_zero, rintro rfl, simpa only using hc },
+    rw [mul_add, mul_one] at hc,
+    apply nat.le_of_lt_succ,
+    calc m < p ^ m : nat.lt_pow_self hp.one_lt m
+       ... ≤ j + 1 : by { rw ← nat.sub_eq_of_eq_add hc, apply nat.sub_le } }
+end
 
 lemma map_frobenius_poly (n : ℕ) :
   mv_polynomial.map (int.cast_ring_hom ℚ) (frobenius_poly p n) = frobenius_poly_rat p n :=
@@ -256,9 +237,17 @@ begin
     exact this },
 
   congr' 2,
-  convert final_bit p n i j hi hj,
-  { simp [C_mul, mul_assoc] },
-  { simp only [C_mul, mul_assoc], conv_lhs { congr, skip, congr, skip, rw mul_comm } }
+  rw C_inj,
+  simp only [inv_of_eq_inv, ring_hom.eq_int_cast, inv_pow', int.cast_coe_nat, nat.cast_mul],
+  rw [rat.coe_nat_div _ _ (map_frobenius_poly.aux₁ p n i j hi hj)],
+  simp only [nat.cast_pow, pow_add, pow_one],
+  suffices : (p : ℚ) * (((p ^ (n - i)).choose (j + 1)) * p ^ (j - vp ⟨j + 1, j.succ_pos⟩)) * p ^ n =
+    p ^ i * (p ^ j * p) * ((p ^ (n - i)).choose (j + 1)) * p ^ (n - i - vp ⟨j + 1, j.succ_pos⟩),
+  { have aux : ∀ k : ℕ, (p ^ k : ℚ) ≠ 0,
+    { intro, apply pow_ne_zero, exact_mod_cast hp.ne_zero },
+    field_simp [aux], exact this },
+  rw [mul_assoc, mul_assoc, ← pow_add, map_frobenius_poly.aux₂ p n i j hi hj],
+  ring_exp,
 end
 .
 

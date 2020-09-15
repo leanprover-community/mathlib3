@@ -132,11 +132,30 @@ begin
 ===================
 Found problems!
 
-f := [-1 ↦ 6, -10 ↦ -2, -2 ↦ -1, -3 ↦ -4, -4 ↦ 9, -5 ↦ 1, -6 ↦ -3, -7 ↦ 7, -8 ↦ 0, -9 ↦ 3, 0 ↦ -8, 1 ↦ 4, 2 ↦ -5, 3 ↦ 2, 4 ↦ -10, 5 ↦ -9, 6 ↦ 5, 7 ↦ 8, 8 ↦ -7, 9 ↦ -6, x ↦ x]
-x := 1
-y := 5
-guard: 1 ≤ 5 (by construction)
-issue: 4 ≤ -9 does not hold
+f := [2 ↦ 3, 3 ↦ 9, 4 ↦ 6, 5 ↦ 4, 6 ↦ 2, 8 ↦ 5, 9 ↦ 8, x ↦ x]
+x := 3
+y := 4
+guard: 3 ≤ 4 (by construction)
+issue: 9 ≤ 6 does not hold
+-------------------
+",
+  admit,
+  trivial,
+end
+
+example (f : ℤ → ℤ) (h : injective f) (g : ℤ → ℤ) (h : injective g) (i) : true :=
+begin
+  have : f i = g i,
+  success_if_fail_with_msg
+  { slim_check { random_seed := some 257 } }
+"
+===================
+Found problems!
+
+f := [x ↦ x]
+g := [1 ↦ 2, 2 ↦ 1, x ↦ x]
+i := 1
+issue: 1 = 2 does not hold
 -------------------
 ",
   admit,
@@ -152,11 +171,11 @@ begin
 ===================
 Found problems!
 
-f := [-1 ↦ 6, -10 ↦ -2, -2 ↦ -1, -3 ↦ -4, -4 ↦ 9, -5 ↦ 1, -6 ↦ -3, -7 ↦ 7, -8 ↦ 0, -9 ↦ 3, 0 ↦ -8, 1 ↦ 4, 2 ↦ -5, 3 ↦ 2, 4 ↦ -10, 5 ↦ -9, 6 ↦ 5, 7 ↦ 8, 8 ↦ -7, 9 ↦ -6, x ↦ x]
-x := 1
-y := 5
-guard: 1 ≤ 5 (by construction)
-issue: 4 ≤ -9 does not hold
+f := [2 ↦ 3, 3 ↦ 9, 4 ↦ 6, 5 ↦ 4, 6 ↦ 2, 8 ↦ 5, 9 ↦ 8, x ↦ x]
+x := 3
+y := 4
+guard: 3 ≤ 4 (by construction)
+issue: 9 ≤ 6 does not hold
 -------------------
 ",
   admit,

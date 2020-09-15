@@ -81,13 +81,16 @@ def normalize : α →* α :=
   classical.by_cases (λ hy : y = 0, by rw [hy, mul_zero, zero_mul, mul_zero]) $ λ hy,
   by simp only [norm_unit_mul hx hy, units.coe_mul]; simp only [mul_assoc, mul_left_comm y], }
 
-@[simp] lemma normalize_apply {x : α} : normalize x = x * norm_unit x := rfl
-
 theorem associated_normalize {x : α} : associated x (normalize x) :=
 ⟨_, rfl⟩
 
 theorem normalize_associated {x : α} : associated (normalize x) x :=
 associated_normalize.symm
+
+lemma associates.mk_normalize {x : α} : associates.mk (normalize x) = associates.mk x :=
+associates.mk_eq_mk_iff_associated.2 normalize_associated
+
+@[simp] lemma normalize_apply {x : α} : normalize x = x * norm_unit x := rfl
 
 @[simp] lemma normalize_zero : normalize (0 : α) = 0 := by simp
 

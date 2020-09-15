@@ -149,8 +149,8 @@ section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- unique factorization monoids.
 
-These are defined as `comm_cancel_monoid_with_zero`s with the descending chain condition on
-the divisibility relation, but this is equivalent to more familiar definitions:
+These are defined as `comm_cancel_monoid_with_zero`s with well-founded strict divisibility
+relations, but this is equivalent to more familiar definitions:
 
 Each element (except zero) is uniquely represented as a multiset of irreducible factors.
 Uniqueness is only up to associated elements.
@@ -252,24 +252,31 @@ by haveI := classical.dec_eq α; exact
         (hf p (by simp)).ne_zero))
     end)
 
+/-- If an irreducible has a prime factorization,
+  then it is an associate of one of its prime factors. -/
 lemma prime_factors_irreducible [comm_cancel_monoid_with_zero α] {a : α} {f : multiset α}
   (ha : irreducible a) (pfa : (∀b ∈ f, prime b) ∧ a ~ᵤ f.prod) :
   ∃ p, a ~ᵤ p ∧ f = p :: 0 :=
-by haveI := classical.dec_eq α; exact
-multiset.induction_on f
-  (λ h, (ha.1 (associated_one_iff_is_unit.1 h)).elim)
-  (λ p s _ hp hs, let ⟨u, hu⟩ := hp in ⟨p,
-    have hs0 : s = 0, from classical.by_contradiction
-      (λ hs0, let ⟨q, hq⟩ := multiset.exists_mem_of_ne_zero hs0 in
-       (hs q (by simp [hq])).2.1 $
-        (ha.2 ((p * ↑(u⁻¹)) * (s.erase q).prod) _
-          (by {rw [mul_right_comm _ _ q, mul_assoc, ← multiset.prod_cons, multiset.cons_erase hq,
+begin
+  haveI := classical.dec_eq α,
+  refine multiset.induction_on f (λ h, (ha.1 (associated_one_iff_is_unit.1 h)).elim) _ pfa.2 pfa.1,
+  rintros p s _ ⟨u, hu⟩ hs,
+  use p,
+  have hs0 : s = 0,
+  { apply classical.by_contradiction,
+    intro hs0,
+    obtain ⟨q, hq⟩ := multiset.exists_mem_of_ne_zero hs0,
+    apply (hs q (by simp [hq])).2.1,
+    refine (ha.2 ((p * ↑(u⁻¹)) * (s.erase q).prod) _ _).resolve_left _,
+    { rw [mul_right_comm _ _ q, mul_assoc, ← multiset.prod_cons, multiset.cons_erase hq,
             mul_comm p _, mul_assoc, ← multiset.prod_cons, hu.symm, mul_comm, mul_assoc],
-            simp, })).resolve_left $
-              mt is_unit_of_mul_is_unit_left $ mt is_unit_of_mul_is_unit_left
-                (hs p (multiset.mem_cons_self _ _)).2.1),
-    ⟨(by {clear _let_match; simp * at *}), hs0 ▸ rfl⟩⟩)
-  (pfa.2) (pfa.1)
+      simp },
+    apply mt is_unit_of_mul_is_unit_left (mt is_unit_of_mul_is_unit_left _),
+    apply (hs p (multiset.mem_cons_self _ _)).2.1,
+  },
+  simp only [mul_one, multiset.prod_cons, multiset.prod_zero, hs0] at *,
+  exact ⟨⟨u, hu⟩, rfl⟩,
+end
 
 section exists_prime_factors
 
@@ -402,8 +409,7 @@ begin
       multiset.map_map],
   congr' 2,
   ext,
-  rw [function.comp_apply, associates.mk_eq_mk_iff_associated],
-  apply normalize_associated,
+  rw [function.comp_apply, associates.mk_normalize],
 end
 
 theorem prime_factors {a : α} : ∀ (x : α), x ∈ factors a → prime x :=

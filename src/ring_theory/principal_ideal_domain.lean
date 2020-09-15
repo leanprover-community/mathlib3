@@ -20,9 +20,7 @@ Theorems about PID's are in the `principal_ideal_ring` namespace.
 - `is_principal_ideal_ring`: a predicate on commutative rings, saying that every
   ideal is principal.
 - `generator`: a generator of a principal ideal (or more generally submodule)
-- `to_unique_factorization_monoid`: a noncomputable definition, putting a UFD structure on a PID.
-  Note that the definition of a UFD is currently not a predicate, as it contains data
-  of factorizations of non-zero elements.
+- `to_unique_factorization_monoid`: a PID is a unique factorization domain
 
 # Main results
 

@@ -51,7 +51,7 @@ begin
 end
 
 def from_padic_int : ℤ_[p] →+* 𝕎 (zmod p) :=
-truncated_witt_vector.lift (λ k, (zmod_equiv_trunc p k).to_ring_hom.comp (padic_int.to_zmod_pow k)) $
+witt_vector.lift (λ k, (zmod_equiv_trunc p k).to_ring_hom.comp (padic_int.to_zmod_pow k)) $
   zmod_equiv_trunc_compat _
 
 lemma to_padic_int_comp_from_padic_int :

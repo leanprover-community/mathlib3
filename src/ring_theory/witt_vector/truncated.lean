@@ -406,16 +406,21 @@ by ext; apply commutes_symm'
 
 end iso
 
+end truncated_witt_vector
+
+namespace witt_vector
+open truncated_witt_vector (hiding truncate coeff)
 
 section lift
 
 variables {S : Type*} [comm_ring S]
 variable (f : Π k : ℕ, S →+* truncated_witt_vector p k R)
-variable f_compat : ∀ (k₁ k₂ : ℕ) (hk : k₁ ≤ k₂), (truncate hk).comp (f k₂) = f k₁
+variable f_compat : ∀ (k₁ k₂ : ℕ) (hk : k₁ ≤ k₂), (truncated_witt_vector.truncate hk).comp (f k₂) = f k₁
 variables {p R}
+variable (n)
 
 def lift_fun (s : S) : 𝕎 R :=
-witt_vector.mk p $ λ k, coeff (fin.last k) (f (k+1) s)
+witt_vector.mk p $ λ k, truncated_witt_vector.coeff (fin.last k) (f (k+1) s)
 
 include f_compat
 
@@ -425,8 +430,8 @@ private lemma truncate_lift_fun (s : S) :
   witt_vector.truncate n (lift_fun f s) = f n s :=
 begin
   ext i,
-  simp only [lift_fun, coeff_mk, witt_vector.truncate_mk],
-  rw [← f_compat (i+1) n i.is_lt, ring_hom.comp_apply, coeff_truncate],
+  simp only [lift_fun, truncated_witt_vector.coeff_mk, witt_vector.truncate_mk],
+  rw [← f_compat (i+1) n i.is_lt, ring_hom.comp_apply, truncated_witt_vector.coeff_truncate],
   -- this is a bit unfortunate
   congr' with _,
   simp only [fin.coe_last, fin.coe_cast_le],
@@ -457,7 +462,6 @@ begin
 end
 
 variable (f)
--- everything about `lift` and `lift_fun` should probably move to `witt_vector` namespace
 
 /--
 Given compatible ring homs from `S` into `truncated_witt_vector n` for each `n`, we can lift these
@@ -481,9 +485,11 @@ truncate_lift_fun _ f_compat s
   (witt_vector.truncate n).comp (lift _ f_compat) = f n :=
 by { ext1, rw [ring_hom.comp_apply, truncate_lift] }
 
--- this is stated in reverse from `padic_int.lift_unique`, we should change one or the other
+/--
+The uniqueness part of the universal property of `𝕎 R`.
+-/
 lemma lift_unique (g : S →+* 𝕎 R) (g_compat : ∀ k, (witt_vector.truncate k).comp g = f k) :
-  g = lift _ f_compat :=
+  lift _ f_compat = g :=
 begin
   ext1 x,
   rw [← sub_eq_zero, ← ideal.mem_bot, ← ideal_inter, ideal.mem_infi],
@@ -494,11 +500,13 @@ end
 
 omit f_compat
 
-lemma witt_vector.hom_ext (g₁ g₂ : S →+* 𝕎 R)
+include hp
+
+lemma hom_ext (g₁ g₂ : S →+* 𝕎 R)
   (h : ∀ k, (witt_vector.truncate k).comp g₁ = (witt_vector.truncate k).comp g₂) :
   g₁ = g₂ :=
 begin
-  rw [lift_unique _ g₁, lift_unique _ g₂],
+  rw [← lift_unique _ g₁, ← lift_unique _ g₂],
   { intro k, apply (h k).symm },
   { intros, rw [← ring_hom.comp_assoc], simp [truncate_comp_witt_vector_truncate] },
   { intro, refl }
@@ -506,4 +514,4 @@ end
 
 end lift
 
-end truncated_witt_vector
+end witt_vector

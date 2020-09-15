@@ -66,7 +66,7 @@ begin
 end
 
 lemma comap_comp (f : mv_polynomial σ R →ₐ[R] mv_polynomial τ R)
-  (g : mv_polynomial τ R →ₐ[R] mv_polynomial υ R) (x : υ → R) :
+  (g : mv_polynomial τ R →ₐ[R] mv_polynomial υ R) :
   comap (g.comp f) = (comap f) ∘ (comap g) :=
 by { funext x, exact comap_comp_apply _ _ _ }
 

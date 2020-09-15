@@ -8,14 +8,6 @@ open_locale filter topological_space big_operators
 section
 variables {α : Type u} [complete_lattice α]
 
-lemma supr_ge_eq_supr_nat_add {u : ℕ → α} (n : ℕ) : (⨆ i ≥ n, u i) = ⨆ i, u (i + n) :=
-begin
-  apply le_antisymm;
-  simp only [supr_le_iff],
-  { exact λ i hi, le_Sup ⟨i - n, by { dsimp only, congr, omega }⟩ },
-  { exact λ i, le_Sup ⟨i + n, by squeeze_simp⟩ }
-end
-
 lemma limsup_eq_infi_supr_of_nat' {u : ℕ → α} : limsup at_top u = ⨅n:ℕ, ⨆i, u (i + n) :=
 by simp only [limsup_eq_infi_supr_of_nat, supr_ge_eq_supr_nat_add]
 

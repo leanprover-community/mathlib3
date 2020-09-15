@@ -839,8 +839,11 @@ begin
   apply le_antisymm;
   simp only [supr_le_iff],
   { exact λ i hi, le_Sup ⟨i - n, by { dsimp only, rw nat.sub_add_cancel hi }⟩ },
-  { exact λ i, le_Sup ⟨i + n, by simp⟩ }
+  { exact λ i, le_Sup ⟨i + n, supr_pos (nat.le_add_left _ _)⟩ }
 end
+
+lemma infi_ge_eq_infi_nat_add {u : ℕ → α} (n : ℕ) : (⨅ i ≥ n, u i) = ⨅ i, u (i + n) :=
+@supr_ge_eq_supr_nat_add (order_dual α) _ _ _
 
 end
 

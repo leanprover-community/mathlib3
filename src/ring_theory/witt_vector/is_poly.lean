@@ -1,6 +1,15 @@
 import ring_theory.witt_vector.basic
 import ring_theory.witt_vector.witt_vector_preps
 
+/-!
+
+# The `is_poly` predicate
+
+`witt_vector.is_poly` is a (type-valued) predicate on functions `f : Π R, 𝕎 R → 𝕎 R`.
+It asserts roughly that there is a polynomial over `ℤ` whose behavior corresponds to the map `f`.
+
+-/
+
 namespace witt_vector
 
 variables {p : ℕ} {R S σ idx : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
@@ -37,6 +46,11 @@ end
 -- But we don't have a good theory of n-ary compositions in mathlib
 omit hp
 
+/--
+A function `f : Π R, 𝕎 R → 𝕎 R` that maps Witt vectors to Witt vectors over arbitrary base rings
+is said to be polynomial if there is a family of polynomials `φₙ` over `ℤ` such that the `n`th
+coefficient of `f x` is given by evaluating `phiₙ` at the coefficients of `x`.
+-/
 structure is_poly (f : Π ⦃R : Type*⦄ [comm_ring R], witt_vector p R → 𝕎 R) :=
 (poly : ℕ → mv_polynomial ℕ ℤ)
 (coeff : ∀ (n : ℕ) ⦃R : Type*⦄ [comm_ring R] (x : 𝕎 R),

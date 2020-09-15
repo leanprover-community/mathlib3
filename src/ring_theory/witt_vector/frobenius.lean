@@ -9,7 +9,7 @@ import ring_theory.witt_vector.basic
 import ring_theory.witt_vector.is_poly
 
 
-/-! ## The Verschiebung operator -/
+/-! ## The Frobenius operator -/
 
 namespace witt_vector
 

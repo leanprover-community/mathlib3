@@ -1065,8 +1065,8 @@ begin
   rotate, { apply_instance },
   simp only [chart_at, basic_smooth_bundle_core.chart, topological_fiber_bundle_core.local_triv,
     basic_smooth_bundle_core.to_topological_fiber_bundle_core,
-    topological_fiber_bundle_core.local_triv', tangent_bundle_core, h, equiv.sigma_equiv_prod_apply,
-    subtype.coe_mk] with mfld_simps,
+    topological_fiber_bundle_core.local_triv', tangent_bundle_core, equiv.sigma_equiv_prod_to_fun,
+    h, subtype.coe_mk] with mfld_simps,
 end
 
 end charts

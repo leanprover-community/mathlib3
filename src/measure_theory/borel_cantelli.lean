@@ -26,43 +26,45 @@ section
 lemma nnreal.sub_lt_iff {a b c : nnreal} (h : b ≤ a) : a - b < c ↔ a < b + c :=
 by simp only [←nnreal.coe_lt_coe, nnreal.coe_sub h, nnreal.coe_add, sub_lt_iff_lt_add']
 
-/- lemma sub_lt_iff {a b c : ennreal} (h : b < a) : a - b < c ↔ a < b + c :=
+lemma lt_top_of_lt_tsum_lt_top {α : Type*} {f : α → ennreal} (hf : (∑' i, f i) < ⊤) :
+  ∀ x, f x < ⊤ :=
 begin
-  cases a; cases b,
-  { exact false.elim (ne_of_lt h rfl) },
-  { simp },
-  { simp only [ennreal.none_eq_top, not_top_lt] at h,
-    contradiction },
-  cases c,
-  { simp only [ennreal.none_eq_top, ennreal.coe_lt_top, iff_true, ennreal.some_eq_coe,
-      ennreal.add_top, ←ennreal.coe_sub] },
-  { simp only [ennreal.some_eq_coe, ennreal.coe_lt_coe] at *,
-    rw [←ennreal.coe_sub, ennreal.coe_lt_coe, nnreal.sub_lt_iff (le_of_lt h), ←ennreal.coe_add,
-      ennreal.coe_lt_coe] }
-end-/
-
-lemma exists_coe_of_sum_lt_top {α : Type u} {f : α → ennreal} (hf : (∑' i, f i) < ⊤) :
-  ∃ g : α → nnreal, (∀ x, f x = g x) ∧ summable g :=
-begin
-  have : ∀ i, f i < ⊤,
-  { contrapose! hf,
-    rcases hf with ⟨x, hx⟩,
-    rw top_le_iff at hx,
-    convert @ennreal.le_tsum _ f x,
-    exact hx.symm },
-  let g : α → nnreal := λ x, classical.some (ennreal.lt_iff_exists_coe.1 (this x)),
-  have hg : ∀ x, f x = g x := λ x, (classical.some_spec (ennreal.lt_iff_exists_coe.1 (this x))).1,
-  refine ⟨g, ⟨hg, _⟩⟩,
-  simp only [←ennreal.tsum_coe_ne_top_iff_summable, ←hg, ←ennreal.lt_top_iff_ne_top, hf]
+  contrapose! hf,
+  rcases hf with ⟨x, hx⟩,
+  exact le_trans hx (ennreal.le_tsum _)
 end
 
+lemma to_nnreal_of_sum_lt_top {α : Type*} {f : α → ennreal} (hf : (∑' i, f i) < ⊤) (x : α) :
+  (((ennreal.to_nnreal ∘ f) x : nnreal) : ennreal) = f x :=
+ennreal.coe_to_nnreal $ ennreal.lt_top_iff_ne_top.1 $ lt_top_of_lt_tsum_lt_top hf _
+
+lemma summable_to_nnreal {α : Type u} {f : α → ennreal} (hf : (∑' i, f i) < ⊤) :
+  summable (ennreal.to_nnreal ∘ f) :=
+by simpa only [←ennreal.tsum_coe_ne_top_iff_summable, ←ennreal.lt_top_iff_ne_top,
+  to_nnreal_of_sum_lt_top hf] using hf
+
 lemma nnreal.not_lt_zero {a : nnreal} : ¬(a < 0) := by simp
+
+lemma le_has_sum {α : Type*} [topological_space α] [ordered_add_comm_monoid α]
+  [order_closed_topology α] {β : Type*} {f : β → α} {a : α} (hf : has_sum f a) (x : β)
+  (hx : ∀ y ≠ x, 0 ≤ f y) : f x ≤ a :=
+calc f x = ∑ x in {x}, f x : finset.sum_singleton.symm
+... ≤ a : sum_le_has_sum _ (by { convert hx, simp }) hf
+
+lemma le_has_sum' {α : Type*} [topological_space α] [canonically_ordered_add_monoid α]
+  [order_closed_topology α] {β : Type*} {f : β → α} {a : α} (hf : has_sum f a) (x : β) :
+  f x ≤ a :=
+le_has_sum hf x $ λ _ _, zero_le _
 
 lemma le_tsum {α : Type*} [topological_space α] [ordered_add_comm_monoid α]
   [order_closed_topology α] {β : Type*} {f : β → α} (hf : summable f) (x : β)
   (hx : ∀ y ≠ x, 0 ≤ f y) : f x ≤ ∑' x, f x :=
-calc f x = ∑ x in {x}, f x : finset.sum_singleton.symm
-... ≤ ∑' x, f x : sum_le_tsum _ (by { convert hx, simp }) hf
+le_has_sum (summable.has_sum hf) x hx
+
+lemma le_tsum' {α : Type*} [topological_space α] [canonically_ordered_add_monoid α]
+  [order_closed_topology α] {β : Type*} {f : β → α} (hf : summable f) (x : β) :
+  f x ≤ ∑' x, f x :=
+le_tsum hf x $ λ _ _, zero_le _
 
 lemma nnreal.sub_eq_iff {a b c : nnreal} (h : b ≤ a) : a - b = c ↔ a = c + b :=
 by rw [←nnreal.eq_iff, nnreal.coe_sub h, ←nnreal.eq_iff, nnreal.coe_add, sub_eq_iff_eq_add]
@@ -78,6 +80,23 @@ by rw [←nnreal.coe_eq, nnreal.coe_tsum, nnreal.coe_add, nnreal.coe_sum, nnreal
 
 lemma nnreal.zero_le {a : nnreal} : 0 ≤ a := a.2
 
+lemma has_sum_zero_iff {α : Type*} {β : Type*} [topological_space α]
+  [canonically_ordered_add_monoid α] [order_closed_topology α] {f : β → α} :
+  has_sum f 0 ↔ ∀ x, f x = 0 :=
+begin
+  split,
+  { contrapose!,
+    exact λ ⟨x, hx⟩ h, irrefl _ (lt_of_lt_of_le (zero_lt_iff_ne_zero.2 hx) (le_has_sum' h x)) },
+  { intro h,
+    convert has_sum_zero,
+    exact funext h }
+end
+
+lemma tsum_eq_zero_iff {α : Type*} {β : Type*} [topological_space α]
+  [canonically_ordered_add_monoid α] [order_closed_topology α] {f : β → α} (hf : summable f) :
+  (∑' i, f i) = 0 ↔ ∀ x, f x = 0 :=
+by rw [←has_sum_zero_iff, hf.has_sum_iff]
+
 lemma nnreal.tendsto_sum_add
   (f : ℕ → nnreal) (hf : summable f) : tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
 begin
@@ -91,8 +110,8 @@ begin
   simp only [ge_iff_le, eventually_at_top] at ⊢ hf',
   have tsum_sub_lt : (∑' i, f i) - a < ∑' i, f i,
   { refine nnreal.sub_lt_self _ ha,
-    rcases not_forall.1 h with ⟨n, hn⟩,
-    exact lt_of_lt_of_le (zero_lt_iff_ne_zero.2 hn) (le_tsum hf n (λ y _, nnreal.zero_le)) },
+    contrapose! h,
+    simpa only [←tsum_eq_zero_iff hf, le_zero_iff] using h },
   rcases hf' _ tsum_sub_lt with ⟨n, hn⟩,
   refine ⟨n, λ m hm, _⟩,
   specialize hn m hm,
@@ -112,11 +131,12 @@ end
 lemma ennreal.tendsto_sum_add (f : ℕ → ennreal) (hf : (∑' i, f i) < ⊤) :
   tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
 begin
-  rcases exists_coe_of_sum_lt_top hf with ⟨g, ⟨hg : ∀ x, f x = g x, hg'⟩⟩,
-  have : ∀ i, (∑' k, (g (k + i) : ennreal)) = (∑' k, g (k + i) : nnreal),
-  { intro i, rw ennreal.coe_tsum (nnreal.summable_shift g hg' _) },
-  simp only [hg, ←ennreal.coe_zero, this, ennreal.tendsto_coe],
-  exact nnreal.tendsto_sum_add g hg'
+  have : ∀ i, (∑' k, (((ennreal.to_nnreal ∘ f) (k + i) : nnreal) : ennreal)) =
+    (∑' k, (ennreal.to_nnreal ∘ f) (k + i) : nnreal) :=
+    λ i, (ennreal.coe_tsum (nnreal.summable_shift _ (summable_to_nnreal hf) _)).symm,
+  simp only [λ x, (to_nnreal_of_sum_lt_top hf x).symm, ←ennreal.coe_zero,
+    this, ennreal.tendsto_coe] { single_pass := tt },
+  exact nnreal.tendsto_sum_add _ (summable_to_nnreal hf)
 end
 
 end

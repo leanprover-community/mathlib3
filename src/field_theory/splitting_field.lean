@@ -133,7 +133,7 @@ lemma exists_root_of_splits {f : polynomial α} (hs : splits i f) (hf0 : degree 
   ∃ x, eval₂ i x f = 0 :=
 if hf0 : f = 0 then ⟨37, by simp [hf0]⟩
 else
-  let ⟨g, hg⟩ := is_noetherian_ring.exists_irreducible_factor
+  let ⟨g, hg⟩ := wf_dvd_monoid.exists_irreducible_factor
     (show ¬ is_unit (f.map i), from mt is_unit_iff_degree_eq_zero.1 (by rwa degree_map))
     (map_ne_zero hf0) in
   let ⟨x, hx⟩ := exists_root_of_degree_eq_one (hs.resolve_left hf0 hg.1 hg.2) in
@@ -146,7 +146,7 @@ lemma exists_multiset_of_splits {f : polynomial α} : splits i f →
 suffices splits (ring_hom.id _) (f.map i) → ∃ s : multiset β, f.map i =
   (C (f.map i).leading_coeff) * (s.map (λ a : β, (X : polynomial β) - C a)).prod,
 by rwa [splits_map_iff, leading_coeff_map i] at this,
-is_noetherian_ring.irreducible_induction_on (f.map i)
+wf_dvd_monoid.induction_on_irreducible (f.map i)
   (λ _, ⟨{37}, by simp [i.map_zero]⟩)
   (λ u hu _, ⟨0,
     by conv_lhs { rw eq_C_of_degree_eq_zero (is_unit_iff_degree_eq_zero.1 hu) };
@@ -193,6 +193,68 @@ begin
   rw [multiset.bind_cons, multiset.bind_zero, add_zero,
       multiset.bind_cons, multiset.bind_zero, add_zero, multiset.map_id']
 end
+
+lemma eq_prod_roots_of_splits {p : polynomial α} {i : α →+* β}
+  (hsplit : splits i p) :
+  p.map i = C (i p.leading_coeff) * ((p.map i).roots.map (λ a, X - C a)).prod :=
+begin
+  by_cases p_eq_zero : p = 0,
+  { rw [p_eq_zero, map_zero, leading_coeff_zero, i.map_zero, C.map_zero, zero_mul] },
+
+  obtain ⟨s, hs⟩ := exists_multiset_of_splits i hsplit,
+  have map_ne_zero : p.map i ≠ 0 := map_ne_zero (p_eq_zero),
+  have prod_ne_zero : C (i p.leading_coeff) * (multiset.map (λ a, X - C a) s).prod ≠ 0 :=
+    by rwa hs at map_ne_zero,
+
+  have ne_zero_of_mem : ∀ (p : polynomial β), p ∈ s.map (λ a, X - C a) → p ≠ 0,
+  { intros p mem,
+    obtain ⟨a, _, rfl⟩ := multiset.mem_map.mp mem,
+    apply X_sub_C_ne_zero },
+  have map_bind_roots_eq : (s.map (λ a, X - C a)).bind (λ a, a.roots) = s,
+  { refine multiset.induction_on s (by rw [multiset.map_zero, multiset.zero_bind]) _,
+    intros a s ih,
+    rw [multiset.map_cons, multiset.cons_bind, ih, roots_X_sub_C,
+        multiset.cons_add, zero_add] },
+
+  rw [hs, roots_mul prod_ne_zero, roots_C, zero_add,
+      roots_multiset_prod _ ne_zero_of_mem,
+      map_bind_roots_eq]
+end
+
+lemma nat_degree_multiset_prod {R : Type*} [integral_domain R] {s : multiset (polynomial R)}
+  (h : ∀ p ∈ s, p ≠ (0 : polynomial R)) :
+  nat_degree s.prod = (s.map nat_degree).sum :=
+begin
+  revert h,
+  refine s.induction_on _ _,
+  { simp },
+  intros p s ih h,
+  have hs : ∀ p ∈ s, p ≠ (0 : polynomial R) := λ p hp, h p (multiset.mem_cons_of_mem hp),
+  have hprod : s.prod ≠ 0 := multiset.prod_ne_zero (λ p hp, hs p hp),
+  rw [multiset.prod_cons, nat_degree_mul (h p (multiset.mem_cons_self _ _)) hprod, ih hs,
+      multiset.map_cons, multiset.sum_cons],
+end
+
+lemma nat_degree_eq_card_roots {p : polynomial α} {i : α →+* β}
+  (hsplit : splits i p) : p.nat_degree = (p.map i).roots.card :=
+begin
+  by_cases p_eq_zero : p = 0,
+  { rw [p_eq_zero, nat_degree_zero, map_zero, roots_zero, multiset.card_zero] },
+  have map_ne_zero : p.map i ≠ 0 := map_ne_zero (p_eq_zero),
+  rw eq_prod_roots_of_splits hsplit at map_ne_zero,
+
+  conv_lhs { rw [← nat_degree_map i, eq_prod_roots_of_splits hsplit] },
+  have : ∀ p' ∈ (map i p).roots.map (λ a, X - C a), p' ≠ (0 : polynomial β),
+  { intros p hp,
+    obtain ⟨a, ha, rfl⟩ := multiset.mem_map.mp hp,
+    exact X_sub_C_ne_zero _ },
+  simp [nat_degree_mul (left_ne_zero_of_mul map_ne_zero) (right_ne_zero_of_mul map_ne_zero),
+        nat_degree_multiset_prod this]
+end
+
+lemma degree_eq_card_roots {p : polynomial α} {i : α →+* β} (p_ne_zero : p ≠ 0)
+  (hsplit : splits i p) : p.degree = (p.map i).roots.card :=
+by rw [degree_eq_nat_degree p_ne_zero, nat_degree_eq_card_roots hsplit]
 
 section UFD
 
@@ -333,8 +395,8 @@ end
 theorem factor_dvd_of_not_is_unit {f : polynomial α} (hf1 : ¬is_unit f) : factor f ∣ f :=
 begin
   by_cases hf2 : f = 0, { rw hf2, exact dvd_zero _ },
-  rw [factor, dif_pos (is_noetherian_ring.exists_irreducible_factor hf1 hf2)],
-  exact (classical.some_spec $ is_noetherian_ring.exists_irreducible_factor hf1 hf2).2
+  rw [factor, dif_pos (wf_dvd_monoid.exists_irreducible_factor hf1 hf2)],
+  exact (classical.some_spec $ wf_dvd_monoid.exists_irreducible_factor hf1 hf2).2
 end
 
 theorem factor_dvd_of_degree_ne_zero {f : polynomial α} (hf : f.degree ≠ 0) : factor f ∣ f :=

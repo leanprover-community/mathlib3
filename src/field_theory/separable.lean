@@ -302,7 +302,7 @@ theorem of_irreducible_expand {f : polynomial F} (hf : irreducible (expand F p f
 theorem of_irreducible_expand_pow {f : polynomial F} {n : ℕ} :
   irreducible (expand F (p ^ n) f) → irreducible f :=
 nat.rec_on n (λ hf, by rwa [nat.pow_zero, expand_one] at hf) $ λ n ih hf,
-ih $ of_irreducible_expand p $ by rwa [expand_expand, mul_comm]
+ih $ of_irreducible_expand p $ by rwa [expand_expand]
 
 variables [HF : char_p F p]
 include HF
@@ -494,41 +494,6 @@ begin
       roots_multiset_prod _ ne_zero_of_mem,
       map_bind_roots_eq]
 end
-
-lemma nat_degree_multiset_prod {R : Type*} [integral_domain R] {s : multiset (polynomial R)}
-  (h : ∀ p ∈ s, p ≠ (0 : polynomial R)) :
-  nat_degree s.prod = (s.map nat_degree).sum :=
-begin
-  revert h,
-  refine s.induction_on _ _,
-  { simp },
-  intros p s ih h,
-  have hs : ∀ p ∈ s, p ≠ (0 : polynomial R) := λ p hp, h p (multiset.mem_cons_of_mem hp),
-  have hprod : s.prod ≠ 0 := multiset.prod_ne_zero (λ p hp, hs p hp),
-  rw [multiset.prod_cons, nat_degree_mul (h p (multiset.mem_cons_self _ _)) hprod, ih hs,
-      multiset.map_cons, multiset.sum_cons],
-end
-
-lemma nat_degree_separable_eq_card_roots {p : polynomial F} {i : F →+* K}
-  (hsep : separable p) (hsplit : splits i p) : p.nat_degree = (p.map i).roots.card :=
-begin
-  by_cases p_eq_zero : p = 0,
-  { rw [p_eq_zero, nat_degree_zero, map_zero, roots_zero, multiset.card_zero] },
-  have map_ne_zero : p.map i ≠ 0 := map_ne_zero (p_eq_zero),
-  rw eq_prod_roots_of_separable hsep hsplit at map_ne_zero,
-
-  conv_lhs { rw [← nat_degree_map i, eq_prod_roots_of_separable hsep hsplit] },
-  have : ∀ p' ∈ (map i p).roots.map (λ (a : K), X - C a), p' ≠ (0 : polynomial K),
-  { intros p hp,
-    obtain ⟨a, ha, rfl⟩ := multiset.mem_map.mp hp,
-    exact X_sub_C_ne_zero _ },
-  simp [nat_degree_mul (left_ne_zero_of_mul map_ne_zero) (right_ne_zero_of_mul map_ne_zero),
-        nat_degree_multiset_prod this]
-end
-
-lemma degree_separable_eq_card_roots {p : polynomial F} {i : F →+* K} (p_ne_zero : p ≠ 0)
-  (hsep : separable p) (hsplit : splits i p) : p.degree = (p.map i).roots.card :=
-by rw [degree_eq_nat_degree p_ne_zero, nat_degree_separable_eq_card_roots hsep hsplit]
 
 end splits
 

@@ -117,13 +117,10 @@ def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
       (asymm h)⟩,
     λ ⟨h₁, h₂⟩, h₁.resolve_left (λ e, h₂ $ e ▸ or.inl rfl)⟩ }
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- This is basically the same as `is_strict_total_order`, but that definition is
   in Type (probably by mistake) and also has redundant assumptions. -/
 @[algebra] class is_strict_total_order' (α : Type u) (lt : α → α → Prop)
   extends is_trichotomous α lt, is_strict_order α lt : Prop.
-end prio
 
 /-- Construct a linear order from a `is_strict_total_order'` relation -/
 def linear_order_of_STO' (r) [is_strict_total_order' α r] : linear_order α :=
@@ -195,13 +192,10 @@ instance is_extensional_of_is_strict_total_order'
   .resolve_left $ mt (H _).2 (irrefl a))
   .resolve_right $ mt (H _).1 (irrefl b)⟩
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A well order is a well-founded linear order. -/
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop)
   extends is_strict_total_order' α r : Prop :=
 (wf : well_founded r)
-end prio
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] :

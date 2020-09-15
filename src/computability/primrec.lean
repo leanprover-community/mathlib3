@@ -109,13 +109,10 @@ end primrec
 
 end nat
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `primcodable` type is an `encodable` type for which
   the encode/decode functions are primitive recursive. -/
 class primcodable (α : Type*) extends encodable α :=
 (prim [] : nat.primrec (λ n, encodable.encode (decode n)))
-end prio
 
 namespace primcodable
 open nat.primrec

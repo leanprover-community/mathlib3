@@ -721,6 +721,55 @@ induced_order_topology' f @hf
   (λ a x xa, let ⟨b, xb, ba⟩ := H xa in ⟨b, hf.1 ba, le_of_lt xb⟩)
   (λ a x ax, let ⟨b, ab, bx⟩ := H ax in ⟨b, hf.1 ab, le_of_lt bx⟩)
 
+/-- On an `ord_connected` subset of a linear order, the order topology for the restriction of the
+order is the same as the restriction to the subset of the order topology. -/
+instance order_topology_of_ord_connected {α : Type u}
+  [ta : topological_space α] [decidable_linear_order α] [order_topology α]
+  {t : set α} [ht : ord_connected t] :
+  order_topology t :=
+begin
+  letI := induced (coe : t → α) ta,
+  refine ⟨eq_of_nhds_eq_nhds (λ a, _)⟩,
+  rw [nhds_induced, nhds_generate_from, nhds_eq_order (a : α)],
+  apply le_antisymm,
+  { refine le_infi (λ s, le_infi $ λ hs, le_principal_iff.2 _),
+    rcases hs with ⟨ab, b, rfl|rfl⟩,
+    { refine ⟨Ioi b, _, λ _, id⟩,
+      refine mem_inf_sets_of_left (mem_infi_sets b _),
+      exact mem_infi_sets ab (mem_principal_self (Ioi ↑b)) },
+    { refine ⟨Iio b, _, λ _, id⟩,
+      refine mem_inf_sets_of_right (mem_infi_sets b _),
+      exact mem_infi_sets ab (mem_principal_self (Iio b)) } },
+  { rw [← map_le_iff_le_comap],
+    refine le_inf _ _,
+    { refine le_infi (λ x, le_infi $ λ h, le_principal_iff.2 _),
+      by_cases hx : x ∈ t,
+      { refine mem_infi_sets (Ioi ⟨x, hx⟩) (mem_infi_sets ⟨h, ⟨⟨x, hx⟩, or.inl rfl⟩⟩ _),
+        exact λ _, id },
+      simp only [set_coe.exists, mem_set_of_eq, mem_map],
+      convert univ_sets _,
+      suffices hx' : ∀ (y : t), ↑y ∈ Ioi x,
+      { simp [hx'] },
+      intros y,
+      revert hx,
+      contrapose!,
+      -- here we use the `ord_connected` hypothesis
+      exact λ hx, ht y.2 a.2 ⟨le_of_not_gt hx, le_of_lt h⟩ },
+    { refine le_infi (λ x, le_infi $ λ h, le_principal_iff.2 _),
+      by_cases hx : x ∈ t,
+      { refine mem_infi_sets (Iio ⟨x, hx⟩) (mem_infi_sets ⟨h, ⟨⟨x, hx⟩, or.inr rfl⟩⟩ _),
+        exact λ _, id },
+      simp only [set_coe.exists, mem_set_of_eq, mem_map],
+      convert univ_sets _,
+      suffices hx' : ∀ (y : t), ↑y ∈ Iio x,
+      { simp [hx'] },
+      intros y,
+      revert hx,
+      contrapose!,
+      -- here we use the `ord_connected` hypothesis
+      exact λ hx, ht a.2 y.2 ⟨le_of_lt h, le_of_not_gt hx⟩ } }
+end
+
 lemma nhds_top_order [topological_space α] [order_top α] [order_topology α] :
   𝓝 (⊤:α) = (⨅l (h₂ : l < ⊤), 𝓟 (Ioi l)) :=
 by simp [nhds_eq_order (⊤:α)]
@@ -1583,6 +1632,54 @@ nhds_within_Iio_ne_bot (le_refl a)
 
 end linear_order
 
+section decidable_linear_order
+
+variables [topological_space α] [decidable_linear_order α] [order_topology α] [densely_ordered α]
+
+/-- The `at_top` filter for an open interval `Ioo a b` comes from the left-neighbourhoods filter at
+the right endpoint in the ambient order. -/
+lemma Ioo_at_top_eq_nhds_within {a b : α} (h : a < b) :
+  (at_top : filter (Ioo a b)) = comap (coe : Ioo a b → α) (𝓝[Iio b] b) :=
+begin
+  haveI : nonempty (Ioo a b) := nonempty_Ioo_subtype h,
+  ext,
+  split,
+  { intros hs,
+    obtain ⟨x, hx⟩ : ∃ x : (Ioo a b), ∀ z : (Ioo a b), z ≥ x → z ∈ s := mem_at_top_sets.mp hs,
+    refine ⟨Ioo x b, Ioo_mem_nhds_within_Iio (right_mem_Ioc.mpr x.2.2), _⟩,
+    intros z hz,
+    simpa using hx z (le_of_lt hz.1) },
+  { rintros ⟨t, ht, hts⟩,
+    obtain ⟨x, hx, hxt⟩ : ∃ x ∈ Iio b, Ioo x b ⊆ t := (mem_nhds_within_Iio_iff_exists_Ioo_subset' h).mp ht,
+    obtain ⟨y, hay, hyb⟩ : ∃ y, max a x < y ∧ y < b := dense (max_lt_iff.mpr ⟨h, hx⟩),
+    refine mem_at_top_sets.mpr ⟨⟨y, (max_lt_iff.mp hay).1, hyb⟩, _⟩,
+    intros z hz,
+    exact hts (hxt ⟨lt_of_lt_of_le (lt_of_le_of_lt (le_max_right a x) hay) hz, z.2.2⟩) }
+end
+
+/-- The `at_bot` filter for an open interval `Ioo a b` comes from the right-neighbourhoods filter at
+the left endpoint in the ambient order. -/
+lemma Ioo_at_bot_eq_nhds_within {a b : α} (h : a < b) :
+  (at_bot : filter (Ioo a b)) = comap (coe : Ioo a b → α) (𝓝[Ioi a] a) :=
+begin
+  haveI : nonempty (Ioo a b) := nonempty_Ioo_subtype h,
+  ext,
+  split,
+  { intros hs,
+    obtain ⟨x, hx⟩ : ∃ x : (Ioo a b), ∀ z : (Ioo a b), z ≤ x → z ∈ s := mem_at_bot_sets.mp hs,
+    refine ⟨Ioo a x, Ioo_mem_nhds_within_Ioi (left_mem_Ico.mpr x.2.1), _⟩,
+    intros z hz,
+    simpa using hx z (le_of_lt hz.2) },
+  { rintros ⟨t, ht, hts⟩,
+    obtain ⟨x, hx, hxt⟩ : ∃ x ∈ Ioi a, Ioo a x ⊆ t := (mem_nhds_within_Ioi_iff_exists_Ioo_subset' h).mp ht,
+    obtain ⟨y, hay, hyb⟩ : ∃ y, a < y ∧ y < min b x := dense (lt_min_iff.mpr ⟨h, hx⟩),
+    refine mem_at_bot_sets.mpr ⟨⟨y, hay, (lt_min_iff.mp hyb).1⟩, _⟩,
+    intros z hz,
+    exact hts (hxt ⟨z.2.1, lt_of_le_of_lt hz (lt_of_lt_of_le hyb (min_le_right b x))⟩) }
+end
+
+end decidable_linear_order
+
 section complete_linear_order
 
 variables [complete_linear_order α] [topological_space α] [order_topology α]
@@ -2324,6 +2421,26 @@ by simpa only [inv_inv] using @tendsto_inv_nhds_within_Ioi _ _ _ _ (a⁻¹)
   tendsto has_inv.inv (𝓝[Iio (a⁻¹)] (a⁻¹)) (𝓝[Ioi a] a) :=
 by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iio _ _ _ _ (a⁻¹)
 
+@[to_additive] lemma tendsto_inv_nhds_within_Ici [ordered_comm_group α]
+  [topological_space α] [topological_group α] {a : α} :
+  tendsto has_inv.inv (𝓝[Ici a] a) (𝓝[Iic (a⁻¹)] (a⁻¹)) :=
+(continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
+
+@[to_additive] lemma tendsto_inv_nhds_within_Iic [ordered_comm_group α]
+  [topological_space α] [topological_group α] {a : α} :
+  tendsto has_inv.inv (𝓝[Iic a] a) (𝓝[Ici (a⁻¹)] (a⁻¹)) :=
+(continuous_inv.tendsto a).inf $ by simp [tendsto_principal_principal]
+
+@[to_additive] lemma tendsto_inv_nhds_within_Ici_inv [ordered_comm_group α]
+  [topological_space α] [topological_group α] {a : α} :
+  tendsto has_inv.inv (𝓝[Ici (a⁻¹)] (a⁻¹)) (𝓝[Iic a] a) :=
+by simpa only [inv_inv] using @tendsto_inv_nhds_within_Ici _ _ _ _ (a⁻¹)
+
+@[to_additive] lemma tendsto_inv_nhds_within_Iic_inv [ordered_comm_group α]
+  [topological_space α] [topological_group α] {a : α} :
+  tendsto has_inv.inv (𝓝[Iic (a⁻¹)] (a⁻¹)) (𝓝[Ici a] a) :=
+by simpa only [inv_inv] using @tendsto_inv_nhds_within_Iic _ _ _ _ (a⁻¹)
+
 lemma nhds_left_sup_nhds_right (a : α) [topological_space α] [linear_order α] :
   nhds_within a (Iic a) ⊔ nhds_within a (Ici a) = 𝓝 a :=
 by rw [← nhds_within_union, Iic_union_Ici, nhds_within_univ]
@@ -2508,6 +2625,47 @@ homeomorph_of_strict_mono_surjective f h_mono (surjective_of_continuous h_cont h
   (f : α → β) (h_mono : strict_mono f) (h_cont : continuous f) (h_top : tendsto f at_top at_top)
   (h_bot : tendsto f at_bot at_bot) :
   (homeomorph_of_strict_mono_continuous f h_mono h_cont h_top h_bot : α → β) = f := rfl
+
+/- Now we prove a relative version of the above result.  This (`Ioo` to `univ`) is provided as a
+sample; there are at least 16 possible variations with open intervals (`univ` to `Ioo`, `Ioi` to
+`univ`, ...), not to mention the possibilities with closed or half-closed intervals. -/
+variables {a b : α}
+
+/-- If `f : α → β` is strictly monotone and continuous on the interval `Ioo a b` of `α`, and tends
+to `at_top` within `𝓝[Iio b] b` and to `at_bot` within `𝓝[Ioi a] a`, then it restricts to a
+homeomorphism from `Ioo a b` to `β`. -/
+noncomputable def homeomorph_of_strict_mono_continuous_Ioo
+  (f : α → β) (h : a < b)
+  (h_mono : ∀ ⦃x y : α⦄, a < x → y < b → x < y → f x < f y)
+  (h_cont : continuous_on f (Ioo a b))
+  (h_top : tendsto f (𝓝[Iio b] b) at_top)
+  (h_bot : tendsto f (𝓝[Ioi a] a) at_bot) :
+  homeomorph (Ioo a b) β :=
+@homeomorph_of_strict_mono_continuous _ _ _ _
+(@ord_connected_subset_conditionally_complete_linear_order α (Ioo a b) _
+  ⟨classical.choice (nonempty_Ioo_subtype h)⟩ _)
+_ _ _ _
+(restrict f (Ioo a b))
+(λ x y, h_mono x.2.1 y.2.2)
+(continuous_on_iff_continuous_restrict.mp h_cont)
+begin
+  rw [restrict_eq f (Ioo a b), Ioo_at_top_eq_nhds_within h],
+  exact h_top.comp tendsto_comap
+end
+begin
+  rw [restrict_eq f (Ioo a b), Ioo_at_bot_eq_nhds_within h],
+  exact h_bot.comp tendsto_comap
+end
+
+@[simp] lemma coe_homeomorph_of_strict_mono_continuous_Ioo
+  (f : α → β) (h : a < b)
+  (h_mono : ∀ ⦃x y : α⦄, a < x → y < b → x < y → f x < f y)
+  (h_cont : continuous_on f (Ioo a b))
+  (h_top : tendsto f (𝓝[Iio b] b) at_top)
+  (h_bot : tendsto f (𝓝[Ioi a] a) at_bot) :
+  (homeomorph_of_strict_mono_continuous_Ioo f h h_mono h_cont h_top h_bot : Ioo a b → β)
+  = restrict f (Ioo a b) :=
+rfl
 
 end conditionally_complete_linear_order
 

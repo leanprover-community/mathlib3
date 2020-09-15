@@ -311,5 +311,35 @@ begin
   rwa [has_generalized_eigenvalue, generalized_eigenspace, pow_one]
 end
 
+/-- Every generalized eigenvector is a generalized eigenvector for exponent `findim K V`. -/
+lemma generalized_eigenspace_le_generalized_eigenspace_findim
+  [field K] [vector_space K V] [finite_dimensional K V]
+  (f : End K V) (μ : K) (k : ℕ) :
+  f.generalized_eigenspace μ k ≤ f.generalized_eigenspace μ (findim K V) :=
+ker_pow_le_ker_pow_findim _ _
+
+/-- Generalized eigenspaces for exponents at least `findim K V` are equal to each other. -/
+lemma generalized_eigenspace_eq_generalized_eigenspace_findim_of_le
+  [field K] [vector_space K V] [finite_dimensional K V]
+  (f : End K V) (μ : K) {k : ℕ} (hk : findim K V ≤ k) :
+  f.generalized_eigenspace μ k = f.generalized_eigenspace μ (findim K V) :=
+ker_pow_eq_ker_pow_findim_of_le hk
+
+/-- If `f` maps a subspace `p` into itself, then the generalized eigenspace of the restriction
+    of `f` to `p` is the part of the generalized eigenspace of `f` that lies in `p`. -/
+lemma generalized_eigenspace_restrict [field K] [vector_space K V]
+  (f : End K V) (p : submodule K V) (k : ℕ) (μ : K) (hfp : ∀ (x : V), x ∈ p → f x ∈ p) :
+  generalized_eigenspace (linear_map.restrict f hfp) μ k =
+    submodule.comap p.subtype (f.generalized_eigenspace μ k) :=
+begin
+  rw [generalized_eigenspace, generalized_eigenspace, ←linear_map.ker_comp],
+  induction k with k ih,
+  { rw [pow_zero,pow_zero],
+    convert linear_map.ker_id,
+    apply submodule.ker_subtype },
+  { erw [pow_succ', pow_succ', linear_map.ker_comp,
+      ih, ←linear_map.ker_comp, linear_map.comp_assoc], }
+end
+
 end End
 end module

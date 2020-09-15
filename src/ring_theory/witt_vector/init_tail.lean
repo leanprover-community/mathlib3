@@ -8,9 +8,55 @@ import ring_theory.witt_vector.basic
 import ring_theory.witt_vector.is_poly
 import ring_theory.witt_vector.witt_vector_preps
 
+/-!
+
+# `init` and `tail`
+
+Given a Witt vecfor `x`, we are sometimes interested in its components before and after an index `n`.
+This file defines those operations, proves that `init` is a polynomial, and shows how that polynomial
+interacts with `mv_polynomial.bind₁`.
+
+## Main declarations
+
+* `witt_vector.init x n`: the first `n` coefficients of `x`, as a Witt vector. All coefficients at
+  indices ≥ `n` are 0.
+* `witt_vector.tail x n`: the complementary part to `init`. All coefficients at indices < `n` are 0,
+  otherwise they are the same as in `x`.
+
+-/
+
 variables {p : ℕ} [hp : fact p.prime] (n : ℕ) {R : Type*} [comm_ring R]
 
 local notation `𝕎` := witt_vector p -- type as `\bbW`
+
+namespace tactic
+namespace interactive
+setup_tactic_parser
+
+/--
+`init_ring` is an auxiliary tactic that discharges goals factoring `init` over ring operations.
+-/
+meta def init_ring (assert : parse (tk "using" >> parser.pexpr)?) : tactic unit := do
+`[rw ext_iff,
+  intros i,
+  simp only [init, coeff_mk],
+  split_ifs with hi; try {refl}],
+match assert with
+| none := skip
+| some e := do
+  `[simp only [add_coeff, mul_coeff, neg_coeff],
+    apply eval₂_hom_congr' (ring_hom.ext_int _ _) _ rfl,
+    rintro ⟨b, k⟩ h -],
+  tactic.replace `h ```(%%e p _ h),
+  `[simp only [finset.mem_range, finset.mem_product, true_and, finset.mem_univ] at h,
+    have hk : k < n, by linarith,
+    fin_cases b;
+    simp only [function.uncurry, matrix.cons_val_zero, matrix.head_cons, coeff_mk, matrix.cons_val_one,
+      coeff_mk, hk, if_true]]
+end
+
+end interactive
+end tactic
 
 namespace witt_vector
 open mv_polynomial
@@ -28,66 +74,19 @@ include hp
 @[simp]
 lemma init_init (x : 𝕎 R) (n : ℕ) :
   init (init x n) n = init x n :=
-begin
-  rw ext_iff,
-  intros i,
-  simp only [init, coeff_mk],
-  split_ifs with hi; refl,
-end
+by init_ring
 
 lemma init_add (x y : 𝕎 R) (n : ℕ) :
   init (x + y) n = init (init x n + init y n) n :=
-begin
-  rw ext_iff,
-  intros i,
-  simp only [init, coeff_mk],
-  split_ifs with hi, swap, refl,
-  simp only [add_coeff],
-  apply eval₂_hom_congr' (ring_hom.ext_int _ _) _ rfl,
-  rintro ⟨b, k⟩ h -,
-  replace h := witt_add_vars p _ h,
-  simp only [finset.mem_range, finset.mem_product, true_and, finset.mem_univ] at h,
-  have hk : k < n, by linarith,
-  fin_cases b;
-  simp only [function.uncurry, matrix.cons_val_zero, matrix.head_cons, coeff_mk, matrix.cons_val_one,
-    coeff_mk, hk, if_true],
-end
+by init_ring using witt_add_vars
 
 lemma init_mul (x y : 𝕎 R) (n : ℕ) :
   init (x * y) n = init (init x n * init y n) n :=
-begin
-  rw ext_iff,
-  intros i,
-  simp only [init, coeff_mk],
-  split_ifs with hi, swap, refl,
-  simp only [mul_coeff],
-  apply eval₂_hom_congr' (ring_hom.ext_int _ _) _ rfl,
-  rintro ⟨b, k⟩ h -,
-  replace h := witt_mul_vars p _ h,
-  simp only [finset.mem_range, finset.mem_product, true_and, finset.mem_univ] at h,
-  have hk : k < n, by linarith,
-  fin_cases b;
-  simp only [function.uncurry, matrix.cons_val_zero, matrix.head_cons, coeff_mk, matrix.cons_val_one,
-    coeff_mk, hk, if_true],
-end
+by init_ring using witt_mul_vars
 
 lemma init_neg (x : 𝕎 R) (n : ℕ) :
   init (-x) n = init (-init x n) n :=
-begin
-  rw ext_iff,
-  intros i,
-  simp only [init, coeff_mk],
-  split_ifs with hi, swap, refl,
-  simp only [neg_coeff],
-  apply eval₂_hom_congr' (ring_hom.ext_int _ _) _ rfl,
-  rintro ⟨b, k⟩ h -,
-  replace h := witt_neg_vars p _ h,
-  simp only [finset.mem_range, finset.mem_product, true_and, finset.mem_univ] at h,
-  have hk : k < n, by linarith,
-  fin_cases b;
-  simp only [function.uncurry, matrix.cons_val_zero, matrix.head_cons, coeff_mk, matrix.cons_val_one,
-    coeff_mk, hk, if_true],
-end
+by init_ring using witt_neg_vars
 
 lemma init_sub (x y : 𝕎 R) (n : ℕ) :
   init (x - y) n = init (init x n - init y n) n :=

@@ -18,9 +18,16 @@ local notation `𝕎` := witt_vector p -- type as `\bbW`
 local attribute [semireducible] witt_vector
 local attribute [instance] mv_polynomial.invertible_rat_coe_nat
 
-def verschiebung_fun : 𝕎 R → 𝕎 R
-| x 0     := 0
-| x (n+1) := x n
+def verschiebung_fun (x : 𝕎 R) : 𝕎 R :=
+mk p $ λ n, if n = 0 then 0 else x.coeff (n - 1)
+
+lemma verschiebung_fun_coeff (x : 𝕎 R) (n : ℕ) :
+  (verschiebung_fun x).coeff n = if n = 0 then 0 else x.coeff (n - 1) :=
+by rw [verschiebung_fun, coeff_mk]
+
+lemma verschiebung_fun_coeff_zero (x : 𝕎 R) :
+  (verschiebung_fun x).coeff 0 = 0 :=
+by rw [verschiebung_fun_coeff, if_pos rfl]
 
 include hp
 
@@ -31,17 +38,18 @@ by { ext ⟨-, -⟩, exact f.map_zero, refl }
 
 @[simp] lemma ghost_component_zero_verschiebung_fun (x : 𝕎 R) :
   ghost_component 0 (verschiebung_fun x) = 0 :=
-by simp only [ghost_component, aeval_witt_polynomial, verschiebung_fun,
-    pow_one, finset.sum_singleton, finset.range_one, nat.pow_zero, mul_zero]
+by rw [ghost_component_apply, aeval_witt_polynomial, finset.range_one, finset.sum_singleton,
+       verschiebung_fun_coeff_zero, pow_zero, pow_zero, pow_one, one_mul]
 
 @[simp] lemma ghost_component_verschiebung_fun (x : 𝕎 R) (n : ℕ) :
   ghost_component (n + 1) (verschiebung_fun x) = p * ghost_component n x :=
 begin
   simp only [ghost_component, aeval_witt_polynomial],
-  rw [finset.sum_range_succ', verschiebung_fun, zero_pow (nat.pow_pos hp.pos _), mul_zero, add_zero,
-      finset.mul_sum, finset.sum_congr rfl],
+  rw [finset.sum_range_succ', verschiebung_fun_coeff, if_pos rfl, zero_pow (nat.pow_pos hp.pos _),
+      mul_zero, add_zero, finset.mul_sum, finset.sum_congr rfl],
   rintro i -,
-  rw [pow_succ, mul_assoc, verschiebung_fun, nat.succ_sub_succ],
+  simp only [pow_succ, mul_assoc, verschiebung_fun_coeff, if_neg (nat.succ_ne_zero i),
+    nat.succ_sub_succ, nat.sub_zero]
 end
 
 lemma verschiebung_add_aux₁ (x y : 𝕎 (mv_polynomial R ℚ)) :
@@ -70,12 +78,7 @@ noncomputable
 def verschiebung : 𝕎 R →+ 𝕎 R :=
 { to_fun := verschiebung_fun,
   map_zero' :=
-  begin
-    ext ⟨⟩,
-    { rw zero_coeff, refl },
-    { calc coeff n (0 : 𝕎 R) = 0             : by rw zero_coeff
-                            ... = coeff (n+1) 0 : by rw zero_coeff, }
-  end,
+  by ext ⟨⟩; rw [verschiebung_fun_coeff]; simp only [if_true, eq_self_iff_true, zero_coeff, if_t_t],
   map_add' :=
   begin
     intros x y,
@@ -121,14 +124,17 @@ if n = 0 then 0 else X (n-1)
 @[simp] lemma verschiebung_poly_zero :
   verschiebung_poly p 0 = 0 := rfl
 
+set_option pp.implicit true
+set_option pp.structure_projections false
+
 @[simps { fully_applied := ff }]
 def verschiebung_is_poly : is_poly p (λ R _Rcr, @verschiebung p R hp _Rcr) :=
 { poly := verschiebung_poly p,
   coeff :=
   begin
-    rintro n R _Rcr x,
+    rintro n R _Rcr x, resetI,
     cases n,
-    { simp only [verschiebung_poly, verschiebung_coeff_zero, if_pos rfl, alg_hom.map_zero], },
+    { simp only [verschiebung_poly, verschiebung_coeff_zero, if_pos rfl, alg_hom.map_zero] },
     { rw [verschiebung_poly, verschiebung_coeff_succ, if_neg (n.succ_ne_zero),
           aeval_X, nat.succ_eq_add_one, nat.add_sub_cancel], }
   end }

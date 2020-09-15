@@ -21,7 +21,7 @@ local attribute [instance] mv_polynomial.invertible_rat_coe_nat
 
 /--
 `verschiebung_fun x` shifts the coefficients of `x` up by one, by inserting 0 as the 0th coefficient.
-`x i` then becomes `verchiebung_fun x (i + 1)`.
+`x.coeff i` then becomes `(verchiebung_fun x).coeff (i + 1)`.
 
 `verschiebung_fun` is the underlying function of the additive monoid hom `witt_vector.verschiebung`.
 -/
@@ -85,7 +85,7 @@ variables {R}
 
 /--
 `verschiebung x` shifts the coefficients of `x` up by one, by inserting 0 as the 0th coefficient.
-`x i` then becomes `verchiebung x (i + 1)`.
+`x.coeff i` then becomes `(verchiebung x).coeff (i + 1)`.
 
 This is a additive monoid hom with underlying function `verschiebung_fun`.
 -/
@@ -135,19 +135,16 @@ noncomputable theory
 variables (p)
 
 omit hp
-include p
 
--- does this need the `p` argument?
 /--
 The 0th Verschiebung polynomial is 0. For `n > 0`, the `n`th Verschiebung polynomial is the
 variable `X (n-1)`.
 -/
-@[nolint unused_arguments]
 def verschiebung_poly (n : ℕ) : mv_polynomial ℕ ℤ :=
 if n = 0 then 0 else X (n-1)
 
 @[simp] lemma verschiebung_poly_zero :
-  verschiebung_poly p 0 = 0 := rfl
+  verschiebung_poly 0 = 0 := rfl
 
 set_option pp.implicit true
 set_option pp.structure_projections false
@@ -157,7 +154,7 @@ set_option pp.structure_projections false
 -/
 @[simps { fully_applied := ff }]
 def verschiebung_is_poly : is_poly p (λ R _Rcr, @verschiebung p R hp _Rcr) :=
-{ poly := verschiebung_poly p,
+{ poly := verschiebung_poly,
   coeff :=
   begin
     rintro n R _Rcr x, resetI,
@@ -169,7 +166,7 @@ def verschiebung_is_poly : is_poly p (λ R _Rcr, @verschiebung p R hp _Rcr) :=
 
 include hp
 lemma bind₁_verschiebung_poly_witt_polynomial (n : ℕ) :
-  bind₁ (verschiebung_poly p) (witt_polynomial p ℤ n) =
+  bind₁ verschiebung_poly (witt_polynomial p ℤ n) =
   if n = 0 then 0 else p * witt_polynomial p ℤ (n-1) :=
 begin
   have aux : ∀ k : ℕ, p ^ k ≠ 0,

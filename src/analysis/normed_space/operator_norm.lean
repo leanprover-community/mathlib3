@@ -395,21 +395,26 @@ begin
     rw [dist_eq_norm, dist_eq_norm, ← f.map_sub, H] }
 end
 
-lemma homothety_norm [nontrivial E] (f : E →L[𝕜] F) {a : ℝ} (ha : 0 ≤ a) (hf : ∀x, ∥f x∥ = a * ∥x∥) :
+lemma homothety_norm [nontrivial E] (f : E →L[𝕜] F) {a : ℝ} (hf : ∀x, ∥f x∥ = a * ∥x∥) :
   ∥f∥ = a :=
 begin
+  obtain ⟨x, hx⟩ : ∃ (x : E), x ≠ 0 := exists_ne 0,
+  have ha : 0 ≤ a,
+  { apply nonneg_of_mul_nonneg_right,
+    rw ← hf x,
+    apply norm_nonneg,
+    exact norm_pos_iff.mpr hx },
   refine le_antisymm_iff.mpr ⟨_, _⟩,
   { exact continuous_linear_map.op_norm_le_bound f ha (λ y, le_of_eq (hf y)) },
   { rw continuous_linear_map.norm_def,
     apply real.lb_le_Inf _ continuous_linear_map.bounds_nonempty,
-    obtain ⟨x, hx⟩ : ∃ (x : E), x ≠ 0 := exists_ne 0,
     intros c h, rw mem_set_of_eq at h,
     apply (mul_le_mul_right (norm_pos_iff.mpr hx)).mp,
     rw ← hf x, exact h.2 x }
 end
 
 lemma to_span_singleton_norm (x : E) : ∥to_span_singleton 𝕜 x∥ = ∥x∥ :=
-homothety_norm _ (norm_nonneg x) (to_span_singleton_homothety 𝕜 x)
+homothety_norm _ (to_span_singleton_homothety 𝕜 x)
 
 variable (f)
 
@@ -650,7 +655,7 @@ by simp [continuous_linear_map.smul_rightL, continuous_linear_map.smul_rightₗ]
 
 @[simp] lemma norm_smul_rightL (c : E →L[𝕜] 𝕜) [nontrivial F] :
   ∥(c.smul_rightL : F →L[𝕜] (E →L[𝕜] F))∥ = ∥c∥ :=
-continuous_linear_map.homothety_norm _ (norm_nonneg _) c.norm_smul_right_apply
+continuous_linear_map.homothety_norm _ c.norm_smul_right_apply
 
 variables (𝕜 F)
 
@@ -878,7 +883,7 @@ lemma coord_norm (x : E) (h : x ≠ 0) : ∥coord 𝕜 x h∥ = ∥x∥⁻¹ :=
 begin
   have hx : 0 < ∥x∥ := (norm_pos_iff.mpr h),
   haveI : nontrivial (submodule.span 𝕜 ({x} : set E)) := submodule.nontrivial_span_singleton h,
-  exact continuous_linear_map.homothety_norm _ (le_of_lt (inv_pos.mpr hx))
+  exact continuous_linear_map.homothety_norm _
         (λ y, homothety_inverse _ hx _ (to_span_nonzero_singleton_homothety 𝕜 x h) _)
 end
 

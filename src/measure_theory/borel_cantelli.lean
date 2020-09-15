@@ -8,16 +8,16 @@ open_locale filter topological_space big_operators
 section
 variables {α : Type u} [complete_lattice α]
 
-lemma supr_le_eq_supr_add {u : ℕ → α} (n : ℕ) : (⨆ i ≥ n, u i) = ⨆ i, u (i + n) :=
+lemma supr_ge_eq_supr_nat_add {u : ℕ → α} (n : ℕ) : (⨆ i ≥ n, u i) = ⨆ i, u (i + n) :=
 begin
   apply le_antisymm;
   simp only [supr_le_iff],
-  { exact λ i hi, le_Sup ⟨i - n, by { dsimp only [], congr, omega }⟩ },
-  { exact λ i, le_Sup ⟨i + n, by simp⟩ }
+  { exact λ i hi, le_Sup ⟨i - n, by { dsimp only, congr, omega }⟩ },
+  { exact λ i, le_Sup ⟨i + n, by squeeze_simp⟩ }
 end
 
 lemma limsup_eq_infi_supr_of_nat' {u : ℕ → α} : limsup at_top u = ⨅n:ℕ, ⨆i, u (i + n) :=
-by simp only [limsup_eq_infi_supr_of_nat, supr_le_eq_supr_add]
+by simp only [limsup_eq_infi_supr_of_nat, supr_ge_eq_supr_nat_add]
 
 end
 
@@ -29,13 +29,13 @@ by simp only [←nnreal.coe_lt_coe, nnreal.coe_sub h, nnreal.coe_add, sub_lt_iff
 lemma ne_top_of_tsum_ne_top {α : Type*} {f : α → ennreal} : (∑' i, f i) ≠ ⊤ → ∀ x, f x ≠ ⊤ :=
 by { contrapose!, exact λ ⟨x, hx⟩, top_le_iff.1 (le_trans (top_le_iff.2 hx) (ennreal.le_tsum _)) }
 
-lemma to_nnreal_of_sum_ne_top {α : Type*} {f : α → ennreal} (hf : (∑' i, f i) ≠ ⊤) (x : α) :
+lemma to_nnreal_apply_of_tsum_ne_top {α : Type*} {f : α → ennreal} (hf : (∑' i, f i) ≠ ⊤) (x : α) :
   (((ennreal.to_nnreal ∘ f) x : nnreal) : ennreal) = f x :=
 ennreal.coe_to_nnreal (ne_top_of_tsum_ne_top hf _)
 
 lemma summable_to_nnreal {α : Type u} {f : α → ennreal} (hf : (∑' i, f i) ≠ ⊤) :
   summable (ennreal.to_nnreal ∘ f) :=
-by simpa only [←ennreal.tsum_coe_ne_top_iff_summable, to_nnreal_of_sum_ne_top hf] using hf
+by simpa only [←ennreal.tsum_coe_ne_top_iff_summable, to_nnreal_apply_of_tsum_ne_top hf] using hf
 
 lemma nnreal.not_lt_zero {a : nnreal} : ¬(a < 0) := by simp
 
@@ -78,11 +78,10 @@ lemma has_sum_zero_iff {α : Type*} {β : Type*} [topological_space α]
   [canonically_ordered_add_monoid α] [order_closed_topology α] {f : β → α} :
   has_sum f 0 ↔ ∀ x, f x = 0 :=
 begin
-  split,
+  refine ⟨_, λ h, _⟩,
   { contrapose!,
     exact λ ⟨x, hx⟩ h, irrefl _ (lt_of_lt_of_le (zero_lt_iff_ne_zero.2 hx) (le_has_sum' h x)) },
-  { intro h,
-    convert has_sum_zero,
+  { convert has_sum_zero,
     exact funext h }
 end
 
@@ -91,8 +90,9 @@ lemma tsum_eq_zero_iff {α : Type*} {β : Type*} [topological_space α]
   (∑' i, f i) = 0 ↔ ∀ x, f x = 0 :=
 by rw [←has_sum_zero_iff, hf.has_sum_iff]
 
-lemma nnreal.tendsto_sum_add
-  (f : ℕ → nnreal) (hf : summable f) : tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
+/-- If `f : ℕ → ℝ≥0` and `∑' f` exists, then `∑' k, f (k + i)` tends to zero.-/
+lemma nnreal.tendsto_sum_nat_add (f : ℕ → nnreal) (hf : summable f) :
+  tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
 begin
   by_cases h : ∀ i, f i = 0,
   { simp only [h, tsum_zero],
@@ -122,15 +122,15 @@ begin
       (λ _, le_refl _) (nnreal.summable_nat_add _ hf _) hf }
 end
 
-lemma ennreal.tendsto_sum_add (f : ℕ → ennreal) (hf : (∑' i, f i) ≠ ⊤) :
+lemma ennreal.tendsto_sum_nat_add (f : ℕ → ennreal) (hf : (∑' i, f i) ≠ ⊤) :
   tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
 begin
   have : ∀ i, (∑' k, (((ennreal.to_nnreal ∘ f) (k + i) : nnreal) : ennreal)) =
     (∑' k, (ennreal.to_nnreal ∘ f) (k + i) : nnreal) :=
     λ i, (ennreal.coe_tsum (nnreal.summable_nat_add _ (summable_to_nnreal hf) _)).symm,
-  simp only [λ x, (to_nnreal_of_sum_ne_top hf x).symm, ←ennreal.coe_zero,
+  simp only [λ x, (to_nnreal_apply_of_tsum_ne_top hf x).symm, ←ennreal.coe_zero,
     this, ennreal.tendsto_coe] { single_pass := tt },
-  exact nnreal.tendsto_sum_add _ (summable_to_nnreal hf)
+  exact nnreal.tendsto_sum_nat_add _ (summable_to_nnreal hf)
 end
 
 end
@@ -149,7 +149,7 @@ begin
     (tendsto_measure_Inter (λ i, is_measurable.Union (λ b, hs (b + i))) _
       ⟨0, lt_of_le_of_lt (measure_Union_le s) (ennreal.lt_top_iff_ne_top.2 hs')⟩)
     (tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds
-      (ennreal.tendsto_sum_add (μ ∘ s) hs')
+      (ennreal.tendsto_sum_nat_add (μ ∘ s) hs')
       (eventually_of_forall (by simp only [forall_const, zero_le]))
       (eventually_of_forall (λ i, measure_Union_le _))),
 
@@ -162,3 +162,4 @@ begin
 end
 
 end
+#lint

@@ -597,6 +597,7 @@ by haveI : nonempty {i // p i} := (let ⟨i, hi⟩ := h in ⟨⟨i, hi⟩⟩);
 theorem supr_sup_eq {f g : β → α} : (⨆ x, f x ⊔ g x) = (⨆ x, f x) ⊔ (⨆ x, g x) :=
 @infi_inf_eq (order_dual α) β _ _ _
 
+
 /- supr and infi under Prop -/
 
 @[simp] theorem infi_false {s : false → α} : infi s = ⊤ :=
@@ -828,6 +829,18 @@ le_antisymm
 theorem supr_sum {γ : Type*} {f : β ⊕ γ → α} :
   (⨆ x, f x) = (⨆ i, f (sum.inl i)) ⊔ (⨆ j, f (sum.inr j)) :=
 @infi_sum (order_dual α) _ _ _ _
+
+/-!
+### `supr` and `infi` under `ℕ`
+-/
+
+lemma supr_ge_eq_supr_nat_add {u : ℕ → α} (n : ℕ) : (⨆ i ≥ n, u i) = ⨆ i, u (i + n) :=
+begin
+  apply le_antisymm;
+  simp only [supr_le_iff],
+  { exact λ i hi, le_Sup ⟨i - n, by { dsimp only, rw nat.sub_add_cancel hi }⟩ },
+  { exact λ i, le_Sup ⟨i + n, by simp⟩ }
+end
 
 end
 

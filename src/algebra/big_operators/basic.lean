@@ -1029,12 +1029,17 @@ multiset.induction_on s rfl
             finset.sum_const_zero, ih, count_eq_zero_of_not_mem ha, zero_add, add_comm, card_cons] }
       end)
 
-lemma to_finset_sum_count_smul_eq (s : multiset α) : (∑ a in s.to_finset, s.count a •ℕ (a :: 0)) = s :=
+lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
+  count a (∑ x in s, f x) = ∑ x in s, count a (f x) :=
+by { dunfold finset.sum, rw count_sum }
+
+lemma to_finset_sum_count_smul_eq (s : multiset α) :
+  (∑ a in s.to_finset, s.count a •ℕ (a :: 0)) = s :=
 begin
   apply ext', intro b,
-  erw count_bind,
+  rw count_sum',
   have h : count b s = count b (count b s •ℕ (b :: 0)),
-  { rw [count_smul, ← singleton_coe, count_singleton, mul_one] },
+  { rw [singleton_coe, count_smul, ← singleton_coe, count_singleton, mul_one] },
   rw h, clear h,
   apply finset.sum_eq_single b,
   { intros c h hcb, rw count_smul, convert mul_zero (count c s),

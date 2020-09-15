@@ -1689,9 +1689,12 @@ begin
   rw [← count_add, sub_add_inter, count_sub, sub_add_min],
 end
 
+lemma count_sum {m : multiset β} {f : β → multiset α} {a : α} :
+  count a (map f m).sum = sum (m.map $ λb, count a $ f b) :=
+multiset.induction_on m (by simp) ( by simp)
+
 lemma count_bind {m : multiset β} {f : β → multiset α} {a : α} :
-  count a (bind m f) = sum (m.map $ λb, count a $ f b) :=
-multiset.induction_on m (by simp) (by simp)
+  count a (bind m f) = sum (m.map $ λb, count a $ f b) := count_sum
 
 theorem le_count_iff_repeat_le {a : α} {s : multiset α} {n : ℕ} : n ≤ count a s ↔ repeat a n ≤ s :=
 quot.induction_on s $ λ l, le_count_iff_repeat_sublist.trans repeat_le_coe.symm

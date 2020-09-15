@@ -55,6 +55,10 @@ open_locale big_operators
 variables (p)
 include hp
 
+/-- The rational polynomials that give the coefficients of `frobenius x`,
+in terms of the coefficients of `x`.
+These polynomials actually have integral coefficients,
+see `frobenius_poly` and `map_frobenius_poly`. -/
 def frobenius_poly_rat (n : ℕ) : mv_polynomial ℕ ℚ :=
 bind₁ (witt_polynomial p ℚ ∘ λ n, n + 1) (X_in_terms_of_W p ℚ n)
 
@@ -65,29 +69,36 @@ begin
   rw [← bind₁_bind₁, bind₁_X_in_terms_of_W_witt_polynomial, bind₁_X_right],
 end
 
--- move this?
-def pnat_multiplicity (n : ℕ+) : ℕ :=
+/-- An auxilliary definition, to avoid an excessive amount of finiteness proofs
+for `multiplicity p n`. -/
+private def pnat_multiplicity (n : ℕ+) : ℕ :=
 (multiplicity p n).get $ multiplicity.finite_nat_iff.mpr $ ⟨ne_of_gt hp.one_lt, n.2⟩
 
-local notation `vp` k := pnat_multiplicity p k
+local notation `v` := pnat_multiplicity
 
+/-- An auxilliary polynomial over the integers, that satisfies
+`(frobenius_poly_aux p n - X n ^ p) / p = frobenius_poly p n`.
+This makes it easy to show that `frobenius_poly p n` is congruent to `X n ^ p`
+modulo `p`. -/
 noncomputable
 def frobenius_poly_aux : ℕ → mv_polynomial ℕ ℤ
 | n := X (n + 1) - ∑ i : fin n, have _ := i.is_lt,
   ∑ j in range (p ^ (n - i)), (X i ^ p) ^ (p ^ (n - i) - (j + 1)) *
                               (frobenius_poly_aux i) ^ (j + 1) *
-                              C ↑((p ^ (n - i)).choose (j + 1) / (p ^ (n - i - vp ⟨j + 1, nat.succ_pos j⟩)) *
-                                ↑p ^ (j - vp ⟨j + 1, nat.succ_pos j⟩) : ℕ)
+                              C ↑((p ^ (n - i)).choose (j + 1) / (p ^ (n - i - v p ⟨j + 1, nat.succ_pos j⟩)) *
+                                ↑p ^ (j - v p ⟨j + 1, nat.succ_pos j⟩) : ℕ)
 
 lemma frobenius_poly_aux_eq (n : ℕ) :
   frobenius_poly_aux p n =
   X (n + 1) - ∑ i in range n, ∑ j in range (p ^ (n - i)),
     (X i ^ p) ^ (p ^ (n - i) - (j + 1)) *
     (frobenius_poly_aux p i) ^ (j + 1) *
-    C ↑((p ^ (n - i)).choose (j + 1) / (p ^ (n - i - vp ⟨j + 1, nat.succ_pos j⟩)) *
-      ↑p ^ (j - vp ⟨j + 1, nat.succ_pos j⟩) : ℕ) :=
+    C ↑((p ^ (n - i)).choose (j + 1) / (p ^ (n - i - v p ⟨j + 1, nat.succ_pos j⟩)) *
+      ↑p ^ (j - v p ⟨j + 1, nat.succ_pos j⟩) : ℕ) :=
 by { rw [frobenius_poly_aux, ← fin.sum_univ_eq_sum_range], refl }
 
+/-- The polynomials that give the coefficients of `frobenius x`,
+in terms of the coefficients of `x`. -/
 def frobenius_poly (n : ℕ) : mv_polynomial ℕ ℤ :=
 X n ^ p + C ↑p * (frobenius_poly_aux p n)
 
@@ -97,11 +108,13 @@ Our next goal is to prove
 lemma map_frobenius_poly (n : ℕ) :
   mv_polynomial.map (int.cast_ring_hom ℚ) (frobenius_poly p n) = frobenius_poly_rat p n
 ```
+This lemma has a rather long proof, but it mostly boils down to applying induction,
+and then using the following two key facts at the right point.
 -/
 
 /-- A key divisibility fact for the proof of `witt_vector.map_frobenius_poly`. -/
-lemma map_frobenius_poly.aux₁ (n j : ℕ) (hj : j < p ^ (n)) :
-  p ^ (n - vp ⟨j + 1, j.succ_pos⟩) ∣ (p ^ n).choose (j + 1) :=
+lemma map_frobenius_poly.key₁ (n j : ℕ) (hj : j < p ^ (n)) :
+  p ^ (n - v p ⟨j + 1, j.succ_pos⟩) ∣ (p ^ n).choose (j + 1) :=
 begin
   apply multiplicity.pow_dvd_of_le_multiplicity,
   have aux : (multiplicity p ((p ^ n).choose (j + 1))).dom,
@@ -114,11 +127,11 @@ begin
 end
 
 /-- A key numerical identity needed for the proof of `witt_vector.map_frobenius_poly`. -/
-lemma map_frobenius_poly.aux₂ (n i j : ℕ) (hi : i < n) (hj : j < p ^ (n - i)) :
-  j - (vp ⟨j + 1, j.succ_pos⟩) + n =
-    i + j + (n - i - vp ⟨j + 1, j.succ_pos⟩) :=
+lemma map_frobenius_poly.key₂ (n i j : ℕ) (hi : i < n) (hj : j < p ^ (n - i)) :
+  j - (v p ⟨j + 1, j.succ_pos⟩) + n =
+    i + j + (n - i - v p ⟨j + 1, j.succ_pos⟩) :=
 begin
-  generalize h : (vp ⟨j + 1, j.succ_pos⟩) = m,
+  generalize h : (v p ⟨j + 1, j.succ_pos⟩) = m,
   suffices : m ≤ n - i ∧ m ≤ j,
   { cases this, unfreezingI { clear_dependent p }, omega },
   split,
@@ -165,7 +178,6 @@ begin
 
   -- now that we have managed to isolate `X n ^ p`, we gladly cancel it
   rw [add_right_inj],
-
 
   -- the next step is to isolate `C p * X (n + 1)`
   -- to do that, it is time to take a better look at the left hand side
@@ -268,20 +280,24 @@ begin
   congr' 2,
   rw C_inj,
   simp only [inv_of_eq_inv, ring_hom.eq_int_cast, inv_pow', int.cast_coe_nat, nat.cast_mul],
-  rw [rat.coe_nat_div _ _ (map_frobenius_poly.aux₁ p (n - i) j hj)],
+  rw [rat.coe_nat_div _ _ (map_frobenius_poly.key₁ p (n - i) j hj)],
   simp only [nat.cast_pow, pow_add, pow_one],
-  suffices : (p : ℚ) * (((p ^ (n - i)).choose (j + 1)) * p ^ (j - vp ⟨j + 1, j.succ_pos⟩)) * p ^ n =
-    p ^ i * (p ^ j * p) * ((p ^ (n - i)).choose (j + 1)) * p ^ (n - i - vp ⟨j + 1, j.succ_pos⟩),
+  suffices : (p : ℚ) * (((p ^ (n - i)).choose (j + 1)) * p ^ (j - v p ⟨j + 1, j.succ_pos⟩)) * p ^ n =
+    p ^ i * (p ^ j * p) * ((p ^ (n - i)).choose (j + 1)) * p ^ (n - i - v p ⟨j + 1, j.succ_pos⟩),
   { have aux : ∀ k : ℕ, (p ^ k : ℚ) ≠ 0,
     { intro, apply pow_ne_zero, exact_mod_cast hp.ne_zero },
     field_simp [aux], exact this },
-  rw [mul_assoc, mul_assoc, ← pow_add, map_frobenius_poly.aux₂ p n i j hi hj],
+  rw [mul_assoc, mul_assoc, ← pow_add, map_frobenius_poly.key₂ p n i j hi hj],
   ring_exp,
 end
 .
 
 variables {p}
 
+/-- `frobenius_fun` is the function underlying the ring endomorphism
+`frobenius : 𝕎 R →+* frobenius 𝕎 R`.
+
+TODO: show that this is a ring homomorphism, so that we can actually define `frobenius`. -/
 def frobenius_fun (x : 𝕎 R) : 𝕎 R :=
 mk p $ λ n, mv_polynomial.aeval x.coeff (frobenius_poly p n)
 
@@ -291,6 +307,9 @@ coeff_mk _ _ _
 
 variables (p)
 
+/-- `frobenius_fun` is tautologically a polynomial function.
+
+TODO: Once `frobenius_fun` is bundled as a ring hom, upgrade this to use the bundled version. -/
 @[simps { fully_applied := ff }]
 def frobenius_is_poly : is_poly p (λ R _Rcr, @frobenius_fun p R _ _Rcr) :=
 { poly := frobenius_poly p,

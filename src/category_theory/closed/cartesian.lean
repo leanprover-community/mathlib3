@@ -5,7 +5,7 @@ Authors: Bhavik Mehta, Edward Ayers, Thomas Read
 -/
 
 import category_theory.limits.shapes.finite_products
-import category_theory.limits.shapes.constructions.preserve_binary_products
+import category_theory.limits.preserves.binary_products
 import category_theory.closed.monoidal
 import category_theory.monoidal.of_has_finite_products
 import category_theory.adjunction

@@ -209,7 +209,6 @@ by rw [t.app_zero_left, t.app_zero_right]
 lemma cofork.condition (t : cofork f g) : f ≫ cofork.π t = g ≫ cofork.π t :=
 by rw [t.left_app_one, t.right_app_one]
 
-
 /-- To check whether two maps are equalized by both maps of a fork, it suffices to check it for the
     first map -/
 lemma fork.equalizer_ext (s : fork f g) {W : C} {k l : W ⟶ s.X}
@@ -361,8 +360,8 @@ def fork.mk_hom {s t : fork f g} (k : s.X ⟶ t.X) (w : k ≫ t.ι = s.ι) : s �
   w' :=
   begin
     rintro ⟨_|_⟩,
-    exact w,
-    simpa using w =≫ f,
+    { exact w },
+    { simpa using w =≫ f },
   end }
 
 /--

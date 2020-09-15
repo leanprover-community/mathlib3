@@ -56,13 +56,11 @@ namespace gen
 
 section rand
 
-variables [preorder α]
-
 /-- Lift `random.random` to the `gen` monad. -/
 def choose_any [random α] : gen α :=
 ⟨ λ _, rand.random α ⟩
 
-variables {α}
+variables {α} [preorder α]
 
 /-- Lift `random.random_r` to the `gen` monad. -/
 def choose [bounded_random α] (x y : α) (p : x ≤ y) : gen (x .. y) :=

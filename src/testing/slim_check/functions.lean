@@ -62,10 +62,7 @@ string.join $ list.qsort (λ x y, x < y) (m.map $ λ x, sformat!"{repr $ sigma.f
 
 /--
 Produce a string for a given `total_function`.
-
-For `with_default f y`, produce `[x₀ ↦ f x₀, .. xₙ ↦ f xₙ, _ ↦ y]`.
-
-For `map_to_self f`, produce `[x₀ ↦ f x₀, .. xₙ ↦ f xₙ, x ↦ x]`.
+The output is of the form `[x₀ ↦ f x₀, .. xₙ ↦ f xₙ, _ ↦ y]`.
 -/
 protected def repr {α : Type u} [has_repr α] {β : Type v} [has_repr β] : total_function α β → string
 | (total_function.with_default m y) := sformat!"[{repr_aux m}_ ↦ {has_repr.repr y}]"
@@ -84,7 +81,7 @@ def prod.to_sigma {α β} : α × β → Σ _ : α, β
 -- | ⟨x,y⟩ := ⟨x,y⟩
 
 /-- Create a `finmap` from a list of pairs. -/
-def list.to_finmap' {α β} [decidable_eq α] (xs : list (α × β)) : list (Σ _ : α, β) :=
+def list.to_finmap' {α β} (xs : list (α × β)) : list (Σ _ : α, β) :=
 xs.map prod.to_sigma
 
 @[simp]
@@ -102,6 +99,7 @@ section
 
 variables {α : Type u} {β : Type v} [sampleable α] [sampleable β]
 
+/-- Redefine `sizeof` to follow the structure of `sampleable` instances. -/
 def total.sizeof : total_function α β → ℕ
 | ⟨m, x⟩ := 1 + @sizeof _ sampleable.wf m + sizeof x
 
@@ -131,6 +129,7 @@ begin
     assumption }
 end
 
+/-- Shrink a total function by shrinking the lists that represent it. -/
 protected def shrink : shrink_fn (total_function α β)
 | ⟨m, x⟩ := (sampleable.shrink (m, x)).map $ λ ⟨⟨m', x'⟩, h⟩, ⟨⟨list.erase_dupkeys m', x'⟩,
             lt_of_le_of_lt (by unfold_wf; refine @sizeof_erase_dupkeys _ _ _ (@sampleable.wf _ _) _) h ⟩
@@ -181,12 +180,21 @@ i.e. `x` to itself, otherwise.
 inductive injective_function (α : Type u) : Type u
 | map_to_self (xs : list (Σ _ : α, α)) : xs.map sigma.fst ~ xs.map sigma.snd → list.nodup (xs.map sigma.snd) → injective_function
 
+instance {α} : inhabited (injective_function α) :=
+⟨ ⟨ [], list.perm.nil, list.nodup_nil ⟩ ⟩
+
 namespace injective_function
 
 /-- Apply a total function to an argument. -/
 def apply {α : Type u} [decidable_eq α] : injective_function α → α → α
 | (injective_function.map_to_self m _ _) x := (m.lookup x).get_or_else x
 
+/--
+Produce a string for a given `total_function`.
+The output is of the form `[x₀ ↦ f x₀, .. xₙ ↦ f xₙ, x ↦ x]`.
+Unlike for `total_function`, the default value is not a constant
+but the identity function.
+-/
 protected def repr {α : Type u} [has_repr α] : injective_function α → string
 | (injective_function.map_to_self m _ _) := sformat!"[{total_function.repr_aux m}x ↦ x]"
 
@@ -446,15 +454,9 @@ begin
     simp [this, list.inter], }
 end
 
--- def perm.take {α} [decidable_eq α] (n : ℕ) : (Σ' xs ys : list α, xs ~ ys ∧ ys.nodup) → (Σ' xs ys : list α, xs ~ ys ∧ ys.nodup)
--- | ⟨xs, ys, h, h'⟩ :=
---   let xs₀ := xs.take n in
---   have h₀ : xs₀ ~ ys.inter xs₀,
---     from perm.take_inter _ h h',
---   ⟨xs₀, ys.inter xs₀, h₀, nodup_inter_of_nodup _ h'⟩
-
--- #check list.slice .
-
+/--
+`list.slice n m xs` removes a slice of length `m` at index `n` in list `xs`.
+-/
 @[simp]
 def list.slice {α} : ℕ → ℕ → list α → list α
 | 0 n xs := xs.drop n
@@ -532,6 +534,10 @@ begin
     apply perm.filter _ h₁ },
 end
 
+/--
+Remove a slice of length `m` at index `n` in a list and a permutation, maintaining the property
+that it is a permutation.
+-/
 def perm.slice {α} [decidable_eq α] (n m : ℕ) : (Σ' xs ys : list α, xs ~ ys ∧ ys.nodup) → (Σ' xs ys : list α, xs ~ ys ∧ ys.nodup)
 | ⟨xs, ys, h, h'⟩ :=
   let xs' := list.slice n m xs in
@@ -539,52 +545,15 @@ def perm.slice {α} [decidable_eq α] (n m : ℕ) : (Σ' xs ys : list α, xs ~ y
     from perm.slice_inter _ _ h h',
   ⟨xs', ys.inter xs', h₀, nodup_inter_of_nodup _ h'⟩
 
--- def perm.drop {α} [decidable_eq α] (n : ℕ) : (Σ' xs ys : list α, xs ~ ys) → (Σ' xs ys : list α, xs ~ ys)
--- | ⟨xs, ys, h⟩ :=
---   let xs' := xs.split_at n,
---       xs₀ := xs'.1,
---       xs₁ := xs'.2 in
---   have h₁ : xs₁ ~ ys.diff xs₀,
---     begin
---       simp [xs', xs₀, xs₁] at *, clear xs₀ xs₁ xs',
---     end,
---   ⟨xs₁, ys.diff xs₀, h₁⟩
+/--
 
--- def perm.split_at {α} [decidable_eq α] (n : ℕ) : (Σ' xs ys : list α, xs ~ ys) → (Σ' xs ys : list α, xs ~ ys) × (Σ' xs ys : list α, xs ~ ys)
--- | ⟨xs, ys, h⟩ :=
---   let xs' := xs.split_at n,
---       xs₀ := xs'.1,
---       xs₁ := xs'.2 in
---   -- have h₂ : xs₀.subset ys, from _,
---   have h₂ : ys.nodup, from _,
---   have h₀ : xs₀ ~ ys.diff xs₁,
---     begin
---       simp [xs', xs₀, xs₁] at *, clear xs₀ xs₁ xs',
---       induction xs generalizing n ys,
---       { rw ← perm.nil_eq h, simp },
---       { cases n,
---         { simp only [take, drop],
---           symmetry, rw [perm_nil, diff_eq_filter_of_nodup h₂, filter_eq_nil],
---           intros a h₀ h₁, apply h₁,
---           apply @perm.subset _ _ _ h.symm _ h₀ },
---         { simp only [take, drop],
---           cases ys with y ys, rw perm_nil at h, cases h,
---           rw [diff_eq_filter_of_nodup h₂, filter], split_ifs,
---           {  },
---  }
---  },
---     end,
---   have h₁ : xs₁ ~ ys.diff xs₀, from _,
---   (⟨xs₀, ys.diff xs₁, h₀⟩, ⟨xs₁, ys.diff xs₀, h₁⟩)
-
-def small_sizes : ℕ → lazy_list ℕ+
+-/
+def slice_sizes : ℕ → lazy_list ℕ+
 | n :=
 if h : 0 < n then
   have n / 2 < n, from div_lt_self h dec_trivial,
-  lazy_list.cons ⟨_, h⟩ (small_sizes $ n / 2)
+  lazy_list.cons ⟨_, h⟩ (slice_sizes $ n / 2)
 else lazy_list.nil
-
--- #exit
 
 lemma list.sizeof_slice_lt {α} [has_sizeof α] (i j : ℕ) (hj : 0 < j) (xs : list α) (hi : i < xs.length) :
   sizeof (list.slice i j xs) < sizeof xs :=
@@ -605,10 +574,17 @@ begin
       apply lt_of_succ_lt_succ hi, } },
 end
 
+/--
+Shrink a permutation of a list, slicing a segment in the middle.
+
+The sizes of the slice being removed start at `n` (with `n` the length
+of the list) and then `n / 2`, then `n / 4`, etc down to 1. The slices
+will be taken at index `0`, `n / k`, `2n / k`, `3n / k`, etc.
+-/
 protected def shrink_perm {α} [decidable_eq α] [has_sizeof α] : shrink_fn (Σ' xs ys : list α, xs ~ ys ∧ ys.nodup)
 | xs := do
   let k := xs.1.length,
-  n ← small_sizes k,
+  n ← slice_sizes k,
   i ← lazy_list.of_list $ list.fin_range $ k / n,
   have ↑i * ↑n < xs.1.length,
     from nat.lt_of_div_lt_div
@@ -620,6 +596,11 @@ protected def shrink_perm {α} [decidable_eq α] [has_sizeof α] : shrink_fn (Σ
 instance {α} [has_sizeof α] : has_sizeof (injective_function α) :=
 ⟨ λ ⟨xs,_,_⟩, sizeof (xs.map sigma.fst) ⟩
 
+/--
+Shrink an injective function slicing a segment in the middle of the domain and removing
+the corresponding elements in the codomain, hence maintaining the property that
+one is a permutation of the other.
+-/
 protected def shrink {α} [has_sizeof α] [decidable_eq α] : shrink_fn (injective_function α)
 | ⟨xs, h₀, h₁⟩ := do
   ⟨⟨xs', ys', h₀, h₁⟩, h₂⟩ ← injective_function.shrink_perm ⟨_, _, h₀, h₁⟩,
@@ -630,28 +611,10 @@ protected def shrink {α} [has_sizeof α] [decidable_eq α] : shrink_fn (injecti
     by simp [(∘), list.map_snd_zip, *]⟩,
     by revert h₂; dsimp [sizeof_lt]; unfold_wf;
        simp [has_sizeof._match_1, map_map, (∘), list.map_fst_zip, *];
-       unfold_wf; intro h₂; convert h₂
-        ⟩
+       unfold_wf; intro h₂; convert h₂ ⟩
 
-  -- let n := xs.length,
-  -- let ⟨xs₀, xs⟩ := xs.split_at (n / 3),
-  -- let ⟨xs₁, xs₂⟩ := xs.split_at (n / 3),
-  -- ⟨xa₀, xb₀⟩ ← lazy_list.of_list [ ([], xs₀), (xs₀, []) ],
-  -- ⟨xa₁, xb₁⟩ ← lazy_list.of_list [ ([], xs₁), (xs₁, []) ],
-  -- ⟨xa₂, xb₂⟩ ← lazy_list.of_list [ ([], xs₂), (xs₂, []) ],
-  -- let ys' := ys.diff (xb₀ ++ xb₁ ++ xb₂),
-  -- let ys'' := ys'.split_at (ys'.length / 2),
-  -- have hs : xa₀ ++ xa₁ ++ xa₂ ~ ys', from sorry,
-  -- have hs' : xa₀ ++ xa₁ ++ xa₂ ~ ys''.2 ++ ys''.1, from sorry,
-  -- lazy_list.of_list [ ⟨⟨xa₀ ++ xa₁ ++ xa₂, ys', hs⟩, _⟩, ⟨⟨xa₀ ++ xa₁ ++ xa₂, ys''.2 ++ ys''.1, hs'⟩, _⟩ ],
-  -- _
-
-
--- #exit
--- protected def shrink {α} [sampleable α] : shrink_fn (injective_function α)
--- | ⟨m⟩ := (sampleable.shrink m).map $ λ ⟨m', h⟩, ⟨⟨_⟩, _⟩
-
-def injective_function.mk {α} [decidable_eq α] (xs ys : list α) (h : xs ~ ys) (h' : ys.nodup) : injective_function α :=
+/-- Create an injective function from one list and a permutation of that list. -/
+protected def mk {α} (xs ys : list α) (h : xs ~ ys) (h' : ys.nodup) : injective_function α :=
 have h₀ : xs.length ≤ ys.length, from le_of_eq h.length_eq,
 have h₁ : ys.length ≤ xs.length, from le_of_eq h.length_eq.symm,
 injective_function.map_to_self (list.to_finmap' (xs.zip ys))
@@ -681,7 +644,7 @@ end
 
 instance pi_injective.sampleable_ext : sampleable_ext { f : ℤ → ℤ // function.injective f } :=
 { proxy_repr := injective_function ℤ,
-  interp := λ f, ⟨ apply f, f.injective ⟩, -- subtype.map apply $ λ x h, h,
+  interp := λ f, ⟨ apply f, f.injective ⟩,
   sample := gen.sized $ λ sz, do {
     let xs' := int.range (-(2*sz+2)) (2*sz + 2),
     ys ← gen.permutation_of xs',
@@ -689,14 +652,6 @@ instance pi_injective.sampleable_ext : sampleable_ext { f : ℤ → ℤ // funct
     let r : injective_function ℤ := injective_function.mk.{0} xs' ys.1 ys.2 (ys.2.nodup_iff.1 $ nodup_map Hinj (nodup_range _)) in
     pure r },
   shrink := @injective_function.shrink ℤ _ _ }
-
--- -- #check sampleable_ext.shrink .
-
--- def foo' : gen $ lazy_list (sampleable_ext.proxy_repr { f : ℤ → ℤ // function.injective f }) := do
---   x ← sampleable_ext.sample { f : ℤ → ℤ // function.injective f },
---   (pure $ (@sampleable_ext.shrink _ _ x).map subtype.val : gen $ lazy_list _)
-
--- #sample foo'
 
 end injective_function
 

@@ -260,6 +260,7 @@ instance pnat.sampleable : sampleable ℕ+ :=
 sampleable.lift ℕ nat.succ_pnat pnat.nat_pred $ λ a,
 by unfold_wf; simp only [pnat.nat_pred, succ_pnat, pnat.mk_coe, nat.sub_zero, succ_sub_succ_eq_sub]
 
+/-- Redefine `sizeof` for `int` to make it easier to use with `nat` -/
 def int.has_sizeof : has_sizeof ℤ := ⟨ int.nat_abs ⟩
 
 local attribute [instance, priority 2000] int.has_sizeof
@@ -587,15 +588,19 @@ instance sampleable_tree : sampleable_functor tree :=
 /-- Type tag that signals to `slim_check` to use small values for a given type. -/
 def small (α : Type*) := α
 
+/-- Add the `small` type tag -/
 def small.mk {α} (x : α) : small α := x
 
 /-- Type tag that signals to `slim_check` to use large values for a given type. -/
 def large (α : Type*) := α
 
+/-- Add the `large` type tag -/
 def large.mk {α} (x : α) : large α := x
 
 instance small.functor : functor small := id.monad.to_functor
 instance large.functor : functor large := id.monad.to_functor
+instance small.inhabited [inhabited α] : inhabited (small α) := ⟨ (default α : α) ⟩
+instance large.inhabited [inhabited α] : inhabited (large α) := ⟨ (default α : α) ⟩
 
 instance small.sampleable_functor : sampleable_functor small :=
 { wf := _,
@@ -707,6 +712,7 @@ xs ← io.run_rand $ uliftable.down $
        pure ⟨xs.map repr⟩ },
 xs.mmap' io.put_str_ln
 
+/-- Create a `gen α` expression from the argument of `#sample` -/
 meta def mk_generator (e : expr) : tactic (expr × expr) := do
 t ← infer_type e,
 match t with

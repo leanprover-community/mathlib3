@@ -229,6 +229,10 @@ structure slim_check_cfg :=
 
 instance {p} : has_to_string (test_result p) := ⟨ test_result.to_string ⟩
 
+/--
+`printable_prop p` allows one to print a proposition so that
+`slim_check` can indicate how values relate to each other.
+-/
 class printable_prop (p : Prop) :=
 (print_prop : option string)
 
@@ -444,6 +448,9 @@ def combine_testable (p : Prop)
 
 open sampleable_ext
 
+/--
+Format the counter-examples found in a test failure.
+-/
 def format_failure (s : string) (xs : list string) (n : ℕ) : string :=
 let counter_ex := string.intercalate "\n" xs in
 sformat!"
@@ -455,11 +462,17 @@ sformat!"
 -------------------
 "
 
+/--
+Format the counter-examples found in a test failure.
+-/
 def format_failure' (s : string) {p} : test_result p → string
 | (success a) := ""
 | (gave_up a) := ""
 | (test_result.failure _ xs n) := format_failure s xs n
 
+/--
+Increase the number of shrinking steps in a test result.
+-/
 def add_shrinks {p} (n : ℕ) : test_result p → test_result p
 | r@(success a) := r
 | r@(gave_up a) := r

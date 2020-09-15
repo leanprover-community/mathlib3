@@ -6,6 +6,7 @@ Author: Simon Hudon
 import data.finmap
 import data.multiset.sort
 import tactic.find_unused
+import tactic.abel
 import testing.slim_check.sampleable
 import testing.slim_check.testable
 
@@ -348,6 +349,133 @@ end
 open sampleable
 
 #eval list.diff [1,1,2,2] [1]
+
+lemma filter_eq {α} (p q : α → Prop) [decidable_pred p] [decidable_pred q] (l : list α)
+  (h : ∀ x ∈ l, p x ↔ q x) :
+  filter p l = filter q l :=
+begin
+  induction l; simp [filter],
+  have : (∀ (x : α), x ∈ l_tl → (p x ↔ q x)),
+  { introv h', apply h _ (or.inr h') },
+  congr' 1; simp [h, l_ih this],
+end
+
+-- #check perm.take
+
+lemma perm.take_inter {α} [decidable_eq α] {xs ys : list α} (n : ℕ)
+  (h : xs ~ ys) (h' : ys.nodup) :
+  xs.take n ~ ys.inter (xs.take n) :=
+begin
+  simp [list.inter] at *,
+  induction h generalizing n,
+  case list.perm.nil
+  { simp [list.inter], },
+  case list.perm.cons
+  { cases n; simp [list.inter, take],
+    cases h' with h₁ h₂,
+    convert h_ih h'_a_1 n using 1,
+    apply filter_eq,
+    introv h, simp [(h'_a _ h).symm] },
+  case list.perm.swap
+  { rcases h' with ⟨_, _, h₁, h₂⟩,
+    rcases h'_a_2 with ⟨_, _, h₁, h₂⟩,
+    have := h'_a_1 _ (or.inl rfl),
+    cases n; simp,
+    cases n; simp [filter, *],
+    { rw filter_eq_nil.2, intros, solve_by_elim [ne.symm], },
+    { convert perm.swap _ _ _, rw filter_eq _ (∈ take n h_l),
+      { clear h'_a_1, induction n generalizing h_l; simp,
+        cases h_l; simp, cases h'_a_2_a_2,
+        rwa [filter_eq _ (∈ take n_n h_l_tl), n_ih],
+        { introv h, apply h'_a_2_a_1 _ (or.inr h), },
+        { introv h, simp [(h'_a_2_a_2_a_1 _ h).symm], }, },
+      { introv h, simp [(h'_a_2_a_1 _ h).symm, (h'_a_1 _ (or.inr h)).symm], } } },
+  case list.perm.trans
+  { transitivity,
+    { apply h_ih_a, rwa h_a_1.nodup_iff },
+    { apply perm.filter _ h_a_1, } },
+end
+
+lemma reverse_take {α} {xs : list α} (n : ℕ)
+  (h : n ≤ xs.length) :
+  xs.reverse.take n = (xs.drop (xs.length - n)).reverse :=
+begin
+  induction xs generalizing n; simp,
+  cases decidable.lt_or_eq_of_le h with h' h',
+  { replace h' := le_of_succ_le_succ h',
+    rwa [take_append_of_le_length, xs_ih _ h'],
+    rw [show xs_tl.length + 1 - n = succ (xs_tl.length - n), from _, drop],
+    { rwa [succ_eq_add_one, nat.sub_add_comm] },
+    { rwa length_reverse } },
+  { subst h', rw [length, nat.sub_self, drop],
+    rw [show xs_tl.length + 1 = (xs_tl.reverse ++ [xs_hd]).length, from _, take_length, reverse_cons],
+    rw [length_append, length_reverse], refl }
+end
+
+lemma perm.drop_inter {α} [decidable_eq α] {xs ys : list α} (n : ℕ)
+  (h : xs ~ ys) (h' : ys.nodup) :
+  xs.drop n ~ ys.inter (xs.drop n) :=
+begin
+  by_cases h'' : n ≤ xs.length,
+  { let n' := xs.length - n,
+    have h₀ : n = xs.length - n',
+    { dsimp [n'], rwa nat.sub_sub_self, } ,
+    have h₁ : n' ≤ xs.length, sorry,
+    have h₂ : xs.drop n = (xs.reverse.take n').reverse,
+    { rw [reverse_take _ h₁, h₀, reverse_reverse], },
+    rw [h₂],
+    apply (reverse_perm _).trans,
+    convert (perm.take_inter _ h _) using 1,
+    apply perm.filter,
+    apply (reverse_perm _).trans; assumption,
+    simp [n', nat.sub_le], },
+  { have : drop n xs = [],
+    { apply eq_nil_of_length_eq_zero,
+      rw [length_drop, nat.sub_eq_zero_iff_le],
+      apply le_of_not_ge h'' },
+    simp [this, list.inter], }
+end
+
+def perm.take {α} [decidable_eq α] (n : ℕ) : (Σ' xs ys : list α, xs ~ ys ∧ ys.nodup) → (Σ' xs ys : list α, xs ~ ys ∧ ys.nodup)
+| ⟨xs, ys, h, h'⟩ :=
+  let xs₀ := xs.take n in
+  have h₀ : xs₀ ~ ys.inter xs₀,
+    from perm.take_inter _ h h',
+  ⟨xs₀, ys.inter xs₀, h₀, nodup_inter_of_nodup _ h'⟩
+
+-- #check list.slice .
+
+def list.slice {α} : ℕ → ℕ → list α → list α
+| 0 n xs := xs.drop n
+| (succ n) m [] := []
+| (succ n) m (x :: xs) := x :: list.slice n m xs
+
+lemma perm.take_slice {α} [decidable_eq α] {xs ys : list α} (n m : ℕ)
+  (h : xs ~ ys) (h' : ys.nodup) :
+  list.slice n m xs ~ ys.inter (list.slice n m xs) :=
+begin
+  simp [list.inter] at *,
+  induction h generalizing n,
+
+end
+
+def perm.slice {α} [decidable_eq α] (n m : ℕ) : (Σ' xs ys : list α, xs ~ ys ∧ ys.nodup) → (Σ' xs ys : list α, xs ~ ys ∧ ys.nodup)
+| ⟨xs, ys, h, h'⟩ :=
+  let xs' := list.slice n m xs in
+  have h₀ : xs' ~ ys.inter xs',
+    from perm.take_slice _ _ h h',
+  ⟨xs', ys.inter xs', h₀, nodup_inter_of_nodup _ h'⟩
+
+def perm.drop {α} [decidable_eq α] (n : ℕ) : (Σ' xs ys : list α, xs ~ ys) → (Σ' xs ys : list α, xs ~ ys)
+| ⟨xs, ys, h⟩ :=
+  let xs' := xs.split_at n,
+      xs₀ := xs'.1,
+      xs₁ := xs'.2 in
+  have h₁ : xs₁ ~ ys.diff xs₀,
+    begin
+      simp [xs', xs₀, xs₁] at *, clear xs₀ xs₁ xs',
+    end,
+  ⟨xs₁, ys.diff xs₀, h₁⟩
 
 def perm.split_at {α} [decidable_eq α] (n : ℕ) : (Σ' xs ys : list α, xs ~ ys) → (Σ' xs ys : list α, xs ~ ys) × (Σ' xs ys : list α, xs ~ ys)
 | ⟨xs, ys, h⟩ :=

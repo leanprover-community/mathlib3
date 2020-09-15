@@ -402,7 +402,7 @@ begin
   { exact continuous_linear_map.op_norm_le_bound f ha (λ y, le_of_eq (hf y)) },
   { rw continuous_linear_map.norm_def,
     apply real.lb_le_Inf _ continuous_linear_map.bounds_nonempty,
-    cases dim_pos_iff_exists_ne_zero.mp (dim_pos : 0 < vector_space.dim 𝕜 E) with x hx,
+    obtain ⟨x, hx⟩ : ∃ (x : E), x ≠ 0 := exists_ne 0,
     intros c h, rw mem_set_of_eq at h,
     apply (mul_le_mul_right (norm_pos_iff.mpr hx)).mp,
     rw ← hf x, exact h.2 x }

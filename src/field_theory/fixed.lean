@@ -5,9 +5,9 @@ Authors: Kenny Lau
 -/
 
 import algebra.group_action_hom
+import deprecated.subfield
 import field_theory.normal
 import field_theory.separable
-import field_theory.subfield
 import field_theory.tower
 import linear_algebra.matrix
 import ring_theory.polynomial

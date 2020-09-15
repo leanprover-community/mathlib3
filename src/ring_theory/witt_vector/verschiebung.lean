@@ -19,6 +19,12 @@ local notation `𝕎` := witt_vector p -- type as `\bbW`
 local attribute [semireducible] witt_vector
 local attribute [instance] mv_polynomial.invertible_rat_coe_nat
 
+/--
+`verschiebung_fun x` shifts the coefficients of `x` up by one, by inserting 0 as the 0th coefficient.
+`x i` then becomes `verchiebung_fun x (i + 1)`.
+
+`verschiebung_fun` is the underlying function of the ring hom `witt_vector.verschiebung`.
+-/
 def verschiebung_fun (x : 𝕎 R) : 𝕎 R :=
 mk p $ λ n, if n = 0 then 0 else x.coeff (n - 1)
 
@@ -77,6 +83,12 @@ end
 
 variables {R}
 
+/--
+`verschiebung x` shifts the coefficients of `x` up by one, by inserting 0 as the 0th coefficient.
+`x i` then becomes `verchiebung x (i + 1)`.
+
+This is a ring hom with underlying function `verschiebung_fun`.
+-/
 noncomputable
 def verschiebung : 𝕎 R →+ 𝕎 R :=
 { to_fun := verschiebung_fun,
@@ -126,6 +138,10 @@ omit hp
 include p
 
 -- does this need the `p` argument?
+/--
+The 0th Verschiebung polynomial is 0. For `n > 0`, the `n`th Verschiebung polynomial is the
+variable `X (n-1)`.
+-/
 @[nolint unused_arguments]
 def verschiebung_poly (n : ℕ) : mv_polynomial ℕ ℤ :=
 if n = 0 then 0 else X (n-1)
@@ -136,6 +152,9 @@ if n = 0 then 0 else X (n-1)
 set_option pp.implicit true
 set_option pp.structure_projections false
 
+/--
+`witt_vector.verschiebung` has polynomial structure given by `witt_vector.verschiebung_poly`.
+-/
 @[simps { fully_applied := ff }]
 def verschiebung_is_poly : is_poly p (λ R _Rcr, @verschiebung p R hp _Rcr) :=
 { poly := verschiebung_poly p,
@@ -180,4 +199,3 @@ end
 end
 
 end witt_vector
-#lint

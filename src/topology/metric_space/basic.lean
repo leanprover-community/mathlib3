@@ -47,9 +47,6 @@ class has_dist (α : Type*) := (dist : α → α → ℝ)
 
 export has_dist (dist)
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
-
 -- the uniform structure and the emetric space structure are embedded in the metric space structure
 -- to avoid instance diamond issues. See Note [forgetful inheritance].
 
@@ -70,7 +67,6 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 (edist_dist : ∀ x y : α, edist x y = ennreal.of_real (dist x y) . control_laws_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 (uniformity_dist : 𝓤 α = ⨅ ε>0, 𝓟 {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
-end prio
 
 variables [metric_space α]
 
@@ -1351,7 +1347,7 @@ end
 /-- A metric space space is second countable if one can reconstruct up to any `ε>0` any element of
 the space from countably many data. -/
 lemma second_countable_of_countable_discretization {α : Type u} [metric_space α]
-  (H : ∀ε > (0 : ℝ), ∃ (β : Type u) [encodable β] (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
+  (H : ∀ε > (0 : ℝ), ∃ (β : Type*) [encodable β] (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
   second_countable_topology α :=
 begin
   cases (univ : set α).eq_empty_or_nonempty with hs hs,

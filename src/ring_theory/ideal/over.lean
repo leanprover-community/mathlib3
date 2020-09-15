@@ -5,6 +5,7 @@ Author: Anne Baanen
 -/
 
 import ring_theory.algebraic
+import ring_theory.localization
 
 /-!
 # Ideals over/under ideals
@@ -143,6 +144,15 @@ lemma is_maximal_of_is_integral_of_is_maximal_comap
   λ J I_lt_J, let ⟨I_le_J, x, hxJ, hxI⟩ := lt_iff_le_and_exists.mp I_lt_J
   in comap_eq_top_iff.mp (hI.2 _ (comap_lt_comap_of_integral_mem_sdiff I_le_J ⟨hxJ, hxI⟩ (hRS x))) ⟩
 
+lemma is_maximal_comap_of_is_integral_of_is_maximal (hRS_integral : ∀ (x : S), is_integral R x)
+  (I : ideal S) [hI : I.is_maximal] : is_maximal (I.comap (algebra_map R S)) :=
+begin
+  refine quotient.maximal_of_is_field _ _,
+  haveI : is_prime (I.comap (algebra_map R S)) := comap_is_prime _ _,
+  exact is_field_of_is_integral_of_is_field (is_integral_quotient_of_is_integral hRS_integral)
+    algebra_map_quotient_injective (by rwa ← quotient.maximal_ideal_iff_is_field_quotient),
+end
+
 lemma integral_closure.comap_ne_bot [nontrivial R] {I : ideal (integral_closure R S)}
   (I_ne_bot : I ≠ ⊥) : I.comap (algebra_map R (integral_closure R S)) ≠ ⊥ :=
 let ⟨x, x_mem, x_ne_zero⟩ := I.ne_bot_iff.mp I_ne_bot in
@@ -162,6 +172,56 @@ lemma integral_closure.is_maximal_of_is_maximal_comap
   (I : ideal (integral_closure R S)) [I.is_prime]
   (hI : is_maximal (I.comap (algebra_map R (integral_closure R S)))) : is_maximal I :=
 is_maximal_of_is_integral_of_is_maximal_comap (λ x, integral_closure.is_integral x) I hI
+
+/-- `comap (algebra_map R S)` is a surjection from the prime spec of `R` to prime spec of `S`.
+`hP : (algebra_map R S).ker ≤ P` is a slight generalization of the extension being injective -/
+lemma exists_ideal_over_prime_of_is_integral' (H : ∀ x : S, is_integral R x)
+  (P : ideal R) [is_prime P] (hP : (algebra_map R S).ker ≤ P) :
+  ∃ (Q : ideal S), is_prime Q ∧ P = Q.comap (algebra_map R S) :=
+begin
+  have hP0 : (0 : S) ∉ algebra.algebra_map_submonoid S P.prime_compl,
+  { rintro ⟨x, ⟨hx, x0⟩⟩,
+    exact absurd (hP x0) hx },
+  let Rₚ := localization P.prime_compl,
+  let f := localization.of P.prime_compl,
+  let Sₚ := localization (algebra.algebra_map_submonoid S P.prime_compl),
+  let g := localization.of (algebra.algebra_map_submonoid S P.prime_compl),
+  letI : integral_domain (localization (algebra.algebra_map_submonoid S P.prime_compl)) :=
+    localization_map.integral_domain_localization (le_non_zero_divisors_of_domain hP0),
+  obtain ⟨Qₚ : ideal Sₚ, Qₚ_maximal⟩ := @exists_maximal Sₚ _ (by apply_instance),
+  haveI Qₚ_max : is_maximal (comap _ Qₚ) := @is_maximal_comap_of_is_integral_of_is_maximal Rₚ _ Sₚ _
+    (localization_algebra P.prime_compl f g)
+    (is_integral_localization f g H) _ Qₚ_maximal,
+  refine ⟨comap g.to_map Qₚ, ⟨comap_is_prime g.to_map Qₚ, _⟩⟩,
+  convert localization.at_prime.comap_maximal_ideal.symm,
+  rw [comap_comap, ← local_ring.eq_maximal_ideal Qₚ_max, ← f.map_comp _],
+  refl
+end
+
+/-- More general going-up theorem than `exists_ideal_over_prime_of_is_integral'`.
+TODO: Version of going-up theorem with arbitrary length chains (by induction on this)?
+  Not sure how best to write an ascending chain in Lean -/
+theorem exists_ideal_over_prime_of_is_integral (H : ∀ x : S, is_integral R x)
+  (P : ideal R) [is_prime P] (I : ideal S) [is_prime I] (hIP : I.comap (algebra_map R S) ≤ P) :
+  ∃ Q ≥ I, is_prime Q ∧ P = Q.comap (algebra_map R S) :=
+begin
+  obtain ⟨Q' : ideal I.quotient, ⟨Q'_prime, hQ'⟩⟩ := @exists_ideal_over_prime_of_is_integral'
+    (I.comap (algebra_map R S)).quotient _ I.quotient _
+    ideal.quotient_algebra
+    (is_integral_quotient_of_is_integral H)
+    (map (quotient.mk (I.comap (algebra_map R S))) P)
+    (map_is_prime_of_surjective quotient.mk_surjective (by simp [hIP]))
+    (le_trans
+      (le_of_eq ((ring_hom.injective_iff_ker_eq_bot _).1 algebra_map_quotient_injective))
+      bot_le),
+  haveI := Q'_prime,
+  refine ⟨Q'.comap _, le_trans (le_of_eq mk_ker.symm) (ker_le_comap _), ⟨comap_is_prime _ Q', _⟩⟩,
+  rw comap_comap,
+  refine trans _ (trans (congr_arg (comap (quotient.mk (comap (algebra_map R S) I))) hQ') _),
+  { refine trans ((sup_eq_left.2 _).symm) (comap_map_of_surjective _ quotient.mk_surjective _).symm,
+    simpa [← ring_hom.ker_eq_comap_bot] using hIP},
+  { simpa [comap_comap] },
+end
 
 end integral_domain
 

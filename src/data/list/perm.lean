@@ -7,6 +7,7 @@ import data.list.bag_inter
 import data.list.erase_dup
 import data.list.zip
 import logic.relation
+import data.nat.fact
 
 /-!
 # List permutations
@@ -712,6 +713,20 @@ begin
   simp [not_mem_cons_of_ne_of_not_mem xy xl,
         not_mem_cons_of_ne_of_not_mem (ne.symm xy) yl],
   constructor
+end
+
+theorem perm_insert_nth {α} (x : α) (l : list α) {n} (h : n ≤ l.length) :
+  insert_nth n x l ~ x :: l :=
+begin
+  induction l generalizing n,
+  { cases n, refl, cases h },
+  cases n,
+  { simp [insert_nth] },
+  { simp only [insert_nth, modify_nth_tail],
+    transitivity,
+    { apply perm.cons, apply l_ih,
+      apply nat.le_of_succ_le_succ h },
+    { apply perm.swap } }
 end
 
 theorem perm.union_right {l₁ l₂ : list α} (t₁ : list α) (h : l₁ ~ l₂) : l₁ ∪ t₁ ~ l₂ ∪ t₁ :=

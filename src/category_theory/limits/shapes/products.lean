@@ -6,6 +6,8 @@ Authors: Scott Morrison
 import category_theory.limits.limits
 import category_theory.discrete_category
 
+noncomputable theory
+
 universes v u
 
 open category_theory

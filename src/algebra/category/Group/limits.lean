@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import algebra.category.Mon.limits
 import algebra.category.Group.preadditive
 import category_theory.over
+import category_theory.limits.concrete_category
 import category_theory.limits.shapes.concrete_category
 
 /-!
@@ -20,6 +21,8 @@ open category_theory
 open category_theory.limits
 
 universe u
+
+noncomputable theory
 
 variables {J : Type u} [small_category J]
 
@@ -89,7 +92,7 @@ def limit_cone_is_limit (F : J ⥤ Group) : is_limit (limit_cone F) :=
 lifted_limit_is_limit _
 
 /-- The category of groups has all limits. -/
-@[irreducible, to_additive]
+@[to_additive]
 instance has_limits : has_limits Group :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ Group Mon) } } -- TODO use the above instead?
@@ -162,7 +165,7 @@ def limit_cone_is_limit (F : J ⥤ CommGroup) : is_limit (limit_cone F) :=
 lifted_limit_is_limit _
 
 /-- The category of commutative groups has all limits. -/
-@[irreducible, to_additive]
+@[to_additive]
 instance has_limits : has_limits CommGroup :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, has_limit_of_created F (forget₂ CommGroup Group) } }
@@ -208,14 +211,6 @@ instance forget_preserves_limits : preserves_limits (forget CommGroup) :=
 end CommGroup
 
 namespace AddCommGroup
-
--- PROJECT:
--- it would be nice if this were available just by virtue of `forget AddCommGroup`
--- preserving limits.
-@[simp]
-lemma lift_π_apply (F : J ⥤ AddCommGroup) (s : cone F) (j : J) (x : s.X) :
-  limit.π F j (limit.lift F s x) = s.π.app j x :=
-congr_fun (congr_arg (λ f : s.X ⟶ F.obj j, (f : s.X → F.obj j)) (limit.lift_π s j)) x
 
 /--
 The categorical kernel of a morphism in `AddCommGroup`

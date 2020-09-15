@@ -118,10 +118,14 @@ begin
 end
 
 /-- `F[S][T] = F[T][S]` -/
-lemma adjoin_adjoin_comm (T : set E) : (adjoin (adjoin F S : set E) T : set E) = (adjoin (adjoin F T : set E) S : set E) :=
-by rw[adjoin_adjoin_left,adjoin_adjoin_left,set.union_comm]
+lemma adjoin_adjoin_comm (T : set E) :
+  (adjoin (adjoin F S : set E) T : set E) = (adjoin (adjoin F T : set E) S : set E) :=
+by rw [adjoin_adjoin_left, adjoin_adjoin_left, set.union_comm]
 
-/-- Variation on `set.insert` to enable good notation for adjoining elements to fields. -/
+/--
+Variation on `set.insert` to enable good notation for adjoining elements to fields.
+Used to preferentially use `singleton` rather than `insert` when adjoining one element.
+-/
 --this definition of notation is courtesy of Kyle Miller on zulip
 class fancy_insert {α : Type*} (s : set α) :=
 (insert : α → set α)
@@ -139,7 +143,7 @@ notation K`⟮`:std.prec.max_plus l:(foldr `, ` (h t, fancy_insert.insert t h) �
 variables (α : E)
 
 lemma mem_adjoin_simple_self : α ∈ F⟮α⟯ :=
- subset_adjoin F {α} (set.mem_singleton α)
+subset_adjoin F {α} (set.mem_singleton α)
 
 /-- generator of `F⟮α⟯` -/
 def adjoin_simple.gen : F⟮α⟯ := ⟨α, mem_adjoin_simple_self F α⟩

@@ -19,7 +19,8 @@ instance is_subfield.field [is_subfield S] : field S :=
   inv_zero := subtype.ext_iff_val.2 inv_zero,
   ..show comm_ring S, by apply_instance }
 
-lemma is_subfield.pow_mem {K : Type*} [field K] {a : K} {n : ℤ} {s : set K} [is_subfield s] (h : a ∈ s) : a ^ n ∈ s :=
+lemma is_subfield.pow_mem {a : F} {n : ℤ} {s : set F} [is_subfield s] (h : a ∈ s) :
+  a ^ n ∈ s :=
 begin
   cases n,
   { exact is_submonoid.pow_mem h },

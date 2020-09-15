@@ -485,7 +485,7 @@ the minimal polynomial of every `x : K` is separable. -/
 ∀ x : K, ∃ H : is_integral F x, (minimal_polynomial H).separable
 
 lemma is_separable_top (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E] [algebra K E]
-[is_scalar_tower F K E] (h : is_separable F E) : is_separable K E :=
+  [is_scalar_tower F K E] (h : is_separable F E) : is_separable K E :=
 begin
   intro x,
   cases h x with hx hs,
@@ -493,7 +493,7 @@ begin
   use hx',
   have key : (minimal_polynomial hx') ∣ (minimal_polynomial hx).map(algebra_map F K),
   { apply minimal_polynomial.dvd,
-    rw [aeval_def,eval₂_map,←is_scalar_tower.algebra_map_eq F K E],
+    rw [aeval_def,eval₂_map, ←is_scalar_tower.algebra_map_eq F K E],
     apply minimal_polynomial.aeval, },
   cases key with q hq,
   apply polynomial.separable.of_mul_left,
@@ -502,7 +502,7 @@ begin
 end
 
 lemma is_separable_bottom (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E] [algebra K E]
-[is_scalar_tower F K E] (h : is_separable F E) : is_separable F K :=
+  [is_scalar_tower F K E] (h : is_separable F E) : is_separable F K :=
 begin
   intro x,
   have main : ∀ p : polynomial F, algebra_map K E (aeval x p) = aeval (algebra_map K E x) p,

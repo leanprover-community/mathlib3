@@ -203,25 +203,23 @@ gcd.induction p q (λ x, by simp_rw [map_zero, euclidean_domain.gcd_zero_left]) 
 by rw [gcd_val, ← map_mod, ih, ← gcd_val]
 end
 
-lemma gcd_eval_zero (f g : polynomial R) (α : R) (hf : f.eval α = 0) (hg : g.eval α = 0) : (euclidean_domain.gcd f g).eval α = 0 :=
-begin
-  rw euclidean_domain.gcd_eq_gcd_ab f g,
-  rw [polynomial.eval_add,polynomial.eval_mul,polynomial.eval_mul,hf,hg,zero_mul,zero_mul,zero_add],
-end
+lemma gcd_eval_zero (f g : polynomial R) (α : R) (hf : f.eval α = 0) (hg : g.eval α = 0) :
+  (euclidean_domain.gcd f g).eval α = 0 :=
+by rw [euclidean_domain.gcd_eq_gcd_ab f g,
+       polynomial.eval_add, polynomial.eval_mul, polynomial.eval_mul, hf, hg,
+       zero_mul, zero_mul,zero_add]
 
-lemma gcd_root_left [field k] [algebra R k] (f g : polynomial R) (α : k) (hα : (euclidean_domain.gcd f g).eval₂ (algebra_map R k) α = 0) :
-f.eval₂ (algebra_map R k) α = 0 :=
-begin
-  cases euclidean_domain.gcd_dvd_left f g with p hp,
-  rw [hp,polynomial.eval₂_mul,hα,zero_mul],
-end
+lemma gcd_root_left [field k] [algebra R k] (f g : polynomial R) (α : k)
+  (hα : (euclidean_domain.gcd f g).eval₂ (algebra_map R k) α = 0) :
+  f.eval₂ (algebra_map R k) α = 0 :=
+by { cases euclidean_domain.gcd_dvd_left f g with p hp,
+     rw [hp, polynomial.eval₂_mul, hα, zero_mul] }
 
-lemma gcd_root_right [field k] [algebra R k] (f g : polynomial R) (α : k) (hα : (euclidean_domain.gcd f g).eval₂ (algebra_map R k) α = 0) :
-g.eval₂ (algebra_map R k) α = 0 :=
-begin
-  cases euclidean_domain.gcd_dvd_right f g with p hp,
-  rw [hp,polynomial.eval₂_mul,hα,zero_mul],
-end
+lemma gcd_root_right [field k] [algebra R k] (f g : polynomial R) (α : k)
+  (hα : (euclidean_domain.gcd f g).eval₂ (algebra_map R k) α = 0) :
+  g.eval₂ (algebra_map R k) α = 0 :=
+by { cases euclidean_domain.gcd_dvd_right f g with p hp,
+     rw [hp, polynomial.eval₂_mul, hα, zero_mul] }
 
 theorem is_coprime_map [field k] (f : R →+* k) :
   is_coprime (p.map f) (q.map f) ↔ is_coprime p q :=

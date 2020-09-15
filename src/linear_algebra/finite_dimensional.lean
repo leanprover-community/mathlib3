@@ -1030,14 +1030,12 @@ begin
   set s : set E := {1} with hs,
   have : fintype s := unique.fintype,
   have s_lin_ind : linear_independent F (coe : s → E) := linear_independent_singleton one_ne_zero,
-  have s_card : s.to_finset.card = findim F E := by change s.to_finset.card with 1; rw E_dim,
+  have s_card : s.to_finset.card = findim F E := by { change s.to_finset.card with 1, rw E_dim },
   obtain ⟨_, s_spans⟩ := set_is_basis_of_linear_independent_of_card_eq_findim s_lin_ind s_card,
-  have x_in_span_one : x ∈ submodule.span F s :=
-  begin
-    rw subtype.range_coe at s_spans,
+  have x_in_span_one : x ∈ submodule.span F s,
+  { rw subtype.range_coe at s_spans,
     rw s_spans,
-    exact submodule.mem_top,
-  end,
+    exact submodule.mem_top, },
   obtain ⟨a, ha⟩ := submodule.mem_span_singleton.mp x_in_span_one,
   rw algebra.mem_bot,
   exact ⟨a, by rw [← ha, algebra.smul_def, mul_one]⟩,

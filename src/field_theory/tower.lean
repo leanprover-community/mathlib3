@@ -82,12 +82,11 @@ by rw [findim_eq_card_basis hb, findim_eq_card_basis hc,
     findim_eq_card_basis (hb.smul hc), fintype.card_prod]
 
 /-- Given a tower `F : K : A`, any submodule of `A` over `K` is also a submodule of `A` over `F`. -/
-def submodule_tower_submodule (p : submodule K A) : submodule F A := {
-  carrier := p.carrier,
+def submodule_tower_submodule (p : submodule K A) : submodule F A :=
+{ carrier := p.carrier,
   zero_mem' := p.zero_mem',
   add_mem' := p.add_mem',
-  smul_mem' :=
-  begin
+  smul_mem' := begin
     intros c x hx,
     rw [← one_smul K x, ← smul_assoc],
     exact p.smul_mem' (c • 1) hx,
@@ -101,7 +100,7 @@ begin
   rw submodule.fg_iff_finite_dimensional,
   cases (finite_dimensional.exists_is_basis_finite F A) with B hB,
   have key : submodule.span K B = ⊤,
-  {  ext,
+  { ext,
     simp only [submodule.mem_top, iff_true],
     have hx : x ∈ submodule.span F (set.range coe),
     { rw hB.1.2,

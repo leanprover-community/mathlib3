@@ -5,7 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 -/
 import algebra.order_functions
 import control.monad.basic
-import data.nat.basic
+import data.nat.choose.basic
 import order.rel_classes
 
 /-!

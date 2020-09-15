@@ -61,7 +61,7 @@ Linear algebra:
     diagonalization: ''
     triangularization: ''
     invariant subspaces of an endomorphism: ''
-    generalized eigenspaces: 'module.​End.​generalized_eigenspace'
+    generalized eigenspaces: 'module.End.generalized_eigenspace'
     kernels lemma: ''
     Dunford decomposition: ''
     Jordan normal form: ''
@@ -364,7 +364,7 @@ Single Variable Real Analysis:
 # 7.
 Single Variable Complex Analysis:
   Complex Valued series:
-    radius of convergence: 'formal_multilinear_series.​radius'
+    radius of convergence: 'formal_multilinear_series.radius'
 #    properties of sums of complex valued series on their disks of convergence: (this is a heading?)
     continuity: 'has_fpower_series_on_ball.continuous_on'
     differentiability with respect to the complex variable:

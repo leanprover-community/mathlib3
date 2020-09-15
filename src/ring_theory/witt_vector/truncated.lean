@@ -22,6 +22,16 @@ variables {p : ℕ} [hp : fact p.prime] (n : ℕ) (R : Type*) [comm_ring R]
 
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
+/--
+A truncated Witt vector over `R` is a vector of elements of `R`, i.e., the first `n` elements of a
+Witt vector. We will define operations on this type that are compatible with the (untruncated) Witt
+vector operations.
+
+`truncated_witt_vector p n R` takes a parameter `p : ℕ` that is not used in the definition.
+This `p` is used to define the ring operations, and so it is needed to infer the proper ring
+structure. (`truncated_witt_vector p₁ n R` and `truncated_witt_vector p₂ n R` are definitionally
+equal but will have different ring operations.)
+-/
 def truncated_witt_vector (p : ℕ) (n : ℕ) (R : Type*) := fin n → R
 
 variables {n R}
@@ -30,10 +40,12 @@ namespace truncated_witt_vector
 
 variables (p)
 
+/-- Create a `truncated_witt_vector` from a vector `x`. -/
 def mk (x : fin n → R) : truncated_witt_vector p n R := x
 
 variables {p}
 
+/-- `x.coeff i` is the `i`th entry of `x`. -/
 def coeff (i : fin n) (x : truncated_witt_vector p n R) : R := x i
 
 @[ext]
@@ -76,6 +88,8 @@ section
 
 local attribute [semireducible] witt_vector
 
+/-- `truncate_fun n x` uses the first `n` entries of `x` to construct a `truncated_witt_vector`,
+which has the same base `p` as `x`. -/
 def truncate_fun (x : 𝕎 R) : truncated_witt_vector p n R :=
 truncated_witt_vector.mk p $ λ i, x.coeff i
 
@@ -135,6 +149,7 @@ end
 
 end truncated_witt_vector
 
+/-- A macro tactic used to prove that `truncate_fun` respects ring operations. -/
 meta def tactic.interactive.truncate_fun_tac : tactic unit :=
 `[
   show _ = truncate_fun n _,
@@ -198,6 +213,7 @@ open truncated_witt_vector
 variables (n)
 include hp
 
+/-- `truncate_fun n` is a ring homomorphism. -/
 def truncate : 𝕎 R →+* truncated_witt_vector p n R :=
 { to_fun := truncate_fun n,
   map_zero' := truncate_fun_zero p n R,
@@ -242,6 +258,13 @@ end witt_vector
 namespace truncated_witt_vector
 include hp
 
+/--
+`witt_vector.truncate` is a surjective ring hom  `𝕎 R → truncated_witt_vector p k R` for each `k`.
+For `n ≤ m`, we can lift this to a ring hom
+`truncated_witt_vector.truncate : truncated_witt_vector p m R → truncated_witt_vector p n R`
+that is compatible with `witt_vector.truncate`.
+using `ring_hom.lift_of_surjective`.
+-/
 def truncate {m : ℕ} (hm : n ≤ m) : truncated_witt_vector p m R →+* truncated_witt_vector p n R :=
 ring_hom.lift_of_surjective
   (witt_vector.truncate m)
@@ -317,10 +340,6 @@ begin
 end
 
 omit hp
-
--- move this
-lemma ideal.mem_bot {x : R} : x ∈ (⊥ : ideal R) ↔ x = 0 :=
-submodule.mem_bot _
 
 end ideals
 

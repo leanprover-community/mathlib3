@@ -605,4 +605,8 @@ begin
   simp only [dvd_mul_right, nat.cast_dvd_char_zero],
 end
 
+lemma ideal.mem_bot {R : Type*} [comm_ring R] {x : R} : x ∈ (⊥ : ideal R) ↔ x = 0 :=
+submodule.mem_bot _
+
+
 -- ### end FOR_MATHLIB

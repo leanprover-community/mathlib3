@@ -81,7 +81,6 @@ A function `f : Π R, 𝕎 R → 𝕎 R` that maps Witt vectors to Witt vectors 
 is said to be *polynomial* if there is a family of polynomials `φₙ` over `ℤ` such that the `n`th
 coefficient of `f x` is given by evaluating `phiₙ` at the coefficients of `x`.
 -/
-@[nolint has_inhabited_instance]
 structure is_poly (f : Π ⦃R : Type*⦄ [comm_ring R], witt_vector p R → 𝕎 R) :=
 (poly : ℕ → mv_polynomial ℕ ℤ)
 (coeff : ∀ (n : ℕ) ⦃R : Type*⦄ [comm_ring R] (x : 𝕎 R),

@@ -22,11 +22,29 @@ variables (p : ℕ)
 variables (R : Type*) [comm_ring R]
 
 /-!
-## Witt polynomials
+# Witt polynomials
 
 To endow `witt_vector p R` with a ring structure,
 we need to study the so-called Witt polynomials.
+
+Fix a base value `p : ℕ`.
+The `p`-adic Witt polynomials over are an infinite family of polynomials
+indexed by a natural number `n`, taking values in an arbitrary ring `R`.
+The variables of these polynomials are represented by natual numbers.
+The `n`th Witt polynomial has at most `n+1` variables `X₀, ..., Xₙ`,
+with exactly these variables when `R` has characteristic 0.
+
+These polynomials are used to define the addition and multiplication operators
+on the type of Witt vectors. (While this type itself is not complicated,
+the ring operations are what make it interesting.)
+
+When the base `p` is invertible in `R`, the `p`-adic Witt polynomials
+form a basis for `mv_polynomial ℕ R`, equivalent to the standard basis.
+
+We use the notation `W n` (and `W_ R n` when the ring needs to be explicit)
+to represent the `n`th Witt polynomial.
 -/
+
 
 /-- `witt_polynomial p R n` is the `n`-th Witt polynomial
 with respect to a prime `p` with coefficients in a commutative ring `R`.
@@ -95,6 +113,10 @@ lemma aeval_witt_polynomial {A : Type*} [comm_ring A] [algebra R A] (f : ℕ →
   aeval f (W_ R n) = ∑ i in range (n+1), p^i * (f i) ^ (p ^ (n-i)) :=
 by simp [witt_polynomial, alg_hom.map_sum, aeval_monomial, finsupp.prod_single_index]
 
+/--
+Over the ring `zmod (p^(n+1))`, we produce the `n+1`st Witt polynomial
+by expanding the `n`th witt polynomial by `p`.
+-/
 @[simp] lemma witt_polynomial_zmod_self (n : ℕ) :
   W_ (zmod (p ^ (n + 1))) (n + 1) = expand p (W_ (zmod (p^(n + 1))) n) :=
 begin
@@ -143,6 +165,13 @@ end
 end p_prime
 
 end
+
+/-!
+
+## Witt vectors as a basis
+
+-/
+
 
 /-- View a polynomial written in terms of the basis of Witt polynomials
 as a polynomial written in terms of the standard basis.
@@ -338,6 +367,9 @@ begin
   refl,
 end
 
+/--
+The Witt vectors induce an algebra equivalence from `mv_polynomial ℕ R` to itself.
+-/
 noncomputable def witt.alg_equiv [invertible (p : R)] : mv_polynomial ℕ R ≃ₐ[R] mv_polynomial ℕ R :=
 equiv_of_family (W_ R) (X_in_terms_of_W p R)
 (X_in_terms_of_W_prop₂ p R)

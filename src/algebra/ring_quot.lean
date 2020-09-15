@@ -33,10 +33,10 @@ inductive rel (r : R → R → Prop) : R → R → Prop
 | of ⦃x y : R⦄ (h : r x y) : rel x y
 | add_left ⦃a b c⦄ : rel a b → rel (a + c) (b + c)
 | mul_left ⦃a b c⦄ : rel a b → rel (a * c) (b * c)
-| mul_right ⦃a b c⦄ : rel a b → rel (c * a) (c * b)
+| mul_right ⦃a b c⦄ : rel b c → rel (a * b) (a * c)
 
-theorem rel.add_right (r : R → R → Prop) ⦃a b c : R⦄ (h : rel r a b) : rel r (c + a) (c + b) :=
-by { rw [add_comm c a, add_comm c b], exact rel.add h }
+theorem rel.add_right {r : R → R → Prop} ⦃a b c : R⦄ (h : rel r b c) : rel r (a + b) (a + c) :=
+by { rw [add_comm a b, add_comm a c], exact rel.add_left h }
 
 end ring_quot
 
@@ -46,9 +46,7 @@ def ring_quot (r : R → R → Prop) := quot (ring_quot.rel r)
 namespace ring_quot
 
 instance (r : R → R → Prop) : semiring (ring_quot r) :=
-{ add           := quot.map₂ (+)
-    (λ c a b h, by { rw [add_comm c a, add_comm c b], exact rel.add h, })
-    (λ _ _ _, rel.add),
+{ add           := quot.map₂ (+) rel.add_right rel.add_left,
   add_assoc     := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (add_assoc _ _ _), },
   zero          := quot.mk _ 0,
   zero_add      := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (zero_add _), },
@@ -56,7 +54,7 @@ instance (r : R → R → Prop) : semiring (ring_quot r) :=
   zero_mul      := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (zero_mul _), },
   mul_zero      := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (mul_zero _), },
   add_comm      := by { rintros ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (add_comm _ _), },
-  mul           := quot.map₂ (*) (λ _ _ _, rel.mul_right) (λ _ _ _, rel.mul_left),
+  mul           := quot.map₂ (*) rel.mul_right rel.mul_left,
   mul_assoc     := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, exact congr_arg (quot.mk _) (mul_assoc _ _ _), },
   one           := quot.mk _ 1,
   one_mul       := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (one_mul _), },
@@ -129,7 +127,7 @@ def lift (f : R →+* T) {r : R → R → Prop} (w : ∀ ⦃x y⦄, r x y → f 
     rintros _ _ r,
     induction r,
     case of : _ _ r { exact w r, },
-    case add : _ _ _ _ r' { simp [r'], },
+    case add_left : _ _ _ _ r' { simp [r'], },
     case mul_left : _ _ _ _ r' { simp [r'], },
     case mul_right : _ _ _ _ r' { simp [r'], },
   end,

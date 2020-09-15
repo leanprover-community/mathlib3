@@ -71,20 +71,41 @@ variables {M}
     relation. -/
 inductive add_con_gen.rel [has_add M] (r : M → M → Prop) : M → M → Prop
 | of : Π x y, r x y → add_con_gen.rel x y
-| refl : Π x, add_con_gen.rel x x
-| symm : Π x y, add_con_gen.rel x y → add_con_gen.rel y x
-| trans : Π x y z, add_con_gen.rel x y → add_con_gen.rel y z → add_con_gen.rel x z
+| eqv : Π x y, eqv_gen (add_con_gen.rel) x y → add_con_gen.rel x y
 | add : Π w x y z, add_con_gen.rel w x → add_con_gen.rel y z → add_con_gen.rel (w + y) (x + z)
+
+namespace add_con_gen.rel
+
+theorem refl [has_add M] {r : M → M → Prop} : reflexive (rel r) :=
+λ a, rel.eqv a a (eqv_gen.refl a)
+theorem symm [has_add M] {r : M → M → Prop} : symmetric (rel r) :=
+λ a b h, rel.eqv b a (eqv_gen.symm a b (eqv_gen.rel a b h))
+theorem trans [has_add M] {r : M → M → Prop} : transitive (rel r) :=
+λ a b c hab hbc, rel.eqv a c (eqv_gen.trans a b c (eqv_gen.rel _ _ hab) (eqv_gen.rel _ _ hbc))
+
+end add_con_gen.rel
 
 /-- The inductively defined smallest multiplicative congruence relation containing a given binary
     relation. -/
 @[to_additive add_con_gen.rel]
 inductive con_gen.rel [has_mul M] (r : M → M → Prop) : M → M → Prop
 | of : Π x y, r x y → con_gen.rel x y
-| refl : Π x, con_gen.rel x x
-| symm : Π x y, con_gen.rel x y → con_gen.rel y x
-| trans : Π x y z, con_gen.rel x y → con_gen.rel y z → con_gen.rel x z
+| eqv : Π x y, eqv_gen (con_gen.rel) x y → con_gen.rel x y
 | mul : Π w x y z, con_gen.rel w x → con_gen.rel y z → con_gen.rel (w * y) (x * z)
+
+namespace con_gen.rel
+
+theorem refl [has_mul M] {r : M → M → Prop} : reflexive (rel r) :=
+λ a, rel.eqv a a (eqv_gen.refl a)
+theorem symm [has_mul M] {r : M → M → Prop} : symmetric (rel r) :=
+λ a b h, rel.eqv b a (eqv_gen.symm a b (eqv_gen.rel a b h))
+theorem trans [has_mul M] {r : M → M → Prop} : transitive (rel r) :=
+λ a b c hab hbc, rel.eqv a c (eqv_gen.trans a b c (eqv_gen.rel _ _ hab) (eqv_gen.rel _ _ hbc))
+
+end con_gen.rel
+
+def add_con_gen [has_add M] (r : M → M → Prop) : add_con M :=
+⟨add_con_gen.rel r, ⟨add_con_gen.rel.refl, add_con_gen.rel.symm, add_con_gen.rel.trans⟩, add_con_gen.rel.add⟩
 
 /-- The inductively defined smallest multiplicative congruence relation containing a given binary
     relation. -/
@@ -370,9 +391,27 @@ le_antisymm
   (λ x y H, by {
     induction H,
     case con_gen.rel.of : _ _ h {exact λ _ hs, hs _ _ h},
-    case con_gen.rel.refl : _ { exact con.refl _ _},
-    case con_gen.rel.symm : _ _ _ h { exact con.symm _ h },
-    case con_gen.rel.trans : _ _ _ _ _ ha hb { exact con.trans _ ha hb},
+    case con_gen.rel.eqv : _ _ h {exact λ _ hs, begin
+      induction h,
+      case eqv_gen.refl : _ { exact con.refl _ _},
+      case eqv_gen.symm : _ _ _ h { exact con.symm _ h},
+      case eqv_gen.trans : _ _ _ _ _ ha hb { exact con.trans _ ha hb},
+      case eqv_gen.rel : _ _ h {
+        /-
+        case eqv_gen.rel
+        M : Type u_1,
+        _inst_1 : has_mul M,
+        r : M → M → Prop,
+        x y : M,
+        _x : con M,
+        hs : _x ∈ {s : con M | ∀ (x y : M), r x y → ⇑s x y},
+        H_x H_y h_x h_y : M,
+        h : rel r h_x h_y
+        ⊢ ⇑_x h_x h_y
+        -/
+        sorry
+      }
+    end},
     case con_gen.rel.mul : w x y z _ _ h1 h2 { exact λ c hc, c.mul (h1 c hc) $ h2 c hc},
   })
   (Inf_le (λ _ _, con_gen.rel.of _ _))

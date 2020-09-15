@@ -370,8 +370,6 @@ def monotone_apply [∀a, partial_order (β a)] (a : α) : (Πa, β a) →ₘ β
 
 open omega_complete_partial_order omega_complete_partial_order.chain
 
-set_option trace.simps.verbose true
-
 instance [∀a, omega_complete_partial_order (β a)] : omega_complete_partial_order (Πa, β a) :=
 { ωSup    := λc a, ωSup (c.map (monotone_apply a)),
   ωSup_le := assume c f hf a, ωSup_le _ _ $ by { rintro i, apply hf },

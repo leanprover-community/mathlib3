@@ -69,6 +69,18 @@ The inclusion `U i ⟶ supr U` as a morphism in the category of open sets.
 def le_supr {ι : Type*} (U : ι → opens X) (i : ι) : U i ⟶ supr U :=
 hom_of_le (le_supr U i)
 
+/--
+The inclusion `⊥ ⟶ U` as a morphism in the category of open sets.
+-/
+def bot_le (U : opens X) : ⊥ ⟶ U :=
+hom_of_le bot_le
+
+/--
+The inclusion `U ⟶ ⊤` as a morphism in the category of open sets.
+-/
+def le_top (U : opens X) : U ⟶ ⊤ :=
+hom_of_le le_top
+
 -- We do not mark this as a simp lemma because it breaks open `x`.
 -- Nevertheless, it is useful in `sheaf_of_functions`.
 lemma inf_le_left_apply (U V : opens X) (x) :
@@ -129,6 +141,12 @@ rfl
 by simp
 @[simp] lemma op_map_id_obj (U : (opens X)ᵒᵖ) : (map (𝟙 X)).op.obj U = U :=
 by simp
+
+/--
+The inclusion `U ⟶ (map f).obj ⊤` as a morphism in the category of open sets.
+-/
+def le_map_top (f : X ⟶ Y) (U : opens X) : U ⟶ (map f).obj ⊤ :=
+hom_of_le $ λ _ _, trivial
 
 section
 variable (X)

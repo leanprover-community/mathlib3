@@ -6,7 +6,34 @@ import ring_theory.witt_vector.witt_vector_preps
 # The `is_poly` predicate
 
 `witt_vector.is_poly` is a (type-valued) predicate on functions `f : Π R, 𝕎 R → 𝕎 R`.
-It asserts roughly that there is a polynomial over `ℤ` whose behavior corresponds to the map `f`.
+It asserts that there is a family of polynomials `φ : ℕ → mv_polynomial ℕ ℤ`,
+such that the `n`th coefficient of `f x` is equal to `φ n` evaluated on the coefficients of `x`.
+Many operations on Witt vectors satisfy this predicate (or an analogue for higher arity functions).
+We say that such a function `f` is a *polynomial function*.
+
+The power of satisfying this predicate comes from `is_poly.ext'`.
+It shows that if `φ` and `ψ` witness that `f` and `g` are polynomial functions,
+then `f = g` not merely when `φ = ψ`, but in fact it suffices to prove
+```
+∀ n, bind₁ φ (witt_polynomial p _ n) = bind₁ ψ (witt_polynomial p _ n)
+```
+(in other words, when evaluating the Witt polynomials on `φ` and `ψ`, we get the same values)
+which will then imply `φ = ψ` and hence `f = g`.
+
+Even though this sufficient condition looks somewhat intimidating,
+it is rather pleasant to check in practice;
+more so than direct checking of `φ = ψ`.
+
+## On higher arity analogues
+
+Ideally, there should be a predicate `is_polyₙ` for functions of higher arity,
+together with `is_polyₙ.comp` that shows how such functions compose.
+Since mathlib does not have a library on composition of higher arity functions,
+we have only implemented the unary variant so far.
+
+Once a higher arity analogue gets implemented,
+it can be tested by refactoring the proof that `verschiebung` is additive,
+or by redoing (and hopefully golfing) the computations in `ring_theory.witt_vector.witt_sub`.
 
 -/
 
@@ -48,7 +75,7 @@ omit hp
 
 /--
 A function `f : Π R, 𝕎 R → 𝕎 R` that maps Witt vectors to Witt vectors over arbitrary base rings
-is said to be polynomial if there is a family of polynomials `φₙ` over `ℤ` such that the `n`th
+is said to be *polynomial* if there is a family of polynomials `φₙ` over `ℤ` such that the `n`th
 coefficient of `f x` is given by evaluating `phiₙ` at the coefficients of `x`.
 -/
 structure is_poly (f : Π ⦃R : Type*⦄ [comm_ring R], witt_vector p R → 𝕎 R) :=
@@ -56,12 +83,17 @@ structure is_poly (f : Π ⦃R : Type*⦄ [comm_ring R], witt_vector p R → �
 (coeff : ∀ (n : ℕ) ⦃R : Type*⦄ [comm_ring R] (x : 𝕎 R),
   (f x).coeff n = aeval (λ k, x.coeff k) (poly n))
 
-lemma id_is_poly : is_poly p (λ _ _, id) :=
+/-- The identity function is a polynomial function. -/
+def id_is_poly : is_poly p (λ _ _, id) :=
 { poly := X,
   coeff := by { introsI, rw [aeval_X, id] } }
 
+instance is_poly.inhabited : inhabited (is_poly p (λ _ _, id)) :=
+⟨id_is_poly p⟩
+
 variables {p}
 
+/-- The composition of polynomial functions is polynomial. -/
 @[simps { fully_applied := ff }]
 def is_poly.comp {g f} (hg : is_poly p g) (hf : is_poly p f) :
   is_poly p (λ R _Rcr, @g R _Rcr ∘ @f R _Rcr) :=

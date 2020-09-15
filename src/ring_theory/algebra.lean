@@ -32,7 +32,9 @@ open_locale tensor_product big_operators
 
 section prio
 -- We set this priority to 0 later in this file
-set_option default_priority 200 -- see Note [default priority]
+set_option extends_priority 200 /- control priority of
+`instance [algebra R A] : has_scalar R A` -/
+
 /-- The category of R-algebras where R is a commutative
 ring is the under category R ↓ CRing. In the categorical
 setting we have a forgetful functor R-Alg ⥤ R-Mod.
@@ -255,6 +257,17 @@ submonoid.map (algebra_map R S : R →* S) M
 lemma mem_algebra_map_submonoid_of_mem [algebra R S] {M : submonoid R} (x : M) :
   (algebra_map R S x) ∈ algebra_map_submonoid S M :=
 set.mem_image_of_mem (algebra_map R S) x.2
+
+instance linear_map.semimodule' (R : Type u) [comm_semiring R]
+  (M : Type v) [add_comm_monoid M] [semimodule R M]
+  (S : Type w) [comm_semiring S] [algebra R S] : semimodule S (M →ₗ[R] S) :=
+{ smul := λ s f, linear_map.llcomp _ _ _ _ (algebra.lmul R S s) f,
+  one_smul := λ f, linear_map.ext $ λ x, one_mul _,
+  mul_smul := λ s₁ s₂ f, linear_map.ext $ λ x, mul_assoc _ _ _,
+  smul_add := λ s f g, linear_map.map_add _ _ _,
+  smul_zero := λ s, linear_map.map_zero _,
+  add_smul := λ s₁ s₂ f, linear_map.ext $ λ x, add_mul _ _ _,
+  zero_smul := λ f, linear_map.ext $ λ x, zero_mul _ }
 
 end semiring
 
@@ -1363,6 +1376,15 @@ def linear_map.restrict_scalars (f : E →ₗ[S] F) :
 lemma restrict_scalars_ker (f : E →ₗ[S] F) :
   (f.restrict_scalars R).ker = submodule.restrict_scalars R f.ker :=
 rfl
+
+/-- `A`-linearly coerce a `R`-linear map from `M` to `R` to a function, given an algebra `A` over
+a commutative semiring `R` and `M` a semimodule over `R`. -/
+def linear_map.lto_fun (R : Type u) (M : Type v) (A : Type w)
+  [comm_semiring R] [add_comm_monoid M] [semimodule R M] [comm_ring A] [algebra R A] :
+  (M →ₗ[R] A) →ₗ[A] (M → A) :=
+{ to_fun := linear_map.to_fun,
+  map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl }
 
 end semimodule
 

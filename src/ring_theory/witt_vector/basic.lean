@@ -50,6 +50,7 @@ If `p` is invertible in `R`, this ring is isomorphic to `ℕ → R` (the product
 If `R` is a ring of characteristic `p`, then `witt_vector p R` is a ring of characteristic `0`.
 The canonical example is `witt_vector p (zmod p)`,
 which is isomorphic to the `p`-adic integers `ℤ_[p]`. -/
+@[nolint unused_arguments]
 def witt_vector (p : ℕ) (R : Type*) := ℕ → R
 
 variables {p : ℕ}
@@ -62,6 +63,8 @@ variables (p) {R : Type*}
 
 /-- Construct a Witt vector `mk p x : 𝕎 R` from a sequence `x` of elements of `R`. -/
 def mk (x : ℕ → R) : witt_vector p R := x
+
+instance [inhabited R] : inhabited (𝕎 R) := ⟨mk p $ λ _, default R⟩
 
 /--
 `x.coeff n` is the `n`th coefficient of the Witt vector `n`.
@@ -291,7 +294,6 @@ section p_prime
 open finset mv_polynomial function set
 
 variable {p}
-variables [comm_ring R] [comm_ring S] [comm_ring T]
 
 @[simp] lemma ghost_map_fun_apply (x : 𝕎 R) (n : ℕ) :
   ghost_map_fun x n = ghost_component n x := rfl
@@ -465,5 +467,3 @@ ghost_map_fun.bijective_of_invertible p R
 end witt_vector
 
 attribute [irreducible] witt_vector
-
-#lint

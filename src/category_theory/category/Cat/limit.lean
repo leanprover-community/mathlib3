@@ -36,6 +36,11 @@ def hom_diagram {F : J ⥤ Cat.{v v}} (X Y : limit (F ⋙ Cat.objects.{v v})) : 
   map_id' := λ X, begin ext f, dsimp, simp, sorry, end,
   map_comp' := sorry, }
 
+@[simp]
+lemma fooo {F : J ⥤ Cat.{v v}} (X Y : limit (F ⋙ Cat.objects.{v v})) (j : J) (h) :
+limit.π (hom_diagram X Y) j (eq_to_hom h) = eq_to_hom sorry := sorry
+
+
 @[simps]
 def limit (F : J ⥤ Cat.{v v}) : Cat.{v v} :=
 { α := limit (F ⋙ Cat.objects),
@@ -55,6 +60,9 @@ def limit (F : J ⥤ Cat.{v v}) : Cat.{v v} :=
       dsimp,
       simp,
     end } }.
+
+instance quux (F : J ⥤ Cat.{v v}) : category.{v v} (limit.{v v+1} (F ⋙ Cat.objects.{v v})) :=
+(limit F).str
 
 @[simps]
 def limit_cone (F : J ⥤ Cat.{v v}) : cone F :=
@@ -106,6 +114,8 @@ def limit_cone_lift (F : J ⥤ Cat.{v v}) (s : cone F) : s.X ⟶ limit F :=
       sorry },
   end, }
 
+
+-- set_option pp.proofs true
 def limit_cone_is_limit (F : J ⥤ Cat.{v v}) : is_limit (limit_cone F) :=
 { lift := limit_cone_lift F,
   fac' := λ s j,
@@ -116,6 +126,7 @@ def limit_cone_is_limit (F : J ⥤ Cat.{v v}) : is_limit (limit_cone F) :=
   end,
   uniq' := λ s m w,
   begin
+    symmetry,
     fapply category_theory.functor.ext,
     dsimp,
     intro X,
@@ -124,10 +135,11 @@ def limit_cone_is_limit (F : J ⥤ Cat.{v v}) : is_limit (limit_cone F) :=
     rw ←w j,
     refl,
     intros X Y f,
-    ext,
+    dsimp only [limit_cone_lift],
+    -- simp,
+
+    simp_rw (λ j, functor.congr_hom (w j).symm f),
     dsimp,
-    simp, -- gargh!
-    erw types.limit.π_mk,
-    simp,
+    congr,
 
   end, }

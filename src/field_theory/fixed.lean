@@ -242,7 +242,7 @@ namespace fixed_points
 local attribute [simp] mul_semiring_action.to_semiring_hom distrib_mul_action.to_add_monoid_hom
 
 /-- Embedding produced from a faithful action. -/
-@[simps {simp_rhs := tt, atrrs := []}, simps to_fun {fully_applied := ff}]
+@[simps {simp_rhs := tt, attrs := []}, simps to_fun {fully_applied := ff}]
 def to_alg_hom (G : Type u) (F : Type v) [group G] [field F]
   [faithful_mul_semiring_action G F] : G ↪ (F →ₐ[fixed_points G F] F) :=
 { to_fun := λ g, { commutes' := λ x, x.2 g,

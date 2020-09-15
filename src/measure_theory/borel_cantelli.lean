@@ -1,17 +1,7 @@
 import measure_theory.measure_space tactic
 
-universe u
-
 open measure_theory filter finset
 open_locale filter topological_space big_operators
-
-section
-variables {α : Type u} [complete_lattice α]
-
-lemma limsup_eq_infi_supr_of_nat' {u : ℕ → α} : limsup at_top u = ⨅n:ℕ, ⨆i, u (i + n) :=
-by simp only [limsup_eq_infi_supr_of_nat, supr_ge_eq_supr_nat_add]
-
-end
 
 section
 
@@ -25,11 +15,9 @@ lemma to_nnreal_apply_of_tsum_ne_top {α : Type*} {f : α → ennreal} (hf : (�
   (((ennreal.to_nnreal ∘ f) x : nnreal) : ennreal) = f x :=
 ennreal.coe_to_nnreal (ne_top_of_tsum_ne_top hf _)
 
-lemma summable_to_nnreal {α : Type u} {f : α → ennreal} (hf : (∑' i, f i) ≠ ⊤) :
+lemma summable_to_nnreal {α : Type*} {f : α → ennreal} (hf : (∑' i, f i) ≠ ⊤) :
   summable (ennreal.to_nnreal ∘ f) :=
 by simpa only [←ennreal.tsum_coe_ne_top_iff_summable, to_nnreal_apply_of_tsum_ne_top hf] using hf
-
-lemma nnreal.not_lt_zero {a : nnreal} : ¬(a < 0) := by simp
 
 lemma le_has_sum {α : Type*} [topological_space α] [ordered_add_comm_monoid α]
   [order_closed_topology α] {β : Type*} {f : β → α} {a : α} (hf : has_sum f a) (x : β)
@@ -64,8 +52,6 @@ lemma nnreal.sum_add_tsum_nat_add {f : ℕ → nnreal} (k : ℕ) (hf : summable 
 by rw [←nnreal.coe_eq, nnreal.coe_tsum, nnreal.coe_add, nnreal.coe_sum, nnreal.coe_tsum,
   sum_add_tsum_nat_add k (nnreal.summable_coe.2 hf)]
 
-lemma nnreal.zero_le {a : nnreal} : 0 ≤ a := a.2
-
 lemma has_sum_zero_iff {α : Type*} {β : Type*} [topological_space α]
   [canonically_ordered_add_monoid α] [order_closed_topology α] {f : β → α} :
   has_sum f 0 ↔ ∀ x, f x = 0 :=
@@ -89,7 +75,7 @@ begin
   by_cases h : ∀ i, f i = 0,
   { simp only [h, tsum_zero],
     exact tendsto_const_nhds },
-  refine tendsto_order.2 ⟨λ a ha, false.elim (nnreal.not_lt_zero ha), λ a ha, _⟩,
+  refine tendsto_order.2 ⟨λ a ha, false.elim (not_lt_zero' ha), λ a ha, _⟩,
   have hf' := summable.has_sum hf,
   rw [nnreal.has_sum_iff_tendsto_nat, tendsto_order] at hf',
   rcases hf' with ⟨hf', -⟩,
@@ -103,14 +89,14 @@ begin
   specialize hn m hm,
   by_cases h : a ≤ ∑' i, f i,
   { have sum_le_tsum : ∑ i in range m, f i ≤ ∑' i, f i,
-    { exact sum_le_tsum _ (λ _ _, nnreal.zero_le) hf },
+    { exact sum_le_tsum _ (λ _ _, zero_le _) hf },
     rw [nnreal.sub_lt_iff h, add_comm, ←nnreal.sub_lt_iff sum_le_tsum] at hn,
     convert hn,
     symmetry,
     rw [nnreal.sub_eq_iff sum_le_tsum, add_comm, nnreal.sum_add_tsum_nat_add _ hf] },
   { push_neg at h,
     refine lt_of_le_of_lt _ h,
-    exact tsum_le_tsum_of_inj (λ k, k + m) (add_left_injective m) (λ _ _, nnreal.zero_le)
+    exact tsum_le_tsum_of_inj (λ k, k + m) (add_left_injective m) (λ _ _, zero_le _)
       (λ _, le_refl _) (nnreal.summable_nat_add _ hf _) hf }
 end
 
@@ -129,7 +115,7 @@ end
 
 section
 
-variables {α : Type u} [measurable_space α] {μ : measure α}
+variables {α : Type*} [measurable_space α] {μ : measure α}
 
 /-- The Borel-Cantelli lemma. -/
 lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∀ i, is_measurable (s i))

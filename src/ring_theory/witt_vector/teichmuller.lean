@@ -10,7 +10,7 @@ import ring_theory.witt_vector.basic
 
 # Teichmüller lifts
 
-This file defines `witt_vector.teichmuller`, a ring hom `R → 𝕎 R`, which embeds `r : R` as the
+This file defines `witt_vector.teichmuller`, a monoid hom `R → 𝕎 R`, which embeds `r : R` as the
 0th component of a Witt vector whose other coefficients are 0.
 
 `teichmuller` is a natural transformation; the `n`th ghost component of `teichmuller p r`
@@ -28,7 +28,7 @@ local attribute [semireducible] witt_vector
 local attribute [instance] mv_polynomial.invertible_rat_coe_nat
 
 /--
-The underlying function of the ring hom `witt_vector.teichmuller`.
+The underlying function of the monoid hom `witt_vector.teichmuller`.
 The 0th coefficient of `teichmuller_fun p r` is `r`, and all others are 0.
 -/
 def teichmuller_fun (r : R) : 𝕎 R

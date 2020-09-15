@@ -23,7 +23,7 @@ local attribute [instance] mv_polynomial.invertible_rat_coe_nat
 `verschiebung_fun x` shifts the coefficients of `x` up by one, by inserting 0 as the 0th coefficient.
 `x i` then becomes `verchiebung_fun x (i + 1)`.
 
-`verschiebung_fun` is the underlying function of the ring hom `witt_vector.verschiebung`.
+`verschiebung_fun` is the underlying function of the additive monoid hom `witt_vector.verschiebung`.
 -/
 def verschiebung_fun (x : 𝕎 R) : 𝕎 R :=
 mk p $ λ n, if n = 0 then 0 else x.coeff (n - 1)
@@ -87,7 +87,7 @@ variables {R}
 `verschiebung x` shifts the coefficients of `x` up by one, by inserting 0 as the 0th coefficient.
 `x i` then becomes `verchiebung x (i + 1)`.
 
-This is a ring hom with underlying function `verschiebung_fun`.
+This is a additive monoid hom with underlying function `verschiebung_fun`.
 -/
 noncomputable
 def verschiebung : 𝕎 R →+ 𝕎 R :=

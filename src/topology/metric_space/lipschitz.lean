@@ -56,25 +56,25 @@ alias lipschitz_with_iff_dist_le_mul ↔ lipschitz_with.dist_le_mul lipschitz_wi
 
 /-- A function `f` is Lipschitz continuous with constant `K ≥ 0` on `s` if for all `x, y` in `s`
 we have `dist (f x) (f y) ≤ K * dist x y` -/
-def lipschitz_on_with [emetric_space α] [emetric_space β] (K : ℝ≥0) (s : set α) (f : α → β) :=
+def lipschitz_on_with [emetric_space α] [emetric_space β] (K : ℝ≥0) (f : α → β) (s : set α) :=
 ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), edist (f x) (f y) ≤ K * edist x y
 
 lemma lipschitz_on_with.mono [emetric_space α] [emetric_space β] {K : ℝ≥0} {s t : set α} {f : α → β}
-  (hf : lipschitz_on_with K t f) (h : s ⊆ t) : lipschitz_on_with K s f :=
+  (hf : lipschitz_on_with K f t) (h : s ⊆ t) : lipschitz_on_with K f s :=
 λ x x_in y y_in, hf (h x_in) (h y_in)
 
 lemma lipschitz_on_with_iff_dist_le_mul [metric_space α] [metric_space β] {K : ℝ≥0} {s : set α}
-  {f : α → β} : lipschitz_on_with K s f ↔ ∀ (x ∈ s) (y ∈ s), dist (f x) (f y) ≤ K * dist x y :=
+  {f : α → β} : lipschitz_on_with K f s ↔ ∀ (x ∈ s) (y ∈ s), dist (f x) (f y) ≤ K * dist x y :=
 by { simp only [lipschitz_on_with, edist_nndist, dist_nndist], norm_cast }
 
 alias lipschitz_on_with_iff_dist_le_mul ↔ lipschitz_on_with.dist_le_mul lipschitz_on_with.of_dist_le_mul
 
 @[simp] lemma lipschitz_on_univ [emetric_space α] [emetric_space β] {K : ℝ≥0} {f : α → β} :
-  lipschitz_on_with K univ f ↔ lipschitz_with K f :=
+  lipschitz_on_with K f univ ↔ lipschitz_with K f :=
 by simp [lipschitz_on_with, lipschitz_with]
 
 lemma lipschitz_on_with_iff_restrict [emetric_space α] [emetric_space β] {K : ℝ≥0}
-  {f : α → β} {s : set α} : lipschitz_on_with K s f ↔ lipschitz_with K (s.restrict f) :=
+  {f : α → β} {s : set α} : lipschitz_on_with K f s ↔ lipschitz_with K (s.restrict f) :=
 by simp only [lipschitz_on_with, lipschitz_with, set_coe.forall', restrict, subtype.edist_eq]
 
 namespace lipschitz_with
@@ -293,10 +293,10 @@ namespace lipschitz_on_with
 
 variables [emetric_space α] [emetric_space β] [emetric_space γ] {K : ℝ≥0} {s : set α} {f : α → β}
 
-protected lemma uniform_continuous_on (hf : lipschitz_on_with K s f) : uniform_continuous_on f s :=
+protected lemma uniform_continuous_on (hf : lipschitz_on_with K f s) : uniform_continuous_on f s :=
 uniform_continuous_on_iff_restrict.mpr (lipschitz_on_with_iff_restrict.mp hf).uniform_continuous
 
-protected lemma continuous_on (hf : lipschitz_on_with K s f) : continuous_on f s :=
+protected lemma continuous_on (hf : lipschitz_on_with K f s) : continuous_on f s :=
 hf.uniform_continuous_on.continuous_on
 
 end lipschitz_on_with

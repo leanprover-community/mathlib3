@@ -367,13 +367,14 @@ containing `r`."]
 theorem con_gen_eq (r : M → M → Prop) :
   con_gen r = Inf {s : con M | ∀ x y, r x y → s x y} :=
 le_antisymm
-  (λ x y H, con_gen.rel.rec
-    (λ _ _ h _ hs, hs _ _ h)
-    (con.refl _)
-    (λ _ _ _, con.symm _)
-    (λ _ _ _ _ _, con.trans _)
-    (λ w x y z _ _ h1 h2 c hc, c.mul (h1 c hc) $ h2 c hc)
-    H)
+  (λ x y H, by {
+    induction H,
+    case con_gen.rel.of : _ _ h {exact λ _ hs, hs _ _ h},
+    case con_gen.rel.refl : _ { exact con.refl _ _},
+    case con_gen.rel.symm : _ _ _ h { exact con.symm _ h },
+    case con_gen.rel.trans : _ _ _ _ _ ha hb { exact con.trans _ ha hb},
+    case con_gen.rel.mul : w x y z _ _ h1 h2 { exact λ c hc, c.mul (h1 c hc) $ h2 c hc},
+  })
   (Inf_le (λ _ _, con_gen.rel.of _ _))
 
 /-- The smallest congruence relation containing a binary relation `r` is contained in any

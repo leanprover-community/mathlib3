@@ -147,6 +147,7 @@ Time to break stuff
 
 /-
 Might want to pull out some lemmas about the set of ideals that don't contain prime products
+In docs, make sure that those lemmas lead to a proof of false or something.
 -/
 lemma ideal_contains_prime_product [is_dedekind_domain A] (I : ideal A) (gt_zero : ⊥ < I) : ∃(pset : multiset $ ideal A), ∅ < pset ∧ pset.prod ≤ I ∧ (∀(P ∈ pset), ideal.is_prime P ∧ ⊥ < P) :=
 begin
@@ -234,68 +235,52 @@ end
 
 namespace ring
 
-lemma local1 (S : submonoid R) (f : localization_map S $ localization S) : ∀(I : ideal R), I ≤ comap f.to_ring_hom (map f.to_ring_hom I) :=
-begin
-  apply le_comap_map,
-end
-
-lemma local2 (S : submonoid R) (f : localization_map S $ localization S) (I' : ideal $ localization S) (I : ideal R) (hI' : I'.comap f.to_ring_hom = I) : I' = I.map f.to_ring_hom :=
-begin
-  rw ← hI',
-  symmetry,
-  apply localization_map.map_comap f,
-end
-/-
---https://math.stackexchange.com/questions/110735/why-is-the-localization-of-a-commutative-noetherian-ring-still-noetherian
-Sketch for noetherianness : gt in local → gt in original
-then well_founded gt in local if well_founded gt in original
-
--/
-
 --abstract to modules(?)
 --better name
--- Every local ideal is of the form S⁻¹I for some ideal I of R.
-lemma local_ideal_char (S : submonoid R) (f : localization_map S $ localization S) : ∀(I : ideal f.codomain), ∃(I' : ideal R), ideal.map f.to_ring_hom I' = I :=
-  λ (I : ideal f.codomain), Exists.intro (I.comap f.to_ring_hom) (f.map_comap I)
+--Every local ideal is of the form S⁻¹I for some ideal I of R.
+lemma local_ideal_char (S : submonoid R) (f : localization_map S $ localization S) : ∀(I : ideal f.codomain), ∃(I' : ideal R), ideal.map f.to_map I' = I :=
+  λ (I : ideal f.codomain), Exists.intro (I.comap f.to_map) (f.map_comap I)
 
---pull out more lemmas(?)
---better name
-lemma local_rel_emb (S : submonoid R) (f : localization_map S $ localization S) : (gt : ideal f.codomain → ideal f.codomain → Prop) ↪r (gt : ideal R → ideal R → Prop) :=
+lemma comap_strict_iff (S : submonoid R) (f : localization_map S $ localization S) (a b : ideal f.codomain) : a.comap f.to_map < b.comap f.to_map ↔ a < b :=
 begin
-  refine {to_embedding := _, map_rel_iff' := _},
-  refine {to_fun := comap f.to_map, inj' := f.order_embedding.inj'},
-  dsimp at *,
-  intros,
   split,
-  {
-    intro hab,
-    rcases submodule.exists_of_lt hab with ⟨x, hxa, hxb⟩,
-    rw [gt_iff_lt, submodule.lt_iff_le_and_exists],
+  { intro hab,
+    rw submodule.lt_iff_le_and_exists at *,
+    rcases hab with ⟨hab, x, hxb, hxa⟩,
+    split, rwa [f.order_embedding.map_rel_iff'],
+    use f.to_fun x,
+    split,
+    { have h1 : f.to_fun x ∈ (b.comap f.to_map).map f.to_map := by tidy, --avoid tidy
+      simpa only [f.map_comap], },
+    contrapose! hxa,
+    have h1 : f.to_map⁻¹' ({f.to_map x} : _) ≤ a.comap f.to_map,
+    { suffices : ({f.to_map x} : set f.codomain) ≤ a,
+    exact set.monotone_preimage this,
+    simpa only [set.singleton_subset_iff, set.le_eq_subset],},
+    have h2 : x ∈ f.to_map⁻¹' ({f.to_map x} : _) := rfl,
+    exact h1 h2 },
+  { intro hab,
+    rcases submodule.exists_of_lt hab with ⟨x, hxb, hxa⟩,
+    rw [submodule.lt_iff_le_and_exists],
     split,
     exact ideal.comap_mono hab.1,
     rcases f.surj' x with ⟨z,hz⟩,
     use z.1,
     split,
-    sorry, --hz z.2 is a unit, x is in a.comap f
-    sorry, --hz z.2 is a unit, x is not in b.comap f,
-  },
-  { simp only [gt_iff_lt],
-    intro hab,
-    rw submodule.lt_iff_le_and_exists at *,
-    rcases hab with ⟨hab, x, hxa, hxb⟩,
-    split, rwa [f.order_embedding.map_rel_iff'],
-    use f.to_fun x,
-    split,
-    { have h1 : f.to_fun x ∈ (a.comap f.to_ring_hom).map f.to_ring_hom := by tidy, --avoid tidy
-      simpa only [f.map_comap], },
-    contrapose! hxb,
-    have h1 : f.to_map⁻¹' ({f.to_map x} : _) ≤ b.comap f.to_ring_hom,
-    { suffices : ({f.to_map x} : set f.codomain) ≤ b,
-    exact set.monotone_preimage this,
-    simpa only [set.singleton_subset_iff, set.le_eq_subset],},
-    have h2 : x ∈ f.to_map⁻¹' ({f.to_map x} : _) := rfl,
-    exact h1 h2,
-  }
+    { rw [mem_comap],
+      have : x * f.to_fun z.2 ∈ b := mul_mem_right b hxb,
+      rwa hz at this, },
+    suffices : x * f.to_fun z.2 ∉ a, rwa hz at this,
+    contrapose! hxa,
+    exact (mul_unit_mem_iff_mem a (f.map_units' z.snd)).mp hxa }
+end
+
+--better name
+lemma local_rel_emb (S : submonoid R) (f : localization_map S $ localization S) : (gt : ideal f.codomain → ideal f.codomain → Prop) ↪r (gt : ideal R → ideal R → Prop) :=
+begin
+  refine {to_embedding := {to_fun := comap f.to_map, inj' := f.order_embedding.inj'}, map_rel_iff' := _},
+  intros,
+  exact (comap_strict_iff R S f b a).symm,
 end
 
 --better name
@@ -306,15 +291,7 @@ begin
   rw [is_noetherian_iff_well_founded, rel_embedding.well_founded_iff_no_descending_seq] at *,
   contrapose! a,
   cases a,
-  --have hh := h.to_embedding.inj',
-  --have ha := a.to_embedding.inj',
-  --have h1 : (h ∘ a : (gt : ℕ → ℕ → Prop) ↪r (gt : submodule R R → submodule R R → Prop)),
-  split,
-  exact rel_embedding.trans a (local_rel_emb R S f),
-  --use h ∘ a,
-  --exact function.injective.comp hh ha,
-  --transport infinite chain of ideals of localization along order morphisms to
-  --get infinite chain of ideals of original
+  exact ⟨rel_embedding.trans a (local_rel_emb R S f)⟩,
 end
 
 

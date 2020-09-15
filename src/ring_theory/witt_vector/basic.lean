@@ -260,9 +260,11 @@ end witt_vector
 section tactic
 setup_tactic_parser
 open tactic
-meta def tactic.interactive.ghost_boo (k poly fn: parse parser.pexpr) : tactic unit :=
-do to_expr ```(witt_structure_int_prop p (%%poly : mv_polynomial (fin %%k) ℤ) n) >>= note `aux none >>=
-     apply_fun_to_hyp ```(aeval (function.uncurry (%%fn : fin %%k → ℕ → R))) none,
+meta def tactic.interactive.ghost_boo (poly fn: parse parser.pexpr) : tactic unit :=
+do fn ← to_expr ```(%%fn : fin _ → ℕ → R),
+  `(fin %%k → _ → _) ← infer_type fn,
+  to_expr ```(witt_structure_int_prop p (%%poly : mv_polynomial (fin %%k) ℤ) n) >>= note `aux none >>=
+     apply_fun_to_hyp ```(aeval (function.uncurry %%fn)) none,
 `[simp only [aeval_bind₁] at aux,
   simp only [ghost_component_apply],
   convert aux using 1; clear aux;
@@ -288,25 +290,25 @@ include hp
 
 @[simp] lemma ghost_component_zero (n : ℕ) :
   ghost_component n (0 : 𝕎 R) = 0 :=
-by ghost_boo 0 0 ![]
+by ghost_boo 0 ![]
 
 @[simp] lemma ghost_component_one (n : ℕ) :
   ghost_component n (1 : 𝕎 R) = 1 :=
-by ghost_boo 0 1 ![]
+by ghost_boo 1 ![]
 
 variable {R}
 
 @[simp] lemma ghost_component_add (n : ℕ) (x y : 𝕎 R) :
   ghost_component n (x + y) = ghost_component n x + ghost_component n y :=
-by ghost_boo 2 (X 0 + X 1) ![x.coeff, y.coeff]
+by ghost_boo (X 0 + X 1) ![x.coeff, y.coeff]
 
 @[simp] lemma ghost_component_mul (n : ℕ) (x y : 𝕎 R) :
   ghost_component n (x * y) = ghost_component n x * ghost_component n y :=
-by ghost_boo 2 (X 0 * X 1) ![x.coeff, y.coeff]
+by ghost_boo (X 0 * X 1) ![x.coeff, y.coeff]
 
 @[simp] lemma ghost_component_neg (n : ℕ) (x : 𝕎 R) :
   ghost_component n (-x) = - ghost_component n x :=
-by ghost_boo 1 (-X 0) ![x.coeff]
+by ghost_boo (-X 0) ![x.coeff]
 
 variables (R)
 

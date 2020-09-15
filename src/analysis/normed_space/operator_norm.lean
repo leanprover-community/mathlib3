@@ -639,13 +639,6 @@ begin
       ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
 end
 
-/-- Given `c : c : E →L[𝕜] 𝕜`, `c.smul_rightₗ` is the linear map from `F` to `E →L[𝕜] F`
-sending `f` to `λ e, c e • f`. See also `continuous_linear_map.smul_rightL`. -/
-def smul_rightₗ (c : E →L[𝕜] 𝕜) : F →ₗ[𝕜] (E →L[𝕜] F) :=
-{ to_fun := c.smul_right,
-  map_add' := λ x y, by { ext e, simp [smul_add] },
-  map_smul' := λ a x, by { ext e, simp [smul_comm] } }
-
 /-- Given `c : c : E →L[𝕜] 𝕜`, `c.smul_rightL` is the continuous linear map from `F` to `E →L[𝕜] F`
 sending `f` to `λ e, c e • f`. -/
 def smul_rightL (c : E →L[𝕜] 𝕜) : F →L[𝕜] (E →L[𝕜] F) :=

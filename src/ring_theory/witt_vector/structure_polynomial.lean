@@ -7,6 +7,7 @@ Authors: Johan Commelin, Robert Y. Lewis
 import ring_theory.witt_vector.witt_polynomial
 import field_theory.mv_polynomial
 import field_theory.finite
+import data.matrix.notation
 
 /-!
 # Witt structure polynomials
@@ -390,32 +391,31 @@ variables (p) [hp : fact p.prime]
 include hp
 
 /-- The polynomials used for defining the element `0` of the ring of Witt vectors. -/
-noncomputable def witt_zero : ℕ → mv_polynomial (empty × ℕ) ℤ :=
+noncomputable def witt_zero : ℕ → mv_polynomial (fin 0 × ℕ) ℤ :=
 witt_structure_int p 0
 
 /-- The polynomials used for defining the element `1` of the ring of Witt vectors. -/
-noncomputable def witt_one : ℕ → mv_polynomial (empty × ℕ) ℤ :=
+noncomputable def witt_one : ℕ → mv_polynomial (fin 0 × ℕ) ℤ :=
 witt_structure_int p 1
 
--- Do we want to use bool, or a custom inductive type with terms l(eft) and r(ight)?
 /-- The polynomials used for defining the addition of the ring of Witt vectors. -/
-noncomputable def witt_add : ℕ → mv_polynomial (bool × ℕ) ℤ :=
-witt_structure_int p (X tt + X ff)
+noncomputable def witt_add : ℕ → mv_polynomial (fin 2 × ℕ) ℤ :=
+witt_structure_int p (X 0 + X 1)
 
 /-- The polynomials used for describing the subtraction of the ring of Witt vectors.
 Note that `a - b` is defined as `a + -b`.
 See `witt_vector.sub_coeff` for a proof that subtraction is precisely
 given by these polynomials `witt_vector.witt_sub` -/
-noncomputable def witt_sub : ℕ → mv_polynomial (bool × ℕ) ℤ :=
-witt_structure_int p (X tt - X ff)
+noncomputable def witt_sub : ℕ → mv_polynomial (fin 2 × ℕ) ℤ :=
+witt_structure_int p (X 0 - X 1)
 
 /-- The polynomials used for defining the multiplication of the ring of Witt vectors. -/
-noncomputable def witt_mul : ℕ → mv_polynomial (bool × ℕ) ℤ :=
-witt_structure_int p (X tt * X ff)
+noncomputable def witt_mul : ℕ → mv_polynomial (fin 2 × ℕ) ℤ :=
+witt_structure_int p (X 0 * X 1)
 
 /-- The polynomials used for defining the negation of the ring of Witt vectors. -/
-noncomputable def witt_neg : ℕ → mv_polynomial (unit × ℕ) ℤ :=
-witt_structure_int p (-X unit.star)
+noncomputable def witt_neg : ℕ → mv_polynomial (fin 1 × ℕ) ℤ :=
+witt_structure_int p (-X 0)
 
 section witt_structure_simplifications
 
@@ -453,7 +453,7 @@ begin
   { rw finset.mem_range, intro, contradiction }
 end
 
-@[simp] lemma witt_add_zero : witt_add p 0 = X (tt,0) + X (ff,0) :=
+@[simp] lemma witt_add_zero : witt_add p 0 = X (0,0) + X (1,0) :=
 begin
   apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
   simp only [witt_add, witt_structure_rat, alg_hom.map_add, ring_hom.map_add,
@@ -461,7 +461,7 @@ begin
      witt_polynomial_zero, bind₁_X_right, map_witt_structure_int],
 end
 
-@[simp] lemma witt_sub_zero : witt_sub p 0 = X (tt,0) - X (ff,0) :=
+@[simp] lemma witt_sub_zero : witt_sub p 0 = X (0,0) - X (1,0) :=
 begin
   apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
   simp only [witt_sub, witt_structure_rat, alg_hom.map_sub, ring_hom.map_sub,
@@ -469,7 +469,7 @@ begin
      witt_polynomial_zero, bind₁_X_right, map_witt_structure_int],
 end
 
-@[simp] lemma witt_mul_zero : witt_mul p 0 = X (tt,0) * X (ff,0) :=
+@[simp] lemma witt_mul_zero : witt_mul p 0 = X (0,0) * X (1,0) :=
 begin
   apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
   simp only [witt_mul, witt_structure_rat, rename_X, X_in_terms_of_W_zero, map_X,
@@ -478,7 +478,7 @@ begin
 
 end
 
-@[simp] lemma witt_neg_zero : witt_neg p 0 = - X ((),0) :=
+@[simp] lemma witt_neg_zero : witt_neg p 0 = - X (0,0) :=
 begin
   apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
   simp only [witt_neg, witt_structure_rat, rename_X, X_in_terms_of_W_zero, map_X,

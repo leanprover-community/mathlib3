@@ -46,7 +46,7 @@ def mk (x : ℕ → R) : witt_vector p R := x
 I don't know a name for this map in the literature. But coefficient seems ok.
 -/
 
-def coeff (n : ℕ) (x : 𝕎 R) : R := x n
+def coeff (x : 𝕎 R) (n : ℕ) : R := x n
 
 @[ext]
 lemma ext {x y : 𝕎 R} (h : ∀ n, x.coeff n = y.coeff n) : x = y :=
@@ -87,24 +87,60 @@ open_locale witt
 namespace witt_vector
 
 section ring_data
+
+noncomputable def peval {k : ℕ} (φ : mv_polynomial (fin k × ℕ) ℤ) (x : fin k → ℕ → R) : R :=
+aeval (function.uncurry x) φ
+
+noncomputable def eval {k : ℕ} (φ : ℕ → mv_polynomial (fin k × ℕ) ℤ) (x : fin k → 𝕎 R) : 𝕎 R :=
+mk p $ λ n, peval (φ n) $ λ i, (x i).coeff
+
 variables (R) [fact p.prime]
 
 noncomputable instance : has_zero (𝕎 R) :=
-⟨λ n, aeval (λ p : empty × ℕ, p.1.elim) (witt_zero p n)⟩
+⟨eval (witt_zero p) ![]⟩
 
 noncomputable instance : has_one (𝕎 R) :=
-⟨λ n, aeval (λ p : empty × ℕ, p.1.elim) (witt_one p n)⟩
+⟨eval (witt_one p) ![]⟩
 
 noncomputable instance : has_add (𝕎 R) :=
-⟨λ x y n, aeval (λ bn : bool × ℕ, cond bn.1 (x bn.2) (y bn.2)) (witt_add p n)⟩
+⟨λ x y, eval (witt_add p) ![x.coeff, y.coeff]⟩
 
 noncomputable instance : has_mul (𝕎 R) :=
-⟨λ x y n, aeval (λ bn : bool × ℕ, cond bn.1 (x bn.2) (y bn.2)) (witt_mul p n)⟩
+⟨λ x y, eval (witt_mul p) ![x.coeff, y.coeff]⟩
 
 noncomputable instance : has_neg (𝕎 R) :=
-⟨λ x n, aeval (λ n : unit × ℕ, x n.2) (witt_neg p n)⟩
+⟨λ x, eval (witt_neg p) ![x.coeff]⟩
 
 end ring_data
+
+section coeff
+
+variables (p R) [fact p.prime]
+
+@[simp] lemma zero_coeff (n : ℕ) : (0 : 𝕎 R).coeff n = 0 :=
+show (aeval _ (witt_zero p n) : R) = 0,
+by simp only [witt_zero_eq_zero, alg_hom.map_zero]
+
+@[simp] lemma one_coeff_zero : (1 : 𝕎 R).coeff 0 = 1 :=
+show (aeval _ (witt_one p 0) : R) = 1,
+by simp only [witt_one_zero_eq_one, alg_hom.map_one]
+
+@[simp] lemma one_coeff_pos (n : ℕ) (hn : 0 < n) : coeff (1 : 𝕎 R) n = 0 :=
+show (aeval _ (witt_one p n) : R) = 0,
+by simp only [hn, witt_one_pos_eq_zero, alg_hom.map_zero]
+
+lemma add_coeff (x y : 𝕎 R) (n : ℕ) :
+  (x + y).coeff n = peval (witt_add p n) ![x.coeff, y.coeff] :=
+rfl
+
+lemma mul_coeff (x y : 𝕎 R) (n : ℕ) :
+  (x * y).coeff n = peval (witt_mul p n) ![x.coeff, y.coeff] :=
+rfl
+
+lemma neg_coeff (x : 𝕎 R) (n : ℕ) :
+  (-x).coeff n = peval (witt_neg p n) ![x.coeff] := rfl
+
+end coeff
 
 variables {p} {R}
 
@@ -131,8 +167,8 @@ meta def witt_map : tactic unit :=
   show f (aeval _ _) = aeval _ _,
   rw map_aeval,
   apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-  funext p,
-  rcases p with ⟨⟨⟩, i⟩; refl]
+  ext ⟨i, k⟩,
+  fin_cases i; refl]
 
 variable [fact p.prime]
 
@@ -159,13 +195,13 @@ end map
 section
 
 noncomputable def ghost_component (n : ℕ) (x : 𝕎 R) : R :=
-aeval x (W_ ℤ n)
+aeval x.coeff (W_ ℤ n)
 
 lemma ghost_component_apply (n : ℕ) (x : 𝕎 R) :
-  ghost_component n x = aeval x (W_ ℤ n) := rfl
+  ghost_component n x = aeval x.coeff (W_ ℤ n) := rfl
 
 lemma ghost_component_apply' (n : ℕ) (x : 𝕎 R) :
-  ghost_component n x = aeval x (W_ R n) :=
+  ghost_component n x = aeval x.coeff (W_ R n) :=
 begin
   simp only [ghost_component_apply, aeval_eq_eval₂_hom,
     ← map_witt_polynomial p (int.cast_ring_hom R), eval₂_hom_map_hom],
@@ -183,7 +219,7 @@ setup_tactic_parser
 open tactic
 meta def tactic.interactive.ghost_boo (poly fn: parse parser.pexpr) : tactic unit :=
 do to_expr ```(witt_structure_int_prop p (%%poly) n) >>= note `aux none >>=
-     apply_fun_to_hyp ```(aeval %%fn) none,
+     apply_fun_to_hyp ```(aeval (function.uncurry %%fn)) none,
 `[convert aux using 1; clear aux,
   simp only [aeval_eq_eval₂_hom, eval₂_hom_map_hom, map_eval₂_hom, bind₁];
   apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl;
@@ -212,25 +248,37 @@ include hp
 
 @[simp] lemma ghost_component_zero (n : ℕ) :
   ghost_component n (0 : 𝕎 R) = 0 :=
-by ghost_boo (0 : mv_polynomial empty ℤ) (λ (p : empty × ℕ), (p.1.elim : R))
+by ghost_boo (0 : mv_polynomial (fin 0) ℤ) (![] : fin 0 → ℕ → R)
 
 @[simp] lemma ghost_component_one (n : ℕ) :
   ghost_component n (1 : 𝕎 R) = 1 :=
-by ghost_boo (1 : mv_polynomial empty ℤ) (λ (p : empty × ℕ), (p.1.elim : R))
+by ghost_boo (1 : mv_polynomial (fin 0) ℤ) (![] : fin 0 → ℕ → R)
 
 variable {R}
 
 @[simp] lemma ghost_component_add (n : ℕ) (x y : 𝕎 R) :
   ghost_component n (x + y) = ghost_component n x + ghost_component n y :=
-by ghost_boo (X tt + X ff) (λ (bn : bool × ℕ), cond bn.1 (x bn.2) (y bn.2))
+begin
+  have aux := witt_structure_int_prop p (X (0 : fin 2) + X 1) n,
+  apply_fun aeval (function.uncurry $ ![x.coeff, y.coeff]) at aux,
+  simp only [aeval_bind₁] at aux,
+  simp only [ghost_component_apply],
+  convert aux using 1; clear aux,
+  simp only [alg_hom.map_zero, alg_hom.map_one, alg_hom.map_add, alg_hom.map_mul, alg_hom.map_neg,
+    aeval_X],
+  all_goals { simp only [aeval_eq_eval₂_hom, ring_hom.map_add, ring_hom.map_one, ring_hom.map_neg,
+                         ring_hom.map_mul, eval₂_hom_X', bind₁];
+              simp only [coe_eval₂_hom, eval₂_rename];
+              refl }
+end
 
 @[simp] lemma ghost_component_mul (n : ℕ) (x y : 𝕎 R) :
   ghost_component n (x * y) = ghost_component n x * ghost_component n y :=
-by ghost_boo (X tt * X ff) (λ (bn : bool × ℕ), cond bn.1 (x bn.2) (y bn.2))
+by ghost_boo (X 0 * X 1 : mv_polynomial (fin 2) ℤ) ![x.coeff, y.coeff]
 
 @[simp] lemma ghost_component_neg (n : ℕ) (x : 𝕎 R) :
   ghost_component n (-x) = - ghost_component n x :=
-by ghost_boo (-X unit.star) (λ (n : unit × ℕ), (x n.2))
+by ghost_boo (-X 0 : mv_polynomial (fin 1) ℤ) ![x.coeff]
 
 variables (R)
 
@@ -268,7 +316,7 @@ begin
   ext w n,
   rw [ghost_map_fun_apply, ghost_component_apply'],
   dsimp [ghost_map_fun.equiv_of_invertible, witt.alg_equiv],
-  rw bind₁_X_right
+  rw bind₁_X_right, refl
 end
 
 lemma ghost_map_fun.bijective_of_invertible [invertible (p : R)] :
@@ -334,6 +382,9 @@ lemma map_surjective (f : R →+* S) (hf : surjective f) :
   surjective (map f : 𝕎 R → 𝕎 S) :=
 map_fun_surjective f hf
 
+lemma map_coeff (f : R →+* S) (x : 𝕎 R) (n : ℕ) :
+  (map f x).coeff n = f (x.coeff n) := rfl
+
 end map
 
 noncomputable def ghost_map : 𝕎 R →+* ℕ → R :=
@@ -365,41 +416,6 @@ noncomputable def ghost_equiv [invertible (p : R)] : 𝕎 R ≃+* (ℕ → R) :=
 lemma ghost_map.bijective_of_invertible [invertible (p : R)] :
   function.bijective (ghost_map : 𝕎 R → ℕ → R) :=
 ghost_map_fun.bijective_of_invertible p R
-
-
-section coeff
-
-variables (p R)
-
-@[simp] lemma zero_coeff (n : ℕ) : (0 : 𝕎 R).coeff n = 0 :=
-show (aeval _ (witt_zero p n) : R) = 0,
-by simp only [witt_zero_eq_zero, alg_hom.map_zero]
-
-@[simp] lemma one_coeff_zero : (1 : 𝕎 R).coeff 0 = 1 :=
-show (aeval _ (witt_one p 0) : R) = 1,
-by simp only [witt_one_zero_eq_one, alg_hom.map_one]
-
-@[simp] lemma one_coeff_pos (n : ℕ) (hn : 0 < n) : coeff n (1 : 𝕎 R) = 0 :=
-show (aeval _ (witt_one p n) : R) = 0,
-by simp only [hn, witt_one_pos_eq_zero, alg_hom.map_zero]
-
-lemma add_coeff (x y : 𝕎 R) (n : ℕ) :
-  (x + y).coeff n =
-  aeval (λ bn : bool × ℕ, cond bn.1 (x.coeff bn.2) (y.coeff bn.2)) (witt_add p n) :=
-rfl
-
-lemma mul_coeff (x y : 𝕎 R) (n : ℕ) :
-  (x * y).coeff n =
-  aeval (λ bn : bool × ℕ, cond bn.1 (x.coeff bn.2) (y.coeff bn.2)) (witt_mul p n) :=
-rfl
-
-lemma neg_coeff (x : 𝕎 R) (n : ℕ) :
-  (-x).coeff n = aeval (λ bn : unit × ℕ, (x.coeff bn.2)) (witt_neg p n) := rfl
-
-lemma map_coeff (f : R →+* S) (x : 𝕎 R) (n : ℕ) :
-  (map f x).coeff n = f (x.coeff n) := rfl
-
-end coeff
 
 end witt_vector
 

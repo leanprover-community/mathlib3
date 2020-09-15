@@ -137,9 +137,9 @@ def lift (f : R →+* T) {r : R → R → Prop} (w : ∀ ⦃x y⦄, r x y → f 
   map_mul' := by { rintros ⟨x⟩ ⟨y⟩, exact f.map_mul x y, }, }
 
 @[simp]
-lemma lift_mk_ring_hom_apply (f : R →+* T) {r : R → R → Prop} (w : ∀ ⦃x y⦄, r x y → f x = f y) :
-  (lift f w).comp (mk_ring_hom r) = f :=
-by { ext, simp, refl, }
+lemma lift_mk_ring_hom_apply (f : R →+* T) {r : R → R → Prop} (w : ∀ ⦃x y⦄, r x y → f x = f y) (x) :
+  (lift f w) (mk_ring_hom r x) = f x :=
+rfl
 
 lemma lift_unique (f : R →+* T) {r : R → R → Prop} (w : ∀ ⦃x y⦄, r x y → f x = f y)
   (g : ring_quot r →+* T) (h : g.comp (mk_ring_hom r) = f) : g = lift f w :=
@@ -253,9 +253,9 @@ def lift_alg_hom (f : A →ₐ[S] B) {s : A → A → Prop} (w : ∀ ⦃x y⦄, 
   end, }
 
 @[simp]
-lemma lift_alg_hom_mk_alg_hom_apply (f : A →ₐ[S] B) {s : A → A → Prop} (w : ∀ ⦃x y⦄, s x y → f x = f y) :
-  (lift_alg_hom S f w).comp (mk_alg_hom S s) = f :=
-by { ext, simp, refl, }
+lemma lift_alg_hom_mk_alg_hom_apply (f : A →ₐ[S] B) {s : A → A → Prop} (w : ∀ ⦃x y⦄, s x y → f x = f y) (x) :
+  (lift_alg_hom S f w) ((mk_alg_hom S s) x) = f x :=
+rfl
 
 lemma lift_alg_hom_unique (f : A →ₐ[S] B) {s : A → A → Prop} (w : ∀ ⦃x y⦄, s x y → f x = f y)
   (g : ring_quot s →ₐ[S] B) (h : g.comp (mk_alg_hom S s) = f) : g = lift_alg_hom S f w :=

@@ -254,10 +254,10 @@ end
 variables {p}
 
 def frobenius_fun (x : 𝕎 R) : 𝕎 R :=
-mk p $ λ n, (mv_polynomial.aeval (λ (k : ℕ), coeff k x)) (frobenius_poly p n)
+mk p $ λ n, mv_polynomial.aeval x.coeff (frobenius_poly p n)
 
 lemma coeff_frobenius_fun (x : 𝕎 R) (n : ℕ) :
-  coeff n (frobenius_fun x) = (mv_polynomial.aeval (λ (k : ℕ), coeff k x)) (frobenius_poly p n) :=
+  coeff (frobenius_fun x) n = mv_polynomial.aeval x.coeff (frobenius_poly p n) :=
 coeff_mk _ _ _
 
 variables (p)
@@ -287,7 +287,7 @@ variables [char_p R p]
 
 @[simp]
 lemma coeff_frobenius_fun_char_p (x : 𝕎 R) (n : ℕ) :
-  coeff n (frobenius_fun x) = (x.coeff n) ^ p :=
+  coeff (frobenius_fun x) n = (x.coeff n) ^ p :=
 begin
   rw [coeff_frobenius_fun],
   -- outline of the calculation, proofs follow below

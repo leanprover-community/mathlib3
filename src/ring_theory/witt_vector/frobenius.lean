@@ -9,7 +9,36 @@ import ring_theory.witt_vector.basic
 import ring_theory.witt_vector.is_poly
 
 
-/-! ## The Frobenius operator -/
+/-!
+## The Frobenius operator
+
+If `R` has characteristic `p`, then there is a ring endomorphism `frobenius R p`
+that raises `r : R` to the power `p`.
+By applying `witt_vector.map` to `frobenius R p`, we obtain a ring endomorphism `𝕎 R →+* 𝕎 R`.
+It turns out that this endomorphism can be described by polynomials over `ℤ`
+that do not depend on `R` or the fact that it has characteristic `p`.
+In this way, we obtain a Frobenius endomorphism `witt_vector.frobenius_fun : 𝕎 R → 𝕎 R`
+for every commutative ring `R`.
+
+Unfortunately, the aforementioned polynomials can not be obtained using the machinery
+of `witt_structure_int` that was developed in `structure_polynomial.lean`.
+We therefore have to define the polynomials by hand, and check that they have the required property.
+
+In case `R` has characteristic `p`, we show in `frobenius_fun_eq_map_frobenius`
+that `witt_vector.frobenius_fun` is equal to `witt_vector.map (frobenius R p)`.
+
+### Main definitions and results
+
+* `frobenius_poly`: the polynomials that describe the coefficients of `frobenius_fun`;
+* `frobenius_fun`: the Frobenius endomorphism on Witt vectors;
+* `frobenius_fun_is_poly`: the tautological assertion that Frobenius is a polynomial function;
+* `frobenius_fun_eq_map_frobenius`: the fact that in characteristic `p`, Frobenius is equal to
+  `witt_vector.map (frobenius R p)`.
+
+TODO: Show that `witt_vector.frobenius_fun` is a ring homomorphism,
+and bundle it into `witt_vector.frobenius`.
+
+-/
 
 namespace witt_vector
 
@@ -71,11 +100,11 @@ lemma map_frobenius_poly (n : ℕ) :
 -/
 
 /-- A key divisibility fact for the proof of `witt_vector.map_frobenius_poly`. -/
-lemma map_frobenius_poly.aux₁ (n i j : ℕ) (hi : i < n) (hj : j < p ^ (n - i)) :
-  p ^ (n - i - vp ⟨j + 1, j.succ_pos⟩) ∣ (p ^ (n - i)).choose (j + 1) :=
+lemma map_frobenius_poly.aux₁ (n j : ℕ) (hj : j < p ^ (n)) :
+  p ^ (n - vp ⟨j + 1, j.succ_pos⟩) ∣ (p ^ n).choose (j + 1) :=
 begin
   apply multiplicity.pow_dvd_of_le_multiplicity,
-  have aux : (multiplicity p ((p ^ (n - i)).choose (j + 1))).dom,
+  have aux : (multiplicity p ((p ^ n).choose (j + 1))).dom,
   { rw [← multiplicity.finite_iff_dom, multiplicity.finite_nat_iff],
     exact ⟨ne_of_gt hp.one_lt, nat.choose_pos hj⟩, },
   rw [← enat.coe_get aux, enat.coe_le_coe, nat.sub_le_left_iff_le_add,
@@ -239,7 +268,7 @@ begin
   congr' 2,
   rw C_inj,
   simp only [inv_of_eq_inv, ring_hom.eq_int_cast, inv_pow', int.cast_coe_nat, nat.cast_mul],
-  rw [rat.coe_nat_div _ _ (map_frobenius_poly.aux₁ p n i j hi hj)],
+  rw [rat.coe_nat_div _ _ (map_frobenius_poly.aux₁ p (n - i) j hj)],
   simp only [nat.cast_pow, pow_add, pow_one],
   suffices : (p : ℚ) * (((p ^ (n - i)).choose (j + 1)) * p ^ (j - vp ⟨j + 1, j.succ_pos⟩)) * p ^ n =
     p ^ i * (p ^ j * p) * ((p ^ (n - i)).choose (j + 1)) * p ^ (n - i - vp ⟨j + 1, j.succ_pos⟩),
@@ -263,7 +292,7 @@ coeff_mk _ _ _
 variables (p)
 
 @[simps { fully_applied := ff }]
-lemma frobenius_is_poly : is_poly p (λ R _Rcr, @frobenius_fun p R _ _Rcr) :=
+def frobenius_is_poly : is_poly p (λ R _Rcr, @frobenius_fun p R _ _Rcr) :=
 { poly := frobenius_poly p,
   coeff := by { introsI, apply coeff_frobenius_fun } }
 
@@ -301,6 +330,13 @@ begin
   { rw [alg_hom.map_pow, aeval_X] }
 end
 
+lemma frobenius_fun_eq_map_frobenius :
+  @frobenius_fun p R _ _ = map (frobenius R p) :=
+begin
+  ext x n,
+  simp only [coeff_frobenius_fun_char_p, map_coeff, frobenius_def],
+end
+
 @[simp]
 lemma frobenius_fun_zmodp (x : 𝕎 (zmod p)) :
   (frobenius_fun x) = x :=
@@ -309,3 +345,5 @@ by simp only [ext_iff, coeff_frobenius_fun_char_p, zmod.pow_card, eq_self_iff_tr
 end char_p
 
 end witt_vector
+
+#lint

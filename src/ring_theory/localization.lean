@@ -1446,9 +1446,10 @@ end
 `Rₘ` is the localization of `R` at `M`,
 and `Sₘ` is the localization of `S` at the image of `M` under the extension map,
 then the induced map `Rₘ → Sₘ` is also an integral extension -/
-theorem is_integral_localization (H : ∀ x : S, is_integral R x)
-  (x : Sₘ) : @is_integral Rₘ _ _ _ (localization_algebra M f g) x :=
+theorem is_integral_localization (H : algebra.is_integral R S)
+  : @algebra.is_integral Rₘ Sₘ _ _ (localization_algebra M f g) :=
 begin
+  intro x,
   by_cases triv : (1 : R) = 0,
   { have : (1 : Rₘ) = 0 := by convert congr_arg f.to_map triv; simp,
     exact ⟨0, ⟨trans leading_coeff_zero this.symm, eval₂_zero _ _⟩⟩ },

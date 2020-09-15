@@ -36,7 +36,12 @@ if it is a root of some monic polynomial `p : polynomial R`. -/
 def is_integral (x : A) : Prop :=
 ∃ p : polynomial R, monic p ∧ aeval x p = 0
 
-variable {R}
+variable (A)
+
+/-- An integral extension is one where every element of the -/
+def algebra.is_integral : Prop := ∀ x : A, is_integral R x
+
+variables {R A}
 
 theorem is_integral_algebra_map {x : R} : is_integral R (algebra_map R A x) :=
 ⟨X - C x, monic_X_sub_C _,
@@ -322,7 +327,7 @@ variables [algebra R A] [is_scalar_tower R A B]
 
 /-- If A is an R-algebra all of whose elements are integral over R,
 and x is an element of an A-algebra that is integral over A, then x is integral over R.-/
-lemma is_integral_trans (A_int : ∀ x : A, is_integral R x) (x : B) (hx : is_integral A x) :
+lemma is_integral_trans (A_int : is_integral R A) (x : B) (hx : is_integral A x) :
   is_integral R x :=
 begin
   rcases hx with ⟨p, pmonic, hp⟩,
@@ -339,12 +344,10 @@ end
 /-- If A is an R-algebra all of whose elements are integral over R,
 and B is an A-algebra all of whose elements are integral over A,
 then all elements of B are integral over R.-/
-lemma algebra.is_integral_trans (A_int : ∀ x : A, is_integral R x)(B_int : ∀ x:B, is_integral A x) :
-  ∀ x:B, is_integral R x :=
-λ x, is_integral_trans A_int x (B_int x)
+lemma algebra.is_integral_trans (hA : is_integral R A) (hB : is_integral A B) : is_integral R B :=
+λ x, is_integral_trans hA x (hB x)
 
-lemma is_integral_of_surjective (h : function.surjective (algebra_map R A)) :
-  ∀ x : A, is_integral R x :=
+lemma is_integral_of_surjective (h : function.surjective (algebra_map R A)) : is_integral R A :=
 λ x, (h x).rec_on (λ y hy, (hy ▸ is_integral_algebra_map : is_integral R x))
 
 /-- If `R → A → B` is an algebra tower with `A → B` injective,
@@ -371,18 +374,18 @@ begin
   exact hp',
 end
 
-lemma is_integral_quotient_of_is_integral {I : ideal A} (hRS : ∀ (x : A), is_integral R x) :
-  ∀ (x : I.quotient), is_integral (I.comap (algebra_map R A)).quotient x :=
+lemma is_integral_quotient_of_is_integral {I : ideal A} (hRA : is_integral R A) :
+  is_integral (I.comap (algebra_map R A)).quotient I.quotient :=
 begin
   rintros ⟨x⟩,
-  obtain ⟨p, ⟨p_monic, hpx⟩⟩ := hRS x,
+  obtain ⟨p, ⟨p_monic, hpx⟩⟩ := hRA x,
   refine ⟨p.map (ideal.quotient.mk _), ⟨monic_map _ p_monic, _⟩⟩,
   simpa only [aeval_def, hom_eval₂, eval₂_map] using congr_arg (ideal.quotient.mk I) hpx
 end
 
 /-- If the integral extension `R → S` is injective, and `S` is a field, then `R` is also a field -/
 lemma is_field_of_is_integral_of_is_field {R S : Type*} [integral_domain R] [integral_domain S]
-  [algebra R S] (H : ∀ x : S, is_integral R x) (hRS : function.injective (algebra_map R S))
+  [algebra R S] (H : is_integral R S) (hRS : function.injective (algebra_map R S))
   (hS : is_field S) : is_field R :=
 begin
   refine ⟨⟨0, 1, zero_ne_one⟩, mul_comm, λ a ha, _⟩,

@@ -11,6 +11,7 @@ import ring_theory.witt_vector.is_poly
 /-! ## The Verschiebung operator -/
 
 namespace witt_vector
+open mv_polynomial
 
 variables {p : ℕ} {R S : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
 local notation `𝕎` := witt_vector p -- type as `\bbW`

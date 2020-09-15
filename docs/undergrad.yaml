@@ -314,7 +314,7 @@ Single Variable Real Analysis:
     derivative at a point: 'has_deriv_at'
     differentiable functions: 'has_deriv_at'
     derivative of a composition of functions: 'deriv.comp'
-    derivative of a reciprocal function: 'has_strict_deriv_at.of_local_left_inverse'
+    derivative of the inverse of a function: 'has_strict_deriv_at.of_local_left_inverse'
     Rolle's theorem: 'exists_deriv_eq_zero'
     mean value theorem: 'exists_ratio_deriv_eq_ratio_slope'
     higher order derivatives of functions: 'iterated_deriv'

@@ -83,8 +83,12 @@ begin
   end,
   have s_fin : s.finite :=
   begin
-    refine (set.finite.image (λ z : E × E, r z.1 z.2) (set.finite_mem_finset (sf.product sg))).subset _,
-    simpa only [set.subset_def, set.mem_image, prod.exists, finset.mem_product] using hr,
+    refine (set.finite.image (λ z : E × E, r z.1 z.2)
+      (set.finite_mem_finset (sf.product sg).to_finset)).subset _,
+    rw set.subset_def,
+    intros x hx,
+    specialize hr x hx,
+    simpa only [set.mem_image, multiset.mem_to_finset, multiset.mem_product, prod.exists] using hr,
   end,
   have s'_fin : (ϕ⁻¹' s).finite := s_fin.preimage ((ring_hom.injective ϕ).inj_on (⇑ϕ⁻¹' s)),
   obtain ⟨c, hc⟩ := infinite.exists_not_mem_finset s'_fin.to_finset,

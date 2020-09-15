@@ -238,7 +238,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     classification of elements of $\mathrm{O}(3, \R)$:
 
 # 5.
-Affine and Euclidian Geometry:
+Affine and Euclidean Geometry:
   General definitions:
     affine space: 'add_torsor'
     affine function: 'affine_map'

@@ -339,6 +339,18 @@ begin
     simp only [map_rename, map_witt_polynomial] }
 end
 
+lemma witt_structure_int_rename (Φ : mv_polynomial idx ℤ) (f : idx → σ) (n : ℕ) :
+  witt_structure_int p (rename f Φ) n = rename (prod.map f id) (witt_structure_int p Φ n) :=
+begin
+  apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
+  simp only [map_rename, map_witt_structure_int, witt_structure_rat, rename_bind₁, rename_rename, bind₁_rename],
+  apply eval₂_hom_congr rfl _ rfl,
+  ext1 k,
+  apply eval₂_hom_congr rfl _ rfl,
+  ext1 i,
+  refl
+end
+
 @[simp]
 lemma constant_coeff_witt_structure_rat_zero (Φ : mv_polynomial idx ℚ) :
   constant_coeff (witt_structure_rat p Φ 0) = constant_coeff Φ :=

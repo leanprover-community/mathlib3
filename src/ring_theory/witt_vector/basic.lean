@@ -144,13 +144,13 @@ noncomputable instance : has_one (𝕎 R) :=
 ⟨eval (witt_one p) ![]⟩
 
 noncomputable instance : has_add (𝕎 R) :=
-⟨λ x y, eval (witt_add p) ![x.coeff, y.coeff]⟩
+⟨λ x y, eval (witt_add p) ![x, y]⟩
 
 noncomputable instance : has_mul (𝕎 R) :=
-⟨λ x y, eval (witt_mul p) ![x.coeff, y.coeff]⟩
+⟨λ x y, eval (witt_mul p) ![x, y]⟩
 
 noncomputable instance : has_neg (𝕎 R) :=
-⟨λ x, eval (witt_neg p) ![x.coeff]⟩
+⟨λ x, eval (witt_neg p) ![x]⟩
 
 end ring_data
 

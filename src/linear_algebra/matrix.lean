@@ -787,6 +787,37 @@ if H : ∃ s : finset M, is_basis R (λ x, x : (↑s : set M) → M) then let �
 by { simp_rw [trace_eq_matrix_trace R hb, matrix.linear_equiv_matrix_mul], apply matrix.trace_mul_comm }
 else by rw [trace, dif_neg H, linear_map.zero_apply, linear_map.zero_apply]
 
+section finite_dimensional
+
+variables {K : Type*} [field K]
+variables {V : Type*} [add_comm_group V] [vector_space K V] [finite_dimensional K V]
+variables {W : Type*} [add_comm_group W] [vector_space K W] [finite_dimensional K W]
+
+instance : finite_dimensional K (V →ₗ[K] W) :=
+begin
+  classical,
+  cases finite_dimensional.exists_is_basis_finset K V with bV hbV,
+  cases finite_dimensional.exists_is_basis_finset K W with bW hbW,
+  apply linear_equiv.finite_dimensional (linear_equiv_matrix hbV hbW).symm,
+end
+
+/--
+The dimension of the space of linear transformations is the product of the dimensions of the
+domain and codomain.
+-/
+@[simp] lemma findim_linear_map :
+  finite_dimensional.findim K (V →ₗ[K] W) =
+  (finite_dimensional.findim K V) * (finite_dimensional.findim K W) :=
+begin
+  classical,
+  cases finite_dimensional.exists_is_basis_finset K V with bV hbV,
+  cases finite_dimensional.exists_is_basis_finset K W with bW hbW,
+  rw [linear_equiv.findim_eq (linear_equiv_matrix hbV hbW), matrix.findim_matrix,
+    finite_dimensional.findim_eq_card_basis hbV, finite_dimensional.findim_eq_card_basis hbW,
+    mul_comm],
+end
+
+end finite_dimensional
 end linear_map
 
 /-- The natural equivalence between linear endomorphisms of finite free modules and square matrices

@@ -29,6 +29,7 @@ log, sin, cos, tan, arcsin, arccos, arctan, angle, argument
 
 noncomputable theory
 open_locale classical
+open set
 
 namespace complex
 
@@ -497,7 +498,7 @@ end
 
 namespace real
 
-lemma exists_cos_eq_zero : 0 ∈ cos '' set.Icc (1:ℝ) 2 :=
+lemma exists_cos_eq_zero : 0 ∈ cos '' Icc (1:ℝ) 2 :=
 intermediate_value_Icc' (by norm_num) continuous_cos.continuous_on
   ⟨le_of_lt cos_two_neg, le_of_lt cos_one_pos⟩
 
@@ -775,16 +776,16 @@ begin
   linarith
 end
 
-lemma exists_sin_eq : set.Icc (-1:ℝ) 1 ⊆  sin '' set.Icc (-(π / 2)) (π / 2) :=
+lemma exists_sin_eq : Icc (-1:ℝ) 1 ⊆  sin '' Icc (-(π / 2)) (π / 2) :=
 by convert intermediate_value_Icc
   (le_trans (neg_nonpos.2 (le_of_lt pi_div_two_pos)) (le_of_lt pi_div_two_pos))
   continuous_sin.continuous_on; simp only [sin_neg, sin_pi_div_two]
 
-lemma exists_cos_eq : (set.Icc (-1) 1 : set ℝ) ⊆ cos '' set.Icc 0 π :=
+lemma exists_cos_eq : (Icc (-1) 1 : set ℝ) ⊆ cos '' Icc 0 π :=
 by convert intermediate_value_Icc' real.pi_pos.le real.continuous_cos.continuous_on;
   simp only [real.cos_pi, real.cos_zero]
 
-lemma range_cos : set.range cos = (set.Icc (-1) 1 : set ℝ) :=
+lemma range_cos : set.range cos = (Icc (-1) 1 : set ℝ) :=
 begin
   ext,
   split,
@@ -794,7 +795,7 @@ begin
     exact ⟨y, hy⟩ }
 end
 
-lemma range_sin : set.range sin = (set.Icc (-1) 1 : set ℝ) :=
+lemma range_sin : set.range sin = (Icc (-1) 1 : set ℝ) :=
 begin
   ext,
   split,
@@ -1289,7 +1290,7 @@ lt_of_le_of_ne (neg_pi_div_two_le_arcsin _)
     by rw [← sin_arcsin (le_of_lt (neg_one_lt_div_sqrt_one_add _))
         (le_of_lt (div_sqrt_one_add_lt_one _)), ← arctan, ← h, sin_neg, sin_pi_div_two])
 
-lemma arctan_mem_Ioo (x : ℝ) : arctan x ∈ set.Ioo (-(π / 2)) (π / 2) :=
+lemma arctan_mem_Ioo (x : ℝ) : arctan x ∈ Ioo (-(π / 2)) (π / 2) :=
 ⟨neg_pi_div_two_lt_arctan x, arctan_lt_pi_div_two x⟩
 
 lemma tan_surjective : function.surjective tan :=
@@ -1749,18 +1750,18 @@ by simp only [tan_eq_sin_div_cos]; exact
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
 by { rw continuous_on_iff_continuous_restrict, convert continuous_tan }
 
-lemma has_deriv_at_tan_of_mem_Ioo {x : ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) :
+lemma has_deriv_at_tan_of_mem_Ioo {x : ℝ} (h : x ∈ Ioo (-(π/2):ℝ) (π/2)) :
   has_deriv_at tan (1 / (cos x)^2) x :=
 has_deriv_at_tan (cos_ne_zero_iff.mp (ne_of_gt (cos_pos_of_mem_Ioo h.1 h.2)))
 
-lemma differentiable_at_tan_of_mem_Ioo {x : ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) :
+lemma differentiable_at_tan_of_mem_Ioo {x : ℝ} (h : x ∈ Ioo (-(π/2):ℝ) (π/2)) :
   differentiable_at ℝ tan x :=
 (has_deriv_at_tan_of_mem_Ioo h).differentiable_at
 
-lemma deriv_tan_of_mem_Ioo {x : ℝ} (h : x ∈ set.Ioo (-(π/2):ℝ) (π/2)) : deriv tan x = 1 / (cos x)^2 :=
+lemma deriv_tan_of_mem_Ioo {x : ℝ} (h : x ∈ Ioo (-(π/2):ℝ) (π/2)) : deriv tan x = 1 / (cos x)^2 :=
 (has_deriv_at_tan_of_mem_Ioo h).deriv
 
-lemma continuous_on_tan_of_mem_Ioo : continuous_on tan (set.Ioo (-(π/2)) (π/2)) :=
+lemma continuous_on_tan_of_mem_Ioo : continuous_on tan (Ioo (-(π/2)) (π/2)) :=
 begin
   refine continuous_on_tan.mono _,
   intros x hx,
@@ -1771,55 +1772,48 @@ end
 open filter
 open_locale topological_space
 
-lemma tendsto_sin_pi_div_two : tendsto sin (𝓝[set.Iio (π/2)] (π/2)) (𝓝 1) :=
-by { convert (@continuous.continuous_within_at _ _ _ _ _ (set.Iio (π/2)) (π/2) continuous_sin).tendsto,
-  simp }
-
-lemma tendsto_cos_pi_div_two : tendsto cos (𝓝[set.Iio (π/2)] (π/2)) (𝓝[set.Ioi 0] 0) :=
+lemma tendsto_sin_pi_div_two : tendsto sin (𝓝[Iio (π/2)] (π/2)) (𝓝 1) :=
 begin
-  change (tendsto cos (𝓝[set.Iio (π/2)] (π/2)) (_ ⊓ _)),
-  rw tendsto_inf,
-  split,
-  { convert (@continuous.continuous_within_at _ _ _ _ _ (set.Iio (π/2)) (π/2) continuous_cos).tendsto,
-    simp },
-  { rw tendsto_principal,
-    use set.Ioi (0:ℝ),
-    split,
-    { exact mem_nhds_sets is_open_Ioi (by simp [pi_div_two_pos]) },
-    { use set.Iio (π/2),
-      split,
-      { exact λ (x:ℝ), set.mem_Iio.mpr },
-      { intro x,
-        simp,
-        intros h1 h2,
-        exact cos_pos_of_mem_Ioo (by linarith) h2 } } },
+  rw show (𝓝 1 = 𝓝 (sin (π/2))), by rw sin_pi_div_two,
+  exact continuous_sin.continuous_within_at
 end
 
-lemma tendsto_tan_pi_div_two : tendsto tan (𝓝[set.Iio (π/2)] (π/2)) at_top :=
+lemma tendsto_cos_pi_div_two : tendsto cos (𝓝[Iio (π/2)] (π/2)) (𝓝[Ioi 0] 0) :=
+begin
+  apply tendsto_nhds_within_of_tendsto_nhds_of_eventually_within,
+  rw show (𝓝 0 = 𝓝 (cos (π/2))), by rw cos_pi_div_two,
+  exact continuous_cos.continuous_within_at,
+  have : Ioo (-(π / 2)) (π / 2) ∈ 𝓝[Iio (π / 2)] (π / 2) := Ioo_mem_nhds_within_Iio
+    (right_mem_Ioc.mpr $ by linarith [pi_div_two_pos, neg_neg_of_pos pi_div_two_pos]),
+  filter_upwards [this],
+  exact λ x hx, cos_pos_of_mem_Ioo hx.1 hx.2
+end
+
+lemma tendsto_tan_pi_div_two : tendsto tan (𝓝[Iio (π/2)] (π/2)) at_top :=
 begin
   convert tendsto_mul_at_top (by norm_num) (tendsto.inv_tendsto_zero tendsto_cos_pi_div_two)
             tendsto_sin_pi_div_two,
   ext x,
-  ring,
-  apply tan_eq_sin_div_cos x,
+  rw tan_eq_sin_div_cos x,
+  ring
 end
 
-lemma tendsto_sin_neg_pi_div_two : tendsto sin (𝓝[set.Ioi (-(π/2))] (-(π/2))) (𝓝 (-1)) :=
-by { convert (@continuous.continuous_within_at _ _ _ _ _ (set.Ioi (-(π/2))) (-(π/2)) continuous_sin).tendsto,
+lemma tendsto_sin_neg_pi_div_two : tendsto sin (𝓝[Ioi (-(π/2))] (-(π/2))) (𝓝 (-1)) :=
+by { convert (@continuous.continuous_within_at _ _ _ _ _ (Ioi (-(π/2))) (-(π/2)) continuous_sin).tendsto,
   simp [sin_neg (π/2)] }
 
-lemma tendsto_cos_neg_pi_div_two : tendsto cos (𝓝[set.Ioi (-(π/2))] (-(π/2))) (𝓝[set.Ioi 0] 0) :=
+lemma tendsto_cos_neg_pi_div_two : tendsto cos (𝓝[Ioi (-(π/2))] (-(π/2))) (𝓝[Ioi 0] 0) :=
 begin
-  change (tendsto cos (𝓝[set.Ioi (-(π/2))] (-(π/2))) (_ ⊓ _)),
+  change (tendsto cos (𝓝[Ioi (-(π/2))] (-(π/2))) (_ ⊓ _)),
   rw tendsto_inf,
   split,
-  { convert (@continuous.continuous_within_at _ _ _ _ _ (set.Ioi (-(π/2))) (-(π/2)) continuous_cos).tendsto,
+  { convert (@continuous.continuous_within_at _ _ _ _ _ (Ioi (-(π/2))) (-(π/2)) continuous_cos).tendsto,
     simp [cos_neg (π/2)] },
   { rw tendsto_principal,
-    use set.Iio (0:ℝ),
+    use Iio (0:ℝ),
     split,
     { exact mem_nhds_sets is_open_Iio (by simp [pi_div_two_pos]) },
-    { use set.Ioi (-(π/2)),
+    { use Ioi (-(π/2)),
       split,
       { exact λ (x:ℝ), set.mem_Ioi.mpr },
       { intro x,
@@ -1828,7 +1822,7 @@ begin
         exact cos_pos_of_mem_Ioo h2 (by linarith) } } },
 end
 
-lemma tendsto_tan_neg_pi_div_two : tendsto tan (𝓝[set.Ioi (-(π/2))] (-(π/2))) at_bot :=
+lemma tendsto_tan_neg_pi_div_two : tendsto tan (𝓝[Ioi (-(π/2))] (-(π/2))) at_bot :=
 begin
   convert tendsto_mul_at_bot (by norm_num) (tendsto.inv_tendsto_zero tendsto_cos_neg_pi_div_two)
             tendsto_sin_neg_pi_div_two,
@@ -1850,7 +1844,7 @@ to a homeomorphism, and its differentiability is in turn derived from its contin
 -/
 
 /-- The function `tan`, restricted to the open interval (-π/2, π/2), is a homeomorphism -/
-def tan_homeomorph : homeomorph (set.Ioo (-(π/2)) (π/2)) ℝ :=
+def tan_homeomorph : homeomorph (Ioo (-(π/2)) (π/2)) ℝ :=
 homeomorph_of_strict_mono_continuous_Ioo tan (by linarith [pi_div_two_pos])
   (λ x y, tan_lt_tan_of_lt_of_lt_pi_div_two) continuous_on_tan_of_mem_Ioo tendsto_tan_pi_div_two
     tendsto_tan_neg_pi_div_two

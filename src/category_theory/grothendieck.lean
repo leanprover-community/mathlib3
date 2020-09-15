@@ -124,11 +124,16 @@ instance : category (grothendieck F) :=
       refl, },
   end, }
 
+section
+variables (F)
+
 /-- The forgetful functor from `grothendieck F` to the source category. -/
 @[simps]
 def forget : grothendieck F ⥤ C :=
 { obj := λ X, X.1,
   map := λ X Y f, f.1, }
+
+end
 
 universe w
 variables (G : C ⥤ Type w)

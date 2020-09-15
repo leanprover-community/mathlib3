@@ -89,6 +89,8 @@ direction gives a commutative triangle.
 def iso_mk {f g : over X} (hl : f.left ≅ g.left) (hw : hl.hom ≫ g.hom = f.hom . obviously) : f ≅ g :=
 comma.iso_mk hl (eq_to_iso (subsingleton.elim _ _)) (by simp [hw])
 
+section
+variable (X)
 /--
 The forgetful functor mapping an arrow to its domain.
 
@@ -96,8 +98,10 @@ See https://stacks.math.columbia.edu/tag/001G.
 -/
 def forget : over X ⥤ T := comma.fst _ _
 
-@[simp] lemma forget_obj {U : over X} : forget.obj U = U.left := rfl
-@[simp] lemma forget_map {U V : over X} {f : U ⟶ V} : forget.map f = f.left := rfl
+end
+
+@[simp] lemma forget_obj {U : over X} : (forget X).obj U = U.left := rfl
+@[simp] lemma forget_map {U V : over X} {f : U ⟶ V} : (forget X).map f = f.left := rfl
 
 /--
 A morphism `f : X ⟶ Y` induces a functor `over X ⥤ over Y` in the obvious way.
@@ -122,9 +126,9 @@ nat_iso.of_components (λ X, iso_mk (iso.refl _) (by tidy)) (by tidy)
 
 end
 
-instance forget_reflects_iso : reflects_isomorphisms (forget : over X ⥤ T) :=
-{ reflects := λ X Y f t, by exactI
-  { inv := over.hom_mk t.inv ((as_iso (forget.map f)).inv_comp_eq.2 (over.w f).symm) } }
+instance forget_reflects_iso : reflects_isomorphisms (forget X) :=
+{ reflects := λ Y Z f t, by exactI
+  { inv := over.hom_mk t.inv ((as_iso ((forget X).map f)).inv_comp_eq.2 (over.w f).symm) } }
 
 section iterated_slice
 variables (f : over X)
@@ -156,11 +160,11 @@ def iterated_slice_equiv : over f ≌ over f.left :=
     (λ X Y g, by { ext, dsimp, simp }) }
 
 lemma iterated_slice_forward_forget :
-  iterated_slice_forward f ⋙ forget = forget ⋙ forget :=
+  iterated_slice_forward f ⋙ forget f.left = forget f ⋙ forget X :=
 rfl
 
 lemma iterated_slice_backward_forget_forget :
-  iterated_slice_backward f ⋙ forget ⋙ forget = forget :=
+  iterated_slice_backward f ⋙ forget f ⋙ forget X = forget f.left :=
 rfl
 
 end iterated_slice
@@ -235,11 +239,15 @@ lemma iso_mk_hom_right {f g : under X} (hr : f.right ≅ g.right) (hw : f.hom �
 lemma iso_mk_inv_right {f g : under X} (hr : f.right ≅ g.right) (hw : f.hom ≫ hr.hom = g.hom) :
   (iso_mk hr hw).inv.right = hr.inv := rfl
 
+section
+variables (X)
 /-- The forgetful functor mapping an arrow to its domain. -/
 def forget : under X ⥤ T := comma.snd _ _
 
-@[simp] lemma forget_obj {U : under X} : forget.obj U = U.right := rfl
-@[simp] lemma forget_map {U V : under X} {f : U ⟶ V} : forget.map f = f.right := rfl
+end
+
+@[simp] lemma forget_obj {U : under X} : (forget X).obj U = U.right := rfl
+@[simp] lemma forget_map {U V : under X} {f : U ⟶ V} : (forget X).map f = f.right := rfl
 
 /-- A morphism `X ⟶ Y` induces a functor `under Y ⥤ under X` in the obvious way. -/
 def map {Y : T} (f : X ⟶ Y) : under Y ⥤ under X := comma.map_left _ $ discrete.nat_trans (λ _, f)

@@ -375,15 +375,28 @@ variable (R)
 variable [hp : fact p.prime]
 include hp
 
-private noncomputable def comm_ring_aux₁ : comm_ring (𝕎 (mv_polynomial R ℚ)) :=
+private noncomputable def comm_ring_aux₀ [invertible (p : R)] : comm_ring (𝕎 R) :=
 function.injective.comm_ring (ghost_map_fun)
-  (ghost_map_fun.bijective_of_invertible p (mv_polynomial R ℚ)).1
+  (ghost_map_fun.bijective_of_invertible p R).1
   (ghost_map_fun.zero _) (ghost_map_fun.one _) (ghost_map_fun.add) (ghost_map_fun.mul) (ghost_map_fun.neg)
 
-local attribute [instance] comm_ring_aux₁
+local attribute [instance] comm_ring_aux₀
 
-private noncomputable def comm_ring_aux₂ : comm_ring (𝕎 (mv_polynomial R ℤ)) :=
-function.injective.comm_ring (map_fun $ mv_polynomial.map (int.cast_ring_hom ℚ))
+private noncomputable def comm_ring_aux₁ (σ : Type*) : comm_ring (𝕎 (mv_polynomial σ ℚ)) :=
+by apply_instance
+
+-- function.injective.comm_ring (ghost_map_fun)
+--   (ghost_map_fun.bijective_of_invertible p (mv_polynomial σ ℚ)).1
+--   (ghost_map_fun.zero _) (ghost_map_fun.one _) (ghost_map_fun.add) (ghost_map_fun.mul) (ghost_map_fun.neg)
+
+-- local attribute [instance] comm_ring_aux₁
+
+private noncomputable def comm_ring_aux₂ (σ : Type*) : comm_ring (𝕎 (mv_polynomial σ ℤ)) :=
+@function.injective.comm_ring
+  (𝕎 (mv_polynomial σ ℚ))
+  (𝕎 (mv_polynomial σ ℤ))
+  (by apply_instance) _ _ _ _ _
+  (map_fun $ mv_polynomial.map (int.cast_ring_hom ℚ))
   (map_fun_injective _ $ mv_polynomial.map_injective _ int.cast_injective)
   (map_fun_zero _) (map_fun_one _) (map_fun_add _) (map_fun_mul _) (map_fun_neg _)
 

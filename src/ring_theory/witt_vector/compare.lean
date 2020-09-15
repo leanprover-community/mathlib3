@@ -11,6 +11,15 @@ import data.padics.ring_homs
 
 # Comparison isomorphism between `witt_vector p (zmod p)` and `ℤ_[p]`
 
+We construct a ring isomorphism between `witt_vector p (zmod p)` and `ℤ_[p]`.
+This isomorphism follows from the fact that both satisfy the universal property
+of the inverse limit of `zmod (p^n)`.
+
+## Main declarations
+
+* `witt_vector.to_zmod_pow`: a family of compatible ring homs `𝕎 (zmod p) → zmod (p^k)`
+* `witt_vector.equiv`: the isomorphism
+
 -/
 
 noncomputable theory
@@ -23,6 +32,11 @@ include hp
 
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
+/--
+`to_zmod_pow` is a family of compatible ring homs. We get this family by composing
+`truncated_witt_vector.zmod_equiv_trunc` (in right-to-left direction)
+with `witt_vector.truncate`.
+-/
 def to_zmod_pow (k : ℕ) : 𝕎 (zmod p) →+* zmod (p ^ k) :=
 (zmod_equiv_trunc p k).symm.to_ring_hom.comp (truncate k)
 
@@ -35,6 +49,10 @@ calc (zmod.cast_hom _ (zmod (p ^ m))).comp ((zmod_equiv_trunc p n).symm.to_ring_
 ... = (zmod_equiv_trunc p m).symm.to_ring_hom.comp (truncate m) :
   by rw [ring_hom.comp_assoc, truncate_comp_witt_vector_truncate]
 
+/--
+`to_padic_int` lifts `to_zmod_pow` to a ring hom to `ℤ_[p]` using `padic_int.lift`, the universal
+property of `ℤ_[p]`.
+-/
 def to_padic_int : 𝕎 (zmod p) →+* ℤ_[p] :=
 -- I think the family should be an explicit argument of `lift`,
 -- for increased readability.
@@ -50,6 +68,10 @@ begin
   assumption
 end
 
+/--
+`from_padic_int` uses `witt_vector.lift` to lift `truncated_witt_vector.zmod_equiv_trunc`
+composed with `padic_int.to_zmod_pow` to a ring hom `ℤ_[p] →+* 𝕎 (zmod p)`.
+-/
 def from_padic_int : ℤ_[p] →+* 𝕎 (zmod p) :=
 witt_vector.lift (λ k, (zmod_equiv_trunc p k).to_ring_hom.comp (padic_int.to_zmod_pow k)) $
   zmod_equiv_trunc_compat _
@@ -77,6 +99,10 @@ begin
   ext1, simp
 end
 
+/--
+The ring of Witt vectors over `zmod p` is isomorphic to the ring of `p`-adic integers. This
+equivalence is witnessed by `witt_vector.to_padic_int` with inverse `witt_vector.from_padic_int`.
+-/
 def equiv : 𝕎 (zmod p) ≃+* ℤ_[p] :=
 { to_fun := to_padic_int p,
   inv_fun := from_padic_int p,

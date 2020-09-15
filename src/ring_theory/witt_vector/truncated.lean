@@ -18,7 +18,7 @@ open function (injective surjective)
 
 noncomputable theory
 
-variables {p : ℕ} [hp : fact p.prime] (n : ℕ) (R : Type*) [comm_ring R]
+variables {p : ℕ} [hp : fact p.prime] (n : ℕ) (R : Type*)
 
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
@@ -32,7 +32,11 @@ This `p` is used to define the ring operations, and so it is needed to infer the
 structure. (`truncated_witt_vector p₁ n R` and `truncated_witt_vector p₂ n R` are definitionally
 equal but will have different ring operations.)
 -/
+@[nolint unused_arguments]
 def truncated_witt_vector (p : ℕ) (n : ℕ) (R : Type*) := fin n → R
+
+instance (p n : ℕ) (R : Type*) [inhabited R] : inhabited (truncated_witt_vector p n R) :=
+⟨λ _, default R⟩
 
 variables {n R}
 
@@ -62,6 +66,12 @@ lemma ext_iff {x y : truncated_witt_vector p n R} : x = y ↔ ∀ i, x.coeff i =
   mk p (λ i, x.coeff i) = x :=
 by { ext i, rw [coeff_mk] }
 
+variable [comm_ring R]
+
+/--
+We can turn a truncated Witt vector `x` into a Witt vector by setting all coefficients after `x`
+to be 0.
+-/
 def out (x : truncated_witt_vector p n R) : 𝕎 R :=
 witt_vector.mk p $ λ i, if h : i < n then x.coeff ⟨i, h⟩ else 0
 
@@ -101,6 +111,8 @@ variables {n}
   (truncate_fun n x).coeff i = x.coeff i :=
 by rw [truncate_fun, truncated_witt_vector.coeff_mk]
 
+variable [comm_ring R]
+
 @[simp] lemma out_truncate_fun (x : 𝕎 R) :
   (truncate_fun n x).out = init x n :=
 begin
@@ -114,6 +126,8 @@ end witt_vector
 
 namespace truncated_witt_vector
 
+variable [comm_ring R]
+
 @[simp] lemma truncate_fun_out (x : truncated_witt_vector p n R) :
   x.out.truncate_fun n = x :=
 by simp only [witt_vector.truncate_fun, coeff_out, mk_coeff]
@@ -123,6 +137,8 @@ end truncated_witt_vector
 namespace truncated_witt_vector
 open witt_vector
 variables (p n R)
+variable [comm_ring R]
+
 include hp
 
 instance : has_zero (truncated_witt_vector p n R) :=
@@ -161,9 +177,10 @@ meta def tactic.interactive.truncate_fun_tac : tactic unit :=
 namespace witt_vector
 
 variables (p n R)
+variable [comm_ring R]
 
 lemma truncate_fun_surjective :
-  surjective (@truncate_fun p n R _) :=
+  surjective (@truncate_fun p n R) :=
 λ x, ⟨x.out, truncated_witt_vector.truncate_fun_out x⟩
 
 include hp
@@ -195,6 +212,7 @@ end witt_vector
 namespace truncated_witt_vector
 open witt_vector
 variables (p n R)
+variable [comm_ring R]
 include hp
 
 instance : comm_ring (truncated_witt_vector p n R) :=
@@ -211,6 +229,8 @@ namespace witt_vector
 open truncated_witt_vector
 
 variables (n)
+variable [comm_ring R]
+
 include hp
 
 /-- `truncate_fun n` is a ring homomorphism. -/
@@ -238,12 +258,7 @@ begin
   refl,
 end
 
-end witt_vector
-
-namespace witt_vector
 local attribute [semireducible] witt_vector
-
-include hp
 
 @[simp]
 lemma truncate_mk (f : ℕ → R) :
@@ -252,10 +267,11 @@ begin
   ext i,
   rw [coeff_truncate, coeff_mk, truncated_witt_vector.coeff_mk],
 end
-
 end witt_vector
 
 namespace truncated_witt_vector
+
+variable [comm_ring R]
 include hp
 
 /--
@@ -318,11 +334,11 @@ begin
 end
 
 section fintype
-
-instance [fintype R] : fintype (truncated_witt_vector p n R) :=
+omit hp
+instance {R : Type*} [fintype R] : fintype (truncated_witt_vector p n R) :=
 pi.fintype
 
-lemma card [fintype R] :
+lemma card {R : Type*} [fintype R] :
   fintype.card (truncated_witt_vector p n R) = fintype.card R ^ n :=
 by simp only [truncated_witt_vector, fintype.card_fin, fintype.card_fun]
 
@@ -371,6 +387,11 @@ char_p_of_prime_pow_ne_zero _ _ _ (card_zmod _ _)
 
 local attribute [instance] char_p_zmod
 variable (n)
+
+/--
+Since `truncated_witt_vector p n (zmod p)` is a finite ring with characteristic and cardinality `p^n`,
+it is isomorphic to `zmod (p^n)`.
+-/
 def zmod_equiv_trunc : zmod (p^n) ≃+* truncated_witt_vector p n (zmod p) :=
 iso_to_zmod (truncated_witt_vector p n (zmod p)) (p ^ n) (card_zmod _ _)
 
@@ -413,18 +434,27 @@ open truncated_witt_vector (hiding truncate coeff)
 
 section lift
 
+variable [comm_ring R]
 variables {S : Type*} [comm_ring S]
 variable (f : Π k : ℕ, S →+* truncated_witt_vector p k R)
 variable f_compat : ∀ (k₁ k₂ : ℕ) (hk : k₁ ≤ k₂), (truncated_witt_vector.truncate hk).comp (f k₂) = f k₁
 variables {p R}
 variable (n)
 
+/--
+Given a family `fₖ : S → truncated_witt_vector p k R` and `s : S`, we produce a Witt vector by
+defining the `k`th entry to be the final entry of `fₖ s`.
+-/
 def lift_fun (s : S) : 𝕎 R :=
 witt_vector.mk p $ λ k, truncated_witt_vector.coeff (fin.last k) (f (k+1) s)
 
+variables {f}
+
+lemma lift_fun_zero : lift_fun f 0 = 0 :=
+by simp [lift_fun, witt_vector.ext_iff]
+
 include f_compat
 
-variables {f}
 @[simp]
 private lemma truncate_lift_fun (s : S) :
   witt_vector.truncate n (lift_fun f s) = f n s :=
@@ -436,9 +466,6 @@ begin
   congr' with _,
   simp only [fin.coe_last, fin.coe_cast_le],
 end
-
-lemma lift_fun_zero : lift_fun f 0 = 0 :=
-by simp [lift_fun, witt_vector.ext_iff]
 
 lemma lift_fun_one : lift_fun f 1 = 1 :=
 begin
@@ -473,7 +500,7 @@ def lift : S →+* 𝕎 R :=
 { to_fun := lift_fun f,
   map_one' := lift_fun_one f_compat,
   map_mul' := lift_fun_mul f_compat,
-  map_zero' := lift_fun_zero f_compat,
+  map_zero' := lift_fun_zero,
   map_add' := lift_fun_add f_compat }
 
 variable {f}
@@ -515,3 +542,4 @@ end
 end lift
 
 end witt_vector
+#lint

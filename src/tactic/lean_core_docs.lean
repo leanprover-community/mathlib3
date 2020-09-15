@@ -701,9 +701,9 @@ Navigate to the left-hand-side of a relation.
 A goal of `| a = b` will turn into the the goal `| a`.
 -/
 add_tactic_doc
-{ name       := "to_lhs",
+{ name       := "conv: to_lhs",
   category   := doc_category.tactic,
-  decl_names := [`conv.​interactive.​to_lhs],
+  decl_names := [`conv.interactive.to_lhs],
   tags       := ["conv"] }
 
 /--
@@ -711,9 +711,9 @@ Navigate to the right-hand-side of a relation.
 A goal of `| a = b` will turn into the the goal `| b`.
 -/
 add_tactic_doc
-{ name       := "to_rhs",
+{ name       := "conv: to_rhs",
   category   := doc_category.tactic,
-  decl_names := [`conv.​interactive.​to_rhs],
+  decl_names := [`conv.interactive.to_rhs],
   tags       := ["conv"] }
 
 /--
@@ -721,9 +721,9 @@ Navigate into every argument of the current head function.
 A target of `| (a * b) * c` will turn into the two targets `| a * b` and `| c`.
 -/
 add_tactic_doc
-{ name       := "congr",
+{ name       := "conv: congr",
   category   := doc_category.tactic,
-  decl_names := [`conv.​interactive.congr],
+  decl_names := [`conv.interactive.congr],
   tags       := ["conv"] }
 
 /--
@@ -733,9 +733,9 @@ context.
 If there are multiple binders, all of them will be entered, and if there are none, this tactic is a no-op.
 -/
 add_tactic_doc
-{ name       := "funext",
+{ name       := "conv: funext",
   category   := doc_category.tactic,
-  decl_names := [`conv.​interactive.funext],
+  decl_names := [`conv.interactive.funext],
   tags       := ["conv"] }
 
 /--
@@ -745,9 +745,9 @@ For a target of `| ∀ c, a + (b + c) = 1`, `find (b + _) { skip }` will run the
 `{}` with a target of `| b + c`.
 -/
 add_tactic_doc
-{ name       := "find",
+{ name       := "conv: find",
   category   := doc_category.tactic,
-  decl_names := [`conv.​interactive.find],
+  decl_names := [`conv.interactive.find],
   tags       := ["conv"] }
 
 /--
@@ -757,16 +757,16 @@ For a target of `| λ c, 10 * c + 20 * c + 30 * c`, `for (_ * _) [1, 3] { skip }
 tactics within the `{}` with first a target of `| 10 * c`, then a target of `| 30 * c`.
 -/
 add_tactic_doc
-{ name       := "for",
+{ name       := "conv: for",
   category   := doc_category.tactic,
-  decl_names := [`conv.​interactive.for],
+  decl_names := [`conv.interactive.for],
   tags       := ["conv"] }
 
 /--
 End conversion of the current goal. This is often what is needed when muscle memory would type `sorry`.
 -/
 add_tactic_doc
-{ name       := "skip",
+{ name       := "conv: skip",
   category   := doc_category.tactic,
-  decl_names := [`conv.​interactive.skip],
+  decl_names := [`conv.interactive.skip],
   tags       := ["conv"] }

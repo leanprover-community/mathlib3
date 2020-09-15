@@ -64,9 +64,9 @@ variables (p) {R : Type*}
 def mk (x : ℕ → R) : witt_vector p R := x
 
 /-
--- Witt coefficients
+`x.coeff n` is the `n`th value of the Witt vector `n`.
 
-I don't know a name for this map in the literature. But coefficient seems ok.
+This concept does not have a standard name in the literature.
 -/
 
 def coeff (x : 𝕎 R) (n : ℕ) : R := x n
@@ -81,7 +81,11 @@ lemma ext_iff {x y : 𝕎 R} : x = y ↔ ∀ n, x.coeff n = y.coeff n :=
 @[simp] lemma coeff_mk (x : ℕ → R) (i : ℕ) :
   (mk p x).coeff i = x i := rfl
 
--- do we want to keep these two?
+
+/-
+These instances are not needed for the rest of the development, but it is interesting to establish
+early on that `witt_vector p` is a lawful functor.
+-/
 instance : functor (witt_vector p) :=
 { map := λ α β f v, f ∘ v,
   map_const := λ α β a v, λ _, a }
@@ -111,9 +115,24 @@ namespace witt_vector
 
 section ring_data
 
+/--
+An auxiliary definition used in `witt_vector.eval`. Evaluates a polynomial whose variables come from
+the disjoint union of `k` copies of `ℕ`, with a curried evaluation `x`.
+This can be defined more generally but we use only a specific instance here.
+-/
 noncomputable def peval {k : ℕ} (φ : mv_polynomial (fin k × ℕ) ℤ) (x : fin k → ℕ → R) : R :=
 aeval (function.uncurry x) φ
 
+/--
+Let `φ` be a family of polynomials, indexed by natural numbers, whose variables come from the
+disjoint union of `k` copies of `ℕ`, and let `xᵢ` be a Witt vector for `0 ≤ i < k`.
+
+`eval φ x` evaluates `phi` mapping the variable `X_(i, n)` to the `n`th coefficient of `xᵢ`.
+
+Instantiating `φ` with certain polynomials defined in `structure_polynomial.lean` establishes the
+ring operations on `𝕎 R`. For example, `witt_vector.witt_add` is such a `φ` with `k = 2`;
+evaluating this at `(x₀, x₁)` gives us the sum of two Witt vectors `x₀ + x₁`.
+-/
 noncomputable def eval {k : ℕ} (φ : ℕ → mv_polynomial (fin k × ℕ) ℤ) (x : fin k → 𝕎 R) : 𝕎 R :=
 mk p $ λ n, peval (φ n) $ λ i, (x i).coeff
 
@@ -171,6 +190,7 @@ section map
 open function
 variables {α : Type*} {β : Type*}
 
+/-- `f : α → β` induces a map from `𝕎 α` to `𝕎 β` in the obvious way. -/
 def map_fun (f : α → β) : 𝕎 α → 𝕎 β := λ x, f ∘ x
 
 lemma map_fun_injective (f : α → β) (hf : injective f) :

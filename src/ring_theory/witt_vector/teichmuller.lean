@@ -6,7 +6,17 @@ Authors: Johan Commelin
 
 import ring_theory.witt_vector.basic
 
-/-! ## Teichmüller lifts -/
+/-!
+
+# Teichmüller lifts
+
+This file defines `witt_vector.teichmuller`, a ring hom `R → 𝕎 R`, which embeds `r : R` as the
+0th component of a Witt vector whose other coefficients are 0.
+
+`teichmuller` is a natural transformation; the `n`th ghost component of `teichmuller p r`
+is `r ^ p ^ n`.
+
+-/
 
 namespace witt_vector
 
@@ -17,6 +27,10 @@ local notation `𝕎` := witt_vector p -- type as `\bbW`
 local attribute [semireducible] witt_vector
 local attribute [instance] mv_polynomial.invertible_rat_coe_nat
 
+/--
+The underlying function of the ring hom `witt_vector.teichmuller`.
+The 0th coefficient of `teichmuller_fun p r` is `r`, and all others are 0.
+-/
 def teichmuller_fun (r : R) : 𝕎 R
 | 0 := r
 | (n+1) := 0
@@ -57,6 +71,10 @@ begin
   simp only [teichmuller_mul_aux₁, map_teichmuller_fun, ring_hom.map_mul]
 end
 
+/--
+`witt_vector.teichmuller_fun` is a ring hom.
+The 0th coefficient of `teichmuller p r` is `r`, and all others are 0.
+-/
 noncomputable def teichmuller : R →* 𝕎 R :=
 { to_fun := teichmuller_fun p,
   map_one' :=

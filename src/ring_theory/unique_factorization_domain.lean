@@ -167,7 +167,7 @@ of prime factors, use the definition `of_exists_prime_factorization`
 -/
 class unique_factorization_monoid (α : Type*) [comm_cancel_monoid_with_zero α] extends wf_dvd_monoid α :
   Prop :=
-(irreducible_iff_prime : ∀ {a : α}, irreducible a ↔ prime a )
+(irreducible_iff_prime : ∀ {a : α}, irreducible a ↔ prime a)
 
 
 instance ufm_of_gcd_of_wf_dvd_monoid [nontrivial α] [comm_cancel_monoid_with_zero α]
@@ -188,7 +188,8 @@ variables [comm_cancel_monoid_with_zero α] [unique_factorization_monoid α]
 
 theorem exists_prime_factors (a : α) : a ≠ 0 →
   ∃ f : multiset α, (∀b ∈ f, prime b) ∧ a ~ᵤ f.prod :=
-by { simp_rw ← unique_factorization_monoid.irreducible_iff_prime, apply wf_dvd_monoid.exists_factors a, }
+by { simp_rw ← unique_factorization_monoid.irreducible_iff_prime,
+     apply wf_dvd_monoid.exists_factors a }
 
 @[elab_as_eliminator] lemma induction_on_prime {P : α → Prop}
   (a : α) (h₁ : P 0) (h₂ : ∀ x : α, is_unit x → P x)
@@ -226,8 +227,8 @@ by haveI := classical.dec_eq α; exact
 
 end unique_factorization_monoid
 
-lemma prime_factors_unique [comm_cancel_monoid_with_zero α] : ∀{f g : multiset α},
-  (∀x∈f, prime x) → (∀x∈g, prime x) → f.prod ~ᵤ g.prod →
+lemma prime_factors_unique [comm_cancel_monoid_with_zero α] : ∀ {f g : multiset α},
+  (∀ x ∈ f, prime x) → (∀ x ∈ g, prime x) → f.prod ~ᵤ g.prod →
   multiset.rel associated f g :=
 by haveI := classical.dec_eq α; exact
 λ f, multiset.induction_on f
@@ -273,40 +274,52 @@ multiset.induction_on f
 section exists_prime_factors
 
 variables [comm_cancel_monoid_with_zero α]
-  (pf : ∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, prime b) ∧ a ~ᵤ f.prod)
+variables (pf : ∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, prime b) ∧ a ~ᵤ f.prod)
 
 include pf
 
 lemma wf_dvd_monoid_of_exists_prime_factors : wf_dvd_monoid α :=
 ⟨begin
-    classical,
-    apply rel_hom.well_founded (rel_hom.mk _ _) (with_top.well_founded_lt nat.lt_wf),
-    { intro a, by_cases a = 0, exact ⊤, exact (classical.some (pf a h)).card, },
-    { intros a b hab, rw dif_neg hab.1, by_cases b = 0, { simp [h, lt_top_iff_ne_top], },
-      rw [dif_neg h, with_top.coe_lt_coe],
-      cases hab.2 with c hc, have cne0 : c ≠ 0, { intro con, apply h, rw [hc.2, con, mul_zero], },
-      rw hc.2 at hab, apply lt_of_lt_of_le,
-      apply lt_add_of_pos_right, rw multiset.card_pos, swap, exact (classical.some (pf c cne0)),
-      { intro con, apply hc.1, rw is_unit_iff_of_associated, apply is_unit_one,
-        convert (classical.some_spec (pf c cne0)).2, simp [con], },
-      rw ← multiset.card_add,
-      apply le_of_eq (multiset.card_eq_card_of_rel (prime_factors_unique _ (classical.some_spec (pf _ h)).1 _)),
-      { intros x hadd, rw multiset.mem_add at hadd,
-        cases hadd; apply (classical.some_spec (pf _ _)).1 _ hadd, },
-      { rw multiset.prod_add, transitivity a * c,
-        { apply associated_mul_mul; apply (classical.some_spec (pf _ _)).2.symm, },
-        { rw ← hc.2, apply (classical.some_spec (pf _ _)).2, } } },
+  classical,
+  apply rel_hom.well_founded (rel_hom.mk _ _) (with_top.well_founded_lt nat.lt_wf),
+  { intro a,
+    by_cases h : a = 0, { exact ⊤ },
+    exact (classical.some (pf a h)).card },
+
+  rintros a b ⟨ane0, ⟨c, hc, b_eq⟩⟩,
+  rw dif_neg ane0,
+  by_cases h : b = 0, { simp [h, lt_top_iff_ne_top] },
+  rw [dif_neg h, with_top.coe_lt_coe],
+  have cne0 : c ≠ 0, { refine mt (λ con, _) h, rw [b_eq, con, mul_zero] },
+  calc multiset.card (classical.some (pf a ane0))
+      < _ + multiset.card (classical.some (pf c cne0)) :
+    lt_add_of_pos_right _ (multiset.card_pos.mpr (λ con, hc (associated_one_iff_is_unit.mp _)))
+  ... = multiset.card (classical.some (pf a ane0) + classical.some (pf c cne0)) :
+    (multiset.card_add _ _).symm
+  ... = multiset.card (classical.some (pf b h)) :
+    multiset.card_eq_card_of_rel (prime_factors_unique _ (classical.some_spec (pf _ h)).1 _),
+  { convert (classical.some_spec (pf c cne0)).2,
+    rw [con, multiset.prod_zero] },
+  { intros x hadd,
+    rw multiset.mem_add at hadd,
+    cases hadd; apply (classical.some_spec (pf _ _)).1 _ hadd },
+  { rw multiset.prod_add,
+    transitivity a * c,
+    { apply associated_mul_mul; apply (classical.some_spec (pf _ _)).2.symm },
+    { rw ← b_eq,
+      apply (classical.some_spec (pf _ _)).2, } }
 end⟩
 
 lemma irreducible_iff_prime_of_exists_prime_factors {p : α} : irreducible p ↔ prime p :=
-by letI := classical.dec_eq α; exact
-if hp0 : p = 0 then by simp [hp0]
-else
-  ⟨λ h, begin
-    cases pf p hp0 with f hf, cases prime_factors_irreducible h hf with q hq,
-    rw prime_iff_of_associated hq.1, apply hf.1 q, rw hq.2, simp,
-  end,
-    irreducible_of_prime⟩
+begin
+  by_cases hp0 : p = 0,
+  { simp [hp0] },
+  refine ⟨λ h, _, irreducible_of_prime⟩,
+  obtain ⟨f, hf⟩ := pf p hp0,
+  obtain ⟨q, hq, rfl⟩ := prime_factors_irreducible h hf,
+  rw prime_iff_of_associated hq,
+  exact hf.1 q (multiset.mem_cons_self _ _)
+end
 
 theorem unique_factorization_monoid_of_exists_prime_factors :
   unique_factorization_monoid α :=
@@ -324,9 +337,9 @@ theorem unique_factorization_monoid_iff_exists_prime_factors [comm_cancel_monoid
 theorem irreducible_iff_prime_of_exists_unique_irreducible_factors [comm_cancel_monoid_with_zero α]
   (eif : ∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, irreducible b) ∧ a ~ᵤ f.prod)
   (uif : ∀ (f g : multiset α),
-  (∀x∈f, irreducible x) → (∀x∈g, irreducible x) → f.prod ~ᵤ g.prod → multiset.rel associated f g) :
-  ∀ (p : α), irreducible p ↔ prime p :=
-λ p, ⟨by letI := classical.dec_eq α; exact λ hpi,
+  (∀ x ∈ f, irreducible x) → (∀ x ∈ g, irreducible x) → f.prod ~ᵤ g.prod → multiset.rel associated f g)
+  (p : α) : irreducible p ↔ prime p :=
+⟨by letI := classical.dec_eq α; exact λ hpi,
     ⟨hpi.ne_zero, hpi.1,
       λ a b ⟨x, hx⟩,
       if hab0 : a * b = 0
@@ -367,37 +380,37 @@ theorem unique_factorization_monoid.of_exists_unique_irreducible_factors
   [comm_cancel_monoid_with_zero α]
   (eif : ∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, irreducible b) ∧ a ~ᵤ f.prod)
   (uif : ∀ (f g : multiset α),
-  (∀x∈f, irreducible x) → (∀x∈g, irreducible x) → f.prod ~ᵤ g.prod → multiset.rel associated f g) :
+  (∀ x ∈ f, irreducible x) → (∀ x ∈ g, irreducible x) → f.prod ~ᵤ g.prod → multiset.rel associated f g) :
   unique_factorization_monoid α :=
-unique_factorization_monoid_of_exists_prime_factors (by {
-  convert eif,
-  simp_rw irreducible_iff_prime_of_exists_unique_irreducible_factors eif uif,
-})
+unique_factorization_monoid_of_exists_prime_factors (by
+  { convert eif,
+    simp_rw irreducible_iff_prime_of_exists_unique_irreducible_factors eif uif })
 
 namespace unique_factorization_monoid
 variables [comm_cancel_monoid_with_zero α] [decidable_eq α] [nontrivial α] [normalization_monoid α]
-  [unique_factorization_monoid α]
+variables [unique_factorization_monoid α]
 
 /-- Noncomputably determines the multiset of prime factors. -/
 noncomputable def factors (a : α) : multiset α := if h : a = 0 then 0 else
 multiset.map normalize $ classical.some (unique_factorization_monoid.exists_prime_factors a h)
 
 theorem factors_prod {a : α} (ane0 : a ≠ 0) : associated (factors a).prod a :=
+theorem factors_prod {a : α} (ane0 : a ≠ 0) : associated (factors a).prod a :=
 begin
   rw [factors, dif_neg ane0],
-  transitivity, swap,
-  { exact (classical.some_spec (unique_factorization_monoid.exists_prime_factors a ane0)).2.symm },
-  { rw [← associates.mk_eq_mk_iff_associated, ← associates.prod_mk, ← associates.prod_mk,
-    multiset.map_map],
-    refine congr rfl (congr (congr rfl _) rfl), ext,
-    rw [function.comp_apply, associates.mk_eq_mk_iff_associated], apply normalize_associated },
+  refine associated.trans _ (classical.some_spec (exists_prime_factors a ane0)).2.symm,
+  rw [← associates.mk_eq_mk_iff_associated, ← associates.prod_mk, ← associates.prod_mk,
+      multiset.map_map],
+  congr' 2,
+  ext,
+  rw [function.comp_apply, associates.mk_eq_mk_iff_associated],
+  apply normalize_associated,
 end
 
 theorem prime_factors {a : α} : ∀ (x : α), x ∈ factors a → prime x :=
 begin
   rw [factors],
-  by_cases ane0 : a = 0, {simp [ane0]},
-  rw dif_neg ane0,
+  split_ifs with ane0, { simp },
   intros x hx, rcases multiset.mem_map.1 hx with ⟨y, ⟨hy, rfl⟩⟩,
   rw prime_iff_of_associated (normalize_associated),
   exact (classical.some_spec (unique_factorization_monoid.exists_prime_factors a ane0)).1 y hy,
@@ -408,18 +421,22 @@ theorem irreducible_factors {a : α} : ∀ (x : α), x ∈ factors a → irreduc
 
 theorem normalize_factors {a : α} : ∀ (x : α), x ∈ factors a → normalize x = x :=
 begin
-  rw [factors],
-  by_cases a = 0, {simp [h]}, rw dif_neg h,
-  intros x hx, rcases multiset.mem_map.1 hx with ⟨y, ⟨hy, rfl⟩⟩,
-  apply normalize_idem,
+  rw factors,
+  split_ifs with h, { simp },
+  intros x hx,
+  obtain ⟨y, hy, rfl⟩ := multiset.mem_map.1 hx,
+  apply normalize_idem
 end
 
 lemma factors_irreducible {a : α} (ha : irreducible a) :
   factors a = normalize a :: 0 :=
 begin
-  cases prime_factors_irreducible ha ⟨prime_factors, (factors_prod ha.ne_zero).symm⟩ with p hp,
-  convert hp.2, rw [← normalize_factors p, normalize_eq_normalize_iff, dvd_dvd_iff_associated],
-  {apply hp.1}, rw hp.2, simp,
+  obtain ⟨p, a_assoc, hp⟩ := prime_factors_irreducible ha
+    ⟨prime_factors, (factors_prod ha.ne_zero).symm⟩,
+  have p_mem : p ∈ factors a,
+  { rw hp, apply multiset.mem_cons_self },
+  convert hp,
+  rwa [← normalize_factors p p_mem, normalize_eq_normalize_iff, dvd_dvd_iff_associated]
 end
 
 lemma exists_mem_factors_of_dvd {a p : α} (ha0 : a ≠ 0) (hp : irreducible p) : p ∣ a →

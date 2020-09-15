@@ -26,7 +26,7 @@ instance {α : Sort u} {β : Sort v} : has_coe_to_fun (α ↪ β) := ⟨_, embed
 end function
 
 /-- Convert an `α ≃ β` to `α ↪ β`. -/
-@[simps {fully_applied := ff}]
+@[simps]
 protected def equiv.to_embedding {α : Sort u} {β : Sort v} (f : α ≃ β) : α ↪ β :=
 ⟨f, f.injective⟩
 

@@ -13,7 +13,7 @@ import ring_theory.witt_vector.witt_vector_preps
 # `init` and `tail`
 
 Given a Witt vecfor `x`, we are sometimes interested in its components before and after an index `n`.
-This file defines those operations, proves that `init` is a polynomial, and shows how that polynomial
+This file defines those operations, proves that `init` is polynomial, and shows how that polynomial
 interacts with `mv_polynomial.bind₁`.
 
 ## Main declarations
@@ -64,8 +64,16 @@ open mv_polynomial
 section
 
 local attribute [semireducible] witt_vector
+
+/-- `witt_vector.init x n` is the Witt vector of which the first `n` coefficients are those from `x`
+and all other coefficients are `0`.
+See `witt_vector.tail` for the complementary part.
+-/
 def init (x : 𝕎 R) (n : ℕ) : 𝕎 R := mk p (λ k, if k < n then x.coeff k else 0)
 
+/-- `witt_vector.tail x n` is the Witt vector of which the first `n` coefficients are `0`
+and all other coefficients are those from `x`.
+See `witt_vector.init` for the complementary part. -/
 def tail (x : 𝕎 R) (n : ℕ) : 𝕎 R := mk p (λ k, if k < n then 0 else x.coeff k)
 
 end
@@ -100,6 +108,7 @@ section
 
 variables (p)
 
+/-- `witt_vector.init x` is polynomial in the coefficients of `x`. -/
 noncomputable
 def init_is_poly (n : ℕ) : is_poly p (λ R _Rcr x, @init p R _Rcr x n) :=
 { poly := λ i, if i < n then X i else 0,

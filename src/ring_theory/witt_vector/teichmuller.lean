@@ -10,6 +10,7 @@ import ring_theory.witt_vector.basic
 
 namespace witt_vector
 
+open mv_polynomial
 variables (p : ℕ) {R S : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
@@ -62,7 +63,7 @@ noncomputable def teichmuller : R →* 𝕎 R :=
   begin
     ext ⟨⟩,
     { rw one_coeff_zero, refl },
-    { rw one_coeff_pos _ _ _ (nat.succ_pos n), refl }
+    { rw one_coeff_pos _ _ (nat.succ_pos n), refl }
   end,
   map_mul' :=
   begin

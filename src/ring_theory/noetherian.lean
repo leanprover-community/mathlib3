@@ -472,65 +472,6 @@ theorem is_noetherian_ring_of_ring_equiv (R) [comm_ring R] {S} [comm_ring S]
   (f : R ≃+* S) [is_noetherian_ring R] : is_noetherian_ring S :=
 is_noetherian_ring_of_surjective R S f.to_ring_hom f.to_equiv.surjective
 
-namespace is_noetherian_ring
-
-variables {R : Type*} [integral_domain R] [is_noetherian_ring R]
-open associates nat
-
-local attribute [elab_as_eliminator] well_founded.fix
-
-lemma well_founded_dvd_not_unit : well_founded (λ a b : R, a ≠ 0 ∧ ∃ x, ¬is_unit x ∧ b = a * x) :=
-by simp only [ideal.span_singleton_lt_span_singleton.symm];
-   exact inv_image.wf (λ a, ideal.span ({a} : set R)) (well_founded_submodule_gt _ _)
-
-lemma exists_irreducible_factor {a : R} (ha : ¬ is_unit a) (ha0 : a ≠ 0) :
-  ∃ i, irreducible i ∧ i ∣ a :=
-(irreducible_or_factor a ha).elim (λ hai, ⟨a, hai, dvd_refl _⟩)
-  (well_founded.fix
-    well_founded_dvd_not_unit
-    (λ a ih ha ha0 ⟨x, y, hx, hy, hxy⟩,
-      have hx0 : x ≠ 0, from λ hx0, ha0 (by rw [← hxy, hx0, zero_mul]),
-      (irreducible_or_factor x hx).elim
-        (λ hxi, ⟨x, hxi, hxy ▸ by simp⟩)
-        (λ hxf, let ⟨i, hi⟩ := ih x ⟨hx0, y, hy, hxy.symm⟩ hx hx0 hxf in
-          ⟨i, hi.1, dvd.trans hi.2 (hxy ▸ by simp)⟩)) a ha ha0)
-
-lemma is_unit_of_no_irreducible_factor {a : R} (ne_zero : a ≠ 0) :
-  (∀ {p}, irreducible p → ¬ p ∣ a) → is_unit a :=
-begin
-  contrapose,
-  intros not_unit no_irreducible_factor,
-  obtain ⟨p, hp, p_dvd_a⟩ := exists_irreducible_factor not_unit ne_zero,
-  apply no_irreducible_factor hp p_dvd_a
-end
-
-@[elab_as_eliminator] lemma irreducible_induction_on {P : R → Prop} (a : R)
-  (h0 : P 0) (hu : ∀ u : R, is_unit u → P u)
-  (hi : ∀ a i : R, a ≠ 0 → irreducible i → P a → P (i * a)) :
-  P a :=
-by haveI := classical.dec; exact
-well_founded.fix well_founded_dvd_not_unit
-  (λ a ih, if ha0 : a = 0 then ha0.symm ▸ h0
-    else if hau : is_unit a then hu a hau
-    else let ⟨i, hii, ⟨b, hb⟩⟩ := exists_irreducible_factor hau ha0 in
-      have hb0 : b ≠ 0, from λ hb0, by simp * at *,
-      hb.symm ▸ hi _ _ hb0 hii (ih _ ⟨hb0, i,
-        hii.1, by rw [hb, mul_comm]⟩))
-  a
-
-lemma exists_factors (a : R) : a ≠ 0 →
-  ∃f : multiset R, (∀b ∈ f, irreducible b) ∧ associated a f.prod :=
-is_noetherian_ring.irreducible_induction_on a
-  (λ h, (h rfl).elim)
-  (λ u hu _, ⟨0, by simp [associated_one_iff_is_unit, hu]⟩)
-  (λ a i ha0 hii ih hia0,
-    let ⟨s, hs⟩ := ih ha0 in
-    ⟨i::s, ⟨by clear _let_match; finish,
-      by rw multiset.prod_cons;
-        exact associated_mul_mul (by refl) hs.2⟩⟩)
-
-end is_noetherian_ring
-
 namespace submodule
 variables {R : Type*} {A : Type*} [comm_ring R] [ring A] [algebra R A]
 variables (M N : submodule R A)

@@ -181,7 +181,7 @@ end omega_complete_partial_order
 open omega_complete_partial_order
 
 section prio
-set_option default_priority 50 -- see Note [default priority]
+set_option extends_priority 50
 
 /-- An omega-complete partial order is a partial order with a supremum
 operation on increasing sequences indexed by natural numbers (which we
@@ -370,8 +370,6 @@ def monotone_apply [∀a, partial_order (β a)] (a : α) : (Πa, β a) →ₘ β
 
 open omega_complete_partial_order omega_complete_partial_order.chain
 
-set_option trace.simps.verbose true
-
 instance [∀a, omega_complete_partial_order (β a)] : omega_complete_partial_order (Πa, β a) :=
 { ωSup    := λc a, ωSup (c.map (monotone_apply a)),
   ωSup_le := assume c f hf a, ωSup_le _ _ $ by { rintro i, apply hf },
@@ -423,10 +421,9 @@ end prod
 namespace complete_lattice
 variables (α : Type u) [complete_lattice α]
 
-set_option default_priority 100 -- see Note [default priority]
-
 /-- Any complete lattice has an `ω`-CPO structure where the countable supremum is a special case
 of arbitrary suprema. -/
+@[priority 100] -- see Note [lower instance priority]
 instance : omega_complete_partial_order α :=
 { ωSup    := λc, ⨆ i, c i,
   ωSup_le := assume ⟨c, _⟩ s hs, by simp only [supr_le_iff, preorder_hom.coe_fun_mk] at ⊢ hs; intros i; apply hs i,

@@ -640,6 +640,17 @@ le_antisymm (add_one_le_succ _) (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _)
 @[simp] theorem succ_zero : succ 0 = 1 :=
 by norm_cast
 
+theorem card_le_of {α : Type u} {n : ℕ} (H : ∀ s : finset α, s.card ≤ n) :
+  # α ≤ n :=
+begin
+  refine lt_succ.1 (lt_of_not_ge $ λ hn, _),
+  rw [← cardinal.nat_succ, ← cardinal.lift_mk_fin n.succ] at hn,
+  cases hn with f,
+  refine not_lt_of_le (H $ finset.univ.map f) _,
+  rw [finset.card_map, ← fintype.card, fintype.card_ulift, fintype.card_fin],
+  exact n.lt_succ_self
+end
+
 theorem cantor' (a) {b : cardinal} (hb : 1 < b) : a < b ^ a :=
 by rw [← succ_le, (by norm_cast : succ 1 = 2)] at hb;
    exact lt_of_lt_of_le (cantor _) (power_le_power_right hb)

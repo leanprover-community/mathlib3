@@ -2,14 +2,14 @@
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-More operations on modules and ideals.
 -/
-import data.nat.choose
+import data.nat.choose.sum
 import data.equiv.ring
 import ring_theory.algebra_operations
 import ring_theory.ideal.basic
-
+/-!
+# More operations on modules and ideals
+-/
 universes u v w x
 
 open_locale big_operators
@@ -291,6 +291,12 @@ theorem span_mul_span (S T : set R) : span S * span T =
   span ⋃ (s ∈ S) (t ∈ T), {s * t} :=
 submodule.span_smul_span S T
 variables {I J K}
+
+lemma span_mul_span' (S T : set R) : span S * span T = span (S*T) :=
+by { unfold span, rw submodule.span_mul_span,}
+
+lemma span_singleton_mul_span_singleton (r s : R) : span {r} * span {s} = (span {r * s} : ideal R) :=
+by { unfold span, rw [submodule.span_mul_span, set.singleton_mul_singleton],}
 
 theorem mul_le_inf : I * J ≤ I ⊓ J :=
 mul_le.2 $ λ r hri s hsj, ⟨I.mul_mem_right hri, J.mul_mem_left hsj⟩
@@ -903,6 +909,31 @@ begin
     haveI : J.is_prime := hJ.right,
     refine ⟨hJ' ▸ map_mono hJ.left, hJ' ▸ map_is_prime_of_surjective hf (le_trans h hJ.left)⟩ },
 end
+
+section quotient_algebra
+
+/-- The ring hom `R/f⁻¹(I) →+* S/I` induced by a ring hom `f : R →+* S` -/
+def quotient_map {I : ideal R} (J : ideal S) (f : R →+* S) (hIJ : I ≤ J.comap f) :
+  I.quotient →+* J.quotient :=
+(quotient.lift I ((quotient.mk J).comp f) (λ _ ha,
+  by simpa [function.comp_app, ring_hom.coe_comp, quotient.eq_zero_iff_mem] using hIJ ha))
+
+variables {I : ideal R} {J: ideal S} [algebra R S]
+
+@[priority 100]
+instance quotient_algebra : algebra (J.comap (algebra_map R S)).quotient J.quotient :=
+(quotient_map J (algebra_map R S) (le_of_eq rfl)).to_algebra
+
+lemma algebra_map_quotient_injective :
+  function.injective (algebra_map (J.comap (algebra_map R S)).quotient J.quotient) :=
+begin
+  rintros ⟨a⟩ ⟨b⟩ hab,
+  replace hab := quotient.eq.mp hab,
+  rw ← ring_hom.map_sub at hab,
+  exact quotient.eq.mpr hab
+end
+
+end quotient_algebra
 
 end ideal
 

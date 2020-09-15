@@ -142,6 +142,11 @@ theorem aeval_apply (x : B) (p : polynomial R) : polynomial.aeval x p =
   polynomial.aeval x (polynomial.map (algebra_map R A) p) :=
 by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.eval₂_map, algebra_map_eq R A B]
 
+instance linear_map (R : Type u) (A : Type v) (V : Type w)
+  [comm_semiring R] [comm_semiring A] [add_comm_monoid V]
+  [semimodule R V] [algebra R A] : is_scalar_tower R A (V →ₗ[R] A) :=
+⟨λ x y f, linear_map.ext $ λ v, algebra.smul_mul_assoc x y (f v)⟩
+
 end comm_semiring
 
 section comm_ring
@@ -294,9 +299,9 @@ variables {R S A}
 variables [comm_ring R] [ring S] [add_comm_group A]
 variables [algebra R S] [module S A] [module R A] [is_scalar_tower R S A]
 
-theorem linear_independent_smul {ι : Type v₁} {b : ι → S} {κ : Type w₁} {c : κ → A}
+theorem linear_independent_smul {ι : Type v₁} {b : ι → S} {ι' : Type w₁} {c : ι' → A}
   (hb : linear_independent R b) (hc : linear_independent S c) :
-  linear_independent R (λ p : ι × κ, b p.1 • c p.2) :=
+  linear_independent R (λ p : ι × ι', b p.1 • c p.2) :=
 begin
   rw linear_independent_iff' at hb hc, rw linear_independent_iff'', rintros s g hg hsg ⟨i, k⟩,
   by_cases hik : (i, k) ∈ s,
@@ -309,58 +314,18 @@ begin
   exact hg _ hik
 end
 
-theorem is_basis.smul {ι : Type v₁} {b : ι → S} {κ : Type w₁} {c : κ → A}
-  (hb : is_basis R b) (hc : is_basis S c) : is_basis R (λ p : ι × κ, b p.1 • c p.2) :=
+theorem is_basis.smul {ι : Type v₁} {b : ι → S} {ι' : Type w₁} {c : ι' → A}
+  (hb : is_basis R b) (hc : is_basis S c) : is_basis R (λ p : ι × ι', b p.1 • c p.2) :=
 ⟨linear_independent_smul hb.1 hc.1,
 by rw [← set.range_smul_range, submodule.span_smul hb.2, ← submodule.restrict_scalars'_top R S A,
     submodule.restrict_scalars'_inj, hc.2]⟩
 
-lemma is_basis.repr_eq_iff {R M : Type*} [ring R] [add_comm_group M] [module R M]
-  {ι : Type*} {b : ι → M} (hb : is_basis R b) {f : M →ₗ[R] (ι →₀ R)} :
-  hb.repr = f ↔ ∀ i, f (b i) = single i 1 :=
-begin
-  split,
-  { rintros rfl i,
-    exact hb.repr_eq_single },
-  intro h,
-  refine hb.ext (λ _, _),
-  rw [h, hb.repr_eq_single]
-end
-
-lemma is_basis.repr_apply_eq {R M : Type*} [ring R] [add_comm_group M] [module R M]
-  {ι : Type*} {b : ι → M} (hb : is_basis R b)
-  {f : M → ι → R} (hfin : ∀ x, ∃ (s : finset ι), ∀ i, f x i ≠ 0 → i ∈ s)
-  (hadd : ∀ x y, f (x + y) = f x + f y) (hsmul : ∀ (c : R) (x : M), f (c • x) = c • f x)
-  (hf : ∀ i, f (b i) = single i 1) (x : M) (i : ι) : hb.repr x i = f x i :=
-begin
-  set f' : M →ₗ[R] (ι →₀ R) :=
-  { to_fun := λ x, on_finset _ _ (classical.some_spec (hfin x)),
-    map_add' := λ x y, by { ext,
-      simp only [hadd, on_finset_apply, pi.add_apply, add_apply] },
-    map_smul' := λ c x, by { ext,
-      simp only [hsmul, on_finset_apply, pi.smul_apply, smul_apply] } }
-    with f'_eq,
-  have hf' : ∀ i, f' (b i) = single i 1,
-  { intro i,
-    ext j,
-    rw [f'_eq, linear_map.coe_mk, on_finset_apply, hf] },
-  rw [hb.repr_eq_iff.mpr hf', f'_eq, linear_map.coe_mk, on_finset_apply]
-end
-
 theorem is_basis.smul_repr
-  {ι κ : Type*} {b : ι → S} {c : κ → A}
-  (hb : is_basis R b) (hc : is_basis S c) (x : A) (ij : ι × κ) :
+  {ι ι' : Type*} {b : ι → S} {c : ι' → A}
+  (hb : is_basis R b) (hc : is_basis S c) (x : A) (ij : ι × ι') :
   (hb.smul hc).repr x ij = hb.repr (hc.repr x ij.2) ij.1 :=
 begin
   apply (hb.smul hc).repr_apply_eq,
-  { intro x,
-    use (hc.repr x).support.bind
-      (λ j, (hb.repr (hc.repr x j)).support.map (function.embedding.sectl ι j)),
-    rintros ⟨i, j⟩ hij,
-    rw finset.mem_bind,
-    use [j, mem_support_iff.mpr (λ h, hij (by rw [h, linear_map.map_zero, zero_apply]))],
-    rw finset.mem_map,
-    exact ⟨i, mem_support_iff.mpr hij, rfl⟩ },
   { intros x y, ext, simp only [linear_map.map_add, add_apply, pi.add_apply] },
   { intros c x, ext,
     simp only [← is_scalar_tower.algebra_map_smul S c x, linear_map.map_smul, smul_eq_mul,
@@ -375,5 +340,11 @@ begin
   { simp [hj, show ¬ (ij.1 = ij'.1), from λ hi, hij (prod.ext hi hj)] },
   simp
 end
+
+theorem is_basis.smul_repr_mk
+  {ι ι' : Type*} {b : ι → S} {c : ι' → A}
+  (hb : is_basis R b) (hc : is_basis S c) (x : A) (i : ι) (j : ι') :
+  (hb.smul hc).repr x (i, j) = hb.repr (hc.repr x j) i :=
+by simp [is_basis.smul_repr]
 
 end ring

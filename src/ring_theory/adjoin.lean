@@ -98,7 +98,8 @@ theorem adjoin_eq_range :
 le_antisymm
   (adjoin_le $ λ x hx, ⟨mv_polynomial.X ⟨x, hx⟩, mv_polynomial.eval₂_X _ _ _⟩)
   (λ x ⟨p, hp⟩, hp ▸ mv_polynomial.induction_on p
-    (λ r, by rw [mv_polynomial.aeval_def, mv_polynomial.eval₂_C]; exact (adjoin R s).2 r)
+    (λ r, by { rw [mv_polynomial.aeval_def, mv_polynomial.eval₂_C],
+               exact (adjoin R s).algebra_map_mem r })
     (λ p q hp hq, by rw alg_hom.map_add; exact is_add_submonoid.add_mem hp hq)
     (λ p ⟨n, hn⟩ hp, by rw [alg_hom.map_mul, mv_polynomial.aeval_def _ (mv_polynomial.X _),
       mv_polynomial.eval₂_X]; exact is_submonoid.mul_mem hp (subset_adjoin hn)))
@@ -107,7 +108,8 @@ theorem adjoin_singleton_eq_range (x : A) : adjoin R {x} = (polynomial.aeval x).
 le_antisymm
   (adjoin_le $ set.singleton_subset_iff.2 ⟨polynomial.X, polynomial.eval₂_X _ _⟩)
   (λ y ⟨p, hp⟩, hp ▸ polynomial.induction_on p
-    (λ r, by rw [polynomial.aeval_def, polynomial.eval₂_C]; exact (adjoin R _).2 r)
+    (λ r, by { rw [polynomial.aeval_def, polynomial.eval₂_C],
+               exact (adjoin R _).algebra_map_mem r })
     (λ p q hp hq, by rw alg_hom.map_add; exact is_add_submonoid.add_mem hp hq)
     (λ n r ih, by { rw [pow_succ', ← mul_assoc, alg_hom.map_mul,
       polynomial.aeval_def _ polynomial.X, polynomial.eval₂_X],

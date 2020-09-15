@@ -44,6 +44,9 @@ instance : has_mem L (intermediate_field K L) := ⟨λ x S, x ∈ (S : subalgebr
 @[simp] lemma mem_coe_subalgebra {x : L} {S : intermediate_field K L} :
   x ∈ (S : subalgebra K L) ↔ x ∈ S := iff.rfl
 
+@[simp] lemma coe_mk {x : L} (hx : x ∈ S) : ((⟨x, hx⟩ : S) : L) = x :=
+rfl
+
 instance algebra : algebra K S :=
 subalgebra.algebra _
 

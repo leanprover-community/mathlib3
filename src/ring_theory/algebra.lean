@@ -753,8 +753,7 @@ end rat
 
 /-- A subalgebra is a subring that includes the range of `algebra_map`. -/
 structure subalgebra (R : Type u) (A : Type v)
-  [comm_semiring R] [semiring A] [algebra R A] : Type v :=
-(carrier : subsemiring A)
+  [comm_semiring R] [semiring A] [algebra R A] extends subsemiring A :=
 (algebra_map_mem' : ∀ r, algebra_map R A r ∈ carrier)
 
 namespace subalgebra
@@ -764,7 +763,7 @@ variables [comm_semiring R] [semiring A] [algebra R A] [semiring B] [algebra R B
 include R
 
 instance : has_coe (subalgebra R A) (subsemiring A) :=
-⟨λ S, S.carrier⟩
+⟨to_subsemiring⟩
 
 instance : has_mem A (subalgebra R A) :=
 ⟨λ x S, x ∈ (S : set A)⟩
@@ -944,27 +943,27 @@ instance : partial_order (subalgebra R A) :=
 def comap {R : Type u} {S : Type v} {A : Type w}
   [comm_semiring R] [comm_semiring S] [semiring A] [algebra R S] [algebra S A]
   (iSB : subalgebra S A) : subalgebra R (algebra.comap R S A) :=
-{ carrier := (iSB : subsemiring A),
-  algebra_map_mem' := λ r, iSB.algebra_map_mem (algebra_map R S r) }
+{ algebra_map_mem' := λ r, iSB.algebra_map_mem (algebra_map R S r),
+  ..(iSB : subsemiring A) }
 
 /-- If `S` is an `R`-subalgebra of `A` and `T` is an `S`-subalgebra of `A`,
 then `T` is an `R`-subalgebra of `A`. -/
 def under {R : Type u} {A : Type v} [comm_semiring R] [comm_semiring A]
   {i : algebra R A} (S : subalgebra R A)
   (T : subalgebra S A) : subalgebra R A :=
-{ carrier := T,
-  algebra_map_mem' := λ r, T.algebra_map_mem ⟨algebra_map R A r, S.algebra_map_mem r⟩ }
+{ algebra_map_mem' := λ r, T.algebra_map_mem ⟨algebra_map R A r, S.algebra_map_mem r⟩,
+  ..T }
 
 /-- Transport a subalgebra via an algebra homomorphism. -/
 def map (S : subalgebra R A) (f : A →ₐ[R] B) : subalgebra R B :=
-{ carrier := subsemiring.map (f : A →+* B) S,
-  algebra_map_mem' := λ r, f.commutes r ▸ set.mem_image_of_mem _ (S.algebra_map_mem r) }
+{ algebra_map_mem' := λ r, f.commutes r ▸ set.mem_image_of_mem _ (S.algebra_map_mem r),
+  ..subsemiring.map (f : A →+* B) S }
 
 /-- Preimage of a subalgebra under an algebra homomorphism. -/
 def comap' (S : subalgebra R B) (f : A →ₐ[R] B) : subalgebra R A :=
-{ carrier := subsemiring.comap (f : A →+* B) S,
-  algebra_map_mem' := λ r, show f (algebra_map R A r) ∈ S,
-    from (f.commutes r).symm ▸ S.algebra_map_mem r }
+{  algebra_map_mem' := λ r, show f (algebra_map R A r) ∈ S,
+    from (f.commutes r).symm ▸ S.algebra_map_mem r,
+    .. subsemiring.comap (f : A →+* B) S }
 
 theorem map_le {S : subalgebra R A} {f : A →ₐ[R] B} {U : subalgebra R B} :
   map S f ≤ U ↔ S ≤ comap' U f :=
@@ -991,12 +990,11 @@ variables (φ : A →ₐ[R] B)
 
 /-- Range of an `alg_hom` as a subalgebra. -/
 protected def range (φ : A →ₐ[R] B) : subalgebra R B :=
-{ carrier :=
-  { carrier := set.range φ,
-    one_mem' := ⟨1, φ.map_one⟩,
-    mul_mem' := λ _ _ ⟨x, hx⟩ ⟨y, hy⟩, ⟨x * y, by rw [φ.map_mul, hx, hy]⟩,
-    zero_mem' := ⟨0, φ.map_zero⟩,
-    add_mem' := λ _ _ ⟨x, hx⟩ ⟨y, hy⟩, ⟨x + y, by rw [φ.map_add, hx, hy]⟩ },
+{ carrier := set.range φ,
+  one_mem' := ⟨1, φ.map_one⟩,
+  mul_mem' := λ _ _ ⟨x, hx⟩ ⟨y, hy⟩, ⟨x * y, by rw [φ.map_mul, hx, hy]⟩,
+  zero_mem' := ⟨0, φ.map_zero⟩,
+  add_mem' := λ _ _ ⟨x, hx⟩ ⟨y, hy⟩, ⟨x + y, by rw [φ.map_add, hx, hy]⟩,
   algebra_map_mem' := λ r, ⟨algebra_map R A r, φ.commutes r⟩ }
 
 /-- Restrict the codomain of an algebra homomorphism. -/
@@ -1032,8 +1030,8 @@ variables [comm_semiring R] [semiring A] [algebra R A] [semiring B] [algebra R B
 
 /-- The minimal subalgebra that includes `s`. -/
 def adjoin (s : set A) : subalgebra R A :=
-{ carrier := subsemiring.closure (set.range (algebra_map R A) ∪ s),
-  algebra_map_mem' := λ r, subsemiring.subset_closure $ or.inl ⟨r, rfl⟩ }
+{ algebra_map_mem' := λ r, subsemiring.subset_closure $ or.inl ⟨r, rfl⟩,
+  ..subsemiring.closure (set.range (algebra_map R A) ∪ s) }
 variables {R}
 
 protected lemma gc : galois_connection (adjoin R : set A → subalgebra R A) coe :=
@@ -1124,8 +1122,8 @@ instance algebra_nat : algebra ℕ R :=
 variables {R}
 /-- A subsemiring is a `ℕ`-subalgebra. -/
 def subalgebra_of_subsemiring (S : subsemiring R) : subalgebra ℕ R :=
-{ carrier := S,
-  algebra_map_mem' := λ i, S.coe_nat_mem i }
+{ algebra_map_mem' := λ i, S.coe_nat_mem i,
+  .. S }
 
 @[simp] lemma mem_subalgebra_of_subsemiring {x : R} {S : subsemiring R} :
   x ∈ subalgebra_of_subsemiring S ↔ x ∈ S :=
@@ -1174,12 +1172,11 @@ def ring_hom.to_int_alg_hom {R S : Type*} [ring R] [ring S] (f : R →+* S) : R 
 variables {R}
 /-- A subring is a `ℤ`-subalgebra. -/
 def subalgebra_of_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
-{ carrier :=
-  { carrier := S,
-    one_mem' := is_submonoid.one_mem,
-    mul_mem' := λ _ _, is_submonoid.mul_mem,
-    zero_mem' := is_add_submonoid.zero_mem,
-    add_mem' := λ _ _, is_add_submonoid.add_mem, },
+{ carrier := S,
+  one_mem' := is_submonoid.one_mem,
+  mul_mem' := λ _ _, is_submonoid.mul_mem,
+  zero_mem' := is_add_submonoid.zero_mem,
+  add_mem' := λ _ _, is_add_submonoid.add_mem,
   algebra_map_mem' := λ i, int.induction_on i (show (0 : R) ∈ S, from is_add_submonoid.zero_mem)
     (λ i ih, show (i + 1 : R) ∈ S, from is_add_submonoid.add_mem ih is_submonoid.one_mem)
     (λ i ih, show ((-i - 1 : ℤ) : R) ∈ S, by { rw [int.cast_sub, int.cast_one],

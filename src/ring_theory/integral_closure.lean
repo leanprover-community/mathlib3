@@ -247,12 +247,11 @@ variables (R A)
 
 /-- The integral closure of R in an R-algebra A. -/
 def integral_closure : subalgebra R A :=
-{ carrier :=
-  { carrier := { r | is_integral R r },
-    zero_mem' := is_integral_zero,
-    one_mem' := is_integral_one,
-    add_mem' := λ _ _, is_integral_add,
-    mul_mem' := λ _ _, is_integral_mul },
+{ carrier := { r | is_integral R r },
+  zero_mem' := is_integral_zero,
+  one_mem' := is_integral_one,
+  add_mem' := λ _ _, is_integral_add,
+  mul_mem' := λ _ _, is_integral_mul,
   algebra_map_mem' := λ x, is_integral_algebra_map }
 
 theorem mem_integral_closure_iff_mem_fg {r : A} :

@@ -19,16 +19,15 @@ However, the ring operations `+` and `*` are not defined in the obvious componen
 Instead, these operations are defined via certain polynomials
 using the machinery in `structure_polynomial.lean`.
 The `n`th value of the sum of two Witt vectors can depend on the 0th through `n`th values
-of the summands. In the case when the base ring is `zmod p`, this effectively simulates a
-"carrying" operation.
+of the summands. This effectively simulates a “carrying” operation.
 
 ## Main definitions
 
 * `witt_vector.coeff x n`: projects the `n`th value of the Witt vector `x`
 * `ghost_component n x`: evaluates the `n`th Witt polynomial using the first `n` coefficients of `x`,
   producing a value in `R`. This is effectively a truncating operation.
-  The ghost components produce an equivalence with `N → R`, which we use to define the ring operations
-  on `𝕎 R`.
+  If `p` is invertible in `R`, then the ghost components produce an equivalence with `ℕ → R`,
+  which we use to define the ring operations on `𝕎 R`.
 * `witt_vector.comm_ring`: the ring structure induced by the ghost components.
 
 ## Notation

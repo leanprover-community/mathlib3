@@ -48,7 +48,9 @@ begin
   replace h := witt_add_vars p _ h,
   simp only [finset.mem_range, finset.mem_product, true_and, finset.mem_univ] at h,
   have hk : k < n, by linarith,
-  simp only [hk, coeff_mk, if_true],
+  fin_cases b;
+  simp only [function.uncurry, matrix.cons_val_zero, matrix.head_cons, coeff_mk, matrix.cons_val_one,
+    coeff_mk, hk, if_true],
 end
 
 lemma init_mul (x y : 𝕎 R) (n : ℕ) :
@@ -64,7 +66,9 @@ begin
   replace h := witt_mul_vars p _ h,
   simp only [finset.mem_range, finset.mem_product, true_and, finset.mem_univ] at h,
   have hk : k < n, by linarith,
-  simp only [hk, coeff_mk, if_true],
+  fin_cases b;
+  simp only [function.uncurry, matrix.cons_val_zero, matrix.head_cons, coeff_mk, matrix.cons_val_one,
+    coeff_mk, hk, if_true],
 end
 
 lemma init_neg (x : 𝕎 R) (n : ℕ) :
@@ -76,11 +80,13 @@ begin
   split_ifs with hi, swap, refl,
   simp only [neg_coeff],
   apply eval₂_hom_congr' (ring_hom.ext_int _ _) _ rfl,
-  rintro ⟨u, k⟩ h -,
+  rintro ⟨b, k⟩ h -,
   replace h := witt_neg_vars p _ h,
   simp only [finset.mem_range, finset.mem_product, true_and, finset.mem_univ] at h,
   have hk : k < n, by linarith,
-  simp only [hk, coeff_mk, if_true],
+  fin_cases b;
+  simp only [function.uncurry, matrix.cons_val_zero, matrix.head_cons, coeff_mk, matrix.cons_val_one,
+    coeff_mk, hk, if_true],
 end
 
 lemma init_sub (x y : 𝕎 R) (n : ℕ) :

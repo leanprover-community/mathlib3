@@ -27,7 +27,7 @@ variable (p)
 noncomputable
 def witt_mul_n : ℕ → ℕ → mv_polynomial ℕ ℤ
 | 0     := λ k, 0
-| (n+1) := λ k, bind₁ (function.uncurry $ λ b, cond b (witt_mul_n n) X) (witt_add p k)
+| (n+1) := λ k, bind₁ (function.uncurry $ ![(witt_mul_n n), X]) (witt_add p k)
 
 variable {p}
 
@@ -39,12 +39,12 @@ begin
       zero_coeff, witt_mul_n, alg_hom.map_zero], },
   { rw [witt_mul_n],
     simp only [nat.succ_eq_add_one, mul_add, mul_one, nat.cast_add, nat.cast_one],
-    rw [aeval_eq_eval₂_hom, hom_bind₁],
-    rw [add_coeff],
+    rw [aeval_bind₁, add_coeff],
     apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    ext1 ⟨⟨⟩, i⟩,
-    { simp only [function.uncurry, eval₂_hom_X', cond], },
-    { simp only [function.uncurry, ih, aeval_eq_eval₂_hom, cond], } }
+    ext1 ⟨b, i⟩,
+    fin_cases b;
+    simp only [function.uncurry, ih, aeval_X,
+      matrix.cons_val_zero, matrix.head_cons, matrix.cons_val_one], }
 end
 
 variables (p)
@@ -66,7 +66,8 @@ begin
     simp only [alg_hom.map_add, nat.cast_succ, bind₁_X_right],
     rw [add_mul, one_mul],
     rw [bind₁_rename, bind₁_rename],
-    simp only [function.uncurry, function.comp, bind₁_X_left, alg_hom.id_apply, cond, ih], }
+    simp only [ih, function.uncurry, function.comp, bind₁_X_left, alg_hom.id_apply,
+      matrix.cons_val_zero, matrix.head_cons, matrix.cons_val_one], }
 end
 
 lemma frobenius_fun_comp_verschiebung :

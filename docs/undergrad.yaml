@@ -369,8 +369,8 @@ Single Variable Complex Analysis:
     continuity: 'has_fpower_series_on_ball.continuous_on'
     differentiability with respect to the complex variable:
     antiderivative:
-    complex exponential:
-    extension of trigonometric functions to the complex plane:
+    complex exponential: 'complex.exp'
+    extension of trigonometric functions to the complex plane: 'complex.sin'
     power series expansion of elementary functions:
   Functions on one complex variable:
     holomorphic functions:

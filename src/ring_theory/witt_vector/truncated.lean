@@ -99,7 +99,8 @@ section
 local attribute [semireducible] witt_vector
 
 /-- `truncate_fun n x` uses the first `n` entries of `x` to construct a `truncated_witt_vector`,
-which has the same base `p` as `x`. -/
+which has the same base `p` as `x`.
+This function is bundled into a ring homomorphism in `witt_vector.truncate` -/
 def truncate_fun (x : 𝕎 R) : truncated_witt_vector p n R :=
 truncated_witt_vector.mk p $ λ i, x.coeff i
 
@@ -233,7 +234,8 @@ variable [comm_ring R]
 
 include hp
 
-/-- `truncate_fun n` is a ring homomorphism. -/
+/-- `truncate n` is a ring homomorphism that truncates `x` to its first `n` entries
+to obtain a `truncated_witt_vector`, which has the same base `p` as `x`. -/
 def truncate : 𝕎 R →+* truncated_witt_vector p n R :=
 { to_fun := truncate_fun n,
   map_zero' := truncate_fun_zero p n R,
@@ -275,11 +277,8 @@ variable [comm_ring R]
 include hp
 
 /--
-`witt_vector.truncate` is a surjective ring hom  `𝕎 R → truncated_witt_vector p k R` for each `k`.
-For `n ≤ m`, we can lift this to a ring hom
-`truncated_witt_vector.truncate : truncated_witt_vector p m R → truncated_witt_vector p n R`
-that is compatible with `witt_vector.truncate`.
-using `ring_hom.lift_of_surjective`.
+A ring homomorphism that truncates a truncated Witt vector of length `m` to
+a truncated Witt vector of length `n`, for `n ≤ m`.
 -/
 def truncate {m : ℕ} (hm : n ≤ m) : truncated_witt_vector p m R →+* truncated_witt_vector p n R :=
 ring_hom.lift_of_surjective
@@ -542,4 +541,3 @@ end
 end lift
 
 end witt_vector
-#lint

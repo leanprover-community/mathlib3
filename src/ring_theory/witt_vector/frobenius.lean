@@ -70,16 +70,16 @@ lemma map_frobenius_poly (n : ℕ) :
 ```
 -/
 
+/-- A key divisibility fact for the proof of `witt_vector.map_frobenius_poly`. -/
 lemma map_frobenius_poly.aux₁ (n i j : ℕ) (hi : i < n) (hj : j < p ^ (n - i)) :
   p ^ (n - i - vp ⟨j + 1, j.succ_pos⟩) ∣ (p ^ (n - i)).choose (j + 1) :=
 begin
   apply multiplicity.pow_dvd_of_le_multiplicity,
-  have aux : multiplicity.finite p ((p ^ (n - i)).choose (j + 1)),
-  { rw multiplicity.finite_nat_iff,
+  have aux : (multiplicity p ((p ^ (n - i)).choose (j + 1))).dom,
+  { rw [← multiplicity.finite_iff_dom, multiplicity.finite_nat_iff],
     exact ⟨ne_of_gt hp.one_lt, nat.choose_pos hj⟩, },
-  rw multiplicity.finite_iff_dom at aux,
-  rw [← enat.coe_get aux, enat.coe_le_coe, nat.sub_le_left_iff_le_add],
-  rw [← enat.coe_le_coe, enat.coe_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
+  rw [← enat.coe_get aux, enat.coe_le_coe, nat.sub_le_left_iff_le_add,
+      ← enat.coe_le_coe, enat.coe_add, pnat_multiplicity, enat.coe_get, enat.coe_get, add_comm],
   apply le_of_eq,
   apply (nat.prime.multiplicity_choose_prime_pow hp hj j.succ_pos).symm,
 end

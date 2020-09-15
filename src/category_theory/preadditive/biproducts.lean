@@ -153,7 +153,7 @@ begin
   simp only [add_comp, comp_add, add_comp_assoc, add_zero, zero_add,
     biprod.inl_fst, biprod.inl_snd, biprod.inr_fst, biprod.inr_snd,
     biprod.inl_fst_assoc, biprod.inl_snd_assoc, biprod.inr_fst_assoc, biprod.inr_snd_assoc,
-    has_zero_morphisms.comp_zero, has_zero_morphisms.zero_comp, has_zero_morphisms.zero_comp_assoc,
+    comp_zero, zero_comp,
     category.comp_id, category.assoc],
 end
 
@@ -263,9 +263,9 @@ begin
     simp only [category.assoc],
     rw [comp_add_assoc, add_comp],
     conv_lhs { congr, skip, slice 1 3, rw a₂, },
-    simp only [has_zero_morphisms.zero_comp, add_zero],
+    simp only [zero_comp, add_zero],
     conv_lhs { slice 1 3, rw a₁, },
-    simp only [has_zero_morphisms.zero_comp], },
+    simp only [zero_comp], },
   exact nz (h₁.symm.trans h₀),
 end
 

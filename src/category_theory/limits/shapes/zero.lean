@@ -44,9 +44,14 @@ class has_zero_morphisms :=
 
 attribute [instance] has_zero_morphisms.has_zero
 restate_axiom has_zero_morphisms.comp_zero'
-attribute [simp] has_zero_morphisms.comp_zero
 restate_axiom has_zero_morphisms.zero_comp'
-attribute [simp, reassoc] has_zero_morphisms.zero_comp
+
+variables {C}
+
+@[simp] lemma comp_zero [has_zero_morphisms C] {X Y : C} {f : X ⟶ Y} {Z : C} :
+  f ≫ (0 : Y ⟶ Z) = (0 : X ⟶ Z) := has_zero_morphisms.comp_zero f Z
+@[simp] lemma zero_comp [has_zero_morphisms C] {X : C} {Y Z : C} {f : Y ⟶ Z} :
+  (0 : X ⟶ Y) ≫ f = (0 : X ⟶ Z) := has_zero_morphisms.zero_comp X f
 
 instance has_zero_morphisms_pempty : has_zero_morphisms (discrete pempty) :=
 { has_zero := by tidy }
@@ -95,10 +100,10 @@ section
 variables {C} [has_zero_morphisms C]
 
 lemma zero_of_comp_mono {X Y Z : C} {f : X ⟶ Y} (g : Y ⟶ Z) [mono g] (h : f ≫ g = 0) : f = 0 :=
-by { rw [←zero_comp X g, cancel_mono] at h, exact h }
+by { rw [←zero_comp, cancel_mono] at h, exact h }
 
 lemma zero_of_epi_comp {X Y Z : C} (f : X ⟶ Y) {g : Y ⟶ Z} [epi f] (h : f ≫ g = 0) : g = 0 :=
-by { rw [←comp_zero f Z, cancel_epi] at h, exact h }
+by { rw [←comp_zero, cancel_epi] at h, exact h }
 
 lemma eq_zero_of_image_eq_zero {X Y : C} {f : X ⟶ Y} [has_image f] (w : image.ι f = 0) : f = 0 :=
 by rw [←image.fac f, w, has_zero_morphisms.comp_zero]
@@ -129,6 +134,8 @@ end
 by rw [←functor.as_equivalence_functor F, equivalence_preserves_zero_morphisms]
 
 end
+
+variables (C)
 
 /-- A category "has a zero object" if it has an object which is both initial and terminal. -/
 class has_zero_object :=
@@ -328,7 +335,7 @@ instance has_zero_object_of_has_terminal_object
   calc
     f = 𝟙 _ ≫ f : (category.id_comp _).symm
     ... = 0 ≫ f : by congr
-    ... = 0     : has_zero_morphisms.zero_comp _ _
+    ... = 0     : zero_comp
   ⟩ }
 
 

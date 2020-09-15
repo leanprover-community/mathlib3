@@ -345,5 +345,3 @@ by simp only [ext_iff, coeff_frobenius_fun_char_p, zmod.pow_card, eq_self_iff_tr
 end char_p
 
 end witt_vector
-
-#lint

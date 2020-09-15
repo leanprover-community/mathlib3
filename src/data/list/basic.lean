@@ -1372,6 +1372,16 @@ theorem map_filter_eq_foldr (f : α → β) (p : α → Prop) [decidable_pred p]
   map f (filter p as) = foldr (λ a bs, if p a then f a :: bs else bs) [] as :=
 by { induction as, { refl }, { simp! [*, apply_ite (map f)] } }
 
+lemma filter_eq {α} (p q : α → Prop) [decidable_pred p] [decidable_pred q] (l : list α)
+  (h : ∀ x ∈ l, p x ↔ q x) :
+  filter p l = filter q l :=
+begin
+  induction l; simp only [filter],
+  have : (∀ (x : α), x ∈ l_tl → (p x ↔ q x)),
+  { introv h', apply h _ (or.inr h') },
+  congr' 1; simp only [l_ih this, and_self, h, mem_cons_iff, true_or, eq_self_iff_true],
+end
+
 /-! ### map₂ -/
 
 theorem nil_map₂ (f : α → β → γ) (l : list β) : map₂ f [] l = [] :=
@@ -1461,6 +1471,19 @@ by { simp at hi, rw nth_le_take L _ hi.1 }
 @[simp] theorem drop_nil : ∀ n, drop n [] = ([] : list α)
 | 0     := rfl
 | (n+1) := rfl
+
+lemma list.mem_drop_of_mem {α} {n : ℕ} {l : list α} {x : α}
+  (h : x ∈ l.drop n) :
+  x ∈ l :=
+begin
+  induction l generalizing n,
+  case list.nil : n h
+  { simpa using h },
+  case list.cons : l_hd l_tl l_ih n h
+  { cases n; simp at h ⊢,
+    { exact h },
+    right, apply l_ih h },
+end
 
 @[simp] theorem drop_one : ∀ l : list α, drop 1 l = tail l
 | []       := rfl
@@ -1566,6 +1589,22 @@ by rw [modify_nth_eq_take_drop, drop_eq_nth_le_cons h]; refl
 theorem update_nth_eq_take_cons_drop (a : α) {n l} (h : n < length l) :
   update_nth l n a = take n l ++ a :: drop (n+1) l :=
 by rw [update_nth_eq_modify_nth, modify_nth_eq_take_cons_drop _ h]
+
+lemma reverse_take {α} {xs : list α} (n : ℕ)
+  (h : n ≤ xs.length) :
+  xs.reverse.take n = (xs.drop (xs.length - n)).reverse :=
+begin
+  induction xs generalizing n; simp only [reverse_cons, drop, reverse_nil, nat.zero_sub, length, take_nil],
+  cases decidable.lt_or_eq_of_le h with h' h',
+  { replace h' := le_of_succ_le_succ h',
+    rwa [take_append_of_le_length, xs_ih _ h'],
+    rw [show xs_tl.length + 1 - n = succ (xs_tl.length - n), from _, drop],
+    { rwa [succ_eq_add_one, nat.sub_add_comm] },
+    { rwa length_reverse } },
+  { subst h', rw [length, nat.sub_self, drop],
+    rw [show xs_tl.length + 1 = (xs_tl.reverse ++ [xs_hd]).length, from _, take_length, reverse_cons],
+    rw [length_append, length_reverse], refl }
+end
 
 @[simp] lemma update_nth_eq_nil (l : list α) (n : ℕ) (a : α) : l.update_nth n a = [] ↔ l = [] :=
 by cases l; cases n; simp only [update_nth]
@@ -3845,6 +3884,10 @@ theorem forall_mem_inter_of_forall_right {p : α → Prop} (l₁ : list α) {l�
   ∀ x, x ∈ l₁ ∩ l₂ → p x :=
 ball.imp_left (λ x, mem_of_mem_inter_right) h
 
+lemma inter_reverse [decidable_eq α] {xs ys : list α} :
+  xs.inter ys.reverse = xs.inter ys :=
+by simp [list.inter]; congr
+
 end inter
 
 section choose
@@ -3906,6 +3949,34 @@ begin
   { cases x with a b,
     simp only [mem_cons_iff, prod.mk.inj_iff, map, prod.swap_prod_mk, prod.exists, xs_ih],
     tauto! },
+end
+
+/--
+`list.slice n m xs` removes a slice of length `m` at index `n` in list `xs`.
+-/
+@[simp]
+def list.slice {α} : ℕ → ℕ → list α → list α
+| 0 n xs := xs.drop n
+| (succ n) m [] := []
+| (succ n) m (x :: xs) := x :: list.slice n m xs
+
+lemma sizeof_slice_lt {α} [has_sizeof α] (i j : ℕ) (hj : 0 < j) (xs : list α) (hi : i < xs.length) :
+  sizeof (list.slice i j xs) < sizeof xs :=
+begin
+  induction xs generalizing i j,
+  case list.nil : i j h
+  { cases hi },
+  case list.cons : x xs xs_ih i j h
+  { cases i; simp [list.slice],
+    { cases j, cases h, simp,
+      unfold_wf,
+      apply @lt_of_le_of_lt _ _ _ xs.sizeof,
+      { clear_except, induction xs generalizing j; unfold_wf, refl,
+        cases j; unfold_wf, refl,
+        transitivity, apply xs_ih, simp, },
+      unfold_wf, apply zero_lt_one_add, },
+    { unfold_wf, apply xs_ih _ _ h,
+      apply lt_of_succ_lt_succ hi, } },
 end
 
 end list

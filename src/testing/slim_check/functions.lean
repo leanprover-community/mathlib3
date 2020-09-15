@@ -3,11 +3,7 @@ Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
 -/
--- import data.finmap
 import data.list.sigma
--- import data.multiset.sort
--- import tactic.find_unused
--- import tactic.abel
 import testing.slim_check.sampleable
 import testing.slim_check.testable
 import tactic.pretty_cases
@@ -70,30 +66,9 @@ protected def repr {α : Type u} [has_repr α] {β : Type v} [has_repr β] : tot
 instance (α : Type u) (β : Type v) [has_repr α] [has_repr β] : has_repr (total_function α β) :=
 ⟨ total_function.repr ⟩
 
-/-- Convert a product type to a Σ-type. -/
-@[simp]
-def prod.to_sigma {α β} : α × β → Σ _ : α, β
-| ⟨x,y⟩ := ⟨x,y⟩
-
--- /-- Convert a product type to a Σ-type. -/
--- @[simp]
--- def sigma.to_prod {α β} : (Σ _ : α, β) → α × β
--- | ⟨x,y⟩ := ⟨x,y⟩
-
 /-- Create a `finmap` from a list of pairs. -/
 def list.to_finmap' {α β} (xs : list (α × β)) : list (Σ _ : α, β) :=
 xs.map prod.to_sigma
-
-@[simp]
-lemma prod.fst_to_sigma {α β} (x : α × β) : (prod.to_sigma x).fst = x.fst :=
-by cases x; refl
-
-@[simp]
-lemma prod.snd_to_sigma {α β} (x : α × β) : (prod.to_sigma x).snd = x.snd :=
-by cases x; refl
-
--- instance ulift.has_repr {α} [has_repr α] : has_repr (ulift α) :=
--- ⟨ λ ⟨x⟩, repr x ⟩
 
 section
 
@@ -109,30 +84,10 @@ instance : has_sizeof (total_function α β) :=
 
 variables [decidable_eq α]
 
-lemma sizeof_kerase {α β} [decidable_eq α] [has_sizeof (Σ _ : α, β)] (x : α) (xs : list (Σ _ : α, β)) :
-  sizeof (list.kerase x xs) ≤ sizeof xs :=
-begin
-  unfold_wf,
-  induction xs with y ys,
-  { simp },
-  { by_cases x = y.1; simp [*, list.sizeof] },
-end
-
-lemma sizeof_erase_dupkeys {α β} [decidable_eq α] [has_sizeof (Σ _ : α, β)] (xs : list (Σ _ : α, β)) :
-  sizeof (list.erase_dupkeys xs) ≤ sizeof xs :=
-begin
-  unfold_wf,
-  induction xs with x xs,
-  { simp [list.erase_dupkeys] },
-  { simp [list.erase_dupkeys_cons, list.sizeof],
-    transitivity, apply sizeof_kerase,
-    assumption }
-end
-
 /-- Shrink a total function by shrinking the lists that represent it. -/
 protected def shrink : shrink_fn (total_function α β)
 | ⟨m, x⟩ := (sampleable.shrink (m, x)).map $ λ ⟨⟨m', x'⟩, h⟩, ⟨⟨list.erase_dupkeys m', x'⟩,
-            lt_of_le_of_lt (by unfold_wf; refine @sizeof_erase_dupkeys _ _ _ (@sampleable.wf _ _) _) h ⟩
+            lt_of_le_of_lt (by unfold_wf; refine @list.sizeof_erase_dupkeys _ _ _ (@sampleable.wf _ _) _) h ⟩
 
 variables
  [has_repr α] [has_repr β]
@@ -201,8 +156,6 @@ protected def repr {α : Type u} [has_repr α] : injective_function α → strin
 instance (α : Type u) [has_repr α] : has_repr (injective_function α) :=
 ⟨ injective_function.repr ⟩
 
-open total_function (prod.to_sigma)
-
 /-- Interpret a list of pairs as a total function, defaulting to
 the identity function when no entries are found for a given function -/
 def list.apply_id {α : Type u} [decidable_eq α] (xs : list (α × α)) (x : α) : α :=
@@ -216,7 +169,7 @@ by simp [list.apply_id, list.lookup]; split_ifs; refl
 open function list prod
 open nat
 
-lemma nth_injective {α : Type u} {xs : list α} (i j : ℕ) (a : α)
+lemma nth_injective {α : Type u} {xs : list α} {i j : ℕ} {a : α}
   (h : nodup xs)
   (hi : xs.nth i = some a)
   (hj : xs.nth j = some a) : i = j :=
@@ -234,10 +187,20 @@ begin
     { congr, apply xs_ih; assumption, } }
 end
 
-lemma foo {α : Type u} [decidable_eq α] {xs ys : list α} (h₀ : list.nodup xs)
+lemma nth_injective' {α : Type u} {xs : list α} {i j : ℕ}
+  (h₀ : i < xs.length)
+  (h₁ : nodup xs)
+  (h₂ : xs.nth i = xs.nth j) : i = j :=
+begin
+  have := nth_le_nth h₀,
+  apply nth_injective h₁ this,
+  rw [← h₂, this],
+end
+
+lemma list.apply_id_zip_eq {α : Type u} [decidable_eq α] {xs ys : list α} (h₀ : list.nodup xs)
   (h₁ : xs.length = ys.length) (x y : α) (i : ℕ)
   (h₂ : xs.nth i = some x) :
-  ys.nth i = some y ↔ list.apply_id.{u} (xs.zip ys) x = y :=
+  list.apply_id.{u} (xs.zip ys) x = y ↔ ys.nth i = some y :=
 begin
   induction xs generalizing ys i,
   { cases h₂ },
@@ -255,32 +218,10 @@ begin
       apply nth_mem h₂ } }
 end
 
-lemma bar {α : Type u} {xs ys : list α} (h₀ : list.nodup xs)
-  (h₁ : xs ~ ys) (i j : ℕ) :
-  xs.nth i = xs.nth j ↔ ys.nth i = ys.nth j :=
-begin
-  revert xs ys,
-  suffices : ∀ {xs ys : list α}, xs.nodup → xs ~ ys → (xs.nth i = xs.nth j → ys.nth i = ys.nth j),
-  { intros,
-    have h₂ : ys.nodup := h₁.nodup_iff.1 h₀,
-    have h₃ := h₁.symm,
-    split; apply this; assumption, },
-  introv h₀ h₁ h₂,
-  by_cases j < xs.length,
-  { congr, rw nth_le_nth h at h₂,
-    apply nth_injective _ _ _ h₀ h₂,
-    rw nth_le_nth },
-  { have h' : ¬j < ys.length, { rwa ← h₁.length_eq },
-    rw nth_len_le (le_of_not_gt h) at h₂,
-    rw nth_len_le (le_of_not_gt h'),
-    rw nth_eq_none_iff at h₂ ⊢,
-    rwa ← h₁.length_eq, }
-end
-
-lemma foo_bar {α : Type u} [decidable_eq α] {xs ys : list α} (h₀ : list.nodup xs)
+lemma apply_id_mem_iff {α : Type u} [decidable_eq α] {xs ys : list α} (h₀ : list.nodup xs)
   (h₁ : xs ~ ys)
   (x : α) :
-  x ∈ xs ↔ list.apply_id.{u} (xs.zip ys) x ∈ ys :=
+  list.apply_id.{u} (xs.zip ys) x ∈ ys ↔ x ∈ xs :=
 begin
   simp [list.apply_id],
   cases h₃ : (lookup x (map prod.to_sigma (xs.zip ys))),
@@ -309,7 +250,7 @@ begin
         rwa map_fst_zip _ _ (le_of_eq h₆) } } }
 end
 
-lemma bar_foo {α : Type u} [decidable_eq α] {xs ys : list α} (x : α) :
+lemma list.apply_id_eq_self {α : Type u} [decidable_eq α] {xs ys : list α} (x : α) :
   x ∉ xs → list.apply_id.{u} (xs.zip ys) x = x :=
 begin
   intro h,
@@ -322,8 +263,7 @@ end
 
 lemma apply_id_injective {α : Type u} [decidable_eq α] {xs ys : list α} (h₀ : list.nodup xs) (h₁ : xs ~ ys) :
   injective.{u+1 u+1}
-    (list.apply_id (xs.zip ys))
-:=
+    (list.apply_id (xs.zip ys)) :=
 begin
   intros x y h,
   by_cases hx : x ∈ xs;
@@ -334,205 +274,26 @@ begin
     suffices : some x = some y,
     { injection this },
     have h₂ := h₁.length_eq,
-    rw [← foo h₀ h₂ _ _ _ hx] at h,
-    rw [← hx, ← hy, bar h₀ h₁, h],
-    symmetry,
-    rw foo; assumption, },
-  { rw foo_bar h₀ h₁ at hx hy,
+    rw [list.apply_id_zip_eq h₀ h₂ _ _ _ hx] at h,
+    rw [← hx, ← hy], congr,
+    apply nth_injective' _ (h₁.nodup_iff.1 h₀),
+    { symmetry, rw h,
+      rw ← list.apply_id_zip_eq; assumption },
+    { rw ← h₁.length_eq,
+      rw nth_eq_some at hx,
+      cases hx with hx hx',
+      exact hx } },
+  { rw ← apply_id_mem_iff h₀ h₁ at hx hy,
     rw h at hx,
     contradiction, },
-  { rw foo_bar h₀ h₁ at hx hy,
+  { rw ← apply_id_mem_iff h₀ h₁ at hx hy,
     rw h at hx,
     contradiction, },
-  { rwa [bar_foo, bar_foo] at h; assumption },
+  { rwa [list.apply_id_eq_self, list.apply_id_eq_self] at h; assumption },
 end
 
 open total_function (list.to_finmap')
-
--- lemma interp_injective {α : Type u} [decidable_eq α] {xs ys : list α} (h₀ : list.nodup xs) (h₁ : xs ~ ys) (h₂ h₃) :
---   injective.{u+1 u+1}
---     (apply (injective_function.map_to_self (list.to_finmap'.{u u} $ xs.zip ys) h₂ h₃)) :=
--- begin
---   simp [list.to_finmap'],
---   intros x y h,
---   dsimp [apply] at h,
---   replace h : list.apply_id.{u} (xs.zip ys) x = list.apply_id (xs.zip ys) y := h,
---   refine (apply_id_injective h₀ h₁ h),
--- end
-
 open sampleable
-
--- #eval list.diff [1,1,2,2] [1]
-
-lemma filter_eq {α} (p q : α → Prop) [decidable_pred p] [decidable_pred q] (l : list α)
-  (h : ∀ x ∈ l, p x ↔ q x) :
-  filter p l = filter q l :=
-begin
-  induction l; simp [filter],
-  have : (∀ (x : α), x ∈ l_tl → (p x ↔ q x)),
-  { introv h', apply h _ (or.inr h') },
-  congr' 1; simp [h, l_ih this],
-end
-
--- #check perm.take
-
-lemma perm.take_inter {α} [decidable_eq α] {xs ys : list α} (n : ℕ)
-  (h : xs ~ ys) (h' : ys.nodup) :
-  xs.take n ~ ys.inter (xs.take n) :=
-begin
-  simp [list.inter] at *,
-  induction h generalizing n,
-  case list.perm.nil
-  { simp [list.inter], },
-  case list.perm.cons
-  { cases n; simp [list.inter, take],
-    cases h' with h₁ h₂,
-    convert h_ih h'_a_1 n using 1,
-    apply filter_eq,
-    introv h, simp [(h'_a _ h).symm] },
-  case list.perm.swap
-  { rcases h' with ⟨_, _, h₁, h₂⟩,
-    rcases h'_a_2 with ⟨_, _, h₁, h₂⟩,
-    have := h'_a_1 _ (or.inl rfl),
-    cases n; simp,
-    cases n; simp [filter, *],
-    { rw filter_eq_nil.2, intros, solve_by_elim [ne.symm], },
-    { convert perm.swap _ _ _, rw filter_eq _ (∈ take n h_l),
-      { clear h'_a_1, induction n generalizing h_l; simp,
-        cases h_l; simp, cases h'_a_2_a_2,
-        rwa [filter_eq _ (∈ take n_n h_l_tl), n_ih],
-        { introv h, apply h'_a_2_a_1 _ (or.inr h), },
-        { introv h, simp [(h'_a_2_a_2_a_1 _ h).symm], }, },
-      { introv h, simp [(h'_a_2_a_1 _ h).symm, (h'_a_1 _ (or.inr h)).symm], } } },
-  case list.perm.trans
-  { transitivity,
-    { apply h_ih_a, rwa h_a_1.nodup_iff },
-    { apply perm.filter _ h_a_1, } },
-end
-
-lemma reverse_take {α} {xs : list α} (n : ℕ)
-  (h : n ≤ xs.length) :
-  xs.reverse.take n = (xs.drop (xs.length - n)).reverse :=
-begin
-  induction xs generalizing n; simp,
-  cases decidable.lt_or_eq_of_le h with h' h',
-  { replace h' := le_of_succ_le_succ h',
-    rwa [take_append_of_le_length, xs_ih _ h'],
-    rw [show xs_tl.length + 1 - n = succ (xs_tl.length - n), from _, drop],
-    { rwa [succ_eq_add_one, nat.sub_add_comm] },
-    { rwa length_reverse } },
-  { subst h', rw [length, nat.sub_self, drop],
-    rw [show xs_tl.length + 1 = (xs_tl.reverse ++ [xs_hd]).length, from _, take_length, reverse_cons],
-    rw [length_append, length_reverse], refl }
-end
-
-lemma inter_reverse {α} [decidable_eq α] {xs ys : list α} :
-  xs.inter ys.reverse = xs.inter ys :=
-by simp [list.inter]; congr
-
-lemma perm.drop_inter {α} [decidable_eq α] {xs ys : list α} (n : ℕ)
-  (h : xs ~ ys) (h' : ys.nodup) :
-  xs.drop n ~ ys.inter (xs.drop n) :=
-begin
-  by_cases h'' : n ≤ xs.length,
-  { let n' := xs.length - n,
-    have h₀ : n = xs.length - n',
-    { dsimp [n'], rwa nat.sub_sub_self, } ,
-    have h₁ : n' ≤ xs.length,
-    { apply nat.sub_le_self },
-    have h₂ : xs.drop n = (xs.reverse.take n').reverse,
-    { rw [reverse_take _ h₁, h₀, reverse_reverse], },
-    rw [h₂],
-    apply (reverse_perm _).trans,
-    rw inter_reverse,
-    apply perm.take_inter _ _ h',
-    apply (reverse_perm _).trans; assumption, },
-  { have : drop n xs = [],
-    { apply eq_nil_of_length_eq_zero,
-      rw [length_drop, nat.sub_eq_zero_iff_le],
-      apply le_of_not_ge h'' },
-    simp [this, list.inter], }
-end
-
-/--
-`list.slice n m xs` removes a slice of length `m` at index `n` in list `xs`.
--/
-@[simp]
-def list.slice {α} : ℕ → ℕ → list α → list α
-| 0 n xs := xs.drop n
-| (succ n) m [] := []
-| (succ n) m (x :: xs) := x :: list.slice n m xs
-
-lemma list.mem_drop_of_mem {α} {n : ℕ} {l : list α} {x : α}
-  (h : x ∈ l.drop n) :
-  x ∈ l :=
-begin
-  induction l generalizing n,
-  case list.nil : n h
-  { simpa using h },
-  case list.cons : l_hd l_tl l_ih n h
-  { cases n; simp at h ⊢,
-    { exact h },
-    right, apply l_ih h },
-end
-
-lemma perm.slice_inter {α} [decidable_eq α] {xs ys : list α} (n m : ℕ)
-  (h : xs ~ ys) (h' : ys.nodup) :
-  list.slice n m xs ~ ys.inter (list.slice n m xs) :=
-begin
-  simp [list.inter] at *,
-  induction h generalizing n,
-  case list.perm.nil : n
-  { cases n; simp [list.slice], },
-  case list.perm.cons : h_x h_l₁ h_l₂ h h_ih n
-  { cases n; simp,
-    { apply perm.drop_inter _ (perm.cons _ h) h', },
-    { cases h' with _ _ h₀ h₁,
-      convert h_ih h₁ n using 1,
-      apply filter_eq,
-      introv h₂, simp [(h₀ _ h₂).symm] } },
-  case list.perm.swap : h_x h_y h_l n
-  { rcases n with (_ | n | n ); simp,
-    { apply perm.drop_inter _ _ h',
-      constructor },
-    cases m,
-    { simp, rw filter_eq_self.2,
-      { constructor },
-      tauto },
-    { simp,
-      cases h' with _ _ h₀ h₁, cases h₁ with _ _ h₁ h₂,
-      rw [filter, if_neg, filter, if_pos (or.inl rfl)],
-      { constructor, convert perm.drop_inter _ (perm.refl _) h₂ using 1,
-        rw [list.inter], apply filter_eq,
-        introv hx, simp [(h₁ _ hx).symm] },
-      { simp [not_or_distrib, h₀ _ (or.inl rfl)],
-        intros h, replace h := list.mem_drop_of_mem h,
-        apply h₀ _ (or.inr h) rfl, } },
-    { convert perm.swap _ _ _, rw filter_eq _ (∈ list.slice n m h_l),
-      { induction h_l with x xs' xs_ih generalizing n m,
-        { cases n; simp },
-        { have : (x :: h_x :: h_y :: xs').nodup,
-          { apply (perm.nodup_iff _).2 h',
-            transitivity, apply perm.swap,
-            constructor, constructor },
-          cases this with _ _ h₀ h₁,
-          cases n; simp,
-          { cases m; simp,
-            { rw filter_eq_self, tauto, },
-            { specialize xs_ih h₁ 0 m,
-              dsimp [list.slice] at xs_ih,
-              rwa [filter, if_neg],
-              intro h, replace h := list.mem_drop_of_mem h,
-              exact h₀ x (or.inr (or.inr h)) rfl } },
-          convert xs_ih h₁ n m using 1,
-          apply filter_eq, intros y h,
-          simp [(h₀ y (or.inr (or.inr h))).symm], } },
-      cases h' with _ _ h₀ h₁, cases h₁ with _ _ h₁ h₂,
-      introv h, simp [(h₀ _ (or.inr h)).symm, (h₁ _ h).symm], } },
-  case list.perm.trans : h_l₁ h_l₂ h_l₃ h₀ h₁ h_ih₀ h_ih₁ n
-  { transitivity, apply h_ih₀ (h₁.nodup_iff.2 h'),
-    apply perm.filter _ h₁ },
-end
 
 /--
 Remove a slice of length `m` at index `n` in a list and a permutation, maintaining the property
@@ -546,7 +307,8 @@ def perm.slice {α} [decidable_eq α] (n m : ℕ) : (Σ' xs ys : list α, xs ~ y
   ⟨xs', ys.inter xs', h₀, nodup_inter_of_nodup _ h'⟩
 
 /--
-
+A lazy list, in decreasing order, of sizes that should be
+sliced off a list of length `n`
 -/
 def slice_sizes : ℕ → lazy_list ℕ+
 | n :=
@@ -554,25 +316,6 @@ if h : 0 < n then
   have n / 2 < n, from div_lt_self h dec_trivial,
   lazy_list.cons ⟨_, h⟩ (slice_sizes $ n / 2)
 else lazy_list.nil
-
-lemma list.sizeof_slice_lt {α} [has_sizeof α] (i j : ℕ) (hj : 0 < j) (xs : list α) (hi : i < xs.length) :
-  sizeof (list.slice i j xs) < sizeof xs :=
-begin
-  induction xs generalizing i j,
-  case list.nil : i j h
-  { cases hi },
-  case list.cons : x xs xs_ih i j h
-  { cases i; simp [list.slice],
-    { cases j, cases h, simp,
-      unfold_wf,
-      apply @lt_of_le_of_lt _ _ _ xs.sizeof,
-      { clear_except, induction xs generalizing j; unfold_wf, refl,
-        cases j; unfold_wf, refl,
-        transitivity, apply xs_ih, simp, },
-      unfold_wf, linarith },
-    { unfold_wf, apply xs_ih _ _ h,
-      apply lt_of_succ_lt_succ hi, } },
-end
 
 /--
 Shrink a permutation of a list, slicing a segment in the middle.

@@ -7,7 +7,19 @@ Authors: Johan Commelin
 import ring_theory.witt_vector.frobenius
 import ring_theory.witt_vector.verschiebung
 
-/-! ## Multiplication by `p` -/
+/-!
+## Multiplication by `n` in the ring of Witt vectors
+
+In this file we show that multiplication by `n` in the ring of Witt vectors
+is a polynomial function. We then use this fact to show that the composition of Frobenius
+and Verschiebung is equal to multiplication by `p`.
+
+### Main declarations
+
+* `mul_n_is_poly`: multiplication by `n` is a polynomial function
+* `frobenius_fun_verschiebung`: the composition of Frobenius and Verschiebung is multiplication by `p`
+
+-/
 
 namespace witt_vector
 
@@ -24,6 +36,9 @@ include hp
 
 variable (p)
 
+/-- `witt_mul_n p n` is the family of polynomials that computes
+the coefficients of `x * n` in terms of
+the coefficients of the Witt vector `x`. -/
 noncomputable
 def witt_mul_n : ℕ → ℕ → mv_polynomial ℕ ℤ
 | 0     := λ k, 0
@@ -49,6 +64,7 @@ end
 
 variables (p)
 
+/-- Multiplication by `n` is a polynomial function. -/
 @[simps { fully_applied := ff }]
 def mul_n_is_poly (n : ℕ) : is_poly p (λ R _Rcr x, by exactI x * n) :=
 { poly := witt_mul_n p n,

@@ -261,8 +261,7 @@ end
 
 section mul
 
-lemma vars_mul (φ ψ : mv_polynomial σ α) :
-  (φ * ψ).vars ⊆ φ.vars ∪ ψ.vars :=
+lemma vars_mul (φ ψ : mv_polynomial σ α) : (φ * ψ).vars ⊆ φ.vars ∪ ψ.vars :=
 begin
   intro i,
   simp only [mem_vars, finset.mem_union],
@@ -284,8 +283,7 @@ end
 @[simp] lemma vars_one : (1 : mv_polynomial σ α).vars = ∅ :=
 vars_C
 
-lemma vars_pow (φ : mv_polynomial σ α) (n : ℕ) :
-  (φ ^ n).vars ⊆ φ.vars :=
+lemma vars_pow (φ : mv_polynomial σ α) (n : ℕ) : (φ ^ n).vars ⊆ φ.vars :=
 begin
   induction n with n ih,
   { simp },
@@ -308,8 +306,7 @@ end
 section integral_domain
 variables {A : Type*} [integral_domain A]
 
-lemma vars_C_mul (a : A) (ha : a ≠ 0) (φ : mv_polynomial σ A) :
-  (C a * φ).vars = φ.vars :=
+lemma vars_C_mul (a : A) (ha : a ≠ 0) (φ : mv_polynomial σ A) : (C a * φ).vars = φ.vars :=
 begin
   ext1 i,
   simp only [mem_vars, exists_prop, finsupp.mem_support_iff],

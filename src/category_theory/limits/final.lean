@@ -18,6 +18,9 @@ def final (F : C ⥤ D) : Prop :=
 
 attribute [class] final
 
+instance (F : C ⥤ D) [ℱ : final F] (d : D) : is_connected (comma (functor.from_punit d) F) :=
+ℱ d
+
 namespace final
 
 variables (F : C ⥤ D) [ℱ : final F]
@@ -33,17 +36,32 @@ def lift (d : D) : C :=
 def hom_to_lift (d : D) : d ⟶ F.obj (lift F d) :=
 (classical.arbitrary (comma (functor.from_punit d) F)).hom
 
+def induction {d : D} (Z : Π (X : C) (k : d ⟶ F.obj X), Sort*)
+  (h₁ : Π X₁ X₂ (k₁ : d ⟶ F.obj X₁) (k₂ : d ⟶ F.obj X₂) (f : X₁ ⟶ X₂), (k₁ ≫ F.map f = k₂) → Z X₁ k₁ → Z X₂ k₂)
+  (h₂ : Π X₁ X₂ (k₁ : d ⟶ F.obj X₁) (k₂ : d ⟶ F.obj X₂) (f : X₁ ⟶ X₂), (k₁ ≫ F.map f = k₂) → Z X₂ k₂ → Z X₁ k₁)
+  {X₀ : C} {k₀ : d ⟶ F.obj X₀} (z : Z X₀ k₀) : Z (lift F d) (hom_to_lift F d) :=
+begin
+  apply @is_preconnected_induction _ _ _
+    (λ (Y : comma (functor.from_punit d) F), Z Y.right Y.hom) _ _ { right := X₀, hom := k₀, } z,
+  { intros, fapply h₁ _ _ _ _ f.right _ a, convert f.w.symm, dsimp, simp, },
+  { intros, fapply h₂ _ _ _ _ f.right _ a, convert f.w.symm, dsimp, simp, },
+end
+
+def induction' {Y : C} (Z : Π (X : C) (k : F.obj Y ⟶ F.obj X), Sort*)
+  (h₁ : Π X₁ X₂ (k₁ : F.obj Y ⟶ F.obj X₁) (k₂ : F.obj Y ⟶ F.obj X₂) (f : X₁ ⟶ X₂), (k₁ ≫ F.map f = k₂) → Z X₁ k₁ → Z X₂ k₂)
+  (h₂ : Π X₁ X₂ (k₁ : F.obj Y ⟶ F.obj X₁) (k₂ : F.obj Y ⟶ F.obj X₂) (f : X₁ ⟶ X₂), (k₁ ≫ F.map f = k₂) → Z X₂ k₂ → Z X₁ k₁)
+  (z : Z Y (𝟙 _)) : Z (lift F (F.obj Y)) (hom_to_lift F (F.obj Y)) :=
+induction F Z h₁ h₂ z
+
+@[simps]
 def extend_cocone (c : cocone (F ⋙ G)) : cocone G :=
 { X := c.X,
   ι :=
-  { app := λ X,
-    begin
-      have := G.map (hom_to_lift F X),
-      exact this ≫ c.ι.app _,
-    end,
+  { app := λ X, G.map (hom_to_lift F X) ≫ c.ι.app (lift F X),
     naturality' := λ X Y f,
     begin
       dsimp, simp,
+      sorry,
     end }}
 
 @[priority 100]
@@ -52,7 +70,18 @@ instance comp_has_colimit [has_colimit G] :
 has_colimit.mk
 { cocone := (colimit.cocone G).whisker F,
   is_colimit :=
-  { desc := λ s, begin simp, sorry, end }, }
+  { desc := λ s, colimit.desc G (extend_cocone _ _ s),
+    fac' := λ s j,
+    begin
+      dsimp, simp,
+      -- This point is that this would be true if we took `lift (F.obj j)` to just be `j`
+      -- and `hom_to_lift (F.obj j)` to be `𝟙 (F.obj j)`.
+      apply induction' F (λ X k, G.map k ≫ s.ι.app X = (s.ι.app j : _)),
+      { intros j₁ j₂ k₁ k₂ f w h, rw ←w, rw ← s.w f at h, simpa using h, },
+      { intros j₁ j₂ k₁ k₂ f w h, rw ←w at h, rw ← s.w f, simpa using h, },
+      { simp, },
+    end,
+    uniq' := sorry, }, }
 
 instance colimit_pre_is_iso {E : Type u} [category.{v} E] (G : D ⥤ E) [has_colimit G] :
   is_iso (colimit.pre G F) :=

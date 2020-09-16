@@ -81,8 +81,9 @@ begin
   exact ⟨c, hc⟩,
 end
 
-lemma primitive_element_two_inf_key_aux {β : F} {h : polynomial F} (h_ne_zero : h ≠ 0) (h_sep : h.separable)
-  (h_root : h.eval β = 0) (h_splits : polynomial.splits ϕ h) (h_roots : ∀ x ∈ (h.map ϕ).roots, x = ϕ β) :
+lemma primitive_element_two_inf_key_aux {β : F} {h : polynomial F} (h_ne_zero : h ≠ 0)
+  (h_sep : h.separable) (h_root : h.eval β = 0) (h_splits : polynomial.splits ϕ h)
+  (h_roots : ∀ x ∈ (h.map ϕ).roots, x = ϕ β) :
   h = (polynomial.C (polynomial.leading_coeff h)) * (polynomial.X - polynomial.C β) :=
 begin
   apply polynomial.map_injective _ ϕ.injective,
@@ -107,11 +108,13 @@ begin
   have hn : s.card ≠ 0,
   { intro hs_card,
     rw [hs_card, pow_zero, mul_one, ←polynomial.map_C] at hs,
-    rw [polynomial.map_injective _ ϕ.injective hs, polynomial.eval_C, polynomial.leading_coeff_eq_zero] at h_root,
+    rw [polynomial.map_injective _ ϕ.injective hs, polynomial.eval_C,
+      polynomial.leading_coeff_eq_zero] at h_root,
     exact h_ne_zero h_root, },
   have h_map_separable : (h.map ϕ).separable := polynomial.separable.map h_sep,
   rw hs at h_map_separable,
-  rw [(polynomial.separable.of_pow hf hn (polynomial.separable.of_mul_right h_map_separable)).2, pow_one] at hs,
+  rw [(polynomial.separable.of_pow hf hn (polynomial.separable.of_mul_right h_map_separable)).2,
+    pow_one] at hs,
   simp [hs],
 end
 
@@ -184,7 +187,8 @@ begin
         (g.map(algebra_map F F⟮γ⟯))).map(algebra_map F⟮γ⟯ E),
     { convert polynomial.gcd_map (algebra_map F⟮γ⟯ E) },
     rw ←h',
-    have composition : (algebra_map F⟮γ⟯ E).comp(algebra_map F F⟮γ⟯) = algebra_map F E := by { ext, refl },
+    have composition : (algebra_map F⟮γ⟯ E).comp(algebra_map F F⟮γ⟯) = algebra_map F E,
+    { ext, refl },
     simp only [polynomial.map_comp, polynomial.map_map, composition,
                polynomial.map_C, polynomial.map_X, ring_hom.map_add, polynomial.map_sub,
                adjoin_simple.algebra_map_gen, polynomial.map_mul, ring_hom.map_mul],
@@ -220,7 +224,8 @@ begin
   { rw (show α = γ - c'*β, by simp *),
     exact is_add_subgroup.sub_mem F⟮γ⟯ γ (c'*β) γ_in_Fγ cβ_in_Fγ, },
   have αβ_in_Fγ : {α,β} ⊆ (F⟮γ⟯ : set E) := λ x hx, by cases hx; cases hx; cases hx; assumption,
-  have Fαβ_sub_Fγ : (F⟮α, β⟯ : set E) ⊆ (F⟮γ⟯ : set E) := (field.adjoin_subset_iff F {α,β}).mp αβ_in_Fγ,
+  have Fαβ_sub_Fγ : (F⟮α, β⟯ : set E) ⊆ (F⟮γ⟯ : set E) :=
+    (field.adjoin_subset_iff F {α,β}).mp αβ_in_Fγ,
   exact ⟨γ, Fαβ_sub_Fγ⟩,
 end
 
@@ -285,7 +290,8 @@ theorem primitive_element (F_sep : is_separable F E)  (F_findim : finite_dimensi
   ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   have F'_sep : is_separable F⟮(0 : E)⟯ E := is_separable_top F F⟮(0 : E)⟯ E F_sep,
-  have F'_findim : finite_dimensional F⟮(0 : E)⟯ E := finite_dimensional.findim_of_tower_findim F F⟮(0 : E)⟯ E,
+  have F'_findim : finite_dimensional F⟮(0 : E)⟯ E :=
+    finite_dimensional.findim_of_tower_findim F F⟮(0 : E)⟯ E,
   obtain ⟨α, hα⟩ := primitive_element_aux F⟮(0 : E)⟯ E F'_sep F'_findim,
   use α,
   ext1,

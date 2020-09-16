@@ -71,8 +71,7 @@ def mul_n_is_poly (n : ℕ) : is_poly p (λ R _Rcr x, by exactI x * n) :=
   coeff := λ R _Rcr x, by { funext k, exactI mul_n_coeff n x k } }
 
 attribute [ghost_simps] mul_n_is_poly_poly bind₁_verschiebung_poly_witt_polynomial
-      bind₁_frobenius_poly_witt_polynomial  verschiebung_is_poly_poly
-      nat.succ_ne_zero if_false nat.add_sub_cancel
+      verschiebung_is_poly_poly nat.succ_ne_zero if_false nat.add_sub_cancel
 
 @[ghost_simps] lemma bind₁_witt_mul_n_witt_polynomial (n k : ℕ) :
   bind₁ (witt_mul_n p n) (witt_polynomial p ℤ k) = n * witt_polynomial p ℤ k :=

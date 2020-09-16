@@ -341,8 +341,8 @@ attribute [ghost_simps]
 is_poly.comp_poly frobenius_fun_is_poly_poly zero_is_poly_poly one_is_poly_poly
       bind₁_frobenius_poly_witt_polynomial witt_structure_int_prop
       alg_hom.map_zero alg_hom.map_one bind₁_zero_witt_polynomial bind₁_one_poly_witt_polynomial
-is_poly.comp₂_poly frobenius_fun_is_poly_poly add_is_poly₂_poly is_poly₂.comp_poly mul_is_poly₂_poly
-       bind₁_frobenius_poly_witt_polynomial witt_add witt_mul witt_structure_int_prop
+      is_poly.comp₂_poly add_is_poly₂_poly is_poly₂.comp_poly mul_is_poly₂_poly
+      witt_add witt_mul
       alg_hom.map_add alg_hom.map_mul bind₁_X_right function.uncurry bind₁_rename function.comp
       matrix.head_cons matrix.cons_val_one matrix.cons_val_zero
 

@@ -117,7 +117,8 @@ def init_is_poly (n : ℕ) : is_poly p (λ R _Rcr x, @init p R _Rcr x n) :=
 { poly := λ i, if i < n then X i else 0,
   coeff :=
   begin
-    rintro i R _Rcr x,
+    rintro R _Rcr x,
+    funext i,
     dsimp [init],
     split_ifs with hin,
     { rw [aeval_X] },

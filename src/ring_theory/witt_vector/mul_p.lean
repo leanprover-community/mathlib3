@@ -86,31 +86,21 @@ begin
       matrix.cons_val_zero, matrix.head_cons, matrix.cons_val_one], }
 end
 
-lemma frobenius_fun_comp_verschiebung :
-  (frobenius_fun ∘ verschiebung : 𝕎 R → 𝕎 R) = λ x, x * p :=
+lemma frobenius_verschiebung (x : 𝕎 R) :
+  frobenius (verschiebung x) = x * p :=
 begin
-  have := is_poly.ext' ((frobenius_fun_is_poly p).comp (verschiebung_is_poly p)) (mul_n_is_poly p p) _,
-  { rw [function.funext_iff] at this,
-    specialize this R,
-    rw [function.funext_iff] at this,
-    apply this, },
+  apply is_poly.ext' ((frobenius_is_poly p).comp (verschiebung_is_poly p)) (mul_n_is_poly p p),
   intro n,
-  rw [is_poly.comp_poly, ← bind₁_bind₁],
-  rw [mul_n_is_poly_poly, frobenius_is_poly_poly],
-  rw [bind₁_frobenius_poly_witt_polynomial],
-  rw [bind₁_witt_mul_n_witt_polynomial],
-  rw [verschiebung_is_poly_poly, bind₁_verschiebung_poly_witt_polynomial],
+  rw [is_poly.comp_poly, ← bind₁_bind₁, mul_n_is_poly_poly, frobenius_is_poly_poly,
+      bind₁_frobenius_poly_witt_polynomial, bind₁_witt_mul_n_witt_polynomial,
+      verschiebung_is_poly_poly, bind₁_verschiebung_poly_witt_polynomial],
   refl,
 end
-
-lemma frobenius_fun_verschiebung (x : 𝕎 R) :
-  frobenius_fun (verschiebung x) = x * p :=
-congr_fun (frobenius_fun_comp_verschiebung p) x
 
 lemma verschiebung_zmod (x : 𝕎 (zmod p)) :
   verschiebung x = x * p :=
 begin
-  rw [← frobenius_fun_verschiebung, frobenius_fun_zmodp],
+  rw [← frobenius_verschiebung, frobenius_zmodp],
 end
 
 -- this should be true not just for `char_p R p` but for general `nontrivial R`.
@@ -118,7 +108,7 @@ lemma coeff_p_pow [char_p R p] (i : ℕ) : (p ^ i : 𝕎 R).coeff i = 1 :=
 begin
   induction i with i h,
   { simp only [one_coeff_zero, ne.def, pow_zero] },
-  { rw [pow_succ', ← frobenius_fun_verschiebung, coeff_frobenius_fun_char_p,
+  { rw [pow_succ', ← frobenius_verschiebung, coeff_frobenius_char_p,
         verschiebung_coeff_succ, h, one_pow], }
 end
 

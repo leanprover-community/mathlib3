@@ -107,6 +107,54 @@ def id_is_poly : is_poly p (λ _ _, id) :=
 { poly := X,
   coeff := by { introsI, simp only [aeval_X, id] } }
 
+section zero_one
+/- To avoid a theory of 0-ary functions (a.k.a. constants)
+we model them as constant unary functions. -/
+
+include hp
+
+/-- The function that is constantly zero on Witt vectors is a polynomial function. -/
+@[simps { fully_applied := ff }]
+def zero_is_poly : is_poly p (λ _ _ _, by exactI 0) :=
+{ poly := 0,
+  coeff := by { introsI, funext n, simp only [pi.zero_apply, alg_hom.map_zero, zero_coeff] } }
+
+@[simp] lemma bind₁_zero_witt_polynomial (n : ℕ) :
+  bind₁ (0 : ℕ → mv_polynomial ℕ R) (witt_polynomial p R n) = 0 :=
+by rw [← aeval_eq_bind₁, aeval_zero, constant_coeff_witt_polynomial, ring_hom.map_zero]
+
+omit hp
+
+/-- The coefficients of `1 : 𝕎 R` as polynomials. -/
+def one_poly (n : ℕ) : mv_polynomial ℕ ℤ := if n = 0 then 1 else 0
+
+include hp
+
+@[simp] lemma bind₁_one_poly_witt_polynomial (n : ℕ) :
+  bind₁ one_poly (witt_polynomial p ℤ n) = 1 :=
+begin
+  rw [witt_polynomial_eq_sum_C_mul_X_pow, alg_hom.map_sum, finset.sum_eq_single 0],
+  { simp only [one_poly, one_pow, one_mul, alg_hom.map_pow, C_1, pow_zero, bind₁_X_right,
+      if_true, eq_self_iff_true], },
+  { intros i hi hi0,
+    simp only [one_poly, if_neg hi0, zero_pow (pow_pos (nat.prime.pos hp) _), mul_zero,
+      alg_hom.map_pow, bind₁_X_right, alg_hom.map_mul], },
+  { rw finset.mem_range, dec_trivial }
+end
+
+/-- The function that is constantly one on Witt vectors is a polynomial function. -/
+@[simps { fully_applied := ff }]
+def one_is_poly : is_poly p (λ _ _ _, by exactI 1) :=
+{ poly := one_poly,
+  coeff :=
+  begin
+    introsI, funext n, cases n,
+    { simp only [one_poly, if_true, eq_self_iff_true, one_coeff_zero, alg_hom.map_one], },
+    { simp only [one_poly, nat.succ_pos', one_coeff_pos, if_neg n.succ_ne_zero, alg_hom.map_zero] }
+  end }
+
+end zero_one
+
 /--
 A binary function `f : Π R, 𝕎 R → 𝕎 R → 𝕎 R` on Witt vectors
 is said to be *polynomial* if there is a family of polynomials `φₙ` over `ℤ` such that the `n`th
@@ -161,8 +209,11 @@ include hp
 
 lemma ext' {f g} (hf : is_poly p f) (hg : is_poly p g)
   (h : ∀ n, bind₁ hf.poly (witt_polynomial p _ n) = bind₁ hg.poly (witt_polynomial p _ n)) :
-  f = g :=
-is_poly.ext hf hg $ poly_eq_of_witt_polynomial_bind_eq p _ _ h
+  ∀ (R : Type*) [_Rcr : comm_ring R] x, @f R _Rcr x = @g R _Rcr x :=
+begin
+  rw (is_poly.ext hf hg $ poly_eq_of_witt_polynomial_bind_eq p _ _ h),
+  intros, refl
+end
 
 end is_poly
 

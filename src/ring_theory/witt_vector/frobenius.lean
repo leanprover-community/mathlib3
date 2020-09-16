@@ -334,15 +334,31 @@ def frobenius : 𝕎 R →+* 𝕎 R :=
 { to_fun := frobenius_fun,
   map_zero' :=
   begin
+    refine is_poly.ext'
+      ((frobenius_fun_is_poly p).comp (zero_is_poly p))
+      ((zero_is_poly p).comp (frobenius_fun_is_poly p)) _ _ 0,
+    intros n,
+    simp only [is_poly.comp_poly, frobenius_fun_is_poly_poly, zero_is_poly_poly,
+      ← bind₁_bind₁, bind₁_frobenius_poly_witt_polynomial, witt_structure_int_prop,
+      alg_hom.map_zero, bind₁_zero_witt_polynomial],
   end,
-  map_one' := _,
+  map_one' :=
+  begin
+    refine is_poly.ext'
+      ((frobenius_fun_is_poly p).comp (one_is_poly p))
+      ((one_is_poly p).comp (frobenius_fun_is_poly p)) _ _ 0,
+    intros n,
+    simp only [is_poly.comp_poly, frobenius_fun_is_poly_poly, one_is_poly_poly,
+      ← bind₁_bind₁, bind₁_frobenius_poly_witt_polynomial, witt_structure_int_prop,
+      alg_hom.map_zero, alg_hom.map_one, bind₁_one_poly_witt_polynomial],
+  end,
   map_add' :=
   begin
     apply is_poly₂.ext'
       ((frobenius_fun_is_poly p).comp₂ (add_is_poly₂ p))
       ((add_is_poly₂ p).comp (frobenius_fun_is_poly p) (frobenius_fun_is_poly p)),
     intro n,
-    simp only [is_poly.comp₂_poly, frobenius_fun_is_poly_poly, is_poly₂.comp_poly, add_is_poly₂_poly,
+    simp only [is_poly.comp₂_poly, frobenius_fun_is_poly_poly, add_is_poly₂_poly, is_poly₂.comp_poly,
       ← bind₁_bind₁, bind₁_frobenius_poly_witt_polynomial, witt_add, witt_structure_int_prop,
       alg_hom.map_add, bind₁_X_right, function.uncurry, bind₁_rename, function.comp,
       matrix.head_cons, matrix.cons_val_one, matrix.cons_val_zero, ← rename_bind₁],
@@ -353,7 +369,7 @@ def frobenius : 𝕎 R →+* 𝕎 R :=
       ((frobenius_fun_is_poly p).comp₂ (mul_is_poly₂ p))
       ((mul_is_poly₂ p).comp (frobenius_fun_is_poly p) (frobenius_fun_is_poly p)),
     intro n,
-    simp only [is_poly.comp₂_poly, frobenius_fun_is_poly_poly, is_poly₂.comp_poly, mul_is_poly₂_poly,
+    simp only [is_poly.comp₂_poly, frobenius_fun_is_poly_poly, mul_is_poly₂_poly, is_poly₂.comp_poly,
       ← bind₁_bind₁, bind₁_frobenius_poly_witt_polynomial, witt_mul, witt_structure_int_prop,
       alg_hom.map_mul, bind₁_X_right, function.uncurry, bind₁_rename, function.comp,
       matrix.head_cons, matrix.cons_val_one, matrix.cons_val_zero, ← rename_bind₁],

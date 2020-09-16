@@ -507,19 +507,24 @@ is_iso_limit_cone_parallel_pair_of_eq ((cancel_epi _).1 (fork.condition c)) h
 
 end
 
+instance : has_equalizer f f :=
+has_limit.mk
+{ cone := id_fork rfl,
+  is_limit := is_limit_id_fork rfl }
+
 /-- The equalizer inclusion for `(f, f)` is an isomorphism. -/
-instance equalizer.ι_of_self [has_equalizer f f] : is_iso (equalizer.ι f f) :=
+instance equalizer.ι_of_self : is_iso (equalizer.ι f f) :=
 equalizer.ι_of_eq rfl
 
 /-- The equalizer of a morphism with itself is isomorphic to the source. -/
-def equalizer.iso_source_of_self [has_equalizer f f] : equalizer f f ≅ X :=
+def equalizer.iso_source_of_self : equalizer f f ≅ X :=
 as_iso (equalizer.ι f f)
 
-@[simp] lemma equalizer.iso_source_of_self_hom [has_equalizer f f] :
+@[simp] lemma equalizer.iso_source_of_self_hom :
   (equalizer.iso_source_of_self f).hom = equalizer.ι f f :=
 rfl
 
-@[simp] lemma equalizer.iso_source_of_self_inv [has_equalizer f f] :
+@[simp] lemma equalizer.iso_source_of_self_inv :
   (equalizer.iso_source_of_self f).inv = equalizer.lift (𝟙 X) (by simp) :=
 rfl
 
@@ -643,19 +648,24 @@ is_iso_colimit_cocone_parallel_pair_of_eq ((cancel_mono _).1 (cofork.condition c
 
 end
 
+instance : has_coequalizer f f :=
+has_colimit.mk
+{ cocone := id_cofork rfl,
+  is_colimit := is_colimit_id_cofork rfl }
+
 /-- The coequalizer projection for `(f, f)` is an isomorphism. -/
-instance coequalizer.π_of_self [has_coequalizer f f] : is_iso (coequalizer.π f f) :=
+instance coequalizer.π_of_self : is_iso (coequalizer.π f f) :=
 coequalizer.π_of_eq rfl
 
 /-- The coequalizer of a morphism with itself is isomorphic to the target. -/
-def coequalizer.iso_target_of_self [has_coequalizer f f] : coequalizer f f ≅ Y :=
+def coequalizer.iso_target_of_self : coequalizer f f ≅ Y :=
 (as_iso (coequalizer.π f f)).symm
 
-@[simp] lemma coequalizer.iso_target_of_self_hom [has_coequalizer f f] :
+@[simp] lemma coequalizer.iso_target_of_self_hom :
   (coequalizer.iso_target_of_self f).hom = coequalizer.desc (𝟙 Y) (by simp) :=
 rfl
 
-@[simp] lemma coequalizer.iso_target_of_self_inv [has_coequalizer f f] :
+@[simp] lemma coequalizer.iso_target_of_self_inv :
   (coequalizer.iso_target_of_self f).inv = coequalizer.π f f :=
 rfl
 

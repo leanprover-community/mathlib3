@@ -42,8 +42,6 @@ apply_nolint category_theory.adjunction.functoriality_left_adjoint doc_blame
 apply_nolint category_theory.adjunction.functoriality_right_adjoint doc_blame
 apply_nolint category_theory.adjunction.functoriality_unit doc_blame
 apply_nolint category_theory.adjunction.functoriality_unit' doc_blame
-apply_nolint category_theory.adjunction.has_colimit_of_comp_equivalence doc_blame
-apply_nolint category_theory.adjunction.has_limit_of_comp_equivalence doc_blame
 
 -- category_theory/category/Kleisli.lean
 apply_nolint category_theory.Kleisli doc_blame unused_arguments has_inhabited_instance
@@ -91,14 +89,6 @@ apply_nolint category_theory.limits.cone.extensions doc_blame
 apply_nolint category_theory.limits.cone_morphism has_inhabited_instance
 apply_nolint category_theory.limits.cones.functoriality doc_blame
 
--- category_theory/limits/functor_category.lean
-apply_nolint category_theory.limits.evaluate_functor_category_colimit_cocone doc_blame
-apply_nolint category_theory.limits.evaluate_functor_category_limit_cone doc_blame
-apply_nolint category_theory.limits.functor_category_colimit_cocone doc_blame
-apply_nolint category_theory.limits.functor_category_is_colimit_cocone doc_blame
-apply_nolint category_theory.limits.functor_category_is_limit_cone doc_blame
-apply_nolint category_theory.limits.functor_category_limit_cone doc_blame
-
 -- category_theory/limits/over.lean
 apply_nolint category_theory.functor.to_cocone doc_blame
 apply_nolint category_theory.functor.to_cone doc_blame
@@ -136,12 +126,6 @@ apply_nolint category_theory.lax_monoidal_functor has_inhabited_instance
 apply_nolint category_theory.monoidal_functor has_inhabited_instance
 apply_nolint category_theory.monoidal_functor.ε_iso doc_blame
 apply_nolint category_theory.monoidal_functor.μ_iso doc_blame
-
--- category_theory/natural_isomorphism.lean
-apply_nolint category_theory.nat_iso.hcomp doc_blame
-apply_nolint category_theory.nat_iso.is_iso_app_of_is_iso doc_blame
-apply_nolint category_theory.nat_iso.is_iso_of_is_iso_app doc_blame
-apply_nolint category_theory.nat_iso.of_components doc_blame
 
 -- category_theory/opposites.lean
 apply_nolint category_theory.functor.left_op doc_blame
@@ -636,9 +620,6 @@ apply_nolint multiset.pi.empty unused_arguments
 
 -- data/nat/prime.lean
 apply_nolint nat.min_fac_aux doc_blame
-
--- data/nat/sqrt.lean
-apply_nolint nat.sqrt_aux doc_blame
 
 -- data/num/basic.lean
 apply_nolint cast_num doc_blame
@@ -1795,9 +1776,6 @@ apply_nolint topological_space.open_nhds doc_blame has_inhabited_instance
 apply_nolint topological_space.open_nhds.inclusion doc_blame
 apply_nolint topological_space.open_nhds.inclusion_map_iso doc_blame
 apply_nolint topological_space.open_nhds.map doc_blame
-
--- topology/category/Top/opens.lean
-apply_nolint topological_space.opens.map_iso doc_blame
 
 -- topology/category/TopCommRing.lean
 apply_nolint TopCommRing has_inhabited_instance

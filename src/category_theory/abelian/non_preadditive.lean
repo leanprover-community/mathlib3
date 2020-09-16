@@ -125,12 +125,12 @@ let ⟨a', ha'⟩ := kernel_fork.is_limit.lift' i (kernel.ι (prod.lift f g)) $
     calc kernel.ι (prod.lift f g) ≫ f
         = kernel.ι (prod.lift f g) ≫ prod.lift f g ≫ limits.prod.fst : by rw prod.lift_fst
     ... = (0 : kernel (prod.lift f g) ⟶ P ⨯ Q) ≫ limits.prod.fst : by rw kernel.condition_assoc
-    ... = 0 : has_zero_morphisms.zero_comp _ _ in
+    ... = 0 : zero_comp in
 let ⟨b', hb'⟩ := kernel_fork.is_limit.lift' i' (kernel.ι (prod.lift f g)) $
     calc kernel.ι (prod.lift f g) ≫ g
         = kernel.ι (prod.lift f g) ≫ (prod.lift f g) ≫ limits.prod.snd : by rw prod.lift_snd
     ... = (0 : kernel (prod.lift f g) ⟶ P ⨯ Q) ≫ limits.prod.snd : by rw kernel.condition_assoc
-    ... = 0 : has_zero_morphisms.zero_comp _ _ in
+    ... = 0 : zero_comp in
 has_limit.mk { cone := pullback_cone.mk a' b' $ by { simp at ha' hb', rw [ha', hb'] },
   is_limit := pullback_cone.is_limit.mk _ _ _
     (λ s, kernel.lift (prod.lift f g) (pullback_cone.snd s ≫ b) $ prod.hom_ext
@@ -139,12 +139,12 @@ has_limit.mk { cone := pullback_cone.mk a' b' $ by { simp at ha' hb', rw [ha', h
         ... = pullback_cone.fst s ≫ a ≫ f : by rw pullback_cone.condition_assoc
         ... = pullback_cone.fst s ≫ 0 : by rw haf
         ... = 0 ≫ limits.prod.fst :
-          by rw [has_zero_morphisms.comp_zero, has_zero_morphisms.zero_comp])
+          by rw [comp_zero, zero_comp])
       (calc ((pullback_cone.snd s ≫ b) ≫ prod.lift f g) ≫ limits.prod.snd
             = pullback_cone.snd s ≫ b ≫ g : by simp only [prod.lift_snd, category.assoc]
         ... = pullback_cone.snd s ≫ 0 : by rw hbg
         ... = 0 ≫ limits.prod.snd :
-          by rw [has_zero_morphisms.comp_zero, has_zero_morphisms.zero_comp]))
+          by rw [comp_zero, zero_comp]))
     (λ s, (cancel_mono a).1 $
       by { rw kernel_fork.ι_of_ι at ha', simp [ha', pullback_cone.condition s] })
     (λ s, (cancel_mono b).1 $
@@ -180,11 +180,11 @@ has_colimit.mk
           = f ≫ b ≫ pushout_cocone.inr s : by rw coprod.inl_desc_assoc
       ... = f ≫ a ≫ pushout_cocone.inl s : by rw pushout_cocone.condition
       ... = 0 ≫ pushout_cocone.inl s : by rw reassoc_of hfa
-      ... = coprod.inl ≫ 0 : by rw [has_zero_morphisms.comp_zero, has_zero_morphisms.zero_comp])
+      ... = coprod.inl ≫ 0 : by rw [comp_zero, zero_comp])
     (calc coprod.inr ≫ coprod.desc f g ≫ b ≫ pushout_cocone.inr s
           = g ≫ b ≫ pushout_cocone.inr s : by rw coprod.inr_desc_assoc
       ... = 0 ≫ pushout_cocone.inr s : by rw reassoc_of hgb
-      ... = coprod.inr ≫ 0 : by rw [has_zero_morphisms.comp_zero, has_zero_morphisms.zero_comp]))
+      ... = coprod.inr ≫ 0 : by rw [comp_zero, zero_comp]))
   (λ s, (cancel_epi a).1 $
     by { rw cokernel_cofork.π_of_π at ha', simp [reassoc_of ha', pushout_cocone.condition s] })
   (λ s, (cancel_epi b).1 $ by { rw cokernel_cofork.π_of_π at hb', simp [reassoc_of hb'] })
@@ -298,7 +298,7 @@ lemma mono_of_zero_kernel {X Y : C} (f : X ⟶ Y) (Z : C)
   obtain ⟨W, w, hw, hl⟩ := non_preadditive_abelian.normal_epi (coequalizer.π u v),
   obtain ⟨m, hm⟩ := coequalizer.desc' f huv,
   have hwf : w ≫ f = 0,
-  { rw [←hm, reassoc_of hw, has_zero_morphisms.zero_comp] },
+  { rw [←hm, reassoc_of hw, zero_comp] },
   obtain ⟨n, hn⟩ := kernel_fork.is_limit.lift' l _ hwf,
   rw [fork.ι_of_ι, has_zero_morphisms.comp_zero] at hn,
   haveI : is_iso (coequalizer.π u v) :=
@@ -315,9 +315,9 @@ lemma epi_of_zero_cokernel {X Y : C} (f : X ⟶ Y) (Z : C)
   obtain ⟨W, w, hw, hl⟩ := non_preadditive_abelian.normal_mono (equalizer.ι u v),
   obtain ⟨m, hm⟩ := equalizer.lift' f huv,
   have hwf : f ≫ w = 0,
-  { rw [←hm, category.assoc, hw, has_zero_morphisms.comp_zero] },
+  { rw [←hm, category.assoc, hw, comp_zero] },
   obtain ⟨n, hn⟩ := cokernel_cofork.is_colimit.desc' l _ hwf,
-  rw [cofork.π_of_π, has_zero_morphisms.zero_comp] at hn,
+  rw [cofork.π_of_π, zero_comp] at hn,
   haveI : is_iso (equalizer.ι u v) :=
     by apply is_iso_limit_cone_parallel_pair_of_eq hn.symm hl,
   apply (cancel_epi (equalizer.ι u v)).1,
@@ -331,7 +331,7 @@ def zero_kernel_of_cancel_zero {X Y : C} (f : X ⟶ Y)
   (hf : ∀ (Z : C) (g : Z ⟶ X) (hgf : g ≫ f = 0), g = 0) :
     is_limit (kernel_fork.of_ι (0 : 0 ⟶ X) (show 0 ≫ f = 0, by simp)) :=
 fork.is_limit.mk _ (λ s, 0)
-  (λ s, by rw [hf _ _ (kernel_fork.condition s), has_zero_morphisms.zero_comp])
+  (λ s, by rw [hf _ _ (kernel_fork.condition s), zero_comp])
   (λ s m h, by ext)
 
 /-- If `f ≫ g = 0` implies `g = 0` for all `g`, then `0 : Y ⟶ 0` is a cokernel of `f`. -/
@@ -339,7 +339,7 @@ def zero_cokernel_of_zero_cancel {X Y : C} (f : X ⟶ Y)
   (hf : ∀ (Z : C) (g : Y ⟶ Z) (hgf : f ≫ g = 0), g = 0) :
     is_colimit (cokernel_cofork.of_π (0 : Y ⟶ 0) (show f ≫ 0 = 0, by simp)) :=
 cofork.is_colimit.mk _ (λ s, 0)
-  (λ s, by rw [hf _ _ (cokernel_cofork.condition s), has_zero_morphisms.comp_zero])
+  (λ s, by rw [hf _ _ (cokernel_cofork.condition s), comp_zero])
   (λ s m h, by ext)
 
 /-- If `g ≫ f = 0` implies `g = 0` for all `g`, then `f` is a monomorphism. -/
@@ -399,7 +399,7 @@ begin
   have hih : i ≫ h = 0, calc
     i ≫ h = i ≫ cokernel.π f ≫ l : hl ▸ rfl
        ... = 0 ≫ l : by rw [←category.assoc, kernel.condition]
-       ... = 0 : has_zero_morphisms.zero_comp _ _,
+       ... = 0 : zero_comp,
   -- i factors through u = ker h via some s.
   obtain ⟨s, hs⟩ := normal_mono.lift' u i hih,
   have hs' : (s ≫ kernel.ι g) ≫ i = 𝟙 I ≫ i, by rw [category.assoc, hs, category.id_comp],
@@ -447,13 +447,13 @@ begin
     ... = h ≫ (p ≫ (cokernel.π g ≫ t)) : ht ▸ rfl
     ... = h ≫ u ≫ t : by simp only [category.assoc]; conv_lhs { congr, skip, rw ←category.assoc }
     ... = 0 ≫ t : by rw [←category.assoc, hu.w]
-    ... = 0 : has_zero_morphisms.zero_comp _ _,
+    ... = 0 : zero_comp,
   -- h factors through the kernel of f via some l.
   obtain ⟨l, hl⟩ := kernel.lift' f h hf,
   have hhp : h ≫ p = 0, calc
     h ≫ p = (l ≫ kernel.ι f) ≫ p : hl ▸ rfl
     ... = l ≫ 0 : by rw [category.assoc, cokernel.condition]
-    ... = 0 : has_zero_morphisms.comp_zero _ _,
+    ... = 0 : comp_zero,
   -- p factors through u = coker h via some s.
   obtain ⟨s, hs⟩ := normal_epi.desc' u p hhp,
   have hs' : p ≫ cokernel.π g ≫ s = p ≫ 𝟙 I, by rw [←category.assoc, hs, category.comp_id],
@@ -523,7 +523,7 @@ begin
       category.assoc, prod.lift_snd, has_zero_morphisms.comp_zero] },
   haveI : mono (prod.lift (𝟙 A) (0 : A ⟶ A)) := mono_of_mono_fac (prod.lift_fst _ _),
   apply (cancel_mono (prod.lift (𝟙 A) (0 : A ⟶ A))).1,
-  rw [←hy, hyy, has_zero_morphisms.zero_comp, has_zero_morphisms.zero_comp]
+  rw [←hy, hyy, zero_comp, zero_comp]
 end
 
 instance epi_r {A : C} : epi (r A) :=
@@ -550,9 +550,9 @@ begin
   { rw [←category.id_comp t],
     change 𝟙 A ≫ t = 0,
     rw [←limits.prod.lift_snd (𝟙 A) (𝟙 A), category.assoc, ht, ←category.assoc,
-      cokernel.condition, has_zero_morphisms.zero_comp] },
+      cokernel.condition, zero_comp] },
   apply (cancel_epi (cokernel.π (Δ A))).1,
-  rw [←ht, htt, has_zero_morphisms.comp_zero, has_zero_morphisms.comp_zero]
+  rw [←ht, htt, comp_zero, comp_zero]
 end
 
 instance is_iso_r {A : C} : is_iso (r A) :=
@@ -567,7 +567,7 @@ abbreviation σ {A : C} : A ⨯ A ⟶ A := cokernel.π (Δ A) ≫ is_iso.inv (r 
 end
 
 @[simp, reassoc] lemma Δ_σ {X : C} : Δ X ≫ σ = 0 :=
-by rw [cokernel.condition_assoc, has_zero_morphisms.zero_comp]
+by rw [cokernel.condition_assoc, zero_comp]
 
 @[simp, reassoc] lemma lift_σ {X : C} : prod.lift (𝟙 X) 0 ≫ σ = 𝟙 X :=
 by rw [←category.assoc, is_iso.hom_inv_id]
@@ -701,10 +701,10 @@ lemma sub_comp {X Y Z : C} (f g : X ⟶ Y) (h : Y ⟶ Z) : (f - g) ≫ h = f ≫
 by rw [sub_def, category.assoc, σ_comp, ←category.assoc, prod.lift_map, sub_def]
 
 lemma comp_add (X Y Z : C) (f : X ⟶ Y) (g h : Y ⟶ Z) : f ≫ (g + h) = f ≫ g + f ≫ h :=
-by rw [add_def, comp_sub, neg_def, comp_sub, has_zero_morphisms.comp_zero, add_def, neg_def]
+by rw [add_def, comp_sub, neg_def, comp_sub, comp_zero, add_def, neg_def]
 
 lemma add_comp (X Y Z : C) (f g : X ⟶ Y) (h : Y ⟶ Z) : (f + g) ≫ h = f ≫ h + g ≫ h :=
-by rw [add_def, sub_comp, neg_def, sub_comp, has_zero_morphisms.zero_comp, add_def, neg_def]
+by rw [add_def, sub_comp, neg_def, sub_comp, zero_comp, add_def, neg_def]
 
 /-- Every `non_preadditive_abelian` category is preadditive. -/
 def preadditive : preadditive C :=

@@ -100,10 +100,28 @@ instance : category (Mon_ C) :=
 @[simp] lemma comp_hom' {M N K : Mon_ C} (f : M ⟶ N) (g : N ⟶ K) :
   (f ≫ g : hom M K).hom = f.hom ≫ g.hom := rfl
 
+section
+variables (C)
+
 /-- The forgetful functor from monoid objects to the ambient category. -/
 def forget : Mon_ C ⥤ C :=
 { obj := λ A, A.X,
   map := λ A B f, f.hom, }
+
+end
+
+instance {A B : Mon_ C} (f : A ⟶ B) [e : is_iso ((forget C).map f)] : is_iso f.hom := e
+
+/-- The forgetful functor from monoid objects to the ambient category reflects isomorphisms. -/
+instance : reflects_isomorphisms (forget C) :=
+{ reflects := λ X Y f e, by exactI
+  { inv :=
+    { hom := inv f.hom,
+      mul_hom' :=
+      begin
+        simp only [is_iso.comp_inv_eq, hom.mul_hom, category.assoc, ←tensor_comp_assoc,
+          is_iso.inv_hom_id, tensor_id, category.id_comp],
+      end } } }
 
 instance (A : Mon_ C) : unique (trivial C ⟶ A) :=
 { default :=
@@ -311,6 +329,11 @@ def regular : Mod A :=
   act := A.mul, }
 
 instance : inhabited (Mod A) := ⟨regular A⟩
+
+/-- The forgetful functor from module objects to the ambient category. -/
+def forget : Mod A ⥤ C :=
+{ obj := λ A, A.X,
+  map := λ A B f, f.hom, }
 
 open category_theory.monoidal_category
 

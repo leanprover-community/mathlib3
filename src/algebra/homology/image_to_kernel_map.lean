@@ -34,7 +34,7 @@ At this point we assume that we have all images, and all equalizers.
 We need to assume all equalizers, not just kernels, so that
 `factor_thru_image` is an epimorphism.
 -/
-variables [has_images V] [has_equalizers V] [has_kernels V]
+variables [has_images V] [has_equalizers V]
 variables {A B C : V} (f : A ⟶ B) (g : B ⟶ C)
 
 /--

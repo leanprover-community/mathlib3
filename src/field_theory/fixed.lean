@@ -238,20 +238,13 @@ lemma findim_alg_hom (K : Type u) (V : Type v)
 fintype_card_le_findim_of_linear_independent $ linear_independent_to_linear_map K V
 
 namespace fixed_points
-
 /-- Embedding produced from a faithful action. -/
+@[simps to_fun {fully_applied := ff}]
 def to_alg_hom (G : Type u) (F : Type v) [group G] [field F]
   [faithful_mul_semiring_action G F] : G ↪ (F →ₐ[fixed_points G F] F) :=
 { to_fun := λ g, { commutes' := λ x, x.2 g,
     .. mul_semiring_action.to_semiring_hom G F g },
   inj' := λ g₁ g₂ hg, injective_to_semiring_hom G F $ ring_hom.ext $ λ x, alg_hom.ext_iff.1 hg x, }
-
-@[simp] lemma coe_to_alg_hom (G : Type u) (F : Type v) [group G] [field F]
-  [faithful_mul_semiring_action G F] :
-  (to_alg_hom G F : G → F →ₐ[fixed_points G F] F) =
-    λ g, { commutes' := λ x, x.2 g,
-      .. mul_semiring_action.to_semiring_hom G F g } :=
-rfl
 
 lemma to_alg_hom_apply {G : Type u} {F : Type v} [group G] [field F]
   [faithful_mul_semiring_action G F] (g : G) (x : F) :

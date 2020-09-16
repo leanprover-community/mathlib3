@@ -377,6 +377,25 @@ begin
   exact tendsto_at_top_infi_nat (μ ∘ s) (assume n m hnm, measure_mono $ hm _ _ $ hnm),
 end
 
+/-- The Borel-Cantelli lemma. -/
+lemma measure_limsup_eq_zero {s : ℕ → set α} (hs : ∀ i, is_measurable (s i))
+  (hs' : (∑' i, μ (s i)) ≠ ⊤) : μ (limsup at_top s) = 0 :=
+begin
+  rw limsup_eq_infi_supr_of_nat',
+
+  refine tendsto_nhds_unique
+    (tendsto_measure_Inter (λ i, is_measurable.Union (λ b, hs (b + i))) _
+      ⟨0, lt_of_le_of_lt (measure_Union_le s) (ennreal.lt_top_iff_ne_top.2 hs')⟩)
+    (tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds
+      (ennreal.tendsto_sum_nat_add (μ ∘ s) hs')
+      (eventually_of_forall (by simp only [forall_const, zero_le]))
+      (eventually_of_forall (λ i, measure_Union_le _))),
+
+  intros n m hnm x,
+  simp only [set.mem_Union],
+  exact λ ⟨i, hi⟩, ⟨i + (m - n), by simpa only [add_assoc, nat.sub_add_cancel hnm] using hi⟩
+end
+
 end
 
 /-- Obtain a measure by giving an outer measure where all sets in the σ-algebra are

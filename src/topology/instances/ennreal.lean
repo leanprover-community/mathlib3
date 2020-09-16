@@ -528,8 +528,7 @@ protected lemma tsum_eq_supr_nat {f : ℕ → ennreal} :
 ennreal.tsum_eq_supr_sum' _ finset.exists_nat_subset_range
 
 protected lemma le_tsum (a : α) : f a ≤ (∑'a, f a) :=
-calc f a = ∑ x in {a}, f x : finset.sum_singleton.symm
-     ... ≤ ∑' x, f x       : ennreal.sum_le_tsum {a}
+le_tsum' ennreal.summable a
 
 protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → (∑' a, f a) = ∞
 | ⟨a, ha⟩ := top_unique $ ha ▸ ennreal.le_tsum a
@@ -574,6 +573,14 @@ begin
   { exact assume s t hst, finset.sum_le_sum_of_subset (finset.range_subset.2 hst) }
 end
 
+lemma to_nnreal_apply_of_tsum_ne_top {α : Type*} {f : α → ennreal} (hf : (∑' i, f i) ≠ ∞) (x : α) :
+  (((ennreal.to_nnreal ∘ f) x : nnreal) : ennreal) = f x :=
+coe_to_nnreal $ ennreal.ne_top_of_tsum_ne_top hf _
+
+lemma summable_to_nnreal_of_tsum_ne_top {α : Type*} {f : α → ennreal} (hf : (∑' i, f i) ≠ ∞) :
+  summable (ennreal.to_nnreal ∘ f) :=
+by simpa only [←tsum_coe_ne_top_iff_summable, to_nnreal_apply_of_tsum_ne_top hf] using hf
+
 end tsum
 
 end ennreal
@@ -605,7 +612,55 @@ lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → nnreal} (hf : summable f
   {i : β → α} (hi : function.injective i) : tsum (f ∘ i) ≤ tsum f :=
 tsum_le_tsum_of_inj i hi (λ c hc, zero_le _) (λ b, le_refl _) (summable_comp_injective hf hi) hf
 
+open finset
+
+/-- If `f : ℕ → ℝ≥0` and `∑' f` exists, then `∑' k, f (k + i)` tends to zero. -/
+lemma tendsto_sum_nat_add (f : ℕ → nnreal) (hf : summable f) :
+  tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
+begin
+  by_cases h : ∀ i, f i = 0,
+  { simp only [h, tsum_zero],
+    exact tendsto_const_nhds },
+  refine tendsto_order.2 ⟨λ a ha, false.elim (not_lt_zero' ha), λ a ha, _⟩,
+  have hf' := summable.has_sum hf,
+  rw [has_sum_iff_tendsto_nat, tendsto_order] at hf',
+  rcases hf' with ⟨hf', -⟩,
+  simp only [ge_iff_le, eventually_at_top] at ⊢ hf',
+  have tsum_sub_lt : (∑' i, f i) - a < ∑' i, f i,
+  { refine nnreal.sub_lt_self _ ha,
+    contrapose! h,
+    simpa only [←tsum_eq_zero_iff hf, le_zero_iff] using h },
+  rcases hf' _ tsum_sub_lt with ⟨n, hn⟩,
+  refine ⟨n, λ m hm, _⟩,
+  specialize hn m hm,
+  by_cases h : a ≤ ∑' i, f i,
+  { have sum_le_tsum : ∑ i in range m, f i ≤ ∑' i, f i := sum_le_tsum _ (λ _ _, zero_le _) hf,
+    rw [sub_lt_iff_lt_add h, add_comm, ←sub_lt_iff_lt_add sum_le_tsum] at hn,
+    convert hn,
+    symmetry,
+    rw [sub_eq_iff_eq_add sum_le_tsum, add_comm, sum_add_tsum_nat_add _ hf] },
+  { push_neg at h,
+    refine lt_of_le_of_lt _ h,
+    exact tsum_le_tsum_of_inj (λ k, k + m) (add_left_injective m) (λ _ _, zero_le _)
+      (λ _, le_refl _) (summable_nat_add _ hf _) hf }
+end
+
 end nnreal
+
+namespace ennreal
+
+lemma tendsto_sum_nat_add (f : ℕ → ennreal) (hf : (∑' i, f i) ≠ ∞) :
+  tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
+begin
+  have : ∀ i, (∑' k, (((ennreal.to_nnreal ∘ f) (k + i) : nnreal) : ennreal)) =
+    (∑' k, (ennreal.to_nnreal ∘ f) (k + i) : nnreal) :=
+    λ i, (ennreal.coe_tsum (nnreal.summable_nat_add _ (summable_to_nnreal_of_tsum_ne_top hf) _)).symm,
+  simp only [λ x, (to_nnreal_apply_of_tsum_ne_top hf x).symm, ←ennreal.coe_zero,
+    this, ennreal.tendsto_coe] { single_pass := tt },
+  exact nnreal.tendsto_sum_nat_add _ (summable_to_nnreal_of_tsum_ne_top hf)
+end
+
+end ennreal
 
 lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → ℝ} (hf : summable f) (hn : ∀ a, 0 ≤ f a)
   {i : β → α} (hi : function.injective i) : tsum (f ∘ i) ≤ tsum f :=

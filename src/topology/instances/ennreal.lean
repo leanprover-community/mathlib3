@@ -624,7 +624,7 @@ begin
     exact sum_le_tsum _ (λ _ _, zero_le _) hf },
   have h₁ : tendsto (λ i : ℕ, ∑' i, f i) at_top (𝓝 (∑' i, f i)) := tendsto_const_nhds,
   convert tendsto.sub h₁ (hf.has_sum.tendsto_sum_nat);
-  simp only [h₀, sub_self],
+  simp only [h₀, sub_self]
 end
 
 end nnreal

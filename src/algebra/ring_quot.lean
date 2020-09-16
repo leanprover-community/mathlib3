@@ -24,7 +24,7 @@ Since everything runs in parallel for quotients of `R`-algebras, we do that case
 universes u₁ u₂ u₃ u₄
 
 variables {R : Type u₁} [semiring R]
-variables (S : Type u₂) [comm_semiring S]
+variables {S : Type u₂} [comm_semiring S]
 variables {A : Type u₃} [semiring A] [algebra S A]
 
 namespace ring_quot
@@ -43,6 +43,11 @@ inductive rel (r : R → R → Prop) : R → R → Prop
 theorem rel.add_right {r : R → R → Prop} ⦃a b c : R⦄ (h : rel r b c) : rel r (a + b) (a + c) :=
 by { rw [add_comm a b, add_comm a c], exact rel.add_left h }
 
+theorem rel.neg {R : Type u₁} [ring R] {r : R → R → Prop} ⦃a b : R⦄ (h : rel r a b) : rel r (-a) (-b) :=
+by simp only [neg_eq_neg_one_mul a, neg_eq_neg_one_mul b, rel.mul_right h]
+
+theorem rel.smul {r : A → A → Prop} (k : S) ⦃a b : A⦄ (h : rel r a b) : rel r (k • a) (k • b) :=
+by simp only [algebra.smul_def, rel.mul_right h]
 end ring_quot
 
 /-- The quotient of a ring by an arbitrary relation. -/
@@ -69,7 +74,7 @@ instance (r : R → R → Prop) : semiring (ring_quot r) :=
 
 instance {R : Type u₁} [ring R] (r : R → R → Prop) : ring (ring_quot r) :=
 { neg           := quot.map (λ a, -a)
-    (λ a b h, by simp only [neg_eq_neg_one_mul a, neg_eq_neg_one_mul b, rel.mul_right h]),
+    rel.neg,
   add_left_neg  := by { rintros ⟨⟩, exact congr_arg (quot.mk _) (add_left_neg _), },
   .. (ring_quot.semiring r) }
 
@@ -82,7 +87,7 @@ instance {R : Type u₁} [comm_ring R] (r : R → R → Prop) : comm_ring (ring_
   .. (ring_quot.ring r) }
 
 instance (s : A → A → Prop) : algebra S (ring_quot s) :=
-{ smul      := λ r, quot.map ((•) r) (λ a b h, by simp only [algebra.smul_def, rel.mul_right h]),
+{ smul      := λ r, quot.map ((•) r) (rel.smul r)
   to_fun    := λ r, quot.mk _ (algebra_map S A r),
   map_one'  := congr_arg (quot.mk _) (ring_hom.map_one _),
   map_mul'  := λ r s, congr_arg (quot.mk _) (ring_hom.map_mul _ _ _),

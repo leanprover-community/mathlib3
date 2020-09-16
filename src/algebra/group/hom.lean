@@ -86,6 +86,10 @@ theorem congr_fun {f g : M →* N} (h : f = g) (x : M) : f x = g x :=
 congr_arg (λ h : M →* N, h x) h
 
 @[to_additive]
+theorem congr_arg (f : M →* N) {x y : M} (h : x = y) : f x = f y :=
+congr_arg (λ x : M, f x) h
+
+@[to_additive]
 lemma coe_inj ⦃f g : M →* N⦄ (h : (f : M → N) = g) : f = g :=
 by cases f; cases g; cases h; refl
 

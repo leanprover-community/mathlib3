@@ -1,7 +1,9 @@
 import category_theory.limits.limits
 import category_theory.punit
 import category_theory.comma
-import category_theory.connected
+import category_theory.is_connected
+
+noncomputable theory
 
 universes v u
 
@@ -11,8 +13,8 @@ open category_theory.limits
 variables {C : Type v} [small_category C]
 variables {D : Type v} [small_category D]
 
-def final (F : C ⥤ D) : Type (v+1) :=
-Π (d : D), connected (comma (functor.from_punit d) F)
+def final (F : C ⥤ D) : Prop :=
+∀ (d : D), is_connected (comma (functor.from_punit d) F)
 
 attribute [class] final
 
@@ -21,15 +23,15 @@ namespace final
 variables (F : C ⥤ D) [ℱ : final F]
 include ℱ
 
-instance (d : D) : inhabited (comma (functor.from_punit d) F) := (‹final F› d).to_inhabited
+instance (d : D) : nonempty (comma (functor.from_punit d) F) := (‹final F› d).is_nonempty
 
 variables {E : Type u} [category.{v} E] (G : D ⥤ E)
 
 def lift (d : D) : C :=
-(default (comma (functor.from_punit d) F)).right
+(classical.arbitrary (comma (functor.from_punit d) F)).right
 
 def hom_to_lift (d : D) : d ⟶ F.obj (lift F d) :=
-(default (comma (functor.from_punit d) F)).hom
+(classical.arbitrary (comma (functor.from_punit d) F)).hom
 
 def extend_cocone (c : cocone (F ⋙ G)) : cocone G :=
 { X := c.X,
@@ -47,6 +49,7 @@ def extend_cocone (c : cocone (F ⋙ G)) : cocone G :=
 @[priority 100]
 instance comp_has_colimit [has_colimit G] :
   has_colimit (F ⋙ G) :=
+has_colimit.mk
 { cocone := (colimit.cocone G).whisker F,
   is_colimit :=
   { desc := λ s, begin simp, sorry, end }, }
@@ -58,13 +61,14 @@ sorry
 @[priority 10]
 instance has_colimit_of_comp {E : Type u} [category.{v} E] (G : D ⥤ E) [has_colimit (F ⋙ G)] :
   has_colimit G :=
+has_colimit.mk
 { cocone :=
   { X := colimit (F ⋙ G),
     ι :=
     { app := λ X,
       begin
         simp,
-        have : comma (functor.from_punit X) F := default _,
+        have : comma (functor.from_punit X) F := classical.arbitrary _,
         have := this.hom, simp at this,
         transitivity,
         exact G.map this,

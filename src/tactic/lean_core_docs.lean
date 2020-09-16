@@ -741,7 +741,7 @@ add_tactic_doc
 /--
 Navigate into the first scope matching the expression.
 
-For a target of `| ∀ c, a + (b + c) = 1`, `find (b + _) { skip }` will run the tactics within the
+For a target of `| ∀ c, a + (b + c) = 1`, `find (b + _) { ... }` will run the tactics within the
 `{}` with a target of `| b + c`.
 -/
 add_tactic_doc
@@ -753,7 +753,7 @@ add_tactic_doc
 /--
 Navigate into the numbered scopes matching the expression.
 
-For a target of `| λ c, 10 * c + 20 * c + 30 * c`, `for (_ * _) [1, 3] { skip }` will run the
+For a target of `| λ c, 10 * c + 20 * c + 30 * c`, `for (_ * _) [1, 3] { ... }` will run the
 tactics within the `{}` with first a target of `| 10 * c`, then a target of `| 30 * c`.
 -/
 add_tactic_doc

@@ -118,7 +118,7 @@ variable [comm_ring R]
   (truncate_fun n x).out = init x n :=
 begin
   ext i,
-  dsimp [truncated_witt_vector.out, init],
+  dsimp [truncated_witt_vector.out, init, select],
   split_ifs with hi, swap, refl,
   rw [coeff_truncate_fun, fin.coe_mk],
 end

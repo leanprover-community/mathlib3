@@ -70,7 +70,11 @@ def mul_n_is_poly (n : ℕ) : is_poly p (λ R _Rcr x, by exactI x * n) :=
 { poly := witt_mul_n p n,
   coeff := λ R _Rcr x, by { funext k, exactI mul_n_coeff n x k } }
 
-lemma bind₁_witt_mul_n_witt_polynomial (n k : ℕ) :
+attribute [ghost_simps] mul_n_is_poly_poly bind₁_verschiebung_poly_witt_polynomial
+      bind₁_frobenius_poly_witt_polynomial  verschiebung_is_poly_poly
+      nat.succ_ne_zero if_false nat.add_sub_cancel
+
+@[ghost_simps] lemma bind₁_witt_mul_n_witt_polynomial (n k : ℕ) :
   bind₁ (witt_mul_n p n) (witt_polynomial p ℤ k) = n * witt_polynomial p ℤ k :=
 begin
   induction n with n ih,
@@ -89,12 +93,9 @@ end
 lemma frobenius_verschiebung (x : 𝕎 R) :
   frobenius (verschiebung x) = x * p :=
 begin
-  apply is_poly.ext' ((frobenius_is_poly p).comp (verschiebung_is_poly p)) (mul_n_is_poly p p),
-  intro n,
-  rw [is_poly.comp_poly, ← bind₁_bind₁, mul_n_is_poly_poly, frobenius_is_poly_poly,
-      bind₁_frobenius_poly_witt_polynomial, bind₁_witt_mul_n_witt_polynomial,
-      verschiebung_is_poly_poly, bind₁_verschiebung_poly_witt_polynomial],
-  refl,
+  apply is_poly.ext' ((frobenius_is_poly p).comp verschiebung_is_poly) (mul_n_is_poly p p),
+  intro,
+  witt_simp
 end
 
 lemma verschiebung_zmod (x : 𝕎 (zmod p)) :

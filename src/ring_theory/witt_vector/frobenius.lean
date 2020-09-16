@@ -395,6 +395,8 @@ def frobenius_is_poly : is_poly p (λ R _Rcr, @frobenius p R _ _Rcr) :=
 { poly := frobenius_poly p,
   coeff := by { introsI, funext n, apply coeff_frobenius_fun } }
 
+attribute [ghost_simps] frobenius_is_poly_poly
+
 section char_p
 variables [char_p R p]
 

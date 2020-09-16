@@ -62,7 +62,7 @@ end
 -- Rob: it does now, why do you ask here?
 
 lemma C_dvd_iff_map_hom_eq_zero {σ : Type*} {R : Type*} {S : Type*} [comm_ring R] [comm_ring S]
-  (q : R →+* S) (hq : function.surjective q) (r : R) (hr : ∀ r' : R, q r' = 0 ↔ r ∣ r')
+  (q : R →+* S) (r : R) (hr : ∀ r' : R, q r' = 0 ↔ r ∣ r')
   (φ : mv_polynomial σ R) :
   C r ∣ φ ↔ map q φ = 0 :=
 begin
@@ -78,7 +78,6 @@ lemma C_dvd_iff_zmod {σ : Type*} (n : ℕ) (φ : mv_polynomial σ ℤ) :
   C (n:ℤ) ∣ φ ↔ map (int.cast_ring_hom (zmod n)) φ = 0 :=
 begin
   apply C_dvd_iff_map_hom_eq_zero,
-  { exact zmod.int_cast_surjective },
   { exact char_p.int_cast_eq_zero_iff (zmod n) n, }
 end
 
@@ -101,6 +100,7 @@ begin
   rw [alg_hom.comp_apply, alg_hom.id_apply, aeval_X, h],
 end
 
+/-- I think this has been PR'd to mathlib already. If not, fix this docstring. -/
 noncomputable def equiv_of_family (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
   (hfg : ∀ i, aeval g (f i) = X i) (hgf : ∀ i, aeval f (g i) = X i) :
   mv_polynomial σ R ≃ₐ[R] mv_polynomial τ R :=
@@ -128,45 +128,45 @@ noncomputable def equiv_of_family (f : σ → mv_polynomial τ R) (g : τ → mv
   (φ : mv_polynomial τ R) :
   (equiv_of_family f g hfg hgf).symm φ = aeval g φ := rfl
 
--- I think this stuff should move back to the witt_vector file
-namespace witt_structure_machine
-variable {idx : Type*}
-variables (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
-variables (hfg : ∀ i, aeval g (f i) = X i) (hgf : ∀ i, aeval f (g i) = X i)
+-- -- I think this stuff should move back to the witt_vector file
+-- namespace witt_structure_machine
+-- variable {idx : Type*}
+-- variables (f : σ → mv_polynomial τ R) (g : τ → mv_polynomial σ R)
+-- variables (hfg : ∀ i, aeval g (f i) = X i) (hgf : ∀ i, aeval f (g i) = X i)
 
-noncomputable def structure_polynomial (Φ : mv_polynomial idx R) (t : τ) :
-  mv_polynomial (idx × τ) R :=
-aeval (λ s : σ, (aeval (λ i, (rename (λ t', (i,t')) (f s)))) Φ) (g t)
+-- noncomputable def structure_polynomial (Φ : mv_polynomial idx R) (t : τ) :
+--   mv_polynomial (idx × τ) R :=
+-- aeval (λ s : σ, (aeval (λ i, (rename (λ t', (i,t')) (f s)))) Φ) (g t)
 
-include hfg
+-- include hfg
 
-theorem structure_polynomial_prop (Φ : mv_polynomial idx R) (s : σ) :
-  aeval (structure_polynomial f g Φ) (f s) = aeval (λ b, (rename (λ i, (b,i)) (f s))) Φ :=
-calc aeval (structure_polynomial f g Φ) (f s) =
-      aeval (λ s', aeval (λ b, (rename (prod.mk b)) (f s')) Φ) (aeval g (f s)) :
-      by { conv_rhs { rw [aeval_eq_eval₂_hom, map_aeval] },
-           apply eval₂_hom_congr _ rfl rfl,
-           ext1 r, symmetry, apply eval₂_hom_C, }
-... = aeval (λ i, (rename (λ t', (i,t')) (f s))) Φ : by rw [hfg, aeval_X]
+-- theorem structure_polynomial_prop (Φ : mv_polynomial idx R) (s : σ) :
+--   aeval (structure_polynomial f g Φ) (f s) = aeval (λ b, (rename (λ i, (b,i)) (f s))) Φ :=
+-- calc aeval (structure_polynomial f g Φ) (f s) =
+--       aeval (λ s', aeval (λ b, (rename (prod.mk b)) (f s')) Φ) (aeval g (f s)) :
+--       by { conv_rhs { rw [aeval_eq_eval₂_hom, map_aeval] },
+--            apply eval₂_hom_congr _ rfl rfl,
+--            ext1 r, symmetry, apply eval₂_hom_C, }
+-- ... = aeval (λ i, (rename (λ t', (i,t')) (f s))) Φ : by rw [hfg, aeval_X]
 
-include hgf
+-- include hgf
 
-theorem exists_unique (Φ : mv_polynomial idx R) :
-  ∃! (φ : τ → mv_polynomial (idx × τ) R),
-    ∀ (s : σ), aeval φ (f s) = aeval (λ i, (rename (λ t', (i,t')) (f s))) Φ :=
-begin
-  refine ⟨structure_polynomial f g Φ, structure_polynomial_prop _ _ hfg _, _⟩,
-  { intros φ H,
-    funext t,
-    calc φ t = aeval φ (aeval (f) (g t))    : by rw [hgf, aeval_X]
-         ... = structure_polynomial f g Φ t : _,
-    rw [aeval_eq_eval₂_hom, map_aeval],
-    apply eval₂_hom_congr _ _ rfl,
-    { ext1 r, exact eval₂_C _ _ r, },
-    { funext k, exact H k } }
-end
+-- theorem exists_unique (Φ : mv_polynomial idx R) :
+--   ∃! (φ : τ → mv_polynomial (idx × τ) R),
+--     ∀ (s : σ), aeval φ (f s) = aeval (λ i, (rename (λ t', (i,t')) (f s))) Φ :=
+-- begin
+--   refine ⟨structure_polynomial f g Φ, structure_polynomial_prop _ _ hfg _, _⟩,
+--   { intros φ H,
+--     funext t,
+--     calc φ t = aeval φ (aeval (f) (g t))    : by rw [hgf, aeval_X]
+--          ... = structure_polynomial f g Φ t : _,
+--     rw [aeval_eq_eval₂_hom, map_aeval],
+--     apply eval₂_hom_congr _ _ rfl,
+--     { ext1 r, exact eval₂_C _ _ r, },
+--     { funext k, exact H k } }
+-- end
 
-end witt_structure_machine
+-- end witt_structure_machine
 
 section monadic_stuff
 
@@ -242,7 +242,7 @@ bind₁_monomial _ _ _
 --   { simp only [alg_hom.map_add] {contextual := tt}, }
 -- end
 
-@[simp] lemma expand_one_apply (f : mv_polynomial σ R) : expand 1 f = f :=
+lemma expand_one_apply (f : mv_polynomial σ R) : expand 1 f = f :=
 by simp only [expand, bind₁_X_left, alg_hom.id_apply, ring_hom.to_fun_eq_coe,
   eval₂_hom_C_left, alg_hom.coe_to_ring_hom, pow_one, alg_hom.coe_mk]
 
@@ -458,7 +458,7 @@ end
 end fintype
 
 section isos_to_zmod
-variables (R : Type*) (n : ℕ) [comm_ring R] [fintype R]
+variables (R : Type*) (n : ℕ) [comm_ring R]
 
 lemma zmod.cast_hom_inj [char_p R n] :
   function.injective (zmod.cast_hom (show n ∣ n, by refl) R) :=
@@ -471,7 +471,7 @@ begin
   exact id,
 end
 
-lemma zmod.cast_hom_bij [char_p R n] (hn : fintype.card R = n) :
+lemma zmod.cast_hom_bij [fintype R] [char_p R n] (hn : fintype.card R = n) :
   function.bijective (zmod.cast_hom (show n ∣ n, by refl) R) :=
 begin
   haveI : fact (0 < n) :=
@@ -486,19 +486,31 @@ begin
   apply zmod.cast_hom_inj,
 end
 
--- this name is wrong, because the `iso` is not *to* `zmod`, but *from*.
-noncomputable def iso_to_zmod [char_p R n] (hn : fintype.card R = n) :
+lemma ring_equiv.coe_ring_hom_inj {R S : Type*} [semiring R] [semiring S] (f g : R ≃+* S) :
+  f = g ↔ (f : R →+* S) = g :=
+begin
+  refine ⟨congr_arg _, _⟩,
+  rw ring_hom.ext_iff,
+  intro h, ext, apply h,
+end
+
+/-- The unique ring isomorphism between `zmod n` and a ring `R`
+of characteristic `n` and cardinality `n`. -/
+noncomputable def zmod.ring_equiv [fintype R] [char_p R n] (hn : fintype.card R = n) :
   zmod n ≃+* R :=
 ring_equiv.of_bijective _ (zmod.cast_hom_bij _  _ hn)
 
-@[simp] lemma cast_card_eq_zero : (fintype.card R : R) = 0 :=
+instance zmod.ring_equiv_subsingleton : subsingleton (zmod n ≃+* R) :=
+⟨λ f g, by { rw ring_equiv.coe_ring_hom_inj, apply ring_hom.ext_zmod _ _ }⟩
+
+@[simp] lemma cast_card_eq_zero [fintype R] : (fintype.card R : R) = 0 :=
 begin
   have : fintype.card R •ℕ (1 : R) = 0 :=
     @pow_card_eq_one (multiplicative R) _ _ (multiplicative.of_add 1),
   simpa only [mul_one, nsmul_eq_mul]
 end
 
-lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, (i : R) = 0 → i = 0) :
+lemma char_p_of_ne_zero [fintype R] (hn : fintype.card R = n) (hR : ∀ i < n, (i : R) = 0 → i = 0) :
   char_p R n :=
 { cast_eq_zero_iff :=
   begin
@@ -514,7 +526,7 @@ lemma char_p_of_ne_zero (hn : fintype.card R = n) (hR : ∀ i < n, (i : R) = 0 �
     { rintro ⟨k, rfl⟩, rw [nat.cast_mul, H, zero_mul], }
   end }
 
-def char_p_of_prime_pow_ne_zero (p : ℕ) [hp : fact p.prime] (n : ℕ) (hn : fintype.card R = p ^ n)
+lemma char_p_of_prime_pow_ne_zero [fintype R] (p : ℕ) [hp : fact p.prime] (n : ℕ) (hn : fintype.card R = p ^ n)
   (hR : ∀ i ≤ n, (p ^ i : R) = 0 → i = n) :
   char_p R (p ^ n) :=
 begin
@@ -548,28 +560,56 @@ lemma prod_mk_injective {α β : Type*} (a : α) :
 by { intros b₁ b₂ h, simpa only [true_and, prod.mk.inj_iff, eq_self_iff_true] using h }
 end
 
+-- TODO: making this a global instance causes timeouts in the comm_ring instance for Witt vectors
+-- :scream: :scream: :scream:
+/-- A natural number that is invertible when coerced to `ℚ` is also invertible
+when coerced to any `ℚ`-algebra. -/
+def invertible_rat_algebra_coe_nat (R : Type*) (p : ℕ)
+  [semiring R] [algebra ℚ R] [invertible (p : ℚ)] :
+  invertible (p : R) :=
+invertible.copy (invertible.map (algebra_map ℚ R : ℚ →* R) p) p
+  (by simp only [ring_hom.map_nat_cast, coe_monoid_hom])
+
 namespace mv_polynomial
 noncomputable instance invertible_C
   (σ : Type*) {R : Type*} [comm_semiring R] (r : R) [invertible r] :
   invertible (C r : mv_polynomial σ R) :=
 invertible.map ⟨C, C_1, λ x y, C_mul⟩ _
 
--- name??
-noncomputable def invertible_rat_coe_nat (σ : Type*) (p : ℕ) [invertible (p : ℚ)] :
-  invertible (p : mv_polynomial σ ℚ) :=
-(mv_polynomial.invertible_C σ (p:ℚ)).copy p $ (C_eq_coe_nat p).symm
+/-- A natural number that is invertible when coerced to `ℚ` is also invertible
+when coerced to any polynomial ring with rational coefficients.
 
+Short-cut for typeclass resolution. -/
+noncomputable instance invertible_rat_coe_nat (σ : Type*) (p : ℕ) [invertible (p : ℚ)] :
+  invertible (p : mv_polynomial σ ℚ) :=
+invertible_rat_algebra_coe_nat _ _
 
 section
 open function
 
-variables (R : Type*) [comm_ring R]
+variables (A B R : Type*) [comm_semiring A] [comm_semiring B] [comm_ring R] [algebra A B]
 
+/-- `mv_polynomial.acounit R A` is the natural surjective algebra homomorphism
+`mv_polynomial A R →ₐ[R] A` obtained by `X a ↦ a`.
+
+See `mv_polynomial.counit` for the “absolute” variant with `R = ℤ`. -/
+noncomputable def acounit : mv_polynomial B A →ₐ[A] B :=
+aeval id
+
+lemma acounit_surjective : surjective (acounit A B) :=
+λ a, ⟨X a, eval₂_hom_X' _ _ _⟩
+
+/-- `mv_polynomial.counit R` is the natural surjective ring homomorphism
+`mv_polynomial R ℤ →+* R` obtained by `X r ↦ r`.
+
+See `mv_polynomial.acounit` for a “relative” variant for algebras over a base ring. -/
 noncomputable def counit : mv_polynomial R ℤ →+* R :=
-eval₂_hom (int.cast_ring_hom R) id
+acounit ℤ R
 
 lemma counit_surjective : surjective (counit R) :=
-λ r, ⟨X r, eval₂_hom_X' _ _ _⟩
+acounit_surjective ℤ R
+
+-- TODO: we could have a similar counit for semirings over `ℕ`.
 
 end
 end mv_polynomial
@@ -577,7 +617,6 @@ end mv_polynomial
 lemma congr₂ {α β γ : Type*} (f : α → β → γ) (a₁ a₂ : α) (b₁ b₂ : β) :
   a₁ = a₂ → b₁ = b₂ → f a₁ b₁ = f a₂ b₂ :=
 by rintro rfl rfl; refl
-
 
 lemma nontrivial_of_char_ne_one {v : ℕ} (hv : v ≠ 1) {R : Type*} [semiring R] [hr : char_p R v] :
   nontrivial R :=

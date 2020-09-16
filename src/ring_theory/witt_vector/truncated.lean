@@ -392,7 +392,7 @@ Since `truncated_witt_vector p n (zmod p)` is a finite ring with characteristic 
 it is isomorphic to `zmod (p^n)`.
 -/
 def zmod_equiv_trunc : zmod (p^n) ≃+* truncated_witt_vector p n (zmod p) :=
-iso_to_zmod (truncated_witt_vector p n (zmod p)) (p ^ n) (card_zmod _ _)
+zmod.ring_equiv (truncated_witt_vector p n (zmod p)) (p ^ n) (card_zmod _ _)
 
 lemma zmod_equiv_trunc_apply {x : zmod (p^n)} :
   zmod_equiv_trunc p n x =

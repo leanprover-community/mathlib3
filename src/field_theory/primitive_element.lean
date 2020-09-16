@@ -69,22 +69,14 @@ variables {F : Type*} [field F] {E : Type*} [field E] (ϕ : F →+* E)
 /-! ### Primitive element theorem for infinite fields -/
 
 lemma primitive_element_two_aux (α β : E) (f g : polynomial F) [F_inf : infinite F] :
-  ∃ c : F, ∀ (α' ∈ (f.map ϕ).roots) (β' ∈ (g.map ϕ).roots), β' ≠ β → ϕ c ≠ -(α' - α)/(β' - β) :=
+  ∃ c : F, ∀ (α' ∈ (f.map ϕ).roots) (β' ∈ (g.map ϕ).roots), -(α' - α)/(β' - β) ≠ ϕ c :=
 begin
   let sf := (f.map ϕ).roots,
   let sg := (g.map ϕ).roots,
-  let s := {c : E | ∃ (α' ∈ sf) (β' ∈ sg), β' ≠ β ∧ c = -(α' - α)/(β' - β)},
-  let r : E × E → E := λ ⟨α', β'⟩, -(α' - α)/(β' - β),
-  have hr : ∀ c ∈ s, ∃ α' β', ((α' ∈ sf) ∧ (β' ∈ sg)) ∧ r (α', β') = c,
-  { intros c hc,
-    rw set.mem_set_of_eq at hc,
-    tauto, },
-  have s_fin : s.finite,
-  { apply (set.finite.image r (set.finite_mem_finset (sf.to_finset.product sg.to_finset))).subset,
-    simpa only [set.subset_def, set.mem_image, prod.exists, multiset.mem_to_finset, finset.mem_product] using hr },
-  have s'_fin : (ϕ⁻¹' s).finite := s_fin.preimage ((ring_hom.injective ϕ).inj_on (⇑ϕ⁻¹' s)),
-  obtain ⟨c, hc⟩ := infinite.exists_not_mem_finset s'_fin.to_finset,
-  rw [set.finite.mem_to_finset, set.mem_preimage, set.mem_set_of_eq] at hc,
+  let s := (sf.bind (λ α', sg.map (λ β', -(α' - α) / (β' - β)))).to_finset,
+  let s' := s.preimage ϕ (λ x hx y hy h, ϕ.injective h),
+  obtain ⟨c, hc⟩ := infinite.exists_not_mem_finset s',
+  simp_rw [finset.mem_preimage, multiset.mem_to_finset, multiset.mem_bind, multiset.mem_map] at hc,
   push_neg at hc,
   exact ⟨c, hc⟩,
 end
@@ -175,8 +167,9 @@ begin
       rw [polynomial.mem_roots_of_map (minimal_polynomial.ne_zero hβ),←polynomial.eval₂_map],
       exact polynomial.gcd_root_right f' g' x hx,
     end),
-    by_contradiction,
-    apply hc a,
+    by_contradiction a,
+    apply hc,
+    symmetry,
     apply (eq_div_iff (sub_ne_zero.mpr a)).mpr,
     simp only [ring_hom.map_add,ring_hom.map_mul,ring_hom.comp_apply],
     ring, },

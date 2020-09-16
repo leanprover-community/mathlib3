@@ -1472,7 +1472,7 @@ by { simp at hi, rw nth_le_take L _ hi.1 }
 | 0     := rfl
 | (n+1) := rfl
 
-lemma list.mem_drop_of_mem {α} {n : ℕ} {l : list α} {x : α}
+lemma mem_drop_of_mem {α} {n : ℕ} {l : list α} {x : α}
   (h : x ∈ l.drop n) :
   x ∈ l :=
 begin
@@ -3884,7 +3884,7 @@ theorem forall_mem_inter_of_forall_right {p : α → Prop} (l₁ : list α) {l�
   ∀ x, x ∈ l₁ ∩ l₂ → p x :=
 ball.imp_left (λ x, mem_of_mem_inter_right) h
 
-lemma inter_reverse [decidable_eq α] {xs ys : list α} :
+lemma inter_reverse {xs ys : list α} :
   xs.inter ys.reverse = xs.inter ys :=
 by simp [list.inter]; congr
 
@@ -3955,10 +3955,10 @@ end
 `list.slice n m xs` removes a slice of length `m` at index `n` in list `xs`.
 -/
 @[simp]
-def list.slice {α} : ℕ → ℕ → list α → list α
+def slice {α} : ℕ → ℕ → list α → list α
 | 0 n xs := xs.drop n
 | (succ n) m [] := []
-| (succ n) m (x :: xs) := x :: list.slice n m xs
+| (succ n) m (x :: xs) := x :: slice n m xs
 
 lemma sizeof_slice_lt {α} [has_sizeof α] (i j : ℕ) (hj : 0 < j) (xs : list α) (hi : i < xs.length) :
   sizeof (list.slice i j xs) < sizeof xs :=

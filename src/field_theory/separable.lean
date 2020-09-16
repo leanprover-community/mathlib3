@@ -69,6 +69,24 @@ end
 lemma separable.of_mul_right {f g : polynomial R} (h : (f * g).separable) : g.separable :=
 by { rw mul_comm at h, exact h.of_mul_left }
 
+lemma separable_gcd_left {F : Type*} [field F] (f g : polynomial F) (hf : f.separable) :
+  (euclidean_domain.gcd f g).separable :=
+begin
+  cases euclidean_domain.gcd_dvd_left f g with p mul,
+  apply polynomial.separable.of_mul_left,
+  rw ←mul,
+  exact hf,
+end
+
+lemma separable_gcd_right {F : Type*} [field F] (f g : polynomial F) (hf : g.separable) :
+  (euclidean_domain.gcd f g).separable :=
+begin
+  cases euclidean_domain.gcd_dvd_right f g with p mul,
+  apply polynomial.separable.of_mul_left,
+  rw ←mul,
+  exact hf,
+end
+
 lemma separable.of_dvd {f g : polynomial R} (hf : f.separable) (hfg : g ∣ f) : g.separable :=
 by { rcases hfg with ⟨f', rfl⟩, exact separable.of_mul_left hf }
 

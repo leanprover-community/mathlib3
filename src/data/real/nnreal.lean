@@ -635,4 +635,14 @@ mt pow_eq_zero h
 
 end pow
 
+
+@[simp] lemma abs_eq (x : ℝ≥0) : abs (x : ℝ) = x :=
+abs_of_nonneg x.property
+
 end nnreal
+
+/-- The absolute value on `ℝ` as a map to `ℝ≥0`. -/
+@[pp_nodot] def real.nnabs (x : ℝ) : ℝ≥0 := ⟨abs x, abs_nonneg x⟩
+
+@[norm_cast, simp] lemma nnreal.coe_nnabs (x : ℝ) : (real.nnabs x : ℝ) = abs x :=
+by simp [real.nnabs]

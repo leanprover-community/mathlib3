@@ -94,30 +94,31 @@ def cones_equiv (B : C) {J : Type v} (F : discrete J ⥤ over B) :
   counit_iso := cones_equiv_counit_iso B F, }
 
 /-- Use the above equivalence to prove we have a limit. -/
-def has_over_limit_discrete_of_wide_pullback_limit {B : C} {J : Type v} (F : discrete J ⥤ over B)
+lemma has_over_limit_discrete_of_wide_pullback_limit {B : C} {J : Type v} (F : discrete J ⥤ over B)
   [has_limit (wide_pullback_diagram_of_diagram_over B F)] :
   has_limit F :=
+has_limit.mk
 { cone := _,
   is_limit := is_limit.of_right_adjoint
     (cones_equiv B F).functor (limit.is_limit (wide_pullback_diagram_of_diagram_over B F)) }
 
 /-- Given a wide pullback in `C`, construct a product in `C/B`. -/
-def over_product_of_wide_pullback {J : Type v} [has_limits_of_shape (wide_pullback_shape J) C] {B : C} :
+lemma over_product_of_wide_pullback {J : Type v} [has_limits_of_shape (wide_pullback_shape J) C] {B : C} :
   has_limits_of_shape (discrete J) (over B) :=
 { has_limit := λ F, has_over_limit_discrete_of_wide_pullback_limit F }
 
 /-- Given a pullback in `C`, construct a binary product in `C/B`. -/
-def over_binary_product_of_pullback [has_pullbacks C] {B : C} :
+lemma over_binary_product_of_pullback [has_pullbacks C] {B : C} :
   has_binary_products (over B) :=
 over_product_of_wide_pullback
 
 /-- Given all wide pullbacks in `C`, construct products in `C/B`. -/
-def over_products_of_wide_pullbacks [has_wide_pullbacks C] {B : C} :
+lemma over_products_of_wide_pullbacks [has_wide_pullbacks C] {B : C} :
   has_products (over B) :=
 λ J, over_product_of_wide_pullback
 
 /-- Given all finite wide pullbacks in `C`, construct finite products in `C/B`. -/
-def over_finite_products_of_finite_wide_pullbacks [has_finite_wide_pullbacks C] {B : C} :
+lemma over_finite_products_of_finite_wide_pullbacks [has_finite_wide_pullbacks C] {B : C} :
   has_finite_products (over B) :=
 λ J 𝒥₁ 𝒥₂, by exactI over_product_of_wide_pullback
 
@@ -129,8 +130,8 @@ way we want to define terminal objects.
 (For instance, this gives a terminal object which is different from the generic one given by
 `over_product_of_wide_pullback` above.)
 -/
-def over_has_terminal (B : C) : has_terminal (over B) :=
-{ has_limit := λ F,
+lemma over_has_terminal (B : C) : has_terminal (over B) :=
+{ has_limit := λ F, has_limit.mk
   { cone :=
     { X := over.mk (𝟙 _),
       π := { app := λ p, pempty.elim p } },

@@ -293,9 +293,7 @@ section char_one
 
 variables {R : Type*}
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
-
+@[priority 100]  -- see Note [lower instance priority]
 instance [semiring R] [char_p R 1] : subsingleton R :=
 subsingleton.intro $
 suffices ∀ (r : R), r = 0,
@@ -305,8 +303,6 @@ calc r = 1 * r       : by rw one_mul
    ... = (1 : ℕ) * r : by rw nat.cast_one
    ... = 0 * r       : by rw char_p.cast_eq_zero
    ... = 0           : by rw zero_mul
-
-end prio
 
 lemma false_of_nonzero_of_char_one [semiring R] [nontrivial R] [char_p R 1] : false :=
 zero_ne_one $ show (0:R) = 1, from subsingleton.elim 0 1

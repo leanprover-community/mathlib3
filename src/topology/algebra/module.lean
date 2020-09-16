@@ -35,8 +35,6 @@ open_locale topological_space big_operators
 
 universes u v w u'
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A topological semimodule, over a semiring which is also a topological space, is a
 semimodule in which scalar multiplication is continuous. In applications, R will be a topological
 semiring and M a topological additive semigroup, but this is not needed for the definition -/
@@ -45,7 +43,6 @@ class topological_semimodule (R : Type u) (M : Type v)
   [topological_space M] [add_comm_monoid M]
   [semimodule R M] : Prop :=
 (continuous_smul : continuous (λp : R × M, p.1 • p.2))
-end prio
 
 section
 
@@ -71,8 +68,6 @@ tendsto_smul.comp (hf.prod_mk_nhds hg)
 
 end
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A topological module, over a ring which is also a topological space, is a module in which
 scalar multiplication is continuous. In applications, `R` will be a topological ring and `M` a
 topological additive group, but this is not needed for the definition -/
@@ -87,7 +82,6 @@ abbreviation topological_vector_space (R : Type u) (M : Type v)
   [field R] [topological_space R]
   [topological_space M] [add_comm_group M] [module R M] :=
 topological_module R M
-end prio
 
 section
 
@@ -230,6 +224,9 @@ variables (c : R) (f g : M →L[R] M₂) (h : M₂ →L[R] M₃) (x y z : M)
 @[simp] lemma map_zero : f (0 : M) = 0 := (to_linear_map _).map_zero
 @[simp] lemma map_add  : f (x + y) = f x + f y := (to_linear_map _).map_add _ _
 @[simp] lemma map_smul : f (c • x) = c • f x := (to_linear_map _).map_smul _ _
+
+lemma map_sum {ι : Type*} (s : finset ι) (g : ι → M) :
+  f (∑ i in s, g i) = ∑ i in s, f (g i) := f.to_linear_map.map_sum
 
 @[simp, norm_cast] lemma coe_coe : ((f : M →ₗ[R] M₂) : (M → M₂)) = (f : M → M₂) := rfl
 

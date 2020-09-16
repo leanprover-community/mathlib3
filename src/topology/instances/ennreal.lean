@@ -618,31 +618,13 @@ open finset
 lemma tendsto_sum_nat_add (f : ℕ → nnreal) (hf : summable f) :
   tendsto (λ i, ∑' k, f (k + i)) at_top (𝓝 0) :=
 begin
-  by_cases h : ∀ i, f i = 0,
-  { simp only [h, tsum_zero],
-    exact tendsto_const_nhds },
-  refine tendsto_order.2 ⟨λ a ha, false.elim (not_lt_zero' ha), λ a ha, _⟩,
-  have hf' := summable.has_sum hf,
-  rw [has_sum_iff_tendsto_nat, tendsto_order] at hf',
-  rcases hf' with ⟨hf', -⟩,
-  simp only [ge_iff_le, eventually_at_top] at ⊢ hf',
-  have tsum_sub_lt : (∑' i, f i) - a < ∑' i, f i,
-  { refine nnreal.sub_lt_self _ ha,
-    contrapose! h,
-    simpa only [←tsum_eq_zero_iff hf, le_zero_iff] using h },
-  rcases hf' _ tsum_sub_lt with ⟨n, hn⟩,
-  refine ⟨n, λ m hm, _⟩,
-  specialize hn m hm,
-  by_cases h : a ≤ ∑' i, f i,
-  { have sum_le_tsum : ∑ i in range m, f i ≤ ∑' i, f i := sum_le_tsum _ (λ _ _, zero_le _) hf,
-    rw [sub_lt_iff_lt_add h, add_comm, ←sub_lt_iff_lt_add sum_le_tsum] at hn,
-    convert hn,
-    symmetry,
-    rw [sub_eq_iff_eq_add sum_le_tsum, add_comm, sum_add_tsum_nat_add _ hf] },
-  { push_neg at h,
-    refine lt_of_le_of_lt _ h,
-    exact tsum_le_tsum_of_inj (λ k, k + m) (add_left_injective m) (λ _ _, zero_le _)
-      (λ _, le_refl _) (summable_nat_add _ hf _) hf }
+  have h₀ : (λ i, (∑' i, f i) - ∑ j in range i, f j) = λ i, ∑' (k : ℕ), f (k + i),
+  { ext1 i,
+    rw [sub_eq_iff_eq_add, sum_add_tsum_nat_add i hf, add_comm],
+    exact sum_le_tsum _ (λ _ _, zero_le _) hf },
+  have h₁ : tendsto (λ i : ℕ, ∑' i, f i) at_top (𝓝 (∑' i, f i)) := tendsto_const_nhds,
+  convert tendsto.sub h₁ (hf.has_sum.tendsto_sum_nat);
+  simp only [h₀, sub_self],
 end
 
 end nnreal

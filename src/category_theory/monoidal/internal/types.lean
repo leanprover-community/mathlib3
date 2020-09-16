@@ -73,7 +73,7 @@ The equivalence `Mon_ (Type u) ≌ Mon.{u}`
 is naturally compatible with the forgetful functors to `Type u`.
 -/
 def Mon_Type_equivalence_Mon_forget :
-  Mon_Type_equivalence_Mon.functor ⋙ forget Mon ≅ Mon_.forget :=
+  Mon_Type_equivalence_Mon.functor ⋙ forget Mon ≅ Mon_.forget (Type u) :=
 nat_iso.of_components (λ A, iso.refl _) (by tidy)
 
 instance Mon_Type_inhabited : inhabited (Mon_ (Type u)) :=

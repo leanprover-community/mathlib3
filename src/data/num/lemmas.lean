@@ -6,6 +6,7 @@ Author: Mario Carneiro
 import data.num.bitwise
 import data.int.char_zero
 import data.nat.gcd
+import data.nat.psub
 
 /-!
 # Properties of the binary representation of integers

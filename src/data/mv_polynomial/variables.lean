@@ -292,6 +292,10 @@ begin
     exact finset.union_subset (finset.subset.refl _) ih }
 end
 
+/--
+The variables of the product of a family of polynomials
+are a subset of the union of the sets of variables of each polynomial.
+-/
 lemma vars_prod {ι : Type*} {s : finset ι} (f : ι → mv_polynomial σ α) :
   (∏ i in s, f i).vars ⊆ s.bind (λ i, (f i).vars) :=
 begin

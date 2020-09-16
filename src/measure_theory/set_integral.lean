@@ -397,15 +397,14 @@ end measure_theory
 
 open measure_theory asymptotics metric
 
-variables [measurable_space E]
+variables [measurable_space E] [normed_group E]
 
 /-- Fundamental theorem of calculus for set integrals: if `μ` is a measure that is finite
 at a filter `l` and `f` is a measurable function that has a finite limit `b` at `l ⊓ μ.ae`,
 then `∫ x in s, f x ∂μ = μ s • b + o(μ s)` as `s` tends to `l.lift' powerset`. Since `μ s` is
 an `ennreal` number, we use `(μ s).to_real` in the actual statement. -/
 lemma filter.tendsto.integral_sub_linear_is_o_ae
-  [normed_group E] [normed_space ℝ E] [second_countable_topology E] [complete_space E]
-  [borel_space E]
+  [normed_space ℝ E] [second_countable_topology E] [complete_space E] [borel_space E]
   {μ : measure α} {l : filter α} [l.is_measurably_generated]
   {f : α → E} {b : E} (h : tendsto f (l ⊓ μ.ae) (𝓝 b)) (hfm : measurable f)
   (hμ : μ.finite_at_filter l) :
@@ -426,8 +425,7 @@ end
 
 /-- If a function is integrable at `𝓝[s] x` for each point `x` of a compact set `s`, then it is
 integrable on `s`. -/
-lemma is_compact.integrable_on_of_nhds_within
-  [topological_space α] [normed_group E] {μ : measure α} {s : set α}
+lemma is_compact.integrable_on_of_nhds_within [topological_space α] {μ : measure α} {s : set α}
   (hs : is_compact s) {f : α → E} (hfm : measurable f)
   (hf : ∀ x ∈ s, integrable_at_filter f (𝓝[s] x) μ) :
   integrable_on f s μ :=
@@ -437,7 +435,7 @@ is_compact.induction_on hs (integrable_on_empty hfm) (λ s t hst ht, ht.mono_set
 /-- A function `f` continuous on a compact set `s` is integrable on this set with respect to any
 locally finite measure. -/
 lemma continuous_on.integrable_on_compact [topological_space α] [opens_measurable_space α]
-  [t2_space α] [normed_group E] {μ : measure α} [locally_finite_measure μ]
+  [t2_space α] {μ : measure α} [locally_finite_measure μ]
   {s : set α} (hs : is_compact s)
   {f : α → E} (hfm : measurable f) (hf : continuous_on f s) :
   integrable_on f s μ :=
@@ -449,7 +447,7 @@ hs.integrable_on_of_nhds_within hfm $ λ x hx,
 measure. -/
 lemma continuous.integrable_on_compact
   [topological_space α] [opens_measurable_space α] [t2_space α]
-  [normed_group E] [borel_space E] {μ : measure α} [locally_finite_measure μ] {s : set α}
+  [borel_space E] {μ : measure α} [locally_finite_measure μ] {s : set α}
   (hs : is_compact s) {f : α → E} (hf : continuous f) :
   integrable_on f s μ :=
 hf.continuous_on.integrable_on_compact hs hf.measurable
@@ -460,8 +458,8 @@ then `∫ x in s, f x ∂μ = μ s • f a + o(μ s)` as `s` tends to `(𝓝 a).
 Since `μ s` is an `ennreal` number, we use `(μ s).to_real` in the actual statement. -/
 lemma continuous_at.integral_sub_linear_is_o_ae
   [topological_space α] [opens_measurable_space α]
-  [normed_group E] [normed_space ℝ E] [second_countable_topology E] [complete_space E]
-  [measurable_space E] [borel_space E]
+  [normed_space ℝ E] [second_countable_topology E] [complete_space E]
+  [borel_space E]
   {μ : measure α} [locally_finite_measure μ] {a : α}
   {f : α → E} (ha : continuous_at f a) (hfm : measurable f) :
   is_o (λ s, ∫ x in s, f x ∂μ - (μ s).to_real • f a) (λ s, (μ s).to_real) ((𝓝 a).lift' powerset) :=

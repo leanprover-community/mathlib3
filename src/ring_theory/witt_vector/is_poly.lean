@@ -275,6 +275,17 @@ def comp_right {g ψ f φ} (hg : is_poly₂ p g ψ) (hf : is_poly p f φ) :
   is_poly₂ p (λ R _Rcr x y, by exactI g x (f y)) _ :=
 hg.comp (id_is_poly p) hf
 
+def diag {f φ} (hf : is_poly₂ p f φ) :
+  is_poly p (λ R _Rcr x, by exactI f x x) (λ n, bind₁ (uncurry ![X, X]) (φ n)) :=
+{ coeff :=
+  begin
+    intros, funext n,
+    simp only [hf.coeff, peval, uncurry, aeval_bind₁],
+    apply eval₂_hom_congr rfl _ rfl,
+    ext ⟨i, k⟩, fin_cases i;
+    simp only [matrix.head_cons, aeval_X, matrix.cons_val_zero, matrix.cons_val_one],
+  end }
+
 include hp
 
 lemma ext' {f φ g ψ} (hf : is_poly₂ p f φ) (hg : is_poly₂ p g ψ)

@@ -61,6 +61,7 @@ end tactic
 namespace witt_vector
 open mv_polynomial
 
+open_locale classical
 noncomputable theory
 
 section
@@ -70,11 +71,11 @@ local attribute [semireducible] witt_vector
 /-- `witt_vector.select P x`, for a (decidable) predicate `P : ℕ → Prop` is the Witt vector
 whose `n`-th coefficient is `x.coeff n` if `P n` is true, and `0` otherwise.
 -/
-def select (P : ℕ → Prop) [decidable_pred P] (x : 𝕎 R) : 𝕎 R :=
+def select (P : ℕ → Prop) (x : 𝕎 R) : 𝕎 R :=
 mk p (λ k, if P k then x.coeff k else 0)
 
 section select
-variables (P : ℕ → Prop) [decidable_pred P]
+variables (P : ℕ → Prop)
 
 def select_poly (k : ℕ) : mv_polynomial ℕ ℤ := if P k then X k else 0
 
@@ -88,6 +89,44 @@ def select_is_poly : is_poly p (λ R _Rcr x, by exactI select P x) (select_poly 
     { rw [aeval_X] },
     { rw [alg_hom.map_zero] }
   end }
+
+include hp
+
+local attribute [ghost_simps] bind₁_X_left alg_hom.id_apply
+
+lemma add_select_select_not :
+  ∀ (x : 𝕎 R), select P x + select (λ i, ¬ P i) x = x :=
+begin
+  apply is_poly.ext' ((add_is_poly₂ p).comp (select_is_poly _) (select_is_poly _)).diag (id_is_poly p),
+  intro n,
+  suffices : (bind₁ (select_poly P)) (witt_polynomial p ℤ n) + (bind₁ (select_poly (λ i, ¬P i))) (witt_polynomial p ℤ n) = witt_polynomial p ℤ n,
+  { witt_simp; assumption },
+  simp only [witt_polynomial_eq_sum_C_mul_X_pow, select_poly, alg_hom.map_sum, alg_hom.map_pow,
+    alg_hom.map_mul, bind₁_X_right, bind₁_C_right, ← finset.sum_add_distrib, ← mul_add],
+  apply finset.sum_congr rfl,
+  intros, congr' 2,
+  split_ifs; simp only [zero_pow (pow_pos hp.pos _), add_zero, zero_add]
+end
+
+lemma coeff_add_of_disjoint (x y : 𝕎 R) (h : ∀ n, x.coeff n = 0 ∨ y.coeff n = 0) :
+  (x + y).coeff n = x.coeff n + y.coeff n :=
+begin
+  classical,
+  let P : ℕ → Prop := λ n, y.coeff n = 0,
+  let z := mk p (λ n, if P n then x.coeff n else y.coeff n),
+  have hx : select P z = x,
+  { ext1 n, rw [select, coeff_mk, coeff_mk],
+    split_ifs with hn, { refl }, { rw (h n).resolve_right hn } },
+  have hy : select (λ i, ¬ P i) z = y,
+  { ext1 n, rw [select, coeff_mk, coeff_mk],
+    split_ifs with hn, { exact hn.symm }, { refl } },
+  calc (x + y).coeff n = z.coeff n : by rw [← hx, ← hy, add_select_select_not P z]
+  ... = x.coeff n + y.coeff n : _,
+  dsimp [z],
+  split_ifs with hn,
+  { dsimp [P] at hn, rw [hn, add_zero] },
+  { rw [(h n).resolve_right hn, zero_add] }
+end
 
 end select
 

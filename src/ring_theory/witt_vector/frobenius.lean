@@ -292,6 +292,7 @@ begin
 end
 .
 
+@[ghost_simps]
 lemma bind₁_frobenius_poly_witt_polynomial (n : ℕ) :
   bind₁ (frobenius_poly p) (witt_polynomial p ℤ n) = (witt_polynomial p ℤ (n+1)) :=
 begin
@@ -323,15 +324,10 @@ variables (p)
 /-- `frobenius_fun` is tautologically a polynomial function.
 
 See also `frobenius_is_poly`. -/
-@[simps { fully_applied := ff }]
-def frobenius_fun_is_poly : is_poly p (λ R _Rcr, @frobenius_fun p R _ _Rcr) :=
-{ poly := frobenius_poly p,
-  coeff := by { introsI, funext n, apply coeff_frobenius_fun } }
+def frobenius_fun_is_poly : is_poly p (λ R _Rcr, @frobenius_fun p R _ _Rcr) (frobenius_poly p) :=
+⟨by { introsI, funext n, apply coeff_frobenius_fun }⟩
 
 variable {p}
-
-
-attribute [ghost_simps] frobenius_fun_is_poly_poly bind₁_frobenius_poly_witt_polynomial
 
 def frobenius : 𝕎 R →+* 𝕎 R :=
 { to_fun := frobenius_fun,
@@ -373,12 +369,8 @@ variables (p)
 /-- `frobenius_fun` is tautologically a polynomial function.
 
 TODO: Once `frobenius_fun` is bundled as a ring hom, upgrade this to use the bundled version. -/
-@[simps { fully_applied := ff }]
-def frobenius_is_poly : is_poly p (λ R _Rcr, @frobenius p R _ _Rcr) :=
-{ poly := frobenius_poly p,
-  coeff := by { introsI, funext n, apply coeff_frobenius_fun } }
-
-attribute [ghost_simps] frobenius_is_poly_poly
+def frobenius_is_poly : is_poly p (λ R _Rcr, @frobenius p R _ _Rcr) (frobenius_poly p) :=
+⟨by { introsI, funext n, apply coeff_frobenius_fun }⟩
 
 section char_p
 variables [char_p R p]

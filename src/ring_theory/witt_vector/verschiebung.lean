@@ -52,6 +52,8 @@ if n = 0 then 0 else X (n-1)
   verschiebung_poly 0 = 0 := rfl
 
 include hp
+
+@[ghost_simps]
 lemma bind₁_verschiebung_poly_witt_polynomial (n : ℕ) :
   bind₁ verschiebung_poly (witt_polynomial p ℤ n) =
   if n = 0 then 0 else p * witt_polynomial p ℤ (n-1) :=
@@ -86,10 +88,8 @@ omit hp
 /--
 `witt_vector.verschiebung` has polynomial structure given by `witt_vector.verschiebung_poly`.
 -/
-@[simps { fully_applied := ff }]
-def verschiebung_fun_is_poly : is_poly p (λ R _Rcr, @verschiebung_fun p R _Rcr) :=
-{ poly := verschiebung_poly,
-  coeff :=
+def verschiebung_fun_is_poly : is_poly p (λ R _Rcr, @verschiebung_fun p R _Rcr) verschiebung_poly :=
+{ coeff :=
   begin
     rintro R _Rcr x, resetI,
     funext n, cases n,
@@ -97,8 +97,6 @@ def verschiebung_fun_is_poly : is_poly p (λ R _Rcr, @verschiebung_fun p R _Rcr)
     { rw [verschiebung_poly, verschiebung_fun_coeff_succ, if_neg (n.succ_ne_zero),
           aeval_X, nat.succ_eq_add_one, nat.add_sub_cancel], }
   end }
-
-attribute [ghost_simps] verschiebung_fun_is_poly_poly bind₁_verschiebung_poly_witt_polynomial
 
 variable {p}
 include hp
@@ -128,10 +126,8 @@ omit hp
 /--
 `witt_vector.verschiebung` has polynomial structure given by `witt_vector.verschiebung_poly`.
 -/
-@[simps { fully_applied := ff }]
-def verschiebung_is_poly : is_poly p (λ R _Rcr, @verschiebung p R hp _Rcr) :=
-{ poly := verschiebung_poly,
-  coeff := (verschiebung_fun_is_poly p).coeff }
+def verschiebung_is_poly : is_poly p (λ R _Rcr, @verschiebung p R hp _Rcr) verschiebung_poly :=
+⟨(verschiebung_fun_is_poly p).coeff⟩
 
 include hp
 

@@ -121,27 +121,34 @@ coefficient of `f x` is given by evaluating `φₙ` at the coefficients of `x`.
 
 See also `witt_vector.is_poly₂` for the binary variant.
 -/
-structure is_poly (f : Π ⦃R : Type*⦄ [comm_ring R], witt_vector p R → 𝕎 R) :=
-(poly : ℕ → mv_polynomial ℕ ℤ)
-(coeff : ∀ ⦃R : Type*⦄ [comm_ring R] (x : 𝕎 R),
-  (f x).coeff = λ n, aeval x.coeff (poly n))
+structure is_poly (f : Π ⦃R⦄ [comm_ring R], witt_vector p R → 𝕎 R) (φ : ℕ → mv_polynomial ℕ ℤ) :=
+(coeff : ∀ ⦃R⦄ [comm_ring R] (x : 𝕎 R), (f x).coeff = λ n, aeval x.coeff (φ n))
 
 /-- The identity function on Witt vectors is a polynomial function. -/
-def id_is_poly : is_poly p (λ _ _, id) :=
-{ poly := X,
-  coeff := by { introsI, simp only [aeval_X, id] } }
+def id_is_poly : is_poly p (λ _ _, id) X :=
+⟨by { introsI, simp only [aeval_X, id] }⟩
+
+include hp
+
+/-- The additive negation is a polynomial function on Witt vectors. -/
+def neg_is_poly : is_poly p (λ R _, by exactI @has_neg.neg (𝕎 R) _)
+  (λ n, rename prod.snd (witt_neg p n)) :=
+{ coeff :=
+  begin
+    introsI, funext n,
+    rw [neg_coeff, aeval_eq_eval₂_hom, eval₂_hom_rename],
+    apply eval₂_hom_congr rfl _ rfl,
+    ext ⟨i, k⟩, fin_cases i, refl,
+  end }
+
 
 section zero_one
 /- To avoid a theory of 0-ary functions (a.k.a. constants)
 we model them as constant unary functions. -/
 
-include hp
-
 /-- The function that is constantly zero on Witt vectors is a polynomial function. -/
-@[simps { fully_applied := ff }]
-def zero_is_poly : is_poly p (λ _ _ _, by exactI 0) :=
-{ poly := 0,
-  coeff := by { introsI, funext n, simp only [pi.zero_apply, alg_hom.map_zero, zero_coeff] } }
+def zero_is_poly : is_poly p (λ _ _ _, by exactI 0) 0 :=
+⟨by { introsI, funext n, simp only [pi.zero_apply, alg_hom.map_zero, zero_coeff] }⟩
 
 @[simp] lemma bind₁_zero_witt_polynomial (n : ℕ) :
   bind₁ (0 : ℕ → mv_polynomial ℕ R) (witt_polynomial p R n) = 0 :=
@@ -167,10 +174,8 @@ begin
 end
 
 /-- The function that is constantly one on Witt vectors is a polynomial function. -/
-@[simps { fully_applied := ff }]
-def one_is_poly : is_poly p (λ _ _ _, by exactI 1) :=
-{ poly := one_poly,
-  coeff :=
+def one_is_poly : is_poly p (λ _ _ _, by exactI 1) one_poly :=
+{ coeff :=
   begin
     introsI, funext n, cases n,
     { simp only [one_poly, if_true, eq_self_iff_true, one_coeff_zero, alg_hom.map_one], },
@@ -179,6 +184,8 @@ def one_is_poly : is_poly p (λ _ _ _, by exactI 1) :=
 
 end zero_one
 
+omit hp
+
 /--
 A binary function `f : Π R, 𝕎 R → 𝕎 R → 𝕎 R` on Witt vectors
 is said to be *polynomial* if there is a family of polynomials `φₙ` over `ℤ` such that the `n`th
@@ -186,82 +193,65 @@ coefficient of `f x y` is given by evaluating `φₙ` at the coefficients of `x`
 
 See also `witt_vector.is_poly` for the unary variant.
 -/
-structure is_poly₂ (f : Π ⦃R : Type*⦄ [comm_ring R], witt_vector p R → 𝕎 R → 𝕎 R) :=
-(poly : ℕ → mv_polynomial (fin 2 × ℕ) ℤ)
-(coeff : ∀ ⦃R : Type*⦄ [comm_ring R] (x y : 𝕎 R),
-  (f x y).coeff = λ n, peval (poly n) ![x.coeff, y.coeff])
+structure is_poly₂ (f : Π ⦃R⦄ [comm_ring R], witt_vector p R → 𝕎 R → 𝕎 R)
+  (φ : ℕ → mv_polynomial (fin 2 × ℕ) ℤ) :=
+(coeff : ∀ ⦃R⦄ [comm_ring R] (x y : 𝕎 R), (f x y).coeff = λ n, peval (φ n) ![x.coeff, y.coeff])
 
 /-- Addition of Witt vectors is a polynomial function. -/
-@[simps { fully_applied := ff }]
-def add_is_poly₂ [fact p.prime] : is_poly₂ p (λ _ _, by exactI (+)) :=
-{ poly := witt_add p,
-  coeff := by { introsI, refl } }
+def add_is_poly₂ [fact p.prime] : is_poly₂ p (λ _ _, by exactI (+)) (witt_add p) :=
+⟨by { introsI, refl }⟩
 
 /-- Multiplication of Witt vectors is a polynomial function. -/
-@[simps { fully_applied := ff }]
-def mul_is_poly₂ [fact p.prime] : is_poly₂ p (λ _ _, by exactI (*)) :=
-{ poly := witt_mul p,
-  coeff := by { introsI, refl } }
+def mul_is_poly₂ [fact p.prime] : is_poly₂ p (λ _ _, by exactI (*)) (witt_mul p) :=
+⟨by { introsI, refl }⟩
 
 namespace is_poly
 
-instance : inhabited (is_poly p (λ _ _, id)) :=
+instance : inhabited (is_poly p (λ _ _, id) _) :=
 ⟨id_is_poly p⟩
 
 variables {p}
 
-lemma ext {f g} (hf : is_poly p f) (hg : is_poly p g)
-  (h : hf.poly = hg.poly) :
-  f = g :=
+lemma ext {f φ g ψ} (hf : is_poly p f φ) (hg : is_poly p g ψ) (h : φ = ψ) : f = g :=
 by { ext R _Rcr x n, rw [hf.coeff, hg.coeff, h] }
 
 /-- The composition of polynomial functions is polynomial. -/
-@[simps { fully_applied := ff }]
-def comp {g f} (hg : is_poly p g) (hf : is_poly p f) :
-  is_poly p (λ R _Rcr, @g R _Rcr ∘ @f R _Rcr) :=
-{ poly := λ n, bind₁ (hf.poly) (hg.poly n),
-  coeff := by { intros, simp only [aeval_bind₁, function.comp, hg.coeff, hf.coeff] } }
+def comp {g ψ f φ} (hg : is_poly p g ψ) (hf : is_poly p f φ) :
+  is_poly p (λ R _Rcr, @g R _Rcr ∘ @f R _Rcr) (λ n, bind₁ φ (ψ n)) :=
+⟨by { intros, simp only [aeval_bind₁, function.comp, hg.coeff, hf.coeff] }⟩
 
 /-- The composition of a polynomial function with a binary polynomial function is polynomial. -/
-@[simps { fully_applied := ff }]
-def comp₂ {g f} (hg : is_poly p g) (hf : is_poly₂ p f) :
-  is_poly₂ p (λ R _Rcr x y, by exactI g (f x y)) :=
-{ poly := λ n, bind₁ (hf.poly) (hg.poly n),
-  coeff := by { intros, simp only [peval, aeval_bind₁, function.comp, hg.coeff, hf.coeff] } }
+def comp₂ {g ψ f φ} (hg : is_poly p g ψ) (hf : is_poly₂ p f φ) :
+  is_poly₂ p (λ R _Rcr x y, by exactI g (f x y)) (λ n, bind₁ φ (ψ n)) :=
+⟨by { intros, simp only [peval, aeval_bind₁, function.comp, hg.coeff, hf.coeff] }⟩
 
 include hp
 
-lemma ext' {f g} (hf : is_poly p f) (hg : is_poly p g)
-  (h : ∀ n, bind₁ hf.poly (witt_polynomial p _ n) = bind₁ hg.poly (witt_polynomial p _ n)) :
-  ∀ (R : Type*) [_Rcr : comm_ring R] x, @f R _Rcr x = @g R _Rcr x :=
-begin
-  rw (is_poly.ext hf hg $ poly_eq_of_witt_polynomial_bind_eq p _ _ h),
-  intros, refl
-end
+lemma ext' {f φ g ψ} (hf : is_poly p f φ) (hg : is_poly p g ψ)
+  (h : ∀ n, bind₁ φ (witt_polynomial p _ n) = bind₁ ψ (witt_polynomial p _ n)) :
+  ∀ (R) [_Rcr : comm_ring R] (x : 𝕎 R), by exactI f x = g x :=
+by { rw (is_poly.ext hf hg $ poly_eq_of_witt_polynomial_bind_eq p _ _ h), intros, refl }
 
 end is_poly
 
 namespace is_poly₂
 
-instance [fact p.prime] : inhabited (is_poly₂ p _) :=
+instance [fact p.prime] : inhabited (is_poly₂ p _ _) :=
 ⟨add_is_poly₂ p⟩
 
 variables {p}
 
-lemma ext {f g} (hf : is_poly₂ p f) (hg : is_poly₂ p g)
-  (h : hf.poly = hg.poly) :
-  f = g :=
+lemma ext {f φ g ψ} (hf : is_poly₂ p f φ) (hg : is_poly₂ p g ψ) (h : φ = ψ) : f = g :=
 by { ext R _Rcr x n, rw [hf.coeff, hg.coeff, h] }
 
 /-- The composition of a binary polynomial function
 with two unary polynomial functions is polynomial. -/
-@[simps { fully_applied := ff }]
-def comp {h g f} (hh : is_poly₂ p h) (hf : is_poly p f) (hg : is_poly p g) :
-  is_poly₂ p (λ R _Rcr x y, by exactI h (f x) (g y)) :=
-{ poly := λ n, bind₁ (uncurry $
-            ![λ k, rename (prod.mk (0 : fin 2)) (hf.poly k),
-              λ k, rename (prod.mk (1 : fin 2)) (hg.poly k)]) (hh.poly n),
-  coeff :=
+def comp {h χ f φ g ψ} (hh : is_poly₂ p h χ) (hf : is_poly p f φ) (hg : is_poly p g ψ) :
+  is_poly₂ p (λ R _Rcr x y, by exactI h (f x) (g y))
+    (λ n, bind₁ (uncurry $
+            ![λ k, rename (prod.mk (0 : fin 2)) (φ k),
+              λ k, rename (prod.mk (1 : fin 2)) (ψ k)]) (χ n)) :=
+{ coeff :=
   begin
     intros,
     funext n,
@@ -275,38 +265,33 @@ def comp {h g f} (hh : is_poly₂ p h) (hf : is_poly p f) (hg : is_poly p g) :
 
 /-- The composition of a binary polynomial function
  with a unary polynomial function in the first argument is polynomial. -/
-def comp_left {g f} (hg : is_poly₂ p g) (hf : is_poly p f) :
-  is_poly₂ p (λ R _Rcr x y, by exactI g (f x) y) :=
+def comp_left {g ψ f φ} (hg : is_poly₂ p g ψ) (hf : is_poly p f φ) :
+  is_poly₂ p (λ R _Rcr x y, by exactI g (f x) y) _ :=
 hg.comp hf (id_is_poly p)
 
 /-- The composition of a binary polynomial function
  with a unary polynomial function in the second argument is polynomial. -/
-def comp_right {g f} (hg : is_poly₂ p g) (hf : is_poly p f) :
-  is_poly₂ p (λ R _Rcr x y, by exactI g x (f y)) :=
+def comp_right {g ψ f φ} (hg : is_poly₂ p g ψ) (hf : is_poly p f φ) :
+  is_poly₂ p (λ R _Rcr x y, by exactI g x (f y)) _ :=
 hg.comp (id_is_poly p) hf
 
 include hp
 
-lemma ext' {f g} (hf : is_poly₂ p f) (hg : is_poly₂ p g)
-  (h : ∀ n, bind₁ hf.poly (witt_polynomial p _ n) = bind₁ hg.poly (witt_polynomial p _ n)) :
-  ∀ (R : Type*) [_Rcr : comm_ring R] x y, @f R _Rcr x y = @g R _Rcr x y :=
-begin
-  rw (is_poly₂.ext hf hg $ poly_eq_of_witt_polynomial_bind_eq' p _ _ h),
-  intros, refl
-end
+lemma ext' {f φ g ψ} (hf : is_poly₂ p f φ) (hg : is_poly₂ p g ψ)
+  (h : ∀ n, bind₁ φ (witt_polynomial p _ n) = bind₁ ψ (witt_polynomial p _ n)) :
+  ∀ (R) [_Rcr : comm_ring R] (x y : 𝕎 R), by exactI f x y = g x y :=
+by { rw (is_poly₂.ext hf hg $ poly_eq_of_witt_polynomial_bind_eq' p _ _ h), intros, refl }
 
 end is_poly₂
 
-
 attribute [ghost_simps]
-      is_poly.comp_poly  zero_is_poly_poly one_is_poly_poly
       witt_structure_int_prop
       alg_hom.map_zero alg_hom.map_one bind₁_zero_witt_polynomial bind₁_one_poly_witt_polynomial
-      is_poly.comp₂_poly add_is_poly₂_poly is_poly₂.comp_poly mul_is_poly₂_poly
-      witt_add witt_mul
+      witt_add witt_mul witt_neg
       alg_hom.map_add alg_hom.map_mul bind₁_X_right function.uncurry bind₁_rename function.comp
       matrix.head_cons matrix.cons_val_one matrix.cons_val_zero
       if_true eq_self_iff_true if_false add_zero ring_hom.map_zero
       ring_hom.map_mul alg_hom.map_mul mul_add
       ring_hom.map_nat_cast alg_hom.map_nat_cast
+
 end witt_vector

@@ -113,9 +113,8 @@ omit hp
 
 /-- `witt_vector.init x` is polynomial in the coefficients of `x`. -/
 noncomputable
-def init_is_poly (n : ℕ) : is_poly p (λ R _Rcr x, @init p R _Rcr x n) :=
-{ poly := λ i, if i < n then X i else 0,
-  coeff :=
+def init_is_poly (n : ℕ) : is_poly p (λ R _Rcr x, @init p R _Rcr x n) (λ i, if i < n then X i else 0) :=
+{ coeff :=
   begin
     rintro R _Rcr x,
     funext i,
@@ -127,8 +126,9 @@ def init_is_poly (n : ℕ) : is_poly p (λ R _Rcr x, @init p R _Rcr x n) :=
 
 include hp
 
+@[ghost_simps]
 lemma bind₁_init_poly_witt_polynomial (n k : ℕ) :
-  bind₁ (init_is_poly p (n+1)).poly (witt_polynomial p ℤ k) =
+  bind₁ (λ i, if i < n then X i else 0) (witt_polynomial p ℤ k) =
     expand (p ^ (k - n)) (witt_polynomial p ℤ (min n k)) :=
 begin
   have aux : ∀ k : ℕ, p ^ k ≠ 0,

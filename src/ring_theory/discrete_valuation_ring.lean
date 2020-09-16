@@ -182,8 +182,7 @@ unique_factorization_monoid_of_exists_prime_of_factor $ λ x hx,
 begin
   use multiset.repeat p (classical.some (spec.2 hx)),
   split,
-  {
-    intros q hq,
+  { intros q hq,
     have hpq := multiset.eq_of_mem_repeat hq,
     rw hpq,
     refine ⟨spec.1.ne_zero, spec.1.not_unit, _⟩,
@@ -199,8 +198,7 @@ begin
     { simp only [hm, one_mul, pow_zero] at h ⊢, right, exact h },
     left,
     obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm,
-    apply dvd_mul_of_dvd_left (dvd_refl _) _,
-  },
+    apply dvd_mul_of_dvd_left (dvd_refl _) _ },
   { rw [multiset.prod_repeat], exact (classical.some_spec (spec.2 hx)), }
 end
 

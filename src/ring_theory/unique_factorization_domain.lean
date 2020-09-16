@@ -273,8 +273,7 @@ begin
         mul_comm, mul_comm p _, mul_assoc],
       simp, },
     apply mt is_unit_of_mul_is_unit_left (mt is_unit_of_mul_is_unit_left _),
-    apply (hs p (multiset.mem_cons_self _ _)).2.1,
-  },
+    apply (hs p (multiset.mem_cons_self _ _)).2.1 },
   simp only [mul_one, multiset.prod_cons, multiset.prod_zero, hs0] at *,
   exact ⟨associated.symm ⟨u, hu⟩, rfl⟩,
 end

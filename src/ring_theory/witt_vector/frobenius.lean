@@ -43,8 +43,9 @@ and bundle it into `witt_vector.frobenius`.
 mk_simp_attribute ghost_simps
 "Simplification rules for ghost equations"
 
+/-- A macro for a common simplification when rewriting with ghost component equations. -/
 meta def tactic.interactive.witt_simp : tactic unit :=
-`[simp only [← rename_bind₁, ← bind₁_bind₁] with ghost_simps]
+`[intro, simp only [← rename_bind₁, ← bind₁_bind₁] with ghost_simps]
 
 namespace witt_vector
 
@@ -353,7 +354,6 @@ def frobenius : 𝕎 R →+* 𝕎 R :=
     refine is_poly.ext'
       ((frobenius_fun_is_poly p).comp (zero_is_poly p))
       ((zero_is_poly p).comp (frobenius_fun_is_poly p)) _ _ 0,
-    intros n,
     witt_simp
   end,
   map_one' :=
@@ -361,7 +361,6 @@ def frobenius : 𝕎 R →+* 𝕎 R :=
     refine is_poly.ext'
       ((frobenius_fun_is_poly p).comp (one_is_poly p))
       ((one_is_poly p).comp (frobenius_fun_is_poly p)) _ _ 0,
-    intros n,
     witt_simp
   end,
   map_add' :=
@@ -369,7 +368,6 @@ def frobenius : 𝕎 R →+* 𝕎 R :=
     apply is_poly₂.ext'
       ((frobenius_fun_is_poly p).comp₂ (add_is_poly₂ p))
       ((add_is_poly₂ p).comp (frobenius_fun_is_poly p) (frobenius_fun_is_poly p)),
-    intro n,
     witt_simp
   end,
   map_mul' :=
@@ -377,7 +375,6 @@ def frobenius : 𝕎 R →+* 𝕎 R :=
     apply is_poly₂.ext'
       ((frobenius_fun_is_poly p).comp₂ (mul_is_poly₂ p))
       ((mul_is_poly₂ p).comp (frobenius_fun_is_poly p) (frobenius_fun_is_poly p)),
-    intro n,
     witt_simp
   end }
 

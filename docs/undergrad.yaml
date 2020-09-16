@@ -532,13 +532,13 @@ Measures and integral Calculus:
 # 11.
 Probability Theory:
   Definitions of a probability space:
-    probability measure:
+    probability measure: 'probability_measure'
     events:
     independent events:
-    sigma-algebra:
+    sigma-algebra: 'measurable_space'
     independent sigma-algebra:
     $0$-$1$ law:
-    Borel-Cantelli lemma:
+    Borel-Cantelli lemma: 'measure_limsup_eq_zero'
     conditional probability:
     law of total probability:
   Random variables and their laws:

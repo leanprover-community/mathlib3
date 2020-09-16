@@ -99,10 +99,42 @@ lemma ker_aeval_ring_hom'_unit_polynomial [field K] [vector_space K V]
   (aeval f (c : polynomial K)).ker = ⊥ :=
 begin
   rw polynomial.eq_C_of_degree_eq_zero (degree_coe_units c),
-  simp only [aeval_def, eval₂_ring_hom', ring_hom.of, ring_hom.coe_mk, eval₂_C],
+  simp only [aeval_def, eval₂_C],
   apply ker_algebra_map_End,
   apply coeff_coe_units_zero_ne_zero c
 end
+
+theorem aeval_apply_of_has_eigenvector [field K] [vector_space K V] {f : End K V}
+  {p : polynomial K} {μ : K} {x : V} (h : f.has_eigenvector μ x) :
+  aeval f p x = (p.eval μ) • x :=
+begin
+  apply p.induction_on,
+  { intro a, simp [module.algebra_map_End_apply] },
+  { intros p q hp hq, simp [hp, hq, add_smul] },
+  { intros n a hna,
+    rw [mul_comm, pow_succ, mul_assoc, alg_hom.map_mul, linear_map.mul_app, mul_comm, hna],
+    simp [algebra_map_End_apply, mem_eigenspace_iff.1 h.2, smul_smul, mul_comm] }
+end
+
+section minimal_polynomial
+
+variables [field K] [vector_space K V] [finite_dimensional K V] (f : End K V)
+
+protected theorem is_integral : is_integral K f :=
+is_integral_of_noetherian (by apply_instance) f
+
+theorem is_root_of_has_eigenvalue (μ : K) (h : f.has_eigenvalue μ) :
+  (minimal_polynomial f.is_integral).is_root μ :=
+begin
+  rcases (submodule.ne_bot_iff _).1 h with ⟨w, ⟨H, ne0⟩⟩,
+  have foo := @smul_eq_zero _ _ _ _ _ (eval μ (minimal_polynomial f.is_integral)) w,
+  rw [← aeval_apply_of_has_eigenvector ⟨ne0, H⟩, minimal_polynomial.aeval f.is_integral] at foo,
+  simp only [true_iff, eq_self_iff_true, linear_map.zero_apply] at foo,
+  cases foo, { rwa is_root },
+  exfalso, exact ne0 foo,
+end
+
+end minimal_polynomial
 
 /-- Every linear operator on a vector space over an algebraically closed field has
     an eigenvalue. (Axler's Theorem 2.1.) -/
@@ -119,8 +151,7 @@ begin
   have h_lin_dep : ¬ linear_independent K (λ n : ℕ, (f ^ n) v),
   { apply not_linear_independent_of_infinite, },
   -- Therefore, there must be a nonzero polynomial `p` such that `p(f) v = 0`.
-  obtain ⟨p, ⟨h_mon, h_eval_p⟩⟩ : is_integral K f
-    := is_integral_of_noetherian (by apply_instance) f,
+  obtain ⟨p, ⟨h_mon, h_eval_p⟩⟩ := f.is_integral,
   have h_eval_p_not_unit : aeval f p ∉ is_unit.submonoid (End K V),
   { rw [is_unit.mem_submonoid_iff, linear_map.is_unit_iff, linear_map.ker_eq_bot'],
     intro h,
@@ -324,38 +355,6 @@ lemma generalized_eigenspace_eq_generalized_eigenspace_findim_of_le
   (f : End K V) (μ : K) {k : ℕ} (hk : findim K V ≤ k) :
   f.generalized_eigenspace μ k = f.generalized_eigenspace μ (findim K V) :=
 ker_pow_eq_ker_pow_findim_of_le hk
-
-theorem aeval_apply_of_has_eigenvector [field K] [vector_space K V] {f : End K V}
-  {p : polynomial K} {μ : K} {x : V} (h : f.has_eigenvector μ x) :
-  aeval f p x = (p.eval μ) • x :=
-begin
-  apply p.induction_on,
-  { intro a, simp [module.algebra_map_End_apply] },
-  { intros p q hp hq, simp [hp, hq, add_smul] },
-  { intros n a hna,
-    rw [mul_comm, pow_succ, mul_assoc, alg_hom.map_mul, linear_map.mul_app, mul_comm, hna],
-    simp [algebra_map_End_apply, mem_eigenspace_iff.1 h.2, smul_smul, mul_comm] }
-end
-
-section minimal_polynomial
-
-variables [field K] [vector_space K V] [finite_dimensional K V] (f : End K V)
-
-theorem is_integral : is_integral K f :=
-is_integral_of_noetherian (by apply_instance) f
-
-theorem is_root_of_has_eigenvalue (μ : K) (h : f.has_eigenvalue μ) :
-  (minimal_polynomial f.is_integral).is_root μ :=
-begin
-  rcases (submodule.ne_bot_iff _).1 h with ⟨w, ⟨H, ne0⟩⟩,
-  have foo := @smul_eq_zero _ _ _ _ _ (eval μ (minimal_polynomial f.is_integral)) w,
-  rw [← aeval_apply_of_has_eigenvector ⟨ne0, H⟩, minimal_polynomial.aeval f.is_integral] at foo,
-  simp only [true_iff, eq_self_iff_true, linear_map.zero_apply] at foo,
-  cases foo, { rwa is_root },
-  exfalso, exact ne0 foo,
-end
-
-end minimal_polynomial
 
 /-- If `f` maps a subspace `p` into itself, then the generalized eigenspace of the restriction
     of `f` to `p` is the part of the generalized eigenspace of `f` that lies in `p`. -/

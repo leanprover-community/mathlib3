@@ -232,6 +232,13 @@ by simp [polynomial.ext_iff, f.map_eq_zero, coeff_map]
 lemma map_ne_zero [field k] {f : R →+* k} (hp : p ≠ 0) : p.map f ≠ 0 :=
 mt (map_eq_zero f).1 hp
 
+lemma mem_roots_of_map [field k] {f : R →+* k} {x : k} (hp : p ≠ 0) : x ∈ (p.map f).roots ↔ p.eval₂ f x = 0 :=
+begin
+  rw mem_roots (show p.map f ≠ 0, by exact map_ne_zero hp),
+  dsimp only [is_root],
+  rw polynomial.eval_map,
+end
+
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),
   have p.coeff 1 ≠ 0,

@@ -104,7 +104,7 @@ begin
     cases hx with a ha,
     rw h_roots a at ha,
     exact ha.2.symm,
-    rw polynomial.mem_roots (show polynomial.map ϕ h ≠ 0, by exact polynomial.map_ne_zero h_ne_zero),
+    rw [polynomial.mem_roots_of_map h_ne_zero,←polynomial.eval_map],
     cases multiset.exists_cons_of_mem ha.1 with y hy,
     simp [hs, hy],
   end),
@@ -127,6 +127,11 @@ end
 
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
+example (x y z : F) (hz : z ≠ 0) (h : x * z = y) : x = y / z :=
+begin
+  exact (eq_div_iff hz).mpr h,
+end
+
 lemma primitive_element_two_inf_key (α β : E) [F_sep : is_separable F E] (F_inf : infinite F) :
   ∃ c : F, β ∈ F⟮α + (algebra_map F E) c * β⟯ :=
 begin
@@ -144,7 +149,7 @@ begin
   use c,
   let γ := α+(ιFE c)*β,
   change β ∈ F⟮γ⟯,
-  let f' := (f.map ιFE).comp(polynomial.C γ-(polynomial.C (ιFE c)) * (polynomial.X)),
+  let f' := (f.map ιFE).comp(polynomial.C γ-(polynomial.C (ιFE c))*(polynomial.X)),
   let h := euclidean_domain.gcd f' g',
   have h_sep : h.separable := polynomial.separable_gcd_right f' g' (polynomial.separable.map hg),
   have h_ne_zero : h ≠ 0,
@@ -153,42 +158,33 @@ begin
     apply polynomial.map_monic_ne_zero (minimal_polynomial.monic hβ) h_eq_zero.2, },
   have h_root : h.eval β = 0,
   { apply polynomial.gcd_eval_zero,
-    rw [polynomial.eval_comp, polynomial.eval_sub, polynomial.eval_mul],
-    rw [polynomial.eval_C, polynomial.eval_C, polynomial.eval_X, add_sub_cancel],
-    repeat { rw [polynomial.eval_map, ←polynomial.aeval_def, minimal_polynomial.aeval], }, },
+    { rw [polynomial.eval_comp,polynomial.eval_sub,polynomial.eval_mul,polynomial.eval_C,
+          polynomial.eval_C,polynomial.eval_X,add_sub_cancel,
+          polynomial.eval_map,←polynomial.aeval_def, minimal_polynomial.aeval] },
+    { rw [polynomial.eval_map,←polynomial.aeval_def, minimal_polynomial.aeval] } },
   have h_splits : polynomial.splits (algebra_map E E') h :=
     polynomial.splits_of_splits_of_dvd (algebra_map E E')
       (polynomial.map_ne_zero (minimal_polynomial.ne_zero hβ))
       (polynomial.splitting_field.splits g') (euclidean_domain.gcd_dvd_right f' g'),
   have h_roots : ∀ x ∈ (h.map ιEE').roots, x = algebra_map E E' β,
   { intros x hx,
-    rw polynomial.mem_roots (show h.map ιEE' ≠ 0, by exact polynomial.map_ne_zero h_ne_zero) at hx,
-    dsimp [polynomial.is_root] at hx,
-    rw polynomial.eval_map at hx,
-    specialize hc _ (begin
-      rw polynomial.mem_roots (show f.map ιFE' ≠ 0, by exact polynomial.map_ne_zero (minimal_polynomial.ne_zero hα)),
-      dsimp [polynomial.is_root],
-      rw polynomial.eval_map,
+    rw polynomial.mem_roots_of_map h_ne_zero at hx,
+    specialize hc ((ιEE' γ) - (ιFE' c) * x) (begin
+      rw [polynomial.mem_roots_of_map (minimal_polynomial.ne_zero hα),←polynomial.eval₂_map],
       have f_root : f'.eval₂ (algebra_map E E') x = 0 := polynomial.gcd_root_left f' g' x hx,
-      simp only [polynomial.eval₂_map,polynomial.eval₂_comp,polynomial.eval₂_sub,polynomial.eval₂_mul,polynomial.eval₂_C,polynomial.eval₂_X] at f_root,
+      rw [polynomial.eval₂_comp,polynomial.eval₂_sub,polynomial.eval₂_mul,polynomial.eval₂_C,
+          polynomial.eval₂_C,polynomial.eval₂_X] at f_root,
       exact f_root,
     end),
     specialize hc x (begin
-      rw polynomial.mem_roots (show g.map ιFE' ≠ 0, by exact polynomial.map_ne_zero (minimal_polynomial.ne_zero hβ)),
-      dsimp [polynomial.is_root],
-      rw polynomial.eval_map,
-      have g_root : g'.eval₂ (algebra_map E E') x = 0 := polynomial.gcd_root_right f' g' x hx,
-      simp only [polynomial.eval₂_map] at g_root,
-      exact g_root,
+      rw [polynomial.mem_roots_of_map (minimal_polynomial.ne_zero hβ),←polynomial.eval₂_map],
+      exact polynomial.gcd_root_right f' g' x hx,
     end),
     by_contradiction,
     apply hc a,
-    dsimp [ιEE'],
-    rw [neg_sub, ring_hom.map_add, ←sub_add, ←sub_sub, sub_self, zero_sub, neg_add_eq_sub, ring_hom.map_mul, ←mul_sub],
-    symmetry,
-    apply mul_div_cancel,
-    rw sub_ne_zero,
-    exact a, },
+    apply (eq_div_iff (sub_ne_zero.mpr a)).mpr,
+    simp only [ring_hom.map_add,ring_hom.map_mul,ring_hom.comp_apply],
+    ring, },
   let p := euclidean_domain.gcd
     ((f.map(algebra_map F F⟮γ⟯)).comp(polynomial.C (field.adjoin_simple.gen F γ)-(polynomial.C ↑c) * (polynomial.X)))
     (g.map(algebra_map F F⟮γ⟯)),

@@ -68,7 +68,7 @@ variables (p)
 @[simps { fully_applied := ff }]
 def mul_n_is_poly (n : ℕ) : is_poly p (λ R _Rcr x, by exactI x * n) :=
 { poly := witt_mul_n p n,
-  coeff := λ k R _Rcr x, by exactI mul_n_coeff n x k }
+  coeff := λ R _Rcr x, by { funext k, exactI mul_n_coeff n x k } }
 
 lemma bind₁_witt_mul_n_witt_polynomial (n k : ℕ) :
   bind₁ (witt_mul_n p n) (witt_polynomial p ℤ k) = n * witt_polynomial p ℤ k :=
@@ -89,7 +89,7 @@ end
 lemma frobenius_fun_comp_verschiebung :
   (frobenius_fun ∘ verschiebung : 𝕎 R → 𝕎 R) = λ x, x * p :=
 begin
-  have := is_poly.ext' ((frobenius_is_poly p).comp (verschiebung_is_poly p)) (mul_n_is_poly p p) _,
+  have := is_poly.ext' ((frobenius_fun_is_poly p).comp (verschiebung_is_poly p)) (mul_n_is_poly p p) _,
   { rw [function.funext_iff] at this,
     specialize this R,
     rw [function.funext_iff] at this,

@@ -157,8 +157,8 @@ def verschiebung_is_poly : is_poly p (λ R _Rcr, @verschiebung p R hp _Rcr) :=
 { poly := verschiebung_poly,
   coeff :=
   begin
-    rintro n R _Rcr x, resetI,
-    cases n,
+    rintro R _Rcr x, resetI,
+    funext n, cases n,
     { simp only [verschiebung_poly, verschiebung_coeff_zero, if_pos rfl, alg_hom.map_zero] },
     { rw [verschiebung_poly, verschiebung_coeff_succ, if_neg (n.succ_ne_zero),
           aeval_X, nat.succ_eq_add_one, nat.add_sub_cancel], }

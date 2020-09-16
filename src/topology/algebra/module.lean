@@ -225,6 +225,9 @@ variables (c : R) (f g : M →L[R] M₂) (h : M₂ →L[R] M₃) (x y z : M)
 @[simp] lemma map_add  : f (x + y) = f x + f y := (to_linear_map _).map_add _ _
 @[simp] lemma map_smul : f (c • x) = c • f x := (to_linear_map _).map_smul _ _
 
+lemma map_sum {ι : Type*} (s : finset ι) (g : ι → M) :
+  f (∑ i in s, g i) = ∑ i in s, f (g i) := f.to_linear_map.map_sum
+
 @[simp, norm_cast] lemma coe_coe : ((f : M →ₗ[R] M₂) : (M → M₂)) = (f : M → M₂) := rfl
 
 /-- The continuous map that is constantly zero. -/
@@ -451,7 +454,8 @@ rfl
 variables [topological_space R] [topological_semimodule R M₂]
 
 /-- The linear map `λ x, c x • f`.  Associates to a scalar-valued linear map and an element of
-`M₂` the `M₂`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `M₂`) -/
+`M₂` the `M₂`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `M₂`).
+See also `continuous_linear_map.smul_rightₗ` and `continuous_linear_map.smul_rightL`. -/
 def smul_right (c : M →L[R] R) (f : M₂) : M →L[R] M₂ :=
 { cont := c.2.smul continuous_const,
   ..c.to_linear_map.smul_right f }
@@ -652,6 +656,13 @@ instance : module R (M →L[R] M₂) :=
 
 instance : algebra R (M₂ →L[R] M₂) :=
 algebra.of_semimodule' (λ c f, ext $ λ x, rfl) (λ c f, ext $ λ x, f.map_smul c x)
+
+/-- Given `c : E →L[𝕜] 𝕜`, `c.smul_rightₗ` is the linear map from `F` to `E →L[𝕜] F`
+sending `f` to `λ e, c e • f`. See also `continuous_linear_map.smul_rightL`. -/
+def smul_rightₗ (c : M →L[R] R) : M₂ →ₗ[R] (M →L[R] M₂) :=
+{ to_fun := c.smul_right,
+  map_add' := λ x y, by { ext e, simp [smul_add] },
+  map_smul' := λ a x, by { ext e, simp [smul_comm] } }
 
 end comm_ring
 

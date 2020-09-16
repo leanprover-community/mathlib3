@@ -92,6 +92,8 @@ by { op_induction U, cases U, simp only [id_c], dsimp, simp, }
   (α ≫ β).c.app U = (β.c).app U ≫ (α.c).app (op ((opens.map (β.base)).obj (unop U))) ≫
     (Top.presheaf.pushforward.comp _ _ _).inv.app U := rfl
 
+variables (C)
+
 /-- The forgetful functor from `SheafedSpace` to `Top`. -/
 def forget : SheafedSpace C ⥤ Top :=
 { obj := λ X, (X : Top.{v}),
@@ -109,6 +111,24 @@ def restrict {U : Top} (X : SheafedSpace C)
     ((is_limit.postcompose_inv_equiv _ _).inv_fun (X.sheaf_condition _))
     (sheaf_condition.fork.iso_of_open_embedding h 𝒰).symm,
   ..X.to_PresheafedSpace.restrict f h }
+
+/--
+The global sections, notated Gamma.
+-/
+def Γ : (SheafedSpace C)ᵒᵖ ⥤ C :=
+forget_to_PresheafedSpace.op ⋙ PresheafedSpace.Γ
+
+lemma Γ_def : (Γ : _ ⥤ C) = forget_to_PresheafedSpace.op ⋙ PresheafedSpace.Γ := rfl
+
+@[simp] lemma Γ_obj (X : (SheafedSpace C)ᵒᵖ) : Γ.obj X = (unop X).presheaf.obj (op ⊤) := rfl
+
+lemma Γ_obj_op (X : SheafedSpace C) : Γ.obj (op X) = X.presheaf.obj (op ⊤) := rfl
+
+@[simp] lemma Γ_map {X Y : (SheafedSpace C)ᵒᵖ} (f : X ⟶ Y) :
+  Γ.map f = f.unop.c.app (op ⊤) ≫ (unop Y).presheaf.map (opens.le_map_top _ _).op := rfl
+
+lemma Γ_map_op {X Y : SheafedSpace C} (f : X ⟶ Y) :
+  Γ.map f.op = f.c.app (op ⊤) ≫ X.presheaf.map (opens.le_map_top _ _).op := rfl
 
 end SheafedSpace
 

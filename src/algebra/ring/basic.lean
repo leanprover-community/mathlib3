@@ -588,12 +588,6 @@ protected def function.surjective.comm_ring [has_zero β] [has_one β] [has_add 
 
 local attribute [simp] add_assoc add_comm add_left_comm mul_comm
 
-lemma mul_self_sub_mul_self_eq (a b : α) : a * a - b * b = (a + b) * (a - b) :=
-by simp [right_distrib, left_distrib, sub_eq_add_neg]
-
-lemma mul_self_sub_one_eq (a : α) : a * a - 1 = (a + 1) * (a - 1) :=
-by rw [← mul_self_sub_mul_self_eq, mul_one]
-
 theorem dvd_neg_of_dvd (h : a ∣ b) : (a ∣ -b) :=
 dvd.elim h
   (assume c, assume : b = a * c,
@@ -630,6 +624,9 @@ theorem two_dvd_bit1 : 2 ∣ bit1 a ↔ (2 : α) ∣ 1 := (dvd_add_iff_right (@t
 /-- Representation of a difference of two squares in a commutative ring as a product. -/
 theorem mul_self_sub_mul_self (a b : α) : a * a - b * b = (a + b) * (a - b) :=
 by rw [add_mul, mul_sub, mul_sub, mul_comm a b, sub_add_sub_cancel]
+
+lemma mul_self_sub_one (a : α) : a * a - 1 = (a + 1) * (a - 1) :=
+by rw [← mul_self_sub_mul_self, mul_one]
 
 /-- An element a of a commutative ring divides the additive inverse of an element b iff a
   divides b. -/

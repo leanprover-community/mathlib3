@@ -98,6 +98,8 @@ def verschiebung_fun_is_poly : is_poly p (λ R _Rcr, @verschiebung_fun p R _Rcr)
           aeval_X, nat.succ_eq_add_one, nat.add_sub_cancel], }
   end }
 
+attribute [ghost_simps] verschiebung_fun_is_poly_poly bind₁_verschiebung_poly_witt_polynomial
+
 variable {p}
 include hp
 
@@ -118,13 +120,7 @@ def verschiebung : 𝕎 R →+ 𝕎 R :=
       ((verschiebung_fun_is_poly p).comp₂ (add_is_poly₂ p))
       ((add_is_poly₂ p).comp (verschiebung_fun_is_poly p) (verschiebung_fun_is_poly p)),
     intro n,
-    by_cases hn : n = 0;
-    simp only [hn, is_poly.comp₂_poly, verschiebung_fun_is_poly_poly, add_is_poly₂_poly, is_poly₂.comp_poly,
-      ← bind₁_bind₁, bind₁_verschiebung_poly_witt_polynomial, witt_add, witt_structure_int_prop,
-      alg_hom.map_add, bind₁_X_right, function.uncurry, bind₁_rename, function.comp,
-      matrix.head_cons, matrix.cons_val_one, matrix.cons_val_zero, ← rename_bind₁,
-      add_zero, if_true, ring_hom.map_zero, eq_self_iff_true, alg_hom.map_zero,
-      ring_hom.map_nat_cast, alg_hom.map_nat_cast, if_false, ring_hom.map_mul, alg_hom.map_mul, mul_add],
+    by_cases hn : n = 0; witt_simp [hn],
   end }
 
 omit hp

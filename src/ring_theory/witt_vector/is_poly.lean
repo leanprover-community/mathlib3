@@ -40,6 +40,30 @@ or by redoing (and hopefully golfing) the computations in `ring_theory.witt_vect
 
 -/
 
+/-
+This tactic is used later in the development for certain simplifications.
+We define it here so it is a shared import.
+-/
+
+mk_simp_attribute ghost_simps
+"Simplification rules for ghost equations"
+#check tactic.interactive.simp_arg_type.has_to_string
+namespace tactic
+namespace interactive
+setup_tactic_parser
+/-- A macro for a common simplification when rewriting with ghost component equations. -/
+meta def witt_simp (lems : parse simp_arg_list) : tactic unit :=
+do tactic.try tactic.intro1,
+   --lems ← simp_lemmas.add_simp lems `rename_bind₁ tt,
+   simp none tt
+     (lems ++ [simp_arg_type.symm_expr ``(mv_polynomial.rename_bind₁),
+               simp_arg_type.symm_expr ``(mv_polynomial.bind₁_bind₁)])
+     [`ghost_simps] (loc.ns [none])
+-- `[try {intro}, simp only [← rename_bind₁, ← bind₁_bind₁] with ghost_simps]
+
+end interactive
+end tactic
+
 namespace witt_vector
 
 variables {p : ℕ} {R S σ idx : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
@@ -273,4 +297,16 @@ end
 
 end is_poly₂
 
+
+attribute [ghost_simps]
+      is_poly.comp_poly  zero_is_poly_poly one_is_poly_poly
+      witt_structure_int_prop
+      alg_hom.map_zero alg_hom.map_one bind₁_zero_witt_polynomial bind₁_one_poly_witt_polynomial
+      is_poly.comp₂_poly add_is_poly₂_poly is_poly₂.comp_poly mul_is_poly₂_poly
+      witt_add witt_mul
+      alg_hom.map_add alg_hom.map_mul bind₁_X_right function.uncurry bind₁_rename function.comp
+      matrix.head_cons matrix.cons_val_one matrix.cons_val_zero
+      if_true eq_self_iff_true if_false add_zero ring_hom.map_zero
+      ring_hom.map_mul alg_hom.map_mul mul_add
+      ring_hom.map_nat_cast alg_hom.map_nat_cast
 end witt_vector

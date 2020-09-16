@@ -1211,11 +1211,11 @@ apply_nolint multiplicity.finite doc_blame
 -- ring_theory/ring_invo.lean
 apply_nolint ring_invo.id doc_blame
 
--- ring_theory/unique_factorization_monoid.lean
+-- ring_theory/unique_factorization_domain.lean
 apply_nolint associates.factor_set.prod doc_blame
 apply_nolint associates.factors doc_blame
 apply_nolint associates.factors' doc_blame
-apply_nolint unique_factorization_monoid.of_unique_irreducible_factorization doc_blame
+apply_nolint unique_factorization_domain.of_unique_irreducible_factorization doc_blame
 apply_nolint unique_irreducible_factorization doc_blame has_inhabited_instance
 
 -- set_theory/cofinality.lean

@@ -233,7 +233,6 @@ begin
   assumption,
 end
 
-namespace ring
 
 --abstract to modules(?)
 --better name
@@ -241,7 +240,7 @@ namespace ring
 lemma local_ideal_char (S : submonoid R) (f : localization_map S $ localization S) : ∀(I : ideal f.codomain), ∃(I' : ideal R), ideal.map f.to_map I' = I :=
   λ (I : ideal f.codomain), Exists.intro (I.comap f.to_map) (f.map_comap I)
 
-lemma comap_strict_iff (S : submonoid R) (f : localization_map S $ localization S) (a b : ideal f.codomain) : a.comap f.to_map < b.comap f.to_map ↔ a < b :=
+lemma comap_lt_iff_lt (S : submonoid R) (f : localization_map S $ localization S) (a b : ideal f.codomain) : a.comap f.to_map < b.comap f.to_map ↔ a < b :=
 begin
   split,
   { intro hab,
@@ -275,16 +274,16 @@ begin
     exact (mul_unit_mem_iff_mem a (f.map_units' z.snd)).mp hxa }
 end
 
---better name
+--change to localization_map.rel_embedding
 lemma local_rel_emb (S : submonoid R) (f : localization_map S $ localization S) : (gt : ideal f.codomain → ideal f.codomain → Prop) ↪r (gt : ideal R → ideal R → Prop) :=
 begin
   refine {to_embedding := {to_fun := comap f.to_map, inj' := f.order_embedding.inj'}, map_rel_iff' := _},
   intros,
-  exact (comap_strict_iff R S f b a).symm,
+  exact (comap_lt_iff_lt R S f b a).symm,
 end
 
---better name
-lemma noetherian_local [is_noetherian_ring R] (S : submonoid R) (f : localization_map S $ localization S) : is_noetherian_ring f.codomain :=
+--localization_map.is_noetherian_of_noetherian
+lemma is_noetherian_of_noetherian [is_noetherian_ring R] (S : submonoid R) (f : localization_map S $ localization S) : is_noetherian_ring f.codomain :=
 begin
   unfold is_noetherian_ring,
   have a : is_noetherian R R, assumption,
@@ -294,12 +293,25 @@ begin
   exact ⟨rel_embedding.trans a (local_rel_emb R S f)⟩,
 end
 
+--generalize to complements?
+lemma local_top_of_gt_prime (P I : ideal R) [P.is_prime] (f : localization_map.at_prime (localization.at_prime P) P) (hPI : P < I) : I.map f.to_map = ⊤ :=
+begin
+  rcases set.exists_of_ssubset hPI with ⟨x, hxt, hxs⟩,
+  have hxi' : f.to_fun x ∈ I.map f.to_map := by tidy, --avoid tidy
+  exact eq_top_of_is_unit_mem (I.map f.to_map) hxi' (f.map_units' ⟨x, hxs⟩), --use constructors for val and property for subtypes!
+end
 
-end ring
 
 
+--integral closure
 
 
+lemma is_int_closed_of_int_closed (S : submonoid A) (f : localization_map S $ localization S) (hR : integral_closure A f.codomain = ⊥) : false :=
+begin
+
+  sorry,
+
+end
 
 
 

@@ -205,7 +205,7 @@ else
     have ht : multiset.rel associated
       (factors (f.map i)) (s.map (λ a : β, (X : polynomial β) - C a)) :=
     factors_unique
-      (λ p hp, irreducible_factors _ hp)
+      (λ p hp, irreducible_of_factor _ hp)
       (λ p' m, begin
           obtain ⟨a,m,rfl⟩ := multiset.mem_map.1 m,
           exact irreducible_of_degree_eq_one (degree_X_sub_C _),

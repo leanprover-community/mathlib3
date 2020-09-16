@@ -15,7 +15,7 @@ and `-∫ x in Ioc b a, f x ∂μ` if `b ≤ a`. We prove a few simple propertie
 of the first part of the
 [fundamental theorem of calculus](https://en.wikipedia.org/wiki/Fundamental_theorem_of_calculus).
 Recall that it states that the function `(u, v) ↦ ∫ x in u..v, f x` has derivative
-`(δu, δv) ↦ δv • f b - δu • f a` at `(a, b)` provided that `f` is continuous at `a` and `b`. 
+`(δu, δv) ↦ δv • f b - δu • f a` at `(a, b)` provided that `f` is continuous at `a` and `b`.
 
 ## Main statements
 
@@ -129,7 +129,8 @@ open measure_theory set classical filter
 
 open_locale classical topological_space filter
 
-variables {α β 𝕜 E F : Type*} [decidable_linear_order α] [measurable_space α] [normed_group E]
+variables {α β 𝕜 E F : Type*} [decidable_linear_order α] [measurable_space α]
+  [measurable_space E] [normed_group E]
 
 /-!
 ### Integrability at an interval
@@ -151,8 +152,8 @@ variables {f : α → E} {a b c : α} {μ : measure α}
 @[symm] lemma symm (h : interval_integrable f μ a b) : interval_integrable f μ b a :=
 h.symm
 
-@[refl] lemma refl : interval_integrable f μ a a :=
-by split; simp
+@[refl] lemma refl (hf : measurable f) : interval_integrable f μ a a :=
+by split; simp [hf]
 
 @[trans] lemma trans  (hab : interval_integrable f μ a b)
   (hbc : interval_integrable f μ b c) :
@@ -160,19 +161,19 @@ by split; simp
 ⟨(hab.1.union hbc.1).mono_set Ioc_subset_Ioc_union_Ioc,
   (hbc.2.union hab.2).mono_set Ioc_subset_Ioc_union_Ioc⟩
 
-lemma neg (h : interval_integrable f μ a b) : interval_integrable (-f) μ a b :=
+lemma neg [borel_space E] (h : interval_integrable f μ a b) : interval_integrable (-f) μ a b :=
 ⟨h.1.neg, h.2.neg⟩
 
 end
 
-lemma smul [normed_field 𝕜] [normed_space 𝕜 E] {f : α → E} {a b : α} {μ : measure α}
+lemma smul [borel_space E] [normed_field 𝕜] [normed_space 𝕜 E] {f : α → E} {a b : α} {μ : measure α}
   (h : interval_integrable f μ a b) (r : 𝕜) :
   interval_integrable (r • f) μ a b :=
 ⟨h.1.smul r, h.2.smul r⟩
 
 variables [measurable_space E] [opens_measurable_space E] {f g : α → E} {a b : α} {μ : measure α}
 
-lemma add (hfm : measurable f) (hfi : interval_integrable f μ a b)
+lemma add [second_countable_topology E] (hfm : measurable f) (hfi : interval_integrable f μ a b)
   (hgm : measurable g) (hgi : interval_integrable g μ a b) :
   interval_integrable (f + g) μ a b :=
 ⟨hfi.1.add hfm hgm hgi.1, hfi.2.add hfm hgm hgi.2⟩

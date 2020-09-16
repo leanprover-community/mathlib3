@@ -160,6 +160,10 @@ instance : has_zero (fractional_ideal f) := ⟨(0 : ideal R)⟩
 @[simp] lemma coe_zero : ↑(0 : fractional_ideal f) = (⊥ : submodule R f.codomain) :=
 submodule.ext $ λ _, mem_zero_iff
 
+lemma coe_nonzero_of_nonzero {I : ideal R} : I ≠ (0 : ideal R) ↔ ↑ I ≠ (0 : fractional_ideal f) :=
+begin sorry,
+end
+
 lemma coe_ne_bot_iff_nonzero {I : fractional_ideal f} :
   ↑I ≠ (⊥ : submodule R f.codomain) ↔ I ≠ 0 :=
 ⟨ λ h h', h (by simp [h']),
@@ -666,10 +670,25 @@ lemma mem_div_iff_of_nonzero {I J : fractional_ideal g} (h : J ≠ 0) {x} :
   x ∈ I / J ↔ ∀ y ∈ J, x * y ∈ I :=
 by { rw div_nonzero h, exact submodule.mem_div_iff_forall_mul_mem }
 
-lemma le_div_iff_of_nonzero {I J J' : fractional_ideal g} (hK : J' ≠ 0) :
+lemma div_mul_inv {I J : fractional_ideal g} (h: J≠ 0) : I/J = I * ( (1 : fractional_ideal g) / J) :=
+begin
+  sorry,
+end
+
+lemma inv_inv {J : fractional_ideal g} (h : J ≠ 0): 1 / (1 / J) = J :=
+begin
+  sorry,
+end
+
+lemma nonzero_inv_of_nonzero {J : fractional_ideal g} (h : J ≠ 0): (1 / J) ≠ 0 :=
+begin
+  sorry,
+end
+
+lemma le_div_iff_of_nonzero {I J J' : fractional_ideal g} (hJ' : J' ≠ 0) :
   I ≤ J / J' ↔ ∀ (x ∈ I) (y ∈ J'), x * y ∈ J :=
-⟨ λ h x hx, (mem_div_iff_of_nonzero hK).mp (h hx),
-  λ h x hx, (mem_div_iff_of_nonzero hK).mpr (h x hx) ⟩
+⟨ λ h x hx, (mem_div_iff_of_nonzero hJ').mp (h hx),
+  λ h x hx, (mem_div_iff_of_nonzero hJ').mpr (h x hx) ⟩
 
 lemma le_div_iff_mul_le {I J J' : fractional_ideal g} (hJ' : J' ≠ 0) : I ≤ J / J' ↔ I * J' ≤ J :=
 begin
@@ -678,6 +697,7 @@ begin
   rw [val_eq_coe, val_eq_coe, ←coe_mul],
   refl,
 end
+#check @le_div_iff_mul_le
 
 lemma coe_inv_of_nonzero {I : fractional_ideal g} (h : I ≠ 0) :
   (↑I⁻¹ : submodule R₁ g.codomain) = g.coe_submodule 1 / I :=

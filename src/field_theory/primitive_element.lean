@@ -127,11 +127,6 @@ end
 
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
-example (x y z : F) (hz : z ≠ 0) (h : x * z = y) : x = y / z :=
-begin
-  exact (eq_div_iff hz).mpr h,
-end
-
 lemma primitive_element_two_inf_key (α β : E) [F_sep : is_separable F E] (F_inf : infinite F) :
   ∃ c : F, β ∈ F⟮α + (algebra_map F E) c * β⟯ :=
 begin

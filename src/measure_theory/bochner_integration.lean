@@ -179,7 +179,7 @@ and prove basic property of this integral.
 -/
 open finset
 
-variables [normed_group E] [measurable_space E] [normed_group F] [measurable_space F]
+variables [normed_group E] [measurable_space E] [normed_group F]
 variables {μ : measure α}
 
 /-- For simple functions with a `normed_group` as codomain, being integrable is the same as having
@@ -195,7 +195,7 @@ calc integrable f μ ↔ ∫⁻ x, f.map (coe ∘ nnnorm : E → ennreal) x ∂�
 lemma fin_meas_supp.integrable {f : α →ₛ E} (h : f.fin_meas_supp μ) : integrable f μ :=
 integrable_iff_fin_meas_supp.2 h
 
-lemma integrable_pair {f : α →ₛ E} {g : α →ₛ F} :
+lemma integrable_pair [measurable_space F] {f : α →ₛ E} {g : α →ₛ F} :
   integrable f μ → integrable g μ → integrable (pair f g) μ :=
 by simpa only [integrable_iff_fin_meas_supp] using fin_meas_supp.pair
 

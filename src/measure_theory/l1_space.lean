@@ -53,17 +53,15 @@ integrable, function space, l1
 -/
 
 noncomputable theory
-open_locale classical topological_space
+open_locale classical topological_space big_operators
 
+open set filter topological_space ennreal emetric measure_theory
 
-namespace measure_theory
-open set filter topological_space ennreal emetric
-open_locale big_operators
-
-universes u v w
 variables {α β γ δ : Type*} [measurable_space α] {μ ν : measure α}
 variables [normed_group β]
 variables [normed_group γ]
+
+namespace measure_theory
 
 lemma lintegral_nnnorm_eq_lintegral_edist (f : α → β) :
   ∫⁻ a, nnnorm (f a) ∂μ = ∫⁻ a, edist (f a) 0 ∂μ :=
@@ -431,9 +429,6 @@ lemma integrable.smul_measure {f : α → β} (h : integrable f μ) {c : ennreal
   integrable f (c • μ) :=
 ⟨h.measurable, h.has_finite_integral.smul_measure hc⟩
 
-lemma measurable.integrable_zero {f : α → β} (hf : measurable f) : integrable f 0 :=
-⟨hf, has_finite_integral_zero_measure f⟩
-
 lemma integrable_map_measure [opens_measurable_space β] {f : α → δ} {g : δ → β}
   (hf : measurable f) (hg : measurable g) :
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
@@ -450,7 +445,7 @@ lt_of_le_of_lt
 
 
 variables (α β μ)
-@[simp] lemma integrable_zero : integrable (λa:α, (0:β)) μ :=
+@[simp] lemma integrable_zero : integrable (λ _, (0 : β)) μ :=
 by simp [integrable, measurable_const]
 variables {α β μ}
 
@@ -849,3 +844,8 @@ end pos_part
 end l1
 
 end measure_theory
+open measure_theory
+
+lemma measurable.integrable_zero [measurable_space β] {f : α → β} (hf : measurable f) :
+  integrable f 0 :=
+⟨hf, has_finite_integral_zero_measure f⟩

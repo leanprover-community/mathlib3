@@ -164,7 +164,7 @@ noncomputable def factors (a : R) : multiset R :=
 if h : a = 0 then ∅ else classical.some (wf_dvd_monoid.exists_factors a h)
 
 lemma factors_spec (a : R) (h : a ≠ 0) :
-  (∀b∈factors a, irreducible b) ∧ associated a (factors a).prod :=
+  (∀b∈factors a, irreducible b) ∧ associated (factors a).prod a :=
 begin
   unfold factors, rw [dif_neg h],
   exact classical.some_spec (wf_dvd_monoid.exists_factors a h)
@@ -177,7 +177,7 @@ lemma mem_submonoid_of_factors_subset_of_units_subset (s : submonoid R)
   {a : R} (ha : a ≠ 0) (hfac : ∀ b ∈ factors a, b ∈ s) (hunit : ∀ c : units R, (c : R) ∈ s) :
   a ∈ s :=
 begin
-  rcases ((factors_spec a ha).2).symm with ⟨c, hc⟩,
+  rcases ((factors_spec a ha).2) with ⟨c, hc⟩,
   rw [← hc],
   exact submonoid.mul_mem _ (submonoid.multiset_prod_mem _ _ hfac) (hunit _),
 end

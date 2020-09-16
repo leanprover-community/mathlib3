@@ -201,7 +201,7 @@ begin
     obtain ⟨m, rfl⟩ := nat.exists_eq_succ_of_ne_zero hm,
     apply dvd_mul_of_dvd_left (dvd_refl _) _,
   },
-  { rw [multiset.prod_repeat], exact (classical.some_spec (spec.2 hx)).symm, }
+  { rw [multiset.prod_repeat], exact (classical.some_spec (spec.2 hx)), }
 end
 
 omit hR
@@ -216,7 +216,7 @@ begin
   intros x hx,
   cases wf_dvd_monoid.exists_factors x hx with fx hfx,
   refine ⟨fx.card, _⟩,
-  have H := hfx.2.symm,
+  have H := hfx.2,
   rw ← associates.mk_eq_mk_iff_associated at H ⊢,
   rw [← H, ← associates.prod_mk, associates.mk_pow, ← multiset.prod_repeat],
   congr' 1,
@@ -316,7 +316,7 @@ begin
   have : wf_dvd_monoid R := is_noetherian_ring.wf_dvd_monoid,
   cases wf_dvd_monoid.exists_factors x hx with fx hfx,
   unfreezingI { use fx.card },
-  have H := hfx.2.symm,
+  have H := hfx.2,
   rw ← associates.mk_eq_mk_iff_associated at H ⊢,
   rw [← H, ← associates.prod_mk, associates.mk_pow, ← multiset.prod_repeat],
   congr' 1,

@@ -347,7 +347,7 @@ calc ∫ x, indicator s f x ∂μ = ∫ x in s, indicator s f x ∂μ + ∫ x in
     (integral_congr_ae hfms measurable_const (indicator_ae_eq_restrict_compl hs))
 ... = ∫ x in s, f x ∂μ : by simp
 else
-by { rwa [integral_non_integrable, integral_non_integrable], rwa integrable_indicator_iff hs }
+by { rwa [integral_undef, integral_undef], rwa integrable_indicator_iff hs }
 
 lemma set_integral_const (c : E) : ∫ x in s, c ∂μ = (μ s).to_real • c :=
 by rw [integral_const, measure.restrict_apply_univ]

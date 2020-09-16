@@ -49,7 +49,7 @@ structure lax_monoidal_functor extends C ⥤ D :=
   . obviously)
 
 restate_axiom lax_monoidal_functor.μ_natural'
-attribute [simp] lax_monoidal_functor.μ_natural
+attribute [simp, reassoc] lax_monoidal_functor.μ_natural
 restate_axiom lax_monoidal_functor.left_unitality'
 attribute [simp] lax_monoidal_functor.left_unitality
 restate_axiom lax_monoidal_functor.right_unitality'
@@ -61,11 +61,15 @@ attribute [simp] lax_monoidal_functor.associativity
 -- lax_monoidal_functor.μ_natural lax_monoidal_functor.left_unitality
 -- lax_monoidal_functor.right_unitality lax_monoidal_functor.associativity
 
-/-- A monoidal functor is a lax monoidal functor for which the tensorator and unitor as isomorphisms. -/
+/--
+A monoidal functor is a lax monoidal functor for which the tensorator and unitor as isomorphisms.
+
+See https://stacks.math.columbia.edu/tag/0FFL.
+-/
 structure monoidal_functor
 extends lax_monoidal_functor.{v₁ v₂} C D :=
-(ε_is_iso            : is_iso ε . obviously)
-(μ_is_iso            : Π X Y : C, is_iso (μ X Y) . obviously)
+(ε_is_iso            : is_iso ε . tactic.apply_instance)
+(μ_is_iso            : Π X Y : C, is_iso (μ X Y) . tactic.apply_instance)
 
 attribute [instance] monoidal_functor.ε_is_iso monoidal_functor.μ_is_iso
 
@@ -177,6 +181,8 @@ variables (F : lax_monoidal_functor.{v₁ v₂} C D) (G : lax_monoidal_functor.{
   end,
   .. (F.to_functor) ⋙ (G.to_functor) }.
 
+infixr ` ⊗⋙ `:80 := comp
+
 end lax_monoidal_functor
 
 namespace monoidal_functor
@@ -189,6 +195,8 @@ def comp : monoidal_functor.{v₁ v₃} C E :=
 { ε_is_iso := by { dsimp, apply_instance },
   μ_is_iso := by { dsimp, apply_instance },
   .. (F.to_lax_monoidal_functor).comp (G.to_lax_monoidal_functor) }.
+
+infixr ` ⊗⋙ `:80 := comp -- We overload notation; potentially dangerous, but it seems to work.
 
 end monoidal_functor
 

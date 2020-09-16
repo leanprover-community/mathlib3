@@ -148,6 +148,9 @@ the tactic `convert e` will change the goal to
 
 In this example, the new goal can be solved using `ring`.
 
+If `x y : t`, and an instance `subsingleton t` is in scope, then any goals of the form
+`x = y` are solved automatically.
+
 The syntax `convert ← e` will reverse the direction of the new goals
 (producing `⊢ 2 * n = n + n` in this example).
 

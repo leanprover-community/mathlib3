@@ -19,15 +19,8 @@ open category_theory
 
 set_option old_structure_cmd true
 
-section prio
-
--- see note [default priority]
-set_option default_priority 100
-
 /-- A typeclass for nonempty finite linear orders. -/
 class nonempty_fin_lin_ord (α : Type*) extends fintype α, decidable_linear_order α, order_bot α, order_top α.
-
-end prio
 
 instance punit.nonempty_fin_lin_ord : nonempty_fin_lin_ord punit :=
 begin

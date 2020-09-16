@@ -19,8 +19,6 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 
 section topological_group
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A topological (additive) group is a group in which the addition and negation operations are
 continuous. -/
 class topological_add_group (α : Type u) [topological_space α] [add_group α]
@@ -33,7 +31,6 @@ continuous. -/
 class topological_group (α : Type*) [topological_space α] [group α]
   extends has_continuous_mul α : Prop :=
 (continuous_inv : continuous (λa:α, a⁻¹))
-end prio
 
 variables [topological_space α] [group α]
 
@@ -272,8 +269,6 @@ nhds_translation_add_neg x
 
 end topological_add_group
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- additive group with a neighbourhood around 0.
 Only used to construct a topology and uniform space.
 
@@ -284,7 +279,6 @@ class add_group_with_zero_nhd (α : Type u) extends add_comm_group α :=
 (Z [] : filter α)
 (zero_Z : pure 0 ≤ Z)
 (sub_Z : tendsto (λp:α×α, p.1 - p.2) (Z ×ᶠ Z) Z)
-end prio
 
 namespace add_group_with_zero_nhd
 variables (α) [add_group_with_zero_nhd α]

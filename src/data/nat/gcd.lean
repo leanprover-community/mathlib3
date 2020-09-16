@@ -2,14 +2,17 @@
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
-
-Definitions and properties of gcd, lcm, and coprime.
 -/
 import data.nat.basic
 
+/-!
+# Definitions and properties of `gcd`, `lcm`, and `coprime`
+
+-/
+
 namespace nat
 
-/- gcd -/
+/-! ### `gcd` -/
 
 theorem gcd_dvd (m n : ℕ) : (gcd m n ∣ m) ∧ (gcd m n ∣ n) :=
 gcd.induction m n
@@ -133,7 +136,7 @@ by rw [gcd_comm, gcd_gcd_self_right_right]
 @[simp] lemma gcd_gcd_self_left_left (m n : ℕ) : gcd (gcd m n) m = gcd m n :=
 by rw [gcd_comm m n, gcd_gcd_self_left_right]
 
-/- lcm -/
+/-! ### `lcm` -/
 
 theorem lcm_comm (m n : ℕ) : lcm m n = lcm n m :=
 by delta lcm; rw [mul_comm, gcd_comm]
@@ -178,7 +181,7 @@ dvd_antisymm
     (dvd.trans (dvd_lcm_left m n) (dvd_lcm_left (lcm m n) k))
     (lcm_dvd (dvd.trans (dvd_lcm_right m n) (dvd_lcm_left (lcm m n) k)) (dvd_lcm_right (lcm m n) k)))
 
-/- coprime -/
+/-! ### `coprime` -/
 
 instance (m n : ℕ) : decidable (coprime m n) := by unfold coprime; apply_instance
 

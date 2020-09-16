@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.monoidal.functor
+import category_theory.monoidal.natural_transformation
 import category_theory.monoidal.unitors
 import category_theory.limits.shapes.terminal
 
@@ -99,12 +99,15 @@ instance : category (Mon_ C) :=
 @[simp] lemma comp_hom' {M N K : Mon_ C} (f : M ⟶ N) (g : N ⟶ K) :
   (f ≫ g : hom M K).hom = f.hom ≫ g.hom := rfl
 
+section
 variables (C)
 
 /-- The forgetful functor from monoid objects to the ambient category. -/
 def forget : Mon_ C ⥤ C :=
 { obj := λ A, A.X,
   map := λ A B f, f.hom, }
+
+end
 
 instance {A B : Mon_ C} (f : A ⟶ B) [e : is_iso ((forget C).map f)] : is_iso f.hom := e
 
@@ -147,7 +150,6 @@ A lax monoidal functor takes monoid objects to monoid objects.
 
 That is, a lax monoidal functor `F : C ⥤ D` induces a functor `Mon_ C ⥤ Mon_ D`.
 -/
--- TODO: This is functorial in `F`. (In fact, `Mon_` is a 2-functor.)
 -- TODO: map_Mod F A : Mod A ⥤ Mod (F.map_Mon A)
 @[simps]
 def map_Mon (F : lax_monoidal_functor C D) : Mon_ C ⥤ Mon_ D :=
@@ -195,6 +197,13 @@ def map_Mon (F : lax_monoidal_functor C D) : Mon_ C ⥤ Mon_ D :=
     end },
   map_id' := λ A, by { ext, simp, },
   map_comp' := λ A B C f g, by { ext, simp, }, }
+
+/-- `map_Mon` is functorial in the lax monoidal functor. -/
+def map_Mon_functor : (lax_monoidal_functor C D) ⥤ (Mon_ C ⥤ Mon_ D) :=
+{ obj := map_Mon,
+  map := λ F G α,
+  { app := λ A,
+    { hom := α.app A.X, } } }
 
 end category_theory.lax_monoidal_functor
 
@@ -257,6 +266,11 @@ def regular : Mod A :=
   act := A.mul, }
 
 instance : inhabited (Mod A) := ⟨regular A⟩
+
+/-- The forgetful functor from module objects to the ambient category. -/
+def forget : Mod A ⥤ C :=
+{ obj := λ A, A.X,
+  map := λ A B f, f.hom, }
 
 open category_theory.monoidal_category
 

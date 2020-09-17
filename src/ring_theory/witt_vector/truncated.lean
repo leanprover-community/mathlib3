@@ -167,12 +167,10 @@ end truncated_witt_vector
 
 /-- A macro tactic used to prove that `truncate_fun` respects ring operations. -/
 meta def tactic.interactive.truncate_fun_tac : tactic unit :=
-`[
-  show _ = truncate_fun n _,
+`[show _ = truncate_fun n _,
   apply truncated_witt_vector.out_injective,
   iterate { rw [out_truncate_fun] },
-  rw init_add <|> rw init_mul <|> rw init_neg
-]
+  rw init_add <|> rw init_mul <|> rw init_neg]
 
 namespace witt_vector
 

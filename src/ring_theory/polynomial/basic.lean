@@ -436,6 +436,75 @@ begin
   refl
 end
 
+lemma disjoint_ker_eval₂_of_coprime
+  (f : M →ₗ[R] M) {p q : polynomial R} (hpq : is_coprime p q) :
+  disjoint (p.eval₂ (algebra_map _ _) f).ker (q.eval₂ (algebra_map _ _) f).ker :=
+begin
+  intros v hv,
+  rcases hpq with ⟨p', q', hpq'⟩,
+  simpa [eval₂_mul_noncomm (algebra_map _ _) _ algebra.commutes,
+    linear_map.mem_ker.1 (submodule.mem_inf.1 hv).1,
+    linear_map.mem_ker.1 (submodule.mem_inf.1 hv).2]
+    using congr_arg (λ p : polynomial R, p.eval₂ (algebra_map _ _) f v) hpq'.symm,
+end
+
+lemma sup_eval₂_range_eq_top_of_coprime
+  (f : M →ₗ[R] M) {p q : polynomial R} (hpq : is_coprime p q) :
+  (eval₂ (algebra_map _ _) f p).range ⊔ (eval₂ (algebra_map _ _) f q).range = ⊤ :=
+begin
+  rw eq_top_iff,
+  intros v hv,
+  rw submodule.mem_sup,
+  rcases hpq with ⟨p', q', hpq'⟩,
+  exact ⟨(p * p').eval₂ (algebra_map _ _) f v,
+    linear_map.mem_range.2 ⟨p'.eval₂ (algebra_map _ _) f v,
+      by simp only [linear_map.mul_app, (eval₂_mul_noncomm (algebra_map _ _) _ algebra.commutes)]⟩,
+    (q * q').eval₂ (algebra_map _ _) f v,
+    linear_map.mem_range.2 ⟨q'.eval₂ (algebra_map _ _) f v,
+      by simp only [linear_map.mul_app, (eval₂_mul_noncomm (algebra_map _ _) _ algebra.commutes)]⟩,
+    by simpa only [mul_comm p p', mul_comm q q', eval₂_one, eval₂_add]
+      using congr_arg (λ p : polynomial R, p.eval₂ (algebra_map _ _)  f v) hpq'⟩
+end
+
+lemma sup_ker_eval₂_le_ker_eval₂_mul
+  {f : M →ₗ[R] M} {p q : polynomial R} :
+  (eval₂ (algebra_map _ _) f p).ker ⊔ (eval₂ (algebra_map _ _) f q).ker ≤
+    (eval₂ (algebra_map _ _) f (p * q)).ker :=
+begin
+  intros v hv,
+  rcases submodule.mem_sup.1 hv with ⟨x, hx, y, hy, hxy⟩,
+  have h_eval_x : eval₂ (algebra_map _ _) f (p * q) x = 0,
+  { erw [mul_comm, eval₂_mul_noncomm (algebra_map _ _) _ algebra.commutes,
+      linear_map.comp_apply, linear_map.mem_ker.1 hx, linear_map.map_zero] },
+  have h_eval_y : eval₂ (algebra_map _ _) f (p * q) y = 0,
+  { erw [eval₂_mul_noncomm (algebra_map _ _) _ algebra.commutes,
+      linear_map.comp_apply, linear_map.mem_ker.1 hy, linear_map.map_zero] },
+  rw [linear_map.mem_ker, ←hxy, linear_map.map_add, h_eval_x, h_eval_y, add_zero],
+end
+
+lemma sup_ker_eval₂_eq_ker_eval₂_mul_of_coprime
+  (f : M →ₗ[R] M) {p q : polynomial R} (hpq : is_coprime p q) :
+  (eval₂ (algebra_map _ _) f p).ker ⊔ (eval₂ (algebra_map _ _) f q).ker =
+    (eval₂ (algebra_map _ _) f (p * q)).ker :=
+begin
+  apply le_antisymm sup_ker_eval₂_le_ker_eval₂_mul,
+  intros v hv,
+  rw submodule.mem_sup,
+  rcases hpq with ⟨p', q', hpq'⟩,
+  have h_eval₂_qpp' : eval₂ (algebra_map _ _) f (q * (p * p')) v = 0,
+  { erw [mul_comm, mul_assoc, mul_comm, mul_assoc,
+      eval₂_mul_noncomm (algebra_map _ _)  _ algebra.commutes,
+      mul_comm, linear_map.comp_apply, linear_map.mem_ker.1 hv, linear_map.map_zero] },
+  have h_eval₂_pqq' : eval₂ (algebra_map _ _) f (p * (q * q')) v = 0,
+  { erw [←mul_assoc, mul_comm, eval₂_mul_noncomm (algebra_map _ _)  _ algebra.commutes,
+      linear_map.comp_apply, linear_map.mem_ker.1 hv, linear_map.map_zero] },
+  rw [eval₂_mul_noncomm (algebra_map _ _)  _ algebra.commutes] at h_eval₂_qpp' h_eval₂_pqq',
+  refine ⟨eval₂ (algebra_map _ _) f (q * q') v, linear_map.mem_ker.1 h_eval₂_pqq',
+          eval₂ (algebra_map _ _) f (p * p') v, linear_map.mem_ker.1 h_eval₂_qpp', _⟩,
+  rw [add_comm, mul_comm p p', mul_comm q q'],
+  simpa using congr_arg (λ p : polynomial R, p.eval₂ (algebra_map _ _)  f v) hpq'
+end
+
 end polynomial
 
 namespace mv_polynomial

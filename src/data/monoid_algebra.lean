@@ -668,6 +668,16 @@ def lift [comm_semiring k] [add_monoid G] {R : Type u₃} [semiring R] [algebra 
 -- It is hard to state the equivalent of `distrib_mul_action G (monoid_algebra k G)`
 -- because we've never discussed actions of additive groups.
 
+lemma alg_hom_ext {R : Type u₃} [comm_semiring k] [add_monoid G]
+  [semiring R] [algebra k R] ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] R⦄
+  (h : ∀ x, φ₁ (finsupp.single x 1) = φ₂ (finsupp.single x 1)) : φ₁ = φ₂ :=
+lift.symm.injective $ by {ext, apply h}
+
+lemma alg_hom_ext_iff {R : Type u₃} [comm_semiring k] [add_monoid G]
+  [semiring R] [algebra k R] ⦃φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] R⦄ :
+  (∀ x, φ₁ (finsupp.single x 1) = φ₂ (finsupp.single x 1)) ↔ φ₁ = φ₂ :=
+⟨λ h, alg_hom_ext h, by rintro rfl _; refl⟩
+
 universe ui
 variable {ι : Type ui}
 

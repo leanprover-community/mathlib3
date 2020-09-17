@@ -821,6 +821,14 @@ end
 
 lemma mem_span_singleton_self (x : M) : x ∈ span R ({x} : set M) := subset_span rfl
 
+lemma nontrivial_span_singleton {x : M} (h : x ≠ 0) : nontrivial (submodule.span R ({x} : set M)) :=
+⟨begin
+    use [0, x, submodule.mem_span_singleton_self x],
+    intros H,
+    rw [eq_comm, submodule.mk_eq_zero] at H,
+    exact h H
+end⟩
+
 lemma mem_span_singleton {y : M} : x ∈ span R ({y} : set M) ↔ ∃ a:R, a • y = x :=
 ⟨λ h, begin
   apply span_induction h,

@@ -161,7 +161,6 @@ instance sampleable_ext.functor {α} {F} [functor F] [sampleable_functor F] [sam
   interp := functor.map (interp _),
   sample := sampleable_functor.sample F (sampleable_ext.sample α),
   shrink := sampleable_functor.shrink _ sampleable_ext.shrink,
-  -- dec_eq := sampleable_functor.dec_eq _ sampleable_ext.dec_eq,
   p_repr := sampleable_functor.p_repr _ sampleable_ext.p_repr
   }
 
@@ -171,7 +170,6 @@ instance sampleable_ext.bifunctor {α β} {F} [bifunctor F] [sampleable_bifuncto
   interp := bifunctor.bimap (interp _) (interp _),
   sample := sampleable_bifunctor.sample F (sampleable_ext.sample α) (sampleable_ext.sample β),
   shrink := sampleable_bifunctor.shrink _ _ sampleable_ext.shrink sampleable_ext.shrink,
-  -- dec_eq := sampleable_bifunctor.dec_eq _ _ sampleable_ext.dec_eq sampleable_ext.dec_eq,
   p_repr := sampleable_bifunctor.p_repr _ _ sampleable_ext.p_repr sampleable_ext.p_repr
   }
 
@@ -230,8 +228,8 @@ def sampleable.lift (α : Type u) {β : Type u} [sampleable α] (f : α → β) 
     subtype.map f this <$> shrink (g x) }
 
 instance nat.sampleable : sampleable ℕ :=
-{ sample := sized $ λ sz, freq [ (1, coe <$> choose_any (fin $ succ (sz^3))),
-                                 (3, coe <$> choose_any (fin $ succ sz))] dec_trivial,
+{ sample := sized $ λ sz, freq [(1, coe <$> choose_any (fin $ succ (sz^3))),
+                                (3, coe <$> choose_any (fin $ succ sz))] dec_trivial,
   shrink :=  λ x, lazy_list.of_list $ nat.shrink x }
 
 /-- `iterate_shrink p x` takes a decidable predicate `p` and a
@@ -268,8 +266,8 @@ local attribute [instance, priority 2000] int.has_sizeof
 instance int.sampleable : sampleable ℤ :=
 { wf := _,
   sample := sized $ λ sz,
-          freq [ (1, subtype.val <$> choose (-(sz^3 + 1) : ℤ) (sz^3 + 1) (neg_le_self dec_trivial)),
-                 (3, subtype.val <$> choose (-(sz + 1)) (sz + 1) (neg_le_self dec_trivial))]
+          freq [(1, subtype.val <$> choose (-(sz^3 + 1) : ℤ) (sz^3 + 1) (neg_le_self dec_trivial)),
+                (3, subtype.val <$> choose (-(sz + 1)) (sz + 1) (neg_le_self dec_trivial))]
                dec_trivial,
   shrink :=
     λ x, lazy_list.of_list $ (nat.shrink $ int.nat_abs x).bind $
@@ -573,10 +571,10 @@ match t with
     by dsimp [sizeof_lt]; unfold_wf; linarith,
   have h₁ : sizeof_lt t₁ (tree.node x t₀ t₁),
     by dsimp [sizeof_lt]; unfold_wf; linarith,
-  [ lazy_list.of_list [⟨tree.nil, h₂⟩, ⟨t₀, h₀⟩, ⟨t₁, h₁⟩],
-    (prod.shrink shrink_a (prod.shrink f_rec f_rec) (x, ⟨t₀, h₀⟩, ⟨t₁, h₁⟩)).map
+  [lazy_list.of_list [⟨tree.nil, h₂⟩, ⟨t₀, h₀⟩, ⟨t₁, h₁⟩],
+   (prod.shrink shrink_a (prod.shrink f_rec f_rec) (x, ⟨t₀, h₀⟩, ⟨t₁, h₁⟩)).map
     $ λ ⟨⟨y,⟨t'₀, _⟩,⟨t'₁, _⟩⟩,hy⟩, ⟨tree.node y t'₀ t'₁,
-      by revert hy; dsimp [sizeof_lt]; unfold_wf; intro; linarith ⟩ ]
+      by revert hy; dsimp [sizeof_lt]; unfold_wf; intro; linarith⟩]
 end
 
 instance sampleable_tree : sampleable_functor tree :=
@@ -606,13 +604,13 @@ instance small.sampleable_functor : sampleable_functor small :=
 { wf := _,
   sample := λ α samp, gen.resize (λ n, n / 5 + 5) samp,
   shrink := λ α _, id,
-  p_repr := λ α, id  }
+  p_repr := λ α, id }
 
 instance large.sampleable_functor : sampleable_functor large :=
 { wf := _,
   sample := λ α samp, gen.resize (λ n, n * 5) samp,
   shrink := λ α _, id,
-  p_repr := λ α, id  }
+  p_repr := λ α, id }
 
 instance ulift.sampleable_functor : sampleable_functor ulift.{u v} :=
 { wf := λ α h, ⟨ λ ⟨x⟩, @sizeof α h x ⟩,
@@ -670,9 +668,11 @@ instance ge.sampleable {x : α}  [sampleable α] [decidable_linear_ordered_add_c
   shrink := λ _, lazy_list.nil }
 
 
-/-! ### Subtypes of `ℤ` -/
+/-! 
+### Subtypes of `ℤ`
 
--- Specialization of `le.sampleable` and `ge.sampleable` for `ℤ` to help instance search
+Specializations of `le.sampleable` and `ge.sampleable` for `ℤ` to help instance search.
+-/
 
 instance int_le.sampleable {y : ℤ} : slim_check.sampleable { x : ℤ // x ≤ y } :=
 sampleable.lift ℕ (λ n, ⟨y - n, int.sub_left_le_of_le_add $ by simp⟩) (λ ⟨i, h⟩, (y - i).nat_abs)

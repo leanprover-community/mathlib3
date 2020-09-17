@@ -3937,9 +3937,9 @@ theorem sum_map_mul_right {α : Type*} [semiring α] {β : Type*} (L : list β)
   (f : β → α) (r : α) :
   (L.map (λ b, f b * r)).sum = (L.map f).sum * r :=
 sum_map_hom L f $ add_monoid_hom.mul_right r
-.
+
 universes u v
-.
+
 @[simp]
 theorem mem_map_swap {α : Type u} {β : Type v} (x : α) (y : β) (xs : list (α × β)) :
   (y, x) ∈ map prod.swap xs ↔ (x, y) ∈ xs :=

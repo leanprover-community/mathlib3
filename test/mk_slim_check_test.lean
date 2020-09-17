@@ -1,4 +1,3 @@
-
 import tactic.slim_check
 
 section

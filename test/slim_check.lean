@@ -1,4 +1,3 @@
-
 import tactic.slim_check
 import .mk_slim_check_test
 

@@ -597,7 +597,6 @@ by haveI : nonempty {i // p i} := (let ⟨i, hi⟩ := h in ⟨⟨i, hi⟩⟩);
 theorem supr_sup_eq {f g : β → α} : (⨆ x, f x ⊔ g x) = (⨆ x, f x) ⊔ (⨆ x, g x) :=
 @infi_inf_eq (order_dual α) β _ _ _
 
-
 /- supr and infi under Prop -/
 
 @[simp] theorem infi_false {s : false → α} : infi s = ⊤ :=

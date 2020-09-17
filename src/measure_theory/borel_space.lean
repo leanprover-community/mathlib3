@@ -564,8 +564,8 @@ lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [locally_finite_measure μ]
 begin
   refine measure.ext_of_generate_from_of_cover_subset borel_eq_generate_from_Ioo_rat _
     (subset.refl _) _ _ _ _,
-  { simp only [mem_Union, mem_singleton_iff],
-    rintros _ ⟨a₁, b₁, h₁, rfl⟩ _ ⟨a₂, b₂, h₂, rfl⟩ ne,
+  { simp only [is_pi_system, mem_Union, mem_singleton_iff],
+    rintros _ _ ⟨a₁, b₁, h₁, rfl⟩ ⟨a₂, b₂, h₂, rfl⟩ ne,
     simp only [Ioo_inter_Ioo, sup_eq_max, inf_eq_min, ← rat.cast_max, ← rat.cast_min, nonempty_Ioo] at ne ⊢,
     refine ⟨_, _, _, rfl⟩,
     assumption_mod_cast },

@@ -121,13 +121,7 @@ section comm_semiring
 variables [comm_semiring R]
 
 instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
-instance : comm_monoid (polynomial R) :=
-  { mul       := λ p q, p * q,
-    one       := 1,
-    mul_assoc := mul_assoc,
-    one_mul   := one_mul,
-    mul_one   := mul_one,
-    mul_comm  := mul_comm,}
+instance : comm_monoid (polynomial R) := comm_semiring.to_comm_monoid (polynomial R)
 
 end comm_semiring
 

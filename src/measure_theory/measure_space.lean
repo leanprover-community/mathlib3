@@ -913,6 +913,10 @@ lemma restrict_sUnion_congr {S : set (set α)} (hc : countable S) (hm : ∀ s �
   μ.restrict (⋃₀ S) = ν.restrict (⋃₀ S) ↔ ∀ s ∈ S, μ.restrict s = ν.restrict s :=
 by rw [sUnion_eq_bUnion, restrict_bUnion_congr hc hm]
 
+/-! ### Extensionality results -/
+
+/-- Two measures are equal if they have equal restrictions on a spanning collection of sets
+  (formulated using `Union`). -/
 lemma ext_iff_of_Union_eq_univ [encodable ι] {s : ι → set α}
   (hm : ∀ i, is_measurable (s i)) (hs : (⋃ i, s i) = univ) :
   μ = ν ↔ ∀ i, μ.restrict (s i) = ν.restrict (s i) :=
@@ -920,6 +924,8 @@ by rw [← restrict_Union_congr hm, hs, restrict_univ, restrict_univ]
 
 alias ext_iff_of_Union_eq_univ ↔ _ measure_theory.measure.ext_of_Union_eq_univ
 
+/-- Two measures are equal if they have equal restrictions on a spanning collection of sets
+  (formulated using `bUnion`). -/
 lemma ext_iff_of_bUnion_eq_univ {S : set ι} {s : ι → set α} (hc : countable S)
   (hm : ∀ i ∈ S, is_measurable (s i)) (hs : (⋃ i ∈ S, s i) = univ) :
   μ = ν ↔ ∀ i ∈ S, μ.restrict (s i) = ν.restrict (s i) :=
@@ -927,6 +933,8 @@ by rw [← restrict_bUnion_congr hc hm, hs, restrict_univ, restrict_univ]
 
 alias ext_iff_of_bUnion_eq_univ ↔ _ measure_theory.measure.ext_of_bUnion_eq_univ
 
+/-- Two measures are equal if they have equal restrictions on a spanning collection of sets
+  (formulated using `sUnion`). -/
 lemma ext_iff_of_sUnion_eq_univ {S : set (set α)} (hc : countable S)
   (hm : ∀ s ∈ S, is_measurable s) (hs : (⋃₀ S) = univ) :
   μ = ν ↔ ∀ s ∈ S, μ.restrict s = ν.restrict s :=
@@ -934,9 +942,10 @@ ext_iff_of_bUnion_eq_univ hc hm $ by rwa ← sUnion_eq_bUnion
 
 alias ext_iff_of_sUnion_eq_univ ↔ _ measure_theory.measure.ext_of_sUnion_eq_univ
 
+open measurable_space
 lemma ext_of_generate_from_of_cover {S T : set (set α)}
-  (h_gen : ‹_› = measurable_space.generate_from S) (hc : countable T)
-  (h_inter : ∀ (s₁ ∈ S) (s₂ ∈ S), (s₁ ∩ s₂ : set α).nonempty → s₁ ∩ s₂ ∈ S)
+  (h_gen : ‹_› = generate_from S) (hc : countable T)
+  (h_inter : is_pi_system S)
   (hm : ∀ t ∈ T, is_measurable t) (hU : ⋃₀ T = univ) (htop : ∀ t ∈ T, μ t < ⊤)
   (ST_eq : ∀ (t ∈ T) (s ∈ S), μ (s ∩ t) = ν (s ∩ t)) (T_eq : ∀ t ∈ T, μ t = ν t) :
   μ = ν :=
@@ -944,7 +953,7 @@ begin
   refine ext_of_sUnion_eq_univ hc hm hU (λ t ht, _),
   ext1 u hu,
   simp only [restrict_apply hu],
-  refine measurable_space.induction_on_inter h_gen h_inter _ (ST_eq t ht) _ _ hu,
+  refine induction_on_inter h_gen h_inter _ (ST_eq t ht) _ _ hu,
   { simp only [set.empty_inter, measure_empty] },
   { intros v hv hvt,
     have := T_eq t ht,
@@ -958,18 +967,33 @@ begin
     simp only [Union_inter, measure_Union this (λ n, is_measurable.inter (hfm n) (hm t ht)), h_eq] }
 end
 
+/-- Two measures are equal if they are equal on the π-system generating the σ-algebra,
+  and they are both finite on a increasing spanning sequence of sets in the π-system.
+  This lemma is formulated using `sUnion`. -/
 lemma ext_of_generate_from_of_cover_subset {S T : set (set α)}
-  (h_gen : ‹_› = measurable_space.generate_from S)
-  (h_inter : ∀ (s₁ ∈ S) (s₂ ∈ S), (s₁ ∩ s₂ : set α).nonempty → s₁ ∩ s₂ ∈ S)
+  (h_gen : ‹_› = generate_from S)
+  (h_inter : is_pi_system S)
   (h_sub : T ⊆ S) (hc : countable T) (hU : ⋃₀ T = univ) (htop : ∀ s ∈ T, μ s < ⊤)
   (h_eq : ∀ s ∈ S, μ s = ν s) :
   μ = ν :=
 begin
   refine ext_of_generate_from_of_cover h_gen hc h_inter _ hU htop _ (λ t ht, h_eq t (h_sub ht)),
-  { intros t ht, rw [h_gen], exact measurable_space.generate_measurable.basic _ (h_sub ht) },
+  { intros t ht, rw [h_gen], exact generate_measurable.basic _ (h_sub ht) },
   { intros t ht s hs, cases (s ∩ t).eq_empty_or_nonempty with H H,
     { simp only [H, measure_empty] },
-    { exact h_eq _ (h_inter _ hs _ (h_sub ht) H) } }
+    { exact h_eq _ (h_inter _ _ hs (h_sub ht) H) } }
+end
+
+/-- Two measures are equal if they are equal on the π-system generating the σ-algebra,
+  and they are both finite on a increasing spanning sequence of sets in the π-system.
+  This lemma is formulated using `Union`. -/
+lemma ext_of_generate_from_of_Union (C : set (set α))  (B : ℕ → set α)
+  (hA : ‹_› = generate_from C) (hC : is_pi_system C) (h1B : (⋃ i, B i) = univ)
+  (h2B : ∀ i, B i ∈ C) (hμB : ∀ i, μ (B i) < ⊤) (h_eq : ∀ s ∈ C, μ s = ν s) : μ = ν :=
+begin
+  refine measure.ext_of_generate_from_of_cover_subset hA hC _ (countable_range B) h1B _ h_eq,
+  { rintro _ ⟨i, rfl⟩, apply h2B },
+  { rintro _ ⟨i, rfl⟩, apply hμB }
 end
 
 /-- The dirac measure. -/
@@ -1072,93 +1096,7 @@ calc count s < ⊤ ↔ count s ≠ ⊤ : lt_top_iff_ne_top
              ... ↔ ¬s.infinite : not_congr count_apply_eq_top
              ... ↔ s.finite    : not_not
 
-variables {ι : Type*}
-
-/-! ### Extensionality results -/
-
-/-- Two measures are equal if they have equal restrictions on a spanning collection of sets
-  (formulated using `Union`). -/
-lemma ext_iff_of_Union_eq_univ [encodable ι] {s : ι → set α}
-  (hm : ∀ i, is_measurable (s i)) (hs : (⋃ i, s i) = univ) :
-  μ = ν ↔ ∀ i, μ.restrict (s i) = ν.restrict (s i) :=
-by rw [← restrict_Union_congr hm, hs, restrict_univ, restrict_univ]
-
-alias ext_iff_of_Union_eq_univ ↔ _ measure_theory.measure.ext_of_Union_eq_univ
-
-/-- Two measures are equal if they have equal restrictions on a spanning collection of sets
-  (formulated using `bUnion`). -/
-lemma ext_iff_of_bUnion_eq_univ {S : set ι} {s : ι → set α} (hc : countable S)
-  (hm : ∀ i ∈ S, is_measurable (s i)) (hs : (⋃ i ∈ S, s i) = univ) :
-  μ = ν ↔ ∀ i ∈ S, μ.restrict (s i) = ν.restrict (s i) :=
-begin
-  simp only [bUnion_eq_Union, set_coe.forall'] at hs hm ⊢,
-  haveI := hc.to_encodable,
-  exact ext_iff_of_Union_eq_univ hm hs
-end
-
-alias ext_iff_of_bUnion_eq_univ ↔ _ measure_theory.measure.ext_of_bUnion_eq_univ
-
-/-- Two measures are equal if they have equal restrictions on a spanning collection of sets
-  (formulated using `sUnion`). -/
-lemma ext_iff_of_sUnion_eq_univ {S : set (set α)} (hc : countable S)
-  (hm : ∀ s ∈ S, is_measurable s) (hs : (⋃₀ S) = univ) :
-  μ = ν ↔ ∀ s ∈ S, μ.restrict s = ν.restrict s :=
-ext_iff_of_bUnion_eq_univ hc hm $ by rwa ← sUnion_eq_bUnion
-
-alias ext_iff_of_sUnion_eq_univ ↔ _ measure_theory.measure.ext_of_sUnion_eq_univ
-
 open measurable_space
-
-lemma ext_of_generate_from_of_cover {S T : set (set α)}
-  (h_gen : ‹_› = generate_from S) (hc : countable T)
-  (h_inter : is_pi_system S)
-  (hm : ∀ t ∈ T, is_measurable t) (hU : (⋃₀ T) = univ) (htop : ∀ t ∈ T, μ t < ⊤)
-  (ST_eq : ∀ s t, s ∈ S → t ∈ T → μ (s ∩ t) = ν (s ∩ t)) (T_eq : ∀ t ∈ T, μ t = ν t) :
-  μ = ν :=
-begin
-  refine ext_of_sUnion_eq_univ hc hm hU (λ t ht, _),
-  ext1 u hu,
-  simp only [restrict_apply hu],
-  refine induction_on_inter h_gen h_inter _ (λ s hs, ST_eq s t hs ht) _ _ hu,
-  { simp only [set.empty_inter, measure_empty] },
-  { intros v hv hvt,
-    have := T_eq t ht,
-    rw [set.inter_comm] at hvt ⊢,
-    rwa [measure_eq_inter_diff (hm _ ht) hv, measure_eq_inter_diff (hm _ ht) hv, ← hvt,
-      ennreal.add_right_inj] at this,
-    exact (measure_mono $ set.inter_subset_left _ _).trans_lt (htop t ht) },
-  { intros f hfd hfm h_eq,
-    have : pairwise (disjoint on λ n, f n ∩ t) :=
-      λ m n hmn, (hfd m n hmn).mono (inter_subset_left _ _) (inter_subset_left _ _),
-    simp only [Union_inter, measure_Union this (λ n, is_measurable.inter (hfm n) (hm t ht)), h_eq] }
-end
-
-/-- Two measures are equal if they are equal on the π-system generating the σ-algebra,
-  and they are both finite on a increasing spanning sequence of sets in the π-system.
-  This lemma is formulated using `sUnion`. -/
-lemma ext_of_generate_from_of_cover_subset {S T : set (set α)}
-  (h_gen : ‹_› = generate_from S) (hc : countable T) (h_inter : is_pi_system S)
-  (h_sub : T ⊆ S) (hU : ⋃₀ T = univ) (htop : ∀ s ∈ T, μ s < ⊤) (h_eq : ∀ s ∈ S, μ s = ν s) :
-  μ = ν :=
-begin
-  refine ext_of_generate_from_of_cover h_gen hc h_inter _ hU htop _ (λ t ht, h_eq t (h_sub ht)),
-  { intros t ht, rw [h_gen], exact generate_measurable.basic _ (h_sub ht) },
-  { intros s t hs ht, cases (s ∩ t).eq_empty_or_nonempty with H H,
-    { simp only [H, measure_empty] },
-    { exact h_eq _ (h_inter _ _ hs (h_sub ht) H) } }
-end
-
-/-- Two measures are equal if they are equal on the π-system generating the σ-algebra,
-  and they are both finite on a increasing spanning sequence of sets in the π-system.
-  This lemma is formulated using `Union`. -/
-lemma ext_of_generate_from_of_Union (C : set (set α))  (B : ℕ → set α)
-  (hA : _inst_1 = generate_from C) (hC : is_pi_system C) (h1B : (⋃ i, B i) = univ)
-  (h2B : ∀ i, B i ∈ C) (hμB : ∀ i, μ (B i) < ⊤) (h_eq : ∀ s ∈ C, μ s = ν s) : μ = ν :=
-begin
-  refine measure.ext_of_generate_from_of_cover_subset hA (countable_range B) hC _ h1B _ h_eq,
-  { rintro _ ⟨i, rfl⟩, apply h2B },
-  { rintro _ ⟨i, rfl⟩, apply hμB }
-end
 
 /-! ### The almost everywhere filter -/
 

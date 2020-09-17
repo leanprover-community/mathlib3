@@ -92,8 +92,6 @@ def select_is_poly : is_poly p (λ R _Rcr x, by exactI select P x) (select_poly 
 
 include hp
 
-local attribute [ghost_simps] bind₁_X_left alg_hom.id_apply
-
 lemma add_select_select_not :
   ∀ (x : 𝕎 R), select P x + select (λ i, ¬ P i) x = x :=
 begin

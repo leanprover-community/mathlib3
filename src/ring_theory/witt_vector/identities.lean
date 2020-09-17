@@ -32,6 +32,7 @@ noncomputable theory
 
 include hp
 
+/-- The composition of Frobenius and Verschiebung is multiplication by `p`. -/
 lemma frobenius_verschiebung (x : 𝕎 R) :
   frobenius (verschiebung x) = x * p :=
 begin
@@ -51,6 +52,16 @@ begin
   { simp only [one_coeff_zero, ne.def, pow_zero] },
   { rw [pow_succ', ← frobenius_verschiebung, coeff_frobenius_char_p,
         verschiebung_coeff_succ, h, one_pow], }
+end
+
+/-- The “product formula” for Frobenius and Verschiebung. -/
+lemma verschiebung_mul_frobenius (x y : 𝕎 R) :
+  verschiebung (x * frobenius y) = verschiebung x * y :=
+begin
+  apply is_poly₂.ext'
+    (verschiebung_is_poly.comp₂ ((mul_is_poly₂ p).comp_right (frobenius_is_poly p)))
+    ((mul_is_poly₂ p).comp_left verschiebung_is_poly),
+  rintro ⟨⟩; witt_simp [mul_assoc]
 end
 
 end witt_vector

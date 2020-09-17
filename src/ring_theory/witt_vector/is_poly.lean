@@ -310,14 +310,15 @@ end is_poly₂
 attribute [ghost_simps]
       witt_structure_int_prop witt_add witt_mul witt_neg witt_sub
       alg_hom.map_zero alg_hom.map_one alg_hom.map_add alg_hom.map_mul
-      alg_hom.map_sub alg_hom.map_neg alg_hom.map_nat_cast
+      alg_hom.map_sub alg_hom.map_neg alg_hom.id_apply alg_hom.map_nat_cast
       ring_hom.map_zero ring_hom.map_one ring_hom.map_mul alg_hom.map_mul
-      ring_hom.map_sub ring_hom.map_neg ring_hom.map_nat_cast
+      ring_hom.map_sub ring_hom.map_neg ring_hom.id_apply ring_hom.map_nat_cast
       mul_add add_mul add_zero zero_add mul_one one_mul mul_zero zero_mul
       bind₁_zero_witt_polynomial bind₁_one_poly_witt_polynomial
-      bind₁_X_right bind₁_rename rename_rename
+      bind₁_X_right bind₁_X_left bind₁_rename rename_rename
       function.comp function.uncurry
       matrix.head_cons matrix.cons_val_one matrix.cons_val_zero
+      nat.succ_ne_zero nat.add_sub_cancel nat.succ_eq_add_one
       if_true eq_self_iff_true if_false
 
 end witt_vector

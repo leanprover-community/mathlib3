@@ -123,9 +123,7 @@ def verschiebung : 𝕎 R →+ 𝕎 R :=
 
 omit hp
 
-/--
-`witt_vector.verschiebung` has polynomial structure given by `witt_vector.verschiebung_poly`.
--/
+/-- `witt_vector.verschiebung` is a polynomial function. -/
 def verschiebung_is_poly : is_poly p (λ R _Rcr, @verschiebung p R hp _Rcr) verschiebung_poly :=
 ⟨(verschiebung_fun_is_poly p).coeff⟩
 

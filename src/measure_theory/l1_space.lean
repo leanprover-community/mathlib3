@@ -26,7 +26,10 @@ of being almost everywhere equal is defined as a subspace of the space `L⁰`. S
 ## Main definitions
 
 * Let `f : α → β` be a function, where `α` is a `measure_space` and `β` a `normed_group`.
-  Then `f` is called `integrable` if `(∫⁻ a, nnnorm (f a)) < ⊤` holds.
+  Then `has_finite_integral f` means `(∫⁻ a, nnnorm (f a)) < ⊤`.
+
+* If `β` is moreover a `measurable_space` then `f` is called `integrable` if
+  `f` is `measurable` and `has_finite_integral f` holds.
 
 * The space `L¹` is defined as a subspace of `L⁰` :
   An `ae_eq_fun` `[f] : α →ₘ β` is in the space `L¹` if `edist [f] 0 < ⊤`, which means
@@ -63,6 +66,8 @@ variables [normed_group γ]
 
 namespace measure_theory
 
+/-! ### Some results about the Lebesgue integral involving a normed group -/
+
 lemma lintegral_nnnorm_eq_lintegral_edist (f : α → β) :
   ∫⁻ a, nnnorm (f a) ∂μ = ∫⁻ a, edist (f a) 0 ∂μ :=
 by simp only [edist_eq_coe_nnnorm]
@@ -92,6 +97,8 @@ lintegral_add hf.ennnorm hg.ennnorm
 lemma lintegral_nnnorm_neg {f : α → β} :
   ∫⁻ a, nnnorm ((-f) a) ∂μ = ∫⁻ a, nnnorm (f a) ∂μ :=
 by simp only [pi.neg_apply, nnnorm_neg]
+
+/-! ### The predicate `has_finite_integral` -/
 
 /-- `has_finite_integral f μ` means that the integral `∫⁻ a, ∥f a∥ ∂μ` is finite.
   `has_finite_integral f` means `has_finite_integral f volume`. -/
@@ -367,6 +374,8 @@ lemma has_finite_integral.mul_const {f : α → ℝ} (h : has_finite_integral f 
 by simp_rw [mul_comm, h.const_mul _]
 end normed_space
 
+/-! ### The predicate `integrable` -/
+
 variables [measurable_space β] [measurable_space γ] [measurable_space δ]
 
 /-- `integrable f μ` means that `f` is measurable and that the integral `∫⁻ a, ∥f a∥ ∂μ` is finite.
@@ -524,6 +533,8 @@ end normed_space
 
 variables [second_countable_topology β]
 
+/-! ### The predicate `integrable` on measurable functions modulo a.e.-equality -/
+
 namespace ae_eq_fun
 
 section
@@ -580,6 +591,8 @@ end normed_space
 end
 
 end ae_eq_fun
+
+/-! ### The `L¹` space of functions -/
 
 variables (α β)
 /-- The space of equivalence classes of integrable (and measurable) functions, where two integrable

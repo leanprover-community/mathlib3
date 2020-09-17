@@ -23,7 +23,7 @@ We also define `integrable_on f s μ := integrable f (μ.restrict s)` and prove 
 `integrable_on_union : integrable_on f (s ∪ t) μ ↔ integrable_on f s μ ∧ integrable_on f t μ`.
 
 Next we define a predicate `integrable_at_filter (f : α → E) (l : filter α) (μ : measure α)`
-saying that `f` is integrable at some set `s ∈ l` and prove that a function is integrable
+saying that `f` is integrable at some set `s ∈ l` and prove that a measurable function is integrable
 at `l` with respect to `μ` provided that `f` is bounded above at `l ⊓ μ.ae` and `μ` is finite
 at `l`.
 
@@ -97,8 +97,8 @@ by haveI : finite_measure (μ.restrict s) := ⟨by rwa [measure.restrict_apply_u
 
 variables [normed_group E] [measurable_space E] {f : α → E} {s t : set α} {μ ν : measure α}
 
-/-- A function is `integrable_on` a set `s` if the integral of its pointwise norm over `s` is less
-than infinity. -/
+/-- A function is `integrable_on` a set `s` if it is a measurable function and if the integral of
+  its pointwise norm over `s` is less than infinity. -/
 def integrable_on (f : α → E) (s : set α) (μ : measure α . volume_tac) : Prop :=
 integrable f (μ.restrict s)
 

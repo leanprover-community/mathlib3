@@ -81,41 +81,32 @@ begin
   exact ⟨c, hc⟩,
 end
 
+lemma primitive_element_two_inf_key_aux_aux {β : F} {h : polynomial F}
+  (h_splits : polynomial.splits ϕ h) (h_roots : (h.map ϕ).roots = {ϕ β}) :
+  h = (polynomial.C (polynomial.leading_coeff h)) * (polynomial.X - polynomial.C β) :=
+begin
+  apply polynomial.map_injective _ ϕ.injective,
+  rw [polynomial.eq_prod_roots_of_splits h_splits,h_roots,multiset.map_singleton,
+      multiset.singleton_eq_singleton,multiset.prod_singleton,polynomial.map_mul,
+      polynomial.map_sub,polynomial.map_X,polynomial.map_C,polynomial.map_C],
+end
+
 lemma primitive_element_two_inf_key_aux {β : F} {h : polynomial F} (h_ne_zero : h ≠ 0)
   (h_sep : h.separable) (h_root : h.eval β = 0) (h_splits : polynomial.splits ϕ h)
   (h_roots : ∀ x ∈ (h.map ϕ).roots, x = ϕ β) :
   h = (polynomial.C (polynomial.leading_coeff h)) * (polynomial.X - polynomial.C β) :=
 begin
-  apply polynomial.map_injective _ ϕ.injective,
-  rw polynomial.splits_iff_exists_multiset at h_splits,
-  cases h_splits with s hs,
-  have h' := @multiset.eq_repeat_of_mem _
-               (polynomial.X - polynomial.C (ϕ β))
-               (s.map (λ (a : E), polynomial.X - polynomial.C a))
-               (λ x hx, begin
-    rw multiset.mem_map at hx,
-    cases hx with a ha,
-    rw h_roots a at ha,
-    exact ha.2.symm,
-    rw [polynomial.mem_roots_of_map h_ne_zero,←polynomial.eval_map],
-    cases multiset.exists_cons_of_mem ha.1 with y hy,
-    simp [hs, hy],
-  end),
-  rw [h', multiset.prod_repeat, multiset.card_map] at hs,
-  have hf : ¬is_unit (polynomial.X - polynomial.C (ϕ β)),
-  { rw [polynomial.is_unit_iff_degree_eq_zero,polynomial.degree_X_sub_C],
-    exact dec_trivial, },
-  have hn : s.card ≠ 0,
-  { intro hs_card,
-    rw [hs_card, pow_zero, mul_one, ←polynomial.map_C] at hs,
-    rw [polynomial.map_injective _ ϕ.injective hs, polynomial.eval_C,
-      polynomial.leading_coeff_eq_zero] at h_root,
-    exact h_ne_zero h_root, },
-  have h_map_separable : (h.map ϕ).separable := polynomial.separable.map h_sep,
-  rw hs at h_map_separable,
-  rw [(polynomial.separable.of_pow hf hn (polynomial.separable.of_mul_right h_map_separable)).2,
-    pow_one] at hs,
-  simp [hs],
+  apply primitive_element_two_inf_key_aux_aux ϕ h_splits,
+  apply finset.mk.inj,
+  { change _ = {ϕ β},
+    rw finset.eq_singleton_iff_unique_mem,
+    split,
+    { apply finset.mem_mk.mpr,
+      rw polynomial.mem_roots (show h.map ϕ ≠ 0, by exact polynomial.map_ne_zero h_ne_zero),
+      rw [polynomial.is_root.def,←polynomial.eval₂_eq_eval_map,polynomial.eval₂_hom,h_root],
+      exact ring_hom.map_zero ϕ },
+    { exact h_roots } },
+  { exact polynomial.nodup_roots (polynomial.separable.map h_sep) },
 end
 
 end

@@ -169,6 +169,10 @@ begin
   convert ring_hom.id_comp _,
 end
 
+lemma to_padic_int_comp_from_padic_int_ext (x) :
+  (to_padic_int p).comp (from_padic_int p) x = ring_hom.id ℤ_[p] x :=
+by rw to_padic_int_comp_from_padic_int
+
 lemma from_padic_int_comp_to_padic_int :
   (from_padic_int p).comp (to_padic_int p) = ring_hom.id (𝕎 (zmod p)) :=
 begin
@@ -181,6 +185,10 @@ begin
   ext1, simp
 end
 
+lemma from_padic_int_comp_to_padic_int_ext (x) :
+  (from_padic_int p).comp (to_padic_int p) x = ring_hom.id (𝕎 (zmod p)) x :=
+by rw from_padic_int_comp_to_padic_int
+
 /--
 The ring of Witt vectors over `zmod p` is isomorphic to the ring of `p`-adic integers. This
 equivalence is witnessed by `witt_vector.to_padic_int` with inverse `witt_vector.from_padic_int`.
@@ -188,10 +196,8 @@ equivalence is witnessed by `witt_vector.to_padic_int` with inverse `witt_vector
 def equiv : 𝕎 (zmod p) ≃+* ℤ_[p] :=
 { to_fun := to_padic_int p,
   inv_fun := from_padic_int p,
-  left_inv := λ x, show (from_padic_int p).comp (to_padic_int p) x = _,
-              by rw from_padic_int_comp_to_padic_int; refl,
-  right_inv := λ x, show (to_padic_int p).comp (from_padic_int p) x = _,
-              by rw to_padic_int_comp_from_padic_int; refl,
+  left_inv := from_padic_int_comp_to_padic_int_ext _,
+  right_inv := to_padic_int_comp_from_padic_int_ext _,
   map_mul' := ring_hom.map_mul _,
   map_add' := ring_hom.map_add _ }
 

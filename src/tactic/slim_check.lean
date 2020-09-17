@@ -104,7 +104,7 @@ open tactic slim_check
 
 declare_trace slim_check.instance
 declare_trace slim_check.decoration
-declare_trace slim_check.discared
+declare_trace slim_check.discarded
 declare_trace slim_check.success
 declare_trace slim_check.shrink.steps
 declare_trace slim_check.shrink.candidates .
@@ -192,7 +192,7 @@ meta def slim_check (cfg : slim_check_cfg := {}) : tactic unit := do
 { tgt ← retrieve $ tactic.revert_all >> target,
   let tgt' := tactic.add_decorations tgt,
   let cfg := { cfg with
-               trace_discarded         := cfg.trace_discarded         || is_trace_enabled_for `slim_check.discared,
+               trace_discarded         := cfg.trace_discarded         || is_trace_enabled_for `slim_check.discarded,
                trace_shrink            := cfg.trace_shrink            || is_trace_enabled_for `slim_check.shrink.steps,
                trace_shrink_candidates := cfg.trace_shrink_candidates || is_trace_enabled_for `slim_check.shrink.candidates,
                trace_success           := cfg.trace_success           || is_trace_enabled_for `slim_check.success },

@@ -144,9 +144,8 @@ begin
           polynomial.eval_map,←polynomial.aeval_def, minimal_polynomial.aeval] },
     { rw [polynomial.eval_map,←polynomial.aeval_def, minimal_polynomial.aeval] } },
   have h_splits : polynomial.splits (algebra_map E E') h :=
-    polynomial.splits_of_splits_of_dvd (algebra_map E E')
-      (polynomial.map_ne_zero (minimal_polynomial.ne_zero hβ))
-      (polynomial.splitting_field.splits g') (euclidean_domain.gcd_dvd_right f' g'),
+    polynomial.splits_of_splits_gcd_right (algebra_map E E')
+    (polynomial.map_ne_zero (minimal_polynomial.ne_zero hβ)) (polynomial.splitting_field.splits g'),
   have h_roots : ∀ x ∈ (h.map ιEE').roots, x = algebra_map E E' β,
   { intros x hx,
     rw polynomial.mem_roots_of_map h_ne_zero at hx,

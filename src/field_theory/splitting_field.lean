@@ -80,6 +80,14 @@ lemma splits_of_splits_of_dvd {f g : polynomial α} (hf0 : f ≠ 0) (hf : splits
   splits i g :=
 by { obtain ⟨f, rfl⟩ := hgf, exact (splits_of_splits_mul i hf0 hf).1 }
 
+lemma splits_of_splits_gcd_left {f g : polynomial α} (hf0 : f ≠ 0) (hf : splits i f) :
+  splits i (euclidean_domain.gcd f g) :=
+polynomial.splits_of_splits_of_dvd i hf0 hf (euclidean_domain.gcd_dvd_left f g)
+
+lemma splits_of_splits_gcd_right {f g : polynomial α} (hg0 : g ≠ 0) (hg : splits i g) :
+  splits i (euclidean_domain.gcd f g) :=
+polynomial.splits_of_splits_of_dvd i hg0 hg (euclidean_domain.gcd_dvd_right f g)
+
 lemma splits_map_iff (j : β →+* γ) {f : polynomial α} :
   splits j (f.map i) ↔ splits (j.comp i) f :=
 by simp [splits, polynomial.map_map]

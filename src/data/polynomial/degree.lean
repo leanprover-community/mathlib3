@@ -17,6 +17,7 @@ noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
 open finsupp finset
+open_locale big_operators
 
 namespace polynomial
 universes u v w
@@ -47,6 +48,19 @@ else with_bot.coe_le_coe.1 $
       mul_le_mul_of_nonneg_right
         (le_nat_degree_of_ne_zero (finsupp.mem_support_iff.1 hn))
         (nat.zero_le _))
+
+lemma nat_degree_zero_constant (hp : p.nat_degree = 0) : p = C (p.coeff 0) :=
+begin
+  ext, induction n with n hn,
+  { simp only [polynomial.coeff_C_zero], },
+  {
+    have ineq : p.nat_degree < n.succ := by { rw hp, exact nat.succ_pos n},
+    have zero1 : p.coeff n.succ = 0 := coeff_eq_zero_of_nat_degree_lt ineq, rw zero1,
+    have zero2 : (C (p.coeff 0)).nat_degree = 0 := nat_degree_C (p.coeff 0),
+    have zero3 : (C (p.coeff 0)).coeff n.succ = 0 := coeff_eq_zero_of_nat_degree_lt _,
+    rw zero3, rw zero2, exact nat.succ_pos n,
+  }
+end
 
 lemma degree_map_le [semiring S] (f : R →+* S) :
   degree (p.map f) ≤ degree p :=

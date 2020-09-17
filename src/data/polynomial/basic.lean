@@ -117,6 +117,20 @@ by rw [←one_smul R p, ←h, zero_smul]
 
 end semiring
 
+section comm_semiring
+variables [comm_semiring R]
+
+instance : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
+instance : comm_monoid (polynomial R) :=
+  { mul       := λ p q, p * q,
+    one       := 1,
+    mul_assoc := mul_assoc,
+    one_mul   := one_mul,
+    mul_one   := mul_one,
+    mul_comm  := mul_comm,}
+
+end comm_semiring
+
 section ring
 variables [ring R]
 
@@ -129,7 +143,7 @@ lemma coeff_sub (p q : polynomial R) (n : ℕ) : coeff (p - q) n = coeff p n - c
 
 end ring
 
-instance [comm_semiring R] : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
+-- instance [comm_semiring R] : comm_semiring (polynomial R) := add_monoid_algebra.comm_semiring
 instance [comm_ring R] : comm_ring (polynomial R) := add_monoid_algebra.comm_ring
 
 section nonzero_semiring

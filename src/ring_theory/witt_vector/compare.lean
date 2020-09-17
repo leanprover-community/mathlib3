@@ -45,7 +45,7 @@ begin
   rw [this, ext_iff, not_forall], clear this,
   use ⟨i, hin⟩,
   rw [witt_vector.coeff_truncate, coeff_zero, fin.coe_mk, witt_vector.coeff_p_pow],
-  haveI : nontrivial R := nontrivial_of_char_ne_one (show p ≠ 1, from nat.prime.ne_one ‹_›),
+  haveI : nontrivial R := nontrivial_of_char_ne_one hp.ne_one,
   exact one_ne_zero
 end
 

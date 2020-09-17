@@ -190,7 +190,7 @@ by simp only [has_mem.mem, lazy_list.mem, or_imp_distrib, forall_and_distrib, fo
   but is defined only when all members of `l` satisfy `p`, using the proof
   to apply `f`. -/
 @[simp] def pmap {α β} {p : α → Prop} (f : Π a, p a → β) : Π l : lazy_list α, (∀ a ∈ l, p a) → lazy_list β
-| lazy_list.nil     H := lazy_list.nil
+| lazy_list.nil         H := lazy_list.nil
 | (lazy_list.cons x xs) H := lazy_list.cons (f x (forall_mem_cons.1 H).1) (pmap (xs ()) (forall_mem_cons.1 H).2)
 
 /-- "Attach" the proof that the elements of `l` are in `l` to produce a new `lazy_list`

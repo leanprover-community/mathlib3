@@ -880,7 +880,6 @@ begin
   { refine (IH₁ H).trans (IH₂ ((p₁.pairwise_iff _).1 H)),
     exact λ a b h h₁ h₂, h h₂ h₁ }
 end
-
 lemma perm.take_inter {α} [decidable_eq α] {xs ys : list α} (n : ℕ)
   (h : xs ~ ys) (h' : ys.nodup) :
   xs.take n ~ ys.inter (xs.take n) :=
@@ -904,12 +903,12 @@ begin
     cases n; simp only [mem_cons_iff, false_or, true_or, filter, *, nat.nat_zero_eq_zero, if_true, not_mem_nil,
                         eq_self_iff_true, or_false, if_false, perm_cons, take],
     { rw filter_eq_nil.2, intros, solve_by_elim [ne.symm], },
-    { convert perm.swap _ _ _, rw filter_congr _ (∈ take n h_l),
+    { convert perm.swap _ _ _, rw @filter_congr _ _ (∈ take n h_l),
       { clear h'_a_1, induction n generalizing h_l; simp only [not_mem_nil, filter_false, take],
         cases h_l; simp only [true_and, mem_cons_iff, true_or, eq_self_iff_true, filter_cons_of_pos, take,
                               not_mem_nil, filter_false, take_nil],
         cases h'_a_2_a_2,
-        rwa [filter_congr _ (∈ take n_n h_l_tl), n_ih],
+        rwa [@filter_congr _ _ (∈ take n_n h_l_tl), n_ih],
         { introv h, apply h'_a_2_a_1 _ (or.inr h), },
         { introv h, simp only [(h'_a_2_a_2_a_1 x h).symm, false_or], }, },
       { introv h, simp only [(h'_a_2_a_1 x h).symm, (h'_a_1 x (or.inr h)).symm, false_or], } } },
@@ -973,9 +972,9 @@ begin
         rw [list.inter], apply filter_congr,
         introv hx, simp [(h₁ _ hx).symm] },
       { simp [not_or_distrib, h₀ _ (or.inl rfl)],
-        intros h, replace h := list.mem_drop_of_mem h,
+        intros h, replace h := list.mem_of_mem_drop h,
         apply h₀ _ (or.inr h) rfl, } },
-    { convert perm.swap _ _ _, rw filter_congr _ (∈ list.slice n m h_l),
+    { convert perm.swap _ _ _, rw @filter_congr _ _ (∈ list.slice n m h_l),
       { induction h_l with x xs' xs_ih generalizing n m,
         { cases n; simp },
         { have : (x :: h_x :: h_y :: xs').nodup,
@@ -989,7 +988,7 @@ begin
             { specialize xs_ih h₁ 0 m,
               dsimp [list.slice] at xs_ih,
               rwa [filter, if_neg],
-              intro h, replace h := list.mem_drop_of_mem h,
+              intro h, replace h := list.mem_of_mem_drop h,
               exact h₀ x (or.inr (or.inr h)) rfl } },
           convert xs_ih h₁ n m using 1,
           apply filter_congr, intros y h,

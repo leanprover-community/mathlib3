@@ -189,34 +189,6 @@ by simp only [list.apply_id, list.lookup, eq_rec_constant, prod.to_sigma, list.m
 open function list prod (to_sigma)
 open nat
 
-lemma nth_injective {α : Type u} {xs : list α} {i j : ℕ} {a : α}
-  (h : nodup xs)
-  (hi : xs.nth i = some a)
-  (hj : xs.nth j = some a) : i = j :=
-begin
-  induction xs with x xs generalizing i j,
-  { cases hj },
-  { wlog : i ≤ j,
-    cases h with _ _ h₀ h₁,
-    cases j,
-    { cases case, refl },
-    cases i,
-    { specialize h₀ a _,
-      { injection hi, contradiction },
-      { rw mem_iff_nth, exact ⟨_, hj⟩ } },
-    { congr, apply xs_ih; assumption, } }
-end
-
-lemma nth_injective' {α : Type u} {xs : list α} {i j : ℕ}
-  (h₀ : i < xs.length)
-  (h₁ : nodup xs)
-  (h₂ : xs.nth i = xs.nth j) : i = j :=
-begin
-  have := nth_le_nth h₀,
-  apply nth_injective h₁ this,
-  rw [← h₂, this],
-end
-
 lemma list.apply_id_zip_eq {α : Type u} [decidable_eq α] {xs ys : list α} (h₀ : list.nodup xs)
   (h₁ : xs.length = ys.length) (x y : α) (i : ℕ)
   (h₂ : xs.nth i = some x) :
@@ -299,7 +271,7 @@ begin
     have h₂ := h₁.length_eq,
     rw [list.apply_id_zip_eq h₀ h₂ _ _ _ hx] at h,
     rw [← hx, ← hy], congr,
-    apply nth_injective' _ (h₁.nodup_iff.1 h₀),
+    apply nth_injective _ (h₁.nodup_iff.1 h₀),
     { symmetry, rw h,
       rw ← list.apply_id_zip_eq; assumption },
     { rw ← h₁.length_eq,

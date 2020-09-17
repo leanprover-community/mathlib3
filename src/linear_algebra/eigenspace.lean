@@ -123,16 +123,39 @@ variables [field K] [vector_space K V] [finite_dimensional K V] (f : End K V)
 protected theorem is_integral : is_integral K f :=
 is_integral_of_noetherian (by apply_instance) f
 
-theorem is_root_of_has_eigenvalue (μ : K) (h : f.has_eigenvalue μ) :
+variables {f} {μ : K}
+
+theorem is_root_of_has_eigenvalue (h : f.has_eigenvalue μ) :
   (minimal_polynomial f.is_integral).is_root μ :=
 begin
   rcases (submodule.ne_bot_iff _).1 h with ⟨w, ⟨H, ne0⟩⟩,
-  have foo := @smul_eq_zero _ _ _ _ _ (eval μ (minimal_polynomial f.is_integral)) w,
-  rw [← aeval_apply_of_has_eigenvector ⟨ne0, H⟩, minimal_polynomial.aeval f.is_integral] at foo,
-  simp only [true_iff, eq_self_iff_true, linear_map.zero_apply] at foo,
-  cases foo, { rwa is_root },
-  exfalso, exact ne0 foo,
+  refine or.resolve_right (smul_eq_zero.1 _) ne0,
+  simp [← aeval_apply_of_has_eigenvector ⟨ne0, H⟩, minimal_polynomial.aeval f.is_integral],
 end
+
+theorem has_eigenvalue_of_is_root (h : (minimal_polynomial f.is_integral).is_root μ) :
+  f.has_eigenvalue μ :=
+begin
+  cases dvd_iff_is_root.2 h with p hp,
+  rw [has_eigenvalue, eigenspace],
+  intro con,
+  cases (linear_map.is_unit_iff _).2 con with u hu,
+  have p_ne_0 : p ≠ 0,
+  { intro con,
+    apply minimal_polynomial.ne_zero f.is_integral,
+    rw [hp, con, mul_zero] },
+  have h_deg := minimal_polynomial.degree_le_of_ne_zero f.is_integral p_ne_0 _,
+  { rw [hp, degree_mul, degree_X_sub_C, polynomial.degree_eq_nat_degree p_ne_0] at h_deg,
+    norm_cast at h_deg,
+    linarith, },
+  { have h_aeval := minimal_polynomial.aeval f.is_integral,
+    revert h_aeval,
+    simp [hp, ← hu] },
+end
+
+theorem has_eigenvalue_iff_is_root :
+  f.has_eigenvalue μ ↔ (minimal_polynomial f.is_integral).is_root μ :=
+⟨is_root_of_has_eigenvalue, has_eigenvalue_of_is_root⟩
 
 end minimal_polynomial
 
@@ -160,7 +183,8 @@ begin
   -- Hence, there must be a factor `q` of `p` such that `q(f)` is not invertible.
   obtain ⟨q, hq_factor, hq_nonunit⟩ : ∃ q, q ∈ factors p ∧ ¬ is_unit (aeval f q),
   { simp only [←not_imp, (is_unit.mem_submonoid_iff _).symm],
-    apply not_forall.1 (λ h, h_eval_p_not_unit (ring_hom_mem_submonoid_of_factors_subset_of_units_subset
+    apply not_forall.1 (λ h, h_eval_p_not_unit
+      (ring_hom_mem_submonoid_of_factors_subset_of_units_subset
       (eval₂_ring_hom' am algebra.commutes f)
       (is_unit.submonoid (End K V)) p h_mon.ne_zero h _)),
     simp only [is_unit.mem_submonoid_iff, linear_map.is_unit_iff],

@@ -3907,7 +3907,7 @@ theorem forall_mem_inter_of_forall_right {p : α → Prop} (l₁ : list α) {l�
   ∀ x, x ∈ l₁ ∩ l₂ → p x :=
 ball.imp_left (λ x, mem_of_mem_inter_right) h
 
-lemma inter_reverse {xs ys : list α} :
+@[simp] lemma inter_reverse {xs ys : list α} :
   xs.inter ys.reverse = xs.inter ys :=
 by simp [list.inter]; congr
 

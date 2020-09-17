@@ -18,9 +18,9 @@ interacts with `mv_polynomial.bind₁`.
 
 ## Main declarations
 
-* `witt_vector.init x n`: the first `n` coefficients of `x`, as a Witt vector. All coefficients at
+* `witt_vector.init n x`: the first `n` coefficients of `x`, as a Witt vector. All coefficients at
   indices ≥ `n` are 0.
-* `witt_vector.tail x n`: the complementary part to `init`. All coefficients at indices < `n` are 0,
+* `witt_vector.tail n x`: the complementary part to `init`. All coefficients at indices < `n` are 0,
   otherwise they are the same as in `x`.
 
 -/
@@ -130,40 +130,40 @@ end
 
 end select
 
-/-- `witt_vector.init x n` is the Witt vector of which the first `n` coefficients are those from `x`
+/-- `witt_vector.init n x` is the Witt vector of which the first `n` coefficients are those from `x`
 and all other coefficients are `0`.
 See `witt_vector.tail` for the complementary part.
 -/
-def init (x : 𝕎 R) (n : ℕ) : 𝕎 R := select (λ i, i < n) x
+def init (n : ℕ) : 𝕎 R → 𝕎 R := select (λ i, i < n)
 
-/-- `witt_vector.tail x n` is the Witt vector of which the first `n` coefficients are `0`
+/-- `witt_vector.tail n x` is the Witt vector of which the first `n` coefficients are `0`
 and all other coefficients are those from `x`.
 See `witt_vector.init` for the complementary part. -/
-def tail (x : 𝕎 R) (n : ℕ) : 𝕎 R := select (λ i, n ≤ i) x
+def tail (n : ℕ) : 𝕎 R → 𝕎 R := select (λ i, n ≤ i)
 
 end
 
 @[simp]
 lemma init_init (x : 𝕎 R) (n : ℕ) :
-  init (init x n) n = init x n :=
+  init n (init n x) = init n x :=
 by init_ring
 
 include hp
 
 lemma init_add (x y : 𝕎 R) (n : ℕ) :
-  init (x + y) n = init (init x n + init y n) n :=
+  init n (x + y) = init n (init n x + init n y) :=
 by init_ring using witt_add_vars
 
 lemma init_mul (x y : 𝕎 R) (n : ℕ) :
-  init (x * y) n = init (init x n * init y n) n :=
+  init n (x * y) = init n (init n x * init n y) :=
 by init_ring using witt_mul_vars
 
 lemma init_neg (x : 𝕎 R) (n : ℕ) :
-  init (-x) n = init (-init x n) n :=
+  init n (-x) = init n (-init n x) :=
 by init_ring using witt_neg_vars
 
 lemma init_sub (x y : 𝕎 R) (n : ℕ) :
-  init (x - y) n = init (init x n - init y n) n :=
+  init n (x - y) = init n (init n x - init n y) :=
 begin
   simp only [sub_eq_add_neg],
   rw [init_add, init_neg],
@@ -176,8 +176,8 @@ variables (p)
 
 omit hp
 
-/-- `witt_vector.init x` is polynomial in the coefficients of `x`. -/
-def init_is_poly (n : ℕ) : is_poly p (λ R _Rcr x, by exactI init x n) _ :=
+/-- `witt_vector.init n x` is polynomial in the coefficients of `x`. -/
+def init_is_poly (n : ℕ) : is_poly p (λ R _Rcr, by exactI init n) _ :=
 select_is_poly (λ i, i < n)
 
 end

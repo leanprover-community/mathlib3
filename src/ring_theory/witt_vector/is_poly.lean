@@ -27,17 +27,28 @@ more so than direct checking of `φ = ψ`.
 In practice, we apply this technique to show that the composition of `witt_vector.frobenius`
 and `witt_vector.verschiebung` is equal to multiplication by `p`.
 
+## Main declarations
+
+* `witt_vector.is_poly`, `witt_vector.is_poly₂`:
+  two predicates that assert that a unary/binary function on Witt vectors
+  is polynomial in the coefficients of the input values.
+* `witt_vector.is_poly.ext'`, `witt_vector.is_poly₂.ext'`:
+  two polynomial functions are equal if their families of polynomials are equal
+  after evaluating the Witt polynmials on them.
+* `witt_vector.is_poly.comp` (+ many variants) show that unary/binary compositions
+  of polynomial functions are polynomial.
+* `witt_vector.id_is_poly`, `witt_vector.neg_is_poly`,
+  `witt_vector.add_is_poly₂`, `witt_vector.mul_is_poly₂`:
+  several well-known operations are polynomial functions
+  (for Verschiebung, Frobenius, and multiplication by `p`, see their respective files).
+
 ## On higher arity analogues
 
 Ideally, there should be a predicate `is_polyₙ` for functions of higher arity,
 together with `is_polyₙ.comp` that shows how such functions compose.
 Since mathlib does not have a library on composition of higher arity functions,
-we have only implemented the unary variant so far.
-
-Once a higher arity analogue gets implemented,
-it can be tested by refactoring the proof that `verschiebung` is additive,
-or by redoing (and hopefully golfing) the computations in `ring_theory.witt_vector.witt_sub`.
-
+we have only implemented the unary and binary variants so far.
+Nullary functions (a.k.a. constants) are treated as constant functions and fall under the unary case.
 -/
 
 /-
@@ -47,7 +58,7 @@ We define it here so it is a shared import.
 
 mk_simp_attribute ghost_simps
 "Simplification rules for ghost equations"
-#check tactic.interactive.simp_arg_type.has_to_string
+
 namespace tactic
 namespace interactive
 setup_tactic_parser
@@ -296,9 +307,8 @@ by { rw (is_poly₂.ext hf hg $ poly_eq_of_witt_polynomial_bind_eq' p _ _ h), in
 end is_poly₂
 
 attribute [ghost_simps]
-      witt_structure_int_prop
+      witt_structure_int_prop witt_add witt_mul witt_neg
       alg_hom.map_zero alg_hom.map_one bind₁_zero_witt_polynomial bind₁_one_poly_witt_polynomial
-      witt_add witt_mul witt_neg
       alg_hom.map_add alg_hom.map_mul bind₁_X_right function.uncurry bind₁_rename function.comp
       matrix.head_cons matrix.cons_val_one matrix.cons_val_zero
       if_true eq_self_iff_true if_false add_zero ring_hom.map_zero

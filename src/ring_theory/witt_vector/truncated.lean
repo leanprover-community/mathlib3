@@ -115,7 +115,7 @@ by rw [truncate_fun, truncated_witt_vector.coeff_mk]
 variable [comm_ring R]
 
 @[simp] lemma out_truncate_fun (x : 𝕎 R) :
-  (truncate_fun n x).out = init x n :=
+  (truncate_fun n x).out = init n x :=
 begin
   ext i,
   dsimp [truncated_witt_vector.out, init, select],

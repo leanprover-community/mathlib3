@@ -9,7 +9,7 @@ import ring_theory.subring
 /-!
 # Subfields
 
-Let `K` be a field This file defines the "bundled" subfield type `subfield K`, a type
+Let `K` be a field. This file defines the "bundled" subfield type `subfield K`, a type
 whose terms correspond to subfields of `K`. This is the preferred way to talk
 about subfields in mathlib. Unbundled subfields (`s : set K` and `is_subfield s`)
 are not in this file, and they will ultimately be deprecated.

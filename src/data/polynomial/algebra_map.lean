@@ -115,7 +115,7 @@ theorem aeval_def (p : polynomial R) : aeval x p = eval₂ (algebra_map R A) x p
 
 @[simp] lemma aeval_C (r : R) : aeval x (C r) = algebra_map R A r := eval₂_C _ x
 
-theorem sum {s : finset ℕ} (f : ℕ -> polynomial R) (t : A) :
+lemma aeval_finsum_eq_finsum_aeval {s : finset ℕ} (f : ℕ -> polynomial R) (t : A) :
   aeval t (s.sum f) = s.sum (λ i, aeval t (f i)) :=
 begin
   apply finset.induction_on s, simp only [sum_empty, alg_hom.map_zero],

@@ -48,6 +48,7 @@ by simp only [neg_eq_neg_one_mul a, neg_eq_neg_one_mul b, rel.mul_right h]
 
 theorem rel.smul {r : A → A → Prop} (k : S) ⦃a b : A⦄ (h : rel r a b) : rel r (k • a) (k • b) :=
 by simp only [algebra.smul_def, rel.mul_right h]
+
 end ring_quot
 
 /-- The quotient of a ring by an arbitrary relation. -/
@@ -87,7 +88,7 @@ instance {R : Type u₁} [comm_ring R] (r : R → R → Prop) : comm_ring (ring_
   .. (ring_quot.ring r) }
 
 instance (s : A → A → Prop) : algebra S (ring_quot s) :=
-{ smul      := λ r, quot.map ((•) r) (rel.smul r)
+{ smul      := λ r, quot.map ((•) r) (rel.smul r),
   to_fun    := λ r, quot.mk _ (algebra_map S A r),
   map_one'  := congr_arg (quot.mk _) (ring_hom.map_one _),
   map_mul'  := λ r s, congr_arg (quot.mk _) (ring_hom.map_mul _ _ _),
@@ -205,6 +206,8 @@ ring_equiv.of_hom_inv (ring_quot_to_ideal_quotient r) (ideal_quotient_to_ring_qu
 end comm_ring
 
 section algebra
+
+variables (S)
 
 /--
 The quotient map from an `S`-algebra to its quotient, as a homomorphism of `S`-algebras.

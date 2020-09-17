@@ -72,23 +72,23 @@ zmod.ring_equiv (truncated_witt_vector p n (zmod p)) (p ^ n) (card_zmod _ _)
 
 lemma zmod_equiv_trunc_apply {x : zmod (p^n)} :
   zmod_equiv_trunc p n x =
-  zmod.cast_hom (show p ^ n ∣ p ^ n, by refl) (truncated_witt_vector p n (zmod p)) x :=
+  zmod.cast_hom (by refl) (truncated_witt_vector p n (zmod p)) x :=
 rfl
 
 lemma commutes {m : ℕ} (hm : n ≤ m) :
   (truncate hm).comp (zmod_equiv_trunc p m).to_ring_hom =
-    (zmod_equiv_trunc p n).to_ring_hom.comp (zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _) :=
+    (zmod_equiv_trunc p n).to_ring_hom.comp (zmod.cast_hom (pow_dvd_pow p hm) _) :=
 ring_hom.ext_zmod _ _
 
 lemma commutes' {m : ℕ} (hm : n ≤ m) (x : zmod (p^m)) :
   truncate hm (zmod_equiv_trunc p m x) =
-    zmod_equiv_trunc p n (zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _ x) :=
+    zmod_equiv_trunc p n (zmod.cast_hom (pow_dvd_pow p hm) _ x) :=
 show (truncate hm).comp (zmod_equiv_trunc p m).to_ring_hom x = _,
 by rw commutes _ _ hm; refl
 
 lemma commutes_symm' {m : ℕ} (hm : n ≤ m) (x : truncated_witt_vector p m (zmod p)) :
   (zmod_equiv_trunc p n).symm (truncate hm x) =
-    zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _ ((zmod_equiv_trunc p m).symm x) :=
+    zmod.cast_hom (pow_dvd_pow p hm) _ ((zmod_equiv_trunc p m).symm x) :=
 begin
   apply (zmod_equiv_trunc p n).injective,
   rw ← commutes',
@@ -97,7 +97,7 @@ end
 
 lemma commutes_symm {m : ℕ} (hm : n ≤ m)  :
   (zmod_equiv_trunc p n).symm.to_ring_hom.comp (truncate hm) =
-    (zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _).comp (zmod_equiv_trunc p m).symm.to_ring_hom :=
+    (zmod.cast_hom (pow_dvd_pow p hm) _).comp (zmod_equiv_trunc p m).symm.to_ring_hom :=
 by ext; apply commutes_symm'
 
 end iso
@@ -123,7 +123,7 @@ def to_zmod_pow (k : ℕ) : 𝕎 (zmod p) →+* zmod (p ^ k) :=
 (zmod_equiv_trunc p k).symm.to_ring_hom.comp (truncate k)
 
 lemma to_zmod_pow_compat (m n : ℕ) (h : m ≤ n) :
-  (zmod.cast_hom (show p ^ m ∣ p ^ n, by { simpa using pow_dvd_pow p h }) (zmod (p ^ m))).comp ((λ (k : ℕ), to_zmod_pow p k) n) =
+  (zmod.cast_hom (pow_dvd_pow p h) (zmod (p ^ m))).comp ((λ (k : ℕ), to_zmod_pow p k) n) =
     (λ (k : ℕ), to_zmod_pow p k) m :=
 calc (zmod.cast_hom _ (zmod (p ^ m))).comp ((zmod_equiv_trunc p n).symm.to_ring_hom.comp (truncate n)) =
   ((zmod_equiv_trunc p m).symm.to_ring_hom.comp (truncated_witt_vector.truncate h)).comp (truncate n) :

@@ -117,8 +117,7 @@ def verschiebung : 𝕎 R →+ 𝕎 R :=
     apply is_poly₂.ext'
       ((verschiebung_fun_is_poly p).comp₂ (add_is_poly₂ p))
       ((add_is_poly₂ p).comp (verschiebung_fun_is_poly p) (verschiebung_fun_is_poly p)),
-    intro n,
-    by_cases hn : n = 0; witt_simp [hn],
+    rintro ⟨⟩; witt_simp
   end }
 
 omit hp

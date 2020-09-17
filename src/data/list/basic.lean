@@ -1010,6 +1010,29 @@ theorem mem_iff_nth_le {a} {l : list α} : a ∈ l ↔ ∃ n h, nth_le l n h = a
 theorem mem_iff_nth {a} {l : list α} : a ∈ l ↔ ∃ n, nth l n = some a :=
 mem_iff_nth_le.trans $ exists_congr $ λ n, nth_eq_some.symm
 
+lemma nth_injective {α : Type u} {xs : list α} {i j : ℕ}
+  (h₀ : i < xs.length)
+  (h₁ : nodup xs)
+  (h₂ : xs.nth i = xs.nth j) : i = j :=
+begin
+  induction xs with x xs generalizing i j,
+  { cases h₀ },
+  { cases i; cases j,
+    case nat.zero nat.zero
+    { refl },
+    case nat.succ nat.succ
+    { congr, cases h₁,
+      apply xs_ih;
+      solve_by_elim [lt_of_succ_lt_succ] },
+    iterate 2
+    { dsimp at h₂,
+      cases h₁ with _ _ h h',
+      cases h x _ rfl,
+      rw mem_iff_nth,
+      exact ⟨_, h₂.symm⟩ <|>
+        exact ⟨_, h₂⟩ } },
+end
+
 @[simp] theorem nth_map (f : α → β) : ∀ l n, nth (map f l) n = (nth l n).map f
 | []       n     := rfl
 | (a :: l) 0     := rfl

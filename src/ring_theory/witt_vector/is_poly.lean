@@ -68,7 +68,8 @@ do tactic.try tactic.intro1,
    --lems ← simp_lemmas.add_simp lems `rename_bind₁ tt,
    simp none tt
      (lems ++ [simp_arg_type.symm_expr ``(mv_polynomial.rename_bind₁),
-               simp_arg_type.symm_expr ``(mv_polynomial.bind₁_bind₁)])
+               simp_arg_type.symm_expr ``(mv_polynomial.bind₁_bind₁),
+               simp_arg_type.symm_expr ``(sub_eq_add_neg)])
      [`ghost_simps] (loc.ns [none])
 -- `[try {intro}, simp only [← rename_bind₁, ← bind₁_bind₁] with ghost_simps]
 
@@ -307,12 +308,16 @@ by { rw (is_poly₂.ext hf hg $ poly_eq_of_witt_polynomial_bind_eq' p _ _ h), in
 end is_poly₂
 
 attribute [ghost_simps]
-      witt_structure_int_prop witt_add witt_mul witt_neg
-      alg_hom.map_zero alg_hom.map_one bind₁_zero_witt_polynomial bind₁_one_poly_witt_polynomial
-      alg_hom.map_add alg_hom.map_mul bind₁_X_right function.uncurry bind₁_rename function.comp
+      witt_structure_int_prop witt_add witt_mul witt_neg witt_sub
+      alg_hom.map_zero alg_hom.map_one alg_hom.map_add alg_hom.map_mul
+      alg_hom.map_sub alg_hom.map_neg alg_hom.map_nat_cast
+      ring_hom.map_zero ring_hom.map_one ring_hom.map_mul alg_hom.map_mul
+      ring_hom.map_sub ring_hom.map_neg ring_hom.map_nat_cast
+      mul_add add_mul add_zero zero_add mul_one one_mul mul_zero zero_mul
+      bind₁_zero_witt_polynomial bind₁_one_poly_witt_polynomial
+      bind₁_X_right bind₁_rename rename_rename
+      function.comp function.uncurry
       matrix.head_cons matrix.cons_val_one matrix.cons_val_zero
-      if_true eq_self_iff_true if_false add_zero ring_hom.map_zero
-      ring_hom.map_mul alg_hom.map_mul mul_add
-      ring_hom.map_nat_cast alg_hom.map_nat_cast
+      if_true eq_self_iff_true if_false
 
 end witt_vector

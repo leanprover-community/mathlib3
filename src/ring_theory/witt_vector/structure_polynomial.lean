@@ -19,7 +19,7 @@ with polynomials variables indexed by an arbitrary type `idx`.
 Then there exists a unique family of polynomials `φ : ℕ → mv_polynomial (idx × ℕ) Φ`
 such that for all `n : ℕ` we have (`witt_structure_int_exists_unique`)
 ```lean
-bind₁ φ (witt_polynomial p ℤ n) = bind₁ (λ b, (rename (λ i, (b,i)) (witt_polynomial p ℤ n))) Φ
+bind₁ φ (witt_polynomial p ℤ n) = bind₁ (λ i, (rename (prod.mk i) (witt_polynomial p ℤ n))) Φ
 ```
 In other words: evaluating the `n`-th Witt polynomial on the family `φ`
 is the same as evaluation `Φ` on the (appropriately renamed) `n`-th Witt polynomials.
@@ -96,7 +96,7 @@ include hp
 
 /-- `witt_structure_rat Φ` is a family of polynomials `ℕ → mv_polynomial (idx × ℕ) ℚ`
 that are uniquely characterised by the property that
-`bind₁ (witt_structure_rat p Φ) (witt_polynomial p ℚ n) = bind₁ (λ b, (rename (λ i, (b,i)) (witt_polynomial p ℚ n))) Φ`.
+`bind₁ (witt_structure_rat p Φ) (witt_polynomial p ℚ n) = bind₁ (λ i, (rename (prod.mk i) (witt_polynomial p ℚ n))) Φ`.
 In other words: evaluating the `n`-th Witt polynomial on the family `witt_structure_rat Φ`
 is the same as evaluation `Φ` on the (appropriately renamed) `n`-th Witt polynomials.
 
@@ -111,20 +111,20 @@ and `map_witt_structure_int` for the fact that it is equal to `witt_structure_ra
 when mapped to polynomials over the rationals. -/
 noncomputable def witt_structure_rat (Φ : mv_polynomial idx ℚ) (n : ℕ) :
   mv_polynomial (idx × ℕ) ℚ :=
-bind₁ (λ k, bind₁ (λ b, rename (λ i, (b,i)) (W_ ℚ k)) Φ) (X_in_terms_of_W p ℚ n)
+bind₁ (λ k, bind₁ (λ i, rename (prod.mk i) (W_ ℚ k)) Φ) (X_in_terms_of_W p ℚ n)
 
 theorem witt_structure_rat_prop (Φ : mv_polynomial idx ℚ) (n : ℕ) :
   bind₁ (witt_structure_rat p Φ) (W_ ℚ n) =
-  bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :=
+  bind₁ (λ i, (rename (prod.mk i) (W_ ℚ n))) Φ :=
 calc bind₁ (witt_structure_rat p Φ) (W_ ℚ n)
-    = bind₁ (λ k, bind₁ (λ b, (rename (prod.mk b)) (W_ ℚ k)) Φ) (bind₁ (X_in_terms_of_W p ℚ) (W_ ℚ n)) :
+    = bind₁ (λ k, bind₁ (λ i, (rename (prod.mk i)) (W_ ℚ k)) Φ) (bind₁ (X_in_terms_of_W p ℚ) (W_ ℚ n)) :
       by { rw [bind₁_bind₁], apply eval₂_hom_congr (ring_hom.ext_rat _ _) rfl rfl }
-... = bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :
+... = bind₁ (λ i, (rename (prod.mk i) (W_ ℚ n))) Φ :
       by rw [bind₁_X_in_terms_of_W_witt_polynomial p _ n, bind₁_X_right]
 
 theorem witt_structure_rat_exists_unique (Φ : mv_polynomial idx ℚ) :
   ∃! (φ : ℕ → mv_polynomial (idx × ℕ) ℚ),
-    ∀ (n : ℕ), bind₁ φ (W_ ℚ n) = bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ n))) Φ :=
+    ∀ (n : ℕ), bind₁ φ (W_ ℚ n) = bind₁ (λ i, (rename (prod.mk i) (W_ ℚ n))) Φ :=
 begin
   refine ⟨witt_structure_rat p Φ, _, _⟩,
   { intro n, apply witt_structure_rat_prop },
@@ -143,7 +143,7 @@ lemma witt_structure_rat_rec_aux (Φ : mv_polynomial idx ℚ) (n : ℕ) :
   ∑ i in range n, C (p ^ i : ℚ) * (witt_structure_rat p Φ i) ^ p ^ (n - i) :=
 begin
   have := X_in_terms_of_W_aux p ℚ n,
-  replace := congr_arg (bind₁ (λ k : ℕ, (bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℚ k)))) Φ)) this,
+  replace := congr_arg (bind₁ (λ k : ℕ, (bind₁ (λ i, (rename (prod.mk i) (W_ ℚ k)))) Φ)) this,
   rw [alg_hom.map_mul, bind₁_C_right] at this,
   convert this, clear this,
   conv_rhs { simp only [alg_hom.map_sub, bind₁_X_right] },
@@ -164,7 +164,7 @@ end
 
 /-- `witt_structure_int Φ` is a family of polynomials `ℕ → mv_polynomial (idx × ℕ) ℚ`
 that are uniquely characterised by the property that
-`bind₁ (witt_structure_int p Φ) (witt_polynomial p ℚ n) = bind₁ (λ b, (rename (λ i, (b,i)) (witt_polynomial p ℚ n))) Φ`.
+`bind₁ (witt_structure_int p Φ) (witt_polynomial p ℚ n) = bind₁ (λ i, (rename (prod.mk i) (witt_polynomial p ℚ n))) Φ`.
 In other words: evaluating the `n`-th Witt polynomial on the family `witt_structure_int Φ`
 is the same as evaluation `Φ` on the (appropriately renamed) `n`-th Witt polynomials.
 
@@ -296,7 +296,7 @@ variables (p)
 
 theorem witt_structure_int_prop (Φ : mv_polynomial idx ℤ) (n) :
   bind₁ (witt_structure_int p Φ) (witt_polynomial p ℤ n) =
-  bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℤ n))) Φ :=
+  bind₁ (λ i, (rename (prod.mk i) (W_ ℤ n))) Φ :=
 begin
   apply mv_polynomial.map_injective (int.cast_ring_hom ℚ) int.cast_injective,
   have := witt_structure_rat_prop p (map (int.cast_ring_hom ℚ) Φ) n,
@@ -305,7 +305,7 @@ begin
 end
 
 lemma eq_witt_structure_int (Φ : mv_polynomial idx ℤ) (φ : ℕ → mv_polynomial (idx × ℕ) ℤ)
-  (h : ∀ n, bind₁ φ (witt_polynomial p ℤ n) = bind₁ (λ b, (rename (λ i, (b,i)) (W_ ℤ n))) Φ) :
+  (h : ∀ n, bind₁ φ (witt_polynomial p ℤ n) = bind₁ (λ i, (rename (prod.mk i) (W_ ℤ n))) Φ) :
   φ = witt_structure_int p Φ :=
 begin
   funext k,
@@ -324,12 +324,12 @@ end
 
 theorem witt_structure_int_exists_unique (Φ : mv_polynomial idx ℤ) :
   ∃! (φ : ℕ → mv_polynomial (idx × ℕ) ℤ),
-  ∀ (n : ℕ), bind₁ φ (witt_polynomial p ℤ n) = bind₁ (λ b : idx, (rename (λ i, (b,i)) (W_ ℤ n))) Φ :=
+  ∀ (n : ℕ), bind₁ φ (witt_polynomial p ℤ n) = bind₁ (λ i : idx, (rename (prod.mk i) (W_ ℤ n))) Φ :=
 ⟨witt_structure_int p Φ, witt_structure_int_prop _ _, eq_witt_structure_int _ _⟩
 
 theorem witt_structure_prop (Φ : mv_polynomial idx ℤ) (n) :
   aeval (λ i, map (int.cast_ring_hom R) (witt_structure_int p Φ i)) (witt_polynomial p ℤ n) =
-  aeval (λ b, (rename (λ i, (b,i)) (W n))) Φ :=
+  aeval (λ i, (rename (prod.mk i) (W n))) Φ :=
 begin
   convert congr_arg (map (int.cast_ring_hom R)) (witt_structure_int_prop p Φ n),
   { rw [hom_bind₁],

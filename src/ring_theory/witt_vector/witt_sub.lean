@@ -1,4 +1,4 @@
-import ring_theory.witt_vector.basic
+import ring_theory.witt_vector.is_poly
 
 /-!
 # Subtraction of Witt vectors
@@ -67,21 +67,15 @@ end
 
 lemma poly_add_comp_neg_eq : poly_add_comp_neg p = witt_sub p :=
 begin
-  apply eq_witt_structure_int,
-  intro n,
-  rw [poly_add_comp_neg, ← bind₁_bind₁, witt_add, witt_structure_int_prop p _ n, bind₁_bind₁,
-      alg_hom.map_add, alg_hom.map_sub, sub_eq_add_neg, ← alg_hom.map_neg],
-  apply congr₂,
-  { rw [bind₁_X_right, bind₁_X_right, bind₁_rename],
-    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    ext1 i,
-    refl },
-  { rw [← witt_structure_int_prop p (- X (1 : fin 2)), bind₁_X_right, bind₁_rename],
-    apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
-    ext1 i,
-    simp only [function.uncurry, matrix.head_cons, function.comp_app, matrix.cons_val_one],
-    rw [witt_neg, ← witt_structure_int_rename, ring_hom.map_neg, rename_X, fin.succ_zero_eq_one] }
+  apply poly_eq_of_witt_polynomial_bind_eq' p,
+  delta poly_add_comp_neg,
+  witt_simp, simp only [prod.map], refl,
 end
+
+lemma bind₁_poly_add_comp_neg_witt_polynomial (n : ℕ) :
+  bind₁ (poly_add_comp_neg p) (witt_polynomial p ℤ n) =
+  bind₁ (λ i : fin 2, rename (prod.mk i) (witt_polynomial p ℤ n)) (X 0 - X 1) :=
+by { rw [poly_add_comp_neg_eq, witt_sub, witt_structure_int_prop] }
 
 lemma sub_coeff (x y : 𝕎 R) (n : ℕ) :
   (x - y).coeff n = peval (witt_sub p n) ![x.coeff, y.coeff] :=

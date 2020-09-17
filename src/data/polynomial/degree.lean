@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.eval
+import data.polynomial.basic
 
 /-!
 # Theory of degrees of polynomials
@@ -53,12 +54,12 @@ lemma nat_degree_zero_constant (hp : p.nat_degree = 0) : p = C (p.coeff 0) :=
 begin
   ext, induction n with n hn,
   { simp only [polynomial.coeff_C_zero], },
-  { have ineq : p.nat_degree < n.succ, { rw hp, exact n.succ_pos },
+  { have ineq : p.nat_degree < n.succ := by { rw hp, exact n.succ_pos },
     have zero1 : p.coeff n.succ = 0 := coeff_eq_zero_of_nat_degree_lt ineq,
-    have zero2 : (C (p.coeff 0)).coeff n.succ = 0 := coeff_eq_zero_of_nat_degree_lt _,
-    have zero3 : (C (p.coeff 0)).nat_degree = 0 := nat_degree_C (p.coeff 0),
-    rw [zero1, zero2, zero3],
-    exact n.succ_pos, }
+    have zero2 : (C (p.coeff 0)).nat_degree = 0 := nat_degree_C (p.coeff 0),
+    have zero3 : (C (p.coeff 0)).coeff n.succ = 0 := coeff_eq_zero_of_nat_degree_lt _,
+    { rw [zero1, zero3], },
+    { rw zero2, exact nat.succ_pos n}}
 end
 
 lemma degree_map_le [semiring S] (f : R →+* S) :

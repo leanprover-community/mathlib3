@@ -141,6 +141,12 @@ and all other coefficients are those from `x`.
 See `witt_vector.init` for the complementary part. -/
 def tail (n : ℕ) : 𝕎 R → 𝕎 R := select (λ i, n ≤ i)
 
+include hp
+
+@[simp] lemma init_add_tail (x : 𝕎 R) (n : ℕ) :
+  init n x + tail n x = x :=
+by simp only [init, tail, ← not_lt, add_select_select_not]
+
 end
 
 @[simp]

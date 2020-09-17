@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import ring_theory.witt_vector.frobenius
-import ring_theory.witt_vector.verschiebung
+import ring_theory.witt_vector.is_poly
 
 /-!
 ## Multiplication by `n` in the ring of Witt vectors
@@ -17,7 +16,6 @@ and Verschiebung is equal to multiplication by `p`.
 ### Main declarations
 
 * `mul_n_is_poly`: multiplication by `n` is a polynomial function
-* `frobenius_fun_verschiebung`: the composition of Frobenius and Verschiebung is multiplication by `p`
 
 -/
 
@@ -84,28 +82,6 @@ begin
     rw [bind₁_rename, bind₁_rename],
     simp only [ih, function.uncurry, function.comp, bind₁_X_left, alg_hom.id_apply,
       matrix.cons_val_zero, matrix.head_cons, matrix.cons_val_one], }
-end
-
-lemma frobenius_verschiebung (x : 𝕎 R) :
-  frobenius (verschiebung x) = x * p :=
-begin
-  apply is_poly.ext' ((frobenius_is_poly p).comp verschiebung_is_poly) (mul_n_is_poly p p),
-  witt_simp
-end
-
-lemma verschiebung_zmod (x : 𝕎 (zmod p)) :
-  verschiebung x = x * p :=
-begin
-  rw [← frobenius_verschiebung, frobenius_zmodp],
-end
-
--- this should be true not just for `char_p R p` but for general `nontrivial R`.
-lemma coeff_p_pow [char_p R p] (i : ℕ) : (p ^ i : 𝕎 R).coeff i = 1 :=
-begin
-  induction i with i h,
-  { simp only [one_coeff_zero, ne.def, pow_zero] },
-  { rw [pow_succ', ← frobenius_verschiebung, coeff_frobenius_char_p,
-        verschiebung_coeff_succ, h, one_pow], }
 end
 
 end witt_vector

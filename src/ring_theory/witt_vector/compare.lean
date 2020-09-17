@@ -5,6 +5,7 @@ Authors: Johan Commelin, Robert Y. Lewis
 -/
 
 import ring_theory.witt_vector.truncated
+import ring_theory.witt_vector.identities
 import data.padics.ring_homs
 
 /-!
@@ -24,13 +25,94 @@ of the inverse limit of `zmod (p^n)`.
 
 noncomputable theory
 
-namespace witt_vector
-open truncated_witt_vector
+namespace truncated_witt_vector
 
-variables (p : ℕ) [hp : fact p.prime]
+variables {p : ℕ} [hp : fact p.prime] (n : ℕ) (R : Type*) [comm_ring R]
 include hp
 
 local notation `𝕎` := witt_vector p -- type as `\bbW`
+
+variables (p n R)
+
+lemma eq_of_le_of_cast_pow_eq_zero [char_p R p] (i : ℕ) (hin : i ≤ n)
+  (hpi : (p ^ i : truncated_witt_vector p n R) = 0) :
+  i = n :=
+begin
+  contrapose! hpi,
+  replace hin := lt_of_le_of_ne hin hpi, clear hpi,
+  have : (↑p ^ i : truncated_witt_vector p n R) = witt_vector.truncate n (↑p ^ i),
+  { rw [ring_hom.map_pow, ring_hom.map_nat_cast] },
+  rw [this, ext_iff, not_forall], clear this,
+  use ⟨i, hin⟩,
+  rw [witt_vector.coeff_truncate, coeff_zero, fin.coe_mk, witt_vector.coeff_p_pow],
+  haveI : nontrivial R := nontrivial_of_char_ne_one (show p ≠ 1, from nat.prime.ne_one ‹_›),
+  exact one_ne_zero
+end
+
+section iso
+
+variables (p n) {R}
+
+lemma card_zmod : fintype.card (truncated_witt_vector p n (zmod p)) = p ^ n :=
+by rw [card, zmod.card]
+
+lemma char_p_zmod : char_p (truncated_witt_vector p n (zmod p)) (p ^ n) :=
+char_p_of_prime_pow_ne_zero _ _ _ (card_zmod _ _)
+    (eq_of_le_of_cast_pow_eq_zero p n (zmod p))
+
+local attribute [instance] char_p_zmod
+variable (n)
+
+/--
+Since `truncated_witt_vector p n (zmod p)` is a finite ring with characteristic and cardinality `p^n`,
+it is isomorphic to `zmod (p^n)`.
+-/
+def zmod_equiv_trunc : zmod (p^n) ≃+* truncated_witt_vector p n (zmod p) :=
+zmod.ring_equiv (truncated_witt_vector p n (zmod p)) (p ^ n) (card_zmod _ _)
+
+lemma zmod_equiv_trunc_apply {x : zmod (p^n)} :
+  zmod_equiv_trunc p n x =
+  zmod.cast_hom (show p ^ n ∣ p ^ n, by refl) (truncated_witt_vector p n (zmod p)) x :=
+rfl
+
+lemma commutes {m : ℕ} (hm : n ≤ m) :
+  (truncate hm).comp (zmod_equiv_trunc p m).to_ring_hom =
+    (zmod_equiv_trunc p n).to_ring_hom.comp (zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _) :=
+ring_hom.ext_zmod _ _
+
+lemma commutes' {m : ℕ} (hm : n ≤ m) (x : zmod (p^m)) :
+  truncate hm (zmod_equiv_trunc p m x) =
+    zmod_equiv_trunc p n (zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _ x) :=
+show (truncate hm).comp (zmod_equiv_trunc p m).to_ring_hom x = _,
+by rw commutes _ _ hm; refl
+
+lemma commutes_symm' {m : ℕ} (hm : n ≤ m) (x : truncated_witt_vector p m (zmod p)) :
+  (zmod_equiv_trunc p n).symm (truncate hm x) =
+    zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _ ((zmod_equiv_trunc p m).symm x) :=
+begin
+  apply (zmod_equiv_trunc p n).injective,
+  rw ← commutes',
+  simp
+end
+
+lemma commutes_symm {m : ℕ} (hm : n ≤ m)  :
+  (zmod_equiv_trunc p n).symm.to_ring_hom.comp (truncate hm) =
+    (zmod.cast_hom (show p ^ n ∣ p ^ m, by simpa using pow_dvd_pow p hm) _).comp (zmod_equiv_trunc p m).symm.to_ring_hom :=
+by ext; apply commutes_symm'
+
+end iso
+
+end truncated_witt_vector
+
+namespace witt_vector
+open truncated_witt_vector
+
+variables {p : ℕ} [hp : fact p.prime]
+include hp
+
+local notation `𝕎` := witt_vector p -- type as `\bbW`
+
+variables (p)
 
 /--
 `to_zmod_pow` is a family of compatible ring homs. We get this family by composing

@@ -322,7 +322,7 @@ variables (F : Type*) [field F]
 
 /-- If `p` is the minimal polynomial of `a` over `F` then `F[a] ≃ₐ[F] F[x]/(p)` -/
 def alg_equiv.adjoin_singleton_equiv_adjoin_root_minimal_polynomial
-  {R : Type*} [comm_ring R] [algebra F R] (x : R) (hx : is_integral F x) :
+  {R : Type*} [comm_ring R] [algebra F R] (x : R) (hx : is_integral_alg F x) :
   algebra.adjoin F ({x} : set R) ≃ₐ[F] adjoin_root (minimal_polynomial hx) :=
 alg_equiv.symm $ alg_equiv.of_bijective
   (alg_hom.cod_restrict
@@ -344,7 +344,7 @@ local attribute [irreducible] minimal_polynomial
 the minimal polynomial of each `x ∈ s` splits in `L` then `algebra.adjoin F s` embeds in `L`. -/
 theorem lift_of_splits {F K L : Type*} [field F] [field K] [field L]
   [algebra F K] [algebra F L] (s : finset K) :
-  (∀ x ∈ s, ∃ H : is_integral F x, polynomial.splits (algebra_map F L) (minimal_polynomial H)) →
+  (∀ x ∈ s, ∃ H : is_integral_alg F x, polynomial.splits (algebra_map F L) (minimal_polynomial H)) →
   nonempty (algebra.adjoin F (↑s : set K) →ₐ[F] L) :=
 begin
   refine finset.induction_on s (λ H, _) (λ a s has ih H, _),
@@ -356,7 +356,7 @@ begin
   haveI : finite_dimensional F (algebra.adjoin F (↑s : set K)) :=
     (submodule.fg_iff_finite_dimensional _).1 (fg_adjoin_of_finite (set.finite_mem_finset s) H3),
   letI := field_of_finite_dimensional F (algebra.adjoin F (↑s : set K)),
-  have H5 : is_integral (algebra.adjoin F (↑s : set K)) a := is_integral_of_is_scalar_tower a H1,
+  have H5 : is_integral_alg (algebra.adjoin F (↑s : set K)) a := is_integral_of_is_scalar_tower a H1,
   have H6 : (minimal_polynomial H5).splits (algebra_map (algebra.adjoin F (↑s : set K)) L),
   { refine polynomial.splits_of_splits_of_dvd _
       (polynomial.map_ne_zero $ minimal_polynomial.ne_zero H1 :

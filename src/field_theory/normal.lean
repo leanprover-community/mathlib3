@@ -30,9 +30,9 @@ variables (F : Type u) (K : Type v) [field F] [field K] [algebra F K]
 /-- Typeclass for normal field extension: `K` is a normal extension of `F` iff the minimal
 polynomial of every element `x` in `K` splits in `K`, i.e. every conjugate of `x` is in `K`. -/
 @[class] def normal : Prop :=
-∀ x : K, ∃ H : is_integral F x, splits (algebra_map F K) (minimal_polynomial H)
+∀ x : K, ∃ H : is_integral_alg F x, splits (algebra_map F K) (minimal_polynomial H)
 
-theorem normal.is_integral [h : normal F K] (x : K) : is_integral F x := (h x).fst
+theorem normal.is_integral [h : normal F K] (x : K) : is_integral_alg F x := (h x).fst
 
 theorem normal.splits [h : normal F K] (x : K) :
   splits (algebra_map F K) (minimal_polynomial $ normal.is_integral F K x) := (h x).snd

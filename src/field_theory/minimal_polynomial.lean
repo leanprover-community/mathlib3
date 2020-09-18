@@ -30,7 +30,7 @@ variables [comm_ring α] [ring β] [algebra α β]
 
 /-- Let B be an A-algebra, and x an element of B that is integral over A.
 The minimal polynomial of x is a monic polynomial of smallest degree that has x as its root. -/
-noncomputable def minimal_polynomial {x : β} (hx : is_integral α x) : polynomial α :=
+noncomputable def minimal_polynomial {x : β} (hx : is_integral_alg α x) : polynomial α :=
 well_founded.min degree_lt_wf _ hx
 
 end min_poly_def
@@ -39,7 +39,7 @@ namespace minimal_polynomial
 
 section ring
 variables [comm_ring α] [ring β] [algebra α β]
-variables {x : β} (hx : is_integral α x)
+variables {x : β} (hx : is_integral_alg α x)
 
 /--A minimal polynomial is monic.-/
 lemma monic : monic (minimal_polynomial hx) :=
@@ -62,7 +62,7 @@ variables [field α]
 
 section ring
 variables [ring β] [algebra α β]
-variables {x : β} (hx : is_integral α x)
+variables {x : β} (hx : is_integral_alg α x)
 
 /--A minimal polynomial is nonzero.-/
 lemma ne_zero : (minimal_polynomial hx) ≠ 0 :=
@@ -138,7 +138,7 @@ associated_one_iff_is_unit.2 $ (hp1.is_unit_or_is_unit hq).resolve_left $ not_is
 
 /--If L/K is a field extension, and x is an element of L in the image of K,
 then the minimal polynomial of x is X - C x.-/
-@[simp] protected lemma algebra_map (a : α) (ha : is_integral α (algebra_map α β a)) :
+@[simp] protected lemma algebra_map (a : α) (ha : is_integral_alg α (algebra_map α β a)) :
   minimal_polynomial ha = X - C a :=
 eq.symm $ unique' ha (irreducible_X_sub_C a)
   (by rw [alg_hom.map_sub, aeval_X, aeval_C, sub_self]) (monic_X_sub_C a)
@@ -153,13 +153,13 @@ minimal_polynomial.algebra_map _ _
 variable {β}
 
 /--The minimal polynomial of 0 is X.-/
-@[simp] lemma zero {h₀ : is_integral α (0:β)} :
+@[simp] lemma zero {h₀ : is_integral_alg α (0:β)} :
   minimal_polynomial h₀ = X :=
 by simpa only [add_zero, C_0, sub_eq_add_neg, neg_zero, ring_hom.map_zero]
   using algebra_map' β (0:α)
 
 /--The minimal polynomial of 1 is X - 1.-/
-@[simp] lemma one {h₁ : is_integral α (1:β)} :
+@[simp] lemma one {h₁ : is_integral_alg α (1:β)} :
   minimal_polynomial h₁ = X - 1 :=
 by simpa only [ring_hom.map_one, C_1, sub_eq_add_neg]
   using algebra_map' β (1:α)
@@ -168,7 +168,7 @@ end ring
 
 section domain
 variables [domain β] [algebra α β]
-variables {x : β} (hx : is_integral α x)
+variables {x : β} (hx : is_integral_alg α x)
 
 /--A minimal polynomial is prime.-/
 lemma prime : prime (minimal_polynomial hx) :=
@@ -186,7 +186,7 @@ irreducible_of_prime (prime hx)
 
 /--If L/K is a field extension and an element y of K is a root of the minimal polynomial
 of an element x ∈ L, then y maps to x under the field embedding.-/
-lemma root {x : β} (hx : is_integral α x) {y : α}
+lemma root {x : β} (hx : is_integral_alg α x) {y : α}
   (h : is_root (minimal_polynomial hx) y) : algebra_map α β y = x :=
 have key : minimal_polynomial hx = X - C y :=
 eq_of_monic_of_associated (monic hx) (monic_X_sub_C y) (associated_of_dvd_dvd

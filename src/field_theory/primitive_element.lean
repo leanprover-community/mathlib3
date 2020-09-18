@@ -33,11 +33,6 @@ variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E]
 
 /-! ### Primitive element theorem for finite fields -/
 
--- Replaces earlier messy proof, courtesy of Aaron Anderson & Markus Himmel on zulip
-/-- A finite dimensional vector space over a finite field is finite. -/
-def finite_of_findim_over_finite [fintype F] [hE : finite_dimensional F E] : fintype E :=
-module.fintype_of_fintype (classical.some_spec (finite_dimensional.exists_is_basis_finset F E) : _)
-
 /-- Primitive element theorem assuming E is finite. -/
 lemma primitive_element_fin_aux [fintype E] : ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
@@ -57,18 +52,19 @@ end
 theorem primitive_element_fin [fintype F] [hfd : finite_dimensional F E] :
   ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
-  haveI : fintype E := finite_of_findim_over_finite F,
+  haveI : fintype E := finite_dimensional.finite_of_findim_over_finite F E,
   exact primitive_element_fin_aux F,
 end
 
 end
 
 section
+
 variables {F : Type*} [field F] {E : Type*} [field E] (ϕ : F →+* E)
 
 /-! ### Primitive element theorem for infinite fields -/
 
-lemma primitive_element_two_aux (α β : E) (f g : polynomial F) [F_inf : infinite F] :
+lemma primitive_element_two_inf_exists_c (α β : E) (f g : polynomial F) [F_inf : infinite F] :
   ∃ c : F, ∀ (α' ∈ (f.map ϕ).roots) (β' ∈ (g.map ϕ).roots), -(α' - α)/(β' - β) ≠ ϕ c :=
 begin
   let sf := (f.map ϕ).roots,
@@ -81,7 +77,7 @@ begin
   exact ⟨c, hc⟩,
 end
 
-lemma primitive_element_two_inf_key_aux_aux {β : F} {h : polynomial F}
+lemma polynomial.linear_of_splits_single_root {β : F} {h : polynomial F}
   (h_splits : polynomial.splits ϕ h) (h_roots : (h.map ϕ).roots = {ϕ β}) :
   h = (polynomial.C (polynomial.leading_coeff h)) * (polynomial.X - polynomial.C β) :=
 begin
@@ -91,12 +87,12 @@ begin
       polynomial.map_sub,polynomial.map_X,polynomial.map_C,polynomial.map_C],
 end
 
-lemma primitive_element_two_inf_key_aux {β : F} {h : polynomial F} (h_ne_zero : h ≠ 0)
+lemma polynomial.linear_of_splits_separable_root {β : F} {h : polynomial F} (h_ne_zero : h ≠ 0)
   (h_sep : h.separable) (h_root : h.eval β = 0) (h_splits : polynomial.splits ϕ h)
   (h_roots : ∀ x ∈ (h.map ϕ).roots, x = ϕ β) :
   h = (polynomial.C (polynomial.leading_coeff h)) * (polynomial.X - polynomial.C β) :=
 begin
-  apply primitive_element_two_inf_key_aux_aux ϕ h_splits,
+  apply polynomial.linear_of_splits_single_root ϕ h_splits,
   apply finset.mk.inj,
   { change _ = {ϕ β},
     rw finset.eq_singleton_iff_unique_mem,
@@ -125,7 +121,7 @@ begin
   let E' := polynomial.splitting_field g',
   let ιEE' := algebra_map E E',
   let ιFE' := ιEE'.comp(ιFE),
-  have key := primitive_element_two_aux ιFE' (ιEE' α) (ιEE' β) f g,
+  have key := primitive_element_two_inf_exists_c ιFE' (ιEE' α) (ιEE' β) f g,
   cases key with c hc,
   use c,
   let γ := α+(ιFE c)*β,
@@ -179,7 +175,7 @@ begin
   { dsimp only [h,p],
     rw[fswap,gswap],
     convert polynomial.gcd_map (algebra_map F⟮γ⟯ E) },
-  rw primitive_element_two_inf_key_aux ιEE' h_ne_zero h_sep h_root h_splits h_roots at hswap,
+  rw polynomial.linear_of_splits_separable_root ιEE' h_ne_zero h_sep h_root h_splits h_roots at hswap,
   have leading_coeff_ne_zero : h.leading_coeff ≠ 0,
   { intro eq_zero,
     rw [polynomial.leading_coeff_eq_zero,euclidean_domain.gcd_eq_zero_iff] at eq_zero,

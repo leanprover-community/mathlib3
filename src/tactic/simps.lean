@@ -218,7 +218,10 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
   * `attrs` specifies the list of attributes given to the generated lemmas. Default: ``[`simp]``.
     If ``[`simp]`` is in the list, then ``[`_refl_lemma]`` is added automatically if appropriate.
     The attributes can be either basic attributes, or user attributes without parameters.
-  * `short_name` gives the generated lemmas a shorter name
+  * `short_name` gives the generated lemmas a shorter name. This only has an effect when multiple
+    projections are applied in a lemma. When this is `ff` (default) all projection names will be
+    appended to the definition name to form the lemma name, and when this is `tt`, only the
+    last projection name will be appended.
   * if `simp_rhs` is `tt` then the right-hand-side of the generated lemmas will be put simp-normal form
   * `type_md` specifies how aggressively definitions are unfolded in the type of expressions
     for the purposes of finding out whether the type is a function type.

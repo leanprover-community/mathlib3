@@ -77,8 +77,9 @@ end interactive
 end tactic
 
 namespace witt_vector
+universe variable u
 
-variables {p : ℕ} {R S σ idx : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
+variables {p : ℕ} {R S : Type u} {σ idx : Type*} [hp : fact p.prime] [comm_ring R] [comm_ring S]
 
 local notation `𝕎` := witt_vector p -- type as `\bbW`
 
@@ -244,6 +245,19 @@ lemma ext' {f φ g ψ} (hf : is_poly p f φ) (hg : is_poly p g ψ)
   ∀ (R) [_Rcr : comm_ring R] (x : 𝕎 R), by exactI f x = g x :=
 by { rw (is_poly.ext hf hg $ poly_eq_of_witt_polynomial_bind_eq p _ _ h), intros, refl }
 
+-- unfortunately this is not universe polymorphic, merely because `f` isn't
+lemma map {f φ} (hf : is_poly p f φ) (g : R →+* S) (x : 𝕎 R) :
+  map g (f x) = f (map g x) :=
+begin
+  -- this could be turned into a tactic “macro” (taking `hf` as parameter)
+  -- so that applications do not have to worry about the universe issue
+  -- see `is_poly₂.map` for a slightly more general proof strategy
+  ext n,
+  simp only [map_coeff, hf.coeff, map_aeval],
+  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+  simp only [map_coeff]
+end
+
 end is_poly
 
 namespace is_poly₂
@@ -304,6 +318,20 @@ lemma ext' {f φ g ψ} (hf : is_poly₂ p f φ) (hg : is_poly₂ p g ψ)
   (h : ∀ n, bind₁ φ (witt_polynomial p _ n) = bind₁ ψ (witt_polynomial p _ n)) :
   ∀ (R) [_Rcr : comm_ring R] (x y : 𝕎 R), by exactI f x y = g x y :=
 by { rw (is_poly₂.ext hf hg $ poly_eq_of_witt_polynomial_bind_eq' p _ _ h), intros, refl }
+
+-- unfortunately this is not universe polymorphic, merely because `f` isn't
+lemma map {f φ} (hf : is_poly₂ p f φ) (g : R →+* S) (x y : 𝕎 R) :
+  map g (f x y) = f (map g x) (map g y) :=
+begin
+  -- this could be turned into a tactic “macro” (taking `hf` as parameter)
+  -- so that applications do not have to worry about the universe issue
+  ext n,
+  simp only [map_coeff, hf.coeff, map_aeval, peval, uncurry],
+  apply eval₂_hom_congr (ring_hom.ext_int _ _) _ rfl,
+  try { ext ⟨i, k⟩, fin_cases i },
+  all_goals {
+    simp only [map_coeff, matrix.cons_val_zero, matrix.head_cons, matrix.cons_val_one] },
+end
 
 end is_poly₂
 

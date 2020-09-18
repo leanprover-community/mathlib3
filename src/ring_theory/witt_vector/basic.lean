@@ -237,12 +237,34 @@ by witt_map
 
 end map
 
-section
+end witt_vector
+
+section tactic
+setup_tactic_parser
+open tactic
+/--
+An auxiliary tactic for proving that `ghost_component` respects the ring operations.
+-/
+meta def tactic.interactive.ghost_component (poly fn : parse parser.pexpr) : tactic unit :=
+do fn ← to_expr ```(%%fn : fin _ → ℕ → R),
+  `(fin %%k → _ → _) ← infer_type fn,
+  to_expr ```(witt_structure_int_prop p (%%poly : mv_polynomial (fin %%k) ℤ) n) >>= note `aux none >>=
+     apply_fun_to_hyp ```(aeval (function.uncurry %%fn)) none,
+`[simp only [aeval_bind₁] at aux,
+  simp only [ghost_component_apply],
+  convert aux using 1; clear aux;
+  simp only [alg_hom.map_zero, alg_hom.map_one, alg_hom.map_add, alg_hom.map_mul, alg_hom.map_neg,
+    aeval_X];
+  simp only [aeval_eq_eval₂_hom, eval₂_hom_rename]; refl]
+end tactic
+
+namespace witt_vector
 
 /--
 Evaluates the `n`th Witt polynomial using the first `n` coefficients of `x`,
 producing a value in `R`. This is effectively a truncating operation.
 -/
+-- TODO: turn this into a ring hom
 noncomputable def ghost_component (n : ℕ) (x : 𝕎 R) : R :=
 aeval x.coeff (W_ ℤ n)
 
@@ -262,33 +284,6 @@ This function will be bundled as the ring homomorphism `witt_vector.ghost_map`
 once the ring structure is available,
 but we rely on it to set up the ring structure in the first place. -/
 noncomputable def ghost_map_fun : 𝕎 R → (ℕ → R) := λ w n, ghost_component n w
-
-end
-
-end witt_vector
-
-section tactic
-setup_tactic_parser
-open tactic
-
-/--
-An auxiliary tactic for proving that `ghost_component` respects the ring operations.
--/
-meta def tactic.interactive.ghost_component (poly fn : parse parser.pexpr) : tactic unit :=
-do fn ← to_expr ```(%%fn : fin _ → ℕ → R),
-  `(fin %%k → _ → _) ← infer_type fn,
-  to_expr ```(witt_structure_int_prop p (%%poly : mv_polynomial (fin %%k) ℤ) n) >>= note `aux none >>=
-     apply_fun_to_hyp ```(aeval (function.uncurry %%fn)) none,
-`[simp only [aeval_bind₁] at aux,
-  simp only [ghost_component_apply],
-  convert aux using 1; clear aux;
-  simp only [alg_hom.map_zero, alg_hom.map_one, alg_hom.map_add, alg_hom.map_mul, alg_hom.map_neg,
-    aeval_X];
-  simp only [aeval_eq_eval₂_hom, eval₂_hom_rename]; refl]
-end tactic
-
-namespace witt_vector
-
 
 section p_prime
 open finset mv_polynomial function set

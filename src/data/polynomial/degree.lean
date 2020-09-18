@@ -17,7 +17,6 @@ noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
 open finsupp finset
-open_locale big_operators
 
 namespace polynomial
 universes u v w

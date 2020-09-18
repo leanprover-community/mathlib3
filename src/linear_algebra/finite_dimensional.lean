@@ -124,6 +124,8 @@ begin
   rw set.finite.coe_to_finset,
   exact s_basis,
 end
+
+/-- A finite dimensional vector space over a finite field is finite -/
 noncomputable def finite_of_findim_over_finite [fintype K] [hE : finite_dimensional K V] : fintype V :=
 module.fintype_of_fintype (classical.some_spec (finite_dimensional.exists_is_basis_finset K V) : _)
 

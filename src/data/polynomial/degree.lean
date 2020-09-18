@@ -53,12 +53,12 @@ lemma eq_C_of_nat_degree_eq_zero (hp : p.nat_degree = 0) : p = C (p.coeff 0) :=
 begin
   ext, induction n with n hn,
   { simp only [polynomial.coeff_C_zero], },
-  { have ineq : p.nat_degree < n.succ := by { rw hp, exact n.succ_pos },
+  { have ineq : p.nat_degree < n.succ := hp.symm ▸ n.succ_pos,
     have zero1 : p.coeff n.succ = 0 := coeff_eq_zero_of_nat_degree_lt ineq,
     have zero2 : (C (p.coeff 0)).nat_degree = 0 := nat_degree_C (p.coeff 0),
-    have zero3 : (C (p.coeff 0)).coeff n.succ = 0 := coeff_eq_zero_of_nat_degree_lt _,
-    { rw [zero1, zero3], },
-    { rw zero2, exact nat.succ_pos n}}
+    have zero3 : (C (p.coeff 0)).coeff n.succ = 0 := 
+      coeff_eq_zero_of_nat_degree_lt (zero2.symm ▸ n.succ_pos),
+    rw [zero1, zero3], }
 end
 
 lemma degree_map_le [semiring S] (f : R →+* S) :

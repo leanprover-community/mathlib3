@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.eval
-import data.polynomial.basic
 
 /-!
 # Theory of degrees of polynomials
@@ -50,7 +49,7 @@ else with_bot.coe_le_coe.1 $
         (le_nat_degree_of_ne_zero (finsupp.mem_support_iff.1 hn))
         (nat.zero_le _))
 
-lemma nat_degree_zero_constant (hp : p.nat_degree = 0) : p = C (p.coeff 0) :=
+lemma eq_C_of_nat_degree_eq_zero (hp : p.nat_degree = 0) : p = C (p.coeff 0) :=
 begin
   ext, induction n with n hn,
   { simp only [polynomial.coeff_C_zero], },

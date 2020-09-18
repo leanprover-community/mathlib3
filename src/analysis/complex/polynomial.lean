@@ -107,41 +107,34 @@ end complex
 
 section real
 
-theorem zero_deriv_imp_nat_degree_zero (f : polynomial ℝ) (h : f.derivative = 0) :
+theorem nat_degree_eq_zero_of_derivative_eq_zero {f : polynomial ℝ} (h : f.derivative = 0) :
   f.nat_degree = 0 :=
 begin
-    by_cases hf : (f = 0),
-    { exact (congr_arg polynomial.nat_degree hf).trans rfl },
-
-    {
-      rw polynomial.nat_degree_eq_zero_iff_degree_le_zero,
-      by_contradiction absurd, simp only [not_le] at absurd,
+    by_cases hf : f = 0,
+    { exact (congr_arg nat_degree hf).trans rfl },
+    { rw nat_degree_eq_zero_iff_degree_le_zero,
+      by_contradiction absurd, 
+      simp only [not_le] at absurd,
       generalize hm : f.nat_degree - 1 = m,
-      have f_nat_degree_pos : f.nat_degree > 0,
-      {
-        have H := polynomial.degree_eq_nat_degree hf,
-        have ineq := @polynomial.degree_le_nat_degree _ _ f,
-        have ineq2 := lt_of_lt_of_le absurd ineq, exact with_bot.coe_lt_coe.mp ineq2,
-      },
-
-      rw polynomial.ext_iff at h,
-      simp only [polynomial.coeff_zero] at h,
+      have f_nat_degree_pos : 0 < f.nat_degree,
+      { have ineq := @degree_le_nat_degree _ _ f,
+        have ineq2 := lt_of_lt_of_le absurd ineq,
+        exact_mod_cast ineq2, },
+      simp only [polynomial.ext_iff, polynomial.coeff_zero] at h,
       replace h := h m,
-      have H2 := polynomial.coeff_derivative f m, rw h at H2,
-      simp only [zero_eq_mul] at H2, cases H2,
+      have H2 := coeff_derivative f m, 
+      simp only [h, zero_eq_mul] at H2, 
+      cases H2,
       { have hm : m + 1 = f.nat_degree,
-        rw [<-hm],
-        exact nat.sub_add_cancel f_nat_degree_pos,
-        have H := (polynomial.coeff_derivative f m), rw h at H, simp only [zero_eq_mul] at H,
-        cases H, rw hm at H,
-        have H2 := @polynomial.leading_coeff_eq_zero _ _ f,
-        rw [polynomial.leading_coeff] at H2,
-        exact hf (H2.1 H),
-        have ineq := nat.cast_add_one_pos m,
-        rw H at ineq, linarith },
-      { have ineq := nat.cast_add_one_pos m,
-        rw H2 at ineq, linarith, },
-    }
+        { rw ←hm,
+          exact nat.sub_add_cancel f_nat_degree_pos, },
+        have H := f.coeff_derivative m, 
+        simp only [h, zero_eq_mul] at H,
+        cases H, 
+        { rw [hm, ←leading_coeff, leading_coeff_eq_zero] at H,
+          exact hf H, },
+        norm_cast at H, },
+      { norm_cast at H2, }, }
 end
 
 end real

@@ -779,6 +779,9 @@ structure subalgebra (R : Type u) (A : Type v)
   [comm_semiring R] [semiring A] [algebra R A] extends subsemiring A : Type v :=
 (algebra_map_mem' : ∀ r, algebra_map R A r ∈ carrier)
 
+/-- Reinterpret a `subalgebra` as a `subsemiring`. -/
+add_decl_doc subalgebra.to_subsemiring
+
 namespace subalgebra
 
 variables {R : Type u} {A : Type v} {B : Type w}

@@ -217,10 +217,7 @@ by simp [path.refl, has_coe_to_fun.coe, coe_fn]
 
 @[simp] lemma refl_symm {X : Type*} [topological_space X] {a : X} :
   (path.refl a).symm = path.refl a :=
-begin
-  ext,
-  refl
-end
+by { ext, refl }
 
 @[simp] lemma symm_range {X : Type*} [topological_space X] {a b : X} (γ : path a b) :
   range γ.symm = range γ :=
@@ -428,22 +425,18 @@ def truncate {X : Type*} [topological_space X] {a b : X}
     ((continuous_subtype_coe.max continuous_const).min continuous_const),
   source' :=
   begin
-    unfold min,
-    unfold max,
+    unfold min max,
     norm_cast,
     split_ifs with h₁ h₂ h₃ h₄,
     { simp [γ.extend_le_zero h₁] },
     { congr, linarith },
     { have h₄ : t₁ ≤ 0 := le_of_lt (by simpa using h₂),
       simp [γ.extend_le_zero h₄, γ.extend_le_zero h₁] },
-    { refl },
-    { refl },
-    { refl }
+    all_goals { refl }
   end,
   target' :=
   begin
-    unfold min,
-    unfold max,
+    unfold min max,
     norm_cast,
     split_ifs with h₁ h₂ h₃,
     { simp [γ.extend_one_le h₂] },

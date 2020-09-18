@@ -109,7 +109,7 @@ end
 
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
-lemma primitive_element_two_inf (α β : E) (F_sep : is_separable F E) (F_inf : infinite F) :
+lemma primitive_element_two_inf (α β : E) (F_sep : is_separable F E)   (F_inf : infinite F) :
   ∃ γ : E, (F⟮α, β⟯ : set E) ⊆ (F⟮γ⟯ : set E) :=
 begin
   rcases F_sep α with ⟨hα, hf⟩,

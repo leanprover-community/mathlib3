@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import data.mv_polynomial.basic
+import data.mv_polynomial.rename
 
 /-!
 # `comap` operation on `mv_polynomial`
@@ -74,6 +74,9 @@ lemma comap_eq_id_of_eq_id (f : mv_polynomial σ R →ₐ[R] mv_polynomial σ R)
   (hf : ∀ φ, f φ = φ) (x : σ → R) :
   comap f x = x :=
 by { convert comap_id_apply x, ext1 φ, rw [hf, alg_hom.id_apply] }
+
+lemma comap_rename (f : σ → τ) (x : τ → R) : comap (rename f) x = x ∘ f :=
+by { ext i, simp only [rename_X, comap_apply, aeval_X] }
 
 /--
 If two polynomial types over the same coefficient ring `R` are equivalent,

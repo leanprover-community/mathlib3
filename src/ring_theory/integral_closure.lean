@@ -30,22 +30,27 @@ section ring
 variables {R A : Type*}
 variables [comm_ring R] [ring A]
 
+/-- An element `x` of `A` is said to be integral over `R` with respect to `f`
+if it is a root of a monic polynomial `p : polynomial R` evaluated under `f` -/
 def is_integral (f : R →+* A) (x : A) :=
 ∃ p : polynomial R, monic p ∧ eval₂ f x p = 0
 
+/-- A ring homomorphism `f : R →+* A` is said to be integral
+if every element `A` is integral with respect to the map `f` -/
 def ring_hom.is_integral (f : R →+* A) :=
 ∀ x : A, is_integral f x
 
 variables [algebra R A] (R)
 
 /-- An element `x` of an algebra `A` over a commutative ring `R` is said to be *integral*,
-if it is a root of some monic polynomial `p : polynomial R`. -/
+if it is a root of some monic polynomial `p : polynomial R`.
+Equivalently, the element is integral over `R` with respect to the induced `algebra_map` -/
 def is_integral_alg (x : A) : Prop :=
 is_integral (algebra_map R A) x
 
 variable (A)
 
-/-- An integral extension is one where every element of the -/
+/-- An algebra is integral if every element of the extension is integral over the base ring -/
 def algebra.is_integral : Prop := ring_hom.is_integral (algebra_map R A)
 
 variables {R A}

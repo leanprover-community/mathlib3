@@ -104,37 +104,3 @@ lt_irrefl (f.eval z₀).abs $
     ... = (f.eval z₀).abs : sub_add_cancel _ _
 
 end complex
-
-section real
-
-theorem nat_degree_eq_zero_of_derivative_eq_zero {f : polynomial ℝ} (h : f.derivative = 0) :
-  f.nat_degree = 0 :=
-begin
-    by_cases hf : f = 0,
-    { exact (congr_arg nat_degree hf).trans rfl },
-    { rw nat_degree_eq_zero_iff_degree_le_zero,
-      by_contradiction absurd, 
-      simp only [not_le] at absurd,
-      generalize hm : f.nat_degree - 1 = m,
-      have f_nat_degree_pos : 0 < f.nat_degree,
-      { have ineq := @degree_le_nat_degree _ _ f,
-        have ineq2 := lt_of_lt_of_le absurd ineq,
-        exact_mod_cast ineq2, },
-      simp only [polynomial.ext_iff, polynomial.coeff_zero] at h,
-      replace h := h m,
-      have H2 := coeff_derivative f m, 
-      simp only [h, zero_eq_mul] at H2, 
-      cases H2,
-      { have hm : m + 1 = f.nat_degree,
-        { rw ←hm,
-          exact nat.sub_add_cancel f_nat_degree_pos, },
-        have H := f.coeff_derivative m, 
-        simp only [h, zero_eq_mul] at H,
-        cases H, 
-        { rw [hm, ←leading_coeff, leading_coeff_eq_zero] at H,
-          exact hf H, },
-        norm_cast at H, },
-      { norm_cast at H2, }, }
-end
-
-end real

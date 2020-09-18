@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.eval
+import data.polynomial.derivative
 
 /-!
 # Theory of degrees of polynomials
@@ -55,7 +56,7 @@ begin
   { have ineq : p.nat_degree < n.succ := hp.symm ▸ n.succ_pos,
     have zero1 : p.coeff n.succ = 0 := coeff_eq_zero_of_nat_degree_lt ineq,
     have zero2 : (C (p.coeff 0)).nat_degree = 0 := nat_degree_C (p.coeff 0),
-    have zero3 : (C (p.coeff 0)).coeff n.succ = 0 := 
+    have zero3 : (C (p.coeff 0)).coeff n.succ = 0 :=
       coeff_eq_zero_of_nat_degree_lt (zero2.symm ▸ n.succ_pos),
     rw [zero1, zero3], }
 end
@@ -150,5 +151,31 @@ end injective
 
 end degree
 end semiring
+
+section char_zero
+
+variables [field R] [char_zero R]
+
+theorem nat_degree_eq_zero_of_derivative_eq_zero {f : polynomial R} (h : f.derivative = 0) :
+  f.nat_degree = 0 :=
+begin
+  by_cases hf : f = 0,
+  { exact (congr_arg polynomial.nat_degree hf).trans rfl },
+  { rw nat_degree_eq_zero_iff_degree_le_zero,
+    by_contra absurd,
+    have f_nat_degree_pos : 0 < f.nat_degree,
+    { rwa [not_le, ←nat_degree_pos_iff_degree_pos] at absurd },
+    let m := f.nat_degree - 1,
+    have hm : m + 1 = f.nat_degree := nat.sub_add_cancel f_nat_degree_pos,
+    have h2 := coeff_derivative f m,
+    rw polynomial.ext_iff at h,
+    rw [h m, coeff_zero, zero_eq_mul] at h2,
+    cases h2,
+    { rw [hm, ←leading_coeff, leading_coeff_eq_zero] at h2,
+      exact hf h2, },
+    { norm_cast at h2 } }
+end
+
+end char_zero
 
 end polynomial

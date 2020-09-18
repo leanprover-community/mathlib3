@@ -112,8 +112,8 @@ variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 lemma primitive_element_two_inf (α β : E) (F_sep : is_separable F E)   (F_inf : infinite F) :
   ∃ γ : E, (F⟮α, β⟯ : set E) ⊆ (F⟮γ⟯ : set E) :=
 begin
-  cases F_sep α with hα hf,
-  cases F_sep α with hβ hg,
+  rcases F_sep α with ⟨hα, hf⟩,
+  rcases F_sep β with ⟨hβ, hg⟩,
   let f := minimal_polynomial hα,
   let g := minimal_polynomial hβ,
   let ιFE := algebra_map F E,

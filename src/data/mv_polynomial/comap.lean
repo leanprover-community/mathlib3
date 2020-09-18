@@ -51,7 +51,7 @@ variables {σ R}
 
 lemma comap_comp_apply (f : mv_polynomial σ R →ₐ[R] mv_polynomial τ R)
   (g : mv_polynomial τ R →ₐ[R] mv_polynomial υ R) (x : υ → R) :
-  comap (g.comp f) x = (comap f) (comap g x) :=
+  comap (g.comp f) x = comap f (comap g x) :=
 begin
   funext i,
   transitivity (aeval x (aeval (λ i, g (X i)) (f (X i)))),
@@ -59,7 +59,7 @@ begin
     rw alg_hom.comp_apply,
     suffices : g = aeval (λ i, g (X i)), { rw ← this, },
     apply mv_polynomial.alg_hom_ext g,
-    intro, rw [aeval_X], },
+    intro, rw aeval_X, },
   { simp only [comap, aeval_eq_eval₂_hom, map_eval₂_hom, alg_hom.comp_apply],
     refine eval₂_hom_congr _ rfl rfl,
     ext r, apply aeval_C },
@@ -67,7 +67,7 @@ end
 
 lemma comap_comp (f : mv_polynomial σ R →ₐ[R] mv_polynomial τ R)
   (g : mv_polynomial τ R →ₐ[R] mv_polynomial υ R) :
-  comap (g.comp f) = (comap f) ∘ (comap g) :=
+  comap (g.comp f) = comap f ∘ comap g :=
 by { funext x, exact comap_comp_apply _ _ _ }
 
 lemma comap_eq_id_of_eq_id (f : mv_polynomial σ R →ₐ[R] mv_polynomial σ R)

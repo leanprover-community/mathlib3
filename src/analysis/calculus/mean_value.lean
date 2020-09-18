@@ -492,7 +492,7 @@ hs.norm_image_sub_le_of_norm_has_fderiv_within_le
 then the function is `C`-Lipschitz on `s`. Version with `fderiv` and `lipschitz_on_with`. -/
 theorem convex.lipschitz_on_with_of_norm_fderiv_le {f : E → F} {C : ℝ} {s : set E}
   (hf : ∀ x ∈ s, differentiable_at ℝ f x) (bound : ∀x∈s, ∥fderiv ℝ f x∥ ≤ C)
-  (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s:=
+  (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s :=
 hs.lipschitz_on_with_of_norm_has_fderiv_within_le
 (λ x hx, (hf x hx).has_fderiv_at.has_fderiv_within_at) bound
 

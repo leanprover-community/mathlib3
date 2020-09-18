@@ -214,5 +214,31 @@ le_antisymm
 
 end domain
 
+section char_zero
+
+variables [field R] [char_zero R]
+
+theorem nat_degree_eq_zero_of_derivative_eq_zero {f : polynomial R} (h : f.derivative = 0) :
+  f.nat_degree = 0 :=
+begin
+  by_cases hf : f = 0,
+  { exact (congr_arg polynomial.nat_degree hf).trans rfl },
+  { rw nat_degree_eq_zero_iff_degree_le_zero,
+    by_contra absurd,
+    have f_nat_degree_pos : 0 < f.nat_degree,
+    { rwa [not_le, ←nat_degree_pos_iff_degree_pos] at absurd },
+    let m := f.nat_degree - 1,
+    have hm : m + 1 = f.nat_degree := nat.sub_add_cancel f_nat_degree_pos,
+    have h2 := coeff_derivative f m,
+    rw polynomial.ext_iff at h,
+    rw [h m, coeff_zero, zero_eq_mul] at h2,
+    cases h2,
+    { rw [hm, ←leading_coeff, leading_coeff_eq_zero] at h2,
+      exact hf h2, },
+    { norm_cast at h2 } }
+end
+
+end char_zero
+
 end derivative
 end polynomial

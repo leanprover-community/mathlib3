@@ -16,7 +16,7 @@ In this file we show deduce common identities between the Frobenius and Verschie
 ### Main declarations
 
 * `frobenius_verschiebung`: the composition of Frobenius and Verschiebung is multiplication by `p`
-
+* `verschiebung_mul_frobenius`: the “product formula”: `V(x * F y) = V x * y`
 -/
 
 namespace witt_vector
@@ -35,10 +35,8 @@ include hp
 /-- The composition of Frobenius and Verschiebung is multiplication by `p`. -/
 lemma frobenius_verschiebung (x : 𝕎 R) :
   frobenius (verschiebung x) = x * p :=
-begin
-  apply is_poly.ext' ((frobenius_is_poly p).comp verschiebung_is_poly) (mul_n_is_poly p p),
-  witt_simp
-end
+is_poly.ext' ((frobenius_is_poly p).comp verschiebung_is_poly) (mul_n_is_poly p p)
+  (by witt_simp) _ _
 
 lemma verschiebung_zmod (x : 𝕎 (zmod p)) :
   verschiebung x = x * p :=

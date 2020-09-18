@@ -65,7 +65,8 @@ instance adjoin.set_coe : has_coe_t S (adjoin F S) :=
 {coe := λ x, ⟨x,subset_adjoin F S (subtype.mem x)⟩}
 
 lemma adjoin.mono (T : set E) (h : S ⊆ T) : (adjoin F S : set E) ⊆ adjoin F T :=
-field.closure_mono (set.union_subset (set.subset_union_left _ _) (set.subset_union_of_subset_right h _))
+field.closure_mono (set.union_subset (set.subset_union_left _ _)
+  (set.subset_union_of_subset_right h _))
 
 instance adjoin.is_subfield : is_subfield (adjoin F S : set E) := field.closure.is_subfield
 

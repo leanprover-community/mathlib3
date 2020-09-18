@@ -220,7 +220,7 @@ universe u
 lemma nlinarith_lemma (a b : ℕ) (h : a * b ≤ b) (ha : 0 < a) (hb : 0 < b) : a = 1 := by nlinarith
 
 /-- Primitive element theorem for infinite fields. -/
-theorem primitive_element_inf (F E : Type u) [field F] [field E] [algebra F E]
+theorem primitive_element_inf {F E : Type u} [field F] [field E] [algebra F E]
   (F_sep : is_separable F E) (F_findim: finite_dimensional F E) (F_inf : infinite F)
   (n : ℕ) (hn : findim F E = n) :
   ∃ α : E, F⟮α⟯ = ⊤ :=
@@ -235,7 +235,7 @@ begin
     have Fα_findim : finite_dimensional F⟮α⟯ E := finite_dimensional.findim_of_tower_findim F F⟮α⟯ E,
     have Fα_inf : infinite F⟮α⟯ := infinite.of_injective _ (algebra_map F F⟮α⟯).injective,
     have Fα_sep : is_separable F⟮α⟯ E := is_separable_top F F⟮α⟯ E F_sep,
-    obtain ⟨β, hβ⟩ := ih (findim F⟮α⟯ E) Fα_le_n F⟮α⟯ Fα_sep Fα_findim Fα_inf rfl,
+    obtain ⟨β, hβ⟩ := ih _ Fα_le_n Fα_sep Fα_findim Fα_inf rfl,
     obtain ⟨γ, hγ⟩ := primitive_element_two_inf α β F_sep F_inf,
     use γ,
     ext1,
@@ -251,7 +251,8 @@ begin
     rw ←hn at key,
     haveI : finite_dimensional F⟮x⟯ E := findim_of_tower_findim F F⟮x⟯ E,
     rw ←findim_mul_findim F F⟮x⟯ E at key,
-    have h : findim F F⟮x⟯ = 1 := nlinarith_lemma (findim F F⟮x⟯) (findim F⟮x⟯ E) key findim_pos findim_pos,
+    have h : findim F F⟮x⟯ = 1 :=
+      nlinarith_lemma (findim F F⟮x⟯) (findim F⟮x⟯ E) key findim_pos findim_pos,
     replace h := field.adjoin.findim_one F x h,
     rw [algebra.mem_bot,set.mem_range] at h,
     cases h with y hy,
@@ -268,7 +269,7 @@ theorem primitive_element_aux (F E : Type u) [field F] [field E] [algebra F E]
 begin
   by_cases F_finite : nonempty (fintype F),
   exact nonempty.elim F_finite (λ h : fintype F, @primitive_element_fin F _ E _ _ h F_findim),
-  exact primitive_element_inf F E F_sep F_findim (not_nonempty_fintype.mp F_finite) (findim F E) rfl,
+  exact primitive_element_inf F_sep F_findim (not_nonempty_fintype.mp F_finite) (findim F E) rfl,
 end
 
 /-- Primitive element theorem in different universes. -/

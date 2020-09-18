@@ -502,8 +502,8 @@ the minimal polynomial of every `x : K` is separable. -/
 @[class] def is_separable (F K : Sort*) [field F] [field K] [algebra F K] : Prop :=
 ∀ x : K, ∃ H : is_integral F x, (minimal_polynomial H).separable
 
-lemma is_separable_top (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E] [algebra K E]
-  [is_scalar_tower F K E] (h : is_separable F E) : is_separable K E :=
+lemma is_separable_top (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
+  [algebra K E] [is_scalar_tower F K E] (h : is_separable F E) : is_separable K E :=
 begin
   intro x,
   cases h x with hx hs,
@@ -519,14 +519,15 @@ begin
   exact polynomial.separable.map hs,
 end
 
-lemma is_separable_bottom (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E] [algebra K E]
-  [is_scalar_tower F K E] (h : is_separable F E) : is_separable F K :=
+lemma is_separable_bottom (F K E : Type*) [field F] [field K] [field E] [algebra F K] [algebra F E]
+  [algebra K E] [is_scalar_tower F K E] (h : is_separable F E) : is_separable F K :=
 begin
   intro x,
   have main : ∀ p : polynomial F, algebra_map K E (aeval x p) = aeval (algebra_map K E x) p,
   { intro p,
-    rw [aeval_def,aeval_def,eval₂_eq_eval_map (algebra_map F E),is_scalar_tower.algebra_map_eq F K E],
-    rw [←polynomial.map_map,←eval₂_eq_eval_map,eval₂_hom,eval₂_eq_eval_map], },
+    rw [aeval_def,aeval_def,eval₂_eq_eval_map (algebra_map F E),
+    is_scalar_tower.algebra_map_eq F K E,←polynomial.map_map,
+    ←eval₂_eq_eval_map,eval₂_hom,eval₂_eq_eval_map], },
   have swap : ∀ p : polynomial F, aeval (algebra_map K E x) p = 0 → aeval x p = 0,
   { intros p hp,
     rw [←main p,←(algebra_map K E).map_zero] at hp,

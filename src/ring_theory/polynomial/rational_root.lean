@@ -121,7 +121,7 @@ f.is_integer_of_is_unit_denom (is_unit_of_dvd_one _ (hp ▸ denom_dvd_of_is_root
 namespace unique_factorization_domain
 
 lemma integer_of_integral {x : f.codomain} :
-  is_integral A x → f.is_integer x :=
+  is_integral_alg A x → f.is_integer x :=
 λ ⟨p, hp, hx⟩, is_integer_of_is_root_of_monic hp hx
 
 lemma integrally_closed : integral_closure A f.codomain = ⊥ :=

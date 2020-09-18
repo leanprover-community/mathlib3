@@ -888,12 +888,16 @@ begin
   simp,
 end
 
+omit V
+
 /-- A single point is cospherical. -/
 lemma cospherical_singleton (p : P) : cospherical ({p} : set P) :=
 begin
   use p,
   simp
 end
+
+include V
 
 /-- Two points are cospherical. -/
 lemma cospherical_insert_singleton (p₁ p₂ : P) : cospherical ({p₁, p₂} : set P) :=

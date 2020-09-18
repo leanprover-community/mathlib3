@@ -858,4 +858,57 @@ lemma reflection_vadd_smul_vsub_orthogonal_projection {s : affine_subspace ℝ P
 reflection_orthogonal_vadd hc hp₁
   (submodule.smul_mem _ _ (vsub_orthogonal_projection_mem_direction_orthogonal s _))
 
+omit V
+
+/-- A set of points is cospherical if they are equidistant from some
+point.  In two dimensions, this is the same thing as being
+concyclic. -/
+def cospherical (ps : set P) : Prop :=
+∃ (center : P) (radius : ℝ), ∀ p ∈ ps, dist p center = radius
+
+/-- The definition of `cospherical`. -/
+lemma cospherical_def (ps : set P) :
+  cospherical ps ↔ ∃ (center : P) (radius : ℝ), ∀ p ∈ ps, dist p center = radius :=
+iff.rfl
+
+/-- A subset of a cospherical set is cospherical. -/
+lemma cospherical_subset {ps₁ ps₂ : set P} (hs : ps₁ ⊆ ps₂) (hc : cospherical ps₂) :
+  cospherical ps₁ :=
+begin
+  rcases hc with ⟨c, r, hcr⟩,
+  exact ⟨c, r, λ p hp, hcr p (hs hp)⟩
+end
+
+include V
+
+/-- The empty set is cospherical. -/
+lemma cospherical_empty : cospherical (∅ : set P) :=
+begin
+  use add_torsor.nonempty.some,
+  simp,
+end
+
+/-- A single point is cospherical. -/
+lemma cospherical_singleton (p : P) : cospherical ({p} : set P) :=
+begin
+  use p,
+  simp
+end
+
+/-- Two points are cospherical. -/
+lemma cospherical_insert_singleton (p₁ p₂ : P) : cospherical ({p₁, p₂} : set P) :=
+begin
+  use [(2⁻¹ : ℝ) • (p₂ -ᵥ p₁) +ᵥ p₁, (2⁻¹ : ℝ) * (dist p₂ p₁)],
+  intro p,
+  rw [set.mem_insert_iff, set.mem_singleton_iff],
+  rintro ⟨_|_⟩,
+  { rw [dist_eq_norm_vsub V p₁, vsub_vadd_eq_vsub_sub, vsub_self, zero_sub, norm_neg, norm_smul,
+        dist_eq_norm_vsub V p₂],
+    simp },
+  { rw [H, dist_eq_norm_vsub V p₂, vsub_vadd_eq_vsub_sub, dist_eq_norm_vsub V p₂],
+    conv_lhs { congr, congr, rw ←one_smul ℝ (p₂ -ᵥ p₁ : V) },
+    rw [←sub_smul, norm_smul],
+    norm_num }
+end
+
 end euclidean_geometry

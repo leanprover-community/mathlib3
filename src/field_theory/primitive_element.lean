@@ -49,7 +49,7 @@ begin
   { rw hx,
     exact F⟮α.val⟯.zero_mem, },
   { obtain ⟨n, hn⟩ := set.mem_range.mp (hα (units.mk0 x hx)),
-    rw (show x = α^n, by norm_cast; simp *),
+    rw (show x = α^n, by { norm_cast, simp * }),
     exact @is_subfield.pow_mem E _ α.val n F⟮α.val⟯ _ (field.mem_adjoin_simple_self F α.val), },
 end
 

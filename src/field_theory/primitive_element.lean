@@ -109,8 +109,8 @@ end
 
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
-lemma primitive_element_two_inf_key (α β : E) [F_sep : is_separable F E] (F_inf : infinite F) :
-  ∃ c : F, β ∈ F⟮α + (algebra_map F E) c * β⟯ :=
+lemma primitive_element_two_inf (α β : E) (F_sep : is_separable F E) (F_inf : infinite F) :
+  ∃ γ : E, (F⟮α, β⟯ : set E) ⊆ (F⟮γ⟯ : set E) :=
 begin
   rcases F_sep α with ⟨hα, hf⟩,
   rcases F_sep β with ⟨hβ, hg⟩,
@@ -123,9 +123,7 @@ begin
   let ιFE' := ιEE'.comp(ιFE),
   have key := primitive_element_two_inf_exists_c ιFE' (ιEE' α) (ιEE' β) f g,
   cases key with c hc,
-  use c,
   let γ := α+(ιFE c)*β,
-  change β ∈ F⟮γ⟯,
   let f' := (f.map ιFE).comp(polynomial.C γ-(polynomial.C (ιFE c))*(polynomial.X)),
   let h := euclidean_domain.gcd f' g',
   have h_sep : h.separable := polynomial.separable_gcd_right f' g' (polynomial.separable.map hg),
@@ -188,23 +186,15 @@ begin
     simp only [one_ne_zero],
     rw [if_false,sub_zero,mul_one,mul_comm,div_eq_mul_inv,mul_assoc,
         mul_inv_cancel leading_coeff_ne_zero,mul_one] },
-  rw finale,
-  exact subtype.mem (-p.coeff 0 / p.coeff 1),
-end
-
-/-- Primitive element theorem for adjoining two elements to an infinite field. -/
-lemma primitive_element_two_inf (α β : E) (F_sep : is_separable F E) (F_inf : infinite F) :
-  ∃ γ : E, (F⟮α, β⟯ : set E) ⊆ (F⟮γ⟯ : set E) :=
-begin
-  obtain ⟨c, β_in_Fγ⟩ := primitive_element_two_inf_key α β F_inf,
-  let c' := algebra_map F E c,
-  let γ := α + c'*β,
-  have γ_in_Fγ : γ ∈ F⟮γ⟯ := by simp only [field.mem_adjoin_simple_self],
-  have c_in_Fγ : c' ∈ F⟮γ⟯ := by simp only [field.adjoin.algebra_map_mem],
-  have cβ_in_Fγ : c'*β ∈ (F⟮γ⟯ : set E) := by simp [is_submonoid.mul_mem, *],
+  have β_in_Fγ : β ∈ F⟮γ⟯,
+  { rw finale,
+    exact subtype.mem (-p.coeff 0 / p.coeff 1) },
+  have γ_in_Fγ : γ ∈ F⟮γ⟯ := field.mem_adjoin_simple_self F γ,
+  have c_in_Fγ : ιFE c ∈ F⟮γ⟯ := field.adjoin.algebra_map_mem F {γ} c,
+  have cβ_in_Fγ : (ιFE c)*β ∈ (F⟮γ⟯ : set E) := is_submonoid.mul_mem c_in_Fγ β_in_Fγ,
   have α_in_Fγ : α ∈ (F⟮γ⟯ : set E),
-  { rw (show α = γ - c'*β, by simp *),
-    exact is_add_subgroup.sub_mem F⟮γ⟯ γ (c'*β) γ_in_Fγ cβ_in_Fγ, },
+  { rw (show α = γ - (ιFE c)*β, by exact (add_sub_cancel α ((ιFE c)*β)).symm),
+    exact is_add_subgroup.sub_mem F⟮γ⟯ γ ((ιFE c)*β) γ_in_Fγ cβ_in_Fγ, },
   have αβ_in_Fγ : {α,β} ⊆ (F⟮γ⟯ : set E) := λ x hx, by cases hx; cases hx; cases hx; assumption,
   have Fαβ_sub_Fγ : (F⟮α, β⟯ : set E) ⊆ (F⟮γ⟯ : set E) :=
     (field.adjoin_subset_iff F {α,β}).mp αβ_in_Fγ,

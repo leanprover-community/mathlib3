@@ -212,13 +212,7 @@ le_antisymm
     exact hp
   end
 
-end domain
-
-section char_zero
-
-variables [field R] [char_zero R]
-
-theorem nat_degree_eq_zero_of_derivative_eq_zero {f : polynomial R} (h : f.derivative = 0) :
+theorem nat_degree_eq_zero_of_derivative_eq_zero [char_zero R] {f : polynomial R} (h : f.derivative = 0) :
   f.nat_degree = 0 :=
 begin
   by_cases hf : f = 0,
@@ -238,7 +232,7 @@ begin
     { norm_cast at h2 } }
 end
 
-end char_zero
+end domain
 
 end derivative
 end polynomial

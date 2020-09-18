@@ -112,8 +112,8 @@ variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 lemma primitive_element_two_inf (α β : E) (F_sep : is_separable F E)   (F_inf : infinite F) :
   ∃ γ : E, (F⟮α, β⟯ : set E) ⊆ (F⟮γ⟯ : set E) :=
 begin
-  rcases F_sep α with ⟨hα, hf⟩,
-  rcases F_sep β with ⟨hβ, hg⟩,
+  cases F_sep α with hα hf,
+  cases F_sep β with hβ hg,
   let f := minimal_polynomial hα,
   let g := minimal_polynomial hβ,
   let ιFE := algebra_map F E,
@@ -121,8 +121,7 @@ begin
   let E' := polynomial.splitting_field g',
   let ιEE' := algebra_map E E',
   let ιFE' := ιEE'.comp(ιFE),
-  have key := primitive_element_two_inf_exists_c ιFE' (ιEE' α) (ιEE' β) f g,
-  cases key with c hc,
+  cases (primitive_element_two_inf_exists_c ιFE' (ιEE' α) (ιEE' β) f g) with c hc,
   let γ := α+(ιFE c)*β,
   let f' := (f.map ιFE).comp(polynomial.C γ-(polynomial.C (ιFE c))*(polynomial.X)),
   let h := euclidean_domain.gcd f' g',
@@ -166,8 +165,8 @@ begin
   { rw [polynomial.map_comp,polynomial.map_map,composition,polynomial.map_sub,polynomial.map_mul,
         polynomial.map_C,polynomial.map_C,polynomial.map_X],
     refl },
-  have gswap : g' = (g.map(algebra_map F F⟮γ⟯)).map(algebra_map F⟮γ⟯ E),
-  { rw [polynomial.map_map,composition] },
+  have gswap : g' = (g.map(algebra_map F F⟮γ⟯)).map(algebra_map F⟮γ⟯ E) :=
+    by rw [polynomial.map_map,composition],
   let p := euclidean_domain.gcd (_ : polynomial F⟮γ⟯) (_ : polynomial F⟮γ⟯),
   have hswap : h = p.map(algebra_map F⟮γ⟯ E),
   { dsimp only [h,p],

@@ -168,6 +168,10 @@ theorem add_mem : ∀ {x y : R}, x ∈ s → y ∈ s → x + y ∈ s := s.add_me
 /-- A subring is closed under negation. -/
 theorem neg_mem : ∀ {x : R}, x ∈ s → -x ∈ s := s.neg_mem'
 
+/-- A subring is closed under subtraction -/
+theorem sub_mem {x y : R} (hx : x ∈ s) (hy : y ∈ s) : x - y ∈ s :=
+by { rw sub_eq_add_neg, exact s.add_mem hx (s.neg_mem hy) }
+
 /-- Product of a list of elements in a subring is in the subring. -/
 lemma list_prod_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.prod ∈ s :=
 s.to_submonoid.list_prod_mem
@@ -226,7 +230,7 @@ instance to_ring : ring s :=
  λ h, h.symm ▸ s.coe_zero⟩
 
 /-- A subring of a `comm_ring` is a `comm_ring`. -/
-def to_comm_ring {R} [comm_ring R] (s : subring R) : comm_ring s :=
+instance to_comm_ring {R} [comm_ring R] (s : subring R) : comm_ring s :=
 { mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..subring.to_ring s}
 
 /-- The natural ring hom from a subring of ring `R` to `R`. -/
@@ -330,6 +334,9 @@ def range {R : Type u} {S : Type v} [ring R] [ring S]
 @[simp] lemma mem_range {f : R →+* S} {y : S} : y ∈ f.range ↔ ∃ x, f x = y :=
 by simp [range]
 
+lemma mem_range_self (f : R →+* S) (x : R) : f x ∈ f.range :=
+mem_range.mpr ⟨x, rfl⟩
+
 lemma map_range : f.range.map g = (g.comp f).range :=
 (⊤ : subring R).map_map g f
 
@@ -342,6 +349,9 @@ def cod_restrict' {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S)
   map_zero' := subtype.eq f.map_zero,
   map_mul' := λ x y, subtype.eq $ f.map_mul x y,
   map_one' := subtype.eq f.map_one }
+
+lemma surjective_onto_range : function.surjective (f.cod_restrict' f.range f.mem_range_self) :=
+λ ⟨y, hy⟩, let ⟨x, hx⟩ := mem_range.mp hy in ⟨x, subtype.ext hx⟩
 
 end ring_hom
 

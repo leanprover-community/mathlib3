@@ -113,7 +113,8 @@ begin
       rw this, resetI,
       apply is_measurable.Union,
       exact λ _, (H _).compl _ } },
-  { simp, rintro _ a rfl,
+  { rw forall_range_iff,
+    intro a,
     exact generate_measurable.basic _ is_open_Iio }
 end
 
@@ -205,6 +206,14 @@ lemma is_measurable_Ici : is_measurable (Ici a) := is_closed_Ici.is_measurable
 lemma is_measurable_Iic : is_measurable (Iic a) := is_closed_Iic.is_measurable
 lemma is_measurable_Icc : is_measurable (Icc a b) := is_closed_Icc.is_measurable
 
+instance nhds_within_Ici_is_measurably_generated :
+  (𝓝[Ici b] a).is_measurably_generated :=
+is_measurable_Ici.nhds_within_is_measurably_generated _
+
+instance nhds_within_Iic_is_measurably_generated :
+  (𝓝[Iic b] a).is_measurably_generated :=
+is_measurable_Iic.nhds_within_is_measurably_generated _
+
 instance at_top_is_measurably_generated : (filter.at_top : filter α).is_measurably_generated :=
 @filter.infi_is_measurably_generated _ _ _ _ $
   λ a, (is_measurable_Ici : is_measurable (Ici a)).principal_is_measurably_generated
@@ -223,6 +232,14 @@ lemma is_measurable_Ioi : is_measurable (Ioi a) := is_open_Ioi.is_measurable
 lemma is_measurable_Ioo : is_measurable (Ioo a b) := is_open_Ioo.is_measurable
 lemma is_measurable_Ioc : is_measurable (Ioc a b) := is_measurable_Ioi.inter is_measurable_Iic
 lemma is_measurable_Ico : is_measurable (Ico a b) := is_measurable_Ici.inter is_measurable_Iio
+
+instance nhds_within_Ioi_is_measurably_generated :
+  (𝓝[Ioi b] a).is_measurably_generated :=
+is_measurable_Ioi.nhds_within_is_measurably_generated _
+
+instance nhds_within_Iio_is_measurably_generated :
+  (𝓝[Iio b] a).is_measurably_generated :=
+is_measurable_Iio.nhds_within_is_measurably_generated _
 
 end order_closed_topology
 
@@ -480,6 +497,17 @@ instance nnreal.borel_space : borel_space nnreal := ⟨rfl⟩
 instance ennreal.measurable_space : measurable_space ennreal := borel ennreal
 instance ennreal.borel_space : borel_space ennreal := ⟨rfl⟩
 
+section real_mul
+variables [measurable_space α]
+
+lemma measurable.const_mul {f : α → ℝ} (h : measurable f) (c : ℝ) : measurable (λ x, c*f x) :=
+(measurable.const_smul h c : _)
+
+lemma measurable.mul_const {f : α → ℝ} (h : measurable f) (c : ℝ) : measurable (λ x, f x*c) :=
+by simp only [h.const_mul c, mul_comm]
+
+end real_mul
+
 section metric_space
 
 variables [metric_space α] [measurable_space α] [opens_measurable_space α] {x : α} {ε : ℝ}
@@ -525,11 +553,33 @@ continuous_edist.measurable2
 end emetric_space
 
 namespace real
-open measurable_space
+open measurable_space measure_theory
 
 lemma borel_eq_generate_from_Ioo_rat :
   borel ℝ = generate_from (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
 borel_eq_generate_from_of_subbasis is_topological_basis_Ioo_rat.2.2
+
+lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [locally_finite_measure μ]
+  (h : ∀ a b : ℚ, μ (Ioo a b) = ν (Ioo a b)) : μ = ν :=
+begin
+  refine measure.ext_of_generate_from_of_cover_subset borel_eq_generate_from_Ioo_rat _
+    (subset.refl _) _ _ _ _,
+  { simp only [mem_Union, mem_singleton_iff],
+    rintros _ ⟨a₁, b₁, h₁, rfl⟩ _ ⟨a₂, b₂, h₂, rfl⟩ ne,
+    simp only [Ioo_inter_Ioo, sup_eq_max, inf_eq_min, ← rat.cast_max, ← rat.cast_min, nonempty_Ioo] at ne ⊢,
+    refine ⟨_, _, _, rfl⟩,
+    assumption_mod_cast },
+  { exact countable_Union (λ a, (countable_encodable _).bUnion $ λ _ _, countable_singleton _) },
+  { exact is_topological_basis_Ioo_rat.2.1 },
+  { simp only [mem_Union, mem_singleton_iff],
+    rintros _ ⟨a, b, h, rfl⟩,
+    refine (measure_mono subset_closure).trans_lt _,
+    rw [closure_Ioo],
+    exacts [compact_Icc.finite_measure, rat.cast_lt.2 h] },
+  { simp only [mem_Union, mem_singleton_iff],
+    rintros _ ⟨a, b, hab, rfl⟩,
+    exact h a b }
+end
 
 lemma borel_eq_generate_from_Iio_rat :
   borel ℝ = generate_from (⋃a:ℚ, {Iio a}) :=
@@ -686,6 +736,22 @@ lemma measurable.ennnorm {f : β → α} (hf : measurable f) :
 hf.nnnorm.ennreal_coe
 
 end normed_group
+
+section normed_space
+
+variables [measurable_space α]
+variables {𝕜 : Type*} [normed_field 𝕜]
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
+variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [measurable_space F] [borel_space F]
+
+lemma continuous_linear_map.measurable (L : E →L[𝕜] F) : measurable L :=
+L.continuous.measurable
+
+lemma measurable.clm_apply {φ : α → E} (φ_meas : measurable φ)
+  (L : E →L[𝕜] F) : measurable (λ (a : α), L (φ a)) :=
+L.measurable.comp φ_meas
+
+end normed_space
 
 namespace measure_theory
 namespace measure

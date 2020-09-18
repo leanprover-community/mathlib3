@@ -15,8 +15,9 @@ Informally, a "linear recurrence" is an assertion of the form
 where `u` is a sequence, `d` is the *order* of the recurrence and the `a i`
 are its *coefficients*.
 
-In this file, we define `linear_recurrence d a` to represent such a relation,
-and we call a sequence `u` which verifies it a *solution* of the linear recurrence.
+In this file, we define the structure `linear_recurrence` so that
+`linear_recurrence.mk d a` represents the above relation, and we call
+a sequence `u` which verifies it a *solution* of the linear recurrence.
 
 We prove a few basic lemmas about this concept, such as :
 
@@ -61,7 +62,7 @@ def is_solution (u : ℕ → α) :=
   We will prove this is the only such solution. -/
 def mk_sol (init : fin E.order → α) : ℕ → α
 | n := if h : n < E.order then init ⟨n, h⟩ else
-  ∑ k : fin E.order, have n - E.order + k.1 < n, by have := k.2; omega,
+  ∑ k : fin E.order, have n - E.order + k < n, by have := k.is_lt; omega,
     E.coeffs k * mk_sol (n - E.order + k)
 
 /-- `E.mk_sol` indeed gives solutions to `E`. -/
@@ -70,7 +71,7 @@ lemma is_sol_mk_sol (init : fin E.order → α) : E.is_solution (E.mk_sol init) 
 
 /-- `E.mk_sol init`'s first `E.order` terms are `init`. -/
 lemma mk_sol_eq_init (init : fin E.order → α) : ∀ n : fin E.order, E.mk_sol init n = init n :=
-  λ n, by rw mk_sol; simp [fin.coe_eq_val, n.2]
+  λ n, by { rw mk_sol, simp only [n.is_lt, dif_pos, fin.mk_coe] }
 
 /-- If `u` is a solution to `E` and `init` designates its first `E.order` values,
   then `∀ n, u n = E.mk_sol init n`. -/
@@ -82,9 +83,8 @@ lemma eq_mk_of_is_sol_of_eq_init {u : ℕ → α} {init : fin E.order → α}
   else begin
     rw [mk_sol, ← nat.sub_add_cancel (le_of_not_lt h'), h (n-E.order)],
     simp [h'],
-    congr',
-    ext k,
-    exact have wf : n - E.order + k.1 < n, by have := k.2; omega,
+    congr' with k,
+    exact have wf : n - E.order + k < n, by have := k.is_lt; omega,
       by rw eq_mk_of_is_sol_of_eq_init
   end
 
@@ -140,7 +140,7 @@ end
 /-- `E.tuple_succ` maps `![s₀, s₁, ..., sₙ]` to `![s₁, ..., sₙ, ∑ (E.coeffs i) * sᵢ]`,
   where `n := E.order`. -/
 def tuple_succ : (fin E.order → α) →ₗ[α] (fin E.order → α) :=
-{ to_fun := λ X i, if h : i.1 + 1 < E.order then X ⟨i+1, h⟩ else (∑ i, E.coeffs i * X i),
+{ to_fun := λ X i, if h : (i : ℕ) + 1 < E.order then X ⟨i+1, h⟩ else (∑ i, E.coeffs i * X i),
   map_add' := λ x y,
     begin
       ext i,

@@ -60,8 +60,6 @@ notation `⨅` binders `, ` r:(scoped f, infi f) := r
 instance (α) [has_Inf α] : has_Sup (order_dual α) := ⟨(Inf : set α → α)⟩
 instance (α) [has_Sup α] : has_Inf (order_dual α) := ⟨(Sup : set α → α)⟩
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A complete lattice is a bounded lattice which
   has suprema and infima for every subset. -/
 class complete_lattice (α : Type*) extends bounded_lattice α, has_Sup α, has_Inf α :=
@@ -124,7 +122,6 @@ def complete_lattice_of_Sup (α : Type*) [H1 : partial_order α]
 
 /-- A complete linear order is a linear order whose lattice structure is complete. -/
 class complete_linear_order (α : Type*) extends complete_lattice α, decidable_linear_order α
-end prio
 
 namespace order_dual
 variable (α)
@@ -215,6 +212,12 @@ is_glb_univ.Inf_eq
 
 @[simp] theorem Inf_insert {a : α} {s : set α} : Inf (insert a s) = a ⊓ Inf s :=
 ((is_glb_Inf s).insert a).Inf_eq
+
+theorem Sup_le_Sup_of_subset_instert_bot (h : s ⊆ insert ⊥ t) : Sup s ≤ Sup t :=
+le_trans (Sup_le_Sup h) (le_of_eq (trans Sup_insert bot_sup_eq))
+
+theorem Inf_le_Inf_of_subset_insert_top (h : s ⊆ insert ⊤ t) : Inf t ≤ Inf s :=
+le_trans (le_of_eq (trans top_inf_eq.symm Inf_insert.symm)) (Inf_le_Inf h)
 
 -- We will generalize this to conditionally complete lattices in `cSup_singleton`.
 theorem Sup_singleton {a : α} : Sup {a} = a :=
@@ -310,6 +313,9 @@ theorem bsupr_le {p : ι → Prop} {f : Π i (h : p i), α} (h : ∀ i hi, f i h
   (⨆ i (hi : p i), f i hi) ≤ a :=
 supr_le $ λ i, supr_le $ h i
 
+theorem bsupr_le_supr (p : ι → Prop) (f : ι → α) : (⨆ i (H : p i), f i) ≤ ⨆ i, f i :=
+bsupr_le (λ i hi, le_supr f i)
+
 theorem supr_le_supr (h : ∀i, s i ≤ t i) : supr s ≤ supr t :=
 supr_le $ assume i, le_supr_of_le i (h i)
 
@@ -396,6 +402,9 @@ le_Inf $ assume b ⟨i, eq⟩, eq ▸ h i
 theorem le_binfi {p : ι → Prop} {f : Π i (h : p i), α} (h : ∀ i hi, a ≤ f i hi) :
   a ≤ ⨅ i hi, f i hi :=
 le_infi $ λ i, le_infi $ h i
+
+theorem infi_le_binfi (p : ι → Prop) (f : ι → α) : (⨅ i, f i) ≤ ⨅ i (H : p i), f i :=
+le_binfi (λ i hi, infi_le f i)
 
 theorem infi_le_infi (h : ∀i, s i ≤ t i) : infi s ≤ infi t :=
 le_infi $ assume i, infi_le_of_le i (h i)

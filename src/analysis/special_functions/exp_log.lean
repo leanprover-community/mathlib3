@@ -198,7 +198,7 @@ end
 to `log |x|` for `x < 0`, and to `0` for `0`. We use this unconventional extension to
 `(-∞, 0]` as it gives the formula `log (x * y) = log x + log y` for all nonzero `x` and `y`, and
 the derivative of `log` is `1/x` away from `0`. -/
-noncomputable def log (x : ℝ) : ℝ :=
+@[pp_nodot] noncomputable def log (x : ℝ) : ℝ :=
 if hx : x ≠ 0 then classical.some (exists_exp_eq_of_pos (abs_pos_iff.mpr hx)) else 0
 
 lemma exp_log_eq_abs (hx : x ≠ 0) : exp (log x) = abs x :=
@@ -487,8 +487,7 @@ begin
   have A : ∀ y ∈ set.Ioo (-1 : ℝ) 1, deriv F y = - (y^n) / (1 - y),
   { assume y hy,
     have : (∑ i in range n, (↑i + 1) * y ^ i / (↑i + 1)) = (∑ i in range n, y ^ i),
-    { congr,
-      ext i,
+    { congr' with i,
       have : (i : ℝ) + 1 ≠ 0 := ne_of_gt (nat.cast_add_one_pos i),
       field_simp [this, mul_comm] },
     field_simp [F, this, ← geom_series_def, geom_sum (ne_of_lt hy.2),

@@ -18,7 +18,6 @@ import algebra.field
     decidable.
 -/
 
-set_option default_priority 100 -- see Note [default priority]
 set_option old_structure_cmd true
 
 variable {α : Type*}
@@ -121,6 +120,36 @@ lt_iff_lt_of_le_iff_le (le_div_iff hc)
 
 lemma div_lt_iff' (hc : 0 < c) : b / c < a ↔ b < c * a :=
 by rw [mul_comm, div_lt_iff hc]
+
+lemma inv_mul_le_iff (h : 0 < b) : b⁻¹ * a ≤ c ↔ a ≤ b * c :=
+begin
+  rw [inv_eq_one_div, mul_comm, ← div_eq_mul_one_div],
+  exact div_le_iff' h,
+end
+
+lemma inv_mul_le_iff' (h : 0 < b) : b⁻¹ * a ≤ c ↔ a ≤ c * b :=
+by rw [inv_mul_le_iff h, mul_comm]
+
+lemma mul_inv_le_iff (h : 0 < b) : a * b⁻¹ ≤ c ↔ a ≤ b * c :=
+by rw [mul_comm, inv_mul_le_iff h]
+
+lemma mul_inv_le_iff' (h : 0 < b) : a * b⁻¹ ≤ c ↔ a ≤ c * b :=
+by rw [mul_comm, inv_mul_le_iff' h]
+
+lemma inv_mul_lt_iff (h : 0 < b) : b⁻¹ * a < c ↔ a < b * c :=
+begin
+  rw [inv_eq_one_div, mul_comm, ← div_eq_mul_one_div],
+  exact div_lt_iff' h,
+end
+
+lemma inv_mul_lt_iff' (h : 0 < b) : b⁻¹ * a < c ↔ a < c * b :=
+by rw [inv_mul_lt_iff h, mul_comm]
+
+lemma mul_inv_lt_iff (h : 0 < b) : a * b⁻¹ < c ↔ a < b * c :=
+by rw [mul_comm, inv_mul_lt_iff h]
+
+lemma mul_inv_lt_iff' (h : 0 < b) : a * b⁻¹ < c ↔ a < c * b :=
+by rw [mul_comm, inv_mul_lt_iff' h]
 
 lemma div_le_iff_of_neg (hc : c < 0) : b / c ≤ a ↔ a * c ≤ b :=
 ⟨λ h, div_mul_cancel b (ne_of_lt hc) ▸ mul_le_mul_of_nonpos_right h hc.le,
@@ -485,18 +514,13 @@ lemma strict_mono.div_const {β : Type*} [preorder β] {f : β → α} (hf : str
   strict_mono (λ x, (f x) / c) :=
 hf.mul_const (inv_pos.2 hc)
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_densely_ordered : densely_ordered α :=
 { dense := λ a₁ a₂ h, ⟨(a₁ + a₂) / 2,
   calc a₁ = (a₁ + a₁) / 2 : (add_self_div_two a₁).symm
       ... < (a₁ + a₂) / 2 : div_lt_div_of_lt two_pos (add_lt_add_left h _),
   calc (a₁ + a₂) / 2 < (a₂ + a₂) / 2 : div_lt_div_of_lt two_pos (add_lt_add_right h _)
                  ... = a₂            : add_self_div_two a₂⟩ }
-
-instance linear_ordered_field.to_no_top_order : no_top_order α :=
-{ no_top := λ a, ⟨a + 1, lt_add_of_le_of_pos (le_refl a) zero_lt_one ⟩ }
-
-instance linear_ordered_field.to_no_bot_order : no_bot_order α :=
-{ no_bot := λ a, ⟨a + -1, add_lt_of_le_of_neg (le_refl _) neg_one_lt_zero ⟩ }
 
 lemma mul_self_inj_of_nonneg (a0 : 0 ≤ a) (b0 : 0 ≤ b) : a * a = b * b ↔ a = b :=
 mul_self_eq_mul_self_iff.trans $ or_iff_left_of_imp $

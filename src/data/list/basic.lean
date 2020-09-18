@@ -5,8 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 -/
 import algebra.order_functions
 import control.monad.basic
-import deprecated.group
-import data.nat.basic
+import data.nat.choose.basic
 import order.rel_classes
 
 /-!
@@ -1334,22 +1333,6 @@ by induction l; [refl, simp only [*, concat_eq_append, cons_append, map, map_app
 theorem map_id' {f : α → α} (h : ∀ x, f x = x) (l : list α) : map f l = l :=
 by induction l; [refl, simp only [*, map]]; split; refl
 
-@[simp] theorem foldl_map (g : β → γ) (f : α → γ → α) (a : α) (l : list β) :
-  foldl f a (map g l) = foldl (λx y, f x (g y)) a l :=
-by revert a; induction l; intros; [refl, simp only [*, map, foldl]]
-
-@[simp] theorem foldr_map (g : β → γ) (f : γ → α → α) (a : α) (l : list β) :
-  foldr f a (map g l) = foldr (f ∘ g) a l :=
-by revert a; induction l; intros; [refl, simp only [*, map, foldr]]
-
-theorem foldl_hom (l : list γ) (f : α → β) (op : α → γ → α) (op' : β → γ → β) (a : α)
-  (h : ∀a x, f (op a x) = op' (f a) x) : foldl op' (f a) l = f (foldl op a l) :=
-eq.symm $ by { revert a, induction l; intros; [refl, simp only [*, foldl]] }
-
-theorem foldr_hom (l : list γ) (f : α → β) (op : γ → α → α) (op' : γ → β → β) (a : α)
-  (h : ∀x a, f (op x a) = op' x (f a)) : foldr op' (f a) l = f (foldr op a l) :=
-by { revert a, induction l; intros; [refl, simp only [*, foldr]] }
-
 theorem eq_nil_of_map_eq_nil {f : α → β} {l : list α} (h : map f l = nil) : l = nil :=
 eq_nil_of_length_eq_zero $ by rw [← length_map f l, h]; refl
 
@@ -1669,6 +1652,49 @@ by rw reverse_reverse l at t; rwa t
 @[simp] theorem reverse_foldl {l : list α} : reverse (foldl (λ t h, h :: t) [] l) = l :=
 by rw ←foldr_reverse; simp
 
+@[simp] theorem foldl_map (g : β → γ) (f : α → γ → α) (a : α) (l : list β) :
+  foldl f a (map g l) = foldl (λx y, f x (g y)) a l :=
+by revert a; induction l; intros; [refl, simp only [*, map, foldl]]
+
+@[simp] theorem foldr_map (g : β → γ) (f : γ → α → α) (a : α) (l : list β) :
+  foldr f a (map g l) = foldr (f ∘ g) a l :=
+by revert a; induction l; intros; [refl, simp only [*, map, foldr]]
+
+theorem foldl_map' {α β: Type u} (g : α → β) (f : α → α → α) (f' : β → β → β)
+  (a : α) (l : list α) (h : ∀ x y, f' (g x) (g y) = g (f x y)) :
+  list.foldl f' (g a) (l.map g) = g (list.foldl f a l) :=
+begin
+  induction l generalizing a,
+  { simp }, { simp [l_ih, h] }
+end
+
+theorem foldr_map' {α β: Type u} (g : α → β) (f : α → α → α) (f' : β → β → β)
+  (a : α) (l : list α) (h : ∀ x y, f' (g x) (g y) = g (f x y)) :
+  list.foldr f' (g a) (l.map g) = g (list.foldr f a l) :=
+begin
+  induction l generalizing a,
+  { simp }, { simp [l_ih, h] }
+end
+
+theorem foldl_hom (l : list γ) (f : α → β) (op : α → γ → α) (op' : β → γ → β) (a : α)
+  (h : ∀a x, f (op a x) = op' (f a) x) : foldl op' (f a) l = f (foldl op a l) :=
+eq.symm $ by { revert a, induction l; intros; [refl, simp only [*, foldl]] }
+
+theorem foldr_hom (l : list γ) (f : α → β) (op : γ → α → α) (op' : γ → β → β) (a : α)
+  (h : ∀x a, f (op x a) = op' x (f a)) : foldr op' (f a) l = f (foldr op a l) :=
+by { revert a, induction l; intros; [refl, simp only [*, foldr]] }
+
+lemma injective_foldl_comp {α : Type*} {l : list (α → α)} {f : α → α}
+  (hl : ∀ f ∈ l, function.injective f) (hf : function.injective f):
+  function.injective (@list.foldl (α → α) (α → α) function.comp f l) :=
+begin
+  induction l generalizing f,
+  { exact hf },
+  { apply l_ih (λ _ h, hl _ (list.mem_cons_of_mem _ h)),
+    apply function.injective.comp hf,
+    apply hl _ (list.mem_cons_self _ _) }
+end
+
 /- scanl -/
 
 lemma length_scanl {β : Type*} {f : α → β → α} :
@@ -1854,10 +1880,10 @@ theorem prod_hom_rel {α β γ : Type*} [monoid β] [monoid γ] (l : list α) {r
 list.rec_on l h₁ (λ a l hl, by simp only [map_cons, prod_cons, h₂ hl])
 
 @[to_additive]
-theorem prod_hom [monoid β] (l : list α) (f : α → β) [is_monoid_hom f] :
+theorem prod_hom [monoid β] (l : list α) (f : α →* β) :
   (l.map f).prod = f l.prod :=
-by { simp only [prod, foldl_map, (is_monoid_hom.map_one f).symm],
-  exact l.foldl_hom _ _ _ 1 (is_monoid_hom.map_mul f) }
+by { simp only [prod, foldl_map, f.map_one.symm],
+  exact l.foldl_hom _ _ _ 1 f.map_mul }
 
 -- `to_additive` chokes on the next few lemmas, so we do them by hand below
 @[simp]

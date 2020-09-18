@@ -875,6 +875,53 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
       { apply neg_nonpos_of_nonneg, norm_cast, simp, }
     end
 
+theorem norm_int_le_one (z : ℤ) : ∥(z : ℚ_[p])∥ ≤ 1 :=
+suffices ∥((z : ℚ) : ℚ_[p])∥ ≤ 1, by simpa,
+norm_rat_le_one $ by simp [nat.prime.ne_one ‹_›]
+
+lemma norm_int_lt_one_iff_dvd (k : ℤ) : ∥(k : ℚ_[p])∥ < 1 ↔ ↑p ∣ k :=
+begin
+  split,
+  { intro h,
+    contrapose! h,
+    apply le_of_eq,
+    rw eq_comm,
+    calc ∥(k : ℚ_[p])∥ = ∥((k : ℚ) : ℚ_[p])∥ : by { norm_cast }
+    ... = padic_norm p k : padic_norm_e.eq_padic_norm _
+    ... = 1 : _,
+    rw padic_norm,
+    split_ifs with H,
+    { exfalso,
+      apply h,
+      norm_cast at H,
+      rw H,
+      apply dvd_zero },
+    { norm_cast at H ⊢,
+      convert fpow_zero _,
+      simp only [neg_eq_zero],
+      rw padic_val_rat.padic_val_rat_of_int _ (nat.prime.ne_one ‹_›) H,
+      norm_cast,
+      rw [← enat.coe_inj, enat.coe_get, enat.coe_zero],
+      apply multiplicity.multiplicity_eq_zero_of_not_dvd h } },
+  { rintro ⟨x, rfl⟩,
+    push_cast,
+    rw padic_norm_e.mul,
+    calc _ ≤ ∥(p : ℚ_[p])∥ * 1 : mul_le_mul (le_refl _) (by simpa using norm_int_le_one _)
+                                            (norm_nonneg _) (norm_nonneg _)
+    ... < 1 : _,
+    { rw [mul_one, padic_norm_e.norm_p],
+      apply inv_lt_one,
+      exact_mod_cast nat.prime.one_lt ‹_› }, },
+end
+
+lemma norm_int_le_pow_iff_dvd (k : ℤ) (n : ℕ) : ∥(k : ℚ_[p])∥ ≤ ((↑p)^(-n : ℤ)) ↔ ↑(p^n) ∣ k :=
+begin
+  have : (p : ℝ) ^ (-n : ℤ) = ↑((p ^ (-n : ℤ) : ℚ)), {simp},
+  rw [show (k : ℚ_[p]) = ((k : ℚ) : ℚ_[p]), by norm_cast, eq_padic_norm, this],
+  norm_cast,
+  rw padic_norm.dvd_iff_norm_le,
+end
+
 lemma eq_of_norm_add_lt_right {p : ℕ} {hp : fact p.prime} {z1 z2 : ℚ_[p]}
   (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=
 by_contradiction $ λ hne,

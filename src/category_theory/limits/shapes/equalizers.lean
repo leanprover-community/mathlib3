@@ -43,6 +43,8 @@ general limits can be used.
 * [F. Borceux, *Handbook of Categorical Algebra 1*][borceux-vol1]
 -/
 
+noncomputable theory
+
 open category_theory
 
 namespace category_theory.limits
@@ -215,6 +217,34 @@ begin
   erw [t.w left, ← t.w right], refl
 end
 
+/--
+To construct an isomorphism between forks,
+it suffices to give an isomorphism between the cone points
+and check that it commutes with the `ι` morphisms.
+-/
+def fork.ext {s t : fork f g} (i : s.X ≅ t.X) (w : s.ι = i.hom ≫ t.ι) : s ≅ t :=
+cones.ext i
+begin
+  rintro ⟨⟩,
+  { exact w, },
+  { rw [←fork.app_zero_left, ←fork.ι_eq_app_zero, w],
+    simp, },
+end
+
+/--
+To construct an isomorphism between coforks,
+it suffices to give an isomorphism between the cocone points
+and check that it commutes with the `π` morphisms.
+-/
+def cofork.ext {s t : cofork f g} (i : s.X ≅ t.X) (w : s.π = t.π ≫ i.inv) : s ≅ t :=
+cocones.ext i
+begin
+  rintro ⟨⟩,
+  { rw [←cofork.left_app_one, ←cofork.π_eq_app_one, w],
+    simp, },
+  { rw [←cofork.π_eq_app_one, w], simp },
+end
+
 /-- To check whether two maps are equalized by both maps of a fork, it suffices to check it for the
     first map -/
 lemma fork.equalizer_ext (s : fork f g) {W : C} {k l : W ⟶ s.X}
@@ -380,17 +410,17 @@ abbreviation has_equalizer := has_limit (parallel_pair f g)
 
 variables [has_equalizer f g]
 
-/-- If we have chosen an equalizer of `f` and `g`, we can access the corresponding object by
+/-- If an equalizer of `f` and `g` exists, we can access an arbitrary choice of such by
     saying `equalizer f g`. -/
 abbreviation equalizer : C := limit (parallel_pair f g)
 
-/-- If we have chosen an equalizer of `f` and `g`, we can access the inclusion
+/-- If an equalizer of `f` and `g` exists, we can access the inclusion
     `equalizer f g ⟶ X` by saying `equalizer.ι f g`. -/
 abbreviation equalizer.ι : equalizer f g ⟶ X :=
 limit.π (parallel_pair f g) zero
 
 /--
-The chosen equalizer cone for a parallel pair `f` and `g`.
+An equalizer cone for a parallel pair `f` and `g`.
 -/
 abbreviation equalizer.fork : fork f g := limit.cone (parallel_pair f g)
 
@@ -477,19 +507,24 @@ is_iso_limit_cone_parallel_pair_of_eq ((cancel_epi _).1 (fork.condition c)) h
 
 end
 
+instance : has_equalizer f f :=
+has_limit.mk
+{ cone := id_fork rfl,
+  is_limit := is_limit_id_fork rfl }
+
 /-- The equalizer inclusion for `(f, f)` is an isomorphism. -/
-instance equalizer.ι_of_self [has_equalizer f f] : is_iso (equalizer.ι f f) :=
+instance equalizer.ι_of_self : is_iso (equalizer.ι f f) :=
 equalizer.ι_of_eq rfl
 
 /-- The equalizer of a morphism with itself is isomorphic to the source. -/
-def equalizer.iso_source_of_self [has_equalizer f f] : equalizer f f ≅ X :=
+def equalizer.iso_source_of_self : equalizer f f ≅ X :=
 as_iso (equalizer.ι f f)
 
-@[simp] lemma equalizer.iso_source_of_self_hom [has_equalizer f f] :
+@[simp] lemma equalizer.iso_source_of_self_hom :
   (equalizer.iso_source_of_self f).hom = equalizer.ι f f :=
 rfl
 
-@[simp] lemma equalizer.iso_source_of_self_inv [has_equalizer f f] :
+@[simp] lemma equalizer.iso_source_of_self_inv :
   (equalizer.iso_source_of_self f).inv = equalizer.lift (𝟙 X) (by simp) :=
 rfl
 
@@ -514,17 +549,17 @@ abbreviation has_coequalizer := has_colimit (parallel_pair f g)
 
 variables [has_coequalizer f g]
 
-/-- If we have chosen a coequalizer of `f` and `g`, we can access the corresponding object by
+/-- If a coequalizer of `f` and `g` exists, we can access an arbitrary choice of such by
     saying `coequalizer f g`. -/
 abbreviation coequalizer : C := colimit (parallel_pair f g)
 
-/-- If we have chosen a coequalizer of `f` and `g`, we can access the corresponding projection by
+/--  If a coequalizer of `f` and `g` exists, we can access the corresponding projection by
     saying `coequalizer.π f g`. -/
 abbreviation coequalizer.π : Y ⟶ coequalizer f g :=
 colimit.ι (parallel_pair f g) one
 
 /--
-The chosen coequalizer cocone for a parallel pair `f` and `g`.
+An arbitrary choice of coequalizer cocone for a parallel pair `f` and `g`.
 -/
 abbreviation coequalizer.cofork : cofork f g := colimit.cocone (parallel_pair f g)
 
@@ -613,19 +648,24 @@ is_iso_colimit_cocone_parallel_pair_of_eq ((cancel_mono _).1 (cofork.condition c
 
 end
 
+instance : has_coequalizer f f :=
+has_colimit.mk
+{ cocone := id_cofork rfl,
+  is_colimit := is_colimit_id_cofork rfl }
+
 /-- The coequalizer projection for `(f, f)` is an isomorphism. -/
-instance coequalizer.π_of_self [has_coequalizer f f] : is_iso (coequalizer.π f f) :=
+instance coequalizer.π_of_self : is_iso (coequalizer.π f f) :=
 coequalizer.π_of_eq rfl
 
 /-- The coequalizer of a morphism with itself is isomorphic to the target. -/
-def coequalizer.iso_target_of_self [has_coequalizer f f] : coequalizer f f ≅ Y :=
+def coequalizer.iso_target_of_self : coequalizer f f ≅ Y :=
 (as_iso (coequalizer.π f f)).symm
 
-@[simp] lemma coequalizer.iso_target_of_self_hom [has_coequalizer f f] :
+@[simp] lemma coequalizer.iso_target_of_self_hom :
   (coequalizer.iso_target_of_self f).hom = coequalizer.desc (𝟙 Y) (by simp) :=
 rfl
 
-@[simp] lemma coequalizer.iso_target_of_self_inv [has_coequalizer f f] :
+@[simp] lemma coequalizer.iso_target_of_self_inv :
   (coequalizer.iso_target_of_self f).inv = coequalizer.π f f :=
 rfl
 
@@ -638,12 +678,12 @@ abbreviation has_equalizers := has_limits_of_shape walking_parallel_pair C
 abbreviation has_coequalizers := has_colimits_of_shape walking_parallel_pair C
 
 /-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
-def has_equalizers_of_has_limit_parallel_pair
+lemma has_equalizers_of_has_limit_parallel_pair
   [Π {X Y : C} {f g : X ⟶ Y}, has_limit (parallel_pair f g)] : has_equalizers C :=
 { has_limit := λ F, has_limit_of_iso (diagram_iso_parallel_pair F).symm }
 
 /-- If `C` has all colimits of diagrams `parallel_pair f g`, then it has all coequalizers -/
-def has_coequalizers_of_has_colimit_parallel_pair
+lemma has_coequalizers_of_has_colimit_parallel_pair
   [Π {X Y : C} {f g : X ⟶ Y}, has_colimit (parallel_pair f g)] : has_coequalizers C :=
 { has_colimit := λ F, has_colimit_of_iso (diagram_iso_parallel_pair F) }
 

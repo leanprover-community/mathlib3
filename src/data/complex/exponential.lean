@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir
 -/
 import algebra.geom_sum
-import data.nat.choose
+import data.nat.choose.sum
 import data.complex.basic
 /-!
 # Exponential, trigonometric and hyperbolic trigonometric functions
@@ -861,6 +861,11 @@ of_real_inj.1 $ by simpa using cos_square x
 lemma sin_square : sin x ^ 2 = 1 - cos x ^ 2 :=
 eq_sub_iff_add_eq.2 $ sin_sq_add_cos_sq _
 
+/-- The definition of `sinh` in terms of `exp`. -/
+lemma sinh_eq (x : ℝ) : sinh x = (exp x - exp (-x)) / 2 :=
+eq_div_of_mul_eq two_ne_zero $ by rw [sinh, exp, exp, complex.of_real_neg, complex.sinh, mul_two,
+    ← complex.add_re, ← mul_two, div_mul_cancel _ (two_ne_zero' : (2 : ℂ) ≠ 0), complex.sub_re]
+
 @[simp] lemma sinh_zero : sinh 0 = 0 := by simp [sinh]
 
 @[simp] lemma sinh_neg : sinh (-x) = -sinh x :=
@@ -868,6 +873,11 @@ by simp [sinh, exp_neg, (neg_div _ _).symm, add_mul]
 
 lemma sinh_add : sinh (x + y) = sinh x * cosh y + cosh x * sinh y :=
 by rw ← of_real_inj; simp [sinh_add]
+
+/-- The definition of `cosh` in terms of `exp`. -/
+lemma cosh_eq (x : ℝ) : cosh x = (exp x + exp (-x)) / 2 :=
+eq_div_of_mul_eq two_ne_zero $ by rw [cosh, exp, exp, complex.of_real_neg, complex.cosh, mul_two,
+    ← complex.add_re, ← mul_two, div_mul_cancel _ (two_ne_zero' : (2 : ℂ) ≠ 0), complex.add_re]
 
 @[simp] lemma cosh_zero : cosh 0 = 1 := by simp [cosh]
 
@@ -882,6 +892,16 @@ by simp [sub_eq_add_neg, sinh_add, sinh_neg, cosh_neg]
 
 lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
 by simp [sub_eq_add_neg, cosh_add, sinh_neg, cosh_neg]
+
+lemma cosh_sq_sub_sinh_sq (x : ℝ) : cosh x ^ 2 - sinh x ^ 2 = 1 :=
+begin
+  rw [sinh, cosh],
+  have := congr_arg complex.re (complex.cosh_sq_sub_sinh_sq x),
+  rw [pow_two, pow_two] at this,
+  change (⟨_, _⟩ : ℂ).re - (⟨_, _⟩ : ℂ).re = 1 at this,
+  rw [complex.cosh_of_real_im x, complex.sinh_of_real_im x, mul_zero, sub_zero, sub_zero] at this,
+  rwa [pow_two, pow_two],
+end
 
 lemma tanh_eq_sinh_div_cosh : tanh x = sinh x / cosh x :=
 of_real_inj.1 $ by simp [tanh_eq_sinh_div_cosh]
@@ -942,6 +962,10 @@ by rw [← exp_zero, exp_lt_exp]
 
 lemma exp_lt_one_iff {x : ℝ} : exp x < 1 ↔ x < 0 :=
 by rw [← exp_zero, exp_lt_exp]
+
+/-- `real.cosh` is always positive -/
+lemma cosh_pos (x : ℝ) : 0 < real.cosh x :=
+(cosh_eq x).symm ▸ half_pos (add_pos (exp_pos x) (exp_pos (-x)))
 
 end real
 

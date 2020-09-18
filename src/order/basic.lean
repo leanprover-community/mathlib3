@@ -77,9 +77,9 @@ theorem linear_order.ext {α} {A B : linear_order α}
 by { haveI this := partial_order.ext H,
      casesI A, casesI B, injection this, congr' }
 
-/-- Given an order `R` on `β` and a function `f : α → β`,
-  the preimage order on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
-  It is the unique order on `α` making `f` an order embedding
+/-- Given a relation `R` on `β` and a function `f : α → β`,
+  the preimage relation on `α` is defined by `x ≤ y ↔ f x ≤ f y`.
+  It is the unique relation on `α` making `f` a `rel_embedding`
   (assuming `f` is injective). -/
 @[simp] def order.preimage {α β} (f : α → β) (s : β → β → Prop) (x y : α) := s (f x) (f y)
 
@@ -176,6 +176,13 @@ lemma le_iff_le (H : strict_mono f) {a b} :
   f a ≤ f b ↔ a ≤ b :=
 ⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H h') h,
  λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H h')) (λ h', h' ▸ le_refl _)⟩
+
+lemma top_preimage_top (H : strict_mono f) {a} (h_top : ∀ p, p ≤ f a) (x : α) : x ≤ a :=
+H.le_iff_le.mp (h_top (f x))
+
+lemma bot_preimage_bot (H : strict_mono f) {a} (h_bot : ∀ p, f a ≤ p) (x : α) : a ≤ x :=
+H.le_iff_le.mp (h_bot (f x))
+
 end
 
 protected lemma nat {β} [preorder β] {f : ℕ → β} (h : ∀n, f n < f (n+1)) : strict_mono f :=
@@ -333,6 +340,8 @@ linear_order.lift subtype.val subtype.val_injective
 instance subtype.decidable_linear_order {α} [decidable_linear_order α] (p : α → Prop) :
   decidable_linear_order (subtype p) :=
 decidable_linear_order.lift subtype.val subtype.val_injective
+
+lemma strict_mono_coe [preorder α] (t : set α) : strict_mono (coe : (subtype t) → α) := λ x y, id
 
 instance prod.has_le (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
 ⟨λp q, p.1 ≤ q.1 ∧ p.2 ≤ q.2⟩

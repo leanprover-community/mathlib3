@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.coeff
+import data.nat.with_bot
 
 /-!
 # Theory of univariate polynomials
@@ -588,7 +589,6 @@ decidable.by_cases
     by rw [leading_coeff_mul', leading_coeff_X_pow, mul_one];
       rwa [leading_coeff_X_pow, mul_one])
 
-
 lemma nat_degree_mul_le {p q : polynomial R} : nat_degree (p * q) ≤ nat_degree p + nat_degree q :=
 begin
   apply nat_degree_le_of_degree_le,
@@ -764,6 +764,14 @@ begin
     { simp only [hq, mul_zero, leading_coeff_zero] },
     { rw [leading_coeff_mul'],
       exact mul_ne_zero (mt leading_coeff_eq_zero.1 hp) (mt leading_coeff_eq_zero.1 hq) } }
+end
+
+@[simp] lemma leading_coeff_X_add_C (a b : R) (ha : a ≠ 0):
+  leading_coeff (C a * X + C b) = a :=
+begin
+  rw [add_comm, leading_coeff_add_of_degree_lt],
+  { simp },
+  { simpa [degree_C ha] using lt_of_le_of_lt degree_C_le (with_bot.coe_lt_coe.2 zero_lt_one)}
 end
 
 /-- `polynomial.leading_coeff` bundled as a `monoid_hom` when `R` is an `integral_domain`, and thus

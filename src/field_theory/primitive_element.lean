@@ -203,8 +203,6 @@ end
 
 universe u
 
-lemma nlinarith_lemma (a b : ℕ) (h : a * b ≤ b) (ha : 0 < a) (hb : 0 < b) : a = 1 := by nlinarith
-
 /-- Primitive element theorem for infinite fields. -/
 theorem primitive_element_inf {F E : Type u} [field F] [field E] [algebra F E]
   (F_sep : is_separable F E) (F_findim: finite_dimensional F E) (F_inf : infinite F)
@@ -237,8 +235,8 @@ begin
     rw ←hn at key,
     haveI : finite_dimensional F⟮x⟯ E := findim_of_tower_findim F F⟮x⟯ E,
     rw ←findim_mul_findim F F⟮x⟯ E at key,
-    have h : findim F F⟮x⟯ = 1 :=
-      nlinarith_lemma (findim F F⟮x⟯) (findim F⟮x⟯ E) key findim_pos findim_pos,
+    have h : findim F F⟮x⟯ = 1 := by nlinarith only
+      [key, show 0 < findim F F⟮x⟯, from findim_pos, show 0 < findim F⟮x⟯ E, from findim_pos],
     replace h := field.adjoin.findim_one F x h,
     rw [algebra.mem_bot,set.mem_range] at h,
     cases h with y hy,

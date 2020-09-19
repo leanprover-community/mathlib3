@@ -901,7 +901,7 @@ by finish [ext_iff]
 theorem inter_union_diff (s t : set α) : (s ∩ t) ∪ (s \ t) = s :=
 by finish [ext_iff, iff_def]
 
-theorem inter_union_compl (s t:set α):(s ∩ t)∪ (s ∩ tᶜ) = s := inter_union_diff _ _
+theorem inter_union_compl (s t : set α) : (s ∩ t) ∪ (s ∩ tᶜ) = s := inter_union_diff _ _
 
 theorem diff_subset (s t : set α) : s \ t ⊆ s :=
 by finish [subset_def]

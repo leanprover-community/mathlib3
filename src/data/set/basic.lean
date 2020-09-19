@@ -892,6 +892,11 @@ set.ext $ λ _, or_and_distrib_left
 theorem union_inter_distrib_right {s t u : set α} : (s ∪ t) ∩ u = (s ∩ u) ∪ (t ∩ u) :=
 set.ext $ λ _, or_and_distrib_right
 
+theorem inter_union_compl (α:Type*) (A B:set α):(A∩ B)∪ (A∩ Bᶜ)=A :=
+begin
+  rw ← inter_union_distrib_left, rw union_compl_self, simp,
+end
+
 theorem inter_diff_assoc (a b c : set α) : (a ∩ b) \ c = a ∩ (b \ c) :=
 inter_assoc _ _ _
 
@@ -1485,11 +1490,25 @@ by rw range_comp; apply image_subset_range
 lemma range_nonempty_iff_nonempty : (range f).nonempty ↔ nonempty ι :=
 ⟨λ ⟨y, x, hxy⟩, ⟨x⟩, λ ⟨x⟩, ⟨f x, mem_range_self x⟩⟩
 
+lemma image_nonempty_iff_nonempty {f:β → α} {T:set β}:
+  (f '' T).nonempty ↔ T.nonempty  :=
+begin
+  repeat {rw nonempty_def},split;intro A1;cases A1 with a A1,
+  { cases A1 with b A1, apply exists.intro b, apply A1.left},
+  { apply exists.intro (f a), simp, apply exists.intro a, apply and.intro A1, refl},
+end
+
 lemma range_nonempty [h : nonempty ι] (f : ι → α) : (range f).nonempty :=
 range_nonempty_iff_nonempty.2 h
 
 @[simp] lemma range_eq_empty {f : ι → α} : range f = ∅ ↔ ¬ nonempty ι :=
 not_nonempty_iff_eq_empty.symm.trans $ not_congr range_nonempty_iff_nonempty
+
+lemma image_union_image_compl_eq_range (S:(set α)) (f:α → β):
+  (set.image f S) ∪ (set.image f (Sᶜ))  = (set.range f) :=
+begin 
+  rw ← image_union, rw ← image_univ, rw ← union_compl_self,
+end
 
 theorem image_preimage_eq_inter_range {f : α → β} {t : set β} :
   f '' (f ⁻¹' t) = t ∩ range f :=

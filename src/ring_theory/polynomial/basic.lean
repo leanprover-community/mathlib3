@@ -429,10 +429,10 @@ exists_irreducible_of_nat_degree_pos $ nat.pos_of_ne_zero hf
 lemma linear_independent_powers_iff_eval₂
   (f : M →ₗ[R] M) (v : M) :
   linear_independent R (λ n : ℕ, (f ^ n) v)
-    ↔ ∀ (p : polynomial R), polynomial.eval₂ (algebra_map _ _) f p v = 0 → p = 0 :=
+    ↔ ∀ (p : polynomial R), polynomial.aeval f p v = 0 → p = 0 :=
 begin
   rw linear_independent_iff,
-  simp only [finsupp.total_apply, eval₂_endomorphism_algebra_map],
+  simp only [finsupp.total_apply, aeval_endomorphism],
   refl
 end
 

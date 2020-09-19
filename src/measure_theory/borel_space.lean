@@ -730,21 +730,21 @@ hf.nnnorm.ennreal_coe
 
 end normed_group
 
-section normed_space
+namespace continuous_linear_map
 
 variables [measurable_space α]
 variables {𝕜 : Type*} [normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [measurable_space F] [borel_space F]
 
-lemma continuous_linear_map.measurable (L : E →L[𝕜] F) : measurable L :=
+protected lemma measurable (L : E →L[𝕜] F) : measurable L :=
 L.continuous.measurable
 
-lemma measurable.clm_apply {φ : α → E} (φ_meas : measurable φ)
-  (L : E →L[𝕜] F) : measurable (λ (a : α), L (φ a)) :=
+lemma measurable_comp (L : E →L[𝕜] F) {φ : α → E} (φ_meas : measurable φ) :
+  measurable (λ (a : α), L (φ a)) :=
 L.measurable.comp φ_meas
 
-end normed_space
+end continuous_linear_map
 
 namespace measure_theory
 namespace measure

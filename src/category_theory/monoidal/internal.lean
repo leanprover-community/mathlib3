@@ -104,11 +104,14 @@ section
 variables (C)
 
 /-- The forgetful functor from monoid objects to the ambient category. -/
+@[simps]
 def forget : Mon_ C ⥤ C :=
 { obj := λ A, A.X,
   map := λ A B f, f.hom, }
 
 end
+
+instance forget_faithful : faithful (@forget C _ _) := { }
 
 instance {A B : Mon_ C} (f : A ⟶ B) [e : is_iso ((forget C).map f)] : is_iso f.hom := e
 
@@ -199,7 +202,7 @@ def map_Mon (F : lax_monoidal_functor C D) : Mon_ C ⥤ Mon_ D :=
   map_id' := λ A, by { ext, simp, },
   map_comp' := λ A B C f g, by { ext, simp, }, }
 
-variables (C) (D)
+variables (C D)
 
 /-- `map_Mon` is functorial in the lax monoidal functor. -/
 def map_Mon_functor : (lax_monoidal_functor C D) ⥤ (Mon_ C ⥤ Mon_ D) :=

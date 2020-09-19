@@ -1006,11 +1006,11 @@ by { rw [ne, prod_eq_zero_iff], push_neg }
 
 end prod_eq_zero
 
-namespace comm_group_with_zero
+section comm_group_with_zero
 variables [comm_group_with_zero β]
 
 @[simp]
-lemma prod_inv_distrib : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ :=
+lemma prod_inv_distrib' : (∏ x in s, (f x)⁻¹) = (∏ x in s, f x)⁻¹ :=
 begin
   classical,
   by_cases h : ∃ x ∈ s, f x = 0,

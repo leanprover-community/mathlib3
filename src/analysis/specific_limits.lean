@@ -678,20 +678,15 @@ tendsto_of_tendsto_of_tendsto_of_le_of_le'
     use [set.Ioi 0, Ioi_mem_at_top 0],
     rintros n (hn : 0 < n),
     rcases nat.exists_eq_succ_of_ne_zero hn.ne.symm with ⟨k, rfl⟩,
-    simp [factorial_eq_prod, pow_eq_prod_const, -prod_const, div_eq_mul_inv, prod_nat_cast],
-    rw [← comm_group_with_zero.prod_inv_distrib, ← prod_mul_distrib], -- DO NOT FORGET TO CHANGE THIS NAME
-    simp [finset.prod_range_succ'],
-    refine mul_le_of_le_one_left (inv_nonneg.mpr $ by exact_mod_cast hn.le) _,
-    conv_rhs { rw ← @finset.prod_const_one _ _ (range k) },
-    apply finset.prod_le_prod;
+    rw [factorial_eq_prod, pow_eq_prod_const, div_eq_mul_inv, ← inv_eq_one_div, prod_nat_cast,
+        nat.cast_succ, ← prod_inv_distrib', ← prod_mul_distrib, finset.prod_range_succ'],
+    simp only [prod_range_succ', one_mul, nat.cast_add, zero_add, nat.cast_one],
+    refine mul_le_of_le_one_left (inv_nonneg.mpr $ by exact_mod_cast hn.le) (prod_le_one _ _);
     intros x hx;
     rw finset.mem_range at hx,
     { refine mul_nonneg _ (inv_nonneg.mpr _); norm_cast; linarith },
     { refine (div_le_one $ by exact_mod_cast hn).mpr _, norm_cast, linarith }
   end
-
-#check finset.mem_range
-#check mul_le_of_le_one_left
 
 /-!
 ### Harmonic series

@@ -892,11 +892,6 @@ set.ext $ λ _, or_and_distrib_left
 theorem union_inter_distrib_right {s t u : set α} : (s ∪ t) ∩ u = (s ∩ u) ∪ (t ∩ u) :=
 set.ext $ λ _, or_and_distrib_right
 
-theorem inter_union_compl (α:Type*) (A B:set α):(A∩ B)∪ (A∩ Bᶜ)=A :=
-begin
-  rw ← inter_union_distrib_left, rw union_compl_self, simp,
-end
-
 theorem inter_diff_assoc (a b c : set α) : (a ∩ b) \ c = a ∩ (b \ c) :=
 inter_assoc _ _ _
 
@@ -905,6 +900,8 @@ by finish [ext_iff]
 
 theorem inter_union_diff (s t : set α) : (s ∩ t) ∪ (s \ t) = s :=
 by finish [ext_iff, iff_def]
+
+theorem inter_union_compl (α:Type*) (A B:set α):(A∩ B)∪ (A∩ Bᶜ)=A := inter_union_diff _ _
 
 theorem diff_subset (s t : set α) : s \ t ⊆ s :=
 by finish [subset_def]
@@ -1489,14 +1486,6 @@ by rw range_comp; apply image_subset_range
 
 lemma range_nonempty_iff_nonempty : (range f).nonempty ↔ nonempty ι :=
 ⟨λ ⟨y, x, hxy⟩, ⟨x⟩, λ ⟨x⟩, ⟨f x, mem_range_self x⟩⟩
-
-lemma image_nonempty_iff_nonempty {f:β → α} {T:set β}:
-  (f '' T).nonempty ↔ T.nonempty  :=
-begin
-  repeat {rw nonempty_def},split;intro A1;cases A1 with a A1,
-  { cases A1 with b A1, apply exists.intro b, apply A1.left},
-  { apply exists.intro (f a), simp, apply exists.intro a, apply and.intro A1, refl},
-end
 
 lemma range_nonempty [h : nonempty ι] (f : ι → α) : (range f).nonempty :=
 range_nonempty_iff_nonempty.2 h

@@ -38,6 +38,9 @@ fintype.complete x
 @[simp] lemma coe_univ : ↑(univ : finset α) = (set.univ : set α) :=
 by ext; simp
 
+lemma univ_nonempty [h : nonempty α] : (univ : finset α).nonempty :=
+nonempty.elim h (λ x, ⟨x, mem_univ x⟩)
+
 theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 
 instance : order_top (finset α) :=

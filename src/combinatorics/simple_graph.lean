@@ -79,19 +79,31 @@ There is exactly one edge for every pair of adjacent edges;
 see `simple_graph.edge_set` for the corresponding edge set.
 
 When proving statements about simple graphs in general, one should use the
-`simple_graphs` typeclass.
+`simple_graph` type.
 -/
 @[ext]
-structure simple_graph :=
-(V : Type u)
+structure simple_graph_on (V : Type u) :=
 (adj : V → V → Prop)
 (symm' : symmetric adj . obviously)
 (loopless' : irreflexive adj . obviously)
 
+/--
+A generic simple graph.  Most theorems should be in terms of this.
+-/
+structure simple_graph :=
+(V : Type u)
+(graph : simple_graph_on V)
+
 class has_coe_to_simple_graph (α : Type u) :=
 (coe : α → simple_graph.{v})
 
-notation `⇧`:max x:max := has_coe_to_simple_graph.coe x
+/-
+If only `has_coe` could infer the universe variables, this wouldn't be needed.
+-/
+notation `↟`:max x:max := has_coe_to_simple_graph.coe x
+
+instance (V : Type u) : has_coe_to_simple_graph (simple_graph_on V) :=
+⟨λ G, ⟨V, G⟩⟩
 
 section accessor_functions
 /-!
@@ -111,19 +123,27 @@ and theorems should refer to these accessor functions.
 -/
 
 namespace simple_graph
-variables {α : Type*}
+
+abbreviation adj (G : simple_graph) : V G → V G → Prop := G.graph.adj
 
 /--
 For an infix adjacency relation to work, it is useful to have this abbreviation for `adj`.
 -/
 abbreviation adj' {G : simple_graph} : V G → V G → Prop := G.adj
 
-abbreviation symm (G : simple_graph) : symmetric (@adj' G) := G.symm'
-abbreviation loopless (G : simple_graph) : irreflexive (@adj' G) := G.loopless'
+abbreviation symm (G : simple_graph) : symmetric (@adj' G) := G.graph.symm'
+
+abbreviation loopless (G : simple_graph) : irreflexive (@adj' G) := G.graph.loopless'
 
 infix ` ~g ` : 40 := adj'
 
-@[simp] lemma adj_as_adj {G : simple_graph} (v w : V G) : G.adj v w ↔ v ~g w := by refl
+@[simp] lemma adj_as_adj₁ {G : simple_graph} (v w : V G) : G.graph.adj v w ↔ v ~g w := by refl
+
+@[simp] lemma adj_as_adj₂ {G : simple_graph} (v w : V G) : G.adj v w ↔ v ~g w := by refl
+
+@[simp] lemma simple_graph_on.coe_v_eq {α : Type*} {G : simple_graph_on α} : V ↟G = α := rfl
+
+@[simp] lemma simple_graph_on.adj {α : Type*} {G : simple_graph_on α} : (↟G).adj = G.adj := rfl
 
 end simple_graph
 end accessor_functions
@@ -132,19 +152,17 @@ end accessor_functions
 Construct the simple graph induced by the given relation.  It
 symmetrizes the relation and makes it irreflexive.
 -/
-def simple_graph_from_rel {V : Type u} (r : V → V → Prop) : simple_graph :=
-{ V := V,
-  adj := λ a b, (a ≠ b) ∧ (r a b ∨ r b a),
+def simple_graph_from_rel {V : Type u} (r : V → V → Prop) : simple_graph_on V :=
+{ adj := λ a b, (a ≠ b) ∧ (r a b ∨ r b a),
   symm' := by finish,
   loopless' := by finish }
-
 
 namespace simple_graph
 
 variables {G : simple_graph}
 
 /-- `neighbor_set v` is the set of vertices adjacent to `v` in `G`. -/
-def neighbor_set (v : V G) : set (V G) := set_of (G.adj v)
+def neighbor_set (v : V G) : set (V G) := set_of (adj' v)
 
 lemma ne_of_adj {a b : V G} (hab : a ~g b) : a ≠ b :=
 by { rintro rfl, exact G.loopless a hab }
@@ -160,17 +178,17 @@ variable {G}
 /--
 The `incident_set` is the set of edges incident to a given vertex.
 -/
-def incident_set (v : V G) : set (sym2 (V G)) := {e ∈ edge_set G | v ∈ e}
+def incident_set (v : V G) : set (sym2 (V G)) := {e ∈ G.edge_set | v ∈ e}
 
-lemma incident_set_subset (v : V G) : incident_set v ⊆ edge_set G :=
+lemma incident_set_subset (v : V G) : incident_set v ⊆ G.edge_set :=
 by tidy
 
 @[simp]
-lemma mem_edge_set {v w : V G} : ⟦(v, w)⟧ ∈ edge_set G ↔ v ~g w :=
+lemma mem_edge_set {v w : V G} : ⟦(v, w)⟧ ∈ G.edge_set ↔ v ~g w :=
 by refl
 
 lemma adj_iff_exists_edge {v w : V G} :
-  v ~g w ↔ v ≠ w ∧ ∃ (e ∈ edge_set G), v ∈ e ∧ w ∈ e :=
+  v ~g w ↔ v ≠ w ∧ ∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e :=
 begin
   split, { intro, use [ne_of_adj a, ⟦(v,w)⟧], simpa },
   { rintro ⟨hne, e, he, hv⟩,
@@ -179,37 +197,37 @@ begin
     rwa mem_edge_set at he, }
 end
 
-lemma edge_other_ne {e : sym2 (V G)} (he : e ∈ edge_set G) {v : V G} (h : v ∈ e) : h.other ≠ v :=
+lemma edge_other_ne {e : sym2 (V G)} (he : e ∈ G.edge_set) {v : V G} (h : v ∈ e) : h.other ≠ v :=
 sym2.mem_from_rel_irrefl_other_ne (loopless G) he h
 
 instance edge_set_fintype [decidable_eq (V G)] [fintype (V G)] [decidable_rel G.adj] :
-  fintype (edge_set G) :=
+  fintype G.edge_set :=
 by { dunfold edge_set, exact subtype.fintype _ }
 
 section edge_finset
 variable (G)
-variables [fintype (edge_set G)]
+variables [fintype G.edge_set]
 
 /--
 The `edge_set` of the graph as a `finset`.
 -/
 def edge_finset : finset (sym2 (V G)) :=
-set.to_finset (edge_set G)
+set.to_finset G.edge_set
 
 variable {G}
 
 @[simp] lemma mem_edge_finset (e : sym2 (V G)) :
-  e ∈ edge_finset G ↔ e ∈ edge_set G :=
+  e ∈ G.edge_finset ↔ e ∈ G.edge_set :=
 by { dunfold edge_finset, simp }
 
-@[simp] lemma edge_set_univ_card : (univ : finset (edge_set G)).card = (edge_finset G).card :=
-fintype.card_of_subtype (edge_finset G) mem_edge_finset
+@[simp] lemma edge_set_univ_card : (univ : finset G.edge_set).card = G.edge_finset.card :=
+fintype.card_of_subtype G.edge_finset mem_edge_finset
 
 end edge_finset
 
-@[simp] lemma irrefl {v : V G} : ¬(v ~g v) := loopless G v
+@[simp] lemma irrefl {v : V G} : ¬(v ~g v) := G.loopless v
 
-@[symm] lemma adj_symm (u v : V G) : u ~g v ↔ v ~g u := ⟨λ x, symm G x, λ x, symm G x⟩
+@[symm] lemma adj_symm (u v : V G) : u ~g v ↔ v ~g u := ⟨λ x, G.symm x, λ x, G.symm x⟩
 
 @[simp] lemma mem_neighbor_set (v w : V G) : w ∈ neighbor_set v ↔ v ~g w :=
 by tauto
@@ -220,7 +238,7 @@ by { dsimp [incident_set], simp }
 lemma neighbor_set_edge_prop {v w : V G} (h : w ∈ neighbor_set v) : ⟦(v, w)⟧ ∈ incident_set v :=
 by { rw mem_neighbor_set at h, simpa }
 
-lemma adj_incident_set_inter {v : V G} {e : sym2 (V G)} (he : e ∈ edge_set G) (h : v ∈ e) :
+lemma adj_incident_set_inter {v : V G} {e : sym2 (V G)} (he : e ∈ G.edge_set) (h : v ∈ e) :
   incident_set v ∩ incident_set h.other = {e} :=
 begin
   ext e',
@@ -347,19 +365,14 @@ by { ext, simp }
 /--
 The minimal degree of all vertices
 -/
-def min_deg (G : simple_graph) [fintype (V G)] [h : nonempty (V G)] [decidable_rel G.adj]: ℕ :=
-finset.min' ((univ : finset (V G)).image (λ v, degree v)) (match h with
-| nonempty.intro v := begin use degree v, simp only [mem_image, mem_univ, exists_prop_of_true], use v, end
-end)
+def min_deg (G : simple_graph) [fintype (V G)] [nonempty (V G)] [decidable_rel G.adj] : ℕ :=
+finset.min' (univ.image (λ (v : V G), degree v)) (nonempty.image univ_nonempty _)
 
 /--
 The maximal degree of all vertices
 -/
 def max_deg (G : simple_graph) [fintype (V G)] [h : nonempty (V G)] [decidable_rel G.adj]: ℕ :=
-finset.max' ((univ : finset (V G)).image (λ v, degree v)) (match h with
-| nonempty.intro v := begin use degree v, simp only [mem_image, mem_univ, exists_prop_of_true], use v, end
-end)
-
+finset.max' (univ.image (λ (v : V G), degree v)) (nonempty.image univ_nonempty _)
 
 end finite
 
@@ -383,7 +396,7 @@ variables {G : simple_graph} {G' : simple_graph} (f : G →g G')
 lemma map_adj {v w : V G} : v ~g w → f v ~g f w :=
 by apply f.map_rel'
 
-def map_edge_set : edge_set G → edge_set G' :=
+def map_edge_set : G.edge_set → G'.edge_set :=
 λ e, ⟨sym2.map f e.val, begin
   rcases e with ⟨e, h⟩,
   refine quotient.rec_on_subsingleton e (λ e h, _) h,
@@ -454,7 +467,7 @@ instance mono : hom.mono f.to_hom :=
 lemma map_adj {v w : V G} : v ~g w ↔ f v ~g f w :=
 by apply f.map_rel_iff'
 
-def map_edge_set : edge_set G ↪ edge_set G' :=
+def map_edge_set : G.edge_set ↪ G'.edge_set :=
 { to_fun := hom.map_edge_set ↑f,
   inj' := begin
     rintros ⟨e₁, h₁⟩ ⟨e₂, h₂⟩ h,
@@ -517,7 +530,7 @@ instance mono : hom.mono f.to_hom :=
 lemma map_adj_iff {v w : V G} : v ~g w ↔ f v ~g f w :=
 by apply f.map_rel_iff'
 
-def map_edge_set : edge_set G ≃ edge_set G' :=
+def map_edge_set : G.edge_set ≃ G'.edge_set :=
 { to_fun := hom.map_edge_set ↑f,
   inv_fun := hom.map_edge_set ↑f.symm,
   left_inv := begin
@@ -549,10 +562,10 @@ def comp (f' : G' ≃g G'') (f : G ≃g G') : G ≃g G'' := f.trans f'
 lemma iso_has_eq_order [fintype (V G)] [fintype (V G')] (f : G ≃g G') : fintype.card (V G) = fintype.card (V G') :=
 by { convert (fintype.of_equiv_card f.to_equiv).symm }
 
-lemma iso_has_eq_size [fintype (edge_set G)] [fintype (edge_set G')] (f : G ≃g G') :
+lemma iso_has_eq_size [fintype G.edge_set] [fintype G'.edge_set] (f : G ≃g G') :
   (edge_finset G).card = (edge_finset G').card :=
 begin
-  convert_to fintype.card (edge_set G) = fintype.card (edge_set G'); try { exact multiset.card_map subtype.val _ },
+  convert_to fintype.card G.edge_set = fintype.card G'.edge_set; try { exact multiset.card_map subtype.val _ },
   convert (fintype.of_equiv_card (map_edge_set f)).symm,
 end
 
@@ -566,14 +579,14 @@ section examples
 /--
 The graph with no edges on a given vertex type.
 -/
-def empty_graph (V : Type u) : simple_graph :=
-{ V := V, adj := λ i j, false }
+def empty_graph (V : Type u) : simple_graph_on V :=
+{ adj := λ i j, false }
 
 /--
 The complete graph on a type `α` is the simple graph with all pairs of distinct vertices adjacent.
 -/
-def complete_graph (V : Type u) : simple_graph :=
-{ V := V, adj := ne }
+def complete_graph (V : Type u) : simple_graph_on V :=
+{ adj := ne }
 
 end examples
 
@@ -611,7 +624,7 @@ def edge_set' (G' : subgraph G) : set (sym2 (V G)) := sym2.from_rel G'.symm'
 lemma mem_edge_set' {G' : subgraph G} {v w : V G} : ⟦(v, w)⟧ ∈ edge_set' G' ↔ G'.adj' v w :=
 by refl
 
-lemma edge_sub (G' : subgraph G) : G'.edge_set' ⊆ edge_set G :=
+lemma edge_sub (G' : subgraph G) : G'.edge_set' ⊆ G.edge_set :=
 begin
   intro e,
   refine quotient.rec_on_subsingleton e (λ e, _),
@@ -634,27 +647,26 @@ end
 lemma adj_symm' (G' : subgraph G) ⦃v w : V G⦄ : G'.adj' v w ↔ G'.adj' w v :=
 by { split; apply G'.symm' }
 
-def to_simple_graph {G : simple_graph.{u}} (G' : subgraph G) : simple_graph.{u} :=
-{ V := G'.V',
-  adj := λ v w, G'.adj' ↑v ↑w,
+def to_simple_graph {G : simple_graph} (G' : subgraph G) : simple_graph_on G'.V' :=
+{ adj := λ v w, G'.adj' ↑v ↑w,
   symm' := λ v w h, G'.symm' h,
   loopless' := λ ⟨v, _⟩ h, loopless G v (G'.adj_sub h) }
 
 instance : has_coe_to_simple_graph (subgraph G) :=
-{ coe := to_simple_graph }
+⟨λ G', { V := G'.V', graph := G'.to_simple_graph }⟩
 
-instance (G' : subgraph G) : has_lift (V ⇧G') (V G) :=
+instance (G' : subgraph G) : has_lift (V ↟G') (V G) :=
 { lift := λ v, v.val }
 
 @[simp]
-lemma adj_iff {G : simple_graph} {G' : subgraph G} (v w : V ⇧G') : v ~g w ↔ G'.adj' ↑v ↑w :=
+lemma adj_iff {G : simple_graph} {G' : subgraph G} (v w : V ↟G') : v ~g w ↔ G'.adj' ↑v ↑w :=
 by tidy
 
 /--
 Give the vertex as an element of the subgraph's vertex type.
 -/
 @[reducible]
-def vert (G' : subgraph G) (v : V G) (h : v ∈ G'.V') : V ⇧G' :=
+def vert (G' : subgraph G) (v : V G) (h : v ∈ G'.V') : V ↟G' :=
 subtype.mk v h
 
 @[simp]
@@ -692,18 +704,17 @@ subject to some compatibility relation.
 protected structure of_edge_set' (G : simple_graph) :=
 (V' : set (V G))
 (edge_set' : set (sym2 (V G)))
-(edge_sub : edge_set' ⊆ edge_set G)
+(edge_sub : edge_set' ⊆ G.edge_set)
 (has_verts : ∀ ⦃e : sym2 (V G)⦄ ⦃v : V G⦄, e ∈ edge_set' → v ∈ e → v ∈ V')
 
 protected
-def of_edge_set'.to_simple_graph (G' : of_edge_set' G) : simple_graph :=
-{ V := G'.V',
-  adj := λ v w, ⟦(↑v, ↑w)⟧ ∈ G'.edge_set',
+def of_edge_set'.to_simple_graph (G' : of_edge_set' G) : simple_graph_on G'.V' :=
+{ adj := λ v w, ⟦(↑v, ↑w)⟧ ∈ G'.edge_set',
   symm' := λ v w h, by rwa sym2.eq_swap,
   loopless' := λ ⟨v, _⟩ h, loopless G v (sym2.from_rel_prop.mp (G'.edge_sub h)) }
 
 instance of_edge_set'.coe : has_coe_to_simple_graph (of_edge_set' G) :=
-{ coe := subgraph.of_edge_set'.to_simple_graph }
+{ coe := λ G', ⟨G'.V', G'.to_simple_graph⟩ }
 
 /--
 The type `of_edge_set' G` is equivalent to `subgraph G`.  See `iso_of_edge_set'`.
@@ -726,7 +737,7 @@ def equiv_of_edge_set' : subgraph G ≃ of_edge_set' G :=
 The equivalence from `equiv_of_edge_set'` sends graphs to isomorphic graphs.
 -/
 protected
-def iso_of_edge_set' (G' : subgraph G) : ⇧G' ≃g ⇧(subgraph.equiv_of_edge_set' G') :=
+def iso_of_edge_set' (G' : subgraph G) : ↟G' ≃g ↟(subgraph.equiv_of_edge_set' G') :=
 { to_fun := id,
   inv_fun := id,
   left_inv := by tidy,
@@ -821,14 +832,14 @@ instance : bounded_lattice (subgraph G) :=
 /--
 The top of the `subgraph G` lattice is equivalent to the graph itself.
 -/
-def top_equiv_graph : ⇧(⊤ : subgraph G) ≃g G :=
+def top_equiv_graph : ↟(⊤ : subgraph G) ≃g G :=
 { to_fun := λ v, ↑v,
   inv_fun := λ v, ⟨v, by tidy⟩,
   left_inv := by tidy,
   right_inv := by tidy,
   map_rel_iff' := by tidy }
 
-def bot_equiv_empty : ⇧(⊥ : subgraph G) ≃g empty_graph empty :=
+def bot_equiv_empty : ↟(⊥ : subgraph G) ≃g ↟(empty_graph empty) :=
 { to_fun := λ v, false.elim v.property,
   inv_fun := λ v, begin cases v, end,
   left_inv := by tidy,
@@ -838,7 +849,7 @@ def bot_equiv_empty : ⇧(⊥ : subgraph G) ≃g empty_graph empty :=
 /--
 Given two subgraphs, one a subgraph of the other, there is an induced embedding of the subgraphs as graphs.
 -/
-def map {x y : subgraph G} (h : x ≤ y) : ⇧x →g ⇧y :=
+def map {x y : subgraph G} (h : x ≤ y) : ↟x →g ↟y :=
 { to_fun := λ v, ⟨↑v, and.left h v.property⟩,
   map_rel' := λ v w hvw, begin
     cases v with v hv, cases w with w hw,
@@ -857,7 +868,7 @@ instance map.mono {x y : subgraph G} (h : x ≤ y) : hom.mono (map h) :=
 /--
 A subgraph of `G` embeds in `G`.
 -/
-def map_top (x : subgraph G) : ⇧x →g G :=
+def map_top (x : subgraph G) : ↟x →g G :=
 { to_fun := λ v, ↑v,
   map_rel' := λ v w hvw, begin
     cases v with v hv, cases w with w hw,
@@ -887,7 +898,7 @@ def induced' (V' : set (V G)) : subgraph G :=
   edge_vert := λ v w ⟨hv, hw, he⟩, hv,
   symm' := λ v w ⟨hv, hw, he⟩, ⟨hw, hv, symm G he⟩ }
 
-def induced.map (V' : set (V G)) : ⇧(induced' V') ↪g G :=
+def induced.map (V' : set (V G)) : ↟(induced' V') ↪g G :=
 { to_fun := λ v, ↑v,
   inj' := subtype.coe_injective,
   map_rel_iff' := begin
@@ -908,7 +919,8 @@ def induced (G' : subgraph G) (V' : set (V G)) : subgraph G :=
   edge_vert := λ v w ⟨hv, hw, he⟩, hv,
   symm' := λ v w ⟨hv, hw, he⟩, ⟨hw, hv, G'.symm' he⟩ }
 
-lemma induced_is_subgraph (G' : subgraph G) (V' : set (V G)) (h : V' ⊆ G'.V') : G'.induced V' ≤ G' :=
+lemma induced_is_subgraph (G' : subgraph G) (V' : set (V G)) (h : V' ⊆ G'.V') :
+  G'.induced V' ≤ G' :=
 by tidy
 
 /--
@@ -938,14 +950,14 @@ def join_verts (G' : subgraph G) {a b : V G} (hab : a ~g b) : subgraph G :=
 /--
 A characterization of the neighbor set of a subgraph as a subset of the neighbor set of the graph.
 -/
-def subgraph_neighbor_set_in_graph (G' : subgraph G) (v : V ⇧G') :
+def subgraph_neighbor_set_in_graph (G' : subgraph G) (v : V ↟G') :
   neighbor_set v ≃ {w : neighbor_set (G'.map_top v) | G'.adj' ↑v w} :=
 { to_fun := λ w, ⟨⟨↑w.1, G'.adj_sub w.2⟩, w.2⟩,
   inv_fun := λ w, ⟨⟨↑w.1, G'.edge_vert (G'.symm' w.2)⟩, w.2⟩,
   left_inv := λ w, by simp,
   right_inv := λ w, by simp }
 
-def subgraph_neighbor_set_in_supergraph {G' G'' : subgraph G} (h : G' ≤ G'') (v : V ⇧G') :
+def subgraph_neighbor_set_in_supergraph {G' G'' : subgraph G} (h : G' ≤ G'') (v : V ↟G') :
   neighbor_set v ≃ {w : neighbor_set (map h v) | G'.adj' ↑v ↑w.val} :=
 { to_fun := λ w, ⟨⟨map h w, h.2 w.2⟩, w.2⟩,
   inv_fun := λ w, ⟨⟨↑w.1.1, G'.edge_vert (G'.symm' w.2)⟩, w.2⟩,
@@ -956,7 +968,7 @@ def subgraph_neighbor_set_in_supergraph {G' G'' : subgraph G} (h : G' ≤ G'') (
 This instance also provides finiteness of subgraphs when `[decidable_rel (adj G)]` and `[fintype (V G)]`.
 -/
 instance finite_at
-  {G' : subgraph G} [decidable_rel G'.adj'] (v : V ⇧G') [fintype (neighbor_set (G'.map_top v))] :
+  {G' : subgraph G} [decidable_rel G'.adj'] (v : V ↟G') [fintype (neighbor_set (G'.map_top v))] :
   fintype (neighbor_set v) :=
 fintype.of_equiv _ (subgraph_neighbor_set_in_graph G' v).symm
 
@@ -964,13 +976,13 @@ fintype.of_equiv _ (subgraph_neighbor_set_in_graph G' v).symm
 Not an instance because it depends on `h`.
 -/
 def finite_at_subgraph {G' G'' : subgraph G} [decidable_rel G'.adj'] [decidable_rel G''.adj']
-  (h : G' ≤ G'') (v : V ⇧G') [hf : fintype (neighbor_set (map h v))] :
+  (h : G' ≤ G'') (v : V ↟G') [hf : fintype (neighbor_set (map h v))] :
   fintype (neighbor_set v) :=
 fintype.of_equiv _ (subgraph_neighbor_set_in_supergraph h v).symm
 
 
 lemma degree_le_top {G' : subgraph G} [decidable_rel G'.adj']
-  (v : V ⇧G') [fintype (neighbor_set (G'.map_top v))] :
+  (v : V ↟G') [fintype (neighbor_set (G'.map_top v))] :
   degree v ≤ degree (G'.map_top v) :=
 begin
   repeat {rw ←card_neighbor_set_eq_degree},
@@ -979,7 +991,7 @@ begin
 end
 
 lemma degree_le {G' G'' : subgraph G} [decidable_rel G'.adj'] [decidable_rel G''.adj']
-  (h : G' ≤ G'') (v : V ⇧G') [fintype (neighbor_set v)] [fintype (neighbor_set (map h v))] :
+  (h : G' ≤ G'') (v : V ↟G') [fintype (neighbor_set v)] [fintype (neighbor_set (map h v))] :
   degree v ≤ degree (map h v) :=
 begin
   repeat {rw ←card_neighbor_set_eq_degree},
@@ -1007,13 +1019,13 @@ def is_spanning_subgraph (x y : simple_graph_on α) : Prop := ∀ (v w : α), x.
 
 def union (x y : simple_graph_on α) : simple_graph_on α :=
 { adj := λ (v w : α), x.adj v w ∨ y.adj v w,
-  symm := λ v w h, by { cases h, left, exact x.symm h, right, exact y.symm h },
-  loopless := λ v h, by { cases h, apply x.loopless _ h, apply y.loopless _ h } }
+  symm' := λ v w h, by { cases h, left, exact x.symm' h, right, exact y.symm' h },
+  loopless' := λ v h, by { cases h, apply x.loopless' _ h, apply y.loopless' _ h } }
 
 def inter (x y : simple_graph_on α) : simple_graph_on α :=
 { adj := λ (v w : α), x.adj v w ∧ y.adj v w,
-  symm := λ v w h, ⟨x.symm h.1, y.symm h.2⟩,
-  loopless := λ v h, x.loopless _ h.1 }
+  symm' := λ v w h, ⟨x.symm' h.1, y.symm' h.2⟩,
+  loopless' := λ v h, x.loopless' _ h.1 }
 
 instance : bounded_lattice (simple_graph_on α) :=
 { le := is_spanning_subgraph,
@@ -1031,15 +1043,15 @@ instance : bounded_lattice (simple_graph_on α) :=
   le_sup_left := λ G H, λ v w h, by { left, apply h, },
   le_sup_right := λ G H, λ v w h, by { right, apply h, },
   bot_le := by obviously,
-  le_top := by { intro G, have h := G.loopless, obviously, }, }
+  le_top := by { intro G, have h := G.loopless', obviously, }, }
 
 /--
 Erase an edge of a graph to get a smaller graph.
 -/
-def erase_edge (G : simple_graph_on α) {e : sym2 α} (h : e ∈ edge_set G) : simple_graph_on α :=
+def erase_edge (G : simple_graph_on α) {e : sym2 α} (h : e ∈ (↟G).edge_set) : simple_graph_on α :=
 { adj := λ v w, G.adj v w ∧ ¬ (v ∈ e ∧ w ∈ e),
-  symm := λ v w h, ⟨G.symm h.1, by { rw and_comm, exact h.2, }⟩,
-  loopless := λ v h, by { have h := G.loopless v, tidy } }
+  symm' := λ v w h, ⟨G.symm' h.1, by { rw and_comm, exact h.2, }⟩,
+  loopless' := λ v h, by { have h := G.loopless' v, tidy } }
 
 /--
 A graph with a given vertex type and a single edge.
@@ -1054,11 +1066,9 @@ end simple_graph_on
 
 section graph_operations
 
-variables {α : Type u} [simple_graphs α]
-
 def two_pt_quo {β : Type*} (v w : β) := @quot β (λ i j, i = j ∨ (i = v ∧ j = w) ∨ (i = w ∧ j = v))
 
-def contract_edge (G : α) {v w : V G} (h : v ~g w) : simple_graph_on (two_pt_quo v w) :=
+def contract_edge (G : simple_graph) {v w : V G} (h : v ~g w) : simple_graph_on (two_pt_quo v w) :=
 { adj := λ i j, sorry
 }
 
@@ -1092,13 +1102,13 @@ instance from_rel_inhabited (α : Type u) : inhabited (simple_graph_on α) :=
 variables (α : Type u) [decidable_eq α]
 
 instance complete_graph_adj_decidable :
-  decidable_rel (adj (complete_graph α)) :=
-by { dsimp [complete_graph, adj], apply_instance }
+  decidable_rel (adj ↟(complete_graph α)) :=
+by { dsimp [complete_graph], apply_instance }
 
 variables [fintype α]
 
 @[simp]
-lemma complete_graph_degree (v : V (complete_graph α)) :
+lemma complete_graph_degree (v : V ↟(complete_graph α)) :
   degree v = fintype.card α - 1 :=
 begin
   convert univ.card.pred_eq_sub_one,
@@ -1106,7 +1116,7 @@ begin
 end
 
 lemma complete_graph_is_regular :
-  is_regular_of_degree (complete_graph α) (fintype.card α - 1) :=
+  is_regular_of_degree ↟(complete_graph α) (fintype.card α - 1) :=
 by { intro v, simp }
 
 end complete_graphs
@@ -1114,8 +1124,13 @@ end complete_graphs
 section examples
 
 @[simp]
-lemma simple_graph_from_rel_adj {α : Type u} (r : α → α → Prop) (v w : V (simple_graph_from_rel r)) :
+lemma simple_graph_from_rel_adj {α : Type u} (r : α → α → Prop) (v w : V ↟(simple_graph_from_rel r)) :
   v ~g w ↔ v ≠ w ∧ (r v w ∨ r w v) :=
+by refl
+
+@[simp]
+lemma simple_graph_from_rel_adj' {α : Type u} (r : α → α → Prop) (v w : α) :
+  @simple_graph.adj' ↟(simple_graph_from_rel r) v w ↔ v ≠ w ∧ (r v w ∨ r w v) :=
 by refl
 
 /--
@@ -1126,28 +1141,26 @@ simple_graph_from_rel (λ i j, (j = i - 1 ∧ i ≠ 0))
 
 /-- thinking of a `path_graph (n + m)` as being a path of length n
 followed by a path of length m, includes the first path. --/
-def path_graph.incl₁ (n m : ℕ) : path_graph n ↪g path_graph (n + m) :=
+def path_graph.incl₁ (n m : ℕ) : ↟(path_graph n) →g ↟(path_graph (n + m)) :=
 { to_fun := λ v, v,
-  inj' := sorry,
-  map_adj' := sorry }
+  map_rel' := sorry }
 
-def path_graph.incl₂ (n m : ℕ) : path_graph m ↪g path_graph (n + m) :=
+def path_graph.incl₂ (n m : ℕ) : ↟(path_graph m) →g ↟(path_graph (n + m)) :=
 { to_fun := λ v, n + v,
-  inj' := sorry,
-  map_adj' := sorry }
+  map_rel' := sorry }
 
 section walks
-variables {α : Type*} [simple_graphs α] (G : α)
+variables (G : simple_graph)
 
 /-
 The composition of paths, following `pn` first and then `pm`.
 -/
-def walk_join {n m : ℕ} (pn : path_graph n →g G) (pm : path_graph m →g G) : path_graph (n+m) →g G :=
+def walk_join {n m : ℕ} (pn : ↟(path_graph n) →g G) (pm : ↟(path_graph m) →g G) : ↟(path_graph (n+m)) →g G :=
 { to_fun := λ v, if h : ↑v < n
                  then pn ⟨v, by linarith [h]⟩
                  else pm (by { cases v with v hv, rw [nat.add_assoc, nat.add_comm] at hv,
                                apply fin.sub_nat n ⟨v, hv⟩, dsimp at h, push_neg at h, exact h }),
-  map_adj' := begin
+  map_rel' := begin
     rintros ⟨v, hv⟩ ⟨w, hw⟩ h,
     simp, --split_ifs,
 --    {apply pn.map_adj',   },
@@ -1167,14 +1180,14 @@ begin
   cases v,
   convert_to ↑v_val = _, dsimp,
   have h : n - (n - v_val) = v_val, { have : v_val ≤ n, linarith, omega, },
-  rw h, apply fin.val_injective, dsimp,
-  rwa fin.coe_val_of_lt,
+  rw h, apply subtype.val_injective, dsimp,
+  exact fin.coe_coe_of_lt v_property,
 end
 
 /--
 A path graph is isomorphic to itself where the endpoints are swapped.
 -/
-def path_graph.invol (n : ℕ) : path_graph n ≃g path_graph n :=
+def path_graph.invol (n : ℕ) : ↟(path_graph n) ≃g ↟(path_graph n) :=
 { to_fun := fin.flip n,
   inv_fun := fin.flip n,
   left_inv := fin.flip.invol n,
@@ -1190,8 +1203,9 @@ lemma path_graph.invol.prop₂ (n : ℕ) : (path_graph.invol n) n = 0 :=
 begin
   change fin.flip n n = 0,
   dunfold fin.flip,
-  apply fin.val_injective, dsimp,
-  rw fin.coe_val_of_lt, rw fin.coe_coe_of_lt; linarith, omega,
+  apply subtype.val_injective, dsimp,
+  sorry,
+--  rw fin.coe_val_of_lt, rw fin.coe_coe_of_lt; linarith, omega,
 end
 
 /--
@@ -1200,7 +1214,7 @@ A graph on `n` vertices with `n` edges in a cycle
 def cycle_graph (n : ℕ) (three_le : 3 ≤ n) : simple_graph_on (zmod n) :=
 simple_graph_from_rel (λ i j, i = j + 1)
 
-lemma cycle_graph_prop (n : ℕ) (three_le : 3 ≤ n) (i j : V (cycle_graph n three_le)) :
+lemma cycle_graph_prop (n : ℕ) (three_le : 3 ≤ n) (i j : V ↟(cycle_graph n three_le)) :
   i ~g j → i = j + 1 ∨ i + 1 = j :=
 begin
   intro h,
@@ -1210,11 +1224,10 @@ begin
 end
 
 namespace subgraph
-variables {α : Type*} [simple_graphs α]
 
-def is_cycle {G : α} (G' : subgraph G) : Prop := nonempty (Σ n : {n // 3 ≤ n}, cycle_graph n.1 n.2 ↪g G)
+def is_cycle {G : simple_graph} (G' : subgraph G) : Prop := nonempty (Σ n : {n // 3 ≤ n}, ↟(cycle_graph n.1 n.2) ↪g G)
 
-def cycles (G : α) : set (subgraph G) := { G' | is_cycle G' }
+def cycles (G : simple_graph) : set (subgraph G) := { G' | is_cycle G' }
 
 end subgraph
 
@@ -1222,7 +1235,7 @@ def complete_partite_graph {ι : Type u} (f : ι → Type v) : simple_graph_on (
 { adj := λ v w, v.1 ≠ w.1 }
 
 def complete_equiv_complete_partite (α : Type u) :
-  complete_graph α ≃g complete_partite_graph (λ v : α, punit) :=
+  ↟(complete_graph α) ≃g ↟(complete_partite_graph (λ v : α, punit)) :=
 { to_fun := λ v, ⟨v, punit.star⟩,
   inv_fun := λ v, v.1,
   left_inv := by tidy,
@@ -1233,7 +1246,7 @@ end examples
 
 section coloring
 
-variables {α : Type u} [simple_graphs α] (G : α)
+variables (G : simple_graph)
 
 /--
 A graph G is β-colorable if there is an assignment of elements of β to
@@ -1264,28 +1277,28 @@ def extend_coloring {β β' : Type*} (f : β ↪ β') : coloring G β ↪ colori
 /--
 Given a coloring and an embedding of a graph, one may restrict the coloring of the graph.
 -/
-def restrict_coloring {α' : Type*} [simple_graphs α'] {G : α} {G' : α'} (f : G ↪g G') {β : Type*} : coloring G' β → coloring G β :=
+def restrict_coloring {G : simple_graph} {G' : simple_graph} (f : G →g G') [hom.mono f] {β : Type*} : coloring G' β → coloring G β :=
 λ F, { color := λ v, F.color (f v),
        valid := begin
          rintros v w h hF,
-         exact F.valid (f.map_adj' h) hF,
+         apply F.valid (f.map_adj h) hF,
        end }
 
 /--
 Given a coloring of a graph, one may restrict the coloring to a subgraph.
 -/
-def restrict_coloring_subgraph {β : Type*} (G' : subgraph G) : coloring G β → coloring G' β :=
+def restrict_coloring_subgraph {β : Type*} (G' : subgraph G) : coloring G β → coloring ↟G' β :=
 restrict_coloring G'.map_top
 
 /--
 A complete graph is colorable by its own vertex type.  (This means that if its vertex type
 has cardinality n, then it is n-colorable.)
 -/
-def complete_graph_coloring (V : Type u) : coloring (complete_graph V) V :=
+def complete_graph_coloring (V : Type u) : coloring ↟(complete_graph V) V :=
 { color := id,
   valid := by tidy }
 
-lemma complete_graph_coloring_inj {V : Type u} [decidable_eq V] {β : Type v} (c : coloring (complete_graph V) β) :
+lemma complete_graph_coloring_inj {V : Type u} [decidable_eq V] {β : Type v} (c : coloring ↟(complete_graph V) β) :
   function.injective c.color :=
 begin
   intros v w h,
@@ -1296,20 +1309,19 @@ begin
   exact h,
 end
 
-lemma complete_graph_min_colors {n m : ℕ} (c : coloring (complete_graph (fin n)) (fin m)) : n ≤ m :=
+lemma complete_graph_min_colors {n m : ℕ} (c : coloring ↟(complete_graph (fin n)) (fin m)) : n ≤ m :=
 begin
   have h := fintype.card_le_of_injective c.color (complete_graph_coloring_inj _),
-  simp only [fintype.card_fin, card_simple_graph_on_eq] at h,
-  exact h,
+  simpa using h,
 end
 
-def coloring_equiv_complete_graph_hom (β : Type v) : coloring G β ≃ (G →g complete_graph β) :=
+def coloring_equiv_complete_graph_hom (β : Type v) : coloring G β ≃ (G →g ↟(complete_graph β)) :=
 { to_fun := λ c,
   { to_fun := c.color,
-    map_adj' := λ v w a, coloring.valid c a },
+    map_rel' := λ v w a, coloring.valid c a },
   inv_fun := λ c,
     { color := c,
-    valid := λ v w a, homomorphism.map_adj' c a },
+    valid := λ v w a, c.map_rel' a },
   left_inv := by tidy,
   right_inv := by tidy }
 
@@ -1318,14 +1330,14 @@ end coloring
 
 section connectivity
 
-variables {α : Type u} [simple_graphs.{u v} α] (G : α)
+variables (G : simple_graph.{v})
 
 /--
 A walk of length `n` in a graph between vertices `v` and `w` is a sequence of `n + 1` vertices,
 each related to the next by adjacency -- the `n` counts the edges along the way.
 We model a walk as a graph homomorphism from a length-`n` path graph.
 -/
-def walk (n : ℕ) (v w : V G) : Type v := { f : path_graph n →g G // v = f 0 ∧ w = f n }
+def walk (n : ℕ) (v w : V G) : Type v := { f : ↟(path_graph n) →g G // v = f 0 ∧ w = f n }
 
 /--
 Reverse a walk.
@@ -1341,7 +1353,7 @@ A path of length `n` in a graph between vertices `v` and `w` is a sequence of `n
 each related to the next by adjacency -- the `n` counts the edges along the way.
 We model a path as a graph embedding from a length-`n` path graph.
 -/
-def path (n : ℕ) (v w : V G) : Type v := { f : path_graph n ↪g G // v = f 0 ∧ w = f n }
+def path (n : ℕ) (v w : V G) : Type v := { f : ↟(path_graph n) →g G // function.injective f ∧ v = f 0 ∧ w = f n }
 
 /-- The relation that there exists a walk of any length between two vertices. -/
 def exists_walk : V G → V G → Prop := λ v w, nonempty (Σ (n : ℕ), walk G n v w)
@@ -1393,7 +1405,7 @@ def connected_components := quotient (exists_walk.setoid G)
 def is_connected : Prop := ∀ v w, exists_walk G v w
 
 /-- The graph does not contain a cycle -/
-def is_acyclic : Prop := ∀ (n : ℕ) (h : 3 ≤ n), (cycle_graph n h ↪g G) → false
+def is_acyclic : Prop := ∀ (n : ℕ) (h : 3 ≤ n) (f : ↟(cycle_graph n h) →g G), ¬function.injective f
 
 /-- A tree is an acyclic connected graph -/
 def is_tree : Prop := is_connected G ∧ is_acyclic G
@@ -1402,7 +1414,7 @@ end connectivity
 
 section degree_sum
 
-variables {α : Type u} [simple_graphs.{_ v} α] (G : α) [fintype (V G)] [decidable_eq (V G)] [decidable_rel G.adj]
+variables (G : simple_graph.{v}) [fintype (V G)] [decidable_eq (V G)] [decidable_rel G.adj]
 
 /--
 A dart is an ordered pair of adjacent vertices, thought of as a little arrow from the
@@ -1413,7 +1425,7 @@ def darts : Type v := {d : V G × V G // d.1 ~g d.2}
 /--
 Gives the dart's edge.
 -/
-def dart_to_edge : darts G → edge_set G := λ d, ⟨⟦d.val⟧, d.property⟩
+def dart_to_edge : darts G → G.edge_set := λ d, ⟨⟦d.val⟧, d.property⟩
 /--
 Gives the dart's vertex.  This is the first vertex of the pair.
 -/
@@ -1456,7 +1468,7 @@ end
 instance : fintype (darts G) :=
 by { dunfold darts, apply_instance }
 
-lemma dart_to_edge_prop (e : edge_set G) (d : darts G) (h : dart_to_edge G d = e) : dart_to_vert G d ∈ e.1 :=
+lemma dart_to_edge_prop (e : G.edge_set) (d : darts G) (h : dart_to_edge G d = e) : dart_to_vert G d ∈ e.1 :=
 by tidy
 
 lemma dart_to_edge_surj : function.surjective (dart_to_edge G) :=
@@ -1491,7 +1503,7 @@ begin
   rw ←card_image_of_inj_on H,
   congr,
   ext w,
-  simp only [mem_image, true_and, exists_prop, mem_filter, mem_univ, adj_as_adj'],
+  simp only [mem_image, true_and, exists_prop, mem_filter, mem_univ],
   split,
   { rintros ⟨⟨⟨x, y⟩, h⟩, hd, hw⟩,
     dsimp [dart_to_vert] at hd, subst v,
@@ -1501,7 +1513,7 @@ begin
     use ⟨(v, w), a⟩, simp [dart_to_vert, f, dart_reverse], },
 end
 
-lemma dart_to_edge_two_to_one (e : edge_set G) : (univ.filter (λ x, dart_to_edge G x = e)).card = 2 :=
+lemma dart_to_edge_two_to_one (e : G.edge_set) : (univ.filter (λ x, dart_to_edge G x = e)).card = 2 :=
 begin
   cases e with e he,
   rcases dart_to_edge_surj G ⟨e, he⟩ with ⟨d, hd⟩,
@@ -1552,7 +1564,6 @@ end degree_sum
 
 section bollobas
 
-variables {α : Type*} [simple_graphs α] -- [∀ G : α, decidable_rel (adj G)]
 open_locale classical
 
 /-!
@@ -1563,9 +1574,9 @@ Some formalizations of statements from Bollobas, "Modern graph theory"
 Veblen 1912 (theorem 1 in book). Every vertex has even degree iff there is a
 partition of the graph into edge-disjoint cycles.
 -/
-theorem edge_partition_cycles (G : α) [fintype (V G)] :
+theorem edge_partition_cycles (G : simple_graph) [fintype (V G)] :
   (∀ v : V G, degree v % 2 = 0) ↔ (∃ partition : set (subgraph G), (∀ G' ∈ partition, subgraph.is_cycle G') ∧
-                                     ∀ (e ∈ edge_set G), !∃ (c : subgraph G), c ∈ partition ∧
+                                     ∀ (e ∈ G.edge_set), !∃ (c : subgraph G), c ∈ partition ∧
                                        e ∈ c.edge_set') :=
 sorry
 
@@ -1573,8 +1584,8 @@ sorry
 Mantel 1907 (theorem 2 in book). If a graph with n vertices and m edges satisfies
 floor(n^2 /4) < m, then it contains a triangle.
 -/
-theorem has_triangle (G : α) [fintype (V G)] (h : (fintype.card (V G))^2 / 4 < (edge_finset G).card) :
-  nonempty (cycle_graph 3 (by linarith) ↪g G) :=
+theorem has_triangle (G : simple_graph) [fintype (V G)] (h : (fintype.card (V G))^2 / 4 < G.edge_finset.card) :
+  nonempty {f : ↟(cycle_graph 3 (by linarith)) →g G // function.injective f} :=
 sorry
 
 end bollobas

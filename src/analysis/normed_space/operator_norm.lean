@@ -774,55 +774,6 @@ begin
     rw this, apply homothety_inverse, exact hx, exact to_span_nonzero_singleton_homothety 𝕜 x h, }
 end
 
-variable (E)
-
-/-- The continuous linear equivalences from `E` to itself form a group under composition. -/
-instance automorphism_group : group (E ≃L[𝕜] E) :=
-{ mul          := λ f g, g.trans f,
-  one          := continuous_linear_equiv.refl 𝕜 E,
-  inv          := λ f, f.symm,
-  mul_assoc    := λ f g h, by {ext, refl},
-  mul_one      := λ f, by {ext, refl},
-  one_mul      := λ f, by {ext, refl},
-  mul_left_inv := λ f, by {ext, exact f.left_inv x} }
-
-variables {𝕜 E}
-
-/-- An invertible continuous linear map `f` determines a continuous equivalence from `E` to itself.
--/
-def of_unit (f : units (E →L[𝕜] E)) : (E ≃L[𝕜] E) :=
-{ to_linear_equiv :=
-  { to_fun    := f.val,
-    map_add'  := by simp,
-    map_smul' := by simp,
-    inv_fun   := f.inv,
-    left_inv  := λ x, show (f.inv * f.val) x = x, by {rw f.inv_val, simp},
-    right_inv := λ x, show (f.val * f.inv) x = x, by {rw f.val_inv, simp}, },
-  continuous_to_fun  := f.val.continuous,
-  continuous_inv_fun := f.inv.continuous }
-
-/-- A continuous equivalence from `E` to itself determines an invertible continuous linear map. -/
-def to_unit (f : (E ≃L[𝕜] E)) : units (E →L[𝕜] E) :=
-{ val     := f,
-  inv     := f.symm,
-  val_inv := by {ext, simp},
-  inv_val := by {ext, simp} }
-
-variables (𝕜 E)
-
-/-- The units of the algebra of continuous `𝕜`-linear endomorphisms of `E` is multiplicatively
-equivalent to the type of continuous linear equivalences between `E` and itself. -/
-def units_equiv : units (E →L[𝕜] E) ≃* (E ≃L[𝕜] E) :=
-{ to_fun    := of_unit,
-  inv_fun   := to_unit,
-  left_inv  := λ f, by {ext, refl},
-  right_inv := λ f, by {ext, refl},
-  map_mul'  := λ x y, by {ext, refl} }
-
-@[simp] lemma units_equiv_to_continuous_linear_map
-  (f : units (E →L[𝕜] E)) :
-  (units_equiv 𝕜 E f : E →L[𝕜] E) = f := by {ext, refl}
-
 end continuous_linear_equiv
 
 lemma linear_equiv.uniform_embedding (e : E ≃ₗ[𝕜] F) (h₁ : continuous e) (h₂ : continuous e.symm) :

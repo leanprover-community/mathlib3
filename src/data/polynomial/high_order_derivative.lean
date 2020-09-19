@@ -23,7 +23,7 @@ def deriv_n : polynomial R := derivative ^[n] f
 @[simp] lemma zeroth_deriv : deriv_n f 0 = f := rfl
 
 
-lemma deriv_n_succ : (deriv_n f n).derivative = (deriv_n f (n+1)) :=
+lemma deriv_n_succ : (deriv_n f (n+1)) = (deriv_n f n).derivative :=
 by rw [deriv_n, deriv_n, function.iterate_succ']
 
 lemma deriv_n_zero : deriv_n (0 : polynomial R) n = 0 :=
@@ -37,7 +37,7 @@ lemma deriv_n_add : (deriv_n (p+q) n) = (deriv_n p n) + (deriv_n q n) :=
 begin
   induction n with n ih,
   { simp only [zeroth_deriv], },
-  { rw [←deriv_n_succ, ih, polynomial.derivative_add, deriv_n_succ, deriv_n_succ] }
+  { rw [deriv_n_succ, ih, polynomial.derivative_add, deriv_n_succ, deriv_n_succ] }
 end
 
 end semiring
@@ -53,7 +53,7 @@ begin
   { simp only [add_zero, forall_const, one_mul, range_zero, eq_self_iff_true,
       zeroth_deriv, prod_empty] },
 
-  { intro m, rw ←deriv_n_succ,
+  { intro m, rw deriv_n_succ,
     rw [polynomial.coeff_derivative, ih (m+1), prod_range_succ],
     simp only [nat.cast_succ, succ_eq_add_one],
     conv_rhs { rw [mul_assoc, mul_comm] },
@@ -85,15 +85,17 @@ begin
 end
 
 
-lemma deriv_n_poly_prod :
+lemma deriv_n_mul :
   deriv_n (p * q) n = ∑ k in range n.succ, (C (n.choose k : R)) * (deriv_n p (n-k)) * (deriv_n q k) :=
 begin
   induction n with n IH,
   { simp only [one_mul, cast_one, id.def, sum_singleton, C_eq_nat_cast, zeroth_deriv, choose_self, range_one]},
 
-  { rw [←deriv_n_succ, IH],
-    simp only [derivative_mul, derivative_sum, derivative_C, zero_mul, zero_add, deriv_n_succ],
-    conv_lhs {rw [sum_add_distrib]},
+  { rw [deriv_n_succ, IH],
+    simp only [derivative_mul, derivative_sum, derivative_C, zero_mul, zero_add],
+
+    conv_lhs {rw [sum_add_distrib] },
+    simp_rw [←deriv_n_succ],
     conv {
       congr,
       { congr,

@@ -29,7 +29,7 @@ variables [semiring R] (f p q: polynomial R) (n k : ℕ)
 /--Defining the n-th derivative of polynomial f-/
 def iterated_derivative : polynomial R := derivative ^[n] f
 
-@[simp] lemma zeroth_deriv : iterated_derivative f 0 = f := rfl
+@[simp] lemma iterated_derivative_zero_right : iterated_derivative f 0 = f := rfl
 
 lemma iterated_derivative_succ : (iterated_derivative f (n+1)) = (iterated_derivative f n).derivative :=
 by rw [iterated_derivative, iterated_derivative, function.iterate_succ']

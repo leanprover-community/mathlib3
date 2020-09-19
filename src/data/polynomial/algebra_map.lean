@@ -217,4 +217,10 @@ theorem not_is_unit_X_sub_C [nontrivial R] {r : R} : ¬ is_unit (X - C r) :=
 
 end ring
 
+lemma aeval_endomorphism {M : Type*}
+  [comm_ring R] [add_comm_group M] [module R M]
+  (f : M →ₗ[R] M) (v : M) (p : polynomial R) :
+  aeval f p v = p.sum (λ n b, b • (f ^ n) v) :=
+eval₂_endomorphism_algebra_map f v p
+
 end polynomial

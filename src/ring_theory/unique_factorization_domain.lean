@@ -389,7 +389,9 @@ def bcount [decidable_eq (associates α)] (p : {a : associates α // irreducible
 variables [dec_irr : Π (p : associates α), decidable (irreducible p)]
 include dec_irr
 
-/-- `count p s` is the multiplicity of `p` in the factor_set `s` -/
+/-- `count p s` is the multiplicity of the irreducible `p` in the factor_set `s`.
+
+If `p` is not irreducible, `count p s` is defined to be `0`. -/
 def count [decidable_eq (associates α)] (p : associates α) :
   factor_set α → ℕ :=
 if hp : irreducible p then bcount ⟨p, hp⟩  else 0

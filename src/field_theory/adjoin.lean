@@ -40,6 +40,13 @@ def adjoin : subalgebra F E :=
     add_mem' := λ x y, is_add_submonoid.add_mem },
   algebra_map_mem' := λ x, field.mem_closure (or.inl (set.mem_range.mpr ⟨x,rfl⟩)) }
 
+lemma adjoin.adjoin_eq_range_algebra_map_adjoin :
+  (adjoin F S : set E) = set.range (algebra_map (adjoin F S) E) :=
+begin
+  ext,
+  exact ⟨λ hx, ⟨⟨x, hx⟩, rfl⟩, λ hx, by {rcases hx with ⟨⟨x, hx⟩, rfl⟩, assumption}⟩,
+end
+
 lemma adjoin.algebra_map_mem (x : F) : algebra_map F E x ∈ adjoin F S :=
 field.mem_closure (or.inl (set.mem_range_self x))
 

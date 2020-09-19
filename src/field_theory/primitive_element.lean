@@ -263,20 +263,10 @@ begin
   have F'_findim : finite_dimensional F⟮(0 : E)⟯ E :=
     finite_dimensional.findim_of_tower_findim F F⟮(0 : E)⟯ E,
   obtain ⟨α, hα⟩ := primitive_element_aux F⟮(0 : E)⟯ E F'_sep F'_findim,
-  use α,
-  ext1,
-  rw iff_true_right algebra.mem_top,
-  rw subalgebra.ext_iff at hα,
-  specialize hα x,
-  rw iff_true_right algebra.mem_top at hα,
-  change x ∈ (↑_ : set E) at hα,
-  rw [field.adjoin_simple_comm,field.adjoin_zero] at hα,
-  change x ∈ (⊥ : subalgebra F⟮α⟯ E) at hα,
-  rw [algebra.mem_bot,set.mem_range] at hα,
-  cases hα with y hy,
-  rw ←hy,
-  cases y,
-  assumption,
+  have : (F⟮(0 : E)⟯⟮α⟯ : set E) = F⟮α⟯,
+  { rw [adjoin_simple_comm, adjoin_zero, adjoin.adjoin_eq_range_algebra_map_adjoin],
+    simp [set.ext_iff, algebra.mem_bot], },
+  exact ⟨α, by simp [subalgebra.ext_iff, set.ext_iff, algebra.mem_top, *] at *⟩,
 end
 
 end field

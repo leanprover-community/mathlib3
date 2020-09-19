@@ -1504,11 +1504,9 @@ range_nonempty_iff_nonempty.2 h
 @[simp] lemma range_eq_empty {f : ι → α} : range f = ∅ ↔ ¬ nonempty ι :=
 not_nonempty_iff_eq_empty.symm.trans $ not_congr range_nonempty_iff_nonempty
 
-lemma image_union_image_compl_eq_range (S:(set α)) (f:α → β):
-  (set.image f S) ∪ (set.image f (Sᶜ))  = (set.range f) :=
-begin 
-  rw ← image_union, rw ← image_univ, rw ← union_compl_self,
-end
+@[simp] lemma image_union_image_compl_eq_range (f : α → β) :
+  (image f s) ∪ (image f sᶜ) = range f :=
+by rw [← image_union, ← image_univ, ← union_compl_self]
 
 theorem image_preimage_eq_inter_range {f : α → β} {t : set β} :
   f '' (f ⁻¹' t) = t ∩ range f :=

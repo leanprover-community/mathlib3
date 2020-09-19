@@ -55,6 +55,11 @@ variables (C)
 def forget₂_Mon_ : CommMon_ C ⥤ Mon_ C :=
 induced_functor CommMon_.to_Mon_
 
+@[simp] lemma forget₂_Mon_obj_one (A : CommMon_ C) : ((forget₂_Mon_ C).obj A).one = A.one := rfl
+@[simp] lemma forget₂_Mon_obj_mul (A : CommMon_ C) : ((forget₂_Mon_ C).obj A).mul = A.mul := rfl
+@[simp] lemma forget₂_Mon_map_hom {A B : CommMon_ C} (f : A ⟶ B) :
+  ((forget₂_Mon_ C).map f).hom = f.hom := rfl
+
 end
 
 instance unique_hom_from_trivial (A : CommMon_ C) : unique (trivial C ⟶ A) :=

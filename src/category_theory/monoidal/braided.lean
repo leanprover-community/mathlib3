@@ -110,8 +110,13 @@ calc ((β_ X (𝟙_ C)).hom ⊗ (𝟙 (𝟙_ C))) ≫ ((λ_ X).hom ⊗ (𝟙 (�
 ... = (ρ_ X).hom ⊗ (𝟙 (𝟙_ C))
          : by rw triangle
 
+@[reassoc]
 lemma braiding_left_unitor (X : C) : (β_ X (𝟙_ C)).hom ≫ (λ_ X).hom = (ρ_ X).hom :=
 by rw [←tensor_right_iff, comp_tensor_id, braiding_left_unitor_aux₂]
+
+@[reassoc]
+lemma braiding_left_unitor_inv (X : C) : (λ_ X).inv ≫ (β_ X (𝟙_ C)).inv = (ρ_ X).inv :=
+by rw [← is_iso.inv_eq_inv]; simp [braiding_left_unitor]
 
 lemma braiding_right_unitor_aux₁ (X : C) :
   (α_ X (𝟙_ C) (𝟙_ C)).inv ≫ ((β_ (𝟙_ C) X).inv ⊗ 𝟙 _) ≫ (α_ _ X _).hom ≫ (𝟙 _ ⊗ (ρ_ X).hom) =
@@ -138,8 +143,18 @@ calc ((𝟙 (𝟙_ C)) ⊗ (β_ (𝟙_ C) X).hom) ≫ ((𝟙 (𝟙_ C)) ⊗ (ρ_
 ... = (𝟙 (𝟙_ C)) ⊗ (λ_ X).hom
          : by rw [triangle_assoc_comp_right]
 
+@[reassoc]
 lemma braiding_right_unitor (X : C) : (β_ (𝟙_ C) X).hom ≫ (ρ_ X).hom = (λ_ X).hom :=
 by rw [←tensor_left_iff, id_tensor_comp, braiding_right_unitor_aux₂]
+
+@[reassoc]
+lemma braiding_right_unitor_inv (X : C) : (ρ_ X).inv ≫ (β_ (𝟙_ C) X).inv = (λ_ X).inv :=
+by rw [← is_iso.inv_eq_inv]; simp [braiding_right_unitor]
+
+@[reassoc]
+lemma braiding_naturality_inv {X X' Y Y' : C} (f : X ⟶ Y) (g : X' ⟶ Y') :
+  (f ⊗ g) ≫ (β_ Y' Y).inv = (β_ X' X).inv ≫ (g ⊗ f) :=
+by rw [iso.eq_inv_comp, ← braiding_naturality_assoc, iso.hom_inv_id, comp_id]
 
 end
 

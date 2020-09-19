@@ -356,15 +356,15 @@ begin
   rw [←id_tensor_comp, iso.inv_hom_id, ←comp_tensor_id, iso.inv_hom_id]
 end
 
-lemma left_unitor_eq_right_unitor : (λ_ (𝟙_ C)).hom = (ρ_ (𝟙_ _)).hom :=
-begin
-  rw [← tensor_right_iff, ← left_unitor_tensor, ← eq_inv_comp],
-  rw [triangle_assoc_comp_right],
-  rw [← cancel_mono (λ_ (𝟙_ C)).hom, left_unitor_naturality],
-end
+-- lemma left_unitor_eq_right_unitor : (λ_ (𝟙_ C)).hom = (ρ_ (𝟙_ _)).hom :=
+-- begin
+--   rw [← tensor_right_iff, left_unitor_tensor, ← eq_inv_comp],
+--   rw [triangle_assoc_comp_right],
+--   rw [← cancel_mono (λ_ (𝟙_ C)).hom, left_unitor_naturality],
+-- end
 
-lemma left_unitor_eq_right_unitor_inv : (λ_ (𝟙_ C)).inv = (ρ_ (𝟙_ _)).inv :=
-by congr; ext; rw left_unitor_eq_right_unitor
+-- lemma left_unitor_eq_right_unitor_inv : (λ_ (𝟙_ C)).inv = (ρ_ (𝟙_ _)).inv :=
+-- by congr; ext; rw left_unitor_eq_right_unitor
 
 end
 

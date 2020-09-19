@@ -60,7 +60,7 @@ variables [has_strength F]
   σ_ F X Y ≫ F.map (f ⊗ 𝟙 _) = (f ⊗ 𝟙 _) ≫ σ_ F X' Y :=
 by simp [naturality]
 .
-@[simp] lemma strength_nat_right {X Y Y' : C} (g : Y ⟶ Y') :
+@[simp, reassoc] lemma strength_nat_right {X Y Y' : C} (g : Y ⟶ Y') :
   σ_ F X Y ≫ F.map (𝟙 _ ⊗ g) = (𝟙 _ ⊗ F.map g) ≫ σ_ F X Y' :=
 naturality _ _
 
@@ -100,18 +100,73 @@ attribute [simp, reassoc] has_costrength.unit_costrength has_costrength.assoc_co
 section prio
 
 set_option default_priority 100
-variables [braided_category.{v} C]
+variables [symmetric_category.{v} C]
 
 #check monoidal_category.associator_naturality
+-- set_option trace.simplify.rewrite true
+#print category_theory.functor.map_comp
+#print functor.map_comp
+
+local attribute [-simp] category_theory.functor.map_comp
+
+lemma strength_costrength  [has_strength F] [has_costrength F] {X Y : C} :
+  σ_ F X Y ≫ F.map (β_ X Y).hom = (β_ X _).hom ≫ τ_ F Y X :=
+begin
+
+end
 
 instance has_strength.to_has_costrength [has_strength F] : has_costrength F :=
-{ costrength' := λ X Y, (β_ _ _).hom ≫ σ_ _ _ _ ≫ F.map ((β_ _ _).inv),
-  naturality := by intros; simp only [← functor.map_comp, category.assoc, braided_category.braiding_naturality_assoc, braided_category.braiding_naturality_inv, ← has_strength.naturality_assoc],
-  unit_costrength := by intros; simp [← functor.map_comp],
-  assoc_costrength := sorry
+{ costrength' := λ X Y, (β_ _ _).inv ≫ σ_ _ _ _ ≫ F.map ((β_ _ _).hom),
+  naturality :=
+    -- by intros; simp only [← functor.map_comp, category.assoc, braided_category.braiding_naturality_assoc, braided_category.braiding_naturality_inv, ← has_strength.naturality_assoc],
+    begin
+      intros,
+      simp [← functor.map_comp, has_strength.naturality_assoc, braiding_naturality_inv, iso.inv_comp_eq],
+      rw [← braided_category.braiding_naturality, functor.map_comp, has_strength.naturality_assoc],
+      rw [← braided_category.braiding_naturality_assoc, iso.hom_inv_id_assoc],
+    end,
+  unit_costrength :=
+    begin
+      intros,
+      rw [braiding_right_unitor_inv_assoc, has_strength.unit_strength_assoc, ← functor.map_comp],
+      congr, rw [← iso.eq_comp_inv, braiding_right_unitor_inv],
+    end,
+    -- by intros; simp [← functor.map_comp],
+  assoc_costrength :=
+    begin
+      intros,
+
+      simp only [comp_tensor_id, category.assoc, braiding_naturality_inv_assoc, ← functor.map_comp],
+
+      -- rw [iso.eq_inv_comp],
+      -- -- rw ← symmetric_category.braiding_inv,
+      -- -- ← braided_category.hexagon_forward_assoc],
+
+      -- rw ← cancel_epi ((α_ Y Z (F.obj X)).inv),
+      -- rw braided_category.hexagon_reverse_assoc,
+
+      rw ← has_strength.strength_nat_right_assoc,
+
+      rw ← has_strength.strength_nat_right_assoc,
+
+      -- rw [braiding_naturality_inv_assoc, braiding_naturality_inv_assoc, braiding_naturality_inv_assoc],
+    end
     -- by intros; simp only [← tensor_comp, monoidal_category.associator_naturality, category.assoc, ← functor.map_comp]
   -- sorry -- by intros; dsimp; simp [← tensor_comp, category.assoc],
  }
+
+-- h : Γ ⊢ φ
+-- #check @has_strength.assoc_strength
+-- assoc_strength
+--     (α_ X Y (F.obj Z)).hom ≫ (𝟙 X ⊗ σ_ F Y Z) ≫ σ_ F X (Y ⊗ Z) =
+--       σ_ F (X ⊗ Y) Z ≫ F.map (α_ X Y Z).hom
+
+
+#check @braided_category.hexagon_forward C _ _ _
+
+#check @braided_category.hexagon_forward C _ _ _
+
+#check @braided_category.hexagon_reverse C _ _ _
 
 /-- The strength derived from co-strength -/
 def has_costrength.to_has_strength [has_costrength F] : has_strength F :=

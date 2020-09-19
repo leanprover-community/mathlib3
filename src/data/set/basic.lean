@@ -1494,7 +1494,7 @@ range_nonempty_iff_nonempty.2 h
 not_nonempty_iff_eq_empty.symm.trans $ not_congr range_nonempty_iff_nonempty
 
 @[simp] lemma image_union_image_compl_eq_range (f : α → β) :
-  (image f s) ∪ (image f sᶜ) = range f :=
+  (f '' s) ∪ (f '' sᶜ) = range f :=
 by rw [← image_union, ← image_univ, ← union_compl_self]
 
 theorem image_preimage_eq_inter_range {f : α → β} {t : set β} :

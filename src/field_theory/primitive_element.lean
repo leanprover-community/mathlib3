@@ -51,7 +51,7 @@ end
 theorem primitive_element_fin [fintype F] [hfd : finite_dimensional F E] :
   ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
-  haveI : fintype E := finite_dimensional.finite_of_findim_over_finite F E,
+  haveI : fintype E := finite_of_findim_over_finite F E,
   exact primitive_element_fin_aux F,
 end
 
@@ -108,7 +108,7 @@ end primitive_element_inf_lemmas
 section primitive_element_theorem
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
-lemma primitive_element_two_inf (α β : E) (F_sep : is_separable F E)   (F_inf : infinite F) :
+lemma primitive_element_two_inf (α β : E) (F_sep : is_separable F E) (F_inf : infinite F) :
   ∃ γ : E, (F⟮α, β⟯ : set E) ⊆ (F⟮γ⟯ : set E) :=
 begin
   cases F_sep α with hα hf,
@@ -247,8 +247,7 @@ theorem primitive_element (F_sep : is_separable F E)  (F_findim : finite_dimensi
   ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   have F'_sep : is_separable F⟮(0 : E)⟯ E := is_separable_top F F⟮(0 : E)⟯ E F_sep,
-  have F'_findim : finite_dimensional F⟮(0 : E)⟯ E :=
-    finite_dimensional.findim_of_tower_findim F F⟮(0 : E)⟯ E,
+  have F'_findim : finite_dimensional F⟮(0 : E)⟯ E := findim_of_tower_findim F F⟮(0 : E)⟯ E,
   obtain ⟨α, hα⟩ := primitive_element_aux F⟮(0 : E)⟯ E F'_sep F'_findim,
   have : (F⟮(0 : E)⟯⟮α⟯ : set E) = F⟮α⟯,
   { rw [adjoin_simple_comm, adjoin_zero, adjoin_eq_range_algebra_map_adjoin],

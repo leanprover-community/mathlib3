@@ -40,7 +40,7 @@ def adjoin : subalgebra F E :=
     add_mem' := λ x y, is_add_submonoid.add_mem },
   algebra_map_mem' := λ x, field.mem_closure (or.inl (set.mem_range.mpr ⟨x,rfl⟩)) }
 
-lemma adjoin.adjoin_eq_range_algebra_map_adjoin :
+lemma adjoin_eq_range_algebra_map_adjoin :
   (adjoin F S : set E) = set.range (algebra_map (adjoin F S) E) :=
 begin
   ext,

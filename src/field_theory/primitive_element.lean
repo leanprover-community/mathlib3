@@ -264,7 +264,7 @@ begin
     finite_dimensional.findim_of_tower_findim F F⟮(0 : E)⟯ E,
   obtain ⟨α, hα⟩ := primitive_element_aux F⟮(0 : E)⟯ E F'_sep F'_findim,
   have : (F⟮(0 : E)⟯⟮α⟯ : set E) = F⟮α⟯,
-  { rw [adjoin_simple_comm, adjoin_zero, adjoin.adjoin_eq_range_algebra_map_adjoin],
+  { rw [adjoin_simple_comm, adjoin_zero, adjoin_eq_range_algebra_map_adjoin],
     simp [set.ext_iff, algebra.mem_bot], },
   exact ⟨α, by simp [subalgebra.ext_iff, set.ext_iff, algebra.mem_top, *] at *⟩,
 end

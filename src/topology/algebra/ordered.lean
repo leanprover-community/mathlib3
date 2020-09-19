@@ -2236,6 +2236,16 @@ le_antisymm
 theorem Limsup_eq_of_le_nhds : ∀ {f : filter α} {a : α} [ne_bot f], f ≤ 𝓝 a → f.Limsup = a :=
 @Liminf_eq_of_le_nhds (order_dual α) _ _ _
 
+/-- If a function has a limit, then its limsup coincides with its limit. -/
+theorem filter.tendsto.limsup_eq {f : filter β} {u : β → α} {a : α} [ne_bot f]
+  (h : tendsto u f (𝓝 a)) : limsup f u = a :=
+Limsup_eq_of_le_nhds h
+
+/-- If a function has a limit, then its liminf coincides with its limit. -/
+theorem filter.tendsto.liminf_eq {f : filter β} {u : β → α} {a : α} [ne_bot f]
+  (h : tendsto u f (𝓝 a)) : liminf f u = a :=
+Liminf_eq_of_le_nhds h
+
 end conditionally_complete_linear_order
 
 section complete_linear_order
@@ -2257,16 +2267,6 @@ if hf : f = ⊥ then hf.symm ▸ tendsto_bot
 else by haveI : ne_bot f := hf; exact tendsto_of_liminf_eq_limsup
   (le_antisymm (le_trans liminf_le_limsup hsup) hinf)
   (le_antisymm hsup (le_trans hinf liminf_le_limsup))
-
-/-- If a function has a limit, then its limsup coincides with its limit-/
-theorem filter.tendsto.limsup_eq {f : filter β} {u : β → α} {a : α} [ne_bot f]
-  (h : tendsto u f (𝓝 a)) : limsup f u = a :=
-Limsup_eq_of_le_nhds h
-
-/-- If a function has a limit, then its liminf coincides with its limit-/
-theorem filter.tendsto.liminf_eq {f : filter β} {u : β → α} {a : α} [ne_bot f]
-  (h : tendsto u f (𝓝 a)) : liminf f u = a :=
-Liminf_eq_of_le_nhds h
 
 end complete_linear_order
 

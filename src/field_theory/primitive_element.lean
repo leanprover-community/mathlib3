@@ -202,6 +202,8 @@ end
 
 universe u
 
+
+
 /-- Primitive element theorem for infinite fields. -/
 theorem primitive_element_inf {F E : Type u} [field F] [field E] [algebra F E]
   (F_sep : is_separable F E) (F_findim: finite_dimensional F E) (F_inf : infinite F)
@@ -212,35 +214,22 @@ begin
   revert F,
   apply nat.strong_induction_on n,
   clear n,
-  intros n ih F hF hFE F_sep F_findim F_inf hn,
-  by_cases key : ∃ α : E, findim F⟮α⟯ E < n,
-  { cases key with α Fα_le_n,
-    have Fα_findim : finite_dimensional F⟮α⟯ E := finite_dimensional.findim_of_tower_findim F F⟮α⟯ E,
+  rintros n ih F hF hFE F_sep F_findim F_inf rfl,
+  by_cases key : ∃ α : E, findim F F⟮α⟯ > 1,
+  { cases key with α hα,
+    haveI Fα_findim : finite_dimensional F⟮α⟯ E := findim_of_tower_findim F F⟮α⟯ E,
+    have : findim F⟮α⟯ E < findim F E,
+    { rw ← findim_mul_findim F F⟮α⟯ E,
+      nlinarith [show 0 < findim F⟮α⟯ E, from findim_pos, show 0 < findim F F⟮α⟯, from findim_pos], },
     have Fα_inf : infinite F⟮α⟯ := infinite.of_injective _ (algebra_map F F⟮α⟯).injective,
     have Fα_sep : is_separable F⟮α⟯ E := is_separable_top F F⟮α⟯ E F_sep,
-    obtain ⟨β, hβ⟩ := ih _ Fα_le_n Fα_sep Fα_findim Fα_inf rfl,
+    obtain ⟨β, hβ⟩ := ih _ (this) Fα_sep Fα_findim Fα_inf rfl,
     obtain ⟨γ, hγ⟩ := primitive_element_two_inf α β F_sep F_inf,
-    use γ,
-    ext1,
-    rw iff_true_right algebra.mem_top,
-    apply hγ,
-    rw [←field.adjoin_simple_adjoin_simple, hβ],
-    exact algebra.mem_top, },
+    simp only [←adjoin_simple_adjoin_simple, subalgebra.ext_iff, algebra.mem_top, iff_true, *] at *,
+    exact ⟨γ, λ x, hγ algebra.mem_top⟩, },
   { push_neg at key,
-    use 0,
-    ext1,
-    rw iff_true_right algebra.mem_top,
-    specialize key x,
-    rw ←hn at key,
-    haveI : finite_dimensional F⟮x⟯ E := findim_of_tower_findim F F⟮x⟯ E,
-    rw ←findim_mul_findim F F⟮x⟯ E at key,
-    have h : findim F F⟮x⟯ = 1 := by nlinarith only
-      [key, show 0 < findim F F⟮x⟯, from findim_pos, show 0 < findim F⟮x⟯ E, from findim_pos],
-    replace h := field.adjoin.findim_one F x h,
-    rw [algebra.mem_bot,set.mem_range] at h,
-    cases h with y hy,
-    rw ← hy,
-    exact F⟮0⟯.algebra_map_mem y, },
+    rw top_eq_bot_of_adjoin_findim_le_one F_findim key,
+    exact ⟨0, by rw adjoin_zero⟩, },
 end
 
 /- Actual primitive element theorem. -/
@@ -251,8 +240,8 @@ theorem primitive_element_aux (F E : Type u) [field F] [field E] [algebra F E]
   ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
   by_cases F_finite : nonempty (fintype F),
-  exact nonempty.elim F_finite (λ h : fintype F, @primitive_element_fin F _ E _ _ h F_findim),
-  exact primitive_element_inf F_sep F_findim (not_nonempty_fintype.mp F_finite) (findim F E) rfl,
+  { exact nonempty.elim F_finite (λ h : fintype F, @primitive_element_fin F _ E _ _ h F_findim), },
+  { exact primitive_element_inf F_sep F_findim (not_nonempty_fintype.mp F_finite) (findim F E) rfl, },
 end
 
 /-- Primitive element theorem in different universes. -/

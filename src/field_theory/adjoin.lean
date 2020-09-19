@@ -26,6 +26,7 @@ For example, `algebra.adjoin K {x}` might not include `x⁻¹`.
 -/
 
 namespace field
+section
 variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (S : set E)
 
 /--
@@ -164,8 +165,11 @@ by apply adjoin_adjoin_left
 lemma adjoin_simple_comm (β : E) : (F⟮α⟯⟮β⟯ : set E) = (F⟮β⟯⟮α⟯ : set E) :=
 by apply adjoin_adjoin_comm
 
+end
+
 section
 open finite_dimensional
+variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E] (α : E)
 
 lemma adjoin.findim_one (h : findim F F⟮α⟯ = 1) : α ∈ (⊥ : subalgebra F E) :=
 begin
@@ -176,6 +180,16 @@ begin
   obtain ⟨x, hx⟩ := h.mp algebra.mem_top,
   rw [← adjoin_simple.algebra_map_gen F α, ← hx, algebra.mem_bot],
   exact ⟨x, rfl⟩,
+end
+
+lemma top_eq_bot_of_adjoin_findim_one (h : ∀ x : E, findim F F⟮x⟯ = 1) : (⊤ : subalgebra F E) = ⊥ :=
+by simp only [subalgebra.ext_iff, algebra.mem_top, adjoin.findim_one, *, forall_const]
+
+lemma top_eq_bot_of_adjoin_findim_le_one (h_findim : finite_dimensional F E)
+  (h : ∀ x : E, findim F F⟮x⟯ ≤ 1) : (⊤ : subalgebra F E) = ⊥ :=
+begin
+  have : ∀ x : E, findim F F⟮x⟯ = 1 := λ x, by linarith [h x, show 0 < findim F F⟮x⟯, from findim_pos],
+  exact top_eq_bot_of_adjoin_findim_one this,
 end
 
 lemma adjoin_self (hα : α ∈ (⊥ : subalgebra F E)) : F⟮α⟯ = (⊥ : subalgebra F E) :=
@@ -192,10 +206,10 @@ begin
 end
 
 lemma adjoin_zero : F⟮0⟯ = (⊥ : subalgebra F E) :=
-adjoin_self F (0 : E) (algebra.mem_bot.mpr (is_add_submonoid.zero_mem))
+adjoin_self (0 : E) (algebra.mem_bot.mpr (is_add_submonoid.zero_mem))
 
 lemma adjoin_one : F⟮1⟯ = (⊥ : subalgebra F E) :=
-adjoin_self F (1 : E) (algebra.mem_bot.mpr (is_submonoid.one_mem))
+adjoin_self (1 : E) (algebra.mem_bot.mpr (is_submonoid.one_mem))
 
 end
 

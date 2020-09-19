@@ -36,10 +36,12 @@ instance limit_functorial : functorial (λ F : J ⥤ C, limit F) := { ..limits.l
 
 variables  [monoidal_category.{v} C]
 
+@[simps]
 instance limit_lax_monoidal : lax_monoidal (λ F : J ⥤ C, limit F) :=
 { ε := limit.lift _ { X := _, π := { app := λ j, 𝟙 _, } },
   μ := λ F G, limit.lift (F ⊗ G)
-    { X := limit F ⊗ limit G, π :=
+    { X := limit F ⊗ limit G,
+      π :=
       { app := λ j, limit.π F j ⊗ limit.π G j,
         naturality' := λ j j' f,
         begin
@@ -92,5 +94,19 @@ def lim_lax : lax_monoidal_functor (J ⥤ C) C := lax_monoidal_functor.of (λ F 
 lemma lim_lax_obj' (F : J ⥤ C) : lim_lax.obj F = lim.obj F := rfl
 
 @[simp] lemma lim_lax_map {F G : J ⥤ C} (α : F ⟶ G) : lim_lax.map α = lim.map α := rfl
+
+@[simp] lemma lim_lax_ε :
+  (@lim_lax J _ C _ _ _).ε = limit.lift _ { X := _, π := { app := λ j, 𝟙 _, } } := rfl
+
+@[simp] lemma lim_lax_μ (F G : J ⥤ C) :
+  (@lim_lax J _ C _ _ _).μ F G = limit.lift (F ⊗ G)
+    { X := limit F ⊗ limit G,
+      π :=
+      { app := λ j, limit.π F j ⊗ limit.π G j,
+        naturality' := λ j j' f,
+        begin
+          dsimp,
+          simp only [category.id_comp, ←tensor_comp, limit.w],
+        end, } } := rfl
 
 end category_theory.limits

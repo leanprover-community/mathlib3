@@ -136,7 +136,7 @@ nat_iso.of_components (λ F, lax_braided_functor.mk_iso
   (monoidal_nat_iso.of_components
     (λ _, F.to_lax_monoidal_functor.to_functor.map_iso (eq_to_iso (by ext)))
     (by tidy) (by tidy) (by tidy)))
-  sorry
+  (by tidy)
 
 /-- Implementation of `CommMon_.equiv_lax_braided_functor_punit`. -/
 @[simps {rhs_md:=semireducible}]

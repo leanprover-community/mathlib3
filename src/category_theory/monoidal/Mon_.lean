@@ -123,7 +123,7 @@ instance : reflects_isomorphisms (forget C) :=
           is_iso.inv_hom_id, tensor_id, category.id_comp],
       end } } }
 
-instance (A : Mon_ C) : unique (trivial C ⟶ A) :=
+instance unique_hom_from_trivial (A : Mon_ C) : unique (trivial C ⟶ A) :=
 { default :=
   { hom := A.one,
     one_hom' := by { dsimp, simp, },

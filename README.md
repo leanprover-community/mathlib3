@@ -48,6 +48,7 @@ welcomed.
 ## Maintainers:
 
 * Jeremy Avigad (@avigad): analysis
+* Anne Baanen (@Vierkantor): algebra, number theory, tactics
 * Reid Barton (@rwbarton): category theory, topology
 * Mario Carneiro (@digama0): all
 * Bryan Gin-ge Chen (@bryangingechen): documentation, infrastructure
@@ -59,5 +60,6 @@ welcomed.
 * Chris Hughes (@ChrisHughes24): group theory, ring theory, field theory
 * Yury G. Kudryashov (@urkud): analysis, topology
 * Robert Y. Lewis (@robertylewis): all
+* Heather Macbeth (@hrmacbeth): geometry, analysis
 * Patrick Massot (@patrickmassot): documentation, topology
 * Scott Morrison (@semorrison): category theory

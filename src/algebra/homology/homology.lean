@@ -31,6 +31,8 @@ rather than the confusing `C.homology i`.
 
 universes v u
 
+noncomputable theory
+
 open category_theory
 open category_theory.limits
 
@@ -49,7 +51,7 @@ def kernel_map {C C' : homological_complex V b} (f : C ⟶ C') (i : β) :
   kernel (C.d i) ⟶ kernel (C'.d i) :=
 kernel.lift _ (kernel.ι _ ≫ f.f i)
 begin
-  rw [category.assoc, ←comm_at f, ←category.assoc, kernel.condition, has_zero_morphisms.zero_comp],
+  rw [category.assoc, ←comm_at f, ←category.assoc, kernel.condition, zero_comp],
 end
 
 @[simp, reassoc]
@@ -103,7 +105,7 @@ category_theory.image_to_kernel_map (C.d i) (C.d (i+b)) (by simp)
 @[simp, reassoc]
 lemma image_to_kernel_map_condition (C : homological_complex V b) (i : β) :
   image_to_kernel_map C i ≫ kernel.ι (C.d (i + b)) = image.ι (C.d i) :=
-by simp [image_to_kernel_map, category_theory.image_to_kernel_map]
+by simp [image_to_kernel_map]
 
 @[reassoc]
 lemma image_to_kernel_map_comp_kernel_map [has_image_maps V]

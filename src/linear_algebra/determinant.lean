@@ -7,6 +7,7 @@ import data.matrix.pequiv
 import data.fintype.card
 import group_theory.perm.sign
 import ring_theory.algebra
+import tactic.ring
 
 universes u v w z
 open equiv equiv.perm finset function
@@ -14,7 +15,7 @@ open equiv equiv.perm finset function
 namespace matrix
 open_locale matrix big_operators
 
-variables {n : Type u} [fintype n] [decidable_eq n] {R : Type v} [comm_ring R]
+variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
 
 local notation `ε` σ:max := ((sign σ : ℤ ) : R)
 
@@ -72,7 +73,7 @@ end
 
 @[simp] lemma det_mul (M N : matrix n n R) : det (M ⬝ N) = det M * det N :=
 calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) (p i) * N (p i) i) :
-  by simp only [det, mul_val, prod_univ_sum, mul_sum,
+  by simp only [det, mul_apply, prod_univ_sum, mul_sum,
     fintype.pi_finset_univ]; rw [finset.sum_comm]
 ... = ∑ p in (@univ (n → n) _).filter bijective, ∑ σ : perm n,
     ε σ * ∏ i, (M (σ i) (p i) * N (p i) i) :
@@ -174,7 +175,7 @@ begin
   ext σ,
   convert mul_zero ↑(sign σ),
   apply prod_eq_zero (mem_univ i),
-  rw [transpose_val],
+  rw [transpose_apply],
   apply h
 end
 
@@ -218,9 +219,54 @@ begin
   rw [neg_mul_eq_neg_mul],
   congr,
   { rw [sign_mul, sign_swap i_ne_j], norm_num },
-  ext j, rw [mul_apply, swap_invariant]
+  ext j, rw [perm.mul_apply, swap_invariant]
 end
 
 end det_zero
+
+lemma det_update_column_add (M : matrix n n R) (j : n) (u v : n → R) :
+  det (update_column M j $ u + v) = det (update_column M j u) + det (update_column M j v) :=
+begin
+  simp only [det],
+  have : ∀ σ : perm n, ∏ i, M.update_column j (u + v) (σ i) i =
+                       ∏ i, M.update_column j u (σ i) i + ∏ i, M.update_column j v (σ i) i,
+  { intros σ,
+    simp only [update_column_apply, prod_ite, filter_eq',
+               finset.prod_singleton, finset.mem_univ, if_true, pi.add_apply, add_mul] },
+  rw [← sum_add_distrib],
+  apply sum_congr rfl,
+  intros x _,
+  rw [this, mul_add]
+end
+
+lemma det_update_row_add (M : matrix n n R) (j : n) (u v : n → R) :
+  det (update_row M j $ u + v) = det (update_row M j u) + det (update_row M j v) :=
+begin
+  rw [← det_transpose, ← update_column_transpose, det_update_column_add],
+  simp [update_column_transpose, det_transpose]
+end
+
+lemma det_update_column_smul (M : matrix n n R) (j : n) (s : R) (u : n → R) :
+  det (update_column M j $ s • u) = s * det (update_column M j u) :=
+begin
+  simp only [det],
+  have : ∀ σ : perm n, ∏ i, M.update_column j (s • u) (σ i) i = s * ∏ i, M.update_column j u (σ i) i,
+  { intros σ,
+    simp only [update_column_apply, prod_ite, filter_eq', finset.prod_singleton, finset.mem_univ,
+               if_true, algebra.id.smul_eq_mul, pi.smul_apply],
+    ring },
+  rw mul_sum,
+  apply sum_congr rfl,
+  intros x _,
+  rw this,
+  ring
+end
+
+lemma det_update_row_smul (M : matrix n n R) (j : n) (s : R) (u : n → R) :
+  det (update_row M j $ s • u) = s * det (update_row M j u) :=
+begin
+  rw [← det_transpose, ← update_column_transpose, det_update_column_smul],
+  simp [update_column_transpose, det_transpose]
+end
 
 end matrix

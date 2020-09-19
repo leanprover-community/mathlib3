@@ -46,8 +46,6 @@ noncomputable theory
 
 section lie_group
 
-set_option default_priority 100
-
 /-- A Lie (additive) group is a group and a smooth manifold at the same time in which
 the addition and negation operations are smooth. -/
 class lie_add_group {𝕜 : Type*} [nondiscrete_normed_field 𝕜]

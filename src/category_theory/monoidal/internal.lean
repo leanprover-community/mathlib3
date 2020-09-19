@@ -3,17 +3,21 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.monoidal.category
+import category_theory.monoidal.discrete
+import category_theory.monoidal.unitors
+import category_theory.limits.shapes.terminal
+import algebra.punit_instances
 
 /-!
 # The category of monoids in a monoidal category, and modules over an internal monoid.
 -/
 
-universes v u
+universes v₁ v₂ u₁ u₂
 
 open category_theory
+open category_theory.monoidal_category
 
-variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
+variables (C : Type u₁) [category.{v₁} C] [monoidal_category.{v₁} C]
 
 /--
 A monoid object internal to a monoidal category.
@@ -35,13 +39,31 @@ structure Mon_ :=
 restate_axiom Mon_.one_mul'
 restate_axiom Mon_.mul_one'
 restate_axiom Mon_.mul_assoc'
-attribute [simp, reassoc] Mon_.one_mul Mon_.mul_one Mon_.mul_assoc
+attribute [reassoc] Mon_.one_mul Mon_.mul_one -- We prove a more general `@[simp]` lemma below.
+attribute [simp, reassoc] Mon_.mul_assoc
 
 namespace Mon_
 
-variables {C}
+/--
+The trivial monoid object. We later show this is initial in `Mon_ C`.
+-/
+@[simps]
+def trivial : Mon_ C :=
+{ X := 𝟙_ C,
+  one := 𝟙 _,
+  mul := (λ_ _).hom,
+  mul_assoc' := by simp_rw [triangle_assoc, iso.cancel_iso_hom_right, tensor_right_iff, unitors_equal],
+  mul_one' := by simp [unitors_equal] }
 
-variables {M : Mon_ C}
+instance : inhabited (Mon_ C) := ⟨trivial C⟩
+
+variables {C} {M : Mon_ C}
+
+@[simp] lemma one_mul_hom {Z : C} (f : Z ⟶ M.X) : (M.one ⊗ f) ≫ M.mul = (λ_ Z).hom ≫ f :=
+by rw [←id_tensor_comp_tensor_id, category.assoc, M.one_mul, left_unitor_naturality]
+
+@[simp] lemma mul_one_hom {Z : C} (f : Z ⟶ M.X) : (f ⊗ M.one) ≫ M.mul = (ρ_ Z).hom ≫ f :=
+by rw [←tensor_id_comp_id_tensor, category.assoc, M.mul_one, right_unitor_naturality]
 
 lemma assoc_flip : (𝟙 M.X ⊗ M.mul) ≫ M.mul = (α_ M.X M.X M.X).inv ≫ (M.mul ⊗ 𝟙 M.X) ≫ M.mul :=
 by simp
@@ -78,14 +100,175 @@ instance : category (Mon_ C) :=
 @[simp] lemma comp_hom' {M N K : Mon_ C} (f : M ⟶ N) (g : N ⟶ K) :
   (f ≫ g : hom M K).hom = f.hom ≫ g.hom := rfl
 
+section
+variables (C)
+
 /-- The forgetful functor from monoid objects to the ambient category. -/
 def forget : Mon_ C ⥤ C :=
 { obj := λ A, A.X,
   map := λ A B f, f.hom, }
 
+end
+
+instance {A B : Mon_ C} (f : A ⟶ B) [e : is_iso ((forget C).map f)] : is_iso f.hom := e
+
+/-- The forgetful functor from monoid objects to the ambient category reflects isomorphisms. -/
+instance : reflects_isomorphisms (forget C) :=
+{ reflects := λ X Y f e, by exactI
+  { inv :=
+    { hom := inv f.hom,
+      mul_hom' :=
+      begin
+        simp only [is_iso.comp_inv_eq, hom.mul_hom, category.assoc, ←tensor_comp_assoc,
+          is_iso.inv_hom_id, tensor_id, category.id_comp],
+      end } } }
+
+instance (A : Mon_ C) : unique (trivial C ⟶ A) :=
+{ default :=
+  { hom := A.one,
+    one_hom' := by { dsimp, simp, },
+    mul_hom' := by { dsimp, simp [A.one_mul, unitors_equal], } },
+  uniq := λ f,
+  begin
+    ext, simp,
+    rw [←category.id_comp f.hom],
+    erw f.one_hom,
+  end }
+
+open category_theory.limits
+
+instance : has_initial (Mon_ C) :=
+has_initial_of_unique (trivial C)
+
 end Mon_
 
--- PROJECT: lax monoidal functors `C ⥤ D` induce functors `Mon_ C ⥤ Mon_ D`.
+namespace category_theory.lax_monoidal_functor
+
+variables {C} {D : Type u₂} [category.{v₂} D] [monoidal_category.{v₂} D]
+
+/--
+A lax monoidal functor takes monoid objects to monoid objects.
+
+That is, a lax monoidal functor `F : C ⥤ D` induces a functor `Mon_ C ⥤ Mon_ D`.
+-/
+-- TODO: map_Mod F A : Mod A ⥤ Mod (F.map_Mon A)
+@[simps]
+def map_Mon (F : lax_monoidal_functor C D) : Mon_ C ⥤ Mon_ D :=
+{ obj := λ A,
+  { X := F.obj A.X,
+    one := F.ε ≫ F.map A.one,
+    mul := F.μ _ _ ≫ F.map A.mul,
+    one_mul' :=
+    begin
+      conv_lhs { rw [comp_tensor_id, ←F.to_functor.map_id], },
+      slice_lhs 2 3 { rw [F.μ_natural], },
+      slice_lhs 3 4 { rw [←F.to_functor.map_comp, A.one_mul], },
+      rw [F.to_functor.map_id],
+      rw [F.left_unitality],
+    end,
+    mul_one' :=
+    begin
+      conv_lhs { rw [id_tensor_comp, ←F.to_functor.map_id], },
+      slice_lhs 2 3 { rw [F.μ_natural], },
+      slice_lhs 3 4 { rw [←F.to_functor.map_comp, A.mul_one], },
+      rw [F.to_functor.map_id],
+      rw [F.right_unitality],
+    end,
+    mul_assoc' :=
+    begin
+      conv_lhs { rw [comp_tensor_id, ←F.to_functor.map_id], },
+      slice_lhs 2 3 { rw [F.μ_natural], },
+      slice_lhs 3 4 { rw [←F.to_functor.map_comp, A.mul_assoc], },
+      conv_lhs { rw [F.to_functor.map_id] },
+      conv_lhs { rw [F.to_functor.map_comp, F.to_functor.map_comp] },
+      conv_rhs { rw [id_tensor_comp, ←F.to_functor.map_id], },
+      slice_rhs 3 4 { rw [F.μ_natural], },
+      conv_rhs { rw [F.to_functor.map_id] },
+      slice_rhs 1 3 { rw [←F.associativity], },
+      simp only [category.assoc],
+    end, },
+  map := λ A B f,
+  { hom := F.map f.hom,
+    one_hom' := by { dsimp, rw [category.assoc, ←F.to_functor.map_comp, f.one_hom], },
+    mul_hom' :=
+    begin
+      dsimp,
+      rw [category.assoc, F.μ_natural_assoc, ←F.to_functor.map_comp, ←F.to_functor.map_comp,
+        f.mul_hom],
+    end },
+  map_id' := λ A, by { ext, simp, },
+  map_comp' := λ A B C f g, by { ext, simp, }, }
+
+variables (C) (D)
+
+/-- `map_Mon` is functorial in the lax monoidal functor. -/
+def map_Mon_functor : (lax_monoidal_functor C D) ⥤ (Mon_ C ⥤ Mon_ D) :=
+{ obj := map_Mon,
+  map := λ F G α,
+  { app := λ A,
+    { hom := α.app A.X, } } }
+
+end category_theory.lax_monoidal_functor
+
+namespace Mon_
+
+open category_theory.lax_monoidal_functor
+
+namespace equiv_lax_monoidal_functor_punit
+
+/-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
+@[simps]
+def lax_monoidal_to_Mon : lax_monoidal_functor (discrete punit) C ⥤ Mon_ C :=
+{ obj := λ F, (F.map_Mon : Mon_ _ ⥤ Mon_ C).obj (trivial (discrete punit)),
+  map := λ F G α, ((map_Mon_functor (discrete punit) C).map α).app _ }
+
+/-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
+@[simps]
+def Mon_to_lax_monoidal : Mon_ C ⥤ lax_monoidal_functor (discrete punit) C :=
+{ obj := λ A,
+  { obj := λ _, A.X,
+    map := λ _ _ _, 𝟙 _,
+    ε := A.one,
+    μ := λ _ _, A.mul,
+    map_id' := λ _, rfl,
+    map_comp' := λ _ _ _ _ _, (category.id_comp (𝟙 A.X)).symm, },
+  map := λ A B f,
+  { app := λ _, f.hom,
+    naturality' := λ _ _ _, by { dsimp, rw [category.id_comp, category.comp_id], },
+    unit' := f.one_hom,
+    tensor' := λ _ _, f.mul_hom, }, }
+
+/-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
+@[simps {rhs_md:=semireducible}]
+def unit_iso :
+  𝟭 (lax_monoidal_functor (discrete punit) C) ≅ lax_monoidal_to_Mon C ⋙ Mon_to_lax_monoidal C :=
+nat_iso.of_components (λ F,
+  monoidal_nat_iso.of_components
+    (λ _, F.to_functor.map_iso (eq_to_iso (by ext)))
+    (by tidy) (by tidy) (by tidy))
+  (by tidy)
+
+/-- Implementation of `Mon_.equiv_lax_monoidal_functor_punit`. -/
+@[simps {rhs_md:=semireducible}]
+def counit_iso : Mon_to_lax_monoidal C ⋙ lax_monoidal_to_Mon C ≅ 𝟭 (Mon_ C) :=
+nat_iso.of_components (λ F, { hom := { hom := 𝟙 _, }, inv := { hom := 𝟙 _, } })
+  (by tidy)
+
+end equiv_lax_monoidal_functor_punit
+
+open equiv_lax_monoidal_functor_punit
+
+/--
+Monoid objects in `C` are "just" lax monoidal functors from the trivial monoidal category to `C`.
+-/
+@[simps]
+def equiv_lax_monoidal_functor_punit : lax_monoidal_functor (discrete punit) C ≌ Mon_ C :=
+{ functor := lax_monoidal_to_Mon C,
+  inverse := Mon_to_lax_monoidal C,
+  unit_iso := unit_iso C,
+  counit_iso := counit_iso C, }
+
+end Mon_
 
 variables {C}
 
@@ -147,6 +330,11 @@ def regular : Mod A :=
 
 instance : inhabited (Mod A) := ⟨regular A⟩
 
+/-- The forgetful functor from module objects to the ambient category. -/
+def forget : Mod A ⥤ C :=
+{ obj := λ A, A.X,
+  map := λ A B f, f.hom, }
+
 open category_theory.monoidal_category
 
 /--
@@ -197,11 +385,8 @@ Projects:
   (You'll have to hook up the cartesian monoidal structure on `Mon` first, available in #3463)
 * Check that `Mon_ Top ≌ [bundled topological monoids]`.
 * Check that `Mon_ AddCommGroup ≌ Ring`.
-  (You'll have to hook up the monoidal structure on `AddCommGroup`.
-  Currently we have the monoidal structure on `Module R`; perhaps one could specialize to `R = ℤ`
-  and transport the monoidal structure across an equivalence? This sounds like some work!)
-* Check that `Mon_ (Module R) ≌ Algebra R`.
-* Show that if `C` is braided (see #3550) then `Mon_ C` is naturally monoidal.
+  (We've already got `Mon_ (Module R) ≌ Algebra R`, in `category_theory.monoidal.internal.Module`.)
 * Can you transport this monoidal structure to `Ring` or `Algebra R`?
   How does it compare to the "native" one?
+* Show that if `C` is braided then `Mon_ C` is naturally monoidal.
 -/

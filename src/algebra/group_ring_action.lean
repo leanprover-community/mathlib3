@@ -2,19 +2,33 @@
 Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
-
-Group action on rings.
 -/
 
 import group_theory.group_action
 import data.equiv.ring
 import data.polynomial.monic
 
+/-!
+# Group action on rings
+
+This file defines the typeclass of monoid acting on semirings `mul_semiring_action M R`,
+and the corresponding typeclass of invariant subrings.
+
+Note that `algebra` does not satisfy the axioms of `mul_semiring_action`.
+
+## Implementation notes
+
+There is no separate typeclass for group acting on rings, group acting on fields, etc.
+They are all grouped under `mul_semiring_action`.
+
+## Tags
+
+group action, invariant subring
+
+-/
+
 universes u v
 open_locale big_operators
-
-section prio
-set_option default_priority 100 -- see Note [default priority]
 
 /-- Typeclass for multiplicative actions by monoids on semirings. -/
 class mul_semiring_action (M : Type u) [monoid M] (R : Type v) [semiring R]
@@ -22,9 +36,12 @@ class mul_semiring_action (M : Type u) [monoid M] (R : Type v) [semiring R]
 (smul_one : ∀ (g : M), (g • 1 : R) = 1)
 (smul_mul : ∀ (g : M) (x y : R), g • (x * y) = (g • x) * (g • y))
 
-end prio
-
 export mul_semiring_action (smul_one)
+
+/-- Typeclass for faithful multiplicative actions by monoids on semirings. -/
+class faithful_mul_semiring_action (M : Type u) [monoid M] (R : Type v) [semiring R]
+  extends mul_semiring_action M R :=
+(eq_of_smul_eq_smul' : ∀ {m₁ m₂ : M}, (∀ r : R, m₁ • r = m₂ • r) → m₁ = m₂)
 
 section semiring
 
@@ -35,6 +52,11 @@ variables {M R}
 lemma smul_mul' [mul_semiring_action M R] (g : M) (x y : R) :
   g • (x * y) = (g • x) * (g • y) :=
 mul_semiring_action.smul_mul g x y
+
+variables {M} (R)
+theorem eq_of_smul_eq_smul [faithful_mul_semiring_action M R] {m₁ m₂ : M} :
+  (∀ r : R, m₁ • r = m₂ • r) → m₁ = m₂ :=
+faithful_mul_semiring_action.eq_of_smul_eq_smul'
 
 variables (M R)
 
@@ -49,32 +71,6 @@ def distrib_mul_action.to_add_equiv [distrib_mul_action G A] (x : G) : A ≃+ A 
 { .. distrib_mul_action.to_add_monoid_hom G A x,
   .. mul_action.to_perm G A x }
 
-/-- The monoid of endomorphisms. -/
-def monoid.End := M →* M
-
-instance monoid.End.monoid : monoid (monoid.End M) :=
-{ mul := monoid_hom.comp,
-  one := monoid_hom.id M,
-  mul_assoc := λ _ _ _, monoid_hom.comp_assoc _ _ _,
-  mul_one := monoid_hom.comp_id,
-  one_mul := monoid_hom.id_comp }
-
-instance monoid.End.inhabited : inhabited (monoid.End M) :=
-⟨1⟩
-
-/-- The monoid of endomorphisms. -/
-def add_monoid.End := A →+ A
-
-instance add_monoid.End.monoid : monoid (add_monoid.End A) :=
-{ mul := add_monoid_hom.comp,
-  one := add_monoid_hom.id A,
-  mul_assoc := λ _ _ _, add_monoid_hom.comp_assoc _ _ _,
-  mul_one := add_monoid_hom.comp_id,
-  one_mul := add_monoid_hom.id_comp }
-
-instance add_monoid.End.inhabited : inhabited (add_monoid.End A) :=
-⟨1⟩
-
 /-- Each element of the group defines an additive monoid homomorphism. -/
 def distrib_mul_action.hom_add_monoid_hom [distrib_mul_action M A] : M →* add_monoid.End A :=
 { to_fun := distrib_mul_action.to_add_monoid_hom M A,
@@ -86,6 +82,10 @@ def mul_semiring_action.to_semiring_hom [mul_semiring_action M R] (x : M) : R �
 { map_one' := smul_one x,
   map_mul' := smul_mul' x,
   .. distrib_mul_action.to_add_monoid_hom M R x }
+
+theorem injective_to_semiring_hom [faithful_mul_semiring_action M R] :
+  function.injective (mul_semiring_action.to_semiring_hom M R) :=
+λ m₁ m₂ h, eq_of_smul_eq_smul R $ λ r, ring_hom.ext_iff.1 h r
 
 /-- Each element of the group defines a semiring isomorphism. -/
 def mul_semiring_action.to_semiring_equiv [mul_semiring_action G R] (x : G) : R ≃+* R :=
@@ -124,9 +124,7 @@ end simp_lemmas
 
 namespace polynomial
 
-variables [mul_semiring_action M S]
-
-noncomputable instance : mul_semiring_action M (polynomial S) :=
+noncomputable instance [mul_semiring_action M S] : mul_semiring_action M (polynomial S) :=
 { smul := λ m, map $ mul_semiring_action.to_semiring_hom M S m,
   one_smul := λ p, by { ext n, erw coeff_map, exact one_smul M (p.coeff n) },
   mul_smul := λ m n p, by { ext i,
@@ -136,6 +134,17 @@ noncomputable instance : mul_semiring_action M (polynomial S) :=
   smul_zero := λ m, map_zero (mul_semiring_action.to_semiring_hom M S m),
   smul_one := λ m, map_one (mul_semiring_action.to_semiring_hom M S m),
   smul_mul := λ m p q, map_mul (mul_semiring_action.to_semiring_hom M S m), }
+
+noncomputable instance [faithful_mul_semiring_action M S] :
+  faithful_mul_semiring_action M (polynomial S) :=
+{ eq_of_smul_eq_smul' := λ m₁ m₂ h, eq_of_smul_eq_smul S $ λ s, C_inj.1 $
+    calc  C (m₁ • s)
+        = m₁ • C s : (map_C $ mul_semiring_action.to_semiring_hom M S m₁).symm
+    ... = m₂ • C s : h (C s)
+    ... = C (m₂ • s) : map_C _,
+  .. polynomial.mul_semiring_action M S }
+
+variables [mul_semiring_action M S]
 
 @[simp] lemma coeff_smul' (m : M) (p : polynomial S) (n : ℕ) :
   (m • p).coeff n = m • p.coeff n :=

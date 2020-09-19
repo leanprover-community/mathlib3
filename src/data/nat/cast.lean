@@ -153,6 +153,10 @@ by by_cases a ≤ b; simp [h, max]
   abs (a : α) = a :=
 abs_of_nonneg (cast_nonneg a)
 
+lemma coe_nat_dvd [comm_semiring α] (m n : ℕ) (h : m ∣ n) :
+  (m : α) ∣ (n : α) :=
+ring_hom.map_dvd (nat.cast_ring_hom α) h
+
 section linear_ordered_field
 variables [linear_ordered_field α]
 
@@ -160,7 +164,7 @@ lemma inv_pos_of_nat {n : ℕ} : 0 < ((n : α) + 1)⁻¹ :=
 inv_pos.2 $ add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
 
 lemma one_div_pos_of_nat {n : ℕ} : 0 < 1 / ((n : α) + 1) :=
-by { rw one_div_eq_inv, exact inv_pos_of_nat }
+by { rw one_div, exact inv_pos_of_nat }
 
 lemma one_div_le_one_div {n m : ℕ} (h : n ≤ m) : 1 / ((m : α) + 1) ≤ 1 / ((n : α) + 1) :=
 by { refine one_div_le_one_div_of_le _ _, exact nat.cast_add_one_pos _, simpa }

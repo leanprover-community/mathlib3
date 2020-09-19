@@ -369,7 +369,7 @@ begin
   cases h.left with f,
   have : ¬ surjective f := λ hn,
     ne_of_lt h (quotient.sound ⟨equiv.of_bijective f ⟨f.injective, hn⟩⟩),
-  cases classical.not_forall.1 this with b nex,
+  cases not_forall.1 this with b nex,
   refine ⟨⟨sum.rec (by exact f) _, _⟩⟩,
   { exact λ _, b },
   { intros a b h, rcases a with a|⟨⟨⟨⟩⟩⟩; rcases b with b|⟨⟨⟨⟩⟩⟩,
@@ -640,6 +640,17 @@ le_antisymm (add_one_le_succ _) (succ_le.2 $ nat_cast_lt.2 $ nat.lt_succ_self _)
 @[simp] theorem succ_zero : succ 0 = 1 :=
 by norm_cast
 
+theorem card_le_of {α : Type u} {n : ℕ} (H : ∀ s : finset α, s.card ≤ n) :
+  # α ≤ n :=
+begin
+  refine lt_succ.1 (lt_of_not_ge $ λ hn, _),
+  rw [← cardinal.nat_succ, ← cardinal.lift_mk_fin n.succ] at hn,
+  cases hn with f,
+  refine not_lt_of_le (H $ finset.univ.map f) _,
+  rw [finset.card_map, ← fintype.card, fintype.card_ulift, fintype.card_fin],
+  exact n.lt_succ_self
+end
+
 theorem cantor' (a) {b : cardinal} (hb : 1 < b) : a < b ^ a :=
 by rw [← succ_le, (by norm_cast : succ 1 = 2)] at hb;
    exact lt_of_lt_of_le (cantor _) (power_le_power_right hb)
@@ -652,7 +663,7 @@ by rw [one_le_iff_pos, pos_iff_ne_zero]
 
 theorem nat_lt_omega (n : ℕ) : (n : cardinal.{u}) < omega :=
 succ_le.1 $ by rw [← nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; exact
-⟨⟨fin.val, λ a b, fin.eq_of_veq⟩⟩
+⟨⟨coe, λ a b, fin.ext⟩⟩
 
 @[simp] theorem one_lt_omega : 1 < omega :=
 by simpa using nat_lt_omega 1
@@ -669,7 +680,7 @@ theorem lt_omega {c : cardinal.{u}} : c < omega ↔ ∃ n : ℕ, c = n :=
   have P : ∀ (n : ℕ) (IH : ∀ i<n, S), ∃ a : S, ¬ ∃ y h, IH y h = a :=
     λ n IH,
     let g : {i | i < n} → S := λ ⟨i, h⟩, IH i h in
-    classical.not_forall.1 (λ h, nf
+    not_forall.1 (λ h, nf
       ⟨fintype.of_surjective g (λ a, subtype.exists.2 (h a))⟩),
   let F : ℕ → S := nat.lt_wf.fix (λ n IH, classical.some (P n IH)),
   refine not_le_of_lt h' ⟨⟨F, _⟩⟩,
@@ -799,7 +810,7 @@ lt_of_not_ge $ λ ⟨F⟩, begin
   have sG : surjective G := inv_fun_surjective F.2,
   choose C hc using show ∀ i, ∃ b, ∀ a, G ⟨i, a⟩ i ≠ b,
   { assume i,
-    simp only [- not_exists, not_exists.symm, classical.not_forall.symm],
+    simp only [- not_exists, not_exists.symm, not_forall.symm],
     refine λ h, not_le_of_lt (H i) _,
     rw [← mk_out (f i), ← mk_out (g i)],
     exact ⟨embedding.of_surjective _ h⟩ },

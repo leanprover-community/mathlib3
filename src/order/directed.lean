@@ -57,10 +57,11 @@ lemma directed_of_inf [semilattice_inf α] {r : β → β → Prop} {f : α → 
   (hf : ∀a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
 assume x y, ⟨x ⊓ y, hf _ _ inf_le_left, hf _ _ inf_le_right⟩
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
 /-- A `preorder` is a `directed_order` if for any two elements `i`, `j`
 there is an element `k` such that `i ≤ k` and `j ≤ k`. -/
 class directed_order (α : Type u) extends preorder α :=
 (directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)
-end prio
+
+@[priority 100]  -- see Note [lower instance priority]
+instance linear_order.to_directed_order (α) [linear_order α] : directed_order α :=
+⟨λ i j, or.cases_on (le_total i j) (λ hij, ⟨j, hij, le_refl j⟩) (λ hji, ⟨i, le_refl i, hji⟩)⟩

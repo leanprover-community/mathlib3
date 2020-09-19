@@ -1065,7 +1065,7 @@ end
 section
 variables [ring R]
 variables [add_comm_group M] [topological_add_group M] [module R M]
-variables [add_comm_group M₂] [topological_add_group M₂] [module R M₂]
+variables [add_comm_group M₂] [module R M₂]
 
 @[simp] lemma ring_inverse_equiv (e : M ≃L[R] M) :
   ring.inverse ↑e = inverse (e : M →L[R] M) :=

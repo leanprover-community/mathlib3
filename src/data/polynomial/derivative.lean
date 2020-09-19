@@ -233,32 +233,6 @@ begin
     { norm_cast at h2 } }
 end
 
-theorem pow_deriv (p : polynomial R) (n : ℕ) (hn : 0 < n) :
-  (p ^ n).derivative = (C (n:R)) * (p ^ (n-1)) * p.derivative :=
-begin
-    induction n with n IH,
-    { exfalso,  exact nat.lt_asymm hn hn},
-    { cases n,
-      { simp only [one_mul, pow_one, ring_hom.map_one, nat.cast_one, pow_zero]},
-      { replace IH := IH (nat.succ_pos n),
-        rw nat.succ_eq_add_one, rw pow_add,
-        simp only [derivative_mul, ring_hom.map_add, nat.succ_add_sub_one, pow_one, nat.cast_succ, ring_hom.map_one, C_eq_nat_cast],
-        rw IH,
-        simp only [nat.succ_sub_succ_eq_sub, ring_hom.map_add, nat.cast_succ, nat.sub_zero, ring_hom.map_one, C_eq_nat_cast],
-        conv_rhs {
-          rw [add_mul,add_mul, pow_add, pow_one, one_mul],
-          congr,
-          {rw [mul_assoc]},
-          { congr,
-            { congr,
-              { skip },
-              { rw <-pow_one p }},
-          },
-        },
-        rw <-pow_add,
-        ring, }}
-end
-
 end domain
 
 end derivative

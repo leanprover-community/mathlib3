@@ -65,7 +65,7 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]
 
 open metric set asymptotics continuous_linear_map filter
-open_locale classical topological_space
+open_locale classical topological_space nnreal
 
 /-! ### One-dimensional fencing inequalities -/
 
@@ -452,6 +452,19 @@ begin
   exact bound (g t) (segm $ Ico_subset_Icc_self ht)
 end
 
+/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on `s`,
+then the function is `C`-Lipschitz on `s`. Version with `has_fderiv_within` and `lipschitz_on_with`. -/
+theorem convex.lipschitz_on_with_of_norm_has_fderiv_within_le
+  {f : E → F} {C : ℝ} {s : set E} {f' : E → (E →L[ℝ] F)}
+  (hf : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (bound : ∀x∈s, ∥f' x∥ ≤ C)
+  (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s :=
+begin
+  rw lipschitz_on_with_iff_norm_sub_le,
+  intros x x_in y y_in,
+  convert hs.norm_image_sub_le_of_norm_has_fderiv_within_le hf bound y_in x_in,
+  exact nnreal.coe_of_real C ((norm_nonneg $ f' x).trans $ bound x x_in)
+end
+
 /-- The mean value theorem on a convex set: if the derivative of a function within this set is
 bounded by `C`, then the function is `C`-Lipschitz. Version with `fderiv_within`. -/
 theorem convex.norm_image_sub_le_of_norm_fderiv_within_le {f : E → F} {C : ℝ} {s : set E} {x y : E}
@@ -460,6 +473,13 @@ theorem convex.norm_image_sub_le_of_norm_fderiv_within_le {f : E → F} {C : ℝ
 hs.norm_image_sub_le_of_norm_has_fderiv_within_le (λ x hx, (hf x hx).has_fderiv_within_at)
 bound xs ys
 
+/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on `s`,
+then the function is `C`-Lipschitz on `s`. Version with `fderiv_within` and `lipschitz_on_with`. -/
+theorem convex.lipschitz_on_with_of_norm_fderiv_within_le {f : E → F} {C : ℝ} {s : set E}
+  (hf : differentiable_on ℝ f s) (bound : ∀x∈s, ∥fderiv_within ℝ f s x∥ ≤ C)
+  (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s:=
+hs.lipschitz_on_with_of_norm_has_fderiv_within_le (λ x hx, (hf x hx).has_fderiv_within_at) bound
+
 /-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C`,
 then the function is `C`-Lipschitz. Version with `fderiv`. -/
 theorem convex.norm_image_sub_le_of_norm_fderiv_le {f : E → F} {C : ℝ} {s : set E} {x y : E}
@@ -467,6 +487,14 @@ theorem convex.norm_image_sub_le_of_norm_fderiv_le {f : E → F} {C : ℝ} {s : 
   (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
 hs.norm_image_sub_le_of_norm_has_fderiv_within_le
 (λ x hx, (hf x hx).has_fderiv_at.has_fderiv_within_at) bound xs ys
+
+/-- The mean value theorem on a convex set: if the derivative of a function is bounded by `C` on `s`,
+then the function is `C`-Lipschitz on `s`. Version with `fderiv` and `lipschitz_on_with`. -/
+theorem convex.lipschitz_on_with_of_norm_fderiv_le {f : E → F} {C : ℝ} {s : set E}
+  (hf : ∀ x ∈ s, differentiable_at ℝ f x) (bound : ∀x∈s, ∥fderiv ℝ f x∥ ≤ C)
+  (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s :=
+hs.lipschitz_on_with_of_norm_has_fderiv_within_le
+(λ x hx, (hf x hx).has_fderiv_at.has_fderiv_within_at) bound
 
 /-- Variant of the mean value inequality on a convex set, using a bound on the difference between
 the derivative and a fixed linear map, rather than a bound on the derivative itself. Version with
@@ -528,6 +556,16 @@ theorem convex.norm_image_sub_le_of_norm_has_deriv_within_le
 convex.norm_image_sub_le_of_norm_has_fderiv_within_le (λ x hx, (hf x hx).has_fderiv_within_at)
 (λ x hx, le_trans (by simp) (bound x hx)) hs xs ys
 
+/-- The mean value theorem on a convex set in dimension 1: if the derivative of a function is
+bounded by `C` on `s`, then the function is `C`-Lipschitz on `s`.
+Version with `has_deriv_within` and `lipschitz_on_with`. -/
+theorem convex.lipschitz_on_with_of_norm_has_deriv_within_le
+  {f f' : ℝ → F} {C : ℝ} {s : set ℝ} (hs : convex s)
+  (hf : ∀ x ∈ s, has_deriv_within_at f (f' x) s x) (bound : ∀x∈s, ∥f' x∥ ≤ C) :
+  lipschitz_on_with (nnreal.of_real C) f s :=
+convex.lipschitz_on_with_of_norm_has_fderiv_within_le (λ x hx, (hf x hx).has_fderiv_within_at)
+(λ x hx, le_trans (by simp) (bound x hx)) hs
+
 /-- The mean value theorem on a convex set in dimension 1: if the derivative of a function within
 this set is bounded by `C`, then the function is `C`-Lipschitz. Version with `deriv_within` -/
 theorem convex.norm_image_sub_le_of_norm_deriv_within_le
@@ -538,12 +576,30 @@ hs.norm_image_sub_le_of_norm_has_deriv_within_le (λ x hx, (hf x hx).has_deriv_w
 bound xs ys
 
 /-- The mean value theorem on a convex set in dimension 1: if the derivative of a function is
+bounded by `C` on `s`, then the function is `C`-Lipschitz on `s`.
+Version with `deriv_within` and `lipschitz_on_with`. -/
+theorem convex.lipschitz_on_with_of_norm_deriv_within_le
+  {f : ℝ → F} {C : ℝ} {s : set ℝ} (hs : convex s)
+  (hf : differentiable_on ℝ f s) (bound : ∀x∈s, ∥deriv_within f s x∥ ≤ C) :
+  lipschitz_on_with (nnreal.of_real C) f s :=
+hs.lipschitz_on_with_of_norm_has_deriv_within_le (λ x hx, (hf x hx).has_deriv_within_at) bound
+
+/-- The mean value theorem on a convex set in dimension 1: if the derivative of a function is
 bounded by `C`, then the function is `C`-Lipschitz. Version with `deriv`. -/
 theorem convex.norm_image_sub_le_of_norm_deriv_le {f : ℝ → F} {C : ℝ} {s : set ℝ} {x y : ℝ}
   (hf : ∀ x ∈ s, differentiable_at ℝ f x) (bound : ∀x∈s, ∥deriv f x∥ ≤ C)
   (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
 hs.norm_image_sub_le_of_norm_has_deriv_within_le
 (λ x hx, (hf x hx).has_deriv_at.has_deriv_within_at) bound xs ys
+
+/-- The mean value theorem on a convex set in dimension 1: if the derivative of a function is
+bounded by `C` on `s`, then the function is `C`-Lipschitz on `s`.
+Version with `deriv` and `lipschitz_on_with`. -/
+theorem convex.lipschitz_on_with_of_norm_deriv_le {f : ℝ → F} {C : ℝ} {s : set ℝ}
+  (hf : ∀ x ∈ s, differentiable_at ℝ f x) (bound : ∀x∈s, ∥deriv f x∥ ≤ C)
+  (hs : convex s) : lipschitz_on_with (nnreal.of_real C) f s :=
+hs.lipschitz_on_with_of_norm_has_deriv_within_le
+(λ x hx, (hf x hx).has_deriv_at.has_deriv_within_at) bound
 
 /-! ### Functions `[a, b] → ℝ`. -/
 

@@ -221,6 +221,10 @@ instance to_ring : ring s :=
 @[simp, norm_cast] lemma coe_zero : ((0 : s) : R) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : s) : R) = 1 := rfl
 
+@[simp] lemma coe_eq_zero_iff {x : s} : (x : R) = 0 ↔ x = 0 :=
+⟨λ h, subtype.ext (trans h s.coe_zero.symm),
+ λ h, h.symm ▸ s.coe_zero⟩
+
 /-- A subring of a `comm_ring` is a `comm_ring`. -/
 def to_comm_ring {R} [comm_ring R] (s : subring R) : comm_ring s :=
 { mul_comm := λ _ _, subtype.eq $ mul_comm _ _, ..subring.to_ring s}

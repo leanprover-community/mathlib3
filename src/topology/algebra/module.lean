@@ -618,27 +618,6 @@ subtype.ext_iff_val.2 $ by simp
   f₁.proj_ker_of_right_inverse f₂ h (f₂ y) = 0 :=
 subtype.ext_iff_val.2 $ by simp [h y]
 
-variables [topological_add_group M] [topological_add_group M₂]
-open opposite
-
-instance source_module : module (M →L[R] M)ᵒᵖ (M →L[R] M₂) :=
-{ smul := λ p f, f.comp (unop p),
-  one_smul := λ p, comp_id p,
-  mul_smul := λ p q f, by { simp only [unop_mul], refl },
-  smul_add := λ p f g, rfl,
-  smul_zero := λ p, rfl,
-  add_smul := λ p q f, by simp,
-  zero_smul := λ f, by simp }
-
-instance target_module : module (M₂ →L[R] M₂) (M →L[R] M₂) :=
-{ smul := λ p f, p.comp f,
-  one_smul := λ p, id_comp p,
-  mul_smul := λ p q f, rfl,
-  smul_add := λ p f g, by simp,
-  smul_zero := λ p, by simp,
-  add_smul := λ p q f, rfl,
-  zero_smul := λ f, rfl }
-
 end ring
 
 section comm_ring

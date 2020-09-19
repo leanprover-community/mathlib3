@@ -26,7 +26,8 @@ For example, `algebra.adjoin K {x}` might not include `x⁻¹`.
 -/
 
 namespace field
-section
+
+section adjoin_def
 variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E] (S : set E)
 
 /--
@@ -149,6 +150,7 @@ instance fancy_insert_nonempty {α : Type*} (s : set α) : fancy_insert s :=
 
 notation K`⟮`:std.prec.max_plus l:(foldr `, ` (h t, fancy_insert.insert t h) ∅) `⟯` := adjoin K l
 
+section adjoin_simple
 variables (α : E)
 
 lemma mem_adjoin_simple_self : α ∈ F⟮α⟯ :=
@@ -165,9 +167,10 @@ by apply adjoin_adjoin_left
 lemma adjoin_simple_comm (β : E) : (F⟮α⟯⟮β⟯ : set E) = (F⟮β⟯⟮α⟯ : set E) :=
 by apply adjoin_adjoin_comm
 
-end
+end adjoin_simple
+end adjoin_def
 
-section
+section adjoin_dim
 open finite_dimensional
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E] (α : E)
 
@@ -211,6 +214,6 @@ adjoin_self (0 : E) (algebra.mem_bot.mpr (is_add_submonoid.zero_mem))
 lemma adjoin_one : F⟮1⟯ = (⊥ : subalgebra F E) :=
 adjoin_self (1 : E) (algebra.mem_bot.mpr (is_submonoid.one_mem))
 
-end
+end adjoin_dim
 
 end field

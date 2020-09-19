@@ -27,8 +27,7 @@ open finite_dimensional
 
 namespace field
 
-section
-
+section primitive_element_finite
 variables (F : Type*) [field F] {E : Type*} [field E] [algebra F E]
 
 /-! ### Primitive element theorem for finite fields -/
@@ -56,10 +55,9 @@ begin
   exact primitive_element_fin_aux F,
 end
 
-end
+end primitive_element_finite
 
-section
-
+section primitive_element_inf_lemmas
 variables {F : Type*} [field F] {E : Type*} [field E] (ϕ : F →+* E)
 
 /-! ### Primitive element theorem for infinite fields -/
@@ -105,8 +103,9 @@ begin
   { exact polynomial.nodup_roots (polynomial.separable.map h_sep) },
 end
 
-end
+end primitive_element_inf_lemmas
 
+section primitive_element_theorem
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
 lemma primitive_element_two_inf (α β : E) (F_sep : is_separable F E)   (F_inf : infinite F) :
@@ -200,9 +199,8 @@ begin
   exact ⟨γ, Fαβ_sub_Fγ⟩,
 end
 
+section primitive_element_same_universe
 universe u
-
-
 
 /-- Primitive element theorem for infinite fields. -/
 theorem primitive_element_inf {F E : Type u} [field F] [field E] [algebra F E]
@@ -232,8 +230,6 @@ begin
     exact ⟨0, by rw adjoin_zero⟩, },
 end
 
-/- Actual primitive element theorem. -/
-
 /-- Primitive element theorem in same universe. -/
 theorem primitive_element_aux (F E : Type u) [field F] [field E] [algebra F E]
   (F_sep : is_separable F E)  (F_findim : finite_dimensional F E) :
@@ -244,7 +240,9 @@ begin
   { exact primitive_element_inf F_sep F_findim (not_nonempty_fintype.mp F_finite) (findim F E) rfl, },
 end
 
-/-- Primitive element theorem in different universes. -/
+end primitive_element_same_universe
+
+/-- Complete primitive element theorem. -/
 theorem primitive_element (F_sep : is_separable F E)  (F_findim : finite_dimensional F E) :
   ∃ α : E, F⟮α⟯ = ⊤ :=
 begin
@@ -257,5 +255,7 @@ begin
     simp [set.ext_iff, algebra.mem_bot], },
   exact ⟨α, by simp [subalgebra.ext_iff, set.ext_iff, algebra.mem_top, *] at *⟩,
 end
+
+end primitive_element_theorem
 
 end field

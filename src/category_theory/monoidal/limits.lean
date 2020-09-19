@@ -37,7 +37,7 @@ instance limit_functorial : functorial (λ F : J ⥤ C, limit F) := { ..limits.l
 variables  [monoidal_category.{v} C]
 
 @[simps]
-instance limit_lax_functorial : lax_monoidal (λ F : J ⥤ C, limit F) :=
+instance limit_lax_monoidal : lax_monoidal (λ F : J ⥤ C, limit F) :=
 { ε := limit.lift _ { X := _, π := { app := λ j, 𝟙 _, } },
   μ := λ F G, limit.lift (F ⊗ G)
     { X := limit F ⊗ limit G,
@@ -90,6 +90,8 @@ instance limit_lax_functorial : lax_monoidal (λ F : J ⥤ C, limit F) :=
 def lim_lax : lax_monoidal_functor (J ⥤ C) C := lax_monoidal_functor.of (λ F : J ⥤ C, limit F)
 
 @[simp] lemma lim_lax_obj (F : J ⥤ C) : lim_lax.obj F = limit F := rfl
+
+lemma lim_lax_obj' (F : J ⥤ C) : lim_lax.obj F = lim.obj F := rfl
 
 @[simp] lemma lim_lax_map {F G : J ⥤ C} (α : F ⟶ G) : lim_lax.map α = lim.map α := rfl
 

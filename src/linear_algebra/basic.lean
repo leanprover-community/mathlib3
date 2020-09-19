@@ -1203,7 +1203,7 @@ lemma range_cod_restrict (p : submodule R M) (f : M₂ →ₗ[R] M) (hf) :
   range (cod_restrict p f hf) = comap p.subtype f.range :=
 map_cod_restrict _ _ _ _
 
-lemma ker_restrict (p : submodule R M) (f : M →ₗ[R] M) (hf: ∀ x : M, x ∈ p → f x ∈ p) :
+lemma ker_restrict {p : submodule R M} {f : M →ₗ[R] M} (hf : ∀ x : M, x ∈ p → f x ∈ p) :
   ker (f.restrict hf) = (f.dom_restrict p).ker :=
 by rw [restrict_eq_cod_restrict_dom_restrict, ker_cod_restrict]
 

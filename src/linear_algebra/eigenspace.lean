@@ -49,53 +49,52 @@ namespace End
 
 open vector_space principal_ideal_ring polynomial finite_dimensional
 
-variables {K : Type v} {V : Type w} [add_comm_group V]
+variables {K R : Type v} {V M : Type w}
+  [comm_ring R] [add_comm_group M] [module R M] [field K] [add_comm_group V] [vector_space K V]
 
-local notation `am` := algebra_map K (End K V)
+local notation `amR` := algebra_map R (End R M)
+local notation `amK` := algebra_map K (End K V)
 
 /-- The submodule `eigenspace f μ` for a linear map `f` and a scalar `μ` consists of all vectors `x`
     such that `f x = μ • x`. (Def 5.36 of [axler2015])-/
-def eigenspace [comm_ring K] [module K V] (f : End K V) (μ : K) : submodule K V :=
-(f - am μ).ker
+def eigenspace (f : End R M) (μ : R) : submodule R M :=
+(f - amR μ).ker
 
 /-- A nonzero element of an eigenspace is an eigenvector. (Def 5.7 of [axler2015]) -/
-def has_eigenvector [comm_ring K] [module K V] (f : End K V) (μ : K) (x : V) : Prop :=
+def has_eigenvector (f : End R M) (μ : R) (x : M) : Prop :=
 x ≠ 0 ∧ x ∈ eigenspace f μ
 
 /-- A scalar `μ` is an eigenvalue for a linear map `f` if there are nonzero vectors `x`
     such that `f x = μ • x`. (Def 5.5 of [axler2015]) -/
-def has_eigenvalue [comm_ring K] [module K V] (f : End K V) (a : K) : Prop :=
+def has_eigenvalue (f : End R M) (a : R) : Prop :=
 eigenspace f a ≠ ⊥
 
-lemma mem_eigenspace_iff [comm_ring K] [module K V]
- {f : End K V} {μ : K} {x : V} : x ∈ eigenspace f μ ↔ f x = μ • x :=
+lemma mem_eigenspace_iff {f : End R M} {μ : R} {x : M} : x ∈ eigenspace f μ ↔ f x = μ • x :=
 by rw [eigenspace, linear_map.mem_ker, linear_map.sub_apply, algebra_map_End_apply,
-   sub_eq_zero]
+  sub_eq_zero]
 
-lemma eigenspace_div [field K] [vector_space K V] (f : End K V) (a b : K) (hb : b ≠ 0) :
-  eigenspace f (a / b) = (b • f - am a).ker :=
+lemma eigenspace_div (f : End K V) (a b : K) (hb : b ≠ 0) :
+  eigenspace f (a / b) = (b • f - amK a).ker :=
 calc
   eigenspace f (a / b) = eigenspace f (b⁻¹ * a) : by { dsimp [(/)], rw mul_comm }
   ... = (f - (b⁻¹ * a) • linear_map.id).ker : rfl
   ... = (f - b⁻¹ • a • linear_map.id).ker : by rw smul_smul
-  ... = (f - b⁻¹ • am a).ker : rfl
-  ... = (b • (f - b⁻¹ • am a)).ker : by rw linear_map.ker_smul _ b hb
-  ... = (b • f - am a).ker : by rw [smul_sub, smul_inv_smul' hb]
+  ... = (f - b⁻¹ • amK a).ker : rfl
+  ... = (b • (f - b⁻¹ • amK a)).ker : by rw linear_map.ker_smul _ b hb
+  ... = (b • f - amK a).ker : by rw [smul_sub, smul_inv_smul' hb]
 
-lemma eigenspace_eval₂_polynomial_degree_1 [field K] [vector_space K V]
-  (f : End K V) (q : polynomial K) (hq : degree q = 1) :
-  eigenspace f (- q.coeff 0 / q.leading_coeff) = (eval₂ am f q).ker :=
+lemma eigenspace_eval₂_polynomial_degree_1 (f : End K V) (q : polynomial K) (hq : degree q = 1) :
+  eigenspace f (- q.coeff 0 / q.leading_coeff) = (eval₂ amK f q).ker :=
 calc
-  eigenspace f (- q.coeff 0 / q.leading_coeff) = (q.leading_coeff • f - am (- q.coeff 0)).ker
+  eigenspace f (- q.coeff 0 / q.leading_coeff) = (q.leading_coeff • f - amK (- q.coeff 0)).ker
     : by { rw eigenspace_div, intro h, rw leading_coeff_eq_zero_iff_deg_eq_bot.1 h at hq, cases hq }
-  ... = (eval₂ am f (C q.leading_coeff * X + C (q.coeff 0))).ker
+  ... = (eval₂ amK f (C q.leading_coeff * X + C (q.coeff 0))).ker
     : by { rw C_mul', simpa [algebra_map, algebra.to_ring_hom] }
-  ... = (eval₂ am f q).ker
+  ... = (eval₂ amK f q).ker
      : by { congr, apply (eq_X_add_C_of_degree_eq_one hq).symm }
 
-lemma ker_eval₂_ring_hom'_unit_polynomial [field K] [vector_space K V]
-  (f : End K V) (c : units (polynomial K)) :
-  ((eval₂_ring_hom' am algebra.commutes f) ↑c).ker = ⊥ :=
+lemma ker_eval₂_ring_hom'_unit_polynomial (f : End K V) (c : units (polynomial K)) :
+  ((eval₂_ring_hom' amK algebra.commutes f) ↑c).ker = ⊥ :=
 begin
   rw polynomial.eq_C_of_degree_eq_zero (degree_coe_units c),
   simp only [eval₂_ring_hom', ring_hom.of, ring_hom.coe_mk, eval₂_C],
@@ -105,9 +104,7 @@ end
 
 /-- Every linear operator on a vector space over an algebraically closed field has
     an eigenvalue. (Lemma 5.21 of [axler2015]) -/
-lemma exists_eigenvalue
-  [field K] [is_alg_closed K] [vector_space K V] [finite_dimensional K V] [nontrivial V]
-  (f : End K V) :
+lemma exists_eigenvalue [is_alg_closed K] [finite_dimensional K V] [nontrivial V] (f : End K V) :
   ∃ (c : K), f.has_eigenvalue c :=
 begin
   classical,
@@ -118,19 +115,19 @@ begin
   have h_lin_dep : ¬ linear_independent K (λ n : ℕ, (f ^ n) v),
   { apply not_linear_independent_of_infinite, },
   -- Therefore, there must be a nonzero polynomial `p` such that `p(f) v = 0`.
-  obtain ⟨p, h_eval_p, h_p_ne_0⟩ : ∃ p, eval₂ am f p v = 0 ∧ p ≠ 0,
+  obtain ⟨p, h_eval_p, h_p_ne_0⟩ : ∃ p, eval₂ amK f p v = 0 ∧ p ≠ 0,
   { simp only [not_imp.symm],
     exact not_forall.1 (λ h, h_lin_dep ((linear_independent_powers_iff_eval₂ f v).2 h)) },
   -- Then `p(f)` is not invertible.
-  have h_eval_p_not_unit : eval₂_ring_hom' am _ f p ∉ is_unit.submonoid (End K V),
+  have h_eval_p_not_unit : eval₂_ring_hom' amK _ f p ∉ is_unit.submonoid (End K V),
   { rw [is_unit.mem_submonoid_iff, linear_map.is_unit_iff, linear_map.ker_eq_bot'],
     intro h,
     exact hv (h v h_eval_p) },
   -- Hence, there must be a factor `q` of `p` such that `q(f)` is not invertible.
-  obtain ⟨q, hq_factor, hq_nonunit⟩ : ∃ q, q ∈ factors p ∧ ¬ is_unit (eval₂ am f q),
+  obtain ⟨q, hq_factor, hq_nonunit⟩ : ∃ q, q ∈ factors p ∧ ¬ is_unit (eval₂ amK f q),
   { simp only [←not_imp, (is_unit.mem_submonoid_iff _).symm],
     apply not_forall.1 (λ h, h_eval_p_not_unit (ring_hom_mem_submonoid_of_factors_subset_of_units_subset
-      (eval₂_ring_hom' am algebra.commutes f)
+      (eval₂_ring_hom' amK algebra.commutes f)
       (is_unit.submonoid (End K V)) p h_p_ne_0 h _)),
     simp only [is_unit.mem_submonoid_iff, linear_map.is_unit_iff],
     apply ker_eval₂_ring_hom'_unit_polynomial },
@@ -139,14 +136,14 @@ begin
     (ne_zero_of_mem_factors h_p_ne_0 hq_factor)
     ((factors_spec p h_p_ne_0).1 q hq_factor),
   -- Then the kernel of `q(f)` is an eigenspace.
-  have h_eigenspace: eigenspace f (-q.coeff 0 / q.leading_coeff) = (eval₂ am f q).ker,
+  have h_eigenspace: eigenspace f (-q.coeff 0 / q.leading_coeff) = (eval₂ amK f q).ker,
     from eigenspace_eval₂_polynomial_degree_1 f q h_deg_q,
   -- Since `q(f)` is not invertible, the kernel is not `⊥`, and thus there exists an eigenvalue.
   show ∃ (c : K), f.has_eigenvalue c,
   { use -q.coeff 0 / q.leading_coeff,
     rw [has_eigenvalue, h_eigenspace],
     intro h_eval_ker,
-    exact hq_nonunit ((linear_map.is_unit_iff (eval₂ am f q)).2 h_eval_ker) }
+    exact hq_nonunit ((linear_map.is_unit_iff (eval₂ amK f q)).2 h_eval_ker) }
 end
 
 /-- Eigenvectors corresponding to distinct eigenvalues of a linear operator are linearly
@@ -154,8 +151,7 @@ end
 
     We use the eigenvalues as indexing set to ensure that there is only one eigenvector for each
     eigenvalue in the image of `xs`. -/
-lemma eigenvectors_linear_independent [field K] [vector_space K V]
-  (f : End K V) (μs : set K) (xs : μs → V)
+lemma eigenvectors_linear_independent (f : End K V) (μs : set K) (xs : μs → V)
   (h_eigenvec : ∀ μ : μs, f.has_eigenvector μ (xs μ)) :
   linear_independent K xs :=
 begin
@@ -191,7 +187,7 @@ begin
       { to_fun := l'_f, support := l_support', mem_support_to_fun := h_l_support' },
     -- The linear combination `l'` over `xs` adds up to `0`.
     have total_l' : finsupp.total μs V K xs l' = 0,
-    { let g := f - am μ₀,
+    { let g := f - amK μ₀,
       have h_gμ₀: g (l μ₀ • xs μ₀) = 0,
         by rw [linear_map.map_smul, linear_map.sub_apply, mem_eigenspace_iff.1 (h_eigenvec _).2,
           algebra_map_End_apply, sub_self, smul_zero],
@@ -250,32 +246,27 @@ end
 
 /-- The generalized eigenspace for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
     kernel of `(f - μ • id) ^ k`. (Def 8.10 of [axler2015])-/
-def generalized_eigenspace [comm_ring K] [module K V]
-  (f : End K V) (μ : K) (k : ℕ) : submodule K V :=
-((f - am μ) ^ k).ker
+def generalized_eigenspace (f : End R M) (μ : R) (k : ℕ) : submodule R M :=
+((f - amR μ) ^ k).ker
 
 /-- A nonzero element of a generalized eigenspace is a generalized eigenvector.
     (Def 8.9 of [axler2015])-/
-def has_generalized_eigenvector [comm_ring K] [module K V]
-  (f : End K V) (μ : K) (k : ℕ) (x : V) : Prop :=
+def has_generalized_eigenvector (f : End R M) (μ : R) (k : ℕ) (x : M) : Prop :=
 x ≠ 0 ∧ x ∈ generalized_eigenspace f μ k
 
 /-- A scalar `μ` is a generalized eigenvalue for a linear map `f` and an exponent `k ∈ ℕ` if there
     are generalized eigenvectors for `f`, `k`, and `μ`. -/
-def has_generalized_eigenvalue [comm_ring K] [module K V]
-  (f : End K V) (μ : K) (k : ℕ) : Prop :=
+def has_generalized_eigenvalue (f : End R M) (μ : R) (k : ℕ) : Prop :=
 generalized_eigenspace f μ k ≠ ⊥
 
 /-- The generalized eigenrange for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
     range of `(f - μ • id) ^ k`. -/
-def generalized_eigenrange [comm_ring K] [module K V]
-  (f : End K V) (μ : K) (k : ℕ) : submodule K V :=
-((f - am μ) ^ k).range
+def generalized_eigenrange (f : End R M) (μ : R) (k : ℕ) : submodule R M :=
+((f - amR μ) ^ k).range
 
 /-- The exponent of a generalized eigenvalue is never 0. -/
-lemma exp_ne_zero_of_has_generalized_eigenvalue [comm_ring K] [module K V]
-  {f : End K V} {μ : K} {k : ℕ} (h : f.has_generalized_eigenvalue μ k) :
-  k ≠ 0 :=
+lemma exp_ne_zero_of_has_generalized_eigenvalue {f : End R M} {μ : R} {k : ℕ}
+  (h : f.has_generalized_eigenvalue μ k) : k ≠ 0 :=
 begin
   rintro rfl,
   exact h linear_map.ker_id
@@ -283,17 +274,16 @@ end
 
 /-- A generalized eigenspace for some exponent `k` is contained in
     the generalized eigenspace for exponents larger than `k`. -/
-lemma generalized_eigenspace_mono [field K] [vector_space K V]
-  {f : End K V} {μ : K} {k : ℕ} {m : ℕ} (hm : k ≤ m) :
+lemma generalized_eigenspace_mono {f : End K V} {μ : K} {k : ℕ} {m : ℕ} (hm : k ≤ m) :
   f.generalized_eigenspace μ k ≤ f.generalized_eigenspace μ m :=
 begin
   simp only [generalized_eigenspace, ←pow_sub_mul_pow _ hm],
-  exact linear_map.ker_le_ker_comp ((f - am μ) ^ k) ((f - am μ) ^ (m - k))
+  exact linear_map.ker_le_ker_comp ((f - amK μ) ^ k) ((f - amK μ) ^ (m - k))
 end
 
 /-- A generalized eigenvalue for some exponent `k` is also
     a generalized eigenvalue for exponents larger than `k`. -/
-lemma has_generalized_eigenvalue_of_has_generalized_eigenvalue_of_le [field K] [vector_space K V]
+lemma has_generalized_eigenvalue_of_has_generalized_eigenvalue_of_le
   {f : End K V} {μ : K} {k : ℕ} {m : ℕ} (hm : k ≤ m) (hk : f.has_generalized_eigenvalue μ k) :
   f.has_generalized_eigenvalue μ m :=
 begin
@@ -304,13 +294,12 @@ begin
 end
 
 /-- The eigenspace is a subspace of the generalized eigenspace. -/
-lemma eigenspace_le_generalized_eigenspace [field K] [vector_space K V]
-  {f : End K V} {μ : K} {k : ℕ} (hk : 0 < k) :
+lemma eigenspace_le_generalized_eigenspace {f : End K V} {μ : K} {k : ℕ} (hk : 0 < k) :
   f.eigenspace μ ≤ f.generalized_eigenspace μ k :=
 generalized_eigenspace_mono (nat.succ_le_of_lt hk)
 
 /-- All eigenvalues are generalized eigenvalues. -/
-lemma has_generalized_eigenvalue_of_has_eigenvalue [field K] [vector_space K V]
+lemma has_generalized_eigenvalue_of_has_eigenvalue
   {f : End K V} {μ : K} {k : ℕ} (hk : 0 < k) (hμ : f.has_eigenvalue μ) :
   f.has_generalized_eigenvalue μ k :=
 begin
@@ -321,20 +310,19 @@ end
 /-- Every generalized eigenvector is a generalized eigenvector for exponent `findim K V`.
     (Lemma 8.11 of [axler2015]) -/
 lemma generalized_eigenspace_le_generalized_eigenspace_findim
-  [field K] [vector_space K V] [finite_dimensional K V] (f : End K V) (μ : K) (k : ℕ) :
+  [finite_dimensional K V] (f : End K V) (μ : K) (k : ℕ) :
   f.generalized_eigenspace μ k ≤ f.generalized_eigenspace μ (findim K V) :=
 ker_pow_le_ker_pow_findim _ _
 
 /-- Generalized eigenspaces for exponents at least `findim K V` are equal to each other. -/
-lemma generalized_eigenspace_eq_generalized_eigenspace_findim_of_le
-  [field K] [vector_space K V] [finite_dimensional K V]
+lemma generalized_eigenspace_eq_generalized_eigenspace_findim_of_le [finite_dimensional K V]
   (f : End K V) (μ : K) {k : ℕ} (hk : findim K V ≤ k) :
   f.generalized_eigenspace μ k = f.generalized_eigenspace μ (findim K V) :=
 ker_pow_eq_ker_pow_findim_of_le hk
 
 /-- If `f` maps a subspace `p` into itself, then the generalized eigenspace of the restriction
     of `f` to `p` is the part of the generalized eigenspace of `f` that lies in `p`. -/
-lemma generalized_eigenspace_restrict [field K] [vector_space K V]
+lemma generalized_eigenspace_restrict
   (f : End K V) (p : submodule K V) (k : ℕ) (μ : K) (hfp : ∀ (x : V), x ∈ p → f x ∈ p) :
   generalized_eigenspace (linear_map.restrict f hfp) μ k =
     submodule.comap p.subtype (f.generalized_eigenspace μ k) :=
@@ -349,27 +337,24 @@ begin
 end
 
 /-- Generalized eigenrange and generalized eigenspace for exponent `findim K V` are disjoint. -/
-lemma generalized_eigenvec_disjoint_range_ker
-  [field K] [vector_space K V] [finite_dimensional K V] (f : End K V) (μ : K) :
+lemma generalized_eigenvec_disjoint_range_ker [finite_dimensional K V] (f : End K V) (μ : K) :
   disjoint (f.generalized_eigenrange μ (findim K V)) (f.generalized_eigenspace μ (findim K V))  :=
 begin
-  have h : submodule.comap ((f - am μ) ^ findim K V) (f.generalized_eigenspace μ (findim K V)) =
-    (f.generalized_eigenspace μ (findim K V)),
-    from calc
-      submodule.comap ((f - am μ) ^ findim K V) (f.generalized_eigenspace μ (findim K V))
-         = ((f - am μ) ^ findim K V * (f - am μ) ^ findim K V).ker :
+  have h := calc
+    submodule.comap ((f - amK μ) ^ findim K V) (f.generalized_eigenspace μ (findim K V))
+      = ((f - amK μ) ^ findim K V * (f - amK μ) ^ findim K V).ker :
         by { rw [generalized_eigenspace, ←linear_map.ker_comp], refl }
-     ... = f.generalized_eigenspace μ (findim K V + findim K V) :
+  ... = f.generalized_eigenspace μ (findim K V + findim K V) :
         by { rw ←pow_add, refl }
-     ... = f.generalized_eigenspace μ (findim K V) :
+  ... = f.generalized_eigenspace μ (findim K V) :
         by { rw generalized_eigenspace_eq_generalized_eigenspace_findim_of_le, linarith },
-  erw [disjoint, submodule.map_inf_eq_map_inf_comap, top_inf_eq, h],
-  apply submodule.map_comap_le,
+  rw [disjoint, generalized_eigenrange, linear_map.range, submodule.map_inf_eq_map_inf_comap,
+    top_inf_eq, h],
+  apply submodule.map_comap_le
 end
 
 /-- The generalized eigenspace of an eigenvalue has positive dimension for positive exponents. -/
-lemma pos_findim_generalized_eigenspace_of_has_eigenvalue
-  [field K] [vector_space K V] [finite_dimensional K V]
+lemma pos_findim_generalized_eigenspace_of_has_eigenvalue [finite_dimensional K V]
   {f : End K V} {k : ℕ} {μ : K} (hx : f.has_eigenvalue μ) (hk : 0 < k):
   0 < findim K (f.generalized_eigenspace μ k) :=
 calc
@@ -379,19 +364,16 @@ calc
     submodule.findim_mono (generalized_eigenspace_mono (nat.succ_le_of_lt hk))
 
 /-- A linear map maps a generalized eigenrange into itself. -/
-lemma map_generalized_eigenrange_le [field K] [vector_space K V] {f : End K V} {μ : K} {n : ℕ} :
+lemma map_generalized_eigenrange_le {f : End K V} {μ : K} {n : ℕ} :
   submodule.map f (f.generalized_eigenrange μ n) ≤ f.generalized_eigenrange μ n :=
 calc submodule.map f (f.generalized_eigenrange μ n)
-       = (f.comp ((f - am μ) ^ n)).range : by erw ←linear_map.range_comp
-   ... = (f * ((f - am μ) ^ n)).range : rfl
-   ... = (((f - am μ) ^ n) * f).range : by rw algebra.mul_sub_algebra_map_pow_commutes
-   ... = (((f - am μ) ^ n).comp f).range : rfl
-   ... = submodule.map ((f - am μ) ^ n) f.range : by rw linear_map.range_comp
+       = (f * ((f - amK μ) ^ n)).range : (linear_map.range_comp _ _).symm
+   ... = (((f - amK μ) ^ n) * f).range : by rw algebra.mul_sub_algebra_map_pow_commutes
+   ... = submodule.map ((f - amK μ) ^ n) f.range : linear_map.range_comp _ _
    ... ≤ f.generalized_eigenrange μ n : linear_map.map_le_range
 
 /-- The generalized eigenvectors span the entire vector space (Lemma 8.21 of [axler2015]). -/
-lemma supr_generalized_eigenspace_eq_top
-  [field K] [is_alg_closed K] [vector_space K V] [finite_dimensional K V] (f : End K V) :
+lemma supr_generalized_eigenspace_eq_top [is_alg_closed K] [finite_dimensional K V] (f : End K V) :
   (⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k) = ⊤ :=
 begin
   tactic.unfreeze_local_instances,
@@ -402,7 +384,7 @@ begin
   { rw ←top_le_iff,
     simp only [findim_eq_zero.1 (eq.trans findim_top h_dim), bot_le] },
   -- Otherwise the vector space is nontrivial.
-  { haveI : nontrivial V := findim_pos_iff.1 (by { rw [h_dim], apply nat.zero_lt_succ }),
+  { haveI : nontrivial V := findim_pos_iff.1 (by { rw h_dim, apply nat.zero_lt_succ }),
     -- Hence, `f` has an eigenvalue `μ₀`.
     obtain ⟨μ₀, hμ₀⟩ : ∃ μ₀, f.has_eigenvalue μ₀ := exists_eigenvalue f,
     -- We define `ES` to be the generalized eigenspace
@@ -436,8 +418,8 @@ begin
     have hff' : ∀ μ k,
         (f'.generalized_eigenspace μ k).map ER.subtype ≤ f.generalized_eigenspace μ k,
     { intros,
-      rw [generalized_eigenspace_restrict],
-      apply submodule.map_comap_le},
+      rw generalized_eigenspace_restrict,
+      apply submodule.map_comap_le },
     -- It follows that `ER` is contained in the span of all generalized eigenvectors.
     have hER : ER ≤ ⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k,
     { rw ← ih_ER',

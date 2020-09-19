@@ -1107,6 +1107,12 @@ lemma submodule.orthogonal_gc :
 
 variables {α}
 
+/-- `submodule.orthogonal` reverses the `≤` ordering of two
+subspaces. -/
+lemma submodule.orthogonal_le {K₁ K₂ : submodule ℝ α} (h : K₁ ≤ K₂) :
+  K₂.orthogonal ≤ K₁.orthogonal :=
+(submodule.orthogonal_gc α).monotone_l h
+
 /-- `K` is contained in `K.orthogonal.orthogonal`. -/
 lemma submodule.le_orthogonal_orthogonal (K : submodule ℝ α) : K ≤ K.orthogonal.orthogonal :=
 (submodule.orthogonal_gc α).le_u_l _
@@ -1129,21 +1135,28 @@ lemma submodule.Inf_orthogonal (s : set $ submodule ℝ α) :
   (⨅ K ∈ s, submodule.orthogonal K) = (Sup s).orthogonal :=
 (submodule.orthogonal_gc α).l_Sup.symm
 
+/-- If `K₁` is complete and contained in `K₂`, `K₁` and `K₁.orthogonal ⊓ K₂` span `K₂`. -/
+lemma submodule.sup_orthogonal_inf_of_is_complete {K₁ K₂ : submodule ℝ α} (h : K₁ ≤ K₂)
+  (hc : is_complete (K₁ : set α)) : K₁ ⊔ (K₁.orthogonal ⊓ K₂) = K₂ :=
+begin
+  ext x,
+  rw submodule.mem_sup,
+  rcases exists_norm_eq_infi_of_complete_subspace K₁ hc x with ⟨v, hv, hvm⟩,
+  rw norm_eq_infi_iff_inner_eq_zero K₁ hv at hvm,
+  split,
+  { rintro ⟨y, hy, z, hz, rfl⟩,
+    exact K₂.add_mem (h hy) hz.2 },
+  { exact λ hx, ⟨v, hv, x - v, ⟨(K₁.mem_orthogonal' _).2 hvm, K₂.sub_mem hx (h hv)⟩,
+                 add_sub_cancel'_right _ _⟩ }
+end
+
 /-- If `K` is complete, `K` and `K.orthogonal` span the whole
 space. -/
 lemma submodule.sup_orthogonal_of_is_complete {K : submodule ℝ α} (h : is_complete (K : set α)) :
   K ⊔ K.orthogonal = ⊤ :=
 begin
-  rw submodule.eq_top_iff',
-  intro x,
-  rw submodule.mem_sup,
-  rcases exists_norm_eq_infi_of_complete_subspace K h x with ⟨v, hv, hvm⟩,
-  rw norm_eq_infi_iff_inner_eq_zero K hv at hvm,
-  use [v, hv, x - v],
-  split,
-  { rw submodule.mem_orthogonal',
-    exact hvm },
-  { exact add_sub_cancel'_right _ _ }
+  convert submodule.sup_orthogonal_inf_of_is_complete (le_top : K ≤ ⊤) h,
+  simp
 end
 
 /-- If `K` is complete, `K` and `K.orthogonal` are complements of each
@@ -1151,5 +1164,23 @@ other. -/
 lemma submodule.is_compl_orthogonal_of_is_complete {K : submodule ℝ α}
     (h : is_complete (K : set α)) : is_compl K K.orthogonal :=
 ⟨K.orthogonal_disjoint, le_of_eq (submodule.sup_orthogonal_of_is_complete h).symm⟩
+
+open finite_dimensional
+
+/-- Given a finite-dimensional subspace `K₂`, and a subspace `K₁`
+containined in it, the dimensions of `K₁` and the intersection of its
+orthogonal subspace with `K₂` add to that of `K₂`. -/
+lemma submodule.findim_add_inf_findim_orthogonal {K₁ K₂ : submodule ℝ α}
+  [finite_dimensional ℝ K₂] (h : K₁ ≤ K₂) :
+  findim ℝ K₁ + findim ℝ (K₁.orthogonal ⊓ K₂ : submodule ℝ α) = findim ℝ K₂ :=
+begin
+  haveI := submodule.finite_dimensional_of_le h,
+  have hd := submodule.dim_sup_add_dim_inf_eq K₁ (K₁.orthogonal ⊓ K₂),
+  rw [←inf_assoc, (submodule.orthogonal_disjoint K₁).eq_bot, bot_inf_eq, findim_bot,
+      submodule.sup_orthogonal_inf_of_is_complete h
+        (submodule.complete_of_finite_dimensional _)] at hd,
+  rw add_zero at hd,
+  exact hd.symm
+end
 
 end orthogonal

@@ -632,13 +632,13 @@ begin
     ←binary_bicone.to_cone_π_app_left, ←binary_biproduct.bicone_fst,
     ←binary_bicone.to_cocone_ι_app_left, ←binary_biproduct.bicone_inl],
     simp },
-  { simp only [map_pair_left, ι_is_colimit_map, is_limit_map_π, has_zero_morphisms.zero_comp,
+  { simp only [map_pair_left, ι_is_colimit_map, is_limit_map_π, zero_comp,
       biprod.inl_snd_assoc, category.assoc,
       ←binary_bicone.to_cone_π_app_right, ←binary_biproduct.bicone_snd,
       ←binary_bicone.to_cocone_ι_app_left, ←binary_biproduct.bicone_inl],
     simp },
   { simp only [map_pair_right, biprod.inr_fst_assoc, ι_is_colimit_map, is_limit_map_π,
-      has_zero_morphisms.zero_comp, category.assoc,
+      zero_comp, category.assoc,
       ←binary_bicone.to_cone_π_app_left, ←binary_biproduct.bicone_fst,
       ←binary_bicone.to_cocone_ι_app_right, ←binary_biproduct.bicone_inr],
     simp },
@@ -826,7 +826,7 @@ begin
     limits.colimit.ι_desc, category.comp_id],
   dsimp,
   simp only [dite_comp, finset.sum_dite_eq, finset.mem_univ, if_true, category.id_comp,
-    eq_to_hom_refl, limits.has_zero_morphisms.zero_comp],
+    eq_to_hom_refl, zero_comp],
 end
 
 /-- A preadditive category with finite products has finite biproducts. -/

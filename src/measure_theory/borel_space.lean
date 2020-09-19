@@ -553,11 +553,33 @@ continuous_edist.measurable2
 end emetric_space
 
 namespace real
-open measurable_space
+open measurable_space measure_theory
 
 lemma borel_eq_generate_from_Ioo_rat :
   borel ℝ = generate_from (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=
 borel_eq_generate_from_of_subbasis is_topological_basis_Ioo_rat.2.2
+
+lemma measure_ext_Ioo_rat {μ ν : measure ℝ} [locally_finite_measure μ]
+  (h : ∀ a b : ℚ, μ (Ioo a b) = ν (Ioo a b)) : μ = ν :=
+begin
+  refine measure.ext_of_generate_from_of_cover_subset borel_eq_generate_from_Ioo_rat _
+    (subset.refl _) _ _ _ _,
+  { simp only [mem_Union, mem_singleton_iff],
+    rintros _ ⟨a₁, b₁, h₁, rfl⟩ _ ⟨a₂, b₂, h₂, rfl⟩ ne,
+    simp only [Ioo_inter_Ioo, sup_eq_max, inf_eq_min, ← rat.cast_max, ← rat.cast_min, nonempty_Ioo] at ne ⊢,
+    refine ⟨_, _, _, rfl⟩,
+    assumption_mod_cast },
+  { exact countable_Union (λ a, (countable_encodable _).bUnion $ λ _ _, countable_singleton _) },
+  { exact is_topological_basis_Ioo_rat.2.1 },
+  { simp only [mem_Union, mem_singleton_iff],
+    rintros _ ⟨a, b, h, rfl⟩,
+    refine (measure_mono subset_closure).trans_lt _,
+    rw [closure_Ioo],
+    exacts [compact_Icc.finite_measure, rat.cast_lt.2 h] },
+  { simp only [mem_Union, mem_singleton_iff],
+    rintros _ ⟨a, b, hab, rfl⟩,
+    exact h a b }
+end
 
 lemma borel_eq_generate_from_Iio_rat :
   borel ℝ = generate_from (⋃a:ℚ, {Iio a}) :=
@@ -715,21 +737,21 @@ hf.nnnorm.ennreal_coe
 
 end normed_group
 
-section normed_space
+namespace continuous_linear_map
 
 variables [measurable_space α]
 variables {𝕜 : Type*} [normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [measurable_space F] [borel_space F]
 
-lemma continuous_linear_map.measurable (L : E →L[𝕜] F) : measurable L :=
+protected lemma measurable (L : E →L[𝕜] F) : measurable L :=
 L.continuous.measurable
 
-lemma measurable.clm_apply {φ : α → E} (φ_meas : measurable φ)
-  (L : E →L[𝕜] F) : measurable (λ (a : α), L (φ a)) :=
+lemma measurable_comp (L : E →L[𝕜] F) {φ : α → E} (φ_meas : measurable φ) :
+  measurable (λ (a : α), L (φ a)) :=
 L.measurable.comp φ_meas
 
-end normed_space
+end continuous_linear_map
 
 namespace measure_theory
 namespace measure

@@ -287,7 +287,7 @@ a simple function with a multiple of a characteristic function and that the inte
 of their images is a subset of `{0}`).
 -/
 @[elab_as_eliminator]
-lemma integrable.induction {P : (α → E) → Prop}
+lemma integrable.induction (P : (α → E) → Prop)
   (h_ind : ∀ (c : E) ⦃s⦄, is_measurable s → μ s < ⊤ → P (s.indicator (λ _, c)))
   (h_sum : ∀ ⦃f g : α → E⦄, set.univ ⊆ f ⁻¹' {0} ∪ g ⁻¹' {0} → measurable f → measurable g →
     integrable f μ → integrable g μ → P f → P g → P (f + g))
@@ -356,6 +356,11 @@ by rw [integral_const, measure.restrict_apply_univ]
 lemma integral_indicator_const (e : E) ⦃s : set α⦄ (s_meas : is_measurable s) :
   ∫ (a : α), s.indicator (λ (x : α), e) a ∂μ = (μ s).to_real • e :=
 by rw [integral_indicator measurable_const s_meas, ← set_integral_const]
+
+lemma set_integral_map {β} [measurable_space β] {g : α → β} {f : β → E} {s : set β}
+  (hs : is_measurable s) (hf : measurable f) (hg : measurable g) :
+  ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
+by rw [measure.restrict_map hg hs, integral_map_measure hg hf]
 
 lemma norm_set_integral_le_of_norm_le_const_ae {C : ℝ} (hs : μ s < ⊤)
   (hC : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ C) :
@@ -458,6 +463,142 @@ lemma continuous_at.integral_sub_linear_is_o_ae
   {f : α → E} (ha : continuous_at f a) (hfm : measurable f) :
   is_o (λ s, ∫ x in s, f x ∂μ - (μ s).to_real • f a) (λ s, (μ s).to_real) ((𝓝 a).lift' powerset) :=
 (ha.mono_left inf_le_left).integral_sub_linear_is_o_ae hfm (μ.finite_at_nhds a)
+
+section
+/-! ### Continuous linear maps composed with integration
+
+The goal of this section is to prove that integration commutes with continuous linear maps.
+The first step is to prove that, given a function `φ : α → E` which is measurable and integrable,
+and a continuous linear map `L : E →L[ℝ] F`, the function `λ a, L(φ a)` is also measurable
+and integrable. Note we cannot write this as `L ∘ φ` since the type of `L` is not an actual
+function type.
+
+The next step is translate this to `l1`, replacing the function `φ` by a term with type
+`α →₁[μ] E` (an equivalence class of integrable functions).
+The corresponding "composition" is `L.comp_l1 φ : α →₁[μ] F`. This is then upgraded to
+a linear map `L.comp_l1ₗ : (α →₁[μ] E) →ₗ[ℝ] (α →₁[μ] F)` and a continuous linear map
+`L.comp_l1L : (α →₁[μ] E) →L[ℝ] (α →₁[μ] F)`.
+
+Then we can prove the commutation result using continuity of all relevant operations
+and the result on simple functions.
+-/
+
+variables {μ : measure α} [normed_group E] [normed_space ℝ E] [normed_group F]  [normed_space ℝ F]
+
+namespace continuous_linear_map
+
+lemma integrable_comp {φ : α → E} (L : E →L[ℝ] F) (φ_int : integrable φ μ) :
+  integrable (λ (a : α), L (φ a)) μ :=
+((integrable.norm φ_int).const_mul ∥L∥).mono' (eventually_of_forall $ λ a, L.le_op_norm (φ a))
+
+variables [second_countable_topology E] [measurable_space E] [borel_space E]
+
+lemma norm_comp_l1_apply_le (φ : α →₁[μ] E) (L : E →L[ℝ] F) : ∀ᵐ a ∂μ, ∥L (φ a)∥ ≤ ∥L∥*∥φ a∥ :=
+eventually_of_forall (λ a, L.le_op_norm (φ a))
+
+section
+variables [measurable_space F] [borel_space F] [second_countable_topology F]
+
+/-- Composing `φ : α →₁[μ] E` with `L : E →L[ℝ] F`. -/
+def comp_l1 (L : E →L[ℝ] F) (φ : α →₁[μ] E) : α →₁[μ] F :=
+l1.of_fun (λ a, L (φ a)) (L.measurable_comp φ.measurable) (L.integrable_comp φ.integrable)
+
+lemma comp_l1_apply (L : E →L[ℝ] F) (φ : α →₁[μ] E) : ∀ᵐ a ∂μ, (L.comp_l1 φ) a = L (φ a) :=
+l1.to_fun_of_fun _ _ _
+
+end
+
+lemma integrable_comp_l1 (L : E →L[ℝ] F) (φ : α →₁[μ] E) : integrable (λ a, L (φ a)) μ :=
+L.integrable_comp φ.integrable
+
+variables [measurable_space F]
+
+lemma measurable_comp_l1 [borel_space F] (L : E →L[ℝ] F) (φ : α →₁[μ] E) :
+  measurable (λ a, L (φ a)) := L.measurable.comp φ.measurable
+
+variables [borel_space F] [second_countable_topology F]
+
+lemma integral_comp_l1 [complete_space F] (L : E →L[ℝ] F) (φ : α →₁[μ] E) :
+  ∫ a, (L.comp_l1 φ) a ∂μ = ∫ a, L (φ a) ∂μ :=
+by simp [comp_l1]
+
+/-- Composing `φ : α →₁[μ] E` with `L : E →L[ℝ] F`, seen as a `ℝ`-linear map on `α →₁[μ] E`. -/
+def comp_l1ₗ (L : E →L[ℝ] F) : (α →₁[μ] E) →ₗ[ℝ] (α →₁[μ] F) :=
+{ to_fun := λ φ, L.comp_l1 φ,
+  map_add' := begin
+    intros f g,
+    dsimp [comp_l1],
+    rw [← l1.of_fun_add, l1.of_fun_eq_of_fun],
+    apply (l1.add_to_fun f g).mono,
+    intros a ha,
+    simp only [ha, pi.add_apply, L.map_add]
+  end,
+  map_smul' := begin
+    intros c f,
+    dsimp [comp_l1],
+    rw [← l1.of_fun_smul, l1.of_fun_eq_of_fun],
+    apply (l1.smul_to_fun c f).mono,
+    intros a ha,
+    simp only [ha, pi.smul_apply, continuous_linear_map.map_smul]
+  end }
+
+lemma norm_comp_l1_le (φ : α →₁[μ] E) (L : E →L[ℝ] F) : ∥L.comp_l1 φ∥ ≤ ∥L∥*∥φ∥ :=
+begin
+  erw l1.norm_of_fun_eq_integral_norm,
+  calc
+  ∫ a, ∥L (φ a)∥ ∂μ ≤ ∫ a, ∥L∥ *∥φ a∥ ∂μ : integral_mono (L.measurable.comp φ.measurable).norm
+                                (L.integrable_comp_l1 φ).norm (φ.measurable_norm.const_mul $ ∥L∥)
+                                (φ.integrable_norm.const_mul $ ∥L∥) (L.norm_comp_l1_apply_le φ)
+  ... = ∥L∥ * ∥φ∥ : by rw [integral_mul_left, φ.norm_eq_integral_norm]
+end
+
+/-- Composing `φ : α →₁[μ] E` with `L : E →L[ℝ] F`, seen as a continuous `ℝ`-linear map on
+`α →₁[μ] E`. -/
+def comp_l1L (L : E →L[ℝ] F) : (α →₁[μ] E) →L[ℝ] (α →₁[μ] F) :=
+linear_map.mk_continuous L.comp_l1ₗ (∥L∥) (λ φ, L.norm_comp_l1_le φ)
+
+lemma norm_compl1L_le (L : E →L[ℝ] F) : ∥(L.comp_l1L : (α →₁[μ] E) →L[ℝ] (α →₁[μ] F))∥ ≤ ∥L∥ :=
+op_norm_le_bound _ (norm_nonneg _) (λ φ, L.norm_comp_l1_le φ)
+
+variables [complete_space F]
+
+lemma continuous_integral_comp_l1 (L : E →L[ℝ] F) :
+  continuous (λ (φ : α →₁[μ] E), ∫ (a : α), L (φ a) ∂μ) :=
+begin
+  rw ← funext L.integral_comp_l1,
+  exact continuous_integral.comp L.comp_l1L.continuous
+end
+
+variables [complete_space E]
+
+lemma integral_comp_comm (L : E →L[ℝ] F) {φ : α → E} (φ_meas : measurable φ)
+  (φ_int : integrable φ μ) : ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
+begin
+  apply integrable.induction (λ φ, ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ)),
+  { intros e s s_meas s_finite,
+    rw [integral_indicator_const e s_meas, continuous_linear_map.map_smul,
+        ← integral_indicator_const (L e) s_meas],
+    congr' 1 with a,
+    rw set.indicator_comp_of_zero L.map_zero },
+  { intros f g H f_meas g_meas f_int g_int hf hg,
+    simp [L.map_add, integral_add f_meas f_int g_meas g_int,
+      integral_add (L.measurable_comp f_meas) (L.integrable_comp f_int)
+      (L.measurable_comp g_meas) (L.integrable_comp g_int), hf, hg] },
+  { exact is_closed_eq L.continuous_integral_comp_l1 (L.continuous.comp continuous_integral) },
+  { intros f g hfg f_meas g_meas f_int hf,
+    convert hf using 1 ; clear hf,
+    { exact integral_congr_ae (L.measurable.comp g_meas) (L.measurable.comp f_meas) (hfg.fun_comp L).symm },
+    { rw integral_congr_ae g_meas f_meas hfg.symm } },
+  all_goals { assumption }
+end
+
+lemma integral_comp_l1_comm (L : E →L[ℝ] F) (φ : α →₁[μ] E) :
+  ∫ a, L (φ a) ∂μ = L (∫ a, φ a ∂μ) :=
+L.integral_comp_comm φ.measurable φ.integrable
+
+end continuous_linear_map
+
+end
 
 /-
 namespace integrable

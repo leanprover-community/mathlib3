@@ -903,6 +903,12 @@ lemma filter.has_basis.uniform_continuous_iff [uniform_space β] {p : γ → Pro
   uniform_continuous f ↔ ∀ i (hi : q i), ∃ j (hj : p j), ∀ x y, (x, y) ∈ s j → (f x, f y) ∈ t i :=
 (ha.tendsto_iff hb).trans $ by simp only [prod.forall]
 
+lemma filter.has_basis.uniform_continuous_on_iff [uniform_space β] {p : γ → Prop} {s : γ → set (α×α)}
+  (ha : (𝓤 α).has_basis p s) {q : δ → Prop} {t : δ → set (β×β)} (hb : (𝓤 β).has_basis q t)
+  {f : α → β} {S : set α} :
+  uniform_continuous_on f S ↔ ∀ i (hi : q i), ∃ j (hj : p j), ∀ x y ∈ S, (x, y) ∈ s j → (f x, f y) ∈ t i :=
+((ha.inf_principal (S.prod S)).tendsto_iff hb).trans $ by finish [prod.forall]
+
 end uniform_space
 
 open_locale uniformity
@@ -1107,7 +1113,7 @@ lemma uniform_continuous_subtype_mk {p : α → Prop} [uniform_space α] [unifor
   uniform_continuous (λx, ⟨f x, h x⟩ : β → subtype p) :=
 uniform_continuous_comap' hf
 
-lemma uniform_continuous_on_iff_restrict [uniform_space α] [uniform_space β] (f : α → β) (s : set α) :
+lemma uniform_continuous_on_iff_restrict [uniform_space α] [uniform_space β] {f : α → β} {s : set α} :
   uniform_continuous_on f s ↔ uniform_continuous (s.restrict f) :=
 begin
   unfold uniform_continuous_on set.restrict uniform_continuous tendsto,
@@ -1125,6 +1131,13 @@ lemma tendsto_of_uniform_continuous_subtype
 by rw [(@map_nhds_subtype_coe_eq α _ s a (mem_of_nhds ha) ha).symm]; exact
 tendsto_map' (continuous_iff_continuous_at.mp hf.continuous _)
 
+lemma uniform_continuous_on.continuous_on [uniform_space α] [uniform_space β] {f : α → β}
+  {s : set α} (h : uniform_continuous_on f s) : continuous_on f s :=
+begin
+  rw uniform_continuous_on_iff_restrict at h,
+  rw continuous_on_iff_continuous_restrict,
+  exact h.continuous
+end
 
 section prod
 

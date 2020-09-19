@@ -74,7 +74,7 @@ class conditionally_complete_linear_order (α : Type*)
   extends conditionally_complete_lattice α, decidable_linear_order α
 
 class conditionally_complete_linear_order_bot (α : Type*)
-  extends conditionally_complete_lattice α, decidable_linear_order α, order_bot α :=
+  extends conditionally_complete_linear_order α, order_bot α :=
 (cSup_empty : Sup ∅ = ⊥)
 
 /- A complete lattice is a conditionally complete lattice, as there are no restrictions

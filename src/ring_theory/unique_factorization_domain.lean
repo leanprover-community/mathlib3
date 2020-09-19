@@ -404,6 +404,9 @@ by { dunfold count, split_ifs, refl }
   count p (0 : factor_set α) = 0 :=
 by { dunfold count, split_ifs, refl }
 
+lemma count_reducible [decidable_eq (associates α)] {p : associates α} (hp : ¬ irreducible p) :
+  count p = 0 := dif_neg hp
+
 omit dec_irr
 
 /-- membership in a factor_set (bundled version) -/
@@ -413,11 +416,16 @@ def bfactor_set_mem : {a : associates α // irreducible a} → (factor_set α) �
 
 include dec_irr
 
-/-- membership in a factor_set -/
+/-- `factor_set_mem p s` is the predicate that the irreducible `p` is a member of `s : factor_set α`.
+
+If `p` is not irreducible, `p` is not a member of any `factor_set`. -/
 def factor_set_mem (p : associates α) (s : factor_set α) : Prop :=
 if hp : irreducible p then bfactor_set_mem ⟨p, hp⟩ s else false
 
 instance : has_mem (associates α) (factor_set α) := ⟨factor_set_mem⟩
+
+@[simp] lemma factor_set_mem_eq_mem (p : associates α) (s : factor_set α) :
+  factor_set_mem p s = (p ∈ s) := rfl
 
 lemma mem_factor_set_top {p : associates α} {hp : irreducible p} :
   p ∈ (⊤ : factor_set α) :=
@@ -431,6 +439,11 @@ lemma mem_factor_set_some {p : associates α} {hp : irreducible p}
 begin
   dunfold has_mem.mem, dunfold factor_set_mem, split_ifs, refl
 end
+
+lemma reducible_not_mem_factor_set {p : associates α} (hp : ¬ irreducible p)
+  (s : factor_set α) : ¬ p ∈ s :=
+λ (h : if hp : irreducible p then bfactor_set_mem ⟨p, hp⟩ s else false),
+  by rwa [dif_neg hp] at h
 
 omit dec_irr
 
@@ -627,7 +640,7 @@ include dec_irr
 lemma dvd_of_mem_factors {a p : associates α} {hp : irreducible p}
   (hm : p ∈ factors a) : p ∣ a :=
 begin
-  by_cases ha0 : a = 0, { rw ha0, exact dvd_zero p},
+  by_cases ha0 : a = 0, { rw ha0, exact dvd_zero p },
   obtain ⟨a0, nza, ha'⟩ := exists_non_zero_rep ha0,
   rw [← associates.factors_prod a],
   rw [← ha', factors_mk a0 nza] at hm ⊢,

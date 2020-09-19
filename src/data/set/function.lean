@@ -187,6 +187,18 @@ theorem eq_on.inj_on_iff (H : eq_on f₁ f₂ s) : inj_on f₁ s ↔ inj_on f₂
 theorem inj_on.mono (h : s₁ ⊆ s₂) (ht : inj_on f s₂) : inj_on f s₁ :=
 λ x hx y hy H, ht (h hx) (h hy) H
 
+theorem inj_on_insert {f : α → β} {s : set α} {a : α} (has : a ∉ s) :
+  set.inj_on f (insert a s) ↔ set.inj_on f s ∧ f a ∉ f '' s :=
+⟨λ hf, ⟨hf.mono $ subset_insert a s,
+  λ ⟨x, hxs, hx⟩, has $ mem_of_eq_of_mem (hf (or.inl rfl) (or.inr hxs) hx.symm) hxs⟩,
+λ ⟨h1, h2⟩ x hx y hy hfxy, or.cases_on hx
+  (λ hxa : x = a, or.cases_on hy
+    (λ hya : y = a, hxa.trans hya.symm)
+    (λ hys : y ∈ s, h2.elim ⟨y, hys, hxa ▸ hfxy.symm⟩))
+  (λ hxs : x ∈ s, or.cases_on hy
+    (λ hya : y = a, h2.elim ⟨x, hxs, hya ▸ hfxy⟩)
+    (λ hys : y ∈ s, h1 hxs hys hfxy))⟩
+
 lemma injective_iff_inj_on_univ : injective f ↔ inj_on f univ :=
 ⟨λ h x hx y hy hxy, h hxy, λ h _ _ heq, h trivial trivial heq⟩
 

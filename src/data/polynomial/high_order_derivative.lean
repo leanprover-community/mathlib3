@@ -30,14 +30,14 @@ lemma deriv_n_zero : deriv_n (0 : polynomial R) n = 0 :=
 begin
   induction n with n hn;
   simp only [deriv_n, id.def, function.iterate_zero],
-  rwa <-deriv_n
+  rwa ←deriv_n
 end
 
 lemma deriv_n_add : (deriv_n (p+q) n) = (deriv_n p n) + (deriv_n q n) :=
 begin
   induction n with n ih,
   { simp only [zeroth_deriv], },
-  { rw [<-deriv_n_succ, ih, polynomial.derivative_add, deriv_n_succ, deriv_n_succ] }
+  { rw [←deriv_n_succ, ih, polynomial.derivative_add, deriv_n_succ, deriv_n_succ] }
 end
 
 end semiring
@@ -53,7 +53,7 @@ begin
   { simp only [add_zero, forall_const, one_mul, range_zero, eq_self_iff_true,
       zeroth_deriv, prod_empty] },
 
-  { intro m, rw <-deriv_n_succ,
+  { intro m, rw ←deriv_n_succ,
     rw [polynomial.coeff_derivative, ih (m+1), prod_range_succ],
     simp only [nat.cast_succ, succ_eq_add_one],
     conv_rhs { rw [mul_assoc, mul_comm] },
@@ -61,7 +61,7 @@ begin
     { apply congr_arg, ext, ring },
     rw triv,
     replace triv : (m + 1 : R) = (m + (k+1) - k:R),
-    { rw add_sub_assoc, simp only [add_sub_cancel'], }, rw <-triv,
+    { rw add_sub_assoc, simp only [add_sub_cancel'], }, rw ←triv,
       replace triv : f.coeff (m + 1 + k) = f.coeff (m + (k + 1)),
     { apply congr_arg, ring},
     rw triv }
@@ -91,7 +91,7 @@ begin
   induction n with n IH,
   { simp only [one_mul, cast_one, id.def, sum_singleton, C_eq_nat_cast, zeroth_deriv, choose_self, range_one]},
 
-  { rw [<-deriv_n_succ, IH],
+  { rw [←deriv_n_succ, IH],
     simp only [derivative_mul, derivative_sum, derivative_C, zero_mul, zero_add, deriv_n_succ],
     conv_lhs {rw [sum_add_distrib]},
     conv {
@@ -132,13 +132,13 @@ begin
     clear rhs_eq,
 
     apply congr_arg2,
-    { rw <-sum_add_distrib,
+    { rw ←sum_add_distrib,
       apply sum_congr rfl,
       intros x hx,
       simp only [mem_range, succ_sub_succ_eq_sub, C_eq_nat_cast, succ_eq_add_one, choose_succ_succ] at *,
       push_cast,
       have triv : (n - (x + 1) + 1)  = n - x,
-      { rw <-nat.sub_add_comm,
+      { rw ←nat.sub_add_comm,
         rw succ_sub_succ,
         exact succ_le_iff.mpr hx, },
         rw [triv, add_mul],

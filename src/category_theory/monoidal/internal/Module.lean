@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.category.Module.monoidal
 import algebra.category.Algebra.basic
-import category_theory.monoidal.internal
+import category_theory.monoidal.Mon_
 
 
 /-!

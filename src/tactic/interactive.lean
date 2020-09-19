@@ -424,7 +424,6 @@ do
   g ← instantiate_mvars g,
   unify e g
 
-
 /-- `success_if_fail_with_msg { tac } msg` succeeds if the interactive tactic `tac` fails with
 error message `msg` (for test writing purposes). -/
 meta def success_if_fail_with_msg (tac : tactic.interactive.itactic) :=

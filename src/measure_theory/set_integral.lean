@@ -484,40 +484,39 @@ Then we can prove the commutation result using continuity of all relevant operat
 and the result on simple functions.
 -/
 
-variables {μ : measure α} [normed_group E] [normed_space ℝ E] [normed_group F]  [normed_space ℝ F]
+variables {μ : measure α} [normed_group E] [normed_space ℝ E]
+variables [normed_group F] [normed_space ℝ F] [measurable_space F] [borel_space F]
 
 namespace continuous_linear_map
 
-lemma integrable_comp {φ : α → E} (L : E →L[ℝ] F) (φ_int : integrable φ μ) :
-  integrable (λ (a : α), L (φ a)) μ :=
-((integrable.norm φ_int).const_mul ∥L∥).mono' (eventually_of_forall $ λ a, L.le_op_norm (φ a))
+lemma integrable_comp [opens_measurable_space E] {φ : α → E} (L : E →L[ℝ] F)
+  (φ_int : integrable φ μ) : integrable (λ (a : α), L (φ a)) μ :=
+((integrable.norm φ_int).const_mul ∥L∥).mono' (L.measurable.comp φ_int.measurable)
+  (eventually_of_forall $ λ a, L.le_op_norm (φ a))
 
-variables [second_countable_topology E] [measurable_space E] [borel_space E]
+variables [second_countable_topology E]
 
-lemma norm_comp_l1_apply_le (φ : α →₁[μ] E) (L : E →L[ℝ] F) : ∀ᵐ a ∂μ, ∥L (φ a)∥ ≤ ∥L∥*∥φ a∥ :=
+lemma norm_comp_l1_apply_le [opens_measurable_space E] (φ : α →₁[μ] E) (L : E →L[ℝ] F) :
+  ∀ᵐ a ∂μ, ∥L (φ a)∥ ≤ ∥L∥*∥φ a∥ :=
 eventually_of_forall (λ a, L.le_op_norm (φ a))
 
-section
-variables [measurable_space F] [borel_space F] [second_countable_topology F]
+variables [borel_space E]
 
 /-- Composing `φ : α →₁[μ] E` with `L : E →L[ℝ] F`. -/
-def comp_l1 (L : E →L[ℝ] F) (φ : α →₁[μ] E) : α →₁[μ] F :=
-l1.of_fun (λ a, L (φ a)) (L.measurable_comp φ.measurable) (L.integrable_comp φ.integrable)
+def comp_l1 [second_countable_topology F] (L : E →L[ℝ] F) (φ : α →₁[μ] E) : α →₁[μ] F :=
+l1.of_fun (λ a, L (φ a)) (L.integrable_comp φ.integrable)
 
-lemma comp_l1_apply (L : E →L[ℝ] F) (φ : α →₁[μ] E) : ∀ᵐ a ∂μ, (L.comp_l1 φ) a = L (φ a) :=
-l1.to_fun_of_fun _ _ _
-
-end
+lemma comp_l1_apply [second_countable_topology F] (L : E →L[ℝ] F) (φ : α →₁[μ] E) :
+  ∀ᵐ a ∂μ, (L.comp_l1 φ) a = L (φ a) :=
+l1.to_fun_of_fun _ _
 
 lemma integrable_comp_l1 (L : E →L[ℝ] F) (φ : α →₁[μ] E) : integrable (λ a, L (φ a)) μ :=
 L.integrable_comp φ.integrable
 
-variables [measurable_space F]
-
 lemma measurable_comp_l1 [borel_space F] (L : E →L[ℝ] F) (φ : α →₁[μ] E) :
   measurable (λ a, L (φ a)) := L.measurable.comp φ.measurable
 
-variables [borel_space F] [second_countable_topology F]
+variables [second_countable_topology F]
 
 lemma integral_comp_l1 [complete_space F] (L : E →L[ℝ] F) (φ : α →₁[μ] E) :
   ∫ a, (L.comp_l1 φ) a ∂μ = ∫ a, L (φ a) ∂μ :=
@@ -547,8 +546,7 @@ lemma norm_comp_l1_le (φ : α →₁[μ] E) (L : E →L[ℝ] F) : ∥L.comp_l1 
 begin
   erw l1.norm_of_fun_eq_integral_norm,
   calc
-  ∫ a, ∥L (φ a)∥ ∂μ ≤ ∫ a, ∥L∥ *∥φ a∥ ∂μ : integral_mono (L.measurable.comp φ.measurable).norm
-                                (L.integrable_comp_l1 φ).norm (φ.measurable_norm.const_mul $ ∥L∥)
+  ∫ a, ∥L (φ a)∥ ∂μ ≤ ∫ a, ∥L∥ *∥φ a∥ ∂μ : integral_mono (L.integrable_comp_l1 φ).norm
                                 (φ.integrable_norm.const_mul $ ∥L∥) (L.norm_comp_l1_apply_le φ)
   ... = ∥L∥ * ∥φ∥ : by rw [integral_mul_left, φ.norm_eq_integral_norm]
 end
@@ -581,15 +579,15 @@ begin
         ← integral_indicator_const (L e) s_meas],
     congr' 1 with a,
     rw set.indicator_comp_of_zero L.map_zero },
-  { intros f g H f_meas g_meas f_int g_int hf hg,
-    simp [L.map_add, integral_add f_meas f_int g_meas g_int,
-      integral_add (L.measurable_comp f_meas) (L.integrable_comp f_int)
-      (L.measurable_comp g_meas) (L.integrable_comp g_int), hf, hg] },
+  { intros f g H f_int g_int hf hg,
+    simp [L.map_add, integral_add f_int g_int,
+      integral_add (L.integrable_comp f_int) (L.integrable_comp g_int), hf, hg] },
   { exact is_closed_eq L.continuous_integral_comp_l1 (L.continuous.comp continuous_integral) },
-  { intros f g hfg f_meas g_meas f_int hf,
+  { intros f g hfg f_int g_meas hf,
     convert hf using 1 ; clear hf,
-    { exact integral_congr_ae (L.measurable.comp g_meas) (L.measurable.comp f_meas) (hfg.fun_comp L).symm },
-    { rw integral_congr_ae g_meas f_meas hfg.symm } },
+    { exact integral_congr_ae (L.measurable.comp g_meas) (L.measurable.comp f_int.measurable)
+        (hfg.fun_comp L).symm },
+    { rw integral_congr_ae g_meas f_int.measurable hfg.symm } },
   all_goals { assumption }
 end
 
